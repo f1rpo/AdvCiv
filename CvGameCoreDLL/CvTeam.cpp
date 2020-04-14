@@ -1429,30 +1429,37 @@ void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits,  // advc: refactored
 		{
 			// <advc.039>
 			CvWString szBuffer;
-			bool bReparations = false;
+			bool bAnyReparations = false;
 			if (pReparations != NULL)
 			{
 				szBuffer = gDLL->getText("TXT_KEY_MISC_PEACE_IN_EXCHANGE",
 						getName().GetCString(), kTarget.getName().GetCString()) + L" ";
+				std::vector<CvWString> aszTradeItems;
 				for (CLLNode<TradeData> const* pNode = pReparations->head(); pNode != NULL;
 					pNode = pReparations->next(pNode))
 				{
-					CvWString const szItem(tradeItemString(pNode->m_data.m_eItemType, pNode->m_data.m_iData, eTarget));
-					if (szItem.length() <= 0)
-						continue;
-					bReparations = true;
-					szBuffer += szItem;
-					if (pReparations->next(pNode) != NULL)
+					CvWString const szItem(tradeItemString(
+							pNode->m_data.m_eItemType, pNode->m_data.m_iData, eTarget));
+					if (szItem.length() > 0)
+						aszTradeItems.push_back(szItem);
+				}
+				// The loop above has only filtered out items w/o string representation
+				for (size_t i = 0; i < aszTradeItems.size(); i++)
+				{
+					bAnyReparations = true;
+					szBuffer += aszTradeItems[i];
+					int iRemaining = ((int)aszTradeItems.size()) - i - 1;
+					if (iRemaining > 0)
 					{
-						if(pReparations->next(pReparations->next(pNode)) == NULL)
+						if(iRemaining == 1)
 							szBuffer += L" " + gDLL->getText("TXT_KEY_AND") + L" ";
 						else szBuffer += L", ";
 					}
 					else szBuffer += L".";
 				} // Can handle it, but I don't think it should happen:
-				FAssert(bReparations);
+				FAssert(bAnyReparations);
 			}
-			if(!bReparations) // </advc.039>
+			if(!bAnyReparations) // </advc.039>
 			{
 				szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_MADE_PEACE",
 						getName().GetCString(), kTarget.getName().GetCString());
@@ -1462,7 +1469,7 @@ void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits,  // advc: refactored
 					szSoundThey, (isAVassal() || kTarget.isAVassal() ?
 					MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY : // </advc.106b>
 					MESSAGE_TYPE_MAJOR_EVENT), NULL,
-					(bReparations ? NO_COLOR : // advc.039
+					(bAnyReparations ? NO_COLOR : // advc.039
 					GC.getColorType("HIGHLIGHT_TEXT")),
 					// advc.127b:
 					getCapitalX(kObs.getTeam(), true), getCapitalY(kObs.getTeam(), true));

@@ -688,7 +688,7 @@ void CvPlayerAI::AI_doPeace()  // advc: refactored
 	}
 }
 
-// <advc.134a>
+// advc.134a:
 bool CvPlayerAI::AI_upholdPeaceOffer(PlayerTypes eHuman, CvDiploParameters const& kOffer) const
 {
 	int iOurBenefit = AI_dealVal(eHuman, kOffer.getTheirOfferList());
@@ -702,7 +702,7 @@ bool CvPlayerAI::AI_upholdPeaceOffer(PlayerTypes eHuman, CvDiploParameters const
 	}
 	// Neither uphold highly generous offers, nor terrible ones.
 	return (2 * iOurBenefit >= iTheirBenefit && 2 * iTheirBenefit > iOurBenefit);
-} // </advc.134a>
+}
 
 /*  <advc.104h> Cut and pasted (and refactored) from doPeace b/c UWAI needs
 	this subroutine. While decisions of war and peace are made by teams, an
@@ -774,7 +774,7 @@ bool CvPlayerAI::AI_negotiatePeace(PlayerTypes eOther, int iTheirBenefit, int iO
 		FAssert(theyGive.getLength() <= 0);
 		weGive.insertAtEnd(peaceTreaty);
 	}
-	if(kOther.isHuman() && iTheirBenefit < iOurBenefit && theyGive.getLength() == 1)
+	if(kOther.isHuman() && iTheirBenefit < iOurBenefit && theyGive.getLength() == 0)
 	{
 		/*  Really can't make an attractive offer w/o considering all tradeable items,
 			including map and gpt. */
@@ -792,7 +792,15 @@ bool CvPlayerAI::AI_negotiatePeace(PlayerTypes eOther, int iTheirBenefit, int iO
 		iTheirBenefit = kOther.AI_dealVal(getID(), weGive);
 		if(5 * iTheirBenefit < 3 * iOurBenefit)
 			return false;
-	} // </advc.134a>
+	}
+	/*	Now that trade balancing is through:
+		Important to have a peace treaty on both sides in the diplo popup,
+		and the code for announcing reparations (advc.039) also depends on it. */
+	if (weGive.getLength() == 0)
+		weGive.insertAtEnd(peaceTreaty);
+	if (theyGive.getLength() == 0)
+		theyGive.insertAtEnd(peaceTreaty);
+	// </advc.134a>
 	if(kOther.isHuman())
 	{
 		AI_changeContactTimer(eOther, CONTACT_PEACE_TREATY,
