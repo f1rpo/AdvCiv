@@ -66,7 +66,7 @@ KmodPathFinder::~KmodPathFinder()
 
 bool KmodPathFinder::ValidateNodeMap()
 {
-	//PROFILE_FUNC(); // advc.003o
+	PROFILE_FUNC(); // advc.003o  // advc.test: Let's check again how often this gets called
 	if (!GC.getGame().isFinalInitialized())
 		return false;
 

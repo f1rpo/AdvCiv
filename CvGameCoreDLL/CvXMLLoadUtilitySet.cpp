@@ -1214,8 +1214,7 @@ void CvXMLLoadUtility::SetGlobalClassInfo(std::vector<T*>& aInfos, const char* s
 	{
 		// if we successfully locate the szTagName node
 		if (gDLL->getXMLIFace()->LocateNode(m_pFXml, szTagName))
-		{
-			/*	<advc.rh> Comment by rheinig: "Major bug:
+		{	/*	<advc.rh> Comment by rheinig: "Major bug:
 				The following maps records as currently present in the info array,
 				beginning with the first, to elements in the XML, beginning with the
 				first, one by one, and does a (<T>).readPass2() on these pairs.
@@ -1367,7 +1366,8 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 			errorMessage(szMessage, XML_LOAD_ERROR);
 		}
 		else
-		{	/*	<advc.rh> Comment by rheinig: "Because the Event tables contain
+		{
+			/*	<advc.rh> Comment by rheinig: "Because the Event tables contain
 				member arrays dimensioned to their own count, we need to delay pass 2
 				for the monolithic XML until after pass 1 has run for the modules.
 				Thus, the 'pass' parameter of SetGlobalClassInfo now indicates the

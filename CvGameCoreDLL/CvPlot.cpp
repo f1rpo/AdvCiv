@@ -77,6 +77,7 @@ CvPlot::CvPlot() // advc: Merged with the deleted reset function
 	m_eRouteType = NO_ROUTE;
 	m_eRiverNSDirection = NO_CARDINALDIRECTION;
 	m_eRiverWEDirection = NO_CARDINALDIRECTION;
+
 	m_plotCity.reset();
 	m_workingCity.reset();
 	m_workingCityOverride.reset();
@@ -4862,6 +4863,7 @@ void CvPlot::setRuinsName(CvWString const& szName)
 	SAFE_DELETE_ARRAY(m_szMostRecentCityName);
 	if (szName.empty())
 		return;
+	// Copying szName.c_str() into a C string takes some work
 	wchar* szBuffer = new wchar[szName.length() + 1]; // +1 for \0
 	wcsncpy(szBuffer, szName.c_str(), szName.length() + 1);
 	m_szMostRecentCityName = szBuffer;

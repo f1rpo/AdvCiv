@@ -12646,7 +12646,7 @@ void CvPlayer::postProcessMessages()
 		{
 			/*  Show major events even if the Turn Log gets opened. As with
 				NewMessages, CvPlayer needs to keep track of the recent messages;
-				use MajorMsgs for that. */
+				use aMajorMsgs for that. */
 			for(size_t i = 0; i < m_aMajorMsgs.size(); i++)
 				gDLL->UI().showMessage(*m_aMajorMsgs[i]);
 		}

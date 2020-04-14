@@ -665,25 +665,26 @@ void CvPlayerAI::AI_doPeace()  // advc: refactored
 		{
 			continue;
 		}
-		TradeData item(TRADE_PEACE_TREATY);
 		// advc: Replacing two canTradeItem calls
-		if(getTradeDenial(eTarget, item) != NO_DENIAL ||
-			kTarget.getTradeDenial(getID(), item) != NO_DENIAL)
+		if(getTradeDenial(eTarget, TradeData(TRADE_PEACE_TREATY)) != NO_DENIAL ||
+			kTarget.getTradeDenial(getID(), TradeData(TRADE_PEACE_TREATY)) != NO_DENIAL)
 		{
 			continue;
 		}
-		int iOurValue = GET_TEAM(getTeam()).AI_endWarVal(kTarget.getTeam());
-		int iTheirValue = GET_TEAM(eTarget).AI_endWarVal(getTeam());
+		scaled rOurValue = GET_TEAM(getTeam()).AI_endWarVal(kTarget.getTeam());
+		scaled rTheirValue = GET_TEAM(eTarget).AI_endWarVal(getTeam());
 		// <advc.134a> Human discount
 		if(kTarget.isHuman())
 		{
-			double const discountFactor = 1.2;
-			if(iOurValue > 0)
-				iOurValue = ::round(iOurValue * discountFactor);
-			else iOurValue = ::round(iOurValue / discountFactor);
+			scaled const rDiscountFactor = fixp(1.2);
+			if(rOurValue > 0)
+				rOurValue = rOurValue * rDiscountFactor;
+			else rOurValue = rOurValue / rDiscountFactor;
 		} // </advc.134a>
-		// advc.104h:
-		abContacted[kTarget.getTeam()] = AI_negotiatePeace(eTarget, iTheirValue, iOurValue);
+		// <advc.104h>
+		abContacted[kTarget.getTeam()] = AI_negotiatePeace(
+				eTarget, rTheirValue.round(), rOurValue.round());
+		// </advc.104h>
 	}
 }
 
