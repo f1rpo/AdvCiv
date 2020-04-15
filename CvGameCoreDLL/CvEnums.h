@@ -1805,7 +1805,7 @@ enum AnimationOperatorTypes
 //! Enumeration for playing events with CvLeaderheadWidget
 enum LeaderheadAction
 {
-	NO_LEADERANIM,				//!< If used with CvLeaderheadWidget::PerformAction, plays the idle animation)
+	NO_LEADERANIM = -1,			//!< If used with CvLeaderheadWidget::PerformAction, plays the idle animation)
 	LEADERANIM_GREETING,		//!< The leaderhead greets you
 	LEADERANIM_FRIENDLY,		//!< The leaderhead is friendly to you
 	LEADERANIM_PLEASED,			//!< The leaderhead is pleased
