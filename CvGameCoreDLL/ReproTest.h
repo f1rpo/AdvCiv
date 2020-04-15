@@ -12,6 +12,8 @@
 	turns as before; upon auto-saving, compare the synchronized data that gets written
 	to the savegame with the data kept in memory and assert that they're the same.
 	Prerequisites: Assert (or Debug) build, AutoSaveInterval = 1 in CivilizationIV.ini.
+	May also want to enable the BBAI log (BBAILog.h) and MessageLog, maybe also RandLog
+	in CivilizationIV.ini. (See comment in ReproTest constructor about comparing logs.)
 	Caveat: MSVC03 doesn't initialize padding bytes. CLinkList will write those into
 	savegames. I've fixed that for a few structs through the INIT_STRUCT_PADDING macro,
 	but there might be more. */

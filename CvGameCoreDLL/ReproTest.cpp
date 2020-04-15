@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "ReproTest.h"
 #include "CvGame.h"
+#include "BBAILog.h"
 
 ReproTest* ReproTest::m_pReproTest = NULL;
 
@@ -24,6 +25,14 @@ ReproTest::ReproTest(int iTurns)
 		return;
 	}
 	kGame.doControl(CONTROL_QUICK_SAVE);
+	/*	For comparing logs, one will have to copy the part in between
+		"start" and "reloading" to a new file and the part between
+		"reloading" and "end"; then get a diff. */
+	#ifdef LOG_AI
+		logBBAI("ReproTest: start\n");
+	#endif
+	if (GC.isLogging())
+		gDLL->messageControlLog("ReproTest: start");
 	kGame.setAIAutoPlay(m_iAutoPlayTurns, true);
 }
 
@@ -69,6 +78,11 @@ void ReproTest::endWrite(bool bFinal)
 			bool bDebugMode = kGame.isDebugMode();
 			m_bQuickLoadDone = true;
 			kGame.doControl(CONTROL_QUICK_LOAD);
+			#ifdef LOG_AI
+				logBBAI("ReproTest: reloading");
+			#endif
+			if (GC.isLogging())
+				gDLL->messageControlLog("ReproTest: reloading\n");
 			/*	Debug mode gets turned off after reload. Needs to be consistent
 				because, otherwise, CvPlayer::m_listGameMessages won't be reproducible. */
 			if (bDebugMode)
@@ -118,5 +132,12 @@ void ReproTest::endWrite(bool bFinal)
 	}
 	m_iPos++;
 	if (m_iPos == m_aObjectIDs.size() || (bCancelAfterFirstDifference && !bSame))
+	{
 		SAFE_DELETE(m_pReproTest);
+		#ifdef LOG_AI
+			logBBAI("ReproTest: done");
+		#endif
+		if (GC.isLogging())
+			gDLL->messageControlLog("ReproTest: done\n");
+	}
 }
