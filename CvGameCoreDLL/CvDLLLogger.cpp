@@ -19,7 +19,7 @@ CvDLLLogger::CvDLLLogger(bool bEnabled, bool bRandEnabled)
 void CvDLLLogger::logRandomNumber(const TCHAR* szMsg, unsigned short usNum,
 		unsigned long ulSeed, int iData1, int iData2)
 {
-	if (!isEnabled(true))
+	if (!isEnabledRand() || szMsg == NULL)
 		return;
 	int const iTurnSlice = GC.getGame().getTurnSlice();
 	if (iTurnSlice <= 0)

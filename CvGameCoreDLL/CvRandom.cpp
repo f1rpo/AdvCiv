@@ -32,8 +32,7 @@ void CvRandom::reset(unsigned long ulSeed)
 unsigned short CvRandom::getInt(unsigned short usNum, const TCHAR* pszLog,
 		int iData1, int iData2) // advc.001n
 {
-	if (pszLog != NULL)
-		GC.getLogger().logRandomNumber(pszLog, usNum, m_ulRandomSeed, iData1, iData2); // advc.003t
+	GC.getLogger().logRandomNumber(pszLog, usNum, m_ulRandomSeed, iData1, iData2); // advc.003t
 
 	m_ulRandomSeed = (RANDOM_A * m_ulRandomSeed) + RANDOM_C;
 	unsigned short r = (unsigned short)

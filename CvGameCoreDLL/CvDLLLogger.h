@@ -24,9 +24,13 @@ private:
 	bool m_bEnabled;
 	bool m_bRandEnabled;
 
-	inline bool isEnabled(bool bRand = false) const
+	inline bool isEnabled() const
 	{
-		return bRand ? m_bRandEnabled : m_bEnabled;
+		return m_bEnabled;
+	}
+	inline bool isEnabledRand() const
+	{
+		return m_bRandEnabled;
 	}
 };
 
