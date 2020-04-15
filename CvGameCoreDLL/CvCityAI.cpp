@@ -12856,8 +12856,6 @@ void CvCityAI::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iNeededFloatingDefenders);
 	pStream->Read(&m_iNeededFloatingDefendersCacheTurn);
 	// <advc.139>
-	if (uiFlag >= 7)
-		pStream->Read(&m_iCityValPercent);
 	if (uiFlag >= 8)
 		pStream->Read((int*)&m_eSafety);
 	else
@@ -12872,7 +12870,10 @@ void CvCityAI::read(FDataStreamBase* pStream)
 			m_eSafety = CITYSAFETY_EVACUATING;
 		else if (!bSafe)
 			m_eSafety = CITYSAFETY_THREATENED;
-	} // </advc.139>
+	}
+	if (uiFlag >= 7)
+		pStream->Read(&m_iCityValPercent);
+	// </advc.139>
 	pStream->Read(&m_iWorkersNeeded);
 	pStream->Read(&m_iWorkersHave);
 	// K-Mod
