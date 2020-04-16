@@ -4576,7 +4576,7 @@ int CvCity::getTotalGreatPeopleRateModifier() const
 		iModifier += iGOLDEN_AGE_GREAT_PEOPLE_MODIFIER;
 	}
 
-	return std::max(0, (iModifier + 100));
+	return std::max(0, iModifier + 100);
 }
 
 
@@ -5184,28 +5184,50 @@ int CvCity::GPTurnsLeft() const
 
 void CvCity::GPProjection(std::vector<std::pair<UnitTypes,int> >& r) const
 {
-	int iTurnsLeft = GPTurnsLeft();
-	int iTotalTruncated = 0;
-	/*  This should be kOwner.greatPeopleThreshold(false), but I don't want to
-		predict GPP overflow here. */
-	int iTarget = std::max(1, getGreatPeopleProgress() + iTurnsLeft *
-			getGreatPeopleRate());
+	CvCivilization const& kCiv = getCivilization();
+	int const iTurnsLeft = GPTurnsLeft();
+	/*  (advc.001c: Can't use getGreatPeopleProgress() b/c the
+		per-unit progress values won't add up to that in old saves.) */
+	int iTotalUnitProgress = 0;
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
+		iTotalUnitProgress += getGreatPeopleUnitProgress(kCiv.unitAt(i));
+	/*	GPP total of the city on the turn that the GP will be born.
+		(Usually greater than GET_PLAYER(getOwner()).greatPeopleThreshold().) */
+	int iProjectedTotal = iTotalUnitProgress + iTurnsLeft * getGreatPeopleRate();
+	int iRoundedPercentages = 0;
 	FOR_EACH_ENUM(Unit)
 	{
-		int iProgress = getGreatPeopleUnitProgress(eLoopUnit) +
-				(iTurnsLeft * getGreatPeopleUnitRate(eLoopUnit) *
-				getTotalGreatPeopleRateModifier()) / 100;
-		iProgress *= 100;
-		iProgress /= iTarget;
-		//int iProgress = (city.getGreatPeopleUnitProgress(eLoopUnit) * 100) / iTotalGreatPeopleUnitProgress; // BtS
-		if(iProgress > 0)
+		scaled rShare = (getGreatPeopleUnitProgress(eLoopUnit) +
+				per100(iTurnsLeft * getGreatPeopleUnitRate(eLoopUnit) *
+				getTotalGreatPeopleRateModifier())) / iProjectedTotal;
+		if (rShare > 0)
 		{
-			iTotalTruncated += iProgress;
-			r.push_back(std::make_pair(eLoopUnit, iProgress));
+			int iPercent = rShare.getPercent();
+			iRoundedPercentages += iPercent;
+			r.push_back(std::make_pair(eLoopUnit, iPercent));
 		}
 	}
-	if(iTotalTruncated < 100 && !r.empty())
-		r[0].second += 100 - iTotalTruncated;
+	if (!r.empty())
+	{
+		int iTotalError = 100 - iRoundedPercentages;
+		if (iTotalError >= 2)
+		{
+			FAssert(abs(iTotalError) == 2);
+			/*	I'm too lazy to handle that error properly. Adding up to 99% is OK.
+				Otherwise add 1 to the GP with the highest share. */
+			size_t iArgmax = 0;
+			int iMax = 0;
+			for (size_t i = 0; i < r.size(); i++)
+			{
+				if(r[i].second > iMax)
+				{
+					iMax = r[i].second;
+					iArgmax = i;
+				}
+			}
+			r[iArgmax].second += iTotalError - 1;
+		}
+	}
 } // </advc.001c>
 
 
@@ -10684,16 +10706,27 @@ void CvCity::doGreatPeople()
 	CvCivilization const& kCiv = getCivilization(); // advc.003w
 
 	changeGreatPeopleProgress(getGreatPeopleRate());
-	// advc.051: Verify that GreatPeopleRate is the sum of the GreatPeopleUnitRates
-	int iTotalUnitRate = 0;
+	// <advc> Verify that GreatPeopleRate is the sum of the GreatPeopleUnitRates
+	#ifdef FASSERT_ENABLE
+		int iTotalUnitRate = 0;
+	#endif // </advc>
+	/*	(advc.001c: Don't check the same for Progress values b/c it won't be true
+		for old saves) */
+	int const iTotalGreatPeopleRateModifier = getTotalGreatPeopleRateModifier(); // advc.001c
 	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
 		UnitTypes eUnit = kCiv.unitAt(i);
-		int iUnitRate = getGreatPeopleUnitRate(eUnit); // advc.051
-		changeGreatPeopleUnitProgress(eUnit, iUnitRate);
-		iTotalUnitRate += iUnitRate; // advc.051
+		int iUnitRate = getGreatPeopleUnitRate(eUnit); // advc
+		changeGreatPeopleUnitProgress(eUnit, iUnitRate *
+				/*	advc.001c: Seems like an oversight - per-unit progress
+					should include modifiers. */
+				iTotalGreatPeopleRateModifier);
+		// <advc>
+		#ifdef FASSERT_ENABLE
+			iTotalUnitRate += iUnitRate;
+		#endif // </advc>
 	}
-	FAssert(iTotalUnitRate == getBaseGreatPeopleRate()); // advc.051
+	FAssert(iTotalUnitRate == getBaseGreatPeopleRate()); // advc
 	if (getGreatPeopleProgress() >= GET_PLAYER(getOwner()).greatPeopleThreshold())
 	{
 		int iTotalGreatPeopleUnitProgress = 0;

@@ -18128,9 +18128,13 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity const
 
 	szBuffer.append(SEPARATOR);
 	szBuffer.append(NEWLINE);
-	szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_BASE_RATE", kCity.getBaseGreatPeopleRate()));
-	szBuffer.append(NEWLINE);
-
+	// <advc.004> Skip base rate if final rate will be the same
+	int const iTotalGreatPeopleRateModifier = kCity.getTotalGreatPeopleRateModifier();
+	if (iTotalGreatPeopleRateModifier != 100) // </advc.004>
+	{
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_BASE_RATE", kCity.getBaseGreatPeopleRate()));
+		szBuffer.append(NEWLINE);
+	}
 	int iModifier = 100;
 
 	// Buildings
@@ -18215,9 +18219,8 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity const
 			iModifier += iGoldenAgeMod;
 		}
 	}
-
+	FAssert(iModifier == iTotalGreatPeopleRateModifier); // advc
 	int iModGreatPeople = (iModifier * kCity.getBaseGreatPeopleRate()) / 100;
-
 	FAssertMsg(iModGreatPeople == kCity.getGreatPeopleRate(), "Great person rate does not match actual value");
 
 	szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_FINAL", iModGreatPeople));
