@@ -2705,15 +2705,17 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 
 	int foo=-1;
 	if (!bFinancialTrouble && (bPrimaryArea ?
-			//kOwner.findBestFoundValue() > 0 : getArea().getBestFoundValue(getOwner()) > 0
-			// <advc.opt>
-			kOwner.AI_getNumCitySites() > 0 :
-			kOwner.AI_getNumAreaCitySites(getArea(), foo) > 0)) // </advc.opt>
+		//kOwner.findBestFoundValue() > 0 : getArea().getBestFoundValue(getOwner()) > 0
+		// <advc.opt>
+		kOwner.AI_getNumCitySites() > 0 :
+		kOwner.AI_getNumAreaCitySites(getArea(), foo) > 0)) // </advc.opt>
+	{
 		aiUnitAIVal[UNITAI_SETTLE]++;
-
+	}
 	aiUnitAIVal[UNITAI_WORKER] += kOwner.AI_neededWorkers(getArea());
 
-	aiUnitAIVal[UNITAI_ATTACK] += iMilitaryWeight / (bWarPlan || bLandWar || bAssault ? 7 : 12) +
+	aiUnitAIVal[UNITAI_ATTACK] += iMilitaryWeight /
+			(bWarPlan || bLandWar || bAssault ? 7 : 12) +
 			(bPrimaryArea && bWarPossible ? 2 : 0) + 1;
 
 	aiUnitAIVal[UNITAI_CITY_DEFENSE] += iNumCitiesInArea + 1;
@@ -2722,11 +2724,14 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 
 	if (bWarPossible)
 	{
-		aiUnitAIVal[UNITAI_ATTACK_CITY] += iMilitaryWeight / (bWarPlan || bLandWar || bAssault ? 10 : 17) +
+		aiUnitAIVal[UNITAI_ATTACK_CITY] += iMilitaryWeight /
+				(bWarPlan || bLandWar || bAssault ? 10 : 17) +
 				(bPrimaryArea ? 1 : 0);
-		aiUnitAIVal[UNITAI_COUNTER] += iMilitaryWeight / (bWarPlan || bLandWar || bAssault ? 13 : 22) +
+		aiUnitAIVal[UNITAI_COUNTER] += iMilitaryWeight /
+				(bWarPlan || bLandWar || bAssault ? 13 : 22) +
 				(bPrimaryArea ? 1 : 0);
-		aiUnitAIVal[UNITAI_PARADROP] += iMilitaryWeight / (bWarPlan || bLandWar || bAssault ? 5 : 8) +
+		aiUnitAIVal[UNITAI_PARADROP] += iMilitaryWeight /
+				(bWarPlan || bLandWar || bAssault ? 5 : 8) +
 				(bPrimaryArea ? 1 : 0);
 
 		//aiUnitAIVal[UNITAI_DEFENSE_AIR] += (kOwner.getNumCities() + 1);
@@ -2738,7 +2743,11 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 		{
 			//aiUnitAIVal[UNITAI_ICBM] += std::max((kOwner.getTotalPopulation() / 25), ((GC.getGame().countCivPlayersAlive() + GC.getGame().countTotalNukeUnits()) / (GC.getGame().countCivPlayersAlive() + 1)));
 			// K-Mod
-			aiUnitAIVal[UNITAI_ICBM] += std::max((kOwner.getTotalPopulation() / 25), ((GC.getGame().countFreeTeamsAlive() + GC.getGame().countTotalNukeUnits() + GC.getGame().getNukesExploded()) / (GC.getGame().countFreeTeamsAlive() + 1)));
+			aiUnitAIVal[UNITAI_ICBM] += std::max(kOwner.getTotalPopulation() / 25,
+					(GC.getGame().countFreeTeamsAlive() +
+					GC.getGame().countTotalNukeUnits() +
+					GC.getGame().getNukesExploded()) /
+					(GC.getGame().countFreeTeamsAlive() + 1));
 		}
 	}
 
@@ -2884,16 +2893,16 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 	aiUnitAIVal[UNITAI_RESERVE] *= 3;
 	/*aiUnitAIVal[UNITAI_COUNTER] *= 3;
 	aiUnitAIVal[UNITAI_COUNTER] *= 2;*/
-	/*  advc.131: The double weights look unintentional, but apparently, they somewhat
-		work. Let's use 4 as a compromise. */
+	/*  advc.131: The double weights look unintentional, but apparently,
+		they somewhat work. Let's use 4 as a compromise. */
 	aiUnitAIVal[UNITAI_COUNTER] *= 4;
 	aiUnitAIVal[UNITAI_CITY_DEFENSE] *= 2;
 	aiUnitAIVal[UNITAI_CITY_COUNTER] *= 2;
 	aiUnitAIVal[UNITAI_CITY_SPECIAL] *= 2;
-	aiUnitAIVal[UNITAI_EXPLORE] *= ((bDanger) ? 6 : 15);
+	aiUnitAIVal[UNITAI_EXPLORE] *= (bDanger ? 6 : 15);
 	//aiUnitAIVal[UNITAI_ICBM] *= 18;
 	aiUnitAIVal[UNITAI_ICBM] *= 18 * kOwner.AI_nukeWeight() / 100; // K-Mod
-	aiUnitAIVal[UNITAI_WORKER_SEA] *= ((bDanger) ? 3 : 10);
+	aiUnitAIVal[UNITAI_WORKER_SEA] *= (bDanger ? 3 : 10);
 	aiUnitAIVal[UNITAI_ATTACK_SEA] *= 5;
 	aiUnitAIVal[UNITAI_RESERVE_SEA] *= 4;
 	aiUnitAIVal[UNITAI_ESCORT_SEA] *= 20;

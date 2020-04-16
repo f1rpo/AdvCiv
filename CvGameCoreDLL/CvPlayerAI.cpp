@@ -144,9 +144,9 @@ void CvPlayerAI::AI_updatePersonality()
 	CvLeaderHeadInfo const& kPersonality = GC.getInfo(getPersonalityType());
 	AI_setPeaceWeight(kPersonality.getBasePeaceWeight() +
 			GC.getGame().getSorenRandNum(kPersonality.getPeaceWeightRand(), "AI Peace Weight"));
-	AI_setEspionageWeight((kPersonality.getEspionageWeight()
+	AI_setEspionageWeight((kPersonality.getEspionageWeight() *
 			// K-Mod. (I've changed the meaning of this value)
-			* GC.getInfo(COMMERCE_ESPIONAGE).getAIWeightPercent()) / 100);
+			GC.getInfo(COMMERCE_ESPIONAGE).getAIWeightPercent()) / 100);
 }
 
 

@@ -270,7 +270,7 @@ protected:
 	PlayerTypes m_eOwner;
 	ActivityTypes m_eActivityType;
 	//AutomateTypes m_eAutomateType;
-	// <advc.003k> Pointer to additional data members.
+	// <advc.003k> Pointer to additional data members
 	class Data
 	{
 		AutomateTypes eAutomateType;

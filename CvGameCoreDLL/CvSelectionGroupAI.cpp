@@ -383,11 +383,13 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 		if (!bCanAttack || (!bForce && !kLoopUnit.canMove()))
 			continue;
 
-		if (!bForce && !kLoopUnit.canMoveInto(*pPlot, /*bAttack*/ true, /*bDeclareWar*/ bPotentialEnemy))
+		if (!bForce && !kLoopUnit.canMoveInto(*pPlot, true, /*bDeclareWar=*/bPotentialEnemy))
 			continue;
 
 		// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000: START
-		if (GC.getDefineBOOL(CvGlobals::LFB_ENABLE) && GC.getDefineBOOL(CvGlobals::LFB_USECOMBATODDS) && /* advc.048: */ !bMaxSurvival)
+		if (GC.getDefineBOOL(CvGlobals::LFB_ENABLE) &&
+			GC.getDefineBOOL(CvGlobals::LFB_USECOMBATODDS) &&
+			!bMaxSurvival) // advc.048
 		{
 			kLoopUnit.LFBgetBetterAttacker(&pBestUnit, pPlot, bPotentialEnemy, iBestOdds,
 					iBestValue); // K-Mod.
