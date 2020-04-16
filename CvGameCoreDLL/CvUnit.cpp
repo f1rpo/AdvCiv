@@ -7181,10 +7181,10 @@ bool CvUnit::canAttack(const CvUnit& kDefender) const
 	if (kDefender.getDamage() >= std::max(combatLimit(), airCombatLimit()))
 		return false; // </advc.089>
 	// Artillery can't amphibious attack
-	if (getPlot().isWater() && !kDefender.getPlot().isWater())
+	if (combatLimit() < 100 && /* advc.089: */ getDomainType() == DOMAIN_LAND &&
+		getPlot().isWater() && !kDefender.getPlot().isWater())
 	{
-		if (combatLimit() < 100)
-			return false;
+		return false;
 	} /* <advc.089> This prevents combat odds from being shown when pressing
 		 ALT while hovering over one's own units */
 	if(getTeam() == kDefender.getTeam())
@@ -7236,7 +7236,7 @@ bool CvUnit::canBeAttackedBy(PlayerTypes eAttackingPlayer,
 	{
 		if (!isEnemy(TEAMID(eAttackingPlayer)) &&
 			/*	Need to check both if pAttacker is given, otherwise attacks
-				_against_ Privateers aren't possible (cf. in isEnemy). */
+				_against_ Privateers aren't possible (cf. comment above isEnemy). */
 			(pAttacker == NULL || !pAttacker->isEnemy(getTeam())))
 		{
 			return false;
