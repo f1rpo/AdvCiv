@@ -9501,7 +9501,7 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer,
 	{
 		if (kGame.getRiseFall().isCooperationRestricted(getID()))
 		{
-			CLinkList<TradeData> kWeGiveTotal = (kWeGive.getLength() <= 0 ?
+			CLinkList<TradeData> const& kWeGiveTotal = (kWeGive.getLength() <= 0 ?
 					kWeAlsoGive : kWeGive);
 			double thresh = kGame.getRiseFall().dealThresh(isAnnualDeal(kWeGiveTotal));
 			if(bDeal && kGame.getRiseFall().pessimisticDealVal(getID(), iTheyReceive,

@@ -30,7 +30,7 @@ protected:
 
 /*	advc: Minor refactoring. Define one-line functions inline.
 	Removed unnecessary assertions. assert calls replaced with FAssert. */
-template <class tVARTYPE> class CLinkList
+template <class tVARTYPE> class CLinkList /* advc.003e: */ : private boost::noncopyable
 {
 public:
 	inline CLinkList() : m_iLength(0), m_pHead(NULL), m_pTail(NULL) {}
