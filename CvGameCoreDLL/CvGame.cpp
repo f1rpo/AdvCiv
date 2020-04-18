@@ -8924,7 +8924,8 @@ void CvGame::read(FDataStreamBase* pStream)
 
 	if (isOption(GAMEOPTION_NEW_RANDOM_SEED))
 	{
-		if (!isNetworkMultiPlayer())
+		if (!isNetworkMultiPlayer() &&
+			!GC.getDefineBOOL("IGNORE_NEW_RANDOM_SEED_OPTION")) // advc
 		{
 			m_sorenRand.reseed(timeGetTime());
 		}

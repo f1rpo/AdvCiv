@@ -46,7 +46,8 @@
 		If set to 1 or greater, and UWAI is enabled in Game Options
 		(i.e. "Aggressive AI" not checked), UWAI runs in the background and
 		writes a logfile (depending in REPORT_INTERVAL), but lets the K-Mod AI
-		make all decisions. No impact if UWAI disabled in Game Options ("Aggressive AI" checked), or through DISABLE_UWAI.
+		make all decisions. No impact if UWAI disabled in Game Options
+		("Aggressive AI" checked), or through DISABLE_UWAI.
 		For testing, or for (temporarily or permanently) switching off UWAI
 		mid-game, otherwise, recommended: 0 -->
 	<Define>
@@ -101,6 +102,14 @@
 		 no such log output is created. -->
 	<Define>
 		<DefineName>LOG_MAP_STATS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+
+	<!-- advc: Setting this to 1 causes the game to ignore the
+		"New Random Seed on Reload" game option. For debugging
+		savegames that have that option enabled. -->
+	<Define>
+		<DefineName>IGNORE_NEW_RANDOM_SEED_OPTION</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 
