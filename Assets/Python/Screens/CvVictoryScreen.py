@@ -63,8 +63,9 @@ class CvVictoryScreen:
 		self.AREA2_ID =  "RiseFallAreaWidget2"
 		self.X_RF1_AREA = 45
 		self.X_RF2_AREA = 522
-		self.Y_RF_AREA = 350
 		self.W_RF_AREA = 457
+		# (These two can get adjusted based on the chapter count)
+		self.Y_RF_AREA = 350
 		self.H_RF_AREA = 340
 		# </advc.703>
 
@@ -765,7 +766,8 @@ class CvVictoryScreen:
 			activeCiv = gc.getGame().getActivePlayer()
 			s = "?"
 			if currentTurn >= startTurn and chapterCiv >= 0:
-				s = gc.getPlayer(chapterCiv).getCivilizationShortDescription(0)
+			# (getCivShortDescForced was added by advc.007)
+				s = gc.getPlayer(chapterCiv).getCivShortDescForced()
 				if ongoing and not extChapter:
 					s = self.highlight(s)
 			screen.setTableText(szTable, 1, iRow, s, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
@@ -824,6 +826,12 @@ class CvVictoryScreen:
 		screen.setTableText(szTable, 2, iRow, s1, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
 		screen.setTableText(szTable, 3, iRow, s2, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		# The panels in the lower half are based on CvReligionScreen
+		# By default, let them take up the bottom half of the screen. But if there isn't enough room for the chapters in the upper part ...
+		iExcessChapters = min(maxChapters - 10, 3)
+		if iExcessChapters > 0:
+			iHeightMinus = iExcessChapters * 30 # not sure if 30 per chapter row is exactly right
+			self.Y_RF_AREA += iHeightMinus
+			self.H_RF_AREA -= iHeightMinus
 		screen.addPanel(self.AREA1_ID, "", "", True, True, self.X_RF1_AREA, self.Y_RF_AREA, self.W_RF_AREA, self.H_RF_AREA, PanelStyles.PANEL_STYLE_BLUE50)
 		screen.addPanel(self.AREA2_ID, "", "", True, True, self.X_RF2_AREA, self.Y_RF_AREA, self.W_RF_AREA, self.H_RF_AREA, PanelStyles.PANEL_STYLE_BLUE50)
 		chapterScoreText = u"<font=3b>"
