@@ -1052,4 +1052,46 @@
 	<Spanish>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</Spanish>
 </TEXT>
 
+<!-- advc.ctr -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_43</Tag>
+	<English>(AdvCiv) If you found a city only for the purpose of trading it to an AI neighbor, be warned that the AI may reject the city if it is very badly situated: "We don't want to trade this."</English>
+	<French>(AdvCiv) If you found a city only for the purpose of trading it to an AI neighbor, be warned that the AI may reject the city if it is very badly situated: "We don't want to trade this."</French>
+	<German>(AdvCiv) Wenn Sie eine Stadt gründen, nur um sie an einen KI-Nachbarn zu vertauschen, beachten Sie, dass die KI sehr ungünstig platzierte Städte nicht annimmt: "Wir haben leider kein Interesse."</German>
+	<Italian>(AdvCiv) If you found a city only for the purpose of trading it to an AI neighbor, be warned that the AI may reject the city if it is very badly situated: "We don't want to trade this."</Italian>
+	<Spanish>(AdvCiv) If you found a city only for the purpose of trading it to an AI neighbor, be warned that the AI may reject the city if it is very badly situated: "We don't want to trade this."</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_44</Tag>
+	<English>(AdvCiv) Ceding a city can appease a powerful AI neighbor and results in a peace treaty. However, the AI may refuse to accept an insignificant city if it is unwilling to sign a peace treaty: "We have our reasons."</English>
+	<French>(AdvCiv) Ceding a city can appease a powerful AI neighbor and results in a peace treaty. However, the AI may refuse to accept an insignificant city if it is unwilling to sign a peace treaty: "We have our reasons."</French>
+	<German>(AdvCiv) Die Abtretung einer Stadt kann einen gefährlichen KI-Nachbarn besänftigen und geht mit einem Friedensvertrag einher. Eine unbedeutende Stadt könnte die KI allerdings ablehnen - um einen Friedensvertrag zu vermeiden: "Wir haben unsere Gründe."</German>
+	<Italian>(AdvCiv) Ceding a city can appease a powerful AI neighbor and results in a peace treaty. However, the AI may refuse to accept an insignificant city if it is unwilling to sign a peace treaty: "We have our reasons."</Italian>
+	<Spanish>(AdvCiv) Ceding a city can appease a powerful AI neighbor and results in a peace treaty. However, the AI may refuse to accept an insignificant city if it is unwilling to sign a peace treaty: "We have our reasons."</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_45</Tag>
+	<English>(AdvCiv) Spread enough culture to a city with a well-disposed owner, and you might be able to trade for the city; the owner might even liberate it without compensation.</English>
+	<French>(AdvCiv) Spread enough culture to a city with a well-disposed owner, and you might be able to trade for the city; the owner might even liberate it without compensation.</French>
+	<German>(AdvCiv) Eine Stadt durch kulturellen Einfluss zum Überlaufen zu bringen, ist schwierig. Ein Tauschhandel erfordert einen deutlich geringeren Kulturanteil, hängt allerdings vom Wohlwollen des Besitzers ab.</German>
+	<Italian>(AdvCiv) Spread enough culture to a city with a well-disposed owner, and you might be able to trade for the city; the owner might even liberate it without compensation.</Italian>
+	<Spanish>(AdvCiv) Spread enough culture to a city with a well-disposed owner, and you might be able to trade for the city; the owner might even liberate it without compensation.</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_46</Tag>
+	<English>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</English>
+	<French>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</French>
+	<German>(AdvCiv) Solange ein Krieg andauert, können eroberte Städte nur durch Befreiung an Drittparteien abgetreten werden; Handel mit eroberten Städten ist erst nach Friedensschluss zulässig.</German>
+	<Italian>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</Italian>
+	<Spanish>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_47</Tag>
+	<English>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</English>
+	<French>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</French>
+	<German>(AdvCiv) Solange sich feindliche Einheiten in der Nähe einer Stadt befinden, kann sie in der Regel nicht an eine Drittpartei abgetreten werden - oder allenfalls durch Befreiung.</German>
+	<Italian>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</Italian>
+	<Spanish>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</Spanish>
+</TEXT>
+
 </Civ4GameText>
