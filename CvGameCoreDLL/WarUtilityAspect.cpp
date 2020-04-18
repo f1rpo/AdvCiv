@@ -2892,13 +2892,18 @@ void Affection::evaluate() {
 			log("No-war-chance for %s reduced by %d b/c of peace vassals",
 					report.leaderName(theyId), iVassalPenalty);
 		}
-		uMinus = std::pow(noWarPercent / 100.0, 5.5) * 75;
+		//uMinus = std::pow(noWarPercent / 100.0, 5.5) * 75;
+		// ^That progression is a bit too steep
+		// The new formula would go toward infinity for high noWarPercent
+		int noWarPercentCapped = std::min(noWarPercent, 94);
+		/*	Subtract 1 so that noWarPercent=0 yields 0. The exponent and
+			dividend (1) are magic constants. */
+		uMinus = 1 / (1 - std::pow(noWarPercentCapped / 100.0, 0.223)) - 1;
+		uMinus += noWarPercent - noWarPercentCapped;
+
 	}
-	if(noWarPercent >= 100) {
-		uMinus += 5;
-		if(towardsThem >= ATTITUDE_FRIENDLY)
-			uMinus += 40;
-	}
+	if(towardsThem >= ATTITUDE_FRIENDLY)
+		uMinus += 34; // 40 prior to AdvCiv 0.97
 	bool const ignDistr = params.isIgnoreDistraction();
 	/*  The Catherine clause - doesn't make sense for her to consider sponsored
 		war on a friend if the cost is always prohibitive. */
