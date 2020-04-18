@@ -1445,8 +1445,16 @@ bool CvDLLButtonPopup::launchRazeCityPopup(CvPopup* pPopup, CvPopupInfo &info)
 	if (bGift && eLiberationPlayer != eFutureLiberationPlayer)
 	{
 		szKeep.append(L" ");
-		szKeep.append(gDLL->getText("TXT_KEY_POPUP_LIBERATION_NOTE",
-				GET_PLAYER(eFutureLiberationPlayer).getCivilizationDescriptionKey()));
+		if (eFutureLiberationPlayer == NO_PLAYER)
+		{
+			szKeep.append(gDLL->getText("TXT_KEY_POPUP_LIBERATION_NOTE_NONE",
+					GET_PLAYER(eLiberationPlayer).getCivilizationDescriptionKey()));
+		}
+		else
+		{
+			szKeep.append(gDLL->getText("TXT_KEY_POPUP_LIBERATION_NOTE_OTHER",
+					GET_PLAYER(eFutureLiberationPlayer).getCivilizationDescriptionKey()));
+		}
 	} // </advc.ctr>
 	m_kUI.popupAddGenericButton(pPopup, szKeep, NULL, 0, WIDGET_GENERAL);
 

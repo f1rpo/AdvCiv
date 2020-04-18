@@ -5878,12 +5878,20 @@
 		<Spanish>No, devolvedle el control al %s1_CivName</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>TXT_KEY_POPUP_LIBERATION_NOTE</Tag>
+		<Tag>TXT_KEY_POPUP_LIBERATION_NOTE_OTHER</Tag>
 		<English>(Note: Liberation at a later time will cede the city to the %s1_CivName.)</English>
-		<French>(Note: Liberation at a later time will cede the city to the %s1_CivName.)</French>
+		<French>(Remarque : une libération ultérieure cédera la ville à l'%s1_CivName.)</French>
 		<German>(Bemerkung: Falls Ihr die Stadt später befreit, wird sie an das %s1:2_CivName übergehen.)</German>
-		<Italian>(Note: Liberation at a later time will cede the city to the %s1_CivName.)</Italian>
-		<Spanish>(Note: Liberation at a later time will cede the city to the %s1_CivName.)</Spanish>
+		<Italian>(Nota: Liberazione in un secondo momento cederà la città all'%s1_CivName.)</Italian>
+		<Spanish>(Nota: Una liberación en otro momento cederá la ciudad al %s1_CivName.)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_LIBERATION_NOTE_NONE</Tag>
+		<English>(Note: Liberation to the %s1_CivName will not be possible at a later time.)</English>
+		<French>(Remarque: libération à l'%s1_CivName ne sera pas possible ultérieurement.)</French>
+		<German>(Bemerkung: Abtretung an das %s1:2_CivName durch Befreiung später nicht mehr möglich)</German>
+		<Italian>(Nota: Liberazione all'%s1_CivName non sarà possibile in un secondo momento.)</Italian>
+		<Spanish>(Nota: Liberación al %s1_CivName no será posible en otro momento.)</Spanish>
 	</TEXT>
 
 	<!-- advc.004g: From CIV4GameText_BTS.xml. Said "terrain", which is
