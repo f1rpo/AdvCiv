@@ -3270,17 +3270,21 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 		}
 	}
 
-	if (isCity(true, eTeam))
+	if (isCity(true, eTeam) && kOther.isNetworkTerrain(eTeam))
+		return true;
+
+	/*	<advc.124> Case 1: This plot has a route and kOther has network terrain.
+		(Note: The isCityRadius check is just for performance.) */
+	if (isRoute() && isCityRadius() && getTeam() == eTeam &&
+		kOther.isNetworkTerrain(eTeam))
 	{
-		if (kOther.isNetworkTerrain(eTeam))
+		CvCity const* pWorkingCity = getWorkingCity();
+		if (pWorkingCity != NULL &&
+			pWorkingCity->getOwner() == getOwner() &&
+			!pWorkingCity->isArea(getArea()))
+		{
 			return true;
-	}
-	// <advc.124> The isCityRadius check is just for performance
-	if(isRoute() && isCityRadius() && kOther.isNetworkTerrain(eTeam))
-	{
-		CvCity const* const pWorkingCity = getWorkingCity();
-		if(pWorkingCity != NULL && pWorkingCity->getTeam() == eTeam)
-			return true;
+		}
 	} // </advc.124>
 
 	if (isNetworkTerrain(eTeam))
@@ -3296,12 +3300,14 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 			if (kOther.isRiverConnection(directionXY(kOther, *this)))
 				return true;
 		}
-		// <advc.124>
-		if (kOther.isRoute() && kOther.isCityRadius())
+		// <advc.124> Case 2: kOther has a route and this plot has network terrain
+		if (kOther.isRoute() && kOther.isCityRadius() &&
+			kOther.getTeam() == eTeam)
 		{
-			CvCity const* const pWorkingCity = kOther.getWorkingCity();
-			if (pWorkingCity != NULL && pWorkingCity->getTeam() == eTeam &&
-				getArea().getCitiesPerPlayer(getOwner()) <= 0)
+			CvCity const* pWorkingCity = kOther.getWorkingCity();
+			if (pWorkingCity != NULL &&
+				pWorkingCity->getOwner() == kOther.getOwner() &&
+				!pWorkingCity->isArea(kOther.getArea()))
 			{
 				return true;
 			}
