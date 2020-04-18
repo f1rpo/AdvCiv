@@ -6603,6 +6603,7 @@ void CvCityAI::AI_updateSafety(bool bUpdatePerfectSafety)
 
 void CvCityAI::AI_setCityValPercent(int iValue)
 {
+	FAssert(iValue <= 101);
 	m_iCityValPercent = iValue;
 } // </advc.139>
 

@@ -751,7 +751,7 @@ public:
 	GlobeLayerTypes getCurrentLayer() const;
 	void reportCurrentLayer(GlobeLayerTypes eLayer);		// (exposed to Python)
 	// </advc.004m>  <advc.052>
-	bool isScenario() const;
+	bool isScenario() const { return m_bScenario; }
 	void setScenario(bool b);
 	// </advc.052>  <advc.127b>
 	/*  Returns (-1,-1) if 'vs' doesn't exist in any city or (eObserver!=NO_TEAM)
@@ -769,8 +769,8 @@ public:
 	int getBarbarianStartTurn() const; // advc.300		(exposed to Python)
 	bool isBarbarianCreationEra() const; // advc.307
 	// <advc.703>
-	RiseFall const& getRiseFall() const;
-	RiseFall& getRiseFall();
+	RiseFall const& getRiseFall() const { return *m_pRiseFall; }
+	RiseFall& getRiseFall() { return *m_pRiseFall; }
 	// </advc.703>
 	void setHallOfFame(CvHallOfFameInfo* pHallOfFame); // advc.106i
 	std::set<int>& getActivePlayerCycledGroups(); // advc

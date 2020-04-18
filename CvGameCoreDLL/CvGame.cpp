@@ -10606,13 +10606,7 @@ BuildingTypes CvGame::getVoteSourceBuilding(VoteSourceTypes eVS) const
 	return NO_BUILDING;
 } // </advc.127b>
 
-// <advc.052>
-bool CvGame::isScenario() const
-{
-	return m_bScenario;
-}
-
-
+// advc.052:
 void CvGame::setScenario(bool b)
 {
 	m_bScenario = b;
@@ -10620,25 +10614,13 @@ void CvGame::setScenario(bool b)
 		so one can't be certain what they check and how long it might take. */
 	FAssert(m_bScenario == gDLL->isWBMapScript());
 	FAssert(m_bScenario == GC.getInitCore().getWBMapScript());
-} // </advc.052>
+}
 
 // advc.250b:
 StartPointsAsHandicap const& CvGame::startPointsAsHandicap() const
 {
 	return *m_pSpah;
 }
-
-// <advc.703>
-RiseFall const& CvGame::getRiseFall() const
-{
-	return *m_pRiseFall;
-}
-
-
-RiseFall& CvGame::getRiseFall()
-{
-	return *m_pRiseFall;
-} // </advc.703>
 
 // <advc.106i>
 void CvGame::setHallOfFame(CvHallOfFameInfo* pHallOfFame)
