@@ -20764,6 +20764,12 @@ bool CvPlayerAI::AI_intendsToCede(CvCityAI const& kCity, PlayerTypes eToPlayer,
 				scaled rMinRatio(3, 2);
 				if (bCoop || kCity.getLiberationPlayer() == eToPlayer)
 					rMinRatio = scaled(4, 3);
+				/*	Relax the requirement if the recipient has more assets,
+					make it stricter otherwise. */
+				scaled rAssetRatio(GET_PLAYER(eToPlayer).getAssets(),
+						std::max(1, getAssets()));
+				rAssetRatio.clamp(fixp(0.5), 2);
+				rMinRatio /= rAssetRatio.pow(fixp(1/6.));
 				bCede = (scaled(iAcquireVal, iKeepVal) >= rMinRatio);
 			}
 		}
