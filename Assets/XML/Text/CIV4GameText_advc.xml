@@ -3409,6 +3409,17 @@
 		<Italian>può essere liberato come un favore a %s1_Ldr.</Italian>
 		<Spanish>puede ser liberado como un favor a %s1_Ldr.</Spanish>
 	</TEXT>
+	<!-- From CIV4GameTextInfos.xml. Was "we're not willing". I'm using this
+		 for cities that the AI doesn't accept. "want" is a little better for
+		 that and should be fine in other contexts too.-->
+	<TEXT>
+		<Tag>TXT_KEY_DENIAL_UNKNOWN</Tag>
+		<English>"Sorry... we don't want to trade this."</English>
+		<French>"Je regrette... nous ne souhaitons pas &#233;changer ceci."</French>
+		<German>"Wir haben leider kein Interesse, damit zu handeln."</German>
+		<Italian>"Ci spiace, ma non vogliamo commerciare."</Italian>
+		<Spanish>"Lo sentimos... No deseamos intercambiar esto."</Spanish>
+	</TEXT>
 
 	<!-- advc.004q: Based on TXT_KEY_ATTITUDE_TOWARDS in
 		 CIV4GameText_Misc1.xml -->
