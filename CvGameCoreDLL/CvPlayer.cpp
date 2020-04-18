@@ -3185,9 +3185,10 @@ void CvPlayer::updatePlotGroups()
 
 	int iLoop;
 	for(CvPlotGroup* pLoopPlotGroup = firstPlotGroup(&iLoop);
-			pLoopPlotGroup != NULL; pLoopPlotGroup = nextPlotGroup(&iLoop))
+		pLoopPlotGroup != NULL; pLoopPlotGroup = nextPlotGroup(&iLoop))
+	{
 		pLoopPlotGroup->recalculatePlots();
-
+	}
 	CvMap const& kMap = GC.getMap();
 	for(int iI = 0; iI < kMap.numPlots(); iI++)
 		kMap.getPlotByIndex(iI).updatePlotGroup(getID(), false, /* advc.064d: */ false);
@@ -21470,8 +21471,8 @@ void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<C
 	aColors.resize(kMap.numPlots(), NiColorA(0, 0, 0, 0));
 	aIndicators.clear();
 	// <advc.004z>
-	bool bShowForeign = (GC.getDefineINT("FOREIGN_GROUPS_ON_TRADE_LAYER") > 0);
-	bool bShowCapitalConn = (GC.getDefineINT("CONNECTION_TO_CAPITAL_ON_TRADE_LAYER") > 0);
+	static bool const bSHOW_FOREIGN = (GC.getDefineINT("FOREIGN_GROUPS_ON_TRADE_LAYER") > 0);
+	static bool const bSHOW_CAPITAL_CONN = (GC.getDefineINT("CONNECTION_TO_CAPITAL_ON_TRADE_LAYER") > 0);
 	// </advc.004z>
 	typedef std::map< int, std::vector<int> > PlotGroupMap;
 	PlotGroupMap mapPlotGroups;
@@ -21482,15 +21483,15 @@ void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<C
 		PlayerTypes eOwner = kPlot.getOwner(); // advc.004z
 		CvPlotGroup* pPlotGroup = kPlot.getPlotGroup(getID());
 		if (pPlotGroup != NULL && kPlot.isRevealed(getTeam(), true) &&
-			(kPlot.getTeam() == getTeam()
+			(kPlot.getTeam() == getTeam() ||
 			// <advc.004z>
-			|| (bShowForeign && !kPlot.isImpassable() &&
+			(bSHOW_FOREIGN && !kPlot.isImpassable() &&
 			eOwner != BARBARIAN_PLAYER &&
 			// Get rid of insignificant groups
 			(pPlotGroup->getLengthPlots() >= 5 ||
 			!kPlot.isWater() || eOwner != NO_PLAYER))))
 		{
-			if(bShowCapitalConn && kPlot.isVisible(getTeam()) &&
+			if(bSHOW_CAPITAL_CONN && kPlot.isVisible(getTeam()) &&
 				kPlot.isCity() && !kPlot.getPlotCity()->isConnectedToCapital())
 			{
 				aiNotConn.push_back(iI);
@@ -21510,7 +21511,7 @@ void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<C
 			NiColorA kColor(getPlayerTextColorR() / 255.f,
 					getPlayerTextColorG() / 255.f,
 					getPlayerTextColorB() / 255.f,
-					getPlayerTextColorA() / 255.f * (bShowForeign ? 0.5f : 0.8f));
+					getPlayerTextColorA() / 255.f * (bSHOW_FOREIGN ? 0.5f : 0.8f));
 			std::vector<int>& aPlots = mapPlotGroups[pCapitalGroup->getID()];
 			for(size_t i = 0; i < aPlots.size(); i++)
 				aColors[aPlots[i]] = kColor;
@@ -21525,7 +21526,7 @@ void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<C
 			continue; // </advc.004z>
 		NiColorA kColor(kRandom.getFloat(), kRandom.getFloat(), kRandom.getFloat(),
 				// advc.004z: Can't tell apart land and water at 0.8
-				bShowForeign ? 0.5f :
+				bSHOW_FOREIGN ? 0.5f :
 				0.8f);
 		std::vector<int>& aPlots = it->second;
 		for (size_t i = 0; i < aPlots.size(); ++i)

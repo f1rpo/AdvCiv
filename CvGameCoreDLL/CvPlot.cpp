@@ -1229,7 +1229,7 @@ bool CvPlot::isRiverConnection(DirectionTypes eDirection) const
 {
 	switch (eDirection)
 	{
-	case NO_DIRECTION: return false; // advc.opt (faster than checking it upfront?)
+	case NO_DIRECTION: return false; // advc.opt (instead of checking it upfront?)
 	case DIRECTION_NORTH:
 		return (isRiverCrossing(DIRECTION_EAST) || isRiverCrossing(DIRECTION_WEST));
 	case DIRECTION_NORTHEAST:
@@ -5607,7 +5607,7 @@ void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate,
 	if (!GC.getGame().isFinalInitialized())
 		return;
 
-	TeamTypes eTeam = TEAMID(ePlayer);
+	TeamTypes const eTeam = TEAMID(ePlayer);
 
 	CvPlotGroup* pPlotGroup = getPlotGroup(ePlayer);
 	if (pPlotGroup != NULL)
