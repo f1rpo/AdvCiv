@@ -1105,16 +1105,20 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 			((pSelectionGroup->getDomainType() == DOMAIN_SEA) == kToPlot.isWater()))
 		{	// Avoid tiles that flip from us to the enemy upon DoW
 			if(TEAMID(eFirstOwner) == eTeam && (GET_TEAM(eTeam).isHuman() ?
-					(!GET_TEAM(eTeam).isFriendlyTerritory(TEAMID(eSecondOwner)) &&
-					!GET_TEAM(eTeam).isAtWar(TEAMID(eSecondOwner))) :
-					GET_TEAM(eTeam).AI_isSneakAttackReady(TEAMID(eSecondOwner))))
+				(!GET_TEAM(eTeam).isFriendlyTerritory(TEAMID(eSecondOwner)) &&
+				!GET_TEAM(eTeam).isAtWar(TEAMID(eSecondOwner))) :
+				GET_TEAM(eTeam).AI_isSneakAttackReady(TEAMID(eSecondOwner))))
+			{
 				iFlipModifier++;
+			}
 			// Seek out enemy tiles that will flip to us upon DoW
 			if(TEAMID(eSecondOwner) == eTeam && (GET_TEAM(eTeam).isHuman() ?
-					(!GET_TEAM(eTeam).isFriendlyTerritory(TEAMID(eFirstOwner)) &&
-					!GET_TEAM(eTeam).isAtWar(TEAMID(eFirstOwner))) :
-					GET_TEAM(eTeam).AI_isSneakAttackReady(TEAMID(eFirstOwner))))
+				(!GET_TEAM(eTeam).isFriendlyTerritory(TEAMID(eFirstOwner)) &&
+				!GET_TEAM(eTeam).isAtWar(TEAMID(eFirstOwner))) :
+				GET_TEAM(eTeam).AI_isSneakAttackReady(TEAMID(eFirstOwner))))
+			{
 				iFlipModifier--;
+			}
 			/*  This could be done much more accurately, taking into account
 				vassal agreements, defensive pacts, and going through the entire
 				selection group, but I worry about the performance, and it's OK
@@ -1269,9 +1273,10 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		from trying to move _through_ enemy territory and thus declaring war
 		earlier than necessary */
 	if(bAIControl && (iFlags & MOVE_DECLARE_WAR) && eToPlotTeam != NO_TEAM &&
-			eToPlotTeam != eTeam && GET_TEAM(eTeam).AI_isSneakAttackReady(eToPlotTeam))
+		eToPlotTeam != eTeam && GET_TEAM(eTeam).AI_isSneakAttackReady(eToPlotTeam))
+	{
 		iWorstCost += PATH_DOW_WEIGHT;
-	// </advc.082>
+	} // </advc.082>
 	if (iWorstMovesLeft <= 0)
 	{
 		if (eToPlotTeam != eTeam)
@@ -1449,7 +1454,7 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup const* pSelectionGroup
 		if (!kFromPlot.isRevealed(pSelectionGroup->getHeadTeam()))
 			return FALSE;
 	}
-	// <advc.049> No new AI routes in human territory (but upgrade to railroad OK)
+	// <advc.pf> No new AI routes in human territory (but upgrade to railroad OK)
 	if(iFlags & MOVE_ROUTE_TO)
 	{
 		if(kFromPlot.getRevealedRouteType(pSelectionGroup->getHeadTeam()) == NO_ROUTE &&
@@ -1459,7 +1464,7 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup const* pSelectionGroup
 			if(eOwner != NO_PLAYER && GET_PLAYER(eOwner).isHuman())
 				return FALSE;
 		}
-	} // </advc.049>
+	} // </advc.pf>
 
 	if (iFlags & MOVE_NO_ENEMY_TERRITORY && kFromPlot.isOwned() &&
 		atWar(kFromPlot.getTeam(), pSelectionGroup->getHeadTeam()))

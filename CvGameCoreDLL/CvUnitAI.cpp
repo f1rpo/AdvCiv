@@ -3584,7 +3584,7 @@ void CvUnitAI::AI_attackCityMove()
 			}
 		} // K-Mod end
 
-		if ((bombardRate() > 0) && noDefensiveBonus())
+		if (bombardRate() > 0 && noDefensiveBonus())
 		{
 			// BBAI Notes: Add this stack lead by bombard unit to stack probably not lead by a bombard unit
 			// BBAI TODO: Some sense of minimum stack size? Can have big stack moving 10 turns to merge with tiny stacks
@@ -16734,7 +16734,7 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 		if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(&kPlot, MISSIONAI_BUILD, getGroup(), iRange) == 0)
 		{
 			if (generatePath(&kPlot, MOVE_SAFE_TERRITORY
-				/* <advc.049> */ | MOVE_ROUTE_TO, /* </advc.049> */ true))
+				/* <advc.pf> */ | MOVE_ROUTE_TO, /* </advc.pf> */ true))
 			{
 				/* <advc.300> Barbarian behavior should just be to put roads on the
 				   bonuses adjacent to their cities. */
@@ -16756,7 +16756,7 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 						{
 							getGroup()->pushMission(MISSION_ROUTE_TO, kPlot.getX(), kPlot.getY(),
 									MOVE_SAFE_TERRITORY
-									| MOVE_ROUTE_TO, // advc.049
+									| MOVE_ROUTE_TO, // advc.pf
 									false, false, MISSIONAI_BUILD, &kPlot);
 							return true;
 						}
@@ -16777,14 +16777,14 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 						if (pLoopCity->AI_isEvacuating())
 							continue; // </advc.139>
 						if (generatePath(pLoopCity->plot(), MOVE_SAFE_TERRITORY
-							| MOVE_ROUTE_TO, // advc.049
+							| MOVE_ROUTE_TO, // advc.pf
 							true))
 						{
 							if (at(kPlot)) // need to test before moving...
 							{
 								getGroup()->pushMission(MISSION_ROUTE_TO, pLoopCity->getX(), pLoopCity->getY(),
 									MOVE_SAFE_TERRITORY
-									| MOVE_ROUTE_TO, // advc.049
+									| MOVE_ROUTE_TO, // advc.pf
 									false, false, MISSIONAI_BUILD, &kPlot);
 							}
 							else
@@ -16792,11 +16792,11 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 								getGroup()->pushMission(MISSION_ROUTE_TO,
 									pLoopCity->getX(), pLoopCity->getY(),
 									MOVE_SAFE_TERRITORY
-									| MOVE_ROUTE_TO, // advc.049
+									| MOVE_ROUTE_TO, // advc.pf
 									false, false, MISSIONAI_BUILD, &kPlot);
 								getGroup()->pushMission(MISSION_ROUTE_TO, kPlot.getX(), kPlot.getY(),
 									MOVE_SAFE_TERRITORY
-									| MOVE_ROUTE_TO, // advc.049
+									| MOVE_ROUTE_TO, // advc.pf
 									true, false, MISSIONAI_BUILD, &kPlot); // K-Mod
 							}
 
@@ -17073,7 +17073,7 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
 			continue;
 
 		int iPathTurns;
-		// advc.049: Route-to flag added
+		// advc.pf: Route-to flag added
 		if (!generatePath(pPlot, MOVE_ROUTE_TO, true, &iPathTurns))
 			continue;
 
@@ -17886,21 +17886,21 @@ bool CvUnitAI::AI_routeCity()  // advc: some style changes
 			GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(pRouteToCity->plot(), MISSIONAI_BUILD, getGroup()) == 0)
 		{
 			if (generatePath(pLoopCity->plot(), MOVE_SAFE_TERRITORY
-				| MOVE_ROUTE_TO, // advc.049
+				| MOVE_ROUTE_TO, // advc.pf
 				true))
 				// BETTER_BTS_AI_MOD: END
 			{
 				if (generatePath(pRouteToCity->plot(), MOVE_SAFE_TERRITORY
-					| MOVE_ROUTE_TO, // advc.049
+					| MOVE_ROUTE_TO, // advc.pf
 					true))
 				{
 					getGroup()->pushMission(MISSION_ROUTE_TO,
 						pLoopCity->getX(), pLoopCity->getY(),
-						MOVE_SAFE_TERRITORY /* advc.049: */ | MOVE_ROUTE_TO,
+						MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
 						false, false, MISSIONAI_BUILD, pRouteToCity->plot());
 					getGroup()->pushMission(MISSION_ROUTE_TO,
 						pRouteToCity->getX(), pRouteToCity->getY(),
-						MOVE_SAFE_TERRITORY /* advc.049: */ | MOVE_ROUTE_TO,
+						MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
 						true, false, MISSIONAI_BUILD, pRouteToCity->plot()); // K-Mod
 
 					return true;
@@ -17958,7 +17958,7 @@ bool CvUnitAI::AI_routeTerritory(bool bImprovementOnly)
 				if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(&kPlot, MISSIONAI_BUILD, getGroup(), 1) == 0)
 				{
 					int iPathTurns;
-					if (generatePath(&kPlot, MOVE_SAFE_TERRITORY /* advc.049: */ | MOVE_ROUTE_TO,
+					if (generatePath(&kPlot, MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
 						true, &iPathTurns))
 					{
 						int iValue = 10000;
@@ -17977,7 +17977,7 @@ bool CvUnitAI::AI_routeTerritory(bool bImprovementOnly)
 	if (pBestPlot != NULL)
 	{
 		getGroup()->pushMission(MISSION_ROUTE_TO, pBestPlot->getX(), pBestPlot->getY(),
-				MOVE_SAFE_TERRITORY /* advc.049: */ | MOVE_ROUTE_TO,
+				MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
 				false, false, MISSIONAI_BUILD, pBestPlot);
 		return true;
 	}

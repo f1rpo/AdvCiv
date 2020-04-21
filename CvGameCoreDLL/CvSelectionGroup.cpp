@@ -3034,7 +3034,7 @@ bool CvSelectionGroup::groupRoadTo(int iX, int iY, int iFlags)
 		}
 	}
 	return groupPathTo(iX, iY, iFlags
-			/*  advc.049: In the debugger, I'm seeing this function get called via
+			/*  advc.pf: In the debugger, I'm seeing this function get called via
 				continueMission without any flags set, and these calls cause
 				the AI to build roads through foreign territory. */
 			| MOVE_ROUTE_TO);
@@ -3349,7 +3349,7 @@ bool CvSelectionGroup::readyForMission() const
 bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2,
 		CvPlot* pPlot, bool bTestVisible, bool bCheckMoves) const
 {
-	if(!pPlot)
+	if(pPlot == NULL)
 		pPlot = plot();
 
 	bool bValid = false;
