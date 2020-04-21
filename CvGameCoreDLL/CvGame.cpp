@@ -717,7 +717,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_bLayerFromSavegame = false; // </advc.004m>
 	m_bFeignSP = false; // advc.135c
 	m_bDoMShown = false; // advc.004x
-	b_mFPTestDone = false; // advc.003g
+	m_bFPTestDone = false; // advc.003g
 	// <advc.003r>
 	for(int i = 0; i < NUM_UPDATE_TIMER_TYPES; i++)
 		m_aiUpdateTimers[i] = -1; // </advc.003r>
@@ -823,7 +823,7 @@ void CvGame::initGameHandicap()
 void CvGame::initFreeState()
 {
 	// advc.003g: Want to set this as soon as CvGame knows the GameType
-	b_mFPTestDone = !isNetworkMultiPlayer();
+	m_bFPTestDone = !isNetworkMultiPlayer();
 	GC.getAgents().gameStart(false); // advc.agent
 	initGameHandicap(); // advc.127
 	// <advc.250b>
@@ -8550,9 +8550,9 @@ int CvGame::FPChecksum() const
 
 void CvGame::doFPCheck(int iChecksum, PlayerTypes ePlayer)
 {
-	if(b_mFPTestDone)
+	if(m_bFPTestDone)
 		return;
-	b_mFPTestDone = true;
+	m_bFPTestDone = true;
 	if(iChecksum == FPChecksum())
 		return; // Active player is able to reproduce checksum received over the net
 
@@ -8945,7 +8945,7 @@ void CvGame::read(FDataStreamBase* pStream)
 		pStream->Read(&m_bScenario); // </advc.052>
 	m_iTurnLoadedFromSave = m_iElapsedGameTurns; // advc.044
 	applyOptionEffects(); // advc.310
-	b_mFPTestDone = !isNetworkMultiPlayer(); // advc.003g
+	m_bFPTestDone = !isNetworkMultiPlayer(); // advc.003g
 }
 
 

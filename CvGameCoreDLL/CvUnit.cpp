@@ -7037,7 +7037,9 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker, CombatDet
 					pCombatDetails->iAnimalCombatModifierT = iExtraModifier;
 			}
 		}
-		if (!pAttacker->isRiver())
+		if (!pAttacker->isRiver() &&
+			// advc.opt: isRiverCrossing is no longer supposed to handle non-adjacent tiles
+			stepDistance(pAttacker->plot(), pAttackedPlot) == 1)
 		{
 			if (pAttacker->getPlot().isRiverCrossing(
 				directionXY(pAttacker->getPlot(), *pAttackedPlot)))

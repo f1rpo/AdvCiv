@@ -21173,7 +21173,9 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 		CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot)
 {
 	int iModifier = 0;
-	if (!pAttacker->isRiver())
+	if (!pAttacker->isRiver() &&
+		// advc.opt: isRiverCrossing is no longer supposed to handle non-adjacent tiles
+		stepDistance(pAttacker->plot(), pPlot) == 1)
 	{
 		if (pAttacker->getPlot().isRiverCrossing(
 			directionXY(pAttacker->getPlot(), *pPlot)))

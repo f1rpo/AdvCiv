@@ -818,6 +818,7 @@ protected:
 	int m_iCivTeamsEverAlive;
 	// </advc.opt>
 	int m_iUnitUpdateAttempts; // advc.001y
+	int m_iScreenWidth, m_iScreenHeight; // advc.061
 	unsigned int m_uiInitialTime;
 
 	bool m_bScoreDirty;
@@ -829,14 +830,13 @@ protected:
 	bool m_bHotPbemBetweenTurns;
 	bool m_bPlayerOptionsSent;
 	bool m_bNukesValid;
-	int m_iScreenWidth, m_iScreenHeight; // advc.061
 	bool m_bInBetweenTurns; // advc.106b
 	bool m_bFeignSP; // advc.135c
 	bool m_bScenario; // advc.052
 	bool m_bAllGameDataRead; // advc
 	bool m_bDoMShown; // advc.004x
 	bool m_bLayerFromSavegame; // advc.004m
-	bool b_mFPTestDone; // advc.003g
+	bool m_bFPTestDone; // advc.003g
 
 	HandicapTypes m_eHandicap;
 	HandicapTypes m_eAIHandicap; // advc.127

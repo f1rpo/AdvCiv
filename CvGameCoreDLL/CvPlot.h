@@ -263,8 +263,7 @@ public:
 	{
 		return (getRouteType() != NO_ROUTE);
 	}
-	bool isValidRoute(const CvUnit* pUnit,																											// Exposed to Python
-			bool bAssumeRevealed) const; // advc.001i
+	bool isValidRoute(const CvUnit* pUnit, /* advc.001i: */ bool bAssumeRevealed) const;							// Exposed to Python
 	// advc.inl
 	inline bool isTradeNetworkImpassable(TeamTypes eTeam) const																														// Exposed to Python
 	{

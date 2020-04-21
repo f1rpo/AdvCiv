@@ -143,8 +143,11 @@ public:
 	inline DirectionTypes directionXY(int iDX, int iDY) const
 	{
 		if (abs(iDX) > DIRECTION_RADIUS || abs(iDY) > DIRECTION_RADIUS)
+		{
+			FAssertMsg(false, "Just to see if the DIRECTION_RADIUS<abs branch is needed"); // advc.test
 			return NO_DIRECTION;
-		else return GC.getXYDirection(iDX + DIRECTION_RADIUS, iDY + DIRECTION_RADIUS);
+		}
+		return GC.getXYDirection(iDX + DIRECTION_RADIUS, iDY + DIRECTION_RADIUS);
 	}
 
 	inline DirectionTypes directionXY(CvPlot const& kFromPlot, CvPlot const& kToPlot) const // advc: take params as references

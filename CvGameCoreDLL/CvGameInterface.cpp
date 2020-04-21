@@ -415,7 +415,7 @@ void CvGame::updateTestEndTurn()  // advc: nested else branches replaced w/ retu
 		return;
 
 	// <advc.003g>
-	if(!b_mFPTestDone)
+	if(!m_bFPTestDone)
 		CvMessageControl::getInstance().sendFPTest(FPChecksum()); // </advc.003g>
 
 	CvDLLInterfaceIFaceBase& kUI = gDLL->UI(); // advc

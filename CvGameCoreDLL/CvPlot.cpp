@@ -1229,7 +1229,7 @@ bool CvPlot::isRiverConnection(DirectionTypes eDirection) const
 {
 	switch (eDirection)
 	{
-	case NO_DIRECTION: return false; // advc.opt (instead of checking it upfront?)
+	case NO_DIRECTION: return false; // advc.opt (instead of checking it upfront)
 	case DIRECTION_NORTH:
 		return (isRiverCrossing(DIRECTION_EAST) || isRiverCrossing(DIRECTION_WEST));
 	case DIRECTION_NORTHEAST:
@@ -5892,7 +5892,10 @@ void CvPlot::updateRevealedOwner(TeamTypes eTeam)
 bool CvPlot::isRiverCrossing(DirectionTypes eIndex) const
 {
 	if (eIndex == NO_DIRECTION)
+	{
+		FAssertMsg(false, "Just to see if the NO_DIRECTION branch is needed"); // advc.test
 		return false;
+	}
 	return m_abRiverCrossing.get(eIndex);
 }
 
@@ -7161,6 +7164,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 		pStream->Read(&m_eFeatureType);
 	}
 	pStream->Read(&m_eBonusType);
+	FAssertBounds(NO_BONUS, GC.getNumBonusInfos(), m_eBonusType); // advc
 	// <advc.opt>
 	if (uiFlag < 5)
 	{

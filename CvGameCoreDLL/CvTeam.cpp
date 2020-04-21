@@ -4297,7 +4297,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 	if (ePlayer == NO_PLAYER)
 		ePlayer = getLeaderID();
 
-	CvGame& g = GC.getGame();
+	CvGame& kGame = GC.getGame();
 	CvTechInfo const& kTech = GC.getInfo(eTech);
 
 	if (kTech.isRepeat())
@@ -4308,8 +4308,10 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 				bAnnounce && 1 == m_aiTechCount.get(eTech));
 
 		if (m_aiTechCount.get(eTech) == 1 && bAnnounce &&
-				g.isFinalInitialized() && !gDLL->GetWorldBuilderMode())
+			kGame.isFinalInitialized() && !gDLL->GetWorldBuilderMode())
+		{
 			announceTechToPlayers(eTech, /* advc.156: */ ePlayer);
+		}
 	}
 	else
 	{
@@ -4339,7 +4341,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 		FOR_EACH_ENUM(SpecialBuilding)
 		{
 			if (eTech == GC.getInfo(eLoopSpecialBuilding).getTechPrereqAnyone())
-				g.makeSpecialBuildingValid(eLoopSpecialBuilding, bAnnounce);
+				kGame.makeSpecialBuildingValid(eLoopSpecialBuilding, bAnnounce);
 		}
 
 		// report event to Python, along with some other key state
@@ -4347,7 +4349,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 
 		bool bReligionFounded = false;
 		bool bFirstPerk = false; // advc: Reneamed from bFirstBonus
-		bool bFirstToDiscover = (g.countKnownTechNumTeams(eTech) == 1); // advc.106
+		bool bFirstToDiscover = (kGame.countKnownTechNumTeams(eTech) == 1); // advc.106
 		if (bFirst && bFirstToDiscover &&
 			!GC.getPythonCaller()->doOrganizationTech(getID(), ePlayer, eTech))
 		{
@@ -4363,7 +4365,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 					CvPlayer const& kMember = *it;
 
 					int iValue = 10;
-					iValue += g.getSorenRandNum(10, "Found Religion (Player)");
+					iValue += kGame.getSorenRandNum(10, "Found Religion (Player)");
 					for (int iK = 0; iK < GC.getNumReligionInfos(); iK++)
 						iValue += kMember.getHasReligionCount((ReligionTypes)iK) * 10;
 
@@ -4379,8 +4381,8 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 				if (eBestPlayer == NO_PLAYER)
 					continue;
 
-				g.setReligionSlotTaken(eLoopReligion, true);
-				if (g.isOption(GAMEOPTION_PICK_RELIGION))
+				kGame.setReligionSlotTaken(eLoopReligion, true);
+				if (kGame.isOption(GAMEOPTION_PICK_RELIGION))
 				{
 					if (GET_PLAYER(eBestPlayer).isHuman())
 					{
@@ -4403,8 +4405,10 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 			{
 				CorporationTypes const eCorp = eLoopCorporation;
 				if (GC.getInfo(eCorp).getTechPrereq() != eTech ||
-						g.isCorporationFounded(eCorp))
+					kGame.isCorporationFounded(eCorp))
+				{
 					continue;
+				}
 				/*  advc (comment): From here on unused and thus not properly tested;
 					see comment in CvGame::doHeadquarters. */
 				int iBestValue = MAX_INT;
@@ -4413,7 +4417,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 				{
 					CvPlayer const& kMember = *it;
 					int iValue = 10;
-					iValue += g.getSorenRandNum(10, "Found Corporation (Player)");
+					iValue += kGame.getSorenRandNum(10, "Found Corporation (Player)");
 					if (kMember.getCurrentResearch() != eTech)
 						iValue *= 10;
 					if (iValue < iBestValue)
@@ -4477,7 +4481,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH",
 							GET_PLAYER(ePlayer).getReplayName(), kTech.getTextKeyWide());
-					g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, ePlayer, szBuffer,
+					kGame.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, ePlayer, szBuffer,
 							-1, -1, GC.getColorType("HIGHLIGHT_TEXT"));
 				} // advc.106
 			} // <advc.004>
@@ -4518,7 +4522,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 		}
 
 
-		if (bAnnounce && g.isFinalInitialized() &&
+		if (bAnnounce && kGame.isFinalInitialized() &&
 			!gDLL->GetWorldBuilderMode()) // advc
 		{
 			announceTechToPlayers(eTech, /* advc.156: */ ePlayer);
@@ -4587,7 +4591,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 		}
 		/*  advc.004x: Don't check bAnnounce for civics popup. FinalInitialized:
 			Let CvPlayer::doChangeCivicsPopup handle that. */
-		if (!gDLL->GetWorldBuilderMode() && getID() == g.getActiveTeam())
+		if (!gDLL->GetWorldBuilderMode() && getID() == kGame.getActiveTeam())
 		{
 			for (PlayerIter<HUMAN,MEMBER_OF> it(getID()); it.hasNext(); ++it)
 			{	// advc: Un-nested the conditions
@@ -4620,12 +4624,12 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 		for (TeamIter<ALIVE,NOT_SAME_TEAM_AS> it(getID()); it.hasNext(); ++it)
 			it->updateTechShare(eTech); // Share through "Internet" project
 		// <advc.106>
-		if (bFirst && bFirstToDiscover && g.getElapsedGameTurns() > 0 &&
+		if (bFirst && bFirstToDiscover && kGame.getElapsedGameTurns() > 0 &&
 			GC.getDefineINT("SHOW_FIRST_TO_DISCOVER_IN_REPLAY") > 0)
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH",
 					GET_PLAYER(ePlayer).getReplayName(), kTech.getTextKeyWide());
-			g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, ePlayer, szBuffer,
+			kGame.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, ePlayer, szBuffer,
 					-1, -1, GC.getColorType("ALT_HIGHLIGHT_TEXT"));
 		} // </advc.106>
 	}
@@ -4634,7 +4638,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 	{
 		if (bAnnounce)
 		{
-			if (g.isFinalInitialized() && !gDLL->GetWorldBuilderMode())
+			if (kGame.isFinalInitialized() && !gDLL->GetWorldBuilderMode())
 			{
 				FAssert(ePlayer != NO_PLAYER);
 				if (GET_PLAYER(ePlayer).isResearch() &&
@@ -4648,7 +4652,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 		}
 	}
 
-	if (getID() == g.getActiveTeam())
+	if (getID() == kGame.getActiveTeam())
 	{
 		gDLL->UI().setDirty(MiscButtons_DIRTY_BIT, true);
 		gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);

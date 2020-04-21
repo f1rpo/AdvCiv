@@ -4906,7 +4906,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 		if (iOffset > 0)
 		{
 			int iBestValue = 0;
-			for (SquareIter it(*pPlot, iOffset); it.hasNext(); ++it)
+			for (SquareIter it(*pPlot, iOffset, false); it.hasNext(); ++it)
 			{
 				CvPlot& kLoopPlot = *it;
 				if (kLoopPlot.isRevealed(getTeam()))
@@ -4923,7 +4923,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 		if (pBestPlot == NULL)
 			pBestPlot = pPlot;
 
-		for (PlotCircleIter it(*pBestPlot, iRange); it.hasNext(); ++it)
+		for (PlotCircleIter it(*pBestPlot, iRange, false); it.hasNext(); ++it)
 		{
 			if (g.getSorenRandNum(100, "Goody Map") < goody.getMapProb())
 				it->setRevealed(getTeam(), true, false, NO_TEAM, true);
@@ -5008,9 +5008,9 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 			aeBestUnits.push_back(eBestUnit);
 		}
 	}
-	if (goody.getUnitClassType() != NO_UNITCLASS
-		// Pick a unit based on barb techs then
-		|| (!goody.isBad() && goody.getMinBarbarians() > 0))
+	if (goody.getUnitClassType() != NO_UNITCLASS ||
+		// Pick a unit based on Barbarian tech then
+		(!goody.isBad() && goody.getMinBarbarians() > 0))
 	{
 		UnitTypes eUnit = NO_UNIT; // Declaration moved down
 		UnitClassTypes eUnitClass = (UnitClassTypes)goody.getUnitClassType();
@@ -5113,7 +5113,8 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit, /* advc.314: */ GoodyTypes 
 	FAssert(pPlot->isGoody() /* advc.314: */ || eTaboo != NO_GOODY);
 	pPlot->removeGoody();
 	// <advc>
-	if(isBarbarian()) {
+	if(isBarbarian())
+	{
 		FAssertMsg(pPlot->isOwned(), "Barbarians should remove hut only when receiving a city");
 		return;
 	} // </advc>
@@ -5128,9 +5129,10 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit, /* advc.314: */ GoodyTypes 
 		FAssert(eGoody >= 0 && eGoody < GC.getNumGoodyInfos());
 		// <advc.314>
 		if(eGoody == eTaboo || (eTaboo != NO_GOODY && GC.getInfo(eGoody).isBad() !=
-				GC.getInfo(eTaboo).isBad())) // Don't pair a good with a bad outcome
-			continue; // </advc.314>
-
+			GC.getInfo(eTaboo).isBad())) // Don't pair a good with a bad outcome
+		{
+			continue;
+		} // </advc.314>
 		if (canReceiveGoody(pPlot, eGoody, pUnit))
 		{
 			receiveGoody(pPlot, eGoody, pUnit, /* advc.314: */ eTaboo != NO_GOODY);

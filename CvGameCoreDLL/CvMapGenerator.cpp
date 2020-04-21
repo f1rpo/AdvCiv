@@ -267,7 +267,8 @@ void CvMapGenerator::addRivers()  // advc: Refactored
 }
 
 // pStartPlot = the plot at whose SE corner the river is starting
-void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCardinalDirection, CardinalDirectionTypes eOriginalCardinalDirection, int iThisRiverID)
+void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCardinalDirection,
+	CardinalDirectionTypes eOriginalCardinalDirection, short iThisRiverID)
 {
 	if (iThisRiverID == -1)
 	{
@@ -285,73 +286,72 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 	CvPlot *pAdjacentPlot = NULL;
 
 	CardinalDirectionTypes eBestCardinalDirection = NO_CARDINALDIRECTION;
-
-	if (eLastCardinalDirection==CARDINALDIRECTION_NORTH)
+	if (eLastCardinalDirection == CARDINALDIRECTION_NORTH)
 	{
 		pRiverPlot = pStartPlot;
 		if (pRiverPlot == NULL)
-		{
 			return;
-		}
-		pAdjacentPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(), CARDINALDIRECTION_EAST);
-		if ((pAdjacentPlot == NULL) || pRiverPlot->isWOfRiver() || pRiverPlot->isWater() || pAdjacentPlot->isWater())
+		pAdjacentPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(),
+				CARDINALDIRECTION_EAST);
+		if (pAdjacentPlot == NULL || pRiverPlot->isWOfRiver() ||
+			pRiverPlot->isWater() || pAdjacentPlot->isWater())
 		{
 			return;
 		}
 
 		pStartPlot->setRiverID(iThisRiverID);
 		pRiverPlot->setWOfRiver(true, eLastCardinalDirection);
-		pRiverPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(), CARDINALDIRECTION_NORTH);
+		pRiverPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(),
+				CARDINALDIRECTION_NORTH);
 	}
 	else if (eLastCardinalDirection==CARDINALDIRECTION_EAST)
 	{
-		pRiverPlot = plotCardinalDirection(pStartPlot->getX(), pStartPlot->getY(), CARDINALDIRECTION_EAST);
+		pRiverPlot = plotCardinalDirection(pStartPlot->getX(), pStartPlot->getY(),
+				CARDINALDIRECTION_EAST);
 		if (pRiverPlot == NULL)
+			return;
+		pAdjacentPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(),
+				CARDINALDIRECTION_SOUTH);
+		if (pAdjacentPlot == NULL || pRiverPlot->isNOfRiver() ||
+			pRiverPlot->isWater() || pAdjacentPlot->isWater())
 		{
 			return;
 		}
-		pAdjacentPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(), CARDINALDIRECTION_SOUTH);
-		if ((pAdjacentPlot == NULL) || pRiverPlot->isNOfRiver() || pRiverPlot->isWater() || pAdjacentPlot->isWater())
-		{
-			return;
-		}
-
 		pStartPlot->setRiverID(iThisRiverID);
 		pRiverPlot->setNOfRiver(true, eLastCardinalDirection);
 	}
 	else if (eLastCardinalDirection==CARDINALDIRECTION_SOUTH)
 	{
-		pRiverPlot = plotCardinalDirection(pStartPlot->getX(), pStartPlot->getY(), CARDINALDIRECTION_SOUTH);
+		pRiverPlot = plotCardinalDirection(pStartPlot->getX(), pStartPlot->getY(),
+			CARDINALDIRECTION_SOUTH);
 		if (pRiverPlot == NULL)
+			return;
+		pAdjacentPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(),
+				CARDINALDIRECTION_EAST);
+		if (pAdjacentPlot == NULL || pRiverPlot->isWOfRiver() ||
+			pRiverPlot->isWater() || pAdjacentPlot->isWater())
 		{
 			return;
 		}
-		pAdjacentPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(), CARDINALDIRECTION_EAST);
-		if ((pAdjacentPlot == NULL) || pRiverPlot->isWOfRiver() || pRiverPlot->isWater() || pAdjacentPlot->isWater())
-		{
-			return;
-		}
-
 		pStartPlot->setRiverID(iThisRiverID);
 		pRiverPlot->setWOfRiver(true, eLastCardinalDirection);
 	}
-
 	else if (eLastCardinalDirection==CARDINALDIRECTION_WEST)
 	{
 		pRiverPlot = pStartPlot;
 		if (pRiverPlot == NULL)
+			return;
+		pAdjacentPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(),
+				CARDINALDIRECTION_SOUTH);
+		if (pAdjacentPlot == NULL || pRiverPlot->isNOfRiver() ||
+			pRiverPlot->isWater() || pAdjacentPlot->isWater())
 		{
 			return;
 		}
-		pAdjacentPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(), CARDINALDIRECTION_SOUTH);
-		if ((pAdjacentPlot == NULL) || pRiverPlot->isNOfRiver() || pRiverPlot->isWater() || pAdjacentPlot->isWater())
-		{
-			return;
-		}
-
 		pStartPlot->setRiverID(iThisRiverID);
 		pRiverPlot->setNOfRiver(true, eLastCardinalDirection);
-		pRiverPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(), CARDINALDIRECTION_WEST);
+		pRiverPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(),
+				CARDINALDIRECTION_WEST);
 	}
 	else
 	{
@@ -363,33 +363,29 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 	}
 
 	if (pRiverPlot == NULL)
-	{
 		return; // The river has flowed off the edge of the map. All is well.
-	}
-	else if (pRiverPlot->hasCoastAtSECorner())
-	{
+	if (pRiverPlot->hasCoastAtSECorner())
 		return; // The river has flowed into the ocean. All is well.
-	}
 
 	if (eBestCardinalDirection == NO_CARDINALDIRECTION)
 	{
 		int iBestValue = MAX_INT;
-
-		for (int iI = 0; iI < NUM_CARDINALDIRECTION_TYPES; iI++)
+		FOR_EACH_ENUM(CardinalDirection)
 		{
-			if (getOppositeCardinalDirection((CardinalDirectionTypes)iI) != eOriginalCardinalDirection)
+			CardinalDirectionTypes eOppositeDir = getOppositeCardinalDirection(
+					eLoopCardinalDirection);
+			if (eOppositeDir != eOriginalCardinalDirection &&
+				eOppositeDir != eLastCardinalDirection)
 			{
-				if (getOppositeCardinalDirection((CardinalDirectionTypes)iI) != eLastCardinalDirection)
+				pAdjacentPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(),
+						eLoopCardinalDirection);
+				if (pAdjacentPlot != NULL)
 				{
-					pAdjacentPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(), ((CardinalDirectionTypes)iI));
-					if (pAdjacentPlot != NULL)
+					int iValue = getRiverValueAtPlot(pAdjacentPlot);
+					if (iValue < iBestValue)
 					{
-						int iValue = getRiverValueAtPlot(pAdjacentPlot);
-						if (iValue < iBestValue)
-						{
-							iBestValue = iValue;
-							eBestCardinalDirection = (CardinalDirectionTypes)iI;
-						}
+						iBestValue = iValue;
+						eBestCardinalDirection = eLoopCardinalDirection;
 					}
 				}
 			}
@@ -398,20 +394,18 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 
 	if (eBestCardinalDirection != NO_CARDINALDIRECTION)
 	{
-		if  (eOriginalCardinalDirection	== NO_CARDINALDIRECTION)
-		{
+		if (eOriginalCardinalDirection == NO_CARDINALDIRECTION)
 			eOriginalCardinalDirection = eBestCardinalDirection;
-		}
 		doRiver(pRiverPlot, eBestCardinalDirection, eOriginalCardinalDirection, iThisRiverID);
 	}
 }
+
 //Note from Blake:
 //Iustus wrote this function, it ensures that a new river actually
 //creates fresh water on the passed plot. Quite useful really
 //Although I veto'd its use since I like that you don't always
 //get fresh water starts.
 // pFreshWaterPlot = the plot we want to give a fresh water river
-//
 bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 {
 	FAssert(pFreshWaterPlot != NULL);
@@ -423,6 +417,9 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 	// if it already has a fresh water river, then success! we done
 	if (pFreshWaterPlot->isRiver())
 		return true;
+
+	int const iFreshWX = pFreshWaterPlot->getX(); // advc
+	int const iFreshWY = pFreshWaterPlot->getY(); // advc
 
 	// make two passes, once for each flow direction of the river
 	int iNWFlowPass = GC.getGame().getMapRandNum(2, "addRiver");
@@ -439,12 +436,12 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 			case CARDINALDIRECTION_NORTH:
 				if (iPass == iNWFlowPass)
 				{
-					pRiverPlot = plotDirection(pFreshWaterPlot->getX(), pFreshWaterPlot->getY(), DIRECTION_NORTH);
+					pRiverPlot = plotDirection(iFreshWX, iFreshWY, DIRECTION_NORTH);
 					eRiverDirection = CARDINALDIRECTION_WEST;
 				}
 				else
 				{
-					pRiverPlot = plotDirection(pFreshWaterPlot->getX(), pFreshWaterPlot->getY(), DIRECTION_NORTHWEST);
+					pRiverPlot = plotDirection(iFreshWX, iFreshWY, DIRECTION_NORTHWEST);
 					eRiverDirection = CARDINALDIRECTION_EAST;
 				}
 				break;
@@ -457,7 +454,7 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 				}
 				else
 				{
-					pRiverPlot = plotDirection(pFreshWaterPlot->getX(), pFreshWaterPlot->getY(), DIRECTION_NORTH);
+					pRiverPlot = plotDirection(iFreshWX, iFreshWY, DIRECTION_NORTH);
 					eRiverDirection = CARDINALDIRECTION_SOUTH;
 				}
 				break;
@@ -470,7 +467,7 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 				}
 				else
 				{
-					pRiverPlot = plotDirection(pFreshWaterPlot->getX(), pFreshWaterPlot->getY(), DIRECTION_WEST);
+					pRiverPlot = plotDirection(iFreshWX, iFreshWY, DIRECTION_WEST);
 					eRiverDirection = CARDINALDIRECTION_EAST;
 				}
 				break;
@@ -478,12 +475,12 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 			case CARDINALDIRECTION_WEST:
 				if (iPass == iNWFlowPass)
 				{
-					pRiverPlot = plotDirection(pFreshWaterPlot->getX(), pFreshWaterPlot->getY(), DIRECTION_WEST);
+					pRiverPlot = plotDirection(iFreshWX, iFreshWY, DIRECTION_WEST);
 					eRiverDirection = CARDINALDIRECTION_NORTH;
 				}
 				else
 				{
-					pRiverPlot = plotDirection(pFreshWaterPlot->getX(), pFreshWaterPlot->getY(), DIRECTION_NORTHWEST);
+					pRiverPlot = plotDirection(iFreshWX, iFreshWY, DIRECTION_NORTHWEST);
 					eRiverDirection = CARDINALDIRECTION_SOUTH;
 				}
 				break;
@@ -495,7 +492,7 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 			if (pRiverPlot != NULL && !pRiverPlot->hasCoastAtSECorner())
 			{
 				// try to make the river
-				doRiver(pRiverPlot, eRiverDirection, eRiverDirection, -1);
+				doRiver(pRiverPlot, eRiverDirection, eRiverDirection);
 
 				// if it succeeded, then we will be a river now!
 				if (pFreshWaterPlot->isRiver())
@@ -517,13 +514,15 @@ void CvMapGenerator::addFeatures()
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
 		CvPlot& kPlot = GC.getMap().getPlotByIndex(iI);
-		for (int iJ = 0; iJ < GC.getNumFeatureInfos(); iJ++)
+		FOR_EACH_ENUM(Feature)
 		{
-			if (kPlot.canHaveFeature((FeatureTypes)iJ))
+			if (kPlot.canHaveFeature(eLoopFeature))
 			{
 				if (GC.getGame().getMapRandNum(10000, "addFeaturesAtPlot") <
-						GC.getInfo((FeatureTypes)iJ).getAppearanceProbability())
-					kPlot.setFeatureType((FeatureTypes)iJ);
+					GC.getInfo(eLoopFeature).getAppearanceProbability())
+				{
+					kPlot.setFeatureType(eLoopFeature);
+				}
 			}
 		}
 	}
