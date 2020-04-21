@@ -721,7 +721,6 @@
 					<MemoryType>MEMORY_EVENT_BAD_TO_US</MemoryType>
 					<iMemoryAttitudePercent>-100</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
-				<!-- advc.ctr (note, concerning all leaders): The DLL takes this times 7/8 -->
 				<MemoryAttitudePercent>
 					<MemoryType>MEMORY_LIBERATED_CITIES</MemoryType>
 					<iMemoryAttitudePercent>150</iMemoryAttitudePercent>

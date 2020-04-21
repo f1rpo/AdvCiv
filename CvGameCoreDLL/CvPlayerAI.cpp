@@ -7694,9 +7694,6 @@ int CvPlayerAI::AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) c
 		(Or rather: Not yet sure if I've gotten the numbers right.) */
 	if (iAttitudePercent > 0 && eMemory == MEMORY_TRADED_TECH_TO_US)
 		iAttitudePercent = 4 + (iAttitudePercent * 4) / 5; // </advc.553>
-	// <advc.ctr>
-	if (eMemory == MEMORY_LIBERATED_CITIES)
-		iAttitudePercent = (iAttitudePercent * 7) / 8; // </advc.ctr>
 	return ::round((AI_getMemoryCount(ePlayer, eMemory) * iAttitudePercent) / div);
 }
 
@@ -11619,7 +11616,7 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 
 	if (!bKeep)
 	{
-		if (!bHuman) // Bias the AI against trading for cities
+		if (!bHuman && !bDiploVal) // Bias the AI against trading for cities
 		{
 			scaled rDiv = fixp(6/5.);
 			if (bOtherHuman && !bAIRequest) // Distrust human offers unless Friendly
@@ -11831,9 +11828,14 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 			return r.round();
 		return r.roundToMultiple(GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER));
 	}
-	// Reduced diplomatic consequences b/c repipient has a rightful claim
-	if (bLiberate && bDiploVal)
-		r *= fixp(0.72);
+	if (bDiploVal)
+	{
+		if (bLiberate) // Because recipient has a rightful claim
+			r *= fixp(0.78);
+		/*	AI recipient's trade value generally errs on the side of being too low;
+			don't need to be so conservative when it comes to trade memory.*/
+		else r *= fixp(1.13);
+	}
 	return r.round();
 }
 
