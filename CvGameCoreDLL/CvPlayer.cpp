@@ -4909,7 +4909,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 			for (SquareIter it(*pPlot, iOffset); it.hasNext(); ++it)
 			{
 				CvPlot& kLoopPlot = *it;
-				if (!kLoopPlot.isRevealed(getTeam()))
+				if (kLoopPlot.isRevealed(getTeam()))
 					continue; // advc
 				int iValue = 1 + g.getSorenRandNum(10000, "Goody Map");
 				iValue *= it.currPlotDist();
