@@ -3176,11 +3176,7 @@ void CvUnitAI::AI_attackCityMove()
 		}
 		else
 		{
-			/*  <advc.300> Replace literal 4 with iSearchRange. Reduced b/c (New World)
-				Barbarians who can't find a target city shouldn't be aggressive. */
-			int iSearchRange = 4;
-			if(isBarbarian() && getArea().getAreaAIType(getTeam()) == AREAAI_ASSAULT)
-				iSearchRange = 1; // </advc.300>
+			int const iSearchRange = 4;
 			if (eAreaAI == AREAAI_DEFENSIVE && getPlot().getOwner() == getOwner())
 			{
 				if (AI_stackVsStack(iSearchRange, 110, 55, iMoveFlags))
