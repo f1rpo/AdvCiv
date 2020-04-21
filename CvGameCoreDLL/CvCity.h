@@ -278,7 +278,9 @@ public:
 	int maxHurryPopulation() const;																				// Exposed to Python
 
 	static int cultureDistance(int iDX, int iDY); // advc: static												// Exposed to Python
-	int cultureStrength(PlayerTypes ePlayer) const;																// Exposed to Python
+	enum GrievanceTypes { GRIEVANCE_HURRY, GRIEVANCE_CONSCRIPT, GRIEVANCE_RELIGION }; // advc.101
+	int cultureStrength(PlayerTypes ePlayer,																	// Exposed to Python
+			std::vector<GrievanceTypes>* paGrievances = NULL) const; // advc.101
 	int cultureGarrison(PlayerTypes ePlayer) const;																// Exposed to Python
 	PlayerTypes calculateCulturalOwner() const; // advc.099c
 

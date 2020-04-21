@@ -407,6 +407,7 @@ public:
 	/* advc.004a: A hack that allows other classes to pretend that a team knows
 	   a tech for some computation. Should be toggled back afterwards. */
 	inline void setHasTechTemporarily(TechTypes eTech, bool b) { m_abHasTech.set(eTech, b); }
+	int getTechCount() const { return m_iTechCount; } // advc.101
 	// <advc.134a>
 	void advancePeaceOfferStage(TeamTypes eAITeam = NO_TEAM);
 	bool isPeaceOfferStage(int iStage, TeamTypes eOffering) const;
@@ -532,6 +533,7 @@ protected:
 	TeamTypes m_eMaster;
 	PlayerTypes m_eLeader;
 	// </advc.opt>
+	short m_iTechCount; // advc.101
 	bool m_bMinorTeam;
 	// </advc.003m>
 	bool m_bMapCentering;

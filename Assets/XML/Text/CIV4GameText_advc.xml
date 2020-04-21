@@ -171,6 +171,41 @@
 		<Italian>Città può rivoltarsi se &gt; %d1[ICON_STRENGTH] sono trasferite</Italian>
 		<Spanish>Ciudad puede rebelarse si &gt; %d1[ICON_STRENGTH] son retiradas</Spanish>
 	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_INCREASED_BY_GRIEVANCE</Tag>
+		<English>Increased opposition due to</English>
+		<French>Opposition renforcée par</French>
+		<German>Erhöhter Widerstand durch</German>
+		<Italian>Opposizione rafforzata da</Italian>
+		<Spanish>Oposición reforzada por</Spanish>
+	</TEXT>
+	<!-- Translations based on TXT_KEY_BUILDING_HURRY_ANGER_MOD
+		 (CIV4GameText_Warlords.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_GRIEVANCE_HURRY</Tag>
+		<English>hurry [ICON_UNHAPPY]</English>
+		<French>des sacrifices de population</French>
+		<German>[ICON_UNHAPPY] über Bevölkerungseinbußen</German>
+		<Italian>sacrifici della popolazione</Italian>
+		<Spanish>los sacrificios de la población</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_DRAFT_UNIT (Civ4GameText_Misc1.xml)-->
+	<TEXT>
+		<Tag>TXT_KEY_GRIEVANCE_CONSCRIPT</Tag>
+		<English>draft [ICON_UNHAPPY]</English>
+		<French>l'enr&#244;lement</French>
+		<German>[ICON_UNHAPPY] über Einberufung</German>
+		<Italian>coscrizione</Italian>
+		<Spanish>el reclutamiento</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GRIEVANCE_RELIGION</Tag>
+		<English>religion</English>
+		<French>la religion</French>
+		<German>Religion</German>
+		<Italian>religione</Italian>
+		<Spanish>la religi&#243;n</Spanish>
+	</TEXT>
 
 	<!-- advc.101: Originally in CIV4GameTextInfos.xml. Adding the
 		 pre-revolt owner of the city. -->

@@ -4013,31 +4013,40 @@ int CvCity::cultureDistance(int iDX, int iDY)
 	return std::max(1, plotDistance(0, 0, iDX, iDY));
 }
 
-
-int CvCity::cultureStrength(PlayerTypes ePlayer) const
+// advc.101: Replaced most of the code, but it's still the same structure as in BtS.
+int CvCity::cultureStrength(PlayerTypes ePlayer,
+	std::vector<GrievanceTypes>* paGrievances) const // Out parameter for UI support
 {
-	//int iStrength = 1 + getHighestPopulation() * 2;
-	// <advc.101>
+	//int iStrength = 1 + getHighestPopulation() * 2; // BtS
 	scaled rPopulation = getPopulation();
 	CvGame const& kGame = GC.getGame();
+	CvGameSpeedInfo const& kSpeed = GC.getInfo(kGame.getGameSpeedType());
 	int iTimeOwned = kGame.getGameTurn() - getGameTurnAcquired();
-	scaled rTimeFactor = iTimeOwned / scaled::max(1,
-			fixp(0.75) * GC.getInfo(kGame.getGameSpeedType()).getGoldenAgePercent());
+	scaled rTimeRatio = iTimeOwned / scaled::max(1,
+			fixp(0.75) * kSpeed.getGoldenAgePercent());
+	scaled rTimeFactor = scaled::min(1, rTimeRatio);
 	rPopulation += // Gradually shift to highest pop, then back to actual pop.
-			(fixp(0.5) - (scaled::min(1, rTimeFactor) - fixp(0.5)).abs()) *
+			(fixp(0.5) - (rTimeFactor - fixp(0.5)).abs()) *
 			(getHighestPopulation() - rPopulation);
-	/*  Would make more sense to use owner's era (if ePlayer is dead) b/c the
-		insurgents would mostly use the owner's military tech. But don't want
-		human owner to have to pay attention to his/her tech era. */
-	int iEra = GET_PLAYER(ePlayer).isAlive() ? GET_PLAYER(ePlayer).getCurrentEra() :
-			kGame.getCurrentEra();
-	scaled rEraFactor;
-	if (iEra > 0)
+	scaled rEraFactor; // BtS used the game era here; I'll use sth. similar to era.
 	{
-		rEraFactor = iEra;
-		rEraFactor.exponentiate(fixp(4/3.));
+		/*	ePlayer can be dead, but the tech count should still be good.
+			(CvPlayer::getTechScore / CvGame::getMaxTech would give
+			too much weight to late-game tech.) */
+		scaled rPlayerTechPercent(GET_TEAM(ePlayer).getTechCount(), GC.getNumTechInfos());
+		scaled rOwnerTechPercent(GET_TEAM(getOwner()).getTechCount(), GC.getNumTechInfos());
+		scaled rTechPercent = std::max(rPlayerTechPercent,
+				((rTimeFactor + 1) / 2) * rOwnerTechPercent);
+		// Decrease resolution - to avoid frequent changes in revolt chance
+		int const iGrain = 10;
+		int iTechPercentQuantized = ROUND_DIVIDE(rTechPercent.getPercent(), iGrain);
+		if (iTechPercentQuantized > 0)
+		{
+			rEraFactor = iTechPercentQuantized * scaled(GC.getNumEraInfos() - 1, iGrain);
+			rEraFactor.exponentiate(fixp(4/3.));
+		}
+		rEraFactor++;
 	}
-	rEraFactor++;
 	// To put a cap on the initial revolt chance in large cities:
 	rPopulation.decreaseTo(rEraFactor * fixp(1.6));
 	CvPlot const& kCityPlot = getPlot();
@@ -4068,26 +4077,30 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 		{
 			// <advc.101>
 			rStrengthFromInnerRadius += rEraFactor * scaled::clamp(
-					rTimeFactor - fixp(2/3.), 0, fixp(3.5));
+					rTimeRatio - fixp(2/3.), 0, fixp(3.5));
 		}
-		scaled rCap = fixp(0.25) + fixp(0.75) * scaled::min(1, rTimeFactor);
+		scaled rCap = fixp(0.25) + fixp(0.75) * rTimeFactor;
 		rStrengthFromInnerRadius += rEraFactor * scaled::clamp(per100(
 				pLoopPlot->calculateCulturePercent(ePlayer) -
 				pLoopPlot->calculateCulturePercent(getOwner())), 0, rCap);
 	}
 	rStrengthFromInnerRadius.decreaseTo(rStrength);
 	rStrength += rStrengthFromInnerRadius;
+	int const iHurryAnger = (getHurryPercentAnger() * getPopulation()) / 1000;
+	int const iConscriptAnger = (getConscriptPercentAnger() * getPopulation()) / 1000;
+	int const iAngry = iHurryAnger + iConscriptAnger;
+	FAssert((iAngry == 0) == (getHurryAngerTimer() == 0));
+	iAngry = std::min(iAngry, getPopulation());
 	/*  HurryAnger also factors into grievanceModifier below, but for small cities
 		(where Slavery is most effective), this constant bonus matters more. */
-	if(getHurryAngerTimer() > 0)
-		rStrength += 10; // </advc.101>
+	rStrength += 3 * iAngry;
 	/*  K-Mod, 7/jan/11, karadoc
 		changed so that culture strength asymptotes as the attacking culture approaches 100% */
 	//iStrength *= std::max(0, (GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER") * (kCityPlot.getCulture(ePlayer) - kCityPlot.getCulture(getOwner()))) / (kCityPlot.getCulture(getOwner()) + 1) + 100); //  K-Mod end
-	// <advc.101> Restored BtS formula; now using floating point operations
+	// Restored BtS formula (more or less)
 	rStrength *= scaled::max(0, 1 + scaled(
-			/*  Don't like the multiplicative interaction between this and the
-				grievances; now added it to the grievances. */
+			/*  Don't like the multiplicative interaction between this and the grievances;
+				now added to grievances. */
 			//GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER") *
 			kCityPlot.getCulture(ePlayer) - kCityPlot.getCulture(getOwner()),
 			kCityPlot.getCulture(ePlayer)));
@@ -4104,66 +4117,74 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 	rSecondPartyModifier--;
 	rSecondPartyModifier.clamp(0, 1);
 	rStrength *= rSecondPartyModifier;
-	// </advc.101>
-	/*  <advc.099c> Religion offense might make sense even when a civ is dead,
-		but can't expect the player to memorize the state religions of dead civs.
-		Instead, count religion offense also when the owner's state religion
-		is absent and at least one religion is in the city. This makes (some)
-		sense whether the revolt civ is dead or not. */
-	ReligionTypes const eOwnerStateReligion = kOwner.getStateReligion();
-	bool bReligionSuppressed = false;
-	if(eOwnerStateReligion != NO_RELIGION && !isHasReligion(eOwnerStateReligion))
-	{
-		FOR_EACH_ENUM(Religion)
-		{
-			if(isHasReligion(eLoopReligion) && eLoopReligion != eOwnerStateReligion)
-			{
-				bReligionSuppressed = true;
-				break;
-			}
-		}
-	}
-	// advc.101: Apply them all at once
-	scaled rGrievanceModifier;
-	// <advc.opt>
+
 	static scaled const rREVOLT_OFFENSE_STATE_RELIGION_MODIFIER = per100(
 			GC.getDefineINT("REVOLT_OFFENSE_STATE_RELIGION_MODIFIER"));
 	static scaled const rREVOLT_DEFENSE_STATE_RELIGION_MODIFIER = per100(
 			GC.getDefineINT("REVOLT_DEFENSE_STATE_RELIGION_MODIFIER"));
 	static scaled const rREVOLT_TOTAL_CULTURE_MODIFIER = per100(
 			GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER")); // 100
-	// </advc.opt>
-	rGrievanceModifier += rREVOLT_TOTAL_CULTURE_MODIFIER - 1;
-	CvPlayer const& kRevoltPlayer = GET_PLAYER(ePlayer);
-	if(bReligionSuppressed || (kRevoltPlayer.isAlive() &&
-		(!GET_TEAM(kRevoltPlayer.getTeam()).isCapitulated() ||
-		kRevoltPlayer.getMasterTeam() != getTeam()) &&
-		kRevoltPlayer.getStateReligion() != NO_RELIGION && // No functional change
-		isHasReligion(kRevoltPlayer.getStateReligion())))
-	{	// </advc.099c>
+	scaled rGrievanceModifier;
+	ReligionTypes const eOwnerStateReligion = kOwner.getStateReligion();
+	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
+	if (kPlayer.isAlive() &&
+		(!GET_TEAM(kPlayer.getTeam()).isCapitulated() ||
+		kPlayer.getMasterTeam() != getTeam()) &&
+		kPlayer.getStateReligion() != NO_RELIGION &&
+		isHasReligion(kPlayer.getStateReligion()))
+	{
 		/*iStrength *= std::max(0, GC.getDefineINT("REVOLT_OFFENSE_STATE_RELIGION_MODIFIER") + 100);
-		iStrength /= 100;*/
-		// advc.101:
+		iStrength /= 100;*/ // BtS
 		rGrievanceModifier += rREVOLT_OFFENSE_STATE_RELIGION_MODIFIER;
+	}
+	else
+	{
+		/*  Religion offense might still make sense even when ePlayer is defated, but
+			can't expect the owner to memorize the state religions of defeated players.
+			Instead, count some religion offense also when the owner's state religion
+			is absent and at least one religion is in the city. This makes (some) sense
+			whether ePlayer is defeated or not. */
+		bool bReligionSuppressed = false;
+		if(eOwnerStateReligion != NO_RELIGION && !isHasReligion(eOwnerStateReligion))
+		{
+			FOR_EACH_ENUM(Religion)
+			{
+				if(isHasReligion(eLoopReligion) && eLoopReligion != eOwnerStateReligion)
+				{
+					rGrievanceModifier += rREVOLT_OFFENSE_STATE_RELIGION_MODIFIER * fixp(2/3.);
+					break;
+				}
+			}
+		}
 	}
 	if(eOwnerStateReligion != NO_RELIGION && isHasReligion(eOwnerStateReligion))
 	{
 		/*iStrength *= std::max(0, GC.getDefineINT("REVOLT_DEFENSE_STATE_RELIGION_MODIFIER") + 100);
-		iStrength /= 100;*/
-		/*  <advc.099c> The OFFENSE modifier was originally set to 100 in XML and
+		iStrength /= 100;*/ // BtS
+		/*  The OFFENSE modifier was originally set to 100 in XML and
 			DEFENSE to -50, and they were cancelling out when both applied
 			(multiplication by 100+100 and then by 100-50). I'm changing the values
 			in XML so that they cancel out when added up. */
 		rGrievanceModifier += rREVOLT_DEFENSE_STATE_RELIGION_MODIFIER;
-		
 	} /* No state religion is still better than some oppressive state religion that
 		 the city doesn't share. */
-	if(eOwnerStateReligion == NO_RELIGION)
-		rGrievanceModifier += rREVOLT_DEFENSE_STATE_RELIGION_MODIFIER;
-	// <advc.099c>
-	if(getHurryAngerTimer() > 0)
-		rGrievanceModifier += fixp(0.5);
-	// <advc.099c>
+	else if(eOwnerStateReligion == NO_RELIGION && rGrievanceModifier > 0)
+		rGrievanceModifier += rREVOLT_DEFENSE_STATE_RELIGION_MODIFIER / 2;
+	if (paGrievances != NULL && rGrievanceModifier > 0)
+		paGrievances->push_back(GRIEVANCE_RELIGION);
+	rGrievanceModifier += rREVOLT_TOTAL_CULTURE_MODIFIER - 1;
+	if (iAngry > 0)
+	{
+		rGrievanceModifier += scaled(iAngry).sqrt() /
+				(per100(kSpeed.getHurryConscriptAngerPercent()) + 1);
+		if (paGrievances != NULL)
+		{
+			if (iHurryAnger > 0)
+				paGrievances->push_back(GRIEVANCE_HURRY);
+			if (iConscriptAnger > 0)
+				paGrievances->push_back(GRIEVANCE_CONSCRIPT);
+		}
+	} // <advc.099c>
 	if(GET_TEAM(getTeam()).isCapitulated() && bCanFlip)
 		rGrievanceModifier += 1; // </advc.099c>
 	// The defense modifier should only halve culture strength, not reduce by 100%
@@ -4178,7 +4199,6 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 			GC.getDefineINT("FOREIGN_CULTURE_STRENGTH_FACTOR"));
 	return (rFOREIGN_CULTURE_STRENGTH_FACTOR *
 			rStrength.pow(rFOREIGN_CULTURE_STRENGTH_EXPONENT)).round();
-	// </advc.101>
 }
 
 
@@ -7983,11 +8003,12 @@ void CvCity::changeNumRevolts(PlayerTypes eIndex, int iChange)
 double CvCity::getRevoltTestProbability() const // advc.101: Changed return type
 {
 	int iProtection = getRevoltProtection(); // advc.101: Moved into new function
-	static int const iREVOLT_TEST_PROB = GC.getDefineINT("REVOLT_TEST_PROB"); // advc.opt
-	return std::min(1.0, // advc.101: Upper bound used to be handled by the caller
-			((iREVOLT_TEST_PROB * (100 - iProtection)) / 100.0) /
-			// advc.101: was .getVictoryDelayPercent() in K-Mod
-			GC.getInfo(GC.getGame().getGameSpeedType()).getGoldenAgePercent());
+	static scaled const rREVOLT_TEST_PROB = per100(GC.getDefineINT("REVOLT_TEST_PROB")); // advc.opt
+	scaled r = rREVOLT_TEST_PROB * per100(100 - iProtection) /
+			// <advc.101> was .getVictoryDelayPercent() in K-Mod
+			per100(GC.getInfo(GC.getGame().getGameSpeedType()).getGoldenAgePercent());
+	r.decreaseTo(1); // Upper bound used to be handled by the caller </advc.101>
+	return r.getDouble();
 }
 
 // advc.101: Cut from getRevoltTestProbability

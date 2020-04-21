@@ -131,6 +131,7 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 	m_eMaster = NO_TEAM;
 	m_eLeader = NO_PLAYER;
 	// </advc.opt>
+	m_iTechCount = 0; // advc.101
 
 	m_aiStolenVisibilityTimer.reset();
 	m_aiWarWeariness.reset();
@@ -4314,6 +4315,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 	{
 		updatePlotGroupBonus(eTech, false); // advc: Code moved into auxiliary function
 		m_abHasTech.set(eTech, bNewValue);
+		m_iTechCount++; // advc.101
 		updatePlotGroupBonus(eTech, true);
 	}
 
@@ -5585,6 +5587,17 @@ void CvTeam::read(FDataStreamBase* pStream)
 	} // </advc.opt>
 
 	m_abHasTech.Read(pStream);
+	// <advc.101>
+	if (uiFlag >= 10)
+		pStream->Read(&m_iTechCount);
+	else
+	{
+		FOR_EACH_ENUM(Tech)
+		{
+			if (m_abHasTech.get(eLoopTech))
+				m_iTechCount++;
+		}
+	} // </advc.101>
 	m_abNoTradeTech.Read(pStream);
 	m_aaiImprovementYieldChange.Read(pStream);
 
@@ -5623,6 +5636,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 	uiFlag = 7; // advc.opt: m_bAnyVictoryCountdown
 	uiFlag = 8; // advc.opt: change in updateLeaderID
 	uiFlag = 9; // advc.opt: remove m_abVassal; advc.enum/ advc.034: write m_abDisengage[BARBARIAN_TEAM]
+	uiFlag = 10; // advc.101: m_itechCount
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iNumMembers);
@@ -5706,6 +5720,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 	m_aiTerrainTradeCount.Write(pStream);
 	m_aiVictoryCountdown.Write(pStream);
 	m_abHasTech.Write(pStream);
+	pStream->Write(m_iTechCount); // advc.101
 	m_abNoTradeTech.Write(pStream);
 	m_aaiImprovementYieldChange.Write(pStream);
 

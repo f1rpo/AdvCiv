@@ -160,7 +160,7 @@
     </Define>
 
 	<!-- These two are from the original GlobalDefines. -->
-	<!-- [advc.099c] Was 100, meaning that foreign culture strength is doubled
+	<!-- advc.101: Was 100, meaning that foreign culture strength is doubled
 		 if the foreign state religion is in the city. Now also applies when the
 		 owner of the foreign culture is eliminated and there is a "suppressed"
 		 religion in the city, i.e. a religion that differs from the city owner's

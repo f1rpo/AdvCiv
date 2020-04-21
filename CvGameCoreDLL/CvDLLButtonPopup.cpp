@@ -1444,7 +1444,7 @@ bool CvDLLButtonPopup::launchRazeCityPopup(CvPopup* pPopup, CvPopupInfo &info)
 	PlayerTypes eFutureLiberationPlayer = pNewCity->getLiberationPlayer(false);
 	if (bGift && eLiberationPlayer != eFutureLiberationPlayer)
 	{
-		szKeep.append(L" ");
+		szKeep.append(NEWLINE);
 		if (eFutureLiberationPlayer == NO_PLAYER)
 		{
 			szKeep.append(gDLL->getText("TXT_KEY_POPUP_LIBERATION_NOTE_NONE",

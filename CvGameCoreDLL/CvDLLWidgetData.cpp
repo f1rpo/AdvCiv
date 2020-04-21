@@ -4876,16 +4876,19 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 		szBuffer.append(szTempBuffer);
 	}
 	PlayerTypes const eCulturalOwner = c.calculateCulturalOwner(); // advc.099c
-	// <advc.101><advc.023>
+	// <advc.101>
+	std::vector<CvCity::GrievanceTypes> aGrievances;
+	// <advc.023>
 	double const prDecr = c.probabilityOccupationDecrement();
 	double const prDisplay = c.revoltProbability(true, false, true);
-	int const iCultureStr = c.cultureStrength(eCulturalOwner);
+	int const iCultureStr = c.cultureStrength(eCulturalOwner, &aGrievances);
 	int const iGarrisonStr = c.cultureGarrison(eCulturalOwner);
+	double const truePr = c.revoltProbability() * (1 - prDecr);
 	if(prDisplay > 0)
 	{
-		double truePr = c.revoltProbability() * (1 - prDecr);
 		swprintf(szTempBuffer, (truePr == 0 ? L"%.0f" : L"%.1f"),
-				(float)(100 * truePr)); // </advc.023></advc.101>
+				(float)(100 * truePr)); // </advc.023>
+		// </advc.101>
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_CHANCE_OF_REVOLT", szTempBuffer));
 		// <advc.023> Probability after occupation
@@ -4911,18 +4914,42 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 		// Also show c.getRevoltProtection()? */
 		szBuffer.append(gDLL->getText("TXT_KEY_GARRISON_STRENGTH_NEEDED",
 				iCultureStr - iGarrisonStr));
+	}
+	if(!c.isOccupation() && prDisplay <= 0 && eCulturalOwner != c.getOwner() &&
+		iGarrisonStr >= iCultureStr)
+	{
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_GARRISON_STRENGTH_EXCESS",
+				iGarrisonStr - iCultureStr));
+	}
+	if (eCulturalOwner != c.getOwner())
+	{
+		for (size_t i = 0; i < aGrievances.size(); i++)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_INCREASED_BY_GRIEVANCE"));
+			szBuffer.append(L" ");
+			CvWString szGrievanceKey(L"TXT_KEY_GRIEVANCE_");
+			switch(aGrievances[i])
+			{
+			case CvCity::GRIEVANCE_HURRY: szGrievanceKey += L"HURRY"; break;
+			case CvCity::GRIEVANCE_CONSCRIPT: szGrievanceKey += L"CONSCRIPT"; break;
+			case CvCity::GRIEVANCE_RELIGION: szGrievanceKey += L"RELIGION"; break;
+			default: FAssertMsg(false, "Unknown grievance type");
+			}
+			szBuffer.append(gDLL->getText(szGrievanceKey.GetCString()));
+		}
 		// Warn about flipping
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_PRIOR_REVOLTS", c.getNumRevolts(eCulturalOwner)));
-		if(truePr > 0 && c.canCultureFlip(eCulturalOwner))
+		if (prDisplay > 0 && truePr > 0 && c.canCultureFlip(eCulturalOwner))
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_FLIP_WARNING"));
 		}
 	}
 	if(c.isOccupation()) // </advc.101>
-	{
-		// <advc.023>
+	{	// <advc.023>
 		// Show probability of decrementing occupation - unless it's always 1
 		if(GC.getDefineINT(CvGlobals::OCCUPATION_COUNTDOWN_EXPONENT) > 0)
 		{
@@ -4938,14 +4965,7 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 			szBuffer.append(gDLL->getText("TXT_KEY_TIMER_DECREASE_CHANCE",
 					prDecrPercent));
 		}
-	} // </advc.023>  // <advc.101>
-	else if(prDisplay <= 0 && eCulturalOwner != c.getOwner() &&
-		iGarrisonStr >= iCultureStr)
-	{
-		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_GARRISON_STRENGTH_EXCESS",
-				iGarrisonStr - iCultureStr));		
-	} // </advc.101>
+	} // </advc.023>
 }
 
 void CvDLLWidgetData::parseHappinessHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
