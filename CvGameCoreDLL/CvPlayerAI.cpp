@@ -9451,7 +9451,10 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer,
 	{
 		/*	AI counting a human proposal:
 			do not compromise the AI's value, and don't even consider the human's value. */
-		bDeal = (iWeReceive >= iTheyReceive && /* advc.ctr */ iWeReceive > 0);
+		bDeal = (iWeReceive >= iTheyReceive &&
+				/*	advc.ctr: Refuse to trade for liberation instead of offering
+					to give nothing in exchange. (But don't block 0-val dual deals.) */
+				(iWeReceive > 0 || (iWeReceive <= 0 && iTheyReceive <= 0)));
 		FAssert(!isHuman());
 	}
 	else
