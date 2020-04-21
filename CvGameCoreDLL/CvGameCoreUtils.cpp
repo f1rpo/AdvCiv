@@ -10,21 +10,31 @@
 
 using std::vector; // advc
 
+/*	advc.pf: I've mainly wanted to increase PATH_STEP_WEIGHT.
+	Symmetry breaking and PATH_STRAIGHT_WEIGHT can add up to a total of 6 per step.
+	STEP_WEIGHT 7 still isn't always enough to trump that,
+	so I'm adding 1 more later on for human units.
+	Don't want to scale everything up too much, i.e. not too close to 1000.
+	(Though I guess one could just increase PATH_MOVEMENT_WEIGHT as well, e.g. to 2048.) */
+
 #define PATH_MOVEMENT_WEIGHT    (1000)
-//#define PATH_RIVER_WEIGHT     (100)
-#define PATH_RIVER_WEIGHT       (20) // K-Mod ( * river crossing penalty)
-//#define PATH_CITY_WEIGHT      (100)
-#define PATH_CITY_WEIGHT        (200) // K-Mod
-//#define PATH_DEFENSE_WEIGHT   (10)
-#define PATH_DEFENSE_WEIGHT     (4) // K-Mod. ( * defence bonus)
-#define PATH_TERRITORY_WEIGHT   (5) // was 3
-#define PATH_DOW_WEIGHT			(4) // advc.082
-#define PATH_STEP_WEIGHT        (4) // was 2
-#define PATH_STRAIGHT_WEIGHT    (2) // was 1
-//#define PATH_ASYMMETRY_WEIGHT   (1) // K-Mod
+// advc.pf: Was 20 in K-Mod, 100 in BtS.
+#define PATH_RIVER_WEIGHT         (32) // river crossing penalty
+// advc.pf: Was 200 in K-Mod, 100 in BtS.
+#define PATH_CITY_WEIGHT         (225) // K-Mod
+// advc.pf: Was 4 in K-Mod, 10 in BtS.
+#define PATH_DEFENSE_WEIGHT        (7) // defence bonus
+// advc.pf: Was 5 in K-Mod, 3 in BtS.
+#define PATH_TERRITORY_WEIGHT      (9)
+#define PATH_DOW_WEIGHT	           (7) // advc.082
+// advc.pf: Was 4 in K-Mod, 2 in BtS.
+#define PATH_STEP_WEIGHT           (7)
+#define PATH_STRAIGHT_WEIGHT       (2) // K-Mod: was 1
+//#define PATH_ASYMMETRY_WEIGHT    (1) // K-Mod
 
 // #define PATH_DAMAGE_WEIGHT      (500) // K-Mod (disabled because it isn't used)
-#define PATH_COMBAT_WEIGHT      (300) // K-Mod. penalty for having to fight along the way.
+// advc.pf: Was 300 in K-Mod
+#define PATH_COMBAT_WEIGHT         (350) // K-Mod. penalty for having to fight along the way.
 // Note: there will also be other combat penalties added, for example from defence weight and city weight.
 
 // <advc.003g>
@@ -1212,10 +1222,11 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		if (kFromPlot.getX() != kToPlot.getX() && kFromPlot.getY() != kToPlot.getY())
 			iWorstCost += PATH_STRAIGHT_WEIGHT * (1+(node->m_iX + node->m_iY)%2);
 		iWorstCost += (node->m_iX + node->m_iY+1)%3;
+		iWorstCost++; // advc.pf: Essentially 1 extra
 	}
-	// unfortunately, this simple method may have problems at the world-wrap boundries.
+	// unfortunately, this simple method may have problems at the world-wrap boundaries.
 	// It's difficult to tell when to correct for wrap effects and when not to, because as soon as the
-	// unit starts moving, the start position of the path changes, and so it's no longer posible to tell
+	// unit starts moving, the start position of the path changes, and so it's no longer possible to tell
 	// whether or not the unit started on the other side of the boundry.  Drat.
 
 	// end symmetry breaking.
