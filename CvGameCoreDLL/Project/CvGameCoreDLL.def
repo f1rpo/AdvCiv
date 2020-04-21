@@ -21,3 +21,5 @@ EXPORTS
 ?plot@CvMap@@QBEPAVCvPlot@@HH@Z=?plotExternal@CvMap@@QBEPAVCvPlot@@HH@Z
 ?isAtWar@CvTeam@@QBE_NW4TeamTypes@@@Z=?isAtWarExternal@CvTeam@@QBE_NW4TeamTypes@@@Z
 ?isPromotionReady@CvUnit@@QBE_NXZ=?isPromotionReadyExternal@CvUnit@@QBE_NXZ
+?getUnit@@YAPAVCvUnit@@UIDInfo@@@Z=?getUnitExternal@@YAPAVCvUnit@@UIDInfo@@@Z
+?getCity@@YAPAVCvCity@@UIDInfo@@@Z=?getCityExternal@@YAPAVCvCity@@UIDInfo@@@Z

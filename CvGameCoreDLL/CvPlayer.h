@@ -1632,15 +1632,19 @@ private:
 
 /*	<advc.opt> Moved from CvGameCoreUtils for inlining.
 	NO_PLAYER checks removed (cf. IDInfo constructor). */
-DllExport inline CvCity* getCity(IDInfo city)												// Exposed to Python
+inline CvCity* getCity(IDInfo city)														// Exposed to Python
 {
 	FAssertBounds(0, MAX_PLAYERS, city.eOwner);
 	return GET_PLAYER(city.eOwner).getCity(city.iID);
 }
-DllExport inline CvUnit* getUnit(IDInfo unit)												// Exposed to Python
+inline CvUnit* getUnit(IDInfo unit)														// Exposed to Python
 {
 	FAssertBounds(0, MAX_PLAYERS, unit.eOwner);
 	return GET_PLAYER(unit.eOwner).getUnit(unit.iID);
-} // </advc.opt>
+}
+// When called from the EXE, NO_PLAYER checks are needed.
+CvCity* getCityExternal(IDInfo city); // exported through .def file
+CvUnit* getUnitExternal(IDInfo unit); // exported through .def file
+// </advc.opt>
 
 #endif

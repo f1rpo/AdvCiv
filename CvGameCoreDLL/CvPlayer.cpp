@@ -22338,3 +22338,18 @@ void CvPlayer::announceEspionageToThirdParties(EspionageMissionTypes eMission, P
 		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, eTarget, szTmp);
 	}
 } // </advc.120f>
+
+// <advc.opt> Global; see CvPlayer.h.
+CvCity* getCityExternal(IDInfo city)
+{
+	if (city.eOwner == NO_PLAYER)
+		return NULL;
+	return getCity(city);
+}
+
+CvUnit* getUnitExternal(IDInfo unit)
+{
+	if (unit.eOwner == NO_PLAYER)
+		return NULL;
+	return getUnit(unit);
+} // </advc.opt>
