@@ -1032,10 +1032,9 @@ class TerrainGenerator:
 		self.gc = CyGlobalContext()
 		self.map = CyMap()
 		# <advc.129c>
-		global bEarthlike
-		self.bEarthlike = bEarthlike
+		self.processCustomizations()
 		if self.bEarthlike:
-			fGrassLatitude = 0.0
+			fGrassLatitude -= 0.1
 			iPlainsPercent += 2
 		# </advc.129c>
 		grain_amount += self.gc.getWorldInfo(self.map.getWorldSize()).getTerrainGrainChange()
@@ -1119,6 +1118,7 @@ class TerrainGenerator:
 		self.initFractals()
 		
 	def initFractals(self):
+		self.processCustomizations() # advc.129c
 		self.deserts.fracInit(self.iWidth, self.iHeight, self.grain_amount, self.mapRand, self.iFlags, self.fracXExp, self.fracYExp)
 		self.iDesertTop = self.deserts.getHeightFromPercent(self.iDesertTopPercent)
 		self.iDesertBottom = self.deserts.getHeightFromPercent(self.iDesertBottomPercent)
@@ -1166,7 +1166,8 @@ class TerrainGenerator:
 
 		return lat
 
-	def generateTerrain(self):		
+	def generateTerrain(self):
+		self.processCustomizations() # advc.129c
 		terrainData = [0]*(self.iWidth*self.iHeight)
 		for x in range(self.iWidth):
 			for y in range(self.iHeight):
@@ -1175,7 +1176,7 @@ class TerrainGenerator:
 				terrainData[iI] = terrain
 		return terrainData
 
-	def generateTerrainAtPlot(self,iX,iY):
+	def generateTerrainAtPlot(self, iX, iY):
 		lat = self.getLatitudeAtPlot(iX,iY)
 
 		if (self.map.plot(iX, iY).isWater()):
@@ -1211,6 +1212,22 @@ class TerrainGenerator:
 			return self.map.plot(iX, iY).getTerrainType()
 
 		return terrainVal
+
+	# <advc.129c> A lot of map scripts define subclasses of TerrainGenerator that override various functions. Therefore, changing the base class isn't generally safe. This method uses reflection to check for overrides and enables AdvCiv customizations only when nothing essential is overridden.
+	def processCustomizations(self):
+		self.bEarthlike = False
+		global bEarthlike
+		if not bEarthlike:
+			return
+		self.bEarthlike = True
+		# Everything except getLatitudeAtPlot is essential
+		essentialMethods = [ "__init__", "initFractals",  "generateTerrain", "generateTerrainAtPlot" ]
+		for attribName in essentialMethods:
+			if getattr(self, attribName).im_func is not getattr(TerrainGenerator, attribName).im_func:
+				self.bEarthlike = False
+				print "CvMapGeneratorUtil: Essential TerrainGenerator method overridden by map script: " + attribName + ". AdvCiv customizations disabled."
+				break
+	# </advc.129c>
 	
 class FeatureGenerator:
 	def __init__(self, iJunglePercent=80, iForestPercent=60,
