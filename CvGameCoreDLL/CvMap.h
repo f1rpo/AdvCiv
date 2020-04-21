@@ -351,7 +351,7 @@ public: // advc: made several functions const
 	int getTopLatitude() const;																									// Exposed to Python
 	int getBottomLatitude() const;																							// Exposed to Python
 
-	int getNextRiverID() const;																									// Exposed to Python
+	short getNextRiverID() const;																									// Exposed to Python
 	void incrementNextRiverID();																					// Exposed to Python
 
 	bool isWrapXExternal(); // advc.inl: Exported through .def file							// Exposed to Python
@@ -485,7 +485,7 @@ protected:
 	int m_iOwnedPlots;
 	int m_iTopLatitude;
 	int m_iBottomLatitude;
-	int m_iNextRiverID;
+	short m_iNextRiverID; // advc.opt: was int (these get stored at CvPlot)
 
 	bool m_bWrapX;
 	bool m_bWrapY;

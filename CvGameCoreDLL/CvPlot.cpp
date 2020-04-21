@@ -5001,13 +5001,13 @@ void CvPlot::setWorkingCityOverride( const CvCity* pNewValue)
 }
 
 
-int CvPlot::getRiverID() const
+short CvPlot::getRiverID() const
 {
 	return m_iRiverID;
 }
 
 
-void CvPlot::setRiverID(int iNewValue)
+void CvPlot::setRiverID(short iNewValue)
 {
 	m_iRiverID = iNewValue;
 }
@@ -7093,8 +7093,13 @@ void CvPlot::read(FDataStreamBase* pStream)
 		short sTmp; pStream->Read(&sTmp);
 		m_iCityRadiusCount = intToChar(sTmp);
 	}
-	else pStream->Read(&m_iCityRadiusCount); // </advc.opt>
-	pStream->Read(&m_iRiverID);
+	else pStream->Read(&m_iCityRadiusCount);
+	int iRiver;
+	pStream->Read(&iRiver);
+	if (iRiver < MIN_SHORT || iRiver > MAX_SHORT)
+		m_iRiverID = -1;
+	else m_iRiverID = static_cast<short>(iRiver);
+	// </advc.opt>
 	pStream->Read(&m_iMinOriginalStartDist);
 	pStream->Read(&m_iReconCount);
 	// <advc.opt>
@@ -7296,7 +7301,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	pStream->Write(m_iUpgradeProgress);
 	pStream->Write(m_iForceUnownedTimer);
 	pStream->Write(m_iCityRadiusCount);
-	pStream->Write(m_iRiverID);
+	pStream->Write((int)m_iRiverID); // advc.opt (cast)
 	pStream->Write(m_iMinOriginalStartDist);
 	pStream->Write(m_iReconCount);
 	pStream->Write(m_iRiverCrossingCount);

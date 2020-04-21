@@ -221,9 +221,13 @@ void CvGame::setInitialItems()
 	initFreeState();
 	assignStartingPlots();
 	normalizeStartingPlots();
+	CvMap& kMap = GC.getMap();
+	// <advc> River ids shouldn't be used after map generation
+	for (int i = 0; i < kMap.numPlots(); i++)
+		kMap.plotByIndex(i)->setRiverID(-1); // </advc>
 	// <advc.030> Now that ice has been placed and normalization is through
 	if(GC.getDefineBOOL("PASSABLE_AREAS"))
-		GC.getMap().recalculateAreas();
+		kMap.recalculateAreas();
 	// </advc.030>
 	initFreeUnits();
 	int iStartTurn = getStartTurn(); // advc.250c, advc.251

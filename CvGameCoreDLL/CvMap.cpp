@@ -847,7 +847,7 @@ int CvMap::getBottomLatitude() const
 }
 
 
-int CvMap::getNextRiverID() const
+short CvMap::getNextRiverID() const
 {
 	return m_iNextRiverID;
 }
@@ -1062,8 +1062,13 @@ void CvMap::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iOwnedPlots);
 	pStream->Read(&m_iTopLatitude);
 	pStream->Read(&m_iBottomLatitude);
-	pStream->Read(&m_iNextRiverID);
-
+	// <advc.opt>
+	int iRiver;
+	pStream->Read(&iRiver);
+	if (iRiver < MIN_SHORT || iRiver > MAX_SHORT)
+		m_iNextRiverID = -1;
+	m_iNextRiverID = static_cast<short>(iRiver);
+	// </advc.opt>
 	pStream->Read(&m_bWrapX);
 	pStream->Read(&m_bWrapY);
 
@@ -1119,7 +1124,7 @@ void CvMap::write(FDataStreamBase* pStream)
 	pStream->Write(m_iOwnedPlots);
 	pStream->Write(m_iTopLatitude);
 	pStream->Write(m_iBottomLatitude);
-	pStream->Write(m_iNextRiverID);
+	pStream->Write((int)m_iNextRiverID); // advc.opt (cast)
 
 	pStream->Write(m_bWrapX);
 	pStream->Write(m_bWrapY);

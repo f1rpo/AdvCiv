@@ -459,8 +459,8 @@ public:
 	CvCityAI* AI_getWorkingCity() const;
 	CvCityAI* AI_getWorkingCityOverrideAI() const; // </advc.003u>
 
-	int getRiverID() const;																																							// Exposed to Python
-	void setRiverID(int iNewValue);																																			// Exposed to Python
+	short getRiverID() const;																																							// Exposed to Python
+	void setRiverID(short iNewValue);																																			// Exposed to Python
 
 	int getMinOriginalStartDist() const;																																// Exposed to Python
 	void setMinOriginalStartDist(int iNewValue);
@@ -721,10 +721,9 @@ public:
 	static void setMaxVisibilityRangeCache();
 
 protected:
-
+	// advc (note): Should keep the data members in an order that optimizes the memory layout
 	short m_iX;
 	short m_iY;
-	int m_iRiverID;
 	int m_iTotalCulture; // advc.opt
 	short m_iFeatureVariety;
 	short m_iOwnershipDuration;
@@ -739,6 +738,9 @@ protected:
 	// advc.opt: These two were short int
 	char m_iCityRadiusCount;
 	char m_iRiverCrossingCount;
+	char /*PlayerTypes*/ m_eOwner;
+	short /*BonusTypes*/ m_eBonusType;
+	short m_iRiverID; // advc.opt: Was int. Only used during map gen.
 
 	bool m_bStartingPlot:1;
 	bool m_bNOfRiver:1;
@@ -750,7 +752,6 @@ protected:
 	bool m_bPlotLayoutDirty:1;
 	bool m_bLayoutStateWorked:1;
 
-	char /*PlayerTypes*/ m_eOwner;
 	char /*TeamTypes*/ m_eTeam; // advc.opt: cache the owner's team
 	// advc.opt: These five were short int
 	char /*PlotTypes*/ m_ePlotType;
@@ -758,7 +759,6 @@ protected:
 	char /*FeatureTypes*/ m_eFeatureType;
 	char /*RouteTypes*/ m_eRouteType;
 	char /*ImprovementTypes*/ m_eImprovementType;
-	short /*BonusTypes*/ m_eBonusType;	
 	char /*CardinalDirectionTypes*/ m_eRiverNSDirection;
 	char /*CardinalDirectionTypes*/ m_eRiverWEDirection;
 	char /*PlayerTypes*/ m_eSecondOwner; // advc.035

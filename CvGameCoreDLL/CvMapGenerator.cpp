@@ -274,12 +274,12 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 		iThisRiverID = GC.getMap().getNextRiverID();
 		GC.getMap().incrementNextRiverID();
 	}
-
-	int iOtherRiverID = pStartPlot->getRiverID();
+	/*	advc (note): Could probably just pass river ids through the call stack
+		instead of storing them for the entire game at CvPlot. However,
+		CyPlot::setRiverID/ getRiverID are also used by some map scripts. */
+	short iOtherRiverID = pStartPlot->getRiverID();
 	if (iOtherRiverID != -1 && iOtherRiverID != iThisRiverID)
-	{
 		return; // Another river already exists here; can't branch off of an existing river!
-	}
 
 	CvPlot *pRiverPlot = NULL;
 	CvPlot *pAdjacentPlot = NULL;
