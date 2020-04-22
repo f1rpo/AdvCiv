@@ -60,17 +60,6 @@ bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync, int iData1, in
 			getSorenRandNum(10000, pszLog, iData1, iData2) < iChancePerMyriad;
 }
 
-double dMedian(vector<double>& distribution, bool bSorted)
-{
-	FAssert(!distribution.empty());
-	if(!bSorted)
-		std::sort(distribution.begin(), distribution.end());
-	int medianIndex = distribution.size() / 2;
-	if(distribution.size() % 2 != 0)
-		return distribution[medianIndex];
-	return (distribution[medianIndex] + distribution[medianIndex - 1]) / 2;
-}
-
 double dMean(vector<double> const& distribution)
 {
 	FAssert(!distribution.empty());

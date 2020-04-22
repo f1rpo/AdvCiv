@@ -30,6 +30,21 @@ inline int ROUND_DIVIDE(int a, int b)
 }
 
 // <advc.003g>
+// This is a better approach than the fmath stuff below
+namespace stats // Seems too generic, but what else to name it?
+{
+	template<typename T>
+	T median(std::vector<T>& kSamples, bool bSorted = false)
+	{
+		FAssert(!kSamples.empty());
+		if (!bSorted)
+			std::sort(kSamples.begin(), kSamples.end());
+		int iMedian = kSamples.size() / 2;
+		if (kSamples.size() % 2 != 0)
+			return kSamples[iMedian];
+		return (kSamples[iMedian] + kSamples[iMedian - 1]) / 2;
+	}
+}
 //namespace fmath // (For the time being, these functions are used too frequently for a namespace.)
 //{
 	inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
@@ -37,7 +52,10 @@ inline int ROUND_DIVIDE(int a, int b)
 	bool bernoulliSuccess(double pr, // 0 <= pr <= 1
 			char const* pszLog = "", bool bAsync = false,
 			int iData1 = MIN_INT, int iData2 = MIN_INT);
-	double dMedian(std::vector<double>& distribution, bool bSorted = false);
+	inline double dMedian(std::vector<double>& distribution, bool bSorted = false)
+	{
+		return stats::median(distribution, bSorted);
+	}
 	double dMean(std::vector<double> const& distribution);
 	double dMax(std::vector<double> const& distribution);
 	double dMin(std::vector<double> const& distribution);
