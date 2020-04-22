@@ -361,7 +361,7 @@ void CyCity::hurry(int /*HurryTypes*/ iHurry)
 		m_pCity->hurry((HurryTypes)iHurry);
 }
 
-// <advc.064>
+// advc.064:
 int CyCity::getHurryOverflow(int iHurry, bool bProduction, bool bIncludeCurrent) {
 
 	if(m_pCity == NULL)
@@ -373,7 +373,7 @@ int CyCity::getHurryOverflow(int iHurry, bool bProduction, bool bIncludeCurrent)
 	if(!bValid)
 		return -1;
 	return (bProduction ? iOverflowProduction : iOverflowGold);
-} // </advc.064>
+}
 
 int /*UnitTypes*/ CyCity::getConscriptUnit()
 {

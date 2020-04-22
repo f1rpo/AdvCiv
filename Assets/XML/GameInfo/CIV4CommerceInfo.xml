@@ -20,7 +20,8 @@
 			<Description>TXT_KEY_COMMERCE_RESEARCH</Description>
 			<iInitialPercent>100</iInitialPercent>
 			<iInitialHappiness>0</iInitialHappiness>
-			<iAIWeightPercent>105</iAIWeightPercent> <!-- was 125 -->
+			<!-- K-Mod: was 125 -->
+			<iAIWeightPercent>105</iAIWeightPercent>
 			<bFlexiblePercent>1</bFlexiblePercent>
 			<Button>Art/Interface/Buttons/Process/ProcessResearch.dds</Button>
 		</CommerceInfo>
@@ -29,6 +30,7 @@
 			<Description>TXT_KEY_COMMERCE_CULTURE</Description>
 			<iInitialPercent>0</iInitialPercent>
 			<iInitialHappiness>10</iInitialHappiness>
+			<!-- K-Mod: was 25 -->
 			<iAIWeightPercent>30</iAIWeightPercent>
 			<bFlexiblePercent>0</bFlexiblePercent>
 			<Button>Art/Interface/Buttons/Process/ProcessCulture.dds</Button>
@@ -36,6 +38,7 @@
 		<!-- advc.120g: bFlexiblePercent was 1 -->
 		<CommerceInfo>
 			<Type>COMMERCE_ESPIONAGE</Type>
+			<!-- advc (note): That key actually exists -->
 			<Description>TXT_KEY_ESPIONAGE_CULTURE</Description>
 			<iInitialPercent>0</iInitialPercent>
 			<iInitialHappiness>0</iInitialHappiness>

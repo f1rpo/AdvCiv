@@ -328,7 +328,7 @@ int CvPlayerAI::AI_getFlavorValue(FlavorTypes eFlavor) const
 	return r; // </advc.109>
 }
 
-// K-Mod
+// K-Mod:
 void CvPlayerAI::AI_updateCacheData()
 {
 	// AI_updateCloseBorderAttitude();
@@ -360,7 +360,7 @@ void CvPlayerAI::AI_updateCacheData()
 		c->AI_updateSafety();
 		i++;
 	} // </advc.139>
-} // K-Mod end
+}
 
 
 void CvPlayerAI::AI_doTurnPre()
@@ -2293,9 +2293,7 @@ int CvPlayerAI::AI_commerceWeight(CommerceTypes eCommerce, CvCityAI const* pCity
 		}
 		break;
 	case COMMERCE_ESPIONAGE:
-		{
-			iWeight = AI_getEspionageWeight(); // K-Mod. (Note: AI_getEspionageWeight use to mean something else.)
-		}
+		iWeight = AI_getEspionageWeight(); // K-Mod. (Note: AI_getEspionageWeight use to mean something else.)
 		break;
 
 	default:
@@ -2305,10 +2303,11 @@ int CvPlayerAI::AI_commerceWeight(CommerceTypes eCommerce, CvCityAI const* pCity
 	return iWeight;
 }
 
-// K-Mod.
-// Commerce weight is used a lot for AI decisions, and some commerce weights calculations are quite long.
-// Some I'm going to cache some of the values and update them at the start of each turn.
-// Currently this function caches culture weight for each city, and espionage weight for the player.
+/*	K-Mod: Commerce weight is used a lot for AI decisions,
+	and some commerce weights calculations are quite long.
+	Some I'm going to cache some of the values and update them at the start of each turn.
+	Currently this function caches culture weight for each city,
+	and espionage weight for the player. */
 void CvPlayerAI::AI_updateCommerceWeights()  // advc: minor style changes
 {
 	PROFILE_FUNC();
@@ -2321,22 +2320,25 @@ void CvPlayerAI::AI_updateCommerceWeights()  // advc: minor style changes
 		return;
 	} // </advc.003m>
 
-	CvGame const& g = GC.getGame();
+	CvGame const& kGame = GC.getGame();
 
 	// City culture weight.
-	int const iLegendaryCulture = g.getCultureThreshold(
+	int const iLegendaryCulture = kGame.getCultureThreshold(
 			CvCultureLevelInfo::finalCultureLevel());
-	int const iVictoryCities = g.culturalVictoryNumCultureCities();
+	int const iVictoryCities = kGame.culturalVictoryNumCultureCities();
 
 	// Use culture slider to decide whether a human player is going for cultural victory
-	bool bUseCultureRank = AI_atVictoryStage(AI_VICTORY_CULTURE2) || getCommercePercent(COMMERCE_CULTURE) >= 40;
-	bool bC3 = AI_atVictoryStage(AI_VICTORY_CULTURE3) || getCommercePercent(COMMERCE_CULTURE) >= 70;
-	bool bWarPlans = AI_isFocusWar(); // advc.105
+	bool const bUseCultureRank = (AI_atVictoryStage(AI_VICTORY_CULTURE2) ||
+			getCommercePercent(COMMERCE_CULTURE) >= 40);
+	bool const bC3 = (AI_atVictoryStage(AI_VICTORY_CULTURE3) ||
+			getCommercePercent(COMMERCE_CULTURE) >= 70);
+	bool const bWarPlans = AI_isFocusWar(); // advc.105
 			//GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0;
 
 	std::vector<std::pair<int,int> > city_countdown_list; // (turns, city id)
 	{
-		int iGoldCommercePercent = bUseCultureRank ? AI_estimateBreakEvenGoldPercent() : getCommercePercent(COMMERCE_GOLD);
+		int iGoldCommercePercent = (bUseCultureRank ? AI_estimateBreakEvenGoldPercent() :
+				getCommercePercent(COMMERCE_GOLD));
 		// Note: we only need the gold commerce percent if bUseCultureRank;
 		// but I figure that I might as well put in a useful placeholder value just in case.
 
@@ -2356,7 +2358,7 @@ void CvPlayerAI::AI_updateCommerceWeights()  // advc: minor style changes
 	}
 	std::sort(city_countdown_list.begin(), city_countdown_list.end());
 
-	int const iGameTurn = g.getGameTurn();
+	int const iGameTurn = kGame.getGameTurn();
 	FAssert(city_countdown_list.size() == getNumCities());
 	for (size_t i = 0; i < city_countdown_list.size(); i++)
 	{
@@ -2402,12 +2404,10 @@ void CvPlayerAI::AI_updateCommerceWeights()  // advc: minor style changes
 				//iWeight *= bC3 ? 4 : 3;
 				iWeight *= 3;
 			}
-			else
-			{
-				iWeight *= 2;
-			}
+			else iWeight *= 2;
 		}
-		else if (AI_atVictoryStage(AI_VICTORY_CULTURE1) || getCommercePercent(COMMERCE_CULTURE) >= 30)
+		else if (AI_atVictoryStage(AI_VICTORY_CULTURE1) ||
+			getCommercePercent(COMMERCE_CULTURE) >= 30)
 		{
 			iWeight *= 2;
 		}
@@ -2422,13 +2422,14 @@ void CvPlayerAI::AI_updateCommerceWeights()  // advc: minor style changes
 			if (getCurrentEra() > GC.getNumEraInfos()/2 && pCity->getCultureLevel() >= 3)
 			{
 				int iCultureProgress = pCity->getCultureTimes100(getID()) / std::max(1, iLegendaryCulture);
-				int iTimeProgress = 100 * iGameTurn / g.getEstimateEndTurn();
+				int iTimeProgress = 100 * iGameTurn / kGame.getEstimateEndTurn();
 				iTimeProgress *= iTimeProgress;
 				iTimeProgress /= 100;
 
 				if (iTimeProgress > iCultureProgress)
 				{
-					int iReductionFactor = 100 + std::min(10, 110 - iPressureFactor) * (iTimeProgress - iCultureProgress) / 2;
+					int iReductionFactor = 100 + std::min(10, 110 - iPressureFactor) *
+							(iTimeProgress - iCultureProgress) / 2;
 					FAssert(iReductionFactor >= 100 && iReductionFactor <= 100 + 10 * 100/2);
 					iWeight *= 100;
 					iWeight /= iReductionFactor;
@@ -2443,10 +2444,7 @@ void CvPlayerAI::AI_updateCommerceWeights()  // advc: minor style changes
 				iWeight *= 2;
 				iWeight /= 3;
 			}
-			else
-			{
-				iWeight /= 2;
-			}
+			else iWeight /= 2;
 		}
 
 		iWeight += iPressureWeight;
@@ -16620,9 +16618,7 @@ void CvPlayerAI::AI_setPeaceWeight(int iNewValue)
 int CvPlayerAI::AI_getEspionageWeight() const
 {
 	if (GC.getGame().isOption(GAMEOPTION_NO_ESPIONAGE))
-	{
 		return 0;
-	}
 	return m_iEspionageWeight;
 }
 
@@ -17914,9 +17910,9 @@ void CvPlayerAI::AI_doCommerce()
 		int iApproxTechCost = 0;
 		TeamTypes eMinModTeam = NO_TEAM;
 		std::set<TeamTypes> potentialTechTargets; // advc.120b
-		bool bFocusEspionage = AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE) &&
-				!AI_isFocusWar(); // advc.105
-				//kTeam.getAnyWarPlanCount(true) == 0;
+		bool const bFocusEspionage = (AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE) &&
+				//kTeam.getAnyWarPlanCount(true) == 0);
+				!AI_isFocusWar()); // advc.105
 
 		// For this part of the AI, I will assume there is only mission for each purpose.
 		EspionageMissionTypes eSeeDemographicsMission = NO_ESPIONAGEMISSION;
@@ -18058,7 +18054,8 @@ void CvPlayerAI::AI_doCommerce()
 					{
 						if (canStealTech(kRivalMember.getID(), eLoopTech))
 						{
-							bValid = iApproxTechCost > 0; // don't set it true unless there are at least 2 stealable techs.
+							// don't set it true unless there are at least 2 stealable techs.
+							bValid = iApproxTechCost > 0;
 							// get a (very rough) approximation of how much it will cost to steal a tech.
 							iApproxTechCost = (kOurTeam.getResearchCost(eLoopTech) +
 									iApproxTechCost) / (iApproxTechCost != 0 ? 2 : 1);
@@ -18095,8 +18092,8 @@ void CvPlayerAI::AI_doCommerce()
 				// That's a factor between 3/2 and 1/4, centered at 4/6
 				iDesiredMissionPoints = std::max(iTheirEspPoints, iDesiredMissionPoints);
 			}
-			aiTarget[eRival] = (iDesiredMissionPoints -
-					iOurEspPoints)/std::max(3*iTargetTurns/2,iRateDivisor);
+			aiTarget[eRival] = (iDesiredMissionPoints - iOurEspPoints)/
+					std::max(3*iTargetTurns/2,iRateDivisor);
 			iEspionageTargetRate += std::max(0, aiTarget[eRival]);
 		}
 
@@ -18151,9 +18148,11 @@ void CvPlayerAI::AI_doCommerce()
 			else if (aiTarget[eTeam] < 0)
 			{
 				if (eTeam != eMinModTeam &&
-						(!AI_isMaliciousEspionageTarget(GET_TEAM(eTeam).getLeaderID()) ||
-						!kOurTeam.AI_hasCitiesInPrimaryArea(eTeam)))
+					(!AI_isMaliciousEspionageTarget(GET_TEAM(eTeam).getLeaderID()) ||
+					!kOurTeam.AI_hasCitiesInPrimaryArea(eTeam)))
+				{
 					aiWeight[eTeam] = 0;
+				}
 			}
 			if (eTeam == eMinModTeam)
 			{
@@ -18166,8 +18165,10 @@ void CvPlayerAI::AI_doCommerce()
 				aiWeight[eTeam] /= 2; // we want to focus hard on the best target
 				// <advc.120b>
 				if(AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY) &&
-						potentialTechTargets.count(eTeam) <= 0)
-					aiWeight[eTeam] /= 2; // </advc.120b>
+					potentialTechTargets.count(eTeam) <= 0)
+				{
+					aiWeight[eTeam] /= 2;
+				} // </advc.120b>
 			}
 			// note. bounds checks are done in the set-weight function
 			setEspionageSpendingWeightAgainstTeam(eTeam, aiWeight[eTeam]);
@@ -18206,9 +18207,7 @@ void CvPlayerAI::AI_doCommerce()
 				bValid = changeCommercePercent(COMMERCE_ESPIONAGE, iCommerceIncrement);
 
 				if (getGold() + iTargetTurns * calculateGoldRate() < iGoldTarget)
-				{
 					break;
-				}
 
 				if (!AI_avoidScience() && !bCheapTechSteal)
 				{
@@ -19849,6 +19848,7 @@ void CvPlayerAI::AI_proposeWarTrade(PlayerTypes eHireling)
 				{
 					continue;
 				}
+				FAssertMsg(false, "Just to verify that this line is reachable; hasn't come up in tests yet"); // advc.test
 				int iKeepVal = AI_cityTradeVal(*pCity, getID());
 				int iAcquireVal = kHireling.AI_cityTradeVal(*pCity, getID());
 				if (iAcquireVal <= 0) // (probably already ensured by trade denial check)
@@ -20583,7 +20583,10 @@ bool CvPlayerAI::AI_proposeCityTrade(PlayerTypes eToPlayer)
 		weGive.insertAtEnd(TradeData(TRADE_CITIES, aiiiCityPairs[i].second.first));
 		bool const bEvac = AI_getCity(aiiiCityPairs[i].second.first)->AI_isEvacuating();
 		if (aiiiCityPairs[i].second.second != -1)
+		{
+			FAssertMsg(false, "To verify that a city-for-city trade ever happens"); // advc.test
 			theyGive.insertAtEnd(TradeData(TRADE_CITIES, aiiiCityPairs[i].second.second));
+		}
 		else
 		{
 			CvCityAI const& kWeGiveCity = *AI_getCity(aiiiCityPairs[i].second.first);
@@ -20610,6 +20613,7 @@ bool CvPlayerAI::AI_proposeCityTrade(PlayerTypes eToPlayer)
 			}
 			else
 			{
+				FAssertMsg(false, "Just to verify that this branch is reachable; hasn't come p in tests yet."); // advc.test
 				/*	Even if we think that gifting a city will benefit us more than them,
 					we're not going to pay a human extra to accept a free city. */
 				if (theyGive.getLength() <= 0 && kToPlayer.isHuman())
@@ -23023,7 +23027,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 //
 
 	const CvTeamAI& kTeam = GET_TEAM(getTeam()); // K-Mod. (and replaced all through this function)
-	AIStrategy eLastStrategyHash = m_eStrategyHash;
+	AIStrategy const eLastStrategyHash = m_eStrategyHash;
 	m_eStrategyHash = AI_DEFAULT_STRATEGY;
 
 	/*if (AI_getFlavorValue(FLAVOR_PRODUCTION) >= 2) // 0, 2, 5 or 10 in default xml [augustus 5, frederick 10, huayna 2, jc 2, chinese leader 2, qin 5, ramsess 2, roosevelt 5, stalin 2]
@@ -23656,12 +23660,11 @@ void CvPlayerAI::AI_updateStrategyHash()
 			m_eStrategyHash |= AI_STRATEGY_DAGGER;
 		else
 		{
-			if (eLastStrategyHash &= AI_STRATEGY_DAGGER)
+			//if (eLastStrategyHash &= AI_STRATEGY_DAGGER)
+			if (eLastStrategyHash & AI_STRATEGY_DAGGER) // advc.001
 			{
 				if (iDagger >= (9 * AI_DAGGER_THRESHOLD) / 10)
-				{
 					m_eStrategyHash |= AI_STRATEGY_DAGGER;
-				}
 			}
 		}
 

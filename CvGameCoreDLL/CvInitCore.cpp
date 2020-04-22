@@ -524,7 +524,7 @@ void CvInitCore::resetGame()
 	m_szTemp.clear();
 }
 
-void CvInitCore::resetGame(CvInitCore * pSource, bool bClear, bool bSaveGameType)
+void CvInitCore::resetGame(CvInitCore* pSource, bool bClear, bool bSaveGameType)
 {
 	FAssertMsg(pSource, "Passed null pointer to CvInitCore::resetGame");
 	FAssertMsg(!bClear || !bSaveGameType, "Should not be clearing data while trying to preserve gametype info in CvInitCore::resetGame");

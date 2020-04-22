@@ -11080,50 +11080,34 @@ int CvCityAI::AI_splitEmpireValue() const
 	return -iValue; // advc.ctr: Sign flipped to match the new function name
 }
 
-bool CvCityAI::AI_doPanic()
+void CvCityAI::AI_doPanic() // advc: Unused return type bool removed, body refactored.
 {
-	//bool bLandWar = (getArea().getAreaAIType(getTeam()) == AREAAI_OFFENSIVE || getArea().getAreaAIType(getTeam()) == AREAAI_DEFENSIVE || getArea().getAreaAIType(getTeam()) == AREAAI_MASSING);
-	bool bLandWar = GET_PLAYER(getOwner()).AI_isLandWar(getArea()); // K-Mod
-
-	if (bLandWar)
+	/*	advc.139 (comment): This gets called after defenders have moved,
+		so AI_isSafe wouldn't be reliable. */
+	if (//(getArea().getAreaAIType(getTeam()) == AREAAI_OFFENSIVE || getArea().getAreaAIType(getTeam()) == AREAAI_DEFENSIVE || getArea().getAreaAIType(getTeam()) == AREAAI_MASSING)
+		!GET_PLAYER(getOwner()).AI_isLandWar(getArea())) // K-Mod
 	{
-		int iOurDefense = GET_PLAYER(getOwner()).AI_localDefenceStrength(plot(), getTeam());
-		int iEnemyOffense = GET_PLAYER(getOwner()).AI_localAttackStrength(plot(), NO_TEAM);
-		int iRatio = (100 * iEnemyOffense) / (std::max(1, iOurDefense));
-
-		if (iRatio > 100)
-		{
-			UnitTypes eProductionUnit = getProductionUnit();
-
-			if (eProductionUnit != NO_UNIT)
-			{
-				if (getProduction() > 0)
-				{
-					if (GC.getInfo(eProductionUnit).getCombat() > 0)
-					{
-						AI_doHurry(true);
-						return true;
-					}
-				}
-			}
-			else
-			{
-				if ((GC.getGame().getSorenRandNum(2, "AI choose panic unit") == 0) && AI_chooseUnit(UNITAI_CITY_COUNTER))
-				{
-					AI_doHurry((iRatio > 140));
-				}
-				else if (AI_chooseUnit(UNITAI_CITY_DEFENSE))
-				{
-					AI_doHurry((iRatio > 140));
-				}
-				else if (AI_chooseUnit(UNITAI_ATTACK))
-				{
-					AI_doHurry((iRatio > 140));
-				}
-			}
-		}
+		return;
 	}
-	return false;
+	int iOurDefense = GET_PLAYER(getOwner()).AI_localDefenceStrength(plot(), getTeam());
+	int iEnemyOffense = GET_PLAYER(getOwner()).AI_localAttackStrength(plot(), NO_TEAM);
+	scaled rRatio(iEnemyOffense, std::max(1, iOurDefense));
+	if (rRatio <= 1)
+		return;
+
+	UnitTypes eProductionUnit = getProductionUnit();
+	if (eProductionUnit != NO_UNIT && getProduction() > 0 &&
+		GC.getInfo(eProductionUnit).getCombat() > 0)
+	{
+		AI_doHurry(true);
+		return;
+	}
+	if ((GC.getGame().getSorenRandNum(2, "AI choose panic unit") == 0 &&
+		AI_chooseUnit(UNITAI_CITY_COUNTER)) ||
+		AI_chooseUnit(UNITAI_CITY_DEFENSE) || AI_chooseUnit(UNITAI_ATTACK))
+	{
+		AI_doHurry(rRatio > fixp(1.4));
+	}
 }
 
 /* disabled by K-Mod. (this function is buggy, and obsolete)

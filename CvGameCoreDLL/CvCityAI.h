@@ -204,7 +204,7 @@ protected:
 	int AI_getHappyFromHurry(HurryTypes eHurry, UnitTypes eUnit, bool bIgnoreNew) const;
 	int AI_getHappyFromHurry(HurryTypes eHurry, BuildingTypes eBuilding, bool bIgnoreNew) const;
 	int AI_getHappyFromHurry(int iHurryPopulation) const;
-	bool AI_doPanic();
+	void AI_doPanic();
 	//int AI_calculateCulturePressure(bool bGreatWork = false) const; // disabled by K-Mod
 
 	bool AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseChance, UnitTypes* eBestSpreadUnit, int* iBestSpreadUnitValue);

@@ -5648,8 +5648,7 @@ void CvUnitAI::AI_spyMove()
 
 		if (!kOwner.AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE) &&
 			//GET_TEAM(getTeam()).getAtWarCount(true) > 0 &&
-			// advc.105: Replacing the above
-			GET_PLAYER(getOwner()).AI_isFocusWar(area()) &&
+			GET_PLAYER(getOwner()).AI_isFocusWar(area()) && // advc.105
 			GC.getGame().getSorenRandNum(100, "AI Spy pillage improvement") <
 			(kOwner.AI_getStrategyRand(5) % 36))
 		{
@@ -20363,8 +20362,8 @@ EspionageMissionTypes CvUnitAI::AI_bestPlotEspionage(PlayerTypes& eTargetPlayer,
 	PROFILE_FUNC();
 
 	CvPlot* pSpyPlot = plot();
-	const CvPlayerAI& kPlayer = GET_PLAYER(getOwner());
-	bool bBigEspionage = kPlayer.AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE);
+	CvPlayerAI const& kPlayer = GET_PLAYER(getOwner());
+	bool const bBigEspionage = kPlayer.AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE);
 
 	FAssert(pSpyPlot != NULL);
 
@@ -20376,70 +20375,69 @@ EspionageMissionTypes CvUnitAI::AI_bestPlotEspionage(PlayerTypes& eTargetPlayer,
 
 	pPlot = NULL;
 	iData = -1;
-
 	EspionageMissionTypes eBestMission = NO_ESPIONAGEMISSION;
 	int iBestValue = 0;
 
-	int iEspionageRate = kPlayer.getCommerceRate(COMMERCE_ESPIONAGE);
+	int const iEspionageRate = kPlayer.getCommerceRate(COMMERCE_ESPIONAGE);
 
 	if (pSpyPlot->isOwned())
 	{
-		TeamTypes eTargetTeam = pSpyPlot->getTeam();
-
+		TeamTypes const eTargetTeam = pSpyPlot->getTeam();
 		if (eTargetTeam != getTeam())
 		{
-			int iEspPoints = GET_TEAM(getTeam()).getEspionagePointsAgainstTeam(eTargetTeam);
-
+			int const iEspPoints = GET_TEAM(getTeam()).getEspionagePointsAgainstTeam(eTargetTeam);
 			// estimate risk cost of losing the spy while trying to escape
 			int iBaseIntercept = 0;
 			{
 				int iTargetTotal = GET_TEAM(eTargetTeam).getEspionagePointsEver();
 				int iOurTotal = GET_TEAM(getTeam()).getEspionagePointsEver();
-				iBaseIntercept += (GC.getDefineINT("ESPIONAGE_INTERCEPT_SPENDING_MAX") * iTargetTotal) / std::max(1, iTargetTotal + iOurTotal);
+				iBaseIntercept += (GC.getDefineINT("ESPIONAGE_INTERCEPT_SPENDING_MAX") * iTargetTotal) /
+						std::max(1, iTargetTotal + iOurTotal);
 
 				if (GET_TEAM(eTargetTeam).getCounterespionageModAgainstTeam(getTeam()) > 0)
 					iBaseIntercept += GC.getDefineINT("ESPIONAGE_INTERCEPT_COUNTERESPIONAGE_MISSION");
 			}
-			int iEscapeCost = 2*iSpyValue * iBaseIntercept * (100+GC.getDefineINT("ESPIONAGE_SPY_MISSION_ESCAPE_MOD")) / 10000;
-
+			int iEscapeCost = 2*iSpyValue * iBaseIntercept *
+					(100+GC.getDefineINT("ESPIONAGE_SPY_MISSION_ESCAPE_MOD")) / 10000;
 			// One espionage mission loop to rule them all.
-			for (int iMission = 0; iMission < GC.getNumEspionageMissionInfos(); ++iMission)
+			FOR_EACH_ENUM2(EspionageMission, eMission)
 			{
-				CvEspionageMissionInfo& kMissionInfo = GC.getInfo((EspionageMissionTypes)iMission);
+				CvEspionageMissionInfo& kMissionInfo = GC.getInfo(eMission);
 				int iTestData = 1;
 				if (kMissionInfo.getBuyTechCostFactor() > 0)
-				{
 					iTestData = GC.getNumTechInfos();
-				}
 				else if (kMissionInfo.getDestroyProjectCostFactor() > 0)
-				{
 					iTestData = GC.getNumProjectInfos();
-				}
 				else if (kMissionInfo.getDestroyBuildingCostFactor() > 0)
-				{
 					iTestData = GC.getNumBuildingInfos();
-				}
 
 				// estimate the risk cost of losing the spy.
-				int iOverhead = iEscapeCost + iSpyValue * iBaseIntercept * (100 + kMissionInfo.getDifficultyMod()) / 10000;
+				int iOverhead = iEscapeCost + iSpyValue * iBaseIntercept *
+						(100 + kMissionInfo.getDifficultyMod()) / 10000;
 				bool bFirst = true; // advc.007
 				for (iTestData-- ; iTestData >= 0; iTestData--)
 				{
-					int iCost = kPlayer.getEspionageMissionCost((EspionageMissionTypes)iMission, pSpyPlot->getOwner(), pSpyPlot, iTestData, this);
-					if (iCost < 0 || (iCost <= iEspPoints && !kPlayer.canDoEspionageMission((EspionageMissionTypes)iMission, pSpyPlot->getOwner(), pSpyPlot, iTestData, this)))
+					int iCost = kPlayer.getEspionageMissionCost(
+							eMission, pSpyPlot->getOwner(), pSpyPlot, iTestData, this);
+					if (iCost < 0 || (iCost <= iEspPoints && !kPlayer.canDoEspionageMission(
+						eMission, pSpyPlot->getOwner(), pSpyPlot, iTestData, this)))
+					{
 						continue; // we can't do the mission, and cost is not the limiting factor.
-
-					int iValue = kPlayer.AI_espionageVal(pSpyPlot->getOwner(), (EspionageMissionTypes)iMission, pSpyPlot, iTestData);
+					}
+					int iValue = kPlayer.AI_espionageVal(
+							pSpyPlot->getOwner(), eMission, pSpyPlot, iTestData);
 					iValue *= 80 + GC.getGame().getSorenRandNum(60,
 							// <advc.007> Don't pollute the MPLog
 							bFirst ? "AI best espionage mission" : NULL);
 					bFirst = false; // </advc.007>
 					iValue /= 100;
 					iValue -= iOverhead;
-					iValue -= iCost * (bBigEspionage ? 2 : 1) * iCost / std::max(1, iCost + GET_TEAM(getTeam()).getEspionagePointsAgainstTeam(eTargetTeam));
+					iValue -= iCost * (bBigEspionage ? 2 : 1) * iCost / std::max(1,
+							iCost + GET_TEAM(getTeam()).getEspionagePointsAgainstTeam(eTargetTeam));
 
 					// If we can't do the mission yet, don't completely give up. It might be worth saving points for.
-					if (!kPlayer.canDoEspionageMission((EspionageMissionTypes)iMission, pSpyPlot->getOwner(), pSpyPlot, iTestData, this))
+					if (!kPlayer.canDoEspionageMission(eMission,
+						pSpyPlot->getOwner(), pSpyPlot, iTestData, this))
 					{
 						// Is cost is the reason we can't do the mission?
 						if (GET_TEAM(getTeam()).isHasTech((TechTypes)kMissionInfo.getTechPrereq()))
@@ -20462,9 +20460,9 @@ EspionageMissionTypes CvUnitAI::AI_bestPlotEspionage(PlayerTypes& eTargetPlayer,
 					}
 
 					// Block small missions when using "big espionage", unless the mission is really good value.
-					if (bBigEspionage
-						&& iValue < 50*kPlayer.getCurrentEra()*(kPlayer.getCurrentEra()+1) // 100, 300, 600, 1000, 1500, ...
-						&& iValue < (kPlayer.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY) ? 4 : 2)*iCost)
+					if (bBigEspionage &&
+						iValue < 50*kPlayer.getCurrentEra()*(kPlayer.getCurrentEra()+1) && // 100, 300, 600, 1000, 1500, ...
+						iValue < (kPlayer.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY) ? 4 : 2)*iCost)
 					{
 						iValue = 0;
 					}
@@ -20472,7 +20470,7 @@ EspionageMissionTypes CvUnitAI::AI_bestPlotEspionage(PlayerTypes& eTargetPlayer,
 					if (iValue > iBestValue)
 					{
 						iBestValue = iValue;
-						eBestMission = (EspionageMissionTypes)iMission;
+						eBestMission = eMission;
 						eTargetPlayer = pSpyPlot->getOwner();
 						pPlot = pSpyPlot;
 						iData = iTestData;

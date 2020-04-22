@@ -4087,9 +4087,9 @@ int CvCity::cultureStrength(PlayerTypes ePlayer,
 	rStrengthFromInnerRadius.decreaseTo(rStrength);
 	rStrength += rStrengthFromInnerRadius;
 	int const iHurryAnger = (getHurryPercentAnger() * getPopulation()) / 1000;
-	int const iConscriptAnger = (getConscriptPercentAnger() * getPopulation()) / 1000;
-	int const iAngry = iHurryAnger + iConscriptAnger;
-	FAssert((iAngry == 0) == (getHurryAngerTimer() == 0));
+	FAssert((iHurryAnger == 0) == (getHurryAngerTimer() == 0));
+	int const iConscriptAnger = (getConscriptPercentAnger() * getPopulation()) / 3000;
+	int iAngry = iHurryAnger + iConscriptAnger;
 	iAngry = std::min(iAngry, getPopulation());
 	/*  HurryAnger also factors into grievanceModifier below, but for small cities
 		(where Slavery is most effective), this constant bonus matters more. */
@@ -4256,7 +4256,7 @@ int CvCity::getNumActiveBuilding(BuildingTypes eIndex) const
 int CvCity::getNumActiveWorldWonders(int iStopCountAt, // advc
 	PlayerTypes eOwner) const // advc.104d
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC(); // advc.opt (tbd.): Cache the return value
 	// advc.104d:
 	CvTeam const& kObsTeam = GET_TEAM(eOwner == NO_PLAYER ? getTeam() : TEAMID(eOwner));
 

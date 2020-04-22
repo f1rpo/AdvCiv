@@ -3364,6 +3364,7 @@ bool CvPlot::isValidDomainForAction(const CvUnit& unit) const
 bool CvPlot::isImpassable() const
 {
 	//PROFILE_FUNC(); // advc.003o: Most of the calls come from pathfinding
+	// Tbd.: Cache this in a bool:1
 	if (isPeak())
 		return true;
 	return (!isFeature() ?
