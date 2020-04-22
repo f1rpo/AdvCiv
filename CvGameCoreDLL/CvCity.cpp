@@ -2428,9 +2428,9 @@ bool CvCity::canHurry(HurryTypes eHurry, bool bTestVisible) const
 	}
 	if(isDisorder())
 		return false;
-	// advc.064b: Add overflow and features
-	if(getCurrentProductionDifference(true, true, false, true, true) + getProduction() >=
-		getProductionNeeded())
+	// <advc.064b> Add overflow and features
+	if(getCurrentProductionDifference(true, true, false, true, true) + getProduction() +
+		GC.getInfo(YIELD_PRODUCTION).getMinCity() >= /* </advc.064b> */ getProductionNeeded())
 	{
 		return false;
 	}
@@ -3912,7 +3912,9 @@ int CvCity::getHurryCost(bool bExtra, int iProductionLeft, int iHurryModifier, i
 	// <advc.064b>
 	iProductionLeft -= getCurrentProductionDifference(bExtra, true, false, bExtra, true);
 	if(bExtra) // City yield rate uncertain if pop is sacrificed (bExtra) ...
-		iProductionLeft--; // ... but city production is going to be at least 1
+	{	// ... but city production is going to be at least 1
+		iProductionLeft -= GC.getInfo(YIELD_PRODUCTION).getMinCity();
+	}
 	if(iProductionLeft <= 0)
 		return 0;
 	// </advc.064b>

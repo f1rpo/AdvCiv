@@ -744,7 +744,8 @@ class CanHurryPopulation(AbstractCanHurry):
 		# <advc.064> Replacing the above (same code as in CvMainInterface.py)
 		HURRY_WHIP = gc.getInfoTypeForString("HURRY_POPULATION")
 		HURRY_BUY = gc.getInfoTypeForString("HURRY_GOLD")
-		bCountCurrentOverflow = Civ4lertsOpt.isWhipAssistOverflowCountCurrentProduction()
+		
+		bCountCurrentOverflow = BugCore.game.CityScreen.isWhipAssistOverflowCountCurrentProduction()
 		iOverflow = city.getHurryOverflow(HURRY_WHIP, True, bCountCurrentOverflow)
 		iOverflowGold = city.getHurryOverflow(HURRY_WHIP, False, bCountCurrentOverflow)
 		# </advc.064>

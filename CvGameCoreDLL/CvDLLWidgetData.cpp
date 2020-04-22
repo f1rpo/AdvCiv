@@ -1792,22 +1792,27 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 		bool bIncludeCurrent = BUGOption::isEnabled("MiscHover__HurryOverflowIncludeCurrent", false);
 		if (kCity.hurryOverflow(eHurry, &iOverflowProduction, &iOverflowGold, bIncludeCurrent))
 		{
-			if (iOverflowProduction > 0 || iOverflowGold > 0)
-			{
+			if (iOverflowProduction != 0 || iOverflowGold > 0)
+			{	// <advc.064b>
+				FAssert(iOverflowProduction > 0 ||
+						(iOverflowProduction == -GC.getInfo(YIELD_PRODUCTION).getMinCity() && !bIncludeCurrent));
+				// </advc.064b>
 				bool bFirst = true;
 				CvWStringBuffer szOverflowBuffer;
 				CvWString szTempBuffer;
 				// advc: Plus signs added if !bIncludeCurrent
-				if (iOverflowProduction > 0)
+				if (iOverflowProduction != 0)
 				{
-					szTempBuffer.Format(L"%s%d%c", (bIncludeCurrent ? L"" : L"+"),
+					szTempBuffer.Format(L"%s%d%c",
+							(bIncludeCurrent || iOverflowProduction <= 0 ? L"" : L"+"),
 							iOverflowProduction, GC.getInfo(YIELD_PRODUCTION).getChar());
 					setListHelp(szOverflowBuffer, NULL, szTempBuffer, L", ", bFirst);
 					bFirst = false;
 				}
 				if (iOverflowGold > 0)
 				{
-					szTempBuffer.Format(L"%s%d%c", (bIncludeCurrent ? L"" : L"+"),
+					szTempBuffer.Format(L"%s%d%c",
+							(bIncludeCurrent ? L"" : L"+"),
 							iOverflowGold, GC.getInfo(COMMERCE_GOLD).getChar());
 					setListHelp(szOverflowBuffer, NULL, szTempBuffer, L", ", bFirst);
 					bFirst = false;
