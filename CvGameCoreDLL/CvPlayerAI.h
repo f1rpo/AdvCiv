@@ -72,8 +72,6 @@ public:
 	// </advc.003u>
 	int AI_getFlavorValue(FlavorTypes eFlavor) const;
 
-	void AI_updateCacheData(); // K-Mod
-
 	void AI_doTurnPre();
 	void AI_doTurnPost();
 	void AI_doTurnUnitsPre();
@@ -805,6 +803,9 @@ protected:
 	int AI_anarchyTradeVal(CivicTypes eCivic = NO_CIVIC) const; // advc.132
 	static bool AI_goldDeal(CLinkList<TradeData> const& kList); // advc: static, protected
 	static bool isAnnualDeal(CLinkList<TradeData> const& itemList); // advc.705
+
+	void AI_updateCacheData(); // K-Mod
+	int AI_calculateEspionageWeight() const; // advc.001
 
 	bool AI_isThreatFromMinorCiv() const; // advc.109
 	void AI_updateDangerFromSubmarines(); // advc.651
