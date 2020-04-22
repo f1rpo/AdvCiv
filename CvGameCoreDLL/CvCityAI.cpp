@@ -11015,20 +11015,22 @@ int CvCityAI::AI_getHappyFromHurry(HurryTypes eHurry, BuildingTypes eBuilding, b
 	return AI_getHappyFromHurry(getHurryPopulation(eHurry, getHurryCost(true, eBuilding, bIgnoreNew)));
 }
 
-
-// K-Mod. I'm essentially rewritten this function.
-// note: units ~ commerce x100
-int CvCityAI::AI_cityValue() const
+// K-Mod. I'm essentially rewritten this function. note: units ~ commerce x100
+int CvCityAI::AI_splitEmpireValue() const
 {
 	PROFILE_FUNC();
 	/*AreaAITypes eAreaAI = getArea().getAreaAIType(getTeam());
-	if ((eAreaAI == AREAAI_OFFENSIVE) || (eAreaAI == AREAAI_MASSING) || (eAreaAI == AREAAI_DEFENSIVE))
-		return 0;*/ // BtS. This isn't relevant to city value. It should be handled elsewhere.
+	if (eAreaAI == AREAAI_OFFENSIVE || eAreaAI == AREAAI_MASSING || eAreaAI == AREAAI_DEFENSIVE)
+		return 0;*/ // (BtS) This isn't relevant to city value. It should be handled elsewhere.
 
 	// K-Mod: disorder causes the commerce rates to go to zero... so that would  mess up our calculations
 	if (isDisorder())
-		return 0;
-	// K-Mod end
+	{
+		//return 0;
+		/*	advc.ctr: Could always use this, but the K-Mod code yields similar results,
+			is faster and, for the moment, no trouble to maintain. */
+		return -GET_PLAYER(getOwner()).AI_assetVal(*this, false).getPercent();
+	}
 
 	int iValue = 0;
 
@@ -11038,26 +11040,34 @@ int CvCityAI::AI_cityValue() const
 	iValue -= 3 * calculateColonyMaintenanceTimes100();*/ // BtS
 	// K-Mod. The original code fails for civs using high espionage or high culture.
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwner());
-	iValue += getCommerceRateTimes100(COMMERCE_RESEARCH) * kOwner.AI_commerceWeight(COMMERCE_RESEARCH);
-	iValue += getCommerceRateTimes100(COMMERCE_ESPIONAGE) * kOwner.AI_commerceWeight(COMMERCE_ESPIONAGE);
+	iValue += getCommerceRateTimes100(COMMERCE_RESEARCH) *
+			kOwner.AI_commerceWeight(COMMERCE_RESEARCH);
+	iValue += getCommerceRateTimes100(COMMERCE_ESPIONAGE) *
+			kOwner.AI_commerceWeight(COMMERCE_ESPIONAGE);
 	iValue /= 100;
-	// Culture isn't counted, because its value is local. Unfortunately this will mean that civs running 100% culture
-	// (ie CULTURE4) will give up their non-core cities. It could be argued that this would be good strategy,
-	// but the problem is that CULTURE4 doesn't always run its full course. ... so I'm going to make a small ad hoc adjustment...
+	/*	Culture isn't counted, because its value is local.
+		Unfortunately this will mean that civs running 100% culture
+		(ie CULTURE4) will give up their non-core cities. It could be argued
+		that this would be good strategy, but the problem is
+		that CULTURE4 doesn't always run its full course. ...
+		so I'm going to make a small ad hoc adjustment... */
 	iValue += 100 * getYieldRate(YIELD_PRODUCTION);
-	iValue *= kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE4)? 2 : 1;
-	// Gold value is not weighted, and does not get the cultural victory boost, because gold is directly comparable to maintenance.
+	iValue *= (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE4) ? 2 : 1);
+	/*	Gold value is not weighted, and does not get the cultural victory boost,
+		because gold is directly comparable to maintenance. */
 	iValue += getCommerceRateTimes100(COMMERCE_GOLD);
 
 	int iCosts = calculateColonyMaintenanceTimes100() + 2*getMaintenanceTimes100()/3;
 	iCosts = iCosts * (100+kOwner.calculateInflationRate()) / 100;
 
 	// slightly encourage empire split when aiming for a diplomatic victory
-	if (kOwner.AI_atVictoryStage(AI_VICTORY_DIPLOMACY3) && kOwner.getCommercePercent(COMMERCE_GOLD) > 0)
+	if (kOwner.AI_atVictoryStage(AI_VICTORY_DIPLOMACY3) &&
+		kOwner.getCommercePercent(COMMERCE_GOLD) > 0)
 	{
 		iCosts = iCosts * 4 / 3;
 	}
-	int iTargetPop = std::max(5, AI_getTargetPopulation()); // target pop is not a good measure for small cities w/ unimproved tiles.
+	// target pop is not a good measure for small cities w/ unimproved tiles.
+	int iTargetPop = std::max(5, AI_getTargetPopulation());
 	if (getPopulation() > 0 && getPopulation() < iTargetPop)
 	{
 		iValue *= iTargetPop + 3;
@@ -11067,8 +11077,7 @@ int CvCityAI::AI_cityValue() const
 	}
 	iValue -= iCosts;
 	// K-Mod end
-
-	return iValue;
+	return -iValue; // advc.ctr: Sign flipped to match the new function name
 }
 
 bool CvCityAI::AI_doPanic()

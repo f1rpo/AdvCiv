@@ -350,7 +350,7 @@ void CvPlayerAI::AI_updateCacheData()
 		return;
 	std::vector<double> cityValues;
 	FOR_EACH_CITYAI(c, *this)
-		cityValues.push_back(c->AI_cityValue());
+		cityValues.push_back(AI_assetVal(*c, true).getDouble());
 	int i = 0;
 	FOR_EACH_CITYAI_VAR(c, *this)
 	{
@@ -21767,15 +21767,15 @@ void CvPlayerAI::AI_doSplit(/* advc.104r: */ bool bForce)  // advc: some style c
 		// K-Mod
 		// we don't consider splitting empire while there is a land war. (this check use to be in AI_cityValue)
 		if (!AI_isLandWar(pLoopCity->getArea()))
-			mapAreaValues[pLoopCity->getArea().getID()] += pLoopCity->AI_cityValue();
+			mapAreaValues[pLoopCity->getArea().getID()] += pLoopCity->AI_splitEmpireValue();
 		// K-Mod end
 	}
 
 	CvMap const& m = GC.getMap();
 	std::map<int,int>::iterator it;
 	for (it = mapAreaValues.begin(); it != mapAreaValues.end(); ++it)
-	{
-		if (it->second >= 0 /* advc.104r: */ && !bForce)
+	{	// advc.ctr: Sign flipped to match new semantics of AI_splitEmpireValue
+		if (it->second < 0 /* advc.104r: */ && !bForce)
 			continue;
 
 		CvArea& kArea = *m.getArea(it->first);

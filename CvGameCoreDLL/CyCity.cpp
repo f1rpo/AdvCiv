@@ -2230,7 +2230,7 @@ int CyCity::AI_countBestBuilds(CyArea* pArea)
 
 int CyCity::AI_cityValue()
 {
-	return m_pCity ? m_pCity->AI_cityValue() : -1;
+	return m_pCity ? m_pCity->AI_splitEmpireValue() : -1;
 }
 // <advc.001n>
 int CyCity::AI_neededFloatingDefenders()

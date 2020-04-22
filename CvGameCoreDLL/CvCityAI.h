@@ -130,7 +130,7 @@ public:
 	void AI_updateBestBuild();
 	int AI_countOvergrownBonuses(FeatureTypes eFeature) const; // advc.129
 
-	int AI_cityValue() const;
+	int AI_splitEmpireValue() const; // advc.ctr: Renamed from AI_cityValue
 	int AI_calculateWaterWorldPercent();
 	int AI_getCityImportance(bool bEconomy, bool bMilitary);
 
