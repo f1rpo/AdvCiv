@@ -17059,9 +17059,9 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit,
 			kGPOwner.getCivilizationDescriptionKey()); // </advc.106>
 	GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szReplayMessage,
 			iX, iY, GC.getColorType("UNIT_TEXT"));
-	// advc.106: Non-replay message
+	// Non-replay message
 	CvWString szMessage;
-	if (pCity)
+	if (pCity != NULL)
 	{
 		CvWString szCity;
 		szCity.Format(L"%s (%s)", pCity->getName().GetCString(),
@@ -17074,14 +17074,11 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit,
 		szMessage = gDLL->getText("TXT_KEY_MISC_GP_BORN_FIELD",
 				pGreatPeopleUnit->getName().GetCString());
 	} // <advc.106>
-	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	for (PlayerIter<MAJOR_CIV,KNOWN_TO> it(kGPOwner.getTeam()); it.hasNext(); ++it)
 	{
-		CvPlayer& kObs = GET_PLAYER((PlayerTypes)i);
-		if (!kObs.isAlive())
-			continue;
-		bool bRev = pPlot->isRevealed(kObs.getTeam(), true);
-		if (!GET_TEAM(kObs.getTeam()).isHasMet(kGPOwner.getTeam()))
-			continue;
+		CvPlayer const& kObs = *it;
+		bool const bRev = (pPlot->isRevealed(kObs.getTeam(), true) &&
+				(pCity == NULL || pCity->isRevealed(kObs.getTeam(), true)));
 		if (!bRev)
 		{
 			szMessage = gDLL->getText("TXT_KEY_MISC_GP_BORN_CIV",
@@ -17093,10 +17090,10 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit,
 		// ^On second thought, make all GP births minor.
 		/*if(kObs.getID() == kGPOwner.getID())
 			eMsgType = MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY;*/ // </advc.106b>
-		gDLL->UI().addMessage((PlayerTypes)i, false, -1, szMessage, "AS2D_UNIT_GREATPEOPLE",
+		gDLL->UI().addMessage(kObs.getID(), false, -1, szMessage, "AS2D_UNIT_GREATPEOPLE",
 				eMsgType, pGreatPeopleUnit->getButton(),
 				//(ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"),
-				NO_COLOR, // advc.106: Colored through XML now
+				NO_COLOR, // <advc.106> Colored through XML now
 				// Indicate location only if revealed.
 				bRev ? iX : -1, bRev ? iY : -1, bRev, bRev);
 	} // </advc.106>
