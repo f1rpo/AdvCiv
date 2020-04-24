@@ -1645,7 +1645,6 @@ bool UWAICache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 
 void UWAICache::City::updateAssetScore() {
 
-	PROFILE_FUNC();
 	if(city() != NULL) {
 		/*  Scale: Same as CvPlayerAI::AI_cityWonderVal, i.e. approx. 50% GPT.
 			Would rather use 100% GPT, but war evaluation can't easily be

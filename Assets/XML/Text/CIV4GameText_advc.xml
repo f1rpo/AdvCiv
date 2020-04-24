@@ -350,24 +350,24 @@
 		</Spanish>
 	</TEXT>
 	
-	<!-- advc.004a: Used in help text of promotion buttons.
+	<!-- advc.004e: Used in help text of promotion buttons.
 		 Akin to TXT_KEY_PEDIA_LEADS_TO in CIV4GameTextInfos.xml.
 		 The "Leads to" translations are taken from there. -->
 	<TEXT>
 		<Tag>TXT_KEY_LEADS_TO</Tag>
 		<English>Leads to</English>
-		<French>M&#232;ne &#224; </French>
-		<German>F&#252;hrt zu </German>
-		<Italian>Conduce a </Italian>
-		<Spanish>Lleva a </Spanish>
+		<French>M&#232;ne &#224;</French>
+		<German>F&#252;hrt zu</German>
+		<Italian>Conduce a</Italian>
+		<Spanish>Lleva a</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_REQUIRED_FOR</Tag>
 		<English>Required for</English>
-		<French>N&#233;cessaire pour </French>
-		<German>Ben&#246;tigt f&#252;r </German>
-		<Italian>Necessario per </Italian>
-		<Spanish>Necesario por </Spanish>
+		<French>N&#233;cessaire pour</French>
+		<German>Ben&#246;tigt f&#252;r</German>
+		<Italian>Necessario per</Italian>
+		<Spanish>Necesario por</Spanish>
 	</TEXT>
 	
 	<!-- advc.004a

@@ -1163,22 +1163,22 @@ void CvPlayer::initFreeUnits()
 	if(isBarbarian())
 		return; // </dlph.28>
 	// <advc>
-	CvGame& g = GC.getGame();
-	int const iStartingUnitMultiplier = GC.getInfo(g.getStartEra()).
+	CvGame const& kGame = GC.getGame();
+	int const iStartingUnitMultiplier = GC.getInfo(kGame.getStartEra()).
 			getStartingUnitMultiplier();
 	// </advc>
-	if (g.isOption(GAMEOPTION_ADVANCED_START) &&
-			(!isHuman() || !g.isOption(GAMEOPTION_SPAH))) // advc.250b
+	if (kGame.isOption(GAMEOPTION_ADVANCED_START) &&
+		(!isHuman() || !kGame.isOption(GAMEOPTION_SPAH))) // advc.250b
 	{
-		int iPoints = g.getNumAdvancedStartPoints();
+		int iPoints = kGame.getNumAdvancedStartPoints();
 		// advc.250b (comment): Disabled through Handicap XML
 		iPoints *= GC.getInfo(getHandicapType()).getAdvancedStartPointsMod();
 		iPoints /= 100;
 
-		if (!isHuman() /* advc.250b: */ && !g.isOption(GAMEOPTION_SPAH))
+		if (!isHuman() /* advc.250b: */ && !kGame.isOption(GAMEOPTION_SPAH))
 		{	/*  advc.250b, advc.001: Was this->getHandicapType(), i.e. Noble, which
 				means that this code block did nothing. */
-			iPoints *= GC.getInfo(g.getHandicapType()).getAIAdvancedStartPercent();
+			iPoints *= GC.getInfo(kGame.getHandicapType()).getAIAdvancedStartPercent();
 			iPoints /= 100;
 		}
 		/*  <advc.250c> Civs in Advanced Start can place a city even if they don't
@@ -1208,22 +1208,22 @@ void CvPlayer::initFreeUnits()
 			UnitTypes eLoopUnit = kCiv.unitAt(i);
 			int iFreeCount = kCiv.getNumFreeUnits(eLoopUnit);
 			iFreeCount *= (iStartingUnitMultiplier + (!isHuman() ?
-					GC.getInfo(g.getHandicapType()).
+					GC.getInfo(kGame.getHandicapType()).
 					getAIStartingUnitMultiplier() : 0));
 			for (int iJ = 0; iJ < iFreeCount; iJ++)
 				addFreeUnit(eLoopUnit);
 		}
-		int iFreeCount = GC.getInfo(g.getStartEra()).getStartingDefenseUnits();
+		int iFreeCount = GC.getInfo(kGame.getStartEra()).getStartingDefenseUnits();
 		iFreeCount += GC.getInfo(getHandicapType()).getStartingDefenseUnits();
 		// <advc.126>
-		CvHandicapInfo& h = GC.getInfo(g.getHandicapType());
+		CvHandicapInfo const& kGameHandicap = GC.getInfo(kGame.getHandicapType());
 		int iFreeAIDefenders = 0;
 		// </advc.126>
 		if (!isHuman())
 		{   // <advc.126>
-			iFreeAIDefenders = h.getAIStartingDefenseUnits();
+			iFreeAIDefenders = kGameHandicap.getAIStartingDefenseUnits();
 			if(iFreeAIDefenders > 0)
-				iFreeAIDefenders += g.getStartEra();
+				iFreeAIDefenders += kGame.getStartEra();
 			iFreeCount += iFreeAIDefenders;
 			// <advc.126>
 		}
@@ -1231,14 +1231,14 @@ void CvPlayer::initFreeUnits()
 		if(iFreeCount > 0)
 			addFreeUnitAI(UNITAI_CITY_DEFENSE, iFreeCount);
 
-		iFreeCount = GC.getInfo(g.getStartEra()).getStartingWorkerUnits();
+		iFreeCount = GC.getInfo(kGame.getStartEra()).getStartingWorkerUnits();
 		iFreeCount += GC.getInfo(getHandicapType()).getStartingWorkerUnits();
 
 		if (!isHuman())
 		{   // <advc.126>
-			int iFreeAIWorkers = h.getAIStartingWorkerUnits();
+			int iFreeAIWorkers = kGameHandicap.getAIStartingWorkerUnits();
 			if(iFreeAIWorkers > 0)
-				iFreeAIWorkers += g.getStartEra() / 2;
+				iFreeAIWorkers += kGame.getStartEra() / 2;
 			iFreeCount += iFreeAIWorkers;
 			// <advc.126>
 		}
@@ -1248,16 +1248,16 @@ void CvPlayer::initFreeUnits()
 			addFreeUnitAI(UNITAI_WORKER, iFreeCount);
 		}
 
-		iFreeCount = GC.getInfo(g.getStartEra()).getStartingExploreUnits();
+		iFreeCount = GC.getInfo(kGame.getStartEra()).getStartingExploreUnits();
 		iFreeCount += GC.getInfo(getHandicapType()).getStartingExploreUnits();
 
 		if (!isHuman())
 		{   // <advc.126>
-			int iFreeAIExplorers = h.getAIStartingExploreUnits();
+			int iFreeAIExplorers = kGameHandicap.getAIStartingExploreUnits();
 			/*  Need at least one addl. when starting in Classical era or later
 				b/c the AI doesn't use its free defenders for exploration. */
 			if(iFreeAIDefenders > 0)
-				iFreeAIExplorers += (g.getStartEra() + 2)  / 3;
+				iFreeAIExplorers += (kGame.getStartEra() + 2)  / 3;
 			iFreeCount += iFreeAIExplorers;
 			// <advc.126>
 		}
@@ -3992,7 +3992,7 @@ bool CvPlayer::canReceiveTradeCity() const
 
 bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial) const  // advc: Style changes; assertions added.
 {
-	PROFILE_FUNC(); // advc.test: To be profiled (also the scoped PROFILE calls below)
+	PROFILE_FUNC(); // advc: To keep an eye on items that aren't profiled separately
 
 	/*  <advc.opt> Moved the clauses that don't depend on item.m_iData into a
 		subroutine so that client code can check them upfront before e.g.
@@ -4010,10 +4010,8 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		PROFILE("CvPlayer::canTradeItem.TECH");
 		FAssertBounds(0, GC.getNumTechInfos(), item.m_iData);
 		TechTypes eTech = (TechTypes)item.m_iData;
-		if (GC.getInfo(eTech).isTrade() &&
-			kOurTeam.isHasTech(eTech) &&
-			!kOurTeam.isNoTradeTech(eTech) &&
-			!kToTeam.isHasTech(eTech) &&
+		if (GC.getInfo(eTech).isTrade() && kOurTeam.isHasTech(eTech) &&
+			!kOurTeam.isNoTradeTech(eTech) && !kToTeam.isHasTech(eTech) &&
 			GET_PLAYER(eWhoTo).canResearch(eTech, true))
 		{
 			bValid = true;
@@ -4022,7 +4020,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	}
 	case TRADE_RESOURCES:
 	{
-		PROFILE("CvPlayer::canTradeItem.RESOURCES");
+		//PROFILE("CvPlayer::canTradeItem.RESOURCES");
 		FAssertBounds(0, GC.getNumBonusInfos(), item.m_iData);
 		BonusTypes eBonus = (BonusTypes)item.m_iData;
 		if (!kToTeam.isBonusObsolete(eBonus) &&
@@ -4094,7 +4092,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	}
 	case TRADE_EMBARGO:
 	{
-		PROFILE("CvPlayer::canTradeItem.EMBARGO");
+		//PROFILE("CvPlayer::canTradeItem.EMBARGO");
 		FAssertBounds(0, MAX_CIV_TEAMS, item.m_iData);
 		TeamTypes eTargetTeam = (TeamTypes)item.m_iData;
 		if (!kOurTeam.isHuman() &&
@@ -4111,7 +4109,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	}
 	case TRADE_CIVIC:
 	{
-		PROFILE("CvPlayer::canTradeItem.CIVIC");
+		//PROFILE("CvPlayer::canTradeItem.CIVIC");
 		FAssertBounds(0, GC.getNumCivicInfos(), item.m_iData);
 		CivicTypes eCivic = (CivicTypes)item.m_iData;
 		if (GET_PLAYER(eWhoTo).isCivic(eCivic) /* <advc.132> */ ||
@@ -4128,7 +4126,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	}
 	case TRADE_RELIGION:
 	{
-		PROFILE("CvPlayer::canTradeItem.RELIGION");
+		//PROFILE("CvPlayer::canTradeItem.RELIGION");
 		FAssertBounds(0, GC.getNumReligionInfos(), item.m_iData);
 		ReligionTypes eReligion = (ReligionTypes)item.m_iData;
 		if (GET_PLAYER(eWhoTo).getStateReligion() == eReligion /* <advc.132> */ ||
@@ -4160,7 +4158,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	trade might be possible. */
 bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType) const // advc.opt
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC();
 	CvTeam const& kOurTeam = GET_TEAM(getTeam());
 	CvTeam const& kToTeam = GET_TEAM(eWhoTo);
 	switch (eItemType)
@@ -4268,7 +4266,7 @@ bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType
 // advc.ctr:
 bool CvPlayer::canTradeCityTo(PlayerTypes eRecipient, CvCity const& kCity, bool bConquest) const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC(); // advc: Fine so far; not frequently called.
 	CvPlayer const& kRecipient = GET_PLAYER(eRecipient);
 	/*	canTradeItem already checks this through canPossiblyTradeItem, so this
 		is redundant. However, I also need to check the city trade conditions
@@ -4319,6 +4317,7 @@ bool CvPlayer::canTradeCityTo(PlayerTypes eRecipient, CvCity const& kCity, bool 
 
 DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 {
+	PROFILE_FUNC(); // (advc: BONUS_TRADE is the only -minor- concern currently)
 	const CvTeamAI& kOurTeam = GET_TEAM(getTeam()); // K-Mod
 
 	// K-Mod note: I've changed it so that AI players on human teams can be contacted when not at war.
@@ -4331,12 +4330,10 @@ DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 			return DENIAL_MYSTERY;
 		// K-Mod end
 		return kOurTeam.AI_techTrade((TechTypes)item.m_iData, TEAMID(eWhoTo));
-		break;
 
 	case TRADE_RESOURCES:
 		return AI().AI_bonusTrade((BonusTypes)item.m_iData, eWhoTo,
 				1); // advc.036
-		break;
 
 	case TRADE_CITIES:
 	{
@@ -4351,44 +4348,35 @@ DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 
 	case TRADE_MAPS:
 		return kOurTeam.AI_mapTrade(TEAMID(eWhoTo));
-		break;
 
 	case TRADE_SURRENDER:
 		return kOurTeam.AI_surrenderTrade(TEAMID(eWhoTo),
 				// advc.104o: No functional change
 				CvTeamAI::VASSAL_POWER_MOD_SURRENDER);
-		break;
 
 	case TRADE_VASSAL:
 		// K-Mod
 		if (!isHuman() && kOurTeam.isHuman())
 			return DENIAL_MYSTERY; // K-Mod end
 		return kOurTeam.AI_vassalTrade(TEAMID(eWhoTo));
-		break;
 
 	case TRADE_PEACE:
 		return kOurTeam.AI_makePeaceTrade((TeamTypes)item.m_iData, TEAMID(eWhoTo));
-		break;
 
 	case TRADE_WAR:
 		return kOurTeam.AI_declareWarTrade((TeamTypes)item.m_iData, TEAMID(eWhoTo));
-		break;
 
 	case TRADE_EMBARGO:
 		return AI().AI_stopTradingTrade((TeamTypes)item.m_iData, eWhoTo);
-		break;
 
 	case TRADE_CIVIC:
 		return AI().AI_civicTrade((CivicTypes)item.m_iData, eWhoTo);
-		break;
 
 	case TRADE_RELIGION:
 		return AI().AI_religionTrade((ReligionTypes)item.m_iData, eWhoTo);
-		break;
 
 	case TRADE_OPEN_BORDERS:
 		return kOurTeam.AI_openBordersTrade(TEAMID(eWhoTo));
-		break;
 
 	case TRADE_DEFENSIVE_PACT:
 		// K-Mod
@@ -4396,7 +4384,6 @@ DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 			return DENIAL_MYSTERY;
 		// K-Mod end
 		return kOurTeam.AI_defensivePactTrade(TEAMID(eWhoTo));
-		break;
 
 	case TRADE_PERMANENT_ALLIANCE:
 		// K-Mod
@@ -4404,7 +4391,6 @@ DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 			return DENIAL_MYSTERY;
 		// K-Mod end
 		return kOurTeam.AI_permanentAllianceTrade(TEAMID(eWhoTo));
-		break;
 
 	case TRADE_PEACE_TREATY:
 		// K-Mod
@@ -4415,8 +4401,7 @@ DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 	/*  <advc.034> Can't be traded voluntarily anyway, but NO_DENIAL suppresses
 		explanation text in CvDLLWidgetData::parseTradeItem */
 	case TRADE_DISENGAGE:
-		return NO_DENIAL;
-		break; // <advc.034>
+		return NO_DENIAL; // <advc.034>
 	}
 
 	return NO_DENIAL;
@@ -9583,7 +9568,7 @@ void CvPlayer::setCombatExperience(int iExperience)
 			}
 		}
 
-		if (pBestCity)
+		if (pBestCity != NULL)
 		{
 			int iRandOffset = g.getSorenRandNum(GC.getNumUnitInfos(), "Warlord Unit Generation");
 			for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
@@ -9599,7 +9584,7 @@ void CvPlayer::setCombatExperience(int iExperience)
 		}
 	} // <advc.078>
 	if(getID() == g.getActivePlayer() && BUGOption::isEnabled("MainInterface__Combat_Counter", false))
-		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
+		gDLL->UI().setDirty(GameData_DIRTY_BIT, true);
 	// </advc.078>
 }
 
@@ -14342,7 +14327,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 			}
 
 			szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_STEAL_TREASURY",
-					/* advc.004i: */ iNumTotalGold).GetCString();
+					iNumTotalGold); // advc.004i
 			changeGold(iNumTotalGold);
 			if (NO_PLAYER != eTargetPlayer)
 				GET_PLAYER(eTargetPlayer).changeGold(-iNumTotalGold);

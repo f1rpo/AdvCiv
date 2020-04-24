@@ -12118,7 +12118,7 @@ int CvCityAI::AI_calculatePlayerCloseness(int iMaxDistance, // advc: some style 
 	// BETTER_BTS_AI_MOD, General AI, closeness changes, 5/16/10, jdog5000: START
 	// <advc.opt> A little messy I'll admit
 	for (int iI = (ePlayer == NO_PLAYER ? 0 : ePlayer); iI <=
-			(ePlayer == NO_PLAYER ? (MAX_PLAYERS-1) : ePlayer); iI++) // </advc.opt>
+		(ePlayer == NO_PLAYER ? (MAX_PLAYERS-1) : ePlayer); iI++) // </advc.opt>
 	{
 		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)iI);
 		if (!kPlayer.isAlive() ||  !GET_TEAM(getTeam()).isHasMet(kPlayer.getTeam()))

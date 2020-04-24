@@ -1880,7 +1880,7 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam,
 
 DenialTypes CvTeamAI::AI_techTrade(TechTypes eTech, TeamTypes eToTeam) const  // advc: style changes
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 
 	FAssertMsg(eToTeam != getID(), "shouldn't call this function on ourselves");
 	// advc.550e: No longer needed
@@ -2179,7 +2179,7 @@ int CvTeamAI::AI_surrenderTradeVal(TeamTypes eTeam) const
 DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultiplier,
 	bool bCheckAccept) const // advc.104o
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o (Not called often and tends to return early)
 
 	FAssert(eMasterTeam != getID());
 
@@ -3784,7 +3784,7 @@ DenialTypes CvTeamAI::AI_defensivePactTrade(TeamTypes eWithTeam) const
 
 DenialTypes CvTeamAI::AI_permanentAllianceTrade(TeamTypes eWithTeam) const  // advc: style changes
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 	FAssert(eWithTeam != getID());
 
 	if (isHuman())

@@ -7798,67 +7798,67 @@ void CvGameTextMgr::parsePromotionHelp(CvWStringBuffer &szBuffer, PromotionTypes
 		szBuffer.append(GC.getInfo(ePromotion).getHelp());
 	}
 
-	/* <advc.004e> Show promotions that promo leads to.
-	Based on CvPediaPromotion.py and CvUnit::canAcquirePromotion. */
-	CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
+	/*	<advc.004e> Show the promotions that ePromotion leads to.
+		Based on CvPediaPromotion.py and CvUnit::canAcquirePromotion. */
+	CvUnit const* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
 	std::vector<PromotionTypes> aeReq;
 	std::vector<PromotionTypes> aeAltReq;
-	for(int i = 0; i < GC.getNumPromotionInfos(); i++)
+	FOR_EACH_ENUM2(Promotion, eLoopPromo)
 	{
-		PromotionTypes eLoopPromo = (PromotionTypes)i;
-		CvPromotionInfo const& pi = GC.getInfo(eLoopPromo);
-		/* If a unit is selected, only show pi if promo will help that unit
-		   to acquire pi; don't just show all promotions that promo might
-		   theoretically lead to. */
+		CvPromotionInfo const& kLoopPromo = GC.getInfo(eLoopPromo);
 		if(pHeadSelectedUnit != NULL && pHeadSelectedUnit->getOwner() != NO_PLAYER)
 		{
+			// Don't show eLoopPromotion if any requirements other than ePromotion aren't met
 			CvUnit const& kUnit = *pHeadSelectedUnit;
 			if(!kUnit.isPromotionValid(eLoopPromo))
 				continue;
 			if(kUnit.isHasPromotion(eLoopPromo) || kUnit.canAcquirePromotion(eLoopPromo))
 				continue;
 			CvPlayer const& kOwner = GET_PLAYER(kUnit.getOwner());
-			if(pi.getTechPrereq() != NO_TECH && !GET_TEAM(kOwner.getTeam()).isHasTech((TechTypes)
-					(pi.getTechPrereq())))
+			if(kLoopPromo.getTechPrereq() != NO_TECH &&
+				!GET_TEAM(kOwner.getTeam()).isHasTech((TechTypes)(kLoopPromo.getTechPrereq())))
+			{
 				continue;
-			if(pi.getStateReligionPrereq() != NO_RELIGION &&
-					kOwner.getStateReligion() != pi.getStateReligionPrereq())
+			}
+			if(kLoopPromo.getStateReligionPrereq() != NO_RELIGION &&
+				kOwner.getStateReligion() != kLoopPromo.getStateReligionPrereq())
+			{
 				continue;
+			}
 		}
-		if(pi.getPrereqPromotion() == ePromotion)
+		if(kLoopPromo.getPrereqPromotion() == ePromotion)
 			aeReq.push_back(eLoopPromo);
-		if(pi.getPrereqOrPromotion1() == ePromotion ||
-				pi.getPrereqOrPromotion2() == ePromotion ||
-				pi.getPrereqOrPromotion3() == ePromotion)
+		if(kLoopPromo.getPrereqOrPromotion1() == ePromotion ||
+			kLoopPromo.getPrereqOrPromotion2() == ePromotion ||
+			kLoopPromo.getPrereqOrPromotion3() == ePromotion)
+		{
 			aeAltReq.push_back(eLoopPromo);
+		}
 	}
-	CvWString szTemp;
 	if(!aeReq.empty())
 	{
-		szTemp.append(pcNewline);
-		szTemp.append(gDLL->getText("TXT_KEY_REQUIRED_FOR"));
-		szTemp.append(L" ");
+		szBuffer.append(pcNewline);
+		szBuffer.append(gDLL->getText("TXT_KEY_REQUIRED_FOR"));
+		bool bFirst = true;
 		for(size_t i = 0; i < aeReq.size(); i++)
 		{
-			szTemp.append(GC.getInfo(aeReq[i]).getDescription());
-			szTemp.append(L", ");
+			setListHelp(szBuffer, L" ", GC.getInfo(aeReq[i]).getDescription(),
+					L", ", bFirst);
+			bFirst = false;
 		}
-		// Drop the final comma
-		szTemp = szTemp.substr(0, szTemp.length() - 2);
 	}
 	if(!aeAltReq.empty())
 	{
-		szTemp.append(pcNewline);
-		szTemp.append(gDLL->getText("TXT_KEY_LEADS_TO"));
-		szTemp.append(L" ");
+		szBuffer.append(pcNewline);
+		szBuffer.append(gDLL->getText("TXT_KEY_LEADS_TO"));
+		bool bFirst = true;
 		for(size_t i = 0; i < aeAltReq.size(); i++)
 		{
-			szTemp.append(GC.getInfo(aeAltReq[i]).getDescription());
-			szTemp.append(L", ");
-		}
-		szTemp = szTemp.substr(0, szTemp.length() - 2);
+			setListHelp(szBuffer, L" ", GC.getInfo(aeAltReq[i]).getDescription(),
+					L", ", bFirst);
+			bFirst = false;
+		};
 	}
-	szBuffer.append(szTemp);
 	// </advc.004e>
 }
 
@@ -16946,16 +16946,18 @@ void CvGameTextMgr::buildFinanceForeignIncomeString(CvWStringBuffer& szBuffer, P
 {
 	if (NO_PLAYER == ePlayer)
 		return;
-	CvPlayer& player = GET_PLAYER(ePlayer);
+	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
 
 	CvWString szPlayerIncome;
-	for (int iI = 0; iI < MAX_PLAYERS; ++iI)
+	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
-		CvPlayer& otherPlayer = GET_PLAYER((PlayerTypes)iI);
-		if (otherPlayer.isAlive() && player.getGoldPerTurnByPlayer((PlayerTypes)iI) != 0)
+		CvPlayer const& kOtherPlayer = *it;
+		if (kPlayer.getGoldPerTurnByPlayer(kOtherPlayer.getID()) != 0)
 		{
 			CvWString szTemp;
-			szTemp.Format(L"%d%c: %s", player.getGoldPerTurnByPlayer((PlayerTypes)iI), GC.getInfo(COMMERCE_GOLD).getChar(), otherPlayer.getCivilizationShortDescription());
+			szTemp.Format(L"%d%c: %s", kPlayer.getGoldPerTurnByPlayer(
+					kOtherPlayer.getID()), GC.getInfo(COMMERCE_GOLD).getChar(),
+					kOtherPlayer.getCivilizationShortDescription());
 			szPlayerIncome += NEWLINE + szTemp;
 		}
 	}
@@ -16963,7 +16965,8 @@ void CvGameTextMgr::buildFinanceForeignIncomeString(CvWStringBuffer& szBuffer, P
 	{
 		CvWString szTmp; // advc.086
 		szTmp.append(NEWLINE);
-		szTmp.append(gDLL->getText("TXT_KEY_FINANCE_ADVISOR_FOREIGN_INCOME", szPlayerIncome.GetCString(), player.getGoldPerTurn()));
+		szTmp.append(gDLL->getText("TXT_KEY_FINANCE_ADVISOR_FOREIGN_INCOME",
+				szPlayerIncome.GetCString(), kPlayer.getGoldPerTurn()));
 		// <advc.086>
 		if(szBuffer.isEmpty())
 			szBuffer.assign(szTmp.substr(2, szTmp.length()));

@@ -66,7 +66,7 @@ KmodPathFinder::~KmodPathFinder()
 
 bool KmodPathFinder::ValidateNodeMap()
 {
-	PROFILE_FUNC(); // advc.003o  // advc.test: Let's check again how often this gets called
+	//PROFILE_FUNC(); // advc.003o
 	if (!GC.getGame().isFinalInitialized())
 		return false;
 
@@ -74,16 +74,20 @@ bool KmodPathFinder::ValidateNodeMap()
 	{
 		map_width = GC.getMap().getGridWidth();
 		map_height = GC.getMap().getGridHeight();
-		//node_data = (FAStarNode*)
+		//node_data = (FAStarNode*)realloc...
 		// <advc> According to cppcheck, the above is a "common realloc mistake".
 		FAStarNode* new_node_data = static_cast<FAStarNode*>(
 				realloc(node_data, sizeof(*node_data)*map_width*map_height));
-		if (new_node_data == NULL)
+		/*	But then, realloc isn't actually going to fail, and if it does,
+			a memory leak is the least of our problems. */
+		FAssertMsg(new_node_data != NULL, "Failed to re-allocate memory");
+		node_data = new_node_data;
+		/*if (new_node_data == NULL)
 		{
 			free(node_data);
 			FAssertMsg(new_node_data != NULL, "Failed to re-allocate memory");
 		}
-		else node_data = new_node_data; // </advc>
+		else node_data = new_node_data;*/ // </advc>
 		end_node = NULL;
 	}
 	return true;

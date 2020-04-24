@@ -120,10 +120,8 @@ public:
 	bool isSpectator() const; // advc.127
 	bool isAutoPlayJustEnded() const;		// advc.127: exposed to Python
 	// AI_AUTO_PLAY_MOD: END
-	// <advc.inl>
-	DllExport inline bool isHuman() const { return m_bHuman; }																																							// Exposed to Python
-	DllExport inline bool isBarbarian() const { return (m_eID == BARBARIAN_PLAYER); }																																		// Exposed to Python
-	// </advc.inl>
+	DllExport inline bool isHuman() const { return m_bHuman; } // advc.inl													// Exposed to Python
+	DllExport inline bool isBarbarian() const { return (m_eID == BARBARIAN_PLAYER); } // advc.inl							// Exposed to Python
 	DllExport void updateHuman();
 
 	DllExport wchar const* getName(uint uiForm = 0) const;																											// Exposed to Python

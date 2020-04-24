@@ -3060,7 +3060,7 @@ bool CvPlot::isVisibleEnemyUnit(PlayerTypes ePlayer) const
 bool CvPlot::isVisibleEnemyCityAttacker(PlayerTypes eDefender, TeamTypes eAssumePeace,
 	int iRange) const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	//PROFILE_FUNC(); // (rarely called so far)
 	for (SquareIter it(*this, iRange, true); it.hasNext(); ++it)
 	{
 		if (it->plotCheck(PUF_isEnemyCityAttacker, eDefender, eAssumePeace,
@@ -3297,6 +3297,9 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 
 		if (kOther.isRiverNetwork(eTeam))
 		{
+			/*	advc (comment): Could argue that the river direction should matter here.
+				If a river flows away from a water plot, then, at least graphically,
+				they're not quite connected. (Same goes for the isRiverNetwork branch below.) */
 			if (kOther.isRiverConnection(directionXY(kOther, *this)))
 				return true;
 		}
@@ -7050,8 +7053,8 @@ ColorTypes CvPlot::plotMinimapColor()
 		if (pCity != NULL && pCity->isRevealed(eActiveTeam, true))
 			return GC.getColorType("WHITE");
 
-		if (isActiveVisible(true)
-			&& GC.getDefineINT(CvGlobals::MINIMAP_WATER_MODE) != 6) // advc.002a
+		if (isActiveVisible(true) &&
+			GC.getDefineINT(CvGlobals::MINIMAP_WATER_MODE) != 6) // advc.002a
 		{
 			CvUnit* pCenterUnit = getDebugCenterUnit();
 			if (pCenterUnit != NULL)

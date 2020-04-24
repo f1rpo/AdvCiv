@@ -12554,11 +12554,11 @@ void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 // advc: style changes and renamed some variables
 PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC(); // advc: Fine so far; not frequently called.
 	if (isCapital())
 		return NO_PLAYER;
 
-	CvPlayer& kOwner = GET_PLAYER(getOwner());
+	CvPlayer const& kOwner = GET_PLAYER(getOwner());
 
 	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 	{

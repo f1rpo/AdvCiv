@@ -2844,7 +2844,7 @@ int CvPlayerAI::AI_cityWonderVal(CvCity const& c) const
 	Scale: gold per turn */
 scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC();
 	bool const bOwn = (c.getOwner() == getID());
 	scaled r = 2 * AI_cityWonderVal(c);
 	// That's already supposed to project 1 era into the future
@@ -3368,7 +3368,7 @@ bool CvPlayerAI::AI_avoidScience() const
 	funds and safety threshold. */
 int CvPlayerAI::AI_financialTroubleMargin() const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC(); // advc: Fine - not called all that frequently; but that might change.
 	if(isBarbarian()) // Based on BETTER_BTS_AI_MOD, 06/12/09, jdog5000 (Barbarian AI)
 		return 100;
 	/*if (getCommercePercent(COMMERCE_GOLD) > 50) {
@@ -6660,7 +6660,6 @@ DiploCommentTypes CvPlayerAI::AI_getGreeting(PlayerTypes ePlayer) const
 // return true if we are willing to talk to ePlayer
 bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer, /* advc.104l: */ bool bAsync) const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
 	FAssert(getPersonalityType() != NO_LEADER);
 	FAssert(ePlayer != getID());
 	// <advc.104i>
@@ -11521,7 +11520,7 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 	PlayerTypes eToPlayer, LiberationWeightTypes eLibWeight, bool bConquest,
 	bool bAIRequest, bool bDiploVal) const
 {
-	PROFILE_FUNC(); // (to be profiled)
+	PROFILE_FUNC(); // Fine - for most cities, trade isn't even allowed.
 	CvGame const& kGame = GC.getGame();
 	PlayerTypes const eOwner = kCity.getOwner();
 	CvPlayerAI const& kOwner = GET_PLAYER(eOwner);
@@ -11896,7 +11895,6 @@ scaled CvPlayerAI::AI_peaceTreatyAversion(TeamTypes eTarget) const
 // advc.ctr: Almost rewritten
 DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes eToPlayer) const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
 	FAssert(kCity.getOwner() == getID());
 	CvPlayerAI const& kToPlayer = GET_PLAYER(eToPlayer);
 	CvPlot const& kCityPlot = *kCity.plot();
@@ -11977,7 +11975,7 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes eToPlaye
 			DenialTypes eNever = (getMasterTeam() == kToPlayer.getMasterTeam() ?
 					DENIAL_TOO_MUCH : DENIAL_NEVER);
 			int const iKeepCityVal = AI_cityTradeVal(kCity, eToPlayer);
-			// Could cache this if needs be
+			// Could cache this if needs be (AI_cityTradeVal is getting profiled)
 			int const iReferenceVal = AI_cityTradeVal(getCapitalCity()->AI(), eToPlayer);
 			if (!bWar && 7 * iKeepCityVal > 4 * iReferenceVal)
 				return eNever;
@@ -12203,12 +12201,13 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 		//if (pLoopDeal->isCancelable(getID()) && !(pLoopDeal->isPeaceDeal()))
 		// </advc.001q>  // <advc.130f>
 		if(pLoopDeal->isPeaceDeal() ||
-				/*  OB don't have a proper trade value and have already been
-					covered above */
-				pLoopDeal->headFirstTradesNode() != NULL &&
-				pLoopDeal->headFirstTradesNode()->m_data.m_eItemType ==
-				TRADE_OPEN_BORDERS)
-			continue; // </advc.130f>
+			/*  OB don't have a proper trade value and have already been
+				covered above */
+			pLoopDeal->headFirstTradesNode() != NULL &&
+			pLoopDeal->headFirstTradesNode()->m_data.m_eItemType == TRADE_OPEN_BORDERS)
+		{
+			continue;
+		} // </advc.130f>
 		// advc: Rewrote this block to get rid of duplicate code
 		if (pLoopDeal->getReceivesList(TEAMID(ePlayer)).getLength() > 0)
 		{
@@ -12265,18 +12264,19 @@ DenialTypes CvPlayerAI::AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes eP
 	CvCity* pTargetCapital = GET_TEAM(eTradeTeam).getLeaderCapital(NO_TEAM);
 	CvCity* pPlayerCapital = GET_PLAYER(ePlayer).getCapitalCity();
 	if(pOurCapital != NULL && pTargetCapital != NULL && pPlayerCapital != NULL &&
-			kOurTeam.isOpenBorders(eTradeTeam) &&
-			!GET_TEAM(eTradeTeam).isAVassal() &&
-			GET_TEAM(kOurTeam.getMasterTeam()).getPower(true) *
-			(::stepDistance(pOurCapital->plot(), pTargetCapital->plot()) <
-			::stepDistance(pPlayerCapital->plot(), pTargetCapital->plot()) ?
-			130 : 200) < 100 * GET_TEAM(eTradeTeam).getPower(true) &&
-			// When suing for peace: whom do we fear more?
-			(!bWar || GET_TEAM(ePlayer).getPower(true) * 115 <
-			GET_TEAM(eTradeTeam).getPower(true)) &&
-			GET_TEAM(eTradeTeam).AI_isLandTarget(getTeam()))
+		kOurTeam.isOpenBorders(eTradeTeam) &&
+		!GET_TEAM(eTradeTeam).isAVassal() &&
+		GET_TEAM(kOurTeam.getMasterTeam()).getPower(true) *
+		(::stepDistance(pOurCapital->plot(), pTargetCapital->plot()) <
+		::stepDistance(pPlayerCapital->plot(), pTargetCapital->plot()) ?
+		130 : 200) < 100 * GET_TEAM(eTradeTeam).getPower(true) &&
+		// When suing for peace: whom do we fear more?
+		(!bWar || GET_TEAM(ePlayer).getPower(true) * 115 <
+		GET_TEAM(eTradeTeam).getPower(true)) &&
+		GET_TEAM(eTradeTeam).AI_isLandTarget(getTeam()))
+	{
 		return DENIAL_POWER_THEM;
-
+	}
 	if(bWar)
 		return NO_DENIAL; // </advc.130f>
 
@@ -12435,9 +12435,11 @@ DenialTypes CvPlayerAI::AI_religionTrade(ReligionTypes eReligion, PlayerTypes eP
 		return NO_DENIAL;
 
 	// <advc.132>
-	if(GET_PLAYER(ePlayer).isStateReligion() && eReligion != GET_PLAYER(ePlayer).
-			getStateReligion())
-		return DENIAL_JOKING; // </advc.132>
+	if(GET_PLAYER(ePlayer).isStateReligion() &&
+		eReligion != GET_PLAYER(ePlayer).getStateReligion())
+	{
+		return DENIAL_JOKING;
+	} // </advc.132>
 	if (GET_TEAM(getTeam()).isVassal(GET_PLAYER(ePlayer).getTeam()))
 		return NO_DENIAL;
 
@@ -19657,7 +19659,7 @@ bool CvPlayerAI::AI_proposeJointWar(PlayerTypes eHuman)
 	and that we can contact the hireling. */
 void CvPlayerAI::AI_proposeWarTrade(PlayerTypes eHireling)
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC(); // advc: Not negligible
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
 	CvPlayerAI const& kHireling = GET_PLAYER(eHireling);
 	if (kOurTeam.isAtWar(kHireling.getTeam()) ||
@@ -20512,7 +20514,7 @@ CvCityAI const* CvPlayerAI::AI_bestRequestCity(PlayerTypes eOwner, scaled rMinVa
 	Returns true iff eToPlayer is human and has been contacted. */
 bool CvPlayerAI::AI_proposeCityTrade(PlayerTypes eToPlayer)
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC(); // (Seems completely unproblematic so far)
 	/*if (AI_getAttitude(eToPlayer) < ATTITUDE_CAUTIOUS)
 		return false;*/ // BtS; now handled by trade denial check.
 	CvGame& kGame = GC.getGame();
@@ -20665,7 +20667,7 @@ bool CvPlayerAI::AI_proposeCityTrade(PlayerTypes eToPlayer)
 bool CvPlayerAI::AI_intendsToCede(CvCityAI const& kCity, PlayerTypes eToPlayer,
 	bool bLiberateForFree, int* piTradeVal) const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	//PROFILE_FUNC(); // (Rarely called so far; not a concern at all.)
 	// BtS code cut from AI_doDIplo. Replacement below.
 	/*if (kCity.getPreviousOwner() == eToPlayer)
 		return false;
@@ -20804,7 +20806,7 @@ bool CvPlayerAI::AI_intendsToCede(CvCityAI const& kCity, PlayerTypes eToPlayer,
 // Crude heuristic on the scale of trade values
 scaled CvPlayerAI::AI_totalYieldVal() const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	//PROFILE_FUNC(); // (Rarely called so far; not a concern at all.)
 	return scaled::fromDouble(
 			2 * (estimateYieldRate(YIELD_FOOD) -
 			getTotalPopulation() * GC.getFOOD_CONSUMPTION_PER_POPULATION()) +
@@ -21791,7 +21793,7 @@ void CvPlayerAI::AI_doSplit(/* advc.104r: */ bool bForce)  // advc: some style c
 	CvMap const& m = GC.getMap();
 	std::map<int,int>::iterator it;
 	for (it = mapAreaValues.begin(); it != mapAreaValues.end(); ++it)
-	{	// advc.ctr: Sign flipped to match new semantics of AI_splitEmpireValue
+	{	// advc.ctr: First condition inverted to match new semantics of AI_splitEmpireValue
 		if (it->second < 0 /* advc.104r: */ && !bForce)
 			continue;
 
@@ -21943,7 +21945,6 @@ void CvPlayerAI::AI_doCheckFinancialTrouble()
 void CvPlayerAI::AI_roundTradeValBounds(int& iTradeVal, bool bPreferRoundingUp,
 	int iLower, int iUpper) const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
 	int iTmpVal = iTradeVal;
 	if (bPreferRoundingUp)
 	{

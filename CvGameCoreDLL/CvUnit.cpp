@@ -1871,7 +1871,7 @@ bool CvUnit::isActionRecommended(int iAction)
 	return false;
 }
 
-// <advc.004h>
+// advc.004h:
 void CvUnit::updateFoundingBorder(bool bForceClear) const
 {
 	int iMode = BUGOption::getValue("MainInterface__FoundingBorder", 2);
@@ -1910,10 +1910,9 @@ void CvUnit::updateFoundingBorder(bool bForceClear) const
 					color, AREA_BORDER_LAYER_FOUNDING_BORDER);
 		}
 	}
-} // </advc.004h>
+}
 
-
-/*  <advc.061> See comment at call location in CvGameTextMgr::setPlotListHelpPerOwner.
+/*  advc.061: See comment at call location in CvGameTextMgr::setPlotListHelpPerOwner.
 	Doesn't check isVisible. */
 bool CvUnit::isUnowned() const
 {
@@ -1937,7 +1936,7 @@ bool CvUnit::isUnowned() const
 	if(pPlotCity != NULL && pPlotCity->isBarbarian())
 		return true;
 	return false;
-} // </advc.061>
+}
 
 bool CvUnit::canDoCommand(CommandTypes eCommand, int iData1, int iData2,
 	bool bTestVisible, bool bTestBusy) /* advc: */ const
@@ -2117,13 +2116,8 @@ void CvUnit::doCommand(CommandTypes eCommand, int iData1, int iData2)
 		}
 	}
 
-	if (bCycle)
-	{
-		if (IsSelected())
-		{
-			GC.getGame().cycleSelectionGroups_delayed(1, false);
-		}
-	}
+	if (bCycle && IsSelected())
+		GC.getGame().cycleSelectionGroups_delayed(1, false);
 
 	getGroup()->doDelayedDeath();
 }
@@ -2552,13 +2546,13 @@ bool CvUnit::canMoveOrAttackInto(CvPlot const& kPlot, bool bDeclareWar, // advc:
 	return canMoveInto(pPlot, false, bDeclareWar, true);
 }*/
 
-// <advc.030>
+// advc.030:
 bool CvUnit::canEnterArea(CvArea const& kArea) const
 {
 	return kArea.canBeEntered(getArea(), this);
-} // </advc.030>
+}
 
-// <advc.162>
+// advc.162:
 bool CvUnit::isInvasionMove(CvPlot const& kFrom, CvPlot const& kTo) const
 {
 	TeamTypes eToTeam = kTo.getTeam();
@@ -2570,7 +2564,7 @@ bool CvUnit::isInvasionMove(CvPlot const& kFrom, CvPlot const& kTo) const
 	if(GET_TEAM(getTeam()).hasJustDeclaredWar(eToTeam))
 		return true;
 	return !canEnterTerritory(eToTeam);
-} // </advc.162>
+}
 
 
 void CvUnit::attack(CvPlot* pPlot, bool bQuick)
@@ -2652,7 +2646,8 @@ void CvUnit::attackForDamage(CvUnit *pDefender, int attackerDamageChange, int de
 			CvWString szMessage;
 			if (BARBARIAN_PLAYER != eAttacker)
 			{
-				szMessage = gDLL->getText("TXT_KEY_MISC_YOU_UNITS_UNDER_ATTACK", GET_PLAYER(getOwner()).getNameKey());
+				szMessage = gDLL->getText("TXT_KEY_MISC_YOU_UNITS_UNDER_ATTACK",
+						GET_PLAYER(getOwner()).getNameKey());
 			}
 			else
 			{
@@ -8156,8 +8151,8 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 			gDLL->messageControlLog(szOut);
 		}
 	}*/
+	PROFILE_FUNC(); // advc
 
-	PROFILE_FUNC(); // advc.test: To be profiled
 	FAssert(!at(iX, iY));
 	FAssert(!isFighting());
 	FAssert(iX == INVALID_PLOT_COORD || GC.getMap().plot(iX, iY)->getX() == iX);
@@ -9827,25 +9822,33 @@ bool CvUnit::isPromotionValid(PromotionTypes ePromotion) const
 	static int const iMAX_INTERCEPTION_PROBABILITY = GC.getDefineINT("MAX_INTERCEPTION_PROBABILITY");
 	static int const iMAX_EVASION_PROBABILITY = GC.getDefineINT("MAX_EVASION_PROBABILITY");
 	// </advc.opt>
-	CvPromotionInfo& promotionInfo = GC.getInfo(ePromotion);
-	if (promotionInfo.getWithdrawalChange() > 0 && // advc.001: Make sure to block only promotions that increase withdrawal chance
-			promotionInfo.getWithdrawalChange() + m_pUnitInfo->getWithdrawalProbability() + getExtraWithdrawal() > iMAX_WITHDRAWAL_PROBABILITY)
+	CvPromotionInfo const& kPromo = GC.getInfo(ePromotion);
+	// advc.001: Make sure to block only promotions that increase withdrawal chance
+	if (kPromo.getWithdrawalChange() > 0 &&
+		kPromo.getWithdrawalChange() + m_pUnitInfo->getWithdrawalProbability() +
+		getExtraWithdrawal() > iMAX_WITHDRAWAL_PROBABILITY)
+	{
 		return false;
-	if (promotionInfo.getInterceptChange() > 0 && // advc.001
-			promotionInfo.getInterceptChange() + maxInterceptionProbability() > iMAX_INTERCEPTION_PROBABILITY)
+	}
+	if (kPromo.getInterceptChange() > 0 && // advc.001
+		kPromo.getInterceptChange() + maxInterceptionProbability() > iMAX_INTERCEPTION_PROBABILITY)
+	{
 		return false;
-	if (promotionInfo.getEvasionChange() > 0 && // advc.001
-			promotionInfo.getEvasionChange() + evasionProbability() > iMAX_EVASION_PROBABILITY)
+	}
+	if (kPromo.getEvasionChange() > 0 && // advc.001
+		kPromo.getEvasionChange() + evasionProbability() > iMAX_EVASION_PROBABILITY)
+	{
 		return false;
+	}
 	// <advc.164> Moved from ::isPromotionValid. The paradrop clause is new.
-	if(promotionInfo.getBlitz() != 0 && maxMoves() <= 1 && getDropRange() <= 0)
+	if(kPromo.getBlitz() != 0 && maxMoves() <= 1 && getDropRange() <= 0)
 		return false;
 	// </advc.164>
 	// <advc.124>
-	PromotionTypes ePrereq = (PromotionTypes)promotionInfo.getPrereqPromotion();
-	if(promotionInfo.getMovesChange() > 0 &&
+	PromotionTypes ePrereq = (PromotionTypes)kPromo.getPrereqPromotion();
+	if(kPromo.getMovesChange() > 0 &&
 		// Note: Unit extra moves can currently only come from promotions
-		promotionInfo.getMovesChange() + m_pUnitInfo->getMoves() + getExtraMoves() > 4 &&
+		kPromo.getMovesChange() + m_pUnitInfo->getMoves() + getExtraMoves() > 4 &&
 		GET_PLAYER(getOwner()).AI_unitImpassableCount(getUnitType()) > 0 &&
 		// Allow Morale
 		(ePrereq == NO_PROMOTION || !GC.getInfo(ePrereq).isLeader()))
