@@ -349,22 +349,10 @@ void CvArea::changeNumRiverEdges(int iChange)
 }
 
 
-int CvArea::getTotalPopulation() const
-{
-	return m_iTotalPopulation;
-}
-
-
 void CvArea::changeNumStartingPlots(int iChange)
 {
 	m_iNumStartingPlots = m_iNumStartingPlots + iChange;
 	FAssert(getNumStartingPlots() >= 0);
-}
-
-
-int CvArea::getUnitsPerPlayer(PlayerTypes eIndex) const
-{
-	return m_aiUnitsPerPlayer.get(eIndex);
 }
 
 
@@ -401,24 +389,12 @@ void CvArea::changeCitiesPerPlayer(PlayerTypes eIndex, int iChange)
 }
 
 
-int CvArea::getPopulationPerPlayer(PlayerTypes eIndex) const
-{
-	return m_aiPopulationPerPlayer.get(eIndex);
-}
-
-
 void CvArea::changePopulationPerPlayer(PlayerTypes eIndex, int iChange)
 {
 	m_aiPopulationPerPlayer.add(eIndex, iChange);
 	FAssert(getPopulationPerPlayer(eIndex) >= 0 || gDLL->GetWorldBuilderMode()); // advc
 	m_iTotalPopulation += iChange;
 	FAssert(getTotalPopulation() >= 0);
-}
-
-
-int CvArea::getBuildingGoodHealth(PlayerTypes eIndex) const
-{
-	return m_aiBuildingGoodHealth.get(eIndex);
 }
 
 
@@ -433,12 +409,6 @@ void CvArea::changeBuildingGoodHealth(PlayerTypes eIndex, int iChange)
 }
 
 
-int CvArea::getBuildingBadHealth(PlayerTypes eIndex) const
-{
-	return m_aiBuildingBadHealth.get(eIndex);
-}
-
-
 void CvArea::changeBuildingBadHealth(PlayerTypes eIndex, int iChange)
 {
 	if (iChange != 0)
@@ -447,12 +417,6 @@ void CvArea::changeBuildingBadHealth(PlayerTypes eIndex, int iChange)
 		FAssert(getBuildingBadHealth(eIndex) >= 0);
 		GET_PLAYER(eIndex).AI_makeAssignWorkDirty();
 	}
-}
-
-
-int CvArea::getBuildingHappiness(PlayerTypes eIndex) const
-{
-	return m_aiBuildingHappiness.get(eIndex);
 }
 
 
@@ -465,12 +429,7 @@ void CvArea::changeBuildingHappiness(PlayerTypes eIndex, int iChange)
 	}
 }
 
-// <advc.310>
-int CvArea::getTradeRoutes(PlayerTypes eIndex) const
-{
-	return m_aiTradeRoutes.get(eIndex);
-}
-
+// advc.310:
 void CvArea::changeTradeRoutes(PlayerTypes eIndex, int iChange)
 {
 	if(iChange != 0)
@@ -479,11 +438,6 @@ void CvArea::changeTradeRoutes(PlayerTypes eIndex, int iChange)
 		FAssert(getTradeRoutes(eIndex) >= 0);
 		GET_PLAYER(eIndex).updateTradeRoutes();
 	}
-} // </advc.310>
-
-int CvArea::getFreeSpecialist(PlayerTypes eIndex) const
-{
-	return m_aiFreeSpecialist.get(eIndex);
 }
 
 
@@ -495,12 +449,6 @@ void CvArea::changeFreeSpecialist(PlayerTypes eIndex, int iChange)
 		FAssert(getFreeSpecialist(eIndex) >= 0);
 		GET_PLAYER(eIndex).AI_makeAssignWorkDirty();
 	}
-}
-
-
-int CvArea::getPower(PlayerTypes eIndex) const
-{
-	return m_aiPower.get(eIndex);
 }
 
 
@@ -518,12 +466,6 @@ void CvArea::changePower(PlayerTypes eIndex, int iChange)
 }
 
 
-int CvArea::getBestFoundValue(PlayerTypes eIndex) const
-{
-	return m_aiBestFoundValue.get(eIndex);
-}
-
-
 void CvArea::setBestFoundValue(PlayerTypes eIndex, int iNewValue)
 {
 	m_aiBestFoundValue.set(eIndex, iNewValue);
@@ -531,28 +473,10 @@ void CvArea::setBestFoundValue(PlayerTypes eIndex, int iNewValue)
 }
 
 
-int CvArea::getNumRevealedTiles(TeamTypes eIndex) const
-{
-	return m_aiNumRevealedTiles.get(eIndex);
-}
-
-
 void CvArea::changeNumRevealedTiles(TeamTypes eIndex, int iChange)
 {
 	m_aiNumRevealedTiles.add(eIndex, iChange);
 	FAssert(getNumRevealedTiles(eIndex) >= 0);
-}
-
-
-int CvArea::getCleanPowerCount(TeamTypes eIndex) const
-{
-	return m_aiCleanPowerCount.get(eIndex);
-}
-
-
-bool CvArea::isCleanPower(TeamTypes eIndex) const
-{
-	return (getCleanPowerCount(eIndex) > 0);
 }
 
 
@@ -572,29 +496,11 @@ void CvArea::changeCleanPowerCount(TeamTypes eIndex, int iChange)
 }
 
 
-int CvArea::getBorderObstacleCount(TeamTypes eIndex) const
-{
-	return m_aiBorderObstacleCount.get(eIndex);
-}
-
-bool CvArea::isBorderObstacle(TeamTypes eIndex) const
-{
-	return (getBorderObstacleCount(eIndex) > 0);
-}
-
-
 void CvArea::changeBorderObstacleCount(TeamTypes eIndex, int iChange)
 {
 	m_aiBorderObstacleCount.add(eIndex, iChange);
 	if (iChange > 0 && m_aiBorderObstacleCount.get(eIndex) == iChange)
 		GC.getMap().verifyUnitValidPlot();
-}
-
-
-
-AreaAITypes CvArea::getAreaAIType(TeamTypes eIndex) const
-{
-	return m_aeAreaAIType.get(eIndex);
 }
 
 
@@ -620,12 +526,6 @@ void CvArea::AI_setTargetCity(PlayerTypes eIndex, CvCity* pNewValue)
 }
 
 
-int CvArea::getYieldRateModifier(PlayerTypes eIndex1, YieldTypes eIndex2) const
-{
-	return m_aaiYieldRateModifier.get(eIndex1, eIndex2);
-}
-
-
 void CvArea::changeYieldRateModifier(PlayerTypes eIndex1, YieldTypes eIndex2, int iChange)
 {
 	if (iChange == 0)
@@ -639,12 +539,6 @@ void CvArea::changeYieldRateModifier(PlayerTypes eIndex1, YieldTypes eIndex2, in
 	GET_PLAYER(eIndex1).AI_makeAssignWorkDirty();
 	if (GET_PLAYER(eIndex1).getTeam() == GC.getGame().getActiveTeam())
 		gDLL->UI().setDirty(CityInfo_DIRTY_BIT, true);
-}
-
-
-int CvArea::getNumTrainAIUnits(PlayerTypes eIndex1, UnitAITypes eIndex2) const
-{
-	return m_aaiNumTrainAIUnits.get(eIndex1, eIndex2);
 }
 
 
@@ -674,18 +568,6 @@ void CvArea::changeNumAIUnits(PlayerTypes eIndex1, UnitAITypes eIndex2, int iCha
 {
 	m_aaiNumAIUnits.add(eIndex1, eIndex2, iChange);
 	FAssert(getNumAIUnits(eIndex1, eIndex2) >= 0);
-}
-
-
-int CvArea::getNumBonuses(BonusTypes eBonus) const
-{
-	return m_aiBonuses.get(eBonus);
-}
-
-
-int CvArea::getNumTotalBonuses() const
-{
-	return m_aiBonuses.getTotal();
 }
 
 
