@@ -164,7 +164,11 @@ public:
 	int overflowCapacity(int iProductionModifier, int iPopulationChange = 0) const;
 	int computeOverflow(int iRawOverflow, int iProductionModifier, OrderTypes eOrderType,
 			int* piProductionGold = NULL, int* piLostProduction = NULL,
-			int iPopulationChange = 0) const; // </advc.064b>  <advc.064>
+			int iPopulationChange = 0) const;
+	inline int minPlotProduction() const
+	{	// Let pop-hurry ignore guaranteed production
+		return 0;/*GC.getInfo(YIELD_PRODUCTION).getMinCity()*/
+	} // (exposed to Python) </advc.064b>  <advc.064>
 	bool hurryOverflow(HurryTypes eHurry, int* piProduction, int* piGold,
 			bool bCountThisTurn = false) const;		// (exposed to Python)
 	// </advc.064>

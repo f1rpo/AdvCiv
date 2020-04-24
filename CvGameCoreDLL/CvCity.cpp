@@ -2430,7 +2430,7 @@ bool CvCity::canHurry(HurryTypes eHurry, bool bTestVisible) const
 		return false;
 	// <advc.064b> Add overflow and features
 	if(getCurrentProductionDifference(true, true, false, true, true) + getProduction() +
-		GC.getInfo(YIELD_PRODUCTION).getMinCity() >= /* </advc.064b> */ getProductionNeeded())
+		minPlotProduction() >= /* </advc.064b> */ getProductionNeeded())
 	{
 		return false;
 	}
@@ -3913,7 +3913,7 @@ int CvCity::getHurryCost(bool bExtra, int iProductionLeft, int iHurryModifier, i
 	iProductionLeft -= getCurrentProductionDifference(bExtra, true, false, bExtra, true);
 	if(bExtra) // City yield rate uncertain if pop is sacrificed (bExtra) ...
 	{	// ... but city production is going to be at least 1
-		iProductionLeft -= GC.getInfo(YIELD_PRODUCTION).getMinCity();
+		iProductionLeft -= minPlotProduction();
 	}
 	if(iProductionLeft <= 0)
 		return 0;
@@ -3966,7 +3966,7 @@ int CvCity::hurryProduction(HurryTypes eHurry) const
 	int iProductionDifference = getCurrentProductionDifference(bPopRush, true, false,
 			bPopRush, true);
 	if(bPopRush)
-		iProductionDifference += GC.getInfo(YIELD_PRODUCTION).getMinCity();
+		iProductionDifference += minPlotProduction();
 	int iProductionNeeded = std::max(0, getProductionNeeded() - getProduction() -
 			iProductionDifference);
 	// </advc.064b>

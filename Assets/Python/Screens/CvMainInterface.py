@@ -3886,8 +3886,8 @@ class CvMainInterface:
 					# advc.064: Now optional and independent from ShowBarTick
 					if CityScreenOpt.isShowHurryTickMarks() and pHeadSelectedCity.canHurry(HURRY_WHIP, True): # K-Mod, changed from False to True
 						iRate = pHeadSelectedCity.hurryProduction(HURRY_WHIP) / pHeadSelectedCity.hurryPopulation(HURRY_WHIP)
-						# advc.064b: Subtract city tile production from ProductionNeeded
-						iMinProduction = gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getMinCity();
+						# advc.064b: Subtract guaranteed production
+						iMinProduction = pHeadSelectedCity.minPlotProduction() + pHeadSelectedCity.getFeatureProduction()
 						self.pBarProductionBar_Whip.drawTickMarks(screen, pHeadSelectedCity.getProduction(), pHeadSelectedCity.getProductionNeeded() - iMinProduction, iFirst, iRate, True)
 # BUG - Progress Bar - Tick Marks - end
 
