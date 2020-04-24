@@ -90,6 +90,7 @@ void CyCityPythonInterface1(python::class_<CyCity>& x)
 
 		.def("canHurry", &CyCity::canHurry, "bool (HurryTypes eHurry, bool bTestVisible = 0) - can player eHurry in this city?")
 		.def("hurry", &CyCity::hurry, "void (HurryTypes eHurry) - forces the city to rush production using eHurry")
+		.def("minPlotProduction", &CyCity::minPlotProduction, "int ()") // advc.064b
 		// advc.064:
 		.def("getHurryOverflow", &CyCity::getHurryOverflow, "int (HurryTypes eHurry, bool bProduction, bool bIncludeCurrent)")
 		.def("getConscriptUnit", &CyCity::getConscriptUnit, "UnitID () - UnitID for the best unit the city can conscript")

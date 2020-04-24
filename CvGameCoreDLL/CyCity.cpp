@@ -360,10 +360,14 @@ void CyCity::hurry(int /*HurryTypes*/ iHurry)
 	if (m_pCity)
 		m_pCity->hurry((HurryTypes)iHurry);
 }
-
+// advc.064b:
+int CyCity::minPlotProduction()
+{
+	return m_pCity ? m_pCity->minPlotProduction() : -1;
+}
 // advc.064:
-int CyCity::getHurryOverflow(int iHurry, bool bProduction, bool bIncludeCurrent) {
-
+int CyCity::getHurryOverflow(int iHurry, bool bProduction, bool bIncludeCurrent)
+{
 	if(m_pCity == NULL)
 		return -1;
 	int iOverflowProduction = 0;

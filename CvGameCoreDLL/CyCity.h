@@ -95,6 +95,7 @@ public:
 
 	bool canHurry(int /*HurryTypes*/ iHurry, bool bTestVisible);
 	void hurry(int /*HurryTypes*/ iHurry);
+	int minPlotProduction(); // advc.064b
 	// advc.064:
 	int getHurryOverflow(int /*HurryTypes*/ iHurry, bool bProduction, bool bIncludeCurrent);
 	int /*UnitTypes*/ getConscriptUnit();
