@@ -233,7 +233,7 @@ void CitySiteEvaluator::log(int iX, int iY)
 	}
 	else
 	{
-		logBBAI("\n\n%S is about to found a city at (%d,%d); turn %d (year %d)", getPlayer().debugName(),
+		logBBAI("\n\n%S is about to found a city at (%d,%d); turn %d (year %d)", getPlayer().getName(),
 				iX, iY, GC.getGame().getGameTurn(), GC.getGame().getGameTurnYear());
 		logBBAI("Lower bound for found value: %d", getPlayer().AI_getMinFoundValue());
 	}
@@ -1108,7 +1108,7 @@ bool AIFoundValue::isUsablePlot(CityPlotTypes ePlot, int& iTakenTiles, bool& bCi
 		if (pOtherCity == NULL && abOwnCityRadius[ePlot])
 		{
 			IFLOG logBBAI("(%d,%d) is in the radius of a %S city whose borders haven't expanded yet",
-					p->getX(), p->getY(), kPlayer.debugCivDescr());
+					p->getX(), p->getY(), kPlayer.getCivilizationShortDescription());
 			/*  Difficult to judge whether tile sharing makes sense;
 				better wait for borders to expand. */
 			return false;
@@ -2745,7 +2745,7 @@ bool AIFoundValue::isDeadlockedBonus(CvPlot const& kBonusPlot, int iMinRange) co
 void CitySiteEvaluator::logSettings() const
 {
 	logBBAI("Found parameters for %S:", isStartingLoc() ?
-			L"starting location" : getPlayer().debugName());
+			L"starting location" : getPlayer().getName());
 	logBBAI("Culture claim treshold: %d", getClaimThreshold());
 	if (getMinRivalRange() != -1)
 		logBBAI("MinRivalRange: %d", getMinRivalRange());
@@ -2782,7 +2782,7 @@ void AIFoundValue::logSite() const
 	if (bCoastal)
 		logBBAI("Site is coastal");
 	if (!kSet.isStartingLoc())
-		logBBAI("%d other %S cities in the area, %d in total", iAreaCities, kPlayer.debugCivDescr(), iCities);
+		logBBAI("%d other %S cities in the area, %d in total", iAreaCities, kPlayer.getCivilizationShortDescription(), iCities);
 }
 
 void AIFoundValue::logPlot(CvPlot const& p, int iPlotValue, int const* aiYield,

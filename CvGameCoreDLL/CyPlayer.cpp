@@ -150,11 +150,6 @@ std::wstring CyPlayer::getCivilizationShortDescription(int iForm)
 {
 	return m_pPlayer ? m_pPlayer->getCivilizationShortDescription((uint)iForm) : std::wstring();
 }
-// <advc.007>
-std::wstring CyPlayer::getCivShortDescForced()
-{
-	return m_pPlayer ? m_pPlayer->getCivilizationShortDescription(true, 0) : std::wstring();
-} // </advc.007>
 
 std::wstring CyPlayer::getCivilizationShortDescriptionKey()
 {

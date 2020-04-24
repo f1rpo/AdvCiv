@@ -170,24 +170,34 @@ bool CvColorInfo::read(CvXMLLoadUtility* pXML)
 }
 
 CvPlayerColorInfo::CvPlayerColorInfo() :
-m_iColorTypePrimary(NO_COLOR),
-m_iColorTypeSecondary(NO_COLOR),
-m_iTextColorType(NO_COLOR)
+m_eColorTypePrimary(NO_COLOR),
+m_eColorTypeSecondary(NO_COLOR),
+m_eTextColorType(NO_COLOR)
 {}
 
-int CvPlayerColorInfo::getColorTypePrimary() const
+int CvPlayerColorInfo::getColorTypePrimaryExternal() const
 {
-	return m_iColorTypePrimary;
+	return getColorTypePrimary();
 }
 
-int CvPlayerColorInfo::getColorTypeSecondary() const
+int CvPlayerColorInfo::getColorTypeSecondaryExternal() const
 {
-	return m_iColorTypeSecondary;
+	return getColorTypeSecondary();
 }
 
-int CvPlayerColorInfo::getTextColorType() const
+ColorTypes CvPlayerColorInfo::getColorTypePrimary() const
 {
-	return m_iTextColorType;
+	return m_eColorTypePrimary;
+}
+
+ColorTypes CvPlayerColorInfo::getColorTypeSecondary() const
+{
+	return m_eColorTypeSecondary;
+}
+
+ColorTypes CvPlayerColorInfo::getTextColorType() const
+{
+	return m_eTextColorType;
 }
 
 bool CvPlayerColorInfo::read(CvXMLLoadUtility* pXML)
@@ -198,13 +208,13 @@ bool CvPlayerColorInfo::read(CvXMLLoadUtility* pXML)
 	CvString szTextVal;
 
 	pXML->GetChildXmlValByName(szTextVal, "ColorTypePrimary");
-	m_iColorTypePrimary = pXML->FindInInfoClass( szTextVal);
+	m_eColorTypePrimary = (ColorTypes)pXML->FindInInfoClass( szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "ColorTypeSecondary");
-	m_iColorTypeSecondary = pXML->FindInInfoClass( szTextVal);
+	m_eColorTypeSecondary = (ColorTypes)pXML->FindInInfoClass( szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "TextColorType");
-	m_iTextColorType = pXML->FindInInfoClass( szTextVal);
+	m_eTextColorType = (ColorTypes)pXML->FindInInfoClass( szTextVal);
 
 	return true;
 }

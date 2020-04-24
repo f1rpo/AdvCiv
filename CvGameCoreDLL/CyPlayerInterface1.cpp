@@ -50,7 +50,6 @@ void CyPlayerPythonInterface1(python::class_<CyPlayer>& x)
 		.def("getNameKey", &CyPlayer::getNameKey, "str ()")
 		.def("getCivilizationDescription", &CyPlayer::getCivilizationDescription, "str (int) - returns the Civilization Description String")
 		.def("getCivilizationShortDescription", &CyPlayer::getCivilizationShortDescription, "str (int) - returns the short Civilization Description")
-		.def("getCivShortDescForced", &CyPlayer::getCivShortDescForced, "str ()") // advc.007
 		.def("getCivilizationDescriptionKey", &CyPlayer::getCivilizationDescriptionKey, "str() - returns the Civilization Description String")
 		.def("getCivilizationShortDescriptionKey", &CyPlayer::getCivilizationShortDescriptionKey, "str() - returns the short Civilization Description")
 		.def("getCivilizationAdjective", &CyPlayer::getCivilizationAdjective, "str() - returns the Civilization name in adjective form")

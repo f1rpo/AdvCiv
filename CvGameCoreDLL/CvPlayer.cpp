@@ -2712,11 +2712,10 @@ void CvPlayer::updateHuman()
 // K-Mod
 static bool concealUnknownCivs()
 {
-	CvGame const& g = GC.getGame();
-	return g.getActiveTeam() != NO_TEAM &&
+	return GC.getGame().getActiveTeam() != NO_TEAM &&
 			//gDLL->getChtLvl() == 0
 			// advc.135c: Replacing the above (which doesn't work in multiplayer)
-			!g.isDebugMode() &&
+			!GC.getGame().isDebugMode() &&
 			!gDLL->GetWorldBuilderMode();
 }
 
@@ -2726,26 +2725,14 @@ void CvPlayer::setSavingReplay(bool b)
 	m_bSavingReplay = b;
 } // </advc.106i>
 
-// advc.007: bForceReveal param added
-const wchar* CvPlayer::getName(bool bForceReveal, uint uiForm) const
+
+const wchar* CvPlayer::getName(uint uiForm) const
 {
 	if (GC.getInitCore().getLeaderName(getID(), uiForm).empty() ||
 		(GC.getGame().isMPOption(MPOPTION_ANONYMOUS) && isAlive() &&
 		GC.getGame().getGameState() == GAMESTATE_ON))
 	{
-		//return GC.getInfo(getLeaderType()).getDescription(uiForm);
-		// K-Mod. Conceal the leader name of unmet players.
-		if (bForceReveal || !concealUnknownCivs() ||
-			GET_TEAM(GC.getGame().getActiveTeam()).isHasSeen(getTeam()))
-		{
-			return GC.getInfo(getLeaderType()).getDescription(uiForm);
-		}
-		else
-		{
-			// hack to stop the string from going out of scope.
-			static CvWString szUnknown = gDLL->getText("TXT_KEY_UNKNOWN");
-			return szUnknown;
-		} // K-Mod end
+		return GC.getInfo(getLeaderType()).getDescription(uiForm);
 	}
 	else
 	{	// <advc.106i>
@@ -2764,6 +2751,21 @@ const wchar* CvPlayer::getName(bool bForceReveal, uint uiForm) const
 		} // </advc.106i>
 		return GC.getInitCore().getLeaderName(getID(), uiForm);
 	}
+}
+
+// advc.058: New function; unused, see getKnownCivDescription.
+const wchar* CvPlayer::getKnownName(TeamTypes eObserver) const
+{
+	// advc.058: Moved from getName
+	// K-Mod. Conceal the leader name of unmet players.
+	if (concealUnknownCivs() &&
+		!GET_TEAM(eObserver == NO_TEAM ? GC.getGame().getActiveTeam() : eObserver).
+		isHasSeen(getTeam()))
+	{	// hack to stop the string from going out of scope.
+		static CvWString szUnknown = gDLL->getText("TXT_KEY_UNKNOWN");
+		return szUnknown;
+	} // K-Mod end
+	return getName();
 }
 
 // K-Mod. Player name to be used in replay
@@ -2796,17 +2798,27 @@ const wchar* CvPlayer::getNameKey() const
 
 const wchar* CvPlayer::getCivilizationDescription(uint uiForm) const
 {
-	// K-Mod. Conceal the civilization of unmet players.
-	if (concealUnknownCivs() && !GET_TEAM(GC.getGame().getActiveTeam()).isHasSeen(getTeam()))
-	{
-		static CvWString string = gDLL->getText("TXT_KEY_TOPCIVS_UNKNOWN"); // hack to stop the string from going out of scope.
-		return string;
-	}
-	// K-Mod end
-
 	if (GC.getInitCore().getCivDescription(getID(), uiForm).empty())
 		return GC.getInfo(getCivilizationType()).getDescription(uiForm);
 	return GC.getInitCore().getCivDescription(getID(), uiForm);
+}
+
+/*	advc.058: New function. Currently unused because civ descriptions
+	don't currently need to be concealed anywhere. (The Python screens
+	take care of that themselves.) */
+wchar const* CvPlayer::getKnownCivDescription(TeamTypes eObserver) const
+{
+	/*	advc.058: Moved from getCivilizationDescription, active team replaced
+		with eObserver. */
+	// K-Mod. Conceal the civilization of unmet players.
+	if (concealUnknownCivs() &&
+		!GET_TEAM(eObserver == NO_TEAM ? GC.getGame().getActiveTeam() : eObserver).
+		isHasSeen(getTeam()))
+	{	// hack to stop the string from going out of scope.
+		static CvWString string = gDLL->getText("TXT_KEY_TOPCIVS_UNKNOWN");
+		return string;
+	} // K-Mod end
+	return getCivilizationDescription();
 }
 
 
@@ -2817,20 +2829,27 @@ const wchar* CvPlayer::getCivilizationDescriptionKey() const
 	return GC.getInitCore().getCivDescriptionKey(getID());
 }
 
-// advc.007: bForceReveal param added
-const wchar* CvPlayer::getCivilizationShortDescription(bool bForceReveal, uint uiForm) const
+
+const wchar* CvPlayer::getCivilizationShortDescription(uint uiForm) const
 {
+	if (GC.getInitCore().getCivShortDesc(getID(), uiForm).empty())
+		return GC.getInfo(getCivilizationType()).getShortDescription(uiForm);
+	return GC.getInitCore().getCivShortDesc(getID(), uiForm);
+}
+
+// advc.058: New function; unused, see getKnownCivDescription.
+const wchar* CvPlayer::getKnownCivShortDescription(TeamTypes eObserver) const
+{
+	// advc.058: Moved from getCivilizationShortDescription
 	// K-Mod. Conceal the civilization of unmet players.
-	if (!bForceReveal && concealUnknownCivs() &&
-		!GET_TEAM(GC.getGame().getActiveTeam()).isHasSeen(getTeam()))
+	if (concealUnknownCivs() &&
+		!GET_TEAM(eObserver == NO_TEAM ? GC.getGame().getActiveTeam() : eObserver).
+		isHasSeen(getTeam()))
 	{
 		static CvWString szUnknown = gDLL->getText("TXT_KEY_UNKNOWN");
 		return szUnknown;
 	} // K-Mod end
-
-	if (GC.getInitCore().getCivShortDesc(getID(), uiForm).empty())
-		return GC.getInfo(getCivilizationType()).getShortDescription(uiForm);
-	return GC.getInitCore().getCivShortDesc(getID(), uiForm);
+	return getCivilizationShortDescription();
 }
 
 
@@ -10586,49 +10605,63 @@ void CvPlayer::setTeam(TeamTypes eTeam)
 
 PlayerColorTypes CvPlayer::getPlayerColor() const
 {
-	//return GC.getInitCore().getColor(getID());
+	return GC.getInitCore().getColor(getID());
+}
+
+/*	advc.058: New function; see getKnownCivDescription. (But this one here
+	is actually used.) */
+PlayerColorTypes CvPlayer::getKnownPlayerColor(TeamTypes eObserver) const
+{
+	// advc.058: Moved from getPlayerColor
 	// K-Mod. Conceal the player colour of unmet players.
-	if (!concealUnknownCivs() || GET_TEAM(GC.getGame().getActiveTeam()).isHasSeen(getTeam()))
-		return GC.getInitCore().getColor(getID());
-	else
+	if (concealUnknownCivs() &&
+		!GET_TEAM(eObserver == NO_TEAM ? GC.getGame().getActiveTeam() : eObserver).
+		isHasSeen(getTeam()))
+	{
 		return GC.getInitCore().getColor(BARBARIAN_PLAYER);
-	// K-Mod end
+	} // K-Mod end
+	return getPlayerColor();
+}
+
+// advc.058: Better conceal colors when the EXE asks (as K-Mod did too)
+PlayerColorTypes CvPlayer::getPlayerColorExternal() const
+{
+	return getKnownPlayerColor();
 }
 
 
 int CvPlayer::getPlayerTextColorR() const
-{
-	FAssertMsg(getPlayerColor() != NO_PLAYERCOLOR, "getPlayerColor() is not expected to be equal with NO_PLAYERCOLOR");
-	return ((int)(GC.getInfo((ColorTypes) GC.getInfo(getPlayerColor()).getTextColorType()).getColor().r * 255));
+{	// advc: Round to nearest; also in the other getPlayerTextColor functions.
+	return ::round(GC.getInfo(GC.getInfo(getPlayerColor()).getTextColorType()).
+			getColor().r * 255);
 }
 
 
 int CvPlayer::getPlayerTextColorG() const
 {
-	FAssertMsg(getPlayerColor() != NO_PLAYERCOLOR, "getPlayerColor() is not expected to be equal with NO_PLAYERCOLOR");
-	return ((int)(GC.getInfo((ColorTypes) GC.getInfo(getPlayerColor()).getTextColorType()).getColor().g * 255));
+	return ::round(GC.getInfo(GC.getInfo(getPlayerColor()).getTextColorType()).
+			getColor().g * 255);
 }
 
 
 int CvPlayer::getPlayerTextColorB() const
 {
-	FAssertMsg(getPlayerColor() != NO_PLAYERCOLOR, "getPlayerColor() is not expected to be equal with NO_PLAYERCOLOR");
-	return ((int)(GC.getInfo((ColorTypes) GC.getInfo(getPlayerColor()).getTextColorType()).getColor().b * 255));
+	return ::round(GC.getInfo(GC.getInfo(getPlayerColor()).getTextColorType()).
+			getColor().b * 255);
 }
 
 
 int CvPlayer::getPlayerTextColorA() const
 {
-	FAssertMsg(getPlayerColor() != NO_PLAYERCOLOR, "getPlayerColor() is not expected to be equal with NO_PLAYERCOLOR");
-	return ((int)(GC.getInfo((ColorTypes) GC.getInfo(getPlayerColor()).getTextColorType()).getColor().a * 255));
+	return ::round(GC.getInfo(GC.getInfo(getPlayerColor()).getTextColorType()).
+			getColor().a * 255);
 }
 
-// <advc.106>
+// advc.106:
 ColorTypes CvPlayer::getPlayerTextColor() const
 {
-	// Don't call getPlayerColor -- that function conceals the colors of unmet civs.
-	return (ColorTypes)GC.getInfo(GC.getInitCore().getColor(getID())).getTextColorType();
-} // </advc.106>
+	return GC.getInfo(getPlayerColor()).getTextColorType();
+} 
 
 
 int CvPlayer::getSeaPlotYield(YieldTypes eIndex) const
@@ -21690,8 +21723,10 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 					pUnit = kPlot.getBestDefender(NO_PLAYER);
 				if (pUnit != NULL)
 				{
-					PlayerColorTypes eUnitColor = GET_PLAYER(pUnit->getVisualOwner()).getPlayerColor();
-					const NiColorA& kColor = GC.getInfo((ColorTypes) GC.getInfo(eUnitColor).getColorTypePrimary()).getColor();
+					PlayerColorTypes eUnitColor = GET_PLAYER(pUnit->getVisualOwner()).
+							getPlayerColor();
+					const NiColorA& kColor = GC.getInfo(GC.getInfo(eUnitColor).
+							getColorTypePrimary()).getColor();
 
 					szBuffer.clear();
 					GAMETEXT.setPlotListHelp(szBuffer, kPlot, true, true,
@@ -21741,27 +21776,24 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 
 	if (fMaxPlotStrength > 0)
 	{
-		for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
+		for (PlayerIter<ALIVE> it; it.hasNext(); ++it)
 		{
-			if (GET_PLAYER((PlayerTypes)iPlayer).isAlive())
+			CvPlayer const& kUnitOwner = *it;
+			NiColorA const& kOwnerColor = GC.getInfo(GC.getInfo(
+					kUnitOwner.getPlayerColor()).getColorTypePrimary()).getColor();
+			for (int i = 0; i < kMap.numPlots(); i++)
 			{
-				PlayerColorTypes eCurPlayerColor = GET_PLAYER((PlayerTypes) iPlayer).getPlayerColor();
-				const NiColorA& kColor = GC.getInfo((ColorTypes) GC.getInfo(eCurPlayerColor).getColorTypePrimary()).getColor();
-
-				for (int iI = 0; iI < kMap.numPlots(); iI++)
+				CvPlot const& kPlot = kMap.getPlotByIndex(i);
+				if (kPlot.isVisible(getTeam(), true))
 				{
-					CvPlot const& kPlot = kMap.getPlotByIndex(iI);
-					if (kPlot.isVisible(getTeam(), true))
+					float fPlotStrength = aafPlayerPlotStrength[kUnitOwner.getID()][i];
+					if (fPlotStrength > 0)
 					{
-						float fPlotStrength = aafPlayerPlotStrength[iPlayer][iI];
-						if (fPlotStrength > 0)
+						float fAlpha = (fPlotStrength / fMaxPlotStrength * 0.75f + 0.25f) * 0.8f;
+						if (fAlpha > aColors[i].a)
 						{
-							float fAlpha = (fPlotStrength / fMaxPlotStrength * 0.75f + 0.25f) * 0.8f;
-							if (fAlpha > aColors[iI].a)
-							{
-								aColors[iI] = kColor;
-								aColors[iI].a = fAlpha;
-							}
+							aColors[i] = kOwnerColor;
+							aColors[i].a = fAlpha;
 						}
 					}
 				}
@@ -21836,8 +21868,8 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 			}
 			else
 			{
-				PlayerColorTypes eCurPlayerColor = GET_PLAYER(eOwner).getPlayerColor();
-				const NiColorA& kColor = GC.getInfo((ColorTypes)GC.getInfo(eCurPlayerColor).
+				PlayerColorTypes eCurPlayerColor = GET_PLAYER(eOwner).getKnownPlayerColor();
+				const NiColorA& kColor = GC.getInfo(GC.getInfo(eCurPlayerColor).
 						getColorTypePrimary()).getColor();
 				kData.m_kColor.r = kColor.r;
 				kData.m_kColor.g = kColor.g;
@@ -22016,9 +22048,8 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 			int iCurOwnerIdx = i % plot_owners.size();
 			PlayerTypes eCurOwnerID = (PlayerTypes) plot_owners[iCurOwnerIdx].second;
 			int iCurCulture = plot_owners[iCurOwnerIdx].first;
-			const NiColorA& kCurColor = GC.getInfo((ColorTypes)
-					GC.getInfo(GET_PLAYER(eCurOwnerID).getPlayerColor()).
-					getColorTypePrimary()).getColor();
+			const NiColorA& kCurColor = GC.getInfo(GC.getInfo(GET_PLAYER(eCurOwnerID).
+					getKnownPlayerColor()).getColorTypePrimary()).getColor();
 			// damp the color by the value...
 			aColors[iI * iColorsPerPlot + i] = kCurColor;
 			/*  <advc.004z> Don't give away info about fogged tiles.

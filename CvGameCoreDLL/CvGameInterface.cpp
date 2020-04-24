@@ -46,28 +46,26 @@ void CvGame::updateColoredPlots()
 	// </advc.004h>
 
 	// advc: (also removed unnecessary NULL checks after m.plotByIndex calls)
-	CvMap const& m = GC.getMap();
-	int iPlots = m.numPlots();
+	CvMap const& kMap = GC.getMap();
+	int const iPlots = kMap.numPlots();
 	// BETTER_BTS_AI_MOD, Debug, 06/25/09, jdog5000: START
 	if(kUI.isShowYields()) // advc.007
 	{
 		// City circles for debugging
 		if (isDebugMode())
 		{
-			for (int iPlotLoop = 0; iPlotLoop < iPlots; iPlotLoop++)
+			for (int i = 0; i < iPlots; i++)
 			{
-				CvPlot& kPlot = m.getPlotByIndex(iPlotLoop);
-				for(int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+				CvPlot& kPlot = kMap.getPlotByIndex(i);
+				for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 				{
-					if (GET_PLAYER((PlayerTypes)iI).isAlive())
+					CvPlayerAI const& kPlayer = *it;
+					if (kPlayer.AI_isPlotCitySite(kPlot))
 					{
-						if (GET_PLAYER((PlayerTypes)iI).AI_isPlotCitySite(kPlot))
-						{
-							kEngine.addColoredPlot(kPlot.getX(), kPlot.getY(),
-									GC.getInfo((ColorTypes)GC.getInfo(
-									GET_PLAYER((PlayerTypes)iI).getPlayerColor()).getColorTypePrimary()).getColor(),
-									PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
-						}
+						kEngine.addColoredPlot(kPlot.getX(), kPlot.getY(),
+								GC.getInfo(GC.getInfo(kPlayer.getPlayerColor()).
+								getColorTypePrimary()).getColor(),
+								PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 					}
 				}
 			}
@@ -76,9 +74,9 @@ void CvGame::updateColoredPlots()
 		// Plot improvement replacement circles for debugging
 		if (isDebugMode())
 		{
-			for (int iPlotLoop = 0; iPlotLoop < iPlots; iPlotLoop++)
+			for (int i = 0; i < iPlots; i++)
 			{
-				CvPlot& kPlot = m.getPlotByIndex(iPlotLoop);
+				CvPlot& kPlot = kMap.getPlotByIndex(i);
 				CvCityAI const* pWorkingCity = kPlot.AI_getWorkingCity();
 				ImprovementTypes eImprovement = kPlot.getImprovementType();
 				if (pWorkingCity != NULL && eImprovement != NO_IMPROVEMENT)
@@ -92,8 +90,8 @@ void CvGame::updateColoredPlots()
 							eImprovement != GC.getInfo(eBestBuild).getImprovement())
 						{
 							kEngine.addColoredPlot(kPlot.getX(), kPlot.getY(),
-									GC.getInfo(GC.getColorType("RED")).
-									getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
+									GC.getInfo(GC.getColorType("RED")).getColor(),
+									PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 						}
 					}
 				}
@@ -107,7 +105,7 @@ void CvGame::updateColoredPlots()
 	{
 		for (int iPlotLoop = 0; iPlotLoop < iPlots; iPlotLoop++)
 		{
-			CvPlot& kPlot = m.getPlotByIndex(iPlotLoop);
+			CvPlot& kPlot = kMap.getPlotByIndex(iPlotLoop);
 			if (GET_PLAYER(getActivePlayer()).getAdvancedStartCityCost(true, &kPlot) > 0)
 			{
 				bool bStartingPlot = false;
@@ -147,7 +145,7 @@ void CvGame::updateColoredPlots()
 		}
 	}
 
-	CvCity* pHeadSelectedCity = kUI.getHeadSelectedCity();
+	CvCity const* pHeadSelectedCity = kUI.getHeadSelectedCity();
 	if (pHeadSelectedCity != NULL)
 	{
 		if (kUI.isCityScreenUp())
@@ -190,7 +188,7 @@ void CvGame::updateColoredPlots()
 		{
 			for (int iI = 0; iI < iPlots; iI++)
 			{
-				CvPlot& kPlot = m.getPlotByIndex(iI);
+				CvPlot& kPlot = kMap.getPlotByIndex(iI);
 				if (kPlot.getOwner() == pHeadSelectedUnit->getOwner())
 				{
 					if (kPlot.getWorkingCity() != NULL)
@@ -324,30 +322,25 @@ void CvGame::updateColoredPlots()
 	}
 	if (pHeadSelectedUnit->isBlockading())
 	{
-		for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
+		for (MemberIter it(getActiveTeam()); it.hasNext(); ++it)
 		{
-			CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-			if(kPlayer.getTeam() != getActiveTeam())
-				continue; // advc
-			FOR_EACH_UNIT(pLoopUnit, kPlayer)
+			CvPlayer& kMember = *it;
+			FOR_EACH_UNIT(pLoopUnit, kMember)
 			{
-				if (pLoopUnit->isBlockading())
-				{ /*  <advc.033> Replacing code that was (mostly) equivalent
-					  to CvUnit::updatePlunder */
-					std::vector<CvPlot*> apRange;
-					pLoopUnit->blockadeRange(apRange);
-					for(size_t j = 0; j < apRange.size(); j++) // </advc.033>
-					{
-						NiColorA color(GC.getInfo((ColorTypes)GC.getInfo(
-								GET_PLAYER(getActivePlayer()).getPlayerColor()).
-								getColorTypePrimary()).getColor());
-						color.a = 0.5f;
-						kEngine.fillAreaBorderPlot(
-								apRange[j]->getX(),
-								apRange[j]->getY(), color,
-								AREA_BORDER_LAYER_BLOCKADING);
-					}
-
+				if (!pLoopUnit->isBlockading())
+					continue; // advc
+				/*  <advc.033> Replacing code that was (mostly) equivalent
+					to CvUnit::updatePlunder */
+				std::vector<CvPlot*> apRange;
+				pLoopUnit->blockadeRange(apRange);
+				for(size_t j = 0; j < apRange.size(); j++) // </advc.033>
+				{
+					NiColorA color(GC.getInfo(GC.getInfo(
+							/*GET_PLAYER(getActivePlayer())*/kMember. // advc.004
+							getPlayerColor()).getColorTypePrimary()).getColor());
+					color.a = 0.5f;
+					kEngine.fillAreaBorderPlot(apRange[j]->getX(), apRange[j]->getY(),
+							color, AREA_BORDER_LAYER_BLOCKADING);
 				}
 			}
 		}

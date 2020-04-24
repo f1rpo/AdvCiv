@@ -11544,8 +11544,8 @@ void CvCity::getCityBillboardSizeIconColors(NiColorA& kDotColor, NiColorA& kText
 		/*  advc.001: CvPlayer::getPlayerColor will return the Barbarian color
 			if the city owner hasn't been met (city revealed through map trade) */
 			GC.getInitCore().getColor(getOwner());
-	NiColorA kPlayerColor = GC.getInfo((ColorTypes)GC.getInfo(
-			ePlayerColor).getColorTypePrimary()).getColor();
+	NiColorA kPlayerColor = GC.getInfo(GC.getInfo(ePlayerColor).
+			getColorTypePrimary()).getColor();
 	NiColorA kGrowing;
 	kGrowing = NiColorA(0.73f, 1,0.73f, 1);
 	NiColorA kShrinking(1, 0.73f, 0.73f, 1);
@@ -11583,7 +11583,7 @@ void CvCity::getCityBillboardSizeIconColors(NiColorA& kDotColor, NiColorA& kText
 	else
 	{
 		kDotColor = kPlayerColor;
-		NiColorA kPlayerSecondaryColor = GC.getInfo((ColorTypes)
+		NiColorA kPlayerSecondaryColor = GC.getInfo(
 				GC.getInfo(ePlayerColor). // advc.001
 				getColorTypeSecondary()).getColor();
 		kTextColor = kPlayerSecondaryColor;

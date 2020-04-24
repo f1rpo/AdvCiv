@@ -766,8 +766,7 @@ class CvVictoryScreen:
 			activeCiv = gc.getGame().getActivePlayer()
 			s = "?"
 			if currentTurn >= startTurn and chapterCiv >= 0:
-			# (getCivShortDescForced was added by advc.007)
-				s = gc.getPlayer(chapterCiv).getCivShortDescForced()
+				s = gc.getPlayer(chapterCiv).getCivilizationShortDescription(0)
 				if ongoing and not extChapter:
 					s = self.highlight(s)
 			screen.setTableText(szTable, 1, iRow, s, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)

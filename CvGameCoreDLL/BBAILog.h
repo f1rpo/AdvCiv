@@ -5,10 +5,7 @@
 
 // AI decision making logging
 
-/*  advc.mak: Uncomment to enable BBAI logging. NB: Should use this mostly in
-	Debug mode b/c of K-Mod's CvPlayer::concealUnknownCivs. (Tbd.: Should
-	replace CvPlayer::getName and getCivilization{Short}Description calls
-	in logBBAI arguments with CvPlayer::debugName, debugCivDescr. */
+// advc.mak: Uncomment to enable BBAI logging
 //#define LOG_AI
 // Log levels:
 // 0 - None

@@ -126,29 +126,16 @@ public:
 	// </advc.inl>
 	DllExport void updateHuman();
 
-	/*  K-Mod note: I've changed getName, getCivilizationDescription,
-		and getCivilizationShortDescription to only give accurate information
-		if the active player has met this player.
-		The "key" versions of those functions are unchanged. This is important
-		because getNameKey and so on are used to create messages for the replay. */
-	DllExport wchar const* getName(uint uiForm = 0) const																											// Exposed to Python
-	{	// <advc.007> debugName function for logging
-		return getName(false, uiForm);
-	}
-	wchar const* getName(bool bForceReveal, uint uiForm) const;
-	wchar const* debugName() const { return getName(true, 0); } // </advc.007>
+	DllExport wchar const* getName(uint uiForm = 0) const;																											// Exposed to Python
+	wchar const* getKnownName(TeamTypes eObserver = NO_TEAM) const; // advc.058
 	// K-Mod. Player name to be used in replay
 	wchar const* getReplayName(uint uiForm = 0) const;
 	DllExport wchar const* getNameKey() const;																																	// Exposed to Python
 	DllExport wchar const* getCivilizationDescription(uint uiForm = 0) const;																		// Exposed to Python
+	wchar const* getKnownCivDescription(TeamTypes eObserver = NO_TEAM) const; // advc.058
 	wchar const* getCivilizationDescriptionKey() const;																								// Exposed to Python
-	wchar const* getCivilizationShortDescription(uint uiForm = 0) const															// Exposed to Python
-	{	// <advc.007> debugCivDescr function for logging
-		return getCivilizationShortDescription(false, uiForm);
-	}
-	wchar const* getCivilizationShortDescription(bool bForceReveal, uint uiForm) const;
-	wchar const* debugCivDescr() const { return getCivilizationShortDescription(true, 0); }
-	// </advc.007>
+	wchar const* getCivilizationShortDescription(uint uiForm = 0) const;															// Exposed to Python
+	wchar const* getKnownCivShortDescription(TeamTypes eObserver = NO_TEAM) const; // advc.058
 	wchar const* getCivilizationShortDescriptionKey() const;																					// Exposed to Python
 	wchar const* getCivilizationAdjective(uint uiForm = 0) const;																			// Exposed to Python
 	wchar const* getCivilizationAdjectiveKey() const;																									// Exposed to Python
@@ -825,7 +812,9 @@ public:
 	void setTeam(TeamTypes eTeam);
 	void updateTeamType();
 
-	DllExport PlayerColorTypes getPlayerColor() const;																								// Exposed to Python
+	PlayerColorTypes getPlayerColor() const;																							// Exposed to Python
+	PlayerColorTypes getPlayerColorExternal() const; // advc.058 (exported through .def file)
+	PlayerColorTypes getKnownPlayerColor(TeamTypes eObserver = NO_TEAM) const; // advc.058
 	DllExport int getPlayerTextColorR() const;																												// Exposed to Python
 	DllExport int getPlayerTextColorG() const;																												// Exposed to Python
 	DllExport int getPlayerTextColorB() const;																												// Exposed to Python

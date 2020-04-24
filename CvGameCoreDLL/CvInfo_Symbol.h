@@ -102,16 +102,19 @@ class CvPlayerColorInfo : public CvInfoBase
 public: // The const functions are exposed to Python
 	CvPlayerColorInfo();
 
-	DllExport int getColorTypePrimary() const;
-	DllExport int getColorTypeSecondary() const;
-	int getTextColorType() const;
+	// Types changed from int to ColorTypes
+	int getColorTypePrimaryExternal() const; // (exported through .def file)
+	int getColorTypeSecondaryExternal() const; // (exported through .def file)
+	ColorTypes getColorTypePrimary() const;
+	ColorTypes getColorTypeSecondary() const;
+	ColorTypes getTextColorType() const;
 
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:
-	int m_iColorTypePrimary;
-	int m_iColorTypeSecondary;
-	int m_iTextColorType;
+	ColorTypes m_eColorTypePrimary;
+	ColorTypes m_eColorTypeSecondary;
+	ColorTypes m_eTextColorType;
 };
 
 #endif

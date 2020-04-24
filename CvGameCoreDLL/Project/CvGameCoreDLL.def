@@ -23,3 +23,6 @@ EXPORTS
 ?isPromotionReady@CvUnit@@QBE_NXZ=?isPromotionReadyExternal@CvUnit@@QBE_NXZ
 ?getUnit@@YAPAVCvUnit@@UIDInfo@@@Z=?getUnitExternal@@YAPAVCvUnit@@UIDInfo@@@Z
 ?getCity@@YAPAVCvCity@@UIDInfo@@@Z=?getCityExternal@@YAPAVCvCity@@UIDInfo@@@Z
+?getColorTypePrimary@CvPlayerColorInfo@@QBEHXZ=?getColorTypePrimaryExternal@CvPlayerColorInfo@@QBEHXZ
+?getColorTypeSecondary@CvPlayerColorInfo@@QBEHXZ=?getColorTypeSecondaryExternal@CvPlayerColorInfo@@QBEHXZ
+?getPlayerColor@CvPlayer@@QBE?AW4PlayerColorTypes@@XZ=?getPlayerColorExternal@CvPlayer@@QBE?AW4PlayerColorTypes@@XZ

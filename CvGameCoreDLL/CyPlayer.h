@@ -53,7 +53,6 @@ public:
 	std::wstring getCivilizationDescription(int iForm);
 	std::wstring getCivilizationDescriptionKey();
 	std::wstring getCivilizationShortDescription(int iForm);
-	std::wstring getCivShortDescForced(); // advc.007
 	std::wstring getCivilizationShortDescriptionKey();
 	std::wstring getCivilizationAdjective(int iForm);
 	std::wstring getCivilizationAdjectiveKey();

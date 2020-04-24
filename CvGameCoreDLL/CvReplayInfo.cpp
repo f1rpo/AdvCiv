@@ -170,10 +170,9 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 
 			PlayerInfo playerInfo;
 			playerInfo.m_eLeader = player.getLeaderType();
-			playerInfo.m_eColor = (ColorTypes)GC.getInfo(
-					//player.getPlayerColor()).getColorTypePrimary();
-					// K-Mod. (bypass the conceal colour check.)
-					GC.getInitCore().getColor((PlayerTypes)iPlayer)).getColorTypePrimary();
+			playerInfo.m_eColor = GC.getInfo(player.getPlayerColor()).getColorTypePrimary();
+					// K-Mod. (bypass the conceal colour check.) // advc.007: Not needed anymore
+					//GC.getInitCore().getColor((PlayerTypes)iPlayer)).getColorTypePrimary();
 			for (int iTurn = m_iInitialTurn; iTurn <= m_iFinalTurn; iTurn++)
 			{
 				TurnData score;

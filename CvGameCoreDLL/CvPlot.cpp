@@ -7056,15 +7056,15 @@ ColorTypes CvPlot::plotMinimapColor()
 			CvUnit* pCenterUnit = getDebugCenterUnit();
 			if (pCenterUnit != NULL)
 			{
-				return (ColorTypes)GC.getInfo(GET_PLAYER(pCenterUnit->
-						getVisualOwner()).getPlayerColor()).getColorTypePrimary();
+				return GC.getInfo(GET_PLAYER(pCenterUnit->getVisualOwner()).
+						getKnownPlayerColor()).getColorTypePrimary();
 			}
 		}
 		// dlph.21: Removed !isRevealedBarbarian() clause
 		if (getRevealedOwner(eActiveTeam, true) != NO_PLAYER)
 		{
-			return (ColorTypes)GC.getInfo(GET_PLAYER(getRevealedOwner(
-					eActiveTeam, true)).getPlayerColor()).getColorTypePrimary();
+			return GC.getInfo(GET_PLAYER(getRevealedOwner(eActiveTeam, true)).
+					getKnownPlayerColor()).getColorTypePrimary();
 		}
 	}
 
@@ -8311,7 +8311,7 @@ bool CvPlot::isConnectSea() const
 	   to do, but shortening paths within a water area can also be valuable. */
 } // </advc.121>
 
-/*  <advc.031c> For found value log; but could also find other uses, possibly through
+/*  advc.031c: For found value log; but could also find other uses, possibly through
 	optional call parameters. */
 wchar const* CvPlot::debugStr() const
 {
@@ -8338,6 +8338,6 @@ wchar const* CvPlot::debugStr() const
 	if (isFeature())
 		out << L" " << GC.getInfo(getFeatureType()).getDescription();
 	if (isOwned())
-		out << L" (" << GET_PLAYER(getOwner()).debugCivDescr() << L")";
+		out << L" (" << GET_PLAYER(getOwner()).getCivilizationShortDescription() << L")";
 	return out.str().c_str();
-} // </advc.031c>
+}

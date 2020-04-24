@@ -1898,7 +1898,7 @@ void CvUnit::updateFoundingBorder(bool bForceClear) const
 	{
 		return;
 	}
-	ColorTypes eColor = (ColorTypes)GC.getInfo(GET_PLAYER(getOwner()).
+	ColorTypes eColor = GC.getInfo(GET_PLAYER(getOwner()).
 			getPlayerColor()).getColorTypePrimary();
 	NiColorA const& color = GC.getInfo(eColor).getColor();
 	for(int i = 0; i < GC.getMap().numPlots(); i++)
