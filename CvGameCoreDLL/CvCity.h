@@ -738,7 +738,11 @@ public:
 	int getPopulationTradeModifier() const;
 	int getPeaceTradeModifier(TeamTypes eTeam) const;
 	int getBaseTradeProfit(CvCity const* pCity) const;
-	int calculateTradeProfit(CvCity const* pCity) const;															// Exposed to Python
+	int calculateTradeProfit(CvCity const* pCity) const																// Exposed to Python
+	{
+		return calculateTradeProfitTimes100(pCity) / 100;
+	}
+	int calculateTradeProfitTimes100(CvCity const* pCity) const; // advc.004
 	int calculateTradeYield(YieldTypes eIndex, int iTradeProfit) const;												// Exposed to Python
 	// BULL - Trade Hover - start
 	void calculateTradeTotals(YieldTypes eIndex, int& iDomesticYield, int& iDomesticRoutes,
