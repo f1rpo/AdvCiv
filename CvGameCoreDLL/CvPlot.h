@@ -174,9 +174,10 @@ public:
 			// advc: const qualifier added to these two
 	bool isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb = true) const;
 	bool isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer = NO_PLAYER) const;
-	int calculatePathDistanceToPlot(TeamTypes eTeam, // <advc.104b>
-			CvPlot const& kTargetPlot, TeamTypes eTargetTeam = NO_TEAM,
-			DomainTypes eDomain = NO_DOMAIN, int iMaxPath = -1) const; // </advc.104b>
+	int calculatePathDistanceToPlot(TeamTypes eTeam,  // <advc.104b>
+			CvPlot const& kTargetPlot, int iMaxPath = -1,
+			TeamTypes eTargetTeam = BARBARIAN_TEAM,
+			DomainTypes eDomain = DOMAIN_LAND) const; // </advc.104b>
 	// BETTER_BTS_AI_MOD: END
 	// BETTER_BTS_AI_MOD, Efficiency, 08/21/09, jdog5000: START
 	// Plot danger cache (rewritten for K-Mod to fix bugs and improvement performance)

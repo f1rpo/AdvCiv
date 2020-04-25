@@ -1355,8 +1355,11 @@ void CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 			it.hasNext(); ++it)
 		{
 			CvPlot& kLoopPlot = *it;
-			if (kLoopPlot.sameArea(*pStartingPlot) && !kLoopPlot.isGoody() &&
-				!kLoopPlot.isImpassable() && !kLoopPlot.isUnit())
+			if (!kLoopPlot.isGoody() &&
+				!kLoopPlot.isImpassable() && !kLoopPlot.isUnit() &&
+				kLoopPlot.sameArea(*pStartingPlot) &&
+				// advc.108: Don't place the unit across a large bay
+				kLoopPlot.calculatePathDistanceToPlot(getTeam(), *pStartingPlot, 3) <= 3)
 			{
 				pBestPlot = &kLoopPlot;
 				break;
@@ -17076,9 +17079,9 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit,
 		/*if(kObs.getID() == kGPOwner.getID())
 			eMsgType = MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY;*/ // </advc.106b>
 		gDLL->UI().addMessage(kObs.getID(), false, -1, szMessage, "AS2D_UNIT_GREATPEOPLE",
-				eMsgType, pGreatPeopleUnit->getButton(),
+				eMsgType, pGreatPeopleUnit->getButton(),  // <advc.106>
 				//(ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"),
-				NO_COLOR, // <advc.106> Colored through XML now
+				NO_COLOR, // Colored through XML now
 				// Indicate location only if revealed.
 				bRev ? iX : -1, bRev ? iY : -1, bRev, bRev);
 	} // </advc.106>

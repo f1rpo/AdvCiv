@@ -2500,7 +2500,7 @@ bool CvPlot::isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer
 	b/c it didn't seem to work at all until I changed the GetLastNode call
 	at the end. */
 int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot const& kTargetPlot,
-	TeamTypes eTargetTeam, DomainTypes eDomain, int iMaxPath) const // advc.104b
+	int iMaxPath, TeamTypes eTargetTeam, DomainTypes eDomain) const // advc.104b
 {
 	PROFILE_FUNC(); // advc: The time is mostly spent in teamStepValid_advc
 	FAssert(eTeam != NO_TEAM);
@@ -2510,19 +2510,15 @@ int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot const& kTargetPl
 		at any rate.) */
 	/*if (pTargetPlot->area() != area())
 		return false;*/
+	FAssert(eDomain != NO_DOMAIN);
 
 	// Imitate instatiation of irrigated finder, pIrrigatedFinder
 	// Can't mimic step finder initialization because it requires creation from the exe
 	/*  <advc.104b> vector type changed to int[]; dom, eTargetTeam (instead of
 		NO_TEAM), iMaxPath and target coordinates added. */
-	int aStepData[6] = {0};
-	aStepData[0] = eTeam;
-	aStepData[1] = eTargetTeam;
-	FAssert(eDomain != NO_DOMAIN); // (or could treat it as DOMAIN_LAND)
-	aStepData[2] = eDomain;
-	aStepData[3] = kTargetPlot.getX();
-	aStepData[4] = kTargetPlot.getY();
-	aStepData[5] = iMaxPath; // </advc.104b>
+	int aStepData[] = {
+		eTeam, eTargetTeam, eDomain, kTargetPlot.getX(), kTargetPlot.getY(), iMaxPath
+	}; // </advc.104b>
 	FAStar* pStepFinder = gDLL->getFAStarIFace()->create();
 	gDLL->getFAStarIFace()->Initialize(pStepFinder,
 			GC.getMap().getGridWidth(),

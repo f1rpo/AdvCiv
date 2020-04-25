@@ -4549,8 +4549,8 @@ void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra, /* advc.033: */ 
 				/*  <advc.033> Faster (iMaxPath), but probably doesn't fix the
 					issue described below b/c still uses FAStar. */
 				getPlot().calculatePathDistanceToPlot(BARBARIAN_TEAM, kLoopPlot,
-				BARBARIAN_TEAM, bImpassables ? DOMAIN_IMMOBILE : getDomainType(),
-				iRange + iExtra); // </advc.033>
+				iRange + iExtra, BARBARIAN_TEAM, bImpassables ?
+				DOMAIN_IMMOBILE : getDomainType()); // </advc.033>
 		// BBAI NOTES (jdog5000, 06/01/09):
 		// There are rare issues where the path finder will return incorrect results
 		// for unknown reasons.  Seems to find a suboptimal path sometimes in partially repeatable
