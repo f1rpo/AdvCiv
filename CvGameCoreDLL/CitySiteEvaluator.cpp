@@ -597,7 +597,7 @@ short AIFoundValue::evaluate()
 		{
 			int iEffectiveFood = aiNatureYield[YIELD_FOOD];
 			// K-Mod: lighthouse kludge
-			if (bCoastal && bEasyAccess &&p.isWater() &&
+			if (bCoastal && bEasyAccess && p.isWater() &&
 				aiNatureYield[YIELD_COMMERCE] > 1)
 			{
 				iEffectiveFood++;
@@ -609,7 +609,11 @@ short AIFoundValue::evaluate()
 			if (eBonus != NO_BONUS)
 			{
 				if (!bCanSoonImproveBonus)
-					iSpecialYieldModifier = (iSpecialYieldModifier * 3) / 10;
+				{
+					iSpecialYieldModifier = (iSpecialYieldModifier *
+							// Don't want to discount e.g. Wine too much near capital
+							(kSet.isStartingLoc() ? 4 : 3)) / 10;
+				}
 				else if (!bCanImproveBonus)
 					iSpecialYieldModifier = (iSpecialYieldModifier * 3) / 4;
 			} // </advc.031>
@@ -973,9 +977,10 @@ bool AIFoundValue::isTooManyBadTiles(int iBadTiles) const
 	if (kSet.isStartingLoc())
 		return false;
 	if (2 * iBadTiles <= NUM_CITY_PLOTS && kArea.getNumTiles() > 2 &&
-			(!bBarbarian || iBadTiles <= 3)) // advc.303
+		(!bBarbarian || iBadTiles <= 3)) // advc.303
+	{
 		return false;
-
+	}
 	bool bHasGoodBonus = false;
 	int iMediocreBonuses = 0; // advc.031
 	int iFreshWaterTiles = (kPlot.isFreshWater() ? 1 : 0); // advc.031 (count kPlot twice)
@@ -2050,7 +2055,7 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, double productionModi
 		IFLOG logBBAI("+%d for coastal (Barbarian)", r);
 		return r;
 	} // </advc.303>
-	//if (!kSet.isStartingLoc())
+	//if (kSet.isStartingLoc())
 	if (/* advc.108: */ iCities <= 0)
 	{
 		// BtS: "let other penalties bring this down."
@@ -2075,7 +2080,7 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, double productionModi
 			r += 250;
 			IFLOG logBBAI("+%d for promising first colony", r);
 		}
-		return 60; // advc.031: For trade routes, ability to produce ships
+		return r + 60; // advc.031: For trade routes, ability to produce ships
 	}
 	/*  BETTER_BTS_AI_MOD, Settler AI, 02/03/09, jdog5000: START
 		(edited by K-Mod) */
@@ -2084,7 +2089,7 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, double productionModi
 	if (pWaterArea != NULL)
 	{
 		//120 + (kSet.isSeafaring() ? 160 : 0);
-		r += (kSet.isSeafaring() ? 140 : 80); // advc.031
+		r += (kSet.isSeafaring() ? 150 : 100); // advc.031
 		if (kTeam.AI_isWaterAreaRelevant(*pWaterArea) &&
 			/*  advc.031: Don't worry about coastal production if we
 				already have many coastal cities. */
