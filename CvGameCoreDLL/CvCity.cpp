@@ -10393,7 +10393,16 @@ bool CvCity::doCheckProduction()  // advc: some style changes
 		chooseProduction();
 		return true;
 	}
+	// <advc.064d> Moved into new functions
+	upgradeProduction(); 
+	return checkCanContinueProduction(false); // </advc.064d>
+}
 
+// advc.064d: Cut from doCheckProduction
+void CvCity::upgradeProduction()
+{
+	CvPlayerAI& kOwner = GET_PLAYER(getOwner());
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
 		UnitTypes eUnit = kCiv.unitAt(i);
@@ -10433,12 +10442,10 @@ bool CvCity::doCheckProduction()  // advc: some style changes
 			pOrderNode = nextOrderQueueNode(pOrderNode);
 		}
 	}
-
-	return checkCanContinueProduction();
 }
 
 // advc.064d: Cut from doCheckProduction
-bool CvCity::checkCanContinueProduction()
+bool CvCity::checkCanContinueProduction(bool bCheckUpgrade)
 {
 	bool r = true;
 	for (int i = getOrderQueueLength() - 1; i >= 0; i--)
@@ -10446,6 +10453,11 @@ bool CvCity::checkCanContinueProduction()
 		OrderData* pOrder = getOrderFromQueue(i);
 		if (pOrder != NULL && !canContinueProduction(*pOrder))
 		{
+			if (bCheckUpgrade)
+			{
+				upgradeProduction();
+				return checkCanContinueProduction(false);
+			}
 			popOrder(i, false, true);
 			r = false;
 		}

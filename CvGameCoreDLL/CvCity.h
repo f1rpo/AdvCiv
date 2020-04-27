@@ -1471,7 +1471,8 @@ protected:
 	void doGrowth();
 	void doCulture();
 	bool doCheckProduction();
-	bool checkCanContinueProduction(); // advc.064d
+	void upgradeProduction(); // advc.064d
+	bool checkCanContinueProduction(bool bCheckUpgrade = true); // advc.064d
 	void doProduction(bool bAllowNoProduction);
 	void doDecay();
 	void doReligion();
