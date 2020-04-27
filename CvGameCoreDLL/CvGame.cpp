@@ -1415,10 +1415,13 @@ void CvGame::normalizeAddRiver()  // advc: style changes
 			//CvMapGenerator::GetInstance().doRiver(pStartingPlot);
 			// K-Mod. If we can have a lake then we don't always need a river.
 			// Also, the river shouldn't always start on the SE corner of our site.
-			if (getSorenRandNum(10, "normalize add river") < (pStartingPlot->isCoastalLand() ? 5 : 7))
+			if (//getSorenRandNum(10, "normalize add river") < (pStartingPlot->isCoastalLand() ? 5 : 7))
+				/*	advc.108: 25% lake chance (but will also get a lake
+					when no river possible or a lake already happens to be present) */
+				fixp(0.75).bernoulliSuccess(GC.getGame().getSRand(), "normalize add river"))
 			{
 				CvPlot* pRiverPlot = pStartingPlot->getInlandCorner();
-				if (pRiverPlot)
+				if (pRiverPlot != NULL)
 					CvMapGenerator::GetInstance().doRiver(pRiverPlot);
 			} // K-Mod end.
 		} // otherwise, use new river code which is much more likely to succeed

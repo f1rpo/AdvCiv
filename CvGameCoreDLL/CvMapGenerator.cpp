@@ -405,6 +405,9 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 //creates fresh water on the passed plot. Quite useful really
 //Although I veto'd its use since I like that you don't always
 //get fresh water starts.
+/*	advc (note): This function isn't unused though. It's a fallback
+	in case that no lake can be placed. Though I'm not sure if can
+	succeed where CvGame::normalizeFindLakePlot fails. */
 // pFreshWaterPlot = the plot we want to give a fresh water river
 bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 {
