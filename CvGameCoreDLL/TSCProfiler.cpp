@@ -3,8 +3,6 @@
 
 // advc.003o: Adopted from "We the People"; see comment in header file.
 
-#include <sstream> // advc.003o: Will use this instead of fprintf
-
 static __declspec(naked)unsigned __int64 __cdecl RDTSC(void)
 {
 	__asm

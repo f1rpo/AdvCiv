@@ -17,7 +17,6 @@
 #include "CvPopupInfo.h"
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvDLLSymbolIFaceBase.h"
-#include <sstream> // advc.050
 
 
 // For displaying Asserts and error messages
@@ -16121,8 +16120,7 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 	bool bSHowHiddenAttitude = (GC.getDefineBOOL("SHOW_HIDDEN_ATTITUDE") || g.isDebugMode());
 	// <advc.004q>
 	bool bObscurePersonality = (g.isOption(GAMEOPTION_RANDOM_PERSONALITIES) && !g.isDebugMode());
-
-	// advc.004q: ATTITUDE_TOWARDS moved to the end of this function
+	// ATTITUDE_TOWARDS moved to the end of this function // </advc.004q>
 	// (K-Mod note: vassal information has been moved from here to a new function)
 
 	// Attitude breakdown ...

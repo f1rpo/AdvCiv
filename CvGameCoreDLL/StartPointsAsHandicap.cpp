@@ -5,8 +5,6 @@
 #include "CvGame.h"
 #include "CvPlayer.h"
 #include "CvMap.h"
-#include <cmath>
-#include <sstream>
 
 /*  advc (note): This was the first class added by AdvCiv and, apart from the
 	includes above, it hasn't been looked at for the past few years, so there are

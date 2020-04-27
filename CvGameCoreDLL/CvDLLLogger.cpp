@@ -9,7 +9,6 @@
 #include "CvMap.h"
 #include "CvArea.h"
 #include "CvInfo_Terrain.h"
-#include <sstream>
 // </advc.mapstat>
 
 CvDLLLogger::CvDLLLogger(bool bEnabled, bool bRandEnabled)

@@ -3,7 +3,6 @@
 #ifndef MILITARY_BRANCH_H
 #define MILITARY_BRANCH_H
 
-#include <sstream>
 
 /*  advc.104: New class hierarchy. Breaking military power values down into
 	branches such as Army and Fleet helps the AI analyze its military prospects. */

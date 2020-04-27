@@ -11,7 +11,6 @@
 #include "CvPlot.h"
 #include "CvArea.h"
 #include "CvInfo_Unit.h"
-#include <sstream>
 
 using std::ostringstream;
 using std::vector;

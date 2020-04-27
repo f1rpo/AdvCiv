@@ -4,7 +4,6 @@
 #include "UWAIReport.h"
 #include "CvGamePlay.h"
 #include "CvCity.h"
-#include <sstream>
 
 using std::ostringstream;
 using std::string;

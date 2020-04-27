@@ -31,11 +31,14 @@
 #include <list>
 #include <tchar.h>
 //#include <math.h>
-#include <cmath> // advc
-#include <assert.h>
+//#include <assert.h>
+// <advc>
+#include <cmath>
+#include <cassert>
+#include <iterator>
+#include <sstream> // </advc>
 #include <map>
 #include <hash_map>
-#include <iterator> // advc
 // K-Mod
 #include <set>
 #include <utility>
