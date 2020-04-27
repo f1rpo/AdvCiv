@@ -60,6 +60,7 @@ CvPlot::CvPlot() // advc: Merged with the deleted reset function
 	m_bNOfRiver = false;
 	m_bWOfRiver = false;
 	m_bIrrigated = false;
+	m_bImpassable = false; // advc.opt
 	m_bPotentialCityWork = false;
 	m_bShowCitySymbols = false;
 	m_bFlagDirty = false;
@@ -3255,6 +3256,11 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 	//if (!isOwned()) { // advc.124 (commented out)
 	if (!isRevealed(eTeam) || !kOther.isRevealed(eTeam))
 		return false;
+	// <advc.opt> Moved up
+	bool const bNetworkTerrain = isNetworkTerrain(eTeam);
+	bool const bOtherNetwork = kOther.isNetworkTerrain(eTeam);
+	if (bNetworkTerrain && bOtherNetwork)
+		return true; // </advc.opt>
 
 	if (isRoute() /* advc.124: */ && getRevealedRouteType(eTeam) != NO_ROUTE)
 	{
@@ -3265,29 +3271,12 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 		}
 	}
 
-	if (isCity(true, eTeam) && kOther.isNetworkTerrain(eTeam))
+	if (bOtherNetwork && isCity(true, eTeam))
 		return true;
 
-	/*	<advc.124> Case 1: This plot has a route and kOther has network terrain.
-		(Note: The isCityRadius check is just for performance.) */
-	if (isRoute() && isCityRadius() && getTeam() == eTeam &&
-		kOther.isNetworkTerrain(eTeam))
-	{
-		CvCity const* pWorkingCity = getWorkingCity();
-		if (pWorkingCity != NULL &&
-			pWorkingCity->getOwner() == getOwner() &&
-			!pWorkingCity->isArea(getArea()))
-		{
-			return true;
-		}
-	} // </advc.124>
-
-	if (isNetworkTerrain(eTeam))
+	if (bNetworkTerrain)
 	{
 		if (kOther.isCity(true, eTeam))
-			return true;
-
-		if (kOther.isNetworkTerrain(eTeam))
 			return true;
 
 		if (kOther.isRiverNetwork(eTeam))
@@ -3298,9 +3287,10 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 			if (kOther.isRiverConnection(directionXY(kOther, *this)))
 				return true;
 		}
-		// <advc.124> Case 2: kOther has a route and this plot has network terrain
-		if (kOther.isRoute() && kOther.isCityRadius() &&
-			kOther.getTeam() == eTeam)
+		/*	<advc.124> Case 1: kOther has a route and this plot has network terrain.
+			(Note: The isCityRadius check is just for performance.) */
+		if (kOther.isRoute() && kOther.getTeam() == eTeam &&
+			kOther.isCityRadius())
 		{
 			CvCity const* pWorkingCity = kOther.getWorkingCity();
 			if (pWorkingCity != NULL &&
@@ -3314,7 +3304,7 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 
 	if (isRiverNetwork(eTeam))
 	{
-		if (kOther.isNetworkTerrain(eTeam))
+		if (bOtherNetwork)
 		{
 			if (isRiverConnection(directionXY(*this, kOther)))
 				return true;
@@ -3327,6 +3317,18 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 				return true;
 		}
 	}
+
+	// <advc.124> Case 2: This plot has a route and kOther has network terrain
+	if (isRoute() && isCityRadius() && getTeam() == eTeam && bOtherNetwork)
+	{
+		CvCity const* pWorkingCity = getWorkingCity();
+		if (pWorkingCity != NULL &&
+			pWorkingCity->getOwner() == getOwner() &&
+			!pWorkingCity->isArea(getArea()))
+		{
+			return true;
+		}
+	} // </advc.124>
 
 	return false;
 }
@@ -3358,17 +3360,13 @@ bool CvPlot::isValidDomainForAction(const CvUnit& unit) const
 	}
 }
 
-
-bool CvPlot::isImpassable() const
+// advc.opt:
+void CvPlot::updateImpassable()
 {
-	//PROFILE_FUNC(); // advc.003o: Most of the calls come from pathfinding
-	// Tbd.: Cache this in a bool:1
-	if (isPeak())
-		return true;
-	return (!isFeature() ?
-			// advc.opt: Check NO_TERRAIN only if NO_FEATURE
+	m_bImpassable = (isPeak() || 
+			(!isFeature() ?
 			(getTerrainType() != NO_TERRAIN && GC.getInfo(getTerrainType()).isImpassable()) :
-			GC.getInfo(getFeatureType()).isImpassable());
+			GC.getInfo(getFeatureType()).isImpassable()));
 }
 
 
@@ -4247,6 +4245,7 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 
 		m_ePlotType = eNewValue;
 
+		updateImpassable(); // advc.opt
 		updateYield();
 		updatePlotGroup();
 
@@ -4444,6 +4443,7 @@ void CvPlot::setTerrainType(TerrainTypes eNewValue, bool bRecalculate, bool bReb
 
 	m_eTerrainType = eNewValue;
 
+	updateImpassable(); // advc.opt
 	updateYield();
 	updatePlotGroup();
 
@@ -4498,6 +4498,7 @@ void CvPlot::setFeatureType(FeatureTypes eNewValue, int iVariety)
 	m_eFeatureType = eNewValue;
 	m_iFeatureVariety = iVariety;
 
+	updateImpassable(); // advc.opt
 	updateYield();
 
 	if (bUpdateSight)
@@ -7135,6 +7136,12 @@ void CvPlot::read(FDataStreamBase* pStream)
 	pStream->Read(&bVal);
 	m_bIrrigated = bVal;
 	pStream->Read(&bVal);
+	// <advc.opt>
+	if (uiFlag >= 7)
+	{
+		pStream->Read(&bVal);
+		m_bImpassable = bVal;
+	} // </advc.opt>
 	m_bPotentialCityWork = bVal;
 	// m_bShowCitySymbols not saved
 	// m_bFlagDirty not saved
@@ -7161,7 +7168,9 @@ void CvPlot::read(FDataStreamBase* pStream)
 		pStream->Read(&m_ePlotType);
 		pStream->Read(&m_eTerrainType);
 		pStream->Read(&m_eFeatureType);
-	}
+	}  // <advc.opt>
+	if (uiFlag < 7)
+		updateImpassable(); // </advc.opt>
 	pStream->Read(&m_eBonusType);
 	FAssertBounds(NO_BONUS, GC.getNumBonusInfos(), m_eBonusType); // advc
 	// <advc.opt>
@@ -7292,6 +7301,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	uiFlag = 4; // advc.opt: m_bHills removed
 	uiFlag = 5; // advc.opt, advc.011, advc.enum: some int or short members turned into short or char
 	uiFlag = 6; // advc.opt: m_eTeam
+	uiFlag = 7; // advc.opt: m_bImpassable
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE(CvString::format("Plot pt1(%d,%d)", getX(), getY()).GetCString());
 	pStream->Write(m_iX);
@@ -7314,6 +7324,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	pStream->Write(m_bNOfRiver);
 	pStream->Write(m_bWOfRiver);
 	pStream->Write(m_bIrrigated);
+	pStream->Write(m_bImpassable); // advc.opt
 	pStream->Write(m_bPotentialCityWork);
 	// m_bShowCitySymbols not saved
 	// m_bFlagDirty not saved

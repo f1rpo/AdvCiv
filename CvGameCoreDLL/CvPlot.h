@@ -278,7 +278,7 @@ public:
 
 	bool isValidDomainForLocation(const CvUnit& unit) const;																					// Exposed to Python
 	bool isValidDomainForAction(const CvUnit& unit) const;																						// Exposed to Python
-	bool isImpassable() const;																															// Exposed to Python
+	inline bool isImpassable() const { return m_bImpassable; } // advc.opt: cached										// Exposed to Python
 
 	int getXExternal() const; // advc.inl: Exported through .def file																					// Exposed to Python
 	inline int getX() const { return m_iX; } // advc.inl: Renamed from getX_INLINE
@@ -584,14 +584,15 @@ public:
 
 	ImprovementTypes getRevealedImprovementType(TeamTypes eTeam, bool bDebug) const;					// Exposed to Python
 	// <advc.inl> Faster implementation for non-UI code
-	inline ImprovementTypes getRevealedImprovementType(TeamTypes eTeam) const
+	__forceinline ImprovementTypes getRevealedImprovementType(TeamTypes eTeam) const
 	{
 		return m_aeRevealedImprovementType.get(eTeam);
 	} // </advc.inl>
 	void setRevealedImprovementType(TeamTypes eTeam, ImprovementTypes eNewValue);
 	RouteTypes getRevealedRouteType(TeamTypes eTeam, bool bDebug) const;											// Exposed to Python
-	// <advc.inl> Faster implementation for non-UI code
-	inline RouteTypes getRevealedRouteType(TeamTypes eTeam) const
+	/*	<advc.inl> Faster implementation for non-UI code.
+		Compiler won't inline it unless I use force. Weird. */
+	__forceinline RouteTypes getRevealedRouteType(TeamTypes eTeam) const
 	{
 		return m_aeRevealedRouteType.get(eTeam);
 	} // </advc.inl>
@@ -746,6 +747,7 @@ protected:
 	bool m_bNOfRiver:1;
 	bool m_bWOfRiver:1;
 	bool m_bIrrigated:1;
+	bool m_bImpassable:1; // advc.opt
 	bool m_bPotentialCityWork:1;
 	bool m_bShowCitySymbols:1;
 	bool m_bFlagDirty:1;
@@ -823,9 +825,13 @@ protected:
 	void doImprovementUpgrade();
 	void doCultureDecay(); // advc.099b
 	ColorTypes plotMinimapColor();
+	void updateImpassable(); // advc.opt
 
 	// added so under cheat mode we can access protected stuff
 	friend class CvGameTextMgr;
 };
+
+// advc.opt: It's fine to change the size, but might want to double check if it can be avoided.
+BOOST_STATIC_ASSERT(sizeof(CvPlot) == 212);
 
 #endif
