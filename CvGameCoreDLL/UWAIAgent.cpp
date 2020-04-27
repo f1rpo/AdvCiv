@@ -1469,11 +1469,24 @@ DenialTypes UWAI::Team::makePeaceTrade(TeamTypes enemyId, TeamTypes brokerId) co
 		BtS allows it). */
 	if(GET_TEAM(brokerId).isAtWar(enemyId))
 		return DENIAL_JOKING;
-	if(!GET_PLAYER(GET_TEAM(agentId).getLeaderID()).canContact(
-			GET_TEAM(enemyId).getLeaderID(), true))
+	bool const bEnemyWillTalk = GET_PLAYER(GET_TEAM(agentId).getLeaderID()).
+			canContact(GET_TEAM(enemyId).getLeaderID(), true);
+	if(!bEnemyWillTalk && gDLL->isDiplomacy()) {
+		// Don't waste time with a more specific answer if human won't read it anyway
 		return DENIAL_RECENT_CANCEL;
+	}
 	int ourReluct = reluctanceToPeace(enemyId);
 	int enemyReluct = GET_TEAM(enemyId).uwai().reluctanceToPeace(agentId);
+	if(!bEnemyWillTalk) {
+		if (ourReluct <= 0 && enemyReluct > 0 && enemyReluct - ourReluct >= 15) {
+			/*	They'll refuse with "not right now", so it's a bit pointless to
+				"contact them", but if _we_ say "not right now" it'll be misleading
+				b/c we probably won't be able to make peace even once they become
+				willing to talk. */
+			return DENIAL_CONTACT_THEM;
+		}
+		return DENIAL_RECENT_CANCEL;
+	}
 	if(enemyReluct <= 0) {
 		if(ourReluct < 55)
 			return NO_DENIAL;
@@ -1484,7 +1497,7 @@ DenialTypes UWAI::Team::makePeaceTrade(TeamTypes enemyId, TeamTypes brokerId) co
 		will probably change soon. */
 	if(ourReluct > 0)
 		return DENIAL_RECENT_CANCEL;
-	else return DENIAL_CONTACT_THEM;
+	return DENIAL_CONTACT_THEM;
 }
 
 int UWAI::Team::makePeaceTradeVal(TeamTypes enemyId, TeamTypes brokerId) const {
