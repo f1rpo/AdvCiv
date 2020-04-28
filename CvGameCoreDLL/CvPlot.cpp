@@ -7135,13 +7135,13 @@ void CvPlot::read(FDataStreamBase* pStream)
 	m_bWOfRiver = bVal;
 	pStream->Read(&bVal);
 	m_bIrrigated = bVal;
-	pStream->Read(&bVal);
 	// <advc.opt>
 	if (uiFlag >= 7)
 	{
 		pStream->Read(&bVal);
 		m_bImpassable = bVal;
 	} // </advc.opt>
+	pStream->Read(&bVal);
 	m_bPotentialCityWork = bVal;
 	// m_bShowCitySymbols not saved
 	// m_bFlagDirty not saved
