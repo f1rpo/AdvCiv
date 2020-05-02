@@ -4722,15 +4722,11 @@ bool CvTeam::isFriendlyTerritory(TeamTypes eTerritoryOwner) const // advc: Param
 	return false;
 }
 
-// <advc.901>
-bool CvTeam::canAccessImprovement(CvPlot const& kPlot, ImprovementTypes eImprovement,
-	bool bHealth) const
+// advc.901:
+bool CvTeam::canAccessHappyHealth(CvPlot const& kPlot, int iHealthOrHappy) const
 {
-	int iHealthOrHappy = (bHealth ?
-			GC.getInfo(eImprovement).get(CvImprovementInfo::HealthPercent) :
-			GC.getInfo(eImprovement).getHappiness());
 	return (iHealthOrHappy <= 0 || !kPlot.isOwned() || canPeacefullyEnter(kPlot.getTeam()));
-} // </advc.901>
+}
 
 // advc: Moved from CvGameCoreUtils
 int CvTeam::getEspionageModifier(TeamTypes eTarget) const

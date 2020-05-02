@@ -5134,18 +5134,29 @@ void CvGameTextMgr::setPlotHealthHappyHelp(CvWStringBuffer& szBuffer, CvPlot con
 	int iHappy = 0;
 	FeatureTypes eFeature = kPlot.getFeatureType();
 	if (eFeature != NO_FEATURE)
-	{
-		iHealthPercent = GC.getInfo(eFeature).getHealthPercent();
-		iHappy = kActivePlayer.getFeatureHappiness(eFeature);
+	{	// <advc.901>
+		if (kActiveTeam.canAccessHappyHealth(kPlot,
+			GC.getInfo(eFeature).getHealthPercent())) // </advc.901>
+		{
+			iHealthPercent = GC.getInfo(eFeature).getHealthPercent();
+		}  // <advc.901>
+		if (kActiveTeam.canAccessHappyHealth(kPlot,
+			kActivePlayer.getFeatureHappiness(eFeature))) // </advc.901>
+		{
+			iHappy = kActivePlayer.getFeatureHappiness(eFeature);
+		}
 	}
 	ImprovementTypes eImprov = kPlot.getRevealedImprovementType(kActiveTeam.getID(), true);
 	if (eImprov != NO_IMPROVEMENT)
 	{
 		CvImprovementInfo const& kImprov = GC.getInfo(eImprov);
-		if (kActiveTeam.canAccessImprovement(kPlot, eImprov, false)) // advc.901
+		if (kActiveTeam.canAccessHappyHealth(kPlot, kImprov.getHappiness())) // advc.901
 			iHappy += kImprov.getHappiness();  // <advc.901>
-		if (kActiveTeam.canAccessImprovement(kPlot, eImprov, true))
-			iHealthPercent += kImprov.get(CvImprovementInfo::HealthPercent); // </advc.901>
+		if (kActiveTeam.canAccessHappyHealth(kPlot,
+			kImprov.get(CvImprovementInfo::HealthPercent)))
+		{
+			iHealthPercent += kImprov.get(CvImprovementInfo::HealthPercent);
+		} // </advc.901>
 	}
 	bool bCitySelected = (gDLL->UI().getHeadSelectedCity() != NULL);
 	bool bAlwaysShow = (bFound || bCanRemove || bNearSelectedCity);

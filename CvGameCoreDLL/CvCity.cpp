@@ -4985,16 +4985,17 @@ void CvCity::updateSurroundingHealthHappiness()
 			if (eFeature != NO_FEATURE)
 			{
 				int iHappy = GET_PLAYER(getOwner()).getFeatureHappiness(eFeature);
-				(iHappy > 0 ? iNewGoodHappiness : iNewBadHappiness) += iHappy;
+				if (kTeam.canAccessHappyHealth(kPlot, iHappy)) // advc.901
+					(iHappy > 0 ? iNewGoodHappiness : iNewBadHappiness) += iHappy;
 			}
 		}
 		{
 			ImprovementTypes eImprovement = kPlot.getImprovementType();
-			if (eImprovement != NO_IMPROVEMENT &&
-				kTeam.canAccessImprovement(kPlot, eImprovement, false)) // advc.901
+			if (eImprovement != NO_IMPROVEMENT)
 			{
 				int iHappy = GC.getInfo(eImprovement).getHappiness();
-				(iHappy > 0 ? iNewGoodHappiness : iNewBadHappiness) += iHappy;
+				if (kTeam.canAccessHappyHealth(kPlot, iHappy)) // advc.901
+					(iHappy > 0 ? iNewGoodHappiness : iNewBadHappiness) += iHappy;
 			}
 		}
 	}
@@ -5012,7 +5013,8 @@ void CvCity::updateSurroundingHealthHappiness()
 	}
 
 	std::pair<int,int> iiGoodBad = calculateSurroundingHealth(); // advc.901: Moved into new function
-	if (getSurroundingGoodHealth() != iiGoodBad.first || getSurroundingBadHealth() != iiGoodBad.second)
+	if (getSurroundingGoodHealth() != iiGoodBad.first ||
+		getSurroundingBadHealth() != iiGoodBad.second)
 	{
 		m_iSurroundingGoodHealth = iiGoodBad.first;
 		m_iSurroundingBadHealth = iiGoodBad.second;
@@ -5038,17 +5040,16 @@ std::pair<int,int> CvCity::calculateSurroundingHealth(int iGoodExtraPercent, int
 			if (eFeature != NO_FEATURE)
 			{
 				int iHealthPercent = GC.getInfo(eFeature).getHealthPercent();
-				(iHealthPercent > 0 ? iGoodHealth : iBadHealth) += iHealthPercent;
+				if (kTeam.canAccessHappyHealth(kPlot, iHealthPercent)) // advc.901
+					(iHealthPercent > 0 ? iGoodHealth : iBadHealth) += iHealthPercent;
 			}
 		}  // <advc.901> (based on updateFeatureHappiness)
+		ImprovementTypes eImprovement = kPlot.getImprovementType();
+		if (eImprovement != NO_IMPROVEMENT)
 		{
-			ImprovementTypes eImprovement = kPlot.getImprovementType();
-			if (eImprovement != NO_IMPROVEMENT &&
-				kTeam.canAccessImprovement(kPlot, eImprovement, true)) // advc.901
-			{
-				int iHealthPercent = GC.getInfo(eImprovement).get(CvImprovementInfo::HealthPercent);
+			int iHealthPercent = GC.getInfo(eImprovement).get(CvImprovementInfo::HealthPercent);
+			if (kTeam.canAccessHappyHealth(kPlot, iHealthPercent))
 				(iHealthPercent > 0 ? iGoodHealth : iBadHealth) += iHealthPercent;
-			}
 		} // </advc.901>
 	}
 	return std::make_pair(iGoodHealth / 100, iBadHealth / 100);
@@ -5088,6 +5089,7 @@ void CvCity::goodBadHealthHappyChange(CvPlot const& kPlot, ImprovementTypes eNew
 	if (eNewImprov == eOldImprov && !bRemoveFeature)
 		return;
 
+	CvTeam const& kTeam = GET_TEAM(getTeam());
 	int iFeatureHappy = 0;
 	int iFeatureGoodHealthPercent = 0;
 	int iFeatureUnhappy = 0;
@@ -5098,9 +5100,14 @@ void CvCity::goodBadHealthHappyChange(CvPlot const& kPlot, ImprovementTypes eNew
 		if (eFeature != NO_FEATURE)
 		{
 			int iHappy = GET_PLAYER(getOwner()).getFeatureHappiness(eFeature);
-			(iHappy > 0 ? iFeatureHappy : iFeatureUnhappy) = iHappy;
+			if (kTeam.canAccessHappyHealth(kPlot, iHappy))
+				(iHappy > 0 ? iFeatureHappy : iFeatureUnhappy) = iHappy;
 			int iHealthPercent = GC.getInfo(eFeature).getHealthPercent();
-			(iHealthPercent > 0 ? iFeatureGoodHealthPercent : iFeatureBadHealthPercent) += iHealthPercent;
+			if (kTeam.canAccessHappyHealth(kPlot, iHealthPercent))
+			{
+				(iHealthPercent > 0 ? iFeatureGoodHealthPercent :
+						iFeatureBadHealthPercent) += iHealthPercent;
+			}
 		}
 	}
 	int iNewHappy = 0;
@@ -5109,16 +5116,12 @@ void CvCity::goodBadHealthHappyChange(CvPlot const& kPlot, ImprovementTypes eNew
 	int iNewBadHealthPercent = 0;
 	if (eNewImprov != NO_IMPROVEMENT)
 	{
-		if (GET_TEAM(getTeam()).canAccessImprovement(kPlot, eNewImprov, false))
-		{
-			int iHappy = GC.getInfo(eNewImprov).getHappiness();
+		int iHappy = GC.getInfo(eNewImprov).getHappiness();
+		if (kTeam.canAccessHappyHealth(kPlot, iHappy))	
 			(iHappy > 0 ? iNewHappy : iNewUnhappy) = iHappy;
-		}
-		if (GET_TEAM(getTeam()).canAccessImprovement(kPlot, eNewImprov, true))
-		{
-			int iHealthPercent = GC.getInfo(eNewImprov).get(CvImprovementInfo::HealthPercent);
+		int iHealthPercent = GC.getInfo(eNewImprov).get(CvImprovementInfo::HealthPercent);
+		if (kTeam.canAccessHappyHealth(kPlot, iHealthPercent))
 			(iHealthPercent > 0 ? iNewGoodHealthPercent : iNewBadHealthPercent) += iHealthPercent;
-		}
 	}
 	int iOldHappy = 0;
 	int iOldUnhappy = 0;
@@ -5126,16 +5129,12 @@ void CvCity::goodBadHealthHappyChange(CvPlot const& kPlot, ImprovementTypes eNew
 	int iOldBadHealthPercent = 0;
 	if (eOldImprov != NO_IMPROVEMENT)
 	{
-		if (GET_TEAM(getTeam()).canAccessImprovement(kPlot, eOldImprov, false))
-		{
-			int iHappy = GC.getInfo(eOldImprov).getHappiness();
+		int iHappy = GC.getInfo(eOldImprov).getHappiness();
+		if (kTeam.canAccessHappyHealth(kPlot, iHappy))
 			(iHappy > 0 ? iOldHappy : iOldUnhappy) = iHappy;
-		}
-		if (GET_TEAM(getTeam()).canAccessImprovement(kPlot, eOldImprov, true))
-		{
-			int iHealthPercent = GC.getInfo(eOldImprov).get(CvImprovementInfo::HealthPercent);
+		int iHealthPercent = GC.getInfo(eOldImprov).get(CvImprovementInfo::HealthPercent);
+		if (kTeam.canAccessHappyHealth(kPlot, iHealthPercent))
 			(iHealthPercent > 0 ? iOldGoodHealthPercent : iOldBadHealthPercent) += iHealthPercent;
-		}
 	}
 	iHappyChange = iNewHappy - iOldHappy - iFeatureHappy;
 	iUnhappyChange = iNewUnhappy - iOldUnhappy - iFeatureUnhappy;

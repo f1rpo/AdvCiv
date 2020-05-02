@@ -428,9 +428,7 @@ public:
 		return (isOpenBorders(eTerritoryOwner) || isFriendlyTerritory(eTerritoryOwner));
 	} // </advc>
 	bool isFriendlyTerritory(TeamTypes eTerritoryOwner) const; // advc: param renamed
-	// <advc.901>
-	bool canAccessImprovement(CvPlot const& kPlot, ImprovementTypes eImprovement,
-			bool bHealth) const; // </advc.901>
+	bool canAccessHappyHealth(CvPlot const& kPlot, int iHealthOrHappy) const; // advc.901
 
 	int getEspionageModifier(TeamTypes eTarget) const;								// Exposed to Python (though CyGameCoreUtils)
 	int getEspionagePointsAgainstTeam(TeamTypes eIndex) const;																							// Exposed to Python
