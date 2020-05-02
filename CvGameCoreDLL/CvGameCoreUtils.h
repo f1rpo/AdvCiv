@@ -44,6 +44,33 @@ namespace stats // Seems too generic, but what else to name it?
 			return kSamples[iMedian];
 		return (kSamples[iMedian] + kSamples[iMedian - 1]) / 2;
 	}
+	template<typename T>
+	T max(std::vector<T> const& kSamples)
+	{
+		FAssert(!kSamples.empty());
+		T r = kSamples[0];
+		for(size_t i = 1; i < kSamples.size(); i++)
+			r = std::max(r, kSamples[i]);
+		return r;
+	}
+	template<typename T>
+	T min(std::vector<T> const& kSamples)
+	{
+		FAssert(!kSamples.empty());
+		T r = kSamples[0];
+		for(size_t i = 1; i < kSamples.size(); i++)
+			r = std::min(r, kSamples[i]);
+		return r;
+	}
+	template<typename T>
+	T mean(std::vector<T> const& kSamples)
+	{
+		FAssert(!kSamples.empty());
+		T r = 0;
+		for(size_t i = 0; i < kSamples.size(); i++)
+			r += kSamples[i];
+		return r / static_cast<T>(kSamples.size());
+	}
 }
 //namespace fmath // (For the time being, these functions are used too frequently for a namespace.)
 //{
@@ -56,9 +83,6 @@ namespace stats // Seems too generic, but what else to name it?
 	{
 		return stats::median(distribution, bSorted);
 	}
-	double dMean(std::vector<double> const& distribution);
-	double dMax(std::vector<double> const& distribution);
-	double dMin(std::vector<double> const& distribution);
 	// see e.g. Wikipedia: "percentile rank"
 	double percentileRank(std::vector<double>& distribution, double score,
 			bool bSorted = false, // Is the distribution sorted (ascending)?

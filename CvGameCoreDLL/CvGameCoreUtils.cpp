@@ -60,35 +60,6 @@ bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync, int iData1, in
 			getSorenRandNum(10000, pszLog, iData1, iData2) < iChancePerMyriad;
 }
 
-double dMean(vector<double> const& distribution)
-{
-	FAssert(!distribution.empty());
-	double r = 0;
-	for(size_t i = 0; i < distribution.size(); i++)
-		r += distribution[i];
-	return r / distribution.size();
-}
-
-double dMax(vector<double> const& distribution)
-{
-	FAssert(!distribution.empty());
-	double r = distribution[0];
-	for(size_t i = 1; i < distribution.size(); i++)
-		if(distribution[i] > r)
-			r = distribution[i];
-	return r;
-}
-
-double dMin(vector<double> const& distribution)
-{
-	FAssert(!distribution.empty());
-	double r = distribution[0];
-	for(size_t i = 1; i < distribution.size(); i++)
-		if(distribution[i] < r)
-			r = distribution[i];
-	return r;
-}
-
 double percentileRank(vector<double>& distribution, double score,
 	bool bSorted, bool bScorePartOfDistribution)
 {

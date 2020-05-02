@@ -205,7 +205,7 @@ public:
 	}
 	__forceinline ScaledInt(uint u) : m_i(static_cast<IntType>(SCALE * u))
 	{
-		FAssert(u <= INTMAX / SCALE);
+		FAssert(u <= static_cast<uint>(INTMAX) / static_cast<uint>(SCALE));
 	}
 	// Construction from rational
 	__forceinline ScaledInt(int iNum, int iDen)

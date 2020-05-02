@@ -342,7 +342,7 @@ double UWAICache::goldPerProdBuildings() {
 	// Cities about to be founded; will soon need buildings.
 	for(int i = 0; i < ::round(0.6 * std::min(owner.AI_getNumAIUnits(UNITAI_SETTLE),
 			owner.AI_getNumCitySites())); i++)
-		buildingCounts.push_back(::dMax(buildingCounts));
+		buildingCounts.push_back(stats::max(buildingCounts));
 	int era = owner.getCurrentEra();
 	CvLeaderHeadInfo const& lh = GC.getInfo(owner.getPersonalityType());
 	double missing = ::dMedian(buildingCounts) + std::max(0.0, ::dMedian(wonderCounts) -

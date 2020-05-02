@@ -230,40 +230,46 @@ void CvGame::setInitialItems()
 		kMap.recalculateAreas();
 	// </advc.030>
 	initFreeUnits();
-	int iStartTurn = getStartTurn(); // advc.250c, advc.251
 	// <advc.250c>
-	if(getStartEra() == 0 && GC.getDefineBOOL("INCREASE_START_TURN"))
+	if (GC.getDefineBOOL("INCREASE_START_TURN") && getStartEra() == 0)
 	{
-		std::vector<double> distr;
-		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
-			distr.push_back(it->getAdvancedStartPoints());
-		iStartTurn = getStartTurn();
-		double maxMean = (::dMax(distr) + ::dMean(distr)) / 2.0;
-		if(maxMean > 370)
+		int iStartTurn = getStartTurn();
+		bool bAllHuman = (PlayerIter<HUMAN>::count() >= PlayerIter<CIV_ALIVE>::count());
+		CvHandicapInfo const& kGameHandicap = GC.getInfo(getHandicapType());
+		if (isOption(GAMEOPTION_ADVANCED_START))
 		{
-			iStartTurn += ::roundToMultiple(std::pow(std::max(0.0, maxMean - 325),
-					0.58), 5);
-		}
-	} // </advc.250c>
-	// <advc.251> Also set a later start turn if handicap grants lots of AI freebies
-	if(!isOption(GAMEOPTION_ADVANCED_START) && getNumHumanPlayers() < countCivPlayersAlive())
-	{
-		CvHandicapInfo& gameHandicap = GC.getInfo(getHandicapType());
-		iStartTurn += ((gameHandicap.getAIStartingUnitMultiplier() * 10 +
-				gameHandicap.getAIStartingWorkerUnits() * 10) *
-				GC.getInfo(getGameSpeedType()).getGrowthPercent()) / 100;
-	} // <advc.250c>
-	if(getStartTurn() != iStartTurn && GC.getDefineBOOL("INCREASE_START_TURN"))
-	{
-		setStartTurnYear(iStartTurn);
-		/*  initDiplomacy is called from outside the DLL between the first
-			setStartTurnYear call and setInitialItems. The second setStartTurnYear
-			causes any initial "universal" peace treaties to end after 1 turn.
-			Need to inform all CvDeal objects about the changed start turn: */
-		FOR_EACH_DEAL_VAR(d)
-			d->setInitialGameTurn(getGameTurn());
-	} // </advc.250c>
-	// </advc.251>
+			std::vector<scaled> distr;
+			for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+			{
+				if (!it->isHuman() || !isOption(GAMEOPTION_SPAH) || bAllHuman)
+					distr.push_back(it->getAdvancedStartPoints());
+			}
+			/*	Start turn 0 is calibrated to the AI freebies from difficulty, which
+				increase with every level (well, every level after Prince). */
+			scaled rDifficultyVal = kGameHandicap.getDifficulty() * fixp(6.25);
+			rDifficultyVal.increaseTo(175);
+			scaled rMaxMean = (stats::max(distr) + stats::mean(distr)) / 2;
+			if (rMaxMean > rDifficultyVal)
+				iStartTurn += (rMaxMean - rDifficultyVal).pow(fixp(0.58)).roundToMultiple(5);
+		} // </advc.250c>
+		// <advc.251> Also set a later start turn if handicap grants lots of AI freebies
+		else if (!bAllHuman)
+		{
+			iStartTurn += ((kGameHandicap.getAIStartingUnitMultiplier() * 10 +
+					kGameHandicap.getAIStartingWorkerUnits() * 10) *
+					GC.getInfo(getGameSpeedType()).getGrowthPercent()) / 100;
+		} // <advc.250c>
+		if (getStartTurn() != iStartTurn)
+		{
+			setStartTurnYear(iStartTurn);
+			/*  initDiplomacy is called from outside the DLL between the first
+				setStartTurnYear call and setInitialItems. The second setStartTurnYear
+				causes any initial "universal" peace treaties to end after 1 turn.
+				Need to inform all CvDeal objects about the changed start turn: */
+			FOR_EACH_DEAL_VAR(d)
+				d->setInitialGameTurn(getGameTurn());
+		} // </advc.251>
+	} // </advc.250c> 
 	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		it->AI_updateFoundValues();
 }
@@ -5210,24 +5216,24 @@ void CvGame::setHandicapType(HandicapTypes eHandicap)
 	m_eHandicap = eHandicap;
 }
 
-/*  <advc.250> This was originally a one-liner in CvUtils.py (getScoreComponent),
+/*  advc.250: This was originally a one-liner in CvUtils.py (getScoreComponent)
 	but gets a bit more involved with SPaH. */
 int CvGame::getDifficultyForEndScore() const
 {
-	CvHandicapInfo const& h = GC.getInfo(getHandicapType());
-	int r = h.getDifficulty();
+	CvHandicapInfo const& kGameHandicap = GC.getInfo(getHandicapType());
+	int r = kGameHandicap.getDifficulty();
 	if(isOption(GAMEOPTION_ONE_CITY_CHALLENGE))
 		r += 30;
 	if(!isOption(GAMEOPTION_SPAH))
 		return r;
 	std::vector<int> aiStartPointDistrib;
 	m_pSpah->distribution(aiStartPointDistrib);
-	std::vector<double> distr;
+	std::vector<scaled> distr;
 	for(size_t i = 0; i < aiStartPointDistrib.size(); i++)
 		distr.push_back(aiStartPointDistrib[i]);
-	return r + ::round((::dMax(distr) + ::dMean(distr)) /
-			h.getAIAdvancedStartPercent());
-} // </advc.250>
+	return r + ((stats::max(distr) + stats::mean(distr)) /
+			kGameHandicap.getAIAdvancedStartPercent()).round();
+}
 
 PlayerTypes CvGame::getPausePlayer() const
 {
