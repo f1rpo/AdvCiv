@@ -9205,7 +9205,12 @@ void CvGame::onAllGameDataRead()
 	(w/e that means exactly) */
 void CvGame::onGraphicsInitialized()
 {
-	// (Nothing to be done here currently)
+	/*	<advc.001> After loading, the camera tries to center on some unit
+		(apparently; I don't know where that's implemented). If there is
+		none, it seems to center on some random(?) unrevealed tile. */
+	if (GET_PLAYER(getActivePlayer()).getNumUnits() == 0)
+		setUpdateTimer(UPDATE_LOOK_AT_STARTING_PLOT, 1);
+	// </advc.001>
 }
 
 
