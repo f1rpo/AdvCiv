@@ -122,11 +122,12 @@
 			<fBlue>0.08</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
+		<!-- advc.ctr: Brightened a bit (for use as a text color) -->
 		<ColorVal>
 			<Type>COLOR_CITY_BLUE</Type>
-			<fRed>0.07</fRed>
-			<fGreen>0.46</fGreen>
-			<fBlue>0.80</fBlue>
+			<fRed>0.08</fRed>
+			<fGreen>0.5</fGreen>
+			<fBlue>0.88</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
 		<ColorVal>
