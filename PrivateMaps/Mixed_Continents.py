@@ -196,12 +196,12 @@ def getWrapX():
 
 
 def getWrapY():
-	return (CyMap().getCustomMapOption(3) == 2) # </advc.mxc>
+	return (CyMap().getCustomMapOption(3) == 2)
 
-
-def minStartingDistanceModifier():
-	return -12
-
+# Leave this up to the DLL
+#def minStartingDistanceModifier():
+#	return -12
+# </advc.mxc>
 
 def beforeGeneration():
 	global xShiftRoll

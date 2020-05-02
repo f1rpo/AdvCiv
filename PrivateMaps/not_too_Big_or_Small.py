@@ -92,8 +92,9 @@ def getWrapX():
 def getWrapY():
 	return (CyMap().getCustomMapOption(2) == 2) # </dlph.32>
 
-def minStartingDistanceModifier():
-	return -12
+# advc.027: Leave this up to the DLL entirely
+#def minStartingDistanceModifier():
+#	return -12
 
 def beforeGeneration():
 	#global xShiftRoll # advc (comment): Overlap option disabled by K-Mod

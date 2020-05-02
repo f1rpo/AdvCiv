@@ -99,8 +99,9 @@ def getCustomMapOptionDefault(argsList):
 		}
 	return option_defaults[iOption]
 
-def minStartingDistanceModifier():
-	return -12
+# advc.027: Leave this up to the DLL entirely
+#def minStartingDistanceModifier():
+#	return -12
 
 def beforeGeneration():
 	global xShiftRoll
