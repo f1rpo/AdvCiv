@@ -2488,7 +2488,8 @@ bool CvGame::shouldDisplayUnitModel() const
 	}
 
 	if (gDLL->UI().getHeadSelectedUnit() != NULL ||
-		gDLL->UI().isCityScreenUp())
+		//gDLL->UI().isCityScreenUp()
+		gDLL->UI().getHeadSelectedCity() != NULL) // advc.001
 	{
 		return true;
 	}
