@@ -176,7 +176,7 @@ public:
 	int AI_techProjectValue(TechTypes eTech, int iPathLength, bool &bEnablesProjectWonder) const;
 	int AI_cultureVictoryTechValue(TechTypes eTech) const;
 
-	void AI_chooseFreeTech();
+	void AI_chooseFreeTech(/* advc.121: */ bool bEndOfTurn = false);
 	void AI_chooseResearch();
 
 	DllExport DiploCommentTypes AI_getGreeting(PlayerTypes ePlayer) const;
@@ -331,6 +331,7 @@ public:
 	// advc.171:
 	bool AI_isTargetForMissionaries(PlayerTypes eTarget, ReligionTypes eReligion) const;
 	int AI_corporationValue(CorporationTypes eCorporation, CvCityAI const* pCity = NULL) const;
+	void AI_processNewBuild(BuildTypes eBuild); // advc.121
 
 	int AI_adjacentPotentialAttackers(CvPlot const& kPlot, bool bTestCanMove = false) const;
 	int AI_totalMissionAIs(MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;

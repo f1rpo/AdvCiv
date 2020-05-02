@@ -6534,7 +6534,7 @@ int CvPlayerAI::AI_cultureVictoryTechValue(TechTypes eTech) const
 	return iValue;
 }
 
-void CvPlayerAI::AI_chooseFreeTech()
+void CvPlayerAI::AI_chooseFreeTech(/* advc.121: */ bool bEndOfTurn)
 {
 	clearResearchQueue();
 
@@ -6544,7 +6544,10 @@ void CvPlayerAI::AI_chooseFreeTech()
 		eBestTech = AI_bestTech(1, true);
 
 	if (eBestTech != NO_TECH)
-		GET_TEAM(getTeam()).setHasTech(eBestTech, true, getID(), true, true);
+	{
+		GET_TEAM(getTeam()).setHasTech(eBestTech, true, getID(), true, true,
+				bEndOfTurn); // advc.121
+	}
 }
 
 
@@ -14523,6 +14526,19 @@ int CvPlayerAI::AI_corporationValue(CorporationTypes eCorporation, CvCityAI cons
 
 	return iValue;
 }
+
+// advc.121:
+void CvPlayerAI::AI_processNewBuild(BuildTypes eBuild)
+{
+	bool const bRoute = (GC.getBuildInfo(eBuild).getRoute() != NO_ROUTE);
+	FOR_EACH_CITYAI_VAR(pCity, *this)
+	{
+		pCity->AI_updateBestBuild();
+		if (bRoute)
+			pCity->AI_updateRouteToCity();
+	}
+}
+
 
 int CvPlayerAI::AI_areaMissionAIs(CvArea const& kArea, MissionAITypes eMissionAI,
 	CvSelectionGroup* pSkipSelectionGroup) const

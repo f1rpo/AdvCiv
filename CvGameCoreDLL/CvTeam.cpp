@@ -3926,7 +3926,7 @@ void CvTeam::setResearchProgress(TechTypes eIndex, int iNewValue, PlayerTypes eP
 		// <advc> Cleaner to subtract the overflow. Cf. comment in getResearchProgress.
 		m_aiResearchProgress.add(eIndex,
 				getResearchProgress(eIndex) - getResearchCost(eIndex)); // </advc>
-		setHasTech(eIndex, true, ePlayer, true, true);
+		setHasTech(eIndex, true, ePlayer, true, true, /* advc.121: */ true);
 		/*if (!GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && !GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING))
 			setNoTradeTech(eIndex, true);*/ // BtS
 		// disabled by K-Mod. I don't know why this was here, and it conflicts with my changes to the order of the doTurn functions.
@@ -4284,7 +4284,8 @@ void CvTeam::announceTechToPlayers(TechTypes eIndex, /* advc.156: */ PlayerTypes
 	}
 }
 
-void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bool bFirst, bool bAnnounce)  // advc: some style changes
+void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,  // advc: some style changes
+	bool bFirst, bool bAnnounce, /* advc.121: */ bool bEndOfTurn)
 {
 	PROFILE_FUNC();
 
@@ -4321,7 +4322,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 		updatePlotGroupBonus(eTech, true);
 	}
 
-	processTech(eTech, bNewValue ? 1 : -1);
+	processTech(eTech, bNewValue ? 1 : -1, /* advc.121: */ bEndOfTurn);
 
 	if (isHasTech(eTech))
 	{
@@ -5258,7 +5259,8 @@ int CvTeam::getCapitalY(TeamTypes eObserver, bool bDebug) const
 	return pCapital->getY();
 } // </advc.127b>
 
-void CvTeam::processTech(TechTypes eTech, int iChange) // advc: style changes
+void CvTeam::processTech(TechTypes eTech, int iChange, // advc: style changes
+	bool bEndOfTurn) // advc.121
 {
 	PROFILE_FUNC();
 
@@ -5390,8 +5392,9 @@ void CvTeam::processTech(TechTypes eTech, int iChange) // advc: style changes
 	}
 	FOR_EACH_ENUM(Build)
 	{
-		if (GC.getInfo(eLoopBuild).getTechPrereq() == eTech &&
-			GC.getInfo(eLoopBuild).getRoute() != NO_ROUTE)
+		if (GC.getInfo(eLoopBuild).getTechPrereq() != eTech)
+			continue; // advc
+		if (GC.getInfo(eLoopBuild).getRoute() != NO_ROUTE)
 		{
 			for (int i = 0; i < GC.getMap().numPlots(); i++)
 			{
@@ -5403,7 +5406,15 @@ void CvTeam::processTech(TechTypes eTech, int iChange) // advc: style changes
 						kLoopPlot.updateCityRoute(true);
 				}
 			}
-		}
+		}  // <advc.121>
+		if (!bEndOfTurn) // Otherwise, CvCity::doTurn is about to be called anyway.
+		{
+			for (MemberIter it(getID()); it.hasNext(); ++it)
+			{
+				if (!it->isHuman())
+					it->AI_processNewBuild(eLoopBuild);
+			}
+		} // </advc.121>
 	}
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 		it->updateCorporation();

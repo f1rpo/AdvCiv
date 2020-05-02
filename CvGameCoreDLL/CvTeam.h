@@ -403,7 +403,8 @@ public:
 	bool isParent(TeamTypes eChildTeam) const;
 
 	bool isHasTech(TechTypes eIndex) const;																																			// Exposed to Python
-	void setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bool bFirst, bool bAnnounce);	// Exposed to Python
+	void setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,				// Exposed to Python
+			bool bFirst, bool bAnnounce, /* advc.121: */ bool bEndOfTurn = false);
 	/* advc.004a: A hack that allows other classes to pretend that a team knows
 	   a tech for some computation. Should be toggled back afterwards. */
 	inline void setHasTechTemporarily(TechTypes eTech, bool b) { m_abHasTech.set(eTech, b); }
@@ -604,7 +605,7 @@ protected:
 	void updateTechShare();
 	void updatePlotGroupBonus(TechTypes eTech, bool bAdd); // advc
 
-	void processTech(TechTypes eTech, int iChange);
+	void processTech(TechTypes eTech, int iChange, /* advc.121: */ bool bEndOfTurn);
 
 	void cancelDefensivePacts();
 	void allowDefensivePactsToBeCanceled(); // dlph.3
