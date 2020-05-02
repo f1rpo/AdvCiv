@@ -7188,7 +7188,8 @@ bool CvUnit::canAttack(const CvUnit& kDefender) const
 		return false;
 	/*  Can't attack defenseless units that are stacked
 		with a defender whose damage limit is reached. */
-	if (!kDefender.canFight() && combatLimit() < 100 &&
+	if (combatLimit() < 100 && (!kDefender.canFight() ||
+		(kDefender.getDomainType() != DOMAIN_LAND && getDomainType() == DOMAIN_LAND)) &&
 		/*  Won't handle invisible defenders correctly
 			(there are none currently that can defend) */
 		kDefender.getPlot().plotCheck(PUF_isEnemy, getOwner(), false,
