@@ -255,15 +255,15 @@
 	<ElementType name="Buildings" content="eltOnly">
 		<element type="Building" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
-	<!-- advc.003t: Remove ForceBuildings -->
-	<!--ElementType name="bForceBuilding" content="textOnly" dt:type="boolean"/>
+	<!-- advc.003t (note): ForceBuildings is no longer read by the DLL -->
+	<ElementType name="bForceBuilding" content="textOnly" dt:type="boolean"/>
 	<ElementType name="ForceBuilding" content="eltOnly">
 		<element type="BuildingType"/>
 		<element type="bForceBuilding"/>
 	</ElementType>
 	<ElementType name="ForceBuildings" content="eltOnly">
 		<element type="ForceBuilding" minOccurs="0" maxOccurs="*"/>
-	</ElementType-->
+	</ElementType>
 	<ElementType name="HolyCity" content="textOnly"/>
 	<ElementType name="StateReligion" content="textOnly"/>
 	<ElementType name="PrereqReligion" content="textOnly"/>
@@ -597,8 +597,8 @@
 		<element type="CorporationSpreads"/>
 		<element type="GreatPeoples"/>
 		<element type="Buildings"/>
-		<!-- advc.003t -->
-		<!--element type="ForceBuildings"/-->
+		<!-- advc.003t: No longer has any effect, but still allowed. -->
+		<element type="ForceBuildings" minOccurs="0"/>
 		<element type="HolyCity"/>
 		<element type="ReligionType"/>
 		<element type="StateReligion"/>
