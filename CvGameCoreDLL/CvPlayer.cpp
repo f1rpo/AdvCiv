@@ -6828,6 +6828,10 @@ int CvPlayer::getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) cons
 	int iResearchLeft = GET_TEAM(getTeam()).getResearchLeft(eTech);
 	if(bOverflow)
 		iResearchLeft -= iOverflow;
+	// <advc.004>
+	if (iResearchLeft <= 0)
+		return 1; // 1/100. getResearchTurnsLeft will round that up.
+	// </advc.004x>
 	iResearchLeft *= 100;
 	if(iResearchRate <= 0)
 	{

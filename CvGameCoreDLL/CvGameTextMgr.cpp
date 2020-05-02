@@ -8958,11 +8958,13 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 			szBuffer.append(NEWLINE);
 			// <advc.004x>
 			bool bShowTurns = GET_PLAYER(eActivePlayer).isResearch();
+			int iTurnsLeft = (bShowTurns ? GET_PLAYER(eActivePlayer).
+					getResearchTurnsLeft(eTech, GC.ctrlKey() || !GC.shiftKey()) : -1);
+			if (iTurnsLeft < 0)
+				bShowTurns = false;
 			if(bShowTurns)
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_TECH_NUM_TURNS",
-						GET_PLAYER(eActivePlayer).getResearchTurnsLeft(eTech,
-						GC.ctrlKey() || !GC.shiftKey())));
+				szBuffer.append(gDLL->getText("TXT_KEY_TECH_NUM_TURNS", iTurnsLeft));
 				szBuffer.append(L' '); // advc.004x: Append this separately
 			} // </advc.004x>
 			szTempBuffer.Format(L"%s%d/%d %c%s",
