@@ -17943,40 +17943,39 @@ bool CvUnitAI::AI_routeTerritory(bool bImprovementOnly)
 		if (eBestRoute == NO_ROUTE || eBestRoute == kPlot.getRouteType())
 			continue; // advc
 
-		bool bValid = true;
+		int iValue = 1; // advc.121: Replacing bValid
 		if (bImprovementOnly)
 		{
-			bValid = false;
+			iValue = 0;
 			ImprovementTypes eImprovement = kPlot.getImprovementType();
 			if (eImprovement != NO_IMPROVEMENT)
 			{
-				for (int iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
+				FOR_EACH_ENUM(Yield)
 				{
-					if (GC.getInfo(eImprovement).getRouteYieldChanges(eBestRoute, iJ) > 0)
-					{
-						bValid = true;
-						break;
-					}
+					iValue += GC.getInfo(eImprovement).getRouteYieldChanges(
+							eBestRoute, eLoopYield);
+					//break; // advc.121: Sum them all up
 				}
+				// <advc.121>
+				if (kPlot.isBeingWorked())
+					iValue *= 3; // </advc.121>
 			}
 		}
-		if (bValid)
+		if (iValue > 0 && !kPlot.isVisibleEnemyUnit(this))
 		{
-			if (!kPlot.isVisibleEnemyUnit(this))
+			if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(
+				&kPlot, MISSIONAI_BUILD, getGroup(), 1) == 0)
 			{
-				if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(&kPlot, MISSIONAI_BUILD, getGroup(), 1) == 0)
+				int iPathTurns;
+				if (generatePath(&kPlot, MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
+					true, &iPathTurns))
 				{
-					int iPathTurns;
-					if (generatePath(&kPlot, MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
-						true, &iPathTurns))
+					iValue *= 10000;
+					iValue /= (iPathTurns + 1);
+					if (iValue > iBestValue)
 					{
-						int iValue = 10000;
-						iValue /= (iPathTurns + 1);
-						if (iValue > iBestValue)
-						{
-							iBestValue = iValue;
-							pBestPlot = &kPlot;
-						}
+						iBestValue = iValue;
+						pBestPlot = &kPlot;
 					}
 				}
 			}
