@@ -6706,6 +6706,9 @@ void CvCityAI::AI_updateRouteToCity()  // advc: some style changes
 		{
 			if(pLoopCity == this || !sameArea(*pLoopCity))
 				continue;
+			/*	advc (note): This calls CvPlayer::getBestRoute
+				(via routeValid in CvGameCoreUtils.cpp) to determine whether
+				railroads are available */
 			if (!gDLL->getFAStarIFace()->GeneratePath(&GC.getRouteFinder(),
 				getX(), getY(), pLoopCity->getX(),
 				pLoopCity->getY(), false, getOwner(), true))
@@ -7442,9 +7445,11 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 	// advc.001: was AI_isDoVictoryStrategy
 	iTimeScale += (kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS) ? 50 : 0);
 	if (GET_TEAM(getTeam()).AI_getNumWarPlans(WARPLAN_TOTAL) +
-			// advc.001: Surely(?) preparations should count here as well
-			GET_TEAM(getTeam()).AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0)
+		// advc.001: Surely(?) preparations should count here as well
+		GET_TEAM(getTeam()).AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0)
+	{
 		iTimeScale -= 20;
+	}
 	else if (kOwner.AI_getFlavorValue(FLAVOR_MILITARY) > 0)
 		iTimeScale -= 10;
 	if (eNonObsoleteBonus != NO_BONUS && !kOwner.doesImprovementConnectBonus(eImprovement, eNonObsoleteBonus))
@@ -7749,8 +7754,7 @@ BuildTypes CvCityAI::AI_getBestBuild(CityPlotTypes ePlot) const // advc.enum: Ci
 		return m_eBestBuild;
 	// (Tbd.: Put the part below into a separate function so that it can be inlined)
 	// </advc.opt>
-	FAssert(ePlot >= 0);
-	FAssert(ePlot < NUM_CITY_PLOTS);
+	FAssertBounds(0, NUM_CITY_PLOTS, ePlot);
 	return m_aeBestBuild[ePlot];
 }
 
@@ -7838,11 +7842,12 @@ void CvCityAI::AI_updateBestBuild()
 			/*  <advc.113> Note that, if we have time to chop, then we can't be really
 				short on workers. (I guess kOwner.AI_neededWorkers would be too slow here.) */
 			if (getProductionTurnsLeft() > 3 &&
-					(3 * iAreaWorkers < 4 * iAreaCities ||
-					(2 * iAreaWorkers < 3 * iAreaCities &&
-					AI_getWorkersHave() <= 0 && AI_getWorkersNeeded() > 0)))
-					// </advc.113>
+				(3 * iAreaWorkers < 4 * iAreaCities ||
+				(2 * iAreaWorkers < 3 * iAreaCities &&
+				AI_getWorkersHave() <= 0 && AI_getWorkersNeeded() > 0)))
+			{ // </advc.113>
 				bChop = true;
+			}
 		}
 		// K-Mod end
 	}
@@ -8077,7 +8082,7 @@ void CvCityAI::AI_updateBestBuild()
 	}
 }
 
-// <advc.129>
+// advc.129:
 int CvCityAI::AI_countOvergrownBonuses(FeatureTypes eFeature) const
 {
 	int r = 0;
@@ -8116,7 +8121,7 @@ int CvCityAI::AI_countOvergrownBonuses(FeatureTypes eFeature) const
 		}
 	}
 	return r;
-} // </advc.129>
+}
 
 
 void CvCityAI::AI_doDraft(bool bForce)
@@ -8169,9 +8174,10 @@ void CvCityAI::AI_doDraft(bool bForce)
 	// Don't shrink cities too much
 	//int iConscriptPop = getConscriptPopulation();
 	if (//!bGoodValue && // advc.017: Don't shrink them arbitrarily just b/c it's "good value"!
-			!bDanger && (3 * (getPopulation() - iConscriptPop) < getHighestPopulation() * 2))
+		!bDanger && (3 * (getPopulation() - iConscriptPop) < getHighestPopulation() * 2))
+	{
 		return;
-	// <advc.017>
+	} // <advc.017>
 	// Cut-and-pasted from below:
 	bool bTooMuchPop = AI_countWorkedPoorPlots() > 0 ||
 			foodDifference(false, true)+getFood() < 0 ||
@@ -8341,7 +8347,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 			/*  subtract overflow from the cost; but only if we can be confident the
 				city isn't being over-whipped. (iHappyDiff has been adjusted above based on the anger-timer) */
 			if (iHappyDiff > 0 || isNoUnhappiness() ||
-					(iHappy > 1 && (getHurryAngerTimer() <= 1 || iHurryAngerLength == 0)))
+				(iHappy > 1 && (getHurryAngerTimer() <= 1 || iHurryAngerLength == 0)))
 			{	/*int iOverflow = (hurryProduction(eHurry) - productionLeft()); // raw overflow
 				iOverflow *= getBaseYieldRateModifier(YIELD_PRODUCTION); // limit which multiplier apply to the overflow
 				iOverflow /= std::max(1, getBaseYieldRateModifier(YIELD_PRODUCTION, getProductionModifier()));*/
@@ -10741,9 +10747,10 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 			{
 				CvPlot* pAdjacentPlot = plotDirection(pPlot->getX(), pPlot->getY(), (DirectionTypes)iI);
 				if (pAdjacentPlot == NULL || pAdjacentPlot->getOwner() != getOwner() ||
-						!pAdjacentPlot->isCityRadius())
+					!pAdjacentPlot->isCityRadius())
+				{
 					continue;
-
+				}
 				if (!pAdjacentPlot->isFreshWater() &&
 					//check for a city? cities can conduct irrigation and that effect is quite
 					//useful... so I think irrigate cities.

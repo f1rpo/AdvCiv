@@ -16,7 +16,7 @@
 	DO(ON_UNIT_SELECTED) \
 	DO(ON_UNIT_CREATED) \
 	DO(ON_UNIT_LOST) \
-	/* New additions (callbacks unused in BtS/AdvCiv)  */ \
+	/* New additions (callbacks unused in BtS/AdvCiv) */ \
 	DO(ROUTE_BUILT) \
 	DO(UNIT_MOVE) \
 	DO(UNIT_BUILD_IMPROVEMENT) \
@@ -59,8 +59,8 @@ bool CvDllPythonEvents::postEvent(CyArgsList& eventData)
 	eventData.add(GC.altKey());
 	eventData.add(GC.ctrlKey());
 	eventData.add(GC.shiftKey());
-	eventData.add(gDLL->getChtLvl() > 0
-			|| GC.getGame().isDebugMode()); // advc.135c
+	eventData.add(gDLL->getChtLvl() > 0 ||
+			GC.getGame().isDebugMode()); // advc.135c
 
 	long lResult = -1;
 	bool bOK = gDLL->getPythonIFace()->callFunction(PYEventModule, "onEvent", eventData.makeFunctionArgs(), &lResult);

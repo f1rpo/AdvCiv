@@ -732,16 +732,18 @@ protected:
 	short m_iUpgradeProgress;
 	short m_iForceUnownedTimer;
 	short m_iTurnsBuildsInterrupted; // advc.011
-	// advc (note): Only the Boreal, Highlands and Rainforest map scripts use this value
-	short m_iMinOriginalStartDist;
 	short m_iReconCount;
+	short /*BonusTypes*/ m_eBonusType;
+	short m_iRiverID; // advc.opt: Was int. Only used during map gen.
+	/*	advc (note): Only Boreal, Highlands and Rainforest use this value
+		(during map gen). Could probably save 4 byte here by placing this
+		and m_iRiverID in unions with e.g. m_iReconCount, m_iUpgradeProgress. */
+	short m_iMinOriginalStartDist;
 	char m_iLatitude; // advc.tsl
 	// advc.opt: These two were short int
 	char m_iCityRadiusCount;
 	char m_iRiverCrossingCount;
 	char /*PlayerTypes*/ m_eOwner;
-	short /*BonusTypes*/ m_eBonusType;
-	short m_iRiverID; // advc.opt: Was int. Only used during map gen.
 
 	bool m_bStartingPlot:1;
 	bool m_bNOfRiver:1;
@@ -832,6 +834,6 @@ protected:
 };
 
 // advc.opt: It's fine to change the size, but might want to double check if it can be avoided.
-BOOST_STATIC_ASSERT(sizeof(CvPlot) == 212);
+BOOST_STATIC_ASSERT(sizeof(CvPlot) <= 212);
 
 #endif

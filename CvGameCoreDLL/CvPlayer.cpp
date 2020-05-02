@@ -8023,7 +8023,9 @@ int CvPlayer::getGoldenAgeModifier() const
 
 
 void CvPlayer::changeGoldenAgeModifier(int iChange)
-{
+{	// <advc>
+	if (iChange == 0)
+		return; // </advc>
 	// K-Mod. If we are currently in a golden age, adjust its duration!
 	changeGoldenAgeTurns(getGoldenAgeTurns() * iChange / std::max(1, 100 + getGoldenAgeModifier()));
 
@@ -9846,7 +9848,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 		return;
 
 	m_bTurnActive = bNewValue;
-	CvGame& g = GC.getGame();
+	CvGame& kGame = GC.getGame();
 	if (isTurnActive())
 	{
 		FAssert(isAlive());
@@ -9857,7 +9859,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 		GC.getLogger().logTurnActive(getID()); // advc.003t
 
 		setEndTurn(false);
-		g.resetTurnTimer();
+		kGame.resetTurnTimer();
 
 		if (gDLL->IsPitbossHost()) // If we are the Pitboss, send this player an email
 		{	// If this guy is not currently connected, try sending him an email
@@ -9865,26 +9867,26 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				GC.getPythonCaller()->sendEmailReminder(getPbemEmailAddress());
 		}
 
-		if ((g.isHotSeat() || g.isPbem()) && isHuman() && bDoTurn)
+		if ((kGame.isHotSeat() || kGame.isPbem()) && isHuman() && bDoTurn)
 		{
 			gDLL->getInterfaceIFace()->clearEventMessages();
 			// advc.135a: Commented out
 			//gDLL->getEngineIFace()->setResourceLayer(false);
-			g.setActivePlayer(getID());
+			kGame.setActivePlayer(getID());
 		}
 
-		g.changeNumGameTurnActive(1);
+		kGame.changeNumGameTurnActive(1);
 
 		if (bDoTurn)
 		{
 			if (isAlive() && !isHuman() && !isBarbarian() && (getAdvancedStartPoints() >= 0))
 				AI().AI_doAdvancedStart();
 
-			if (g.getElapsedGameTurns() > 0)
+			if (kGame.getElapsedGameTurns() > 0)
 			{
 				if (isAlive())
 				{
-					if (g.isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
+					if (kGame.isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
 						doTurn();
 					// K-Mod. Call CvTeam::doTurn at the start of this team's turn. ie. when the leader's turn is activated.
 					// Note: in simultaneous turns mode this is called by CvGame::doTurn,
@@ -9900,9 +9902,9 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				}
 			}
 
-			if (getID() == g.getActivePlayer() && g.getElapsedGameTurns() > 0)
+			if (getID() == kGame.getActivePlayer() && kGame.getElapsedGameTurns() > 0)
 			{
-				if (g.isNetworkMultiPlayer())
+				if (kGame.isNetworkMultiPlayer())
 				{
 					gDLL->UI().addMessage(getID(), true, -1,
 							gDLL->getText("TXT_KEY_MISC_TURN_BEGINS").GetCString(),
@@ -9911,20 +9913,20 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				else gDLL->getInterfaceIFace()->playGeneralSound("AS2D_NEWTURN");
 			}
 			// <advc.706> Skip warnings and messages if only pausing for civ selection
-			if (!g.isOption(GAMEOPTION_RISE_FALL) ||
-				!g.getRiseFall().isSelectingCiv()) // </advc.706>
+			if (!kGame.isOption(GAMEOPTION_RISE_FALL) ||
+				!kGame.getRiseFall().isSelectingCiv()) // </advc.706>
 			{
 				doWarnings();
 				// <advc.106b>
 				if (isHuman())
 				{
 					validateDiplomacy(); // advc.001e
-					if(g.getActivePlayer() == getID())
+					if(kGame.getActivePlayer() == getID())
 					{
 						/*  Make sure that Python events like Civ4lerts are
 							triggered before processing messages */
 						CyArgsList pyArgs;
-						pyArgs.add(g.getTurnSlice());
+						pyArgs.add(kGame.getTurnSlice());
 						CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
 						postProcessMessages();
 					}
@@ -9934,10 +9936,10 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 			if (isHuman() || isHumanDisabled())
 			{
 				// <advc.700>
-				if(g.isOption(GAMEOPTION_RISE_FALL))
-					g.getRiseFall().atActiveTurnStart();
+				if(kGame.isOption(GAMEOPTION_RISE_FALL))
+					kGame.getRiseFall().atActiveTurnStart();
 				// </advc.700>
-				else g.autoSave(); // advc.106l
+				else kGame.autoSave(); // advc.106l
 			} // </advc.044>
 			// <advc.106b> Clear messages in any case (in particular during AIAutoPlay)
 			for (size_t i = 0; i < m_aMajorMsgs.size(); i++)
@@ -9945,10 +9947,10 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 			m_aMajorMsgs.clear(); // </106b>
 		}
 
-		if (getID() == g.getActivePlayer())
+		if (getID() == kGame.getActivePlayer())
 		{
 			if (gDLL->getInterfaceIFace()->getLengthSelectionList() == 0)
-				g.cycleSelectionGroups_delayed(1, false);
+				kGame.cycleSelectionGroups_delayed(1, false);
 			gDLL->getInterfaceIFace()->setDirty(SelectionCamera_DIRTY_BIT, true);
 		}
 	}
@@ -9956,32 +9958,32 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 	{
 		GC.getLogger().logTurnActive(getID()); // advc.003t
 
-		if (getID() == g.getActivePlayer())
+		if (getID() == kGame.getActivePlayer())
 		{
 			gDLL->getInterfaceIFace()->setForcePopup(false);
 			gDLL->getInterfaceIFace()->clearQueuedPopups();
 			gDLL->getInterfaceIFace()->flushTalkingHeadMessages();
 		}
 
-		if (getID() == g.getActivePlayer())
+		if (getID() == kGame.getActivePlayer())
 			startProfilingDLL(true); // start profiling DLL if desired
 
-		g.changeNumGameTurnActive(-1);
+		kGame.changeNumGameTurnActive(-1);
 
 		if (bDoTurn)
 		{
-			if (!g.isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
+			if (!kGame.isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
 			{
 				if (isAlive())
 					doTurn();
 
-				if ((g.isPbem() || g.isHotSeat()) && isHuman() &&
-					g.countHumanPlayersAlive() > 1)
+				if ((kGame.isPbem() || kGame.isHotSeat()) && isHuman() &&
+					kGame.countHumanPlayersAlive() > 1)
 				{
-					g.setHotPbemBetweenTurns(true);
+					kGame.setHotPbemBetweenTurns(true);
 				}
 
-				if (g.isSimultaneousTeamTurns())
+				if (kGame.isSimultaneousTeamTurns())
 				{
 					if (!GET_TEAM(getTeam()).isTurnActive())
 					{
@@ -10001,9 +10003,9 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 					{
 						if (GET_PLAYER((PlayerTypes)iI).isAlive())
 						{
-							if (g.isPbem() && GET_PLAYER((PlayerTypes)iI).isHuman())
+							if (kGame.isPbem() && GET_PLAYER((PlayerTypes)iI).isHuman())
 							{
-								if (!g.getPbemTurnSent())
+								if (!kGame.getPbemTurnSent())
 									gDLL->sendPbemTurn((PlayerTypes)iI);
 							}
 							else GET_PLAYER((PlayerTypes)iI).setTurnActive(true);

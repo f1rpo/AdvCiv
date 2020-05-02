@@ -3010,56 +3010,26 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 
 
 			//The following code adjusts the XP for barbarian encounters.  In standard game, barb and animal xp cap is 10,5 respectively.
-			/**Thanks to phungus420 for the following block of code! **/
-			if(pDefender->isBarbarian())
+			/**Thanks to phungus420 for the following block of code! **/ // advc (from MNAI): simplified
+			if (pDefender->isBarbarian())
 			{
 				if (pDefender->isAnimal())
 				{
-					//animal
-					iExperience = range(iExperience,0,GC.getDefineINT("ANIMAL_MAX_XP_VALUE")-(pAttacker->getExperience()));
-					if (iExperience < 0)
-					{
-						iExperience = 0;
-					}
-					iWithdrawXP = range(iWithdrawXP,0,GC.getDefineINT("ANIMAL_MAX_XP_VALUE")-(pAttacker->getExperience()));
-					if (iWithdrawXP < 0)
-					{
-						iWithdrawXP = 0;
-					}
-					iBonusAttackerXP = range(iBonusAttackerXP,0,GC.getDefineINT("ANIMAL_MAX_XP_VALUE")-(pAttacker->getExperience() + iExperience));
-					if (iBonusAttackerXP < 0)
-					{
-						iBonusAttackerXP = 0;
-					}
-					iBonusWithdrawXP = range(iBonusWithdrawXP,0,GC.getDefineINT("ANIMAL_MAX_XP_VALUE")-(pAttacker->getExperience() + iWithdrawXP));
-					if (iBonusWithdrawXP < 0)
-					{
-						iBonusWithdrawXP = 0;
-					}
+					int iMaxExtraXP = std::max(0,
+							GC.getDefineINT("ANIMAL_MAX_XP_VALUE") - pAttacker->getExperience());
+					iExperience = range(iExperience, 0, iMaxExtraXP);
+					iWithdrawXP = range(iWithdrawXP, 0, iMaxExtraXP);
+					iBonusAttackerXP = range(iBonusAttackerXP, 0, iMaxExtraXP + iExperience);
+					iBonusWithdrawXP = range(iBonusWithdrawXP, 0, iMaxExtraXP + iWithdrawXP);
 				}
 				else
 				{
-					//normal barbarian
-					iExperience = range(iExperience,0,GC.getDefineINT("BARBARIAN_MAX_XP_VALUE")-pAttacker->getExperience());
-					if (iExperience < 0)
-					{
-						iExperience = 0;
-					}
-					iWithdrawXP = range(iWithdrawXP,0,GC.getDefineINT("BARBARIAN_MAX_XP_VALUE")-(pAttacker->getExperience()));
-					if (iWithdrawXP < 0)
-					{
-						iWithdrawXP = 0;
-					}
-					iBonusAttackerXP = range(iBonusAttackerXP,0,GC.getDefineINT("BARBARIAN_MAX_XP_VALUE")-(pAttacker->getExperience() + iExperience));
-					if (iBonusAttackerXP < 0)
-					{
-						iBonusAttackerXP = 0;
-					}
-					iBonusWithdrawXP = range(iBonusWithdrawXP,0,GC.getDefineINT("BARBARIAN_MAX_XP_VALUE")-(pAttacker->getExperience() + iWithdrawXP));
-					if (iBonusWithdrawXP < 0)
-					{
-						iBonusWithdrawXP = 0;
-					}
+					int iMaxExtraXP = std::max(0,
+							GC.getDefineINT("BARBARIAN_MAX_XP_VALUE") - pAttacker->getExperience());
+					iExperience = range(iExperience, 0, iMaxExtraXP);
+					iWithdrawXP = range(iWithdrawXP, 0, iMaxExtraXP);
+					iBonusAttackerXP = range(iBonusAttackerXP, 0, iMaxExtraXP + iExperience);
+					iBonusWithdrawXP = range(iBonusWithdrawXP, 0, iMaxExtraXP + iWithdrawXP);
 				}
 			}
 
@@ -8885,15 +8855,15 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 					}
 					else
 					{
-						for (int iJ = 0; iJ < GC.getNUM_BUILDING_AND_TECH_PREREQS(); iJ++)
+						for (int i = 0; i < GC.getNUM_BUILDING_AND_TECH_PREREQS(); i++)
 						{
-							if (GC.getInfo(eLoopBuilding).getPrereqAndTechs(iJ) == eTech)
+							if (GC.getInfo(eLoopBuilding).getPrereqAndTechs(i) == eTech)
 							{
 								szFirstBuffer.Format(L"%s%s", NEWLINE,
 										gDLL->getText("TXT_KEY_TECH_CAN_CONSTRUCT").c_str());
 								szTempBuffer.Format( SETCOLR L"<link=literal>%s</link>" ENDCOLR,
-									TEXT_COLOR("COLOR_BUILDING_TEXT"),
-									GC.getInfo(eLoopBuilding).getDescription());
+										TEXT_COLOR("COLOR_BUILDING_TEXT"),
+										GC.getInfo(eLoopBuilding).getDescription());
 								setListHelp(szBuffer, szFirstBuffer, szTempBuffer, L", ", bFirst);
 								bFirst = false;
 								break;

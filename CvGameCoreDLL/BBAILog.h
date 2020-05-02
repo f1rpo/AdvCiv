@@ -5,7 +5,7 @@
 
 // AI decision making logging
 
-// advc.mak: Uncomment to enable BBAI logging
+// advc: Uncomment to enable BBAI logging
 //#define LOG_AI
 // Log levels:
 // 0 - None

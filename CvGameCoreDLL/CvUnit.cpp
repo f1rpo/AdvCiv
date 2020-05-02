@@ -1488,10 +1488,10 @@ void CvUnit::updateCombat(bool bQuick)
 		{
 			TeamTypes ePlotMaster = GET_PLAYER(ePlotOwner).getMasterTeam();
 			/*  Success vs. Barbarians isn't normally counted. Do count it if
-			it happens in another civ's borders. Also Privateers.
-			Success within their borders against a shared war enemy is
-			already counted by changeWarSuccess, but count it again
-			for added weight. */
+				it happens in another civ's borders. Also Privateers.
+				Success within their borders against a shared war enemy is
+				already counted by changeWarSuccess, but count it again
+				for added weight. */
 			if(ePlotMaster != GET_TEAM(pDefender->getTeam()).getMasterTeam() &&
 				// Plot owner not happy if his own Privateer killed
 				ePlotMaster != GET_TEAM(getTeam()).getMasterTeam() &&
@@ -3011,9 +3011,9 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport) /* advc: */ const
 	} // </advc.123a>
 
 	// advc.opt: Moved down (check all the one-liners first)
-	for (int iCorp = 0; iCorp < GC.getNumCorporationInfos(); iCorp++)
+	FOR_EACH_ENUM(Corporation)
 	{
-		if (m_pUnitInfo->getCorporationSpreads(iCorp) > 0)
+		if (m_pUnitInfo->getCorporationSpreads(eLoopCorporation) > 0)
 		{
 			return false;
 		}
@@ -7625,10 +7625,8 @@ bool CvUnit::isWaiting() const
 
 bool CvUnit::isFortifyable() const
 {
-	if (!canFight() || noDefensiveBonus() || ((getDomainType() != DOMAIN_LAND) && (getDomainType() != DOMAIN_IMMOBILE)))
-		return false;
-
-	return true;
+	return (canFight() && !noDefensiveBonus() &&
+		(getDomainType() == DOMAIN_LAND || getDomainType() == DOMAIN_IMMOBILE));
 }
 
 
@@ -7743,7 +7741,7 @@ int CvUnit::withdrawalProbability() const
 {
 	if (getDomainType() == DOMAIN_LAND && getPlot().isWater())
 		return 0;
-	return std::max(0, (m_pUnitInfo->getWithdrawalProbability() + getExtraWithdrawal()));
+	return std::max(0, m_pUnitInfo->getWithdrawalProbability() + getExtraWithdrawal());
 }
 
 

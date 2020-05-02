@@ -939,17 +939,19 @@ void CvTeamAI::AI_postDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan)
 	if (eWarPlan != NO_WARPLAN)
 		AI_setWarPlan(eTarget, eWarPlan);
 
-	FAssert(!AI_isSneakAttackPreparing(eTarget)
+	FAssert(!AI_isSneakAttackPreparing(eTarget) ||
 		/*  advc.104o: Can happen when hired to declare war while preparing.
 			BtS/K-Mod doesn't allow hired war while preparing, but UWAI does.
 			The K-Mod code below already handles WARPLAN_PREPARING_..., so, no problem. */
-			|| getUWAI.isEnabled());
+			getUWAI.isEnabled());
 	if (AI_getWarPlan(eTarget) == NO_WARPLAN || AI_isSneakAttackPreparing(eTarget))
 	{
-		if (isHuman()
-				// K-Mod. (for vassals that have been told to prepare for war)
-				|| AI_getWarPlan(eTarget) == WARPLAN_PREPARING_TOTAL)
+		if (isHuman() ||
+			// K-Mod. (for vassals that have been told to prepare for war)
+			AI_getWarPlan(eTarget) == WARPLAN_PREPARING_TOTAL)
+		{
 			AI_setWarPlan(eTarget, WARPLAN_TOTAL);
+		}
 		else if (isMinorCiv() || isBarbarian() || kTarget.getNumWars() == 1)
 			AI_setWarPlan(eTarget, WARPLAN_LIMITED);
 		else AI_setWarPlan(eTarget, WARPLAN_DOGPILE);

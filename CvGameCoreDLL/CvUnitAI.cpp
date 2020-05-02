@@ -1741,8 +1741,10 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 		if (getPlot().getOwner() == getOwner())
 		{
 			if (AI_load(UNITAI_SETTLER_SEA, MISSIONAI_LOAD_SETTLER, UNITAI_SETTLE,
-					2, -1, -1, 0, MOVE_SAFE_TERRITORY))
+				2, -1, -1, 0, MOVE_SAFE_TERRITORY))
+			{
 				return;
+			}
 		}
 	}
 
@@ -1785,9 +1787,10 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 	int iBestBonusValue = 0;
 	if (AI_improveBonus(25, &pBestBonusPlot, &eBestBonusBuild, &iBestBonusValue)) */
 	if (AI_improveBonus( // K-Mod
-			iMissingWorkersInArea)) // advc.121
+		iMissingWorkersInArea)) // advc.121
+	{
 		return;
-
+	}
 	if (bCanRoute && !isBarbarian())
 	{
 		if (AI_connectCity())
@@ -1848,14 +1851,15 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 
 	bool bBuildFort = false;
 	if (GC.getGame().getSorenRandNum(5, "AI Worker build Fort with Priority")
-			== 0) // advc.001: Was > 0; why should a Fort be given priority 80% of the time?
+		== 0) // advc.001: Was > 0; why should a Fort be given priority 80% of the time?
 	{
 		//bool bCanal = ((100 * getArea().getNumCities()) / std::max(1, GC.getGame().getNumCities()) < 85);
 		// K-Mod. The current AI for canals doesn't work anyway; so lets skip it to save time.
 		bool bCanal = false;
 		bool bAirbase = false;
-		bAirbase = (kOwner.AI_totalUnitAIs(UNITAI_PARADROP) || kOwner.AI_totalUnitAIs(UNITAI_ATTACK_AIR) || kOwner.AI_totalUnitAIs(UNITAI_MISSILE_AIR));
-
+		bAirbase = (kOwner.AI_totalUnitAIs(UNITAI_PARADROP) ||
+				kOwner.AI_totalUnitAIs(UNITAI_ATTACK_AIR) ||
+				kOwner.AI_totalUnitAIs(UNITAI_MISSILE_AIR));
 		if (bCanal || bAirbase)
 		{
 			if (AI_fortTerritory(bCanal, bAirbase))
@@ -1934,8 +1938,9 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 		//bool bCanal = ((100 * getArea().getNumCities()) / std::max(1, GC.getGame().getNumCities()) < 85);
 		bool bCanal = false; // K-Mod. The current AI for canals doesn't work anyway; so lets skip it to save time.
 		bool bAirbase = false;
-		bAirbase = (kOwner.AI_totalUnitAIs(UNITAI_PARADROP) || kOwner.AI_totalUnitAIs(UNITAI_ATTACK_AIR) || kOwner.AI_totalUnitAIs(UNITAI_MISSILE_AIR));
-
+		bAirbase = (kOwner.AI_totalUnitAIs(UNITAI_PARADROP) ||
+				kOwner.AI_totalUnitAIs(UNITAI_ATTACK_AIR) ||
+				kOwner.AI_totalUnitAIs(UNITAI_MISSILE_AIR));
 		if (bCanal || bAirbase)
 		{
 			if (AI_fortTerritory(bCanal, bAirbase))
@@ -1943,15 +1948,15 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 		}
 	}
 
-	if (bCanRoute
+	if (bCanRoute &&
 		// advc.113: If there is more than 1 worker too many, try AI_load first.
-		&& iMissingWorkersInArea >= -1)
+		iMissingWorkersInArea >= -1)
 	{
 		if (AI_routeTerritory())
 			return;
 		bCanRoute = false; // advc.113: Don't try again
 	}
-	double prLoad = 0; // advc.113: Needed for the scrap decision
+	scaled prLoad = 0; // advc.113: Needed for the scrap decision
 	if (!isHuman() || (isAutomated() && GET_TEAM(getTeam()).getNumWars() <= 0))
 	{
 		if (!isHuman() || getGameTurnCreated() < GC.getGame().getGameTurn())
@@ -1967,7 +1972,7 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 				into transports.) */
 			int const iAreaWorkers = kOwner.AI_totalAreaUnitAIs(getArea(), UNITAI_WORKER);
 			int const iAreaCities = getArea().getCitiesPerPlayer(getOwner());
-			prLoad = (3 * iAreaWorkers - 2 * iAreaCities) / 24.0;
+			prLoad = scaled(3 * iAreaWorkers - 2 * iAreaCities, 24);
 			if (pCity != NULL)
 			{
 				int iLocalMissing = pCity->AI_getWorkersNeeded() - pCity->AI_getWorkersHave();
@@ -1975,20 +1980,23 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 					prLoad /= 1 + iLocalMissing;
 			}
 			if (iAreaCities <= 0 || (iMissingWorkersInArea <= 0 && iAreaWorkers > 1 &&
-					::bernoulliSuccess(prLoad, "advc.113 (load worker)")))
+				prLoad.bernoulliSuccess(GC.getGame().getSRand(), "advc.113 (load worker)")))
 			{ // </advc.113>
 				/*if (AI_load(UNITAI_SETTLER_SEA, MISSIONAI_LOAD_SETTLER, NO_UNITAI, -1, -1, -1, -1, MOVE_SAFE_TERRITORY))
 					return; */
 				// BETTER_BTS_AI_MOD, Worker AI, 01/14/09, jdog5000: START
 				if (AI_load(UNITAI_SETTLER_SEA, MISSIONAI_LOAD_SETTLER,
-						UNITAI_WORKER, // Fill up boats which already have workers
-						-1, -1, -1, -1, MOVE_SAFE_TERRITORY))
+					UNITAI_WORKER, // Fill up boats which already have workers
+					-1, -1, -1, -1, MOVE_SAFE_TERRITORY))
+				{
 					return;
+				}
 				// Avoid filling a galley which has just a settler in it, reduce chances for other ships
 				if (AI_load(UNITAI_SETTLER_SEA, MISSIONAI_LOAD_SETTLER, NO_UNITAI,
-						-1, 2, -1, -1, MOVE_SAFE_TERRITORY))
+					-1, 2, -1, -1, MOVE_SAFE_TERRITORY))
+				{
 					return;
-				// BETTER_BTS_AI_MOD: END
+				} // BETTER_BTS_AI_MOD: END
 				prLoad = 0; // advc.113: OK to scrap
 			}
 		}
@@ -2012,8 +2020,9 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 	{	/*if (GC.getGame().getElapsedGameTurns() > 10) {
 			if (GET_PLAYER(getOwner()).AI_totalUnitAIs(UNITAI_WORKER) > GET_PLAYER(getOwner()).getNumCities()) */
 		// K-Mod
-		if (GC.getGame().getElapsedGameTurns() > GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent()/6
-			&& iMissingWorkersInArea < 0) // advc.113: Cheap initial check
+		if (6 * GC.getGame().getElapsedGameTurns() >
+			GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent() &&
+			iMissingWorkersInArea < 0) // advc.113: Cheap initial check
 		{
 			int iTotalThresh = std::max(GC.getInfo(GC.getMap().getWorldSize()).
 					/*  advc (comment): 3/2 * NumCities is fine and, in itself,
@@ -2041,16 +2050,17 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 				if (pCity == NULL || pCity->AI_getWorkersNeeded() < pCity->AI_getWorkersHave() + 1)
 				{	/*  Scrap eventually b/c the worker could be stuck in this area,
 						but there's no hurry. */
-					double prScrap = (iTotalHave / (double)std::max(1, iTotalThresh)) - 1;
+					scaled prScrap(iTotalHave, std::max(1, iTotalThresh));
+					prScrap -= 1;
 					prScrap *= prScrap;
 					// Don't scrap if waiting to load
-					prScrap *= std::max(0.0, 1 - 3 * prLoad);
-					if (prScrap > 0.001) // to save time
+					prScrap *= scaled::max(0, 1 - 3 * prLoad);
+					if (prScrap > 0) // to save time
 					{
 						int iFinancialTroubleMargin = kOwner.AI_financialTroubleMargin();
-						prScrap *= (100 - std::min(iFinancialTroubleMargin, 85)) / 100.0;
+						prScrap *= per100(100 - std::min(iFinancialTroubleMargin, 85));
 					}
-					if(::bernoulliSuccess(prScrap, "advc.113 (scrap worker)"))
+					if(prScrap.bernoulliSuccess(GC.getGame().getSRand(), "advc.113 (scrap worker)"))
 					{ // </advc.113>
 						scrap();
 						return;
@@ -2081,7 +2091,7 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 void CvUnitAI::AI_barbAttackMove()
 {
 	PROFILE_FUNC();
-	CvGame& g = GC.getGame();
+	CvGame& kGame = GC.getGame();
 	if (AI_guardCity(false, true, 1))
 	{
 		return;
@@ -2104,7 +2114,7 @@ void CvUnitAI::AI_barbAttackMove()
 		}
 	}
 
-	if (g.getSorenRandNum(2, "AI Barb") == 0)
+	if (kGame.getSorenRandNum(2, "AI Barb") == 0)
 	{
 		if (AI_pillageRange(1))
 		{
@@ -2123,15 +2133,15 @@ void CvUnitAI::AI_barbAttackMove()
 		int iCivsInArea = getArea().countCivs(true);
 		int iCivCitiesInArea = getArea().countCivCities();
 		int iBabarianCitiesInArea = getArea().getNumCities() - iCivCitiesInArea;
-		int iCivCities = g.getNumCivCities();
-		int iCivs = g.countCivPlayersAlive(); // </advc.300>
-		if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) &&
+		int iCivCities = kGame.getNumCivCities();
+		int iCivs = kGame.countCivPlayersAlive(); // </advc.300>
+		if(kGame.isOption(GAMEOPTION_RAGING_BARBARIANS) &&
 			/*  <advc.300> On slower than Normal game speed, don't start to rage
 				until 3 in 5 civs have founded a second city. */
 			((iCivsInArea > 1 ?
 			(3 * iCivCitiesInArea > 5 * iCivsInArea) :
 			(2 * iCivCities > 3 * iCivs)) ||
-			GC.getInfo(g.getGameSpeedType()).getBarbPercent() <= 100))
+			GC.getInfo(kGame.getGameSpeedType()).getBarbPercent() <= 100))
 			// </advc.300>
 		{
 			if (AI_pillageRange(4))
@@ -16782,21 +16792,21 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 							if (at(kPlot)) // need to test before moving...
 							{
 								getGroup()->pushMission(MISSION_ROUTE_TO, pLoopCity->getX(), pLoopCity->getY(),
-									MOVE_SAFE_TERRITORY
-									| MOVE_ROUTE_TO, // advc.pf
-									false, false, MISSIONAI_BUILD, &kPlot);
+										MOVE_SAFE_TERRITORY
+										| MOVE_ROUTE_TO, // advc.pf
+										false, false, MISSIONAI_BUILD, &kPlot);
 							}
 							else
 							{
 								getGroup()->pushMission(MISSION_ROUTE_TO,
-									pLoopCity->getX(), pLoopCity->getY(),
-									MOVE_SAFE_TERRITORY
-									| MOVE_ROUTE_TO, // advc.pf
-									false, false, MISSIONAI_BUILD, &kPlot);
+										pLoopCity->getX(), pLoopCity->getY(),
+										MOVE_SAFE_TERRITORY
+										| MOVE_ROUTE_TO, // advc.pf
+										false, false, MISSIONAI_BUILD, &kPlot);
 								getGroup()->pushMission(MISSION_ROUTE_TO, kPlot.getX(), kPlot.getY(),
-									MOVE_SAFE_TERRITORY
-									| MOVE_ROUTE_TO, // advc.pf
-									true, false, MISSIONAI_BUILD, &kPlot); // K-Mod
+										MOVE_SAFE_TERRITORY
+										| MOVE_ROUTE_TO, // advc.pf
+										true, false, MISSIONAI_BUILD, &kPlot); // K-Mod
 							}
 
 							return true;
@@ -17894,13 +17904,13 @@ bool CvUnitAI::AI_routeCity()  // advc: some style changes
 					true))
 				{
 					getGroup()->pushMission(MISSION_ROUTE_TO,
-						pLoopCity->getX(), pLoopCity->getY(),
-						MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
-						false, false, MISSIONAI_BUILD, pRouteToCity->plot());
+							pLoopCity->getX(), pLoopCity->getY(),
+							MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
+							false, false, MISSIONAI_BUILD, pRouteToCity->plot());
 					getGroup()->pushMission(MISSION_ROUTE_TO,
-						pRouteToCity->getX(), pRouteToCity->getY(),
-						MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
-						true, false, MISSIONAI_BUILD, pRouteToCity->plot()); // K-Mod
+							pRouteToCity->getX(), pRouteToCity->getY(),
+							MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
+							true, false, MISSIONAI_BUILD, pRouteToCity->plot()); // K-Mod
 
 					return true;
 				}
@@ -17921,9 +17931,9 @@ bool CvUnitAI::AI_routeTerritory(bool bImprovementOnly)
 
 	CvPlot const* pBestPlot = NULL;
 	int iBestValue = 0;
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
-		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
+		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
 		if (kPlot.getOwner() != getOwner() || // XXX team???
 			/*!AI_plotValid(kPlot)*/ !isArea(kPlot.getArea())) // advc.opt
 		{

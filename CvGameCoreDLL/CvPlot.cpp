@@ -2027,7 +2027,7 @@ int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, /* advc.251: */ PlayerTypes ePl
 	return std::max(1, iTurnsLeft);
 }
 
-// <advc.011c>
+// advc.011c:
 int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, PlayerTypes ePlayer) const
 {
 	int iWorkRate = GET_PLAYER(ePlayer).getWorkRate(eBuild);
@@ -2036,8 +2036,8 @@ int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, PlayerTypes ePlayer) const
 		return getBuildTurnsLeft(eBuild, /* advc.251: */ ePlayer,
 				iWorkRate, iWorkRate, false);
 	}
-	else return MAX_INT;
-} // </advc.011c>
+	return MAX_INT;
+}
 
 
 int CvPlot::getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** ppCity,
@@ -4786,8 +4786,11 @@ void CvPlot::updateCityRoute(bool bUpdatePlotGroup)  // advc: some style changes
 
 	RouteTypes eCityRoute = GET_PLAYER(getOwner()).getBestRoute();
 	if (eCityRoute == NO_ROUTE)
-		eCityRoute = ((RouteTypes)GC.getDefineINT("INITIAL_CITY_ROUTE_TYPE"));
-
+	{	// <advc.opt>
+		static const RouteTypes eINITIAL_CITY_ROUTE_TYPE = (RouteTypes)
+				GC.getDefineINT("INITIAL_CITY_ROUTE_TYPE"); // </advc.opt>
+		eCityRoute = eINITIAL_CITY_ROUTE_TYPE;
+	}
 	setRouteType(eCityRoute, bUpdatePlotGroup);
 }
 
@@ -5033,7 +5036,7 @@ int CvPlot::getReconCount() const
 
 void CvPlot::changeReconCount(int iChange)
 {
-	m_iReconCount = (m_iReconCount + iChange);
+	m_iReconCount += m_iReconCount;
 	FAssert(getReconCount() >= 0);
 }
 
@@ -7670,9 +7673,10 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 	// K-Mod. Count the 'extra yield' for financial civs. (Don't bother with golden-age bonuses.)
 	int iThreshold = GET_PLAYER(getOwner()).getExtraYieldThreshold(eYield);
 	if (iThreshold > 0 &&
-				(iYield > iThreshold || iNatureYield >= iThreshold)) // advc.908a
+		(iYield > iThreshold || iNatureYield >= iThreshold)) // advc.908a
+	{
 		iYield += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
-	// K-Mod end
+	} // K-Mod end
 
 	//return iYield;
 	return std::max(0, iYield); // K-Mod - so that it matches calculateYield()

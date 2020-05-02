@@ -975,7 +975,7 @@ void CvGame::initFreeUnits_bulk() // </advc.051>
 	}
 }
 
-/*  <advc.310> For building (or other) effects that only apply when certain
+/*  advc.310: For building (or other) effects that only apply when certain
 	game options are set. */
 void CvGame::applyOptionEffects(bool bEnableAll)
 {
@@ -985,7 +985,7 @@ void CvGame::applyOptionEffects(bool bEnableAll)
 			!isOption(GAMEOPTION_RAGING_BARBARIANS) || isOption(GAMEOPTION_NO_BARBARIANS));
 	CvBuildingInfo::setAreaBorderObstacleEnabled(bEnableAll ||
 			!isOption(GAMEOPTION_NO_BARBARIANS));
-} // </advc.310>
+}
 
 
 void CvGame::assignStartingPlots()
@@ -1065,8 +1065,8 @@ void CvGame::assignStartingPlots()
 		for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 		{
 			FAssertMsg(!GET_PLAYER((PlayerTypes)iJ).isAlive() ||
-					(GET_PLAYER((PlayerTypes)iJ).getStartingPlot() != NULL
-					&& newPlotFound[iJ]), // advc.108b
+					(GET_PLAYER((PlayerTypes)iJ).getStartingPlot() != NULL &&
+					newPlotFound[iJ]), // advc.108b
 					"Player has no starting plot");
 		}
 	} /* advc.108b: Replace all this. Don't want handicaps to be ignored in
@@ -1166,22 +1166,22 @@ void CvGame::assignStartingPlots()
 			}
 			for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 			{
-				CvPlayer& civ = GET_PLAYER((PlayerTypes)((i + iRandOffset) %
-						MAX_CIV_PLAYERS));
-				if(!civ.isAlive() || civ.isHuman() != bHuman)
+				CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)
+						((i + iRandOffset) % MAX_CIV_PLAYERS));
+				if(!kPlayer.isAlive() || kPlayer.isHuman() != bHuman)
 					continue;
-				FAssert(!newPlotFound[civ.getID()]);
+				FAssert(!newPlotFound[kPlayer.getID()]);
 				gDLL->callUpdater();
 				// If the map script hasn't set a plot, find one.
-				if(civ.getStartingPlot() == NULL)
-					civ.setStartingPlot(civ.findStartingPlot(), true);
-				if(civ.getStartingPlot() == NULL)
+				if(kPlayer.getStartingPlot() == NULL)
+					kPlayer.setStartingPlot(kPlayer.findStartingPlot(), true);
+				if(kPlayer.getStartingPlot() == NULL)
 				{
 					FAssertMsg(false, "No starting plot found");
 					continue;
 				}
 				int iPos = ::range((iAlive *
-						GC.getInfo(civ.getHandicapType()).
+						GC.getInfo(kPlayer.getHandicapType()).
 						getStartingLocationPercent()) / 100, 0, iAlive - 1);
 				if (playerOrder[iPos] != NO_PLAYER) // Pos already taken
 				{
@@ -1201,8 +1201,8 @@ void CvGame::assignStartingPlots()
 					}
 					FAssert(playerOrder[iPos] == NO_PLAYER);
 				}
-				playerOrder[iPos] = civ.getID();
-				newPlotFound[civ.getID()] = true;
+				playerOrder[iPos] = kPlayer.getID();
+				newPlotFound[kPlayer.getID()] = true;
 			}
 		}
 	}

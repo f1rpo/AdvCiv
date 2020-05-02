@@ -419,6 +419,9 @@ public:
 			return (*this <= num + e && *this + e >= num);
 		return ((*this - num).abs() <= e);
 	}
+	// To make one ScaledInt differ from another by the smallest amount possible
+	__forceinline void addEpsilon() { m_i++; }
+	__forceinline void subtractEpsilon() { m_i--; }
 
 	__forceinline bool isPositive() const { return (m_i > 0); }
 	__forceinline bool isNegative() const { return (bSIGNED && m_i < 0); }

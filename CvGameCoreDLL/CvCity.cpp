@@ -8808,7 +8808,7 @@ void CvCity::alterWorkingPlot(CityPlotTypes ePlot) // advc.enum: CityPlotTypes
 		setWorkingPlot(ePlot, true);
 }
 
-// <advc.003w>
+// advc.003w:
 int CvCity::getNumRealBuilding(BuildingClassTypes eBuildingClass) const
 {
 	BuildingTypes eBuilding = getCivilization().getBuilding(eBuildingClass);

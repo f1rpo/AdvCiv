@@ -33,6 +33,9 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 	CvLeaderHeadInfo const* pPersonality = NULL;
 	CvCivilization const& kCiv = kPlayer.getCivilization();
 
+	/*	(Would be nicer not to take a CvPlayer argument for starting locations.
+		However, then AIFoundValue::kPlayer would have to be a pointer,
+		which isn't as convenient.) */
 	if (!m_bStartingLoc)
 	{
 		// advc.001: Make sure that personality isn't used for human or StartingLoc
@@ -739,7 +742,7 @@ bool AIFoundValue::isSiteValid() const
 	}
 
 	int iMinRivalRange = kSet.getMinRivalRange();
-	if (iMinRivalRange != -1)
+	if (iMinRivalRange > 0)
 	{
 		for (SquareIter it(kPlot, iMinRivalRange); it.hasNext(); ++it)
 		{

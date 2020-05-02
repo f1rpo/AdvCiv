@@ -67,8 +67,7 @@ KmodPathFinder::~KmodPathFinder()
 bool KmodPathFinder::ValidateNodeMap()
 {
 	//PROFILE_FUNC(); // advc.003o
-	if (!GC.getGame().isFinalInitialized())
-		return false;
+	FAssert(GC.getGame().isFinalInitialized()); // advc: Never seems to happen; assertion should suffice.
 
 	if (map_width != GC.getMap().getGridWidth() || map_height != GC.getMap().getGridHeight())
 	{
