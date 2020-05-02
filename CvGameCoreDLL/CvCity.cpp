@@ -5377,6 +5377,9 @@ void CvCity::changeMilitaryHappinessUnits(int iChange)
 		m_iMilitaryHappinessUnits += iChange;
 		FAssert(getMilitaryHappinessUnits() >= 0);
 		AI_setAssignWorkDirty(true);
+		// <advc.004> Update the unhappiness indicator
+		if (getOwner() == GC.getGame().getActivePlayer())
+			gDLL->UI().setDirty(CityInfo_DIRTY_BIT, true); // </advc.004>
 	}
 }
 
