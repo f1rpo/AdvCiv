@@ -8818,18 +8818,19 @@ int CvCity::getNumRealBuilding(BuildingClassTypes eBuildingClass) const
 	if (eBuilding == NO_BUILDING)
 		return 0;
 	return getNumRealBuilding(eBuilding);
-} // </advc.003w>
+}
 
 
-void CvCity::setNumRealBuilding(BuildingTypes eIndex, int iNewValue)
+void CvCity::setNumRealBuilding(BuildingTypes eIndex, int iNewValue,
+	bool bEndOfTurn) // advc.001x
 {
 	setNumRealBuildingTimed(eIndex, iNewValue, true, getOwner(),
-			GC.getGame().getGameTurnYear());
+			GC.getGame().getGameTurnYear(), /* advc.001x: */ bEndOfTurn);
 }
 
 
 void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, bool bFirst,  // advc. refactoring
-	PlayerTypes eOriginalOwner, int iOriginalTime)
+	PlayerTypes eOriginalOwner, int iOriginalTime, /* advc.001x: */ bool bEndOfTurn)
 {
 
 	int const iChange = iNewValue - getNumRealBuilding(eBuilding);
@@ -8888,8 +8889,17 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, boo
 			CvPlayer& kOwner = GET_PLAYER(getOwner());
 
 			if (kBuilding.isGoldenAge())
-				kOwner.changeGoldenAgeTurns(iChange * (kOwner.getGoldenAgeLength() + 1));
-
+			{
+				//kOwner.changeGoldenAgeTurns(iChange * (kOwner.getGoldenAgeLength() + 1));
+				// <advc.001x>
+				if (bEndOfTurn)
+				{
+					for (int i = 0; i < iChange; i++)
+						kOwner.startGoldenAgeDelayed();
+				}
+				else kOwner.changeGoldenAgeTurns(iChange * kOwner.getGoldenAgeLength());
+				// </advc.001x>
+			}
 			if (kBuilding.getGlobalPopulationChange() != 0)
 			{
 				for (MemberIter it(getTeam()); it.hasNext(); ++it)
@@ -9644,7 +9654,8 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave,
 }
 
 
-void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style changes
+void CvCity::popOrder(int iNum, bool bFinish, bool bChoose,  // advc: style changes
+	bool bEndOfTurn) // advc.001x
 {
 	wchar szBuffer[1024];
 	wchar szTempBuffer[1024];
@@ -9772,7 +9783,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)  // advc: style chan
 		{
 			kOwner.removeBuildingClass(eBuildingClass);
 		}
-		setNumRealBuilding(eConstructBuilding, getNumRealBuilding(eConstructBuilding) + 1);
+		setNumRealBuilding(eConstructBuilding, getNumRealBuilding(eConstructBuilding) + 1,
+				bEndOfTurn); // advc.001x
 		// <advc.064b> Moved into new function
 		handleOverflow(getBuildingProduction(eConstructBuilding) -
 				getProductionNeeded(eConstructBuilding),
@@ -12722,7 +12734,7 @@ void CvCity::cheat(bool bCtrl, bool bAlt, bool bShift)
 			changeCulture(getOwner(), 10, true, true);
 		else if (bShift)
 			changePopulation(1);
-		else popOrder(0, true);
+		else popOrder(0, true, /* advc.001x: */ false, false);
 	}
 }
 

@@ -447,6 +447,7 @@ public:
 	int getGoldenAgeTurns() const;																															// Exposed to Python
 	bool isGoldenAge() const;																																		// Exposed to Python
 	void changeGoldenAgeTurns(int iChange);																													// Exposed to Python
+	void startGoldenAgeDelayed(); // advc.001x
 	int getGoldenAgeLength() const;
 
 	int getNumUnitGoldenAges() const;																																			// Exposed to Python
@@ -1268,6 +1269,7 @@ protected:  // <advc.210>
 	int m_iGoldPerTurn;
 	int m_iAdvancedStartPoints;
 	int m_iGoldenAgeTurns;
+	int m_iScheduledGoldenAges; // advc.001x
 	int m_iNumUnitGoldenAges;
 	int m_iStrikeTurns;
 	int m_iAnarchyTurns;

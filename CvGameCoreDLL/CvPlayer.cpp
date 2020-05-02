@@ -451,6 +451,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_iGoldPerTurn = 0;
 	m_iAdvancedStartPoints = -1;
 	m_iGoldenAgeTurns = 0;
+	m_iScheduledGoldenAges = 0; // advc.001x
 	m_iNumUnitGoldenAges = 0;
 	m_iStrikeTurns = 0;
 	m_iAnarchyTurns = 0;
@@ -7858,6 +7859,11 @@ void CvPlayer::changeGoldenAgeTurns(int iChange)
 	if (getID() == GC.getGame().getActivePlayer())
 		gDLL->UI().setDirty(GameData_DIRTY_BIT, true);
 }
+// advc.001x:
+void CvPlayer::startGoldenAgeDelayed()
+{
+	m_iScheduledGoldenAges++;
+}
 
 int CvPlayer::getGoldenAgeLength() const
 {
@@ -9852,6 +9858,10 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 	if (isTurnActive())
 	{
 		FAssert(isAlive());
+		// <advc.001x> (or move this to the very end of doTurn?)
+		changeGoldenAgeTurns(getGoldenAgeLength() * m_iScheduledGoldenAges);
+		m_iScheduledGoldenAges = 0;
+		// </advc.001x>
 		// K-Mod
 		AI().AI_updateCacheData();
 		onTurnLogging(); // bbai logging
@@ -16027,6 +16037,9 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iGoldPerTurn);
 	pStream->Read(&m_iAdvancedStartPoints);
 	pStream->Read(&m_iGoldenAgeTurns);
+	// <advc.001x>
+	if (uiFlag >= 11)
+		pStream->Read(&m_iScheduledGoldenAges); // </advc.001x>
 	pStream->Read(&m_iNumUnitGoldenAges);
 	pStream->Read(&m_iStrikeTurns);
 	pStream->Read(&m_iAnarchyTurns);
@@ -16573,6 +16586,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	uiFlag = 8; // advc.004x
 	uiFlag = 9; // advc.078
 	uiFlag = 10; // advc.064b
+	uiFlag = 11; // advc.001x
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iStartingX);
@@ -16584,6 +16598,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	pStream->Write(m_iGoldPerTurn);
 	pStream->Write(m_iAdvancedStartPoints);
 	pStream->Write(m_iGoldenAgeTurns);
+	pStream->Write(m_iScheduledGoldenAges); // advc.001x
 	pStream->Write(m_iNumUnitGoldenAges);
 	pStream->Write(m_iStrikeTurns);
 	pStream->Write(m_iAnarchyTurns);

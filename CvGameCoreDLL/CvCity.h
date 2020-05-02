@@ -1115,9 +1115,10 @@ public:
 		return m_aiNumRealBuilding.get(eIndex);
 	}
 	int getNumRealBuilding(BuildingClassTypes eBuildingClass) const; // advc.003w
-	void setNumRealBuilding(BuildingTypes eBuilding, int iNewValue);												// Exposed to Python
+	void setNumRealBuilding(BuildingTypes eBuilding, int iNewValue,													// Exposed to Python
+			bool bEndOfTurn = false); // advc.001x
 	void setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool bFirst,
-			PlayerTypes eOriginalOwner, int iOriginalTime);
+			PlayerTypes eOriginalOwner, int iOriginalTime, /* advc.001x */ bool bEndOfTurn = false);
 
 	bool isValidBuildingLocation(BuildingTypes eIndex) const;
 
@@ -1151,7 +1152,8 @@ public:
 	// K-Mod. (the old version is still exposed to Python)
 	void pushOrder(OrderTypes eOrder, int iData1, int iData2 = -1, bool bSave = false,
 			bool bPop = false, int iPosition = 0, bool bForce = false);
-	void popOrder(int iNum, bool bFinish = false, bool bChoose = false);											// Exposed to Python
+	void popOrder(int iNum, bool bFinish = false, bool bChoose = false,												// Exposed to Python
+			bool bEndOfTurn = true); // advc.001x
 	void startHeadOrder();
 	void stopHeadOrder();
 	int getOrderQueueLength() /* advc: */ const																		// Exposed to Python
