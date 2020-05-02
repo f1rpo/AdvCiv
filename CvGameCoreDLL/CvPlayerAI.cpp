@@ -12073,7 +12073,11 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes eToPlaye
 		scaled rPeaceTreatyAversion = kToPlayer.AI_peaceTreatyAversion(getTeam());
 		if (rPeaceTreatyAversion > fixp(0.3))
 		{
-			FAssert(iAcquireVal > 0);
+			if (iAcquireVal == MIN_INT) // Compute lazily
+			{
+				iAcquireVal = GET_PLAYER(eToPlayer).AI_cityTradeVal(
+						kCity, eToPlayer, LIBERATION_WEIGHT_FULL);
+			}
 			if (GET_TEAM(eToPlayer).AI_isSneakAttackReady(getTeam()))
 			{
 				rPeaceTreatyAversion *= fixp(1.5);
