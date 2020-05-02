@@ -15075,7 +15075,7 @@ int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const*
 	if (iCost < 0)
 		return -1;
 
-	if (pPlot = NULL)
+	if (pPlot == NULL)
 	{
 		if (bAdd)
 		{
