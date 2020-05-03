@@ -150,7 +150,12 @@ public:
 	}
 	//int AI_getUnitDanger(CvUnit* pUnit, int iRange = -1, bool bTestMoves = true, bool bAnyDanger = true) const;
 	// BETTER_BTS_AI_MOD: END
-	int AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves = true) const;
+	int AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves = true,
+			/* <advc.opt> */ int iMaxCount = MAX_INT) const;
+	inline bool AI_isAnyWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves = true) const
+	{
+		return (AI_getWaterDanger(pPlot, iRange, bTestMoves, 1) >= 1);
+	} // </advc.opt>
 
 	bool AI_avoidScience() const;
 	int AI_financialTroubleMargin() const; // advc.110
@@ -334,17 +339,69 @@ public:
 	void AI_processNewBuild(BuildTypes eBuild); // advc.121
 
 	int AI_adjacentPotentialAttackers(CvPlot const& kPlot, bool bTestCanMove = false) const;
-	int AI_totalMissionAIs(MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
-	int AI_areaMissionAIs(CvArea const& kArea, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
-	// advc: const CvPlot*
-	int AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const;
-	int AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes eMissionAI, int& iClosestTargetRange, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const;
-	int AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes* aeMissionAI, int iMissionAICount, int& iClosestTargetRange, CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const;
-	int AI_unitTargetMissionAIs(CvUnit const* pUnit, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
-	int AI_unitTargetMissionAIs(CvUnit const* pUnit, MissionAITypes* aeMissionAI, int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
-	int AI_enemyTargetMissionAIs(MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
-	int AI_enemyTargetMissionAIs(MissionAITypes* aeMissionAI, int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
-	int AI_wakePlotTargetMissionAIs(CvPlot* pPlot, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
+	//int AI_totalMissionAIs(MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const; // advc.003j
+	int AI_areaMissionAIs(CvArea const& kArea, MissionAITypes eMissionAI,
+			CvSelectionGroup* pSkipSelectionGroup = NULL, /* <advc.opt> */ int iMaxCount = MAX_INT) const;
+	inline bool AI_isAnyAreaMissionAI(CvArea const& kArea, MissionAITypes eMissionAI,
+		CvSelectionGroup* pSkipSelectionGroup = NULL) const
+	{
+		return (AI_areaMissionAIs(kArea, eMissionAI, pSkipSelectionGroup, 1) >= 1);
+	} // </advc.opt>
+	// advc: TargetMissionAI counting: const CvPlot&. advc.opt: iMaxCount params added.
+	inline int AI_plotTargetMissionAIs(CvPlot const& kPlot, MissionAITypes eMissionAI,
+		CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0, int iMaxCount = MAX_INT) const
+	{
+		return AI_plotTargetMissionAIs(kPlot, &eMissionAI, 1, pSkipSelectionGroup,
+				iRange, iMaxCount);
+	}
+	// advc: Unused (out-)param iClosestTargetRange removed
+	int AI_plotTargetMissionAIs(CvPlot const& kPlot, MissionAITypes* aeMissionAI,
+			int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup = NULL,
+			int iRange = 0, int iMaxCount = MAX_INT) const;
+	// <advc.opt>
+	inline bool AI_isAnyPlotTargetMissionAI(CvPlot const& kPlot, MissionAITypes eMissionAI,
+		CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0) const
+	{
+		return (AI_plotTargetMissionAIs(kPlot, eMissionAI, pSkipSelectionGroup, iRange, 1) >= 1);
+	}
+	inline bool AI_isAnyUnitTargetMissionAI(CvUnit const& kUnit, MissionAITypes eMissionAI,
+		CvSelectionGroup* pSkipSelectionGroup = NULL) const
+	{
+		return (AI_unitTargetMissionAIs(kUnit, eMissionAI, pSkipSelectionGroup, 1) >= 1);
+	}
+	inline bool AI_isAnyUnitTargetMissionAI(CvUnit const& kUnit, MissionAITypes* aeMissionAI,
+		int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup = NULL,
+		int iMaxPathTurns = -1) const
+	{
+		return (AI_unitTargetMissionAIs(kUnit, aeMissionAI, iMissionAICount,
+				pSkipSelectionGroup, iMaxPathTurns, 1) >= 1);
+	} // </advc.opt>
+	inline int AI_unitTargetMissionAIs(CvUnit const& kUnit, MissionAITypes eMissionAI,
+		CvSelectionGroup* pSkipSelectionGroup = NULL, int iMaxCount = MAX_INT) const
+	{
+		return AI_unitTargetMissionAIs(kUnit, &eMissionAI, 1, pSkipSelectionGroup,
+				-1, iMaxCount);
+	}
+	int AI_unitTargetMissionAIs(CvUnit const& kUnit, MissionAITypes* aeMissionAI,
+			int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup = NULL,
+			int iMaxPathTurns = -1, // BBAI (advc: merged into the BtS function)
+			int iMaxCount = MAX_INT) const;
+	// BBAI start
+	int AI_enemyTargetMissions(TeamTypes eTargetTeam, CvSelectionGroup* pSkipSelectionGroup = NULL,
+			// <advc.opt>
+			int iMaxCount = MAX_INT) const; // BBAI end
+	inline bool AI_isAnyEnemyTargetMission(TeamTypes eTargetTeam,
+		CvSelectionGroup* pSkipSelectionGroup = NULL) const
+	{
+		return (AI_enemyTargetMissions(eTargetTeam, pSkipSelectionGroup, 1) >= 1);
+	} // </advc.opt>
+	// advc.003j: unused
+	/*int AI_enemyTargetMissionAIs(MissionAITypes eMissionAI,
+			CvSelectionGroup* pSkipSelectionGroup = NULL, int iMaxCount = MAX_INT) const;
+	int AI_enemyTargetMissionAIs(MissionAITypes* aeMissionAI,
+			int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup = NULL, int iMaxCount = MAX_INT) const;*/
+	int AI_wakePlotTargetMissionAIs(CvPlot const& kPlot, MissionAITypes eMissionAI,
+			CvSelectionGroup* pSkipSelectionGroup = NULL) const;
 	// K-Mod start
 	int AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eDefenceTeam, DomainTypes eDomainType = DOMAIN_LAND,
 			int iRange = 0, bool bMoveToTarget = true, bool bCheckMoves = false, bool bNoCache = false,
@@ -358,10 +415,6 @@ public:
 	void AI_attackMadeAgainst(CvUnit const& kDefender);
 	void AI_humanEnemyStackMovedInTerritory(CvPlot const& kFrom, CvPlot const& kTo);
 	// </advc.139>
-	// BBAI start
-	int AI_enemyTargetMissions(TeamTypes eTargetTeam, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
-	int AI_unitTargetMissionAIs(CvUnit const* pUnit, MissionAITypes* aeMissionAI, int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup, int iMaxPathTurns) const;
-	// BBAI end
 
 	CivicTypes AI_bestCivic(CivicOptionTypes eCivicOption, int* iBestValue = 0) const;
 	int AI_civicValue(CivicTypes eCivic) const;						// Exposed to Python

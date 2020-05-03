@@ -7887,13 +7887,13 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 			} // </advc.912d>
 			if (!bPlayerContext ||
 				(bValid && // advc.912d: Don't show tech req if disabled by option
-				!GET_TEAM(GC.getGame().getActiveTeam()).isHasTech(
-				(TechTypes)(kCivic.getTechPrereq()))))
+				!GET_TEAM(GC.getGame().getActiveTeam()).isHasTech(kCivic.getTechPrereq())))
 			{
 				if (kCivic.getTechPrereq() != NO_TECH)
 				{
 					szHelpText.append(NEWLINE);
-					szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_REQUIRES", GC.getInfo((TechTypes)kCivic.getTechPrereq()).getTextKeyWide()));
+					szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_REQUIRES",
+							GC.getInfo(kCivic.getTechPrereq()).getTextKeyWide()));
 				}
 			}
 		}
@@ -11596,7 +11596,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 			if(pCity != NULL)
 			{
 				// Don't mention bonuses that won't happen in this or the next era
-				TechTypes ePrereqTech = (TechTypes)GC.getInfo(eLoopCivic).getTechPrereq();
+				TechTypes ePrereqTech = GC.getInfo(eLoopCivic).getTechPrereq();
 				if(ePrereqTech != NO_TECH &&
 					GC.getInfo(ePrereqTech).getEra() - pPlayer->getCurrentEra() > 1)
 				{

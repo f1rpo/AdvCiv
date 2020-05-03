@@ -149,10 +149,14 @@ int CvPlayer::AI_totalWaterAreaUnitAIsExternal(CvArea* pArea, UnitAITypes eUnitA
 	return AI().AI_totalWaterAreaUnitAIs(*pArea, eUnitAI);
 }
 int CvPlayer::AI_plotTargetMissionAIsExternal(CvPlot* pPlot, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup, int iRange) { reportCall;
-	return AI().AI_plotTargetMissionAIs(pPlot, eMissionAI, pSkipSelectionGroup, iRange);
+	if (pPlot == NULL)
+		return 0;
+	return AI().AI_plotTargetMissionAIs(*pPlot, eMissionAI, pSkipSelectionGroup, iRange);
 }
 int CvPlayer::AI_unitTargetMissionAIsExternal(CvUnit* pUnit, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup) { reportCall;
-	return AI().AI_unitTargetMissionAIs(pUnit, eMissionAI, pSkipSelectionGroup);
+	if (pUnit == NULL)
+		return 0;
+	return AI().AI_unitTargetMissionAIs(*pUnit, eMissionAI, pSkipSelectionGroup);
 }
 int CvPlayer::AI_civicValueExternal(CivicTypes eCivic) { reportCall;
 	return AI().AI_civicValue(eCivic);

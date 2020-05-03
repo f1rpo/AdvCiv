@@ -6828,7 +6828,7 @@ int CvPlayer::getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) cons
 	int iResearchLeft = GET_TEAM(getTeam()).getResearchLeft(eTech);
 	if(bOverflow)
 		iResearchLeft -= iOverflow;
-	// <advc.004>
+	// <advc.004x>
 	if (iResearchLeft <= 0)
 		return 1; // 1/100. getResearchTurnsLeft will round that up.
 	// </advc.004x>
@@ -6990,19 +6990,22 @@ bool CvPlayer::canDoCivics(CivicTypes eCivic) const
 		return true;
 
 	if (!isHasCivicOption((CivicOptionTypes)GC.getInfo(eCivic).getCivicOptionType()) &&
-			!GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getInfo(eCivic).getTechPrereq()))
+		!GET_TEAM(getTeam()).isHasTech(GC.getInfo(eCivic).getTechPrereq()))
+	{
 		return false;
-
+	}
 	if (GC.getPythonCaller()->cannotDoCivicOverride(getID(), eCivic))
 		return false;
 	// <advc.912d>
 	if(GC.getGame().isOption(GAMEOPTION_NO_SLAVERY) && isHuman())
 	{
-		for(int i = 0; i < GC.getNumHurryInfos(); i++)
+		FOR_EACH_ENUM(Hurry)
 		{
-			if(GC.getInfo(eCivic).isHurry(i) &&
-					GC.getInfo((HurryTypes)i).getProductionPerPopulation() > 0)
+			if(GC.getInfo(eCivic).isHurry(eLoopHurry) &&
+				GC.getInfo(eLoopHurry).getProductionPerPopulation() > 0)
+			{
 				return false;
+			}
 		}
 	} // </advc.912d>
 	return true;

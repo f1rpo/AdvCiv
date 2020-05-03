@@ -498,7 +498,7 @@ void CvCityAI::AI_chooseProduction()
 		bMaybeWaterArea = true;
 		if (!kTeam.AI_isWaterAreaRelevant(*pWaterArea))
 			pWaterArea = NULL;
-		bWaterDanger = kPlayer.AI_getWaterDanger(plot(), 4) > 0;
+		bWaterDanger = kPlayer.AI_isAnyWaterDanger(plot(), 4);
 	}
 	// advc: Some old and unused code deleted
 	bool bLandWar = kPlayer.AI_isLandWar(kArea); // K-Mod
@@ -1438,8 +1438,8 @@ void CvCityAI::AI_chooseProduction()
 	// K-Mod.. take into account any defenders that are on their way. (recall that in AI_guardCityMinDefender, defenders can be shuffled around)
 	// (I'm doing the min defender check twice for efficiency - so that we don't count targetmissionAIs when we don't need to)
 	if (!bSpendingExempt &&
-			iPlotCityDefenderCount < iMinDefenders &&
-			iPlotCityDefenderCount < iMinDefenders - kPlayer.AI_plotTargetMissionAIs(plot(), MISSIONAI_GUARD_CITY))
+		iPlotCityDefenderCount < iMinDefenders &&
+		iPlotCityDefenderCount < iMinDefenders - kPlayer.AI_plotTargetMissionAIs(getPlot(), MISSIONAI_GUARD_CITY))
 	// K-Mod end
 	{
 		if (AI_chooseUnit(UNITAI_CITY_DEFENSE))
@@ -3562,7 +3562,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // dlph.16
-	CvGame const& g = GC.getGame();
+	CvGame const& kGame = GC.getGame();
 	int const iOwnerEra = kOwner.getCurrentEra();
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
 	BuildingClassTypes const eBuildingClass = kBuilding.getBuildingClassType();
@@ -3651,7 +3651,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 	bool bHighProductionCity = (findBaseYieldRateRank(YIELD_PRODUCTION) <= std::max(3, iNumCities / 2));
 
 	int iCultureRank = findCommerceRateRank(COMMERCE_CULTURE);
-	int iCulturalVictoryNumCultureCities = g.culturalVictoryNumCultureCities();
+	int iCulturalVictoryNumCultureCities = kGame.culturalVictoryNumCultureCities();
 
 	bool bFinancialTrouble = kOwner.AI_isFinancialTrouble();
 
@@ -3839,7 +3839,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			// If the GW threshold has been reached,
 			// add some additional value for pollution reduction
 			// Note. health benefits have already been evaluated
-			if (iBad < 0 && g.getGlobalWarmingIndex() > 0)
+			if (iBad < 0 && kGame.getGlobalWarmingIndex() > 0)
 			{
 				int iCleanValue = -2*iBad;
 
@@ -4086,7 +4086,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				// advc.001n: AI_getNumAreaCitySites might cache FoundValue
 				&& !bConstCache)
 			{	// <advc.310>
-				int iGameEra = g.getCurrentEra();
+				int iGameEra = kGame.getCurrentEra();
 				/*  A check for GAMEOPTION_NO_BARBARIANS is unnecessary
 					b/c the Great Wall ability is then disabled via CvInfos. */
 				if(!GC.getInfo((EraTypes)iGameEra).isNoBarbUnits() ||
@@ -4094,7 +4094,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				{	//  Available city sites should correlate with nearby barb activity.
 					int foo=-1;
 					int iAreaCitySites = kOwner.AI_getNumAreaCitySites(getArea(), foo);
-					if(g.isOption(GAMEOPTION_RAGING_BARBARIANS))
+					if(kGame.isOption(GAMEOPTION_RAGING_BARBARIANS))
 						iAreaCitySites *= 2;
 					iValue += 6 * iAreaCitySites;
 					// BBAI code:
@@ -4129,7 +4129,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 						(BonusTypes)kBuilding.getFreeBonus()) == 0) ? 2 : 1) *
 						(iNumCities + //kBuilding.getNumFreeBonuses()
 						// advc.001: Based on the Mongoose Mod changelog (15 Feb 2013)
-						g.getNumFreeBonuses(eBuilding));
+						kGame.getNumFreeBonuses(eBuilding));
 			}
 
 			if (kBuilding.getNoBonus() != NO_BONUS)
@@ -4635,8 +4635,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 							kOwner.getID(), eStateReligion, aeReligionBuildings);
 					double tempValue = ourBuildings;
 					double rivalFactor = 1.5 * std::sqrt((double)
-							g.countCivPlayersAlive());
-					int const iEverAlive = g.getCivPlayersEverAlive();
+							kGame.countCivPlayersAlive());
+					int const iEverAlive = kGame.getCivPlayersEverAlive();
 					for (PlayerIter<CIV_ALIVE,KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 					{
 						CvPlayer const& kBrother = *it; // Brothers in the faith
@@ -4656,8 +4656,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 							}
 							else eTowardThem = kOwner.AI_getAttitude(kBrother.getID());
 						}
-						bool bTheyAhead = (g.getPlayerRank(kBrother.getID()) <
-								std::min(g.getPlayerRank(kOwner.getID()),
+						bool bTheyAhead = (kGame.getPlayerRank(kBrother.getID()) <
+								std::min(kGame.getPlayerRank(kOwner.getID()),
 								iEverAlive / 2));
 						// Don't care if they benefit from ReligionYield then
 						if(!bTheyAhead && eTowardThem <= ATTITUDE_CAUTIOUS &&
@@ -4691,11 +4691,11 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			} // </advc.179>
 			// BETTER_BTS_AI_MOD, City AI, Victory Strategy AI, 05/24/10, jdog5000: START
 			FOR_EACH_ENUM2(VoteSource, eVS)
-			{
-				if (!g.isDiploVote(eVS) || !kOwner.isLoyalMember(eVS))  // advc: misc. style changes in this block
+			{	// advc: some refactoring in this block
+				if (!kGame.isDiploVote(eVS) || !kOwner.isLoyalMember(eVS))
 					continue;
 				// Value religion buildings based on AP gains
-				ReligionTypes eReligion = g.getVoteSourceReligion(eVS);
+				ReligionTypes eReligion = kGame.getVoteSourceReligion(eVS);
 				if (eReligion != NO_RELIGION && isHasReligion(eReligion) &&
 					kBuilding.getReligionType() == eReligion)
 				{	// advc: Renamed "iTempValue" in the two loops below - name clash
@@ -4998,8 +4998,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					iBaseCommerceRate *= 100 + kOwner.getCapitalYieldRateModifier(YIELD_COMMERCE);
 					iBaseCommerceRate /= 100;
 				} // Anticipate growth and techs that increase yield
-				iBaseCommerceRate = ::round(iBaseCommerceRate * std::max(
-						1.0, 4/3.0 - g.gameTurnProgress() / 2)); // </advc.131>
+				iBaseCommerceRate = (iBaseCommerceRate * scaled::max(1,
+						fixp(4/3.) - scaled::fromDouble(kGame.gameTurnProgress()) / 2)).
+						round(); // </advc.131>
 				{ // K-Mod.
 					/*  inflate the base commerce rate, to account for the fact
 						that commerce multipliers give us flexibility. */
@@ -5103,7 +5104,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 
 				// K-Mod. help get the ball rolling on espionage.
 				if (eLoopCommerce == COMMERCE_ESPIONAGE && iTempValue > 0 &&
-					!g.isOption(GAMEOPTION_NO_ESPIONAGE))
+					!kGame.isOption(GAMEOPTION_NO_ESPIONAGE))
 				{
 					// priority += 1% per 1% increase in total espionage, more for big espionage strategy
 					iPriorityFactor += std::min(100, (kOwner.AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE) ? 150 : 100) *
@@ -5147,10 +5148,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					if (eStateReligion == (ReligionTypes)(kBuilding.getGlobalReligionCommerce()))
 						iTempValue += 10;*/
 					// K-Mod
-					int iExpectedSpread = g.countReligionLevels(eGlobalCommerceReligion);
+					int iExpectedSpread = kGame.countReligionLevels(eGlobalCommerceReligion);
 					iExpectedSpread += (GC.getNumEraInfos() - iOwnerEra +
 							(eStateReligion == eGlobalCommerceReligion ? 2 : 0)) *
-							g.getRecommendedPlayers(); // advc.137
+							kGame.getRecommendedPlayers(); // advc.137
 							//GC.getInfo(GC.getMap().getWorldSize()).getDefaultPlayers();
 					iTempValue += GC.getInfo(eGlobalCommerceReligion).
 							getGlobalReligionCommerce(eLoopCommerce) * iExpectedSpread * 4;
@@ -5268,7 +5269,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 
 				if (kBuilding.getGlobalCorporationCommerce() != NO_CORPORATION)
 				{
-					iExpectedSpread += g.countCorporationLevels(kBuilding.getGlobalCorporationCommerce());
+					iExpectedSpread += kGame.countCorporationLevels(kBuilding.getGlobalCorporationCommerce());
 					if (iExpectedSpread > 0)
 					{
 						FOR_EACH_ENUM(Commerce)
@@ -5373,7 +5374,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			{
 				int iTempValue = (kBuilding.getCommerceChange(COMMERCE_CULTURE) * 3);
 				iTempValue += (kBuilding.getObsoleteSafeCommerceChange(COMMERCE_CULTURE) * 3);
-				if (g.isOption(GAMEOPTION_NO_ESPIONAGE))
+				if (kGame.isOption(GAMEOPTION_NO_ESPIONAGE))
 				{
 					iTempValue += (kBuilding.getCommerceChange(COMMERCE_ESPIONAGE) * 3);
 					iTempValue += (kBuilding.getObsoleteSafeCommerceChange(COMMERCE_ESPIONAGE) * 3);
@@ -5389,10 +5390,12 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				}
 
 				// K-Mod, this stuff was moved from below
-				iTempValue += ((kBuilding.getCommerceModifier(COMMERCE_CULTURE) * getBaseCommerceRate(COMMERCE_CULTURE)) / 15);
-				if (g.isOption(GAMEOPTION_NO_ESPIONAGE))
+				iTempValue += ((kBuilding.getCommerceModifier(COMMERCE_CULTURE) *
+						getBaseCommerceRate(COMMERCE_CULTURE)) / 15);
+				if (kGame.isOption(GAMEOPTION_NO_ESPIONAGE))
 				{
-					iTempValue += ((kBuilding.getCommerceModifier(COMMERCE_ESPIONAGE) * getBaseCommerceRate(COMMERCE_ESPIONAGE)) / 15);
+					iTempValue += ((kBuilding.getCommerceModifier(COMMERCE_ESPIONAGE) *
+							getBaseCommerceRate(COMMERCE_ESPIONAGE)) / 15);
 				}
 				// K-Mod end
 
@@ -5460,7 +5463,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 
 			//if (iFocusFlags & BUILDINGFOCUS_ESPIONAGE || (g.isOption(GAMEOPTION_NO_ESPIONAGE) && (iFocusFlags & BUILDINGFOCUS_CULTURE)))
 			// K-Mod: the "no espionage" stuff is already taken into account in the culture section.
-			if (iFocusFlags & BUILDINGFOCUS_ESPIONAGE && !g.isOption(GAMEOPTION_NO_ESPIONAGE))
+			if (iFocusFlags & BUILDINGFOCUS_ESPIONAGE && !kGame.isOption(GAMEOPTION_NO_ESPIONAGE))
 			{	// BETTER_BTS_AI_MOD, City AI, 01/09/10, jdog5000: START
 				// K-Mod, changed this section.
 				int iTempValue = ((kBuilding.getCommerceModifier(COMMERCE_ESPIONAGE) * getBaseCommerceRate(COMMERCE_ESPIONAGE)) / 50);
@@ -11358,7 +11361,7 @@ void CvCityAI::AI_barbChooseProduction()
 		if (!GET_TEAM(getTeam()).AI_isWaterAreaRelevant(*pWaterArea))
 			pWaterArea = NULL;
 
-		bWaterDanger = kPlayer.AI_getWaterDanger(plot(), 4) > 0;
+		bWaterDanger = kPlayer.AI_isAnyWaterDanger(plot(), 4);
 	}
 
 	int iNumCitiesInArea = getArea().getCitiesPerPlayer(getOwner());

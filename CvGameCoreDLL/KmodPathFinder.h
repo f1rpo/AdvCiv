@@ -1,9 +1,8 @@
 #pragma once
 
-#ifndef KMOD_PATHFINDER_H // advc: Include guards (might be needed for fastdep)
+#ifndef KMOD_PATHFINDER_H
 #define KMOD_PATHFINDER_H
 
-#include <vector>
 #include "FAStarNode.h"
 
 class CvSelectionGroup;
@@ -33,14 +32,21 @@ public:
 
 	bool GeneratePath(int x1, int y1, int x2, int y2);
 	bool GeneratePath(const CvPlot* pToPlot); // just a wrapper for convenience
-	FAStarNode* GetEndNode() const { FAssert(end_node); return end_node; } // Note: the returned pointer becomes invalid if the pathfinder is destroyed.
-	bool IsPathComplete() const { return end_node; }
+	FAStarNode* GetEndNode() const
+	{	// Note: the returned pointer becomes invalid if the pathfinder is destroyed.
+		FAssert(end_node != NULL);
+		return end_node;
+	}
+	bool IsPathComplete() const { return (end_node != NULL); }
 	int GetPathTurns() const;
 	int GetFinalMoves() const;
 	CvPlot* GetPathFirstPlot() const;
 	CvPlot* GetPathEndTurnPlot() const;
 	void SetSettings(const CvPathSettings& new_settings);
-	void SetSettings(const CvSelectionGroup* pGroup, int iFlags = 0, int iMaxPath = -1, int iHW=-1) { SetSettings(CvPathSettings(pGroup, iFlags, iMaxPath, iHW)); }
+	void SetSettings(const CvSelectionGroup* pGroup, int iFlags = 0, int iMaxPath = -1, int iHW=-1)
+	{
+		SetSettings(CvPathSettings(pGroup, iFlags, iMaxPath, iHW));
+	}
 	void Reset();
 
 protected:

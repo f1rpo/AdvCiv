@@ -48,7 +48,7 @@ public: // The const functions are exposed to Python except those (to be) added 
 	int getWarWearinessModifier() const;
 	int getFreeSpecialist() const;
 	int getTradeRoutes() const;
-	int getTechPrereq() const;
+	TechTypes getTechPrereq() const { return m_eTechPrereq; } // advc.inl (return type was int)
 	int getCivicPercentAnger() const;
 	int getMaxConscript() const;
 	int getStateReligionHappiness() const;
@@ -133,7 +133,7 @@ protected:
 	int m_iWarWearinessModifier;
 	int m_iFreeSpecialist;
 	int m_iTradeRoutes;
-	int m_iTechPrereq;
+	TechTypes m_eTechPrereq;
 	int m_iCivicPercentAnger;
 	int m_iMaxConscript;
 	int m_iStateReligionHappiness;

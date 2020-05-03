@@ -10,8 +10,10 @@
 int KmodPathFinder::admissible_scaled_weight = 1;
 int KmodPathFinder::admissible_base_weight = 1;
 
-CvPathSettings::CvPathSettings(const CvSelectionGroup* pGroup, int iFlags, int iMaxPath, int iHW)
-	: pGroup(pGroup), iFlags(iFlags), iMaxPath(iMaxPath), iHeuristicWeight(iHW)
+CvPathSettings::CvPathSettings(const CvSelectionGroup* pGroup, int iFlags, int iMaxPath, int iHW) :
+	pGroup(pGroup), iFlags(iFlags),
+	iMaxPath(iMaxPath < 0 ? MAX_INT : iMaxPath), // advc.opt: Can avoid some branching this way
+	iHeuristicWeight(iHW)
 {
 	// empty. (there use to be something here, but we don't need it anymore.)
 }
@@ -20,14 +22,14 @@ void KmodPathFinder::InitHeuristicWeights()
 {
 	admissible_base_weight = GC.getMOVE_DENOMINATOR()/2;
 	admissible_scaled_weight = GC.getMOVE_DENOMINATOR()/2;
-	for (int r = 0; r < GC.getNumRouteInfos(); r++)
+	FOR_EACH_ENUM(Route)
 	{
-		const CvRouteInfo& kInfo = GC.getInfo((RouteTypes)r);
+		const CvRouteInfo& kInfo = GC.getInfo(eLoopRoute);
 		int iCost = kInfo.getMovementCost();
-		for (int t = 0; t < GC.getNumTechInfos(); t++)
+		FOR_EACH_ENUM(Tech)
 		{
-			if (kInfo.getTechMovementChange(t) < 0)
-				iCost += kInfo.getTechMovementChange(t);
+			if (kInfo.getTechMovementChange(eLoopTech) < 0)
+				iCost += kInfo.getTechMovementChange(eLoopTech);
 		}
 		admissible_base_weight = std::min(admissible_base_weight, iCost);
 		admissible_scaled_weight = std::min(admissible_scaled_weight, kInfo.getFlatMovementCost());
@@ -56,7 +58,8 @@ KmodPathFinder::KmodPathFinder() :
 	// Ideally the pathfinder would be initialised with a given CvMap, and then not refer to any global objects.
 	// But that is not easy to do with the current code-base. Instead I'll just check the pathfinder settings
 	// at particular times to make sure the map hasn't changed.
-
+	/*	advc.003k (note): Making the KmodPathFinder member of CvSelectionGroup
+		non-static would no longer be a problem */
 }
 
 KmodPathFinder::~KmodPathFinder()
@@ -129,7 +132,8 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 
 	if (GetNode(x1, y1).m_bOnStack)
 	{
-		int iMoves = (settings.iFlags & MOVE_MAX_MOVES) ? settings.pGroup->maxMoves() : settings.pGroup->movesLeft();
+		int iMoves = (settings.iFlags & MOVE_MAX_MOVES) ?
+				settings.pGroup->maxMoves() : settings.pGroup->movesLeft();
 		if (iMoves != GetNode(x1, y1).m_iData1)
 		{
 			Reset();
@@ -160,9 +164,12 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 		// nothing
 	}
 
-	if (end_node && (settings.iMaxPath < 0 || end_node->m_iData2 <= settings.iMaxPath))
+	if (end_node != NULL &&
+		// advc.opt:
+		(/*settings.iMaxPath < 0 ||*/ end_node->m_iData2 <= settings.iMaxPath))
+	{
 		return true;
-
+	}
 	return false;
 }
 
@@ -244,8 +251,8 @@ void KmodPathFinder::SetSettings(const CvPathSettings& new_settings)
 		// there's one more chance to avoid a reset..
 		// If the war flag is the only difference, and we aren't sneak attack ready anyway - then there is effectively no difference.
 		relevant_flags &= ~MOVE_DECLARE_WAR;
-		if ((settings.iFlags & relevant_flags) != (new_settings.iFlags & relevant_flags)
-			|| GET_TEAM(settings.pGroup->getHeadTeam()).AI_isSneakAttackReady())
+		if ((settings.iFlags & relevant_flags) != (new_settings.iFlags & relevant_flags) ||
+			GET_TEAM(settings.pGroup->getHeadTeam()).AI_isSneakAttackReady())
 		{
 			Reset();
 		}
@@ -255,9 +262,7 @@ void KmodPathFinder::SetSettings(const CvPathSettings& new_settings)
 	if (settings.iHeuristicWeight < 0)
 	{
 		if (!settings.pGroup)
-		{
 			settings.iHeuristicWeight = 1;
-		}
 		else
 		{
 			if (settings.pGroup->getDomainType() == DOMAIN_SEA)
@@ -322,7 +327,8 @@ bool KmodPathFinder::ProcessNode()
 		for (OpenList_t::iterator it = open_list.begin(); it != open_list.end(); ++it)
 		{
 			if ((*it)->m_iTotalCost < iLowestCost &&
-				(settings.iMaxPath < 0 || (*it)->m_iData2 <= settings.iMaxPath))
+				// advc.opt:
+				(/*settings.iMaxPath < 0 ||*/ (*it)->m_iData2 <= settings.iMaxPath))
 			{
 				best_it = it;
 				iLowestCost = (*it)->m_iTotalCost;
@@ -500,7 +506,10 @@ void KmodPathFinder::ForwardPropagate(FAStarNode* head, int cost_delta)
 
 		FAssert(head->m_apChildren[i]->m_iKnownCost > head->m_iKnownCost);
 
-		if (iNewDelta != 0 || iOldMoves != head->m_apChildren[i]->m_iData1 || iOldTurns != head->m_apChildren[i]->m_iData2)
+		if (iNewDelta != 0 || iOldMoves != head->m_apChildren[i]->m_iData1 ||
+			iOldTurns != head->m_apChildren[i]->m_iData2)
+		{
 			ForwardPropagate(head->m_apChildren[i], iNewDelta);
+		}
 	}
 }

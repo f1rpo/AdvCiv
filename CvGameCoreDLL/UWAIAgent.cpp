@@ -462,7 +462,7 @@ bool UWAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 			if(wpAge > timeout) {
 				// Akin to code in CvTeamAI::AI_endWarVal
 				for(MemberIter it(agentId); it.hasNext(); ++it) {
-					if(it->AI_enemyTargetMissions(targetId) > 0) {
+					if(it->AI_isAnyEnemyTargetMission(targetId)) {
 						timeout *= 2;
 						break;
 					}

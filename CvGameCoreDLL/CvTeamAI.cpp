@@ -905,8 +905,7 @@ void CvTeamAI::AI_preDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan, bool b
 			if(kPlayer.AI_disapprovesOfDoW(getID(), eTarget)) // advc.130j:
 				kPlayer.AI_rememberEvent(kOurMember.getID(), MEMORY_DECLARED_WAR_ON_FRIEND);
 		}
-	} 
-	// <advc.104i>
+	}  // <advc.104i>
 	if(eSponsor != NO_PLAYER)
 	{
 		AI_makeUnwillingToTalk(eTarget);
@@ -5320,7 +5319,7 @@ void CvTeamAI::AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier,
 	bool bActive = false;
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 	{
-		if (it->AI_enemyTargetMissions(eTarget) > 0)
+		if (it->AI_isAnyEnemyTargetMission(eTarget))
 		{
 			bActive = true;
 			break;
@@ -5660,7 +5659,7 @@ void CvTeamAI::AI_doWar()
 						bool bNoFighting = true; // advc: Refactored the computation of this
 						for (MemberIter itOurMember(getID()); itOurMember.hasNext(); ++itOurMember)
 						{
-							if (itOurMember->AI_enemyTargetMissions(eEnemy) > 0)
+							if (itOurMember->AI_isAnyEnemyTargetMission(eEnemy))
 							{
 								bNoFighting = false;
 								break;
@@ -5671,7 +5670,7 @@ void CvTeamAI::AI_doWar()
 							for (MemberIter itEnemyMember(eEnemy); itEnemyMember.hasNext();
 								++itEnemyMember)
 							{
-								if (itEnemyMember->AI_enemyTargetMissions(getID()) > 0)
+								if (itEnemyMember->AI_isAnyEnemyTargetMission(getID()))
 								{
 									bNoFighting = false;
 									break;

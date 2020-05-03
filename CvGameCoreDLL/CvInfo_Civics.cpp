@@ -36,7 +36,7 @@ m_iLargestCityHappiness(0),
 m_iWarWearinessModifier(0),
 m_iFreeSpecialist(0),
 m_iTradeRoutes(0),
-m_iTechPrereq(NO_TECH),
+m_eTechPrereq(NO_TECH),
 m_iCivicPercentAnger(0),
 m_iMaxConscript(0),
 m_iStateReligionHappiness(0),
@@ -229,11 +229,6 @@ int CvCivicInfo::getFreeSpecialist() const
 int CvCivicInfo::getTradeRoutes() const
 {
 	return m_iTradeRoutes;
-}
-
-int CvCivicInfo::getTechPrereq() const
-{
-	return m_iTechPrereq;
 }
 
 int CvCivicInfo::getCivicPercentAnger() const
@@ -482,7 +477,7 @@ void CvCivicInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iWarWearinessModifier);
 	stream->Read(&m_iFreeSpecialist);
 	stream->Read(&m_iTradeRoutes);
-	stream->Read(&m_iTechPrereq);
+	stream->Read(&m_eTechPrereq);
 	stream->Read(&m_iCivicPercentAnger);
 	stream->Read(&m_iMaxConscript);
 	stream->Read(&m_iStateReligionHappiness);
@@ -587,7 +582,7 @@ void CvCivicInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iWarWearinessModifier);
 	stream->Write(m_iFreeSpecialist);
 	stream->Write(m_iTradeRoutes);
-	stream->Write(m_iTechPrereq);
+	stream->Write(m_eTechPrereq);
 	stream->Write(m_iCivicPercentAnger);
 	stream->Write(m_iMaxConscript);
 	stream->Write(m_iStateReligionHappiness);
@@ -633,7 +628,7 @@ bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 	m_iCivicOptionType = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "TechPrereq");
-	m_iTechPrereq = pXML->FindInInfoClass(szTextVal);
+	m_eTechPrereq = (TechTypes)pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(&m_iAnarchyLength, "iAnarchyLength");
 

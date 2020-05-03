@@ -3315,9 +3315,11 @@ int CvPlayerAI::AI_countDangerousUnits(CvPlot const& kAttackerPlot, CvPlot const
 }*/
 // BETTER_BTS_AI_MOD: END
 
-int CvPlayerAI::AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves) const  // advc: some style changes
+int CvPlayerAI::AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves,  // advc: some style changes
+	int iMaxCount) const // advc.opt
 {
 	PROFILE_FUNC();
+	FAssert(iMaxCount > 0); // advc.opt (use MAX_INT for infinity)
 
 	if (iRange == -1)
 		iRange = DANGER_RANGE;
@@ -3346,10 +3348,15 @@ int CvPlayerAI::AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves) co
 
 			// advc.315: was pLoopUnit->canAttack()
 			if (AI_canBeAttackedBy(*pEnemyUnit) && !pEnemyUnit->isInvisible(getTeam(), false))
+			{
 				iCount++;
+				// <advc.opt>
+				if (iCount >= iMaxCount)
+					return iMaxCount; // </advc.opt>
+			}
 		}
 	}
-	return iCount;
+	return std::min(iCount, iMaxCount); // advc.opt (to be consistent)
 }
 
 // rewritten for K-Mod
@@ -5088,8 +5095,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	FOR_EACH_ENUM(Civic)
 	{
 		CvCivicInfo const& kLoopCivic = GC.getInfo(eLoopCivic);
-		if (kLoopCivic.getTechPrereq() == eTech
-			&& !canDoCivics(eLoopCivic)) // k146
+		if (kLoopCivic.getTechPrereq() == eTech &&
+			!canDoCivics(eLoopCivic)) // k146
 		{
 			CivicTypes eCivic = getCivics((CivicOptionTypes)kLoopCivic.getCivicOptionType());
 
@@ -14114,11 +14121,10 @@ int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot const& kPlot, bool bTestCan
 	return iCount;
 }
 
-
-int CvPlayerAI::AI_totalMissionAIs(MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup) const
+// advc.003j: Unused since the BtS expansion
+/*int CvPlayerAI::AI_totalMissionAIs(MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup) const
 {
 	PROFILE_FUNC();
-
 	int iCount = 0;
 	FOR_EACH_GROUPAI(pLoopSelectionGroup, *this)
 	{
@@ -14129,7 +14135,7 @@ int CvPlayerAI::AI_totalMissionAIs(MissionAITypes eMissionAI, CvSelectionGroup* 
 			iCount += pLoopSelectionGroup->getNumUnits();
 	}
 	return iCount;
-}
+}*/
 
 /*  <advc.171> Cut from AI_missionaryValue b/c I want to add a war-plan check that
 	is also needed for CvUnitAI::AI_spreadReligion. Checking the other stuff
@@ -14541,9 +14547,10 @@ void CvPlayerAI::AI_processNewBuild(BuildTypes eBuild)
 
 
 int CvPlayerAI::AI_areaMissionAIs(CvArea const& kArea, MissionAITypes eMissionAI,
-	CvSelectionGroup* pSkipSelectionGroup) const
+	CvSelectionGroup* pSkipSelectionGroup, /* advc.opt: */ int iMaxCount) const
 {
 	PROFILE_FUNC();
+	FAssert(iMaxCount > 0); // advc.opt (use MAX_INT for infinity)
 
 	int iCount = 0;
 	FOR_EACH_GROUPAI(pLoopSelectionGroup, *this)
@@ -14557,34 +14564,29 @@ int CvPlayerAI::AI_areaMissionAIs(CvArea const& kArea, MissionAITypes eMissionAI
 			if (pMissionPlot != NULL)
 			{
 				if (pMissionPlot->isArea(kArea))
+				{
 					iCount += pLoopSelectionGroup->getNumUnits();
+					// <advc.opt>
+					if (iCount >= iMaxCount)
+						return iMaxCount; // </advc.opt>
+				}
 			}
 		}
 	}
-	return iCount;
+	return std::min(iCount, iMaxCount); // advc.opt (to be consistent)
 }
 
-
-int CvPlayerAI::AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes eMissionAI,
-	CvSelectionGroup* pSkipSelectionGroup, int iRange) const
-{
-	int iClosestTargetRange;
-	return AI_plotTargetMissionAIs(pPlot, &eMissionAI, 1, iClosestTargetRange, pSkipSelectionGroup, iRange);
-}
-
-int CvPlayerAI::AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes eMissionAI,
-	int& iClosestTargetRange, CvSelectionGroup* pSkipSelectionGroup, int iRange) const
-{
-	return AI_plotTargetMissionAIs(pPlot, &eMissionAI, 1, iClosestTargetRange, pSkipSelectionGroup, iRange);
-}
-
-int CvPlayerAI::AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes* aeMissionAI,
-	int iMissionAICount, int& iClosestTargetRange, CvSelectionGroup* pSkipSelectionGroup, int iRange) const  // advc: some style changes
+/*	advc (note): iRange refers to the distance between pPlot and the mission plots
+	of the units that are being counted. 0 (default) means that only units headed
+	for pPlot are counted. */
+int CvPlayerAI::AI_plotTargetMissionAIs(CvPlot const& kPlot, MissionAITypes* aeMissionAI,
+	int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup, int iRange,
+	int iMaxCount) const  // advc: some style changes
 {
 	//PROFILE_FUNC(); // advc.003o
-	int iCount = 0;
-	iClosestTargetRange = MAX_INT;
+	FAssert(iMaxCount > 0); // advc.opt (use MAX_INT for infinity)
 
+	int iCount = 0;
 	FOR_EACH_GROUPAI(pLoopSelectionGroup, *this)
 	{
 		if (pLoopSelectionGroup == pSkipSelectionGroup)
@@ -14595,8 +14597,7 @@ int CvPlayerAI::AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes* aeM
 			continue;
 
 		MissionAITypes eGroupMissionAI = pLoopSelectionGroup->AI_getMissionAIType();
-		int iDistance = ::stepDistance(pPlot->getX(), pPlot->getY(),
-			pMissionPlot->getX(), pMissionPlot->getY());
+		int iDistance = ::stepDistance(&kPlot, pMissionPlot);
 
 		if (iDistance <= iRange)
 		{
@@ -14606,13 +14607,14 @@ int CvPlayerAI::AI_plotTargetMissionAIs(CvPlot const* pPlot, MissionAITypes* aeM
 					aeMissionAI[iMissionAIIndex] == NO_MISSIONAI)
 				{
 					iCount += pLoopSelectionGroup->getNumUnits();
-					if (iDistance < iClosestTargetRange)
-						iClosestTargetRange = iDistance;
+					// <advc.opt>
+					if (iCount >= iMaxCount)
+						return iMaxCount; // </advc.opt>
 				}
 			}
 		}
 	}
-	return iCount;
+	return std::min(iCount, iMaxCount); // advc.opt: (to be consistent)
 }
 
 // K-Mod
@@ -14822,7 +14824,8 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(CvCity const* pCity,  // advc: const
 	}
 	//return iCount;
 	return iTotalStrength;
-}
+} // BETTER_BTS_AI_MOD: END
+
 /*  <advc.139> May have to update city safety status after one of our units
 	has attacked (possible relief). kDefender can be dead, but all its data
 	should still be acurate. */
@@ -14899,30 +14902,18 @@ void CvPlayerAI::AI_humanEnemyStackMovedInTerritory(CvPlot const& kFrom, CvPlot 
 } // </advc.139>
 
 
-int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit /* advc: */ const* pUnit,
-	MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup) const
-{
-	return AI_unitTargetMissionAIs(pUnit, &eMissionAI, 1, pSkipSelectionGroup, -1);
-}
-
-int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit /* advc: */ const* pUnit,
+int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit /* advc: */ const& kUnit,  // advc: some refactoring
 	MissionAITypes* aeMissionAI, int iMissionAICount,
-	CvSelectionGroup* pSkipSelectionGroup) const
-{
-	return AI_unitTargetMissionAIs(pUnit, aeMissionAI, iMissionAICount, pSkipSelectionGroup, -1);
-}
-
-int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit /* advc: */ const* pUnit,
-	MissionAITypes* aeMissionAI, int iMissionAICount,
-	CvSelectionGroup* pSkipSelectionGroup, int iMaxPathTurns) const  // advc: some refactoring
+	CvSelectionGroup* pSkipSelectionGroup, int iMaxPathTurns, int iMaxCount) const
 {
 	PROFILE_FUNC();
+	FAssert(iMaxCount > 0); // advc.opt (use MAX_INT for infinity)
 
 	int iCount = 0;
 	FOR_EACH_GROUPAI(pLoopSelectionGroup, *this)
 	{
 		if (pLoopSelectionGroup == pSkipSelectionGroup ||
-			pLoopSelectionGroup->AI_getMissionAIUnit() != pUnit)
+			pLoopSelectionGroup->AI_getMissionAIUnit() != &kUnit)
 		{
 			continue;
 		}
@@ -14951,31 +14942,37 @@ int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit /* advc: */ const* pUnit,
 		if(!bValid)
 			continue; // </advc.opt>
 		int iPathTurns = MAX_INT;
-		if (iMaxPathTurns >= 0 && pUnit->plot() != NULL &&
+		if (iMaxPathTurns >= 0 && kUnit.plot() != NULL &&
 			pLoopSelectionGroup->plot() != NULL)
 		{
 			pLoopSelectionGroup->generatePath(pLoopSelectionGroup->plot(),
-					pUnit->plot(), 0, false, &iPathTurns);
+					kUnit.plot(), 0, false, &iPathTurns, /* advc.opt: */ iMaxPathTurns);
 			if (!pLoopSelectionGroup->canAllMove())
 				iPathTurns++;
 		}
-		if (iMaxPathTurns == -1 || iPathTurns <= iMaxPathTurns)
+		if (iMaxPathTurns < 0 || iPathTurns <= iMaxPathTurns) // BETTER_BTS_AI_MOD, General AI, 04/03/10, jdog5000
+		{
 			iCount += pLoopSelectionGroup->getNumUnits();
+			// <advc.opt>
+			if (iCount >= iMaxCount)
+				return iMaxCount; // </advc.opt>
+		}
 	}
-	return iCount;
+	return std::min(iCount, iMaxCount); // advc.opt: (to be consistent)
 }
-// BETTER_BTS_AI_MOD: END
 
-int CvPlayerAI::AI_enemyTargetMissionAIs(MissionAITypes eMissionAI,
-	CvSelectionGroup* pSkipSelectionGroup) const
+// advc.003j: Unused since a BBAI change to CvUnitAI::AI_assaultSeaMove
+/*int CvPlayerAI::AI_enemyTargetMissionAIs(MissionAITypes eMissionAI,
+	CvSelectionGroup* pSkipSelectionGroup, int iMaxCount) const
 {
-	return AI_enemyTargetMissionAIs(&eMissionAI, 1, pSkipSelectionGroup);
+	return AI_enemyTargetMissionAIs(&eMissionAI, 1, pSkipSelectionGroup, iMaxCount);
 }
 
 int CvPlayerAI::AI_enemyTargetMissionAIs(MissionAITypes* aeMissionAI, int iMissionAICount,
-	CvSelectionGroup* pSkipSelectionGroup) const
+	CvSelectionGroup* pSkipSelectionGroup, int iMaxCount) const
 {
 	PROFILE_FUNC();
+	FAssert(iMaxCount > 0); // advc.opt (use MAX_INT for infinity)
 
 	int iCount = 0;
 	FOR_EACH_GROUPAI(pLoopSelectionGroup, *this)
@@ -14996,20 +14993,23 @@ int CvPlayerAI::AI_enemyTargetMissionAIs(MissionAITypes* aeMissionAI, int iMissi
 					{
 						iCount += pLoopSelectionGroup->getNumUnits();
 						iCount += pLoopSelectionGroup->getCargo();
+						// <advc.opt>
+						if (iCount >= iMaxCount)
+							return iMaxCount; // </advc.opt>
 					}
 				}
 			}
 		}
 	}
-	return iCount;
-}
-
+	return std::min(iCount, iMaxCount); // advc.opt: (to be consistent)
+}*/
 
 // BETTER_BTS_AI_MOD, General AI, 05/19/10, jdog5000: START
 int CvPlayerAI::AI_enemyTargetMissions(TeamTypes eTargetTeam,
-	CvSelectionGroup* pSkipSelectionGroup) const
+	CvSelectionGroup* pSkipSelectionGroup, int iMaxCount) const
 {
 	PROFILE_FUNC();
+	FAssert(iMaxCount > 0); // advc.opt (use MAX_INT for infinity)
 
 	int iCount = 0;
 	FOR_EACH_GROUPAI(pLoopSelectionGroup, *this)
@@ -15029,19 +15029,20 @@ int CvPlayerAI::AI_enemyTargetMissions(TeamTypes eTargetTeam,
 			{
 				iCount += pLoopSelectionGroup->getNumUnits();
 				iCount += pLoopSelectionGroup->getCargo();
+				// <advc.opt>
+				if (iCount >= iMaxCount)
+					return iMaxCount; // </advc.opt>
 			}
 		}
 	}
-	return iCount;
+	return std::min(iCount, iMaxCount); // advc.opt: (to be consistent)
 } // BETTER_BTS_AI_MOD: END
 
 
-int CvPlayerAI::AI_wakePlotTargetMissionAIs(CvPlot* pPlot, MissionAITypes eMissionAI,
-	CvSelectionGroup* pSkipSelectionGroup) const
+int CvPlayerAI::AI_wakePlotTargetMissionAIs(/* advc: const& */ CvPlot const& kPlot,
+	MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup) const
 {
 	PROFILE_FUNC();
-
-	FAssert(pPlot != NULL);
 
 	int iCount = 0;
 	FOR_EACH_GROUPAI_VAR(pLoopSelectionGroup, *this)
@@ -15052,8 +15053,8 @@ int CvPlayerAI::AI_wakePlotTargetMissionAIs(CvPlot* pPlot, MissionAITypes eMissi
 		MissionAITypes eGroupMissionAI = pLoopSelectionGroup->AI_getMissionAIType();
 		if (eMissionAI == NO_MISSIONAI || eMissionAI == eGroupMissionAI)
 		{
-			CvPlot* pMissionPlot = pLoopSelectionGroup->AI_getMissionAIPlot();
-			if (pMissionPlot != NULL && pMissionPlot == pPlot)
+			CvPlot const* pMissionPlot = pLoopSelectionGroup->AI_getMissionAIPlot();
+			if (/*pMissionPlot != NULL &&*/ pMissionPlot == &kPlot) // (advc)
 			{
 				iCount += pLoopSelectionGroup->getNumUnits();
 				pLoopSelectionGroup->setActivityType(ACTIVITY_AWAKE);
@@ -15731,16 +15732,20 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		iValue += (iCities * 6 * iS * AI_getHealthWeight(iS*kCivic.getExtraHealth(), 1)) / 100;
 
 	if (kCivic.getExtraHappiness() != 0) // New K-Mod effect
+	{
 		iValue += (iCities * 10 * iS * AI_getHappinessWeight(iS *
 				/*  (zero extra citizens... as a kind of kludge to get the
 					value closer to where I want it) */
 				kCivic.getExtraHappiness(), 0)) / 100;
-
+	}
 	if (kCivic.getHappyPerMilitaryUnit() != 0)
+	{
 		iValue += (iCities * 9 * iS * AI_getHappinessWeight(iS*kCivic.getHappyPerMilitaryUnit() * 3, 1))
 				// <advc.912c>
 				/ 200; // divisor was 100
-	if (kCivic.getLuxuryModifier() > 0 && pCapital != NULL) {
+	}
+	if (kCivic.getLuxuryModifier() > 0 && pCapital != NULL)
+	{
 		int iLuxMod = kCivic.getLuxuryModifier();
 		int iHappyChangeCapital = (pCapital->getBonusGoodHappiness(true) * iLuxMod) / 100;
 		iValue += (iCities * 9 * iS * AI_getHappinessWeight(iS *
