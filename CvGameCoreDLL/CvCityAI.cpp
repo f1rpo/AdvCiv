@@ -4157,18 +4157,43 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				// K-Mod end
 			}
 
-			if (kBuilding.getCivicOption() != NO_CIVICOPTION)
-			{
+			CivicOptionTypes const eCivicOption = kBuilding.getCivicOption();
+			if (eCivicOption != NO_CIVICOPTION)
+			{	// k146 (Todo): compare to current civics!
+				// <advc.131> Will do:
+				scaled rCivicOptionValue;
+				/*	Should actually be 4(!), but I don't think it's good for game balance
+					to make the AI that interested in the Pyramids. */
+				scaled const rScaleAdjustment = fixp(1.7);
+				scaled rCurrentCivicValue = rScaleAdjustment *
+						kOwner.AI_civicValue(kOwner.getCivics(eCivicOption));
+				scaled rBestNewCivicValue = scaled::min(0, rCurrentCivicValue);
 				FOR_EACH_ENUM(Civic)
 				{
-					if (GC.getInfo(eLoopCivic).getCivicOptionType() == kBuilding.getCivicOption())
+					if (GC.getInfo(eLoopCivic).getCivicOptionType() != eCivicOption ||
+						kOwner.canDoCivics(eLoopCivic))
 					{
-						if (!(kOwner.canDoCivics(eLoopCivic)))
-						{	// k146 (Todo): compare to current civics!
-							iValue += (kOwner.AI_civicValue(eLoopCivic) / 10);
-						}
+						continue; // advc
 					}
+					//iValue += (kOwner.AI_civicValue(eLoopCivic) / 10);
+					scaled rCivicValue = rScaleAdjustment * kOwner.AI_civicValue(eLoopCivic);
+					if (rCivicValue > 0)
+					{
+						// Devalue civics that we'll soon unlock anyway
+						TechTypes eTech = GC.getInfo(eLoopCivic).getTechPrereq();
+						if (!kTeam.isHasTech(eTech) && 
+							GC.getInfo(eTech).getEra() <= kOwner.getCurrentEra())
+						{
+							rCivicValue /= 2;
+						}
+						// Having choices is good; even if they're not the best right now.
+						rCivicOptionValue += rCivicValue / 12;
+					}
+					rBestNewCivicValue.increaseTo(rCivicValue);
 				}
+				rCivicOptionValue += rBestNewCivicValue - rCurrentCivicValue;
+				iValue += rCivicOptionValue.round();
+				// </advc.131>
 			}
 
 			int iGreatPeopleRateModifier = kBuilding.getGreatPeopleRateModifier();
