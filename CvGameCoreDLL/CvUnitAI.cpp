@@ -16844,17 +16844,20 @@ bool CvUnitAI::AI_improveCity(CvCityAI const& kCity) // advc.003u: param was CvC
 	BuildTypes eBestBuild=NO_BUILD;
 	if (!AI_bestCityBuild(kCity, &pBestPlot, &eBestBuild, NULL, this))
 		return false; // advc
+	FAssert(pBestPlot != NULL);
+	FAssertBounds(0, GC.getNumBuildInfos(), eBestBuild);
+	FAssert(eBestBuild != NO_BUILD);
 
-	FAssertMsg(pBestPlot != NULL, "BestPlot is not assigned a valid value");
-	FAssertMsg(eBestBuild != NO_BUILD, "BestBuild is not assigned a valid value");
-	FAssertMsg(eBestBuild < GC.getNumBuildInfos(), "BestBuild is assigned a corrupt value");
-	MissionTypes eMission;
-	if (getPlot().getWorkingCity() != &kCity || GC.getInfo(eBestBuild).getRoute() != NO_ROUTE)
+	MissionTypes eMission = MISSION_MOVE_TO;
+	if (getPlot().getWorkingCity() != &kCity /*||
+		GC.getInfo(eBestBuild).getRoute() != NO_ROUTE*/) // advc.121: Walk don't route
+	{
 		eMission = MISSION_ROUTE_TO;
+	}
 	else
 	{
-		eMission = MISSION_MOVE_TO;
-		if (pBestPlot && generatePath(pBestPlot) && getPathFinder().GetPathTurns() == 1 && getPathFinder().GetFinalMoves() == 0)
+		if (generatePath(pBestPlot) && getPathFinder().GetPathTurns() == 1 &&
+			getPathFinder().GetFinalMoves() == 0)
 		{
 			if (pBestPlot->isRoute())
 				eMission = MISSION_ROUTE_TO;
@@ -16875,9 +16878,10 @@ bool CvUnitAI::AI_improveCity(CvCityAI const& kCity) // advc.003u: param was CvC
 
 	eBestBuild = AI_betterPlotBuild(*pBestPlot, eBestBuild);
 
-	getGroup()->pushMission(eMission, pBestPlot->getX(), pBestPlot->getY(), 0, false, false, MISSIONAI_BUILD, pBestPlot);
+	getGroup()->pushMission(eMission, pBestPlot->getX(), pBestPlot->getY(),
+			0, false, false, MISSIONAI_BUILD, pBestPlot);
 	getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0,
-			/*(getGroup()->getLengthMissionQueue() > 0),*/ true, // K-Mod
+			/*(getGroup()->getLengthMissionQueue() > 0)*/ true, // K-Mod
 			false, MISSIONAI_BUILD, pBestPlot);
 	return true;
 }
@@ -17123,8 +17127,18 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
 		pBestPlot->getWorkingCity()->AI_changeWorkersHave(+1);*/
 
 	eBestBuild = AI_betterPlotBuild(*pBestPlot, eBestBuild);
-	getGroup()->pushMission(MISSION_ROUTE_TO, pBestPlot->getX(), pBestPlot->getY(),
-			0, false, false, MISSIONAI_BUILD, pBestPlot);
+	// <advc.121>
+	MissionTypes eMission = MISSION_MOVE_TO;
+	if (!getPlot().isSamePlotGroup(*pBestPlot, getOwner()) || !getPlot().isRoute() ||
+		scaled(1, stepDistance(plot(), pBestPlot) + 1).bernoulliSuccess(
+		GC.getGame().getSRand(), "advc.121: route-to"))
+	{
+		eMission = MISSION_ROUTE_TO;
+	}
+	getGroup()->pushMission(eMission, /* </advc.121> */
+			pBestPlot->getX(), pBestPlot->getY(),
+			eMission == MISSION_ROUTE_TO ? MOVE_ROUTE_TO : 0, // advc.pf
+			false, false, MISSIONAI_BUILD, pBestPlot);
 	getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0,
 			//(getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pBestPlot);
 			true, false, MISSIONAI_BUILD, pBestPlot); // K-Mod
@@ -17889,50 +17903,69 @@ bool CvUnitAI::AI_connectCity()
 bool CvUnitAI::AI_routeCity()  // advc: some style changes
 {
 	PROFILE_FUNC();
-
 	FAssert(canBuildRoute());
-	FOR_EACH_CITYAI(pLoopCity, GET_PLAYER(getOwner()))
-	{
-		if (!AI_plotValid(pLoopCity->plot()))
-			continue;
 
+	std::vector<std::pair<int,IDInfo> > aCities; // advc.121
+	FOR_EACH_CITYAI(pCity, GET_PLAYER(getOwner()))
+	{
+		/*if (!AI_plotValid(pCity->getPlot()))
+			continue;*/ // advc: Taken care of by the BBAI code
 		/*  BETTER_BTS_AI_MOD, Unit AI, Efficiency, 02/22/10, jdog5000: START
-		check area for land units and generatePath call moved down */
-		if(getDomainType() == DOMAIN_LAND && !pLoopCity->isArea(getArea()) &&
+			check area for land units and generatePath call moved down */
+		if(getDomainType() == DOMAIN_LAND && !pCity->isArea(getArea()) &&
 			!getGroup()->canMoveAllTerrain())
 		{
 			continue;
-		}
-		CvCityAI* pRouteToCity = pLoopCity->AI_getRouteToCity();
+		} // BETTER_BTS_AI_MOD: END
+		// <advc.121> Try the cities in a sensible order
+		aCities.push_back(std::make_pair(
+				stepDistance(plot(), pCity->plot()) - pCity->getPopulation(),
+				pCity->getIDInfo()));
+	}
+	std::sort(aCities.begin(), aCities.end());
+	for (size_t i = 0; i < aCities.size(); i++)
+	{
+		CvCityAI const& kLoopCity = *GET_PLAYER(getOwner()).AI_getCity(aCities[i].second.iID);
+		// </advc.121>
+		CvCityAI* pRouteToCity = kLoopCity.AI_getRouteToCity();
 		if (pRouteToCity != NULL &&
-			/*!pLoopCity->getPlot().isVisibleEnemyUnit(this) && // advc.opt: These cities belong to our team
+			/*!kLoopCity.getPlot().isVisibleEnemyUnit(this) && // advc.opt: These cities belong to our team
 			!pRouteToCity->getPlot().isVisibleEnemyUnit(this) &&*/
-			!pLoopCity->AI_isEvacuating() && !pRouteToCity->AI_isEvacuating() && // advc.139
+			!kLoopCity.AI_isEvacuating() && !pRouteToCity->AI_isEvacuating() && // advc.139
 			!GET_PLAYER(getOwner()).AI_isAnyPlotTargetMissionAI(
 			pRouteToCity->getPlot(), MISSIONAI_BUILD, getGroup()))
 		{
-			if (generatePath(pLoopCity->plot(), MOVE_SAFE_TERRITORY
+			bool const bRouteTo = (at(kLoopCity.getPlot()) ||
+					!getPlot().isSamePlotGroup(kLoopCity.getPlot(), getOwner()) ||
+					/*	We might already be in the middle of an incoplete route.
+						Don't move to kLoopCity first then. */
+					stepDistance(plot(), pRouteToCity->plot()) <=
+					stepDistance(plot(), kLoopCity.plot()));
+			if (generatePath(kLoopCity.plot(), MOVE_SAFE_TERRITORY
+				// (advc.121: Use MOVE_ROUTE_TO even if !bRouteTo. Avoids path finder reset.)
 				| MOVE_ROUTE_TO, // advc.pf
-				true))
-				// BETTER_BTS_AI_MOD: END
-			{
-				if (generatePath(pRouteToCity->plot(), MOVE_SAFE_TERRITORY
-					| MOVE_ROUTE_TO, // advc.pf
-					true))
+				true, /* advc.opt: */ NULL, 7) &&
+				generatePath(pRouteToCity->plot(), MOVE_SAFE_TERRITORY
+				| MOVE_ROUTE_TO, // advc.pf
+				true, /* advc.opt: */ NULL, 7))
+			{	// <advc.121>
+				if (!bRouteTo)
 				{
-					/*	advc (note): This picks the first valid city in the list.
-						Perhaps checking all and picking the best isn't worth the effort. */
-					getGroup()->pushMission(MISSION_ROUTE_TO,
-							pLoopCity->getX(), pLoopCity->getY(),
-							MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
-							false, false, MISSIONAI_BUILD, pRouteToCity->plot());
-					getGroup()->pushMission(MISSION_ROUTE_TO,
-							pRouteToCity->getX(), pRouteToCity->getY(),
-							MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
-							true, false, MISSIONAI_BUILD, pRouteToCity->plot()); // K-Mod
-
-					return true;
-				}
+					getGroup()->pushMission(MISSION_MOVE_TO,
+							kLoopCity.getX(), kLoopCity.getY(),
+							MOVE_SAFE_TERRITORY, false,
+							false, MISSIONAI_BUILD, pRouteToCity->plot());
+				} // </advc.121>
+				getGroup()->pushMission(MISSION_ROUTE_TO,
+						kLoopCity.getX(), kLoopCity.getY(),
+						MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
+						!bRouteTo, // advc.121
+						false, MISSIONAI_BUILD, pRouteToCity->plot());
+				getGroup()->pushMission(MISSION_ROUTE_TO,
+						pRouteToCity->getX(), pRouteToCity->getY(),
+						MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO, true,
+						false, MISSIONAI_BUILD, pRouteToCity->plot()); // K-Mod
+				return true;
 			}
 		}
 	}
@@ -17950,6 +17983,7 @@ bool CvUnitAI::AI_routeTerritory(bool bImprovementOnly)
 
 	CvPlot const* pBestPlot = NULL;
 	int iBestValue = 0;
+	BuildTypes eBestBuild = NO_BUILD; // advc.121
 	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
 		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
@@ -17958,7 +17992,9 @@ bool CvUnitAI::AI_routeTerritory(bool bImprovementOnly)
 		{
 			continue;
 		}
-		RouteTypes eBestRoute = GET_PLAYER(getOwner()).getBestRoute(&kPlot);
+		BuildTypes eBuild=NO_BUILD; // advc.121
+		RouteTypes eBestRoute = GET_PLAYER(getOwner()).getBestRoute(&kPlot,
+				&eBuild); // advc.121
 		if (eBestRoute == NO_ROUTE || eBestRoute == kPlot.getRouteType())
 			continue; // advc
 
@@ -17981,35 +18017,59 @@ bool CvUnitAI::AI_routeTerritory(bool bImprovementOnly)
 			}
 		}
 		if (iValue > 0 && !kPlot.isVisibleEnemyUnit(this))
-		{
-			if (!GET_PLAYER(getOwner()).AI_isAnyPlotTargetMissionAI(
-				kPlot, MISSIONAI_BUILD, getGroup(), 1))
+		{	// <advc.121> was AI_isAnyPlotTargetMission
+			int iMissions = GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(
+					kPlot, MISSIONAI_BUILD, getGroup(),
+					// iRange: Don't count adjacent workers when trying to improve yield
+					bImprovementOnly ? 0 : 1, 3);
+			if (iMissions < 3) // </advc.121>
 			{
 				int iPathTurns;
 				if (generatePath(&kPlot, MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
 					true, &iPathTurns))
-				{
+				{	// <advc.121> Allow teaming up (mostly just on slow speed settings)
+					if (iMissions > 0)
+					{
+						int iBuildTurns = kPlot.getBuildTurnsLeft(
+								eBuild, getOwner(), 0, workRate(true), false);
+						FAssert(iBuildTurns > 0);
+						if (2 * iMissions >= iBuildTurns - iPathTurns)
+							continue;
+					} // </advc.121>
 					iValue *= 10000;
 					iValue /= (iPathTurns + 1);
 					if (iValue > iBestValue)
 					{
 						iBestValue = iValue;
 						pBestPlot = &kPlot;
+						eBestBuild = eBuild; // advc.121
 					}
 				}
 			}
 		}
 	}
+	if (pBestPlot == NULL)
+		return false; // advc
 
-	if (pBestPlot != NULL)
+	/*	<advc.121> If there are yields to be gained, don't lose time building
+		routes along the way. (This is really the job of AI_improveCity, but
+		there may not be enough workers assigned to cities to get it done fast.) */
+	bool bRouteTo = (!bImprovementOnly || atPlot(pBestPlot) ||
+			!getPlot().isSamePlotGroup(*pBestPlot, getOwner()));
+	if (!bRouteTo)
 	{
-		getGroup()->pushMission(MISSION_ROUTE_TO, pBestPlot->getX(), pBestPlot->getY(),
-				MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
-				false, false, MISSIONAI_BUILD, pBestPlot);
+		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX(), pBestPlot->getY(),
+				MOVE_SAFE_TERRITORY, false, false, MISSIONAI_BUILD, pBestPlot);
+		/*	(Falling through to MISSION_ROUTE_TO would probably also be fine
+			if bAppend is set to !bRouteTo) */
+		getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1,
+				0, true, false, MISSIONAI_BUILD, pBestPlot);
 		return true;
-	}
-
-	return false;
+	} // </advc.121>
+	getGroup()->pushMission(MISSION_ROUTE_TO, pBestPlot->getX(), pBestPlot->getY(),
+			MOVE_SAFE_TERRITORY /* advc.pf: */ | MOVE_ROUTE_TO,
+			false, false, MISSIONAI_BUILD, pBestPlot);
+	return true;
 }
 
 

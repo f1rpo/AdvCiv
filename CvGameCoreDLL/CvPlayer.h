@@ -281,7 +281,8 @@ public:
 
 	int getBuildCost(const CvPlot* pPlot, BuildTypes eBuild) const;
 	bool canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestEra = false, bool bTestVisible = false) const;	// Exposed to Python
-	RouteTypes getBestRoute(const CvPlot* pPlot = NULL) const;																						// Exposed to Python
+	RouteTypes getBestRoute(const CvPlot* pPlot = NULL,																						// Exposed to Python
+			BuildTypes* peBestBuild = NULL) const; // advc.121
 	int getImprovementUpgradeRate() const;																													// Exposed to Python
 
 	int calculateTotalYield(YieldTypes eYield) const;																											// Exposed to Python

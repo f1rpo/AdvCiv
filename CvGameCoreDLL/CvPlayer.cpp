@@ -6065,14 +6065,14 @@ int CvPlayer::getBuildCost(const CvPlot* pPlot, BuildTypes eBuild) const
 }
 
 
-
-
-RouteTypes CvPlayer::getBestRoute(const CvPlot* pPlot) const
+RouteTypes CvPlayer::getBestRoute(const CvPlot* pPlot,
+	BuildTypes* peBestBuild) const // advc.121
 {
 	PROFILE_FUNC();
 
 	int iBestValue = 0;
 	RouteTypes eBestRoute = NO_ROUTE;
+	BuildTypes eBestBuild = NO_BUILD; // advc.121
 
 	// BBAI TODO: Efficiency: Could cache this, decent savings on large maps
 	// Perhaps save best route type per player each turn, then just check that
@@ -6094,10 +6094,13 @@ RouteTypes CvPlayer::getBestRoute(const CvPlot* pPlot) const
 			{
 				iBestValue = iValue;
 				eBestRoute = eLoopRoute;
+				eBestBuild = eLoopBuild; // advc.121
 			}
 		}
 	}
-
+	// <advc.121>
+	if (peBestBuild != NULL)
+		*peBestBuild = eBestBuild; // </advc.121>
 	return eBestRoute;
 }
 
