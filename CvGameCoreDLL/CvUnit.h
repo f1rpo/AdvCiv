@@ -1100,7 +1100,9 @@ protected:
 
 	IDInfo m_combatUnit;
 	IDInfo m_transportUnit;
-
+	/*	advc.opt (tbd.): These take up 28 byte each; replace with C strings!
+		May also want to replace most of the ints with short. That would cut
+		the total size of this class in half. */
 	CvWString m_szName;
 	CvString m_szScriptData;
 

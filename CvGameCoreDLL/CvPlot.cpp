@@ -1970,7 +1970,7 @@ int CvPlot::getBuildTime(BuildTypes eBuild, /* advc.251: */ PlayerTypes ePlayer)
 	if (isFeature())
 		iTime += GC.getInfo(eBuild).getFeatureTime(getFeatureType());
 
-	iTime *= std::max(0, (GC.getInfo(getTerrainType()).getBuildModifier() + 100));
+	iTime *= std::max(0, GC.getInfo(getTerrainType()).getBuildModifier() + 100);
 	iTime /= 100;
 	// <advc.251>
 	iTime = (int)(GC.getInfo(GET_PLAYER(ePlayer).getHandicapType()).
@@ -2019,7 +2019,7 @@ int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, /* advc.251: */ PlayerTypes ePl
 
 	iBuildLeft = std::max(0, iBuildLeft);
 
-	int iTurnsLeft = (iBuildLeft / iThenBuildRate);
+	int iTurnsLeft = iBuildLeft / iThenBuildRate;
 	if (iTurnsLeft * iThenBuildRate < iBuildLeft)
 		iTurnsLeft++;
 	iTurnsLeft++;

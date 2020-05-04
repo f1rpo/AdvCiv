@@ -6053,7 +6053,7 @@ bool CvPlayer::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestEra, b
 	return true;
 }
 
-// Returns the cost
+
 int CvPlayer::getBuildCost(const CvPlot* pPlot, BuildTypes eBuild) const
 {
 	FAssert(eBuild >= 0 && eBuild < GC.getNumBuildInfos());

@@ -5545,8 +5545,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 		if (!isHuman())
 		{
 			iValue += kBuilding.getAIWeight();
-			//if (iValue > 0)
-			if (iValue > 0 && kBuilding.getProductionCost() > 0 && !bRemove) // K-Mod. Only use flavour adjustments for constructing ordinary buildings.
+			if (iValue > 0 &&
+				// K-Mod. Only use flavour adjustments for constructing ordinary buildings.
+				kBuilding.getProductionCost() > 0 && !bRemove)
 			{
 				int iFlavour = 0;
 				FOR_EACH_ENUM(Flavor)
@@ -6853,14 +6854,6 @@ void CvCityAI::AI_setEmphasize(EmphasizeTypes eIndex, bool bNewValue)
 		FAssert(m_aiEmphasizeCommerceCount[COMMERCE_CULTURE] >= 0);
 	}
 }*/
-
-
-int CvCityAI::AI_getBestBuildValue(CityPlotTypes ePlot) const // advc.enum: CityPlotTypes; const
-{
-	FAssert(ePlot >= 0);
-	FAssert(ePlot < NUM_CITY_PLOTS);
-	return m_aiBestBuildValue[ePlot];
-}
 
 
 int CvCityAI::AI_totalBestBuildValue(CvArea const& kArea) const // advc: style changes; const
