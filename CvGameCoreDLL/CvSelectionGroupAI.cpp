@@ -146,7 +146,7 @@ bool CvSelectionGroupAI::AI_update()
 	// <advc.001y> Will keep this permanently as a fallback
 	int iAttempts = 0;
 	int iMaxAttempts = 6 * (GET_PLAYER(getOwner()).getCurrentEra() + 1) +
-			::range(getNumUnits(), 4, 14);
+			std::max(getNumUnits(), 4);
 	// </advc.001y>
 	bool bDead = false;
 	bool bFailedAlreadyFighting = false;
