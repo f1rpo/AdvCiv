@@ -195,6 +195,8 @@
 	<ElementType name="DiplomacyIntroMusicWar" content="eltOnly">
 		<element type="DiploMusicWarEra" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
+	<!-- advc.xmldefault: Made many subelements optional (minOccurs 0).
+		 None were optional before except the ones added by advc.ctr. -->
 	<ElementType name="LeaderHeadInfo" content="eltOnly">
 		<element type="Type"/>
 		<element type="Description"/>
@@ -203,14 +205,14 @@
 		<element type="iWonderConstructRand"/>
 		<element type="iBaseAttitude"/>
 		<element type="iBasePeaceWeight"/>
-		<element type="iPeaceWeightRand"/>
+		<element type="iPeaceWeightRand" minOccurs="0"/>
 		<element type="iWarmongerRespect"/>
 		<element type="iEspionageWeight"/>
 		<element type="iRefuseToTalkWarThreshold"/>
 		<element type="iNoTechTradeThreshold"/>
 		<element type="iTechTradeKnownPercent"/>
 		<element type="iMaxGoldTradePercent"/>
-		<element type="iMaxGoldPerTurnTradePercent"/>
+		<element type="iMaxGoldPerTurnTradePercent" minOccurs="0"/>
 		<!-- BBAI Victory Strategy -->
 		<element type="iCultureVictoryWeight"/>
 		<element type="iSpaceVictoryWeight"/>
@@ -232,39 +234,37 @@
 		<element type="iRazeCityProb"/>
 		<element type="iBuildUnitProb"/>
 		<element type="iBaseAttackOddsChange"/>
-		<element type="iAttackOddsChangeRand"/>
+		<element type="iAttackOddsChangeRand" minOccurs="0"/>
 		<element type="iWorseRankDifferenceAttitudeChange"/>
 		<element type="iBetterRankDifferenceAttitudeChange"/>
 		<element type="iCloseBordersAttitudeChange"/>
-		<element type="iLostWarAttitudeChange"/>
-		<element type="iAtWarAttitudeDivisor"/>
-		<element type="iAtWarAttitudeChangeLimit"/>
-		<element type="iAtPeaceAttitudeDivisor"/>
-		<element type="iAtPeaceAttitudeChangeLimit"/>
-		<element type="iSameReligionAttitudeChange"/>
-		<element type="iSameReligionAttitudeDivisor"/>
+		<element type="iLostWarAttitudeChange" minOccurs="0"/>
+		<element type="iAtWarAttitudeDivisor" minOccurs="0"/>
+		<element type="iAtWarAttitudeChangeLimit" minOccurs="0"/>
+		<element type="iAtPeaceAttitudeDivisor" minOccurs="0"/>
+		<element type="iAtPeaceAttitudeChangeLimit" minOccurs="0"/>
+		<element type="iSameReligionAttitudeChange" minOccurs="0"/>
+		<element type="iSameReligionAttitudeDivisor" minOccurs="0"/>
 		<element type="iSameReligionAttitudeChangeLimit"/>
-		<element type="iDifferentReligionAttitudeChange"/>
-		<element type="iDifferentReligionAttitudeDivisor"/>
-		<element type="iDifferentReligionAttitudeChangeLimit"/>
-		<element type="iBonusTradeAttitudeDivisor"/>
-		<element type="iBonusTradeAttitudeChangeLimit"/>
-		<element type="iOpenBordersAttitudeDivisor"/>
-		<element type="iOpenBordersAttitudeChangeLimit"/>
-		<element type="iDefensivePactAttitudeDivisor"/>
-		<element type="iDefensivePactAttitudeChangeLimit"/>
-		<element type="iShareWarAttitudeChange"/>
-		<element type="iShareWarAttitudeDivisor"/>
+		<element type="iDifferentReligionAttitudeChange" minOccurs="0"/>
+		<element type="iDifferentReligionAttitudeDivisor" minOccurs="0"/>
+		<element type="iDifferentReligionAttitudeChangeLimit" minOccurs="0"/>
+		<element type="iBonusTradeAttitudeDivisor" minOccurs="0"/>
+		<element type="iBonusTradeAttitudeChangeLimit" minOccurs="0"/>
+		<element type="iOpenBordersAttitudeDivisor" minOccurs="0"/>
+		<element type="iOpenBordersAttitudeChangeLimit" minOccurs="0"/>
+		<element type="iDefensivePactAttitudeDivisor" minOccurs="0"/>
+		<element type="iDefensivePactAttitudeChangeLimit" minOccurs="0"/>
+		<element type="iShareWarAttitudeChange" minOccurs="0"/>
+		<element type="iShareWarAttitudeDivisor" minOccurs="0"/>
 		<element type="iShareWarAttitudeChangeLimit"/>
-		<element type="iFavoriteCivicAttitudeChange"/>
-		<element type="iFavoriteCivicAttitudeDivisor"/>
+		<element type="iFavoriteCivicAttitudeChange" minOccurs="0"/>
+		<element type="iFavoriteCivicAttitudeDivisor" minOccurs="0"/>
 		<element type="iFavoriteCivicAttitudeChangeLimit"/>
-		<element type="DemandTributeAttitudeThreshold"/>
-		<element type="NoGiveHelpAttitudeThreshold"/>
+		<element type="DemandTributeAttitudeThreshold" minOccurs="0"/>
+		<element type="NoGiveHelpAttitudeThreshold" minOccurs="0"/>
 		<element type="TechRefuseAttitudeThreshold"/>
-		<!-- advc.ctr (start): These are optional. As default values, the DLL
-			 (CvGlobals constructor) assigns ATTITUDE_CAUTIOUS to the first and
-			 ATTITUDE_PLEASED to the second. -->
+		<!-- advc.ctr: start -->
 		<element type="CityRefuseAttitudeThreshold" minOccurs="0"/>
 		<element type="NativeCityRefuseAttitudeThreshold" minOccurs="0"/>
 		<!-- advc.ctr: end -->
@@ -279,11 +279,11 @@
 		<element type="AdoptCivicRefuseAttitudeThreshold"/>
 		<element type="ConvertReligionRefuseAttitudeThreshold"/>
 		<element type="OpenBordersRefuseAttitudeThreshold"/>
-		<element type="DefensivePactRefuseAttitudeThreshold"/>
-		<element type="PermanentAllianceRefuseAttitudeThreshold"/>
+		<element type="DefensivePactRefuseAttitudeThreshold" minOccurs="0"/>
+		<element type="PermanentAllianceRefuseAttitudeThreshold" minOccurs="0"/>
 		<element type="VassalRefuseAttitudeThreshold"/>
 		<element type="iVassalPowerModifier"/>
-		<element type="iFreedomAppreciation"/>
+		<element type="iFreedomAppreciation" minOccurs="0"/>
 		<element type="FavoriteCivic"/>
 		<element type="FavoriteReligion"/>
 		<element type="Traits"/>

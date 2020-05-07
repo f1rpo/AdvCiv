@@ -777,24 +777,17 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iRandomGold, "iRandomGold");
 	pXML->GetChildXmlValByName(&m_iCulture, "iCulture");
 	pXML->GetChildXmlValByName(&m_iEspionagePoints, "iEspionagePoints");
-
-	CvString szTextVal;
-
-	pXML->GetChildXmlValByName(szTextVal, "Tech");
-	m_iTech = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iTech, "Tech");
 	pXML->GetChildXmlValByName(&m_iTechPercent, "iTechPercent");
 	pXML->GetChildXmlValByName(&m_iTechCostPercent, "iTechCostPercent");
 	pXML->GetChildXmlValByName(&m_iTechMinTurnsLeft, "iTechMinTurnsLeft");
-	pXML->GetChildXmlValByName(szTextVal, "PrereqTech");
-	m_iPrereqTech = pXML->FindInInfoClass(szTextVal);
-	pXML->GetChildXmlValByName(szTextVal, "UnitClass");
-	m_iUnitClass = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iPrereqTech, "PrereqTech");
+	pXML->SetInfoIDFromChildXmlVal(m_iUnitClass, "UnitClass");
 	pXML->GetChildXmlValByName(&m_iNumUnits, "iNumFreeUnits");
 	pXML->GetChildXmlValByName(&m_bDisbandUnit, "bDisbandUnit");
 	pXML->GetChildXmlValByName(&m_iUnitExperience, "iUnitExperience");
 	pXML->GetChildXmlValByName(&m_iUnitImmobileTurns, "iUnitImmobileTurns");
-	pXML->GetChildXmlValByName(szTextVal, "BuildingClass");
-	m_iBuildingClass = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iBuildingClass, "BuildingClass");
 	pXML->GetChildXmlValByName(&m_iBuildingChange, "iBuildingChange");
 
 	pXML->GetChildXmlValByName(&m_iHappy, "iHappy");
@@ -804,27 +797,21 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iFood, "iFood");
 	pXML->GetChildXmlValByName(&m_iFoodPercent, "iFoodPercent");
 
-	pXML->GetChildXmlValByName(szTextVal, "FeatureType");
-	m_iFeature = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iFeature, "FeatureType");
 	pXML->GetChildXmlValByName(&m_iFeatureChange, "iFeatureChange");
 
-	pXML->GetChildXmlValByName(szTextVal, "ImprovementType");
-	m_iImprovement = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iImprovement, "ImprovementType");
 	pXML->GetChildXmlValByName(&m_iImprovementChange, "iImprovementChange");
 
-	pXML->GetChildXmlValByName(szTextVal, "BonusType");
-	m_iBonus = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iBonus, "BonusType");
 	pXML->GetChildXmlValByName(&m_iBonusChange, "iBonusChange");
 
-	pXML->GetChildXmlValByName(szTextVal, "RouteType");
-	m_iRoute = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iRoute, "RouteType");
 	pXML->GetChildXmlValByName(&m_iRouteChange, "iRouteChange");
 
-	pXML->GetChildXmlValByName(szTextVal, "BonusRevealed");
-	m_iBonusRevealed = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iBonusRevealed, "BonusRevealed");
 
-	pXML->GetChildXmlValByName(szTextVal, "BonusGift");
-	m_iBonusGift = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iBonusGift, "BonusGift");
 
 	pXML->SetVariableListTagPair(&m_piTechFlavorValue, "TechFlavors", GC.getNumFlavorTypes());
 	pXML->SetVariableListTagPair(&m_piPlotExtraYields, "PlotExtraYields", NUM_YIELD_TYPES, 0);
@@ -840,8 +827,7 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iRevoltTurns, "iRevoltTurns");
 	pXML->GetChildXmlValByName(&m_iMinPillage, "iMinPillage");
 	pXML->GetChildXmlValByName(&m_iMaxPillage, "iMaxPillage");
-	pXML->GetChildXmlValByName(szTextVal, "UnitPromotion");
-	m_iUnitPromotion = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iUnitPromotion, "UnitPromotion");
 	pXML->GetChildXmlValByName(&m_iFreeUnitSupport, "iFreeUnitSupport");
 	pXML->GetChildXmlValByName(&m_iInflationModifier, "iInflationMod");
 	pXML->GetChildXmlValByName(&m_iSpaceProductionModifier, "iSpaceProductionMod");
@@ -883,6 +869,7 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j<iNumSibs; ++j)
@@ -908,6 +895,7 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 			{
 				if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 				{
+					CvString szTextVal;
 					for (int j = 0; j < iNumSibs; ++j)
 					{
 						if (pXML->GetChildXmlVal(szTextVal))
@@ -941,6 +929,7 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 			{
 				if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 				{
+					CvString szTextVal;
 					for (int j = 0; j < iNumSibs; ++j)
 					{
 						if (pXML->GetChildXmlVal(szTextVal))
@@ -974,6 +963,7 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 			{
 				if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 				{
+					CvString szTextVal;
 					for (int j = 0; j < iNumSibs; ++j)
 					{
 						if (pXML->GetChildXmlVal(szTextVal))
@@ -1006,6 +996,7 @@ bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 			{
 				if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 				{
+					CvString szTextVal;
 					for (int j = 0; j < iNumSibs; ++j)
 					{
 						if (pXML->GetChildXmlVal(szTextVal))
@@ -1894,9 +1885,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iMinOurLandmass, "iMinOurLandmass");
 	pXML->GetChildXmlValByName(&m_iMaxOurLandmass, "iMaxOurLandmass");
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "MinDifficulty");
-	m_iMinDifficulty = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iMinDifficulty, "MinDifficulty");
 
 	pXML->GetChildXmlValByName(&m_iAngry, "iAngry");
 	pXML->GetChildXmlValByName(&m_iUnhealthy, "iUnhealthy");
@@ -1913,6 +1902,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			m_aiUnitsRequired.clear();
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j < iNumSibs; j++)
@@ -1936,6 +1926,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			m_aiBuildingsRequired.clear();
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j < iNumSibs; j++)
@@ -1959,6 +1950,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			m_aiPrereqOrTechs.clear();
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j < iNumSibs; j++)
@@ -1982,6 +1974,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			m_aiPrereqAndTechs.clear();
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j < iNumSibs; j++)
@@ -1997,13 +1990,11 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
 
-	pXML->GetChildXmlValByName(szTextVal, "OtherPlayerHasTech");
-	m_iOtherPlayerHasTech = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iOtherPlayerHasTech, "OtherPlayerHasTech");
 
-	pXML->GetChildXmlValByName(szTextVal, "Civic");
-	m_iCivic = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iCivic, "Civic");
 
-	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"ObsoleteTechs"))
+	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "ObsoleteTechs"))
 	{
 		if (pXML->SkipToNextVal())
 		{
@@ -2011,6 +2002,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			m_aiObsoleteTechs.clear();
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j < iNumSibs; j++)
@@ -2034,6 +2026,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			m_aiEvents.clear();
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j < iNumSibs; j++)
@@ -2057,6 +2050,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			m_aiPrereqEvents.clear();
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j < iNumSibs; j++)
@@ -2080,6 +2074,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			m_aiFeaturesRequired.clear();
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j < iNumSibs; j++)
@@ -2103,6 +2098,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			m_aiTerrainsRequired.clear();
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j < iNumSibs; j++)
@@ -2128,6 +2124,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			m_aiImprovementsRequired.clear();
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j < iNumSibs; j++)
@@ -2153,6 +2150,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			m_aiBonusesRequired.clear();
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j < iNumSibs; j++)
@@ -2176,6 +2174,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			m_aiRoutesRequired.clear();
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j < iNumSibs; j++)
@@ -2199,6 +2198,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			m_aiReligionsRequired.clear();
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j < iNumSibs; j++)
@@ -2224,6 +2224,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			m_aiCorporationsRequired.clear();
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j < iNumSibs; j++)
@@ -2252,6 +2253,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			{
 				if (gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 				{
+					CvString szTextVal;
 					for (int j = 0; j < iNumSibs; ++j)
 					{
 						if (pXML->GetChildXmlVal(szTextVal))
@@ -2281,6 +2283,7 @@ bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					for (int j = 0; j<iNumSibs; ++j)

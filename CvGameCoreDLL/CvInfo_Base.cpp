@@ -6,6 +6,12 @@
 
 CvInfoBase::CvInfoBase() : m_bGraphicalOnly(false) {}
 
+// advc.xmldefault:
+CvInfoBase::CvInfoBase(CvInfoBase const& kOther)
+{
+	FAssertMsg(false, "Copy-ctor not implemented");
+}
+
 CvInfoBase::~CvInfoBase() {}
 #if SERIALIZE_CVINFOS
 void CvInfoBase::read(FDataStreamBase* pStream)
@@ -52,6 +58,19 @@ const TCHAR* CvInfoBase::getType() const
 		return NULL;
 
 	return m_szType;
+}
+
+// advc.xmldefault:
+bool CvInfoBase::isDefaultsType() const
+{
+	if (m_szType == NULL)
+		return false;
+	CvString const szEnding = "_DEFAULTS";
+	return (m_szType.length() > szEnding.length() &&
+			m_szType.compare(
+				m_szType.length() - szEnding.length(),
+				szEnding.length(),
+				szEnding) == 0);
 }
 
 const TCHAR* CvInfoBase::getButton() const

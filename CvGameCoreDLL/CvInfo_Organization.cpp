@@ -73,22 +73,16 @@ bool CvOrganizationInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvHotkeyInfo::read(pXML))
 		return false;
 
-	CvString szTextVal;
-
-	pXML->GetChildXmlValByName(szTextVal, "TechPrereq");
-	m_iTechPrereq = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "FreeUnitClass");
-	m_iFreeUnitClass = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iTechPrereq, "TechPrereq");
+	pXML->SetInfoIDFromChildXmlVal(m_iFreeUnitClass, "FreeUnitClass");
 
 	pXML->GetChildXmlValByName(&m_iSpreadFactor, "iSpreadFactor");
 
+	CvString szTextVal;
 	pXML->GetChildXmlValByName(szTextVal, "MovieFile");
 	setMovieFile(szTextVal);
-
 	pXML->GetChildXmlValByName(szTextVal, "MovieSound");
 	setMovieSound(szTextVal);
-
 	pXML->GetChildXmlValByName(szTextVal, "Sound");
 	setSound(szTextVal);
 

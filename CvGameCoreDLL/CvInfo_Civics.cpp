@@ -622,18 +622,12 @@ bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-
-	pXML->GetChildXmlValByName(szTextVal, "CivicOptionType");
-	m_iCivicOptionType = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "TechPrereq");
-	m_eTechPrereq = (TechTypes)pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iCivicOptionType, "CivicOptionType");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eTechPrereq, "TechPrereq");
 
 	pXML->GetChildXmlValByName(&m_iAnarchyLength, "iAnarchyLength");
 
-	pXML->GetChildXmlValByName(szTextVal, "Upkeep");
-	m_iUpkeep = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iUpkeep, "Upkeep");
 
 	pXML->GetChildXmlValByName(&m_iAIWeight, "iAIWeight");
 	pXML->GetChildXmlValByName(&m_iGreatPeopleRateModifier, "iGreatPeopleRateModifier");
@@ -743,6 +737,7 @@ bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 				{
 					for (int j = 0; j < iNumSibs; j++)
 					{
+						CvString szTextVal;
 						pXML->GetChildXmlValByName(szTextVal, "ImprovementType");
 						int iIndex = pXML->FindInInfoClass(szTextVal);
 						if (iIndex > -1)
@@ -765,6 +760,7 @@ bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
 
+	CvString szTextVal;
 	pXML->GetChildXmlValByName(szTextVal, "WeLoveTheKing");
 	setWeLoveTheKingKey(szTextVal);
 

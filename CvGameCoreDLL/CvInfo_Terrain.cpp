@@ -721,22 +721,15 @@ bool CvBonusInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-
-	pXML->GetChildXmlValByName(szTextVal, "BonusClassType");
-	m_iBonusClassType = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
-	setArtDefineTag(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "TechReveal");
-	m_iTechReveal = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "TechCityTrade");
-	m_iTechCityTrade = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "TechObsolete");
-	m_iTechObsolete = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iBonusClassType, "BonusClassType");
+	{
+		CvString szTextVal;
+		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
+		setArtDefineTag(szTextVal);
+	}
+	pXML->SetInfoIDFromChildXmlVal(m_iTechReveal, "TechReveal");
+	pXML->SetInfoIDFromChildXmlVal(m_iTechCityTrade, "TechCityTrade");
+	pXML->SetInfoIDFromChildXmlVal(m_iTechObsolete, "TechObsolete");
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"YieldChanges"))
 	{
@@ -858,8 +851,6 @@ bool CvRouteInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-
 	pXML->GetChildXmlValByName(&m_iAdvancedStartCost, "iAdvancedStartCost");
 	pXML->GetChildXmlValByName(&m_iAdvancedStartCostIncrease, "iAdvancedStartCostIncrease");
 
@@ -867,8 +858,7 @@ bool CvRouteInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iMovementCost, "iMovement");
 	pXML->GetChildXmlValByName(&m_iFlatMovementCost, "iFlatMovement");
 
-	pXML->GetChildXmlValByName(szTextVal, "BonusType");
-	m_iPrereqBonus = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iPrereqBonus, "BonusType");
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"Yields"))
 	{
@@ -889,9 +879,10 @@ bool CvRouteInfo::read(CvXMLLoadUtility* pXML)
 
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
-					FAssertMsg((iNumSibs <= GC.getNUM_ROUTE_PREREQ_OR_BONUSES()) ,"There are more siblings than memory allocated for them in SetGlobalUnitInfo");
+					FAssertMsg(iNumSibs <= GC.getNUM_ROUTE_PREREQ_OR_BONUSES(), "There are more siblings than memory allocated for them in SetGlobalUnitInfo");
 					for (int j = 0; j < iNumSibs; j++)
 					{
 						m_piPrereqOrBonuses[j] = pXML->FindInInfoClass(szTextVal);
@@ -1338,12 +1329,11 @@ bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvXMLInfo::read(pXML)) // advc.tag
 		return false;
-
-	CvString szTextVal;
-
-	pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
-	setArtDefineTag(szTextVal);
-
+	{
+		CvString szTextVal;
+		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
+		setArtDefineTag(szTextVal);
+	}
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"PrereqNatureYields"))
 	{
 		pXML->SetYields(&m_piPrereqNatureYield);
@@ -1431,6 +1421,7 @@ bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 				{
 					if (iNumSibs > 0)
 					{
+						CvString szTextVal;
 						for (int j = 0; j < iNumSibs; j++)
 						{
 							pXML->GetChildXmlValByName(szTextVal, bTech ?
@@ -1457,7 +1448,7 @@ bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 			gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 		}
 	}
-
+	CvString szTextVal;
 	pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
 	if (szTextVal.GetLength() > 0)
 		m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE);
@@ -1644,11 +1635,11 @@ bool CvGoodyInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
 		return false;
-
-	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "Sound");
-	setSound(szTextVal);
-
+	{
+		CvString szTextVal;
+		pXML->GetChildXmlValByName(szTextVal, "Sound");
+		setSound(szTextVal);
+	}
 	pXML->GetChildXmlValByName(&m_iGold, "iGold");
 	pXML->GetChildXmlValByName(&m_iGoldRand1, "iGoldRand1");
 	pXML->GetChildXmlValByName(&m_iGoldRand2, "iGoldRand2");
@@ -1661,11 +1652,8 @@ bool CvGoodyInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bTech, "bTech");
 	pXML->GetChildXmlValByName(&m_bBad, "bBad");
 
-	pXML->GetChildXmlValByName(szTextVal, "UnitClass");
-	m_iUnitClassType = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "BarbarianClass");
-	m_iBarbarianUnitClass = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iUnitClassType, "UnitClass");
+	pXML->SetInfoIDFromChildXmlVal(m_iBarbarianUnitClass, "BarbarianClass");
 
 	pXML->GetChildXmlValByName(&m_iBarbarianUnitProb, "iBarbarianUnitProb");
 	pXML->GetChildXmlValByName(&m_iMinBarbarians, "iMinBarbarians");

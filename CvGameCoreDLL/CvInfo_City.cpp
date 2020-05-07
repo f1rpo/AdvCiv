@@ -32,9 +32,7 @@ bool CvProcessInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "TechPrereq");
-	m_iTechPrereq = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iTechPrereq, "TechPrereq");
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"ProductionToCommerceModifiers"))
 	{
