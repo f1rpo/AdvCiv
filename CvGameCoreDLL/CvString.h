@@ -2,11 +2,9 @@
 
 #ifndef CvString_h
 #define CvString_h
-// advc.make: Needed for _USRDLL definition
-#include "CvDefines.h"
 
 #include <string>
-#pragma warning( disable: 4251 )		// needs to have dll-interface to be used by clients of class
+//#pragma warning( disable: 4251 ) // needs to have dll-interface to be used by clients of class
 
 //
 // simple string classes, based on stl, but with a few helpers
@@ -28,27 +26,14 @@ public:
 	CvWString(const wchar* s) { if (s) *this = s; }
 //	CvWString(const __wchar_t* s) { if (s) *this = s; }
 	CvWString(const std::wstring& s) { assign(s.c_str()); }
-#ifndef _USRDLL
+//#ifndef _USRDLL
 	// FString conversion, if not in the DLL
-	CvWString(const FStringA& s) { Copy(s.GetCString()); }
-	CvWString(const FStringW& s) { assign(s.GetCString()); }
-#endif
+//	CvWString(const FStringA& s) { Copy(s.GetCString()); }
+//	CvWString(const FStringW& s) { assign(s.GetCString()); }
+//#endif // advc (the EXE doesn't even use these)
 	~CvWString() {}
 
-	void Copy(const char* s)
-	{
-		if (s)
-		{
-			int iLen = strlen(s);
-			if (iLen)
-			{
-				wchar *w = new wchar[iLen+1];
-				swprintf(w, L"%S", s);	// convert
-				assign(w);
-				delete [] w;
-			}
-		}
-	}
+	void Copy(const char* s); // advc: Definition moved into implementation file
 
 	// FString compatibility
 	const wchar* GetCString() const 	{ return c_str(); }
@@ -64,11 +49,11 @@ public:
 	const CvWString& operator=( const std::wstring& s) { assign(s.c_str());	return *this; }
 	const CvWString& operator=( const std::string& w) { Copy(w.c_str());	return *this; }
 	const CvWString& operator=( const CvWString& w) { assign(w.c_str());	return *this; }
-#ifndef _USRDLL
+//#ifndef _USRDLL
 	// FString conversion, if not in the DLL
-	const CvWString& operator=( const FStringW& s) { assign(s.GetCString());	return *this; }
-	const CvWString& operator=( const FStringA& w) { Copy(w.GetCString());	return *this; }
-#endif
+//	const CvWString& operator=( const FStringW& s) { assign(s.GetCString());	return *this; }
+//	const CvWString& operator=( const FStringA& w) { Copy(w.GetCString());	return *this; }
+//#endif // advc (the EXE doesn't even use these)
 	const CvWString& operator=( const char* w) { Copy(w);	return *this; }
 
 	void Format(LPCWSTR lpszFormat, ...);
@@ -112,19 +97,7 @@ public:
 		m_iLength = newLength;
 	}
 
-	void append(const wchar *szCharacters)
-	{
-		if(szCharacters == NULL)
-			return;
-
-		int inputLength = wcslen(szCharacters);
-		int newLength = m_iLength + inputLength;
-		ensureCapacity(newLength + 1);
-
-		//append data
-		memcpy(m_pBuffer + m_iLength, szCharacters, sizeof(wchar) * (inputLength + 1)); //null character
-		m_iLength = newLength;
-	}
+	void append(const wchar *szCharacters); // advc: Definition moved into implementation file
 
 	void append(const CvWString &szString)
 	{
@@ -158,10 +131,7 @@ public:
 
 	bool isEmpty() const
 	{
-		if(m_iLength == 0)
-			return true;
-		else
-			return false;
+		return (m_iLength == 0);
 	}
 
 	const wchar *getCString()
@@ -171,35 +141,14 @@ public:
 	}
 
 private:
-	void ensureCapacity(int newCapacity)
-	{
-		if(newCapacity > m_iCapacity)
-		{
-			m_iCapacity = 2 * newCapacity; //grow by %100
-			wchar *newBuffer = new wchar [m_iCapacity];
-
-			//copy data
-			if(m_pBuffer != NULL)
-			{
-				memcpy(newBuffer, m_pBuffer, sizeof(wchar) * (m_iLength + 1)); //null character
-				//erase old memory
-				SAFE_DELETE_ARRAY(m_pBuffer);
-			}
-			else
-			{
-				newBuffer[0] = 0; //null character
-			}
-
-			m_pBuffer = newBuffer;
-		}
-	}
+	void ensureCapacity(int newCapacity); // advc: Definition moved into implementation file
 
 	wchar *m_pBuffer;
 	int m_iLength;
 	int m_iCapacity;
 };
 
-//
+
 class CvString : public std::string
 {
 public:
@@ -207,24 +156,12 @@ public:
 	CvString(int iLen) { reserve(iLen); }
 	CvString(const char* s) { operator=(s); }
 	CvString(const std::string& s) { assign(s.c_str()); }
-	explicit CvString(const std::wstring& s) { Copy(s.c_str()); }		// don't want accidental conversions down to narrow strings
+	// don't want accidental conversions down to narrow strings
+	explicit CvString(const std::wstring& s) { Copy(s.c_str()); }
 	~CvString() {}
 
 	void Convert(const std::wstring& w) { Copy(w.c_str());	}
-	void Copy(const wchar* w)
-	{
-		if (w)
-		{
-			int iLen = wcslen(w);
-			if (iLen)
-			{
-				char *s = new char[iLen+1];
-				sprintf(s, "%S", w);	// convert
-				assign(s);
-				delete [] s;
-			}
-		}
-	}
+	void Copy(const wchar* w); // advc: Definition moved into implementation file
 
 	// implicit conversion
 	operator const char*() const 	{ return c_str(); }
@@ -236,12 +173,13 @@ public:
 	const char operator[](int i) const { return std::string::operator[](i);	}
 	const CvString& operator=( const char* s) { if (s) assign(s); else clear();	return *this; }
 	const CvString& operator=( const std::string& s) { assign(s.c_str());	return *this; }
-//	const CvString& operator=( const std::wstring& w) { Copy(w.c_str());	return *this; }		// don't want accidental conversions down to narrow strings
+	// don't want accidental conversions down to narrow strings
+//	const CvString& operator=( const std::wstring& w) { Copy(w.c_str());	return *this; }
 //	const CvString& operator=( const wchar* w) { Copy(w);	return *this; }
 
 	// FString compatibility
 	bool IsEmpty() const { return empty();	}
-	const char* GetCString() const 	{ return c_str(); }							// convert
+	const char* GetCString() const 	{ return c_str(); }	// convert
 	int CompareNoCase(const char* lpsz) const { return stricmp(lpsz, c_str()); }
 	int CompareNoCase(const char* lpsz, int iLength) const { return strnicmp(lpsz, c_str(), iLength);  }
 	void Format(LPCSTR lpszFormat, ...);
@@ -257,231 +195,9 @@ public:
 	static std::string formatv(const char * fmt, va_list args);
 };
 
-//////////////////////////////////////////////////////////////////////////
+
 // INLINES
 // Don't move these into a cpp file, since I don't want CvString to be part of the DLL, MT
-//////////////////////////////////////////////////////////////////////////
+// advc: I've done just that - since CvString is part of the DLL.
 
-inline int CvString::Replace(char chOld, char chNew)
-{
-	int iCnt = 0;
-	for(int i = 0; i < (int)size(); i++)
-	{
-		if ((*this)[i] == chOld)
-		{
-			replace(i, 1, std::string(1, chNew));
-			iCnt++;
-		}
-	}
-	return iCnt;
-}
-
-inline void CvString::getTokens(const CvString& delimiters, std::vector<CvString>& tokensOut) const
-{
-	//tokenizer code taken from http://www.digitalpeer.com/id/simple
-
-	// skip delimiters at beginning.
-	size_type lastPos = find_first_not_of(delimiters, 0);
-
-	// find first "non-delimiter".
-	size_type pos = find_first_of(delimiters, lastPos);
-
-	while (CvString::npos != pos || CvString::npos != lastPos)
-	{
-		// found a token, parse it.
-		CvString token = substr(lastPos, pos - lastPos);
-		tokensOut.push_back(token);
-
-		// skip delimiters.  Note the "not_of"
-		lastPos = find_first_not_of(delimiters, pos);
-
-		// find next "non-delimiter"
-		pos = find_first_of(delimiters, lastPos);
-	}
-}
-
-//
-// static
-//
-inline bool CvString::formatv(std::string & out, const char * fmt, va_list args)
-{
-	char buf[2048];
-	char * pbuf = buf;
-	int len = 0;
-	int attempts = 0;
-	bool success = false;
-	const int kMaxAttempts = 40;
-
-	do
-	{
-		int maxlen = 2047+2048*attempts;
-		len = _vsnprintf(pbuf,maxlen,fmt,args);
-		attempts++;
-		success = (len>=0 && len<=maxlen);
-		if (!success)
-		{
-			if (pbuf!=buf)
-				delete [] pbuf;
-			pbuf = new char[2048+2048*attempts];
-		}
-	}
-	while (!success && attempts<kMaxAttempts);
-
-	if (attempts==kMaxAttempts)
-	{
-		// dxPrintNL("CvString::formatv - Max reallocs occurred while formatting string. Result is likely truncated!", 0);
-	}
-
-	if (success)
-		out = pbuf;
-	else
-		out = "";
-
-	if (pbuf!=buf)
-		delete [] pbuf;
-
-	return success;
-}
-
-//
-// static
-//
-inline bool CvWString::formatv(std::wstring & out, const wchar * fmt, va_list args)
-{
-	wchar buf[2048];
-	wchar * pbuf = buf;
-	int len = 0;
-	int attempts = 0;
-	bool success = false;
-	const int kMaxAttempts = 40;
-
-	do
-	{
-		int maxlen = 2047+2048*attempts;
-		len = _vsnwprintf(pbuf,maxlen,fmt,args);
-		attempts++;
-		success = (len>=0 && len<=maxlen);
-		if (!success)
-		{
-			if (pbuf!=buf)
-				delete [] pbuf;
-			pbuf = new wchar[2048+2048*attempts];
-		}
-	}
-	while (!success && attempts<kMaxAttempts);
-
-	if (attempts==kMaxAttempts)
-	{
-		// dxPrintNL("CvString::formatv - Max reallocs occurred while formatting string. Result is likely truncated!", 0);
-	}
-
-	if (success)
-		out = pbuf;
-	else
-		out = L"";
-
-	if (pbuf!=buf)
-		delete [] pbuf;
-
-	return success;
-}
-
-
-//
-// static
-//
-inline std::wstring CvWString::formatv(const wchar * fmt, va_list args)
-{
-	std::wstring result;
-	formatv(result, fmt, args);
-	return result;
-}
-
-//
-// static
-//
-inline CvWString CvWString::format(const wchar * fmt, ...)
-{
-	std::wstring result;
-	va_list args;
-	va_start(args,fmt);
-	formatv(result,fmt,args);
-	va_end(args);
-	return CvWString(result);
-}
-
-//
-// static
-//
-inline bool CvWString::format(std::wstring & out, const wchar * fmt, ...)
-{
-	va_list args;
-	va_start(args,fmt);
-	bool r = formatv(out,fmt,args);
-	va_end(args);
-	return r;
-}
-
-//
-//
-//
-inline void CvWString::Format( LPCWSTR lpszFormat, ...)
-{
-	std::wstring result;
-	va_list args;
-	va_start(args,lpszFormat);
-	formatv(result,lpszFormat,args);
-	va_end(args);
-	*this = result;
-}
-
-//
-// static
-//
-inline std::string CvString::formatv(const char * fmt, va_list args)
-{
-	std::string result;
-	formatv(result, fmt, args);
-	return result;
-}
-//
-// static
-//
-inline CvString CvString::format(const char * fmt, ...)
-{
-	std::string result;
-	va_list args;
-	va_start(args,fmt);
-	formatv(result,fmt,args);
-	va_end(args);
-	return CvString(result);
-}
-
-//
-// static
-//
-inline bool CvString::format(std::string & out, const char * fmt, ...)
-{
-	va_list args;
-	va_start(args,fmt);
-	bool r = formatv(out,fmt,args);
-	va_end(args);
-	return r;
-}
-
-
-//
-//
-//
-inline void CvString::Format( LPCSTR lpszFormat, ...)
-{
-	std::string result;
-	va_list args;
-	va_start(args,lpszFormat);
-	formatv(result,lpszFormat,args);
-	va_end(args);
-	*this = result;
-}
-
-#endif	// CvString_h
-
+#endif

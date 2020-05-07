@@ -104,6 +104,7 @@
     <ClCompile Include="..\CvSelectionGroup.cpp" />
     <ClCompile Include="..\CvSelectionGroupAI.cpp" />
     <ClCompile Include="..\CvStatistics.cpp" />
+    <ClCompile Include="..\CvString.cpp" />
     <ClCompile Include="..\CvStructs.cpp" />
     <ClCompile Include="..\CvTalkingHeadMessage.cpp" />
     <ClCompile Include="..\CvTeam.cpp" />
@@ -161,6 +162,7 @@
     <ClCompile Include="..\CyTeamInterface.cpp" />
     <ClCompile Include="..\CyUnit.cpp" />
     <ClCompile Include="..\CyUnitInterface1.cpp" />
+    <ClCompile Include="..\ReproTest.cpp" />
     <ClCompile Include="..\EnumMapTest.cpp" />
     <ClCompile Include="..\FDialogTemplate.cpp" />
     <ClCompile Include="..\FFreeListTrashArray.cpp" />
@@ -305,6 +307,7 @@
     <ClInclude Include="..\CySelectionGroup.h" />
     <ClInclude Include="..\CyTeam.h" />
     <ClInclude Include="..\CyUnit.h" />
+    <ClInclude Include="..\ReproTest.h" />
     <ClInclude Include="..\EnumMap.h" />
     <ClInclude Include="..\EnumMap2D.h" />
     <ClInclude Include="..\FAssert.h" />
