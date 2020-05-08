@@ -770,7 +770,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(bool* r, TCHAR const* szName,
 	return false; // </advc.006b>
 }
 
-// advc.xmldefault:
+// <advc.xmldefault>
 void CvXMLLoadUtility::SetInfoIDFromChildXmlVal(int& r, TCHAR const* szName)
 {
 	CvString szTextVal;
@@ -778,6 +778,15 @@ void CvXMLLoadUtility::SetInfoIDFromChildXmlVal(int& r, TCHAR const* szName)
 	if (!szTextVal.IsEmpty())
 		r = FindInInfoClass(szTextVal);
 }
+
+// (based on code by rheinig)
+int CvXMLLoadUtility::GetChildTypeIndex()
+{
+	CvString szType;
+	if (GetChildXmlValByName(szType, "Type") && !szType.empty())
+		return GC.getInfoTypeForString(szType, true);
+	return -1;
+} // </advc.xmldefault>
 
 // advc.006b:
 void CvXMLLoadUtility::setAssertMandatoryEnabled(bool b)

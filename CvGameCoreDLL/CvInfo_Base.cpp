@@ -112,7 +112,7 @@ const wchar* CvInfoBase::getCivilopedia() const
 	return m_szCachedCivilopedia;
 }
 
-const wchar*  CvInfoBase::getHelp() const
+const wchar* CvInfoBase::getHelp() const
 {
 	if (m_szCachedHelp.empty())
 		m_szCachedHelp = gDLL->getText(m_szHelpKey);

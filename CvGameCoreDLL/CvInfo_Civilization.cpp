@@ -306,10 +306,8 @@ bool CvCivilizationInfo::read(CvXMLLoadUtility* pXML)
 		pXML->GetChildXmlValByName(szTextVal, "UnitArtStyleType",
 				""); // advc.006b: Barbarians and Minor Civs don't have one
 		m_iUnitArtStyleType = pXML->FindInInfoClass(szTextVal);
-		szTextVal = "";
 		pXML->GetChildXmlValByName(szTextVal, "CivilizationSelectionSound");
 		m_iSelectionSoundScriptId = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_3DSCRIPT) : -1;
-		szTextVal = "";
 		pXML->GetChildXmlValByName(szTextVal, "CivilizationActionSound");
 		m_iActionSoundScriptId = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_3DSCRIPT) : -1;
 	}
@@ -478,6 +476,8 @@ m_iNoGiveHelpAttitudeThreshold(NO_ATTITUDE),
 m_iTechRefuseAttitudeThreshold(NO_ATTITUDE),
 /*	<advc.ctr> The initial values matter when a mod-mod neither sets these
 	thresholds individually nor defines LEADER_DEFAULTS (advc.xmldefault). */
+m_iCityRefuseAttitudeThreshold(ATTITUDE_CAUTIOUS),
+m_iNativeCityRefuseAttitudeThreshold(ATTITUDE_PLEASED), // </advc.ctr>
 m_iStrategicBonusRefuseAttitudeThreshold(NO_ATTITUDE),
 m_iHappinessBonusRefuseAttitudeThreshold(NO_ATTITUDE),
 m_iHealthBonusRefuseAttitudeThreshold(NO_ATTITUDE),
@@ -1328,7 +1328,9 @@ bool CvLeaderHeadInfo::read(CvXMLLoadUtility* pXML)
 		return false;
 	{
 		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
+		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag",
+				// advc.xmldefault:
+				m_szArtDefineTag.empty() ? NULL : m_szArtDefineTag.c_str());
 		setArtDefineTag(szTextVal);
 	}
 	/*	advc.xmldefault: Redirect the CvXMLLoadUtility::GetChildXmlValByName
