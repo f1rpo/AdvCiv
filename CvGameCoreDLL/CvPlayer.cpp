@@ -20792,22 +20792,28 @@ void CvPlayer::calculateTradeTotals(YieldTypes eIndex,
 void CvPlayer::setScoreboardExpanded(bool b)
 {
 	CvGame& kGame = GC.getGame();
-	/*	During diplomacy, my code for detecting whether the cursor
-		has been moved away from the scoreboard causes the
+	/*	When a popup (e.g. diplo) is open, my code for detecting whether
+		the cursor has been moved away from the scoreboard causes the
 		hover text box to flicker. Don't think I can fix that.
 		Workaround: If the player expands the scoreboard during
 		diplomacy, it remains expanded until diplomacy ends. */
-	if (gDLL->isDiplomacy())
+	if (gDLL->UI().isFocused())
 	{
 		if (!BUGOption::isEnabled("Scores__ExpandOnHover", false, false))
 			return;
-		/*	Expand the scoreboard. (Note: An update timer set by
-			CvDLLWidgetData::doContactCiv prevents the scoreboard
-			from already getting stuck at expanded when the player
-			clicks on the scoreboard to initiate diplomacy.) */
+		// Expand the scoreboard
 		if (b && !m_bScoreboardExpanded)
+		{
 			gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
-		m_bScoreboardExpanded = b;
+			m_bScoreboardExpanded = b;
+		}
+		/*	Needed in conjunction with an update timer set by
+			CvDLLWidgetData::doContactCiv to prevent the scoreboard
+			from already getting stuck at expanded when the player
+			clicks on the scoreboard to initiate diplomacy. */
+		if (gDLL->isDiplomacy())
+			m_bScoreboardExpanded = b;
+
 		// Schedule callback for collapse
 		kGame.setUpdateTimer(CvGame::UPDATE_COLLAPSE_SCORE_BOARD, 1);
 		// Ignore callback while diplomacy ongoing
