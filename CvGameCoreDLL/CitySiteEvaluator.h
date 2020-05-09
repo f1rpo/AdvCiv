@@ -129,8 +129,9 @@ private:
 	bool isSiteValid() const;
 	bool computeOverlap();
 	bool isPrioritizeAsFirstColony() const; // advc.040
-	int countBadTiles(int& iUnrevealed, int& iLand, int& iRevealedDecentLand) const;
-	bool isTooManyBadTiles(int iBadTiles) const;
+	int countBadTiles(int& iInner, int& iUnrevealed, int& iLand,
+			int& iRevealedDecentLand) const;
+	bool isTooManyBadTiles(int iBadTiles, int iInnerBadTiles) const;
 	int baseCityValue() const;
 	bool isUsablePlot(CityPlotTypes ePlot, int& iTakenTiles, bool& bCityRadius,
 			bool& bForeignOwned, bool& bAnyForeignOwned, bool& bShare, bool& bSteal) const;

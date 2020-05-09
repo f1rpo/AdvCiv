@@ -350,6 +350,7 @@ short AIFoundValue::evaluate()
 
 	// Bad tiles, unrevealed tiles, first colony
 	int iBadTiles = 0;
+	int iInnerBadTiles = 0;
 	int iLandTiles = 0; // advc.031
 	// <advc.040>
 	bool bFirstColony = isPrioritizeAsFirstColony();
@@ -359,7 +360,8 @@ short AIFoundValue::evaluate()
 		int iRevealedDecentLand = 0;
 		// </advc.040>
 		int iUnrevealed = 0;
-		iBadTiles = countBadTiles(iUnrevealed, iLandTiles, iRevealedDecentLand);
+		iBadTiles = countBadTiles(iInnerBadTiles, iUnrevealed, iLandTiles,
+				iRevealedDecentLand);
 		iUnrevealedTiles = iUnrevealed;
 		/*  <advc.040> Make sure we do naval exploration near the site before
 			sending a Settler */
@@ -369,7 +371,7 @@ short AIFoundValue::evaluate()
 			bFirstColony = false;
 		} // </advc.040>
 	}
-	if (isTooManyBadTiles(iBadTiles))
+	if (isTooManyBadTiles(iBadTiles, iInnerBadTiles))
 	{
 		IFLOG logBBAI("Too many bad tiles");
 		return 0;
@@ -890,23 +892,30 @@ bool AIFoundValue::isPrioritizeAsFirstColony() const
 } // </advc.040>
 
 
-int AIFoundValue::countBadTiles(int& iUnrevealed, /* advc.031: */ int& iLand,
+int AIFoundValue::countBadTiles(/* advc.031: */ int& iInnerRadius,
+	int& iUnrevealed, /* advc.031: */ int& iLand,
 	int& iRevealedDecentLand) const // advc.040
 {
 	int iBadTiles = 0;
 	FOR_EACH_ENUM(CityPlot)
 	{
 		CvPlot const* p = plotCity(iX, iY, eLoopCityPlot);
-		/*  <advc.031> NULL and impassable count as 2 bad tiles (as in BtS),
+		// <advc.031>
+		bool const bInner = (eLoopCityPlot < NUM_INNER_PLOTS);
+		/*  NULL and impassable count as 2 bad tiles (as in BtS),
 			but don't cheat with unrevealed tiles. */
 		if (p == NULL)
 		{
+			if (bInner)
+				iInnerRadius += 2;
 			iBadTiles += 2;
 			continue;
 		}
 		if (!isRevealed(*p))
 		{
 			iUnrevealed++; // advc.040
+			if (bInner)
+				iInnerRadius++;
 			continue;
 		}
 		if (isHome(*p))
@@ -918,18 +927,21 @@ int AIFoundValue::countBadTiles(int& iUnrevealed, /* advc.031: */ int& iLand,
 				but human players do mind, and some really hate this.
 				Therefore, count the outer ring coast as bad if !bCoastal. */
 			if(p != NULL && p->isWater() && !bCoastal &&
-					p->calculateBestNatureYield(YIELD_FOOD, eTeam) <= 1)
+				p->calculateBestNatureYield(YIELD_FOOD, eTeam) <= 1)
+			{
 				iBadTiles++;
+				if (bInner)
+					iInnerRadius++;
+			}
 			continue;
 		} // </advc.303>
 
 		if (!p->isWater())
 			iLand++;
-
+		int iBadLoop = 0;
 		if (p->isImpassable())
-		{
-			iBadTiles += 2;
-		} // </advc.031>
+			iBadLoop += 2;
+		// </advc.031>
 		// K-Mod (original code deleted)
 		else if (//!p->isFreshWater() &&
 		/*  advc.031: Flood plains have high nature yield anyway,
@@ -941,24 +953,26 @@ int AIFoundValue::countBadTiles(int& iUnrevealed, /* advc.031: */ int& iLand,
 		{
 			/*  advc.031: Snow hills will count for BaseProduction, but, generally
 				they're really bad. */
-			iBadTiles += 2;
+			iBadLoop += 2;
 		}
 		else if (p->isWater() && p->calculateBestNatureYield(YIELD_FOOD, eTeam) <= 1)
 		{	/*  <advc.031> Removed the bCoastal check from the
 				condition above b/c I want to count ocean tiles as
 				half bad even when the city is at the coast. */
 			if(!kSet.isSeafaring() &&
-					p->calculateBestNatureYield(YIELD_COMMERCE, eTeam) <= 1)
-				iBadTiles++;
+				p->calculateBestNatureYield(YIELD_COMMERCE, eTeam) <= 1)
+			{
+				iBadLoop++;
+			}
 			if(!bCoastal)
-				iBadTiles++; // </advc.031>
+				iBadLoop++; // </advc.031>
 		}
 		else if (p->isOwned())
 		{
 			if(!abFlip[eLoopCityPlot]) // advc.035
 			{
 				if (p->getTeam() != eTeam || p->isBeingWorked())
-					iBadTiles++;
+					iBadLoop++;
 				/*  (K-Mod) note: this final condition is...
 					not something I intend to keep permanently. */
 				// advc.031: poof
@@ -967,7 +981,12 @@ int AIFoundValue::countBadTiles(int& iUnrevealed, /* advc.031: */ int& iLand,
 			} // advc.035
 		}
 		else iRevealedDecentLand++; // advc.040
+		// <advc.031>
+		iBadTiles += iBadLoop;
+		if (bInner)
+			iInnerRadius += iBadLoop;
 	}
+	iInnerRadius /= 2; // </advc.031>
 	iBadTiles /= 2;
 	IFLOG (iUnrevealed > 0 ? logBBAI("Bad tiles: %d known bad, %d unrevealed", iBadTiles, iUnrevealedTiles) :
 							 logBBAI("Bad tiles: %d", iBadTiles));
@@ -975,7 +994,8 @@ int AIFoundValue::countBadTiles(int& iUnrevealed, /* advc.031: */ int& iLand,
 }
 
 // Returns true if the site should be disregarded
-bool AIFoundValue::isTooManyBadTiles(int iBadTiles) const
+bool AIFoundValue::isTooManyBadTiles(int iBadTiles,
+	int iInnerBadTiles) const // advc.031
 {
 	if (kSet.isStartingLoc())
 		return false;
@@ -984,6 +1004,9 @@ bool AIFoundValue::isTooManyBadTiles(int iBadTiles) const
 	{
 		return false;
 	}
+	/*	advc.031: Cities with only worthless tiles in the inner ring will
+		struggle to ever expand their borders. */
+	bool bInnerOnly = (!kSet.isEasyCulture() && 3 * iInnerBadTiles >= 2 * NUM_INNER_PLOTS);
 	bool bHasGoodBonus = false;
 	int iMediocreBonuses = 0; // advc.031
 	int iFreshWaterTiles = (kPlot.isFreshWater() ? 1 : 0); // advc.031 (count kPlot twice)
@@ -992,6 +1015,9 @@ bool AIFoundValue::isTooManyBadTiles(int iBadTiles) const
 		CvPlot const& p = *it;
 		if(!isRevealed(p))
 			continue;
+		// <advc.031>
+		if (bInnerOnly && it.currID() >= NUM_INNER_PLOTS && p.getOwner() != ePlayer)
+			continue; // </advc.031>
 		// <advc.303>
 		if(bBarbarian && !adjacentOrSame(p, kPlot))
 			continue; // </advc.303>
