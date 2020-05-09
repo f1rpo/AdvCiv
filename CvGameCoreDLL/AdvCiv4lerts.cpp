@@ -131,7 +131,8 @@ void WarTradeAlert::msg(TeamTypes warTeamId, std::vector<TeamTypes> victims, boo
 	AdvCiv4lert::msg(text, NULL,
 			// <advc.127b>
 			warTeam.getCapitalX(TEAMID(ownerId)),
-			warTeam.getCapitalY(TEAMID(ownerId))); // </advc.127b>
+			warTeam.getCapitalY(TEAMID(ownerId)), // </advc.127b>
+			GC.getColorType("WAR_TRADE_ALERT"));
 } // </advc.210a>
 
 // <advc.210b>
