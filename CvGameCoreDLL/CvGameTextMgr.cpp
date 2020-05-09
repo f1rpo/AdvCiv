@@ -15552,23 +15552,29 @@ void CvGameTextMgr::buildSingleLineTechTreeString(CvWStringBuffer &szBuffer,
 		if(!bTechFound)
 			continue;
 		bool bImmediate = (bAlreadyMetOR || bMeetsOR || !bAnyOR || !bPlayerContext);
-		if(bImmediate && bMeetsOR && bPlayerContext)
+		if(bImmediate && bPlayerContext)
 		{
 			CvTeam const& kActiveTeam = GET_TEAM(GC.getGame().getActiveTeam());
 			for(int iJ = 0; iJ < GC.getNUM_AND_TECH_PREREQS(); iJ++)
 			{
-				if(!kActiveTeam.isHasTech((TechTypes)kLeadsTo.getPrereqAndTechs(iJ))) {
-					bImmediate = false;
-					break;
+				TechTypes eAndTech = (TechTypes)kLeadsTo.getPrereqAndTechs(iJ);
+				if(eAndTech != eTech && !kActiveTeam.isHasTech(eAndTech))
+				{
+					if (bMeetsOR ||
+						GC.getInfo(eAndTech).getEra() <= GC.getInfo(eLeadsTo).getEra())
+					{
+						bImmediate = false;
+						break;
+					}
 				}
 			}
 		}
-		std::pair<int,TechTypes> eiLeadsTo = std::make_pair(kLeadsTo.getResearchCost(), eLeadsTo);
+		std::pair<int,TechTypes> ieLeadsTo = std::make_pair(kLeadsTo.getResearchCost(), eLeadsTo);
 		if(bMeetsOR && bAlreadyMetOR)
-			aieSpeedsUp.push_back(eiLeadsTo);
+			aieSpeedsUp.push_back(ieLeadsTo);
 		else if(bImmediate)
-			aieImmediate.push_back(eiLeadsTo);
-		else aieLater.push_back(eiLeadsTo);
+			aieImmediate.push_back(ieLeadsTo);
+		else aieLater.push_back(ieLeadsTo);
 
 	}
 	std::sort(aieImmediate.begin(), aieImmediate.end());
