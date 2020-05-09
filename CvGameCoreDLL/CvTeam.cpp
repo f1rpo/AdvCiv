@@ -1982,7 +1982,7 @@ bool CvTeam::isInContactWithBarbarians() const
 		if(iBarbarianUnits > iUnitThresh) // Preliminary check to save time
 			return true;
 		std::vector<Shelf*> shelves;
-		m.getShelves(pArea->getID(), shelves);
+		m.getShelves(*pArea, shelves);
 		for(size_t i = 0; i < shelves.size(); i++)
 			iBarbarianUnits += shelves[i]->countBarbarians();
 		if(iBarbarianUnits > iUnitThresh) // Actual check incl. ships

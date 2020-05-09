@@ -1759,7 +1759,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 					/*  <advc.300> The +15 is bad enough if we don't have to
 						worry about attacks against the city */
 					kCity.getPreviousOwner() != BARBARIAN_PLAYER &&
-					kCity.getArea().countCivCities() > 1) // </advc.300>
+					kCity.getArea().getNumCivCities() > 1) // </advc.300>
 				{
 					if (bTotalWar &&
 						GET_TEAM(kCity.getPreviousOwner()).AI_isPrimaryArea(kCity.getArea()))

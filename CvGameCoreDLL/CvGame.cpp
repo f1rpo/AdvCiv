@@ -7033,7 +7033,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 				//a.countOwnedUnownedHabitableTiles(true);
 		int iUnowned = iiOwnedUnowned.second;
 		std::vector<Shelf*> shelves;
-		m.getShelves(pArea->getID(), shelves);
+		m.getShelves(*pArea, shelves);
 		for(size_t i = 0; i < shelves.size(); i++)
 			iUnowned += shelves[i]->countUnownedPlots() / 2;
 		unownedPerArea.insert(std::make_pair(pArea->getID(), iUnowned));
@@ -7146,12 +7146,14 @@ void CvGame::createBarbarianUnits()
 	bool bCreateBarbarians = isBarbarianCreationEra(); // advc.307 (checked later now)
 	bool bAnimals = false;
 	if (getNumCivCities() < (3 * countCivPlayersAlive()) / 2 &&
-			!isOption(GAMEOPTION_ONE_CITY_CHALLENGE) &&
-			/*  advc.300: No need to delay Barbarians (bAnimals=true) if they start
-				slowly (PEAK_PERCENT>=35). For slow game speed settings, there is
-				now a similar check in CvUnitAI::AI_barbAttackMove. */
-			GC.getDefineINT(CvGlobals::BARB_PEAK_PERCENT) < 35)
+		!isOption(GAMEOPTION_ONE_CITY_CHALLENGE) &&
+		/*  advc.300: No need to delay Barbarians (bAnimals=true) if they start
+			slowly (PEAK_PERCENT>=35). For slow game speed settings, there is
+			now a similar check in CvUnitAI::AI_barbAttackMove. */
+		GC.getDefineINT(CvGlobals::BARB_PEAK_PERCENT) < 35)
+	{
 		bAnimals = true;
+	}
 	// advc.300: Moved into new function
 	if (getGameTurn() < getBarbarianStartTurn())
 		bAnimals = true;
@@ -7178,7 +7180,7 @@ void CvGame::createBarbarianUnits()
 		if (a.isWater() || a.getNumCities() == 0)
 			continue;
 		int iUnowned = 0, iTiles = 0;
-		std::vector<Shelf*> shelves; GC.getMap().getShelves(a.getID(), shelves);
+		std::vector<Shelf*> shelves; GC.getMap().getShelves(a, shelves);
 		for (size_t i = 0; i < shelves.size(); i++)
 		{
 			// Shelves also count for land Barbarians, ...
@@ -7207,9 +7209,11 @@ void CvGame::createBarbarianUnits()
 		// NB: Animals are included in this count
 		int iLandUnits = a.getUnitsPerPlayer(BARBARIAN_PLAYER);
 		//  Kill a Barbarian unit if the area gets crowded
-		if(killBarbarian(iLandUnits, iTiles, a.getPopulationPerPlayer(BARBARIAN_PLAYER),
-				a, NULL))
+		if(killBarbarian(iLandUnits, iTiles,
+			a.getPopulationPerPlayer(BARBARIAN_PLAYER), a, NULL))
+		{
 			iLandUnits--;
+		}
 		if(iUnownedTotal < iBaseTilesPerLandUnit / 2)
 			continue;
 		int iOwned = iTiles - iUnowned;
@@ -7241,8 +7245,8 @@ void CvGame::createBarbarianUnits()
 		}
 		/*  Don't spawn Barbarian units on (or on shelves around) continents where
 			civs don't outnumber Barbarians */
-		int iCivCities = a.countCivCities();
-		int iBarbarianCities = a.getNumCities() - iCivCities;
+		int const iCivCities = a.getNumCivCities();
+		int const iBarbarianCities = a.getCitiesPerPlayer(BARBARIAN_PLAYER);
 		FAssert(iBarbarianCities >= 0);
 		if (iCivCities > iBarbarianCities && bCreateBarbarians)
 			createBarbarianUnits(iNeededLand, a, NULL);
@@ -7254,17 +7258,17 @@ void CvGame::createBarbarianUnits()
 	{
 		if (pLoopUnit->isAnimal() &&
 			// advc.309: Don't cull animals where there are no civ cities
-			pLoopUnit->getArea().countCivCities() > 0)
+			pLoopUnit->getArea().getNumCivCities() > 0)
 		{
 			pLoopUnit->kill(false);
 			break;
-		}
-	} // <advc.300>
+		} // <advc.300>
+	}
 	FOR_EACH_CITY(c, GET_PLAYER(BARBARIAN_PLAYER))
 	{
 		/*  Large Barb congregations are only a problem if they have nothing
 			to attack */
-		if(c->getArea().countCivCities() > 0)
+		if(c->getArea().getNumCivCities() > 0)
 			continue;
 		int iUnits = c->getPlot().getNumDefenders(BARBARIAN_PLAYER);
 		double prKill = (iUnits - std::max(1.5 * c->getPopulation(), 4.0)) / 4.0;
@@ -7276,10 +7280,11 @@ void CvGame::createBarbarianUnits()
 
 void CvGame::createAnimals()  // advc: style changes
 {
-	if (GC.getInfo(getCurrentEra()).isNoAnimals()
-			|| isOption(GAMEOPTION_NO_ANIMALS)) // advc.309
+	if (GC.getInfo(getCurrentEra()).isNoAnimals() ||
+		isOption(GAMEOPTION_NO_ANIMALS)) // advc.309
+	{
 		return;
-
+	}
 	CvHandicapInfo const& kGameHandicap = GC.getInfo(getHandicapType());
 	if (kGameHandicap.getUnownedTilesPerGameAnimal() <= 0)
 		return;
@@ -7300,7 +7305,7 @@ void CvGame::createAnimals()  // advc: style changes
 				kGameHandicap.getUnownedTilesPerGameAnimal();
 		/*  <advc.300> Will allow animals to survive longer on landmasses w/o
 			civ cities. But only want a couple of animals there. */
-		if(pLoopArea->countCivCities() == 0)
+		if(pLoopArea->getNumCivCities() <= 0)
 			iNeededAnimals /= 2; // </advc.300>
 		iNeededAnimals -= pLoopArea->getUnitsPerPlayer(BARBARIAN_PLAYER);
 		if (iNeededAnimals <= 0)
@@ -7532,7 +7537,7 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 		// </advc.300>
 		// K-Mod. Give a combat penalty to barbarian boats.
 		if (pNewUnit && pPlot->isWater() &&
-				 !pNewUnit->getUnitInfo().isHiddenNationality()) // dlph.12
+				!pNewUnit->getUnitInfo().isHiddenNationality()) // dlph.12
 		{	// find the "disorganized" promotion. (is there a better way to do this?)
 			PromotionTypes eDisorganized = (PromotionTypes)
 					GC.getInfoTypeForString("PROMOTION_DISORGANIZED", true);

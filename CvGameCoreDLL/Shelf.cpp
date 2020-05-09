@@ -112,7 +112,7 @@ CvUnit* Shelf::randomBarbarianCargoUnit() const
 	vector<CvUnit*> legal;
 	for(size_t i = 0; i < plots.size(); i++)
 	{
-		if(plots[i] == NULL) continue; CvPlot const& plot = * plots[i];
+		if(plots[i] == NULL) continue; CvPlot const& plot = *plots[i];
 		if(plot.isVisibleToCivTeam())
 			continue;
 		for(int j = 0; j < plot.getNumUnits(); j++)

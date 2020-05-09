@@ -6891,9 +6891,11 @@ bool CvPlayer::canSeeResearch(PlayerTypes ePlayer, /* advc.085: */ bool bCheckPo
 			CvEspionageMissionInfo& kMissionInfo = GC.getInfo(i);
 
 			if (kMissionInfo.isSeeResearch() && kMissionInfo.isPassive() &&
-					canDoEspionageMission(i, ePlayer, NULL, 0, NULL,
-					bCheckPoints)) // advc.085
+				canDoEspionageMission(i, ePlayer, NULL, 0, NULL,
+				bCheckPoints)) // advc.085
+			{
 				return true;
+			}
 		}
 	}
 	return false;
@@ -6919,14 +6921,16 @@ bool CvPlayer::canSeeDemographics(PlayerTypes ePlayer, /* advc.085: */ bool bChe
 		CvEspionageMissionInfo& kMissionInfo = GC.getInfo(i);
 
 		if (kMissionInfo.isSeeDemographics() && kMissionInfo.isPassive() &&
-				canDoEspionageMission(i, ePlayer, NULL, 0, NULL,
-				bCheckPoints)) // advc.085
+			canDoEspionageMission(i, ePlayer, NULL, 0, NULL,
+			bCheckPoints)) // advc.085
+		{
 			return true;
+		}
 	}
 	return false;
 } // K-Mod end
 
-/*  <advc.085> !bDemographics means: return espionage needed to see research.
+/*  advc.085: !bDemographics means: return espionage needed to see research.
 	Mix of code from canSeeDemographics, canSeeResearch and canDoEspionageMission. */
 int CvPlayer::espionageNeededToSee(PlayerTypes ePlayer, bool bDemographics) const
 {
@@ -6948,8 +6952,9 @@ int CvPlayer::espionageNeededToSee(PlayerTypes ePlayer, bool bDemographics) cons
 		}
 	}
 	return r;
-} // </advc.085>
-// <advc.550e>
+}
+
+// advc.550e:
 bool CvPlayer::isSignificantDiscovery(TechTypes eTech) const
 {
 	// (K-Mod comment moved here from CvDeal::startTrade)
@@ -6961,7 +6966,7 @@ bool CvPlayer::isSignificantDiscovery(TechTypes eTech) const
 	return GC.getInfo(eTech).getEra() >= getCurrentEra() - 1 &&
 			GET_TEAM(getTeam()).getResearchLeft(eTech) >
 			GET_TEAM(getTeam()).getResearchCost(eTech) / 3;
-} // <advc.550e>
+}
 
 bool CvPlayer::isCivic(CivicTypes eCivic) const
 {

@@ -54,7 +54,10 @@ public:
 	// <advc.300>
 	std::pair<int,int> countOwnedUnownedHabitableTiles( // advc.021b: Exposed to Python as getNumHabitableTiles
 			bool bIgnoreBarb = false) const;
-	int countCivCities() const;
+	int getNumCivCities() const
+	{
+		return getNumCities() - getCitiesPerPlayer(BARBARIAN_PLAYER);
+	}
 	int countCivs(bool bSubtractOCC = false) const; // with at least 1 city
 	bool hasAnyAreaPlayerBonus(BonusTypes eBonus) const;
 	int getBarbarianCitiesEverCreated() const;

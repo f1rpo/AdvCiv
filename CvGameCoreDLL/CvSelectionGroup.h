@@ -126,8 +126,18 @@ public:
 
 	int getX() const;
 	int getY() const;
-	bool at(int iX, int iY) const;																																								// Exposed to Python
-	bool atPlot(const CvPlot* pPlot) const;																																				// Exposed to Python
+	bool at(int iX, int iY) const																																								// Exposed to Python
+	{
+		return(getX() == iX && getY() == iY);
+	}
+	bool atPlot(CvPlot const* pPlot) const																																				// Exposed to Python
+	{
+		return (plot() == pPlot);
+	}  // advc.inl: (also in-lined the above)
+	__forceinline bool at(CvPlot const& kPlot) const
+	{
+		return atPlot(&kPlot);
+	}
 	DllExport CvPlot* plot() const;																																								// Exposed to Python
 	inline CvPlot& getPlot() const { return *plot(); } // advc
 	//int getArea() const; // advc: removed

@@ -354,11 +354,12 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea const& kArea, bool bPreparin
 
 	if (isBarbarian())
 	{
-		if (kArea.getNumCities() - kArea.getCitiesPerPlayer(BARBARIAN_PLAYER) == 0
-				// advc.300: Make (New World) Barbarians relatively peaceable unless outnumbered
-				|| kArea.countCivCities() < kArea.getCitiesPerPlayer(BARBARIAN_PLAYER))
+		if (kArea.getNumCities() - kArea.getCitiesPerPlayer(BARBARIAN_PLAYER) == 0 ||
+			// advc.300: Make (New World) Barbarians relatively peaceable unless outnumbered
+			kArea.getNumCivCities() < kArea.getCitiesPerPlayer(BARBARIAN_PLAYER))
+		{
 			return AREAAI_ASSAULT;
-
+		}
 		if (countNumAIUnitsByArea(kArea, UNITAI_ATTACK) +
 			countNumAIUnitsByArea(kArea, UNITAI_ATTACK_CITY) +
 			countNumAIUnitsByArea(kArea, UNITAI_PILLAGE) +

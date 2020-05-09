@@ -2597,7 +2597,7 @@ int AIFoundValue::adjustToCitiesPerArea(int iValue) const
 	if (kTeam.isCapitulated() || iCities <= 0)
 		return iValue; // </advc.130v>
 
-	if (kArea.countCivCities() == 0) // advc.031: Had been counting Barbarian cities
+	if (kArea.getNumCivCities() <= 0) // advc.031: Had been counting Barbarian cities
 	{
 		//iValue *= 2;
 		// K-Mod: presumably this is meant to be a bonus for being the first on a new continent.

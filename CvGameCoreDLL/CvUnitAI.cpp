@@ -2131,7 +2131,7 @@ void CvUnitAI::AI_barbAttackMove()
 	if(getArea().getAreaAIType(getTeam()) != AREAAI_ASSAULT)
 	{
 		int iCivsInArea = getArea().countCivs(true);
-		int iCivCitiesInArea = getArea().countCivCities();
+		int iCivCitiesInArea = getArea().getNumCivCities();
 		int iBabarianCitiesInArea = getArea().getNumCities() - iCivCitiesInArea;
 		int iCivCities = kGame.getNumCivCities();
 		int iCivs = kGame.countCivPlayersAlive(); // </advc.300>
@@ -5991,9 +5991,10 @@ void CvUnitAI::AI_barbAttackSeaMove()
 		patrolling an unowned stretch surrounded by borders. (Patrolling Barbarians
 		never enter borders.) */
 	if((::bernoulliSuccess(0.2, "advc.306") ||
-			getGroup()->getMissionType(0) == MISSION_MOVE_TO) && AI_safety())
-		return; // </advc.306>
-
+		getGroup()->getMissionType(0) == MISSION_MOVE_TO) && AI_safety())
+	{
+		return;
+	} // </advc.306>
 	if (AI_patrol())
 	{
 		return;
@@ -12567,7 +12568,7 @@ bool CvUnitAI::AI_patrol() // advc: refactored
 		iFacedX = pFacedPlot->getX();
 		iFacedY = pFacedPlot->getY();
 	} // </advc.102>
-	CvGame& g = GC.getGame();
+	CvGame& kGame = GC.getGame();
 
 	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
@@ -12588,14 +12589,14 @@ bool CvUnitAI::AI_patrol() // advc: refactored
 			allowed to patrol into owned tiles at least under some circumstances. */
 		if(!isBarbarian() && kAdj.getOwner() == getOwner() &&
 			// Make sure not to hamper early exploration (perhaps not an issue)
-			g.getElapsedGameTurns() >= 25 &&
+			kGame.getElapsedGameTurns() >= 25 &&
 			(kAdj.isUnit() || ::bernoulliSuccess(0.9,
 			iFirst++ <= 0 ? "advc.102" : NULL))) // advc.007: Don't pollute MPLog
 		{
 			continue;
 		}
 		// </advc.102>
-		int iValue = 1 + g.getSorenRandNum(10000, "AI Patrol");
+		int iValue = 1 + kGame.getSorenRandNum(10000, "AI Patrol");
 		// <advc.309>
 		if(isAnimal())
 		{
@@ -12604,7 +12605,7 @@ bool CvUnitAI::AI_patrol() // advc: refactored
 				getUnitInfo().getFeatureNative(kAdj.getFeatureType()) :
 				getUnitInfo().getTerrainNative(kAdj.getTerrainType()))
 			{
-				iValue += g.getSorenRandNum(10000, "advc.309");
+				iValue += kGame.getSorenRandNum(10000, "advc.309");
 			}
 		}
 		else // (Animals shouldn't follow a consistent direction)
@@ -12615,7 +12616,7 @@ bool CvUnitAI::AI_patrol() // advc: refactored
 			int y = kAdj.getY();
 			int delta = ::abs(iFacedX - x) + ::abs(iFacedY - y);
 			if(delta <= 1)
-				iValue += g.getSorenRandNum(10000, "advc.102");
+				iValue += kGame.getSorenRandNum(10000, "advc.102");
 			/*  Prefer to stay/get out of foreign borders: AI patrols inside
 				human borders are annoying */
 			PlayerTypes eAdjOwner = kAdj.getOwner();
@@ -12805,7 +12806,6 @@ bool CvUnitAI::AI_hide()  // advc: style changes
 
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = 0;
-	CvGame& g = GC.getGame();
 	for (SquareIter itPlot(*this, AI_searchRange(1)); itPlot.hasNext(); ++itPlot)
 	{
 		CvPlot& p = *itPlot;
@@ -12860,7 +12860,7 @@ bool CvUnitAI::AI_hide()  // advc: style changes
 		iValue += AI_plotDefense(&p); // advc.012
 		if (at(p))
 			iValue += 50;
-		else iValue += g.getSorenRandNum(50, "AI Hide");
+		else iValue += GC.getGame().getSorenRandNum(50, "AI Hide");
 		if (iValue > iBestValue)
 		{
 			iBestValue = iValue;
@@ -12895,7 +12895,6 @@ bool CvUnitAI::AI_goody(int iRange)  // advc: style changes
 
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = 0;
-	CvGame& g = GC.getGame();
 	for (SquareIter it(*this, AI_searchRange(iRange), false); it.hasNext(); ++it)
 	{
 		CvPlot const& p =*it;
@@ -12909,7 +12908,7 @@ bool CvUnitAI::AI_goody(int iRange)  // advc: style changes
 		if (iPathTurns > iRange)
 			continue;
 
-		int iValue = 1 + g.getSorenRandNum(10000, "AI Goody");
+		int iValue = 1 + GC.getGame().getSorenRandNum(10000, "AI Goody");
 		iValue /= iPathTurns + 1;
 		if (iValue > iBestValue)
 		{
@@ -16846,7 +16845,6 @@ bool CvUnitAI::AI_improveCity(CvCityAI const& kCity) // advc.003u: param was CvC
 		return false; // advc
 	FAssert(pBestPlot != NULL);
 	FAssertBounds(0, GC.getNumBuildInfos(), eBestBuild);
-	FAssert(eBestBuild != NO_BUILD);
 
 	MissionTypes eMission = MISSION_MOVE_TO;
 	if (getPlot().getWorkingCity() != &kCity /*||
@@ -17937,7 +17935,7 @@ bool CvUnitAI::AI_routeCity()  // advc: some style changes
 		{
 			bool const bRouteTo = (at(kLoopCity.getPlot()) ||
 					!getPlot().isSamePlotGroup(kLoopCity.getPlot(), getOwner()) ||
-					/*	We might already be in the middle of an incoplete route.
+					/*	We might already be in the middle of an incomplete route.
 						Don't move to kLoopCity first then. */
 					stepDistance(plot(), pRouteToCity->plot()) <=
 					stepDistance(plot(), kLoopCity.plot()));

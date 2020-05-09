@@ -294,13 +294,6 @@ std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool bIgnoreBarb) con
 	return r;
 }
 
-int CvArea::countCivCities() const
-{
-	int r = 0;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
-		r += getCitiesPerPlayer((PlayerTypes)i);
-	return r;
-}
 
 int CvArea::countCivs(bool bSubtractOCC) const
 {

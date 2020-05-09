@@ -1151,9 +1151,10 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 	/*  <advc.706> I don't think loading is possible in between turns, but there
 		would be no harm in it. */
 	if(CvPlot::isAllFog() && eControl != CONTROL_LOAD_GAME &&
-			eControl != CONTROL_QUICK_LOAD && eControl != CONTROL_OPTIONS_SCREEN)
+		eControl != CONTROL_QUICK_LOAD && eControl != CONTROL_OPTIONS_SCREEN)
+	{
 		return false;
-	// </advc.706>
+	} // </advc.706>
 	switch (eControl)
 	{
 	case CONTROL_SELECTYUNITTYPE:

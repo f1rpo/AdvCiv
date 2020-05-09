@@ -15487,7 +15487,7 @@ bool CvGameTextMgr::buildPromotionString(CvWStringBuffer &szBuffer, TechTypes eT
 	return bFirst;
 }
 
-// <advc.910> Not much BtS code left unchanged here
+// advc.910: Not much BtS code left unchanged here
 void CvGameTextMgr::buildSingleLineTechTreeString(CvWStringBuffer &szBuffer,
 	TechTypes eTech, bool bPlayerContext)
 {

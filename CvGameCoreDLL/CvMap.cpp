@@ -1352,8 +1352,9 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart)
 
 // <advc.300>
 // All shelves adjacent to a continent
-void CvMap::getShelves(int iArea, std::vector<Shelf*>& r) const
+void CvMap::getShelves(CvArea const& kArea, std::vector<Shelf*>& r) const
 {
+	int iArea = kArea.getID();
 	for(std::map<Shelf::Id,Shelf*>::const_iterator it = shelves.begin(); it != shelves.end(); it++)
 	{
 		if(it->first.first == iArea)

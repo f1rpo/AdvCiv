@@ -299,19 +299,18 @@ void CvSelectionGroup::doTurnPost()
 bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 {
 	if (GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) ||
-			GC.getGame().isSimultaneousTeamTurns())
+		GC.getGame().isSimultaneousTeamTurns())
+	{
 		return false;
-	// <advc.102>
+	}  // <advc.102>
 	static bool const bShowWorkers = GC.getDefineBOOL("SHOW_FRIENDLY_WORKER_MOVES");
 	static bool const bShowShips = GC.getDefineBOOL("SHOW_FRIENDLY_SEA_MOVES");
 	// Also refers to Executives; those have the same Unit AI.
 	static bool const bShowMissionaries = GC.getDefineBOOL("SHOW_FRIENDLY_MISSIONARY_MOVES");
 	// </advc.102>
-	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	for (PlayerIter<HUMAN> it; it.hasNext(); ++it)
 	{
-		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-		if(!kLoopPlayer.isAlive() || !kLoopPlayer.isHuman())
-			continue; // advc
+		CvPlayer& kLoopPlayer = *it;
 		CvUnit* pHeadUnit = getHeadUnit();
 		if(pHeadUnit == NULL)
 			continue;
@@ -319,7 +318,7 @@ bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 		{
 			if (kLoopPlayer.isOption(PLAYEROPTION_SHOW_ENEMY_MOVES))
 				return true;
-			else continue;
+			continue;
 		}
 		if(!kLoopPlayer.isOption(PLAYEROPTION_SHOW_FRIENDLY_MOVES))
 			continue;
@@ -341,7 +340,8 @@ bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 			return true;
 		if(bShowWorkers && bShowShips && bShowMissionaries)
 			return true;
-		for(CLLNode<IDInfo> const* pNode = headUnitNode(); pNode != NULL; pNode = nextUnitNode(pNode))
+		for(CLLNode<IDInfo> const* pNode = headUnitNode(); pNode != NULL;
+			pNode = nextUnitNode(pNode))
 		{
 			CvUnit const* pLoopUnit = ::getUnit(pNode->m_data);
 			if(pLoopUnit == NULL)
@@ -360,11 +360,15 @@ bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 					(u.cargoSpace() <= 1 || bSeaPatrol));
 			bool bMissionary = (u.AI_getUnitAIType() == UNITAI_MISSIONARY);
 			if(!bMissionary && bAwayFromHome && (!bSeaUnit ||
-					!bNonTransportShip || bShowShips || bEnteringOrLeaving))
+				!bNonTransportShip || bShowShips || bEnteringOrLeaving))
+			{
 				return true;
+			}
 			if((bWorker && bShowWorkers) || (bNonTransportShip && bShowShips &&
-					bEnteringOrLeaving) || (bMissionary && bShowMissionaries))
+				bEnteringOrLeaving) || (bMissionary && bShowMissionaries))
+			{
 				return true;
+			}
 			if(!bWorker && !bNonTransportShip && !bMissionary)
 				return true;
 			// </advc.102>
@@ -2632,18 +2636,6 @@ int CvSelectionGroup::getY() const
 	if (pHeadUnit != NULL)
 		return getHeadUnit()->getY();
 	return INVALID_PLOT_COORD;
-}
-
-
-bool CvSelectionGroup::at(int iX, int iY) const
-{
-	return((getX() == iX) && (getY() == iY));
-}
-
-
-bool CvSelectionGroup::atPlot( const CvPlot* pPlot) const
-{
-	return (plot() == pPlot);
 }
 
 

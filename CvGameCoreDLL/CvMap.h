@@ -458,7 +458,7 @@ public: // advc: made several functions const
 	void recalculateAreas();																		// Exposed to Python
 	// <advc.300>
 	void computeShelves();
-	void getShelves(int iArea, std::vector<Shelf*>& r) const;
+	void getShelves(CvArea const& kArea, std::vector<Shelf*>& r) const;
 	// </advc.300>
 	void resetPathDistance();																		// Exposed to Python
 	int calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) const;					// Exposed to Python
