@@ -128,21 +128,10 @@ public:
 
 	// BETTER_BTS_AI_MOD, 08/20/09, jdog5000: START
 	bool isSafeRangeCacheValid() const; // K-Mod
-	// <advc.104>
-	struct LowHPCounter
-	{	// Param: threshold for "low" hitpoints
-		LowHPCounter(int iMaxHP = 60) : m_iMaxHP(iMaxHP), m_iCount(0) { FAssert(iMaxHP > 0); }
-		inline int getHPThreshold() const { return m_iMaxHP; }
-		inline int get() const { return m_iCount; }
-		inline void increment() { m_iCount++; }
-		private:
-		int m_iCount;
-		int m_iMaxHP;
-	}; // </advc.104>
 	int AI_getPlotDanger(CvPlot const& kPlot, int iRange = -1, bool bTestMoves = true,
 			int iLimit = MAX_INT, // advc  <advc.104>
-			bool bCheckBorder = true, LowHPCounter* pLowHPCounter = NULL,
-			PlayerTypes eAttackPlayer = NO_PLAYER) const; // </advc.104>
+			bool bCheckBorder = true, PlayerTypes eAttackPlayer = NO_PLAYER) const;
+			// </advc.104>
 	bool AI_isAnyPlotDanger(CvPlot const& kPlot, int iRange = -1, bool bTestMoves = true,
 		bool bCheckBorder = true) const // K-Mod
 	{	// advc: Merged with the plot danger counting function
@@ -867,7 +856,6 @@ protected:
 	// <advc>
 	int AI_countDangerousUnits(CvPlot const& kAttackerPlot, CvPlot const& kDefenderPlot,
 			bool bTestMoves, int iLimit = MAX_INT,
-			LowHPCounter* pLowHPCounter = NULL,
 			PlayerTypes eAttackPlayer = NO_PLAYER) const; // </advc>
 	int AI_knownRankDifference(PlayerTypes eOther) const; // advc.130c
 	// advc.042: Relies on caller to reset GC.getBorderFinder()

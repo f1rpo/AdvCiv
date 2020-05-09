@@ -3075,16 +3075,10 @@ int CvPlayerAI::AI_getPlotDanger(/* BtS parameters: */ CvPlot const& kPlot, int 
 		When pLowHPCounter is used, stop only when pLowHPCounter also reaches iLimit. */
 	int iLimit,
 	bool bCheckBorder, // K-Mod
-	// <advc.104>
-	/*  Counts enemy units in range with at most iMaxHP hit points. Not counted if NULL.
-		(This function's return value includes all units regardless of their health.) */
-	LowHPCounter* pLowHPCounter,
-	// Unless NO_PLAYER, count only danger from eAttackPlayer.
+	// advc.104: Unless NO_PLAYER, count only danger from eAttackPlayer.
 	PlayerTypes eAttackPlayer) const
 {
 	FAssert(iLimit > 0);
-	// Not supported (just out of convenience; not needed I think)
-	FAssert(!bCheckBorder || pLowHPCounter == NULL); // </advc.104>
 	FAssert(iRange != 0); // advc: Call AI_countDangerousUnits instead
 	PROFILE_FUNC();
 
@@ -3192,19 +3186,16 @@ int CvPlayerAI::AI_getPlotDanger(/* BtS parameters: */ CvPlot const& kPlot, int 
 			if (p.isUnit()) // Redundant but fast (inlined)
 			{
 				// Code moved into auxiliary function
-				r += AI_countDangerousUnits(p, kPlot, bTestMoves, iLimit, pLowHPCounter, eAttackPlayer);
+				r += AI_countDangerousUnits(p, kPlot, bTestMoves, iLimit, eAttackPlayer);
 				if (r >= iLimit)
-				{
-					if (pLowHPCounter == NULL || pLowHPCounter->get() >= iLimit)
-						return iLimit;
-				}
+					return iLimit;
 			} // </advc>
 		}
 		/*	<advc.030> Same-area no longer rules out a (visible) submarine -
 			but is this really ever going to be a problem? */
 		/*else if (p.isUnit() && kPlotArea.canBeEntered(p.getArea()))
 		{
-			r += AI_countDangerousUnits(p, kPlot, bTestMoves, 1, eAttackPlayer, pLowHPCounter);
+			r += AI_countDangerousUnits(p, kPlot, bTestMoves, 1, eAttackPlayer);
 			// ... (copy from above)
 		}*/ // </advc.030>
 	}
@@ -3229,8 +3220,7 @@ int CvPlayerAI::AI_getPlotDanger(/* BtS parameters: */ CvPlot const& kPlot, int 
 
 // advc: from AI_getAnyPlotDanger
 int CvPlayerAI::AI_countDangerousUnits(CvPlot const& kAttackerPlot, CvPlot const& kDefenderPlot,
-	bool bTestMoves, int iLimit, /* <advc.104> */ LowHPCounter* pLowHPCounter,
-	PlayerTypes eAttackPlayer) const // </advc.104>
+	bool bTestMoves, int iLimit, /* advc.104: */ PlayerTypes eAttackPlayer) const
 {
 	TeamTypes const eTeam = getTeam();
 	// <advc.128>
@@ -3261,7 +3251,7 @@ int CvPlayerAI::AI_countDangerousUnits(CvPlot const& kAttackerPlot, CvPlot const
 			/*	advc.001: Was kUnit.getPlot(). Only matters if kUnit is alwaysHostile
 				and kDefenderPlot is a city or fort. */
 			kUnit.isEnemy(eTeam, kDefenderPlot) &&
-			// advc.315: was pLoopUnit->canAttack()
+			// advc.315: was kUnit.canAttack()
 			AI_canBeAttackedBy(kUnit) &&
 			!kUnit.isInvisible(eTeam, false) &&
 			kUnit.canMoveOrAttackInto(kDefenderPlot,
@@ -3292,20 +3282,11 @@ int CvPlayerAI::AI_countDangerousUnits(CvPlot const& kAttackerPlot, CvPlot const
 				}
 			}
 			r++;
-			// <advc.104>
-			if (pLowHPCounter != NULL &&
-				kUnit.currHitPoints() <= pLowHPCounter->getHPThreshold())
-			{
-				pLowHPCounter->increment();
-				if (pLowHPCounter->get() >= iLimit)
-					return iLimit;
-				continue; // Keep counting low-health units
-			} // </advc.104>
 			if (r >= iLimit)
 				return iLimit;
 		}
 	}
-	return std::min(r, iLimit); // advc.104: May have counted past the limit
+	return r;
 }
 
 // Never used ...

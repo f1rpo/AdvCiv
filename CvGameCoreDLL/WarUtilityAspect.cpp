@@ -12,7 +12,7 @@
 #include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
 #include "CvDeal.h"
-#include "CvMap.h"
+#include "PlotRadiusIterator.h"
 #include "CvArea.h"
 #include "CvInfo_GameOption.h"
 #include "CvInfo_Unit.h"
@@ -3433,29 +3433,32 @@ void TacticalSituation::evaluate() {
 
 void TacticalSituation::evalEngagement() {
 
-	PROFILE_FUNC(); // (Not a big deal overall. Fwiw, AI_getPlotDanger takes up most of the time.)
+	PROFILE_FUNC();
 	/*  Can't move this to UWAICache (to compute it only once at the start
 		of a turn) b/c it needs to be up-to-date during the turns of other civs,
 		in particular the humans that could propose peace at any point of their
-		turns.
-		Note that CvCityAI::isEvacuating is only updated at the start of the city
-		owner's turn. This is OK; a unit that approaches the city during an
-		enemy's turn usually won't have enough moves to attack right away. */
+		turns. */
 	int ourExposed = 0;
 	int theirExposed = 0;
 	int entangled = 0;
 	int ourTotal = 0;
-	double ourMissions = 0;
+	int ourMissions = 0;
 	int const hpThresh = 60;
+	// How many of our units threaten each plot
+	std::map<int,int> weThreaten; // <plotNum,unitCount>
+	CvMap const& m = GC.getMap();
 	FOR_EACH_GROUPAI(gr, *we) {
-		int groupSize = gr->getNumUnits();
-		CvUnit* head = gr->getHeadUnit();
+		CvUnit const* head = gr->getHeadUnit();
 		if(head == NULL || !head->canDefend())
 			continue;
+		int groupSize = gr->getNumUnits();
 		ourTotal += groupSize;
-		int iRange = 1; // don't shadow ::range()
-		CvPlot const& groupPlot = *gr->plot();
-		PlayerTypes plotOwner = groupPlot.getOwner();
+		// Assume units in cities to be less engaged
+		if(gr->getPlot().isCity())
+			groupSize = ROUND_DIVIDE(groupSize, 2);
+		int iRange = 1; // (avoid shadowing ::range())
+		CvPlot const& groupPlot = gr->getPlot();
+		PlayerTypes const plotOwner = groupPlot.getOwner();
 		/*  Limit range, not least for performance reasons, to cover combat imminent
 			on our current turn or the opponent's next turn. If our group is on a
 			friendly route, we can probably attack units two tiles away,
@@ -3464,33 +3467,40 @@ void TacticalSituation::evalEngagement() {
 			if(groupPlot.getArea().isWater())
 				iRange++;
 			else if(plotOwner != NO_PLAYER && groupPlot.isRoute() &&
-					(plotOwner == weId || agent.isOpenBorders(TEAMID(plotOwner))))
+					(plotOwner == weId || agent.canPeacefullyEnter(TEAMID(plotOwner))))
 				iRange++;
 		}
-		bool isCity = gr->plot()->isCity();
-		CvPlayerAI::LowHPCounter theirDamaged(hpThresh);
-		/*  Count at most one enemy unit per unit of ours as "entangled", i.e. count
-			pairs of units. */
-		int pairs = we->AI_getPlotDanger(groupPlot, iRange, false, groupSize, false,
-				&theirDamaged, theyId);
-		/*  Should perhaps also count fewer units as entangled if their units are
-			in a city, but that gets complicated b/c AI_getPlotDanger would have to check. */
-		entangled += pairs / (isCity ? 2 : 1);
-		// "Exposed" means damaged and likely about to be attacked
-		theirExposed += theirDamaged.get();
-		int ourDamaged = 0;
-		if(pairs > 0) {
-			for(CLLNode<IDInfo> const* node = gr->headUnitNode(); node != NULL; node =
-					gr->nextUnitNode(node)) { 
+		/*	(Using CvPlayerAI::AI_getPlotDanger for entanglement
+			could result in double counting) */
+		for(SquareIter it(groupPlot, iRange, false); it.hasNext(); ++it) {
+			CvPlot const& p = *it;
+			if(!p.isVisible(agentId) || !p.sameArea(groupPlot) ||
+					!p.isUnit() || // shortcut
+					// Could do without this if it's too slow
+					!head->canMoveInto(p, true, false, false, true, false))
+				continue;
+			int plotNum = m.plotNum(p);
+			std::map<int,int>::iterator pos = weThreaten.find(plotNum);
+			if(pos == weThreaten.end())
+				weThreaten.insert(std::make_pair(plotNum, groupSize));
+			else pos->second += groupSize;
+		}
+		if(!groupPlot.isCity()) { // ourEvac covers exposed cities
+			// For identifying exposed units of ours, AI_getPlotDanger is adequate.
+			int ourDamaged = 0;
+			int iDanger = we->AI_getPlotDanger(
+					groupPlot, 1, false, groupSize, false, theyId);
+			for(CLLNode<IDInfo> const* node = gr->headUnitNode();
+					node != NULL && iDanger > ourDamaged;
+					node = gr->nextUnitNode(node)) { 
 				CvUnit const& u = *::getUnit(node->m_data);
 				if(u.maxHitPoints() - u.getDamage() <= hpThresh)
 					ourDamaged++;
 			}
+			// Damaged units protected by healthy units aren't exposed
+			ourDamaged = ::range(iDanger + ourDamaged - groupSize, 0, ourDamaged);
+			ourExposed += ourDamaged;
 		}
-		/*  Our damaged units are unlikely to be attacked if we have enough healthy
-			units grouped with them. */
-		if(!isCity) // Assume here that cities are safe here (ourEvac handles them)
-			ourExposed += std::max(ourDamaged + pairs - groupSize, 0);
 		if(!we->isHuman()) {
 			// Akin to CvPlayerAI::AI_enemyTargetMissions
 			MissionAITypes mission = gr->AI_getMissionAIType();
@@ -3502,14 +3512,54 @@ void TacticalSituation::evalEngagement() {
 			if((mission == MISSIONAI_PILLAGE && plotOwner == theyId) ||
 					(mission == MISSIONAI_ASSAULT && missionPlot != NULL &&
 					missionPlot->getOwner() == theyId))
-				// Don't count entangled units on missions
-				ourMissions += groupSize + gr->getCargo() - pairs;
+				ourMissions += groupSize + gr->getCargo();
 		}
 	}
+	/*	So long as we check canMoveInto with bAttack=true above, this here
+		probably won't save time. */
+	/*FOR_EACH_GROUPAI(gr, *we) {
+		CvUnit* head = gr->getHeadUnit();
+		if(head == NULL || !head->canDefend())
+			continue;
+		weThreaten.erase(m.plotNum(gr->getPlot()));
+	}*/
+	for(std::map<int,int>::const_iterator it = weThreaten.begin();
+			it != weThreaten.end(); ++it) {
+		CvPlot const& p = m.getPlotByIndex(it->first);
+		int const ourUnits = it->second;
+		int theirUnits = 0;
+		int theirDamaged = 0;
+		// Some overlap with CvPlayerAI::AI_countDangerousUnits
+		for(CLLNode<IDInfo> const* pUnitNode = p.headUnitNode();
+				pUnitNode != NULL; pUnitNode = p.nextUnitNode(pUnitNode)) {
+			CvUnit const& u = *::getUnit(pUnitNode->m_data);
+			if(u.getCombatOwner(agentId) != theyId)
+				continue;
+			theirUnits++;
+			if(u.currHitPoints() <= hpThresh)
+				theirDamaged++;
+			if(theirUnits - theirDamaged >= ourUnits)
+				break;
+		}
+		// Damaged units protected by healthy units aren't exposed
+		theirDamaged = ::range(ourUnits + theirDamaged - theirUnits, 0, theirDamaged);
+		/*  Count at most one enemy unit per unit of ours as "entangled", i.e. count
+			pairs of units. */
+		theirUnits = std::min(theirUnits, ourUnits);
+		if(p.isCity()) {
+			theirUnits = ROUND_DIVIDE(theirUnits, 2);
+			theirDamaged = 0; // Covered by theirEvac
+		}
+		entangled += theirUnits;
+		theirExposed += theirDamaged;
+	}
+	// Don't count entangled units on missions
+	ourMissions = std::max(0, ourMissions - entangled);
 	if(ourMissions > 0 && agent.uwai().isPushover(TEAMID(theyId))) {
 		/*  If the target is weak, even a small fraction of our military en route
 			could have a big impact once it arrives. */
-		ourMissions *= 1.5;
+		ourMissions *= 3;
+		ourMissions /= 2;
 		log("Mission count increased b/c target is short work");
 	}
 	int ourEvac = evacPop(weId, theyId);
@@ -3565,7 +3615,7 @@ int TacticalSituation::evacPop(PlayerTypes ownerId, PlayerTypes invaderId) {
 		/*  Check PlotDanger b/c we don't want to count cities that are threatened
 			by a third party */
 		if(c->AI_isEvacuating() && o.AI_getPlotDanger(*c->plot(),
-				1, false, 2, false, NULL, invaderId) >= 2)
+				1, false, 2, false, invaderId) >= 2)
 			r += c->getPopulation();
 	}
 	return r;
