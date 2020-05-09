@@ -7233,7 +7233,10 @@ void CvGame::createBarbarianUnits()
 			// advc: BBAI code deleted -- sanity check based on Barbarian cities instead:
 			if (iShips > iBarbCities + 2)
 				iNeededSea = 0;
-			iNeededLand -= createBarbarianUnits(iNeededSea, a, shelves[i],
+			// <advc.306> Keep spawning units on ships
+			if (iNeededSea <= 0 && iNeededLand <= 0 && a.getNumCivCities() > 0)
+				createBarbarianUnits(1, a, shelves[i], true, true); // </advc.306>
+			else iNeededLand -= createBarbarianUnits(iNeededSea, a, shelves[i],
 					iNeededLand > 0); // advc.306
 		}
 		/*  Don't spawn Barbarian units on (or on shelves around) continents where
@@ -7447,11 +7450,13 @@ int CvGame::numBarbariansToCreate(int iTilesPerUnit, int iTiles, int iUnowned,
 }
 
 // Returns the number of land units spawned (possibly in cargo). The first half is new code.
-int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAllowed) // </advc.300>
+int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAllowed,
+	bool bOnlyCargo) // </advc.300>
 {
 	/* <advc.306> Spawn cargo load before ships. Otherwise, the newly placed ship
 	   would always be an eligible target and too many ships would carry cargo. */
 	FAssert(!bCargoAllowed || pShelf != NULL);
+	FAssert(!bOnlyCargo || bCargoAllowed);
 	int r = 0;
 	if(bCargoAllowed)
 	{
@@ -7481,6 +7486,8 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 					break;
 			}
 		}
+		if (bOnlyCargo)
+			return r;
 	} // </advc.306>
 
 	for (int iI = 0; iI < n; iI++) 

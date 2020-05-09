@@ -955,7 +955,8 @@ protected:
 	void createBarbarianCity(bool bNoCivCities, int iProbModifierPercent = 100);
 	int numBarbariansToCreate(int iTilesPerUnit, int iTiles, int iUnowned,
 			int iUnitsPresent, int iBarbarianCities = 0);
-	int createBarbarianUnits(int n, CvArea& a, Shelf* shelf, bool bCargoAllowed = false);
+	int createBarbarianUnits(int n, CvArea& a, Shelf* shelf, bool bCargoAllowed = false,
+			bool bOnlyCargo = false);
 	CvPlot* randomBarbarianPlot(CvArea const& a, Shelf* shelf) const;
 	bool killBarbarian(int iPresent, int iTiles, int iPop, CvArea& a, Shelf* shelf);
 	UnitTypes randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a);
