@@ -10102,7 +10102,7 @@ void CvCity::setWallOverridePoints(const std::vector< std::pair<float, float> >&
 }
 
 // <advc.310>
-void CvCity::addGreatWall()
+void CvCity::addGreatWall(int iAttempt)
 {
 	if (GC.getDefineINT("GREAT_WALL_GRAPHIC_MODE") != 1)
 	{
@@ -10111,32 +10111,72 @@ void CvCity::addGreatWall()
 	}
 	// All plots orthogonally adjacent to a (desired) wall segment
 	std::set<int> aiWallPlots;
+	/*	To determine if we have enough segments in the end.
+		But I think it's better to place too few segments than
+		to relax the placement rules arbitrarily ... */
+	/*int iInside = 0;
+	int iOutside = 0;*/
 	CvMap& kMap = GC.getMap();
 	for (int i = 0; i < kMap.numPlots(); i++)
 	{
-		CvPlot* p = kMap.plotByIndex(i);
-		if(!isArea(p->getArea()) || p->getOwner() != getOwner() || // as in BtS
-			p->isImpassable()) // new: don't wall off peaks
+		CvPlot const& kInside = kMap.getPlotByIndex(i);
+		if(!isArea(kInside.getArea()) || kInside.getOwner() != getOwner() || // as in BtS
+			kInside.isImpassable()) // new: don't wall off peaks
 		{
 			continue;
 		}
+		/*	Add kInside if we find an adjacent pOutside such that the two should
+			be separated by a segment */
 		bool bFound = false;
-		// Add p if we find an adjacent q such that (p, q) should have a segment in between
 		FOR_EACH_ENUM(CardinalDirection)
 		{
-			CvPlot* q = ::plotCardinalDirection(p->getX(), p->getY(), eLoopCardinalDirection);
-			if(q == NULL || !isArea(q->getArea()) || q->isImpassable())
+			CvPlot const* pOutside = plotCardinalDirection(kInside.getX(), kInside.getY(),
+					eLoopCardinalDirection);
+			if (pOutside == NULL)
 				continue;
-			PlayerTypes eOwner = q->getOwner();
-			if(eOwner == NO_PLAYER || eOwner == BARBARIAN_PLAYER) // Not: any civ
+			bool bValid = needsGreatWallSegment(kInside, *pOutside, iAttempt);
+			if (!bValid && pOutside->sameArea(kInside) && !pOutside->isImpassable()
+				/*	Commenting this condition out extends the wall by 1 tile into
+					unhabitable terrain. Otherwise, it looks like Barbarians could just
+					slip around the margins. */
+				/*&& pOutside->isHabitable()*/)
 			{
-				aiWallPlots.insert(kMap.plotNum(*q));
+				/*	Also try the two plots that are orthogonally adjacent to pOutside
+					and diagonally adjacent to kInside. The segment will still go between
+					kInside and pOutside b/c there are no diagonal segments.
+					(But never if pOutside is water or impassable; see checks above.) */
+				FOR_EACH_ENUM2(CardinalDirection, eDir)
+				{
+					CvPlot const* pAdj = plotCardinalDirection(
+							pOutside->getX(), pOutside->getY(), eDir);
+					if (pAdj == NULL)
+						continue;
+					if (stepDistance(pAdj, &kInside) == 1 &&
+						needsGreatWallSegment(kInside, *pAdj, iAttempt))
+					{
+						bValid = true;
+						break;
+					}
+				}
+			}
+			if (bValid)
+			{
+				aiWallPlots.insert(kMap.plotNum(*pOutside));
 				bFound = true;
+				//iOutside++;
 			}
 		}
 		if(bFound)
-			aiWallPlots.insert(kMap.plotNum(*p));
+		{
+			aiWallPlots.insert(kMap.plotNum(kInside));
+			//iInside++;
+		}
 	}
+	/*if (iAttempt == 0 && std::min(iInside, iOutside) <= 2)
+	{
+		addGreatWall(iAttempt + 1);
+		return;
+	}*/
 	/*  Hack: Use a dummy CvArea object to prevent CvEngine from placing segments
 		along plots not in aiWallPlots. */
 	CvArea* pTmpArea = kMap.addArea();
@@ -10151,6 +10191,41 @@ void CvCity::addGreatWall()
 	for(std::set<int>::iterator it = aiWallPlots.begin(); it != aiWallPlots.end(); it++)
 		kMap.plotByIndex(*it)->setArea(area(), false);
 	kMap.deleteArea(pTmpArea->getID());
+}
+
+// Helper function for placing Great Wall segments
+bool CvCity::needsGreatWallSegment(CvPlot const& kInside, CvPlot const& kOutside,
+	int iAttempt) const
+{
+	if(!isArea(kOutside.getArea()) || kOutside.isImpassable() ||
+		!kOutside.isHabitable(true))
+	{
+		return false;
+	}
+	PlayerTypes eOutsideOwner = kOutside.getOwner();
+	if(eOutsideOwner != NO_PLAYER && eOutsideOwner != BARBARIAN_PLAYER) // Not: any civ
+		return false;
+	if (iAttempt > 0)
+		return true;
+	/*	To avoid creating a Gaza strip, require a third plot that must be habitable,
+		adjacent to the outside plot but not adjacent to our territory. */
+	FOR_EACH_ENUM(Direction)
+	{
+		CvPlot const* pThird = ::plotDirection(kOutside.getX(), kOutside.getY(),
+				eLoopDirection);
+		if(pThird == NULL || !isArea(pThird->getArea()) ||
+			pThird->isImpassable() || !pThird->isHabitable(true))
+		{
+			continue;
+		}
+		PlayerTypes eThirdOwner = pThird->getOwner();
+		if((eThirdOwner == NO_PLAYER || eThirdOwner == BARBARIAN_PLAYER) &&
+			!pThird->isAdjacentPlayer(getOwner(), true))
+		{
+			return true;
+		}
+	}
+	return false;
 } // </advc.310>
 
 

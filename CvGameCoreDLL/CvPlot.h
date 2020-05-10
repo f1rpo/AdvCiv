@@ -478,7 +478,8 @@ public:
 	{
 		return m_aiYield.get(eIndex);
 	}
-	int calculateNatureYield(YieldTypes eIndex, TeamTypes eTeam, bool bIgnoreFeature = false) const;		// Exposed to Python
+	int calculateNatureYield(YieldTypes eIndex, TeamTypes eTeam /* advc: */ = NO_TEAM,						// Exposed to Python
+			bool bIgnoreFeature = false, /* advc.300: */ bool bIgnoreHills = false) const;
 	int calculateBestNatureYield(YieldTypes eIndex, TeamTypes eTeam) const;															// Exposed to Python
 	int calculateTotalBestNatureYield(TeamTypes eTeam) const;																						// Exposed to Python
 	// BETTER_BTS_AI_MOD, City AI, 10/06/09, jdog5000:

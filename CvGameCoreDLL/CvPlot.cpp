@@ -5056,7 +5056,7 @@ void CvPlot::changeRiverCrossingCount(int iChange)
 
 bool CvPlot::isHabitable(bool bIgnoreSea) const
 {
-	if(getYield(YIELD_FOOD) == 0)
+	if(calculateNatureYield(YIELD_FOOD, NO_TEAM, false, true) <= 0)
 		return false;
 	if(!isWater() || isLake())
 		return true;
@@ -5079,7 +5079,8 @@ bool CvPlot::isHabitable(bool bIgnoreSea) const
 }
 
 
-int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnoreFeature) const
+int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnoreFeature,
+	bool bIgnoreHills) const // advc.300
 {
 	// advc.016: Cut from calculateYield
 	int iYield = GC.getGame().getPlotExtraYield(m_iX, m_iY, eYield);
@@ -5091,7 +5092,8 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnor
 		return iYield;
 	}
 	iYield += GC.getInfo(getTerrainType()).getYield(eYield);
-	if (isHills())
+	bool const bHills = (isHills() /* advc.300 */ && !bIgnoreHills);
+	if (bHills)
 		iYield += GC.getInfo(eYield).getHillsChange();
 	else if (isPeak())
 		iYield += GC.getInfo(eYield).getPeakChange();
@@ -5111,12 +5113,12 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnor
 				GC.getInfo(getTerrainType()).getRiverYieldChange(eYield) :
 				GC.getInfo(getFeatureType()).getRiverYieldChange(eYield));
 		int iRivers = 1;
-		if(isConnectRiverSegments())
-			iRivers++;
+		/*if(isConnectRiverSegments()) // Disabled for now
+			iRivers++;*/
 		iYield += iRivers * iYieldPerRiver; // </advc.500a>
 	}
 
-	if (isHills())
+	if (bHills)
 	{
 		iYield += ((bIgnoreFeature || !isFeature()) ?
 				GC.getInfo(getTerrainType()).getHillsYieldChange(eYield) :
@@ -8260,11 +8262,9 @@ bool CvPlot::hasDefender(bool bTestCanAttack, PlayerTypes eOwner, PlayerTypes eA
 } // BETTER_BTS_AI_MOD: END
 
 // <advc.500a>
+#if 0 // disabled for now
 bool CvPlot::isConnectRiverSegments() const
 {
-#if 1
-	return false; // disabled for now
-#else
 	bool cr[NUM_DIRECTION_TYPES];
 	for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 		DirectionTypes dir = (DirectionTypes)i;
@@ -8290,8 +8290,9 @@ bool CvPlot::isConnectRiverSegments() const
 				!cr[DIRECTION_SOUTH] && !cr[DIRECTION_NORTH]) ||
 		   (cr[DIRECTION_SOUTHEAST] && cr[DIRECTION_NORTHEAST] &&
 				!cr[DIRECTION_EAST] && !cr[DIRECTION_WEST]));
-#endif
-} // </advc.500a>
+
+}
+#endif // </advc.500a>
 
 // <advc.121>
 bool CvPlot::isConnectSea() const

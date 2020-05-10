@@ -672,7 +672,6 @@ public:
 	// allows you to programmatically specify a cities walls rather than having them be generated automagically
 	DllExport bool isWallOverride() const;
 	void setWallOverride(bool bOverride);
-	void addGreatWall(); // advc.310: Wrapper for CvEngine::AddGreatWall
 
 	DllExport bool isInfoDirty() const;
 	DllExport void setInfoDirty(bool bNewValue);
@@ -1507,7 +1506,11 @@ protected:
 	int getHurryGold(HurryTypes eHurry, int iHurryCost) const;
 	bool canHurryUnit(HurryTypes eHurry, UnitTypes eUnit, bool bIgnoreNew) const;
 	bool canHurryBuilding(HurryTypes eHurry, BuildingTypes eBuilding, bool bIgnoreNew) const;
-
+	// <advc.310>
+	void addGreatWall(int iAttempt = 0); // Wrapper for CvEngine::AddGreatWall
+	bool needsGreatWallSegment(CvPlot const& kInside, CvPlot const& kOutside,
+			int iAttempt) const;
+	// </advc.310>
 	void updateBuildingDefense(); // advc.004c
 	double defensiveGarrison(double stopCountingAt = -1) const; // advc.500b
 	//int calculateMaintenanceDistance() const;
