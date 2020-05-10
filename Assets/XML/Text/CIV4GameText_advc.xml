@@ -3430,11 +3430,11 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__CITYTRADE_HOVER</Tag>
-		<English>Displays an alert whenever another civilization becomes willing to cede a [COLOR_CITY_BLUE]city[COLOR_REVERT] to you or to trade for one of your cities (unless you've just acquired it).</English>
-		<French>Affiche une alerte lorsqu'un autre civilisation devient prêt à vous céder une [COLOR_CITY_BLUE]ville[COLOR_REVERT] ou à échanger pour une de vos villes (sauf si vous venez de l'acquérir).</French>
-		<German>Meldet, wenn eine andere Zivilisation zu einem Handel mit [COLOR_CITY_BLUE]Städten[COLOR_REVERT] bereit ist. Städte, die Sie erst seit kurzem besitzen, werden nicht gemeldet.</German>
-		<Italian>Visualizza un avviso ogni volta che un altra civiltà diventa disposta a cedere una [COLOR_CITY_BLUE]città[COLOR_REVERT] a Lei o a scambiare per una delle Sue città (se non l'abbia appena acquistata).</Italian>
-		<Spanish>Muestra una alerta cada vez que un otra civilización se convierte dispuesto a cederle una [COLOR_CITY_BLUE]ciudad[COLOR_REVERT] o a cambiar por una de sus ciudades (a no ser que recién la haya adquirido).</Spanish>
+		<English>Displays an alert whenever another civilization becomes willing to cede a [COLOR_CITY_BLUE]city[COLOR_REVERT] to you or to trade for one of your cities.</English>
+		<French>Affiche une alerte lorsqu'un autre civilisation devient prêt à vous céder une [COLOR_CITY_BLUE]ville[COLOR_REVERT] ou à échanger pour une de vos villes.</French>
+		<German>Meldet, wenn eine andere Zivilisation zu einem Handel mit [COLOR_CITY_BLUE]Städten[COLOR_REVERT] bereit ist.</German>
+		<Italian>Visualizza un avviso ogni volta che un altra civiltà diventa disposta a cedere una [COLOR_CITY_BLUE]città[COLOR_REVERT] a Lei o a scambiare per una delle Sue città.</Italian>
+		<Spanish>Muestra una alerta cada vez que un otra civilización se convierte dispuesto a cederle una [COLOR_CITY_BLUE]ciudad[COLOR_REVERT] o a cambiar por una de sus ciudades.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_CAN_LIBERATE</Tag>

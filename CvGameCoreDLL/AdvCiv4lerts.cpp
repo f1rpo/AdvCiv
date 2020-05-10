@@ -417,19 +417,18 @@ void CityTradeAlert::check()
 						if(bLiberate)
 							canLiberateNow.push_back(iCity);
 						else willBuyNow.push_back(iCity);
-						// Don't report cities right after acquisition
-						if(iGameTurn - pCity->getGameTurnAcquired() > 1 &&
+						if( // Don't report cities right after acquisition
+							//iGameTurn - pCity->getGameTurnAcquired() > 1 &&
 							// Don't report possible liberation right after making peace
-							(!bLiberate || GET_TEAM(kPlayer.getTeam()).
-							AI_getAtPeaceCounter(kAlertPlayer.getTeam()) > 1))
+							/*(!bLiberate || GET_TEAM(kPlayer.getTeam()).
+							AI_getAtPeaceCounter(kAlertPlayer.getTeam()) > 1)*/
+							//^Try a different tack.
+							(!bLiberate || pCity->getPreviousOwner() != kPlayer.getID()))
 						{
 							vector<int>& was = (bLiberate ? canLiberate[kPlayer.getID()] :
 									willBuy[kPlayer.getID()]);
 							if(std::find(was.begin(), was.end(), iCity) == was.end())
-							{
-								vector<CvCity const*>& diff = (bLiberate ? diffLiberate : diffBuy);
-								diff.push_back(pCity);
-							}
+								(bLiberate ? diffLiberate : diffBuy).push_back(pCity);
 						}
 					}
 				}
