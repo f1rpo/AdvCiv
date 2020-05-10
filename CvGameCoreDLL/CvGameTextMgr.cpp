@@ -4471,7 +4471,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 							floatBuffer));
 					szString.append(NEWLINE);
 				} // </advc.023>
-				else if (prRevolt <= 0 && bActiveOwned &&
+				else if (prRevolt <= 0 && bActiveOwned && iGarrisonStr > 0 &&
 					eCulturalOwner != c.getOwner() && iGarrisonStr >= iCultureStr)
 				{
 					// Show it only when a local unit is selected? Eh ...
@@ -4479,9 +4479,13 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					if (pSelectedUnit != NULL && pSelectedUnit->at(*pPlot))*/
 					{
 						int iSafeToRemove = (iGarrisonStr - iCultureStr);
-						szString.append(gDLL->getText("TXT_KEY_GARRISON_STRENGTH_EXCESS_SHORT",
-								iSafeToRemove));
-						szString.append(NEWLINE);
+						if (iSafeToRemove < iGarrisonStr)
+						{
+							szString.append(gDLL->getText(
+									"TXT_KEY_GARRISON_STRENGTH_EXCESS_SHORT",
+									iSafeToRemove));
+							szString.append(NEWLINE);
+						}
 					}
 				}
 			} // </advc.101>
