@@ -10779,7 +10779,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 				else szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_WORLD_WONDER_ALLOWED",
 						iMaxGlobal)); // </advc.004w>
 			}
-			else // <advc.004w>
+			else  // <advc.004w>
 			{
 				iMaxGlobal -= (g.getBuildingClassCreatedCount(eBuildingClass) +
 						GET_TEAM(ePlayer).getBuildingClassMaking(eBuildingClass));

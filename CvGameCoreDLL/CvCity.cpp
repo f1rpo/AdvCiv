@@ -9588,7 +9588,7 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave,
 			if (isHuman() && GC.getInfo(eProcess).
 				getProductionToCommerceModifier(COMMERCE_CULTURE) > 0)
 			{
-				FAssert(eProcess == NO_PROCESS);
+				FAssert(iData2 == -1);
 				iData2 = getCultureLevel();
 			}
 			// K-Mod end
