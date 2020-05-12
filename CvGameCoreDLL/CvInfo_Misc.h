@@ -591,6 +591,10 @@ class CvEffectInfo : public CvInfoBase, public CvScalableInfo
 {
 public:
 	CvEffectInfo();
+	// <advc.xmldefault> (for LoadGlobalClassInfo template)
+	CvEffectInfo(CvEffectInfo const& kOther);
+	bool isDefaultsType() const { return false; }
+	// </advc.xmldefault>
 
 	DllExport const TCHAR* getPath() const { return m_szPath; }
 	void setPath(const TCHAR* szVal) { m_szPath = szVal; }
@@ -618,6 +622,10 @@ class CvAttachableInfo : public CvInfoBase, public CvScalableInfo
 {
 public:
 	CvAttachableInfo();
+	// <advc.xmldefault> (for LoadGlobalClassInfo template)
+	CvAttachableInfo(CvAttachableInfo const& kOther);
+	bool isDefaultsType() const { return false; }
+	// </advc.xmldefault>
 
 	DllExport const TCHAR* getPath() const { return m_szPath; }
 	void setPath(const TCHAR* szVal) { m_szPath = szVal; }

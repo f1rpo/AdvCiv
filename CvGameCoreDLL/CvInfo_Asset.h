@@ -46,6 +46,12 @@ protected:
 class CvArtInfoScalableAsset : public CvArtInfoAsset, public CvScalableInfo
 {
 public:
+	// <advc.xmldefault> (for LoadGlobalClassInfo template)
+	CvArtInfoScalableAsset() {}
+	CvArtInfoScalableAsset(CvArtInfoScalableAsset const& kOther)
+	{ FAssertMsg(false, "No copy-ctor implemented"); }
+	bool isDefaultsType() const { return false; }
+	// </advc.xmldefault>
 	bool read(CvXMLLoadUtility* pXML);
 };
 

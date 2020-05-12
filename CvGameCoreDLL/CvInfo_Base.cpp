@@ -6,6 +6,12 @@
 
 CvInfoBase::CvInfoBase() : m_bGraphicalOnly(false) {}
 
+// advc.xmldefault:
+CvInfoBase::CvInfoBase(CvInfoBase const& kOther)
+{
+	FAssertMsg(false, "Copy-ctor not implemented");
+}
+
 CvInfoBase::~CvInfoBase() {}
 #if SERIALIZE_CVINFOS
 void CvInfoBase::read(FDataStreamBase* pStream)
@@ -54,6 +60,19 @@ const TCHAR* CvInfoBase::getType() const
 	return m_szType;
 }
 
+// advc.xmldefault:
+bool CvInfoBase::isDefaultsType() const
+{
+	if (m_szType == NULL)
+		return false;
+	CvString const szEnding = "_DEFAULTS";
+	return (m_szType.length() > szEnding.length() &&
+			m_szType.compare(
+				m_szType.length() - szEnding.length(),
+				szEnding.length(),
+				szEnding) == 0);
+}
+
 const TCHAR* CvInfoBase::getButton() const
 {
 	if (m_szButton.empty())
@@ -93,7 +112,7 @@ const wchar* CvInfoBase::getCivilopedia() const
 	return m_szCachedCivilopedia;
 }
 
-const wchar*  CvInfoBase::getHelp() const
+const wchar* CvInfoBase::getHelp() const
 {
 	if (m_szCachedHelp.empty())
 		m_szCachedHelp = gDLL->getText(m_szHelpKey);

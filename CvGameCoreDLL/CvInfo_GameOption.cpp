@@ -564,9 +564,7 @@ bool CvVictoryInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iMinLandPercent, "iMinLandPercent");
 	pXML->GetChildXmlValByName(&m_iReligionPercent, "iReligionPercent");
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "CityCulture");
-	m_iCityCulture = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iCityCulture, "CityCulture");
 
 	pXML->GetChildXmlValByName(&m_iNumCultureCities, "iNumCultureCities");
 	pXML->GetChildXmlValByName(&m_iTotalCultureRatio, "iTotalCultureRatio");

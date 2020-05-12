@@ -112,6 +112,7 @@ class CvLeaderHeadInfo : public CvInfoBase
 friend class UWAI; // advc.104x (for applyPersonalityWeight)
 public: // advc: All the const functions are exposed to Python except those added by mods
 	CvLeaderHeadInfo();
+	CvLeaderHeadInfo(CvLeaderHeadInfo const& kOther); // advc.xmldefault
 	~CvLeaderHeadInfo();
 
 	int getWonderConstructRand() const;
@@ -329,6 +330,9 @@ protected:
 	int* m_piDiploPeaceMusicScriptIds;
 	int* m_piDiploWarIntroMusicScriptIds;
 	int* m_piDiploWarMusicScriptIds;
+
+	static CvXMLLoadUtility* m_pXML;
+	static void GetChildXmlValByName(int& r, TCHAR const* szName, int iDefault = MIN_INT);
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

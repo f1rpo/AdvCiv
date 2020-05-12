@@ -77,9 +77,11 @@ public:
 				if szName isn't found */
 			bool bMandatory = true,
 			bool bDefault = false);
+	void SetInfoIDFromChildXmlVal(int& r, TCHAR const* szName); // advc.xmldefault
+	int GetChildTypeIndex(); // advc.xmldefault
 	/*  advc.006b: Unused for now. Can use this to disable the assertions added to
-		GetChildXmlValByName temporarily, e.g. while loading a CvInfo element that
-		doesn't have tags which are normally mandatory. */
+		GetChildXmlValByName temporarily, e.g. while loading a special CvInfo element
+		that lacks tags which, normally, are mandatory. */
 	void setAssertMandatoryEnabled(bool b);
 
 	bool LoadCivXml(FXml* pFXml, const TCHAR* szFilename);
@@ -199,11 +201,12 @@ private:
 	// template which can handle all info classes
 	// a dynamic value for the list size
 	template <class T>
-	void SetGlobalClassInfo(std::vector<T*>& aInfos, const char* szTagName, bool bTwoPass);
-	template <class T>
 	void LoadGlobalClassInfo(std::vector<T*>& aInfos, const char* szFileRoot,
 			const char* szFileDirectory, const char* szXmlPath, bool bTwoPass,
 			CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction)(const TCHAR*) = NULL);
+	template <class T>
+	void SetGlobalClassInfo(std::vector<T*>& aInfos, const char* szTagName, bool bTwoPass,
+			bool bFinalCall = false); // advc.xmldefault
 	#endif
 	void SetDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfos, const char* szTagName);
 	void LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfos, const char* szFileRoot,
@@ -243,9 +246,12 @@ BOOST_STATIC_ASSERT(sizeof(CvXMLLoadUtility) == 16);
 template <class T>
 void CvXMLLoadUtility::InitList(T **ppList, int iListLen, T val)
 {
-	FAssertMsg( 0 <= iListLen, "list size to allocate is less than 0");
+	// <advc.xmldefault>
+	if (*ppList != NULL) // Already initialized w/ default values
+		return; // </advc.xmldefault>
+	FAssertMsg(0 <= iListLen, "list size to allocate is less than 0");
 	*ppList = new T[iListLen];
-	for (int i=0;i<iListLen;i++)
+	for (int i=0; i < iListLen; i++)
 		(*ppList)[i] = val;
 }
 

@@ -73,21 +73,15 @@ bool CvBuildInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvHotkeyInfo::read(pXML))
 		return false;
 
-	CvString szTextVal;
-
-	pXML->GetChildXmlValByName(szTextVal, "PrereqTech");
-	m_iTechPrereq = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iTechPrereq, "PrereqTech");
 
 	pXML->GetChildXmlValByName(&m_iTime, "iTime");
 	pXML->GetChildXmlValByName(&m_iCost, "iCost");
 	pXML->GetChildXmlValByName(&m_bKill, "bKill");
 
-	pXML->GetChildXmlValByName(szTextVal, "ImprovementType");
-	m_iImprovement = pXML->FindInInfoClass(szTextVal);
-	pXML->GetChildXmlValByName(szTextVal, "RouteType");
-	m_iRoute = pXML->FindInInfoClass(szTextVal);
-	pXML->GetChildXmlValByName(szTextVal, "EntityEvent");
-	m_iEntityEvent = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iImprovement, "ImprovementType");
+	pXML->SetInfoIDFromChildXmlVal(m_iRoute, "RouteType");
+	pXML->SetInfoIDFromChildXmlVal(m_iEntityEvent, "EntityEvent");
 
 	pXML->SetFeatureStruct(&m_paiFeatureTech, &m_paiFeatureTime, &m_paiFeatureProduction, &m_pabFeatureRemove);
 

@@ -98,10 +98,8 @@ bool CvAutomateInfo::read(CvXMLLoadUtility* pXML)
 		return false;
 
 	CvString szTextVal;
-
 	pXML->GetChildXmlValByName(szTextVal, "Command");
 	setCommand(pXML->FindInInfoClass(szTextVal));
-
 	pXML->GetChildXmlValByName(szTextVal, "Automate");
 	setAutomate(GC.getTypesEnum(szTextVal));
 
@@ -515,8 +513,6 @@ bool CvMissionInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvHotkeyInfo::read(pXML))
 		return false;
 
-	CvString szTmp;
-
 	pXML->GetChildXmlValByName(m_szWaypoint, "Waypoint");
 	pXML->GetChildXmlValByName(&m_iTime, "iTime");
 	pXML->GetChildXmlValByName(&m_bSound, "bSound");
@@ -524,6 +520,7 @@ bool CvMissionInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bBuild, "bBuild");
 	pXML->GetChildXmlValByName(&m_bVisible, "bVisible", /* advc.006b: */ false);
 
+	CvString szTmp;
 	if (pXML->GetChildXmlValByName(szTmp, "EntityEventType", /* advc.006b: */ ""))
 		m_eEntityEvent = (EntityEventTypes)pXML->FindInInfoClass(szTmp);
 	else m_eEntityEvent = NO_ENTITYEVENT;
@@ -581,13 +578,8 @@ bool CvInterfaceModeInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvHotkeyInfo::read(pXML))
 		return false;
 
-	CvString szTextVal;
-
-	pXML->GetChildXmlValByName(szTextVal, "CursorType");
-	m_iCursorIndex = pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "Mission");
-	m_iMissionType = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iCursorIndex, "CursorType");
+	pXML->SetInfoIDFromChildXmlVal(m_iMissionType, "Mission");
 
 	pXML->GetChildXmlValByName(&m_bVisible, "bVisible");
 	pXML->GetChildXmlValByName(&m_bGotoPlot, "bGotoPlot");

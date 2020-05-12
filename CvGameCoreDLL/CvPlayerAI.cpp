@@ -17509,8 +17509,6 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 					 no more than 1.33 times capBonuses. */
 				double weight1 = (capBonuses + std::min(capBonuses * (5/3.0),
 						2.4 * std::max(bonusVal, exportable))) / 2;
-				/*  Rather than changing attitudeDiv in XML for every leader,
-					do the fine-tuning here. */
 				double weight2 = 400.0 / iAttitudeDiv;
 				if (weight1 >= weight2)
 					incr = (bonusVal / weight1) * weight2;
@@ -17586,13 +17584,6 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 			{
 				continue;
 			} // </advc.130r>
-			// <advc.130o> Too lazy to reduce the MemoryDecay divisors for every leader in XML
-			if (eMem == MEMORY_REJECTED_DEMAND || eMem == MEMORY_ACCEPT_DEMAND)
-				p *= (100 / 60.0); // </advc.130o>  // <advc.144>
-			if (eMem == MEMORY_GIVE_HELP)
-				p *= (100 / 75.0); // </advc.144>  // <advc.553>
-			if (eMem == MEMORY_TRADED_TECH_TO_US)
-				p *= (100 / 25.0); // </advc.553>
 			/*  <advc.145> Decay of accepted/denied civic/religion memory based on
 				current civics and religion */
 			// Fav. civic and religion are based on LeaderType, not PersonalityType.

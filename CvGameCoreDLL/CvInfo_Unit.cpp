@@ -1193,41 +1193,26 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvHotkeyInfo::read(pXML))
 		return false;
 
-	CvString szTextVal;
-
-	pXML->GetChildXmlValByName(szTextVal, "Class");
-	m_iUnitClassType = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "Special");
-	m_iSpecialUnitType = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "Capture");
-	m_iUnitCaptureClassType = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "Combat");
-	m_iUnitCombatType = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "Domain");
-	m_iDomainType = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "DefaultUnitAI");
-	m_iDefaultUnitAIType = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "Invisible");
-	m_iInvisibleType = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "SeeInvisible");
-	std::vector<CvString> tokens;
-	szTextVal.getTokens(",", tokens);
-	for(int i = 0; i < (int)tokens.size(); i++)
+	pXML->SetInfoIDFromChildXmlVal(m_iUnitClassType, "Class");
+	pXML->SetInfoIDFromChildXmlVal(m_iSpecialUnitType, "Special");
+	pXML->SetInfoIDFromChildXmlVal(m_iUnitCaptureClassType, "Capture");
+	pXML->SetInfoIDFromChildXmlVal(m_iUnitCombatType, "Combat");
+	pXML->SetInfoIDFromChildXmlVal(m_iDomainType, "Domain");
+	pXML->SetInfoIDFromChildXmlVal(m_iDefaultUnitAIType, "DefaultUnitAI");
+	pXML->SetInfoIDFromChildXmlVal(m_iInvisibleType, "Invisible");
 	{
-		int iInvisibleType = pXML->FindInInfoClass(tokens[i]);
-		if(iInvisibleType != NO_INVISIBLE)
-			m_aiSeeInvisibleTypes.push_back(iInvisibleType);
+		CvString szTextVal;
+		pXML->GetChildXmlValByName(szTextVal, "SeeInvisible");
+		std::vector<CvString> tokens;
+		szTextVal.getTokens(",", tokens);
+		for(int i = 0; i < (int)tokens.size(); i++)
+		{
+			int iInvisibleType = pXML->FindInInfoClass(tokens[i]);
+			if(iInvisibleType != NO_INVISIBLE)
+				m_aiSeeInvisibleTypes.push_back(iInvisibleType);
+		}
 	}
-
-	pXML->GetChildXmlValByName(szTextVal, "Advisor");
-	m_iAdvisorType = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iAdvisorType, "Advisor");
 
 	pXML->GetChildXmlValByName(&m_bAnimal, "bAnimal");
 	pXML->GetChildXmlValByName(&m_bFoodProduction, "bFood");
@@ -1311,26 +1296,13 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	pXML->SetVariableListTagPair(&m_pbBuildings, "Buildings", GC.getNumBuildingInfos());
 	//pXML->SetVariableListTagPair(&m_pbForceBuildings, "ForceBuildings", GC.getNumBuildingInfos()); // advc.003t
 
-	pXML->GetChildXmlValByName(szTextVal, "HolyCity");
-	m_iHolyCity = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "ReligionType");
-	m_iReligionType = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "StateReligion");
-	m_iStateReligion = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "PrereqReligion");
-	m_iPrereqReligion = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "PrereqCorporation");
-	m_iPrereqCorporation = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "PrereqBuilding");
-	m_iPrereqBuilding = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "PrereqTech");
-	m_iPrereqAndTech = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iHolyCity, "HolyCity");
+	pXML->SetInfoIDFromChildXmlVal(m_iReligionType, "ReligionType");
+	pXML->SetInfoIDFromChildXmlVal(m_iStateReligion, "StateReligion");
+	pXML->SetInfoIDFromChildXmlVal(m_iPrereqReligion, "PrereqReligion");
+	pXML->SetInfoIDFromChildXmlVal(m_iPrereqCorporation, "PrereqCorporation");
+	pXML->SetInfoIDFromChildXmlVal(m_iPrereqBuilding, "PrereqBuilding");
+	pXML->SetInfoIDFromChildXmlVal(m_iPrereqAndTech, "PrereqTech");
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"TechTypes"))
 	{
@@ -1342,6 +1314,7 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 			bool bAnyReq = false; // advc.003t
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					FAssertMsg(iNumSibs <= GC.getNUM_UNIT_AND_TECH_PREREQS(), "There are more siblings than memory allocated for them in SetGlobalUnitInfo");
@@ -1363,10 +1336,9 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
 
-	pXML->GetChildXmlValByName(szTextVal, "BonusType");
-	m_iPrereqAndBonus = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iPrereqAndBonus, "BonusType");
 
-	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"PrereqBonuses"))
+	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "PrereqBonuses"))
 	{
 		if (pXML->SkipToNextVal())
 		{
@@ -1376,6 +1348,7 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 			bool bAnyReq = false; // advc.003t
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
 					FAssertMsg(iNumSibs <= GC.getNUM_UNIT_PREREQ_OR_BONUSES() , "There are more siblings than memory allocated for them in SetGlobalUnitInfo");
@@ -1409,6 +1382,7 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 				FAssert(iNumSibs <= GC.getNUM_UNIT_PREREQ_OR_BONUSES());
 				for(int j = 0; j < iNumSibs; j++)
 				{
+					CvString szTextVal;
 					pXML->GetChildXmlValByName(szTextVal, "BonusType");
 					int iBonus = pXML->FindInInfoClass(szTextVal);
 					if(iBonus > -1)
@@ -1497,11 +1471,8 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iBombRate, "iBombRate");
 	pXML->GetChildXmlValByName(&m_iBombardRate, "iBombardRate");
 
-	pXML->GetChildXmlValByName(szTextVal, "SpecialCargo");
-	m_iSpecialCargo = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "DomainCargo");
-	m_iDomainCargo = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iSpecialCargo, "SpecialCargo");
+	pXML->SetInfoIDFromChildXmlVal(m_iDomainCargo, "DomainCargo");
 
 	pXML->GetChildXmlValByName(&m_iCargoSpace, "iCargo");
 	pXML->GetChildXmlValByName(&m_iConscriptionValue, "iConscription");
@@ -1529,6 +1500,7 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 
 		if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "UnitMeshGroup"))
 		{
+			CvString szTextVal;
 			for (int k = 0; k < iIndexVal; k++)
 			{
 				pXML->GetChildXmlValByName(&m_piUnitGroupRequired[k], "iRequired");
@@ -1555,8 +1527,7 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 
 	pXML->SetVariableListTagPair(&m_pbFreePromotions, "FreePromotions", GC.getNumPromotionInfos());
 
-	pXML->GetChildXmlValByName(szTextVal, "LeaderPromotion");
-	m_iLeaderPromotion = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iLeaderPromotion, "LeaderPromotion");
 
 	pXML->GetChildXmlValByName(&m_iLeaderExperience, "iLeaderExperience");
 
@@ -2336,20 +2307,14 @@ bool CvPromotionInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvHotkeyInfo::read(pXML))
 		return false;
-
-	CvString szTextVal;
-
-	pXML->GetChildXmlValByName(szTextVal, "Sound");
-	setSound(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "LayerAnimationPath");
-	m_iLayerAnimationPath = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "TechPrereq");
-	m_iTechPrereq = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "StateReligionPrereq");
-	m_iStateReligionPrereq = pXML->FindInInfoClass(szTextVal);
+	{
+		CvString szTextVal;
+		pXML->GetChildXmlValByName(szTextVal, "Sound");
+		setSound(szTextVal);
+	}
+	pXML->SetInfoIDFromChildXmlVal(m_iLayerAnimationPath, "LayerAnimationPath");
+	pXML->SetInfoIDFromChildXmlVal(m_iTechPrereq, "TechPrereq");
+	pXML->SetInfoIDFromChildXmlVal(m_iStateReligionPrereq, "StateReligionPrereq");
 
 	pXML->GetChildXmlValByName(&m_bLeader, "bLeader");
 	if (m_bLeader)
@@ -2603,16 +2568,13 @@ bool CvEspionageMissionInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-
 	pXML->GetChildXmlValByName(&m_iCost, "iCost");
 	pXML->GetChildXmlValByName(&m_bIsPassive, "bIsPassive");
 	pXML->GetChildXmlValByName(&m_bIsTwoPhases, "bIsTwoPhases");
 	pXML->GetChildXmlValByName(&m_bTargetsCity, "bTargetsCity");
 	pXML->GetChildXmlValByName(&m_bSelectPlot, "bSelectPlot");
 
-	pXML->GetChildXmlValByName(szTextVal, "TechPrereq");
-	m_iTechPrereq = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iTechPrereq, "TechPrereq");
 
 	pXML->GetChildXmlValByName(&m_iVisibilityLevel, "iVisibilityLevel");
 	pXML->GetChildXmlValByName(&m_bInvestigateCity, "bInvestigateCity");

@@ -262,8 +262,8 @@ bool CvRouteModelInfo::read(CvXMLLoadUtility* pXML)
 
 	pXML->GetChildXmlValByName(&m_bAnimated, "Animated");
 
-	pXML->GetChildXmlValByName(szTextVal, "RouteType");
-	m_eRouteType = (RouteTypes)pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eRouteType, "RouteType");
+
 	pXML->GetChildXmlValByName(m_szConnectString, "Connections");
 	pXML->GetChildXmlValByName(m_szModelConnectString, "ModelConnections");
 	pXML->GetChildXmlValByName(m_szRotateString, "Rotations");
@@ -875,9 +875,9 @@ bool CvAnimationPathInfo::read(CvXMLLoadUtility* pXML)
 	gDLL->getXMLIFace()->NextSibling(pXML->GetXML());
 	do
 	{
-		if ( pXML->GetChildXmlValByName( szTempString, _T("Category"), /* advc.006b: */ ""))
+		if (pXML->GetChildXmlValByName(szTempString, _T("Category"), /* advc.006b: */ ""))
 		{
-			iCurrentCategory = pXML->FindInInfoClass( szTempString);
+			iCurrentCategory = pXML->FindInInfoClass(szTempString);
 			fParameter = 0.0f;
 		}
 		else
@@ -1517,6 +1517,12 @@ m_fProjectileSpeed(0.0f),
 m_fProjectileArc(0.0f)
 {}
 
+// advc.xmldefault:
+CvEffectInfo::CvEffectInfo(CvEffectInfo const& kOther)
+{
+	FAssertMsg(false, "Copy-ctor not implemented");
+}
+
 bool CvEffectInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
@@ -1542,6 +1548,11 @@ bool CvEffectInfo::read(CvXMLLoadUtility* pXML)
 
 
 CvAttachableInfo::CvAttachableInfo() : m_fUpdateRate(0.0f) {}
+// advc.xmldefault:
+CvAttachableInfo::CvAttachableInfo(CvAttachableInfo const& kOther)
+{
+	FAssertMsg(false, "Copy-ctor not implemented");
+}
 
 bool CvAttachableInfo::read(CvXMLLoadUtility* pXML)
 {

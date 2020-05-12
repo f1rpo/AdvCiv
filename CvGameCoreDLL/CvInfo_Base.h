@@ -20,6 +20,7 @@ class CvInfoBase /* advc.003e: */ : private boost::noncopyable
 {
 public: // All the const functions are exposed to Python
 	CvInfoBase();
+	CvInfoBase(CvInfoBase const& kOther); // advc.xmldefault
 	DllExport virtual ~CvInfoBase();
 
 	virtual void reset();
@@ -27,6 +28,7 @@ public: // All the const functions are exposed to Python
 	bool isGraphicalOnly() const;
 
 	DllExport const TCHAR* getType() const;
+	bool isDefaultsType() const; // advc.xmldefault
 	virtual const TCHAR* getButton() const;
 
 	// for python wide string handling

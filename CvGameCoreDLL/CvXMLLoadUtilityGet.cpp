@@ -21,7 +21,6 @@ void CvXMLLoadUtility::RegisterProgressCB(ProgressCB cbFxn) {
 // <advc>
 namespace
 {
-// To get rid of some duplicate code
 void assignDefault(std::wstring& val, wchar const* szDefault = NULL)
 {
 	if (szDefault != NULL)
@@ -678,7 +677,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(int* r, TCHAR const* szName, int iDe
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	if(iDefault == MIN_INT && m->bAssertMandatory)
+	if (*r == MIN_INT && m->bAssertMandatory)
 	{
 		FAssertMsg(false, (szAssertMsg + szName).c_str());
 		/*  Try to allow the caller to ignore the error by setting a
@@ -723,7 +722,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(float* r, TCHAR const* szName, float
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	if(fDefault == FLT_MIN && m->bAssertMandatory)
+	if (*r == FLT_MIN && m->bAssertMandatory)
 	{
 		FAssertMsg(false, (szAssertMsg + szName).c_str());
 		*r = 0; // See See GetChildXmlValByName(int*...)
@@ -771,11 +770,29 @@ bool CvXMLLoadUtility::GetChildXmlValByName(bool* r, TCHAR const* szName,
 	return false; // </advc.006b>
 }
 
-// <advc.006b>
+// <advc.xmldefault>
+void CvXMLLoadUtility::SetInfoIDFromChildXmlVal(int& r, TCHAR const* szName)
+{
+	CvString szTextVal;
+	GetChildXmlValByName(szTextVal, szName, r == 0 ? NULL : "");
+	if (!szTextVal.IsEmpty())
+		r = FindInInfoClass(szTextVal);
+}
+
+// (based on code by rheinig)
+int CvXMLLoadUtility::GetChildTypeIndex()
+{
+	CvString szType;
+	if (GetChildXmlValByName(szType, "Type") && !szType.empty())
+		return GC.getInfoTypeForString(szType, true);
+	return -1;
+} // </advc.xmldefault>
+
+// advc.006b:
 void CvXMLLoadUtility::setAssertMandatoryEnabled(bool b)
 {
 	m->bAssertMandatory = b;
-} // </advc.006b>
+}
 
 /*	Returns either the integer value of the keyboard mapping for the hot key --
 	or -1 if it doesn't exist. */

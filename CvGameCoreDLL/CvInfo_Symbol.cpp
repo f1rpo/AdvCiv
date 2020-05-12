@@ -69,9 +69,8 @@ bool CvYieldInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iGoldenAgeYield, "iGoldenAgeYield");
 	pXML->GetChildXmlValByName(&m_iGoldenAgeYieldThreshold, "iGoldenAgeYieldThreshold");
 	pXML->GetChildXmlValByName(&m_iAIWeightPercent, "iAIWeightPercent");
-	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "ColorType");
-	m_iColorType = pXML->FindInInfoClass(szTextVal);
+
+	pXML->SetInfoIDFromChildXmlVal(m_iColorType, "ColorType");
 	// advc.003j: Disabled
 	/*if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "SymbolPaths"))
 	{
@@ -205,16 +204,9 @@ bool CvPlayerColorInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-
-	pXML->GetChildXmlValByName(szTextVal, "ColorTypePrimary");
-	m_eColorTypePrimary = (ColorTypes)pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "ColorTypeSecondary");
-	m_eColorTypeSecondary = (ColorTypes)pXML->FindInInfoClass( szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "TextColorType");
-	m_eTextColorType = (ColorTypes)pXML->FindInInfoClass( szTextVal);
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eColorTypePrimary, "ColorTypePrimary");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eColorTypeSecondary, "ColorTypeSecondary");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eTextColorType, "TextColorType");
 
 	return true;
 }

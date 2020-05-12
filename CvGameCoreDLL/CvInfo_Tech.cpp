@@ -289,12 +289,10 @@ void CvTechInfo::write(FDataStreamBase* stream)
 #endif
 bool CvTechInfo::read(CvXMLLoadUtility* pXML)
 {
-	CvString szTextVal;
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	pXML->GetChildXmlValByName(szTextVal, "Advisor");
-	m_iAdvisorType = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iAdvisorType, "Advisor");
 
 	pXML->GetChildXmlValByName(&m_iAIWeight, "iAIWeight");
 	pXML->GetChildXmlValByName(&m_iAITradeModifier, "iAITradeModifier");
@@ -302,11 +300,8 @@ bool CvTechInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iAdvancedStartCost, "iAdvancedStartCost");
 	pXML->GetChildXmlValByName(&m_iAdvancedStartCostIncrease, "iAdvancedStartCostIncrease");
 
-	pXML->GetChildXmlValByName(szTextVal, "Era");
-	m_iEra = pXML->FindInInfoClass(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "FirstFreeUnitClass");
-	m_iFirstFreeUnitClass = pXML->FindInInfoClass(szTextVal);
+	pXML->SetInfoIDFromChildXmlVal(m_iEra, "Era");
+	pXML->SetInfoIDFromChildXmlVal(m_iFirstFreeUnitClass, "FirstFreeUnitClass");
 
 	pXML->GetChildXmlValByName(&m_iFeatureProductionModifier, "iFeatureProductionModifier");
 	pXML->GetChildXmlValByName(&m_iWorkerSpeedModifier, "iWorkerSpeedModifier");
@@ -358,12 +353,11 @@ bool CvTechInfo::read(CvXMLLoadUtility* pXML)
 	pXML->SetVariableListTagPair(&m_pbTerrainTrade, "TerrainTrades", GC.getNumTerrainInfos(), false);
 	pXML->SetVariableListTagPair(&m_piFlavorValue, "Flavors", GC.getNumFlavorTypes());
 
+	CvString szTextVal;
 	pXML->GetChildXmlValByName(szTextVal, "Quote");
 	setQuoteKey(szTextVal);
-
 	pXML->GetChildXmlValByName(szTextVal, "Sound");
 	setSound(szTextVal);
-
 	pXML->GetChildXmlValByName(szTextVal, "SoundMP");
 	setSoundMP(szTextVal);
 
