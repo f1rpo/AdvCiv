@@ -791,6 +791,17 @@
 		<Italian>+%d1_Change[ICON_UNHAPPY]: "Temiamo per la nostra incolumit&#224;. Abbiamo bisogno di migliori difese militari!"</Italian>
 		<Spanish>+%d1_Change [ICON_UNHAPPY]: "Tememos por nuestra seguridad. &#161;Solicitamos mejor protecci&#243;n militar!"</Spanish>
 	</TEXT>
+
+	<!-- advc.130m: Like TXT_KEY_MISC_ATTITUDE_SHARE_WAR (CIV4GameTextInfos.xml),
+		 but past tense. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_ATTITUDE_SHARED_WAR</Tag>
+		<English>%D1: "Our mutual military struggle has brought us closer together."</English>
+		<French>%D1 : "Notre engagement militaire commun nous a rapprochés."</French>
+		<German>%D1: "Unsere gemeinsamen milit&#228;rischen Aktivit&#228;ten haben uns zusammengeschwei&#223;t."</German>
+		<Italian>%D1: "I nostri reciproci aiuti militari ci hanno reso molto vicini l'un l'altro."</Italian>
+		<Spanish>%D1: "Nuestra mutua lucha militar nos ha acercado m&#225;s."</Spanish>
+	</TEXT>
 	
 	<!-- advc.004g: "close" borders sounds too similar to "closed".
 		 That would be tolerable, but the German and Spanish translation

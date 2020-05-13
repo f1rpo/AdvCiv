@@ -16228,7 +16228,13 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 		iAttitudeChange = kPlayer.AI_getShareWarAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
-			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_SHARE_WAR", iAttitudeChange).GetCString());
+			// advc.130m:
+			bool bPastTense = !GET_TEAM(kPlayer.getTeam()).AI_shareWar(TEAMID(eTargetPlayer));
+			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ?
+					"COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"),
+					gDLL->getText(bPastTense ? "TXT_KEY_MISC_ATTITUDE_SHARED_WAR" : // advc.130m
+					"TXT_KEY_MISC_ATTITUDE_SHARE_WAR",
+					iAttitudeChange).GetCString());
 			szBreakdown.append(NEWLINE);
 			szBreakdown.append(szTempBuffer);
 			iTotal += iAttitudeChange;
