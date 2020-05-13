@@ -223,12 +223,14 @@ void RiseFall::reportElimination(PlayerTypes civId) {
 	if(chapters[pos]->getCiv() == civId) {
 		chapters[pos]->score();
 		setPlayerControl(civId, false);
-		CvPlayer& nextAlive = GET_PLAYER(nextCivAlive(civId));
+		CvPlayer& nextAlive = GET_PLAYER(nextCivAlive(BARBARIAN_PLAYER));
 		if(pos < (int)(chapters.size() - 1)) {
 			GC.getGame().setActivePlayer(nextAlive.getID());
 			nextAlive.setIsHuman(true);
 			nextAlive.updateHuman();
 			CvPopupInfo* popup = new CvPopupInfo(BUTTONPOPUP_RF_DEFEAT);
+			// So that launchDefeatPopup knows which chapter we've just scored (ended)
+			popup->setData1(pos);
 			nextAlive.addPopup(popup, true);
 		}
 		else {
@@ -927,7 +929,7 @@ int RiseFall::getNormalizedFinalScore() const {
 bool RiseFall::launchDefeatPopup(CvPopup* popup, CvPopupInfo& info) {
 
 	int startTurn = 0;
-	int pos = getCurrentChapter();
+	int pos = info.getData1();
 	if(pos >= 0 && pos < (int)(chapters.size() - 1))
 		startTurn = chapters[pos + 1]->getStartTurn();
 	else FAssert(false);
@@ -942,13 +944,14 @@ bool RiseFall::launchDefeatPopup(CvPopup* popup, CvPopupInfo& info) {
 	return true;
 }
 
-void RiseFall::handleDefeatPopup(int buttonClicked) {
+void RiseFall::handleDefeatPopup(int buttonClicked, int pos) {
 
 	if(buttonClicked == 1) {
+		setUIHidden(false);
+		CvPlot::setAllFog(false);
 		gDLL->UI().exitingToMainMenu();
 		return;
 	}
-	int pos = getCurrentChapter();
 	if(pos < 0 || pos >= (int)(chapters.size() - 1)) {
 		FAssert(false);
 		pos = -1;

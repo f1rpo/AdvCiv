@@ -707,7 +707,7 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		g.getRiseFall().afterCivSelection(pPopupReturn->getButtonClicked());
 		break;
 	case BUTTONPOPUP_RF_DEFEAT:
-		g.getRiseFall().handleDefeatPopup(pPopupReturn->getButtonClicked());
+		g.getRiseFall().handleDefeatPopup(pPopupReturn->getButtonClicked(), info.getData1());
 		break;
 	case BUTTONPOPUP_RF_RETIRE:
 		g.getRiseFall().handleRetirePopup(pPopupReturn->getButtonClicked());

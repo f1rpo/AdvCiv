@@ -36,7 +36,7 @@ public:
 	static int victoryStage(PlayerTypes civId);
 	// Callbacks for CvDLLButtonPopup
 	  bool launchDefeatPopup(CvPopup* popup, CvPopupInfo& info);
-	  void handleDefeatPopup(int buttonClicked);
+	  void handleDefeatPopup(int buttonClicked, int pos);
 	  bool launchCivSelectionPopup(CvPopup* popup, CvPopupInfo& info);
 	  void handleCivSelection(PlayerTypes selectedCiv);
 	  void afterCivSelection(int buttonClicked);

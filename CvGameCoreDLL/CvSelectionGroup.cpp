@@ -3817,7 +3817,7 @@ CvPlot* CvSelectionGroup::getPathEndTurnPlot() const
 bool CvSelectionGroup::generatePath( const CvPlot* pFromPlot, const CvPlot* pToPlot, int iFlags, bool bReuse, int* piPathTurns, int iMaxPath) const
 {
 	// K-Mod - if I can stop the UI from messing with this pathfinder, I might be able to reduce OOS bugs.
-	FAssert(AI_isControlled());
+	FAssert(AI_isControlled()); // advc.706 (note): Can trigger after defeat of active player in R&F game
 
 	PROFILE("CvSelectionGroup::generatePath()");
 
