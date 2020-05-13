@@ -7472,57 +7472,63 @@ double CvPlayerAI::AI_expansionistHate(PlayerTypes ePlayer) const
 	return ::dRange(r, 0.0, 1.0);
 } // </advc.130w>
 
+// advc.130m: Ended up rewriting this function entirely
 int CvPlayerAI::AI_getShareWarAttitude(PlayerTypes ePlayer) const
 {
-	// <advc.130m> Ended up rewriting this function entirely
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
-	if(kOurTeam.isCapitulated() || GET_TEAM(ePlayer).isCapitulated() ||
-			atWar(getTeam(), TEAMID(ePlayer)))
+	TeamTypes const eTeam = TEAMID(ePlayer);
+	if(kOurTeam.isCapitulated() || GET_TEAM(eTeam).isCapitulated() ||
+		kOurTeam.isAtWar(eTeam))
+	{
 		return 0;
-	CvLeaderHeadInfo& lh = GC.getInfo(getPersonalityType());
-	int div = lh.getShareWarAttitudeDivisor();
-	if(div == 0)
+	}
+	CvLeaderHeadInfo const& kPers = GC.getInfo(getPersonalityType());
+	int iDiv = kPers.getShareWarAttitudeDivisor();
+	if(iDiv == 0)
 		return 0;
-	bool bShareAny = kOurTeam.AI_shareWar(TEAMID(ePlayer));
-	double nonSharedModifier = 1;
+
+	bool const bShareAny = kOurTeam.AI_shareWar(eTeam);
+	scaled rNonSharedModifier = 1;
 	if(kOurTeam.getNumWars() > 0)
 	{
-		int iWSThresh = ::round((3.0 * warSuccessAttitudeDivisor()) / 4);
-		for(int i = 0; i < MAX_CIV_TEAMS; i++)
+		scaled rWSThresh = warSuccessAttitudeDivisor() * fixp(3/4.);
+		for (TeamIter<MAJOR_CIV,ENEMY_OF> it(getTeam()); it.hasNext(); ++it)
 		{
-			CvTeamAI const& t = GET_TEAM((TeamTypes)i);
+			CvTeamAI const& t = *it;
 			/*  NB: AtWarCount is the number of teams we're at war with, whereas
 				AtWarCounter is the number of turns we've been at war. */
-			if(t.isAlive() && !t.isMinorCiv() && !t.isAtWar(TEAMID(ePlayer)) &&
-					kOurTeam.AI_getAtWarCounter(t.getID()) >= 5 &&
-					kOurTeam.AI_getWarSuccess(t.getID()) +
-					t.AI_getWarSuccess(kOurTeam.getID()) > iWSThresh &&
-					(kOurTeam.AI_getWarPlan(t.getID()) != WARPLAN_DOGPILE ||
-					kOurTeam.AI_getAtWarCounter(t.getID()) >= 15) &&
-					GET_TEAM(ePlayer).AI_isLandTarget(t.getID()) &&
-					t.AI_isLandTarget(kOurTeam.getID()))
+			if(!t.isAtWar(eTeam) &&
+				kOurTeam.AI_getAtWarCounter(t.getID()) >= 5 &&
+				kOurTeam.AI_getWarSuccess(t.getID()) +
+				t.AI_getWarSuccess(kOurTeam.getID()) > rWSThresh &&
+				(kOurTeam.AI_getWarPlan(t.getID()) != WARPLAN_DOGPILE ||
+				kOurTeam.AI_getAtWarCounter(t.getID()) >= 15) &&
+				GET_TEAM(eTeam).AI_isLandTarget(t.getID()) &&
+				t.AI_isLandTarget(kOurTeam.getID()))
 			{
 				int iWSRating = kOurTeam.AI_getWarSuccessRating();
 				int const iWSRatingThresh = 25;
 				if(iWSRating < iWSRatingThresh)
 				{
-					nonSharedModifier += (iWSRating - iWSRatingThresh -
-							kOurTeam.AI_getAtWarCounter(t.getID())) / 100.0;
+					rNonSharedModifier += per100(iWSRating - iWSRatingThresh -
+							kOurTeam.AI_getAtWarCounter(t.getID()));
 				}
 			}
 		}
 	}
-	int r = 0;
+	rNonSharedModifier.increaseTo(0);
+
+	int iR = 0;
 	if(bShareAny) // No functional change here
-		r += lh.getShareWarAttitudeChange();
-	int iTurnsShared = kOurTeam.AI_getShareWarCounter(TEAMID(ePlayer));
-	int iTheirContribution = kOurTeam.AI_getSharedWarSuccess(TEAMID(ePlayer));
-	int iLimit = abs(lh.getShareWarAttitudeChangeLimit());
-	iLimit = std::min(iLimit, 1 + iTurnsShared / div);
-	r += range((int)((iTheirContribution * std::max(0.0, nonSharedModifier)) /
+		iR += kPers.getShareWarAttitudeChange();
+	int iTurnsShared = kOurTeam.AI_getShareWarCounter(eTeam);
+	int iTheirContribution = kOurTeam.AI_getSharedWarSuccess(eTeam);
+	int iLimit = abs(kPers.getShareWarAttitudeChangeLimit());
+	iLimit = std::min(iLimit, 1 + iTurnsShared / iDiv);
+	iR += range(((iTheirContribution * rNonSharedModifier) /
 			// This divisor seems to produce roughly the result I have in mind
-			(3.5 * GC.getWAR_SUCCESS_CITY_CAPTURING() * div)), 0, iLimit);
-	return r;
+			(fixp(3.5) * GC.getWAR_SUCCESS_CITY_CAPTURING() * iDiv)).round(), 0, iLimit);
+	return iR;
 	// </advc.130m>
 }
 

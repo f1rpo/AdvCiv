@@ -2856,26 +2856,22 @@ void CvUnitAI::AI_paratrooperMove()
 void CvUnitAI::AI_attackCityMove()
 {
 	PROFILE_FUNC();
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwner()); // K-Mod
 
-	AreaAITypes eAreaAI = getArea().getAreaAIType(getTeam());
+	AreaAITypes const eAreaAI = getArea().getAreaAIType(getTeam());
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // K-Mod
 	//bool bLandWar = !isBarbarian() && ((eAreaAIType == AREAAI_OFFENSIVE) || (eAreaAIType == AREAAI_DEFENSIVE) || (eAreaAIType == AREAAI_MASSING));
-	bool bLandWar = !isBarbarian() && kOwner.AI_isLandWar(getArea()); // K-Mod
-	bool bAssault = !isBarbarian() && (eAreaAI == AREAAI_ASSAULT ||
+	bool const bLandWar = (isBarbarian() ?
+			// advc: moved up
+			(getArea().getNumCities() > getArea().getCitiesPerPlayer(BARBARIAN_PLAYER)) :
+			kOwner.AI_isLandWar(getArea())); // K-Mod
+	bool const bAssault = !isBarbarian() && (eAreaAI == AREAAI_ASSAULT ||
 			eAreaAI == AREAAI_ASSAULT_ASSIST || eAreaAI == AREAAI_ASSAULT_MASSING);
-
-	bool bTurtle = kOwner.AI_isDoStrategy(AI_STRATEGY_TURTLE);
-	bool bAlert1 = kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1);
-	bool bIgnoreFaster = false;
-	if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAND_BLITZ))
-	{
-		if (!bAssault && getArea().getCitiesPerPlayer(getOwner()) > 0)
-		{
-			bIgnoreFaster = true;
-		}
-	}
-
+	bool const bTurtle = kOwner.AI_isDoStrategy(AI_STRATEGY_TURTLE);
+	bool const bAlert1 = kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1);
+	bool const bIgnoreFaster = (kOwner.AI_isDoStrategy(AI_STRATEGY_LAND_BLITZ) &&
+			!bAssault && getArea().getCitiesPerPlayer(getOwner()) > 0);
 	bool const bInCity = getPlot().isCity();
+
 	if (bInCity && /* cdtw.9: */ getPlot().getTeam() == getTeam())
 	{
 		// force heal if we in our own city and damaged
@@ -2891,7 +2887,6 @@ void CvUnitAI::AI_attackCityMove()
 		/*if (bIgnoreFaster) {
 			// BBAI TODO: split out slow units ... will need to test to make sure this doesn't cause loops
 		}*/
-
 		if ((GC.getGame().getGameTurn() - getPlot().getPlotCity()->getGameTurnAcquired()) <= 1 &&
 			// cdtw.9: (comment from Dave_uk) only do this in our own cities though
 			getPlot().getOwner() == getOwner())
@@ -2901,10 +2896,9 @@ void CvUnitAI::AI_attackCityMove()
 			if (pOldGroup != getGroup())
 				return;
 		}
-
-		if (AI_guardCity(false)) // note. this will eject a unit to defend the city rather then using the whole group
+		// note. this will eject a unit to defend the city rather than using the whole group
+		if (AI_guardCity(false))
 			return;
-
 		//if ((eAreaAIType == AREAAI_ASSAULT) || (eAreaAIType == AREAAI_ASSAULT_ASSIST))
 		if (bAssault) // K-Mod
 		{
@@ -2913,31 +2907,37 @@ void CvUnitAI::AI_attackCityMove()
 		}
 	}
 
-	bool bAtWar = isEnemy(getPlot());
+	bool const bEnemyTerritory = isEnemy(getPlot()); // advc: renamed from "bAtWar"
 
 	bool bHuntBarbs = false;
 	bool bReadyToAttack = false;
+	if (isBarbarian())
+		bReadyToAttack = (getGroup()->getNumUnits() >= 3);
 	// <advc.300>
-	int iOurEra = GET_PLAYER(getOwner()).getCurrentEra();
-	int iBarbarianEra = GET_PLAYER(BARBARIAN_PLAYER).getCurrentEra();
-	int iBarbarianGarrison = 2 + iBarbarianEra;
-	if(!isBarbarian() && !bTurtle &&
-		((eAreaAI != AREAAI_DEFENSIVE && eAreaAI != AREAAI_OFFENSIVE && !bAlert1) ||
-		iBarbarianGarrison < 2 * iOurEra))
-	{
-		bHuntBarbs = true;
-	}
-	/*  Don't yet know if we'll actually target a Barbarian city, so it's hard to
-		decide on the proper size of the attack stack. But if there is nothing else
-		to attack, it's easy. */
-	bool bHuntOnlyBarbs = (bHuntBarbs && !GET_TEAM(getTeam()).AI_isSneakAttackReady() &&
-			GET_TEAM(getTeam()).getNumWars() <= 0);
-	if(!bTurtle)
+	if (!isBarbarian() && !bTurtle)
 	{
 		int iGroupSz = getGroup()->getNumUnits();
+		int iOurEra = GET_PLAYER(getOwner()).getCurrentEra();
+		int iBarbarianEra = GET_PLAYER(BARBARIAN_PLAYER).getCurrentEra();
+		int iBarbarianGarrison = 2 + iBarbarianEra;
+		if (!isBarbarian() && !bTurtle &&
+			((eAreaAI != AREAAI_DEFENSIVE && eAreaAI != AREAAI_OFFENSIVE && !bAlert1) ||
+			iBarbarianGarrison < 2 * iOurEra))
+		{
+			bHuntBarbs = true;
+		}
+		//bReadyToAttack = (iGroupSz >= (bHuntBarbs ? 3 : AI_stackOfDoomExtra())); // BtS
+		/*  Don't yet know if we'll actually target a Barbarian city, so it's hard to
+			decide on the proper size of the attack stack. But if there is nothing else
+			to attack, it's easy. */
+		bool bHuntOnlyBarbs = (bHuntBarbs &&
+				!GET_TEAM(getTeam()).AI_isSneakAttackReady() &&
+				GET_TEAM(getTeam()).getNumWars() <= 0);
 		if(!bHuntOnlyBarbs && iGroupSz >= AI_stackOfDoomExtra())
 			bReadyToAttack = true;
-		else if(bHuntOnlyBarbs && iGroupSz + iOurEra >= 1.25 * iBarbarianGarrison + iBarbarianEra &&
+		else if(bHuntOnlyBarbs &&
+			iGroupSz + iOurEra >=
+			fixp(1.25) * iBarbarianGarrison + iBarbarianEra &&
 			// Don't send a giant stack. (Tbd.: Should perhaps split the group up then.)
 			iGroupSz < 3 * iBarbarianGarrison)
 		{
@@ -2945,35 +2945,31 @@ void CvUnitAI::AI_attackCityMove()
 		}
 	} // </advc.300>
 
-	if (isBarbarian())
-	{
-		bLandWar = (getArea().getNumCities() - getArea().getCitiesPerPlayer(BARBARIAN_PLAYER) > 0);
-		bReadyToAttack = (getGroup()->getNumUnits() >= 3);
-	}
-
 	if (bReadyToAttack)
 	{
-		// Check that stack has units which can capture cities
-		// (K-Mod, I've edited this section to distinguish between 'no capture' and 'combat limit < 100')
+		/*	Check that stack has units which can capture cities
+			(K-Mod, I've edited this section to distinguish between
+			'no capture' and 'combat limit < 100') */
 		bReadyToAttack = false;
 		int iNoCombatLimit = 0;
 		int iCityCapture = 0;
-		CvSelectionGroup* pGroup = getGroup();
-
+		CvSelectionGroup const* pGroup = getGroup();
 		for (CLLNode<IDInfo> const* pUnitNode = pGroup->headUnitNode();
-			pUnitNode != NULL && !bReadyToAttack; pUnitNode = pGroup->nextUnitNode(pUnitNode))
+			!bReadyToAttack && pUnitNode != NULL;
+			pUnitNode = pGroup->nextUnitNode(pUnitNode))
 		{
 			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			//if (!pLoopUnit->isOnlyDefensive())
 			if (pLoopUnit->canAttack() && // K-Mod
 				!pLoopUnit->getUnitInfo().isMostlyDefensive()) // advc.315
 			{
-				iCityCapture += pLoopUnit->isNoCityCapture() ? 0 : 1;
-				iNoCombatLimit += pLoopUnit->combatLimit() < 100 ? 0 : 1;
-
+				if (!pLoopUnit->isNoCityCapture())
+					iCityCapture++;
+				if (pLoopUnit->combatLimit() >= 100)
+					iNoCombatLimit++;
 				//if (iCityCaptureCount > 5 || 3*iCityCaptureCount > getGroup()->getNumUnits())
-				if ((iCityCapture >= 3 || 2*iCityCapture > pGroup->getNumUnits()) &&
-					(iNoCombatLimit >= 6 || 3*iNoCombatLimit > pGroup->getNumUnits()))
+				if ((iCityCapture >= 3 || 2 * iCityCapture > pGroup->getNumUnits()) &&
+					(iNoCombatLimit >= 6 || 3 * iNoCombatLimit > pGroup->getNumUnits()))
 				{
 					bReadyToAttack = true;
 				}
@@ -2981,20 +2977,23 @@ void CvUnitAI::AI_attackCityMove()
 		}
 	}
 
-	// K-Mod. Try to be consistent in our usage of move flags, so that we don't cause unnecessary pathfinder resets.
-	int iMoveFlags = MOVE_AVOID_ENEMY_WEIGHT_2 | (bReadyToAttack ? MOVE_ATTACK_STACK | MOVE_DECLARE_WAR : 0);
+	/*	K-Mod. Try to be consistent in our usage of move flags,
+		so that we don't cause unnecessary pathfinder resets. */
+	int const iMoveFlags = (MOVE_AVOID_ENEMY_WEIGHT_2 |
+			(bReadyToAttack ? MOVE_ATTACK_STACK | MOVE_DECLARE_WAR : 0));
 
-	// Barbarian stacks should be reckless and unpredictable.
+	// K-Mod. Barbarian stacks should be reckless and unpredictable.
 	if (isBarbarian())
 	{
-		int iThreshold = GC.getGame().getSorenRandNum(150, "barb attackCity stackVsStack threshold") + 20;
+		int iThreshold = GC.getGame().getSorenRandNum(150,
+				"barb attackCity stackVsStack threshold") + 20;
 		if (AI_stackVsStack(1, iThreshold, 0, iMoveFlags))
 			return;
 	}
-	// K-Mod end
 
 	//if (AI_groupMergeRange(UNITAI_ATTACK_CITY, 0, true, true, bIgnoreFaster))
-	if (AI_omniGroup(UNITAI_ATTACK_CITY, -1, -1, true, iMoveFlags, 0, true, false, bIgnoreFaster))
+	if (AI_omniGroup(UNITAI_ATTACK_CITY, -1, -1, true, iMoveFlags,
+		0, true, false, bIgnoreFaster))
 	{
 		return;
 	}
@@ -3005,74 +3004,92 @@ void CvUnitAI::AI_attackCityMove()
 	else
 	{
 		//pTargetCity = AI_pickTargetCity(iMoveFlags, MAX_INT, bHuntBarbs);
-		// K-Mod. Try to avoid picking a target city in cases where we clearly aren't ready. (just for efficiency.)
-		if (bReadyToAttack || bAtWar || (!getPlot().isCity() && getGroup()->getNumUnits() > 1))
+		/*	K-Mod. Try to avoid picking a target city in cases where we
+			clearly aren't ready. (just for efficiency.) */
+		if (bReadyToAttack || bEnemyTerritory ||
+			(!getPlot().isCity() && getGroup()->getNumUnits() > 1))
+		{
 			pTargetCity = AI_pickTargetCity(iMoveFlags, MAX_INT, bHuntBarbs);
+		}
 	}
 
-	bool bTargetTooStrong = false; // K-Mod. This is used to prevent the AI from oscillating between moving to attack moving to pillage.
+	/*	K-Mod. This is used to prevent the AI from oscillating
+		between moving to attack moving to pillage. */
+	bool bTargetTooStrong = false;
+
 	int iStepDistToTarget = MAX_INT;
-	// Note. I've rearranged some parts of the code below, sometimes without comment.
+	// K-Mod note.: I've rearranged some parts of the code below, sometimes without comment.
 	if (pTargetCity != NULL)
 	{
-		int iAttackRatio = GC.getDefineINT(CvGlobals::BBAI_ATTACK_CITY_STACK_RATIO);
-		int iAttackRatioSkipBombard = GC.getDefineINT(CvGlobals::BBAI_SKIP_BOMBARD_MIN_STACK_RATIO);
-		iStepDistToTarget = stepDistance(pTargetCity->plot(), plot());
-
-		// K-Mod - I'm going to scale the attack ratio based on our war strategy
-		if (isBarbarian())
-			iAttackRatio = 80;
-		else
-		{
-			int iAdjustment = 5;
-			iAdjustment += GET_TEAM(getTeam()).AI_getWarPlan(pTargetCity->getTeam()) == WARPLAN_LIMITED ? 10 : 0;
-			iAdjustment += kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH) ? -10 : 0;
-			iAdjustment += iAdjustment >= 0 && pTargetCity == getArea().AI_getTargetCity(getOwner()) ? -10 : 0;
-			iAdjustment += range((GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true)-100)/12, -10, 0);
-			iAdjustment += ((iStepDistToTarget <= 1 && pTargetCity->isOccupation()) ?
-					range(111 - (iAttackRatio + iAdjustment), -10, 0) : 0); // k146
-			iAttackRatio += iAdjustment;
-			iAttackRatioSkipBombard += iAdjustment;
-			FAssert(iAttackRatioSkipBombard >= iAttackRatio);
-			FAssert(iAttackRatio >= 100);
-		} // K-Mod end
-
-		int iComparePostBombard = AI_getGroup()->AI_compareStacks(pTargetCity->plot(), true);
+		int iComparePostBombard = AI_getGroup()->
+				AI_compareStacks(pTargetCity->plot(), true);
 		int iBombardTurns = getGroup()->getBombardTurns(pTargetCity);
 		// K-Mod note: AI_compareStacks will try to use the AI memory if it can't see.
 		{
 			// K-Mod
-			// The defense modifier is counted in AI_compareStacks. So if we add it again, we'd be double counting.
-			// I'm going to subtract defence, but unfortunately this will reduce based on the total rather than the base.
+			/*	The defense modifier is counted in AI_compareStacks.
+				So if we add it again, we'd be double counting.
+				I'm going to subtract defence, but unfortunately this will
+				reduce based on the total rather than the base. */
 			int iDefenseModifier = pTargetCity->getDefenseModifier(false);
 			int iReducedModifier = iDefenseModifier;
 			iReducedModifier *= std::min(20, iBombardTurns);
 			iReducedModifier /= 20;
 			int iBase = 210 + (pTargetCity->getPlot().isHills() ?
 					GC.getDefineINT(CvGlobals::HILLS_EXTRA_DEFENSE) : 0);
-			// advc: Make sure we don't get an overflow here
-			double mult = iBase / (double)std::max(1,
-					iBase + iReducedModifier - iDefenseModifier); // def. mod. < 200. I promise.
-			iComparePostBombard = ::round(mult * iComparePostBombard);
-			// iBase > 100 is to offset the over-reduction from compounding.
-			// With iBase == 200, bombarding a defence bonus of 100% will reduce effective defence by 50%
+			// advc: Make sure we don't overflow
+			scaled rMult(iBase, std::max(1,
+					// def. mod. < 200. I promise.
+					iBase + iReducedModifier - iDefenseModifier));
+			iComparePostBombard = (rMult * iComparePostBombard).round();
+			/*	iBase > 100 is to offset the over-reduction from compounding.
+				With iBase == 200, bombarding a defence bonus of 100% will
+				reduce effective defence by 50% */
 		}
 
-		bTargetTooStrong = iComparePostBombard < iAttackRatio;
-		if (iStepDistToTarget <= 2)
+		int iAttackRatio = GC.getDefineINT(CvGlobals::BBAI_ATTACK_CITY_STACK_RATIO);
+		int iAttackRatioSkipBombard = GC.getDefineINT(CvGlobals::BBAI_SKIP_BOMBARD_MIN_STACK_RATIO);
+		iStepDistToTarget = stepDistance(pTargetCity->plot(), plot());
+		// K-Mod - I'm going to scale the attack ratio based on our war strategy
+		if (isBarbarian())
+			iAttackRatio = 80;
+		else
 		{
-			// K-Mod. I've rearranged and rewritten most of this section - removing the bbai code.
+			int iAdjustment = 5;
+			if (GET_TEAM(getTeam()).AI_getWarPlan(pTargetCity->getTeam()) == WARPLAN_LIMITED)
+				iAdjustment += 10;
+			if (kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH))
+				iAdjustment -= 10;
+			if (iAdjustment >= 0 && pTargetCity == getArea().AI_getTargetCity(getOwner()))
+				iAdjustment -= 10;
+			iAdjustment += range(
+					(GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true) - 100) / 12,
+					-10, 0);
+			if (iStepDistToTarget <= 1 && pTargetCity->isOccupation())
+				iAdjustment += range(111 - (iAttackRatio + iAdjustment), -10, 0); // k146
+			iAttackRatio += iAdjustment;
+			iAttackRatioSkipBombard += iAdjustment;
+			FAssert(iAttackRatioSkipBombard >= iAttackRatio);
+			FAssert(iAttackRatio >= 100);
+		} // K-Mod end
+
+		bTargetTooStrong = (iComparePostBombard < iAttackRatio);
+		if (iStepDistToTarget <= 2)
+		{	// K-Mod. I've rearranged and rewritten most of this block - removing the bbai code.
+
 			if (bTargetTooStrong)
 			{
 				if (AI_stackVsStack(2, iAttackRatio, 80, iMoveFlags))
 					return;
 
 				FAssert(getDomainType() == DOMAIN_LAND);
-				int iOurOffense = kOwner.AI_localAttackStrength(plot(), getTeam(), DOMAIN_LAND, 1, false);
-				int iEnemyOffense = kOwner.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND, 2, false);
+				int iOurOffense = kOwner.AI_localAttackStrength(
+						plot(), getTeam(), DOMAIN_LAND, 1, false);
+				int iEnemyOffense = kOwner.AI_localAttackStrength(
+						plot(), NO_TEAM, DOMAIN_LAND, 2, false);
 
 				// If in danger, seek defensive ground
-				if (4*iOurOffense < 3*iEnemyOffense)
+				if (4 * iOurOffense < 3 * iEnemyOffense)
 				{
 					// including smaller groups
 					if (AI_omniGroup(UNITAI_ATTACK_CITY, -1, -1, true, iMoveFlags,
@@ -3101,11 +3118,8 @@ void CvUnitAI::AI_attackCityMove()
 							return;
 						}
 					}
-
 					if (AI_choke(2, true, iMoveFlags))
-					{
 						return;
-					}
 				}
 				else
 				{
@@ -3121,8 +3135,8 @@ void CvUnitAI::AI_attackCityMove()
 						return;
 					}
 
-					if (AI_omniGroup(UNITAI_ATTACK_CITY, -1, -1, true, iMoveFlags, 3, true,
-						false, bIgnoreFaster, false, /*bBiggerOnly=*/false)) // any size
+					if (AI_omniGroup(UNITAI_ATTACK_CITY, -1, -1, true, iMoveFlags, 3,
+						true, false, bIgnoreFaster, false, /*bBiggerOnly=*/false)) // any size
 					{
 						return;
 					}
@@ -3131,17 +3145,19 @@ void CvUnitAI::AI_attackCityMove()
 
 			if (iStepDistToTarget == 1)
 			{
-				// Consider getting into a better position for attack.
-				// only if we don't already have overwhelming force
+				/*	Consider getting into a better position for attack.
+					only if we don't already have overwhelming force */
 				if (iComparePostBombard < GC.getDefineINT(
 					CvGlobals::BBAI_SKIP_BOMBARD_BASE_STACK_RATIO) &&
 					(iComparePostBombard < iAttackRatioSkipBombard ||
 					2 * pTargetCity->getDefenseDamage() < GC.getMAX_CITY_DEFENSE_DAMAGE() ||
 					getPlot().isRiverCrossing(directionXY(getPlot(), pTargetCity->getPlot()))))
 				{
-					// Only move into attack position if we have a chance.
-					// Without this check, the AI can get stuck alternating between this, and pillage.
-					// I've tried to roughly take into account how much our ratio would improve by removing a river penalty.
+					/*	Only move into attack position if we have a chance.
+						Without this check, the AI can get stuck alternating
+						between this, and pillage.
+						I've tried to roughly take into account how much our ratio
+						would improve by removing a river penalty. */
 					if ((getGroup()->canBombard(getPlot()) && iBombardTurns > 2) ||
 						(getPlot().isRiverCrossing(directionXY(getPlot(), pTargetCity->getPlot())) &&
 						150 * iComparePostBombard >=
@@ -3168,17 +3184,17 @@ void CvUnitAI::AI_attackCityMove()
 
 			if (iComparePostBombard >= iAttackRatio && AI_goToTargetCity(iMoveFlags, 4, pTargetCity))
 				return;
-			// K-Mod end
 		}
 	}
 
-	// K-Mod. Lets have some slightly smarter stack vs. stack AI.
-	// it would be nice to have some personality effection here...
-	// eg. protective leaders have a lower risk threshold.   -- Maybe later.
-	// Note. This stackVsStack stuff used to be a bit lower, after the group and the heal stuff.
+	/*	K-Mod. Lets have some slightly smarter stack vs. stack AI.
+		it would be nice to have some personality effection here...
+		eg. protective leaders have a lower risk threshold.   -- Maybe later.
+		Note. This stackVsStack stuff used to be a bit lower,
+		after the group and the heal stuff. */
 	if (getGroup()->getNumUnits() > 1)
 	{
-		if (bAtWar) // recall that "bAtWar" just means we are in enemy territory.
+		if (bEnemyTerritory)
 		{
 			// note. if we are 2 steps from the target city, this check here is redundant. (see code above)
 			if (AI_stackVsStack(1, 160, 95, iMoveFlags))
@@ -3211,15 +3227,14 @@ void CvUnitAI::AI_attackCityMove()
 	} // K-Mod end
 
 	//if (AI_groupMergeRange(UNITAI_ATTACK_CITY, 2, true, true, bIgnoreFaster))
-	if (AI_omniGroup(UNITAI_ATTACK_CITY, -1, -1, true, iMoveFlags, 2, true, false, bIgnoreFaster))
+	if (AI_omniGroup(UNITAI_ATTACK_CITY, -1, -1, true, iMoveFlags, 2,
+		true, false, bIgnoreFaster))
 	{
 		return;
 	}
 
 	if (AI_heal(30, 1))
-	{
 		return;
-	}
 
 	/*if (collateralDamage() > 0 && getPlot().getOwner() == getOwner()) {
 		if (AI_anyAttack(1, 45, iMoveFlags, 3, false, false))
@@ -3231,11 +3246,10 @@ void CvUnitAI::AI_attackCityMove()
 	}*/ // BtS
 
 	//if (AI_anyAttack(1, 60, iMoveFlags, 0, false))
-	// K-Mod (changed to allow cities, and to only use a single unit, but it is still a questionable move)
+	/*	K-Mod (changed to allow cities, and to only use a single unit,
+		but it is still a questionable move) */
 	if (AI_anyAttack(1, 60, iMoveFlags | MOVE_SINGLE_ATTACK))
-	{
 		return;
-	}
 
 	// K-Mod - replacing some stuff I moved / removed from the BBAI code
 	if (pTargetCity && bTargetTooStrong && iStepDistToTarget <= (bReadyToAttack ? 3 : 2))
@@ -3243,29 +3257,27 @@ void CvUnitAI::AI_attackCityMove()
 		// Pillage around enemy city
 		if (generatePath(pTargetCity->plot(), iMoveFlags, true, 0, 5))
 		{
-			// the above path check is just for efficiency.
-			// Otherwise we'd be checking every surrounding tile.
+			/*	the above path check is just for efficiency.
+				Otherwise we'd be checking every surrounding tile. */
 			if (AI_pillageAroundCity(pTargetCity, 11, iMoveFlags, 2)) // was 3 turns
 				return;
 
 			if (AI_pillageAroundCity(pTargetCity, 0, iMoveFlags, 4)) // was 5 turns
 				return;
 		}
-
 		// choke the city.
 		if (iStepDistToTarget <= 2 && AI_choke(1, false, iMoveFlags))
 			return;
-
-		// if we're already standing right next to the city, then goToTargetCity can fail
-		// - and we might end up doing something stupid instead. So try again to choke.
+		/*	if we're already standing right next to the city, then goToTargetCity can fail
+			- and we might end up doing something stupid instead. So try again to choke. */
 		if (iStepDistToTarget <= 1 && AI_choke(3, false, iMoveFlags))
 			return;
 	}
 
-	// one more thing. Sometimes a single step can cause the AI to change its target city;
-	// and when it changes the target - and so sometimes they can get stuck in a loop where
-	// they step towards their target, change their mind, step back to pillage something, ... repeat.
-	// Here I've made a kludge to break that cycle:
+	/*	one more thing. Sometimes a single step can cause the AI to change its target city;
+		and when it changes the target - and so sometimes they can get stuck in a loop where
+		they step towards their target, change their mind, step back to pillage something, ... repeat.
+		Here I've made a kludge to break that cycle: */
 	if (AI_getGroup()->AI_getMissionAIType() == MISSIONAI_PILLAGE)
 	{
 		CvPlot* pMissionPlot = AI_getGroup()->AI_getMissionAIPlot();
@@ -3285,7 +3297,8 @@ void CvUnitAI::AI_attackCityMove()
 				CvPlot* pEndTurnPlot = getPathEndTurnPlot();
 				FAssert(!atPlot(pEndTurnPlot));
 				// warning: this command may attack something. We haven't checked!
-				getGroup()->pushMission(MISSION_MOVE_TO, pEndTurnPlot->getX(), pEndTurnPlot->getY(),
+				getGroup()->pushMission(MISSION_MOVE_TO,
+						pEndTurnPlot->getX(), pEndTurnPlot->getY(),
 						iMoveFlags, false, false, MISSIONAI_PILLAGE, pMissionPlot);
 				return;
 			}
@@ -3293,17 +3306,12 @@ void CvUnitAI::AI_attackCityMove()
 	}
 	// K-Mod end
 
-	if (bAtWar && (bTargetTooStrong || getGroup()->getNumUnits() <= 2))
+	if (bEnemyTerritory && (bTargetTooStrong || getGroup()->getNumUnits() <= 2))
 	{
 		if (AI_pillageRange(3, 11, iMoveFlags))
-		{
 			return;
-		}
-
 		if (AI_pillageRange(1, 0, iMoveFlags))
-		{
 			return;
-		}
 	}
 
 	if (getPlot().getOwner() == getOwner())
@@ -3348,14 +3356,11 @@ void CvUnitAI::AI_attackCityMove()
 				// K-Mod
 				if (AI_leaveAttack(1, 51, 100))
 					return;
-
 				if (AI_defendTerritory(70, iMoveFlags, 3))
 					return;
 				// K-Mod end
 				if (AI_guardCity(false, true, 7, iMoveFlags))
-				{
 					return;
-				}
 			}
 			else if (!isBarbarian() && eAreaAI == AREAAI_DEFENSIVE)
 			{
@@ -3364,11 +3369,8 @@ void CvUnitAI::AI_attackCityMove()
 				if (AI_defendTerritory(65, iMoveFlags, 3))
 					return;
 				// K-Mod end
-
 				if (AI_guardCity(false, true, 3, iMoveFlags))
-				{
 					return;
-				}
 			}
 
 			int iTargetCount = kOwner.AI_unitTargetMissionAIs(*this, MISSIONAI_GROUP);
@@ -3377,49 +3379,36 @@ void CvUnitAI::AI_attackCityMove()
 				MissionAITypes eMissionAIType = MISSIONAI_GROUP;
 				int iJoiners = kOwner.AI_unitTargetMissionAIs(
 						*this, &eMissionAIType, 1, getGroup(), 2);
-
 				if (iJoiners * 5 > getGroup()->getNumUnits())
 				{	// K-Mod (for debug feedback)
 					getGroup()->pushMission(MISSION_SKIP,
 							-1, -1, 0, false, false, MISSIONAI_GROUP);
 					return;
 				}
-
 				if (AI_moveToStagingCity())
-				{
 					return;
-				}
 			}
 		}
 	}
 
 	if (AI_heal(50, 3))
-	{
 		return;
-	}
 
-	if (!bAtWar)
+	if (!bEnemyTerritory)
 	{
 		if (AI_heal())
-		{
 			return;
-		}
-
 		if (getGroup()->getNumUnits() == 1 && getTeam() != getPlot().getTeam())
 		{
 			if (AI_retreatToCity())
-			{
 				return;
-			}
 		}
 	}
 
 	if (!bReadyToAttack && !noDefensiveBonus())
 	{
 		if (AI_guardCity(false, false, MAX_INT, iMoveFlags))
-		{
 			return;
-		}
 	}
 
 	if (bReadyToAttack)
@@ -3454,27 +3443,24 @@ void CvUnitAI::AI_attackCityMove()
 		// K-Mod end
 		{
 			// Before heading out, check whether to wait to allow unit upgrades
-			if (bInCity && getPlot().getOwner() == getOwner())
+			if (bInCity && getPlot().getOwner() == getOwner() &&
+				//!GET_PLAYER(getOwner()).AI_isFinancialTrouble()
+				!kOwner.AI_isFinancialTrouble() && !pTargetCity->isBarbarian())
 			{
-				//if (!GET_PLAYER(getOwner()).AI_isFinancialTrouble())
-				if (!kOwner.AI_isFinancialTrouble() && !pTargetCity->isBarbarian())
+				// Check if stack has units which can upgrade
+				int iNeedUpgradeCount = 0;
+				CLLNode<IDInfo>* pUnitNode = getGroup()->headUnitNode();
+				while (pUnitNode != NULL)
 				{
-					// Check if stack has units which can upgrade
-					int iNeedUpgradeCount = 0;
-
-					CLLNode<IDInfo>* pUnitNode = getGroup()->headUnitNode();
-					while (pUnitNode != NULL)
+					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+					pUnitNode = getGroup()->nextUnitNode(pUnitNode);
+					if (pLoopUnit->getUpgradeCity(false) != NULL)
 					{
-						CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-						pUnitNode = getGroup()->nextUnitNode(pUnitNode);
-						if (pLoopUnit->getUpgradeCity(false) != NULL)
+						iNeedUpgradeCount++;
+						if (5 * iNeedUpgradeCount > getGroup()->getNumUnits()) // was 8*
 						{
-							iNeedUpgradeCount++;
-							if (5 * iNeedUpgradeCount > getGroup()->getNumUnits()) // was 8*
-							{
-								getGroup()->pushMission(MISSION_SKIP);
-								return;
-							}
+							getGroup()->pushMission(MISSION_SKIP);
+							return;
 						}
 					}
 				}
@@ -3505,7 +3491,6 @@ void CvUnitAI::AI_attackCityMove()
 					problem is. So maybe next time. */
 					int iLoadTurns = std::max(3, iPathTurns/3 - 1); // k146
 					int iMaxTransportTurns = iPathTurns - iLoadTurns - 2;
-
 					if (AI_load(UNITAI_ASSAULT_SEA, MISSIONAI_LOAD_ASSAULT, NO_UNITAI,
 						-1, -1, -1, -1, iMoveFlags, iLoadTurns, iMaxTransportTurns))
 					{
@@ -3514,9 +3499,7 @@ void CvUnitAI::AI_attackCityMove()
 				}
 				// We have to walk.
 				if (AI_goToTargetCity(iMoveFlags, MAX_INT, pTargetCity))
-				{
 					return;
-				}
 
 				if (bAnyWarPlan)
 				{
@@ -3541,9 +3524,9 @@ void CvUnitAI::AI_attackCityMove()
 						and that'll fail b/c AI_safety has already failed. */
 					CvCity* pAreaTargetCity = getArea().AI_getTargetCity(getOwner());
 					if (pAreaTargetCity != NULL)
-					{	/*  advc: One way that this can happen: Owner is at war with a civ that it
-							can only reach through the territory of a third party (no OB) and is
-							preparing war against the third party.
+					{	/*  advc: One way that this can happen: Owner is at war with a civ that
+							it can only reach through the territory of a third party (no OB) and
+							is preparing war against the third party.
 							AI_pickTargetCity will then pick a city of the current war enemy, but
 							the Area AI will be set to a non-ASSAULT type, meaning that AI_attackCityMove
 							will (in vain) look for a land path. AI_solveBlockageProblem will then (always?)
@@ -3579,7 +3562,7 @@ void CvUnitAI::AI_attackCityMove()
 		}*/ // BtS
 		// K-Mod
 		int iTargetCount = kOwner.AI_unitTargetMissionAIs(*this, MISSIONAI_GROUP);
-		if (6*iTargetCount > getGroup()->getNumUnits())
+		if (6 * iTargetCount > getGroup()->getNumUnits())
 		{
 			MissionAITypes eMissionAIType = MISSIONAI_GROUP;
 			int iNearbyJoiners = kOwner.AI_unitTargetMissionAIs(
@@ -3590,15 +3573,15 @@ void CvUnitAI::AI_attackCityMove()
 				return;
 			}
 			if (AI_safety())
-			{
 				return;
-			}
 		} // K-Mod end
 
 		if (bombardRate() > 0 && noDefensiveBonus())
 		{
-			// BBAI Notes: Add this stack lead by bombard unit to stack probably not lead by a bombard unit
-			// BBAI TODO: Some sense of minimum stack size? Can have big stack moving 10 turns to merge with tiny stacks
+			/*	BBAI Notes: Add this stack lead by a bombard unit
+				to a stack probably not lead by a bombard unit */
+			/*	BBAI TODO: Some sense of minimum stack size?
+				Can have big stack moving 10 turns to merge with tiny stacks */
 			//if (AI_group(UNITAI_ATTACK_CITY, -1, -1, -1, bIgnoreFaster, true, true, /*iMaxPath*/ 10, /*bAllowRegrouping*/ true))
 			if (AI_omniGroup(UNITAI_ATTACK_CITY, -1, -1, true, iMoveFlags, 10,
 				true, getGroup()->getNumUnits() < 2, bIgnoreFaster, true, true))
@@ -3609,8 +3592,9 @@ void CvUnitAI::AI_attackCityMove()
 		else
 		{
 			//if (AI_group(UNITAI_ATTACK_CITY, AI_stackOfDoomExtra() * 2, -1, -1, bIgnoreFaster, true, true, /*iMaxPath*/ 10, /*bAllowRegrouping*/ false))
-			if (AI_omniGroup(UNITAI_ATTACK_CITY, AI_stackOfDoomExtra() * 2, -1, true,
-				iMoveFlags, 10, true, getGroup()->getNumUnits() < 2, bIgnoreFaster, false, true))
+			if (AI_omniGroup(UNITAI_ATTACK_CITY, AI_stackOfDoomExtra() * 2,
+				-1, true, iMoveFlags, 10,
+				true, getGroup()->getNumUnits() < 2, bIgnoreFaster, false, true))
 			{
 				return;
 			}
@@ -3623,10 +3607,7 @@ void CvUnitAI::AI_attackCityMove()
 		{
 			// if no land path to enemy cities, try getting there another way
 			if (AI_offensiveAirlift())
-			{
 				return;
-			}
-
 			if (pTargetCity == NULL)
 			{
 				if (AI_load(UNITAI_ASSAULT_SEA, MISSIONAI_LOAD_ASSAULT,
@@ -3642,32 +3623,18 @@ void CvUnitAI::AI_attackCityMove()
 	if (AI_defendTerritory(70, iMoveFlags, 1, true))
 		return;
 	// K-Mod end
-
 	if (AI_moveToStagingCity())
-	{
 		return;
-	}
-
 	if (AI_offensiveAirlift())
-	{
 		return;
-	}
-
 	if (AI_retreatToCity())
-	{
 		return;
-	}
-
 	// K-Mod
 	if (AI_handleStranded())
 		return;
 	// K-Mod end
-
 	if (AI_safety())
-	{
 		return;
-	}
-
 	getGroup()->pushMission(MISSION_SKIP);
 }
 
@@ -6763,9 +6730,9 @@ void CvUnitAI::AI_exploreSeaMove()
 			transformTypes.push_back(UNITAI_PIRATE_SEA);
 			AreaAITypes aai = getArea().getAreaAIType(getTeam());
 			if(aai == AREAAI_ASSAULT || aai == AREAAI_ASSAULT_ASSIST ||
-					aai == AREAAI_ASSAULT_MASSING ||
-					kOwner.AI_totalUnitAIs(UNITAI_SETTLE) <= 0 ||
-					kOwner.AI_totalUnitAIs(UNITAI_SETTLER_SEA) > kOwner.getCurrentEra() / 2)
+				aai == AREAAI_ASSAULT_MASSING ||
+				kOwner.AI_totalUnitAIs(UNITAI_SETTLE) <= 0 ||
+				kOwner.AI_totalUnitAIs(UNITAI_SETTLER_SEA) > kOwner.getCurrentEra() / 2)
 			{
 				transformTypes.push_back(UNITAI_ASSAULT_SEA);
 				transformTypes.push_back(UNITAI_SETTLER_SEA);
@@ -6859,10 +6826,9 @@ void CvUnitAI::AI_exploreSeaMove()
 void CvUnitAI::AI_assaultSeaMove()
 {
 	PROFILE_FUNC();
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwner()); // K-Mod
-
 	FAssert(AI_getUnitAIType() == UNITAI_ASSAULT_SEA);
 
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // K-Mod
 	bool bEmpty = !getGroup()->hasCargo();
 	// BETTER_BTS_AI_MOD, Naval AI, 04/18/10, jdog5000: START
 	bool bFull = getGroup()->getCargo() > 0 && AI_getGroup()->AI_isFull();
@@ -6875,41 +6841,24 @@ void CvUnitAI::AI_assaultSeaMove()
 		// K-Mod end
 
 		if (getDamage() > 0)	// extra risk to leaving when wounded
-		{
 			iOurDefense *= 2;
-		}
 
-		if (iEnemyOffense > iOurDefense/4) // was 1 vs 1/8
+		if (4 * iEnemyOffense > iOurDefense) // was 8 vs 1
 		{
-			if (iEnemyOffense > iOurDefense/2) // was 1 vs 1/4
+			if (2 * iEnemyOffense > iOurDefense) // was 4 vs 1
 			{
 				if (!bEmpty)
-				{
 					getGroup()->unloadAll();
-				}
-
 				if (AI_anyAttack(1, 65))
-				{
 					return;
-				}
-
 				// Retreat to primary area first
 				if (AI_retreatToCity(true))
-				{
 					return;
-				}
-
 				if (AI_retreatToCity())
-				{
 					return;
-				}
-
 				if (AI_safety())
-				{
 					return;
-				}
 			}
-
 			if (!bFull && !bEmpty)
 			{
 				getGroup()->unloadAll();
@@ -6922,41 +6871,38 @@ void CvUnitAI::AI_assaultSeaMove()
 	if (bEmpty)
 	{
 		if (AI_anyAttack(1, 65))
-		{
 			return;
-		}
 		/*if (AI_anyAttack(1, 45))
 			return;*/ // disabled by K-Mod. (redundant)
 	}
 
 	bool bReinforce = false;
 	bool bAttack = false;
-	bool bNoWarPlans = !GET_TEAM(getTeam()).AI_isAnyWarPlan();
+	bool const bNoWarPlans = !GET_TEAM(getTeam()).AI_isAnyWarPlan();
 	bool bAttackBarbarian = false;
 	//bool bLandWar = false;
-	bool bBarbarian = isBarbarian();
+	bool const bBarbarian = isBarbarian();
 
 	// Count forts as cities
-	bool bCity = getPlot().isCity(true);
+	bool const bCity = getPlot().isCity(true);
 
 	// Cargo if already at war
-	//int iTargetReinforcementSize = (bBarbarian ? AI_stackOfDoomExtra() : 2);
-	int iTargetReinforcementSize = (bBarbarian ? 2 : AI_stackOfDoomExtra()); // K-Mod. =\
-
-	// Cargo to launch a new invasion
-	int iTargetInvasionSize = 2*iTargetReinforcementSize;
-
+	//int iTargetReinforcementSize = (bBarbarian ? AI_stackOfDoomExtra() : 2); // BBAI
+	scaled rTargetReinforcementSize = (bBarbarian ? 2 : AI_stackOfDoomExtra()); // K-Mod. =\
 	// K-Mod. If we are already en route for invasion, decrease the threshold.
 	// (One reason for this decrease is that the threshold may actually increase midway through the journey. We don't want to turn back because of that!)
 	if (AI_getGroup()->AI_getMissionAIType() == MISSIONAI_ASSAULT)
-	{
-		iTargetReinforcementSize = iTargetReinforcementSize*2/3;
-		iTargetInvasionSize = iTargetInvasionSize*2/3;
-	}
+		rTargetReinforcementSize *= fixp(2/3.);
 	// K-Mod end
+	// Cargo to launch a new invasion
+	scaled rTargetInvasionSize = 2 * rTargetReinforcementSize;
+	// <advc>
+	int iTargetReinforcementSize = rTargetReinforcementSize.round();
+	int iTargetInvasionSize = rTargetInvasionSize.round(); // </advc>
 
 	int iCargo = getGroup()->getCargo();
-	int iEscorts = getGroup()->countNumUnitAIType(UNITAI_ESCORT_SEA) + getGroup()->countNumUnitAIType(UNITAI_ATTACK_SEA);
+	int iEscorts = getGroup()->countNumUnitAIType(UNITAI_ESCORT_SEA) +
+			getGroup()->countNumUnitAIType(UNITAI_ATTACK_SEA);
 
 	AreaAITypes eAreaAIType = getArea().getAreaAIType(getTeam());
 	//bLandWar = !bBarbarian && ((eAreaAIType == AREAAI_OFFENSIVE) || (eAreaAIType == AREAAI_DEFENSIVE) || (eAreaAIType == AREAAI_MASSING));
@@ -6979,27 +6925,18 @@ void CvUnitAI::AI_assaultSeaMove()
 			if (!isFull())
 			{
 				if(AI_pickupStranded(NO_UNITAI, 1))
-				{
 					return;
-				}
 			}
-
 			if (AI_retreatToCity(true))
-			{
 				return;
-			}
-
 			if (AI_retreatToCity())
-			{
 				return;
-			}
 		}
 	}
 
 	if (bCity)
 	{
 		CvCityAI const* pCity = getPlot().AI_getPlotCity();
-
 		if (pCity != NULL && getPlot().getOwner() == getOwner())
 		{
 			// split out galleys from stack of ocean capable ships
@@ -7013,7 +6950,8 @@ void CvUnitAI::AI_assaultSeaMove()
 					bEmpty = !getGroup()->hasCargo();
 					bFull = getGroup()->getCargo() > 0 && AI_getGroup()->AI_isFull();
 					iCargo = getGroup()->getCargo();
-					iEscorts = getGroup()->countNumUnitAIType(UNITAI_ESCORT_SEA) + getGroup()->countNumUnitAIType(UNITAI_ATTACK_SEA);
+					iEscorts = getGroup()->countNumUnitAIType(UNITAI_ESCORT_SEA) +
+							getGroup()->countNumUnitAIType(UNITAI_ATTACK_SEA);
 				}
 				// K-Mod end
 			}
@@ -7031,44 +6969,41 @@ void CvUnitAI::AI_assaultSeaMove()
 			}
 		}
 
-		if (iCargo > 0)
+		if (iCargo > 0 && pCity != NULL &&
+			GC.getGame().getGameTurn() - pCity->getGameTurnAcquired() <= 1 &&
+			pCity->getPreviousOwner() != NO_PLAYER)
 		{
-			if (pCity != NULL)
+			/*	Just captured city, probably from naval invasion.
+				If area targets, drop cargo and leave so as to not to be lost in quick counter attack */
+			if (GET_TEAM(getTeam()).AI_countEnemyPowerByArea(getPlot().getArea()) > 0)
 			{
-				if (GC.getGame().getGameTurn() - pCity->getGameTurnAcquired() <= 1)
+				getGroup()->unloadAll();
+				if (iEscorts > 2)
 				{
-					if (pCity->getPreviousOwner() != NO_PLAYER)
+					if (getGroup()->countNumUnitAIType(UNITAI_ESCORT_SEA) > 1 &&
+						getGroup()->countNumUnitAIType(UNITAI_ATTACK_SEA) > 0)
 					{
-						// Just captured city, probably from naval invasion.  If area targets, drop cargo and leave so as to not to be lost in quick counter attack
-						if (GET_TEAM(getTeam()).AI_countEnemyPowerByArea(getPlot().getArea()) > 0)
-						{
-							getGroup()->unloadAll();
-
-							if (iEscorts > 2)
-							{
-								if (getGroup()->countNumUnitAIType(UNITAI_ESCORT_SEA) > 1 && getGroup()->countNumUnitAIType(UNITAI_ATTACK_SEA) > 0)
-								{
-									AI_getGroup()->AI_separateAI(UNITAI_ATTACK_SEA);
-									AI_getGroup()->AI_separateAI(UNITAI_RESERVE_SEA);
-
-									iEscorts = getGroup()->countNumUnitAIType(UNITAI_ESCORT_SEA);
-								}
-							}
-							iCargo = getGroup()->getCargo();
-						}
+						AI_getGroup()->AI_separateAI(UNITAI_ATTACK_SEA);
+						AI_getGroup()->AI_separateAI(UNITAI_RESERVE_SEA);
+						iEscorts = getGroup()->countNumUnitAIType(UNITAI_ESCORT_SEA);
 					}
 				}
+				iCargo = getGroup()->getCargo();
 			}
 		}
 
 		if (iCargo > 0 && iEscorts == 0)
 		{
-			if (AI_group(UNITAI_ASSAULT_SEA,-1,-1,-1,/*bIgnoreFaster*/true,false,false,/*iMaxPath*/1,false,/*bCargoOnly*/true,false,MISSIONAI_ASSAULT))
+			if (AI_group(UNITAI_ASSAULT_SEA,-1,-1,-1,
+				/*bIgnoreFaster*/true,false,false,
+				/*iMaxPath*/1,false,
+				/*bCargoOnly*/true,false,MISSIONAI_ASSAULT))
 			{
 				return;
 			}
 
-			if (getPlot().plotCount(PUF_isUnitAIType, UNITAI_ESCORT_SEA, -1, getOwner(), NO_TEAM, PUF_isGroupHead, -1, -1) > 0)
+			if (getPlot().plotCount(PUF_isUnitAIType, UNITAI_ESCORT_SEA, -1,
+				getOwner(), NO_TEAM, PUF_isGroupHead, -1, -1) > 0)
 			{
 				// Loaded but with no escort, wait for escorts in plot to join us
 				getGroup()->pushMission(MISSION_SKIP);
@@ -7089,9 +7024,11 @@ void CvUnitAI::AI_assaultSeaMove()
 		{
 			if (iCargo > 0)
 			{
-				if (eAreaAIType == AREAAI_DEFENSIVE || (pCity != NULL && pCity->AI_isDanger()))
+				if (eAreaAIType == AREAAI_DEFENSIVE ||
+					(pCity != NULL && pCity->AI_isDanger()))
 				{
-					// Unload cargo when on defense or if small load of troops and can reach enemy city over land (generally less risky)
+					/*	Unload cargo when on defense or if small load of troops
+						and can reach enemy city over land (generally less risky) */
 					getGroup()->unloadAll();
 					getGroup()->pushMission(MISSION_SKIP);
 					return;
@@ -7101,7 +7038,6 @@ void CvUnitAI::AI_assaultSeaMove()
 			if (iCargo >= iTargetReinforcementSize)
 			{
 				AI_getGroup()->AI_separateEmptyTransports();
-
 				if (!getGroup()->hasCargo())
 				{
 					// this unit was empty group leader
@@ -7117,33 +7053,23 @@ void CvUnitAI::AI_assaultSeaMove()
 			{
 				// Send ready transports
 				if (AI_assaultSeaReinforce(false))
-				{
 					return;
-				}
-
 				// if(iCargo >= iTargetInvasionSize)
 				// Disabled by K-Mod. (otherwise groups trying to take a short-cut by boat will get stuck.)
 				{
 					if (AI_assaultSeaTransport(false, true))
-					{
 						return;
-					}
 				}
 			}
 		}
 		else
 		{
-			if (eAreaAIType == AREAAI_ASSAULT)
-			{
-				if (iCargo >= iTargetInvasionSize)
-				{
-					bAttack = true;
-				}
-			}
-
+			if (eAreaAIType == AREAAI_ASSAULT && iCargo >= iTargetInvasionSize)
+				bAttack = true;
 			if (eAreaAIType == AREAAI_ASSAULT || eAreaAIType == AREAAI_ASSAULT_ASSIST)
 			{
-				if ((bFull && iCargo > cargoSpace()) || iCargo >= iTargetReinforcementSize)
+				if ((bFull && iCargo > cargoSpace()) ||
+					iCargo >= iTargetReinforcementSize)
 				{
 					bReinforce = true;
 				}
@@ -7166,7 +7092,8 @@ void CvUnitAI::AI_assaultSeaMove()
 		{
 			int iAssaultUnits = getGroup()->countNumUnitAIType(UNITAI_ASSAULT_SEA);
 			CLLNode<IDInfo>* pEntityNode = getGroup()->headUnitNode();
-			while (iEscorts > 3 && iEscorts > 2*iAssaultUnits && iEscorts > 2*iCargo && pEntityNode != NULL)
+			while (iEscorts > 3 && iEscorts > 2*iAssaultUnits &&
+				iEscorts > 2*iCargo && pEntityNode != NULL)
 			{
 				CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
 				pEntityNode = getGroup()->nextUnitNode(pEntityNode);
@@ -7222,7 +7149,10 @@ void CvUnitAI::AI_assaultSeaMove()
 		{
 			if (iCargo > 0)
 			{
-				if (AI_group(UNITAI_ASSAULT_SEA,-1,-1,-1,/*bIgnoreFaster*/true,false,false,/*iMaxPath*/5,false,/*bCargoOnly*/true,false,MISSIONAI_ASSAULT))
+				if (AI_group(UNITAI_ASSAULT_SEA,-1,-1,-1,
+					/*bIgnoreFaster*/true,false,false,
+					/*iMaxPath*/5,false,
+					/*bCargoOnly*/true,false,MISSIONAI_ASSAULT))
 				{
 					return;
 				}
@@ -7246,83 +7176,72 @@ void CvUnitAI::AI_assaultSeaMove()
 			bAttack = true;
 		}
 
-		if (iCargo >= iTargetReinforcementSize || (bFull && iCargo > cargoSpace()))
+		if (iCargo >= iTargetReinforcementSize ||
+			(bFull && iCargo > cargoSpace()))
 		{
 			bReinforce = true;
 		}
 
 		CvPlot* pAdjacentPlot = NULL;
-		for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+		FOR_EACH_ENUM(Direction)
 		{
-			pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-			if (pAdjacentPlot != NULL)
+			pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
+			if (pAdjacentPlot == NULL)
+				continue;
+			if (iCargo > 0)
 			{
-				if (iCargo > 0)
+				CvCity const* pAdjacentCity = pAdjacentPlot->getPlotCity();
+				if (pAdjacentCity != NULL &&
+					pAdjacentCity->getOwner() == getOwner() &&
+					pAdjacentCity->getPreviousOwner() != NO_PLAYER)
 				{
-					CvCity* pAdjacentCity = pAdjacentPlot->getPlotCity();
-					if (pAdjacentCity != NULL && pAdjacentCity->getOwner() == getOwner() &&
-							pAdjacentCity->getPreviousOwner() != NO_PLAYER)
+					if (GC.getGame().getGameTurn() -
+						pAdjacentCity->getGameTurnAcquired() < 5)
 					{
-						if (GC.getGame().getGameTurn() -
-							pAdjacentCity->getGameTurnAcquired() < 5)
-						{
-							// If just captured city and we have some cargo, dump units in city
-							getGroup()->pushMission(MISSION_MOVE_TO, pAdjacentPlot->getX(), pAdjacentPlot->getY(), 0, false, false, NO_MISSIONAI, pAdjacentPlot);
-							// K-Mod note: this use to use missionAI_assault. I've changed it because assault would suggest to the troops that they should stay onboard.
-							return;
-						}
-					}
-				}
-				else
-				{
-					if (isEnemy(*pAdjacentPlot)) // advc (simplified)
-					{
-						if (pAdjacentPlot->getNumDefenders(getOwner()) > 2)
-						{
-							// if we just made a dropoff in enemy territory, release sea bombard units to support invaders
-							if (getGroup()->countNumUnitAIType(UNITAI_ATTACK_SEA) + getGroup()->countNumUnitAIType(UNITAI_RESERVE_SEA) > 0)
-							{
-								bool bMissionPushed = false;
-
-								if (AI_seaBombardRange(1))
-								{
-									bMissionPushed = true;
-								}
-
-								CvSelectionGroup* pOldGroup = getGroup();
-
-								//Release any Warships to finish the job.
-								AI_getGroup()->AI_separateAI(UNITAI_ATTACK_SEA);
-								AI_getGroup()->AI_separateAI(UNITAI_RESERVE_SEA);
-
-								// Fixed bug in next line with checking unit type instead of unit AI
-								if (pOldGroup == getGroup() && AI_getUnitAIType() == UNITAI_ASSAULT_SEA)
-								{
-									// Need to be sure all units can move
-									if (getGroup()->canAllMove())
-									{
-										if (AI_retreatToCity(true))
-										{
-											bMissionPushed = true;
-										}
-									}
-								}
-
-								if (bMissionPushed)
-								{
-									return;
-								}
-							}
-						}
+						// If just captured city and we have some cargo, dump units in city
+						getGroup()->pushMission(MISSION_MOVE_TO, pAdjacentPlot->getX(),
+								pAdjacentPlot->getY(), 0, false, false, NO_MISSIONAI, pAdjacentPlot);
+						/*	K-Mod note: this use to use missionAI_assault.
+							I've changed it because assault would suggest to the troops that they should stay onboard. */
+						return;
 					}
 				}
 			}
+			else if (isEnemy(*pAdjacentPlot) && // advc (simplified)
+				pAdjacentPlot->getNumDefenders(getOwner()) > 2)
+			{
+				/*	if we just made a dropoff in enemy territory,
+					release sea bombard units to support invaders */
+				if (getGroup()->countNumUnitAIType(UNITAI_ATTACK_SEA) +
+					getGroup()->countNumUnitAIType(UNITAI_RESERVE_SEA) > 0)
+				{
+					bool bMissionPushed = false;
+					if (AI_seaBombardRange(1))
+						bMissionPushed = true;
+					CvSelectionGroup const* pOldGroup = getGroup();
+					//Release any Warships to finish the job.
+					AI_getGroup()->AI_separateAI(UNITAI_ATTACK_SEA);
+					AI_getGroup()->AI_separateAI(UNITAI_RESERVE_SEA);
+					// Fixed bug in next line with checking unit type instead of unit AI
+					if (pOldGroup == getGroup() && AI_getUnitAIType() == UNITAI_ASSAULT_SEA)
+					{
+						// Need to be sure all units can move
+						if (getGroup()->canAllMove())
+						{
+							if (AI_retreatToCity(true))
+								bMissionPushed = true;
+						}
+					}
+					if (bMissionPushed)
+						return;
+				}
+			}
 		}
-
 		if(iCargo > 0)
 		{
 			MissionAITypes eMissionAIType = MISSIONAI_GROUP;
-			if (kOwner.AI_isAnyUnitTargetMissionAI(*this, &eMissionAIType, 1, getGroup(), 1))
+			if (kOwner.AI_isAnyUnitTargetMissionAI(
+				*this, &eMissionAIType, 1, getGroup(), 1))
 			{
 				if (iEscorts < kOwner.AI_getWaterDanger(plot(), 2, false))
 				{
@@ -7339,38 +7258,23 @@ void CvUnitAI::AI_assaultSeaMove()
 		if (getGroup()->isFull() || iCargo > iTargetInvasionSize)
 		{
 			if (AI_assaultSeaTransport(false))
-			{
 				return;
-			}
 		}
 		else
 		{
 			if (AI_pickup(UNITAI_ATTACK_CITY, true, 5))
-			{
 				return;
-			}
-
 			if (AI_pickup(UNITAI_ATTACK, true, 5))
-			{
 				return;
-			}
-
 			if (AI_retreatToCity())
-			{
 				return;
-			}
-
 			if (!getGroup()->getCargo())
 			{
 				AI_barbAttackSeaMove();
 				return;
 			}
-
 			if (AI_safety())
-			{
 				return;
-			}
-
 			getGroup()->pushMission(MISSION_SKIP);
 			return;
 		}
@@ -7381,7 +7285,6 @@ void CvUnitAI::AI_assaultSeaMove()
 		{
 			if (bCity)
 				AI_getGroup()->AI_separateEmptyTransports();
-
 			if (!getGroup()->hasCargo())
 			{
 				// this unit was empty group leader
@@ -7402,23 +7305,16 @@ void CvUnitAI::AI_assaultSeaMove()
 				if (bReinforce && (AI_getBirthmark()%2 == 0))
 				{
 					if (AI_assaultSeaReinforce())
-					{
 						return;
-					}
 					bReinforce = false;
 				}
-
 				if (AI_assaultSeaTransport())
-				{
 					return;
-				}
 			}
-
-			// If not enough troops for own invasion,
+			// If not enough troops for own invasion
 			if (bReinforce)
 			{
 				if (AI_assaultSeaReinforce())
-				{
 					return;
 				}
 			}
@@ -7427,27 +7323,20 @@ void CvUnitAI::AI_assaultSeaMove()
 		if (bNoWarPlans && iCargo >= iTargetReinforcementSize)
 		{
 			bAttackBarbarian = true;
-
 			AI_getGroup()->AI_separateEmptyTransports();
-
 			if (!getGroup()->hasCargo())
 			{
 				// this unit was empty group leader
 				getGroup()->pushMission(MISSION_SKIP);
 				return;
 			}
-
 			FAssert(getGroup()->hasCargo());
 			if (AI_assaultSeaReinforce(bAttackBarbarian))
-			{
 				return;
-			}
 
 			FAssert(getGroup()->hasCargo());
 			if (AI_assaultSeaTransport(bAttackBarbarian))
-			{
 				return;
-			}
 		}
 	} // <advc.046>
 	bool bHasCargo = getGroup()->hasCargo(); // Moved up
@@ -7457,8 +7346,10 @@ void CvUnitAI::AI_assaultSeaMove()
 	bool const bGoodCity = (getPlot().isCity(false, getTeam()) &&
 			GET_TEAM(getTeam()).AI_isPrimaryArea(getPlot().getArea()));
 	if((bGoodCity || !bHasCargo) && !bAttack &&
-			AI_pickupStranded())
-		return; // </advc.046>
+		AI_pickupStranded())
+	{
+		return;
+	} // </advc.046>
 	if ((bFull || bReinforce) && !bAttack)
 	{
 		// Group with nearby transports with units on board
@@ -7467,7 +7358,8 @@ void CvUnitAI::AI_assaultSeaMove()
 		// disabled by K-Mod. This is redundant.
 
 		//if (AI_group(UNITAI_ASSAULT_SEA, -1, -1, -1, true, false, false, 10, false, true, false, MISSIONAI_ASSAULT))
-		if (AI_omniGroup(UNITAI_ASSAULT_SEA, -1, -1, false, 0, 10, true, true, true, false, false, -1, true, true))
+		if (AI_omniGroup(UNITAI_ASSAULT_SEA, -1, -1, false,
+			0, 10, true, true, true, false, false, -1, true, true))
 		{
 			return;
 		}
@@ -7475,51 +7367,27 @@ void CvUnitAI::AI_assaultSeaMove()
 	else if (!bFull)
 	{
 		bool bHasOneLoad = (getGroup()->getCargo() >= cargoSpace());
-
-		if (AI_pickup(UNITAI_ATTACK_CITY, !bHasCargo, (bHasOneLoad ? 3 : 7)))
-		{
+		if (AI_pickup(UNITAI_ATTACK_CITY, !bHasCargo, bHasOneLoad ? 3 : 7))
 			return;
-		}
-
-		if (AI_pickup(UNITAI_ATTACK, !bHasCargo, (bHasOneLoad ? 3 : 7)))
-		{
+		if (AI_pickup(UNITAI_ATTACK, !bHasCargo, bHasOneLoad ? 3 : 7))
 			return;
-		}
-
-		if (AI_pickup(UNITAI_COUNTER, !bHasCargo, (bHasOneLoad ? 3 : 7)))
-		{
+		if (AI_pickup(UNITAI_COUNTER, !bHasCargo, bHasOneLoad ? 3 : 7))
 			return;
-		}
-
 		if (AI_pickup(UNITAI_ATTACK_CITY, !bHasCargo))
-		{
 			return;
-		}
-
 		if (!bHasCargo)
 		{
 			if(AI_pickupStranded(UNITAI_ATTACK_CITY))
-			{
 				return;
-			}
-
 			if(AI_pickupStranded(UNITAI_ATTACK))
-			{
 				return;
-			}
-
 			if(AI_pickupStranded(UNITAI_COUNTER))
-			{
 				return;
-			}
-
 			if (getGroup()->countNumUnitAIType(AI_getUnitAIType()) == 1)
 			{
-				// Try picking up any thing
+				// Try picking up anything
 				if(AI_pickupStranded())
-				{
 					return;
-				}
 			}
 		}
 	}
@@ -7531,8 +7399,9 @@ void CvUnitAI::AI_assaultSeaMove()
 		if (bLandWar && iCargo > 0)
 		{
 			// Enemy units in this player's territory
-			if (kOwner.AI_countNumAreaHostileUnits(getArea(), true, false, false, false,
-				/* <advc.opt> */ plot() /* </advc.opt> */) > iCargo/2)
+			if (2 * kOwner.AI_countNumAreaHostileUnits(getArea(),
+				true, false, false, false,
+				/* <advc.opt> */ plot() /* </advc.opt> */) > iCargo)
 			{
 				getGroup()->unloadAll();
 				getGroup()->pushMission(MISSION_SKIP);
@@ -7540,7 +7409,8 @@ void CvUnitAI::AI_assaultSeaMove()
 			}
 		}
 		// K-Mod. (moved from way higher up)
-		if (iCargo == 0 && getPlot().getTeam() == getTeam() && getGroup()->getNumUnits() > 1)
+		if (iCargo == 0 && getPlot().getTeam() == getTeam() &&
+			getGroup()->getNumUnits() > 1)
 		{
 			AI_getGroup()->AI_separate();
 			getGroup()->pushMission(MISSION_SKIP);
@@ -7548,21 +7418,13 @@ void CvUnitAI::AI_assaultSeaMove()
 		}
 	}
 	// BETTER_BTS_AI_MOD: END
+
 	if (AI_retreatToCity(true))
-	{
 		return;
-	}
-
 	if (AI_retreatToCity())
-	{
 		return;
-	}
-
 	if (AI_safety())
-	{
 		return;
-	}
-
 	getGroup()->pushMission(MISSION_SKIP);
 }
 
@@ -7696,10 +7558,10 @@ void CvUnitAI::AI_settlerSeaMove()
 			{
 				if (kOwner.AI_totalWaterAreaUnitAIs(*pWaterArea, UNITAI_SETTLER_SEA) > 1
 					// <advc.017b>
-					+ kOwner.getCurrentEra() / 2
+					+ kOwner.getCurrentEra() / 2 ||
 					/*  Also convert if no colonies (which may need Workers)
 						and no Settler on the horizon. */
-					|| (kOwner.getCurrentEra() < 3 && // To match the check in CvPlayerAI::AI_chooseProduction
+					(kOwner.getCurrentEra() < 3 && // To match the check in CvPlayerAI::AI_chooseProduction
 					kOwner.AI_totalUnitAIs(UNITAI_SETTLE) <= 0 &&
 					// </advc.017b>
 					kOwner.getNumCities() == getArea().getCitiesPerPlayer(getOwner()) &&
@@ -7831,7 +7693,8 @@ void CvUnitAI::AI_settlerSeaMove()
 		kOwner.AI_bestCityUnitAIValue(AI_getUnitAIType(), NULL, &eBestSettlerTransport);
 		if (eBestSettlerTransport != NO_UNIT)
 		{
-			if (eBestSettlerTransport != getUnitType() && kOwner.AI_unitImpassableCount(eBestSettlerTransport) == 0)
+			if (eBestSettlerTransport != getUnitType() &&
+				kOwner.AI_unitImpassableCount(eBestSettlerTransport) == 0)
 			{
 				UnitClassTypes ePotentialUpgradeClass = GC.getInfo(eBestSettlerTransport).getUnitClassType();
 				if (!upgradeAvailable(getUnitType(), ePotentialUpgradeClass))
@@ -15225,7 +15088,8 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 		int iBaseValue = 10 + std::min(9, 3*iTargetCities);
 		int iValueMultiplier = 100;
 
-		// if there are defenders, we should decide whether or not it is worth attacking them amphibiously.
+		/*	if there are defenders, we should decide whether or not it is
+			worth attacking them amphibiously. */
 		if (iEnemyDefenders > 0)
 		{
 			if ((iLimitedAttackers > 0 || iAmphibiousAttackers < iCargo/2) &&
@@ -15242,8 +15106,9 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 						kOwner.AI_localDefenceStrength(&kPlot, NO_TEAM) :
 						kOurTeam.AI_getStrengthMemory(&kPlot));
 			}
-			// Note: the amphibious attack modifier is already taken into account by AI_localAttackStrength,
-			// but I'm going to apply a similar penality again just to discourage the AI from attacking amphibiously when they don't need to.
+			/*	Note: the amphibious attack modifier is already taken into account by
+				AI_localAttackStrength, but I'm going to apply a similar penality again
+				just to discourage the AI from attacking amphibiously when they don't need to. */
 			iDefenceStrength -= iDefenceStrength * GC.getDefineINT(CvGlobals::AMPHIB_ATTACK_MODIFIER) *
 					(iCargo - iAmphibiousAttackers) / (100*iCargo);
 
@@ -15255,9 +15120,9 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 			if (pCity == NULL)
 			{
 				iValueMultiplier = iValueMultiplier *
-					(iAmphibiousAttackStrength - iDefenceStrength *
-					std::min(iCargo-iLimitedAttackers, iEnemyDefenders) / iEnemyDefenders) /
-					iAmphibiousAttackStrength;
+						(iAmphibiousAttackStrength - iDefenceStrength *
+						std::min(iCargo-iLimitedAttackers, iEnemyDefenders) / iEnemyDefenders) /
+						iAmphibiousAttackStrength;
 			}
 		}
 
@@ -15278,7 +15143,7 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 			// advc.001: See the comment above. This will have to move too.
 			//iValueMultiplier = (100+iModifier)*iValueMultiplier / 100;
 
-			// Look look for adjacent cities.
+			// Look for adjacent cities.
 			// advc.001: Better to use a separate variable for this
 			CvCityAI const* pAdjacentCity = NULL;
 			FOR_EACH_ENUM(Direction)
@@ -15306,7 +15171,6 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 			// </advc.001>
 		}
 
-
 		if (pCity != NULL)
 		{
 			int iDefenceStrength = estimateAndCacheCityDefence(kOwner, pCity, city_defence_cache);
@@ -15314,24 +15178,29 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 			iBaseValue += kOwner.AI_targetCityValue(pCity, false, false); // maybe false, true?
 
 			if (pCity->plot() == &kPlot)
-				iValueMultiplier *= (kPlot.isVisible(kOurTeam.getID()) ? 5 : 2); // apparently we can take the city amphibiously
+			{
+				// apparently we can take the city amphibiously
+				iValueMultiplier *= (kPlot.isVisible(kOurTeam.getID()) ? 5 : 2);
+			}
 			else
 			{
-				// prefer to join existing assaults. (maybe we should calculate the actual attack strength here and roll it into the strength comparison modifier below)
+				/*	prefer to join existing assaults.
+					(maybe we should calculate the actual attack strength here and roll it
+					into the strength comparison modifier below) */
 				int iModifier = std::min(kOwner.AI_plotTargetMissionAIs(kPlot, MISSIONAI_ASSAULT, getGroup()) +
 						kOwner.AI_adjacentPotentialAttackers(pCity->getPlot()), 2 * iCargo) * 100 / iCargo;
 				iValueMultiplier = (100+iModifier)*iValueMultiplier / 100;
 
-				// Prefer to target cities that we can defeat.
-				// However, keep in mind that if we often won't be able to see the city to gauge their defenses.
+				/*	Prefer to target cities that we can defeat.
+					However, keep in mind that if we often won't be able to
+					see the city to gauge their defenses. */
 
-
-				if (iDefenceStrength > 0 || kPlot.isVisible(kOurTeam.getID())) // otherwise, assume we have no idea what's there.
+				if (iDefenceStrength > 0 || kPlot.isVisible(kOurTeam.getID()))
 				{
 					if (kPlot.isVisible(kOurTeam.getID()))
 						iModifier = std::min(100, 125 * iLandedAttackStrength / std::max(1, iDefenceStrength) - 25);
 					else iModifier = std::min(50, 75 * iLandedAttackStrength / std::max(1, iDefenceStrength) - 25);
-				}
+				} // otherwise, assume we have no idea what's there.
 				iValueMultiplier = (100 + iModifier) * iValueMultiplier / 100;
 			}
 		}
@@ -15345,11 +15214,11 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 		else if (bLocal)
 			iValueMultiplier = iValueMultiplier*2/3;
 
-		// K-Mod note: It would be nice to use the pathfinder again here
-		// to make sure we aren't landing a long way from any enemy cities;
-		// otherwise the AI might get into a loop of contantly dropping
-		// off units which just walk back to the city to be dropped off again.
-		// (maybe some other time)
+		/*	K-Mod note: It would be nice to use the pathfinder again here
+			to make sure we aren't landing a long way from any enemy cities;
+			otherwise the AI might get into a loop of contantly dropping
+			off units which just walk back to the city to be dropped off again.
+			(maybe some other time) */
 
 		FAssert(iPathTurns > 0);
 
@@ -15394,8 +15263,9 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 		}
 
 		iValue /= (iPathTurns + 1); */
-		// K-Mod. A bit of randomness is good, but if it's random every turn then it will lead to inconsistent decisions.
-		// So.. if we're already en-route somewhere, try to keep going there.
+		/*	K-Mod. A bit of randomness is good, but if it's random every turn
+			then it will lead to inconsistent decisions.
+			So.. if we're already en-route somewhere, try to keep going there. */
 		if (pCity != NULL && AI_getGroup()->AI_getMissionAIPlot() &&
 			stepDistance(AI_getGroup()->AI_getMissionAIPlot(), pCity->plot()) <= 1)
 		{
@@ -15420,9 +15290,7 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 	}
 
 	if (pBestPlot != NULL && pBestAssaultPlot != NULL)
-	{
 		return AI_transportGoTo(pBestPlot, pBestAssaultPlot, iFlags, MISSIONAI_ASSAULT);
-	}
 
 	return false;
 }
@@ -21330,14 +21198,16 @@ unsigned CvUnitAI::AI_unitBirthmarkHash(int iExtra) const
 unsigned CvUnitAI::AI_unitPlotHash(const CvPlot* pPlot, int iExtra) const
 {
 	return AI_unitBirthmarkHash(GC.getMap().plotNum(*pPlot) + iExtra);
-}
-// K-Mod end
+} // K-Mod end
 
+/*	advc (note): Used mostly as a target group size for city-attack stacks.
+	The "Extra" in the function name refers to how the function is used in
+	AI_omniGroup (originally AI_group). */
 int CvUnitAI::AI_stackOfDoomExtra() const
 {
 	//return ((AI_getBirthmark() % (1 + GET_PLAYER(getOwner()).getCurrentEra())) + 4);
 	// K-Mod
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwner());
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	int iFlavourExtra = kOwner.AI_getFlavorValue(FLAVOR_MILITARY)/2 +
 			(kOwner.AI_getFlavorValue(FLAVOR_MILITARY) > 0 ?
 			4 : 2); // <advc.104p> was 8:4
@@ -21345,35 +21215,36 @@ int CvUnitAI::AI_stackOfDoomExtra() const
 		against a particular target. Game era is still better than using
 		our era: If we're more advanced than our rivals, it doesn't mean that
 		we need larger stacks than theirs. */
-	int iEra = GC.getGame().getCurrentEra(); // </advc.104p>
+	int const iEra = GC.getGame().getCurrentEra(); // </advc.104p>
 	// 4 base. then rand between 0 and ... (1 or 2 + iEra + flavour * era ratio)
 	// <advc.104p> Put that era ratio in a variable and round modulus to nearest
-	double eraRatio = (iEra+1.0)/std::max(1, GC.getNumEraInfos());
-	int iModulus = ::round( // </advc.104p>
+	scaled rEraRatio(iEra + 1, std::max(1, GC.getNumEraInfos()));
+	int iModulus = ( // </advc.104p>
 			((kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH) ? 2 : 1) +
-			eraRatio * iFlavourExtra +
+			rEraRatio * iFlavourExtra +
 			// <advc.104p> Half of iEra factored into the non-random portion
-			iEra/2));
+			iEra/2)).round();
 	int r = (iEra+1)/2 + // </advc.104p>
 			4 + (AI_getBirthmark() % iModulus);
 	// K-Mod end
 	// <advc.104p>
-	double mult = 1;
+	scaled rMult = 1;
 	/*  Bigger AI stacks on higher difficulty (b/c units are cheaper to train then,
 		not b/c bigger stacks are generally smarter) */
 	if(!kOwner.isHuman() && !isBarbarian())
 	{
-		double trainMod = GC.getInfo(GC.getGame().
-				getHandicapType()).getAITrainPercent() / 100.0;
-		mult /= std::max(0.75, trainMod);
+		scaled rTrainMod = per100(GC.getInfo(GC.getGame().
+				getHandicapType()).getAITrainPercent());
+		rTrainMod.increaseTo(fixp(0.75));
+		rMult /= rTrainMod;
 	}
 	CvTeamAI const& kOurTeam = GET_TEAM(kOwner.getTeam());
 	// A little extra for naval assault
 	if(getArea().getAreaAIType(kOurTeam.getID()) == AREAAI_ASSAULT)
-		mult += 0.225;
+		rMult += fixp(0.225);
 	if(kOurTeam.AI_getNumWarPlans(WARPLAN_TOTAL) <= 0)
-		mult *= 0.85;
-	r = ::round(mult * r);
+		rMult *= fixp(0.85);
+	r = (rMult * r).round();
 	FAssert(r > 0);
 	return std::max(1, r); // </advc.104p>
 }

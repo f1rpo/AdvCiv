@@ -44,7 +44,7 @@ public:
 	inline void AI_cancelGroupAttack() { m_bGroupAttack = false; } // K-Mod (made inline)
 	inline bool AI_isGroupAttack() const { return m_bGroupAttack; } // K-Mod (made inline)
 
-	bool AI_isControlled() /* advc: */ const;
+	bool AI_isControlled() const { return (!isHuman() || isAutomated()); } // advc.inl
 	bool AI_isDeclareWar(CvPlot const& kPlot) const;
 	bool AI_isHasPathToAreaEnemyCity(bool bMajorOnly = true, int iFlags = 0, int iMaxPathTurns = -1) /* Erik (CODE1): */ const;
 
