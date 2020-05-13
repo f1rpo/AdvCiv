@@ -70,6 +70,11 @@ bool CvArtInfoAsset::read(CvXMLLoadUtility* pXML)
 
 	return true;
 }
+// advc.xmldefault:
+CvArtInfoScalableAsset::CvArtInfoScalableAsset(CvArtInfoScalableAsset const& kOther)
+{
+	FAssertMsg(false, "No copy-ctor implemented");
+}
 
 bool CvArtInfoScalableAsset::read(CvXMLLoadUtility* pXML)
 {

@@ -63,7 +63,7 @@ const TCHAR* CvInfoBase::getType() const
 // advc.xmldefault:
 bool CvInfoBase::isDefaultsType() const
 {
-	if (m_szType == NULL)
+	if (m_szType.empty())
 		return false;
 	CvString const szEnding = "_DEFAULTS";
 	return (m_szType.length() > szEnding.length() &&

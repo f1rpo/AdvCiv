@@ -330,9 +330,10 @@ protected:
 	int* m_piDiploPeaceMusicScriptIds;
 	int* m_piDiploWarIntroMusicScriptIds;
 	int* m_piDiploWarMusicScriptIds;
-
+	// <advc.xmldefault>
 	static CvXMLLoadUtility* m_pXML;
 	static void GetChildXmlValByName(int& r, TCHAR const* szName, int iDefault = MIN_INT);
+	// </advc.xmldefault>
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

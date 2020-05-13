@@ -511,7 +511,7 @@ m_piDiploWarIntroMusicScriptIds(NULL),
 m_piDiploWarMusicScriptIds(NULL)
 {}
 
-// </advc.xmldefault>
+// <advc.xmldefault>
 #define ALLOCCOPY_INT(pDst, pSrc, iSize) \
 	if (pSrc != NULL) \
 	{ \

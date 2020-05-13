@@ -316,7 +316,7 @@
 					<ContactType>CONTACT_PERMANENT_ALLIANCE</ContactType>
 					<iContactRand>80</iContactRand>
 				</ContactRand>
-				<!-- advc.134a (note): Taken times 4/4 by the DLL -->
+				<!-- advc.134a (note): Taken times 4/3 by the DLL -->
 				<ContactRand>
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
 					<iContactRand>-1</iContactRand>
@@ -681,8 +681,6 @@
 					<iMemoryAttitudePercent>100</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
 			</MemoryAttitudePercents>
-			<!-- Need to cover all attitude types here so that sufficient
-				 memory gets allocated. -->
 			<NoWarAttitudeProbs>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_FURIOUS</AttitudeType>
@@ -3986,14 +3984,8 @@
 					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryAttitudePercent>0</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
-				<!-- advc.005a: MEMORY_HIRED_TRADE_EMBARGO not zeroed. -->
-				<!-- advc.130o:  Gandhi, as the only leader, didn't have a
-					 MADE_DEMAND MemoryAttitude entry, meaning that
-					 tribute demands didn't affect his attitude. -->
-				<MemoryAttitudePercent>
-					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
-					<iMemoryAttitudePercent>-100</iMemoryAttitudePercent>
-				</MemoryAttitudePercent>
+				<!-- MEMORY_HIRED_TRADE_EMBARGO (advc.005a) and
+					 MEMORY_MADE_DEMAND (advc.130o) not zeroed. -->
 				<MemoryAttitudePercent>
 					<MemoryType>MEMORY_TRADED_TECH_TO_US</MemoryType>
 					<iMemoryAttitudePercent>5</iMemoryAttitudePercent>
