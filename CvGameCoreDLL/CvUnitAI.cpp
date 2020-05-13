@@ -7019,6 +7019,14 @@ void CvUnitAI::AI_assaultSeaMove()
 				return;
 			}
 		}
+		// <advc.082> One fewer will do if we're full. (Duplicated in the !bCity branch below.)
+		if (bFull && iCargo >= 3)
+		{
+			if (iCargo == iTargetReinforcementSize - 1)
+				iTargetReinforcementSize--;
+			if (iCargo == iTargetInvasionSize - 1)
+				iTargetInvasionSize--;
+		} // </advc.082>
 
 		if (bLandWar)
 		{
@@ -7171,6 +7179,14 @@ void CvUnitAI::AI_assaultSeaMove()
 
 	if (!bCity)
 	{
+		// <advc.082> (duplicated in the bCity branch above)
+		if (bFull && iCargo >= 3)
+		{
+			if (iCargo == iTargetReinforcementSize - 1)
+				iTargetReinforcementSize--;
+			if (iCargo == iTargetInvasionSize - 1)
+				iTargetInvasionSize--;
+		} // </advc.082>
 		if (iCargo >= iTargetInvasionSize)
 		{
 			bAttack = true;
@@ -7316,10 +7332,17 @@ void CvUnitAI::AI_assaultSeaMove()
 			{
 				if (AI_assaultSeaReinforce())
 					return;
-				}
+				/*	<advc.082> Limited war: See if we can invade a colony
+					with a smaller stack */
+				if (!bAttack && bFull &&
+					GET_TEAM(getTeam()).AI_getNumWarPlans(WARPLAN_TOTAL) +
+					GET_TEAM(getTeam()).AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) <= 0)
+				{
+					if (AI_assaultSeaTransport(false, false, 2))
+						return;
+				} // </advc.082>
 			}
 		}
-
 		if (bNoWarPlans && iCargo >= iTargetReinforcementSize)
 		{
 			bAttackBarbarian = true;
@@ -14979,7 +15002,8 @@ static int estimateAndCacheCityDefence(CvPlayerAI& kPlayer, CvCityAI const* pCit
 } // K-Mod end
 
 // This function has been mostly rewritten for K-Mod.
-bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
+bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,
+	int iMaxAreaCities) // advc.082
 {
 	PROFILE_FUNC();
 
@@ -15070,10 +15094,13 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 		} // </advc.306>
 		// Note: currently these condtions mean we will never land to invade land-locked enemies
 
-		int iTargetCities = kPlot.getArea().getCitiesPerPlayer(kPlot.getOwner());
-		if (iTargetCities == 0)
+		int const iTargetCities = kPlot.getArea().getCitiesPerPlayer(kPlot.getOwner());
+		if (iTargetCities == 0 ||
+			// advc.082: (Would be better to count revealed cities of all enemy civs)
+			iTargetCities > iMaxAreaCities)
+		{
 			continue;
-
+		}
 		int iPathTurns;
 		if (!generatePath(&kPlot, iFlags, true, &iPathTurns))
 			continue;

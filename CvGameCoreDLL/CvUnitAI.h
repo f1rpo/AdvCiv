@@ -205,8 +205,8 @@ protected:
 	bool AI_found(int iFlags = MOVE_NO_ENEMY_TERRITORY); // K-Mod added iFlags
 	//bool AI_foundRange(int iRange, bool bFollow = false); // disabled by K-Mod
 	bool AI_foundFollow(); // K-Mod
-	bool AI_assaultSeaTransport(bool bAttackBarbs = false,
-			bool bLocal = false); // K-Mod
+	bool AI_assaultSeaTransport(bool bAttackBarbs = false, /* K-Mod: */ bool bLocal = false,
+			int iMaxAreaCities = MAX_INT); // advc.082
 	bool AI_assaultSeaReinforce(bool bAttackBarbs = false); // BBAI
 	bool AI_transportGoTo(CvPlot const* pEndTurnPlot, CvPlot const* pTargetPlot, int iFlags, MissionAITypes eMissionAI); // K-Mod
 
