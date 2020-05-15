@@ -3569,30 +3569,20 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 	std::vector<int> viBonusClassUnrevealed(GC.getNumBonusClassInfos(), 0);
 	std::vector<int> viBonusClassHave(GC.getNumBonusClassInfos(), 0);
 	// k146 (comment): Find make lists of which bonuses we have / don't have / can see. This is used for tech evaluation
-	for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
+	FOR_EACH_ENUM(Bonus)
 	{
-		TechTypes eRevealTech = (TechTypes)GC.getInfo((BonusTypes)iI).getTechReveal();
-		BonusClassTypes eBonusClass = (BonusClassTypes)GC.getInfo((BonusTypes)iI).getBonusClassType();
-		if (eRevealTech != NO_TECH)
-		{
-			if ((kTeam.isHasTech(eRevealTech)))
-			{
-				viBonusClassRevealed[eBonusClass]++;
-			}
-			else
-			{
-				viBonusClassUnrevealed[eBonusClass]++;
-			}
+		TechTypes eRevealTech = GC.getInfo(eLoopBonus).getTechReveal();
+		BonusClassTypes eBonusClass = (BonusClassTypes)GC.getInfo(eLoopBonus).getBonusClassType();
+		if (eRevealTech == NO_TECH)
+			continue; // advc
+		if (kTeam.isHasTech(eRevealTech))
+			viBonusClassRevealed[eBonusClass]++;
+		else viBonusClassUnrevealed[eBonusClass]++;
 
-			if (getNumAvailableBonuses((BonusTypes)iI) > 0)
-			{
-				viBonusClassHave[eBonusClass]++;
-			}
-			else if (AI_countOwnedBonuses((BonusTypes)iI) > 0)
-			{
-				viBonusClassHave[eBonusClass]++;
-			}
-		}
+		if (getNumAvailableBonuses(eLoopBonus) > 0)
+			viBonusClassHave[eBonusClass]++;
+		else if (AI_countOwnedBonuses(eLoopBonus) > 0)
+			viBonusClassHave[eBonusClass]++;
 	}
 
 #ifdef DEBUG_TECH_CHOICES
@@ -4684,15 +4674,16 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 					continue; // advc
 				int iBonusValue = 0;
 
-				TechTypes eConnectTech = (TechTypes)kBonusInfo.getTechCityTrade();
+				TechTypes eConnectTech = kBonusInfo.getTechCityTrade();
 				if((kTeam.isHasTech(eConnectTech) || eConnectTech == eTech) &&
 					!kTeam.isBonusObsolete(eLoopBonus) &&
-					kBonusInfo.getTechObsolete() != eTech) {
-						// note: this is in addition to the getTechCityTrade evaluation lower in this function.
-						iBonusValue += AI_bonusVal(eLoopBonus, 1, true) * iCityCount;
-						if (bRevealed)
-							iBonusValue += (iNumBonuses-1) * iBonusValue / 10;
-						else iBonusValue /= 2;
+					kBonusInfo.getTechObsolete() != eTech)
+				{
+					// note: this is in addition to the getTechCityTrade evaluation lower in this function.
+					iBonusValue += AI_bonusVal(eLoopBonus, 1, true) * iCityCount;
+					if (bRevealed)
+						iBonusValue += (iNumBonuses-1) * iBonusValue / 10;
+					else iBonusValue /= 2;
 				}
 				int iYieldValue = 0;
 				FOR_EACH_ENUM(Yield)
@@ -4818,7 +4809,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			BonusTypes ePrereqBonus = (BonusTypes)GC.getInfo(eRoute).getPrereqBonus();
 			if (ePrereqBonus != NO_BONUS && !hasBonus(ePrereqBonus))
 			{
-				if ((kTeam.isHasTech((TechTypes)(GC.getInfo(ePrereqBonus).getTechReveal())) ||
+				if ((kTeam.isHasTech(GC.getInfo(ePrereqBonus).getTechReveal()) ||
 					kTeam.isForceRevealedBonus(ePrereqBonus)) &&
 					AI_countOwnedBonuses(ePrereqBonus) == 0)
 				{
@@ -4921,7 +4912,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			// K-Mod
 			// If we don't yet have the 'enable' tech, reduce the value of the reveal.
 			if (kLoopBonus.getTechCityTrade() != eTech &&
-				!kTeam.isHasTech((TechTypes)kLoopBonus.getTechCityTrade()))
+				!kTeam.isHasTech(kLoopBonus.getTechCityTrade()))
 			{
 				iRevealValue /= 3;
 			}
@@ -4931,7 +4922,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		}
 		// K-Mod: Value for enabling resources that are already revealed
 		else if (kLoopBonus.getTechCityTrade() == eTech &&
-			(kTeam.isHasTech((TechTypes)kLoopBonus.getTechReveal()) ||
+			(kTeam.isHasTech(kLoopBonus.getTechReveal()) ||
 			kTeam.isForceRevealedBonus(eLoopBonus)))
 		{
 			int iOwned = AI_countOwnedBonuses(eLoopBonus);
@@ -6332,7 +6323,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 				}
 				else
 				{
-					if ((kTeam.isHasTech((TechTypes)(GC.getInfo(ePrereqBonus).getTechReveal())) ||
+					if ((kTeam.isHasTech(GC.getInfo(ePrereqBonus).getTechReveal()) ||
 						kTeam.isForceRevealedBonus(ePrereqBonus)) &&
 						AI_countOwnedBonuses(ePrereqBonus) == 0)
 					{
@@ -6354,7 +6345,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 		BonusTypes ePrereqBonus = kLoopUnit.getPrereqAndBonus();
 		if (ePrereqBonus != NO_BONUS && !hasBonus(ePrereqBonus))
 		{
-			if ((kTeam.isHasTech((TechTypes)GC.getInfo(ePrereqBonus).getTechReveal()) ||
+			if ((kTeam.isHasTech(GC.getInfo(ePrereqBonus).getTechReveal()) ||
 				kTeam.isForceRevealedBonus(ePrereqBonus)) &&
 				AI_countOwnedBonuses(ePrereqBonus) == 0)
 			{
@@ -10623,9 +10614,9 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
 			const CvTeam& kTeam = GET_TEAM(getTeam());
 			//if (!kTeam.isBonusRevealed(eBonus))
 			// note. the tech is used here as a kind of proxy for the civ's readiness to use the bonus.
-			if (!kTeam.isHasTech((TechTypes)GC.getInfo(eBonus).getTechReveal()))
+			if (!kTeam.isHasTech(GC.getInfo(eBonus).getTechReveal()))
 				iValue /= (bTrade ? 3 : 2); // advc.036: was /=2
-			if (!kTeam.isHasTech((TechTypes)GC.getInfo(eBonus).getTechCityTrade()))
+			if (!kTeam.isHasTech(GC.getInfo(eBonus).getTechCityTrade()))
 				iValue /= (bTrade ? 3 : 2); // advc.036: was /=2
 		}
 		// K-Mod end
@@ -14430,7 +14421,7 @@ int CvPlayerAI::AI_corporationValue(CorporationTypes eCorporation, CvCityAI cons
 				iBonuses += AI_countOwnedBonuses(eBonus);
 			else iBonuses += pCity->getNumBonuses(eBonus);
 			// maybe use getNumAvailableBonuses ?
-			if (!kTeam.isHasTech((TechTypes)GC.getInfo(eBonus).getTechReveal()) &&
+			if (!kTeam.isHasTech(GC.getInfo(eBonus).getTechReveal()) &&
 				!kTeam.isForceRevealedBonus(eBonus))
 			{
 				iBonuses++; // expect that we'll get one of each unrevealed resource
@@ -14507,12 +14498,12 @@ int CvPlayerAI::AI_corporationValue(CorporationTypes eCorporation, CvCityAI cons
 	if (eBonusProduced != NO_BONUS)
 	{
 		//int iBonuses = getNumAvailableBonuses((BonusTypes)kCorp.getBonusProduced());
-		iBonuses = pCity ? pCity->getNumBonuses(eBonusProduced) :
-				AI_countOwnedBonuses(eBonusProduced);
+		iBonuses = (pCity != NULL ? pCity->getNumBonuses(eBonusProduced) :
+				AI_countOwnedBonuses(eBonusProduced));
 		/*	pretend we have 1 bonus if it is not yet revealed.
 			(so that we don't overvalue the corp before the resource gets revealed) */
-		iBonuses += (!kTeam.isHasTech((TechTypes)
-				GC.getInfo(eBonusProduced).getTechReveal()) ? 1 : 0);
+		if (!kTeam.isHasTech(GC.getInfo(eBonusProduced).getTechReveal()))
+			iBonuses++;
 		iValue += AI_baseBonusVal(eBonusProduced) * 25 /
 				(1 + 2 * iBonuses * (iBonuses+3));
 	}

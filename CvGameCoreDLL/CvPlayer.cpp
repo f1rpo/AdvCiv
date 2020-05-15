@@ -14077,7 +14077,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 			{
 				szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_SOMETHING_DESTROYED",
 						GC.getInfo(pPlot->getImprovementType()).getDescription()).GetCString();
-				pPlot->setImprovementType((ImprovementTypes)(GC.getInfo(pPlot->getImprovementType()).getImprovementPillage()));
+				pPlot->setImprovementType(GC.getInfo(pPlot->getImprovementType()).getImprovementPillage());
 				bSomethingHappened = true;
 			}
 			else if (pPlot->isRoute())
@@ -17931,7 +17931,8 @@ bool CvPlayer::canDoEvent(EventTypes eEvent, const EventTriggeredData& kTriggere
 
 	if (NO_BONUS != kEvent.getBonusRevealed())
 	{
-		if (GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getInfo((BonusTypes)kEvent.getBonusRevealed()).getTechReveal()))
+		if (GET_TEAM(getTeam()).isHasTech(GC.getInfo((BonusTypes)kEvent.getBonusRevealed()).
+			getTechReveal()))
 		{
 			return false;
 		}

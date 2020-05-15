@@ -7689,7 +7689,7 @@ void CvCity::updateCorporationBonus()  // advc: style changes
 			BonusTypes eBonusProduced = (BonusTypes)GC.getInfo(eLoopCorporation).getBonusProduced();
 			if (eBonusProduced == NO_BONUS ||
 				kTeam.isBonusObsolete(eBonusProduced) ||
-				!kTeam.isHasTech((TechTypes)GC.getInfo(eBonusProduced).getTechCityTrade()))
+				!kTeam.isHasTech(GC.getInfo(eBonusProduced).getTechCityTrade()))
 			{
 				continue;
 			}

@@ -270,7 +270,7 @@ void CvPlot::doImprovement()  // advc: some style changes
 		FOR_EACH_ENUM(Bonus)
 		{
 			CvBonusInfo const& kLoopBonus = GC.getInfo(eLoopBonus);
-			if (!GET_TEAM(getTeam()).isHasTech((TechTypes)kLoopBonus.getTechReveal()))
+			if (!GET_TEAM(getTeam()).isHasTech(kLoopBonus.getTechReveal()))
 				continue;
 			/*if (GC.getInfo(getImprovementType()).getImprovementBonusDiscoverRand(eLoopBonus) > 0) { // BtS
 				if (GC.getGame().getSorenRandNum(GC.getInfo(getImprovementType()).getImprovementBonusDiscoverRand(eLoopBonus), "Bonus Discovery") == 0) {*/
@@ -310,8 +310,8 @@ void CvPlot::doImprovementUpgrade()
 	if (!isImproved())
 		return; // advc
 
-	ImprovementTypes eImprovementUpdrade = (ImprovementTypes)GC.getInfo(
-			getImprovementType()).getImprovementUpgrade();
+	ImprovementTypes eImprovementUpdrade = GC.getInfo(getImprovementType()).
+			getImprovementUpgrade();
 	if (eImprovementUpdrade != NO_IMPROVEMENT)
 	{
 		if ((isBeingWorked() &&
@@ -4596,9 +4596,11 @@ BonusTypes CvPlot::getNonObsoleteBonusType(TeamTypes eTeam, bool bCheckConnected
 	{
 		// note: this checks whether the bonus is connected for the owner of the plot, from the point of view of eTeam.
 		TeamTypes ePlotTeam = getTeam();
-		if (ePlotTeam == NO_TEAM || !GET_TEAM(ePlotTeam).isHasTech((TechTypes)GC.getInfo(eBonus).getTechCityTrade()))
+		if (ePlotTeam == NO_TEAM ||
+			!GET_TEAM(ePlotTeam).isHasTech(GC.getInfo(eBonus).getTechCityTrade()))
+		{
 			return NO_BONUS;
-
+		}
 		// note: this function is used inside CvPlot::updatePlotGroupBonuses, which is called during CvPlot::setImprovementType
 		// between when the improvement is changed and the revealed improvement type is updated...
 		// therefore when eTeam == ePlotTeam, we use the real improvement, not the revealed one.

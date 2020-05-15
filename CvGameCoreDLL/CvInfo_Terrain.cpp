@@ -405,9 +405,9 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 CvBonusInfo::CvBonusInfo() :
 m_iBonusClassType(NO_BONUSCLASS),
 m_iChar(0),
-m_iTechReveal(0),
-m_iTechCityTrade(0),
-m_iTechObsolete(0),
+m_eTechReveal(NO_TECH),
+m_eTechCityTrade(NO_TECH),
+m_eTechObsolete(NO_TECH),
 m_iAITradeModifier(0),
 m_iAIObjective(0),
 m_iHealth(0),
@@ -632,9 +632,9 @@ void CvBonusInfo::read(FDataStreamBase* stream)
 
 	stream->Read(&m_iBonusClassType);
 	stream->Read(&m_iChar);
-	stream->Read(&m_iTechReveal);
-	stream->Read(&m_iTechCityTrade);
-	stream->Read(&m_iTechObsolete);
+	stream->Read((int*)&m_eTechReveal);
+	stream->Read((int*)&m_eTechCityTrade);
+	stream->Read((int*)&m_eTechObsolete);
 	stream->Read(&m_iAITradeModifier);
 	stream->Read(&m_iAIObjective);
 	stream->Read(&m_iHealth);
@@ -682,9 +682,9 @@ void CvBonusInfo::write(FDataStreamBase* stream)
 
 	stream->Write(m_iBonusClassType);
 	stream->Write(m_iChar);
-	stream->Write(m_iTechReveal);
-	stream->Write(m_iTechCityTrade);
-	stream->Write(m_iTechObsolete);
+	stream->Write(m_eTechReveal);
+	stream->Write(m_eTechCityTrade);
+	stream->Write(m_eTechObsolete);
 	stream->Write(m_iAITradeModifier);
 	stream->Write(m_iAIObjective);
 	stream->Write(m_iHealth);
@@ -727,9 +727,9 @@ bool CvBonusInfo::read(CvXMLLoadUtility* pXML)
 		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
 		setArtDefineTag(szTextVal);
 	}
-	pXML->SetInfoIDFromChildXmlVal(m_iTechReveal, "TechReveal");
-	pXML->SetInfoIDFromChildXmlVal(m_iTechCityTrade, "TechCityTrade");
-	pXML->SetInfoIDFromChildXmlVal(m_iTechObsolete, "TechObsolete");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eTechReveal, "TechReveal");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eTechCityTrade, "TechCityTrade");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eTechObsolete, "TechObsolete");
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"YieldChanges"))
 	{
@@ -910,8 +910,8 @@ m_iAirBombDefense(0),
 m_iDefenseModifier(0),
 m_iHappiness(0),
 m_iPillageGold(0),
-m_iImprovementPillage(NO_IMPROVEMENT),
-m_iImprovementUpgrade(NO_IMPROVEMENT),
+m_eImprovementPillage(NO_IMPROVEMENT),
+m_eImprovementUpgrade(NO_IMPROVEMENT),
 m_bActsAsCity(false), // advc: was true
 m_bHillsMakesValid(false),
 m_bFreshWaterMakesValid(false),
@@ -994,19 +994,9 @@ int CvImprovementInfo::getFeatureGrowthProbability() const
 	return m_iFeatureGrowthProbability;
 }
 
-int CvImprovementInfo::getUpgradeTime() const
-{
-	return m_iUpgradeTime;
-}
-
 int CvImprovementInfo::getPillageGold() const
 {
 	return m_iPillageGold;
-}
-
-int CvImprovementInfo::getImprovementPillage() const
-{
-	return m_iImprovementPillage;
 }
 
 const TCHAR* CvImprovementInfo::getArtDefineTag() const
@@ -1154,7 +1144,7 @@ ImprovementTypes CvImprovementInfo::finalUpgrade(ImprovementTypes eImprov)
 		return NO_IMPROVEMENT;
 	int iLoopDetector = GC.getNumImprovementInfos();
 	while (GC.getInfo(eImprov).getImprovementUpgrade() != NO_IMPROVEMENT && --iLoopDetector > 0)
-		eImprov = (ImprovementTypes)GC.getInfo(eImprov).getImprovementUpgrade();
+		eImprov = GC.getInfo(eImprov).getImprovementUpgrade();
 	return (iLoopDetector == 0 ? NO_IMPROVEMENT : eImprov);
 } // K-Mod end
 
@@ -1197,8 +1187,8 @@ void CvImprovementInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iDefenseModifier);
 	stream->Read(&m_iHappiness);
 	stream->Read(&m_iPillageGold);
-	stream->Read(&m_iImprovementPillage);
-	stream->Read(&m_iImprovementUpgrade);
+	stream->Read((int*)&m_eImprovementPillage);
+	stream->Read((int*)&m_eImprovementUpgrade);
 	stream->Read(&m_bActsAsCity);
 	stream->Read(&m_bHillsMakesValid);
 	stream->Read(&m_bFreshWaterMakesValid);
@@ -1284,8 +1274,8 @@ void CvImprovementInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iDefenseModifier);
 	stream->Write(m_iHappiness);
 	stream->Write(m_iPillageGold);
-	stream->Write(m_iImprovementPillage);
-	stream->Write(m_iImprovementUpgrade);
+	stream->Write(m_eImprovementPillage);
+	stream->Write(m_eImprovementUpgrade);
 	stream->Write(m_bActsAsCity);
 	stream->Write(m_bHillsMakesValid);
 	stream->Write(m_bFreshWaterMakesValid);
@@ -1462,10 +1452,10 @@ bool CvImprovementInfo::readPass2(CvXMLLoadUtility* pXML)
 	CvString szTextVal;
 
 	pXML->GetChildXmlValByName(szTextVal, "ImprovementPillage");
-	m_iImprovementPillage = GC.getInfoTypeForString(szTextVal);
+	m_eImprovementPillage = (ImprovementTypes)GC.getInfoTypeForString(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "ImprovementUpgrade");
-	m_iImprovementUpgrade = GC.getInfoTypeForString(szTextVal);
+	m_eImprovementUpgrade = (ImprovementTypes)GC.getInfoTypeForString(szTextVal);
 
 	return true;
 }

@@ -1332,14 +1332,14 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 			bRemoveFeature = bRemove;
 		}
 	}
-	TechTypes eTradeTech = (TechTypes)GC.getInfo(eBonus).getTechCityTrade();
+	TechTypes eTradeTech = GC.getInfo(eBonus).getTechCityTrade();
 	bCanTradeSoon = (bCanTradeSoon && isNearTech(eTradeTech));
 	bCanTrade = (bCanTrade && bCanTradeSoon && kTeam.isHasTech(eTradeTech));
 	/*  <advc.108> Depending on the NormalizationLevel, eBonus can be unrevealed
 		when placing starting locations. */
 	if (kSet.isStartingLoc())
 	{
-		TechTypes eRevealTech = (TechTypes)GC.getInfo(eBonus).getTechReveal();
+		TechTypes eRevealTech = GC.getInfo(eBonus).getTechReveal();
 		if (!isNearTech(eTradeTech))
 		{
 			bCanTradeSoon = false;

@@ -1750,8 +1750,8 @@ void CvGame::normalizeAddFoodBonuses()  // advc: style changes
 				CvBonusInfo const& kBonus = GC.getInfo(eBonus);
 				if (kBonus.getYieldChange(YIELD_FOOD) > 0)
 				{
-					if (kBonus.getTechCityTrade() == NO_TECH || GC.getInfo((TechTypes)
-						kBonus.getTechCityTrade()).getEra() <= getStartEra())
+					if (kBonus.getTechCityTrade() == NO_TECH ||
+						GC.getInfo(kBonus.getTechCityTrade()).getEra() <= getStartEra())
 					{
 						if (p.isWater())
 							iFoodBonus += 2;
@@ -1767,7 +1767,9 @@ void CvGame::normalizeAddFoodBonuses()  // advc: style changes
 							int iHighFoodThreshold = 2*iFoodPerPop; // ie. 4 food.
 							bool bHighFood = iNaturalFood + 1 >= iHighFoodThreshold; // (+1 just as a shortcut to save time for obvious cases.)
 
-							for (ImprovementTypes eImp = (ImprovementTypes)0; !bHighFood && eImp < GC.getNumImprovementInfos(); eImp=(ImprovementTypes)(eImp+1))
+							for (ImprovementTypes eImp = (ImprovementTypes)0;
+								!bHighFood && eImp < GC.getNumImprovementInfos();
+								eImp=(ImprovementTypes)(eImp+1))
 							{
 								if (GC.getInfo(eImp).isImprovementBonusTrade(eBonus))
 								{
@@ -1808,12 +1810,12 @@ void CvGame::normalizeAddFoodBonuses()  // advc: style changes
 					continue;
 
 				if (kLoopBonus.getTechCityTrade() != NO_TECH &&
-					GC.getInfo((TechTypes)kLoopBonus.getTechCityTrade()).
+					GC.getInfo(kLoopBonus.getTechCityTrade()).
 					getEra() > getStartEra())
 				{
 					continue;
 				}
-				if (!GET_TEAM(kPlayer.getTeam()).isHasTech((TechTypes)kLoopBonus.getTechReveal()))
+				if (!GET_TEAM(kPlayer.getTeam()).isHasTech(kLoopBonus.getTechReveal()))
 					continue;
 				// <advc.108> Don't place the food resource on a bad feature
 				FeatureTypes const eFeature = p.getFeatureType();
@@ -1822,7 +1824,8 @@ void CvGame::normalizeAddFoodBonuses()  // advc: style changes
 				{
 					CvFeatureInfo& kFeature = GC.getInfo(eFeature);
 					bValid = false;
-					if(m_eNormalizationLevel >= NORMALIZE_HIGH || kFeature.getYieldChange(YIELD_FOOD) > 0 ||
+					if(m_eNormalizationLevel >= NORMALIZE_HIGH ||
+						kFeature.getYieldChange(YIELD_FOOD) > 0 ||
 						kFeature.getYieldChange(YIELD_PRODUCTION) > 0)
 					{
 						bValid = true;
@@ -2239,7 +2242,7 @@ bool CvGame::isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
 		return false;
 	}
 	if (kBonus.getTechCityTrade() != NO_TECH &&
-		GC.getInfo((TechTypes)(kBonus.getTechCityTrade())).getEra() > getStartEra())
+		GC.getInfo(kBonus.getTechCityTrade()).getEra() > getStartEra())
 	{
 		return false;
 	}
@@ -7649,7 +7652,7 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a)
 		TechTypes eAndBonusTech = NO_TECH;
 		if (eAndBonus != NO_BONUS)
 		{
-			eAndBonusTech = (TechTypes)GC.getInfo(eAndBonus).getTechCityTrade();
+			eAndBonusTech = GC.getInfo(eAndBonus).getTechCityTrade();
 			if((eAndBonusTech != NO_TECH &&
 				!GET_TEAM(BARBARIAN_TEAM).isHasTech(eAndBonusTech)) ||
 				!a.hasAnyAreaPlayerBonus(eAndBonus))
@@ -7677,15 +7680,15 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a)
 			if(eOrBonus == NO_BONUS)
 				continue;
 			CvBonusInfo const& kOrBonus = GC.getInfo(eOrBonus);
-			TechTypes eOrBonusTech = (TechTypes)kOrBonus.getTechCityTrade();
+			TechTypes eOrBonusTech = kOrBonus.getTechCityTrade();
 			if (eOrBonusTech != NO_TECH)
 			{
 				bRequires = true;
-				if (GET_TEAM(BARBARIAN_TEAM).isHasTech(eOrBonusTech)
+				if (GET_TEAM(BARBARIAN_TEAM).isHasTech(eOrBonusTech) &&
 					/*  advc.301: Also require the resource to be connected by
 						someone on this continent; in particular, don't spawn
 						Horse Archers on a horseless continent. */
-					&& a.hasAnyAreaPlayerBonus(eOrBonus))
+					a.hasAnyAreaPlayerBonus(eOrBonus))
 				{
 					bFound = true;
 					break;

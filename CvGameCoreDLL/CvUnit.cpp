@@ -4164,7 +4164,7 @@ bool CvUnit::airBomb(int iX, int iY)
 							szBuffer, kPlot, "AS2D_PILLAGED", MESSAGE_TYPE_INFO,
 							getButton(), GC.getColorType("RED"));
 				}
-				kPlot.setImprovementType((ImprovementTypes)(GC.getInfo(kPlot.getImprovementType()).getImprovementPillage()));
+				kPlot.setImprovementType(GC.getInfo(kPlot.getImprovementType()).getImprovementPillage());
 			}
 			else
 			{
@@ -4443,8 +4443,8 @@ bool CvUnit::pillage()
 				}
 			}
 		}
-		kPlot.setImprovementType((ImprovementTypes)GC.getInfo(
-				kPlot.getImprovementType()).getImprovementPillage());
+		kPlot.setImprovementType(GC.getInfo(kPlot.getImprovementType()).
+				getImprovementPillage());
 	}
 	else if (kPlot.isRoute())
 	{
@@ -4691,8 +4691,8 @@ bool CvUnit::sabotage()
 	CvWString szBuffer;
 	if (!bCaught)
 	{
-		kPlot.setImprovementType((ImprovementTypes)
-				GC.getInfo(kPlot.getImprovementType()).getImprovementPillage());
+		kPlot.setImprovementType(GC.getInfo(kPlot.getImprovementType()).
+				getImprovementPillage());
 		finishMoves();
 		CvCity* pNearestCity = GC.getMap().findCity(kPlot.getX(), kPlot.getY(),
 				kPlot.getOwner(), NO_TEAM, false);

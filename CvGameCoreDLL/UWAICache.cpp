@@ -928,7 +928,7 @@ void UWAICache::updateVassalScore(PlayerTypes civId) {
 	FOR_EACH_ENUM(Bonus) {
 		if(GET_TEAM(ownerId).isBonusObsolete(eLoopBonus))
 			continue;
-		TechTypes revealTech = (TechTypes)GC.getInfo(eLoopBonus).getTechReveal();
+		TechTypes revealTech = GC.getInfo(eLoopBonus).getTechReveal();
 		bool availableToMaster = false;
 		if(GET_TEAM(ownerId).isHasTech(revealTech)) {
 			if(GET_PLAYER(ownerId).getNumAvailableBonuses(eLoopBonus) > 0) {

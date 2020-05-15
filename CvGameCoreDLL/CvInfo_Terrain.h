@@ -202,9 +202,9 @@ public: // All the const functions are exposed to Python
 	int getBonusClassType() const;
 	int getChar() const;
 	void setChar(int i);
-	inline int getTechReveal() const { return m_iTechReveal; }
-	inline int getTechCityTrade() const { return m_iTechCityTrade; }
-	inline int getTechObsolete() const { return m_iTechObsolete; }
+	inline TechTypes getTechReveal() const { return m_eTechReveal; }
+	inline TechTypes getTechCityTrade() const { return m_eTechCityTrade; }
+	inline TechTypes getTechObsolete() const { return m_eTechObsolete; }
 	int getAITradeModifier() const;
 	int getAIObjective() const;
 	inline int getHealth() const { return m_iHealth; }
@@ -254,9 +254,9 @@ public: // All the const functions are exposed to Python
 protected:
 	int m_iBonusClassType;
 	int m_iChar;
-	int m_iTechReveal;
-	int m_iTechCityTrade;
-	int m_iTechObsolete;
+	TechTypes m_eTechReveal;
+	TechTypes m_eTechCityTrade;
+	TechTypes m_eTechObsolete;
 	int m_iAITradeModifier;
 	int m_iAIObjective;
 	int m_iHealth;
@@ -383,13 +383,13 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	int getTilesPerGoody() const;
 	int getGoodyUniqueRange() const;
 	int getFeatureGrowthProbability() const;
-	int getUpgradeTime() const;
+	inline int getUpgradeTime() const { return m_iUpgradeTime; }
 	inline int getAirBombDefense() const { return m_iAirBombDefense; }
 	inline int getDefenseModifier() const { return m_iDefenseModifier; }
 	inline int getHappiness() const { return m_iHappiness; }
 	int getPillageGold() const;
-	int getImprovementPillage() const;
-	int getImprovementUpgrade() const { return m_iImprovementUpgrade; }
+	ImprovementTypes getImprovementPillage() const { return m_eImprovementPillage; }
+	ImprovementTypes getImprovementUpgrade() const { return m_eImprovementUpgrade; }
 
 	inline bool isActsAsCity() const { return m_bActsAsCity; }
 	inline bool isHillsMakesValid() const { return m_bHillsMakesValid; }
@@ -467,8 +467,8 @@ protected:
 	int m_iDefenseModifier;
 	int m_iHappiness;
 	int m_iPillageGold;
-	int m_iImprovementPillage;
-	int m_iImprovementUpgrade;
+	ImprovementTypes m_eImprovementPillage;
+	ImprovementTypes m_eImprovementUpgrade;
 	int m_iWorldSoundscapeScriptId;
 
 	CvString m_szArtDefineTag;

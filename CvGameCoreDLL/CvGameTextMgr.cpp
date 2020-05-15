@@ -4707,15 +4707,14 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 				szString.append(szTempBuffer);
 			}
 			CvWStringBuffer szReqs; // advc.047
-			if (!GET_TEAM(eActiveTeam).isHasTech((TechTypes)GC.getInfo(eBonus).getTechCityTrade()))
+			if (!GET_TEAM(eActiveTeam).isHasTech(GC.getInfo(eBonus).getTechCityTrade()))
 			{
 				/*szString.append(gDLL->getText("TXT_KEY_PLOT_RESEARCH",
 					GC.getInfo((TechTypes)GC.getInfo(eBonus).
 					getTechCityTrade()).getTextKeyWide())); */
 				// <advc.047>
 				szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"),
-						GC.getInfo((TechTypes)GC.getInfo(eBonus).
-						getTechCityTrade()).getText());
+						GC.getInfo(GC.getInfo(eBonus).getTechCityTrade()).getText());
 				szReqs.append(szTempBuffer);
 			}
 			bool bCity = pPlot->isCity();
@@ -4942,11 +4941,13 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			{
 				int iTurns = pPlot->getUpgradeTimeLeft(ePlotImprovement, eRevealedOwner);
 
-				szString.append(gDLL->getText("TXT_KEY_PLOT_IMP_UPGRADE", iTurns, GC.getInfo((ImprovementTypes) GC.getInfo(ePlotImprovement).getImprovementUpgrade()).getTextKeyWide()));
+				szString.append(gDLL->getText("TXT_KEY_PLOT_IMP_UPGRADE", iTurns,
+						GC.getInfo(GC.getInfo(ePlotImprovement).getImprovementUpgrade()).getTextKeyWide()));
 			}
 			else
 			{
-				szString.append(gDLL->getText("TXT_KEY_PLOT_WORK_TO_UPGRADE", GC.getInfo((ImprovementTypes) GC.getInfo(ePlotImprovement).getImprovementUpgrade()).getTextKeyWide()));
+				szString.append(gDLL->getText("TXT_KEY_PLOT_WORK_TO_UPGRADE",
+						GC.getInfo(GC.getInfo(ePlotImprovement).getImprovementUpgrade()).getTextKeyWide()));
 			}
 		}
 	}
@@ -5454,42 +5455,44 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 			std::vector<int> viBonusClassRevealed(GC.getNumBonusClassInfos(), 0);
 			std::vector<int> viBonusClassUnrevealed(GC.getNumBonusClassInfos(), 0);
 			std::vector<int> viBonusClassHave(GC.getNumBonusClassInfos(), 0);
-			for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
+			FOR_EACH_ENUM(Bonus)
 			{
-				TechTypes eRevealTech = (TechTypes)GC.getInfo((BonusTypes)iI).getTechReveal();
-				BonusClassTypes eBonusClass = (BonusClassTypes)GC.getInfo((BonusTypes)iI).getBonusClassType();
+				TechTypes eRevealTech = GC.getInfo(eLoopBonus).getTechReveal();
+				BonusClassTypes eBonusClass = (BonusClassTypes)GC.getInfo(eLoopBonus).getBonusClassType();
 				if (eRevealTech != NO_TECH)
 				{
 					if ((GET_TEAM(kPlot.getTeam()).isHasTech(eRevealTech)))
 						viBonusClassRevealed[eBonusClass]++;
 					else viBonusClassUnrevealed[eBonusClass]++;
-					if (kOwner.getNumAvailableBonuses((BonusTypes)iI) > 0)
+					if (kOwner.getNumAvailableBonuses(eLoopBonus) > 0)
 						viBonusClassHave[eBonusClass]++;
-					else if (kOwner.AI_countOwnedBonuses((BonusTypes)iI) > 0)
+					else if (kOwner.AI_countOwnedBonuses(eLoopBonus) > 0)
 						viBonusClassHave[eBonusClass]++;
 				}
 			}
 			bool bDummy;
-			for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
+			FOR_EACH_ENUM(Tech)
 			{
-				int iPathLength = kOwner.findPathLength(((TechTypes)iI), false);
-				if (iPathLength <= 3 && !GET_TEAM(kPlot.getTeam()).isHasTech((TechTypes)iI))
+				int iPathLength = kOwner.findPathLength(eLoopTech, false);
+				if (iPathLength <= 3 && !GET_TEAM(kPlot.getTeam()).isHasTech(eLoopTech))
 				{
 					szString.append(CvWString::format(L"\n%s(%d)=%8d",
-							GC.getInfo((TechTypes)iI).getDescription(),
-							iPathLength, kOwner.AI_techValue((TechTypes)iI,
+							GC.getInfo(eLoopTech).getDescription(),
+							iPathLength, kOwner.AI_techValue(eLoopTech,
 							1, false, true, viBonusClassRevealed,
 							viBonusClassUnrevealed, viBonusClassHave)));
-					szString.append(CvWString::format(L" (bld:%d, ", kOwner.AI_techBuildingValue((TechTypes)iI, true, bDummy)));
-					int iObs = kOwner.AI_obsoleteBuildingPenalty((TechTypes)iI, true);
+					szString.append(CvWString::format(L" (bld:%d, ",
+							kOwner.AI_techBuildingValue(eLoopTech, true, bDummy)));
+					int iObs = kOwner.AI_obsoleteBuildingPenalty(eLoopTech, true);
 					if (iObs != 0)
 						szString.append(CvWString::format(L"obs:%d, ", -iObs));
 					// <k146>
-					int iPrj = kOwner.AI_techProjectValue((TechTypes)iI, 1, bDummy);
+					int iPrj = kOwner.AI_techProjectValue(eLoopTech, 1, bDummy);
 					if (iPrj != 0)
 						szString.append(CvWString::format(L"prj:%d, ", iPrj));
 					// </k146>
-					szString.append(CvWString::format(L"unt:%d)", kOwner.AI_techUnitValue((TechTypes)iI, 1, bDummy)));
+					szString.append(CvWString::format(L"unt:%d)",
+							kOwner.AI_techUnitValue(eLoopTech, 1, bDummy)));
 				}
 			}
 		}
@@ -5503,8 +5506,10 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 			int iNumOtherCitySites = (kPlot.waterArea() == NULL) ? 0 :
 					kPlayer.AI_getNumAdjacentAreaCitySites(
 					iOtherSiteBestValue, *kPlot.waterArea(), kPlot.area());
-			szString.append(CvWString::format(L"\n\nArea Sites = %d (%d)", iNumAreaCitySites, iAreaSiteBestValue));
-			szString.append(CvWString::format(L"\nOther Sites = %d (%d)", iNumOtherCitySites, iOtherSiteBestValue));
+			szString.append(CvWString::format(L"\n\nArea Sites = %d (%d)",
+					iNumAreaCitySites, iAreaSiteBestValue));
+			szString.append(CvWString::format(L"\nOther Sites = %d (%d)",
+					iNumOtherCitySites, iOtherSiteBestValue));
 		}
 	}
 	else if (kPlot.getOwner() != NO_PLAYER && pPlotCity == NULL)
@@ -8048,13 +8053,15 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 	{
 		bFirst = true;
 
-		for (iI = 0; iI < GC.getNumImprovementInfos(); ++iI)
+		FOR_EACH_ENUM(Improvement)
 		{
-			if (GC.getInfo((ImprovementTypes)iI).getImprovementUpgrade() != NO_IMPROVEMENT)
+			if (GC.getInfo(eLoopImprovement).getImprovementUpgrade() != NO_IMPROVEMENT)
 			{
-				szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_CIVIC_IMPROVEMENT_UPGRADE", kCivic.getImprovementUpgradeRateModifier()).c_str());
+				szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_CIVIC_IMPROVEMENT_UPGRADE",
+						kCivic.getImprovementUpgradeRateModifier()).c_str());
 				CvWString szImprovement;
-				szImprovement.Format(L"<link=literal>%s</link>", GC.getInfo((ImprovementTypes)iI).getDescription());
+				szImprovement.Format(L"<link=literal>%s</link>",
+						GC.getInfo(eLoopImprovement).getDescription());
 				setListHelp(szHelpText, szFirstBuffer, szImprovement, L", ", bFirst);
 				bFirst = false;
 			}
@@ -13961,7 +13968,8 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 			!GET_TEAM(eActivePlayer).isHasTech(eRevealTech))) // </advc.004w>
 		{
 			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_BONUS_REVEALED_BY", GC.getInfo((TechTypes)GC.getInfo(eBonus).getTechReveal()).getTextKeyWide()));
+			szBuffer.append(gDLL->getText("TXT_KEY_BONUS_REVEALED_BY",
+					GC.getInfo(GC.getInfo(eBonus).getTechReveal()).getTextKeyWide()));
 		}
 	}
 
@@ -15868,7 +15876,8 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 		int iTurns = GC.getGame().getImprovementUpgradeTime(eImprovement);
 
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_EVOLVES", GC.getInfo((ImprovementTypes) info.getImprovementUpgrade()).getTextKeyWide(), iTurns));
+		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_EVOLVES",
+				GC.getInfo(info.getImprovementUpgrade()).getTextKeyWide(), iTurns));
 	}
 
 	int iLast = -1;

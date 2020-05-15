@@ -2204,10 +2204,8 @@ bool CvTeam::hasBonus(BonusTypes eBonus) const
 
 bool CvTeam::isBonusObsolete(BonusTypes eBonus) const
 {
-	TechTypes eObsoleteTech = (TechTypes) GC.getInfo(eBonus).getTechObsolete();
-	if (eObsoleteTech != NO_TECH && isHasTech(eObsoleteTech))
-		return true;
-	return false;
+	TechTypes eObsoleteTech = GC.getInfo(eBonus).getTechObsolete();
+	return (eObsoleteTech != NO_TECH && isHasTech(eObsoleteTech));
 }
 
 /*  <advc.301>: Only used for Barbarians so far. Should arguably also check if the
@@ -4696,9 +4694,9 @@ bool CvTeam::doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTyp
 	const CvImprovementInfo& kImprovementInfo = GC.getInfo(eImprovement);
 	const CvBonusInfo& kBonusInfo = GC.getInfo(eBonus);
 
-	if (!isHasTech((TechTypes)kBonusInfo.getTechCityTrade()) ||
+	if (!isHasTech(kBonusInfo.getTechCityTrade()) ||
 		(kBonusInfo.getTechObsolete() != NO_TECH &&
-		isHasTech((TechTypes)kBonusInfo.getTechObsolete())))
+		isHasTech(kBonusInfo.getTechObsolete())))
 	{
 		return false;
 	}
@@ -4920,7 +4918,7 @@ bool CvTeam::isForceRevealedBonus(BonusTypes eBonus) const
 
 bool CvTeam::isBonusRevealed(BonusTypes eBonus) const // K-Mod
 {
-	return (isHasTech((TechTypes)GC.getInfo(eBonus).getTechReveal()) || isForceRevealedBonus(eBonus));
+	return (isHasTech(GC.getInfo(eBonus).getTechReveal()) || isForceRevealedBonus(eBonus));
 }
 
 // <advc.108> Based on CvPlayer::initFreeUnits
@@ -5132,8 +5130,10 @@ void CvTeam::updatePlotGroupBonus(TechTypes eTech, bool bAdd)
 			continue;
 		CvBonusInfo const& kBonus = GC.getInfo(eBonus);
 		if (kBonus.getTechReveal() == eTech || kBonus.getTechCityTrade() == eTech ||
-				kBonus.getTechObsolete() == eTech)
+			kBonus.getTechObsolete() == eTech)
+		{
 			kPlot.updatePlotGroupBonus(bAdd);
+		}
 	}
 }
 

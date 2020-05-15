@@ -6908,7 +6908,8 @@ int CvCityAI::AI_clearFeatureValue(CityPlotTypes ePlot) // advc.enum: CityPlotTy
 	// ... except the bit about keeping good features on top of bonuses
 	int iValue = 0;
 	BonusTypes eBonus = pPlot->getNonObsoleteBonusType(getTeam());
-	if (eBonus != NO_BONUS && !GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getInfo(eBonus).getTechCityTrade()))
+	if (eBonus != NO_BONUS &&
+		!GET_TEAM(getTeam()).isHasTech(GC.getInfo(eBonus).getTechCityTrade()))
 	{
 		iValue += kFeatureInfo.getYieldChange(YIELD_FOOD) * 100;
 		iValue += kFeatureInfo.getYieldChange(YIELD_PRODUCTION) * 80; // was 60
@@ -7045,10 +7046,14 @@ int CvCityAI::AI_getTargetPopulation() const
 	return iTargetSize;
 }
 
-// K-Mod note: This function was once used for Debug only, but I've made it the one and only way to get the yield multipliers.
-// This way we don't have to put up with duplicated code.
-// This function has been mostly rewritten for K-Mod. Some parts of the original code still exist (particularly near the end), but most of the old code is gone.
-void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMultiplier, int &iCommerceMultiplier, int &iDesiredFoodChange) const
+/*	K-Mod note: This function was once used for Debug only,
+	but I've made it the one and only way to get the yield multipliers.
+	This way we don't have to put up with duplicated code.
+	This function has been mostly rewritten for K-Mod.
+	Some parts of the original code still exist (particularly near the end),
+	but most of the old code is gone. */
+void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMultiplier,
+	int &iCommerceMultiplier, int &iDesiredFoodChange) const
 {
 	PROFILE_FUNC();
 
@@ -7109,7 +7114,8 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 		}
 	}
 
-	// I'd like to use AI_getTargetPopulation here, to avoid code duplication, but that would result in us doing a bunch of unneccessary recalculations.
+	/*	I'd like to use AI_getTargetPopulation here, to avoid code duplication,
+		but that would result in us doing a bunch of unneccessary recalculations. */
 	int iSpecialistCount = getSpecialistPopulation() - totalFreeSpecialists();
 	int iHealth = goodHealth() - badHealth();
 			// advc.120e: Mustn't de-emphasize food in response to spy attack!
@@ -7123,11 +7129,12 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 				TargetSize would be capped at 10, resulting in 3 bad health once the
 				city gets there. My formula sets TargetSize to 9 in this example.
 				1.55 to ensure that we round up when Health is even. */
-			::round(1.55 + getPopulation() + iHealth/2.0));
+			(fixp(1.55) + getPopulation() + scaled(iHealth, 2)).round());
 
 	if (iTargetSize < getPopulation())
 	{
-		iTargetSize = std::max(iTargetSize, getPopulation() - AI_countWorkedPoorPlots() + std::min(0, iHealth/2));
+		iTargetSize = std::max(iTargetSize, getPopulation() -
+				AI_countWorkedPoorPlots() + std::min(0, iHealth/2));
 	}
 
 	iTargetSize = std::min(iTargetSize, 1 + getPopulation()+(happyLevel()-unhappyLevel()));
@@ -7147,8 +7154,11 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 	int iFutureFoodAdjustment = 0;
 	if (iUnworkedPlots > 0)
 	{
-		// calculate approximately how much extra food we could work if we used our specialists and our extra population.
-		iFutureFoodAdjustment = std::min(iSpecialistCount + std::max(0, iTargetSize - getPopulation()), iUnworkedPlots) * aiUnworkedYield[YIELD_FOOD] / iUnworkedPlots;
+		/*	calculate approximately how much extra food we could work
+			if we used our specialists and our extra population. */
+		iFutureFoodAdjustment = (std::min(iUnworkedPlots,
+				iSpecialistCount + std::max(0, iTargetSize - getPopulation())) *
+				aiUnworkedYield[YIELD_FOOD]) / iUnworkedPlots;
 	}
 	iFoodTotal += iFutureFoodAdjustment;
 	iProductionTotal += aiUnworkedYield[YIELD_PRODUCTION];
@@ -7160,12 +7170,12 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 		   food surplus is desirable. The original formula doesn't seem to grow
 		   the cities fast enough. (The proper TargetSize is a different
 		   question, but if you want to grow, do so quickly.) */
-		int delta = iTargetSize - getPopulation() - 1; /*  TargetSize is often
+		int iDelta = iTargetSize - getPopulation() - 1; /*  TargetSize is often
 				one greater than what the current happiness supports. Not what I
 				want here, so subtract 1. */
-		if(delta <= 3)
-			iExtraFoodForGrowth = std::max(0, delta + 1);
-		else iExtraFoodForGrowth = delta;
+		if(iDelta <= 3)
+			iExtraFoodForGrowth = std::max(0, iDelta + 1);
+		else iExtraFoodForGrowth = iDelta;
 		// K-Mod formula now only for Barbarians:
 		if(isBarbarian()) // advc.300:
 			iExtraFoodForGrowth = (iTargetSize - getPopulation())/2 + 1;
@@ -7196,21 +7206,24 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 		iProductionMultiplier += 8 * (iProductionTarget - iProductionTotal);
 	}
 
-	// K-mod
-	if (kPlayer.AI_getFlavorValue(FLAVOR_PRODUCTION) > 0 || kPlayer.AI_getFlavorValue(FLAVOR_MILITARY) >= 10
-		|| isBarbarian()) // advc.300
+	// K-Mod.
+	if (kPlayer.AI_getFlavorValue(FLAVOR_PRODUCTION) > 0 ||
+		kPlayer.AI_getFlavorValue(FLAVOR_MILITARY) >= 10 ||
+		isBarbarian()) // advc.300
 	{
 		/* iProductionMultiplier *= 113 + 2 * kPlayer.AI_getFlavorValue(FLAVOR_PRODUCTION) + kPlayer.AI_getFlavorValue(FLAVOR_MILITARY);
 		iProductionMultiplier /= 100; */
 		iCommerceMultiplier *= 100;
-		iCommerceMultiplier /= 113 + 2 * kPlayer.AI_getFlavorValue(FLAVOR_PRODUCTION) + kPlayer.AI_getFlavorValue(FLAVOR_MILITARY);
+		iCommerceMultiplier /= 113 + 2 * kPlayer.AI_getFlavorValue(FLAVOR_PRODUCTION) +
+				kPlayer.AI_getFlavorValue(FLAVOR_MILITARY);
 	}
 	// K-Mod end
 	// <advc.300>
 	if(isBarbarian())
 		return; // </advc.300>
 	int iNetCommerce = kPlayer.AI_getAvailableIncome(); // K-Mod
-	int iNetExpenses = kPlayer.calculateInflatedCosts() + std::max(0, -kPlayer.getGoldPerTurn()); // unofficial patch
+	int iNetExpenses = kPlayer.calculateInflatedCosts() +
+			std::max(0, -kPlayer.getGoldPerTurn()); // unofficial patch
 
 	int iRatio = (100 * iNetExpenses) / std::max(1, iNetCommerce);
 
@@ -7283,7 +7296,8 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 			iProductionMultiplier += 20;
 			iCommerceMultiplier -= 20;
 		}
-		else if (findBaseYieldRateRank(YIELD_PRODUCTION) <= kPlayer.getNumCities()/3 && findBaseYieldRateRank(YIELD_PRODUCTION) < findBaseYieldRateRank(YIELD_COMMERCE))
+		else if (3 * findBaseYieldRateRank(YIELD_PRODUCTION) <= kPlayer.getNumCities() &&
+			findBaseYieldRateRank(YIELD_PRODUCTION) < findBaseYieldRateRank(YIELD_COMMERCE))
 		{
 			iProductionMultiplier += 10;
 			iCommerceMultiplier -= 10;
@@ -7305,22 +7319,24 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 	}
 
 	if (iProductionMultiplier < 100)
-	{
 		iProductionMultiplier = 10000 / (200 - iProductionMultiplier);
-	}
 	if (iCommerceMultiplier < 100)
-	{
 		iCommerceMultiplier = 10000 / (200 - iCommerceMultiplier);
-	}
 
 	// K-Mod. experimental food value
 	//iFoodMultiplier = (80 * iProduction + 40 * iCommerce) / (food needed for jobs)  * (Food needed for jobs + growth) / (food have total)
 	//iFoodMultiplier = (80 * iProductionMultiplier * iProductionTotal + 40 * iCommerceMultiplier * iCommerceTotal) * (iFoodTotal + iDesiredFoodChange) / std::max(1, 100 * iTargetSize * GC.getFOOD_CONSUMPTION_PER_POPULATION() * iFoodTotal);
 
-	// emphasise the yield that we are working, so that the weakest of the 'good' plots don't drag down the average quite so much.
-	// note: the multipliers on production and commerce should match the numbers used in AI_getImprovementValue.
-	iFoodMultiplier = 80 * iProductionMultiplier * (aiUnworkedYield[YIELD_PRODUCTION] + aiWorkedYield[YIELD_PRODUCTION] * 2) * (iUnworkedPlots + iWorkedPlots);
-	iFoodMultiplier += 40 * iCommerceMultiplier * (aiUnworkedYield[YIELD_COMMERCE] + aiWorkedYield[YIELD_COMMERCE] * 2) * (iUnworkedPlots + iWorkedPlots);
+	/*	emphasise the yield that we are working, so that
+		the weakest of the 'good' plots don't drag down the average quite so much.
+		note: the multipliers on production and commerce
+		should match the numbers used in AI_getImprovementValue. */
+	iFoodMultiplier = 80 * iProductionMultiplier *
+			(aiUnworkedYield[YIELD_PRODUCTION] + aiWorkedYield[YIELD_PRODUCTION] * 2) *
+			(iUnworkedPlots + iWorkedPlots);
+	iFoodMultiplier += 40 * iCommerceMultiplier *
+			(aiUnworkedYield[YIELD_COMMERCE] + aiWorkedYield[YIELD_COMMERCE] * 2) *
+			(iUnworkedPlots + iWorkedPlots);
 	iFoodMultiplier /= 100 * std::max(1, iUnworkedPlots + 2*iWorkedPlots);
 	iFoodMultiplier += 160 * iDesiredFoodChange;
 	iFoodMultiplier = std::max(iFoodMultiplier, 200); // (a minimum yield value for small cities.)
@@ -7329,7 +7345,9 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 	//iFoodMultiplier /= std::max(iTargetSize, getPopulation() + iUnworkedPlots - std::max(0, iDesiredFoodChange));
 
 	iFoodMultiplier *= (iFoodTotal + iDesiredFoodChange);
-	iFoodMultiplier /= std::max(1, (iUnworkedPlots + iWorkedPlots) * GC.getFOOD_CONSUMPTION_PER_POPULATION() * (iFoodTotal-iExtraFoodForGrowth));
+	iFoodMultiplier /= std::max(1, (iUnworkedPlots + iWorkedPlots) *
+			GC.getFOOD_CONSUMPTION_PER_POPULATION() *
+			(iFoodTotal-iExtraFoodForGrowth));
 
 	// Note: this food multiplier calculation still doesn't account for possible food yield multipliers. Sorry.
 
@@ -7341,9 +7359,7 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 	// K-Mod end
 
 	if (iFoodMultiplier < 100)
-	{
 		iFoodMultiplier = 10000 / (200 - iFoodMultiplier);
-	}
 }
 
 // advc: Made the plot param const
@@ -7412,7 +7428,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 	if (eFinalImprovement == NO_IMPROVEMENT)
 		eFinalImprovement = eImprovement;
 
-	int iValue = 0;
+	scaled rValue;
 	//int aiDiffYields[NUM_YIELD_TYPES]; // removed by K-Mod (replaced by time-weighted yields!)
 	//int aiFinalYields[NUM_YIELD_TYPES];
 
@@ -7422,8 +7438,8 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 		if (kOwner.doesImprovementConnectBonus(eFinalImprovement, eNonObsoleteBonus))
 		{
 			// K-Mod
-			iValue += (kOwner.AI_bonusVal(eNonObsoleteBonus, 1) * 50);
-			iValue += 100;
+			rValue += kOwner.AI_bonusVal(eNonObsoleteBonus, 1) * 50;
+			rValue += 100;
 			// K-Mod end
 			/* <advc.121> Make sure the AI prefers improvements with yields over
 				Forts. Don't want to rule out Forts altogether b/c of Gems in a
@@ -7433,7 +7449,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 			for(int i = 0; i < NUM_YIELD_TYPES; i++)
 				iImprYieldChange += imp.getYieldChange(i);
 			if(iImprYieldChange <= 0 && kPlot.getWorkingCity() != NULL)
-				iValue /= 5;
+				rValue /= 5;
 			// </advc.121>
 		}
 		else
@@ -7444,21 +7460,21 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 			if (kOwner.doesImprovementConnectBonus(kPlot.getImprovementType(), eNonObsoleteBonus))
 			{
 				// By the way, AI_bonusVal is typically 10 for the first bonus, and 2 for subsequent.
-				iValue -= (kOwner.AI_bonusVal(eNonObsoleteBonus, -1) * 50);
-				iValue -= 100;
+				rValue -= kOwner.AI_bonusVal(eNonObsoleteBonus, -1) * 50;
+				rValue -= 100;
 			}
 		}
 	}
 	else
 	{
-		for (int iJ = 0; iJ < GC.getNumBonusInfos(); iJ++)
+		FOR_EACH_ENUM(Bonus)
 		{
-			if (GC.getInfo(eFinalImprovement).getImprovementBonusDiscoverRand(iJ) > 0)
-				iValue++;
+			if (GC.getInfo(eFinalImprovement).getImprovementBonusDiscoverRand(eLoopBonus) > 0)
+				rValue++;
 		}
 	}
 
-	//if (iValue >= 0) // condition disabled by K-Mod. (maybe the yield will be worth it!)
+	//if (rValue >= 0) // condition disabled by K-Mod. (maybe the yield will be worth it!)
 	// K-Mod. Get a weighted average of the yields for improvements which upgrade (eg. cottages).
 	int iTimeScale = 60;
 	iTimeScale += (100*GC.getGame().getElapsedGameTurns()/GC.getGame().getEstimateEndTurn() < 30 ? 10 : 0);
@@ -7483,16 +7499,19 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 	iTimeScale = iTimeScale * GC.getInfo(GC.getGame().getStartEra()).getImprovementPercent()/100;
 	iTimeScale = iTimeScale / kOwner.getImprovementUpgradeRate();
 
-	std::vector<float> weighted_final_yields(NUM_YIELD_TYPES);
-	std::vector<float> weighted_yield_diffs(NUM_YIELD_TYPES);
+	std::vector<scaled> weighted_final_yields(NUM_YIELD_TYPES);
+	std::vector<scaled> weighted_yield_diffs(NUM_YIELD_TYPES);
 
 	// Getting the time-weighted yields for the new and old improvements; then use them to calculate the final yield and yield difference.
 	AI_timeWeightedImprovementYields(&kPlot, eImprovement, iTimeScale, weighted_final_yields);
 	AI_timeWeightedImprovementYields(&kPlot, kPlot.getImprovementType(), iTimeScale, weighted_yield_diffs);
-	for (int iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
+	FOR_EACH_ENUM(Yield)
 	{
-		weighted_final_yields[iJ] += kPlot.calculateNatureYield((YieldTypes)iJ, getTeam(), bIgnoreFeature);
-		weighted_yield_diffs[iJ] = weighted_final_yields[iJ] - (weighted_yield_diffs[iJ] + kPlot.calculateNatureYield((YieldTypes)iJ, getTeam()));
+		weighted_final_yields[eLoopYield] += kPlot.calculateNatureYield(
+				eLoopYield, getTeam(), bIgnoreFeature);
+		weighted_yield_diffs[eLoopYield] = weighted_final_yields[eLoopYield] -
+				(weighted_yield_diffs[eLoopYield] +
+				kPlot.calculateNatureYield(eLoopYield, getTeam()));
 	}
 
 	// K-Mod
@@ -7504,50 +7523,56 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 	int iCorrectedFoodPriority = iFoodPriority;
 	if (weighted_yield_diffs[YIELD_FOOD] != 0 && isWorkingPlot(&kPlot))
 	{
+		/*	16 is arbitrary. It would be possible to get something better
+			using targetPop and so on, but that would be slower... */
 		int iTotalFood = 16 * GC.getFOOD_CONSUMPTION_PER_POPULATION();
-		// 16 is arbitrary. It would be possible to get something better using targetPop and so on, but that would be slower...
-		iCorrectedFoodPriority = (int)(iCorrectedFoodPriority * (iTotalFood - weighted_yield_diffs[YIELD_FOOD]) / std::max(1, iTotalFood));
+		iCorrectedFoodPriority = (iCorrectedFoodPriority *
+				(iTotalFood - weighted_yield_diffs[YIELD_FOOD]) /
+				std::max(1, iTotalFood)).round();
 	}
-	FAssert(iCorrectedFoodPriority == iFoodPriority || (iCorrectedFoodPriority < iFoodPriority == weighted_yield_diffs[YIELD_FOOD] > 0));
+	FAssert(iCorrectedFoodPriority == iFoodPriority ||
+			(iCorrectedFoodPriority < iFoodPriority == weighted_yield_diffs[YIELD_FOOD] > 0));
 	// This corrected priority isn't perfect, but I think it will be better than nothing.
 	// K-Mod end
 
-	iValue += (int)(weighted_yield_diffs[YIELD_FOOD] * 100 * iCorrectedFoodPriority / 100);
-	iValue += (int)(weighted_yield_diffs[YIELD_PRODUCTION] * 80 * iProductionPriority / 100); // was 60
-	iValue += (int)(weighted_yield_diffs[YIELD_COMMERCE] * 40 * iCommercePriority / 100);
+	rValue += weighted_yield_diffs[YIELD_FOOD] * iCorrectedFoodPriority;
+	rValue += weighted_yield_diffs[YIELD_PRODUCTION] * iProductionPriority * fixp(0.8); // was 0.6
+	rValue += weighted_yield_diffs[YIELD_COMMERCE] * iCommercePriority * fixp(0.4);
 
 	// K-Mod. If we're going to have too much food regardless of the improvement on this plot, then reduce the food value
-	if (iDesiredFoodChange < 0 && -iDesiredFoodChange >= weighted_final_yields[YIELD_FOOD] - weighted_yield_diffs[YIELD_FOOD])
+	if (iDesiredFoodChange < 0 && -iDesiredFoodChange >=
+		weighted_final_yields[YIELD_FOOD] - weighted_yield_diffs[YIELD_FOOD])
 	{
-		iValue -= (int)(weighted_yield_diffs[YIELD_FOOD] * iCorrectedFoodPriority * 40 / 100); // reduce the weight of food. (cf. values above.)
+		 // reduce the weight of food. (cf. values above.)
+		rValue -= weighted_yield_diffs[YIELD_FOOD] * iCorrectedFoodPriority * fixp(0.4);
 	} // K-Mod end
 
-	if (iValue > 0)
+	if (rValue > 0)
 	{
 		// this is mainly to make it improve better tiles first
 		//flood plain > grassland > plain > tundra
-		iValue += (int)(weighted_final_yields[YIELD_FOOD] * 8); // was 10
-		iValue += (int)(weighted_final_yields[YIELD_PRODUCTION] * 7); // was 6
-		iValue += (int)(weighted_final_yields[YIELD_COMMERCE] * 4);
+		rValue += weighted_final_yields[YIELD_FOOD] * 8; // was 10
+		rValue += weighted_final_yields[YIELD_PRODUCTION] * 7; // was 6
+		rValue += weighted_final_yields[YIELD_COMMERCE] * 4;
 
 		if (weighted_final_yields[YIELD_FOOD] >= GC.getFOOD_CONSUMPTION_PER_POPULATION())
 		{
 			//this is a food yielding tile
 			if (iCorrectedFoodPriority > 100)
-			{
-				iValue *= 100 + iCorrectedFoodPriority;
-				iValue /= 200;
-			}
+				rValue.mulDiv(100 + iCorrectedFoodPriority, 200);
 			if (iDesiredFoodChange > 0)
 			{
 				//iValue += (10 * (1 + aiDiffYields[YIELD_FOOD]) * (1 + aiFinalYields[YIELD_FOOD] - GC.getFOOD_CONSUMPTION_PER_POPULATION()) * iDesiredFoodChange * iCorrectedFoodPriority) / 100;
-				iValue += (int)(10 * (1 + weighted_yield_diffs[YIELD_FOOD]) * (1 + weighted_final_yields[YIELD_FOOD] - GC.getFOOD_CONSUMPTION_PER_POPULATION()) * std::min(1 + iDesiredFoodChange/3, 4) * iCorrectedFoodPriority / 100); // K-Mod
+				// <K-Mod>
+				rValue += (10 * (1 + weighted_yield_diffs[YIELD_FOOD]) *
+						(1 + weighted_final_yields[YIELD_FOOD] - GC.getFOOD_CONSUMPTION_PER_POPULATION()) *
+						std::min(1 + iDesiredFoodChange / 3, 4) * iCorrectedFoodPriority) / 100; // </K-Mod>
 			}
 			if (iCommercePriority > 100)
 			{
 				//iValue *= 100 + (((iCommercePriority - 100) * aiDiffYields[YIELD_COMMERCE]) / 2);
 				//iValue /= 100;
-				iValue += (int)(iValue*((iCommercePriority - 100) * weighted_yield_diffs[YIELD_COMMERCE]))/200;
+				rValue += (rValue * ((iCommercePriority - 100) * weighted_yield_diffs[YIELD_COMMERCE])) / 200;
 			}
 		}
 		/* else if (aiFinalYields[YIELD_FOOD] < GC.getFOOD_CONSUMPTION_PER_POPULATION()) {
@@ -7562,27 +7587,27 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 
 		if (iCorrectedFoodPriority < 100 && iProductionPriority > 100)
 		{
-			iValue *= (int)(200 + ((iProductionPriority - 100)*weighted_final_yields[YIELD_PRODUCTION]));
-			iValue /= 200;
+			rValue *= 200 + (iProductionPriority - 100) * weighted_final_yields[YIELD_PRODUCTION];
+			rValue /= 200;
 		}
 		if (eNonObsoleteBonus == NO_BONUS)
 		{
 			if (iDesiredFoodChange > 0)
 			{
 				//We want more food.
-				iValue *= 2 + std::max(0, (int)weighted_yield_diffs[YIELD_FOOD]);
-				iValue /= 2 * (1 + std::max(0, -(int)weighted_yield_diffs[YIELD_FOOD]));
+				rValue *= 2 + scaled::max(0, weighted_yield_diffs[YIELD_FOOD]);
+				rValue /= 2 * (1 + scaled::max(0, -weighted_yield_diffs[YIELD_FOOD]));
 			}
 		}
 	}
 
 	if (bEmphasizeIrrigation && GC.getInfo(eFinalImprovement).isCarriesIrrigation())
-		iValue += 500;
+		rValue += 500;
 	if (getImprovementFreeSpecialists(eFinalImprovement) > 0)
-		iValue += 2000;
+		rValue += 2000;
 	if (kOwner.getAdvancedStartPoints() < 0)
 	{	// <advc.901> Code moved into (recursive) auxiliary function
-		iValue += AI_healthHappyImprovementValue(kPlot, eImprovement, eFinalImprovement,
+		rValue += AI_healthHappyImprovementValue(kPlot, eImprovement, eFinalImprovement,
 				bIgnoreFeature, false); // </advc.901>
 	}
 	/*  <advc.131> When considering to replace an improvement, iValue is
@@ -7590,15 +7615,15 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 		new improvement is almost as good as the old one. Temporarily increase
 		the value to allow ImprovementWeightModifier to tip the scales. */
 	int const iPadding = 50;
-	iValue += iPadding; // </advc.131>
-	if (!isHuman() /* advc.131: */ && iValue > 0)
+	rValue += iPadding; // </advc.131>
+	if (!isHuman() /* advc.131: */ && rValue > 0)
 	{
-		iValue *= std::max(0, GC.getInfo(getPersonalityType()).
+		rValue *= std::max(0, GC.getInfo(getPersonalityType()).
 				// advc.005a: was +200
 				getImprovementWeightModifier(eFinalImprovement) + 100);
-		iValue /= 100; // advc.005a: was /=200
+		rValue /= 100; // advc.005a: was /=200
 	}
-	iValue -= iPadding; // advc.131
+	rValue -= iPadding; // advc.131
 	if (!kPlot.isImproved())
 	{
 		if (kPlot.isBeingWorked() &&
@@ -7606,8 +7631,8 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 			(iClearFeatureValue >= 0 || eBestTempBuild == NO_BUILD ||
 			!GC.getInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType())))
 		{
-			iValue *= 5;
-			iValue /= 4;
+			rValue *= 5;
+			rValue /= 4;
 		}
 		/*if (eBestTempBuild != NO_BUILD) {
 			if (kPlot.isFeature()) {
@@ -7623,7 +7648,8 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 	else
 	{
 		// cottage/villages (don't want to chop them up if turns have been invested)
-		ImprovementTypes eImprovementDowngrade = (ImprovementTypes)GC.getInfo(kPlot.getImprovementType()).getImprovementPillage();
+		ImprovementTypes eImprovementDowngrade = GC.getInfo(kPlot.getImprovementType()).
+				getImprovementPillage();
 		/*while (eImprovementDowngrade != NO_IMPROVEMENT) {
 			CvImprovementInfo& kImprovementDowngrade = GC.getInfo(eImprovementDowngrade);
 			iValue -= kImprovementDowngrade.getUpgradeTime() * 8;
@@ -7635,17 +7661,17 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 			std::set<ImprovementTypes> cited_improvements;
 			while (eImprovementDowngrade != NO_IMPROVEMENT && cited_improvements.insert(eImprovementDowngrade).second)
 			{
-				const CvImprovementInfo& kImprovementDowngrade = GC.getInfo(eImprovementDowngrade);
-				iValue -= kImprovementDowngrade.getUpgradeTime() * 8;
-				eImprovementDowngrade = (ImprovementTypes)kImprovementDowngrade.getImprovementPillage();
+				CvImprovementInfo const& kImprovementDowngrade = GC.getInfo(eImprovementDowngrade);
+				rValue -= kImprovementDowngrade.getUpgradeTime() * 8;
+				eImprovementDowngrade = kImprovementDowngrade.getImprovementPillage();
 			}
 		} // K-Mod end
 
 		if (GC.getInfo(kPlot.getImprovementType()).getImprovementUpgrade() != NO_IMPROVEMENT)
 		{
-			iValue -= (GC.getInfo(kPlot.getImprovementType()).
-					getUpgradeTime() * 8 * (kPlot.getUpgradeProgress())) / std::max(1,
-					GC.getGame().getImprovementUpgradeTime(kPlot.getImprovementType()));
+			rValue -= scaled(GC.getInfo(kPlot.getImprovementType()).
+					getUpgradeTime() * 8 * (kPlot.getUpgradeProgress()),
+					std::max(1, GC.getGame().getImprovementUpgradeTime(kPlot.getImprovementType())));
 		}
 		if (eNonObsoleteBonus == NO_BONUS)
 		{
@@ -7655,26 +7681,26 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 					weighted_final_yields[YIELD_FOOD] >= GC.getFOOD_CONSUMPTION_PER_POPULATION()) ||
 					GC.getInfo(kPlot.getImprovementType()).getImprovementPillage() != NO_IMPROVEMENT)
 				{
-					iValue -= 70;
-					iValue *= 2;
-					iValue /= 3;
+					rValue -= 70;
+					rValue.mulDiv(2, 3);
 				}
 			}
 		}
 		if (kOwner.isOption(PLAYEROPTION_SAFE_AUTOMATION))
-			iValue /= 4;	//Greatly prefer builds which are legal.
+			rValue /= 4; // Greatly prefer builds which are legal.
 	}
 	// K-Mod. Feature value. (moved from the 'no improvement' block above.)
-	if (kPlot.isFeature() && eBestTempBuild != NO_BUILD && GC.getInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()))
+	if (kPlot.isFeature() && eBestTempBuild != NO_BUILD &&
+		GC.getInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()))
 	{
 		/*CvCity* pCity; iValue += kPlot.getFeatureProduction(eBestTempBuild, getTeam(), &pCity) * 2; // handle chop value elsewhere
 		FAssert(pCity == this);*/
-		iValue += iClearFeatureValue;
+		rValue += iClearFeatureValue;
 	} // K-Mod end
 	if (peBestBuild != NULL)
 		*peBestBuild = eBestTempBuild;
 
-	return iValue;
+	return rValue.round();
 }
 
 /*  advc.901: Cut from AI_getImprovementValue so that benefits for nearby team cities
@@ -10424,55 +10450,64 @@ bool CvCityAI::AI_finalImprovementYieldDifference(/* advc: */ CvPlot const& kPlo
 }
 
 
-// For improvements which upgrade when worked, this function calculates a time-weighted average of their yields.
-// The average is calculated with continous weighting such that ~63% of the weight is in the time from now until 'time_scale' turns have past.
-// (More precisely, the weight drops exponentially w.r.t. the number of turns, decreasing by a factor of `e` for each `time_scale` turns.)
-bool CvCityAI::AI_timeWeightedImprovementYields(CvPlot const* pPlot, ImprovementTypes eImprovement, int time_scale, std::vector<float>& weighted_yields) const
+/*	For improvements which upgrade when worked, this function calculates
+	a time-weighted average of their yields.
+	The average is calculated with continous weighting such that
+	~63% of the weight is in the time from now until 'time_scale' turns have past.
+	(More precisely, the weight drops exponentially w.r.t. the number of turns,
+	decreasing by a factor of `e` for each `time_scale` turns.) */
+bool CvCityAI::AI_timeWeightedImprovementYields(CvPlot const* pPlot, ImprovementTypes eImprovement,
+	int iTimeScale, std::vector<scaled>& weighted_yields) const // advc: was vector<float>&
 {
 	PROFILE_FUNC();
 
-	FAssert(pPlot);
-	FAssert(time_scale > 0);
+	FAssert(pPlot != NULL);
+	FAssert(iTimeScale > 0);
 
-	// This is an experimental function, designed to be 'the right way' to evaluate improvements which upgrade over time, with no concern for calculation speed.
-	// If it isn't too slow, I'll use it for lots of things.
+	/*	This is an experimental function, designed to be 'the right way'
+		to evaluate improvements which upgrade over time,
+		with no concern for calculation speed.
+		If it isn't too slow, I'll use it for lots of things. */
 	// weighted yield = integral from 0 to inf. of (yield(t) * e^(-t/scale)), w.r.t.  t
 
 	weighted_yields.assign(NUM_YIELD_TYPES, 0);
 	std::set<ImprovementTypes> cited_improvements;
 	int iTotalTurns = 0;
 
-	while (eImprovement != NO_IMPROVEMENT && cited_improvements.insert(eImprovement).second)
+	while (eImprovement != NO_IMPROVEMENT &&
+		cited_improvements.insert(eImprovement).second)
 	{
-		const CvImprovementInfo& kImprovement = GC.getInfo(eImprovement);
+		CvImprovementInfo const& kImprovement = GC.getInfo(eImprovement);
 
 		// piecewise integration
-		// each piece is exp(-t0/T) - exp(t1/T)
-		const float value_factor = exp(-(float)iTotalTurns/time_scale) - (kImprovement.getImprovementUpgrade() != NO_IMPROVEMENT ? exp(-(float)(iTotalTurns+kImprovement.getUpgradeTime())/time_scale) : 0);
+		// each piece is exp(-t0/T) - exp(-t1/T)  [advc: The comment had said 't1' instead of '-t1']
+		scaled const rValueFactor = scaled(iTotalTurns, -iTimeScale).exp() -
+				(kImprovement.getImprovementUpgrade() == NO_IMPROVEMENT ? 0 :
+				scaled(iTotalTurns + kImprovement.getUpgradeTime(), -iTimeScale).exp());
 
-		for (YieldTypes i = (YieldTypes)0; i < NUM_YIELD_TYPES; i=(YieldTypes)(i+1))
+		FOR_EACH_ENUM(Yield)
 		{
-			int iYieldDiff = pPlot->calculateImprovementYieldChange(eImprovement, i, getOwner());
+			int iYieldDiff = pPlot->calculateImprovementYieldChange(eImprovement, eLoopYield, getOwner());
 			//if (kOwner.getExtraYieldThreshold(i) > 0) // todo: Extra yield for finacial civs (see AI_finalImprovementYieldDifference for guidence.)
 				// ;
 
-			weighted_yields[i] += iYieldDiff * value_factor;
+			weighted_yields[eLoopYield] += iYieldDiff * rValueFactor;
 		}
 
 		iTotalTurns += kImprovement.getUpgradeTime();
-		eImprovement = (ImprovementTypes)kImprovement.getImprovementUpgrade();
+		eImprovement = kImprovement.getImprovementUpgrade();
 	}
 
 	if (eImprovement != NO_IMPROVEMENT)
 	{
-		// If we didn't reach final improvemnet; normalise the yield values based on what we've got so far.
+		// If we didn't reach final improvement; normalise the yield values based on what we've got so far.
 		for (size_t i = 0; i < NUM_YIELD_TYPES; ++i)
 		{
-			weighted_yields[i] /= (1-exp(-(float)iTotalTurns/time_scale));
+			weighted_yields[i] /= (1 - scaled(iTotalTurns, -iTimeScale).exp());
 		}
 	}
-
-	return cited_improvements.size() > 1; // return true if the improvement had any upgrades
+	// return true if the improvement had any upgrades
+	return (cited_improvements.size() > 1);
 }
 
 // K-Mod. Value for working a plot in addition to its yields.
@@ -10497,7 +10532,7 @@ int CvCityAI::AI_specialPlotImprovementValue(CvPlot* pPlot) const
 		{
 			FOR_EACH_ENUM(Bonus)
 			{
-				if (GET_TEAM(getTeam()).isHasTech((TechTypes)(GC.getInfo(eLoopBonus).getTechReveal())))
+				if (GET_TEAM(getTeam()).isHasTech(GC.getInfo(eLoopBonus).getTechReveal()))
 				{
 					if (GC.getInfo(eImprovement).getImprovementBonusDiscoverRand(eLoopBonus) > 0)
 						iValue += 20;

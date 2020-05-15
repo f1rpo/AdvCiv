@@ -2965,23 +2965,20 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			else
 			{
 				int iLast = 0;
-				FAssertMsg(0 < GC.getNumBonusInfos(), "GC.getNumBonusInfos() is negative but an array is being allocated in CvDLLWidgetData::parseActionHelp_Mission");
-				for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
+				FOR_EACH_ENUM2(Bonus, eRandBonus)
 				{
-					BonusTypes eRandBonus = (BonusTypes)iI;
-					if (kUnitTeam.isHasTech((TechTypes)GC.getInfo(eRandBonus).
-							getTechReveal()))
+					if (kUnitTeam.isHasTech(GC.getInfo(eRandBonus).getTechReveal()))
 					{
-						if (kImprov.getImprovementBonusDiscoverRand(iI) > 0
-							&& kMissionPlot.canHaveBonus(eRandBonus, false, // advc.rom3
+						if (kImprov.getImprovementBonusDiscoverRand(eRandBonus) > 0 &&
+							kMissionPlot.canHaveBonus(eRandBonus, false, // advc.rom3
 							true)) // advc.129
 						{
 							szFirstBuffer.Format(L"%s%s", NEWLINE,
 									gDLL->getText("TXT_KEY_ACTION_CHANCE_DISCOVER").c_str());
 							szTempBuffer.Format(L"%c", GC.getInfo(eRandBonus).getChar());
 							setListHelp(szBuffer, szFirstBuffer, szTempBuffer, L", ",
-									kImprov.getImprovementBonusDiscoverRand(iI) != iLast);
-							iLast = kImprov.getImprovementBonusDiscoverRand(iI);
+									kImprov.getImprovementBonusDiscoverRand(eRandBonus) != iLast);
+							iLast = kImprov.getImprovementBonusDiscoverRand(eRandBonus);
 						}
 					}
 				}
@@ -3011,7 +3008,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_DEFENSE_MODIFIER",
 						kImprov.getDefenseModifier()));
 			}
-			ImprovementTypes eUpgr = (ImprovementTypes)kImprov.getImprovementUpgrade();
+			ImprovementTypes eUpgr = kImprov.getImprovementUpgrade();
 			if (eUpgr != NO_IMPROVEMENT)
 			{
 				int iTurns = kMissionPlot.getUpgradeTimeLeft(eImprovement,
