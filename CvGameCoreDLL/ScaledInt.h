@@ -3,8 +3,7 @@
 #ifndef SCALED_INT_H
 #define SCALED_INT_H
 
-/*	advc.fract: Header-only class template for fixed-point fractional numbers.
-	Working -- but still work in progress. */
+// advc.fract: Header-only class template for fixed-point fractional numbers
 
 #include "FixedPointPowTables.h" // Large lookup table, but ScaledInt.h gets precompiled.
 #include "TypeChoice.h"
@@ -90,9 +89,8 @@ CvString ScaledIntBase<Dummy>::szBuf = "";
 	IntType is the type of the underlying integer variable. Has to be an integral type.
 	__int64 isn't currently supported. For unsigned IntType, internal integer
 	divisions are rounded to the nearest IntType value in order to improve precision.
-	For signed INT types, this isn't guaranteed. (Known issue: The unsigned rounding
-	operations can lead to overflow.) Using an unsigned IntType also speeds up
-	multiplication.
+	For signed INT types, this isn't guaranteed. Using an unsigned IntType also
+	speeds up multiplication.
 
 	ScaledInt instances of different iSCALE values or different IntTypes can be mixed.
 	Multiplications, divisions and comparisons on differing scales will internally scale
@@ -363,6 +361,10 @@ public:
 		FAssert(!isNegative());
 		return powNonNegative(fromRational<1,2>());
 	}
+	__forceinline ScaledInt exp() const
+	{
+		return fromRational<27182818,10000000>().pow(*this);
+	}
 	__forceinline void exponentiate(ScaledInt rExp)
 	{
 		*this = pow(rExp);
@@ -426,7 +428,16 @@ public:
 	__forceinline bool isPositive() const { return (m_i > 0); }
 	__forceinline bool isNegative() const { return (bSIGNED && m_i < 0); }
 
-	__forceinline ScaledInt operator-() { return ScaledInt(-m_i); }
+	__forceinline ScaledInt operator-() const
+	{
+		BOOST_STATIC_ASSERT(bSIGNED);
+		#ifdef SCALED_INT_EXTRA_ASSERTS
+			FAssertMsg(m_i != MININT, "MININT can't be inverted");
+		#endif
+		ScaledInt r;
+		r.m_i = -m_i;
+		return r;
+	}
 
 	template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
 	__forceinline bool operator<(ScaledInt<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const
@@ -835,8 +846,8 @@ private:
 		Power Exponential Function in Embedded System" [sic] based on Newton's method.
 		That's probably faster and more accurate, but an implementation isn't
 		spelled out. Perhaps tbd.
-		Once the current implementation is used in some frequently executed code,
-		a test should be carried out in which the implementation is replaced with std::pow. */
+		I use the current implementation in some frequently executed code, and
+		replacing it with std::pow for a benchmark test made no appreciable difference. */
 	ScaledInt powNonNegative(ScaledInt rExp) const
 	{
 		/*	Base 0 or too close to it to make a difference given the precision of the algorithm.
@@ -855,7 +866,9 @@ private:
 		ScaledInt<iSCALE,uint> rProductOfPowersOfTwo(1);
 		IntType baseDiv = 1;
 		// Look up approximate result of 2^rExpFrac in precomputed table
-		FAssertBounds(0, 128, rExpFrac.m_i); // Tbd.: Don't keep this assert permanently
+		#ifdef SCALED_INT_EXTRA_ASSERTS
+			FAssertBounds(0, 128, rExpFrac.m_i);
+		#endif
 		ScaledInt<256,uint> rPowOfTwo; // Ex.: Array position [13] is 19, so rPowOfTwo=19/256
 		rPowOfTwo.m_i = FixedPointPowTables::powersOfTwoNormalized_256[rExpFrac.m_i];
 		++rPowOfTwo; // Denormalize (Ex.: 275/256; approximating 2^0.1)
@@ -870,7 +883,9 @@ private:
 		ScaledInt<256,uint> rLastFactor(1);
 		// Look up approximate result of ((*this)/baseDiv)^rExpFrac in precomputed table
 		int iLastBaseTimes64 = (ScaledInt<64,uint>(*this / baseDiv)).m_i; // Ex.: 42/64 approximating 5.2/8
-		FAssertBounds(0, 64+1, iLastBaseTimes64); // Tbd.: Don't keep this assert permanently
+		#ifdef SCALED_INT_EXTRA_ASSERTS
+			FAssertBounds(0, 64+1, iLastBaseTimes64);
+		#endif
 		if (rExpFrac.m_i != 0 && iLastBaseTimes64 != 64)
 		{
 			// Could be prone to cache misses :(
@@ -898,8 +913,8 @@ private:
 		return lNum * SCALE;
 	}
 
-	/*	Public only as a temporary measure for code bases that use floating-point numbers
-		and can't immediately replace them all with ScaledInt.
+	/*	Tbd.: Public only as a temporary measure for code bases that use
+		floating-point numbers and can't immediately replace them all with ScaledInt.
 		Converting from double to ScaledInt at runtime really defeats the
 		purpose of the ScaledInt class. */
 	public:
@@ -911,7 +926,7 @@ private:
 	}
 	private:
 
-	// Use specialization to avoid compiler error from calling std::abs with an unsigned arg
+	// Use specialization so that the non-branching (unsigned) version can be force-inlined
 	template<bool bSigned>
 	ScaledInt _abs() const;
 	template<>
@@ -920,11 +935,9 @@ private:
 		return *this;
 	}
 	template<>
-	__forceinline ScaledInt _abs<true>() const
+	ScaledInt _abs<true>() const
 	{
-		ScaledInt r;
-		r.m_i = std::abs(m_i);
-		return r;
+		return (isNegative() ? -(*this) : *this);
 	}
 };
 #pragma pack(pop)
@@ -1125,7 +1138,9 @@ template<ScaledInt_PARAMS>
 {
 	return (r <= i);
 }
-template<ScaledInt_PARAMS>
+/*	Can't guarantee here that only const expressions are used.
+	So floating-point operands will have to be wrapped in fixp. */
+/*template<ScaledInt_PARAMS>
 __forceinline bool operator<(double d, ScaledInt_T r)
 {
 	return (r > d);
@@ -1134,7 +1149,7 @@ template<ScaledInt_PARAMS>
 __forceinline bool operator>(double d, ScaledInt_T r)
 {
 	return (r < d);
-}
+}*/
 
 // Scale 2048 leads to INTMAX=1048575, i.e. 1024*1024-1.
 typedef ScaledInt<2048,int> scaled;
