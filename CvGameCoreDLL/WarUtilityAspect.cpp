@@ -3331,18 +3331,32 @@ void FairPlay::evaluate() {
 		return;
 	}
 	double uMinus = 0;
-	if(gameEra == startEra) {
-		/*  All bets off by turn 100, but, already by turn 50, the cost may
-			no longer be prohibitive. */
-		int iTargetTurn = 100;
-		// Allow earlier aggression on crowded maps
-		iTargetTurn = ::round(iTargetTurn *
-				((1 + 1.5 * (game.getRecommendedPlayers() /
-				(double)game.getCivPlayersEverAlive())) / 2.5));
-		int iElapsed = ::round(game.getElapsedGameTurns() / (trainMod / 10000.0));
-		int iTurnsRemaining = iTargetTurn - iElapsed - GC.getInfo(startEra).getStartPercent();
-		if(iTurnsRemaining > 0)
-			uMinus = std::pow(iTurnsRemaining / 2.0, 1.28);
+	/*  All bets off by turn 100, but, already by turn 50, the cost may
+		no longer be prohibitive. */
+	int iTargetTurn = 100;
+	// Allow earlier aggression on crowded maps
+	iTargetTurn = ::round(iTargetTurn *
+			((1 + 1.5 * (game.getRecommendedPlayers() /
+			(double)game.getCivPlayersEverAlive())) / 2.5));
+	int iElapsed = ::round(game.getElapsedGameTurns() / (trainMod / 10000.0));
+	int iTurnsRemaining = iTargetTurn - iElapsed - GC.getInfo(startEra).getStartPercent();
+	if(iTurnsRemaining > 0)
+	{
+		log("Fair-play turns remaining: %d", iTurnsRemaining);
+		uMinus = std::pow(iTurnsRemaining / 2.0, 1.28);
+		if(gameEra > startEra) {
+			log("The game era has surpassed the start era");
+			uMinus *= 2/3.;
+		}
+		if(they->getCurrentEra() > startEra) {
+			log("Their era has surpassed the start era");
+			uMinus *= 2/3.;
+		}
+		scaled scoreRatio(game.getPlayerScore(weId), game.getPlayerScore(theyId));
+		log("Score ratio: %s", scoreRatio.str(100).c_str());
+		scoreRatio -= fixp(0.1);
+		scoreRatio.clamp(fixp(0.4), fixp(5/3.));
+		uMinus *= scoreRatio.getDouble();
 	}
 	if(gameEra > 1) // Dogpiling remains an issue in the Classical era
 		return;
