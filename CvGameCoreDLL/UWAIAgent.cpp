@@ -1471,12 +1471,31 @@ DenialTypes UWAI::Team::makePeaceTrade(TeamTypes enemyId, TeamTypes brokerId) co
 		return DENIAL_JOKING;
 	bool const bEnemyWillTalk = GET_PLAYER(GET_TEAM(agentId).getLeaderID()).
 			canContact(GET_TEAM(enemyId).getLeaderID(), true);
-	if(!bEnemyWillTalk && gDLL->isDiplomacy()) {
+	if(!bEnemyWillTalk && !gDLL->isDiplomacy()) {
 		// Don't waste time with a more specific answer if human won't read it anyway
 		return DENIAL_RECENT_CANCEL;
 	}
 	int ourReluct = reluctanceToPeace(enemyId);
 	int enemyReluct = GET_TEAM(enemyId).uwai().reluctanceToPeace(agentId);
+	bool bNoDenial = false; // Will still have to check bEnemyWillTalk then
+	if(enemyReluct <= 0) {
+		if(ourReluct < 55)
+			bNoDenial = true;
+		else {
+			CvGame const& g = GC.getGame();
+			scaled scoreRatio(g.getTeamScore(agentId),
+					g.getTeamScore(g.getRankTeam(0)));
+			int const gameEra = g.getCurrentEra();
+			if(gameEra > 0 &&
+					scoreRatio < (scaled(gameEra - 1, gameEra) + fixp(2/3.)) / 2) {
+				// We're not doing well in score; the broker might be doing much better.
+				if(ourReluct < 70)
+					bNoDenial = true;
+				else return DENIAL_TOO_MUCH;
+			}
+			return DENIAL_VICTORY;
+		}
+	}
 	if(!bEnemyWillTalk) {
 		if (ourReluct <= 0 && enemyReluct > 0 && enemyReluct - ourReluct >= 15) {
 			/*	They'll refuse with "not right now", so it's a bit pointless to
@@ -1487,11 +1506,8 @@ DenialTypes UWAI::Team::makePeaceTrade(TeamTypes enemyId, TeamTypes brokerId) co
 		}
 		return DENIAL_RECENT_CANCEL;
 	}
-	if(enemyReluct <= 0) {
-		if(ourReluct < 55)
-			return NO_DENIAL;
-		else return DENIAL_VICTORY; //DENIAL_TOO_MUCH?
-	}
+	if(bNoDenial)
+		return NO_DENIAL;
 	/*  Unusual case: both sides want to continue, so both would have to be paid
 		by the broker, which is too complicated. "Not right now" is true enough -
 		will probably change soon. */
