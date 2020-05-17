@@ -9880,22 +9880,39 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const& kThe
 				until we've closed the gap in the trade values. */
 			while (iTheyReceive > iWeReceive && !item_value_list.empty())
 			{
-				int value_gap = iTheyReceive - iWeReceive;
-				/*	Find the best item to put us ahead, but as close to fair as possible.
-					Note: We're not doing this for perfect balance. We're counter-proposing
-					so that the deal favours us!
-					If we wanted to get closer to a balanced deal,
-					we'd just remove that first condition.
-					(Maybe that's what we should be doing for AI-AI trades;
-					but there are still flavour considerations...) */
+				int const iValueGap = iTheyReceive - iWeReceive;
+				int iBestFillGapVal = MAX_INT;
 				std::vector<std::pair<TradeData,int> >::iterator it, best_it;
 				for (best_it = it = item_value_list.begin();
 					it != item_value_list.end(); it++)
 				{
-					if ((it->second > value_gap && best_it->second < value_gap) ||
-						std::abs(it->second - value_gap) < std::abs(best_it->second - value_gap))
+					/*	Find the best item to put us ahead, but as close to fair as possible.
+						Note: We're not doing this for perfect balance.
+						We're counter-proposing so that the deal favours us!
+						If we wanted to get closer to a balanced deal,
+						we'd just remove that first condition.
+						(Maybe that's what we should be doing for AI-AI trades;
+						but there are still flavour considerations...) */
+					/*if ((it->second > iValueGap && best_it->second < iValueGap) ||
+						(std::abs(it->second - iValueGap) < std::abs(best_it->second - iValueGap)))
 					{
 						best_it = it;
+					}*/
+					/*	<advc.001> Through the last condition, the above allows an item
+						that doesn't fill the gap (it->second < iValueGap) to replace
+						an item that does fill the gap. */
+					int iFillGapVal = std::abs(it->second - iValueGap);
+					// Absolute priority for items that fill the gap
+					if (it->second < iValueGap)
+						iFillGapVal *= 1000; // </advc.001>
+					/*	<advc.ctr> Prefer not to ask for human city because
+						city trade value doesn't always count the human keep-city value. */
+					if (kPlayer.isHuman() && it->first.m_eItemType == TRADE_CITIES)
+						iFillGapVal *= 2; // </advc.ctr>
+					if (iFillGapVal < iBestFillGapVal)
+					{
+						best_it = it;
+						iBestFillGapVal = iFillGapVal;
 					}
 				}
 				// Only add the item if it will get us closer to balance.
@@ -10041,15 +10058,15 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const& kThe
 	{
 		while (iTheyReceive > iWeReceive && !nonsurplusItems.empty())
 		{
-			int value_gap = iTheyReceive - iWeReceive;
+			int iValueGap = iTheyReceive - iWeReceive;
 			std::vector<std::pair<TradeData,int> >::iterator it, best_it;
 			for (best_it = it = nonsurplusItems.begin(); it != nonsurplusItems.end(); it++)
 			{
 				if (!bTheyGenerous && iWeReceive + it->second > iTheyReceive)
 					continue;
-				if ((bTheyGenerous && it->second > value_gap &&
-					best_it->second < value_gap) ||
-					std::abs(it->second - value_gap) < std::abs(best_it->second - value_gap))
+				if ((bTheyGenerous && it->second > iValueGap &&
+					best_it->second < iValueGap) ||
+					std::abs(it->second - iValueGap) < std::abs(best_it->second - iValueGap))
 				{
 					best_it = it;
 				}
