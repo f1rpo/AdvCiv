@@ -2894,6 +2894,9 @@ scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 			}
 		}
 	}
+	// Don't overestimate extra land when there is still room for expansion
+	scaled const rSpaceFactor = scaled::max(fixp(0.5),
+			1 - fixp(0.15) * AI_getNumCitySites());
 	for (CityPlotIter it(c); it.hasNext(); ++it)
 	{
 		CvPlot const& p = *it;
@@ -2906,7 +2909,7 @@ scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 		{
 			continue;
 		}
-		scaled rPlotVal = (2 + rEraFactor) / 3;
+		scaled rPlotVal = rSpaceFactor * (2 + rEraFactor) / 3;
 		BonusTypes eBonus = NO_BONUS;
 		if (p.isRevealed(getTeam()))
 		{
@@ -2918,7 +2921,7 @@ scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 					don't want the AI to easily give up a crucial strategic resource. */
 				if (bOwn && !bConquest)
 					rPlotVal += fixp(2.35) + scaled(AI_bonusVal(eBonus, -1, true), 4);
-				else rPlotVal += fixp(3.9);
+				else rPlotVal += rSpaceFactor * fixp(3.9);
 			}
 		}
 		if (bHome)
@@ -20829,7 +20832,9 @@ double CvPlayerAI::AI_amortizationMultiplier(int iDelay) const
 // advc.ctr: Number of turns after which a decent investment should amortize
 scaled CvPlayerAI::AI_targetAmortizationTurns() const
 {
-	scaled r = scaled::fromDouble(50 * AI_amortizationMultiplier(0));
+	scaled r = scaled::fromDouble(
+			(10 + 40 * std::min(1.0, GC.getGame().gameTurnProgress() * 3)) *
+			AI_amortizationMultiplier(0));
 	CvGameSpeedInfo const& kSpeed = GC.getInfo(GC.getGame().getGameSpeedType());
 	r *= scaled(kSpeed.getGrowthPercent() +
 			kSpeed.getResearchPercent() +
@@ -20846,7 +20851,7 @@ scaled CvPlayerAI::AI_targetAmortizationTurns() const
 			kHandicap.getConstructPercent() +
 			kHandicap.getTrainPercent(), 300);
 	}
-	// Not sure if the AI should conscious of its bonuses here
+	// Not sure if the AI should be conscious of its bonuses here
 	/*if (!isHuman())
 	{
 		CvHandicapInfo const& kHandicap = GC.getHandicapInfo(GC.getGame().getHandicapType());
