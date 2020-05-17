@@ -5055,9 +5055,11 @@ void CvPlot::changeRiverCrossingCount(int iChange)
 	FAssert(getRiverCrossingCount() >= 0);
 }
 
-
+// advc.300:
 bool CvPlot::isHabitable(bool bIgnoreSea) const
 {
+	if (getTerrainType() == NO_TERRAIN) // Can be called during map gen
+		return false;
 	if(calculateNatureYield(YIELD_FOOD, NO_TEAM, false, true) <= 0)
 		return false;
 	if(!isWater() || isLake())
