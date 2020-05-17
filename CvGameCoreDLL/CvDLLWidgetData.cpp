@@ -5501,24 +5501,27 @@ void CvDLLWidgetData::parseBonusHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 // BULL - Trade Denial - start
 void CvDLLWidgetData::parseBonusTradeHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
+	// <advc.073>
+	bool bImport = false;
+	int iBonus = widgetDataStruct.m_iData1; // </advc.073>
 	if (widgetDataStruct.m_iData2 == -1)
 		parseBonusHelp(widgetDataStruct, szBuffer);
-	else /* <advc.073> Hack. Need the bOption field to distinguish between the
-			import (bOption=true) and export columns, but setImageButton
-			(in the EXE) has only the two iData parameters. I'm adding 1000
-			to the bonus id in Python (CvExoticForeignAdvisor: drawResourceDeals)
-			to signal that the widget is in the import column. Proper solution:
-			Two separate widget types - probably wouldn't be that much work to
-			implement either. */
+	else /* <advc.073> Hack. Need to distinguish between the import and export columns.
+			Too few iData parameters for that and widgetDataStruct.m_bOption
+			can't be set from Python (via setImageButton in the EXE).
+			I'm adding +1000 to the bonus id in Python (CvExoticForeignAdvisor.
+			drawResourceDeals) to signal that the widget is in the import column,
+			Proper solution: Two separate widget types - probably wouldn't be that
+			much work to implement either. */
 	{
 		if(widgetDataStruct.m_iData1 >= 1000)
 		{
-			widgetDataStruct.m_iData1 -= 1000;
-			widgetDataStruct.m_bOption = true;
+			iBonus -= 1000;
+			bImport = true;
 		} // </advc.073>
-		GAMETEXT.setBonusTradeHelp(szBuffer, (BonusTypes)widgetDataStruct.m_iData1,
-			false, (PlayerTypes)widgetDataStruct.m_iData2,
-			widgetDataStruct.m_bOption); // advc.073
+		GAMETEXT.setBonusTradeHelp(szBuffer, (BonusTypes)iBonus,
+				false, (PlayerTypes)widgetDataStruct.m_iData2,
+				bImport, true); // advc.073
 	}
 } // BULL - Trade Denial - end
 

@@ -13849,23 +13849,26 @@ bool CvGameTextMgr::setResumableValueTimes100ChangeHelp(CvWStringBuffer &szBuffe
 void CvGameTextMgr::setBonusHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus, bool bCivilopediaText)
 {
 // BULL - Trade Denial - start  (advc.073: bImport param added)
-	setBonusTradeHelp(szBuffer, eBonus, bCivilopediaText, NO_PLAYER, false);
+	setBonusTradeHelp(szBuffer, eBonus, bCivilopediaText, NO_PLAYER, false, false);
 }
 
 // This function has been effectly rewritten for K-Mod. (there were a lot of things to change.)
 void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus,
-		bool bCivilopediaText, PlayerTypes eTradePlayer, bool bImport)
+		bool bCivilopediaText, PlayerTypes eTradePlayer,
 // BULL - Trade Denial - end
+	bool bImport, bool bForeignAdvisor) // advc.073
 {	// <advc>
 	if(NO_BONUS == eBonus)
 		return;
-	CvGame const& g = GC.getGame();
-	PlayerTypes eActivePlayer = g.getActivePlayer();
+	CvGame const& kGame = GC.getGame();
+	PlayerTypes eActivePlayer = kGame.getActivePlayer();
 	CvPlayerAI const* pActivePlayer = (eActivePlayer == NO_PLAYER ? NULL:
 			&GET_PLAYER(eActivePlayer)); // </advc>
-	// gDLL->isMPDiplomacy() does sth. else, apparently.
-	bool bDiplo = (g.isGameMultiPlayer() ? gDLL->isMPDiplomacyScreenUp() :
-			gDLL->isDiplomacy());
+	/*	When both Foreign Advisor and Trade Screen are open,
+		the Foreign Advisor will be in the foreground. */
+	bool bDiplo = (!bForeignAdvisor && (kGame.isGameMultiPlayer() ?
+			// gDLL->isMPDiplomacy() does sth. else, apparently.
+			gDLL->isMPDiplomacyScreenUp() : gDLL->isDiplomacy()));
 	CvCity* pCity = (gDLL->UI().isCityScreenUp() ?
 			/*  A city can also be selected without the city screen being up;
 				don't want that here. */

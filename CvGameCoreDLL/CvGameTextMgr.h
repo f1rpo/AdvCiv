@@ -129,9 +129,10 @@ public:
 	bool setResumableValueTimes100ChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, int iValue, int iSymbol, bool bNewLine = false, bool bStarted = false);
 // BUG - Resumable Value Change Help - end
 	void setBonusHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus, bool bCivilopediaText = false);
-// BULL - Trade Denial - start  (advc.073: param bImport added)
+// BULL - Trade Denial - start
 	void setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus,
-			bool bCivilopediaText, PlayerTypes eTradePlayer, bool bImport);
+			bool bCivilopediaText, PlayerTypes eTradePlayer, bool bImport,
+			bool bForeignAdvisor);
 // BULL - Trade Denial - end
 	// <advc.004w>
 	void setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus,
