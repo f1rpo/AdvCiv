@@ -1058,7 +1058,8 @@
 			<!-- advc.250e: was 3 -->
 			<iAIStartingDefenseUnits>2</iAIStartingDefenseUnits>
 			<iAIStartingWorkerUnits>1</iAIStartingWorkerUnits>
-			<iAIStartingExploreUnits>1</iAIStartingExploreUnits>
+			<!-- advc.250e: was 1 -->
+			<iAIStartingExploreUnits>0</iAIStartingExploreUnits>
 			<!-- advc.250e: was 4 -->
 			<iBarbarianDefenders>3</iBarbarianDefenders>
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
