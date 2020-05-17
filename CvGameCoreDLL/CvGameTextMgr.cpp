@@ -13883,11 +13883,15 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 		// (they are displayed beside the name of the bonus when outside of the civilopedia.)
 		if (iHappiness != 0)
 		{
-			szBuffer.append(CvWString::format(L"\n%c+%d%c", gDLL->getSymbolID(BULLET_CHAR), abs(iHappiness), iHappiness > 0 ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR)));
+			szBuffer.append(CvWString::format(L"\n%c+%d%c",
+					gDLL->getSymbolID(BULLET_CHAR), abs(iHappiness), iHappiness > 0 ?
+					gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR)));
 		}
 		if (iHealth != 0)
 		{
-			szBuffer.append(CvWString::format(L"\n%c+%d%c", gDLL->getSymbolID(BULLET_CHAR), abs(iHealth), iHealth > 0 ? gDLL->getSymbolID(HEALTHY_CHAR) : gDLL->getSymbolID(UNHEALTHY_CHAR)));
+			szBuffer.append(CvWString::format(L"\n%c+%d%c",
+					gDLL->getSymbolID(BULLET_CHAR), abs(iHealth), iHealth > 0 ?
+					gDLL->getSymbolID(HEALTHY_CHAR) : gDLL->getSymbolID(UNHEALTHY_CHAR)));
 		}
 	}
 	else
@@ -13898,7 +13902,8 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 		// advc.004w: Don't omit the basic effect in main menu Civilopedia hovers
 		//if (NO_PLAYER != eActivePlayer)
 
-		// K-Mod. Bonuses now display "(Obsolete)" instead of "(player has 0)" when the bonus is obsolete.
+		/*	K-Mod. Bonuses now display "(Obsolete)" instead of
+			"(player has 0)" when the bonus is obsolete. */
 		if (NO_PLAYER != eActivePlayer && // advc.004w
 				GET_TEAM(eActivePlayer).isBonusObsolete(eBonus))
 			szBuffer.append(gDLL->getText("TXT_KEY_BONUS_OBSOLETE"));
@@ -13941,25 +13946,25 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 					szBuffer.append(gDLL->getText("TXT_KEY_BONUS_AVAILABLE_US",
 							iAvailable));
 				} // </advc.004w>
-				for (int iCorp = 0; iCorp < GC.getNumCorporationInfos(); ++iCorp)
+				FOR_EACH_ENUM(Corporation)
 				{
 					bool bCorpBonus = false;
-					if (pActivePlayer->getHasCorporationCount((CorporationTypes)iCorp) > 0)
+					if (pActivePlayer->getHasCorporationCount(eLoopCorporation) > 0)
 					{
-						for (int i = 0; !bCorpBonus && i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+						for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES()
+							&& !bCorpBonus; i++)
 						{
-							bCorpBonus = eBonus == GC.getInfo((CorporationTypes)iCorp).getPrereqBonus(i);
+							bCorpBonus = eBonus == GC.getInfo(eLoopCorporation).getPrereqBonus(i);
 						}
 					}
-
 					if (bCorpBonus)
-						szBuffer.append(GC.getInfo((CorporationTypes)iCorp).getChar());
+						szBuffer.append(GC.getInfo(eLoopCorporation).getChar());
 				}
 			}
 		}
 		// <advc.004w>
-		if(eActivePlayer == NO_PLAYER || (!bDiplo &&
-			!gDLL->UI().isCityScreenUp() &&
+		if(eActivePlayer == NO_PLAYER ||
+			(!bDiplo && !gDLL->UI().isCityScreenUp() &&
 			eTradePlayer == NO_PLAYER)) // </advc.004w>
 		{
 			setYieldChangeHelp(szBuffer, L"", L"", gDLL->getText("TXT_KEY_BONUS_ON_PLOT"),
@@ -14108,9 +14113,9 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 	bool bCivilopediaText, PlayerTypes eTradePlayer, bool bDiplo, CvCity* pCity)
 {
 	PROFILE_FUNC();
-	CvGame const& g = GC.getGame();
-	CivilizationTypes eCivilization = g.getActiveCivilizationType();
-	PlayerTypes eActivePlayer = g.getActivePlayer();
+	CvGame const& kGame = GC.getGame();
+	CivilizationTypes eCivilization = kGame.getActiveCivilizationType();
+	PlayerTypes eActivePlayer = kGame.getActivePlayer();
 	// NULL when in main menu Civilopedia
 	CvPlayerAI const* pActivePlayer = NULL;
 	int iCurrentEra = 0;
@@ -14128,7 +14133,7 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 			continue;
 		// <advc.004w> Don't list impossibilities
 		bool bCanEverConstruct = true;
-		if(eActivePlayer != NO_PLAYER && !g.canConstruct(eBuilding, true, true))
+		if(eActivePlayer != NO_PLAYER && !kGame.canConstruct(eBuilding, true, true))
 			bCanEverConstruct = false;
 		// Don't list remote possibilities
 		CvBuildingInfo& kBuilding = GC.getInfo(eBuilding);
@@ -14159,7 +14164,7 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 			if(bCanEverConstruct)
 			{
 				VictoryTypes eVict = (VictoryTypes)kBuilding.getVictoryPrereq();
-				if(eVict != NO_VICTORY && !g.isVictoryValid(eVict))
+				if(eVict != NO_VICTORY && !kGame.isVictoryValid(eVict))
 					bCanEverConstruct = false;
 			}
 			if(bCanEverConstruct &&
@@ -14313,13 +14318,16 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 			if(pCity == NULL)
 			{
 				TechTypes eTech = (TechTypes)kProject.getTechPrereq();
-				if(eTech != NO_TECH && GC.getInfo(eTech).getEra() > iCurrentEra
-						+ (kProject.isWorldProject() ? 0 : 1))
+				if(eTech != NO_TECH &&
+					GC.getInfo(eTech).getEra() >
+					iCurrentEra + (kProject.isWorldProject() ? 0 : 1))
+				{
 					continue;
+				}
 				VictoryTypes eVict = (VictoryTypes)kProject.getVictoryPrereq();
-				if(eVict != NO_VICTORY && !g.isVictoryValid(eVict))
+				if(eVict != NO_VICTORY && !kGame.isVictoryValid(eVict))
 					continue;
-				if(g.isProjectMaxedOut(eLoopProject) && GET_TEAM(eActivePlayer).
+				if(kGame.isProjectMaxedOut(eLoopProject) && GET_TEAM(eActivePlayer).
 					getProjectCount(eLoopProject) <= 0)
 				{
 					continue;
