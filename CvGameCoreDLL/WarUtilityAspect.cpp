@@ -3737,3 +3737,13 @@ void TacticalSituation::evalOperational() {
 				report.leaderName(theyId));
 	u -= uMinus;
 }
+
+void LoveOfPeace::evaluate() {
+
+	int uMinus = GC.getInfo(we->getPersonalityType()).getLoveOfPeace();
+	if(uMinus <= 0 || !m->isWar(weId, theyId) || we->isHuman())
+		return;
+	if(agent.isAtWar(TEAMID(theyId)))
+		uMinus /= 2;
+	u -= uMinus;
+}

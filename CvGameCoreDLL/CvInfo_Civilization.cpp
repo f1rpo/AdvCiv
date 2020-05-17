@@ -494,6 +494,7 @@ m_iPermanentAllianceRefuseAttitudeThreshold(NO_ATTITUDE),
 m_iVassalRefuseAttitudeThreshold(NO_ATTITUDE),
 m_iVassalPowerModifier(0),
 m_iFreedomAppreciation(0),
+m_iLoveOfPeace(0),
 m_iFavoriteCivic(NO_CIVIC),
 m_iFavoriteReligion(NO_RELIGION),
 m_pbTraits(NULL),
@@ -1160,6 +1161,9 @@ void CvLeaderHeadInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iVassalRefuseAttitudeThreshold);
 	stream->Read(&m_iVassalPowerModifier);
 	stream->Read(&m_iFreedomAppreciation);
+	// <advc.104>
+	if (uiFlag >= 3)
+		stream->Read(&m_iLoveOfPeace); // </advc.104>
 	stream->Read(&m_iFavoriteCivic);
 	stream->Read(&m_iFavoriteReligion);
 	stream->ReadString(m_szArtDefineTag);
@@ -1216,6 +1220,7 @@ void CvLeaderHeadInfo::write(FDataStreamBase* stream)
 	CvInfoBase::write(stream);
 	uint uiFlag=1; // BETTER_BTS_AI_MOD, 03/21/10, jdog5000
 	uiFlag = 2; // advc.104i
+	uiFlag = 3; // advc.104 (love of peace)
 	stream->Write(uiFlag);
 
 	stream->Write(m_iWonderConstructRand);
@@ -1299,6 +1304,7 @@ void CvLeaderHeadInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iVassalRefuseAttitudeThreshold);
 	stream->Write(m_iVassalPowerModifier);
 	stream->Write(m_iFreedomAppreciation);
+	stream->Write(m_iLoveOfPeace); // advc.104
 	stream->Write(m_iFavoriteCivic);
 	stream->Write(m_iFavoriteReligion);
 	stream->WriteString(m_szArtDefineTag);
@@ -1397,6 +1403,8 @@ bool CvLeaderHeadInfo::read(CvXMLLoadUtility* pXML)
 	GetChildXmlValByName(m_iFavoriteCivicAttitudeChangeLimit, "iFavoriteCivicAttitudeChangeLimit");
 	GetChildXmlValByName(m_iVassalPowerModifier, "iVassalPowerModifier");
 	GetChildXmlValByName(m_iFreedomAppreciation, "iFreedomAppreciation");
+	GetChildXmlValByName(m_iLoveOfPeace, "iLoveOfPeace", 0); // advc.104
+	FAssertMsg(m_iLoveOfPeace >= 0, "Should use WarUtilityAspect::Bellicosity instead"); // advc.104
 
 	/*	advc.xmldefault: Rewrote the loading of attitude thresholds
 		so that missing elements are tolerated if the attitude threshold

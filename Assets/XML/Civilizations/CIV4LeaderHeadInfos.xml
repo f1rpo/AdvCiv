@@ -703,6 +703,9 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.104: No AdvCiv leader uses this; for mod-mods maybe. See
+				 UWAI_WEIGHT_LOVE_OF_PEACE in AI_Variables_GlobalDefines.xml. -->
+			<iLoveOfPeace>0</iLoveOfPeace>
 			<UnitAIWeightModifiers/>
 			<ImprovementWeightModifiers/>
 			<DiplomacyIntroMusicPeace>

@@ -198,6 +198,7 @@ public: // advc: All the const functions are exposed to Python except those adde
 	int getFavoriteCivic() const;
 	int getFavoriteReligion() const;
 	int getFreedomAppreciation() const;
+	int getLoveOfPeace() const { return m_iLoveOfPeace; } // advc.104
 
 	const TCHAR* getArtDefineTag() const;
 	void setArtDefineTag(const TCHAR* szVal);
@@ -311,6 +312,7 @@ protected:
 	int m_iVassalRefuseAttitudeThreshold;
 	int m_iVassalPowerModifier;
 	int m_iFreedomAppreciation;
+	int m_iLoveOfPeace; // advc.104
 	int m_iFavoriteCivic;
 	int m_iFavoriteReligion;
 

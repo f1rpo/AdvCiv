@@ -430,4 +430,13 @@ private:
 	int evacPop(PlayerTypes ownerId, PlayerTypes invaderId);
 };
 
+
+class LoveOfPeace : public WarUtilityAspect {
+public:
+	LoveOfPeace(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
+	void evaluate();
+	UWAI::AspectTypes xmlId() const { return UWAI::LOVE_OF_PEACE; }
+};
+
 #endif

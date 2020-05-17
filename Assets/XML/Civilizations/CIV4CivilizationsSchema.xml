@@ -156,6 +156,8 @@
 	<ElementType name="NoWarAttitudeProbs" content="eltOnly">
 		<element type="NoWarAttitudeProb" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
+	<!-- advc.104 -->
+	<ElementType name="iLoveOfPeace" content="textOnly" dt:type="int"/>
 	<ElementType name="UnitAIType" content="textOnly"/>
 	<ElementType name="iWeightModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="UnitAIWeightModifier" content="eltOnly">
@@ -293,6 +295,8 @@
 		<element type="MemoryDecays"/>
 		<element type="MemoryAttitudePercents"/>
 		<element type="NoWarAttitudeProbs"/>
+		<!-- advc.104 -->
+		<element type="iLoveOfPeace" minOccurs="0"/>
 		<element type="UnitAIWeightModifiers"/>
 		<element type="ImprovementWeightModifiers"/>
 		<element type="DiplomacyIntroMusicPeace"/>

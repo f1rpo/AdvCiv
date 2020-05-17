@@ -199,6 +199,17 @@
 		<DefineName>UWAI_WEIGHT_TACTICAL_SITUATION</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
+	<Define>
+		<!-- Pacifism for humanitarian reasons (roleplaying). This is different
+			 from Affection, which only applies if we don't dislike them too
+			 much and, in particular, not when already at war.
+			 Love of Peace subtracts our iLoveOfPeace (Civ4LeaderHeadInfos.xml)
+			 from our war utility. When already at war, only half of that is
+			 subtracted. iLoveOfPeace is unused in AdvCiv, so this aspect
+			 exists only for mod-mods. -->
+		<DefineName>UWAI_WEIGHT_LOVE_OF_PEACE</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
 
 	<Define>
 		<!-- Recommended: 100 (BtS behavior)
