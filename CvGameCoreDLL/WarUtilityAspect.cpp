@@ -3757,7 +3757,13 @@ void LoveOfPeace::evaluate() {
 	int uMinus = GC.getInfo(we->getPersonalityType()).getLoveOfPeace();
 	if(uMinus <= 0 || !m->isWar(weId, theyId) || we->isHuman())
 		return;
-	if(agent.isAtWar(TEAMID(theyId)))
+	if(agent.isAtWar(TEAMID(theyId))) {
+		if(m->lostPower(weId, ARMY) < 5 ||
+				// Lost power alone isn't reliable; could be to a third party.
+				(ourCache->numReachableCities(theyId) <= 0 &&
+				they->uwai().getCache().numReachableCities(weId) <= 0))
+			return;
 		uMinus /= 2;
+	}
 	u -= uMinus;
 }
