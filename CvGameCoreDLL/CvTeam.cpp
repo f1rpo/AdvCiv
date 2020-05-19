@@ -2134,6 +2134,11 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 			case 1: rModifier -= per100(14); break;
 			case 2: rModifier -= per100(7); break;
 			}
+		}
+		if(kGame.getStartEra() == 0 && kGame.isOption(GAMEOPTION_NO_BARBARIANS) &&
+			eTechEra <= 1)
+		{
+			rModifier += per100(3);
 		} // </advc.308>
 		// <advc.550d>
 		if (g.isOption(GAMEOPTION_NO_TECH_TRADING) && eTechEra > 0 && eTechEra < 6)
