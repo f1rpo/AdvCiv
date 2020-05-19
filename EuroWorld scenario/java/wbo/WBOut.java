@@ -3283,7 +3283,6 @@ public class WBOut {
 				// Burma, S China
 				new Point(86,38),
 				new Point(85,37),
-				new Point(86,37),
 				new Point(85,36),
 				new Point(86,36),
 				new Point(84,45),

@@ -563,7 +563,7 @@ protected:
 	EnumMap<TechTypes,int> m_aiResearchProgress;
 	EnumMap<TechTypes,int> m_aiTechCount;
 	EnumMap<TerrainTypes,int> m_aiTerrainTradeCount;
-	EnumMap<VictoryTypes,int> m_aiVictoryCountdown;
+	EnumMapDefault<VictoryTypes,int,-1> m_aiVictoryCountdown;
 
 	EnumMap2D<ImprovementTypes,YieldTypes,int> m_aaiImprovementYieldChange; // Should make this <...,char>
 
