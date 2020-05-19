@@ -49,7 +49,7 @@ class CvHallOfFameScreen:
 		self.REPLAY_BUTTON_ID = "HallOfFameReplayButton"
 
 		self.X_SCREEN = 500
-		#self.Y_SCREEN = 396 advc.003: unused
+		#self.Y_SCREEN = 396 advc: unused
 		self.W_SCREEN = 1024
 		self.H_SCREEN = 768
 		self.Y_TITLE = 12
@@ -255,16 +255,29 @@ class CvHallOfFameScreen:
 		screen.addTableControlGFC(self.TABLE_ID, 10, 2, 2 * self.DROPDOWN_SPACING_Y + self.DROPDOWN_Y, 1018, 545, True, True, 16, 16, TableStyles.TABLE_STYLE_STANDARD);
 		screen.enableSelect(self.TABLE_ID, False)
 		screen.enableSort(self.TABLE_ID)
-		screen.setTableColumnHeader(self.TABLE_ID, 0, "", 20)
-		screen.setTableColumnHeader(self.TABLE_ID, 1, localText.getText("TXT_KEY_PITBOSS_LEADER", ()), 202)
-		screen.setTableColumnHeader(self.TABLE_ID, 2, localText.getText("TXT_KEY_NORMALIZED_SCORE", ()), 100)
-		screen.setTableColumnHeader(self.TABLE_ID, 3, localText.getText("TXT_KEY_HALL_OF_FAME_SORT_BY_DATE", ()), 88)
-		screen.setTableColumnHeader(self.TABLE_ID, 4, localText.getText("TXT_KEY_GAME_SCORE", ()), 100)
-		screen.setTableColumnHeader(self.TABLE_ID, 5, localText.getText("TXT_KEY_CONCEPT_VICTORY", ()), 100)
-		screen.setTableColumnHeader(self.TABLE_ID, 6, localText.getText("TXT_KEY_PITBOSS_DIFFICULTY", ()), 100)
-		screen.setTableColumnHeader(self.TABLE_ID, 7, localText.getText("TXT_KEY_HOF_SCREEN_SIZE", ()), 100)
-		screen.setTableColumnHeader(self.TABLE_ID, 8, localText.getText("TXT_KEY_HOF_SCREEN_STARTING_ERA", ()), 100)
-		screen.setTableColumnHeader(self.TABLE_ID, 9, localText.getText("TXT_KEY_HOF_SCREEN_GAME_SPEED", ()), 105)
+		# <advc.106i> Don't show replay button column when game has just ended (replays are disabled then)
+		bAllowReplay = (gc.getGame().getGameState() != GameStateTypes.GAMESTATE_OVER)
+		iColumn = 0 # Replacing hardcoded column numbers
+		if bAllowReplay:
+			screen.setTableColumnHeader(self.TABLE_ID, iColumn, "", 20)
+			iColumn += 1 # </advc.106i>
+		screen.setTableColumnHeader(self.TABLE_ID, iColumn, localText.getText("TXT_KEY_PITBOSS_LEADER", ()), 202)
+		iColumn += 1
+		screen.setTableColumnHeader(self.TABLE_ID, iColumn, localText.getText("TXT_KEY_NORMALIZED_SCORE", ()), 100)
+		iColumn += 1
+		screen.setTableColumnHeader(self.TABLE_ID, iColumn, localText.getText("TXT_KEY_HALL_OF_FAME_SORT_BY_DATE", ()), 88)
+		iColumn += 1
+		screen.setTableColumnHeader(self.TABLE_ID, iColumn, localText.getText("TXT_KEY_GAME_SCORE", ()), 100)
+		iColumn += 1
+		screen.setTableColumnHeader(self.TABLE_ID, iColumn, localText.getText("TXT_KEY_CONCEPT_VICTORY", ()), 100)
+		iColumn += 1
+		screen.setTableColumnHeader(self.TABLE_ID, iColumn, localText.getText("TXT_KEY_PITBOSS_DIFFICULTY", ()), 100)
+		iColumn += 1
+		screen.setTableColumnHeader(self.TABLE_ID, iColumn, localText.getText("TXT_KEY_HOF_SCREEN_SIZE", ()), 100)
+		iColumn += 1
+		screen.setTableColumnHeader(self.TABLE_ID, iColumn, localText.getText("TXT_KEY_HOF_SCREEN_STARTING_ERA", ()), 100)
+		iColumn += 1
+		screen.setTableColumnHeader(self.TABLE_ID, iColumn, localText.getText("TXT_KEY_HOF_SCREEN_GAME_SPEED", ()), 105)
 #		screen.setTableColumnHeader(self.TABLE_ID, , "", 73)
 
 		# count the filtered replays
@@ -273,8 +286,7 @@ class CvHallOfFameScreen:
 			replayInfo = self.hallOfFame.getReplayInfo(i)
 			if self.isDisplayed(replayInfo):
 				iNumGames += 1
-		
-		
+
 		self.infoList = [(-1,"",-1,"",-1,"","","","","",0)] * iNumGames
 		iItem = 0
 		for i in range(self.hallOfFame.getNumGames()):
@@ -347,30 +359,44 @@ class CvHallOfFameScreen:
 						i)
 				iItem += 1
 		self.infoList.sort()
-						
+
 		for i in range(len(self.infoList)):
-		
-			szButtonName = self.REPLAY_BUTTON_ID + str(i)
-			# <advc.106i>
-			data1 = 0
-			if i > 22:
-				data1 = 1
-			# </advc.106i>
-			screen.setButtonGFC(szButtonName, self.infoList[i][1], "", 0, 0, 10, 10, WidgetTypes.WIDGET_SHOW_REPLAY, data1, -1, ButtonStyles.BUTTON_STYLE_STANDARD)
+			if bAllowReplay: # advc.106i
+				szButtonName = self.REPLAY_BUTTON_ID + str(i)
+				# <advc.106i>
+				data1 = 0
+				if i > 22:
+					data1 = 1
+				# </advc.106i>
+				screen.setButtonGFC(szButtonName, self.infoList[i][1], "", 0, 0, 10, 10, WidgetTypes.WIDGET_SHOW_REPLAY, data1, -1, ButtonStyles.BUTTON_STYLE_STANDARD)
 		
 			screen.appendTableRow(self.TABLE_ID)
-			screen.setTableText(self.TABLE_ID, 1, i, self.infoList[i][1], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# <advc.106i> Replacing hardcoded column numbers
+			iColumn = 0
+			if bAllowReplay: 
+				# Moved up:
+				screen.attachControlToTableCell(szButtonName, self.TABLE_ID, i, iColumn)
+				iColumn += 1
+			# </advc.106i>
+			screen.setTableText(self.TABLE_ID, iColumn, i, self.infoList[i][1], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			iColumn += 1
 			if self.infoList[i][2] >= 0:
-				screen.setTableInt(self.TABLE_ID, 2, i, u"%d" % self.infoList[i][2], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
-			screen.setTableDate(self.TABLE_ID, 3, i, self.infoList[i][3], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+				screen.setTableInt(self.TABLE_ID, iColumn, i, u"%d" % self.infoList[i][2], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
+			iColumn += 1
+			screen.setTableDate(self.TABLE_ID, iColumn, i, self.infoList[i][3], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			iColumn += 1
 			if self.infoList[i][4] >= 0:
-				screen.setTableInt(self.TABLE_ID, 4, i, u"%d" % self.infoList[i][4], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
-			screen.setTableText(self.TABLE_ID, 5, i, self.infoList[i][5], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-			screen.setTableText(self.TABLE_ID, 6, i, self.infoList[i][6], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-			screen.setTableText(self.TABLE_ID, 7, i, self.infoList[i][7], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-			screen.setTableText(self.TABLE_ID, 8, i, self.infoList[i][8], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-			screen.setTableText(self.TABLE_ID, 9, i, self.infoList[i][9], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-			screen.attachControlToTableCell(szButtonName, self.TABLE_ID, i, 0)		
+				screen.setTableInt(self.TABLE_ID, iColumn, i, u"%d" % self.infoList[i][4], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
+			iColumn += 1
+			screen.setTableText(self.TABLE_ID, iColumn, i, self.infoList[i][5], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			iColumn += 1
+			screen.setTableText(self.TABLE_ID, iColumn, i, self.infoList[i][6], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			iColumn += 1
+			screen.setTableText(self.TABLE_ID, iColumn, i, self.infoList[i][7], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			iColumn += 1
+			screen.setTableText(self.TABLE_ID, iColumn, i, self.infoList[i][8], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			iColumn += 1
+			screen.setTableText(self.TABLE_ID, iColumn, i, self.infoList[i][9], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 								
 		return
 	
@@ -386,7 +412,7 @@ class CvHallOfFameScreen:
 		count = 0
 		while msgNum >= 0:
 			msg = replay.getReplayMessageText(msgNum)
-			if count > 25: # advc.003b: was 100
+			if count > 25: # advc.opt: was 100
 				BugUtil.debug("no victory message in first 100; skipping")
 				break
 			matches = reWinText.match(msg)

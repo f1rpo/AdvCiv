@@ -1273,7 +1273,8 @@
 			<iUnique>0</iUnique>
 			<iGroupRange>1</iGroupRange>
 			<iGroupRand>50</iGroupRand>
-			<bArea>1</bArea>
+			<!-- advc.129: was 1 -->
+			<bArea>0</bArea>
 			<!-- advc.021b: was 1 -->
 			<bHills>0</bHills>
 			<bFlatlands>1</bFlatlands>
@@ -1341,7 +1342,8 @@
 			<iUnique>0</iUnique>
 			<iGroupRange>1</iGroupRange>
 			<iGroupRand>25</iGroupRand>
-			<bArea>1</bArea>
+			<!-- advc.129: was 1 -->
+			<bArea>0</bArea>
 			<bHills>1</bHills>
 			<bFlatlands>1</bFlatlands>
 			<bNoRiverSide>0</bNoRiverSide>
@@ -1395,8 +1397,10 @@
 			<iMinLandPercent>0</iMinLandPercent>
 			<iUnique>0</iUnique>
 			<iGroupRange>1</iGroupRange>
-			<iGroupRand>25</iGroupRand>
-			<bArea>1</bArea>
+			<!-- advc.129: was 25 -->
+			<iGroupRand>17</iGroupRand>
+			<!-- advc.129: was 1 -->
+			<bArea>0</bArea>
 			<bHills>1</bHills>
 			<bFlatlands>0</bFlatlands>
 			<bNoRiverSide>0</bNoRiverSide>
@@ -1627,7 +1631,8 @@
 			<iUnique>0</iUnique>
 			<iGroupRange>1</iGroupRange>
 			<iGroupRand>25</iGroupRand>
-			<bArea>1</bArea>
+			<!-- advc.129: was 1 -->
+			<bArea>0</bArea>
 			<bHills>1</bHills>
 			<bFlatlands>0</bFlatlands>
 			<!-- advc.129: was 0 -->

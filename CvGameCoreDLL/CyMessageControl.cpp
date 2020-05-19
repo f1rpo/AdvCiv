@@ -1,8 +1,8 @@
 #include "CvGameCoreDLL.h"
 #include "CyMessageControl.h"
 #include "CvMessageControl.h"
-#include "CvDLLPythonIFaceBase.h"
 #include "CvDLLUtilityIFaceBase.h"
+#include "CvDLLPythonIFaceBase.h"
 
 void CyMessageControl::sendPushOrder(int iCityID, int eOrder, int iData, bool bAlt, bool bShift, bool bCtrl)
 {
@@ -30,7 +30,8 @@ void CyMessageControl::sendUpdateCivics(boost::python::list& iCivics)
 		aiCivics.push_back((CivicTypes) PYiCivics[i]);
 	}
 	CvMessageControl::getInstance().sendUpdateCivics(aiCivics);
-	delete PYiCivics;
+	//delete PYiCivics;
+	delete[] PYiCivics; // advc.001: Bugfix from C2C
 }
 
 void CyMessageControl::sendConvert(int  iReligion)

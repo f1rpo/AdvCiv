@@ -71,6 +71,38 @@
 		<DefineName>HOF_DISPLAY_OTHER_MOD_REPLAYS</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
+	<!-- advc.106m: Resolution of the terrain texture on the minimap,
+		 more specifically, it's the number of pixels along the
+		 horizontal axis. The value is used for the minimap on the
+		 main screen, Military Advisor and Replay screen.
+		 Recommended: 512 as in BtS. A higher value (e.g. 1024) looks
+		 better on the (maximized) replay screen, but is incompatible
+		 with HOF_STORE_REPLAYS_AS_BTS=1. Higher values also increase
+		 the size of replay files.
+		 AdvCiv (since version 0.97) stores MINIMAP_RENDER_SIZE in
+		 replay files, so compatibility between within AdvCiv isn't
+		 an issue, but BtS can only read size 512. -->
+	<Define>
+		<DefineName>MINIMAP_RENDER_SIZE</DefineName>
+		<iDefineIntVal>512</iDefineIntVal>
+	</Define>
+	<!-- advc.106n: When to store the terrain texture for the replay file.
+		 0 (Ancient era) means that the map at game start is used,
+		 4 (Industrial era) would yield a pre-Industrial map with roads,
+		 most of the Forests gone, but no railroads or Global Warming effects.
+		 Recommended: A value greater than any era number, which means that the
+		 map at game end is used (as in BtS). That has the advantage that
+		 no texture data gets stored in savegame files. The texture has a size
+		 of 128 KB if MINIMAP_RENDER_SIZE is 512. (Savegame compression in the
+		 EXE might reduce that size a bit.)
+		 If an era number is used, then the texture gets stored once any
+		 player reaches the target era or immediately when loading an
+		 outdated savegame (i.e. without texture data) in which at least
+		 one player has reached the target era. -->
+	<Define>
+		<DefineName>REPLAY_TEXTURE_ERA</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
 
 	<!-- advc.002h: 0 only hides the clouds. Their shadows are hidden through
 		 BML.fpk. Original value: 1. If BML.fpk is removed, then this value
@@ -109,17 +141,26 @@
         <iDefineIntVal>300</iDefineIntVal>
     </Define>
 
-	<!-- These three are from the original GlobalDefines.
-
-		 [advc.101]  Value increased to 200 (recommended) in an effort to
-		 restore the original BtS revolt probabilities without undoing K-Mod's
-		 overhaul of the culture system. This essentially doubles the strength
-		 of foreign culture. Original value: 100 -->
+	<!-- advc.101: When computing revolt probabilities, the foreign culture
+		 strength is raised to this exponent and then multiplied by the
+		 factor below. Both are percentages, i.e. the DLL divides them by 100.
+		 This adjustment has become necessary after I made culture garrison
+		 strength values essentially equal to combat strength, which increases
+		 much more steeply over the course of a game than the iCultureGarrison
+		 values in XML. Recommended: 135, 35.
+		 Changing the factor will increase or decrease foreign culture strength
+		 over the entire game; the exponent affects especially the late game. -->
 	<Define>
-		<DefineName>REVOLT_TOTAL_CULTURE_MODIFIER</DefineName>
-		<iDefineIntVal>200</iDefineIntVal>
-	</Define>
-	<!-- [advc.099c] Was 100, meaning that foreign culture strength is doubled
+		<DefineName>FOREIGN_CULTURE_STRENGTH_EXPONENT</DefineName>
+		<iDefineIntVal>135</iDefineIntVal>
+    </Define>
+	<Define>
+		<DefineName>FOREIGN_CULTURE_STRENGTH_FACTOR</DefineName>
+		<iDefineIntVal>35</iDefineIntVal>
+    </Define>
+
+	<!-- These two are from the original GlobalDefines. -->
+	<!-- advc.101: Was 100, meaning that foreign culture strength is doubled
 		 if the foreign state religion is in the city. Now also applies when the
 		 owner of the foreign culture is eliminated and there is a "suppressed"
 		 religion in the city, i.e. a religion that differs from the city owner's
@@ -209,7 +250,9 @@
 	<!-- [advc.108]
 		 If set to 1 or greater, starting plots are improved ("normalized") as
 		 aggressively as in BtS. 0 or less (recommended) means that normalization
-		 is toned down (toned down only a little bit in multiplayer). -->
+		 is toned down (toned down only a little bit in multiplayer).
+		 If the "Balanced" map option is set (not all maps have one), then
+		 normalization works as in BtS and this XML value is ignored. -->
 	<Define>
         <DefineName>NORMALIZE_STARTPLOTS_AGGRESSIVELY</DefineName>
         <iDefineIntVal>0</iDefineIntVal>
@@ -387,10 +430,10 @@
 
 	<!-- [advc.004m]
 	     No clue how this is measured. Original value is 2200
-		 (GlobalDefines.xml), recommended: 4600. -->
+		 (GlobalDefines.xml), recommended: 5400 (4600?). -->
 	<Define>
 		<DefineName>CAMERA_START_DISTANCE</DefineName>
-		<fDefineFloatVal>4600</fDefineFloatVal>
+		<fDefineFloatVal>5400</fDefineFloatVal>
 	</Define>
 
 	<!-- [advc.500b]
@@ -851,12 +894,22 @@
 		<iDefineIntVal>25</iDefineIntVal>
 	</Define>
 
-	<!-- [advc.122] To receive a city through trade, a civ needs to have at
-		 least this percentage of tile culture in the city tile.
-		 0 for BtS behavior; recommended: 10. -->
+	<!-- advc.ctr: To receive a city through trade, a civ needs to have at
+		 least this percentage of culture in the city tile (nationality).
+		 (Additionally, the recipient needs to have at least half as much
+		 nationality as the city owner.)
+		 Recommended: 10 -->
 	<Define>
 		<DefineName>CITY_TRADE_CULTURE_THRESH</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	<!-- When a city has this much nationality (city tile culture percentage)
+		 or more, then its AI owner applies a stricter attitude threshold
+		 when deciding whether to trade (not liberate) the city.
+		 Recommended: 20 (twice the CITY_TRADE_CULTURE_THRESH) -->
+	<Define>
+		<DefineName>NATIVE_CITY_CULTURE_THRESH</DefineName>
+		<iDefineIntVal>20</iDefineIntVal>
 	</Define>
 
 	<!-- [advc.030] Set this to 1 or greater (recommended) to treat plot groups
@@ -923,13 +976,15 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
-	<!-- [advc.550d] This modifier is applied to tech costs when playing
+	<!-- advc.550d: This modifier is applied to tech costs when playing
 		 with the "No Tech Trading" option. The effect of the modifier is
-		 reduced in the early and late game. Recommended: 28. Use 0 for BtS
+		 reduced in the early and late game. Recommended: -30, meaning that
+		 tech costs are taken times 100% - 30% = 70%. This multiplier gets
+		 further adjusted to the tech era and map size. Use 0 for BtS
 		 behavior (tech costs unaffected by the "No Tech Trading" option). -->
 	<Define>
 		<DefineName>TECH_COST_NOTRADE_MODIFIER</DefineName>
-		<iDefineIntVal>-28</iDefineIntVal>
+		<iDefineIntVal>-30</iDefineIntVal>
 	</Define>
 
 	<!-- [advc.034] The number of turns with Open Borders after making peace
@@ -1041,6 +1096,82 @@
 	<Define>
 		<DefineName>GROUP_ATTACK_BEST_ODDS_HELP</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+
+	<!-- advc.148: Mapping of relations values to AI attitude levels.
+		 Previously hardcoded in CvPlayerAI::AI_getAttitudeFromValue.
+		 Bear in mind that Civ4HandicapInfos.xml can also have a direct impact
+		 on how easy the AI is to please/ anger through the "first impression"
+		 modifier; see the "Dynamic Diplomacy" chapter in the manual about
+		 that. -->
+	<!-- Cautious attitude applies by default when none of the thresholds below
+		 are reached. -->
+
+	<!-- Relations need to be at least this good to make an AI civ Friendly.
+		 Recommended: 10 - as in BtS - however, effectively it's one lower due
+		 to changes in Civ4HandicapInfos.xml. Maybe 9 would play better,
+		 but that's an odd number. -->
+	<Define>
+		<DefineName>RELATIONS_THRESH_FRIENDLY</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	<!-- Relations need to be at least this good to make an AI civ Pleased
+		 (and mustn't be good enough for Friendly).
+		 Recommended: 4, i.e. effectively the same as in BtS (3). -->
+	<Define>
+		<DefineName>RELATIONS_THRESH_PLEASED</DefineName>
+		<iDefineIntVal>4</iDefineIntVal>
+	</Define>
+	<!-- Relations need to be this bad or worse to make the AI Furious.
+		 Recommended: -8 to give Pleased and Annoyed the same interval lengths.
+		 This means that the AI, effectively, gets Furious more quickly than in
+		 BtS (by 1). Apart from symmetry, -9 or -10 might play better. -->
+	<Define>
+		<DefineName>RELATIONS_THRESH_FURIOUS</DefineName>
+		<iDefineIntVal>-8</iDefineIntVal>
+	</Define>
+	<!-- Relations need to be this bad or worse to make the AI Annoyed
+		 (and mustn't be bad enough for Furious).
+		 Recommended: -2, i.e. effectively the same as in BtS (-3). -->
+	<Define>
+		<DefineName>RELATIONS_THRESH_ANNOYED</DefineName>
+		<iDefineIntVal>-2</iDefineIntVal>
+	</Define>
+
+	<!-- advc.001b: 1 means that the production of air units is interrupted
+		 when the unit would exceed the city's air unit capacity.
+		 0 means that cities can produce air units regardless of capacity;
+		 when a new unit exceeds the capacity, it is automatically moved
+		 (to the rally point if possible, otherwise to the nearest legal
+		 city or fort). 0 is BtS behavior except that, in AdvCiv, forced
+		 moves use up movement points. -->
+	<Define>
+		<DefineName>CAN_TRAIN_CHECKS_AIR_UNIT_CAP</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
+	<!-- advc.057: When hovering for movement, help text shows a missing
+		 tech requirement for entering the terrain if the Tech's era minus
+		 the player's current era is at most SHOW_IMPASSABLE_TECH_ERA_
+		 DIFFERENCE. Recommended: 1, so that, when a Work Boat tries to enter
+		 Ocean the Astronomy requirement is shown by the Medieval era. -->
+	<Define>
+		<DefineName>SHOW_IMPASSABLE_TECH_ERA_DIFFERENCE</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+
+	<!-- advc.exp.1: In the formula for the number-of-cities maintenance cost,
+		 the player's city count (including half the number of vassal cities)
+		 gets capped at an upper bound equal to MAX_CITY_COUNT_FOR_MAINTENANCE
+		 divided by (100+iNumCitiesMaintenancePercent); see Civ4WorldInfo
+		 about the divisor. Recommended: 51, which results in a cap of 42 on
+		 Huge maps. Not tested much.
+		 BtS behavior (a cap between 4 and 8) can be restored through
+		 Civ4HandicapInfos.xml and MAX_CITY_COUNT_FOR_MAINTENANCE > 7.
+		 Use a very high value, say, 1000, for K-Mod behavior (no cap). -->
+	<Define>
+		<DefineName>MAX_CITY_COUNT_FOR_MAINTENANCE</DefineName>
+		<iDefineIntVal>51</iDefineIntVal>
 	</Define>
 
 </Civ4Defines>

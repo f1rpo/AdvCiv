@@ -9,7 +9,7 @@
 
 void CyHallOfFameInterface()
 {
-	OutputDebugString("Python Extension Module - CyReplayInterface\n");
+	printToConsole("Python Extension Module - CyReplayInterface\n");
 
 	python::class_<CyReplayInfo>("CyReplayInfo")
 		.def("isNone", &CyReplayInfo::isNone, "bool () - Returns whether or not this is a valid object")
@@ -65,6 +65,8 @@ void CyHallOfFameInterface()
 
 		.def("getMapWidth", &CyReplayInfo::getMapWidth, "int ()")
 		.def("getMapHeight", &CyReplayInfo::getMapHeight, "int ()")
+		// advc.106m:
+		.def("getMinimapSize", &CyReplayInfo::getMinimapSize, "int ()")
 
 		.def("getModName", &CyReplayInfo::getModName, "std::wstring ()")
 		;

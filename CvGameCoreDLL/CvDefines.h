@@ -24,7 +24,7 @@
 #define MOVE_NO_ATTACK										(0x00000800) // K-Mod. used to prevent humans from accidentally attacking unseen units
 #define MOVE_HAS_STEPPED									(0x00001000) // K-Mod. used to signal that at least one step has been taken for this move command
 #define MOVE_ASSUME_VISIBLE									(0x00002000) // K-Mod. With this flag, the pathfinder will plan around enemy units even if they are not visible. (Note: AI units do this regardless of the flag.)
-#define MOVE_ROUTE_TO										(0x00004000) // advc.049
+#define MOVE_ROUTE_TO										(0x00004000) // advc.pf
 
 /*  K-Mod, 18/dec/10, karadoc
 	global warming pollution flags for use in the CvPlayer::calculateGwPollution function */
@@ -47,7 +47,10 @@
 #define RANDPLOT_WATERSOURCE (0x00000100) // </advc.300>
 
 #ifdef _USRDLL
-#define MAX_CIV_PLAYERS												(48) // note: default is 18, some people like 48. They are not compatible
+// K-Mod (note): default is 18, some people like 48. They are not compatible.
+/*  advc.056: Scenario (WB) files are now compatible so long as the player ids in the WB file
+	don't exceed MAX_CIV_PLAYERS in the DLL. Savegames are still incompatible. */
+#define MAX_CIV_PLAYERS												(18)
 #else
 #define MAX_CIV_PLAYERS												(CvGlobals::getInstance().getMaxCivPlayers())
 #endif
@@ -73,10 +76,11 @@
 #define INVALID_PLOT_COORD										(-(MAX_INT))	// don't use -1 since that is a valid wrap coordinate
 #define DIRECTION_RADIUS											(1)
 #define DIRECTION_DIAMETER										((DIRECTION_RADIUS * 2) + 1)
-#define NUM_CITY_PLOTS												(21)
-#define CITY_HOME_PLOT												(0)
-#define CITY_PLOTS_RADIUS											(2)
-#define CITY_PLOTS_DIAMETER										((CITY_PLOTS_RADIUS*2) + 1)
+// advc.enum: Moved to CvEnums.h
+/*#define NUM_CITY_PLOTS (21)
+#define CITY_HOME_PLOT    (0)
+#define CITY_PLOTS_RADIUS (2)
+#define CITY_PLOTS_DIAMETER	((CITY_PLOTS_RADIUS*2) + 1)*/
 
 #define GAME_NAME															("Game")
 
@@ -101,8 +105,8 @@
 // BUG - start
 #define DOUBLE_SEPARATOR													L"\n======================="
 // BUG - end
-#define TEXT_COLOR(szColor)										((int)(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(szColor)).getColor().r * 255)), ((int)(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(szColor)).getColor().g * 255)), ((int)(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(szColor)).getColor().b * 255)), ((int)(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString(szColor)).getColor().a * 255))
-// advc.003:  (uses of this macro aren't tagged with "advc")
+#define TEXT_COLOR(szColor)										((int)(GC.getInfo((ColorTypes)GC.getInfoTypeForString(szColor)).getColor().r * 255)), ((int)(GC.getInfo((ColorTypes)GC.getInfoTypeForString(szColor)).getColor().g * 255)), ((int)(GC.getInfo((ColorTypes)GC.getInfoTypeForString(szColor)).getColor().b * 255)), ((int)(GC.getInfo((ColorTypes)GC.getInfoTypeForString(szColor)).getColor().a * 255))
+// advc:  (uses of this macro aren't tagged with "advc")
 #define PLAYER_TEXT_COLOR(kPlayer)								kPlayer.getPlayerTextColorR(), kPlayer.getPlayerTextColorG(), kPlayer.getPlayerTextColorB(), kPlayer.getPlayerTextColorA()
 
 // Version Verification files and folders

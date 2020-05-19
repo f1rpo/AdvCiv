@@ -1,10 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvEventReporter.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvDllPythonEvents.h"
-#include "CvInitCore.h"
-#include "CvDLLInterfaceIFaceBase.h" // advc.106l
+#include "CvGame.h"
+#include "CvPlayer.h"
 
 //
 // static, singleton accessor
@@ -20,6 +17,12 @@ void CvEventReporter::resetStatistics()
 {
 	m_kStatistics.reset();
 }
+
+// <advc.003y> Just pass the call along
+void CvEventReporter::initPythonCallbackGuards()
+{
+	m_kPythonEventMgr.initCallbackGuards();
+} // </advc.003y>
 
 //
 // Returns true if the event is consumed by Python
@@ -389,6 +392,12 @@ void CvEventReporter::playerGoldTrade(PlayerTypes eFromPlayer, PlayerTypes eToPl
 {
 	m_kPythonEventMgr.reportPlayerGoldTrade(eFromPlayer, eToPlayer, iAmount);
 }
+/*	<advc.make> To get rid of the K-Mod friend declaration in the header.
+	Not const because CvStatistics performs lazy initialization of player records. */
+CvPlayerRecord const* CvEventReporter::getPlayerRecord(PlayerTypes ePlayer)
+{
+	return m_kStatistics.getPlayerRecord(ePlayer);
+} // </advc.make>
 
 void CvEventReporter::chat(CvWString szString)
 {
@@ -431,15 +440,18 @@ void CvEventReporter::preSave()
 			"Quicksave in between turns?");
 	char const* szDefineName = "";
 	CvWString szMsgTag;
-	if(bAutoSave) {
+	if(bAutoSave)
+	{
 		szDefineName = "AUTO_SAVING_MESSAGE_TIME";
 		szMsgTag = L"TXT_KEY_AUTO_SAVING2";
 	}
-	else if(bQuickSave) {
+	else if(bQuickSave)
+	{
 		szDefineName = "QUICK_SAVING_MESSAGE_TIME";
 		szMsgTag = L"TXT_KEY_QUICK_SAVING2";
 	}
-	else {
+	else
+	{
 		szDefineName = "SAVING_MESSAGE_TIME";
 		szMsgTag = L"TXT_KEY_SAVING_GAME2";
 	}
@@ -447,16 +459,17 @@ void CvEventReporter::preSave()
 	if(iLength <= 0)
 		return;
 	PlayerTypes eActivePlayer = g.getActivePlayer();
-	if(eActivePlayer == NO_PLAYER) {
+	if(eActivePlayer == NO_PLAYER)
+	{
 		FAssert(eActivePlayer != NO_PLAYER);
 		return;
 	}
-	gDLL->getInterfaceIFace()->addHumanMessage(eActivePlayer, true,
+	gDLL->UI().addMessage(eActivePlayer, true,
 			iLength, gDLL->getText(szMsgTag), NULL, MESSAGE_TYPE_DISPLAY_ONLY);
 }
 
-void CvEventReporter::preAutoSave() {
-
+void CvEventReporter::preAutoSave()
+{
 	/*  Can detect failed auto-saves here, but only if AutoSaveInterval=1 in the INI.
 		Can't test in the DLL if that's the case. (Can't parse the INI file either;
 		it could be any file passed to the EXE at startup through ini="...") */
@@ -464,8 +477,8 @@ void CvEventReporter::preAutoSave() {
 	m_bPreAutoSave = true;
 }
 
-void CvEventReporter::preQuickSave() {
-
+void CvEventReporter::preQuickSave()
+{
 	//FAssertMsg(!m_bPreAutoSave || GC.getGame().isNetworkMultiPlayer(), "Should've been reset by preSave");
 	m_bPreQuickSave = true;
 } // </advc.106l>
@@ -536,11 +549,15 @@ void CvEventReporter::readStatistics(FDataStreamBase* pStream)
 {
 	m_kStatistics.reset();
 	m_kStatistics.read(pStream);
-	GC.getGame().allGameDataRead(); // advc.003
+	GC.getGame().onAllGameDataRead(); // advc
 }
+
 void CvEventReporter::writeStatistics(FDataStreamBase* pStream)
 {
+	PROFILE_FUNC(); // advc
+	REPRO_TEST_BEGIN_WRITE("Statistics");
 	m_kStatistics.write(pStream);
+	REPRO_TEST_FINAL_WRITE();
 }
 
 // advc.106l: Explicit constructor added, so I can initialize my booleans.

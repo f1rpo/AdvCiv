@@ -145,18 +145,18 @@ def getModFolder():
 def getUserDir():
 	"""
 	Returns the full path of the user's Documents/My Games directory.
-	
-	See the file "Info/CvAltRoot.py" for more information.
 	"""
+	#See the file "Info/CvAltRoot.py" for more information. # advc: That doesn't exist
+
 	initRootFolder()
 	return _userDir
 
 def getRootDir():
 	"""
 	Returns the full path of the directory containing the file "CivilizationIV.ini".
-	
-	See the file "Info/CvAltRoot.py" for more information.
 	"""
+	#See the file "Info/CvAltRoot.py" for more information. # advc
+
 	initRootFolder()
 	return _rootDir
 

@@ -2,9 +2,8 @@
 
 #ifndef CyPlayer_h
 #define CyPlayer_h
-//
+
 // Python wrapper class for CvPlayer
-//
 
 class CyUnit;
 class CvPlayer;
@@ -12,12 +11,13 @@ class CyCity;
 class CyArea;
 class CyPlot;
 class CySelectionGroup;
+
 class CyPlayer
 {
 public:
 	CyPlayer();
-	CyPlayer(CvPlayer* pPlayer);		// Call from C++
-	CvPlayer* getPlayer() { return m_pPlayer;	}	// Call from C++
+	CyPlayer(CvPlayer* pPlayer); // Call from C++
+	//CvPlayer* getPlayer(); // advc: unused
 	bool isNone() { return (m_pPlayer==NULL); }
 
 	// CHANGE_PLAYER, 08/27/08, jdog5000: START
@@ -477,7 +477,7 @@ public:
 	int getEventTriggerWeight(int /*EventTriggerTypes*/ eTrigger);
 
 	void AI_updateFoundValues(bool bStartingLoc);
-	int AI_foundValue(int iX, int iY, int iMinUnitRange/* = -1*/, bool bStartingLoc/* = false*/);
+	int AI_foundValue(int iX, int iY, int iMinRivalRange/* = -1*/, bool bStartingLoc/* = false*/);
 	bool AI_isFinancialTrouble();
 	// advc.104l: Moved definition into .cpp file
 	bool AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer); // K-Mod
@@ -527,7 +527,7 @@ public:
 	bool isScoreboardExpanded() const; // </advc.085>
 
 private:
-	CvPlayer* m_pPlayer;
+	CvPlayerAI* m_pPlayer; // advc.003u: was CvPlayer*
 };
 
 #endif	// CyPlayer_h

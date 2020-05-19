@@ -3,35 +3,36 @@
 #ifndef WAR_UTILITY_ASPECT_H
 #define WAR_UTILITY_ASPECT_H
 
-#include "WarAndPeaceAI.h"
+#include "UWAI.h"
+#include "AIStrategies.h"
 
 class MilitaryAnalyst;
 class WarEvalParameters;
-class WarAndPeaceReport;
-class WarAndPeaceAI::Civ;
-class WarAndPeaceAI::Team;
-class WarAndPeaceCache;
+class UWAIReport;
+class UWAI::Civ;
+class UWAI::Team;
+class UWAICache;
 
 
-/*  <advc.104> New class. An aspect of war evaluation.
+/*  advc.104: New class. An aspect of war evaluation.
 	Few const functions in this class because the 'log' function needs to be
 	able to write to the report object. */
 class WarUtilityAspect {
 
 public:
-	WarUtilityAspect(WarEvalParameters& params);
 	/*  Returns the computed utility (same as calling utility(void)).
 		Sets some protected data members that subclasses should find useful.
 		Concrete subclasses should therefore overwrite evaluate(void) instead. */
-	virtual int evaluate(MilitaryAnalyst& m);
-	virtual char const* aspectName() const=0;
-	// Needs to correspond to the call order in WarAndPeaceAI::cacheXML
-	virtual int xmlId() const=0;
+	virtual int evaluate(MilitaryAnalyst const& m);
+	char const* aspectName() const;
+	// Needs to correspond to the call order in UWAI::cacheXML
+	virtual UWAI::AspectTypes xmlId() const=0;
 	/*  Caller needs to call evaluate first, which computes war utility. This is
 		just a getter. */
-	int utility() const;
+	int utility() const { return u; }
 
 protected:
+	WarUtilityAspect(WarEvalParameters const& params);
 	// Just for convenience (replacing report->log)
 	void log(char const* fmt, ...);
 	/*  What can m->ourId gain from or lose to theyId (both set by
@@ -58,33 +59,29 @@ protected:
 	   This also affects a few other classes that have references
 	   as members, in particular WarEvaluator and MilitaryAnalyst.*/
 	WarEvalParameters const& params;
-	TeamTypes agentId;
-	CvTeamAI& agent;
-	WarAndPeaceAI::Team& agentAI;
-	std::vector<PlayerTypes> const& agentTeam;
-	std::vector<TeamTypes> const& properTeams;
-	std::vector<PlayerTypes> const& properCivs;
+	TeamTypes const agentId;
+	CvTeamAI const& agent;
+	UWAI::Team const& agentAI;
 	int u;
-	WarAndPeaceReport& report;
-	int numRivals; // Civs presently alive, not on our team, non-vassal
-	int numKnownRivals; // Like above, but only those met by agent
-	// So that subclasses don't need to call GC.getGame().getCurrentEra() repeatedly:
-	EraTypes gameEra;
+	UWAIReport& report;
+	CvGame const& game;
+	EraTypes const gameEra;
+	CvGameSpeedInfo const& speed;
 
 	/*  Subclasses must not access these members until evaluate(m) has been called.
 		Initialization is then guaranteed although they're not references.
 		This is obviously not an ideal class design. A separate class
 		WarUtilityAspect::Civ would be even more unwieldy I think. */
-	MilitaryAnalyst* m;
+	MilitaryAnalyst const* m;
 	PlayerTypes weId;
 	CvPlayerAI* we;
-	WarAndPeaceAI::Civ* weAI;
-	WarAndPeaceCache* ourCache;
+	UWAI::Civ const* weAI;
+	UWAICache const* ourCache;
 	/*  'they' are not necessarily the team targeted by the DoW. Can be any rival
 		that we might directly or indirectly gain sth. from (or lose sth. to). */
 	PlayerTypes theyId;
-	CvPlayerAI* they;
-	WarAndPeaceAI::Civ* theyAI;
+	CvPlayerAI const* they;
+	UWAI::Civ const* theyAI;
 	std::vector<int> weConquerFromThem;
 	// Our current attitude towards them and their current attitude towards us
 	AttitudeTypes towardsThem, towardsUs;
@@ -114,8 +111,12 @@ protected:
 	 double cityRatio(PlayerTypes civId) const;
 	 // Between our team and 'other', or their team if none given
 	 double normalizeUtility(double utilityTeamOnTeam, TeamTypes other = NO_TEAM);
+	 template<bool bCHECK_HAS_MET> int countRivals() const {
+		 return PlayerIter<FREE_MAJOR_CIV, bCHECK_HAS_MET ?
+				KNOWN_POTENTIAL_ENEMY_OF : POTENTIAL_ENEMY_OF>::count(agentId);
+	 }
 	 /*  Evaluation of their usefulness as our trade partner. Would prefer this
-		 to be computed just once by WarAndPeaceCache (the computations aren't
+		 to be computed just once by UWAICache (the computations aren't
 		 totally cheap), but I also want the log output. They're not called
 		 frequently. */
 	 double partnerUtilFromTech();
@@ -135,18 +136,17 @@ private:
 	if evaluate(void) should be called also for parties that aren't part of the
 	military analysis. */
 class WarUtilityBroaderAspect : public WarUtilityAspect {
-public:
-	WarUtilityBroaderAspect(WarEvalParameters& params);
 protected:
-	bool concernsOnlyWarParties() const;
+	WarUtilityBroaderAspect(WarEvalParameters& params);
+	bool concernsOnlyWarParties() const; // override
 };
 
 class GreedForAssets : public WarUtilityAspect {
 public:
-	GreedForAssets(WarEvalParameters& params);
+	GreedForAssets(WarEvalParameters& params) :
+			WarUtilityAspect(params), ourDist(-1) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::GREED_FOR_ASSETS; }
 private:
 	void initCitiesPerArea();
 	void freeCitiesPerArea();
@@ -156,44 +156,44 @@ private:
 	double threatToCities(PlayerTypes civId);
 	double competitionMultiplier();
 	double teamSizeMultiplier();
-	std::map<int,int>* citiesPerArea[MAX_CIV_PLAYERS];
+	std::vector<std::map<int,int>*> citiesPerArea;
 	double ourDist;
 };
 
 
 class GreedForVassals : public WarUtilityAspect {
 public:
-	GreedForVassals(WarEvalParameters& params);
+	GreedForVassals(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::GREED_FOR_VASSALS; }
 };
 
 
 class GreedForSpace : public WarUtilityAspect {
 public:
-	GreedForSpace(WarEvalParameters& params);
+	GreedForSpace(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::GREED_FOR_SPACE; }
 };
 
 
 class GreedForCash : public WarUtilityAspect {
 public:
-	GreedForCash(WarEvalParameters& params);
+	GreedForCash(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::GREED_FOR_CASH; }
 };
 
 
 class Loathing : public WarUtilityAspect {
 public:
-	Loathing(WarEvalParameters& params);
+	Loathing(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::LOATHING; }
 private:
 	double lossRating();
 };
@@ -201,11 +201,11 @@ private:
 
 class MilitaryVictory : public WarUtilityAspect {
 public:
-	MilitaryVictory(WarEvalParameters& params);
+	MilitaryVictory(WarEvalParameters& params)
+			: WarUtilityAspect(params), votesToGo(-1), enoughVotes(false) {}
 	int preEvaluate();
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::MILITARY_VICTORY; }
 private:
 	double progressRatingConquest();
 	double progressRatingDomination();
@@ -219,10 +219,10 @@ private:
 
 class Assistance : public WarUtilityAspect {
 public:
-	Assistance(WarEvalParameters& params);
+	Assistance(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::PRESERVATION_OF_PARTNERS; }
 private:
 	double assistanceRatio();
 };
@@ -232,35 +232,34 @@ class Reconquista : public WarUtilityAspect {
 public:
 	Reconquista(WarEvalParameters& params);
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::RECONQUISTA; }
 };
 
 
 class Rebuke : public WarUtilityAspect {
 public:
-	Rebuke(WarEvalParameters& params);
+	Rebuke(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::REBUKE; }
 };
 
 
 class Fidelity : public WarUtilityAspect {
 public:
-	Fidelity(WarEvalParameters& params);
+	Fidelity(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::FIDELITY; }
 };
 
 
 class HiredHand : public WarUtilityAspect {
 public:
-	HiredHand(WarEvalParameters& params);
+	HiredHand(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::HIRED_HAND; }
 private:
 	double eval(PlayerTypes allyId, int originalUtility, int obligationThresh);
 };
@@ -268,46 +267,45 @@ private:
 
 class BorderDisputes : public WarUtilityAspect {
 public:
-	BorderDisputes(WarEvalParameters& params);
+	BorderDisputes(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::BORDER_DISPUTES; }
 };
 
 
 class SuckingUp : public WarUtilityAspect {
 public:
-	SuckingUp(WarEvalParameters& params);
+	SuckingUp(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::SUCKING_UP; }
 };
 
 
 class PreEmptiveWar : public WarUtilityBroaderAspect {
 public:
-	PreEmptiveWar(WarEvalParameters& params);
+	PreEmptiveWar(WarEvalParameters& params)
+			: WarUtilityBroaderAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::PREEMPTIVE_WAR; }
 };
 
 
 class KingMaking : public WarUtilityBroaderAspect {
 public:
-	KingMaking(WarEvalParameters& params);
+	KingMaking(WarEvalParameters& params)
+			: WarUtilityBroaderAspect(params) {}
 	int preEvaluate();
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::KING_MAKING; }
 private:
 	void addWinning(std::set<PlayerTypes>& r, bool bPredict);
-	bool anyVictory(PlayerTypes civId, int iVictoryFlags, int stage,
+	bool anyVictory(PlayerTypes civId, AIVictoryStage flags, int stage,
 			bool bPredict = true) const;
 	void addLeadingCivs(std::set<PlayerTypes>& r, double margin,
 			bool bPredict = true) const;
 	double theirRelativeLoss();
-	std::vector<PlayerTypes> civs; // excluding vassals
 	std::set<PlayerTypes> winningFuture;
 	std::set<PlayerTypes> winningPresent;
 	static double const scoreMargin;
@@ -316,31 +314,31 @@ private:
 
 class Effort : public WarUtilityAspect {
 public:
-	Effort(WarEvalParameters& params);
+	Effort(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	int preEvaluate();
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::EFFORT; }
 };
 
 
 class Risk : public WarUtilityAspect {
 public:
-	Risk(WarEvalParameters& params);
+	Risk(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	int preEvaluate();
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::RISK; }
 };
 
 
 class IllWill : public WarUtilityBroaderAspect {
 public:
-	IllWill(WarEvalParameters& params);
+	IllWill(WarEvalParameters& params)
+		: WarUtilityBroaderAspect(params), uMinus(-1), altPartnerFactor(-1) {}
 	int preEvaluate();
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::ILL_WILL; }
 private:
 	void evalLostPartner();
 	void evalRevenge();
@@ -356,8 +354,7 @@ class Affection : public WarUtilityAspect {
 public:
 	Affection(WarEvalParameters& params);
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::AFFECTION; }
 private:
 	double gameProgressFactor;
 };
@@ -365,48 +362,48 @@ private:
 
 class Distraction : public WarUtilityAspect {
 public:
-	Distraction(WarEvalParameters& params);
+	Distraction(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::DISTRACTION; }
 };
 
 
 class PublicOpposition : public WarUtilityAspect {
 public:
-	PublicOpposition(WarEvalParameters& params);
+	PublicOpposition(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::PUBLIC_OPPOSITION; }
 };
 
 
 class Revolts : public WarUtilityAspect {
 public:
-	Revolts(WarEvalParameters& params);
+	Revolts(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::REVOLTS; }
 private:
 	std::set<int> countedCities;
 };
 
-
+// BroaderAspect: need to evaluate for theyId==sponsorId
 class UlteriorMotives : public WarUtilityBroaderAspect {
 public:
-	UlteriorMotives(WarEvalParameters& params);
+	UlteriorMotives(WarEvalParameters& params)
+			: WarUtilityBroaderAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::ULTERIOR_MOTIVES; }
 };
 
 
 class FairPlay : public WarUtilityAspect {
 public:
-	FairPlay(WarEvalParameters& params);
+	FairPlay(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::FAIR_PLAY; }
 private:
 	int initialMilitaryUnits(PlayerTypes civId);
 };
@@ -414,25 +411,32 @@ private:
 
 class Bellicosity : public WarUtilityAspect {
 public:
-	Bellicosity(WarEvalParameters& params);
+	Bellicosity(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::BELLICOSITY; }
 };
 
 
 class TacticalSituation : public WarUtilityAspect {
 public:
-	TacticalSituation(WarEvalParameters& params);
+	TacticalSituation(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
 	void evaluate();
-	char const* aspectName() const;
-	int xmlId() const;
+	UWAI::AspectTypes xmlId() const { return UWAI::TACTICAL_SITUATION; }
 private:
 	void evalEngagement();
 	void evalOperational();
 	int evacPop(PlayerTypes ownerId, PlayerTypes invaderId);
 };
 
-// </advc.104>
+
+class LoveOfPeace : public WarUtilityAspect {
+public:
+	LoveOfPeace(WarEvalParameters& params)
+			: WarUtilityAspect(params) {}
+	void evaluate();
+	UWAI::AspectTypes xmlId() const { return UWAI::LOVE_OF_PEACE; }
+};
 
 #endif

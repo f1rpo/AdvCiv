@@ -381,6 +381,9 @@ class CvOptionsScreen:
 		szCallbackFunction = "handleLanguagesDropdownBoxInput"
 		szWidgetName = "LanguagesDropdownBox"
 		iInitialSelection = CyGame().getCurrentLanguage()
+		# <advc> (Not sure if this precaution could ever be needed)
+		if iInitialSelection >= CvGameText().getNumLanguages():
+			iInitialSelection = 0 # </advc>
 		tab.attachDropDown("LangHBox", szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
 		tab.setLayoutFlag(szWidgetName, "LAYOUT_LEFT")
 		
@@ -579,6 +582,9 @@ class CvOptionsScreen:
 		szCallbackFunction = "handleMainMenuDropdownBoxInput"
 		szWidgetName = self.szMainMenuDropdownBoxName = "DropdownBox"
 		iInitialSelection = UserProfile.getMainMenu()
+		# <advc> Might avoid problems for mod-mods with a single custom menu background
+		if iInitialSelection >= gc.getNumMainMenus():
+			iInitialSelection = 0 # </advc>
 		tab.attachDropDown(vbox2, szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
 		# advc.076:
 		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_OPENING_MENU_HELP", ()))

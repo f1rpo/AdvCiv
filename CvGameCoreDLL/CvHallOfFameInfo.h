@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "CvReplayInfo.h"
+class ReplayInfo;
 
 class CvHallOfFameInfo
 {

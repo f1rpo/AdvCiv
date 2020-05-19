@@ -663,7 +663,9 @@
 			<iForeignTradeRouteModifier>0</iForeignTradeRouteModifier>
 			<iGlobalPopulationChange>0</iGlobalPopulationChange>
 			<iFreeTechs>0</iFreeTechs>
-			<iDefense>50</iDefense>
+			<iDefense>0</iDefense>
+			<!-- advc.004c: Replacing the above (which was also 50) -->
+			<iRaiseDefense>50</iRaiseDefense>
 			<iBombardDefense>50</iBombardDefense>
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
@@ -843,7 +845,9 @@
 			<iForeignTradeRouteModifier>0</iForeignTradeRouteModifier>
 			<iGlobalPopulationChange>0</iGlobalPopulationChange>
 			<iFreeTechs>0</iFreeTechs>
-			<iDefense>50</iDefense>
+			<iDefense>0</iDefense>
+			<!-- advc.004c: Replacing the above (which was also 50) -->
+			<iRaiseDefense>50</iRaiseDefense>
 			<iBombardDefense>50</iBombardDefense>
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
@@ -876,12 +880,14 @@
 					<iProductonModifier>100</iProductonModifier>
 				</BonusProductionModifier>
 			</BonusProductionModifiers>
-			<UnitCombatFreeExperiences>
+			<!-- advc.200: Revert this K-Mod change -->
+			<!--UnitCombatFreeExperiences>
 				<UnitCombatFreeExperience>
 					<UnitCombatType>UNITCOMBAT_MELEE</UnitCombatType>
 					<iExperience>1</iExperience>
 				</UnitCombatFreeExperience>
-			</UnitCombatFreeExperiences>
+			</UnitCombatFreeExperiences-->
+			<UnitCombatFreeExperiences/>
 			<DomainFreeExperiences/>
 			<DomainProductionModifiers/>
 			<BuildingHappinessChanges/>
@@ -1026,7 +1032,9 @@
 			<iForeignTradeRouteModifier>0</iForeignTradeRouteModifier>
 			<iGlobalPopulationChange>0</iGlobalPopulationChange>
 			<iFreeTechs>0</iFreeTechs>
-			<iDefense>50</iDefense>
+			<iDefense>0</iDefense>
+			<!-- advc.004c: Replacing the above (which was 50) -->
+			<iRaiseDefense>100</iRaiseDefense>
 			<iBombardDefense>25</iBombardDefense>
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
@@ -1226,7 +1234,9 @@
 			<iForeignTradeRouteModifier>0</iForeignTradeRouteModifier>
 			<iGlobalPopulationChange>0</iGlobalPopulationChange>
 			<iFreeTechs>0</iFreeTechs>
-			<iDefense>50</iDefense>
+			<iDefense>0</iDefense>
+			<!-- advc.004c: Replacing the above (which was 50) -->
+			<iRaiseDefense>100</iRaiseDefense>
 			<iBombardDefense>25</iBombardDefense>
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
@@ -5658,10 +5668,8 @@
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
 			<GlobalSeaPlotYieldChanges/>
-			<YieldChanges>
-				<iYield>0</iYield>
-				<iYield>2</iYield>
-			</YieldChanges>
+			<!-- advc.200: was +2 production in K-Mod -->
+			<YieldChanges/>
 			<YieldModifiers>
 				<iYield>0</iYield>
 				<iYield>25</iYield>

@@ -1,25 +1,26 @@
-// <advc.104> New class; see ArmamentForecast.h for description
+// advc.104: New class; see ArmamentForecast.h for description.
 
 #include "CvGameCoreDLL.h"
 #include "ArmamentForecast.h"
-#include "WarAndPeaceAgent.h"
+#include "UWAIAgent.h"
 #include "MilitaryAnalyst.h"
 #include "WarEvalParameters.h"
-#include "WarAndPeaceReport.h"
-#include "CvGamePlay.h"
-#include "AI_Defines.h"
+#include "UWAIReport.h"
+#include "CoreAI.h"
+#include "CvCity.h"
 #include "CvMap.h"
-#include <sstream>
+#include "CvArea.h"
+#include "CvInfo_GameOption.h"
 
 using std::vector;
 using std::ostringstream;
 
 ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			std::vector<MilitaryBranch*>& military, int timeHorizon,
-			double productionPortion, WarAndPeaceCache::City const* targetCity,
+			double productionPortion, UWAICache::City const* targetCity,
 			bool peaceScenario, bool partyAddedRecently, bool allPartiesKnown,
 			bool noUpgrading) :
-		m(m), civId(civId), wpai(GET_PLAYER(civId).warAndPeaceAI()),
+		m(m), civId(civId), uwai(GET_PLAYER(civId).uwai()),
 		report(m.evaluationParameters().getReport()),
 		military(military), timeHorizon(timeHorizon) {
 
@@ -36,7 +37,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	/* A very rough estimate of hurry hammers. Would be nicer to base this on
 	   the actual hurry effect, e.g., for Slavery, per-use production divided
 	   by anger duration. */
-	if(wpai.canHurry())
+	if(uwai.canHurry())
 		productionEstimate += 3 * GET_PLAYER(civId).getNumCities();
 	/* Civs will often change civics when war is declared. For now, the AI makes
 	   no effort to anticipate this. Will have to adapt once it happens. */
@@ -64,7 +65,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	bool navalArmament = false;
 	if(targetCity != NULL) {
 		if(!targetCity->canReachByLand() ||
-				targetCity->getDistance() > getWPAI.maxLandDist())
+				targetCity->getDistance() > getUWAI.maxLandDist())
 			navalArmament = true;
 		report.log("Target city: %s%s", report.cityName(*targetCity->city()),
 				(navalArmament ? " (naval target)": ""));
@@ -85,17 +86,17 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	bool fictionalScenario = false;
 	TeamTypes singleWarEnemy = NO_TEAM; // Only relevant if there is just one enemy
 	bool const noWarVsExtra = peaceScenario && params.isNoWarVsExtra();
-	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
-		TeamTypes loopTeamId = getWPAI.properTeams()[i];
-		if(loopTeamId == tId)
+	for(TeamIter<MAJOR_CIV> it; it.hasNext(); ++it) {
+		CvTeamAI& loopTeam = *it;
+		if(loopTeam.getID() == tId || !loopTeam.isHasMet(TEAMID(m.ourId())))
 			continue;
-		CvTeamAI& loopTeam = GET_TEAM(loopTeamId);
+		TeamTypes loopTeamId = loopTeam.getID();
 		TeamTypes loopMaster = loopTeam.getMasterTeam();
 		// Whether the simulation assumes peace between loopTeam and t
 		bool peaceAssumedLoop = peaceScenario && ((m.isOnOurSide(tId) &&
 				m.isOnTheirSide(loopTeamId)) || (m.isOnOurSide(loopTeamId) &&
 				m.isOnTheirSide(tId))) &&
-				(tId != weId || !noWarVsExtra || loopTeamId != params.targetId());
+				(tId != TEAMID(weId) || !noWarVsExtra || loopTeamId != params.targetId());
 		/* Important to check warplan (not just war) when
 		   second-guessing preparations underway */
 		if(peaceAssumedLoop && t.AI_getWarPlan(loopTeamId) != NO_WARPLAN)
@@ -103,7 +104,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		/* True if simulation assumes a war between loopTeam and t to have
 		   already started, or if simulation assumes a war plan.
 		   Not true if already at war in the actual game (outside the simulation).*/
-		bool warAssumed = (allPartiesKnown || tId == weId) && (
+		bool warAssumed = (allPartiesKnown || tId == TEAMID(weId)) && (
 				(m.isOnOurSide(loopTeamId) && m.isOnTheirSide(tId, true)) ||
 				(m.isOnOurSide(tId) && m.isOnTheirSide(loopTeamId, true)));
 		if(peaceAssumedLoop || loopTeam.isAtWar(tId))
@@ -115,24 +116,26 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 				/* If neither side can reach the other, the war doesn't count
 				   because it doesn't (or shouldn't) lead to additional buildup. */
 				reachEither) {
-			iWars++;
-			if(iWars <= 1)
-				singleWarEnemy = loopTeam.getID();
-			else singleWarEnemy = NO_TEAM;
+			if(!loopTeam.isAVassal()) {
+				iWars++;
+				if(iWars <= 1)
+					singleWarEnemy = loopTeam.getID();
+				else singleWarEnemy = NO_TEAM;
+			}
 			if(intensity == NORMAL)
 				intensity = INCREASED;
 			// t recently attacked by loopTeam
-			bool attackedRecentlyLoop = warAssumed && partyAddedRecently
-					&& m.isOnTheirSide(tId, true);
-			if(attackedRecentlyLoop && loopTeam.warAndPeaceAI().canReach(tId))
+			bool attackedRecentlyLoop = (warAssumed && partyAddedRecently
+					&& m.isOnTheirSide(tId, true));
+			if(attackedRecentlyLoop && loopTeam.uwai().canReach(tId))
 				attackedRecently = true;
 			/*  Vassals only get dragged along into limited wars; however,
 				an attacked vassal may build up as if in total war. */
-			bool totalWarAssumed = warAssumed && ((TEAMID(weId) == tId &&
+			bool totalWarAssumed = (warAssumed && ((TEAMID(weId) == tId &&
 					loopTeamId == targetTeamId && params.isTotal()) ||
 					attackedRecentlyLoop) &&
 					// Only assume total war if we can reach them (not just them us)
-					t.warAndPeaceAI().canReach(loopTeamId);
+					t.uwai().canReach(loopTeamId));
 			if((t.AI_getWarPlan(loopTeamId) == WARPLAN_TOTAL &&
 					/* If we already have a (total) war plan against the target,
 					   that plan is going to be replaced by the war plan
@@ -142,12 +145,12 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 				iTotalWars++;
 		}
 	}
-	int iWarPlans = t.getAnyWarPlanCount(true);
+	int iWarPlans = t.AI_countWarPlans();
 	/*  Assume that we don't pursue any (aggressive) war preparations in the
 		peace scenario. (Should only be relevant when considering an immediate DoW,
 		e.g. on request of another civ, while already planning war. I think the
 		baseline should then be a scenario with no war preparations. Instead,
-		WarAndPeaceAI::Team::scheme should compare the utility of the immediate war
+		UWAI::Agent::scheme should compare the utility of the immediate war
 		with that of the war in preparation. */
 	if(peaceScenario && civId == m.ourId())
 		iWarPlans = iWars;
@@ -171,7 +174,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			   Must definitely be disregarded for weId b/c the war preparations
 			   currently under consideration may lead to abandonment of
 			   concurrent war preparations. */
-			(t.getWarPlanCount(WARPLAN_PREPARING_TOTAL) > 0 &&
+			(t.AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0 &&
 			master != ourMaster))
 		intensity = FULL;
 	bool attackedUnprepared = attackedRecently && iWarPlans == 0;
@@ -217,8 +220,8 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		alive. Would be cleaner to assume a shorter time horizon, but that's a
 		can of worms. */
 	if(singleWarEnemy != NO_TEAM && !navalArmament && iTotalWars <= 0 &&
-			iWarPlans <= 1 && !civ.AI_isDoStrategy(AI_STRATEGY_ALERT1
-			| AI_STRATEGY_ALERT2) && t.warAndPeaceAI().isPushover(singleWarEnemy)) {
+			iWarPlans <= 1 && !civ.AI_isDoStrategy(AI_STRATEGY_ALERT1 | AI_STRATEGY_ALERT2) &&
+			t.uwai().isPushover(singleWarEnemy)) {
 		intensity = NORMAL;
 		fictionalScenario = true; // Don't check AreAI either
 	}
@@ -255,7 +258,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			/* Humans only have a war plan when they're actually at
 			   war (total or attacked). Even then, the human build-up doesn't have to
 			   match the war plan. Make a projection based on the human power curve. */
-			double bur = GET_PLAYER(weId).warAndPeaceAI().estimateBuildUpRate(civId);
+			double bur = GET_PLAYER(weId).uwai().estimateBuildUpRate(civId);
 			Intensity basedOnBUR = INCREASED;
 			if(bur > 0.25)
 				basedOnBUR = FULL;
@@ -267,7 +270,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 				report.log("Using estimated intensity for forecast");
 				if(intensity <= NORMAL && GET_TEAM(civ.getTeam()).
 						isAtWar(TEAMID(weId)) && !GET_TEAM(civ.getTeam()).
-						warAndPeaceAI().isPushover(TEAMID(weId))) {
+						uwai().isPushover(TEAMID(weId))) {
 					// Have to expect that human will increase build-up as necessary
 					intensity = INCREASED;
 					report.log("Increased intensity for human at war with us");
@@ -310,7 +313,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	CvPlayerAI const& civ = GET_PLAYER(civId);
 	if(!defensive) {
 		// Space and culture victory tend to divert production away from the military
-		bool const peacefulVictory = wpai.getCache().isFocusOnPeacefulVictory();
+		bool const peacefulVictory = uwai.getCache().isFocusOnPeacefulVictory();
 		if(peacefulVictory) {
 			report.log("Build-up reduced b/c pursuing peaceful victory");
 			if(intensity == FULL)
@@ -327,7 +330,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 			navalArmament ? "yes" : "no", strIntensity(intensity));
 
 	// Armament portion of the total production; based on intensity
-	double armamentPortion = wpai.buildUnitProb();
+	double armamentPortion = uwai.buildUnitProb();
 	/*  Total vs. limited war mostly affects pre-war build-up, but there are also
 		a few lines of (mostly K-Mod) code that make the AI focus more on production
 		when in a total war. The computation of the intensity doesn't cover this
@@ -374,9 +377,9 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	branchPortions[HOME_GUARD] = 0.13;
 	if(navalArmament) {
 		branchPortions[FLEET] = 0.2;
-		int rev = 0, revCoast = 0, dummy = 0;
-		for(CvCity* c = civ.firstCity(&dummy); c != NULL; c = civ.nextCity(&dummy)) {
-			if(c->isRevealed(civ.getTeam(), false)) {
+		int rev = 0, revCoast = 0;
+		FOR_EACH_CITY(c, civ) {
+			if(c->isRevealed(civ.getTeam())) {
 				rev++;
 				if(c->isCoastal())
 					revCoast++;
@@ -522,8 +525,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 
 bool ArmamentForecast::canReachEither(TeamTypes t1, TeamTypes t2) const {
 
-	return GET_TEAM(t1).warAndPeaceAI().canReach(t2) ||
-				GET_TEAM(t2).warAndPeaceAI().canReach(t1);
+	return GET_TEAM(t1).uwai().canReach(t2) || GET_TEAM(t2).uwai().canReach(t1);
 }
 
 char const* ArmamentForecast::strIntensity(Intensity in) {
@@ -567,17 +569,17 @@ double ArmamentForecast::productionFromUpgrades() {
 		report.log("Upgrades bounded by income (%d gpt)", ::round(income));
 	r = std::min(incomeBound, r);
 	// An approximate inversion of CvUnit::upgradePrice
-	double upgrCostPerProd = GC.getDefineINT("UNIT_UPGRADE_COST_PER_PRODUCTION");
+	double upgrCostPerProd = GC.getDefineINT(CvGlobals::UNIT_UPGRADE_COST_PER_PRODUCTION);
 	r /= upgrCostPerProd;
 	/* The base upgrade cost is paid per unit, but CvPlayerAI doesn't track
 	   how many units need an upgrade. Assuming a mean training cost difference
 	   of 30 hammers, one can look at the base cost as a multiplicative modifier. */
 	double typicalGoldForProdDiff = upgrCostPerProd * 30;
 	double baseCostModifier = typicalGoldForProdDiff / (typicalGoldForProdDiff +
-			GC.getDefineINT("BASE_UNIT_UPGRADE_COST"));
+			GC.getDefineINT(CvGlobals::BASE_UNIT_UPGRADE_COST));
 	r *= baseCostModifier;
 	if(!civ.isHuman()) {
-		CvHandicapInfo& gameHandicap = GC.getHandicapInfo(GC.getGame().getHandicapType());
+		CvHandicapInfo& gameHandicap = GC.getInfo(GC.getGame().getHandicapType());
 		double aiUpgradeFactor = gameHandicap.getAIUnitUpgradePercent();
 		// advc.250d: The per-era modifier no longer applies to upgrade cost
 			// + gameHandicap.getAIPerEraModifier() * civ.getCurrentEra();
@@ -590,23 +592,12 @@ double ArmamentForecast::productionFromUpgrades() {
 	return std::max(0.0, r);
 }
 
-CvArea* ArmamentForecast::getCapitalArea(PlayerTypes civId) const {
-
-	if(civId == NO_PLAYER)
-		civId = m.ourId();
-	CvCity* capital = GET_PLAYER(civId).getCapitalCity();
-	return GC.getMap().getArea(capital->plot()->getArea());
-}
-
 AreaAITypes ArmamentForecast::getAreaAI(PlayerTypes civId) const {
 
 	if(civId == NO_PLAYER)
 		civId = m.ourId();
-	CvCity* capital = GET_PLAYER(civId).getCapitalCity();
+	CvCity const* capital = GET_PLAYER(civId).getCapitalCity();
 	if(capital == NULL)
 		return NO_AREAAI;
-	CvArea& capitalArea = *getCapitalArea(civId);
-	return capitalArea.getAreaAIType(TEAMID(civId));
+	return capital->getArea().getAreaAIType(TEAMID(civId));
 }
-
-// </advc.104>

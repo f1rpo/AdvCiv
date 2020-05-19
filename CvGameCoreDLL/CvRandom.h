@@ -7,14 +7,11 @@
 
 class CvRandom
 {
-
 public:
-
 	DllExport CvRandom();
-	DllExport virtual ~CvRandom();
+	DllExport virtual ~CvRandom(); // advc (comment): Can't make this non-virtual b/c of DllExport
 
 	DllExport void init(unsigned long ulSeed);
-	void uninit();
 	void reset(unsigned long ulSeed = 0);
 
 	DllExport unsigned short get(unsigned short usNum, const TCHAR* pszLog = NULL) {  //  Returns value from 0 to num-1 inclusive.
@@ -33,7 +30,6 @@ public:
 	void write(FDataStreamBase* pStream);
 
 protected:
-
 	unsigned long m_ulRandomSeed;
 };
 

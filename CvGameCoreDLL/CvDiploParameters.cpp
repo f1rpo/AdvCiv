@@ -14,14 +14,14 @@ CvDiploParameters::CvDiploParameters(PlayerTypes ePlayer) :
 	m_bOurOffering(false),
 	m_bTheirOffering(false)
 {
-	m_ourOffer.clear();
-	m_theirOffer.clear();
+	/*m_ourOffer.clear();
+	m_theirOffer.clear();*/ // advc: no need
 }
 
 CvDiploParameters::~CvDiploParameters()
 {
-	m_ourOffer.clear();
-	m_theirOffer.clear();
+	/*m_ourOffer.clear();
+	m_theirOffer.clear();*/ // advc
 }
 
 void CvDiploParameters::setWhoTalkingTo(PlayerTypes eWhoTalkingTo)
@@ -110,14 +110,9 @@ DiploCommentTypes CvDiploParameters::getDiploComment() const
 
 void CvDiploParameters::setOurOfferList(const CLinkList<TradeData>& ourOffer)
 {
-	CLLNode<TradeData> *pNode;
-
 	m_ourOffer.clear();
-
-	for (pNode = ourOffer.head(); pNode; pNode = ourOffer.next(pNode))
-	{
+	for (CLLNode<TradeData> const* pNode = ourOffer.head(); pNode != NULL; pNode = ourOffer.next(pNode))
 		m_ourOffer.insertAtEnd(pNode->m_data);
-	}
 }
 
 const CLinkList<TradeData>& CvDiploParameters::getOurOfferList() const
@@ -127,14 +122,9 @@ const CLinkList<TradeData>& CvDiploParameters::getOurOfferList() const
 
 void CvDiploParameters::setTheirOfferList(const CLinkList<TradeData>& theirOffer)
 {
-	CLLNode<TradeData> *pNode;
-
 	m_theirOffer.clear();
-
-	for (pNode = theirOffer.head(); pNode; pNode = theirOffer.next(pNode))
-	{
+	for (CLLNode<TradeData> const* pNode = theirOffer.head(); pNode; pNode = theirOffer.next(pNode))
 		m_theirOffer.insertAtEnd(pNode->m_data);
-	}
 }
 
 const CLinkList<TradeData>& CvDiploParameters::getTheirOfferList() const
@@ -230,7 +220,7 @@ void CvDiploParameters::read(FDataStreamBase& stream)
 {
 	int iType;
 	uint uiFlag=0;
-	stream.Read(&uiFlag);	// flags for expansion
+	stream.Read(&uiFlag);
 
 	stream.Read(&iType);
 	m_eWhoTalkingTo = (PlayerTypes)iType;
@@ -247,17 +237,17 @@ void CvDiploParameters::read(FDataStreamBase& stream)
 	stream.ReadString(m_szChatText);
 
 	// read diplo args vec
-	int i, iSize;
+	int iSize;
 	stream.Read(&iSize);
 	m_diploCommentArgs.resize(iSize);
-	for(i=0;i<iSize;i++)
+	for (int i = 0; i < iSize; i++)
 		m_diploCommentArgs[i].Read(&stream);
 }
 
 void CvDiploParameters::write(FDataStreamBase& stream) const
 {
-	uint uiFlag=0;
-	stream.Write(uiFlag);		// flag for expansion
+	uint uiFlag = 0;
+	stream.Write(uiFlag);
 
 	stream.Write(m_eWhoTalkingTo);
 	stream.Write(m_eCommentType);
@@ -272,8 +262,8 @@ void CvDiploParameters::write(FDataStreamBase& stream) const
 	stream.WriteString(m_szChatText);
 
 	// write diplo args vec
-	int i, iSize = m_diploCommentArgs.size();
+	int iSize = m_diploCommentArgs.size();
 	stream.Write(iSize);
-	for(i=0;i<iSize;i++)
+	for (int i = 0; i < iSize; i++)
 		m_diploCommentArgs[i].Write(&stream);
 }

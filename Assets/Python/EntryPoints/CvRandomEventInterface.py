@@ -3221,11 +3221,11 @@ def canTriggerExperiencedCaptain(argsList):
 ######## PARTISANS ###########
 
 def getNumPartisanUnits(plot, iPlayer):
-	for i in range(gc.getNumCultureLevelInfos()):
-		iI = gc.getNumCultureLevelInfos() - i - 1
-		if plot.getCulture(iPlayer) >= gc.getGame().getCultureThreshold(iI):
-			return iI
-	return 0
+	# <advc.003y> Let the DLL handle this so that it's consistent with the code moved from CvEventManager.onCityRazed.
+	if not plot.isCity():
+		return 1 # (shouldn't happen)
+	return plot.getPlotCity().getNumPartisanUnits(iPlayer)
+	# </advc.003y>
 
 def getHelpPartisans1(argsList):
 	iEvent = argsList[0]

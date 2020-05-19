@@ -4,17 +4,16 @@
 //
 
 #include "CvGameCoreDLL.h"
+#include "CvInfo_All.h"
 #include "CyMap.h"
 #include "CyPlayer.h"
 #include "CyGame.h"
-#include "CyGlobalContext.h"
-#include "CvInfos.h"
 #include "CyTeam.h"
 
 
 void CyGlobalContextPythonInterface1(python::class_<CyGlobalContext>& x)
 {
-	OutputDebugString("Python Extension Module - CyGlobalContextPythonInterface1\n");
+	printToConsole("Python Extension Module - CyGlobalContextPythonInterface1\n");
 
 	x
 		.def("isDebugBuild", &CyGlobalContext::isDebugBuild, "() - returns true if running a debug build")

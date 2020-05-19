@@ -1,6 +1,5 @@
 #include "CvGameCoreDLL.h"
 #include "CyGame.h"
-#include "CyCity.h"
 #include "CyDeal.h"
 #include "CyReplayInfo.h"
 
@@ -10,7 +9,7 @@
 
 void CyGamePythonInterface()
 {
-	OutputDebugString("Python Extension Module - CyGamePythonInterface\n");
+	printToConsole("Python Extension Module - CyGamePythonInterface\n");
 
 	python::class_<CyGame>("CyGame")
 		.def("isNone", &CyGame::isNone, "CyGame* () - is the instance valid?")

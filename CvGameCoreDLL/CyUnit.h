@@ -2,6 +2,7 @@
 
 #ifndef CyUnit_h
 #define CyUnit_h
+
 //
 // Python wrapper class for CvUnit
 //
@@ -12,11 +13,13 @@ class CyCity;
 class CvUnit;
 class CySelectionGroup;
 class CvArtInfoUnit;
+
 class CyUnit
 {
 public:
 	CyUnit();
 	DllExport CyUnit(CvUnit* pUnit);		// Call from C++
+	CyUnit(CvUnit const& kUnit); // advc.003y
 	CvUnit* getUnit() { return m_pUnit;	};	// Call from C++
 	const CvUnit* getUnit() const { return m_pUnit;	};	// Call from C++
 	bool isNone() { return (m_pUnit==NULL); }

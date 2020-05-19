@@ -1,41 +1,51 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameCoreUtils.h"
-#include "CvGamePlay.h"
-#include "CvMap.h"
-#include "FAStarNode.h"
-#include "CvInfos.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLEntityIFaceBase.h"
-#include "CvDLLFAStarIFaceBase.h"
+#include "CoreAI.h"
+#include "CvUnitAI.h"
+#include "CvSelectionGroupAI.h"
+#include "CityPlotIterator.h"
+#include "BBAILog.h" // advc.007
+#include "CvInfo_GameOption.h"
+#include "CvInfo_Terrain.h"
 
-using std::vector; // advc.003
+using std::vector; // advc
+
+/*	advc.pf: I've mainly wanted to increase PATH_STEP_WEIGHT.
+	Symmetry breaking and PATH_STRAIGHT_WEIGHT can add up to a total of 6 per step.
+	STEP_WEIGHT 7 still isn't always enough to trump that,
+	so I'm adding 1 more later on for human units.
+	Don't want to scale everything up too much, i.e. not too close to 1000.
+	(Though I guess one could just increase PATH_MOVEMENT_WEIGHT as well, e.g. to 2048.) */
 
 #define PATH_MOVEMENT_WEIGHT    (1000)
-//#define PATH_RIVER_WEIGHT     (100)
-#define PATH_RIVER_WEIGHT       (20) // K-Mod ( * river crossing penalty)
-//#define PATH_CITY_WEIGHT      (100)
-#define PATH_CITY_WEIGHT        (200) // K-Mod
-//#define PATH_DEFENSE_WEIGHT   (10)
-#define PATH_DEFENSE_WEIGHT     (4) // K-Mod. ( * defence bonus)
-#define PATH_TERRITORY_WEIGHT   (5) // was 3
-#define PATH_DOW_WEIGHT			(4) // advc.082
-#define PATH_STEP_WEIGHT        (4) // was 2
-#define PATH_STRAIGHT_WEIGHT    (2) // was 1
-//#define PATH_ASYMMETRY_WEIGHT   (1) // K-Mod
+// advc.pf: Was 20 in K-Mod, 100 in BtS.
+#define PATH_RIVER_WEIGHT         (32) // river crossing penalty
+// advc.pf: Was 200 in K-Mod, 100 in BtS.
+#define PATH_CITY_WEIGHT         (225) // K-Mod
+// advc.pf: Was 4 in K-Mod, 10 in BtS.
+#define PATH_DEFENSE_WEIGHT        (7) // defence bonus
+// advc.pf: Was 5 in K-Mod, 3 in BtS.
+#define PATH_TERRITORY_WEIGHT      (9)
+#define PATH_DOW_WEIGHT	           (7) // advc.082
+// advc.pf: Was 4 in K-Mod, 2 in BtS.
+#define PATH_STEP_WEIGHT           (7)
+#define PATH_STRAIGHT_WEIGHT       (2) // K-Mod: was 1
+//#define PATH_ASYMMETRY_WEIGHT    (1) // K-Mod
 
 // #define PATH_DAMAGE_WEIGHT      (500) // K-Mod (disabled because it isn't used)
-#define PATH_COMBAT_WEIGHT      (300) // K-Mod. penalty for having to fight along the way.
+// advc.pf: Was 300 in K-Mod
+#define PATH_COMBAT_WEIGHT         (350) // K-Mod. penalty for having to fight along the way.
 // Note: there will also be other combat penalties added, for example from defence weight and city weight.
 
 // <advc.003g>
-int roundToMultiple(double d, int iMultiple) {
-
+int roundToMultiple(double d, int iMultiple)
+{
 	int r = (int)(d + 0.5 * iMultiple);
 	return r - r % iMultiple;
 }
 
-bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync, int iData1, int iData2) {
-
+bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync, int iData1, int iData2)
+{
 	int iChancePerMyriad = round(pr * 10000.0);
 	// These two checks are just for better performance
 	if(iChancePerMyriad >= 10000)
@@ -50,59 +60,21 @@ bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync, int iData1, in
 			getSorenRandNum(10000, pszLog, iData1, iData2) < iChancePerMyriad;
 }
 
-double dMedian(vector<double>& distribution, bool bSorted) {
-
-	FAssert(!distribution.empty());
-	if(!bSorted)
-		std::sort(distribution.begin(), distribution.end());
-	int medianIndex = distribution.size() / 2;
-	if(distribution.size() % 2 != 0)
-		return distribution[medianIndex];
-	return (distribution[medianIndex] + distribution[medianIndex - 1]) / 2;
-}
-
-double dMean(vector<double> const& distribution) {
-
-	FAssert(!distribution.empty());
-	double r = 0;
-	for(size_t i = 0; i < distribution.size(); i++)
-		r += distribution[i];
-	return r / distribution.size();
-}
-
-double dMax(vector<double> const& distribution) {
-
-	FAssert(!distribution.empty());
-	double r = distribution[0];
-	for(size_t i = 1; i < distribution.size(); i++)
-		if(distribution[i] > r)
-			r = distribution[i];
-	return r;
-}
-
-double dMin(vector<double> const& distribution) {
-
-	FAssert(!distribution.empty());
-	double r = distribution[0];
-	for(size_t i = 1; i < distribution.size(); i++)
-		if(distribution[i] < r)
-			r = distribution[i];
-	return r;
-}
-
 double percentileRank(vector<double>& distribution, double score,
-		bool bSorted, bool bScorePartOfDistribution) {
-
+	bool bSorted, bool bScorePartOfDistribution)
+{
 	if(!bSorted)
 		std::sort(distribution.begin(), distribution.end());
 	int n = (int)distribution.size();
 	int iLEq = 0; // less or equal
-	for(int i = 0; i < n; i++) {
+	for(int i = 0; i < n; i++)
+	{
 		if(distribution[i] <= score)
 			iLEq++;
 		else break;
 	}
-	if(bScorePartOfDistribution) {
+	if(bScorePartOfDistribution) 
+	{
 		iLEq++;
 		n++;
 	}
@@ -110,88 +82,55 @@ double percentileRank(vector<double>& distribution, double score,
 		return 1;
 	return iLEq / (double)n;
 } // </advc.003g>
-// <advc.003>
-float hash(vector<long> const& x, PlayerTypes ePlayer) {
-
+/*	advc: Akin to natGetDeterministicRandom (deleted from CvCity.cpp). For reference,
+	the implementation of that function was:
+	srand(7297 * iSeedX + 2909  * iSeedY);
+	return (rand() % (iMax - iMin)) + iMin; */
+int intHash(vector<int> const& x, PlayerTypes ePlayer)
+{
 	int const iPrime = 31;
-	long lHashVal = 0;
-	for(size_t i = 0; i < x.size(); i++) {
-		lHashVal += x[i];
-		lHashVal *= iPrime;
+	int iHashVal = 0;
+	for (size_t i = 0; i < x.size(); i++)
+	{
+		iHashVal += x[i];
+		iHashVal *= iPrime;
 	}
 	int iCapitalIndex = -1;
-	if(ePlayer != NO_PLAYER) {
+	if (ePlayer != NO_PLAYER)
+	{
 		CvCity* pCapital = GET_PLAYER(ePlayer).getCapitalCity();
-		if(pCapital != NULL) {
-			iCapitalIndex = GC.getMap().plotNum(
-					pCapital->plot()->getX(),
-					pCapital->plot()->getY());
-		}
+		if (pCapital != NULL)
+			iCapitalIndex = GC.getMap().plotNum(pCapital->getPlot());
 	}
-	if(iCapitalIndex >= 0) {
-		lHashVal += iCapitalIndex;
-		lHashVal *= iPrime;
+	if (iCapitalIndex >= 0)
+	{
+		iHashVal += iCapitalIndex;
+		iHashVal *= iPrime;
 	}
-	/*  Use ASyncRand to avoid the overhead of creating a new object? I don't think
-		it matters. */
-	/*CvRandom& rng = GC.getASyncRand();
-	rng.reset(hashVal);*/
-	CvRandom rng;
-	rng.init(lHashVal);
-	return rng.getFloat();
+	return iHashVal;
 }
-
-float hash(long x, PlayerTypes ePlayer) {
-
-	vector<long> v;
-	v.push_back(x);
-	return hash(v, ePlayer);
-}
-
-void cityCross(CvPlot const& pPlot, vector<CvPlot*>& r) {
-
-	FAssert(r.empty());
-	r.reserve(21);
-	for(int i = 0; i < 21; i++)
-		r.push_back(NULL);
-	r[0] = const_cast<CvPlot*>(&pPlot);
-	int pos = 1;
-	CvMap const& m = GC.getMap();
-	for(int dx = -CITY_PLOTS_RADIUS; dx <= CITY_PLOTS_RADIUS; dx++) {
-		for(int dy = -CITY_PLOTS_RADIUS; dy <= CITY_PLOTS_RADIUS; dy++) {
-			// Skip corners and center
-			if(std::abs(dx) + std::abs(dy) == 4 || (dx == 0 && dy == 0))
-				continue;
-			// That's NULL if off the map
-			r[pos] = m.plot(r[0]->getX() + dx, r[0]->getY() + dy);
-			pos++;
-		}
-	}
-	FAssert(pos == 21);
-} // </advc.003>
-// <advc.035>
-void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2) {
-
-	if(GC.getOWN_EXCLUSIVE_RADIUS() <= 0)
+// advc.035:
+void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2)
+{
+	if(!GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
 		return;
 	// Sufficient to check plots around the teams' cities
-	vector<CvCity*> apCities;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+	vector<CvCity const*> apCities;
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
 		CvPlayer& kMember = GET_PLAYER((PlayerTypes)i);
 		if(!kMember.isAlive() || (kMember.getTeam() != t1 && kMember.getTeam() != t2))
 			continue;
-		int foo;
-		for(CvCity* c = kMember.firstCity(&foo); c != NULL; c = kMember.nextCity(&foo))
+		FOR_EACH_CITY(c, kMember)
 			apCities.push_back(c);
 	}
 	std::set<int> seenPlots; // To avoid duplicates
-	for(size_t i = 0; i < apCities.size(); i++) {
+	for(size_t i = 0; i < apCities.size(); i++)
+	{
 		CvCity const& c = *apCities[i];
-		for(int j = 0; j < NUM_CITY_PLOTS; j++) {
-			CvPlot* pPlot = c.getCityIndexPlot(j);
-			if(pPlot == NULL || j == CITY_HOME_PLOT)
-				continue;
-			CvPlot& p = *pPlot;
+		for(CityPlotIter it(c, false); it.hasNext(); ++it)
+		{
+			CvPlot& p = *it;
 			if(p.isCity())
 				continue;
 			PlayerTypes eSecondOwner = p.getSecondOwner();
@@ -202,74 +141,33 @@ void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2) {
 			TeamTypes eSecondTeam = TEAMID(eSecondOwner);
 			if(eTeam == eSecondTeam)
 				continue;
-			if((eTeam == t1 && eSecondTeam == t2) || (eTeam == t2 && eSecondTeam == t1)) {
+			if((eTeam == t1 && eSecondTeam == t2) || (eTeam == t2 && eSecondTeam == t1))
+			{
 				int iPlotID = p.getX() * 1000 + p.getY();
-				if(seenPlots.count(iPlotID) <= 0) {
+				if(seenPlots.count(iPlotID) <= 0)
+				{
 					seenPlots.insert(iPlotID);
 					r.push_back(&p);
 				}
 			}
 		}
 	}
-} // </advc.035>
-
-// <advc.008e>
-bool needsArticle(BuildingTypes eBuilding) {
-
-	CvBuildingInfo const& kBuilding = GC.getBuildingInfo(eBuilding);
-	if(!isWorldWonderClass((BuildingClassTypes)kBuilding.getBuildingClassType()))
-		return false; // Should only be called for wonders really
-	CvWString szKey = kBuilding.getTextKeyWide();
-	CvWString szText = gDLL->getText(szKey + L"_NA");
-	/*  If an _NA key exists, then gDLL will return a dot. If it doesn't, then
-		an article should be used. */
-	return (szText.compare(L".") != 0);
-}
-bool needsArticle(ProjectTypes eProject) {
-
-	CvProjectInfo const& kProject = GC.getProjectInfo(eProject);
-	if(!isLimitedProject(eProject))
-		return false;
-	CvWString szKey = kProject.getTextKeyWide();
-	CvWString szText = gDLL->getText(szKey + L"_NA");
-	return (szText.compare(L".") != 0);
-} // </advc.008e>
-// <advc.004w> I'm not positive that there isn't already a function like this somewhere
-void applyColorToString(CvWString& s, char const* szColor, bool bLink) {
-
+} 
+// advc.004w: I'm not positive that there isn't already a function like this somewhere
+void applyColorToString(CvWString& s, char const* szColor, bool bLink)
+{
 	if(bLink)
 		s.Format(L"<link=literal>%s</link>", s.GetCString());
 	s.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR(szColor), s.GetCString());
-} // </advc.004w>
-
-CvPlot* plotCity(int iX, int iY, int iIndex)
-{
-	return GC.getMap().plot(iX + GC.getCityPlotX()[iIndex], iY + GC.getCityPlotY()[iIndex]);
 }
-
-int plotCityXY(int iDX, int iDY)
+/*  <advc> Tbd.: Take into account the locale - perhaps through
+	boost::locale::conv - and/ or check for characters that can't be narrowed.
+	So far, it's the same code that CvInitCore::refreshCustomMapOptions had
+	been using. Many logBBAI calls also convert from wide to narrow strings
+	(through the %S format specifier and _vsnprintf - not sure if that's safer). */
+void narrowUnsafe(CvWString const& szWideString, CvString& szNarrowString)
 {
-	if (abs(iDX) > CITY_PLOTS_RADIUS || abs(iDY) > CITY_PLOTS_RADIUS)
-		return -1;
-	return GC.getXYCityPlot(iDX + CITY_PLOTS_RADIUS, iDY + CITY_PLOTS_RADIUS);
-}
-
-int plotCityXY(const CvCity* pCity, const CvPlot* pPlot)
-{
-	CvMap const& m = GC.getMap();
-	return plotCityXY(m.dxWrap(pPlot->getX() - pCity->getX()),
-			m.dyWrap(pPlot->getY() - pCity->getY()));
-}
-
-/*  <advc.303> Has to return true for the CITY_HOME_PLOT in order to be compatible
-	with CvPlayer::AI_foundValue_bulk */
-bool isInnerRing(CvPlot const* pPlot, CvPlot const* pCityPlot) {
-	return pPlot != NULL && pCityPlot != NULL && plotDistance(pPlot, pCityPlot) <= 1;
-} // </advc.303>
-
-CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir)
-{
-	return (CardinalDirectionTypes)((eDir + 2) % NUM_CARDINALDIRECTION_TYPES);
+	szNarrowString = CvString(szWideString);
 }
 
 DirectionTypes cardinalDirectionToDirection(CardinalDirectionTypes eCard)
@@ -349,561 +247,17 @@ float directionAngle (DirectionTypes eDirection)
 
 bool atWar(TeamTypes eTeamA, TeamTypes eTeamB)
 {
-	if(eTeamA == NO_TEAM || eTeamB == NO_TEAM)
-		return false;
-
-	// advc.134a: Use internal function. (And removed some assertions.)
-	return GET_TEAM(eTeamA).isAtWarInternal(eTeamB);
+	return (eTeamA != NO_TEAM && eTeamB != NO_TEAM && GET_TEAM(eTeamA).isAtWar(eTeamB));
 }
-
-bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam)
+// advc: No longer needed
+/*bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam)
 {
 	FAssert(eOurTeam != NO_TEAM);
-
 	if (eTheirTeam == NO_TEAM)
 		return false;
-
-	return (atWar(eOurTeam, eTheirTeam) || (GET_TEAM(eOurTeam).AI_isSneakAttackReady(
-			//eTheirTeam)
-			GET_TEAM(eTheirTeam).getMasterTeam()) // advc.104j
-
-			// UNOFFICIAL_PATCH, Bugfix, General AI, 05/05/09, jdog5000: START
-			// Fixes bug where AI would launch invasion while unable to declare war
-			// which caused units to be bumped once forced peace expired
-			&& GET_TEAM(GET_TEAM(eOurTeam).getMasterTeam()). // advc.104j
-					canDeclareWar(eTheirTeam))); // UNOFFICIAL_PATCH: END
-}
-
-CvCity* getCity(IDInfo city)
-{
-	if (city.eOwner >= 0 && city.eOwner < MAX_PLAYERS)
-		return (GET_PLAYER((PlayerTypes)city.eOwner).getCity(city.iID));
-
-	return NULL;
-}
-
-CvUnit* getUnit(IDInfo unit)
-{
-	if (unit.eOwner >= 0 && unit.eOwner < MAX_PLAYERS)
-		return (GET_PLAYER((PlayerTypes)unit.eOwner).getUnit(unit.iID));
-
-	return NULL;
-}
-
-bool isBeforeUnitCycle(const CvUnit* pFirstUnit, const CvUnit* pSecondUnit)
-{
-	FAssert(pFirstUnit != NULL);
-	FAssert(pSecondUnit != NULL);
-	FAssert(pFirstUnit != pSecondUnit);
-
-	if (pFirstUnit->getOwner() != pSecondUnit->getOwner())
-	{
-		return (pFirstUnit->getOwner() < pSecondUnit->getOwner());
-	}
-
-	if (pFirstUnit->getDomainType() != pSecondUnit->getDomainType())
-	{
-		return (pFirstUnit->getDomainType() < pSecondUnit->getDomainType());
-	}
-
-	/* if (pFirstUnit->baseCombatStr() != pSecondUnit->baseCombatStr())
-	{
-		return (pFirstUnit->baseCombatStr() > pSecondUnit->baseCombatStr());
-	} */ // disabled by K-Mod
-
-	if (pFirstUnit->getUnitType() != pSecondUnit->getUnitType())
-	{
-		return (pFirstUnit->getUnitType() > pSecondUnit->getUnitType());
-	}
-
-	if (pFirstUnit->getLevel() != pSecondUnit->getLevel())
-	{
-		return (pFirstUnit->getLevel() > pSecondUnit->getLevel());
-	}
-
-	if (pFirstUnit->getExperience() != pSecondUnit->getExperience())
-	{
-		return (pFirstUnit->getExperience() > pSecondUnit->getExperience());
-	}
-
-	return (pFirstUnit->getID() < pSecondUnit->getID());
-}
-
-// K-Mod
-// return true if the first unit in the first group comes before the first unit in the second group.
-// (note: the purpose of this function is to return _false_ when the groupCycleDistance should include a penalty.)
-bool isBeforeGroupOnPlot(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup)
-{
-	FAssert(pFirstGroup && pSecondGroup);
-	FAssert(pFirstGroup != pSecondGroup);
-	FAssert(pFirstGroup->plot() == pSecondGroup->plot());
-
-	CvPlot* pPlot = pFirstGroup->plot();
-	//int iGroup2Units = pSecondGroup->getNumUnits();
-
-	CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
-	while (pUnitNode)// && iGroup2Units > 0)
-	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-
-		if (pLoopUnit->getGroup() == pFirstGroup)
-			return true;
-		if (pLoopUnit->getGroup() == pSecondGroup)
-			return false;
-			//iGroup2Units--;
-
-		pUnitNode = pPlot->nextUnitNode(pUnitNode);
-	}
-
-	FAssert(false);
-	return false;
-}
-
-// return the 'cost' of cycling from pFirstGroup to pSecondGroup. (eg. a big jump to a differnet type of unit, then it should be a high cost.)
-int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup)
-{
-	FAssert(pFirstGroup && pSecondGroup && pFirstGroup != pSecondGroup);
-
-	CvUnit* pFirstHead = pFirstGroup->getHeadUnit();
-	CvUnit* pSecondHead = pSecondGroup->getHeadUnit();
-
-	FAssert(pFirstHead && pSecondHead);
-
-	const int iBaseScale = 4;
-	int iPenalty = 0;
-	if (pFirstHead->getUnitType() != pSecondHead->getUnitType())
-	{	/*  <advc.075> When a unit in cargo is told to skip its turn, we want
-			the ship to be selected before its cargo on the next turn.
-			(Or would it be better to do this through isBeforeGroupOnPlot?) */
-		if(pFirstHead->isHuman() && pFirstHead->isCargo() != pSecondHead->isCargo())
-			iPenalty += 5;
-		else // </advc.075>
-			if (pFirstHead->canFight() != pSecondHead->canFight())
-			iPenalty += 4;
-		else
-		{
-			if (pFirstHead->canFight())
-			{
-				if (pFirstHead->getUnitCombatType() != pSecondHead->getUnitCombatType())
-					iPenalty += 2;
-				if (pFirstHead->canAttack() != pSecondHead->canAttack()
-						// <advc.315>
-						|| pFirstHead->getUnitInfo().isMostlyDefensive() !=
-						pSecondHead->getUnitInfo().isMostlyDefensive())
-						// </advc.315>
-					iPenalty += 1;
-			}
-			else
-				iPenalty += 2;
-		}
-	}
-
-	int iDistance = plotDistance(pFirstHead->getX(), pFirstHead->getY(), pSecondHead->getX(), pSecondHead->getY());
-	iPenalty = std::min(5, iPenalty * (1+iDistance) / iBaseScale);
-
-	// For human players, use the unit order that the plot actually has, not the order it _should_ have.
-	// For AI players, use the preferred ordering, because it's slightly faster.
-	if (iDistance == 0 && !(pFirstHead->isHuman() ? isBeforeGroupOnPlot(pFirstGroup, pSecondGroup) : isBeforeUnitCycle(pFirstHead, pSecondHead)))
-		iPenalty += iPenalty > 0 ? 1 : 5;
-
-	return iDistance + iPenalty;
-}
-// K-Mod end
-
-bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader)
-{
-	CvUnitInfo& kUnit = GC.getUnitInfo(eUnit);
-	CvPromotionInfo& kPromotion = GC.getPromotionInfo(ePromotion);
-
-	if (kUnit.getFreePromotions(ePromotion))
-	{
-		return true;
-	}
-
-	if (kUnit.getUnitCombatType() == NO_UNITCOMBAT)
-	{
-		return false;
-	}
-
-	if (!bLeader && kPromotion.isLeader())
-	{
-		return false;
-	}
-
-	if (!(kPromotion.getUnitCombat(kUnit.getUnitCombatType())))
-	{
-		return false;
-	}
-
-	if (kUnit.isOnlyDefensive())
-	{
-		if (kPromotion.getCityAttackPercent() != 0 ||
-			  kPromotion.getWithdrawalChange() != 0 ||
-			  kPromotion.getCollateralDamageChange() != 0 ||
-			  kPromotion.//isBlitz()
-				getBlitz() != 0 || // advc.164
-			  kPromotion.isAmphib() ||
-			  kPromotion.isRiver() ||
-			  kPromotion.getHillsAttackPercent() != 0)
-		{
-			return false;
-		}
-	}
-
-	if (kUnit.isIgnoreTerrainCost())
-	{
-		if (kPromotion.getMoveDiscountChange() != 0)
-		{
-			return false;
-		}
-	}
-	// advc.164: Check this in CvUnit::isPromotionValid instead
-	/*if (kUnit.getMoves() == 1) {
-		if (kPromotion.isBlitz())
-			return false;
-	}*/
-
-	if ((kUnit.getCollateralDamage() == 0) || (kUnit.getCollateralDamageLimit() == 0) || (kUnit.getCollateralDamageMaxUnits() == 0))
-	{
-		if (kPromotion.getCollateralDamageChange() != 0)
-		{
-			return false;
-		}
-	}
-
-	if (kUnit.getInterceptionProbability() == 0)
-	{
-		if (kPromotion.getInterceptChange() != 0)
-		{
-			return false;
-		}
-	}
-
-	if (NO_PROMOTION != kPromotion.getPrereqPromotion())
-	{
-		if (!isPromotionValid((PromotionTypes)kPromotion.getPrereqPromotion(), eUnit, bLeader))
-		{
-			return false;
-		}
-	}
-
-	PromotionTypes ePrereq1 = (PromotionTypes)kPromotion.getPrereqOrPromotion1();
-	PromotionTypes ePrereq2 = (PromotionTypes)kPromotion.getPrereqOrPromotion2();
-/*
-** K-Mod, 14/jan/11, karadoc
-** third optional preq.
-*/
-	PromotionTypes ePrereq3 = (PromotionTypes)kPromotion.getPrereqOrPromotion3();
-	/* original bts code
-	if (NO_PROMOTION != ePrereq1 || NO_PROMOTION != ePrereq2)
-	{
-		bool bValid = false;
-		if (!bValid)
-		{
-			if (NO_PROMOTION != ePrereq1 && isPromotionValid(ePrereq1, eUnit, bLeader))
-			{
-				bValid = true;
-			}
-		}
-
-		if (!bValid)
-		{
-			if (NO_PROMOTION != ePrereq2 && isPromotionValid(ePrereq2, eUnit, bLeader))
-			{
-				bValid = true;
-			}
-		}*/
-	if (ePrereq1 != NO_PROMOTION || ePrereq2 != NO_PROMOTION || ePrereq3 != NO_PROMOTION)
-	{
-		bool bValid = false;
-
-		if (ePrereq1 != NO_PROMOTION && isPromotionValid(ePrereq1, eUnit, bLeader))
-			bValid = true;
-		if (ePrereq2 != NO_PROMOTION && isPromotionValid(ePrereq2, eUnit, bLeader))
-			bValid = true;
-		if (ePrereq3 != NO_PROMOTION && isPromotionValid(ePrereq3, eUnit, bLeader))
-			bValid = true;
-
-		if (!bValid)
-		{
-			return false;
-		}
-	}
-/*
-** K-Mod end
-*/
-
-	return true;
-}
-
-int getPopulationAsset(int iPopulation)
-{
-	return (iPopulation * 2);
-}
-
-int getLandPlotsAsset(int iLandPlots)
-{
-	return iLandPlots;
-}
-
-int getPopulationPower(int iPopulation)
-{
-	return (iPopulation / 2);
-}
-
-int getPopulationScore(int iPopulation)
-{
-	return iPopulation;
-}
-
-int getLandPlotsScore(int iLandPlots)
-{
-	return iLandPlots;
-}
-
-int getTechScore(TechTypes eTech)
-{
-	return (GC.getTechInfo(eTech).getEra() + 1);
-}
-
-int getWonderScore(BuildingClassTypes eWonderClass)
-{
-	if (isLimitedWonderClass(eWonderClass))
-	{
-		return 5;
-	}
-	else
-	{
-		return 0;
-	}
-}
-
-/* original bts code
-ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement, int iCount)
-{
-	FAssertMsg(eImprovement != NO_IMPROVEMENT, "Improvement is not assigned a valid value");
-
-	if (iCount > GC.getNumImprovementInfos())
-	{
-		return NO_IMPROVEMENT;
-	}
-
-	if (GC.getImprovementInfo(eImprovement).getImprovementUpgrade() != NO_IMPROVEMENT)
-	{
-		return finalImprovementUpgrade(((ImprovementTypes)(GC.getImprovementInfo(eImprovement).getImprovementUpgrade())), (iCount + 1));
-	}
-	else
-	{
-		return eImprovement;
-	}
-} */
-// K-Mod
-ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement)
-{
-	if (eImprovement == NO_IMPROVEMENT)
-		return NO_IMPROVEMENT;
-
-	FAssert(eImprovement < GC.getNumImprovementInfos());
-
-	int iLoopDetector = GC.getNumImprovementInfos();
-
-	while (GC.getImprovementInfo(eImprovement).getImprovementUpgrade() != NO_IMPROVEMENT && --iLoopDetector > 0)
-		eImprovement = (ImprovementTypes)GC.getImprovementInfo(eImprovement).getImprovementUpgrade();
-
-	return iLoopDetector == 0 ? NO_IMPROVEMENT : eImprovement;
-}
-// K-Mod end
-
-int getWorldSizeMaxConscript(CivicTypes eCivic)
-{
-	int iMaxConscript;
-
-	iMaxConscript = GC.getCivicInfo(eCivic).getMaxConscript();
-
-	iMaxConscript *= std::max(0, (GC.getWorldInfo(GC.getMap().getWorldSize()).getMaxConscriptModifier() + 100));
-	iMaxConscript /= 100;
-
-	return iMaxConscript;
-}
-
-bool isReligionTech(TechTypes eTech)
-{
-	int iI;
-
-	for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
-	{
-		if (GC.getReligionInfo((ReligionTypes)iI).getTechPrereq() == eTech)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool isCorporationTech(TechTypes eTech)
-{
-	int iI;
-
-	for (iI = 0; iI < GC.getNumCorporationInfos(); iI++)
-	{
-		if (GC.getCorporationInfo((CorporationTypes)iI).getTechPrereq() == eTech)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool isTechRequiredForUnit(TechTypes eTech, UnitTypes eUnit)
-{
-	int iI;
-	CvUnitInfo& info = GC.getUnitInfo(eUnit);
-
-	if (info.getPrereqAndTech() == eTech)
-	{
-		return true;
-	}
-
-	for (iI = 0; iI < GC.getNUM_UNIT_AND_TECH_PREREQS(); iI++)
-	{
-		if (info.getPrereqAndTechs(iI) == eTech)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool isTechRequiredForBuilding(TechTypes eTech, BuildingTypes eBuilding)
-{
-	int iI;
-	CvBuildingInfo& info = GC.getBuildingInfo(eBuilding);
-
-	if (info.getPrereqAndTech() == eTech)
-	{
-		return true;
-	}
-
-	for (iI = 0; iI < GC.getNUM_BUILDING_AND_TECH_PREREQS(); iI++)
-	{
-		if (info.getPrereqAndTechs(iI) == eTech)
-		{
-			return true;
-		}
-	}
-
-	SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)info.getSpecialBuildingType();
-	if (NO_SPECIALBUILDING != eSpecial && GC.getSpecialBuildingInfo(eSpecial).getTechPrereq() == eTech)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-bool isTechRequiredForProject(TechTypes eTech, ProjectTypes eProject)
-{
-	if (GC.getProjectInfo(eProject).getTechPrereq() == eTech)
-	{
-		return true;
-	}
-
-	return false;
-}
-
-bool isWorldUnitClass(UnitClassTypes eUnitClass)
-{
-	return (GC.getUnitClassInfo(eUnitClass).getMaxGlobalInstances() != -1);
-}
-
-bool isTeamUnitClass(UnitClassTypes eUnitClass)
-{
-	return (GC.getUnitClassInfo(eUnitClass).getMaxTeamInstances() != -1);
-}
-
-bool isNationalUnitClass(UnitClassTypes eUnitClass)
-{
-	return (GC.getUnitClassInfo(eUnitClass).getMaxPlayerInstances() != -1);
-}
-
-bool isLimitedUnitClass(UnitClassTypes eUnitClass)
-{
-	return (isWorldUnitClass(eUnitClass) || isTeamUnitClass(eUnitClass) || isNationalUnitClass(eUnitClass));
-}
-// <advc.104>
-bool isMundaneBuildingClass(BuildingClassTypes eBC) {
-
-	return !isWorldWonderClass(eBC) && !isTeamWonderClass(eBC) &&
-			!isNationalWonderClass(eBC) && !isLimitedWonderClass(eBC);
-} // </advc.104>
-
-bool isWorldWonderClass(BuildingClassTypes eBuildingClass)
-{
-	return (GC.getBuildingClassInfo(eBuildingClass).getMaxGlobalInstances() != -1);
-}
-
-bool isTeamWonderClass(BuildingClassTypes eBuildingClass)
-{
-	return (GC.getBuildingClassInfo(eBuildingClass).getMaxTeamInstances() != -1);
-}
-
-bool isNationalWonderClass(BuildingClassTypes eBuildingClass)
-{
-	return (GC.getBuildingClassInfo(eBuildingClass).getMaxPlayerInstances() != -1);
-}
-
-bool isLimitedWonderClass(BuildingClassTypes eBuildingClass)
-{
-	return (isWorldWonderClass(eBuildingClass) || isTeamWonderClass(eBuildingClass) || isNationalWonderClass(eBuildingClass));
-}
-
-int limitedWonderClassLimit(BuildingClassTypes eBuildingClass)
-{
-	int iMax;
-	int iCount = 0;
-	bool bLimited = false;
-
-	iMax = GC.getBuildingClassInfo(eBuildingClass).getMaxGlobalInstances();
-	if (iMax != -1)
-	{
-		iCount += iMax;
-		bLimited = true;
-	}
-
-	iMax = GC.getBuildingClassInfo(eBuildingClass).getMaxTeamInstances();
-	if (iMax != -1)
-	{
-		iCount += iMax;
-		bLimited = true;
-	}
-
-	iMax = GC.getBuildingClassInfo(eBuildingClass).getMaxPlayerInstances();
-	if (iMax != -1)
-	{
-		iCount += iMax;
-		bLimited = true;
-	}
-
-	return bLimited ? iCount : -1;
-}
-
-bool isWorldProject(ProjectTypes eProject)
-{
-	return (GC.getProjectInfo(eProject).getMaxGlobalInstances() != -1);
-}
-
-bool isTeamProject(ProjectTypes eProject)
-{
-	return (GC.getProjectInfo(eProject).getMaxTeamInstances() != -1);
-}
-
-bool isLimitedProject(ProjectTypes eProject)
-{
-	return (isWorldProject(eProject) || isTeamProject(eProject));
-}
+	// advc: Moved into new CvTeamAI function
+	return GET_TEAM(eOurTeam).AI_mayAttack(eTheirTeam);
+}*/
 
 // FUNCTION: getBinomialCoefficient
 // Needed for getCombatOdds
@@ -1016,7 +370,7 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 	iDefenderHighFS = (pAttacker->immuneToFirstStrikes()) ? 0 : (pDefender->firstStrikes() + pDefender->chanceFirstStrikes());
 
 	// UncutDragon
-	if (GC.getLFBEnable())
+	if (GC.getDefineBOOL(CvGlobals::LFB_ENABLE))
 		return LFBgetCombatOdds(iAttackerLowFS, iAttackerHighFS, iDefenderLowFS, iDefenderHighFS, iNeededRoundsAttacker, iNeededRoundsDefender, iAttackerOdds);
 	// /UncutDragon
 
@@ -1166,7 +520,7 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 // K-Mod
 int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTypes eDefenceTeam)
 {
-	int iBaseCollateral = GC.getDefineINT("COLLATERAL_COMBAT_DAMAGE"); // note: the default xml value is "10"
+	int iBaseCollateral = GC.getDefineINT(CvGlobals::COLLATERAL_COMBAT_DAMAGE); // note: the default xml value is "10"
 
 	// Collateral damage does not depend on any kind of strength bonus - so when a unit takes collateral damage, their bonuses are effectively wasted.
 	// Therefore, I'm going to inflate the value of collateral damage based on a rough estimate of the defenders bonuses might be.
@@ -1187,13 +541,10 @@ int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTyp
 		int iResistanceSum = 0;
 		int iUnits = 0;
 
-		CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
-
-		while (pUnitNode)
+		for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
+			pUnitNode = pPlot->nextUnitNode(pUnitNode))
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = pPlot->nextUnitNode(pUnitNode);
-
+			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			if (!pLoopUnit->canDefend(pPlot))
 				continue;
 			if (eDefenceTeam != NO_TEAM && pLoopUnit->getTeam() != eDefenceTeam)
@@ -1220,31 +571,6 @@ int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTyp
 }
 // K-Mod end
 
-int getEspionageModifier(TeamTypes eOurTeam, TeamTypes eTargetTeam)
-{
-	FAssert(eOurTeam != eTargetTeam);
-	FAssert(eOurTeam != BARBARIAN_TEAM);
-	// FAssert(eTargetTeam != BARBARIAN_TEAM); // K-Mod note. This is possible for legitimate reasons (although, the result is never important...)
-
-	/* original bts code
-	int iTargetPoints = GET_TEAM(eTargetTeam).getEspionagePointsEver();
-	int iOurPoints = GET_TEAM(eOurTeam).getEspionagePointsEver();
-	int iModifier = GC.getDefineINT("ESPIONAGE_SPENDING_MULTIPLIER") * (2 * iTargetPoints + iOurPoints);
-	iModifier /= std::max(1, iTargetPoints + 2 * iOurPoints);
-	return iModifier; */
-	// K-Mod. Scale the points modifier based on the teams' population. (Note ESPIONAGE_SPENDING_MULTIPLIER is 100 in the default xml.)
-	const CvTeam& kOurTeam = GET_TEAM(eOurTeam);
-	const CvTeam& kTargetTeam = GET_TEAM(eTargetTeam);
-
-	int iPopScale = 5 * GC.getWorldInfo(GC.getMap().getWorldSize()).getTargetNumCities();
-	int iTargetPoints = 10 * kTargetTeam.getEspionagePointsEver() / std::max(1, iPopScale + kTargetTeam.getTotalPopulation(false));
-	int iOurPoints = 10 * kOurTeam.getEspionagePointsEver() / std::max(1, iPopScale + kOurTeam.getTotalPopulation(false));
-
-	return GC.getDefineINT("ESPIONAGE_SPENDING_MULTIPLIER") * std::max(1, 2 * iTargetPoints + iOurPoints) / std::max(1, iTargetPoints + 2 * iOurPoints);
-	// K-Mod end
-}
-
-
 void setTradeItem(TradeData* pItem, TradeableItems eItemType, int iData)
 {
 	pItem->m_eItemType = eItemType;
@@ -1254,123 +580,27 @@ void setTradeItem(TradeData* pItem, TradeableItems eItemType, int iData)
 }
 
 
-bool isPlotEventTrigger(EventTriggerTypes eTrigger)
-{
-	CvEventTriggerInfo& kTrigger = GC.getEventTriggerInfo(eTrigger);
-
-	if (kTrigger.getNumPlotsRequired() > 0)
-	{
-		if (kTrigger.getPlotType() != NO_PLOT)
-		{
-			return true;
-		}
-
-		if (kTrigger.getNumFeaturesRequired() > 0)
-		{
-			return true;
-		}
-
-		if (kTrigger.getNumTerrainsRequired() > 0)
-		{
-			return true;
-		}
-
-		if (kTrigger.getNumImprovementsRequired() > 0)
-		{
-			return true;
-		}
-
-		if (kTrigger.getNumBonusesRequired() > 0)
-		{
-			return true;
-		}
-
-		if (kTrigger.getNumRoutesRequired() > 0)
-		{
-			return true;
-		}
-
-		if (kTrigger.isUnitsOnPlot() && kTrigger.getNumUnitsRequired() > 0)
-		{
-			return true;
-		}
-
-		if (kTrigger.isPrereqEventCity() && !kTrigger.isPickCity())
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-TechTypes getDiscoveryTech(UnitTypes eUnit, PlayerTypes ePlayer)
-{
-	TechTypes eBestTech = NO_TECH;
-	int iBestValue = 0;
-
-	for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
-	{
-		if (GET_PLAYER(ePlayer).canResearch((TechTypes)iI))
-		{
-			int iValue = 0;
-
-			for (int iJ = 0; iJ < GC.getNumFlavorTypes(); iJ++)
-			{
-				iValue += (GC.getTechInfo((TechTypes) iI).getFlavorValue(iJ) * GC.getUnitInfo(eUnit).getFlavorValue(iJ));
-			}
-
-			if (iValue > iBestValue)
-			{
-				iBestValue = iValue;
-				eBestTech = ((TechTypes)iI);
-			}
-		}
-	}
-
-	return eBestTech;
-}
-
-
 void setListHelp(wchar* szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst)
 {
 	if (bFirst)
-	{
 		wcscat(szBuffer, szStart);
-	}
-	else
-	{
-		wcscat(szBuffer, szSeparator);
-	}
-
+	else wcscat(szBuffer, szSeparator);
 	wcscat(szBuffer, szItem);
 }
 
 void setListHelp(CvWString& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst)
 {
 	if (bFirst)
-	{
 		szBuffer += szStart;
-	}
-	else
-	{
-		szBuffer += szSeparator;
-	}
-
+	else szBuffer += szSeparator;
 	szBuffer += szItem;
 }
 
 void setListHelp(CvWStringBuffer& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst)
 {
 	if (bFirst)
-	{
 		szBuffer.append(szStart);
-	}
-	else
-	{
-		szBuffer.append(szSeparator);
-	}
-
+	else szBuffer.append(szSeparator);
 	szBuffer.append(szItem);
 }
 
@@ -1385,7 +615,8 @@ bool PUF_isPlayer(const CvUnit* pUnit, int iData1, int iData2)
 	// <advc.061>
 	TeamTypes eForTeam = (TeamTypes)iData2;
 	PlayerTypes eOwner = (PlayerTypes)iData1;
-	if(eForTeam == NO_TEAM || eOwner == NO_PLAYER || eForTeam == TEAMID(eOwner)) {
+	if(eForTeam == NO_TEAM || eOwner == NO_PLAYER || eForTeam == TEAMID(eOwner))
+	{
 		// </advc.061>
 		return (pUnit->getOwner() == iData1);
 	} // <advc.061>
@@ -1404,7 +635,8 @@ bool PUF_isCombatTeam(const CvUnit* pUnit, int iData1, int iData2)
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
 	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
 
-	return (GET_PLAYER(pUnit->getCombatOwner((TeamTypes)iData2, pUnit->plot())).getTeam() == iData1 && !pUnit->isInvisible((TeamTypes)iData2, false, false));
+	return (TEAMID(pUnit->getCombatOwner((TeamTypes)iData2, pUnit->getPlot())) ==
+			iData1 && !pUnit->isInvisible((TeamTypes)iData2, false, false));
 }
 
 bool PUF_isOtherPlayer(const CvUnit* pUnit, int iData1, int iData2)
@@ -1430,38 +662,36 @@ bool PUF_isEnemy(const CvUnit* pUnit, int iData1, int iData2)
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
 	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
 
-	TeamTypes eOtherTeam = GET_PLAYER((PlayerTypes)iData1).getTeam();
-	TeamTypes eOurTeam = GET_PLAYER(pUnit->getCombatOwner(eOtherTeam, pUnit->plot())).getTeam();
-
+	TeamTypes eOtherTeam = TEAMID((PlayerTypes)iData1);
+	TeamTypes eOurTeam = TEAMID(pUnit->getCombatOwner(eOtherTeam));
 	if (pUnit->canCoexistWithEnemyUnit(eOtherTeam))
-	{
 		return false;
-	}
-
-	return (iData2 ? eOtherTeam != eOurTeam : atWar(eOtherTeam, eOurTeam));
+	return (iData2 ? eOtherTeam != eOurTeam : GET_TEAM(eOtherTeam).isAtWar(eOurTeam));
 }
-// <advc.122>
-bool PUF_isEnemyCityAttacker(const CvUnit* pUnit, int iData1, int iData2) {
-
-	if(iData2 >= 0) {
+// advc.ctr:
+bool PUF_isEnemyCityAttacker(const CvUnit* pUnit, int iData1, int iData2)
+{
+	if(iData2 >= 0)
+	{
 		CvTeam const& kAssumePeace = GET_TEAM((TeamTypes)iData2);
 		if(GET_TEAM(pUnit->getTeam()).getMasterTeam() == kAssumePeace.getMasterTeam())
 			return false;
 	}
 	CvUnitInfo& u = pUnit->getUnitInfo();
-	if(u.getCargoSpace() <= 0 || u.getSpecialCargo() != NO_SPECIALUNIT) {
+	if(u.getCargoSpace() <= 0 || u.getSpecialCargo() != NO_SPECIALUNIT)
+	{
 		if(u.getDomainType() != DOMAIN_LAND)
 			return false;
 		if(u.isOnlyDefensive() || u.getCombat() <= 0)
 			return false;
 	}
 	return PUF_isEnemy(pUnit, iData1, false);
-} // </advc.122>
+}
 
 bool PUF_isVisible(const CvUnit* pUnit, int iData1, int iData2)
 {
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return !(pUnit->isInvisible(GET_PLAYER((PlayerTypes)iData1).getTeam(), false));
+	return !pUnit->isInvisible(TEAMID((PlayerTypes)iData1), false);
 }
 
 bool PUF_isVisibleDebug(const CvUnit* pUnit, int iData1, int iData2)
@@ -1473,36 +703,30 @@ bool PUF_isVisibleDebug(const CvUnit* pUnit, int iData1, int iData2)
 bool PUF_canSiege(const CvUnit* pUnit, int iData1, int iData2)
 {
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return pUnit->canSiege(GET_PLAYER((PlayerTypes)iData1).getTeam());
+	return pUnit->canSiege(TEAMID((PlayerTypes)iData1));
 }
 
 bool PUF_isPotentialEnemy(const CvUnit* pUnit, int iData1, int iData2)
 {
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
 	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
-
-	TeamTypes eOtherTeam = GET_PLAYER((PlayerTypes)iData1).getTeam();
-	TeamTypes eOurTeam = GET_PLAYER(pUnit->getCombatOwner(eOtherTeam, pUnit->plot())).getTeam();
-
-	if (pUnit->canCoexistWithEnemyUnit(eOtherTeam))
-	{
+	// advc: Switched the Our/Other variable names. iData1 is the team whose war plans matter.
+	TeamTypes eOurTeam = TEAMID((PlayerTypes)iData1);
+	TeamTypes eOtherTeam = TEAMID(pUnit->getCombatOwner(eOurTeam));
+	if (pUnit->canCoexistWithEnemyUnit(eOurTeam))
 		return false;
-	}
-	return (iData2 ? eOtherTeam != eOurTeam : isPotentialEnemy(eOtherTeam, eOurTeam));
+	return (iData2 ? eOurTeam != eOtherTeam : GET_TEAM(eOurTeam).AI_mayAttack(eOtherTeam));
 }
 
-bool PUF_canDeclareWar( const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_canDeclareWar(const CvUnit* pUnit, int iData1, int iData2)
 {
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
 	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
 
-	TeamTypes eOtherTeam = GET_PLAYER((PlayerTypes)iData1).getTeam();
-	TeamTypes eOurTeam = GET_PLAYER(pUnit->getCombatOwner(eOtherTeam, pUnit->plot())).getTeam();
-
+	TeamTypes eOtherTeam = TEAMID((PlayerTypes)iData1);
+	TeamTypes eOurTeam = TEAMID(pUnit->getCombatOwner(eOtherTeam));
 	if (pUnit->canCoexistWithEnemyUnit(eOtherTeam))
-	{
 		return false;
-	}
 
 	return (iData2 ? false : GET_TEAM(eOtherTeam).canDeclareWar(eOurTeam));
 }
@@ -1597,7 +821,7 @@ bool PUF_isUnitAIType(const CvUnit* pUnit, int iData1, int iData2)
 
 bool PUF_isCityAIType(const CvUnit* pUnit, int iData1, int iData2)
 {
-	return pUnit->AI_isCityAIType();
+	return pUnit->AI().AI_isCityAIType();
 }
 
 bool PUF_isNotCityAIType(const CvUnit* pUnit, int iData1, int iData2)
@@ -1631,7 +855,7 @@ bool PUF_isMissionPlotWorkingCity(const CvUnit* pUnit, int iCity, int iCityOwner
 	CvCity* pCity = GET_PLAYER((PlayerTypes)iCityOwner).getCity(iCity);
 	if(pCity == NULL || pUnit->isCargo())
 		return false;
-	CvPlot* pMissionPlot = pUnit->getGroup()->AI_getMissionAIPlot();
+	CvPlot* pMissionPlot = pUnit->AI().AI_getGroup()->AI_getMissionAIPlot();
 	if(pMissionPlot == NULL)
 		pMissionPlot = pUnit->plot();
 	return (pMissionPlot->getWorkingCity() == pCity);
@@ -1660,7 +884,7 @@ bool PUF_isFiniteRangeAndNotJustProduced(const CvUnit* pUnit, int iData1, int iD
 // K-Mod
 bool PUF_isMissionAIType(const CvUnit* pUnit, int iData1, int iData2)
 {
-	return pUnit->getGroup()->AI_getMissionAIType() == iData1;
+	return pUnit->AI().AI_getGroup()->AI_getMissionAIType() == iData1;
 }
 
 bool PUF_isAirIntercept(const CvUnit* pUnit, int iData1, int iData2)
@@ -1672,11 +896,9 @@ bool PUF_isAirIntercept(const CvUnit* pUnit, int iData1, int iData2)
 int potentialIrrigation(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
 	if (parent == NULL)
-	{
 		return TRUE;
-	}
 
-	return ((GC.getMap().plotSoren(node->m_iX, node->m_iY)->isPotentialIrrigation()) ? TRUE : FALSE);
+	return (GC.getMap().getPlot(node->m_iX, node->m_iY).isPotentialIrrigation() ? TRUE : FALSE);
 }
 
 
@@ -1684,10 +906,8 @@ int checkFreshWater(FAStarNode* parent, FAStarNode* node, int data, const void* 
 {
 	if (data == ASNL_ADDCLOSED)
 	{
-		if (GC.getMap().plotSoren(node->m_iX, node->m_iY)->isFreshWater())
-		{
+		if (GC.getMap().getPlot(node->m_iX, node->m_iY).isFreshWater())
 			*((bool *)pointer) = true;
-		}
 	}
 
 	return 1;
@@ -1697,9 +917,7 @@ int checkFreshWater(FAStarNode* parent, FAStarNode* node, int data, const void* 
 int changeIrrigated(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
 	if (data == ASNL_ADDCLOSED)
-	{
-		GC.getMap().plotSoren(node->m_iX, node->m_iY)->setIrrigated(*((bool *)pointer));
-	}
+		GC.getMap().getPlot(node->m_iX, node->m_iY).setIrrigated(*((bool*)pointer));
 
 	return 1;
 }
@@ -1709,82 +927,69 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 {
 	PROFILE_FUNC();
 
-	CvPlot* pToPlot = GC.getMap().plotSoren(iToX, iToY);
-	FAssert(pToPlot);
+	CvPlot const& kToPlot = GC.getMap().getPlot(iToX, iToY);
 
 	//pSelectionGroup = ((CvSelectionGroup *)pointer);
 	// K-Mod
-	CvSelectionGroup* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
+	CvSelectionGroup const* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
 	int iFlags = finder ? gDLL->getFAStarIFace()->GetInfo(finder) : ((CvPathSettings*)pointer)->iFlags;
 	// K-Mod end
 
-	if (pSelectionGroup->atPlot(pToPlot))
+	if (pSelectionGroup->atPlot(&kToPlot))
 		return TRUE;
 
 	if (pSelectionGroup->getDomainType() == DOMAIN_IMMOBILE)
 		return FALSE;
 
-	bool bAIControl = pSelectionGroup->AI_isControlled();
+	bool const bAIControl = pSelectionGroup->AI_isControlled();
 
 	if (bAIControl)
 	{	/*  BETTER_BTS_AI_MOD, Efficiency, 11/04/09, jdog5000: START
-			switch order as AI_getAnyPlotDanger is more expensive */
+			switch order as AI_isAnyPlotDanger is more expensive */
 		if (pSelectionGroup->getDomainType() == DOMAIN_LAND)
 		{
-			int iGroupAreaID = pSelectionGroup->getArea();
-			if (pToPlot->getArea() != iGroupAreaID)
+			CvArea const& kGroupArea = *pSelectionGroup->area();
+			if (!kToPlot.isArea(kGroupArea) &&
+				!pSelectionGroup->canMoveAllTerrain() &&
+				!kToPlot.isAdjacentToArea(kGroupArea))
 			{
-				if (!pSelectionGroup->canMoveAllTerrain())
-				{
-					if (!pToPlot->isAdjacentToArea(iGroupAreaID))
-					{
-						return FALSE;
-					}
-				}
+				return FALSE;
 			}
 		}
-
 		if (!(iFlags & MOVE_IGNORE_DANGER))
 		{
-			if (!(pSelectionGroup->canFight()) && !(pSelectionGroup->alwaysInvisible()))
+			if (!pSelectionGroup->canFight() && !pSelectionGroup->alwaysInvisible())
 			{
-				if (GET_PLAYER(pSelectionGroup->getHeadOwner()).AI_getAnyPlotDanger(pToPlot))
-				{
+				if (GET_PLAYER(pSelectionGroup->getHeadOwner()).AI_isAnyPlotDanger(kToPlot))
 					return FALSE;
-				}
 			}
 		}
 		// BETTER_BTS_AI_MOD: END
 	}
 
-	if (bAIControl || pToPlot->isRevealed(pSelectionGroup->getHeadTeam(), false))
+	if (bAIControl || kToPlot.isRevealed(pSelectionGroup->getHeadTeam()))
 	{
-		if (pSelectionGroup->isAmphibPlot(pToPlot))
+		if (pSelectionGroup->isAmphibPlot(&kToPlot))
 		{
-			CLLNode<IDInfo>* pUnitNode1 = pSelectionGroup->headUnitNode();
-
-			while (pUnitNode1 != NULL)
+			for (CLLNode<IDInfo> const* pUnitNode1 = pSelectionGroup->headUnitNode();
+				pUnitNode1 != NULL; pUnitNode1 = pSelectionGroup->nextUnitNode(pUnitNode1))
 			{
-				CvUnit* pLoopUnit1 = ::getUnit(pUnitNode1->m_data);
-				pUnitNode1 = pSelectionGroup->nextUnitNode(pUnitNode1);
-
-				if ((pLoopUnit1->getCargo() > 0) && (pLoopUnit1->domainCargo() == DOMAIN_LAND))
+				CvUnit const* pLoopUnit1 = ::getUnit(pUnitNode1->m_data);
+				if (pLoopUnit1->getCargo() > 0 && pLoopUnit1->domainCargo() == DOMAIN_LAND)
 				{
 					bool bValid = false;
-
-					CLLNode<IDInfo>* pUnitNode2 = pLoopUnit1->plot()->headUnitNode();
-
-					while (pUnitNode2 != NULL)
+					for (CLLNode<IDInfo> const* pUnitNode2 = pLoopUnit1->getPlot().headUnitNode();
+						pUnitNode2 != NULL; pUnitNode2 = pLoopUnit1->getPlot().nextUnitNode(pUnitNode2))
 					{
-						CvUnit* pLoopUnit2 = ::getUnit(pUnitNode2->m_data);
-						pUnitNode2 = pLoopUnit1->plot()->nextUnitNode(pUnitNode2);
-
+						CvUnit const* pLoopUnit2 = ::getUnit(pUnitNode2->m_data);
 						if (pLoopUnit2->getTransportUnit() == pLoopUnit1)
 						{
 							if (pLoopUnit2->isGroupHead())
 							{
-								//if (pLoopUnit2->getGroup()->canMoveOrAttackInto(pToPlot, (pSelectionGroup->AI_isDeclareWar(pToPlot) || (iFlags & MOVE_DECLARE_WAR))))
-								if (pLoopUnit2->getGroup()->canMoveOrAttackInto(pToPlot, iFlags & MOVE_DECLARE_WAR, false, bAIControl)) // K-Mod. The new AI must be explicit about declaring war.
+								if (pLoopUnit2->getGroup()->canMoveOrAttackInto(kToPlot,
+									//pSelectionGroup->AI_isDeclareWar(kToPlot) || (iFlags & MOVE_DECLARE_WAR)))
+									// K-Mod. The new AI must be explicit about declaring war.
+									iFlags & MOVE_DECLARE_WAR, false, bAIControl))
 								{
 									bValid = true;
 									break;
@@ -1792,11 +997,8 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 							}
 						}
 					}
-
 					if (bValid)
-					{
 						return TRUE;
-					}
 				}
 			}
 
@@ -1804,8 +1006,10 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 		}
 		else
 		{
-			//if (!(pSelectionGroup->canMoveOrAttackInto(pToPlot, (pSelectionGroup->AI_isDeclareWar(pToPlot) || (iFlags & MOVE_DECLARE_WAR)))))
-			if (!pSelectionGroup->canMoveOrAttackInto(pToPlot, iFlags & MOVE_DECLARE_WAR, false, bAIControl)) // K-Mod. The new AI must be explicit about declaring war.
+			if (!pSelectionGroup->canMoveOrAttackInto(kToPlot,
+				//pSelectionGroup->AI_isDeclareWar(pToPlot) || (iFlags & MOVE_DECLARE_WAR))
+				// K-Mod. The new AI must be explicit about declaring war.
+				iFlags & MOVE_DECLARE_WAR, false, bAIControl))
 			{
 				return FALSE;
 			}
@@ -1824,17 +1028,15 @@ int pathHeuristic(int iFromX, int iFromY, int iToX, int iToY)
 // This function has been completely rewritten for K-Mod. (the rewrite includes some bug fixes as well as some new features)
 int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 
-	CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
-	CvPlot* pToPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
-
-	FAssert(pFromPlot != NULL);
-	FAssert(pToPlot != NULL);
+	CvMap const& m = GC.getMap(); // advc: ... and use CvPlot references:
+	CvPlot const& kFromPlot = m.getPlot(parent->m_iX, parent->m_iY);
+	CvPlot const& kToPlot = m.getPlot(node->m_iX, node->m_iY);
 
 	//CvSelectionGroup* pSelectionGroup = ((CvSelectionGroup *)pointer);
 	// K-Mod
-	CvSelectionGroup* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
+	CvSelectionGroup const* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
 	int iFlags = finder ? gDLL->getFAStarIFace()->GetInfo(finder) : ((CvPathSettings*)pointer)->iFlags;
 	// K-Mod end
 
@@ -1850,38 +1052,45 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	// </advc.035>
 	// K-Mod
 	int iExploreModifier = 3; // (in thirds)
-	if (!pToPlot->isRevealed(eTeam, false))
+	if (!kToPlot.isRevealed(eTeam))
 	{
 		if (pSelectionGroup->getAutomateType() == AUTOMATE_EXPLORE ||
-			(!pSelectionGroup->isHuman() && (pSelectionGroup->getHeadUnitAI() == UNITAI_EXPLORE || pSelectionGroup->getHeadUnitAI() == UNITAI_EXPLORE_SEA)))
+			(!pSelectionGroup->isHuman() &&
+			(pSelectionGroup->getHeadUnitAIType() == UNITAI_EXPLORE ||
+			pSelectionGroup->getHeadUnitAIType() == UNITAI_EXPLORE_SEA)))
 		{
 			iExploreModifier = 2; // lower cost to encourage exploring unrevealed areas
 		}
-		else if (!pFromPlot->isRevealed(eTeam, false))
+		else if (!kFromPlot.isRevealed(eTeam))
 		{
 			iExploreModifier = 4; // higher cost to discourage pathfinding deep into the unknown
 		}
 	}
 	// K-Mod end
 	// <advc.035>
-	else if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && (iFlags & MOVE_DECLARE_WAR) &&
-			eTeam != BARBARIAN_TEAM) {
-		PlayerTypes const eSecondOwner = pToPlot->getSecondOwner();
-		PlayerTypes const eFirstOwner = pToPlot->getOwner();
+	else if(GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS) &&
+		(iFlags & MOVE_DECLARE_WAR) && eTeam != BARBARIAN_TEAM)
+	{
+		PlayerTypes const eSecondOwner = kToPlot.getSecondOwner();
+		PlayerTypes const eFirstOwner = kToPlot.getOwner();
 		if(eSecondOwner != NO_PLAYER && eFirstOwner != NO_PLAYER &&
-				((pSelectionGroup->getDomainType() == DOMAIN_SEA) == pToPlot->isWater())) {
-			// Avoid tiles that flip from us to the enemy upon DoW
+			((pSelectionGroup->getDomainType() == DOMAIN_SEA) == kToPlot.isWater()))
+		{	// Avoid tiles that flip from us to the enemy upon DoW
 			if(TEAMID(eFirstOwner) == eTeam && (GET_TEAM(eTeam).isHuman() ?
-					(!GET_TEAM(eTeam).isFriendlyTerritory(TEAMID(eSecondOwner)) &&
-					!GET_TEAM(eTeam).isAtWar(TEAMID(eSecondOwner))) :
-					GET_TEAM(eTeam).AI_isSneakAttackReady(TEAMID(eSecondOwner))))
+				(!GET_TEAM(eTeam).isFriendlyTerritory(TEAMID(eSecondOwner)) &&
+				!GET_TEAM(eTeam).isAtWar(TEAMID(eSecondOwner))) :
+				GET_TEAM(eTeam).AI_isSneakAttackReady(TEAMID(eSecondOwner))))
+			{
 				iFlipModifier++;
+			}
 			// Seek out enemy tiles that will flip to us upon DoW
 			if(TEAMID(eSecondOwner) == eTeam && (GET_TEAM(eTeam).isHuman() ?
-					(!GET_TEAM(eTeam).isFriendlyTerritory(TEAMID(eFirstOwner)) &&
-					!GET_TEAM(eTeam).isAtWar(TEAMID(eFirstOwner))) :
-					GET_TEAM(eTeam).AI_isSneakAttackReady(TEAMID(eFirstOwner))))
+				(!GET_TEAM(eTeam).isFriendlyTerritory(TEAMID(eFirstOwner)) &&
+				!GET_TEAM(eTeam).isAtWar(TEAMID(eFirstOwner))) :
+				GET_TEAM(eTeam).AI_isSneakAttackReady(TEAMID(eFirstOwner))))
+			{
 				iFlipModifier--;
+			}
 			/*  This could be done much more accurately, taking into account
 				vassal agreements, defensive pacts, and going through the entire
 				selection group, but I worry about the performance, and it's OK
@@ -1889,15 +1098,14 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		}
 	} // </advc.035>
 	{
-		CLLNode<IDInfo>* pUnitNode = pSelectionGroup->headUnitNode();
-		while (pUnitNode != NULL)
+		for (CLLNode<IDInfo> const* pUnitNode = pSelectionGroup->headUnitNode();
+			pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode);
+			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			FAssert(pLoopUnit->getDomainType() != DOMAIN_AIR);
 
 			int iMaxMoves = parent->m_iData1 > 0 ? parent->m_iData1 : pLoopUnit->maxMoves();
-			int iMoveCost = pToPlot->movementCost(pLoopUnit, pFromPlot,
+			int iMoveCost = kToPlot.movementCost(pLoopUnit, &kFromPlot,
 					false); // advc.001i
 			int iMovesLeft = std::max(0, (iMaxMoves - iMoveCost));
 
@@ -1923,8 +1131,8 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	/* original K-Mod symmetry breaking. (extra cost for turning a corner)
 	if (parent->m_pParent)
 	{
-		const int map_width = GC.getMap().getGridWidth();
-		const int map_height = GC.getMap().getGridHeight();
+		const int map_width = m.getGridWidth();
+		const int map_height = m.getGridHeight();
 
 #define WRAP_X(x) ((x) - ((x) > map_width/2 ? map_width : 0) + ((x) < -map_width/2 ? map_width : 0))
 #define WRAP_Y(y) ((y) - ((y) > map_height/2 ? map_height : 0) + ((y) < -map_height/2 ? map_height : 0))
@@ -1965,26 +1173,27 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	// So let the AI prefer diagonal movement.
 	// However, diagonal zig-zags will probably seem unnatural and weird to humans who are just trying to move in a straight line.
 	// So let the pathfinding for human groups prefer cardinal movement.
-	bool bAIControl = pSelectionGroup->AI_isControlled();
+	bool const bAIControl = pSelectionGroup->AI_isControlled();
 	if (bAIControl)
 	{
-		if (pFromPlot->getX() == pToPlot->getX() || pFromPlot->getY() == pToPlot->getY())
+		if (kFromPlot.getX() == kToPlot.getX() || kFromPlot.getY() == kToPlot.getY())
 			iWorstCost += PATH_STRAIGHT_WEIGHT;
 	}
 	else
 	{
-		if (pFromPlot->getX() != pToPlot->getX() && pFromPlot->getY() != pToPlot->getY())
+		if (kFromPlot.getX() != kToPlot.getX() && kFromPlot.getY() != kToPlot.getY())
 			iWorstCost += PATH_STRAIGHT_WEIGHT * (1+(node->m_iX + node->m_iY)%2);
 		iWorstCost += (node->m_iX + node->m_iY+1)%3;
+		iWorstCost++; // advc.pf: Essentially 1 extra
 	}
-	// unfortunately, this simple method may have problems at the world-wrap boundries.
+	// unfortunately, this simple method may have problems at the world-wrap boundaries.
 	// It's difficult to tell when to correct for wrap effects and when not to, because as soon as the
-	// unit starts moving, the start position of the path changes, and so it's no longer posible to tell
+	// unit starts moving, the start position of the path changes, and so it's no longer possible to tell
 	// whether or not the unit started on the other side of the boundry.  Drat.
 
 	// end symmetry breaking.
 
-	if (!pToPlot->isRevealed(eTeam, false))
+	if (!kToPlot.isRevealed(eTeam))
 		return iWorstCost;
 
 	// the cost of battle...
@@ -1995,16 +1204,17 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 
 		int iEnemyDefence = 0;
 
-		if (pToPlot->isVisible(eTeam, false))
+		if (kToPlot.isVisible(eTeam))
 		{	/*  <advc.001> In the rare case that the AI plans war while animals
 				still roam the map, the DefenceStrength computation will crash
 				when it gets to the point where the UnitCombatType is accessed.
 				(Actually, not so exotic b/c advc.300 allows animals to survive
-				in continents w/o civ cities). */
-			CvUnit* pUnit = pToPlot->getUnitByIndex(0);
-			if(pUnit != NULL && !pUnit->isAnimal()) { // </advc.001>
+				in continents w/o civ cities.) */
+			CvUnit* pUnit = kToPlot.getUnitByIndex(0);
+			if (pUnit != NULL && !pUnit->isAnimal()) // </advc.001>
+			{
 				iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwner()).
-						AI_localDefenceStrength(pToPlot, NO_TEAM,
+						AI_localDefenceStrength(&kToPlot, NO_TEAM,
 						pSelectionGroup->getDomainType(), 0, true, false,
 						pSelectionGroup->isHuman());
 			}
@@ -2012,32 +1222,34 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		else
 		{
 			// plot not visible. use memory
-			iEnemyDefence = GET_TEAM(eTeam).AI_getStrengthMemory(pToPlot->getX(), pToPlot->getY());
+			iEnemyDefence = GET_TEAM(eTeam).AI_getStrengthMemory(kToPlot.getX(), kToPlot.getY());
 		}
 
 		if (iEnemyDefence > 0)
 		{
 			iWorstCost += PATH_COMBAT_WEIGHT;
-			int iAttackRatio = std::max(10, 100 * pSelectionGroup->AI_sumStrength(pToPlot) / iEnemyDefence);
+			int iAttackRatio = std::max(10, 100 * pSelectionGroup->AI().AI_sumStrength(&kToPlot) / iEnemyDefence);
 			// Note. I half intend to have pathValid return false whenever the above ratio is less than 100.
 			// I just haven't done that yet, mostly because I'm worried about performance.
 			if (iAttackRatio < 400)
 			{
-				iWorstCost += PATH_MOVEMENT_WEIGHT * GC.getMOVE_DENOMINATOR() * (400-iAttackRatio)/std::min(150, iAttackRatio);
+				iWorstCost += PATH_MOVEMENT_WEIGHT * GC.getMOVE_DENOMINATOR() * (400-iAttackRatio) /
+						std::min(150, iAttackRatio);
 			}
 			// else, don't worry about it too much.
 		}
 	} //
 
 	// <advc.082>
-	TeamTypes eToPlotTeam = pToPlot->getTeam();
+	TeamTypes eToPlotTeam = kToPlot.getTeam();
 	/*  The AVOID_ENEMY code in the no-moves-left branch below doesn't stop the AI
 		from trying to move _through_ enemy territory and thus declaring war
 		earlier than necessary */
 	if(bAIControl && (iFlags & MOVE_DECLARE_WAR) && eToPlotTeam != NO_TEAM &&
-			eToPlotTeam != eTeam && GET_TEAM(eTeam).AI_isSneakAttackReady(eToPlotTeam))
+		eToPlotTeam != eTeam && GET_TEAM(eTeam).AI_isSneakAttackReady(eToPlotTeam))
+	{
 		iWorstCost += PATH_DOW_WEIGHT;
-	// </advc.082>
+	} // </advc.082>
 	if (iWorstMovesLeft <= 0)
 	{
 		if (eToPlotTeam != eTeam)
@@ -2046,78 +1258,76 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		}
 
 		// Damage caused by features (for mods)
-		if (GC.getPATH_DAMAGE_WEIGHT() != 0)
+		if (GC.getDefineINT(CvGlobals::PATH_DAMAGE_WEIGHT) != 0)
 		{
-			if (pToPlot->getFeatureType() != NO_FEATURE)
+			if (kToPlot.isFeature())
 			{
-				iWorstCost += (GC.getPATH_DAMAGE_WEIGHT() * std::max(0, GC.getFeatureInfo(pToPlot->getFeatureType()).getTurnDamage())) / GC.getMAX_HIT_POINTS();
+				iWorstCost += (GC.getDefineINT(CvGlobals::PATH_DAMAGE_WEIGHT) *
+						std::max(0, GC.getInfo(kToPlot.getFeatureType()).getTurnDamage())) /
+						GC.getMAX_HIT_POINTS();
 			}
 
-			if (pToPlot->getExtraMovePathCost() > 0)
+			if (kToPlot.getExtraMovePathCost() > 0)
 			{
-				iWorstCost += (PATH_MOVEMENT_WEIGHT * pToPlot->getExtraMovePathCost());
+				iWorstCost += (PATH_MOVEMENT_WEIGHT * kToPlot.getExtraMovePathCost());
 			}
 		}
 
 		// defence modifiers
-		CLLNode<IDInfo>* pUnitNode = pSelectionGroup->headUnitNode();
 		int iDefenceMod = 0;
 		int iDefenceCount = 0;
 		int iFromDefenceMod = 0; // defence bonus for our attacking units left behind
 		int iAttackWeight = 0;
 		int iAttackCount = 0;
-		int iEnemies = pToPlot->getNumVisibleEnemyDefenders(pSelectionGroup->getHeadUnit());
+		int iEnemies = kToPlot.getNumVisibleEnemyDefenders(pSelectionGroup->getHeadUnit());
 
-		while (pUnitNode != NULL)
+		for (CLLNode<IDInfo> const* pUnitNode = pSelectionGroup->headUnitNode();
+			pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode);
-
-			if (pLoopUnit->canFight())
+			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			if (!pLoopUnit->canFight())
+				continue; // advc
+			iDefenceCount++;
+			if (pLoopUnit->canDefend(&kToPlot))
 			{
-				iDefenceCount++;
-				if (pLoopUnit->canDefend(pToPlot))
-					iDefenceMod += pLoopUnit->noDefensiveBonus() ? 0 :
-							//pToPlot->defenseModifier(eTeam, false);
-							GET_TEAM(eTeam).AI_plotDefense(*pToPlot); // advc.012
-				else iDefenceMod -= 100; // we don't want to be here.
+				iDefenceMod += pLoopUnit->noDefensiveBonus() ? 0 :
+						//pToPlot->defenseModifier(eTeam, false);
+						GET_TEAM(eTeam).AI_plotDefense(kToPlot); // advc.012
+			}
+			else iDefenceMod -= 100; // we don't want to be here.
 
-				// K-Mod note. the above code doesn't count all defensive bonuses, unfortunately.
-				// We could count everything like this:
-				/*
-				CombatDetails combat_details;
-				pLoopUnit->maxCombatStr(pToPlot, NULL, &combat_details);
-				iDefenceMod += combat_details.iModifierTotal;
-				*/
-				// but that seems like overkill. I'm worried it would be too slow.
+			// K-Mod note. the above code doesn't count all defensive bonuses, unfortunately.
+			// We could count everything like this:
+			/*CombatDetails combat_details;
+			pLoopUnit->maxCombatStr(pToPlot, NULL, &combat_details);
+			iDefenceMod += combat_details.iModifierTotal;*/
+			// but that seems like overkill. I'm worried it would be too slow.
 
-				// defence for units who stay behind after attacking an enemy.
-				if (iEnemies > 0)
+			// defence for units who stay behind after attacking an enemy.
+			if (iEnemies > 0)
+			{
+				// For human-controlled units, only apply the following effects for multi-step moves.
+				// (otherwise this might prevent the user from attacking from where they want to attack from.)
+				if (bAIControl || parent->m_iKnownCost != 0 || iFlags & MOVE_HAS_STEPPED)
 				{
-					// For human-controlled units, only apply the following effects for multi-step moves.
-					// (otherwise this might prevent the user from attacking from where they want to attack from.)
-					if (bAIControl || parent->m_iKnownCost != 0 || iFlags & MOVE_HAS_STEPPED)
+					iAttackCount++;
+					iFromDefenceMod += pLoopUnit->noDefensiveBonus() ? 0 : kFromPlot.defenseModifier(eTeam, false);
+
+					if (!kFromPlot.isCity())
 					{
-						iAttackCount++;
-						iFromDefenceMod += pLoopUnit->noDefensiveBonus() ? 0 : pFromPlot->defenseModifier(eTeam, false);
-
-						if (!pFromPlot->isCity())
-						{
-							iAttackWeight += PATH_CITY_WEIGHT;
-							// it's done this way around rather than subtracting when in a city so that the overall adjustment can't be negative.
-						}
-
-						if (pLoopUnit->canAttack() && !pLoopUnit->isRiver() && pFromPlot->isRiverCrossing(directionXY(pFromPlot, pToPlot)))
-						{
-							iAttackWeight -= PATH_RIVER_WEIGHT * GC.getRIVER_ATTACK_MODIFIER(); // Note, river modifier will be negative.
-							//iAttackMod -= (PATH_MOVEMENT_WEIGHT * iMovesLeft);
-						}
+						iAttackWeight += PATH_CITY_WEIGHT;
+						// it's done this way around rather than subtracting when in a city so that the overall adjustment can't be negative.
 					}
-					// If this is a direct attack move from a human player, make sure it is the best value move possible. (This allows humans to choose which plot they attack from.)
-					// (note: humans have no way of ordering units to attack units en-route, so the fact that this is an attack move means we are at the destination.)
-					else if (pLoopUnit->canAttack()) // parent->m_iKnownCost == 0 && !(iFlags & MOVE_HAS_STEPPED) && !bAIControl
-						return PATH_STEP_WEIGHT; // DONE!
+					if (pLoopUnit->canAttack() && !pLoopUnit->isRiver() && kFromPlot.isRiverCrossing(m.directionXY(kFromPlot, kToPlot)))
+					{
+						iAttackWeight -= PATH_RIVER_WEIGHT * GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER); // Note, river modifier will be negative.
+						//iAttackMod -= (PATH_MOVEMENT_WEIGHT * iMovesLeft);
+					}
 				}
+				// If this is a direct attack move from a human player, make sure it is the best value move possible. (This allows humans to choose which plot they attack from.)
+				// (note: humans have no way of ordering units to attack units en-route, so the fact that this is an attack move means we are at the destination.)
+				else if (pLoopUnit->canAttack()) // parent->m_iKnownCost == 0 && !(iFlags & MOVE_HAS_STEPPED) && !bAIControl
+					return PATH_STEP_WEIGHT; // DONE!
 			}
 		}
 		//
@@ -2135,7 +1345,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		iWorstCost += PATH_DEFENSE_WEIGHT * std::max(0, (iAttackCount*200 - iFromDefenceMod) / std::max(1, iAttackCount));
 		iWorstCost += std::max(0, iAttackWeight) / std::max(1, iAttackCount);
 		// if we're in enemy territory, consider the sum of our defensive bonuses as well as the average
-		if (pToPlot->isOwned() && atWar(eToPlotTeam, eTeam))
+		if (kToPlot.isOwned() && atWar(eToPlotTeam, eTeam))
 		{
 			iWorstCost += PATH_DEFENSE_WEIGHT * std::max(0, (iDefenceCount*200 - iDefenceMod)/5);
 			iWorstCost += PATH_DEFENSE_WEIGHT * std::max(0, (iAttackCount*200 - iFromDefenceMod)/5);
@@ -2145,7 +1355,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		// additional cost for ending turn in or adjacent to enemy territory based on flags (based on BBAI)
 		if (iFlags & (MOVE_AVOID_ENEMY_WEIGHT_2 | MOVE_AVOID_ENEMY_WEIGHT_3))
 		{
-			if (pToPlot->isOwned() && GET_TEAM(eTeam).AI_getWarPlan(eToPlotTeam) != NO_WARPLAN)
+			if (kToPlot.isOwned() && GET_TEAM(eTeam).AI_getWarPlan(eToPlotTeam) != NO_WARPLAN)
 			{
 				iWorstCost *= (iFlags & MOVE_AVOID_ENEMY_WEIGHT_3) ? 3 : 2;
 			}
@@ -2154,8 +1364,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 				CvPlot* pAdjacentPlot;
 				for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 				{
-					pAdjacentPlot = plotDirection(pToPlot->getX(), pToPlot->getY(), ((DirectionTypes)iI));
-
+					pAdjacentPlot = m.plotDirection(kToPlot.getX(), kToPlot.getY(), (DirectionTypes)iI);
 					if (pAdjacentPlot != NULL)
 					{
 						if (pAdjacentPlot->isOwned() && atWar(pAdjacentPlot->getTeam(), pSelectionGroup->getHeadTeam()))
@@ -2182,80 +1391,60 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	return iWorstCost;
 }
 
-int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup* pSelectionGroup, int iFlags)
+int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup const* pSelectionGroup, // advc: const group; style changes.
+	int iFlags)
 {
-	CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
-	CvPlot* pToPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
-
-	FAssert(pFromPlot != NULL);
-	FAssert(pToPlot != NULL);
-
-	if (pSelectionGroup->getDomainType() == DOMAIN_SEA)
+	CvMap const& kMap = GC.getMap();
+	CvPlot const& kFromPlot = kMap.getPlot(parent->m_iX, parent->m_iY);
+	CvPlot const& kToPlot = kMap.getPlot(node->m_iX, node->m_iY);
+	// Ship can't cross isthmus 
+	if (pSelectionGroup->getDomainType() == DOMAIN_SEA &&
+		kFromPlot.isWater() && kToPlot.isWater() &&
+		!kMap.getPlot(kFromPlot.getX(), kToPlot.getY()).isWater() &&
+		!kMap.getPlot(kToPlot.getX(), kFromPlot.getY()).isWater() &&
+		!pSelectionGroup->canMoveAllTerrain())
 	{
-		if (pFromPlot->isWater() && pToPlot->isWater())
-		{
-			if (!GC.getMap().plot(pFromPlot->getX(), pToPlot->getY())->isWater() &&
-					!GC.getMap().plot(pToPlot->getX(), pFromPlot->getY())->isWater())
-			{
-				if (!pSelectionGroup->canMoveAllTerrain())
-				{
-					return FALSE;
-				}
-			}
-		}
+		return FALSE;
 	}
 	return TRUE;
 }
 
-int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int iFlags)
+int pathValid_source(FAStarNode* parent, CvSelectionGroup const* pSelectionGroup, // advc: const group; some style changes.
+	 int iFlags)
 {
-	PROFILE_FUNC();
-	CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
+	//PROFILE_FUNC(); // advc.003o
+	CvPlot const& kFromPlot = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
 	//CvPlot* pToPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
 
-	if (pSelectionGroup->atPlot(pFromPlot))
-	{
+	if (pSelectionGroup->atPlot(&kFromPlot))
 		return TRUE;
-	}
 
 	if (iFlags & MOVE_SAFE_TERRITORY)
 	{
-		if (pFromPlot->isOwned())
-		{
-			if (pFromPlot->getTeam() != pSelectionGroup->getHeadTeam())
-			{
-				return FALSE;
-			}
-		}
-
-		if (!pFromPlot->isRevealed(pSelectionGroup->getHeadTeam(), false))
-		{
+		if (kFromPlot.isOwned() && kFromPlot.getTeam() != pSelectionGroup->getHeadTeam())
 			return FALSE;
-		}
+
+		if (!kFromPlot.isRevealed(pSelectionGroup->getHeadTeam()))
+			return FALSE;
 	}
-	// <advc.049> No new AI routes in human territory (but upgrade to railroad OK)
-	if(iFlags & MOVE_ROUTE_TO) {
-		if(pFromPlot->getRevealedRouteType(pSelectionGroup->getHeadTeam(), false) ==
-			NO_ROUTE && !pSelectionGroup->isHuman()) {
-			PlayerTypes eOwner = pFromPlot->getOwner();
+	// <advc.pf> No new AI routes in human territory (but upgrade to railroad OK)
+	if(iFlags & MOVE_ROUTE_TO)
+	{
+		if(kFromPlot.getRevealedRouteType(pSelectionGroup->getHeadTeam()) == NO_ROUTE &&
+			!pSelectionGroup->isHuman())
+		{
+			PlayerTypes eOwner = kFromPlot.getOwner();
 			if(eOwner != NO_PLAYER && GET_PLAYER(eOwner).isHuman())
 				return FALSE;
 		}
-	} // </advc.049>
+	} // </advc.pf>
 
-	if (iFlags & MOVE_NO_ENEMY_TERRITORY)
+	if (iFlags & MOVE_NO_ENEMY_TERRITORY && kFromPlot.isOwned() &&
+		atWar(kFromPlot.getTeam(), pSelectionGroup->getHeadTeam()))
 	{
-		if (pFromPlot->isOwned())
-		{
-			if (atWar(pFromPlot->getTeam(), pSelectionGroup->getHeadTeam()))
-			{
-				return FALSE;
-			}
-		}
+		return FALSE;
 	}
-
-	bool bAIControl = pSelectionGroup->AI_isControlled();
-
+	bool const bAIControl = pSelectionGroup->AI_isControlled();
 	if (bAIControl)
 	{
 		if (parent->m_iData2 > 1 || parent->m_iData1 == 0)
@@ -2264,65 +1453,65 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 			{
 				if (!pSelectionGroup->canFight() && !pSelectionGroup->alwaysInvisible())
 				{
-					if (GET_PLAYER(pSelectionGroup->getHeadOwner()).AI_getAnyPlotDanger(pFromPlot))
-					{
+					if (GET_PLAYER(pSelectionGroup->getHeadOwner()).AI_isAnyPlotDanger(kFromPlot))
 						return FALSE;
-					}
 				}
 			}
 		}
 	}
 
-	if (bAIControl || pFromPlot->isRevealed(pSelectionGroup->getHeadTeam(), false))
+	if (bAIControl || kFromPlot.isRevealed(pSelectionGroup->getHeadTeam()))
 	{
-		if (iFlags & (MOVE_THROUGH_ENEMY
-				| MOVE_ATTACK_STACK)) // K-Mod
+		if (iFlags & (MOVE_THROUGH_ENEMY /* K-Mod: */ | MOVE_ATTACK_STACK))
 		{
-			if (!pSelectionGroup->canMoveOrAttackInto(pFromPlot,
-					// K-Mod:
-					iFlags & MOVE_DECLARE_WAR && !pSelectionGroup->isHuman()))
-				return FALSE;
-		}
-		else
-		{
-			if (!pSelectionGroup->canMoveThrough(pFromPlot,
-					// K-Mod
-					iFlags & MOVE_DECLARE_WAR && !pSelectionGroup->isHuman(),
-					iFlags & MOVE_ASSUME_VISIBLE || !pSelectionGroup->isHuman()))
-					// K-Mod end
-				return FALSE;
-		}
-	}
-	// K-Mod. Note: it's currently difficult to extract the vision-cheating part of this AI,
-	// because the AI needs to cheat inside canMoveOrAttackInto for its other cheating parts to work...
-	//  .. anyway, here is the beginnings of what the code might look like without the cheats. (it's unfinished)
-#if 0
-	if (pFromPlot->isRevealed(pSelectionGroup->getHeadTeam(), false))
-	{
-		PROFILE("pathValid move through");
-		CvTeamAI& kTeam = GET_TEAM(pSelectionGroup->getHeadTeam());
-
-		int iEnemyDefence;
-		if (pFromPlot->isVisible(pSelectionGroup->getHeadTeam(), false))
-		{
-			iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwner()).AI_localDefenceStrength(pToPlot, NO_TEAM, pSelectionGroup->getDomainType(), 0, true, false, pSelectionGroup->isHuman());
-		}
-		else
-		{
-			iEnemyDefence = kTeam.AI_getStrengthMemory(pFromPlot);
-		}
-
-		if (kTeam.AI_getStrengthMemory(pFromPlot) > 0 && iFlags & (MOVE_THROUGH_ENEMY | MOVE_ATTACK_STACK))
-		{
-			if (!pSelectionGroup->canMoveOrAttackInto(pFromPlot) ||
-				(iFlags & MOVE_ATTACK_STACK && pSelectionGroup->AI_sumStrength(pFromPlot) < iEnemyDefence))
+			if (!pSelectionGroup->canMoveOrAttackInto(kFromPlot,
+				iFlags & MOVE_DECLARE_WAR && !pSelectionGroup->isHuman())) // K-Mod
 			{
 				return FALSE;
 			}
 		}
 		else
 		{
-			if (!pSelectionGroup->canMoveThrough(pFromPlot))
+			if (!pSelectionGroup->canMoveThrough(kFromPlot,
+				// K-Mod
+				iFlags & MOVE_DECLARE_WAR && !pSelectionGroup->isHuman(),
+				iFlags & MOVE_ASSUME_VISIBLE || !pSelectionGroup->isHuman()))
+				// K-Mod end
+			{
+				return FALSE;
+			}
+		}
+	}
+	// K-Mod. Note: it's currently difficult to extract the vision-cheating part of this AI,
+	// because the AI needs to cheat inside canMoveOrAttackInto for its other cheating parts to work...
+	//  .. anyway, here is the beginnings of what the code might look like without the cheats. (it's unfinished)
+#if 0
+	if (kFromPlot.isRevealed(pSelectionGroup->getHeadTeam(), false))
+	{
+		PROFILE("pathValid move through");
+		CvTeamAI& kTeam = GET_TEAM(pSelectionGroup->getHeadTeam());
+
+		int iEnemyDefence;
+		if (kFromPlot.isVisible(pSelectionGroup->getHeadTeam(), false))
+		{
+			iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwner()).AI_localDefenceStrength(pToPlot, NO_TEAM, pSelectionGroup->getDomainType(), 0, true, false, pSelectionGroup->isHuman());
+		}
+		else
+		{
+			iEnemyDefence = kTeam.AI_getStrengthMemory(&kFromPlot);
+		}
+
+		if (kTeam.AI_getStrengthMemory(&kFromPlot) > 0 && iFlags & (MOVE_THROUGH_ENEMY | MOVE_ATTACK_STACK))
+		{
+			if (!pSelectionGroup->canMoveOrAttackInto(kFromPlot) ||
+				(iFlags & MOVE_ATTACK_STACK && pSelectionGroup->AI_sumStrength(&kFromPlot) < iEnemyDefence))
+			{
+				return FALSE;
+			}
+		}
+		else
+		{
+			if (!pSelectionGroup->canMoveThrough(kFromPlot))
 			{
 				return FALSE;
 			}
@@ -2341,15 +1530,12 @@ int pathValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 
 	if(parent == NULL)
 		return TRUE;
-	// <advc.003> Was unused apart from the assert
+	// advc: Was unused (apart from an assertion)
 	/*CvPlot* pFromPlot = ...;
 	CvPlot* pToPlot = ...; */
-	FAssert(GC.getMap().plotSoren(parent->m_iX, parent->m_iY) != NULL);
-	FAssert(GC.getMap().plotSoren(node->m_iX, node->m_iY) != NULL);
-	// </advc.003>
 	//pSelectionGroup = ((CvSelectionGroup *)pointer);
 	// K-Mod
-	CvSelectionGroup* pSelectionGroup = finder ? (CvSelectionGroup*)pointer :
+	CvSelectionGroup const* pSelectionGroup = finder ? (CvSelectionGroup*)pointer :
 			((CvPathSettings*)pointer)->pGroup;
 	int iFlags = finder ? gDLL->getFAStarIFace()->GetInfo(finder) :
 			((CvPathSettings*)pointer)->iFlags;
@@ -2368,7 +1554,7 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 	//PROFILE_FUNC(); // advc.003o
 	//CvSelectionGroup* pSelectionGroup = ((CvSelectionGroup *)pointer);
 	// K-Mod
-	CvSelectionGroup* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
+	CvSelectionGroup const* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
 	int iFlags = finder ? gDLL->getFAStarIFace()->GetInfo(finder) : ((CvPathSettings*)pointer)->iFlags;
 	// K-Mod end
 	FAssert(pSelectionGroup->getNumUnits() > 0);
@@ -2384,30 +1570,21 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 		// K-Mod end
 	}
 	else
-	{
-		CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
-		FAssertMsg(pFromPlot != NULL, "FromPlot is not assigned a valid value");
-		CvPlot* pToPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
-		FAssertMsg(pToPlot != NULL, "ToPlot is not assigned a valid value");
+	{	// advc: use plot references
+		CvPlot const& kFromPlot = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
+		CvPlot const& kToPlot = GC.getMap().getPlot(node->m_iX, node->m_iY);
 
 		int iStartMoves = parent->m_iData1;
 		iTurns = parent->m_iData2;
-		/* original bts code
-		if (iStartMoves == 0)
-		{
+		/*if (iStartMoves == 0)
 			iTurns++;
-		}
-
-		for (CLLNode<IDInfo>* pUnitNode = pSelectionGroup->headUnitNode(); pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
-		{
+		for (CLLNode<IDInfo>* pUnitNode = pSelectionGroup->headUnitNode(); pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode)) {
 			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-
 			int iUnitMoves = (iStartMoves == 0 ? pLoopUnit->maxMoves() : iStartMoves);
-			iUnitMoves -= pToPlot->movementCost(pLoopUnit, pFromPlot);
+			iUnitMoves -= pToPlot->movementCost(pLoopUnit, &kFromPlot);
 			iUnitMoves = std::max(iUnitMoves, 0);
-
 			iMoves = std::min(iMoves, iUnitMoves);
-		} */
+		}*/ // BtS
 		// K-Mod. The original code would give incorrect results for groups where one unit had more moves but also had higher move cost.
 		// (eg. the most obvious example is when a group with 1-move units and 2-move units is moving on a railroad. - In this situation,
 		//  the original code would consistently underestimate the remaining moves at every step.)
@@ -2418,22 +1595,19 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 			iTurns++;
 			iStartMoves = pSelectionGroup->maxMoves();
 		}
-
-		CLLNode<IDInfo>* pUnitNode = pSelectionGroup->headUnitNode();
-		int iMoveCost = pToPlot->movementCost(::getUnit(pUnitNode->m_data), pFromPlot,
+		CLLNode<IDInfo> const* pUnitNode = pSelectionGroup->headUnitNode();
+		int iMoveCost = kToPlot.movementCost(::getUnit(pUnitNode->m_data), &kFromPlot,
 				false); // advc.001i
 		bool bUniformCost = true;
 
-		for (pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode); pUnitNode && bUniformCost; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
+		for (pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode);
+			bUniformCost && pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-
-			int iLoopCost = pToPlot->movementCost(pLoopUnit, pFromPlot,
+			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			int iLoopCost = kToPlot.movementCost(pLoopUnit, &kFromPlot,
 					false); // advc.001i
 			if (iLoopCost != iMoveCost)
-			{
 				bUniformCost = false;
-			}
 		}
 
 		if (bUniformCost)
@@ -2447,8 +1621,8 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 			// Move costs are uneven for units in this group.
 			// To be sure of the true movement cost for the group, we need to calculate the movement cost for each unit for every step in this turn.
 			vector<const CvPlot*> plot_list; // will be traversed in reverse order
-			plot_list.push_back(pToPlot);
-			plot_list.push_back(pFromPlot);
+			plot_list.push_back(&kToPlot);
+			plot_list.push_back(&kFromPlot);
 			FAStarNode* pStartNode = parent;
 			while (pStartNode->m_iData2 == iTurns && pStartNode->m_pParent)
 			{
@@ -2460,8 +1634,7 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 
 			for (pUnitNode = pSelectionGroup->headUnitNode(); pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
 			{
-				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-
+				CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				int iUnitMoves = bMaxMoves ? pLoopUnit->maxMoves() : pLoopUnit->movesLeft();
 				for (size_t i = plot_list.size()-1; i > 0; i--)
 				{
@@ -2486,29 +1659,22 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 }
 
 
-int stepDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
+int stepDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)  // advc: style changes
 {
 	PROFILE_FUNC();
 
-	CvPlot* pFromPlot;
-	CvPlot* pToPlot;
-
-	pFromPlot = GC.getMap().plotSoren(gDLL->getFAStarIFace()->GetStartX(finder), gDLL->getFAStarIFace()->GetStartY(finder));
-	FAssert(pFromPlot != NULL);
-	pToPlot = GC.getMap().plotSoren(iToX, iToY);
-	FAssert(pToPlot != NULL);
-
-	if (pFromPlot->area() != pToPlot->area())
-	{
+	CvPlot const& kFromPlot = GC.getMap().getPlot(
+			gDLL->getFAStarIFace()->GetStartX(finder), gDLL->getFAStarIFace()->GetStartY(finder));
+	CvPlot const& kToPlot = GC.getMap().getPlot(iToX, iToY);
+	if (!kFromPlot.sameArea(kToPlot))
 		return FALSE;
-	}
 
 	return TRUE;
 }
 
 // <advc.104b> Rule out (basically) no destinations; let teamStepValid_advc decide
-int stepDestValid_advc(int iToX, int iToY, const void* pointer, FAStar* finder) {
-
+int stepDestValid_advc(int iToX, int iToY, const void* pointer, FAStar* finder)
+{
 	CvPlot* pToPlot = GC.getMap().plotSoren(iToX, iToY);
 	if(pToPlot == NULL || pToPlot->isImpassable())
 		return FALSE;
@@ -2517,73 +1683,85 @@ int stepDestValid_advc(int iToX, int iToY, const void* pointer, FAStar* finder) 
 
 // Can handle sea paths. Based on teamStepValid.
 int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
-		const void* pointer, FAStar* finder) {
-
-	if(parent == NULL)
-		return TRUE;
-	CvMap const& m = GC.getMap();
-	CvPlot const& kToPlot = *m.plotSoren(node->m_iX, node->m_iY);
+	void const* pointer, FAStar* finder)
+{
+	//PROFILE_FUNC(); // advc.003o
+	/*if(parent == NULL) // I don't think this can happen
+		return TRUE;*/
+	CvMap const& kMap = GC.getMap();
+	CvPlot const& kToPlot = kMap.getPlot(node->m_iX, node->m_iY);
 	if(kToPlot.isImpassable())
 		return FALSE;
-	CvPlot const& kFromPlot = *m.plotSoren(parent->m_iX, parent->m_iY);
+	CvPlot const& kFromPlot = kMap.getPlot(parent->m_iX, parent->m_iY);
 	if(kFromPlot.isWater() && kToPlot.isWater() &&
-			!m.plot(parent->m_iX, node->m_iY)->isWater() &&
-			!m.plot(node->m_iX, parent->m_iY)->isWater())
+		!kMap.getPlot(parent->m_iX, node->m_iY).isWater() &&
+		!kMap.getPlot(node->m_iX, parent->m_iY).isWater())
+	{
 		return FALSE;
-	TeamTypes ePlotTeam = kToPlot.getTeam();
-	int* v = (int*)pointer;
-	int iMaxPath = v[5];
+	}
+	TeamTypes const ePlotTeam = kToPlot.getTeam();
+	int* const v = (int*)pointer;
+	int const iMaxPath = v[5];
 	/*  As far as I understand the code, node (the pToPlot) is still set to 0
 		cost if it's visited for the first time, so we should look at parent
 		(pFromPlot) when enforcing the upper bound (iMaxPath). But it doesn't
 		hurt to check node's cost too. */
 	if(iMaxPath > 0 && (parent->m_iHeuristicCost + parent->m_iKnownCost > iMaxPath ||
-			node->m_iHeuristicCost + node->m_iKnownCost > iMaxPath))
+		node->m_iHeuristicCost + node->m_iKnownCost > iMaxPath))
+	{
 		return FALSE;
-	TeamTypes eTeam = (TeamTypes)v[0]; // The team that computes the path
-	TeamTypes eTargetTeam = (TeamTypes)v[1];
+	}
+	TeamTypes const eTeam = (TeamTypes)v[0]; // The team that computes the path
+	TeamTypes const eTargetTeam = (TeamTypes)v[1];
 	DomainTypes eDom = (DomainTypes)v[2];
-	if(eDom == NO_DOMAIN)
-		eDom = DOMAIN_LAND;
 	// Check domain legality:
 	if(eDom == DOMAIN_LAND && kToPlot.isWater())
 		return FALSE;
 	/*  <advc.033> Naval blockades (Barbarian eTeam) are allowed to reach a city
 		but mustn't pass through */
 	if(eTeam == BARBARIAN_TEAM && eDom != DOMAIN_LAND && kFromPlot.isCity() &&
-			kFromPlot.getTeam() != BARBARIAN_TEAM)
-		return FALSE; // </advc.033>
-	bool bCoastalCity = kToPlot.isCity(true) && kToPlot.isCoastalLand();
+		kFromPlot.getTeam() != BARBARIAN_TEAM)
+	{
+		return FALSE;
+	} // </advc.033>
+	bool const bEnterCityFromCoast = (eDom != DOMAIN_LAND && kToPlot.isCity(true) && kToPlot.isCoastalLand());
+	bool const bDestination = kToPlot.at(v[3], v[4]);
 	// Use DOMAIN_IMMOBILE to encode sea units with impassable terrain
 	bool bImpassableTerrain = false;
-	if(eDom == DOMAIN_IMMOBILE) {
+	if(eDom == DOMAIN_IMMOBILE)
+	{
 		bImpassableTerrain = true;
 		eDom = DOMAIN_SEA;
 	}
-	if(eDom == DOMAIN_SEA && !bCoastalCity && !kToPlot.isWater() &&
-			// Allow non-city land tile as cargo destination
-			(kToPlot.getX() != v[3] || kToPlot.getY() != v[4]))
+	if(eDom == DOMAIN_SEA && !bEnterCityFromCoast && !kToPlot.isWater() &&
+		!bDestination) // Allow non-city land tile as cargo destination
+	{
 		return FALSE;
-	/*  This handles only Coast and no other terrain types that a mod might make
-		impassable */
-	if(!bCoastalCity && ePlotTeam != eTeam && bImpassableTerrain &&
-			kToPlot.getTerrainType() != (TerrainTypes)(GC.getDefineINT("SHALLOW_WATER_TERRAIN")))
+	}
+	if(!bEnterCityFromCoast && !bDestination && ePlotTeam != eTeam && bImpassableTerrain &&
+		/*  This handles only Coast and no other water terrain types that a mod-mod 
+			might make passable */
+		kToPlot.getTerrainType() != GC.getWATER_TERRAIN(true))
+	{
 		return FALSE;
+	}
 	// Don't check isRevealed; caller ensures that destination city is deducible.
 	if(ePlotTeam == NO_TEAM)
 		return TRUE;
 	if(GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
 		return TRUE;
 	CvTeamAI const& kTeam = GET_TEAM(eTeam);
-	if(kTeam.isFriendlyTerritory(ePlotTeam) || kTeam.isOpenBorders(ePlotTeam))
+	if(kTeam.canPeacefullyEnter(ePlotTeam))
 		return TRUE;
 	// A war plan isn't enough; war against eTargetTeam could supplant that plan.
 	if(kTeam.isAtWar(ePlotTeam) &&
-			/*  Units can't just move through an enemy city, but they can conquer
-				it. Even ships can when part of a naval assault. They can't really
-				conquer forts though. */
-			(eDom == DOMAIN_LAND || !bCoastalCity || kToPlot.isCity()))
+		/*  Units can't just move through an enemy city, but they can conquer
+			it. Even ships can when part of a naval assault. They can't really
+			conquer forts though. */
+		(eDom == DOMAIN_LAND || !bEnterCityFromCoast || kToPlot.isCity()))
+	{
 		return TRUE;
+	}
 	return FALSE;
 }
 // </advc.104b>
@@ -2600,33 +1778,25 @@ int stepCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 }
 
 
-int stepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
+int stepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)  // advc: style changes
 {
-	CvPlot* pNewPlot;
-
 	if (parent == NULL)
-	{
 		return TRUE;
-	}
 
-	pNewPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
-
-	if (pNewPlot->isImpassable())
-	{
+	CvPlot const& kNewPlot = GC.getMap().getPlot(node->m_iX, node->m_iY);
+	if (kNewPlot.isImpassable())
 		return FALSE;
-	}
 
-	CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
-	if (pFromPlot->area() != pNewPlot->area())
-	{
+	CvPlot const& kFromPlot = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
+	if (!kFromPlot.sameArea(kNewPlot))
 		return FALSE;
-	}
 
 	/*  BETTER_BTS_AI_MOD, Bugfix, 12/12/08, jdog5000: START
 		Don't count diagonal hops across land isthmus */
-	if (pFromPlot->isWater() && pNewPlot->isWater())
+	if (kFromPlot.isWater() && kNewPlot.isWater())
 	{
-		if (!(GC.getMap().plot(parent->m_iX, node->m_iY)->isWater()) && !(GC.getMap().plot(node->m_iX, parent->m_iY)->isWater()))
+		if (!GC.getMap().getPlot(parent->m_iX, node->m_iY).isWater() &&
+			!GC.getMap().getPlot(node->m_iX, parent->m_iY).isWater())
 		{
 			return FALSE;
 		}
@@ -2638,73 +1808,53 @@ int stepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 /*  BETTER_BTS_AI_MOD, 02/02/09, jdog5000: START
 	Find paths that a team's units could follow without declaring war */
 // advc (comment): This does assume a DoW on pointer[1] (eTargetTeam)
-int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
+int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)  // advc: some style changes (CvMap::getPlot)
 {
-	CvPlot* pNewPlot;
+	/*if (parent == NULL)
+		return TRUE;*/ // advc: I don't think this can happen
 
-	if (parent == NULL)
-	{
-		return TRUE;
-	}
+	CvMap const& kMap = GC.getMap();
+	CvPlot const& kNewPlot = GC.getMap().getPlot(node->m_iX, node->m_iY);
 
-	pNewPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
-
-	if (pNewPlot->isImpassable())
-	{
+	if (kNewPlot.isImpassable())
 		return FALSE;
-	}
 
-	CvPlot* pFromPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
-
-	if (pFromPlot->area() != pNewPlot->area())
-	{
+	CvPlot const& kFromPlot = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
+	if (!kFromPlot.sameArea(kNewPlot))
 		return FALSE;
-	}
 
 	// Don't count diagonal hops across land isthmus
-	if (pFromPlot->isWater() && pNewPlot->isWater())
+	if (kFromPlot.isWater() && kNewPlot.isWater())
 	{
-		if (!(GC.getMap().plot(parent->m_iX, node->m_iY)->isWater()) && !(GC.getMap().plot(node->m_iX, parent->m_iY)->isWater()))
+		if (!kMap.getPlot(parent->m_iX, node->m_iY).isWater() &&
+			!kMap.getPlot(node->m_iX, parent->m_iY).isWater())
 		{
 			return FALSE;
 		}
 	}
 
-	TeamTypes ePlotTeam = pNewPlot->getTeam();
+	TeamTypes ePlotTeam = kNewPlot.getTeam();
 
-	vector<TeamTypes> teamVec = *((vector<TeamTypes> *)pointer);
+	vector<TeamTypes> teamVec = *((vector<TeamTypes>*)pointer);
 	TeamTypes eTeam = teamVec[0];
 	TeamTypes eTargetTeam = teamVec[1];
 	CvTeamAI& kTeam = GET_TEAM(eTeam);
 
 	if (ePlotTeam == NO_TEAM)
-	{
 		return TRUE;
-	}
 
 	// advc.001: Was just ePlotTeam == eTargetTeam; anticipate DoW on/ by vassals.
 	if(eTargetTeam != NO_TEAM && GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
-	{
 		return TRUE;
-	}
 
-	if (kTeam.isFriendlyTerritory(ePlotTeam))
+	if (kTeam.canPeacefullyEnter(ePlotTeam) ||
+		kTeam.isDisengage(ePlotTeam)) // advc.034
 	{
 		return TRUE;
 	}
 
 	if (kTeam.AI_getWarPlan(ePlotTeam) != NO_WARPLAN)
-	{
 		return TRUE;
-	}
-
-	if (kTeam.isOpenBorders(ePlotTeam)
-			|| kTeam.isDisengage(ePlotTeam)) // advc.034
-	{
-		return TRUE;
-	}
-
-
 
 	return FALSE;
 } // BETTER_BTS_AI_MOD: END
@@ -2729,48 +1879,28 @@ int stepAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 
 int routeValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
-	CvPlot* pNewPlot;
-	PlayerTypes ePlayer;
-
 	if (parent == NULL)
-	{
 		return TRUE;
-	}
 
-	pNewPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
-
-	ePlayer = ((PlayerTypes)(gDLL->getFAStarIFace()->GetInfo(finder)));
-
-	if (!(pNewPlot->isOwned()) || (pNewPlot->getTeam() == GET_PLAYER(ePlayer).getTeam()))
+	CvPlot const& kNewPlot = GC.getMap().getPlot(node->m_iX, node->m_iY);
+	PlayerTypes ePlayer = (PlayerTypes)gDLL->getFAStarIFace()->GetInfo(finder);
+	if (!kNewPlot.isOwned() || kNewPlot.getTeam() == TEAMID(ePlayer))
 	{
-		if (pNewPlot->getRouteType() == GET_PLAYER(ePlayer).getBestRoute(pNewPlot))
-		{
+		if (kNewPlot.getRouteType() == GET_PLAYER(ePlayer).getBestRoute(&kNewPlot))
 			return TRUE;
-		}
 	}
-
 	return FALSE;
 }
 
 
-int borderValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
+int borderValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)  // advc: style changes
 {
-	CvPlot* pNewPlot;
-	PlayerTypes ePlayer;
-
 	if (parent == NULL)
-	{
 		return TRUE;
-	}
 
-	pNewPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
-
-	ePlayer = ((PlayerTypes)(gDLL->getFAStarIFace()->GetInfo(finder)));
-
-	if (pNewPlot->getTeam() == GET_PLAYER(ePlayer).getTeam())
-	{
+	PlayerTypes ePlayer = (PlayerTypes)gDLL->getFAStarIFace()->GetInfo(finder);
+	if (GC.getMap().getPlot(node->m_iX, node->m_iY).getTeam() == TEAMID(ePlayer))
 		return TRUE;
-	}
 
 	return FALSE;
 }
@@ -2779,10 +1909,10 @@ int borderValid(FAStarNode* parent, FAStarNode* node, int data, const void* poin
 int areaValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
 	if (parent == NULL)
-	{
 		return TRUE;
-	}
-	return ((GC.getMap().plotSoren(parent->m_iX, parent->m_iY)->isWater() == GC.getMap().plotSoren(node->m_iX, node->m_iY)->isWater()) ? TRUE : FALSE);
+
+	return ((GC.getMap().getPlot(parent->m_iX, parent->m_iY).isWater() ==
+			GC.getMap().getPlot(node->m_iX, node->m_iY).isWater()) ? TRUE : FALSE);
 	// (advc.030 takes care of this)
 	// BETTER_BTS_AI_MOD, General AI, 10/02/09, jdog5000
 	// BBAI TODO: Why doesn't this work to break water and ice into separate area?
@@ -2801,41 +1931,31 @@ int joinArea(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 {
 	if (data == ASNL_ADDCLOSED)
 	{
-		GC.getMap().plotSoren(node->m_iX, node->m_iY)->setArea(gDLL->getFAStarIFace()->GetInfo(finder));
+		CvMap const& kMap = GC.getMap();
+		kMap.getPlot(node->m_iX, node->m_iY).setArea(
+				kMap.getArea(gDLL->getFAStarIFace()->GetInfo(finder)));
 	}
-
 	return 1;
 }
 
 
-int plotGroupValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
+int plotGroupValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)  // advc: style changes
 {
-	CvPlot* pOldPlot;
-	CvPlot* pNewPlot;
-	PlayerTypes ePlayer;
-
+	//PROFILE_FUNC(); // advc.003o
 	if (parent == NULL)
+		return TRUE;
+
+	CvPlot const& kOldPlot = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
+	CvPlot const& kNewPlot = GC.getMap().getPlot(node->m_iX, node->m_iY);
+
+	PlayerTypes const ePlayer = (PlayerTypes)gDLL->getFAStarIFace()->GetInfo(finder);
+	TeamTypes const eTeam = TEAMID(ePlayer);
+	if (kOldPlot.isSamePlotGroup(kNewPlot, ePlayer) &&
+		kNewPlot.isTradeNetwork(eTeam) &&
+		kNewPlot.isTradeNetworkConnected(kOldPlot, eTeam))
 	{
 		return TRUE;
 	}
-
-	pOldPlot = GC.getMap().plotSoren(parent->m_iX, parent->m_iY);
-	pNewPlot = GC.getMap().plotSoren(node->m_iX, node->m_iY);
-
-	ePlayer = ((PlayerTypes)(gDLL->getFAStarIFace()->GetInfo(finder)));
-	TeamTypes eTeam = GET_PLAYER(ePlayer).getTeam();
-
-	if (pOldPlot->getPlotGroup(ePlayer) == pNewPlot->getPlotGroup(ePlayer))
-	{
-		if (pNewPlot->isTradeNetwork(eTeam))
-		{
-			if (pNewPlot->isTradeNetworkConnected(pOldPlot, eTeam))
-			{
-				return TRUE;
-			}
-		}
-	}
-
 	return FALSE;
 }
 
@@ -2877,17 +1997,12 @@ int* shuffle(int iNum, CvRandom& rand)
 
 void shuffleArray(int* piShuffle, int iNum, CvRandom& rand)
 {
-	int iI, iJ;
-
-	for (iI = 0; iI < iNum; iI++)
-	{
+	for (int iI = 0; iI < iNum; iI++)
 		piShuffle[iI] = iI;
-	}
 
-	for (iI = 0; iI < iNum; iI++)
+	for (int iI = 0; iI < iNum; iI++)
 	{
-		iJ = (rand.get(iNum - iI, NULL) + iI);
-
+		int iJ = (rand.get(iNum - iI, NULL) + iI);
 		if (iI != iJ)
 		{
 			int iTemp = piShuffle[iI];
@@ -2897,35 +2012,44 @@ void shuffleArray(int* piShuffle, int iNum, CvRandom& rand)
 	}
 }
 
+// advc.enum: Caller needs to set the vector size
+void shuffleVector(std::vector<int>& aiIndices, CvRandom& rand)
+{
+	iota(aiIndices.begin(), aiIndices.end(), 0);
+	int const iSize = (int)aiIndices.size();
+	for (int i = 0; i < iSize; i++)
+		std::swap(aiIndices[i], aiIndices[rand.get(iSize - i, NULL) + i]);
+}
+
+
 int getTurnYearForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, GameSpeedTypes eSpeed)
 {
-	return (getTurnMonthForGame(iGameTurn, iStartYear, eCalendar, eSpeed) / GC.getNumMonthInfos());
+	return getTurnMonthForGame(iGameTurn, iStartYear, eCalendar, eSpeed) /
+			std::max(1, GC.getNumMonthInfos()); // advc: max
 }
 
 
 int getTurnMonthForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, GameSpeedTypes eSpeed)
 {
-	int iTurnMonth;
-	int iTurnCount;
-	int iI;
-
-	iTurnMonth = iStartYear * GC.getNumMonthInfos();
+	int iTurnMonth = iStartYear * GC.getNumMonthInfos();
 
 	switch (eCalendar)
 	{
 	case CALENDAR_DEFAULT:
-		iTurnCount = 0;
+	{
+		int iTurnCount = 0;
 
-		for (iI = 0; iI < GC.getGameSpeedInfo(eSpeed).getNumTurnIncrements(); iI++)
+		for (int iI = 0; iI < GC.getInfo(eSpeed).getNumTurnIncrements(); iI++)
 		{
-			if (iGameTurn > (iTurnCount + GC.getGameSpeedInfo(eSpeed).getGameTurnInfo(iI).iNumGameTurnsPerIncrement))
+			if (iGameTurn > iTurnCount + GC.getInfo(eSpeed).getGameTurnInfo(iI).iNumGameTurnsPerIncrement)
 			{
-				iTurnMonth += (GC.getGameSpeedInfo(eSpeed).getGameTurnInfo(iI).iMonthIncrement * GC.getGameSpeedInfo(eSpeed).getGameTurnInfo(iI).iNumGameTurnsPerIncrement);
-				iTurnCount += GC.getGameSpeedInfo(eSpeed).getGameTurnInfo(iI).iNumGameTurnsPerIncrement;
+				iTurnMonth += (GC.getInfo(eSpeed).getGameTurnInfo(iI).iMonthIncrement *
+						GC.getInfo(eSpeed).getGameTurnInfo(iI).iNumGameTurnsPerIncrement);
+				iTurnCount += GC.getInfo(eSpeed).getGameTurnInfo(iI).iNumGameTurnsPerIncrement;
 			}
 			else
 			{
-				iTurnMonth += (GC.getGameSpeedInfo(eSpeed).getGameTurnInfo(iI).iMonthIncrement * (iGameTurn - iTurnCount));
+				iTurnMonth += (GC.getInfo(eSpeed).getGameTurnInfo(iI).iMonthIncrement * (iGameTurn - iTurnCount));
 				iTurnCount += (iGameTurn - iTurnCount);
 				break;
 			}
@@ -2933,10 +2057,11 @@ int getTurnMonthForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, 
 
 		if (iGameTurn > iTurnCount)
 		{
-			iTurnMonth += (GC.getGameSpeedInfo(eSpeed).getGameTurnInfo(GC.getGameSpeedInfo(eSpeed).getNumTurnIncrements() - 1).iMonthIncrement * (iGameTurn - iTurnCount));
+			iTurnMonth += (GC.getInfo(eSpeed).getGameTurnInfo(GC.getInfo(eSpeed).getNumTurnIncrements() - 1).iMonthIncrement *
+					(iGameTurn - iTurnCount));
 		}
 		break;
-
+	}
 	case CALENDAR_BI_YEARLY:
 		iTurnMonth += (2 * iGameTurn * GC.getNumMonthInfos());
 		break;
@@ -2947,7 +2072,7 @@ int getTurnMonthForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, 
 		break;
 
 	case CALENDAR_SEASONS:
-		iTurnMonth += (iGameTurn * GC.getNumMonthInfos()) / GC.getNumSeasonInfos();
+		iTurnMonth += (iGameTurn * GC.getNumMonthInfos()) / std::max(1, GC.getNumSeasonInfos()); // advc: max
 		break;
 
 	case CALENDAR_MONTHS:
@@ -2955,7 +2080,7 @@ int getTurnMonthForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, 
 		break;
 
 	case CALENDAR_WEEKS:
-		iTurnMonth += iGameTurn / GC.getDefineINT("WEEKS_PER_MONTHS");
+		iTurnMonth += iGameTurn / std::max(1, GC.getDefineINT("WEEKS_PER_MONTHS")); // advc: max
 		break;
 
 	default:
@@ -2965,10 +2090,13 @@ int getTurnMonthForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, 
 	return iTurnMonth;
 }
 
-// these string functions should only be used under chipotle cheat code (not internationalized)
 
 void getDirectionTypeString(CvWString& szString, DirectionTypes eDirectionType)
 {
+	/*  advc.007: Turned this comment
+		"these string functions should only be used under chipotle cheat code (not internationalized)"
+		into an assertion: */
+	FAssertMsg(gLogBBAI || GC.getGame().isDebugMode(), "getDirectionTypeString should only be used for Debug output");
 	switch (eDirectionType)
 	{
 	case NO_DIRECTION: szString = L"NO_DIRECTION"; break;
@@ -2994,6 +2122,7 @@ void getCardinalDirectionTypeString(CvWString& szString, CardinalDirectionTypes 
 // advc.007: Removed the "ACTIVITY_" prefix from the strings b/c it takes up too much space.
 void getActivityTypeString(CvWString& szString, ActivityTypes eActivityType)
 {
+	FAssertMsg(gLogBBAI || GC.getGame().isDebugMode(), "getActivityTypeString should only be used for Debug output"); // advc.007
 	switch (eActivityType)
 	{
 	case NO_ACTIVITY: szString = L"NO_ACTIVITY"; break;
@@ -3022,6 +2151,7 @@ void getActivityTypeString(CvWString& szString, ActivityTypes eActivityType)
 
 void getMissionTypeString(CvWString& szString, MissionTypes eMissionType)
 {
+	FAssertMsg(gLogBBAI || GC.getGame().isDebugMode(), "getMissionTypeString should only be used for Debug output"); // advc.007
 	switch (eMissionType)
 	{
 	case NO_MISSION: szString = L"NO_MISSION"; break;
@@ -3082,6 +2212,7 @@ void getMissionTypeString(CvWString& szString, MissionTypes eMissionType)
 // advc.007: Removed the "MISSIONAI_" prefix from the strings b/c it takes up too much space.
 void getMissionAIString(CvWString& szString, MissionAITypes eMissionAI)
 {
+	FAssertMsg(gLogBBAI || GC.getGame().isDebugMode(), "getMissionAIString should only be used for Debug output"); // advc.007
 	switch (eMissionAI)
 	{
 	case NO_MISSIONAI: szString = L"NO_MISSIONAI"; break;
@@ -3126,14 +2257,15 @@ void getMissionAIString(CvWString& szString, MissionAITypes eMissionAI)
 	mission_string(MISSIONAI_STRANDED)
 #undef mission_string
 // K-Mod end
-
 	default: szString = CvWString::format(L"UNKOWN_MISSION_AI(%d)", eMissionAI); break;
 	}
 }
 
 void getUnitAIString(CvWString& szString, UnitAITypes eUnitAI)
 {
-	// note, GC.getUnitAIInfo(eUnitAI).getDescription() is a international friendly way to get string (but it will be longer)
+	FAssertMsg(gLogBBAI || GC.getGame().isDebugMode(), "getUnitAIString should only be used for Debug output"); // advc.007
+
+	// note, GC.getInfo(eUnitAI).getDescription() is a international friendly way to get string (but it will be longer)
 
 	switch (eUnitAI)
 	{

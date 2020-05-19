@@ -606,7 +606,9 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		imprList = self.getSortedList(gc.getNumImprovementInfos(), gc.getImprovementInfo)
 		r = []
 		for descr,i in imprList:
-			if gc.getImprovementInfo(i).getPillageGold() > 0:
+			info = gc.getImprovementInfo(i)
+			# The alt. conditions are for Forest Preserve and Fort
+			if info.getPillageGold() > 0 or info.isRequiresFeature() or info.isOutsideBorders():
 				r.append((descr,i))
 		return r # </advc.004y>
 
@@ -754,7 +756,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			if info == gc.getConceptInfo:
 				data1 = CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT
 				data2 = item[1]
-			elif info == self.getNewConceptInfo or info == self.getShortcutInfo or info == self.getTraitInfo: # advc.003
+			elif info == self.getNewConceptInfo or info == self.getShortcutInfo or info == self.getTraitInfo: # advc
 				data1 = CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT_NEW
 				data2 = item[1]
 			else:

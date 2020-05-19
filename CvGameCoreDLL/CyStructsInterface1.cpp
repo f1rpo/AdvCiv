@@ -1,6 +1,5 @@
 #include "CvGameCoreDLL.h"
 #include "CvUnit.h"
-#include "CvInfos.h"
 
 //
 // Python interface for structs
@@ -10,7 +9,7 @@
 
 void CyStructsPythonInterface1()
 {
-	OutputDebugString("Python Extension Module - CyStructsPythonInterface1\n");
+	printToConsole("Python Extension Module - CyStructsPythonInterface1\n");
 
 	python::class_<NiPoint3>("NiPoint3")
 		.def(python::init<float, float, float>())	// ctor which takes 3 floats

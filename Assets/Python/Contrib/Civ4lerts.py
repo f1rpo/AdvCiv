@@ -115,6 +115,7 @@ class Civ4lerts:
 		WarTrade(eventManager) # advc.210a
 		Revolt(eventManager) # advc.210b
 		BonusThirdParties(eventManager) # advc.210d
+		CityTrade(eventManager) # advc.ctr
 		GoldTrade(eventManager)
 		GoldPerTurnTrade(eventManager)
 		RefusesToTalk(eventManager)
@@ -163,8 +164,8 @@ def addMessage(iPlayer, szString, szIcon, iFlashX=-1, iFlashY=-1, bOffArrow=Fals
 		return # </advc.127>
 	# advc.106c: Reduced time from LONG to normal
 	# advc.106: Set bForce to False
-	eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME")
-	CyInterface().addMessage(iPlayer, False, eventMessageTimeLong,
+	eventMessageTime = gc.getDefineINT("EVENT_MESSAGE_TIME")
+	CyInterface().addMessage(iPlayer, False, eventMessageTime,
 							 szString, None, InterfaceMessageTypes.MESSAGE_TYPE_INFO, 
 							 szIcon, ColorTypes(-1),
 							 iFlashX, iFlashY, bOffArrow, bOnArrow)
@@ -743,7 +744,8 @@ class CanHurryPopulation(AbstractCanHurry):
 		# <advc.064> Replacing the above (same code as in CvMainInterface.py)
 		HURRY_WHIP = gc.getInfoTypeForString("HURRY_POPULATION")
 		HURRY_BUY = gc.getInfoTypeForString("HURRY_GOLD")
-		bCountCurrentOverflow = Civ4lertsOpt.isWhipAssistOverflowCountCurrentProduction()
+		
+		bCountCurrentOverflow = BugCore.game.CityScreen.isWhipAssistOverflowCountCurrentProduction()
 		iOverflow = city.getHurryOverflow(HURRY_WHIP, True, bCountCurrentOverflow)
 		iOverflowGold = city.getHurryOverflow(HURRY_WHIP, False, bCountCurrentOverflow)
 		# </advc.064>
@@ -1145,3 +1147,14 @@ class BonusThirdParties(AdvCiv4lert):
 	def getID():
 		return 2
 # </advc.210d>
+
+# <advc.ctr>
+class CityTrade(AdvCiv4lert):
+
+	def isEnabled(self):
+		return Civ4lertsOpt.isShowCityTradeAlert()
+
+	@staticmethod
+	def getID():
+		return 3
+# </advc.ctr>

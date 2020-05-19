@@ -2,14 +2,11 @@
 
 #include "CvGameCoreDLL.h"
 #include "StartPointsAsHandicap.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvInitCore.h"
+#include "CvGame.h"
+#include "CvPlayer.h"
 #include "CvMap.h"
-#include <cmath>
-#include <sstream>
 
-/*  advc.003 (note): This was the first class added by AdvCiv and, apart from the
+/*  advc (note): This was the first class added by AdvCiv and, apart from the
 	includes above, it hasn't been looked at for the past few years, so there are
 	probably things that could be improved. Seems to be working as intended though. */
 
@@ -44,7 +41,7 @@ void StartPointsAsHandicap::reset() {
 }
 
 
-wstring* StartPointsAsHandicap::forSettingsScreen(bool bTab) {
+wstring* StartPointsAsHandicap::forSettingsScreen(bool bTab) const {
 
 	updatePointsDisplayString(bTab);
 	return pointsDisplayString;
@@ -314,7 +311,7 @@ int StartPointsAsHandicap::minDist(CvPlot* p) {
 }
 
 
-void StartPointsAsHandicap::updatePointsDisplayString(bool bTab) {
+void StartPointsAsHandicap::updatePointsDisplayString(bool bTab) const {
 
 	if(civs[nCivs - 1]->startPoints_configured() <= 0) {
 		pointsDisplayString = new wstring();

@@ -12,12 +12,11 @@
 //-----------------------------------------------------------------------------
 //
 
-#include "CvArea.h"
 #include "CvPlot.h"
+class CvArea;
 // <advc.300>
 #include "Shelf.h"
-#include <map>
-// </advc.300>
+#include <map> // </advc.300>
 
 class FAStar;
 class CvPlotGroup;
@@ -115,22 +114,25 @@ public:
 	inline CvPlot* plotDirection(int iX, int iY, DirectionTypes eDirection) const
 	{
 		if(eDirection == NO_DIRECTION)
-			return plot(iX, iY);
-		else return plot(
+			return plotValidXY(iX, iY);
+		// advc.opt: Don't check for INVALID_PLOT_COORD
+		else return plotValidXY(
 				iX + GC.getPlotDirectionX()[eDirection],
 				iY + GC.getPlotDirectionY()[eDirection]);
 	}
 
 	inline CvPlot* plotCardinalDirection(int iX, int iY, CardinalDirectionTypes eCardinalDirection) const
 	{
-		return plot(
+		// advc.opt: Don't check for INVALID_PLOT_COORD
+		return plotValidXY(
 			iX + GC.getPlotCardinalDirectionX()[eCardinalDirection],
 			iY + GC.getPlotCardinalDirectionY()[eCardinalDirection]);
 	}
 
 	inline CvPlot* plotXY(int iX, int iY, int iDX, int iDY) const
 	{
-		return plot(iX + iDX, iY + iDY);
+		// advc.opt: Don't check for INVALID_PLOT_COORD
+		return plotValidXY(iX + iDX, iY + iDY);
 	}
 	// K-Mod start
 	inline CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) const
@@ -141,15 +143,18 @@ public:
 	inline DirectionTypes directionXY(int iDX, int iDY) const
 	{
 		if (abs(iDX) > DIRECTION_RADIUS || abs(iDY) > DIRECTION_RADIUS)
+		{
+			FAssertMsg(false, "Just to see if the DIRECTION_RADIUS<abs branch is needed"); // advc.test
 			return NO_DIRECTION;
-		else return GC.getXYDirection(iDX + DIRECTION_RADIUS, iDY + DIRECTION_RADIUS);
+		}
+		return GC.getXYDirection(iDX + DIRECTION_RADIUS, iDY + DIRECTION_RADIUS);
 	}
 
-	inline DirectionTypes directionXY(const CvPlot* pFromPlot, const CvPlot* pToPlot) const
+	inline DirectionTypes directionXY(CvPlot const& kFromPlot, CvPlot const& kToPlot) const // advc: take params as references
 	{
 		return directionXY(
-				dxWrap(pToPlot->getX() - pFromPlot->getX()),
-				dyWrap(pToPlot->getY() - pFromPlot->getY()));
+				dxWrap(kToPlot.getX() - kFromPlot.getX()),
+				dyWrap(kToPlot.getY() - kFromPlot.getY()));
 	}
 
 	inline int dxWrap(int iDX) const
@@ -171,7 +176,34 @@ public:
 	{
 		return coordDistance(iFromY, iToY, getGridHeight(), isWrapY());
 	}
+
+	inline CvPlot* plotCity(int iX, int iY, CityPlotTypes ePlot) const						// Exposed to Python (CyGameCoreUtils.py)
+	{	// advc.enum: 3rd param was int
+		// advc.opt: Don't check for INVALID_PLOT_COORD
+		return plotValidXY(iX + GC.getCityPlotX()[ePlot], iY + GC.getCityPlotY()[ePlot]);
+	}
+
+	CityPlotTypes plotCityXY(int iDX, int iDY) const // advc.enum: return CityPlotTypes		// Exposed to Python (CyGameCoreUtils.py)
+	{
+		if (abs(iDX) > CITY_PLOTS_RADIUS || abs(iDY) > CITY_PLOTS_RADIUS)
+			return NO_CITYPLOT; // advc.enum
+		return GC.getXYCityPlot(iDX + CITY_PLOTS_RADIUS, iDY + CITY_PLOTS_RADIUS);
+	}
+	// advc: 1st param (CvCity*) replaced with two ints - to allow hypothetical city sites
+	inline CityPlotTypes plotCityXY(int iCityX, int iCityY, CvPlot const& kPlot) const		// Exposed to Python (CyGameCoreUtils.py)
+	{
+		return plotCityXY(dxWrap(kPlot.getX() - iCityX), dyWrap(kPlot.getY() - iCityY));
+	}
+	// advc:
+	inline bool adjacentOrSame(CvPlot const& kFirstPlot, CvPlot const& kSecondPlot) const
+	{
+		return (stepDistance(&kFirstPlot, &kSecondPlot) <= 1);
+	}
+
 private: // Auxiliary functions
+	/*	These look too large and branchy for inlining, but the keywords do seem
+		to improve performance a little bit. Were also present in BtS. */
+
 	inline int coordDistance(int iFrom, int iTo, int iRange, bool bWrap) const
 	{
 		if (bWrap && abs(iFrom - iTo) > iRange / 2)
@@ -217,7 +249,7 @@ protected:
 	void uninit();
 	void setup();
 
-public: // advc.003: made several functions const
+public: // advc: made several functions const
 
 	DllExport void erasePlots();																			// Exposed to Python
 	void setRevealedPlots(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly = false);		// Exposed to Python
@@ -237,53 +269,54 @@ public: // advc.003: made several functions const
 	void updateIrrigated();
 	DllExport void updateCenterUnit();
 	void updateWorkingCity();
-	void updateMinOriginalStartDist(CvArea* pArea);										// Exposed to Python
+	void updateMinOriginalStartDist(CvArea const& kArea);										// Exposed to Python
 	void updateYield();
 
 	void verifyUnitValidPlot();
+	void combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2,
+			bool bVerifyProduction = true); // advc.064d
 
-	void combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2);
+	CvPlot* syncRandPlot(int iFlags = 0, CvArea const* pArea = NULL, // advc: was iArea								// Exposed to Python
+			int iMinCivUnitDistance = -1,
+			int iTimeout = -1, int* piValidCount = NULL); // advc.304 (default timeout was 100)
+	// <advc>
+	bool isValidRandPlot(CvPlot const& kPlot, int iFlags, CvArea const* pArea,
+			int iMinCivUnitDistance) const; // </advc>
 
-	CvPlot* syncRandPlot(int iFlags = 0, int iArea = -1, int iMinUnitDistance = -1, int iTimeout = 100, // Exposed to Python
-			int* piLegal = NULL); // advc.304
-
-	DllExport CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM, DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL) {	// Exposed to Python
-		// <advc.004r>
+	DllExport CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM, DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL)	// Exposed to Python
+	{	// <advc.004r>
 		return findCity(iX, iY, eOwner, eTeam, bSameArea, bCoastalOnly,
 				eTeamAtWarWith, eDirection, pSkipCity, NO_TEAM);
 	}
 	CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM,
 			bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM,
-			DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL, TeamTypes eObserver = NO_TEAM) const;
+			DirectionTypes eDirection = NO_DIRECTION, CvCity const* pSkipCity = NULL, TeamTypes eObserver = NO_TEAM) const;
 	// </advc.004r>
 	CvSelectionGroup* findSelectionGroup(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, bool bReadyToSelect = false, bool bWorkers = false) const;				// Exposed to Python
 
 	CvArea* findBiggestArea(bool bWater);																						// Exposed to Python
 
 	int getMapFractalFlags() const;																												// Exposed to Python
-	bool findWater(CvPlot* pPlot, int iRange, bool bFreshWater);										// Exposed to Python
+	bool findWater(CvPlot const* pPlot, int iRange, bool bFreshWater);										// Exposed to Python
 
-	bool isPlotExternal(int iX, int iY) const; // advc.003f: Exported through .def file							// Exposed to Python
-	#ifdef _USRDLL
-	inline int isPlot(int iX, int iY) const // advc.003f: Renamed from isPlotINLINE
+	bool isPlotExternal(int iX, int iY) const; // advc.inl: Exported through .def file							// Exposed to Python
+	inline int isPlot(int iX, int iY) const // advc.inl: Renamed from isPlotINLINE
 	{
 		return (iX >= 0 && iX < getGridWidth() && iY >= 0 && iY < getGridHeight());
 	}
-	#endif
-	int numPlotsExternal() const; // advc.003f: Exported through .def file							// Exposed to Python
-	#ifdef _USRDLL
-	inline int numPlots() const // advc.003f: Renamed from numPlotsINLINE
+	int numPlotsExternal() const; // advc.inl: Exported through .def file							// Exposed to Python
+	inline int numPlots() const // advc.inl: Renamed from numPlotsINLINE
 	{
 		return getGridWidth() * getGridHeight();
 	}
-	#endif
-	int plotNumExternal(int iX, int iY) const; // advc.003f: Exported through .def file							// Exposed to Python
-	#ifdef _USRDLL
-	inline int plotNum(int iX, int iY) const // advc.003f: Renamed from plotNumINLINE
+	inline int plotNum(int iX, int iY) const // advc.inl: Merged with plotNumINLINE (plotNum wasn't called externally)			// Exposed to Python
 	{
 		return ((iY * getGridWidth()) + iX);
-	}
-	#endif
+	}  // <advc> wrapper
+	__forceinline int plotNum(CvPlot const& kPlot) const
+	{
+		return plotNum(kPlot.getX(), kPlot.getY());
+	} // </advc>
 	int plotX(int iIndex) const;																										// Exposed to Python
 	int plotY(int iIndex) const;																										// Exposed to Python
 
@@ -299,21 +332,19 @@ public: // advc.003: made several functions const
 	int maxPlotDistance() const;																								// Exposed to Python
 	int maxStepDistance() const;																								// Exposed to Python
 	int maxMaintenanceDistance() const; // advc.140
+	int maxTypicalDistance() const; // advc.140
 
-	int getGridWidthExternal() const; // advc.003f: Exported through .def file							// Exposed to Python
-	#ifdef _USRDLL
-	inline int getGridWidth() const // advc.003f: Renamed from getGridWidthINLINE
+	int getGridWidthExternal() const; // advc.inl: Exported through .def file							// Exposed to Python
+	inline int getGridWidth() const // advc.inl: Renamed from getGridWidthINLINE
 	{
 		return m_iGridWidth;
 	}
-	#endif
-	int getGridHeightExternal() const; // advc.003f: Exported through .def file							// Exposed to Python																	// Exposed to Python
-	#ifdef _USRDLL
-	inline int getGridHeight() const // advc.003f: Renamed from getGridHeightINLINE
+	int getGridHeightExternal() const; // advc.inl: Exported through .def file							// Exposed to Python																	// Exposed to Python
+	inline int getGridHeight() const // advc.inl: Renamed from getGridHeightINLINE
 	{
 		return m_iGridHeight;
 	}
-	#endif
+
 	int getLandPlots() const;																					// Exposed to Python
 	void changeLandPlots(int iChange);
 
@@ -323,34 +354,30 @@ public: // advc.003: made several functions const
 	int getTopLatitude() const;																									// Exposed to Python
 	int getBottomLatitude() const;																							// Exposed to Python
 
-	int getNextRiverID() const;																									// Exposed to Python
+	short getNextRiverID() const;																									// Exposed to Python
 	void incrementNextRiverID();																					// Exposed to Python
 
-	bool isWrapXExternal(); // advc.003f: Exported through .def file							// Exposed to Python
-	#ifdef _USRDLL
-	inline bool isWrapX() const { return m_bWrapX; } // advc.003f: Renamed from isWrapXINLINE
-	#endif
-	bool isWrapYExternal(); // advc.003f: Exported through .def file							// Exposed to Python
-	#ifdef _USRDLL
-	inline bool isWrapY() const { return m_bWrapY; } // advc.003f: Renamed from isWrapYINLINE
-	#endif
-	bool isWrapExternal(); // advc.003f: Exported through .def file
-	#ifdef _USRDLL
-	inline bool isWrap() const // advc.003f: Renamed from isWrapINLINE
+	bool isWrapXExternal(); // advc.inl: Exported through .def file							// Exposed to Python
+	inline bool isWrapX() const { return m_bWrapX; } // advc.inl: Renamed from isWrapXINLINE
+	bool isWrapYExternal(); // advc.inl: Exported through .def file							// Exposed to Python
+	inline bool isWrapY() const { return m_bWrapY; } // advc.inl: Renamed from isWrapYINLINE
+	bool isWrapExternal(); // advc.inl: Exported through .def file
+	inline bool isWrap() const // advc.inl: Renamed from isWrapINLINE
 	{
 		return m_bWrapX || m_bWrapY;
 	}
-	#endif
+
 	DllExport WorldSizeTypes getWorldSize()															// Exposed to Python
-	// <advc.003> Need a const version
+	// <advc> Need a const version
 	{	CvMap const& kThis = *this;
 		return kThis.getWorldSize();
-	} WorldSizeTypes getWorldSize() const; // </advc.003>
+	} WorldSizeTypes getWorldSize() const; // </advc>
 	ClimateTypes getClimate() const;																	// Exposed to Python
 	SeaLevelTypes getSeaLevel() const;																// Exposed to Python
 
 	int getNumCustomMapOptions() const;
-	CustomMapOptionTypes getCustomMapOption(int iOption);											// Exposed to Python
+	CustomMapOptionTypes getCustomMapOption(int iOption) const;											// Exposed to Python
+	CvWString getNonDefaultCustomMapOptionDesc(int iOption) const; // advc.004 (exposed to Python)
 
 	int getNumBonuses(BonusTypes eIndex) const;																	// Exposed to Python
 	void changeNumBonuses(BonusTypes eIndex, int iChange);
@@ -358,51 +385,80 @@ public: // advc.003: made several functions const
 	int getNumBonusesOnLand(BonusTypes eIndex) const;														// Exposed to Python
 	void changeNumBonusesOnLand(BonusTypes eIndex, int iChange);
 
-	CvPlot* plotByIndexExternal(int iIndex) const; // advc.003f: Exported through .def file							// Exposed to Python
-	#ifdef _USRDLL
-	inline CvPlot* plotByIndex(int iIndex) const // advc.003f: Renamed from plotByIndexINLINE
+	CvPlot* plotByIndexExternal(int iIndex) const; // advc.inl: Exported through .def file							// Exposed to Python
+	inline CvPlot* plotByIndex(int iIndex) const // advc.inl: Renamed from plotByIndexINLINE
 	{
-		return ((iIndex >= 0 && iIndex < getGridWidth() * getGridHeight()) ?
-				&(m_pMapPlots[iIndex]) : NULL);
-	}
-	#endif
-	CvPlot* plotExternal(int iX, int iY) const; // advc.003f: Exported through .def file							// Exposed to Python
-	#ifdef _USRDLL
-	__forceinline CvPlot* plot(int iX, int iY) const // advc.003f: Renamed from plotINLINE
+		return ((iIndex >= 0 && iIndex < numPlots()) ? &(m_pMapPlots[iIndex]) : NULL);
+	} // <advc.inl> Faster (w/o branching)
+	__forceinline CvPlot& getPlotByIndex(int iIndex) const
+	{
+		FAssertBounds(0, numPlots(), iIndex);
+		return m_pMapPlots[iIndex];
+	} // </advc.inl>
+	CvPlot* plotExternal(int iX, int iY) const; // advc.inl: Exported through .def file							// Exposed to Python
+	/*  advc.inl: Renamed from plotINLINE. Was inlined, but I'm getting slightly
+		better performance without that (having replaced some calls with getPlot) . */
+	CvPlot* plot(int iX, int iY) const
 	{
 		if (iX == INVALID_PLOT_COORD || iY == INVALID_PLOT_COORD)
-		{
 			return NULL;
-		}
 		int iMapX = coordRange(iX, getGridWidth(), isWrapX());
 		int iMapY = coordRange(iY, getGridHeight(), isWrapY());
-		return (isPlot(iMapX, iMapY) ? &(m_pMapPlots[plotNum(iMapX, iMapY)]) : NULL);
+		return (isPlot(iMapX, iMapY) ? &m_pMapPlots[plotNum(iMapX, iMapY)] : NULL);
 	}
-	__forceinline CvPlot* plotSoren(int iX, int iY) const // advc.003f: Renamed from plotSorenINLINE
+	// advc.inl: Renamed from plotSorenINLINE (was already force-inlined in BtS and that helps too)
+	__forceinline CvPlot* plotSoren(int iX, int iY) const
 	{
 		if (iX == INVALID_PLOT_COORD || iY == INVALID_PLOT_COORD)
-		{
 			return NULL;
-		}
+		FAssert(isPlot(iX, iY)); // advc: Assertion added
 		return &(m_pMapPlots[plotNum(iX, iY)]);
+	} // <advc.inl> Even faster and less confusingly named; replacing the above in most places.
+	__forceinline CvPlot& getPlot(int x, int y) const
+	{
+		FAssert(isPlot(x, y));
+		return m_pMapPlots[plotNum(x, y)];
+	} // </advc.inl>
+	/*	advc.opt: Yet another plot getter. Checks coordRange but not INVALID_PLOT_COORD.
+		For functions that compute x,y as an offset from a (valid) plot -
+		not plausible that the new coordinates would equal INVALID_PLOT_COORD.
+		'inline' tested - faster without it. */
+	CvPlot* plotValidXY(int iX, int iY) const
+	{
+		int iMapX = coordRange(iX, getGridWidth(), isWrapX());
+		int iMapY = coordRange(iY, getGridHeight(), isWrapY());
+		return (isPlot(iMapX, iMapY) ? &m_pMapPlots[plotNum(iMapX, iMapY)] : NULL);
 	}
-	#endif
-	DllExport CvPlot* pointToPlot(float fX, float fY);										// Exposed to Python
 
-	int getIndexAfterLastArea() const;														// Exposed to Python
-	int getNumAreas() const;																	// Exposed to Python
+	DllExport CvPlot* pointToPlot(float fX, float fY);												// Exposed to Python
+
+	int getIndexAfterLastArea() const;																// Exposed to Python
+	int getNumAreas() const																			// Exposed to Python
+	{
+		return m_areas.getCount();
+	}
 	int getNumLandAreas() const;
-	CvArea* getArea(int iID) const;																// Exposed to Python
+	CvArea* getArea(int iID) const																	// Exposed to Python
+	{
+		return m_areas.getAt(iID);
+	}
 	CvArea* addArea();
 	void deleteArea(int iID);
 	// iteration
-	CvArea* firstArea(int *pIterIdx, bool bRev=false) const;									// Exposed to Python
-	CvArea* nextArea(int *pIterIdx, bool bRev=false) const;									// Exposed to Python
+	CvArea* firstArea(int *pIterIdx, bool bRev=false) const											// Exposed to Python
+	{	//return (!bRev ? m_areas.beginIter(pIterIdx) : m_areas.endIter(pIterIdx));
+		FAssert(!bRev);
+		return m_areas.beginIter(pIterIdx); // advc.opt
+	}
+	CvArea* nextArea(int *pIterIdx, bool bRev=false) const											// Exposed to Python
+	{	//return (!bRev ? m_areas.nextIter(pIterIdx) : m_areas.prevIter(pIterIdx));
+		return m_areas.nextIter(pIterIdx); // advc.opt
+	}
 
 	void recalculateAreas();																		// Exposed to Python
 	// <advc.300>
 	void computeShelves();
-	void getShelves(int iArea, std::vector<Shelf*>& r) const;
+	void getShelves(CvArea const& kArea, std::vector<Shelf*>& r) const;
 	// </advc.300>
 	void resetPathDistance();																		// Exposed to Python
 	int calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) const;					// Exposed to Python
@@ -417,7 +473,12 @@ public: // advc.003: made several functions const
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
 
-	void rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitude, bool bWrapX, bool bWrapY, WorldSizeTypes eWorldSize, ClimateTypes eClimate, SeaLevelTypes eSeaLevel, int iNumCustomMapOptions, CustomMapOptionTypes * eCustomMapOptions);		// Exposed to Python
+	void rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitude,			 			// Exposed to Python
+			bool bWrapX, bool bWrapY, WorldSizeTypes eWorldSize,
+			ClimateTypes eClimate, SeaLevelTypes eSeaLevel,
+			int iNumCustomMapOptions, CustomMapOptionTypes* eCustomMapOptions);
+	void updateReplayTexture(); // advc.106n
+	byte const* getReplayTexture() const; // advc.106n
 
 protected:
 
@@ -427,18 +488,19 @@ protected:
 	int m_iOwnedPlots;
 	int m_iTopLatitude;
 	int m_iBottomLatitude;
-	int m_iNextRiverID;
+	short m_iNextRiverID; // advc.opt: was int (these get stored at CvPlot)
 
 	bool m_bWrapX;
 	bool m_bWrapY;
-
-	int* m_paiNumBonus;
-	int* m_paiNumBonusOnLand;
-
+	// <advc.enum>
+	EnumMap<BonusTypes,int> m_aiNumBonus;
+	EnumMap<BonusTypes,int> m_aiNumBonusOnLand;
+	// </advc.enum>
 	CvPlot* m_pMapPlots;
 	std::map<Shelf::Id,Shelf*> shelves; // advc.300
-
 	FFreeListTrashArray<CvArea> m_areas;
+	std::vector<byte> m_replayTexture; // advc.106n
+
 	void calculateAreas();
 	// <advc.030>
 	void calculateAreas_030();
@@ -477,8 +539,29 @@ inline CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) {
 inline DirectionTypes directionXY(int iDX, int iDY)	{
 	return GC.getMap().directionXY(iDX, iDY);
 }
-inline DirectionTypes directionXY(const CvPlot* pFromPlot, const CvPlot* pToPlot) {
-	return GC.getMap().directionXY(pFromPlot, pToPlot);
+inline DirectionTypes directionXY(CvPlot const& kFromPlot, CvPlot const& kToPlot) {
+	// advc: params changed to references
+	return GC.getMap().directionXY(kFromPlot, kToPlot);
 }
+inline CvPlot* plotCity(int iX, int iY, CityPlotTypes ePlot) {
+	return GC.getMap().plotCity(iX, iY, ePlot);
+}
+inline CityPlotTypes plotCityXY(int iCityX, int iCityY, CvPlot const& kPlot) {
+	return GC.getMap().plotCityXY(iCityX, iCityY, kPlot);
+}
+inline bool adjacentOrSame(CvPlot const& kFirstPlot, CvPlot const& kSecondPlot) { // advc
+	return GC.getMap().adjacentOrSame(kFirstPlot, kSecondPlot);
+}
+// (Moved from CvGameCoreUtils.h)
+#ifndef _USRDLL // use non inline functions when not in the dll
+	#define getMap	getMapExternal
+	#define getGridHeight	getGridHeightExternal
+	#define getGridWidth	getGridWidthExternal
+	#define isWrapY	isWrapYExternal
+	#define isWrapX	isWrapXExternal
+	#define plot	plotExternal
+	#define getX	getXExternal
+	#define getY	getYExternal
+#endif
 // </advc.make>
 #endif

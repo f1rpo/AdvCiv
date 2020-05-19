@@ -14,23 +14,36 @@
 #pragma warning( disable: 4530 )	// C++ exception handler used, but unwind semantics are not enabled
 
 #define WIN32_LEAN_AND_MEAN
+// <advc.fract> Otherwise, classes in the PCH can't have members named "max" and "min".
+#ifndef NOMINMAX
+	#define NOMINMAX
+#endif // </advc.fract>
 #include <windows.h>
+// advc.fract: Commented out, originally in CvGameCoreUtils.h.
+//#undef max
+//#undef min
 #include <MMSystem.h>
 #if defined _DEBUG && !defined USE_MEMMANAGER
-#define USE_MEMMANAGER
-#include <crtdbg.h>
+	#define USE_MEMMANAGER
+	#include <crtdbg.h>
 #endif
 #include <vector>
 #include <list>
 #include <tchar.h>
-#include <math.h>
-#include <assert.h>
+//#include <math.h>
+//#include <assert.h>
+// <advc>
+#include <cmath>
+#include <cassert>
+#include <iterator>
+#include <sstream> // </advc>
 #include <map>
 #include <hash_map>
 // K-Mod
 #include <set>
 #include <utility>
 #include <algorithm>
+#include <queue> // k146
 // K-Mod end
 
 #define DllExport   __declspec( dllexport )
@@ -146,15 +159,20 @@ typedef wchar_t          wchar;
 #define SAFE_DELETE_ARRAY(p) { if(p) { delete[] (p);   (p)=NULL; } }
 #define SAFE_RELEASE(p)      { if(p) { (p)->Release(); (p)=NULL; } }
 
-#define SQR(x)      ( (x) * (x) )
+//#define SQR(x) ( (x) * (x) ) // advc: Also defined in CvGameCoreUtils.h
 #define DEGTORAD(x) ( (float)( (x) * (M_PI / 180) ))
-#define LIMIT_RANGE(low, value, high) value = (value < low ? low : (value > high ? high : value));
-#define M_PI       3.14159265358979323846
+// advc: There's range (CvGameCoreUtils), which is similar enough.
+//#define LIMIT_RANGE(low, value, high) value = (value < low ? low : (value > high ? high : value));
+#define M_PI		3.14159265358979323846
 #define fM_PI		3.141592654f		//!< Pi (float)
 
 __forceinline DWORD FtoDW( float f ) { return *(DWORD*)&f; }
 __forceinline float DWtoF( dword n ) { return *(float*)&n; }
 __forceinline float MaxFloat() { return DWtoF(0x7f7fffff); }
+
+// <advc.003s> For generating variable names. (The layer of indirection is necessary.)
+#define CONCATVARNAME_IMPL(prefix, lineNum) prefix##lineNum
+#define CONCATVARNAME(prefix, suffix) CONCATVARNAME_IMPL(prefix, suffix) // </advc.003s>
 
 void startProfilingDLL(bool longLived);
 void stopProfilingDLL(bool longLived);
@@ -222,6 +240,21 @@ void DumpMemUsage(const char* fn, int line);
 //
 // Boost Python
 //
+// <advc.make> (This prevents many error markers in the VS code editor, but not all.)
+#ifdef _CODE_EDITOR
+namespace boost
+{
+	namespace python
+	{
+		class tuple;
+		template<typename x, typename y> class class_;
+		template<typename x> class return_value_policy;
+		class reference_existing_object;
+	}
+	class noncopyable {}; // advc.003e
+}
+class PyObject;
+#else // </advc.make>
 # include <boost/python/list.hpp>
 # include <boost/python/tuple.hpp>
 # include <boost/python/class.hpp>
@@ -231,46 +264,63 @@ void DumpMemUsage(const char* fn, int line);
 # include <boost/python/def.hpp>
 
 namespace python = boost::python;
+#endif // advc.make
 
 #include "FAssert.h"
 #include "CvGameCoreDLLDefNew.h"
 #include "FDataStreamBase.h"
-#include "FFreeListArrayBase.h"
-#include "FFreeListTrashArray.h"
-#include "FFreeListArray.h"
-//#include "FVariableSystem.h"
+#include "FFreeListTrashArray.h" // advc.003s: includes FreeListTraversal.h
 #include "CvString.h"
-#include "CvEnums.h"
+#include "CvEnums.h" // includes CvDefines.h, CvInfoEnum.h
+/*  advc: Smaller numbers may already crash the EXE; the DLL assumes in some places
+	that player ids fit in a single byte. */
+BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 #include "CvStructs.h"
-#include "CvDLLUtilityIFaceBase.h"
+#include "CvDLLUtilityIFaceBase.h" // includes LinkedList.h
 
 //jason tests
 // advc.make: Removed most of these. (Don't know what the comment above means.)
-#include "CvGameCoreUtils.h"
-#include "CvGlobals.h"
-#include "FProfiler.h"
 #include "CvRandom.h"
+#include "CvGameCoreUtils.h"
+#include "ScaledInt.h"
+#include "CvGlobals.h"
+#include "EnumMap2D.h" // advc.enum: Includes EnumMap.h, which includes BitUtil.h.
+#include "CvPythonCaller.h" // advc.003y
+#include "CvDLLLogger.h" // advc.003t
+#include "FProfiler.h"
+// <advc.003x> Include only parts of the old CvInfos.h (caveat: the order of these matters)
+#include "CvInfo_Base.h"
+#include "CvInfo_Asset.h"
+#include "CvInfo_Tech.h"
+#include "CvInfo_Civilization.h"
+#include "CvInfo_Organization.h"
+#include "CvInfo_Symbol.h"
+#include "CvInfo_RandomEvent.h" // </advc.003x>
+/*  advc.make: These I had removed (not _that_ frequently included),
+	but decided to add them back. */
+#include "CyGlobalContext.h" // Includes CvArtFileMgr.h
+#include "CyCity.h"
+#include "CvDLLEntityIFaceBase.h"
+// advc.make: New additions
+#include "CvDLLInterfaceIFaceBase.h"
+#include "CvDLLFAStarIFaceBase.h"
+#include "CvDLLEngineIFaceBase.h"
+#include "CvInitCore.h"
+#include "CvEventReporter.h" // Includes CvStatistics.h and CvDllPythonEvents.h
+#include "CyArgsList.h"
+#include "CyPlot.h"
+#include "CyUnit.h"
 
-#ifdef FINAL_RELEASE
 // Undefine OutputDebugString in final release builds
-#undef OutputDebugString
-#define OutputDebugString(x)
-#endif //FINAL_RELEASE
-
-/*  <advc.make> Cut from CvGameCoreUtils.h. The undefs make more sense to me here b/c
-	this is the file that includes windows.h, which contains the bothersome min/max defines. */
-#undef max
-#undef min
-#ifndef _USRDLL
-// use non inline functions when not in the dll  advc.003f: Renamed all these
-#define getMap	getMapExternal
-#define getGridHeight	getGridHeightExternal
-#define getGridWidth	getGridWidthExternal
-#define isWrapY	isWrapYExternal
-#define isWrapX	isWrapXExternal
-#define plot	plotExternal
-#define getX	getXExternal
-#define getY	getYExternal
-#endif // </advc.make>
+#ifdef FINAL_RELEASE
+/*	<advc.wine> Wrap a macro around OutputDebugString that prints to both the VS console
+	(as before through WinBase.h) and to a regular console e.g. for Wine. */
+	#define printToConsole(szMsg)
+#else
+	// Caveat: szMsg has to be 0-terminated -- no fixed-size char buffers!
+	#define printToConsole(szMsg) \
+		OutputDebugString(szMsg); \
+		printf("OutputDebugString: %s", szMsg);
+#endif // </advc.wine>
 
 #endif	// CvGameCoreDLL_h

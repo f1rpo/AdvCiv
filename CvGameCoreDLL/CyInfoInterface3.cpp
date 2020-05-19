@@ -1,5 +1,5 @@
 #include "CvGameCoreDLL.h"
-#include "CvInfos.h"
+#include "CvInfo_All.h"
 
 //
 // Python interface for info classes (formerly structs)
@@ -8,44 +8,9 @@
 // advc.003e: Added template parameters 'boost::noncopyable'
 void CyInfoPythonInterface3()
 {
-	OutputDebugString("Python Extension Module - CyInfoPythonInterface3\n");
+	printToConsole("Python Extension Module - CyInfoPythonInterface3\n");
 
-	python::class_<CvYieldInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvYieldInfo")
-		.def("getChar", &CvYieldInfo::getChar, "int ()")
-		.def("getHillsChange", &CvYieldInfo::getHillsChange, "int ()")
-		.def("getPeakChange", &CvYieldInfo::getPeakChange, "int ()")
-		.def("getLakeChange", &CvYieldInfo::getLakeChange, "int ()")
-		.def("getCityChange", &CvYieldInfo::getCityChange, "int ()")
-		.def("getPopulationChangeOffset", &CvYieldInfo::getPopulationChangeOffset, "int ()")
-		.def("getPopulationChangeDivisor", &CvYieldInfo::getPopulationChangeDivisor, "int ()")
-		.def("getMinCity", &CvYieldInfo::getMinCity, "int ()")
-		.def("getTradeModifier", &CvYieldInfo::getTradeModifier, "int ()")
-		.def("getGoldenAgeYield", &CvYieldInfo::getGoldenAgeYield, "int ()")
-		.def("getGoldenAgeYieldThreshold", &CvYieldInfo::getGoldenAgeYieldThreshold, "int ()")
-		.def("getAIWeightPercent", &CvYieldInfo::getAIWeightPercent, "int ()")
-		.def("getColorType", &CvYieldInfo::getColorType, "int ()")
-		;
-	// advc.003e:
-	python::class_<CvTerrainInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvTerrainInfo")
-
-		.def("getMovementCost", &CvTerrainInfo::getMovementCost, "int ()")
-		.def("getSeeFromLevel", &CvTerrainInfo::getSeeFromLevel, "int ()")
-		.def("getSeeThroughLevel", &CvTerrainInfo::getSeeThroughLevel, "int ()")
-		.def("getBuildModifier", &CvTerrainInfo::getBuildModifier, "int ()")
-		.def("getDefenseModifier", &CvTerrainInfo::getDefenseModifier, "int ()")
-
-		.def("isWater", &CvTerrainInfo::isWater, "bool ()")
-		.def("isImpassable", &CvTerrainInfo::isImpassable, "bool ()")
-		.def("isFound", &CvTerrainInfo::isFound, "bool ()")
-		.def("isFoundCoast", &CvTerrainInfo::isFoundCoast, "bool ()")
-		.def("isFoundFreshWater", &CvTerrainInfo::isFoundFreshWater, "bool ()")
-
-		// Arrays
-
-		.def("getYield", &CvTerrainInfo::getYield, "int (int i)")
-		.def("getRiverYieldChange", &CvTerrainInfo::getRiverYieldChange, "int (int i)")
-		.def("getHillsYieldChange", &CvTerrainInfo::getHillsYieldChange, "int (int i)")
-		;
+	// advc: CvYieldInfo and CvTerrainInfo interface moved to CyInfoInterface2.cpp
 
 	python::class_<CvInterfaceModeInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvInterfaceModeInfo")
 
@@ -292,7 +257,7 @@ void CyInfoPythonInterface3()
 		.def("getCommerceChange", &CvTraitInfo::getCommerceChange, "int (int i)")
 		.def("getCommerceModifier", &CvTraitInfo::getCommerceModifier, "int (int i)")
 
-		.def("isFreePromotion", &CvTraitInfo::isFreePromotion, "int (int i)")
+		.def("isFreePromotion", &CvTraitInfo::isFreePromotion, "bool (int i)")
 		;
 
 	python::class_<CvWorldInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvWorldInfo")
@@ -447,7 +412,7 @@ void CyInfoPythonInterface3()
 		// Arrays
 
 		.def("getSoundtracks", &CvEraInfo::getSoundtracks, "int (int i) -")
-		.def("getCitySoundscapeSciptId", &CvEraInfo::getCitySoundscapeSciptId, "int (int i) -")
+		.def("getCitySoundscapeScriptId", &CvEraInfo::getCitySoundscapeScriptId, "int (int i) -")
 		;
 
 	python::class_<CvColorInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvColorInfo")

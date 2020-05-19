@@ -2,10 +2,15 @@
 #define CIV4_DLL_PYTHON_EVENTS_H
 
 class CyArgsList;
+enum CallbackDefines; // advc.003y
 
 class CvDllPythonEvents
 {
 public:
+	// <advc.003y>
+	CvDllPythonEvents();
+	~CvDllPythonEvents();
+	void initCallbackGuards(); // </advc.003y>
 	void reportGenericEvent(const char* szEventName, void *pyArgs);
 	bool reportKbdEvent(int evt, int key, int iCursorX, int iCursorY);
 	bool reportMouseEvent(int evt, int iCursorX, int iCursorY, bool bInterfaceConsumed=false);
@@ -98,6 +103,13 @@ public:
 	void preSave();
 
 private:
+	// <advc.003y>
+	bool* m_abUseCallback;
+
+	inline bool isUse(CallbackDefines eCallback) const
+	{
+		return (m_abUseCallback == NULL ? false : m_abUseCallback[eCallback]);
+	} // </advc.003y>
 	bool preEvent();
 	bool postEvent(CyArgsList& eventData);
 };

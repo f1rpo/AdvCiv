@@ -5,831 +5,481 @@
 #include "CvGameCoreDLL.h"
 #include "CvDLLXMLIFaceBase.h"
 #include "CvXMLLoadUtility.h"
-#include "CvArtFileMgr.h"
 #include "FInputDevice.h"
 
-//
-// STATIC
-// for progress bar display
-// returns the number of steps we use
-//
-int CvXMLLoadUtility::GetNumProgressSteps()
+
+// For progress bar display. Returns the number of steps we use.
+// advc.003k: Commented out; was unused.
+/*int CvXMLLoadUtility::GetNumProgressSteps() {
+	return 20; // the function UpdateProgressCB() is called 20 times by CvXMLLoadUtilitySet
+	//^advc: That's not true btw
+}
+void CvXMLLoadUtility::RegisterProgressCB(ProgressCB cbFxn) {
+	m_pCBFxn = cbFxn;
+}*/
+
+// <advc>
+namespace
 {
-	return 20;	// the function UpdateProgressCB() is called 20 times by CvXMLLoadUtilitySet
+void assignDefault(std::wstring& val, wchar const* szDefault = NULL)
+{
+	if (szDefault != NULL)
+		val = szDefault;
+	else val.clear();
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetXmlVal(char* pszVal, char* pszDefault = NULL)
-//
-//  PURPOSE :   Get the string value of the current xml node or the next non-comment xml node if the
-//				current node is a comment node
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetXmlVal(char* pszVal, char* pszDefault)
+void assignDefault(std::string& val, char const* szDefault = NULL)
 {
-	if (pszDefault)
-	{
-		strcpy(pszVal, pszDefault);
-	}
-	else
-	{
-		strcpy(pszVal, "");
-	}
+	if (szDefault != NULL)
+		val = szDefault;
+	else val.clear();
+}
 
-	// skip to the next non-comment node
-	if (SkipToNextVal())
+void assignDefault(wchar* val, wchar const* szDefault = NULL)
+{
+	if (szDefault != NULL)
+		wcscpy(val, szDefault);
+	else wcscpy(val, L"");
+}
+
+void assignDefault(char* val, char const* szDefault = NULL)
+{
+	if (szDefault != NULL)
+		strcpy(val, szDefault);
+	else strcpy(val, "");
+}
+
+template<class T>
+void assignDefault(T& val, T tDefault = 0)
+{
+	val = tDefault;
+}
+// </advc>
+/*  <advc.006d> Wrappers for FXml::GetLastNodeValue. From the MNAI mod.
+	Comment copied from there:
+	Get the value from the last located node. Returns true if successful.
+	Otherwise, get default value, show assert and return false.
+	These functions specifically check if the node is empty for non-string values. */
+bool SafeGetLastNodeValue(FXml* pXml, std::string& r, char const* szDefault = NULL)
+{
+	bool bSuccess = gDLL->getXMLIFace()->GetLastNodeValue(pXml, r);
+	if (bSuccess)
+		return true;
+	FAssertMsg(bSuccess, "Error getting value, probably not a string");
+	assignDefault(r, szDefault);
+	return false;
+}
+
+bool SafeGetLastNodeValue(FXml* pXml, std::wstring& r, wchar const* szDefault = NULL)
+{
+	bool bSuccess = gDLL->getXMLIFace()->GetLastNodeValue(pXml, r);
+	if (bSuccess)
+		return true;
+	FAssertMsg(bSuccess, "Error getting value, probably not a wstring");
+	assignDefault(r, szDefault);
+	return false;
+}
+
+// Missing: SafeGetLastNodeValue(FXml* pXml, {w}char*...). Rarely used I suppose.
+
+template<class T> // advc: template
+bool SafeGetLastNodeValue(FXml* pXml, T& r, T tDefault = false)
+{
+	bool bSuccess = true;
+	if (gDLL->getXMLIFace()->GetLastNodeTextSize(pXml) == 0)
+	{
+		FAssertMsg(false, "Empty element");
+		bSuccess = false;
+	}
+	if (bSuccess)
+	{
+		bSuccess = gDLL->getXMLIFace()->GetLastNodeValue(pXml, &r);
+		FAssertMsg(bSuccess, "Error getting value (wrong data type?)");
+	}
+	if (bSuccess)
+		return true;
+	assignDefault(r, tDefault);
+	return false;
+}
+} // (end of unnamed namespace) </advc.006d>
+
+/*  Set r to the value of the current XML node or, if the current node is
+	a comment node, the next non-comment XML node. */
+bool CvXMLLoadUtility::GetXmlVal(char* r, char const* szDefault)
+{
+	assignDefault(r, szDefault);
+	if (SkipToNextVal()) // skip to the next non-comment node
 	{
 		// get the string value of the current xml node
-		gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
+		gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml, r);
 		return true;
 	}
-	// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-	else
-	{
-		FAssertMsg(false , "Error in GetXmlVal function, unable to find the next non-comment node");
-		return false;
-	}
+	// otherwise we can't find a non-comment node on this level
+	FAssertMsg(false , "Error in GetXmlVal function, unable to find the next non-comment node");
+	return false;
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetXmlVal(wchar* pszVal, wchar* pszDefault = NULL)
-//
-//  PURPOSE :   Get the string value of the current xml node or the next non-comment xml node if the
-//				current node is a comment node
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetXmlVal(wchar* pszVal, wchar* pszDefault)
+// see CvXMLLoadUtility::GetXmlVal(char*...
+bool CvXMLLoadUtility::GetXmlVal(wchar* r, wchar const* szDefault)
 {
-	if (pszDefault)
-	{
-		wcscpy(pszVal, pszDefault);
-	}
-	else
-	{
-		wcscpy(pszVal, L"");
-	}
-
-	// skip to the next non-comment node
-	if (SkipToNextVal())
+	assignDefault(r, szDefault);
+	if (SkipToNextVal()) // skip to the next non-comment node
 	{
 		// get the string value of the current xml node
-		gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
+		gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml, r);
 		return true;
 	}
-	// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-	else
-	{
-		FAssertMsg(false , "Error in GetXmlVal function, unable to find the next non-comment node");
-		return false;
-	}
+	// otherwise we can't find a non-comment node on this level
+	FAssertMsg(false , "Error in GetXmlVal function, unable to find the next non-comment node");
+	return false;
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetXmlVal(std::string& pszVal, char* pszDefault = NULL)
-//
-//  PURPOSE :   Get the string value of the current xml node or the next non-comment xml node if the
-//				current node is a comment node
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetXmlVal(std::string& pszVal, char* pszDefault)
+// see CvXMLLoadUtility::GetXmlVal(char*...
+bool CvXMLLoadUtility::GetXmlVal(std::string& r, char const* szDefault)
 {
-	if (pszDefault)
-	{
-		pszVal = pszDefault;
-	}
-	else
-	{
-		pszVal.clear();
-	}
-
-	// skip to the next non-comment node
+	assignDefault(r, szDefault);
 	if (SkipToNextVal())
-	{
-		// get the string value of the current xml node
-		gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
-		return true;
-	}
-	// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-	else
-	{
-		FAssertMsg(false , "Error in GetXmlVal function, unable to find the next non-comment node");
-		return false;
-	}
+		return SafeGetLastNodeValue(m_pFXml, r, szDefault); // advc.006d
+	FAssertMsg(false , "Error in GetXmlVal function, unable to find the next non-comment node");
+	return false;
 }
 
-
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetXmlVal(std::wstring& pszVal, wchar* pszDefault = NULL)
-//
-//  PURPOSE :   Get the string value of the current xml node or the next non-comment xml node if the
-//				current node is a comment node
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetXmlVal(std::wstring& pszVal, wchar* pszDefault)
+// see CvXMLLoadUtility::GetXmlVal(char*...
+bool CvXMLLoadUtility::GetXmlVal(std::wstring& r, wchar const* szDefault)
 {
-	if (pszDefault)
-	{
-		pszVal = pszDefault;
-	}
-	else
-	{
-		pszVal.clear();
-	}
-
-	// skip to the next non-comment node
+	assignDefault(r, szDefault);
 	if (SkipToNextVal())
-	{
-		// get the string value of the current xml node
-		gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
-		return true;
-	}
-	// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-	else
-	{
-		FAssertMsg(false , "Error in GetXmlVal function, unable to find the next non-comment node");
-		return false;
-	}
+		return SafeGetLastNodeValue(m_pFXml, r, szDefault); // advc.006d
+	FAssertMsg(false , "Error in GetXmlVal function, unable to find the next non-comment node");
+	return false;
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetXmlVal(int* piVal, int iDefault = 0)
-//
-//  PURPOSE :   Get the int value of the current xml node or the next non-comment xml node if the
-//				current node is a comment node
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetXmlVal(int* piVal, int iDefault)
+// see CvXMLLoadUtility::GetXmlVal(char*...
+bool CvXMLLoadUtility::GetXmlVal(int& r, int iDefault)
 {
-	// set the value to the default
-	*piVal = iDefault;
-
-	// skip to the next non-comment node
+	assignDefault(r, iDefault);
 	if (SkipToNextVal())
-	{
-		// get the string value of the current xml node
-		gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,piVal);
-		return true;
-	}
-	// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-	else
-	{
-		FAssertMsg(false , "Error in GetXmlVal function, unable to find the next non-comment node");
-		return false;
-	}
+		return SafeGetLastNodeValue(m_pFXml, r, iDefault); // advc.006d
+	FAssertMsg(false , "Error in GetXmlVal function, unable to find the next non-comment node");
+	return false;
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetXmlVal(float* pfVal, float fDefault = 0.0f)
-//
-//  PURPOSE :   Get the float value of the current xml node or the next non-comment xml node if the
-//				current node is a comment node
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetXmlVal(float* pfVal, float fDefault)
+// see CvXMLLoadUtility::GetXmlVal(char*...
+bool CvXMLLoadUtility::GetXmlVal(float& r, float fDefault)
 {
-	// set the value to the default
-	*pfVal = fDefault;
-
-	// skip to the next non-comment node
+	assignDefault(r, fDefault);
 	if (SkipToNextVal())
-	{
-		// get the string value of the current xml node
-		gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pfVal);
-		return true;
-	}
-	// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-	else
-	{
-		FAssertMsg(false , "Error in GetXmlVal function, unable to find the next non-comment node");
-		return false;
-	}
+		return SafeGetLastNodeValue(m_pFXml, r, fDefault); // advc.006d
+	FAssertMsg(false , "Error in GetXmlVal function, unable to find the next non-comment node");
+	return false;
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetXmlVal(bool* pbVal, bool bDefault = false)
-//
-//  PURPOSE :   Get the boolean value of the current xml node or the next non-comment xml node if the
-//				current node is a comment node
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetXmlVal(bool* pbVal, bool bDefault)
+// see CvXMLLoadUtility::GetXmlVal(char*...
+bool CvXMLLoadUtility::GetXmlVal(bool& r, bool bDefault)
 {
-	// set the boolean value to it's default value
-	*pbVal = bDefault;
-
-	// skip to the next non-comment node
+	assignDefault(r, bDefault);
 	if (SkipToNextVal())
-	{
-		// get the string value of the current xml node
-		gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pbVal);
-		return true;
-	}
-	// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-	else
-	{
-		FAssertMsg(false , "Error in GetXmlVal function, unable to find the next non-comment node");
-		return false;
-	}
+		return SafeGetLastNodeValue(m_pFXml, r, bDefault); // advc.006d
+	FAssertMsg(false , "Error in GetXmlVal function, unable to find the next non-comment node");
+	return false;
 }
 
-
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetNextXmlVal(std::string& pszVal, char* pszDefault = NULL)
-//
-//  PURPOSE :   Get the string value of the next sibling of the current xml node or the next
-//				non-comment xml node if the current node is a comment node
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetNextXmlVal(std::string& pszVal, char* pszDefault)
+/*  Get the value of the next sibling of the current XML node --
+	or the next non-comment xml node if the current node is a comment node. */
+bool CvXMLLoadUtility::GetNextXmlVal(std::string& r, char const* szDefault)
 {
-	if (pszDefault)
-	{
-		pszVal = pszDefault;
-	}
-	else
-	{
-		pszVal.clear();
-	}
-
+	assignDefault(r, szDefault);
 	// if we can set the current xml node to it's next sibling
 	if (gDLL->getXMLIFace()->NextSibling(m_pFXml))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
+		if (SkipToNextVal()) // skip to the next non-comment node
 		{
 			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
+			return SafeGetLastNodeValue(m_pFXml, r, szDefault); // advc.006d
+		}
+		else // otherwise we can't find a non-comment node on this level
+		{
+			FAssertMsg(false, "Error in GetNextXmlVal function, unable to find the next non-comment node");
+			return false;
+		}
+	}
+	return false; // no more sibling nodes
+}
+
+// see CvXMLLoadUtility::GetNextXmlVal(std::string&...
+bool CvXMLLoadUtility::GetNextXmlVal(std::wstring& r, wchar const* szDefault)
+{
+	assignDefault(r, szDefault);
+	// if we can set the current xml node to it's next sibling
+	if (gDLL->getXMLIFace()->NextSibling(m_pFXml))
+	{
+		if (SkipToNextVal()) // skip to the next non-comment node
+		{
+			// get the string value of the current xml node
+			return SafeGetLastNodeValue(m_pFXml, r, szDefault); // advc.006d
+		}
+		else // otherwise we can't find a non-comment node on this level
+		{
+			FAssertMsg(false, "Error in GetNextXmlVal function, unable to find the next non-comment node");
+			return false;
+		}
+	}
+	return false; // no more sibling nodes
+}
+
+// see CvXMLLoadUtility::GetNextXmlVal(std::string&...
+bool CvXMLLoadUtility::GetNextXmlVal(char* r, char const* szDefault)
+{
+	assignDefault(r, szDefault);
+	// if we can set the current xml node to it's next sibling
+	if (gDLL->getXMLIFace()->NextSibling(m_pFXml))
+	{
+		if (SkipToNextVal()) // skip to the next non-comment node
+		{
+			// get the string value of the current xml node
+			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml, r);
 			return true;
 		}
-		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-		else
+		else // otherwise we can't find a non-comment node on this level
 		{
 			FAssertMsg(false , "Error in GetNextXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
-	// otherwise there are no more sibling nodes but we were expecting them so FAssert and return false
-	else
-	{
-		return false;
-	}
+	return false; // no more sibling nodes
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetNextXmlVal(std::wstring& pszVal, wchar* pszDefault = NULL)
-//
-//  PURPOSE :   Get the string value of the next sibling of the current xml node or the next
-//				non-comment xml node if the current node is a comment node
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetNextXmlVal(std::wstring& pszVal, wchar* pszDefault)
+// see CvXMLLoadUtility::GetNextXmlVal(std::string&...
+bool CvXMLLoadUtility::GetNextXmlVal(wchar* r, wchar const* szDefault)
 {
-	if (pszDefault)
-	{
-		pszVal = pszDefault;
-	}
-	else
-	{
-		pszVal.clear();
-	}
-
+	assignDefault(r, szDefault);
 	// if we can set the current xml node to it's next sibling
 	if (gDLL->getXMLIFace()->NextSibling(m_pFXml))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
+		if (SkipToNextVal()) // skip to the next non-comment node
 		{
 			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
+			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml, r);
 			return true;
 		}
-		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-		else
+		else // otherwise we can't find a non-comment node on this level
 		{
-			FAssertMsg(false , "Error in GetNextXmlVal function, unable to find the next non-comment node");
+			FAssertMsg(false, "Error in GetNextXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
-	// otherwise there are no more sibling nodes but we were expecting them so FAssert and return false
-	else
-	{
-		return false;
-	}
+	return false; // no more sibling nodes
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetNextXmlVal(char* pszVal, char* pszDefault = NULL)
-//
-//  PURPOSE :   Get the string value of the next sibling of the current xml node or the next
-//				non-comment xml node if the current node is a comment node
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetNextXmlVal(char* pszVal, char* pszDefault)
+// see CvXMLLoadUtility::GetNextXmlVal(std::string&...
+bool CvXMLLoadUtility::GetNextXmlVal(int& r, int iDefault)
 {
-	if (pszDefault)
-	{
-		strcpy(pszVal, pszDefault);
-	}
-	else
-	{
-		strcpy(pszVal, "");
-	}
-
+	assignDefault(r, iDefault);
 	// if we can set the current xml node to it's next sibling
 	if (gDLL->getXMLIFace()->NextSibling(m_pFXml))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
+		if (SkipToNextVal()) // skip to the next non-comment node
+			return SafeGetLastNodeValue(m_pFXml, r, iDefault); // advc.006d
+		else // otherwise we can't find a non-comment node on this level
 		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
-			return true;
-		}
-		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-		else
-		{
-			FAssertMsg(false , "Error in GetNextXmlVal function, unable to find the next non-comment node");
+			FAssertMsg(false, "Error in GetNextXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
-	// otherwise there are no more sibling nodes but we were expecting them so FAssert and return false
-	else
-	{
-		return false;
-	}
+	return false; // no more sibling nodes
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetNextXmlVal(wchar* pszVal, wchar* pszDefault = NULL)
-//
-//  PURPOSE :   Get the string value of the next sibling of the current xml node or the next
-//				non-comment xml node if the current node is a comment node
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetNextXmlVal(wchar* pszVal, wchar* pszDefault)
+// see CvXMLLoadUtility::GetNextXmlVal(std::string&...
+bool CvXMLLoadUtility::GetNextXmlVal(float& r, float fDefault)
 {
-	if (pszDefault)
-	{
-		wcscpy(pszVal, pszDefault);
-	}
-	else
-	{
-		wcscpy(pszVal, L"");
-	}
-
+	assignDefault(r, fDefault);
 	// if we can set the current xml node to it's next sibling
 	if (gDLL->getXMLIFace()->NextSibling(m_pFXml))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
+		if (SkipToNextVal()) // skip to the next non-comment node
+			return SafeGetLastNodeValue(m_pFXml, r, fDefault); // advc.006d
+		else // otherwise we can't find a non-comment node on this level
 		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
-			return true;
-		}
-		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-		else
-		{
-			FAssertMsg(false , "Error in GetNextXmlVal function, unable to find the next non-comment node");
+			FAssertMsg(false, "Error in GetNextXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
-	// otherwise there are no more sibling nodes but we were expecting them so FAssert and return false
-	else
-	{
-		return false;
-	}
+	return false; // no more sibling nodes
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetNextXmlVal(int* piVal, int iDefault = 0)
-//
-//  PURPOSE :   Get the int value of the next sibling of the current xml node or the next
-//				non-comment xml node if the current node is a comment node
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetNextXmlVal(int* piVal, int iDefault)
+// see CvXMLLoadUtility::GetNextXmlVal(std::string&...
+bool CvXMLLoadUtility::GetNextXmlVal(bool& r, bool bDefault)
 {
-	// set the value to the default
-	*piVal = iDefault;
-
+	assignDefault(r, bDefault);
 	// if we can set the current xml node to it's next sibling
 	if (gDLL->getXMLIFace()->NextSibling(m_pFXml))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
+		if (SkipToNextVal()) // skip to the next non-comment node
+			return SafeGetLastNodeValue(m_pFXml, r, bDefault); // advc.006d
+		else // otherwise we can't find a non-comment node on this level
 		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,piVal);
-			return true;
-		}
-		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-		else
-		{
-			FAssertMsg(false , "Error in GetNextXmlVal function, unable to find the next non-comment node");
+			FAssertMsg(false, "Error in GetNextXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
-	// otherwise there are no more sibling nodes but we were expecting them so FAssert and return false
-	else
-	{
-		return false;
-	}
+	return false; // no more sibling nodes
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetNextXmlVal(float* pfVal, float fDefault = 0.0f)
-//
-//  PURPOSE :   Get the float value of the next sibling of the current xml node or the next
-//				non-comment xml node if the current node is a comment node
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetNextXmlVal(float* pfVal, float fDefault)
+/*  Overloaded function that sets the current XML node to its
+	first non-comment child node and then sets r to that node's value. */
+bool CvXMLLoadUtility::GetChildXmlVal(std::string& r, char const* szDefault)
 {
-	// set the value to the default
-	*pfVal = fDefault;
-
-	// if we can set the current xml node to it's next sibling
-	if (gDLL->getXMLIFace()->NextSibling(m_pFXml))
-	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
-		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pfVal);
-			return true;
-		}
-		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-		else
-		{
-			FAssertMsg(false , "Error in GetNextXmlVal function, unable to find the next non-comment node");
-			return false;
-		}
-	}
-	// otherwise there are no more sibling nodes but we were expecting them so FAssert and return false
-	else
-	{
-		return false;
-	}
-}
-
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetNextXmlVal(bool* pbVal, bool bDefault = false)
-//
-//  PURPOSE :   Get the boolean value of the next sibling of the current xml node or the next
-//				non-comment xml node if the current node is a comment node
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetNextXmlVal(bool* pbVal, bool bDefault)
-{
-	// set the boolean value to it's default value
-	*pbVal = bDefault;
-
-	// if we can set the current xml node to it's next sibling
-	if (gDLL->getXMLIFace()->NextSibling(m_pFXml))
-	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
-		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pbVal);
-			return true;
-		}
-		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-		else
-		{
-			FAssertMsg(false , "Error in GetNextXmlVal function, unable to find the next non-comment node");
-			return false;
-		}
-	}
-	// otherwise there are no more sibling nodes but we were expecting them so FAssert and return false
-	else
-	{
-		return false;
-	}
-}
-
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetChildXmlVal(std::string& pszVal, char* pszDefault = NULL)
-//
-//  PURPOSE :   overloaded function that sets the current xml node to it's first non-comment child node
-//				and then that node's string value
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetChildXmlVal(std::string& pszVal, char* pszDefault)
-{
-	if (pszDefault)
-	{
-		pszVal = pszDefault;
-	}
-	else
-	{
-		pszVal.clear();
-	}
-
-	// if we successfully set the current xml node to it's first child node
+	assignDefault(r, szDefault);
 	if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
-		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
-			return true;
-		}
-		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-		else
+		if (SkipToNextVal()) // skip to the next non-comment node
+			return SafeGetLastNodeValue(m_pFXml, r, szDefault); // advc.006d
+		else // otherwise we can't find a non-comment node on this level
 		{
 			FAssertMsg(false , "Error in GetChildXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
-	// otherwise there are no child nodes but we were expecting them so FAssert and return false
-	else
-	{
-		FAssertMsg(false , "Error in GetChildXmlVal function, unable to find a child node");
-		return false;
-	}
+	// otherwise there are no child nodes, but we were expecting them.
+	FAssertMsg(false , "Error in GetChildXmlVal function, unable to find a child node");
+	return false;
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetChildXmlVal(std::wstring& pszVal, wchar* pszDefault = NULL)
-//
-//  PURPOSE :   overloaded function that sets the current xml node to it's first non-comment child node
-//				and then that node's string value
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetChildXmlVal(std::wstring& pszVal, wchar* pszDefault)
+// see GetChildXmlVal(std::string&...)
+bool CvXMLLoadUtility::GetChildXmlVal(std::wstring& r, wchar const* szDefault)
 {
-	if (pszDefault)
-	{
-		pszVal = pszDefault;
-	}
-	else
-	{
-		pszVal.clear();
-	}
-
+	assignDefault(r, szDefault);
 	// if we successfully set the current xml node to it's first child node
 	if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
-		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
-			return true;
-		}
-		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-		else
+		if (SkipToNextVal()) // skip to the next non-comment node
+			return SafeGetLastNodeValue(m_pFXml, r, szDefault); // advc.006d
+		else // otherwise we can't find a non-comment node on this level
 		{
 			FAssertMsg(false , "Error in GetChildXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
-	// otherwise there are no child nodes but we were expecting them so FAssert and return false
-	else
-	{
-		FAssertMsg(false , "Error in GetChildXmlVal function, unable to find a child node");
-		return false;
-	}
+	// otherwise there are no child nodes, but we were expecting them.
+	FAssertMsg(false , "Error in GetChildXmlVal function, unable to find a child node");
+	return false;
 }
 
-
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetChildXmlVal(char* pszVal, char* pszDefault = NULL)
-//
-//  PURPOSE :   overloaded function that sets the current xml node to it's first non-comment child node
-//				and then that node's string value
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetChildXmlVal(char* pszVal, char* pszDefault)
+// see GetChildXmlVal(std::string&...)
+bool CvXMLLoadUtility::GetChildXmlVal(char* r, char const* szDefault)
 {
-	if (pszDefault)
-	{
-		strcpy(pszVal, pszDefault);
-	}
-	else
-	{
-		strcpy(pszVal, "");
-	}
-
+	assignDefault(r, szDefault);
 	// if we successfully set the current xml node to it's first child node
 	if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
+		if (SkipToNextVal()) // skip to the next non-comment node
 		{
 			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
+			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml, r);
 			return true;
 		}
-		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-		else
+		else // otherwise we can't find a non-comment node on this level
 		{
 			FAssertMsg(false , "Error in GetChildXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
-	// otherwise there are no child nodes but we were expecting them so FAssert and return false
-	else
-	{
-		FAssertMsg(false , "Error in GetChildXmlVal function, unable to find a child node");
-		return false;
-	}
+	// otherwise there are no child nodes, but we were expecting them.
+	FAssertMsg(false , "Error in GetChildXmlVal function, unable to find a child node");
+	return false;
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetChildXmlVal(wchar* pszVal, wchar* pszDefault = NULL)
-//
-//  PURPOSE :   overloaded function that sets the current xml node to it's first non-comment child node
-//				and then that node's string value
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetChildXmlVal(wchar* pszVal, wchar* pszDefault)
+// see GetChildXmlVal(std::string&...)
+bool CvXMLLoadUtility::GetChildXmlVal(wchar* r, wchar const* szDefault)
 {
-	if (pszDefault)
-	{
-		wcscpy(pszVal, pszDefault);
-	}
-	else
-	{
-		wcscpy(pszVal, L"");
-	}
-
+	assignDefault(r, szDefault);
 	// if we successfully set the current xml node to it's first child node
 	if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
+		if (SkipToNextVal()) // skip to the next non-comment node
 		{
 			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
+			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml, r);
 			return true;
 		}
-		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-		else
+		else // otherwise we can't find a non-comment node on this level
 		{
 			FAssertMsg(false , "Error in GetChildXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
-	// otherwise there are no child nodes but we were expecting them so FAssert and return false
-	else
-	{
-		FAssertMsg(false , "Error in GetChildXmlVal function, unable to find a child node");
-		return false;
-	}
+	// otherwise there are no child nodes, but we were expecting them.
+	FAssertMsg(false , "Error in GetChildXmlVal function, unable to find a child node");
+	return false;
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetChildXmlVal(int* piVal, int iDefault = 0)
-//
-//  PURPOSE :   overloaded function that sets the current xml node to it's first non-comment child node
-//				and then that node's integer value
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetChildXmlVal(int* piVal, int iDefault)
+// see GetChildXmlVal(std::string&...)
+bool CvXMLLoadUtility::GetChildXmlVal(int& r, int iDefault)
 {
-	// set the value to the default
-	*piVal = iDefault;
-
+	assignDefault(r, iDefault);
 	// if we successfully set the current xml node to it's first child node
 	if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
-		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,piVal);
-			return true;
-		}
-		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-		else
+		if (SkipToNextVal()) // skip to the next non-comment node
+			return SafeGetLastNodeValue(m_pFXml, r, iDefault); // advc.006d
+		else // otherwise we can't find a non-comment node on this level
 		{
 			FAssertMsg(false , "Error in GetChildXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
-	// otherwise there are no child nodes but we were expecting them so FAssert and return false
-	else
-	{
-		FAssertMsg(false , "Error in GetChildXmlVal function, unable to find a child node");
-		return false;
-	}
+	// otherwise there are no child nodes, but we were expecting them.
+	FAssertMsg(false , "Error in GetChildXmlVal function, unable to find a child node");
+	return false;
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetChildXmlVal(float* pfVal, float fDefault = 0.0f)
-//
-//  PURPOSE :   overloaded function that sets the current xml node to it's first non-comment child node
-//				and then that node's float value
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetChildXmlVal(float* pfVal, float fDefault)
+// see GetChildXmlVal(std::string&...)
+bool CvXMLLoadUtility::GetChildXmlVal(float& r, float fDefault)
 {
-	// set the value to the default
-	*pfVal = fDefault;
-
+	assignDefault(r, fDefault);
 	// if we successfully set the current xml node to it's first child node
 	if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
-		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pfVal);
-			return true;
-		}
-		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-		else
+		if (SkipToNextVal()) // skip to the next non-comment node
+			return SafeGetLastNodeValue(m_pFXml, r, fDefault); // advc.006d
+		else // otherwise we can't find a non-comment node on this level
 		{
 			FAssertMsg(false, "Error in GetChildXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
-	// otherwise there are no child nodes but we were expecting them so FAssert and return false
-	else
-	{
-		FAssertMsg(false, "Error in GetChildXmlVal function, unable to find a child node");
-		return false;
-	}
+	// otherwise there are no child nodes, but we were expecting them so.
+	FAssertMsg(false, "Error in GetChildXmlVal function, unable to find a child node");
+	return false;
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetChildXmlVal(bool* pbVal, bool bDefault = false)
-//
-//  PURPOSE :   overloaded function that sets the current xml node to it's first non-comment child node
-//				and then that node's boolean value
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetChildXmlVal(bool* pbVal, bool bDefault)
+// see GetChildXmlVal(std::string&...)
+bool CvXMLLoadUtility::GetChildXmlVal(bool& r, bool bDefault)
 {
-	// set the boolean value to it's default value
-	*pbVal = bDefault;
-
+	assignDefault(r, bDefault);
 	// if we successfully set the current xml node to it's first child node
 	if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
-		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pbVal);
-			return true;
-		}
-		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
-		else
+		if (SkipToNextVal()) // skip to the next non-comment node
+			return SafeGetLastNodeValue(m_pFXml, r, bDefault); // advc.006d
+		else // otherwise we can't find a non-comment node on this level
 		{
 			FAssertMsg(false, "Error in GetChildXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
-	// otherwise there are no child nodes but we were expecting them so FAssert and return false
-	else
-	{
-		FAssertMsg(false, "Error in GetChildXmlVal function, unable to find a child node");
-		return false;
-	}
+	// otherwise there are no child nodes, but we were expecting them.
+	FAssertMsg(false, "Error in GetChildXmlVal function, unable to find a child node");
+	return false;
 }
 
 CvString CvXMLLoadUtility::szAssertMsg = "Unable to find node "; // advc.006b
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetChildXmlValByName(wchar* pszVal, const TCHAR* szName, TCHAR* pszDefault = NULL)
-//
-//  PURPOSE :   Overloaded function that gets the child value of the tag with szName if there is only one child
-// 				value of that name
 
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetChildXmlValByName(wchar* pszVal, const TCHAR* szName, wchar* pszDefault)
+/*  Overloaded function that gets the child value of the tag with szName
+	if there is only one child value of that name */
+bool CvXMLLoadUtility::GetChildXmlValByName(wchar* r, TCHAR const* szName, wchar const* szDefault)
 {
-	if (pszDefault)
-		wcscpy(pszVal, pszDefault);
-	else wcscpy(pszVal, L"");
-
+	assignDefault(r, szDefault);
 	/*int iNumChildrenByTagName=1;
 	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName);
 	FAssertMsg((iNumChildrenByTagName < 2),"More children with tag name than expected, should only be 1.");
@@ -847,8 +497,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(wchar* pszVal, const TCHAR* szName, 
 		// skip to the next non-comment node
 		if (SkipToNextVal())
 		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
+			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml, r);
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
 			return true;
 		}
@@ -860,36 +509,24 @@ bool CvXMLLoadUtility::GetChildXmlValByName(wchar* pszVal, const TCHAR* szName, 
 			return false;
 		}
 	}
-	// otherwise there are no child nodes but we were expecting them so FAssert and return false
 	/*else {
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
-	}
-	}
+	} }
 	else {
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b> Replacing the asserts above (which were already commented out)
 	/*  If pszDefault was set by the caller, we assume that it's OK to fall back
 		on pszDefault. Otherwise warn. */
-	FAssertMsg(pszDefault != NULL || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
+	FAssertMsg(szDefault != NULL || !m->bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006b>
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetChildXmlValByName(char* pszVal, const TCHAR* szName, TCHAR* pszDefault = NULL)
-//
-//  PURPOSE :   Overloaded function that gets the child value of the tag with szName if there is only one child
-// 				value of that name
-
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetChildXmlValByName(char* pszVal, const TCHAR* szName, char* pszDefault)
+// see GetChildXmlValByName(wchar*...)
+bool CvXMLLoadUtility::GetChildXmlValByName(char* r, TCHAR const* szName, char const* szDefault)
 {
-	if (pszDefault)
-		strcpy(pszVal, pszDefault);
-	else strcpy(pszVal, "");
+	assignDefault(r, szDefault);
 	// advc.006b: See GetChildXmlValByName(wchar*...)
 	/*int iNumChildrenByTagName=1;
 	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName);
@@ -903,7 +540,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(char* pszVal, const TCHAR* szName, c
 		if (SkipToNextVal())
 		{
 			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
+			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml, r);
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
 			return true;
 		}
@@ -915,35 +552,22 @@ bool CvXMLLoadUtility::GetChildXmlValByName(char* pszVal, const TCHAR* szName, c
 			return false;
 		}
 	}
-	// otherwise there are no child nodes but we were expecting them so FAssert and return false
 	/*else {
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
-	}
-	}
+	} }
 	else {
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	FAssertMsg(pszDefault != NULL || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
+	FAssertMsg(szDefault != NULL || !m->bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006>
 }
 
-
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetChildXmlValByName(std::string& pszVal, const TCHAR* szName, TCHAR* pszDefault = NULL)
-//
-//  PURPOSE :   Overloaded function that gets the child value of the tag with szName if there is only one child
-// 				value of that name
-
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetChildXmlValByName(std::string& pszVal, const TCHAR* szName, char* pszDefault)
+// see GetChildXmlValByName(wchar*...)
+bool CvXMLLoadUtility::GetChildXmlValByName(std::string& r, TCHAR const* szName, char const* szDefault)
 {
-	if (pszDefault)
-		pszVal=pszDefault;
-	else pszVal.clear();
+	assignDefault(r, szDefault);
 	// advc.006b: See GetChildXmlValByName(wchar*...)
 	/*int iNumChildrenByTagName=1;
 	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName);
@@ -953,13 +577,11 @@ bool CvXMLLoadUtility::GetChildXmlValByName(std::string& pszVal, const TCHAR* sz
 	{*/
 	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szName))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
+		if (SkipToNextVal()) // skip to the next non-comment node
 		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
+			bool bSuccess = SafeGetLastNodeValue(m_pFXml, r, szDefault); // advc.006d
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
-			return true;
+			return bSuccess; // advc.006d
 		}
 		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
 		else
@@ -969,27 +591,22 @@ bool CvXMLLoadUtility::GetChildXmlValByName(std::string& pszVal, const TCHAR* sz
 			return false;
 		}
 	}
-	// otherwise there are no child nodes but we were expecting them so FAssert and return false
 	/*else {
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
-	}
-	}
+	} }
 	else {
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	FAssertMsg(pszDefault != NULL || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
+	FAssertMsg(szDefault != NULL || !m->bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006>
 }
 
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetChildXmlValByName(std::wstring& pszVal, const TCHAR* szName, wchar* pszDefault)
+// see GetChildXmlValByName(wchar*...)
+bool CvXMLLoadUtility::GetChildXmlValByName(std::wstring& r, TCHAR const* szName, wchar const* szDefault)
 {
-	if (pszDefault)
-		pszVal=pszDefault;
-	else pszVal.clear();
+	assignDefault(r, szDefault);
 	// advc.006b: See GetChildXmlValByName(wchar*...)
 	/*int iNumChildrenByTagName=1;
 	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName);
@@ -999,13 +616,11 @@ bool CvXMLLoadUtility::GetChildXmlValByName(std::wstring& pszVal, const TCHAR* s
 	{*/
 	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szName))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
+		if (SkipToNextVal()) // skip to the next non-comment node
 		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pszVal);
+			bool bSuccess = SafeGetLastNodeValue(m_pFXml, r, szDefault); // advc.006d
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
-			return true;
+			return bSuccess; // advc.006d
 		}
 		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
 		else
@@ -1015,31 +630,22 @@ bool CvXMLLoadUtility::GetChildXmlValByName(std::wstring& pszVal, const TCHAR* s
 			return false;
 		}
 	}
-	// otherwise there are no child nodes but we were expecting them so FAssert and return false
 	/*else {
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
-	}
-	}
+	} }
 	else {
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	FAssertMsg(pszDefault != NULL || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
+	FAssertMsg(szDefault != NULL || !m->bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006>
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetChildXmlValByName(int* piVal, const TCHAR* szName, int iDefault = 0)
-//
-//  PURPOSE :   Overloaded function that gets the child value of the tag with szName if there is only one child
-// 				value of that name
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetChildXmlValByName(int* piVal, const TCHAR* szName, int iDefault)
+// see GetChildXmlValByName(wchar*...)
+bool CvXMLLoadUtility::GetChildXmlValByName(int* r, TCHAR const* szName, int iDefault)
 {
-	*piVal = iDefault; // set the value to the default
+	assignDefault(*r, iDefault);
 	// advc.006b: See GetChildXmlValByName(wchar*...)
 	/*int iNumChildrenByTagName=1;
 	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName);
@@ -1049,13 +655,11 @@ bool CvXMLLoadUtility::GetChildXmlValByName(int* piVal, const TCHAR* szName, int
 	{*/
 	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szName))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
+		if (SkipToNextVal()) // skip to the next non-comment node
 		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,piVal);
+			bool bSuccess = SafeGetLastNodeValue(m_pFXml, *r, iDefault); // advc.006d
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
-			return true;
+			return bSuccess; // advc.006d
 		}
 		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
 		else
@@ -1065,37 +669,28 @@ bool CvXMLLoadUtility::GetChildXmlValByName(int* piVal, const TCHAR* szName, int
 			return false;
 		}
 	}
-	// otherwise there are no child nodes but we were expecting them so FAssert and return false
 	/*else {
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
-	}
-	}
+	} }
 	else {
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	if(iDefault == MIN_INT && m_bAssertMandatory) {
+	if (*r == MIN_INT && m->bAssertMandatory)
+	{
 		FAssertMsg(false, (szAssertMsg + szName).c_str());
 		/*  Try to allow the caller to ignore the error by setting a
 			more sensible default than MIN_INT: */
-		*piVal = 0; // (0 is also the "default default" that was set in this function's declaration in BtS)
+		*r = 0; // (0 is also the "default default" that was set in this function's declaration in BtS)
 	}
 	return false; // </advc.006b>
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetChildXmlValByName(float* pfVal, const TCHAR* szName, float fDefault = 0.0f)
-//
-//  PURPOSE :   Overloaded function that gets the child value of the tag with szName if there is only one child
-// 				value of that name
-
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetChildXmlValByName(float* pfVal, const TCHAR* szName, float fDefault)
+// see GetChildXmlValByName(wchar*...)
+bool CvXMLLoadUtility::GetChildXmlValByName(float* r, TCHAR const* szName, float fDefault)
 {
-	*pfVal = fDefault; // set the value to the default
+	assignDefault(*r, fDefault);
 	// advc.006b: See GetChildXmlValByName(wchar*...)
 	/*int iNumChildrenByTagName=1;
 	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName);
@@ -1105,13 +700,11 @@ bool CvXMLLoadUtility::GetChildXmlValByName(float* pfVal, const TCHAR* szName, f
 	{*/
 	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szName))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
+		if (SkipToNextVal()) // skip to the next non-comment node
 		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pfVal);
+			bool bSuccess = SafeGetLastNodeValue(m_pFXml, *r, fDefault); // advc.006d
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
-			return true;
+			return bSuccess; // advc.006d
 		}
 		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
 		else
@@ -1121,36 +714,27 @@ bool CvXMLLoadUtility::GetChildXmlValByName(float* pfVal, const TCHAR* szName, f
 			return false;
 		}
 	}
-	// otherwise there are no child nodes but we were expecting them so FAssert and return false
 	/*else {
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
-	}
-	}
+	} }
 	else {
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	if(fDefault == FLT_MIN && m_bAssertMandatory) {
+	if (*r == FLT_MIN && m->bAssertMandatory)
+	{
 		FAssertMsg(false, (szAssertMsg + szName).c_str());
-		*pfVal = 0; // See See GetChildXmlValByName(int*...)
+		*r = 0; // See See GetChildXmlValByName(int*...)
 	}
 	return false; // </advc.006b>
 }
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetChildXmlValByName(bool* pbVal, const TCHAR* szName, bool bDefault = false)
-//
-//  PURPOSE :   Overloaded function that gets the child value of the tag with szName if there is only one child
-// 				value of that name
-
-//
-//------------------------------------------------------------------------------------------------------
-bool CvXMLLoadUtility::GetChildXmlValByName(bool* pbVal, const TCHAR* szName,
-		/* <advc.006b> */ bool bMandatory /* </advc.006b> */, bool bDefault)
+// see GetChildXmlValByName(wchar*...)
+bool CvXMLLoadUtility::GetChildXmlValByName(bool* r, TCHAR const* szName,
+	/* <advc.006b> */ bool bMandatory /* </advc.006b> */, bool bDefault)
 {
-	*pbVal = bDefault; // set the boolean value to it's default value
+	assignDefault(*r, bDefault);
 	// advc.006b: See GetChildXmlValByName(wchar*...)
 	/*int iNumChildrenByTagName=1;
 	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName);
@@ -1160,13 +744,11 @@ bool CvXMLLoadUtility::GetChildXmlValByName(bool* pbVal, const TCHAR* szName,
 	{*/
 	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szName))
 	{
-		// skip to the next non-comment node
-		if (SkipToNextVal())
+		if (SkipToNextVal()) // skip to the next non-comment node
 		{
-			// get the string value of the current xml node
-			gDLL->getXMLIFace()->GetLastNodeValue(m_pFXml,pbVal);
+			bool bSuccess = SafeGetLastNodeValue(m_pFXml, *r, bDefault); // advc.006d
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
-			return true;
+			return bSuccess; // advc.006d
 		}
 		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
 		else
@@ -1176,46 +758,53 @@ bool CvXMLLoadUtility::GetChildXmlValByName(bool* pbVal, const TCHAR* szName,
 			return false;
 		}
 	}
-	// otherwise there are no child nodes but we were expecting them so FAssert and return false
 	/*else {
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
-	}
-	}
+	} }
 	else {
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	FAssertMsg(!bMandatory || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
+	FAssertMsg(!bMandatory || !m->bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006b>
 }
 
-// <advc.006b>
-void CvXMLLoadUtility::setAssertMandatoryEnabled(bool b) {
+// <advc.xmldefault>
+void CvXMLLoadUtility::SetInfoIDFromChildXmlVal(int& r, TCHAR const* szName)
+{
+	CvString szTextVal;
+	GetChildXmlValByName(szTextVal, szName, r == 0 ? NULL : "");
+	if (!szTextVal.IsEmpty())
+		r = FindInInfoClass(szTextVal);
+}
 
-	m_bAssertMandatory = b;
-} // </advc.006b>
+// (based on code by rheinig)
+int CvXMLLoadUtility::GetChildTypeIndex()
+{
+	CvString szType;
+	if (GetChildXmlValByName(szType, "Type") && !szType.empty())
+		return GC.getInfoTypeForString(szType, true);
+	return -1;
+} // </advc.xmldefault>
 
-//------------------------------------------------------------------------------------------------------
-//
-//  FUNCTION:   GetHotKeyInt(TCHAR* pszHotKeyVal)
-//
-//  PURPOSE :   returns either the integer value of the keyboard mapping for the hot key or -1 if it
-//				doesn't exist.
-//
-//------------------------------------------------------------------------------------------------------
+// advc.006b:
+void CvXMLLoadUtility::setAssertMandatoryEnabled(bool b)
+{
+	m->bAssertMandatory = b;
+}
+
+/*	Returns either the integer value of the keyboard mapping for the hot key --
+	or -1 if it doesn't exist. */
 int CvXMLLoadUtility::GetHotKeyInt(const TCHAR* pszHotKeyVal)
 {
-	// SPEEDUP
 	PROFILE("GetHotKeyInt");
-	int i;
 
 	struct CvKeyBoardMapping
 	{
 		TCHAR szDefineString[25];
 		int iIntVal;
 	};
-
 
 	const int iNumKeyBoardMappings=108;
 	const CvKeyBoardMapping asCvKeyBoardMapping[iNumKeyBoardMappings] =
@@ -1330,7 +919,7 @@ int CvXMLLoadUtility::GetHotKeyInt(const TCHAR* pszHotKeyVal)
 		{"KB_DELETE",FInputDevice::KB_DELETE},
 	};
 
-	for (i=0;i<iNumKeyBoardMappings;i++)
+	for (int i = 0; i < iNumKeyBoardMappings; i++)
 	{
 		if (strcmp(asCvKeyBoardMapping [i].szDefineString, pszHotKeyVal) == 0)
 		{
@@ -1340,4 +929,3 @@ int CvXMLLoadUtility::GetHotKeyInt(const TCHAR* pszHotKeyVal)
 
 	return -1;
 }
-

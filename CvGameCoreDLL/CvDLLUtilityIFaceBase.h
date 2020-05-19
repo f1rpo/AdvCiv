@@ -3,7 +3,6 @@
 #ifndef CvDLLUtilityIFaceBase_h
 #define CvDLLUtilityIFaceBase_h
 
-
 #include "LinkedList.h"
 
 //
@@ -45,6 +44,8 @@ public:
 	// accessors for other abstract interfaces
 	virtual CvDLLEntityIFaceBase* getEntityIFace() = 0;
 	virtual CvDLLInterfaceIFaceBase* getInterfaceIFace() = 0;
+	// advc: abbreviate
+	CvDLLInterfaceIFaceBase& UI() { return *getInterfaceIFace(); }
 	virtual CvDLLEngineIFaceBase* getEngineIFace() = 0;
 	virtual CvDLLIniParserIFaceBase* getIniParserIFace() = 0;
 	virtual CvDLLSymbolIFaceBase* getSymbolIFace() = 0;
@@ -131,7 +132,10 @@ public:
 
 	virtual CvWString getMapScriptName() = 0;
 	virtual bool getTransferredMap() = 0;
+	/*  advc (comment): Presumably checks if szFileName has a WBSave ending.
+		"Desc" probably refers to the WBSave language. */
 	virtual bool isDescFileName(const char * szFileName) = 0;
+	// advc (comment): Might call isDescFileName. Should probably use CvGame::isScenario (advc.052) instead.
 	virtual bool isWBMapScript() = 0;
 	virtual bool isWBMapNoPlayers() = 0;
 	virtual bool pythonMapExists(const char * szMapName) = 0;

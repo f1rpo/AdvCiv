@@ -10,11 +10,13 @@ class CyArea;
 class CvPlot;
 class CyUnit;
 class CyCity;
+
 class CyPlot
 {
 public:
 	CyPlot();
 	DllExport CyPlot(CvPlot*);			// Call from C++
+	CyPlot(CvPlot const&); // advc.003y
 	CvPlot* getPlot() { return m_pPlot; }	// Call from C++
 	void setPlot(CvPlot* p) { m_pPlot=p; }	// Call from C++
 	bool isNone() { return (m_pPlot==NULL); }
@@ -103,7 +105,7 @@ public:
 	bool isVisibleEnemyDefender(CyUnit* pUnit);
 	int getNumDefenders(int /*PlayerTypes*/ ePlayer);
 	int getNumVisibleEnemyDefenders(CyUnit* pUnit);
-	int getNumVisiblePotentialEnemyDefenders(CyUnit* pUnit);
+	//int getNumVisiblePotentialEnemyDefenders(CyUnit* pUnit); // advc: No longer exposed
 	bool isVisibleEnemyUnit(int /*PlayerTypes*/ ePlayer);
 	bool isVisibleOtherUnit(int /*PlayerTypes*/ ePlayer);
 	bool isFighting();
@@ -247,8 +249,8 @@ public:
 	// advc.251: Last param now ePlayer
 	bool changeBuildProgress(int /*BuildTypes*/ eBuild, int iChange, int /*PlayerTypes*/ ePlayer);
 
-	int getCultureRangeCities(int /*PlayerTypes*/ eOwnerIndex, int iRangeIndex);
-	bool isCultureRangeCity(int /*PlayerTypes*/ eOwnerIndex, int iRangeIndex);
+	int getCultureRangeCities(int /*PlayerTypes*/ eOwnerIndex, /*CultureLevelTypes*/int eRangeIndex);
+	bool isCultureRangeCity(int /*PlayerTypes*/ eOwnerIndex, /*CultureLevelTypes*/int eRangeIndex);
 
 	int getInvisibleVisibilityCount(int /*TeamTypes*/ eTeam, int /*InvisibleTypes*/ eInvisible);
 	bool isInvisibleVisible(int /*TeamTypes*/ eTeam, int /*InvisibleTypes*/ eInvisible);

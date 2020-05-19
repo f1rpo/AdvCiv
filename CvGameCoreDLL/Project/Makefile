@@ -9,13 +9,26 @@
 ####  Copyright 2010 Danny Daemonic  ####
 #########################################
 
-# advc: Target 'DebugMem' added: an almost-Release build that is less likely than a
-# Debug build to obscure accesses to uninitialized memory.
+# advc (2019):
+# Enabled parallel builds (jom) for the Profile configuration
+#   (now called "Profile-fast") and added a configuration Debug-fast. Both use
+#   precompiled headers through the Z7 option as recommended by billw2015.
+# Target 'Debug-opt' added: An almost-Release build that is less likely than a
+#   Debug build to obscure accesses to uninitialized memory. Also for inspecting
+#   optimized assembly.
+# Removed the non-fast Assert configuration. [Parallel builds can make it
+#   difficult to associate error messages with a translation unit; but don't need
+#   a slow version of every config.]
 # YOURMOD2 and YOURLOGS (see under "Paths").
-# Internal profiler enabled (FP_PROFILE_ENABLE, USE_INTERNAL_PROFILER).
-# CvGameCoreDLL.rc used only for final release.
+# PROJECT_Profile_CFLAGS, PROJECT_Debug_CFLAGS, PROJECT_DebugOpt_CFLAGS added to Makefile.project.
+# For selecting a profiler and for balancing speed vs. fidelity of debug builds.
 # Removed unused /DCVGAMECOREDLL_EXPORTS from Debug_DEFINES
-# devolution (Erik) has added the target 'Final_Release' with additional optimizations.
+# devolution (Erik) has added the target 'Final_Release' with
+#   whole-program optimization. [There is also a Firaxis define called
+#   FINAL_RELEASE, which merely disables the OutputDebugString function from
+#   debugapi.h. That's used for all non-debug builds.]
+# CvGameCoreDLL.rc used only for final release.
+# Use /arch:SSE2 for all release builds.
 
 ## User setup
 ##
@@ -96,6 +109,9 @@ CUSTOM_LDFLAGS =
 
 PRECOMPILE_DEPENDENCIES =
 PROJECT_CFLAGS =
+PROJECT_Debug_CFLAGS =
+PROJECT_DebugOpt_CFLAGS =
+PROJECT_Profile_CFLAGS =
 PROJECT_LDFLAGS =
 SOURCE_DIR =
 
@@ -121,6 +137,12 @@ SUBDIRPATH15 = ../
 !IF [ECHO PROJECT_CFLAGS = >> Makefile.project]
 !ENDIF
 !IF [ECHO PROJECT_LDFLAGS = >> Makefile.project]
+!ENDIF
+!IF [ECHO PROJECT_Profile_CFLAGS = >> Makefile.project]
+!ENDIF
+!IF [ECHO PROJECT_Debug_CFLAGS = >> Makefile.project]
+!ENDIF
+!IF [ECHO PROJECT_DebugOpt_CFLAGS = >> Makefile.project]
 !ENDIF
 !IF [ECHO PRECOMPILE_DEPENDENCIES = >> Makefile.project]
 !ENDIF
@@ -169,11 +191,11 @@ FILE_DEPENDS = $(TEMP_TARGET_FILES)\depends
 
 #### CFLAGS ####
 GLOBAL_CFLAGS=/GR /Gy /W3 /EHsc /Gd /Gm- /Fd"$(Target_PDB)" $(CUSTOM_CFLAGS) $(PROJECT_CFLAGS)
-Debug_CFLAGS=/MD /Zi /Od /RTC1 $(Debug_DEFINES) $(GLOBAL_CFLAGS)
-# (DebugMem: Using Debug_CFLAGS without /D_DEBUG /RTC1 might accomplish largely the same)
-DebugMem_CFLAGS=/MD /O2 /Zi /Oi /G7 $(Release_DEFINES) $(GLOBAL_CFLAGS)
-Release_CFLAGS= /MD /O2 /Oy /Oi /G7 $(Release_DEFINES) $(GLOBAL_CFLAGS)
-Final_Release_CFLAGS= /MD /O2 /Oy /Oi /G7 /arch:SSE2 /GL $(Release_DEFINES) $(GLOBAL_CFLAGS)
+Debug_CFLAGS=/MD /Z7 /Od /RTC1 $(Debug_DEFINES) $(GLOBAL_CFLAGS) $(PROJECT_Debug_CFLAGS)
+# (Debug-opt: Using Debug_CFLAGS without /D_DEBUG /RTC1 might accomplish largely the same)
+Debug_Opt_CFLAGS=/MD /O2 /Z7 /Oi /G7 /arch:SSE2 $(Release_DEFINES) $(GLOBAL_CFLAGS) $(PROJECT_DebugOpt_CFLAGS)
+Release_CFLAGS=/MD /O2 /Oy /Oi /G7 /arch:SSE2 $(Release_DEFINES) $(GLOBAL_CFLAGS)
+Final_Release_CFLAGS=$(Release_CFLAGS) /GL
 
 PRECOMPILE_CFLAGS1 = /Yu"
 PRECOMPILE_CFLAGS2 = CvGameCoreDLL.h" /Fp"$(Target_PCH)"
@@ -215,15 +237,12 @@ LIBS = $(PROJECT_LIBS) $(GLOBAL_LIBS)
 
 
 !IF "$(TARGET)" == "Debug"
-!IFNDEF _NMAKE_VER
-!ERROR Jom can't be used on Debug builds
-!ENDIF
 CFLAGS  = $(Debug_CFLAGS)
 LDFLAGS = $(Debug_LDFLAGS)
 LIBS    = $(LIBS) msvcprt.lib
 !ENDIF
-!IF "$(TARGET)" == "DebugMem"
-CFLAGS  = $(DebugMem_CFLAGS) /DFASSERT_ENABLE
+!IF "$(TARGET)" == "Debug-opt"
+CFLAGS  = $(Debug_Opt_CFLAGS)
 LDFLAGS = $(Debug_LDFLAGS)
 # Leaving out msvcprt might help with debugging memory (but I doubt it)
 LIBS    = $(LIBS) msvcprt.lib
@@ -237,10 +256,7 @@ CFLAGS  = $(Release_CFLAGS) /DFASSERT_ENABLE
 LDFLAGS = $(Release_LDFLAGS)
 !ENDIF
 !IF "$(TARGET)" == "Profile"
-!IFNDEF _NMAKE_VER
-!ERROR Jom can't be used on profile builds
-!ENDIF
-CFLAGS  = $(Release_CFLAGS) /Zi /DFP_PROFILE_ENABLE /DUSE_INTERNAL_PROFILER
+CFLAGS  = $(Release_CFLAGS) $(PROJECT_Profile_CFLAGS) /Z7
 LDFLAGS = $(Debug_LDFLAGS)
 !ENDIF
 !IF "$(TARGET)" == "Final_Release"

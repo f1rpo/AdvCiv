@@ -10,7 +10,7 @@
 ##-------------------------------------------------------------------
 
 from CvPythonExtensions import *
-import CvMainInterface
+#import CvMainInterface # advc: unused
 import CvUtil
 import Popup as PyPopup
 import BugCore

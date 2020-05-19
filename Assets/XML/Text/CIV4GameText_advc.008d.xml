@@ -6,7 +6,7 @@
 <!-- "A negative event that afflicts one of your rivals is, in effect, like a
 	 positive event for you!" Messages about roads washed away in Beijing are
 	 just annoying, and this hint feels like a taunt. -->
-<!-- advc.130v -->
+<!-- advc.130v (replacement): -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_70</Tag>
 	<English>(AdvCiv) The behavior of your capitulated vassals reflects on you. If they raze cities or trade with a pariah, your rivals will hold you responsible.</English>
@@ -124,6 +124,16 @@
 	<Spanish>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war on behalf of a third party.)</Spanish>
 </TEXT>
 
+<!-- Minor improvements to the wording (En, Ger) -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_61</Tag>
+	<English>Fighter aircraft can intercept multiple incoming planes per turn but become less effective at it as they get damaged. Take the time to repair your defensive planes.</English>
+	<French>Vos chasseurs peuvent intercepter plusieurs avions ennemis par tour, mais sont moins efficaces quand ils sont endommag&#233;s. Pensez donc bien &#224; r&#233;parer vos avions de d&#233;fense.</French>
+	<German>J&#228;gdflugzeuge k&#246;nnen mehrere Abfangversuche pro Zug unternehmen, ihre Schlagkraft sinkt allerdings, wenn sie besch&#228;digt werden. Geben Sie Ihren defensiven Lufteinheiten Zeit für Reparaturen.</German>
+	<Italian>I tuoi caccia possono intercettare pi&#249; aerei per turno, ma diventano meno efficaci se subiscono danni, perci&#242; premurati di riparare i tuoi velivoli difensivi.</Italian>
+	<Spanish>Tus cazas pueden interceptar varios aviones por turno, pero se vuelven menos eficaces a medida que sufren da&#241;os, por lo que debes preocuparte de reparar tus aviones defensivos.</Spanish>
+</TEXT>
+
 <!-- "Use your mouse wheel to zoom" duh -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_1</Tag>
@@ -144,6 +154,17 @@
 	<German>Wenn beim Laden eines Spielstands für längere Zeit "Wird initialisiert" angezeigt wird, kann es helfen, das Spiel per [ALT + TAB] für einen Augenblick zu minimieren.</German>
 	<Italian>When the screen says "Initializing" for several seconds while loading a saved game, it might help to briefly minimize the game by pressing [ALT + TAB] twice.</Italian>
 	<Spanish>When the screen says "Initializing" for several seconds while loading a saved game, it might help to briefly minimize the game by pressing [ALT + TAB] twice.</Spanish>
+</TEXT>
+
+<!-- Said that the screenshot gets saved in Civ4\Screenshots, which is no
+	 longer true in BtS. -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_INTERFACE_13</Tag>
+	<English>Press [PRINT SCREEN] to take a screenshot. It gets saved in the screenshots folder under "My Games\Beyond the Sword".</English>
+	<French>Appuyez sur [IMPR ECRAN] pour faire une capture d'&#233;cran (sauvegard&#233;e dans le r&#233;pertoire Beyond the Sword\Screenshots).</French>
+	<German>Dr&#252;cken Sie [DRUCK], um einen Screenshot zu machen und unter "Beyond the Sword\Screenshots" zu speichern.</German>
+	<Italian>Premi [STAMP] per scattare una foto che verr&#224; salvata nella directory Beyond the Sword\Screenshots...</Italian>
+	<Spanish>Pulsar [IMPR PANT] para hacer una captura de pantalla (se guardar&#225; en la carpeta Beyond the Sword\Screenshots)...</Spanish>
 </TEXT>
 
 <!-- advc.002g: "Press [ESC] to bring up the in-game Options Menu..."
@@ -1000,6 +1021,77 @@
 	<German>(AdvCiv) Ihre KI-Gegner lassem sich nicht von einem Handelsembargo überzeugen, solange Sie selbst mit dem Ziel des Embargos Handel treiben. Ihre Vasallen können Sie allerdings jederzeit anweisen, den Handel mit einem Gegner einzustellen.</German>
 	<Italian>(AdvCiv) Your AI rivals will not consider proposals for a trade embargo so long as you have trades with the target of the embargo. In contrast, you can always tell your vassals to stop trading with any target.</Italian>
 	<Spanish>(AdvCiv) Your AI rivals will not consider proposals for a trade embargo so long as you have trades with the target of the embargo. In contrast, you can always tell your vassals to stop trading with any target.</Spanish>
+</TEXT>
+
+<!-- advc.059 -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_40</Tag>
+	<English>(AdvCiv) To see which tiles affect the health of a city, click the city's name on the main map and then hover over the surrounding tiles.</English>
+	<French>(AdvCiv) To see which tiles affect the health of a city, click the city's name on the main map and then hover over the surrounding tiles.</French>
+	<German>(AdvCiv) Um zu sehen, welche Felder die Gesundheit einer Stadt beeinflussen, klicken Sie auf den Stadtnamen und bewegen Sie dann den Mauszeiger über die Felder in der Umgebung.</German>
+	<Italian>(AdvCiv) To see which tiles affect the health of a city, click the city's name on the main map and then hover over the surrounding tiles.</Italian>
+	<Spanish>(AdvCiv) To see which tiles affect the health of a city, click the city's name on the main map and then hover over the surrounding tiles.</Spanish>
+</TEXT>
+
+<!-- advc.savem -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_41</Tag>
+	<English>(experimental) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</English>
+	<French>(experimental) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</French>
+	<German>(experimentell) Mit [Shift + Alt + M] können Sie im laufenden Spiel die Weltkarte als Python-Skript exportieren, z.B. um mit anderen Spieloptionen von vorne anzufangen.</German>
+	<Italian>(experimental) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</Italian>
+	<Spanish>(experimental) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</Spanish>
+</TEXT>
+
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_42</Tag>
+	<English>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</English>
+	<French>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</French>
+	<German>Durch Ab- und Wiedereinschalten der Hintergrundmusik (zweimal [Strg + M]) lässt sich das aktuelle Musikstück überspringen.</German>
+	<Italian>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</Italian>
+	<Spanish>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</Spanish>
+</TEXT>
+
+<!-- advc.ctr -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_43</Tag>
+	<English>(AdvCiv) If you found a city only for the purpose of trading it to an AI neighbor, be warned that the AI may reject the city if it is very badly situated: "We don't want to trade this."</English>
+	<French>(AdvCiv) If you found a city only for the purpose of trading it to an AI neighbor, be warned that the AI may reject the city if it is very badly situated: "We don't want to trade this."</French>
+	<German>(AdvCiv) Wenn Sie eine Stadt gründen, nur um sie an einen KI-Nachbarn zu vertauschen, beachten Sie, dass die KI sehr ungünstig platzierte Städte nicht annimmt: "Wir haben leider kein Interesse."</German>
+	<Italian>(AdvCiv) If you found a city only for the purpose of trading it to an AI neighbor, be warned that the AI may reject the city if it is very badly situated: "We don't want to trade this."</Italian>
+	<Spanish>(AdvCiv) If you found a city only for the purpose of trading it to an AI neighbor, be warned that the AI may reject the city if it is very badly situated: "We don't want to trade this."</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_44</Tag>
+	<English>(AdvCiv) Ceding a city can appease a powerful AI neighbor and results in a peace treaty. However, the AI may refuse to accept an insignificant city if it is unwilling to sign a peace treaty: "We have our reasons."</English>
+	<French>(AdvCiv) Ceding a city can appease a powerful AI neighbor and results in a peace treaty. However, the AI may refuse to accept an insignificant city if it is unwilling to sign a peace treaty: "We have our reasons."</French>
+	<German>(AdvCiv) Die Abtretung einer Stadt kann einen gefährlichen KI-Nachbarn besänftigen und geht mit einem Friedensvertrag einher. Eine unbedeutende Stadt könnte die KI allerdings ablehnen - um einen Friedensvertrag zu vermeiden: "Wir haben unsere Gründe."</German>
+	<Italian>(AdvCiv) Ceding a city can appease a powerful AI neighbor and results in a peace treaty. However, the AI may refuse to accept an insignificant city if it is unwilling to sign a peace treaty: "We have our reasons."</Italian>
+	<Spanish>(AdvCiv) Ceding a city can appease a powerful AI neighbor and results in a peace treaty. However, the AI may refuse to accept an insignificant city if it is unwilling to sign a peace treaty: "We have our reasons."</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_45</Tag>
+	<English>(AdvCiv) Spread enough culture to a city with a well-disposed owner, and you might be able to trade for the city; the owner might even liberate it without compensation.</English>
+	<French>(AdvCiv) Spread enough culture to a city with a well-disposed owner, and you might be able to trade for the city; the owner might even liberate it without compensation.</French>
+	<German>(AdvCiv) Eine Stadt durch kulturellen Einfluss zum Überlaufen zu bringen, ist schwierig. Ein Tauschhandel erfordert einen deutlich geringeren Kulturanteil, hängt allerdings vom Wohlwollen des Besitzers ab.</German>
+	<Italian>(AdvCiv) Spread enough culture to a city with a well-disposed owner, and you might be able to trade for the city; the owner might even liberate it without compensation.</Italian>
+	<Spanish>(AdvCiv) Spread enough culture to a city with a well-disposed owner, and you might be able to trade for the city; the owner might even liberate it without compensation.</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_46</Tag>
+	<English>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</English>
+	<French>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</French>
+	<German>(AdvCiv) Solange ein Krieg andauert, können eroberte Städte nur durch Befreiung an Drittparteien abgetreten werden; Handel mit eroberten Städten ist erst nach Friedensschluss zulässig.</German>
+	<Italian>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</Italian>
+	<Spanish>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</Spanish>
+</TEXT>
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_47</Tag>
+	<English>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</English>
+	<French>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</French>
+	<German>(AdvCiv) Solange sich feindliche Einheiten in der Nähe einer Stadt befinden, kann sie in der Regel nicht an eine Drittpartei abgetreten werden - oder allenfalls durch Befreiung.</German>
+	<Italian>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</Italian>
+	<Spanish>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</Spanish>
 </TEXT>
 
 </Civ4GameText>

@@ -52,33 +52,10 @@ public:
 	void doUnitModel();
 	void doFlag();
 	void doSelected(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaTechJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaUnitJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaBuildingJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaBack();
-	void doPediaForward();
-	void doPediaBonusJump(CvWidgetDataStruct &widgetDataStruct, bool bData2 = false);
-	void doPediaSpecialistJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaProjectJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaReligionJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaCorporationJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaTerrainJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaFeatureJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaMain(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaPromotionJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaUnitCombatJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaImprovementJump(CvWidgetDataStruct &widgetDataStruct, bool bData2 = false);
-	void doPediaCivicJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaCivilizationJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaLeaderJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaDescription(CvWidgetDataStruct &widgetDataStruct);
+	/*  advc.003y: Replaced the doPedia.... functions with jumpToPedia functions
+		in CvPythonCaller */
 	void doGotoTurnEvent(CvWidgetDataStruct &widgetDataStruct);
-	void doForeignAdvisor(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaConstructJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaTrainJump(CvWidgetDataStruct &widgetDataStruct);
-	void doPediaBuildJump(CvWidgetDataStruct &widgetDataStruct);
 	void doDealKill(CvWidgetDataStruct &widgetDataStruct);
-	void doRefreshMilitaryAdvisor(CvWidgetDataStruct &widgetDataStruct);
 	void doMenu();
 	void doLaunch(CvWidgetDataStruct &widgetDataStruct);
 
@@ -86,7 +63,7 @@ protected:
 
 	static CvDLLWidgetData* m_pInst;
 
-	//	Help parsing (advc.003: These were all public)
+	//	Help parsing (advc: These were all public)
 	void parsePlotListHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseLiberateCityHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseCityNameHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
@@ -97,9 +74,9 @@ protected:
 	void parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseConscriptHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
-	// <advc.003>
+	// <advc>
 	void parseActionHelp_Mission(CvActionInfo const& kAction, CvUnit const& kUnit,
-			MissionTypes eMission, CvWStringBuffer& szBuffer); // </advc.003>
+			MissionTypes eMission, CvWStringBuffer& szBuffer); // </advc>
 	void parseCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseFreeCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseDisabledCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
@@ -232,8 +209,9 @@ protected:
 		Environmental advisor mouse-over text */
 	void parsePollutionOffsetsHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parsePollutionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
-	// K-Mod end
-
+	// K-Mod end  <advc.ctr>
+	bool parseCityTradeHelp(CvWidgetDataStruct const& kWidget, CvCity*& pCity,
+			PlayerTypes& eWhoTo) const; // </advc.ctr>
 	// <advc.004a> Additional help text:
 	 // Discover ("bulb") button
 	CvWString getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePlayer) const;

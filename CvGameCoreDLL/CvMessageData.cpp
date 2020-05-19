@@ -1,11 +1,12 @@
 #include "CvGameCoreDLL.h"
 #include "CvMessageData.h"
-#include "CvInfos.h"
+#include "CvInfo_Command.h"
 #include "CvGamePlay.h"
-#include "CvEventReporter.h"
+#include "CvCity.h"
+#include "CvUnit.h"
+#include "CvSelectionGroup.h"
 #include "FDataStreamBase.h"
 #include "CvDLLUtilityIFaceBase.h"
-#include "CvDLLInterfaceIFaceBase.h"
 
 
 CvMessageData* CvMessageData::createMessage(GameMessageTypes eType)
@@ -167,14 +168,9 @@ void CvNetTurnComplete::SetFromBuffer(FDataStreamBase* pStream)
 	pStream->Read((int*)&m_ePlayer);
 }
 
-/* original bts code
-CvNetPushOrder::CvNetPushOrder() : CvMessageData(GAMEMESSAGE_PUSH_ORDER), m_ePlayer(NO_PLAYER), m_iCityID(-1), m_eOrder(NO_ORDER), m_iData(-1), m_bAlt(false), m_bShift(false), m_bCtrl(false)
-{
-}
+/*CvNetPushOrder::CvNetPushOrder() : CvMessageData(GAMEMESSAGE_PUSH_ORDER), m_ePlayer(NO_PLAYER), m_iCityID(-1), m_eOrder(NO_ORDER), m_iData(-1), m_bAlt(false), m_bShift(false), m_bCtrl(false) {}
 
-CvNetPushOrder::CvNetPushOrder(PlayerTypes ePlayer, int iCityID, OrderTypes eOrder, int iData, bool bAlt, bool bShift, bool bCtrl) : CvMessageData(GAMEMESSAGE_PUSH_ORDER), m_ePlayer(ePlayer), m_iCityID(iCityID), m_eOrder(eOrder), m_iData(iData), m_bAlt(bAlt), m_bShift(bShift), m_bCtrl(bCtrl)
-{
-} */ // disabled by K-mod
+CvNetPushOrder::CvNetPushOrder(PlayerTypes ePlayer, int iCityID, OrderTypes eOrder, int iData, bool bAlt, bool bShift, bool bCtrl) : CvMessageData(GAMEMESSAGE_PUSH_ORDER), m_ePlayer(ePlayer), m_iCityID(iCityID), m_eOrder(eOrder), m_iData(iData), m_bAlt(bAlt), m_bShift(bShift), m_bCtrl(bCtrl) {}*/ // BtS - disabled by K-mod
 
 void CvNetPushOrder::Debug(char* szAddendum)
 {
@@ -190,15 +186,15 @@ void CvNetPushOrder::Execute()
 		{
 			//pCity->pushOrder(m_eOrder, m_iData, -1, m_bAlt, !(m_bShift || m_bCtrl), m_bShift);
 			pCity->pushOrder(m_eOrder, m_iData, -1, m_bSave, m_bPop, m_iPosition); // K-Mod
-			// K-Mod. We don't want automated cities to overrules our production choice.
+			// K-Mod. We don't want automated cities to overrule our production choice.
 			if (pCity->isHuman())
-				pCity->AI_setChooseProductionDirty(false);
+				pCity->setChooseProductionDirty(false);
 			// K-Mod end
 		}
 
 		if (GC.getGame().getActivePlayer() == m_ePlayer)
 		{
-			gDLL->getInterfaceIFace()->updatePythonScreens();
+			gDLL->UI().updatePythonScreens();
 		}
 	}
 }
@@ -260,7 +256,7 @@ void CvNetPopOrder::Execute()
 
 		if (GC.getGame().getActivePlayer() == m_ePlayer)
 		{
-			gDLL->getInterfaceIFace()->updatePythonScreens();
+			gDLL->UI().updatePythonScreens();
 		}
 	}
 }
@@ -418,7 +414,7 @@ void CvNetResearch::Execute()
 
 		if (GC.getGame().getActivePlayer() == m_ePlayer)
 		{
-			gDLL->getInterfaceIFace()->updatePythonScreens();
+			gDLL->UI().updatePythonScreens();
 		}
 	}
 }
@@ -493,7 +489,7 @@ void CvNetAdvancedStartAction::Execute()
 {
 	if (m_ePlayer != NO_PLAYER)
 	{
-		if (!gDLL->getInterfaceIFace()->isExitingToMainMenu())
+		if (!gDLL->UI().isExitingToMainMenu())
 		{
 			GET_PLAYER(m_ePlayer).doAdvancedStartAction(m_eAction, m_iX, m_iY, m_iData, m_bAdd);
 		}
@@ -774,7 +770,7 @@ CvNetPushMission::CvNetPushMission(PlayerTypes ePlayer, int iUnitID,
 
 void CvNetPushMission::Debug(char* szAddendum)
 {
-	sprintf(szAddendum, "Do Mission, who is %d, unit ID is %d, mission is %S", m_ePlayer, m_iUnitID, GC.getMissionInfo(m_eMission).getDescription());
+	sprintf(szAddendum, "Do Mission, who is %d, unit ID is %d, mission is %S", m_ePlayer, m_iUnitID, GC.getInfo(m_eMission).getDescription());
 }
 
 void CvNetPushMission::Execute()
@@ -879,16 +875,14 @@ void CvNetDoCommand::Execute()
 		CvUnit* pUnit = GET_PLAYER(m_ePlayer).getUnit(m_iUnitID);
 		if (pUnit != NULL)
 		{
-			if (m_bAlt && GC.getCommandInfo(m_eCommand).getAll())
+			if (m_bAlt && GC.getInfo(m_eCommand).getAll())
 			{
-				int iLoop;
-				/* orginal bts code
-				for (CvUnit* pLoopUnit = GET_PLAYER(m_ePlayer).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER(m_ePlayer).nextUnit(&iLoop)) {
+				/*FOR_EACH_UNIT_VAR(pLoopUnit, GET_PLAYER(m_ePlayer)) // BtS
 					if (pLoopUnit->getUnitType() == pUnit->getUnitType())*/
 				/*  UNOFFICIAL_PATCH, Bugfix, 07/08/09, jdog5000: START
 					Have to save type ahead of time, pointer can change */
 				UnitTypes eUpgradeType = pUnit->getUnitType();
-				for (CvUnit* pLoopUnit = GET_PLAYER(m_ePlayer).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER(m_ePlayer).nextUnit(&iLoop))
+				FOR_EACH_UNIT_VAR(pLoopUnit, GET_PLAYER(m_ePlayer))
 				{
 					if (pLoopUnit->getUnitType() == eUpgradeType)
 					// UNOFFICIAL_PATCH: END
@@ -1139,7 +1133,7 @@ void CvNetPing::Execute()
 	{
 		if (GET_PLAYER(m_ePlayer).getTeam() == GC.getGame().getActiveTeam() || GET_TEAM(GC.getGame().getActiveTeam()).isVassal(GET_PLAYER(m_ePlayer).getTeam()) || GET_TEAM(GET_PLAYER(m_ePlayer).getTeam()).isVassal(GC.getGame().getActiveTeam()))
 		{
-			gDLL->getInterfaceIFace()->doPing(m_iX, m_iY, m_ePlayer);
+			gDLL->UI().doPing(m_iX, m_iY, m_ePlayer);
 		}
 	}
 }

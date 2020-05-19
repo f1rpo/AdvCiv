@@ -1,6 +1,5 @@
 #include "CvGameCoreDLL.h"
 #include "CvDLLEntity.h"
-#include "CvDLLEntityIFaceBase.h"
 
 CvDLLEntity::CvDLLEntity() : m_pEntity(NULL)
 {

@@ -277,7 +277,7 @@ class CvTopCivs:
 			interval = (interval * speedAdjustPercent) / 100
 			minTurn = (minTurn * speedAdjustPercent) / 100
 			otherTeamsMet = gc.getTeam(gc.getPlayer(CyGame().getActivePlayer()).getTeam()).getHasMetCivCount(true)
-			otherTeamsTotal = gc.getGame().countCivTeamsEverAlive() - 1
+			otherTeamsTotal = gc.getGame().countCivTeamsAlive() - 1
 			# Subtract 1 from turn num b/c the popup is triggered one turn before it appears. Nicer to have it show up on turn 50 than on turn 51
 			if ((iTurnNum-1) % interval == 0 and iTurnNum+1 >= minTurn and gc.getPlayer(CyGame().getActivePlayer()).isAlive() and otherTeamsTotal > 0 and otherTeamsMet <= otherTeamsTotal / 2):
 				# </advc.038>

@@ -36,28 +36,20 @@ import CvWorldBuilderDiplomacyScreen
 
 import CvDebugTools
 import CvDebugInfoScreen
+import GameFontDisplay # advc.gfd
 #import CvDiplomacy
 
 import CvUtil
-import CvEventInterface
 import CvPopupInterface
 import CvScreenUtilsInterface
 import ScreenInput as PyScreenInput
 from CvScreenEnums import *
 from CvPythonExtensions import *
-
-# BUG - Options - end
-import BugCore
-AdvisorOpt = BugCore.game.Advisors
-CustDomAdvOpt = BugCore.game.CustDomAdv
-TechWindowOpt = BugCore.game.TechWindow
-
 # K-Mod
 import BugOptionsScreen
 def showBugOptionsScreen(argsList=None):
 	BugOptionsScreen.showOptionsScreen()
 # K-Mod end
-# BUG - Options - end
 
 g_bIsScreenActive = -1
 
@@ -71,6 +63,16 @@ def toggleSetScreenOn(argsList):
 	print "%s SCREEN TURNED ON" %(argsList[0],)
 	g_bIsScreenActive = argsList[0]
 
+# BUG - Options - start
+# advc.009b: Renamed from "init"; now called via BugScreenInit.py.
+def initBugAdvisors():
+	createDomesticAdvisor()
+	createFinanceAdvisor()
+	createMilitaryAdvisor()
+	createCivilopedia()
+	createTechSplash()
+# BUG - Options - end
+
 #diplomacyScreen = CvDiplomacy.CvDiplomacy()
 	
 mainInterface = CvMainInterface.CvMainInterface()
@@ -79,6 +81,9 @@ def showMainInterface():
 
 def reinitMainInterface():
 	mainInterface.initState()
+
+def resetEndTurnObjects(): # advc.009b: for onSwitchHotSeatPlayer (BugUtil)
+	mainInterface.resetEndTurnObjects()
 
 def numPlotListButtons():
 	return mainInterface.numPlotListButtons()
@@ -158,7 +163,8 @@ def createDomesticAdvisor():
 		HandleInputMap[DOMESTIC_ADVISOR] = domesticAdvisor
 # BUG - CustDomAdv - end
 
-def showDomesticAdvisor(argsList):
+# advc.003y: Default value for unused param added to simplify calls from the DLL
+def showDomesticAdvisor(argsList=None):
 	if (-1 != CyGame().getActivePlayer()):
 		domesticAdvisor.interfaceScreen()
 
@@ -537,6 +543,7 @@ def WorldBuilderToggleUnitEditCB():
 	worldBuilderScreen.toggleUnitEditCB()
 
 def WorldBuilderAllPlotsCB():
+	import CvEventInterface # advc.009b: Avoid mutual import
 	CvEventInterface.beginEvent(CvUtil.EventWBAllPlotsPopup)
 
 def WorldBuilderEraseCB():
@@ -1152,11 +1159,11 @@ HandleInputMap = {  MAIN_INTERFACE : mainInterface,
 					VICTORY_MOVIE_SCREEN : victoryMovie,
 					ESPIONAGE_ADVISOR : espionageAdvisor,
 					DAN_QUAYLE_SCREEN : danQuayleScreen,
-
 					WORLDBUILDER_SCREEN : worldBuilderScreen,
 					WORLDBUILDER_DIPLOMACY_SCREEN : worldBuilderDiplomacyScreen,
-					
 					DEBUG_INFO_SCREEN : debugInfoScreen,
+					# advc.gfd:
+					GAMEFONT_DISPLAY_SCREEN : GameFontDisplay.GameFontDisplay(),
 				
 				# add new screens here
 				}
@@ -1166,12 +1173,10 @@ HandleInputMap = {  MAIN_INTERFACE : mainInterface,
 #######################################################################################
 HandleNavigationMap = {}
 
-
+# advc.009b: Moved from the start of this file - to maybe avoid errors upon reloading.
 # BUG - Options - start
-def init():
-	createDomesticAdvisor()
-	createFinanceAdvisor()
-	createMilitaryAdvisor()
-	createCivilopedia()
-	createTechSplash()
+import BugCore
+AdvisorOpt = BugCore.game.Advisors
+CustDomAdvOpt = BugCore.game.CustDomAdv
+TechWindowOpt = BugCore.game.TechWindow
 # BUG - Options - end

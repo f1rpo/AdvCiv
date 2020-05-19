@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!--
-	Civ4lerts
+<!--Civ4lerts
 	Options Game Text
 
-	Copyright (c) 2009 The BUG Mod.
--->
+	Copyright (c) 2009 The BUG Mod. -->
+<!-- (advc.210: Help text for optional alerts added by AdvCiv is not here but
+	 in Civ4GameText_advc.xml.) -->
+
 <Civ4GameText xmlns="http://www.firaxis.com">
 
 	<TEXT>

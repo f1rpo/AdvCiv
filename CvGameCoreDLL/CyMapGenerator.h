@@ -16,6 +16,7 @@
 
 class CvMapGenerator;
 class CyPlot;
+
 class CyMapGenerator
 {
 public:

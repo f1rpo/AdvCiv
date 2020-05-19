@@ -1,7 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvMessageControl.h"
 #include "CvMessageData.h"
-#include "CvGameAI.h"
+#include "CvGame.h"
 #include "CvDLLUtilityIFaceBase.h"
 
 CvMessageControl& CvMessageControl::getInstance()
@@ -130,7 +130,7 @@ void CvMessageControl::sendJoinGroup(int iUnitID, int iHeadID)
 }
 
 void CvMessageControl::sendPushMission(int iUnitID, MissionTypes eMission, int iData1, int iData2, int iFlags, bool bShift,
-		bool bModified) // advc.011b
+	bool bModified) // advc.011b
 {
 	if (NO_PLAYER != GC.getGame().getActivePlayer())
 	{

@@ -1,6 +1,8 @@
 #include "CvGameCoreDLL.h"
 #include "CvStatistics.h"
-#include "CvPlayerAI.h"
+#include "CvPlayer.h"
+#include "CvUnit.h"
+#include "CvCity.h"
 
 CvGameRecord::CvGameRecord()
 {

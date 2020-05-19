@@ -1,12 +1,16 @@
 #include "CvGameCoreDLL.h"
 #include "CyGameCoreUtils.h"
-#include "CvGameCoreUtils.h"
-#include "CyPlot.h"
-#include "CyCity.h"
-#include "CyUnit.h"
-/*  advc.make (would be nicer to move the respective functions to the
+/*  <advc.make> (Would be nicer to move the respective functions to the
 	Python interface of CvMap) */
 #include "CvMap.h"
+#include "CvCity.h" // </advc.make>
+// <advc>
+#include "CvTeam.h" // (Would be nicer to expose getEspionageModifier through CyTeam)
+#include "CvPlayer.h" // for getCity, getUnit
+// For functions moved from CvGameCoreUtils to CvInfos
+#include "CvInfo_Unit.h"
+#include "CvInfo_Building.h"
+#include "CvInfo_Terrain.h" // </advc>
 
 int cyIntRange(int iNum, int iLow, int iHigh)
 {
@@ -49,9 +53,10 @@ CyPlot* cyPlotCardinalDirection(int iX, int iY, CardinalDirectionTypes eCardDire
 }
 
 CyPlot* cysPlotCardinalDirection(int iX, int iY, CardinalDirectionTypes eCardDirection)
-{	static CyPlot plot;
-plot.setPlot(plotCardinalDirection(iX, iY, eCardDirection));
-return &plot;
+{
+	static CyPlot plot;
+	plot.setPlot(plotCardinalDirection(iX, iY, eCardDirection));
+	return &plot;
 }
 
 CyPlot* cyPlotXY(int iX, int iY, int iDX, int iDY)
@@ -73,22 +78,23 @@ DirectionTypes cyDirectionXYFromInt(int iDX, int iDY)
 
 DirectionTypes cyDirectionXYFromPlot(CyPlot* pFromPlot, CyPlot* pToPlot)
 {
-	return directionXY(pFromPlot->getPlot(), pToPlot->getPlot());
+	return directionXY(*pFromPlot->getPlot(), *pToPlot->getPlot());
 }
 
 CyPlot* cyPlotCity(int iX, int iY, int iIndex)
 {
-	return new CyPlot(plotCity(iX, iY, iIndex));
+	return new CyPlot(plotCity(iX, iY, (CityPlotTypes)iIndex));
 }
 
 int cyPlotCityXYFromInt(int iDX, int iDY)
 {
-	return plotCityXY(iDX, iDY);
+	return GC.getMap().plotCityXY(iDX, iDY);
 }
 
 int cyPlotCityXYFromCity(CyCity* pCity, CyPlot* pPlot)
 {
-	return plotCityXY(pCity->getCity(), pPlot->getPlot());
+	CvCity const& kCity = *pCity->getCity(); // advc: plotCityXY(CvCity*,CvPlot*) no longer exists
+	return plotCityXY(kCity.getX(), kCity.getY(), *pPlot->getPlot());
 }
 
 CardinalDirectionTypes cyGetOppositeCardinalDirection(CardinalDirectionTypes eCardDirection)
@@ -115,145 +121,133 @@ bool cyAtWar(int /*TeamTypes*/ eTeamA, int /*TeamTypes*/ eTeamB)
 {
 	return atWar((TeamTypes)eTeamA, (TeamTypes)eTeamB);
 }
-
-bool cyIsPotentialEnemy(int /*TeamTypes*/ eOurTeam, int /*TeamTypes*/ eTheirTeam)
+// advc: Now a CvTeamAI function (AI_mayAttack). AI code shouldn't be exposed to Python.
+/*bool cyIsPotentialEnemy(int eOurTeam, int eTheirTeam)
 {
 	return isPotentialEnemy((TeamTypes)eOurTeam, (TeamTypes)eTheirTeam);
-}
+}*/
 
 CyCity* cyGetCity(IDInfo city)
 {
-	return new CyCity(getCity(city));
+	return new CyCity(::getCity(city));
 }
 
 CyUnit* cyGetUnit(IDInfo unit)
 {
-	return new CyUnit(getUnit(unit));
+	return new CyUnit(::getUnit(unit));
 }
+
+// advc: No longer exposed to Python. Tbd. (perhaps): Expose them through CyGame.
+/*int cyGetPopulationAsset(int iPopulation) {
+	return getPopulationAsset(iPopulation);
+}
+int cyGetLandPlotsAsset(int iLandPlots) {
+	return getLandPlotsAsset(iLandPlots);
+}
+int cyGetPopulationPower(int iPopulation) {
+	return getPopulationPower(iPopulation);
+}
+int cyGetPopulationScore(int iPopulation) {
+	return getPopulationScore(iPopulation);
+}
+int cyGetLandPlotsScore(int iPopulation) {
+	return getLandPlotsScore(iPopulation);
+}
+int cyGetTechScore(int eTech) {
+	return getTechScore((TechTypes)eTech);
+}
+int cyGetWonderScore(int eWonderClass) {
+	return getWonderScore((BuildingClassTypes)eWonderClass);
+}*/
 
 bool cyIsPromotionValid(int /*PromotionTypes*/ ePromotion, int /*UnitTypes*/ eUnit, bool bLeader)
 {
-	return isPromotionValid((PromotionTypes) ePromotion, (UnitTypes) eUnit, bLeader);
-}
-
-int cyGetPopulationAsset(int iPopulation)
-{
-	return getPopulationAsset(iPopulation);
-}
-
-int cyGetLandPlotsAsset(int iLandPlots)
-{
-	return getLandPlotsAsset(iLandPlots);
-}
-
-int cyGetPopulationPower(int iPopulation)
-{
-	return getPopulationPower(iPopulation);
-}
-
-int cyGetPopulationScore(int iPopulation)
-{
-	return getPopulationScore(iPopulation);
-}
-
-int cyGetLandPlotsScore(int iPopulation)
-{
-	return getLandPlotsScore(iPopulation);
-}
-
-int cyGetTechScore(int /*TechTypes*/ eTech)
-{
-	return getTechScore((TechTypes)eTech);
-}
-
-int cyGetWonderScore(int /*BuildingClassTypes*/ eWonderClass)
-{
-	return getWonderScore((BuildingClassTypes)eWonderClass);
+	return GC.getInfo((UnitTypes)eUnit).isPromotionValid((PromotionTypes)ePromotion, bLeader);
 }
 
 int /*ImprovementTypes*/ cyFinalImprovementUpgrade(int /*ImprovementTypes*/ eImprovement)
 {
-	return finalImprovementUpgrade((ImprovementTypes) eImprovement);
+	return CvImprovementInfo::finalUpgrade((ImprovementTypes)eImprovement);
 }
 
-int cyGetWorldSizeMaxConscript(int /*CivicTypes*/ eCivic)
-{
+/*int cyGetWorldSizeMaxConscript(int eCivic) {
 	return getWorldSizeMaxConscript((CivicTypes) eCivic);
-}
+}*/ // advc: No longer exposed to Python
 
 bool cyIsReligionTech(int /*TechTypes*/ eTech)
 {
-	return isReligionTech((TechTypes) eTech);
+	return CvReligionInfo::isReligionTech((TechTypes) eTech);
 }
 
 bool cyIsTechRequiredForUnit(int /*TechTypes*/ eTech, int /*UnitTypes*/ eUnit)
 {
-	return isTechRequiredForUnit((TechTypes)eTech, (UnitTypes)eUnit);
+	return GC.getInfo((UnitTypes)eUnit).isTechRequired((TechTypes)eTech);
 }
 
 bool cyIsTechRequiredForBuilding(int /*TechTypes*/ eTech, int /*BuildingTypes*/ eBuilding)
 {
-	return isTechRequiredForBuilding((TechTypes)eTech, (BuildingTypes)eBuilding);
+	return GC.getInfo((BuildingTypes)eBuilding).isTechRequired((TechTypes)eTech);
 }
 
 bool cyIsTechRequiredForProject(int /*TechTypes*/ eTech, int /*ProjectTypes*/ eProject)
 {
-	return isTechRequiredForProject((TechTypes)eTech, (ProjectTypes)eProject);
+	// advc.003w: Global isTechRequiredForProject function no longer exists
+	return (GC.getInfo((ProjectTypes)eProject).getTechPrereq() == eTech);
 }
 
 bool cyIsWorldUnitClass(int /*UnitClassTypes*/ eUnitClass)
 {
-	return isWorldUnitClass((UnitClassTypes)eUnitClass);
+	return GC.getInfo((UnitClassTypes)eUnitClass).isWorldUnit();
 }
 
 bool cyIsTeamUnitClass(int /*UnitClassTypes*/ eUnitClass)
 {
-	return isTeamUnitClass((UnitClassTypes)eUnitClass);
+	return GC.getInfo((UnitClassTypes)eUnitClass).isTeamUnit();
 }
 
 bool cyIsNationalUnitClass(int /*UnitClassTypes*/ eUnitClass)
 {
-	return isNationalUnitClass((UnitClassTypes)eUnitClass);
+	return GC.getInfo((UnitClassTypes)eUnitClass).isNationalUnit();
 }
 
 bool cyIsLimitedUnitClass(int /*UnitClassTypes*/ eUnitClass)
 {
-	return isLimitedUnitClass((UnitClassTypes)eUnitClass);
+	return GC.getInfo((UnitClassTypes)eUnitClass).isLimited();
 }
 
 bool cyIsWorldWonderClass(int /*BuildingClassTypes*/ eBuildingClass)
 {
-	return isWorldWonderClass((BuildingClassTypes)eBuildingClass);
+	return GC.getInfo((BuildingClassTypes)eBuildingClass).isWorldWonder();
 }
 
 bool cyIsTeamWonderClass(int /*BuildingClassTypes*/ eBuildingClass)
 {
-	return isTeamWonderClass((BuildingClassTypes)eBuildingClass);
+	return GC.getInfo((BuildingClassTypes)eBuildingClass).isTeamWonder();
 }
 
 bool cyIsNationalWonderClass(int /*BuildingClassTypes*/ eBuildingClass)
 {
-	return isNationalWonderClass((BuildingClassTypes)eBuildingClass);
+	return GC.getInfo((BuildingClassTypes)eBuildingClass).isNationalWonder();
 }
 
 bool cyIsLimitedWonderClass(int /*BuildingClassTypes*/ eBuildingClass)
 {
-	return isLimitedWonderClass((BuildingClassTypes)eBuildingClass);
+	return GC.getInfo((BuildingClassTypes)eBuildingClass).isLimited();
 }
 
 bool cyIsWorldProject(int /*ProjectTypes*/ eProject)
 {
-	return isWorldProject((ProjectTypes)eProject);
+	return GC.getInfo((ProjectTypes)eProject).isWorldProject();
 }
 
 bool cyIsTeamProject(int /*ProjectTypes*/ eProject)
 {
-	return isTeamProject((ProjectTypes)eProject);
+	return GC.getInfo((ProjectTypes)eProject).isTeamProject();
 }
 
 bool cyIsLimitedProject(int /*ProjectTypes*/ eProject)
 {
-	return isLimitedProject((ProjectTypes)eProject);
+	return GC.getInfo((ProjectTypes)eProject).isLimited();
 }
 
 int cyGetCombatOdds(CyUnit* pAttacker, CyUnit* pDefender)
@@ -263,6 +257,6 @@ int cyGetCombatOdds(CyUnit* pAttacker, CyUnit* pDefender)
 
 int cyGetEspionageModifier(int iOurTeam, int iTargetTeam)
 {
-	return getEspionageModifier((TeamTypes)iOurTeam, (TeamTypes)iTargetTeam);
+	return CvTeam::getTeam((TeamTypes)iOurTeam).getEspionageModifier((TeamTypes)iTargetTeam);
 }
 

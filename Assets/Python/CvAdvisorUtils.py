@@ -440,7 +440,8 @@ def endTurnFeats(iPlayer):
 						
 						szFounder = u""
 						for iUnit in range(gc.getNumUnitInfos()):
-							if gc.getUnitInfo(iUnit).getBuildings(iI) or gc.getUnitInfo(iUnit).getForceBuildings(iI):
+							# advc.003t:
+							if gc.getUnitInfo(iUnit).getBuildings(iI):# or gc.getUnitInfo(iUnit).getForceBuildings(iI):
 								szFounder = gc.getUnitInfo(iUnit).getTextKey()
 								break
 						

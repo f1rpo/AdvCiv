@@ -7,7 +7,7 @@
 
 void CyGameTextMgrInterface()
 {
-	OutputDebugString("Python Extension Module - CyTextMgr\n");
+	printToConsole("Python Extension Module - CyTextMgr\n");
 
 	python::class_<CyGameTextMgr>("CyGameTextMgr")
 		.def("isNone", &CyGameTextMgr::isNone, "bool () - Checks to see if pointer points to a real object")

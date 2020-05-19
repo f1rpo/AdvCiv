@@ -6,21 +6,20 @@
 // Python wrapper class for CvCity
 //
 
-#include <string>
-# include <boost/python/tuple.hpp>
-namespace python = boost::python;
-
 struct OrderData;
 class CvCity;
 class CyPlot;
 class CyArea;
 class CyUnit;
+
 class CyCity
 {
 public:
 	CyCity();
-	DllExport CyCity(CvCity* pCity);		// Call from C++
-	CvCity* getCity() { return m_pCity;	}	// Call from C++
+	DllExport CyCity(CvCity* pCity); // Call from C++
+	CyCity(CvCityAI* pCity); // advc.003u
+	CyCity(CvCity const& kCity); // advc.003y
+	CvCity* getCity(); // Call from C++  // advc.003u: Definition moved to CyCity.cpp
 	bool isNone() { return (m_pCity==NULL); }
 	void kill();
 
@@ -71,7 +70,7 @@ public:
 	int /*ProcessTypes*/ getProductionProcess();
 	std::wstring getProductionName();
 	std::wstring getProductionNameKey();
-	int getGeneralProductionTurnsLeft();
+	//int getGeneralProductionTurnsLeft(); // advc: redundant
 	bool isFoodProduction();
 	int getFirstUnitOrder(int /*UnitTypes*/ eUnit);
 	int getFirstProjectOrder(int /*ProjectTypes*/ eProject);
@@ -96,6 +95,7 @@ public:
 
 	bool canHurry(int /*HurryTypes*/ iHurry, bool bTestVisible);
 	void hurry(int /*HurryTypes*/ iHurry);
+	int minPlotProduction(); // advc.064b
 	// advc.064:
 	int getHurryOverflow(int /*HurryTypes*/ iHurry, bool bProduction, bool bIncludeCurrent);
 	int /*UnitTypes*/ getConscriptUnit();
@@ -160,6 +160,8 @@ public:
 	int cultureDistance(int iDX, int iDY);
 	int cultureStrength(int /*PlayerTypes*/ ePlayer);
 	int cultureGarrison(int /*PlayerTypes*/ ePlayer);
+	float revoltProbability(); // advc.ctr
+	bool canCultureFlip(); // advc.ctr
 	int getNumBuilding(int /*BuildingTypes*/ iIndex);
 	bool isHasBuilding(int /*BuildingTypes*/ iIndex);		// This is a function to help modders out, since it was replaced with getNumBuildings() in the C++
 	int getNumActiveBuilding(int /*BuildingTypes*/ iIndex);
@@ -171,7 +173,6 @@ public:
 	CyPlot* plot();
 	bool isConnectedTo(CyCity* pCity);
 	bool isConnectedToCapital(int /*PlayerTypes*/ ePlayer);
-	int getArea(); // advc.003
 	CyArea* area();
 	CyArea* waterArea();
 	CyPlot* getRallyPlot();
@@ -329,6 +330,7 @@ public:
 	int /*PlayerTypes*/getPreviousOwner();
 	int /*PlayerTypes*/getOriginalOwner();
 	int /*CultureLevelTypes*/ getCultureLevel();
+	int getNumPartisanUnits(int /*PlayerTypes*/ ePartisanPlayer); // advc.003y
 	int getCultureThreshold();
 	int getSeaPlotYield(int /*YieldTypes*/ eIndex);
 	int getRiverPlotYield(int /*YieldTypes*/ eIndex);
@@ -487,7 +489,7 @@ public:
 	void setScriptData(std::string szNewValue);
 
 private:
-	CvCity* m_pCity;
+	CvCityAI* m_pCity; // advc.003u: was CvCity*
 };
 
 #endif	// CyCity_h

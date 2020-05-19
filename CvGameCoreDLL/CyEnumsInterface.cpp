@@ -11,7 +11,7 @@
 
 void CyEnumsPythonInterface()
 {
-	OutputDebugString("Python Extension Module - CyEnumsPythonInterface\n");
+	printToConsole("Python Extension Module - CyEnumsPythonInterface\n");
 
 	python::enum_<GameStateTypes>("GameStateTypes")
 		.value("GAMESTATE_ON", GAMESTATE_ON)
@@ -77,7 +77,7 @@ void CyEnumsPythonInterface()
 		;
 
 	python::enum_<PlotStyles>("PlotStyles")
-		.value("PLOT_STYLE_NONE", PLOT_STYLE_NONE)
+		.value("PLOT_STYLE_NONE", NO_PLOT_STYLE) // advc.enum
 		.value("PLOT_STYLE_NUMPAD_1", PLOT_STYLE_NUMPAD_1)
 		.value("PLOT_STYLE_NUMPAD_2", PLOT_STYLE_NUMPAD_2)
 		.value("PLOT_STYLE_NUMPAD_3", PLOT_STYLE_NUMPAD_3)
@@ -423,6 +423,7 @@ void CyEnumsPythonInterface()
 		.value("WIDGET_POWER_RATIO", WIDGET_POWER_RATIO)
 		.value("WIDGET_GOLDEN_AGE", WIDGET_GOLDEN_AGE)
 		.value("WIDGET_ANARCHY", WIDGET_ANARCHY) // </advc.085>
+		.value("WIDGET_CITY_TRADE", WIDGET_CITY_TRADE) // advc.ctr
 		.value("NUM_WIDGET_TYPES", NUM_WIDGET_TYPES)
 		;
 	/*  K-Mod, 5/jan/11, karadoc
@@ -497,7 +498,10 @@ void CyEnumsPythonInterface()
 		.value("WORLDSIZE_STANDARD", WORLDSIZE_STANDARD)
 		.value("WORLDSIZE_LARGE", WORLDSIZE_LARGE)
 		.value("WORLDSIZE_HUGE", WORLDSIZE_HUGE)
-		.value("NUM_WORLDSIZE_TYPES", NUM_WORLDSIZE_TYPES)
+		/*  advc.enum: Don't assume that all sizes are hardcoded.
+			NUM_WORLDSIZE_TYPES is unused in AdvCiv/BtS Python. If it's needed
+			in a mod-mod, one could use WORLDSIZE_HUGE+1. */
+		//.value("NUM_WORLDSIZE_TYPES", NUM_WORLDSIZE_TYPES)
 		;
 
 	python::enum_<TerrainTypes>("TerrainTypes")
@@ -670,10 +674,10 @@ void CyEnumsPythonInterface()
 	python::enum_<RouteTypes>("RouteTypes")
 		.value("NO_ROUTE", NO_ROUTE)
 		;
-
-	python::enum_<RiverTypes>("RiverTypes")
+	// advc.003j: unused
+	/*python::enum_<RiverTypes>("RiverTypes")
 		.value("NO_RIVER", NO_RIVER)
-		;
+		;*/
 
 	python::enum_<GoodyTypes>("GoodyTypes")
 		.value("NO_GOODY", NO_GOODY)
@@ -774,7 +778,7 @@ void CyEnumsPythonInterface()
 		.value("VOICETARGET_DIPLO", VOICETARGET_DIPLO)
 		.value("VOICETARGET_TEAM", VOICETARGET_TEAM)
 		.value("VOICETARGET_ALL", VOICETARGET_ALL)
-		.value("NUM_VOICETARGETS", NUM_VOICETARGETS)
+		.value("NUM_VOICETARGETS", NUM_VOICETARGET_TYPES) // advc.enum
 		;
 
 	python::enum_<TeamTypes>("TeamTypes")
@@ -814,7 +818,7 @@ void CyEnumsPythonInterface()
 		.value("TASK_RALLY_PLOT", TASK_RALLY_PLOT)
 		.value("TASK_CLEAR_RALLY_PLOT", TASK_CLEAR_RALLY_PLOT)
 		.value("TASK_LIBERATE", TASK_LIBERATE)
-		.value("TASK_CEDE", TASK_CEDE) // advc.122
+		.value("TASK_CEDE", TASK_CEDE) // advc.ctr
 		.value("NUM_TASK_TYPES", NUM_TASK_TYPES)
 		;
 
@@ -1287,7 +1291,7 @@ void CyEnumsPythonInterface()
 		;
 
 	python::enum_<EntityEventTypes>("EntityEventTypes")
-		.value( "ENTITY_EVENT_NONE", ENTITY_EVENT_NONE )
+		.value( "NO_ENTITY_EVENT_NONE", NO_ENTITYEVENT )
 		;
 
 	python::enum_<AnimationPathTypes>("AnimationPathTypes")
@@ -1315,7 +1319,7 @@ void CyEnumsPythonInterface()
 		;
 
 	python::enum_<AnimationCategoryTypes>("AnimationCategoryTypes")
-		.value("ANIMCAT_NONE", ANIMCAT_NONE)
+		.value("ANIMCAT_NONE", NO_ANIMCAT)
 		;
 
 	python::enum_<CursorTypes>("CursorTypes")

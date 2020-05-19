@@ -34,7 +34,7 @@
 			<Type>GAMEOPTION_NO_FLIPPING_AFTER_CONQUEST</Type>
 			<Description>TXT_KEY_GAME_OPTION_FLIPPING_AFTER_CONQUEST</Description>
 			<Help>TXT_KEY_GAME_OPTION_FLIPPING_AFTER_CONQUEST_HELP</Help>
-			<bDefault>1</bDefault>
+			<bDefault>0</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
 		<GameOptionInfo>
@@ -65,7 +65,7 @@
 			<bDefault>0</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
-		<!-- advc.003: According to DarkLunaPhantom, this option has to remain
+		<!-- advc: According to DarkLunaPhantom, this option has to remain
 			 in the eighth position.
 			 https://github.com/DarkLunaPhantom/Civ4-K-Mod/commit/908160ecea97d427cc24736fb4fb1e1b51f282f3 -->
 		<GameOptionInfo>

@@ -1,15 +1,14 @@
-// <advc.104> New class; see WarEvaluator.h for description.
+// advc.104: New class; see WarEvaluator.h for description.
 
 #include "CvGameCoreDLL.h"
 #include "WarEvaluator.h"
-#include "WarAndPeaceAgent.h"
+#include "UWAIAgent.h"
 #include "WarUtilityAspect.h"
 #include "MilitaryAnalyst.h"
-#include "WarAndPeaceReport.h"
+#include "UWAIReport.h"
 #include "WarEvalParameters.h"
-#include "CvGamePlay.h"
-
-#include <sstream>
+#include "CoreAI.h"
+#include "CvInfo_GameOption.h"
 
 using std::vector;
 using std::string;
@@ -58,8 +57,6 @@ WarEvaluator::WarEvaluator(WarEvalParameters& warEvalParams, bool useCache) :
 	params(warEvalParams), report(params.getReport()),
 	agentId(params.agentId()), targetId(params.targetId()),
 	agent(GET_TEAM(agentId)), target(GET_TEAM(targetId)),
-	agentTeam(agent.warAndPeaceAI().teamMembers()),
-	targetTeam(target.warAndPeaceAI().teamMembers()),
 	useCache(useCache) {
 
 	static bool bInitCache = true;
@@ -72,12 +69,9 @@ WarEvaluator::WarEvaluator(WarEvalParameters& warEvalParams, bool useCache) :
 		bInitCache = false;
 	}
 
-	FAssertMsg(agentId != targetId, "Considering war against own team");
-	// Second condition already detected above
+	FAssert(agentId != targetId);
 	FAssert(!target.isAVassal());
 	FAssert(agent.isHasMet(targetId));
-	FAssert(!agentTeam.empty());
-	FAssert(!targetTeam.empty());
 
 	peaceScenario = false;
 }
@@ -94,17 +88,18 @@ void WarEvaluator::reportPreamble() {
 			report.teamName(agentId), agent.isHuman() ? " (human)" : "",
 			report.teamName(targetId), target.isHuman() ? " (human)" : "");
 	report.log("");
-	for(size_t i = 0; i < std::max(agentTeam.size(), targetTeam.size()); i++) {
+	for(MemberIter agentIt(agentId), targetIt(targetId); agentIt.hasNext() || targetIt.hasNext();
+			++agentIt, ++targetIt) {
 		ostringstream os;
-		os << "| " << (i < agentTeam.size()
-				? report.leaderName(agentTeam[i], 16)
+		os << "| " << (agentIt.hasNext()
+				? report.leaderName(agentIt->getID(), 16)
 				: "");
 		string msg = os.str().substr(0, 17);
 		msg += " |";
 		while(msg.length() < 20)
 			msg += " ";
-		if(i < targetTeam.size())
-			msg += report.leaderName(targetTeam[i], 16);
+		if(targetIt.hasNext())
+			msg += report.leaderName(targetIt->getID(), 16);
 		msg += "|\n";
 		report.log(msg.c_str());
 	}
@@ -150,16 +145,16 @@ int WarEvaluator::defaultPreparationTime(WarPlanTypes wp) {
 	int baseTime = -1;
 	if(params.isTotal()) {
 		if(params.isNaval())
-			baseTime = WarAndPeaceAI::preparationTimeTotalNaval;
-		else baseTime = WarAndPeaceAI::preparationTimeTotal;
+			baseTime = UWAI::preparationTimeTotalNaval;
+		else baseTime = UWAI::preparationTimeTotal;
 	}
 	else {
 		if(params.isNaval())
-			baseTime = WarAndPeaceAI::preparationTimeLimitedNaval;
-		else baseTime = WarAndPeaceAI::preparationTimeLimited;
+			baseTime = UWAI::preparationTimeLimitedNaval;
+		else baseTime = UWAI::preparationTimeLimited;
 	}
 	int r = std::max(baseTime - age, 0);
-	r *= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getTrainPercent();
+	r *= GC.getInfo(GC.getGame().getGameSpeedType()).getTrainPercent();
 	r = ::round(r / 100.0);
 	return r;
 }
@@ -193,10 +188,8 @@ int WarEvaluator::evaluate(WarPlanTypes wp, int preparationTime) {
 		could also already have cargo ships e.g. from earlier wars.
 		(BtS/K-Mod only considers total naval war.) */
 	bool skipNaval = true;
-	vector<PlayerTypes>& agentTeam = agent.warAndPeaceAI().teamMembers();
-	for(size_t i = 0; i < agentTeam.size(); i++) {
-		if(GET_PLAYER(agentTeam[i]).AI_totalUnitAIs(UNITAI_ASSAULT_SEA) +
-				GET_PLAYER(agentTeam[i]).AI_totalUnitAIs(UNITAI_SETTLER_SEA) > 0)
+	for(MemberIter it(agentId); it.hasNext(); ++it) {
+		if(it->AI_totalUnitAIs(UNITAI_ASSAULT_SEA) + it->AI_totalUnitAIs(UNITAI_SETTLER_SEA) > 0)
 			skipNaval = false;
 	}
 	/*  If the report isn't mute anyway, and we're doing two runs, rather than
@@ -261,8 +254,8 @@ int WarEvaluator::evaluate(WarPlanTypes wp, bool isNaval, int preparationTime) {
 	}
 	vector<WarUtilityAspect*> aspects;
 	fillWithAspects(aspects);
-	for(size_t i = 0; i < agentTeam.size(); i++)
-		evaluate(agentTeam[i], aspects);
+	for(MemberIter it(agentId); it.hasNext(); ++it)
+		evaluate(it->getID(), aspects);
 	for(size_t i = 0; i < aspects.size(); i++) {
 		int delta = aspects[i]->utility();
 		u += delta;
@@ -302,6 +295,7 @@ void WarEvaluator::fillWithAspects(vector<WarUtilityAspect*>& v) {
 	v.push_back(new Assistance(params));
 	v.push_back(new Reconquista(params));
 	v.push_back(new Rebuke(params));
+	v.push_back(new Fidelity(params));
 	v.push_back(new HiredHand(params));
 	v.push_back(new BorderDisputes(params));
 	v.push_back(new SuckingUp(params));
@@ -319,14 +313,16 @@ void WarEvaluator::fillWithAspects(vector<WarUtilityAspect*>& v) {
 	v.push_back(new TacticalSituation(params));
 	v.push_back(new Bellicosity(params));
 	v.push_back(new FairPlay(params));
+	v.push_back(new LoveOfPeace(params));
+	FAssert(UWAI::NUM_ASPECTS - (params.isIgnoreDistraction() ? 1 : 0) == (int)v.size());
 }
 
 void WarEvaluator::evaluate(PlayerTypes weId, vector<WarUtilityAspect*>& aspects) {
 
 	MilitaryAnalyst m(weId, params, peaceScenario);
-	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-		PlayerTypes civId = getWPAI.properCivs()[i];
-		if(!TEAMREF(civId).isCapitulated() && TEAMREF(civId).isHasMet(agentId))
+	for(PlayerIter<MAJOR_CIV,KNOWN_TO> it(agentId); it.hasNext(); ++it) {
+		PlayerTypes civId = it->getID();
+		if(!GET_TEAM(civId).isCapitulated())
 			m.logResults(civId);
 	}
 	report.log("\nh4.\nComputing utility of %s\n", report.leaderName(weId, 16));
@@ -335,5 +331,3 @@ void WarEvaluator::evaluate(PlayerTypes weId, vector<WarUtilityAspect*>& aspects
 		ourUtility += aspects[i]->evaluate(m);
 	report.log("--\nTotal utility for %s: %d", report.leaderName(weId, 16), ourUtility);
 }
-
-// </advc.104>

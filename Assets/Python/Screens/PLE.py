@@ -849,10 +849,11 @@ class PLE:
 	############## base functions to calculate/transform the number of objects dependent on the screen resolution ######################
 
 	def getMaxCol(self):
-		return ((self.xResolution - (iMultiListXL+iMultiListXR) - 68) / 34)
+		return (self.xResolution - (iMultiListXL+iMultiListXR) - 68) / 34
 		
 	def getMaxRow(self):
-		return ((self.yResolution - 160) / PleOpt.getVerticalSpacing()) 
+		# advc: max added (though it shouldn't normally matter)
+		return (self.yResolution - 160) / max(1, PleOpt.getVerticalSpacing())
 		
 	def getRow(self, i):
 		return i / self.getMaxCol()
@@ -1861,9 +1862,8 @@ class PLE:
 			pOwner = gc.getPlayer(pUnit.getOwner())
 			szOwner = pOwner.getName()
 			#szOwner = localText.changeTextColor(szOwner, pOwner.getPlayerColor())
-			# <advc.069> ^Doesn't seem to be the proper use of changeTextColor. Tagging advc.001.
+			# advc.069: ^Doesn't seem to be the proper use of changeTextColor. Tagging advc.001.
 			szOwner = u"<color=%d,%d,%d,%d>%s</color>" % (pOwner.getPlayerTextColorR(), pOwner.getPlayerTextColorG(), pOwner.getPlayerTextColorB(), pOwner.getPlayerTextColorA(), szOwner)
-			# </advc.069>
 			szOwner = u"<font=2> [" + szOwner + u"]</font>"
 		else:
 			szOwner = u""
@@ -2186,7 +2186,7 @@ class PLE:
 			# is unit led by a GG?
 			#iLeaderPromo = gc.getInfoTypeForString('PROMOTION_LEADER')
 			#if (iLeaderPromo != -1 and pLoopUnit.isHasPromotion(iLeaderPromo)):
-			# advc.003: Replacing the above
+			# advc: Replacing the above
 			if pLoopUnit.getLeaderUnitType() >= 0:
 				szDotState += "_GG"
 				xSize = 16

@@ -47,34 +47,46 @@ class CvEventManager:
 		self.EventForward=5
 		self.EventKeyDown=6
 		self.EventKeyUp=7
-	
-		self.__LOG_MOVEMENT = 0
-		self.__LOG_BUILDING = 0
-		self.__LOG_COMBAT = 0
-		self.__LOG_CONTACT = 0
-		self.__LOG_IMPROVEMENT = 0
-		self.__LOG_CITYLOST = 0
-		self.__LOG_CITYBUILDING = 0
-		# <advc.007>
-		self.__LOG_CITY_CULTURE = 0
-		self.__LOG_CITY_GROWTH = 0
-		self.__LOG_SAVING = 0
+
+		# <advc.007> Master switch
+		self.__LOG_ALL = 0
+		b = 0
+		if self.__LOG_ALL:
+			b = 1
 		# </advc.007>
-		self.__LOG_TECH = 0
-		self.__LOG_UNITBUILD = 0
-		self.__LOG_UNITKILLED = 0 # advc.007: was 1
-		self.__LOG_UNITLOST = 0
-		self.__LOG_UNITPROMOTED = 0
-		self.__LOG_UNITSELECTED = 0
-		self.__LOG_UNITPILLAGE = 0
-		self.__LOG_GOODYRECEIVED = 0
-		self.__LOG_GREATPERSON = 0
-		self.__LOG_RELIGION = 0
-		self.__LOG_RELIGIONSPREAD = 0
-		self.__LOG_GOLDENAGE = 0
-		self.__LOG_ENDGOLDENAGE = 0
-		self.__LOG_WARPEACE = 0
-		self.__LOG_PUSH_MISSION = 0
+		self.__LOG_MOVEMENT = b
+		self.__LOG_BUILDING = b
+		self.__LOG_COMBAT = b
+		self.__LOG_CONTACT = b
+		self.__LOG_IMPROVEMENT = b
+		self.__LOG_PLOTPICKED = b # advc.007
+		self.__LOG_NUKEEXPLOSION = b # advc.007
+		self.__LOG_CITYLOST = b
+		self.__LOG_CITYBUILDING = b
+		# <advc.007>
+		self.__LOG_CITY_CULTURE = b
+		self.__LOG_CITY_GROWTH = b
+		self.__LOG_SAVING = b
+		# </advc.007>
+		self.__LOG_TECH = b
+		self.__LOG_UNITBUILD = b
+		self.__LOG_UNITKILLED = b
+		self.__LOG_UNITLOST = b
+		self.__LOG_UNITPROMOTED = b
+		self.__LOG_UNITSELECTED = b
+		self.__LOG_UNITPILLAGE = b
+		self.__LOG_GOODYRECEIVED = b
+		self.__LOG_GREATPERSON = b
+		self.__LOG_RELIGION = b
+		self.__LOG_RELIGIONSPREAD = b
+		self.__LOG_GOLDENAGE = b
+		self.__LOG_ENDGOLDENAGE = b
+		self.__LOG_WARPEACE = b
+		self.__LOG_CITYBUILT = b # advc.007
+		self.__LOG_CITYACQUIRED = b # advc.007
+		self.__LOG_PUSH_MISSION = b
+
+		#self.__LOG_UNITKILLED = 1 # advc.007
 		
 		## EVENTLIST
 		self.EventHandlerMap = {
@@ -222,70 +234,7 @@ class CvEventManager:
 #################### ON EVENTS ######################
 	def onKbdEvent(self, argsList):
 		'keypress handler - return 1 if the event was consumed'
-
-		eventType,key,mx,my,px,py = argsList
-		game = gc.getGame()
-		
-		if (self.bAllowCheats):
-			# notify debug tools of input to allow it to override the control
-			argsList = (eventType,key,self.bCtrl,self.bShift,self.bAlt,mx,my,px,py,gc.getGame().isNetworkMultiPlayer())
-			if ( CvDebugTools.g_CvDebugTools.notifyInput(argsList) ):
-				return 0
-		
-		if ( eventType == self.EventKeyDown ):
-			theKey=int(key)
-			
-			CvCameraControls.g_CameraControls.handleInput( theKey )
-						
-			if (self.bAllowCheats):
-				# Shift - T (Debug - No MP)
-				if (theKey == int(InputTypes.KB_T)):
-					if ( self.bShift ):
-						self.beginEvent(CvUtil.EventAwardTechsAndGold)
-						#self.beginEvent(CvUtil.EventCameraControlPopup)
-						return 1
-							
-				elif (theKey == int(InputTypes.KB_W)):
-					if ( self.bShift and self.bCtrl):
-						self.beginEvent(CvUtil.EventShowWonder)
-						return 1
-							
-				# Shift - ] (Debug - currently mouse-overd unit, health += 10
-				elif (theKey == int(InputTypes.KB_LBRACKET) and self.bShift ):
-					unit = CyMap().plot(px, py).getUnit(0)
-					if ( not unit.isNone() ):
-						d = min( unit.maxHitPoints()-1, unit.getDamage() + 10 )
-						unit.setDamage( d, PlayerTypes.NO_PLAYER )
-					
-				# Shift - [ (Debug - currently mouse-overd unit, health -= 10
-				elif (theKey == int(InputTypes.KB_RBRACKET) and self.bShift ):
-					unit = CyMap().plot(px, py).getUnit(0)
-					if ( not unit.isNone() ):
-						d = max( 0, unit.getDamage() - 10 )
-						unit.setDamage( d, PlayerTypes.NO_PLAYER )
-					
-				elif (theKey == int(InputTypes.KB_F1)):
-					if ( self.bShift ):
-						CvScreensInterface.replayScreen.showScreen(False)
-						return 1
-					# don't return 1 unless you want the input consumed
-				
-				elif (theKey == int(InputTypes.KB_F2)):
-					if ( self.bShift ):
-						import CvDebugInfoScreen
-						CvScreensInterface.showDebugInfoScreen()
-						return 1
-				
-				elif (theKey == int(InputTypes.KB_F3)):
-					if ( self.bShift ):
-						CvScreensInterface.showDanQuayleScreen(())
-						return 1
-						
-				elif (theKey == int(InputTypes.KB_F4)):
-					if ( self.bShift ):
-						CvScreensInterface.showUnVictoryScreen(())
-						return 1
-											
+		# advc.007b: Body (mostly cheat commands) deleted; keyboard input is handled by BugEventManager.py.
 		return 0
 
 	def onModNetMessage(self, argsList):
@@ -495,12 +444,18 @@ class CvEventManager:
 	def onPlotPicked(self, argsList):
 		'Plot Picked'
 		pPlot = argsList[0]
+		# <advc.007>
+		if (not self.__LOG_PLOTPICKED):
+			return # </advc.007>
 		CvUtil.pyPrint('Plot was picked at %d, %d'
 			%(pPlot.getX(), pPlot.getY()))
 
 	def onNukeExplosion(self, argsList):
 		'Nuke Explosion'
 		pPlot, pNukeUnit = argsList
+		# <advc.007>
+		if (not self.__LOG_NUKEEXPLOSION):
+			return # </advc.007>
 		CvUtil.pyPrint('Nuke detonated at %d, %d'
 			%(pPlot.getX(), pPlot.getY()))
 
@@ -830,34 +785,38 @@ class CvEventManager:
 		'City Built'
 		city = argsList[0]
 		if (city.getOwner() == gc.getGame().getActivePlayer()):
-			self.__eventEditCityNameBegin(city, False)	
+			self.__eventEditCityNameBegin(city, False)
+		# <advc.007>
+		if (not self.__LOG_CITYBUILT):
+			return # </advc.007>
 		CvUtil.pyPrint('City Built Event: %s' %(city.getName()))
 		
 	def onCityRazed(self, argsList):
 		'City Razed'
 		city, iPlayer = argsList
-		iOwner = city.findHighestCulture()
-		
+		#iOwner = city.findHighestCulture()
 		# Partisans!
-		if city.getPopulation > 1 and iOwner != -1 and iPlayer != -1:
-			owner = gc.getPlayer(iOwner)
-			if not owner.isBarbarian() and owner.getNumCities() > 0:
-				if gc.getTeam(owner.getTeam()).isAtWar(gc.getPlayer(iPlayer).getTeam()):
-					if gc.getNumEventTriggerInfos() > 0: # prevents mods that don't have events from getting an error
-						iEvent = CvUtil.findInfoTypeNum(gc.getEventTriggerInfo, gc.getNumEventTriggerInfos(),'EVENTTRIGGER_PARTISANS')
-						if iEvent != -1 and gc.getGame().isEventActive(iEvent) and owner.getEventTriggerWeight(iEvent) < 0:
-							triggerData = owner.initTriggeredData(iEvent, true, -1, city.getX(), city.getY(), iPlayer, city.getID(), -1, -1, -1, -1)
-			
+		# advc.003y: Code deleted; reimplemented in the DLL (cf. CvCity::doPartisans).
+
+		# <advc.007>
+		if (not self.__LOG_CITYACQUIRED):
+			return # </advc.007>
 		CvUtil.pyPrint("City Razed Event: %s" %(city.getName(),))
 	
 	def onCityAcquired(self, argsList):
 		'City Acquired'
 		iPreviousOwner,iNewOwner,pCity,bConquest,bTrade = argsList
+		# <advc.007>
+		if (not self.__LOG_CITYACQUIRED):
+			return # </advc.007>
 		CvUtil.pyPrint('City Acquired Event: %s' %(pCity.getName()))
 	
 	def onCityAcquiredAndKept(self, argsList):
 		'City Acquired and Kept'
 		iOwner,pCity = argsList
+		# <advc.007>
+		if (not self.__LOG_CITYACQUIRED):
+			return # </advc.007>
 		CvUtil.pyPrint('City Acquired and Kept Event: %s' %(pCity.getName()))
 	
 	def onCityLost(self, argsList):

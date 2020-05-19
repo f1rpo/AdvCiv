@@ -21,12 +21,12 @@
 		 In the descriptions below, "we" refers to the AI civ that is
 		 considering war. -->
 	<Define>
-		<!-- The cities we expect to conquer as economical assets. -->
+		<!-- The cities we expect to conquer as economic assets. -->
 		<DefineName>UWAI_WEIGHT_GREED_FOR_ASSETS</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
 	<Define>
-		<!-- The economical value of accepted capitulations. 
+		<!-- The economic value of accepted capitulations. 
 			 (Not: Getting closer to a Conquest victory; that's handled under
 			  MILITARY_VICTORY.) -->
 		<DefineName>UWAI_WEIGHT_GREED_FOR_VASSALS</DefineName>
@@ -199,6 +199,17 @@
 		<DefineName>UWAI_WEIGHT_TACTICAL_SITUATION</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
+	<Define>
+		<!-- Pacifism for humanitarian reasons (roleplaying). This is different
+			 from Affection, which only applies if we don't dislike them too
+			 much and, in particular, not when already at war.
+			 Love of Peace subtracts our iLoveOfPeace (Civ4LeaderHeadInfos.xml)
+			 from our war utility. When already at war, only half of that is
+			 subtracted. iLoveOfPeace is unused in AdvCiv, so this aspect
+			 exists only for mod-mods. -->
+		<DefineName>UWAI_WEIGHT_LOVE_OF_PEACE</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
 
 	<Define>
 		<!-- Recommended: 100 (BtS behavior)
@@ -236,9 +247,10 @@
 			 power values are squared. POWER_CORRECTION = 1 is the BtS behavior;
 			 power values then typically equal unit strength, e.g. two Warriors
 			 are as good as one Spearman. When squaring, one Spearman is as
-			 good as four Warriors. (That seems too much.)
-			 Recommended: 1.66; one Spearman then corresponds to 3.15 Warriors.
-			 -->
+			 good as four Warriors. (That seems too much.) Recommended:
+			 1.66; one Spearman then corresponds to 3.15 Warriors. -->
+		<!-- advc.159: A fraction (3/4) of this value is also used for some
+			 tactical decisions outside the UWAI component. -->
         <DefineName>POWER_CORRECTION</DefineName>
         <fDefineFloatVal>1.66</fDefineFloatVal>
     </Define>

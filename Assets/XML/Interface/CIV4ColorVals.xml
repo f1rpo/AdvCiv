@@ -122,11 +122,12 @@
 			<fBlue>0.08</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
+		<!-- advc.ctr: Brightened a bit (for use as a text color) -->
 		<ColorVal>
 			<Type>COLOR_CITY_BLUE</Type>
-			<fRed>0.07</fRed>
-			<fGreen>0.46</fGreen>
-			<fBlue>0.80</fBlue>
+			<fRed>0.08</fRed>
+			<fGreen>0.5</fGreen>
+			<fBlue>0.88</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
 		<ColorVal>
@@ -136,11 +137,21 @@
 			<fBlue>0.25</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
-		<ColorVal>
+		<!--ColorVal>
 			<Type>COLOR_CITY_BROWN</Type>
 			<fRed>0.70</fRed>
 			<fGreen>0.45</fGreen>
 			<fBlue>0.00</fBlue>
+			<fAlpha>1.00</fAlpha>
+		</ColorVal-->
+		<!-- advc.210a: White for now.
+			 Replacing the unused color above in order to stay compatible
+			 with the BtS replay format. -->
+		<ColorVal>
+			<Type>COLOR_WAR_TRADE_ALERT</Type>
+			<fRed>1.00</fRed>
+			<fGreen>1.00</fGreen>
+			<fBlue>1.00</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
 		<ColorVal>
@@ -194,19 +205,22 @@
 			<fBlue>1.00</fBlue>
 			<fAlpha>0.60</fAlpha>
 		</ColorVal>
+		<!-- advc.002i: Was the same as COLOR_YELLOW -->
 		<ColorVal>
 			<Type>COLOR_GREAT_PEOPLE_STORED</Type>
-			<fRed>1.00</fRed>
-			<fGreen>1.00</fGreen>
+			<fRed>0.83</fRed>
+			<fGreen>0.86</fGreen>
 			<fBlue>0.00</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
+		<!-- advc.002i: Was the same as COLOR_YELLOW
+			 apart from the alpha value, which was 0.6. -->
 		<ColorVal>
 			<Type>COLOR_GREAT_PEOPLE_RATE</Type>
-			<fRed>1.00</fRed>
-			<fGreen>1.00</fGreen>
+			<fRed>0.83</fRed>
+			<fGreen>0.86</fGreen>
 			<fBlue>0.00</fBlue>
-			<fAlpha>0.60</fAlpha>
+			<fAlpha>0.50</fAlpha>
 		</ColorVal>
 		<ColorVal>
 			<Type>COLOR_NEGATIVE_RATE</Type>

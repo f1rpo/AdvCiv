@@ -218,7 +218,7 @@ class ShortcutHandler(BugConfig.HandlerWithArgs):
 			BugUtil.info("InputUtil - ignoring <%s> %s, requires dll version %s", element.tag, keys, self.resolveDll(element, dll))
 
 
-# advc: I've added three keyboard shortcuts and need to put the handlers somewhere. Don't want to create a new BUG module just for this.
+# advc: I've added three keyboard shortcuts and need to put the handlers somewhere. Don't want to create a new BUG module just for this. Tbd.: It might be nicer to do this through Civ4ControlInfos.xml and the DLL.
 
 # <advc.102>
 gc = BugUtil.gc

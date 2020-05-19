@@ -2,20 +2,17 @@
 
 #ifndef CyTeam_h
 #define CyTeam_h
-//
 // Python wrapper class for CvTeam
-//
-
-#include "CvTeam.h"
 
 class CvTeam;
 class CyArea;
+
 class CyTeam
 {
 public:
 	CyTeam();
-	CyTeam(CvTeam* pTeam);		// Call from C++
-	CvTeam* getTeam() { return m_pTeam;	}	// Call from C++
+	CyTeam(CvTeam* pTeam); // Call from C++
+	//CvTeam* getTeam(); // advc: unused
 
 	bool isNone() { return (m_pTeam==NULL); }
 
@@ -210,7 +207,7 @@ public:
 	int getVictoryDelay(int /*VictoryTypes*/ eVictory);
 	bool canLaunch(int /*VictoryTypes*/ eVictory);
 	int getLaunchSuccessRate(int /*VictoryTypes*/ eVictory);
-	bool hasSpaceshipArrived() { return (m_pTeam ? m_pTeam->hasSpaceshipArrived() : false); } // K-Mod
+	bool hasSpaceshipArrived();
 
 	int getEspionagePointsAgainstTeam(int /*TeamTypes*/ eIndex);
 	void setEspionagePointsAgainstTeam(int /*TeamTypes*/ eIndex, int iValue);
@@ -237,8 +234,7 @@ public:
 
 protected:
 
-	CvTeam* m_pTeam;
-
+	CvTeamAI* m_pTeam; // advc.003u: was CvTeam*
 };
 
 #endif	// #ifndef CyTeam

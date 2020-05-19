@@ -80,6 +80,14 @@ import ProgressBarUtil
 # PLE Code
 import PLE
 
+# <advc.090>
+import math
+def floor(f):
+	return int(math.floor(f))
+def ceil(f):
+	return int(math.ceil(f))
+# </advc.090>
+
 g_NumEmphasizeInfos = 0
 g_NumCityTabTypes = 0
 g_NumHurryInfos = 0
@@ -202,21 +210,16 @@ HELP_TEXT_MINIMUM_WIDTH = 300
 
 g_pSelectedUnit = 0
 
-# BUG - start
-g_mainInterface = None
-def onSwitchHotSeatPlayer(argsList):
-	g_mainInterface.resetEndTurnObjects()
-# BUG - end
 
 class CvMainInterface:
 	"Main Interface Screen"
 	
 	def __init__(self):
-	
-# BUG - start
-		global g_mainInterface
-		g_mainInterface = self
-# BUG - end
+		# advc.009b: This hack is no longer needed. I've moved the global onSwitchHotSeatPlayer function to BugUtil.py.
+		# BUG - start
+		#global g_mainInterface
+		#g_mainInterface = self
+		# BUG - end
 
 # BUG - draw method
 		self.DRAW_METHOD_PLE = "DRAW_METHOD_PLE"
@@ -289,8 +292,14 @@ class CvMainInterface:
 		self.sFieldOfView_Text = ""
 		self.szSliderId = "FieldOfViewSlider"
 		self.iField_View_Prev = -1
+		self.iFoVPos_Prev = -1 # advc.090
 # BUG - field of view slider - end
-
+		# <advc.092> To make sure that Python reload doesn't crash
+		self.iMiniMapX1 = 0
+		self.iMiniMapX2 = 0
+		self.iMiniMapY1 = 0
+		self.iMiniMapY2 = 0
+		# </advc.092>
 
 
 ############## Basic operational functions ###################
@@ -365,7 +374,18 @@ class CvMainInterface:
 		
 # BUG - field of view slider - start
 		iBtnY = 27
-		self.iX_FoVSlider = self.xResolution - 120
+		# <advc.090>
+		self.iFoVLabelLower = 10
+		self.iFoVLabelUpper = 100
+		# As in BUG; now in a variable. Horizontal gap between label and slider.
+		self.iFoVLabelOffset = 5
+		self.iH_FoVSlider = 15 # As in BUG; moved up.
+		# was 100:
+		self.iW_FoVSlider = min(max(100, self.xResolution / 12), 200)
+		self.iW_FoVSlider -= (self.iW_FoVSlider % 2)
+		#self.iX_FoVSlider = self.xResolution - 120
+		self.iX_FoVSlider = self.xResolution - self.iW_FoVSlider - 20
+		# </advc.090>
 		self.iY_FoVSlider = iBtnY + 30
 		self.sFieldOfView_Text = localText.getText("TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_TEXT", ())
 		#self.DEFAULT_FIELD_OF_VIEW = max(40, min(80, self.xResolution / 30)) # K-Mod (bigger FoW for bigger monitors. They'll appreciate it. Trust me.)
@@ -380,9 +400,12 @@ class CvMainInterface:
 
 		# <advc.004m> Replacing the above. Will have to ignore the XML setting (like K-Mod does) to avoid recursion - BUG stores the value computed for self.DEFAULT_FIELD_OF_VIEW in CvGlobals, overwriting the FIELD_OF_VIEW set through XML until the game is restarted.
 		self.DEFAULT_FIELD_OF_VIEW = 35.0 # 42.0 originally (FIELD_OF_VIEW in GlobalDefines)
-		aspectFactor = pow((0.8 * self.xResolution) / self.yResolution, 0.72)
+		#aspectFactor = pow((0.8 * self.xResolution) / self.yResolution, 0.72)
 		if (not MainOpt.isRememberFieldOfView() and not MainOpt.isShowFieldOfView()) or int(MainOpt.getFieldOfView()) < 0:
-			self.DEFAULT_FIELD_OF_VIEW = int(max(self.DEFAULT_FIELD_OF_VIEW, min(2 * self.DEFAULT_FIELD_OF_VIEW, (aspectFactor * self.xResolution) / max(70 - self.DEFAULT_FIELD_OF_VIEW, 10))))
+		#	self.DEFAULT_FIELD_OF_VIEW = int(max(self.DEFAULT_FIELD_OF_VIEW, min(2 * self.DEFAULT_FIELD_OF_VIEW, (aspectFactor * self.xResolution) / max(70 - self.DEFAULT_FIELD_OF_VIEW, 10))))
+		# The above might be fine if resource bubbles scaled properly - but they don't.
+			if self.yResolution > 1024:
+				self.DEFAULT_FIELD_OF_VIEW = int((self.DEFAULT_FIELD_OF_VIEW * self.yResolution) / 1024)
 			self.iField_View = self.DEFAULT_FIELD_OF_VIEW
 		else:
 			self.iField_View = int(MainOpt.getFieldOfView())
@@ -598,9 +621,9 @@ class CvMainInterface:
 
 # BUG - field of view slider - start
 		self.setFieldofView_Text(screen)
-		iW = 100
-		iH = 15
-		screen.addSlider(self.szSliderId, self.iX_FoVSlider + 5, self.iY_FoVSlider, iW, iH, self.iField_View - 1, 0, 100 - 1, WidgetTypes.WIDGET_GENERAL, -1, -1, False);
+		#screen.addSlider(self.szSliderId, self.iX_FoVSlider + 5, self.iY_FoVSlider, iW, iH, self.iField_View - 1, 0, 100 - 1, WidgetTypes.WIDGET_GENERAL, -1, -1, False);
+		# advc.090:
+		screen.addSlider(self.szSliderId, self.iX_FoVSlider + self.iFoVLabelOffset, self.iY_FoVSlider, self.iW_FoVSlider, self.iH_FoVSlider, self.FoVToSliderPos(self.iField_View), 0, self.iW_FoVSlider, WidgetTypes.WIDGET_GENERAL, -1, -1, False);
 		screen.hide(self.szSliderTextId)
 		screen.hide(self.szSliderId)
 # BUG - field of view slider - end
@@ -627,16 +650,31 @@ class CvMainInterface:
 		
 		# Minimap initialization
 		screen.setMainInterface(True)
-		
-		screen.addPanel( "MiniMapPanel", u"", u"", True, False, xResolution - 214, yResolution - 151, 208, 151, PanelStyles.PANEL_STYLE_STANDARD )
+		# <advc.092>
+		iMiniMapPanelWidth = 208
+		iMiniMapPanelRMargin = 6
+		iMiniMapPanelX = xResolution - iMiniMapPanelWidth - iMiniMapPanelRMargin
+		iMiniMapPanelHeight = 151
+		iMiniMapPanelBMargin = 0
+		iMiniMapPanelY = yResolution - iMiniMapPanelHeight - iMiniMapPanelBMargin
+		iMiniMapRMargin = 3
+		iMiniMapLMargin = 4 # As in BtS - and 3 indeed looks too thin on the left.
+		self.iMiniMapX1 = iMiniMapPanelX + iMiniMapLMargin
+		self.iMiniMapX2 = iMiniMapPanelX + iMiniMapPanelWidth - iMiniMapRMargin
+		iMiniMapHeight = 122
+		iMiniMapBMargin = 9
+		self.iMiniMapY1 = iMiniMapPanelY + iMiniMapPanelHeight - iMiniMapBMargin - iMiniMapHeight
+		self.iMiniMapY2 = self.iMiniMapY1 + iMiniMapHeight
+		# </advc.092>
+		screen.addPanel( "MiniMapPanel", u"", u"", True, False, iMiniMapPanelX, iMiniMapPanelY, iMiniMapPanelWidth, iMiniMapPanelHeight, PanelStyles.PANEL_STYLE_STANDARD )
 		screen.setStyle( "MiniMapPanel", "Panel_Game_HudMap_Style" )
 		screen.hide( "MiniMapPanel" )
+		self.initMinimap(screen) # advc
 
-		screen.initMinimap( xResolution - 210, xResolution - 9, yResolution - 131, yResolution - 9, -0.1 )
 		gc.getMap().updateMinimapColor()
 
 		self.createMinimapButtons()
-	
+
 		# Help button (always visible)
 		screen.setImageButton( "InterfaceHelpButton", ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_CIVILOPEDIA_ICON").getPath(), xResolution - 28, 2, 24, 24, WidgetTypes.WIDGET_ACTION, gc.getControlInfo(ControlTypes.CONTROL_CIVILOPEDIA).getActionInfoIndex(), -1 )
 		screen.hide( "InterfaceHelpButton" )
@@ -1062,6 +1100,9 @@ class CvMainInterface:
 
 		return 0
 
+	def initMinimap(self, screen): # advc (needed in two places)
+		screen.initMinimap(self.iMiniMapX1, self.iMiniMapX2, self.iMiniMapY1, self.iMiniMapY2, -0.1 )
+
 	# Will update the screen (every 250 MS)
 	def updateScreen(self):
 		
@@ -1083,7 +1124,7 @@ class CvMainInterface:
 #		self.m_iNumPlotListButtons = (xResolution - (iMultiListXL+iMultiListXR) - 68) / 34
 		
 		# This should recreate the minimap on load games and returns if already exists -JW
-		screen.initMinimap( xResolution - 210, xResolution - 9, yResolution - 131, yResolution - 9, -0.1 )
+		self.initMinimap(screen)
 
 		messageControl = CyMessageControl()
 		
@@ -1235,7 +1276,8 @@ class CvMainInterface:
 
 # BUG - Field of View - start
 		#self.setFieldofView(screen, CyInterface().isCityScreenUp())
-		self.setFieldofView(screen, False) # K-Mod. (using the default for the city screen is an ok idea, but it doesn't work properly because the screen is drawn before the value is changed.)
+		# K-Mod. Using the default for the city screen is an ok idea, but it doesn't work properly because the screen is drawn before the value is changed.
+		self.setFieldofView(screen, False)
 # BUG - Field of View - end
 
 		# Check Dirty Bits, see what we need to redraw...
@@ -1461,17 +1503,21 @@ class CvMainInterface:
 		if ( CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY  and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_ADVANCED_START):
 			self.updateGreatPersonBar(screen)
 # BUG - Great Person Bar - end
-		#CyInterface().shouldDisplayFlag() and # advc.004y: Don't check this for the Civilopedia button
-		if CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW:
-			if CyInterface().shouldDisplayFlag(): # advc.004y
-				screen.show( "CivilizationFlag" )
-				screen.show( "MainMenuButton" )
-			else: # advc.004y
-				screen.hide( "CivilizationFlag" )
-				screen.hide( "MainMenuButton" )
-			screen.show( "InterfaceHelpButton" )
+		#CyInterface().shouldDisplayFlag() and
+		# <advc.004y> Don't check shouldDisplayFlag for the Civilopedia button, but do check if the city screen is up.
+		if CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW and not CyInterface().isCityScreenUp():
+			screen.show("InterfaceHelpButton")
+			if CyInterface().shouldDisplayFlag():
+				screen.show("CivilizationFlag")
+				screen.show("MainMenuButton")
+			else:
+				screen.hide("CivilizationFlag")
+				screen.hide("MainMenuButton")
+			# </advc.004y>
 		else:
-			screen.hide( "InterfaceHelpButton" )
+			screen.hide("CivilizationFlag")
+			screen.hide("InterfaceHelpButton")
+			screen.hide("MainMenuButton")
 
 		if ( CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_HIDE_ALL or CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_MINIMAP_ONLY ):
 			screen.hide( "InterfaceLeftBackgroundWidget" )
@@ -2076,20 +2122,9 @@ class CvMainInterface:
 #		BugUtil.debug("updatePlotListButtons_BUG - C")
 
 #		self.BupPanel.UpdateBUGOptions()
-
 		timer = BugUtil.Timer("draw plot list")
 		self.BupPanel.Draw()
 		timer.log()
-
-
-
-#
-
-
-
-
-
-
 
 #		iVisibleUnits = CyInterface().getNumVisibleUnits()
 #		iCount = -(CyInterface().getPlotListColumn())
@@ -2415,7 +2450,9 @@ class CvMainInterface:
 				# Units to construct
 				for i in range ( g_NumUnitClassInfos ):
 					eLoopUnit = gc.getCivilizationInfo(pHeadSelectedCity.getCivilizationType()).getCivilizationUnits(i)
-
+					# <advc.001>
+					if eLoopUnit == UnitTypes.NO_UNIT:
+						continue # </advc.001>
 					if (pHeadSelectedCity.canTrain(eLoopUnit, False, True)):
 						szButton = gc.getPlayer(pHeadSelectedCity.getOwner()).getUnitButton(eLoopUnit)
 						screen.appendMultiListButton( "BottomButtonContainer", szButton, iRow, WidgetTypes.WIDGET_TRAIN, i, -1, False )
@@ -2436,7 +2473,9 @@ class CvMainInterface:
 				for i in range ( g_NumBuildingClassInfos ):
 					if (not isLimitedWonderClass(i)):
 						eLoopBuilding = gc.getCivilizationInfo(pHeadSelectedCity.getCivilizationType()).getCivilizationBuildings(i)
-
+						# <advc.001>
+						if eLoopBuilding == BuildingTypes.NO_BUILDING:
+							continue # </advc.001>
 						if (pHeadSelectedCity.canConstruct(eLoopBuilding, False, True, False)):
 							screen.appendMultiListButton( "BottomButtonContainer", gc.getBuildingInfo(eLoopBuilding).getButton(), iRow, WidgetTypes.WIDGET_CONSTRUCT, i, -1, False )
 							screen.show( "BottomButtonContainer" )
@@ -2457,7 +2496,9 @@ class CvMainInterface:
 				for i in range( g_NumBuildingClassInfos ):
 					if (isLimitedWonderClass(i)):
 						eLoopBuilding = gc.getCivilizationInfo(pHeadSelectedCity.getCivilizationType()).getCivilizationBuildings(i)
-
+						# <advc.001>
+						if eLoopBuilding == BuildingTypes.NO_BUILDING:
+							continue # </advc.001>
 						if (pHeadSelectedCity.canConstruct(eLoopBuilding, False, True, False)):
 							screen.appendMultiListButton( "BottomButtonContainer", gc.getBuildingInfo(eLoopBuilding).getButton(), iRow, WidgetTypes.WIDGET_CONSTRUCT, i, -1, False )
 							screen.show( "BottomButtonContainer" )
@@ -3085,7 +3126,7 @@ class CvMainInterface:
 			screen.hide(szString)
 
 		if CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_HIDE_ALL or CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_MINIMAP_ONLY or CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_ADVANCED_START:
-			return 0 # advc.003: Reduce indentation
+			return 0 # advc: Reduce indentation
 
 		# Percent of commerce
 		if gc.getPlayer(ePlayer).isAlive():
@@ -3845,7 +3886,9 @@ class CvMainInterface:
 					# advc.064: Now optional and independent from ShowBarTick
 					if CityScreenOpt.isShowHurryTickMarks() and pHeadSelectedCity.canHurry(HURRY_WHIP, True): # K-Mod, changed from False to True
 						iRate = pHeadSelectedCity.hurryProduction(HURRY_WHIP) / pHeadSelectedCity.hurryPopulation(HURRY_WHIP)
-						self.pBarProductionBar_Whip.drawTickMarks(screen, pHeadSelectedCity.getProduction(), pHeadSelectedCity.getProductionNeeded(), iFirst, iRate, True)
+						# advc.064b: Subtract guaranteed production
+						iMinProduction = pHeadSelectedCity.minPlotProduction() + pHeadSelectedCity.getFeatureProduction()
+						self.pBarProductionBar_Whip.drawTickMarks(screen, pHeadSelectedCity.getProduction(), pHeadSelectedCity.getProductionNeeded() - iMinProduction, iFirst, iRate, True)
 # BUG - Progress Bar - Tick Marks - end
 
 				iCount = 0
@@ -4935,29 +4978,36 @@ class CvMainInterface:
 
 					szLeftBuffer = u""
 					szRightBuffer = u""
-					
-# BUG - Unit Movement Fraction - start
-					szLeftBuffer = localText.getText("INTERFACE_PANE_MOVEMENT", ())
-					if MainOpt.isShowUnitMovementPointsFraction():
-						szRightBuffer = u"%d%c" %(pHeadSelectedUnit.baseMoves(), CyGame().getSymbolID(FontSymbols.MOVES_CHAR))
-						if (pHeadSelectedUnit.movesLeft() == 0):
-							szRightBuffer = u"0/" + szRightBuffer
-						elif (pHeadSelectedUnit.movesLeft() == pHeadSelectedUnit.baseMoves() * gc.getMOVE_DENOMINATOR()):
-							pass
+
+					# <advc.004w> Don't show "Movement" row if it can't move
+					eDomain = pHeadSelectedUnit.getDomainType()
+					if eDomain == DomainTypes.DOMAIN_AIR: # Show range instead for air units
+						szLeftBuffer = localText.getText("INTERFACE_PANE_RANGE", ())
+						szRightBuffer = u"%d" %(pHeadSelectedUnit.airRange(), )
+					elif pHeadSelectedUnit.getDomainType() != DomainTypes.DOMAIN_IMMOBILE:
+					# </advc.004w>
+	# BUG - Unit Movement Fraction - start
+						szLeftBuffer = localText.getText("INTERFACE_PANE_MOVEMENT", ())
+						if MainOpt.isShowUnitMovementPointsFraction():
+							szRightBuffer = u"%d%c" %(pHeadSelectedUnit.baseMoves(), CyGame().getSymbolID(FontSymbols.MOVES_CHAR))
+							if (pHeadSelectedUnit.movesLeft() == 0):
+								szRightBuffer = u"0/" + szRightBuffer
+							elif (pHeadSelectedUnit.movesLeft() == pHeadSelectedUnit.baseMoves() * gc.getMOVE_DENOMINATOR()):
+								pass
+							else:
+								fCurrMoves = float(pHeadSelectedUnit.movesLeft()) / gc.getMOVE_DENOMINATOR()
+								szRightBuffer = (u"%.1f/" % fCurrMoves) + szRightBuffer
 						else:
-							fCurrMoves = float(pHeadSelectedUnit.movesLeft()) / gc.getMOVE_DENOMINATOR()
-							szRightBuffer = (u"%.1f/" % fCurrMoves) + szRightBuffer
-					else:
-						if ( (pHeadSelectedUnit.movesLeft() % gc.getMOVE_DENOMINATOR()) > 0 ):
-							iDenom = 1
-						else:
-							iDenom = 0
-						iCurrMoves = ((pHeadSelectedUnit.movesLeft() / gc.getMOVE_DENOMINATOR()) + iDenom )
-						if (pHeadSelectedUnit.baseMoves() == iCurrMoves):
-							szRightBuffer = u"%d%c" %(pHeadSelectedUnit.baseMoves(), CyGame().getSymbolID(FontSymbols.MOVES_CHAR) )
-						else:
-							szRightBuffer = u"%d/%d%c" %(iCurrMoves, pHeadSelectedUnit.baseMoves(), CyGame().getSymbolID(FontSymbols.MOVES_CHAR) )
-# BUG - Unit Movement Fraction - end
+							if ( (pHeadSelectedUnit.movesLeft() % gc.getMOVE_DENOMINATOR()) > 0 ):
+								iDenom = 1
+							else:
+								iDenom = 0
+							iCurrMoves = ((pHeadSelectedUnit.movesLeft() / gc.getMOVE_DENOMINATOR()) + iDenom )
+							if pHeadSelectedUnit.baseMoves() == iCurrMoves or eDomain == DomainTypes.DOMAIN_AIR:
+								szRightBuffer = u"%d%c" %(pHeadSelectedUnit.baseMoves(), CyGame().getSymbolID(FontSymbols.MOVES_CHAR) )
+							else:
+								szRightBuffer = u"%d/%d%c" %(iCurrMoves, pHeadSelectedUnit.baseMoves(), CyGame().getSymbolID(FontSymbols.MOVES_CHAR) )
+	# BUG - Unit Movement Fraction - end
 
 					szBuffer = szLeftBuffer + "  " + szRightBuffer
 					screen.appendTableRow( "SelectedUnitText" )
@@ -4966,8 +5016,8 @@ class CvMainInterface:
 					screen.show( "SelectedUnitText" )
 					screen.show( "SelectedUnitPanel" )
 					iRow += 1
-
-					if (pHeadSelectedUnit.getLevel() > 0):
+					# advc.004w: XP check added
+					if pHeadSelectedUnit.getLevel() > 0 and pHeadSelectedUnit.getExperience() > 0:
 					
 						szLeftBuffer = localText.getText("INTERFACE_PANE_LEVEL", ())
 						szRightBuffer = u"%d" %(pHeadSelectedUnit.getLevel())
@@ -5042,7 +5092,7 @@ class CvMainInterface:
 		screen.hide( "ScoreBackground" )
 		
 # BUG - Align Icons - start
-		for i in range( gc.getMAX_CIV_PLAYERS() ): # advc.003: Was MAX_PLAYERS
+		for i in range( gc.getMAX_CIV_PLAYERS() ): # advc: Was MAX_PLAYERS
 			szName = "ScoreText" + str(i)
 			screen.hide( szName )
 			szName = "ScoreTech" + str(i)
@@ -5060,7 +5110,7 @@ class CvMainInterface:
 		iWidth = 0
 		iCount = 0
 		iBtnHeight = 22
-		yCoord = 0 # advc.003: Make sure this is defined when needed
+		yCoord = 0 # advc: Make sure this is defined when needed
 		
 		if ((CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY)):
 			# <advc.004z>
@@ -5076,11 +5126,11 @@ class CvMainInterface:
 				bAlignIcons = ScoreOpt.isAlignIcons()
 				if (bAlignIcons):
 					scores = Scoreboard.Scoreboard()
-				# <advc.003> Need to assign a value
+				# <advc> Need to assign a value
 				else:
-					scores = None # </advc.003>
+					scores = None # </advc>
 # BUG - Align Icons - end
-				# (BUG - Power Rating)  advc.003: Moved into the loop
+				# (BUG - Power Rating)  advc: Moved into the loop
 				i = gc.getMAX_CIV_TEAMS() - 1
 				while (i > -1):
 					eTeam = gc.getGame().getRankTeam(i)
@@ -5108,7 +5158,7 @@ class CvMainInterface:
 											if (bAlignIcons):
 												scores.addPlayer(gc.getPlayer(ePlayer), j)
 # BUG - Align Icons - end
-											# advc.003: Code moved into auxiliary function
+											# advc: Code moved into auxiliary function
 											szBuffer += self.playerScoreString(ePlayer, scores, bAlignIcons)
 											szBuffer = szBuffer + "</font>"
 # BUG - Align Icons - start
@@ -5150,7 +5200,7 @@ class CvMainInterface:
 					screen.show( "ScoreBackground" )
 # BUG - Align Icons - end
 
-	# <advc.003> Body cut from updateScoreStrings in order to reduce indentation
+	# <advc> Body cut from updateScoreStrings in order to reduce indentation
 	def playerScoreString(self, ePlayer, scores, bAlignIcons):
 		pPlayer = gc.getPlayer(ePlayer)
 		eTeam = pPlayer.getTeam()
@@ -5160,7 +5210,7 @@ class CvMainInterface:
 		eActiveTeam = g.getActiveTeam()
 		pActivePlayer = gc.getPlayer(eActivePlayer)
 		pActiveTeam = gc.getTeam(eActiveTeam)
-		szBuffer = "" # </advc.003>
+		szBuffer = "" # </advc>
 # BUG: Align Icons throughout -- if (bAlignIcons): scores.setFoo(foo)
 		if g.isGameMultiPlayer():
 			if not pPlayer.isTurnActive():
@@ -5195,10 +5245,9 @@ class CvMainInterface:
 			iScore = g.getPlayerScore(ePlayer)
 			szPlayerScore = u"%d" % iScore
 			# <advc.155>
-			eMaster = pTeam.getMasterTeam()
 			# (To allow this option without the Advanced/Tabular layout option, simply remove the bAlignIcons check.)
-			if bAlignIcons and gc.getTeam(eMaster).getAliveCount() > 1 and ScoreOpt.isColorCodeTeamScore():
-				pTeamLeader = gc.getPlayer(gc.getTeam(eMaster).getLeaderID())
+			if bAlignIcons and gc.getTeam(eTeam).getAliveCount() > 1 and ScoreOpt.isColorCodeTeamScore():
+				pTeamLeader = gc.getPlayer(gc.getTeam(eTeam).getLeaderID())
 				szPlayerScore = u"<color=%d,%d,%d,%d>%s</color>" %(pTeamLeader.getPlayerTextColorR(), pTeamLeader.getPlayerTextColorG(), pTeamLeader.getPlayerTextColorB(), pTeamLeader.getPlayerTextColorA(), szPlayerScore)
 			# </advc.155>
 			if bAlignIcons:
@@ -5319,7 +5368,7 @@ class CvMainInterface:
 			# K-Mod (original code deleted)
 			if g.isDebugMode() or (pActivePlayer.canSeeResearch(ePlayer) and (eTeam != eActiveTeam or pActiveTeam.getNumMembers() > 1)):
 			# K-Mod end
-				eCurrentResearch = pPlayer.getCurrentResearch() # advc.003
+				eCurrentResearch = pPlayer.getCurrentResearch() # advc
 				iProgressPercent = 0 # advc.085: Show that even when no current research
 				if eCurrentResearch != -1:
 					szTempBuffer = u"-%s" %gc.getTechInfo(eCurrentResearch).getDescription()
@@ -5502,7 +5551,7 @@ class CvMainInterface:
 
 		kEngine = CyEngine()
 		kGLM = CyGlobeLayerManager()
-		#iNumLayers = kGLM.getNumLayers() # advc.003: unused
+		#iNumLayers = kGLM.getNumLayers() # advc: unused
 		iCurrentLayerID = kGLM.getCurrentLayerID()
 		# <advc.004m>
 		# The layer id is meaningless to the DLL. Translate to enum type.
@@ -5545,7 +5594,7 @@ class CvMainInterface:
 			screen.hide(szName)
 
 		# Setup the GlobeLayer panel
-		#iNumLayers = kGLM.getNumLayers() # advc.003: unused
+		#iNumLayers = kGLM.getNumLayers() # advc: unused
 		if kEngine.isGlobeviewUp() and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL:
 			# set up panel
 			# <advc.004z>
@@ -5694,7 +5743,7 @@ class CvMainInterface:
 		
 		kEngine = CyEngine()
 		kGLM = CyGlobeLayerManager()
-		#iNumLayers = kGLM.getNumLayers() # advc.003: unused
+		#iNumLayers = kGLM.getNumLayers() # advc: unused
 
 		for i in range (kGLM.getNumLayers()):
 			szButtonID = "GlobeLayer" + str(i)
@@ -5750,6 +5799,49 @@ class CvMainInterface:
 		screen.setState( "GlobeToggle", False )
 		screen.hide( "GlobeToggle" )
 
+	def update(self, fDelta):
+		return
+
+	def forward(self):
+		if (not CyInterface().isFocused() or CyInterface().isCityScreenUp()):
+			if (CyInterface().isCitySelection()):
+				CyGame().doControl(ControlTypes.CONTROL_NEXTCITY)
+			else:
+				CyGame().doControl(ControlTypes.CONTROL_NEXTUNIT)
+
+	def back(self):
+		if (not CyInterface().isFocused() or CyInterface().isCityScreenUp()):
+			if (CyInterface().isCitySelection()):
+				CyGame().doControl(ControlTypes.CONTROL_PREVCITY)
+			else:
+				CyGame().doControl(ControlTypes.CONTROL_PREVUNIT)
+
+# BUG - Raw Yields - start
+	def handleRawYieldsButtons(self, inputClass):
+		iButton = inputClass.getID()
+		if (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CURSOR_MOVE_ON):
+			self.PLE.displayHelpHover(RAW_YIELD_HELP[iButton])
+		elif (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CURSOR_MOVE_OFF):
+			self.PLE.hideInfoPane()
+		elif (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CLICKED):
+			global g_bYieldView
+			global g_iYieldType
+			global g_iYieldTiles
+			if iButton == 0:
+				g_bYieldView = False
+			elif iButton in (1, 2, 3):
+				g_bYieldView = True
+				g_iYieldType = RawYields.YIELDS[iButton - 1]
+			elif iButton in (4, 5, 6):
+				g_bYieldView = True
+				g_iYieldTiles = RawYields.TILES[iButton - 4]
+			else:
+				return 0
+			CyInterface().setDirty(InterfaceDirtyBits.CityScreen_DIRTY_BIT, True)
+			return 1
+		return 0
+# BUG - Raw Yields - end
+
 	# Will handle the input for this screen...
 	def handleInput (self, inputClass):
 #		BugUtil.debugInput(inputClass)
@@ -5790,61 +5882,60 @@ class CvMainInterface:
 # BUG - Great Person Bar - end
 
 # BUG - field of view slider - start
-		if (inputClass.getNotifyCode() == NotifyCode.NOTIFY_SLIDER_NEWSTOP):
-			if (inputClass.getFunctionName() == self.szSliderId):
+		if inputClass.getNotifyCode() == NotifyCode.NOTIFY_SLIDER_NEWSTOP:
+			if inputClass.getFunctionName() == self.szSliderId:
 				screen = CyGInterfaceScreen( "MainInterface", CvScreenEnums.MAIN_INTERFACE )
-				self.iField_View = inputClass.getData() + 1
+				#self.iField_View = inputClass.getData() + 1
+				# <advc.090>
+				# SLIDER_NEWSTOP triggers both on moving the slider and on hovering over the slider. I don't think the two cases can be told apart.
+				#BugUtil.debugInput(inputClass, True)
+				iPos = inputClass.getData()
+				iPrevPos = self.iFoVPos_Prev
+				self.iFoVPos_Prev = iPos
+				#print "slider new stop: pos=" + str(iPos) + ", prevPos=" + str(iPrevPos)
+				# For some reason, the position jumps a bit upon releasing the slider. I've tried to compensate, and it works somewhat, but can also make the slider move back and forth when hovering. Not usable.
+				#if iPrevPos > 0:
+				#	if iPrevPos < iPos:
+				#		iPos += 1
+				#	elif iPrevPos > iPos:
+				#		iPos -= 1
+				self.iField_View = self.sliderPosToFoV(iPos)
+				#print "iField_View=" + str(self.iField_View)
+				# </advc.090>
 				self.setFieldofView(screen, False)
 				self.setFieldofView_Text(screen)
 				MainOpt.setFieldOfView(self.iField_View)
-# BUG - field of view slider - end
-
 		return 0
-	
-# BUG - Raw Yields - start
-	def handleRawYieldsButtons(self, inputClass):
-		iButton = inputClass.getID()
-		if (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CURSOR_MOVE_ON):
-			self.PLE.displayHelpHover(RAW_YIELD_HELP[iButton])
-		elif (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CURSOR_MOVE_OFF):
-			self.PLE.hideInfoPane()
-		elif (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CLICKED):
-			global g_bYieldView
-			global g_iYieldType
-			global g_iYieldTiles
-			if iButton == 0:
-				g_bYieldView = False
-			elif iButton in (1, 2, 3):
-				g_bYieldView = True
-				g_iYieldType = RawYields.YIELDS[iButton - 1]
-			elif iButton in (4, 5, 6):
-				g_bYieldView = True
-				g_iYieldTiles = RawYields.TILES[iButton - 4]
-			else:
-				return 0
-			CyInterface().setDirty(InterfaceDirtyBits.CityScreen_DIRTY_BIT, True)
-			return 1
-		return 0
-# BUG - Raw Yields - end
-	
-	def update(self, fDelta):
-		return
-	
-	def forward(self):
-		if (not CyInterface().isFocused() or CyInterface().isCityScreenUp()):
-			if (CyInterface().isCitySelection()):
-				CyGame().doControl(ControlTypes.CONTROL_NEXTCITY)
-			else:
-				CyGame().doControl(ControlTypes.CONTROL_NEXTUNIT)
-		
-	def back(self):
-		if (not CyInterface().isFocused() or CyInterface().isCityScreenUp()):
-			if (CyInterface().isCitySelection()):
-				CyGame().doControl(ControlTypes.CONTROL_PREVCITY)
-			else:
-				CyGame().doControl(ControlTypes.CONTROL_PREVUNIT)
 
-# BUG - field of view slider - start
+	# <advc.090>
+	def sliderPosToFoVPercent(self, iPos): # iPos is between 0 and iW - 1
+		fInterval = float(self.iFoVLabelUpper - self.iFoVLabelLower)
+		return floor((iPos * fInterval) / self.iW_FoVSlider + self.iFoVLabelLower)
+	# Inverse of the above
+	def FoVPercentToSliderPos(self, iPercent):
+		r = (iPercent - self.iFoVLabelLower) * self.iW_FoVSlider
+		fInterval = float(self.iFoVLabelUpper - self.iFoVLabelLower)
+		return ceil(r / fInterval)
+
+	def PercentToFoV(self, iPercent):
+		r = iPercent
+		if r <= 75:
+			return r
+		return 2 * r - 75
+
+	def FoVToPercent(self, iFoV):
+		r = iFoV
+		if r <= 75:
+			return r
+		return floor((75 + r) / 2)
+
+	def sliderPosToFoV(self, iPos):
+		return self.PercentToFoV(self.sliderPosToFoVPercent(iPos))
+
+	def FoVToSliderPos(self, iFoV):
+		return self.FoVPercentToSliderPos(self.FoVToPercent(iFoV))
+	# </advc.090>
+
 	def setFieldofView(self, screen, bDefault):
 		try: # advc.009b
 			# K-Mod
@@ -5863,6 +5954,7 @@ class CvMainInterface:
 			self.iField_View_Prev = iFoV
 
 	def setFieldofView_Text(self, screen):
-		zsFieldOfView_Text = "%s [%i]" % (self.sFieldOfView_Text, self.iField_View)
+		# advc.090: 2nd argument was self.iField_View
+		zsFieldOfView_Text = "%s [%i]" % (self.sFieldOfView_Text, self.FoVToPercent(self.iField_View))
 		screen.setLabel(self.szSliderTextId, "", zsFieldOfView_Text, CvUtil.FONT_RIGHT_JUSTIFY, self.iX_FoVSlider, self.iY_FoVSlider + 6, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 # BUG - field of view slider - end

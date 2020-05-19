@@ -16,6 +16,7 @@ class CvPlot;
 class CvRoute;
 class CvFeature;
 class CvRiver;
+
 class CvDLLSymbolIFaceBase
 {
 public:
@@ -59,7 +60,11 @@ public:
 	virtual RouteTypes getRoute(CvRoute* pObj) = 0;
 
 	// derived methods
-	virtual void destroy(CvRoute*& pObj, bool bSafeDelete=true) { gDLL->getSymbolIFace()->destroy((CvSymbol*&)pObj, bSafeDelete); }
+	virtual void destroy(CvRoute*& pObj, bool bSafeDelete=true)
+	{
+		PROFILE_FUNC(); // advc
+		gDLL->getSymbolIFace()->destroy((CvSymbol*&)pObj, bSafeDelete);
+	}
 	virtual void Hide(CvRoute* pObj, bool bHide) { gDLL->getSymbolIFace()->Hide((CvSymbol*)pObj, bHide); }
 	virtual bool IsHidden(CvRoute* pObj) { return gDLL->getSymbolIFace()->IsHidden((CvSymbol*)pObj); }
 	virtual void updatePosition(CvRoute* pObj) { gDLL->getSymbolIFace()->updatePosition((CvSymbol*)pObj); }

@@ -9,7 +9,8 @@ Those specific changes should be accompanied by the following general rule chang
 
 1. Combat system overhaul:
 * Greatly reduce the number of collateral damage targets, the collateral damage limit and the damage limit of siege units (see stat-changes.pdf). Exempt some units from damage limits; e.g. let air units destroy ships.
-* Only four units, chosen at random, are available for defense in each stack; the best defender is chosen from that subset. After each attack, another random defender becomes available.
+* Only four units, chosen at random, are available for defense in each stack; the best defender is chosen from that subset. After each attack, another random defender becomes available. Prototype implementation:
+https://github.com/f1rpo/AdvCiv/compare/master...f1rpo:defender-randomization
 * Limited capacity of cities and Forts: No defensive bonus while stack size exceeds capacity.
 * Limited number of attacks per turn against a single tile.
 * Limited number of combat rounds, so that combat can end in a draw (like air combat).

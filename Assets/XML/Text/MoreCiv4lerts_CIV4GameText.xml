@@ -18,14 +18,16 @@
 		<Spanish>[COLOR_MAGENTA]El límite cultural de %s1 está a punto de ampliarse.[COLOR_REVERT]</Spanish>
 	</TEXT>
 
-	<!-- advc.210c: Minor change to German translation -->
+	<!-- advc.210c: Color added. (The whole message is set to COLOR_MAGENTA in
+		 MoreCiv4lerts.py, but that code is no longer used; the message is now
+		 displayed by the DLL.) Minor change to German. -->
 	<TEXT>
 		<Tag>TXT_KEY_MORECIV4LERTS_CITY_FOUNDED</Tag>
-		<English>%s1_Player has founded %s2_City.</English>
-		<French>%s1_Player has founded %s2_City.</French>
-		<German>%s1_Player hat %s2_City gegründet.</German>
-		<Italian>%s1_Player ha fondato %s2_City.</Italian>
-		<Spanish>%s1_Player ha fundado %s2_City.</Spanish>
+		<English>%s1_Player has founded [COLOR_CITY_BLUE]%s2_City[COLOR_REVERT].</English>
+		<French>%s1_Player has founded [COLOR_CITY_BLUE]%s2_City[COLOR_REVERT].</French>
+		<German>%s1_Player hat [COLOR_CITY_BLUE]%s2_City[COLOR_REVERT] gegründet.</German>
+		<Italian>%s1_Player ha fondato [COLOR_CITY_BLUE]%s2_City[COLOR_REVERT].</Italian>
+		<Spanish>%s1_Player ha fundado [COLOR_CITY_BLUE]%s2_City[COLOR_REVERT].</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MORECIV4LERTS_CITY_FOUNDED_UNSEEN</Tag>

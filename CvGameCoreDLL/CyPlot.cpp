@@ -4,20 +4,15 @@
 //
 #include "CvGameCoreDLL.h"
 #include "CyPlot.h"
-#include "CyCity.h"
 #include "CyArea.h"
-#include "CyUnit.h"
 #include "CvPlot.h"
+#include "CvArea.h" // advc: for CvArea::getID
 
-CyPlot::CyPlot(CvPlot* pPlot) : m_pPlot(pPlot)
-{
+CyPlot::CyPlot(CvPlot* pPlot) : m_pPlot(pPlot) {}
+// advc.003y: (see CyCity.cpp)
+CyPlot::CyPlot(CvPlot const& kPlot) : m_pPlot(const_cast<CvPlot*>(&kPlot)) {}
 
-}
-
-CyPlot::CyPlot() : m_pPlot(NULL)
-{
-
-}
+CyPlot::CyPlot() : m_pPlot(NULL) {}
 
 void CyPlot::erase()
 {
@@ -140,7 +135,13 @@ bool CyPlot::isRiverConnection(int /*DirectionTypes*/ eDirection)
 
 int CyPlot::getNearestLandArea()
 {
-	return m_pPlot ? m_pPlot->getNearestLandArea() : -1;
+	if (m_pPlot == NULL)
+		return -1;
+	// <advc> (The DLL function no longer returns the area id)
+	CvArea* pArea = m_pPlot->getNearestLandArea();
+	if (pArea == NULL)
+		return FFreeList::INVALID_INDEX;
+	return pArea->getID(); // </advc>
 }
 
 CyPlot* CyPlot::getNearestLandPlot()
@@ -374,10 +375,12 @@ int CyPlot::getNumVisibleEnemyDefenders(CyUnit* pUnit)
 	return m_pPlot ? m_pPlot->getNumVisibleEnemyDefenders(pUnit->getUnit()) : -1;
 }
 
-int CyPlot::getNumVisiblePotentialEnemyDefenders(CyUnit* pUnit)
+/*	advc: This is now handled by CvUnitAI::AI_countEnemyDefenders - b/c it's AI code,
+	which shouldn't be exposed to Python. */
+/*int CyPlot::getNumVisiblePotentialEnemyDefenders(CyUnit* pUnit)
 {
 	return m_pPlot ? m_pPlot->getNumVisiblePotentialEnemyDefenders(pUnit->getUnit()) : -1;
-}
+}*/
 
 bool CyPlot::isVisibleEnemyUnit(int /*PlayerTypes*/ ePlayer)
 {
@@ -425,7 +428,7 @@ bool CyPlot::isTradeNetwork(int /*TeamTypes*/ eTeam)
 
 bool CyPlot::isTradeNetworkConnected(CyPlot* pPlot, int /*TeamTypes*/ eTeam)
 {
-	return m_pPlot ? m_pPlot->isTradeNetworkConnected(pPlot->getPlot(), (TeamTypes)eTeam) : false;
+	return m_pPlot ? m_pPlot->isTradeNetworkConnected(*pPlot->getPlot(), (TeamTypes)eTeam) : false;
 }
 
 bool CyPlot::isValidDomainForLocation(CyUnit* pUnit) const
@@ -480,7 +483,7 @@ CyArea* CyPlot::waterArea()
 
 int CyPlot::getArea()
 {
-	return m_pPlot ? m_pPlot->getArea() : -1;
+	return m_pPlot ? m_pPlot->getArea().getID() : -1;
 }
 
 int CyPlot::getUpgradeProgress()
@@ -879,7 +882,7 @@ int CyPlot::getCulture(int /*PlayerTypes*/ eIndex)
 }
 
 int CyPlot::countTotalCulture()
-{	// advc.003b: was calling CvPlot::countTotalCulture
+{	// advc.opt: was calling CvPlot::countTotalCulture
 	return m_pPlot ? m_pPlot->getTotalCulture() : -1;
 }
 
@@ -999,14 +1002,16 @@ bool CyPlot::changeBuildProgress(int /*BuildTypes*/ eBuild, int iChange, int /*P
 			(PlayerTypes)ePlayer) : false;
 }
 
-int CyPlot::getCultureRangeCities(int /*PlayerTypes*/ eOwnerIndex, int iRangeIndex)
+int CyPlot::getCultureRangeCities(int eOwnerIndex, int eRangeIndex)
 {
-	return m_pPlot ? m_pPlot->getCultureRangeCities((PlayerTypes) eOwnerIndex, iRangeIndex) : -1;
+	return m_pPlot ? m_pPlot->getCultureRangeCities((PlayerTypes)eOwnerIndex,
+			(CultureLevelTypes)eRangeIndex) : -1;
 }
 
-bool CyPlot::isCultureRangeCity(int /*PlayerTypes*/ eOwnerIndex, int iRangeIndex)
+bool CyPlot::isCultureRangeCity(int eOwnerIndex, int eRangeIndex)
 {
-	return m_pPlot ? m_pPlot->isCultureRangeCity((PlayerTypes) eOwnerIndex, iRangeIndex) : false;
+	return m_pPlot ? m_pPlot->isCultureRangeCity((PlayerTypes) eOwnerIndex,
+		(CultureLevelTypes)eRangeIndex) : false;
 }
 
 int CyPlot::getInvisibleVisibilityCount(int /*TeamTypes*/ eTeam, int /*InvisibleTypes*/ eInvisible)

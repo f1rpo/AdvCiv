@@ -5,22 +5,18 @@
 #ifndef CIV4_DLL_BUTTON_POPUP_H
 #define CIV4_DLL_BUTTON_POPUP_H
 
-
-#include "CvPopupInfo.h"
-#include "CvPopupReturn.h"
-
-
 class CvPopup;
+class PopupReturn;
+class CvPopupInfo;
+
 class CvDLLButtonPopup
 {
-
 public:
-	CvDLLButtonPopup();
+	CvDLLButtonPopup(); // advc
 	virtual ~CvDLLButtonPopup();
-
 	DllExport static CvDLLButtonPopup& getInstance();
 	DllExport static void freeInstance();
-	// advc.003i (caveat): The EXE calls these virtual functions
+	// advc.003i (caveat): The EXE calls these virtual functions; hence the virtual destructor also needs to be left alone.
 	virtual void OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, CvPopupInfo &info);
 	virtual void OnAltExecute(CvPopup& popup, const PopupReturn& popupReturn, CvPopupInfo &info);
 	virtual void OnFocus(CvPopup* pPopup, CvPopupInfo &info);
@@ -30,6 +26,7 @@ public:
 private:
 
 	static CvDLLButtonPopup* m_pInst;
+	CvDLLInterfaceIFaceBase& m_kUI; // advc
 
 	bool launchTextPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info);
@@ -49,7 +46,6 @@ private:
 	bool launchDoEspionageTargetPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchMainMenuPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchConfirmMenu(CvPopup *pPopup, CvPopupInfo &info);
-	bool launchPythonScreen(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchPythonPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchDetailsPopup(CvPopup* pPopup, CvPopupInfo &info);
 	bool launchAdminPopup(CvPopup* pPopup, CvPopupInfo &info);

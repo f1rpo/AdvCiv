@@ -4,15 +4,20 @@
 // Author: tomw
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef	__PROFILE_H__
-#define __PROFILE_H__
 #pragma once
 
+#ifndef	__PROFILE_H__
+#define __PROFILE_H__
 
-#include "CvDLLEntityIFaceBase.h"
+
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvGlobals.h"	// for gDLL
 
+// <advc.make> I don't think the internal profiler can work w/o the standard profiler
+#ifdef USE_INTERNAL_PROFILER
+#define FP_PROFILE_ENABLE
+#endif
+// </advc.make>
 
 //NOTE: This struct must be identical ot the same struct in  FireEngine/FProfiler.h if the
 //standard profiler is being used (USE_INTERNAL_PROFILER not defined)

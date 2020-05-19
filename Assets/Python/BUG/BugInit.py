@@ -62,15 +62,19 @@ def loadMod(name):
 	"""Load the given mod from its XML file using a custom parser."""
 	path = BugPath.findAssetFile(name + ".xml", "Config")
 	if path:
-		BugUtil.debug("BugInit - loading mod %s...", name)
+		BugUtil.debug("BugInit - loading module %s...", name)
 		parser = BugConfig.ConfigParser()
 		timer = BugUtil.Timer("load mod")
 		try:
 			parser.parse(path)
-		finally:
+		# <advc.009b> Say which module failed
+		except Exception, e:
+			BugUtil.error("BugInit - failed to parse module %s", name)
 			timer.log(name)
+			raise e # </advc.009b>
+		timer.log(name)
 	else:
-		BugUtil.error("BugInit - cannot find XML file for mod %s", name)
+		BugUtil.error("BugInit - cannot find XML file for module %s", name)
 
 def addInit(name, function):
 	"""

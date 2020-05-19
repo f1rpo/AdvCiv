@@ -33,7 +33,9 @@
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>45</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>40</iNumCitiesMaintenancePercent>
-			<iMaxNumCitiesMaintenance>4</iMaxNumCitiesMaintenance>
+			<!-- advc.exp.1: Essentially disabled this upper bound. Can re-enable
+				 it by setting it back to the original value of 4. -->
+			<iMaxNumCitiesMaintenance>4000</iMaxNumCitiesMaintenance>
 			<iColonyMaintenancePercent>60</iColonyMaintenancePercent>
 			<iMaxColonyMaintenance>200</iMaxColonyMaintenance>
 			<iCorporationMaintenancePercent>60</iCorporationMaintenancePercent>
@@ -204,7 +206,8 @@
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>55</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>50</iNumCitiesMaintenancePercent>
-			<iMaxNumCitiesMaintenance>4</iMaxNumCitiesMaintenance>
+			<!-- advc.exp.1: was 4 -->
+			<iMaxNumCitiesMaintenance>4000</iMaxNumCitiesMaintenance>
 			<iColonyMaintenancePercent>80</iColonyMaintenancePercent>
 			<iMaxColonyMaintenance>200</iMaxColonyMaintenance>
 			<iCorporationMaintenancePercent>80</iCorporationMaintenancePercent>
@@ -349,7 +352,8 @@
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>65</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>60</iNumCitiesMaintenancePercent>
-			<iMaxNumCitiesMaintenance>5</iMaxNumCitiesMaintenance>
+			<!-- advc.exp.1: was 5 -->
+			<iMaxNumCitiesMaintenance>5000</iMaxNumCitiesMaintenance>
 			<iColonyMaintenancePercent>90</iColonyMaintenancePercent>
 			<iMaxColonyMaintenance>200</iMaxColonyMaintenance>
 			<iCorporationMaintenancePercent>90</iCorporationMaintenancePercent>
@@ -470,7 +474,8 @@
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>75</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>70</iNumCitiesMaintenancePercent>
-			<iMaxNumCitiesMaintenance>5</iMaxNumCitiesMaintenance>
+			<!-- advc.exp.1: was 5 -->
+			<iMaxNumCitiesMaintenance>5000</iMaxNumCitiesMaintenance>
 			<iColonyMaintenancePercent>100</iColonyMaintenancePercent>
 			<iMaxColonyMaintenance>200</iMaxColonyMaintenance>
 			<iCorporationMaintenancePercent>100</iCorporationMaintenancePercent>
@@ -584,7 +589,8 @@
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>85</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>80</iNumCitiesMaintenancePercent>
-			<iMaxNumCitiesMaintenance>6</iMaxNumCitiesMaintenance>
+			<!-- advc.exp.1: was 6 -->
+			<iMaxNumCitiesMaintenance>6000</iMaxNumCitiesMaintenance>
 			<!-- advc.251: was 110 -->
 			<iColonyMaintenancePercent>105</iColonyMaintenancePercent>
 			<iMaxColonyMaintenance>200</iMaxColonyMaintenance>
@@ -706,7 +712,8 @@
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>90</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>85</iNumCitiesMaintenancePercent>
-			<iMaxNumCitiesMaintenance>6</iMaxNumCitiesMaintenance>
+			<!-- advc.exp.1: was 6 -->
+			<iMaxNumCitiesMaintenance>6000</iMaxNumCitiesMaintenance>
 			<!-- advc.251: was 120 -->
 			<iColonyMaintenancePercent>110</iColonyMaintenancePercent>
 			<iMaxColonyMaintenance>200</iMaxColonyMaintenance>
@@ -856,7 +863,8 @@
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>95</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>90</iNumCitiesMaintenancePercent>
-			<iMaxNumCitiesMaintenance>7</iMaxNumCitiesMaintenance>
+			<!-- advc.exp.1: was 7 -->
+			<iMaxNumCitiesMaintenance>7000</iMaxNumCitiesMaintenance>
 			<!-- advc.251: was 115 -->
 			<iColonyMaintenancePercent>115</iColonyMaintenancePercent>
 			<iMaxColonyMaintenance>200</iMaxColonyMaintenance>
@@ -1011,7 +1019,8 @@
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>100</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>95</iNumCitiesMaintenancePercent>
-			<iMaxNumCitiesMaintenance>7</iMaxNumCitiesMaintenance>
+			<!-- advc.exp.1: was 7 -->
+			<iMaxNumCitiesMaintenance>7000</iMaxNumCitiesMaintenance>
 			<!-- advc.251: was 140 -->
 			<iColonyMaintenancePercent>120</iColonyMaintenancePercent>
 			<iMaxColonyMaintenance>200</iMaxColonyMaintenance>
@@ -1049,7 +1058,8 @@
 			<!-- advc.250e: was 3 -->
 			<iAIStartingDefenseUnits>2</iAIStartingDefenseUnits>
 			<iAIStartingWorkerUnits>1</iAIStartingWorkerUnits>
-			<iAIStartingExploreUnits>1</iAIStartingExploreUnits>
+			<!-- advc.250e: was 1 -->
+			<iAIStartingExploreUnits>0</iAIStartingExploreUnits>
 			<!-- advc.250e: was 4 -->
 			<iBarbarianDefenders>3</iBarbarianDefenders>
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
@@ -1172,7 +1182,8 @@
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>100</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>100</iNumCitiesMaintenancePercent>
-			<iMaxNumCitiesMaintenance>8</iMaxNumCitiesMaintenance>
+			<!-- advc.exp.1: was 8000 -->
+			<iMaxNumCitiesMaintenance>8000</iMaxNumCitiesMaintenance>
 			<!-- advc.251: was 150 -->
 			<iColonyMaintenancePercent>130</iColonyMaintenancePercent>
 			<iMaxColonyMaintenance>200</iMaxColonyMaintenance>
@@ -1353,7 +1364,7 @@
 			<iCreatePercent>100</iCreatePercent>
 			<iDistanceMaintenancePercent>90</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>90</iNumCitiesMaintenancePercent>
-			<iMaxNumCitiesMaintenance>6</iMaxNumCitiesMaintenance>
+			<iMaxNumCitiesMaintenance>6000</iMaxNumCitiesMaintenance>
 			<iColonyMaintenancePercent>115</iColonyMaintenancePercent>
 			<iMaxColonyMaintenance>200</iMaxColonyMaintenance>
 			<iCorporationMaintenancePercent>115</iCorporationMaintenancePercent>

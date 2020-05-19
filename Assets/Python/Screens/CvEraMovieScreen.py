@@ -32,7 +32,8 @@ class CvEraMovieScreen:
 		if (CyInterface().noTechSplash()):
 			return 0
 
-		player = PyPlayer(CyGame().getActivePlayer())
+		# advc: Unused (and was incorrect; fixed)
+		#player = gc.getPlayer(CyGame().getActivePlayer())
 
 		screen = CyGInterfaceScreen( "EraMovieScreen" + str(iEra), CvScreenEnums.ERA_MOVIE_SCREEN)
 		#screen.setDimensions(screen.centerX(0), screen.centerY(0), self.W_SCREEN, self.H_SCREEN) # This doesn't work. Those 'center' functions assume a particular window size. (not original code)

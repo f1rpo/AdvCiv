@@ -38,7 +38,8 @@ class CvDomesticAdvisor:
 		screen = CyGInterfaceScreen( "DomesticAdvisor", CvScreenEnums.DOMESTIC_ADVISOR )
 
 		self.nScreenWidth = screen.getXResolution() - 30
-		self.nScreenHeight = screen.getYResolution() - 250
+		# advc.120c: Was -250. Need a little more space for the HUD.
+		self.nScreenHeight = screen.getYResolution() - 255
 		self.nTableWidth = self.nScreenWidth - 35
 		self.nTableHeight = self.nScreenHeight - 85
 		self.nNormalizedTableWidth = 970
@@ -60,7 +61,8 @@ class CvDomesticAdvisor:
 		self.nSpecTextOffsetY = 10
 
 		screen.setRenderInterfaceOnly(True)
-		screen.setDimensions(15, 100, self.nScreenWidth, self.nScreenHeight)
+		# advc.120c: y position changed from 100 to 85 so that the unit icons aren't obscured. The espionage slider isn't normally visible anyway.
+		screen.setDimensions(15, 85, self.nScreenWidth, self.nScreenHeight)
 		screen.showScreen(PopupStates.POPUPSTATE_IMMEDIATE, False)
 	
 		# Here we set the background widget and exit button, and we show the screen
@@ -101,13 +103,14 @@ class CvDomesticAdvisor:
 		screen.setTableColumnHeader( "CityListBackground", 1, "<font=2>" + localText.getText("TXT_KEY_DOMESTIC_ADVISOR_NAME", ()) + "</font>", (221 * self.nTableWidth) / self.nNormalizedTableWidth )
 		
 		# Population Column
-		screen.setTableColumnHeader( "CityListBackground", 2, "<font=2>" + localText.getText("TXT_KEY_POPULATION", ()) + "</font>", (40 * self.nTableWidth) / self.nNormalizedTableWidth )
+		# advc.002f: Replace localText.getText("TXT_KEY_POPULATION", ()) with CITIZEN_CHAR from BULL
+		screen.setTableColumnHeader( "CityListBackground", 2, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.CITIZEN_CHAR)) + "</font>", (40 * self.nTableWidth) / self.nNormalizedTableWidth )
 		
-		# Happiness Column
-		screen.setTableColumnHeader( "CityListBackground", 3, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.HAPPY_CHAR)) + "</font>", (40 * self.nTableWidth) / self.nNormalizedTableWidth )
+		# Happiness Column  advc.ctr: width was 40
+		screen.setTableColumnHeader( "CityListBackground", 3, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.HAPPY_CHAR)) + "</font>", (33 * self.nTableWidth) / self.nNormalizedTableWidth )
 		
-		# Health Column
-		screen.setTableColumnHeader( "CityListBackground", 4, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.HEALTHY_CHAR)) + "</font>", (40 * self.nTableWidth) / self.nNormalizedTableWidth )
+		# Health Column  advc.ctr: width was 40
+		screen.setTableColumnHeader( "CityListBackground", 4, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.HEALTHY_CHAR)) + "</font>", (33 * self.nTableWidth) / self.nNormalizedTableWidth )
 		
 		# Food Column
 		screen.setTableColumnHeader( "CityListBackground", 5, "<font=2>" + (u"%c" % gc.getYieldInfo(YieldTypes.YIELD_FOOD).getChar()) + "</font>", (40 * self.nTableWidth) / self.nNormalizedTableWidth )
@@ -132,20 +135,23 @@ class CvDomesticAdvisor:
 		# Trade Column
 		screen.setTableColumnHeader( "CityListBackground", 11, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.TRADE_CHAR)) + "</font>", (35 * self.nTableWidth) / self.nNormalizedTableWidth )
 				
-		# Maintenance Column
-		screen.setTableColumnHeader( "CityListBackground", 12, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.BAD_GOLD_CHAR)) + "</font>", (40 * self.nTableWidth) / self.nNormalizedTableWidth )
+		# Maintenance Column  advc.ctr: width was 40
+		screen.setTableColumnHeader( "CityListBackground", 12, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.BAD_GOLD_CHAR)) + "</font>", (33 * self.nTableWidth) / self.nNormalizedTableWidth )
 		
 		# Great Person Column
 		screen.setTableColumnHeader( "CityListBackground", 13, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.GREAT_PEOPLE_CHAR)) + "</font>", (70 * self.nTableWidth) / self.nNormalizedTableWidth )
 				
 		# Garrison Column
-		screen.setTableColumnHeader( "CityListBackground", 14, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.DEFENSE_CHAR)) + "</font>", (35 * self.nTableWidth) / self.nNormalizedTableWidth )
+		# advc.004: Use STRENGTH_CHAR instead of DEFENSE_CHAR
+		screen.setTableColumnHeader( "CityListBackground", 14, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR)) + "</font>", (35 * self.nTableWidth) / self.nNormalizedTableWidth )
 				
 		# Production Column
 		screen.setTableColumnHeader( "CityListBackground", 15, "<font=2>" + localText.getText("TXT_KEY_DOMESTIC_ADVISOR_PRODUCING", ()) + "</font>", (132 * self.nTableWidth) / self.nNormalizedTableWidth )	
 
 		# Liberate Column
-		screen.setTableColumnHeader( "CityListBackground", 16, "", (25 * self.nTableWidth) / self.nNormalizedTableWidth )
+		#screen.setTableColumnHeader( "CityListBackground", 16, "", (25 * self.nTableWidth) / self.nNormalizedTableWidth )
+		# <advc.ctr> Liberation now shown on "Cities" tab. Instead show revolt probability.
+		screen.setTableColumnHeader("CityListBackground", 16, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.OCCUPATION_CHAR)) + "</font>", (80 * self.nTableWidth) / self.nNormalizedTableWidth)
 
 	# Function to draw the contents of the cityList passed in
 	def drawContents (self):
@@ -298,12 +304,23 @@ class CvDomesticAdvisor:
 
 		# Liberation
 		# advc.004: Mark potential independent colonies too (bCanSplit check added to the two conditions below)
-		bCanSplit = gc.getPlayer(gc.getGame().getActivePlayer()).canSplitArea(pLoopCity.getArea())
-		if bCanSplit or pLoopCity.getLiberationPlayer(false) != -1:
+		#bCanSplit = gc.getPlayer(gc.getGame().getActivePlayer()).canSplitArea(pLoopCity.area().getID())
+		#if bCanSplit or pLoopCity.getLiberationPlayer(false) != -1:
 			# UNOFFICIAL_PATCH begin
-			if bCanSplit or not gc.getTeam(gc.getPlayer(pLoopCity.getLiberationPlayer(false)).getTeam()).isAtWar(CyGame().getActiveTeam()) :
-				screen.setTableText( "CityListBackground", 16, i, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.OCCUPATION_CHAR)) + "</font>", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		#	if bCanSplit or not gc.getTeam(gc.getPlayer(pLoopCity.getLiberationPlayer(false)).getTeam()).isAtWar(CyGame().getActiveTeam()) :
+		#		screen.setTableText( "CityListBackground", 16, i, "<font=2>" + (u"%c" % CyGame().getSymbolID(FontSymbols.OCCUPATION_CHAR)) + "</font>", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 			# UNOFFICIAL_PATCH end
+		# <advc.ctr> Replace this column with revolt probability
+		revoltPr = pLoopCity.revoltProbability()
+		if revoltPr > 0:
+			revoltPr = max(revoltPr, 0.001) # Show all near-0 values as "0.1%"
+			szRevoltPr = ("%.1f" % (100 * revoltPr)) + "%"
+			szColorTag = "COLOR_NEGATIVE_TEXT"
+			if not pLoopCity.canCultureFlip():
+				szColorTag = "COLOR_YIELD_FOOD"
+			szRevoltPr = localText.changeTextColor(szRevoltPr, gc.getInfoTypeForString(szColorTag))
+			screen.setTableText("CityListBackground", 16, i, "<font=2>" + szRevoltPr + "</font>", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# </advc.ctr>
 		
 	# Draw the specialist and their increase and decrease buttons
 	def drawSpecialists(self):

@@ -14,8 +14,6 @@ class CvMapGenerator
 public:
 	DllExport static CvMapGenerator& GetInstance();
 	DllExport static void FreeInstance() { SAFE_DELETE(m_pInst); }
-	CvMapGenerator();
-	virtual ~CvMapGenerator();
 
 	bool canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIgnoreLatitude);		// Exposed to Python
 	bool canPlaceGoodyAt(ImprovementTypes eImprovement, int iX, int iY);							// Exposed to Python
@@ -25,7 +23,10 @@ public:
 
 	void addLakes();																			// Exposed to Python
 	DllExport void addRivers();														// Exposed to Python
-	void doRiver(CvPlot* pStartPlot, CardinalDirectionTypes eLastCardinalDirection=NO_CARDINALDIRECTION, CardinalDirectionTypes eOriginalCardinalDirection=NO_CARDINALDIRECTION, int iThisRiverID=-1);	// Exposed to Python
+	void doRiver(CvPlot* pStartPlot,												// Exposed to Python
+			CardinalDirectionTypes eLastCardinalDirection = NO_CARDINALDIRECTION,
+			CardinalDirectionTypes eOriginalCardinalDirection = NO_CARDINALDIRECTION,
+			short iThisRiverID = -1); // advc.opt: was int
 	bool addRiver(CvPlot *pFreshWaterPlot);
 	DllExport void addFeatures();													// Exposed to Python
 	DllExport void addBonuses();													// Exposed to Python

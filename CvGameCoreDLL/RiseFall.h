@@ -23,7 +23,6 @@ public:
 	void atGameTurnStart();
 	void atActiveTurnStart();
 	void atTurnEnd(PlayerTypes civId);
-	void autoSave(); // May decide not to save
 	void retire();
 	int getRetireTurns() const;
 	bool hasRetired() const;
@@ -37,7 +36,7 @@ public:
 	static int victoryStage(PlayerTypes civId);
 	// Callbacks for CvDLLButtonPopup
 	  bool launchDefeatPopup(CvPopup* popup, CvPopupInfo& info);
-	  void handleDefeatPopup(int buttonClicked);
+	  void handleDefeatPopup(int buttonClicked, int pos);
 	  bool launchCivSelectionPopup(CvPopup* popup, CvPopupInfo& info);
 	  void handleCivSelection(PlayerTypes selectedCiv);
 	  void afterCivSelection(int buttonClicked);

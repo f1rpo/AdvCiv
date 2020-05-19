@@ -1,11 +1,7 @@
 #include "CvGameCoreDLL.h"
-#include "CyUnit.h"
-#include "CyCity.h"
-#include "CyPlot.h"
 #include "CyArea.h"
 #include "CySelectionGroup.h"
 #include "CyArtFileMgr.h"
-#include "CvInfos.h"
 
 //# include <boost/python/manage_new_object.hpp>
 //# include <boost/python/return_value_policy.hpp>
@@ -16,7 +12,7 @@
 
 void CyUnitPythonInterface1(python::class_<CyUnit>& x)
 {
-	OutputDebugString("Python Extension Module - CyUnitPythonInterface1\n");
+	printToConsole("Python Extension Module - CyUnitPythonInterface1\n");
 
 	x
 		.def("isNone", &CyUnit::isNone, "bool () - Is this a valid unit instance?")

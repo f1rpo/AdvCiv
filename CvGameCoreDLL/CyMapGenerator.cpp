@@ -12,7 +12,6 @@
 #include "CvGameCoreDLL.h"
 #include "CyMapGenerator.h"
 #include "CvMapGenerator.h"
-#include "CyPlot.h"
 #include "CvDLLPythonIFaceBase.h"
 
 CyMapGenerator::CyMapGenerator() : m_pMapGenerator(NULL)

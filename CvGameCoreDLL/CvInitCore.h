@@ -1,6 +1,5 @@
 #pragma once
 
-
 #ifndef CIV4_INITCORE_H
 #define CIV4_INITCORE_H
 
@@ -9,8 +8,8 @@
 
 class CvInitCore
 {
-
 public:
+
 	CvInitCore();
 	virtual ~CvInitCore();
 
@@ -23,7 +22,10 @@ protected:
 
 	void setDefaults();
 
-	bool checkBounds(int iValue, int iLower, int iUpper) const;
+	inline bool checkBounds(int iValue, int iLower, int iUpper) const // advc.inl
+	{
+		return (iLower <= iValue &&  iValue < iUpper);
+	}
 
 public:
 
@@ -51,11 +53,11 @@ public:
 	DllExport void closeInactiveSlots();
 	DllExport void reopenInactiveSlots();
 
-	DllExport void resetGame();
+	void resetGame();
 	DllExport void resetGame(CvInitCore * pSource, bool bClear = true, bool bSaveGameType = false);
 	DllExport void resetPlayers();
 	DllExport void resetPlayers(CvInitCore * pSource, bool bClear = true, bool bSaveSlotInfo = false);
-	DllExport void resetPlayer(PlayerTypes eID);
+	void resetPlayer(PlayerTypes eID);
 	DllExport void resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear = true, bool bSaveSlotInfo = false);
 
 	// **************************
@@ -131,8 +133,7 @@ public:
 	DllExport bool getVictory(VictoryTypes eVictoryID) const;
 	DllExport void setVictory(VictoryTypes eVictoryID, bool bVictory);
 
-	// advc.003b: inlined
-	inline const bool * getOptions() const	{ return m_abOptions; }
+	inline const bool * getOptions() const	{ return m_abOptions; } // advc.inl
 	DllExport bool getOption(GameOptionTypes eIndex) const;
 	DllExport void setOption(GameOptionTypes eIndex, bool bOption);
 
@@ -147,7 +148,7 @@ public:
 	DllExport bool getForceControl(ForceControlTypes eIndex) const;
 	DllExport void setForceControl(ForceControlTypes eIndex, bool bForceControl);
 
-	inline int getGameTurn() const	{ return m_iGameTurn; } // advc.003b
+	inline int getGameTurn() const	{ return m_iGameTurn; } // advc.inl
 	void setGameTurn(int iGameTurn)	{ m_iGameTurn = iGameTurn; }
 
 	int getMaxTurns() const	{ return m_iMaxTurns; }

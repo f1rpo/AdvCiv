@@ -42,7 +42,7 @@ public:
 	void uninit();
 
 protected:
-
+	// advc.003k (warning): It's not safe to add data members to this class!
 	int m_iXs;
 	int m_iYs;
 	int m_iFlags;
@@ -62,5 +62,7 @@ protected:
 	int yieldX(int iBadX);
 	int polarHeight(); // advc.tsl
 };
+
+BOOST_STATIC_ASSERT(sizeof(CvFractal) == 44); // advc.003k
 
 #endif

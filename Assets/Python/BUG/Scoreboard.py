@@ -401,10 +401,15 @@ class Scoreboard:
 		interface = CyInterface()
 		xResolution = screen.getXResolution()
 		yResolution = screen.getYResolution()
-		
+		# <advc.106d>
+		# Was effectively 18 in BtS regardless of resolution
+		iVOffset = 0
+		if screen.getYResolution() > 1100:
+			iVOffset = 6
+		# </advc.106d>
 		x = xResolution - 12 # start here and shift left with each column
 		if ( interface.getShowInterface() == InterfaceVisibility.INTERFACE_SHOW or interface.isInAdvancedStart()):
-			y = yResolution - 188 # advc.106d: was yResolution-206
+			y = yResolution - 188 - iVOffset # advc.106d: was yResolution-206
 		else:
 			y = yResolution - 88
 		totalWidth = 0
@@ -417,7 +422,6 @@ class Scoreboard:
 		# <advc.085>
 		bExpanded = False
 		if gc.getPlayer(self._activePlayer).isScoreboardExpanded():
-			gc.getPlayer(self._activePlayer).setScoreboardExpanded(False)
 			bExpanded = True
 		else: # Take out the keys preceded by an underscore
 			stringsToRemove = []
@@ -585,7 +589,7 @@ class Scoreboard:
 			interface.checkFlashReset( playerScore.getID() )
 		
 		if ( interface.getShowInterface() == InterfaceVisibility.INTERFACE_SHOW or interface.isInAdvancedStart()):
-			y = yResolution - 168 # advc.106d: was yResolution-186
+			y = yResolution - 168 - iVOffset # advc.106d: was yResolution-186
 		else:
 			y = yResolution - 68
 		screen.setPanelSize( "ScoreBackground", xResolution - 21 - totalWidth, y - (height * self.size()) - 4, 
@@ -600,8 +604,8 @@ class TeamScores:
 		self._team = team
 		self._rank = rank
 		self._playerScores = []
-		#self._isVassal = team.isAVassal()
-		self._isVassal = team.isAVassal() and gc.getTeam(gc.getGame().getActiveTeam()).isHasMet(team.getID()) # K-Mod
+		# advc.127: Debug mode check added; the hasMet check is from K-Mod.
+		self._isVassal = team.isAVassal() and (gc.getTeam(gc.getGame().getActiveTeam()).isHasMet(team.getID()) or gc.getGame().isDebugMode())
 		self._master = None
 		self._vassalTeamScores = []
 		

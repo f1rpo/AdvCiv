@@ -1,8 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CySelectionGroup.h"
-#include "CyPlot.h"
 #include "CyArea.h"
-#include "CyUnit.h"
 //# include <boost/python/manage_new_object.hpp>
 //# include <boost/python/return_value_policy.hpp>
 
@@ -12,7 +10,7 @@
 
 void CySelectionGroupInterface()
 {
-	OutputDebugString("Python Extension Module - CySelectionGroupInterface\n");
+	printToConsole("Python Extension Module - CySelectionGroupInterface\n");
 
 	python::class_<CySelectionGroup>("CySelectionGroup")
 		.def("isNone", &CySelectionGroup::isNone, "bool () - is this CySelectionGroup instance valid?")

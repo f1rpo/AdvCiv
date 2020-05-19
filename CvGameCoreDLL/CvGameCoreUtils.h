@@ -7,66 +7,137 @@
 
 class CvPlot;
 class CvCity;
+class CvCityAI; // advc.003u
 class CvUnit;
+class CvUnitAI; // advc.003u
 class CvSelectionGroup;
 class CvString;
 class CvRandom;
 class FAStarNode;
 class FAStar;
-class CvInfoBase;
 
-// advc.003j: Unused here and elsewhere; still defined in CvGameCoreDLL.
-//#ifndef SQR
-//#define SQR(x) ( (x)*(x))
-//#endif*
+#define SQR(x) ((x)*(x))
 
-// <advc.003g> floating point utility
-inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
-int roundToMultiple(double d, int iMultiple);
-bool bernoulliSuccess(double pr, // 0 <= pr <= 1
-		char const* pszLog = "", bool bAsync = false,
-		int iData1 = MIN_INT, int iData2 = MIN_INT);
-double dMedian(std::vector<double>& distribution, bool bSorted = false);
-double dMean(std::vector<double> const& distribution);
-double dMax(std::vector<double> const& distribution);
-double dMin(std::vector<double> const& distribution);
-// see e.g. Wikipedia: "percentile rank"
-double percentileRank(std::vector<double>& distribution, double score,
-		bool bSorted = false, // Is the distribution sorted (ascending)?
-		bool bScorePartOfDistribution = true); /* Is 'score' to be considered as
-		an element of the distribution? If yes, the percentile rank is going to be
-		positive. Either way, the caller shouldn't include 'score' in the distribution. */
-// </advc.003g>
-// <advc.003>
-/*  Hash based on the components of x. Plot index of capital factored in for
-	increased range if ePlayer given. (ePlayer is ignored if it has no capital.)
-	Result between 0 and 1. Returns float b/c CvRandom uses float (not double). */
-float hash(std::vector<long> const& x, PlayerTypes ePlayer = NO_PLAYER);
-// For hashing just a single input
-float hash(long x, PlayerTypes ePlayer = NO_PLAYER);
-/*  'r' is an empty vector in which the 21 CvPlot* in the city radius ("fat cross")
-	around p will be placed. &p itself gets placed in r[0]; the others in
-	no particular order. If the city cross has fewer than 21 plots (edge of the map),
-	then NULL entries will be included.
-	For iterating over tiles in the radius of a CvCity, CvCity::getCityIndexPlot
-	is faster; but cityCross doesn't require a CvCity to exist in p. */
-void cityCross(CvPlot const& p, std::vector<CvPlot*>& r);
-// </advc.003>
+// K-Mod: Created the following function for rounded integer division
+// advc: Moved from CvGlobals.h and static specifier removed
+inline int ROUND_DIVIDE(int a, int b)
+{
+	//return (a+((a/b>0)?1:-1)*(b/2)) / b;
+	// <advc.001> ^That'll round 2/3 to 0
+	int iSign = ((a ^ b) >= 0 ? 1 : -1);
+	return (a + iSign * b / 2) / b;
+	// </advc.001>
+}
+
+// <advc.003g>
+// This is a better approach than the fmath stuff below
+namespace stats // Seems too generic, but what else to name it?
+{
+	template<typename T>
+	T median(std::vector<T>& kSamples, bool bSorted = false)
+	{
+		FAssert(!kSamples.empty());
+		if (!bSorted)
+			std::sort(kSamples.begin(), kSamples.end());
+		int iMedian = kSamples.size() / 2;
+		if (kSamples.size() % 2 != 0)
+			return kSamples[iMedian];
+		return (kSamples[iMedian] + kSamples[iMedian - 1]) / 2;
+	}
+	template<typename T>
+	T max(std::vector<T> const& kSamples)
+	{
+		FAssert(!kSamples.empty());
+		T r = kSamples[0];
+		for(size_t i = 1; i < kSamples.size(); i++)
+			r = std::max(r, kSamples[i]);
+		return r;
+	}
+	template<typename T>
+	T min(std::vector<T> const& kSamples)
+	{
+		FAssert(!kSamples.empty());
+		T r = kSamples[0];
+		for(size_t i = 1; i < kSamples.size(); i++)
+			r = std::min(r, kSamples[i]);
+		return r;
+	}
+	template<typename T>
+	T mean(std::vector<T> const& kSamples)
+	{
+		FAssert(!kSamples.empty());
+		T r = 0;
+		for(size_t i = 0; i < kSamples.size(); i++)
+			r += kSamples[i];
+		return r / static_cast<T>(kSamples.size());
+	}
+}
+//namespace fmath // (For the time being, these functions are used too frequently for a namespace.)
+//{
+	inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
+	int roundToMultiple(double d, int iMultiple);
+	bool bernoulliSuccess(double pr, // 0 <= pr <= 1
+			char const* pszLog = "", bool bAsync = false,
+			int iData1 = MIN_INT, int iData2 = MIN_INT);
+	inline double dMedian(std::vector<double>& distribution, bool bSorted = false)
+	{
+		return stats::median(distribution, bSorted);
+	}
+	// see e.g. Wikipedia: "percentile rank"
+	double percentileRank(std::vector<double>& distribution, double score,
+			bool bSorted = false, // Is the distribution sorted (ascending)?
+			bool bScorePartOfDistribution = true); /* Is 'score' to be considered as
+			an element of the distribution? If yes, the percentile rank is going to be
+			positive. Either way, the caller shouldn't include 'score' in the distribution. */
+
+	/*  Hash based on the components of x. Plot index of capital factored in for
+		increased range if ePlayer given. (ePlayer is ignored if it has no capital.) */
+	int intHash(std::vector<int> const& x, PlayerTypes ePlayer = NO_PLAYER);
+	/*	See intHash about the parameters.
+		Result between 0 and 1. Returns float b/c CvRandom uses float (not double).
+		(Similar but more narrow: CvUnitAI::AI_unitBirthmarkHash, AI_unitPlotHash) */
+	inline float hash(std::vector<int> const& x, PlayerTypes ePlayer = NO_PLAYER)
+	{
+		/*  Use ASyncRand to avoid the overhead of creating a new object?
+			Or use stdlib's rand/sRand? I don't think it matters. */
+		/*CvRandom& rng = GC.getASyncRand();
+		rng.reset(hashVal);*/
+		CvRandom rng;
+		rng.init(intHash(x, ePlayer));
+		return rng.getFloat();
+	}
+	// For hashing just a single input
+	inline float hash(int x, PlayerTypes ePlayer = NO_PLAYER)
+	{
+		std::vector<int> v;
+		v.push_back(x);
+		return hash(v, ePlayer);
+	}
+//} // </advc.003g>
+
 void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2); // advc.035
-// <advc.008e>
-bool needsArticle(BuildingTypes eBuilding);
-bool needsArticle(ProjectTypes eProject);
-// </advc.008e>
 // <advc.130h>
-template<typename T> void removeDuplicates(std::vector<T>& v) {
+template<typename T> void removeDuplicates(std::vector<T>& v)
+{
 	std::set<T> aeTmp(v.begin(), v.end());
 	v.assign(aeTmp.begin(), aeTmp.end());
 } // </advc.130h>
+// <advc>
+// Erik: "Back-ported" from C++11
+template<class ForwardIt, class T>
+void iota(ForwardIt first, ForwardIt last, T value)
+{
+	while (first != last)
+	{
+		*first++ = value;
+		++value;
+	}
+} // </advc>
 // advc.004w:
 void applyColorToString(CvWString& s, char const* szColor, bool bLink = false);
+void narrowUnsafe(CvWString const& szWideString, CvString& szNarowString); // advc
 
-//sign function taken from FirePlace - JW
-template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); };
+// (advc: getSign move to CvPlot.cpp)
 
 inline int range(int iNum, int iLow, int iHigh)
 {
@@ -92,8 +163,8 @@ inline float range(float fNum, float fLow, float fHigh)
 
 /*  <advc.003g> Don't want to work with float in places where memory usage isn't a
 	concern. */
-inline double dRange(double d, double low, double high) {
-
+inline double dRange(double d, double low, double high)
+{
 	if(d < low)
 		return low;
 	if(d > high)
@@ -101,9 +172,9 @@ inline double dRange(double d, double low, double high) {
 	return d;
 } // </advc.003g>
 
-// advc.003: Body cut from CvUnitAI::AI_sacrificeValue. (K-Mod had used long -> int.)
-inline int longLongToInt(long long x) {
-
+// advc: Body cut from CvUnitAI::AI_sacrificeValue. (K-Mod had used long -> int.)
+inline int longLongToInt(long long x)
+{
 	FAssert(x < MAX_INT);
 	//return std::min((long)MAX_INT, iValue); // K-Mod
 	/*  Erik (BUG1): We cannot change the signature [of AI_sacrificeValue] due to
@@ -116,79 +187,53 @@ inline int longLongToInt(long long x) {
 	return static_cast<int>(std::min<long long>(MAX_INT, x));
 }
 
+inline short intToShort(int x)
+{
+	FAssert(x < MAX_SHORT);
+	return static_cast<short>(std::min<int>(MAX_SHORT, x));
+}
+
+inline char intToChar(int x)
+{
+	FAssert(x < MAX_CHAR);
+	return static_cast<char>(std::min<char>(MAX_CHAR, x));
+}
+
 // (advc.make: Distance functions moved into CvMap.h)
 
-CvPlot* plotCity(int iX, int iY, int iIndex);																			// Exposed to Python
-int plotCityXY(int iDX, int iDY);																									// Exposed to Python
-int plotCityXY(const CvCity* pCity, const CvPlot* pPlot);													// Exposed to Python
-bool isInnerRing(CvPlot const* pPlot, CvPlot const* pCityPlot); // advc.303
-
-CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir);	// Exposed to Python
+inline CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir)	// Exposed to Python
+{
+	return (CardinalDirectionTypes)((eDir + 2) % NUM_CARDINALDIRECTION_TYPES); // advc.inl
+}
 DirectionTypes cardinalDirectionToDirection(CardinalDirectionTypes eCard);				// Exposed to Python
 DllExport bool isCardinalDirection(DirectionTypes eDirection);															// Exposed to Python
 DirectionTypes estimateDirection(int iDX, int iDY);																// Exposed to Python
 DllExport DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot* pToPlot);
 DllExport float directionAngle(DirectionTypes eDirection);
 
-bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);												// Exposed to Python
-bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam);					// Exposed to Python
+bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);										// Exposed to Python
+//isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam); // advc: Use CvTeamAI::AI_mayAttack instead
 
-DllExport CvCity* getCity(IDInfo city);												// Exposed to Python
-DllExport CvUnit* getUnit(IDInfo unit);												// Exposed to Python
+/*	(advc.opt: getCity, getUnit moved to CvPlayer.h. CvCity::fromIDInfo and
+	CvUnit::fromIDInfo as alternatives in files that don't include CvPlayer.h.)
 
-// (advc.make: inlined isCycleGroup moved to CvSelectionGroup to avoid a dependency)
-bool isBeforeUnitCycle(const CvUnit* pFirstUnit, const CvUnit* pSecondUnit);
-bool isBeforeGroupOnPlot(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup); // K-Mod
-int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup); // K-Mod
-bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader);	// Exposed to Python
+// (advc: unit cycling functions moved to CvSelectionGroup, CvUnit)
 
-int getPopulationAsset(int iPopulation);											// Exposed to Python
-int getLandPlotsAsset(int iLandPlots);												// Exposed to Python
-int getPopulationPower(int iPopulation);											// Exposed to Python
-int getPopulationScore(int iPopulation);											// Exposed to Python
-int getLandPlotsScore(int iLandPlots);												// Exposed to Python
-int getTechScore(TechTypes eTech);													// Exposed to Python
-int getWonderScore(BuildingClassTypes eWonderClass);								// Exposed to Python
-
-//ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement, int iCount = 0);		// Exposed to Python
-ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement);			// Exposed to Python, K-Mod. (I've removed iCount here, and in the python defs. It's a meaningless parameter.)
-
-int getWorldSizeMaxConscript(CivicTypes eCivic);									// Exposed to Python
-
-bool isReligionTech(TechTypes eTech);														// Exposed to Python
-// advc.003j: Unused BtS function; wasn't even declared in the header file.
-bool isCorporationTech(TechTypes eTech);
-
-bool isTechRequiredForUnit(TechTypes eTech, UnitTypes eUnit);							// Exposed to Python
-bool isTechRequiredForBuilding(TechTypes eTech, BuildingTypes eBuilding);			// Exposed to Python
-bool isTechRequiredForProject(TechTypes eTech, ProjectTypes eProject);				// Exposed to Python
-
-bool isWorldUnitClass(UnitClassTypes eUnitClass);											// Exposed to Python
-bool isTeamUnitClass(UnitClassTypes eUnitClass);											// Exposed to Python
-bool isNationalUnitClass(UnitClassTypes eUnitClass);									// Exposed to Python
-bool isLimitedUnitClass(UnitClassTypes eUnitClass);										// Exposed to Python
-bool isMundaneBuildingClass(BuildingClassTypes eBuildingClass); // advc.104
-bool isWorldWonderClass(BuildingClassTypes eBuildingClass);							// Exposed to Python
-bool isTeamWonderClass(BuildingClassTypes eBuildingClass);							// Exposed to Python
-bool isNationalWonderClass(BuildingClassTypes eBuildingClass);						// Exposed to Python
-bool isLimitedWonderClass(BuildingClassTypes eBuildingClass);						// Exposed to Python
-int limitedWonderClassLimit(BuildingClassTypes eBuildingClass);
-
-bool isWorldProject(ProjectTypes eProject);														// Exposed to Python
-bool isTeamProject(ProjectTypes eProject);														// Exposed to Python
-bool isLimitedProject(ProjectTypes eProject);													// Exposed to Python
+/*	advc: asset score functions moved to CvGame; no longer exposed to Python.
+	isPromotionValid moved to CvUnitInfo, finalImprovementUpgrade to CvImprovementInfo,
+	getEspionageModifier to CvTeam, getWorldSizeMaxConscript to CvGame (as getMaxConscript;
+	no longer exposed to Python). */
+/*	advc.003w: Moved some two dozen functions to CvInfo classes;
+	mostly functions dealing with building and unit class limitations.
+	Removed isTechRequiredForProject. */
 
 __int64 getBinomialCoefficient(int iN, int iK);
 int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender);				// Exposed to Python
 int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTypes eDefenceTeam = NO_TEAM); // K-Mod
 
-int getEspionageModifier(TeamTypes eOurTeam, TeamTypes eTargetTeam);							// Exposed to Python
-
+/*	advc (note): Still used in the DLL by CvPlayer::buildTradeTable, but mostly deprecated.
+	Use the TradeData constructor instead. */
 DllExport void setTradeItem(TradeData* pItem, TradeableItems eItemType = TRADE_ITEM_NONE, int iData = 0);
-
-bool isPlotEventTrigger(EventTriggerTypes eTrigger);
-
-TechTypes getDiscoveryTech(UnitTypes eUnit, PlayerTypes ePlayer);
 
 void setListHelp(wchar* szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst);
 void setListHelp(CvWString& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst);
@@ -202,7 +247,7 @@ bool PUF_isCombatTeam(const CvUnit* pUnit, int iData1, int iData2);
 bool PUF_isOtherPlayer( const CvUnit* pUnit, int iData1, int iData2 = -1);
 bool PUF_isOtherTeam( const CvUnit* pUnit, int iData1, int iData2 = -1);
 bool PUF_isEnemy( const CvUnit* pUnit, int iData1, int iData2 = -1);
-// advc.122:
+// advc.ctr:
 bool PUF_isEnemyCityAttacker( const CvUnit* pUnit, int iData1, int iData2 = -1);
 bool PUF_isVisible( const CvUnit* pUnit, int iData1, int iData2 = -1);
 bool PUF_isVisibleDebug( const CvUnit* pUnit, int iData1, int iData2 = -1);
@@ -248,8 +293,8 @@ int changeIrrigated(FAStarNode* parent, FAStarNode* node, int data, const void* 
 int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder);
 int pathHeuristic(int iFromX, int iFromY, int iToX, int iToY);
 int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
-int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup* pSelectionGroup, int iFlags); // K-Mod
-int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int iFlags); // K-Mod
+int pathValid_join(FAStarNode* parent, FAStarNode* node, CvSelectionGroup const* pSelectionGroup, int iFlags); // K-Mod
+int pathValid_source(FAStarNode* parent, CvSelectionGroup const* pSelectionGroup, int iFlags); // K-Mod
 int pathValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int stepDestValid(int iToX, int iToY, const void* pointer, FAStar* finder);
@@ -275,6 +320,7 @@ int baseYieldToSymbol(int iNumYieldTypes, int iYieldStack);
 
 DllExport int* shuffle(int iNum, CvRandom& rand);
 void shuffleArray(int* piShuffle, int iNum, CvRandom& rand);
+void shuffleVector(std::vector<int>& aiIndices, CvRandom& rand); // advc.enum
 
 int getTurnMonthForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, GameSpeedTypes eSpeed);
 int getTurnYearForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, GameSpeedTypes eSpeed);

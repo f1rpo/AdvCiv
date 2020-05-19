@@ -1,19 +1,19 @@
 
 #include "CvGameCoreDLL.h"
 #include "KmodPathFinder.h"
-#include "CvGameAI.h"
+#include "CvGame.h"
 #include "CvTeamAI.h"
-#include "CvInfos.h"
+#include "CvInfo_Terrain.h"
 #include "CvSelectionGroup.h"
 #include "CvMap.h"
 
 int KmodPathFinder::admissible_scaled_weight = 1;
 int KmodPathFinder::admissible_base_weight = 1;
 
-CvPathSettings::CvPathSettings(const CvSelectionGroup* pGroup, int iFlags, int iMaxPath, int iHW)
-	: pGroup(const_cast<CvSelectionGroup*>(pGroup)), iFlags(iFlags), iMaxPath(iMaxPath), iHeuristicWeight(iHW)
-// I'm really sorry about the const_cast. I can't fix the const-correctness of all the relevant functions,
-// because some of them are dllexports. The original code essentially does the same thing anyway, with void* casts.
+CvPathSettings::CvPathSettings(const CvSelectionGroup* pGroup, int iFlags, int iMaxPath, int iHW) :
+	pGroup(pGroup), iFlags(iFlags),
+	iMaxPath(iMaxPath < 0 ? MAX_INT : iMaxPath), // advc.opt: Can avoid some branching this way
+	iHeuristicWeight(iHW)
 {
 	// empty. (there use to be something here, but we don't need it anymore.)
 }
@@ -22,14 +22,14 @@ void KmodPathFinder::InitHeuristicWeights()
 {
 	admissible_base_weight = GC.getMOVE_DENOMINATOR()/2;
 	admissible_scaled_weight = GC.getMOVE_DENOMINATOR()/2;
-	for (int r = 0; r < GC.getNumRouteInfos(); r++)
+	FOR_EACH_ENUM(Route)
 	{
-		const CvRouteInfo& kInfo = GC.getRouteInfo((RouteTypes)r);
+		const CvRouteInfo& kInfo = GC.getInfo(eLoopRoute);
 		int iCost = kInfo.getMovementCost();
-		for (int t = 0; t < GC.getNumTechInfos(); t++)
+		FOR_EACH_ENUM(Tech)
 		{
-			if (kInfo.getTechMovementChange(t) < 0)
-				iCost += kInfo.getTechMovementChange(t);
+			if (kInfo.getTechMovementChange(eLoopTech) < 0)
+				iCost += kInfo.getTechMovementChange(eLoopTech);
 		}
 		admissible_base_weight = std::min(admissible_base_weight, iCost);
 		admissible_scaled_weight = std::min(admissible_scaled_weight, kInfo.getFlatMovementCost());
@@ -48,17 +48,18 @@ bool KmodPathFinder::OpenList_sortPred::operator()(const FAStarNode* &left, cons
 
 //
 KmodPathFinder::KmodPathFinder() :
-	end_node(0),
+	end_node(NULL),
 	map_width(0),
 	map_height(0),
-	node_data(0)
+	node_data(NULL)
 {
 	// Unfortunately, the pathfinder is constructed before the map width and height are determined.
 
 	// Ideally the pathfinder would be initialised with a given CvMap, and then not refer to any global objects.
 	// But that is not easy to do with the current code-base. Instead I'll just check the pathfinder settings
 	// at particular times to make sure the map hasn't changed.
-
+	/*	advc.003k (note): Making the KmodPathFinder member of CvSelectionGroup
+		non-static would no longer be a problem */
 }
 
 KmodPathFinder::~KmodPathFinder()
@@ -69,22 +70,26 @@ KmodPathFinder::~KmodPathFinder()
 bool KmodPathFinder::ValidateNodeMap()
 {
 	//PROFILE_FUNC(); // advc.003o
-	if (!GC.getGame().isFinalInitialized())
-		return false;
+	FAssert(GC.getGame().isFinalInitialized()); // advc: Never seems to happen; assertion should suffice.
 
 	if (map_width != GC.getMap().getGridWidth() || map_height != GC.getMap().getGridHeight())
 	{
 		map_width = GC.getMap().getGridWidth();
 		map_height = GC.getMap().getGridHeight();
-		//node_data = (FAStarNode*)
-		// <advc.003> According to cppcheck, the above is a "common realloc mistake".
+		//node_data = (FAStarNode*)realloc...
+		// <advc> According to cppcheck, the above is a "common realloc mistake".
 		FAStarNode* new_node_data = static_cast<FAStarNode*>(
 				realloc(node_data, sizeof(*node_data)*map_width*map_height));
-		if(new_node_data == NULL) {
+		/*	But then, realloc isn't actually going to fail, and if it does,
+			a memory leak is the least of our problems. */
+		FAssertMsg(new_node_data != NULL, "Failed to re-allocate memory");
+		node_data = new_node_data;
+		/*if (new_node_data == NULL)
+		{
 			free(node_data);
 			FAssertMsg(new_node_data != NULL, "Failed to re-allocate memory");
 		}
-		else node_data = new_node_data; // </advc.003>
+		else node_data = new_node_data;*/ // </advc>
 		end_node = NULL;
 	}
 	return true;
@@ -94,10 +99,10 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 {
 	PROFILE_FUNC();
 
-	FASSERT_BOUNDS(0, map_width , x1, "GeneratePath");
-	FASSERT_BOUNDS(0, map_height, y1, "GeneratePath");
-	FASSERT_BOUNDS(0, map_width , x2, "GeneratePath");
-	FASSERT_BOUNDS(0, map_height, y2, "GeneratePath");
+	FAssertBounds(0, map_width , x1);
+	FAssertBounds(0, map_height, y1);
+	FAssertBounds(0, map_width , x2);
+	FAssertBounds(0, map_height, y2);
 
 	end_node = NULL;
 
@@ -127,7 +132,8 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 
 	if (GetNode(x1, y1).m_bOnStack)
 	{
-		int iMoves = (settings.iFlags & MOVE_MAX_MOVES) ? settings.pGroup->maxMoves() : settings.pGroup->movesLeft();
+		int iMoves = (settings.iFlags & MOVE_MAX_MOVES) ?
+				settings.pGroup->maxMoves() : settings.pGroup->movesLeft();
 		if (iMoves != GetNode(x1, y1).m_iData1)
 		{
 			Reset();
@@ -158,9 +164,12 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 		// nothing
 	}
 
-	if (end_node && (settings.iMaxPath < 0 || end_node->m_iData2 <= settings.iMaxPath))
+	if (end_node != NULL &&
+		// advc.opt:
+		(/*settings.iMaxPath < 0 ||*/ end_node->m_iData2 <= settings.iMaxPath))
+	{
 		return true;
-
+	}
 	return false;
 }
 
@@ -168,8 +177,9 @@ bool KmodPathFinder::GeneratePath(const CvPlot* pToPlot)
 {
 	if (!settings.pGroup || !pToPlot)
 		return false;
-	return GeneratePath(settings.pGroup->plot()->getX(), settings.pGroup->plot()->getY(),
-		pToPlot->getX(), pToPlot->getY());
+	return GeneratePath(
+			settings.pGroup->getPlot().getX(), settings.pGroup->getPlot().getY(),
+			pToPlot->getX(), pToPlot->getY());
 }
 
 int KmodPathFinder::GetPathTurns() const
@@ -241,8 +251,8 @@ void KmodPathFinder::SetSettings(const CvPathSettings& new_settings)
 		// there's one more chance to avoid a reset..
 		// If the war flag is the only difference, and we aren't sneak attack ready anyway - then there is effectively no difference.
 		relevant_flags &= ~MOVE_DECLARE_WAR;
-		if ((settings.iFlags & relevant_flags) != (new_settings.iFlags & relevant_flags)
-			|| GET_TEAM(settings.pGroup->getHeadTeam()).AI_isSneakAttackReady())
+		if ((settings.iFlags & relevant_flags) != (new_settings.iFlags & relevant_flags) ||
+			GET_TEAM(settings.pGroup->getHeadTeam()).AI_isSneakAttackReady())
 		{
 			Reset();
 		}
@@ -252,9 +262,7 @@ void KmodPathFinder::SetSettings(const CvPathSettings& new_settings)
 	if (settings.iHeuristicWeight < 0)
 	{
 		if (!settings.pGroup)
-		{
 			settings.iHeuristicWeight = 1;
-		}
 		else
 		{
 			if (settings.pGroup->getDomainType() == DOMAIN_SEA)
@@ -280,8 +288,8 @@ void KmodPathFinder::Reset()
 
 void KmodPathFinder::AddStartNode()
 {
-	FASSERT_BOUNDS(0, map_width , start_x, "KmodPathFinder::AddStartNode");
-	FASSERT_BOUNDS(0, map_height, start_y, "KmodPathFinder::AddStartNode");
+	FAssertBounds(0, map_width , start_x);
+	FAssertBounds(0, map_height, start_y);
 
 	// add initial node.
 	FAStarNode* start_node = &GetNode(start_x, start_y);
@@ -319,7 +327,8 @@ bool KmodPathFinder::ProcessNode()
 		for (OpenList_t::iterator it = open_list.begin(); it != open_list.end(); ++it)
 		{
 			if ((*it)->m_iTotalCost < iLowestCost &&
-				(settings.iMaxPath < 0 || (*it)->m_iData2 <= settings.iMaxPath))
+				// advc.opt:
+				(/*settings.iMaxPath < 0 ||*/ (*it)->m_iData2 <= settings.iMaxPath))
 			{
 				best_it = it;
 				iLowestCost = (*it)->m_iTotalCost;
@@ -497,7 +506,10 @@ void KmodPathFinder::ForwardPropagate(FAStarNode* head, int cost_delta)
 
 		FAssert(head->m_apChildren[i]->m_iKnownCost > head->m_iKnownCost);
 
-		if (iNewDelta != 0 || iOldMoves != head->m_apChildren[i]->m_iData1 || iOldTurns != head->m_apChildren[i]->m_iData2)
+		if (iNewDelta != 0 || iOldMoves != head->m_apChildren[i]->m_iData1 ||
+			iOldTurns != head->m_apChildren[i]->m_iData2)
+		{
 			ForwardPropagate(head->m_apChildren[i], iNewDelta);
+		}
 	}
 }

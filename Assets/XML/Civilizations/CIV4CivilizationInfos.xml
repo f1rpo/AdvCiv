@@ -2774,7 +2774,8 @@
 			</Buildings>
 			<Units>
 				<Unit>
-					<UnitClassType>UNITCLASS_GALLEON</UnitClassType>
+					<!-- advc.905b: was GALLEON -->
+					<UnitClassType>UNITCLASS_FRIGATE</UnitClassType>
 					<UnitType>UNIT_NETHERLANDS_OOSTINDIEVAARDER</UnitType>
 				</Unit>
 			</Units>
@@ -3877,7 +3878,7 @@
 				<City>TXT_KEY_CITY_NAME_HARAPPAN</City>
 				<City>TXT_KEY_CITY_NAME_MAURYAN</City>
 				<City>TXT_KEY_CITY_NAME_PARTHIAN</City>
-				<!-- advc.003: Duplicate removed -->
+				<!-- advc: Duplicate removed -->
 				<!--City>TXT_KEY_CITY_NAME_HARAPPAN</City-->
 				<City>TXT_KEY_CITY_NAME_NUBIAN</City>
 				<City>TXT_KEY_CITY_NAME_BACTRIAN</City>
@@ -4014,7 +4015,7 @@
 				<City>TXT_KEY_CITY_NAME_HARAPPAN</City>
 				<City>TXT_KEY_CITY_NAME_MAURYAN</City>
 				<City>TXT_KEY_CITY_NAME_PARTHIAN</City>
-				<!-- advc.003: Duplicate removed -->
+				<!-- advc: Duplicate removed -->
 				<!--City>TXT_KEY_CITY_NAME_HARAPPAN</City-->
 				<City>TXT_KEY_CITY_NAME_NUBIAN</City>
 				<City>TXT_KEY_CITY_NAME_BACTRIAN</City>

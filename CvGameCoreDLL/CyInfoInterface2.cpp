@@ -1,5 +1,5 @@
 #include "CvGameCoreDLL.h"
-#include "CvInfos.h"
+#include "CvInfo_All.h"
 
 //
 // Python interface for info classes (formerly structs)
@@ -8,13 +8,13 @@
 // advc.003e: Added template parameters 'boost::noncopyable'
 void CyInfoPythonInterface2()
 {
-	OutputDebugString("Python Extension Module - CyInfoPythonInterface2\n");
+	printToConsole("Python Extension Module - CyInfoPythonInterface2\n");
 	python::class_<CvBuildingClassInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvBuildingClassInfo")
 		.def("getMaxGlobalInstances", &CvBuildingClassInfo::getMaxGlobalInstances, "int ()")
 		.def("getMaxTeamInstances", &CvBuildingClassInfo::getMaxTeamInstances, "int ()")
 		.def("getMaxPlayerInstances", &CvBuildingClassInfo::getMaxPlayerInstances, "int ()")
 		.def("getExtraPlayerInstances", &CvBuildingClassInfo::getExtraPlayerInstances, "int ()")
-		.def("getDefaultBuildingIndex", &CvBuildingClassInfo::getDefaultBuildingIndex, "int ()")
+		.def("getDefaultBuildingIndex", &CvBuildingClassInfo::getDefaultBuilding, "int ()")
 
 		.def("isNoLimit", &CvBuildingClassInfo::isNoLimit, "bool ()")
 		.def("isMonument", &CvBuildingClassInfo::isMonument, "bool ()")
@@ -164,8 +164,8 @@ void CyInfoPythonInterface2()
 		// Arrays
 
 		.def("getGoodies", &CvHandicapInfo::getGoodies, "int (int i)")
-		.def("isFreeTechs", &CvHandicapInfo::isFreeTechs, "int (int i)")
-		.def("isAIFreeTechs", &CvHandicapInfo::isAIFreeTechs, "int (int i)")
+		.def("isFreeTechs", &CvHandicapInfo::isFreeTechs, "bool (int i)")
+		.def("isAIFreeTechs", &CvHandicapInfo::isAIFreeTechs, "bool (int i)")
 		;
 
 	python::class_<CvGameSpeedInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvGameSpeedInfo")
@@ -215,11 +215,11 @@ void CyInfoPythonInterface2()
 
 		// Arrays
 
-		.def("getFeatureTech", &CvBuildInfo::getFeatureTech, "int (int i)")
-		.def("getFeatureTime", &CvBuildInfo::getFeatureTime, "int (int i)")
-		.def("getFeatureProduction", &CvBuildInfo::getFeatureProduction, "int (int i)")
+		.def("getFeatureTech", &CvBuildInfo::py_getFeatureTech, "int (int i)")
+		.def("getFeatureTime", &CvBuildInfo::py_getFeatureTime, "int (int i)")
+		.def("getFeatureProduction", &CvBuildInfo::py_getFeatureProduction, "int (int i)")
 
-		.def("isFeatureRemove", &CvBuildInfo::isFeatureRemove, "bool (int i)")
+		.def("isFeatureRemove", &CvBuildInfo::py_isFeatureRemove, "bool (int i)")
 		;
 
 	python::class_<CvGoodyInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvGoodyInfo")
@@ -412,5 +412,42 @@ void CyInfoPythonInterface2()
 		.def("getAIWeightPercent", &CvCommerceInfo::getAIWeightPercent, "int ()")
 
 		.def("isFlexiblePercent", &CvCommerceInfo::isFlexiblePercent, "bool ()")
+		;
+	/*  advc: CvYieldInfo and CvTerrainInfo interface cut from CyInfoInterface3.cpp -
+		that file was getting dangerously large. */
+	python::class_<CvYieldInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvYieldInfo")
+		.def("getChar", &CvYieldInfo::getChar, "int ()")
+		.def("getHillsChange", &CvYieldInfo::getHillsChange, "int ()")
+		.def("getPeakChange", &CvYieldInfo::getPeakChange, "int ()")
+		.def("getLakeChange", &CvYieldInfo::getLakeChange, "int ()")
+		.def("getCityChange", &CvYieldInfo::getCityChange, "int ()")
+		.def("getPopulationChangeOffset", &CvYieldInfo::getPopulationChangeOffset, "int ()")
+		.def("getPopulationChangeDivisor", &CvYieldInfo::getPopulationChangeDivisor, "int ()")
+		.def("getMinCity", &CvYieldInfo::getMinCity, "int ()")
+		.def("getTradeModifier", &CvYieldInfo::getTradeModifier, "int ()")
+		.def("getGoldenAgeYield", &CvYieldInfo::getGoldenAgeYield, "int ()")
+		.def("getGoldenAgeYieldThreshold", &CvYieldInfo::getGoldenAgeYieldThreshold, "int ()")
+		.def("getAIWeightPercent", &CvYieldInfo::getAIWeightPercent, "int ()")
+		.def("getColorType", &CvYieldInfo::getColorType, "int ()")
+		;
+	// advc.003e:
+	python::class_<CvTerrainInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvTerrainInfo")
+		.def("getMovementCost", &CvTerrainInfo::getMovementCost, "int ()")
+		.def("getSeeFromLevel", &CvTerrainInfo::getSeeFromLevel, "int ()")
+		.def("getSeeThroughLevel", &CvTerrainInfo::getSeeThroughLevel, "int ()")
+		.def("getBuildModifier", &CvTerrainInfo::getBuildModifier, "int ()")
+		.def("getDefenseModifier", &CvTerrainInfo::getDefenseModifier, "int ()")
+
+		.def("isWater", &CvTerrainInfo::isWater, "bool ()")
+		.def("isImpassable", &CvTerrainInfo::isImpassable, "bool ()")
+		.def("isFound", &CvTerrainInfo::isFound, "bool ()")
+		.def("isFoundCoast", &CvTerrainInfo::isFoundCoast, "bool ()")
+		.def("isFoundFreshWater", &CvTerrainInfo::isFoundFreshWater, "bool ()")
+
+		// Arrays
+
+		.def("getYield", &CvTerrainInfo::getYield, "int (int i)")
+		.def("getRiverYieldChange", &CvTerrainInfo::getRiverYieldChange, "int (int i)")
+		.def("getHillsYieldChange", &CvTerrainInfo::getHillsYieldChange, "int (int i)")
 		;
 }

@@ -165,6 +165,8 @@
 	<ElementType name="iGlobalPopulationChange" content="textOnly" dt:type="int"/>
 	<ElementType name="iFreeTechs" content="textOnly" dt:type="int"/>
 	<ElementType name="iDefense" content="textOnly" dt:type="int"/>
+	<!-- advc.004c: Non-cumulative defense modifier-->
+	<ElementType name="iRaiseDefense" content="textOnly" dt:type="int"/>
 	<ElementType name="iBombardDefense" content="textOnly" dt:type="int"/>
 	<ElementType name="iAllCityDefense" content="textOnly" dt:type="int"/>
 	<ElementType name="iEspionageDefense" content="textOnly" dt:type="int"/>
@@ -496,6 +498,8 @@
 		<element type="iGlobalPopulationChange"/>
 		<element type="iFreeTechs"/>
 		<element type="iDefense"/>
+		<!-- advc.004c (default is 0) -->
+		<element type="iRaiseDefense" minOccurs="0"/>
 		<element type="iBombardDefense"/>
 		<element type="iAllCityDefense"/>
 		<element type="iEspionageDefense"/>

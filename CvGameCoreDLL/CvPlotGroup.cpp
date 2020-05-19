@@ -2,18 +2,15 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvPlotGroup.h"
-#include "CvPlayerAI.h"
+#include "CvPlayer.h"
+#include "CvCity.h"
 #include "CvMap.h"
-#include "CvDLLFAStarIFaceBase.h"
 
 int CvPlotGroup::m_iRecalculating = 0; // advc.064d
 
-// Public Functions...
 
 CvPlotGroup::CvPlotGroup()
 {
-	m_paiNumBonuses = NULL;
-
 	reset(0, NO_PLAYER, true);
 }
 
@@ -26,23 +23,14 @@ CvPlotGroup::~CvPlotGroup()
 
 void CvPlotGroup::init(int iID, PlayerTypes eOwner, CvPlot* pPlot)
 {
-	//--------------------------------
-	// Init saved data
 	reset(iID, eOwner);
 
-	//--------------------------------
-	// Init non-saved data
-
-	//--------------------------------
-	// Init other game data
 	addPlot(pPlot);
 }
 
 
 void CvPlotGroup::uninit()
 {
-	SAFE_DELETE_ARRAY(m_paiNumBonuses);
-
 	m_plots.clear();
 }
 
@@ -50,91 +38,60 @@ void CvPlotGroup::uninit()
 // Initializes data members that are serialized.
 void CvPlotGroup::reset(int iID, PlayerTypes eOwner, bool bConstructorCall)
 {
-	int iI;
-
-	//--------------------------------
-	// Uninit class
 	uninit();
 
 	m_iID = iID;
 	m_eOwner = eOwner;
 
 	if (!bConstructorCall)
-	{
-		FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvPlotGroup::reset");
-		m_paiNumBonuses = new int [GC.getNumBonusInfos()];
-		for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
-		{
-			m_paiNumBonuses[iI] = 0;
-		}
-	}
+		m_paiNumBonuses.reset();
 }
 
 
-void CvPlotGroup::addPlot(CvPlot* pPlot)
+void CvPlotGroup::addPlot(CvPlot* pPlot, /* advc.064d: */ bool bVerifyProduction)
 {
 	XYCoords xy;
-
 	xy.iX = pPlot->getX();
 	xy.iY = pPlot->getY();
-
 	insertAtEndPlots(xy);
-
-	pPlot->setPlotGroup(getOwner(), this);
+	pPlot->setPlotGroup(getOwner(), this, /* advc.064d: */ bVerifyProduction);
 }
 
 
-void CvPlotGroup::removePlot(CvPlot* pPlot)
+void CvPlotGroup::removePlot(CvPlot* pPlot, /* advc.064d: */ bool bVerifyProduction)
 {
-	CLLNode<XYCoords>* pPlotNode;
-
-	pPlotNode = headPlotsNode();
-
+	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
 	while (pPlotNode != NULL)
 	{
 		if (GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY) == pPlot)
 		{
-			pPlot->setPlotGroup(getOwner(), NULL);
-
-			pPlotNode = deletePlotsNode(pPlotNode); // can delete this PlotGroup...
+			pPlot->setPlotGroup(getOwner(), NULL, /* advc.064d: */ bVerifyProduction);
+			pPlotNode = deletePlotsNode(pPlotNode); // can delete this CvPlotGroup
 			break;
 		}
-		else
-		{
-			pPlotNode = nextPlotsNode(pPlotNode);
-		}
+		else pPlotNode = nextPlotsNode(pPlotNode);
 	}
 }
 
 
-void CvPlotGroup::recalculatePlots()
+void CvPlotGroup::recalculatePlots(/* advc.064d: */ bool bVerifyProduction)
 {
-	PROFILE_FUNC();
+	PROFILE_FUNC(); // advc: The bulk of the time is spent by FAStar, specifically plotGroupValid (CvGameCoreUtils).
 
-	CLLNode<XYCoords>* pPlotNode;
-	CvPlot* pPlot;
-	CLinkList<XYCoords> oldPlotGroup;
 	XYCoords xy;
-	PlayerTypes eOwner;
-	int iCount;
+	PlayerTypes eOwner = getOwner();
 
-	eOwner = getOwner();
-
-	pPlotNode = headPlotsNode();
-
+	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
 	if (pPlotNode != NULL)
 	{
-		pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+		CvPlot const& kPlot = GC.getMap().getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
 
-		iCount = 0;
-
+		int iCount = 0;
 		gDLL->getFAStarIFace()->SetData(&GC.getPlotGroupFinder(), &iCount);
-		gDLL->getFAStarIFace()->GeneratePath(&GC.getPlotGroupFinder(), pPlot->getX(), pPlot->getY(), -1, -1, false, eOwner);
-
+		gDLL->getFAStarIFace()->GeneratePath(&GC.getPlotGroupFinder(), kPlot.getX(), kPlot.getY(),
+				-1, -1, false, eOwner);
 		if (iCount == getLengthPlots())
-		{
 			return;
-		}
 	}
 	/*  <advc.064d> To deal with nested recalculatePlots calls. Mustn't
 		verifyCityProduction so long as any recalculation is ongoing. */
@@ -147,61 +104,46 @@ void CvPlotGroup::recalculatePlots()
 	{
 		PROFILE("CvPlotGroup::recalculatePlots update");
 
-		oldPlotGroup.clear();
+		CLinkList<XYCoords> oldPlotGroup;
 
 		pPlotNode = headPlotsNode();
-
 		while (pPlotNode != NULL)
 		{
 			PROFILE("CvPlotGroup::recalculatePlots update 1");
 
-			pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+			CvPlot& kPlot = GC.getMap().getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
 			// <advc.064d>
-			CvCity* pPlotCity = pPlot->getPlotCity();
+			CvCity* pPlotCity = kPlot.getPlotCity();
 			if (pPlotCity != NULL)
 				apOldCities.push_back(pPlotCity);
 			// </advc.064d>
-			FAssertMsg(pPlot != NULL, "Plot is not assigned a valid value");
 
-			xy.iX = pPlot->getX();
-			xy.iY = pPlot->getY();
+			xy.iX = kPlot.getX();
+			xy.iY = kPlot.getY();
 
 			oldPlotGroup.insertAtEnd(xy);
-
-			pPlot->setPlotGroup(eOwner, NULL);
-
+			kPlot.setPlotGroup(eOwner, NULL);
 			pPlotNode = deletePlotsNode(pPlotNode); // will delete this PlotGroup...
 		}
 
 		pPlotNode = oldPlotGroup.head();
-
 		while (pPlotNode != NULL)
 		{
 			PROFILE("CvPlotGroup::recalculatePlots update 2");
 
-			pPlot = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
-
-			FAssertMsg(pPlot != NULL, "Plot is not assigned a valid value");
-
-			pPlot->updatePlotGroup(eOwner, true);
-
+			CvPlot& kPlot = GC.getMap().getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+			kPlot.updatePlotGroup(eOwner, true);
 			pPlotNode = oldPlotGroup.deleteNode(pPlotNode);
 		}
 	}
 	// <advc.064d>
 	m_iRecalculating--;
 	FAssert(m_iRecalculating >= 0);
-	if (m_iRecalculating == 0)
+	if (m_iRecalculating == 0 && bVerifyProduction)
 	{
 		for (size_t i = 0; i < apOldCities.size(); i++)
 			apOldCities[i]->verifyProduction();
 	} // </advc.064d>
-}
-
-
-int CvPlotGroup::getID() const
-{
-	return m_iID;
 }
 
 
@@ -211,66 +153,45 @@ void CvPlotGroup::setID(int iID)
 }
 
 
-int CvPlotGroup::getNumBonuses(BonusTypes eBonus) const
-{
-	FAssertMsg(eBonus >= 0, "eBonus is expected to be non-negative (invalid Index)");
-	FAssertMsg(eBonus < GC.getNumBonusInfos(), "eBonus is expected to be within maximum bounds (invalid Index)");
-	return m_paiNumBonuses[eBonus];
-}
-
-
-bool CvPlotGroup::hasBonus(BonusTypes eBonus)
-{
-	return(getNumBonuses(eBonus) > 0);
-}
-
-
 void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 {
-	FAssertMsg(eBonus >= 0, "eBonus is expected to be non-negative (invalid Index)");
-	FAssertMsg(eBonus < GC.getNumBonusInfos(), "eBonus is expected to be within maximum bounds (invalid Index)");
-
 	if (iChange == 0)
-		return; // advc.003
+		return; // advc
 
 	//iOldNumBonuses = getNumBonuses(eBonus);
-	m_paiNumBonuses[eBonus] = (m_paiNumBonuses[eBonus] + iChange);
+	m_paiNumBonuses.add(eBonus, iChange);
 
-	//FAssertMsg(m_paiNumBonuses[eBonus] >= 0, "m_paiNumBonuses[eBonus] is expected to be non-negative (invalid Index)"); XXX
+	//FAssert(m_paiNumBonuses.get(eBonus) >= 0); // XXX
 	// K-Mod note, m_paiNumBonuses[eBonus] is often temporarily negative while plot groups are being updated.
-	// It's an unfortuante side effect of the way the update is implemented. ... and so this assert is invalid.
+	// It's an unfortunate side effect of the way the update is implemented. ... and so this assert is invalid.
 	// (This isn't my fault. I haven't changed it. It has always been like this.)
 
 	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
-
 	while (pPlotNode != NULL)
 	{
-		CvCity* pCity = GC.getMap().plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY)->getPlotCity();
+		CvCity* pCity = GC.getMap().getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY).getPlotCity();
 		if (pCity != NULL)
 		{
 			if (pCity->getOwner() == getOwner())
-			{
 				pCity->changeNumBonuses(eBonus, iChange);
-			}
 		}
-
 		pPlotNode = nextPlotsNode(pPlotNode);
 	}
 }
 
 // <advc.064d>
-void CvPlotGroup::verifyCityProduction() {
-
-	PROFILE_FUNC(); // About 1 permille of the runtime (July 2019)
+void CvPlotGroup::verifyCityProduction()
+{
+	PROFILE_FUNC(); // About 1 permille of the runtime
 	if (m_iRecalculating > 0)
 		return;
 	CvMap const& m = GC.getMap();
-	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
-	while (pPlotNode != NULL) {
-		CvCity* pCity = m.plotSoren(pPlotNode->m_data.iX, pPlotNode->m_data.iY)->getPlotCity();
+	for (CLLNode<XYCoords> const* pPlotNode = headPlotsNode(); pPlotNode != NULL;
+		pPlotNode = nextPlotsNode(pPlotNode))
+	{
+		CvCity* pCity = m.getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY).getPlotCity();
 		if (pCity != NULL && pCity->getOwner() == getOwner())
 			pCity->verifyProduction();
-		pPlotNode = nextPlotsNode(pPlotNode);
 	}
 } // </advc.064d>
 
@@ -284,51 +205,22 @@ void CvPlotGroup::insertAtEndPlots(XYCoords xy)
 CLLNode<XYCoords>* CvPlotGroup::deletePlotsNode(CLLNode<XYCoords>* pNode)
 {
 	CLLNode<XYCoords>* pPlotNode;
-
 	pPlotNode = m_plots.deleteNode(pNode);
-
 	if (getLengthPlots() == 0)
-	{
 		GET_PLAYER(getOwner()).deletePlotGroup(getID());
-	}
-
-  return pPlotNode;
-}
-
-
-CLLNode<XYCoords>* CvPlotGroup::nextPlotsNode(CLLNode<XYCoords>* pNode)
-{
-	return m_plots.next(pNode);
-}
-
-
-int CvPlotGroup::getLengthPlots()
-{
-	return m_plots.getLength();
-}
-
-
-CLLNode<XYCoords>* CvPlotGroup::headPlotsNode()
-{
-	return m_plots.head();
+	return pPlotNode;
 }
 
 
 void CvPlotGroup::read(FDataStreamBase* pStream)
 {
-	// Init saved data
 	reset();
 
 	uint uiFlag=0;
-	pStream->Read(&uiFlag);	// flags for expansion
-
+	pStream->Read(&uiFlag);
 	pStream->Read(&m_iID);
-
 	pStream->Read((int*)&m_eOwner);
-
-	FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvPlotGroup::read");
-	pStream->Read(GC.getNumBonusInfos(), m_paiNumBonuses);
-
+	m_paiNumBonuses.Read(pStream);
 	m_plots.Read(pStream);
 }
 
@@ -336,14 +228,9 @@ void CvPlotGroup::read(FDataStreamBase* pStream)
 void CvPlotGroup::write(FDataStreamBase* pStream)
 {
 	uint uiFlag=0;
-	pStream->Write(uiFlag);		// flag for expansion
-
+	pStream->Write(uiFlag);
 	pStream->Write(m_iID);
-
 	pStream->Write(m_eOwner);
-
-	FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvPlotGroup::write");
-	pStream->Write(GC.getNumBonusInfos(), m_paiNumBonuses);
-
+	m_paiNumBonuses.Write(pStream);
 	m_plots.Write(pStream);
 }

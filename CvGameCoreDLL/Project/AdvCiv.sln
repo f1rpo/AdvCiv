@@ -1,34 +1,33 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2036
+# Visual C++ Express 2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AdvCiv", "AdvCiv.vcxproj", "{3021AF0E-699D-4232-86F6-FC374A0C9957}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Assert|Win32 = Assert|Win32
 		Assert-fast|Win32 = Assert-fast|Win32
 		Debug|Win32 = Debug|Win32
-		DebugMem|Win32 = DebugMem|Win32
+		Debug-fast|Win32 = Debug-fast|Win32
+		Debug-opt|Win32 = Debug-opt|Win32
 		Final_Release-fast|Win32 = Final_Release-fast|Win32
-		Profile|Win32 = Profile|Win32
+		Profile-fast|Win32 = Profile-fast|Win32
 		Release|Win32 = Release|Win32
 		Release-fast|Win32 = Release-fast|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Assert|Win32.ActiveCfg = Assert|Win32
-		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Assert|Win32.Build.0 = Assert|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Assert-fast|Win32.ActiveCfg = Assert-fast|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Assert-fast|Win32.Build.0 = Assert-fast|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Debug|Win32.ActiveCfg = Debug|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Debug|Win32.Build.0 = Debug|Win32
-		{3021AF0E-699D-4232-86F6-FC374A0C9957}.DebugMem|Win32.ActiveCfg = DebugMem|Win32
-		{3021AF0E-699D-4232-86F6-FC374A0C9957}.DebugMem|Win32.Build.0 = DebugMem|Win32
+		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Debug-fast|Win32.ActiveCfg = Debug-fast|Win32
+		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Debug-fast|Win32.Build.0 = Debug-fast|Win32
+		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Debug-opt|Win32.ActiveCfg = Debug-opt|Win32
+		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Debug-opt|Win32.Build.0 = Debug-opt|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Final_Release-fast|Win32.ActiveCfg = Final_Release-fast|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Final_Release-fast|Win32.Build.0 = Final_Release-fast|Win32
-		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Profile|Win32.ActiveCfg = Profile|Win32
-		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Profile|Win32.Build.0 = Profile|Win32
+		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Profile-fast|Win32.ActiveCfg = Profile-fast|Win32
+		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Profile-fast|Win32.Build.0 = Profile-fast|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Release|Win32.ActiveCfg = Release|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Release|Win32.Build.0 = Release|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Release-fast|Win32.ActiveCfg = Release-fast|Win32

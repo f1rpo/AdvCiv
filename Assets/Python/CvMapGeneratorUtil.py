@@ -25,6 +25,9 @@ alternative method to the default process for placing the starting units for eac
 - Bob Thomas	September 23, 2005
 """
 
+# advc.129c: Master switch for turning off all my terrain changes (they're not extensive enough to justify new subclasses)
+bEarthlike = True
+
 class FractalWorld:
 	def __init__(self, fracXExp=CyFractal.FracVals.DEFAULT_FRAC_X_EXP,
 				 fracYExp=CyFractal.FracVals.DEFAULT_FRAC_Y_EXP):
@@ -47,6 +50,11 @@ class FractalWorld:
 		self.hillGroupOneRange = self.gc.getClimateInfo(self.map.getClimate()).getHillRange()
 		self.hillGroupOneBase = 25
 		self.hillGroupTwoRange = self.gc.getClimateInfo(self.map.getClimate()).getHillRange()
+		# <advc.129c>
+		global bEarthlike
+		if bEarthlike:
+			self.hillGroupTwoRange += 1
+		# </advc.129c>
 		self.hillGroupTwoBase = 75
 		self.peakPercent = self.gc.getClimateInfo(self.map.getClimate()).getPeakPercent()
 		self.stripRadius = 15
@@ -1023,7 +1031,12 @@ class TerrainGenerator:
 		
 		self.gc = CyGlobalContext()
 		self.map = CyMap()
-
+		# <advc.129c>
+		self.processCustomizations()
+		if self.bEarthlike:
+			fGrassLatitude -= 0.1
+			iPlainsPercent += 2
+		# </advc.129c>
 		grain_amount += self.gc.getWorldInfo(self.map.getWorldSize()).getTerrainGrainChange()
 		
 		self.grain_amount = grain_amount
@@ -1038,10 +1051,27 @@ class TerrainGenerator:
 		if self.map.isWrapY(): self.iFlags += CyFractal.FracVals.FRAC_WRAP_Y
 
 		self.deserts=CyFractal()
-		self.plains=CyFractal()
+		# <advc.129c>
+		if self.bEarthlike:
+			self.plainsFine=CyFractal()
+			self.plainsCoarse=CyFractal()
+		else: # </advc.129c>
+			self.plains=CyFractal()
 		self.variation=CyFractal()
 
 		iDesertPercent += self.gc.getClimateInfo(self.map.getClimate()).getDesertPercentChange()
+		# <advc.129c>
+		if self.bEarthlike:
+			# Halve b/c there are now two plains fractals. (Note: Some tiles will be in the plains range of both fractals, so halving iPlainsPercent is not quite equivalent to using a single fractal with the full iPlainsPercent.)
+			iPlainsPercent = iPlainsPercent / 2 + iDesertPercent / 2
+		else: # Might as well add them up here already
+			iPlainsPercent += iDesertPercent
+		iPlainsPercent = max(min(iPlainsPercent, 100), 0)
+		if self.bEarthlike:
+			# Increase to make up for the extra condition in generateTerrainAt plot
+			iDesertPercent *= 147
+			iDesertPercent /= 100
+		# </advc.129c>
 		iDesertPercent = min(iDesertPercent, 100)
 		iDesertPercent = max(iDesertPercent, 0)
 
@@ -1051,8 +1081,9 @@ class TerrainGenerator:
 		self.iDesertTopPercent = 100
 		self.iDesertBottomPercent = max(0,int(100-iDesertPercent))
 		self.iPlainsTopPercent = 100
-		self.iPlainsBottomPercent = max(0,int(100-iDesertPercent-iPlainsPercent))
-		# advc.003: Unused
+		# advc.129c: iDesertPercent already taken into account
+		self.iPlainsBottomPercent = max(0,int(100-iPlainsPercent))
+		# advc: Unused
 		#self.iMountainTopPercent = 75
 		#self.iMountainBottomPercent = 60
 
@@ -1087,13 +1118,26 @@ class TerrainGenerator:
 		self.initFractals()
 		
 	def initFractals(self):
+		self.processCustomizations() # advc.129c
 		self.deserts.fracInit(self.iWidth, self.iHeight, self.grain_amount, self.mapRand, self.iFlags, self.fracXExp, self.fracYExp)
 		self.iDesertTop = self.deserts.getHeightFromPercent(self.iDesertTopPercent)
 		self.iDesertBottom = self.deserts.getHeightFromPercent(self.iDesertBottomPercent)
-
-		self.plains.fracInit(self.iWidth, self.iHeight, self.grain_amount+1, self.mapRand, self.iFlags, self.fracXExp, self.fracYExp)
-		self.iPlainsTop = self.plains.getHeightFromPercent(self.iPlainsTopPercent)
-		self.iPlainsBottom = self.plains.getHeightFromPercent(self.iPlainsBottomPercent)
+		# <advc.129c>
+		if self.bEarthlike:
+			self.plainsFine.fracInit(self.iWidth, self.iHeight, self.grain_amount + 1, self.mapRand, self.iFlags, self.fracXExp, self.fracYExp)
+			# Second plains fractal with coarser grain
+			self.plainsCoarse.fracInit(self.iWidth, self.iHeight, self.grain_amount, self.mapRand, self.iFlags, self.fracXExp, self.fracYExp)
+		else: # </advc.129c>
+			self.plains.fracInit(self.iWidth, self.iHeight, self.grain_amount + 1, self.mapRand, self.iFlags, self.fracXExp, self.fracYExp)
+		# <advc.129c>
+		if self.bEarthlike:
+			self.iPlainsFineTop = self.plainsFine.getHeightFromPercent(self.iPlainsTopPercent)
+			self.iPlainsFineBottom = self.plainsFine.getHeightFromPercent(self.iPlainsBottomPercent)
+			self.iPlainsCoarseTop = self.plainsCoarse.getHeightFromPercent(self.iPlainsTopPercent)
+			self.iPlainsCoarseBottom = self.plainsCoarse.getHeightFromPercent(self.iPlainsBottomPercent)
+		else: # </advc.129c>
+			self.iPlainsTop = self.plains.getHeightFromPercent(self.iPlainsTopPercent)
+			self.iPlainsBottom = self.plains.getHeightFromPercent(self.iPlainsBottomPercent)
 
 		self.variation.fracInit(self.iWidth, self.iHeight, self.grain_amount, self.mapRand, self.iFlags, self.fracXExp, self.fracYExp)
 
@@ -1122,7 +1166,8 @@ class TerrainGenerator:
 
 		return lat
 
-	def generateTerrain(self):		
+	def generateTerrain(self):
+		self.processCustomizations() # advc.129c
 		terrainData = [0]*(self.iWidth*self.iHeight)
 		for x in range(self.iWidth):
 			for y in range(self.iHeight):
@@ -1131,7 +1176,7 @@ class TerrainGenerator:
 				terrainData[iI] = terrain
 		return terrainData
 
-	def generateTerrainAtPlot(self,iX,iY):
+	def generateTerrainAtPlot(self, iX, iY):
 		lat = self.getLatitudeAtPlot(iX,iY)
 
 		if (self.map.plot(iX, iY).isWater()):
@@ -1147,16 +1192,42 @@ class TerrainGenerator:
 			terrainVal = self.terrainGrass
 		else: 
 			desertVal = self.deserts.getHeight(iX, iY)
-			plainsVal = self.plains.getHeight(iX, iY)
-			if ((desertVal >= self.iDesertBottom) and (desertVal <= self.iDesertTop) and (lat >= self.fDesertBottomLatitude) and (lat < self.fDesertTopLatitude)):
+			# <advc.129c>
+			if self.bEarthlike:
+				plainsFineVal = self.plainsFine.getHeight(iX, iY)
+				plainsCoarseVal = self.plainsCoarse.getHeight(iX, iY)
+			else:
+				plainsVal = self.plains.getHeight(iX, iY)
+			# iPlainsVal conditions added to make desert less common next to grassland
+			if desertVal >= self.iDesertBottom and desertVal <= self.iDesertTop and lat >= self.fDesertBottomLatitude and lat < self.fDesertTopLatitude and (not self.bEarthlike or plainsFineVal * 3 >= self.iPlainsFineBottom * 2 or plainsCoarseVal >= self.iPlainsCoarseBottom):
 				terrainVal = self.terrainDesert
-			elif ((plainsVal >= self.iPlainsBottom) and (plainsVal <= self.iPlainsTop)):
-				terrainVal = self.terrainPlains
-
+			else:
+				if self.bEarthlike:
+					if (plainsFineVal >= self.iPlainsFineBottom and plainsFineVal <= self.iPlainsFineTop) or (plainsCoarseVal >= self.iPlainsCoarseBottom and plainsCoarseVal <= self.iPlainsCoarseTop):
+						terrainVal = self.terrainPlains
+				elif plainsVal >= self.iPlainsBottom and plainsVal <= self.iPlainsTop:
+					terrainVal = self.terrainPlains
+			# <advc.129c>
 		if (terrainVal == TerrainTypes.NO_TERRAIN):
 			return self.map.plot(iX, iY).getTerrainType()
 
 		return terrainVal
+
+	# <advc.129c> A lot of map scripts define subclasses of TerrainGenerator that override various functions. Therefore, changing the base class isn't generally safe. This method uses reflection to check for overrides and enables AdvCiv customizations only when nothing essential is overridden.
+	def processCustomizations(self):
+		self.bEarthlike = False
+		global bEarthlike
+		if not bEarthlike:
+			return
+		self.bEarthlike = True
+		# Everything except getLatitudeAtPlot is essential
+		essentialMethods = [ "__init__", "initFractals",  "generateTerrain", "generateTerrainAtPlot" ]
+		for attribName in essentialMethods:
+			if getattr(self, attribName).im_func is not getattr(TerrainGenerator, attribName).im_func:
+				self.bEarthlike = False
+				print "CvMapGeneratorUtil: Essential TerrainGenerator method overridden by map script: " + attribName + ". AdvCiv customizations disabled."
+				break
+	# </advc.129c>
 	
 class FeatureGenerator:
 	def __init__(self, iJunglePercent=80, iForestPercent=60,

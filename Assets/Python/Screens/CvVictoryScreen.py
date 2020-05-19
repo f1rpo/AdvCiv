@@ -63,8 +63,9 @@ class CvVictoryScreen:
 		self.AREA2_ID =  "RiseFallAreaWidget2"
 		self.X_RF1_AREA = 45
 		self.X_RF2_AREA = 522
-		self.Y_RF_AREA = 350
 		self.W_RF_AREA = 457
+		# (These two can get adjusted based on the chapter count)
+		self.Y_RF_AREA = 350
 		self.H_RF_AREA = 340
 		# </advc.703>
 
@@ -824,6 +825,12 @@ class CvVictoryScreen:
 		screen.setTableText(szTable, 2, iRow, s1, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
 		screen.setTableText(szTable, 3, iRow, s2, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		# The panels in the lower half are based on CvReligionScreen
+		# By default, let them take up the bottom half of the screen. But if there isn't enough room for the chapters in the upper part ...
+		iExcessChapters = min(maxChapters - 10, 3)
+		if iExcessChapters > 0:
+			iHeightMinus = iExcessChapters * 30 # not sure if 30 per chapter row is exactly right
+			self.Y_RF_AREA += iHeightMinus
+			self.H_RF_AREA -= iHeightMinus
 		screen.addPanel(self.AREA1_ID, "", "", True, True, self.X_RF1_AREA, self.Y_RF_AREA, self.W_RF_AREA, self.H_RF_AREA, PanelStyles.PANEL_STYLE_BLUE50)
 		screen.addPanel(self.AREA2_ID, "", "", True, True, self.X_RF2_AREA, self.Y_RF_AREA, self.W_RF_AREA, self.H_RF_AREA, PanelStyles.PANEL_STYLE_BLUE50)
 		chapterScoreText = u"<font=3b>"
@@ -934,7 +941,8 @@ class CvVictoryScreen:
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_LEADER_CIV_DESCRIPTION", (activePlayer.getNameKey(), activePlayer.getCivilizationShortDescriptionKey())), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, u"     (" + CyGameTextMgr().parseLeaderTraits(activePlayer.getLeaderType(), activePlayer.getCivilizationType(), True, False) + ")", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-		g = gc.getGame() # advc.003
+		g = gc.getGame() # advc
+		m = gc.getMap() # advc
 		#screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_DIFFICULTY", (gc.getHandicapInfo(activePlayer.getHandicapType()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		# K-Mod. In multiplayer games, show both the game difficulty and the player difficulty
 		if activePlayer.getHandicapType() == g.getHandicapType():
@@ -945,14 +953,14 @@ class CvVictoryScreen:
 		# K-Mod end
 
 		screen.appendListBoxStringNoUpdate(szSettingsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-		screen.appendListBoxStringNoUpdate(szSettingsTable, gc.getMap().getMapScriptName(), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		screen.appendListBoxStringNoUpdate(szSettingsTable, m.getMapScriptName(), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 
-		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_MAP_SIZE", (gc.getWorldInfo(gc.getMap().getWorldSize()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_CLIMATE", (gc.getClimateInfo(gc.getMap().getClimate()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_MAP_SIZE", (gc.getWorldInfo(m.getWorldSize()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_CLIMATE", (gc.getClimateInfo(m.getClimate()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		# <advc.137> Use TXT_KEY_LOW/HIGH instead of SEA_LEVEL keys. (The SEA_LEVEL keys include the recommendation for the Custom Game screen - don't want that here.
-		seaLvl = gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getSeaLevelChange()
+		seaLvl = gc.getSeaLevelInfo(m.getSeaLevel()).getSeaLevelChange()
 		if seaLvl == 0: # Medium sea level - use the BtS code.
-			screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+			screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (gc.getSeaLevelInfo(m.getSeaLevel()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		else:
 			szKey = "TXT_KEY_HIGH"
 			if seaLvl < 0:
@@ -960,8 +968,15 @@ class CvVictoryScreen:
 			s = localText.getText(szKey, ())
 			screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (s,)), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		# </advc.137>
-		# advc.004:
-		screen.appendListBoxStringNoUpdate(szSettingsTable, str(g.countCivPlayersEverAlive()) + " " + localText.getText("TXT_KEY_MAIN_MENU_PLAYERS", ()), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		# <advc.004>
+		for i in range(m.getNumCustomMapOptions()):
+			# Don't know how to call map script functions in Python, so I've implemented that in the DLL.
+			szDesc = m.getNonDefaultCustomMapOptionDesc(i)
+			if len(szDesc) <= 0: # Meaning that the option is set to its default value
+				continue
+			screen.appendListBoxStringNoUpdate(szSettingsTable, szDesc, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.appendListBoxStringNoUpdate(szSettingsTable, str(g.countCivPlayersEverAlive()) + " " + localText.getText("TXT_KEY_MAIN_MENU_PLAYERS", ()), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# </advc.004>
 		screen.appendListBoxStringNoUpdate(szSettingsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_STARTING_ERA", (gc.getEraInfo(g.getStartEra()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		# <advc.251>
@@ -1304,7 +1319,7 @@ class CvVictoryScreen:
 
 				if (victory.getTotalCultureRatio() > 0):
 					iRow = screen.appendTableRow(szTable)
-					# <advc.003> Moved down to have this stuff in one place
+					# <advc> Moved down to have this stuff in one place
 					ourCulture = activePlayer.getTeam().countTotalCulture()
 					iBestCultureTeam = -1
 					bestCulture = 0
@@ -1315,7 +1330,7 @@ class CvVictoryScreen:
 								if (teamCulture > bestCulture):
 									bestCulture = teamCulture
 									iBestCultureTeam = iLoopTeam
-					# </advc.003>
+					# </advc>
 					#iCulturePercent = int((100.0 * bestCulture) / victory.getTotalCultureRatio())
 					# advc.004: The above is neither helpful nor really a percentage. Let's simply show the target ratio for now. What's really needed is, I think, the ratio of bestCulture to secondBestCulture, where secondBestCulture is computed w/o checking isHasMet. Or possibly that ratio divided by victory.getTotalCultureRatio (meaning that 100% is needed for victory). 
 					iCulturePercent = victory.getTotalCultureRatio()

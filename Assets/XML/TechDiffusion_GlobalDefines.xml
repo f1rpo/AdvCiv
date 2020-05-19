@@ -46,4 +46,32 @@
 		<DefineName>TECH_COST_MODIFIER</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
+
+	<!-- advc.groundbr: start -->
+	<!-- These two options are independent of TECH_DIFFUSION_ENABLE.
+		 If set to 1, then a team's research rate is decreased if relatively
+		 few players have already discovered the tech being researched.
+		 Only non-capitulated major civs count. It doesn't matter whether
+		 the researching team has met them. If no player has the tech, the
+		 full era-specific penalty defined in Civ4EraInfos.xml gets applied.
+		 If at least a quarter of the players have the tech, no penalty
+		 applies. Otherwise, the penalty scales proportionally with he number
+		 of players that have the tech.
+		 0 (AdvCiv default) disables these ground-breaking penalties.
+		 Note: When a ground-breaking penalty coincides with a bonus from tech
+		 diffusion, only the sum of the two modifiers is shown by the UI. -->
+	<Define>
+		<!-- Groundbreaking penalties for AI teams.
+			 If enabled, the DLL will also apply an era-specific
+			 normalization factor (based on the penalty associated with the
+			 tech's era) to the tech costs of all teams. -->
+		<DefineName>AI_GROUNDBREAKING_PENALTY_ENABLE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Groundbreaking penalties for human teams -->
+		<DefineName>HUMAN_GROUNDBREAKING_PENALTY_ENABLE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- advc.groundbr: end -->
 </Civ4Defines>

@@ -14,7 +14,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvArtFileMgr.h"
 #include "CvXMLLoadUtility.h"
-#include "CvInfos.h"
 #include "CvDLLUtilityIFaceBase.h"
 
 // Macro for Building Art Info Maps
@@ -79,6 +78,12 @@ CvArtInfo##name##* CvArtFileMgr::get##name##ArtInfo( const char *szArtDefineTag 
 	} \
 	return it->second; \
 } \
+/* <advc> */\
+TCHAR const* CvArtFileMgr::get##name##ArtPath(char const* szArtDefineTag) const \
+{ \
+	return get##name##ArtInfo(szArtDefineTag)->getPath(); \
+} \
+/* </advc> */ \
 void Cv##name##ArtInfoItem::deInit() \
 { \
 	SAFE_DELETE(ARTFILEMGR.m_map##name##ArtInfos); \
@@ -139,68 +144,56 @@ CvArtFileMgr& CvArtFileMgr::GetInstance()
 	return *gs_ArtFileMgr;
 }
 
-//----------------------------------------------------------------------------
-//
-//	FUNCTION:	Init()
-//
-//	PURPOSE:	Initializes the Maps
-//
-//----------------------------------------------------------------------------
+// Initializes the maps
 void CvArtFileMgr::Init()
 {
-	int i;
-	for(i=0;i<(int)m_artInfoItems.size();i++)
-	{
+	for(size_t i = 0; i < m_artInfoItems.size(); i++)
 		m_artInfoItems[i]->init();
-	}
 }
 
-//----------------------------------------------------------------------------
-//
-//	FUNCTION:	DeInit()
-//
-//	PURPOSE:	Deletes the Maps
-//
-//----------------------------------------------------------------------------
+// Deletes the maps
 void CvArtFileMgr::DeInit()
 {
-	int i;
-	for(i=0;i<(int)m_artInfoItems.size();i++)
-	{
+	for(size_t i = 0; i < m_artInfoItems.size(); i++)
 		m_artInfoItems[i]->deInit();
-	}
 }
 
-//----------------------------------------------------------------------------
-//
-//	FUNCTION:	Reset()
-//
-//	PURPOSE:	Reloads the XML & Rebuilds the Maps
-//
-//----------------------------------------------------------------------------
+// Reloads the XML and rebuilds the maps
 void CvArtFileMgr::Reset()
 {	// <advc.007b> Reloading Art Defines (Ctrl+Alt+R) is broken; would crash.
 	if(GC.IsGraphicsInitialized())
 		return; // </advc.007b>
-	DeInit();		// Cleans Art Defines
+	DeInit(); // Cleans Art Defines
 	CvXMLLoadUtility XMLLoadUtility;
-	XMLLoadUtility.SetGlobalArtDefines();		// Reloads/allocs Art Defines
-	Init();			// reallocs maps
+	XMLLoadUtility.SetGlobalArtDefines(); // Reloads/allocs Art Defines
+	Init(); // reallocs maps
 	buildArtFileInfoMaps();
 }
 
-//----------------------------------------------------------------------------
-//
-//	FUNCTION:	buildArtFileInfoMaps()
-//
-//	PURPOSE:	Builds the Art File Maps
-//
-//----------------------------------------------------------------------------
+// advc.enum: (for CvGlobals::infosReset)
+void CvArtFileMgr::resetInfo()
+{
+	#define RESET_ART_INFO(Name) \
+		for (int i = 0; i < getNum##Name##ArtInfos(); i++) \
+			get##Name##ArtInfo(i).reset();
+	// These are the ones that used to be added to CvGlobals::m_aInfoVectors
+	RESET_ART_INFO(Misc);
+	RESET_ART_INFO(Unit);
+	RESET_ART_INFO(Building);
+	RESET_ART_INFO(Civilization);
+	RESET_ART_INFO(Leaderhead);
+	RESET_ART_INFO(Bonus);
+	RESET_ART_INFO(Improvement);
+	RESET_ART_INFO(Terrain);
+	RESET_ART_INFO(Feature);
+	RESET_ART_INFO(Movie);
+	RESET_ART_INFO(Interface);
+	#undef RESET_ART_INFO
+}
+
+// Builds the art file maps
 void CvArtFileMgr::buildArtFileInfoMaps()
 {
-	int i;
-	for(i=0;i<(int)m_artInfoItems.size();i++)
-	{
+	for(size_t i = 0; i < m_artInfoItems.size(); i++)
 		m_artInfoItems[i]->buildMap();
-	}
 }

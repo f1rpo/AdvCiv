@@ -1,8 +1,5 @@
 #include "CvGameCoreDLL.h"
 #include "CyGameCoreUtils.h"
-#include "CyPlot.h"
-#include "CyCity.h"
-#include "CyUnit.h"
 
 //
 // Python interface for CvgameCoreUtils.h.
@@ -10,7 +7,7 @@
 
 void CyGameCoreUtilsPythonInterface()
 {
-	OutputDebugString("Python Extension Module - CyGameCoreUtilsPythonInterface\n");
+	printToConsole("Python Extension Module - CyGameCoreUtilsPythonInterface\n");
 
 	python::def("cyIntRange", cyIntRange,"int (int iNum, int iLow, int iHigh)");
 	python::def("cyFloatRange", cyFloatRange,"float (float fNum, float fLow, float fHigh)");
@@ -35,22 +32,24 @@ void CyGameCoreUtilsPythonInterface()
 	python::def("estimateDirection", cyEstimateDirection, "DirectionTypes (int iDX, int iDY)");
 
 	python::def("atWar", cyAtWar,"bool (int eTeamA, int eTeamB)");
-	python::def("isPotentialEnemy", cyIsPotentialEnemy,"bool (int eOurTeam, int eTheirTeam)");
+	// advc: No longer exposed
+	//python::def("isPotentialEnemy", cyIsPotentialEnemy,"bool (int eOurTeam, int eTheirTeam)");
 
 	python::def("getCity", cyGetCity, python::return_value_policy<python::manage_new_object>(), "CyPlot* (IDInfo city)");
 	python::def("getUnit", cyGetUnit, python::return_value_policy<python::manage_new_object>(), "CyUnit* (IDInfo unit)");
 
-	python::def("isPromotionValid", cyIsPromotionValid, "bool (int /*PromotionTypes*/ ePromotion, int /*UnitTypes*/ eUnit, bool bLeader)");
-	python::def("getPopulationAsset", cyGetPopulationAsset, "int (int iPopulation)");
+	/*python::def("getPopulationAsset", cyGetPopulationAsset, "int (int iPopulation)");
 	python::def("getLandPlotsAsset", cyGetLandPlotsAsset, "int (int iLandPlots)");
 	python::def("getPopulationPower", cyGetPopulationPower, "int (int iPopulation)");
 	python::def("getPopulationScore", cyGetPopulationScore, "int (int iPopulation)");
 	python::def("getLandPlotsScore", cyGetLandPlotsScore, "int (int iPopulation)");
-	python::def("getTechScore", cyGetTechScore, "int (int /*TechTypes*/ eTech)");
-	python::def("getWonderScore", cyGetWonderScore, "int (int /*BuildingClassTypes*/ eWonderClass)");
+	python::def("getTechScore", cyGetTechScore, "int (int eTech)");
+	python::def("getWonderScore", cyGetWonderScore, "int (int eWonderClass)");*/ // advc: No longer exposed
+
+	python::def("isPromotionValid", cyIsPromotionValid, "bool (int /*PromotionTypes*/ ePromotion, int /*UnitTypes*/ eUnit, bool bLeader)");
 	python::def("finalImprovementUpgrade", cyFinalImprovementUpgrade, "int /*ImprovementTypes*/ (int /*ImprovementTypes*/ eImprovement)");
 
-	python::def("getWorldSizeMaxConscript", cyGetWorldSizeMaxConscript, "int (int /*CivicTypes*/ eCivic)");
+	//python::def("getWorldSizeMaxConscript", cyGetWorldSizeMaxConscript, "int (int /*CivicTypes*/ eCivic)"); // advc: No longer exposed
 	python::def("isReligionTech", cyIsReligionTech, "int (int /*TechTypes*/ eTech)");
 
 	python::def("isTechRequiredForUnit", cyIsTechRequiredForUnit, "bool (int /*TechTypes*/ eTech, int /*UnitTypes*/ eUnit)");

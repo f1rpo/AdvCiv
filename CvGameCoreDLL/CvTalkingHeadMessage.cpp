@@ -1,29 +1,29 @@
 #include "CvGameCoreDLL.h"
 #include "CvTalkingHeadMessage.h"
-#include "CvGameAI.h"
+#include "CvGame.h"
 
-CvTalkingHeadMessage::CvTalkingHeadMessage(int iMessageTurn, int iLen, LPCWSTR pszDesc, LPCTSTR pszSound, InterfaceMessageTypes eType, LPCTSTR pszIcon, ColorTypes eColor, int iX, int iY, bool bShowOffScreenArrows, bool bShowOnScreenArrows) :
-	m_iTurn(iMessageTurn),
-	m_szDescription(pszDesc),
-	m_szSound(pszSound),
-	m_szIcon(pszIcon),
-	m_iLength(iLen),
-	m_eFlashColor(eColor),
-	m_iFlashX(iX),
-	m_iFlashY(iY),
-	m_bOffScreenArrows(bShowOffScreenArrows),
-	m_bOnScreenArrows(bShowOnScreenArrows),
-	m_eMessageType(eType),
-	m_eFromPlayer(NO_PLAYER),
-	m_eTarget(NO_CHATTARGET),
-	m_bShown(false),
-	bSoundPlayed(false) // advc.106b
-{
-}
+CvTalkingHeadMessage::CvTalkingHeadMessage(int iMessageTurn, int iLen,
+	LPCWSTR pszDesc, LPCTSTR pszSound, InterfaceMessageTypes eType,
+	LPCTSTR pszIcon, ColorTypes eColor, int iX, int iY,
+	bool bShowOffScreenArrows, bool bShowOnScreenArrows) :
+m_iTurn(iMessageTurn),
+m_szDescription(pszDesc),
+m_szSound(pszSound),
+m_szIcon(pszIcon),
+m_iLength(iLen),
+m_eFlashColor(eColor),
+m_iFlashX(iX),
+m_iFlashY(iY),
+m_bOffScreenArrows(bShowOffScreenArrows),
+m_bOnScreenArrows(bShowOnScreenArrows),
+m_eMessageType(eType),
+m_eFromPlayer(NO_PLAYER),
+m_eTarget(NO_CHATTARGET),
+m_bShown(false),
+m_bSoundPlayed(false) // advc.106b
+{}
 
-CvTalkingHeadMessage::~CvTalkingHeadMessage(void)
-{
-}
+CvTalkingHeadMessage::~CvTalkingHeadMessage() {}
 
 
 void CvTalkingHeadMessage::read(FDataStreamBase& stream)
@@ -50,7 +50,7 @@ void CvTalkingHeadMessage::read(FDataStreamBase& stream)
 	stream.Read(&m_bShown);
 	/*  advc.106b: I don't think we ever want to play a sound after loading
 		a savegame */
-	bSoundPlayed = true;
+	m_bSoundPlayed = true;
 }
 
 void CvTalkingHeadMessage::write(FDataStreamBase& stream) const
@@ -64,10 +64,12 @@ void CvTalkingHeadMessage::write(FDataStreamBase& stream) const
 	stream.Write(m_iFlashY);
 	stream.Write(m_bOffScreenArrows);
 	stream.Write(m_bOnScreenArrows);
+	REPRO_TEST_BEGIN_WRITE("CvTalkingHeadMessage");
 	stream.Write(m_iTurn);
 	stream.Write(m_eMessageType);
 	stream.Write(m_eFromPlayer);
 	stream.Write(m_eTarget);
+	REPRO_TEST_END_WRITE();
 	stream.Write(m_bShown);
 }
 
@@ -85,8 +87,8 @@ const CvString& CvTalkingHeadMessage::getSound() const
 {
 	/*  advc.106b: A hack that relies on the EXE triggering the sound after calling
 		getSound */
-	const_cast<CvTalkingHeadMessage*>(this)->bSoundPlayed = true;
-	return (m_szSound);
+	m_bSoundPlayed = true;
+	return m_szSound;
 }
 
 void CvTalkingHeadMessage::setSound(LPCTSTR pszSound)
@@ -246,7 +248,8 @@ int CvTalkingHeadMessage::getExpireTurn(/* advc.700: */ bool bHuman)
 	if(bHuman)
 		return iExpireTurn;
 	iExpireTurn = getTurn();
-	switch(m_eMessageType) {
+	switch(m_eMessageType)
+	{
 	case MESSAGE_TYPE_INFO: iExpireTurn += 1; break;
 	case MESSAGE_TYPE_COMBAT_MESSAGE: iExpireTurn += 2; break;
 	case MESSAGE_TYPE_MINOR_EVENT: iExpireTurn += 10; break;
@@ -274,8 +277,8 @@ void CvTalkingHeadMessage::setShown(bool bShown)
 	m_bShown = bShown;
 }
 
-// <advc.106b>
+// advc.106b:
 bool CvTalkingHeadMessage::getSoundPlayed() const
 {
-	return bSoundPlayed;
-} // </advc.106b>
+	return m_bSoundPlayed;
+}

@@ -477,9 +477,8 @@ class CvEspionageAdvisor:
 					for iMissionLoop in range(gc.getNumEspionageMissionInfos()):
 
 						pMission = gc.getEspionageMissionInfo(iMissionLoop)
-						# <advc.003> Reduce indentation
 						if (pMission.getCost() == -1):
-							continue # </advc.003>
+							continue # advc
 						# <advc.120d>
 						isSabotage = False
 						if pMission.getDestroyProjectCostFactor() + pMission.getDestroyBuildingCostFactor() + pMission.getDestroyProductionCostFactor() > 0 or pMission.isDestroyImprovement():

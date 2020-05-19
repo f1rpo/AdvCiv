@@ -5,7 +5,6 @@
 
 #pragma warning(disable:4100)
 
-
 //
 // abstract class containing entity-related functions that the DLL needs
 //

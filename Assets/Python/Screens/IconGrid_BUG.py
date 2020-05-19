@@ -1,4 +1,3 @@
-
 from CvPythonExtensions import *
 import CvUtil
 import ScreenInput
@@ -12,8 +11,8 @@ gc = CyGlobalContext()
 ArtFileMgr = CyArtFileMgr()
 localText = CyTranslator()
 
-class IconData:
 
+class IconData:
 	def __init__(self, sImage, iSize, widgetType, iData1, iData2=-1, bEnabled=True):
 		self.image = sImage
 		self.widgetType = widgetType
@@ -23,12 +22,18 @@ class IconData:
 		self.enabled = bEnabled
 	
 class StackedBarData:
-
 	def __init__(self, fValue, sColor, sText, iFont):
 		self.value = fValue
 		self.color = sColor
 		self.text = sText
 		self.font = iFont
+# <advc.ctr>
+class TextData:
+	def __init__(self, text, widgetType, iData1, iData2):
+		self.text = text
+		self.widgetType = widgetType
+		self.data1 = iData1
+		self.data2 = iData2 # </advc.ctr>
 
 class CellData:
 
@@ -37,13 +42,26 @@ class CellData:
 		self.stackedbar = []
 		self.text = ""
 		self.font = 3
+		# <advc> Optional help widget (unused)
+		self.textWidgetType = WidgetTypes.WIDGET_GENERAL
+		self.textWidgetData1 = -1
+		self.textWidgetData2 = -1 # </advc>
+		self.multiText = [] # advc.ctr
 	
 	def addIcon(self, sImage, iSize, widgetType, iData1, iData2=-1, bEnabled=True):
 		self.icons.append(IconData(sImage, iSize, widgetType, iData1, iData2, bEnabled))
-	
-	def setText(self, sText, iFont):
+	# <advc.ctr>
+	def addText(self, text, widgetType = WidgetTypes.WIDGET_GENERAL, iData1 = -1, iData2 = -1):
+		self.multiText.append(TextData(text, widgetType, iData1, iData2))
+	# </advc.ctr>
+	# advc: params for help widget added
+	def setText(self, sText, iFont, widgetType = WidgetTypes.WIDGET_GENERAL, iData1 = -1, iData2 = -1):
 		self.text = sText
 		self.font = iFont
+		# <advc>
+		self.textWidgetType = widgetType
+		self.textWidgetData1 = iData1
+		self.textWidgetData2 = iData2 # </advc>
 	
 	def addStackedBar(self, fValue, sColor, sText, iFont):
 		self.stackedbar.append(StackedBarData(fValue, sColor, sText, iFont))
@@ -62,15 +80,18 @@ class RowData:
 	
 	def addIcon(self, iColumnIndex, sImage, iSize, widgetType, iData1, iData2=-1, bEnabled=True):
 		self.cells[iColumnIndex].addIcon(sImage, iSize, widgetType, iData1, iData2, bEnabled)
-	
-	def setText(self, iColumnIndex, sText, iFont):
-		self.cells[iColumnIndex].setText(sText, iFont)
+	# <advc.ctr>
+	def addText(self, iColumnIndex, text, widgetType = WidgetTypes.WIDGET_GENERAL, iData1 = -1, iData2 = -1):
+		self.cells[iColumnIndex].addText(text, widgetType, iData1, iData2)
+	# </advc.ctr>
+	# advc: Pass along params for help widget
+	def setText(self, iColumnIndex, sText, iFont, widgetType = WidgetTypes.WIDGET_GENERAL, iData1 = -1, iData2 = -1):
+		self.cells[iColumnIndex].setText(sText, iFont, widgetType, iData1, iData2)
 
 	def addStackedBar(self, iColumnIndex, fValue, sColor, sText, iFont):
 		self.cells[iColumnIndex].addStackedBar(fValue, sColor, sText, iFont)
-	
-	
-	
+
+
 
 class ColumnGroup:
 
@@ -82,6 +103,13 @@ GRID_ICON_COLUMN = 0
 GRID_MULTI_LIST_COLUMN = 1
 GRID_TEXT_COLUMN = 2
 GRID_STACKEDBAR_COLUMN = 3
+# <advc.ctr>
+GRID_MULTI_TEXT_COLUMN = 4
+# Support for multi-text cells added. Use addText to add a text element to a GRID_MULTI_TEXT_COLUMN cell (as opposed to setText for a GRID_TEXT_COLUMN cell). To set a font for a GRID_MULTI_TEXT_COLUMN cell, try calling setText with sString="" (not tested).
+# The cell is split into a left and right half if necessary, so up to 6 elements can be placed. The client will have to ensure appropriate cell dimensions and text length.
+MULTI_TEXT_MAX_LINES = 3
+MULTI_TEXT_LINE_HEIGHT = 20 # (Tbd.: Should better compute this based on the font size)
+# </advc.ctr>
 
 class IconGrid_BUG:
 	
@@ -187,13 +215,13 @@ class IconGrid_BUG:
 				prefferedWidth += self.groupBorder * 2
 		
 		for index in range(len(self.columns)):
-			if (self.columns[index] == GRID_ICON_COLUMN):
+			if self.columns[index] == GRID_ICON_COLUMN:
 				prefferedWidth += self.iconColWidth
-			elif (self.columns[index] == GRID_MULTI_LIST_COLUMN):
+			elif self.columns[index] == GRID_MULTI_LIST_COLUMN:
 				prefferedWidth += self.multiListColWidth
-			elif (self.columns[index] == GRID_TEXT_COLUMN):
+			elif self.columns[index] == GRID_TEXT_COLUMN or self.columns[index] == GRID_MULTI_TEXT_COLUMN: # advc.ctr
 				prefferedWidth += self.textColWidth[index]
-			elif (self.columns[index] == GRID_STACKEDBAR_COLUMN):
+			elif self.columns[index] == GRID_STACKEDBAR_COLUMN:
 				prefferedWidth += self.StackedBarColWidth[index]
 		
 		if (self.showRowBorder):
@@ -244,9 +272,13 @@ class IconGrid_BUG:
 
  	def addIcon(self, iRowIndex, iColumnIndex, sImage, iSize, widgetType, iData1, iData2=-1, bEnabled=True):
  		self.data[iRowIndex].addIcon(iColumnIndex, sImage, iSize, widgetType, iData1, iData2, bEnabled)
-
- 	def setText(self, iRowIndex, iColumnIndex, sText, iFont=3):
- 		self.data[iRowIndex].setText(iColumnIndex, sText, iFont)
+	# <advc.ctr>
+	def addText(self, iRowIndex, iColumnIndex, text, widgetType = WidgetTypes.WIDGET_GENERAL, iData1 = -1, iData2 = -1):
+ 		self.data[iRowIndex].addText(iColumnIndex, text, widgetType, iData1, iData2)
+	# </advc.ctr>
+	# advc: Pass along params for help widget
+ 	def setText(self, iRowIndex, iColumnIndex, sText, iFont=3, widgetType = WidgetTypes.WIDGET_GENERAL, iData1 = -1, iData2 = -1):
+ 		self.data[iRowIndex].setText(iColumnIndex, sText, iFont, widgetType, iData1, iData2)
 
 	def addStackedBar(self, iRowIndex, iColumnIndex, fValue, sColor, sText, iFont=3):
 #		BugUtil.debug("addStackedbar %i %i %s %s %i" % (iColumnIndex, fValue, sColor, sText, iFont))
@@ -302,7 +334,7 @@ class IconGrid_BUG:
 	
 	
 	def refresh(self):
-		# check if scrollPosistion is valid and show/hide scroll buttons
+		# check if scrollPosition is valid and show/hide scroll buttons
 		if (self.scrollPosition <= 0):
 			self.screen.hide(self.scrollUpArrow)
 			self.screen.hide(self.pageUpArrow)
@@ -312,7 +344,6 @@ class IconGrid_BUG:
 			self.screen.show(self.scrollUpArrow)
 			self.screen.show(self.pageUpArrow)
 			self.screen.show(self.scrollTopArrow)
-		
 		if (self.scrollPosition >= len(self.data) - self.numRows):
 			self.screen.hide(self.scrollDownArrow)
 			self.screen.hide(self.pageDownArrow)
@@ -335,10 +366,7 @@ class IconGrid_BUG:
 			if (self.showRowHeader):
 				currentY += self.rowHeaderHeight
 				text = "<font=%i>%s</font>" % (rowData.font, rowData.rowHeader)
-				self.screen.setLabel(self.rowName + str(rowIndex) + "name", "",
-									 text, CvUtil.FONT_LEFT_JUSTIFY,
-									 self.xStart + 5, self.firstRowY + (self.totalRowHeight + self.rowSpace) * rowIndex - 3,
-									 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+				self.screen.setLabel(self.rowName + str(rowIndex) + "name", "", text, CvUtil.FONT_LEFT_JUSTIFY, self.xStart + 5, self.firstRowY + (self.totalRowHeight + self.rowSpace) * rowIndex - 3, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 			
 			startIndex = 0
 			for groupIndex in range(len(self.columnGroups)):
@@ -379,11 +407,35 @@ class IconGrid_BUG:
 						if (self.showRowHeader):
 							textY += self.rowHeaderHeight
 						text = "<font=%i>%s</font>" % (rowData.cells[startIndex + offset].font, rowData.cells[startIndex + offset].text)
-						self.screen.setLabel( self.rowName + str(rowIndex) + "_" + str(startIndex + offset), ""
-											, text, CvUtil.FONT_LEFT_JUSTIFY
-											, currentX + 6, textY, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+						# <advc> Pass params for help widget to screen
+						widgetType = rowData.cells[startIndex + offset].textWidgetType
+						widgetData1 = rowData.cells[startIndex + offset].textWidgetData1
+						widgetData2 = rowData.cells[startIndex + offset].textWidgetData2
+						# (could use setText here for a clickable widget) </advc>
+						self.screen.setLabel(self.rowName + str(rowIndex) + "_" + str(startIndex + offset), "" , text, CvUtil.FONT_LEFT_JUSTIFY, currentX + 6, textY, 0, FontTypes.GAME_FONT, widgetType, widgetData1, widgetData2)
 						currentX += self.textColWidth[startIndex + offset] + self.colSpace
-
+					# <advc.ctr>
+					elif self.columns[startIndex + offset] == GRID_MULTI_TEXT_COLUMN:
+						textY = self.firstRowY + (self.totalRowHeight + self.rowSpace) * rowIndex + 8
+						if (self.showRowHeader):
+							textY += self.rowHeaderHeight
+						# Clear all lines
+						for iLine in range(MULTI_TEXT_MAX_LINES * 2):
+							self.screen.setText(self.rowName + str(rowIndex) + "_" + str(startIndex + offset) + "_" + str(iLine), "" , "", CvUtil.FONT_LEFT_JUSTIFY, currentX, textY, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+						iCount = 0
+						for textData in rowData.cells[startIndex + offset].multiText:
+							text = "<font=%i>%s</font>" % (rowData.cells[startIndex + offset].font, textData.text)
+							textX = currentX + 6
+							offsetX = 0
+							if iCount >= MULTI_TEXT_MAX_LINES:
+								offsetX = self.textColWidth[startIndex + offset] / 2
+							offsetY = (iCount % MULTI_TEXT_MAX_LINES) * MULTI_TEXT_LINE_HEIGHT
+							self.screen.setText(self.rowName + str(rowIndex) + "_" + str(startIndex + offset) + "_" + str(iCount), "" , text, CvUtil.FONT_LEFT_JUSTIFY, textX + offsetX, textY + offsetY, 0, FontTypes.GAME_FONT, textData.widgetType, textData.data1, textData.data2)
+							iCount += 1
+							if iCount > MULTI_TEXT_MAX_LINES * 2:
+								break
+						currentX += self.textColWidth[startIndex + offset] + self.colSpace
+					# </advc.ctr>
 					elif (self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN):
 #						BugUtil.debug("Stacked Bar Start A")
 
@@ -410,10 +462,7 @@ class IconGrid_BUG:
 #							BugUtil.debug("Stacked Bar value %i" % (stackedbarData.value))
 							szBar_ID = self.rowName + str(rowIndex) + "_" + str(startIndex + offset) + "SB"
 							if stackedbarData.value > 0:
-								self.screen.addStackedBarGFC(szBar_ID, 
-															 currentX + 6, textY + iSBarOffset_Y, width, 25,
-															 InfoBarTypes.NUM_INFOBAR_TYPES, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-
+								self.screen.addStackedBarGFC(szBar_ID, currentX + 6, textY + iSBarOffset_Y, width, 25, InfoBarTypes.NUM_INFOBAR_TYPES, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 								self.screen.setBarPercentage(szBar_ID, InfoBarTypes.INFOBAR_STORED, float(stackedbarData.value) / float(100))
 								self.screen.setStackedBarColors(szBar_ID, InfoBarTypes.INFOBAR_STORED, gc.getInfoTypeForString(stackedbarData.color))
 							else:
@@ -422,10 +471,7 @@ class IconGrid_BUG:
 							szTxt_ID = self.rowName + str(rowIndex) + "_" + str(startIndex + offset) + "T"
 							if stackedbarData.text != "":
 								text = "<font=%i>%s</font>" % (stackedbarData.font, stackedbarData.text)
-								self.screen.setLabel (szTxt_ID, "",
-													  text, CvUtil.FONT_CENTER_JUSTIFY,
-													  currentX + 6 + width / 2, textY - iSBarOffset_Y,
-													  -0.1, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+								self.screen.setLabel (szTxt_ID, "", text, CvUtil.FONT_CENTER_JUSTIFY, currentX + 6 + width / 2, textY - iSBarOffset_Y, -0.1, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 							else:
 								self.screen.deleteWidget(szTxt_ID)
 
@@ -458,12 +504,33 @@ class IconGrid_BUG:
 
 				elif (self.columns[startIndex + offset] == GRID_TEXT_COLUMN):
 					text = "<font=%i>%s</font>" % (rowData.cells[startIndex + offset].font, rowData.cells[startIndex + offset].text)
-					self.screen.setLabel(self.rowName + str(rowIndex) + "_" + str(startIndex + offset), "", 
-										 text, CvUtil.FONT_LEFT_JUSTIFY, 
-										 currentX + 6, self.firstRowY + (self.totalRowHeight + self.rowSpace) * rowIndex + 28, 
-										 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+					# <advc> Pass params for help widget to screen
+					widgetType = rowData.cells[startIndex + offset].textWidgetType
+					widgetData1 = rowData.cells[startIndex + offset].textWidgetData1
+					widgetData2 = rowData.cells[startIndex + offset].textWidgetData2
+					# (could use setText here for a clickable widget) </advc>
+					self.screen.setLabel(self.rowName + str(rowIndex) + "_" + str(startIndex + offset), "", text, CvUtil.FONT_LEFT_JUSTIFY, currentX + 6, self.firstRowY + (self.totalRowHeight + self.rowSpace) * rowIndex + 28, 0, FontTypes.GAME_FONT, widgetType, widgetData1, widgetData2)
 					currentX += self.textColWidth[startIndex + offset] + self.colSpace
-
+				# <advc.ctr>
+				elif self.columns[startIndex + offset] == GRID_MULTI_TEXT_COLUMN:
+					textY = self.firstRowY + (self.totalRowHeight + self.rowSpace) * rowIndex + 8
+					# Clear all lines
+					for iLine in range(MULTI_TEXT_MAX_LINES * 2):
+						self.screen.setText(self.rowName + str(rowIndex) + "_" + str(startIndex + offset) + "_" + str(iLine), "" , "", CvUtil.FONT_LEFT_JUSTIFY, currentX, textY, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+					iCount = 0
+					for textData in rowData.cells[startIndex + offset].multiText:
+						text = "<font=%i>%s</font>" % (rowData.cells[startIndex + offset].font, textData.text)
+						textX = currentX + 6
+						offsetX = 0
+						if iCount >= MULTI_TEXT_MAX_LINES:
+							offsetX = self.textColWidth[startIndex + offset] / 2
+						offsetY = (iCount % MULTI_TEXT_MAX_LINES) * MULTI_TEXT_LINE_HEIGHT
+						self.screen.setText(self.rowName + str(rowIndex) + "_" + str(startIndex + offset) + "_" + str(iCount), "" , text, CvUtil.FONT_LEFT_JUSTIFY, textX + offsetX, textY + offsetY, 0, FontTypes.GAME_FONT, textData.widgetType, textData.data1, textData.data2)
+						iCount += 1
+						if iCount > MULTI_TEXT_MAX_LINES * 2:
+							break
+					currentX += self.textColWidth[startIndex + offset] + self.colSpace
+				# </advc.ctr>
 				elif (self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN):
 #					BugUtil.debug("Stacked Bar Start B")
 					bDataFound = True
@@ -486,9 +553,7 @@ class IconGrid_BUG:
 						szBar_ID = self.rowName + str(rowIndex) + "_" + str(startIndex + offset) + "SB"
 						if stackedbarData.value > 0:
 							szBar_ID = self.rowName + str(rowIndex) + "_" + str(startIndex + offset) + "SB"
-							self.screen.addStackedBarGFC(szBar_ID, 
-														 currentX + 6, textY + iSBarOffset_Y, width, 25,
-														 InfoBarTypes.NUM_INFOBAR_TYPES, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+							self.screen.addStackedBarGFC(szBar_ID, currentX + 6, textY + iSBarOffset_Y, width, 25, InfoBarTypes.NUM_INFOBAR_TYPES, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 							self.screen.setBarPercentage(szBar_ID, InfoBarTypes.INFOBAR_STORED, float(stackedbarData.value) / float(100))
 							self.screen.setStackedBarColors(szBar_ID, InfoBarTypes.INFOBAR_STORED, gc.getInfoTypeForString(stackedbarData.color))
 						else:
@@ -545,23 +610,27 @@ class IconGrid_BUG:
 		numMultiListCols = 0
 		for colIndex in range(len(self.columns)):
 			col = self.columns[colIndex]
-			if (col == GRID_ICON_COLUMN):
+			if col == GRID_ICON_COLUMN:
 				availableWidth -= self.iconColWidth
-			if (col == GRID_MULTI_LIST_COLUMN):
+			if col == GRID_MULTI_LIST_COLUMN:
 				numMultiListCols += 1
-			if (col == GRID_TEXT_COLUMN):
+			if col == GRID_TEXT_COLUMN or col == GRID_MULTI_TEXT_COLUMN: # advc.ctr
 				availableWidth -= self.textColWidth[colIndex]
-			if (col == GRID_STACKEDBAR_COLUMN):
+			if col == GRID_STACKEDBAR_COLUMN:
 				availableWidth -= self.StackedBarColWidth[colIndex]
 		
 		if (self.showRowBorder):
 			availableWidth -= self.rowBorderWidth * 2
-		
-		initMultiListColWidth = availableWidth / numMultiListCols
-		numIcons = (initMultiListColWidth - 16) / (self.iconSize + 2)
-		self.multiListColWidth = numIcons * (self.iconSize + 2) + 16
+
+		if numMultiListCols > 0: # advc.ctr: Allow 0 multi list columns
+			initMultiListColWidth = availableWidth / numMultiListCols
+			numIcons = (initMultiListColWidth - 16) / (self.iconSize + 2)
+			self.multiListColWidth = numIcons * (self.iconSize + 2) + 16
+		# <advc.ctr>
+		else:
+			self.multiListColWidth = 0 # <advc.ctr>
 		self.colSpace = (availableWidth - self.multiListColWidth * numMultiListCols) / (len(self.columns) - 1) + self.minColSpace
-		
+
 		# height
 		if (useColGroups):
 			self.colGroupHeight = self.groupTitleHeight + self.headerHeight + 8
@@ -661,13 +730,13 @@ class IconGrid_BUG:
 			if (colGroup.label != ""):
 				colGroupWidth = self.groupBorder * 2
 				for offset in range(colGroup.length):
-					if (self.columns[startIndex + offset] == GRID_ICON_COLUMN):
+					if self.columns[startIndex + offset] == GRID_ICON_COLUMN:
 						colGroupWidth += self.iconColWidth + self.colSpace
-					elif (self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN):
+					elif self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN:
 						colGroupWidth += self.multiListColWidth + self.colSpace
-					elif (self.columns[startIndex + offset] == GRID_TEXT_COLUMN):
+					elif self.columns[startIndex + offset] == GRID_TEXT_COLUMN or self.columns[startIndex + offset] == GRID_MULTI_TEXT_COLUMN: # advc.ctr
 						colGroupWidth += self.textColWidth[startIndex + offset] + self.colSpace
-					elif (self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN):
+					elif self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN:
 						colGroupWidth += self.StackedBarColWidth[startIndex + offset] + self.colSpace
 
 				colGroupWidth -= self.colSpace
@@ -684,13 +753,13 @@ class IconGrid_BUG:
 				colGroupX += colGroupWidth + self.colSpace
 			else:
 				for offset in range(colGroup.length):
-					if (self.columns[startIndex + offset] == GRID_ICON_COLUMN):
+					if self.columns[startIndex + offset] == GRID_ICON_COLUMN:
 						colGroupX += self.iconColWidth + self.colSpace
-					elif (self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN):
+					elif self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN:
 						colGroupX += self.multiListColWidth + self.colSpace
-					elif (self.columns[startIndex + offset] == GRID_TEXT_COLUMN):
+					elif self.columns[startIndex + offset] == GRID_TEXT_COLUMN or self.columns[startIndex + offset] == GRID_MULTI_TEXT_COLUMN: # advc.ctr
 						colGroupX += self.textColWidth[startIndex + offset] + self.colSpace
-					elif (self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN):
+					elif self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN:
 						colGroupX += self.StackedBarColWidth[startIndex + offset] + self.colSpace
 
 			startIndex += colGroup.length
@@ -709,13 +778,13 @@ class IconGrid_BUG:
 			headerWidth = 0
 			
 			for offset in range(colGroup.length):
-				if (self.columns[startIndex + offset] == GRID_ICON_COLUMN):
+				if self.columns[startIndex + offset] == GRID_ICON_COLUMN:
 					headerWidth = self.iconColWidth + self.colSpace
-				elif (self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN):
+				elif self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN:
 					headerWidth = self.multiListColWidth + self.colSpace
-				elif (self.columns[startIndex + offset] == GRID_TEXT_COLUMN):
+				elif self.columns[startIndex + offset] == GRID_TEXT_COLUMN or self.columns[startIndex + offset] == GRID_MULTI_TEXT_COLUMN: # advc.ctr
 					headerWidth = self.textColWidth[startIndex + offset] + self.colSpace
-				elif (self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN):
+				elif self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN:
 					headerWidth = self.StackedBarColWidth[startIndex + offset] + self.colSpace
 				
 				if (offset == colGroup.length - 1): # last column of this group
@@ -731,13 +800,13 @@ class IconGrid_BUG:
 			startIndex += colGroup.length
 		
 		for offset in range(len(self.columns) - startIndex):
-			if (self.columns[startIndex + offset] == GRID_ICON_COLUMN):
+			if self.columns[startIndex + offset] == GRID_ICON_COLUMN:
 				headerWidth = self.iconColWidth + self.colSpace
-			elif (self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN):
+			elif self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN:
 				headerWidth = self.multiListColWidth + self.colSpace
-			elif (self.columns[startIndex + offset] == GRID_TEXT_COLUMN):
+			elif self.columns[startIndex + offset] == GRID_TEXT_COLUMN or self.columns[startIndex + offset] == GRID_MULTI_TEXT_COLUMN: # advc.ctr
 				headerWidth = self.textColWidth[startIndex + offset] + self.colSpace
-			elif (self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN):
+			elif self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN:
 				headerWidth = self.StackedBarColWidth[startIndex + offset] + self.colSpace
 
 			self.screen.setTableColumnHeader( self.headerName, startIndex + offset, "", headerWidth )
@@ -770,16 +839,16 @@ class IconGrid_BUG:
 				currentX += self.groupBorder
 			
 			for offset in range(colGroup.length):
-				if (self.columns[startIndex + offset] == GRID_ICON_COLUMN):
+				if self.columns[startIndex + offset] == GRID_ICON_COLUMN:
 					currentX += self.iconColWidth + self.colSpace
-				elif (self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN):
+				elif self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN:
 					self.screen.addMultiListControlGFC( self.rowName + str(rowIndex) + "_" + str(startIndex + offset), ""
 													  , currentX, listY, self.multiListColWidth, self.rowHeight
 													  , 1, self.iconSize, self.iconSize, TableStyles.TABLE_STYLE_EMPTY )
 					currentX += self.multiListColWidth + self.colSpace
-				elif (self.columns[startIndex + offset] == GRID_TEXT_COLUMN):
+				elif self.columns[startIndex + offset] == GRID_TEXT_COLUMN or self.columns[startIndex + offset] == GRID_MULTI_TEXT_COLUMN: # advc.ctr
 					currentX += self.textColWidth[startIndex + offset] + self.colSpace
-				elif (self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN):
+				elif self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN:
 					currentX += self.StackedBarColWidth[startIndex + offset] + self.colSpace
 			
 			startIndex += colGroup.length
@@ -787,16 +856,16 @@ class IconGrid_BUG:
 				currentX += self.groupBorder		
 		
 		for offset in range(len(self.columns) - startIndex):
-			if (self.columns[startIndex + offset] == GRID_ICON_COLUMN):
+			if self.columns[startIndex + offset] == GRID_ICON_COLUMN:
 				currentX += self.iconColWidth + self.colSpace
-			elif (self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN):
+			elif self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN:
 				self.screen.addMultiListControlGFC( self.rowName + str(rowIndex) + "_" + str(startIndex + offset), ""
 												  , currentX, listY, self.multiListColWidth, self.rowHeight
 												  , 1, self.iconSize, self.iconSize, TableStyles.TABLE_STYLE_EMPTY )
 				currentX += self.multiListColWidth + self.colSpace
-			elif (self.columns[startIndex + offset] == GRID_TEXT_COLUMN):
+			elif self.columns[startIndex + offset] == GRID_TEXT_COLUMN or self.columns[startIndex + offset] == GRID_MULTI_TEXT_COLUMN: # advc.ctr
 				currentX += self.textColWidth[startIndex + offset] + self.colSpace
-			elif (self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN):
+			elif self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN:
 				currentX += self.StackedBarColWidth[startIndex + offset] + self.colSpace
 
 	def hideControls(self):
@@ -844,13 +913,13 @@ class IconGrid_BUG:
 			colGroup = self.columnGroups[groupIndex]
 
 			for offset in range(colGroup.length):
-				if (self.columns[startIndex + offset] == GRID_ICON_COLUMN):
+				if self.columns[startIndex + offset] == GRID_ICON_COLUMN:
 					self.screen.hide( self.rowName + str(rowIndex) + "_" + str(startIndex + offset))
-				elif (self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN):
+				elif self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN:
 					self.screen.deleteWidget(self.rowName + str(rowIndex) + "_" + str(startIndex + offset))
-				elif (self.columns[startIndex + offset] == GRID_TEXT_COLUMN):
+				elif self.columns[startIndex + offset] == GRID_TEXT_COLUMN or self.columns[startIndex + offset] == GRID_MULTI_TEXT_COLUMN: # advc.ctr
 					self.screen.hide( self.rowName + str(rowIndex) + "_" + str(startIndex + offset))
-				elif (self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN):
+				elif self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN:
 					self.screen.hide( self.rowName + str(rowIndex) + "_" + str(startIndex + offset))
 					self.screen.hide( self.rowName + str(rowIndex) + "_" + str(startIndex + offset) + "SB")
 					self.screen.hide( self.rowName + str(rowIndex) + "_" + str(startIndex + offset) + "T")
@@ -858,13 +927,13 @@ class IconGrid_BUG:
 			startIndex += colGroup.length
 		
 		for offset in range(len(self.columns) - startIndex):
-			if (self.columns[startIndex + offset] == GRID_ICON_COLUMN):
+			if self.columns[startIndex + offset] == GRID_ICON_COLUMN:
 				self.screen.hide( self.rowName + str(rowIndex) + "_" + str(startIndex + offset))
-			elif (self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN):
+			elif self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN:
 				self.screen.deleteWidget(self.rowName + str(rowIndex) + "_" + str(startIndex + offset))
-			elif (self.columns[startIndex + offset] == GRID_TEXT_COLUMN):
+			elif self.columns[startIndex + offset] == GRID_TEXT_COLUMN or self.columns[startIndex + offset] == GRID_MULTI_TEXT_COLUMN: # advc.ctr
 				self.screen.hide( self.rowName + str(rowIndex) + "_" + str(startIndex + offset))
-			elif (self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN):
+			elif self.columns[startIndex + offset] == GRID_STACKEDBAR_COLUMN:
 				self.screen.hide( self.rowName + str(rowIndex) + "_" + str(startIndex + offset))
 				self.screen.hide( self.rowName + str(rowIndex) + "_" + str(startIndex + offset) + "SB")
 				self.screen.hide( self.rowName + str(rowIndex) + "_" + str(startIndex + offset) + "T")

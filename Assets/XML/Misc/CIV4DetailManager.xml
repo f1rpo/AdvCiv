@@ -3,7 +3,7 @@
 <!-- Copyright Firaxis Games 2005 -->
 <!-- -->
 <!-- Detail Manager -->
-<!-- Defines level-of-detail controllers or Civ4 graphical elements -->
+<!-- Defines level-of-detail controllers for Civ4 graphical elements -->
 <!-- Useful hint: values in this file can be changed on the fly (i.e. effects will be noticeable w/o restarting the game) -->
 <DetailManagerInfos xmlns="x-schema:CIV4DetailManagerSchema.xml">
 	<Fader>
@@ -30,9 +30,10 @@
 		<Key>7200, 0.00</Key>
 		<Key>7200, 1.00</Key>
 	</Fader>
+	<!-- advc.004m: Was 6400; should generally match the values above.  -->
 	<Fader>
 		<Name>DF_GLOBE_MORPH</Name>
-		<Key>6400,	0.00</Key>
+		<Key>7200,	0.00</Key>
 		<Key>%CAMERA_MAX_DISTANCE*0.97, 1.00</Key>
 	</Fader>
 	<Fader>

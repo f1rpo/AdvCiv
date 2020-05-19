@@ -14,6 +14,7 @@
 			<FreeUnitClass>NONE</FreeUnitClass>
 			<iSpreadFactor>200</iSpreadFactor>
 			<iSpreadCost>50</iSpreadCost>
+			<!-- K-Mod (was 75 in BtS) -->
 			<iMaintenance>100</iMaintenance>
 			<PrereqBonuses>
 				<BonusType>BONUS_WHEAT</BonusType>
@@ -81,6 +82,7 @@
 			<FreeUnitClass>NONE</FreeUnitClass>
 			<iSpreadFactor>200</iSpreadFactor>
 			<iSpreadCost>50</iSpreadCost>
+			<!-- advc.200: As in BtS (was 80 in K-Mod) -->
 			<iMaintenance>100</iMaintenance>
 			<PrereqBonuses>
 				<BonusType>BONUS_CORN</BonusType>
@@ -150,7 +152,8 @@
 			<FreeUnitClass>NONE</FreeUnitClass>
 			<iSpreadFactor>200</iSpreadFactor>
 			<iSpreadCost>50</iSpreadCost>
-			<iMaintenance>120</iMaintenance>
+			<!-- advc.200: As in BtS (was 120 in K-Mod) -->
+			<iMaintenance>100</iMaintenance>
 			<PrereqBonuses>
 				<BonusType>BONUS_COAL</BonusType>
 				<BonusType>BONUS_IRON</BonusType>
@@ -187,6 +190,7 @@
 			<FreeUnitClass>NONE</FreeUnitClass>
 			<iSpreadFactor>200</iSpreadFactor>
 			<iSpreadCost>50</iSpreadCost>
+			<!-- advc.200: As in BtS (was 80 in K-Mod) -->
 			<iMaintenance>100</iMaintenance>
 			<PrereqBonuses>
 				<BonusType>BONUS_COAL</BonusType>
@@ -219,6 +223,7 @@
 			<FreeUnitClass>NONE</FreeUnitClass>
 			<iSpreadFactor>200</iSpreadFactor>
 			<iSpreadCost>50</iSpreadCost>
+			<!-- advc.200: As in BtS (was 120 in K-Mod) -->
 			<iMaintenance>100</iMaintenance>
 			<PrereqBonuses>
 				<BonusType>BONUS_GOLD</BonusType>

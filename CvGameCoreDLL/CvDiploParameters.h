@@ -2,7 +2,6 @@
 #ifndef CVDIPLOPARAMETERS_H
 #define CVDIPLOPARAMETERS_H
 
-#include "LinkedList.h"
 #include "FVariableSystem.h"
 
 class CvDiploParameters
@@ -52,7 +51,7 @@ public:
 	DllExport void read(FDataStreamBase& stream);
 	DllExport void write(FDataStreamBase& stream) const;
 
-private:
+private: // advc.003k (warning): It's not safe to add data members to this class!
 	PlayerTypes m_eWhoTalkingTo;
 	DiploCommentTypes m_eCommentType;
 	CLinkList<TradeData> m_ourOffer;
@@ -67,5 +66,7 @@ private:
 	CvWString m_szChatText;
 	std::vector<FVariable> m_diploCommentArgs;
 };
+
+BOOST_STATIC_ASSERT(sizeof(CvDiploParameters) == 100); // advc.003k
 
 #endif

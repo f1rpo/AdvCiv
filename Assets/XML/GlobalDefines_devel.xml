@@ -8,14 +8,16 @@
 		 If logging is enabled in /My Games/
 		 Beyond The Sword/CivilizationIV.ini, a log file is written to
 		 /My Games/Beyond The Sword/Logs every REPORT_INTERVAL turns.
-		 It's not necessary to compile a debug DLL in order
-		 to see the reports. Each report records the war planning of all
-		 AI civs during a single turn. Set to 0 or less to disable logging. -->
+		 For multiplayer games, the MessageLog (CivilizationIV.ini) needs to be
+		 enabled in addition.
+		 It's not necessary to compile a debug DLL in order to see the reports.
+		 Each report records the war planning of all AI civs during a single 
+		 turn. Set to 0 or less to disable logging. -->
     <Define>
         <DefineName>REPORT_INTERVAL</DefineName>
         <iDefineIntVal>0</iDefineIntVal>
     </Define>
-	
+
 	<!-- [advc.104]
 		 If UWAI reports are enabled (see above), no details about a AI war plan
 		 are logged unless that war plan has greater utility than this
@@ -39,12 +41,13 @@
         <DefineName>UWAI_SPECTATOR_ENABLED</DefineName>
         <iDefineIntVal>0</iDefineIntVal>
     </Define>
-	
+
 	<!-- [advc.104]
 		If set to 1 or greater, and UWAI is enabled in Game Options
 		(i.e. "Aggressive AI" not checked), UWAI runs in the background and
 		writes a logfile (depending in REPORT_INTERVAL), but lets the K-Mod AI
-		make all decisions. No impact if UWAI disabled in Game Options ("Aggressive AI" checked), or through DISABLE_UWAI.
+		make all decisions. No impact if UWAI disabled in Game Options
+		("Aggressive AI" checked), or through DISABLE_UWAI.
 		For testing, or for (temporarily or permanently) switching off UWAI
 		mid-game, otherwise, recommended: 0 -->
 	<Define>
@@ -80,9 +83,9 @@
 		<DefineName>ENABLE_DEBUG_TOOLS_MULTIPLAYER</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	
-<!-- [advc.007] If set to 1, the RandLog is named MPLogX.log,
-		 where X is the ID of the active player. That is, multiple log files 
+
+	<!-- [advc.007] If set to 1, the RandLog is named MPLogX.log,
+		 where X is the ID of the active player. That is, multiple log files
 		 are created when playing a Direct IP test game on a single PC.
 		 These logs will have to be deleted manually in between tests.
 		 If set to 0, only one MPLog is created (and automatically deleted
@@ -90,6 +93,23 @@
 		 Windows process reserves that file first gets to write to it. -->
 	<Define>
 		<DefineName>PER_PLAYER_MESSAGE_CONTROL_LOG</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
+	<!-- advc.mapstat: If set to 1 and MessageLog=1 in My Games\
+		 Beyond the Sword\CivilizationIV.ini, then statistics about the terrain
+		 are written to the MPLog each time that a map is generated. If set to 0,
+		 no such log output is created. -->
+	<Define>
+		<DefineName>LOG_MAP_STATS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+
+	<!-- advc: Setting this to 1 causes the game to ignore the
+		"New Random Seed on Reload" game option. For debugging
+		savegames that have that option enabled. -->
+	<Define>
+		<DefineName>IGNORE_NEW_RANDOM_SEED_OPTION</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 

@@ -51,7 +51,9 @@ class BugAdvisorOptionsTab(BugOptionsTab.BugOptionsTab):
 		# advc.072: Align through leftL,leftR instead of ComboBox
 		self.addCheckboxTextDropdown(screen, leftL, leftR, "Advisors__EFAGlanceTab", "Advisors__EFAGlanceAttitudes")
 		# advc.152:
-		self.addCheckbox(screen,leftL, "Advisors__EFAWarTrades")
+		self.addCheckbox(screen, leftL, "Advisors__EFAWarTrades")
+		# advc.ctr:
+		self.addCheckbox(screen, leftL, "Advisors__EFACityTrades")
 		
 		# <advc.004> Moved to center column
 		self.addLabel(screen, center, "Military_Advisor", "Military [F5]:")

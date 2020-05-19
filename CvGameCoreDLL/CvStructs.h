@@ -5,8 +5,6 @@
 
 // structs.h
 
-#include "CvString.h"
-
 // <advc.071>
 class CvPlot;
 class CvUnit;
@@ -30,8 +28,16 @@ struct XYCoords
 
 struct IDInfo
 {
+	/*	advc.opt: Default owner changed from NO_PLAYER to Barbarians so that
+		the owner doesn't need to be checked before calling FFreeListTrashArray::getAt. */
+	// advc.inl: inline keyword just to make sure
+	inline IDInfo(PlayerTypes eOwner = BARBARIAN_PLAYER, int iID = FFreeList::INVALID_INDEX) :
+		eOwner(eOwner), iID(iID)
+	{
+		FAssert(iID != FFreeList::INVALID_INDEX || eOwner == BARBARIAN_PLAYER); // advc.test
+	}
+	void validateOwner(); // advc.opt
 
-	IDInfo(PlayerTypes eOwner=NO_PLAYER, int iID=FFreeList::INVALID_INDEX) : eOwner(eOwner), iID(iID) {}
 	PlayerTypes eOwner;
 	int iID;
 
@@ -50,7 +56,8 @@ struct IDInfo
 
 	void reset()
 	{
-		eOwner = NO_PLAYER;
+		//eOwner = NO_PLAYER;
+		eOwner = BARBARIAN_PLAYER; // advc.opt
 		iID = FFreeList::INVALID_INDEX;
 	}
 };
@@ -63,6 +70,7 @@ struct GameTurnInfo				// Exposed to Python
 
 struct OrderData					// Exposed to Python
 {
+	INIT_STRUCT_PADDING(OrderData);
 	OrderTypes eOrderType;
 	int iData1;
 	int iData2;
@@ -71,6 +79,7 @@ struct OrderData					// Exposed to Python
 
 struct MissionData				// Exposed to Python
 {
+	INIT_STRUCT_PADDING(MissionData);
 	MissionTypes eMissionType;
 	int iData1;
 	int iData2;
@@ -84,10 +93,20 @@ struct MissionDataLegacy { MissionTypes eMissionType; int iData1; int iData2;
 
 struct TradeData					// Exposed to Python
 {
-	TradeableItems m_eItemType;				//	What type of item is this
-	int m_iData;											//	Any additional data?
-	bool m_bOffering;									//	Is this item up for grabs?
-	bool m_bHidden;										//	Are we hidden?
+	// <advc> To replace global setTradeItem (CvGameCoreUtils)
+	TradeData(TradeableItems eItem = NO_TRADE_ITEM, int iData = -1,
+		bool bOffering = false, bool bHidden = false)
+	{
+		INIT_STRUCT_PADDING_INL();
+		m_eItemType = eItem;
+		m_iData = iData;
+		m_bOffering = bOffering;
+		m_bHidden = bHidden;
+	} // </advc>
+	TradeableItems m_eItemType;	//	What type of item is this
+	int m_iData;				//	Any additional data?
+	bool m_bOffering;			//	Is this item up for grabs?
+	bool m_bHidden;				//	Are we hidden?
 };
 
 struct EventTriggeredData
@@ -501,7 +520,8 @@ struct DllExport CvWBData
 	CvString m_strButton;
 };
 // <advc.071>
-struct FirstContactData {
+struct FirstContactData
+{
 	FirstContactData(CvPlot const* pAt1, CvPlot const* pAt2 = NULL,
 			CvUnit const* pUnit1 = NULL, CvUnit const* pUnit2 = NULL);
 	FirstContactData() : u1(), u2(), x1(-1), x2(-1), y1(-1), y2(-1) {}
@@ -509,7 +529,8 @@ struct FirstContactData {
 	int x1, y1, x2, y2;
 }; // </advc.071>
 // <advc.072>
-struct DealItemData {
+struct DealItemData
+{
 	DealItemData() : eGivePlayer(NO_PLAYER), eReceivePlayer(NO_PLAYER),
 			eItemType(TRADE_ITEM_NONE), iData(-1), iDeal(-1) {}
 	DealItemData(PlayerTypes eGivePlayer, PlayerTypes eReceivePlayer,

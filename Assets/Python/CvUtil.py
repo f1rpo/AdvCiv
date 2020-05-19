@@ -165,9 +165,9 @@ def pyPrint(stuff):
 	sys.stdout.write(stuff)
 
 def pyAssert(cond, msg):
-	if (cond==False):
+	if not cond:
 		sys.stderr.write(msg)
-	assert(cond, msg)
+	assert cond, msg # advc.001 (from MNAI)
 	
 def getScoreComponent(iRawScore, iInitial, iMax, iFactor, bExponential, bFinal, bVictory):
 
@@ -433,7 +433,7 @@ def addIconToMap(infoChar, desc):
 	uc = infoChar()
 	if (uc>=0):
 		FontIconMap[desc] = u"%c" %(uc,)
-
+# advc (note): Don't add to this list; it seems that BUG's FontUtil.py handles the values of the FontSymbols enum in the DLL (so long as they're exposed to Python).
 OtherFontIcons = { 'happy' : FontSymbols.HAPPY_CHAR,
 				'unhappy' : FontSymbols.UNHAPPY_CHAR,
 				'healthy' : FontSymbols.HEALTHY_CHAR,

@@ -12,7 +12,6 @@ EXPORTS
 ?getOwner@CvUnit@@QBE?AW4PlayerTypes@@XZ=?getOwnerExternal@CvUnit@@QBE?AW4PlayerTypes@@XZ
 ?isPlot@CvMap@@QBE_NHH@Z=?isPlotExternal@CvMap@@QBE_NHH@Z
 ?numPlots@CvMap@@QBEHXZ=?numPlotsExternal@CvMap@@QBEHXZ
-?plotNum@CvMap@@QBEHHH@Z=?plotNumExternal@CvMap@@QBEHHH@Z
 ?getGridWidth@CvMap@@QBEHXZ=?getGridWidthExternal@CvMap@@QBEHXZ
 ?getGridHeight@CvMap@@QBEHXZ=?getGridHeightExternal@CvMap@@QBEHXZ
 ?isWrapX@CvMap@@QAE_NXZ=?isWrapXExternal@CvMap@@QAE_NXZ
@@ -20,3 +19,10 @@ EXPORTS
 ?isWrap@CvMap@@QAE_NXZ=?isWrapExternal@CvMap@@QAE_NXZ
 ?plotByIndex@CvMap@@QBEPAVCvPlot@@H@Z=?plotByIndexExternal@CvMap@@QBEPAVCvPlot@@H@Z
 ?plot@CvMap@@QBEPAVCvPlot@@HH@Z=?plotExternal@CvMap@@QBEPAVCvPlot@@HH@Z
+?isAtWar@CvTeam@@QBE_NW4TeamTypes@@@Z=?isAtWarExternal@CvTeam@@QBE_NW4TeamTypes@@@Z
+?isPromotionReady@CvUnit@@QBE_NXZ=?isPromotionReadyExternal@CvUnit@@QBE_NXZ
+?getUnit@@YAPAVCvUnit@@UIDInfo@@@Z=?getUnitExternal@@YAPAVCvUnit@@UIDInfo@@@Z
+?getCity@@YAPAVCvCity@@UIDInfo@@@Z=?getCityExternal@@YAPAVCvCity@@UIDInfo@@@Z
+?getColorTypePrimary@CvPlayerColorInfo@@QBEHXZ=?getColorTypePrimaryExternal@CvPlayerColorInfo@@QBEHXZ
+?getColorTypeSecondary@CvPlayerColorInfo@@QBEHXZ=?getColorTypeSecondaryExternal@CvPlayerColorInfo@@QBEHXZ
+?getPlayerColor@CvPlayer@@QBE?AW4PlayerColorTypes@@XZ=?getPlayerColorExternal@CvPlayer@@QBE?AW4PlayerColorTypes@@XZ

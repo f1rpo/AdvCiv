@@ -1,9 +1,6 @@
 #include "CvGameCoreDLL.h"
-#include "CyPlot.h"
-#include "CyCity.h"
-#include "CyArea.h"
-#include "CyUnit.h"
 #include "CvPlot.h"
+#include "CyArea.h"
 //# include <boost/python/manage_new_object.hpp>
 //# include <boost/python/return_value_policy.hpp>
 
@@ -13,7 +10,7 @@
 
 void CyPlotPythonInterface1(python::class_<CyPlot>& x)
 {
-	OutputDebugString("Python Extension Module - CyPlotPythonInterface1\n");
+	printToConsole("Python Extension Module - CyPlotPythonInterface1\n");
 
 	x
 		.def("isNone", &CyPlot::isNone, "bool ()")
@@ -101,7 +98,8 @@ void CyPlotPythonInterface1(python::class_<CyPlot>& x)
 		.def("isVisibleEnemyDefender", &CyPlot::isVisibleEnemyDefender, "bool (CyUnit* pUnit)")
 		.def("getNumDefenders", &CyPlot::getNumDefenders, "int (int /*PlayerTypes*/ ePlayer)")
 		.def("getNumVisibleEnemyDefenders", &CyPlot::getNumVisibleEnemyDefenders, "int (CyUnit* pUnit)")
-		.def("getNumVisiblePotentialEnemyDefenders", &CyPlot::getNumVisiblePotentialEnemyDefenders, "int (CyUnit* pUnit)")
+		 // advc: No longer exposed
+		//.def("getNumVisiblePotentialEnemyDefenders", &CyPlot::getNumVisiblePotentialEnemyDefenders, "int (CyUnit* pUnit)")
 		.def("isVisibleEnemyUnit", &CyPlot::isVisibleEnemyUnit, "bool (int /*PlayerTypes*/ ePlayer)")
 		.def("isVisibleOtherUnit", &CyPlot::isVisibleOtherUnit, "bool (int /*PlayerTypes*/ ePlayer)")
 		.def("isFighting", &CyPlot::isFighting, "bool ()")

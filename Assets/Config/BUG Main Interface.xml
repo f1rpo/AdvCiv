@@ -18,7 +18,7 @@
 		<section id="Main">
 		
 			<!-- Options Screen Shortcut Reminder -->
-			<!-- advc.003 (note): Now unused -->
+			<!-- advc (note): Now unused -->
 			<option id="OptionsKey" key="Options Shortcut Reminder" 
 					type="boolean" default="False" 
 					get="isShowOptionsKeyReminder" set="setShowOptionsKeyReminder" dirtyBit="GameData"/>
@@ -166,6 +166,10 @@
 			<!-- advc.004: default was False -->
 			<option id="SimpleSelection" key="Simple Selection"
 					type="boolean" default="True"/>
+
+			<!-- advc.004k -->
+			<option id="SeaPatrol" key="Sea Patrol"
+					type="boolean" default="False" dirtyBit="SelectionButtons"/>
 			
 			<!-- advc.004z -->
 			<option id="ScoresInGlobeView" key="Scores in Globe View" 

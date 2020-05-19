@@ -2,28 +2,28 @@
 
 #include "CvGameCoreDLL.h"
 #include "Shelf.h"
-#include "CvInfos.h"
-#include "CvGameAI.h"
+#include "CvInfo_Unit.h"
+#include "CvGame.h"
 #include "CvPlot.h"
 #include "CvUnit.h"
 
 using std::vector;
 
 
-void Shelf::add(CvPlot* plot) {
-
+void Shelf::add(CvPlot* plot)
+{
 	plots.push_back(plot);
 }
 
 
-CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance,
-		int* legalCount) const {
-
+CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance, int* legalCount) const
+{
 	/*  Based on CvMap::syncRandPlot, but shelves are (normally) so small
 		that random sampling isn't efficient. Instead, compute the legal
 		plots first, then return one of those at random (NULL if none). */
 	vector<CvPlot*> legal;
-	for(unsigned int i = 0; i < plots.size(); i++) {
+	for(size_t i = 0; i < plots.size(); i++)
+	{
 		CvPlot* plot = plots[i];
 		bool isLegal =
 		 plot != NULL &&
@@ -49,16 +49,17 @@ CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance,
 }
 
 
-int Shelf::size() const {
-
+int Shelf::size() const
+{
 	return (int)plots.size();
 }
 
 
-int Shelf::countUnownedPlots() const {
-
+int Shelf::countUnownedPlots() const
+{
 	int r = 0;
-	for(unsigned int i = 0; i < plots.size(); i++) {
+	for(size_t i = 0; i < plots.size(); i++)
+	{
 		CvPlot* plot = plots[i];
 		if(plot != NULL && !plot->isOwned())
 			r++;
@@ -67,17 +68,18 @@ int Shelf::countUnownedPlots() const {
 }
 
 
-int Shelf::countBarbarians() const {
-
+int Shelf::countBarbarians() const
+{
 	int r = 0;
-	for(size_t i = 0; i < plots.size(); i++) {
+	for(size_t i = 0; i < plots.size(); i++)
+	{
 		CvPlot* plot = plots[i];
 		if(plot == NULL)
 			continue;
 		CLLNode<IDInfo>* unitNode = plot->headUnitNode();
 		if(unitNode == NULL)
 			continue;
-		CvUnit* anyUnit = ::getUnit(unitNode->m_data);
+		CvUnit* anyUnit = CvUnit::fromIDInfo(unitNode->m_data);
 		if(anyUnit != NULL && anyUnit->isBarbarian())
 			r += plot->getNumUnits();
 	}
@@ -85,15 +87,18 @@ int Shelf::countBarbarians() const {
 }
 
 
-bool Shelf::killBarbarian() {
-
-	for(size_t i = 0; i < plots.size(); i++) {
+bool Shelf::killBarbarian()
+{
+	for(size_t i = 0; i < plots.size(); i++)
+	{
 		CvPlot* plot = plots[i]; if(plot == NULL) continue;
 		CLLNode<IDInfo>* unitNode = plot->headUnitNode();
-		if(unitNode == NULL) continue;
-		CvUnit* anyUnit = ::getUnit(unitNode->m_data);
+		if(unitNode == NULL)
+			continue;
+		CvUnit* anyUnit = CvUnit::fromIDInfo(unitNode->m_data);
 		if(anyUnit != NULL && anyUnit->isBarbarian() &&
-				anyUnit->getUnitCombatType() != NO_UNITCOMBAT) {
+			anyUnit->getUnitCombatType() != NO_UNITCOMBAT)
+		{
 			anyUnit->kill(false);
 			return true;
 		}
@@ -102,18 +107,20 @@ bool Shelf::killBarbarian() {
 }
 
 // <advc.306>
-CvUnit* Shelf::randomBarbarianCargoUnit() const {
-
+CvUnit* Shelf::randomBarbarianCargoUnit() const
+{
 	vector<CvUnit*> legal;
-	for(size_t i = 0; i < plots.size(); i++) {
-		if(plots[i] == NULL) continue; CvPlot const& plot = * plots[i];
+	for(size_t i = 0; i < plots.size(); i++)
+	{
+		if(plots[i] == NULL) continue; CvPlot const& plot = *plots[i];
 		if(plot.isVisibleToCivTeam())
 			continue;
-		for(int j = 0; j < plot.getNumUnits(); j++) {
+		for(int j = 0; j < plot.getNumUnits(); j++)
+		{
 			CvUnit* u = plot.getUnitByIndex(j); if(u == NULL) continue;
 			if(u->getOwner() != BARBARIAN_PLAYER)
 				break;
-			CvUnitInfo const& ui = GC.getUnitInfo(u->getUnitType());
+			CvUnitInfo const& ui = GC.getInfo(u->getUnitType());
 			int cargoSpace = std::min(2, ui.getCargoSpace()); // Load at most 2
 			cargoSpace -= std::max(0, u->getCargo());
 			if(cargoSpace > 0)
@@ -130,6 +137,5 @@ CvUnit* Shelf::randomBarbarianCargoUnit() const {
 } // </advc.306>
 
 
-Shelf::Id::Id(int landId, int waterId) :
-		std::pair<int,int>(landId, waterId) {}
+Shelf::Id::Id(int landId, int waterId) : std::pair<int,int>(landId, waterId) {}
 // </advc.300>

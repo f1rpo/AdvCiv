@@ -1,8 +1,5 @@
 #include "CvGameCoreDLL.h"
 #include "CyPlayer.h"
-#include "CyUnit.h"
-#include "CyCity.h"
-#include "CyPlot.h"
 #include "CySelectionGroup.h"
 #include "CyArea.h"
 //# include <boost/python/manage_new_object.hpp>
@@ -15,7 +12,7 @@
 
 void CyPlayerPythonInterface1(python::class_<CyPlayer>& x)
 {
-	OutputDebugString("Python Extension Module - CyPlayerPythonInterface1\n");
+	printToConsole("Python Extension Module - CyPlayerPythonInterface1\n");
 
 	// set the docstring of the current module scope
 	python::scope().attr("__doc__") = "Civilization IV Player Class";
@@ -49,10 +46,10 @@ void CyPlayerPythonInterface1(python::class_<CyPlayer>& x)
 		// </advc.127>
 		.def("isBarbarian", &CyPlayer::isBarbarian, "bool () - returns True if player is a Barbarian")
 		.def("getName", &CyPlayer::getName, "str ()")
-		.def("getNameForm", &CyPlayer::getNameForm, "str ()")
+		.def("getNameForm", &CyPlayer::getNameForm, "str (int)")
 		.def("getNameKey", &CyPlayer::getNameKey, "str ()")
-		.def("getCivilizationDescription", &CyPlayer::getCivilizationDescription, "str() - returns the Civilization Description String")
-		.def("getCivilizationShortDescription", &CyPlayer::getCivilizationShortDescription, "str() - returns the short Civilization Description")
+		.def("getCivilizationDescription", &CyPlayer::getCivilizationDescription, "str (int) - returns the Civilization Description String")
+		.def("getCivilizationShortDescription", &CyPlayer::getCivilizationShortDescription, "str (int) - returns the short Civilization Description")
 		.def("getCivilizationDescriptionKey", &CyPlayer::getCivilizationDescriptionKey, "str() - returns the Civilization Description String")
 		.def("getCivilizationShortDescriptionKey", &CyPlayer::getCivilizationShortDescriptionKey, "str() - returns the short Civilization Description")
 		.def("getCivilizationAdjective", &CyPlayer::getCivilizationAdjective, "str() - returns the Civilization name in adjective form")

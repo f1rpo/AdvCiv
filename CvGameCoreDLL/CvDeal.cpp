@@ -1,12 +1,14 @@
 // CvDeal.cpp
 
 #include "CvGameCoreDLL.h"
-#include "CvGamePlay.h"
-#include "WarAndPeaceAgent.h" // advc.104
+#include "CvDeal.h"
+#include "CoreAI.h"
+#include "UWAIAgent.h" // advc.104
+#include "CvCity.h"
 #include "CvMap.h"
 #include "CvGameTextMgr.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvEventReporter.h"
+#include "CvInfo_Civics.h"
+#include "CvInfo_Terrain.h" // just for a logBBAI call :(
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 
 
@@ -24,15 +26,7 @@ CvDeal::~CvDeal()
 
 void CvDeal::init(int iID, PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer)
 {
-	//--------------------------------
-	// Init saved data
-	reset(iID, eFirstPlayer, eSecondPlayer);
-
-	//--------------------------------
-	// Init non-saved data
-
-	//--------------------------------
-	// Init other deal data
+	reset(iID, eFirstPlayer, eSecondPlayer); // Reset serialized data
 	setInitialGameTurn(GC.getGame().getGameTurn());
 }
 
@@ -47,7 +41,7 @@ void CvDeal::uninit()
 // Initializes data members that are serialized.
 void CvDeal::reset(int iID, PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer)
 {
-	uninit(); // Uninit class
+	uninit();
 
 	m_iID = iID;
 	m_iInitialGameTurn = 0;
@@ -62,67 +56,55 @@ void CvDeal::kill(bool bKillTeam, /* advc.130p: */ PlayerTypes eCancelPlayer)
 	if (getLengthFirstTrades() > 0 || getLengthSecondTrades() > 0)
 	{	// <advc.106j>
 		bool bForce = false;
-		for(CLLNode<TradeData>* pNode = headFirstTradesNode(); pNode != NULL;
-				pNode = nextFirstTradesNode(pNode)) {
+		for(CLLNode<TradeData> const* pNode = headTradesNode(); pNode != NULL;
+			pNode = nextTradesNode(pNode))
+		{
 			if(isDual(pNode->m_data.m_eItemType) ||
-					(pNode->m_data.m_eItemType == TRADE_RESOURCES &&
-					!GET_PLAYER(getFirstPlayer()).canTradeNetworkWith(getSecondPlayer()))) {
+				(pNode->m_data.m_eItemType == TRADE_RESOURCES &&
+				!GET_PLAYER(getFirstPlayer()).canTradeNetworkWith(getSecondPlayer())))
+			{
 				bForce = true;
 				break;
 			}
 		} // </advc.106j>
-		CvWString szString;
-		CvWStringBuffer szDealString;
-		CvWString szCancelString = gDLL->getText("TXT_KEY_POPUP_DEAL_CANCEL");
-		if (TEAMREF(getFirstPlayer()).isHasMet(TEAMID(getSecondPlayer())))
+		if (GET_TEAM(getFirstPlayer()).isHasMet(TEAMID(getSecondPlayer())))
 		{
-			szDealString.clear();
-			GAMETEXT.getDealString(szDealString, *this, getFirstPlayer(),
-					true); // advc.004w
-			szString.Format(L"%s: %s", szCancelString.GetCString(), szDealString.getCString());
-			gDLL->getInterfaceIFace()->addHumanMessage(getFirstPlayer(),
-					bForce, // advc.106j
-					GC.getEVENT_MESSAGE_TIME(), szString,
-					bForce ? "AS2D_DEAL_CANCELLED" : NULL, // advc.106j
-					// <advc.127b>
-					MESSAGE_TYPE_INFO, NULL, NO_COLOR,
-					GET_PLAYER(getSecondPlayer()).getCapitalX(getFirstPlayer()),
-					GET_PLAYER(getSecondPlayer()).getCapitalY(getFirstPlayer()));
-					// </advc.127b>
-		}
-
-		if (TEAMREF(getSecondPlayer()).isHasMet(TEAMID(getFirstPlayer())))
-		{
-			szDealString.clear();
-			GAMETEXT.getDealString(szDealString, *this, getSecondPlayer(),
-					true); // advc.004w
-			szString.Format(L"%s: %s", szCancelString.GetCString(), szDealString.getCString());
-			gDLL->getInterfaceIFace()->addHumanMessage(getSecondPlayer(),
-					bForce, // advc.106j
-					GC.getEVENT_MESSAGE_TIME(), szString,
-					bForce ? "AS2D_DEAL_CANCELLED" : NULL, // advc.106j
-					// <advc.127b>
-					MESSAGE_TYPE_INFO, NULL, NO_COLOR,
-					GET_PLAYER(getFirstPlayer()).getCapitalX(getSecondPlayer()),
-					GET_PLAYER(getFirstPlayer()).getCapitalY(getSecondPlayer()));
-					// </advc.127b>
+			// advc: Auxiliary function to remove duplicate code
+			announceCancel(getFirstPlayer(), getSecondPlayer(), /* advc.106j: */ bForce);
+			announceCancel(getSecondPlayer(), getFirstPlayer(), /* advc.106j: */ bForce);
 		}
 	}
 	// <advc.036>
 	killSilent(bKillTeam, /* advc.130p: */ true, eCancelPlayer);
 }
+// advc: Cut from 'kill' above
+void CvDeal::announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, bool bForce) const
+{
+	CvWString szString;
+	CvWStringBuffer szDealString;
+	CvWString szCancelString = gDLL->getText("TXT_KEY_POPUP_DEAL_CANCEL");
+	GAMETEXT.getDealString(szDealString, *this, eMsgTarget, /* advc.004w: */ true);
+	szString.Format(L"%s: %s", szCancelString.GetCString(), szDealString.getCString());
+	gDLL->UI().addMessage(eMsgTarget, /* advc.106j: */ bForce,
+			-1, szString,
+			bForce ? "AS2D_DEAL_CANCELLED" : NULL, // advc.106j
+			// <advc.127b>
+			MESSAGE_TYPE_INFO, NULL, NO_COLOR,
+			GET_PLAYER(eOther).getCapitalX(eMsgTarget),
+			GET_PLAYER(eOther).getCapitalY(eMsgTarget)); // </advc.127b>
+}
 
 void CvDeal::killSilent(bool bKillTeam, bool bUpdateAttitude, // </advc.036>
-		PlayerTypes eCancelPlayer) { // advc.130p
-
-	CLLNode<TradeData>* pNode;
-	for (pNode = headFirstTradesNode(); (pNode != NULL); pNode = nextFirstTradesNode(pNode))
+	PlayerTypes eCancelPlayer) // advc.130p
+{
+	CLLNode<TradeData> const* pNode;
+	for (pNode = headFirstTradesNode(); pNode != NULL; pNode = nextFirstTradesNode(pNode))
 	{
 		endTrade(pNode->m_data, getFirstPlayer(), getSecondPlayer(), bKillTeam,
 				bUpdateAttitude, // advc.036
 				eCancelPlayer); // advc.130p
 	}
-	for (pNode = headSecondTradesNode(); (pNode != NULL); pNode = nextSecondTradesNode(pNode))
+	for (pNode = headSecondTradesNode(); pNode != NULL; pNode = nextSecondTradesNode(pNode))
 	{
 		endTrade(pNode->m_data, getSecondPlayer(), getFirstPlayer(), bKillTeam,
 				bUpdateAttitude, // advc.036
@@ -132,40 +114,53 @@ void CvDeal::killSilent(bool bKillTeam, bool bUpdateAttitude, // </advc.036>
 }
 
 
-void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList, bool bCheckAllowed)
+void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList, // advc: Take the lists as references
+	bool bCheckAllowed)
 {
-	if (isVassalTrade(pFirstList) && isVassalTrade(pSecondList))
+	if (isVassalTrade(kFirstList) && isVassalTrade(kSecondList))
 		return;
 	// <advc.130p>
 	TeamTypes eWarTradeTarget = NO_TEAM;
 	TeamTypes ePeaceTradeTarget = NO_TEAM; // </advc.130p>
-	if (pFirstList != NULL)
-	{
-		for (CLLNode<TradeData>* pNode = pFirstList->head(); pNode; pNode = pFirstList->next(pNode))
-		{	// <advc.130p>
-			if(pNode->m_data.m_eItemType == TRADE_WAR)
-				eWarTradeTarget = (TeamTypes)pNode->m_data.m_iData;
-			else if(pNode->m_data.m_eItemType == TRADE_PEACE)
-				ePeaceTradeTarget = (TeamTypes)pNode->m_data.m_iData;
-			// </advc.130p>
-			if (bCheckAllowed && !GET_PLAYER(getFirstPlayer()).
-					canTradeItem(getSecondPlayer(), pNode->m_data))
-				return;
+	bool bPeaceTreaty = false; // advc.ctr
+
+	for (CLLNode<TradeData>* pNode = kFirstList.head(); pNode != NULL;
+		pNode = kFirstList.next(pNode))
+	{	// <advc.130p>
+		if(pNode->m_data.m_eItemType == TRADE_WAR)
+			eWarTradeTarget = (TeamTypes)pNode->m_data.m_iData;
+		else if(pNode->m_data.m_eItemType == TRADE_PEACE)
+			ePeaceTradeTarget = (TeamTypes)pNode->m_data.m_iData;
+		// </advc.130p>  <advc.104m> (cf. CvPlayer::buildTradeTable)
+		if (pNode->m_data.m_eItemType == TRADE_PEACE_TREATY)
+		{
+			pNode->m_data.m_bHidden = false;
+			bPeaceTreaty = true;
+		} // </advc.104m>
+		if (bCheckAllowed &&
+			!GET_PLAYER(getFirstPlayer()).canTradeItem(getSecondPlayer(), pNode->m_data))
+		{
+			return;
 		}
 	}
 
-	if (pSecondList != NULL)
-	{
-		for (CLLNode<TradeData>* pNode = pSecondList->head(); pNode; pNode = pSecondList->next(pNode))
-		{	// <advc.130p>
-			if(pNode->m_data.m_eItemType == TRADE_WAR)
-				eWarTradeTarget = (TeamTypes)pNode->m_data.m_iData;
-			else if(pNode->m_data.m_eItemType == TRADE_PEACE)
-				ePeaceTradeTarget = (TeamTypes)pNode->m_data.m_iData;
-			// </advc.130p>
-			if (bCheckAllowed && !GET_PLAYER(getSecondPlayer()).
-					canTradeItem(getFirstPlayer(), pNode->m_data))
-				return;
+	for (CLLNode<TradeData>* pNode = kSecondList.head(); pNode != NULL;
+		pNode = kSecondList.next(pNode))
+	{	// <advc.130p>
+		if(pNode->m_data.m_eItemType == TRADE_WAR)
+			eWarTradeTarget = (TeamTypes)pNode->m_data.m_iData;
+		else if(pNode->m_data.m_eItemType == TRADE_PEACE)
+			ePeaceTradeTarget = (TeamTypes)pNode->m_data.m_iData;
+		// </advc.130p>  <advc.104m>
+		if (pNode->m_data.m_eItemType == TRADE_PEACE_TREATY)
+		{
+			pNode->m_data.m_bHidden = false;
+			bPeaceTreaty = true;
+		} // </advc.104m>
+		if (bCheckAllowed &&
+			!GET_PLAYER(getSecondPlayer()).canTradeItem(getFirstPlayer(), pNode->m_data))
+		{
+			return;
 		}
 	}
 
@@ -175,17 +170,24 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	/*  <advc.130p> MakePeace calls moved down. Want to count trade value (partially)
 		for peace deals, and I don't think AI_dealValue will work correctly when
 		no longer at war. */
-	bool const bPeace = ::atWar(eFirstTeam, eSecondTeam);
+	bool const bMakingPeace = ::atWar(eFirstTeam, eSecondTeam);
 	bool bUpdateAttitude = false;
-	/*  Calls to changePeacetimeTradeValue moved into a subroutine to avoid
-		code duplication */
-	if(recordTradeValue(pSecondList, pFirstList, getSecondPlayer(),
-			getFirstPlayer(), bPeace, ePeaceTradeTarget, eWarTradeTarget))
+	/*  Calls to changePeacetimeTradeValue moved into a new function
+		(also for advc.ctr) */
+	if (GET_PLAYER(getSecondPlayer()).AI_processTradeValue(kFirstList, getFirstPlayer(),
+		kSecondList.getLength() <= 0, bMakingPeace, ePeaceTradeTarget, eWarTradeTarget,
+		bPeaceTreaty && !bMakingPeace)) // advc.ctr
+	{
 		bUpdateAttitude = true;
-	if(recordTradeValue(pFirstList, pSecondList, getFirstPlayer(),
-			getSecondPlayer(), bPeace, ePeaceTradeTarget, eWarTradeTarget))
+	}
+	if (GET_PLAYER(getFirstPlayer()).AI_processTradeValue(kSecondList, getSecondPlayer(),
+		kFirstList.getLength() <= 0, bMakingPeace, ePeaceTradeTarget, eWarTradeTarget,
+		bPeaceTreaty && !bMakingPeace)) // advc.ctr
+	{
 		bUpdateAttitude = true;
-	if(bPeace) {
+	}
+	if (bMakingPeace)
+	{
 		bUpdateAttitude = true; // </advc.130p>
 		// free vassals of capitulating team before peace is signed
 		/*  advc.130y: Deleted; let CvTeam::setVassal free the vassals
@@ -202,25 +204,28 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 			Note: the original code didn't bump units for vassal trades. This can
 			erroneously allow the vassal's units to stay in the master's land. */
 		// <advc.039>
-		bool bSurrender = isVassalTrade(pFirstList) || isVassalTrade(pSecondList);
+		bool bSurrender = isVassalTrade(kFirstList) || isVassalTrade(kSecondList);
 		bool bDone = false;
-		if(!bSurrender && pFirstList != NULL && pSecondList != NULL &&
-				GC.getDefineINT("ANNOUNCE_REPARATIONS") > 0) {
-			int iFirstLength = pFirstList->getLength();
-			int iSecondLength = pSecondList->getLength();
+		if(!bSurrender && GC.getDefineBOOL(CvGlobals::ANNOUNCE_REPARATIONS))
+		{
+			int iFirstLength = kFirstList.getLength();
+			int iSecondLength = kSecondList.getLength();
 			// Call makePeace on the recipient of reparations
-			if(iFirstLength == 1 && iSecondLength > 1) {
+			if(iFirstLength == 1 && iSecondLength > 1)
+			{
 				GET_TEAM(eFirstTeam).makePeace(eSecondTeam, false, NO_TEAM,
-						false, pSecondList);
+						false, &kSecondList);
 				bDone = true;
 			}
-			else if(iSecondLength == 1 && iFirstLength > 1) {
+			else if(iSecondLength == 1 && iFirstLength > 1)
+			{
 				GET_TEAM(eSecondTeam).makePeace(eFirstTeam, false, NO_TEAM,
-						false, pFirstList);
+						false, &kFirstList);
 				bDone = true;
 			}
 		}
-		if(!bDone) { // </advc.039>
+		if(!bDone) // </advc.039>
+		{
 		// <advc.034>
 			GET_TEAM(eFirstTeam).makePeace(eSecondTeam, false, NO_TEAM,
 					bSurrender); // advc.039
@@ -228,68 +233,67 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 		bBumpUnits = true;
 		// K-Mod end
 	}
-	if(bUpdateAttitude) { // advc.003b: Don't update unnecessarily
+	if(bUpdateAttitude) // advc.opt: Don't update unnecessarily
+	{
 		// K-Mod
-		GET_PLAYER(getFirstPlayer()).AI_updateAttitudeCache(getSecondPlayer());
-		GET_PLAYER(getSecondPlayer()).AI_updateAttitudeCache(getFirstPlayer());
+		GET_PLAYER(getFirstPlayer()).AI_updateAttitude(getSecondPlayer());
+		GET_PLAYER(getSecondPlayer()).AI_updateAttitude(getFirstPlayer());
 		// K-Mod end
 	}
 
 	bool bAlliance = false;
-	if (pFirstList != NULL)
-	{
-		// K-Mod. Vassal deals need to be implemented last, so that master/vassal power is set correctly.
-		for (CLLNode<TradeData>* pNode = pFirstList->head(); pNode; pNode = pFirstList->next(pNode))
-		{
-			if (isVassal(pNode->m_data.m_eItemType))
-			{
-				pFirstList->moveToEnd(pNode);
-				break;
-			}
-		}
-		// K-Mod end
-		for (CLLNode<TradeData>* pNode = pFirstList->head(); pNode; pNode = pFirstList->next(pNode))
-		{	// <advc.104> Allow UWAI to record the value of the sponsorship
-			if(pNode->m_data.m_eItemType == TRADE_WAR && pSecondList != NULL)
-				GET_PLAYER(getFirstPlayer()).warAndPeaceAI().getCache().
-						reportSponsoredWar(*pSecondList, getSecondPlayer(),
-						(TeamTypes)pNode->m_data.m_iData); // </advc.104>
-			bool bSave = startTrade(pNode->m_data, getFirstPlayer(), getSecondPlayer(),
-					bPeace); // advc.122
-			bBumpUnits = bBumpUnits || pNode->m_data.m_eItemType == TRADE_PEACE; // K-Mod
 
+	// K-Mod. Vassal deals need to be implemented last, so that master/vassal power is set correctly.
+	/*for (CLLNode<TradeData>* pNode = kFirstList.head(); pNode != NULL; pNode = kFirstList.next(pNode)) {
+		if (isVassal(pNode->m_data.m_eItemType)) {
+			pFirstList->moveToEnd(pNode);
+			break;
+		}
+	}*/ // K-Mod end
+	// advc (fixme): This whole loop is mostly duplicated below
+	for (int iPass = 0; iPass < 2; iPass++) // advc: Replacing the K-Mod loop above
+	{
+		for (CLLNode<TradeData> const* pNode = kFirstList.head(); pNode != NULL;
+			pNode = kFirstList.next(pNode))
+		{	// <advc>
+			if (isVassal(pNode->m_data.m_eItemType) == (iPass == 0))
+				continue; // </advc>
+			// <advc.104> Allow UWAI to record the value of the sponsorship
+			if(pNode->m_data.m_eItemType == TRADE_WAR)
+			{
+				GET_PLAYER(getFirstPlayer()).uwai().getCache().
+						reportSponsoredWar(kSecondList, getSecondPlayer(),
+						(TeamTypes)pNode->m_data.m_iData);
+			} // </advc.104>
+			bool bSave = startTrade(pNode->m_data, getFirstPlayer(), getSecondPlayer(),
+					bMakingPeace); // advc.ctr
+			bBumpUnits = (bBumpUnits || pNode->m_data.m_eItemType == TRADE_PEACE); // K-Mod
 			if (bSave)
 				insertAtEndFirstTrades(pNode->m_data);
 			if (pNode->m_data.m_eItemType == TRADE_PERMANENT_ALLIANCE)
 				bAlliance = true;
 		}
 	}
-
-	if (pSecondList != NULL)
+	for (int iPass = 0; iPass < 2; iPass++) // advc: Replacing deleted K-Mod code; tagging advc.001 b/c I think that code contained a copy-paste error.
 	{
-		// K-Mod. Vassal deals need to be implemented last, so that master/vassal power is set correctly.
-		for (CLLNode<TradeData>* pNode = pFirstList->head(); pNode; pNode = pFirstList->next(pNode))
-		{
-			if (isVassal(pNode->m_data.m_eItemType))
+		for (CLLNode<TradeData> const* pNode = kSecondList.head(); pNode!= NULL;
+			pNode = kSecondList.next(pNode))
+		{	// <advc>
+			if (isVassal(pNode->m_data.m_eItemType) == (iPass == 0))
+				continue; // </advc>
+			// <advc.104> As above
+			if(pNode->m_data.m_eItemType == TRADE_WAR)
 			{
-				pFirstList->moveToEnd(pNode);
-				break;
-			}
-		}
-		// K-Mod end
-		for (CLLNode<TradeData>* pNode = pSecondList->head(); pNode; pNode = pSecondList->next(pNode))
-		{	// <advc.104> As above
-			if(pNode->m_data.m_eItemType == TRADE_WAR && pFirstList != NULL)
-				GET_PLAYER(getSecondPlayer()).warAndPeaceAI().getCache().
-						reportSponsoredWar(*pFirstList, getFirstPlayer(),
-						(TeamTypes)pNode->m_data.m_iData); // </advc.104>
+				GET_PLAYER(getSecondPlayer()).uwai().getCache().
+						reportSponsoredWar(kFirstList, getFirstPlayer(),
+						(TeamTypes)pNode->m_data.m_iData);
+			} // </advc.104>
 			bool bSave = startTrade(pNode->m_data, getSecondPlayer(), getFirstPlayer(),
-					bPeace); // advc.122
-			bBumpUnits = bBumpUnits || pNode->m_data.m_eItemType == TRADE_PEACE; // K-Mod
+					bMakingPeace); // advc.ctr
+			bBumpUnits = (bBumpUnits || pNode->m_data.m_eItemType == TRADE_PEACE); // K-Mod
 
 			if (bSave)
 				insertAtEndSecondTrades(pNode->m_data);
-
 			if (pNode->m_data.m_eItemType == TRADE_PERMANENT_ALLIANCE)
 				bAlliance = true;
 		}
@@ -298,13 +302,9 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	if (bAlliance)
 	{
 		if (eFirstTeam < eSecondTeam)
-		{
 			GET_TEAM(eFirstTeam).addTeam(eSecondTeam);
-		}
 		else if (eSecondTeam < eFirstTeam)
-		{
 			GET_TEAM(eSecondTeam).addTeam(eFirstTeam);
-		}
 	}
 
 	// K-Mod
@@ -312,33 +312,6 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 		GC.getMap().verifyUnitValidPlot();
 	// K-Mod end
 }
-
-/*  <advc.130p> Based on code cut from addTrades. Return values says whether
-	attitude cache needs to be updated. */
-bool CvDeal::recordTradeValue(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList,
-		PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer, bool bPeace,
-		TeamTypes ePeaceTradeTarget, TeamTypes eWarTradeTarget) {
-
-	if(pFirstList == NULL || pFirstList->getLength() <= 0 ||
-			/*  Given reparations should matter for RivalTrade; given Peace shouldn't.
-				Brokered peace (TRADE_PEACE) can't be filtered out here b/c other
-				items could be traded along with TRADE_PEACE. */
-			(pFirstList->getLength() == 1 && pFirstList->head()->m_data.m_eItemType ==
-			TRADE_PEACE_TREATY))
-		return false;
-	/*  advc.550a: Ignore discounts when it comes to fair-trade diplo bonuses?
-		Hard to decide, apply half the discount for now. */
-	int iValue = ::round((GET_PLAYER(eSecondPlayer).AI_dealVal(eFirstPlayer,
-			pFirstList, true, 1, true, true) +
-			GET_PLAYER(eSecondPlayer).AI_dealVal(eFirstPlayer,
-			pFirstList, true, 1, false, true) / 2.0));
-	if(iValue <= 0)
-		return false;
-	GET_PLAYER(eSecondPlayer).AI_processPeacetimeValue(eFirstPlayer, iValue,
-			pSecondList == NULL || pSecondList->getLength() <= 0, bPeace,
-			ePeaceTradeTarget, eWarTradeTarget);
-	return true;
-} // </advc.130p>
 
 
 void CvDeal::doTurn()
@@ -353,39 +326,29 @@ void CvDeal::doTurn()
 		why I'm only skipping single-item deals. For mixed multiplayer deals,
 		OB and DP will be counted as some value between 0 and 5, which is a bit
 		messy, but not really a problem. */
-			&& (getLengthSecondTrades() != getLengthFirstTrades() ||
-			getLengthSecondTrades() > 1 ||
-			!isDual(getFirstTrades()->head()->m_data.m_eItemType)) &&
-			/*  The first ten turns of an annual deal are already counted when
-				the deal is implemented */
-			isCancelable()) // </advc.130p>
+		&& (getLengthSecondTrades() != getLengthFirstTrades() ||
+		getLengthSecondTrades() > 1 ||
+		!isDual(getFirstTrades()->head()->m_data.m_eItemType)) &&
+		/*  The first ten turns of an annual deal are already counted when
+			the deal is implemented */
+		isCancelable()) // </advc.130p>
 	{
 		if (getLengthSecondTrades() > 0)
 		{
-			int iValue = (GET_PLAYER(getFirstPlayer()).AI_dealVal(getSecondPlayer(), getSecondTrades()) / GC.getPEACE_TREATY_LENGTH());
-
+			int iValue = (GET_PLAYER(getFirstPlayer()).AI_dealVal(getSecondPlayer(), *getSecondTrades()) /
+					GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
 			if (getLengthFirstTrades() > 0)
-			{
 				GET_PLAYER(getFirstPlayer()).AI_processPeacetimeTradeValue(getSecondPlayer(), iValue);
-			}
-			else
-			{
-				GET_PLAYER(getFirstPlayer()).AI_processPeacetimeGrantValue(getSecondPlayer(), iValue);
-			}
+			else GET_PLAYER(getFirstPlayer()).AI_processPeacetimeGrantValue(getSecondPlayer(), iValue);
 		}
 
 		if (getLengthFirstTrades() > 0)
 		{
-			int iValue = (GET_PLAYER(getSecondPlayer()).AI_dealVal(getFirstPlayer(), getFirstTrades()) / GC.getPEACE_TREATY_LENGTH());
-
+			int iValue = (GET_PLAYER(getSecondPlayer()).AI_dealVal(getFirstPlayer(), *getFirstTrades()) /
+					GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
 			if (getLengthSecondTrades() > 0)
-			{
 				GET_PLAYER(getSecondPlayer()).AI_processPeacetimeTradeValue(getFirstPlayer(), iValue);
-			}
-			else
-			{
-				GET_PLAYER(getSecondPlayer()).AI_processPeacetimeGrantValue(getFirstPlayer(), iValue);
-			}
+			else GET_PLAYER(getSecondPlayer()).AI_processPeacetimeGrantValue(getFirstPlayer(), iValue);
 		}
 		// K-Mod note: for balance reasons this function should probably be called at the boundry of some particular player's turn,
 		// rather than at the turn boundry of the game itself. -- Unfortunately, the game currently doesn't work like this.
@@ -393,222 +356,154 @@ void CvDeal::doTurn()
 	}
 }
 
-
 // XXX probably should have some sort of message for the user or something...
 void CvDeal::verify()
 {
-	bool bCancelDeal = false;
-
-	CvPlayer& kFirstPlayer = GET_PLAYER(getFirstPlayer());
-	CvPlayer& kSecondPlayer = GET_PLAYER(getSecondPlayer());
-
-	for (CLLNode<TradeData>* pNode = headFirstTradesNode(); (pNode != NULL); pNode = nextFirstTradesNode(pNode))
-	{
-		if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
-		{
-			// XXX embargoes?
-			if ((kFirstPlayer.getNumTradeableBonuses((BonusTypes)(pNode->m_data.m_iData)) < 0) ||
-				  !(kFirstPlayer.canTradeNetworkWith(getSecondPlayer())) ||
-				  GET_TEAM(kFirstPlayer.getTeam()).isBonusObsolete((BonusTypes) pNode->m_data.m_iData) ||
-				  GET_TEAM(kSecondPlayer.getTeam()).isBonusObsolete((BonusTypes) pNode->m_data.m_iData))
-			{
-				bCancelDeal = true;
-			}
-		}
-	}
-
-	for (CLLNode<TradeData>* pNode = headSecondTradesNode(); (pNode != NULL); pNode = nextSecondTradesNode(pNode))
-	{
-		if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
-		{
-			// XXX embargoes?
-			if ((GET_PLAYER(getSecondPlayer()).getNumTradeableBonuses((BonusTypes)(pNode->m_data.m_iData)) < 0) ||
-				  !(GET_PLAYER(getSecondPlayer()).canTradeNetworkWith(getFirstPlayer())) ||
-				  GET_TEAM(kFirstPlayer.getTeam()).isBonusObsolete((BonusTypes) pNode->m_data.m_iData) ||
-				  GET_TEAM(kSecondPlayer.getTeam()).isBonusObsolete((BonusTypes) pNode->m_data.m_iData))
-			{
-				bCancelDeal = true;
-			}
-		}
-	}
-
-	if (isCancelable(NO_PLAYER))
-	{
-		if (isPeaceDeal())
-		{
-			bCancelDeal = true;
-		}
-	}
-
-	if (bCancelDeal)
+	// advc: Moved into auxiliary function to get rid of duplicate code
+	if (!verify(getFirstPlayer(), getSecondPlayer()) ||
+		!verify(getSecondPlayer(), getFirstPlayer()) ||
+		(isCancelable(NO_PLAYER) && isPeaceDeal())) // advc.104m
 	{
 		kill();
 	}
 }
 
-
-bool CvDeal::isPeaceDeal() const
+// advc: Cut from 'verify' above
+bool CvDeal::verify(PlayerTypes eRecipient, PlayerTypes eGiver)
 {
-	CLLNode<TradeData>* pNode;
-
-	for (pNode = headFirstTradesNode(); (pNode != NULL); pNode = nextFirstTradesNode(pNode))
+	CvPlayer& kGiver = GET_PLAYER(eGiver);
+	for (CLLNode<TradeData> const* pNode = this->headReceivesNode(eRecipient); pNode != NULL;
+		pNode = nextReceivesNode(pNode, eRecipient))
 	{
-		if (pNode->m_data.m_eItemType == getPeaceItem())
+		if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
 		{
-			return true;
+			BonusTypes eBonus = (BonusTypes) pNode->m_data.m_iData;
+			// XXX embargoes?
+			if ((kGiver.getNumTradeableBonuses(eBonus) < 0) ||
+				!kGiver.canTradeNetworkWith(eRecipient) ||
+				GET_TEAM(kGiver.getTeam()).isBonusObsolete(eBonus) ||
+				GET_TEAM(eRecipient).isBonusObsolete(eBonus))
+			{
+				return false;
+			}
 		}
 	}
+	return true;
+}
 
-	for (pNode = headSecondTradesNode(); (pNode != NULL); pNode = nextSecondTradesNode(pNode))
+
+bool CvDeal::isPeaceDeal() const  // advc: simplified
+{
+	for (CLLNode<TradeData> const* pNode = headTradesNode(); pNode != NULL;
+		pNode = nextTradesNode(pNode))
 	{
 		if (pNode->m_data.m_eItemType == getPeaceItem())
-		{
 			return true;
-		}
 	}
-
 	return false;
 }
 
 bool CvDeal::isVassalDeal() const
 {
-	return (isVassalTrade(&m_firstTrades) || isVassalTrade(&m_secondTrades));
+	return (isVassalTrade(m_firstTrades) || isVassalTrade(m_secondTrades));
 }
 
-bool CvDeal::isVassalTrade(const CLinkList<TradeData>* pList)
+bool CvDeal::isVassalTrade(CLinkList<TradeData> const& kList)
 {
-	if (pList)
+	for (CLLNode<TradeData> const* pNode = kList.head(); pNode != NULL; pNode = kList.next(pNode))
 	{
-		for (CLLNode<TradeData>* pNode = pList->head(); pNode != NULL; pNode = pList->next(pNode))
-		{
-			if (isVassal(pNode->m_data.m_eItemType))
-			{
-				return true;
-			}
-		}
+		if (isVassal(pNode->m_data.m_eItemType))
+			return true;
 	}
-
 	return false;
 }
 
-
+/*	advc.001: Rewrote this function. The BtS code was (even more) convoluted,
+	inefficient and contained at least one bug.
+	(The first player was passed to setVassalRevoltHelp as eVassal even if the
+	first player was on the eMaster team; copy-paste error probably.) */
 bool CvDeal::isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReason) const
 {
-	CLLNode<TradeData>* pNode;
-	CvWStringBuffer szBuffer;
-
-	for (pNode = headFirstTradesNode(); (pNode != NULL); pNode = nextFirstTradesNode(pNode))
+	FAssertMsg(involves(eByPlayer), "Caller should have ensured this");
+	// Vassal and master (technically) have the same master
+	TeamTypes eMaster = GET_PLAYER(getFirstPlayer()).getMasterTeam();
+	if (eMaster != GET_PLAYER(getSecondPlayer()).getMasterTeam())
+		return false; // There is no vassal deal, so this can't be one.
+	TeamTypes eVassal;
+	if (GET_TEAM(getFirstPlayer()).isVassal(eMaster))
+		eVassal = TEAMID(getFirstPlayer());
+	else if(GET_TEAM(getSecondPlayer()).isVassal(eMaster))
+		eVassal = TEAMID(getSecondPlayer());
+	else return false; // sibling vassals
+	if (TEAMID(getFirstPlayer()) == TEAMID(getSecondPlayer()))
+		return false; // headGivesNode(TeamTypes) can't handle deals within a team
+	for (CLLNode<TradeData> const* pNode = headGivesNode(eVassal); pNode != NULL;
+		pNode = nextGivesNode(pNode, eVassal))
 	{
-		if (isVassal(pNode->m_data.m_eItemType))
+		if (!isVassal(pNode->m_data.m_eItemType))
+			continue;
+
+		if (TEAMID(eByPlayer) == eMaster) // Master can never cancel
 		{
-			if (eByPlayer == getSecondPlayer())
-			{
-				if (pszReason)
-				{
-					*pszReason += gDLL->getText("TXT_KEY_MISC_DEAL_NO_CANCEL_EVER");
-				}
-
-				return true;
-			}
+			if (pszReason)
+				*pszReason += gDLL->getText("TXT_KEY_MISC_DEAL_NO_CANCEL_EVER");
+			return true;
 		}
-
-		if (pNode->m_data.m_eItemType == TRADE_SURRENDER)
+		FAssert(TEAMID(eByPlayer) == eVassal);
+		// Voluntary vassal can always cancel
+		if (pNode->m_data.m_eItemType != TRADE_SURRENDER)
+			return false;
+	
+		if (!GET_TEAM(eVassal).canVassalRevolt(eMaster))
 		{
-			CvTeam& kVassal = GET_TEAM(GET_PLAYER(getFirstPlayer()).getTeam());
-			TeamTypes eMaster = GET_PLAYER(getSecondPlayer()).getTeam();
-
-			if (!kVassal.canVassalRevolt(eMaster))
+			if (pszReason)
 			{
-				if (pszReason)
-				{
-					szBuffer.clear();
-					GAMETEXT.setVassalRevoltHelp(szBuffer, eMaster, GET_PLAYER(getFirstPlayer()).getTeam());
-					*pszReason = szBuffer.getCString();
-				}
-
-				return true;
+				CvWStringBuffer szBuffer;
+				GAMETEXT.setVassalRevoltHelp(szBuffer, eMaster, eVassal);
+				*pszReason = szBuffer.getCString();
 			}
+			return true;
 		}
+		return false; // Assume at most one vassal item per deal
 	}
-
-	for (pNode = headSecondTradesNode(); (pNode != NULL); pNode = nextSecondTradesNode(pNode))
-	{
-		if (isVassal(pNode->m_data.m_eItemType))
-		{
-			if (eByPlayer == getFirstPlayer())
-			{
-				if (pszReason)
-				{
-					*pszReason += gDLL->getText("TXT_KEY_MISC_DEAL_NO_CANCEL_EVER");
-				}
-
-				return true;
-			}
-		}
-
-		if (pNode->m_data.m_eItemType == TRADE_SURRENDER)
-		{
-			CvTeam& kVassal = GET_TEAM(GET_PLAYER(getSecondPlayer()).getTeam());
-			TeamTypes eMaster = GET_PLAYER(getFirstPlayer()).getTeam();
-
-			if (!kVassal.canVassalRevolt(eMaster))
-			{
-				// kmodx: Redundant code removed
-				if (pszReason)
-				{
-					szBuffer.clear();
-					GAMETEXT.setVassalRevoltHelp(szBuffer, eMaster, GET_PLAYER(getFirstPlayer()).getTeam());
-					*pszReason = szBuffer.getCString();
-				}
-
-				return true;
-			}
-		}
-	}
-
 	return false;
 }
+
 
 bool CvDeal::isVassalTributeDeal(const CLinkList<TradeData>* pList)
 {
-	for (CLLNode<TradeData>* pNode = pList->head(); pNode != NULL; pNode = pList->next(pNode))
+	for (CLLNode<TradeData> const* pNode = pList->head(); pNode != NULL;
+		pNode = pList->next(pNode))
 	{
 		if (pNode->m_data.m_eItemType != TRADE_RESOURCES)
-		{
 			return false;
-		}
 	}
-
 	return true;
 }
 
-/*  <advc.003> True if one side is the other side's vassal, and the vassal gives
+/*  <advc> True if one side is the other side's vassal, and the vassal gives
 	only resources, and the master gives nothing in return. */
-bool CvDeal::isVassalTributeDeal() const {
-
+bool CvDeal::isVassalTributeDeal() const
+{
 	PlayerTypes eVassalPlayer = NO_PLAYER;
 	PlayerTypes eMasterPlayer = NO_PLAYER;
-	CLinkList<TradeData> const* pVassalGives = NULL;
-	CLinkList<TradeData> const* pMasterGives = NULL;
-	if(TEAMREF(getFirstPlayer()).isVassal(TEAMID(getSecondPlayer()))) {
+	if(GET_TEAM(getFirstPlayer()).isVassal(TEAMID(getSecondPlayer())))
+	{
 		eVassalPlayer = getFirstPlayer();
 		eMasterPlayer = getSecondPlayer();
-		pVassalGives = getFirstTrades();
-		pMasterGives = getSecondTrades();
 	}
-	else if(TEAMREF(getSecondPlayer()).isVassal(TEAMID(getFirstPlayer()))) {
+	else if(GET_TEAM(getSecondPlayer()).isVassal(TEAMID(getFirstPlayer())))
+	{
 		eVassalPlayer = getSecondPlayer();
 		eMasterPlayer = getFirstPlayer();
-		pVassalGives = getSecondTrades();
-		pMasterGives = getFirstTrades();
 	}
-	return eVassalPlayer != NO_PLAYER && pMasterGives->getLength() <= 0 &&
-			CvDeal::isVassalTributeDeal(pVassalGives);
-} // </advc.003>
+	return eVassalPlayer != NO_PLAYER && getGivesList(eMasterPlayer).getLength() <= 0 &&
+			CvDeal::isVassalTributeDeal(&getGivesList(eVassalPlayer));
+} // </advc>
 
 // <advc.034>
-bool CvDeal::isDisengage() const {
-
+bool CvDeal::isDisengage() const
+{
 	return m_firstTrades.getLength() == 1 && m_firstTrades.getLength() == 1 &&
 			m_firstTrades.head()->m_data.m_eItemType == TRADE_DISENGAGE;
 } // </advc.034>
@@ -616,12 +511,6 @@ bool CvDeal::isDisengage() const {
 // advc.130p: Replaced by code in recordTradeValue
 /*bool CvDeal::isPeaceDealBetweenOthers(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList) const {
 //... }*/
-
-int CvDeal::getID() const
-{
-	return m_iID;
-}
-
 
 void CvDeal::setID(int iID)
 {
@@ -641,23 +530,49 @@ void CvDeal::setInitialGameTurn(int iNewValue)
 }
 
 // <advc.133>
-int CvDeal::getAge() const {
-
+int CvDeal::getAge() const
+{
 	return GC.getGame().getGameTurn() - getInitialGameTurn();
 } // </advc.133>
 
-// <advc.003> Might be important here that getFirstPlayer and getSecondPlayer are inlined
-bool CvDeal::isBetween(PlayerTypes ePlayer, PlayerTypes eOtherPlayer) const {
-
+// <advc> Might be important here that getFirstPlayer and getSecondPlayer are inlined
+bool CvDeal::isBetween(PlayerTypes ePlayer, PlayerTypes eOtherPlayer) const
+{
 	return (ePlayer == getFirstPlayer() && eOtherPlayer == getSecondPlayer()) ||
 		   (eOtherPlayer == getFirstPlayer() && ePlayer == getSecondPlayer());
 }
 
 
-bool CvDeal::isBetween(TeamTypes eTeam, TeamTypes eOtherTeam) const {
-
+bool CvDeal::isBetween(TeamTypes eTeam, TeamTypes eOtherTeam) const
+{
 	return (eTeam == TEAMID(getFirstPlayer()) && eOtherTeam == TEAMID(getSecondPlayer())) ||
 		   (eOtherTeam == TEAMID(getFirstPlayer()) && eTeam == TEAMID(getSecondPlayer()));
+}
+
+
+bool CvDeal::isBetween(PlayerTypes ePlayer, TeamTypes eTeam) const
+{
+	return (ePlayer == getFirstPlayer() && eTeam == TEAMID(getSecondPlayer())) ||
+		   (eTeam == TEAMID(getFirstPlayer()) && ePlayer == getSecondPlayer());
+}
+
+
+bool CvDeal::involves(PlayerTypes ePlayer) const
+{
+	return (getFirstPlayer() == ePlayer || getSecondPlayer() == ePlayer);
+}
+
+
+bool CvDeal::involves(TeamTypes eTeam) const
+{
+	return (TEAMID(getFirstPlayer()) == eTeam || TEAMID(getSecondPlayer()) == eTeam);
+}
+
+
+PlayerTypes CvDeal::getOtherPlayer(PlayerTypes ePlayer) const
+{
+	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
+	return (ePlayer == getFirstPlayer() ? getSecondPlayer() : getFirstPlayer());
 }
 
 
@@ -668,42 +583,104 @@ CLinkList<TradeData> const& CvDeal::getGivesList(PlayerTypes ePlayer) const {
 }
 
 
-CLinkList<TradeData> const& CvDeal::getReceivesList(PlayerTypes ePlayer) const {
+CLinkList<TradeData> const& CvDeal::getGivesList(TeamTypes eTeam) const
+{
+	FAssert((TEAMID(getFirstPlayer()) == eTeam) != (TEAMID(getSecondPlayer()) == eTeam));
+	return *(TEAMID(getFirstPlayer()) == eTeam ? getFirstTrades() : getSecondTrades());
+}
 
+
+CLinkList<TradeData> const& CvDeal::getReceivesList(PlayerTypes ePlayer) const
+{
 	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
 	return *(ePlayer == getFirstPlayer() ? getSecondTrades() : getFirstTrades());
 }
 
 
-CLLNode<TradeData>* CvDeal::headGivesNode(PlayerTypes ePlayer) const {
+CLinkList<TradeData> const& CvDeal::getReceivesList(TeamTypes eTeam) const
+{
+	FAssert((TEAMID(getFirstPlayer()) == eTeam) != (TEAMID(getSecondPlayer()) == eTeam));
+	return *(TEAMID(getFirstPlayer()) == eTeam ? getSecondTrades() : getFirstTrades());
+}
 
+
+CLLNode<TradeData> const* CvDeal::headGivesNode(PlayerTypes ePlayer) const
+{
 	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
 	return (ePlayer == getFirstPlayer() ? headFirstTradesNode() : headSecondTradesNode());
 }
 
 
-CLLNode<TradeData>* CvDeal::headReceivesNode(PlayerTypes ePlayer) const {
-
+CLLNode<TradeData> const* CvDeal::headReceivesNode(PlayerTypes ePlayer) const
+{
 	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
 	return (ePlayer == getFirstPlayer() ? headSecondTradesNode() : headFirstTradesNode());
 }
 
 
-CLLNode<TradeData>* CvDeal::nextGivesNode(CLLNode<TradeData>* pNode, PlayerTypes ePlayer) const {
+CLLNode<TradeData> const* CvDeal::headGivesNode(TeamTypes eTeam) const
+{
+	FAssert((TEAMID(getFirstPlayer()) == eTeam) != (TEAMID(getSecondPlayer()) == eTeam));
+	return (TEAMID(getFirstPlayer()) == eTeam ? headFirstTradesNode() : headSecondTradesNode());
+}
 
-	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
+
+CLLNode<TradeData> const* CvDeal::headReceivesNode(TeamTypes eTeam) const
+{
+	FAssert((TEAMID(getFirstPlayer()) == eTeam) != (TEAMID(getSecondPlayer()) == eTeam));
+	return (TEAMID(getFirstPlayer()) == eTeam ? headSecondTradesNode() : headFirstTradesNode());
+}
+
+/*  No assertions in the next... functions - don't want to slow assert builds down,
+	and normally the head function is called first.
+	Due to the implementation of CLinkList, all the next functions return the same
+	result. So one could actually remove all except nextTradesNode. But I guess it's
+	better not to set the CLinkList implementation in stone. */
+CLLNode<TradeData> const* CvDeal::nextGivesNode(CLLNode<TradeData> const* pNode,
+	PlayerTypes ePlayer) const
+{
 	return (ePlayer == getFirstPlayer() ? nextFirstTradesNode(pNode) :
 			nextSecondTradesNode(pNode));
 }
 
 
-CLLNode<TradeData>* CvDeal::nextReceivesNode(CLLNode<TradeData>* pNode, PlayerTypes ePlayer) const {
-
-	FAssert(ePlayer == getFirstPlayer() || ePlayer == getSecondPlayer());
+CLLNode<TradeData> const* CvDeal::nextReceivesNode(CLLNode<TradeData> const* pNode,
+	PlayerTypes ePlayer) const
+{
 	return (ePlayer == getFirstPlayer() ? nextSecondTradesNode(pNode) :
 			nextFirstTradesNode(pNode));
 }
-// </advc.003>
+
+
+CLLNode<TradeData> const* CvDeal::nextGivesNode(CLLNode<TradeData> const* pNode,
+	TeamTypes eTeam) const
+{
+	return (TEAMID(getFirstPlayer()) == eTeam ? nextFirstTradesNode(pNode) :
+			nextSecondTradesNode(pNode));
+}
+
+
+CLLNode<TradeData> const* CvDeal::nextReceivesNode(CLLNode<TradeData> const* pNode,
+	TeamTypes eTeam) const
+{
+	return (TEAMID(getFirstPlayer()) == eTeam ? nextSecondTradesNode(pNode) :
+			nextFirstTradesNode(pNode));
+}
+
+
+CLLNode<TradeData> const* CvDeal::headTradesNode() const
+{
+	return (headFirstTradesNode() == NULL ? headSecondTradesNode() : headFirstTradesNode());
+}
+
+
+CLLNode<TradeData> const* CvDeal::nextTradesNode(CLLNode<TradeData> const* pNode) const
+{
+	if (pNode == getFirstTrades()->tail())
+		return headSecondTradesNode();
+	return CLinkList<TradeData>::static_next(pNode);
+}
+// </advc>
 
 void CvDeal::clearFirstTrades()
 {
@@ -743,9 +720,10 @@ int CvDeal::getLengthSecondTrades() const
 
 void CvDeal::write(FDataStreamBase* pStream)
 {
+	PROFILE_FUNC(); // advc
 	uint uiFlag=0;
 	pStream->Write(uiFlag);
-
+	REPRO_TEST_BEGIN_WRITE(CvString::format("Deal(%d,%d,%d)", getID(), getFirstPlayer(), getSecondPlayer()));
 	pStream->Write(m_iID);
 	pStream->Write(m_iInitialGameTurn);
 
@@ -754,6 +732,7 @@ void CvDeal::write(FDataStreamBase* pStream)
 
 	m_firstTrades.Write(pStream);
 	m_secondTrades.Write(pStream);
+	REPRO_TEST_END_WRITE();
 }
 
 void CvDeal::read(FDataStreamBase* pStream)
@@ -773,149 +752,136 @@ void CvDeal::read(FDataStreamBase* pStream)
 
 // Returns true if the trade should be saved...
 bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
-		bool bPeace) // advc.122
+	bool bPeace) // advc.ctr
 {
+	PROFILE_FUNC(); // advc
 	bool bSave = false;
 
 	switch (trade.m_eItemType)
 	{
 	case TRADE_TECHNOLOGIES:
-	{	// <advc.550e> Code moved into subroutine and modified there
+	{
+		// <advc.550e> Code moved into subroutine and modified there
 		bool bSignificantTech = GET_PLAYER(eToPlayer).isSignificantDiscovery(
 				(TechTypes)trade.m_iData); // </advc.550e>
-		TEAMREF(eToPlayer).setHasTech(((TechTypes)trade.m_iData), true, eToPlayer, true, true);
+		GET_TEAM(eToPlayer).setHasTech((TechTypes)trade.m_iData, true, eToPlayer, true, true);
 		if(bSignificantTech) // advc.550e
-			TEAMREF(eToPlayer).setNoTradeTech(((TechTypes)trade.m_iData), true);
+			GET_TEAM(eToPlayer).setNoTradeTech((TechTypes)trade.m_iData, true);
 
-		if (gTeamLogLevel >= 2)
-		{
-			logBBAI("    Player %d (%S) trades tech %S to player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), GC.getTechInfo((TechTypes)trade.m_iData).getDescription(), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
-		}
+		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) trades tech %S to player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), GC.getInfo((TechTypes)trade.m_iData).getDescription(), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 
 		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.003n: was MAX_PLAYERS
 		{
 			CvPlayerAI& kThirdParty = GET_PLAYER((PlayerTypes)iI); // advc.003
 			if(!kThirdParty.isAlive() || /* advc.550e: */ !bSignificantTech)
 				continue;
+			// advc.130j (comment): Don't call AI_rememberEvent
 			if (kThirdParty.getTeam() == TEAMID(eToPlayer))
-			{   // advc.130j:
-				kThirdParty.AI_rememberEvent(eFromPlayer, MEMORY_TRADED_TECH_TO_US);
-			}
+				kThirdParty.AI_changeMemoryCount(eFromPlayer, MEMORY_TRADED_TECH_TO_US, 1);
 			else // advc.550e: Commented out
 			//if (bSignificantTech) // K-Mod
 			{
-				if (GET_TEAM(kThirdParty.getTeam()).isHasMet(TEAMID(eToPlayer)))
-				{   // advc.130j:
-					kThirdParty.AI_rememberEvent(eToPlayer, MEMORY_RECEIVED_TECH_FROM_ANY);
-				}
+				if (GET_TEAM(kThirdParty.getTeam()).isHasMet(TEAMID(eToPlayer))) 
+					kThirdParty.AI_changeMemoryCount(eToPlayer, MEMORY_RECEIVED_TECH_FROM_ANY, 1);
 			}
 		}
 		break;
 	}
 
 	case TRADE_RESOURCES:
-		GET_PLAYER(eFromPlayer).changeBonusExport(((BonusTypes)trade.m_iData), 1);
-		GET_PLAYER(eToPlayer).changeBonusImport(((BonusTypes)trade.m_iData), 1);
-		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) trades bonus type %S due to TRADE_RESOURCES with %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), GC.getBonusInfo((BonusTypes)trade.m_iData).getDescription(), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
+	{
+		GET_PLAYER(eFromPlayer).changeBonusExport((BonusTypes)trade.m_iData, 1);
+		GET_PLAYER(eToPlayer).changeBonusImport((BonusTypes)trade.m_iData, 1);
+		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) trades bonus type %S due to TRADE_RESOURCES with %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), GC.getInfo((BonusTypes)trade.m_iData).getDescription(), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		bSave = true;
 		break;
-
-	case TRADE_CITIES: {
+	}
+	case TRADE_CITIES:
+	{
 		CvCity* pCity = GET_PLAYER(eFromPlayer).getCity(trade.m_iData);
 		if (pCity != NULL)
 		{
+			bool bLib = (pCity->getLiberationPlayer() == eToPlayer); // advc.ctr
 			if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) gives a city due to TRADE_CITIES with %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
-			pCity->doTask(/* advc.122: */ bPeace ? TASK_CEDE :
+			pCity->doTask(/* advc.ctr: */ bPeace ? TASK_CEDE :
 					TASK_GIFT, eToPlayer);
+			// <advc.ctr>
+			if (!bPeace && !bLib)
+			{
+				FAssert(!GET_TEAM(eFromPlayer).isAtWar(TEAMID(eToPlayer)));
+				GET_TEAM(eFromPlayer).signPeaceTreaty(TEAMID(eToPlayer));
+			} // </advc.ctr>
 		}
 		break;
 	}
 	case TRADE_GOLD:
-		GET_PLAYER(eFromPlayer).changeGold(-(trade.m_iData));
+		GET_PLAYER(eFromPlayer).changeGold(-trade.m_iData);
 		GET_PLAYER(eToPlayer).changeGold(trade.m_iData);
 		GET_PLAYER(eFromPlayer).AI_changeGoldTradedTo(eToPlayer, trade.m_iData);
-
 		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) trades gold %d due to TRADE_GOLD with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), trade.m_iData, eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
-
-		// Python Event
 		CvEventReporter::getInstance().playerGoldTrade(eFromPlayer, eToPlayer, trade.m_iData);
-
 		break;
 
 	case TRADE_GOLD_PER_TURN:
 		GET_PLAYER(eFromPlayer).changeGoldPerTurnByPlayer(eToPlayer, -(trade.m_iData));
 		GET_PLAYER(eToPlayer).changeGoldPerTurnByPlayer(eFromPlayer, trade.m_iData);
-
 		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) trades gold per turn %d due to TRADE_GOLD_PER_TURN with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), trade.m_iData, eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
-
 		bSave = true;
 		break;
 
 	case TRADE_MAPS:
-		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	{
+		PROFILE("CvDeal::startTrade.MAPS"); // advc
+		CvMap const& kMap = GC.getMap();
+		for (int iI = 0; iI < kMap.numPlots(); iI++)
 		{
-			CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-
-			if (pLoopPlot->isRevealed(GET_PLAYER(eFromPlayer).getTeam(), false))
-			{
-				pLoopPlot->setRevealed(GET_PLAYER(eToPlayer).getTeam(), true, false, GET_PLAYER(eFromPlayer).getTeam(), false);
-			}
+			CvPlot& kPlot = kMap.getPlotByIndex(iI);
+			if (kPlot.isRevealed(TEAMID(eFromPlayer)))
+				kPlot.setRevealed(TEAMID(eToPlayer), true, false, TEAMID(eFromPlayer), false);
 		}
-
-		for (int iI = 0; iI < MAX_PLAYERS; iI++)
+		for (MemberIter it(TEAMID(eToPlayer)); it.hasNext(); ++it)
 		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
-			{
-				if (GET_PLAYER((PlayerTypes)iI).getTeam() == GET_PLAYER(eToPlayer).getTeam())
-				{
-					GET_PLAYER((PlayerTypes)iI).updatePlotGroups();
-				}
-			}
+			it->updatePlotGroups();
 		}
-
 		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) trades maps due to TRADE_MAPS with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		break;
-
+	}
 	case TRADE_SURRENDER:
 	case TRADE_VASSAL:
-		if (trade.m_iData == 0)
+		if (trade.m_iData <= 0) // advc: Was ==. Important b/c I've changed the default value from 0 to -1.
 		{
-			startTeamTrade(trade.m_eItemType, GET_PLAYER(eFromPlayer).getTeam(), GET_PLAYER(eToPlayer).getTeam(), false);
-			GET_TEAM(GET_PLAYER(eFromPlayer).getTeam()).setVassal(GET_PLAYER(eToPlayer).getTeam(), true, TRADE_SURRENDER == trade.m_eItemType);
+			startTeamTrade(trade.m_eItemType, TEAMID(eFromPlayer), GET_PLAYER(eToPlayer).getTeam(), false);
+			GET_TEAM(eFromPlayer).setVassal(TEAMID(eToPlayer), true, TRADE_SURRENDER == trade.m_eItemType);
 			if (gTeamLogLevel >= 2)
 			{
 				if (TRADE_SURRENDER == trade.m_eItemType) logBBAI("    Player %d (%S) trades themselves as vassal due to TRADE_SURRENDER with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 				else logBBAI("    Player %d (%S) trades themselves as vassal due to TRADE_VASSAL with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 			}
 		}
-		else
-		{
-			bSave = true;
-		}
-
+		else bSave = true;
 
 		break;
 
 	case TRADE_PEACE:
-		if (gTeamLogLevel >= 2) logBBAI("    Team %d (%S) makes peace with team %d due to TRADE_PEACE with %d (%S)", GET_PLAYER(eFromPlayer).getTeam(), GET_PLAYER(eFromPlayer).getCivilizationDescription(0), trade.m_iData, eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
+		if (gTeamLogLevel >= 2) logBBAI("    Team %d (%S) makes peace with team %d due to TRADE_PEACE with %d (%S)", TEAMID(eFromPlayer), GET_PLAYER(eFromPlayer).getCivilizationDescription(0), trade.m_iData, eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		//GET_TEAM(GET_PLAYER(eFromPlayer).getTeam()).makePeace((TeamTypes)trade.m_iData);
 		// K-Mod. (units will be bumped after the rest of the trade deals are completed.)
 		// <advc.100b>
-		TEAMREF(eFromPlayer).makePeace((TeamTypes)trade.m_iData, false, TEAMID(eToPlayer));
-		TEAMREF(eFromPlayer).signPeaceTreaty((TeamTypes)trade.m_iData); // K-Mod. Use a standard peace treaty rather than a simple cease-fire.
+		GET_TEAM(eFromPlayer).makePeace((TeamTypes)trade.m_iData, false, TEAMID(eToPlayer));
+		GET_TEAM(eFromPlayer).signPeaceTreaty((TeamTypes)trade.m_iData); // K-Mod. Use a standard peace treaty rather than a simple cease-fire.
 		// </advc.100b>
 		// K-Mod todo: this team should offer something fair to the peace-team if this teams endWarVal is higher.
 		break;
 
 	case TRADE_WAR:
-		if (gTeamLogLevel >= 2) logBBAI("    Team %d (%S) declares war on team %d due to TRADE_WAR with %d (%S)", GET_PLAYER(eFromPlayer).getTeam(), GET_PLAYER(eFromPlayer).getCivilizationDescription(0), trade.m_iData, eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
-		TEAMREF(eFromPlayer).declareWar(((TeamTypes)trade.m_iData), true, NO_WARPLAN,
+		if (gTeamLogLevel >= 2) logBBAI("    Team %d (%S) declares war on team %d due to TRADE_WAR with %d (%S)", TEAMID(eFromPlayer), GET_PLAYER(eFromPlayer).getCivilizationDescription(0), trade.m_iData, eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
+		GET_TEAM(eFromPlayer).declareWar((TeamTypes)trade.m_iData, true, NO_WARPLAN,
 				true, eToPlayer); // advc.100
 		// advc.146:
-		TEAMREF(eFromPlayer).signPeaceTreaty(TEAMID(eToPlayer));
+		GET_TEAM(eFromPlayer).signPeaceTreaty(TEAMID(eToPlayer));
 		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
-			CvPlayerAI& kAttacked = GET_PLAYER((PlayerTypes)iI); // advc.003
+			CvPlayerAI& kAttacked = GET_PLAYER((PlayerTypes)iI); // advc
 			if(!kAttacked.isAlive() || kAttacked.getTeam() != (TeamTypes)trade.m_iData)
 				continue;
 			// advc.130j:
@@ -930,17 +896,18 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		}
 		break;
 
-	case TRADE_EMBARGO: {
+	case TRADE_EMBARGO:
+	{
 		TeamTypes eTargetTeam = (TeamTypes)trade.m_iData;
 		GET_PLAYER(eFromPlayer).stopTradingWithTeam(eTargetTeam);
 		/*  <advc.130f> The instigator needs to stop too. (If an AI suggested
 			the embargo to a human, that's not handled here but by CvPlayer::handleDiploEvent.) */
-		if(!TEAMREF(eFromPlayer).isCapitulated() || !TEAMREF(eFromPlayer).isVassal(TEAMID(eToPlayer)))
+		if(!GET_TEAM(eFromPlayer).isCapitulated() || !GET_TEAM(eFromPlayer).isVassal(TEAMID(eToPlayer)))
 			GET_PLAYER(eToPlayer).stopTradingWithTeam(eTargetTeam, false);
 		// </advc.130f>
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			CvPlayerAI& kTargetMember = GET_PLAYER((PlayerTypes)iI); // advc.003
+			CvPlayerAI& kTargetMember = GET_PLAYER((PlayerTypes)iI); // advc
 			if (!kTargetMember.isAlive())
 				continue;
 			if (kTargetMember.getTeam() == eTargetTeam)
@@ -951,17 +918,18 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) signs embargo against team %d due to TRADE_EMBARGO with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), (TeamTypes)trade.m_iData, eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		break;
 	}
-	case TRADE_CIVIC: {
+	case TRADE_CIVIC:
+	{
 		CivicTypes* paeNewCivics = new CivicTypes[GC.getNumCivicOptionInfos()];
 		for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
 			paeNewCivics[iI] = GET_PLAYER(eFromPlayer).getCivics((CivicOptionTypes)iI);
 
-		paeNewCivics[GC.getCivicInfo((CivicTypes)trade.m_iData).getCivicOptionType()] = (CivicTypes)trade.m_iData;
+		paeNewCivics[GC.getInfo((CivicTypes)trade.m_iData).getCivicOptionType()] = (CivicTypes)trade.m_iData;
 
 		GET_PLAYER(eFromPlayer).revolution(paeNewCivics, true);
 
-		if (GET_PLAYER(eFromPlayer).AI_getCivicTimer() < GC.getPEACE_TREATY_LENGTH())
-			GET_PLAYER(eFromPlayer).AI_setCivicTimer(GC.getPEACE_TREATY_LENGTH());
+		if (GET_PLAYER(eFromPlayer).AI_getCivicTimer() < GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH))
+			GET_PLAYER(eFromPlayer).AI_setCivicTimer(GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
 
 		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) switched civics due to TRADE_CIVICS with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 
@@ -971,29 +939,26 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	case TRADE_RELIGION:
 		GET_PLAYER(eFromPlayer).convert((ReligionTypes)trade.m_iData,
 				true); // advc.001v
-		if (GET_PLAYER(eFromPlayer).AI_getReligionTimer() < GC.getPEACE_TREATY_LENGTH())
-			GET_PLAYER(eFromPlayer).AI_setReligionTimer(GC.getPEACE_TREATY_LENGTH());
+		if (GET_PLAYER(eFromPlayer).AI_getReligionTimer() < GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH))
+			GET_PLAYER(eFromPlayer).AI_setReligionTimer(GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
 		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) switched religions due to TRADE_RELIGION with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		break;
 
 	case TRADE_OPEN_BORDERS:
-		if (trade.m_iData == 0)
+		if (trade.m_iData <= 0) // advc: was ==
 		{
-			startTeamTrade(TRADE_OPEN_BORDERS, GET_PLAYER(eFromPlayer).getTeam(), GET_PLAYER(eToPlayer).getTeam(), true);
-			GET_TEAM(GET_PLAYER(eFromPlayer).getTeam()).setOpenBorders(((TeamTypes)(GET_PLAYER(eToPlayer).getTeam())), true);
+			startTeamTrade(TRADE_OPEN_BORDERS, TEAMID(eFromPlayer), TEAMID(eToPlayer), true);
+			GET_TEAM(eFromPlayer).setOpenBorders(TEAMID(eToPlayer), true);
 			if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S_1) signs open borders due to TRADE_OPEN_BORDERS with player %d (%S_2)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		}
-		else
-		{
-			bSave = true;
-		}
+		else bSave = true;
 		break;
 
 	case TRADE_DEFENSIVE_PACT:
-		if (trade.m_iData == 0)
+		if (trade.m_iData <= 0) // advc: was ==
 		{
-			startTeamTrade(TRADE_DEFENSIVE_PACT, GET_PLAYER(eFromPlayer).getTeam(), GET_PLAYER(eToPlayer).getTeam(), true);
-			GET_TEAM(GET_PLAYER(eFromPlayer).getTeam()).setDefensivePact(((TeamTypes)(GET_PLAYER(eToPlayer).getTeam())), true);
+			startTeamTrade(TRADE_DEFENSIVE_PACT, TEAMID(eFromPlayer), TEAMID(eToPlayer), true);
+			GET_TEAM(eFromPlayer).setDefensivePact(TEAMID(eToPlayer), true);
 			if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) signs defensive pact due to TRADE_DEFENSIVE_PACT with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		}
 		else bSave = true;
@@ -1002,24 +967,32 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	case TRADE_PERMANENT_ALLIANCE:
 		break;
 
-	case TRADE_PEACE_TREATY:
-		GET_TEAM(GET_PLAYER(eFromPlayer).getTeam()).setForcePeace(((TeamTypes)(GET_PLAYER(eToPlayer).getTeam())), true);
+	case TRADE_PEACE_TREATY:  // <advc.032>
+		if (GET_TEAM(eFromPlayer).isForcePeace(TEAMID(eToPlayer)))
+		{
+			if (GET_PLAYER(eFromPlayer).resetPeaceTreaty(eToPlayer))
+			{
+				if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) prolongs peace treaty with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
+				break;
+			}
+		} // </advc.032>
+		GET_TEAM(eFromPlayer).setForcePeace(TEAMID(eToPlayer), true);
 		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) signs peace treaty due to TRADE_PEACE_TREATY with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 		bSave = true;
 		break;
 	// <advc.034>
 	case TRADE_DISENGAGE:
-		if(trade.m_iData == 0) {
+		if(trade.m_iData <= 0)
+		{
 			startTeamTrade(TRADE_DISENGAGE, TEAMID(eFromPlayer),
 					TEAMID(eToPlayer), true);
-			TEAMREF(eFromPlayer).setDisengage(TEAMID(eToPlayer), true);
+			GET_TEAM(eFromPlayer).setDisengage(TEAMID(eToPlayer), true);
 		}
 		else bSave = true;
 		break;
 	// </advc.034>
 	default:
 		FAssert(false);
-		break;
 	}
 
 	return bSave;
@@ -1027,11 +1000,17 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 
 
 void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
-		PlayerTypes eToPlayer, bool bTeam, /* advc.036: */ bool bUpdateAttitude,
-		PlayerTypes eCancelPlayer) { // advc.130p  advc.003: refactored
-
+	PlayerTypes eToPlayer, bool bTeam, /* advc.036: */ bool bUpdateAttitude,
+	PlayerTypes eCancelPlayer) // advc.130p  advc: refactored
+{
 	bool bTeamTradeEnded = false; // advc.133
-	switch(trade.m_eItemType) {
+	/*	<advc> Skip some steps when a trade ends through the defeat of one party -
+		to avoid failed assertions */
+	bool bAlive = (GET_PLAYER(eFromPlayer).isAlive() && GET_PLAYER(eToPlayer).isAlive());
+	if (!bAlive)
+		bUpdateAttitude = false; // </advc>
+	switch(trade.m_eItemType)
+	{
 	case TRADE_RESOURCES:
 		GET_PLAYER(eToPlayer).changeBonusImport(((BonusTypes)trade.m_iData), -1);
 		GET_PLAYER(eFromPlayer).changeBonusExport(((BonusTypes)trade.m_iData), -1);
@@ -1044,21 +1023,26 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 
 	// <advc.143>
 	case TRADE_VASSAL:
-	case TRADE_SURRENDER: {
+	case TRADE_SURRENDER:
+	{
+		if (!bAlive)
+			break;
 		bool bSurrender = (trade.m_eItemType == TRADE_SURRENDER);
 		// Canceled b/c of failure to protect vassal?
 		bool bDeniedHelp = false;
 		if(bSurrender)
-			bDeniedHelp = (TEAMREF(eFromPlayer).isLossesAllowRevolt(TEAMID(eToPlayer))
+			bDeniedHelp = (GET_TEAM(eFromPlayer).isLossesAllowRevolt(TEAMID(eToPlayer))
 					// Doesn't count if losses obviously only from cultural borders
-					&& TEAMREF(eFromPlayer).getAnyWarPlanCount(true) > 0);
-		else {
-			DenialTypes eReason = TEAMREF(eFromPlayer).
+					&& GET_TEAM(eFromPlayer).AI_isAnyWarPlan());
+		else
+		{
+			DenialTypes eReason = GET_TEAM(eFromPlayer).
 					AI_surrenderTrade(TEAMID(eToPlayer));
 			bDeniedHelp = (eReason == DENIAL_POWER_YOUR_ENEMIES);
 		}
-		TEAMREF(eFromPlayer).setVassal(TEAMID(eToPlayer), false, bSurrender);
-		if(bTeam) {
+		GET_TEAM(eFromPlayer).setVassal(TEAMID(eToPlayer), false, bSurrender);
+		if(bTeam)
+		{
 			if(bSurrender)
 				endTeamTrade(TRADE_SURRENDER, TEAMID(eFromPlayer), TEAMID(eToPlayer));
 			else endTeamTrade(TRADE_VASSAL, TEAMID(eFromPlayer), TEAMID(eToPlayer));
@@ -1067,26 +1051,29 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 		addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_VASSAL);
 		if(!bDeniedHelp) // Master remembers for 2x10 turns
 			addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_VASSAL);
-		else { /* Vassal remembers for 3x10 turns (and master for 1x10 turns,
-				  which could matter when a human becomes a vassal) */
+		else /* Vassal remembers for 3x10 turns (and master for 1x10 turns,
+				which could matter when a human becomes a vassal) */
+		{
 			for(int i = 0; i < 3; i++)
 				addEndTradeMemory(eToPlayer, eFromPlayer, TRADE_VASSAL);
 		}
 		break;
 	} // </advc.143>
 	case TRADE_OPEN_BORDERS:
-		TEAMREF(eFromPlayer).setOpenBorders(TEAMID(eToPlayer), false);
-		if(bTeam) {
+		GET_TEAM(eFromPlayer).setOpenBorders(TEAMID(eToPlayer), false);
+		if(bTeam)
+		{
 			endTeamTrade(TRADE_OPEN_BORDERS, TEAMID(eFromPlayer), TEAMID(eToPlayer));
 			bTeamTradeEnded = true; // advc.133
 			// <advc.130p>
 			/*  Don't check this after all -- if the other side loses all visible
 				territory and then regains some, they may still not really be worth
 				trading with. */
-			/*if(eCancelPlayer == NULL || TEAMREF(eCancelPlayer).AI_openBordersTrade(
+			/*if(eCancelPlayer == NULL || GET_TEAM(eCancelPlayer).AI_openBordersTrade(
 					TEAMID(eCancelPlayer == eToPlayer ? eFromPlayer : eToPlayer)) !=
 					DENIAL_NO_GAIN)*/
-			addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_OPEN_BORDERS);
+			if (bAlive)
+				addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_OPEN_BORDERS);
 			/* (This class really shouldn't be adding cancellation
 				memory as this is an AI thing; but BtS does it that way too.) */
 			// </advc.130p>
@@ -1094,50 +1081,53 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 		break;
 
 	case TRADE_DEFENSIVE_PACT:
-		TEAMREF(eFromPlayer).setDefensivePact(TEAMID(eToPlayer), false);
-		if(bTeam) {
+		GET_TEAM(eFromPlayer).setDefensivePact(TEAMID(eToPlayer), false);
+		if(bTeam)
+		{
 			endTeamTrade(TRADE_DEFENSIVE_PACT, TEAMID(eFromPlayer), TEAMID(eToPlayer));
 			bTeamTradeEnded = true; // advc.133
-			// advc.130p:
-			addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_DEFENSIVE_PACT);
+			if (bAlive)  // advc.130p:
+				addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_DEFENSIVE_PACT);
 		}
 		break;
 
 	case TRADE_PEACE_TREATY:
-		TEAMREF(eFromPlayer).setForcePeace(TEAMID(eToPlayer), false);
+		GET_TEAM(eFromPlayer).setForcePeace(TEAMID(eToPlayer), false);
 		break;
 	// <advc.034>
 	case TRADE_DISENGAGE:
-		TEAMREF(eFromPlayer).setDisengage(TEAMID(eToPlayer), false);
+		GET_TEAM(eFromPlayer).setDisengage(TEAMID(eToPlayer), false);
 		if(bTeam)
 			endTeamTrade(TRADE_DISENGAGE, TEAMID(eFromPlayer), TEAMID(eToPlayer));
 		return; // No need to update attitude
 	// </advc.034>
 	default: FAssert(false);
 	} // <advc.036>
-	if(!bUpdateAttitude)
+	if (!bUpdateAttitude)
 		return; // </advc.036>
 	// <advc.133> (I think this is needed even w/o change 133 canceling more deals)
 	if(!bTeamTradeEnded)
-		GET_PLAYER(eFromPlayer).AI_updateAttitudeCache(eToPlayer);
-	else TEAMREF(eFromPlayer).AI_updateAttitudeCache(TEAMID(eToPlayer));
+		GET_PLAYER(eFromPlayer).AI_updateAttitude(eToPlayer);
+	else GET_TEAM(eFromPlayer).AI_updateAttitude(TEAMID(eToPlayer));
 	// </advc.133>
 }
 
 // <advc.130p> Cut-and-pasted from CvDeal::endTrade
 void CvDeal::addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
-		TradeableItems eItemType) {
-
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		TradeableItems eItemType)
+{
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
 		PlayerTypes eToTeamMember = (PlayerTypes)i;
 		if(!GET_PLAYER(eToTeamMember).isAlive() ||
 				TEAMID(eToTeamMember) != TEAMID(eToPlayer))
 			continue;
-		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
+		for(int j = 0; j < MAX_CIV_PLAYERS; j++)
+		{
 			PlayerTypes eFromTeamMember = (PlayerTypes)j;
 			if(!GET_PLAYER(eFromTeamMember).isAlive() ||
-				TEAMID(eFromTeamMember) != TEAMID(eFromPlayer))
-			continue;
+					TEAMID(eFromTeamMember) != TEAMID(eFromPlayer))
+				continue;
 			MemoryTypes eMemory = MEMORY_CANCELLED_OPEN_BORDERS;
 			if(eItemType == TRADE_DEFENSIVE_PACT)
 				eMemory = MEMORY_CANCELLED_DEFENSIVE_PACT;
@@ -1154,41 +1144,39 @@ void CvDeal::startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes
 {
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.003n: was MAX_PLAYERS
 	{
-		CvPlayer& kFromMember = GET_PLAYER((PlayerTypes)iI); // advc.003
+		CvPlayer& kFromMember = GET_PLAYER((PlayerTypes)iI); // advc
 		if (!kFromMember.isAlive() || kFromMember.getTeam() != eFromTeam)
 			continue;
 
 		for (int iJ = 0; iJ < MAX_PLAYERS; iJ++)
 		{
-			CvPlayer& kToMember = GET_PLAYER((PlayerTypes)iJ); // advc.003
+			CvPlayer& kToMember = GET_PLAYER((PlayerTypes)iJ); // advc
 			if (!kToMember.isAlive() || kToMember.getTeam() != eToTeam)
 				continue;
 
-			TradeData item;
-			setTradeItem(&item, eItem, 1);
+			TradeData item(eItem, 1);
 			CLinkList<TradeData> ourList;
 			ourList.insertAtEnd(item);
 			CLinkList<TradeData> theirList;
 			if (bDual)
 				theirList.insertAtEnd(item);
 			GC.getGame().implementDeal(kFromMember.getID(), kToMember.getID(),
-					&ourList, &theirList);
+					ourList, theirList);
 		}
 	}
 }
 
-void CvDeal::endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam)  // advc.003: style changes
+void CvDeal::endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam)  // advc: style changes
 {
-	CLLNode<TradeData>* pNode = NULL;
-	int iLoop;
-	for (CvDeal* pLoopDeal = GC.getGame().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGame().nextDeal(&iLoop))
+	CLLNode<TradeData> const* pNode = NULL;
+	FOR_EACH_DEAL_VAR(pLoopDeal)
 	{
 		if (pLoopDeal == this)
 			continue;
 
 		bool bValid = true;
 		if (TEAMID(pLoopDeal->getFirstPlayer()) == eFromTeam &&
-				TEAMID(pLoopDeal->getSecondPlayer()) == eToTeam)
+			TEAMID(pLoopDeal->getSecondPlayer()) == eToTeam)
 		{
 			if (pLoopDeal->getFirstTrades() != NULL)
 			{
@@ -1219,38 +1207,50 @@ void CvDeal::endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes e
 }
 
 bool CvDeal::isCancelable(PlayerTypes eByPlayer, CvWString* pszReason) const
-{	// <advc.001> Not really a bug, but you'd really expect this function to check this.
-	if(eByPlayer != NO_PLAYER && getFirstPlayer() != eByPlayer && getSecondPlayer() != eByPlayer)
-		return false; // </advc.001>
-	if (isUncancelableVassalDeal(eByPlayer, pszReason))
-		return false;
-
+{
+	if (eByPlayer != NO_PLAYER)
+	{
+		// <advc.001> Not really a bug, but you'd really expect this function to check this.
+		if (!involves(eByPlayer))
+			return false; // </advc.001>
+		if (isUncancelableVassalDeal(eByPlayer, pszReason))
+			return false;
+	}
 	int iTurns = turnsToCancel(eByPlayer);
-
 	if (pszReason != NULL && iTurns > 0)
 		*pszReason = gDLL->getText("TXT_KEY_MISC_DEAL_NO_CANCEL", iTurns);
-
 	return (iTurns <= 0);
 }
 
 /*  <advc.130f> Based on isCancelable; doesn't check turnsToCancel.
 	See declaration in CvDeal.h. */
-bool CvDeal::isEverCancelable(PlayerTypes eByPlayer) const {
-
-	// I don't think isUncancellableVassalDeal covers this:
-	if(getFirstPlayer() != eByPlayer && getSecondPlayer() != eByPlayer)
+bool CvDeal::isEverCancelable(PlayerTypes eByPlayer) const 
+{
+	if (!involves(eByPlayer))
 		return false;
+
 	return !isUncancelableVassalDeal(eByPlayer);
 } // </advc.130f>
 
 int CvDeal::turnsToCancel(PlayerTypes eByPlayer) const
 {	// <advc.034>
-	int len = GC.getPEACE_TREATY_LENGTH();
+	int len = GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH);
 	if(isDisengage())
-		len = std::min(GC.getDefineINT("DISENGAGE_LENGTH"), len);
+		len = std::min(GC.getDefineINT(CvGlobals::DISENGAGE_LENGTH), len);
 	return (getInitialGameTurn() + len - // </advc.034>
 			GC.getGame().getGameTurn());
 }
+// <advc>
+bool CvDeal::isAllDual() const
+{
+	CLLNode<TradeData> const* pNode;
+	for(pNode = headTradesNode(); pNode != NULL; pNode = nextTradesNode(pNode))
+	{
+		if(!CvDeal::isDual(pNode->m_data.m_eItemType))
+			return false;
+	}
+	return true;
+} // </advc>
 
 // static
 bool CvDeal::isAnnual(TradeableItems eItem)
@@ -1300,16 +1300,7 @@ bool CvDeal::hasData(TradeableItems eItem)
 		eItem != TRADE_PEACE_TREATY);
 }
 
-bool CvDeal::isGold(TradeableItems eItem)
-{
-	return (eItem == getGoldItem() || eItem == getGoldPerTurnItem());
-}
-
-bool CvDeal::isVassal(TradeableItems eItem)
-{
-	return (eItem == TRADE_VASSAL || eItem == TRADE_SURRENDER);
-}
-
+// static
 bool CvDeal::isEndWar(TradeableItems eItem)
 {
 	if (eItem == getPeaceItem())
@@ -1319,19 +1310,4 @@ bool CvDeal::isEndWar(TradeableItems eItem)
 		return true;
 
 	return false;
-}
-
-TradeableItems CvDeal::getPeaceItem()
-{
-	return TRADE_PEACE_TREATY;
-}
-
-TradeableItems CvDeal::getGoldItem()
-{
-	return TRADE_GOLD;
-}
-
-TradeableItems CvDeal::getGoldPerTurnItem()
-{
-	return TRADE_GOLD_PER_TURN;
 }

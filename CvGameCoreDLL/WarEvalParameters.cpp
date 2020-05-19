@@ -1,14 +1,14 @@
-// <advc.104> New class; see WarEvalParameters.h for description.
+// advc.104: New class; see WarEvalParameters.h for description.
 
 #include "CvGameCoreDLL.h"
 #include "WarEvalParameters.h"
-#include "WarAndPeaceAI.h"
 #include "CvGameAI.h"
 #include "CvTeamAI.h"
+#include "AgentIterator.h"
 
 
 WarEvalParameters::WarEvalParameters(TeamTypes agentId,
-		TeamTypes targetId, WarAndPeaceReport& report,
+		TeamTypes targetId, UWAIReport& report,
 		bool ignoreDistraction, PlayerTypes sponsor,
 		TeamTypes capitulationTeam) :
 	_agentId(agentId), _targetId(targetId), sponsor(sponsor),
@@ -38,7 +38,7 @@ TeamTypes WarEvalParameters::targetId() const {
 	return _targetId;
 }
 
-WarAndPeaceReport& WarEvalParameters::getReport() const {
+UWAIReport& WarEvalParameters::getReport() const {
 
 	return report;
 }
@@ -57,9 +57,8 @@ void WarEvalParameters::addWarAlly(TeamTypes tId) {
 
 	warAllies.insert(tId);
 	warAllies.insert(GET_TEAM(tId).getMasterTeam());
-	for(size_t i = 0; i < getWPAI.properTeams().size(); i++)
-		if(GET_TEAM(getWPAI.properTeams()[i]).isVassal(tId))
-			warAllies.insert(getWPAI.properTeams()[i]);
+	for(TeamIter<MAJOR_CIV,VASSAL_OF> it(tId); it.hasNext(); ++it)
+		warAllies.insert(it->getID());
 }
 
 bool WarEvalParameters::isExtraTarget(TeamTypes tId) const {
@@ -71,9 +70,8 @@ void WarEvalParameters::addExtraTarget(TeamTypes tId) {
 
 	extraTargets.insert(tId);
 	extraTargets.insert(GET_TEAM(tId).getMasterTeam());
-	for(size_t i = 0; i < getWPAI.properTeams().size(); i++)
-		if(GET_TEAM(getWPAI.properTeams()[i]).isVassal(tId))
-			extraTargets.insert(getWPAI.properTeams()[i]);
+	for(TeamIter<MAJOR_CIV,VASSAL_OF> it(tId); it.hasNext(); ++it)
+		extraTargets.insert(it->getID());
 }
 
 
@@ -170,5 +168,3 @@ bool WarEvalParameters::isImmediateDoW() const {
 
 	return immediateDoW;
 }
-
-// </advc.104>

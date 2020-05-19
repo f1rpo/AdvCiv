@@ -3,17 +3,37 @@
 #ifndef CIV4_GAME_PLAY_H
 #define CIV4_GAME_PLAY_H
 
-/*  advc.make: I've created this wrapper header file to improve the readability of
-	the ca. 40 .cpp files that require CvGameAI.h, CvPlayerAI.h and CvTeamAI.h.
-	Note that CvGame.h, CvPlayer.h, CvTeam.h and several other frequently used
-	headers are recursively included (for better or worse).
-	Most of the client code has nothing to do with the AI; it's just that the
-	very commonly used GET_PLAYER and GET_TEAM macros and the getGame inline
-	function are defined in the ...AI header files and can't be easily moved
-	from there b/c they're tied to exported functions that the EXE calls. */
+/*  advc.make: Wrapper header to reduce the number of include statements and
+	a place for the team accessor macros. (However, the one that returns a CvTeamAI
+	reference is defined in CoreAI.h.) For inline definitions, both CvPlayer.h
+	and CvTeam.h are needed. */
 
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
+#include "CvGame.h"
+#include "CvTeam.h"
+#include "CvPlayer.h"
+#include "AgentIterator.h" // advc.agent
+#include "CvCivilization.h" // advc.003w
+/*  Not: CvCity.h - not much use without CvCityList, which, in turn, includes
+	CvCityAI.h. Same problem with CvUnit.h, CvSelectionGroup.h.
+	To amend this, the constructor and destructor calls would have to be moved out of
+	FFreeListTrashArray. */
+
+// <advc.003u>
+#ifndef GET_TEAM // Prefer the definition in CoreAI.h
+#define GET_TEAM(x) CvGamePlay::getTeam(x)
+#endif
+#define TEAMID(x) GET_PLAYER(x).getTeam()
+
+namespace CvGamePlay
+{
+	__forceinline CvTeam& getTeam(TeamTypes eTeam)
+	{
+		return CvTeam::getTeam(eTeam);
+	}
+	__forceinline CvTeam& getTeam(PlayerTypes ePlayer)
+	{
+		return CvTeam::getTeam(TEAMID(ePlayer));
+	}
+} // </advc.003u>
 
 #endif

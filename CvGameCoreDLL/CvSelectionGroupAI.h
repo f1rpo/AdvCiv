@@ -7,13 +7,13 @@
 
 #include "CvSelectionGroup.h"
 
+
 class CvSelectionGroupAI : public CvSelectionGroup
 {
-
 public:
 
 	DllExport CvSelectionGroupAI();
-	DllExport virtual ~CvSelectionGroupAI();
+	DllExport ~CvSelectionGroupAI();
 
 	void AI_init();
 	void AI_uninit();
@@ -23,46 +23,46 @@ public:
 	void AI_separateNonAI(UnitAITypes eUnitAI);
 	void AI_separateAI(UnitAITypes eUnitAI);
 	// BETTER_BTS_AI_MOD, General AI, 06/02/09, jdog5000, START
-	bool AI_separateImpassable();
+	bool AI_separateImpassable(); // K-Mod added bool return value.
 	bool AI_separateEmptyTransports();
 	// BETTER_BTS_AI_MOD: END
 
 	bool AI_update();
 
 	int AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const;
-	CvUnit* AI_getBestGroupAttacker(const CvPlot* pPlot, bool bPotentialEnemy, int& iUnitOdds, bool bForce = false, bool bNoBlitz = false) const {
-		// <advc.048> Pure virtual in CvSelectionGroup, so preserve the signature to be on the safe side.
-		return AI_getBestGroupAttacker(pPlot, bPotentialEnemy, iUnitOdds, bForce, bNoBlitz,
-				false, false);
-	}
-	CvUnit* AI_getBestGroupAttacker(const CvPlot* pPlot, bool bPotentialEnemy, int& iUnitOdds,
-			bool bForce, bool bNoBlitz, bool bSacrifice, bool bMaxSurvival = false) const;
-	// </advc.048>
-	CvUnit* AI_getBestGroupSacrifice(const CvPlot* pPlot, bool bPotentialEnemy, bool bForce = false, bool bNoBlitz = false) const;
-	//int AI_compareStacks(const CvPlot* pPlot, bool bPotentialEnemy, bool bCheckCanAttack = false, bool bCheckCanMove = false) const;
-	//int AI_sumStrength(const CvPlot* pAttackedPlot = NULL, DomainTypes eDomainType = NO_DOMAIN, bool bCheckCanAttack = false, bool bCheckCanMove = false) const;
-	// K-Mod
+	int AI_getWeightedOdds(CvPlot const* pPlot, bool bPotentialEnemy = false); // K-Mod
+	// advc.003u: These two had returned CvUnit*
+	CvUnitAI* AI_getBestGroupAttacker(const CvPlot* pPlot, bool bPotentialEnemy,
+			int& iUnitOdds, bool bForce = false, bool bNoBlitz = false,
+			bool bSacrifice = false, bool bMaxSurvival = false) const; // advc.048
+	CvUnitAI* AI_getBestGroupSacrifice(const CvPlot* pPlot, bool bPotentialEnemy, bool bForce = false, bool bNoBlitz = false) const;
+	// K-Mod has removed bCheckCanMove param from these two and bPotentialEnemy from AI_compareStacks
 	int AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAttack = false) const;
 	int AI_sumStrength(const CvPlot* pAttackedPlot = NULL, DomainTypes eDomainType = NO_DOMAIN, bool bCheckCanAttack = false) const;
-	// K-Mod end
+
 	void AI_queueGroupAttack(int iX, int iY);
 	inline void AI_cancelGroupAttack() { m_bGroupAttack = false; } // K-Mod (made inline)
 	inline bool AI_isGroupAttack() const { return m_bGroupAttack; } // K-Mod (made inline)
 
-	bool AI_isControlled();
-	bool AI_isDeclareWar(const CvPlot* pPlot = NULL);
+	bool AI_isControlled() const { return (!isHuman() || isAutomated()); } // advc.inl
+	bool AI_isDeclareWar(CvPlot const& kPlot) const;
+	bool AI_isHasPathToAreaEnemyCity(bool bMajorOnly = true, int iFlags = 0, int iMaxPathTurns = -1) /* Erik (CODE1): */ const;
 
-	CvPlot* AI_getMissionAIPlot();
+	CvPlot* AI_getMissionAIPlot() const;
 
-	bool AI_isForceSeparate();
+	bool AI_isForceSeparate() const;
 	//void AI_makeForceSeparate();
 	inline void AI_setForceSeparate(bool bNewValue = true) { m_bForceSeparate = bNewValue; } // K-Mod
 
-	MissionAITypes AI_getMissionAIType() const;
-	void AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot* pNewPlot, CvUnit* pNewUnit);
-	CvUnit* AI_ejectBestDefender(CvPlot* pTargetPlot);
-
-	CvUnit* AI_getMissionAIUnit();
+	inline MissionAITypes AI_getMissionAIType() /* K-Mod: */ const
+	{
+		return m_eMissionAIType; // advc.inl: inline (now that it's no longer virtual)
+	}
+	void AI_setMissionAI(MissionAITypes eNewMissionAI, CvPlot const* pNewPlot, CvUnit const* pNewUnit);
+	// advc.003u: These two had returned CvUnit*
+	CvUnitAI* AI_ejectBestDefender(CvPlot* pTargetPlot);
+	CvUnitAI* AI_getMissionAIUnit() const;
+	CvUnitAI* AI_getHeadUnit() const; // advc.003u: Counterpart to CvSelectionGroup::getHeadUnit
 
 	bool AI_isFull();
 

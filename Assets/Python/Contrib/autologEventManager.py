@@ -387,7 +387,7 @@ class AutoLogEvent(AbstractAutoLogEvent):
 			for i in range(0, iPlayer.getNumCities(), 1):
 				iCity = iPlayer.getCity(i)
 				iCurrentWhipCounter = iCity.getHurryAngerTimer()
-				# advc.003: was ...ConstrictCounter
+				# advc: was ...ConstrictCounter
 				iCurrentConscriptCounter = iCity.getConscriptAngerTimer()
 #				if iCurrentWhipCounter != 0: iCurrentWhipCounter += 1  # onBeginPlayerTurn fires after whip counter has decreased by 1
 
@@ -729,7 +729,7 @@ class AutoLogEvent(AbstractAutoLogEvent):
 			player = PyPlayer(iFounder)
 			iCityId = gc.getGame().getHeadquarters(iCorporation).getID()
 			# advc.001: was ==0
-			if (player.getTeamID() == CyGame.getActiveTeam()):
+			if (player.getTeamID() == CyGame().getActiveTeam()):
 				messageEnd = gc.getPlayer(iFounder).getCity(iCityId).getName()
 			else:
 				messageEnd = BugUtil.getPlainText("TXT_KEY_AUTOLOG_DISTANT_LAND")

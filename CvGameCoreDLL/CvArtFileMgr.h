@@ -21,6 +21,7 @@
 //
 // Adding a New Entry:
 //		*	Create a new ArtInfo<new> in 'CvInfos.h' & add to CyInfosInterface
+			// ^advc.003x: Now in CvInfo_Asset.h
 //		*	Add a new ART_INFO_DECL to 'CvArtFileMgr.h'
 //		*	Add a new ART_INFO_DEFN to 'CvArtFileMgr.cpp'
 //		*	Update Python 'CyGlobalContext & CyArtFileMgr' files
@@ -45,6 +46,8 @@ class CvArtInfoInterface;
 public: \
 	friend class Cv##name##ArtInfoItem; \
 	DllExport CvArtInfo##name##* get##name##ArtInfo(const char *szArtDefineTag) const; \
+	/* advc: shorthand */ \
+	TCHAR const* get##name##ArtPath(char const* szArtDefineTag) const; \
 	int getNum##name##ArtInfos() { return (int)m_pa##name##ArtInfo.size(); } \
 	std::vector<CvArtInfo##name##*>& get##name##ArtInfo() { return m_pa##name##ArtInfo; } \
 	DllExport CvArtInfo##name##& get##name##ArtInfo(int i); \
@@ -75,13 +78,14 @@ public:
 	DllExport void DeInit();
 
 	// Deletes Maps, Reloads Infos from XML, Rebuilds Maps
-	DllExport void Reset();																														// Exposed to Python
+	DllExport void Reset();																					// Exposed to Python
+	void resetInfo(); // advc.enum
 
 	// Builds Maps
-	DllExport void buildArtFileInfoMaps();																							// Exposed to Python
+	DllExport void buildArtFileInfoMaps();																	// Exposed to Python
 
 	// Adds an Art File List
-	void addArtInfoItem(CvArtFileMgr::ArtInfoItem* item) { m_artInfoItems.push_back(item);	}
+	void addArtInfoItem(CvArtFileMgr::ArtInfoItem* item) { m_artInfoItems.push_back(item); }
 private:
 	struct ltstr
 	{

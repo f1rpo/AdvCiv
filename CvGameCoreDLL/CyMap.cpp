@@ -4,14 +4,13 @@
 
 #include "CvGameCoreDLL.h"
 #include "CyMap.h"
-#include "CyPlot.h"
 #include "CvMap.h"
-#include "CyCity.h"
 #include "CySelectionGroup.h"
-#include "CyUnit.h"
 #include "CyArea.h"
 #include "CvMapGenerator.h"
-#include "CvInitCore.h"
+#include "CvGame.h" // advc.savem
+#include "CvReplayInfo.h" // advc.savem
+
 
 CyMap::CyMap() : m_pMap(NULL)
 {
@@ -49,7 +48,11 @@ void CyMap::updateVisibility()
 
 CyPlot* CyMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTimeout)
 {
-	return m_pMap ? new CyPlot(m_pMap->syncRandPlot(iFlags, iArea, iMinUnitDistance, iTimeout)) : NULL;
+	// <advc> No longer takes an area id
+	if (m_pMap == NULL)
+		return NULL;
+	CvArea* pArea = m_pMap->getArea(iArea); // </advc>
+	return new CyPlot(m_pMap->syncRandPlot(iFlags, pArea, iMinUnitDistance, iTimeout));
 }
 
 CyCity* CyMap::findCity(int iX, int iY, int /*PlayerTypes*/ eOwner, int /*TeamTypes*/ eTeam, bool bSameArea, bool bCoastalOnly, int /*TeamTypes*/ eTeamAtWarWith, int /*DirectionTypes*/ eDirection, CyCity* pSkipCity)
@@ -182,7 +185,23 @@ CustomMapOptionTypes CyMap::getCustomMapOption(int iOption)
 {
 	return m_pMap ? m_pMap->getCustomMapOption(iOption) : NO_CUSTOM_MAPOPTION;
 }
-
+// <advc.004>
+std::wstring CyMap::getNonDefaultCustomMapOptionDesc(int iOption)
+{
+	return m_pMap == NULL ? L"" : m_pMap->getNonDefaultCustomMapOptionDesc(iOption);
+} // </advc.004>
+// <advc.savem>
+std::wstring CyMap::getSettingsString()
+{
+	PlayerTypes const eActivePlayer = GC.getGame().getActivePlayer();
+	if (m_pMap == NULL || eActivePlayer == NO_PLAYER)
+		return L"";
+	CvReplayInfo tmpReplay;
+	tmpReplay.createInfo(eActivePlayer);
+	CvWString szSettings;
+	tmpReplay.appendSettingsMsg(szSettings, eActivePlayer);
+	return szSettings; // by value
+} // </advc.savem>
 int CyMap::getNumBonuses(int /* BonusTypes */ eIndex)
 {
 	return m_pMap ? m_pMap->getNumBonuses((BonusTypes)eIndex) : -1;

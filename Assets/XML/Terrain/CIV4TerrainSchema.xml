@@ -154,20 +154,21 @@
 		<element type="iSeeThrough"/>
 		<element type="iHealthPercent"/>
 		<element type="iDefense"/>
-		<!-- advc.012 -->
-		<element type="iRivalDefense"/>
+		<!-- advc.012 (set to 0 by default in the DLL) -->
+		<element type="iRivalDefense" minOccurs="0"/>
 		<element type="iAppearance"/>
 		<element type="iDisappearance"/>
 		<element type="iGrowth"/>
 		<element type="iTurnDamage"/>
-		<element type="iWarmingDefense"/>
+		<!-- advc: Now optional; set to 0 by default in the DLL. -->
+		<element type="iWarmingDefense" minOccurs="0"/>
 		<element type="bNoCoast"/>
 		<element type="bNoRiver"/>
 		<element type="bNoAdjacent"/>
 		<element type="bRequiresFlatlands"/>
 		<element type="bRequiresRiver"/>
-		<!-- advc.129b -->
-		<element type="bRequiresRiverSide"/>
+		<!-- advc.129b (set to false by default in the DLL) -->
+		<element type="bRequiresRiverSide" minOccurs="0"/>
 		<element type="bAddsFreshWater"/>
 		<element type="bImpassable"/>
 		<element type="bNoCity"/>
@@ -397,6 +398,8 @@
 	<ElementType name="bPermanent" content="textOnly" dt:type="boolean"/>
 	<ElementType name="iGoodyRange" content="textOnly" dt:type="int"/>
 	<ElementType name="iFeatureGrowth" content="textOnly" dt:type="int"/>
+	<!-- advc.055: -->
+	<ElementType name="iGWFeatureProtection" content="textOnly" dt:type="int"/>
 	<ElementType name="iAirBombDefense" content="textOnly" dt:type="int"/>
 	<ElementType name="iDefenseModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iPillageGold" content="textOnly" dt:type="int"/>
@@ -451,9 +454,13 @@
 		<element type="iTilesPerGoody"/>
 		<element type="iGoodyRange"/>
 		<element type="iFeatureGrowth"/>
+		<!-- advc.055: (default value in DLL: 0) -->
+		<element type="iGWFeatureProtection" minOccurs="0"/>
 		<element type="iUpgradeTime"/>
 		<element type="iAirBombDefense"/>
 		<element type="iDefenseModifier"/>
+		<!-- advc.tag: (default value in DLL: 0) -->
+		<element type="iHealthPercent" minOccurs="0"/>
 		<element type="iHappiness"/>
 		<element type="iPillageGold"/>
 		<element type="bOutsideBorders"/>
