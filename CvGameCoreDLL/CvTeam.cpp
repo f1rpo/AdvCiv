@@ -5593,7 +5593,16 @@ void CvTeam::read(FDataStreamBase* pStream)
 	m_aiTerrainTradeCount.Read(pStream);
 	m_aiVictoryCountdown.Read(pStream);
 	// <advc.opt>
-	if (uiFlag < 7)
+	if (uiFlag == 10) // Fix a bug in AdvCiv 0.97
+	{
+		FOR_EACH_ENUM(Victory)
+		{	/*	Is 0 a legit value? Well, let's hope that it represents
+				"no countdown started" in this savegame. */
+			if (getVictoryCountdown(eLoopVictory) == 0)
+				m_aiVictoryCountdown.set(eLoopVictory, -1);
+		}
+	}
+	if (uiFlag < 7 || uiFlag == 10)
 	{
 		FOR_EACH_ENUM(Victory)
 		{
@@ -5652,7 +5661,8 @@ void CvTeam::write(FDataStreamBase* pStream)
 	uiFlag = 7; // advc.opt: m_bAnyVictoryCountdown
 	uiFlag = 8; // advc.opt: change in updateLeaderID
 	uiFlag = 9; // advc.opt: remove m_abVassal; advc.enum/ advc.034: write m_abDisengage[BARBARIAN_TEAM]
-	uiFlag = 10; // advc.101: m_itechCount
+	uiFlag = 10; // advc.101: m_iTechCount
+	uiFlag = 11; // advc.opt: fix m_aiVictoryCountdown bug
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iNumMembers);
