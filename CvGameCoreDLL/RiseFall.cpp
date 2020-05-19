@@ -478,6 +478,12 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 			g.updateActiveVisibility();
 		setUIHidden(!b);
 	}
+	if(!b) { // Update dot map owner
+		CyArgsList pyArgs;
+		pyArgs.add(formerHumanCiv);
+		CvEventReporter::getInstance().genericEvent(
+				"SwitchHotSeatPlayer", pyArgs.makeFunctionArgs());
+	}
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		CvPlayerAI& other = GET_PLAYER((PlayerTypes)i);
 		if(!other.isAlive() || other.isMinorCiv())
