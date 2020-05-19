@@ -12025,7 +12025,8 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes eToPlaye
 		{	// Trade with non-rivals if Friendly
 			if (getMasterTeam() == kToTeam.getMasterTeam())
 				iAttitudeThresh = ATTITUDE_PLEASED;
-			else return DENIAL_NEVER;
+			// "Against all we stand for" - when attitude threshold impossible to reach
+			else return DENIAL_FAVORITE_CIVIC;
 		}
 		if (iAttitude <= iAttitudeThresh)
 			return DENIAL_ATTITUDE;
@@ -12112,7 +12113,7 @@ AttitudeTypes CvPlayerAI::AI_cityTradeAttitudeThresh(CvCity const& kCity,
 		return ATTITUDE_FURIOUS;
 	CvLeaderHeadInfo const& kPersonality = GC.getInfo(getPersonalityType());
 	int r = (kCity.getPlot().calculateCulturePercent(getID()) >=
-			GC.getDefineINT(CvGlobals::CITY_TRADE_CULTURE_THRESH) ? 
+			GC.getDefineINT(CvGlobals::NATIVE_CITY_CULTURE_THRESH) ? 
 			kPersonality.getNativeCityRefuseAttitudeThreshold() :
 			kPersonality.getCityRefuseAttitudeThreshold());
 	return (AttitudeTypes)r;

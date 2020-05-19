@@ -895,14 +895,21 @@
 	</Define>
 
 	<!-- advc.ctr: To receive a city through trade, a civ needs to have at
-		 least this percentage of tile culture in the city tile. Moreover,
-		 an AI civ applies a stricter attitude threshold when it has this much or
-		 more culture in a city and needs to decide whether to trade (not
-		 liberate) the city to another civ.
+		 least this percentage of culture in the city tile (nationality).
+		 (Additionally, the recipient needs to have at least half as much
+		 nationality as the city owner.)
 		 Recommended: 10 -->
 	<Define>
 		<DefineName>CITY_TRADE_CULTURE_THRESH</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	<!-- When a city has this much nationality (city tile culture percentage)
+		 or more, then its AI owner applies a stricter attitude threshold
+		 when deciding whether to trade (not liberate) the city.
+		 Recommended: 20 (twice the CITY_TRADE_CULTURE_THRESH) -->
+	<Define>
+		<DefineName>NATIVE_CITY_CULTURE_THRESH</DefineName>
+		<iDefineIntVal>20</iDefineIntVal>
 	</Define>
 
 	<!-- [advc.030] Set this to 1 or greater (recommended) to treat plot groups
