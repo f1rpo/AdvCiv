@@ -9898,8 +9898,8 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const& kThe
 					{
 						best_it = it;
 					}*/
-					/*	<advc.001> Through the last condition, the above allows an item
-						that doesn't fill the gap (it->second < iValueGap) to replace
+					/*	<advc.001> The last condition above allows an item that
+						doesn't fill the gap (it->second < iValueGap) to replace
 						an item that does fill the gap. */
 					int iFillGapVal = std::abs(it->second - iValueGap);
 					// Absolute priority for items that fill the gap

@@ -1055,7 +1055,9 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	if (!kToPlot.isRevealed(eTeam))
 	{
 		if (pSelectionGroup->getAutomateType() == AUTOMATE_EXPLORE ||
-			(!pSelectionGroup->isHuman() && (pSelectionGroup->getHeadUnitAIType() == UNITAI_EXPLORE || pSelectionGroup->getHeadUnitAIType() == UNITAI_EXPLORE_SEA)))
+			(!pSelectionGroup->isHuman() &&
+			(pSelectionGroup->getHeadUnitAIType() == UNITAI_EXPLORE ||
+			pSelectionGroup->getHeadUnitAIType() == UNITAI_EXPLORE_SEA)))
 		{
 			iExploreModifier = 2; // lower cost to encourage exploring unrevealed areas
 		}

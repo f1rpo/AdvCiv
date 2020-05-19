@@ -4185,8 +4185,10 @@ bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType
 	{
 		static bool const bBBAI_HUMAN_AS_VASSAL_OPTION = GC.getDefineBOOL("BBAI_HUMAN_AS_VASSAL_OPTION"); // advc.opt
 		if (isHuman() && !GET_PLAYER(eWhoTo).isHuman() &&
-				!bBBAI_HUMAN_AS_VASSAL_OPTION) // BETTER_BTS_AI_MOD, Customization, 12/06/09, jdog5000
+			!bBBAI_HUMAN_AS_VASSAL_OPTION) // BETTER_BTS_AI_MOD, Customization, 12/06/09, jdog5000
+		{
 			return false;
+		}
 		if (!kToTeam.isVassalStateTrading()) // the master must possess the tech
 			return false;
 		if (kOurTeam.isAVassal() || kToTeam.isAVassal() || getTeam() == kToTeam.getID())
@@ -21467,7 +21469,10 @@ void CvPlayer::markTradeOffers(CLinkList<TradeData>& ourInventory, const CLinkLi
 				break;
 			}
 		}
-		FAssertMsg(pInvNode, "failed to find offered item in inventory");
+		FAssertMsg(pInvNode != NULL ||
+				// advc.134a: I guess it's OK that capitulation isn't part of the inventory
+				pOfferNode->m_data.m_eItemType == TRADE_SURRENDER,
+				"failed to find offered item in inventory");
 	}
 }
 // K-Mod end

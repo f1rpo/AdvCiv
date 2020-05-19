@@ -2299,9 +2299,10 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		return DENIAL_POWER_US;
 	} // </advc.112>  <advc.143b>
 	if(!bWar && getNumNukeUnits() > 0 &&
-			getNukeInterception() >= kMasterTeam.getNukeInterception())
+		getNukeInterception() >= kMasterTeam.getNukeInterception())
+	{
 		return DENIAL_POWER_US;
-	// </advc.143b>
+	}// </advc.143b>
 	int iTotalPower = 0;
 	int iNumNonVassals = 0;
 	std::vector<double> powerValues; // advc.112
@@ -2408,9 +2409,10 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 	// K-Mod. (condition moved here from lower down; for efficiency.)
 	// <advc.112> Special treatment of vassal-master power ratio if colony
 	if((!bColony && 3 * iVassalPower > 2 * iMasterPower) ||
-			(bColony && 5 * getPower(true) > 4 * iMasterPower)) // </advc.112>
+		(bColony && 5 * getPower(true) > 4 * iMasterPower)) // </advc.112>
+	{
 		return DENIAL_POWER_US;
-	// K-Mod end
+	} // K-Mod end
 	// <advc.112b> Don't surrender if there isn't an acute threat
 	if(bWar)
 	{
@@ -2503,12 +2505,11 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 	{
 		// if (iVassalPower > iAveragePower || 3 * iVassalPower > 2 * iMasterPower)
 		// advc.112: Changed coefficients from 5/4 to 1/0.76
-		if (iVassalPower > 0.76*iAveragePower // K-Mod. (second condition already checked)
+		if (iVassalPower > 0.76*iAveragePower || // K-Mod. (second condition already checked)
 			// <advc.112> Median condition; randomization when breaking free
-			|| (!bWar && iVassalPower > 0.76 * medianPow))
+			(!bWar && iVassalPower > 0.76 * medianPow))
 		{
-			if(!isAVassal() || ::hash(kGame.getGameTurn(),
-					getLeaderID()) < 0.1) // </advc.112>
+			if(!isAVassal() || ::hash(kGame.getGameTurn(), getLeaderID()) < 0.1) // </advc.112>
 				return DENIAL_POWER_US;
 		}
 	}
@@ -2618,8 +2619,10 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		if(!kMasterTeam.isHuman())
 		{
 			if(!bCheckAccept || // advc.104o
-					!kMasterTeam.AI_acceptSurrender(getID()))
+				!kMasterTeam.AI_acceptSurrender(getID()))
+			{
 				return DENIAL_JOKING;
+			}
 		}
 		// BETTER_BTS_AI_MOD: END
 		/*  <advc.112> Based on code in endWarVal. Don't capitulate during
@@ -2633,8 +2636,10 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		/*  <advc.104o> Make sure that UWAI::Team::considerPeace has been
 			called before surrendering. */
 		if(getUWAI.isEnabled() && kMasterTeam.isHuman() &&
-				!uwai().leaderUWAI().getCache().isReadyToCapitulate(eMasterTeam))
-			return DENIAL_RECENT_CANCEL; // </advc.104o>
+			!uwai().leaderUWAI().getCache().isReadyToCapitulate(eMasterTeam))
+		{
+			return DENIAL_RECENT_CANCEL;
+		} // </advc.104o>
 	}
 	// <advc.143>
 	if(!isVassal(eMasterTeam) || isCapitulated())

@@ -97,8 +97,10 @@ bool ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>::passFilters(AgentType c
 		break;*/
 	case FREE_MAJOR_CIV:
 		if (isMinorCiv<args>(kAgent) || !isAlive<args>(kAgent) ||
-				isAVassal<args>(kAgent))
+			isAVassal<args>(kAgent))
+		{
 			return false;
+		}
 		break;
 	/*case FREE_MAJOR_AI_CIV:
 		if (kAgent.isHuman() || isMinorCiv<args>(kAgent) ||

@@ -643,8 +643,7 @@
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryAttitudePercent>-100</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
-				<!-- advc.143: Could've just omitted the entry, but since
-					 I've added it, might as well keep it. -->
+				<!-- advc.143 -->
 				<MemoryAttitudePercent>
 					<MemoryType>MEMORY_CANCELLED_VASSAL_AGREEMENT</MemoryType>
 					<iMemoryAttitudePercent>0</iMemoryAttitudePercent>

@@ -2087,7 +2087,7 @@ int CvTeam::getTypicalUnitValue(UnitAITypes eUnitAI, DomainTypes eDomain) const
 
 int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSizeModifiers) const // K-Mod: params added
 {
-	CvGame const& g = GC.getGame();
+	CvGame const& kGame = GC.getGame();
 
 	// advc.251: To reduce rounding errors (as there are quite a few modifiers to apply)
 	scaled rCost = GC.getInfo(eTech).getResearchCost();
@@ -2096,8 +2096,8 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 	if (!isHuman() && !isBarbarian())
 	{
 		// Important to use game handicap here (not team handicap)
-		rCost *= per100(GC.getInfo(g.getHandicapType()).
-				getAIResearchPercent() + g.AIHandicapAdjustment());
+		rCost *= per100(GC.getInfo(kGame.getHandicapType()).
+				getAIResearchPercent() + kGame.AIHandicapAdjustment());
 	}
 	// <advc.910> Moved from CvPlayer::calculateResearchModifier
 	EraTypes eTechEra = (EraTypes)GC.getInfo(eTech).getEra();
@@ -2116,18 +2116,18 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 			rCost *= per100(kWorld.getResearchPercent());
 			// <advc.910>
 			rCost *= per100(GC.getInfo(GC.getMap().getSeaLevel()).getResearchPercent());
-			if (g.isOption(GAMEOPTION_ALWAYS_PEACE) &&
-				!g.isOption(GAMEOPTION_ALWAYS_WAR))
+			if (kGame.isOption(GAMEOPTION_ALWAYS_PEACE) &&
+				!kGame.isOption(GAMEOPTION_ALWAYS_WAR))
 			{
 				rCost *= per100(105);
 			}
 		}
-		else if (g.isOption(GAMEOPTION_NO_GOODY_HUTS))
+		else if (kGame.isOption(GAMEOPTION_NO_GOODY_HUTS))
 			rCost /= per100(105); // </advc.910>
-		rCost *= per100(GC.getInfo(g.getGameSpeedType()).getResearchPercent());
-		rCost *= per100(GC.getInfo(g.getStartEra()).getResearchPercent());
+		rCost *= per100(GC.getInfo(kGame.getGameSpeedType()).getResearchPercent());
+		rCost *= per100(GC.getInfo(kGame.getStartEra()).getResearchPercent());
 		// <advc.308>
-		if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) && g.getStartEra() == 0)
+		if(kGame.isOption(GAMEOPTION_RAGING_BARBARIANS) && kGame.getStartEra() == 0)
 		{
 			switch(eTechEra)
 			{
@@ -2141,7 +2141,7 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 			rModifier += per100(3);
 		} // </advc.308>
 		// <advc.550d>
-		if (g.isOption(GAMEOPTION_NO_TECH_TRADING) && eTechEra > 0 && eTechEra < 6)
+		if (kGame.isOption(GAMEOPTION_NO_TECH_TRADING) && eTechEra > 0 && eTechEra < 6)
 		{
 			static scaled const rTECH_COST_NOTRADE_MODIFIER = per100(
 					GC.getDefineINT("TECH_COST_NOTRADE_MODIFIER"));
