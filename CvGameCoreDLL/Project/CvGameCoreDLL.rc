@@ -71,7 +71,7 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "Firaxis Games"
-            VALUE "FileDescription", "Modified game core DLL for Sid Meier's Civilization 4: Beyond The Sword (Advanced Civ mod)"
+            VALUE "FileDescription", "Modified 48-civ game core DLL for Sid Meier's Civilization 4: Beyond The Sword (Advanced Civ mod)"
             VALUE "FileVersion", "0, 9, 7, 0"
             VALUE "InternalName", "Sid Meier's Civilization 4 : Beyond The Sword Game Core DLL"
             VALUE "LegalCopyright", "Copyright (C) Firaxis Games.  All Rights Reserved."

@@ -50,7 +50,7 @@
 // K-Mod (note): default is 18, some people like 48. They are not compatible.
 /*  advc.056: Scenario (WB) files are now compatible so long as the player ids in the WB file
 	don't exceed MAX_CIV_PLAYERS in the DLL. Savegames are still incompatible. */
-#define MAX_CIV_PLAYERS												(18)
+#define MAX_CIV_PLAYERS												(48)
 #else
 #define MAX_CIV_PLAYERS												(CvGlobals::getInstance().getMaxCivPlayers())
 #endif
