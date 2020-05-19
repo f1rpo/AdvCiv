@@ -3932,10 +3932,12 @@ int CvTeamAI::AI_enmityValue(TeamTypes eEnemy) const
 	if(eEnemy == NO_TEAM)
 		return 0;
 	CvTeam const& kEnemy = GET_TEAM(eEnemy);
-	FAssert(eEnemy != getID() && !kEnemy.isMinorCiv() && isHasMet(eEnemy));
+	FAssert(eEnemy != getID() && !kEnemy.isMinorCiv() && kEnemy.isHasMet(getID()));
 	if(!kEnemy.isAlive() || kEnemy.isCapitulated() ||
 		isVassal(eEnemy) || // advc.130d
-		(AI_getAttitude(eEnemy) >= ATTITUDE_CAUTIOUS && !isAtWar(eEnemy)))
+		((AI_getAttitude(eEnemy) >= ATTITUDE_CAUTIOUS ||
+		AI_getAttitude(eEnemy, false) >= ATTITUDE_CAUTIOUS) && // advc.130d
+		!isAtWar(eEnemy)))
 	{
 		return 0;
 	}
