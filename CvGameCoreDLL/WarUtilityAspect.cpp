@@ -606,6 +606,11 @@ void GreedForAssets::evaluate() {
 			log("Greed capped at %d b/c of peace-weight", ::round(cap));
 		}
 	}
+	int loveOfPeace = GC.getInfo(we->getPersonalityType()).getLoveOfPeace();
+	if(loveOfPeace > 0) {
+		uPlus *= std::max(0.1, 1 - loveOfPeace / 100.);
+		log("Greed reduced by %d percent b/c of love of peace", loveOfPeace);
+	}
 	/*  Cap utility per conquered city. Relevant mostly for One-City
 		Challenge, but may also matter on dense maps in the early game. */
 	uPlus = std::min(uPlus, 120.0 * weConquerFromThem.size());
@@ -898,9 +903,13 @@ void GreedForVassals::evaluate() {
 	}
 	utilityFromMilitary = std::min(30.0, utilityFromMilitary);
 	totalUtility += utilityFromMilitary;
-	/*  To account for downsides of vassals, in particular wars with third parties
-		that dislike the vassal: */
+	// To account for the diplo penalty from capitulated vassals
 	totalUtility -= 5;
+	int loveOfPeace = GC.getInfo(we->getPersonalityType()).getLoveOfPeace();
+	if(loveOfPeace > 0) {
+		totalUtility *= std::max(0.1, 1 - loveOfPeace / 100.);
+		log("Greed reduced by %d percent b/c of love of peace", loveOfPeace);
+	}
 	u += std::max(0, ::round(totalUtility));
 }
 
