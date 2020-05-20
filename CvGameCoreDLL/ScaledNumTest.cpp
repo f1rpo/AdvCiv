@@ -17,7 +17,7 @@ TYPEDEF_SCALED_ENUM(1024,int,CurrCombatStr)
 	at compile time.) */
 void TestScaledNum()
 {
-#ifndef SCALED_INT_TEST
+#ifndef SCALED_NUM_TEST
 	return;
 #else
 
@@ -368,7 +368,7 @@ void TestScaledNum()
 	{
 		for (int i = 0; i < 10; i++)
 		{
-			//	Result: 2087 cycles on average (scaled_int w/ MulDiv).
+			//	Result: 2087 cycles on average (scaled w/ MulDiv).
 			//	672 for scaled_uint, 579 for scaled_uint w/o overflow handling.
 			//	394 if the per100 arguments are also cast to uint.
 			//TSC_PROFILE("CONST_MODIFIERS_SCALED");
@@ -436,5 +436,5 @@ void TestScaledNum()
 		FAssert(false);
 		CvGlobals::getInstance().getLogging() = true;
 	}
-#endif // SCALED_INT_TEST
+#endif // SCALED_NUM_TEST
 }

@@ -145,7 +145,7 @@ public:
 	static IntType MAX() { return INTMAX / SCALE; }
 	static IntType MIN() { return INTMIN / SCALE; }
 
-	/*	Factory function for creating fractions (with wrapper macros per100).
+	/*	Factory function for creating fractions (with wrapper macro 'fixp').
 		Numerator and denominator as template parameters ensure
 		that the conversion to SCALE happens at compile time, so that
 		floating-point math can be used for maximal accuracy. */
