@@ -3,7 +3,7 @@
 #ifndef FIXED_POINT_POWERS_H
 #define FIXED_POINT_POWERS_H
 
-// advc.fract: Precomputed tables for ScaledInt::pow. Data exported from Excel.
+// advc.fract: Precomputed tables for ScaledNum::pow. Data exported from Excel.
 
 namespace FixedPointPowTables
 {

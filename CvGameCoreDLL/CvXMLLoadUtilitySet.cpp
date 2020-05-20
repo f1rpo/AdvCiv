@@ -684,8 +684,8 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	void TestEnumMap();
 	TestEnumMap(); // </advc.enum>
 	// <advc.fract>
-	void TestScaledInt();
-	TestScaledInt(); // </advc.fract>
+	void TestScaledNum();
+	TestScaledNum(); // </advc.fract>
 	getUWAI.doXML(); // advc.104x
 	GC.setXMLLoadUtility(this); // advc.003v
 

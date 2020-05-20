@@ -177,7 +177,7 @@
     <ClCompile Include="..\RFChapterScore.cpp" />
     <ClCompile Include="..\RFTotalScore.cpp" />
     <ClCompile Include="..\RiseFall.cpp" />
-    <ClCompile Include="..\ScaledIntTest.cpp" />
+    <ClCompile Include="..\ScaledNumTest.cpp" />
     <ClCompile Include="..\Shelf.cpp" />
     <ClCompile Include="..\StartPointsAsHandicap.cpp" />
     <ClCompile Include="..\TSCProfiler.cpp" />
@@ -327,7 +327,7 @@
     <ClInclude Include="..\MilitaryBranch.h" />
     <ClInclude Include="..\PlotRadiusIterator.h" />
     <ClInclude Include="..\PlotRange.h" />
-    <ClInclude Include="..\ScaledInt.h" />
+    <ClInclude Include="..\ScaledNum.h" />
     <ClInclude Include="..\TSCProfiler.h" />
     <ClInclude Include="..\TypeChoice.h" />
     <ClInclude Include="..\UWAISets.h" />

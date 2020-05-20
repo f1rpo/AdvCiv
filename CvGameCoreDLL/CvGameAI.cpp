@@ -179,7 +179,7 @@ scaled CvGameAI::AI_exclusiveRadiusWeight(int iDist) const
 		default: rDistMultiplier = fixp(1.5);
 		}
 		// High exponent; better use higher precision than usual.
-		ScaledInt<32*1024> rBase = 1 - rDistMultiplier *
+		ScaledNum<32*1024> rBase = 1 - rDistMultiplier *
 				per1000(GC.getDefineINT(CvGlobals::CITY_RADIUS_DECAY));
 		FAssertMsg(rBase > 0, "CITY_RADIUS_DECAY too great; negative base for scaled::pow.");
 		m_arExclusiveRadiusWeight[i] = 1 - rBase.pow(
