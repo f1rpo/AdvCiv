@@ -195,7 +195,7 @@ short CitySiteEvaluator::evaluate(int iX, int iY) const
 	return evaluate(*pPlot);
 }
 
-// <advc.300>
+// advc.300:
 void CitySiteEvaluator::discourageBarbarians(int iRange)
 {
 	m_iBarbDiscouragedRange = iRange;
@@ -406,7 +406,7 @@ short AIFoundValue::evaluate()
 	int iHealth = 0;
 
 	// K-Mod. (used to devalue cities which are unable to get any production.)
-	int iBaseProductionTimes100 = 0; // (advc.031: Times100)
+	scaled rBaseProduction; // (advc.031: scaled)
 
 	FOR_EACH_ENUM(CityPlot)
 	{
@@ -494,7 +494,7 @@ short AIFoundValue::evaluate()
 		}
 		if (bHome)
 		{
-			iBaseProductionTimes100 += 100 * aiNatureYield[YIELD_PRODUCTION];
+			rBaseProduction += aiNatureYield[YIELD_PRODUCTION];
 			iSpecialFoodPlus += std::max(0, aiNatureYield[YIELD_FOOD] -
 					GC.getFOOD_CONSUMPTION_PER_POPULATION());
 		}
@@ -524,12 +524,9 @@ short AIFoundValue::evaluate()
 			}
 			// K-Mod. add non-home plot production to BaseProduction.
 			if (!bShare)
-				iBaseProductionTimes100 += 100 * aiNatureYield[YIELD_PRODUCTION];
+				rBaseProduction += aiNatureYield[YIELD_PRODUCTION];
 			if (!bSteal)
-			{
-				iBaseProductionTimes100 += estimateImprovementProduction(
-						p, bPersistentFeature);
-			}
+				rBaseProduction += estimateImprovementProduction(p, bPersistentFeature);
 			if (!p.isWater())
 			{
 				// freshwater health (home plot) will be counted later
@@ -656,10 +653,10 @@ short AIFoundValue::evaluate()
 				kArea.getCitiesPerPlayer(ePlayer) == 0 &&
 				!bAnyForeignOwned && iResourceValue > 0 && kSet.isSeafaring(),
 				// <advc.031>
-				0.7 * ::dRange(
-				std::min(iBaseProductionTimes100/100.0 + aiSpecialYield[YIELD_PRODUCTION],
+				fixp(0.7) * scaled::clamp(
+				scaled::min(rBaseProduction + aiSpecialYield[YIELD_PRODUCTION],
 				// Probably can't work high-production tiles when there is no food
-				4.0 * (1 + iGreenTiles + iSpecialFoodPlus)) / 18.0, 0.1, 2.0),
+				scaled(4 * (1 + iGreenTiles + iSpecialFoodPlus), 18)), fixp(0.1), 2),
 				iLandTiles); // </advc.031>
 	}
 	iValue += evaluateDefense();
@@ -674,8 +671,8 @@ short AIFoundValue::evaluate()
 		// </advc.031>
 	}
 
-	iBaseProductionTimes100 += 100 * aiSpecialYield[YIELD_PRODUCTION]; // K-Mod
-	iValue = adjustToProduction(iValue, iBaseProductionTimes100);
+	rBaseProduction += aiSpecialYield[YIELD_PRODUCTION]; // K-Mod
+	iValue = adjustToProduction(iValue, rBaseProduction);
 
 	// <advc.031>
 	if (iResourceValue <= 0 && iSpecialFoodPlus <= 0 &&
@@ -1067,7 +1064,7 @@ int AIFoundValue::baseCityValue() const
 	// <advc.108>
 	else if(iCities <= 0)
 	{
-		int const iCapitalValue = ::round(50 * std::sqrt((double)iUnrevealedTiles));
+		int const iCapitalValue = (50 * scaled(iUnrevealedTiles).sqrt()).round();
 		IFLOG if(iCapitalValue>0) logBBAI("+%d base value for unrevealed tiles near initial city", iCapitalValue);
 		r += iCapitalValue;
 	} // </advc.108>
@@ -1512,7 +1509,7 @@ int AIFoundValue::calculateCultureModifier(CvPlot const& p, bool bForeignOwned,
 	Note: Any additional production from improving a bonus resource
 	is counted as iSpecialProduction elsewhere. This function ignores
 	bonus resources. */
-int AIFoundValue::estimateImprovementProduction(CvPlot const& p,
+scaled AIFoundValue::estimateImprovementProduction(CvPlot const& p,
 	bool bPersistentFeature) const
 {
 	if (p.isWater())
@@ -1531,17 +1528,17 @@ int AIFoundValue::estimateImprovementProduction(CvPlot const& p,
 		if (iProductionChange > 0)
 		{
 			// 0.5 for chopping or Lumbermill (I shouldn't hardcode it like this ...)
-			return iProductionChange * 100 + 50;
+			return iProductionChange + fixp(0.5);
 		}
 	}
 	if (iCities <= 2)
 	{
-		int r = 0;
+		scaled r;
 		if(p.isHills())
-			r += 200;
+			r += 2;
 		return r;
 	}
-	int r = 0;
+	scaled r;
 	FOR_EACH_ENUM(Improvement)
 	{
 		// Not a perfectly safe way to check if we can build the improvement - but fast.
@@ -1566,7 +1563,7 @@ int AIFoundValue::estimateImprovementProduction(CvPlot const& p,
 		if (iYieldChange <= 0 || !p.canHaveImprovement(eLoopImprovement, eTeam))
 			continue;
 		FAssertMsg(iYieldChange <= 3, "is this much production possible?");
-		r = std::max(r, 100 * iYieldChange);
+		r.increaseTo(iYieldChange);
 	}
 	return r; // </advc.031>
 }
@@ -1704,7 +1701,7 @@ int AIFoundValue::foundOnResourceValue(int const* aiBonusImprovementYield) const
 	{
 		int iImprovementYieldValue = evaluateYield(aiBonusImprovementYield);
 		if (iImprovementYieldValue > 0) // Make sure not to exponentiate a negative value
-			r -= ::round(std::pow((double)iImprovementYieldValue, 1.5) / 4.2);
+			r -= (scaled(iImprovementYieldValue).pow(fixp(1.5)) / fixp(4.2)).round();
 	}
 	/*	In (historical) scenarios, resources are sometimes placed just so that the AI
 		doesn't settle in a particular tile. Try -a little bit- to respect that. */
@@ -1924,7 +1921,7 @@ void AIFoundValue::calculateSpecialYields(CvPlot const& p,
 	// </advc.031>
 }
 
-// <advc.031> Weighted sum
+// advc.031: Weighted sum
 int AIFoundValue::sumUpPlotValues(std::vector<int>& aiPlotValues) const
 {
 	std::sort(aiPlotValues.begin(), aiPlotValues.end(), std::greater<int>());
@@ -1955,7 +1952,7 @@ int AIFoundValue::sumUpPlotValues(std::vector<int>& aiPlotValues) const
 	}
 	IFLOG logBBAI("Weighted sum of plot values:\n+%d", r);
 	return r;
-} // </advc.031>
+}
 
 /*	Note: aiSpecialYield includes aiNatureYield. Thus, nature yield is counted twice:
 	once in evaluateYield, a second time in evaluateSpecialYield. This was already
@@ -1974,16 +1971,16 @@ int AIFoundValue::evaluateSpecialYields(int const* aiSpecialYield,
 		Don't value it highly, because it's also counted in a bunch of other ways. */
 	//return iSpecialFood*20+iSpecialProduction*40+iSpecialCommerce*35;
 	// <advc.031>
-	double weight[NUM_YIELD_TYPES] = {0.24, 0.36,
+	scaled arWeight[NUM_YIELD_TYPES] = {fixp(0.24), fixp(0.36),
 			/*  advc.108: For moving the starting Settler. Though a commercial
 				resource at the second city is also valuable, so: */
-			iCities <= 1 && eEra <= 0 ? 0.48 : 0.32};
-	double const div = iSpecialYieldTiles;
-	double fromSpecial = 0;
+			iCities <= 1 && eEra <= 0 ? fixp(0.48) : fixp(0.32)};
+	scaled const rDiv = iSpecialYieldTiles;
+	scaled rFromSpecial;
 	FOR_EACH_ENUM(Yield)
-		fromSpecial += aiSpecialYield[eLoopYield] / div * weight[eLoopYield];
-	if(fromSpecial > 0)
-		fromSpecial = std::pow(fromSpecial, 1.5) * 75 * iSpecialYieldTiles;
+		rFromSpecial += (aiSpecialYield[eLoopYield] / rDiv) * arWeight[eLoopYield];
+	if(rFromSpecial > 0)
+		rFromSpecial = rFromSpecial.pow(fixp(1.5)) * 75 * iSpecialYieldTiles;
 	// advc.031: Apply the BtS/K-Mod food modifier only to the special yield value
 	int iFoodSurplus = std::max(0, iSpecialFoodPlus - iSpecialFoodMinus);
 	int iFoodDeficit = std::max(0, iSpecialFoodMinus - iSpecialFoodPlus);
@@ -1994,17 +1991,20 @@ int AIFoundValue::evaluateSpecialYields(int const* aiSpecialYield,
 			(iFoodSurplus + iSpecialFoodPlus)/2,
 			2 * GC.getFOOD_CONSUMPTION_PER_POPULATION());
 	r /= 100 + (kSet.isExpansive() ? 20 : 15) * iFoodDeficit;*/ // K-Mod end
-	// Turn it into a single multiplier ...
-	double modifier = (100.0 + (kSet.isExpansive() ? 20 : 15) * std::min(
-			(iFoodSurplus + iSpecialFoodPlus) / 2,
-			2 * GC.getFOOD_CONSUMPTION_PER_POPULATION())) /
-			(100.0 + (kSet.isExpansive() ? 20 : 15) * iFoodDeficit);
+	// Turn it into a single multiplier 'rFoodModifier' ...
+	scaled rFoodWeight = fixp(0.15);
+	if (kSet.isExpansive())
+		rFoodWeight += fixp(0.05);
+	scaled rSurplusMean(iFoodSurplus + iSpecialFoodPlus, 2);
+	rSurplusMean.decreaseTo(2 * GC.getFOOD_CONSUMPTION_PER_POPULATION());
+	scaled rFoodModifier = (1 + rFoodWeight * rSurplusMean) /
+			(1 + rFoodWeight * iFoodDeficit);
 	// ... and reduce the impact b/c of new food modifier in adjustToFood
 	modifier = (modifier + 2) / 3;
 	int r = ::round(fromSpecial * modifier);
 	IFLOG logBBAI("+%d from special yields %dF%dP%dC (food surplus modifier: %d percent)", r,
 			aiSpecialYield[YIELD_FOOD], aiSpecialYield[YIELD_PRODUCTION], aiSpecialYield[YIELD_COMMERCE],
-			::round(100 * modifier));
+			rFoodModifier.getPercent());
 	return r;
 	// </advc.031>
 }
@@ -2020,23 +2020,23 @@ bool AIFoundValue::isTooManyTakenTiles(int iTaken, int iResourceValue,
 			iResourceValue < 800)); // </advc.031>
 }
 
-/*	<advc.031> Unlike the food modifier in evaluateSpecialYields, this modifier applies
+/*	advc.031: Unlike the food modifier in evaluateSpecialYields, this modifier applies
 	to all yields and takes into account grassland farms.*/
 int AIFoundValue::adjustToFood(int iValue, int iSpecialFoodPlus, int iSpecialFoodMinus,
 	int iGreenTiles) const
 {
-	double lowFoodModifier = 1;
+	scaled rLowFoodModifier = 1;
 	if (eEra < 4)
 	{
 		int iSpecialSurplus = (iSpecialFoodPlus - iSpecialFoodMinus + 1) / 2; // ceil
-		lowFoodModifier = (8.5 + iGreenTiles + iSpecialSurplus) / 11.5;
-		lowFoodModifier = ::dRange(lowFoodModifier, 0.5, 1.0);
+		rLowFoodModifier = (fixp(8.5) + iGreenTiles + iSpecialSurplus) / fixp(11.5);
+		rLowFoodModifier.clamp(fixp(0.5), 1);
 	}
-	IFLOG if(::round(100*lowFoodModifier)!=100) logBBAI("Times %d percent for lack of food "
-			"(special food +/-: %d/%d, green tiles: %d)", ::round(100 * lowFoodModifier),
+	IFLOG if(rLowFoodModifier.getPercent()!=100) logBBAI("Times %d percent for lack of food "
+			"(special food +/-: %d/%d, green tiles: %d)", rLowFoodModifier.getPercent(),
 			iSpecialFoodPlus, iSpecialFoodMinus, iGreenTiles);
-	return ::round(iValue * lowFoodModifier);
-} // </advc.031>
+	return (iValue * rLowFoodModifier).round();
+}
 
 // (adjustToBadHealth deals with short-term health)
 int AIFoundValue::evaluateLongTermHealth(int& iHealthPercent) const
@@ -2073,7 +2073,7 @@ int AIFoundValue::evaluateFeatureProduction(int iProduction) const
 } // </advc.031>
 
 
-int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, double productionModifier,
+int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, scaled rProductionModifier,
 	int iLandTiles) const
 {
 	int r = 0;
@@ -2138,11 +2138,11 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, double productionModi
 		}
 	}  // <advc.031>
 	// Modify based on production (since the point is to build a navy)
-	double mult = productionModifier;
+	scaled rMult = rProductionModifier;
 	// That's the name of the .py file; not language-dependent.
 	if (GC.getInitCore().getMapScriptName().compare(L"Pangaea") == 0)
-		mult /= 2;
-	r = ::round(r * mult);
+		rMult /= 2;
+	r = (r * rMult).round();
 	// Encourage canals
 	int iCanal = 0;
 	if (pWaterArea != NULL &&
@@ -2299,30 +2299,27 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 }
 
 
-int AIFoundValue::adjustToProduction(int iValue, int iBaseProductionTimes100) const
+int AIFoundValue::adjustToProduction(int iValue, scaled rBaseProduction) const
 {
 	// K-Mod. reduce value of cities which will struggle to get any productivity.
 	// <advc.040>
 	if(bFirstColony)
 	{
-		iBaseProductionTimes100 += std::max(iUnrevealedTiles * 50,
-				(iBaseProductionTimes100 * iUnrevealedTiles) / NUM_CITY_PLOTS);
+		rBaseProduction += scaled::max(iUnrevealedTiles * fixp(0.5),
+				(rBaseProduction * iUnrevealedTiles) / NUM_CITY_PLOTS);
 	} // </advc.040>
-	// <advc.031> 
-	iBaseProductionTimes100 = std::max(iBaseProductionTimes100,
-			100 * GC.getInfo(YIELD_PRODUCTION).getMinCity()); // </advc.031>
+	rBaseProduction.increaseTo(GC.getInfo(YIELD_PRODUCTION).getMinCity()); // advc.031
 	FAssert(!isRevealed(kPlot) ||
 			// advc.test: I've seen this fail when there are Gems under Jungle (fixme)
-			iBaseProductionTimes100 >= 100 * GC.getInfo(YIELD_PRODUCTION).getMinCity());
-	int iThreshold = 850; // advc.031: was 900
+			rBaseProduction >= GC.getInfo(YIELD_PRODUCTION).getMinCity());
+	scaled rThreshold = fixp(8.5); // advc.031: was 9
 	// <advc.303> Can't expect that much production from just the inner ring.
 	if(bBarbarian)
-		iThreshold = 400; // </advc.303>
-	if (iBaseProductionTimes100 < iThreshold)
+		rThreshold = 4; // </advc.303>
+	if (rBaseProduction < rThreshold)
 	{
-		iValue = ::round(iValue * iBaseProductionTimes100 / iThreshold);
-		IFLOG logBBAI("Times %d percent for low production (%d/100)",
-				::round(iBaseProductionTimes100*100 / (double)iThreshold), iBaseProductionTimes100);
+		iValue = ((iValue * rBaseProduction) / rThreshold).round();
+		IFLOG logBBAI("Times (%d/%d) for low production", rBaseProduction.getPercent(), rThreshold.getPercent());
 	} // K-Mod end
 	return iValue;
 }
@@ -2466,19 +2463,19 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 			/*  Between 130 (Alexander, G. Khan, Louis, Montezuma) and
 				80 (Gandhi, Joao, Justinian). A leader who likes limited war
 				should be less concerned about creating border troubles. */
-			double diploFactor = (kPlayer.isHuman() && !kSet.isDebug() ? 100 :
+			scaled rDiploFactor = (kPlayer.isHuman() && !kSet.isDebug() ? 100 :
 					GC.getInfo(kPlayer.getPersonalityType()).getLimitedWarPowerRatio());
 			if (kSet.isDefensive())
-				diploFactor += 33;
+				rDiploFactor += 33;
 			if (kPlot.isHills())
-				diploFactor += 16;
+				rDiploFactor += 16;
 			// The importance of a few stolen tiles decreases over time
-			diploFactor += eEra * 13;
-			diploFactor = 1.6 * diploFactor / iStealPercent;
-			diploFactor = ::dRange(diploFactor, 0.6, 1.0);
-			iValue = ::round(iValue * diploFactor);
+			rDiploFactor += eEra * 13;
+			rDiploFactor = fixp(1.6) * rDiploFactor / iStealPercent;
+			rDiploFactor.clamp(fixp(0.6), 1);
+			iValue = (iValue * rDiploFactor).round();
 			IFLOG logBBAI("Times %d percent (diplo modifier) from stealing %d/100 tiles",
-					::round(100 * diploFactor), iStealPercent);
+					rDiploFactor.getPercent(), iStealPercent);
 		} // </advc.031>
 	}  // <advc.108> Avoid moving the starting settler far on crowded maps
 	else if (iCities <= 0 && !kSet.isStartingLoc() &&
@@ -2491,11 +2488,11 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 			int iDistFromStart = plotDistance(kPlayer.getStartingPlot(), &kPlot);
 			if (iDistFromStart > 1)
 			{
-				double multiplier = iRecommended / (double)
-						(iCivAlive + std::min(iDistFromStart, 5) - 1);
+				scaled rMultiplier(iRecommended,
+						iCivAlive + std::min(iDistFromStart, 5) - 1);
 				IFLOG logBBAI("Times %d percent for moving starting Settler %d tiles on a crowded map",
-						::round(100 * multiplier), iDistFromStart);
-				iValue = ::round(iValue * multiplier);
+						rMultiplier.getPercent(), iDistFromStart);
+				iValue = (iValue * rMultiplier).round();
 			}
 		}
 	} // </advc.108>
@@ -2556,14 +2553,14 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 			iValue /= 100 + iShapeWeight;*/
 			// K-Mod end
 			// <advc> I'm folding this into a single multiplier for easier debugging
-			double const shapeWeight = (kSet.isAdvancedStart() ? 0.5 :
-					(kSet.isAmbitious() ? 0.15 : 0.3));
-			double shapeModifier = (1 + shapeWeight * std::max(0,
+			scaled const rShapeWeight = (kSet.isAdvancedStart() ? fixp(0.5) :
+					(kSet.isAmbitious() ? fixp(0.15) : fixp(0.3)));
+			scaled rShapeModifier = (1 + rShapeWeight * std::max(0,
 					iMaxDistanceFromCapital - iDistanceToCapital) /
-					iMaxDistanceFromCapital) / (1 + shapeWeight);
-			iValue = ::round(iValue * shapeModifier); // </advc>
+					iMaxDistanceFromCapital) / (1 + rShapeWeight);
+			iValue = (iValue * rShapeModifier).round(); // </advc>
 			IFLOG logBBAI("Times %d percent (shape modifier); distance from capital: %d, max. distance: %d",
-					::round(100 * shapeModifier), iDistanceToCapital, iMaxDistanceFromCapital);
+					rShapeModifier.getPercent(), iDistanceToCapital, iMaxDistanceFromCapital);
 		}
 		return iValue;
 	}
@@ -2636,9 +2633,9 @@ int AIFoundValue::adjustToBonusCount(int iValue,
 			iBonusCount += aiBonusCount[eLoopBonus];
 			iUniqueBonusCount += (aiBonusCount[eLoopBonus] > 0 ? 1 : 0);
 		}
-		double modifier = 1; // advc: No functional change except rounding
+		scaled rModifier = 1; // advc: No functional change except rounding
 		if (iBonusCount > 4) 
-			modifier *= 5.0 / (1 + iBonusCount);
+			rModifier.mulDiv(5, 1 + iBonusCount);
 		/*else if (iUniqueBonusCount > 2) {
 			iValue *= 5;
 			iValue /= (3 + iUniqueBonusCount);
@@ -2648,12 +2645,12 @@ int AIFoundValue::adjustToBonusCount(int iValue,
 			but iBonus < 5 (unique or not) shouldn't be discouraged at all. */
 		if (iBonusCount + iUniqueBonusCount >= 10)
 		{
-			modifier *= std::max(0.7, (1 - 0.08 *
-					(iBonusCount + iUniqueBonusCount - 9)));
+			rModifier *= scaled::max(fixp(0.7),
+					(1 - fixp(0.08) * (iBonusCount + iUniqueBonusCount - 9)));
 		}
-		iValue = ::round(iValue * modifier);
-		IFLOG if(::round(100*modifier)!=100) logBBAI("Times %d percent for high resource count (%d resources, %d unique)",
-				::round(100 * modifier), iBonusCount, iUniqueBonusCount);
+		iValue = (iValue * rModifier).round();
+		IFLOG if(rModifier.getPercent()!=100) logBBAI("Times %d percent for high resource count (%d resources, %d unique)",
+				rModifier.getPercent(), iBonusCount, iUniqueBonusCount);
 	}
 	if (!bBarbarian) // advc.303
 	{
@@ -2671,7 +2668,7 @@ int AIFoundValue::adjustToBonusCount(int iValue,
 
 int AIFoundValue::adjustToBadTiles(int iValue, int iBadTiles) const
 {
-	int r = iValue;
+	scaled r = iValue;
 	// <advc.040>
 	if(bFirstColony)
 		iBadTiles += iUnrevealedTiles / 2; // </advc.040>
@@ -2680,17 +2677,16 @@ int AIFoundValue::adjustToBadTiles(int iValue, int iBadTiles) const
 	{
 		/*	A scenario is more likely to mix some very good tiles with a lot of
 			bad ones. Better to be more conservative on regular maps. */
-		double const exponent = (kGame.isScenario() ? 1.385 : 1.5);
-		r -= ::round(std::pow((double)iBadTiles, exponent) *
-				(35.0 + (kSet.isStartingLoc() ?
-				50 : 0) + (iCities <= 0 ? 50 : 0))); // advc.108
-		r = std::max(0, r);
+		scaled const rExponent = (kGame.isScenario() ? fixp(1.385) : fixp(1.5));
+		r -= scaled(iBadTiles).pow(rExponent) * (35 + (kSet.isStartingLoc() ?
+				50 : 0) + (iCities <= 0 ? 50 : 0)); // advc.108
+		r.increaseTo(0);
 	} // </advc.031>
-	IFLOG if(r!=iValue) logBBAI("%d from %d bad tiles too many", r - iValue, iBadTiles);
-	return r;
+	IFLOG if(r.round()!=iValue) logBBAI("%d from %d bad tiles too many", r.round() - iValue, iBadTiles);
+	return r.round();
 }
 
-// <advc.031> Stifling bad health needs to be discouraged rigorously
+// advc.031: Stifling bad health needs to be discouraged rigorously
 int AIFoundValue::adjustToBadHealth(int iValue, int iGoodHealth) const
 {
 	int iBonusHealth = 0;
@@ -2713,7 +2709,7 @@ int AIFoundValue::adjustToBadHealth(int iValue, int iGoodHealth) const
 		IFLOG if (iDiv>1) logBBAI("Times %d/%d for bad health", iMult, iDiv);
 	}
 	return iValue;
-} // </advc.031>
+}
 
 // advc: Moved from CvPlayerAI since it's only used for computing found values
 int AIFoundValue::countDeadlockedBonuses() const

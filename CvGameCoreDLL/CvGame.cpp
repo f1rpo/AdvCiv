@@ -1156,8 +1156,8 @@ void CvGame::assignStartingPlots()
 			int iSkipped = 0;
 			for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 			{
-				CvPlayer& civ = GET_PLAYER((PlayerTypes)i);
-				if(civ.isAlive() && civ.isHuman() == bHuman)
+				CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)i);
+				if(kPlayer.isAlive() && kPlayer.isHuman() == bHuman)
 				{
 					if(iSkipped < iRandOffset)
 					{

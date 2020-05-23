@@ -181,6 +181,7 @@ protected:
 	bool AI_goody(int iRange);
 	bool AI_explore();
 	bool AI_exploreRange(int iRange);
+	bool AI_foundFirstCity(); // advc.108
 
 	// BETTER_BTS_AI_MOD, War tactics AI, 03/29/10, jdog5000: START
 	CvCity* AI_pickTargetCity(int iFlags = 0, int iMaxPathTurns = MAX_INT, bool bHuntBarbs = false);

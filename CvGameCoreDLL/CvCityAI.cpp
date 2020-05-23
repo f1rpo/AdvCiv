@@ -6291,14 +6291,14 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 {
 	PROFILE_FUNC();
 
-	bool bOffenseWar = (getArea().getAreaAIType(getTeam()) == AREAAI_OFFENSIVE ||
+	bool const bOffenseWar = (getArea().getAreaAIType(getTeam()) == AREAAI_OFFENSIVE ||
 			getArea().getAreaAIType(getTeam()) == AREAAI_MASSING);
-	bool bDefenseWar = (getArea().getAreaAIType(getTeam()) == AREAAI_DEFENSIVE);
-	CvGame const& g = GC.getGame();
+	bool const bDefenseWar = (getArea().getAreaAIType(getTeam()) == AREAAI_DEFENSIVE);
+	CvGame const& kGame = GC.getGame();
 	int iDefenders = 1;
 	if (isBarbarian())
 	{
-		iDefenders = GC.getInfo(g.getHandicapType()).getBarbarianInitialDefenders();
+		iDefenders = GC.getInfo(kGame.getHandicapType()).getBarbarianInitialDefenders();
 		iDefenders += (getPopulation() + 2) / 7;
 		return iDefenders;
 	} // advc.003n: Switched these two branches
@@ -6311,8 +6311,10 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 	{
 		iDefenders++;
 		if(kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1) ||
-				kOwner.AI_isDoStrategy(AI_STRATEGY_TURTLE))
+			kOwner.AI_isDoStrategy(AI_STRATEGY_TURTLE))
+		{
 			iDefenders++;
+		}
 	}
 	/*  advc.300: When Barbarians are a big threat and civs aren't, free up units
 		for fog-busting (CvUnitAI::AI_guardCitySite) and guarding food bonuses. */
@@ -6337,13 +6339,13 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 			iDefenders++;
 	}
 
-	if (g.getGameTurn() - getGameTurnAcquired() < 10)
+	if (kGame.getGameTurn() - getGameTurnAcquired() < 10)
 	{	/*if (bOffenseWar) {
 			if (!hasActiveWorldWonder() && !isHolyCity()) {
 				iDefenders /= 2;
 				iDefenders = std::max(1, iDefenders);
 			}
-		} if (g.getGameTurn() - getGameTurnAcquired() < 10) {
+		} if (kGame.getGameTurn() - getGameTurnAcquired() < 10) {
 			iDefenders = std::max(2, iDefenders);
 			if (AI_isDanger())
 				iDefenders ++;
@@ -6353,13 +6355,15 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 		iDefenders = std::max(2, iDefenders);
 
 		if (bOffenseWar && getTotalDefense(true) > 0 &&
-				!hasActiveWorldWonder() && !isHolyCity())
+			!hasActiveWorldWonder() && !isHolyCity())
+		{
 			iDefenders /= 2;
-
-		if (!bConstCache // advc.001n: Can lead to an update of the border danger cache
-				&& AI_isDanger())
+		}
+		if (!bConstCache && // advc.001n: Can lead to an update of the border danger cache
+			AI_isDanger())
+		{
 			iDefenders++;
-
+		}
 		if (bDefenseWar)
 			iDefenders++;
 	}
@@ -6370,7 +6374,7 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 	if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3))
 	{
 		if (findCommerceRateRank(COMMERCE_CULTURE) <=
-				g.culturalVictoryNumCultureCities())
+			kGame.culturalVictoryNumCultureCities())
 		{
 			iDefenders += 4;
 			if (bDefenseWar /* cdtw: */ || isCoastal())
@@ -6555,7 +6559,7 @@ int CvCityAI::AI_neededAirDefenders(/* advc.001n: */ bool bConstCache) /* advc: 
 bool CvCityAI::AI_isDanger() /* advc: */ const
 {
 	// BETTER_BTS_AI_MOD, City AI, Efficiency, 08/20/09, jdog5000: was AI_getPlotDanger
-	return GET_PLAYER(getOwner()).AI_isAnyPlotDanger(*plot(), 2, false);
+	return GET_PLAYER(getOwner()).AI_isAnyPlotDanger(getPlot(), 2, false);
 }
 
 // <advc.139>

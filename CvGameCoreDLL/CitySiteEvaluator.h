@@ -146,7 +146,7 @@ private:
 	int calculateCultureModifier(CvPlot const& p, bool bForeignOwned, bool bShare,
 			bool bCityRadius, bool bSteal, bool bFlip, bool bOwnExcl,
 			int& iTakenTiles, int& iStealPercent) const;
-	int estimateImprovementProduction(CvPlot const& p, bool bPersistentFeature) const;
+	scaled estimateImprovementProduction(CvPlot const& p, bool bPersistentFeature) const;
 	int evaluateYield(int const* aiYield, CvPlot const* p = NULL,
 			bool bCanNeverImprove = false) const;
 	int evaluateFreshWater(CvPlot const& p, int const* aiYield, bool bSteal,
@@ -167,13 +167,13 @@ private:
 	bool isTooManyTakenTiles(int iTaken, int iResourceValue, bool bLowValue) const;
 	int evaluateLongTermHealth(int& iHealthPercent) const;
 	int evaluateFeatureProduction(int iProduction) const;
-	int evaluateSeaAccess(bool bGoodFirstColony, double productionModifier,
+	int evaluateSeaAccess(bool bGoodFirstColony, scaled rProductionModifier,
 			int iLandTiles) const;
 	int evaluateDefense() const;
 	int adjustToStartingSurroundings(int iValue) const;
 	int adjustToFood(int iValue, int iSpecialFoodPlus, int iSpecialFoodMinus,
 			int iGreenTiles) const;
-	int adjustToProduction(int iValue, int iBaseProductionTimes100) const;
+	int adjustToProduction(int iValue, scaled rBaseProduction) const;
 	int adjustToBarbarianSurroundings(int iValue) const;
 	int adjustToCivSurroundings(int iValue, int iStealPercent) const;
 	int adjustToCitiesPerArea(int iValue) const;

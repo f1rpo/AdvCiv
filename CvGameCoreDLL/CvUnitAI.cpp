@@ -1364,114 +1364,27 @@ void CvUnitAI::AI_animalMove()
 void CvUnitAI::AI_settleMove()
 {
 	PROFILE_FUNC();
-	CvGame const& g = GC.getGame(); // advc
-	CvPlayerAI& kOwner = GET_PLAYER(getOwner()); // K-Mod
-	int iMoveFlags = MOVE_NO_ENEMY_TERRITORY; // K-Mod
+
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // K-Mod
+	int const iMoveFlags = MOVE_NO_ENEMY_TERRITORY; // K-Mod
 
 	if (kOwner.getNumCities() == 0)
-	{	// advc.108: Merged this from the Better BUG AI mod
-		// Afforess & Fuyu, Check for Good City Sites Near Starting Location, 09/18/10, START:
-		// <advc>
-		CvGameSpeedInfo const& kSpeed = GC.getInfo(g.getGameSpeedType());
-		/*  Earlier exploreMove may have revealed more tiles. Don't set bStartingLoc;
-			that setting rules out e.g. plots with a goody hut or at the edge of a
-			flat map. I've added some getNumCities()<=0 checks to AI_foundValue. */
-		kOwner.AI_updateFoundValues(false); // </advc>
-		int iGameSpeedPercent = ((2 * kSpeed.getTrainPercent())
-				+ kSpeed.getConstructPercent() + kSpeed.getResearchPercent()) / 4;
-		int iMaxFoundTurn = (iGameSpeedPercent + 50) / 150; //quick 0, normal/epic 1, marathon 2
-		if(!g.isScenario() && // advc: Let the creator of the scenario decide where the AI settles
-			canMove() && !kOwner.AI_isPlotCitySite(getPlot()) && g.getElapsedGameTurns() <= iMaxFoundTurn)
-		{
-			int iBestValue = 0;
-			int iBestFoundTurn = 0;
-			CvPlot* pBestPlot = NULL;
-
-			for (int iCitySite = 0; iCitySite < kOwner.AI_getNumCitySites(); iCitySite++)
-			{
-				CvPlot* pCitySite = kOwner.AI_getCitySite(iCitySite);
-				if(!AI_canEnterByLand(pCitySite->getArea()) && // advc.030 (replacing same-area check)
-					!canMoveAllTerrain())
-				{
-					continue;
-				}
-				//int iPlotValue = kOwner.AI_foundValue(pCitySite->getX(), pCitySite->getY());
-				int iPlotValue = pCitySite->getFoundValue(kOwner.getID());
-				if(iPlotValue <= iBestValue)
-					continue;
-				//Can this unit reach the plot this turn? (getPathLastNode()->m_iData2 == 1)
-				//Will this unit still have movement points left to found the city the same turn? (getPathLastNode()->m_iData1 > 0))
-				if (generatePath(pCitySite))
-				{
-					int iFoundTurn = g.getElapsedGameTurns() +
-							/*getPathLastNode()->m_iData2 -
-							(getPathLastNode()->m_iData1 > 0 ? 1 : 0);*/
-							// advc: Adapted to K-Mod pathfinder
-							getPathFinder().GetPathTurns() -
-							(getPathFinder().GetFinalMoves() > 0 ? 1 : 0);
-					if (iFoundTurn <= iMaxFoundTurn)
-					{
-						iPlotValue *= 100; //more precision
-						/*  the slower the game speed, the less penality the plotvalue
-							gets for long walks towards it.
-							On normal it's -18% per turn */
-						/*  advc: 18% seems a bit much; try 15%. K-Mod found values
-							aren't quite on the same scale as BBAI. */
-						iPlotValue *= 100 - std::min(100, ((1500/
-								std::max(1, iGameSpeedPercent)) * iFoundTurn));
-						iPlotValue /= 100;
-						if (iPlotValue > iBestValue)
-						{
-							iBestValue = iPlotValue;
-							iBestFoundTurn = iFoundTurn;
-							pBestPlot = pCitySite;
-						}
-					}
-				}
-			}
-			if (pBestPlot != NULL)
-			{
-				//Don't give up coast or river, don't settle on bonus with food
-				/*if ((getPlot().isRiver() && !pBestPlot->isRiver())
-					|| (getPlot().isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN()) && !pBestPlot->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
-					|| (pBestPlot->getBonusType(NO_TEAM) != NO_BONUS && pBestPlot->calculateNatureYield(YIELD_FOOD, getTeam(), true) > 0))*/
-				// advc: I think AI_foundValue can handle the other stuff
-				if(getPlot().isFreshWater() && !pBestPlot->isFreshWater())
-				{
-					pBestPlot = NULL;
-				}
-			}
-
-			if (pBestPlot != NULL)
-			{
-				if (gUnitLogLevel >= 2)
-				{
-					logBBAI("    Settler not founding in place but moving %d, %d to nearby city site at %d, %d (%d turns away) with value %d)", (pBestPlot->getX() - getX()), (pBestPlot->getY() - getY()), pBestPlot->getX(), pBestPlot->getY(), iBestFoundTurn, iBestValue);
-				}
-				getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX(), pBestPlot->getY(), MOVE_SAFE_TERRITORY, false, false, MISSIONAI_FOUND, pBestPlot);
-				return;
-			}
-		}
-		// Afforess & Fuyu: END
-		if (canFound(plot()))
-		{
-			if (gUnitLogLevel >= 2) logBBAI("    Settler founding in place");
-			getGroup()->pushMission(MISSION_FOUND);
+	{
+		if (AI_foundFirstCity()) // advc.108: Moved into new function
 			return;
-		}
 	}
-
 	/*int iDanger = kOwner.AI_getPlotDanger(plot(), 3);
 	if (iDanger > 0) {
 		if ((getPlot().getOwner() == getOwner()) || (iDanger > 2))*/ // BtS
+	bool const bDanger = kOwner.AI_isAnyPlotDanger(getPlot()); // advc.opt
 	// K-Mod
-	if (kOwner.AI_isAnyPlotDanger(getPlot()))
+	if (bDanger)
 	{
 		//int iOurDefence = getGroup()->AI_sumStrength(0); // not counting defensive bonuses
 		//int iEnemyAttack = kOwner.AI_localAttackStrength(plot(), NO_TEAM, getDomainType(), 2, true);
 		if (!getGroup()->canDefend() ||
-				100 * kOwner.AI_localAttackStrength(plot(), NO_TEAM) >
-				80 * AI_getGroup()->AI_sumStrength(0))
+			100 * kOwner.AI_localAttackStrength(plot(), NO_TEAM) >
+			80 * AI_getGroup()->AI_sumStrength(0))
 	// K-Mod end
 		{	// flee
 			joinGroup(NULL);
@@ -1494,14 +1407,11 @@ void CvUnitAI::AI_settleMove()
 			// UNOFFICIAL_PATCH: Only count city sites we can get to
 			generatePath(pCitySitePlot, iMoveFlags, true))
 		{
-			if (plot() == pCitySitePlot)
+			if (plot() == pCitySitePlot && canFound(plot()))
 			{
-				if (canFound(plot()))
-				{
-					if (gUnitLogLevel >= 2) logBBAI("    Settler founding in place since it's at a city site %d, %d", getX(), getY());
-					getGroup()->pushMission(MISSION_FOUND);
-					return;
-				}
+				if (gUnitLogLevel >= 2) logBBAI("    Settler founding in place since it's at a city site %d, %d", getX(), getY());
+				getGroup()->pushMission(MISSION_FOUND);
+				return;
 			}
 			// K-Mod. If we are already heading to this site, then keep going.
 			// (disabled. This is no longer required - I hope.)
@@ -1534,9 +1444,7 @@ void CvUnitAI::AI_settleMove()
 	if (getPlot().isCity() && getPlot().getOwner() == getOwner())
 	{
 		if (kOwner.AI_isFinancialTrouble())
-		{
 			iOtherBestFoundValue = 0;
-		}
 	} // BETTER_BTS_AI_MOD: END
 
 	if (iAreaBestFoundValue == 0 && iOtherBestFoundValue == 0)
@@ -1545,7 +1453,6 @@ void CvUnitAI::AI_settleMove()
 		{
 			if (getTransportUnit() != NULL)
 				getTransportUnit()->unloadAll();
-
 			if (getTransportUnit() == NULL)
 			{
 				// BETTER_BTS_AI_MOD, Unit AI, 11/30/08, jdog5000: guard added
@@ -1564,16 +1471,19 @@ void CvUnitAI::AI_settleMove()
 		if (getPlot().getOwner() == getOwner())
 		{
 			if (AI_load(UNITAI_SETTLER_SEA, MISSIONAI_LOAD_SETTLER, NO_UNITAI,
-					-1, -1, -1, 0, iMoveFlags))
+				-1, -1, -1, 0, iMoveFlags))
+			{
 				return;
-			// <advc.040>
+			}  // <advc.040>
 			else
 			{
 				CvCity* pCity = getPlot().getPlotCity();
 				if(pCity != NULL && !pCity->isCoastal() &&
-						getGroup()->getNumUnits() <= 3 && getArea().getNumAIUnits(
-						getOwner(), UNITAI_SETTLER_SEA) > 0)
+					getGroup()->getNumUnits() <= 3 && getArea().getNumAIUnits(
+					getOwner(), UNITAI_SETTLER_SEA) > 0)
+				{
 					bMoveToCoast = true; // Check MaxCityElimination first
+				}
 			} // </advc.040>
 		}
 	}
@@ -1592,15 +1502,12 @@ void CvUnitAI::AI_settleMove()
 	} */ /* BtS - disabled by K-Mod. Let them risk moving an undefended settler..
 			there are other checks in place to help them. */
 
-	if (getPlot().isCity() && getPlot().getOwner() == getOwner())
+	if (getPlot().isCity() && getPlot().getOwner() == getOwner() &&
+		bDanger && GC.getGame().getMaxCityElimination() > 0 &&
+		getGroup()->getNumUnits() < 3)
 	{
-		if (kOwner.AI_isAnyPlotDanger(getPlot()) && 
-			GC.getGame().getMaxCityElimination() > 0)
-		{
-			if (getGroup()->getNumUnits() < 3)
-			{
-				getGroup()->pushMission(MISSION_SKIP);
-				return;
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
 			}
 		}
 	}
@@ -1632,42 +1539,40 @@ void CvUnitAI::AI_settleMove()
 	{
 		FOR_EACH_GROUPAI_VAR(pLoopSelectionGroup, kOwner)
 		{
-			if (pLoopSelectionGroup != getGroup())
+			if (pLoopSelectionGroup == getGroup())
+				continue; // advc
+			if (pLoopSelectionGroup->AI_getMissionAIUnit() == this &&
+				pLoopSelectionGroup->AI_getMissionAIType() == MISSIONAI_GROUP)
 			{
-				if (pLoopSelectionGroup->AI_getMissionAIUnit() == this &&
-					pLoopSelectionGroup->AI_getMissionAIType() == MISSIONAI_GROUP)
+				int iPathTurns = MAX_INT;
+				generatePath(pLoopSelectionGroup->plot(), iMoveFlags, true, &iPathTurns, 2);
+				if (iPathTurns > 2)
+					continue; // advc
+				CvPlot* pEndTurnPlot = getPathEndTurnPlot();
+				if (atPlot(pEndTurnPlot))
 				{
-					int iPathTurns = MAX_INT;
-					generatePath(pLoopSelectionGroup->plot(), iMoveFlags, true, &iPathTurns, 2);
-					if (iPathTurns <= 2)
+					//getGroup()->pushMission(MISSION_SKIP, 0, 0, 0, false, false, MISSIONAI_GROUP, pEndTurnPlot);
+					pLoopSelectionGroup->mergeIntoGroup(getGroup());
+					FAssert(getGroup()->getNumUnits() > 1);
+					FAssert(getGroup()->getHeadUnitAIType() == UNITAI_SETTLE);
+				}
+				else
+				{
+					CvSelectionGroupAI* pGroup = AI_getGroup(); // advc
+					// if we were on our way to a site, keep the current mission plot.
+					if (pGroup->AI_getMissionAIType() == MISSIONAI_FOUND &&
+						pGroup->AI_getMissionAIPlot() != NULL)
 					{
-						CvPlot* pEndTurnPlot = getPathEndTurnPlot();
-						if (atPlot(pEndTurnPlot))
-						{
-							//getGroup()->pushMission(MISSION_SKIP, 0, 0, 0, false, false, MISSIONAI_GROUP, pEndTurnPlot);
-							pLoopSelectionGroup->mergeIntoGroup(getGroup());
-							FAssert(getGroup()->getNumUnits() > 1);
-							FAssert(getGroup()->getHeadUnitAIType() == UNITAI_SETTLE);
-						}
-						else
-						{
-							CvSelectionGroupAI* pGroup = AI_getGroup(); // advc
-							// if we were on our way to a site, keep the current mission plot.
-							if (pGroup->AI_getMissionAIType() == MISSIONAI_FOUND &&
-								pGroup->AI_getMissionAIPlot() != NULL)
-							{
-								pGroup->pushMission(MISSION_MOVE_TO, pEndTurnPlot->getX(), pEndTurnPlot->getY(),
-										iMoveFlags, false, false, MISSIONAI_FOUND, pGroup->AI_getMissionAIPlot());
-							}
-							else
-							{
-								pGroup->pushMission(MISSION_MOVE_TO, pEndTurnPlot->getX(), pEndTurnPlot->getY(),
-										iMoveFlags, false, false, MISSIONAI_GROUP, 0, pLoopSelectionGroup->getHeadUnit());
-							}
-						}
-						return;
+						pGroup->pushMission(MISSION_MOVE_TO, pEndTurnPlot->getX(), pEndTurnPlot->getY(),
+								iMoveFlags, false, false, MISSIONAI_FOUND, pGroup->AI_getMissionAIPlot());
+					}
+					else
+					{
+						pGroup->pushMission(MISSION_MOVE_TO, pEndTurnPlot->getX(), pEndTurnPlot->getY(),
+								iMoveFlags, false, false, MISSIONAI_GROUP, 0, pLoopSelectionGroup->getHeadUnit());
 					}
 				}
+				return;
 			}
 		}
 	}
@@ -1681,6 +1586,98 @@ void CvUnitAI::AI_settleMove()
 	if (AI_safety())
 		return;
 	getGroup()->pushMission(MISSION_SKIP);
+}
+
+// advc.108: New function for code merged from the Better BUG AI mod
+bool CvUnitAI::AI_foundFirstCity()
+{
+	// Afforess & Fuyu, Check for Good City Sites Near Starting Location, 09/18/10, START:
+	// <advc>
+	CvGame const& kGame = GC.getGame();
+	CvPlayerAI& kOwner = GET_PLAYER(getOwner());
+	CvGameSpeedInfo const& kSpeed = GC.getInfo(kGame.getGameSpeedType());
+	/*  Earlier exploreMove may have revealed more tiles. Don't set bStartingLoc;
+		that setting rules out e.g. plots with a goody hut or at the edge of a
+		flat map. I've added some getNumCities()<=0 checks to AI_foundValue. */
+	kOwner.AI_updateFoundValues(false); // </advc>
+	int iGameSpeedPercent = (2 * kSpeed.getTrainPercent()
+			+ kSpeed.getConstructPercent() + kSpeed.getResearchPercent()) / 4;
+	int iMaxFoundTurn = (iGameSpeedPercent + 50) / 150; //quick 0, normal/epic 1, marathon 2
+	if(!kGame.isScenario() && // advc: Let the creator of the scenario decide where the AI settles
+		canMove() && !kOwner.AI_isPlotCitySite(getPlot()) &&
+		kGame.getElapsedGameTurns() <= iMaxFoundTurn)
+	{
+		CvPlot* pBestPlot = NULL;
+		int iBestValue = 0;
+		int iBestFoundTurn = 0;
+		for (int iCitySite = 0; iCitySite < kOwner.AI_getNumCitySites(); iCitySite++)
+		{
+			CvPlot* pCitySite = kOwner.AI_getCitySite(iCitySite);
+			if(!AI_canEnterByLand(pCitySite->getArea()) && // advc.030 (replacing same-area check)
+				!canMoveAllTerrain())
+			{
+				continue;
+			}
+			//int iPlotValue = kOwner.AI_foundValue(pCitySite->getX(), pCitySite->getY());
+			int iPlotValue = pCitySite->getFoundValue(kOwner.getID());
+			if(iPlotValue <= iBestValue)
+				continue;
+			//Can this unit reach the plot this turn? (getPathLastNode()->m_iData2 == 1)
+			//Will this unit still have movement points left to found the city the same turn? (getPathLastNode()->m_iData1 > 0))
+			if (generatePath(pCitySite))
+			{
+				int iFoundTurn = kGame.getElapsedGameTurns() +
+						/*getPathLastNode()->m_iData2 -
+						(getPathLastNode()->m_iData1 > 0 ? 1 : 0);*/
+						// advc: Adapted to K-Mod pathfinder
+						getPathFinder().GetPathTurns() -
+						(getPathFinder().GetFinalMoves() > 0 ? 1 : 0);
+				if (iFoundTurn <= iMaxFoundTurn)
+				{
+					iPlotValue *= 100; //more precision
+					/*  the slower the game speed, the less penality the plotvalue
+						gets for long walks towards it.
+						On normal it's -18% per turn */
+					/*  advc: 18% seems a bit much; try 15%. K-Mod found values
+						aren't quite on the same scale as BBAI. */
+					iPlotValue *= 100 - std::min(100, ((1500/
+							std::max(1, iGameSpeedPercent)) * iFoundTurn));
+					iPlotValue /= 100;
+					if (iPlotValue > iBestValue)
+					{
+						iBestValue = iPlotValue;
+						iBestFoundTurn = iFoundTurn;
+						pBestPlot = pCitySite;
+					}
+				}
+			}
+		}
+		if (pBestPlot != NULL)
+		{
+			//Don't give up coast or river, don't settle on bonus with food
+			/*if ((getPlot().isRiver() && !pBestPlot->isRiver())
+				|| (getPlot().isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN()) && !pBestPlot->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+				|| (pBestPlot->getBonusType(NO_TEAM) != NO_BONUS && pBestPlot->calculateNatureYield(YIELD_FOOD, getTeam(), true) > 0))*/
+			// advc: I think AI_foundValue can handle the other stuff
+			if(getPlot().isFreshWater() && !pBestPlot->isFreshWater())
+				pBestPlot = NULL;
+		}
+		if (pBestPlot != NULL)
+		{
+			if (gUnitLogLevel >= 2) logBBAI("    Settler not founding in place but moving %d, %d to nearby city site at %d, %d (%d turns away) with value %d)", (pBestPlot->getX() - getX()), (pBestPlot->getY() - getY()), pBestPlot->getX(), pBestPlot->getY(), iBestFoundTurn, iBestValue);
+			getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX(), pBestPlot->getY(),
+					MOVE_SAFE_TERRITORY, false, false, MISSIONAI_FOUND, pBestPlot);
+			return true;
+		}
+	}
+	// Afforess & Fuyu: END
+	if (canFound(plot()))
+	{
+		if (gUnitLogLevel >= 2) logBBAI("    Settler founding in place");
+		getGroup()->pushMission(MISSION_FOUND);
+		return true;
+	}
+	return false;
 }
 
 // advc.113b: Cut from AI_workerMove
@@ -2277,7 +2274,8 @@ void CvUnitAI::AI_attackMove()
 
 	// Attack choking units
 	// K-Mod (bbai code deleted)
-	if (getPlot().getTeam() == getTeam() && (bDanger || getArea().getAreaAIType(getTeam()) != AREAAI_NEUTRAL))
+	if (getPlot().getTeam() == getTeam() &&
+		(bDanger || getArea().getAreaAIType(getTeam()) != AREAAI_NEUTRAL))
 	{
 		if (bDanger && getPlot().isCity())
 		{
@@ -9539,7 +9537,7 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 		return false;
 
 	if (getDomainType() == DOMAIN_LAND && !canMoveAllTerrain() &&
-		getArea().getNumAIUnits(getOwner(), eUnitAI) == 0)
+		getArea().getNumAIUnits(getOwner(), eUnitAI) <= 0)
 	{
 		return false;
 	}
@@ -9986,7 +9984,7 @@ bool CvUnitAI::AI_guardCityBestDefender()
 	return false;
 }
 
-// K-Mod
+// K-Mod:
 bool CvUnitAI::AI_guardCityOnlyDefender()
 {
 	FAssert(getGroup()->getNumUnits() == 1);
@@ -10004,7 +10002,7 @@ bool CvUnitAI::AI_guardCityOnlyDefender()
 	}
 	return false;
 }
-// K-Mod end
+
 
 bool CvUnitAI::AI_guardCityMinDefender(bool bSearch)
 {
@@ -10153,7 +10151,6 @@ bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, int iFlags)
 	if (bSearch)
 	{
 		int iBestValue = 0;
-		CvGame const& g = GC.getGame();
 		//bool const bMoveAllTerrain = getGroup()->canMoveAllTerrain(); // advc
 		FOR_EACH_CITYAI(pLoopCity, kOwner) // advc: Flattened the body of this loop
 		{
@@ -10193,7 +10190,7 @@ bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, int iFlags)
 			/*if (pLoopCity->getPlot().isVisibleEnemyUnit(this)) // advc.opt: It's our city
 				continue;*/
 
-			if (g.getGameTurn() - pLoopCity->getGameTurnAcquired() >= 10 &&
+			if (GC.getGame().getGameTurn() - pLoopCity->getGameTurnAcquired() >= 10 &&
 				kOwner.AI_plotTargetMissionAIs(pLoopCity->getPlot(),
 				MISSIONAI_GUARD_CITY, getGroup(), /*<advc.opt>*/ 0, 2 /*</advc.opt>*/) >= 2)
 			{
@@ -14884,16 +14881,14 @@ bool CvUnitAI::AI_found(int iFlags)
 //		...
 //	}
 
-	int iBestFoundValue = 0;
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pBestFoundPlot = NULL;
-	// <advc.052>
-	double plusMinus = 0;
-	if(!isHuman() && GC.getGame().isScenario())
-		plusMinus = 0.04; // </advc.052>
-	for (int iI = 0; iI < GET_PLAYER(getOwner()).AI_getNumCitySites(); iI++)
+	int iBestFoundValue = 0;
+	bool const bRandomize = (!isHuman() && GC.getGame().isScenario()); // advc.052
+	bool const bCanDefend = getGroup()->canDefend(); // advc.opt
+	for (int i = 0; i < GET_PLAYER(getOwner()).AI_getNumCitySites(); i++)
 	{
-		CvPlot& kCitySitePlot = *GET_PLAYER(getOwner()).AI_getCitySite(iI);
+		CvPlot& kCitySitePlot = *GET_PLAYER(getOwner()).AI_getCitySite(i);
 		if (AI_canEnterByLand(kCitySitePlot.getArea()) || // advc.030 (replacing same-area check)
 			// BETTER_BTS_AI_MOD, Settler AI, 10/23/09, jdog5000:
 			canMoveAllTerrain())
@@ -14902,7 +14897,7 @@ bool CvUnitAI::AI_found(int iFlags)
 				!GET_PLAYER(getOwner()).AI_isAnyPlotTargetMissionAI(
 				kCitySitePlot, MISSIONAI_FOUND, getGroup()))
 			{
-				if (getGroup()->canDefend() ||
+				if (bCanDefend ||
 					GET_PLAYER(getOwner()).AI_isAnyPlotTargetMissionAI(kCitySitePlot, MISSIONAI_GUARD_CITY))
 				{
 					int iPathTurns;
@@ -14914,10 +14909,13 @@ bool CvUnitAI::AI_found(int iFlags)
 						{
 							int iValue = kCitySitePlot.getFoundValue(getOwner());
 							// <advc.052>
-							double randMult = 1 - plusMinus + 2 * plusMinus *
-									::hash(m_iBirthmark);
-							iValue = ::round(iValue * randMult);
-							// </advc.052>
+							if (bRandomize)
+							{
+								scaled rPlusMinus = fixp(0.04);
+								scaled rRandMult = 1 - rPlusMinus + 2 * rPlusMinus *
+										scaled::hash(m_iBirthmark);
+								iValue = (iValue * rRandMult).round();
+							} // </advc.052>
 							iValue *= 1000;
 							//iValue /= (iPathTurns + 1);
 							iValue /= iPathTurns + (getGroup()->canDefend() ? 4 : 1); // K-Mod
@@ -14933,24 +14931,23 @@ bool CvUnitAI::AI_found(int iFlags)
 			}
 		}
 	}
-
-	if (pBestPlot != NULL && pBestFoundPlot != NULL)
+	if (pBestPlot == NULL || pBestFoundPlot == NULL)
+		return false;
+	if (atPlot(pBestFoundPlot))
 	{
-		if (atPlot(pBestFoundPlot))
-		{
-			if (gUnitLogLevel >= 2) logBBAI("    Settler founding at site %d, %d", pBestFoundPlot->getX(), pBestFoundPlot->getY());
-			getGroup()->pushMission(MISSION_FOUND, -1, -1, 0, false, false, MISSIONAI_FOUND, pBestFoundPlot);
-			return true;
-		}
-		else
-		{
-			if (gUnitLogLevel >= 2)logBBAI("    Settler heading for site %d, %d", pBestFoundPlot->getX(), pBestFoundPlot->getY());
-			FAssert(!atPlot(pBestPlot));
-			getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX(), pBestPlot->getY(), iFlags, false, false, MISSIONAI_FOUND, pBestFoundPlot);
-			return true;
-		}
+		if (gUnitLogLevel >= 2) logBBAI("    Settler founding at site %d, %d", pBestFoundPlot->getX(), pBestFoundPlot->getY());
+		getGroup()->pushMission(MISSION_FOUND, -1, -1,
+				0, false, false, MISSIONAI_FOUND, pBestFoundPlot);
+		return true;
 	}
-	return false;
+	else
+	{
+		if (gUnitLogLevel >= 2)logBBAI("    Settler heading for site %d, %d", pBestFoundPlot->getX(), pBestFoundPlot->getY());
+		FAssert(!atPlot(pBestPlot));
+		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX(), pBestPlot->getY(),
+				iFlags, false, false, MISSIONAI_FOUND, pBestFoundPlot);
+		return true;
+	}
 }
 
 
