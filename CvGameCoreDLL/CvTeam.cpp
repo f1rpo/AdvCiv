@@ -3980,7 +3980,7 @@ int CvTeam::getBestKnownTechScorePercent() const
 	for (PlayerIter<CIV_ALIVE,KNOWN_TO> it(getID()); it.hasNext(); ++it)
 		iBestKnownTechScore = std::max(iBestKnownTechScore, it->getTechScore());
 
-	FAssert(iBestKnownTechScore >= iOurTechScore);
+	FAssert(iBestKnownTechScore >= iOurTechScore /* advc: */ || isBarbarian());
 	return (100 * iOurTechScore) / std::max(iBestKnownTechScore, 1);
 } // BETTER_BTS_AI_MOD: END
 
