@@ -48,93 +48,6 @@
 
 #define DllExport   __declspec( dllexport )
 
-//
-// GameBryo
-//
-class NiColor
-{
-public:
-	float r, g, b;
-};
-class NiColorA
-{
-public:
-	NiColorA(float fr, float fg, float fb, float fa) : r(fr), g(fg), b(fb), a(fa) {}
-	NiColorA() {}
-	float r, g, b, a;
-};
-class NiPoint2
-{
-public:
-	NiPoint2() {}
-	NiPoint2(float fx, float fy) : x(fx),y(fy) {}
-
-	float x, y;
-};
-class NiPoint3
-{
-public:
-	NiPoint3() {}
-	NiPoint3(float fx, float fy, float fz) : x(fx),y(fy),z(fz) {}
-
-	bool NiPoint3::operator== (const NiPoint3& pt) const
-	{	return (x == pt.x && y == pt.y && z == pt.z);	}
-
-	inline NiPoint3 NiPoint3::operator+ (const NiPoint3& pt) const
-	{	return NiPoint3(x+pt.x,y+pt.y,z+pt.z);	}
-
-	inline NiPoint3 NiPoint3::operator- (const NiPoint3& pt) const
-	{	return NiPoint3(x-pt.x,y-pt.y,z-pt.z);	}
-
-	inline float NiPoint3::operator* (const NiPoint3& pt) const
-	{	return x*pt.x+y*pt.y+z*pt.z;	}
-
-	inline NiPoint3 NiPoint3::operator* (float fScalar) const
-	{	return NiPoint3(fScalar*x,fScalar*y,fScalar*z);	}
-
-	inline NiPoint3 NiPoint3::operator/ (float fScalar) const
-	{
-		float fInvScalar = 1.0f/fScalar;
-		return NiPoint3(fInvScalar*x,fInvScalar*y,fInvScalar*z);
-	}
-
-	inline NiPoint3 NiPoint3::operator- () const
-	{	return NiPoint3(-x,-y,-z);	}
-
-	inline float Length() const
-	{ return sqrt(x * x + y * y + z * z); }
-
-	inline float Unitize()
-	{
-		float length = Length();
-		if(length != 0)
-		{
-			x /= length;
-			y /= length;
-			z /= length;
-		}
-		return length;
-	}
-
-//	inline NiPoint3 operator* (float fScalar, const NiPoint3& pt)
-//	{	return NiPoint3(fScalar*pt.x,fScalar*pt.y,fScalar*pt.z);	}
-	float x, y, z;
-};
-
-namespace NiAnimationKey
-{
-	enum KeyType
-	{
-		NOINTERP,
-		LINKEY,
-		BEZKEY,
-		TCBKEY,
-		EULERKEY,
-		STEPKEY,
-		NUMKEYTYPES
-	};
-};
-
 typedef unsigned char    byte;
 typedef unsigned short   word;
 typedef unsigned int     uint;
@@ -155,16 +68,7 @@ typedef wchar_t          wchar;
 #define MAX_UNSIGNED_INT                    (0xffffffff)
 #define MIN_UNSIGNED_INT                    (0x00000000)
 
-#define SAFE_DELETE(p)       { if(p) { delete (p);     (p)=NULL; } }
-#define SAFE_DELETE_ARRAY(p) { if(p) { delete[] (p);   (p)=NULL; } }
-#define SAFE_RELEASE(p)      { if(p) { (p)->Release(); (p)=NULL; } }
-
-//#define SQR(x) ( (x) * (x) ) // advc: Also defined in CvGameCoreUtils.h
-#define DEGTORAD(x) ( (float)( (x) * (M_PI / 180) ))
-// advc: There's range (CvGameCoreUtils), which is similar enough.
-//#define LIMIT_RANGE(low, value, high) value = (value < low ? low : (value > high ? high : value));
-#define M_PI		3.14159265358979323846
-#define fM_PI		3.141592654f		//!< Pi (float)
+// (advc.make: Some macros moved into new header Trigonometry.h)
 
 __forceinline DWORD FtoDW( float f ) { return *(DWORD*)&f; }
 __forceinline float DWtoF( dword n ) { return *(float*)&n; }
@@ -174,98 +78,10 @@ __forceinline float MaxFloat() { return DWtoF(0x7f7fffff); }
 #define CONCATVARNAME_IMPL(prefix, lineNum) prefix##lineNum
 #define CONCATVARNAME(prefix, suffix) CONCATVARNAME_IMPL(prefix, suffix) // </advc.003s>
 
-void startProfilingDLL(bool longLived);
-void stopProfilingDLL(bool longLived);
-
-#ifdef USE_INTERNAL_PROFILER
-struct ProfileSample;
-void IFPBeginSample(ProfileSample* sample);
-void IFPEndSample(ProfileSample* sample);
-void dumpProfileStack(void);
-void EnableDetailedTrace(bool enable);
-#endif
-
-#ifdef _DEBUG
-//#define MEMORY_TRACKING
-#endif
-
-#ifdef MEMORY_TRACKING
-class CMemoryTrack
-{
-#define	MAX_TRACKED_ALLOCS	1000
-	void*	m_track[MAX_TRACKED_ALLOCS];
-	int		m_highWater;
-	const char* m_name;
-	bool	m_valid;
-#define MAX_TRACK_DEPTH		50
-	static	CMemoryTrack*	trackStack[MAX_TRACK_DEPTH];
-	static	m_trackStackDepth;
-
-public:
-	CMemoryTrack(const char* name, bool valid);
-
-	~CMemoryTrack();
-
-	void NoteAlloc(void* ptr);
-	void NoteDeAlloc(void* ptr);
-
-	static CMemoryTrack* GetCurrent(void);
-};
-
-class CMemoryTrace
-{
-	int		m_start;
-	const char* m_name;
-
-public:
-	CMemoryTrace(const char* name);
-
-	~CMemoryTrace();
-};
-
-void DumpMemUsage(const char* fn, int line);
-
-#define DUMP_MEMORY_USAGE()	DumpMemUsage(__FUNCTION__,__LINE__);
-#define MEMORY_TRACK()	CMemoryTrack __memoryTrack(__FUNCTION__, true);
-#define MEMORY_TRACK_EXEMPT()	CMemoryTrack __memoryTrackExemption(NULL, false);
-#define MEMORY_TRACE_FUNCTION()	CMemoryTrace __memoryTrace(__FUNCTION__);
-#else
-#define DUMP_MEMORY_USAGE()
-#define	MEMORY_TRACK()
-#define MEMORY_TRACK_EXEMPT()
-#define MEMORY_TRACE_FUNCTION()
-#endif
-
-
-//
-// Boost Python
-//
-// <advc.make> (This prevents many error markers in the VS code editor, but not all.)
-#ifdef _CODE_EDITOR
-namespace boost
-{
-	namespace python
-	{
-		class tuple;
-		template<typename x, typename y> class class_;
-		template<typename x> class return_value_policy;
-		class reference_existing_object;
-	}
-	class noncopyable {}; // advc.003e
-}
-class PyObject;
-#else // </advc.make>
-# include <boost/python/list.hpp>
-# include <boost/python/tuple.hpp>
-# include <boost/python/class.hpp>
-# include <boost/python/manage_new_object.hpp>
-# include <boost/python/return_value_policy.hpp>
-# include <boost/python/object.hpp>
-# include <boost/python/def.hpp>
-
-namespace python = boost::python;
-#endif // advc.make
-
+// <advc> Stuff moved into separate headers
+#include "GameBryo.h"
+#include "CvMemoryManager.h"
+#include "BoostPythonPCH.h" // </advc>
 #include "FAssert.h"
 #include "CvGameCoreDLLDefNew.h"
 #include "FDataStreamBase.h"
@@ -279,7 +95,7 @@ BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 #include "CvDLLUtilityIFaceBase.h" // includes LinkedList.h
 
 //jason tests
-// advc.make: Removed most of these. (Don't know what the comment above means.)
+// advc.make: Removed most of these
 #include "CvRandom.h"
 #include "CvGameCoreUtils.h"
 #include "ScaledNum.h"
@@ -295,7 +111,9 @@ BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 #include "CvInfo_Civilization.h"
 #include "CvInfo_Organization.h"
 #include "CvInfo_Symbol.h"
-#include "CvInfo_RandomEvent.h" // </advc.003x>
+#include "CvInfo_RandomEvent.h"
+// For inlining in CvUnit.h. It's also big and needed rather frequently.
+#include "CvInfo_Unit.h" // </advc.003x>
 /*  advc.make: These I had removed (not _that_ frequently included),
 	but decided to add them back. */
 #include "CyGlobalContext.h" // Includes CvArtFileMgr.h
@@ -311,16 +129,16 @@ BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 #include "CyPlot.h"
 #include "CyUnit.h"
 
-// Undefine OutputDebugString in final release builds
-#ifdef FINAL_RELEASE
-/*	<advc.wine> Wrap a macro around OutputDebugString that prints to both the VS console
-	(as before through WinBase.h) and to a regular console e.g. for Wine. */
-	#define printToConsole(szMsg)
-#else
+// Undefine OutputDebugString in release builds // advc.make: in non-debug builds
+#ifdef _DEBUG
+	/*	<advc.wine> Wrap a macro around OutputDebugString that prints to both the VS console
+		(as before through WinBase.h) and to a regular console e.g. for Wine. */
 	// Caveat: szMsg has to be 0-terminated -- no fixed-size char buffers!
 	#define printToConsole(szMsg) \
 		OutputDebugString(szMsg); \
 		printf("OutputDebugString: %s", szMsg);
+#else
+	#define printToConsole(szMsg)
 #endif // </advc.wine>
 
 #endif	// CvGameCoreDLL_h

@@ -7,7 +7,6 @@
 #include "CvCityAI.h"
 #include "PlotRange.h"
 #include "CvArea.h"
-#include "CvInfo_Unit.h"
 #include "CvInfo_Terrain.h"
 #include "CvInfo_GameOption.h"
 #include "CvInfo_Building.h" // advc.003x: Only needed for the special buildings that GP can construct and AI_nukeValue

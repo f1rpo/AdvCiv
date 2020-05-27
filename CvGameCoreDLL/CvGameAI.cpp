@@ -5,7 +5,6 @@
 #include "CoreAI.h"
 #include "CvCityAI.h"
 #include "UWAIAgent.h"
-#include "CvInfo_Unit.h"
 #include "CvInfo_GameOption.h"
 
 

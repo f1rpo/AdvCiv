@@ -198,6 +198,7 @@
     <ClInclude Include="..\ArmamentForecast.h" />
     <ClInclude Include="..\BBAILog.h" />
     <ClInclude Include="..\BitUtil.h" />
+    <ClInclude Include="..\BoostPythonPCH.h" />
     <ClInclude Include="..\CityPlotIterator.h" />
     <ClInclude Include="..\CitySiteEvaluator.h" />
     <ClInclude Include="..\CoreAI.h" />
@@ -264,6 +265,7 @@
     <ClInclude Include="..\CvInitCore.h" />
     <ClInclude Include="..\CvMap.h" />
     <ClInclude Include="..\CvMapGenerator.h" />
+    <ClInclude Include="..\CvMemoryManager.h" />
     <ClInclude Include="..\CvMessageControl.h" />
     <ClInclude Include="..\CvMessageData.h" />
     <ClInclude Include="..\CvPlayer.h" />
@@ -307,6 +309,7 @@
     <ClInclude Include="..\CySelectionGroup.h" />
     <ClInclude Include="..\CyTeam.h" />
     <ClInclude Include="..\CyUnit.h" />
+    <ClInclude Include="..\GameBryo.h" />
     <ClInclude Include="..\ReproTest.h" />
     <ClInclude Include="..\EnumMap.h" />
     <ClInclude Include="..\EnumMap2D.h" />
@@ -328,6 +331,7 @@
     <ClInclude Include="..\PlotRadiusIterator.h" />
     <ClInclude Include="..\PlotRange.h" />
     <ClInclude Include="..\ScaledNum.h" />
+    <ClInclude Include="..\Trigonometry.h" />
     <ClInclude Include="..\TSCProfiler.h" />
     <ClInclude Include="..\TypeChoice.h" />
     <ClInclude Include="..\UWAISets.h" />

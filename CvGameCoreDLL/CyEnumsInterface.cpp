@@ -1,9 +1,10 @@
 #include "CvGameCoreDLL.h"
-#include"CvEnums.h"
+#include "CvEnums.h"
 
-#include "CvGameCoreDLLUnDefNew.h"
+// advc.make: PCH now includes enum.hpp (before CvGameCoreDLLDefNew.h)
+/*#include "CvGameCoreDLLUnDefNew.h"
 # include <boost/python/enum.hpp>
-#include "CvGameCoreDLLDefNew.h"
+#include "CvGameCoreDLLDefNew.h"*/
 
 //
 // Python interface for free enums

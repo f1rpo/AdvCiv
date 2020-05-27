@@ -6,9 +6,6 @@
 #define CIV4_UNIT_H
 
 #include "CvDLLEntity.h"
-/*	advc.inl: So that I can inline the wrappers. I've also inlined many other functions.
-	Only getX, getY and getOwner were inlined in K-Mod/BtS. */
-#include "CvInfo_Unit.h"
 
 #pragma warning( disable: 4251 ) // needs to have dll-interface to be used by clients of class
 
@@ -21,7 +18,7 @@ class KmodPathFinder;
 class CvUnitAI; // advc.003u
 struct CombatDetails;
 
-
+// (advc.inl: Inlined many getters. Only getX, getY and getOwner were inlined in K-Mod/BtS.)
 class CvUnit : public CvDLLEntity
 {
 public:

@@ -7,7 +7,6 @@
 #include "CvPlayerAI.h"
 #include "CvCity.h"
 #include "CvCivilization.h"
-#include "CvInfo_Unit.h"
 
 using std::ostream;
 using std::vector;

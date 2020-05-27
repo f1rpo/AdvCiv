@@ -10,7 +10,6 @@
 //
 
 
-#include <boost/python/object.hpp>
 namespace python = boost::python;
 
 class CvUnit;

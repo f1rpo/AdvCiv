@@ -10,7 +10,6 @@
 #include "CvCity.h"
 #include "CvPlot.h"
 #include "CvArea.h"
-#include "CvInfo_Unit.h"
 
 using std::ostringstream;
 using std::vector;

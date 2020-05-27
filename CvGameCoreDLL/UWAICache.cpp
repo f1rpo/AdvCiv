@@ -12,7 +12,6 @@
 #include "CityPlotIterator.h"
 #include "CvArea.h"
 #include "CvInfo_Building.h"
-#include "CvInfo_Unit.h"
 #include "CvInfo_Terrain.h"
 
 using std::vector;

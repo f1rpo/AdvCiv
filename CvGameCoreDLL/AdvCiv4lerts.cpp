@@ -2,7 +2,6 @@
 
 #include "CvGameCoreDLL.h"
 #include "AdvCiv4lerts.h"
-#include "CvInfo_Unit.h"
 #include "CvInfo_Terrain.h"
 #include "CoreAI.h"
 #include "CvDeal.h"

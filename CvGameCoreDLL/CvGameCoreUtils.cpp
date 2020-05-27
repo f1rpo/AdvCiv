@@ -228,23 +228,6 @@ DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot* pToPlot)
 			m.dyWrap(pToPlot->getY() - pFromPlot->getY()));
 }
 
-
-float directionAngle (DirectionTypes eDirection)
-{
-	switch (eDirection)
-	{
-	case DIRECTION_NORTHEAST:	return fM_PI * 0.25f;
-	case DIRECTION_EAST:			return fM_PI * 0.5f;
-	case DIRECTION_SOUTHEAST:	return fM_PI * 0.75f;
-	case DIRECTION_SOUTH:			return fM_PI * 1.0f;
-	case DIRECTION_SOUTHWEST:	return fM_PI * 1.25f;
-	case DIRECTION_WEST:			return fM_PI * 1.5f;
-	case DIRECTION_NORTHWEST:	return fM_PI * 1.75f;
-	default:
-	case DIRECTION_NORTH:			return 0.0f;
-	}
-}
-
 bool atWar(TeamTypes eTeamA, TeamTypes eTeamB)
 {
 	return (eTeamA != NO_TEAM && eTeamB != NO_TEAM && GET_TEAM(eTeamA).isAtWar(eTeamB));

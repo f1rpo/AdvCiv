@@ -9,6 +9,18 @@
 #ifndef	__PROFILE_H__
 #define __PROFILE_H__
 
+// <advc.003o> Cut from CvGameCoreDLL.h
+void startProfilingDLL(bool longLived);
+void stopProfilingDLL(bool longLived);
+
+#ifdef USE_INTERNAL_PROFILER
+struct ProfileSample;
+void IFPBeginSample(ProfileSample* sample);
+void IFPEndSample(ProfileSample* sample);
+void dumpProfileStack(void);
+void EnableDetailedTrace(bool enable);
+#endif // </advc.003o>
+
 
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvGlobals.h"	// for gDLL

@@ -11,7 +11,7 @@
 #include "BBAILog.h"
 #include "CvInfo_Command.h"
 #include "CvInfo_Terrain.h" // for getBestBuildRoute
-#include "CvInfo_Unit.h" // for canAnyMoveAllTerrain
+//#include "CvInfo_Unit.h" // for canAnyMoveAllTerrain (now in PCH)
 #include "CySelectionGroup.h"
 
 

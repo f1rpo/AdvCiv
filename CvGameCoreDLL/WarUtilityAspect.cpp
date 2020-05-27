@@ -15,7 +15,6 @@
 #include "PlotRadiusIterator.h"
 #include "CvArea.h"
 #include "CvInfo_GameOption.h"
-#include "CvInfo_Unit.h"
 #include "CvInfo_Building.h" // Just for vote-related info
 
 

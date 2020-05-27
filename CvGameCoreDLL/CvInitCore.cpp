@@ -3,7 +3,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvInitCore.h"
 #include "CvPlayer.h"
-#include "CvInfo_Unit.h"
 #include "CvInfo_GameOption.h"
 #include "CvDLLUtilityIFaceBase.h"
 

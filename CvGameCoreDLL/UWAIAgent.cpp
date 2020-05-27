@@ -7,7 +7,7 @@
 #include "WarEvalParameters.h"
 #include "CvInfo_GameOption.h"
 #include "CvInfo_Building.h" // Just for vote-related info
-#include "CvInfo_Unit.h" // for UWAI::Civ::militaryPower
+//#include "CvInfo_Unit.h" // for UWAI::Civ::militaryPower (now in PCH)
 #include "CoreAI.h"
 #include "CvCityAI.h"
 #include "CvDiploParameters.h"

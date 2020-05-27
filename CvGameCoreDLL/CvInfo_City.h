@@ -8,7 +8,7 @@
 	and building- and unit-related info classes (via include). */
 
 #include "CvInfo_Building.h"
-#include "CvInfo_Unit.h"
+//#include "CvInfo_Unit.h" // now in PCH
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvProcessInfo

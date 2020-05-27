@@ -8,7 +8,6 @@
 #include "CvTeam.h" // (Would be nicer to expose getEspionageModifier through CyTeam)
 #include "CvPlayer.h" // for getCity, getUnit
 // For functions moved from CvGameCoreUtils to CvInfos
-#include "CvInfo_Unit.h"
 #include "CvInfo_Building.h"
 #include "CvInfo_Terrain.h" // </advc>
 

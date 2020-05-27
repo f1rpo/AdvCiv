@@ -209,7 +209,6 @@ DirectionTypes cardinalDirectionToDirection(CardinalDirectionTypes eCard);				//
 DllExport bool isCardinalDirection(DirectionTypes eDirection);															// Exposed to Python
 DirectionTypes estimateDirection(int iDX, int iDY);																// Exposed to Python
 DllExport DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot* pToPlot);
-DllExport float directionAngle(DirectionTypes eDirection);
 
 bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);										// Exposed to Python
 //isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam); // advc: Use CvTeamAI::AI_mayAttack instead
