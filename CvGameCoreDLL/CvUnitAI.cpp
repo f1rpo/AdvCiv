@@ -5882,9 +5882,12 @@ void CvUnitAI::AI_barbAttackSeaMove()
 		// Dump cargo anywhere if no assault target
 		if(getPlot().isAdjacentToLand())
 		{
-			CvPlot* dest = getPlot().getNearestLandPlot();
-			if(dest != NULL && AI_transportGoTo(plot(), dest, 0, MISSIONAI_ASSAULT))
+			CvPlot* pDest = getPlot().getNearestLandPlot();
+			if(pDest != NULL && generatePath(pDest) && // pDest could be blocked
+				AI_transportGoTo(plot(), pDest, 0, MISSIONAI_ASSAULT))
+			{
 				return;
+			}
 		}
 	} // </advc.306>
 
