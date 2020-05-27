@@ -756,7 +756,7 @@ bool AIFoundValue::isSiteValid() const
 	}
 	if (kSet.isStartingLoc())
 	{
-		if (kPlot.isGoody())
+		if (kPlot.isGoody() /* advc.027: */ && kGame.isScenario())
 		{
 			IFLOG logBBAI("Can't start on goody hut");
 			return false;
