@@ -3008,7 +3008,11 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 				/*  This is more often true than I'd like b/c of improvements
 					under construction. Could check Worker count and
 					improvement count ... */
-				iFoodDiff <= 2)
+				iFoodDiff <= 2 &&
+				// No point in an early settler if we can't escort it yet
+				(kOwner.getNumCities() > 1 ||
+				getPlot().plotCount(PUF_isMissionAIType, MISSIONAI_GUARD_CITY, -1, getOwner()) >=
+				AI_neededDefenders()))
 			{
 				bGrowMore = false;
 			} // </advc.052>
