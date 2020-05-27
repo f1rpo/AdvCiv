@@ -1329,16 +1329,9 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart)
 			if(pAdjacent == NULL)
 				continue;
 			CvPlot& q = *pAdjacent;
-			/*  The two neighbors that p and q have in common if p and q are
-				diagonally adjacent: */
-			CvPlot* s = plot(p.getX(), q.getY());
-			CvPlot* t = plot(q.getX(), p.getY());
-			FAssertMsg(s != NULL && t != NULL, "Map appears to be non-convex");
+			
 			if(q.area() == NULL && p.isWater() == q.isWater() &&
-				// For water tiles, orthogonal adjacency is unproblematic.
-				(!p.isWater() || x == q.getX() || y == q.getY() ||
-				// Diagonal adjacency only works if either s or t are water
-				s == NULL || s->isWater() || t == NULL || t->isWater()) &&
+				!waterStepInvalid(p, q) &&
 				/*  Depth-first search that doesn't continue at impassables
 					except to other impassables so that mountain ranges and
 					ice packs end up in one CvArea. */

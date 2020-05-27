@@ -199,6 +199,17 @@ public:
 	{
 		return (stepDistance(&kFirstPlot, &kSecondPlot) <= 1);
 	}
+	/*	advc (for advc.030, advc.027): Cut from teamStepValid in CvGameCoreUtils.
+		Would rather leave it there with the other pathfinding helper functions,
+		but can't inline it there.
+		advc.test: Is it getting inlined here (probably not)? Should it be? */
+	bool waterStepInvalid(CvPlot const& kFrom, CvPlot const& kTo) const
+	{
+		return (kFrom.isWater() && kTo.isWater() &&
+			// Safe wrt. map edges b/c we know (assume) that kFrom and kTo are adjacent
+			!getPlot(kFrom.getX(), kTo.getY()).isWater() &&
+			!getPlot(kTo.getX(), kFrom.getY()).isWater());
+	}
 
 private: // Auxiliary functions
 	/*	These look too large and branchy for inlining, but the keywords do seem

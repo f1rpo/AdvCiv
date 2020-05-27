@@ -1676,12 +1676,8 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	if(kToPlot.isImpassable())
 		return FALSE;
 	CvPlot const& kFromPlot = kMap.getPlot(parent->m_iX, parent->m_iY);
-	if(kFromPlot.isWater() && kToPlot.isWater() &&
-		!kMap.getPlot(parent->m_iX, node->m_iY).isWater() &&
-		!kMap.getPlot(node->m_iX, parent->m_iY).isWater())
-	{
+	if(kMap.waterStepInvalid(kFromPlot, kToPlot))
 		return FALSE;
-	}
 	TeamTypes const ePlotTeam = kToPlot.getTeam();
 	int* const v = (int*)pointer;
 	int const iMaxPath = v[5];
@@ -1776,14 +1772,8 @@ int stepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 
 	/*  BETTER_BTS_AI_MOD, Bugfix, 12/12/08, jdog5000: START
 		Don't count diagonal hops across land isthmus */
-	if (kFromPlot.isWater() && kNewPlot.isWater())
-	{
-		if (!GC.getMap().getPlot(parent->m_iX, node->m_iY).isWater() &&
-			!GC.getMap().getPlot(node->m_iX, parent->m_iY).isWater())
-		{
-			return FALSE;
-		}
-	} // BETTER_BTS_AI_MOD: END
+	if (GC.getMap().waterStepInvalid(kFromPlot, kNewPlot)) // (advc: Moved into new function)
+		return FALSE; // BETTER_BTS_AI_MOD: END
 
 	return TRUE;
 }
@@ -1807,29 +1797,23 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 		return FALSE;
 
 	// Don't count diagonal hops across land isthmus
-	if (kFromPlot.isWater() && kNewPlot.isWater())
-	{
-		if (!kMap.getPlot(parent->m_iX, node->m_iY).isWater() &&
-			!kMap.getPlot(node->m_iX, parent->m_iY).isWater())
-		{
-			return FALSE;
-		}
-	}
+	if (kMap.waterStepInvalid(kFromPlot, kNewPlot)) // advc: Moved into new function
+		return FALSE;
 
 	TeamTypes ePlotTeam = kNewPlot.getTeam();
+	if (ePlotTeam == NO_TEAM)
+		return TRUE;
 
 	vector<TeamTypes> teamVec = *((vector<TeamTypes>*)pointer);
 	TeamTypes eTeam = teamVec[0];
 	TeamTypes eTargetTeam = teamVec[1];
 	CvTeamAI& kTeam = GET_TEAM(eTeam);
-
-	if (ePlotTeam == NO_TEAM)
-		return TRUE;
-
 	// advc.001: Was just ePlotTeam == eTargetTeam; anticipate DoW on/ by vassals.
-	if(eTargetTeam != NO_TEAM && GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
+	if(eTargetTeam != NO_TEAM &&
+		GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
+	{
 		return TRUE;
-
+	}
 	if (kTeam.canPeacefullyEnter(ePlotTeam) ||
 		kTeam.isDisengage(ePlotTeam)) // advc.034
 	{
@@ -1846,16 +1830,9 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 int stepAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
 	if (data == ASNC_INITIALADD)
-	{
 		node->m_iData1 = 0;
-	}
-	else
-	{
-		node->m_iData1 = (parent->m_iData1 + 1);
-	}
-
-	FAssertMsg(node->m_iData1 >= 0, "node->m_iData1 is expected to be non-negative (invalid Index)");
-
+	else node->m_iData1 = (parent->m_iData1 + 1);
+	FAssertMsg(node->m_iData1 >= 0, "invalid Index");
 	return 1;
 }
 
