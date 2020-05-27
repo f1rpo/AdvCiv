@@ -81,7 +81,7 @@ public:
 	// advc.134a:
 	bool AI_upholdPeaceOffer(PlayerTypes eHuman, CvDiploParameters const& kOffer) const;
 
-	void AI_updateFoundValues(bool bStartingLoc = false);
+	void AI_updateFoundValues(bool bStarting = false);
 	void AI_updateAreaTargets();
 
 	int AI_movementPriority(CvSelectionGroupAI const& kGroup) const;
@@ -109,7 +109,8 @@ public:
 	// <advc.035>
 	bool AI_isPlotContestedByRival(CvPlot const& kPlot,
 			PlayerTypes eRival = NO_PLAYER) const; // </advc.035>
-	short AI_foundValue(int iX, int iY, int iMinRivalRange = -1, bool bStartingLoc = false) const;		// Exposed to Python
+	short AI_foundValue(int iX, int iY, int iMinRivalRange = -1, bool bStartingLoc = false,			// Exposed to Python
+			bool bNormalize = false) const; // advc.031e
 	// advc: Replaced by the CitySiteEvaluator class
 	//struct CvFoundSettings { ... } // K-Mod
 	//short AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet) const; // K-Mod

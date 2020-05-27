@@ -17,12 +17,13 @@ class CitySiteEvaluator
 {
 public:
 	CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRange = -1,
-			bool bStartingLoc = false);
+			bool bStartingLoc = false, bool bNormalize = false);
 	short evaluate(CvPlot const& kPlot) const;
 	short evaluate(int iX, int iY) const;
 	short evaluateWithLogging(int iX, int iY) const; // advc.031c
 	CvPlayerAI const& getPlayer() const { return m_kPlayer; }
 	bool isStartingLoc() const { return m_bStartingLoc; }
+	bool isNormalizing() const { return m_bNormalize; } // advc.031e
 	int getMinRivalRange() const { return m_iMinRivalRange; }
 	// <advc.300>
 	void discourageBarbarians(int iRange);
@@ -60,6 +61,7 @@ public:
 private:
 	CvPlayerAI const& m_kPlayer;
 	bool m_bStartingLoc;
+	bool m_bNormalize;
 	int m_iMinRivalRange;
 	int m_iBarbDiscouragedRange; // advc.300
 	bool m_bAdvancedStart; // advc
@@ -105,7 +107,6 @@ private:
 	bool bCoastal;
 	int iAreaCities;
 	int iCities;
-	bool bNormalize;
 	// Intermediate values ...
 	std::vector<int> aiCitySiteRadius;
 	// <advc.035>
@@ -170,6 +171,7 @@ private:
 	int evaluateSeaAccess(bool bGoodFirstColony, scaled rProductionModifier,
 			int iLandTiles) const;
 	int evaluateDefense() const;
+	int evaluateGoodies(int iGoodies) const;
 	int adjustToStartingSurroundings(int iValue) const;
 	int adjustToFood(int iValue, int iSpecialFoodPlus, int iSpecialFoodMinus,
 			int iGreenTiles) const;

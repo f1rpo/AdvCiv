@@ -1948,7 +1948,8 @@ void CvGame::normalizeAddExtras()  // advc: changes to reduce indentation
 		if (pStartingPlot == NULL)
 			continue;
 
-		int iValue = kPlayer.AI_foundValue(pStartingPlot->getX(), pStartingPlot->getY(), -1, true);
+		int iValue = kPlayer.AI_foundValue(pStartingPlot->getX(), pStartingPlot->getY(),
+				-1, /* advc.031e: */ false, true);
 		iTotalValue += iValue;
 		iBestValue = std::max(iValue, iBestValue);
 		iWorstValue = std::min(iValue, iWorstValue);
@@ -1974,7 +1975,7 @@ void CvGame::normalizeAddExtras()  // advc: changes to reduce indentation
 
 		int iFeatureCount = 0;
 		// <advc.031c>
-		CitySiteEvaluator citySiteEval(kPlayer, -1, true);
+		CitySiteEvaluator citySiteEval(kPlayer, -1, false, true);
 		if (gFoundLogLevel > 0)
 			citySiteEval.log(pStartingPlot->getX(), pStartingPlot->getY());
 		// </advc.031c>
@@ -2142,7 +2143,7 @@ void CvGame::normalizeAddExtras()  // advc: changes to reduce indentation
 				}
 			}
 		}
-		if (gMapLogLevel > 0) logBBAI("    Player %d final value: %d", kPlayer.getID(), kPlayer.AI_foundValue(pStartingPlot->getX(), pStartingPlot->getY(), -1, true)); // K-Mod
+		if (gMapLogLevel > 0) logBBAI("    Player %d final value: %d", kPlayer.getID(), kPlayer.AI_foundValue(pStartingPlot->getX(), pStartingPlot->getY(), -1, false, true)); // K-Mod
 	}
 	if (gMapLogLevel > 0) logBBAI("normalizeAddExtras() complete"); // K-Mod
 }

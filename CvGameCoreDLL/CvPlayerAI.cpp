@@ -975,7 +975,7 @@ bool CvPlayerAI::AI_willOfferPeace(PlayerTypes eTo) const
 }
 
 
-void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc)  // advc: refactored
+void CvPlayerAI::AI_updateFoundValues(bool bStarting)  // advc: refactored
 {
 	PROFILE_FUNC();
 	// <advc.303>
@@ -984,8 +984,9 @@ void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc)  // advc: refactored
 	// </advc.303>
 	FOR_EACH_AREA_VAR(pLoopArea)
 		pLoopArea->setBestFoundValue(getID(), 0);
-
-	if(bStartingLoc)
+	/*	(advc.031e: Renamed from bStartingLoc b/c this should also apply to
+		normalization, which is no longer subsumed under "StartingLoc".) */
+	if (bStarting)
 	{
 		for(int iI = 0; iI < GC.getMap().numPlots(); iI++)
 			GC.getMap().getPlotByIndex(iI).setFoundValue(getID(), -1);
@@ -2600,9 +2601,10 @@ int CvPlayerAI::AI_calculateEspionageWeight() const
 }
 
 
-short CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStartingLoc) const
+short CvPlayerAI::AI_foundValue(int iX, int iY, int iMinRivalRange, bool bStartingLoc,
+	bool bNormalize) const // advc.031e
 {
-	CitySiteEvaluator eval(*this, iMinRivalRange, bStartingLoc);
+	CitySiteEvaluator eval(*this, iMinRivalRange, bStartingLoc, /* advc.031e: */ bNormalize);
 	return eval.evaluate(iX, iY);
 }
 

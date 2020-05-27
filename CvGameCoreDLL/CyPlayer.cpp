@@ -2093,15 +2093,30 @@ int CyPlayer::getEventTriggerWeight(int /*EventTriggerTypes*/ eTrigger)
 	return m_pPlayer ? m_pPlayer->getEventTriggerWeight((EventTriggerTypes)eTrigger) : NULL;
 }
 
-void CyPlayer::AI_updateFoundValues(bool bStartingLoc)
+void CyPlayer::AI_updateFoundValues(bool bStarting)
 {
 	if (m_pPlayer)
-		m_pPlayer->AI_updateFoundValues(bStartingLoc);
+		m_pPlayer->AI_updateFoundValues(bStarting);
 }
 
-int CyPlayer::AI_foundValue(int iX, int iY, int iMinRivalRange/* = -1*/, bool bStartingLoc/* = false*/)
+int CyPlayer::AI_foundValue(int iX, int iY, int iMinRivalRange/* = -1*/, bool bStarting/* = false*/)
 {
-	return m_pPlayer ? m_pPlayer->AI_foundValue(iX, iY, iMinRivalRange, bStartingLoc) : -1;
+	if (m_pPlayer == NULL)
+		return -1;
+	/*  <advc.031e> Moved from AI_foundValue. Within the DLL, the caller now explicitly
+		distinguishes between starting locations being placed (bStartingLoc) or
+		normalized (bNormalize). Python callers won't make this distinction; so the
+		old "nice hacky way to avoid messing with normalizer" (BtS comment) is still
+		needed here. */
+	bool bStartingLoc = false;
+	bool bNormalize = false;
+	if (bStarting)
+	{
+		if (GC.getMap().plot(iX, iY) != m_pPlayer->getStartingPlot())
+			bStartingLoc = true;
+		else bNormalize = true;
+	} // </advc.031e>
+	return m_pPlayer->AI_foundValue(iX, iY, iMinRivalRange, bStartingLoc, bNormalize);
 }
 
 bool CyPlayer::AI_isFinancialTrouble()

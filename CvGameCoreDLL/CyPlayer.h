@@ -476,8 +476,8 @@ public:
 	EventTriggeredData* initTriggeredData(int /*EventTriggerTypes*/ eEventTrigger, bool bFire, int iCityId, int iPlotX, int iPlotY, int /*PlayerTypes*/ eOtherPlayer, int iOtherPlayerCityId, int /*ReligionTypes*/ eReligion, int /*CorporationTypes*/ eCorporation, int iUnitId, int /*BuildingTypes*/ eBuilding);
 	int getEventTriggerWeight(int /*EventTriggerTypes*/ eTrigger);
 
-	void AI_updateFoundValues(bool bStartingLoc);
-	int AI_foundValue(int iX, int iY, int iMinRivalRange/* = -1*/, bool bStartingLoc/* = false*/);
+	void AI_updateFoundValues(bool bStarting);
+	int AI_foundValue(int iX, int iY, int iMinRivalRange/* = -1*/, bool bStarting/* = false*/);
 	bool AI_isFinancialTrouble();
 	// advc.104l: Moved definition into .cpp file
 	bool AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer); // K-Mod

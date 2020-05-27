@@ -19,24 +19,22 @@ static int const iDEFAULT_BARB_DISCOURAGED_RANGE = 8; // advc.303
 
 // Body cut from K-Mod's CvPlayerAI::CvFoundSettings::CvFoundSettings
 CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRange,
-	bool bStartingLoc) :
+	bool bStartingLoc, /* advc.031e: */ bool bNormalize) :
 	m_kPlayer(kPlayer), m_iMinRivalRange(iMinRivalRange), m_bStartingLoc(bStartingLoc),
-	m_bAmbitious(false), m_bFinancial(false), m_bDefensive(false),
+	m_bNormalize(bNormalize), m_bAmbitious(false), m_bFinancial(false), m_bDefensive(false),
 	m_bSeafaring(false), m_bExpansive(false), /* advc.007: */ m_bDebug(false),
 	m_bAdvancedStart(false), /* advc.303: */ m_iBarbDiscouragedRange(iDEFAULT_BARB_DISCOURAGED_RANGE)
 {
 	m_bAdvancedStart = (kPlayer.getAdvancedStartPoints() > 0);
 	m_bEasyCulture = (kPlayer.getNumCities() <= 0 || // advc.108: from MNAI (was =bStartingLoc)
 			m_bAdvancedStart); // advc.031
-	m_bAllSeeing = (bStartingLoc || kPlayer.isBarbarian());
+	m_bAllSeeing = (bStartingLoc || bNormalize || kPlayer.isBarbarian());
+	// advc.031e: No longer use StartingLoc logic for normalization
+	FAssert(!bNormalize || !bStartingLoc);
 
 	CvLeaderHeadInfo const* pPersonality = NULL;
 	CvCivilization const& kCiv = kPlayer.getCivilization();
-
-	/*	(Would be nicer not to take a CvPlayer argument for starting locations.
-		However, then AIFoundValue::kPlayer would have to be a pointer,
-		which isn't as convenient.) */
-	if (!m_bStartingLoc)
+	if (!m_bStartingLoc && !m_bNormalize)
 	{
 		// advc.001: Make sure that personality isn't used for human or StartingLoc
 		if (!kPlayer.isHuman() || m_bDebug)
@@ -152,7 +150,7 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 		m_bExpansive = true;
 
 	m_iClaimThreshold = 100; // will be converted into culture units
-	if (!bStartingLoc)
+	if (!bStartingLoc && !bNormalize)
 	{
 		int iCitiesTarget = std::max(1,
 				GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities());
@@ -173,7 +171,7 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 	if (m_bAdvancedStart)
 	{
 		FAssert(GC.getGame().isOption(GAMEOPTION_ADVANCED_START));
-		if (m_bStartingLoc)
+		if (m_bStartingLoc || m_bNormalize)
 			m_bAdvancedStart = false;
 	}
 	IFLOG logSettings();
@@ -224,16 +222,9 @@ void CitySiteEvaluator::log(int iX, int iY)
 		none of the other sites are chosen yet. Here, all sites are chosen. */
 	setDebug(true);
 	if (isStartingLoc())
-	{
-		// Starting plot already assigned => normalizing
-		if (getPlayer().getStartingPlot() != NULL &&
-			getPlayer().getStartingPlot()->at(iX, iY))
-		{
-			logBBAI("\n\nNormalizing starting plot (%d,%d)", iX, iY);
-		}
-		// About to be assigned
-		else logBBAI("\n\nStarting location found at (%d,%d)", iX, iY);
-	}
+		logBBAI("\n\nStarting location found at (%d,%d)", iX, iY);
+	else if (isNormalizing())
+		logBBAI("\n\nNormalizing starting plot (%d,%d)", iX, iY);
 	else
 	{
 		logBBAI("\n\n%S is about to found a city at (%d,%d); turn %d (year %d)", getPlayer().getName(),
@@ -318,11 +309,10 @@ AIFoundValue::AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettin
 	iCities = (bBarbarian ? 5 : kPlayer.getNumCities());
 	FAssert(iCities > 0 || !kPlayer.isFoundedFirstCity());
 	// </advc.108>
-	/*  advc: New variable, BtS comment moved up. Originally, kPlot.isStartingPlot()
-		was used; K-Mod corrected that to pPlot==getStartingPlot()
-		("isStartingPlot is not automatically set"). */
+
 	//"nice hacky way to avoid messing with normalizer"
-	bNormalize = (kSet.isStartingLoc() && &kPlot == kPlayer.getStartingPlot());
+	// advc.031e: Now only used for calls from Python; see CyPlayer::AI_foundValue.
+	//bNormalize = (kSet.isStartingLoc() && &kPlot == kPlayer.getStartingPlot());
 
 	bFirstColony = false;
 	iUnrevealedTiles = 0;
@@ -398,6 +388,7 @@ short AIFoundValue::evaluate()
 	//bool bNeutralTerritory = true;
 	bool bAnyForeignOwned = false; // advc.040: Replacing the above
 	// <advc.031>
+	int iGoody = 0; // for normalization
 	bool bAnyGrowthBonus = false;
 	int iStealPercent = 0;
 	int iRiverTiles = 0;
@@ -411,6 +402,12 @@ short AIFoundValue::evaluate()
 	FOR_EACH_ENUM(CityPlot)
 	{
 		// <advc.031>
+		CvPlot const* pLoopPlot = plotCity(iX, iY, eLoopCityPlot);
+		if (pLoopPlot != NULL && pLoopPlot->isGoody() &&
+			eLoopCityPlot != CITY_HOME_PLOT) // advc.027
+		{
+			iGoody++;
+		}
 		bool bShare = false;
 		bool bSteal = false; // </advc.031>
 		bool bCityRadius = false;
@@ -420,7 +417,7 @@ short AIFoundValue::evaluate()
 		{
 			continue;
 		}
-		CvPlot const& p = *plotCity(iX, iY, eLoopCityPlot);
+		CvPlot const& p = *pLoopPlot;
 		bool const bHome = isHome(p);
 		// advc.035: The own-exclusive-radius rule only helps if the radii don't overlap
 		bool const bOwnExcl = (GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS) &&
@@ -700,11 +697,13 @@ short AIFoundValue::evaluate()
 		iValue /= 100;
 		IFLOG if(iModifier!=100) logBBAI("Times %d percent for starting on a resource", iModifier);
 	}
-	if (kSet.isStartingLoc())
+	if (kSet.isStartingLoc() || /* advc.031e: */ kSet.isNormalizing())
+	{
 		iValue = adjustToStartingSurroundings(iValue); // (advc: Moved down a bit)
+	}
 	if (bBarbarian)
 		iValue = adjustToBarbarianSurroundings(iValue);
-	else if (!kSet.isStartingLoc())
+	else if (!kSet.isStartingLoc() /* advc.031e: */ && !kSet.isNormalizing())
 		iValue = adjustToCivSurroundings(iValue, iStealPercent);
 
 	if (iValue <= 0)
@@ -712,12 +711,15 @@ short AIFoundValue::evaluate()
 
 	iValue = adjustToCitiesPerArea(iValue);
 
-	if (!kSet.isStartingLoc())
+	if (!kSet.isStartingLoc() /* advc.031e: */ && !kSet.isNormalizing())
 		iValue = adjustToBonusCount(iValue, aiBonusCount);
 
 	iValue = adjustToBadTiles(iValue, iBadTiles /* advc.031: */ + (4 * iTakenTiles) / 10
 			-(bBarbarian ? 2 : (4 + iGreenTiles + iSpecialFoodPlus))); // advc.303
 	iValue = adjustToBadHealth(iValue, iHealth);
+	// <advc.031>
+	if (kSet.isNormalizing())
+		iValue += evaluateGoodies(iGoody); // </advc.031>
 
 	// advc: BtS code (iDifferentAreaTile) deleted
 	// (disabled by K-Mod. This kind of stuff is already taken into account.)
@@ -817,7 +819,7 @@ bool AIFoundValue::computeOverlap()
 	// Whether the tile flips to us once we settle near it
 	abFlip.resize(NUM_CITY_PLOTS, false); // </advc.035>
 	// K-Mod. bug fixes etc. (original code deleted)
-	if (!kSet.isStartingLoc() &&
+	if (!kSet.isStartingLoc() /* advc.031e: */ && !kSet.isNormalizing() &&
 		!kSet.isDebug() && // advc.007
 		!bBarbarian) // advc.303: Barbarians don't have city sites
 	{
@@ -845,7 +847,7 @@ bool AIFoundValue::computeOverlap()
 		}
 	} // K-Mod (bugfixes etc.) end
 	// <advc.035> (also for advc.031)
-	if (!kSet.isStartingLoc() && !bBarbarian)
+	if (!kSet.isStartingLoc() && !kSet.isNormalizing() && !bBarbarian)
 	{
 		FOR_EACH_CITY(c, kPlayer)
 		{
@@ -994,7 +996,7 @@ int AIFoundValue::countBadTiles(/* advc.031: */ int& iInnerRadius,
 bool AIFoundValue::isTooManyBadTiles(int iBadTiles,
 	int iInnerBadTiles) const // advc.031
 {
-	if (kSet.isStartingLoc())
+	if (kSet.isStartingLoc() /* advc.031e: */ || kSet.isNormalizing())
 		return false;
 	if (2 * iBadTiles <= NUM_CITY_PLOTS && kArea.getNumTiles() > 2 &&
 		(!bBarbarian || iBadTiles <= 3)) // advc.303
@@ -1266,7 +1268,7 @@ bool AIFoundValue::isRevealed(CvPlot const& p) const
 // (replacing all CvPlot::getBonusType and getNonObsoleteBonusType calls)
 BonusTypes AIFoundValue::getBonus(CvPlot const& p) const
 {
-	bool bRevealBonus = (kSet.isStartingLoc() &&
+	bool bRevealBonus = ((kSet.isStartingLoc() /* advc.031e: */ || kSet.isNormalizing()) &&
 			// advc.108: Don't factor in unrevealed bonuses
 			kGame.getStartingPlotNormalizationLevel() > CvGame::NORMALIZE_LOW);
 	return p.getBonusType(bRevealBonus ? NO_TEAM : eTeam);
@@ -1334,7 +1336,7 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 	bCanTrade = (bCanTrade && bCanTradeSoon && kTeam.isHasTech(eTradeTech));
 	/*  <advc.108> Depending on the NormalizationLevel, eBonus can be unrevealed
 		when placing starting locations. */
-	if (kSet.isStartingLoc())
+	if (kSet.isStartingLoc() || kSet.isNormalizing())
 	{
 		TechTypes eRevealTech = GC.getInfo(eBonus).getTechReveal();
 		if (!isNearTech(eTradeTech))
@@ -1618,7 +1620,7 @@ int AIFoundValue::evaluateYield(int const* aiYield, CvPlot const* p,
 		r += (bCoastal ? 8 * (aiYield[YIELD_COMMERCE]
 				+ aiYield[YIELD_PRODUCTION]) : 0);
 
-		if (kSet.isStartingLoc() && !bNormalize)
+		if (kSet.isStartingLoc())
 		{
 			r += bCoastal ? 0 : -75; // advc.031: was -400 in BtS, -120 in K-Mod
 			/*	(K-Mod comment: "I'm pretty much forbidding starting 1 tile
@@ -1758,7 +1760,7 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus,
 		(note: I removed a bigger value reduction from the original code.) */
 	// (advc: Should perhaps make such adjustments in CvPlayerAI::AI_bonusValue instead)
 	int iEarlyGameModifier = 100;
-	if (kSet.isStartingLoc() && !bNormalize)
+	if (kSet.isStartingLoc())
 	{	// <advc.031>
 		if (bGrowthBonus)
 			iEarlyGameModifier = 40; // </advc.031>
@@ -1842,7 +1844,7 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus,
 		if (bSurplus)
 			r = std::min(125, r);
 	} // </advc.031>
-	if (kSet.isStartingLoc())
+	if (kSet.isStartingLoc() /* advc.031e: */ || kSet.isNormalizing())
 		return r;
 
 	// K-Mod. (original code deleted)
@@ -1999,9 +2001,13 @@ int AIFoundValue::evaluateSpecialYields(int const* aiSpecialYield,
 	rSurplusMean.decreaseTo(2 * GC.getFOOD_CONSUMPTION_PER_POPULATION());
 	scaled rFoodModifier = (1 + rFoodWeight * rSurplusMean) /
 			(1 + rFoodWeight * iFoodDeficit);
-	// ... and reduce the impact b/c of new food modifier in adjustToFood
-	modifier = (modifier + 2) / 3;
-	int r = ::round(fromSpecial * modifier);
+	// ... and reduce the impact b/c of the new food modifier in adjustToFood
+	if (!kSet.isStartingLoc())
+		rFoodModifier = (rFoodModifier + 2) / 3;
+	/*	Starting sites are exempt from adjustToFood. Mostly don't want them
+		to be exempt from the special food adjustment. */
+	else rFoodModifier = (rFoodModifier + fixp(0.5)) / fixp(1.5);
+	int r = (rFromSpecial * rFoodModifier).round();
 	IFLOG logBBAI("+%d from special yields %dF%dP%dC (food surplus modifier: %d percent)", r,
 			aiSpecialYield[YIELD_FOOD], aiSpecialYield[YIELD_PRODUCTION], aiSpecialYield[YIELD_COMMERCE],
 			rFoodModifier.getPercent());
@@ -2089,7 +2095,7 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, scaled rProductionMod
 	{
 		// BtS: "let other penalties bring this down."
 		r += 360; // advc.031: was 600 in BtS, 500 in K-Mod
-		if (!bNormalize && kArea.getNumStartingPlots() <= 0)
+		if (!kSet.isNormalizing() && kArea.getNumStartingPlots() <= 0)
 		{
 			// advc.031: An inland sea will probably do an isolated civ no good
 			if (GC.getMap().findBiggestArea(true) == kPlot.waterArea(true))
@@ -2184,6 +2190,12 @@ int AIFoundValue::evaluateDefense() const
 	return r;
 }
 
+
+int AIFoundValue::evaluateGoodies(int iGoodies) const
+{
+	return iGoodies * 50;
+}
+
 // Taking into account tiles beyond the city radius
 int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 {
@@ -2234,7 +2246,7 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 		}
 	}
 	IFLOG logBBAI("+%d from surroundings", r - iValue);
-	if (bNormalize)
+	if (kSet.isNormalizing())
 		return r; // advc
 	/*iGreaterBadTile /= 2;
 	if (iGreaterBadTile > 12) {
@@ -2478,7 +2490,7 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 					rDiploFactor.getPercent(), iStealPercent);
 		} // </advc.031>
 	}  // <advc.108> Avoid moving the starting settler far on crowded maps
-	else if (iCities <= 0 && !kSet.isStartingLoc() &&
+	else if (iCities <= 0 && !kSet.isStartingLoc() && !kSet.isNormalizing() &&
 		kPlayer.getStartingPlot() != NULL && &kPlot != kPlayer.getStartingPlot())
 	{
 		int iCivAlive = PlayerIter<CIV_ALIVE>::count();
@@ -2785,6 +2797,9 @@ void CitySiteEvaluator::logSettings() const
 	// </advc.300>
 	if (isStartingLoc())
 		logBBAI("StartingLoc");
+	// <advc.031e>
+	if (isNormalizing())
+		logBBAI("Normalizing"); // </advc.031e>
 	// <advc.007>
 	if (isDebug())
 		logBBAI("Ignoring other sites"); // </advc.007>
@@ -2811,7 +2826,7 @@ void AIFoundValue::logSite() const
 	logBBAI("Computing found value for %S", kPlot.debugStr());
 	if (bCoastal)
 		logBBAI("Site is coastal");
-	if (!kSet.isStartingLoc())
+	if (!kSet.isStartingLoc() && !kSet.isNormalizing())
 		logBBAI("%d other %S cities in the area, %d in total", iAreaCities, kPlayer.getCivilizationShortDescription(), iCities);
 }
 
