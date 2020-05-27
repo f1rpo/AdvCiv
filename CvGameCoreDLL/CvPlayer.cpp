@@ -1477,17 +1477,23 @@ public:
 // Returns the id of the best area, or -1 if it doesn't matter:
 //int CvPlayer::findStartingArea() const
 // dlph.35: "Returns a vector of all starting areas sorted by their value (instead of one best starting area)."
-std::vector<std::pair<int,int> > CvPlayer::findStartingAreas() const  // advc: style changes
+std::vector<std::pair<int,int> > CvPlayer::findStartingAreas(  // advc: style changes
+	bool* pbFoundByMapScript) const // advc.027
 {
 	PROFILE_FUNC();
-
+	// <advc.027>
+	if (pbFoundByMapScript != NULL)
+		*pbFoundByMapScript = false; // </advc.027>
 	std::vector<std::pair<int,int> > areas_by_value; // dlph.35
 	{
 		CvArea* pyArea = GC.getPythonCaller()->findStartingArea(getID());
 		if (pyArea != NULL)
-		{	// <dlph.35>
-			areas_by_value.push_back(std::make_pair(pyArea->getID(), 1));
-			return areas_by_value; // </dlph.35>
+		{
+			areas_by_value.push_back(std::make_pair(pyArea->getID(), 1)); // dlph.35
+			// <advc.027>
+			if (pbFoundByMapScript != NULL)
+				*pbFoundByMapScript = true; // </advc.027>
+			return areas_by_value; // dlph.35
 		}
 	}
 	// find best land area
@@ -1531,13 +1537,24 @@ std::vector<std::pair<int,int> > CvPlayer::findStartingAreas() const  // advc: s
 }
 
 
-CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
+CvPlot* CvPlayer::findStartingPlot(bool bRandomize,
+	bool* pbPlotFoundByMapScript, bool* pbAreaFoundByMapScript) // advc.027
 {
 	PROFILE_FUNC();
+	// <advc.027>
+	if (pbPlotFoundByMapScript != NULL)
+		*pbPlotFoundByMapScript = false;
+	if (pbAreaFoundByMapScript != NULL)
+		*pbAreaFoundByMapScript = false;
+	// </advc.027>
 	{
 		CvPlot* r = GC.getPythonCaller()->findStartingPlot(getID());
 		if (r != NULL)
+		{	// <advc.027>
+			if (pbPlotFoundByMapScript != NULL)
+				*pbPlotFoundByMapScript = true; // </advc.027>
 			return r;
+		}
 	}
 	//int iBestArea = -1;
 	// dlph.35: "This function is adjusted to work with a list of possible starting areas instead of a single one."
@@ -1556,7 +1573,8 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 	if (!bNew)
 	{
 		//iBestArea = findStartingArea();
-		areas_by_value = findStartingAreas(); // dlph.35
+		areas_by_value = findStartingAreas( // dlph.35
+				pbAreaFoundByMapScript); // advc.027
 	}
 	/*  <advc.140> Cut and pasted from CvMap::maxPlotDistance. I've changed that
 		function, but I think the original formula might be needed here.
@@ -1570,7 +1588,7 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 	/*  <dlph.35> "First pass avoids starting locations that have very little food
 		(before normalization) to avoid starting on the edge of very bad terrain." */
 	int const iStartingRange = GC.getDefineINT("ADVANCED_START_SIGHT_RANGE");
-	CvMap const& m = GC.getMap();
+	CvMap const& kMap = GC.getMap();
 	int const iMaxPass = 1;
 	for(int iPass = 0; iPass <= iMaxPass; iPass++)
 	{
@@ -1578,9 +1596,9 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 		{ // </dlph.35>
 			CvPlot *pBestPlot = NULL;
 			int iBestValue = iMaxPass - iPass; // advc: was 0 flat
-			for (int iI = 0; iI < m.numPlots(); iI++)
+			for (int iI = 0; iI < kMap.numPlots(); iI++)
 			{
-				CvPlot* pLoopPlot = m.plotByIndex(iI);
+				CvPlot* pLoopPlot = kMap.plotByIndex(iI);
 				//if (iBestArea == -1 || pLoopPlot->getArea() == iBestArea)
 				// <dlph.35>
 				if (pLoopPlot->getArea().getID() != areas_by_value[iJ].first)

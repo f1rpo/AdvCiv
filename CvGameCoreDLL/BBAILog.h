@@ -35,6 +35,8 @@
 #ifdef LOG_FOUND_VALUE
 #define LOG_AI
 #define gFoundLogLevel 1
+#undef gMapLogLevel
+#define gMapLogLevel 1 // (for starting site normalization)
 #else
 #define gFoundLogLevel 0
 #endif // </advc.031c>

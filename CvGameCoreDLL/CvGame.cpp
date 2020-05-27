@@ -22,6 +22,7 @@
 #include "CvReplayInfo.h"
 #include "CvGameTextMgr.h"
 #include "CvMessageControl.h"
+#include "StartingPositionIteration.h" // advc.027
 #include "StartPointsAsHandicap.h" // advc.250b
 #include "RiseFall.h" // advc.700
 #include "CvHallOfFameInfo.h" // advc.106i
@@ -1145,7 +1146,7 @@ void CvGame::assignStartingPlots()
 	else
 	{	/*	advc.027: If the map script allows it, StartingPositionIteration will
 			set starting locations that the code below may then shuffle around. */
-		StartingPositionIteration();
+//		StartingPositionIteration(); // advc.tmp
 		int const iAlive = countCivPlayersAlive();
 		FAssert(playerOrder.empty());
 		playerOrder.resize(iAlive, NO_PLAYER); // advc (replacing loop)

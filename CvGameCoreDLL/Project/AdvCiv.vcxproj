@@ -179,6 +179,7 @@
     <ClCompile Include="..\RiseFall.cpp" />
     <ClCompile Include="..\ScaledNumTest.cpp" />
     <ClCompile Include="..\Shelf.cpp" />
+    <ClCompile Include="..\StartingPositionIteration.cpp" />
     <ClCompile Include="..\StartPointsAsHandicap.cpp" />
     <ClCompile Include="..\TSCProfiler.cpp" />
     <ClCompile Include="..\UWAIAgent.cpp" />
@@ -331,6 +332,7 @@
     <ClInclude Include="..\PlotRadiusIterator.h" />
     <ClInclude Include="..\PlotRange.h" />
     <ClInclude Include="..\ScaledNum.h" />
+    <ClInclude Include="..\StartingPositionIteration.h" />
     <ClInclude Include="..\Trigonometry.h" />
     <ClInclude Include="..\TSCProfiler.h" />
     <ClInclude Include="..\TypeChoice.h" />

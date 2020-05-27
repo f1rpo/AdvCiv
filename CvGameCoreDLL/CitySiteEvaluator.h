@@ -21,6 +21,7 @@ public:
 	short evaluate(CvPlot const& kPlot) const;
 	short evaluate(int iX, int iY) const;
 	short evaluateWithLogging(int iX, int iY) const; // advc.031c
+	scaled evaluateWorkablePlot(CvPlot const& kPlot) const; // advc.027
 	CvPlayerAI const& getPlayer() const { return m_kPlayer; }
 	bool isStartingLoc() const { return m_bStartingLoc; }
 	bool isNormalizing() const { return m_bNormalize; } // advc.031e
@@ -28,7 +29,10 @@ public:
 	// <advc.300>
 	void discourageBarbarians(int iRange);
 	int getBarbarianDiscouragedRange() const { return m_iBarbDiscouragedRange; }
-	// </advc.300>
+	// </advc.300>  <advc.027>
+	void setIgnoreStartingSurroundings(bool b);
+	bool isIgnoreStartingSurroundings() const { return m_bIgnoreStartingSurroundings; }
+	// </advc.027>
 	bool isAdvancedStart() const { return m_bAdvancedStart; } // advc
 	/*  <advc.007> Ignores whether kPlot is close to another tentative city site
 		and treats kPlayer as non-human */
@@ -64,6 +68,7 @@ private:
 	bool m_bNormalize;
 	int m_iMinRivalRange;
 	int m_iBarbDiscouragedRange; // advc.300
+	bool m_bIgnoreStartingSurroundings; // advc.027
 	bool m_bAdvancedStart; // advc
 	int m_bDebug; // advc.007
 	bool m_bAllSeeing;
@@ -83,6 +88,7 @@ class AIFoundValue
 public:
 	AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettings);
 	short get() const { return m_iResult; }
+	scaled evaluateWorkablePlot(CvPlot const& p) const; // advc.027
 
 	// <advc.031c> Will have to enable the found log in BBAILog.h in addition
 	static void setLoggingEnabled(bool b);
@@ -147,6 +153,8 @@ private:
 	int calculateCultureModifier(CvPlot const& p, bool bForeignOwned, bool bShare,
 			bool bCityRadius, bool bSteal, bool bFlip, bool bOwnExcl,
 			int& iTakenTiles, int& iStealPercent) const;
+	int removableFeatureYieldVal(FeatureTypes eFeature, bool bRemovableFeature,
+			bool bBonus) const;
 	scaled estimateImprovementProduction(CvPlot const& p, bool bPersistentFeature) const;
 	int evaluateYield(int const* aiYield, CvPlot const* p = NULL,
 			bool bCanNeverImprove = false) const;
@@ -157,11 +165,15 @@ private:
 			bool bShare) const;
 	int nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus, bool bCanTrade,
 			bool bCanTradeSoon, bool bEasyAccess, bool& bAnyGrowthBonus,
-			std::vector<int>& aiBonusCount, int iCultureModifier) const;
+			std::vector<int>* paiBonusCount, int iCultureModifier) const;
+	int calculateSpecialYieldModifier(int iCultureModifier, bool bEasyAccess,
+			bool bBonus, bool bCanSoonImproveBonus, bool bCanImproveBonus) const;
 	void calculateSpecialYields(CvPlot const& p,
 			int const* aiBonusImprovementYield, int const* aiNatureYield,
-			int iModifier, int iEffectiveFood, int* aiSpecialYield,
+			int iModifier, int* aiSpecialYield,
 			int& iSpecialFoodPlus, int& iSpecialFoodMinus, int& iSpecialYieldTiles) const;
+	void calculateBuildingYields(CvPlot const& p, int const* aiNatureYield,
+			int* aiBuildingYield) const;
 	int sumUpPlotValues(std::vector<int>& aiPlotValues) const;
 	int evaluateSpecialYields(int const* aiSpecialYield, int iSpecialYieldTiles,
 			int iSpecialFoodPlus, int iSpecialFoodMinus) const;
