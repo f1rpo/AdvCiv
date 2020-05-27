@@ -4,7 +4,9 @@
 	code from the Perl-generated enums that WtP uses. Instead of defining
 	ArrayLength functions, the getEnumLength functions that AdvCiv defines in
 	CvEnums.h and CvGlobals.h are used.
-	Formatting: linebreaks added before scope resolution operators. */
+	Formatting: linebreaks added before scope resolution operators.
+	advc.fract: Disabled the INLINE_NATIVE representation for "small" enum types
+	in order to allow T=ScaledNum. (As suggested to me by Nightinggale.) */
 
 #pragma once
 
@@ -134,8 +136,8 @@ public:
 private: // advc (Maybe some of these should indeed be public, but probably not all.)
 	static const int SIZE = EnumMapGetDefault<T>::SIZE;
 	static const int SIZE_OF_T = EnumMapGetDefault<T>::SIZE_OF_T;
-	static const bool bINLINE_NATIVE = (SIZE == ENUMMAP_SIZE_NATIVE && (MAX_LENGTH * SIZE_OF_T) <= ENUMMAP_MAX_BYTES);
-	static const int NUM_NATIVE_BLOCKS = (bINLINE_NATIVE ? MAX_LENGTH : 1);
+	/*static const bool bINLINE_NATIVE = (SIZE == ENUMMAP_SIZE_NATIVE && (MAX_LENGTH * SIZE_OF_T) <= ENUMMAP_MAX_BYTES);
+	static const int NUM_NATIVE_BLOCKS = (bINLINE_NATIVE ? MAX_LENGTH : 1);*/ // advc.fract
 
 	static const bool bINLINE_1_BYTE = (SIZE == ENUMMAP_SIZE_1_BYTE && (MAX_LENGTH * SIZE_OF_T) <= ENUMMAP_MAX_BYTES);
 	static const int NUM_1_BYTE_BLOCKS = (bINLINE_1_BYTE ? MAX_LENGTH : 1);
@@ -147,7 +149,8 @@ private: // advc (Maybe some of these should indeed be public, but probably not 
 	static const int NUM_BOOL_BLOCKS = bINLINE_BOOL ? (MAX_LENGTH + 31) / 32 : 1;
 	static const unsigned int BOOL_BLOCK_DEFAULT = DEFAULT ? MAX_UNSIGNED_INT : 0;
 
-	static const bool bINLINE = (bINLINE_NATIVE || bINLINE_1_BYTE || bINLINE_2_BYTE || bINLINE_BOOL);
+	static const bool bINLINE = (/*bINLINE_NATIVE ||*/ // advc.fract
+			bINLINE_1_BYTE || bINLINE_2_BYTE || bINLINE_BOOL);
 
 public:
 	// operator overload
@@ -180,17 +183,16 @@ private:
 		short* m_pArrayShort;
 		char* m_pArrayChar;
 		unsigned int* m_pArrayBool;
-
-		/*	advc.fract (note): May want to remove this in order to allow T=scaled.
-			(C++03 allows only POD types in unions.) Use the non-native arrays instead. */
-		T m_InlineNative[NUM_NATIVE_BLOCKS];
+		/*	advc.fract: This wouldn't work for ScaledNum
+			b/c C++03 allows only POD types in unions. */
+		//T m_InlineNative[NUM_NATIVE_BLOCKS];
 		char m_Inline_1_byte[NUM_1_BYTE_BLOCKS];
 		short m_Inline_2_byte[NUM_2_BYTE_BLOCKS];
     	unsigned int m_InlineBoolArray[NUM_BOOL_BLOCKS];
 	};
 
 	// the code will technically still work if this fails, but it will waste memory
-	BOOST_STATIC_ASSERT(sizeof(T) <= 4 || bINLINE_NATIVE);
+	BOOST_STATIC_ASSERT(sizeof(T) <= 4 /*|| bINLINE_NATIVE*/); // advc.fract
 	enum
 	{
 		SAVE_ARRAY_MULTI_BYTE,
@@ -300,11 +302,11 @@ private:
 	{
 		return m_pArrayBool ? BitUtil::HasBit(m_pArrayBool[getBoolArrayBlock(iIndex)], getBoolArrayIndexInBlock(iIndex)) : DEFAULT;
 	}
-	template<>
+	/*template<>
 	__forceinline T _get<true, ENUMMAP_SIZE_NATIVE>(int iIndex) const
 	{
 		return m_InlineNative[iIndex];
-	}
+	}*/ // advc.fract
 	template<>
 	__forceinline T _get<true, ENUMMAP_SIZE_1_BYTE>(int iIndex) const
 	{
@@ -342,11 +344,11 @@ private:
 	{
 		BitUtil::SetBit(m_pArrayBool[getBoolArrayBlock(iIndex)], getBoolArrayIndexInBlock(iIndex), eValue ? 1 : 0);
 	}
-	template<>
+	/*template<>
 	__forceinline void _set<true, ENUMMAP_SIZE_NATIVE>(int iIndex, T eValue)
 	{
 		m_InlineNative[iIndex] = eValue;
-	}
+	}*/ // advc.fract
 	template<>
 	__forceinline void _set<true, ENUMMAP_SIZE_1_BYTE>(int iIndex, T eValue)
 	{
@@ -384,11 +386,11 @@ private:
 	{
 		std::fill_n(m_pArrayBool, _getNumBoolBlocks<bINLINE_BOOL>(), eValue ? MAX_UNSIGNED_INT : 0);
 	}
-	template<>
+	/*template<>
 	__forceinline void _setAll<true, ENUMMAP_SIZE_NATIVE>(T eValue)
 	{
 		std::fill_n(&m_InlineNative[0], numElements(), eValue);
-	}
+	}*/ // advc.fract
 	template<>
 	__forceinline void _setAll<true, ENUMMAP_SIZE_1_BYTE>(T eValue)
 	{
@@ -434,11 +436,11 @@ private:
 		m_pArrayBool = new unsigned int[_getNumBoolBlocks<bINLINE>()];
 		_setAll<bINLINE, SIZE>(eValue);
 	}
-	template<>
+	/*template<>
 	void _allocate<true, ENUMMAP_SIZE_NATIVE>(T eValue)
 	{
 		FAssertMsg(false, "EnumMap::_allocate shouldn't be called for classes with inline memory");
-	}
+	}*/ // advc.fract
 	template<>
 	void _allocate<true, ENUMMAP_SIZE_1_BYTE>(T eValue)
 	{
@@ -1141,6 +1143,7 @@ SET_ARRAY_DEFAULT(unsigned int);
 SET_ARRAY_DEFAULT(unsigned short);
 SET_ARRAY_DEFAULT(byte);
 SET_ARRAY_DEFAULT(float); // advc
+SET_ARRAY_DEFAULT(scaled); // advc.fract
 
 /*  advc: COMPILE_NUM_TYPES param removed; use NUM_ENUM_TYPES macro instead.
 	JITarrayType accessor, ArrayStart and ArrayLength functions removed.
@@ -1173,13 +1176,13 @@ SET_XML_ENUM_SIZE(AreaAI, AREAAI)
 			MAX_LENGTH = MAX_CHAR \
 		}; \
 	};
-	DO_FOR_EACH_SMALL_DYN_INFO_TYPE(SET_XML_ENUM_SIZE1)
-	// Not included in the list above:
-	SET_XML_ENUM_SIZE1(WorldSize, Dummy)
-	SET_XML_ENUM_SIZE1(Flavor, Dummy)
-	SET_XML_ENUM_SIZE1(Direction, Dummy)
-	SET_XML_ENUM_SIZE1(WarPlan, Dummy)
-	SET_XML_ENUM_SIZE1(CityPlot, Dummy)
+DO_FOR_EACH_SMALL_DYN_INFO_TYPE(SET_XML_ENUM_SIZE1)
+// Not included in the list above:
+SET_XML_ENUM_SIZE1(WorldSize, Dummy)
+SET_XML_ENUM_SIZE1(Flavor, Dummy)
+SET_XML_ENUM_SIZE1(Direction, Dummy)
+SET_XML_ENUM_SIZE1(WarPlan, Dummy)
+SET_XML_ENUM_SIZE1(CityPlot, Dummy)
 
 /*  2 being the default apparently does not mean that these can be omitted
 	(Tbd.: There should be some way to get rid of SET_XML_ENUM_SIZE2.) */
