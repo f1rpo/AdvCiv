@@ -441,38 +441,27 @@ bool CvSelectionGroup::doDelayedDeath()
 }
 
 
-void CvSelectionGroup::playActionSound()
+void CvSelectionGroup::playActionSound()  // advc: refactored
 {
-	// Pitboss should not be playing sounds!
-#ifndef PITBOSS
-	CvUnit *pHeadUnit;
-	int iScriptId = -1;
+	#ifndef PITBOSS // Pitboss should not be playing sounds!
+	CvUnit const* pHeadUnit = getHeadUnit();
+	if (pHeadUnit == NULL)
+		return;
 
-	pHeadUnit = getHeadUnit();
-	if (pHeadUnit)
+	int iScriptId = pHeadUnit->getArtInfo(0,
+				GET_PLAYER(getOwner()).getCurrentEra())->getActionSoundScriptId();
+	if (iScriptId == -1)
 	{
-		iScriptId = pHeadUnit->getArtInfo(0, GET_PLAYER(getOwner()).getCurrentEra())->getActionSoundScriptId();
+		iScriptId = GC.getInfo(pHeadUnit->getCivilizationType()).
+				getActionSoundScriptId();
 	}
-
-	if (iScriptId == -1 && pHeadUnit)
+	if (iScriptId != -1)
 	{
-		CvCivilizationInfo *pCivInfo;
-		pCivInfo = &GC.getInfo(pHeadUnit->getCivilizationType());
-		if (pCivInfo)
-		{
-			iScriptId = pCivInfo->getActionSoundScriptId();
-		}
-	}
-
-	if (iScriptId != -1 && pHeadUnit)
-	{
-		CvPlot* pPlot = GC.getMap().plot(pHeadUnit->getX(),pHeadUnit->getY());
+		CvPlot const* pPlot = GC.getMap().plot(pHeadUnit->getX(), pHeadUnit->getY());
 		if (pPlot != NULL)
-		{
 			gDLL->Do3DSound(iScriptId, pPlot->getPoint());
-		}
 	}
-#endif // n PITBOSS
+	#endif
 }
 
 
@@ -1290,7 +1279,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc: style changes
 	{
 		if (missionData.eMissionType == MISSION_MOVE_TO)
 		{
-			bool bFailedAlreadyFighting;
+			bool bFailedAlreadyFighting/*advc:*/=false; // (safer)
 			if (groupAttack(missionData.iData1, missionData.iData2,
 				missionData.iFlags, bFailedAlreadyFighting,
 				/* advc.048: */ missionData.bModified))
@@ -1302,12 +1291,14 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc: style changes
 		// because with the MOVE_ATTACK_STACK flag, MOVE_TO_UNIT might actually want to attack something!
 		// Note: the "else" is not just for efficiency. The code above may have actually killed "this" unit!
 		else if (missionData.eMissionType == MISSION_MOVE_TO_UNIT &&
-				(missionData.iFlags & MOVE_ATTACK_STACK))
-		{	bool bDummy;
+			(missionData.iFlags & MOVE_ATTACK_STACK))
+		{	bool bDummy=false;
 			CvUnit* pTargetUnit = GET_PLAYER((PlayerTypes)missionData.iData1).getUnit(missionData.iData2);
 			if (pTargetUnit && groupAttack(pTargetUnit->getX(), pTargetUnit->getY(),
-					missionData.iFlags, bDummy, /* advc.048: */ false))
+				missionData.iFlags, bDummy, /* advc.048: */ false))
+			{
 				bDone = true;
+			}
 		} // K-Mod end
 	}
 	// extra crash protection, should never happen (but a previous bug in groupAttack was causing a NULL here)

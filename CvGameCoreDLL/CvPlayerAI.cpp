@@ -430,10 +430,11 @@ void CvPlayerAI::AI_doTurnUnitsPre()
 
 	AI_updateFoundValues();
 
-	if (AI_getCityTargetTimer() == 0 && GC.getGame().getSorenRandNum(8, "AI Update Area Targets") == 0) // K-Mod added timer check.
+	if (AI_getCityTargetTimer() == 0 && // K-Mod
+		GC.getGame().getSorenRandNum(8, "AI Update Area Targets") == 0)
 	{
 		AI_updateAreaTargets();
-	} // <advc.102>
+	}  // <advc.102>
 	FOR_EACH_GROUP_VAR(gr, *this)
 	{
 		if(gr->getNumUnits() > 0)
@@ -25866,7 +25867,8 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 		if (pBestFoundPlot != NULL)
 		{
 			m_aiAICitySites.push_back(GC.getMap().plotNum(*pBestFoundPlot));
-			AI_recalculateFoundValues(pBestFoundPlot->getX(), pBestFoundPlot->getY(), CITY_PLOTS_RADIUS, 2 * CITY_PLOTS_RADIUS);
+			AI_recalculateFoundValues(pBestFoundPlot->getX(), pBestFoundPlot->getY(),
+					CITY_PLOTS_RADIUS, 2 * CITY_PLOTS_RADIUS);
 		}
 		else break;
 		iPass++;
@@ -25883,17 +25885,15 @@ void CvPlayerAI::AI_invalidateCitySites(int iMinFoundValueThreshold)
 	{
 		for (size_t iI = 0; iI < m_aiAICitySites.size(); iI++)
 		{
-			if (GC.getMap().plotByIndex(m_aiAICitySites[iI])->getFoundValue(getID()) >= iMinFoundValueThreshold)
+			if (GC.getMap().plotByIndex(m_aiAICitySites[iI])->getFoundValue(getID()) >=
+				iMinFoundValueThreshold)
+			{
 				keptSites.push_back(m_aiAICitySites[iI]);
+			}
 		}
 	}
 	m_aiAICitySites.swap(keptSites);
 	// K-Mod end
-}
-
-int CvPlayerAI::AI_getNumCitySites() const
-{
-	return m_aiAICitySites.size();
 }
 
 bool CvPlayerAI::AI_isPlotCitySite(/* advc: */ CvPlot const& kPlot) const

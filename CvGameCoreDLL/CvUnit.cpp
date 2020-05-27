@@ -8910,15 +8910,13 @@ void CvUnit::changeImmuneToFirstStrikesCount(int iChange)
 
 void CvUnit::changeExtraVisibilityRange(int iChange)
 {
-	if (iChange != 0)
-	{
-		getPlot().changeAdjacentSight(getTeam(), visibilityRange(), false, this, true);
+	if (iChange == 0)
+		return;
 
-		m_iExtraVisibilityRange += iChange;
-		FAssert(getExtraVisibilityRange() >= 0);
-
-		getPlot().changeAdjacentSight(getTeam(), visibilityRange(), true, this, true);
-	}
+	getPlot().changeAdjacentSight(getTeam(), visibilityRange(), false, this, true);
+	m_iExtraVisibilityRange += iChange;
+	FAssert(getExtraVisibilityRange() >= 0);
+	getPlot().changeAdjacentSight(getTeam(), visibilityRange(), true, this, true);
 }
 
 void CvUnit::changeExtraMoves(int iChange)

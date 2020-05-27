@@ -7539,7 +7539,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 				std::max(1, iTotalFood)).round();
 	}
 	FAssert(iCorrectedFoodPriority == iFoodPriority ||
-			(iCorrectedFoodPriority < iFoodPriority == weighted_yield_diffs[YIELD_FOOD] > 0));
+			((iCorrectedFoodPriority < iFoodPriority) == (weighted_yield_diffs[YIELD_FOOD] > 0)));
 	// This corrected priority isn't perfect, but I think it will be better than nothing.
 	// K-Mod end
 

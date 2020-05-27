@@ -586,7 +586,7 @@ public:
 	void AI_updateCitySites(int iMinFoundValueThreshold = -1, int iMaxSites = 4); // advc: default values
 	void AI_invalidateCitySites(int iMinFoundValueThreshold);
 
-	int AI_getNumCitySites() const;
+	int AI_getNumCitySites() const { return m_aiAICitySites.size(); } // advc.inl
 	bool AI_isPlotCitySite(CvPlot const& kPlot) const; // advc: Made plot param const
 	int AI_getNumAreaCitySites(CvArea const& kArea, int& iBestValue) const;
 	int AI_getNumAdjacentAreaCitySites(int& iBestValue, CvArea const& kWaterArea,

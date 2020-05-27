@@ -1126,21 +1126,21 @@ bool CvPlot::isPotentialIrrigation() const
 
 bool CvPlot::canHavePotentialIrrigation() const
 {
+	PROFILE_FUNC(); // advc.test: To be profiled
 	if (isCity() && !isHills())
 		return true;
 	// <advc.opt>
 	if(isWater())
 		return false;
 	// </advc.opt>
-	for (int iI = 0; iI < GC.getNumImprovementInfos(); ++iI)
+	FOR_EACH_ENUM(Improvement)
 	{
-		if (GC.getInfo((ImprovementTypes)iI).isCarriesIrrigation())
+		if (GC.getInfo(eLoopImprovement).isCarriesIrrigation())
 		{
-			if (canHaveImprovement((ImprovementTypes)iI, NO_TEAM, true))
+			if (canHaveImprovement(eLoopImprovement, NO_TEAM, true))
 				return true;
 		}
 	}
-
 	return false;
 }
 

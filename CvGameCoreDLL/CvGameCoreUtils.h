@@ -71,6 +71,18 @@ namespace stats // Seems too generic, but what else to name it?
 			r += kSamples[i];
 		return r / static_cast<T>(kSamples.size());
 	}
+	// Count the number of samples in the closed interval [nLower,nUpper]
+	template<typename T>
+	int intervalFreq(std::vector<T> const& kSamples, T nLower, T nUpper)
+	{
+		int r = 0;
+		for(size_t i = 0; i < kSamples.size(); i++)
+		{
+			if (kSamples[i] >= nLower && kSamples[i] <= nUpper)
+				r++;
+		}
+		return r;
+	}
 }
 //namespace fmath // (For the time being, these functions are used too frequently for a namespace.)
 //{

@@ -1189,7 +1189,8 @@ void CvPlayer::initFreeUnits()
 		}
 		/*  <advc.250c> Civs in Advanced Start can place a city even if they don't
 			have enough start points, but I prefer to enforce a minimum. */
-		if(iPoints > 0) {
+		if (iPoints > 0)
+		{
 			int iMinPoints = GC.getInitCore().getAdvancedStartMinPoints();
 			if(iPoints < iMinPoints)
 				iPoints = iMinPoints;
@@ -1197,8 +1198,7 @@ void CvPlayer::initFreeUnits()
 		setAdvancedStartPoints(iPoints);
 
 		// Starting visibility
-		CvPlot* pStartingPlot = getStartingPlot();
-		if (NULL != pStartingPlot)
+		if (pStartingPlot != NULL)
 		{
 			/*  advc.108: BtS code moved into a new function (b/c I need the same
 				behavior elsewhere). */
@@ -5161,10 +5161,6 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit, /* advc.314: */ GoodyTypes 
 
 bool CvPlayer::canFound(int iX, int iY, bool bTestVisible) const  // advc: some style changes
 {
-	if (GC.getGame().isFinalInitialized() && getNumCities() > 0 &&
-			GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
-		return false;
-
 	CvPlot* pPlot = GC.getMap().plot(iX, iY);
 	// <advc>
 	if (pPlot == NULL)
@@ -5176,37 +5172,46 @@ bool CvPlayer::canFound(int iX, int iY, bool bTestVisible) const  // advc: some 
 	if (pPlot->isImpassable())
 		return false;
 
-	if (pPlot->isFeature() && GC.getInfo(pPlot->getFeatureType()).isNoCity())
-		return false;
+	bool bValid = false; // advc.opt: Water check moved up
+	/*  UNOFFICIAL_PATCH, Bugfix, 02/16/10, EmperorFool & jdog5000:
+		(canFoundCitiesOnWater callback handling was incorrect and ignored isWater() if it returned true) */
+	if (pPlot->isWater())
+	{
+		if (GC.getPythonCaller()->canFoundWaterCity(*pPlot))
+		{
+			bValid = true;
+			FAssertMsg(false, "The AdvCiv mod probably does not support cities on water"); // advc
+		}
+		else return false; // advc.opt
+	}
+
+	if (GC.getGame().isFinalInitialized() && getNumCities() > 0 &&
+		GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
+	{
+		return false; // (advc.opt: Moved down)
+	}
 
 	if (pPlot->isOwned() && pPlot->getOwner() != getID())
 		return false;
-
-	bool bValid = false;
-	//if (!bValid) // advc: redundant
+	if (pPlot->isFeature() && GC.getInfo(pPlot->getFeatureType()).isNoCity())
+		return false; // (advc.opt: Moved down)
+	if (!bValid)
 	{
 		if (GC.getInfo(pPlot->getTerrainType()).isFound())
 			bValid = true;
 	}
-
 	if (!bValid)
 	{
 		if (GC.getInfo(pPlot->getTerrainType()).isFoundCoast() && pPlot->isCoastalLand())
 			bValid = true;
 	}
-
 	if (!bValid)
 	{
 		if (GC.getInfo(pPlot->getTerrainType()).isFoundFreshWater() &&
-				pPlot->isFreshWater())
+			pPlot->isFreshWater())
+		{
 			bValid = true;
-	}
-	/*  UNOFFICIAL_PATCH, Bugfix, 02/16/10, EmperorFool & jdog5000:
-		(canFoundCitiesOnWater callback handling was incorrect and ignored isWater() if it returned true) */
-	if (pPlot->isWater() && GC.getPythonCaller()->canFoundWaterCity(*pPlot))
-	{
-		bValid = true;
-		FAssertMsg(false, "The AdvCiv mod probably does not support cities on water"); // advc
+		}
 	}
 
 	if (!bValid)
@@ -10978,14 +10983,10 @@ int CvPlayer::getCommerceRate(CommerceTypes eIndex) const
 	if (GC.getGame().isOption(GAMEOPTION_NO_ESPIONAGE))
 	{
 		if (eIndex == COMMERCE_CULTURE)
-		{
 			iRate += m_aiCommerceRate[COMMERCE_ESPIONAGE];
-		}
 		else if (eIndex == COMMERCE_ESPIONAGE)
-		{
 			iRate = 0;
-		}
-	} // <advc.004x>
+	}  // <advc.004x>
 	iRate /= 100;
 	if(eIndex == COMMERCE_RESEARCH)
 	{	// advc.910:
@@ -11005,11 +11006,8 @@ void CvPlayer::changeCommerceRate(CommerceTypes eIndex, int iChange)
 	{
 		m_aiCommerceRate[eIndex] += iChange;
 		FAssert(getCommerceRate(eIndex) >= 0);
-
 		if (getID() == GC.getGame().getActivePlayer())
-		{
 			gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
-		}
 	}
 }
 
@@ -13234,17 +13232,12 @@ void CvPlayer::doGold()
 		now handled upfront) */
 
 	changeGold(iGoldChange);
-
 	bool bStrike = false;
-
 	if (getGold() < 0)
 	{
 		setGold(0);
-
 		if (!isBarbarian() && getNumCities() > 0)
-		{
 			bStrike = true;
-		}
 	}
 
 	if (bStrike)
@@ -13260,11 +13253,8 @@ void CvPlayer::doGold()
 			for (int iI = 0; iI < iDisbandUnit; iI++)
 			{
 				disbandUnit(true);
-
 				if (calculateGoldRate() >= 0)
-				{
 					break;
-				}
 			}
 		}
 	}
