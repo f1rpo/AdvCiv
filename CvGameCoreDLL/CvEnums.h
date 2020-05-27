@@ -46,6 +46,11 @@ enum FlavorTypes
 		means that it was impossible to base AI code on FLAVOR_ESPIONAGE. */
 	FLAVOR_ESPIONAGE,
 };
+// advc.enum (cf. CvMap::plotNum)
+enum PlotNumTypes
+{
+	NO_PLOT_NUM = -1
+};
 
 ENUM_START(GameState, GAMESTATE)
 	GAMESTATE_ON,

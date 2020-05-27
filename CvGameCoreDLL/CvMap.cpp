@@ -55,6 +55,7 @@ void CvMap::init(CvMapInitData* pInitInfo)
 	m_areas.init(); // Init containers
 	setup();
 	gDLL->logMemState("CvMap before init plots");
+	FAssert(numPlots() <= (EnumMap<PlotNumTypes,scaled>::MAX_LENGTH)); // advc.enum
 	m_pMapPlots = new CvPlot[numPlots()];
 	for (int iX = 0; iX < getGridWidth(); iX++)
 	{

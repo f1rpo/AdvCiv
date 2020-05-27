@@ -3393,12 +3393,6 @@ void CvPlot::setLatitude(int iLatitude)
 	m_iLatitude = iLatitude;
 } // </advc.tsl>
 
-// advc: (But normally better to call CvMap::plotNum directly b/c of inlining)
-int CvPlot::getMapIndex() const
-{
-	return GC.getMap().plotNum(*this);
-}
-
 
 int CvPlot::getLatitude() const
 {

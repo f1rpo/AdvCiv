@@ -309,14 +309,16 @@ public: // advc: made several functions const
 	{
 		return getGridWidth() * getGridHeight();
 	}
-	inline int plotNum(int iX, int iY) const // advc.inl: Merged with plotNumINLINE (plotNum wasn't called externally)			// Exposed to Python
+	/*	advc.inl: Merged with plotNumINLINE (plotNum wasn't called externally).
+		advc.enum: return type changed from int. */
+	inline PlotNumTypes plotNum(int iX, int iY) const 												// Exposed to Python
 	{
-		return ((iY * getGridWidth()) + iX);
-	}  // <advc> wrapper
-	__forceinline int plotNum(CvPlot const& kPlot) const
+		return (PlotNumTypes)(iY * getGridWidth() + iX);
+	}  // advc: wrapper
+	__forceinline PlotNumTypes plotNum(CvPlot const& kPlot) const
 	{
 		return plotNum(kPlot.getX(), kPlot.getY());
-	} // </advc>
+	}
 	int plotX(int iIndex) const;																										// Exposed to Python
 	int plotY(int iIndex) const;																										// Exposed to Python
 
@@ -386,6 +388,7 @@ public: // advc: made several functions const
 	void changeNumBonusesOnLand(BonusTypes eIndex, int iChange);
 
 	CvPlot* plotByIndexExternal(int iIndex) const; // advc.inl: Exported through .def file							// Exposed to Python
+	// advc.enum (tbd.): Change param to PlotNumTypes
 	inline CvPlot* plotByIndex(int iIndex) const // advc.inl: Renamed from plotByIndexINLINE
 	{
 		return ((iIndex >= 0 && iIndex < numPlots()) ? &(m_pMapPlots[iIndex]) : NULL);
@@ -509,6 +512,12 @@ protected:
 	void updateLakes();
 	// </advc.030>
 };
+
+// advc.enum: (for EnumMap)
+__forceinline PlotNumTypes getEnumLength(PlotNumTypes, bool bAllowForEach = true)
+{
+	return (PlotNumTypes)GC.getMap().numPlots();
+}
 
 /* <advc.make> Global wrappers for distance functions. The int versions are
 	exposed to Python */

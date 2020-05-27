@@ -128,12 +128,12 @@ public:
 	//// End of functions
 	//// There is no need to keep reading this class declaration unless you are interested in the internal implementation
 	////
-private: // Compile-time constants (advc: private)
-	static const int SIZE = EnumMapGetDefault<T>::SIZE;
-	static const int SIZE_OF_T = EnumMapGetDefault<T>::SIZE_OF_T;
+// Compile-time constants
 	// advc: Renamed from "LENGTH"; can't guarantee a length for types loaded from XML.
 	static const int MAX_LENGTH = EnumMapGetDefault<LengthType>::MAX_LENGTH;
-
+private: // advc (Maybe some of these should indeed be public, but probably not all.)
+	static const int SIZE = EnumMapGetDefault<T>::SIZE;
+	static const int SIZE_OF_T = EnumMapGetDefault<T>::SIZE_OF_T;
 	static const bool bINLINE_NATIVE = (SIZE == ENUMMAP_SIZE_NATIVE && (MAX_LENGTH * SIZE_OF_T) <= ENUMMAP_MAX_BYTES);
 	static const int NUM_NATIVE_BLOCKS = (bINLINE_NATIVE ? MAX_LENGTH : 1);
 
@@ -1192,7 +1192,21 @@ SET_XML_ENUM_SIZE(AreaAI, AREAAI)
 			MAX_LENGTH = MAX_SHORT \
 		}; \
 	};
-	DO_FOR_EACH_BIG_DYN_INFO_TYPE(SET_XML_ENUM_SIZE2)
+DO_FOR_EACH_BIG_DYN_INFO_TYPE(SET_XML_ENUM_SIZE2)
+/*	The corresponding getEnumLength function is inlined in CvMap.h.
+	2 byte allows for at most 256*128 tiles (or 181*181).
+	Larger maps really aren't playable, but let's allow them when
+	the player limit has been increased. */
+#if MAX_CIV_PLAYERS <= 18
+SET_XML_ENUM_SIZE2(PlotNum, Dummy)
+#else
+template<> struct EnumMapGetDefault<PlotNumTypes> {
+	enum {
+		DEFAULT_VALUE = -1, SIZE = ENUMMAP_SIZE_NATIVE, SIZE_OF_T = SIZE,
+		MAX_LENGTH = MAX_SHORT
+	};
+};
+#endif
 
 /*  The other getEnumLength functions are generated through macros in CvEnums.h.
 	For players and teams, I don't want the FOR_EACH_ENUM macro to be used, so

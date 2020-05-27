@@ -999,14 +999,15 @@ void CvGame::assignStartingPlots()
 	PROFILE_FUNC();
 
 	// (original bts code deleted) // advc
+	CvMap const& kMap = GC.getMap();
 	// K-Mod. Same functionality, but much faster and easier to read.
 	//
 	// First, make a list of all the pre-marked starting plots on the map.
 	std::vector<CvPlot*> starting_plots;
-	for (int i = 0; i < GC.getMap().numPlots(); i++)
+	for (int i = 0; i < kMap.numPlots(); i++)
 	{	// advc.opt: Shouldn't be necessary; the loop body is very fast.
 		//gDLL->callUpdater(); // allow window updates during launch
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(i);
+		CvPlot* pLoopPlot = kMap.plotByIndex(i);
 		if (pLoopPlot->isStartingPlot())
 			starting_plots.push_back(pLoopPlot);
 	}
@@ -1142,7 +1143,9 @@ void CvGame::assignStartingPlots()
 		GET_PLAYER((PlayerTypes)(*playerOrderIter)).setStartingPlot(GET_PLAYER((PlayerTypes)(*playerOrderIter)).findStartingPlot(), true);*/
 	// <advc.108b>
 	else
-	{
+	{	/*	advc.027: If the map script allows it, StartingPositionIteration will
+			set starting locations that the code below may then shuffle around. */
+		StartingPositionIteration();
 		int const iAlive = countCivPlayersAlive();
 		FAssert(playerOrder.empty());
 		playerOrder.resize(iAlive, NO_PLAYER); // advc (replacing loop)
@@ -1178,7 +1181,7 @@ void CvGame::assignStartingPlots()
 					continue;
 				FAssert(!newPlotFound[kPlayer.getID()]);
 				gDLL->callUpdater();
-				// If the map script hasn't set a plot, find one.
+				// If map script [advc.027: or StartingPositionIteration] haven't set a plot ...
 				if(kPlayer.getStartingPlot() == NULL)
 					kPlayer.setStartingPlot(kPlayer.findStartingPlot(), true);
 				if(kPlayer.getStartingPlot() == NULL)
@@ -1212,9 +1215,7 @@ void CvGame::assignStartingPlots()
 			}
 		}
 	}
-	/*  The second component is the starting plot - but don't want std::sort to use
-		an address as a tiebreaker, hence not <int,CvPlot*>. */
-	std::vector<std::pair<int,int> > startPlots;
+	std::vector<std::pair<int,PlotNumTypes> > startPlots;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
 		CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
@@ -1234,7 +1235,7 @@ void CvGame::assignStartingPlots()
 		int iValue = kPlayer.AI_foundValue(p->getX(), p->getY(), -1, true);
 		FAssertMsg(iValue > 0, "Bad starting position");
 		// minus iValue for descending order
-		startPlots.push_back(std::make_pair(-iValue, p->getMapIndex()));
+		startPlots.push_back(std::make_pair(-iValue, kMap.plotNum(*p)));
 	}
 	FAssert(startPlots.size() == playerOrder.size());
 	std::sort(startPlots.begin(), startPlots.end());
@@ -1245,7 +1246,8 @@ void CvGame::assignStartingPlots()
 			FAssert(playerOrder[i] != NO_PLAYER);
 			continue;
 		}
-		GET_PLAYER(playerOrder[i]).setStartingPlot(GC.getMap().plotByIndex(startPlots[i].second), true);
+		GET_PLAYER(playerOrder[i]).setStartingPlot(
+				kMap.plotByIndex(startPlots[i].second), true);
 	} // </advc.108b>
 }
 

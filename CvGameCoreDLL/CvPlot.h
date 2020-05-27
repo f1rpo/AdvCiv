@@ -285,7 +285,6 @@ public:
 	int getYExternal() const; // advc.inl: Exported through .def file																					// Exposed to Python
 	inline int getY() const { return m_iY; } // advc.inl: Renamed from getY_INLINE
 	bool at(int iX, int iY) const {  return (getX() == iX && getY() == iY); } // advc.inl								// Exposed to Python
-	int getMapIndex() const; // advc
 	int getLatitude() const;																																					// Exposed to Python
 	void setLatitude(int iLatitude); // advc.tsl	(exposed to Python)
 	int getFOWIndex() const;
