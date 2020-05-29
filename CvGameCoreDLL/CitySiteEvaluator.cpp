@@ -2254,8 +2254,7 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, scaled rProductionMod
 	}  // <advc.031>
 	// Modify based on production (since the point is to build a navy)
 	scaled rMult = rProductionModifier;
-	// That's the name of the .py file; not language-dependent.
-	if (GC.getInitCore().getMapScriptName().compare(L"Pangaea") == 0)
+	if (GC.getInitCore().isPangaea())
 		rMult /= 2;
 	r = (r * rMult).round();
 	// Encourage canals

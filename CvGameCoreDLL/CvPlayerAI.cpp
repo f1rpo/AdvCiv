@@ -3561,7 +3561,7 @@ struct PairFirstLess : public std::binary_function<std::pair<A, B>,std::pair<A, 
 	}
 }; // </k146>
 
-// edited by K-Mod and BBAI
+// edited by K-Mod and BBAI (05/14/10, jdog5000)
 TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsync, TechTypes eIgnoreTech, AdvisorTypes eIgnoreAdvisor,
 	PlayerTypes eFromPlayer) const // advc.144
 {
@@ -6150,8 +6150,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 				/*	advc.131: Disabled. If we've been brave enough to plan or start
 					a naval war with our current transports, then I don't think that we
 					urgently need better ones. */
-				/*if (iAssaultValue > 0)
-				{
+				/*if (iAssaultValue > 0) {
 					if (bAnyAssault) // k146: (bAnyAssault calculation moved up)
 						iTotalUnitValue += iAssaultValue * 4;
 					else iTotalUnitValue += iAssaultValue;
@@ -13568,7 +13567,7 @@ int CvPlayerAI::AI_neededExplorers_bulk(CvArea const& kArea) const
 		iNeeded = std::min(iNeeded + kArea.getNumUnrevealedTiles(getTeam()) / 400,
 				std::min(2, (getNumCities() / 2) + 1));
 		// <advc.017>
-		if(GC.getInitCore().getMapScriptName().compare(L"Pangaea") == 0)
+		if(GC.getInitCore().isPangaea())
 			iNeeded = (iNeeded + 1) / 2; // </advc.017>
 	}
 	else
@@ -20998,9 +20997,9 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 
 	{
 		m_aiAICitySites.clear();
-		uint iSize;
-		pStream->Read(&iSize);
-		for (uint i = 0; i < iSize; i++)
+		uint uiSize;
+		pStream->Read(&uiSize);
+		for (uint i = 0; i < uiSize; i++)
 		{
 			int iCitySite;
 			pStream->Read(&iCitySite);
@@ -21148,12 +21147,12 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	pStream->Write(m_iTurnLastProductionDirty);
 
 	{
-		uint iSize = m_aiAICitySites.size();
-		pStream->Write(iSize);
+		uint uiSize = m_aiAICitySites.size();
+		pStream->Write(uiSize);
 		std::vector<int>::iterator it;
 		for (it = m_aiAICitySites.begin(); it != m_aiAICitySites.end(); ++it)
 		{
-			pStream->Write((*it));
+			pStream->Write(*it);
 		}
 	}
 
@@ -27440,7 +27439,7 @@ void CvPlayerAI::AI_setHuman(bool b)
 		it->AI_updateAttitude();
 	if (b)
 		return;
-	/*	<advc.057> Enforce invariant: AI group head has highest impassable count.
+	/*	<advc.057> Enforce invariant: AI group head has maximal impassable count.
 		Cf. CvUnitAI::AI_omniGroup. */
 	std::vector<CvSelectionGroup*> apSplitGroups;
 	FOR_EACH_GROUP_VAR(pGroup, *this)

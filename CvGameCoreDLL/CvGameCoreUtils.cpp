@@ -1676,7 +1676,7 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	if(kToPlot.isImpassable())
 		return FALSE;
 	CvPlot const& kFromPlot = kMap.getPlot(parent->m_iX, parent->m_iY);
-	if(kMap.waterStepInvalid(kFromPlot, kToPlot))
+	if(kMap.isSeparatedByIsthmus(kFromPlot, kToPlot))
 		return FALSE;
 	TeamTypes const ePlotTeam = kToPlot.getTeam();
 	int* const v = (int*)pointer;
@@ -1770,9 +1770,8 @@ int stepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 	if (!kFromPlot.sameArea(kNewPlot))
 		return FALSE;
 
-	/*  BETTER_BTS_AI_MOD, Bugfix, 12/12/08, jdog5000: START
-		Don't count diagonal hops across land isthmus */
-	if (GC.getMap().waterStepInvalid(kFromPlot, kNewPlot)) // (advc: Moved into new function)
+	// BETTER_BTS_AI_MOD, Bugfix, 12/12/08, jdog5000: START
+	if (GC.getMap().isSeparatedByIsthmus(kFromPlot, kNewPlot)) // (advc: Moved into new function)
 		return FALSE; // BETTER_BTS_AI_MOD: END
 
 	return TRUE;
@@ -1796,8 +1795,7 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 	if (!kFromPlot.sameArea(kNewPlot))
 		return FALSE;
 
-	// Don't count diagonal hops across land isthmus
-	if (kMap.waterStepInvalid(kFromPlot, kNewPlot)) // advc: Moved into new function
+	if (kMap.isSeparatedByIsthmus(kFromPlot, kNewPlot)) // advc: Moved into new function
 		return FALSE;
 
 	TeamTypes ePlotTeam = kNewPlot.getTeam();

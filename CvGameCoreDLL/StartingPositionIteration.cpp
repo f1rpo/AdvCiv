@@ -31,7 +31,7 @@ StartingPositionIteration::StartingPositionIteration() : m_bRestrictedAreas(fals
 	}
 	FAssert(!GC.getGame().isTeamGame());
 	// In non-team games, Pangaea shouldn't need custom code for starting sites.
-	bool const bIgnoreScript = (GC.getInitCore().getMapScriptName().compare(L"Pangaea") == 0);
+	bool const bIgnoreScript = GC.getInitCore().isPangaea();
 	size_t i = 0;
 	for (; i < civPlayers.size(); i++)
 	{
@@ -484,7 +484,7 @@ short StartingPositionIteration::DistanceTable::stepDist(
 	CvPlot const& kFrom, CvPlot const& kTo)
 {
 	static const TerrainTypes eShallowTerrain = GC.getWATER_TERRAIN(true);
-	if (kTo.isImpassable() || GC.getMap().waterStepInvalid(kFrom, kTo))
+	if (kTo.isImpassable() || GC.getMap().isSeparatedByIsthmus(kFrom, kTo))
 		return MAX_SHORT;
 
 	bool const bDiagonal = (kFrom.getX() != kTo.getX() && kFrom.getY() != kTo.getY());

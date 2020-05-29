@@ -3870,9 +3870,10 @@ bool CvSelectionGroup::addUnit(CvUnit* pUnit, bool bMinimalChange)
 
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
-	{	// <advc.003u>
+	{
 		CvUnitAI const& kLoopUnit = *::AI_getUnit(pUnitNode->m_data);
-		CvUnitAI const& kUnit = pUnit->AI(); // </advc.003u>
+		CvUnitAI const& kUnit = pUnit->AI(); // advc.003u
+
 		if (kUnit.AI_groupFirstVal() > kLoopUnit.AI_groupFirstVal() ||
 			(kUnit.AI_groupFirstVal() == kLoopUnit.AI_groupFirstVal() &&
 			kUnit.AI_groupSecondVal() > kLoopUnit.AI_groupSecondVal()))

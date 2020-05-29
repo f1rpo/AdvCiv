@@ -458,7 +458,7 @@ void CvInitCore::resetGame()
 	m_szGamePassword.clear();
 	m_szAdminPassword.clear();
 	m_szMapScriptName.clear();
-
+	m_bPangaea = false; // advc
 	m_bWBMapNoPlayers = false;
 
 	// Standard game parameters
@@ -529,9 +529,8 @@ void CvInitCore::resetGame(CvInitCore* pSource, bool bClear, bool bSaveGameType)
 	FAssertMsg(!bClear || !bSaveGameType, "Should not be clearing data while trying to preserve gametype info in CvInitCore::resetGame");
 
 	if (bClear || !pSource)
-	{
 		resetGame();
-	}
+
 	if(!pSource)
 		return; // advc
 
@@ -564,22 +563,19 @@ void CvInitCore::resetGame(CvInitCore* pSource, bool bClear, bool bSaveGameType)
 	setVictories(pSource->getNumVictories(), pSource->getVictories());
 
 	// Standard game options
-	int i;
-	for (i = 0; i < NUM_GAMEOPTION_TYPES; ++i)
-	{	// <advc>
-		GameOptionTypes eLoopOption = (GameOptionTypes)i;
-		bool b = pSource->getOption(eLoopOption);
-		// </advc>
+	FOR_EACH_ENUM(GameOption)
+	{
+		bool b = pSource->getOption(eLoopGameOption);
 		// <dlph.18>
-		CvGameOptionInfo const& kLoopOption = GC.getInfo(eLoopOption);
-		if(kLoopOption.getVisible() == 0)
-			b = kLoopOption.getDefault(); // </dlph.18>
-		setOption(eLoopOption, b);
+		CvGameOptionInfo const& kLoopGameOption = GC.getInfo(eLoopGameOption);
+		if(kLoopGameOption.getVisible() == 0)
+			b = kLoopGameOption.getDefault(); // </dlph.18>
+		setOption(eLoopGameOption, b);
 	}
 
-	for (i = 0; i < NUM_MPOPTION_TYPES; ++i)
+	FOR_EACH_ENUM(MPOption)
 	{
-		setMPOption((MultiplayerOptionTypes)i, pSource->getMPOption((MultiplayerOptionTypes)i));
+		setMPOption(eLoopMPOption, pSource->getMPOption(eLoopMPOption));
 	}
 	setStatReporting(pSource->getStatReporting());
 
@@ -639,8 +635,9 @@ void CvInitCore::resetPlayer(PlayerTypes eID)
 	m_aeCiv[eID] = NO_CIVILIZATION;
 	m_aeLeader[eID] = NO_LEADER;
 	m_aeTeam[eID] = (TeamTypes)eID;
-	// advc.003c: See comment in resetGame
-	m_aeHandicap[eID] = GC.isCachingDone() ? (HandicapTypes)GC.getDefineINT("STANDARD_HANDICAP") : NO_HANDICAP;
+	// <advc.003c> See comment in resetGame
+	m_aeHandicap[eID] = GC.isCachingDone() ?
+			(HandicapTypes)GC.getDefineINT("STANDARD_HANDICAP") : NO_HANDICAP; // </advc.003c>
 	m_aeColor[eID] = NO_PLAYERCOLOR;
 	m_aeArtStyle[eID] = NO_ARTSTYLE;
 
@@ -733,6 +730,7 @@ void CvInitCore::setMapScriptName(const CvWString & szMapScriptName)
 {
 	m_szMapScriptName = szMapScriptName;
 	refreshCustomMapOptions();
+	updatePangaea();	
 }
 
 bool CvInitCore::getWBMapScript() const
@@ -959,6 +957,12 @@ void CvInitCore::refreshCustomMapOptions()  // advc.003y: refactored
 	SAFE_DELETE_ARRAY(aeMapOptions);
 }
 
+// advc:
+void CvInitCore::updatePangaea()
+{
+	// That's the name of the .py file; not language-dependent.
+	m_bPangaea = (getMapScriptName().compare(L"Pangaea") == 0);
+}
 
 void CvInitCore::clearVictories()
 {
@@ -1738,8 +1742,8 @@ int CvInitCore::getAdvancedStartMinPoints() const
 
 void CvInitCore::read(FDataStreamBase* pStream)
 {
-	uint uiSaveFlag=0;
-	pStream->Read(&uiSaveFlag);		// flags for expansion (see SaveBits)
+	uint uiFlag=0;
+	pStream->Read(&uiFlag);
 
 	// GAME DATA
 	pStream->Read((int*)&m_eType);
@@ -1747,7 +1751,10 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	pStream->ReadString(m_szGamePassword);
 	pStream->ReadString(m_szAdminPassword);
 	pStream->ReadString(m_szMapScriptName);
-
+	// <advc>
+	if (uiFlag >= 3)
+		pStream->Read(&m_bPangaea);
+	else updatePangaea(); // </advc>
 	pStream->Read(&m_bWBMapNoPlayers);
 
 	pStream->Read((int*)&m_eWorldSize);
@@ -1775,22 +1782,19 @@ void CvInitCore::read(FDataStreamBase* pStream)
 		pStream->Read(m_iNumVictories, m_abVictories);
 	}
 	// <advc.912d>
-	if(uiSaveFlag <= 0)
+	if(uiFlag <= 0)
 	{
 		pStream->Read(NUM_GAMEOPTION_TYPES - 2, m_abOptions);
 		m_abOptions[NUM_GAMEOPTION_TYPES - 2] = false;
 		m_abOptions[NUM_GAMEOPTION_TYPES - 1] = false;
 	}
-	else if(uiSaveFlag == 1)
+	else if(uiFlag == 1)
 	{
 		pStream->Read(NUM_GAMEOPTION_TYPES - 1, m_abOptions);
 		m_abOptions[NUM_GAMEOPTION_TYPES - 1] = false;
 	}
-	else
-	{
-		FAssert(uiSaveFlag == 2);
-		pStream->Read(NUM_GAMEOPTION_TYPES, m_abOptions);
-	} // </advc.912d>
+	else pStream->Read(NUM_GAMEOPTION_TYPES, m_abOptions);
+	// </advc.912d>
 
 	pStream->Read(NUM_MPOPTION_TYPES, m_abMPOptions);
 
@@ -1861,11 +1865,12 @@ void CvInitCore::read(FDataStreamBase* pStream)
 void CvInitCore::write(FDataStreamBase* pStream)
 {
 	REPRO_TEST_BEGIN_WRITE("InitCore");
-	uint uiSaveFlag=1;
-	uiSaveFlag=2; // advc.912d
-	pStream->Write(uiSaveFlag);		// flag for expansion, see SaveBits)
+	uint uiFlag = 1;
+	uiFlag = 2; // advc.912d
+	uiFlag = 3; // advc: m_bPangaea
+	pStream->Write(uiFlag);
 
-	// GAME DATA
+	// GAME DATA ...
 
 	//pStream->Write(m_eType);
 	/*	<advc.001p> Make sure that resetPlayer will be able to tell
@@ -1897,7 +1902,7 @@ void CvInitCore::write(FDataStreamBase* pStream)
 	pStream->WriteString(m_szGamePassword);
 	pStream->WriteString(m_szAdminPassword);
 	pStream->WriteString(m_szMapScriptName);
-
+	pStream->Write(m_bPangaea); // advc
 	pStream->Write(m_bWBMapNoPlayers);
 
 	pStream->Write(m_eWorldSize);
@@ -1928,7 +1933,8 @@ void CvInitCore::write(FDataStreamBase* pStream)
 	pStream->Write(m_iMaxCityElimination);
 	pStream->Write(m_iNumAdvancedStartPoints);
 
-	// PLAYER DATA
+	// PLAYER DATA ...
+
 	pStream->WriteString(MAX_PLAYERS, m_aszLeaderName);
 	pStream->WriteString(MAX_PLAYERS, m_aszCivDescription);
 	pStream->WriteString(MAX_PLAYERS, m_aszCivShortDesc);

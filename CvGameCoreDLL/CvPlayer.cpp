@@ -2675,9 +2675,9 @@ void CvPlayer::setHumanDisabled(bool bNewVal)
 {
 	// <advc.127>
 	m_bAutoPlayJustEnded = true;
-	CvGame& g = GC.getGame();
+	CvGame& kGame = GC.getGame();
 	// Not sure if this is needed:
-	bool const bActive = (g.getActivePlayer() == getID());
+	bool const bActive = (kGame.getActivePlayer() == getID());
 	CvWString szReplayText;
 	if (bNewVal && !m_bDisableHuman)
 	{
@@ -2698,7 +2698,7 @@ void CvPlayer::setHumanDisabled(bool bNewVal)
 	}
 	if(!szReplayText.empty())
 	{
-		g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szReplayText,
+		kGame.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szReplayText,
 				-1, -1, GC.getColorType("HIGHLIGHT_TEXT"));
 	} // </advc.127>
 	m_bDisableHuman = bNewVal;

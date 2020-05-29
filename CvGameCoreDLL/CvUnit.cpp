@@ -6416,7 +6416,7 @@ CvUnit* CvUnit::upgrade(UnitTypes eUnit) // K-Mod: this now returns the new unit
 	{
 		CvWString szString;
 		getUnitAIString(szString, AI_getUnitAIType());
-		logBBAI("    %S spends %d to upgrade %S to %S, unit AI %S", GET_PLAYER(getOwner()).getCivilizationDescription(0), upgradePrice(eUnit), getName(0).GetCString(), pUpgradeUnit->getName(0).GetCString(), szString.GetCString());
+		logBBAI("    %S spends %d to upgrade %S to %S, unit AI %S", kOwner.getCivilizationDescription(0), upgradePrice(eUnit), getName(0).GetCString(), pUpgradeUnit->getName(0).GetCString(), szString.GetCString());
 	}
 
 	return pUpgradeUnit; // K-Mod
@@ -8025,7 +8025,7 @@ void CvUnit::joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected, 
 {
 	CvSelectionGroup* pOldSelectionGroup = GET_PLAYER(getOwner()).getSelectionGroup(getGroupID());
 
-	if (pOldSelectionGroup && pSelectionGroup == pOldSelectionGroup)
+	if (pOldSelectionGroup != NULL && pSelectionGroup == pOldSelectionGroup)
 		return; // attempting to join the group we are already in
 
 	CvPlot* pPlot = plot(); // advc (comment): I suppose this could be NULL(?)
@@ -8075,16 +8075,23 @@ void CvUnit::joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected, 
 			if (getGroup()->getNumUnits() > 1)
 			{
 				//getGroup()->setActivityType(ACTIVITY_AWAKE); // BtS
-				// K-Mod
-				// For the AI, only wake the group in particular circumstances. This is to avoid AI deadlocks where they just keep grouping and ungroup indefinitely.
-				// If the activity type is not changed at all, then that would enable exploits such as adding new units to air patrol groups to bypass the movement conditions.
+				/*	K-Mod
+					For the AI, only wake the group in particular circumstances.
+					This is to avoid AI deadlocks where they just keep grouping
+					and ungroup indefinitely.
+					If the activity type is not changed at all, then that would
+					enable exploits such as adding new units to air patrol groups
+					to bypass the movement conditions. */
 				if (isHuman())
 				{
 					getGroup()->setAutomateType(NO_AUTOMATE);
 					getGroup()->setActivityType(ACTIVITY_AWAKE);
 					getGroup()->clearMissionQueue();
-					// K-Mod note. the mission queue has to be cleared, because when the shift key is released, the exe automatically sends the autoMission net message.
-					// (if the mission queue isn't cleared, the units will immediately begin their message whenever units are added using shift.)
+					/*	K-Mod note. the mission queue has to be cleared because,
+						when the shift key is released, the exe automatically
+						sends the autoMission net message.
+						(if the mission queue isn't cleared, the units will immediately
+						begin their message whenever units are added using shift.) */
 				}
 				else if (getGroup()->AI().AI_getMissionAIType() == MISSIONAI_GROUP ||
 					getLastMoveTurn() == GC.getGame().getTurnSlice())

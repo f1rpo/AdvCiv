@@ -5365,7 +5365,7 @@ void CvTeamAI::AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier,
 	}
 }
 
-// <advc.136a>
+// advc.136a:
 bool CvTeamAI::AI_isPursuingCircumnavigation() const
 {
 	//PROFILE_FUNC(); // No problem at all
@@ -5385,7 +5385,7 @@ bool CvTeamAI::AI_isPursuingCircumnavigation() const
 		}
 	}
 	return false;
-} // </advc.136a>
+}
 
 // Make war decisions, mainly for starting or switching war plans.
 //

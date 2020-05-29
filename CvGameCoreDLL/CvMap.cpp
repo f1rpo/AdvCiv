@@ -1329,9 +1329,8 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart)
 			if(pAdjacent == NULL)
 				continue;
 			CvPlot& q = *pAdjacent;
-			
 			if(q.area() == NULL && p.isWater() == q.isWater() &&
-				!waterStepInvalid(p, q) &&
+				!isSeparatedByIsthmus(p, q) &&
 				/*  Depth-first search that doesn't continue at impassables
 					except to other impassables so that mountain ranges and
 					ice packs end up in one CvArea. */

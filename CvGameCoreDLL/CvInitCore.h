@@ -75,6 +75,7 @@ public:
 	DllExport CvWString getMapScriptName() const;
 	DllExport void setMapScriptName(const CvWString & szMapScriptName);
 	DllExport bool getWBMapScript() const;
+	bool isPangaea() const { return m_bPangaea; } // advc
 
 	bool getWBMapNoPlayers() const { return m_bWBMapNoPlayers; }
 	void setWBMapNoPlayers(bool bValue)	{ m_bWBMapNoPlayers = bValue; }
@@ -272,6 +273,7 @@ protected:
 
 	void clearCustomMapOptions();
 	void refreshCustomMapOptions();
+	void updatePangaea(); // advc
 
 	void clearVictories();
 	void refreshVictories();
@@ -304,11 +306,12 @@ protected:
 	int m_iNumCustomMapOptions;
 	int m_iNumHiddenCustomMapOptions;
 	CustomMapOptionTypes * m_aeCustomMapOptions;
+	bool m_bPangaea; // advc
 
 	// Standard game options
+	bool m_bStatReporting;
 	bool* m_abOptions;
 	bool* m_abMPOptions;
-	bool m_bStatReporting;
 
 	bool* m_abForceControls;
 

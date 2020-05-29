@@ -808,9 +808,10 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 {
 	int aiPyData[] = { iData2, iData3, iData4 };
 	if (GC.getPythonCaller()->cannotSelectionListNetOverride((GameMessageTypes)
-			eMessage, aiPyData, iFlags, bAlt, bShift))
+		eMessage, aiPyData, iFlags, bAlt, bShift))
+	{
 		return;
-
+	}
 	CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
 	if (pHeadSelectedUnit == NULL || pHeadSelectedUnit->getOwner() != getActivePlayer())
 		return; // advc
@@ -1066,8 +1067,8 @@ void CvGame::setupActionCache() const
 
 void CvGame::handleAction(int iAction)
 {
-	bool bAlt = GC.altKey();
-	bool bShift = GC.shiftKey();
+	bool const bAlt = GC.altKey();
+	bool const bShift = GC.shiftKey();
 
 	if (!gDLL->UI().canHandleAction(iAction))
 		return;

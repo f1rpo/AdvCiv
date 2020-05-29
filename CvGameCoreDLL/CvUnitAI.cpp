@@ -162,7 +162,7 @@ bool CvUnitAI::AI_update()
 			{
 				std::vector<CvUnit*> aCargoUnits;
 				getCargoUnits(aCargoUnits);
-				for (uint i = 0; i < aCargoUnits.size() && isAutomated(); ++i)
+				for (size_t i = 0; i < aCargoUnits.size() && isAutomated(); ++i)
 				{
 					CvUnit* pCargoUnit = aCargoUnits[i];
 					if (pCargoUnit->getDomainType() == DOMAIN_AIR)
@@ -4753,7 +4753,7 @@ void CvUnitAI::AI_missionaryMove()
 			pEntityNode = getGroup()->nextUnitNode(pEntityNode);
 			if (pLoopUnit->canAutomate(eAutomate))
 			{
-				pLoopUnit->joinGroup(0, true);
+				pLoopUnit->joinGroup(NULL, true);
 				pLoopUnit->automate(eAutomate);
 			}
 		}
@@ -9577,9 +9577,10 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 			continue;
 
 		// K-Mod. I've restructed this wad of conditions so that it is easier for me to read. // advc: Made a few more edits - parts of it were still off-screen ...
-		// ((removed ((heaps) of parentheses) (etc)).)
-		// also, I've rearranged the order to be slightly faster for failed checks.
-		// Note: the iMaxGroups & OwnUnitAI check is apparently off-by-one. This is for backwards compatibility for the original code.
+		/*	((removed ((heaps) of parentheses) (etc)).)
+			also, I've rearranged the order to be slightly faster for failed checks.
+			Note: the iMaxGroups & OwnUnitAI check is apparently off-by-one.
+			This is for backwards compatibility for the original code. */
 		if ((!bSafeOnly || !isEnemy(kLoopPlot))
 			&&
 			(!bWithCargoOnly || pLoopUnit->getGroup()->hasCargo())
@@ -9604,7 +9605,7 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 			&&
 			(iMaxGroup == -1 || (bMergeGroups ? getGroup()->getNumUnits() - 1 : 0) +
 			pLoopGroup->getNumUnits() +
-			GET_PLAYER(getOwner()).AI_unitTargetMissionAIs(*pLoopUnit, MISSIONAI_GROUP, getGroup()) <=
+			kOwner.AI_unitTargetMissionAIs(*pLoopUnit, MISSIONAI_GROUP, getGroup()) <=
 			iMaxGroup + (bStackOfDoom ? AI_stackOfDoomExtra() : 0))
 			&&
 			(pLoopGroup->AI_getMissionAIType() != MISSIONAI_GUARD_CITY ||
@@ -10260,7 +10261,7 @@ bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, int iFlags)
 		FAssertMsg(false, "AI_ejectBestDefender failed to choose a candidate for AI_guardCity.");
 		pEjectedUnit = this;
 		if (getGroup()->getNumUnits() > 0)
-			joinGroup(0);
+			joinGroup(NULL);
 	}
 	FAssert(pEjectedUnit != NULL);
 	// If the unit is not suited for defense, do not use MISSIONAI_GUARD_CITY.
@@ -11833,10 +11834,10 @@ bool CvUnitAI::AI_lead(std::vector<UnitAITypes>& aeUnitAITypes)
 			bool bValid = GC.getInfo(pLoopUnit->getUnitClassType()).isWorldUnit();
 			if (!bValid)
 			{
-				for (uint iI = 0; iI < aeUnitAITypes.size(); iI++)
+				for (size_t i = 0; i < aeUnitAITypes.size(); i++)
 				{
-					if (pLoopUnit->AI_getUnitAIType() == aeUnitAITypes[iI] ||
-						aeUnitAITypes[iI] == NO_UNITAI)
+					if (pLoopUnit->AI_getUnitAIType() == aeUnitAITypes[i] ||
+						aeUnitAITypes[i] == NO_UNITAI)
 					{
 						bValid = true;
 						break;
@@ -13660,7 +13661,7 @@ bool CvUnitAI::AI_cityAttack(int iRange, int iOddsThreshold, int iFlags, bool bF
 		{
 			FAssert(pBestPlot->getPlotCity() != 0);
 			// we need to ungroup this unit so that we can move into the city.
-			joinGroup(0);
+			joinGroup(NULL);
 			bFollow = false;
 		}
 		// K-Mod end
@@ -13758,7 +13759,7 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iFlags, int iMin
 	if (bFollow && AI_isAnyEnemyDefender(*pBestPlot))
 	{
 		// we need to ungroup to capture the undefended unit / city. (because not everyone in our group can move)
-		joinGroup(0);
+		joinGroup(NULL);
 		bFollow = false;
 	}
 	// K-Mod end
@@ -15468,7 +15469,7 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 						if (iEnemyDefenders > 0 || pLoopPlot->isCity())
 						{
 							bool bCanCargoAllUnload = true;
-							for (uint i = 0; i < aGroupCargo.size(); ++i)
+							for (size_t i = 0; i < aGroupCargo.size(); ++i)
 							{
 								CvUnit* pAttacker = aGroupCargo[i];
 								if (!pLoopPlot->hasDefender(true, NO_PLAYER, pAttacker->getOwner(), pAttacker, true))
@@ -15768,7 +15769,7 @@ bool CvUnitAI::AI_transportGoTo(CvPlot const* pEndTurnPlot, CvPlot const* pTarge
 						cargo_units[i]->getDomainType() == DOMAIN_LAND &&
 						cargo_units[i]->canMove())
 					{
-						if (pCargoGroup)
+						if (pCargoGroup != NULL)
 							cargo_units[i]->joinGroup(pCargoGroup);
 						else
 						{
@@ -16535,7 +16536,7 @@ bool CvUnitAI::AI_carrierSeaTransport()  // advc: some style changes
 	int iMaxAirRange = 0;
 	std::vector<CvUnit*> aCargoUnits;
 	getCargoUnits(aCargoUnits);
-	for (uint i = 0; i < aCargoUnits.size(); ++i)
+	for (size_t i = 0; i < aCargoUnits.size(); ++i)
 		iMaxAirRange = std::max(iMaxAirRange, aCargoUnits[i]->airRange());
 	if (iMaxAirRange == 0)
 		return false;

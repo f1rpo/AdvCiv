@@ -204,7 +204,7 @@ public:
 		Would rather leave it there with the other pathfinding helper functions,
 		but can't inline it there.
 		advc.test: Is it getting inlined here (probably not)? Should it be? */
-	bool waterStepInvalid(CvPlot const& kFrom, CvPlot const& kTo) const
+	bool isSeparatedByIsthmus(CvPlot const& kFrom, CvPlot const& kTo) const
 	{
 		return (kFrom.isWater() && kTo.isWater() &&
 			// Safe wrt. map edges b/c we know (assume) that kFrom and kTo are adjacent
