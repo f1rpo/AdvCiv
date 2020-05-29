@@ -55,21 +55,21 @@ void MilitaryBranch::updateTypicalUnit() {
 	CvPlayerAI& owner = GET_PLAYER(ownerId);
 	CvCivilization const& civ = owner.getCivilization();
 	for(int i = 0; i < civ.getNumUnits(); i++) {
-		UnitTypes ut = civ.unitAt(i);
+		UnitTypes const ut = civ.unitAt(i);
 		CvUnitInfo const& u = GC.getInfo(ut);
 		// Siege and air units count for power but aren't typical
 		if(u.getCombat() == 0 || u.getCombatLimit() < 100 || !isValidDomain(u) ||
 				u.getDomainType() == DOMAIN_AIR || u.getDomainType() == DOMAIN_IMMOBILE)
 			continue;
+		UnitClassTypes const uct = CvCivilization::unitClass(ut);
 		/*  I may want to give some combat unit (e.g. War Elephant) a national limit
 			or an instance cost modifier at some point */
-		CvUnitClassInfo const& uci = GC.getInfo((UnitClassTypes)i);
+		CvUnitClassInfo const& uci = GC.getInfo(uct);
 		int nationalLimit = uci.getMaxPlayerInstances();
 		if(nationalLimit >= 0 && nationalLimit <
 				(GC.getGame().getCurrentEra() + 1) * 4)
 			continue;
-		int instanceCostModifier = uci.getInstanceCostModifier();
-		if(instanceCostModifier > 5)
+		if(uci.getInstanceCostModifier() >= 20)
 			continue;
 		/* Could call this for land units as well, but relying on the capital for
 		   those is faster, and perhaps more accurate as well. */
@@ -90,12 +90,10 @@ void MilitaryBranch::updateTypicalUnit() {
 		if(unitPow < 0.01)
 			continue;
 		double utility = unitUtility(u, unitPow);
-		/*  CvPlayer::getProductionNeeded would be more accurate, but slower,
-			and shouldn't make a difference unless a unit is modded to use
-			InstanceCostModifier or UnitExtraCost. */
-		if(u.getProductionCost() <= 0) // Apparently acquired through special means
+		double productionCost = estimateProductionCost(u);
+		if(productionCost <= 0)
 			continue;
-		val = utility / u.getProductionCost();
+		val = utility / productionCost;
 		if(val > bestVal) {
 			bestVal = val;
 			typicalUnitPower = unitPower(u, false);
@@ -119,9 +117,10 @@ void MilitaryBranch::NuclearArsenal::updateTypicalUnit() {
 		if(unitPow < 0.01)
 			continue;
 		double utility = unitUtility(u, unitPow);
-		if(u.getProductionCost() <= 0)
+		double productionCost = estimateProductionCost(u);
+		if(productionCost <= 0)
 			continue;
-		double val = utility / u.getProductionCost();
+		double val = utility / productionCost;
 		if(val > bestVal) {
 			bestVal = val;
 			typicalUnitPower = unitPower(u, false);
@@ -150,15 +149,17 @@ double MilitaryBranch::getTypicalUnitPower(PlayerTypes pov) const {
 	return typicalUnitPower * 0.8;
 }
 
-int MilitaryBranch::getTypicalUnitCost(PlayerTypes pov) const {
+double MilitaryBranch::getTypicalUnitCost(PlayerTypes pov) const {
 
 	if(typicalUnitType == NO_UNIT)
 		return -1;
-	int r = GET_PLAYER(ownerId).getProductionNeeded(typicalUnitType);
+	CvPlayer const& owner = GET_PLAYER(ownerId);
+	double r = owner.getProductionNeeded(typicalUnitType,
+			::round(estimateExtraInstances(owner.getCurrentEra())));
 	if(canKnowTypicalUnit(pov))
 		return r;
 	// Underestimate cost
-	return ::round(r * 0.85);
+	return r * 0.85;
 }
 
 bool MilitaryBranch::canKnowTypicalUnit(PlayerTypes pov) const {
@@ -172,6 +173,19 @@ bool MilitaryBranch::canKnowTypicalUnit(PlayerTypes pov) const {
 	if(GET_PLAYER(pov).canSeeTech(ownerId))
 		return true; // Tech visible on Foreign Advisor
 	return false;
+}
+
+double MilitaryBranch::estimateProductionCost(CvUnitInfo const& u) {
+
+	double r = u.getProductionCost();
+	CvPlayer const& owner = GET_PLAYER(ownerId);
+	UnitClassTypes const uct = u.getUnitClassType();
+	/*  CvPlayer::getProductionNeeded would be needlessly slow. Don't need all
+		those modifiers, and we need a projection for InstanceCostModifier anyway. */
+	r *= 1 + (GC.getInfo(uct).getInstanceCostModifier() * 0.01 *
+				(owner.getUnitClassCount(uct) +
+				estimateExtraInstances(owner.getCurrentEra())));
+	return r;
 }
 
 bool MilitaryBranch::canEmploy(CvUnitInfo const& u) const {

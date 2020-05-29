@@ -41,7 +41,7 @@ public:
 	/*  pov: The player from whose point of view the typical power/ cost is
 		estimated. If NO_PLAYER or equal to ownerId, the true value is returend. */
 	  double getTypicalUnitPower(PlayerTypes pov = NO_PLAYER) const;
-	  int getTypicalUnitCost(PlayerTypes pov = NO_PLAYER) const;
+	  double getTypicalUnitCost(PlayerTypes pov = NO_PLAYER) const;
 	// Total military power of units in this branch
 	inline double power() const { return pow; }
 	void changePower(double delta) { pow += delta; }
@@ -75,6 +75,13 @@ protected:
 	// Can a unit of this branch have domain 'd'?
 	virtual bool isValidDomain(DomainTypes d) const;
 	bool canKnowTypicalUnit(PlayerTypes pov) const;
+	double estimateProductionCost(CvUnitInfo const& u);
+	/*	Vague expectation of how many extra instances will have been produced
+		when halfway through with the military buildup that this class helps predict.
+		(Could get the era from ownerId, but don't want to include CvPlayer.h.) */
+	inline double estimateExtraInstances(EraTypes era) const {
+		return 1.75 + 1.25 * era;
+	}
 
 	PlayerTypes ownerId;
 	UnitTypes typicalUnitType;

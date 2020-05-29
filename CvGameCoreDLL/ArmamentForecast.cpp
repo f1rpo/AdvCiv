@@ -508,7 +508,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	//report.log("\nbq."); // Textile block quote (takes up too much space)
 	for(int i = 0; i < NUM_BRANCHES; i++) {
 		MilitaryBranch& mb = *military[i];
-		int typicalProd = mb.getTypicalUnitCost(m.ourId());
+		double typicalProd = mb.getTypicalUnitCost(m.ourId());
 		if(typicalProd <= 0)
 			continue;
 		double pow = mb.getTypicalUnitPower(m.ourId());

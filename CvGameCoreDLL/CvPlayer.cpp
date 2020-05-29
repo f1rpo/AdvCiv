@@ -5706,15 +5706,16 @@ bool CvPlayer::isProductionMaxedProject(ProjectTypes eProject) const
 }
 
 
-int CvPlayer::getProductionNeeded(UnitTypes eUnit) const
+int CvPlayer::getProductionNeeded(UnitTypes eUnit,
+	int iExtraInstances) const // advc.104
 {
 	UnitClassTypes eUnitClass = GC.getInfo(eUnit).getUnitClassType();
 	FAssert(NO_UNITCLASS != eUnitClass);
 
 	int iProductionNeeded = GC.getInfo(eUnit).getProductionCost();
 
-	iProductionNeeded *= 100 + getUnitClassCount(eUnitClass) *
-			GC.getInfo(eUnitClass).getInstanceCostModifier();
+	iProductionNeeded *= 100 + (GC.getInfo(eUnitClass).getInstanceCostModifier() *
+			(getUnitClassCount(eUnitClass) + /* advc.104: */ iExtraInstances));
 	iProductionNeeded /= 100;
 
 	static int const iUNIT_PRODUCTION_PERCENT = GC.getDefineINT("UNIT_PRODUCTION_PERCENT"); // advc.opt

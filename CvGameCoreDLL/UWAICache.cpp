@@ -897,7 +897,7 @@ double UWAICache::longTermPower(TeamTypes tId, bool defensive) const {
 			continue;
 		UWAI::Civ const& uwai = civ.uwai();
 		MilitaryBranch& army = *uwai.getCache().getPowerValues()[ARMY];
-		int typicalUnitProd = army.getTypicalUnitCost();
+		double typicalUnitProd = army.getTypicalUnitCost();
 		if(typicalUnitProd <= 0)
 			continue;
 		/*  Long-term power mostly depends on production capacity and willingness
@@ -908,7 +908,7 @@ double UWAICache::longTermPower(TeamTypes tId, bool defensive) const {
 				0.35 * civ.estimateYieldRate(YIELD_FOOD) +
 				0.25 * civ.estimateYieldRate(YIELD_COMMERCE)) *
 				(uwai.buildUnitProb() + 0.15) * army.getTypicalUnitPower() /
-				(double)typicalUnitProd;
+				typicalUnitProd;
 	}
 	return r;
 }

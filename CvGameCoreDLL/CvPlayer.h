@@ -269,7 +269,8 @@ public:
 	bool isProductionMaxedUnitClass(UnitClassTypes eUnitClass) const;																						// Exposed to Python
 	bool isProductionMaxedBuildingClass(BuildingClassTypes eBuildingClass, bool bAcquireCity = false) const;		// Exposed to Python
 	bool isProductionMaxedProject(ProjectTypes eProject) const;																									// Exposed to Python
-	int getProductionNeeded(UnitTypes eUnit) const;																										// Exposed to Python
+	int getProductionNeeded(UnitTypes eUnit,																		// Exposed to Python
+			int iExtraInstances = 0) const; // advc.104
 	int getProductionNeeded(BuildingTypes eBuilding) const;																						// Exposed to Python
 	int getProductionNeeded(ProjectTypes eProject) const;																							// Exposed to Python
 	int getProductionModifier(UnitTypes eUnit) const;
