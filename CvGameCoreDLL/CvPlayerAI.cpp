@@ -5732,53 +5732,46 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 }
 // K-Mod end
 
-// This function has been mostly rewritten for K-Mod
-// The final scale is roughly 4 = 1 commerce per turn.
+/*	This function has been mostly rewritten for K-Mod
+	The final scale is roughly 4 = 1 commerce per turn.
+	advc (note): But iTotalUnitValue has a different scale, tied to our current city count. */
 int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnablesUnitWonder) const
 {
 	PROFILE_FUNC();
-	const CvTeamAI& kTeam = GET_TEAM(getTeam()); // K-Mod
+	CvTeamAI const& kTeam = GET_TEAM(getTeam()); // K-Mod
 
-	bool bWarPlan = AI_isFocusWar(); // advc.105
-			//(kTeam.getAnyWarPlanCount(true) > 0);
-	if (!bWarPlan)
-	{
-		// Aggressive players will stick with war techs
-		if (kTeam.AI_getTotalWarOddsTimes100() > 400)
-		{
-			bWarPlan = true;
-		}
-	}
-	// <k146> Get some basic info.
-	bool bLandWar = false;
-	bool bAnyAssault = false;
-	{
-		FOR_EACH_AREA(pLoopArea)
-		{
-			if (AI_isPrimaryArea(*pLoopArea))
-			{
-				switch (pLoopArea->getAreaAIType(getTeam()))
-				{
-					case AREAAI_OFFENSIVE:
-					case AREAAI_DEFENSIVE:
-					case AREAAI_MASSING:
-						bLandWar = true;
-						break;
-					case AREAAI_ASSAULT:
-					case AREAAI_ASSAULT_MASSING:
-					case AREAAI_ASSAULT_ASSIST:
-						bAnyAssault = true;
-						break;
-					default:
-						break;
-				};
-			}
-		}
-	} // </k146>
 	int const iHasMetCount = kTeam.getHasMetCivCount(true);
 	int const iCoastalCities = countNumCoastalCities();
-	CvCity* const pCapitalCity = getCapitalCity();
+	CvCity* const pCapital = getCapitalCity();
 	bool const bCapitalAlone = AI_isCapitalAreaAlone();
+	bool const bWarPlan = //(kTeam.getAnyWarPlanCount(true) > 0)
+			(AI_isFocusWar() || // advc.105
+			// Aggressive players will stick with war techs
+			kTeam.AI_getTotalWarOddsTimes100() > 400);
+	// <k146> Get some basic info.
+	bool bLandWar = false;
+	//bool bAnyAssault = false; // advc.131: Not used anymore
+	//FOR_EACH_AREA(pArea)
+	// <advc.opt>
+	FOR_EACH_CITY(pCity, *this)
+	{
+		CvArea const& kArea = pCity->getArea(); // </advc.opt>
+		if (!AI_isPrimaryArea(kArea))
+			continue;
+		switch (kArea.getAreaAIType(getTeam()))
+		{
+			case AREAAI_OFFENSIVE:
+			case AREAAI_DEFENSIVE:
+			case AREAAI_MASSING:
+				bLandWar = true;
+				break;
+			/*case AREAAI_ASSAULT:
+			case AREAAI_ASSAULT_MASSING:
+			case AREAAI_ASSAULT_ASSIST:
+				bAnyAssault = true;
+				break;*/ // advc.131
+		};
+	} // </k146>
 
 	int iValue = 0;
 
@@ -5805,13 +5798,11 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 		int iUtilityValue = 0;
 
 		if (kCiv.isUnique(eLoopUnit))
-		{
 			iTotalUnitValue += 600;
-		}
 
 		if (kLoopUnit.getPrereqAndTech() == eTech ||
-				kTeam.isHasTech((TechTypes)kLoopUnit.getPrereqAndTech()) ||
-				canResearch((TechTypes)kLoopUnit.getPrereqAndTech()))
+			kTeam.isHasTech((TechTypes)kLoopUnit.getPrereqAndTech()) ||
+			canResearch((TechTypes)kLoopUnit.getPrereqAndTech()))
 		{
 			// (note, we already checked that this tech is required for the unit.)
 			for (UnitAITypes eAI = (UnitAITypes)0; eAI < NUM_UNITAI_TYPES; eAI = (UnitAITypes)(eAI+1))
@@ -6129,9 +6120,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 				{
 					iMilitaryValue += 600; // k146: was 800
 					if (AI_isDoStrategy(AI_STRATEGY_DAGGER))
-					{
 						iMilitaryValue += 400; // was 1000
-					}
 				}
 			}
 
@@ -6158,26 +6147,24 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 					iAssaultValue += (200 * // k146: was 800*
 							(iNewCapacity - iOldCapacity)) / std::max(1, iOldCapacity);
 				}
-
-				if (iAssaultValue > 0)
+				/*	advc.131: Disabled. If we've been brave enough to plan or start
+					a naval war with our current transports, then I don't think that we
+					urgently need better ones. */
+				/*if (iAssaultValue > 0)
 				{
 					if (bAnyAssault) // k146: (bAnyAssault calculation moved up)
 						iTotalUnitValue += iAssaultValue * 4;
 					else iTotalUnitValue += iAssaultValue;
-				}
+				}*/
 			}
 
-			if (iNavalValue > 0)
+			if (iNavalValue > 0 && pCapital != NULL)
 			{
-				if (pCapitalCity != NULL)
-				{
-					// BBAI TODO: A little odd ... naval value is 0 if have no colonies.
-					iNavalValue *= 2 * (getNumCities() -
-							pCapitalCity->getArea().getCitiesPerPlayer(getID()));
-					iNavalValue /= getNumCities();
-
-					iTotalUnitValue += iNavalValue;
-				}
+				// BBAI TODO: A little odd ... naval value is 0 if have no colonies.
+				iNavalValue *= 2 * (getNumCities() -
+						pCapital->getArea().getCitiesPerPlayer(getID()));
+				iNavalValue /= getNumCities();
+				iTotalUnitValue += iNavalValue;
 			}
 			// k146: Disabled
 			/*if (AI_totalUnitAIs((UnitAITypes)kLoopUnit.getDefaultUnitAIType()) == 0)
@@ -6185,8 +6172,8 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 				if (iTotalUnitValue > 0)
 					iTotalUnitValue *= 2;
 				if (kLoopUnit.getDefaultUnitAIType() == UNITAI_EXPLORE) {
-					if (pCapitalCity != NULL)
-						iTotalUnitValue += (AI_neededExplorers(pCapitalCity->getArea()) * 400);
+					if (pCapital != NULL)
+						iTotalUnitValue += (AI_neededExplorers(pCapital->getArea()) * 400);
 				}
 				if (kLoopUnit.getDefaultUnitAIType() == UNITAI_EXPLORE_SEA) {
 					iTotalUnitValue += 400;
@@ -6194,32 +6181,31 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 				}
 			}*/
 
-			if (kLoopUnit.getUnitAIType(UNITAI_SETTLER_SEA) &&
-				pCapitalCity != NULL)
+			if (kLoopUnit.getUnitAIType(UNITAI_SETTLER_SEA) && pCapital != NULL)
 			{
 				UnitTypes eExistingUnit = NO_UNIT;
 				int iBestAreaValue = 0;
-				AI_getNumAreaCitySites(pCapitalCity->getArea(), iBestAreaValue);
+				AI_getNumAreaCitySites(pCapital->getArea(), iBestAreaValue);
 
 				//Early Expansion by sea
 				if (AI_bestAreaUnitAIValue(UNITAI_SETTLER_SEA, NULL, &eExistingUnit) == 0)
 				{
-					CvArea* pWaterArea = pCapitalCity->waterArea();
+					CvArea* pWaterArea = pCapital->waterArea();
 					if (pWaterArea != NULL)
 					{
 						int iBestOtherValue = 0;
 						AI_getNumAdjacentAreaCitySites(iBestOtherValue, *pWaterArea,
-								pCapitalCity->area());
-						if (iBestAreaValue == 0
+								pCapital->area());
+						if (iBestAreaValue == 0 &&
 							// k146: Give us a chance to see our land first.
-							&& GC.getGame().getElapsedGameTurns() > 20)
-						{
-							iTotalUnitValue += 2000;
+							GC.getGame().getElapsedGameTurns() > 20)
+						{	// advc.131: These seem high
+							iTotalUnitValue += 1500; // was 2000
 						}
 						else if (iBestAreaValue < iBestOtherValue)
-							iTotalUnitValue += 1000;
+							iTotalUnitValue += 750; // advc.131: was 1000
 						else if (iBestOtherValue > 0)
-							iTotalUnitValue += 500;
+							iTotalUnitValue += 300; // advc.131: was 500
 					}
 				}
 				// Landlocked expansion over ocean
@@ -6240,7 +6226,8 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 					iMilitaryValue /= 2;
 
 				// K-Mod
-				if (AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS) && kLoopUnit.getDomainType() == DOMAIN_LAND)
+				if (AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS) &&
+					kLoopUnit.getDomainType() == DOMAIN_LAND)
 				{
 					iMilitaryValue += 3 * GC.AI_getGame().AI_combatValue(eLoopUnit);
 					iMilitaryValue *= 3;
@@ -6337,9 +6324,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 						// <k146>
 						bDefinitelyMissing = false;
 						if (GC.getInfo(ePrereqBonus).getTechReveal() == eTech)
-						{
-							bWillReveal = true;
-						} // </k146>
+							bWillReveal = true; // </k146>
 					}
 				}
 			}
@@ -6390,11 +6375,10 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 	}
 
 	// K-Mod. Rescale to match AI_techValue
-	iValue *= (4 * (getNumCities()
-			+ 2)); // k146
+	iValue *= 4 * (getNumCities() /* k146: */ + 2);
 	// k146: was /=100. This entire calculation is quite arbitrary. :(
 	iValue /= 120;
-	//
+
 	return iValue;
 }
 
