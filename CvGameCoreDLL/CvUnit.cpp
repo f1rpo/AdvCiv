@@ -4532,7 +4532,7 @@ void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra, /* advc.033: */ 
 	//gDLL->getFAStarIFace()->ForceReset(&GC.getStepFinder());
 	// See comment in UWAICache::updateTrainCargo
 	bool bImpassables = (getDomainType() == DOMAIN_SEA && GET_PLAYER(getOwner()).
-			AI_unitImpassableCount(getUnitType()) > 0);
+			AI_isAnyImpassable(getUnitType()));
 	int const iRange = GC.getDefineINT(CvGlobals::SHIP_BLOCKADE_RANGE);
 	for (SquareIter it(*this, iRange); it.hasNext(); ++it)
 	{
@@ -6389,12 +6389,26 @@ CvUnit* CvUnit::upgrade(UnitTypes eUnit) // K-Mod: this now returns the new unit
 	if (!canUpgrade(eUnit))
 		return this;
 
-	GET_PLAYER(getOwner()).changeGold(-upgradePrice(eUnit));
-	CvUnit* pUpgradeUnit = GET_PLAYER(getOwner()).initUnit(eUnit, getX(), getY(), AI_getUnitAIType());
+	CvPlayerAI& kOwner = GET_PLAYER(getOwner());
+	kOwner.changeGold(-upgradePrice(eUnit));
+	CvUnit* pUpgradeUnit = kOwner.initUnit(eUnit, getX(), getY(), AI_getUnitAIType());
 	FAssert(pUpgradeUnit != NULL);
 
 	pUpgradeUnit->convert(this);
-	pUpgradeUnit->joinGroup(getGroup()); // K-Mod, swapped order with convert. (otherwise units on boats would be ungrouped.)
+	/*	<advc.057> Crude; don't want to spend too much effort on this for now
+		b/c it's only relevant for mod-mods. */
+	if (!isHuman() && getGroup()->getNumUnits() > 1 &&
+		AI_getUnitAIType() != UNITAI_ASSAULT_SEA &&
+		(kOwner.AI_isAnyImpassable(eUnit) ||
+		kOwner.AI_isAnyImpassable(getGroup()->getUnitAt(0)->getUnitType())))
+	{
+		pUpgradeUnit->joinGroup(NULL);
+	}
+	else // </advc.057>
+	{
+		// K-Mod, swapped order with convert. (otherwise units on boats would be ungrouped.)
+		pUpgradeUnit->joinGroup(getGroup());
+	}
 	pUpgradeUnit->finishMoves();
 	// advc.080: Moved into subroutine
 	pUpgradeUnit->changeExperience(pUpgradeUnit->upgradeXPChange(eUnit));
@@ -9846,7 +9860,7 @@ bool CvUnit::isPromotionValid(PromotionTypes ePromotion) const
 	if(kPromo.getMovesChange() > 0 &&
 		// Note: Unit extra moves can currently only come from promotions
 		kPromo.getMovesChange() + m_pUnitInfo->getMoves() + getExtraMoves() > 4 &&
-		GET_PLAYER(getOwner()).AI_unitImpassableCount(getUnitType()) > 0 &&
+		GET_PLAYER(getOwner()).AI_isAnyImpassable(getUnitType()) &&
 		// Allow Morale
 		(ePrereq == NO_PROMOTION || !GC.getInfo(ePrereq).isLeader()))
 	{

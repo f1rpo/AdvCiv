@@ -462,8 +462,8 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 		GC.getInitCore().setHandicap(civId, g.getHandicapType());
 	}
 	else {
-		civ.setIsHuman(false);
 		GC.getInitCore().setHandicap(civId, g.getAIHandicap());
+		civ.setIsHuman(false, true);
 		GC.getInitCore().setLeaderName(civId,
 				GC.getInfo(civ.getLeaderType()).getDescription());
 		gDLL->UI().flushTalkingHeadMessages();
@@ -488,12 +488,15 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 		CvPlayerAI& other = GET_PLAYER((PlayerTypes)i);
 		if(!other.isAlive() || other.isMinorCiv())
 			continue;
-		if(other.getID() != civId && GET_TEAM(civId).isHasMet(other.getTeam()))
-			other.AI_updateAttitude(civId);
-		if(b && formerHumanCiv != NO_PLAYER && civId != formerHumanCiv &&
-				other.getID() != formerHumanCiv && GET_TEAM(formerHumanCiv).
-				isHasMet(other.getTeam()))
-			other.AI_updateAttitude(formerHumanCiv);
+		if (b) // (Otherwise CvPlayer::setIsHuman has already updated the full attitude cache)
+		{
+			if(other.getID() != civId && GET_TEAM(civId).isHasMet(other.getTeam()))
+				other.AI_updateAttitude(civId);
+			if(formerHumanCiv != NO_PLAYER && civId != formerHumanCiv &&
+					other.getID() != formerHumanCiv && GET_TEAM(formerHumanCiv).
+					isHasMet(other.getTeam()))
+				other.AI_updateAttitude(formerHumanCiv);
+		}
 	}
 	if(b) { // Updates to apply human modifiers
 		civ.updateWarWearinessPercentAnger();

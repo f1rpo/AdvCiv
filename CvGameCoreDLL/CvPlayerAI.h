@@ -290,7 +290,14 @@ public:
 	int AI_religionTradeVal(ReligionTypes eReligion, PlayerTypes ePlayer) const;
 	DenialTypes AI_religionTrade(ReligionTypes eReligion, PlayerTypes ePlayer) const;
 
-	int AI_unitImpassableCount(UnitTypes eUnit) const;
+	uint AI_unitImpassables(UnitTypes eUnit) const;
+	// advc.057:
+	inline bool AI_isAnyImpassable(UnitTypes eUnit) const
+	{
+		/*	BBAI note [moved from some call location]: For galleys, triremes, ironclads ...
+			unit types which are limited in what terrain they can operate in. */
+		return (AI_unitImpassables(eUnit) != 0u);
+	}
 
 	int AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const* pArea = NULL) const;			// Exposed to Python
 	int AI_totalUnitAIs(UnitAITypes eUnitAI) const;														// Exposed to Python
@@ -881,7 +888,7 @@ protected:
 	void AI_doEnemyUnitData();
 	//void AI_invalidateCloseBordersAttitude(); // disabled by K-Mod
 	bool AI_isCommercePlot(CvPlot* pPlot) const; // advc: Was public; deprecated.
-	void AI_setHumanDisabled(bool bDisabled); // advc.127
+	void AI_setHuman(bool b); // advc.127
 	void logFoundValue(int iX, int iY, bool bStartingLoc = false) const; // advc.031c
 
 	friend class CvGameTextMgr;

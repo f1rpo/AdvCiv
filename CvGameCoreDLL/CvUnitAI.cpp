@@ -6936,7 +6936,8 @@ void CvUnitAI::AI_assaultSeaMove()
 		if (pCity != NULL && getPlot().getOwner() == getOwner())
 		{
 			// split out galleys from stack of ocean capable ships
-			if (kOwner.AI_unitImpassableCount(getUnitType()) == 0 && getGroup()->getNumUnits() > 1)
+			if (getGroup()->getNumUnits() > 1 &&
+				!kOwner.AI_isAnyImpassable(getUnitType()))
 			{
 				//AI_getGroup()->AI_separateImpassable();
 				// K-Mod
@@ -6953,7 +6954,7 @@ void CvUnitAI::AI_assaultSeaMove()
 			}
 
 			// galleys with upgrade available should get that ASAP
-			if (kOwner.AI_unitImpassableCount(getUnitType()) > 0)
+			if (kOwner.AI_isAnyImpassable(getUnitType()))
 			{
 				CvCity* pUpgradeCity = getUpgradeCity(false);
 				if (pUpgradeCity != NULL && pUpgradeCity == pCity)
@@ -7713,14 +7714,14 @@ void CvUnitAI::AI_settlerSeaMove()
 		if (eBestSettlerTransport != NO_UNIT)
 		{
 			if (eBestSettlerTransport != getUnitType() &&
-				kOwner.AI_unitImpassableCount(eBestSettlerTransport) == 0)
+				!kOwner.AI_isAnyImpassable(eBestSettlerTransport))
 			{
 				UnitClassTypes ePotentialUpgradeClass = GC.getInfo(eBestSettlerTransport).getUnitClassType();
 				if (!upgradeAvailable(getUnitType(), ePotentialUpgradeClass))
 				{
 					getGroup()->unloadAll();
 
-					if (kOwner.AI_unitImpassableCount(getUnitType()) > 0)
+					if (kOwner.AI_isAnyImpassable(getUnitType()))
 					{
 						scrap();
 						return;
@@ -9542,19 +9543,25 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 	{
 		return false;
 	}
-
-	int iOurImpassableCount = 0;
-	for (CLLNode<IDInfo> const* pUnitNode = getGroup()->headUnitNode(); pUnitNode != NULL;
-		pUnitNode = getGroup()->nextUnitNode(pUnitNode))
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	/*	<advc.057> Except for assault groups, the head unit should have the
+		most restrictive impassable types. */
+	int const iOurGroupFirstVal = AI_groupFirstVal();
+	uint uiOurMaxImpassables = kOwner.AI_unitImpassables(getUnitType());
+	if (AI_getUnitAIType() == UNITAI_ASSAULT_SEA)
 	{
-		CvUnit const* pImpassUnit = ::getUnit(pUnitNode->m_data);
-		iOurImpassableCount = std::max(iOurImpassableCount,
-				GET_PLAYER(getOwner()).AI_unitImpassableCount(pImpassUnit->getUnitType()));
+		for (CLLNode<IDInfo> const* pUnitNode = // We're the head; already done.
+			getGroup()->nextUnitNode(getGroup()->headUnitNode()); // </advc.057>
+			pUnitNode != NULL; pUnitNode = getGroup()->nextUnitNode(pUnitNode))
+		{
+			CvUnit const& kImpassUnit = *::getUnit(pUnitNode->m_data);
+			uiOurMaxImpassables = std::max(uiOurMaxImpassables,
+					kOwner.AI_unitImpassables(kImpassUnit.getUnitType()));
+		}
 	}
-
 	CvUnit* pBestUnit = NULL;
 	int iBestValue = MAX_INT;
-	FOR_EACH_GROUPAI(pLoopGroup, GET_PLAYER(getOwner()))
+	FOR_EACH_GROUPAI(pLoopGroup, kOwner)
 	{
 		CvUnitAI* pLoopUnit = pLoopGroup->AI_getHeadUnit();
 		if (pLoopUnit == NULL)
@@ -9607,20 +9614,35 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 			)
 		{
 			FAssert(!kLoopPlot.isVisibleEnemyUnit(this));
-			if (iOurImpassableCount > 0 || AI_getUnitAIType() == UNITAI_ASSAULT_SEA)
-			{
-				int iTheirImpassableCount = 0;
-				CLLNode<IDInfo>* pUnitNode = pLoopGroup->headUnitNode();
-				while (pUnitNode != NULL)
+			//if (iOurMaxImpassableCount > 0 || AI_getUnitAIType() == UNITAI_ASSAULT_SEA) { ...
+			{	// <advc.057> Check their impassable count even if ours is 0
+				CLLNode<IDInfo> const* pUnitNode = pLoopGroup->headUnitNode();
+				CvUnitAI const& kHeadUnit = *::AI_getUnit(pUnitNode->m_data);
+				uint uiTheirMaxImpassables = kOwner.AI_unitImpassables(
+						kHeadUnit.getUnitType());
+				/*	Assault groups aren't always formed through this function;
+					can't rely on head having the most impassable types. */
+				if (kHeadUnit.AI_getUnitAIType() == UNITAI_ASSAULT_SEA)
 				{
-					CvUnit* pImpassUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pLoopGroup->nextUnitNode(pUnitNode);
-					iTheirImpassableCount = std::max(iTheirImpassableCount,
-							GET_PLAYER(getOwner()).AI_unitImpassableCount(pImpassUnit->getUnitType()));
+					for (pUnitNode = getGroup()->nextUnitNode(pUnitNode);
+						pUnitNode != NULL; pUnitNode = getGroup()->nextUnitNode(pUnitNode))
+					{
+						CvUnit const& kUnit = *::getUnit(pUnitNode->m_data);
+						uiTheirMaxImpassables = std::max(uiTheirMaxImpassables,
+								kOwner.AI_unitImpassables(kUnit.getUnitType()));
+					}
 				}
-				if (iOurImpassableCount != iTheirImpassableCount)
+				int const iTheirGroupFirstValue = kHeadUnit.AI_groupFirstVal();
+				/*	Disallow the group if we can't rule out that the impassable count
+					of the head will decrease */
+				if ((iTheirGroupFirstValue >= iOurGroupFirstVal &&
+					uiTheirMaxImpassables < uiOurMaxImpassables) ||
+					(iTheirGroupFirstValue <= iOurGroupFirstVal &&
+					uiTheirMaxImpassables > uiOurMaxImpassables))
+				{
 					continue;
-			}
+				}
+			} // </advc.057>
 			int iPathTurns = 0;
 			if (at(kLoopPlot) || generatePath(&kLoopPlot, iFlags, true, &iPathTurns, iMaxPath))
 			{
@@ -12932,7 +12954,7 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc: style changes
 	int iBestValue = 0;
 	CvPlot* pBestExplorePlot = NULL;
 
-	int const iImpassableCount = GET_PLAYER(getOwner()).AI_unitImpassableCount(getUnitType());
+	bool const bAnyImpassable = GET_PLAYER(getOwner()).AI_isAnyImpassable(getUnitType());
 	CvTeam const& kTeam = GET_TEAM(getTeam()); // K-Mod
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // advc
 	CvMap const& kMap = GC.getMap();
@@ -13012,8 +13034,7 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc: style changes
 		if (p.isOwned())
 			iValue += 5000;
 
-		if (!isHuman() && AI_getUnitAIType() == UNITAI_EXPLORE_SEA &&
-			iImpassableCount == 0)
+		if (!isHuman() && AI_getUnitAIType() == UNITAI_EXPLORE_SEA && !bAnyImpassable)
 		{
 			// <advc.plotr>
 			int const iDX = p.getX() - getX();

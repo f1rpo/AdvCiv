@@ -549,7 +549,7 @@ void UWAICache::updateTrainCargo() {
 			/*  A check for GC.getWATER_TERRAIN(false) would be better for
 				future modding. However, counting impassable terrain types is
 				used everywhere else as well. */
-			if(owner.AI_unitImpassableCount(ut) == 0)
+			if(!owner.AI_isAnyImpassable(ut))
 				trainDeepSeaCargo = true;
 		}
 	}

@@ -94,7 +94,7 @@ bool CvSelectionGroupAI::AI_separateImpassable()
 	{
 		CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
 		pEntityNode = nextUnitNode(pEntityNode);
-		if (kPlayer.AI_unitImpassableCount(pLoopUnit->getUnitType()) > 0)
+		if (kPlayer.AI_isAnyImpassable(pLoopUnit->getUnitType()))
 		{
 			pLoopUnit->joinGroup(NULL);
 			bSeparated = true;
