@@ -10140,9 +10140,25 @@ bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, int iFlags)
 		if (!bLeave || pCity->AI_isDanger())
 			iExtra = (bSearch ? 0 : kOwner.AI_getPlotDanger(kPlot, 2));
 
-		if (kPlot.plotCount(PUF_canDefendGroupHead, -1, -1, kOwner.getID(),
-				NO_TEAM, AI_isCityAIType() ? PUF_isCityAIType : NULL)
-				< pCity->AI_neededDefenders() + 1 + iExtra) // +1 because this unit is being counted as a defender.
+		int iHave = kPlot.plotCount(PUF_canDefendGroupHead, -1, -1, kOwner.getID(),
+				// -1 because this unit is being counted as a defender
+				NO_TEAM, AI_isCityAIType() ? PUF_isCityAIType : NULL) - 1;
+
+		/*	<advc.052> Code added to CvCityAI allows a settler at size 2, but the
+			AI often doesn't have an escort available that early. Let's say that
+			one defender in the first city is OK if we haven't met a human yet. */
+		if (iExtra < 0 && iHave > 0 && kOwner.getNumCities() == 1 &&
+			TeamIter<HUMAN,OTHER_KNOWN_TO>::count(getTeam()) <= 0)
+		{
+			if (AI_group(UNITAI_SETTLE, /*iMaxGroup*/ 1, -1, -1, false, false, false,
+				/*iMaxPath*/ 0, /*bAllowRegrouping*/ true))
+			{
+				return true;
+			}
+		} // </advc.052>
+
+		int iNeed = pCity->AI_neededDefenders() + iExtra;
+		if (iHave < iNeed)
 		{	// don't bother searching. We're staying here.
 			bSearch = false;
 			pEndTurnPlot = &kPlot;
