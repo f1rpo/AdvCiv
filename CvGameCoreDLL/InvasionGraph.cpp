@@ -475,7 +475,7 @@ void InvasionGraph::Node::logTypicalUnits() {
 		int actualPow = ::round(mb.getTypicalUnitPower());
 		report.log("%s: %d (%s, cost: %d)", mb.str(), actualPow,
 				report.unitName(u), actualCost);
-		int povCost = mb.getTypicalUnitCost(outer.weId);
+		int povCost = ::round(mb.getTypicalUnitCost(outer.weId));
 		int povPow = ::round(mb.getTypicalUnitPower(outer.weId));
 		if(povPow != actualPow) {
 			/*  povCost and actualCost often won't match b/c actualCost here
