@@ -182,9 +182,12 @@ double MilitaryBranch::estimateProductionCost(CvUnitInfo const& u) {
 	UnitClassTypes const uct = u.getUnitClassType();
 	/*  CvPlayer::getProductionNeeded would be needlessly slow. Don't need all
 		those modifiers, and we need a projection for InstanceCostModifier anyway. */
-	r *= 1 + (GC.getInfo(uct).getInstanceCostModifier() * 0.01 *
-				(owner.getUnitClassCount(uct) +
-				estimateExtraInstances(owner.getCurrentEra())));
+	int instanceCostMod = GC.getInfo(uct).getInstanceCostModifier();
+	if(instanceCostMod > 0) {
+		r *= 1 + (instanceCostMod * 0.01 *
+					(owner.getUnitClassCount(uct) +
+					estimateExtraInstances(owner.getCurrentEra())));
+	}
 	return r;
 }
 

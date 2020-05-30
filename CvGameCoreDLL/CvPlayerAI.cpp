@@ -6139,8 +6139,8 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 					if (AI_unitImpassables(eLoopUnit) < AI_unitImpassables(eExistingUnit))
 					{	// Given that 0 was counted previously, 500 seems excessive.
 						iAssaultValue += 300;
-					} /* </advc.057> (Would be nice to subtract sth. if the old unit
-						 has fewer impassables, but can't easily check that anymore.) */
+					} /* (Would be nice to subtract sth. if the old unit has fewer impassables,
+						 but can't easily check that anymore.) </advc.057> */
 					int iNewCapacity = kLoopUnit.getMoves() * kLoopUnit.getCargoSpace();
 					int iOldCapacity = GC.getInfo(eExistingUnit).getMoves() * GC.getInfo(eExistingUnit).getCargoSpace();
 

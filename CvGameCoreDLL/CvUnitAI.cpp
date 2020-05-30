@@ -9635,7 +9635,9 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 				}
 				int const iTheirGroupFirstValue = kHeadUnit.AI_groupFirstVal();
 				/*	Disallow the group if we can't rule out that the impassable count
-					of the head will decrease */
+					of the head will decrease. (Should really check for set inclusion,
+					i.e. the set of impassables of the leader needs to include all
+					impassables of the group.) */
 				if ((iTheirGroupFirstValue >= iOurGroupFirstVal &&
 					uiTheirMaxImpassables < uiOurMaxImpassables) ||
 					(iTheirGroupFirstValue <= iOurGroupFirstVal &&
