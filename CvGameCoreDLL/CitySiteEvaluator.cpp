@@ -516,7 +516,8 @@ short AIFoundValue::evaluate()
 					}
 				} // K-Mod end
 				// <advc.031>
-				if (kPlayer.getExtraYieldThreshold(eLoopYield) > 0 &&
+				if (!kSet.isStartingLoc() &&
+					kPlayer.getExtraYieldThreshold(eLoopYield) > 0 &&
 					aiNatureYield[eLoopYield] >= kPlayer.getExtraYieldThreshold(eLoopYield))
 				{
 					aiNatureYield[eLoopYield] += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
@@ -719,7 +720,8 @@ short AIFoundValue::evaluate()
 		iValue = adjustToBonusCount(iValue, aiBonusCount);
 
 	iValue = adjustToBadTiles(iValue, iBadTiles /* advc.031: */ + (4 * iTakenTiles) / 10
-			-(bBarbarian ? 2 : (4 + iGreenTiles + iSpecialFoodPlus))); // advc.303
+			-(bBarbarian ? 2 : (4 + iGreenTiles + iSpecialFoodPlus)) // advc.303
+			/ (kSet.isStartingLoc() ? 2 : 1)); // advc.108
 	iValue = adjustToBadHealth(iValue, iHealth);
 
 	// advc: BtS code (iDifferentAreaTile) deleted
@@ -963,6 +965,9 @@ int AIFoundValue::countBadTiles(/* advc.031: */ int& iInnerRadius,
 				p->calculateBestNatureYield(YIELD_COMMERCE, eTeam) <= 1)
 			{
 				iBadLoop++;
+				// <advc.108> Ocean can't be "normalized" away later on
+				if (kSet.isStartingLoc())
+					iBadLoop++; // </advc.108>
 			}
 			if(!bCoastal)
 				iBadLoop++; // </advc.031>
@@ -1744,7 +1749,7 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus,
 	// Coefficient was 80
 	int r = ::round(kPlayer.AI_bonusVal(eBonus, 1, true) * 57 /
 			(1 + aiBonusCount[eBonus]));
-	bool bSurplus = (kPlayer.getNumAvailableBonuses(eBonus) > 0 && aiBonusCount[eBonus] <= 0);
+	bool bSurplus = (kPlayer.getNumAvailableBonuses(eBonus) > 0 || aiBonusCount[eBonus] > 0);
 	// </advc.031>
 	aiBonusCount[eBonus]++;
 	// <advc.031>
@@ -1930,8 +1935,13 @@ int AIFoundValue::sumUpPlotValues(std::vector<int>& aiPlotValues) const
 	std::sort(aiPlotValues.begin(), aiPlotValues.end(), std::greater<int>());
 	// CITY_HOME_PLOT should have 0 value here, others could have negative values.
 	FAssert(aiPlotValues[NUM_CITY_PLOTS - 1] <= 0);
-	double const maxMultPercent = 153;
-	double const minMultPercent = 47;
+	double maxMultPercent = 153;
+	double minMultPercent = 47;
+	if (iCities <= 0) // Capital will grow large
+	{
+		maxMultPercent -= 10;
+		minMultPercent += 10;
+	}
 	double const normalizMult = 1;
 	double const subtr = 29;
 	double const exp = std::log(maxMultPercent - minMultPercent) /
@@ -2671,7 +2681,7 @@ int AIFoundValue::adjustToBonusCount(int iValue,
 
 int AIFoundValue::adjustToBadTiles(int iValue, int iBadTiles) const
 {
-	int r = iValue;
+	scaled r = iValue;
 	// <advc.040>
 	if(bFirstColony)
 		iBadTiles += iUnrevealedTiles / 2; // </advc.040>
@@ -2680,14 +2690,14 @@ int AIFoundValue::adjustToBadTiles(int iValue, int iBadTiles) const
 	{
 		/*	A scenario is more likely to mix some very good tiles with a lot of
 			bad ones. Better to be more conservative on regular maps. */
-		double const exponent = (kGame.isScenario() ? 1.385 : 1.5);
-		r -= ::round(std::pow((double)iBadTiles, exponent) *
-				(35.0 + (kSet.isStartingLoc() ?
-				50 : 0) + (iCities <= 0 ? 50 : 0))); // advc.108
-		r = std::max(0, r);
+		scaled const rExponent = (kGame.isScenario() ? fixp(1.385) : fixp(1.5));
+		r -= scaled(iBadTiles).pow(rExponent) * 100 *  // <advc.108>
+				(fixp(1/3.) + (kSet.isStartingLoc() && !bNormalize ?
+				fixp(1/3.) : 0) + (iCities <= 0 ? fixp(1/3.) : 0)); // </advc.108>
+		r.increaseTo(0);
 	} // </advc.031>
-	IFLOG if(r!=iValue) logBBAI("%d from %d bad tiles too many", r - iValue, iBadTiles);
-	return r;
+	IFLOG if(r.round()!=iValue) logBBAI("%d from %d bad tiles too many", r.round() - iValue, iBadTiles);
+	return r.round();
 }
 
 // <advc.031> Stifling bad health needs to be discouraged rigorously
@@ -2708,6 +2718,11 @@ int AIFoundValue::adjustToBadHealth(int iValue, int iGoodHealth) const
 		{
 			iMult = 2;
 			iDiv = 3;
+			if (kSet.isStartingLoc())
+			{
+				iMult = 3;
+				iDiv = 4;
+			}
 		}
 		iValue = (iMult * iValue) / iDiv;
 		IFLOG if (iDiv>1) logBBAI("Times %d/%d for bad health", iMult, iDiv);
