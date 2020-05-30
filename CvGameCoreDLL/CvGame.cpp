@@ -9455,7 +9455,7 @@ void CvGame::changeHumanPlayer(PlayerTypes eNewHuman)
 	gDLL->getInterfaceIFace()->clearSelectedCities(); // </advc.001>
 	setActivePlayer(eNewHuman, false);
 
-	GET_PLAYER(eCurHuman).setIsHuman(false);
+	GET_PLAYER(eCurHuman).setIsHuman(false, /* advc.127c: */ true);
 	GET_PLAYER(eCurHuman).updateHuman(); // advc.127
 } // BETTER_BTS_AI_MOD: END
 

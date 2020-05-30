@@ -999,7 +999,7 @@ void CvPlayer::changeLeader(LeaderHeadTypes eNewLeader)
 
 // (advc: Moved up so that all the CHANGE_PLAYER code dated 08/17/08 is in one place)
 // for changing whether this player is human or not
-void CvPlayer::setIsHuman(bool bNewValue)
+void CvPlayer::setIsHuman(bool bNewValue, /* advc.127c: */ bool bUpdateAI)
 {
 	// <advc.706> Make sure that these are consistent
 	if(!bNewValue)
@@ -1017,6 +1017,8 @@ void CvPlayer::setIsHuman(bool bNewValue)
 		initAlerts(true);
 	}
 	else uninitAlerts(); // </advc.210>
+	if (bUpdateAI)
+		AI().AI_setHuman(bNewValue);
 }
 // CHANGE_PLAYER: END
 // CHANGE_PLAYER, 05/09/09, jdog5000: START
@@ -2661,7 +2663,7 @@ void CvPlayer::setHumanDisabled(bool bNewVal)
 	CvWString szReplayText;
 	if (bNewVal && !m_bDisableHuman)
 	{
-		AI().AI_setHumanDisabled(true);
+		AI().AI_setHuman(false);
 		if(bActive)
 		{	// advc.004h:
 			gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_FOUNDING_BORDER);
@@ -2671,7 +2673,7 @@ void CvPlayer::setHumanDisabled(bool bNewVal)
 	}
 	else if (!bNewVal && m_bDisableHuman)
 	{
-		AI().AI_setHumanDisabled(false);
+		AI().AI_setHuman(true);
 		m_iNewMessages = 0; // Don't open Event Log when coming out of Auto Play
 		if(bActive)
 			szReplayText = gDLL->getText("TXT_KEY_AUTO_PLAY_ENDED");

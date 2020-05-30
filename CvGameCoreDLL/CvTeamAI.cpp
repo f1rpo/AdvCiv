@@ -5380,7 +5380,7 @@ bool CvTeamAI::AI_isPursuingCircumnavigation() const
 			UnitTypes eUnit = kCiv.unitAt(i);
 			if(GC.getInfo(eUnit).getDomainType() != DOMAIN_SEA)
 				continue;
-			if(kMember.AI_unitImpassableCount(eUnit) <= 0 && kMember.canTrain(eUnit))
+			if(!kMember.AI_isAnyImpassable(eUnit) && kMember.canTrain(eUnit))
 				return true;
 		}
 	}

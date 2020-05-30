@@ -2308,8 +2308,8 @@ void CvGame::nextActivePlayer(bool bForward)
 			GC.getInitCore().setSlotStatus(eNewPlayer, SS_TAKEN);*/
 			/*  <advc.210> The CHANGE_PLAYER component added a wrapper for that
 				(which now also initializes alerts) */
-			GET_PLAYER(getActivePlayer()).setIsHuman(false);
-			GET_PLAYER(eNewPlayer).setIsHuman(true);
+			GET_PLAYER(getActivePlayer()).setIsHuman(false, true);
+			GET_PLAYER(eNewPlayer).setIsHuman(true, true);
 			// </advc.210>
 			GET_PLAYER(getActivePlayer()).setTurnActive(false, false);
 			GET_PLAYER(eNewPlayer).setTurnActive(true, false);

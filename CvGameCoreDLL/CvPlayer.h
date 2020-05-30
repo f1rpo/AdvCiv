@@ -112,7 +112,7 @@ public:
 	void resetCivTypeEffects(/* advc.003q: */ bool bInit);
 	void changeLeader(LeaderHeadTypes eNewLeader);
 	void changeCiv(CivilizationTypes eNewCiv);
-	void setIsHuman(bool bNewValue);
+	void setIsHuman(bool bNewValue, /* advc.127c: */ bool bAIUpdate = false);
 	// CHANGE_PLAYER: END
 	// AI_AUTO_PLAY_MOD, 07/09/08, jdog5000: START
 	void setHumanDisabled(bool bNewVal);
