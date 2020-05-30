@@ -1166,8 +1166,13 @@ void CvPlayer::initFreeUnits()
 	// <advc>
 	CvGame const& kGame = GC.getGame();
 	int const iStartingUnitMultiplier = GC.getInfo(kGame.getStartEra()).
-			getStartingUnitMultiplier();
-	// </advc>
+			getStartingUnitMultiplier(); // </advc>
+	// <advc.027> Goody huts no longer block starting sites
+	CvPlot* pStartingPlot = getStartingPlot();
+	if (pStartingPlot != NULL && !kGame.isScenario() && pStartingPlot->isGoody())
+		pStartingPlot->setImprovementType(NO_IMPROVEMENT);
+	else FAssert(pStartingPlot != NULL); // (can this happen?)
+	// </advc.027>
 	if (kGame.isOption(GAMEOPTION_ADVANCED_START) &&
 		(!isHuman() || !kGame.isOption(GAMEOPTION_SPAH))) // advc.250b
 	{
