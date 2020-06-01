@@ -19,8 +19,8 @@ public:
 	OuterArrayType Length() const;
 
 	T get(OuterArrayType eArray, InnerArrayType eIndex) const;
-	void set(OuterArrayType eArray, InnerArrayType eIndex, T eValue);
-	void add(OuterArrayType eArray, InnerArrayType eIndex, T eValue);
+	void set(OuterArrayType eArray, InnerArrayType eIndex, T tValue);
+	void add(OuterArrayType eArray, InnerArrayType eIndex, T tValue);
 
 	bool hasContent() const;
 
@@ -92,23 +92,23 @@ inline T EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
 inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
-::set(OuterArrayType eArray, InnerArrayType eIndex, T eValue)
+::set(OuterArrayType eArray, InnerArrayType eIndex, T tValue)
 {
 	FAssert(eArray >= 0 && eArray < Length());
 	if (m_pOuterArray == NULL)
 	{
-		if (eValue == DEFAULT) return;
+		if (tValue == DEFAULT) return;
 		allocate();
 	}
-	m_pOuterArray[eArray].set(eIndex, eValue);
+	m_pOuterArray[eArray].set(eIndex, tValue);
 }
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
 inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
-::add(OuterArrayType eArray, InnerArrayType eIndex, T eValue)
+::add(OuterArrayType eArray, InnerArrayType eIndex, T tValue)
 {
 	FAssert(eArray >= 0 && eArray < Length());
-	if (eValue == 0)
+	if (tValue == 0)
 	{
 		return;
 	}
@@ -117,7 +117,7 @@ inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 	{
 		allocate();
 	}
-	m_pOuterArray[eArray].add(eIndex, eValue);
+	m_pOuterArray[eArray].add(eIndex, tValue);
 }
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
