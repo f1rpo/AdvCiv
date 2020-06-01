@@ -37,7 +37,6 @@ public: // All the const functions are exposed to Python except for those relate
 	inline bool isFoundFreshWater() const { return m_bFoundFreshWater; }
 
 	DllExport const TCHAR* getArtDefineTag() const;
-	void setArtDefineTag(const TCHAR* szTag);
 
 	int getWorldSoundscapeScriptId() const;
 
@@ -114,7 +113,6 @@ public: /*  All the const functions are exposed to Python except for those deali
 	const TCHAR* getOnUnitChangeTo() const;
 
 	const TCHAR* getArtDefineTag() const;
-	void setArtDefineTag(const TCHAR* szTag);
 
 	int getWorldSoundscapeScriptId() const;
 
@@ -232,7 +230,6 @@ public: // All the const functions are exposed to Python
 	bool isNormalize() const;
 
 	const TCHAR* getArtDefineTag() const;
-	void setArtDefineTag(const TCHAR* szVal);
 
 	int getYieldChange(int i) const;
 	int* getYieldChangeArray();
@@ -407,7 +404,6 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	inline bool isOutsideBorders() const { return m_bOutsideBorders; }
 
 	const TCHAR* getArtDefineTag() const;
-	void setArtDefineTag(const TCHAR* szVal);
 
 	int getWorldSoundscapeScriptId() const;
 
@@ -558,7 +554,6 @@ public: // The const functions are exposed to Python
 	bool isBad() const;
 
 	const TCHAR* getSound() const;
-	void setSound(const TCHAR* szVal);
 
 	bool read(CvXMLLoadUtility* pXML);
 

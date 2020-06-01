@@ -22,11 +22,8 @@ public: // All the const functions are exposed to Python
 	void setMissionType(int iNewType);
 
 	const TCHAR* getMovieFile() const;
-	void setMovieFile(const TCHAR* szVal);
 	const TCHAR* getMovieSound() const;
-	void setMovieSound(const TCHAR* szVal);
 	const TCHAR* getSound() const;
-	void setSound(const TCHAR* szVal);
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -56,13 +53,9 @@ public: // All the const functions are exposed to Python
 	int getNumFreeUnits() const;
 
 	const TCHAR* getTechButton() const;
-	void setTechButton(const TCHAR* szVal);
 	const TCHAR* getGenericTechButton() const;
-	void setGenericTechButton(const TCHAR* szVal);
-
 	const TCHAR* getButtonDisabled() const;
 
-	void setAdjectiveKey(const TCHAR* szVal);
 	const wchar* getAdjectiveKey() const;
 	std::wstring pyGetAdjectiveKey() { return getAdjectiveKey(); }
 

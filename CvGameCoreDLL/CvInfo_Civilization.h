@@ -45,7 +45,6 @@ public: // advc: All the const functions are exposed to Python
 
 	DllExport const TCHAR* getFlagTexture() const;
 	const TCHAR* getArtDefineTag() const;
-	void setArtDefineTag(const TCHAR* szVal);
 
 	// Array access:
 
@@ -203,7 +202,6 @@ public: // advc: All the const functions are exposed to Python except those adde
 	int getLoveOfPeace() const { return m_iLoveOfPeace; } // advc.104
 
 	const TCHAR* getArtDefineTag() const;
-	void setArtDefineTag(const TCHAR* szVal);
 
 	// Array access:
 

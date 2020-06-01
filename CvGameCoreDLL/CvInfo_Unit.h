@@ -563,14 +563,9 @@ public: // All the const functions are exposed to Python
 
 	int getLayerAnimationPath() const;
 	int getPrereqPromotion() const;
-	void setPrereqPromotion(int i);
 	int getPrereqOrPromotion1() const;
-	void setPrereqOrPromotion1(int i);
 	int getPrereqOrPromotion2() const;
-	void setPrereqOrPromotion2(int i);
-	// K-Mod, 7/jan/11, karadoc
-	int getPrereqOrPromotion3() const;
-	void setPrereqOrPromotion3(int i); // K-Mod end
+	int getPrereqOrPromotion3() const; // K-Mod, 7/jan/11
 	int getTechPrereq() const;
 	int getStateReligionPrereq() const;
 	int getVisibilityChange() const;
@@ -616,7 +611,6 @@ public: // All the const functions are exposed to Python
 	bool isImmuneToFirstStrikes() const;
 
 	const TCHAR* getSound() const;
-	void setSound(const TCHAR* szVal);
 
 	// Array access:
 

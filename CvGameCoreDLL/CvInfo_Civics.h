@@ -70,7 +70,6 @@ public: // The const functions are exposed to Python except those (to be) added 
 
 	std::wstring pyGetWeLoveTheKing() { return getWeLoveTheKing(); }
 	const wchar* getWeLoveTheKing();
-	void setWeLoveTheKingKey(const TCHAR* szVal);
 
 	// Array access:
 

@@ -1851,19 +1851,9 @@ int CvPromotionInfo::getPrereqPromotion() const
 	return m_iPrereqPromotion;
 }
 
-void CvPromotionInfo::setPrereqPromotion(int i)
-{
-	m_iPrereqPromotion = i;
-}
-
 int CvPromotionInfo::getPrereqOrPromotion1() const
 {
 	return m_iPrereqOrPromotion1;
-}
-
-void CvPromotionInfo::setPrereqOrPromotion1(int i)
-{
-	m_iPrereqOrPromotion1 = i;
 }
 
 int CvPromotionInfo::getPrereqOrPromotion2() const
@@ -1871,20 +1861,11 @@ int CvPromotionInfo::getPrereqOrPromotion2() const
 	return m_iPrereqOrPromotion2;
 }
 
-void CvPromotionInfo::setPrereqOrPromotion2(int i)
-{
-	m_iPrereqOrPromotion2 = i;
-}
-// K-Mod, 7/jan/11
+// K-Mod, 7/jan/11:
 int CvPromotionInfo::getPrereqOrPromotion3() const
 {
 	return m_iPrereqOrPromotion3;
 }
-
-void CvPromotionInfo::setPrereqOrPromotion3(int i)
-{
-	m_iPrereqOrPromotion3 = i;
-} // K-Mod end
 
 int CvPromotionInfo::getTechPrereq() const
 {
@@ -2089,11 +2070,6 @@ bool CvPromotionInfo::isImmuneToFirstStrikes() const
 const TCHAR* CvPromotionInfo::getSound() const
 {
 	return m_szSound;
-}
-
-void CvPromotionInfo::setSound(const TCHAR* szVal)
-{
-	m_szSound = szVal;
 }
 
 int CvPromotionInfo::getTerrainAttackPercent(int i) const
@@ -2307,11 +2283,9 @@ bool CvPromotionInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvHotkeyInfo::read(pXML))
 		return false;
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "Sound");
-		setSound(szTextVal);
-	}
+
+	pXML->GetChildXmlValByName(m_szSound, "Sound");
+
 	pXML->SetInfoIDFromChildXmlVal(m_iLayerAnimationPath, "LayerAnimationPath");
 	pXML->SetInfoIDFromChildXmlVal(m_iTechPrereq, "TechPrereq");
 	pXML->SetInfoIDFromChildXmlVal(m_iStateReligionPrereq, "StateReligionPrereq");

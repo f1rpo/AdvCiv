@@ -275,29 +275,14 @@ const TCHAR* CvBuildingInfo::getConstructSound() const
 	return m_szConstructSound;
 }
 
-void CvBuildingInfo::setConstructSound(const TCHAR* szVal)
-{
-	m_szConstructSound = szVal;
-}
-
 const TCHAR* CvBuildingInfo::getArtDefineTag() const
 {
 	return m_szArtDefineTag;
 }
 
-void CvBuildingInfo::setArtDefineTag(const TCHAR* szVal)
-{
-	m_szArtDefineTag = szVal;
-}
-
 const TCHAR* CvBuildingInfo::getMovieDefineTag() const
 {
 	return m_szMovieDefineTag;
-}
-
-void CvBuildingInfo::setMovieDefineTag(const TCHAR* szVal)
-{
-	m_szMovieDefineTag = szVal;
 }
 
 
@@ -1059,13 +1044,8 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	pXML->SetInfoIDFromChildXmlVal(m_iBuildingClassType, "BuildingClass");
 	pXML->SetInfoIDFromChildXmlVal(m_iSpecialBuildingType, "SpecialBuildingType");
 	pXML->SetInfoIDFromChildXmlVal(m_iAdvisorType, "Advisor");
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
-		setArtDefineTag(szTextVal);
-		pXML->GetChildXmlValByName(szTextVal, "MovieDefineTag");
-		setMovieDefineTag(szTextVal);
-	}
+	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag");
+	pXML->GetChildXmlValByName(m_szMovieDefineTag, "MovieDefineTag");
 	pXML->SetInfoIDFromChildXmlVal(m_iHolyCity, "HolyCity");
 	pXML->SetInfoIDFromChildXmlVal(m_iReligionType, "ReligionType");
 	pXML->SetInfoIDFromChildXmlVal(m_iStateReligion, "StateReligion");
@@ -1375,11 +1355,7 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	}
 	else pXML->InitList(&m_pbCommerceChangeOriginalOwner, NUM_COMMERCE_TYPES);
 
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "ConstructSound");
-		setConstructSound(szTextVal);
-	}
+	pXML->GetChildXmlValByName(m_szConstructSound, "ConstructSound");
 
 	pXML->SetVariableListTagPair(&m_piBonusHealthChanges, "BonusHealthChanges", GC.getNumBonusInfos());
 	pXML->SetVariableListTagPair(&m_piBonusHappinessChanges, "BonusHappinessChanges", GC.getNumBonusInfos());

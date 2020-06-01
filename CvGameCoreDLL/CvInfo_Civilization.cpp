@@ -136,11 +136,6 @@ const TCHAR* CvCivilizationInfo::getArtDefineTag() const
 	return m_szArtDefineTag;
 }
 
-void CvCivilizationInfo::setArtDefineTag(const TCHAR* szVal)
-{
-	m_szArtDefineTag = szVal;
-}
-
 BuildingTypes CvCivilizationInfo::getCivilizationBuildings(int i) const
 {
 	FAssertBounds(0, GC.getNumBuildingClassInfos(), i);
@@ -295,11 +290,9 @@ bool CvCivilizationInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(m_szAdjectiveKey, "Adjective");
 
 	pXML->SetInfoIDFromChildXmlVal(m_iDefaultPlayerColor, "DefaultPlayerColor");
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
-		setArtDefineTag(szTextVal);
-	}
+
+	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag");
+
 	pXML->SetInfoIDFromChildXmlVal(m_iArtStyleType, "ArtStyleType");
 	{
 		CvString szTextVal;
@@ -577,11 +570,6 @@ const TCHAR* CvLeaderHeadInfo::getButton() const
 const TCHAR* CvLeaderHeadInfo::getArtDefineTag() const
 {
 	return m_szArtDefineTag;
-}
-
-void CvLeaderHeadInfo::setArtDefineTag(const TCHAR* szVal)
-{
-	m_szArtDefineTag = szVal;
 }
 
 bool CvLeaderHeadInfo::hasTrait(int i) const
@@ -934,13 +922,10 @@ bool CvLeaderHeadInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
 		return false;
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag",
-				// advc.xmldefault:
-				m_szArtDefineTag.empty() ? NULL : m_szArtDefineTag.c_str());
-		setArtDefineTag(szTextVal);
-	}
+
+	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag",
+			// advc.xmldefault:
+			m_szArtDefineTag.empty() ? NULL : m_szArtDefineTag.c_str());
 	/*	advc.xmldefault: Redirect the CvXMLLoadUtility::GetChildXmlValByName
 		calls through CvLeaderHeadInfo::GetChildXmlValByName. */
 	m_pXML = pXML;

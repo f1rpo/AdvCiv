@@ -18,7 +18,6 @@ public:
 	CvCommandInfo();
 
 	int getAutomate() const;
-	void setAutomate(int i);
 
 	bool getConfirmCommand() const;
 	bool getVisible() const;
@@ -42,14 +41,10 @@ public:
 	CvAutomateInfo();
 
 	int getCommand() const;
-	void setCommand(int i);
 	int getAutomate() const;
-	void setAutomate(int i);
 
 	bool getConfirmCommand() const;
-	void setConfirmCommand(bool bVal);
 	bool getVisible() const;
-	void setVisible(bool bVal);
 
 	bool read(CvXMLLoadUtility* pXML);
 

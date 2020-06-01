@@ -37,11 +37,6 @@ const TCHAR* CvTerrainInfo::getArtDefineTag() const
 	return m_szArtDefineTag;
 }
 
-void CvTerrainInfo::setArtDefineTag(const TCHAR* szTag)
-{
-	m_szArtDefineTag = szTag;
-}
-
 int CvTerrainInfo::getWorldSoundscapeScriptId() const
 {
 	return m_iWorldSoundscapeScriptId;
@@ -77,9 +72,7 @@ bool CvTerrainInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName( szTextVal, "ArtDefineTag");
-	setArtDefineTag(szTextVal);
+	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag");
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"Yields"))
 	{
@@ -115,12 +108,13 @@ bool CvTerrainInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iDefenseModifier, "iDefense");
 
 	pXML->SetVariableListTagPairForAudioScripts(&m_pi3DAudioScriptFootstepIndex, "FootstepSounds", GC.getNumFootstepAudioTypes());
-
-	pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
-	if (szTextVal.GetLength() > 0)
-		m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE);
-	else m_iWorldSoundscapeScriptId = -1;
-
+	{
+		CvString szTextVal;
+		pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
+		if (szTextVal.GetLength() > 0)
+			m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE);
+		else m_iWorldSoundscapeScriptId = -1;
+	}
 	return true;
 }
 
@@ -270,11 +264,6 @@ const TCHAR* CvFeatureInfo::getArtDefineTag() const
 	return m_szArtDefineTag;
 }
 
-void CvFeatureInfo::setArtDefineTag(const TCHAR* szTag)
-{
-	m_szArtDefineTag = szTag;
-}
-
 int CvFeatureInfo::getWorldSoundscapeScriptId() const
 {
 	return m_iWorldSoundscapeScriptId;
@@ -328,9 +317,7 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName( szTextVal, "ArtDefineTag");
-	setArtDefineTag(szTextVal);
+	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag");
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"YieldChanges"))
 	{
@@ -388,12 +375,13 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(m_szOnUnitChangeTo, "OnUnitChangeTo");
 
 	pXML->SetVariableListTagPairForAudioScripts(&m_pi3DAudioScriptFootstepIndex, "FootstepSounds", GC.getNumFootstepAudioTypes());
-
-	pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
-	if (szTextVal.GetLength() > 0)
-		m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE);
-	else m_iWorldSoundscapeScriptId = -1;
-
+	{
+		CvString szTextVal;
+		pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
+		if (szTextVal.GetLength() > 0)
+			m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE);
+		else m_iWorldSoundscapeScriptId = -1;
+	}
 	pXML->GetChildXmlValByName(m_szEffectType, "EffectType");
 	pXML->GetChildXmlValByName(&m_iEffectProbability, "iEffectProbability");
 
@@ -576,11 +564,6 @@ const TCHAR* CvBonusInfo::getArtDefineTag() const
 	return m_szArtDefineTag;
 }
 
-void CvBonusInfo::setArtDefineTag(const TCHAR* szVal)
-{
-	m_szArtDefineTag = szVal;
-}
-
 const CvArtInfoBonus* CvBonusInfo::getArtInfo() const
 {
 	return ARTFILEMGR.getBonusArtInfo( getArtDefineTag());
@@ -722,11 +705,9 @@ bool CvBonusInfo::read(CvXMLLoadUtility* pXML)
 		return false;
 
 	pXML->SetInfoIDFromChildXmlVal(m_iBonusClassType, "BonusClassType");
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
-		setArtDefineTag(szTextVal);
-	}
+
+	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag");
+
 	pXML->SetInfoIDFromChildXmlVal((int&)m_eTechReveal, "TechReveal");
 	pXML->SetInfoIDFromChildXmlVal((int&)m_eTechCityTrade, "TechCityTrade");
 	pXML->SetInfoIDFromChildXmlVal((int&)m_eTechObsolete, "TechObsolete");
@@ -1002,11 +983,6 @@ int CvImprovementInfo::getPillageGold() const
 const TCHAR* CvImprovementInfo::getArtDefineTag() const
 {
 	return m_szArtDefineTag;
-}
-
-void CvImprovementInfo::setArtDefineTag(const TCHAR* szVal)
-{
-	m_szArtDefineTag = szVal;
 }
 
 int CvImprovementInfo::getWorldSoundscapeScriptId() const
@@ -1319,11 +1295,9 @@ bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvXMLInfo::read(pXML)) // advc.tag
 		return false;
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
-		setArtDefineTag(szTextVal);
-	}
+
+	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag");
+
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"PrereqNatureYields"))
 	{
 		pXML->SetYields(&m_piPrereqNatureYield);
@@ -1616,20 +1590,13 @@ const TCHAR* CvGoodyInfo::getSound() const
 	return m_szSound;
 }
 
-void CvGoodyInfo::setSound(const TCHAR* szVal)
-{
-	m_szSound=szVal;
-}
-
 bool CvGoodyInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
 		return false;
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "Sound");
-		setSound(szTextVal);
-	}
+
+	pXML->GetChildXmlValByName(m_szSound, "Sound");
+
 	pXML->GetChildXmlValByName(&m_iGold, "iGold");
 	pXML->GetChildXmlValByName(&m_iGoldRand1, "iGoldRand1");
 	pXML->GetChildXmlValByName(&m_iGoldRand2, "iGoldRand2");

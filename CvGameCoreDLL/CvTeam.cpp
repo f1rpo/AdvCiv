@@ -1061,8 +1061,8 @@ bool CvTeam::canEventuallyDeclareWar(TeamTypes eTeam) const
 
 // K-Mod note: I've shuffled things around a bit in this function.  // advc: refactored
 void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDoW,
-		PlayerTypes eSponsor, // advc.100
-		bool bRandomEvent) // advc.106g
+	PlayerTypes eSponsor, // advc.100
+	bool bRandomEvent) // advc.106g
 {
 	PROFILE_FUNC();
 	FAssert(eTarget != NO_TEAM);
@@ -1199,12 +1199,12 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 						// advc.127b:
 						getCapitalX(kObs.getTeam()), getCapitalY(kObs.getTeam()));
 			}
-			else if((isHasMet(kObs.getTeam()) && kTarget.isHasMet(kObs.getTeam()))
-				|| kObs.isSpectator()) // advc.127
+			else if((isHasMet(kObs.getTeam()) && kTarget.isHasMet(kObs.getTeam())) ||
+				kObs.isSpectator()) // advc.127
 			{	// <advc.100> Inform third parties about sponsor
 				if(eSponsor != NO_PLAYER && eSponsor != kObs.getID() &&
-						(GET_TEAM(eSponsor).isHasMet(kObs.getTeam()) ||
-						kObs.isSpectator())) // advc.127
+					(GET_TEAM(eSponsor).isHasMet(kObs.getTeam()) ||
+					kObs.isSpectator())) // advc.127
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_HIRED_WAR",
 							getName().GetCString(), kTarget.getName().GetCString(), cpSponsorName);

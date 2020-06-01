@@ -120,20 +120,14 @@ const TCHAR* CvSpecialistInfo::getTexture() const
 	return m_szTexture;
 }
 
-void CvSpecialistInfo::setTexture(const TCHAR* szVal)
-{
-	m_szTexture = szVal;
-}
-
 bool CvSpecialistInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvHotkeyInfo::read(pXML))
 		return false;
 
-	CvString szTextVal;
+	pXML->GetChildXmlValByName(m_szTexture, "Texture");
 
-	pXML->GetChildXmlValByName(szTextVal, "Texture");
-	setTexture(szTextVal);
+	CvString szTextVal;
 
 	pXML->GetChildXmlValByName(&m_bVisible, "bVisible");
 

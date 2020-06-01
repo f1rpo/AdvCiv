@@ -320,11 +320,6 @@ const wchar* CvCivicInfo::getWeLoveTheKing()
 	return m_szWeLoveTheKingKey;
 }
 
-void CvCivicInfo::setWeLoveTheKingKey(const TCHAR* szVal)
-{
-	m_szWeLoveTheKingKey = szVal;
-}
-
 int CvCivicInfo::getYieldModifier(int i) const
 {
 	FAssertBounds(0, NUM_YIELD_TYPES, i);
@@ -760,9 +755,7 @@ bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "WeLoveTheKing");
-	setWeLoveTheKingKey(szTextVal);
+	pXML->GetChildXmlValByName(m_szWeLoveTheKingKey, "WeLoveTheKing");
 
 	return true;
 }

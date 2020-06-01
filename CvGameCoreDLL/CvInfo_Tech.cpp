@@ -89,29 +89,14 @@ std::wstring CvTechInfo::getQuote()	const
 	return gDLL->getText(m_szQuoteKey);
 }
 
-void CvTechInfo::setQuoteKey(const TCHAR* szVal)
-{
-	m_szQuoteKey = szVal;
-}
-
 const TCHAR* CvTechInfo::getSound() const
 {
 	return m_szSound;
 }
 
-void CvTechInfo::setSound(const TCHAR* szVal)
-{
-	m_szSound = szVal;
-}
-
 const TCHAR* CvTechInfo::getSoundMP() const
 {
 	return m_szSoundMP;
-}
-
-void CvTechInfo::setSoundMP(const TCHAR* szVal)
-{
-	m_szSoundMP = szVal;
 }
 
 int CvTechInfo::getDomainExtraMoves(int i) const
@@ -353,13 +338,9 @@ bool CvTechInfo::read(CvXMLLoadUtility* pXML)
 	pXML->SetVariableListTagPair(&m_pbTerrainTrade, "TerrainTrades", GC.getNumTerrainInfos(), false);
 	pXML->SetVariableListTagPair(&m_piFlavorValue, "Flavors", GC.getNumFlavorTypes());
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "Quote");
-	setQuoteKey(szTextVal);
-	pXML->GetChildXmlValByName(szTextVal, "Sound");
-	setSound(szTextVal);
-	pXML->GetChildXmlValByName(szTextVal, "SoundMP");
-	setSoundMP(szTextVal);
+	pXML->GetChildXmlValByName(m_szQuoteKey, "Quote");
+	pXML->GetChildXmlValByName(m_szSound, "Sound");
+	pXML->GetChildXmlValByName(m_szSoundMP, "SoundMP");
 
 	return true;
 }

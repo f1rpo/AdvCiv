@@ -248,11 +248,8 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 	bool isAllowsNukes() const { return m_bAllowsNukes; }
 
 	const TCHAR* getConstructSound() const;
-	void setConstructSound(const TCHAR* szVal);
 	const TCHAR* getArtDefineTag() const;
-	void setArtDefineTag(const TCHAR* szVal);
 	const TCHAR* getMovieDefineTag() const;
-	void setMovieDefineTag(const TCHAR* szVal);
 
 	// Array access:
 	friend void CyInfoPythonInterface1(); // advc.003x

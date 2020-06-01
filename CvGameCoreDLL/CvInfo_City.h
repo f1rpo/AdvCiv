@@ -51,7 +51,6 @@ public: // All the const functions are exposed to Python
 	int getFlavorValue(int i) const;
 
 	const TCHAR* getTexture() const;
-	void setTexture(const TCHAR* szVal);
 
 	bool read(CvXMLLoadUtility* pXML);
 

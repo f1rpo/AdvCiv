@@ -53,10 +53,7 @@ public: // advc: All the const functions are exposed to Python except those adde
 	inline bool isRiverTrade() const { return m_bRiverTrade; }
 
 	std::wstring getQuote() const;
-	void setQuoteKey(const TCHAR* szVal);
-	void setSound(const TCHAR* szVal);
 	const TCHAR* getSound() const;
-	void setSoundMP(const TCHAR* szVal);
 	const TCHAR* getSoundMP() const;
 
 	// Array access:
