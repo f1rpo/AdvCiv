@@ -451,6 +451,11 @@
 					<MemoryType>MEMORY_INDEPENDENCE</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.104i -->
+				<MemoryDecay>
+					<MemoryType>MEMORY_DECLARED_WAR_RECENT</MemoryType>
+					<iMemoryRand>11</iMemoryRand>
+				</MemoryDecay>
 				<!-- advc.130r END -->
 				<!-- advc.144: was 200 -->
 				<MemoryDecay>
@@ -678,6 +683,11 @@
 				<MemoryAttitudePercent>
 					<MemoryType>MEMORY_INDEPENDENCE</MemoryType>
 					<iMemoryAttitudePercent>100</iMemoryAttitudePercent>
+				</MemoryAttitudePercent>
+				<!-- advc.104i -->
+				<MemoryAttitudePercent>
+					<MemoryType>MEMORY_DECLARED_WAR_RECENT</MemoryType>
+					<iMemoryAttitudePercent>0</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
 			</MemoryAttitudePercents>
 			<NoWarAttitudeProbs>
