@@ -3,7 +3,6 @@
 <!-- Sid Meier's Civilization 4 -->
 <!-- Copyright Firaxis Games 2005 -->
 <!-- Building Infos -->
-<!-- advc.310: Renamed iGlobalTradeRoutes to iAreaTradeRoutes -->
 
 <Civ4BuildingInfos xmlns="x-schema:CIV4BuildingsSchema.xml">
 	<BuildingInfos>
@@ -1039,7 +1038,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>2</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>5</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -1241,7 +1241,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>2</iAsset>
-			<iPower>3</iPower>
+			<!-- advc.131c: was 3 -->
+			<iPower>6</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -3842,7 +3843,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>3</iAsset>
-			<iPower>1</iPower>
+			<!-- advc.131c: was 1 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges>
 				<iYield>1</iYield>
@@ -4907,7 +4909,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>5</iAsset>
-			<iPower>0</iPower>
+			<!-- advc.131c: was 0 -->
+			<iPower>15</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -5085,7 +5088,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>4</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -5276,7 +5280,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>5</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -5472,7 +5477,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>6</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -5663,7 +5669,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>6</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -6022,7 +6029,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>0</iAsset>
-			<iPower>1</iPower>
+			<!-- advc.131c: was 1 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -6534,7 +6542,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>6</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -13351,7 +13360,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>2</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges>
@@ -13516,7 +13526,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>4</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges>
 				<iYield>0</iYield>
@@ -20455,7 +20466,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>8</iAsset>
-			<iPower>4</iPower>
+			<!-- advc.131c: was 4 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -20992,7 +21004,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>8</iAsset>
-			<iPower>4</iPower>
+			<!-- advc.131c: was 4 -->
+			<iPower>15</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -21178,7 +21191,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>8</iAsset>
-			<iPower>8</iPower>
+			<!-- advc.131c: was 8 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -25392,7 +25406,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>20</iAsset>
-			<iPower>0</iPower>
+			<!-- advc.131c: was 0 -->
+			<iPower>30</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -26455,7 +26470,8 @@
 			<iEspionageDefense>0</iEspionageDefense>
 			<!-- advc.310: Was 5; now a more potent building. -->
 			<iAsset>9</iAsset>
-			<iPower>10</iPower>
+			<!-- advc.131c: was 10 -->
+			<iPower>5</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -27393,7 +27409,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>5</iAsset>
-			<iPower>10</iPower>
+			<!-- advc.131c: was 10 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges>
 				<iYield>0</iYield>

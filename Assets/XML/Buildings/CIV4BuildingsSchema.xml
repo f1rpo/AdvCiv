@@ -171,6 +171,8 @@
 	<ElementType name="iAllCityDefense" content="textOnly" dt:type="int"/>
 	<ElementType name="iEspionageDefense" content="textOnly" dt:type="int"/>
 	<ElementType name="iAsset" content="textOnly" dt:type="int"/>
+	<!-- advc.131c (note): Now only used for buildings with defense, XP and
+		 war weariness abilities, not for production abilities. -->
 	<ElementType name="iPower" content="textOnly" dt:type="int"/>
 	<ElementType name="fVisibilityPriority" content="textOnly"/>
 	<ElementType name="FreePromotion" content="textOnly"/>
