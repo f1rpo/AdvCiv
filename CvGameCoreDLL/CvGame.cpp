@@ -6124,6 +6124,8 @@ void CvGame::doTurn()
 	gDLL->getInterfaceIFace()->setEndTurnMessage(false);
 	gDLL->getInterfaceIFace()->setHasMovedUnit(false);
 
+	CvEventReporter::getInstance().endGameTurn(getGameTurn());
+
 	if (getAIAutoPlay() > 0)
 	{	/*  <advc.127> Flag added: don't change player status when decrementing
 			the counter at the start of a round. Let onEndPlayerTurn in AIAutoPlay.py
@@ -6136,8 +6138,6 @@ void CvGame::doTurn()
 		if (getAIAutoPlay() == 0)
 			reviveActivePlayer();
 	}
-
-	CvEventReporter::getInstance().endGameTurn(getGameTurn());
 
 	incrementGameTurn();
 	incrementElapsedGameTurns();
