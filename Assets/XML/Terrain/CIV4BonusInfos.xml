@@ -1404,7 +1404,8 @@
 			<bHills>1</bHills>
 			<bFlatlands>0</bFlatlands>
 			<bNoRiverSide>0</bNoRiverSide>
-			<bNormalize>1</bNormalize>
+			<!-- advc.108: was 1 -->
+			<bNormalize>0</bNormalize>
 			<!-- advc.129: Added SNOW -->
 			<TerrainBooleans>
 				<TerrainBoolean>

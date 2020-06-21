@@ -247,6 +247,17 @@
         <iDefineIntVal>3</iDefineIntVal>
     </Define>
 
+	<!-- advc.027: Enables the iterative algorithm for balancing
+		 starting positions on map scripts that don't override either
+		 assignStartingPlots or findStartingPosition.
+		 (The advc.108 settings below are independent from this; they mostly
+		 deal with start plot "normalization" whereas starting position
+		 iteration mostly moves the BtS starting locations around.) -->
+	<Define>
+        <DefineName>ENABLE_STARTING_POSITION_ITERATION</DefineName>
+        <iDefineIntVal>0</iDefineIntVal>
+    </Define>
+
 	<!-- [advc.108]
 		 If set to 1 or greater, starting plots are improved ("normalized") as
 		 aggressively as in BtS. 0 or less (recommended) means that normalization
@@ -256,19 +267,6 @@
 	<Define>
         <DefineName>NORMALIZE_STARTPLOTS_AGGRESSIVELY</DefineName>
         <iDefineIntVal>0</iDefineIntVal>
-    </Define>
-
-	<!-- [advc.108]
-	     The game ensures that no starting position is far better than another
-		 starting position by raising the (city-)found value of each
-		 starting position to at least STARTVAL_LOWER_BOUND-PERCENT of the best
-		 found value. Recommended: 70%.
-		 K-Mod uses 80%, and this value is also used if
-		 NORMALIZE_STARTPLOTS_AGGRESSIVELY is set. (I.e. this setting only
-		 matters if NORMALIZE_STARTPLOTS_AGGRESSIVELY isn't set.) -->
-	<Define>
-        <DefineName>STARTVAL_LOWER_BOUND-PERCENT</DefineName>
-        <iDefineIntVal>70</iDefineIntVal>
     </Define>
 
 	 <!-- [advc.108]

@@ -6279,7 +6279,9 @@ def addBonuses():
 
 
 def assignStartingPlots():
-	sf.SetStartingPlots()
+	# advc.027: If we set starting plots, then starting position iteration can't move starting plots to uninhabited landmasses. That's good if those landmasses are reserved for a New World, bad otherwise.
+	if mc.AllowNewWorld or CyGlobalContext().getDefineINT("ENABLE_STARTING_POSITION_ITERATION") <= 0:
+		sf.SetStartingPlots()
 	# advc.021b: Let CvGame::asignStartingPlots shuffle plots around based on difficulty
 	CyPythonMgr().allowDefaultImpl()
 

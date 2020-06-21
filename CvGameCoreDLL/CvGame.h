@@ -15,6 +15,7 @@ class CvHallOfFameInfo; // advc.106i
 class CvGameAI;
 class CvDeal;
 class CvCivilization; // advc.003w
+class NormalizationTarget; // advc.027
 class Shelf; // advc.300
 class StartPointsAsHandicap; // advc.250b
 class RiseFall; // advc.700
@@ -990,10 +991,9 @@ protected:
 	void initFreeUnits_bulk();
 	// </advc.051>
 	void initGameHandicap(); // advc.127
-	// <advc.003i> These were public (and DLLExport)
 	void initFreeState();
-	void assignStartingPlots();
-	void normalizeStartingPlots(); // </advc.003i>
+	/* <advc.027> */ NormalizationTarget* /* </advc.027> */ assignStartingPlots();
+	void normalizeStartingPlots(/* advc.027: */ NormalizationTarget const* pTarget = NULL);
 	void updateStartingPlotRange(); // advc.opt
 	void applyOptionEffects(bool bEnableAll = false); // advc.310
 	void doTurn();
@@ -1046,16 +1046,20 @@ protected:
 	void normalizeAddLakes();
 	void normalizeRemoveBadFeatures();
 	void normalizeRemoveBadTerrain();
-	void normalizeAddFoodBonuses();
+	void normalizeAddFoodBonuses(/* advc.027: */ NormalizationTarget const* pTarget = NULL);
 	void normalizeAddGoodTerrain();
-	void normalizeAddExtras();
+	void normalizeAddExtras(/* advc.027: */ NormalizationTarget const* pTarget = NULL);
 	// <advc>
 	bool placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
-			bool bCheckCanPlace, bool bIgnoreLatitude, bool bRemoveFeature);
+			bool bCheckCanPlace, bool bIgnoreLatitude, bool bRemoveFeature,
+			bool bNoFood); // advc.108
 	bool isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer, CvPlot const& kPlot,
 			bool bCheckCanPlace, bool bIgnoreLatitude) const; // </advc>
-	// advc.108:
+	// <advc.108>
+	bool skipDuplicateExtraBonus(CvPlot const& kStartPlot, CvPlot const& kPlot,
+			BonusTypes eBonus, bool bSecondPass = false);
 	bool isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStartPlayer) const;
+	// </advc.108>
 	CvPlot* normalizeFindLakePlot(PlayerTypes ePlayer);
 
 	int getTeamClosenessScore(int** aaiDistances, int* aiStartingLocs);

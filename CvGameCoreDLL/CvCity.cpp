@@ -7022,7 +7022,6 @@ void CvCity::changeBonusYieldRateModifier(YieldTypes eIndex, int iChange)
 int CvCity::totalTradeModifier(CvCity const* pOtherCity) const // advc: const CvCity*
 {
 	static int const iCAPITAL_TRADE_MODIFIER = GC.getDefineINT("CAPITAL_TRADE_MODIFIER"); // advc.opt
-	static int const iOVERSEAS_TRADE_MODIFIER = GC.getDefineINT("OVERSEAS_TRADE_MODIFIER"); // advc.opt
 	int iModifier = 100;
 
 	iModifier += getTradeRouteModifier();
@@ -7034,7 +7033,7 @@ int CvCity::totalTradeModifier(CvCity const* pOtherCity) const // advc: const Cv
 	if (pOtherCity != NULL)
 	{
 		if (!sameArea(*pOtherCity))
-			iModifier += iOVERSEAS_TRADE_MODIFIER;
+			iModifier += GC.getDefineINT(CvGlobals::OVERSEAS_TRADE_MODIFIER);
 
 		if (getTeam() != pOtherCity->getTeam())
 		{
