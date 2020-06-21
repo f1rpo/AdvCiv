@@ -2617,6 +2617,8 @@ class CvInfoScreen:
 		self.aaWondersBeingBuilt_BUG = []
 		self.aaWondersBuilt_BUG = []
 		self.iNumWonders = 0
+		# advc.007: Use this to reveal all wonders in Debug mode unless perspective switched
+		bDebug = CyGame().isDebugMode() and self.iActiveTeam == gc.getGame().getActiveTeam()
 
 		# Loop through players to determine Wonders
 		for iPlayerLoop in range(gc.getMAX_PLAYERS()):
@@ -2639,8 +2641,8 @@ class CvInfoScreen:
 				for pCity in apCityList:
 					pCityPlot = CyMap().plot(pCity.getX(), pCity.getY())
 
-					# advc.007: bDebug=True unless perspective switched. Note that pCity is a PyCity (PyHelpers.py), whose isRevealed function takes only one argument. Need a CyCity instead.
-					bRevealed = pCity.GetCy().isRevealed(self.iActiveTeam, self.iActiveTeam == gc.getGame().getActiveTeam())
+					# advc.007: Note that pCity is a PyCity (PyHelpers.py), whose isRevealed function takes only one argument. Need a CyCity instead.
+					bRevealed = pCity.GetCy().isRevealed(self.iActiveTeam, bDebug)
 
 					# Loop through projects to find any under construction
 					if self.szWonderDisplayMode == self.szWDM_Project:
@@ -2650,13 +2652,13 @@ class CvInfoScreen:
 
 							# Project is being constructed
 							if iProjectProd == iProjectLoop:
-								if iPlayerTeam == self.iActiveTeam:
+								if iPlayerTeam == self.iActiveTeam or bDebug:
 									self.aaWondersBeingBuilt_BUG.append([iProjectLoop,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
 
 								if (self.pActiveTeam.isHasMet(iPlayerTeam)
 								and self.iInvestigateCityMission != -1 # K-Mod, bugfix
 								and self.pActivePlayer.canDoEspionageMission(self.iInvestigateCityMission, pCity.getOwner(), pCity.plot(), -1) # advc.001d: Replaced gc.getGame().getActiveTeam with self.iActiveTeam
-								and bRevealed):
+								and bRevealed) or bDebug:
 									self.aaWondersBeingBuilt_BUG.append([iProjectLoop,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
 
 					# Loop through buildings
@@ -2679,12 +2681,12 @@ class CvInfoScreen:
 									if (self.pActiveTeam.isHasMet(iPlayerTeam)
 									and self.iInvestigateCityMission != -1 # K-Mod, bugfix
 									and self.pActivePlayer.canDoEspionageMission(self.iInvestigateCityMission, pCity.getOwner(), pCity.plot(), -1) # advc.001d: Replaced gc.getGame().getActiveTeam with self.iActiveTeam
-									and bRevealed):
+									and bRevealed) or bDebug:
 										self.aaWondersBeingBuilt_BUG.append([iBuildingLoop,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
 
 								if (pCity.getNumBuilding(iBuildingLoop) > 0):
 									# advc.001d: bRevealed added. If the city is revealed, then the active player knows the city owner from the color of the borders - and wonders are shown on the main map.
-									if (iPlayerTeam == self.iActiveTeam or bRevealed or self.pActiveTeam.isHasMet(iPlayerTeam)):
+									if iPlayerTeam == self.iActiveTeam or bRevealed or self.pActiveTeam.isHasMet(iPlayerTeam) or bDebug:
 										self.aaWondersBuilt_BUG.append([pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,True,pPlayer.getCivilizationShortDescription(0),pCity, iPlayerLoop])
 									else:
 										self.aaWondersBuilt_BUG.append([pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,False,localText.getText("TXT_KEY_UNKNOWN", ()),pCity,gc.getBARBARIAN_PLAYER()])
@@ -2698,18 +2700,18 @@ class CvInfoScreen:
 								# Is this city building a wonder?
 								if (iBuildingProd == iBuildingLoop):
 									# Only show our wonders under construction
-									if (iPlayerTeam == self.iActiveTeam):
+									if iPlayerTeam == self.iActiveTeam or bDebug:
 										self.aaWondersBeingBuilt_BUG.append([iBuildingLoop,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
 
 									if (self.pActiveTeam.isHasMet(iPlayerTeam)
 									and self.iInvestigateCityMission != -1 # K-Mod, bugfix
 									and self.pActivePlayer.canDoEspionageMission(self.iInvestigateCityMission, pCity.getOwner(), pCity.plot(), -1) # advc.001d: Replaced gc.getGame().getActiveTeam with self.iActiveTeam
-									and bRevealed):
+									and bRevealed) or bDebug:
 										self.aaWondersBeingBuilt_BUG.append([iBuildingLoop,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
 
 								# Has this city built a wonder?
 								if (pCity.getNumBuilding(iBuildingLoop) > 0):
-									if (iPlayerTeam == self.iActiveTeam):
+									if iPlayerTeam == self.iActiveTeam or bDebug:
 										self.aaWondersBuilt_BUG.append([pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,True,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
 										self.iNumWonders += 1
 									# advc.001d (comment): To hide (finished) national wonders of other teams, remove this code block:
@@ -2742,7 +2744,7 @@ class CvInfoScreen:
 
 							for iI in range(pTeam.getProjectCount(iProjectLoop)):
 
-								if (iTeamLoop == self.iActiveTeam or self.pActiveTeam.isHasMet(iTeamLoop)):
+								if iTeamLoop == self.iActiveTeam or self.pActiveTeam.isHasMet(iTeamLoop) or bDebug:
 									self.aaWondersBuilt_BUG.append([-9999,iProjectLoop,True,gc.getPlayer(iPlayerLoop).getCivilizationShortDescription(0),None, iPlayerLoop])
 								else:
 									# advc.001: Last param was 9999
