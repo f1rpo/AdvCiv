@@ -1505,7 +1505,7 @@ protected:  // <advc.210>
 	// <advc.314>
 	bool isGoodyTech(TechTypes techId, bool bProgress) const;
 	void addGoodyMsg(CvWString s, CvPlot const& p, TCHAR const* sound);
-	void promoteFreeUnit(CvUnit& u, double pr);
+	void promoteFreeUnit(CvUnit& u, scaled pr);
 	// </advc.314>
 	static int adjustAdvStartPtsToSpeed(int iPoints); // advc.250c
 	// advc.120f:

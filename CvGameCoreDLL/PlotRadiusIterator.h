@@ -10,6 +10,7 @@
 /*  Iterators over the CvPlot objects within a radius around a central plot or unit.
 	For now, I've only implemented a square, which is the most frequently used
 	plot range. The radius is measured according to the stepDistance metric.
+	The center plot doesn't count toward the radius; e.g. iRadius=3 is a 7x7 square.
 	A more circular range (plostDistance metric) can be generated through the
 	b_IN_CIRCLE template parameter. The implementation of the in-circle
 	isn't terribly efficient: A square is generated and plots outside of the

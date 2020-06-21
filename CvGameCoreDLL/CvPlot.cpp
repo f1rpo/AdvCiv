@@ -5530,6 +5530,60 @@ void CvPlot::setFoundValue(PlayerTypes eIndex, short iNewValue)
 	m_aiFoundValue.set(eIndex, iNewValue);
 }
 
+// advc: Cut from CvPlayer::canFound (for advc.027)
+bool CvPlot::canFound(bool bTestVisible) const
+{
+	if (isImpassable())
+		return false;
+	bool bValid = false; // advc.opt: Water check moved up
+
+	/*  UNOFFICIAL_PATCH, Bugfix, 02/16/10, EmperorFool & jdog5000:
+		(canFoundCitiesOnWater callback handling was incorrect and ignored isWater() if it returned true) */
+	if (isWater())
+	{
+		if (GC.getPythonCaller()->canFoundWaterCity(*this))
+		{
+			bValid = true;
+			FAssertMsg(false, "The AdvCiv mod probably does not support cities on water"); // advc
+		}
+		else return false; // advc.opt
+	}
+
+	if (isFeature() && GC.getInfo(getFeatureType()).isNoCity())
+		return false; // (advc.opt: Moved down)
+	if (!bValid)
+	{
+		if (GC.getInfo(getTerrainType()).isFound())
+			bValid = true;
+	}
+	if (!bValid)
+	{
+		if (GC.getInfo(getTerrainType()).isFoundCoast() && isCoastalLand())
+			bValid = true;
+	}
+	if (!bValid)
+	{
+		if (GC.getInfo(getTerrainType()).isFoundFreshWater() &&
+			isFreshWater())
+		{
+			bValid = true;
+		}
+	}
+	if (!bValid)
+		return false;
+
+	if (bTestVisible)
+		return true;
+
+	for (SquareIter it(*this, GC.getDefineINT(CvGlobals::MIN_CITY_RANGE)); it.hasNext(); ++it)
+	{
+		if (it->isCity() && it->sameArea(*this))
+			return false;
+	}
+
+	return true;
+}
+
 
 void CvPlot::changePlayerCityRadiusCount(PlayerTypes eIndex, int iChange)
 {

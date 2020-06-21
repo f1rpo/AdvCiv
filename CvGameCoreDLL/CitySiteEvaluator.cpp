@@ -1555,7 +1555,7 @@ int AIFoundValue::removableFeatureYieldVal(FeatureTypes eFeature,
 			iR += 25 * kFeature.getYieldChange(eLoopYield);
 		}
 	}
-	if(iR!=0) logBBAI("From (removable) feature yield: %d", iR);
+	IFLOG if(iR!=0) logBBAI("From (removable) feature yield: %d", iR);
 	return iR;
 }
 
@@ -1943,22 +1943,22 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus,
 int AIFoundValue::calculateSpecialYieldModifier(int iCultureModifier, bool bEasyAccess,
 	bool bBonus, bool bCanSoonImproveBonus, bool bCanImproveBonus) const
 {
-	int iR = iCultureModifier;
+	scaled r = iCultureModifier;
 	// </advc.040>
 	if (!bEasyAccess)
-		iR /= 2; // <advc.040>
+		r /= 2; // <advc.040>
 	// <advc.031>
 	if (bBonus)
 	{
 		if (!bCanSoonImproveBonus)
 		{
 			// Don't want to discount e.g. Wine too much near capital
-			iR = (iR * (kSet.isStartingLoc() ? 4 : 3)) / 10;	
+			r = (r * (kSet.isStartingLoc() ? 4 : 3)) / 10;	
 		}
 		else if (!bCanImproveBonus)
-			iR = (iR * 3) / 4;
+			r *= fixp(0.75);
 	} // </advc.031>
-	return iR;
+	return r.round();
 }
 
 
@@ -2019,7 +2019,6 @@ void AIFoundValue::calculateBuildingYields(CvPlot const& p, int const* aiNatureY
 {
 	FOR_EACH_ENUM(Yield)
 		aiBuildingYield[eLoopYield] = 0;
-	int iEffectiveFood = aiNatureYield[YIELD_FOOD];
 	if (bCoastal && p.isWater() &&
 		aiNatureYield[YIELD_COMMERCE] > 1)
 	{

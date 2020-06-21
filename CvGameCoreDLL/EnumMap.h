@@ -23,7 +23,7 @@ template <class T> struct EnumMapGetDefault {};
 // docs.oracle.com/en/java/javase/13/docs/api/java.base/java/util/EnumMap.html
 //
 // Put in civ4 terms, it's an array with a fixed length and automated memory management.
-// Memory is allocated using a lazy approach and occationally freed as well if it doesn't matter outside the class.
+// Memory is allocated using a lazy approach and occasionally freed as well if it doesn't matter outside the class.
 // This means, like say std::vector, it can be used without considering memory allocations at all and it can't leak.
 //
 // The array is set up with template parameters as this allows "arguments" to the default constructor.
@@ -86,7 +86,7 @@ public:
 	T get(IndexType eIndex) const;
 	void set(IndexType eIndex, T tValue);
 	void add(IndexType eIndex, T tValue);
-	void multiply(IndexType eIndex, T tValue); // advc
+	void multiply(IndexType eIndex, T tMultiplier); // advc
 
 	// add bound checks. Ignore call if out of bound index
 	void safeSet(IndexType eIndex, T tValue);
@@ -152,7 +152,7 @@ private: // advc (Maybe some of these should indeed be public, but probably not 
 	static const bool bINLINE = (/*bINLINE_NATIVE ||*/ // advc.fract
 			bINLINE_1_BYTE || bINLINE_2_BYTE || bINLINE_BOOL);
 
-public:
+private: // advc: Since these aren't implemented (yet), make them private.
 	// operator overload
 	EnumMapBase& operator=(const EnumMapBase &rhs);
 	
@@ -613,16 +613,16 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 	}
 }
 
-// <advc>
+// advc:
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
-::multiply(IndexType eIndex, T tValue)
+::multiply(IndexType eIndex, T tMultiplier)
 {
 	/*  In 'add', I expect that branching on tValue is better than risking a cache miss,
-		but tValue==1 in 'multiply' seems far less likely than tValue==0 in 'add'. */
-	//if (tValue != 1)
-	set(eIndex, tValue * get(eIndex));
-} // </advc>
+		but tMultiplier==1 in 'multiply' seems far less likely than tValue==0 in 'add'. */
+	//if (tMultiplier != 1)
+	set(eIndex, tMultiplier * get(eIndex));
+} 
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
@@ -1131,7 +1131,7 @@ enum { DEFAULT_VALUE = 0, SIZE = ENUMMAP_SIZE_BOOL, SIZE_OF_T = sizeof(char) }; 
 
 #define SET_ARRAY_DEFAULT( X ) \
 __forceinline X ArrayDefault( X var) { return 0; } \
-template <> struct EnumMapGetDefault<X> \
+template <> struct EnumMapGetDefault< X > \
 { \
 	enum { DEFAULT_VALUE = 0, SIZE = ENUMMAP_SIZE_NATIVE, SIZE_OF_T = sizeof(X) }; \
 };
@@ -1144,6 +1144,7 @@ SET_ARRAY_DEFAULT(unsigned short);
 SET_ARRAY_DEFAULT(byte);
 SET_ARRAY_DEFAULT(float); // advc
 SET_ARRAY_DEFAULT(scaled); // advc.fract
+SET_ARRAY_DEFAULT(ScaledNum<1024*32>); // advc.fract (needed sometimes for small fractions)
 
 /*  advc: COMPILE_NUM_TYPES param removed; use NUM_ENUM_TYPES macro instead.
 	JITarrayType accessor, ArrayStart and ArrayLength functions removed.
@@ -1183,6 +1184,7 @@ SET_XML_ENUM_SIZE1(Flavor, Dummy)
 SET_XML_ENUM_SIZE1(Direction, Dummy)
 SET_XML_ENUM_SIZE1(WarPlan, Dummy)
 SET_XML_ENUM_SIZE1(CityPlot, Dummy)
+SET_XML_ENUM_SIZE1(ArtStyle, Dummy)
 
 /*  2 being the default apparently does not mean that these can be omitted
 	(Tbd.: There should be some way to get rid of SET_XML_ENUM_SIZE2.) */

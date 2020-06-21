@@ -1082,61 +1082,12 @@ void CvGame::assignStartingPlots()
 		 actually work - favors player 0 when humans are in slots 0, 1 ... */
 	/*else if (isGameMultiPlayer()) {
 		int iRandOffset = getSorenRandNum(countCivPlayersAlive(), "Player Starting Plot");
-		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) {
-			int iLoopPlayer = ((iI + iRandOffset) % MAX_CIV_PLAYERS);
-			if (GET_PLAYER((PlayerTypes)iLoopPlayer).isAlive()) {
-				if (GET_PLAYER((PlayerTypes)iLoopPlayer).isHuman()) {
-					if (GET_PLAYER((PlayerTypes)iLoopPlayer).getStartingPlot() == NULL) {
-						GET_PLAYER((PlayerTypes)iLoopPlayer).setStartingPlot(GET_PLAYER((PlayerTypes)iLoopPlayer).findStartingPlot(), true);
-						playerOrder.push_back(iLoopPlayer);
-					}
-				}
-			}
-		}
-		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) {
-			if (GET_PLAYER((PlayerTypes)iI).isAlive()) {
-				if (!(GET_PLAYER((PlayerTypes)iI).isHuman())) {
-					if (GET_PLAYER((PlayerTypes)iI).getStartingPlot() == NULL) {
-						GET_PLAYER((PlayerTypes)iI).setStartingPlot(GET_PLAYER((PlayerTypes)iI).findStartingPlot(), true);
-						playerOrder.push_back(iI);
-					}
-				}
-			}
-		}
+		// ... (deleted on 14 June 2020)
 	}
 	else
 	{	// advc (Comment): The minus 1 prevents humans from getting the worst plot
 		int const upperBound = countCivPlayersAlive() - 1;
-		int iHumanSlot = range(((upperBound * GC.getInfo(getHandicapType()).
-				getStartingLocationPercent()) / 100), 0, upperBound);
-		for (int iI = 0; iI < iHumanSlot; iI++) {
-			if (GET_PLAYER((PlayerTypes)iI).isAlive()) {
-				if (!(GET_PLAYER((PlayerTypes)iI).isHuman())) {
-					if (GET_PLAYER((PlayerTypes)iI).getStartingPlot() == NULL) {
-						GET_PLAYER((PlayerTypes)iI).setStartingPlot(GET_PLAYER((PlayerTypes)iI).findStartingPlot(), true);
-						playerOrder.push_back(iI);
-					}
-				}
-			}
-		}
-		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) {
-			if (GET_PLAYER((PlayerTypes)iI).isAlive()) {
-				if (GET_PLAYER((PlayerTypes)iI).isHuman()) {
-					if (GET_PLAYER((PlayerTypes)iI).getStartingPlot() == NULL) {
-						GET_PLAYER((PlayerTypes)iI).setStartingPlot(GET_PLAYER((PlayerTypes)iI).findStartingPlot(), true);
-						playerOrder.push_back(iI);
-					}
-				}
-			}
-		}
-		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) {
-			if (GET_PLAYER((PlayerTypes)iI).isAlive()) {
-				if (GET_PLAYER((PlayerTypes)iI).getStartingPlot() == NULL) {
-					GET_PLAYER((PlayerTypes)iI).setStartingPlot(GET_PLAYER((PlayerTypes)iI).findStartingPlot(), true);
-					playerOrder.push_back(iI);
-				}
-			}
-		}
+		// ...
 	}
 	//Now iterate over the player starts in the original order and re-place them.
 	//std::vector<int>::iterator playerOrderIter;
@@ -1731,8 +1682,8 @@ void CvGame::normalizeRemoveBadTerrain()  // advc: style changes
 
 void CvGame::normalizeAddFoodBonuses()  // advc: style changes
 {
-	bool bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
-	int iFoodPerPop = GC.getFOOD_CONSUMPTION_PER_POPULATION(); // K-Mod
+	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
+	int const iFoodPerPop = GC.getFOOD_CONSUMPTION_PER_POPULATION(); // K-Mod
 
 	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
@@ -3697,19 +3648,13 @@ CivilizationTypes CvGame::getActiveCivilizationType() const
 	return (CivilizationTypes)GET_PLAYER(getActivePlayer()).getCivilizationType();
 }
 
-// <advc.003w>
+// advc.003w:
 CvCivilization const* CvGame::getActiveCivilization() const
 {
 	PlayerTypes eActivePlayer = getActivePlayer();
 	if (eActivePlayer == NO_PLAYER)
 		return NULL;
 	return &GET_PLAYER(eActivePlayer).getCivilization();
-} // </advc.003w>
-
-
-bool CvGame::isNetworkMultiPlayer() const
-{
-	return GC.getInitCore().getMultiplayer();
 }
 
 
@@ -3756,18 +3701,6 @@ void CvGame::reviveActivePlayer()
 }
 
 
-int CvGame::getNumHumanPlayers()
-{
-	return GC.getInitCore().getNumHumans();
-}
-
-
-int CvGame::getGameTurn() const
-{
-	return GC.getInitCore().getGameTurn();
-}
-
-
 void CvGame::setGameTurn(int iNewValue)
 {
 	if (getGameTurn() != iNewValue)
@@ -3810,7 +3743,7 @@ void CvGame::incrementElapsedGameTurns()
 	m_iElapsedGameTurns++;
 }
 
-// <advc.251>
+// advc.251:
 int CvGame::AIHandicapAdjustment() const
 {
 	int iGameTurn = getGameTurn();
@@ -3824,12 +3757,6 @@ int CvGame::AIHandicapAdjustment() const
 		Only if a negative AIHandicapIncrement is set in XML, the modifiers are
 		supposed to increase. */
 	return -iGameTurn / iIncrementTurns;
-} // </advc.251>
-
-
-int CvGame::getMaxTurns() const
-{
-	return GC.getInitCore().getMaxTurns();
 }
 
 
@@ -3846,21 +3773,10 @@ void CvGame::changeMaxTurns(int iChange)
 }
 
 
-int CvGame::getMaxCityElimination() const
-{
-	return GC.getInitCore().getMaxCityElimination();
-}
-
-
 void CvGame::setMaxCityElimination(int iNewValue)
 {
 	GC.getInitCore().setMaxCityElimination(iNewValue);
 	FAssert(getMaxCityElimination() >= 0);
-}
-
-int CvGame::getNumAdvancedStartPoints() const
-{
-	return GC.getInitCore().getNumAdvancedStartPoints();
 }
 
 
@@ -3900,7 +3816,7 @@ void CvGame::setEstimateEndTurn(int iNewValue)
 	m_iEstimateEndTurn = iNewValue;
 }
 
-/*  <advc> Ratio of turns played to total estimated game length; between 0 and 1.
+/*  advc: Ratio of turns played to total estimated game length; between 0 and 1.
 	iDelay is added to the number of turns played. */
 double CvGame::gameTurnProgress(int iDelay) const
 {
@@ -3908,7 +3824,7 @@ double CvGame::gameTurnProgress(int iDelay) const
 		beyond 2050. So, no need to check if it's disabled. */
 	double gameLength = getEstimateEndTurn() - getStartTurn();
 	return std::min(1.0, (getElapsedGameTurns() + iDelay) / gameLength);
-} // </advc>
+}
 
 int CvGame::getTurnSlice() const
 {
@@ -4024,12 +3940,6 @@ int CvGame::getMaxTurnLen()
 				(GC.getInfo(eTurnTimer).getCityBonus()*iMaxCities) +
 				(GC.getInfo(eTurnTimer).getUnitBonus()*iMaxUnits));
 	}
-}
-
-
-int CvGame::getTargetScore() const
-{
-	return GC.getInitCore().getTargetScore();
 }
 
 
@@ -4994,27 +4904,10 @@ int CvGame::getPitbossTurnTime() const
 	return GC.getInitCore().getPitbossTurnTime();
 }
 
+
 void CvGame::setPitbossTurnTime(int iHours)
 {
 	GC.getInitCore().setPitbossTurnTime(iHours);
-}
-
-
-bool CvGame::isHotSeat() const
-{
-	return (GC.getInitCore().getHotseat());
-}
-
-
-bool CvGame::isPbem() const
-{
-	return (GC.getInitCore().getPbem());
-}
-
-
-bool CvGame::isPitboss() const
-{
-	return (GC.getInitCore().getPitboss());
 }
 
 
@@ -5125,12 +5018,6 @@ void CvGame::sendPlayerOptions(bool bForce)
 			gDLL->sendPlayerOption(((PlayerOptionTypes)iI), gDLL->getPlayerOption((PlayerOptionTypes)iI));
 		}
 	}
-}
-
-
-PlayerTypes CvGame::getActivePlayer() const
-{
-	return GC.getInitCore().getActivePlayer();
 }
 
 
@@ -5355,30 +5242,6 @@ void CvGame::setGameState(GameStateTypes eNewValue)
 	gDLL->UI().setDirty(Cursor_DIRTY_BIT, true);
 }
 
-// <advc.106h>
-PlayerTypes CvGame::getInitialActivePlayer() const
-{
-	return m_eInitialActivePlayer;
-} // </advc.106h>
-
-
-GameSpeedTypes CvGame::getGameSpeedType() const
-{
-	return GC.getInitCore().getGameSpeed();
-}
-
-
-EraTypes CvGame::getStartEra() const
-{
-	return GC.getInitCore().getEra();
-}
-
-
-CalendarTypes CvGame::getCalendar() const
-{
-	return GC.getInitCore().getCalendar();
-}
-
 
 PlayerTypes CvGame::getRankPlayer(int iRank) const
 {
@@ -5497,39 +5360,15 @@ void CvGame::setTeamScore(TeamTypes eTeam, int iScore)
 	FAssert(getTeamScore(eTeam) >= 0);
 }
 
-
-bool CvGame::isOption(GameOptionTypes eIndex) const
-{	// <advc.opt>
-	if(eIndex < 0 || eIndex >= NUM_GAMEOPTION_TYPES)
-	{
-		FAssertBounds(0, NUM_GAMEOPTION_TYPES, eIndex);
-		return false;
-	} // Use inline functions. Probably doesn't matter, but feels better.
-	return GC.getInitCore().getOptions()[eIndex]; // </advc.opt>
-}
-
-
 void CvGame::setOption(GameOptionTypes eIndex, bool bEnabled)
 {
 	GC.getInitCore().setOption(eIndex, bEnabled);
 }
 
 
-bool CvGame::isMPOption(MultiplayerOptionTypes eIndex) const
-{
-	return GC.getInitCore().getMPOption(eIndex);
-}
-
-
 void CvGame::setMPOption(MultiplayerOptionTypes eIndex, bool bEnabled)
 {
 	GC.getInitCore().setMPOption(eIndex, bEnabled);
-}
-
-
-bool CvGame::isForcedControl(ForceControlTypes eIndex) const
-{
-	return GC.getInitCore().getForceControl(eIndex);
 }
 
 
@@ -5896,17 +5735,9 @@ void CvGame::makeCorporationFounded(CorporationTypes eIndex, PlayerTypes ePlayer
 	}
 }
 
-bool CvGame::isVictoryValid(VictoryTypes eIndex) const
-{
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumVictoryInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
-	return GC.getInitCore().getVictory(eIndex);
-}
 
 void CvGame::setVictoryValid(VictoryTypes eIndex, bool bValid)
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumVictoryInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
 	GC.getInitCore().setVictory(eIndex, bValid);
 }
 
@@ -6208,13 +6039,13 @@ void CvGame::setScriptData(std::string szNewValue)
 	m_szScriptData = szNewValue;
 }
 
-const CvWString & CvGame::getName()
+CvWString const& CvGame::getName()
 {
 	return GC.getInitCore().getGameName();
 }
 
 
-void CvGame::setName(const TCHAR* szName)
+void CvGame::setName(TCHAR const* szName)
 {
 	GC.getInitCore().setGameName(szName);
 }
@@ -6283,13 +6114,11 @@ void CvGame::doTurn()
 	GC.getMap().doTurn();
 
 	createBarbarianCities();
-
 	createBarbarianUnits();
 
 	doGlobalWarming();
 
 	doHolyCity();
-
 	doHeadquarters();
 
 	gDLL->getInterfaceIFace()->setEndTurnMessage(false);
@@ -10528,39 +10357,39 @@ void CvGame::processBuilding(BuildingTypes eBuilding, int iChange)
 	}
 }
 
-// <advc.314> Between 0 and GOODY_BUFF_PEAK_MULTIPLIER, depending on game turn.
-double CvGame::goodyHutEffectFactor(
-		/*  Use true when a goody hut effect is supposed to increase with
-			the game speed. When set to false, the turn numbers in this
-			function are still game-speed adjusted. */
-		bool bSpeedAdjust) const
+// advc.314: Between 0 and GOODY_BUFF_PEAK_MULTIPLIER, depending on game turn.
+scaled CvGame::goodyHutEffectFactor(
+	/*  Use true when a goody hut effect is supposed to increase with
+		the game speed. When set to false, the turn numbers in this
+		function are still game-speed adjusted. */
+	bool bSpeedAdjust) const
 {
 	static int const iGOODY_BUFF_START_TURN = GC.getDefineINT("GOODY_BUFF_START_TURN");
 	static int const iGOODY_BUFF_PEAK_TURN = GC.getDefineINT("GOODY_BUFF_PEAK_TURN");
 	static int const iGOODY_BUFF_PEAK_MULTIPLIER = GC.getDefineINT("GOODY_BUFF_PEAK_MULTIPLIER");
-	CvGameSpeedInfo& kSpeed = GC.getInfo(getGameSpeedType());
-	double speedMultTurns = kSpeed.getGrowthPercent() / 100.0;
-	int const iWorldSzPercent = 100;
+	CvGameSpeedInfo const& kSpeed = GC.getInfo(getGameSpeedType());
+	scaled rTurnsSpeedFactor = per100(kSpeed.getGrowthPercent());
+	scaled rWorldFactor = 1;
 		// Not sure if map-size adjustment is a good idea
-		//=GC.getInfo(GC.getMap().getWorldSize()).getResearchPercent();
-	double speedMultFinal = (bSpeedAdjust ?
-			kSpeed.getTrainPercent() * iWorldSzPercent / 10000.0 : 1);
-	double startTurn = std::max(0.0, iGOODY_BUFF_START_TURN * speedMultTurns);
-	double peakTurn = std::max(startTurn, iGOODY_BUFF_PEAK_TURN * speedMultTurns);
-	double peakMult = std::max(1, iGOODY_BUFF_PEAK_MULTIPLIER);
+		//=per100(GC.getInfo(GC.getMap().getWorldSize()).getResearchPercent());
+	scaled rFinalSpeedFactor = (bSpeedAdjust ?
+			per100(kSpeed.getTrainPercent()) * rWorldFactor : 1);
+	scaled rStartTurn = scaled::max(0, iGOODY_BUFF_START_TURN * rTurnsSpeedFactor);
+	scaled rPeakTurn = scaled::max(rStartTurn, iGOODY_BUFF_PEAK_TURN * rTurnsSpeedFactor);
+	scaled rPeakMult = std::max(1, iGOODY_BUFF_PEAK_MULTIPLIER);
 	/*  Exponent for power-law function; aiming for a function shape that
 		resembles the graphs on the Info tab. */
-	double exponent = 1.25;
+	scaled rExp = fixp(1.25);
 	// (or rather: the inverse of the gradient)
-	double gradient = std::pow(peakTurn - startTurn, exponent) / (peakMult - 1);
-	gradient = ::dRange(gradient, 1.0, 500.0);
-	double t = getGameTurn();
-	/*  Function through (startTurn, 1) and (peakTurn, peakMult)
-		[^that's assuming speedAdjust=false] */
-	double r = speedMultFinal * std::min(peakMult,
-			(gradient + std::pow(std::max(0.0, t - startTurn), exponent)) / gradient);
+	scaled rGradient = (rPeakTurn - rStartTurn).pow(rExp) / (rPeakMult - 1);
+	rGradient.clamp(1, 500);
+	scaled t = getGameTurn();
+	/*  Function through (rStartTurn, 1) and (rPeakTurn, rPeakMult)
+		[^that's assuming bSpeedAdjust=false] */
+	scaled r = rFinalSpeedFactor * std::min(rPeakMult,
+			(rGradient + (scaled::max(0, t - rStartTurn).pow(rExp))) / rGradient);
 	return r;
-} // </advc.314>
+}
 
 // <advc.004m>
 GlobeLayerTypes CvGame::getCurrentLayer() const

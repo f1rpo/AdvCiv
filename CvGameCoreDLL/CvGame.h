@@ -179,7 +179,10 @@ public:
 	CivilizationTypes getActiveCivilizationType() const;								// Exposed to Python
 	CvCivilization const* getActiveCivilization() const; // advc.003w
 
-	DllExport bool isNetworkMultiPlayer() const;																	// Exposed to Python
+	DllExport bool isNetworkMultiPlayer() const															// Exposed to Python
+	{
+		return GC.getInitCore().getMultiplayer(); // advc.inl
+	}
 	DllExport bool isGameMultiPlayer() const;																			// Exposed to Python
 	DllExport bool isTeamGame() const;																						// Exposed to Python
 
@@ -187,12 +190,19 @@ public:
 	void setModem(bool bModem);
 
 	DllExport void reviveActivePlayer();																		// Exposed to Python
-	DllExport int getNumHumanPlayers();													// Exposed to Python
-	DllExport int getGameTurn() 																		// Exposed to Python
+	DllExport int getNumHumanPlayers()													// Exposed to Python
+	{
+		return GC.getInitCore().getNumHumans(); // advc.inl
+	}
+	DllExport inline int getGameTurn()																	// Exposed to Python
 	// <advc> Need a const version
 	{	CvGame const& kThis = *this;
 		return kThis.getGameTurn();
-	} int getGameTurn() const; // </advc>
+	}
+	inline int getGameTurn() const
+	{
+		return GC.getInitCore().getGameTurn(); // advc.inl
+	} // </advc>
 	void setGameTurn(int iNewValue);															// Exposed to Python
 	void incrementGameTurn();
 	// <advc> const
@@ -205,14 +215,23 @@ public:
 	void incrementElapsedGameTurns();
 	int AIHandicapAdjustment() const; // advc.251
 
-	int getMaxTurns() const;																			// Exposed to Python
+	int getMaxTurns() const																			// Exposed to Python
+	{
+		return GC.getInitCore().getMaxTurns(); // advc.inl
+	}
 	void setMaxTurns(int iNewValue);															// Exposed to Python
 	void changeMaxTurns(int iChange);															// Exposed to Python
 
-	int getMaxCityElimination() const;														// Exposed to Python
+	int getMaxCityElimination() const														// Exposed to Python
+	{
+		return GC.getInitCore().getMaxCityElimination(); // advc.inl
+	}
 	void setMaxCityElimination(int iNewValue);										// Exposed to Python
 
-	int getNumAdvancedStartPoints() const;														// Exposed to Python
+	int getNumAdvancedStartPoints() const														// Exposed to Python
+	{
+		return GC.getInitCore().getNumAdvancedStartPoints(); // advc.inl
+	}
 	void setNumAdvancedStartPoints(int iNewValue);										// Exposed to Python
 
 	int getStartTurn() const																			// Exposed to Python
@@ -246,7 +265,10 @@ public:
 	void incrementTurnTimer(int iNumTurnSlices);
 	int getMaxTurnLen();
 
-	int getTargetScore() const;																		// Exposed to Python
+	int getTargetScore() const																	// Exposed to Python
+	{
+		return GC.getInitCore().getTargetScore(); // advc.inl
+	}
 	void setTargetScore(int iNewValue);														// Exposed to Python
 
 	int getNumGameTurnActive();																		// Exposed to Python
@@ -398,9 +420,18 @@ public:
 	DllExport int getPitbossTurnTime() const;																			// Exposed to Python
 	DllExport void setPitbossTurnTime(int iHours);																			// Exposed to Python
 
-	DllExport bool isHotSeat() const;																							// Exposed to Python
-	DllExport bool isPbem() const;																								// Exposed to Python
-	DllExport bool isPitboss() const;																							// Exposed to Python
+	DllExport bool isHotSeat() const																				// Exposed to Python
+	{
+		return GC.getInitCore().getHotseat(); // advc.inl
+	}
+	DllExport bool isPbem() const																					// Exposed to Python
+	{
+		return GC.getInitCore().getPbem(); // advc.inl
+	}
+	DllExport bool isPitboss() const																				// Exposed to Python
+	{
+		return GC.getInitCore().getPitboss(); // advc.inl
+	}
 	bool isSimultaneousTeamTurns() const; // Exposed to Python
 
 	DllExport bool isFinalInitialized() const																		// Exposed to Python
@@ -425,7 +456,10 @@ public:
 	bool isPlayerOptionsSent() const;
 	void sendPlayerOptions(bool bForce = false);
 
-	DllExport PlayerTypes getActivePlayer() const;																				// Exposed to Python
+	DllExport inline PlayerTypes getActivePlayer() const															// Exposed to Python
+	{
+		return GC.getInitCore().getActivePlayer(); // advc.inl
+	}
 	DllExport void setActivePlayer(PlayerTypes eNewValue, bool bForceHotSeat = false);		// Exposed to Python
 	void updateActiveVisibility(); // advc.706
 	DllExport void updateUnitEnemyGlow();
@@ -464,12 +498,23 @@ public:
 	}
 	DllExport void setGameState(GameStateTypes eNewValue);
 
-	PlayerTypes getInitialActivePlayer() const; // advc.106h
-	EraTypes getStartEra() const;																			// Exposed to Python
-
-	CalendarTypes getCalendar() const;																// Exposed to Python
-
-	GameSpeedTypes getGameSpeedType() const;													// Exposed to Python
+	// advc.106h:
+	PlayerTypes getInitialActivePlayer() const
+	{
+		return m_eInitialActivePlayer;
+	}
+	EraTypes getStartEra() const															// Exposed to Python
+	{
+		return GC.getInitCore().getEra(); // advc.inl
+	}
+	CalendarTypes getCalendar() const														// Exposed to Python
+	{
+		return GC.getInitCore().getCalendar(); // advc.inl
+	}
+	GameSpeedTypes getGameSpeedType() const													// Exposed to Python
+	{
+		return GC.getInitCore().getGameSpeed(); // advc.inl
+	}
 
 	PlayerTypes getRankPlayer(int iRank) const;															// Exposed to Python
 	void setRankPlayer(int iRank, PlayerTypes ePlayer);
@@ -489,13 +534,22 @@ public:
 	DllExport int getTeamScore(TeamTypes eTeam) const;																// Exposed to Python
 	void setTeamScore(TeamTypes eTeam, int iScore);
 
-	DllExport bool isOption(GameOptionTypes eIndex) const;																// Exposed to Python
+	DllExport inline bool isOption(GameOptionTypes eIndex) const													// Exposed to Python
+	{
+		return GC.getInitCore().getOption(eIndex); // advc.inl
+	}
 	void setOption(GameOptionTypes eIndex, bool bEnabled);
 
-	DllExport bool isMPOption(MultiplayerOptionTypes eIndex) const;												// Exposed to Python
+	DllExport bool isMPOption(MultiplayerOptionTypes eIndex) const										// Exposed to Python
+	{
+		return GC.getInitCore().getMPOption(eIndex); // advc.inl
+	}
 	void setMPOption(MultiplayerOptionTypes eIndex, bool bEnabled);
 
-	bool isForcedControl(ForceControlTypes eIndex) const;												// Exposed to Python
+	bool isForcedControl(ForceControlTypes eIndex) const												// Exposed to Python
+	{
+		return GC.getInitCore().getForceControl(eIndex); // advc.inl
+	}
 	void setForceControl(ForceControlTypes eIndex, bool bEnabled);
 	// <advc>
 	bool canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestVisible) const;
@@ -526,7 +580,10 @@ public:
 	bool isVotePassed(VoteTypes eIndex) const;																	// Exposed to Python
 	void setVoteOutcome(const VoteTriggeredData& kData, PlayerVoteTypes eNewValue);
 
-	bool isVictoryValid(VictoryTypes eIndex) const;															// Exposed to Python
+	bool isVictoryValid(VictoryTypes eIndex) const															// Exposed to Python
+	{
+		return GC.getInitCore().getVictory(eIndex); // advc.inl
+	}
 	void setVictoryValid(VictoryTypes eIndex, bool bValid);
 												// advc: const
 	bool isSpecialUnitValid(SpecialUnitTypes eIndex) const;														// Exposed to Python
@@ -563,8 +620,8 @@ public:
 	void setPlayerVote(PlayerTypes eOwnerIndex, int iVoteId, PlayerVoteTypes eNewValue);
 	void castVote(PlayerTypes eOwnerIndex, int iVoteId, PlayerVoteTypes ePlayerVote);
 
-	DllExport const CvWString & getName();
-	void setName(const TCHAR* szName);
+	DllExport CvWString const& getName();
+	void setName(TCHAR const* szName);
 
 	// Script data needs to be a narrow string for pickling in Python
 	std::string getScriptData() const;																										// Exposed to Python
@@ -630,6 +687,11 @@ public:
 	inline CvRandom& getSRand()																										// Exposed to Python
 	{
 		return getSorenRand();
+	}
+	inline int getSRandNum(int iNum, const char* pszLog,
+		int iData1 = MIN_INT, int iData2 = MIN_INT)
+	{
+		return getSorenRandNum(iNum, pszLog, iData1, iData2);
 	} // </advc>
 	//  Returns a value from the half-closed interval [0,iNum)
 	int getSorenRandNum(int iNum, const char* pszLog,
@@ -746,7 +808,7 @@ public:
 	DllExport void handleMiddleMouse(bool bCtrl, bool bAlt, bool bShift);
 	DllExport void handleDiplomacySetAIComment(DiploCommentTypes eComment) const;
 
-	double goodyHutEffectFactor(bool bSpeedAdjust = true) const; // advc.314
+	scaled goodyHutEffectFactor(bool bSpeedAdjust = true) const; // advc.314
 	// <advc.004m>
 	GlobeLayerTypes getCurrentLayer() const;
 	void reportCurrentLayer(GlobeLayerTypes eLayer);		// (exposed to Python)

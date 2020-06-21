@@ -513,6 +513,7 @@ public:
 	bool isBestAdjacentFound(PlayerTypes eIndex);										// Exposed to Python
 	// K-Mod: I've changed iNewValue to be 'short' instead of 'int', so that it matches the cache.
 	void setFoundValue(PlayerTypes eIndex, short iNewValue);
+	bool canFound(bool bTestVisible = false) const; // advc
 	
 	// advc.inl: 2x inline
 	inline int getPlayerCityRadiusCount(PlayerTypes eIndex) const																							// Exposed to Python

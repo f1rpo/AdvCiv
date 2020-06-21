@@ -92,10 +92,10 @@ m_iNumFlavorTypes(0),
 m_iNumArtStyleTypes(0),
 m_iNumFootstepAudioTypes(0),
 // </advc>  <advc.opt>
-m_iRUINS_IMPROVEMENT(NO_IMPROVEMENT),
-m_iDEFAULT_SPECIALIST(NO_SPECIALIST)
+m_im_eRUINS_IMPROVEMENT(NO_IMPROVEMENT),
+m_eDEFAULT_SPECIALIST(NO_SPECIALIST)
 {
-	m_aiWATER_TERRAIN[0] = m_aiWATER_TERRAIN[1] = -1; // </advc.opt>
+	m_aeWATER_TERRAIN[0] = m_aeWATER_TERRAIN[1] = NO_TERRAIN; // </advc.opt>
 	setCurrentXMLFile(NULL); // advc.006e
 }
 
@@ -738,17 +738,17 @@ void CvGlobals::cacheGlobals()
 // <advc.opt>
 void CvGlobals::setRUINS_IMPROVEMENT(int iValue)
 {
-	m_iRUINS_IMPROVEMENT = iValue;
+	m_eRUINS_IMPROVEMENT = (ImprovementTypes)iValue;
 }
 
 void CvGlobals::setWATER_TERRAIN(bool bShallow, int iValue)
 {
-	m_aiWATER_TERRAIN[bShallow] = iValue;
+	m_aeWATER_TERRAIN[bShallow] = (TerrainTypes)iValue;
 } 
 
 void CvGlobals::setDEFAULT_SPECIALIST(int iValue)
 {
-	m_iDEFAULT_SPECIALIST = iValue;
+	m_eDEFAULT_SPECIALIST = (SpecialistTypes)iValue;
 } // </advc.opt>
 
 int CvGlobals::getDefineINT(char const* szName,

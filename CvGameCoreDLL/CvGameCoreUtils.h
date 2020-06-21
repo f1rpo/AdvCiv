@@ -136,6 +136,8 @@ template<typename T> void removeDuplicates(std::vector<T>& v)
 } // </advc.130h>
 // <advc>
 // Erik: "Back-ported" from C++11
+namespace std11
+{
 template<class ForwardIt, class T>
 void iota(ForwardIt first, ForwardIt last, T value)
 {
@@ -144,7 +146,8 @@ void iota(ForwardIt first, ForwardIt last, T value)
 		*first++ = value;
 		++value;
 	}
-} // </advc>
+}
+}; // </advc>
 // advc.004w:
 void applyColorToString(CvWString& s, char const* szColor, bool bLink = false);
 void narrowUnsafe(CvWString const& szWideString, CvString& szNarowString); // advc

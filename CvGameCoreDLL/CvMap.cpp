@@ -907,7 +907,7 @@ CustomMapOptionTypes CvMap::getCustomMapOption(int iOption) /* advc: */ const
 	return GC.getInitCore().getCustomMapOption(iOption);
 }
 
-// <advc.004> Returns an empty string if the option is set to its default value
+// advc.004: Returns an empty string if the option is set to its default value
 CvWString CvMap::getNonDefaultCustomMapOptionDesc(int iOption) const
 {
 	CvPythonCaller const& py = *GC.getPythonCaller();
@@ -917,7 +917,7 @@ CvWString CvMap::getNonDefaultCustomMapOptionDesc(int iOption) const
 	if (eOptionValue == py.customMapOptionDefault(szMapScriptNameNarrow.c_str(), iOption))
 		return L"";
 	return py.customMapOptionDescription(szMapScriptNameNarrow.c_str(), iOption, eOptionValue);
-} // </advc.004>
+}
 
 
 int CvMap::getNumBonuses(BonusTypes eIndex) const

@@ -3,8 +3,7 @@
 #ifndef CIV4_INITCORE_H
 #define CIV4_INITCORE_H
 
-/*  K-Mod, 8/dec/10, karadoc
-	moved FASSERT_BOUNDS to CvGlobals.h (and modified it) */
+// (K-Mod, 8/dec/10: Moved FASSERT_BOUNDS to CvGlobals.h)
 
 class CvInitCore
 {
@@ -12,6 +11,10 @@ public:
 
 	CvInitCore();
 	virtual ~CvInitCore();
+	/*	advc: Moved up so that all virtual functions are in one place.
+		The EXE calls read and write but not the destructor. */
+	virtual void read(FDataStreamBase* pStream);
+	virtual void write(FDataStreamBase* pStream);
 
 	DllExport void init(GameMode eMode);
 
@@ -22,16 +25,15 @@ protected:
 
 	void setDefaults();
 
-	inline bool checkBounds(int iValue, int iLower, int iUpper) const // advc.inl
+	bool checkBounds(int iValue, int iLower, int iUpper) const // advc.inl
 	{
-		return (iLower <= iValue &&  iValue < iUpper);
+		return (iLower <= iValue && iValue < iUpper);
 	}
 
 public:
 
-	// **************************
-	// Applications of data
-	// **************************
+	// Applications of data ...
+
 	DllExport bool getHuman(PlayerTypes eID) const;
 	int getNumHumans() const;
 
@@ -60,66 +62,66 @@ public:
 	void resetPlayer(PlayerTypes eID);
 	DllExport void resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear = true, bool bSaveSlotInfo = false);
 
-	// **************************
-	// Member access
-	// **************************
-	const CvWString & getGameName() const	{ return m_szGameName; }
-	DllExport void setGameName(const CvWString & szGameName)	{ m_szGameName = szGameName; }
 
-	const CvWString & getGamePassword() const	{ return m_szGamePassword; }
-	DllExport void setGamePassword(const CvWString & szGamePassword)	{ m_szGamePassword = szGamePassword; }
+	// Member access ...
 
-	const CvWString & getAdminPassword() const	{ return m_szAdminPassword; }
-	DllExport void setAdminPassword(const CvWString & szAdminPassword, bool bEncrypt = true);
+	const CvWString& getGameName() const { return m_szGameName; }
+	DllExport void setGameName(const CvWString& szGameName)	{ m_szGameName = szGameName; }
+
+	const CvWString& getGamePassword() const { return m_szGamePassword; }
+	DllExport void setGamePassword(const CvWString& szGamePassword)	{ m_szGamePassword = szGamePassword; }
+
+	const CvWString& getAdminPassword() const { return m_szAdminPassword; }
+	DllExport void setAdminPassword(const CvWString& szAdminPassword, bool bEncrypt = true);
 
 	DllExport CvWString getMapScriptName() const;
-	DllExport void setMapScriptName(const CvWString & szMapScriptName);
+	DllExport void setMapScriptName(const CvWString& szMapScriptName);
 	DllExport bool getWBMapScript() const;
 	bool isPangaea() const { return m_bPangaea; } // advc
 
 	bool getWBMapNoPlayers() const { return m_bWBMapNoPlayers; }
 	void setWBMapNoPlayers(bool bValue)	{ m_bWBMapNoPlayers = bValue; }
 
-	WorldSizeTypes getWorldSize() const	{ return m_eWorldSize; }
-	void setWorldSize(WorldSizeTypes eWorldSize)	{ m_eWorldSize = eWorldSize; }
-	DllExport void setWorldSize(const CvWString & szWorldSize);
-	DllExport const CvWString & getWorldSizeKey(CvWString & szBuffer) const;
+	WorldSizeTypes getWorldSize() const { return m_eWorldSize; }
+	void setWorldSize(WorldSizeTypes eWorldSize) { m_eWorldSize = eWorldSize; }
+	DllExport void setWorldSize(const CvWString& szWorldSize);
+	DllExport const CvWString& getWorldSizeKey(CvWString& szBuffer) const;
 
-	ClimateTypes getClimate() const	{ return m_eClimate; }
-	void setClimate(ClimateTypes eClimate)	{ m_eClimate = eClimate; }
-	DllExport void setClimate(const CvWString & szClimate);
-	DllExport const CvWString & getClimateKey(CvWString & szBuffer) const;
+	ClimateTypes getClimate() const { return m_eClimate; }
+	void setClimate(ClimateTypes eClimate) { m_eClimate = eClimate; }
+	DllExport void setClimate(const CvWString& szClimate);
+	DllExport const CvWString& getClimateKey(CvWString& szBuffer) const;
 
-	SeaLevelTypes getSeaLevel() const	{ return m_eSeaLevel; }
-	void setSeaLevel(SeaLevelTypes eSeaLevel)	{ m_eSeaLevel = eSeaLevel; }
-	DllExport void setSeaLevel(const CvWString & szSeaLevel);
-	DllExport const CvWString & getSeaLevelKey(CvWString & szBuffer) const;
+	SeaLevelTypes getSeaLevel() const { return m_eSeaLevel; }
+	void setSeaLevel(SeaLevelTypes eSeaLevel) { m_eSeaLevel = eSeaLevel; }
+	DllExport void setSeaLevel(const CvWString& szSeaLevel);
+	DllExport const CvWString& getSeaLevelKey(CvWString& szBuffer) const;
 
-	EraTypes getEra() const	{ return m_eEra; }
-	void setEra(EraTypes eEra)	{ m_eEra = eEra; }
-	DllExport void setEra(const CvWString & szEra);
-	DllExport const CvWString & getEraKey(CvWString & szBuffer) const;
+	EraTypes getEra() const { return m_eEra; }
+	void setEra(EraTypes eEra) { m_eEra = eEra; }
+	DllExport void setEra(const CvWString& szEra);
+	DllExport const CvWString& getEraKey(CvWString& szBuffer) const;
 
-	GameSpeedTypes getGameSpeed() const	{ return m_eGameSpeed; }
-	void setGameSpeed(GameSpeedTypes eGameSpeed)	{ m_eGameSpeed = eGameSpeed; }
-	DllExport void setGameSpeed(const CvWString & szGameSpeed);
-	DllExport const CvWString & getGameSpeedKey(CvWString & szBuffer) const;
+	GameSpeedTypes getGameSpeed() const { return m_eGameSpeed; }
+	void setGameSpeed(GameSpeedTypes eGameSpeed) { m_eGameSpeed = eGameSpeed; }
+	DllExport void setGameSpeed(const CvWString& szGameSpeed);
+	DllExport const CvWString& getGameSpeedKey(CvWString& szBuffer) const;
 
-	TurnTimerTypes getTurnTimer() const	{ return m_eTurnTimer; }
-	void setTurnTimer(TurnTimerTypes eTurnTimer)	{ m_eTurnTimer = eTurnTimer; }
-	void setTurnTimer(const CvWString & szTurnTimer);
-	const CvWString & getTurnTimerKey(CvWString & szBuffer) const;
+	TurnTimerTypes getTurnTimer() const { return m_eTurnTimer; }
+	void setTurnTimer(TurnTimerTypes eTurnTimer) { m_eTurnTimer = eTurnTimer; }
+	void setTurnTimer(const CvWString& szTurnTimer);
+	const CvWString& getTurnTimerKey(CvWString& szBuffer) const;
 
-	CalendarTypes getCalendar() const	{ return m_eCalendar; }
-	void setCalendar(CalendarTypes eCalendar)	{ m_eCalendar = eCalendar; }
-	void setCalendar(const CvWString & szCalendar);
-	const CvWString & getCalendarKey(CvWString & szBuffer) const;
+	CalendarTypes getCalendar() const { return m_eCalendar; }
+	void setCalendar(CalendarTypes eCalendar) { m_eCalendar = eCalendar; }
+	void setCalendar(const CvWString& szCalendar);
+	const CvWString& getCalendarKey(CvWString& szBuffer) const;
 
 
-	int getNumCustomMapOptions() const	{ return m_iNumCustomMapOptions; }
-	int getNumHiddenCustomMapOptions() const	{ return m_iNumHiddenCustomMapOptions; }
+	int getNumCustomMapOptions() const { return m_iNumCustomMapOptions; }
+	int getNumHiddenCustomMapOptions() const { return m_iNumHiddenCustomMapOptions; }
 
-	const CustomMapOptionTypes * getCustomMapOptions() const	{ return m_aeCustomMapOptions; }
+	CustomMapOptionTypes const* getCustomMapOptions() const { return m_aeCustomMapOptions; }
 	DllExport void setCustomMapOptions(int iNumCustomMapOptions, const CustomMapOptionTypes * aeCustomMapOptions);
 
 	DllExport CustomMapOptionTypes getCustomMapOption(int iOptionID) const;
@@ -142,81 +144,81 @@ public:
 	DllExport bool getMPOption(MultiplayerOptionTypes eIndex) const;
 	DllExport void setMPOption(MultiplayerOptionTypes eIndex, bool bMPOption);
 
-	bool getStatReporting() const	{ return m_bStatReporting; }
-	void setStatReporting(bool bStatReporting)	{ m_bStatReporting = bStatReporting; }
+	bool getStatReporting() const { return m_bStatReporting; }
+	void setStatReporting(bool bStatReporting) { m_bStatReporting = bStatReporting; }
 
 	const bool * getForceControls() const	{ return m_abForceControls; }
 	DllExport bool getForceControl(ForceControlTypes eIndex) const;
 	DllExport void setForceControl(ForceControlTypes eIndex, bool bForceControl);
 
-	inline int getGameTurn() const	{ return m_iGameTurn; } // advc.inl
+	inline int getGameTurn() const { return m_iGameTurn; } // advc.inl
 	void setGameTurn(int iGameTurn)	{ m_iGameTurn = iGameTurn; }
 
-	int getMaxTurns() const	{ return m_iMaxTurns; }
+	int getMaxTurns() const { return m_iMaxTurns; }
 	void setMaxTurns(int iMaxTurns)	{ m_iMaxTurns = iMaxTurns; }
 
-	DllExport int getPitbossTurnTime() const	{ return m_iPitbossTurnTime; }
+	DllExport int getPitbossTurnTime() const { return m_iPitbossTurnTime; }
 	DllExport void setPitbossTurnTime(int iPitbossTurnTime)	{ m_iPitbossTurnTime = iPitbossTurnTime; }
 
-	int getTargetScore() const	{ return m_iTargetScore; }
+	int getTargetScore() const { return m_iTargetScore; }
 	void setTargetScore(int iTargetScore)	{ m_iTargetScore = iTargetScore; }
 
 
-	int getMaxCityElimination() const	{ return m_iMaxCityElimination; }
+	int getMaxCityElimination() const { return m_iMaxCityElimination; }
 	void setMaxCityElimination(int iMaxCityElimination)	{ m_iMaxCityElimination = iMaxCityElimination; }
 
-	int getNumAdvancedStartPoints() const	{ return m_iNumAdvancedStartPoints; }
+	int getNumAdvancedStartPoints() const { return m_iNumAdvancedStartPoints; }
 	void setNumAdvancedStartPoints(int iNumPoints)	{ m_iNumAdvancedStartPoints = iNumPoints; }
 	int getAdvancedStartMinPoints() const; // advc.250c
 
-	DllExport unsigned int getSyncRandSeed() const	{ return m_uiSyncRandSeed; }
+	DllExport unsigned int getSyncRandSeed() const { return m_uiSyncRandSeed; }
 	DllExport void setSyncRandSeed(unsigned int uiSyncRandSeed)	{ m_uiSyncRandSeed = uiSyncRandSeed; }
 
-	DllExport unsigned int getMapRandSeed() const	{ return m_uiMapRandSeed; }
+	DllExport unsigned int getMapRandSeed() const { return m_uiMapRandSeed; }
 	DllExport void setMapRandSeed(unsigned int uiMapRandSeed)	{ m_uiMapRandSeed = uiMapRandSeed; }
 
-	PlayerTypes getActivePlayer() const	{ return m_eActivePlayer; }
+	PlayerTypes getActivePlayer() const { return m_eActivePlayer; }
 	DllExport void setActivePlayer(PlayerTypes eActivePlayer);
 
-	DllExport GameType getType() const	{ return m_eType; }
+	DllExport GameType getType() const { return m_eType; }
 	DllExport void setType(GameType eType);
-	DllExport void setType(const CvWString & szType);
+	DllExport void setType(const CvWString& szType);
 	bool isScenario() const; // advc.030
 
-	GameMode getMode() const	{ return m_eMode; }
+	GameMode getMode() const { return m_eMode; }
 	DllExport void setMode(GameMode eMode);
 
 
-	DllExport const CvWString & getLeaderName(PlayerTypes eID, uint uiForm = 0) const;
-	DllExport void setLeaderName(PlayerTypes eID, const CvWString & szLeaderName);
-	DllExport const CvWString & getLeaderNameKey(PlayerTypes eID) const;
+	DllExport const CvWString& getLeaderName(PlayerTypes eID, uint uiForm = 0) const;
+	DllExport void setLeaderName(PlayerTypes eID, const CvWString& szLeaderName);
+	DllExport const CvWString& getLeaderNameKey(PlayerTypes eID) const;
 
-	DllExport const CvWString & getCivDescription(PlayerTypes eID, uint uiForm = 0) const;
-	DllExport void setCivDescription(PlayerTypes eID, const CvWString & szCivDescription);
-	DllExport const CvWString & getCivDescriptionKey(PlayerTypes eID) const;
+	DllExport const CvWString& getCivDescription(PlayerTypes eID, uint uiForm = 0) const;
+	DllExport void setCivDescription(PlayerTypes eID, const CvWString& szCivDescription);
+	DllExport const CvWString& getCivDescriptionKey(PlayerTypes eID) const;
 
-	DllExport const CvWString & getCivShortDesc(PlayerTypes eID, uint uiForm = 0) const;
-	DllExport void setCivShortDesc(PlayerTypes eID, const CvWString & szCivShortDesc);
-	DllExport const CvWString & getCivShortDescKey(PlayerTypes eID) const;
+	DllExport const CvWString& getCivShortDesc(PlayerTypes eID, uint uiForm = 0) const;
+	DllExport void setCivShortDesc(PlayerTypes eID, const CvWString& szCivShortDesc);
+	DllExport const CvWString& getCivShortDescKey(PlayerTypes eID) const;
 
-	DllExport const CvWString & getCivAdjective(PlayerTypes eID, uint uiForm = 0) const;
-	DllExport void setCivAdjective(PlayerTypes eID, const CvWString & szCivAdjective);
-	DllExport const CvWString & getCivAdjectiveKey(PlayerTypes eID) const;
+	DllExport const CvWString& getCivAdjective(PlayerTypes eID, uint uiForm = 0) const;
+	DllExport void setCivAdjective(PlayerTypes eID, const CvWString& szCivAdjective);
+	DllExport const CvWString& getCivAdjectiveKey(PlayerTypes eID) const;
 
-	DllExport const CvWString & getCivPassword(PlayerTypes eID) const;
-	DllExport void setCivPassword(PlayerTypes eID, const CvWString & szCivPassword, bool bEncrypt = true);
+	DllExport const CvWString& getCivPassword(PlayerTypes eID) const;
+	DllExport void setCivPassword(PlayerTypes eID, const CvWString& szCivPassword, bool bEncrypt = true);
 
-	DllExport const CvString & getEmail(PlayerTypes eID) const;
-	DllExport void setEmail(PlayerTypes eID, const CvString & szEmail);
+	DllExport const CvString& getEmail(PlayerTypes eID) const;
+	DllExport void setEmail(PlayerTypes eID, const CvString& szEmail);
 
-	DllExport const CvString & getSmtpHost(PlayerTypes eID) const;
-	DllExport void setSmtpHost(PlayerTypes eID, const CvString & szHost);
+	DllExport const CvString& getSmtpHost(PlayerTypes eID) const;
+	DllExport void setSmtpHost(PlayerTypes eID, const CvString& szHost);
 
 	DllExport bool getWhiteFlag(PlayerTypes eID) const;
 	DllExport void setWhiteFlag(PlayerTypes eID, bool bWhiteFlag);
 
-	DllExport const CvWString & getFlagDecal(PlayerTypes eID) const;
-	DllExport void setFlagDecal(PlayerTypes eID, const CvWString & szFlagDecal);
+	DllExport const CvWString& getFlagDecal(PlayerTypes eID) const;
+	DllExport void setFlagDecal(PlayerTypes eID, const CvWString& szFlagDecal);
 
 
 	DllExport CivilizationTypes getCiv(PlayerTypes eID) const;
@@ -258,16 +260,13 @@ public:
 	DllExport bool getReady(PlayerTypes eID) const;
 	DllExport void setReady(PlayerTypes eID, bool bReady);
 
-	DllExport const CvString & getPythonCheck(PlayerTypes eID) const;
-	DllExport void setPythonCheck(PlayerTypes eID, const CvString & iPythonCheck);
+	DllExport const CvString& getPythonCheck(PlayerTypes eID) const;
+	DllExport void setPythonCheck(PlayerTypes eID, const CvString& iPythonCheck);
 
-	DllExport const CvString & getXMLCheck(PlayerTypes eID) const;
-	DllExport void setXMLCheck(PlayerTypes eID, const CvString & iXMLCheck);
+	DllExport const CvString& getXMLCheck(PlayerTypes eID) const;
+	DllExport void setXMLCheck(PlayerTypes eID, const CvString& iXMLCheck);
 
 	DllExport void resetAdvancedStartPoints();
-
-	virtual void read(FDataStreamBase* pStream);
-	virtual void write(FDataStreamBase* pStream);
 
 protected:
 
@@ -341,9 +340,7 @@ protected:
 	mutable CvString m_szTempA;
 
 
-	// ***
-	// CORE PLAYER INIT DATA
-	// ***
+	// CORE PLAYER INIT DATA ...
 
 	// Civ details
 	CvWString* m_aszLeaderName;

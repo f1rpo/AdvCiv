@@ -4329,8 +4329,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,  /
 
 	if (isHasTech(eTech))
 	{
-		if (gTeamLogLevel >= 2) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000: START
-			logBBAI("    Team %d (%S) acquires tech %S", getID(), getName().GetCString(), kTech.getDescription());
+		if (gTeamLogLevel >= 2) logBBAI("    Team %d (%S) acquires tech %S", getID(), getName().GetCString(), kTech.getDescription()); // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 
 		for (MemberIter it(getID()); it.hasNext(); ++it)
 		{
@@ -4353,7 +4352,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,  /
 
 		bool bReligionFounded = false;
 		bool bFirstPerk = false; // advc: Reneamed from bFirstBonus
-		bool bFirstToDiscover = (kGame.countKnownTechNumTeams(eTech) == 1); // advc.106
+		bool const bFirstToDiscover = (kGame.countKnownTechNumTeams(eTech) == 1); // advc.106
 		if (bFirst && bFirstToDiscover &&
 			!GC.getPythonCaller()->doOrganizationTech(getID(), ePlayer, eTech))
 		{

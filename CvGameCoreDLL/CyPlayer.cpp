@@ -383,7 +383,11 @@ void CyPlayer::doGoody(CyPlot* pPlot, CyUnit* pUnit)
 
 bool CyPlayer::canFound(int iX, int iY)
 {
-	return m_pPlayer ? m_pPlayer->canFound(iX, iY) : false;
+	/*	advc: Moved from CvPlayer::canFound b/c there no need to check this
+		for DLL-internal calls */
+	if (GC.getMap().plot(iX, iY) == NULL || m_pPlayer == NULL)
+		return false;
+	return m_pPlayer->canFound(iX, iY);
 }
 
 void CyPlayer::found(int x, int y)

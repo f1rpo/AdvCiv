@@ -4344,7 +4344,7 @@ bool CvUnit::canPillage(CvPlot const& kPlot) const
 		/*  <advc.005c> Builds on top of Ruins are OK; hence don't want to set
 			Ruins to bPermanent in XML. */
 		if (kPlot.getImprovementType() == GC.getRUINS_IMPROVEMENT())
-			return false; // </advc.005cY
+			return false; // </advc.005c>
 	}
 
 	if (kPlot.isOwned())
@@ -4596,19 +4596,21 @@ void CvUnit::updatePlunder(int iChange, bool bUpdatePlotGroups)
 			GC.getGame().updatePlotGroups();
 	}*/
 	// <advc.033> Replacing the above
-	CvGame& g = GC.getGame();
+	CvGame& kGame = GC.getGame();
 	// Update colors -- unless we're about to unit-cycle
-	if(isHuman() && ((iChange == -1 && gDLL->UI().getHeadSelectedUnit() == this)
-			|| GC.suppressCycling()))
-		g.updateColoredPlots();
+	if(isHuman() && ((iChange == -1 && gDLL->UI().getHeadSelectedUnit() == this) ||
+		GC.suppressCycling()))
+	{
+		kGame.updateColoredPlots();
+	}
 	gDLL->UI().setDirty(BlockadedPlots_DIRTY_BIT, true);
 	if(bUpdatePlotGroups)
 	{
 		for(int i = 0; i < MAX_PLAYERS; i++)
 		{
-			CvPlayer& p = GET_PLAYER((PlayerTypes)i);
-			if(p.isAlive() && abChanged[p.getTeam()])
-				p.updatePlotGroups();
+			CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)i);
+			if(kPlayer.isAlive() && abChanged[kPlayer.getTeam()])
+				kPlayer.updatePlotGroups();
 		}
 	} // </advc.033>
 }

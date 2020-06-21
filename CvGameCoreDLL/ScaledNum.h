@@ -276,7 +276,11 @@ public:
 	{
 		return m_i / static_cast<float>(SCALE);
 	}
-	CvString const& str(int iDen = iSCALE)
+	/*	Tbd.: A static cache returned by reference doesn't work when
+		inserting into a stream, e.g.
+		out << r1.str() << "," << r2.str()
+		Simply return by value instead? */
+	CvString const& str(int iDen = iSCALE) const
 	{
 		if (iDen == 1)
 			szBuf.Format("%s%d", isInt() ? "" : "ca. ", round());
@@ -286,7 +290,7 @@ public:
 			szBuf.Format("%d permille", getPermille());
 		else szBuf.Format("%d/%d", safeToInt(mulDivByScale(m_i, iDen)), iDen);
 		return szBuf;
-	}
+	} // No overloaded operator<< b/c there isn't a good default display format
 
 	void write(FDataStreamBase* pStream) const
 	{

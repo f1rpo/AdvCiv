@@ -377,11 +377,11 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 			if (eOppositeDir != eOriginalCardinalDirection &&
 				eOppositeDir != eLastCardinalDirection)
 			{
-				pAdjacentPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(),
+				CvPlot* pLoopPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(),
 						eLoopCardinalDirection);
-				if (pAdjacentPlot != NULL)
+				if (pLoopPlot != NULL)
 				{
-					int iValue = getRiverValueAtPlot(pAdjacentPlot);
+					int iValue = getRiverValueAtPlot(*pLoopPlot);
 					if (iValue < iBestValue)
 					{
 						iBestValue = iValue;

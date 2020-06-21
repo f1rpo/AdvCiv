@@ -1973,7 +1973,7 @@ void shuffleArray(int* piShuffle, int iNum, CvRandom& rand)
 // advc.enum: Caller needs to set the vector size
 void shuffleVector(std::vector<int>& aiIndices, CvRandom& rand)
 {
-	iota(aiIndices.begin(), aiIndices.end(), 0);
+	std11::iota(aiIndices.begin(), aiIndices.end(), 0);
 	int const iSize = (int)aiIndices.size();
 	for (int i = 0; i < iSize; i++)
 		std::swap(aiIndices[i], aiIndices[rand.get(iSize - i, NULL) + i]);
