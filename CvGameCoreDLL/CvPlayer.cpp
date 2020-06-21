@@ -22223,14 +22223,38 @@ void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1)
 }
 
 // <advc.314>
-bool CvPlayer::isGoodyTech(TechTypes techId, bool bProgress) const
+// iProgress <= 0 means guaranteed discovery
+bool CvPlayer::isGoodyTech(TechTypes eTech, int iProgress) const
 {
-	CvTechInfo& t = GC.getInfo(techId);
-	if(!bProgress && !t.isGoodyTech())
+	CvTechInfo const& kTech = GC.getInfo(eTech);
+	if(iProgress <= 0 && !kTech.isGoodyTech())
 		return false;
-	if(bProgress && t.getEra() >= 4)
+	if(iProgress > 0 && kTech.getEra() >= 4)
 		return false;
-	return canResearch(techId, false, true);
+	if (!isFoundedFirstCity() && // Can't receive a holy city (or corp. HQ) then
+		// OK if the tech won't be discovered right away
+		(iProgress <= 0 || iProgress > fixp(2/3.) *
+		GET_TEAM(getTeam()).getResearchLeft(eTech)))
+	{
+		CvGame const& kGame = GC.getGame();
+		FOR_EACH_ENUM(Religion)
+		{
+			if (!kGame.isReligionFounded(eLoopReligion) &&
+				GC.getInfo(eLoopReligion).getTechPrereq() == eTech)
+			{
+				return false;
+			}
+		}
+		FOR_EACH_ENUM(Corporation)
+		{
+			if (!kGame.isCorporationFounded(eLoopCorporation) &&
+				GC.getInfo(eLoopCorporation).getTechPrereq() == eTech)
+			{
+				return false;
+			}
+		}
+	}
+	return canResearch(eTech, false, true);
 }
 
 void CvPlayer::addGoodyMsg(CvWString s, CvPlot const& p, TCHAR const* sound)
