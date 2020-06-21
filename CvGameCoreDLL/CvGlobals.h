@@ -515,7 +515,7 @@ public:
 		DO(MAX_HIT_POINTS) \
 		DO(MAX_PLOT_LIST_ROWS) \
 		DO(UNIT_MULTISELECT_MAX) \
-		DO(EVENT_MESSAGE_TIME) \
+		/*DO(EVENT_MESSAGE_TIME) \ (cached separately) */ \
 		DO(EVENT_MESSAGE_TIME_LONG) \
 		DO(NUM_UNIT_PREREQ_OR_BONUSES) \
 		DO(NUM_UNIT_AND_TECH_PREREQS) \
@@ -566,9 +566,9 @@ public:
 	inline int getMAX_PLOT_LIST_ROWS() const { return getDefineINT(MAX_PLOT_LIST_ROWS); }
 	DllExport inline int getUNIT_MULTISELECT_MAX() { CvGlobals const& kThis = *this; return kThis.getUNIT_MULTISELECT_MAX(); }
 	inline int getUNIT_MULTISELECT_MAX() const { return getDefineINT(UNIT_MULTISELECT_MAX); }
+	// Note: The EXE calls this during audio init if all audio devices are disabled
 	DllExport inline int getEVENT_MESSAGE_TIME() { CvGlobals const& kThis = *this; return kThis.getEVENT_MESSAGE_TIME(); }
-	inline int getEVENT_MESSAGE_TIME() const { return getDefineINT(EVENT_MESSAGE_TIME); }
-	inline int getEVENT_MESSAGE_TIME_LONG() const { return getDefineINT(EVENT_MESSAGE_TIME_LONG); } // advc: Treat these two the same
+	inline int getEVENT_MESSAGE_TIME() const { return m_iEventMessageTime; }
 	// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
 	inline int getWAR_SUCCESS_CITY_CAPTURING() const { return getDefineINT(WAR_SUCCESS_CITY_CAPTURING); }
 	inline int getCOMBAT_DIE_SIDES() const { return getDefineINT(COMBAT_DIE_SIDES); }
@@ -925,9 +925,10 @@ protected:
 	bool m_bHoFScreenUp; // advc.106i
 
 	FVariableSystem* m_VarSystem;
-
+	// <advc.opt>
 	int* m_aiGlobalDefinesCache;
-		ImprovementTypes m_eRUINS_IMPROVEMENT;
+	int m_iEventMessageTime; // Cached separately b/c the EXE can access it before XML loading
+	ImprovementTypes m_eRUINS_IMPROVEMENT;
 	SpecialistTypes m_eDEFAULT_SPECIALIST;
 	TerrainTypes m_aeWATER_TERRAIN[2]; // </advc.opt>
 	float m_fPOWER_CORRECTION; // advc.104
