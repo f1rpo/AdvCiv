@@ -127,28 +127,20 @@ public:
 	DllExport CustomMapOptionTypes getCustomMapOption(int iOptionID) const;
 	DllExport void setCustomMapOption(int iOptionID, CustomMapOptionTypes eCustomMapOption);
 
+	DllExport void setVictories(int iVictories, bool const* abVictories);
+	DllExport bool getVictory(VictoryTypes eVictory) const;
+	DllExport void setVictory(VictoryTypes eVictory, bool bVictory);
 
-	int getNumVictories() const	{ return m_iNumVictories; }
-
-	const bool * getVictories() const	{ return m_abVictories; }
-	DllExport void setVictories(int iNumVictories, const bool * abVictories);
-
-	DllExport bool getVictory(VictoryTypes eVictoryID) const;
-	DllExport void setVictory(VictoryTypes eVictoryID, bool bVictory);
-
-	inline const bool * getOptions() const	{ return m_abOptions; } // advc.inl
-	DllExport bool getOption(GameOptionTypes eIndex) const;
+	DllExport inline bool getOption(GameOptionTypes eIndex) const { return m_abOptions.get(eIndex); }
 	DllExport void setOption(GameOptionTypes eIndex, bool bOption);
 
-	const bool * getMPOptions() const	{ return m_abMPOptions; }
-	DllExport bool getMPOption(MultiplayerOptionTypes eIndex) const;
+	DllExport bool getMPOption(MultiplayerOptionTypes eIndex) const { return m_abMPOptions.get(eIndex); }
 	DllExport void setMPOption(MultiplayerOptionTypes eIndex, bool bMPOption);
 
 	bool getStatReporting() const { return m_bStatReporting; }
 	void setStatReporting(bool bStatReporting) { m_bStatReporting = bStatReporting; }
 
-	const bool * getForceControls() const	{ return m_abForceControls; }
-	DllExport bool getForceControl(ForceControlTypes eIndex) const;
+	DllExport bool getForceControl(ForceControlTypes eIndex) const { return m_abForceControls.get(eIndex); }
 	DllExport void setForceControl(ForceControlTypes eIndex, bool bForceControl);
 
 	inline int getGameTurn() const { return m_iGameTurn; } // advc.inl
@@ -214,29 +206,29 @@ public:
 	DllExport const CvString& getSmtpHost(PlayerTypes eID) const;
 	DllExport void setSmtpHost(PlayerTypes eID, const CvString& szHost);
 
-	DllExport bool getWhiteFlag(PlayerTypes eID) const;
+	DllExport bool getWhiteFlag(PlayerTypes eID) const { return m_abWhiteFlag.get(eID); }
 	DllExport void setWhiteFlag(PlayerTypes eID, bool bWhiteFlag);
 
 	DllExport const CvWString& getFlagDecal(PlayerTypes eID) const;
 	DllExport void setFlagDecal(PlayerTypes eID, const CvWString& szFlagDecal);
 
 
-	DllExport CivilizationTypes getCiv(PlayerTypes eID) const;
+	DllExport CivilizationTypes getCiv(PlayerTypes eID) const { return m_aeCiv.get(eID); }
 	DllExport void setCiv(PlayerTypes eID, CivilizationTypes eCiv);
 
-	DllExport LeaderHeadTypes getLeader(PlayerTypes eID) const;
+	DllExport LeaderHeadTypes getLeader(PlayerTypes eID) const { return m_aeLeader.get(eID); }
 	DllExport void setLeader(PlayerTypes eID, LeaderHeadTypes eLeader);
 
-	DllExport TeamTypes getTeam(PlayerTypes eID) const;
+	DllExport TeamTypes getTeam(PlayerTypes eID) const { return m_aeTeam.get(eID); }
 	DllExport void setTeam(PlayerTypes eID, TeamTypes eTeam);
 
-	DllExport HandicapTypes getHandicap(PlayerTypes eID) const;
+	DllExport HandicapTypes getHandicap(PlayerTypes eID) const { return m_aeHandicap.get(eID); }
 	DllExport void setHandicap(PlayerTypes eID, HandicapTypes eHandicap);
 
-	DllExport PlayerColorTypes getColor(PlayerTypes eID) const;
+	DllExport PlayerColorTypes getColor(PlayerTypes eID) const { return m_aeColor.get(eID); }
 	DllExport void setColor(PlayerTypes eID, PlayerColorTypes eColor);
 
-	DllExport ArtStyleTypes getArtStyle(PlayerTypes eID) const;
+	DllExport ArtStyleTypes getArtStyle(PlayerTypes eID) const { return m_aeArtStyle.get(eID); }
 	DllExport void setArtStyle(PlayerTypes eID, ArtStyleTypes eArtStyle);
 
 
@@ -250,14 +242,14 @@ public:
 	DllExport bool getPlayableCiv(PlayerTypes eID) const;
 	DllExport void setPlayableCiv(PlayerTypes eID, bool bPlayableCiv);
 
-	DllExport bool getMinorNationCiv(PlayerTypes eID) const;
+	DllExport bool getMinorNationCiv(PlayerTypes eID) const { return m_abMinorNationCiv.get(eID); }
 	DllExport void setMinorNationCiv(PlayerTypes eID, bool bMinorNationCiv);
 
 
-	DllExport int getNetID(PlayerTypes eID) const;
+	DllExport int getNetID(PlayerTypes eID) const { return m_aiNetID.get(eID); }
 	DllExport void setNetID(PlayerTypes eID, int iNetID);
 
-	DllExport bool getReady(PlayerTypes eID) const;
+	DllExport bool getReady(PlayerTypes eID) const { return m_abReady.get(eID); }
 	DllExport void setReady(PlayerTypes eID, bool bReady);
 
 	DllExport const CvString& getPythonCheck(PlayerTypes eID) const;
@@ -274,12 +266,10 @@ protected:
 	void refreshCustomMapOptions();
 	void updatePangaea(); // advc
 
-	void clearVictories();
-	void refreshVictories();
+	/*void clearVictories();
+	void refreshVictories();*/ // advc: Easier to understand w/o these
 
-	// ***
-	// CORE GAME INIT DATA
-	// ***
+	// CORE GAME INIT DATA ...
 
 	// Game type
 	GameType m_eType;
@@ -304,19 +294,21 @@ protected:
 	// Map-specific custom parameters
 	int m_iNumCustomMapOptions;
 	int m_iNumHiddenCustomMapOptions;
-	CustomMapOptionTypes * m_aeCustomMapOptions;
+	CustomMapOptionTypes* m_aeCustomMapOptions;
 	bool m_bPangaea; // advc
 
 	// Standard game options
 	bool m_bStatReporting;
-	bool* m_abOptions;
-	bool* m_abMPOptions;
-
-	bool* m_abForceControls;
+	EnumMap<GameOptionTypes,bool> m_abOptions;
+	EnumMap<MPOptionTypes,bool> m_abMPOptions;
+	EnumMap<ForceControlTypes,bool> m_abForceControls;
 
 	// Dynamic victory condition setting
+	/*	(advc.enum: ^Whatever that means? Using an EnumMap has resulted in
+		an infinite loop in the EXE calling getVictory. Weird, but I won't
+		mess with this anymore.) */
 	int m_iNumVictories;
-	bool * m_abVictories;
+	bool* m_abVictories;
 
 	// Game turn mgmt
 	int m_iGameTurn;
@@ -351,27 +343,27 @@ protected:
 	CvString* m_aszEmail;
 	CvString* m_aszSmtpHost;
 
-	bool* m_abWhiteFlag;
 	CvWString* m_aszFlagDecal;
+	EnumMap<PlayerTypes,bool> m_abWhiteFlag;
 
-	CivilizationTypes* m_aeCiv;
-	LeaderHeadTypes* m_aeLeader;
-	TeamTypes* m_aeTeam;
-	HandicapTypes* m_aeHandicap;
-	PlayerColorTypes* m_aeColor;
-	ArtStyleTypes* m_aeArtStyle;
+	EnumMap<PlayerTypes,CivilizationTypes> m_aeCiv;
+	EnumMap<PlayerTypes,LeaderHeadTypes> m_aeLeader;
+	EnumMap<PlayerTypes,TeamTypes> m_aeTeam;
+	EnumMap<PlayerTypes,HandicapTypes> m_aeHandicap;
+	EnumMap<PlayerTypes,PlayerColorTypes> m_aeColor;
+	EnumMap<PlayerTypes,ArtStyleTypes> m_aeArtStyle;
 
 	// Slot data
 	SlotStatus* m_aeSlotStatus;
 	SlotClaim* m_aeSlotClaim;
 
 	// Civ flags
-	bool* m_abPlayableCiv;
-	bool* m_abMinorNationCiv;
+	EnumMap<PlayerTypes,bool> m_abPlayableCiv;
+	EnumMap<PlayerTypes,bool> m_abMinorNationCiv;
 
 	// Unsaved player data
-	int* m_aiNetID;
-	bool* m_abReady;
+	EnumMap<PlayerTypes,int> m_aiNetID;
+	EnumMap<PlayerTypes,bool> m_abReady;
 
 	CvString* m_aszPythonCheck;
 	CvString* m_aszXMLCheck;
