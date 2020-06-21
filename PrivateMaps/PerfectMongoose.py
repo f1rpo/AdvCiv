@@ -253,7 +253,7 @@ class MapConstants:
 
 		#This variable can be used to turn off 'New world' logic and place starting positions
 		#anywhere in the world. For some mods, a new world doesn't make sense.
-		# advc.021b (comment): This gets overwritten when custom options are read. Apparently, AllowNewWorld stands for "enable the New World logic", meaning that starts in the New World are actually disallowed!
+		# advc.021b (comment): This gets overwritten when custom options are read. Apparently, AllowNewWorld stands for "allow there to be a New World", which really means that starts in the New World are disallowed!
 		self.AllowNewWorld = False
 
 		## (Mongoose Setting)
@@ -3799,6 +3799,8 @@ class ContinentMap:
 		#interesting and possibly bigger new worlds
 		continentList.sort(lambda x, y:cmp(x.ID, y.ID))
 		continentList.reverse()
+		# Was > 0.6. A larger Old World plays better, while the true ratio (Africa+Eurasia)/(Africa+EurasiaAmerica+Oceania) is indeed just 62.5%. Use randomness to make a realistic size possible but rather unlikely.
+		oldWorldTargetPercent = (60 + PRand.randint(0, 9)) / 100.0
 		for n in range(len(continentList)):
 			# <advc.021b> Small land masses are no use for the Old World b/c civs can't start there
 			if continentList[0].size < 50:
@@ -3807,8 +3809,7 @@ class ContinentMap:
 				continue # </advc.021b>
 			oldWorldSize += continentList[0].size
 			del continentList[0]
-			# Was > 0.6. A larger Old World plays better, while the true ratio (Africa+Eurasia)/(Africa+EurasiaAmerica+Oceania) is indeed just 62.5%. Use randomness to make a realistic size possible but rather unlikely.
-			if float(oldWorldSize) / float(totalLand) > (60 + PRand.randint(0, 9)) / 100.0:
+			if float(oldWorldSize) / float(totalLand) > oldWorldTargetPercent:
 				break
 		# advc.021b: A too small Old World is going to be unplayable; rather reserve no New World then (or just some islands).
 		if reservedSecondBiggest and float(oldWorldSize) / float(iCivs) < 85:
@@ -4548,7 +4549,8 @@ class StartingPlotFinder:
 			areas = CvMapGeneratorUtil.getAreas()
 			#get old/new world status
 			areaOldWorld = self.setupOldWorldAreaList()
-			print "len(areaOldWorld) = %d" % len(areaOldWorld)
+			# advc.021b: Not helpful; it's the same as len(areas).
+			#print "len(areaOldWorld) = %d" % len(areaOldWorld)
 			self.CachePlotValue()
 			#Shuffle players so the same player doesn't always get the first pick.
 			#lifted from Highlands.py that ships with Civ.
@@ -4941,6 +4943,8 @@ class StartingPlotFinder:
 
 
 	def ensureMinimumHills(self, x, y):
+		# advc.021b: Made same changes below b/c I meant to keep the extra hills, then I realized that the DLL does the same thing. So:
+		return
 		gc = CyGlobalContext()
 		gameMap = CyMap()
 		hillsFound = 0
@@ -5002,7 +5006,8 @@ class StartingPlotFinder:
 					hillsNeeded -= 1
 			if hillsNeeded > 0:
 				for plot in plotList:
-					if plot.getPlotType() != PlotTypes.PLOT_HILLS and plot.getArea() == gameMap.plot(x, y).getArea() and (bonusInfo == None or not bonusInfo.isRequiresFlatlands()):
+					# advc.001: Was 'not bonusInfo.isRequiresFlatlands()' - that function doesn't exist. Use isHills instead (like in the DLL).
+					if plot.getPlotType() != PlotTypes.PLOT_HILLS and plot.getArea() == gameMap.plot(x, y).getArea() and (bonusInfo == None or bonusInfo.isHills()):
 						plot.setPlotType(PlotTypes.PLOT_HILLS, True, True)
 						hillsNeeded -= 1
 						if requiresFlatlands:
@@ -5952,7 +5957,7 @@ def replaceRivers(x, y):
 
 '''
 It looks bad to have a lake, fed by a river, sitting right next to the coast.
-This function tries to minimize that occurance by replacing it with a
+This function tries to minimize that occurrence by replacing it with a
 natural harbor, which looks much better.
 '''
 def makeHarbor(x, y, oceanMap):
