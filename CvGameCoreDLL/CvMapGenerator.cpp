@@ -956,26 +956,59 @@ void CvMapGenerator::setPlotTypes(const int* paiPlotTypes)
 }
 
 
-int CvMapGenerator::getRiverValueAtPlot(CvPlot* pPlot)
+int CvMapGenerator::getRiverValueAtPlot(CvPlot const& kPlot) const // advc: const x2
 {
 	bool bOverride=false;
-	int pyValue = GC.getPythonCaller()->riverValue(*pPlot, bOverride);
+	int pyValue = GC.getPythonCaller()->riverValue(kPlot, bOverride);
 	if (bOverride)
 		return pyValue;
 	int iSum = pyValue; // Add to value from Python
 
-	iSum += (NUM_PLOT_TYPES - pPlot->getPlotType()) * 20;
-
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
-	{
-		CvPlot* pAdjacentPlot = plotDirection(pPlot->getX(), pPlot->getY(), (DirectionTypes)iI);
+	/*iSum += (NUM_PLOT_TYPES - kPlot.getPlotType()) * 20;
+	FOR_EACH_ENUM(Direction) {
+		CvPlot* pAdjacentPlot = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
 		if (pAdjacentPlot != NULL)
 			iSum += (NUM_PLOT_TYPES - pAdjacentPlot->getPlotType());
 		else iSum += (NUM_PLOT_TYPES * 10);
-	}
+	}*/
+	/*	<advc.129> kPlot is the plot at whose southeastern corner the river will arrive.
+		That corner also touches 3 other plots, which are no less important.
+		In addition to those 4, I'm going to count the 8 plots orthogonally adjacent
+		to them, resulting in a 4x4 square without its 4 corners.
+		(This range is awkward to traverse b/c it doesn't have a center plot.) */
+	CvMap const& kMap = GC.getMap();
+	for (int iDX = 0; iDX < 4; iDX++)
+	{
+		int const iX = kPlot.getX() - 1 + iDX; // west to east
+		for (int iDY = 0; iDY < 4; iDY++)
+		{
+			int const iY = kPlot.getY() + 1 - iDY; // north to south
+			// Skip corners
+			if ((iDX == 0 || iDX == 3) && (iDY == 0 || iDY == 3))
+				continue;
+			CvPlot const* p = kMap.plotValidXY(iX, iY);
+			int iPlotVal = NUM_PLOT_TYPES * 3; // p == NULL
+			if (p != NULL)
+			{
+				if (p->isWater() && !p->isLake())
+				{	/*	The term in the else branch (as in BtS) counts 1 more
+						for hills than for flat and would count 1 less
+						for water than for flat. I'm making (non-lake) water
+						symmetrical with peak instead. */
+					iPlotVal = 0;
+				}
+				else iPlotVal = NUM_PLOT_TYPES - p->getPlotType();
+			}
+			// Inner plots have much higher weight
+			if ((iDX == 1 || iDX == 2) && (iDY == 1 || iDY == 2))
+				iPlotVal *= 6;
+			iSum += iPlotVal;
+		}
+	} // <advc.129>
 	CvRandom riverRand;
-	riverRand.init((pPlot->getX() * 43251267) + (pPlot->getY() * 8273903));
-	iSum += riverRand.get(10, "River Rand");
+	riverRand.init(kPlot.getX() * 43251267 + kPlot.getY() * 8273903);
+	// advc.129: Was 10. The scale hasn't really changed; I just want more randomness.
+	iSum += riverRand.get(20, "River Rand");
 
 	return iSum;
 }

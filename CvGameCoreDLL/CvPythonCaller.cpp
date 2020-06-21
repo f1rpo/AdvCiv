@@ -1376,12 +1376,12 @@ int CvPythonCaller::riverValue(CvPlot const& kPlot, bool& bOverride) const
 	delete pyPlot;
 	bOverride = isOverride();
 	if (!bOverride)
-		return -1;
+		return 0;
 	if (lResult < 0)
 	{
 		FAssert(lResult >= 0);
 		bOverride = false;
-		return -1;
+		return 0;
 	}
 	return toInt(lResult);
 }

@@ -50,8 +50,7 @@ public:
 
 protected:
 
-	// Utility functions for roughenHeights()
-	int getRiverValueAtPlot(CvPlot* pPlot);
+	int getRiverValueAtPlot(CvPlot const& kPlot) const;
 	int calculateNumBonusesToAdd(BonusTypes eBonusType);
 	// advc.129: To avoid duplicate code in addUniqueBonus and addNonUniqueBonus
 	int placeGroup(BonusTypes eBonusType, CvPlot const& kCenter,
