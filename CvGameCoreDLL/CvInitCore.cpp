@@ -936,8 +936,7 @@ void CvInitCore::refreshCustomMapOptions()  // advc.003y: refactored
 	if (getWBMapScript())
 		return;
 
-	CvString szMapScriptNameNarrow;
-	::narrowUnsafe(getMapScriptName(), szMapScriptNameNarrow);
+	CvString szMapScriptNameNarrow(getMapScriptName());
 	char const* szMapScriptName = szMapScriptNameNarrow.GetCString();
 	if (!gDLL->pythonMapExists(szMapScriptName))
 	{	// advc: Map script doesn't have to be present when loading a game

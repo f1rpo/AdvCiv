@@ -156,8 +156,13 @@ public:
 	CvString(int iLen) { reserve(iLen); }
 	CvString(const char* s) { operator=(s); }
 	CvString(const std::string& s) { assign(s.c_str()); }
-	// don't want accidental conversions down to narrow strings
-	explicit CvString(const std::wstring& s) { Copy(s.c_str()); }
+	explicit // don't want accidental conversions down to narrow strings
+		/*  advc (note): This conversion breaks when there are any non-ASCII chars
+			in the wstring. Should perhaps take into account the locale through
+			boost::locale::conv and/ or check for characters that can't be narrowed.
+			Many logBBAI calls convert from wide to narrow strings through the %S
+			format specifier and _vsnprintf - not sure if that's safer. */
+		CvString(const std::wstring& s) { Copy(s.c_str()); }
 	~CvString() {}
 
 	void Convert(const std::wstring& w) { Copy(w.c_str());	}

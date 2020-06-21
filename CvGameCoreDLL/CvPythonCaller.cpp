@@ -1224,8 +1224,7 @@ CvWString CvPythonCaller::customMapOptionDescription(char const* szMapScriptName
 // <advc.108>
 bool CvPythonCaller::isAnyCustomMapOptionSetTo(CvWString szTranslatedDesc) const
 {
-	CvString szMapScriptNameNarrow;
-	::narrowUnsafe(GC.getInitCore().getMapScriptName(), szMapScriptNameNarrow);
+	CvString szMapScriptNameNarrow(GC.getInitCore().getMapScriptName());
 	for (int i = 0; i < GC.getMap().getNumCustomMapOptions(); i++)
 	{
 		CustomMapOptionTypes eOptionValue = GC.getInitCore().getCustomMapOption(i);

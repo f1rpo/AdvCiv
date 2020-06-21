@@ -911,8 +911,7 @@ CustomMapOptionTypes CvMap::getCustomMapOption(int iOption) /* advc: */ const
 CvWString CvMap::getNonDefaultCustomMapOptionDesc(int iOption) const
 {
 	CvPythonCaller const& py = *GC.getPythonCaller();
-	CvString szMapScriptNameNarrow;
-	::narrowUnsafe(GC.getInitCore().getMapScriptName(), szMapScriptNameNarrow);
+	CvString szMapScriptNameNarrow(GC.getInitCore().getMapScriptName());
 	CustomMapOptionTypes eOptionValue = getCustomMapOption(iOption);
 	if (eOptionValue == py.customMapOptionDefault(szMapScriptNameNarrow.c_str(), iOption))
 		return L"";
