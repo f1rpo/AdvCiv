@@ -1425,19 +1425,20 @@ int CvGame::getStartingPlotRange() const
 
 void CvGame::normalizeAddRiver()  // advc: style changes
 {
-	CvMap const& m = GC.getMap();
-	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	CvMap const& kMap = GC.getMap();
+	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
-		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-		if (!kLoopPlayer.isAlive())
-			continue;
-
+		CvPlayer const& kLoopPlayer = *it;
 		CvPlot* pStartingPlot = kLoopPlayer.getStartingPlot();
 		if (pStartingPlot == NULL)
 			continue;
-		if (pStartingPlot->isFreshWater())
+		if (pStartingPlot->isFreshWater() ||
+			// <advc.108>
+			(m_eNormalizationLevel <= NORMALIZE_LOW &&
+			pStartingPlot->isAdjacentFreshWater())) // </advc.108>
+		{
 			continue;
-
+		}
 		// if we will be able to add a lake, then use old river code
 		if (normalizeFindLakePlot(kLoopPlayer.getID()) != NULL)
 		{
@@ -1516,53 +1517,64 @@ void CvGame::normalizeRemovePeaks()  // advc: style changes
 	}
 }
 
+
 void CvGame::normalizeAddLakes()
 {
-	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
-	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+	{	// <advc> (Moved out of normalizeFindLakePlot)
+		CvPlot* pStartingPlot = it->getStartingPlot();
+		if (pStartingPlot == NULL || pStartingPlot->isFreshWater() || // </advc>
+			// <advc.108>
+			(m_eNormalizationLevel <= NORMALIZE_LOW &&
+			pStartingPlot->isAdjacentFreshWater())) // </advc.108>
 		{
-			CvPlot* pLakePlot = normalizeFindLakePlot((PlayerTypes)iI);
-			if (pLakePlot != NULL)
-			{
-				pLakePlot->setPlotType(PLOT_OCEAN);
-			}
+			continue; 
 		}
+		CvPlot* pLakePlot = normalizeFindLakePlot(it->getID());
+		if (pLakePlot != NULL)
+			pLakePlot->setPlotType(PLOT_OCEAN);
 	}
 }
 
-CvPlot* CvGame::normalizeFindLakePlot(PlayerTypes ePlayer)  // advc: style changes
+/*	K-Mod: Shuffle the plots - advc.108: Randomize, yes,
+	but the inner ring has to take precedence. Rewritten. */
+CvPlot* CvGame::normalizeFindLakePlot(PlayerTypes ePlayer)
 {
-	if (!GET_PLAYER(ePlayer).isAlive())
+	CvPlot const& kStart = *GET_PLAYER(ePlayer).getStartingPlot();
+	FOR_EACH_ENUM_RAND(Direction, getMapRand())
+	{
+		CvPlot* pAdj = plotDirection(kStart.getX(), kStart.getY(), eLoopDirection);
+		if (pAdj != NULL && normalizeCanAddLakeTo(*pAdj))
+			return pAdj;
+	}
+	if (kStart.isAdjacentFreshWater())
 		return NULL;
-
-	CvPlot* pStartingPlot = GET_PLAYER(ePlayer).getStartingPlot();
-	if (pStartingPlot == NULL || pStartingPlot->isFreshWater())
-		return NULL;
-
-	// K-Mod: Shuffle the plots
-	for (CityPlotRandIter itPlot(*pStartingPlot, getMapRand(), false);
+	for (CityPlotRandIter itPlot(kStart, getMapRand(), false);
 		itPlot.hasNext(); ++itPlot)
 	{
-		CvPlot& kLoopPlot = *itPlot;
-		if (kLoopPlot.isWater() || kLoopPlot.isCoastalLand() ||
-			kLoopPlot.isRiver() || kLoopPlot.getBonusType() != NO_BONUS)
-		{
+		if (itPlot.currID() < NUM_INNER_PLOTS)
 			continue;
-		}
-		bool bStartingPlot = false;
-		for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
-		{
-			if (itPlayer->getStartingPlot() == &kLoopPlot)
-			{
-				bStartingPlot = true;
-				break;
-			}
-		}
-		if (!bStartingPlot)
-			return &kLoopPlot;
+		if (normalizeCanAddLakeTo(*itPlot))
+			return &*itPlot;
 	}
 	return NULL;
+}
+
+// advc.108: Cut from normalizeFindLakePlot
+bool CvGame::normalizeCanAddLakeTo(CvPlot const& kPlot) const
+{
+	if (kPlot.isWater() || kPlot.isCoastalLand() ||
+		kPlot.isRiver() || kPlot.getBonusType() != NO_BONUS)
+	{
+		return false;
+	}
+	bool bStartingPlot = false;
+	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
+	{
+		if (itPlayer->getStartingPlot() == &kPlot)
+			return false;
+	}
+	return true;
 }
 
 
@@ -1794,6 +1806,13 @@ void CvGame::normalizeAddFoodBonuses(  // advc: refactoring
 			{
 				continue;
 			}
+			// <advc.001> Whale
+			TechTypes eTechImprove = kBonus.getTechImprove(p.isWater());
+			if (eTechImprove != NO_TECH &&
+				GC.getInfo(eTechImprove).getEra() > getStartEra())
+			{
+				continue;
+			} // </advc.001>
 			if (p.isWater())
 			{
 				iFoodBonus += 2;

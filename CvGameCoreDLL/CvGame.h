@@ -1055,12 +1055,13 @@ protected:
 			bool bNoFood); // advc.108
 	bool isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer, CvPlot const& kPlot,
 			bool bCheckCanPlace, bool bIgnoreLatitude) const; // </advc>
+	CvPlot* normalizeFindLakePlot(PlayerTypes ePlayer);
 	// <advc.108>
+	bool normalizeCanAddLakeTo(CvPlot const& kPlot) const;
 	bool skipDuplicateExtraBonus(CvPlot const& kStartPlot, CvPlot const& kPlot,
 			BonusTypes eBonus, bool bSecondPass = false);
 	bool isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStartPlayer) const;
 	// </advc.108>
-	CvPlot* normalizeFindLakePlot(PlayerTypes ePlayer);
 
 	int getTeamClosenessScore(int** aaiDistances, int* aiStartingLocs);
 	void doUpdateCacheOnTurn();
