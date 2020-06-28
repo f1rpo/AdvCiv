@@ -433,7 +433,7 @@ class MapConstants:
 		#syncing issues for multi-player now or in the future, therefore it must
 		#be optional.
 		# advc.021b (comment): Haven't tested whether this causes problems. AIAndy appears to think that it's OK; see his comment in the seed function.
-		self.UsePythonRandom = False
+		self.UsePythonRandom = True
 
 		#Below here are static defines. If you change these, the map won't work.
 		#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
