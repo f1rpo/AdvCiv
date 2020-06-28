@@ -305,8 +305,8 @@ scaled StartingPositionIteration::PotentialSites::computeMinFoundValue()
 		m_foundValuesPerCurrSite.set(it->getID(), iFoundVal);
 		iWorstCurrFoundVal = std::min(iWorstCurrFoundVal, iFoundVal);
 	}
-	scaled r = iWorstCurrFoundVal * fixp(0.87);
-	r.increaseTo(stats::median(aiFoundValuesPerCurrSite) * fixp(2/3.));
+	scaled r = iWorstCurrFoundVal * fixp(0.88);
+	r.increaseTo(stats::median(aiFoundValuesPerCurrSite) * fixp(0.7));
 	return scaled::max(r, 1);
 }
 
@@ -494,8 +494,8 @@ StartingPositionIteration::DistanceTable::DistanceTable(
 		rStartEraFactor = scaled(GC.getGame().getStartEra(), GC.getNumEraInfos() - 1);
 		rStartEraFactor = 1 - rStartEraFactor.sqrt() / 2;
 	}
-	m_iFirstFrontierCost = (short)(125 * rStartEraFactor).round();
-	m_iSecondFrontierCost = (short)(180 * rStartEraFactor.pow(fixp(1.5))).round();
+	m_iFirstFrontierCost = (short)(150 * rStartEraFactor).round();
+	m_iSecondFrontierCost = (short)(155 * rStartEraFactor.pow(fixp(1.5))).round();
 
 	CvMap const& kMap = GC.getMap();
 	m_sourceIDs.resize(kMap.numPlots(), NOT_A_SOURCE);
@@ -820,8 +820,10 @@ void StartingPositionIteration::computeStartValues(
 				sumOfClaims.set(eLoopPlotNum, 0);
 				break;
 			}
-			short iDist = std::max(1,
-					m_pPathDists->d(kStartPlot, kLoopPlot) - iDistSubtr);
+			short iDist = m_pPathDists->d(kStartPlot, kLoopPlot);
+			if (iDist == MAX_SHORT)
+				continue;
+			iDist = std::max(1, iDist - iDistSubtr);
 			sumOfClaims.add(eLoopPlotNum, claim_t(1, iDist));
 		}
 	}
@@ -854,6 +856,8 @@ void StartingPositionIteration::computeStartValues(
 				continue;
 			short iStartDist = m_pPathDists->d(
 					kStartPlot, kMap.getPlotByIndex(eLoopPlotNum));
+			if (iStartDist == MAX_SHORT)
+				continue;
 			short iDist = std::max(1, iStartDist - iDistSubtr);
 			claim_t rAccessFactor = 1 / (rTotal * iDist);
 			/*	So far, it's proportional to distance. While this encourages
@@ -862,12 +866,11 @@ void StartingPositionIteration::computeStartValues(
 				that are close to multiple starting sites (high rTotal).
 				On the higher difficulty levels, humans usually can't settle
 				their 2nd and 3rd cities faster than the AI. */
-			rAccessFactor.exponentiate(claim_t(6, 5) +
-					std::min(claim_t(4, 5), 16 * rTotal));
+			rAccessFactor.exponentiate(fixp(1.85));
 			/*	Apart from competition, nearby plots are better than remote ones.
-				100 / d^(d/700) -- weird formula, but seems to result in the kind of
-				hyperbola I had in mind. */
-			rAccessFactor *= 100 / scaled(iStartDist).pow(scaled(iStartDist, 700));
+				Divisor d^(d/750) -- weird formula, but seems to result in the kind
+				of hyperbola I had in mind. */
+			rAccessFactor /= scaled(iStartDist).pow(scaled(iStartDist, 750));
 			/*	For uncontested plots very close to kStartPlot, the exact distance
 				shouldn't matter. */
 			rAccessFactor.decreaseTo(1);
@@ -926,7 +929,7 @@ void StartingPositionIteration::computeStartValues(
 	{
 		scaled rAreaYields = areaYieldsPerPlayer.get(itPlayer->getID());
 		scaled rRatio = rAreaYields / rMedianAreaYield;
-		scaled rTolerance = fixp(1/3.); // fairly high tolerance
+		scaled rTolerance = fixp(0.23);
 		if (rRatio + rTolerance < 1)
 			spaceValues.multiply(itPlayer->getID(), rRatio + rTolerance);
 		/*	If possible, we want there to be room for the core cities in
@@ -938,10 +941,10 @@ void StartingPositionIteration::computeStartValues(
 				GC.getGame().getRecommendedPlayers(), iCivEverAlive).sqrt();
 		// No colony maintenance if vassals are disabled
 		if (GC.getGame().isOption(GAMEOPTION_NO_VASSAL_STATES))
-			rTargetMinYields *= fixp(0.8);
+			rTargetMinYields *= fixp(0.82);
 		rRatio = rAreaYields / rTargetMinYields;
 		if (rRatio < 1)
-			spaceValues.multiply(itPlayer->getID(), rRatio.pow(fixp(0.25)));
+			spaceValues.multiply(itPlayer->getID(), rRatio.pow(fixp(0.36)));
 		arFoundValues.push_back(kFoundValues.get(itPlayer->getID()));
 		arSpaceValues.push_back(spaceValues.get(itPlayer->getID()));
 	}
@@ -952,21 +955,28 @@ void StartingPositionIteration::computeStartValues(
 	kResult.m_volatilityValues.reset();
 	CvGame const& kGame = GC.getGame();
 	EraTypes const eStartEra = kGame.getStartEra();
+	/*	Adjust this to set the overall balance between city radius
+		and space for expansion */
+	scaled rBaseSpaceWeight = fixp(1.6);
+	if (eStartEra <= 1)
+	{
+		if (kGame.isOption(GAMEOPTION_NO_BARBARIANS))
+			rBaseSpaceWeight *= fixp(1.025);
+		else if (kGame.isOption(GAMEOPTION_RAGING_BARBARIANS))
+			rBaseSpaceWeight *= fixp(0.95);
+	}
 	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		scaled rFromFoundValue = kFoundValues.get(itPlayer->getID());
-		scaled rSpaceWeight = 1;
+		scaled rFoundValue = kFoundValues.get(itPlayer->getID());
+		scaled rSpaceWeight = rBaseSpaceWeight;
 		if (rMedianSpaceValue > 0)
-		{
-			rSpaceWeight = rMedianFoundValue / rMedianSpaceValue;
-			rSpaceWeight.clamp(fixp(0.05), 20); // sanity bounds
-		}
+			rSpaceWeight *= rMedianFoundValue / rMedianSpaceValue;
 		scaled rFoundWeight = 1;
 		scaled rFromSpaceValue = spaceValues.get(itPlayer->getID());
 		if (rMedianFoundValue > 0 && rMedianSpaceValue > 0 &&
-			rFromFoundValue > 0 && rFromSpaceValue > 0)
+			rFoundValue > 0 && rFromSpaceValue > 0)
 		{	// Not healthy if these are far apart
-			scaled rFoundRatio = rFromFoundValue / rMedianFoundValue;
+			scaled rFoundRatio = rFoundValue / rMedianFoundValue;
 			scaled rSpaceRatio = rFromSpaceValue / rMedianSpaceValue;
 			scaled rSmaller = std::min(rFoundRatio, rSpaceRatio);
 			scaled rGreater = std::max(rFoundRatio, rSpaceRatio);
@@ -982,18 +992,15 @@ void StartingPositionIteration::computeStartValues(
 			{
 				kResult.m_volatilityValues.add(itPlayer->getID(),
 						(rThresh - rSpaceRatio).pow(2) / rThresh);
-				rFoundWeight *= rSpaceRatio.sqrt();
-				rSpaceWeight /= rSpaceRatio.sqrt();
+				scaled rFoundMinus = rSpaceRatio.pow(2) * rFoundWeight;
+				rFoundWeight -= rFoundMinus;
+				/*	If space values are generally higher than found values, then
+					shifting weight to space might increase the start value although
+					the player actually has too little space. Hence the divisor. */
+				rSpaceWeight += rFoundMinus / rBaseSpaceWeight;
 			}
 		}
 		else FAssert(false);
-		if (eStartEra <= 1)
-		{
-			if (kGame.isOption(GAMEOPTION_NO_BARBARIANS))
-				rFromSpaceValue *= fixp(1.025);
-			else if (kGame.isOption(GAMEOPTION_RAGING_BARBARIANS))
-				rFromSpaceValue *= fixp(0.95);
-		}
 		CvPlot const& kStartPlot = *itPlayer->getStartingPlot();
 		int iWarTargets = 0;
 		int iSameAreaTradeTargets = 0;
@@ -1015,37 +1022,36 @@ void StartingPositionIteration::computeStartValues(
 		if (!kGame.isOption(GAMEOPTION_ALWAYS_PEACE))
 		{
 			if (iWarTargets == 0)
+			{
 				rWarFactor = fixp(1.1);
+				/*	Strong starting site is less useful
+					if there is no competition for space */
+				scaled rFoundMinus = fixp(1/4.) * rFoundWeight;
+				rFoundWeight -= rFoundMinus;
+				rSpaceWeight += rFoundMinus / rBaseSpaceWeight;
+			}
 			else
 			{
 				scaled const rBaseWarFactor = fixp(0.45);
 				rWarFactor = rBaseWarFactor;
 				rWarFactor /= scaled(1 + std::min(3, iWarTargets) * rWarFactor).sqrt();
-				/*	Strong starting site is less useful
-					if there is no competition for space */
-				if (iWarTargets == 0)
-				{
-					rFoundWeight *= fixp(0.7);
-					rSpaceWeight /= fixp(0.7);
-				}
 				rWarFactor /= rBaseWarFactor; // normalize
 			}
 		}
-		scaled rTradeFactor = 1;
 		scaled const rBaseTradeFactor = fixp(0.82);
+		scaled rTradeFactor = rBaseTradeFactor;
 		int const iTotalTradeTargets = iSameAreaTradeTargets + iDifferentAreaTradeTargets;
 		if (iTotalTradeTargets > 0)
 		{
-			rTradeFactor = rBaseTradeFactor;
 			if (kGame.isOption(GAMEOPTION_NO_TECH_TRADING))
-				rTradeFactor = fixp(0.35);
+				rTradeFactor = fixp(0.4);
 			else if (kGame.isOption(GAMEOPTION_NO_TECH_BROKERING))
 				rTradeFactor -= fixp(0.05) * (std::min(4, iTotalTradeTargets) - 1);
 			scaled const rTradeVal = iSameAreaTradeTargets + iDifferentAreaTradeTargets *
 					(1 + fixp(0.2) * per100(GC.getDefineINT(CvGlobals::OVERSEAS_TRADE_MODIFIER)));
-			rTradeFactor *= (1 + rTradeVal * rTradeFactor).sqrt();
+			rTradeFactor *= (1 + rTradeVal * rTradeFactor).pow(fixp(1/3.));
 		}
-		rTradeFactor /= 2 * rBaseTradeFactor; // Normalize; looks nicer in the log file.
+		rTradeFactor /= fixp(1.5) * rBaseTradeFactor; // Normalize; looks nicer in the log file.
 		scaled rRivalDistFactor = rivalDistFactors.get(itPlayer->getID());
 		scaled rSameAreaRivalDistFactor = sameAreaRivalDistFactors.get(itPlayer->getID());
 		if (rRivalDistFactor < rTypicalDistFactor)
@@ -1081,23 +1087,32 @@ void StartingPositionIteration::computeStartValues(
 			}
 			// Otherwise, distances are sufficiently covered by rFromExpansionSpace.
 		}
-		rFromFoundValue *= rFoundWeight;
 		rFromSpaceValue *= rSpaceWeight;
 		scaled rRivalMultiplier = rWarFactor * rTradeFactor * rRivalDistFactor;
 
 		/*	Note: NormalizationTarget relies on the start value formula having
-			this basic form ((a+b)*c). */
-		scaled rStartVal = rFromFoundValue + rFromSpaceValue;
+			this basic form ((FoundValue * a + b) * c). */
+		scaled rStartVal = rFoundValue * rFoundWeight + rFromSpaceValue;
 		rStartVal *= rRivalMultiplier;
 
 		kResult.m_startValues.set(itPlayer->getID(), rStartVal);
-		kResult.m_foundValues.set(itPlayer->getID(), rFromFoundValue);
+		kResult.m_foundValues.set(itPlayer->getID(), rFoundValue);
+		kResult.m_foundWeights.set(itPlayer->getID(), rFoundWeight);
 		kResult.m_rivalMultipliers.set(itPlayer->getID(), rRivalMultiplier);
+		/*	Thought this might be a fun option, but actually doesn't seem
+			all that interesting to disable volatility. */
+		/*static bool const bIgnoreVolatility = GC.getDefineBOOL("ALLOW_UNUSUAL_STARTS", false);
+		if (bIgnoreVolatility)
+			kResult.m_volatilityValues.set(itPlayer->getID(), 0);*/
 		#ifdef SPI_LOG
+		scaled rFromFoundVal = rFoundValue * rFoundWeight;
 		if (bLog)
 		{
 			out << "Site #" << (int)itPlayer->getID() << "(" << CvString(itPlayer->getName()).c_str() << ")" << "\n";
-			out << "From found value: " << rFromFoundValue.str(1) << "\n";
+			out << "From found value: " << rFromFoundVal.str(1);
+			if (rFoundWeight.getPercent() != 100)
+				out << " (weight " << rFoundWeight.str(100) << ")";
+			out << "\n";
 			out << "From exp. space: " << rFromSpaceValue.str(1) << "\n";
 			if (rRivalDistFactor.getPercent() < 100)
 				out << "Rival distance factor: " << rRivalDistFactor.str(100) << "\n";
@@ -1181,7 +1196,8 @@ scaled StartingPositionIteration::weightedDistance(vector<short>& kDistances)
 
 scaled StartingPositionIteration::outlierValue(
 	EnumMap<PlayerTypes,scaled> const& kStartValues, PlayerTypes eIndex,
-	scaled& rPercentage, scaled* pMedian, scaled* pMax) const
+	scaled& rPercentage, scaled rNegativeOutlierExtraWeight,
+	scaled* pMedian, scaled* pMax) const
 {
 	scaled rMedian;
 	if (pMedian != NULL)
@@ -1207,13 +1223,13 @@ scaled StartingPositionIteration::outlierValue(
 	r.increaseTo(0);
 	if (rStartVal < rMedian) // Small outliers are worse
 	{
-		r *= 2;
+		r *= 2 * (1 + rNegativeOutlierExtraWeight);
 		rPercentage = r / (rMedian * (1 + rPlusMinus));
 	}
 	else
 	{	// The max (or very close to it) is extra problematic
 		if (rStartVal > scaled::max(fixp(1.25) * rMedian, fixp(0.92) * rMax))
-			r *= fixp(1.5);
+			r *= fixp(4/3.);
 		rPercentage = r / (rMedian * (1 - rPlusMinus));
 	}
 	return r;
@@ -1249,20 +1265,22 @@ scaled StartingPositionIteration::startingPositionValue(
 		rMedian = stats::median(arSamples);
 	}
 	// Encourage strong starting positions
-	scaled r = rSum / 3;
+	scaled r = rSum / fixp(8/3.);
 	// Encourage balanced starting positions
 	PlayerIter<CIV_ALIVE> it;
 	for (; it.hasNext(); ++it)
 	{
 		scaled rError;
 		scaled rOutlierVal = outlierValue(
-				kResult.m_startValues, it->getID(), rError, &rMedian);
+				kResult.m_startValues, it->getID(), rError, 0, &rMedian);
 		if (rOutlierVal > rWorstOutlierVal)
 		{
 			rWorstOutlierVal = rOutlierVal;
 			kResult.m_eWorstOutlier = it->getID();
-		}
-		r -= rOutlierVal;
+		}  /* Not a high exponent b/c there's already tolerance built into
+			  outlierValue, which (relatively speaking) magnifies outliers. */
+		rOutlierVal.exponentiate(fixp(1.1));
+		r -= rOutlierVal / fixp(1.5); // Divisor for normalization
 		rError += kResult.m_volatilityValues.get(it->getID()) * fixp(2/3.);
 		kResult.m_rAvgError += rError;
 	}
@@ -1272,7 +1290,7 @@ scaled StartingPositionIteration::startingPositionValue(
 	if (rWorstVolatility > rTolerance)
 	{
 		r *= (1 - (rWorstVolatility - rTolerance) /
-				(scaled(it.nextIndex()).sqrt() * fixp(5/3.)));
+				(scaled(it.nextIndex()).sqrt() * fixp(4/3.)));
 		if (kResult.m_eWorstOutlier == NO_PLAYER)
 			kResult.m_eWorstOutlier = eWorstVolatilityPlayer;
 	}
@@ -1289,15 +1307,23 @@ void StartingPositionIteration::currAltSites(PlayerTypes eCurrSitePlayer,
 	if (pCell == NULL)
 		return;
 	CvPlot const& kCurrSite = *GET_PLAYER(eCurrSitePlayer).getStartingPlot();
-	short iCurrClosestDist = MAX_SHORT;
+	short iCurrClosestPathDist = MAX_SHORT;
 	for (PlayerIter<CIV_ALIVE,NOT_SAME_TEAM_AS> it(TEAMID(eCurrSitePlayer));
 		it.hasNext(); ++it)
 	{
-		iCurrClosestDist = std::min(iCurrClosestDist,
+		iCurrClosestPathDist = std::min(iCurrClosestPathDist,
 				m_pPathDists->d(kCurrSite, *it->getStartingPlot()));
 	}
 	vector<std::pair<short,PlotNumTypes> > altSitesByDist;
 	CvMap const& kMap = GC.getMap();
+	std::vector<CvPlot const*> apRivalSites;
+	if (eTakenSite != NO_PLOT_NUM)
+		apRivalSites.push_back(&kMap.getPlotByIndex(eTakenSite));
+	for (PlayerIter<CIV_ALIVE,NOT_SAME_TEAM_AS> itRival(TEAMID(eCurrSitePlayer));
+		itRival.hasNext(); ++itRival)
+	{
+		apRivalSites.push_back(itRival->getStartingPlot());
+	}
 	for (VoronoiCell::const_iterator itSite = pCell->begin(); itSite != pCell->end();
 		++itSite)
 	{
@@ -1306,15 +1332,18 @@ void StartingPositionIteration::currAltSites(PlayerTypes eCurrSitePlayer,
 		CvPlot const& kAltSite = kMap.getPlotByIndex(*itSite);
 		/*	startingPositionValue discourages starting sites that are
 			too close together, but want to _guarantee_ a lower bound. */
-		short iAltClosestDist = MAX_SHORT;
-		for (PlayerIter<CIV_ALIVE,NOT_SAME_TEAM_AS> itRival(TEAMID(eCurrSitePlayer));
-			itRival.hasNext(); ++itRival)
+		short iAltClosestPathDist = MAX_SHORT;
+		int iAltClosestPlotDist = MAX_INT;
+		for (size_t i = 0; i < apRivalSites.size(); i++)
 		{
-			iAltClosestDist = std::min(iAltClosestDist,
-					m_pPathDists->d(kAltSite, *itRival->getStartingPlot()));
+			iAltClosestPathDist = std::min(iAltClosestPathDist,
+					m_pPathDists->d(kAltSite, *apRivalSites[i]));
+			iAltClosestPlotDist = std::min(iAltClosestPlotDist,
+					plotDistance(&kAltSite, apRivalSites[i]));
 		}
-		if (iAltClosestDist >= iCurrClosestDist ||
-			2 * iAltClosestDist >= 3 * m_pPathDists->getAvgCityDist())
+		if (iAltClosestPathDist >= iCurrClosestPathDist ||
+			(2 * iAltClosestPathDist >= 3 * m_pPathDists->getAvgCityDist() &&
+			iAltClosestPlotDist > 5)) // Avoid overlapping city radii
 		{
 			altSitesByDist.push_back(make_pair(
 					m_pPathDists->d(kCurrSite, kAltSite), *itSite));
@@ -1323,7 +1352,7 @@ void StartingPositionIteration::currAltSites(PlayerTypes eCurrSitePlayer,
 	std::sort(altSitesByDist.begin(), altSitesByDist.end());
 	/*	Depending on how evenly the potential sites are distributed, a cell could
 		contain a few dozen of them. Don't need that many alternatives. */
-	while (altSitesByDist.size() > 4)
+	while (altSitesByDist.size() > 6)
 		altSitesByDist.pop_back();
 
 	/*	Could directly add remote sites to kAltSitesByPriority w/ first value 0
@@ -1478,6 +1507,8 @@ bool StartingPositionIteration::considerStep(Step& kStep,
 						newSolutionAttribs.m_startValues.get(it->getID()));
 				kCurrSolutionAttribs.m_foundValues.set(it->getID(),
 						newSolutionAttribs.m_foundValues.get(it->getID()));
+				kCurrSolutionAttribs.m_foundWeights.set(it->getID(),
+						newSolutionAttribs.m_foundWeights.get(it->getID()));
 				kCurrSolutionAttribs.m_rivalMultipliers.set(it->getID(),
 						newSolutionAttribs.m_rivalMultipliers.get(it->getID()));
 			}
@@ -1531,25 +1562,43 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 		return;
 
 	CvMap const& kMap = GC.getMap();
+	bool bPrevStepRemote = false;
 	/*	Iterate until we return due to getting stuck in a (local) optimum
 		or until we run out of time */
 	int iStepsConsidered = 0;
-	while (iStepsConsidered <= 500)
+	while (iStepsConsidered < 700)
 	{
 		vector<std::pair<scaled,PlayerTypes> > currSitesByOutlierVal;
 		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		{
 			scaled rDummy;
 			scaled rOutlierVal = outlierValue(m_currSolutionAttribs.m_startValues,
-					it->getID(), rDummy);
+					it->getID(), rDummy,
+					// Focus on negative outliers while the avg. error is high
+					fixp(4/3.) * (m_currSolutionAttribs.m_rAvgError - fixp(0.15)));
 			if (rOutlierVal > 0)
+			{	/*	Also take into account volatility. Crowded areas tend to have higher
+					volatility. Need to avoid moving a small number of high-value
+					outliers that have small areas to themselves onto a large landmass
+					that is already overcrowded. Or better to do this more explicitly?
+					Can't easily check for crowdedness here though ... */
+				/*int iAreaPlayers = 1;
+				for (PlayerIter<CIV_ALIVE,NOT_SAME_TEAM_AS> itRival(it->getTeam());
+					itRival.hasNext(); ++itRival)
+				{
+					if (itRival->getStartingPlot()->sameArea(*it->getStartingPlot()))
+						iAreaPlayers++;
+				}
+				rOutlierVal += rOutlierVal * (m_currSolutionAttribs.m_rAvgError - fixp(0.1)) *
+						scaled(iAreaPlayers).sqrt();*/
+				rOutlierVal += rOutlierVal * (m_currSolutionAttribs.m_rAvgError - fixp(0.1)) *
+						2 * m_currSolutionAttribs.m_volatilityValues.get(it->getID());
 				currSitesByOutlierVal.push_back(make_pair(rOutlierVal, it->getID()));
+			}
 		}
-		if(currSitesByOutlierVal.empty())
+		if (currSitesByOutlierVal.empty())
 			return;
-		// Start with the worst outlier
 		std::sort(currSitesByOutlierVal.rbegin(), currSitesByOutlierVal.rend());
-		FAssert(m_currSolutionAttribs.m_eWorstOutlier == currSitesByOutlierVal[0].second);
 		for (size_t i = 0; i < currSitesByOutlierVal.size(); i++)
 		{
 			PlayerTypes const eCurrSitePlayer = currSitesByOutlierVal[i].second;
@@ -1557,14 +1606,19 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 			/*	(Low first val meaning high priority. For now, the priority values
 				are distance values.) */
 			vector<std::pair<short,PlotNumTypes> > altSitesByPriority;
-			currAltSites(eCurrSitePlayer, altSitesByPriority, true);
+			currAltSites(eCurrSitePlayer, altSitesByPriority,
+					/*	To save time, stop considering remote sites when approaching
+						a decent solution. Unless the prev. step was still a remote one. */
+					bPrevStepRemote || m_currSolutionAttribs .m_rAvgError > per1000(285));
 			for (size_t j = 0; j < altSitesByPriority.size(); j++)
 			{
 				PlotNumTypes const eAltSite = altSitesByPriority[j].second;
-				CvPlot const& kAltSite = kMap.getPlotByIndex(eAltSite);
+				CvPlot& kAltSite = kMap.getPlotByIndex(eAltSite);
 				short const iMoveDist = m_pPathDists->d(kCurrSite, kAltSite);
+				bool const bStepRemote = (
+						m_pPathDists->d(kCurrSite, kAltSite) >= m_pPathDists->getLongDist());
 				Step singleMoveStep;
-				singleMoveStep.move(eCurrSitePlayer, kMap.getPlotByIndex(eAltSite));
+				singleMoveStep.move(eCurrSitePlayer, kAltSite);
 				vector<std::pair<short,PlayerTypes> > otherCurrSitesByDist;
 				for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 				{
@@ -1578,7 +1632,7 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 									old site of eCurrPlayer. */
 								(m_pPathDists->d(*itPlayer->getStartingPlot(),
 								kCurrSite) * 3) / 2);
-						if (d < 8 * m_pPathDists->getAvgCityDist())
+						if (d < m_pPathDists->getLongDist())
 							otherCurrSitesByDist.push_back(make_pair(d, itPlayer->getID()));
 					}
 				}
@@ -1588,7 +1642,10 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 				{
 					iStepsConsidered++;
 					if (considerStep(singleMoveStep, m_currSolutionAttribs))
+					{
+						bPrevStepRemote = bStepRemote;
 						goto next_iteration;
+					}
 				}
 				std::sort(otherCurrSitesByDist.begin(), otherCurrSitesByDist.end());
 				/*	Don't try a great number of combinations in this deeply nested loop.
@@ -1605,7 +1662,7 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 					vector<std::pair<short,PlotNumTypes> > otherAltSitesByDist;
 					currAltSites(otherCurrSitesByDist[k].second, otherAltSitesByDist,
 							// Allow remote site for 2nd move only if 1st move is remote
-							iMoveDist > 8 * m_pPathDists->getAvgCityDist(),
+							iMoveDist > m_pPathDists->getLongDist(),
 							// Don't move the second player to the same site as the first
 							eAltSite);
 					for (size_t a = 0; a < otherAltSitesByDist.size(); a++)
@@ -1615,8 +1672,19 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 								kMap.getPlotByIndex(otherAltSitesByDist[a].second));
 						iStepsConsidered++;
 						if (considerStep(doubleMoveStep, m_currSolutionAttribs))
+						{	/*	Never mind the 2nd move; can't be remote if the
+								1st isn't remote. */
+							bPrevStepRemote = bStepRemote;
 							goto next_iteration;
+						}
 					}
+				}
+				// No double-move step is worthwhile. Consider the single-move step.
+				iStepsConsidered++;
+				if (considerStep(singleMoveStep, m_currSolutionAttribs))
+				{
+					bPrevStepRemote = bStepRemote;
+					goto next_iteration;
 				}
 			}
 		}
@@ -1642,7 +1710,9 @@ NormalizationTarget::NormalizationTarget(CitySiteEvaluator& kEval,
 				kMap.plotNum(*it->getStartingPlot()),
 				StartValBreakdown(
 				kSolution.m_startValues.get(ePlayer),
+				kSolution.m_volatilityValues.get(ePlayer),
 				kSolution.m_foundValues.get(ePlayer),
+				kSolution.m_foundWeights.get(ePlayer),
 				kSolution.m_rivalMultipliers.get(ePlayer))));
 	}
 }
@@ -1664,8 +1734,8 @@ bool NormalizationTarget::isReached(CvPlot const& kStartSite,
 	short iCurrFoundVal = -1;
 	vector<scaled> arCurrFoundValues;
 	vector<scaled> arCurrStartValues;
-	for (std::map<PlotNumTypes,StartValBreakdown>::const_iterator it = m_startValData.begin();
-		it != m_startValData.end(); ++it)
+	for (std::map<PlotNumTypes,StartValBreakdown>::const_iterator it =
+		m_startValData.begin(); it != m_startValData.end(); ++it)
 	{
 		PlotNumTypes const eLoopPlot = it->first;
 		CvPlot const& kLoopPlot = kMap.getPlotByIndex(eLoopPlot);
@@ -1677,7 +1747,8 @@ bool NormalizationTarget::isReached(CvPlot const& kStartSite,
 			add the current found value, re-apply the multipliers. */
 		if (svb.rRivalMult.isPositive())
 			rStartVal /= svb.rRivalMult;
-		rStartVal = rStartVal - svb.rFoundVal + iFoundVal;
+		// svb.rFoundVal is the unweighted pre-normalization found value
+		rStartVal = rStartVal + (iFoundVal - svb.rFoundVal) * svb.rFoundWeight;
 		if (svb.rRivalMult.isPositive())
 			rStartVal *= svb.rRivalMult;
 		arCurrStartValues.push_back(rStartVal);
@@ -1696,23 +1767,26 @@ bool NormalizationTarget::isReached(CvPlot const& kStartSite,
 			// Don't increase kStartSite's found value far beyond the median found value
 			std::min(fixp(1.1) * rMedianCurrFoundVal - iCurrFoundVal,
 			// Don't keep kStartSite's start value far below the highest start value
-			std::max(fixp(0.8) * rMaxCurrStartVal - rCurrStartVal,
+			std::max(fixp(0.8) * rMaxCurrStartVal - rCurrStartVal, std::max(
 			/*	If kStartSite's start value is below the median start value,
 				then increase kStartSite's foundValue at least to the median found value. */
 			std::min(rMedianCurrStartVal - rCurrStartVal,
-			rMedianCurrFoundVal - iCurrFoundVal)));
+			rMedianCurrFoundVal - iCurrFoundVal),
+			/*	Try to ensure that the found value isn't far below the median found value -
+				regardless of start values. */
+			fixp(0.85) * (rMedianCurrFoundVal - iCurrFoundVal))));
 	if (bClearlyExceeded)
 		return (-rIncreaseNeeded > per100(5) * iCurrFoundVal);
-	scaled rTolerance = 2;
+	scaled rTolerance = fixp(2.5);
 	if (bNearlyReached)
 	{
 		/*	(Not sure if rTolerance really has a big impact in general.
 			I did in some of my tests.) */
 		switch(GC.getGame().getStartingPlotNormalizationLevel())
 		{
-		case CvGame::NORMALIZE_HIGH: rTolerance = 4;
-		case CvGame::NORMALIZE_MEDIUM: rTolerance = 6;
-		default: rTolerance = 8;
+		case CvGame::NORMALIZE_HIGH: rTolerance += 2;
+		case CvGame::NORMALIZE_MEDIUM: rTolerance += 4;
+		default: rTolerance += 6;
 		}
 	}
 	rTolerance /= 100;
@@ -1735,12 +1809,31 @@ bool NormalizationTarget::isReached(CvPlot const& kStartSite,
 
 scaled NormalizationTarget::getStartValue(CvPlot const& kStartSite) const
 {
-	PlotNumTypes const ePlot = GC.getMap().plotNum(kStartSite);
+	StartValBreakdown const* pBrk = getBreakdown(kStartSite);
+	if (pBrk == NULL)
+		return -1;
+	return pBrk->rTotal;
+}
+
+
+scaled NormalizationTarget::getVolatilityValue(CvPlot const& kStartSite) const
+{
+	StartValBreakdown const* pBrk = getBreakdown(kStartSite);
+	if (pBrk == NULL)
+		return 0;
+	return pBrk->rVolatility;
+}
+
+
+NormalizationTarget::StartValBreakdown const* NormalizationTarget::getBreakdown(
+	CvPlot const& kSite) const
+{
+	PlotNumTypes const ePlot = GC.getMap().plotNum(kSite);
 	map<PlotNumTypes,StartValBreakdown>::const_iterator pos = m_startValData.find(ePlot);
 	if (pos == m_startValData.end())
 	{
 		FAssertMsg(false, "Starting plot not found in normalization inputs");
-		return -1;
+		return NULL;
 	}
-	return pos->second.rTotal;
+	return &pos->second;
 }

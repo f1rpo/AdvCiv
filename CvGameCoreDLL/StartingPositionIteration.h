@@ -24,6 +24,7 @@ class StartingPositionIteration
 		scaled m_rAvgError;
 		// For updating start value during normalization step
 		EnumMap<PlayerTypes,scaled> m_foundValues;
+		EnumMap<PlayerTypes,scaled> m_foundWeights;
 		EnumMap<PlayerTypes,scaled> m_rivalMultipliers;
 	};
 	friend class NormalizationTarget; // Just to make SolutionAttributes visible
@@ -54,6 +55,7 @@ private:
 			bool bSameArea) const;
 	scaled outlierValue(EnumMap<PlayerTypes,scaled> const& kStartValues,
 			PlayerTypes eIndex, scaled& rPercentage,
+			scaled rNegativeOutlierExtraWeight = 0,
 			scaled* pMedian = NULL, scaled* pMax = NULL) const;
 	scaled startingPositionValue(SolutionAttributes& kResult) const;
 	void currAltSites(PlayerTypes eCurrSitePlayer,
@@ -107,6 +109,7 @@ private:
 		/*	Typical distance according to DistanceTable::stepDist
 			between two friendly adjacent cities. */
 		inline short getAvgCityDist() const { return 40; }
+		inline short getLongDist() const { return 8 * getAvgCityDist(); }
 
 	private:
 		std::vector<std::vector<short> > m_distances;
@@ -157,21 +160,27 @@ public:
 		return isReached(kStartSite, false, true);
 	}
 	scaled getStartValue(CvPlot const& kStartSite) const;
+	scaled getVolatilityValue(CvPlot const& kStartSite) const;
 
 private:
 	CitySiteEvaluator* m_pEval;
 	struct StartValBreakdown
 	{
 		scaled rTotal;
+		scaled rVolatility;
 		scaled rFoundVal;
+		scaled rFoundWeight;
 		scaled rRivalMult;
-		StartValBreakdown(scaled rTotal, scaled rFoundVal, scaled rRivalMult) :
-				rTotal(rTotal), rFoundVal(rFoundVal), rRivalMult(rRivalMult) {}
+		StartValBreakdown(scaled rTotal, scaled rVolatility,
+				scaled rFoundVal, scaled rFoundWeight, scaled rRivalMult) :
+				rTotal(rTotal), rVolatility(rVolatility),
+				rFoundVal(rFoundVal), rFoundWeight(rFoundWeight), rRivalMult(rRivalMult) {}
 	};
 	std::map<PlotNumTypes,StartValBreakdown> m_startValData;
 
 	bool isReached(CvPlot const& kStartSite,
 			bool bNearlyReached, bool bClearlyExeeded = false) const;
+	StartValBreakdown const* getBreakdown(CvPlot const& kSite) const;
 };
 
 #endif

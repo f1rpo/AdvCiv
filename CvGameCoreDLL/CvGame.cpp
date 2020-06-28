@@ -1209,9 +1209,59 @@ NormalizationTarget* CvGame::assignStartingPlots()
 	}
 	FAssert(startPlots.size() == playerOrder.size());
 	std::sort(startPlots.begin(), startPlots.end());
+	// <advc.027> Try to avoid giving human players a high-volatility start
+	if (pNormalizationTarget != NULL && playerOrder.size() > 5u)
+	{
+		for (size_t i = 0; i < playerOrder.size(); i++)
+		{
+			if (playerOrder[i] == NO_PLAYER || !GET_PLAYER(playerOrder[i]).isHuman())
+				continue;
+			CvPlot const* pStart = kMap.plotByIndex(startPlots[i].second);
+			if (pStart == NULL)
+				continue;
+			scaled rVolatility = pNormalizationTarget->getVolatilityValue(*pStart);
+			if (rVolatility < fixp(0.2))
+				continue;
+			/*	Don't want to undercut the handicap bias too much. Hence look for
+				a less volatile start only one up and one down in the player order. */
+			std::vector<std::pair<int,PlayerTypes> > aieSwapPlayers;
+			if (i > 0)
+				aieSwapPlayers.push_back(std::make_pair((int)(i - 1), playerOrder[i - 1]));
+			if (i < playerOrder.size() - 1)
+				aieSwapPlayers.push_back(std::make_pair((int)(i + 1), playerOrder[i + 1]));
+			int iBestSwapIndex = -1;
+			// Tiny improvements in volatility aren't worth swapping for
+			scaled rBestSwapVal = fixp(0.1);
+			for (size_t j = 0; j < aieSwapPlayers.size(); j++)
+			{
+				PlayerTypes const eSwapPlayer = aieSwapPlayers[j].second;
+				int const iSwapPlayerOrderIndex = aieSwapPlayers[j].first;
+				if (eSwapPlayer == NO_PLAYER || GET_PLAYER(eSwapPlayer).isHuman())
+					continue;
+				CvPlot const* pSwapStart = kMap.plotByIndex(
+						startPlots[iSwapPlayerOrderIndex].second);
+				if (pSwapStart == NULL)
+					continue;
+				scaled rSwapVolatility = pNormalizationTarget->
+						getVolatilityValue(*pSwapStart);
+				scaled rSwapVal = rVolatility - rSwapVolatility;
+				if (rSwapVal > rBestSwapVal)
+				{
+					rBestSwapVal = rSwapVal;
+					iBestSwapIndex = iSwapPlayerOrderIndex;
+				}
+			}
+			if (iBestSwapIndex >= 0)
+			{
+				std::swap(playerOrder[i], playerOrder[iBestSwapIndex]);
+				if (iBestSwapIndex == i + 1)
+					i++; // Skip next iteration to make sure not to swap again
+			}
+		}
+	} // </advc.027>
 	for (size_t i = 0; i < playerOrder.size(); i++)
 	{
-		if(playerOrder[i] == NO_PLAYER)
+		if (playerOrder[i] == NO_PLAYER)
 		{
 			FAssert(playerOrder[i] != NO_PLAYER);
 			continue;

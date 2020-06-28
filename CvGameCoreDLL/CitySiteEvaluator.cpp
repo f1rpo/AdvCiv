@@ -2083,7 +2083,7 @@ int AIFoundValue::evaluateSpecialYields(int const* aiSpecialYield,
 	// <advc.031>
 	scaled arWeight[NUM_YIELD_TYPES] = {
 			// advc.108: So that less food gets placed during normalization - hopefully.
-			kSet.isStartingLoc() ? fixp(0.42) :
+			kSet.isStartingLoc() ? fixp(0.45) :
 			fixp(0.24),
 			fixp(0.36),
 			/*  advc.108: For moving the starting Settler. Though a commercial
@@ -3136,20 +3136,21 @@ scaled AIFoundValue::evaluateWorkablePlot(CvPlot const& p) const
 			r += rYieldVal;
 		}
 	}
-	if (!p.isWater() || p.isLake())
-	{
+	if (!p.isImpassable())
+	{	/*	Even with marginal tile yields, just having space is valuable
+			for city placement. */
 		int iVal = aiYield[YIELD_FOOD] + aiYield[YIELD_PRODUCTION] +
+				aiYield[YIELD_COMMERCE] / 2 +
 				(eBonus != NO_BONUS || eFeature != NO_FEATURE ? 2 : 0);
-		if (iVal >= 1)
+		if ((iVal >= 1 && !p.isWater()) || iVal >= 2)
 		{
-			/*	Even with marginal yields, land allows for minimal space
-				between cities, can ease border tensions, and the cities
-				themselves have to be placed on some tile as well.
-				Though if a tile is really bad, the surroundings may not
-				even be worth settling. */
 			r += 5;
 			if (iVal >= 2)
-				r += 13;
+			{
+				iVal += 3;
+				if (!p.isWater() || p.isLake())
+					r += 10;
+			}
 		}
 	}
 	if (eBonus != NO_BONUS)
@@ -3160,12 +3161,22 @@ scaled AIFoundValue::evaluateWorkablePlot(CvPlot const& p) const
 		scaled rNonYieldBonusVal = nonYieldBonusValue(p, eBonus, bCanTradeBonus,
 				bCanSoonTradeBonus, true, bDummy, NULL, 100);
 		if (!bCanSoonImproveBonus)
-		{	// Late-game resources need to be devalued though
-			TechTypes eTech = GC.getInfo(eBonus).getTechReveal();
+		{	/*	Midgame and late-game resources need to be (greatly) devalued though;
+				b/c their reward is greatly delayed and b/c they're not supposed to
+				steer starting positions much in any case. */
+			TechTypes eTech = GC.getInfo(eBonus).getTechImprove(p.isWater());
 			int iEraDiff = (eTech == NO_TECH ? 0 :
 					 GC.getInfo(eTech).getEra() - eEra);
-			if (iEraDiff > 1)
-				rNonYieldBonusVal / iEraDiff;
+			if (iEraDiff >= 4)
+			{	/*	Some special yield is counted for all resources; that should be
+					enough and more for late-game resources. */
+				rNonYieldBonusVal = 0;
+			}
+			else if (iEraDiff > 0)
+			{
+				rNonYieldBonusVal *= 2;
+				rNonYieldBonusVal /= (2 + SQR(iEraDiff));
+			}
 		}
 		r += rNonYieldBonusVal;
 	}

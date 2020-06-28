@@ -255,7 +255,7 @@
 		 iteration mostly moves the BtS starting locations around.) -->
 	<Define>
         <DefineName>ENABLE_STARTING_POSITION_ITERATION</DefineName>
-        <iDefineIntVal>0</iDefineIntVal>
+        <iDefineIntVal>1</iDefineIntVal>
     </Define>
 
 	<!-- [advc.108]

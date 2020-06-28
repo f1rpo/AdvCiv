@@ -269,7 +269,7 @@ class MapConstants:
 		#depending on map size, meteors, and which landmass generator was selected.
 		#self.landPercent   = 0.2889
 		# advc.021b: See comments about sea level above. Gets further modified in initInGameOptions.
-		self.landPercent = 0.26
+		self.landPercent = 0.27
 
 		#Percentage of land squares high enough to be Hills or Peaks.
 		self.HillPercent   = 0.30 # advc.021b: was 42
@@ -433,7 +433,7 @@ class MapConstants:
 		#syncing issues for multi-player now or in the future, therefore it must
 		#be optional.
 		# advc.021b (comment): Haven't tested whether this causes problems. AIAndy appears to think that it's OK; see his comment in the seed function.
-		self.UsePythonRandom = True
+		self.UsePythonRandom = False
 
 		#Below here are static defines. If you change these, the map won't work.
 		#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -5574,7 +5574,7 @@ def getCustomMapOptionDescAt(argsList):
 			return "Flat"
 	elif optionID == 1:
 		# advc.021b: was just "Old World"
-		owMsg = "Old World (unless Pangaea); -35% players recommended"
+		owMsg = "Old World (unless Pangaea); -25% players recommended"
 		if mc.AllowNewWorld:
 			if selectionID == 0:
 				return owMsg
