@@ -6445,7 +6445,7 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech,  // <advc.910>
 			if (!kTechTeam.isHasTech(eTech))
 				continue;
 			rKnownExp += fixp(0.5);
-			if (GET_TEAM(getTeam()).isFriendlyTerritory(kTechTeam.getID()))
+			if (GET_TEAM(getTeam()).canPeacefullyEnter(kTechTeam.getID()))
 				rKnownExp += fixp(1.5);
 			else if (kTechTeam.isAtWar(getTeam()) || GET_TEAM(getTeam()).isVassal(kTechTeam.getID()))
 				rKnownExp += fixp(0.5);
