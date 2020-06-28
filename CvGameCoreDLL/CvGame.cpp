@@ -1457,16 +1457,17 @@ void CvGame::normalizeAddRiver()  // advc: style changes
 		else CvMapGenerator::GetInstance().addRiver(pStartingPlot);
 
 		// add floodplains to any desert tiles the new river passes through
-		for (int iJ = 0; iJ < m.numPlots(); iJ++)
+		for (int i = 0; i < kMap.numPlots(); i++)
 		{
-			CvPlot& kPlot = m.getPlotByIndex(iJ);
-			for (int iK = 0; iK < GC.getNumFeatureInfos(); iK++)
+			CvPlot& kPlot = kMap.getPlotByIndex(i);
+			// advc.108: Can't hurt to randomize the order
+			FOR_EACH_ENUM_RAND(Feature, getMapRand())
 			{
-				FeatureTypes eLoopFeature = (FeatureTypes)iK;
 				if (!GC.getInfo(eLoopFeature).isRequiresRiver() ||
-						!kPlot.canHaveFeature(eLoopFeature))
+					!kPlot.canHaveFeature(eLoopFeature))
+				{
 					continue;
-
+				}
 				if (GC.getInfo(eLoopFeature).getAppearanceProbability() == 10000)
 				{
 					if (kPlot.getBonusType() != NO_BONUS)

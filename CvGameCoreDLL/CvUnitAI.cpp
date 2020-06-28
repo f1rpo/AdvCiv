@@ -19567,8 +19567,7 @@ int CvUnitAI::AI_exploreAirPlotValue(CvPlot const* pPlot)
 	int iValue = 1;
 
 	if (!pPlot->isOwned() ||
-		// advc.029:
-		!kOurTeam.isFriendlyTerritory(pPlot->getTeam()))
+		!kOurTeam.isFriendlyTerritory(pPlot->getTeam())) // advc.029
 	{
 		iValue++;
 	}

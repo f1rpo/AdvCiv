@@ -152,64 +152,69 @@ void CvUnit::finalizeInit() // advc.003u: Body cut from init
 	getPlot().updateCenterUnit();
 	getPlot().setFlagDirty(true);
 
-	CvGame& g = GC.getGame();
+	CvGame& kGame = GC.getGame();
 	CvPlayerAI& kOwner = GET_PLAYER(getOwner());
-	int iCreated = g.getUnitCreatedCount(getUnitType()); // advc: was called "iUnitName"
+	int iCreated = kGame.getUnitCreatedCount(getUnitType()); // advc: was called "iUnitName"
 	int iNumNames = m_pUnitInfo->getNumUnitNames();
 	if (iCreated < iNumNames)
 	{	// <advc.005b>
 		/*  Skip every iStep'th name on average. Basic assumption: About half of
 			the names are used in a long (space-race) game with 7 civs; therefore, skip every
 			iStep=2 then. Adjust this to the (current) number of civs. */
-		int iAlive = g.countCivPlayersAlive();
-		if(iAlive <= 0) {
+		int iAlive = kGame.countCivPlayersAlive();
+		if(iAlive <= 0)
+		{
 			FAssert(iAlive > 0);
 			iAlive = 7;
 		}
 		int const iStep = std::max(1, ::round(14.0 / iAlive));
 		// This gives iRand an expected value of step
-		int iRand = g.getSorenRandNum(2 * iStep + 1, "advc.005b");
-		/*  The index of the most recently used name isn't available; instead,
+		int iRand = kGame.getSorenRandNum(2 * iStep + 1, "advc.005b");
+		/*	The index of the most recently used name isn't available; instead,
 			take iStep times the number of previously used names in order to
 			pick up roughly where we left off. */
 		int iOffset = iStep * iCreated + iRand;
 		// That's +8 in Medieval, +16 in Renaissance and +24 in Industrial or later.
-		iOffset += std::min(24, 8 * std::max(0, g.getStartEra() - 1));
+		iOffset += std::min(24, 8 * std::max(0, kGame.getStartEra() - 1));
 		bool bNameSet = false;
-		// If we run out of names, search backward
-		if(iOffset >= iNumNames) {
+		// If we run out of names, search backward.
+		if(iOffset >= iNumNames)
+		{
 			/*  The first couple are still somewhat random, but then just
 				pick them chronologically. */
-			for(int i = iNumNames - 1 - iRand; i >= 0; i--) {
+			for(int i = iNumNames - 1 - iRand; i >= 0; i--)
+			{
 				CvWString szName = gDLL->getText(m_pUnitInfo->getUnitNames(i));
 				// Copied from below
-				if(!g.isGreatPersonBorn(szName)) {
+				if(!kGame.isGreatPersonBorn(szName))
+				{
 					setName(szName);
 					bNameSet = true;
-					g.addGreatPersonBornName(szName);
+					kGame.addGreatPersonBornName(szName);
 					break;
 				}
-			} // Otherwise, search forward
+			} // Otherwise, search forward.
 		}
-		if(!bNameSet) { // </advc.005b>
+		if(!bNameSet) // </advc.005b>
+		{ 
 			for (int i = 0; i < iNumNames; i++)
 			{
 				int iIndex = (i + iOffset) % iNumNames;
 				CvWString szName = gDLL->getText(m_pUnitInfo->getUnitNames(iIndex));
-				if (!g.isGreatPersonBorn(szName))
+				if (!kGame.isGreatPersonBorn(szName))
 				{
 					setName(szName);
-					g.addGreatPersonBornName(szName);
+					kGame.addGreatPersonBornName(szName);
 					break;
 				}
 			}
 		}
 	}
 
-	setGameTurnCreated(g.getGameTurn());
-	g.incrementUnitCreatedCount(getUnitType());
+	setGameTurnCreated(kGame.getGameTurn());
+	kGame.incrementUnitCreatedCount(getUnitType());
 	UnitClassTypes eUnitClass = getUnitClassType();
-	g.incrementUnitClassCreatedCount(eUnitClass);
+	kGame.incrementUnitClassCreatedCount(eUnitClass);
 	GET_TEAM(getTeam()).changeUnitClassCount(eUnitClass, 1);
 	kOwner.changeUnitClassCount(eUnitClass, 1);
 	kOwner.changeExtraUnitCost(m_pUnitInfo->getExtraCost());
@@ -281,12 +286,15 @@ void CvUnit::finalizeInit() // advc.003u: Body cut from init
 	{
 		if (baseCombatStr() > 0)
 		{
-			if (g.getBestLandUnit() == NO_UNIT || baseCombatStr() > g.getBestLandUnitCombat())
-				g.setBestLandUnit(getUnitType());
+			if (kGame.getBestLandUnit() == NO_UNIT || baseCombatStr() >
+				kGame.getBestLandUnitCombat())
+			{
+				kGame.setBestLandUnit(getUnitType());
+			}
 		}
 	}
 
-	if (kOwner.getID() == g.getActivePlayer())
+	if (kOwner.getID() == kGame.getActivePlayer())
 		gDLL->UI().setDirty(GameData_DIRTY_BIT, true);
 
 	if (m_pUnitInfo->isWorldUnit())
@@ -3019,9 +3027,9 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport) /* advc: */ const
 	}
 
 	// <advc.705>
-	CvGame const& g = GC.getGame();
-	if(g.isOption(GAMEOPTION_RISE_FALL) && isHuman() &&
-		g.getRiseFall().isCooperationRestricted(kRecipient.getID()))
+	CvGame const& kGame = GC.getGame();
+	if(kGame.isOption(GAMEOPTION_RISE_FALL) && isHuman() &&
+		kGame.getRiseFall().isCooperationRestricted(kRecipient.getID()))
 	{
 		return false;
 	} // </advc.705>

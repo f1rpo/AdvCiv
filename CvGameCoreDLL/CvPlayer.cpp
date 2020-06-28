@@ -9635,7 +9635,7 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 {
 	if(isAlive() == bNewValue)
 		return;
-	/*	<advc.003m> Moved up b/c once the team's AliveCount is set to 0,
+	/*	<advc.003m> Moved up b/c, once the team's AliveCount is set to 0,
 		at-war status is lost. Need that for lifting blockades.
 		Also seems generally safer to destroy a player's components
 		before killing the player itself. Therefore I've also moved up

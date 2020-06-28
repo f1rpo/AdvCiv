@@ -917,7 +917,7 @@ void CvInitCore::setVictories(int iVictories, bool const* abVictories)
 {
 	SAFE_DELETE_ARRAY(m_abVictories);
 	m_iNumVictories = 0;
-	if (iVictories)
+	if (iVictories > 0)
 	{
 		m_iNumVictories = iVictories;
 		m_abVictories = new bool[m_iNumVictories];
@@ -935,9 +935,9 @@ void CvInitCore::setVictory(VictoryTypes eVictory, bool bVictory)
 
 bool CvInitCore::getVictory(VictoryTypes eVictory) const
 {
+	FAssertBounds(0, m_iNumVictories, eVictory);
 	if (checkBounds(eVictory, 0, m_iNumVictories))
 		return m_abVictories[eVictory];
-	else FAssertBounds(0, m_iNumVictories, eVictory);
 	return false;
 }
 
