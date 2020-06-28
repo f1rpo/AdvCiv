@@ -203,6 +203,7 @@ public: // All the const functions are exposed to Python
 	inline TechTypes getTechReveal() const { return m_eTechReveal; }
 	inline TechTypes getTechCityTrade() const { return m_eTechCityTrade; }
 	inline TechTypes getTechObsolete() const { return m_eTechObsolete; }
+	TechTypes getTechImprove(bool bWater) const; // advc.003w
 	int getAITradeModifier() const;
 	int getAIObjective() const;
 	inline int getHealth() const { return m_iHealth; }
@@ -247,6 +248,7 @@ public: // All the const functions are exposed to Python
 	void write(FDataStreamBase* stream);
 	#endif
 	bool read(CvXMLLoadUtility* pXML);
+	void updateCache(BonusTypes eBonus); // advc.003w
 
 protected:
 	int m_iBonusClassType;
@@ -254,6 +256,7 @@ protected:
 	TechTypes m_eTechReveal;
 	TechTypes m_eTechCityTrade;
 	TechTypes m_eTechObsolete;
+	std::pair<TechTypes,TechTypes> m_eeTechImprove; // advc.003w
 	int m_iAITradeModifier;
 	int m_iAIObjective;
 	int m_iHealth;
@@ -431,7 +434,7 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	// For Moose - CvWidgetData XXX
 	int* getRouteYieldChangesArray(int i) /* advc: */ const;
 
-	int getImprovementBonusYield(int i, int j) const;
+	int getImprovementBonusYield(int iBonus, int iYield) const;
 	bool isImprovementBonusMakesValid(int i) const;
 	bool isImprovementBonusTrade(int i) const;
 	int getImprovementBonusDiscoverRand(int i) const;

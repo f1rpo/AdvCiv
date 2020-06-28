@@ -396,6 +396,7 @@ m_iChar(0),
 m_eTechReveal(NO_TECH),
 m_eTechCityTrade(NO_TECH),
 m_eTechObsolete(NO_TECH),
+m_eeTechImprove(std::make_pair(NO_TECH, NO_TECH)), // advc.003w
 m_iAITradeModifier(0),
 m_iAIObjective(0),
 m_iHealth(0),
@@ -760,6 +761,64 @@ bool CvBonusInfo::read(CvXMLLoadUtility* pXML)
 	return true;
 }
 
+// <advc.003w>
+TechTypes CvBonusInfo::getTechImprove(bool bWater) const
+{
+	return (bWater ? m_eeTechImprove.second : m_eeTechImprove.first);
+}
+
+void CvBonusInfo::updateCache(BonusTypes eBonus)
+{
+	std::pair<int,int> iiLowestTechCost = std::make_pair(MAX_INT, MAX_INT);
+	FOR_EACH_ENUM2(Build, eBuild)
+	{
+		CvBuildInfo const& kBuild = GC.getInfo(eBuild);
+		TechTypes eBuildTech = kBuild.getTechPrereq();
+		if (eBuildTech == NO_TECH)
+			continue;
+		ImprovementTypes eImprov = kBuild.getImprovement();
+		if (eImprov == NO_IMPROVEMENT)
+			continue;
+		CvImprovementInfo const& kImprov = GC.getInfo(eImprov);
+		bool bAnyImprovYield = false;
+		FOR_EACH_ENUM(Yield)
+		{
+			if (kImprov.getImprovementBonusYield(eBonus,eLoopYield) > 0)
+			{
+				bAnyImprovYield = true;
+				break;
+			}
+		}
+		if (!bAnyImprovYield)
+			continue;
+		int iTechCost = GC.getInfo(eBuildTech).getResearchCost();
+		if (kImprov.isWater())
+		{
+			if (iTechCost < iiLowestTechCost.second)
+			{
+				iiLowestTechCost.second = iTechCost;
+				m_eeTechImprove.second = eBuildTech;
+			}
+		}
+		else
+		{
+			if (iTechCost < iiLowestTechCost.first)
+			{
+				iiLowestTechCost.first = iTechCost;
+				m_eeTechImprove.first = eBuildTech;
+			}
+		}
+	}
+	if (m_eTechReveal == NO_TECH)
+		return;
+	// Will have to reveal (but not trade) the resource in order to improve it
+	int iRevealTechCost = GC.getInfo(m_eTechReveal).getResearchCost();
+	if (m_eeTechImprove.first == NO_TECH || iRevealTechCost > iiLowestTechCost.first)
+		m_eeTechImprove.first = m_eTechReveal;
+	if (m_eeTechImprove.second == NO_TECH || iRevealTechCost > iiLowestTechCost.second)
+		m_eeTechImprove.second = m_eTechReveal;
+} // </advc.003w>
+
 CvBonusClassInfo::CvBonusClassInfo() : m_iUniqueRange(0) {}
 
 
@@ -1081,11 +1140,11 @@ int* CvImprovementInfo::getRouteYieldChangesArray(int i) const
 	return m_ppiRouteYieldChanges[i];
 }
 
-int CvImprovementInfo::getImprovementBonusYield(int i, int j) const
+int CvImprovementInfo::getImprovementBonusYield(int iBonus, int iYield) const
 {
-	FAssertBounds(0, GC.getNumBonusInfos(), i);
-	FAssertBounds(0, NUM_YIELD_TYPES, j);
-	return m_paImprovementBonus[i].m_piYieldChange ? m_paImprovementBonus[i].getYieldChange(j) : 0; // advc.003t
+	FAssertBounds(0, GC.getNumBonusInfos(), iBonus);
+	FAssertBounds(0, NUM_YIELD_TYPES, iYield);
+	return m_paImprovementBonus[iBonus].m_piYieldChange ? m_paImprovementBonus[iBonus].getYieldChange(iYield) : 0; // advc.003t
 }
 
 bool CvImprovementInfo::isImprovementBonusMakesValid(int i) const
