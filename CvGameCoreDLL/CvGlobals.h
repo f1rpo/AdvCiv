@@ -33,7 +33,6 @@ class CMPDiplomacyScreen;
 class FMPIManager;
 class FAStar;
 class CvInterface;
-class CMainMenu;
 class CvArtFileMgr;
 class FVariableSystem;
 class CvMap;
@@ -809,14 +808,12 @@ protected:
 	bool m_bRandLogging;
 	bool m_bSynchLogging;
 	bool m_bOverwriteLogs;
-	//NiPoint3  m_pt3CameraDir; // advc.003j: Unused; not even written.
+	/*NiPoint3  m_pt3CameraDir;
 	int m_iNewPlayers;
-
 	CMainMenu* m_pkMainMenu;
-
 	bool m_bZoomOut;
 	bool m_bZoomIn;
-	bool m_bLoadGameFromFile;
+	bool m_bLoadGameFromFile;*/ // advc.003j: Unused; not even written.
 
 	FMPIManager * m_pFMPMgr;
 
@@ -894,7 +891,7 @@ protected:
 	TypesMap m_typesMap;
 
 	// XXX These are duplicates and are kept for enumeration convenience - most could be removed, Moose
-	CvString *m_paszEntityEventTypes2;
+	//CvString *m_paszEntityEventTypes2; // advc.003j: actually unused
 	CvString *m_paszEntityEventTypes;
 	int m_iNumEntityEventTypes;
 
