@@ -4758,27 +4758,29 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 	if (goody.getDamagePrereq() > 0)
 	{
 		if (pUnit == NULL || pUnit->getDamage() < (pUnit->maxHitPoints() *
-				goody.getDamagePrereq()) / 100)
+			goody.getDamagePrereq()) / 100)
+		{
 			return false;
-	} // advc.314:
-	bool bAnyGold = (goody.getGold() + goody.getGoldRand1() + goody.getGoldRand2() > 0);
+		}
+	}
 	if (goody.isTech())
 	{
 		bool bTechFound = false;
-		for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
-		{	// advc.114: Replacing the conditions below
-			if(isGoodyTech((TechTypes)iI, bAnyGold))
-			{
-				/*if (GC.getInfo((TechTypes) iI).isGoodyTech()) {
-					//if (canResearch((TechTypes)iI), false, true)*/ // K-Mod
-				if (canResearch((TechTypes)iI, false, true)) // advc
+		FOR_EACH_ENUM(Tech)
+		{
+			/*if (GC.getInfo((TechTypes) iI).isGoodyTech()) {
+				if (canResearch((TechTypes)iI), false, true)*/ // K-Mod
+			// <advc.314>
+			if(isGoodyTech(eLoopTech,
+				goody.getGold() + goody.getGoldRand1() + goody.getGoldRand2()))
+			{	// </advc.314>
+				if (canResearch(eLoopTech, false, true)) // advc
 				{
 					bTechFound = true;
 					break;
 				}
 			}
 		}
-
 		if (!bTechFound)
 			return false;
 	}
@@ -4956,22 +4958,21 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 	if (goody.isTech())
 	{
 		TechTypes eBestTech = NO_TECH;
-		int iBestValue = 0;
-		for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
-		{	// advc.314: Replacing the conditions below
-			if(isGoodyTech((TechTypes)iI, iGold > 0))
+		int iBestValue = -1;
+		FOR_EACH_ENUM(Tech)
+		{
 			/*if (GC.getInfo((TechTypes) iI).isGoodyTech()) {
-				//if (canResearch((TechTypes)iI), false, true) { // K-Mod */
+				if (canResearch((TechTypes)iI), false, true) { // K-Mod */
+			if (!isGoodyTech(eLoopTech, iGold)) // advc.314
+				continue;
+			int iValue = g.getSorenRandNum(10000, "Goody Tech");
+			if (iValue > iBestValue)
 			{
-				int iValue = (1 + g.getSorenRandNum(10000, "Goody Tech"));
-				if (iValue > iBestValue)
-				{
-					iBestValue = iValue;
-					eBestTech = ((TechTypes)iI);
-				}
+				iBestValue = iValue;
+				eBestTech = eLoopTech;
 			}
 		}
-		FAssertMsg(eBestTech != NO_TECH, "BestTech is not assigned a valid value");
+		FAssert(eBestTech != NO_TECH);
 		// <advc.314> Most of the code from here on is modified
 		CvTeam& kOurTeam = GET_TEAM(getTeam());
 		if(iGold <= 0 || 0.8 * kOurTeam.getResearchLeft(eBestTech) <= iGold)
@@ -22274,14 +22275,38 @@ void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1)
 }
 
 // <advc.314>
-bool CvPlayer::isGoodyTech(TechTypes techId, bool bProgress) const
+// iProgress <= 0 means guaranteed discovery
+bool CvPlayer::isGoodyTech(TechTypes eTech, int iProgress) const
 {
-	CvTechInfo& t = GC.getInfo(techId);
-	if(!bProgress && !t.isGoodyTech())
+	CvTechInfo const& kTech = GC.getInfo(eTech);
+	if(iProgress <= 0 && !kTech.isGoodyTech())
 		return false;
-	if(bProgress && t.getEra() >= 4)
+	if(iProgress > 0 && kTech.getEra() >= 4)
 		return false;
-	return canResearch(techId, false, true);
+	if (!isFoundedFirstCity() && // Can't receive a holy city (or corp. HQ) then
+		// OK if the tech won't be discovered right away
+		(iProgress <= 0 || iProgress > fixp(2/3.) *
+		GET_TEAM(getTeam()).getResearchLeft(eTech)))
+	{
+		CvGame const& kGame = GC.getGame();
+		FOR_EACH_ENUM(Religion)
+		{
+			if (!kGame.isReligionFounded(eLoopReligion) &&
+				GC.getInfo(eLoopReligion).getTechPrereq() == eTech)
+			{
+				return false;
+			}
+		}
+		FOR_EACH_ENUM(Corporation)
+		{
+			if (!kGame.isCorporationFounded(eLoopCorporation) &&
+				GC.getInfo(eLoopCorporation).getTechPrereq() == eTech)
+			{
+				return false;
+			}
+		}
+	}
+	return canResearch(eTech, false, true);
 }
 
 void CvPlayer::addGoodyMsg(CvWString s, CvPlot const& p, TCHAR const* sound)

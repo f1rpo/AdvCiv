@@ -1501,7 +1501,7 @@ protected:  // <advc.210>
 			PlayerTypes eOldOwner, PlayerTypes eNewOwner,
 			bool bIgnorePriority = false) const; // </advc.ctr>
 	// <advc.314>
-	bool isGoodyTech(TechTypes techId, bool bProgress) const;
+	bool isGoodyTech(TechTypes eTech, int iProgress) const;
 	void addGoodyMsg(CvWString s, CvPlot const& p, TCHAR const* sound);
 	void promoteFreeUnit(CvUnit& u, double pr);
 	// </advc.314>

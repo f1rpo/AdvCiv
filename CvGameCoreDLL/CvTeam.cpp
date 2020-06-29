@@ -4628,7 +4628,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,  /
 		for (TeamIter<ALIVE,NOT_SAME_TEAM_AS> it(getID()); it.hasNext(); ++it)
 			it->updateTechShare(eTech); // Share through "Internet" project
 		// <advc.106>
-		if (bFirst && bFirstToDiscover && kGame.getElapsedGameTurns() > 0 &&
+		if (bFirst && bFirstToDiscover && // (Note: CvGame::initFreeState uses bFirst=false)
 			GC.getDefineINT("SHOW_FIRST_TO_DISCOVER_IN_REPLAY") > 0)
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH",
