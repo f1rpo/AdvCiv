@@ -188,7 +188,7 @@ public:
 
 	DllExport void reviveActivePlayer();																		// Exposed to Python
 	DllExport int getNumHumanPlayers();													// Exposed to Python
-	DllExport int getGameTurn() 																		// Exposed to Python
+	DllExport int getGameTurn()																	// Exposed to Python
 	// <advc> Need a const version
 	{	CvGame const& kThis = *this;
 		return kThis.getGameTurn();
@@ -992,9 +992,11 @@ protected:
 			bool bCheckCanPlace, bool bIgnoreLatitude, bool bRemoveFeature);
 	bool isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer, CvPlot const& kPlot,
 			bool bCheckCanPlace, bool bIgnoreLatitude) const; // </advc>
-	// advc.108:
-	bool isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStartPlayer) const;
 	CvPlot* normalizeFindLakePlot(PlayerTypes ePlayer);
+	// <advc.108>
+	bool normalizeCanAddLakeTo(CvPlot const& kPlot) const;
+	bool isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStartPlayer) const;
+	// </advc.108>
 
 	int getTeamClosenessScore(int** aaiDistances, int* aiStartingLocs);
 	void doUpdateCacheOnTurn();

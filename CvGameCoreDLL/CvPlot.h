@@ -83,6 +83,7 @@ public:
 
 	DllExport bool isLake() const;																															// Exposed to Python
 	bool isFreshWater() const;																												// Exposed to Python
+	bool isAdjacentFreshWater() const; // advc.108
 	bool isPotentialIrrigation() const;																													// Exposed to Python
 	bool canHavePotentialIrrigation() const;																										// Exposed to Python
 	DllExport bool isIrrigationAvailable(bool bIgnoreSelf = false) const;													// Exposed to Python
