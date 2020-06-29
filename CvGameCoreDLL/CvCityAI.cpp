@@ -7352,6 +7352,9 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 	iFoodMultiplier /= std::max(1, (iUnworkedPlots + iWorkedPlots) *
 			GC.getFOOD_CONSUMPTION_PER_POPULATION() *
 			(iFoodTotal-iExtraFoodForGrowth));
+	/*	advc.121: I've seen this go above 60000. I guess the formulas above
+		don't deal well with tiny cities that are supposed to grow big. */
+	iFoodMultiplier = std::min(iFoodMultiplier, 5000);
 
 	// Note: this food multiplier calculation still doesn't account for possible food yield multipliers. Sorry.
 
