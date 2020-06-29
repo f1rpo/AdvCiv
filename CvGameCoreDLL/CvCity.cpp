@@ -10831,10 +10831,10 @@ void CvCity::doGreatPeople()
 	{
 		UnitTypes eUnit = kCiv.unitAt(i);
 		int iUnitRate = getGreatPeopleUnitRate(eUnit); // advc
-		changeGreatPeopleUnitProgress(eUnit, iUnitRate *
+		changeGreatPeopleUnitProgress(eUnit, (iUnitRate *
 				/*	advc.001c: Seems like an oversight - per-unit progress
 					should include modifiers. */
-				iTotalGreatPeopleRateModifier);
+				iTotalGreatPeopleRateModifier) / 100);
 		// <advc>
 		#ifdef FASSERT_ENABLE
 			iTotalUnitRate += iUnitRate;
