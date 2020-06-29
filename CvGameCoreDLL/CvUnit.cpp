@@ -2956,7 +2956,7 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport) /* advc: */ const
 	if(m_pUnitInfo->getNukeRange() >= 0) // -1 for non-nukes
 		return false; // </advc.143b>
 	// <advc.034>
-	if(!GET_TEAM(getTeam()).isOpenBorders(kRecipient.getTeam()))
+	if(!GET_TEAM(getTeam()).canPeacefullyEnter(kRecipient.getTeam()))
 		return false; // </advc.034>
 
 	if (kPlot.isVisibleEnemyUnit(this))

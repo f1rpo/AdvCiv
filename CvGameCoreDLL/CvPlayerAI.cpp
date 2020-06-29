@@ -11729,7 +11729,7 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 	if (bKeep && !bHuman)
 	{
 		// If current owner will remain able to enter the city, the loss hurts a little less.
-		if (GET_TEAM(eOwner).isFriendlyTerritory(TEAMID(eToPlayer)))
+		if (GET_TEAM(eOwner).canPeacefullyEnter(TEAMID(eToPlayer)))
 			r *= fixp(0.935);
 	}
 	if (bKeep && !bSameTeam && !GET_TEAM(getTeam()).isCapitulated(kOtherPlayer.getTeam()))
