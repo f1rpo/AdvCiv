@@ -92,6 +92,7 @@ m_iNumFlavorTypes(0),
 m_iNumArtStyleTypes(0),
 m_iNumFootstepAudioTypes(0),
 // </advc>  <advc.opt>
+m_iEventMessageTime(-1),
 m_iRUINS_IMPROVEMENT(NO_IMPROVEMENT),
 m_iDEFAULT_SPECIALIST(NO_SPECIALIST)
 {
@@ -660,6 +661,8 @@ void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 				break;
 			}
 		}
+		if (strcmp(szChangedDefine, "EVENT_MESSAGE_TIME") == 0)
+			m_iEventMessageTime = iNewValue; // (See m_iEventMessageTime in header)
 		return;
 	}
 
@@ -699,6 +702,7 @@ void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 		}
 		m_aiGlobalDefinesCache[i] = getDefineINT(aszGlobalDefinesTagNames[i], iDefault);
 	}
+	m_iEventMessageTime = getDefineINT("EVENT_MESSAGE_TIME");
 } // </advc.opt>
 
 void CvGlobals::cacheGlobalFloats()
