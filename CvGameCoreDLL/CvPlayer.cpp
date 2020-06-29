@@ -9675,7 +9675,16 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 {
 	if(isAlive() == bNewValue)
 		return;
-
+	/*	<advc.003m> Moved up b/c once the team's AliveCount is set to 0,
+		at-war status is lost. Need that for lifting blockades.
+		Also seems generally safer to destroy a player's components
+		before killing the player itself. Therefore I've also moved up
+		killAllDeals. Not sure about cities (there should be none anyway). */
+	if (!bNewValue)
+	{
+		killUnits(); // </advc.003m>
+		killAllDeals(); // advc: Moved up
+	}
 	bool const bEverAlive = isEverAlive();
 	m_bAlive = bNewValue;
 	CvGame& g = GC.getGame();
@@ -9742,9 +9751,9 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 		} // </advc.001>
 		clearResearchQueue();
 		clearPopups(); // advc
-		killUnits();
+		//killUnits(); // advc.003m: Moved up
 		killCities();
-		killAllDeals();
+		//killAllDeals(); // advc: Moved up
 
 		setTurnActive(false);
 
