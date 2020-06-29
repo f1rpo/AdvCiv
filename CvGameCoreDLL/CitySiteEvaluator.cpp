@@ -1984,7 +1984,11 @@ int AIFoundValue::evaluateSpecialYields(int const* aiSpecialYield,
 		Don't value it highly, because it's also counted in a bunch of other ways. */
 	//return iSpecialFood*20+iSpecialProduction*40+iSpecialCommerce*35;
 	// <advc.031>
-	double weight[NUM_YIELD_TYPES] = {0.24, 0.36,
+	double weight[NUM_YIELD_TYPES] = {
+			// advc.108: So that less food gets placed during normalization - hopefully.
+			kSet.isStartingLoc() && !bNormalize ? 0.4 :
+			0.24,
+			0.36,
 			/*  advc.108: For moving the starting Settler. Though a commercial
 				resource at the second city is also valuable, so: */
 			iCities <= 1 && eEra <= 0 ? 0.48 : 0.32};
