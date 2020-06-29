@@ -9907,7 +9907,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose,  // advc: style chan
 					finishes 1 instance, abort only 1 of p's instances:
 					the one with less production invested. */
 				CvCity* pMinProductionCity = NULL;
-				int iMinProduction = 0;
+				int iMinProduction = -1; // 0 production can happen
 				for (int j = 0; j < pCity->getOrderQueueLength(); j++)
 				{
 					OrderData* pOrder = pCity->getOrderFromQueue(j);
