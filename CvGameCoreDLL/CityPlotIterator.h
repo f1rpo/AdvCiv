@@ -63,12 +63,10 @@ public:
 		m_ePos(NO_CITYPLOT), m_pNext(NULL), m_iCenterX(iX), m_iCenterY(iY),
 		m_pRandom(&pRandom)
 	{
-		if (!bIncludeHomePlot)
-			++m_ePos;
 		if (eWORKING_PLOT_TYPE != ANY_CITY_PLOT)
 			FAssert(eWORKING_PLOT_TYPE == ANY_CITY_PLOT);
 		if (bRAND_ORDER)
-			shuffle();
+			shuffle(bIncludeHomePlot);
 		else FAssert(bRAND_ORDER);
 		computeNext();
 	}
@@ -149,9 +147,22 @@ private:
 	CvRandom* m_pRandom;
 	int* m_aiShuffledIndices;
 
-	inline void shuffle()
+	inline void shuffle(bool bIncludeHomePlot)
 	{
 		m_aiShuffledIndices = ::shuffle(NUM_CITY_PLOTS, *m_pRandom);
+		if (!bIncludeHomePlot)
+		{
+			// Swap home plot to the front, then advance past it.
+			for (int i = 0; i < NUM_CITY_PLOTS; i++)
+			{
+				if (m_aiShuffledIndices[i] == CITY_HOME_PLOT)
+				{
+					std::swap(m_aiShuffledIndices[0], m_aiShuffledIndices[i]);
+					break;
+				}
+			}
+			m_ePos++;
+		}
 	}
 
 	__forceinline CityPlotTypes shuffledID() const
