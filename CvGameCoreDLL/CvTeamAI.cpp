@@ -1812,7 +1812,9 @@ int CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const
 	// <advc.551> Replacing the above
 	double const maxModifierPercent = 34;
 	return::round((maxModifierPercent * (iCivsMet - iTechCivs)) /
-			std::max(1, iCivsMet) - maxModifierPercent / 2); // </advc.551>
+			/*	Decrease modifier below 100% if more than half know the tech? No -
+				generally, 1 research point should have a trade value greater than 1. */
+			std::max(1, iCivsMet) /*- maxModifierPercent / 2*/); // </advc.551>
 } // K-Mod end
 
 // advc (comment): How much this CvTeam is willing to pay to eFromTeam for eTech
