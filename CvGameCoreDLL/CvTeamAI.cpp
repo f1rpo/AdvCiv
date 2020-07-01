@@ -1826,9 +1826,11 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam,
 	// advc: Original BtS code deleted; K-Mod replaced it with AI_knownTechValModifier.
 	CvTechInfo const& kTech = GC.getInfo(eTech);
 	int iValue = (125 // advc.551: was 150
-			// K-Mod. Standardized the modifier for # of teams with the tech; and removed the effect of team size.
+			/*	K-Mod. Standardized the modifier for # of teams with the tech;
+				and removed the effect of team size. */
 			+ AI_knownTechValModifier(eTech)) *
-			std::max(0, (getResearchCost(eTech, true, false) -
+			// advc.551: Revert the 2nd part of the K-Mod change
+			std::max(0, (getResearchCost(eTech/*, true, false*/) -
 			getResearchProgress(eTech))) / 100;
 			// K-Mod end
 	/*  <advc.104h> Peace for tech isn't that attractive for the receiving side
