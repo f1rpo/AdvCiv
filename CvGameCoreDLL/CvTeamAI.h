@@ -93,7 +93,7 @@ public:
 			bool bConstCache = false) const; // advc.001n
 	int AI_endWarVal(TeamTypes eTeam) const;
 
-	int CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const; // K-Mod
+	scaled CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const; // K-Mod
 
 	int AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam,
 			bool bIgnoreDiscount = false, // advc.550a

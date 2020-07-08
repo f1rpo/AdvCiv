@@ -1809,11 +1809,16 @@ scaled CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const
 		iCivsMet++;
 	}
 	//return 50 * (iCivsMet - iTechCivs) / std::max(1, iCivsMet);
-	// <advc.551> Replacing the above
-	double const maxModifierPercent = 34;
-	return::round((maxModifierPercent * (iCivsMet - iTechCivs)) /
-			std::max(1, iCivsMet) - maxModifierPercent / 2); // </advc.551>
-} // K-Mod end
+	// <advc.551>
+	scaled r(iCivsMet - iTechCivs, std::max(1, iCivsMet));
+	scaled const rMax = fixp(1/3.); // Lower impact than the 50% in BtS/K-Mod
+	r *= rMax;
+	/*	Decrease modifier below 100% if more than half know the tech? No -
+		generally, 1 research point should have a trade value greater than 1. */
+	//r -= rMax / 2;
+	// (In K-Mod, the caller had added 1.)
+	return 1 + r; // </advc.551>
+}
 
 // advc (comment): How much this CvTeam is willing to pay to eFromTeam for eTech
 int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam,
@@ -1821,13 +1826,16 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam,
 	bool bPeaceDeal) const // advc.140h
 {
 	FAssert(eFromTeam != getID());
-	// advc: Original BtS code deleted; K-Mod replaced it with AI_knownTechValModifier.
+
 	CvTechInfo const& kTech = GC.getInfo(eTech);
-	scaled rValue = (fixp(1.25) // advc.551: was 1.5
+	scaled rValue = (fixp(0.25) // advc.551: was 0.5
 			/*	K-Mod. Standardized the modifier for # of teams with the tech;
 				and removed the effect of team size. */
 			+ AI_knownTechValModifier(eTech)) *
-			std::max(0, getResearchCost(eTech, true, false) -
+			/*	advc.551, advc.001: Revert the 2nd part of the K-Mod change.
+				A correct implementation would have to take the team size modifier
+				out of the research progress; but I think it'd still be a bad idea.*/
+			std::max(0, getResearchCost(eTech/*, true, false*/) -
 			getResearchProgress(eTech)); // K-Mod end
 	/*  <advc.104h> Peace for tech isn't that attractive for the receiving side
 		b/c they could continue the war and still get the tech when making peace
