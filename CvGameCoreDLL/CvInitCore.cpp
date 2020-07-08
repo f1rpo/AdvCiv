@@ -558,8 +558,6 @@ void CvInitCore::resetPlayer(PlayerTypes eID)
 {
 	FAssertBounds(0, MAX_PLAYERS, eID);
 
-	// Only copy over saved data
-
 	// Civ details
 	m_aszLeaderName[eID].clear();
 	m_aszCivDescription[eID].clear();
@@ -612,6 +610,8 @@ void CvInitCore::resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear,
 		resetPlayer(eID);
 	if (pSource == NULL)
 		return; // advc
+
+	// Only copy over saved data
 
 	// Civ details
 	setCivDescription(eID, pSource->getCivDescription(eID));

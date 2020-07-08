@@ -343,7 +343,7 @@ public:
 	{
 		// (std::max doesn't allow differing types)
 		if (*this < lo)
-			*this = lo;
+			*this = lo; // (Will fail to compile for floating point operand)
 	}
 	template<typename HiType>
 	__forceinline void decreaseTo(HiType hi)
@@ -879,7 +879,9 @@ template<ScaledNum_PARAMS>
 template<typename NumType, typename Epsilon>
 bool ScaledNum_T::approxEquals(NumType num, Epsilon e) const
 {
-	// Can't be allowed for floating point types; will have to use fixp to wrap.
+	/*	Can't be allowed for floating-point types; will have to use fixp to wrap.
+		(Wouldn't compile anyway b/c arithmetic and comparison operators aren't
+		overloaded for float. The assert is just for clarity.) */
 	BOOST_STATIC_ASSERT(!std::numeric_limits<NumType>::has_infinity);
 	BOOST_STATIC_ASSERT(!std::numeric_limits<Epsilon>::has_infinity);
 	if (!bSIGNED)

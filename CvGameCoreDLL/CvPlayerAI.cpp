@@ -487,7 +487,8 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 	else
 	{
 		int iMaxBudget = AI_goldTarget(true);
-		iUpgradeBudget = std::min(iMaxBudget, getGold() * iMaxBudget / std::max(1, AI_goldTarget(false)));
+		iUpgradeBudget = std::min(iMaxBudget, getGold() * iMaxBudget /
+				std::max(1, AI_goldTarget(false)));
 	}
 	// K-Mod end
 
@@ -538,15 +539,14 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 				/*if (pLoopUnit->cargoSpace() > 0)
 					bValid = true;*/ // BtS
 				// Only normal transports
-				if (pLoopUnit->cargoSpace() > 0 && pLoopUnit->specialCargo() == NO_SPECIALUNIT)
+				if (pLoopUnit->cargoSpace() > 0 &&
+					pLoopUnit->specialCargo() == NO_SPECIALUNIT)
 				{
 					bValid = iStartingGold - getGold() < iUpgradeBudget;
 				}
 				// Also upgrade escort ships
 				if (pLoopUnit->AI_getUnitAIType() == UNITAI_ESCORT_SEA)
-				{
 					bValid = iStartingGold - getGold() < iUpgradeBudget;
-				}
 
 				break;
 			case 3:
@@ -565,7 +565,8 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 			if (!bNoDisband)
 			{
 				//if (pLoopUnit->canFight()) // BtS
-				if (pLoopUnit->getUnitCombatType() != NO_UNITCOMBAT) // K-Mod - bug fix for the rare case of a barb city spawning on top of an animal
+				// K-Mod - bug fix for the rare case of a barb city spawning on top of an animal
+				if (pLoopUnit->getUnitCombatType() != NO_UNITCOMBAT)
 				{
 					int iExp = pLoopUnit->getExperience();
 					CvCityAI const* pPlotCity = pLoopUnit->getPlot().AI_getPlotCity();
@@ -587,10 +588,11 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 								}
 							}*/
 							// K-Mod
-							if (iExp < iCityExp && GC.getGame().getGameTurn() - pLoopUnit->getGameTurnCreated() > 8)
+							if (iExp < iCityExp &&
+								GC.getGame().getGameTurn() - pLoopUnit->getGameTurnCreated() > 8)
 							{
-								int iDefenders = pLoopUnit->getPlot().plotCount(PUF_canDefendGroupHead, -1, -1,
-										getID(), NO_TEAM, PUF_isCityAIType);
+								int iDefenders = pLoopUnit->getPlot().plotCount(PUF_canDefendGroupHead,
+										-1, -1, getID(), NO_TEAM, PUF_isCityAIType);
 								if (iDefenders > pPlotCity->AI_minDefenders() &&
 									!AI_isAnyPlotDanger(*pLoopUnit->plot(), 2, false))
 								{
@@ -599,22 +601,21 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 									{
 										if (gUnitLogLevel > 2) logBBAI("    %S scraps %S, with %d exp, and %d / %d spending.", getCivilizationDescription(0), pLoopUnit->getName(0).GetCString(), iExp, iCostPerMil, AI_maxUnitCostPerMil(pLoopUnit->area(), 100));
 										pLoopUnit->scrap();
-										pLoopUnit->doDelayedDeath(); // I could have just done kill(), but who knows what extra work scrap() wants to do for us?
+										/*	I could have just done kill(), but who knows
+											what extra work scrap() wants to do for us? */
+										pLoopUnit->doDelayedDeath();
 										bKilled = true;
 										pLastUpgradePlot = NULL;
 										iCostPerMil = AI_unitCostPerMil(); // recalculate
 									}
 								}
-							}
-							// K-Mod end
+							} // K-Mod end
 						}
 					}
 				}
 			}
 			if (!bKilled)
-			{
 				pLoopUnit->AI_upgrade(); // CAN DELETE UNIT!!!
-			}
 		}
 	}
 
@@ -627,9 +628,10 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 
 	// UF bugfix: AI_doSplit moved here per alexman's suggestion
 	AI_doSplit();
-	// K-Mod note: the reason for moving it here is that player turn ordering can get messed up if a
-	// new player is created, recycling an old player number, while no one else's turn is 'active'.
-	// I can't help but think there is a more natural solution to this problem...
+	/*	K-Mod note: the reason for moving it here is that player turn ordering
+		can get messed up if a new player is created, recycling an old player number,
+		while no one else's turn is 'active'.
+		I can't help but think there is a more natural solution to this problem... */
 }
 
 // advc (note): UWAI bypasses this function
@@ -3301,17 +3303,16 @@ int CvPlayerAI::AI_countDangerousUnits(CvPlot const& kAttackerPlot, CvPlot const
 }*/
 // BETTER_BTS_AI_MOD: END
 
-int CvPlayerAI::AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves,  // advc: some style changes
+// advc: Some refactoring, unused param bTestMoves removed.
+int CvPlayerAI::AI_getWaterDanger(CvPlot const& kPlot, int iRange,
 	int iMaxCount) const // advc.opt
 {
 	PROFILE_FUNC();
 	FAssert(iMaxCount > 0); // advc.opt (use MAX_INT for infinity)
-
-	if (iRange == -1)
-		iRange = DANGER_RANGE;
+	FAssert(iRange >= 0); // advc: -1 no longer used for default range
 
 	int iCount = 0;
-	for (SquareIter it(*pPlot, iRange); it.hasNext(); ++it)
+	for (SquareIter it(kPlot, iRange); it.hasNext(); ++it)
 	{
 		CvPlot const& p = *it;
 		if (!p.isWater() || /* advc.opt: */ !p.isUnit() ||
@@ -3329,9 +3330,8 @@ int CvPlayerAI::AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves,  /
 		for (; pUnitNode != NULL; pUnitNode = p.nextUnitNode(pUnitNode))
 		{
 			CvUnit* pEnemyUnit = ::getUnit(pUnitNode->m_data);
-			if (!pEnemyUnit->isEnemy(getTeam(), *pPlot))
+			if (!pEnemyUnit->isEnemy(getTeam(), kPlot))
 				continue;
-
 			// advc.315: was pLoopUnit->canAttack()
 			if (AI_canBeAttackedBy(*pEnemyUnit) && !pEnemyUnit->isInvisible(getTeam(), false))
 			{
@@ -4260,7 +4260,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	if (kTechInfo.isGoldTrading() && !kTeam.isGoldTrading())
 	{
 		// K-Mod. The key value of gold trading is to facilitate tech trades.
-		int iBaseValue =  (!GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING) && !kTeam.isTechTrading())
+		int iBaseValue =
+			(!GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING) && !kTeam.isTechTrading())
 			// <k146>
 			? (getTotalPopulation() + 10)
 			: (getTotalPopulation()/3 + 3); // </k146>
@@ -5927,15 +5928,16 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 					//iTotalUnitValue += (getStateReligion() != NO_RELIGION ? 6 : 3)*iWeight;
 					// K-Mod. There might be one missionary for each religion. Be careful not to overvalue them!
 					{
-						for (ReligionTypes i = (ReligionTypes)0; i < GC.getNumReligionInfos(); i = (ReligionTypes)(i+1))
+						FOR_EACH_ENUM(Religion)
 						{
-							if (kLoopUnit.getReligionSpreads(i) && getHasReligionCount(i) > 0)
+							if (kLoopUnit.getReligionSpreads(eLoopReligion) &&
+								getHasReligionCount(eLoopReligion) > 0)
 							{
-								iUtilityValue = std::max(iUtilityValue, (getStateReligion() == i ? 6 : 3)*iWeight);
+								iUtilityValue = std::max(iUtilityValue,
+										(getStateReligion() == eLoopReligion ? 6 : 3) * iWeight);
 							}
 						}
-					}
-					// K-Mod end
+					} // K-Mod end
 					break;
 
 				case UNITAI_PROPHET:
@@ -6106,7 +6108,8 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			}
 			iTotalUnitValue += iUtilityValue;
 			// <advc.131> Haven't met anyone yet, and not yet sure if alone.
-			if(iHasMetCount <= 0 && !bCapitalAlone && !GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS))
+			if(iHasMetCount <= 0 && !bCapitalAlone &&
+				!GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS))
 			{
 				iDefenceValue /= 2;
 				iOffenceValue /= 3;
@@ -6114,7 +6117,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			// <k146>
 			iMilitaryValue += iOffenceValue + iDefenceValue;
 			if (kLoopUnit.getBombardRate() > 0 &&
-					!AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS))
+				!AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS))
 			{	// block moved from UNITAI_ATTACK_CITY:
 				iMilitaryValue += std::min(iOffenceValue, 100); // was straight 200
 				// </k146>
@@ -6188,7 +6191,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 				int iBestAreaValue = 0;
 				AI_getNumAreaCitySites(pCapital->getArea(), iBestAreaValue);
 
-				//Early Expansion by sea
+				// Early Expansion by sea
 				if (AI_bestAreaUnitAIValue(UNITAI_SETTLER_SEA, NULL, &eExistingUnit) == 0)
 				{
 					CvArea* pWaterArea = pCapital->waterArea();
@@ -12908,26 +12911,21 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 		PROFILE("AI_unitValue, UNITAI_ATTACK_CITY evaluation");
 		// Effect army composition to have more collateral/bombard units
 
-		iTempValue = ((iCombatValue * iCombatValue) / 75) + (iCombatValue / 2);
+		iTempValue = ((iCombatValue * iCombatValue) / 75) + iCombatValue / 2;
 		iValue += iTempValue;
 		if (u.isNoDefensiveBonus())
-		{
-			//iValue -= iTempValue / 2;
-			iValue -= iTempValue / 3; // K-Mod
-		}
+			iValue -= iTempValue / 3; // K-Mod (divisor was 2)
 		if (u.getDropRange() > 0)
 		{
 			//iValue -= iTempValue / 2;
 			// disabled by K-Mod (how is drop range a disadvantage?)
 		}
 		if (u.isFirstStrikeImmune())
-		{
 			iValue += (iTempValue * 8) / 100;
-		}
-		iValue += ((iCombatValue * u.getCityAttackModifier()) / 75); // bbai (was 100).
-		// iValue += ((iCombatValue * u.getCollateralDamage()) / 400); // (moved)
-		iValue += ((iCombatValue * u.getWithdrawalProbability()) / 150); // K-Mod (was 100)
-		// iValue += ((iCombatValue * u.getMoves() * iFastMoverMultiplier) / 4);
+		iValue += (iCombatValue * u.getCityAttackModifier()) / 75; // bbai (was 100).
+		// iValue += (iCombatValue * u.getCollateralDamage()) / 400; // (moved)
+		iValue += (iCombatValue * u.getWithdrawalProbability()) / 150; // K-Mod (was 100)
+		// iValue += (iCombatValue * u.getMoves() * iFastMoverMultiplier) / 4;
 		// K-Mod
 		if (u.getMoves() > 1)
 		{
@@ -13014,7 +13012,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 
 			iLimitedUnits -= range(AI_totalUnitAIs(UNITAI_COLLATERAL) - iNoLimitCollateral / 2, 0, iLimitedUnits);
 			FAssert(iLimitedUnits >= 0);
-			int iAttackUnits = std::max(1, AI_totalUnitAIs(UNITAI_ATTACK) + AI_totalUnitAIs(UNITAI_ATTACK_CITY)); // floor value is just to avoid divide-by-zero
+			// floor value just to avoid division by zero
+			int iAttackUnits = std::max(1, AI_totalUnitAIs(UNITAI_ATTACK) + AI_totalUnitAIs(UNITAI_ATTACK_CITY));
 			/*  advc.006: +1 added and replaced iLimitedUnits with iAttackUnits
 				in the 2nd clause b/c this assert kept failing for a capitulated
 				Renaissance civ w/o access to Horses (not sure if that's what's
@@ -13035,16 +13034,18 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 	case UNITAI_COLLATERAL:
 		iValue += iCombatValue;
 		//iValue += ((iCombatValue * u.getCollateralDamage()) / 50);
-		iValue += iCombatValue * u.getCollateralDamage() * (1 + u.getCollateralDamageMaxUnits()) / 350; // K-Mod (max units is 6-8 in the current xml)
-		iValue += ((iCombatValue * u.getMoves()) / 4);
-		iValue += ((iCombatValue * u.getWithdrawalProbability()) / 25);
-		iValue -= ((iCombatValue * u.getCityAttackModifier()) / 100);
+		// <K-Mod> (max units is 6-8 in the current xml)
+		iValue += iCombatValue * u.getCollateralDamage() *
+				(1 + u.getCollateralDamageMaxUnits()) / 350; // </K-Mod>
+		iValue += (iCombatValue * u.getMoves()) / 4;
+		iValue += (iCombatValue * u.getWithdrawalProbability()) / 25;
+		iValue -= (iCombatValue * u.getCityAttackModifier()) / 100;
 		break;
 
 	case UNITAI_PILLAGE:
 		iValue += iCombatValue;
 		//iValue += (iCombatValue * u.getMoves());
-		iValue += iCombatValue * (u.getMoves()-1) / 2;
+		iValue += iCombatValue * (u.getMoves() - 1) / 2;
 		break;
 
 	case UNITAI_RESERVE:
@@ -13196,8 +13197,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 		break;
 
 	case UNITAI_EXPLORE:
-		iValue += (iCombatValue / 2);
-		iValue += (u.getMoves() * 200);
+		iValue += iCombatValue / 2;
+		iValue += u.getMoves() * 200;
 		if (u.isNoBadGoodies())
 			iValue += 100;
 		// K-Mod note: spies are valid explorers, but the AI currently doesn't know to convert them to
@@ -15106,10 +15107,13 @@ CivicTypes CvPlayerAI::AI_bestCivic(CivicOptionTypes eCivicOption, int* piBestVa
 	return eBestCivic;
 }
 
-// The bulk of this function has been rewritten for K-Mod. (some original code deleted, some edited by BBAI)
-// Note: the value is roughly in units of commerce per turn.
-// Also, this function could probably be made a bit more accurate and perhaps even faster if it calculated effects on a city-by-city basis,
-// rather than averaging effects across all cities. (certainly this would work better for happiness modifiers.)
+/*	The bulk of this function has been rewritten for K-Mod.
+	(some original code deleted, some edited by BBAI)
+	Note: the value is roughly in units of 1 commerce per turn.
+	Also, this function could probably be made a bit more accurate and
+	perhaps even faster if it calculated effects on a city-by-city basis,
+	rather than averaging effects across all cities.
+	(certainly this would work better for happiness modifiers.) */
 int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 {
 	PROFILE_FUNC();
@@ -15133,7 +15137,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		int iEnemyWarSuccess = 0;
 		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; iTeam++)
 		{
-			if (GET_TEAM((TeamTypes)iTeam).isAlive() && !GET_TEAM((TeamTypes)iTeam).isMinorCiv())
+			if (GET_TEAM((TeamTypes)iTeam).isAlive() &&
+				!GET_TEAM((TeamTypes)iTeam).isMinorCiv())
 			{
 				WarPlanTypes eWarPlan = kTeam.AI_getWarPlan((TeamTypes)iTeam); // advc
 				if (eWarPlan != NO_WARPLAN)
@@ -15163,9 +15168,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 			else if (iEnemyWarSuccess > std::min(iCities, 2) * GC.getWAR_SUCCESS_CITY_CAPTURING())
 			{
 				if (kTeam.AI_getEnemyPowerPercent() > 120)
-				{
 					bWarPlan = true;
-				}
 			}
 		}
 	}
@@ -15178,36 +15181,44 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	}
 
 	//int iConnectedForeignCities = countPotentialForeignTradeCitiesConnected();
-	int iTotalReligonCount = countTotalHasReligion();
+	int const iTotalReligonCount = countTotalHasReligion();
 	ReligionTypes eBestReligion = getStateReligion();
 	int iBestReligionPopulation = 0;
 	if (kCivic.isStateReligion())
-	{
-		ReligionTypes temp = AI_bestReligion(); // only calculate best religion if this is a religious civic
+	{	// only calculate best religion if this is a religious civic
+		ReligionTypes temp = AI_bestReligion();
 		if (temp != NO_RELIGION)
 			eBestReligion = temp;
 
 		if (eBestReligion != NO_RELIGION)
 		{
 			FOR_EACH_CITY(pLoopCity, *this)
-				iBestReligionPopulation += pLoopCity->isHasReligion(eBestReligion) ? pLoopCity->getPopulation() : 0;
+			{
+				iBestReligionPopulation += (pLoopCity->isHasReligion(eBestReligion) ?
+						pLoopCity->getPopulation() : 0);
+			}
 		}
 	}
-	int iBestReligionCities = eBestReligion == NO_RELIGION ? 0 : getHasReligionCount(eBestReligion);
-	int iWarmongerFactor = 25000 / std::max(100, (100 + GC.getInfo(getPersonalityType()).getMaxWarRand()));
-	// K-Mod note. max war rand is between 50 and 400, so I've renamed the above number from iWarmongerPercent to iWarmongerFactor.
-	// I don't know what it is meant to be a percentage of. It's a number roughly between 56 and 167.
+	int const iBestReligionCities = (eBestReligion ==
+			(NO_RELIGION ? 0 : getHasReligionCount(eBestReligion)));
+	/*	K-Mod note. max war rand is between 50 and 400,
+		so I've renamed the above number from iWarmongerPercent to iWarmongerFactor.
+		I don't know what it is meant to be a percentage of. It's roughly between 56 and 167. */
+	int const iWarmongerFactor = 25000 / std::max(100,
+			100 + GC.getInfo(getPersonalityType()).getMaxWarRand());
 
-	int iMaintenanceFactor =  AI_commerceWeight(COMMERCE_GOLD) * std::max(0, calculateInflationRate() + 100) / 100; // K-Mod
+	// <K-Mod>
+	int iMaintenanceFactor =  AI_commerceWeight(COMMERCE_GOLD) *
+			std::max(0, calculateInflationRate() + 100) / 100; // </K-Mod>
 
-	int iValue = (iCities * 6);
+	int iValue = iCities * 6;
 
-	iValue += (GC.getInfo(eCivic).getAIWeight() * iCities);
+	iValue += GC.getInfo(eCivic).getAIWeight() * iCities;
 
 	// K-Mod: civic anger is counted somewhere else
 	//iValue += (getCivicPercentAnger(eCivic) / 10);
 
-	iValue += -(GC.getInfo(eCivic).getAnarchyLength() * iCities);
+	iValue -= GC.getInfo(eCivic).getAnarchyLength() * iCities;
 
 	//iValue += -(getSingleCivicUpkeep(eCivic, true)*80)/100;
 	iValue -= getSingleCivicUpkeep(eCivic, true) * iMaintenanceFactor / 100; // K-Mod. (note. upkeep modifiers are included in getSingleCivicUpkeep.)
@@ -15216,10 +15227,12 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	iValue += ((kCivic.getGreatPeopleRateModifier() * iCities) / 10);
 	iValue += ((kCivic.getGreatGeneralRateModifier() * getNumMilitaryUnits()) / 50);
 	iValue += ((kCivic.getDomesticGreatGeneralRateModifier() * getNumMilitaryUnits()) / 100);
-	/*iValue += -((kCivic.getDistanceMaintenanceModifier() * std::max(0, (iCities - 3))) / 8);
-	iValue += -((kCivic.getNumCitiesMaintenanceModifier() * std::max(0, (iCities - 3))) / 8);*/ // BtS
-	// K-Mod. After looking at a couple of examples, it's plain to see that the above maintenance estimates are far too big.
-	// Surprisingly, it actually doesn't take much time to calculate the precise magnitude of the maintenance change. So that's what I'll do!
+	/*iValue -= (kCivic.getDistanceMaintenanceModifier() * std::max(0, (iCities - 3))) / 8;
+	iValue -= (kCivic.getNumCitiesMaintenanceModifier() * std::max(0, (iCities - 3))) / 8;*/ // BtS
+	/*	K-Mod. After looking at a couple of examples, it's plain to see that
+		the above maintenance estimates are far too big.
+		Surprisingly, it actually doesn't take much time to calculate
+		the precise magnitude of the maintenance change. So that's what I'll do! */
 	if (kCivic.getNumCitiesMaintenanceModifier() != 0)
 	{
 		PROFILE("civicValue: NumCitiesMaintenance");
@@ -15275,7 +15288,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		if (iWorkers > 0)
 			iValue += kCivic.getWorkerSpeedModifier() * iWorkers / 15;
 	}
-	iValue += kCivic.getImprovementUpgradeRateModifier() * iCities / 50; // this is a tough one... I'll leave it alone for now.
+	// this is a tough one... I'll leave it alone for now.
+	iValue += kCivic.getImprovementUpgradeRateModifier() * iCities / 50;
 	// value for kCivic.getMilitaryProductionModifier() has been moved
 	if (kCivic.getBaseFreeUnits() || kCivic.getBaseFreeMilitaryUnits() ||
 		kCivic.getFreeUnitsPopulationPercent() || kCivic.getFreeMilitaryUnitsPopulationPercent() ||
@@ -15290,23 +15304,34 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		int iMilitaryCost = 0;
 		int iUnitCost = 0;
 		int iExtraCost = 0; // unused
-		calculateUnitCost(iFreeUnits, iFreeMilitaryUnits, iPaidUnits, iPaidMilitaryUnits, iUnitCost, iMilitaryCost, iExtraCost);
+		calculateUnitCost(iFreeUnits, iFreeMilitaryUnits, iPaidUnits, iPaidMilitaryUnits,
+				iUnitCost, iMilitaryCost, iExtraCost);
 
 		int iTempValue = 0;
 
 		// units costs. (note goldPerUnit and goldPerMilitaryUnit are in units of 1/100 gold)
-		int iCostPerUnit = (getGoldPerUnit() + (iS > 0 ? kCivic.getGoldPerUnit() : 0)) * getUnitCostMultiplier() / 100;
-		int iFreeUnitDelta = iS * (std::min(iUnits, iFreeUnits + iS*(kCivic.getBaseFreeUnits() + kCivic.getFreeUnitsPopulationPercent() * getTotalPopulation()/100)) - std::min(iUnits, iFreeUnits));
+		int iCostPerUnit = (getGoldPerUnit() + (iS > 0 ? kCivic.getGoldPerUnit() : 0)) *
+				getUnitCostMultiplier() / 100;
+		int iFreeUnitDelta = iS * (std::min(iUnits, iFreeUnits +
+				iS*(kCivic.getBaseFreeUnits() +
+				kCivic.getFreeUnitsPopulationPercent() * getTotalPopulation()/100)) -
+				std::min(iUnits, iFreeUnits));
 		FAssert(iFreeUnitDelta >= 0);
 		iTempValue += iFreeUnitDelta * iCostPerUnit * iMaintenanceFactor / 10000;
-		iTempValue -= (iPaidUnits-iFreeUnitDelta) * kCivic.getGoldPerUnit() * iMaintenanceFactor / 10000;
+		iTempValue -= (iPaidUnits - iFreeUnitDelta) * kCivic.getGoldPerUnit() *
+				iMaintenanceFactor / 10000;
 
 		// military
-		iCostPerUnit = getGoldPerMilitaryUnit() + (iS > 0 ? kCivic.getGoldPerMilitaryUnit() : 0);
-		iFreeUnitDelta = iS * (std::min(iMilitaryUnits, iFreeMilitaryUnits + iS*(kCivic.getBaseFreeMilitaryUnits() + kCivic.getFreeMilitaryUnitsPopulationPercent() * getTotalPopulation()/100)) - std::min(iMilitaryUnits, iFreeMilitaryUnits));
+		iCostPerUnit = getGoldPerMilitaryUnit() +
+				(iS > 0 ? kCivic.getGoldPerMilitaryUnit() : 0);
+		iFreeUnitDelta = iS * (std::min(iMilitaryUnits, iFreeMilitaryUnits +
+				iS*(kCivic.getBaseFreeMilitaryUnits() +
+				kCivic.getFreeMilitaryUnitsPopulationPercent() * getTotalPopulation()/100)) -
+				std::min(iMilitaryUnits, iFreeMilitaryUnits));
 		FAssert(iFreeUnitDelta >= 0);
 		iTempValue += iFreeUnitDelta * iCostPerUnit * iMaintenanceFactor / 10000;
-		iTempValue -= (iPaidMilitaryUnits-iFreeUnitDelta) * kCivic.getGoldPerMilitaryUnit() * iMaintenanceFactor / 10000;
+		iTempValue -= (iPaidMilitaryUnits - iFreeUnitDelta) * kCivic.getGoldPerMilitaryUnit() *
+				iMaintenanceFactor / 10000;
 
 		// adjust based on future expectations
 		if (iTempValue < 0)
@@ -15317,6 +15342,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		iValue += iTempValue;
 	}
 	// K-Mod end
+
+	CvCityAI const* pCapital = AI_getCapitalCity();
 
 	//iValue += ((kCivic.isMilitaryFoodProduction()) ? 0 : 0);
 	// bbai
@@ -15344,22 +15371,27 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 					iTempValue *= 75 + range(-iWarSuccessRating, 25, 100);
 					iTempValue /= 100;
 				}
-				// K-Mod. (What's with all the "losing means we need drafting" mentality in the BBAI code? It's... not the right way to look at it.)
-				// (NOTE: "conscript_population_per_cost" is actually "production_per_conscript_population". The developers didn't know what "per" means.)
+				/*	K-Mod. (What's with all the "losing means we need drafting" mentality
+					in the BBAI code? It's... not the right way to look at it.)
+					(NOTE: "conscript_population_per_cost" is actually
+					"production_per_conscript_population".) */
 				int iConscriptPop = std::max(1, GC.getInfo(eConscript).getProductionCost() /
 						GC.getDefineINT(CvGlobals::CONSCRIPT_POPULATION_PER_COST));
 				int iProductionFactor = 100 * GC.getInfo(eConscript).getProductionCost();
-				iProductionFactor /= iConscriptPop * GC.getDefineINT(CvGlobals::CONSCRIPT_POPULATION_PER_COST);
+				iProductionFactor /= iConscriptPop *
+						GC.getDefineINT(CvGlobals::CONSCRIPT_POPULATION_PER_COST);
 				iTempValue *= iProductionFactor;
 				iTempValue /= 100;
 				iTempValue *= std::min(iCities, iMaxConscript*3);
 				iTempValue /= iMaxConscript*3;
 				// reduce the value if unit spending is already high.
 				int iUnitSpending = AI_unitCostPerMil();
-				int iMaxSpending = AI_maxUnitCostPerMil() + 5 - iS*5; // increase max by 1% if we're already on this civic, just for a bit of inertia.
+				// increase max by 1% if we're already on this civic, just for a bit of inertia.
+				int iMaxSpending = AI_maxUnitCostPerMil() + 5 - iS*5;
 				if (iUnitSpending > iMaxSpending)
 				{
-					iTempValue = std::max(0, iTempValue * (2 * iMaxSpending - iUnitSpending)/std::max(1, iMaxSpending));
+					iTempValue = std::max(0, iTempValue *
+							(2 * iMaxSpending - iUnitSpending)/std::max(1, iMaxSpending));
 				}
 				else if (iProductionFactor >= 140) // cf. 'bGoodValue' in CvCityAI::AI_doDraft
 				{
@@ -15367,7 +15399,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 					iTempValue *= ::round(1.35*iMaxSpending);
 					iTempValue /= std::max(1, iMaxSpending + iUnitSpending);
 				}
-				// todo. put in something to do with how much happiness we can afford to lose.. or something like that.
+				/*	todo. put in something to do with how much happiness we can afford to lose..
+					or something like that. */
 				// K-Mod end
 
 				iValue += iTempValue;
@@ -15387,14 +15420,18 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	// If the GW threshold has been reached, increase the value based on GW anger
 	if (kGame.getGlobalWarmingIndex() > 0)
 	{
-		// estimate the happiness boost...
-		// suppose pop pollution is 1/3 of total, and current relative contribution is around 100%
-		// and anger percent scales like 2* relative contribution...
-		// anger percent reduction will then be around (kCivic.getUnhealthyPopulationModifier()*2/3)%
+		/*	estimate the happiness boost...
+			suppose pop pollution is 1/3 of total,
+			and current relative contribution is around 100%
+			and anger percent scales like 2* relative contribution...
+			anger percent reduction will then be around
+			(kCivic.getUnhealthyPopulationModifier()*2/3)%
 
-		// Unfortunately, since adopting this civic will lower the very same anger percent that is giving the civic value...
-		// the civic will be valued lower as soon as it is adopted. :(
-		// Fixing this problem (and others like it) is a bit tricky. For now, I'll just try to fudge around it.
+			Unfortunately, since adopting this civic will lower
+			the very same anger percent that is giving the civic value...
+			the civic will be valued lower as soon as it is adopted. :(
+			Fixing this problem (and others like it) is a bit tricky.
+			For now, I'll just try to fudge around it. */
 		int iGwAnger = getGwPercentAnger();
 		if (isCivic(eCivic)) // Fudge factor
 		{
@@ -15407,16 +15444,14 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		int iCleanValue = 0;
 		if(iHappy != 0) // </advc.001>
 			iCleanValue = (iCities * 12 * iS * AI_getHappinessWeight(iHappy, 1, true)) / 100;
-		// This isn't a big reduction; and it should be the only part of this evaluation.
-		// Maybe I'll add more later; such as some flavour factors.
+		/*	This isn't a big reduction; and it should be the only part of this evaluation.
+			Maybe I'll add more later; such as some flavour factors. */
 
 		iValue += iCleanValue;
 	}
 // K-Mod end
 	if (bWarPlan)
-	{
-		iValue += ((kCivic.getExpInBorderModifier() * getNumMilitaryUnits()) / 200);
-	}
+		iValue += (kCivic.getExpInBorderModifier() * getNumMilitaryUnits()) / 200;
 	iValue += ((kCivic.isBuildingOnlyHealthy()) ? (iCities * 3) : 0);
 	//iValue += -((kCivic.getWarWearinessModifier() * getNumCities()) / ((bWarPlan) ? 10 : 50));
 	// <cdtw.4> Replacing the above
@@ -15434,8 +15469,9 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		iValue += iTempValue;
 	} // </cdtw.4>
 	//iValue += (kCivic.getFreeSpecialist() * iCities * 12);
-	// K-Mod. A rough approximation is ok, but perhaps not quite /that/ rough.
-	// Here's some code that I wrote for specialists in AI_buildingValue. (note. building value uses 4x commerce; but here we just use 1x commerce)
+	/*	K-Mod. A rough approximation is ok, but perhaps not quite /that/ rough.
+		Here's some code that I wrote for specialists in AI_buildingValue.
+		(note. building value uses 4x commerce; but here we just use 1x commerce) */
 	if (kCivic.getFreeSpecialist() != 0)
 	{
 		int iSpecialistValue = 5 * 100; // rough base value
@@ -15451,22 +15487,25 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	}
 	// K-Mod end
 
-	/*
-	iValue += (kCivic.getTradeRoutes() * (std::max(0, iConnectedForeignCities - iCities * 3) * 6 + (iCities * 2)));
-	iValue += -((kCivic.isNoForeignTrade()) ? (iConnectedForeignCities * 3) : 0); */
+	/*iValue += kCivic.getTradeRoutes() * (std::max(0, iConnectedForeignCities - iCities * 3) * 6 + (iCities * 2));
+	iValue -= (kCivic.isNoForeignTrade()) ? (iConnectedForeignCities * 3) : 0;*/
 
-	// K-Mod - take a few more things into account for trade routes.
-	// NOTE: this calculation makes a bunch of assumptions about about the yield type and magnitude from trade routes.
+	/*	K-Mod - take a few more things into account for trade routes.
+		NOTE: this calculation makes a bunch of assumptions
+		about the yield type and magnitude from trade routes. */
 	if (kCivic.getTradeRoutes() != 0 || kCivic.isNoForeignTrade())
 	{
 		PROFILE("civicValue: trade routes");
-		// As a rough approximation, let each foreign trade route give base 3 commerce, and local trade routes give 1.
-		// Our civ can have 1 connection to each foreign city.
+		/*	As a rough approximation, let each foreign trade route give base 3 commerce,
+			and local trade routes give 1.
+			Our civ can have 1 connection to each foreign city. */
 
 		int iTempValue = 0;
-		int iConnectedForeignCities = AI_countPotentialForeignTradeCities(true, AI_getFlavorValue(FLAVOR_GOLD) == 0);
+		int iConnectedForeignCities = AI_countPotentialForeignTradeCities(
+				true, AI_getFlavorValue(FLAVOR_GOLD) == 0);
 
-		int iTotalTradeRoutes = iCities * 3; // I'll save the proper count for when the estimate of yield / route improves...
+		// I'll save the proper count for when the estimate of yield / route improves...
+		int iTotalTradeRoutes = iCities * 3;
 		/*FOR_EACH_CITY(pLoopCity, *this)
 			iTotalTradeRoutes += pLoopCity->getTradeRoutes();
 		if (iS < 0)
@@ -15476,39 +15515,45 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 
 		if (kCivic.isNoForeignTrade())
 		{
-			// We should attempt the block one-way trade which other civs might be getting from us.
-			// count how many foreign trade cities we are not connected to...
-			int iDisconnectedForeignTrade = AI_countPotentialForeignTradeCities(false, AI_getFlavorValue(FLAVOR_GOLD) == 0) - iConnectedForeignCities;
+			/*	We should attempt the block one-way trade which other civs might be getting from us.
+				count how many foreign trade cities we are not connected to... */
+			int iDisconnectedForeignTrade = AI_countPotentialForeignTradeCities(
+					false, AI_getFlavorValue(FLAVOR_GOLD) == 0) - iConnectedForeignCities;
 			FAssert(iDisconnectedForeignTrade >= 0);
-			// and estimate the value of blocking foreign trade to these cities. (we don't get anything from this, but we're denying our potential rivals.)
+			/*	and estimate the value of blocking foreign trade to these cities.
+				(we don't get anything from this, but we're denying our potential rivals.) */
 			iTempValue += std::min(iDisconnectedForeignTrade, iCities); // just 1 point per city.
 
 			// estimate the number of foreign cities which are immune to "no foreign trade".
 			int iSafeOverseasTrade = 0;
-			for (TeamTypes i = (TeamTypes)0; i < MAX_CIV_TEAMS; i = (TeamTypes)(i+1))
+			for (TeamIter<MAJOR_CIV,NOT_A_RIVAL_OF> it(kTeam.getID()); it.hasNext(); ++it)
 			{
-				if (i == getTeam() || !kTeam.isFreeTrade(i))
-					continue;
-				if (kTeam.isVassal(i) || GET_TEAM(i).isVassal(getTeam()))
-					iSafeOverseasTrade += GET_TEAM(i).getNumCities();
+				if (it->getID() != kTeam.getID() && kTeam.isFreeTrade(it->getID()))
+					iSafeOverseasTrade += it->getNumCities();
 			}
 			iSafeOverseasTrade = std::min(iSafeOverseasTrade, iConnectedForeignCities);
-
-			iTempValue -= std::min(iConnectedForeignCities - iSafeOverseasTrade, iTotalTradeRoutes) * 3/2; // only reduce by 1.5 rather than 2, because it is good to deny our rivals the trade.
+			iTempValue -= std::min(iConnectedForeignCities -
+					// only reduce by 1.5 rather than 2, because it is good to deny our rivals the trade.
+					iSafeOverseasTrade, iTotalTradeRoutes) * 3/2;
 			iConnectedForeignCities = iSafeOverseasTrade;
 		}
 
-		// Unfortunately, it's not easy to tell whether or not we'll foreign trade when we switch to this civic.
-		// for example, if we are considering a switch from mercantilism to free market, we'd currently have "noForeignTrade", but if we actually make the switch then we wouldn't.
-		//  ... So for simplicity I'm going to just assume that there is only one civic with noForeignTrade, and therefore the value of iConnectedForeignCities is unchanged.
+		/*	Unfortunately, it's not easy to tell whether or not we'll foreign trade
+			when we switch to this civic. for example, if we are considering
+			a switch from mercantilism to free market, we'd currently have "noForeignTrade",
+			but if we actually make the switch then we wouldn't.
+			... So for simplicity I'm going to just assume that there is
+			only one civic with noForeignTrade, and therefore the value of
+			iConnectedForeignCities is unchanged. */
 		//CvCity* pCapital = getCapitalCity(); // advc: Redundant
-		if (pCapital)
+		if (pCapital != NULL)
 		{
 			// add an estimate of our own overseas cities (even though they are not really "foreign".
 			iConnectedForeignCities += iCities - pCapital->getArea().getCitiesPerPlayer(getID());
 		}
 
-		iTempValue += kCivic.getTradeRoutes() * std::max(0, iConnectedForeignCities - iTotalTradeRoutes) * 2 + iCities * 1;
+		iTempValue += kCivic.getTradeRoutes() *
+				std::max(0, iConnectedForeignCities - iTotalTradeRoutes) * 2 + iCities * 1;
 
 		// Trade routes increase in value as cities grow, and build trade multipliers
 		iTempValue *= 2*(getCurrentEra()+1) + GC.getNumEraInfos();
@@ -15521,28 +15566,34 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	// K-Mod end
 
 	// Corporations (K-Mod edition!)
-	if (kCivic.isNoCorporations() || kCivic.isNoForeignCorporations() || kCivic.getCorporationMaintenanceModifier() != 0)
+	if (kCivic.isNoCorporations() || kCivic.isNoForeignCorporations() ||
+		kCivic.getCorporationMaintenanceModifier() != 0)
 	{
 		PROFILE("civicValue: corporation effects");
+		/*	an estimate of the value lost when "isNoCorporations" blocks us
+			from founding a good corp. */
+		int iPotentialCorpValue = 0;
 
-		int iPotentialCorpValue = 0; // an estimate of the value lost when "isNoCorporations" blocks us from founding a good corp.
-
-		for (CorporationTypes eCorp = (CorporationTypes)0; eCorp < GC.getNumCorporationInfos(); eCorp=(CorporationTypes)(eCorp+1))
+		FOR_EACH_ENUM2(Corporation, eCorp)
 		{
-			const CvCorporationInfo& kCorpInfo = GC.getInfo(eCorp);
+			CvCorporationInfo const& kCorpInfo = GC.getInfo(eCorp);
 			int iSpeculation = 0;
 			if (!kGame.isCorporationFounded(eCorp))
 			{
-				// if this civic is going to block us from founding any new corporations
-				// then we should try to estimate the cost of blocking such an opportunity.
-				// (but we don't count corporations that are simply founded by a technology)
-				if (AI_getFlavorValue(FLAVOR_GROWTH) + AI_getFlavorValue(FLAVOR_SCIENCE) > 0 && kCivic.isNoCorporations() && kCorpInfo.getTechPrereq() == NO_TECH)
+				/*	if this civic is going to block us from founding any new corporations
+					then we should try to estimate the cost of blocking such an opportunity.
+					(but we don't count corporations that are simply founded by a technology) */
+				if (AI_getFlavorValue(FLAVOR_GROWTH) + AI_getFlavorValue(FLAVOR_SCIENCE) > 0 &&
+					kCivic.isNoCorporations() && kCorpInfo.getTechPrereq() == NO_TECH)
 				{
-					// first, if this corp competes with a corp that we already have, then assume we don't want it.
+					/*	first, if this corp competes with a corp that we already have,
+						then assume we don't want it. */
 					bool bConflict = false;
-					for (CorporationTypes i = (CorporationTypes)0; i < GC.getNumCorporationInfos(); i=(CorporationTypes)(i+1))
+					FOR_EACH_ENUM2(Corporation, eCompetitor)
 					{
-						if (kGame.isCompetingCorporation(eCorp, i) && kGame.isCorporationFounded(i) && countCorporations(i) > 0)
+						if (kGame.isCompetingCorporation(eCorp, eCompetitor) &&
+							kGame.isCorporationFounded(eCompetitor) &&
+							countCorporations(eCompetitor) > 0)
 						{
 							bConflict = true;
 							break;
@@ -15551,25 +15602,34 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 
 					if (!bConflict)
 					{
-						// Find the building that founds the corp, and check how many players have the prereq techs.
-						// Note: I'm assuming that the conditions for this building are reasonable.
-						// eg. if a great person is required, then it should be a great person that we are actually able to get!
-						for (BuildingTypes i = (BuildingTypes)0; i < GC.getNumBuildingInfos(); i=(BuildingTypes)(i+1))
+						/*	Find the building that founds the corp, and check
+							how many players have the prereq techs.
+							Note: I'm assuming that the conditions for this building
+							are reasonable. eg. if a great person is required,
+							then it should be a great person that we are actually able to get! */
+						FOR_EACH_ENUM(Building)
 						{
-							const CvBuildingInfo& kLoopBuilding = GC.getInfo(i);
-							if (kLoopBuilding.getFoundsCorporation() == eCorp && kLoopBuilding.getProductionCost() < 0) // don't count buildings that can be constructed normally
+							CvBuildingInfo const& kLoopBuilding = GC.getInfo(eLoopBuilding);
+							if (kLoopBuilding.getFoundsCorporation() != eCorp ||
+								// don't count buildings that can be constructed normally
+								kLoopBuilding.getProductionCost() >= 0)
 							{
-								bool bHasPrereq = true;
-								if (canDoCivics(eCivic))
-								{
-									// Only check the tech prereqs for the corp if we already have the prereqs for this civic.
-									// (This condition will help us research towards the corp tech rather than researching towards the civic that will block the corp.)
+								continue; // advc
+							}
+							bool bHasPrereq = true;
+							if (canDoCivics(eCivic))
+							{
+								/*	Only check the tech prereqs for the corp
+									if we already have the prereqs for this civic.
+									(This condition will help us research towards
+									the corp tech rather than researching towards
+									the civic that will block the corp.) */
 									bHasPrereq = (kTeam.isHasTech(kLoopBuilding.getPrereqAndTech()) ||
 											canResearch(kLoopBuilding.getPrereqAndTech()));
-									for (int iI = 0; bHasPrereq && iI < GC.getNUM_BUILDING_AND_TECH_PREREQS(); iI++)
+									for (int i = 0; bHasPrereq && i < GC.getNUM_BUILDING_AND_TECH_PREREQS(); i++)
 									{
-										bHasPrereq = (kTeam.isHasTech(kLoopBuilding.getPrereqAndTechs(iI)) ||
-											canResearch(kLoopBuilding.getPrereqAndTechs(iI)));
+										bHasPrereq = (kTeam.isHasTech(kLoopBuilding.getPrereqAndTechs(i)) ||
+											canResearch(kLoopBuilding.getPrereqAndTechs(i)));
 									}
 								}
 
@@ -15577,30 +15637,28 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 								{
 									iSpeculation = 2;
 									// +1 for each other player we know with all the prereqs
-									for (PlayerTypes j = (PlayerTypes)0; j < MAX_CIV_PLAYERS; j=(PlayerTypes)(j+1))
+									// (advc: Skip minor civs and our vassals)
+									for (TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(getTeam());
+										it.hasNext(); ++it)
 									{
-										const CvTeam& kLoopTeam = GET_TEAM(GET_PLAYER(j).getTeam());
-										if (kLoopTeam.getID() != getTeam() && kTeam.isHasMet(kLoopTeam.getID()))
+										CvTeam const& kRival = *it;
+										bHasPrereq = kRival.isHasTech(kLoopBuilding.getPrereqAndTech());
+										for (int i = 0; i < GC.getNUM_BUILDING_AND_TECH_PREREQS() &&
+											bHasPrereq; i++)
 										{
-											bHasPrereq = kLoopTeam.isHasTech((TechTypes)kLoopBuilding.getPrereqAndTech());
-
-											for (int iI = 0; bHasPrereq && iI < GC.getNUM_BUILDING_AND_TECH_PREREQS(); iI++)
-											{
-												bHasPrereq = kLoopTeam.isHasTech((TechTypes)kLoopBuilding.getPrereqAndTechs(iI));
-											}
-											if (bHasPrereq)
-												iSpeculation++;
+											bHasPrereq = kRival.isHasTech(kLoopBuilding.getPrereqAndTechs(i));
 										}
+										if (bHasPrereq)
+											iSpeculation += kRival.getNumMembers();
 									}
 								}
 								// assume there is only one building that founds the corporation
 								break;
 							}
-						}
 					}
 				}
 
-				if (iSpeculation == 0)
+				if (iSpeculation <= 0)
 					continue; // no value from this corp, speculative or otherwise
 			}
 
@@ -15612,34 +15670,35 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 				bTeamHQ = true;
 			}
 			else if (kTeam.hasHeadquarters(eCorp))
-			{
 				bTeamHQ = true;
-			}
 
 			int iCorpValue = 0; // total civic value change due to the effect of this corporation.
 
 			int iBonuses = 0;
 			int iCorpCities = countCorporations(eCorp);
 			int iMaintenance = 0;
-			// If the HQ is ours, assume we will spread the corp. If it is not our, assume we don't care.
-			// (Note: this doesn't take into account the posibility of competing corps. Sorry.)
+			/*	If the HQ is ours, assume we will spread the corp.
+				If it is not our, assume we don't care.
+				(This doesn't take into account the posibility of competing corps. Sorry.) */
 			if (bTeamHQ)
 			{
-				iCorpCities = ((bPlayerHQ ?1 :2)*iCorpCities + iCities)/(bPlayerHQ ?2 :3);
+				iCorpCities = ((bPlayerHQ ? 1 : 2) * iCorpCities + iCities) /
+						(bPlayerHQ ? 2 : 3);
 			}
 
 			for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
 			{
 				BonusTypes eBonus = (BonusTypes)kCorpInfo.getPrereqBonus(i);
 				if (NO_BONUS != eBonus)
-				{
-					iBonuses +=	kTeam.isBonusRevealed(eBonus) ? AI_countOwnedBonuses(eBonus) : 1; // expect that we'll get at least one of each unrevealed bonus.
+				{	// expect that we'll get at least one of each unrevealed bonus.
+					iBonuses +=	(kTeam.isBonusRevealed(eBonus) ?
+							AI_countOwnedBonuses(eBonus) : 1);
 					// maybe use getNumAvailableBonuses ?
 				}
 			}
 			iBonuses += bPlayerHQ ? 1 : 0;
 
-			for (CommerceTypes i = (CommerceTypes)0; i < NUM_COMMERCE_TYPES; i = (CommerceTypes)(i+1))
+			FOR_EACH_ENUM2(Commerce, eCommerce)
 			{
 				int iTempValue = 0;
 
@@ -15648,40 +15707,49 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 					((kCivic.isNoForeignCorporations() && !bPlayerHQ) ||
 					kCivic.isNoCorporations()))
 				{
-					CvCity const* pHqCity = (iSpeculation == 0 ? kGame.getHeadquarters(eCorp) : pCapital);
-					if (pHqCity)
-						iTempValue -= pHqCity->getCommerceRateModifier(i) * kCorpInfo.getHeadquarterCommerce(i) * iCorpCities / 100;
+					CvCity const* pHqCity = (iSpeculation == 0 ?
+							kGame.getHeadquarters(eCorp) : pCapital);
+					if (pHqCity != NULL)
+					{
+						iTempValue -= pHqCity->getCommerceRateModifier(eCommerce) *
+								kCorpInfo.getHeadquarterCommerce(eCommerce) * iCorpCities / 100;
+					}
 				}
-
 				// loss of corp commerce bonuses
-				if (kCivic.isNoCorporations() || (kCivic.isNoForeignCorporations() && !bPlayerHQ))
+				if (kCivic.isNoCorporations() ||
+					(kCivic.isNoForeignCorporations() && !bPlayerHQ))
 				{
-					iTempValue -= iCorpCities * ((AI_averageCommerceMultiplier(i) * kCorpInfo.getCommerceProduced(i))/100 * iBonuses * GC.getInfo(GC.getMap().getWorldSize()).getCorporationMaintenancePercent()) / 10000;
+					iTempValue -= iCorpCities *
+							((AI_averageCommerceMultiplier(eCommerce) *
+							kCorpInfo.getCommerceProduced(eCommerce))/100 *
+							iBonuses *
+							GC.getInfo(GC.getMap().getWorldSize()).
+							getCorporationMaintenancePercent()) / 10000;
 				}
-
 				if (iTempValue != 0)
 				{
-					iTempValue *= AI_commerceWeight(i);
+					iTempValue *= AI_commerceWeight(eCommerce);
 					iTempValue /= 100;
-
 					iCorpValue += iTempValue;
 				}
 
-				iMaintenance += kCorpInfo.getHeadquarterCommerce(i) * iCorpCities;
+				iMaintenance += kCorpInfo.getHeadquarterCommerce(eCommerce) * iCorpCities;
 			}
 
-			if (kCivic.isNoCorporations() || (kCivic.isNoForeignCorporations() && !bPlayerHQ))
+			if (kCivic.isNoCorporations() ||
+				(kCivic.isNoForeignCorporations() && !bPlayerHQ))
 			{
 				// loss of corp yield bonuses
-				for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
+				FOR_EACH_ENUM2(Yield, eYield)
 				{
-					int iTempValue = -(iCorpCities * kCorpInfo.getYieldProduced((YieldTypes)iI) * iBonuses);
-					iTempValue *= AI_averageYieldMultiplier((YieldTypes)iI);
+					int iTempValue = -(iCorpCities * kCorpInfo.getYieldProduced(eYield) * iBonuses);
+					iTempValue *= AI_averageYieldMultiplier(eYield);
 					iTempValue /= 100;
-					iTempValue *= GC.getInfo(GC.getMap().getWorldSize()).getCorporationMaintenancePercent();
+					iTempValue *= GC.getInfo(GC.getMap().getWorldSize()).
+							getCorporationMaintenancePercent();
 					iTempValue /= 10000; // getYieldProduced is x100.
 
-					iTempValue *= AI_yieldWeight((YieldTypes)iI);
+					iTempValue *= AI_yieldWeight(eYield);
 					iTempValue /= 100;
 
 					iCorpValue += iTempValue;
@@ -15690,41 +15758,44 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 				// loss of corp resource
 				if (kCorpInfo.getBonusProduced() != NO_BONUS)
 				{
-					iCorpValue -= AI_bonusVal((BonusTypes)kCorpInfo.getBonusProduced(), 1, false) / 4;
+					iCorpValue -= AI_bonusVal((BonusTypes)
+							kCorpInfo.getBonusProduced(), 1, false) / 4;
 				}
 			}
 
 			// loss of maintenance cost (money saved)
 			int iTempValue = kCorpInfo.getMaintenance() * iBonuses * iCorpCities;
-			iTempValue *= GC.getInfo(GC.getMap().getWorldSize()).getCorporationMaintenancePercent();
+			iTempValue *= GC.getInfo(GC.getMap().getWorldSize()).
+					getCorporationMaintenancePercent();
 			iTempValue /= 10000;
 			iTempValue += iMaintenance;
 			// population, and maintenance modifiers... lets just approximate them like this:
 			iTempValue *= 2;
 			iTempValue /= 3;
 
-			// (note, corp maintenance is not amplified by inflation, and so we don't use iMaintenanceFactor here.)
+			/*	(note, corp maintenance is not amplified by inflation,
+				and so we don't use iMaintenanceFactor here.) */
 			iTempValue *= AI_commerceWeight(COMMERCE_GOLD);
 			iTempValue /= 100;
 
-			if (kCivic.isNoCorporations() || (kCivic.isNoForeignCorporations() && !bPlayerHQ))
+			if (kCivic.isNoCorporations() ||
+				(kCivic.isNoForeignCorporations() && !bPlayerHQ))
 			{
 				iCorpValue += iTempValue;
 			}
-			else
-			{
-				iCorpValue += (-kCivic.getCorporationMaintenanceModifier() * iTempValue)/100;
-			}
+			else iCorpValue -= (kCivic.getCorporationMaintenanceModifier() * iTempValue) / 100;
 
 			FAssert(iSpeculation == 0 || (!kGame.isCorporationFounded(eCorp) && kCivic.isNoCorporations()));
-			iCorpValue;
 			if (iSpeculation == 0)
 				iValue += iCorpValue;
 			else
 			{
-				// Note: when speculating about disabling unfounded corps, we only count the losses. (If the corp is negative value, then we wouldn't found it!)
+				/*	Note: when speculating about disabling unfounded corps,
+					we only count the losses.
+					(If the corp is negative value, then we wouldn't found it!) */
 				iCorpValue *= 2;
-				iCorpValue /= iSpeculation + 1; // iSpeculation == 2 + # of other civs with the prereqs.
+				// iSpeculation == 2 + # of other civs with the prereqs.
+				iCorpValue /= iSpeculation + 1;
 				if (iCorpValue < iPotentialCorpValue)
 					iPotentialCorpValue = iCorpValue;
 			}
@@ -15737,16 +15808,22 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 
 	if (kCivic.getCivicPercentAnger() != 0)
 	{
-		// K-Mod version. (the original bts code was ridiculous - it is now deleted)
-		// value for negation of unhappiness. Again, let me point out how _stupid_ it is that "percent_anger_divisor" is 1000, not 100.
-		iValue += (iCities * 12 * iS * AI_getHappinessWeight(iS*getCivicPercentAnger(eCivic, true)*100/GC.getPERCENT_ANGER_DIVISOR(), 2, true)) / 100;
-		// value for putting pressure on other civs. (this should probably take into account the civics of other civs)
-		iValue += kCivic.getCivicPercentAnger() * (iCities * iCities - iCities) / (5*kGame.getNumCities()); // the 5* on the end is because "percent" is really per mil.
+		/*	K-Mod version. (the original bts code was ridiculous - it is now deleted)
+			value for negation of unhappiness. "percent_anger_divisor" is 1000, not 100. */
+		iValue += (iCities * 12 * iS * AI_getHappinessWeight(
+				iS*getCivicPercentAnger(eCivic, true)*
+				100/GC.getPERCENT_ANGER_DIVISOR(), 2, true)) / 100;
+		/*	value for putting pressure on other civs.
+			(this should probably take into account the civics of other civs) */
+		iValue += kCivic.getCivicPercentAnger() * (iCities * iCities - iCities) /
+				(5*kGame.getNumCities()); // 5* because "percent" is really per mil.
 	}
 
 	if (kCivic.getExtraHealth() != 0)
-		iValue += (iCities * 6 * iS * AI_getHealthWeight(iS*kCivic.getExtraHealth(), 1)) / 100;
-
+	{
+		iValue += (iCities * 6 * iS *
+				AI_getHealthWeight(iS*kCivic.getExtraHealth(), 1)) / 100;
+	}
 	if (kCivic.getExtraHappiness() != 0) // New K-Mod effect
 	{
 		iValue += (iCities * 10 * iS * AI_getHappinessWeight(iS *
@@ -15768,23 +15845,34 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 				iHappyChangeCapital, 1)) / 100;
 	} // </advc.912c>
 	if (kCivic.getLargestCityHappiness() != 0)
-		iValue += (16 * std::min(iCities, GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities()) * iS * AI_getHappinessWeight(iS*kCivic.getLargestCityHappiness(), 1)) / 100; // Higher weight, because it affects the best cities (was 14)
-
+	{	// Higher weight, because it affects the best cities (was 14)
+		iValue += (16 * std::min(iCities, GC.getInfo(GC.getMap().getWorldSize()).
+				getTargetNumCities()) * iS * AI_getHappinessWeight(
+				iS*kCivic.getLargestCityHappiness(), 1)) / 100;
+	}
 	if (kCivic.getWarWearinessModifier() != 0) // K-Mod. (original code deleted)
-		iValue += (12 * iCities * iS * AI_getHappinessWeight(iS*ROUND_DIVIDE(getWarWearinessPercentAnger() * -getWarWearinessModifier(), GC.getPERCENT_ANGER_DIVISOR()), 1, true)) / 100;
-
-	//iValue += (kCivic.getNonStateReligionHappiness() * (iTotalReligonCount - iHighestReligionCount) * 5);
+	{
+		iValue += (12 * iCities * iS * AI_getHappinessWeight(iS*ROUND_DIVIDE(
+				getWarWearinessPercentAnger() * -getWarWearinessModifier(),
+				GC.getPERCENT_ANGER_DIVISOR()), 1, true)) / 100;
+	}
+	//iValue += kCivic.getNonStateReligionHappiness() * (iTotalReligonCount - iHighestReligionCount) * 5;
 	// K-Mod
 	if (kCivic.getNonStateReligionHappiness() != 0)
-		iValue += 12 * iCities * iS * AI_getHappinessWeight(iS * kCivic.getNonStateReligionHappiness() * iTotalReligonCount / std::max(1, iCities), 0) / 100;
-	// K-Mod end
+	{
+		iValue += 12 * iCities * iS * AI_getHappinessWeight(
+				iS * kCivic.getNonStateReligionHappiness() *
+				iTotalReligonCount / std::max(1, iCities), 0) / 100;
+	} // K-Mod end
 
 	// K-Mod. Experience and production modifiers
 	{
-		// Roughly speaking these are the approximations used in this section:
-		// each population produces 1 hammer.
-		// percentage of hammers spent on units is BuildUnitProb + 40 if at war
-		// experience points are worth a production boost of 8% each, multiplied by the warmonger factor, and componded with actual production multipliers
+		/*	Roughly speaking these are the approximations used in this section:
+			each population produces 1 hammer.
+			percentage of hammers spent on units is BuildUnitProb + 40 if at war
+			experience points are worth a production boost of 8% each,
+			multiplied by the warmonger factor,
+			and componded with actual production multipliers */
 		int iProductionShareUnits = GC.getInfo(getPersonalityType()).getBuildUnitProb();
 		if (bWarPlan)
 			iProductionShareUnits = (100 + iProductionShareUnits)/2;
@@ -15796,7 +15884,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		int iTempValue = getTotalPopulation() * kCivic.getMilitaryProductionModifier() +
 				iBestReligionPopulation * kCivic.getStateReligionUnitProductionModifier();
 
-		int iExperience = getTotalPopulation() * kCivic.getFreeExperience() + iBestReligionPopulation * kCivic.getStateReligionFreeExperience();
+		int iExperience = getTotalPopulation() * kCivic.getFreeExperience() +
+				iBestReligionPopulation * kCivic.getStateReligionFreeExperience();
 		if (iExperience)
 		{
 			iExperience *= 8 * std::max(iWarmongerFactor, (bWarPlan ? 100 : 0));
@@ -15810,11 +15899,13 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		iTempValue *= iProductionShareUnits;
 		iTempValue /= 100;
 
-		iTempValue += iBestReligionPopulation * kCivic.getStateReligionBuildingProductionModifier() * iProductionShareBuildings / 100;
+		iTempValue += iBestReligionPopulation * kCivic.
+				getStateReligionBuildingProductionModifier() *
+				iProductionShareBuildings / 100;
 		iTempValue *= AI_yieldWeight(YIELD_PRODUCTION);
 		iTempValue /= 100;
 		iValue += iTempValue / 100;
-
+		// K-Mod end
 		/* old modifiers, (just for reference)
 		iValue += (kCivic.getMilitaryProductionModifier() * iCities * iWarmongerFactor) / (bWarPlan ? 300 : 500);
 		if (kCivic.getFreeExperience() > 0) {
@@ -15826,57 +15917,56 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 			iTempValue /= 100;
 			iValue += iTempValue;
 		}
-		iValue += ((kCivic.getStateReligionUnitProductionModifier() * iBestReligionCities) / 4);
-		iValue += ((kCivic.getStateReligionBuildingProductionModifier() * iBestReligionCities) / 3);
-		iValue += (kCivic.getStateReligionFreeExperience() * iBestReligionCities * ((bWarPlan) ? 6 : 2)); */
+		iValue += (kCivic.getStateReligionUnitProductionModifier() * iBestReligionCities) / 4;
+		iValue += (kCivic.getStateReligionBuildingProductionModifier() * iBestReligionCities) / 3;
+		iValue += kCivic.getStateReligionFreeExperience() * iBestReligionCities * (bWarPlan ? 6 : 2);*/
 	}
-	// K-Mod end
 
-	if (kCivic.isStateReligion())
+	if (kCivic.isStateReligion() && iBestReligionCities > 0)
 	{
-		if (iBestReligionCities > 0)
-		{
-			/*iValue += iHighestReligionCount;
-			iValue += ((kCivic.isNoNonStateReligionSpread()) ? ((iCities - iHighestReligionCount) * 2) : 0);
-			iValue += (kCivic.getStateReligionHappiness() * iHighestReligionCount * 4);
-			iValue += ((kCivic.getStateReligionGreatPeopleRateModifier() * iHighestReligionCount) / 20);
-			iValue += (kCivic.getStateReligionGreatPeopleRateModifier() / 4);
-			iValue += ((kCivic.getStateReligionUnitProductionModifier() * iHighestReligionCount) / 4);
-			iValue += ((kCivic.getStateReligionBuildingProductionModifier() * iHighestReligionCount) / 3);
-			iValue += (kCivic.getStateReligionFreeExperience() * iHighestReligionCount * ((bWarPlan) ? 6 : 2));*/ // BtS
+		/*iValue += iHighestReligionCount;
+		iValue += ((kCivic.isNoNonStateReligionSpread()) ? ((iCities - iHighestReligionCount) * 2) : 0);
+		iValue += (kCivic.getStateReligionHappiness() * iHighestReligionCount * 4);
+		iValue += ((kCivic.getStateReligionGreatPeopleRateModifier() * iHighestReligionCount) / 20);
+		iValue += (kCivic.getStateReligionGreatPeopleRateModifier() / 4);
+		iValue += ((kCivic.getStateReligionUnitProductionModifier() * iHighestReligionCount) / 4);
+		iValue += ((kCivic.getStateReligionBuildingProductionModifier() * iHighestReligionCount) / 3);
+		iValue += (kCivic.getStateReligionFreeExperience() * iHighestReligionCount * (bWarPlan ? 6 : 2));*/ // BtS
 
-			// K-Mod
-			FAssert(eBestReligion != NO_RELIGION);
-			iValue += (2 * iBestReligionPopulation - getTotalPopulation()) / 6;
+		// K-Mod
+		FAssert(eBestReligion != NO_RELIGION);
+		iValue += (2 * iBestReligionPopulation - getTotalPopulation()) / 6;
 
-			if (kCivic.isNoNonStateReligionSpread())
-			{	// <advc.115b>
-				if(isAVassal())
-				{
-					CvTeamAI const& kMaster = GET_TEAM(getMasterTeam());
-					if(!kMaster.isHuman() && kMaster.AI_isAnyCloseToReligiousVictory())
-						return -1000;
-				} // </advc.115b>
-				if (AI_atVictoryStage(AI_VICTORY_CULTURE2))
-				{
-					iValue -= 3 * std::max(0, iCities + iBestReligionCities - iTotalReligonCount);
-				}
-				else if (eBestReligion == GC.getInfo(getLeaderType()).getFavoriteReligion()
-					&& /* advc.115b: Used to be a logical OR. Theocracy as the
-						  standard civic from Medieval onwards hurts
-						  religious strategies unduly. */
-					(hasHolyCity(eBestReligion) && countHolyCities() == 1))
-				{
-					iValue += iCities * 2; // protection vs espionage? depriving foreign civs of religion revenue?
-				}
-			}
-
-			// getStateReligionFreeExperience, getStateReligionBuildingProductionModifier, getStateReligionUnitProductionModifier; all moved elsewhere.
-
-			if (kCivic.getStateReligionHappiness() != 0)
+		if (kCivic.isNoNonStateReligionSpread())
+		{	// <advc.115b>
+			if(isAVassal())
 			{
-				iValue += 10 * iCities * iS * AI_getHappinessWeight(iS * kCivic.getStateReligionHappiness(), 1) * iBestReligionPopulation / std::max(1, 100 * getTotalPopulation());
+				CvTeamAI const& kMaster = GET_TEAM(getMasterTeam());
+				if(!kMaster.isHuman() && kMaster.AI_isAnyCloseToReligiousVictory())
+					return -1000;
+			} // </advc.115b>
+			if (AI_atVictoryStage(AI_VICTORY_CULTURE2))
+			{
+				iValue -= 3 * std::max(0, iCities + iBestReligionCities - iTotalReligonCount);
 			}
+			else if (eBestReligion == GC.getInfo(getLeaderType()).getFavoriteReligion() &&
+				/*	advc.115b: Used to be a logical OR. Theocracy as the standard civic
+					from Medieval onwards hurts religious strategies unduly. */
+				(hasHolyCity(eBestReligion) && countHolyCities() == 1))
+			{	// protection vs espionage? depriving foreign civs of religion revenue?
+				iValue += iCities * 2;
+			}
+		}
+
+		/*	getStateReligionFreeExperience, getStateReligionBuildingProductionModifier,
+			getStateReligionUnitProductionModifier: all moved elsewhere. */
+
+		if (kCivic.getStateReligionHappiness() != 0)
+		{
+			iValue += 10 * iCities * iS * AI_getHappinessWeight(
+					iS * kCivic.getStateReligionHappiness(), 1) *
+					iBestReligionPopulation / std::max(1, 100 * getTotalPopulation());
+		}
 			if (kCivic.getStateReligionGreatPeopleRateModifier() != 0)
 			{
 				// This is not going to be very good. I'm sorry about that. I can't think of a neat way to make it better.
@@ -15900,67 +15990,68 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 				iValue += 2 * kCivic.getStateReligionGreatPeopleRateModifier() * iTempValue / 100;
 			}
 
-			// apostolic palace
-			for (VoteSourceTypes i = (VoteSourceTypes)0; i < GC.getNumVoteSourceInfos(); i = (VoteSourceTypes)(i+1))
+		// apostolic palace
+		FOR_EACH_ENUM2(VoteSource, eVS)
+		{
+			if (!kGame.isDiploVote(eVS))
+				continue; // advc
+			if (kGame.getVoteSourceReligion(eVS) == eBestReligion && isLoyalMember(eVS))
 			{
-				if (kGame.isDiploVote(i))
-				{
-					if (kGame.getVoteSourceReligion(i) == eBestReligion && isLoyalMember(i))
-					{
-						int iTempValue = getTotalPopulation() * iBestReligionCities / std::max(1, iCities);
-
-						if (getTeam() == kGame.getSecretaryGeneral(i))
-							iTempValue *= 2;
-						if (kTeam.isForceTeamVoteEligible(i))
-							iTempValue /= 2;
-
-						iValue += iTempValue;
-					}
-				}
+				int iTempValue = getTotalPopulation() * iBestReligionCities /
+						std::max(1, iCities);
+				if (getTeam() == kGame.getSecretaryGeneral(eVS))
+					iTempValue *= 2;
+				if (kTeam.isForceTeamVoteEligible(eVS))
+					iTempValue /= 2;
+				iValue += iTempValue;
 			}
-
-			// Value civic based on wonders granting state religion boosts
-			for (CommerceTypes i = (CommerceTypes)0; i < NUM_COMMERCE_TYPES; i = (CommerceTypes)(i+1))
-			{
-				int iTempValue = iBestReligionCities * getStateReligionBuildingCommerce(i);
-				if (iTempValue)
-				{
-					iTempValue *= AI_averageCommerceMultiplier(i);
-					iTempValue /= 100;
-
-					iTempValue *= AI_commerceWeight(i);
-					iTempValue /= 100;
-
-					iValue += iTempValue;
-				}
-			}
-			// K-Mod end
 		}
+
+		// Value civic based on wonders granting state religion boosts
+		FOR_EACH_ENUM2(Commerce, eCommerce)
+		{
+			int iTempValue = iBestReligionCities *
+					getStateReligionBuildingCommerce(eCommerce);
+			if (iTempValue)
+			{
+				iTempValue *= AI_averageCommerceMultiplier(eCommerce);
+				iTempValue /= 100;
+
+				iTempValue *= AI_commerceWeight(eCommerce);
+				iTempValue /= 100;
+
+				iValue += iTempValue;
+			}
+		}
+		// K-Mod end
 	}
 
-	for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
+	FOR_EACH_ENUM2(Yield, eYield)
 	{
 		int iTempValue = 0;
 		//iTempValue += ((kCivic.getYieldModifier(iI) * iCities) / 2);
 		// K-Mod (Still bogus, but I'd rather assume 25 yield/turn average than 50.)
-		iTempValue += kCivic.getYieldModifier(iI) * iCities / 4;
+		iTempValue += kCivic.getYieldModifier(eYield) * iCities / 4;
 
 		if (pCapital)
 		{	// Bureaucracy
 			// K-Mod
-			int iTemp = (kCivic.getCapitalYieldModifier(iI) * pCapital->getBaseYieldRate((YieldTypes)iI));
+			int iTemp = (kCivic.getCapitalYieldModifier(eYield) *
+					pCapital->getBaseYieldRate(eYield));
 			if (iTemp != 0)
 			{
-				switch (iI)
+				switch (eYield)
 				{
 				case YIELD_PRODUCTION:
-					// For production, we inflate the value a little to account for the fact that it may help us win wonder races.
+					/*	For production, we inflate the value a little to account
+						for the fact that it may help us win wonder races. */
 					iTemp /= 80;
 					break;
 				case YIELD_COMMERCE:
-					// For commerce, the multiplier is compounded by the multipliers on individual commerce types.
-					iTemp *= pCapital->AI_yieldMultiplier((YieldTypes)iI);
-					iTemp /= 100 * std::max(1, pCapital->getBaseYieldRateModifier((YieldTypes)iI));
+					/*	For commerce, the multiplier is compounded by
+						the multipliers on individual commerce types. */
+					iTemp *= pCapital->AI_yieldMultiplier(eYield);
+					iTemp /= 100 * std::max(1, pCapital->getBaseYieldRateModifier(eYield));
 					break;
 				default:
 					iTemp /= 100;
@@ -15969,28 +16060,27 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 				iTempValue += iTemp;
 			} // K-Mod end
 		}
-		iTempValue += ((kCivic.getTradeYieldModifier(iI) * iCities) / 11);
+		iTempValue += (kCivic.getTradeYieldModifier(eYield) * iCities) / 11;
 		/*  (K-Mod note: that denominator is bogus, but since no civics
 			currently have this modifier anyway, I'm just going to leave it.) */
 
-		for (int iJ = 0; iJ < GC.getNumImprovementInfos(); iJ++)
+		FOR_EACH_ENUM2(Improvement, eImprov)
 		{
-			if(kCivic.getImprovementYieldChanges(iJ, iI) == 0)
+			if(kCivic.getImprovementYieldChanges(eImprov, eYield) == 0)
 				continue; // advc.opt
-			iTempValue += (AI_averageYieldMultiplier((YieldTypes)iI) *
-					(kCivic.getImprovementYieldChanges(iJ, iI) *
-					(getImprovementCount((ImprovementTypes)iJ) + iCities/2))) /
-					100;
-		}/*if (iI == YIELD_FOOD)
+			iTempValue += (AI_averageYieldMultiplier(eYield) *
+					(kCivic.getImprovementYieldChanges(eImprov, eYield) *
+					(getImprovementCount(eImprov) + iCities/2))) / 100;
+		}/*if (eYield == YIELD_FOOD)
 			iTempValue *= 3;
-		else if (iI == YIELD_PRODUCTION)
-			iTempValue *= ((AI_avoidScience()) ? 6 : 2);
+		else if (eYield == YIELD_PRODUCTION)
+			iTempValue *= (AI_avoidScience() ? 6 : 2);
 		else if (iI == YIELD_COMMERCE) {
-			iTempValue *= ((AI_avoidScience()) ? 2 : 4);
+			iTempValue *= (AI_avoidScience() ? 2 : 4);
 			iTempValue /= 3;
 		}*/ // BtS
 		// K-Mod
-		iTempValue *= AI_yieldWeight((YieldTypes)iI);
+		iTempValue *= AI_yieldWeight(eYield);
 		iTempValue /= 100;
 		// K-mod end
 		iValue += iTempValue;
@@ -16003,9 +16093,9 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 
 	// only take the time to count them if the civic has a bonus for specialists
 	bool bSpecialistCommerce = false;
-	for (int iI = 0; !bSpecialistCommerce && iI < NUM_COMMERCE_TYPES; iI++)
+	for (int i = 0; !bSpecialistCommerce && i < NUM_COMMERCE_TYPES; i++)
 	{
-		bSpecialistCommerce = kCivic.getSpecialistExtraCommerce(iI) != 0;
+		bSpecialistCommerce = kCivic.getSpecialistExtraCommerce(i) != 0;
 	}
 
 	if (bSpecialistCommerce)
@@ -16023,24 +16113,26 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	}
 	// K-Mod end
 
-	for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+	FOR_EACH_ENUM2(Commerce, eCommerce)
 	{
 		int iTempValue = 0;
 
 		// K-Mod
-		iTempValue += kCivic.getCommerceModifier(iI) * 100*getCommerceRate((CommerceTypes)iI) / AI_averageCommerceMultiplier((CommerceTypes)iI);
+		iTempValue += kCivic.getCommerceModifier(eCommerce) *
+				100*getCommerceRate(eCommerce) / AI_averageCommerceMultiplier(eCommerce);
 		if (pCapital != NULL)
 		{
-			iTempValue += kCivic.getCapitalCommerceModifier(iI) * pCapital->getBaseCommerceRate((CommerceTypes)iI);
+			iTempValue += kCivic.getCapitalCommerceModifier(eCommerce) *
+					pCapital->getBaseCommerceRate(eCommerce);
 		}
 
 		// Representation
-		//iTempValue += ((kCivic.getSpecialistExtraCommerce(iI) * getTotalPopulation()) / 15);
+		//iTempValue += (kCivic.getSpecialistExtraCommerce(eCommerce) * getTotalPopulation()) / 15;
 		// K-Mod
 		if (bSpecialistCommerce)
 		{
-			iTempValue += AI_averageCommerceMultiplier((CommerceTypes)iI)*
-					(kCivic.getSpecialistExtraCommerce(iI) *
+			iTempValue += AI_averageCommerceMultiplier(eCommerce)*
+					(kCivic.getSpecialistExtraCommerce(eCommerce) *
 					std::max((getTotalPopulation()+10*iTotalBonusSpecialists) / 10,
 					iTotalCurrentSpecialists));
 		} // K-Mod end
@@ -16049,7 +16141,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 
 		if (iTempValue)
 		{
-			iTempValue *= AI_commerceWeight((CommerceTypes)iI);
+			iTempValue *= AI_commerceWeight(eCommerce);
 			iTempValue /= 100;
 
 			iValue += iTempValue;
@@ -16076,9 +16168,11 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 			int iExpectedBuildings = 0;
 			if (canConstruct(eBuilding))
 			{
-				iExpectedBuildings = (iCities + 2*getBuildingClassCountPlusMaking(eBuildingClass))/3;
+				iExpectedBuildings = (iCities +
+						2*getBuildingClassCountPlusMaking(eBuildingClass))/3;
 			}
-			iValue += (10 * iExpectedBuildings * iS * AI_getHappinessWeight(iS * iTempValue, 1))/100;
+			iValue += (10 * iExpectedBuildings * iS *
+					AI_getHappinessWeight(iS * iTempValue, 1))/100;
 		}
 	}
 	for (int iI = 0; iI < GC.getNumFeatureInfos(); iI++)
@@ -16090,53 +16184,53 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		}
 	}
 
-	for (HurryTypes i = (HurryTypes)0; i < GC.getNumHurryInfos(); i=(HurryTypes)(i+1))
+	FOR_EACH_ENUM(Hurry)
 	{
-		if (kCivic.isHurry(i))
+		if (!kCivic.isHurry(eLoopHurry))
+			continue; // advc
+		/*int iTempValue = 0;
+		if (GC.getInfo(eLoopHurry).getGoldPerProduction() > 0)
+			iTempValue += (((AI_avoidScience()) ? 50 : 25) * iCities) / GC.getInfo(eLoopHurry).getGoldPerProduction();
+		iTempValue += (GC.getInfo(eLoopHurry).getProductionPerPopulation() * iCities * (bWarPlan ? 2 : 1)) / 5;
+		iValue += iTempValue;*/ // BtS
+
+		/*	K-Mod. I'm not attempting to made an accurate estimate of the value here -
+			I just want to make it a little bit more nuanced than it was. */
+		int iTempValue = 0;
+		CvHurryInfo const& kHurryInfo = GC.getInfo(eLoopHurry);
+
+		if (kHurryInfo.getGoldPerProduction() > 0)
 		{
-			/*int iTempValue = 0;
-			if (GC.getInfo((HurryTypes)iI).getGoldPerProduction() > 0)
-				iTempValue += ((((AI_avoidScience()) ? 50 : 25) * iCities) / GC.getInfo((HurryTypes)iI).getGoldPerProduction());
-			iTempValue += (GC.getInfo((HurryTypes)iI).getProductionPerPopulation() * iCities * (bWarPlan ? 2 : 1)) / 5;
-			iValue += iTempValue;*/ // BtS
-
-			// K-Mod. I'm not attempting to made an accurate estimate of the value here - I just want to make it a little bit more nuanced than it was.
-			int iTempValue = 0;
-			const CvHurryInfo& kHurryInfo = GC.getInfo(i);
-
-			if (kHurryInfo.getGoldPerProduction() > 0)
-			{
-				iTempValue = AI_averageCommerceMultiplier(COMMERCE_GOLD) *
-						(AI_avoidScience() ? 2000 : 1000) * iCities / kHurryInfo.getGoldPerProduction();
-				iTempValue /= std::max(1, (getHurryModifier() + 100) * AI_commerceWeight(COMMERCE_GOLD));
-			}
-
-			if (kHurryInfo.getProductionPerPopulation() > 0)
-			{	// <advc.121b>
-				int iMultiplier = (bWarPlan ? 4 : 3);
-				if(pCapital != NULL &&
-					pCapital->getArea().getAreaAIType(getTeam()) == AREAAI_DEFENSIVE &&
-					AI_isFocusWar())
-				{
-					iMultiplier++;
-				} // </advc.121>
-				/*  if we had easy access to averages for getMaxFoodKeptPercent and getHurryAngerModifier,
-					then I'd use them. - but I don't want to calculate them here. */
-				iTempValue += //(bWarPlan ? 8 : 5) *
-						(iMultiplier * // advc.121b: Replacing the above 8 : 5
-						iCities * kGame.getProductionPerPopulation(i)) /
-						std::max(1, getGrowthThreshold(getAveragePopulation()));
-			}
-
-			if (iTempValue > 0)
-			{
-				if (kHurryInfo.getProductionPerPopulation() && kHurryInfo.getGoldPerProduction())
-					iTempValue /= 2;
-
-				iValue += iTempValue;
-			}
-			// K-Mod end
+			iTempValue = AI_averageCommerceMultiplier(COMMERCE_GOLD) *
+					(AI_avoidScience() ? 2000 : 1000) * iCities / kHurryInfo.getGoldPerProduction();
+			iTempValue /= std::max(1, (getHurryModifier() + 100) * AI_commerceWeight(COMMERCE_GOLD));
 		}
+
+		if (kHurryInfo.getProductionPerPopulation() > 0)
+		{	// <advc.121b>
+			int iMultiplier = (bWarPlan ? 4 : 3);
+			if(pCapital != NULL &&
+				pCapital->getArea().getAreaAIType(getTeam()) == AREAAI_DEFENSIVE &&
+				AI_isFocusWar())
+			{
+				iMultiplier++;
+			} // </advc.121>
+			/*  if we had easy access to averages for getMaxFoodKeptPercent and getHurryAngerModifier,
+				then I'd use them. - but I don't want to calculate them here. */
+			iTempValue += //(bWarPlan ? 8 : 5) *
+					(iMultiplier * // advc.121b: Replacing the above 8 : 5
+					iCities * kGame.getProductionPerPopulation(eLoopHurry)) /
+					std::max(1, getGrowthThreshold(getAveragePopulation()));
+		}
+
+		if (iTempValue > 0)
+		{
+			if (kHurryInfo.getProductionPerPopulation() && kHurryInfo.getGoldPerProduction())
+				iTempValue /= 2;
+
+			iValue += iTempValue;
+		}
+		// K-Mod end
 	}
 
 	/* for (int iI = 0; iI < GC.getNumSpecialBuildingInfos(); iI++) {
@@ -16145,37 +16239,36 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	} */ /*	Disabled by K-Mod. This evaluation isn't accurate enough to be useful -
 			but it does sometimes cause civs to switch to organized religion when they don't have a religion... */
 
-	for (int iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
+	FOR_EACH_ENUM(Specialist)
 	{
-		if (!kCivic.isSpecialistValid(iI))
+		if (!kCivic.isSpecialistValid(eLoopSpecialist))
 			continue; // advc
 		// K-Mod todo: the current code sucks. Fix it.
 		int iTempValue = iCities * (AI_atVictoryStage(AI_VICTORY_CULTURE3) ? 10 : 1) + 6;
 		iValue += iTempValue / 3; // advc.131: Was /2. (And yes, it's terrible.)
 	}
 
-	// K-Mod. When aiming for a diplomatic victory, consider the favourite civics of our friends!
+	/*	K-Mod. When aiming for a diplomatic victory,
+		consider the favourite civics of our friends! */
 	if (AI_atVictoryStage(AI_VICTORY_DIPLOMACY3))
-	{
-		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
+	{	// (advc: Skip our vassals)
+		for (PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(getTeam());
+			it.hasNext(); ++it)
 		{
-			const CvPlayerAI& kLoopPlayer = GET_PLAYER(i);
-
-			if (!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() == getTeam() || !kTeam.isHasMet(kLoopPlayer.getTeam()))
+			CvPlayerAI const& kAIRival = *it;
+			// human players don't care about favourite civics. The AI should understand this.
+			if (kAIRival.isHuman())
 				continue;
 
-			if (kLoopPlayer.isHuman())
-				continue; // human players don't care about favourite civics. The AI should understand this.
-
-			AttitudeTypes eAttitude = AI_getAttitude(i, false);
+			AttitudeTypes eAttitude = AI_getAttitude(kAIRival.getID(), false);
 			if (eAttitude >= ATTITUDE_PLEASED)
 			{
-				const CvLeaderHeadInfo& kPersonality = GC.getInfo(kLoopPlayer.getPersonalityType());
-				if (kPersonality.getFavoriteCivic() == eCivic && kLoopPlayer.isCivic(eCivic))
+				CvLeaderHeadInfo const& kPersonality = GC.getInfo(kAIRival.getPersonalityType());
+				if (kPersonality.getFavoriteCivic() == eCivic && kAIRival.isCivic(eCivic))
 				{
 					// (better to use getVotes; but that's more complex.)
-					//iValue += kLoopPlayer.getTotalPopulation() * (2 + kPersonality.getFavoriteCivicAttitudeChangeLimit()) / 20;
-					iValue += kLoopPlayer.getTotalPopulation() / 5; // lets keep it simple
+					//iValue += kAIRival.getTotalPopulation() * (2 + kPersonality.getFavoriteCivicAttitudeChangeLimit()) / 20;
+					iValue += kAIRival.getTotalPopulation() / 5; // lets keep it simple
 				}
 			}
 		}
@@ -16198,7 +16291,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		}
 	}
 
-	/* if (AI_atVictoryStage(AI_VICTORY_CULTURE2) && (GC.getInfo(eCivic).isNoNonStateReligionSpread()))
+	/* if (AI_atVictoryStage(AI_VICTORY_CULTURE2) && GC.getInfo(eCivic).isNoNonStateReligionSpread())
 		iValue /= 10;*/ // what the lol...
 
 	return iValue;
@@ -19006,16 +19099,16 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 					// <advc.112>
 					int iDiv = GC.getInfo(getPersonalityType()).
 							getContactRand(CONTACT_PERMANENT_ALLIANCE); // 80
-					double prVassal = 0;
+					scaled prVassal;
 					if(iDiv > 0)
 					{
-						prVassal = (8.0 / iDiv) * ::dRange(kGame.getPlayerRank(ePlayer) /
-								(double)kGame.countCivPlayersAlive(), 0.25, 0.5);
+						prVassal = scaled(8, iDiv) * scaled::clamp(scaled(kGame.getPlayerRank(ePlayer),
+								kGame.countCivPlayersAlive()), fixp(0.25), fixp(0.5));
 						if(kOurTeam.getNumWars() > 0)
 							prVassal *= 4;
 					}
-					if(::bernoulliSuccess(prVassal, "advc.112")) // </advc.112>
-					{
+					if (prVassal.bernoulliSuccess(kGame.getSRand(), "advc.112"))
+					{ // </advc.112>
 						TradeData item(TRADE_VASSAL);
 						if (canTradeItem(ePlayer, item, true))
 						{
@@ -22045,7 +22138,7 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc: a few style changes
 
 	FOR_EACH_CITY(pLoopCity, *this)
 	{
-		if (pLoopCity->getCultureLevel() >= (kGame.culturalVictoryCultureLevel() - 1))
+		if (pLoopCity->getCultureLevel() >= kGame.culturalVictoryCultureLevel() - 1)
 		{
 			/*	K-Mod. Try to tell us what the culture would be like if we were to
 				turn up the slider. (cf. AI_updateCommerceWeights)
@@ -22090,7 +22183,7 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc: a few style changes
 	{
 		if (iCloseToLegendaryCount >= iVictoryCities)
 			return 4;
-		else if (getCommercePercent(COMMERCE_CULTURE) > 50)
+		if (getCommercePercent(COMMERCE_CULTURE) > 50)
 			return 3;
 		return 0;
 	} // K-Mod end
@@ -22108,7 +22201,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc: a few style changes
 		}
 	}*/ // BtS
 
-	// If we aren't already obviously close to a cultural victory, then we need to consider whether or not to aim for culture at all.
+	/*	If we aren't already obviously close to a cultural victory,
+		then we need to consider whether or not to aim for culture at all. */
 	if (iCloseToLegendaryCount < iVictoryCities)
 	{
 		int iValue = GC.getInfo(getPersonalityType()).getCultureVictoryWeight();
@@ -22123,7 +22217,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc: a few style changes
 		// K-Mod
 		iValue += 30 * std::min(iCloseToLegendaryCount, iVictoryCities + 1);
 		iValue += 10 * std::min(iHighCultureCount, iVictoryCities + 1);
-		iValue += getCurrentEra() < (iEraThresholdPercent-20)*GC.getNumEraInfos()/100; // prep for culture in the early game, just in case.
+		// prep for culture in the early game, just in case.
+		iValue += getCurrentEra() < (iEraThresholdPercent-20)*GC.getNumEraInfos()/100;
 		// K-Mod end
 		if (iValue > 20 && getNumCities() >= iVictoryCities)
 		{
@@ -24339,7 +24434,6 @@ int CvPlayerAI::AI_goldTradeValuePercent() const
 	/*if (AI_isFinancialTrouble())
 		iValue += 1;*/
 	return 100 * iValue;
-
 }
 
 int CvPlayerAI::AI_averageYieldMultiplier(YieldTypes eYield) const

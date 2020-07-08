@@ -498,7 +498,7 @@ void CvCityAI::AI_chooseProduction()
 		bMaybeWaterArea = true;
 		if (!kTeam.AI_isWaterAreaRelevant(*pWaterArea))
 			pWaterArea = NULL;
-		bWaterDanger = kPlayer.AI_isAnyWaterDanger(plot(), 4);
+		bWaterDanger = kPlayer.AI_isAnyWaterDanger(getPlot(), 4);
 	}
 	// advc: Some old and unused code deleted
 	bool bLandWar = kPlayer.AI_isLandWar(kArea); // K-Mod
@@ -1226,15 +1226,16 @@ void CvCityAI::AI_chooseProduction()
 
 	//do a check for one tile island type thing?
 	//this can be overridden by "wait and grow more"
-	/*  K-Mod, 10/sep/10, Karadoc
-	It was "if (bDanger", I have changed it to "if (!bDanger" */
+	// K-Mod, 10/sep/10: was "if (bDanger", I have changed it to "if (!bDanger" 
 	if (!bDanger && iExistingWorkers == 0 && (isCapital() ||
 		iMissingWorkers > 0 || // advc.113: was iNeededWorkers>0
 		iNeededSeaWorkers > iExistingSeaWorkers))
 	{
-		if (!(bDefenseWar && iWarSuccessRating < -30) && !(kPlayer.AI_isDoStrategy(AI_STRATEGY_TURTLE)))
+		if (!(bDefenseWar && iWarSuccessRating < -30) &&
+			!kPlayer.AI_isDoStrategy(AI_STRATEGY_TURTLE))
 		{
-			if (AI_countNumBonuses(NO_BONUS, /*bIncludeOurs*/ true, /*bIncludeNeutral*/ true, -1, /*bLand*/ true, /*bWater*/ false) > 0 ||
+			if (AI_countNumBonuses(NO_BONUS, /*bIncludeOurs*/ true,
+				/*bIncludeNeutral*/ true, -1, /*bLand*/ true, /*bWater*/ false) > 0 ||
 				(isCapital() && getPopulation() > 3 && iNumCitiesInArea > 1))
 			{
 				if (!bChooseWorker && AI_chooseUnit(UNITAI_WORKER))
@@ -1533,7 +1534,10 @@ void CvCityAI::AI_chooseProduction()
 			if (kPlayer.AI_totalAreaUnitAIs(kArea, UNITAI_ATTACK) == 0)
 			{
 				if (AI_chooseUnit(UNITAI_ATTACK))
+				{
+					if (gCityLogLevel >= 2) logBBAI("      City %S uses choose attacker", getName().GetCString()); // advc
 					return;
+				}
 			}
 		}
 
@@ -1546,6 +1550,7 @@ void CvCityAI::AI_chooseProduction()
 				if (AI_chooseUnit(UNITAI_EXPLORE,
 					34 * iMissingExplorers)) //advc.131: was 100 flat
 				{
+					if (gCityLogLevel >= 2) logBBAI("      City %S uses choose missing explorer", getName().GetCString()); // advc
 					return;
 				}
 			}
@@ -1648,7 +1653,10 @@ void CvCityAI::AI_chooseProduction()
 				tiles, but it's difficult to count just the tiles that an explorer
 				could actually reach. */
 			if(!bEnoughWaterUnits && AI_chooseUnit(UNITAI_EXPLORE_SEA, 25))
+			{
+				if (gCityLogLevel >= 2) logBBAI("      City %S uses choose sea explorer for naval trade", getName().GetCString());
 				return;
+			}
 		}
 	} // </advc.124>
 
@@ -1668,7 +1676,7 @@ void CvCityAI::AI_chooseProduction()
 			iWonderTime /= 5;
 			iWonderTime += 8;
 			/*if (AI_chooseBuilding(BUILDINGFOCUS_WORLDWONDER, iWonderTime)) {
-				if (gCityLogLevel >= 2) logBBAI("      City %S uses oppurtunistic wonder build 2", getName().GetCString());
+				if (gCityLogLevel >= 2) logBBAI("      City %S uses opportunistic wonder build 2", getName().GetCString());
 				return;
 			}*/
 			// K-Mod
@@ -1800,19 +1808,12 @@ void CvCityAI::AI_chooseProduction()
 
 			UnitTypes eBestAssaultUnit = NO_UNIT;
 			if (pAssaultWaterArea != NULL)
-			{
 				kPlayer.AI_bestCityUnitAIValue(UNITAI_ASSAULT_SEA, this, &eBestAssaultUnit);
-			}
-			else
-			{
-				kPlayer.AI_bestCityUnitAIValue(UNITAI_ASSAULT_SEA, NULL, &eBestAssaultUnit);
-			}
+			else kPlayer.AI_bestCityUnitAIValue(UNITAI_ASSAULT_SEA, NULL, &eBestAssaultUnit);
 
 			int iBestSeaAssaultCapacity = 0;
 			if (eBestAssaultUnit != NO_UNIT)
-			{
 				iBestSeaAssaultCapacity = GC.getInfo(eBestAssaultUnit).getCargoSpace();
-			}
 
 			int iAreaAttackCityUnits = kPlayer.AI_totalAreaUnitAIs(kArea, UNITAI_ATTACK_CITY);
 
@@ -1820,27 +1821,29 @@ void CvCityAI::AI_chooseProduction()
 			iUnitsToTransport += kPlayer.AI_totalAreaUnitAIs(kArea, UNITAI_ATTACK);
 			iUnitsToTransport += kPlayer.AI_totalAreaUnitAIs(kArea, UNITAI_COUNTER)/2;
 
-			int iLocalTransports = kPlayer.AI_totalAreaUnitAIs(kArea, UNITAI_ASSAULT_SEA);
+			int const iLocalTransports = kPlayer.AI_totalAreaUnitAIs(kArea, UNITAI_ASSAULT_SEA);
 			int iTransportsAtSea = 0;
 			if (pAssaultWaterArea != NULL)
 				iTransportsAtSea = kPlayer.AI_totalAreaUnitAIs(*pAssaultWaterArea, UNITAI_ASSAULT_SEA);
 			else iTransportsAtSea = kPlayer.AI_totalUnitAIs(UNITAI_ASSAULT_SEA) / 2;
 
-			//The way of calculating numbers is a bit fuzzy since the ships
-			//can make return trips. When massing for a war it'll train enough
-			//ships to move it's entire army. Once the war is underway it'll stop
-			//training so many ships on the assumption that those out at sea
-			//will return...
+			/*	The way of calculating numbers is a bit fuzzy since the ships
+				can make return trips. When massing for a war it'll train enough
+				ships to move it's entire army. Once the war is underway it'll stop
+				training so many ships on the assumption that those out at sea
+				will return... */
 
-			int iTransports = iLocalTransports + (bPrimaryArea ? iTransportsAtSea/2 : iTransportsAtSea/4);
-			int iTransportCapacity = iBestSeaAssaultCapacity*(iTransports);
+			int const iTransports = iLocalTransports + (bPrimaryArea ?
+					iTransportsAtSea/2 : iTransportsAtSea/4);
+			int const iTransportCapacity = iBestSeaAssaultCapacity * iTransports;
 
-			if (NULL != pAssaultWaterArea)
+			if (pAssaultWaterArea != NULL)
 			{
 				int iEscorts = kPlayer.AI_totalAreaUnitAIs(kArea, UNITAI_ESCORT_SEA);
 				iEscorts += kPlayer.AI_totalAreaUnitAIs(*pAssaultWaterArea, UNITAI_ESCORT_SEA);
 
-				int iTransportViability = kPlayer.AI_calculateUnitAIViability(UNITAI_ASSAULT_SEA, DOMAIN_SEA);
+				int iTransportViability = kPlayer.AI_calculateUnitAIViability(
+						UNITAI_ASSAULT_SEA, DOMAIN_SEA);
 
 				//int iDesiredEscorts = ((1 + 2 * iTransports) / 3);
 				int iDesiredEscorts = iTransports; // K-Mod
@@ -1854,32 +1857,35 @@ void CvCityAI::AI_chooseProduction()
 				iDesiredEscorts = (iOwnerEra * iDesiredEscorts) / (iOwnerEra + 1);
 				/*  Use max, not sum, b/c multiple war enemies are unlikely
 					to coordinate an attack on our transports. */
-				double maxThreat = 0;
-				for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+				scaled rMaxThreat = 0;
+				for (PlayerIter<CIV_ALIVE,KNOWN_POTENTIAL_ENEMY_OF> it(kTeam.getID());
+					it.hasNext(); ++it)
 				{
-					CvPlayerAI const& kEnemy = GET_PLAYER((PlayerTypes)i);
-					if(kEnemy.isAlive() && kTeam.AI_getWarPlan(kEnemy.getMasterTeam()) != NO_WARPLAN)
+					CvPlayerAI const& kEnemy = *it;
+					if (kTeam.AI_getWarPlan(kEnemy.getMasterTeam()) == NO_WARPLAN)
+						continue;
+					/*  Tbd.: Should perhaps check if the enemy sea attackers even
+						pose a danger to our cargo ships; could be e.g. Frigates
+						against Industrial-era Transports. */
+					bool bAreaAlone = kEnemy.AI_isCapitalAreaAlone();
+					scaled rThreat;
+					/*  Don't want to just count the enemy ships (not open info);
+						count their coastal cities instead. */
+					FOR_EACH_CITY(c, kEnemy)
 					{
-						/*  Tbd.: Should perhaps check if the enemy sea attackers even
-							pose a danger to our cargo ships; could be Frigates
-							against Industrial-era Transports. */
-						bool bAreaAlone = kEnemy.AI_isCapitalAreaAlone();
-						double threat = 0;
-						/*  Don't want to just count the enemy ships (not open info);
-							count their coastal cities instead. */
-						FOR_EACH_CITY(c, kEnemy)
+						if(c->isRevealed(kTeam.getID()) &&
+							c->getPlot().isAdjacentToArea(*pAssaultWaterArea))
 						{
-							if(c->getPlot().isAdjacentToArea(*pAssaultWaterArea))
-							{
-								// Isolated civs tend to build more ships
-								threat += bAreaAlone ? 1.4 : 1;
-							}
+							// Isolated civs tend to build more ships
+							rThreat += (bAreaAlone ? fixp(1.4) : 1);
 						}
-						maxThreat = std::max(threat, maxThreat);
 					}
+					rMaxThreat.increaseTo(rThreat);
 				}
-				iDesiredEscorts = std::min(iDesiredEscorts, ::round(1.4 * maxThreat));
-				iDesiredEscorts = std::max(iDesiredEscorts, (iOwnerEra / 2) * ::round(maxThreat));
+				iDesiredEscorts = std::min(iDesiredEscorts,
+						(fixp(1.4) * rMaxThreat).round());
+				iDesiredEscorts = std::max(iDesiredEscorts,
+						(scaled(iOwnerEra, 2) * rMaxThreat).round());
 				// </advc.017>
 				/*if (iEscorts < iDesiredEscorts) {
 					if (AI_chooseUnit(UNITAI_ESCORT_SEA, (iEscorts < iDesiredEscorts/3) ? -1 : 50)) */
@@ -2248,6 +2254,7 @@ void CvCityAI::AI_chooseProduction()
 
 			if (AI_chooseBuilding(BUILDINGFOCUS_EXPERIENCE, 20, 0, bDefenseWar ? 10 : 30))
 			{
+				if (gCityLogLevel >= 2) logBBAI("      City %S uses special BUILDINGFOCUS_EXPERIENCE 2", getName().GetCString()); // advc
 				return;
 			}
 
@@ -2515,16 +2522,24 @@ void CvCityAI::AI_chooseProduction()
 		if (!bDanger)
 		{
 			if (AI_chooseBuilding(BUILDINGFOCUS_EXPERIENCE, 20, 0, 3*getPopulation()))
+			{
+				if (gCityLogLevel >= 2) logBBAI("      City %S uses special BUILDINGFOCUS_EXPERIENCE 3", getName().GetCString()); // advc
 				return;
+			}
 		}
 
 		if (AI_chooseBuilding(BUILDINGFOCUS_DEFENSE, 20, 0, bDanger ? -1 : 3*getPopulation()))
+		{
+			if (gCityLogLevel >= 2) logBBAI("      City %S uses special BUILDINGFOCUS_DEFENSE", getName().GetCString()); // advc
 			return;
-
+		}
 		if (bDanger)
 		{
 			if (AI_chooseBuilding(BUILDINGFOCUS_EXPERIENCE, 20, 0, 2*getPopulation()))
+			{
+				if (gCityLogLevel >= 2) logBBAI("      City %S uses special BUILDINGFOCUS_EXPERIENCE 4", getName().GetCString()); // advc
 				return;
+			}
 		}
 	}
 
@@ -11427,7 +11442,7 @@ void CvCityAI::AI_barbChooseProduction()
 		if (!GET_TEAM(getTeam()).AI_isWaterAreaRelevant(*pWaterArea))
 			pWaterArea = NULL;
 
-		bWaterDanger = kPlayer.AI_isAnyWaterDanger(plot(), 4);
+		bWaterDanger = kPlayer.AI_isAnyWaterDanger(getPlot(), 4);
 	}
 
 	int iNumCitiesInArea = getArea().getCitiesPerPlayer(getOwner());

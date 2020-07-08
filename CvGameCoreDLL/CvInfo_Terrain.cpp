@@ -228,11 +228,11 @@ bool CvFeatureInfo::isRequiresRiver() const
 {
 	return m_bRequiresRiver;
 }
-// <advc.129b>
+// advc.129b:
 bool CvFeatureInfo::isRequiresRiverSide() const
 {
 	return m_bRequiresRiverSide;
-} // </advc.129b>
+}
 
 bool CvFeatureInfo::isAddsFreshWater() const
 {

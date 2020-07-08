@@ -1794,13 +1794,13 @@ int CvTeamAI::AI_endWarVal(TeamTypes eTeam) const // XXX this should consider ar
 	return AI_roundTradeVal(iValue); // advc.104k
 }
 
-// K-Mod. This is the tech value modifier for devaluing techs that are known by other civs
-// It's based on the original bts code from AI_techTradVal
-int CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const
+/*	K-Mod: This is the tech value modifier for devaluing techs that are
+	known by other civs. Based on BtS code from AI_techTradeVal. */
+scaled CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const
 {
 	int iTechCivs = 0;
 	int iCivsMet = 0;
-	// advc (comment): Should perhaps exclude minor civs
+	// advc (note): Minor civs not excluded; perhaps should be.
 	for (TeamIter<CIV_ALIVE,OTHER_KNOWN_TO> it(getID()); it.hasNext(); ++it)
 	{
 		CvTeam const& kOther = *it;
@@ -1823,60 +1823,63 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam,
 	FAssert(eFromTeam != getID());
 	// advc: Original BtS code deleted; K-Mod replaced it with AI_knownTechValModifier.
 	CvTechInfo const& kTech = GC.getInfo(eTech);
-	int iValue = (125 // advc.551: was 150
-			// K-Mod. Standardized the modifier for # of teams with the tech; and removed the effect of team size.
+	scaled rValue = (fixp(1.25) // advc.551: was 1.5
+			/*	K-Mod. Standardized the modifier for # of teams with the tech;
+				and removed the effect of team size. */
 			+ AI_knownTechValModifier(eTech)) *
-			std::max(0, (getResearchCost(eTech, true, false) -
-			getResearchProgress(eTech))) / 100;
-			// K-Mod end
+			std::max(0, getResearchCost(eTech, true, false) -
+			getResearchProgress(eTech)); // K-Mod end
 	/*  <advc.104h> Peace for tech isn't that attractive for the receiving side
 		b/c they could continue the war and still get the tech when making peace
 		later on. Doesn't work the same way with gold b/c the losing side may well
 		spend the gold if the war continues */
 	if(bPeaceDeal)
-		iValue = ::round(0.7 * iValue); // </advc.104h>
-	iValue *= std::max(0, (kTech.getAITradeModifier() + 100));
-	iValue /= 100;
+		rValue *= fixp(0.7); // </advc.104h>
+	rValue *= scaled::max(0, 1 + per100(kTech.getAITradeModifier()));
 	// <advc.550a>
-	// No discounts for vassals
-	if(!bIgnoreDiscount && !isVassal(eFromTeam) && !GET_TEAM(eFromTeam).isVassal(getID()))
-	{
-		/*  If they're more advanced/powerful, they shouldn't mind giving us
+	if(!bIgnoreDiscount &&  // No discounts for vassals:
+		!isVassal(eFromTeam) && !GET_TEAM(eFromTeam).isVassal(getID()))
+	{	/*  If they're more advanced/powerful, they shouldn't mind giving us
 			a tech, so we lower our tech value, assuming/hoping that we'll be
 			able to get it cheap.
 			Handle this here instead of CvPlayer::AI_tradeAcceptabilityThreshold
 			b/c tech is shared rather than given away. Giving away e.g. gold is bad
 			even if we don't think the other side is a threat. */
-		float powerRatio = getPower(true) /
-				((float)GET_TEAM(eFromTeam).getPower(true) + 1);
-		/*  As far as I can tell, techs (and tech scores) are the same for all
-			team members (strange that getTechScore is a CvPlayer member).
-			Even if there is some exception, it's still better than CvTeam::
-			getBestKnownTechScorePercent which is based on the teams that the
-			callee has met. This team shouldn't be able to know the techs of teams
-			that eTeam has met (unless this team has also met them). */
-		float techRatio = GET_PLAYER(getLeaderID()).getTechScore() /
-				((float)GET_PLAYER(GET_TEAM(eFromTeam).getLeaderID()).getTechScore() + 1);
-		CvGame const& g = GC.getGame();
-		float gameProgressFactor = (g.getGameTurn() - g.getStartTurn()) /
-				((float)g.getEstimateEndTurn() - g.getStartTurn());
-		gameProgressFactor = ::range(gameProgressFactor, 0.0f, 0.5f);
-		powerRatio = ::range(powerRatio, 1 - gameProgressFactor, 1 + gameProgressFactor);
-		techRatio = ::range(techRatio, 1 - gameProgressFactor, 1 + gameProgressFactor);
+		scaled rPowRatio(getPower(true),
+				std::max(1, GET_TEAM(eFromTeam).getPower(true)));
+		/*  Don't use CvTeam::getBestKnownTechScorePercent b/c that's based on
+			the teams that the callee has met. This team shouldn't have that info
+			about eTeam. */
+		scaled rTechRatio(GET_PLAYER(getLeaderID()).getTechScore(),
+				/*	(Scores are computed per player, but the tech score is actually
+					the same for all members of a team.) */
+				std::max(1, GET_PLAYER(GET_TEAM(eFromTeam).getLeaderID()).getTechScore()));
+		CvGame const& kGame = GC.getGame();
+		scaled rGameProgress(kGame.getGameTurn() - kGame.getStartTurn(),
+				std::max(1, kGame.getEstimateEndTurn() - kGame.getStartTurn()));
+		rGameProgress.clamp(0, fixp(0.5));
+		rPowRatio.clamp(1 - rGameProgress, 1 + rGameProgress);
+		rTechRatio.clamp(1 - rGameProgress, 1 + rGameProgress);
 		// Powerful civs shouldn't grant large discounts to advanced civs
-		if(techRatio < 1 && powerRatio > 1)
-			powerRatio = std::max(1.f, powerRatio * techRatio * techRatio);
-		else if(techRatio > 1 && powerRatio < 1)
-			powerRatio = std::min(1.f, powerRatio * techRatio * techRatio);
-		float modifier = (powerRatio + 2 * techRatio) / 3.f;
+		if(rTechRatio < 1 && rPowRatio > 1)
+		{
+			rPowRatio *= SQR(rTechRatio);
+			rPowRatio.increaseTo(1);
+		}
+		else if(rTechRatio > 1 && rPowRatio < 1)
+		{
+			rPowRatio *= SQR(rTechRatio);
+			rPowRatio.decreaseTo(1);
+		}
+		scaled rDiscountModifier = (rPowRatio + 2 * rTechRatio) / 3;
 		/*  Not sure about this guard: Should weak civs charge more for their techs?
 			In tech-vs-tech trades, the modifier would then take effect twice,
 			resulting in one side demanding up to twice as much as the other;
 			too much I think. */
-		if(modifier < 1)
-			iValue = ::round(iValue * modifier);
+		if(rDiscountModifier < 1)
+			rValue *= rDiscountModifier;
 	} // </advc.550a>
-	return AI_roundTradeVal(iValue); // advc.104k
+	return AI_roundTradeVal(rValue.round()); // advc.104k
 }
 
 
@@ -1909,7 +1912,8 @@ DenialTypes CvTeamAI::AI_techTrade(TechTypes eTech, TeamTypes eToTeam) const  //
 		{
 			int iNoTechTradeThreshold = AI_noTechTradeThreshold();
 
-			iNoTechTradeThreshold *= std::max(0, (GC.getInfo(GET_TEAM(eToTeam).getHandicapType()).getNoTechTradeModifier() + 100));
+			iNoTechTradeThreshold *= std::max(0, GC.getInfo(GET_TEAM(eToTeam).getHandicapType()).
+					getNoTechTradeModifier() + 100);
 			iNoTechTradeThreshold /= 100;
 
 			if (AI_getMemoryCount(eToTeam, MEMORY_RECEIVED_TECH_FROM_ANY) > iNoTechTradeThreshold)
@@ -1953,7 +1957,8 @@ DenialTypes CvTeamAI::AI_techTrade(TechTypes eTech, TeamTypes eToTeam) const  //
 		iTechTradeKnownPercent += iRandomAdjustment;
 		// </advc.550c>
 
-		iTechTradeKnownPercent *= std::max(0, (GC.getInfo(GET_TEAM(eToTeam).getHandicapType()).getTechTradeKnownModifier() + 100));
+		iTechTradeKnownPercent *= std::max(0, GC.getInfo(GET_TEAM(eToTeam).
+				getHandicapType()).getTechTradeKnownModifier() + 100);
 		iTechTradeKnownPercent /= 100;
 
 		iTechTradeKnownPercent *= AI_getTechMonopolyValue(eTech, eToTeam);
@@ -2061,8 +2066,11 @@ DenialTypes CvTeamAI::AI_mapTrade(TeamTypes eToTeam) const  // advc: style chang
 	AttitudeTypes eOurAttitude = AI_getAttitude(eToTeam);
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 	{
-		if (eOurAttitude <= GC.getInfo(it->getPersonalityType()).getMapRefuseAttitudeThreshold())
+		if (eOurAttitude <= GC.getInfo(it->getPersonalityType()).
+			getMapRefuseAttitudeThreshold())
+		{
 			return DENIAL_ATTITUDE;
+		}
 	}
 	// <advc.136a>
 	if(AI_isPursuingCircumnavigation())
@@ -2234,8 +2242,11 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 				// advc.112: The DENIAL_VICTORY check above should cover this
 				/*if(400 * getTotalPopulation(!isAVassal()) > 3 * iThreshold)
 					return DENIAL_VICTORY;*/
-				if(400 * (getTotalPopulation() + kMasterTeam.getTotalPopulation()) > 3 * iThreshold)
+				if(400 * (getTotalPopulation() + kMasterTeam.getTotalPopulation()) >
+					3 * iThreshold)
+				{
 					bPopulationThreat = true;
+				}
 			}
 			bool bLandThreat = true;
 			if(kGame.getAdjustedLandPercent(eLoopVictory) > 0)
@@ -2327,8 +2338,11 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 	int iAveragePower = iTotalPower / std::max(1, iNumNonVassals);
 	int iMasterPower = kMasterTeam.getPower(false);
 	// <advc.112>
-	if(bFaraway || (getNumWars() <= 0 && AI_teamCloseness(eMasterTeam, -1, false, true) <= 0))
+	if(bFaraway ||
+		(getNumWars() <= 0 && AI_teamCloseness(eMasterTeam, -1, false, true) <= 0))
+	{
 		iMasterPower = ::round(iMasterPower  * 0.7); // </advc.112>
+	}
 	int iOurPower = getPower(true); // K-Mod (this value is used a bunch of times separately)
 	/*  <advc.143> Reluctant to sign voluntary vassal agreement if we recently
 		canceled one */
@@ -2369,7 +2383,10 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 	int iPersonalityModifier = 0;
 	MemberIter itMember(getID());
 	for (; itMember.hasNext(); ++itMember)
-		iPersonalityModifier += GC.getInfo(itMember->getPersonalityType()).getVassalPowerModifier();
+	{
+		iPersonalityModifier += GC.getInfo(itMember->getPersonalityType()).
+				getVassalPowerModifier();
+	}
 	int iVassalPower = (iOurPower * (iPowerMultiplier + iPersonalityModifier /
 			std::max(1, itMember.nextIndex()))) / 100;
 	if (bWar)
@@ -2653,27 +2670,27 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		can also trigger cancellation; I guess that's OK (and can't be helped). */
 	// VassalPower is the land at the time of signing the vassal agreement
 	// <advc.112> Lower bound: 10
-	double landRatio = std::max(10, getTotalLand(false)) / (double)
-			std::max(10, getVassalPower()); // </advc.112>
-	static double const lossesThresh = GC.getDefineINT("VASSAL_DENY_OWN_LOSSES_FACTOR") / 100.0;
-	if(landRatio < 0.85 * lossesThresh || (landRatio < lossesThresh &&
-		::hash(kGame.getGameTurn(), getLeaderID()) < 0.15))
+	scaled rLandRatio(std::max(10, getTotalLand(false)),
+			std::max(10, getVassalPower())); // </advc.112>
+	static scaled const rLossesThresh = per100(GC.getDefineINT("VASSAL_DENY_OWN_LOSSES_FACTOR"));
+	if(rLandRatio < fixp(0.85) * rLossesThresh || (rLandRatio < rLossesThresh &&
+		scaled::hash(kGame.getGameTurn(), getLeaderID()) < fixp(0.15)))
 	{
 		return DENIAL_POWER_YOUR_ENEMIES; // Denial type doesn't matter
 	} // </advc.143>  <advc.143b>
-	double nuked = 0;
+	scaled rNuked = 0;
 	for (TeamIter<CIV_ALIVE,ENEMY_OF> it(getID()); it.hasNext(); ++it)
 	{
 		CvTeam const& kEnemy = *it;
 		if(kEnemy.getCurrentEra() < 5) // for performance
 			continue;
 		// advc.130q: The average nuke adds 2 to memory
-		nuked += 0.5 * AI_getMemoryCount(kEnemy.getID(), MEMORY_NUKED_US);
+		rNuked += fixp(0.5) * AI_getMemoryCount(kEnemy.getID(), MEMORY_NUKED_US);
 	}
 	int iCities = getNumCities();
-	double nukeThresh = std::max(2.0,
-			(0.4 + 0.6 * ::hash(eMasterTeam, getLeaderID())) * iCities);
-	if(nuked > nukeThresh && kMasterTeam.getNukeInterception() <= getNukeInterception())
+	scaled rNukeThresh = scaled::max(2,
+			(fixp(0.4) + fixp(0.6) * scaled::hash(eMasterTeam, getLeaderID())) * iCities);
+	if(rNuked > rNukeThresh && kMasterTeam.getNukeInterception() <= getNukeInterception())
 		return DENIAL_POWER_YOUR_ENEMIES;
 	// </advc.143b>
 	return NO_DENIAL;
@@ -5752,9 +5769,10 @@ void CvTeamAI::AI_doWar()
 		for (MemberIter it(getID()); it.hasNext(); ++it)
 		{
 			CvPlayerAI& kMember = *it;
-			if (kMember.AI_isDoStrategy(AI_STRATEGY_DAGGER)
-				|| kMember.AI_atVictoryStage(AI_VICTORY_CONQUEST3)
-				|| kMember.AI_atVictoryStage(AI_VICTORY_DOMINATION4))
+			if (kMember.AI_isDoStrategy(AI_STRATEGY_DAGGER) ||
+				// <BBAI>
+				kMember.AI_atVictoryStage(AI_VICTORY_CONQUEST3) ||
+				kMember.AI_atVictoryStage(AI_VICTORY_DOMINATION4)) // </BBAI>
 			{
 				iDaggerCount++;
 				bAggressive = true;

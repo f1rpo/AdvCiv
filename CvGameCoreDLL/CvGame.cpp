@@ -9,7 +9,7 @@
 #include "CvUnit.h"
 #include "CvSelectionGroupAI.h"
 #include "CitySiteEvaluator.h"
-#include "CityPlotIterator.h"
+#include "PlotRange.h"
 #include "CvArea.h"
 #include "CvMapGenerator.h"
 #include "CvDiploParameters.h"
@@ -1482,36 +1482,25 @@ void CvGame::normalizeAddRiver()  // advc: style changes
 }
 
 
-void CvGame::normalizeRemovePeaks()  // advc: style changes
+void CvGame::normalizeRemovePeaks()  // advc: refactored
 {
 	// <advc.108>
-	double prRemoval = 1;
+	scaled prRemoval = 1;
 	if(m_eNormalizationLevel <= NORMALIZE_LOW)
-		prRemoval = GC.getDefineINT("REMOVAL_CHANCE_PEAK") / 100.0;
+		prRemoval = per100(GC.getDefineINT("REMOVAL_CHANCE_PEAK"));
 	// </advc.108>
 
-	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-		if (!kLoopPlayer.isAlive())
-			continue;
-
-		CvPlot* pStartingPlot = GET_PLAYER((PlayerTypes)iI).getStartingPlot();
+		CvPlot* pStartingPlot = itPlayer->getStartingPlot();
 		if (pStartingPlot == NULL)
 			continue;
-
-		int const iRange = 3;
-		for (int iDX = -(iRange); iDX <= iRange; iDX++)
+		for (SquareIter itPlot(*pStartingPlot, 3); itPlot.hasNext(); ++itPlot)
 		{
-			for (int iDY = -(iRange); iDY <= iRange; iDY++)
+			if (itPlot->isPeak() &&
+				prRemoval.bernoulliSuccess(getMapRand(), "advc.108")) // advc.108
 			{
-				CvPlot*pLoopPlot = plotXY(pStartingPlot->getX(),
-						pStartingPlot->getY(), iDX, iDY);
-				if (pLoopPlot == NULL)
-					continue;
-				if (pLoopPlot->isPeak()
-						&& ::bernoulliSuccess(prRemoval, "advc.108")) // advc.108
-					pLoopPlot->setPlotType(PLOT_HILLS);
+				itPlot->setPlotType(PLOT_HILLS);
 			}
 		}
 	}
@@ -1520,9 +1509,9 @@ void CvGame::normalizeRemovePeaks()  // advc: style changes
 
 void CvGame::normalizeAddLakes()
 {
-	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{	// <advc> (Moved out of normalizeFindLakePlot)
-		CvPlot* pStartingPlot = it->getStartingPlot();
+		CvPlot* pStartingPlot = itPlayer->getStartingPlot();
 		if (pStartingPlot == NULL || pStartingPlot->isFreshWater() || // </advc>
 			// <advc.108>
 			(m_eNormalizationLevel <= NORMALIZE_LOW &&
@@ -1530,14 +1519,15 @@ void CvGame::normalizeAddLakes()
 		{
 			continue; 
 		}
-		CvPlot* pLakePlot = normalizeFindLakePlot(it->getID());
+		CvPlot* pLakePlot = normalizeFindLakePlot(itPlayer->getID());
 		if (pLakePlot != NULL)
 			pLakePlot->setPlotType(PLOT_OCEAN);
 	}
 }
 
 /*	K-Mod: Shuffle the plots - advc.108: Randomize, yes,
-	but the inner ring has to take precedence. Rewritten. */
+	but the inner ring has to take precedence. Rewritten.
+	(The K-Mod behavior was intentional though according to a CFC post.) */
 CvPlot* CvGame::normalizeFindLakePlot(PlayerTypes ePlayer)
 {
 	CvPlot const& kStart = *GET_PLAYER(ePlayer).getStartingPlot();
@@ -1578,93 +1568,86 @@ bool CvGame::normalizeCanAddLakeTo(CvPlot const& kPlot) const
 }
 
 
-void CvGame::normalizeRemoveBadFeatures()  // advc: style changes
+void CvGame::normalizeRemoveBadFeatures()  // advc: refactored
 {
 	// advc.108
 	int const iThreshBadFeatPerCity = GC.getDefineINT("THRESH-BAD-FEAT-PER-CITY");
 
-	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		CvPlayerAI const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-		if (!kLoopPlayer.isAlive())
-			continue;
-		CvPlot* pStartingPlot = kLoopPlayer.getStartingPlot();
+		CvPlot* pStartingPlot = itPlayer->getStartingPlot();
 		if (pStartingPlot == NULL)
 			continue;
 		// <advc.108>
 		int iBadFeatures = 0;
-		for (CityPlotIter it(*pStartingPlot); it.hasNext(); ++it)
+		for (CityPlotIter itPlot(*pStartingPlot); itPlot.hasNext(); ++itPlot)
 		{
-			CvPlot& p = *it;
-			// Disregard inner ring
-			if (::adjacentOrSame(p, *pStartingPlot) || !p.isFeature())
+			CvPlot& p = *itPlot;
+			// Disregard inner ring later
+			if (itPlot.currID() < NUM_INNER_PLOTS || !itPlot->isFeature())
 				continue;
-			if(GC.getInfo(p.getFeatureType()).getYieldChange(YIELD_FOOD) <= 0 &&
-					GC.getInfo(p.getFeatureType()).getYieldChange(YIELD_PRODUCTION) <= 0)
+			if(GC.getInfo(itPlot->getFeatureType()).getYieldChange(YIELD_FOOD) <= 0 &&
+				GC.getInfo(itPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) <= 0)
 			{
 				iBadFeatures++;
 			}
 		}
-		double prRemoval = 0;
+		scaled prRemoval;
 		if (iBadFeatures > iThreshBadFeatPerCity)
 		{
-			prRemoval = 1.0 - m_eNormalizationLevel *
-					(iThreshBadFeatPerCity / (double)iBadFeatures);
+			prRemoval = 1 - m_eNormalizationLevel *
+					scaled(iThreshBadFeatPerCity, iBadFeatures);
 		}
 		if (m_eNormalizationLevel >= NORMALIZE_HIGH)
 			prRemoval = 1;
 		// </advc.108>
-		for (CityPlotIter it(*pStartingPlot); it.hasNext(); ++it)
+		for (CityPlotIter itPlot(*pStartingPlot); itPlot.hasNext(); ++itPlot)
 		{
-			CvPlot& p = *it;
+			CvPlot& p = *itPlot;
 			if (!p.isFeature())
 				continue; // advc
 			if (GC.getInfo(p.getFeatureType()).getYieldChange(YIELD_FOOD) <= 0 &&
 				GC.getInfo(p.getFeatureType()).getYieldChange(YIELD_PRODUCTION) <= 0)
 			{
 				// <advc.108>
-				if (::adjacentOrSame(p, *pStartingPlot) ||
-					(!isPowerfulStartingBonus(p, kLoopPlayer.getID()) &&
-					::bernoulliSuccess(prRemoval, "advc.108"))) // </advc.108>
+				if (itPlot.currID() < NUM_INNER_PLOTS ||
+					(!isPowerfulStartingBonus(p, itPlayer->getID()) &&
+					prRemoval.bernoulliSuccess(getMapRand(), "advc.108"))) // </advc.108>
 				{
 					p.setFeatureType(NO_FEATURE);
 				}
 			}
 		}
 
-		int iCityRange = CITY_PLOTS_RADIUS;
-		int iExtraRange = 2;
-		int iMaxRange = iCityRange + iExtraRange;
-		for (int iX = -iMaxRange; iX <= iMaxRange; iX++)
+		int const iCityRange = CITY_PLOTS_RADIUS;
+		for (PlotCircleIter itPlot(*pStartingPlot, iCityRange + 2);
+			itPlot.hasNext(); ++itPlot)
 		{
-			for (int iY = -iMaxRange; iY <= iMaxRange; iY++)
+			CvPlot& p = *itPlot;
+			int iDistance = itPlot.currPlotDist();
+			if (p.isFeature() &&
+				GC.getInfo(p.getFeatureType()).getYieldChange(YIELD_FOOD) <= 0 &&
+				GC.getInfo(p.getFeatureType()).getYieldChange(YIELD_PRODUCTION) <= 0)
 			{
-				CvPlot* pLoopPlot = plotXY(pStartingPlot->getX(),
-						pStartingPlot->getY(), iX, iY);
-				if(pLoopPlot == NULL)
-					continue;
-				int iDistance = plotDistance(pStartingPlot->getX(),
-						pStartingPlot->getY(),
-						pLoopPlot->getX(), pLoopPlot->getY());
-				if(iDistance <= iMaxRange && pLoopPlot->isFeature() &&
-					GC.getInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_FOOD) <= 0 &&
-					GC.getInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) <= 0)
+				if (p.isWater())
 				{
-					if (pLoopPlot->isWater())
+					if (p.isAdjacentToLand() || (iDistance <= iCityRange + 1 &&
+						getSorenRandNum(2, "Remove Bad Feature") == 0))
 					{
-						if (pLoopPlot->isAdjacentToLand() || (iDistance != iMaxRange &&
-								getSorenRandNum(2, "Remove Bad Feature") == 0))
-							pLoopPlot->setFeatureType(NO_FEATURE);
+						p.setFeatureType(NO_FEATURE);
 					}
-					else if (iDistance != iMaxRange)
+				}
+				else if (iDistance <= iCityRange + 1)
+				{
+					// <advc.108> Plots outside the city range: reduced chance of removal
+					if((m_eNormalizationLevel > NORMALIZE_MEDIUM &&
+						// BtS check:
+						getSorenRandNum((2 + ((p.getBonusType() == NO_BONUS) ? 0 : 2)), "Remove Bad Feature") == 0) ||
+						(m_eNormalizationLevel <= NORMALIZE_MEDIUM &&
+						getSorenRandNum((3 - ((p.getBonusType() == NO_BONUS) ? 1 : 0)), "advc.108") != 0))
+					// </advc.108>
 					{
-						// <advc.108> Plots outside the city range: reduced chance of removal
-						if((m_eNormalizationLevel > NORMALIZE_MEDIUM &&
-								getSorenRandNum((2 + ((pLoopPlot->getBonusType() == NO_BONUS) ? 0 : 2)), "Remove Bad Feature") == 0) || // original check
-								(m_eNormalizationLevel <= NORMALIZE_MEDIUM &&
-								getSorenRandNum((3 - ((pLoopPlot->getBonusType() == NO_BONUS) ? 1 : 0)), "advc.108") != 0))
-						// </advc.108>
-							pLoopPlot->setFeatureType(NO_FEATURE);
+						p.setFeatureType(NO_FEATURE);
 					}
 				}
 			}
@@ -1673,86 +1656,76 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: style changes
 }
 
 
-void CvGame::normalizeRemoveBadTerrain()  // advc: style changes
+void CvGame::normalizeRemoveBadTerrain()  // advc: refactored
 {
 	// <advc.108>
-	double prKeep = 0;
+	scaled prKeep;
 	if(m_eNormalizationLevel <= NORMALIZE_LOW)
-		prKeep = 1 - GC.getDefineINT("REMOVAL_CHANCE_BAD_TERRAIN") / 100.0;
+		prKeep = 1 - per100(GC.getDefineINT("REMOVAL_CHANCE_BAD_TERRAIN"));
 	// </advc.108>
-
-	int iCityRange = CITY_PLOTS_RADIUS;
-	int iExtraRange = 1;
-	int iMaxRange = iCityRange + iExtraRange;
-
-	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	int const iCityRange = CITY_PLOTS_RADIUS;
+	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		CvPlayerAI const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-		if(!kLoopPlayer.isAlive())
+		CvPlot* pStartingPlot = itPlayer->getStartingPlot();
+		if (pStartingPlot == NULL)
 			continue;
-		CvPlot* pStartingPlot = kLoopPlayer.getStartingPlot();
-		if(pStartingPlot == NULL)
-			continue;
-		for (int iX = -iMaxRange; iX <= iMaxRange; iX++)
+		for (PlotCircleIter itPlot(*pStartingPlot, iCityRange + 1);
+			itPlot.hasNext(); ++itPlot)
 		{
-			for (int iY = -iMaxRange; iY <= iMaxRange; iY++)
+			CvPlot& p = *itPlot;
+			int iDistance = itPlot.currPlotDist();
+			if (!p.isWater() && (iDistance <= iCityRange ||
+				p.isCoastalLand() || getSorenRandNum(
+				1 + iDistance - iCityRange, "Map Upgrade Terrain Food") == 0))
 			{
-				CvPlot* pLoopPlot = plotXY(pStartingPlot->getX(),
-						pStartingPlot->getY(), iX, iY);
-				if(pLoopPlot == NULL)
+				CvTerrainInfo const& kTerrain = GC.getInfo(p.getTerrainType());
+				int iPlotFood = kTerrain.getYield(YIELD_FOOD);
+				int iPlotProduction = kTerrain.getYield(YIELD_PRODUCTION);
+				if (iPlotFood + iPlotProduction > 1)
 					continue;
-				int iDistance = plotDistance(pStartingPlot->getX(), pStartingPlot->getY(),
-						pLoopPlot->getX(), pLoopPlot->getY());
-				if(iDistance > iMaxRange)
+				// <advc.108>
+				if (isPowerfulStartingBonus(p, itPlayer->getID()))
 					continue;
-				if(!pLoopPlot->isWater() && (iDistance <= iCityRange ||
-						pLoopPlot->isCoastalLand() || getSorenRandNum(
-						1 + iDistance - iCityRange, "Map Upgrade Terrain Food") == 0))
+				/*  I think the BtS code ends up replacing Desert with Desert when
+					there's a feature, but let's rather handle Desert features explicitly. */
+				if (p.isFeature() &&
+					GC.getInfo(p.getFeatureType()).
+					getYieldChange(YIELD_FOOD) + iPlotFood >= 2)
 				{
-					CvTerrainInfo const& kTerrain = GC.getInfo(pLoopPlot->getTerrainType());
-					int iPlotFood = kTerrain.getYield(YIELD_FOOD);
-					int iPlotProduction = kTerrain.getYield(YIELD_PRODUCTION);
-					if (iPlotFood + iPlotProduction > 1)
-						continue;
-					// <advc.108>
-					if(isPowerfulStartingBonus(*pLoopPlot, kLoopPlayer.getID()))
-						continue;
-					/*  I think the BtS code ends up replacing Desert with Desert when
-						there's a feature, but let's rather handle Desert features explicitly. */
-					if(pLoopPlot->isFeature() &&
-							GC.getInfo(pLoopPlot->getFeatureType()).
-							getYieldChange(YIELD_FOOD) + iPlotFood >= 2)
-						continue;
-					if(::bernoulliSuccess(prKeep, "advc.108"))
+					continue;
+				}
+				if (prKeep.bernoulliSuccess(getMapRand(), "advc.108"))
+				{
+					if(iPlotFood > 0 ||
+					/*  advc.129b: Two chances of removal for Snow river
+						(BuildModifier=50), but not for Desert river. */
+						(p.isRiver() && kTerrain.getBuildModifier() < 30) ||
+						prKeep.bernoulliSuccess(getMapRand(), "advc.108"))
 					{
-						if(iPlotFood > 0 ||
-							/*  advc.129b: Two chances of removal for Snow river
-								(BuildModifier=50), but not for Desert river. */
-								(pLoopPlot->isRiver() && kTerrain.getBuildModifier() < 30) ||
-								::bernoulliSuccess(prKeep, "advc.108"))
-							continue;
-					} // </advc.108>
-					int const iTargetTotal = 2;
-					int iTargetFood = 1;
-					if (pLoopPlot->getBonusType(kLoopPlayer.getTeam()) != NO_BONUS)
-						iTargetFood = 1;
-					else if (iPlotFood == 1 || iDistance <= iCityRange)
-						iTargetFood = 1 + getSorenRandNum(2, "Map Upgrade Terrain Food");
-					else iTargetFood = pLoopPlot->isCoastalLand() ? 2 : 1;
+						continue;
+					}
+				} // </advc.108>
+				int const iTargetTotal = 2;
+				int iTargetFood = 1;
+				if (p.getBonusType(itPlayer->getTeam()) != NO_BONUS)
+					iTargetFood = 1;
+				else if (iPlotFood == 1 || iDistance <= iCityRange)
+					iTargetFood = 1 + getSorenRandNum(2, "Map Upgrade Terrain Food");
+				else iTargetFood = (p.isCoastalLand() ? 2 : 1);
 
-					for (int iK = 0; iK < GC.getNumTerrainInfos(); iK++)
+				FOR_EACH_ENUM(Terrain)
+				{
+					CvTerrainInfo const& kRepl = GC.getInfo(eLoopTerrain);
+					if (kRepl.isWater())
+						continue;
+					if (kRepl.getYield(YIELD_FOOD) >= iTargetFood &&
+						kRepl.getYield(YIELD_FOOD) +
+						kRepl.getYield(YIELD_PRODUCTION) == iTargetTotal)
 					{
-						CvTerrainInfo const& kRepl = GC.getInfo((TerrainTypes)iK);
-						if (kRepl.isWater())
-							continue;
-						if (kRepl.getYield(YIELD_FOOD) >= iTargetFood &&
-								kRepl.getYield(YIELD_FOOD) +
-								kRepl.getYield(YIELD_PRODUCTION) == iTargetTotal)
+						if (!p.isFeature() ||
+							GC.getInfo(p.getFeatureType()).isTerrain(eLoopTerrain))
 						{
-							if (!pLoopPlot->isFeature() ||
-									GC.getInfo(pLoopPlot->getFeatureType()).
-									isTerrain(iK))
-								pLoopPlot->setTerrainType((TerrainTypes)iK);
+							p.setTerrainType(eLoopTerrain);
 						}
 					}
 				}
@@ -1944,7 +1917,7 @@ void CvGame::normalizeAddFoodBonuses(  // advc: refactoring
 }
 
 
-void CvGame::normalizeAddGoodTerrain()  // advc: style changes
+void CvGame::normalizeAddGoodTerrain()  // advc: refactoring
 {
 	// <advc.108>
 	if(m_eNormalizationLevel <= NORMALIZE_LOW)
@@ -2037,20 +2010,20 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 			iHills < 3 && /* advc.108: */ iHillsAdded < 2 &&
 			it.hasNext(); ++it)
 		{
-			CvPlot& kLoopPlot = *it;
-			if (kLoopPlot.isWater() || kLoopPlot.isHills() ||
-				!kLoopPlot.sameArea(*pStartingPlot)) // advc.108 (from PerfectMongoose 2)
+			CvPlot& p = *it;
+			if (p.isWater() || p.isHills() ||
+				!p.sameArea(*pStartingPlot)) // advc.108 (from Perfect World 2)
 			{
 				continue;
 			}
-			if (!kLoopPlot.isFeature() ||
-				!GC.getInfo(kLoopPlot.getFeatureType()).isRequiresFlatlands())
+			if (!p.isFeature() ||
+				!GC.getInfo(p.getFeatureType()).isRequiresFlatlands())
 			{
-				if (kLoopPlot.getBonusType() == NO_BONUS ||
-					GC.getInfo(kLoopPlot.getBonusType()).isHills())
+				if (p.getBonusType() == NO_BONUS ||
+					GC.getInfo(p.getBonusType()).isHills())
 				{
 					if (gMapLogLevel > 0) logBBAI("    Adding hills for player %d.", kPlayer.getID()); // K-Mod
-					kLoopPlot.setPlotType(PLOT_HILLS, false, true);
+					p.setPlotType(PLOT_HILLS, false, true);
 					iHills++;
 					// <advc.108>
 					if (it.currID() != CITY_HOME_PLOT)
@@ -2066,22 +2039,19 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 		int iTotalValue = 0;
 		int iBestValue = 0;
 		int iWorstValue = MAX_INT;
-		PlayerIter<CIV_ALIVE> it;
-		for (; it.hasNext(); ++it)
+		for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 		{
-			CvPlayerAI const& kPlayer = *it;
-
+			CvPlayerAI const& kPlayer = *itPlayer;
 			CvPlot const* pStartingPlot = kPlayer.getStartingPlot();
 			if (pStartingPlot == NULL)
 				continue;
-
 			int iValue = kPlayer.AI_foundValue(pStartingPlot->getX(), pStartingPlot->getY(),
 					-1, /* advc.031e: */ false, true);
 			iTotalValue += iValue;
 			iBestValue = std::max(iValue, iBestValue);
 			iWorstValue = std::min(iValue, iWorstValue);
 		}
-		//iTargetValue = (iTotalValue + iBestValue) / (it.nextIndex() + 1);
+		//iTargetValue = (iTotalValue + iBestValue) / (itPlayer.nextIndex() + 1);
 		rTargetValue = fixp(0.8) * iBestValue;
 		// <advc.108>
 		if(m_eNormalizationLevel <= NORMALIZE_LOW)
@@ -2105,11 +2075,11 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 		// <advc.108> Treat desert features and forest separately
 		int iFoodFeatures = 0;
 		int iProductionFeatures = 0;
-		for (CityPlotIter it(*pStartingPlot, false); it.hasNext(); ++it)
+		for (CityPlotIter itPlot(*pStartingPlot, false); itPlot.hasNext(); ++itPlot)
 		{
-			if (it->isFeature())
+			if (itPlot->isFeature())
 			{
-				CvFeatureInfo const& kFeature = GC.getFeatureInfo(it->getFeatureType());
+				CvFeatureInfo const& kFeature = GC.getFeatureInfo(itPlot->getFeatureType());
 				if (kFeature.getYieldChange(YIELD_FOOD) > 0)
 					iFoodFeatures++;
 				if (kFeature.getYieldChange(YIELD_PRODUCTION) > 0)
@@ -2119,10 +2089,10 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 		bool bProductionFeatureDone = false;
 		bool bFoodFeatureDone = false; // </advc.108>
 		{
-			for (CityPlotRandIter it(*pStartingPlot, getMapRand(), false);
-				it.hasNext(); ++it)
+			for (CityPlotRandIter itPlot(*pStartingPlot, getMapRand(), false);
+				itPlot.hasNext(); ++itPlot)
 			{
-				CvPlot& kLoopPlot = *it;
+				CvPlot& kLoopPlot = *itPlot;
 				if (kLoopPlot.getBonusType() != NO_BONUS || kLoopPlot.isFeature())
 					continue;
 				/*if (getSRandNum(iCount + 2, "Setting Feature Type") > 1)
@@ -2184,17 +2154,17 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 		int iWater = 0;
 		for (CityPlotIter itPlot(*pStartingPlot, false); itPlot.hasNext(); ++itPlot)
 		{
-			CvPlot const& kPlot = *itPlot;
-			BonusTypes eLoopBonus = kPlot.getBonusType(
+			CvPlot const& p = *itPlot;
+			BonusTypes eLoopBonus = p.getBonusType(
 					// <advc.108> Don't count unrevealed bonuses
 					m_eNormalizationLevel > NORMALIZE_LOW ? NO_TEAM :
 					kPlayer.getTeam()); /* </advc.108> */
-			if (kPlot.isWater())
+			if (p.isWater())
 			{
 				iWater++;
 				if (eLoopBonus != NO_BONUS)
 				{
-					if (kPlot.isAdjacentToLand())
+					if (p.isAdjacentToLand())
 						iCoastBonus++;
 					else iOceanBonus++;
 				}
@@ -2209,13 +2179,14 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 		}
 		{
 			bool const bLandBias = (iWater > NUM_CITY_PLOTS / 2);
-			for (CityPlotRandIter it(*pStartingPlot, getMapRand(), false); it.hasNext() &&
+			for (CityPlotRandIter itPlot(*pStartingPlot, getMapRand(), false);
+				itPlot.hasNext() &&
 				//iLandBonus * 3 +
 				iLandFood * 4 + (iLandBonus - iLandFood) * 3 + // advc.108
-				iOceanBonus * 2 + iCoastBonus * 3 < 12; ++it) // advc.108: iCoastBonus multiplier was 2
+				iOceanBonus * 2 + iCoastBonus * 3 < 12; ++itPlot) // advc.108: iCoastBonus multiplier was 2
 			{
-				CvPlot& kLoopPlot = *it;
-				if (getSorenRandNum((bLandBias && kLoopPlot.isWater()) ? 2 : 1, "Placing Bonuses") != 0)
+				CvPlot& p = *itPlot;
+				if (getSorenRandNum((bLandBias && p.isWater()) ? 2 : 1, "Placing Bonuses") != 0)
 					continue;
 				if (pTarget != NULL ? pTarget->isNearlyReached(*pStartingPlot) : // advc.027
 					citySiteEval.evaluate(*pStartingPlot) >= rTargetValue)
@@ -2223,8 +2194,8 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 					if (gMapLogLevel > 0) logBBAI("    Player %d doesn't need any more bonuses.", kPlayer.getID()); // K-Mod
 					break;
 				}
-				bool const bCoast = (kLoopPlot.isWater() && kLoopPlot.isAdjacentToLand());
-				bool const bOcean = (kLoopPlot.isWater() && !bCoast);
+				bool const bCoast = (p.isWater() && p.isAdjacentToLand());
+				bool const bOcean = (p.isWater() && !bCoast);
 				if (!(bCoast && iCoastBonus >= 2) && // advc.108: was >2
 					!(bOcean && iOceanBonus >= 2) &&// advc.108: was >2
 					// advc.108: At most 3 sea food
@@ -2232,15 +2203,15 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 				{
 					for (int iPass = 0; iPass < 2; iPass++)
 					{
-						if (kLoopPlot.getBonusType() != NO_BONUS)
+						if (p.getBonusType() != NO_BONUS)
 							continue;
 						int iFoodBonuses = iLandFood + iCoastBonus + iOceanBonus; // advc.108
 						// advc: Selection and placement moved into auxiliary function
-						if (placeExtraBonus(kPlayer.getID(), kLoopPlot,
+						if (placeExtraBonus(kPlayer.getID(), p,
 							iPass == 0, bIgnoreLatitude, false,
 							iFoodBonuses > 2 - iPass)) // advc.108
 						{
-							if (kLoopPlot.isWater())
+							if (p.isWater())
 							{
 								if (bCoast)
 									iCoastBonus++;
@@ -2251,7 +2222,7 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 							{
 								iLandBonus++;
 								// <advc.108>
-								if (GC.getInfo(kLoopPlot.getBonusType()).
+								if (GC.getInfo(p.getBonusType()).
 									getYieldChange(YIELD_FOOD) > 0)
 								{
 									iLandFood++;
@@ -2259,17 +2230,17 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 							}
 							break;
 						}
-						if (!bLandBias || kLoopPlot.isWater() ||
-							kLoopPlot.getBonusType() != NO_BONUS)
+						if (!bLandBias || p.isWater() ||
+							p.getBonusType() != NO_BONUS)
 						{
 							continue;
 						}
-						if (kLoopPlot.isFeature() &&
+						if (p.isFeature() &&
 							//iFeatureCount > 4 &&
 							// <advc.108> Don't clear food features
-							GC.getFeatureInfo(kLoopPlot.getFeatureType()).
+							GC.getFeatureInfo(p.getFeatureType()).
 							  getYieldChange(YIELD_FOOD) <= 0 &&
-							(GC.getFeatureInfo(kLoopPlot.getFeatureType()).
+							(GC.getFeatureInfo(p.getFeatureType()).
 							  getYieldChange(YIELD_PRODUCTION) <= 0 ||
 							// Don't clear production features if they're scarce
 							iProductionFeatures >= 4) && // </advc.108>
@@ -2277,13 +2248,12 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 							getSorenRandNum(2, "Clear feature to add bonus") == 0)
 						{
 							// advc: Selection, clearing of feature and placement moved into auxiliary function.
-							if (placeExtraBonus(kPlayer.getID(), kLoopPlot, iPass == 0,
+							if (placeExtraBonus(kPlayer.getID(), p, iPass == 0,
 								bIgnoreLatitude, true, iFoodBonuses >= 2))
 							{
 								iLandBonus++;
 								// <advc.108>
-								if (GC.getInfo(kLoopPlot.getBonusType()).
-									getYieldChange(YIELD_FOOD) > 0)
+								if (GC.getInfo(p.getBonusType()).getYieldChange(YIELD_FOOD) > 0)
 								{
 									iLandFood++;
 								} // </advc.108>
@@ -2293,13 +2263,12 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 				}
 			}
 		}
-		for (CityPlotRandIter it(*pStartingPlot, getMapRand(), false); it.hasNext(); ++it)
+		for (CityPlotRandIter itPlot(*pStartingPlot, getMapRand(), false);
+			itPlot.hasNext(); ++itPlot)
 		{
-			CvPlot& kLoopPlot = *it;
-			if (kLoopPlot.getBonusType() != NO_BONUS || kLoopPlot.isFeature())
-			{
+			CvPlot& p = *itPlot;
+			if (p.getBonusType() != NO_BONUS || p.isFeature())
 				continue;
-			}
 			// advc.opt: Moved down
 			if (pTarget != NULL ? pTarget->isReached(*pStartingPlot) : // advc.027
 				citySiteEval.evaluate(*pStartingPlot) >= rTargetValue)
@@ -2309,7 +2278,7 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 			}
 			FOR_EACH_ENUM_RAND(Feature, getMapRand()) // advc.129: randomize
 			{
-				if (!kLoopPlot.canHaveFeature(eLoopFeature))
+				if (!p.canHaveFeature(eLoopFeature))
 					continue;
 				// <advc.108> (Similar to the first place-feature loop)
 				CvFeatureInfo const& kFeature = GC.getFeatureInfo(eLoopFeature);
@@ -2322,9 +2291,9 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 					continue;
 				}
 				// Too many river forests are unhelpful; they block improvements.
-				if (kLoopPlot.isRiver() &&
+				if (p.isRiver() &&
 					GC.getInfo(eLoopFeature).getRiverYieldChange(YIELD_COMMERCE) <
-					GC.getInfo(kLoopPlot.getTerrainType()).getRiverYieldChange(YIELD_COMMERCE))
+					GC.getInfo(p.getTerrainType()).getRiverYieldChange(YIELD_COMMERCE))
 				{
 					continue;
 				}
@@ -2349,7 +2318,7 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 					}
 				} // </advc.108>
 				if (gMapLogLevel > 0) logBBAI("    Adding %S for player %d.", GC.getInfo(eLoopFeature).getDescription(), kPlayer.getID()); // K-Mod
-				kLoopPlot.setFeatureType(eLoopFeature);
+				p.setFeatureType(eLoopFeature);
 				break;
 			}
 		}

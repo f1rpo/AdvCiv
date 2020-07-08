@@ -2267,7 +2267,7 @@ bool CvTeam::checkMinorCiv() const // advc.003m: Renamed from isMinorCiv
 	return bValid;
 }
 
-// <advc.opt>
+// advc.opt:
 void CvTeam::updateLeaderID()
 {
 	PlayerTypes eFormerLeader = getLeaderID();
@@ -2298,7 +2298,7 @@ void CvTeam::updateLeaderID()
 		FAssert(m_eLeader != NO_PLAYER);
 		m_eLeader = eFormerLeader; // Better than nothing (maybe)
 	}
-} // </advc.opt>
+}
 
 
 PlayerTypes CvTeam::getSecretaryID() const
@@ -2949,9 +2949,11 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 				GET_TEAM(eIndex).isAVassal());
 	} // </advc.003m>
 	// <advc.035>
-	if (eIndex < getID()
-			|| !isAlive() || !GET_TEAM(eIndex).isAlive()) // advc.003m
+	if (eIndex < getID() ||
+		!isAlive() || !GET_TEAM(eIndex).isAlive()) // advc.003m
+	{
 		return; // setAtWar gets called on both sides; do this only once.
+	}
 	std::vector<CvPlot*> flipPlots;
 	::contestedPlots(flipPlots, getID(), eIndex);
 	for (size_t i = 0; i < flipPlots.size(); i++)
@@ -3377,8 +3379,9 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 			for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 			{
 				CvPlayer& kObs = *it;
-				if ((isHasMet(kObs.getTeam()) && GET_TEAM(eMaster).isHasMet(kObs.getTeam()))
-					|| kObs.isSpectator()) // advc.127
+				if ((isHasMet(kObs.getTeam()) &&
+					GET_TEAM(eMaster).isHasMet(kObs.getTeam())) ||
+					kObs.isSpectator()) // advc.127
 				{
 					gDLL->UI().addMessage(kObs.getID(), false, -1, szReplayMessage,
 							"AS2D_WELOVEKING", MESSAGE_TYPE_MAJOR_EVENT, NULL, GC.getColorType("HIGHLIGHT_TEXT"),
@@ -3417,8 +3420,9 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 				CvPlayer& kObs = *it;
 				CvWString szBuffer;
 				if (getID() == kObs.getTeam() || eMaster == kObs.getTeam() ||
-					(isHasMet(kObs.getTeam()) && GET_TEAM(eMaster).isHasMet(kObs.getTeam()))
-					|| kObs.isSpectator()) // advc.127
+					(isHasMet(kObs.getTeam()) &&
+					GET_TEAM(eMaster).isHasMet(kObs.getTeam())) ||
+					kObs.isSpectator()) // advc.127
 				{
 					szBuffer = szReplayMessage;
 				}

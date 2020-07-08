@@ -56,11 +56,11 @@ public:
 	DllExport void reopenInactiveSlots();
 
 	void resetGame();
-	DllExport void resetGame(CvInitCore * pSource, bool bClear = true, bool bSaveGameType = false);
+	DllExport void resetGame(CvInitCore* pSource, bool bClear = true, bool bSaveGameType = false);
 	DllExport void resetPlayers();
-	DllExport void resetPlayers(CvInitCore * pSource, bool bClear = true, bool bSaveSlotInfo = false);
+	DllExport void resetPlayers(CvInitCore* pSource, bool bClear = true, bool bSaveSlotInfo = false);
 	void resetPlayer(PlayerTypes eID);
-	DllExport void resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear = true, bool bSaveSlotInfo = false);
+	DllExport void resetPlayer(PlayerTypes eID, CvInitCore* pSource, bool bClear = true, bool bSaveSlotInfo = false);
 
 
 	// Member access ...
@@ -122,7 +122,8 @@ public:
 	int getNumHiddenCustomMapOptions() const { return m_iNumHiddenCustomMapOptions; }
 
 	CustomMapOptionTypes const* getCustomMapOptions() const { return m_aeCustomMapOptions; }
-	DllExport void setCustomMapOptions(int iNumCustomMapOptions, const CustomMapOptionTypes * aeCustomMapOptions);
+	DllExport void setCustomMapOptions(int iNumCustomMapOptions,
+			CustomMapOptionTypes const* aeCustomMapOptions);
 
 	DllExport CustomMapOptionTypes getCustomMapOption(int iOptionID) const;
 	DllExport void setCustomMapOption(int iOptionID, CustomMapOptionTypes eCustomMapOption);
@@ -316,9 +317,7 @@ protected:
 	int m_iPitbossTurnTime;
 	int m_iTargetScore;
 
-	// Number of city eliminations permitted
-	int m_iMaxCityElimination;
-
+	int m_iMaxCityElimination; // Number of city eliminations permitted
 	int m_iNumAdvancedStartPoints;
 
 	// Unsaved data

@@ -140,11 +140,11 @@ public:
 	}
 	//int AI_getUnitDanger(CvUnit* pUnit, int iRange = -1, bool bTestMoves = true, bool bAnyDanger = true) const;
 	// BETTER_BTS_AI_MOD: END
-	int AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves = true,
+	int AI_getWaterDanger(CvPlot const& kPlot, int iRange = DANGER_RANGE,
 			/* <advc.opt> */ int iMaxCount = MAX_INT) const;
-	inline bool AI_isAnyWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves = true) const
+	inline bool AI_isAnyWaterDanger(CvPlot const& kPlot, int iRange = DANGER_RANGE) const
 	{
-		return (AI_getWaterDanger(pPlot, iRange, bTestMoves, 1) >= 1);
+		return (AI_getWaterDanger(kPlot, iRange, 1) >= 1);
 	} // </advc.opt>
 
 	bool AI_avoidScience() const;

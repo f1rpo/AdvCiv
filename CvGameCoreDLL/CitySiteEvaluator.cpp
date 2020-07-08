@@ -2180,15 +2180,15 @@ int AIFoundValue::evaluateLongTermHealth(int& iHealthPercent) const
 	return r;
 }
 
-// <advc.031>
+// advc.031:
 int AIFoundValue::evaluateFeatureProduction(int iProduction) const
 {
 	/*  Can't chop in the very early game (would be nicer to check for
 		feature removal tech and sufficient workers than to go by era) */
-	int r = (iProduction * 3) / ((eEra == 0 ? 2 : eEra) + 2);
+	scaled r(iProduction * 3, (eEra == 0 ? 2 : eEra) + 2);
 	IFLOG if(r!=0) logBBAI("+%d from %d feature production", r, iProduction);
-	return r;
-} // </advc.031>
+	return r.round();
+}
 
 
 int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, scaled rProductionModifier,

@@ -381,10 +381,11 @@ bool CvUnitAI::AI_update()
 }
 
 // Returns true if took an action or should wait to move later...
-// K-Mod. I've basically rewritten this function.
-// bFirst should be "true" if this is the first unit in the group to use this follow function.
-// the point is that there are some calculations and checks in here which only depend on the group, not the unit
-// so for efficiency, we should only check them once.
+/*	K-Mod. I've basically rewritten this function.
+	bFirst should be "true" if this is the first unit in the group to use this follow function.
+	the point is that there are some calculations and checks in here
+	which only depend on the group, not the unit,
+	so for efficiency we should only check them once. */
 bool CvUnitAI::AI_follow(bool bFirst)
 {
 	FAssert(getDomainType() != DOMAIN_AIR);
@@ -394,13 +395,16 @@ bool CvUnitAI::AI_follow(bool bFirst)
 
 	if (bFirst && getGroup()->getHeadUnitAIType() == UNITAI_ATTACK_CITY)
 	{
-		// note: AI_stackAttackCity will check which of our units can attack when comparing stacks;
-		// and it will issue the attack order using MOVE_DIRECT ATTACK, which will execute without waiting for the entire group to have movement points.
+		/*	note: AI_stackAttackCity will check which of our units can attack
+			when comparing stacks; and it will issue the attack order using
+			MOVE_DIRECT ATTACK, which will execute without waiting for
+			the entire group to have movement points. */
 		if (AI_stackAttackCity()) // automatic threshold
 			return true;
 	}
 
-	// I've changed attack-follow code so that it will only attack with a single unit, not the whole group.
+	/*	I've changed attack-follow code so that it will
+		only attack with a single unit, not the whole group. */
 	if (bFirst && AI_cityAttack(1, 65, 0, true))
 		return true;
 	if (bFirst)
@@ -432,8 +436,8 @@ bool CvUnitAI::AI_follow(bool bFirst)
 		}
 	}
 
-	// K-Mod. AI_foundRange is bad AI. It doesn't always found when we want to, and it has the potential to found when we don't!
-	// So I've replaced it.
+	/*	K-Mod. AI_foundRange is bad AI. It doesn't always found when we want to,
+		and it has the potential to found when we don't! So I've replaced it. */
 	if (AI_foundFollow())
 		return true;
 
@@ -458,20 +462,23 @@ void CvUnitAI::AI_upgrade()
 	int iBestValue = kOwner.AI_unitValue(getUnitType(), eUnitAI, pArea) * 100;
 	UnitTypes eBestUnit = NO_UNIT;
 
-	// Note: the original code did two passes, presumably for speed reasons.
-	// In the first pass, they checked only units which were flagged with the right unitAI.
-	// Then, only if no such units were found, they checked all other units.
-	//
-	// I'm just jumping straight to the second (slower) pass, because most of the time no upgrades are available at all and so both passes would be used anyway.
-	//
-	// I've reversed the order of iteration because the stronger units are typically later in the list
+	/*	Note: the original code did two passes, presumably for speed reasons.
+		In the first pass, they checked only units which were flagged with the right unitAI.
+		Then, only if no such units were found, they checked all other units.
+
+		I'm just jumping straight to the second (slower) pass, because most of the time
+		no upgrades are available at all and so both passes would be used anyway.
+
+		I've reversed the order of iteration because
+		the stronger units are typically later in the list. */
 	bool bFirst = true; // advc.007
 	CvCivilization const& kCiv = kOwner.getCivilization(); // advc.003w
 	for (int i = kCiv.getNumUnits() - 1; i >= 0; i--)
 	{
 		UnitTypes eLoopUnit = kCiv.unitAt(i);
 		int iValue = kOwner.AI_unitValue(eLoopUnit, eUnitAI, pArea);
-		// use a random factor. less than 100, so that the upgrade must be better than the current unit.
+		/*	use a random factor. less than 100, so that
+			the upgrade must be better than the current unit. */
 		iValue *= 80 + GC.getGame().getSorenRandNum(21,
 				// <advc.007> Don't pollute the MPLog
 				bFirst ? "AI Upgrade" : NULL);
@@ -498,7 +505,8 @@ void CvUnitAI::AI_upgrade()
 			if (pGroup->getHeadUnit() != pUpgradeUnit)
 			{
 				pUpgradeUnit->joinGroup(NULL);
-				// indicate that the unit intends to rejoin the old group (although it might not actually do so...)
+				/*	indicate that the unit intends to rejoin the old group
+					(although it might not actually do so...) */
 				pUpgradeUnit->getGroup()->AI().AI_setMissionAI(MISSIONAI_GROUP, 0, pGroup->getHeadUnit());
 			}
 		}
@@ -510,7 +518,8 @@ void CvUnitAI::AI_promote()
 {
 	PROFILE_FUNC();
 
-	// K-Mod. A quick check to see if we can rule out all promotions in one hit, before we go through them one by one.
+	/*	K-Mod. A quick check to see if we can rule out all promotions in one hit,
+		before we go through them one by one. */
 	if (!isPromotionReady())
 		return; // can't get any normal promotions. (see CvUnit::canPromote)
 	// K-Mod end
@@ -1457,7 +1466,7 @@ void CvUnitAI::AI_settleMove()
 				// BETTER_BTS_AI_MOD, Unit AI, 11/30/08, jdog5000: guard added
 				if (!kOwner.AI_isAnyUnitTargetMissionAI(*getGroup()->getHeadUnit(), MISSIONAI_PICKUP))
 				{
-					//FAssertMsg(false, "advc.test: Just to see how frequently the AI scraps settlers");
+					//FAssertMsg(false, "advc.test: Just to see how frequently the AI scraps settlers"); // hardly ever
 					scrap(); //may seem wasteful, but settlers confuse the AI.
 					return;
 				}
@@ -1564,14 +1573,14 @@ void CvUnitAI::AI_settleMove()
 					else
 					{
 						pGroup->pushMission(MISSION_MOVE_TO, pEndTurnPlot->getX(), pEndTurnPlot->getY(),
-								iMoveFlags, false, false, MISSIONAI_GROUP, 0, pLoopSelectionGroup->getHeadUnit());
+								iMoveFlags, false, false, MISSIONAI_GROUP, NULL, pLoopSelectionGroup->getHeadUnit());
 					}
 				}
 				return;
 			}
 		}
-	}
-	// K-Mod end
+	} // K-Mod end
+
 	if(AI_retreatToCity())
 		return;
 	// K-Mod
@@ -4943,18 +4952,17 @@ void CvUnitAI::AI_greatPersonMove()
 			continue; // advc
 		}
 		// Join
-		for (int iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
+		FOR_EACH_ENUM(Specialist)
 		{
-			SpecialistTypes eSpecialist = (SpecialistTypes)iI;
-			if (canJoin(pLoopCity->plot(), eSpecialist))
+			if (canJoin(pLoopCity->plot(), eLoopSpecialist))
 			{
 				// Note, specialistValue is roughly 400x the commerce it provides. So /= 4 to make it 100x.
-				int iValue = pLoopCity->AI_permanentSpecialistValue(eSpecialist)/4;
+				int iValue = pLoopCity->AI_permanentSpecialistValue(eLoopSpecialist)/4;
 				if (iValue > iBestValue || (iValue == iBestValue && iPathTurns < iBestPathTurns))
 				{
 					iBestValue = iValue;
 					pBestPlot = getPathEndTurnPlot();
-					eBestSpecialist = eSpecialist;
+					eBestSpecialist = eLoopSpecialist;
 					eBestBuilding = NO_BUILDING;
 				}
 			}
@@ -5040,37 +5048,33 @@ void CvUnitAI::AI_greatPersonMove()
 	//
 
 	// Discover ("bulb tech")
-	int iDiscoverValue = 0;
+	scaled rDiscoverValue;
 	TechTypes eDiscoverTech = getDiscoveryTech();
 	if (eDiscoverTech != NO_TECH)
 	{
-		iDiscoverValue = getDiscoverResearch(eDiscoverTech);
+		rDiscoverValue = getDiscoverResearch(eDiscoverTech);
 		// if this isn't going to immediately help our research, it isn't worth as much.
-		if (iDiscoverValue < GET_TEAM(getTeam()).getResearchLeft(eDiscoverTech) &&
+		if (rDiscoverValue < GET_TEAM(getTeam()).getResearchLeft(eDiscoverTech) &&
 			kPlayer.getCurrentResearch() != eDiscoverTech)
 		{
-			iDiscoverValue *= 2;
-			iDiscoverValue /= 3;
+			rDiscoverValue.mulDiv(2, 3);
 		}
-		if (kPlayer.AI_isFirstTech(eDiscoverTech)) // founding religions / free techs / free great people
-		{
-			iDiscoverValue *= 2;
-		}
+		// founding religions / free techs / free great people
+		if (kPlayer.AI_isFirstTech(eDiscoverTech))
+			rDiscoverValue *= 2;
 		// amplify the 'undiscovered' bonus based on how likely we are to try to trade the tech.
-		iDiscoverValue *= 100 +
-				((200 - GC.getInfo(kPlayer.getPersonalityType()).getTechTradeKnownPercent()) *
-				GET_TEAM(getTeam()).AI_knownTechValModifier(eDiscoverTech)) / 100;
-		iDiscoverValue /= 100;
+		rDiscoverValue *= 1 +
+				((2 - per100(GC.getInfo(kPlayer.getPersonalityType()).getTechTradeKnownPercent())) *
+				(GET_TEAM(getTeam()).AI_knownTechValModifier(eDiscoverTech)
+				-1)); // advc: AI_knownTechValModifier now 1 higher than in K-Mod
 		if(GET_PLAYER(getOwner()).AI_isFocusWar()) // advc.105
 		//if (GET_TEAM(getTeam()).getAnyWarPlanCount(true) || kPlayer.AI_isDoStrategy(AI_STRATEGY_ALERT2))
 		{
-			iDiscoverValue *= (getArea().getAreaAIType(getTeam()) == AREAAI_DEFENSIVE ? 5 : 4);
-			iDiscoverValue /= 3;
+			rDiscoverValue *= (getArea().getAreaAIType(getTeam()) == AREAAI_DEFENSIVE ? 5 : 4);
+			rDiscoverValue /= 3;
 		}
-
-		iDiscoverValue *= (75 + kPlayer.AI_getStrategyRand(3) % 51);
-		iDiscoverValue /= 100;
-		missions.push_back(std::pair<int, int>(iDiscoverValue, GP_DISCOVER));
+		rDiscoverValue *= per100(75 + kPlayer.AI_getStrategyRand(3) % 51);
+		missions.push_back(std::pair<int, int>(rDiscoverValue.round(), GP_DISCOVER));
 	}
 
 	// SlowValue is meant to be a rough estimation of how much value we'll get from doing the best join / build mission.
@@ -5118,7 +5122,7 @@ void CvUnitAI::AI_greatPersonMove()
 
 	// Trade mission
 	CvPlot* pBestTradePlot;
-	int iTradeValue = AI_tradeMissionValue(pBestTradePlot, iDiscoverValue / 2);
+	int iTradeValue = AI_tradeMissionValue(pBestTradePlot, (rDiscoverValue / 2).round());
 	// make it roughly comparable to research points
 	if (pBestTradePlot != NULL)
 	{
@@ -5143,7 +5147,7 @@ void CvUnitAI::AI_greatPersonMove()
 
 	// Great works (culture bomb)
 	CvPlot* pBestCulturePlot;
-	int iCultureValue = AI_greatWorkValue(pBestCulturePlot, iDiscoverValue / 2);
+	int iCultureValue = AI_greatWorkValue(pBestCulturePlot, (rDiscoverValue / 2).round());
 	if (pBestCulturePlot != 0)
 	{
 		missions.push_back(std::pair<int, int>(iCultureValue, GP_CULTURE));
@@ -5166,7 +5170,7 @@ void CvUnitAI::AI_greatPersonMove()
 			if (canDiscover(plot()))
 			{
 				getGroup()->pushMission(MISSION_DISCOVER);
-				if (gUnitLogLevel > 2) logBBAI("    %S chooses 'discover' (%S) with their %S (value: %d, choice #%d)", GET_PLAYER(getOwner()).getCivilizationDescription(0), GC.getInfo(eDiscoverTech).getDescription(), getName(0).GetCString(), iDiscoverValue, iChoice);
+				if (gUnitLogLevel > 2) logBBAI("    %S chooses 'discover' (%S) with their %S (value: %d, choice #%d)", GET_PLAYER(getOwner()).getCivilizationDescription(0), GC.getInfo(eDiscoverTech).getDescription(), getName(0).GetCString(), rDiscoverValue.round(), iChoice);
 				return;
 			}
 			break;
@@ -6161,7 +6165,7 @@ void CvUnitAI::AI_attackSeaMove()
 			int iAttackers = getPlot().plotCount(PUF_isUnitAIType, UNITAI_ATTACK_SEA, -1, NO_PLAYER, getTeam());
 			// advc.114a: Why count only group heads? Need to count all attackers!
 					//PUF_isGroupHead, -1, -1);
-			int iBlockaders = kOwner.AI_getWaterDanger(plot(), 4);
+			int iBlockaders = kOwner.AI_getWaterDanger(getPlot(), 4);
 			//if (iAttackers > iBlockaders + 2)
 			// advc.114a: Replacing the above
 			if(2 * iAttackers >= 3 * iBlockaders && iBlockaders > 0)
@@ -6343,7 +6347,7 @@ void CvUnitAI::AI_reserveSeaMove()
 
 	/*  <advc.017b> Defend bonus if it's threatened, otherwise, consider a bunch of
 		other activities first. (K-Mod's AI_guardBonus(15) moved down instead.) */
-	if(kOwner.AI_isAnyWaterDanger(plot(), std::min(maxMoves(), DANGER_RANGE), false) &&
+	if(kOwner.AI_isAnyWaterDanger(getPlot(), std::min(maxMoves(), DANGER_RANGE)) &&
 		AI_guardBonus(10))
 	{
 		return;
@@ -7009,7 +7013,7 @@ void CvUnitAI::AI_assaultSeaMove()
 
 			MissionAITypes eMissionAIType = MISSIONAI_GROUP;
 			if (kOwner.AI_isAnyUnitTargetMissionAI(*this, &eMissionAIType, 1, getGroup(), 3) ||
-				kOwner.AI_isAnyWaterDanger(plot(), 4, false))
+				kOwner.AI_isAnyWaterDanger(getPlot(), 4))
 			{
 				// Loaded but with no escort, wait for others joining us soon or avoid dangerous waters
 				getGroup()->pushMission(MISSION_SKIP);
@@ -7256,7 +7260,7 @@ void CvUnitAI::AI_assaultSeaMove()
 			if (kOwner.AI_isAnyUnitTargetMissionAI(
 				*this, &eMissionAIType, 1, getGroup(), 1))
 			{
-				if (iEscorts < kOwner.AI_getWaterDanger(plot(), 2, false))
+				if (iEscorts < kOwner.AI_getWaterDanger(getPlot(), 2))
 				{
 					// Wait for units which are joining our group this turn (hopefully escorts)
 					getGroup()->pushMission(MISSION_SKIP);
@@ -11753,21 +11757,19 @@ bool CvUnitAI::AI_discover(bool bThisTurnOnly, bool bFirstResearchOnly)
 	if(!canDiscover(plot()))
 		return false;
 
-	TechTypes eDiscoverTech = getDiscoveryTech();
-	bool bFirstTech = (GET_PLAYER(getOwner()).AI_isFirstTech(eDiscoverTech));
+	TechTypes const eDiscoverTech = getDiscoveryTech();
+	bool const bFirstTech = GET_PLAYER(getOwner()).AI_isFirstTech(eDiscoverTech);
 
 	if (bFirstResearchOnly && !bFirstTech)
-	{
 		return false;
-	}
 
 	int iPercentWasted = (100 - ((getDiscoverResearch(eDiscoverTech) * 100) / getDiscoverResearch(NO_TECH)));
-	FAssert(((iPercentWasted >= 0) && (iPercentWasted <= 100)));
+	FAssert((iPercentWasted >= 0 && iPercentWasted <= 100));
 
 
 	if (getDiscoverResearch(eDiscoverTech) >= GET_TEAM(getTeam()).getResearchLeft(eDiscoverTech))
 	{
-		if ((iPercentWasted < 51) && bFirstResearchOnly && bFirstTech)
+		if (iPercentWasted < 51 && bFirstResearchOnly && bFirstTech)
 		{
 			getGroup()->pushMission(MISSION_DISCOVER);
 			return true;
@@ -11775,16 +11777,14 @@ bool CvUnitAI::AI_discover(bool bThisTurnOnly, bool bFirstResearchOnly)
 
 		if (iPercentWasted < (bFirstTech ? 31 : 11))
 		{
-			//I need a good way to assess if the tech is actually valuable...
-			//but don't have one.
+			/*	I need a good way to assess if the tech is actually valuable...
+				but don't have one. */
 			getGroup()->pushMission(MISSION_DISCOVER);
 			return true;
 		}
 	}
 	else if (bThisTurnOnly)
-	{
 		return false;
-	}
 
 	if (iPercentWasted <= 11)
 	{
@@ -12507,7 +12507,7 @@ bool CvUnitAI::AI_patrol() // advc: refactored
 		if(!isBarbarian() && kAdj.getOwner() == getOwner() &&
 			// Make sure not to hamper early exploration (perhaps not an issue)
 			kGame.getElapsedGameTurns() >= 25 &&
-			(kAdj.isUnit() || ::bernoulliSuccess(0.9,
+			(kAdj.isUnit() || fixp(0.9).bernoulliSuccess(kGame.getSRand(),
 			iFirst++ <= 0 ? "advc.102" : NULL))) // advc.007: Don't pollute MPLog
 		{
 			continue;
@@ -12529,10 +12529,10 @@ bool CvUnitAI::AI_patrol() // advc: refactored
 		{ // </advc.309>
 			/*  <advc.102> Prefer facedPlot or a plot that's
 				orthogonally adjacent to facedPlot. */
-			int x = kAdj.getX();
-			int y = kAdj.getY();
-			int delta = ::abs(iFacedX - x) + ::abs(iFacedY - y);
-			if(delta <= 1)
+			int iX = kAdj.getX();
+			int iY = kAdj.getY();
+			int iDelta = ::abs(iFacedX - iX) + ::abs(iFacedY - iY);
+			if(iDelta <= 1)
 				iValue += kGame.getSorenRandNum(10000, "advc.102");
 			/*  Prefer to stay/get out of foreign borders: AI patrols inside
 				human borders are annoying */
@@ -13806,7 +13806,7 @@ bool CvUnitAI::AI_rangeAttack(int iRange)
 	if (pBestPlot != NULL)
 	{
 		// K-Mod note: no AI_considerDOW here.
-		getGroup()->pushMission(MISSION_RANGE_ATTACK, pBestPlot->getX(), pBestPlot->getY(), 0);
+		getGroup()->pushMission(MISSION_RANGE_ATTACK, pBestPlot->getX(), pBestPlot->getY());
 		return true;
 	}
 	return false;

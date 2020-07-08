@@ -213,12 +213,12 @@ CvBuildingInfo::~CvBuildingInfo()
 		SAFE_DELETE_ARRAY(m_ppaiBonusYieldModifier);
 	}
 }
-// <advc.tag>
+// advc.tag:
 void CvBuildingInfo::addElements(std::vector<XMLElement*>& r) const
 {
 	CvHotkeyInfo::addElements(r);
 	r.push_back(new IntElement(RaiseDefense, "RaiseDefense", 0)); // advc.004c
-} // </advc.tag>
+}
 
 // advc.003w:
 bool CvBuildingInfo::isTechRequired(TechTypes eTech) const

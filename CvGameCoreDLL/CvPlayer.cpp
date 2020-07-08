@@ -7555,8 +7555,8 @@ int CvPlayer::greatPeopleThreshold(bool bMilitary) const
 			isHuman() ? 5 : 1);
 	if (!isHuman() && !isBarbarian())
 	{
-		iThreshold = ::round(0.01 * iThreshold * GC.getInfo(
-				kGame.getHandicapType()).getAIGPThresholdPercent());
+		iThreshold = ROUND_DIVIDE(iThreshold * GC.getInfo(
+				kGame.getHandicapType()).getAIGPThresholdPercent(), 100);
 	} // </advc.251>
 
 	return std::max(1, iThreshold);
@@ -7565,13 +7565,15 @@ int CvPlayer::greatPeopleThreshold(bool bMilitary) const
 
 int CvPlayer::specialistYield(SpecialistTypes eSpecialist, YieldTypes eYield) const
 {
-	return (GC.getInfo(eSpecialist).getYieldChange(eYield) + getSpecialistExtraYield(eSpecialist, eYield));
+	return GC.getInfo(eSpecialist).getYieldChange(eYield) +
+			getSpecialistExtraYield(eSpecialist, eYield);
 }
 
 
 int CvPlayer::specialistCommerce(SpecialistTypes eSpecialist, CommerceTypes eCommerce) const
 {
-	return (GC.getInfo(eSpecialist).getCommerceChange(eCommerce) + getSpecialistExtraCommerce(eCommerce));
+	return GC.getInfo(eSpecialist).getCommerceChange(eCommerce) +
+			getSpecialistExtraCommerce(eCommerce);
 }
 
 

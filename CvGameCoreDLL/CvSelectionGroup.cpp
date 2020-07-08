@@ -843,7 +843,7 @@ void CvSelectionGroup::startMission()
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				pUnitNode = nextUnitNode(pUnitNode);
 
-				if (pLoopUnit->canMove() && pLoopUnit->canPillage(getPlot()))
+				if (pLoopUnit->canMove() && pLoopUnit->canPillage(pLoopUnit->getPlot()))
 				{
 					int iPriority = 0;
 					if (pLoopUnit->bombardRate() > 0)
@@ -2616,7 +2616,7 @@ int CvSelectionGroup::getX() const
 {
 	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
-		return getHeadUnit()->getX();
+		return pHeadUnit->getX();
 	return INVALID_PLOT_COORD;
 }
 
@@ -2625,7 +2625,7 @@ int CvSelectionGroup::getY() const
 {
 	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
-		return getHeadUnit()->getY();
+		return pHeadUnit->getY();
 	return INVALID_PLOT_COORD;
 }
 
@@ -2634,7 +2634,7 @@ CvPlot* CvSelectionGroup::plot() const
 {
 	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
-		return getHeadUnit()->plot();
+		return pHeadUnit->plot();
 	return NULL;
 }
 
@@ -2643,7 +2643,7 @@ CvPlot* CvSelectionGroup::plot() const
 {
 	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
-		return getHeadUnit()->getArea().getID();
+		return pHeadUnit->getArea().getID();
 	return FFreeList::INVALID_INDEX; // advc.001: was NULL
 }*/
 
@@ -2651,7 +2651,7 @@ CvArea* CvSelectionGroup::area() const
 {
 	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
-		return getHeadUnit()->area();
+		return pHeadUnit->area();
 	return NULL;
 }
 
@@ -2660,7 +2660,7 @@ DomainTypes CvSelectionGroup::getDomainType() const
 {
 	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
-		return getHeadUnit()->getDomainType();
+		return pHeadUnit->getDomainType();
 	return NO_DOMAIN;
 }
 
@@ -4378,8 +4378,10 @@ int CvSelectionGroup::getMissionData2(int iNode) const
 void CvSelectionGroup::handleBoarded()
 {
 	if(!isHuman() || getDomainType() != DOMAIN_SEA ||
-			GET_PLAYER(getOwner()).isOption(PLAYEROPTION_NO_UNIT_CYCLING))
+		GET_PLAYER(getOwner()).isOption(PLAYEROPTION_NO_UNIT_CYCLING))
+	{
 		return;
+	}
 	CLLNode<MissionData>* pMissionNode = headMissionQueueNode();
 	if(pMissionNode == NULL)
 	{
@@ -4390,7 +4392,8 @@ void CvSelectionGroup::handleBoarded()
 		return;
 	if(movesLeft() || !hasMoved())
 		return;
-	if(getPlot().isWater() && !getPlot().isAdjacentToLand())
+	CvPlot const& kAt = getPlot();
+	if(kAt.isWater() && !kAt.isAdjacentToLand())
 		return;
 
 	std::vector<CvSelectionGroup*> apLandCargoGroups;

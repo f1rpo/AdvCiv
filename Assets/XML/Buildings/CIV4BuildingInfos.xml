@@ -9720,7 +9720,9 @@
 			<bCtrlDown>0</bCtrlDown>
 			<iHotKeyPriority>0</iHotKeyPriority>
 		</BuildingInfo>
-		<!-- advc.200 BEGIN Copy-pasted the entries for Colosseum and all unique replacements from BtS. Only kept the K-Mod change to Odeon (one fewer culture) -->
+		<!-- advc.200 BEGIN Copy-pasted the entries for Colosseum and all
+			unique replacements from BtS. Only kept the K-Mod change to Odeon
+			(one less culture). -->
 		<BuildingInfo>
 			<BuildingClass>BUILDINGCLASS_COLOSSEUM</BuildingClass>
 			<Type>BUILDING_COLOSSEUM</Type>
@@ -26458,7 +26460,7 @@
 			<iGlobalSpaceProductionModifier>0</iGlobalSpaceProductionModifier>
 			<iTradeRoutes>0</iTradeRoutes>
 			<iCoastalTradeRoutes>0</iCoastalTradeRoutes>
-			<!-- advc.310: Was 0 -->
+			<!-- advc.310 -->
 			<iAreaTradeRoutes>1</iAreaTradeRoutes>
 			<iTradeRouteModifier>0</iTradeRouteModifier>
 			<iForeignTradeRouteModifier>0</iForeignTradeRouteModifier>

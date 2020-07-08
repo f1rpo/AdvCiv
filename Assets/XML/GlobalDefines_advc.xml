@@ -6,15 +6,13 @@
 
 <Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
 
-	<!-- advc.002b: The DLL needs to know (well, it's not crucial ...) if font
-		 sizes have been increased through a custom theme, and I don't know
-		 how to check that from within the DLL. Therefore this GlobalDefine.
-		 Should be set to the Size1_Normal value in Civ4Theme_Common.thm;
-		 that's 14 if the AdvCiv theme hasn't been changed. 12 if the AdvCiv
-		 theme has been removed and not replaced with another custom theme
-		 (though that's something the DLL code will detect anyway).
-		 Note: FONT_SIZE_FACTOR does not actually change the font size;
-		 only Civ4Theme_Common.thm can do that. -->
+	<!-- advc.002b: The DLL needs to know (well, it's not crucial ...) the
+		 font size of Size1_Normal in Civ4Theme_Common.thm. AdvCiv sets that
+		 to 14. If a mod-mod changes Size1_Normal, then FONT_SIZE_FACTOR
+		 should be adjusted accordingly. If the if the AdvCiv theme is
+		 removed (and not replaced with a different custom theme), then
+		 there should be no need to edit this value; the DLL can
+		 figure that out on its own. -->
 	<Define>
 		<DefineName>FONT_SIZE_FACTOR</DefineName>
 		<iDefineIntVal>14</iDefineIntVal>

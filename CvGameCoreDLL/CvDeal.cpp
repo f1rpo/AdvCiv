@@ -1031,9 +1031,11 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 		// Canceled b/c of failure to protect vassal?
 		bool bDeniedHelp = false;
 		if(bSurrender)
-			bDeniedHelp = (GET_TEAM(eFromPlayer).isLossesAllowRevolt(TEAMID(eToPlayer))
+		{
+			bDeniedHelp = (GET_TEAM(eFromPlayer).isLossesAllowRevolt(TEAMID(eToPlayer)) &&
 					// Doesn't count if losses obviously only from cultural borders
-					&& GET_TEAM(eFromPlayer).AI_isAnyWarPlan());
+					GET_TEAM(eFromPlayer).AI_isAnyWarPlan());
+		}
 		else
 		{
 			DenialTypes eReason = GET_TEAM(eFromPlayer).
@@ -1142,25 +1144,17 @@ void CvDeal::addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
 
 void CvDeal::startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam, bool bDual)
 {
-	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.003n: was MAX_PLAYERS
+	for (MemberIter itFromMember(eFromTeam); itFromMember.hasNext(); ++itFromMember)
 	{
-		CvPlayer& kFromMember = GET_PLAYER((PlayerTypes)iI); // advc
-		if (!kFromMember.isAlive() || kFromMember.getTeam() != eFromTeam)
-			continue;
-
-		for (int iJ = 0; iJ < MAX_PLAYERS; iJ++)
+		for (MemberIter itToMember(eToTeam); itToMember.hasNext(); ++itToMember)
 		{
-			CvPlayer& kToMember = GET_PLAYER((PlayerTypes)iJ); // advc
-			if (!kToMember.isAlive() || kToMember.getTeam() != eToTeam)
-				continue;
-
 			TradeData item(eItem, 1);
 			CLinkList<TradeData> ourList;
 			ourList.insertAtEnd(item);
 			CLinkList<TradeData> theirList;
 			if (bDual)
 				theirList.insertAtEnd(item);
-			GC.getGame().implementDeal(kFromMember.getID(), kToMember.getID(),
+			GC.getGame().implementDeal(itFromMember->getID(), itToMember->getID(),
 					ourList, theirList);
 		}
 	}
@@ -1180,7 +1174,8 @@ void CvDeal::endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes e
 		{
 			if (pLoopDeal->getFirstTrades() != NULL)
 			{
-				for (pNode = pLoopDeal->getFirstTrades()->head(); pNode != NULL; pNode = pLoopDeal->getFirstTrades()->next(pNode))
+				for (pNode = pLoopDeal->getFirstTrades()->head(); pNode != NULL;
+					pNode = pLoopDeal->getFirstTrades()->next(pNode))
 				{
 					if (pNode->m_data.m_eItemType == eItem)
 						bValid = false;
@@ -1193,7 +1188,8 @@ void CvDeal::endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes e
 		{
 			if (pLoopDeal->getSecondTrades() != NULL)
 			{
-				for (pNode = pLoopDeal->getSecondTrades()->head(); pNode != NULL; pNode = pLoopDeal->getSecondTrades()->next(pNode))
+				for (pNode = pLoopDeal->getSecondTrades()->head(); pNode != NULL;
+					pNode = pLoopDeal->getSecondTrades()->next(pNode))
 				{
 					if (pNode->m_data.m_eItemType == eItem)
 						bValid = false;
@@ -1222,7 +1218,7 @@ bool CvDeal::isCancelable(PlayerTypes eByPlayer, CvWString* pszReason) const
 	return (iTurns <= 0);
 }
 
-/*  <advc.130f> Based on isCancelable; doesn't check turnsToCancel.
+/*  advc.130f: Based on isCancelable; doesn't check turnsToCancel.
 	See declaration in CvDeal.h. */
 bool CvDeal::isEverCancelable(PlayerTypes eByPlayer) const 
 {
@@ -1230,7 +1226,7 @@ bool CvDeal::isEverCancelable(PlayerTypes eByPlayer) const
 		return false;
 
 	return !isUncancelableVassalDeal(eByPlayer);
-} // </advc.130f>
+}
 
 int CvDeal::turnsToCancel(PlayerTypes eByPlayer) const
 {	// <advc.034>
@@ -1240,7 +1236,8 @@ int CvDeal::turnsToCancel(PlayerTypes eByPlayer) const
 	return (getInitialGameTurn() + len - // </advc.034>
 			GC.getGame().getGameTurn());
 }
-// <advc>
+
+// advc:
 bool CvDeal::isAllDual() const
 {
 	CLLNode<TradeData> const* pNode;
@@ -1250,7 +1247,7 @@ bool CvDeal::isAllDual() const
 			return false;
 	}
 	return true;
-} // </advc>
+}
 
 // static
 bool CvDeal::isAnnual(TradeableItems eItem)
