@@ -1248,7 +1248,8 @@ void CvCityAI::AI_chooseProduction()
 
 			if (iNeededSeaWorkers > iExistingSeaWorkers)
 			{
-				if (AI_chooseUnit(UNITAI_WORKER_SEA))
+				if (AI_chooseUnit(UNITAI_WORKER_SEA,
+					60)) // advc.131: From MNAI; was -1.
 				{
 					if (gCityLogLevel >= 2) logBBAI("      City %S uses choose worker sea 2", getName().GetCString());
 					return;
@@ -1396,7 +1397,8 @@ void CvCityAI::AI_chooseProduction()
 	UnitTypes eBestSpreadUnit = NO_UNIT;
 	int iBestSpreadUnitValue = -1;
 
-	if (!bDanger && !(kPlayer.AI_isDoStrategy(AI_STRATEGY_TURTLE)))
+	if (!bDanger && !kPlayer.AI_isDoStrategy(AI_STRATEGY_TURTLE) &&
+		!bAssault) // advc.131 (from MNAI)
 	{
 		int iSpreadUnitRoll = (100 - iBuildUnitProb) / 3;
 		iSpreadUnitRoll += bLandWar ? 0 : 10;
@@ -1548,7 +1550,7 @@ void CvCityAI::AI_chooseProduction()
 			if (iMissingExplorers > 0)
 			{
 				if (AI_chooseUnit(UNITAI_EXPLORE,
-					34 * iMissingExplorers)) //advc.131: was 100 flat
+					34 * iMissingExplorers)) // advc.131: was 100 flat (MNAI uses 25 flat)
 				{
 					if (gCityLogLevel >= 2) logBBAI("      City %S uses choose missing explorer", getName().GetCString()); // advc
 					return;
@@ -6388,14 +6390,14 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 	}
 
 	if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAST_STAND))
-		iDefenders += 10;
+		iDefenders += 5; // advc.107: From MNAI; was 10.
 
 	if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3))
 	{
 		if (findCommerceRateRank(COMMERCE_CULTURE) <=
 			kGame.culturalVictoryNumCultureCities())
 		{
-			iDefenders += 4;
+			iDefenders += 2; // advc.107: From MNAI; was 4 in BtS, 1 in MNAI.
 			if (bDefenseWar /* cdtw: */ || isCoastal())
 				iDefenders += 2;
 		}
@@ -6413,9 +6415,12 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 			iDefenders += 6;
 	}
 
-	iDefenders = std::max(iDefenders, AI_neededCultureDefenders()); // advc.099c
+	/*	advc (note): Take into account finances? (Idea from MNAI, which
+		halves iDefenders when in financial trouble - but seems excessive to me.) */
 
+	iDefenders = std::max(iDefenders, AI_neededCultureDefenders()); // advc.099c
 	iDefenders = std::max(iDefenders, AI_minDefenders());
+
 	return iDefenders;
 } // BETTER_BTS_AI_MOD: END
 

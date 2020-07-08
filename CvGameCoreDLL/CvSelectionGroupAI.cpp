@@ -839,10 +839,13 @@ CvUnitAI* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 			}
 
 			iValue *= 100;
-			iValue /= (100 + pLoopUnit->cityAttackModifier() + pLoopUnit->getExtraCityAttackPercent());
+			//iValue /= (100 + pLoopUnit->cityAttackModifier() + pLoopUnit->getExtraCityAttackPercent());
+			// advc.mnai: (Note that cityAttackModifier includes ExtraCityAttackPercent)
+			iValue /= 100 + std::max(-50, 2 * pLoopUnit->cityAttackModifier());
 
-			iValue /= 2 + pLoopUnit->getLevel();
-
+			iValue /= 2 + (pLoopUnit->getLevel() *
+					// advc.mnai:
+					(pLoopUnit->AI_getUnitAIType() == UNITAI_ATTACK_CITY ? 2 : 1));
 			if (iValue > iBestUnitValue)
 			{
 				iBestUnitValue = iValue;

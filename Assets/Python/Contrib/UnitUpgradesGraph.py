@@ -46,7 +46,8 @@ unitHorizontalMargin = 20
 unitVerticalMargin = 20
 
 #Spacing refers to the space between unit icons
-unitHorizontalSpacing = 40
+# advc.004 (from MNAI): Was 40. (MNAI also doubles the v-space.)
+unitHorizontalSpacing = 80
 unitVerticalSpacing = 5
 
 #The same concepts apply to the promotions graphs as to the unit graphs

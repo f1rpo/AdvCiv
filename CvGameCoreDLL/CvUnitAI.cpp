@@ -493,6 +493,7 @@ void CvUnitAI::AI_upgrade()
 
 	if (eBestUnit != NO_UNIT)
 	{
+		logBBAI("    %S (unit %d - %S) upgrading to %S (value: %d)", getName().GetCString(), getID(), GC.getUnitAIInfo(AI_getUnitAIType()).getDescription(), GC.getUnitInfo(eBestUnit).getDescription(), iBestValue); // advc.mnai
 		/*upgrade(eBestUnit);
 		doDelayedDeath(); */ // BtS
 		// K-Mod. Ungroup the unit, so that we don't cause the whole group to miss their turn.
@@ -5777,7 +5778,9 @@ void CvUnitAI::AI_workerSeaMove()
 	if (!getGroup()->canDefend())
 	{
 		// BETTER_BTS_AI_MOD, Unit AI, Efficiency, 08/20/09, jdog5000: was AI_getPlotDanger
-		if (GET_PLAYER(getOwner()).AI_isAnyPlotDanger(getPlot()))
+		//if (GET_PLAYER(getOwner()).AI_isAnyPlotDanger(getPlot()))
+		// advc.mnai (bugfix arguably; tagging advc.001)
+		if (GET_PLAYER(getOwner()).AI_isAnyWaterDanger(getPlot()))
 		{
 			if (AI_retreatToCity())
 			{
@@ -7810,7 +7813,15 @@ void CvUnitAI::AI_settlerSeaMove()
 void CvUnitAI::AI_missionarySeaMove()
 {
 	PROFILE_FUNC();
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwner()); // K-Mod
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // K-Mod
+	/*	<advc.mnai> (I think this could be relevant when a Caravel
+		upgrades to a Destroyer) */
+	if (cargoSpace() <= 0)
+	{
+		AI_setUnitAIType(UNITAI_EXPLORE_SEA);
+		getGroup()->pushMission(MISSION_SKIP);
+		return;
+	} // </advc.mnai>
 
 	// BETTER_BTS_AI_MOD, Naval AI, 10/21/08, Solver & jdog5000: START
 	if (getPlot().isCity(true))
@@ -11086,7 +11097,7 @@ bool CvUnitAI::AI_heal(int iDamagePercent, int iMaxPath)
 
 	if (iDamagePercent == 0)
 		iDamagePercent = 10;
-	iMaxPath = std::min(iMaxPath, 2);
+	iMaxPath = std::min(iMaxPath, 2); // advc (note): MNAI increases this to ...,4)
 
 	int iTotalDamage = 0;
 	int iTotalHitpoints = 0;

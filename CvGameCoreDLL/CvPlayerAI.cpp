@@ -455,7 +455,10 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 {
 	PROFILE_FUNC();
 
-	if (!isHuman() || isOption(PLAYEROPTION_AUTO_PROMOTION))
+	//if (!isHuman() || isOption(PLAYEROPTION_AUTO_PROMOTION))
+	// <advc.mnai> Do non-human civ promotions after upgrades
+	if ((isHuman() && isOption(PLAYEROPTION_AUTO_PROMOTION)) ||
+		isBarbarian()) // </advc.mnai>
 	{
 		FOR_EACH_UNITAI_VAR(pLoopUnit, *this)
 			pLoopUnit->AI_promote();
@@ -625,6 +628,10 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 	// BETTER_BTS_AI_MOD, AI Logging, 02/24/10, jdog5000
 	if (gPlayerLogLevel > 2 && iStartingGold - getGold() > 0)
 		logBBAI("    %S spends %d on unit upgrades out of budget of %d, %d gold remaining", getCivilizationDescription(0), iStartingGold - getGold(), iUpgradeBudget, getGold());
+
+	// <advc.mnai> Promotions for AI civs moved down
+	FOR_EACH_UNITAI_VAR(pLoopUnit, *this)
+		pLoopUnit->AI_promote(); // </advc.mnai>
 
 	// UF bugfix: AI_doSplit moved here per alexman's suggestion
 	AI_doSplit();
@@ -2701,9 +2708,9 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 	} // </cdtw.2>
 	if (pCity->isEverOwned(getID()))
 	{
-		iValue += 4;
+		iValue += 3; // advc.mnai: was 4
 		if (pCity->getOriginalOwner() == getID())
-			iValue += 2;
+			iValue += 3; // advc.mnai: was 2
 	}
 
 	if (!bIgnoreAttackers)
@@ -12891,7 +12898,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 	case UNITAI_ATTACK:
 
 		iValue += iCombatValue;
-		iValue += ((iCombatValue * u.getWithdrawalProbability()) / 100);
+		// advc.131: From MNAI. Divisor was 100; MNAI uses 25.
+		iValue += (iCombatValue * u.getWithdrawalProbability()) / 50;
 		if (u.getCombatLimit() < 100)
 			iValue -= (iCombatValue * (125 - u.getCombatLimit())) / 100;
 		// K-Mod
@@ -13122,7 +13130,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 			iValue += iCombatValue * u.getMoves() / 8; // k146: was /6
 		// K-Mod end
 
-		iValue += (iCombatValue * u.getWithdrawalProbability()) / 100;
+		// advc.131: From MNAI. Divisor was 100; MNAI uses 25.
+		iValue += (iCombatValue * u.getWithdrawalProbability()) / 50;
 		// BETTER_BTS_AI_MOD, War strategy AI, 03/20/10, jdog5000: START
 		//iValue += (u.getInterceptionProbability() * 2);
 		if (u.getInterceptionProbability() > 0)
@@ -13201,8 +13210,11 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 		iValue += u.getMoves() * 200;
 		if (u.isNoBadGoodies())
 			iValue += 100;
-		// K-Mod note: spies are valid explorers, but the AI currently doesn't know to convert them to
-		// UNITAI_SPY when the exploring is finished. Hence I won't yet give a value bonus for invisibility.
+		/*	K-Mod note: spies are valid explorers, but the AI currently doesn't know
+			how to convert them to UNITAI_SPY when the exploring is finished.
+			Hence I won't yet give a value bonus for invisibility. */
+		// advc: For reference, this is how MNAI accounts for invisible types.
+		//iValue += GC.getInfo(eUnit).getNumSeeInvisibleTypes() * 10;
 		break;
 
 	case UNITAI_MISSIONARY:
@@ -13385,7 +13397,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 	case UNITAI_SPY_SEA:
 		iValue += iCombatValue / 2;
 		iValue += u.getMoves() * 200;
-		iValue += u.getCargoSpace() * 300;
+		iValue += u.getCargoSpace() * 500; // advc.131: From MNAI; was 300.
 		/*  BETTER_BTS_AI_MOD, City AI, 05/18/09, jdog5000:
 			Never build galley transports when ocean faring ones exist
 			(issue mainly for Carracks) */
