@@ -163,11 +163,11 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		#return self.options.isShowPeaceTradeAlert()
 
 	def getCheckForDomVictory(self):
-		return self.getCheckForDomPopVictory() or self.getCheckForDomLandVictory()
+		return False # advc.210
+		#return self.getCheckForDomPopVictory() or self.getCheckForDomLandVictory()
 	
 	def getCheckForForeignCities(self):
-		# advc.210c: Disable this by force b/c players upgrading to v0.91 could still have it enabled, leading to messages from both the DLL and Python.
-		return False
+		return False # advc.210c
 		#return self.options.isShowCityFoundedAlert()
 
 	def onBeginActivePlayerTurn(self, argsList):

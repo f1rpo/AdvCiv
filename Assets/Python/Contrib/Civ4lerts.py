@@ -627,7 +627,7 @@ class CityOccupation(AbstractCityTestAlert):
 		return city.isOccupation() and city.getOccupationTimer() > 1
 	
 	def _isShowAlert(self, passes):
-		return Civ4lertsOpt.isShowCityOccupationAlert()
+		return False #Civ4lertsOpt.isShowCityOccupationAlert() # advc-106d: Disabled
 	
 	def _getAlertMessageIcon(self, city, passes):
 		if (passes):
@@ -638,7 +638,7 @@ class CityOccupation(AbstractCityTestAlert):
 					HAPPY_ICON)
 	
 	def _isShowPendingAlert(self, passes):
-		return Civ4lertsOpt.isShowCityPendingOccupationAlert()
+		return False #Civ4lertsOpt.isShowCityPendingOccupationAlert() # advc.106d: Disabled
 
 	def _getPendingAlertMessageIcon(self, city, passes):
 		if (passes):

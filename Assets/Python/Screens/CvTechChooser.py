@@ -214,7 +214,8 @@ class CvTechChooser:
 			screen.hide("AddTechButton")
 
 # BUG - Tech Screen Resolution - start
-		if (BugOpt.isWideTechScreen() and screen.getXResolution() > 1024):
+		#BugOpt.isWideTechScreen() and # advc.004: No longer optional
+		if screen.getXResolution() > 1024:
 			xPanelWidth = screen.getXResolution() - 60
 		else:
 			xPanelWidth = 1024
