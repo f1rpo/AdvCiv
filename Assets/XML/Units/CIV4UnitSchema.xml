@@ -610,7 +610,7 @@
 		<element type="BonusType"/>
 		<element type="PrereqBonuses"/>
 		<!-- advc.905b -->
-		<element type="SpeedBonuses"/>
+		<element type="SpeedBonuses" minOccurs="0"/>
 		<element type="ProductionTraits"/>
 		<element type="Flavors"/>
 		<element type="iAIWeight"/>

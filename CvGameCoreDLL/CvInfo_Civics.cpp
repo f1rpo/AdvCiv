@@ -633,7 +633,7 @@ bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iNumCitiesMaintenanceModifier, "iNumCitiesMaintenanceModifier");
 	pXML->GetChildXmlValByName(&m_iCorporationMaintenanceModifier, "iCorporationMaintenanceModifier");
 	pXML->GetChildXmlValByName(&m_iExtraHealth, "iExtraHealth");
-	pXML->GetChildXmlValByName(&m_iExtraHappiness, "iExtraHappiness"); // K-Mod
+	pXML->GetChildXmlValByName(&m_iExtraHappiness, "iExtraHappiness", 0); // K-Mod (advc: made optional)
 	pXML->GetChildXmlValByName(&m_iFreeExperience, "iFreeExperience");
 	pXML->GetChildXmlValByName(&m_iWorkerSpeedModifier, "iWorkerSpeedModifier");
 	pXML->GetChildXmlValByName(&m_iImprovementUpgradeRateModifier, "iImprovementUpgradeRateModifier");
@@ -645,8 +645,7 @@ bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iGoldPerUnit, "iGoldPerUnit");
 	pXML->GetChildXmlValByName(&m_iGoldPerMilitaryUnit, "iGoldPerMilitaryUnit");
 	pXML->GetChildXmlValByName(&m_iHappyPerMilitaryUnit, "iHappyPerMilitaryUnit");
-	// advc.912c:
-	pXML->GetChildXmlValByName(&m_iLuxuryModifier, "iLuxuryModifier");
+	pXML->GetChildXmlValByName(&m_iLuxuryModifier, "iLuxuryModifier", 0); // advc.912c
 	pXML->GetChildXmlValByName(&m_bMilitaryFoodProduction, "bMilitaryFoodProduction");
 	pXML->GetChildXmlValByName(&m_iMaxConscript, "iMaxConscript");
 	//pXML->GetChildXmlValByName(&m_bNoUnhealthyPopulation, "bNoUnhealthyPopulation");

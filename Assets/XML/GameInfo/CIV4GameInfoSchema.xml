@@ -813,7 +813,8 @@
 		<element type="iNumCitiesMaintenanceModifier"/>
 		<element type="iCorporationMaintenanceModifier"/>
 		<element type="iExtraHealth"/>
-		<element type="iExtraHappiness"/> <!-- K-Mod -->
+		<!-- advc: Made optional; default is 0. -->
+		<element type="iExtraHappiness"  minOccurs="0"/> <!-- K-Mod -->
 		<element type="iFreeExperience"/>
 		<element type="iWorkerSpeedModifier"/>
 		<element type="iImprovementUpgradeRateModifier"/>
@@ -825,8 +826,8 @@
 		<element type="iGoldPerUnit"/>
 		<element type="iGoldPerMilitaryUnit"/>
 		<element type="iHappyPerMilitaryUnit"/>
-		<!-- advc.912c -->
-		<element type="iLuxuryModifier"/>
+		<!-- advc.912c (default is 0) -->
+		<element type="iLuxuryModifier" minOccurs="0"/>
 		<element type="bMilitaryFoodProduction"/>
 		<element type="iMaxConscript"/>
 		<element type="iUnhealthyPopulationModifier"/>

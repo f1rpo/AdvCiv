@@ -25,10 +25,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -87,8 +83,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -133,8 +127,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives>
@@ -212,10 +204,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -274,8 +262,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -320,8 +306,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -391,10 +375,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -453,8 +433,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -499,8 +477,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -570,10 +546,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -632,8 +604,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -678,8 +648,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives>
@@ -759,10 +727,6 @@
 			<bFood>1</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -821,8 +785,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits>
 				<ProductionTrait>
 					<ProductionTraitType>TRAIT_IMPERIALIST</ProductionTraitType>
@@ -872,8 +834,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -947,10 +907,6 @@
 			<bFood>1</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -1090,8 +1046,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits>
 				<ProductionTrait>
 					<ProductionTraitType>TRAIT_EXPANSIVE</ProductionTraitType>
@@ -1141,8 +1095,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -1209,10 +1161,6 @@
 			<bFood>1</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -1352,8 +1300,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits>
 				<ProductionTrait>
 					<ProductionTraitType>TRAIT_EXPANSIVE</ProductionTraitType>
@@ -1403,8 +1349,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -1537,8 +1481,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -1714,8 +1656,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -1760,8 +1700,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -1828,10 +1766,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -1890,8 +1824,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -1941,8 +1873,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -2013,10 +1943,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -2075,8 +2001,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -2121,8 +2045,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -2188,10 +2110,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -2250,8 +2168,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -2296,8 +2212,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -2363,10 +2277,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -2425,8 +2335,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -2471,8 +2379,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -2538,10 +2444,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -2600,8 +2502,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -2646,8 +2546,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -2713,10 +2611,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -2775,8 +2669,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -2821,8 +2713,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -2888,10 +2778,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -2950,8 +2836,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -2996,8 +2880,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -3063,10 +2945,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -3125,8 +3003,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -3171,8 +3047,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -3238,10 +3112,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -3300,8 +3170,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -3346,8 +3214,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -3412,10 +3278,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -3474,8 +3336,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -3520,8 +3380,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -3586,10 +3444,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -3648,8 +3502,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -3694,8 +3546,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -3760,10 +3610,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -3822,8 +3668,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -3868,8 +3712,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -3934,10 +3776,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -3996,8 +3834,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -4042,8 +3878,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -4108,10 +3942,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -4170,8 +4000,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -4216,8 +4044,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -4282,10 +4108,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -4344,8 +4166,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -4390,8 +4210,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -4456,10 +4274,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -4532,8 +4346,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -4578,8 +4390,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>25</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -4644,10 +4454,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -4725,8 +4531,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -4772,8 +4576,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>25</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -4850,10 +4652,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -4925,8 +4723,6 @@
 			<TechTypes/>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -4971,8 +4767,6 @@
 			<iCityAttack>10</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -5037,10 +4831,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -5116,8 +4906,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -5162,8 +4950,6 @@
 			<iCityAttack>10</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -5234,10 +5020,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -5314,8 +5096,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -5360,8 +5140,6 @@
 			<iCityAttack>10</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -5433,10 +5211,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -5520,8 +5294,6 @@
 			<TechTypes/>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -5568,8 +5340,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -5642,10 +5412,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -5726,8 +5492,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -5772,8 +5536,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -5851,10 +5613,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -5935,8 +5693,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -5981,8 +5737,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -6057,10 +5811,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -6141,8 +5891,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -6187,8 +5935,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -6258,10 +6004,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -6337,8 +6079,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -6383,8 +6123,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -6455,10 +6193,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -6551,8 +6285,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -6597,8 +6329,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -6669,10 +6399,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -6760,8 +6486,6 @@
 			</TechTypes>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -6806,8 +6530,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -6882,10 +6604,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -6978,8 +6696,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -7024,8 +6740,6 @@
 			<iCityAttack>10</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -7101,10 +6815,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -7181,8 +6891,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -7227,8 +6935,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -7298,10 +7004,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -7382,8 +7084,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -7428,8 +7128,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -7504,10 +7202,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -7583,8 +7277,6 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -7629,8 +7321,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -7700,10 +7390,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -7779,8 +7465,6 @@
 			<TechTypes/>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -7825,8 +7509,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -7896,10 +7578,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -7979,8 +7657,6 @@
 			<TechTypes/>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -8025,8 +7701,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -8100,10 +7774,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -8175,8 +7845,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -8221,8 +7889,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -8287,10 +7953,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -8366,8 +8028,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -8413,8 +8073,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -8479,10 +8137,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -8554,8 +8208,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -8600,8 +8252,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -8679,10 +8329,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -8754,8 +8400,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -8800,8 +8444,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -8883,10 +8525,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -8966,8 +8604,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -9012,8 +8648,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -9083,10 +8717,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -9166,8 +8796,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -9212,8 +8840,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -9287,10 +8913,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -9370,8 +8992,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -9416,8 +9036,6 @@
 			<iCityAttack>10</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -9487,10 +9105,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -9562,8 +9176,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -9608,8 +9220,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -9684,10 +9294,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -9771,8 +9377,6 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -9817,8 +9421,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -9890,10 +9492,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -9965,8 +9563,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -10011,8 +9607,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -10082,10 +9676,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -10156,8 +9746,6 @@
 			</TechTypes>
 			<BonusType>BONUS_OIL</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -10202,8 +9790,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -10273,10 +9859,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -10351,8 +9933,6 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -10397,8 +9977,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -10477,10 +10055,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -10555,8 +10129,6 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -10601,8 +10173,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -10685,10 +10255,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -10751,8 +10317,6 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -10797,8 +10361,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -10863,10 +10425,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -10941,8 +10499,6 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -10987,8 +10543,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -11058,10 +10612,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -11133,8 +10683,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -11179,8 +10727,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>50</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>25</iHillsDefense>
 			<TerrainNatives/>
@@ -11245,10 +10791,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -11320,8 +10862,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -11366,8 +10906,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>50</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>25</iHillsDefense>
 			<TerrainNatives/>
@@ -11432,10 +10970,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -11507,8 +11041,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -11553,8 +11085,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>50</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>25</iHillsDefense>
 			<TerrainNatives/>
@@ -11624,10 +11154,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -11699,8 +11225,6 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -11745,8 +11269,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>25</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>25</iHillsDefense>
 			<TerrainNatives/>
@@ -11811,10 +11333,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -11898,8 +11416,6 @@
 			</TechTypes>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -11944,8 +11460,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -12015,10 +11529,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -12102,8 +11612,6 @@
 			</TechTypes>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -12148,8 +11656,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -12219,10 +11725,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -12294,8 +11796,6 @@
 			<TechTypes/>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -12340,8 +11840,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -12411,10 +11909,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -12486,8 +11980,6 @@
 			<TechTypes/>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -12532,8 +12024,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -12603,10 +12093,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -12683,8 +12169,6 @@
 			<TechTypes/>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -12729,8 +12213,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -12805,10 +12287,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -12889,8 +12367,6 @@
 			</TechTypes>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -12935,8 +12411,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -13006,10 +12480,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -13094,8 +12564,6 @@
 			</TechTypes>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -13140,8 +12608,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -13221,10 +12687,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -13305,8 +12767,6 @@
 			</TechTypes>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -13351,8 +12811,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -13422,10 +12880,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -13511,8 +12965,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -13557,8 +13009,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -13623,10 +13073,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -13707,8 +13153,6 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -13753,8 +13197,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -13819,10 +13261,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -13908,8 +13346,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -13954,8 +13390,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -14020,10 +13454,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -14126,8 +13556,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -14172,8 +13600,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -14243,10 +13669,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -14336,8 +13758,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -14382,8 +13802,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -14448,10 +13866,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -14536,8 +13950,6 @@
 			</TechTypes>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -14582,8 +13994,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -14653,10 +14063,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -14741,8 +14147,6 @@
 			</TechTypes>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -14787,8 +14191,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -14863,10 +14265,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -14938,8 +14336,6 @@
 			</TechTypes>
 			<BonusType>BONUS_IVORY</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -14984,8 +14380,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -15055,10 +14449,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -15135,8 +14525,6 @@
 			</TechTypes>
 			<BonusType>BONUS_IVORY</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -15181,8 +14569,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -15252,10 +14638,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -15331,8 +14713,6 @@
 			</TechTypes>
 			<BonusType>BONUS_OIL</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -15377,8 +14757,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -15448,10 +14826,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -15527,8 +14901,6 @@
 			</TechTypes>
 			<BonusType>BONUS_OIL</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -15573,8 +14945,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -15653,10 +15023,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -15732,8 +15098,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -15778,8 +15142,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -15849,10 +15211,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>1</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -15932,8 +15290,6 @@
 			<TechTypes/>
 			<BonusType>BONUS_OIL</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -15978,8 +15334,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -16054,10 +15408,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -16125,8 +15475,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -16171,8 +15519,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -16243,10 +15589,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -16318,8 +15660,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -16364,8 +15704,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -16441,10 +15779,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -16517,8 +15851,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -16563,8 +15895,6 @@
 			<iCityAttack>100</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -16636,10 +15966,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -16707,8 +16033,6 @@
 			<TechTypes/>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -16753,8 +16077,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -16825,10 +16147,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>1</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -16900,8 +16218,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -16946,8 +16262,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -17027,10 +16341,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -17098,8 +16408,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -17144,8 +16452,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -17221,10 +16527,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -17291,8 +16593,6 @@
 			</TechTypes>
 			<BonusType>BONUS_OIL</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -17337,8 +16637,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -17414,10 +16712,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -17490,8 +16784,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -17546,8 +16838,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -17613,10 +16903,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -17690,8 +16976,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -17743,8 +17027,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -17809,10 +17091,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -17899,8 +17177,6 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -17953,8 +17229,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -18021,10 +17295,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -18110,8 +17380,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -18157,8 +17425,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -18223,10 +17489,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -18324,8 +17586,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -18371,8 +17631,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -18438,10 +17696,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -18514,8 +17768,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -18560,8 +17812,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -18629,10 +17879,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<!-- advc.905b: was 1 -->
@@ -18731,8 +17977,6 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -18780,8 +18024,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -18849,10 +18091,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -18939,8 +18177,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -18986,8 +18222,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -19057,10 +18291,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -19141,8 +18371,6 @@
 			</TechTypes>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -19188,8 +18416,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -19255,10 +18481,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -19385,8 +18607,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -19464,10 +18684,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -19547,8 +18763,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -19598,8 +18812,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -19671,10 +18883,6 @@
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<!-- advc.905b: was 0 -->
 			<bOnlyDefensive>1</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -19745,8 +18953,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -19793,8 +18999,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -19859,10 +19063,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -19940,8 +19140,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -19986,8 +19184,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -20052,10 +19248,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -20134,8 +19326,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -20181,8 +19371,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -20247,10 +19435,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -20323,8 +19507,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -20369,8 +19551,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -20436,10 +19616,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -20523,8 +19699,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -20573,8 +19747,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -20643,10 +19815,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -20729,8 +19897,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -20779,8 +19945,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -20870,10 +20034,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -20953,8 +20113,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -21002,8 +20160,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -21080,10 +20236,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -21148,8 +20300,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -21194,8 +20344,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -21260,10 +20408,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -21327,8 +20471,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -21373,8 +20515,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -21439,10 +20579,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -21510,8 +20646,6 @@
 			<TechTypes/>
 			<BonusType>BONUS_OIL</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -21556,8 +20690,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -21622,10 +20754,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -21693,8 +20821,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -21739,8 +20865,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -21805,10 +20929,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -21876,8 +20996,6 @@
 			</TechTypes>
 			<BonusType>BONUS_OIL</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -21922,8 +21040,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -21993,10 +21109,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -22063,8 +21175,6 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -22109,8 +21219,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -22180,10 +21288,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -22246,8 +21350,6 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -22292,8 +21394,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -22358,10 +21458,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -22424,8 +21520,6 @@
 			</TechTypes>
 			<BonusType>BONUS_URANIUM</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -22470,8 +21564,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -22536,10 +21628,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -22602,8 +21690,6 @@
 			</TechTypes>
 			<BonusType>BONUS_URANIUM</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -22648,8 +21734,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -22742,10 +21826,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -22838,8 +21918,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -22889,8 +21967,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -22992,10 +22068,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -23064,8 +22136,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -23115,8 +22185,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -23223,10 +22291,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -23303,8 +22367,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -23354,8 +22416,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -23452,10 +22512,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -23528,8 +22584,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -23579,8 +22633,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -23679,10 +22731,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -23755,8 +22803,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -23806,8 +22852,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -23914,10 +22958,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -23986,8 +23026,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -24037,8 +23075,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -24157,10 +23193,6 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -24229,8 +23261,6 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
-			<!-- advc.905b -->
-			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -24280,8 +23310,6 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>

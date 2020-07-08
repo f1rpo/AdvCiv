@@ -25,7 +25,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -37,8 +36,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -93,7 +90,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -163,7 +159,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -175,8 +170,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -235,7 +228,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -247,8 +239,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -303,7 +293,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -315,8 +304,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -385,7 +372,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -397,8 +383,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -453,7 +437,6 @@
 			<iNumCitiesMaintenanceModifier>-25</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>2</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -465,8 +448,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -521,7 +502,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -533,8 +513,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -593,7 +571,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -605,8 +582,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>3</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -671,7 +646,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -683,8 +657,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -752,7 +724,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -764,8 +735,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -820,7 +789,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -832,8 +800,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -894,7 +860,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>50</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -906,8 +871,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -987,7 +950,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -999,8 +961,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -1077,7 +1037,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>100</iImprovementUpgradeRateModifier>
@@ -1089,8 +1048,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -1145,7 +1102,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -1157,8 +1113,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -1213,7 +1167,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -1225,8 +1178,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -1281,7 +1232,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>-25</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -1293,8 +1243,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -1349,7 +1297,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -1361,8 +1308,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -1438,7 +1383,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -1450,8 +1394,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>-30</iUnhealthyPopulationModifier>
@@ -1528,7 +1470,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -1540,8 +1481,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -1596,7 +1535,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -1608,8 +1546,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -1669,7 +1605,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -1681,8 +1616,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -1737,7 +1670,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -1750,8 +1682,6 @@
 			<!-- advc.912b: was 50 -->
 			<iGoldPerMilitaryUnit>100</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
@@ -1806,7 +1736,6 @@
 			<iNumCitiesMaintenanceModifier>0</iNumCitiesMaintenanceModifier>
 			<iCorporationMaintenanceModifier>0</iCorporationMaintenanceModifier>
 			<iExtraHealth>0</iExtraHealth>
-			<iExtraHappiness>0</iExtraHappiness>
 			<iFreeExperience>0</iFreeExperience>
 			<iWorkerSpeedModifier>0</iWorkerSpeedModifier>
 			<iImprovementUpgradeRateModifier>0</iImprovementUpgradeRateModifier>
@@ -1818,8 +1747,6 @@
 			<iGoldPerUnit>0</iGoldPerUnit>
 			<iGoldPerMilitaryUnit>0</iGoldPerMilitaryUnit>
 			<iHappyPerMilitaryUnit>0</iHappyPerMilitaryUnit>
-			<!-- advc.912c -->
-			<iLuxuryModifier>0</iLuxuryModifier>
 			<bMilitaryFoodProduction>0</bMilitaryFoodProduction>
 			<iMaxConscript>0</iMaxConscript>
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
