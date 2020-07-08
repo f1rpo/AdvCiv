@@ -1009,6 +1009,8 @@ void CvPlayer::setIsHuman(bool bNewValue, /* advc.127c: */ bool bUpdateAI)
 
 	GC.getInitCore().setSlotStatus(getID(), bNewValue ? SS_TAKEN :
 			SS_COMPUTER); // or SS_OPEN for multiplayer?
+	// advc.opt (needs to be done before checking the alerts)
+	GET_TEAM(getTeam()).updateLeaderID();
 	// <advc.210> Only human players need alerts
 	if (bNewValue)
 	{
@@ -20479,16 +20481,17 @@ PlayerTypes CvPlayer::pickConqueredCityOwner(const CvCity& kCity) const
 	return getID();
 }
 
+// advc (note): In part duplicated in CvPlayerAI::AI_civicValue
 bool CvPlayer::canHaveTradeRoutesWith(PlayerTypes ePlayer) const
 {
 	CvPlayer& kOtherPlayer = GET_PLAYER(ePlayer);
 	if (!kOtherPlayer.isAlive())
 		return false;
+	// <advc.124>
+	if(getID() != ePlayer && kOtherPlayer.isAnarchy())
+		return false; // </advc.124>
 	if (getTeam() == kOtherPlayer.getTeam())
 		return true;
-	// <advc.124>
-	if(kOtherPlayer.isAnarchy())
-		return false; // </advc.124>
 
 	if (!GET_TEAM(getTeam()).isFreeTrade(kOtherPlayer.getTeam()))
 		return false;

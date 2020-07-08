@@ -16409,7 +16409,9 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 	// <advc.004q>
 	int iTotalCached = kPlayer.AI_getAttitudeVal(eTargetPlayer, false);
 	if (!bConstCache && bSHowHiddenAttitude && !bObscurePersonality &&
-		iTotal != iTotalCached && !g.isNetworkMultiPlayer())
+		iTotal != iTotalCached && !g.isNetworkMultiPlayer() &&
+		// advc.130u: bForced=false is ignored among teammates
+		kPlayer.getTeam() != TEAMID(eTargetPlayer))
 	{
 		FAssertMsg(iTotal == iTotalCached, "Attitude cache out of date "
 				"(OK after loading a save created prior to AdvCiv 0.95)");
