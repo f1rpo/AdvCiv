@@ -262,14 +262,10 @@ public:
 	DllExport void resetAdvancedStartPoints();
 
 protected:
-
-	void clearCustomMapOptions();
-	void refreshCustomMapOptions();
-	void updatePangaea(); // advc
-
-	/*void clearVictories();
-	void refreshVictories();*/ // advc: Easier to understand w/o these
-
+	/* advc.003k (caveat): It's not safe to add data members to this class
+		nor to reorder the existing data members. At least not in the upper half
+		of the member declarations; after the declaration of m_eMode, it seems
+		to be OK to add and rearrange stuff. Weird. */
 	// CORE GAME INIT DATA ...
 
 	// Game type
@@ -296,18 +292,24 @@ protected:
 	int m_iNumCustomMapOptions;
 	int m_iNumHiddenCustomMapOptions;
 	CustomMapOptionTypes* m_aeCustomMapOptions;
-	bool m_bPangaea; // advc
+	//bool m_bPangaea; // (advc: Can't add this here b/c it would change the memory layout)
 
 	// Standard game options
-	bool m_bStatReporting;
-	EnumMap<GameOptionTypes,bool> m_abOptions;
+	/*	advc.enum: Not a bool map because that'll take up 8 byte when there are
+		more than 32 options. See comments above the union in EnumMap.h.
+		If this keeps causing problems, then either ENUMMAP_MAX_INLINE_BOOL (EnumMap.h)
+		should be decreased to 32 or CvInitCore reverted to arrays. */
+	EnumMap<GameOptionTypes,byte> m_abOptions;
 	EnumMap<MPOptionTypes,bool> m_abMPOptions;
+	bool m_bStatReporting;
+	/*	advc: Not related to "standard game options". But here's a good place
+		to add a bool b/c of padding; the memory layout stays the same. */
+	bool m_bPangaea;
 	EnumMap<ForceControlTypes,bool> m_abForceControls;
 
 	// Dynamic victory condition setting
-	/*	(advc.enum: ^Whatever that means? Using an EnumMap has resulted in
-		an infinite loop in the EXE calling getVictory. Weird, but I won't
-		mess with this anymore.) */
+	/*	(advc.enum: ^Whatever that means? Using a dummy variable and an EnumMap instead
+		causes a crash in the EXE.) */
 	int m_iNumVictories;
 	bool* m_abVictories;
 
@@ -325,6 +327,8 @@ protected:
 	unsigned int m_uiMapRandSeed;
 	PlayerTypes m_eActivePlayer;
 	GameMode m_eMode;
+
+	// advc (note): From here on, it seems to be OK to change the memory layout.
 
 	// Temp var so we don't return locally scoped var
 	mutable CvWString m_szTemp;
@@ -367,6 +371,19 @@ protected:
 	CvString* m_aszPythonCheck;
 	CvString* m_aszXMLCheck;
 	mutable CvString m_szTempCheck;
+
+	void clearCustomMapOptions();
+	void refreshCustomMapOptions();
+	void updatePangaea(); // advc
+
+	/*void clearVictories();
+	void refreshVictories();*/ // advc: Easier to understand w/o these
 };
+
+// Would increase the size of m_abMPOptions to 8 byte
+BOOST_STATIC_ASSERT(NUM_MPOPTION_TYPES <= 32 && NUM_FORCECONTROL_TYPES <= 32);
+/*  advc.003k: Probably OK to increase the size of CvInitCore. Just make sure that
+	new data members are added in the right place. */
+BOOST_STATIC_ASSERT(sizeof(CvInitCore) == (MAX_CIV_PLAYERS <= 32 || MAX_CIV_PLAYERS > 64 ? 404 : 420));
 
 #endif
