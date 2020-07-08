@@ -102,6 +102,7 @@ m_bPower(false),
 m_bDirtyPower(false),
 m_bAreaCleanPower(false),
 m_bAreaBorderObstacle(false),
+m_bConditional(false), // advc.310
 m_bForceTeamVoteEligible(false),
 m_bCapital(false),
 m_bGovernmentCenter(false),
@@ -241,17 +242,17 @@ bool CvBuildingInfo::isTechRequired(TechTypes eTech) const
 
 int CvBuildingInfo::getDomesticGreatGeneralRateModifier() const
 {	// <advc.310>
-	if(!m_bEnabledDomesticGreatGeneralRateModifier)
+	if(!m_bEnabledDomesticGreatGeneralRateModifier && m_bConditional)
 		return 0; // </advc.310>
 	return m_iDomesticGreatGeneralRateModifier;
 }
-// <advc.310>
+// advc.310:
 int CvBuildingInfo::getAreaTradeRoutes() const
 {
-	if(!m_bEnabledAreaTradeRoutes)
+	if(!m_bEnabledAreaTradeRoutes && m_bConditional)
 		return 0;
 	return m_iAreaTradeRoutes;
-} // </advc.310>
+}
 
 void CvBuildingInfo::setMissionType(MissionTypes eNewType)
 {
@@ -265,7 +266,7 @@ float CvBuildingInfo::getVisibilityPriority() const
 
 bool CvBuildingInfo::isAreaBorderObstacle() const
 {	// <advc.310>
-	if(!m_bEnabledAreaBorderObstacle)
+	if(!m_bEnabledAreaBorderObstacle && m_bConditional)
 		return false; // </advc.310>
 	return m_bAreaBorderObstacle;
 }
@@ -695,6 +696,7 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_bDirtyPower);
 	stream->Read(&m_bAreaCleanPower);
 	stream->Read(&m_bAreaBorderObstacle);
+	stream->Read(&m_bConditional); // advc.310
 	stream->Read(&m_bForceTeamVoteEligible);
 	stream->Read(&m_bCapital);
 	stream->Read(&m_bGovernmentCenter);
@@ -975,6 +977,7 @@ void CvBuildingInfo::write(FDataStreamBase* stream)
 	stream->Write(m_bDirtyPower);
 	stream->Write(m_bAreaCleanPower);
 	stream->Write(m_bAreaBorderObstacle);
+	stream->Write(m_bConditional); // advc.310
 	stream->Write(m_bForceTeamVoteEligible);
 	stream->Write(m_bCapital);
 	stream->Write(m_bGovernmentCenter);
@@ -1147,6 +1150,7 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bDirtyPower, "bDirtyPower");
 	pXML->GetChildXmlValByName(&m_bAreaCleanPower, "bAreaCleanPower");
 	pXML->GetChildXmlValByName(&m_bAreaBorderObstacle, "bBorderObstacle");
+	pXML->GetChildXmlValByName(&m_bConditional, "bConditional", false); // advc.310
 	pXML->GetChildXmlValByName(&m_bForceTeamVoteEligible, "bForceTeamVoteEligible");
 	pXML->GetChildXmlValByName(&m_bCapital, "bCapital");
 	pXML->GetChildXmlValByName(&m_bGovernmentCenter, "bGovernmentCenter");

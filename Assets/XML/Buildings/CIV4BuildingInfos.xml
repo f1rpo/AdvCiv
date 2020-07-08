@@ -26391,6 +26391,10 @@
 			<iGreatPeopleRateChange>2</iGreatPeopleRateChange>
 			<iHurryAngerModifier>0</iHurryAngerModifier>
 			<bBorderObstacle>1</bBorderObstacle>
+			<!-- advc.310: Causes the DLL to disable bBorderObstacle,
+				 iAreaTradeRoutes or iDomesticGreatGeneralRateModifier
+				 depending on the Barbarian game options. -->
+			<bConditionalAbilities>1</bConditionalAbilities>
 			<bTeamShare>1</bTeamShare>
 			<bWater>0</bWater>
 			<bRiver>0</bRiver>

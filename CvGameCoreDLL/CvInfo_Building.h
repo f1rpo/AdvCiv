@@ -477,6 +477,7 @@ protected:
 	bool m_bDirtyPower;
 	bool m_bAreaCleanPower;
 	bool m_bAreaBorderObstacle;
+	bool m_bConditional; // advc.310
 	bool m_bForceTeamVoteEligible;
 	bool m_bCapital;
 	bool m_bGovernmentCenter;
