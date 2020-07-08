@@ -1356,17 +1356,41 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc: style changes
 
 		case MISSION_MOVE_TO_UNIT:
 		{
-			if (getHeadUnitAIType() == UNITAI_CITY_DEFENSE && getPlot().isCity() &&
-				getPlot().getTeam() == getTeam())
+			CvPlot const& kPlot = getPlot();
+			if (getHeadUnitAIType() == UNITAI_CITY_DEFENSE && kPlot.isCity() &&
+				kPlot.getTeam() == getTeam())
 			{
-				if (getPlot().getBestDefender(getOwner())->getGroup() == this)
-				{
-					bAction = false;
-					bDone = true;
-					break;
+				if (kPlot.getBestDefender(getOwner())->getGroup() == this)
+				{	/*	<advc.001> UNITAI_CITY_DEFENSE unit may be passing through
+						the city of a teammate. Should only have to stay there
+						if no other team member can defend. */
+					bool bStay = (kPlot.getOwner() == getOwner());
+					if (!bStay)
+					{
+						FAssert(GET_TEAM(getTeam()).getNumMembers() > 1);
+						bStay = true;
+						for (MemberIter itMember(getTeam()); itMember.hasNext(); ++itMember)
+						{
+							if (itMember->getID() != getOwner() &&
+								kPlot.getBestDefender(itMember->getID()) != NULL)
+							{
+								bStay = false;
+								break;
+							}
+						}
+						FAssertMsg(!bStay, "Can probably happen; will it get this group stuck in a loop?");
+					}
+					if (bStay) // </advc.001>
+					{
+						FAssertMsg(false, "Does this generally get the group stuck?"); // advc.test
+						bAction = false;
+						bDone = true;
+						break;
+					}
 				}
 			}
-			CvUnitAI const* pTargetUnit = GET_PLAYER((PlayerTypes)missionData.iData1).AI_getUnit(missionData.iData2);
+			CvUnitAI const* pTargetUnit = GET_PLAYER((PlayerTypes)missionData.iData1).
+					AI_getUnit(missionData.iData2);
 			if (pTargetUnit == NULL)
 			{
 				bDone = true;
@@ -1375,7 +1399,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc: style changes
 			MissionAITypes eMissionAI = AI().AI_getMissionAIType(); // advc.003u
 			if (eMissionAI != MISSIONAI_SHADOW && eMissionAI != MISSIONAI_GROUP)
 			{
-				if (!getPlot().isOwned() || getPlot().getOwner() == getOwner())
+				if (!kPlot.isOwned() || kPlot.getOwner() == getOwner())
 				{
 					CvPlot* pMissionPlot = pTargetUnit->AI_getGroup()->AI_getMissionAIPlot();
 					if (pMissionPlot != NULL && NO_TEAM != pMissionPlot->getTeam())

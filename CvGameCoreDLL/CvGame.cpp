@@ -1402,8 +1402,11 @@ void CvGame::setStartingPlotNormalizationLevel(StartingPlotNormalizationLevel eL
 	{
 		eLevel = (GC.getDefineBOOL("NORMALIZE_STARTPLOTS_AGGRESSIVELY") ?
 				NORMALIZE_HIGH : NORMALIZE_LOW);
-		if(eLevel == NORMALIZE_LOW && isGameMultiPlayer())
+		if (eLevel == NORMALIZE_LOW && isGameMultiPlayer() &&
+			TeamIter<HUMAN>::count() > 1)
+		{
 			eLevel = NORMALIZE_MEDIUM;
+		}
 	}
 	m_eNormalizationLevel = eLevel;
 }
