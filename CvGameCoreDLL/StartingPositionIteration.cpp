@@ -870,7 +870,7 @@ void StartingPositionIteration::computeStartValues(
 			/*	Apart from competition, nearby plots are better than remote ones.
 				Divisor d^(d/750) -- weird formula, but seems to result in the kind
 				of hyperbola I had in mind. */
-			rAccessFactor /= scaled(iStartDist).pow(scaled(iStartDist, 750));
+			rAccessFactor /= scaled(iDist).pow(scaled(iDist, 750));
 			/*	For uncontested plots very close to kStartPlot, the exact distance
 				shouldn't matter. */
 			rAccessFactor.decreaseTo(1);
