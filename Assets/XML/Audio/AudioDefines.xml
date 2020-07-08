@@ -4,6 +4,8 @@
 <!-- Copyright Firaxis Games 2005 -->
 <!-- -->
 <!-- AudioDefines -->
+<!-- K-Mod has added SND_SQUISH and SND_THEIRALLIANCE. Note that no comments
+	 are allowed within the SoundDatas element. -->
 <AudioDefines xmlns="x-schema:AudioDefinesSchema.xml">
 	<SoundDatas>
 		<SoundData>

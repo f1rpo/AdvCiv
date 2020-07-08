@@ -9942,6 +9942,7 @@
 		<fMaxWetLevel>0.0</fMaxWetLevel>
 		<iNotPlayPercent>0</iNotPlayPercent>
 	</Script2DSound>
+	<!-- K-Mod: was THEIRMAKEPEACE -->
 	<Script2DSound>
 		<ScriptID>AS2D_THEIRALLIANCE</ScriptID>
 		<SoundID>SND_THEIRALLIANCE</SoundID>
@@ -11253,6 +11254,7 @@
 		<fMaxWetLevel>0.0</fMaxWetLevel>
 		<iNotPlayPercent>0</iNotPlayPercent>
 	</Script2DSound>
+	<!-- K-Mod: Volume increased; was 60. -->
 	<Script2DSound>
 		<ScriptID>AS2D_BLIGHT</ScriptID>
 		<SoundID>SND_BLIGHT</SoundID>
@@ -21534,6 +21536,7 @@
 		<fMaxWetLevel>0.0</fMaxWetLevel>
 		<iNotPlayPercent>0</iNotPlayPercent>
 	</Script2DSound>
+	<!-- K-Mod: -->
 	<Script2DSound>
 		<ScriptID>AS2D_SQUISH</ScriptID>
 		<SoundID>SND_SQUISH</SoundID>
