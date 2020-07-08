@@ -204,7 +204,10 @@ void CvAgents::updateVassal(TeamTypes eVassal, TeamTypes eMaster, bool bVassal)
 	{
 		CvPlayerAI* pMember = memberSeqCache(MEMBER, eVassal)[i];
 		if (bVassal)
-			insertIntoVector(vassalPlayers, pMember);
+		{	// Members of eVassal may have been defeated at an earlier time
+			if (pMember->isAlive())
+				insertIntoVector(vassalPlayers, pMember);
+		}
 		else
 		{
 			/*  When a vassal dies, playerDefeated removes it from the cache.
