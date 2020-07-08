@@ -1448,7 +1448,7 @@ void CvGame::normalizeAddRiver()  // advc: style changes
 			if (//getSorenRandNum(10, "normalize add river") < (pStartingPlot->isCoastalLand() ? 5 : 7))
 				/*	advc.108: 25% lake chance (but will also get a lake
 					when no river possible or a lake already happens to be present) */
-				fixp(0.75).bernoulliSuccess(GC.getGame().getSRand(), "normalize add river"))
+				fixp(0.75).bernoulliSuccess(GC.getGame().getMapRand(), "normalize add river"))
 			{
 				CvPlot* pRiverPlot = pStartingPlot->getInlandCorner();
 				if (pRiverPlot != NULL)
@@ -1469,8 +1469,11 @@ void CvGame::normalizeAddRiver()  // advc: style changes
 				{
 					continue;
 				}
-				if (GC.getInfo(eLoopFeature).getAppearanceProbability() == 10000)
-				{
+				//if (GC.getInfo(eLoopFeature).getAppearanceProbability() == 10000)
+				// <advc.108> Cleaner to do the proper dice roll
+				if (scaled(GC.getInfo(eLoopFeature).getAppearanceProbability(), 10000).
+					bernoulliSuccess(getMapRand(), "normalize add river feature"))
+				{	// </advc.108>
 					if (kPlot.getBonusType() != NO_BONUS)
 						kPlot.setBonusType(NO_BONUS);
 					kPlot.setFeatureType(eLoopFeature);
