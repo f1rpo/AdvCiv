@@ -15221,12 +15221,35 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	iValue -= GC.getInfo(eCivic).getAnarchyLength() * iCities;
 
 	//iValue += -(getSingleCivicUpkeep(eCivic, true)*80)/100;
-	iValue -= getSingleCivicUpkeep(eCivic, true) * iMaintenanceFactor / 100; // K-Mod. (note. upkeep modifiers are included in getSingleCivicUpkeep.)
-
-	CvCityAI const* pCapital = AI_getCapitalCity();
-	iValue += ((kCivic.getGreatPeopleRateModifier() * iCities) / 10);
-	iValue += ((kCivic.getGreatGeneralRateModifier() * getNumMilitaryUnits()) / 50);
-	iValue += ((kCivic.getDomesticGreatGeneralRateModifier() * getNumMilitaryUnits()) / 100);
+	// K-Mod. (note. upkeep modifiers are included in getSingleCivicUpkeep.)
+	iValue -= getSingleCivicUpkeep(eCivic, true) * iMaintenanceFactor / 100;
+	//iValue += (kCivic.getGreatPeopleRateModifier() * iCities) / 10;
+	/*	<advc.131> (Note: This ability is unused in BtS/AdvCiv)
+		There's K-Mod code for getStateReligionGreatPeopleRateModifier
+		below that should also be serviceable here. */
+	int const iGPRateMod = kCivic.getGreatPeopleRateModifier();
+	if (iGPRateMod != 0)
+	{
+		std::vector<int> aGPRates;
+		FOR_EACH_CITY(pLoopCity, *this)
+		{
+			aGPRates.push_back(pLoopCity->getBaseGreatPeopleRate() +
+					/*	Cities may decide to run more or fewer specialists
+						while the modifier is active */
+					(iGPRateMod > 0 ? iS : -iS));
+		}
+		iValue += AI_GPModifierCivicVal(aGPRates, iGPRateMod);
+		// For reference: How MNAI handles this  // </advc.131>
+		/*iValue += (iGPRateMod * iTotalOfGPBaseRates) /
+				(AI_atVictoryStage(AI_VICTORY_CULTURE2) ? 10 : 25);*/
+	}
+	if (bWarPlan) // advc.131 (from MNAI)
+	{
+		iValue += (kCivic.getGreatGeneralRateModifier() *
+				getNumMilitaryUnits()) / 50;
+		iValue += (kCivic.getDomesticGreatGeneralRateModifier() *
+				getNumMilitaryUnits()) / 100;
+	}
 	/*iValue -= (kCivic.getDistanceMaintenanceModifier() * std::max(0, (iCities - 3))) / 8;
 	iValue -= (kCivic.getNumCitiesMaintenanceModifier() * std::max(0, (iCities - 3))) / 8;*/ // BtS
 	/*	K-Mod. After looking at a couple of examples, it's plain to see that
@@ -15967,28 +15990,18 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 					iS * kCivic.getStateReligionHappiness(), 1) *
 					iBestReligionPopulation / std::max(1, 100 * getTotalPopulation());
 		}
-			if (kCivic.getStateReligionGreatPeopleRateModifier() != 0)
+		int const iReligionGPRateMod = kCivic.getStateReligionGreatPeopleRateModifier();
+		if (iReligionGPRateMod != 0)
+		{
+			std::vector<int> base_rates;
+			FOR_EACH_CITY(pCity, *this)
 			{
-				// This is not going to be very good. I'm sorry about that. I can't think of a neat way to make it better.
-				// (The best way would involve counting GGP, weighted by the AI value for great person type,
-				// multiplied by the probability that the city will actually be able to produce a great person, and so on.
-				// But I'm worried that would be too slow / complex.)
-
-				std::vector<int> base_rates;
-				FOR_EACH_CITY(pLoopCity, *this)
-				{
-					if (pLoopCity->isHasReligion(eBestReligion))
-						base_rates.push_back(pLoopCity->getBaseGreatPeopleRate());
-				}
-				int iGpCities = std::min((int)base_rates.size(), 3);
-				std::partial_sort(base_rates.begin(), base_rates.begin()+iGpCities, base_rates.end());
-
-				int iTempValue = 0;
-				for (int i = 0; i < iGpCities; i++)
-					iTempValue += base_rates[i];
-
-				iValue += 2 * kCivic.getStateReligionGreatPeopleRateModifier() * iTempValue / 100;
+				if (pCity->isHasReligion(eBestReligion))
+					base_rates.push_back(pCity->getBaseGreatPeopleRate());
 			}
+			// advc: Moved into new function
+			iValue += AI_GPModifierCivicVal(base_rates, iReligionGPRateMod);
+		}
 
 		// apostolic palace
 		FOR_EACH_ENUM2(VoteSource, eVS)
@@ -16295,6 +16308,26 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		iValue /= 10;*/ // what the lol...
 
 	return iValue;
+}
+
+/*	advc: K-Mod code cut from AI_civicValue (for advc.131).
+	The comment below is from karadoc. */
+int CvPlayerAI::AI_GPModifierCivicVal(std::vector<int>& kBaseRates, int iModifier) const
+{
+	/*	This is not going to be very good. I'm sorry about that.
+		I can't think of a neat way to make it better.
+		(The best way would involve counting GGP,
+		weighted by the AI value for great person type,
+		multiplied by the probability that the city will
+		actually be able to produce a great person, and so on.
+		But I'm worried that would be too slow / complex.) */		
+	int const iGPFarms = std::min((int)kBaseRates.size(), 3);
+	std::partial_sort(kBaseRates.begin(),
+			kBaseRates.begin() + iGPFarms, kBaseRates.end());
+	int iR = 0;
+	for (int i = 0; i < iGPFarms; i++)
+		iR += kBaseRates[i];
+	return 2 * iModifier * iR / 100;
 }
 
 ReligionTypes CvPlayerAI::AI_bestReligion() const

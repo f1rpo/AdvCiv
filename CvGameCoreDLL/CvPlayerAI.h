@@ -768,6 +768,7 @@ protected:
 	void AI_doReligion();
 	void AI_doDiplo();
 	void AI_doCheckFinancialTrouble();
+	int AI_GPModifierCivicVal(std::vector<int>& kBaseRates, int iModifier) const; // advc
 	// <advc.026>
 	void AI_roundTradeValBounds(int& iTradeVal, bool bPreferRoundingUp = false,
 			int iLower = MIN_INT, int iUpper = MAX_INT) const; // </advc.026>
