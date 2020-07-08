@@ -6192,7 +6192,7 @@ def addFeatures():
 						plot.setFeatureType(fForest, FORESTEVERGREEN)
 			#Floodplains, Oasis
 			elif not plot.isWater() and tm.tData[i] == mc.DESERT and tm.pData[i] == mc.LAND:
-				if plot.isRiver():
+				if plot.isRiverSide(): # advc.129b: was plot.isRiver()
 					plot.setFeatureType(fFloodPlains, 0)
 				else:
 					#is this square surrounded by desert?

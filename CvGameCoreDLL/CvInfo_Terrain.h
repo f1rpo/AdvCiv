@@ -100,6 +100,7 @@ public: /*  All the const functions are exposed to Python except for those deali
 
 	bool isNoCoast() const;
 	bool isNoRiver() const;
+	bool isNoRiverSide() const; // advc.129b
 	bool isNoAdjacent() const;
 	bool isRequiresFlatlands() const;
 	bool isRequiresRiver() const;
@@ -159,6 +160,7 @@ protected:
 
 	bool m_bNoCoast;
 	bool m_bNoRiver;
+	bool m_bNoRiverSide; // advc.129b
 	bool m_bNoAdjacent;
 	bool m_bRequiresFlatlands;
 	bool m_bRequiresRiver;

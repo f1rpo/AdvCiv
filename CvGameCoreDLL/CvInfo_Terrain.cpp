@@ -146,6 +146,7 @@ m_iTurnDamage(0),
 m_iWarmingDefense(0), //GWMod
 m_bNoCoast(false),
 m_bNoRiver(false),
+m_bNoRiverSide(false), // advc.129b
 m_bNoAdjacent(false),
 m_bRequiresFlatlands(false),
 m_bRequiresRiver(false),
@@ -212,6 +213,11 @@ bool CvFeatureInfo::isNoCoast() const
 bool CvFeatureInfo::isNoRiver() const
 {
 	return m_bNoRiver;
+}
+// advc.129b:
+bool CvFeatureInfo::isNoRiverSide() const
+{
+	return m_bNoRiverSide;
 }
 
 bool CvFeatureInfo::isNoAdjacent() const
@@ -360,12 +366,19 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iDisappearanceProbability, "iDisappearance");
 	pXML->GetChildXmlValByName(&m_iGrowthProbability, "iGrowth");
 	pXML->GetChildXmlValByName(&m_bNoCoast, "bNoCoast");
+	// advc.129b:
+	pXML->GetChildXmlValByName(&m_bNoRiverSide, "bNoRiverSide", false);
 	pXML->GetChildXmlValByName(&m_bNoRiver, "bNoRiver");
+	// <advc.129b> Make sure these are consistent
+	if (m_bNoRiver)
+		m_bNoRiverSide = true; // </advc.129b>
 	pXML->GetChildXmlValByName(&m_bNoAdjacent, "bNoAdjacent");
 	pXML->GetChildXmlValByName(&m_bRequiresFlatlands, "bRequiresFlatlands");
 	pXML->GetChildXmlValByName(&m_bRequiresRiver, "bRequiresRiver");
-	// advc.129b:
+	// <advc.129b>
 	pXML->GetChildXmlValByName(&m_bRequiresRiverSide, "bRequiresRiverSide", false);
+	if (m_bRequiresRiverSide)
+		m_bRequiresRiver = true; // </advc.129b>
 	pXML->GetChildXmlValByName(&m_bAddsFreshWater, "bAddsFreshWater");
 	pXML->GetChildXmlValByName(&m_bImpassable, "bImpassable");
 	pXML->GetChildXmlValByName(&m_bNoCity, "bNoCity");

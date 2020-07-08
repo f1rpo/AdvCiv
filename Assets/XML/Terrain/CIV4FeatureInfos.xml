@@ -258,7 +258,10 @@
 			<iTurnDamage>0</iTurnDamage>
 			<iWarmingDefense>0</iWarmingDefense><!-- GWMod new XML field M.A. -->
 			<bNoCoast>1</bNoCoast>
-			<bNoRiver>1</bNoRiver>
+			<!-- advc.129b: was 1 -->
+			<bNoRiver>0</bNoRiver>
+			<!-- advc.129b -->
+			<bNoRiverSide>1</bNoRiverSide>
 			<bNoAdjacent>1</bNoAdjacent>
 			<bRequiresFlatlands>1</bRequiresFlatlands>
 			<bRequiresRiver>0</bRequiresRiver>

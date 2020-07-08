@@ -3139,6 +3139,9 @@ bool CvPlot::canHaveFeature(FeatureTypes eFeature,
 
 	if (kFeature.isNoRiver() && isRiver())
 		return false;
+	// <advc.129b>
+	if (kFeature.isNoRiverSide() && isRiverSide())
+		return false; // </advc.129b>
 
 	if (kFeature.isRequiresFlatlands() && isHills())
 		return false;
