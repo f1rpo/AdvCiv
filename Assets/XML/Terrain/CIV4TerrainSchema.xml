@@ -164,7 +164,7 @@
 		<element type="iWarmingDefense" minOccurs="0"/>
 		<element type="bNoCoast"/>
 		<element type="bNoRiver"/>
-		<!-- advc.129b (set to false by default in the DLL)
+		<!-- advc.129b (set to false by default in the DLL; currently unused)
 			 Value doesn't matter if bNoRiver is set. -->
 		<element type="bNoRiverSide" minOccurs="0"/>
 		<element type="bNoAdjacent"/>
