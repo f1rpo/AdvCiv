@@ -903,6 +903,16 @@
 	<Spanish>Pulsar [ALT + U] para activar las marcas de unidades.</Spanish>
 </TEXT>
 
+<!-- Replacing a hint that only said that music can be toggled -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_INTERFACE_47</Tag>
+	<English>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</English>
+	<French>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</French>
+	<German>Durch Ab- und Wiedereinschalten der Hintergrundmusik (zweimal [Strg + M]) lässt sich das aktuelle Musikstück überspringen.</German>
+	<Italian>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</Italian>
+	<Spanish>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</Spanish>
+</TEXT>
+
 <!-- advc.004m: This said that group orders can be given if a group is
 	 selected. The slider position not only being remembered, but continuing to
 	 apply is a K-Mod change btw. -->
@@ -1045,11 +1055,11 @@
 
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_42</Tag>
-	<English>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</English>
-	<French>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</French>
-	<German>Durch Ab- und Wiedereinschalten der Hintergrundmusik (zweimal [Strg + M]) lässt sich das aktuelle Musikstück überspringen.</German>
-	<Italian>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</Italian>
-	<Spanish>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</Spanish>
+	<English>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</English>
+	<French>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</French>
+	<German>(AdvCiv) Solange sich feindliche Einheiten in der Nähe einer Stadt befinden, kann sie in der Regel nicht an eine Drittpartei abgetreten werden - oder allenfalls durch Befreiung.</German>
+	<Italian>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</Italian>
+	<Spanish>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</Spanish>
 </TEXT>
 
 <!-- advc.ctr -->
@@ -1084,14 +1094,6 @@
 	<German>(AdvCiv) Solange ein Krieg andauert, können eroberte Städte nur durch Befreiung an Drittparteien abgetreten werden; Handel mit eroberten Städten ist erst nach Friedensschluss zulässig.</German>
 	<Italian>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</Italian>
 	<Spanish>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</Spanish>
-</TEXT>
-<TEXT>
-	<Tag>TXT_KEY_ADVC_HINT_47</Tag>
-	<English>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</English>
-	<French>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</French>
-	<German>(AdvCiv) Solange sich feindliche Einheiten in der Nähe einer Stadt befinden, kann sie in der Regel nicht an eine Drittpartei abgetreten werden - oder allenfalls durch Befreiung.</German>
-	<Italian>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</Italian>
-	<Spanish>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</Spanish>
 </TEXT>
 
 </Civ4GameText>
