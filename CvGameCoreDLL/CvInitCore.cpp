@@ -1481,7 +1481,7 @@ void CvInitCore::read(FDataStreamBase* pStream)
 		m_abOptions.Read(pStream);
 	else // </advc.enum>
 	{
-		bool* abOptions = new bool[NUM_GAMEOPTION_TYPES];
+		bool abOptions[NUM_GAMEOPTION_TYPES];
 		// <advc.912d>
 		if (uiFlag <= 1)
 		{
@@ -1500,7 +1500,6 @@ void CvInitCore::read(FDataStreamBase* pStream)
 		else pStream->Read(NUM_GAMEOPTION_TYPES, abOptions);
 		FOR_EACH_ENUM(GameOption)
 			m_abOptions.set(eLoopGameOption, abOptions[eLoopGameOption]);
-		delete[] abOptions;
 	} // </advc.912d>
 
 	m_abMPOptions.Read(pStream);

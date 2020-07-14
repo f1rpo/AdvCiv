@@ -62,7 +62,7 @@ public:
 	// <advc.089>
 	void setCannotAttackHelp(CvWStringBuffer& szHelp, CvUnit const& kAttacker,
 			CvUnit const& kDefender); // </advc.089>
-	void setPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
+	void setPlotHelp(CvWStringBuffer &szString, CvPlot const& kPlot);
 	void setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity);
 	void setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer);
 

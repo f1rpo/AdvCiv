@@ -4392,41 +4392,41 @@ void createTestFontString(CvWStringBuffer& szString) // for font testing - Moose
 		szString.append(CvWString::format(L"%c", gDLL->getSymbolID(iI)));
 } }*/
 
-void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
+void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 {
-	bool bShift = GC.shiftKey();
+	bool const bShift = GC.shiftKey();
+	CvGame const& kGame = GC.getGame();
 	// <advc.135c>
-	if(GC.getGame().isDebugMode())
+	if (kGame.isDebugMode())
 	{
-		setPlotHelpDebug(szString, *pPlot);
-		if(bShift || GC.ctrlKey() || GC.altKey())
+		setPlotHelpDebug(szString, kPlot);
+		if (bShift || GC.ctrlKey() || GC.altKey())
 			return;
 	} // </advc.135c>
 
-	CvGame const& g = GC.getGame(); // advc
-	TeamTypes eActiveTeam = g.getActiveTeam();
-	PlayerTypes eActivePlayer = g.getActivePlayer();
+	TeamTypes const eActiveTeam = kGame.getActiveTeam();
+	PlayerTypes const eActivePlayer = kGame.getActivePlayer();
 	CvWString szTempBuffer;
 
-	PlayerTypes eRevealedOwner = pPlot->getRevealedOwner(eActiveTeam, true);
-	if (eRevealedOwner != NO_PLAYER
+	PlayerTypes const eRevealedOwner = kPlot.getRevealedOwner(eActiveTeam, true);
+	if (eRevealedOwner != NO_PLAYER ||
 		// advc.099f:
-		|| bShift || BUGOption::isEnabled("MiscHover__CultureInUnownedTiles", false))
+		bShift || BUGOption::isEnabled("MiscHover__CultureInUnownedTiles", false))
 	{
-		if (pPlot->isActiveVisible(true))
+		if (kPlot.isActiveVisible(true))
 		{	/*  <advc.101> Similar to code added in
 				CvDLLWidgetData::parseNationalityHelp */
-			if(pPlot->isCity())
+			if(kPlot.isCity())
 			{
-				CvCity const& c = *pPlot->getPlotCity();
-				bool const bActiveOwned = (c.getOwner() == eActivePlayer);
-				double prRevolt = c.revoltProbability();
+				CvCity const& kCity = *kPlot.getPlotCity();
+				bool const bActiveOwned = (kCity.getOwner() == eActivePlayer);
+				double prRevolt = kCity.revoltProbability();
 				// <advc.023>
-				double const prDecrement = c.probabilityOccupationDecrement();
+				double const prDecrement = kCity.probabilityOccupationDecrement();
 				prRevolt *= 1 - prDecrement; // </advc.023>
-				PlayerTypes const eCulturalOwner = (bActiveOwned ? c.calculateCulturalOwner() : NO_PLAYER);
-				int const iGarrisonStr = (bActiveOwned ? c.cultureGarrison(eCulturalOwner) : -1);
-				int const iCultureStr = (bActiveOwned ? c.cultureStrength(eCulturalOwner) : -1);
+				PlayerTypes const eCulturalOwner = (bActiveOwned ? kCity.calculateCulturalOwner() : NO_PLAYER);
+				int const iGarrisonStr = (bActiveOwned ? kCity.cultureGarrison(eCulturalOwner) : -1);
+				int const iCultureStr = (bActiveOwned ? kCity.cultureStrength(eCulturalOwner) : -1);
 				if(prRevolt > 0)
 				{
 					/*  CvCity::revoltProbability rounds probabilities that are too
@@ -4447,8 +4447,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 						szString.append(gDLL->getText("TXT_KEY_GARRISON_STRENGTH_NEEDED_SHORT",
 								iGarrisonStrNeeded));
 					}
-					int const iPriorRevolts = c.getNumRevolts();
-					if (c.canCultureFlip())
+					int const iPriorRevolts = kCity.getNumRevolts();
+					if (kCity.canCultureFlip())
 					{
 						szString.append(bActiveOwned ? NEWLINE : L" ");
 						szString.append(gDLL->getText(bActiveOwned ?
@@ -4472,11 +4472,11 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					szString.append(NEWLINE);
 				} // </advc.023>
 				else if (prRevolt <= 0 && bActiveOwned && iGarrisonStr > 0 &&
-					eCulturalOwner != c.getOwner() && iGarrisonStr >= iCultureStr)
+					eCulturalOwner != kCity.getOwner() && iGarrisonStr >= iCultureStr)
 				{
 					// Show it only when a local unit is selected? Eh ...
 					/*CvUnit* pSelectedUnit = gDLL->UI().getHeadSelectedUnit();
-					if (pSelectedUnit != NULL && pSelectedUnit->at(*pPlot))*/
+					if (pSelectedUnit != NULL && pSelectedUnit->at(kPlot))*/
 					{
 						int iSafeToRemove = (iGarrisonStr - iCultureStr);
 						if (iSafeToRemove < iGarrisonStr)
@@ -4500,9 +4500,9 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					continue; // </advc.099g>
 				CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)i);
 				// advc.099: Replaced "Alive" with "EverAlive"
-				if (kPlayer.isEverAlive() && pPlot->getCulture(kPlayer.getID()) > 0)
+				if (kPlayer.isEverAlive() && kPlot.getCulture(kPlayer.getID()) > 0)
 				{
-					int iCulture = pPlot->calculateCulturePercent(kPlayer.getID());
+					int iCulture = kPlot.calculateCulturePercent(kPlayer.getID());
 					/*  K-Mod, 29/sep/10, Karadoc
 						Prevent display of 0% culture, to reduce the spam created by trade culture. */
 					if (iCulture >= 1)
@@ -4514,14 +4514,14 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			std::stable_sort(aieCulturePerPlayer.begin(), aieCulturePerPlayer.end());
 			if(eActivePlayer != eRevealedOwner)
 			{
-				int iCulture = pPlot->calculateCulturePercent(eActivePlayer);
+				int iCulture = kPlot.calculateCulturePercent(eActivePlayer);
 				if(iCulture >= 1)
 					aieCulturePerPlayer.push_back(std::make_pair(iCulture, eActivePlayer));
 			}
 			if(eRevealedOwner != NO_PLAYER) // advc.099f
 			{
 				aieCulturePerPlayer.push_back(std::make_pair(
-						pPlot->calculateCulturePercent(eRevealedOwner), eRevealedOwner));
+						kPlot.calculateCulturePercent(eRevealedOwner), eRevealedOwner));
 			}
 			std::reverse(aieCulturePerPlayer.begin(), aieCulturePerPlayer.end());
 			for (size_t i = 0; i < aieCulturePerPlayer.size(); i++)
@@ -4554,9 +4554,9 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 	TeamTypes eDefTeam = (eRevealedOwner != NO_PLAYER ?
 			GET_PLAYER(eRevealedOwner).getTeam() :
 			NO_TEAM);
-	int iDefWithFeatures = pPlot->defenseModifier(eDefTeam, true, NO_TEAM, true);
-	int iDefWithoutFeatures = pPlot->defenseModifier(eDefTeam, true,
-			pPlot->getTeam(), true);
+	int iDefWithFeatures = kPlot.defenseModifier(eDefTeam, true, NO_TEAM, true);
+	int iDefWithoutFeatures = kPlot.defenseModifier(eDefTeam, true,
+			kPlot.getTeam(), true);
 	int iDelta = iDefWithFeatures - iDefWithoutFeatures;
 	if(iDefWithoutFeatures != 0 || iDefWithFeatures != 0)
 	{
@@ -4575,57 +4575,51 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		szString.append(NEWLINE);
 	} // </advc.012>
 
-	if (pPlot->getTerrainType() != NO_TERRAIN)
+	if (kPlot.getTerrainType() != NO_TERRAIN)
 	{
-		if (pPlot->isPeak())
-		{
+		if (kPlot.isPeak())
 			szString.append(gDLL->getText("TXT_KEY_PLOT_PEAK"));
-		}
 		else
 		{
-			if (pPlot->isWater())
+			if (kPlot.isWater())
 			{
 				szTempBuffer.Format(SETCOLR, TEXT_COLOR("COLOR_WATER_TEXT"));
 				szString.append(szTempBuffer);
 			}
 
-			if (pPlot->isHills())
-			{
+			if (kPlot.isHills())
 				szString.append(gDLL->getText("TXT_KEY_PLOT_HILLS"));
-			}
 
-			if (pPlot->isFeature())
+			if (kPlot.isFeature())
 			{
-				szTempBuffer.Format(L"%s/", GC.getInfo(pPlot->getFeatureType()).getDescription());
+				szTempBuffer.Format(L"%s/", GC.getInfo(kPlot.getFeatureType()).getDescription());
 				szString.append(szTempBuffer);
 			}
 
-			szString.append(GC.getInfo(pPlot->getTerrainType()).getDescription());
+			szString.append(GC.getInfo(kPlot.getTerrainType()).getDescription());
 
-			if (pPlot->isWater())
-			{
+			if (kPlot.isWater())
 				szString.append(ENDCOLR);
-			}
 		}
 	}
 	bool bAnyYield = false; // advc.059
 	/*  advc.001w: hasYield is based on getYield, which is not always consistent
 		with calculateYield. */
-	//if (pPlot->hasYield())
+	//if (kPlot.hasYield())
 	{
-		for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
+		FOR_EACH_ENUM(Yield)
 		{
-			int iYield = pPlot->calculateYield((YieldTypes)iI, true);
+			int iYield = kPlot.calculateYield(eLoopYield, true);
 			if (iYield != 0)
 			{
-				szTempBuffer.Format(L", %d%c", iYield, GC.getInfo((YieldTypes) iI).getChar());
+				szTempBuffer.Format(L", %d%c", iYield, GC.getInfo(eLoopYield).getChar());
 				szString.append(szTempBuffer);
 				bAnyYield = true;
 			}
 		}
 	}
 	// <advc.001> Moved up. BtS was using getImprovementType in the eBonus code
-	ImprovementTypes ePlotImprovement = pPlot->getRevealedImprovementType(
+	ImprovementTypes ePlotImprovement = kPlot.getRevealedImprovementType(
 			eActiveTeam, true); // </advc.001>
 	// <advc.059>
 	bool bHealthHappyShown = false; // Show it later if improved
@@ -4633,18 +4627,18 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		(GC.getInfo(ePlotImprovement).get(CvImprovementInfo::HealthPercent) == 0 && // advc.901
 		GC.getInfo(ePlotImprovement).getHappiness() == 0))
 	{
-		setPlotHealthHappyHelp(szString, *pPlot);
+		setPlotHealthHappyHelp(szString, kPlot);
 		bHealthHappyShown = true;
 	} // </advc.059>
 
-	if (pPlot->isFreshWater())
+	if (kPlot.isFreshWater())
 	{
 		szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_PLOT_FRESH_WATER"));
 		// <advc.059>
 		if(pHeadSelectedUnit != NULL &&
 			// advc.004h:
-			pHeadSelectedUnit->canFound() && pHeadSelectedUnit->atPlot(pPlot))
+			pHeadSelectedUnit->canFound() && pHeadSelectedUnit->at(kPlot))
 		{
 			szTempBuffer = CvWString::format(L" +%d%c",
 					GC.getDefineINT(CvGlobals::FRESH_WATER_HEALTH_CHANGE),
@@ -4653,22 +4647,22 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		} // </advc.059>
 	}
 
-	if (pPlot->isLake())
+	if (kPlot.isLake())
 	{
 		szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_PLOT_FRESH_WATER_LAKE"));
 	}
 
-	if (pPlot->isImpassable())
+	if (kPlot.isImpassable())
 	{
 		szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_PLOT_IMPASSABLE"));
 	}
 
 	BonusTypes eBonus = NO_BONUS;
-	if (g.isDebugMode())
-		eBonus = pPlot->getBonusType();
-	else eBonus = pPlot->getBonusType(eActiveTeam);
+	if (kGame.isDebugMode())
+		eBonus = kPlot.getBonusType();
+	else eBonus = kPlot.getBonusType(eActiveTeam);
 	if (eBonus != NO_BONUS)
 	{
 		szTempBuffer.Format(L"%c " SETCOLR L"%s" ENDCOLR, GC.getInfo(eBonus).getChar(), TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), GC.getInfo(eBonus).getDescription());
@@ -4717,11 +4711,11 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 						GC.getInfo(GC.getInfo(eBonus).getTechCityTrade()).getText());
 				szReqs.append(szTempBuffer);
 			}
-			bool bCity = pPlot->isCity();
+			bool bCity = kPlot.isCity();
 			bool bConnected = GET_PLAYER(eActivePlayer).
 					doesImprovementConnectBonus(ePlotImprovement, eBonus);
 			// Moved up (b/c the route isn't needed for the yields)
-			if(!bCity && !pPlot->isBonusNetwork(eActiveTeam) && !pPlot->isWater() &&
+			if(!bCity && !kPlot.isBonusNetwork(eActiveTeam) && !kPlot.isWater() &&
 				bConnected) // Mention route only if all other pieces in place
 			{
 				//szString.append(gDLL->getText("TXT_KEY_PLOT_REQUIRES_ROUTE"));
@@ -4759,7 +4753,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 
 						CvImprovementInfo& kImprovementInfo = GC.getInfo(eLoopImprov);
 						if(!kImprovementInfo.isImprovementBonusTrade(eBonus) ||
-							!pPlot->canHaveImprovement(eLoopImprov, eActiveTeam, true))
+							!kPlot.canHaveImprovement(eLoopImprov, eActiveTeam, true))
 						{
 							continue;
 						}
@@ -4802,7 +4796,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 										show the difference between the yields. */
 									- (ePlotImprovement == NO_IMPROVEMENT ||
 									ePlotImprovement == eLoopImprov ? 0 :
-									pPlot->calculateImprovementYieldChange(
+									kPlot.calculateImprovementYieldChange(
 									ePlotImprovement, eLoopYield, eActivePlayer));
 									// </advc.047>
 							if (iYieldChange != 0)
@@ -4866,7 +4860,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					szMapName.begin(), ::toupper); // to upper case
 			std::wostringstream ssKey;
 			ssKey << L"TXT_KEY_" << szMapName << L"_" <<
-					pPlot->getX() << L"_" << pPlot->getY() << L"_BONUS_";
+					kPlot.getX() << L"_" << kPlot.getY() << L"_BONUS_";
 			CvWString szBonusName = GC.getInfo(eBonus).getDescription();
 			std::transform(szBonusName.begin(), szBonusName.end(),
 					szBonusName.begin(), ::toupper);
@@ -4901,7 +4895,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		bool bNamedRuin = false;
 		if(ePlotImprovement == GC.getRUINS_IMPROVEMENT())
 		{
-			wchar const* szRuinsName = pPlot->getRuinsName();
+			wchar const* szRuinsName = kPlot.getRuinsName();
 			if(szRuinsName != NULL/*&& wcslen(szRuinsName) > 0*/)
 			{
 				szString.append(gDLL->getText("TXT_KEY_IMPROVEMENT_CITY_RUINS_NAMED",
@@ -4925,53 +4919,50 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 
 		if (bFound)
 		{
-			if (pPlot->isIrrigationAvailable())
-			{
+			if (kPlot.isIrrigationAvailable())
 				szString.append(gDLL->getText("TXT_KEY_PLOT_IRRIGATED"));
-			}
-			else
-			{
-				szString.append(gDLL->getText("TXT_KEY_PLOT_NOT_IRRIGATED"));
-			}
+			else szString.append(gDLL->getText("TXT_KEY_PLOT_NOT_IRRIGATED"));
 		}
 
 		if (GC.getInfo(ePlotImprovement).getImprovementUpgrade() != NO_IMPROVEMENT)
 		{
-			if (pPlot->getUpgradeProgress() > 0 || pPlot->isBeingWorked())
+			if (kPlot.getUpgradeProgress() > 0 || kPlot.isBeingWorked())
 			{
-				int iTurns = pPlot->getUpgradeTimeLeft(ePlotImprovement, eRevealedOwner);
-
+				int iTurns = kPlot.getUpgradeTimeLeft(ePlotImprovement, eRevealedOwner);
 				szString.append(gDLL->getText("TXT_KEY_PLOT_IMP_UPGRADE", iTurns,
-						GC.getInfo(GC.getInfo(ePlotImprovement).getImprovementUpgrade()).getTextKeyWide()));
+						GC.getInfo(GC.getInfo(ePlotImprovement).getImprovementUpgrade()).
+						getTextKeyWide()));
 			}
 			else
 			{
 				szString.append(gDLL->getText("TXT_KEY_PLOT_WORK_TO_UPGRADE",
-						GC.getInfo(GC.getInfo(ePlotImprovement).getImprovementUpgrade()).getTextKeyWide()));
+						GC.getInfo(GC.getInfo(ePlotImprovement).getImprovementUpgrade()).
+						getTextKeyWide()));
 			}
 		}
 	}
 	// <advc.059>
 	if (!bHealthHappyShown)
-		setPlotHealthHappyHelp(szString, *pPlot); // </advc.059>
-	if (pPlot->getRevealedRouteType(eActiveTeam, true) != NO_ROUTE)
+		setPlotHealthHappyHelp(szString, kPlot); // </advc.059>
+	if (kPlot.getRevealedRouteType(eActiveTeam, true) != NO_ROUTE)
 	{
 		szString.append(NEWLINE);
-		szString.append(GC.getInfo(pPlot->getRevealedRouteType(eActiveTeam, true)).getDescription());
+		szString.append(GC.getInfo(kPlot.getRevealedRouteType(eActiveTeam, true)).getDescription());
 	}
 	// <advc.011c>
-	for(int i = 0; i < GC.getNumBuildInfos(); i++)
+	FOR_EACH_ENUM2(Build, eBuild)
 	{
-		BuildTypes eBuild = (BuildTypes)i;
-		if(pPlot->getBuildProgress(eBuild) <= 0
-				|| !pPlot->canBuild(eBuild, eActivePlayer))
+		if(kPlot.getBuildProgress(eBuild) <= 0 ||
+			!kPlot.canBuild(eBuild, eActivePlayer))
+		{
 			continue;
-		int iTurnsLeft = pPlot->getBuildTurnsLeft(eBuild, eActivePlayer);
+		}
+		int iTurnsLeft = kPlot.getBuildTurnsLeft(eBuild, eActivePlayer);
 		if(iTurnsLeft <= 0 || iTurnsLeft == MAX_INT)
 			continue; // </advc.011c>
 		// <advc.011b>
 		int iInitialTurnsNeeded = (int)::ceil(
-				pPlot->getBuildTime(eBuild, eActivePlayer) /
+				kPlot.getBuildTime(eBuild, eActivePlayer) /
 				(double)GET_PLAYER(eActivePlayer).getWorkRate(eBuild));
 		int iTurnsSpent = iInitialTurnsNeeded - iTurnsLeft;
 		if(iTurnsSpent <= 0)
@@ -4997,10 +4988,10 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 				pPlot->decayBuildProgress(true));
 		if(bDecay) // Check if Workers are getting on the task this turn
 		{
-			for (CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
-				pUnitNode = pPlot->nextUnitNode(pUnitNode))
+			for (CLLNode<IDInfo> const* pNode = kPlot.headUnitNode();
+				pNode != NULL; pNode = kPlot.nextUnitNode(pNode))
 			{
-				CvUnit const* pUnit = ::getUnit(pUnitNode->m_data);
+				CvUnit const* pUnit = ::getUnit(pNode->m_data);
 				if(pUnit->getTeam() == eActiveTeam && pUnit->movesLeft() > 0 &&
 					pUnit->getGroup()->getMissionType(0) == MISSION_BUILD)
 				{
@@ -5022,7 +5013,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 	} // </advc.011b>
 
 	// advc.003h (BBAI code from 07/11/08 by jdog5000 moved into setPlotHelpDebug)
-	if (pPlot->getBlockadedCount(eActiveTeam) > 0)
+	if (kPlot.getBlockadedCount(eActiveTeam) > 0)
 	{
 		szString.append(CvWString::format(SETCOLR, TEXT_COLOR("COLOR_NEGATIVE_TEXT")));
 		szString.append(NEWLINE);
@@ -5030,9 +5021,9 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		szString.append(CvWString::format( ENDCOLR));
 	}
 
-	if (pPlot->isFeature())
+	if (kPlot.isFeature())
 	{
-		int iDamage = GC.getInfo(pPlot->getFeatureType()).getTurnDamage();
+		int iDamage = GC.getInfo(kPlot.getFeatureType()).getTurnDamage();
 
 		if (iDamage > 0)
 		{
@@ -20479,7 +20470,7 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 				pMouseOverPlot->getWorkingCity() == pHeadSelectedCity &&
 				pMouseOverPlot->isRevealed(eActiveTeam, true))
 			{
-				setPlotHelp(strHelp, pMouseOverPlot);
+				setPlotHelp(strHelp, *pMouseOverPlot);
 			}
 		}
 	}
@@ -20509,7 +20500,7 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 				if (!strHelp.isEmpty())
 					strHelp.append(NEWLINE);
 			}
-			setPlotHelp(strHelp, pMouseOverPlot);
+			setPlotHelp(strHelp, *pMouseOverPlot);
 		}
 
 		InterfaceModeTypes eInterfaceMode = kUI.getInterfaceMode();

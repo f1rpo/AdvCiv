@@ -259,32 +259,32 @@ void CitySiteEvaluator::setDebug(bool b)
 }
 
 // <advc.031c>
-short CitySiteEvaluator::evaluateWithLogging(int iX, int iY) const
+short CitySiteEvaluator::evaluateWithLogging(CvPlot const& kPlot) const
 {
 	AIFoundValue::setLoggingEnabled(true);
-	int r = evaluate(iX, iY);
+	int r = evaluate(kPlot);
 	AIFoundValue::setLoggingEnabled(false);
 	return r;
 }
 
 
-void CitySiteEvaluator::log(int iX, int iY)
+void CitySiteEvaluator::log(CvPlot const& kPlot)
 {
 	/*  Important to ignore other city sites. Because, when CvPlayerAI::
 		AI_updateCitySites computes the found value of the best site,
 		none of the other sites are chosen yet. Here, all sites are chosen. */
 	setDebug(true);
 	if (isStartingLoc())
-		logBBAI("\n\nStarting location found at (%d,%d)", iX, iY);
+		logBBAI("\n\nStarting location found at (%d,%d)", kPlot.getX(), kPlot.getY());
 	else if (isNormalizing())
-		logBBAI("\n\nNormalizing starting plot (%d,%d)", iX, iY);
+		logBBAI("\n\nNormalizing starting plot (%d,%d)", kPlot.getX(), kPlot.getY());
 	else
 	{
 		logBBAI("\n\n%S is about to found a city at (%d,%d); turn %d (year %d)", getPlayer().getName(),
-				iX, iY, GC.getGame().getGameTurn(), GC.getGame().getGameTurnYear());
+				kPlot.getX(), kPlot.getY(), GC.getGame().getGameTurn(), GC.getGame().getGameTurnYear());
 		logBBAI("Lower bound for found value: %d", getPlayer().AI_getMinFoundValue());
 	}
-	evaluateWithLogging(iX, iY);
+	evaluateWithLogging(kPlot);
 	if (isStartingLoc() || getPlayer().isBarbarian())
 		return;
 	{
@@ -293,7 +293,7 @@ void CitySiteEvaluator::log(int iX, int iY)
 		for (int i = 0; i < getPlayer().AI_getNumCitySites(); i++)
 		{
 			CvPlot const& kLoopPlot = *getPlayer().AI_getCitySite(i);
-			if (kLoopPlot.at(iX, iY))
+			if (&kLoopPlot == &kPlot)
 				continue;
 			int iValue = evaluate(kLoopPlot);
 			if (iValue > iBest)
@@ -307,7 +307,7 @@ void CitySiteEvaluator::log(int iX, int iY)
 			int iNextX = pNextBestSite->getX();
 			int iNextY = pNextBestSite->getY();
 			logBBAI("\nNext best site: %d (%d,%d)", iBest, iNextX, iNextY);
-			evaluateWithLogging(iNextX, iNextY);
+			evaluateWithLogging(kPlot);
 		}
 	}
 	{
@@ -315,7 +315,8 @@ void CitySiteEvaluator::log(int iX, int iY)
 		int iBest = 0;
 		FOR_EACH_ENUM(Direction)
 		{
-			CvPlot const* pAdj = plotDirection(iX, iY, eLoopDirection);
+			CvPlot const* pAdj = plotDirection(kPlot.getX(), kPlot.getY(),
+					eLoopDirection);
 			if (pAdj == NULL)
 				continue;
 			int iValue = evaluate(*pAdj);
@@ -329,8 +330,8 @@ void CitySiteEvaluator::log(int iX, int iY)
 		{
 			int iAdjX = pBestAdjSite->getX();
 			int iAdjY = pBestAdjSite->getY();
-			logBBAI("\nBest site adjacent to (%d,%d): %d (%d,%d)", iX, iY, iBest, iAdjX, iAdjY);
-			evaluateWithLogging(iAdjX, iAdjY);
+			logBBAI("\nBest site adjacent to (%d,%d): %d (%d,%d)", kPlot.getX(), kPlot.getY(), iBest, iAdjX, iAdjY);
+			evaluateWithLogging(kPlot);
 		}
 	}
 }
@@ -1088,20 +1089,22 @@ int AIFoundValue::baseCityValue() const
 {
 	// advc.031: was 800 in K-Mod and 1000 before K-Mod
 	int r = 150;
-	// <advc.040>
-	if (bFirstColony && iUnrevealedTiles > 0)
-	{
-		int const iFirstColonyValue = 55 * std::min(5, iUnrevealedTiles);
-		IFLOG logBBAI("+%d base value for unrevealed tiles near first colony", iFirstColonyValue);
-		r += iFirstColonyValue;
-	} // </advc.040>
 	// <advc.108>
-	else if(iCities <= 0)
+	if (iUnrevealedTiles <= 0)
+		return r;
+	if (iCities <= 0)
 	{
 		int const iCapitalValue = (50 * scaled(iUnrevealedTiles).sqrt()).round();
 		IFLOG if(iCapitalValue>0) logBBAI("+%d base value for unrevealed tiles near initial city", iCapitalValue);
 		r += iCapitalValue;
 	} // </advc.108>
+	// <advc.040>
+	else if (bFirstColony)
+	{
+		int const iFirstColonyValue = 55 * std::min(5, iUnrevealedTiles);
+		IFLOG logBBAI("+%d base value for unrevealed tiles near first colony", iFirstColonyValue);
+		r += iFirstColonyValue;
+	} // </advc.040>
 	return r;
 }
 
@@ -1796,20 +1799,20 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus,
 	int r = AI_bonusVal(eBonus, 0, true) * 80 / (1 + 2*iCount);*/ // K-Mod
 	/*  <advc.031> The "==0" looks like an error. Rather than correct that,
 		I'll let AI_bonusVal handle the number of bonuses already connected (iChange=1).
-		A division by NumTradeableBonuses here won't work well for strategic resources. */
+		A division by NumTradeableBonuses here won't work well for strategic resources.*/
 	// Coefficient was 80
-	int r = kPlayer.AI_bonusVal(eBonus, 1, true) * 57;
+	scaled r = kPlayer.AI_bonusVal(eBonus, 1, true) * 57;
 	bool bSurplus = (kPlayer.getNumAvailableBonuses(eBonus) > 0);
 	if (paiBonusCount != NULL)
 	{
 		if ((*paiBonusCount)[eBonus] > 0)
 		{
-			r = ROUND_DIVIDE(r, 1 + (*paiBonusCount)[eBonus]);
+			r /= 1 + (*paiBonusCount)[eBonus];
 			bSurplus = true;
 		} // </advc.031>
 		(*paiBonusCount)[eBonus]++;
 	}
-	// <advc.031>
+	// <advc.031> (Would be cleaner to handle this in CvPlayerAI::AI_baseBonusVal.)
 	bool bGrowthBonus = (!bAnyGrowthBonus && bCanTradeSoon && !bSurplus &&
 			(GC.getInfo(eBonus).getHappiness() +
 			// Basically only luxury resources qualify
@@ -1821,28 +1824,31 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus,
 	// </advc.031>
 	/*  K-Mod: try not to make the value of strategic resources too overwhelming.
 		(note: I removed a bigger value reduction from the original code.) */
-	// (advc: Should perhaps make such adjustments in CvPlayerAI::AI_bonusValue instead)
-	int iEarlyGameModifier = 100;
+	scaled rEarlyGameModifier = 1;
 	if (kSet.isStartingLoc())
 	{	// <advc.031>
 		if (bGrowthBonus)
-			iEarlyGameModifier = 40; // </advc.031>
+			rEarlyGameModifier = fixp(0.4); // </advc.031>
 		else
 		{
 			// (advc: Divisor was 4 in K-Mod; BtS had divided by 2 after evaluateSpecialYields.)
-			iEarlyGameModifier = 
+			rEarlyGameModifier = 
 				/*  <advc.108> Don't need to decrease as much if reveal-techs are respected
 						(also: advc.036 improves the evaluation of non-strategic resources) */
-					(kGame.getStartingPlotNormalizationLevel() <= CvGame::NORMALIZE_LOW ? 33 : 25);
+					(kGame.getStartingPlotNormalizationLevel() <= CvGame::NORMALIZE_LOW ?
+					fixp(1/3.) : fixp(1/4.));
 		}
 	}
 	else if (iCities <= 0) // For moving the starting Settler and normalization
 	{
 		if (bGrowthBonus)
-			iEarlyGameModifier = 75;
-		else iEarlyGameModifier = 55;
+			rEarlyGameModifier = fixp(0.75);
+		else rEarlyGameModifier = fixp(0.55);
 	} // </advc.108>
 	// <advc.031> High values for strategic resources remain a problem during the early game
+	/*	(note): Instead of special treatment just for the early game, the multiplier
+		should arguably be based on an estimate of how many cities we'll have
+		in some medium term - b/c AI_bonusVal is per city. */
 	else
 	{
 		int const iTargetCities = GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities();
@@ -1852,19 +1858,19 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus,
 			if (bGrowthBonus) // Modifier climbs to 120%, then decreases to 100%.
 			{
 				int iPeakCity = (iTargetCities + 1) / 2;
-				int iPercentIncrement = 30 / (iPeakCity - 1);
-				iEarlyGameModifier = 90 + iPercentIncrement *
+				scaled rIncrement = fixp(0.3) / std::max(1, iPeakCity - 1);
+				rEarlyGameModifier = fixp(0.9) + rIncrement *
 						(iCities < iPeakCity ? iCities : iTargetCities - iCities - 1);
 			}
 			else // Modifier climbs to 100%
 			{
-				int iPercentIncrement = 50 / (iTargetCities - 1);
-				iEarlyGameModifier = 55 + iPercentIncrement * iCities;
+				scaled rIncrement = fixp(0.5) / std::max(1, iTargetCities - 1);
+				rEarlyGameModifier = fixp(0.55) + rIncrement * iCities;
 			}
 		}
 	}
-	IFLOG if(iEarlyGameModifier!=100) logBBAI("Early-game modifier for non-yield resource value: %d percent", iEarlyGameModifier);
-	r = (iEarlyGameModifier * r) / 100;
+	IFLOG if(rEarlyGameModifier.getPercent()!=100) logBBAI("Early-game modifier for non-yield resource value: %d percent", rEarlyGameModifier.getPercent());
+	r *= rEarlyGameModifier;
 	/*	(cf. getBonusImprovement)
 		AI_bonusValue can check for tech requirements, but it can't check requirements
 		for building the improvement. Hence bAssumeEnabled=true is used in the
@@ -1888,27 +1894,23 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus,
 		}
 		IFLOG if(bSurplus) logBBAI("Surplus resource");
 		if (bCanTradeSoon)
-			r *= 70;
-		else r *= 33;
-		r *= (bSurplus ? 30 : 100);
-		r /= 100;
+			r *= fixp(0.7);
+		else r *= fixp(1/3.);
+		if (bSurplus)
+			r *= fixp(0.3);
 		// <advc.040>
-		if (bEasyAccess)
-			r *= 100;
-		else
+		if (!bEasyAccess)
 		{
 			/*  Might be better to place a city in p.area(). But if that area
 				is tiny, then accessing the resource from a different landmass
 				is probably our best bet. */
-			r *= (p.getArea().getNumTiles() <= 2 ? 60 : 45);
-		}
-		r /= 100 /* </advc.040> */ * 100;
-
+			r *= (p.getArea().getNumTiles() <= 2 ? fixp(0.6) : fixp(0.45));
+		} // </advc.040>
 		if (bSurplus)
-			r = std::min(125, r);
+			r.decreaseTo(125);
 	} // </advc.031>
 	if (kSet.isStartingLoc() /* advc.031e: */ || kSet.isNormalizing())
-		return r;
+		return r.round();
 
 	// K-Mod. (original code deleted)
 	if (!isHome(p))
@@ -1919,24 +1921,24 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus,
 		{
 			int iWaterPenalty = (3 - eEra) * 16;
 			r -= iWaterPenalty;
-			r = std::max(r, 0);
+			r.increaseTo(0);
 			IFLOG logBBAI("Penalty for water resource: %d", iWaterPenalty);
 		}
 		// iCultureModifier should have this covered
 		/*if (p.getOwner() != ePlayer && ::stepDistance(&kPlot, &p) > 1) {
 			if (!kSet.isEasyCulture())
-				r = (r * 3) / 4;
+				r *= fixp(0.75);
 		}*/
 		// advc.031: Don't ignore culture modifier < 60
-		int iModifier = (kSet.isAmbitious() && iCultureModifier >= 60 ?
-				110 : iCultureModifier);
-		r = (r * iModifier) / 100;
-		IFLOG if(iModifier!=iCultureModifier) logBBAI("Non-yield resource value increased b/c of ambitious personality");
+		scaled rModifier = (kSet.isAmbitious() && iCultureModifier >= 60 ?
+				fixp(1.1) : per100(iCultureModifier));
+		r *= rModifier;
+		IFLOG if(rModifier!=per100(iCultureModifier)) logBBAI("Non-yield resource value increased b/c of ambitious personality");
 	}
 	else if (kSet.isAmbitious())
-		r = r * 110 / 100;
+		r *= fixp(1.1);
 	// K-Mod end
-	return r;
+	return r.round();
 }
 
 

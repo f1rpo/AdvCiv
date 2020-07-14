@@ -5214,10 +5214,11 @@ void CvPlayer::found(int iX, int iY)  // advc: some style changes
 		return;
 	// <advc.031c>
 	if (gFoundLogLevel > 0 && !isHuman() &&
-			// (advc.108 forces founding in place in scenarios)
-			(getNumCities() > 0 || !GC.getGame().isScenario()))
-		AI().logFoundValue(iX, iY); // </advc.031c>
-
+		// (advc.108 forces founding in place in scenarios)
+		(getNumCities() > 0 || !GC.getGame().isScenario()))
+	{
+		AI().logFoundValue(GC.getMap().getPlot(iX, iY));
+	} // </advc.031c>
 	CvCity* pCity = initCity(iX, iY, true, true);
 	FAssertMsg(pCity != NULL, "City is not assigned a valid value");
 	CvGame const& kGame = GC.getGame();
@@ -7588,7 +7589,7 @@ CvPlot* CvPlayer::getStartingPlot() const
 void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 {
 	CvPlot* pOldStartingPlot = getStartingPlot();
-	if(pOldStartingPlot == pNewValue)
+	if (pOldStartingPlot == pNewValue)
 		return; // advc
 
 	if (pOldStartingPlot != NULL)
@@ -10144,7 +10145,7 @@ void CvPlayer::onTurnLogging() const
 
 		if (GET_TEAM(getTeam()).AI_isAnyWarPlan()) logBBAI("    Enemy power perc: %d (%d with others reduction)", GET_TEAM(getTeam()).AI_getEnemyPowerPercent(), GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true));
 	}
-} // K-Mod end
+}
 
 bool CvPlayer::isAutoMoves() const
 {
@@ -10158,19 +10159,17 @@ void CvPlayer::setAutoMoves(bool bNewValue)
 		return; // advc
 
 	m_bAutoMoves = bNewValue;
-
 	if (!isAutoMoves())
 	{
 		if (isEndTurn() || !isHuman())
-		{
 			setTurnActive(false);
-		}
 		else
 		{
 			if (getID() == GC.getGame().getActivePlayer())
 			{
 				gDLL->getInterfaceIFace()->setCycleSelectionCounter(1);
-				//GC.getGame().cycleSelectionGroups_delayed(1, false, true); // this is a subtle case. I think it's best to just use the normal delay
+				// this is a subtle case. I think it's best to just use the normal delay
+				//GC.getGame().cycleSelectionGroups_delayed(1, false, true);
 			}
 		}
 	}
@@ -10188,13 +10187,9 @@ void CvPlayer::setEndTurn(bool bNewValue)
 	if (isEndTurn() != bNewValue)
 	{
 		FAssertMsg(isTurnActive(), "isTurnActive is expected to be true");
-
 		m_bEndTurn = bNewValue;
-
 		if (isEndTurn())
-		{
 			setAutoMoves(true);
-		}
 	}
 }
 
@@ -10202,17 +10197,11 @@ bool CvPlayer::isTurnDone() const
 {
 	// if this returns true, popups and diplomacy will wait to appear until next turn
 	if (!GC.getGame().isPbem() && !GC.getGame().isHotSeat())
-	{
 		return false;
-	}
 	if (!isHuman())
-	{
 		return true;
-	}
 	if (!isEndTurn())
-	{
 		return false;
-	}
 	return (!isAutoMoves());
 }
 
@@ -10310,13 +10299,13 @@ CivilizationTypes CvPlayer::getCivilizationType() const
 	return GC.getInitCore().getCiv(getID());
 }
 
-// <advc.003w>
+// advc.003w:
 void CvPlayer::setCivilization(CivilizationTypes eCivilization)
 {
 	SAFE_DELETE(m_pCivilization);
 	if (eCivilization != NO_CIVILIZATION)
 		m_pCivilization = new CvCivilization(GC.getInfo(eCivilization));
-} // </advc.003w>
+}
 
 
 LeaderHeadTypes CvPlayer::getLeaderType() const
@@ -14735,12 +14724,9 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 					GC.getGame().updateColoredPlots();
 					// advc.250c: Commented out
 					/*CvCity* pCity = pPlot->getPlotCity();
-					if (pCity != NULL)
-					{
+					if (pCity != NULL) {
 						if (pCity->getPopulation() > 1)
-						{
 							pCity->setFood(pCity->growthThreshold() / 2);
-						}
 					}*/
 				}
 			}

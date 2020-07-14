@@ -44,7 +44,7 @@ void CvPlotGroup::reset(int iID, PlayerTypes eOwner, bool bConstructorCall)
 	m_eOwner = eOwner;
 
 	if (!bConstructorCall)
-		m_paiNumBonuses.reset();
+		m_aiNumBonuses.reset();
 }
 
 
@@ -159,7 +159,7 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 		return; // advc
 
 	//iOldNumBonuses = getNumBonuses(eBonus);
-	m_paiNumBonuses.add(eBonus, iChange);
+	m_aiNumBonuses.add(eBonus, iChange);
 
 	//FAssert(m_paiNumBonuses.get(eBonus) >= 0); // XXX
 	// K-Mod note, m_paiNumBonuses[eBonus] is often temporarily negative while plot groups are being updated.
@@ -220,7 +220,7 @@ void CvPlotGroup::read(FDataStreamBase* pStream)
 	pStream->Read(&uiFlag);
 	pStream->Read(&m_iID);
 	pStream->Read((int*)&m_eOwner);
-	m_paiNumBonuses.Read(pStream);
+	m_aiNumBonuses.Read(pStream);
 	m_plots.Read(pStream);
 }
 
@@ -231,6 +231,6 @@ void CvPlotGroup::write(FDataStreamBase* pStream)
 	pStream->Write(uiFlag);
 	pStream->Write(m_iID);
 	pStream->Write(m_eOwner);
-	m_paiNumBonuses.Write(pStream);
+	m_aiNumBonuses.Write(pStream);
 	m_plots.Write(pStream);
 }

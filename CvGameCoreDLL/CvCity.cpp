@@ -1332,7 +1332,7 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 {
 	//PROFILE_FUNC(); // advc.003o
 
-	if(eUnit == NO_UNIT) // advc.test: Safe to remove this check?
+	if(eUnit == NO_UNIT) // advc.test: Safe to remove this check? Apparently. Should move it to CyCity.
 	{
 		FAssert(eUnit != NO_UNIT);
 		return false;

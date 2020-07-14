@@ -3069,8 +3069,8 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
 		UnitTypes eUnit = kCiv.unitAt(i);
-
-		if (eIgnoreAdvisor != NO_ADVISOR && GC.getInfo(eUnit).getAdvisorType() == eIgnoreAdvisor)
+		CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+		if (eIgnoreAdvisor != NO_ADVISOR && kUnit.getAdvisorType() == eIgnoreAdvisor)
 			continue;
 
 		if (bGrowMore && isFoodProduction(eUnit))
@@ -3093,11 +3093,13 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 				continue;
 		}
 		int iMinAreaSz = kUnit.getMinAreaSize();
-		if(iMinAreaSz > 0)
+		if (iMinAreaSz > 0)
 		{
-			CvPlot const& p = *plot();
-			if((kUnit.getDomainType() == DOMAIN_SEA && !p.isCoastalLand(iMinAreaSz)) ||
-				(kUnit.getDomainType() != DOMAIN_SEA && p.getArea().getNumTiles() < iMinAreaSz))
+			CvPlot const& p = getPlot();
+			if ((kUnit.getDomainType() == DOMAIN_SEA &&
+				!p.isCoastalLand(iMinAreaSz)) ||
+				(kUnit.getDomainType() != DOMAIN_SEA &&
+				p.getArea().getNumTiles() < iMinAreaSz))
 			{
 				continue;
 			}

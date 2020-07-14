@@ -889,8 +889,17 @@ protected:
 	void AI_doEnemyUnitData();
 	//void AI_invalidateCloseBordersAttitude(); // disabled by K-Mod
 	bool AI_isCommercePlot(CvPlot* pPlot) const; // advc: Was public; deprecated.
+	// <advc>
+	int AI_baseBonusUnitVal(BonusTypes eBonus, UnitTypes eUnit, CvCity const* pCapital,
+			CvCity const* pCoastalCity, bool bTrade) const;
+	int AI_baseBonusBuildingVal(BonusTypes eBonus, BuildingTypes eBuilding, int iCities,
+			int iCoastalCities, bool bTrade) const;
+	int AI_baseBonusProjectVal(BonusTypes eBonus, ProjectTypes eProject, bool bTrade) const;
+	int AI_baseBonusRouteVal(BonusTypes eBonus, RouteTypes eRoute,
+			RouteTypes eBestRoute, TechTypes eBuildTech, bool bTrade) const;
+	// </advc>
 	void AI_setHuman(bool b); // advc.127
-	void logFoundValue(int iX, int iY, bool bStartingLoc = false) const; // advc.031c
+	void logFoundValue(CvPlot const& kPlot, bool bStartingLoc = false) const; // advc.031c
 
 	friend class CvGameTextMgr;
 	friend class CvPlayer; // advc.003u: So that protected functions can be called through CvPlayer::AI

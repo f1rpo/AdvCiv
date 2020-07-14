@@ -20,7 +20,7 @@ public:
 			bool bStartingLoc = false, bool bNormalize = false);
 	short evaluate(CvPlot const& kPlot) const;
 	short evaluate(int iX, int iY) const;
-	short evaluateWithLogging(int iX, int iY) const; // advc.031c
+	short evaluateWithLogging(CvPlot const& kPlot) const; // advc.031c
 	scaled evaluateWorkablePlot(CvPlot const& kPlot) const; // advc.027
 	CvPlayerAI const& getPlayer() const { return m_kPlayer; }
 	bool isStartingLoc() const { return m_bStartingLoc; }
@@ -59,7 +59,7 @@ public:
 	// willing to place cities further apart. (not directly based on the expansive trait)
 	bool isExpansive() const { return m_bExpansive; }
 	// <advc.031c>
-	void log(int iX, int iY);
+	void log(CvPlot const& kPlot);
 	void logSettings() const; // </advc.031c>
 
 private:

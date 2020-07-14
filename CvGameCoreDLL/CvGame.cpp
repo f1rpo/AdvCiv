@@ -1015,17 +1015,16 @@ NormalizationTarget* CvGame::assignStartingPlots()
 			starting_plots.push_back(pLoopPlot);
 	}
 	// Now, randomly assign a starting plot to each player.
-	for (PlayerTypes i = (PlayerTypes)0; starting_plots.size() > 0 && i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
+	for (PlayerIter<CIV_ALIVE> it; it.hasNext() &&
+		starting_plots.size() > 0; ++it)
 	{
-		CvPlayer& kLoopPlayer = GET_PLAYER(i);
-		if (kLoopPlayer.isAlive() && kLoopPlayer.getStartingPlot() == NULL)
-		{
-			int iRandOffset = getSorenRandNum(starting_plots.size(), "Starting Plot");
-			kLoopPlayer.setStartingPlot(starting_plots[iRandOffset], true);
-			// remove this plot from the list.
-			starting_plots[iRandOffset] = starting_plots[starting_plots.size()-1];
-			starting_plots.pop_back();
-		}
+		if (it->getStartingPlot() != NULL)
+			continue; // Already got one
+		int iRandOffset = getSorenRandNum(starting_plots.size(), "Starting Plot");
+		it->setStartingPlot(starting_plots[iRandOffset], true);
+		// remove this plot from the list.
+		starting_plots[iRandOffset] = starting_plots[starting_plots.size()-1];
+		starting_plots.pop_back();
 	} // K-Mod end
 	updateStartingPlotRange(); // advc.opt
 	if (GC.getPythonCaller()->callMapFunction("assignStartingPlots"))
@@ -1045,60 +1044,55 @@ NormalizationTarget* CvGame::assignStartingPlots()
 			gDLL->callUpdater(); // advc (seems like a better place than the one I commented out above)
 			for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 			{
-				int iLoopTeam = ((iI + iRandOffset) % MAX_CIV_TEAMS);
-				if (!GET_TEAM((TeamTypes)iLoopTeam).isAlive())
+				TeamTypes eLoopTeam = (TeamTypes)((iI + iRandOffset) % MAX_CIV_TEAMS);
+				if (!GET_TEAM(eLoopTeam).isAlive())
 					continue;
 
-				for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
-				{
-					CvPlayer& kMember = GET_PLAYER((PlayerTypes)iJ);
-					if(!kMember.isAlive())
-						continue; // advc
-					if (kMember.getTeam() == iLoopTeam /* <advc.108b> */ && !newPlotFound[iJ])
+				for (MemberIter itMember(eLoopTeam); itMember.hasNext(); ++itMember)
+				{	// <advc.108b>
+					if (newPlotFound[itMember->getID()])
+						continue; // </advc.108b>
+					if (itMember->getStartingPlot() == NULL)
+						itMember->setStartingPlot(itMember->findStartingPlot(), true);
+					if(itMember->getStartingPlot() != NULL)
 					{
-						if(kMember.getStartingPlot() == NULL)
-							kMember.setStartingPlot(kMember.findStartingPlot(), true);
-						if(kMember.getStartingPlot() != NULL)
-						{
-							playerOrder.push_back(kMember.getID());
-							bStartFound = true;
-							newPlotFound[kMember.getID()] = true;
-							break;
-						}
-					} // </advc.108b>
+						playerOrder.push_back(itMember->getID());
+						bStartFound = true;
+						newPlotFound[itMember->getID()] = true; // advc.108b
+						break;
+					}
 				}
 			}
-
 			if (!bStartFound)
 				break;
 		}
 
 		//check all players have starting plots
-		for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
+		#ifdef FASSERT_ENABLE // advc
+		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		{
-			FAssertMsg(!GET_PLAYER((PlayerTypes)iJ).isAlive() ||
-					(GET_PLAYER((PlayerTypes)iJ).getStartingPlot() != NULL &&
-					newPlotFound[iJ]), // advc.108b
-					"Player has no starting plot");
+			FAssert(it->getStartingPlot() != NULL &&
+					newPlotFound[it->getID()]); // advc.108b
 		}
+		#endif
 	} /* advc.108b: Replace all this. Don't want handicaps to be ignored in
 		 multiplayer, and the BtS random assignment of human starts doesn't
 		 actually work - favors player 0 when humans are in slots 0, 1 ... */
 	/*else if (isGameMultiPlayer()) {
-		int iRandOffset = getSorenRandNum(countCivPlayersAlive(), "Player Starting Plot");
+		int iRandOffset = getSorenRandNum(PlayerIter<CIV_ALIVE>::count(), "Player Starting Plot");
 		// ... (deleted on 14 June 2020)
 	}
 	else
 	{	// advc (Comment): The minus 1 prevents humans from getting the worst plot
-		int const upperBound = countCivPlayersAlive() - 1;
+		int const iUpperBound = PlayerIter<CIV_ALIVE>::count() - 1;
 		// ...
 	}
 	//Now iterate over the player starts in the original order and re-place them.
-	//std::vector<int>::iterator playerOrderIter;
-	for (playerOrderIter = playerOrder.begin(); playerOrderIter != playerOrder.end(); ++playerOrderIter)
-		GET_PLAYER((PlayerTypes)(*playerOrderIter)).setStartingPlot(GET_PLAYER((PlayerTypes)(*playerOrderIter)).findStartingPlot(), true);*/
+	//std::vector<PlayerTypes>::iterator itPlayerOrder;
+	for (itPlayerOrder = playerOrder.begin(); itPlayerOrder != playerOrder.end(); ++itPlayerOrder)
+		GET_PLAYER(*itPlayerOrder).setStartingPlot(GET_PLAYER*playerOrderIter).findStartingPlot(), true);*/
 	// <advc.108b>
-	else
+	else // i.e. if not a team game
 	{	/*	<advc.027> If the map script allows it, StartingPositionIteration will
 			set starting locations that the code below may then shuffle around. */
 		StartingPositionIteration spi;
@@ -1108,21 +1102,20 @@ NormalizationTarget* CvGame::assignStartingPlots()
 			return pNormalizationTarget; // </advc.027>
 		/*	Apply StartingLocationPercent from handicap.
 			Note: Would be better to do this _after_ normalization. */
-		int const iAlive = countCivPlayersAlive();
+		int const iCivsAlive = PlayerIter<CIV_ALIVE>::count();
 		FAssert(playerOrder.empty());
-		playerOrder.resize(iAlive, NO_PLAYER); // advc (replacing loop)
-		for(int iPass = 0; iPass < 2; iPass++)
+		playerOrder.resize(iCivsAlive, NO_PLAYER); // advc (replacing a loop)
+		for (int iPass = 0; iPass < 2; iPass++)
 		{
 			bool bHuman = (iPass == 0);
-			int iCivs = countHumanPlayersAlive();
-			if(!bHuman)
-				iCivs = iAlive - iCivs;
-			int iRandOffset = getSorenRandNum(iCivs, "advc.108b");
+			int iLoopCivs = PlayerIter<HUMAN>::count();
+			if (!bHuman)
+				iLoopCivs = iCivsAlive - iLoopCivs;
+			int iRandOffset = getSorenRandNum(iLoopCivs, "advc.108b");
 			int iSkipped = 0;
-			for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+			for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 			{
-				CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)i);
-				if(kPlayer.isAlive() && kPlayer.isHuman() == bHuman)
+				if(itPlayer->isHuman() == bHuman)
 				{
 					if(iSkipped < iRandOffset)
 					{
@@ -1131,7 +1124,7 @@ NormalizationTarget* CvGame::assignStartingPlots()
 					}
 					/*  This sets iRandOffset to the id of a random human civ
 						in the first pass, and a random AI civ in the second. */
-					iRandOffset = i;
+					iRandOffset = itPlayer->getID();
 					break;
 				}
 			}
@@ -1151,15 +1144,15 @@ NormalizationTarget* CvGame::assignStartingPlots()
 					FAssertMsg(false, "No starting plot found");
 					continue;
 				}
-				int iPos = ::range((iAlive *
+				int iPos = ::range((iCivsAlive *
 						GC.getInfo(kPlayer.getHandicapType()).
-						getStartingLocationPercent()) / 100, 0, iAlive - 1);
+						getStartingLocationPercent()) / 100, 0, iCivsAlive - 1);
 				if (playerOrder[iPos] != NO_PLAYER) // Pos already taken
 				{
-					for(int j = 1; j < std::max(iPos + 1, iAlive - iPos); j++)
+					for(int j = 1; j < std::max(iPos + 1, iCivsAlive - iPos); j++)
 					{
 						// Alternate between better and worse positions
-						if(iPos + j < iAlive && playerOrder[iPos + j] == NO_PLAYER)
+						if(iPos + j < iCivsAlive && playerOrder[iPos + j] == NO_PLAYER)
 						{
 							iPos += j;
 							break;
@@ -2076,7 +2069,7 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 		CitySiteEvaluator citySiteEval(kPlayer, -1, false, true);
 		// <advc.031c>
 		if (gFoundLogLevel > 0 && pTarget == NULL)
-			citySiteEval.log(pStartingPlot->getX(), pStartingPlot->getY());
+			citySiteEval.log(*pStartingPlot);
 		// </advc.031c>
 		// <advc.108> Treat desert features and forest separately
 		int iFoodFeatures = 0;

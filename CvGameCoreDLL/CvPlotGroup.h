@@ -32,7 +32,7 @@ public:
 	// advc.inl: The EXE doesn't call this, so no need for an external version.
 	inline PlayerTypes getOwner() const { return m_eOwner; }
 
-	int getNumBonuses(BonusTypes eBonus) const { return m_paiNumBonuses.get(eBonus); } // advc.inl
+	int getNumBonuses(BonusTypes eBonus) const { return m_aiNumBonuses.get(eBonus); } // advc.inl
 	bool hasBonus(BonusTypes eBonus) { return(getNumBonuses(eBonus) > 0); } // advc.inl
 	void changeNumBonuses(BonusTypes eBonus, int iChange);
 	void verifyCityProduction(); // advc.064d
@@ -59,7 +59,7 @@ protected:
 	static int m_iRecalculating; // advc.064d
 	int m_iID;
 	PlayerTypes m_eOwner;
-	EnumMap<BonusTypes,int> m_paiNumBonuses; // advc.enum
+	EnumMap<BonusTypes,int> m_aiNumBonuses; // advc.enum
 	CLinkList<XYCoords> m_plots;
 };
 

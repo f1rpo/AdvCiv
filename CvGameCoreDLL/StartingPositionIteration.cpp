@@ -281,7 +281,7 @@ StartingPositionIteration::PotentialSites::PotentialSites(
 	}
 	/*	Pointer member b/c I want to free the memory here; only the ctor and
 		its subroutines use it. */
-	delete m_pVicinityPenaltiesPerPlot;
+	SAFE_DELETE(m_pVicinityPenaltiesPerPlot);
 }
 
 

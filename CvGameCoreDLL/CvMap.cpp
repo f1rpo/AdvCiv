@@ -38,9 +38,8 @@ CvMap::~CvMap()
 	uninit();
 }
 
-// Initializes the map
-// Parameters:
-//	pInitInfo  - Optional init structure (used for WB load)
+/*	Initializes the map
+	pInitInfo  - Optional init structure (used for WB load) */
 void CvMap::init(CvMapInitData* pInitInfo)
 {
 	PROFILE("CvMap::init");

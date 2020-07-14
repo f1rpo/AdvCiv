@@ -10605,7 +10605,7 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
 {
 	PROFILE_FUNC(); // advc.opt
 	int iValue = 0;
-	int iBonusCount = getNumAvailableBonuses(eBonus);
+	int const iBonusCount = getNumAvailableBonuses(eBonus);
 	// <advc.036>
 	int iTradeVal = 0;
 	// More valuable if we have few resources for trade
@@ -10613,11 +10613,11 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
 	if(!bTrade) /*  Importing resources is not going to give us more resources
 					to trade with b/c we can't wheel and deal */
 	{
-		for(int i = 0; i < GC.getNumBonusInfos(); i++)
-			iSurplus += std::max(0, getNumTradeableBonuses((BonusTypes)i) - 1);
+		FOR_EACH_ENUM(Bonus)
+			iSurplus += std::max(0, getNumTradeableBonuses(eLoopBonus) - 1);
 	}
-	iTradeVal = ::round(4 / std::sqrt((double)std::max(1, std::max(iSurplus,
-			2 * (iBonusCount + iChange))))); // </advc.036>
+	iTradeVal = (4 / (scaled::max(1, std::max(iSurplus,
+			2 * (iBonusCount + iChange)))).sqrt()).round(); // </advc.036>
 	if(iChange == 0 || (iChange == 1 && iBonusCount == 0) ||
 		(iChange == -1 && iBonusCount == 1) ||
 		iChange + iBonusCount < 1) // advc.036: Cover all strange cases here
@@ -10638,8 +10638,7 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
 				iValue /= (bTrade ? 3 : 2); // advc.036: was /=2
 			if (!kTeam.isHasTech(GC.getInfo(eBonus).getTechCityTrade()))
 				iValue /= (bTrade ? 3 : 2); // advc.036: was /=2
-		}
-		// K-Mod end
+		} // K-Mod end
 	}
 	else
 	{
@@ -10675,7 +10674,7 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 	}
 	PROFILE("CvPlayerAI::AI_baseBonusVal::recalculate");
 	// <advc.036>
-	double dValue = 0; // was int
+	scaled rValue; // was int
 	int iHappy = GC.getInfo(eBonus).getHappiness();
 	int iHealth = GC.getInfo(eBonus).getHealth();
 	int iBuildingHappy = 0;
@@ -10714,7 +10713,8 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 		5 gpt per 1 happiness seems reasonable; can reduce that further in AI_bonusTradeVal.
 		There's a division by 10 at the end of this function, and it's supposed to
 		return 4 times the gpt per city, so everything still needs to be multiplied by 2: */
-	double const scaleFactor = 2.1; // plus a little extra now that ExtraPop1 and ExtraPop2 no longer have equal weight
+	scaled const rScaleFactor = 2 +
+			fixp(0.1); // A little extra now that ExtraPop1 and ExtraPop2 no longer have equal weight
 	/*  The weight functions always assign some value to happiness and health
 		beyond what is needed for the current population, but the AI should
 		secure bonuses some time before they're needed so that CvCityAI can
@@ -10722,26 +10722,27 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 		2 is a bit much though, and 1 too little, so take a weighted avg. of the two. */
 	int iExtraPop1 = 1, iExtraPop2 = 2;
 	// Don't want iExtraPop to increase resource prices on the whole
-	double extraPopFactor = std::max(0.5, 0.1 * (10 - (0.7 * iExtraPop1 +
-			0.3 * iExtraPop2)));
+	scaled rExtraPopFactor = fixp(0.1) *
+			(10 - (fixp(0.7) * iExtraPop1 + fixp(0.3) * iExtraPop2));
+	rExtraPopFactor.increaseTo(fixp(0.5));
 	bool bAvailable = (getNumAvailableBonuses(eBonus) > 0);
 	if(iHappy > 0)
 	{
 		/*  advc.912c: Better ignore getLuxuryModifier; don't want civs with a
 			luxury modifier to trade for more luxuries, and don't want them to
 			pay more more for luxuries. */
-		double const civicsMod = 0;//getLuxuryModifier() / 200.0;
+		scaled const rCivicsMod = 0;//getLuxuryModifier() / 200.0;
 		// Considering to cancel a trade
 		if(bTrade && bAvailable) { /* HappinessWeight can't handle iHappy=0;
 									  increase extra pop instead */
 			iExtraPop1 += iHappy;
 			iExtraPop2 += iHappy;
 		}
-		dValue += scaleFactor *
-			((0.7 + 0.5 * civicsMod) * AI_getHappinessWeight(iHappy,
-			// Look farther ahead when not trading for a resource (trades are fickle)
-			bTrade ? iExtraPop1 : iExtraPop2) +
-			 (0.3 + 0.5 * civicsMod) * AI_getHappinessWeight(iHappy, iExtraPop2));
+		rValue += rScaleFactor *
+			 ((fixp(0.7) + fixp(0.5) * rCivicsMod) * AI_getHappinessWeight(iHappy,
+			 // Look farther ahead when not trading for a resource (trades are fickle)
+			 bTrade ? iExtraPop1 : iExtraPop2) +
+			 (fixp(0.3) + fixp(0.5) * rCivicsMod) * AI_getHappinessWeight(iHappy, iExtraPop2));
 	}
 	if(iHealth > 0)
 	{
@@ -10752,20 +10753,21 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 		}
 		/*  Lower multiplier b/c bad health is not as painful as anger; and don't use
 			higher iExtraPop when not trading. */
-		dValue += (scaleFactor - 0.5) * 0.5 * (AI_getHealthWeight(iHealth, iExtraPop1) +
+		rValue += (rScaleFactor - fixp(0.5)) * fixp(0.5) *
+				(AI_getHealthWeight(iHealth, iExtraPop1) +
 				AI_getHealthWeight(iHealth, iExtraPop2));
 	}
-	dValue *= extraPopFactor;
+	rValue *= rExtraPopFactor;
 	// </advc.036>
-	CvTeam& kTeam = GET_TEAM(getTeam());
-	CvCity* pCapital = getCapitalCity();
-	int iCityCount = getNumCities();
-	int iCoastalCityCount = countNumCoastalCities();
+
+	CvCity const* pCapital = getCapitalCity();
+	int const iCities = getNumCities();
+	int const iCoastalCities = countNumCoastalCities();
 
 	// find the first coastal city
 	CvCity const* pCoastalCity = NULL;
 	CvCity const* pUnconnectedCoastalCity = NULL;
-	if(iCoastalCityCount > 0)
+	if(iCoastalCities > 0)
 	{
 		FOR_EACH_CITY(pLoopCity, *this)
 		{
@@ -10783,299 +10785,30 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 	if(pCoastalCity == NULL && pUnconnectedCoastalCity != NULL)
 		pCoastalCity = pUnconnectedCoastalCity;
 
+	// advc: Moved into subroutines
 	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
-		UnitTypes eLoopUnit = kCiv.unitAt(i); // advc.003w
-		CvUnitInfo& kLoopUnit = GC.getInfo(eLoopUnit);
-		/* original bts code
-		... */ // advc: deleted
-		// K-Mod. Similar, but much better. (maybe)
-		int iBaseValue = /* <advc.031> */ 10; // was 30
-		int iPowerValue = kLoopUnit.getPowerValue();
-		/*  iBaseValue gets multiplied by the number of cities when converted to
-			gold per turn, but AI_foundValue does not do this, and a civ that
-			never expands beyond 6 cities should still value access to e.g. nukes
-			more than to Swordsmen, if only because gold is more readily available
-			in the late game. */
-		if (iPowerValue > 0)
-			iBaseValue = std::max(iBaseValue, ::round(12 * std::pow((double)iPowerValue, 0.5)));
-		// </advc.031>
-		int iUnitValue = 0;
-		if(kLoopUnit.getPrereqAndBonus() == eBonus)
-			iUnitValue = iBaseValue;
-		else
-		{
-			int iOrBonuses = 0;
-			int iOrBonusesWeHave = 0; // excluding eBonus itself. (disabled for now. See comments below.)
-			bool bOrBonus = false; // is eBonus one of the OrBonuses for this unit.
-			for(int iJ = 0; iJ < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eLoopUnit); iJ++)
-			{
-				BonusTypes ePrereqBonus = (BonusTypes)kLoopUnit.getPrereqOrBonuses(iJ);
-				if(ePrereqBonus != NO_BONUS)
-				{
-					iOrBonuses++;
-					// advc.036: Uncommented. Should be fine now.
-					iOrBonusesWeHave += (ePrereqBonus != eBonus &&
-							getNumAvailableBonuses(ePrereqBonus) > 0) ? 1 : 0;
-					// @*#!  It occurs to me that using state-dependent stuff such as NumAvailableBonuses here could result in OOS errors.
-					// This is because the code here can be trigged by local UI events, and then the value could be cached...
-					// It's very frustrating - because including the effect from iOrBonusesWeHave was going to be a big improvment.
-					// The only way I can think of working around this is to add a 'bConstCache' argument to this function...
-					bOrBonus = bOrBonus || ePrereqBonus == eBonus;
-				}
-			}
-			if(bOrBonus)
-			{
-				// 1: 1, 2: 2/3, 3: 1/2, ...
-				iUnitValue = iBaseValue * 2 / (1+iOrBonuses+2*iOrBonusesWeHave);
-			}
-		}
-		bool bCanTrain = false;
-		if(iUnitValue > 0)
-		{
-			// devalue the unit if we wouldn't be able to build it anyway
-			if(canTrain(eLoopUnit))
-			{
-				bCanTrain = true;
-				/*  is it a water unit and no coastal cities or our coastal city
-					cannot build because it's obsolete */
-				if((kLoopUnit.getDomainType() == DOMAIN_SEA &&
-						(pCoastalCity == NULL ||
-						pCoastalCity->allUpgradesAvailable(eLoopUnit,
-						0, eBonus) // advc.001u
-						!= NO_UNIT)) ||
-						/*  or our capital cannot build because it's obsolete
-							(we can already build all its upgrades) */
-						(pCapital != NULL &&
-						pCapital->allUpgradesAvailable(eLoopUnit,
-						0, eBonus) // advc.001u
-						!= NO_UNIT))
-					iUnitValue = 0; // its worthless
-			}
-			else
-			{
-				// there is some other reason why we can't build it. (maybe the unit is maxed out, or maybe we don't have the techs)
-				iUnitValue /= 2;
-				/*  <advc.036> Evaluation for trade should be short-term; if we
-					can't use it right away, we shouldn't trade for it. */
-				if(bTrade)
-				{
-					/*  This makes sure that we're not very close to the unit.
-						Otherwise, a human could e.g. trade for Ivory one turn
-						before finishing Construction. */
-					TechTypes mainReq = (TechTypes)kLoopUnit.getPrereqAndTech();
-					if(!isHuman() || (mainReq != NO_TECH &&
-							!kTeam.isHasTech(mainReq) &&
-							kTeam.getResearchProgress(mainReq) <= 0))
-						iUnitValue /= 3;
-				} // </advc.036>
-			}
-		}
-		if(iUnitValue > 0)
-		{
-			// devalue units for which we already have a better replacement.
-			UnitAITypes eDefaultAI = kLoopUnit.getDefaultUnitAIType();
-			int iNewTypeValue = AI_unitValue(eLoopUnit, eDefaultAI, 0);
-			int iBestTypeValue = AI_bestAreaUnitAIValue(eDefaultAI, 0);
-			if(iBestTypeValue > 0)
-			{
-				int iNewValue = AI_unitValue(eLoopUnit, eDefaultAI, 0);
-				iUnitValue = iUnitValue * std::max(0, std::min(100, 120*iNewValue / iBestTypeValue - 20)) / 100;
-			}
-			// devalue units which are related to our current era. (but not if it is still our best unit!)
-			if(kLoopUnit.getPrereqAndTech() != NO_TECH)
-			{
-				int iDiff = GC.getInfo((TechTypes)(kLoopUnit.getPrereqAndTech())).getEra() - getCurrentEra();
-				if (iDiff > 0
-					//|| !bCanTrain || iNewTypeValue < iBestTypeValue) {
-					/*  advc.036: The assignment below doesn't do anything
-						if iDiff is 0, so alternative conditions have no effect.
-						"but not if it is still our best unit!" sounds like it
-						should be an AND. !bCanTrain is sufficiently penalized above. */
-					&& iNewTypeValue < iBestTypeValue)
-				{
-					/*  advc.031: Replacing the line below b/c Horse was valued
-						too highly in the late game */
-					iUnitValue = iUnitValue/(1 + std::abs(iDiff));
-					//iUnitValue = iUnitValue * 2/(2 + std::abs(iDiff));
-				}
-			}
-			dValue += iUnitValue;
-		} // K-Mod end
+		rValue += AI_baseBonusUnitVal(eBonus, kCiv.unitAt(i), pCapital,
+				pCoastalCity, bTrade);
 	}
-
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		BuildingTypes eLoopBuilding = kCiv.buildingAt(i); // advc.003w
-		BuildingClassTypes eBuildingClass = kCiv.buildingClassAt(i);
-		CvBuildingInfo& kLoopBuilding = GC.getInfo(eLoopBuilding);
-
-		int iTempValue = 0;
-		if(kLoopBuilding.getPrereqAndBonus() == eBonus)
-			iTempValue += 25; // advc.036: was 30
-
-		for(int iJ = 0; iJ < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); iJ++)
-		{
-			if (kLoopBuilding.getPrereqOrBonuses(iJ) == eBonus)
-				iTempValue += 15; // advc.036: was 20
-		}
-		iTempValue += kLoopBuilding.getBonusProductionModifier(eBonus) / 10;
-
-		if(kLoopBuilding.getPowerBonus() == eBonus)
-			iTempValue += 40; // advc.036: was 60
-
-		FOR_EACH_ENUM(Yield)
-		{
-			// <advc> Easier to debug this way
-			int iYieldMod = kLoopBuilding.getBonusYieldModifier(eBonus, eLoopYield);
-			if(iYieldMod > 0) // </advc>
-			{
-				iTempValue += iYieldMod /
-						/*  <advc.036> 25 for Ironworks is normally too much;
-							need to take into account that we can build it in
-							only one city. Then again, if we have very few cities,
-							we may not be able to build it at all ...
-							Too tedious to check getPrereqNumOfBuildingClass,
-							so just use a constant divisor. */
-						(kLoopBuilding.isNationalWonder() ? 5 : 2);
-			}
-			if (kLoopBuilding.getPowerBonus() == eBonus)
-				iTempValue += kLoopBuilding.getPowerYieldModifier(eLoopYield);
-		}
-		if(iTempValue > 0) // advc.opt
-		{
-			// determine whether we have the tech for this building
-			bool bHasTechForBuilding = true;
-			if(!kTeam.isHasTech(kLoopBuilding.getPrereqAndTech()))
-				bHasTechForBuilding = false;
-			for(int iPrereqIndex = 0; bHasTechForBuilding && iPrereqIndex <
-				GC.getNUM_BUILDING_AND_TECH_PREREQS(); iPrereqIndex++)
-			{
-				if (kLoopBuilding.getPrereqAndTechs(iPrereqIndex) != NO_TECH)
-				{
-					if (!kTeam.isHasTech(kLoopBuilding.getPrereqAndTechs(iPrereqIndex)))
-						bHasTechForBuilding = false;
-				}
-			}
-
-			bool const bStateReligion = (NO_RELIGION != kLoopBuilding.getStateReligion());
-			//check if function call is cached
-			bool const bCanConstruct = canConstruct(eLoopBuilding, false,
-					/*bTestVisible*/ true, /*bIgnoreCost*/ true);
-			/*  bCanNeverBuild when true is accurate, it may be false in some cases
-				where we will never be able to build */
-			bool const bCanNeverBuild = (bHasTechForBuilding && !bCanConstruct && !bStateReligion);
-			// if we can never build this, it is worthless
-			if(bCanNeverBuild)
-				iTempValue = 0;
-			// double value if we can build it right now
-			else if(bCanConstruct)
-				iTempValue *= 2;
-			// <advc.036> Don't trade for the bonus until we need it
-			if(bTrade && !bCanConstruct)
-				iTempValue = 0; // </advc.036>
-			// if non-limited water building, weight by coastal cities
-			if(kLoopBuilding.isWater() && !kLoopBuilding.isLimited())
-			{
-				iTempValue *= iCoastalCityCount;
-				iTempValue /= std::max(1, iCityCount/2);
-			} // <advc.036>
-			int iMaking = getBuildingClassMaking(eBuildingClass);
-			if(iMaking > 0)
-			{
-				iTempValue *= 20; // +100% for wonders, +43% to +100% otherwise.
-				if(kLoopBuilding.isLimited())
-					iTempValue /= 10;
-				else iTempValue /= std::max(10, 15 - iMaking);
-			} /* Even if it's from an earlier era, if we're constructing it,
-				 then it's apparently useful. */
-			else // </advc.036>
-				if(kLoopBuilding.getPrereqAndTech() != NO_TECH)
-			{
-				int iDiff = abs(GC.getInfo(kLoopBuilding.getPrereqAndTech()).getEra() -
-						getCurrentEra());
-				if(iDiff == 0)
-				{
-					iTempValue *= 3;
-					iTempValue /= 2;
-				}
-				else iTempValue /= iDiff;
-			}
-			dValue += iTempValue;
-		}
+		rValue += AI_baseBonusBuildingVal(eBonus, kCiv.buildingAt(i),
+				iCities, iCoastalCities, bTrade);
 	}
-
-	for(int iI = 0; iI < GC.getNumProjectInfos(); iI++)
+	FOR_EACH_ENUM(Project)
 	{
-		ProjectTypes eProject = (ProjectTypes) iI;
-		CvProjectInfo& kLoopProject = GC.getInfo(eProject);
-		int iTempValue = 0;
-		iTempValue += kLoopProject.getBonusProductionModifier(eBonus) / 10;
-
-		if(iTempValue <= 0)
-			continue;
-
-		bool bMaxedOut = (GC.getGame().isProjectMaxedOut(eProject) ||
-				kTeam.isProjectMaxedOut(eProject));
-		if(bMaxedOut)
-			iTempValue = 0;
-		else if(canCreate(eProject))
-			iTempValue *= 2;
-
-		if(kLoopProject.getTechPrereq() != NO_TECH)
-		{
-			int iDiff = abs(GC.getInfo((TechTypes)
-					kLoopProject.getTechPrereq()).getEra() - getCurrentEra());
-			if(iDiff == 0)
-			{
-				iTempValue *= 3;
-				iTempValue /= 2;
-			}
-			else
-			{
-				iTempValue /= iDiff;
-				// <advc.036>
-				if(bTrade)
-					iTempValue = 0; // <advc.036>
-			}
-		}
-		dValue += iTempValue;
+		rValue += AI_baseBonusProjectVal(eBonus, eLoopProject, bTrade);
 	}
-
 	RouteTypes eBestRoute = getBestRoute();
 	FOR_EACH_ENUM(Build)
 	{
-		RouteTypes eRoute = GC.getInfo(eLoopBuild).getRoute();
-		if(eRoute == NO_ROUTE)
-			continue;
-		int iTempValue = 0;
-		if(GC.getInfo(eRoute).getPrereqBonus() == eBonus)
-			iTempValue += 80;
-		for(int i = 0; i < GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); i++)
+		RouteTypes eRoute =  GC.getInfo(eLoopBuild).getRoute();
+		if (eRoute != NO_ROUTE)
 		{
-			if(GC.getInfo(eRoute).getPrereqOrBonus(i) == eBonus)
-				iTempValue += 40;
+			rValue += AI_baseBonusRouteVal(eBonus, eRoute, eBestRoute,
+					GC.getInfo(eLoopBuild).getTechPrereq(), bTrade);
 		}
-		// <advc.036> The usual tech checks
-		TechTypes eTech = GC.getInfo(eLoopBuild).getTechPrereq();
-		if(eTech != NO_TECH && !GET_TEAM(getTeam()).isHasTech(eTech))
-		{
-			if(bTrade)
-				continue;
-			iTempValue /= 2;
-			int iTechEra = GC.getInfo(eTech).getEra();
-			int iEraDiff = iTechEra - getCurrentEra();
-			if(iEraDiff > 0)
-				iTempValue /= iEraDiff;
-		} // </advc.036>
-		if (eBestRoute != NO_ROUTE &&
-			/*  advc.opt: Was GC.getInfo(getBestRoute()), which iterates
-				through all builds. */
-			GC.getInfo(eBestRoute).getValue() <= GC.getInfo(eRoute).getValue())
-		{
-			dValue += iTempValue;
-		}
-		else dValue += iTempValue / 2;
 	}
 
 	/*int iCorporationValue = AI_corporationBonusVal(eBonus);
@@ -11083,9 +10816,9 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 	if (iCorporationValue <= 0 && getNumAvailableBonuses(eBonus) > 0)
 		iValue /= 3;*/
 
-	dValue /= 10;
+	rValue /= 10;
 	// <advc.036>
-	int iValue = ::round(dValue);
+	int iValue = rValue.round();
 	iValue = std::max(0, iValue);
 	/*  To address karadoc's "@*#!" comment in the middle of this function;
 		coupled with a change in AI_updateBonusValue(BonusTypes). */
@@ -11100,44 +10833,339 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 	return iValue; // </advc.036>
 }
 
+// advc: K-Mod code cut from AI_baseBonusVal. (Original BtS code deleted.)
+// K-Mod: Similar, but much better. (maybe)
+int CvPlayerAI::AI_baseBonusUnitVal(BonusTypes eBonus, UnitTypes eUnit,
+	CvCity const* pCapital, CvCity const* pCoastalCity, bool bTrade) const
+{
+	CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+	int iBaseValue = /* <advc.031> */ 10; // was 30
+	int iPowerValue = kUnit.getPowerValue();
+	/*  iBaseValue gets multiplied by the number of cities when converted to gold per turn,
+		but AI_foundValue does not do this, and a civ that never expands beyond 6 cities
+		should still value access to e.g. nukes more than to Swordsmen, if only because
+		gold is more readily available in the late game. */
+	if (iPowerValue > 0)
+		iBaseValue = std::max(iBaseValue, (12 * scaled(iPowerValue).sqrt()).round());
+	// </advc.031>
+	int iValue = 0;
+	if(kUnit.getPrereqAndBonus() == eBonus)
+		iValue = iBaseValue;
+	else
+	{
+		int iOrBonuses = 0;
+		int iOrBonusesWeHave = 0; // excluding eBonus itself.
+		bool bOrBonus = false; // is eBonus one of the OrBonuses for this unit.
+		for(int iJ = 0; iJ < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); iJ++)
+		{
+			BonusTypes ePrereqBonus = kUnit.getPrereqOrBonuses(iJ);
+			if(ePrereqBonus != NO_BONUS)
+			{
+				iOrBonuses++;
+				// advc.036: Uncommented. Should be fine now.
+				iOrBonusesWeHave += (ePrereqBonus != eBonus &&
+						getNumAvailableBonuses(ePrereqBonus) > 0) ? 1 : 0;
+				/*	@*#!  It occurs to me that using state-dependent stuff such as
+					NumAvailableBonuses here could result in OOS errors.
+					This is because the code here can be trigged by local UI events,
+					and then the value could be cached... It's very frustrating -
+					because including the effect from iOrBonusesWeHave was going to be
+					a big improvement. The only way I can think of working around this
+					is to add a 'bConstCache' argument to this function... */
+				bOrBonus = bOrBonus || ePrereqBonus == eBonus;
+			}
+		}
+		if(bOrBonus)
+		{	// 1: 1, 2: 2/3, 3: 1/2, ...
+			iValue = iBaseValue * 2 / (1 + iOrBonuses + 2 * iOrBonusesWeHave);
+		}
+	}
+	bool bCanTrain = false;
+	if(iValue > 0)
+	{
+		// devalue the unit if we wouldn't be able to build it anyway
+		if(canTrain(eUnit))
+		{
+			bCanTrain = true;
+			/*  is it a water unit and no coastal cities or our coastal city
+				cannot build because it's obsolete */
+			if((kUnit.getDomainType() == DOMAIN_SEA &&
+				(pCoastalCity == NULL ||
+				pCoastalCity->allUpgradesAvailable(eUnit, /* advc.001u: */ 0, eBonus)
+				!= NO_UNIT)) ||
+				/*  or our capital cannot build because it's obsolete
+					(we can already build all its upgrades) */
+				(pCapital != NULL &&
+				pCapital->allUpgradesAvailable(eUnit, /* advc.001u: */ 0, eBonus)
+				!= NO_UNIT))
+			{
+				iValue = 0; // its worthless
+			}
+		}
+		else
+		{
+			/*	there is some other reason why we can't build it.
+				(maybe the unit is maxed out, or maybe we don't have the techs) */
+			iValue /= 2;
+			/*  <advc.036> Evaluation for trade should be short-term; if we
+				can't use it right away, we shouldn't trade for it. */
+			if(bTrade)
+			{
+				/*  This makes sure that we're not very close to the unit.
+					Otherwise, a human could e.g. trade for Ivory one turn
+					before finishing Construction. */
+				CvTeam const& kOurTeam = GET_TEAM(getTeam());
+				TechTypes eMainReq = kUnit.getPrereqAndTech();
+				if(!isHuman() || (eMainReq != NO_TECH &&
+					!kOurTeam.isHasTech(eMainReq) &&
+					kOurTeam.getResearchProgress(eMainReq) <= 0))
+				{
+					iValue /= 3;
+				}
+			} // </advc.036>
+		}
+	}
+	if(iValue <= 0)
+		return 0;
+
+	// devalue units for which we already have a better replacement.
+	UnitAITypes const eDefaultAI = kUnit.getDefaultUnitAIType();
+	int iNewTypeValue = AI_unitValue(eUnit, eDefaultAI, 0);
+	int iBestTypeValue = AI_bestAreaUnitAIValue(eDefaultAI, 0);
+	if(iBestTypeValue > 0)
+	{
+		iValue = (iValue * std::max(0, std::min(
+				100, 120 * iNewTypeValue / iBestTypeValue - 20))) / 100;
+	}
+	/*	devalue units which are related to our current era.
+		(but not if it is still our best unit!) */
+	if(kUnit.getPrereqAndTech() != NO_TECH)
+	{
+		int iDiff = GC.getInfo(kUnit.getPrereqAndTech()).getEra() - getCurrentEra();
+		if (iDiff > 0 &&
+			//|| !bCanTrain || iNewTypeValue < iBestTypeValue) {
+			/*  advc.036: The assignment below doesn't do anything
+				if iDiff is 0, so alternative conditions have no effect.
+				"but not if it is still our best unit!" sounds like it
+				should be an AND. !bCanTrain is sufficiently penalized above. */
+			iNewTypeValue < iBestTypeValue)
+		{
+			//iUnitValue = iUnitValue * 2/(2 + std::abs(iDiff));
+			/*  advc.031: Replacing the line above b/c Horse was being valued
+				too highly in the late game */
+			iValue = iValue / (1 + iDiff);
+		}
+	}
+	return iValue;
+}
+
+int CvPlayerAI::AI_baseBonusBuildingVal(BonusTypes eBonus, BuildingTypes eBuilding,
+	int iCities, int iCoastalCities, bool bTrade) const
+{
+	BuildingClassTypes const eBuildingClass = CvCivilization::buildingClass(eBuilding);
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+
+	int iValue = 0;
+	if(kBuilding.getPrereqAndBonus() == eBonus)
+		iValue += 25; // advc.036: was 30
+
+	for(int iJ = 0; iJ < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); iJ++)
+	{
+		if (kBuilding.getPrereqOrBonuses(iJ) == eBonus)
+			iValue += 15; // advc.036: was 20
+	}
+	iValue += kBuilding.getBonusProductionModifier(eBonus) / 10;
+
+	if(kBuilding.getPowerBonus() == eBonus)
+		iValue += 40; // advc.036: was 60
+
+	FOR_EACH_ENUM(Yield)
+	{
+		// <advc> Easier to debug this way
+		int iYieldMod = kBuilding.getBonusYieldModifier(eBonus, eLoopYield);
+		if (iYieldMod > 0) // </advc>
+		{
+			iValue += iYieldMod /
+					/*  <advc.036> 25 for Ironworks is normally too much;
+						need to take into account that we can build it in
+						only one city. Then again, if we have very few cities,
+						we may not be able to build it at all ...
+						Too tedious to check getPrereqNumOfBuildingClass,
+						so just use a constant divisor. */
+					(kBuilding.isNationalWonder() ? 5 : 2);
+		}
+		if (kBuilding.getPowerBonus() == eBonus)
+			iValue += kBuilding.getPowerYieldModifier(eLoopYield);
+	}
+	if(iValue <= 0)
+		return 0; // advc.opt
+
+	// determine whether we have the tech for this building
+	bool bHasTechForBuilding = true;
+	CvTeam const& kOurTeam = GET_TEAM(getTeam());
+	if(!kOurTeam.isHasTech(kBuilding.getPrereqAndTech()))
+		bHasTechForBuilding = false;
+	for(int iPrereqIndex = 0; bHasTechForBuilding && iPrereqIndex <
+		GC.getNUM_BUILDING_AND_TECH_PREREQS(); iPrereqIndex++)
+	{
+		if (kBuilding.getPrereqAndTechs(iPrereqIndex) != NO_TECH)
+		{
+			if (!kOurTeam.isHasTech(kBuilding.getPrereqAndTechs(iPrereqIndex)))
+				bHasTechForBuilding = false;
+		}
+	}
+
+	bool const bStateReligion = (NO_RELIGION != kBuilding.getStateReligion());
+	//check if function call is cached
+	bool const bCanConstruct = canConstruct(eBuilding, false,
+			/*bTestVisible*/ true, /*bIgnoreCost*/ true);
+	/*  bCanNeverBuild when true is accurate, it may be false in some cases
+		where we will never be able to build */
+	bool const bCanNeverBuild = (bHasTechForBuilding && !bCanConstruct && !bStateReligion);
+	// if we can never build this, it is worthless
+	if(bCanNeverBuild)
+		return 0;
+	// double value if we can build it right now
+	if(bCanConstruct)
+		iValue *= 2;
+	// <advc.036> Don't trade for the bonus until we need it
+	if(bTrade && !bCanConstruct)
+		return 0; // </advc.036>
+
+	// if non-limited water building, weight by coastal cities
+	if(kBuilding.isWater() && !kBuilding.isLimited())
+	{
+		iValue *= iCoastalCities;
+		iValue /= std::max(1, iCities / 2);
+	} // <advc.036>
+	int iMaking = getBuildingClassMaking(eBuildingClass);
+	if(iMaking > 0)
+	{
+		iValue *= 20; // +100% for wonders, +43% to +100% otherwise.
+		if(kBuilding.isLimited())
+			iValue /= 10;
+		else iValue /= std::max(10, 15 - iMaking);
+	} /* Even if it's from an earlier era, if we're constructing it,
+		 then it's apparently useful. */
+	else // </advc.036>
+		if(kBuilding.getPrereqAndTech() != NO_TECH)
+	{
+		int iDiff = abs(GC.getInfo(kBuilding.getPrereqAndTech()).
+				getEra() - getCurrentEra());
+		if(iDiff == 0)
+		{
+			iValue *= 3;
+			iValue /= 2;
+		}
+		else iValue /= iDiff;
+	}
+	return iValue;
+}
+
+int CvPlayerAI::AI_baseBonusProjectVal(BonusTypes eBonus, ProjectTypes eProject,
+	bool bTrade) const
+{
+	CvProjectInfo const& kProject = GC.getInfo(eProject);
+	int iValue = kProject.getBonusProductionModifier(eBonus) / 10;
+	if(iValue <= 0)
+		return 0;
+
+	if (GC.getGame().isProjectMaxedOut(eProject) ||
+		GET_TEAM(getTeam()).isProjectMaxedOut(eProject))
+	{
+		return 0;
+	}
+	if(canCreate(eProject))
+		iValue *= 2;
+
+	if(kProject.getTechPrereq() == NO_TECH)
+		return iValue;
+
+	int iDiff = abs(
+			GC.getInfo((TechTypes)kProject.getTechPrereq()).getEra() - getCurrentEra());
+	if(iDiff == 0)
+	{
+		iValue *= 3;
+		iValue /= 2;
+	}
+	else
+	{	// <advc.036>
+		if(bTrade)
+			return 0; // <advc.036>
+		iValue /= iDiff;
+	}
+	return iValue;
+}
+
+int CvPlayerAI::AI_baseBonusRouteVal(BonusTypes eBonus, RouteTypes eRoute,
+	RouteTypes eBestRoute, TechTypes eBuildTech, bool bTrade) const
+{
+	int iValue = 0;
+	if(GC.getInfo(eRoute).getPrereqBonus() == eBonus)
+		iValue += 80;
+	for(int i = 0; i < GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); i++)
+	{
+		if(GC.getInfo(eRoute).getPrereqOrBonus(i) == eBonus)
+			iValue += 40;
+	}
+	// <advc.036> The usual tech checks
+	if(eBuildTech != NO_TECH && !GET_TEAM(getTeam()).isHasTech(eBuildTech))
+	{
+		if(bTrade)
+			return 0;
+		iValue /= 2;
+		int iTechEra = GC.getInfo(eBuildTech).getEra();
+		int iEraDiff = iTechEra - getCurrentEra();
+		if(iEraDiff > 0)
+			iValue /= iEraDiff;
+	} // </advc.036>
+	if (eBestRoute == NO_ROUTE ||
+		/*  advc.opt: Was GC.getInfo(getBestRoute()), which iterates
+			through all builds. */
+		GC.getInfo(eBestRoute).getValue() > GC.getInfo(eRoute).getValue())
+	{
+		iValue /= 2;
+	}
+	return iValue;
+}
+
 int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) const
 {
 	int iValue = 0;
-	int iCityCount = getNumCities();
-	iCityCount += iCityCount / 6 + 1;
+	int const iCities = getNumCities() + getNumCities() / 6 + 1;
 
-	for (int iCorporation = 0; iCorporation < GC.getNumCorporationInfos(); ++iCorporation)
+	FOR_EACH_ENUM2(Corporation, eCorp)
 	{
-		int iCorpCount = getHasCorporationCount((CorporationTypes)iCorporation);
-		if (iCorpCount > 0)
+		int iCorps = getHasCorporationCount(eCorp);
+		if (iCorps > 0)
 		{	/*  <advc.036> Human could spread the corp rapidly. I also want to push
 				the price for humans a bit in order to stop the AI from offering 1-ofs
 				as soon as a player founds a corporation. */
 			if(bTrade && isHuman())
-				iCorpCount = std::min(getNumCities(), ::round(1 + (iCorpCount * 4/3.0)));
+				iCorps = std::min(getNumCities(), 1 + ROUND_DIVIDE(iCorps * 4, 3));
 			// </advc.036>
-			iCorpCount += getNumCities() / 6 + 1;
-			CvCorporationInfo& kCorp = GC.getInfo((CorporationTypes)iCorporation);
+			iCorps += getNumCities() / 6 + 1;
+			CvCorporationInfo& kCorp = GC.getInfo(eCorp);
 			for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
 			{
 				if (eBonus == kCorp.getPrereqBonus(i))
 				{
-					iValue += (50 * kCorp.getYieldProduced(YIELD_FOOD) * iCorpCount) / iCityCount;
-					iValue += (50 * kCorp.getYieldProduced(YIELD_PRODUCTION) * iCorpCount) / iCityCount;
-					iValue += (30 * kCorp.getYieldProduced(YIELD_COMMERCE) * iCorpCount) / iCityCount;
+					iValue += (50 * kCorp.getYieldProduced(YIELD_FOOD) * iCorps) / iCities;
+					iValue += (50 * kCorp.getYieldProduced(YIELD_PRODUCTION) * iCorps) / iCities;
+					iValue += (30 * kCorp.getYieldProduced(YIELD_COMMERCE) * iCorps) / iCities;
 
-					iValue += (30 * kCorp.getCommerceProduced(COMMERCE_GOLD) * iCorpCount) / iCityCount;
-					iValue += (30 * kCorp.getCommerceProduced(COMMERCE_RESEARCH) * iCorpCount) / iCityCount;
-					//iValue += (12 * kCorp.getCommerceProduced(COMMERCE_CULTURE) * iCorpCount) / iCityCount;
+					iValue += (30 * kCorp.getCommerceProduced(COMMERCE_GOLD) * iCorps) / iCities;
+					iValue += (30 * kCorp.getCommerceProduced(COMMERCE_RESEARCH) * iCorps) / iCities;
+					//iValue += (12 * kCorp.getCommerceProduced(COMMERCE_CULTURE) * iCorps) / iCities;
 					// K-Mod, I'd love to calculate this stuff properly, but because of the way trade currently operates...
-					iValue += (20 * kCorp.getCommerceProduced(COMMERCE_CULTURE) * iCorpCount) / iCityCount;
-					iValue += (20 * kCorp.getCommerceProduced(COMMERCE_ESPIONAGE) * iCorpCount) / iCityCount;
+					iValue += (20 * kCorp.getCommerceProduced(COMMERCE_CULTURE) * iCorps) / iCities;
+					iValue += (20 * kCorp.getCommerceProduced(COMMERCE_ESPIONAGE) * iCorps) / iCities;
 
 					//Disabled since you can't found/spread a corp unless there is already a bonus,
 					//and that bonus will provide the entirety of the bonusProduced benefit.
 					/*if (NO_BONUS != kCorp.getBonusProduced()) {
 						if (getNumAvailableBonuses((BonusTypes)kCorp.getBonusProduced()) == 0)
-							iBonusValue += (1000 * iCorpCount * AI_baseBonusVal((BonusTypes)kCorp.getBonusProduced())) / (10 * iCityCount);
+							iBonusValue += (1000 * iCorpCount * AI_baseBonusVal((BonusTypes)kCorp.getBonusProduced())) / (10 * iCities);
 					}*/
 				}
 			}
@@ -11148,7 +11176,7 @@ int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus, /* advc.036: */ bool b
 	iValue /= 10;	//match AI_baseBonusVal
 	return iValue;*/
 	// advc.036: To increase accuracy
-	return ::round(iValue / 1000.0);
+	return ROUND_DIVIDE(iValue, 1000);
 }
 
 // advc.036:
@@ -16037,7 +16065,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		{
 			int iTempValue = iBestReligionCities *
 					getStateReligionBuildingCommerce(eCommerce);
-			if (iTempValue)
+			if (iTempValue > 0)
 			{
 				iTempValue *= AI_averageCommerceMultiplier(eCommerce);
 				iTempValue /= 100;
@@ -16164,7 +16192,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 
 		iTempValue /= 100; // (for the 3 things above)
 
-		if (iTempValue)
+		if (iTempValue > 0)
 		{
 			iTempValue *= AI_commerceWeight(eCommerce);
 			iTempValue /= 100;
@@ -27612,11 +27640,11 @@ void CvPlayerAI::AI_setHuman(bool b)
 }
 
 // advc.031c:
-void CvPlayerAI::logFoundValue(int iX, int iY, bool bStartingLoc) const
+void CvPlayerAI::logFoundValue(CvPlot const& kPlot, bool bStartingLoc) const
 {
 	CitySiteEvaluator eval(*this, isBarbarian() ?
 			GC.getDefineINT("MIN_BARBARIAN_CITY_STARTING_DISTANCE") : -1, bStartingLoc);
-	eval.log(iX, iY);
+	eval.log(kPlot);
 }
 
 // BETTER_BTS_AI_MOD, General AI/ Efficiency (plot danger cache), 08/20/09, jdog5000: START

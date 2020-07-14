@@ -994,17 +994,15 @@ bool CvPlot::shareAdjacentArea(CvPlot const* pPlot) const  // advc: style change
 bool CvPlot::isAdjacentToLand() const
 {
 	PROFILE_FUNC();
-
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	FOR_EACH_ENUM(Direction)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
+		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
 		if (pAdjacentPlot != NULL)
 		{
 			if (!pAdjacentPlot->isWater())
 				return true;
 		}
 	}
-
 	return false;
 }
 
@@ -6351,6 +6349,7 @@ bool CvPlot::decayBuildProgress(bool bTest)
 	return r;
 } // </advc.011>
 
+
 void CvPlot::updateFeatureSymbolVisibility()
 {
 	//PROFILE_FUNC();
@@ -7989,7 +7988,8 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 {
 	CvCity const* pCity = getPlotCity();
 	bool const bCity = (pCity != NULL);
-	if (GC.getInfo(eUnit).isPrereqReligion())
+	CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+	if (kUnit.isPrereqReligion())
 	{
 		if (!bCity || //pCity->getReligionCount() > 0)
 			pCity->getReligionCount() == 0) // K-Mod
@@ -7997,14 +7997,14 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 			return false;
 		}
 	}
-	if (GC.getInfo(eUnit).getPrereqReligion() != NO_RELIGION)
+	if (kUnit.getPrereqReligion() != NO_RELIGION)
 	{
-		if (!bCity || !pCity->isHasReligion(GC.getInfo(eUnit).getPrereqReligion()))
+		if (!bCity || !pCity->isHasReligion(kUnit.getPrereqReligion()))
 			return false;
 	}
-	if (GC.getInfo(eUnit).getPrereqCorporation() != NO_CORPORATION)
+	if (kUnit.getPrereqCorporation() != NO_CORPORATION)
 	{
-		if (!bCity || !pCity->isActiveCorporation(GC.getInfo(eUnit).getPrereqCorporation()))
+		if (!bCity || !pCity->isActiveCorporation(kUnit.getPrereqCorporation()))
 			return false;
 	}
 
@@ -8033,12 +8033,12 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 	}
 	else // </advc.041>
 	{
-		if (GC.getInfo(eUnit).getDomainType() == DOMAIN_SEA)
+		if (kUnit.getDomainType() == DOMAIN_SEA)
 		{
 			if (!isWater())
 				return false;
 		}
-		else if (GC.getInfo(eUnit).getDomainType() == DOMAIN_LAND)
+		else if (kUnit.getDomainType() == DOMAIN_LAND)
 		{
 			if (isWater())
 				return false;
@@ -8046,80 +8046,81 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 		else // advc (comment): Upgrade air units only in cities
 			return false;
 	}
-	if (!bTestVisible)
+
+	if (bTestVisible)
+		return true; // advc
+
+	if (kUnit.getHolyCity() != NO_RELIGION)
 	{
-		if (GC.getInfo(eUnit).getHolyCity() != NO_RELIGION)
-		{
-			if (!bCity || !pCity->isHolyCity(GC.getInfo(eUnit).getHolyCity()))
-				return false;
-		}
-
-		if (GC.getInfo(eUnit).getPrereqBuilding() != NO_BUILDING)
-		{
-			if (!bCity)
-				return false;
-			BuildingTypes ePrereqBuilding = GC.getInfo(eUnit).getPrereqBuilding(); // advc
-			if (pCity->getNumBuilding(ePrereqBuilding) == 0)
-			{
-				SpecialBuildingTypes eSpecialBuilding = GC.getInfo(ePrereqBuilding).getSpecialBuildingType();
-				if (eSpecialBuilding == NO_SPECIALBUILDING ||
-					!GET_PLAYER(getOwner()).isSpecialBuildingNotRequired(eSpecialBuilding))
-				{
-					return false;
-				}
-			}
-		}
-		BonusTypes ePrereqAndBonus = GC.getInfo(eUnit).getPrereqAndBonus(); // advc
-		if(ePrereqAndBonus != NO_BONUS &&
-			ePrereqAndBonus != eAssumeAvailable) // advc.001u
-		{
-			if (!bCity)
-			{
-				if (!isPlotGroupConnectedBonus(getOwner(), ePrereqAndBonus))
-					return false;
-			}
-			else if (!pCity->hasBonus(ePrereqAndBonus))
-				return false;
-		}
-
-		bool bRequiresBonus = false;
-		bool bNeedsBonus = true;
-		for (int iI = 0; iI < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); ++iI)
-		{
-			BonusTypes ePrereqOrBonus = GC.getInfo(eUnit).getPrereqOrBonuses(iI); // advc
-			if(ePrereqOrBonus != NO_BONUS &&
-				ePrereqOrBonus != eAssumeAvailable) // advc.001u
-			{
-				bRequiresBonus = true;
-				if (bCity)
-				{
-					if (pCity->hasBonus(ePrereqOrBonus))
-					{
-						bNeedsBonus = false;
-						break;
-					}
-				}
-				else
-				{
-					if (isPlotGroupConnectedBonus(getOwner(), ePrereqOrBonus))
-					{
-						bNeedsBonus = false;
-						break;
-					}
-				}
-			}
-		}
-		if (bRequiresBonus && bNeedsBonus)
+		if (!bCity || !pCity->isHolyCity(kUnit.getHolyCity()))
 			return false;
-		// <advc.001b>
-		if (bCheckAirUnitCap &&
-			GC.getDefineBOOL(CvGlobals::CAN_TRAIN_CHECKS_AIR_UNIT_CAP) &&
-			GC.getInfo(eUnit).getAirUnitCap() > 0 &&
-			airUnitSpaceAvailable(getTeam()) < 1)
-		{
-			return false;
-		} // </advc.001b>
 	}
+
+	if (kUnit.getPrereqBuilding() != NO_BUILDING)
+	{
+		if (!bCity)
+			return false;
+		BuildingTypes ePrereqBuilding = kUnit.getPrereqBuilding(); // advc
+		if (pCity->getNumBuilding(ePrereqBuilding) == 0)
+		{
+			SpecialBuildingTypes eSpecialBuilding = GC.getInfo(ePrereqBuilding).getSpecialBuildingType();
+			if (eSpecialBuilding == NO_SPECIALBUILDING ||
+				!GET_PLAYER(getOwner()).isSpecialBuildingNotRequired(eSpecialBuilding))
+			{
+				return false;
+			}
+		}
+	}
+	BonusTypes ePrereqAndBonus = kUnit.getPrereqAndBonus(); // advc
+	if(ePrereqAndBonus != NO_BONUS &&
+		ePrereqAndBonus != eAssumeAvailable) // advc.001u
+	{
+		if (!bCity)
+		{
+			if (!isPlotGroupConnectedBonus(getOwner(), ePrereqAndBonus))
+				return false;
+		}
+		else if (!pCity->hasBonus(ePrereqAndBonus))
+			return false;
+	}
+
+	bool bRequiresBonus = false;
+	bool bNeedsBonus = true;
+	for (int iI = 0; iI < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); ++iI)
+	{
+		BonusTypes ePrereqOrBonus = kUnit.getPrereqOrBonuses(iI); // advc
+		if(ePrereqOrBonus != NO_BONUS &&
+			ePrereqOrBonus != eAssumeAvailable) // advc.001u
+		{
+			bRequiresBonus = true;
+			if (bCity)
+			{
+				if (pCity->hasBonus(ePrereqOrBonus))
+				{
+					bNeedsBonus = false;
+					break;
+				}
+			}
+			else
+			{
+				if (isPlotGroupConnectedBonus(getOwner(), ePrereqOrBonus))
+				{
+					bNeedsBonus = false;
+					break;
+				}
+			}
+		}
+	}
+	if (bRequiresBonus && bNeedsBonus)
+		return false;
+	// <advc.001b>
+	if (bCheckAirUnitCap &&
+		GC.getDefineBOOL(CvGlobals::CAN_TRAIN_CHECKS_AIR_UNIT_CAP) &&
+		kUnit.getAirUnitCap() > 0 &&
+		airUnitSpaceAvailable(getTeam()) < 1)
+	{
+		return false;
+	} // </advc.001b>
 
 	return true;
 }

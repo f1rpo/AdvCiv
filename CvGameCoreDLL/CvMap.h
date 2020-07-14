@@ -3,14 +3,10 @@
 #ifndef CIV4_MAP_H
 #define CIV4_MAP_H
 
-//
 //	FILE:	 CvMap.h
 //	AUTHOR:  Soren Johnson
 //	PURPOSE: Game map class
-//-----------------------------------------------------------------------------
 //	Copyright (c) 2004 Firaxis Games, Inc. All rights reserved.
-//-----------------------------------------------------------------------------
-//
 
 #include "CvPlot.h"
 class CvArea;
@@ -22,13 +18,10 @@ class FAStar;
 class CvPlotGroup;
 class CvSelectionGroup;
 
-//
-// holds initialization info
-//
-struct CvMapInitData
+struct CvMapInitData // holds initialization info
 {
-	int m_iGridW;						// in game plots
-	int m_iGridH;						// in game plots
+	int m_iGridW; // in game plots
+	int m_iGridH; // in game plots
 	int m_iTopLatitude;
 	int m_iBottomLatitude;
 
@@ -40,11 +33,7 @@ struct CvMapInitData
 	{ }
 };
 
-//
-// CvMap
-//
-class CvMap
-		: private boost::noncopyable // advc.003e
+class CvMap /* advc.003e: */ : private boost::noncopyable
 {
 	/*  <advc.make> All the inline functions below used to be global functions
 		in CvGameCoreUtils.h except for coordRange, which was already in CvMap.h,
@@ -81,7 +70,6 @@ public:
 				plot1->getX(), plot1->getY(),
 				plot2->getX(), plot2->getY());
 	}
-	// K-Mod end
 
 	// 3 | 3 | 3 | 3 | 3 | 3 | 3
 	// -------------------------
@@ -109,7 +97,7 @@ public:
 		return stepDistance(
 				plot1->getX(), plot1->getY(),
 				plot2->getX(), plot2->getY());
-	} // K-Mod end
+	}
 
 	inline CvPlot* plotDirection(int iX, int iY, DirectionTypes eDirection) const
 	{
@@ -121,7 +109,8 @@ public:
 				iY + GC.getPlotDirectionY()[eDirection]);
 	}
 
-	inline CvPlot* plotCardinalDirection(int iX, int iY, CardinalDirectionTypes eCardinalDirection) const
+	inline CvPlot* plotCardinalDirection(int iX, int iY,
+		CardinalDirectionTypes eCardinalDirection) const
 	{
 		// advc.opt: Don't check for INVALID_PLOT_COORD
 		return plotValidXY(
@@ -244,7 +233,7 @@ private: // Auxiliary functions
 			return (iCoord % iRange);
 		return iCoord;
 	}
-	// </advc.make>
+	// (end of functions moved from CvGameCoreUtils.h) </advc.make>
 
 	friend class CyMap;
 public:
