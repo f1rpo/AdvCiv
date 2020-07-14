@@ -10,7 +10,7 @@
 #include "CvDeal.h"
 #include "CvInfo_All.h"
 #include "CvXMLLoadUtility.h"
-#include "CityPlotIterator.h"
+#include "PlotRange.h"
 #include "CvArea.h"
 #include "RiseFall.h" // advc.700
 #include "CvBugOptions.h"
@@ -4618,6 +4618,35 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 			}
 		}
 	}
+	// <advc.030> Warn about ice-locked water area when settler selected
+	int const iOceanThresh = GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN);
+	if (kPlot.isWater() && !kPlot.isImpassable() && !kPlot.isLake() &&
+		kPlot.getArea().getNumTiles() < iOceanThresh &&
+		pHeadSelectedUnit != NULL && pHeadSelectedUnit->canFound())
+	{
+		bool bFullyRevealed = true; // Don't give away unrevealed plots
+		bool bIceFound = false;
+		for (SquareIter it(kPlot, iOceanThresh - 1); it.hasNext(); ++it)
+		{
+			if (it->sameArea(kPlot) && !it->isRevealed(eActiveTeam))
+			{
+				bFullyRevealed = false;
+				break;
+			}
+			if (!bIceFound && it->isImpassable() &&
+				it->isAdjacentToArea(kPlot.getArea()))
+			{
+				bIceFound = true;
+			}
+		}
+		if (bFullyRevealed && bIceFound)
+		{
+			szString.append(CvWString::format(SETCOLR, TEXT_COLOR("COLOR_WATER_TEXT")));
+			szString.append(L" ");
+			szString.append(gDLL->getText("TXT_KEY_PLOT_ICE_LOCKED"));
+			szString.append(ENDCOLR);
+		}
+	} // </advc.030>
 	// <advc.001> Moved up. BtS was using getImprovementType in the eBonus code
 	ImprovementTypes ePlotImprovement = kPlot.getRevealedImprovementType(
 			eActiveTeam, true); // </advc.001>

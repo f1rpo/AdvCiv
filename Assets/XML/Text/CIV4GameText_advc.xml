@@ -6129,4 +6129,14 @@
 		<Spanish>[ICON_BULLET]Da&#241;os colaterales (max. %d1%%) a %d2 [NUM1:defensor:defensores]</Spanish>
 	</TEXT>
 
+	<!-- advc.030 -->
+	<TEXT>
+		<Tag>TXT_KEY_PLOT_ICE_LOCKED</Tag>
+		<English>ice-locked</English>
+		<French>englac&#233;</French>
+		<German>eingeschlossen</German>
+		<Italian>circondato di ghiacco</Italian>
+		<Spanish>rodeado de hielo</Spanish>
+	</TEXT>
+
 </Civ4GameText>
