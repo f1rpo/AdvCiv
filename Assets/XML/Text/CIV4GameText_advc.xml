@@ -3243,6 +3243,23 @@
 		<Italian>%s1_TeamName non potrebbe più essere indotto à una guerra contro</Italian>
 		<Spanish>%s1_TeamName ya no es dispuesto a una guerra contra</Spanish>
 	</TEXT>
+	<!-- (quoting TXT_KEY_DENIAL_TOO_MANY_WARS in Civ4GameTextInfos.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_CIV4LERTS_TOO_MANY_WARS</Tag>
+		<English>%s1_LeaderName is now preparing for war ("too much on our hands").</English>
+		<French>%s1_LeaderName se prépare à la guerre ("suffisamment à faire").</French>
+		<German>%s1_LeaderName trifft Kriegsvorbereitungen ("genug andere Sorgen").</German>
+		<Italian>%s1_LeaderName si prepara alla guerra ("troppi conflitti").</Italian>
+		<Spanish>%s1_LeaderName e prepara para la guerra ("demasiado entre manos").</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CIV4LERTS_NO_LONGER_TOO_MANY_WARS</Tag>
+		<English>%s1_LeaderName may have abandoned [NUM1:his:her] war preparations.</English>
+		<French>%s1_LeaderName ne paraît plus se préparer à la guerre.</French>
+		<German>%s1_LeaderName scheint keinen Krieg mehr vorzubereiten.</German>
+		<Italian>%s1_LeaderName non pare più prepararsi alla guerra.</Italian>
+		<Spanish>%s1_LeaderName ya no parece prepararse para la guerra.</Spanish>
+	</TEXT>
 	
 	<!-- advc.210b -->
 	<TEXT>

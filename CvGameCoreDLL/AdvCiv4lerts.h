@@ -31,8 +31,11 @@ public:
 protected:
 	void check();
 private:
-	void msg(TeamTypes warTeamId, std::vector<TeamTypes> victims, bool bTrade);
+	void msg(TeamTypes warTeamId, std::vector<TeamTypes> victims, bool bTrade) const;
+	void msg(TeamTypes warTeamId, bool bNowTooManyWars) const;
+	void msg(CvWString text, TeamTypes warTeamId) const;
 	bool willWar[MAX_CIV_TEAMS][MAX_CIV_TEAMS];
+	EnumMap<TeamTypes,bool> tooManyWars;
 }; // </advc.210a>
 
 // <advc.210b>
