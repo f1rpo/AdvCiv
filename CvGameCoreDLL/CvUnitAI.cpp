@@ -5887,7 +5887,7 @@ void CvUnitAI::AI_barbAttackSeaMove()
 		{
 			CvPlot* pDest = getPlot().getNearestLandPlot();
 			if(pDest != NULL && generatePath(pDest) && // pDest could be blocked
-				AI_transportGoTo(plot(), pDest, 0, MISSIONAI_ASSAULT))
+				AI_transportGoTo(getPathEndTurnPlot(), pDest, 0, MISSIONAI_ASSAULT))
 			{
 				return;
 			}
