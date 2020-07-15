@@ -250,6 +250,7 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 			break;
 		}
 	}*/ // K-Mod end
+	bool const bReportUWAI = getUWAI.isEnabled();
 	// advc (fixme): This whole loop is mostly duplicated below
 	for (int iPass = 0; iPass < 2; iPass++) // advc: Replacing the K-Mod loop above
 	{
@@ -259,7 +260,7 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 			if (isVassal(pNode->m_data.m_eItemType) == (iPass == 0))
 				continue; // </advc>
 			// <advc.104> Allow UWAI to record the value of the sponsorship
-			if(pNode->m_data.m_eItemType == TRADE_WAR)
+			if (bReportUWAI && pNode->m_data.m_eItemType == TRADE_WAR)
 			{
 				GET_PLAYER(getFirstPlayer()).uwai().getCache().
 						reportSponsoredWar(kSecondList, getSecondPlayer(),
@@ -282,7 +283,7 @@ void CvDeal::addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeDa
 			if (isVassal(pNode->m_data.m_eItemType) == (iPass == 0))
 				continue; // </advc>
 			// <advc.104> As above
-			if(pNode->m_data.m_eItemType == TRADE_WAR)
+			if (bReportUWAI && pNode->m_data.m_eItemType == TRADE_WAR)
 			{
 				GET_PLAYER(getSecondPlayer()).uwai().getCache().
 						reportSponsoredWar(kFirstList, getFirstPlayer(),

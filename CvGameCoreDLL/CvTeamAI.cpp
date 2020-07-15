@@ -963,9 +963,11 @@ void CvTeamAI::AI_preMakePeace(TeamTypes eTarget, CLinkList<TradeData> const* pR
 {
 	CvTeamAI& kTarget = GET_TEAM(eTarget);
 	// <advc.104> Report who won the war before war success is reset
-	uwai().reportWarEnding(eTarget, pReparations, NULL);
-	kTarget.uwai().reportWarEnding(getID(), NULL, pReparations);
-	// </advc.104>
+	if (getUWAI.isEnabled())
+	{
+		uwai().reportWarEnding(eTarget, pReparations, NULL);
+		kTarget.uwai().reportWarEnding(getID(), NULL, pReparations);
+	} // </advc.104>
 	/*  <advc.130y> Don't know if they started the war, but, if we did and they had
 		started a war against us some time earlier, we may as well forgive them for
 		that. (If there's no declared-war-on-us memory, then this call has no effect.) */
