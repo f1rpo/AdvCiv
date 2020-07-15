@@ -1948,7 +1948,7 @@ int CvProjectInfo::getVictoryMinThreshold(int i) const
 	FAssertBounds(0, GC.getNumVictoryInfos(), i);
 	// <advc.003t>
 	if (m_piVictoryMinThreshold == NULL)
-		return 0;
+		return getVictoryThreshold(i); // !!
 	if (m_piVictoryMinThreshold[i] != 0) // </advc.003t>
 		return m_piVictoryMinThreshold[i];
 	return getVictoryThreshold(i);
