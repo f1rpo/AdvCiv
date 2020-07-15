@@ -5014,7 +5014,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 				szBuildDescr.c_str());
 		szBuildDescr = szTempBuffer;
 		bool bDecay = (GC.getDefineINT(CvGlobals::DELAY_UNTIL_BUILD_DECAY) > 0 &&
-				pPlot->decayBuildProgress(true));
+				kPlot.isBuildProgressDecaying(true));
 		if(bDecay) // Check if Workers are getting on the task this turn
 		{
 			for (CLLNode<IDInfo> const* pNode = kPlot.headUnitNode();

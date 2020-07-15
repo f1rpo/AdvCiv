@@ -6325,40 +6325,47 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange,
 	return true;
 }
 
-// <advc.011> bTest checks if the next non-bTest call will cause decay
-bool CvPlot::decayBuildProgress(bool bTest)
+// <advc.011>
+bool CvPlot::isBuildProgressDecaying(bool bWarn) const
 {
-	PROFILE_FUNC();
-	int const iDelay = GC.getDefineINT(CvGlobals::DELAY_UNTIL_BUILD_DECAY);
-	if(bTest && m_iTurnsBuildsInterrupted > NO_BUILD_IN_PROGRESS &&
-			m_iTurnsBuildsInterrupted + 1 < iDelay)
+	if (m_iTurnsBuildsInterrupted <= NO_BUILD_IN_PROGRESS)
 		return false;
-	else
+	int const iDelay = GC.getDefineINT(CvGlobals::DELAY_UNTIL_BUILD_DECAY);
+	if (m_iTurnsBuildsInterrupted > NO_BUILD_IN_PROGRESS &&
+		m_iTurnsBuildsInterrupted + (bWarn ? 1 : 0) < iDelay)
 	{
-		if(m_iTurnsBuildsInterrupted > NO_BUILD_IN_PROGRESS && m_iTurnsBuildsInterrupted < iDelay)
-			m_iTurnsBuildsInterrupted++;
-		if(m_iTurnsBuildsInterrupted < iDelay)
-			return false;
+		return false;
 	}
-	bool r = false;
+	FOR_EACH_ENUM(Build)
+	{
+		if (m_aiBuildProgress.get(eLoopBuild) > 0)
+			return true;
+	}
+	return false;
+}
+
+
+void CvPlot::decayBuildProgress()
+{
+	if (m_iTurnsBuildsInterrupted > NO_BUILD_IN_PROGRESS &&
+		m_iTurnsBuildsInterrupted < GC.getDefineINT(CvGlobals::DELAY_UNTIL_BUILD_DECAY))
+	{
+		m_iTurnsBuildsInterrupted++;
+	}
+	if (!isBuildProgressDecaying())
+		return;
 	bool bAnyInProgress = false;
 	FOR_EACH_ENUM(Build)
 	{
-		if(m_aiBuildProgress.get(eLoopBuild) <= 0)
-			continue;
-		if(!bTest)
-			m_aiBuildProgress.add(eLoopBuild, -1);
-		r = true;
-		if(m_aiBuildProgress.get(eLoopBuild) > 0)
+		if (m_aiBuildProgress.get(eLoopBuild) > 0)
 		{
+			m_aiBuildProgress.add(eLoopBuild, -1);
 			bAnyInProgress = true;
-			break;
 		}
 	}
-	// Suspend decay (just for better performance)
-	if(!bAnyInProgress && !bTest)
+	// Explicitly suspend decay (just for better performance)
+	if (!bAnyInProgress)
 		m_iTurnsBuildsInterrupted = NO_BUILD_IN_PROGRESS;
-	return r;
 } // </advc.011>
 
 

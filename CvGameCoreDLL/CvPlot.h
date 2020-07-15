@@ -608,7 +608,8 @@ public:
 	bool changeBuildProgress(BuildTypes eBuild, int iChange,									// Exposed to Python
 			//TeamTypes eTeam = NO_TEAM
 			PlayerTypes ePlayer); // advc.251
-	bool decayBuildProgress(bool bTest = false); // advc.011
+	bool isBuildProgressDecaying(bool bWarn = false) const; // advc.011
+	void decayBuildProgress(); // advc.011
 
 	void updateFeatureSymbolVisibility();
 	void updateFeatureSymbol(bool bForce = false);
