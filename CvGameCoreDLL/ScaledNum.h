@@ -311,7 +311,10 @@ public:
 			int iLogData1 = -1, int iLogData2 = -1) const;
 
 	ScaledNum pow(int iExp) const;
-	ScaledNum pow(ScaledNum rExp) const;
+	__forceinline ScaledNum pow(ScaledNum rExp) const
+	{
+		return _pow<rExp.bSIGNED>(rExp);
+	}
 	__forceinline ScaledNum sqrt() const
 	{
 		FAssert(!isNegative());
@@ -683,6 +686,24 @@ private:
 		return static_cast<IntType>(n);
 	}
 
+	/*	Specialize b/c the sign inversion code wouldn't compile for
+		unsigned IntType. */
+	template<bool bSigned>
+	ScaledNum _pow(ScaledNum rExp) const;
+	template<>
+	ScaledNum _pow<true>(ScaledNum rExp) const
+	{
+		FAssert(!isNegative());
+		if (rExp.isNegative())
+			return 1 / powNonNegative(-rExp);
+		return powNonNegative(rExp);
+	}
+	template<>
+	__forceinline ScaledNum _pow<false>(ScaledNum rExp) const
+	{
+		return powNonNegative(rExp);
+	}
+
 	ScaledNum powNonNegative(int iExp) const
 	{
 		ScaledNum rCopy(*this);
@@ -837,7 +858,6 @@ int ScaledNum_T::round() const
 		return (m_i + SCALE / static_cast<IntType>(m_i >= 0 ? 2 : -2)) / SCALE;
 	}
 	FAssert(m_i <= static_cast<IntType>(INTMAX - SCALE / 2u));
-	FAssert(m_i >= static_cast<IntType>(INTMIN + SCALE / 2u));
 	return (m_i + SCALE / 2u) / SCALE;
 }
 
@@ -864,15 +884,6 @@ ScaledNum_T ScaledNum_T::pow(int iExp) const
 	if (iExp < 0)
 		return 1 / powNonNegative(-iExp);
 	return powNonNegative(iExp);
-}
-
-template<ScaledNum_PARAMS>
-ScaledNum_T ScaledNum_T::pow(ScaledNum rExp) const
-{
-	FAssert(!isNegative());
-	if (rExp.bSIGNED && rExp.isNegative())
-		return 1 / powNonNegative(-rExp);
-	return powNonNegative(rExp);
 }
 
 template<ScaledNum_PARAMS>
