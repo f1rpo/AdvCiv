@@ -10604,6 +10604,9 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
 	bool bTrade) const // advc.036
 {
 	PROFILE_FUNC(); // advc.opt
+	// <advc.304> Relevant for Barbarian city placement
+	if (isBarbarian())
+		return 10; // </advc.304>
 	int iValue = 0;
 	int const iBonusCount = getNumAvailableBonuses(eBonus);
 	// <advc.036>
@@ -27019,6 +27022,9 @@ int CvPlayerAI::AI_getHappinessWeight(int iHappy, int iExtraPop, bool bPercent) 
 {
 	if (iHappy == 0)
 		iHappy = 1;
+	// <advc.300> (Probably not important)
+	if (isBarbarian())
+		return 50 * iHappy; // </advc.300>
 
 	/*  advc.036: This was counting all our cities except Globe Theater (GT).
 		I think they should all count; happiness in the GT city just won't
@@ -27078,6 +27084,10 @@ int CvPlayerAI::AI_getHealthWeight(int iHealth, int iExtraPop, bool bPercent) co
 {
 	if (iHealth == 0)
 		iHealth = 1;
+
+	// <advc.300> (Probably not important)
+	if (isBarbarian())
+		return 50 * iHealth; // </advc.300>
 
 	int iCount = getNumCities(); // advc.036: See AI_getHappinessWeight
 
