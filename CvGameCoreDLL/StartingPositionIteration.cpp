@@ -33,6 +33,11 @@ StartingPositionIteration::StartingPositionIteration() :
 	if (!GC.getDefineBOOL("ENABLE_STARTING_POSITION_ITERATION"))
 		return;
 	CvMap const& kMap = GC.getMap();
+	/*	Could go a bit higher w/o becoming prohibitively slow, but I doubt
+		that the algorithm will do much good on super-huge maps unless the
+		limit on the number of iterations is increased. */
+	if (kMap.numPlots() > 12000)
+		return;
 
 	/*	Generate a starting site for each civ, starting with humans,
 		otherwise in a random order - just as CvGame::assignStartingPlots does.
@@ -503,10 +508,15 @@ StartingPositionIteration::DistanceTable::DistanceTable(
 	{
 		m_sourceIDs[kMap.plotNum(*kapSources[i])] = (SourceID)i;
 	}
+	// Need (fast) 2-way conversion for destination ids and plot numbers
 	m_destinationIDs.resize(kMap.numPlots(), NOT_A_DESTINATION);
+	m_destinationIDToPlotNum.resize(kapDestinations.size(), NO_PLOT_NUM);
 	for (size_t i = 0; i < kapDestinations.size(); i++)
 	{
-		m_destinationIDs[kMap.plotNum(*kapDestinations[i])] = (DestinationID)i;
+		DestinationID eDst = (DestinationID)i;
+		PlotNumTypes ePlotNum = kMap.plotNum(*kapDestinations[i]);
+		m_destinationIDs[ePlotNum] = eDst;
+		m_destinationIDToPlotNum[eDst] = ePlotNum;
 	}
 	m_distances.resize(kapSources.size(),
 			vector<short>(kapDestinations.size(), MAX_SHORT));
@@ -575,7 +585,9 @@ StartingPositionIteration::DistanceTable::DistanceTable(
 	}
 }
 
-
+/*	Even with the inline keyword (and CvMap.h included in the header),
+	the compiler doesn't want to inline this. Haven't tried force-inline;
+	the amount time spent on this function isn't that great anyway. */
 short StartingPositionIteration::DistanceTable::d(
 	CvPlot const& kSource, CvPlot const& kDestination) const
 {
@@ -781,6 +793,49 @@ void StartingPositionIteration::evaluateCurrPosition(
 	kResult.m_rStartPosVal = startingPositionValue(kResult);
 }
 
+
+StartingPositionIteration::SpaceEvaluator::SpaceEvaluator(
+	DistanceTable const& kDists, EnumMap<PlotNumTypes,scaled> const& kYieldValues,
+	bool bLog) : m_kDists(kDists), m_kYieldValues(kYieldValues), m_bLog(bLog)
+{
+	CvMap const& kMap = GC.getMap();
+	// Treat distances beyond this threshold as infinite in order to save time
+	m_iDistThresh = (word)((5 * kDists.getLongDist()) / 4);
+	// Use unsigned types because that'll make exponentiation a wee bit faster
+	word const iDistThresh = m_iDistThresh;
+	word const iAvgCityDist = (word)kDists.getAvgCityDist();
+	/*	Will essentially measure distances from the edge of the starting city radius
+		instead of the starting city tile */
+	m_iDistSubtr = iAvgCityDist / 2;
+	word const iDistSubtr = m_iDistSubtr;
+	FOR_EACH_ENUM(PlotNum)
+	{
+		if (kYieldValues.get(eLoopPlotNum) <= 0)
+			continue;
+		claim_t rSum = 0;
+		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+		{
+			CvPlot const& kStartPlot = *it->getStartingPlot();
+			CvPlot const& kLoopPlot = kMap.getPlotByIndex(eLoopPlotNum);
+			if (kMap.plotDistance(&kStartPlot, &kLoopPlot) <= 2)
+			{
+				// Accounted for by found values
+				m_sumOfClaims.set(eLoopPlotNum, 0);
+				goto next_plot;
+			}
+			short iDist = kDists.d(kStartPlot, kLoopPlot) - iDistSubtr;
+			if (iDist > iDistThresh)
+				continue;
+			rSum += claim_t(1, std::max<short>(1, iDist));
+		}
+		m_sumOfClaims.set(eLoopPlotNum, rSum);
+		next_plot: continue;
+	}
+
+	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+		computeSpaceValue(it->getID());
+}
+
 //#define DEBUG_SPACE_BREAKDOWN
 #ifdef DEBUG_SPACE_BREAKDOWN
 struct BreakDownData { PlotNumTypes ePlot; scaled rYieldVal; scaled rAccessFactor;
@@ -789,101 +844,71 @@ struct BreakDownData { PlotNumTypes ePlot; scaled rYieldVal; scaled rAccessFacto
 	bool operator<(BreakDownData const& kOther) const{ return ePlot < kOther.ePlot; } };
 #endif
 
-// The results are on the scale of AIFoundValue
-void StartingPositionIteration::computeStartValues(
-	EnumMap<PlayerTypes,short> const& kFoundValues, SolutionAttributes& kResult,
-	bool bLog) const
+void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes ePlayer)
 {
-	#ifdef SPI_LOG
-		std::ostringstream out;
-		if (bLog)
-			out << "Evaluating starting position ...\n\n";
+	#ifdef DEBUG_SPACE_BREAKDOWN
+		vector<std::pair<scaled,BreakDownData> > aSpaceBreakDown;
 	#endif
 	CvMap const& kMap = GC.getMap();
-	typedef ScaledNum<1024*32> claim_t; // Inverted distances - pretty small
-	EnumMap<PlotNumTypes,claim_t> sumOfClaims;
-	short const iAvgCityDist = m_pPathDists->getAvgCityDist(); // for scale adjustment
-	/*	Essentially measures distances from the edge of the starting city radius
-		instead of the starting city tile */
-	short const iDistSubtr = iAvgCityDist / 2;
-	FOR_EACH_ENUM(PlotNum)
+	CvPlot const& kStartPlot = *GET_PLAYER(ePlayer).getStartingPlot();
+	scaled rSpaceVal;
+	word const iDistThresh = m_iDistThresh;
+	word const iDistSubtr = m_iDistSubtr;
+	// Low-level performance optimizations ...
+	static vector<claim_t> arDelayCache = cacheDelayFactors(iDistThresh);
+	int const iCivsAlive = PlayerIter<CIV_ALIVE>::count();
+	// Use friend status to avoid FOR_EACH_ENUM(PlotNum)
+	DistanceTable::SourceID const eSrc = m_kDists.m_sourceIDs[kMap.plotNum(kStartPlot)];
+	for (size_t i = 0; i < m_kDists.m_distances[eSrc].size(); i++)
 	{
-		if (m_pYieldValues->get(eLoopPlotNum) <= 0)
+		DistanceTable::DestinationID const eDst = (DistanceTable::DestinationID)i;
+		PlotNumTypes eDestPlot = m_kDists.m_destinationIDToPlotNum[eDst];
+		claim_t rSumOfClaims = m_sumOfClaims.get(eDestPlot);
+		if (rSumOfClaims <= 0)
 			continue;
-		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+		short iStartDist = m_kDists.m_distances[eSrc][eDst];
+		if (iStartDist > iDistThresh)
+			continue;
+		word iDist = (word)std::max(1, iStartDist - iDistSubtr);
+
+		claim_t rClaim(1, iDist);
+		rClaim /= rSumOfClaims;
+		/*	If one player is twice as far away than the other, then the first player
+			does not have a 1 in 3 chance to claim the plot. 1 in 9 sounds more accurate,
+			but I want to reflect, to some extent, the possibility of claiming the plot
+			militarily. So let's not quite square the proportion. */
+		// Not worth the extra time on super-huge maps
+		if (MAX_CIV_PLAYERS > 25 && // Make sure not to branch here w/ the 18-civ DLL
+			iCivsAlive > 25)
 		{
-			CvPlot const& kStartPlot = *it->getStartingPlot();
-			CvPlot const& kLoopPlot = kMap.getPlotByIndex(eLoopPlotNum);
-			if (kMap.plotDistance(&kStartPlot, &kLoopPlot) <= 2)
-			{
-				// Accounted for by found values
-				sumOfClaims.set(eLoopPlotNum, 0);
-				break;
-			}
-			short iDist = m_pPathDists->d(kStartPlot, kLoopPlot);
-			if (iDist == MAX_SHORT)
-				continue;
-			iDist = std::max(1, iDist - iDistSubtr);
-			sumOfClaims.add(eLoopPlotNum, claim_t(1, iDist));
+			rClaim *= rClaim;
 		}
-	}
+		else rClaim.exponentiate(claim_t(190, 100));
+		/*	Apart from competition, nearby plots are better than remote ones.
+			How much better really depends on the shape of the space for expansion;
+			can't take that into account here. It's fair to say that remote plots
+			tend to become worked later than nearby plots, and that an oblong shape
+			is undesirable. Delay being the more important of the two reasons for
+			reducing the yield value of a plot. */
+		// (formula moved into cacheDelayFactors)
+		scaled rAccessFactor = rClaim / arDelayCache[iDist];
+		/*	For uncontested plots very close to kStartPlot, the exact distances
+			shouldn't matter. */
+		rAccessFactor.decreaseTo(fixp(1/3.));
+		scaled rYieldVal = m_kYieldValues.get(eDestPlot);
+		rSpaceVal += rYieldVal * rAccessFactor;
 
-	/*	Compute these upfront b/c it depends on the typical distance between
-		starting sites whether a given distance is "too close" */
-	EnumMap<PlayerTypes,scaled> rivalDistFactors;
-	scaled const rTypicalDistFactor = computeRivalDistFactors(rivalDistFactors, false);
-	// Need this once for all rivals and once just for those in the same area
-	EnumMap<PlayerTypes,scaled> sameAreaRivalDistFactors;
-	scaled rSameAreaTargetDistFactor = computeRivalDistFactors(
-			sameAreaRivalDistFactors, true) * fixp(4/3.);
-
-	// Again, need to know the distribution before computing the actual per-player values.
-	vector<scaled> arAreaYieldsPerPlayer;
-	EnumMap<PlayerTypes,scaled> areaYieldsPerPlayer;
-	EnumMap<PlayerTypes,scaled> spaceValues;
-	int const iCivEverAlive = PlayerIter<CIV_ALIVE>::count();
-	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
-	{
-		scaled rSpaceVal;
-		CvPlot const& kStartPlot = *itPlayer->getStartingPlot();
 		#ifdef DEBUG_SPACE_BREAKDOWN
-			vector<std::pair<scaled,BreakDownData> > aSpaceBreakDown;
+			aSpaceBreakDown.push_back(make_pair(rYieldVal*rAccessFactor,BreakDownData(eDestPlot,rYieldVal,rAccessFactor)));
 		#endif
-		FOR_EACH_ENUM(PlotNum)
-		{
-			claim_t rTotal = sumOfClaims.get(eLoopPlotNum);
-			if (rTotal <= 0)
-				continue;
-			short iStartDist = m_pPathDists->d(
-					kStartPlot, kMap.getPlotByIndex(eLoopPlotNum));
-			if (iStartDist == MAX_SHORT)
-				continue;
-			short iDist = std::max(1, iStartDist - iDistSubtr);
-			claim_t rAccessFactor = 1 / (rTotal * iDist);
-			/*	So far, it's proportional to distance. While this encourages
-				starting positions that at least give everyone a chance, it still
-				assigns too much value to contested plots, especially to plots
-				that are close to multiple starting sites (high rTotal).
-				On the higher difficulty levels, humans usually can't settle
-				their 2nd and 3rd cities faster than the AI. */
-			rAccessFactor.exponentiate(fixp(1.85));
-			/*	Apart from competition, nearby plots are better than remote ones.
-				Divisor d^(d/750) -- weird formula, but seems to result in the kind
-				of hyperbola I had in mind. */
-			rAccessFactor /= scaled(iDist).pow(scaled(iDist, 750));
-			/*	For uncontested plots very close to kStartPlot, the exact distance
-				shouldn't matter. */
-			rAccessFactor.decreaseTo(1);
-			scaled rYieldVal = m_pYieldValues->get(eLoopPlotNum);
-			rSpaceVal += rYieldVal * rAccessFactor;
-			#ifdef DEBUG_SPACE_BREAKDOWN
-				aSpaceBreakDown.push_back(make_pair(scaled(rYieldVal*rAccessFactor),BreakDownData(eLoopPlotNum,rYieldVal,rAccessFactor)));
-			#endif
-		}
-		#ifdef DEBUG_SPACE_BREAKDOWN
-		out << "\nSpace breakdown for player" << itPlayer->getID() << "\n";
+	}
+	#ifdef DEBUG_SPACE_BREAKDOWN
+	if (m_bLog)
+	{
+		std::ostringstream out;
+		out << "\nSpace breakdown for player" << ePlayer << "\n";
 		std::sort(aSpaceBreakDown.rbegin(),aSpaceBreakDown.rend());
-		scaled rSumZero, rSumOne, rSumTwo, rSum3to9;
+		uscaled rSumZero, rSumOne, rSumTwo, rSum3to9;
 		for(size_t i = 0; i < aSpaceBreakDown.size(); i++) {
 			if(aSpaceBreakDown[i].first.round() > 1)
 				out << aSpaceBreakDown[i].first.round() << "="<< aSpaceBreakDown[i].second.rYieldVal.round() << "*" << aSpaceBreakDown[i].second.rAccessFactor.str(100) <<" (" << kMap.getPlotByIndex(aSpaceBreakDown[i].second.ePlot).getX() << "," << kMap.getPlotByIndex(aSpaceBreakDown[i].second.ePlot).getY() << ")\n";
@@ -901,7 +926,64 @@ void StartingPositionIteration::computeStartValues(
 		out << "Near-2 space values sum up to " << rSumTwo.round() << "\n";
 		out << "(3,9)-space values sum up to " << rSum3to9.round() << "\n";
 		out << "All the rest sums up to " << (rSpaceVal - rSumZero - rSumOne - rSumTwo - rSum3to9).round() << "\n";
-		#endif
+		out << std::endl;
+		gDLL->logMsg("StartingPos.log", out.str().c_str(), false, false);
+	}
+	#endif
+	m_spaceValues.set(ePlayer, rSpaceVal);
+}
+
+/*	Returning by value. Shouldn't really matter and allows me to keep the cache
+	local to computeSpaceValue above. */
+vector<StartingPositionIteration::SpaceEvaluator::claim_t>
+StartingPositionIteration::SpaceEvaluator::cacheDelayFactors(word iMaxDist)
+{
+	std::vector<claim_t> aResult(iMaxDist);
+	for (word iDist = 1; iDist < iMaxDist; iDist++)
+	{
+		claim_t rDelay(iDist);
+		/*	Weird formula, but seems to result in the kind of hyperbola I had in mind.
+			ScaledNum::exponentiate is pretty slow for large bases. It was by far the
+			biggest time sink of the whole SPI algorithm; hence this cache.
+			(Exponentiating 1/iDist doesn't help either as very small bases aren't
+			supported at all by ScaledNum.) */
+		rDelay.exponentiate(claim_t(iDist, iMaxDist * 2));
+		aResult[iDist] = rDelay;
+	}
+	return aResult;
+}
+
+// The results are on the scale of AIFoundValue
+void StartingPositionIteration::computeStartValues(
+	EnumMap<PlayerTypes,short> const& kFoundValues, SolutionAttributes& kResult,
+	bool bLog) const
+{
+	#ifdef SPI_LOG
+		std::ostringstream out;
+		if (bLog)
+			out << "Evaluating starting position ...\n\n";
+	#endif
+
+	// The computationally most expensive part:
+	SpaceEvaluator spaceEval(*m_pPathDists, *m_pYieldValues, bLog);
+
+	/*	Compute these upfront b/c it depends on the typical distance between
+		starting sites whether a given distance is "too close" */
+	EnumMap<PlayerTypes,scaled> rivalDistFactors;
+	scaled const rTypicalDistFactor = computeRivalDistFactors(rivalDistFactors, false);
+	// Need this once for all rivals and once just for those in the same area
+	EnumMap<PlayerTypes,scaled> sameAreaRivalDistFactors;
+	scaled rSameAreaTargetDistFactor = computeRivalDistFactors(
+			sameAreaRivalDistFactors, true) * fixp(4/3.);
+	// Need to know the distribution before computing the actual per-player values
+	vector<scaled> arAreaYieldsPerPlayer;
+	EnumMap<PlayerTypes,scaled> areaYieldsPerPlayer;
+	EnumMap<PlayerTypes,scaled> spaceValues;
+	int const iCivEverAlive = PlayerIter<CIV_ALIVE>::count();
+	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
+	{
+		scaled rSpaceVal = spaceEval.getSpaceValue(itPlayer->getID());
+		CvPlot const& kStartPlot = *itPlayer->getStartingPlot();
 		/*	Area size needs to be taken into account explicitly b/c empires spread
 			across multiple areas are difficult to defend and pay colony maintenance */
 		scaled rAreaYields;
@@ -934,7 +1016,7 @@ void StartingPositionIteration::computeStartValues(
 			spaceValues.multiply(itPlayer->getID(), rRatio + rTolerance);
 		/*	If possible, we want there to be room for the core cities in
 			the player's starting area. */
-		scaled rTargetMinYields = GC.getInfo(kMap.getWorldSize()).
+		scaled rTargetMinYields = GC.getInfo(GC.getMap().getWorldSize()).
 				getTargetNumCities() * fixp(0.78) * m_rMedianLandYieldVal * NUM_CITY_PLOTS;
 		// Adjust to crowdedness
 		rTargetMinYields *= scaled(
@@ -965,6 +1047,7 @@ void StartingPositionIteration::computeStartValues(
 		else if (kGame.isOption(GAMEOPTION_RAGING_BARBARIANS))
 			rBaseSpaceWeight *= fixp(0.95);
 	}
+	int const iAvgCityDist = m_pPathDists->getAvgCityDist();
 	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
 		scaled rFoundValue = kFoundValues.get(itPlayer->getID());
@@ -1581,7 +1664,13 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 	/*	Iterate until we return due to getting stuck in a (local) optimum
 		or until we run out of time */
 	int iStepsConsidered = 0;
-	while (iStepsConsidered < 700)
+	/*	The effort is pretty much proportional to width*height*civs,
+		but everything takes longer on large maps, so players ought to
+		have more patience. Hence the exponent. */
+	int iMaxSteps = (300000 /
+			scaled(kMap.numPlots() * PlayerIter<CIV_ALIVE>::count()).
+			pow(fixp(0.6))).round();
+	while (iStepsConsidered < iMaxSteps)
 	{
 		vector<std::pair<scaled,PlayerTypes> > currSitesByOutlierVal;
 		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)

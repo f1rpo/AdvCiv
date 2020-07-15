@@ -1144,7 +1144,9 @@ SET_ARRAY_DEFAULT(unsigned short);
 SET_ARRAY_DEFAULT(byte);
 SET_ARRAY_DEFAULT(float); // advc
 SET_ARRAY_DEFAULT(scaled); // advc.fract
-SET_ARRAY_DEFAULT(ScaledNum<1024*32>); // advc.fract (needed sometimes for small fractions)
+// <advc.027> (Can't pass multi-argument instantiation to macro)
+typedef ScaledNum<1024*32,uint> ScaledNum_32_1024_uint;
+SET_ARRAY_DEFAULT(ScaledNum_32_1024_uint); // </advc.027>
 
 /*  advc: COMPILE_NUM_TYPES param removed; use NUM_ENUM_TYPES macro instead.
 	JITarrayType accessor, ArrayStart and ArrayLength functions removed.

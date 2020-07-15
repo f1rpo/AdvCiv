@@ -49,6 +49,7 @@
 #define DllExport   __declspec( dllexport )
 
 typedef unsigned char    byte;
+// advc (note): A little strange to me, but consistent with WORD in winnt.h.
 typedef unsigned short   word;
 typedef unsigned int     uint;
 typedef unsigned long    dword;

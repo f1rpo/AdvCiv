@@ -442,8 +442,6 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 
 	uninit();
 
-	m_iStartingX = INVALID_PLOT_COORD;
-	m_iStartingY = INVALID_PLOT_COORD;
 	m_iTotalPopulation = 0;
 	m_iTotalLand = 0;
 	m_iTotalLandScored = 0;
@@ -570,6 +568,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_eCurrentEra = (EraTypes)0;  //??? Is this repeated data???
 	m_eLastStateReligion = NO_RELIGION;
 	m_eParent = NO_PLAYER;
+	m_pStartingPlot = NULL; // advc.027
 
 	for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
 	{
@@ -7580,12 +7579,6 @@ int CvPlayer::specialistCommerce(SpecialistTypes eSpecialist, CommerceTypes eCom
 }
 
 
-CvPlot* CvPlayer::getStartingPlot() const
-{
-	return GC.getMap().plotSoren(m_iStartingX, m_iStartingY);
-}
-
-
 void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 {
 	CvPlot* pOldStartingPlot = getStartingPlot();
@@ -7600,22 +7593,16 @@ void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 	}
 
 	if (pNewValue == NULL)
-	{
-		m_iStartingX = INVALID_PLOT_COORD;
-		m_iStartingY = INVALID_PLOT_COORD;
-	}
+		m_pStartingPlot = NULL;
 	else
 	{
-		int iX = pNewValue->getX();
-		int iY = pNewValue->getY();
 		// <advc.031c>
 		if (gFoundLogLevel > 0 && !GC.getInitCore().isScenario() &&
-			m_iStartingX == INVALID_PLOT_COORD)
+			m_pStartingPlot == NULL)
 		{
-			AI().logFoundValue(iX, iY, true);
+			AI().logFoundValue(*pNewValue, true);
 		} // </advc.031c>
-		m_iStartingX = iX;
-		m_iStartingY = iY;
+		m_pStartingPlot = pNewValue;
 
 		getStartingPlot()->getArea().changeNumStartingPlots(1);
 		if (bUpdateStartDist)
@@ -15996,9 +15983,13 @@ void CvPlayer::read(FDataStreamBase* pStream)
 
 	uint uiFlag=0;
 	pStream->Read(&uiFlag);
-
-	pStream->Read(&m_iStartingX);
-	pStream->Read(&m_iStartingY);
+	// <advc.027> (No longer stored as x,y)
+	{
+		int iStartingX, iStartingY;
+		pStream->Read(&iStartingX);
+		pStream->Read(&iStartingY);
+		m_pStartingPlot = GC.getMap().plot(iStartingX, iStartingY);
+	} // </advc.027>
 	pStream->Read(&m_iTotalPopulation);
 	pStream->Read(&m_iTotalLand);
 	pStream->Read(&m_iTotalLandScored);
@@ -16558,8 +16549,15 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	uiFlag = 11; // advc.001x
 	pStream->Write(uiFlag);
 
-	pStream->Write(m_iStartingX);
-	pStream->Write(m_iStartingY);
+	// <advc.027>
+	int iStartingX = INVALID_PLOT_COORD, iStartingY = INVALID_PLOT_COORD;
+	if (m_pStartingPlot != NULL)
+	{
+		iStartingX = m_pStartingPlot->getX();
+		iStartingY = m_pStartingPlot->getY();
+	}
+	pStream->Write(iStartingX);
+	pStream->Write(iStartingY); // </advc.027>
 	pStream->Write(m_iTotalPopulation);
 	pStream->Write(m_iTotalLand);
 	pStream->Write(m_iTotalLandScored);

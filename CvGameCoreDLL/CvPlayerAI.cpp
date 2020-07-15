@@ -26013,8 +26013,9 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 	if (isHuman() &&  /* advc.108: OK for recommendations, but allow AI to evaluate
 						 plots and settle elsewhere. */
 		getNumCities() == 0 && iMaxSites > 0 && GC.getGame().getElapsedGameTurns() == 0 &&
-		m_iStartingX != INVALID_PLOT_COORD && m_iStartingY != INVALID_PLOT_COORD)  {
-		m_aiAICitySites.push_back(GC.getMap().plotNum(m_iStartingX, m_iStartingY));
+		getStartingPlot() != NULL) 
+	{
+		m_aiAICitySites.push_back(GC.getMap().plotNum(*getStartingPlot()));
 		//AI_recalculateFoundValues(m_iStartingX, m_iStartingY, CITY_PLOTS_RADIUS, 2 * CITY_PLOTS_RADIUS);
 		return; // don't bother trying to pick a secondary spot
 	}

@@ -96,12 +96,34 @@ private:
 		int fewestPotentialSites() const;
 	};
 
+	class SpaceEvaluator
+	{
+	public:
+		SpaceEvaluator(DistanceTable const& kDists,
+				EnumMap<PlotNumTypes,scaled> const& kYieldValues, bool bLog);
+		scaled getSpaceValue(PlayerTypes ePlayer) const { return m_spaceValues.get(ePlayer); }
+	private:
+		// Claims are inverted distances; pretty small.
+		typedef ScaledNum<1024*32,uint> claim_t;
+		void computeSpaceValue(PlayerTypes ePlayer);
+		static std::vector<claim_t> cacheDelayFactors(word iMaxDist);
+		DistanceTable const& m_kDists;
+		EnumMap<PlotNumTypes,scaled> const& m_kYieldValues;
+		EnumMap<PlayerTypes,scaled> m_spaceValues;
+		EnumMap<PlotNumTypes,claim_t> m_sumOfClaims;
+		word m_iDistThresh;
+		word m_iDistSubtr;
+		bool m_bLog;
+	};
+
 	class DistanceTable
 	{
 		/*	Internal ids so that m_aaiDistances can be a good deal smaller than
 			the map dimensions */
 		enum SourceID { NOT_A_SOURCE = -1 };
 		enum DestinationID { NOT_A_DESTINATION = -1 };
+		// Needs to be able to traverse the table w/o having to go through all plots
+		friend void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes);
 	public:
 		DistanceTable(std::vector<CvPlot const*>& kSources,
 				std::vector<CvPlot const*>& kDestinations);
@@ -115,6 +137,7 @@ private:
 		std::vector<std::vector<short> > m_distances;
 		std::vector<SourceID> m_sourceIDs;
 		std::vector<DestinationID> m_destinationIDs;
+		std::vector<PlotNumTypes> m_destinationIDToPlotNum;
 		short m_iFirstFrontierCost;
 		short m_iSecondFrontierCost;
 

@@ -380,7 +380,8 @@ public:
 	int specialistYield(SpecialistTypes eSpecialist, YieldTypes eYield) const;														// Exposed to Python
 	int specialistCommerce(SpecialistTypes eSpecialist, CommerceTypes eCommerce) const;										// Exposed to Python
 
-	CvPlot* getStartingPlot() const;																																			// Exposed to Python
+	// advc.027: Inline (called a lot by StartingPositionIteration)
+	inline CvPlot* getStartingPlot() const { return m_pStartingPlot; }											// Exposed to Python
 	void setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist);												// Exposed to Python
 
 	int getTotalPopulation() const;																															// Exposed to Python
@@ -1264,8 +1265,6 @@ protected:  // <advc.210>
 
 	static CvPlayerAI** m_aPlayers; // advc.003u: Moved from CvPlayerAI.h; and store only pointers.
 
-	int m_iStartingX;
-	int m_iStartingY;
 	int m_iTotalPopulation;
 	int m_iTotalLand;
 	int m_iTotalLandScored;
@@ -1391,6 +1390,7 @@ protected:  // <advc.210>
 	PlayerTypes m_eParent;
 	TeamTypes m_eTeamType;
 	CvCivilization* m_pCivilization; // advc.003u
+	CvPlot* m_pStartingPlot; // advc.027: Replacing m_iStartingX/Y
 
 	int* m_aiSeaPlotYield;
 	int* m_aiYieldRateModifier;

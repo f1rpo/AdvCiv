@@ -727,18 +727,23 @@ private:
 		/*	Base 0 or too close to it to make a difference given the precision of the algorithm.
 			Fixme: rExp could also be close to 0. Should somehow use x=y*z => b^x = (b^y)^z. */
 		if (m_i < SCALE / 64)
+		{
+			// This would be rather expensive and could overflow
+			/*if (m_i > 0)
+				return 1 / powNonNegative(1 / *this);*/
 			return 0;
+		}
 		/*	Recall that: If x=y+z, then b^x=(b^y)*(b^z).
 						 If b=a*c, then b^x=(a^x)*(c^x). */
 		// Split rExp into the sum of an integer and a (scaled) fraction between 0 and 1
 		// Running example: 5.2^2.1 at SCALE 1024, i.e. (5325/1024)^(2150/1024)
-		IntType expInt = rExp.m_i / SCALE; // 2 in the example
+		IntType nExpInt = rExp.m_i / SCALE; // 2 in the example
 		// Use uint in all local ScaledNum variables for more accurate rounding
-		ScaledNum<128,uint> rExpFrac(rExp - expInt); // Ex.: 13/128
+		ScaledNum<128,uint> rExpFrac(rExp - nExpInt); // Ex.: 13/128
 		/*	Factorize the base into powers of 2 and, as the last factor, the base divided
 			by the product of the 2-bases. */
 		ScaledNum<iSCALE,uint> rProductOfPowersOfTwo(1);
-		IntType baseDiv = 1;
+		IntType nBaseDiv = 1;
 		// Look up approximate result of 2^rExpFrac in precomputed table
 		#ifdef SCALED_NUM_EXTRA_ASSERTS
 			FAssertBounds(0, 128, rExpFrac.m_i);
@@ -749,25 +754,29 @@ private:
 		/*	Tbd.: Try replacing this loop with _BitScanReverse (using the /EHsc compiler flag).
 			Or perhaps not available in MSVC03? See: github.com/danaj/Math-Prime-Util/pull/10/
 			*/
-		while (baseDiv < *this)
-		{
-			baseDiv *= 2;
-			rProductOfPowersOfTwo *= rPowOfTwo;
-		} // Ex.: baseDiv=8 and rProductOfPowersOfTwo=1270/1024, approximating (2^0.1)^3.
+		{	//while (nBaseDiv < *this)
+			IntType const nCeil = ceil(); // Avoid expensive overflow handling
+			while (nBaseDiv < nCeil)
+			{
+				nBaseDiv *= 2;
+				// This is expensive b/c it will generally use 64 bit :(
+				rProductOfPowersOfTwo *= rPowOfTwo;
+			}
+		} // Ex.: nBaseDiv=8 and rProductOfPowersOfTwo=1270/1024, approximating (2^0.1)^3.
 		ScaledNum<256,uint> rLastFactor(1);
-		// Look up approximate result of ((*this)/baseDiv)^rExpFrac in precomputed table
-		int iLastBaseTimes64 = (ScaledNum<64,uint>(*this / baseDiv)).m_i; // Ex.: 42/64 approximating 5.2/8
+		// Look up approximate result of ((*this)/nBaseDiv)^rExpFrac in precomputed table
+		int iLastBaseTimes64 = (ScaledNum<64,uint>(*this / nBaseDiv)).m_i; // Ex.: 42/64 approximating 5.2/8
 		#ifdef SCALED_NUM_EXTRA_ASSERTS
 			FAssertBounds(0, 64+1, iLastBaseTimes64);
 		#endif
 		if (rExpFrac.m_i != 0 && iLastBaseTimes64 != 64)
 		{
-			// Could be prone to cache misses :(
+			// Could be prone to cache misses, but tests so far haven't confirmed this.
 			rLastFactor.m_i = FixedPointPowTables::powersUnitInterval_256
 					[iLastBaseTimes64-1][rExpFrac.m_i-1] + 1; // Table and values are shifted by 1
 			// Ex.: Position [41][12] is 244, i.e. rLastFactor=245/256. Approximation of (5.2/8)^0.1
 		}
-		ScaledNum r(ScaledNum<iSCALE,uint>(pow(expInt)) *
+		ScaledNum r(ScaledNum<iSCALE,uint>(pow(nExpInt)) *
 				rProductOfPowersOfTwo * ScaledNum<iSCALE,uint>(rLastFactor));
 		return r;
 		/*	Ex.: First factor is 27691/1024, approximating 5.2^2,
