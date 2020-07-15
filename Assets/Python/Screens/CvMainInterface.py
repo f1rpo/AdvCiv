@@ -5448,13 +5448,15 @@ class CvMainInterface:
 					if bAlignIcons:
 						scores.setWorstEnemy()
 # BUG - Worst Enemy - end
-# BUG - WHEOOH - start  # advc.104: Permanently disabled
-			#if ScoreOpt.isShowWHEOOH(): 
-			#	if PlayerUtil.isWHEOOH(ePlayer, PlayerUtil.getActivePlayerID()):
-			#		szTempBuffer = u"%c" %(g.getSymbolID(FontSymbols.OCCUPATION_CHAR))
-			#		szBuffer = szBuffer + szTempBuffer
-			#		if bAlignIcons:
-			#			scores.setWHEOOH()
+# BUG - WHEOOH - start
+			#if ScoreOpt.isShowWHEOOH():
+			# advc.104: Enable iff UWAI is disabled. But the icon still won't show up unless it gets added to the scoreboard string.
+			if CyGame().useKModAI(): 
+				if PlayerUtil.isWHEOOH(ePlayer, PlayerUtil.getActivePlayerID()):
+					szTempBuffer = u"%c" %(g.getSymbolID(FontSymbols.OCCUPATION_CHAR))
+					szBuffer = szBuffer + szTempBuffer
+					if bAlignIcons:
+						scores.setWHEOOH()
 # BUG - WHEOOH - end
 # BUG - Num Cities - start
 			if ScoreOpt.isShowCountCities():

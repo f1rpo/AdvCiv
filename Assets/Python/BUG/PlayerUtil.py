@@ -449,6 +449,9 @@ def isWHEOOH(playerOrID, askingPlayerOrID):
 	askingPlayer, askingTeam = getPlayerAndTeam(askingPlayerOrID)
 	if not TradeUtil.canTrade(askingPlayer, askedPlayer):
 		return False
+	# <advc.004> Don't need the UI to tell us when war has already been declared
+	if askedTeam.getAtWarCount(True) > 0:
+		return False # </advc.004>
 	tradeData = TradeData()
 	tradeData.ItemType = TradeableItems.TRADE_WAR
 	for player in players(alive=True, barbarian=False, minor=False):
