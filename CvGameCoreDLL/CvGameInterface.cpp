@@ -2094,9 +2094,10 @@ ColorTypes CvGame::getPlotHighlightColor(CvPlot* pPlot) const  // advc: refactor
 	if (pPlot == NULL)
 		return NO_COLOR;
 
-	ColorTypes eDefaultColor = GC.getColorType("GREEN");
+	ColorTypes const eDefaultColor = GC.getColorType("GREEN");
 	if (gDLL->GetWorldBuilderMode())
 		return eDefaultColor;
+	ColorTypes const eNegativeColor = GC.getColorType("DARK_GREY");
 
 	switch (gDLL->UI().getInterfaceMode())
 	{
@@ -2104,21 +2105,23 @@ ColorTypes CvGame::getPlotHighlightColor(CvPlot* pPlot) const  // advc: refactor
 	case INTERFACEMODE_SIGN:
 		if (!pPlot->isRevealed(getActiveTeam(), true))
 			return NO_COLOR;
+		return eDefaultColor;
 	case INTERFACEMODE_PYTHON_PICK_PLOT:
 		if (!pPlot->isRevealed(getActiveTeam(), true) ||
 			!GC.getPythonCaller()->canPickRevealedPlot(*pPlot))
 		{
 			return NO_COLOR;
 		}
+		return eDefaultColor;
 	case INTERFACEMODE_SAVE_PLOT_NIFS:
-		return GC.getColorType("DARK_GREY");
+		return eNegativeColor;
 	}
-	if (!gDLL->UI().getSelectionList()->canDoInterfaceModeAt(
+	if (gDLL->UI().getSelectionList()->canDoInterfaceModeAt(
 		gDLL->UI().getInterfaceMode(), pPlot))
 	{
-		return GC.getColorType("DARK_GREY");
+		return eDefaultColor;
 	}
-	return eDefaultColor;
+	return eNegativeColor;
 }
 
 void CvGame::loadBuildQueue(const CvString& strItem) const
