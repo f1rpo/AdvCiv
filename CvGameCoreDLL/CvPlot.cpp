@@ -1121,6 +1121,18 @@ bool CvPlot::isAdjacentFreshWater() const
 	return false;
 }
 
+// advc.041:
+bool CvPlot::isAdjacentSaltWater() const
+{
+	FOR_EACH_ENUM(Direction)
+	{
+		CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
+		if (pAdj != NULL && pAdj->isWater() && !pAdj->isLake())
+			return true;
+	}
+	return false;
+}
+
 
 bool CvPlot::isPotentialIrrigation() const
 {
@@ -8008,25 +8020,37 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 			return false;
 	}
 
-	/*if (GC.getInfo(eUnit).isPrereqBonuses()) {
+	if (kUnit.isPrereqBonuses())
+	{
+		if (kUnit.getDomainType() == DOMAIN_SEA)
+		{	// advc: Moved to CvCity
+			if (bCity && !pCity->isPrereqBonusSea())
+				return false;
+		}
+		else
+		{
+			//if (getArea().getNumTotalBonuses() > 0)
+			if(!getArea().isAnyBonus()) // advc.001
+				return false;
+		}
+	}
+	/*if (isCity()) {
 		// ...
 	}
-	if (isCity()) {
-		// ...
-	}
-	else if (getArea().getNumTiles() < GC.getInfo(eUnit).getMinAreaSize())
+	else if (getArea().getNumTiles() < kUnit.getMinAreaSize())
 		return false;
 	/*  <advc.041> Replacing the above (moved into CvCityAI::AI_bestUnitAI). I.e.
-		treat MinAreaSize and PrereqBonuses as mere recommendations (for the AI)
-		rather than game rules.
+		treat MinAreaSize as a mere recommendation for the AI rather than a game rule.
 		NB: MinAreaSize is still enforced as a rule for buildings.
 		The last clause above should perhaps be checked by the AI before
 		upgrading units; but AI sea units can end up in small water areas only via
 		WorldBuilder [or possibly teleport -> advc.046], so I'm not bothering with this. */
 	if (bCity)
 	{
-		if(GC.getInfo(eUnit).getDomainType() == DOMAIN_SEA && !isWater() &&
-			!isCoastalLand())
+		/*  Don't allow any ships to be trained at lakes, except Work Boat
+			(if there are resources in the lake; already checked above). */
+		if (kUnit.getDomainType() == DOMAIN_SEA && !kUnit.isPrereqBonuses() &&
+			!isAdjacentSaltWater())
 		{
 			return false;
 		}

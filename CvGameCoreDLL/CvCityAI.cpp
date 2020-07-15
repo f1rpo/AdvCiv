@@ -3079,19 +3079,6 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 		if (!canTrain(eUnit))
 			continue;
 		// <advc.041> Mostly cut and pasted from CvPlot::canTrain
-		CvUnitInfo& kUnit = GC.getInfo(eUnit);
-		if(kUnit.isPrereqBonuses())
-		{
-			if(kUnit.getDomainType() == DOMAIN_SEA)
-			{
-				if(!isPrereqBonusSea())
-					continue;
-			}
-			/*  This was '> 0' in CvPlot::canTrain, which is apparently a bug,
-				but doesn't really matter b/c no land unit has this prereq. */
-			else if(!getArea().isAnyBonus())
-				continue;
-		}
 		int iMinAreaSz = kUnit.getMinAreaSize();
 		if (iMinAreaSz > 0)
 		{

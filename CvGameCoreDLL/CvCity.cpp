@@ -1342,14 +1342,7 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 	{
 		return true;
 	}
-	/*  <advc.041> Don't allow any ships to be trained at lakes, except
-		Work Boat if there are resources in the lake. */
-	CvUnitInfo const& u = GC.getInfo(eUnit);
-	if(u.getDomainType() == DOMAIN_SEA && !isCoastal() &&
-		(!u.isPrereqBonuses() || !isPrereqBonusSea()))
-	{
-		return false; // </advc.041>
-	}
+
 	if(!GET_PLAYER(getOwner()).canTrain(eUnit, bContinue, bTestVisible, bIgnoreCost))
 		return false;
 
@@ -3297,17 +3290,21 @@ bool CvCity::isCapital() const
 	return (GET_PLAYER(getOwner()).getCapitalCity() == this);
 }
 
-// <advc.041>
+// advc: Cut from CvPlot::canTrain
 bool CvCity::isPrereqBonusSea() const
 {
 	FOR_EACH_ENUM(Direction)
 	{
-		CvPlot* p = plotDirection(getX(), getY(), eLoopDirection);
-		if(p != NULL && p->isWater() && p->getArea().isAnyBonus())
+		CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
+		if(pAdj != NULL && pAdj->isWater() &&
+			!pAdj->isImpassable() && // advc.041
+			pAdj->getArea().isAnyBonus())
+		{
 			return true;
+		}
 	}
 	return false;
-}// </advc.041>
+}
 
 bool CvCity::isCoastal(int iMinWaterSize) const
 {

@@ -215,7 +215,7 @@ public:
 	}
 
 	bool isCapital() const;																						// Exposed to Python
-	bool isPrereqBonusSea() const; // advc.041
+	bool isPrereqBonusSea() const; // advc
 	/* advc: -1 means use MIN_WATER_SIZE_FOR_OCEAN. Removed MIN_WATER_SIZE_FOR_OCEAN
 	   from all calls to this function (except those from Python). */
 	bool isCoastal(int iMinWaterSize = -1) const;																// Exposed to Python
