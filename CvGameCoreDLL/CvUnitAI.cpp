@@ -9901,7 +9901,7 @@ bool CvUnitAI::AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI,
 				{
 					CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
 					if (pAdjacentPlot == NULL || !pAdjacentPlot->isWater())
-							continue;
+						continue;
 					//if (pBestUnit->generatePath(pAdjacentPlot, 0, true, &iPathTurns, iMaxTransportPath))
 					if (temp_finder.GeneratePath(pAdjacentPlot)) // K-Mod
 					{

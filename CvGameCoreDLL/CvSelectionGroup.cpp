@@ -3224,10 +3224,10 @@ void CvSelectionGroup::setTransportUnit(CvUnit* pTransportUnit,
 
 bool CvSelectionGroup::isAmphibPlot(const CvPlot* pPlot) const
 {
-	bool bFriendlyCity = true; // K-Mod. I've renamed this from bFriendly, because it was confusing me.
 	CvUnit* pUnit = getHeadUnit();
-	if (pUnit != NULL)
-		bFriendlyCity = pPlot->isFriendlyCity(*pUnit, true);
+	// K-Mod. I've renamed this from bFriendly, because it was confusing me.
+	bool const bFriendlyCity = (pUnit == NULL ? true :
+			pPlot->isFriendlyCity(*pUnit, true));
 
 	//return ((getDomainType() == DOMAIN_SEA) && pPlot->isCoastalLand() && !bFriendlyCity && !canMoveAllTerrain());
 	// BETTER_BTS_AI_MOD, General AI, 04/18/10, jdog5000: START

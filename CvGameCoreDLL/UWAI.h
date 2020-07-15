@@ -36,7 +36,7 @@ public:
 	/*  true if UWAI fully enabled, making all decisions, otherwise false.
 		If inBackground is set, then true if UWAI is running only in the background,
 		but false if UWAI fully enabled or fully disabled. */
-	bool isEnabled(bool inBackground = false) const;
+	bool isEnabled(bool inBackground = false) const; // Exposed to Python via CyGame::useKModAI
 	void setUseKModAI(bool b);
 	void setInBackground(bool b);
 	void read(FDataStreamBase* stream);

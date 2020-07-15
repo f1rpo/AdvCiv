@@ -567,7 +567,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	if (m_eID != NO_PLAYER)
 		m_ePersonalityType = GC.getInitCore().getLeader(m_eID); //??? Is this repeated data???
 	else m_ePersonalityType = NO_LEADER;
-	m_eCurrentEra = ((EraTypes)0);  //??? Is this repeated data???
+	m_eCurrentEra = (EraTypes)0;  //??? Is this repeated data???
 	m_eLastStateReligion = NO_RELIGION;
 	m_eParent = NO_PLAYER;
 
@@ -21427,8 +21427,9 @@ void CvPlayer::markTradeOffers(CLinkList<TradeData>& ourInventory, const CLinkLi
 			}
 		}
 		FAssertMsg(pInvNode != NULL ||
-				// advc.134a: I guess it's OK that capitulation isn't part of the inventory
-				pOfferNode->m_data.m_eItemType == TRADE_SURRENDER,
+				// <advc.134a> I guess it's OK that these aren't part of the inventory
+				pOfferNode->m_data.m_eItemType == TRADE_SURRENDER ||
+				pOfferNode->m_data.m_eItemType == TRADE_PEACE_TREATY, // </advc.134a>
 				"failed to find offered item in inventory");
 	}
 }
