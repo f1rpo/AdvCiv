@@ -957,7 +957,7 @@ void StartingPositionIteration::computeStartValues(
 	EraTypes const eStartEra = kGame.getStartEra();
 	/*	Adjust this to set the overall balance between city radius
 		and space for expansion */
-	scaled rBaseSpaceWeight = fixp(1.6);
+	scaled rBaseSpaceWeight = fixp(5/3.);
 	if (eStartEra <= 1)
 	{
 		if (kGame.isOption(GAMEOPTION_NO_BARBARIANS))
@@ -968,6 +968,12 @@ void StartingPositionIteration::computeStartValues(
 	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
 		scaled rFoundValue = kFoundValues.get(itPlayer->getID());
+		// Anticipate normalization
+		if (rFoundValue < rMedianFoundValue)
+		{
+			rFoundValue = std::min((rMedianFoundValue + rFoundValue) / 2,
+					rFoundValue + rMedianFoundValue / 10);
+		}
 		scaled rSpaceWeight = rBaseSpaceWeight;
 		if (rMedianSpaceValue > 0)
 			rSpaceWeight *= rMedianFoundValue / rMedianSpaceValue;
@@ -1197,24 +1203,22 @@ scaled StartingPositionIteration::weightedDistance(vector<short>& kDistances)
 scaled StartingPositionIteration::outlierValue(
 	EnumMap<PlayerTypes,scaled> const& kStartValues, PlayerTypes eIndex,
 	scaled& rPercentage, scaled rNegativeOutlierExtraWeight,
-	scaled* pMedian, scaled* pMax) const
+	scaled const* pMedian, // To save time if caller happens to have it
+	bool* pbNegativeOutlier) const // Out-param
 {
+	if (pbNegativeOutlier != NULL)
+		*pbNegativeOutlier = false;
+	vector<scaled> arSamples;
+	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+	{
+		arSamples.push_back(kStartValues.get(it->getID()));
+	}
 	scaled rMedian;
 	if (pMedian != NULL)
 		rMedian = *pMedian;
-	scaled rMax;
-	if (pMax != NULL)
-		rMax = *pMax;
-	if (pMedian == NULL || pMax == NULL)
-	{
-		vector<scaled> arSamples;
-		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
-		{
-			arSamples.push_back(kStartValues.get(it->getID()));
-		}
-		rMedian = stats::median(arSamples);
-		rMax = stats::max(arSamples);
-	}
+	else rMedian = stats::median(arSamples);
+	scaled rMax = stats::max(arSamples);
+
 	scaled const rStartVal = kStartValues.get(eIndex);
 	scaled r = (rStartVal - rMedian).abs();
 	// Don't mind small differences (at all); uniformity isn't the goal.
@@ -1223,6 +1227,8 @@ scaled StartingPositionIteration::outlierValue(
 	r.increaseTo(0);
 	if (rStartVal < rMedian) // Small outliers are worse
 	{
+		if (pbNegativeOutlier != NULL)
+			*pbNegativeOutlier = true;
 		r *= 2 * (1 + rNegativeOutlierExtraWeight);
 		rPercentage = r / (rMedian * (1 + rPlusMinus));
 	}
@@ -1481,12 +1487,21 @@ bool StartingPositionIteration::considerStep(Step& kStep,
 			{
 				/*	One last check: The outlier value of the site moved in kStep's first move
 					needs to improve. That's the site we're primarily interested in. */
+				PlayerTypes eFirst = kStep.getFirstMovePlayer();
 				scaled rDummy;
 				scaled rNewOutlierVal = outlierValue(newSolutionAttribs.m_startValues,
-						kStep.getFirstMovePlayer(), rDummy);
+						eFirst, rDummy);
+				bool bNegativeOutlier=false;
 				scaled rCurrOutlierVal = outlierValue(kCurrSolutionAttribs.m_startValues,
-						kStep.getFirstMovePlayer(), rDummy);
-				if (rNewOutlierVal * fixp(1.01) > rCurrOutlierVal)
+						eFirst, rDummy, 0, NULL, &bNegativeOutlier);
+				scaled rCurrStartVal = kCurrSolutionAttribs.m_startValues.get(eFirst); 
+				if (rNewOutlierVal * fixp(1.01) > rCurrOutlierVal ||
+					/*	Start value of negative outlier needs to increase,
+						start value of positive outlier needs to decrease.
+						Don't want the outlier value to go down just as a side-effect
+						of the second move. */
+					bNegativeOutlier !=
+					(rCurrStartVal < newSolutionAttribs.m_startValues.get(eFirst)))
 				{
 					//logStep(kStep, kCurrSolutionAttribs, newSolutionAttribs, false);
 					kStep.takeBack();
@@ -1571,11 +1586,15 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 		vector<std::pair<scaled,PlayerTypes> > currSitesByOutlierVal;
 		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		{
+			// Focus on negative outliers while the avg. error is high
+			scaled rNegativeOutlierExtraWeight = fixp(1.1) * 
+					(m_currSolutionAttribs.m_rAvgError - fixp(0.15));
+			// A little bit of randomness
+			if (iStepsConsidered % 2 == 0)
+				rNegativeOutlierExtraWeight += fixp(0.25);
 			scaled rDummy;
 			scaled rOutlierVal = outlierValue(m_currSolutionAttribs.m_startValues,
-					it->getID(), rDummy,
-					// Focus on negative outliers while the avg. error is high
-					fixp(4/3.) * (m_currSolutionAttribs.m_rAvgError - fixp(0.15)));
+					it->getID(), rDummy, rNegativeOutlierExtraWeight);
 			if (rOutlierVal > 0)
 			{	/*	Also take into account volatility. Crowded areas tend to have higher
 					volatility. Need to avoid moving a small number of high-value

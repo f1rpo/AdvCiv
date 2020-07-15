@@ -2038,8 +2038,8 @@ int AIFoundValue::sumUpPlotValues(std::vector<int>& aiPlotValues) const
 	double minMultPercent = 47;
 	if (iCities <= 0) // Capital will grow large
 	{
-		maxMultPercent -= 10;
-		minMultPercent += 10;
+		maxMultPercent -= 8;
+		minMultPercent += 8;
 	}
 	double const normalizMult = 1;
 	double const subtr = 29;
@@ -3146,10 +3146,10 @@ scaled AIFoundValue::evaluateWorkablePlot(CvPlot const& p) const
 				(eBonus != NO_BONUS || eFeature != NO_FEATURE ? 2 : 0);
 		if ((iVal >= 1 && !p.isWater()) || iVal >= 2)
 		{
-			r += 5;
+			r += 4;
 			if (iVal >= 2)
 			{
-				iVal += 3;
+				iVal += 4;
 				if (!p.isWater() || p.isLake())
 					r += 10;
 			}

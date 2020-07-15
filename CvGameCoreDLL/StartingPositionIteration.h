@@ -56,7 +56,7 @@ private:
 	scaled outlierValue(EnumMap<PlayerTypes,scaled> const& kStartValues,
 			PlayerTypes eIndex, scaled& rPercentage,
 			scaled rNegativeOutlierExtraWeight = 0,
-			scaled* pMedian = NULL, scaled* pMax = NULL) const;
+			scaled const* pMedian = NULL, bool* pbNegativeOutlier = NULL) const;
 	scaled startingPositionValue(SolutionAttributes& kResult) const;
 	void currAltSites(PlayerTypes eCurrSitePlayer,
 			std::vector<std::pair<short,PlotNumTypes> >& kAltSitesByPriority,
