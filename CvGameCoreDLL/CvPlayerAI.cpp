@@ -20543,16 +20543,16 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 				eBestReceiveTech = eLoopTech;
 			}
 		}
-		if(eBestReceiveTech != NO_TECH)
+		if(eBestReceiveTech == NO_TECH)
+			break;
+		humanGives.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eBestReceiveTech));
+		// <advc.104m>
+		if (GET_TEAM(getTeam()).
+			AI_techTradeVal(eBestReceiveTech, kHuman.getTeam()) >= rMinVal)
 		{
-			humanGives.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eBestReceiveTech));
-			// <advc.104m>
-			if (GET_TEAM(getTeam()).
-				AI_techTradeVal(eBestReceiveTech, kHuman.getTeam()) >= rMinVal)
-			{
-				break;
-			} // else fall through
-		} // </advc.104m>
+			break;
+		} // else fall through
+		// </advc.104m>
 	}
 	case DEMAND_MAP:
 	{
