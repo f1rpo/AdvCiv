@@ -49,7 +49,7 @@ void CvGame::updateColoredPlots()
 	CvMap const& kMap = GC.getMap();
 	int const iPlots = kMap.numPlots();
 	// BETTER_BTS_AI_MOD, Debug, 06/25/09, jdog5000: START
-	if(kUI.isShowYields()) // advc.007
+	if(kUI.isShowYields() && !gDLL->GetWorldBuilderMode()) // advc.007
 	{
 		// City circles for debugging
 		if (isDebugMode())
