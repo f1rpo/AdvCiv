@@ -29,6 +29,20 @@ inline int ROUND_DIVIDE(int a, int b)
 	// </advc.001>
 }
 
+/*	<advc.opt> Non-branching implementations.
+	MSVC produces branches for std::max and std::min. There is a cmov instruction,
+	but 32-bit MSVC won't generate that. (There might be an intrinsic that we could
+	use though.)
+	Tbd.: Replace std::max, std::min calls with this? */
+inline int max(int x, int y)
+{
+	return x ^ ((x ^ y) & -(x < y));
+}
+
+inline int min(int x, int y)
+{
+	return y + ((x - y) & -(x < y));
+} // </advc.opt>
 // <advc.003g>
 // This is a better approach than the fmath stuff below
 namespace stats // Seems too generic, but what else to name it?

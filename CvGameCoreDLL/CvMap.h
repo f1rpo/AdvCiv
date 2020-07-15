@@ -56,11 +56,18 @@ public:
 	// 4 | 4 | 3 | 3 | 3 | 4 | 4
 	//
 	// Returns the distance between plots according to the pattern above...
-	inline int plotDistance(int iX1, int iY1, int iX2, int iY2) const
-	{
+	int plotDistance(int iX1, int iY1, int iX2, int iY2) const
+	{	/*	advc.opt: inline keyword removed. Wasn't getting inlined either.
+			xDistance and yDistance and its auxiliary functions are getting inlined.
+			I'm guessing that's why the compiler resists inlining plotDistance;
+			inlining the whole computation is probably bad for branch prediction. */
 		int iDX = xDistance(iX1, iX2);
 		int iDY = yDistance(iY1, iY2);
-		return std::max(iDX, iDY) + (std::min(iDX, iDY) / 2);
+		//return std::max(iDX, iDY) + std::min(iDX, iDY) / 2;
+		/*	advc.opt: Non-branching replacement
+			(abs in stdlib uses just xor and sub). Could also use the max and min
+			functions in CvGameCoreUtils.h, but this here seems a little faster. */
+		return (3 * (iDX + iDY) + abs(iDX - iDY)) / 4;
 	}
 
 	// K-Mod, plot-to-plot alias for convenience:
@@ -86,9 +93,9 @@ public:
 	// 3 | 3 | 3 | 3 | 3 | 3 | 3
 	//
 	// Returns the distance between plots according to the pattern above...
-	inline int stepDistance(int iX1, int iY1, int iX2, int iY2) const
-	{
-		return std::max(xDistance(iX1, iX2), yDistance(iY1, iY2));
+	int stepDistance(int iX1, int iY1, int iX2, int iY2) const
+	{	// std::opt: Was std::max. inline keyword removed; cf. plotDistance.
+		return max(xDistance(iX1, iX2), yDistance(iY1, iY2));
 	}
 
 	// K-Mod, plot-to-plot alias for convenience:
@@ -202,14 +209,16 @@ public:
 	}
 
 private: // Auxiliary functions
-	/*	These look too large and branchy for inlining, but the keywords do seem
-		to improve performance a little bit. Were also present in BtS. */
+	/*	These look too large and branchy for inlining, but the keywords
+		(already present in BtS) do seem to improve performance a little bit.
+		Maybe b/c plotDistance and stepDistance aren't being inlined. */
 
 	inline int coordDistance(int iFrom, int iTo, int iRange, bool bWrap) const
 	{
-		if (bWrap && abs(iFrom - iTo) > iRange / 2)
-			return iRange - abs(iFrom - iTo);
-		return abs(iFrom - iTo);
+		int iDelta = abs(iFrom - iTo); // advc.opt: Make sure this is computed only once
+		if (bWrap && iDelta > iRange / 2)
+			return iRange - iDelta;
+		return iDelta;
 	}
 
 	inline int wrapCoordDifference(int iDiff, int iRange, bool bWrap) const
