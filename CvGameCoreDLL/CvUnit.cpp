@@ -3668,48 +3668,44 @@ bool CvUnit::nuke(int iX, int iY)
 		return false;
 
 	CvWString szBuffer;
-	int iI;
-	CvPlot* pPlot = GC.getMap().plot(iX, iY);
-	int aiTeamsAffected[MAX_TEAMS]; // advc.130q: was bool
-	for(iI = 0; iI < MAX_TEAMS; iI++)
-		aiTeamsAffected[iI] = isNukeVictim(pPlot, (TeamTypes)iI);
+	CvPlot& kPlot = GC.getMap().getPlot(iX, iY);
 
-	for(iI = 0; iI < MAX_CIV_TEAMS; iI++) // advc.003n: was MAX_TEAMS
+	EnumMap<TeamTypes,bool> abTeamsAffected;
+	for (TeamIter<ALIVE> it; it.hasNext(); ++it)
+		abTeamsAffected.set(it->getID(), isNukeVictim(&kPlot, it->getID()));
+
+	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it) // advc.003n: Only major civs
 	{
-		TeamTypes eLoopTeam = (TeamTypes)iI;
-		if(aiTeamsAffected[iI] && !isEnemy(eLoopTeam))
+		if (abTeamsAffected.get(it->getID()) && !isEnemy(it->getID()))
 		{
-			//GET_TEAM(getTeam()).declareWar(eLoopTeam, false, WARPLAN_LIMITED);
+			//GET_TEAM(getTeam()).declareWar(it->getID(), false, WARPLAN_LIMITED);
 			// dlph.26:
-			CvTeam::queueWar(getTeam(), eLoopTeam, false, WARPLAN_LIMITED);
+			CvTeam::queueWar(getTeam(), it->getID(), false, WARPLAN_LIMITED);
 		}
 		CvTeam::triggerWars(); // dlph.26
 	}
 
 	int iBestInterception = 0;
 	TeamTypes eBestTeam = NO_TEAM;
-	for(iI = 0; iI < MAX_TEAMS; iI++)
+	for (TeamIter<> it; it.hasNext(); ++it)
 	{
-		if(!aiTeamsAffected[iI])
+		CvTeam const& kInterceptTeam = *it;
+		if (!abTeamsAffected.get(kInterceptTeam.getID()))
 			continue;
 
-		CvTeam const& kLoopTeam = GET_TEAM((TeamTypes)iI);
-		if(!kLoopTeam.isAlive())
-			continue;
-
-		if(kLoopTeam.getNukeInterception() > iBestInterception)
+		if (kInterceptTeam.getNukeInterception() > iBestInterception)
 		{
-			iBestInterception = kLoopTeam.getNukeInterception();
-			eBestTeam = kLoopTeam.getID();
+			iBestInterception = kInterceptTeam.getNukeInterception();
+			eBestTeam = kInterceptTeam.getID();
 		} // <advc.143b>
-		if(kLoopTeam.isAVassal())
+		if (kInterceptTeam.isAVassal())
 		{
-			int iMasterChance = GET_TEAM(kLoopTeam.getMasterTeam()).
+			int iMasterChance = GET_TEAM(kInterceptTeam.getMasterTeam()).
 					getNukeInterception();
 			if(iMasterChance > iBestInterception)
 			{
 				iBestInterception = iMasterChance;
-				eBestTeam = kLoopTeam.getMasterTeam();
+				eBestTeam = kInterceptTeam.getMasterTeam();
 			}
 		} // </advc.143b>
 	}
@@ -3717,188 +3713,157 @@ bool CvUnit::nuke(int iX, int iY)
 	iBestInterception *= 100 - m_pUnitInfo->getEvasionProbability();
 	iBestInterception /= 100;
 
-	setReconPlot(pPlot);
+	setReconPlot(&kPlot);
 
-	if(GC.getGame().getSorenRandNum(100, "Nuke") < iBestInterception)
+	if (GC.getGame().getSorenRandNum(100, "Nuke") < iBestInterception)
 	{
-		for (iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.003n: was MAX_PLAYERS
+		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) // advc.003n: Only major civs
 		{
-			//if (GET_PLAYER((PlayerTypes)iI).isAlive())
+			CvPlayer const& kObs = *it;
 			// K-Mod. Only show the message to players who have met the teams involved!
-			const CvPlayer& kObs = GET_PLAYER((PlayerTypes)iI);
-			if(kObs.isAlive() && ((GET_TEAM(getTeam()).isHasMet(kObs.getTeam()) &&
-				GET_TEAM(eBestTeam).isHasMet(kObs.getTeam())) ||
+			if (((GET_TEAM(getTeam()).isHasMet(kObs.getTeam()) &&
+				GET_TEAM(eBestTeam).isHasMet(kObs.getTeam())) || // K-Mod end
 				kObs.isSpectator())) // advc.127
 			{
-			// K-Mod end
 				szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_INTERCEPTED",
 						GET_PLAYER(getOwner()).getNameKey(), getNameKey(),
 						GET_TEAM(eBestTeam).getName().GetCString());
 				gDLL->UI().addMessage(kObs.getID(), kObs.getID() == getOwner(), -1,
-						szBuffer, *pPlot, "AS2D_NUKE_INTERCEPTED", MESSAGE_TYPE_MAJOR_EVENT,
+						szBuffer, kPlot, "AS2D_NUKE_INTERCEPTED", MESSAGE_TYPE_MAJOR_EVENT,
 						getButton(), GC.getColorType("RED"));
 			}
 		}
-		if(pPlot->isActiveVisible(false))
-		{
-			// Nuke entity mission
-			CvMissionDefinition kDefiniton;
-			kDefiniton.setMissionTime(GC.getInfo(MISSION_NUKE).getTime() *
-					gDLL->getSecsPerTurn());
-			kDefiniton.setMissionType(MISSION_NUKE);
-			kDefiniton.setPlot(pPlot);
-			kDefiniton.setUnit(BATTLE_UNIT_ATTACKER, this);
-			kDefiniton.setUnit(BATTLE_UNIT_DEFENDER, this);
-
-			// Add the intercepted mission (defender is not NULL)
-			gDLL->getEntityIFace()->AddMission(&kDefiniton);
+		if (kPlot.isActiveVisible(false))
+		{	// advc: Moved into helper class (was duplicated below)
+			NukeMissionDef kMissionDef(kPlot, *this, true);
+			gDLL->getEntityIFace()->AddMission(&kMissionDef);
 		}
 		kill(true);
 		return true; // Intercepted!!! (XXX need special event for this...)
 	}
 
-	if(pPlot->isActiveVisible(false))
-	{
-		// Nuke entity mission
-		CvMissionDefinition kDefiniton;
-		kDefiniton.setMissionTime(GC.getInfo(MISSION_NUKE).getTime() *
-				gDLL->getSecsPerTurn());
-		kDefiniton.setMissionType(MISSION_NUKE);
-		kDefiniton.setPlot(pPlot);
-		kDefiniton.setUnit(BATTLE_UNIT_ATTACKER, this);
-		kDefiniton.setUnit(BATTLE_UNIT_DEFENDER, NULL);
-
-		// Add the non-intercepted mission (defender is NULL)
-		gDLL->getEntityIFace()->AddMission(&kDefiniton);
+	if (kPlot.isActiveVisible(false))
+	{	// advc: Moved into helper class
+		NukeMissionDef kMissionDef(kPlot, *this, false);
+		gDLL->getEntityIFace()->AddMission(&kMissionDef);
 	}
 
 	setMadeAttack(true);
-	setAttackPlot(pPlot, false);
+	setAttackPlot(&kPlot, false);
 
-	for(iI = 0; iI < MAX_CIV_TEAMS; iI++) // advc.003n: was MAX_TEAMS
+	for (TeamIter<> it; it.hasNext(); ++it) 
 	{
-		if(aiTeamsAffected[iI])
-		{
-			GET_TEAM((TeamTypes)iI).changeWarWeariness(getTeam(),
-					100 * GC.getDefineINT("WW_HIT_BY_NUKE"));
-			GET_TEAM(getTeam()).changeWarWeariness(((TeamTypes)iI),
-					100 * GC.getDefineINT("WW_ATTACKED_WITH_NUKE"));
-			GET_TEAM(getTeam()).AI_changeWarSuccess(((TeamTypes)iI),
-					GC.getDefineINT("WAR_SUCCESS_NUKE"));
-		}
+		if (!abTeamsAffected.get(it->getID()))
+			continue;
+		it->changeWarWeariness(getTeam(),
+				100 * GC.getDefineINT("WW_HIT_BY_NUKE"));
+		GET_TEAM(getTeam()).changeWarWeariness(it->getID(),
+				100 * GC.getDefineINT("WW_ATTACKED_WITH_NUKE"));
+		GET_TEAM(getTeam()).AI_changeWarSuccess(it->getID(),
+				GC.getDefineINT("WAR_SUCCESS_NUKE"));
 	}
 	CvCity const* pReplayCity = NULL; // advc.106
 	// <advc.130q>
-	for(int i = 0; i < MAX_CIV_TEAMS; i++)
+	EnumMap<TeamTypes,int> aiDamageScore;
+	for (TeamIter<> it; it.hasNext(); ++it)
 	{
 		// We already know if the team is affected at all
-		if(aiTeamsAffected[i] <= 0)
+		if (!abTeamsAffected.get(it->getID()))
 			continue;
+		aiDamageScore.set(it->getID(), 1);
 		// How badly is it affected?
-		double score = 0;
-		for (SquareIter itPlot(*pPlot, nukeRange()); itPlot.hasNext(); ++itPlot)
+		scaled rScore = 0;
+		for (SquareIter itPlot(kPlot, nukeRange()); itPlot.hasNext(); ++itPlot)
 		{
 			CvPlot const& kAffectedPlot = *itPlot;
-			if (kAffectedPlot.getTeam() != i || !kAffectedPlot.isCity())
+			if (kAffectedPlot.getTeam() != it->getID() || !kAffectedPlot.isCity())
 				continue;
 			CvCity const& kAffectedCity = *kAffectedPlot.getPlotCity();
 			// <advc.106>
-			if(pReplayCity == NULL || pReplayCity->getPopulation() < kAffectedCity.getPopulation())
-				pReplayCity = &kAffectedCity; // </advc.106>
-			score += GET_PLAYER(kAffectedCity.getOwner()).AI_razeMemoryScore(kAffectedCity);
+			if (pReplayCity == NULL ||
+				pReplayCity->getPopulation() < kAffectedCity.getPopulation())
+			{
+				pReplayCity = &kAffectedCity;
+			} // </advc.106>
+			rScore += scaled::fromDouble(GET_PLAYER(kAffectedCity.getOwner()).
+					AI_razeMemoryScore(kAffectedCity));
 		}
-		if(score >= 1)
-			aiTeamsAffected[i] = 2;
-		if(score > 8)
-			aiTeamsAffected[i] = 3;
+		if (rScore >= 1)
+			aiDamageScore.set(it->getID(), 2);
+		if (rScore > 8)
+			aiDamageScore.set(it->getID(), 3);
 	} // </advc.130q> // The nuked-friend loop (refactored)
-	for(iI = 0; iI < MAX_CIV_TEAMS; iI++) // advc.003n: was MAX_TEAMS
+	// advc.003n: Only major civs (both loops)
+	for (TeamIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(getTeam());
+		itOther.hasNext(); ++itOther)
 	{
-		CvTeamAI& kOther = GET_TEAM((TeamTypes)iI);
-		if(!kOther.isAlive() || kOther.getID() == getTeam())
-			continue;
-
-		//if(abTeamsAffected[iI] > 0)
-		/*  advc.130q: Moved the > 0 case to a separate loop b/c it's now
+		CvTeamAI& kOther = *itOther;
+		//if (abTeamsAffected.get(kOther.getID()))
+		/*  advc.130q: Moved the is-affected case to a separate loop b/c it's now
 			important to process the nuked-friend penalties first */
 
-		for(int iJ = 0; iJ < MAX_CIV_TEAMS; iJ++) // advc.003n: was MAX_TEAMS
+		for (TeamIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itAffected(kOther.getID());
+			itAffected.hasNext(); ++itAffected)
 		{
-			CvTeamAI const& kAffected = GET_TEAM((TeamTypes)iJ);
-			if(!kAffected.isAlive())
-				continue;
-
+			CvTeamAI const& kAffected = *itAffected;
 			// <advc.130q>
-			if(aiTeamsAffected[kAffected.getID()] > 1 && // was >0
+			if (aiDamageScore.get(kAffected.getID()) > 1 && // was abAffected
 				// Don't hate them for striking back
 				GET_TEAM(getTeam()).AI_getMemoryCount(kAffected.getID(), MEMORY_NUKED_US)
-				<= kAffected.AI_getMemoryCount(getTeam(), MEMORY_NUKED_US))
-			{	// </advc.130q>
-				if(kOther.isHasMet(kAffected.getID()) &&
-					kOther.AI_getAttitude(kAffected.getID()) >= ATTITUDE_CAUTIOUS)
-				{
-					for(int iK = 0; iK < MAX_CIV_PLAYERS; iK++) // advc.003n: was MAX_PLAYERS
-					{
-						CvPlayerAI& kOtherMember = GET_PLAYER((PlayerTypes)iK);
-						if(kOtherMember.isAlive() && kOtherMember.getTeam() == kOther.getID())
-						{
-							// advc.130j:
-							kOtherMember.AI_rememberEvent(getOwner(), MEMORY_NUKED_FRIEND);
-						}
-					}
-					/*  advc.130q: Don't break. If cities are just two tiles apart
-						(scenario map or on different landmasses), a nuke can hit
-						multiple cities of different teams. Stack the diplo penalties
-						in such a case. */
-					//break;
-					// XXX some AI should declare war here...
-					/*  advc.104: ^Moved this Firaxis comment b/c I think the DoW
-						should happen here if it's implemented. Though I don't think
-						it's wise to declare war on a civ that's in the process of
-						firing nukes. */
+				<= kAffected.AI_getMemoryCount(getTeam(), MEMORY_NUKED_US) &&
+				// </advc.130q>
+				kOther.isHasMet(kAffected.getID()) &&
+				// advc.130h: bForced=false
+				kOther.AI_getAttitude(kAffected.getID(), false) >= ATTITUDE_CAUTIOUS)
+			{
+				for (MemberIter itOtherMember(kOther.getID());
+					itOtherMember.hasNext(); ++itOtherMember)
+				{	// advc.130j:
+					itOtherMember->AI_rememberEvent(getOwner(), MEMORY_NUKED_FRIEND);
 				}
+				/*  advc.130q: Don't break. If cities are just two tiles apart
+					(scenario map or on different landmasses), a nuke can hit
+					multiple cities of different teams. Stack the diplo penalties
+					in such a case. */
+				//break;
+				// XXX some AI should declare war here...
+				/*  advc.104: ^Moved this Firaxis comment b/c I think the DoW
+					should happen here if it's implemented. Though I don't think it's
+					wise to declare war on a civ that's in the process of firing nukes. */
 			}
 		}
 	}
 	// <advc.130q> The nuked-us loop (refactored)
-	for(iI = 0; iI < MAX_CIV_TEAMS; iI++) // advc.001n: was MAX_TEAMS
+	for (PlayerIter<ALIVE,NOT_SAME_TEAM_AS> itAffected(getTeam());
+		itAffected.hasNext(); ++itAffected)
 	{
-		CvTeamAI& affectedTeam = GET_TEAM((TeamTypes)iI);
-		if(!affectedTeam.isAlive() || affectedTeam.getID() == getTeam() ||
-				aiTeamsAffected[iI] <= 0)
+		TeamTypes const eAffectedTeam = itAffected->getTeam();
+		if (!abTeamsAffected.get(eAffectedTeam))
 			continue;
-		for(int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++) // advc.001n: was MAX_PLAYERS
+		// <advc.130v>
+		if (GET_TEAM(getTeam()).isCapitulated())
 		{
-			CvPlayerAI& affectedCiv = GET_PLAYER((PlayerTypes)iJ);
-			if(!affectedCiv.isAlive() || affectedCiv.getTeam() != affectedTeam.getID())
-				continue;
-			// <advc.130v>
-			CvTeam const& kNukingTeam = GET_TEAM(getTeam());
-			if(kNukingTeam.isCapitulated())
-			{
-				aiTeamsAffected[iI] = (int)ceil(aiTeamsAffected[iI] / 2.0);
-				affectedCiv.AI_changeMemoryCount(
-						GET_TEAM(kNukingTeam.getMasterTeam()).getLeaderID(),
-						MEMORY_NUKED_US, aiTeamsAffected[iI]);
-			} // </advc.130v>
-			// advc.130j:
-			affectedCiv.AI_changeMemoryCount(getOwner(), MEMORY_NUKED_US,
-					aiTeamsAffected[iI]);
-		}
+			aiDamageScore.set(eAffectedTeam,
+					scaled(aiDamageScore.get(eAffectedTeam), 2).ceil());
+			itAffected->AI_changeMemoryCount(
+					GET_TEAM(GET_TEAM(getTeam()).getMasterTeam()).getLeaderID(),
+					MEMORY_NUKED_US, aiDamageScore.get(eAffectedTeam));
+		} // </advc.130v>
+		// <advc.130j>
+		itAffected->AI_changeMemoryCount(getOwner(), MEMORY_NUKED_US,
+				aiDamageScore.get(eAffectedTeam)); // </advc.130j>
 	} // </advc.130q>
 
-	for(iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.001n: was MAX_PLAYERS
+	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 	{
-		//if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		// K-Mod
-		const CvPlayer& kObs = GET_PLAYER((PlayerTypes)iI);
-		if(kObs.isAlive() && (GET_TEAM(kObs.getTeam()).isHasMet(getTeam()) ||
+		CvPlayer const& kObs = *it;
+		if ((GET_TEAM(kObs.getTeam()).isHasMet(getTeam()) || // K-Mod
 			kObs.isSpectator())) // advc.127
 		{
-		// K-Mod end
-			szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_LAUNCHED", GET_PLAYER(getOwner()).getNameKey(), getNameKey());
+			szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_LAUNCHED",
+					GET_PLAYER(getOwner()).getNameKey(), getNameKey());
 			gDLL->UI().addMessage(kObs.getID(), kObs.getID() == getOwner(), -1,
-					szBuffer, *pPlot, "AS2D_NUKE_EXPLODES", MESSAGE_TYPE_MAJOR_EVENT,
+					szBuffer, kPlot, "AS2D_NUKE_EXPLODES", MESSAGE_TYPE_MAJOR_EVENT,
 					getButton(), GC.getColorType("RED"));
 		}
 	}

@@ -365,10 +365,17 @@ public:
 	void setPlot(const CvPlot *plot);
 
 protected:
-	MissionTypes		m_eMissionType;			//!< The type of event
-	CvUnit *			m_aUnits[BATTLE_UNIT_COUNT];		//!< The units involved
-	float				m_fMissionTime;			//!< The amount of time that the event will take
-	const CvPlot *		m_pPlot;					//!< The plot associated with the event
+	MissionTypes		m_eMissionType;					//!< The type of event
+	CvUnit *			m_aUnits[BATTLE_UNIT_COUNT];	//!< The units involved
+	float				m_fMissionTime;					//!< The amount of time that the event will take
+	const CvPlot *		m_pPlot;						//!< The plot associated with the event
+};
+
+// advc:
+class NukeMissionDef : public CvMissionDefinition
+{
+public:
+	NukeMissionDef(CvPlot const& kPlot, CvUnit& kNuke, bool bIntercept);
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

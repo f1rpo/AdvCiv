@@ -15,6 +15,7 @@
 #include "CvStructs.h"
 #include "CvUnit.h"
 #include "CvPlot.h" // advc.071
+#include "CvInfo_Command.h" // advc (for NukeMissionDef)
 
 // advc.opt: For reading legacy savegames
 void IDInfo::validateOwner()
@@ -342,6 +343,18 @@ const CvPlot *CvMissionDefinition::getPlot() const
 void CvMissionDefinition::setPlot(const CvPlot *plot)
 {
 	m_pPlot = plot;
+}
+
+// advc: Body cut from CvUnit::nuke
+NukeMissionDef::NukeMissionDef(CvPlot const& kPlot, CvUnit& kNuke, bool bIntercept)
+{
+	setMissionTime(GC.getInfo(MISSION_NUKE).getTime() *
+			gDLL->getSecsPerTurn());
+	setMissionType(MISSION_NUKE);
+	setPlot(&kPlot);
+	setUnit(BATTLE_UNIT_ATTACKER, &kNuke);
+	if (bIntercept)
+		setUnit(BATTLE_UNIT_DEFENDER, &kNuke);
 }
 
 //------------------------------------------------------------------------------------------------
