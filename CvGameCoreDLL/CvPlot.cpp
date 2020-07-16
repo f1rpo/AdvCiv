@@ -3241,6 +3241,10 @@ bool CvPlot::isTradeNetwork(TeamTypes eTeam) const
 {
 	//PROFILE_FUNC(); // advc.003o
 
+	//if (!isOwned()) // (advc.opt: moved up)
+	if (!isRevealed(eTeam)) // advc.124
+		return false;
+
 	if (getTeam() != NO_TEAM && GET_TEAM(eTeam).isAtWar(getTeam()) && // advc.opt: faster than ::atWar
 		/*  advc.124: War blocks trade, but blockades against the plot owner
 			override this. If these blockades also affect eTeam, trade is again
@@ -3255,11 +3259,12 @@ bool CvPlot::isTradeNetwork(TeamTypes eTeam) const
 	if (isTradeNetworkImpassable(eTeam))
 		return false;
 
-	//if (!isOwned()) // advc.124 (disabled)
-	if (!isRevealed(eTeam))
-		return false;
-
-	return isBonusNetwork(eTeam);
+	if (isBonusNetwork(eTeam))
+		return true;
+	/*	advc.124 (bugfix?): A friendly Fort shouldn't require a route to connect with
+		water tiles. (To connect a resource on the Fort tile, a route is still needed.)
+		isImproved check (inlined) only to avoid isCity call overhead. */
+	return (isImproved() && isCity(true, eTeam));
 }
 
 
