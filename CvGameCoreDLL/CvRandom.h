@@ -15,10 +15,10 @@ public:
 	void reset(unsigned long ulSeed = 0);
 	//  Returns a value from the half-open interval [0, usNum)
 	DllExport unsigned short get(unsigned short usNum, const TCHAR* pszLog = NULL)
-	{	// <advc.001n>001n>
-		return getInt(usNum, pszLog, MIN_INT, MIN_INT);
+	{	// <advc.001n>
+		return getInt(usNum, pszLog);
 	} // New name to avoid issues in CyRandomPythonInterface
-	unsigned short getInt(unsigned short usNum, const TCHAR* pszLog, int iData1, int iData2 = MIN_INT);
+	unsigned short getInt(unsigned short usNum, const TCHAR* pszLog, int iData1 = MIN_INT, int iData2 = MIN_INT);
 	// </advc.001n>
 	DllExport float getFloat();
 

@@ -96,10 +96,19 @@ void CvGame::init(HandicapTypes eHandicap)
 	m_voteSelections.init();
 	m_votesTriggered.init();
 
-	m_mapRand.init(ic.getMapRandSeed() % 73637381);
-	m_sorenRand.init(ic.getSyncRandSeed() % 52319761);
+	/*m_mapRand.init(ic.getMapRandSeed() % 73637381);
+	m_sorenRand.init(ic.getSyncRandSeed() % 52319761);*/
+	/*	advc.027b: The modulo reductions get in the way of reproducing
+		regenerated maps. It seems that, unless positive seeds are set
+		in CivilizationIV.ini, CvInitCore receives the same seed for
+		both RNGs. The modulo doesn't reliably prevent that. Shouldn't
+		really matter, and actually makes it easier to reproduce maps
+		as only one seed has to be read off the screen. */
+	getMapRand().init(ic.getMapRandSeed());
+	getSRand().init(ic.getSyncRandSeed());
+	m_initialRandSeed.uiMap = getMapRand().getSeed();
+	m_initialRandSeed.uiSync = getSRand().getSeed(); // <advc.027b>
 
-	//--------------------------------
 	// Init non-serialized data ...
 
 	m_bAllGameDataRead = true; // advc: Not loading from savegame
@@ -306,6 +315,10 @@ void CvGame::regenerateMap()
 	m_aPlotExtraYields.clear(); // advc.004j
 	kMap.erasePlots();
 
+	/*	advc.027b: Mustn't overwrite m_initialRandSeed.uiSync if we want to
+		preserve the civ selection when reproducing a map after a restart.
+		normalizeStartingPlots now uses MapRand exclusively. */
+	m_initialRandSeed.uiMap = getMapRand().getSeed();
 	CvMapGenerator::GetInstance().generateRandomMap();
 	CvMapGenerator::GetInstance().addGameElements();
 
@@ -677,6 +690,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 
 	m_mapRand.reset();
 	m_sorenRand.reset();
+	m_initialRandSeed.uiMap = m_initialRandSeed.uiSync = 0; // advc.027b
 
 	m_iNumSessions = 1;
 
@@ -991,7 +1005,8 @@ NormalizationTarget* CvGame::assignStartingPlots()
 	{
 		if (it->getStartingPlot() != NULL)
 			continue; // Already got one
-		int iRandOffset = getSorenRandNum(starting_plots.size(), "Starting Plot");
+		// advc.027b: was getSorenRandNum
+		int iRandOffset = getMapRand().getInt(starting_plots.size(), "Starting Plot");
 		it->setStartingPlot(starting_plots[iRandOffset], true);
 		// remove this plot from the list.
 		starting_plots[iRandOffset] = starting_plots[starting_plots.size()-1];
@@ -1011,7 +1026,8 @@ NormalizationTarget* CvGame::assignStartingPlots()
 		for (int iPass = 0; iPass < 2 * MAX_PLAYERS; ++iPass)
 		{
 			bool bStartFound = false;
-			int iRandOffset = getSorenRandNum(countCivTeamsAlive(), "Team Starting Plot");
+			// advc.027b: was getSorenRandNum
+			int iRandOffset = getMapRand().getInt(countCivTeamsAlive(), "Team Starting Plot");
 			gDLL->callUpdater(); // advc (seems like a better place than the one I commented out above)
 			for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 			{
@@ -1050,7 +1066,7 @@ NormalizationTarget* CvGame::assignStartingPlots()
 		 multiplayer, and the BtS random assignment of human starts doesn't
 		 actually work - favors player 0 when humans are in slots 0, 1 ... */
 	/*else if (isGameMultiPlayer()) {
-		int iRandOffset = getSorenRandNum(PlayerIter<CIV_ALIVE>::count(), "Player Starting Plot");
+		int iRandOffset = getMapRand().getInt(PlayerIter<CIV_ALIVE>::count(), "Player Starting Plot");
 		// ... (deleted on 14 June 2020)
 	}
 	else
@@ -1082,7 +1098,7 @@ NormalizationTarget* CvGame::assignStartingPlots()
 			int iLoopCivs = PlayerIter<HUMAN>::count();
 			if (!bHuman)
 				iLoopCivs = iCivsAlive - iLoopCivs;
-			int iRandOffset = getSorenRandNum(iLoopCivs, "advc.108b");
+			int iRandOffset = getMapRand().getInt(iLoopCivs, "advc.108b");
 			int iSkipped = 0;
 			for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 			{
@@ -1603,23 +1619,28 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: refactored
 				if (p.isWater())
 				{
 					if (p.isAdjacentToLand() || (iDistance <= iCityRange + 1 &&
-						getSorenRandNum(2, "Remove Bad Feature") == 0))
+						// advc.027b: was getSorenRandNum
+						fixp(0.5).bernoulliSuccess(getMapRand(), "Remove Bad Feature")))
 					{
 						p.setFeatureType(NO_FEATURE);
 					}
 				}
 				else if (iDistance <= iCityRange + 1)
 				{
-					// <advc.108> Plots outside the city range: reduced chance of removal
-					if((m_eNormalizationLevel > NORMALIZE_MEDIUM &&
-						// BtS check:
-						getSorenRandNum((2 + ((p.getBonusType() == NO_BONUS) ? 0 : 2)), "Remove Bad Feature") == 0) ||
-						(m_eNormalizationLevel <= NORMALIZE_MEDIUM &&
-						getSorenRandNum((3 - ((p.getBonusType() == NO_BONUS) ? 1 : 0)), "advc.108") != 0))
-					// </advc.108>
-					{
-						p.setFeatureType(NO_FEATURE);
+					scaled prRemoval(1, 2);
+					if (m_eNormalizationLevel > NORMALIZE_MEDIUM) // advc.108
+					{	/*	Smaller pr when there is a resource. I wonder if that's
+							really what the BtS programmer meant to do. */
+						//getSorenRandNum(2 + (p.getBonusType() == NO_BONUS ? 0 : 2),"...") == 0)
+						if (p.getBonusType() != NO_BONUS)
+							prRemoval = scaled(1, 4);
 					}
+					// <advc.108>
+					else if (p.getBonusType() == NO_BONUS)
+						prRemoval = scaled(1, 3); // </advc.108>
+					// advc.027b: was getSorenRandNum
+					if (prRemoval.bernoulliSuccess(getMapRand(), "Remove Bad Feature"))
+						p.setFeatureType(NO_FEATURE);
 				}
 			}
 		}
@@ -1646,8 +1667,8 @@ void CvGame::normalizeRemoveBadTerrain()  // advc: refactored
 			CvPlot& p = *itPlot;
 			int iDistance = itPlot.currPlotDist();
 			if (!p.isWater() && (iDistance <= iCityRange ||
-				p.isCoastalLand() || getSorenRandNum(
-				1 + iDistance - iCityRange, "Map Upgrade Terrain Food") == 0))
+				p.isCoastalLand() || scaled(1, 1 + iDistance - iCityRange).
+				bernoulliSuccess(getMapRand(), "Map Upgrade Terrain Food")))
 			{
 				CvTerrainInfo const& kTerrain = GC.getInfo(p.getTerrainType());
 				int iPlotFood = kTerrain.getYield(YIELD_FOOD);
@@ -1681,7 +1702,9 @@ void CvGame::normalizeRemoveBadTerrain()  // advc: refactored
 				if (p.getBonusType(itPlayer->getTeam()) != NO_BONUS)
 					iTargetFood = 1;
 				else if (iPlotFood == 1 || iDistance <= iCityRange)
-					iTargetFood = 1 + getSorenRandNum(2, "Map Upgrade Terrain Food");
+				{	// advc.027b: was getSorenRandNum
+					iTargetFood = 1 + getMapRand().getInt(2, "Map Upgrade Terrain Food");
+				}
 				else iTargetFood = (p.isCoastalLand() ? 2 : 1);
 
 				FOR_EACH_ENUM(Terrain)
@@ -2157,7 +2180,9 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 				iOceanBonus * 2 + iCoastBonus * 3 < 12; ++itPlot) // advc.108: iCoastBonus multiplier was 2
 			{
 				CvPlot& p = *itPlot;
-				if (getSorenRandNum((bLandBias && p.isWater()) ? 2 : 1, "Placing Bonuses") != 0)
+				//if (getSorenRandNum(bLandBias && p.isWater() ? 2 : 1,"...") == 0) {
+				// advc.027b: (note that getSorenRandNum(1) is always 0)
+				if (bLandBias && p.isWater() && fixp(0.5).bernoulliSuccess(getMapRand(), "Placing Bonuses"))
 					continue;
 				if (pTarget != NULL ? pTarget->isNearlyReached(*pStartingPlot) : // advc.027
 					citySiteEval.evaluate(*pStartingPlot) >= rTargetValue)
@@ -2216,7 +2241,7 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 							// Don't clear production features if they're scarce
 							iProductionFeatures >= 4) && // </advc.108>
 							iCoastBonus + iOceanBonus > 2 &&
-							getSorenRandNum(2, "Clear feature to add bonus") == 0)
+							fixp(0.5).bernoulliSuccess(getMapRand(), "Clear feature to add bonus"))
 						{
 							// advc: Selection, clearing of feature and placement moved into auxiliary function.
 							if (placeExtraBonus(kPlayer.getID(), p, iPass == 0,
@@ -8423,6 +8448,12 @@ CvDeal* CvGame::nextCurrentDeal(PlayerTypes eGivePlayer, PlayerTypes eReceivePla
 	return r;
 }
 
+// advc.027b:
+std::pair<uint,uint> CvGame::getInitialRandSeed() const
+{
+	return std::make_pair(m_initialRandSeed.uiMap, m_initialRandSeed.uiSync);
+}
+
 
 int CvGame::calculateSyncChecksum()
 {
@@ -8933,6 +8964,12 @@ void CvGame::read(FDataStreamBase* pStream)
 
 	m_mapRand.read(pStream);
 	m_sorenRand.read(pStream);
+	// <advc.027b>
+	if (uiFlag >= 7)
+	{
+		pStream->Read(&m_initialRandSeed.uiMap);
+		pStream->Read(&m_initialRandSeed.uiSync);
+	} // </advc.027b>
 	// <advc.250b>
 	if(isOption(GAMEOPTION_SPAH))
 		m_pSpah->read(pStream); // </advc.250b>
@@ -9062,6 +9099,7 @@ void CvGame::write(FDataStreamBase* pStream)
 	uiFlag = 4; // advc.opt: Players and teams ever alive
 	uiFlag = 5; // advc.004m
 	uiFlag = 6; // advc.106h
+	uiFlag = 7; // advc.027b
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE("Game pt1");
 	pStream->Write(m_iElapsedGameTurns);
@@ -9174,6 +9212,9 @@ void CvGame::write(FDataStreamBase* pStream)
 	REPRO_TEST_BEGIN_WRITE("SyncRNGs");
 	m_mapRand.write(pStream);
 	m_sorenRand.write(pStream);
+	// <advc.027b>
+	pStream->Write(m_initialRandSeed.uiMap);
+	pStream->Write(m_initialRandSeed.uiSync); // </advc.027b>
 	REPRO_TEST_END_WRITE();
 	// <advc.250b>
 	if(isOption(GAMEOPTION_SPAH))

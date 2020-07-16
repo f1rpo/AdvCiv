@@ -4737,6 +4737,27 @@ void CvDLLWidgetData::parseFlagHelp(CvWidgetDataStruct &widgetDataStruct, CvWStr
 	szBuffer.append(NEWLINE);
 
 	GAMETEXT.parseLeaderTraits(szBuffer, GET_PLAYER(GC.getGame().getActivePlayer()).getLeaderType(), GET_PLAYER(GC.getGame().getActivePlayer()).getCivilizationType());
+
+	// <advc.027b> (Might be nicer to show this on the Settings tab, but - too much hassle.)
+	if (kGame.isDebugMode() && GC.ctrlKey())
+	{
+		uint uiMapRandSeed = kGame.getInitialRandSeed().first;
+		uint uiSyncRandSeed = kGame.getInitialRandSeed().second;
+		if (uiMapRandSeed != 0 || uiSyncRandSeed != 0)
+		{
+			szBuffer.append(NEWLINE);
+			if (uiMapRandSeed != 0)
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(CvWString::format(L"Map rand seed: %u", uiMapRandSeed));
+			}
+			if (uiSyncRandSeed != 0)
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(CvWString::format(L"Sync rand seed: %u", uiSyncRandSeed));
+			}
+		}
+	} // </advc.027b>
 }
 
 

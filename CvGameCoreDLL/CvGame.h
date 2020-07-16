@@ -700,6 +700,7 @@ public:
 	{
 		return m_sorenRand.getInt(iNum, pszLog, /* advc.007: */ iData1, iData2);
 	}
+	std::pair<uint,uint> getInitialRandSeed() const; // advc.027b
 
 	DllExport int calculateSyncChecksum();																								// Exposed to Python
 	DllExport int calculateOptionsChecksum();																							// Exposed to Python
@@ -959,7 +960,13 @@ protected:
 
 	CvRandom m_mapRand;
 	CvRandom m_sorenRand;
-
+	// <advc.027b>
+	struct InitialRandSeed
+	{
+		uint uiMap;
+		uint uiSync;
+	} m_initialRandSeed;
+	// </advc.027b>
 	ReplayMessageList m_listReplayMessages;
 	CvReplayInfo* m_pReplayInfo;
 	int m_iNumSessions;
