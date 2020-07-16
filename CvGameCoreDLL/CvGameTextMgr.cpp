@@ -4618,28 +4618,35 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 			}
 		}
 	}
-	// <advc.030> Warn about ice-locked water area when settler selected
+	// <advc.030> Warn about ice-locked water area
 	int const iOceanThresh = GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN);
+	CvArea const& kArea = kPlot.getArea();
 	if (kPlot.isWater() && !kPlot.isImpassable() && !kPlot.isLake() &&
-		kPlot.getArea().getNumTiles() < iOceanThresh &&
-		pHeadSelectedUnit != NULL && pHeadSelectedUnit->canFound())
+		kArea.getNumTiles() < iOceanThresh /*&& // Only when settler selected?
+		pHeadSelectedUnit != NULL && pHeadSelectedUnit->canFound()*/)
 	{
-		bool bFullyRevealed = true; // Don't give away unrevealed plots
 		bool bIceFound = false;
-		for (SquareIter it(kPlot, iOceanThresh - 1); it.hasNext(); ++it)
+		bool bFullyRevealed = true; // Don't give away unrevealed plots
+		bool bActiveCityFound = false; // Adjacent city will give them away anyway
+		bool bShowIceLocked = false;
+		for (SquareIter it(kPlot, iOceanThresh);
+			!bShowIceLocked && it.hasNext(); ++it)
 		{
-			if (it->sameArea(kPlot) && !it->isRevealed(eActiveTeam))
+			if (it->isArea(kArea))
 			{
-				bFullyRevealed = false;
-				break;
+				if (!it->isRevealed(eActiveTeam))
+					bFullyRevealed = false;
 			}
-			if (!bIceFound && it->isImpassable() &&
-				it->isAdjacentToArea(kPlot.getArea()))
+			else if (it->isAdjacentToArea(kArea))
 			{
-				bIceFound = true;
+				if (it->isImpassable())
+					bIceFound = true;
+				else if (it->getOwner() == eActivePlayer && it->isCity())
+					bActiveCityFound = true;
 			}
+			bShowIceLocked = bIceFound && (bFullyRevealed || bActiveCityFound);
 		}
-		if (bFullyRevealed && bIceFound)
+		if (bShowIceLocked)
 		{
 			szString.append(CvWString::format(SETCOLR, TEXT_COLOR("COLOR_WATER_TEXT")));
 			szString.append(L" ");
