@@ -87,13 +87,12 @@ CvGame::~CvGame()
 
 void CvGame::init(HandicapTypes eHandicap)
 {
-	int iI;
 	CvInitCore& ic = GC.getInitCore();
 
 	reset(eHandicap); // Reset serialized data
 
-	//--------------------------------
-	// Init containers
+	// Init containers ...
+
 	m_voteSelections.init();
 	m_votesTriggered.init();
 
@@ -101,7 +100,7 @@ void CvGame::init(HandicapTypes eHandicap)
 	m_sorenRand.init(ic.getSyncRandSeed() % 52319761);
 
 	//--------------------------------
-	// Init non-serialized data
+	// Init non-serialized data ...
 
 	m_bAllGameDataRead = true; // advc: Not loading from savegame
 	m_eNormalizationLevel = NORMALIZE_DEFAULT; // advc.108
@@ -109,22 +108,16 @@ void CvGame::init(HandicapTypes eHandicap)
 	// Turn off all MP options if it's a single player game
 	if (ic.getType() == GAME_SP_NEW || ic.getType() == GAME_SP_SCENARIO)
 	{
-		for (iI = 0; iI < NUM_MPOPTION_TYPES; ++iI)
-		{
-			setMPOption((MultiplayerOptionTypes)iI, false);
-		}
+		FOR_EACH_ENUM(MPOption)
+			setMPOption(eLoopMPOption, false);
 	}
 
-	// If this is a hot seat game, simultaneous turns is always off
+	// If this is a hot seat game, simultaneous turns is always off.
 	if (isHotSeat() || isPbem())
-	{
 		setMPOption(MPOPTION_SIMULTANEOUS_TURNS, false);
-	}
-	// If we didn't set a time in the Pitboss, turn timer off
+	// If we didn't set a time in the Pitboss, turn timer off.
 	if (isPitboss() && getPitbossTurnTime() == 0)
-	{
 		setMPOption(MPOPTION_TURN_TIMER, false);
-	}
 
 	if (isMPOption(MPOPTION_SHUFFLE_TEAMS))
 	{
@@ -142,7 +135,6 @@ void CvGame::init(HandicapTypes eHandicap)
 		for (int i = 0; i < iNumPlayers; i++)
 		{
 			int j = (getSorenRand().get(iNumPlayers - i, NULL) + i);
-
 			if (i != j)
 			{
 				int iTemp = aiTeams[i];
@@ -165,9 +157,7 @@ void CvGame::init(HandicapTypes eHandicap)
 	if (isOption(GAMEOPTION_LOCK_MODS))
 	{
 		if (isGameMultiPlayer())
-		{
 			setOption(GAMEOPTION_LOCK_MODS, false);
-		}
 		else
 		{
 			static const int iPasswordSize = 8;
@@ -177,7 +167,6 @@ void CvGame::init(HandicapTypes eHandicap)
 				szRandomPassword[i] = getSorenRandNum(128, NULL);
 			}
 			szRandomPassword[iPasswordSize-1] = 0;
-
 			ic.setAdminPassword(szRandomPassword);
 		}
 	}
@@ -186,25 +175,19 @@ void CvGame::init(HandicapTypes eHandicap)
 		I want the start turn to be a function of the start points.
 		I'm assigning the start turn preliminarily here to avoid problems with
 		start turn being undefined (not sure if this would be an issue),
-		and overwrite the value later.
-		To this end, I've moved the start turn and start year computation
-		into a new function: */
+		and overwrite the value later. To this end, I've moved the
+		start turn and start year computation into a new function: */
 	setStartTurnYear();
 
-	for (iI = 0; iI < GC.getNumSpecialUnitInfos(); iI++)
+	FOR_EACH_ENUM(SpecialUnit)
 	{
-		if (GC.getInfo((SpecialUnitTypes)iI).isValid())
-		{
-			makeSpecialUnitValid((SpecialUnitTypes)iI);
-		}
+		if (GC.getInfo(eLoopSpecialUnit).isValid())
+			makeSpecialUnitValid(eLoopSpecialUnit);
 	}
-
-	for (iI = 0; iI < GC.getNumSpecialBuildingInfos(); iI++)
+	FOR_EACH_ENUM(SpecialBuilding)
 	{
-		if (GC.getInfo((SpecialBuildingTypes)iI).isValid())
-		{
-			makeSpecialBuildingValid((SpecialBuildingTypes)iI);
-		}
+		if (GC.getInfo(eLoopSpecialBuilding).isValid())
+			makeSpecialBuildingValid(eLoopSpecialBuilding);
 	}
 
 	AI().AI_init();
@@ -212,9 +195,7 @@ void CvGame::init(HandicapTypes eHandicap)
 	doUpdateCacheOnTurn();
 }
 
-//
 // Set initial items (units, techs, etc...)
-//
 void CvGame::setInitialItems()
 {
 	PROFILE_FUNC();
@@ -282,15 +263,15 @@ void CvGame::regenerateMap()
 {
 	if (GC.getInitCore().getWBMapScript())
 		return;
-	CvMap& m = GC.getMap(); // advc
+	CvMap& kMap = GC.getMap();
 	/*  <advc.004j> Not sure if the unmodded game or any mod included with AdvCiv
 		uses script data, but can't hurt to reset it. CvDLLButtonPopup::
 		launchMainMenuPopup wants to disallow map regeneration once script data
 		has been set. */
 	setScriptData("");
-	for(int i = 0; i < m.numPlots(); ++i)
+	for(int i = 0; i < kMap.numPlots(); ++i)
 	{
-		CvPlot* p = m.plotByIndex(i);
+		CvPlot* p = kMap.plotByIndex(i);
 		if(p != NULL)
 		{
 			p->setScriptData("");
@@ -304,32 +285,26 @@ void CvGame::regenerateMap()
 	setFinalInitialized(false);
 	setDawnOfManShown(false); // advc.004x
 
-	int iI;
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-		GET_PLAYER((PlayerTypes)iI).killUnits();
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-		GET_PLAYER((PlayerTypes)iI).killCities();
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-		GET_PLAYER((PlayerTypes)iI).killAllDeals();
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (PlayerIter<> it; it.hasNext(); ++it)
+		it->killUnits();
+	for (PlayerIter<> it; it.hasNext(); ++it)
+		it->killCities();
+	for (PlayerIter<> it; it.hasNext(); ++it)
+		it->killAllDeals();
+	for (PlayerIter<> it; it.hasNext(); ++it)
 	{
-		GET_PLAYER((PlayerTypes)iI).setFoundedFirstCity(false);
-		GET_PLAYER((PlayerTypes)iI).setStartingPlot(NULL, false);
+		it->setFoundedFirstCity(false);
+		it->setStartingPlot(NULL, false);
 		// <advc.004x>
-		if(GET_PLAYER((PlayerTypes)iI).isHuman())
-			GET_PLAYER((PlayerTypes)iI).killAll(BUTTONPOPUP_CHOOSETECH);
-		// </advc.004x>
+		if (it->isHuman())
+			it->killAll(BUTTONPOPUP_CHOOSETECH); // </advc.004x>
 	}
-
-	for (iI = 0; iI < MAX_TEAMS; iI++)
-		m.setRevealedPlots(((TeamTypes)iI), false);
+	for (TeamIter<> it; it.hasNext(); ++it)
+		kMap.setRevealedPlots(it->getID(), false);
 
 	gDLL->getEngineIFace()->clearSigns();
 	m_aPlotExtraYields.clear(); // advc.004j
-	m.erasePlots();
+	kMap.erasePlots();
 
 	CvMapGenerator::GetInstance().generateRandomMap();
 	CvMapGenerator::GetInstance().addGameElements();
@@ -349,7 +324,7 @@ void CvGame::regenerateMap()
 	initScoreCalculation();
 	setFinalInitialized(true);
 
-	m.setupGraphical();
+	kMap.setupGraphical();
 	gDLL->getEngineIFace()->SetDirty(GlobeTexture_DIRTY_BIT, true);
 	gDLL->getEngineIFace()->SetDirty(MinimapTexture_DIRTY_BIT, true);
 	gDLL->UI().setDirty(ColoredPlots_DIRTY_BIT, true);
@@ -390,7 +365,7 @@ void CvGame::regenerateMap()
 	}
 }
 
-// <advc.004j>
+// advc.004j:
 void CvGame::showDawnOfMan()
 {
 	if(getActivePlayer() == NO_PLAYER)
@@ -401,7 +376,7 @@ void CvGame::showDawnOfMan()
 	pDummyPopup->setText(L"showDawnOfMan");
 	GET_PLAYER(getActivePlayer()).addPopup(pDummyPopup);
 	setDawnOfManShown(true); // advc.004x
-} // </advc.004j>
+}
 
 
 void CvGame::uninit()
@@ -454,10 +429,9 @@ void CvGame::uninit()
 	m_pRiseFall->reset();
 }
 
-// advc.250c: Function body cut from CvGame::init. Changes marked in-line.
+// advc.250c: Cut from CvGame::init
 void CvGame::setStartTurnYear(int iTurn)
 {
-	int iI;
 	CvGameSpeedInfo const& kSpeed = GC.getInfo(getGameSpeedType()); // advc
 	// <advc.250c>
 	if(iTurn > 0)
@@ -466,8 +440,8 @@ void CvGame::setStartTurnYear(int iTurn)
 		if (getGameTurn() == 0)
 	{
 		int iStartTurn = 0;
-		for (iI = 0; iI < kSpeed.getNumTurnIncrements(); iI++)
-			iStartTurn += kSpeed.getGameTurnInfo(iI).iNumGameTurnsPerIncrement;
+		for (int i = 0; i < kSpeed.getNumTurnIncrements(); i++)
+			iStartTurn += kSpeed.getGameTurnInfo(i).iNumGameTurnsPerIncrement;
 		iStartTurn *= GC.getInfo(getStartEra()).getStartPercent();
 		iStartTurn /= 100;
 		setGameTurn(iStartTurn);
@@ -478,25 +452,22 @@ void CvGame::setStartTurnYear(int iTurn)
 	if (getMaxTurns() == 0 /* advc.250c: */ || iTurn > 0)
 	{
 		int iEstimateEndTurn = 0;
-		for (iI = 0; iI < kSpeed.getNumTurnIncrements(); iI++)
-			iEstimateEndTurn += kSpeed.getGameTurnInfo(iI).iNumGameTurnsPerIncrement;
+		for (int i = 0; i < kSpeed.getNumTurnIncrements(); i++)
+			iEstimateEndTurn += kSpeed.getGameTurnInfo(i).iNumGameTurnsPerIncrement;
 		setEstimateEndTurn(iEstimateEndTurn);
 
 		if (getEstimateEndTurn() > getGameTurn())
 		{
 			bool bValid = false;
-			for (iI = 0; iI < GC.getNumVictoryInfos(); iI++)
+			FOR_EACH_ENUM(Victory)
 			{
-				if (isVictoryValid((VictoryTypes)iI))
+				if (isVictoryValid(eLoopVictory) &&
+					GC.getInfo(eLoopVictory).isEndScore())
 				{
-					if (GC.getInfo((VictoryTypes)iI).isEndScore())
-					{
-						bValid = true;
-						break;
-					}
+					bValid = true;
+					break;
 				}
 			}
-
 			if (bValid)
 				setMaxTurns(getEstimateEndTurn() - getGameTurn());
 		}
@@ -1591,33 +1562,34 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: refactored
 				iBadFeatures++;
 			}
 		}
-		scaled prRemoval;
-		if (iBadFeatures > iThreshBadFeatPerCity)
 		{
-			prRemoval = 1 - m_eNormalizationLevel *
-					scaled(iThreshBadFeatPerCity, iBadFeatures);
-		}
-		if (m_eNormalizationLevel >= NORMALIZE_HIGH)
-			prRemoval = 1;
-		// </advc.108>
-		for (CityPlotIter itPlot(*pStartingPlot); itPlot.hasNext(); ++itPlot)
-		{
-			CvPlot& p = *itPlot;
-			if (!p.isFeature())
-				continue; // advc
-			if (GC.getInfo(p.getFeatureType()).getYieldChange(YIELD_FOOD) <= 0 &&
-				GC.getInfo(p.getFeatureType()).getYieldChange(YIELD_PRODUCTION) <= 0)
+			scaled prRemoval;
+			if (iBadFeatures > iThreshBadFeatPerCity)
 			{
-				// <advc.108>
-				if (itPlot.currID() < NUM_INNER_PLOTS ||
-					(!isPowerfulStartingBonus(p, itPlayer->getID()) &&
-					prRemoval.bernoulliSuccess(getMapRand(), "advc.108"))) // </advc.108>
+				prRemoval = 1 - m_eNormalizationLevel *
+						scaled(iThreshBadFeatPerCity, iBadFeatures);
+			}
+			if (m_eNormalizationLevel >= NORMALIZE_HIGH)
+				prRemoval = 1;
+			// </advc.108>
+			for (CityPlotIter itPlot(*pStartingPlot); itPlot.hasNext(); ++itPlot)
+			{
+				CvPlot& p = *itPlot;
+				if (!p.isFeature())
+					continue; // advc
+				if (GC.getInfo(p.getFeatureType()).getYieldChange(YIELD_FOOD) <= 0 &&
+					GC.getInfo(p.getFeatureType()).getYieldChange(YIELD_PRODUCTION) <= 0)
 				{
-					p.setFeatureType(NO_FEATURE);
+					// <advc.108>
+					if (itPlot.currID() < NUM_INNER_PLOTS ||
+						(!isPowerfulStartingBonus(p, itPlayer->getID()) &&
+						prRemoval.bernoulliSuccess(getMapRand(), "advc.108")))
+					{	// </advc.108>
+						p.setFeatureType(NO_FEATURE);
+					}
 				}
 			}
 		}
-
 		int const iCityRange = CITY_PLOTS_RADIUS;
 		for (PlotCircleIter itPlot(*pStartingPlot, iCityRange + 2);
 			itPlot.hasNext(); ++itPlot)
@@ -2253,9 +2225,7 @@ void CvGame::normalizeAddExtras(  // advc: some refactoring
 								iLandBonus++;
 								// <advc.108>
 								if (GC.getInfo(p.getBonusType()).getYieldChange(YIELD_FOOD) > 0)
-								{
-									iLandFood++;
-								} // </advc.108>
+									iLandFood++; // </advc.108>
 							}
 						}
 					}

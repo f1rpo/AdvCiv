@@ -4716,8 +4716,8 @@ void CvDLLWidgetData::parseFlagHelp(CvWidgetDataStruct &widgetDataStruct, CvWStr
 {
 	CvWString szTempBuffer;
 	// <advc.135c>
-	CvGame const& g = GC.getGame();
-	if(g.isNetworkMultiPlayer() && g.isDebugToolsAllowed(false))
+	CvGame const& kGame = GC.getGame();
+	if(kGame.isNetworkMultiPlayer() && kGame.isDebugToolsAllowed(false))
 	{
 		szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"),
 				L"Cheats enabled");
@@ -4727,12 +4727,12 @@ void CvDLLWidgetData::parseFlagHelp(CvWidgetDataStruct &widgetDataStruct, CvWStr
 	szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), GC.getInfo(GC.getGame().getActiveCivilizationType()).getDescription());
 	szBuffer.append(szTempBuffer);
 	// <advc.700>
-	if(g.isOption(GAMEOPTION_RISE_FALL))
+	if(kGame.isOption(GAMEOPTION_RISE_FALL))
 	{
-		std::pair<int,int> rfCountdown = g.getRiseFall().getChapterCountdown();
-		if(rfCountdown.second >= 0)
+		std::pair<int,int> iiCountdown = kGame.getRiseFall().getChapterCountdown();
+		if(iiCountdown.second >= 0)
 			szBuffer.append(L" (" + gDLL->getText("TXT_KEY_RF_CHAPTER_COUNTDOWN",
-					rfCountdown.first, rfCountdown.second) + L")");
+					iiCountdown.first, iiCountdown.second) + L")");
 	} // </advc.700>
 	szBuffer.append(NEWLINE);
 
