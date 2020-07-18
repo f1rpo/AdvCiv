@@ -1,7 +1,5 @@
 #pragma once
 
-// area.h
-
 #ifndef CIV4_AREA_H
 #define CIV4_AREA_H
 
@@ -14,11 +12,10 @@ class CvArea
 public:
 
 	CvArea();
-	virtual ~CvArea();
-
 	void init(bool bWater);
-	void uninit();
-	void reset(int iID = 0, bool bWater = false, bool bConstructorCall = false);
+	virtual ~CvArea();
+	virtual void read(FDataStreamBase* pStream);
+	virtual void write(FDataStreamBase* pStream);
 
 	int calculateTotalBestNatureYield() const;															// Exposed to Python
 
@@ -199,9 +196,6 @@ public:
 	/*int getNumImprovements(ImprovementTypes eImprovement) const;										// Exposed to Python
 	void changeNumImprovements(ImprovementTypes eImprovement, int iChange);*/
 
-	virtual void read(FDataStreamBase* pStream);
-	virtual void write(FDataStreamBase* pStream);
-
 protected:
 
 	int m_iID;
@@ -240,6 +234,9 @@ protected:
 	EnumMap2D<PlayerTypes,UnitAITypes,int> m_aaiNumAIUnits; // </advc.enum>
 
 	IDInfo* m_aTargetCities;
+
+	void uninit();
+	void reset(int iID = 0, bool bWater = false, bool bConstructorCall = false);
 };
 
 #endif

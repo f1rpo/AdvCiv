@@ -199,7 +199,7 @@ public: // All the const functions are exposed to Python
 	CvBonusInfo();
 	virtual ~CvBonusInfo();
 
-	int getBonusClassType() const;
+	BonusClassTypes getBonusClassType() const { return m_eBonusClassType; }
 	int getChar() const;
 	void setChar(int i);
 	inline TechTypes getTechReveal() const { return m_eTechReveal; }
@@ -253,7 +253,7 @@ public: // All the const functions are exposed to Python
 	void updateCache(BonusTypes eBonus); // advc.003w
 
 protected:
-	int m_iBonusClassType;
+	BonusClassTypes m_eBonusClassType;
 	int m_iChar;
 	TechTypes m_eTechReveal;
 	TechTypes m_eTechCityTrade;

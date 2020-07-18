@@ -1249,7 +1249,8 @@ void CvPlayerAI::AI_unitUpdate()
 		}
 		else*/ // BtS
 		if (!isHuman()) /*  K-Mod - automated actions are no longer done from this function.
-							Instead, they are done in CvGame::updateMoves */ {
+							Instead, they are done in CvGame::updateMoves */
+		{
 			/*tempGroupCycle.clear();
 			finalGroupCycle.clear();
 			pCurrUnitNode = headGroupCycleNode();
@@ -3584,7 +3585,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 	FOR_EACH_ENUM(Bonus)
 	{
 		TechTypes eRevealTech = GC.getInfo(eLoopBonus).getTechReveal();
-		BonusClassTypes eBonusClass = (BonusClassTypes)GC.getInfo(eLoopBonus).getBonusClassType();
+		BonusClassTypes eBonusClass = GC.getInfo(eLoopBonus).getBonusClassType();
 		if (eRevealTech == NO_TECH)
 			continue; // advc
 		if (kTeam.isHasTech(eRevealTech))
@@ -4897,7 +4898,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		{
 			int iRevealValue = 8;
 			iRevealValue += AI_bonusVal(eLoopBonus, 1, true) * iCityCount * 2/3;
-			BonusClassTypes eBonusClass = (BonusClassTypes)kLoopBonus.getBonusClassType();
+			BonusClassTypes eBonusClass = kLoopBonus.getBonusClassType();
 			int iBonusClassTotal = (viBonusClassRevealed[eBonusClass] +
 					viBonusClassUnrevealed[eBonusClass]);
 			//iMultiplier is basically a desperation value
@@ -16250,7 +16251,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		iTempValue += (GC.getInfo(eLoopHurry).getProductionPerPopulation() * iCities * (bWarPlan ? 2 : 1)) / 5;
 		iValue += iTempValue;*/ // BtS
 
-		/*	K-Mod. I'm not attempting to made an accurate estimate of the value here -
+		/*	K-Mod. I'm not attempting to make an accurate estimate of the value here -
 			I just want to make it a little bit more nuanced than it was. */
 		int iTempValue = 0;
 		CvHurryInfo const& kHurryInfo = GC.getInfo(eLoopHurry);
@@ -19430,7 +19431,8 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 					getContactRand(CONTACT_OPEN_BORDERS), "AI Diplo Open Borders") == 0)
 				{
 					TradeData item(TRADE_OPEN_BORDERS);
-					if (canTradeItem(ePlayer, item, true) && kPlayer.canTradeItem(getID(), item, true))
+					if (canTradeItem(ePlayer, item, true) &&
+						kPlayer.canTradeItem(getID(), item, true))
 					{
 						ourList.clear();
 						theirList.clear();
@@ -19438,12 +19440,14 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 						theirList.insertAtEnd(item);
 						if (kPlayer.isHuman() && !abContacted[kPlayer.getTeam()])
 						{	// <advc.124>
-							double speedAdjust = ::range(GC.getInfo(kGame.getGameSpeedType()).
-									getResearchPercent(), 100, 200) / 100.0;
+							scaled rSpeedAdjust = scaled::clamp(per100(
+									GC.getInfo(kGame.getGameSpeedType()).
+									getResearchPercent()), 1, 2);
 							// </advc.124>
 							AI_changeContactTimer(ePlayer, CONTACT_OPEN_BORDERS,
-									::round(speedAdjust * // advc.124
-									GC.getInfo(getPersonalityType()).getContactDelay(CONTACT_OPEN_BORDERS)));
+									(rSpeedAdjust * // advc.124
+									GC.getInfo(getPersonalityType()).
+									getContactDelay(CONTACT_OPEN_BORDERS)).round());
 							pDiplo = new CvDiploParameters(getID());
 							pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_DEAL"));
 							pDiplo->setAIContact(true);

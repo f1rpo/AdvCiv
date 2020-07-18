@@ -15,8 +15,9 @@ public:
 	DllExport static CvMapGenerator& GetInstance();
 	DllExport static void FreeInstance() { SAFE_DELETE(m_pInst); }
 
-	bool canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIgnoreLatitude);		// Exposed to Python
-	bool canPlaceGoodyAt(ImprovementTypes eImprovement, int iX, int iY);							// Exposed to Python
+	bool canPlaceBonusAt(BonusTypes eBonus, int iX, int iY,						// Exposed to Python
+			bool bIgnoreLatitude) const;
+	bool canPlaceGoodyAt(ImprovementTypes eGoody, int iX, int iY) const;		// Exposed to Python
 
 	// does all of the below "add..." functions:
 	DllExport void addGameElements();											// Exposed to Python
@@ -30,8 +31,8 @@ public:
 	bool addRiver(CvPlot *pFreshWaterPlot);
 	DllExport void addFeatures();													// Exposed to Python
 	DllExport void addBonuses();													// Exposed to Python
-	void addUniqueBonusType(BonusTypes eBonusType);				// Exposed to Python
-	void addNonUniqueBonusType(BonusTypes eBonusType);		// Exposed to Python
+	void addUniqueBonusType(BonusTypes eBonus);					// Exposed to Python
+	void addNonUniqueBonusType(BonusTypes eBonus);			// Exposed to Python
 	DllExport void addGoodies();													// Exposed to Python
 
 	DllExport void eraseRivers();													// Exposed to Python
@@ -51,9 +52,9 @@ public:
 protected:
 
 	int getRiverValueAtPlot(CvPlot const& kPlot) const;
-	int calculateNumBonusesToAdd(BonusTypes eBonusType);
+	int calculateNumBonusesToAdd(BonusTypes eBonus);
 	// advc.129: To avoid duplicate code in addUniqueBonus and addNonUniqueBonus
-	int placeGroup(BonusTypes eBonusType, CvPlot const& kCenter,
+	int placeGroup(BonusTypes eBonus, CvPlot const& kCenter,
 			bool bIgnoreLatitude, int iLimit = 100);
 
 private:

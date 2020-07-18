@@ -1006,7 +1006,7 @@ NormalizationTarget* CvGame::assignStartingPlots()
 		if (it->getStartingPlot() != NULL)
 			continue; // Already got one
 		// advc.027b: was getSorenRandNum
-		int iRandOffset = getMapRand().getInt(starting_plots.size(), "Starting Plot");
+		int iRandOffset = getMapRandNum(starting_plots.size(), "Starting Plot");
 		it->setStartingPlot(starting_plots[iRandOffset], true);
 		// remove this plot from the list.
 		starting_plots[iRandOffset] = starting_plots[starting_plots.size()-1];
@@ -1027,7 +1027,7 @@ NormalizationTarget* CvGame::assignStartingPlots()
 		{
 			bool bStartFound = false;
 			// advc.027b: was getSorenRandNum
-			int iRandOffset = getMapRand().getInt(countCivTeamsAlive(), "Team Starting Plot");
+			int iRandOffset = getMapRandNum(countCivTeamsAlive(), "Team Starting Plot");
 			gDLL->callUpdater(); // advc (seems like a better place than the one I commented out above)
 			for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 			{
@@ -1066,7 +1066,7 @@ NormalizationTarget* CvGame::assignStartingPlots()
 		 multiplayer, and the BtS random assignment of human starts doesn't
 		 actually work - favors player 0 when humans are in slots 0, 1 ... */
 	/*else if (isGameMultiPlayer()) {
-		int iRandOffset = getMapRand().getInt(PlayerIter<CIV_ALIVE>::count(), "Player Starting Plot");
+		int iRandOffset = getMapRandNum(PlayerIter<CIV_ALIVE>::count(), "Player Starting Plot");
 		// ... (deleted on 14 June 2020)
 	}
 	else
@@ -1098,7 +1098,7 @@ NormalizationTarget* CvGame::assignStartingPlots()
 			int iLoopCivs = PlayerIter<HUMAN>::count();
 			if (!bHuman)
 				iLoopCivs = iCivsAlive - iLoopCivs;
-			int iRandOffset = getMapRand().getInt(iLoopCivs, "advc.108b");
+			int iRandOffset = getMapRandNum(iLoopCivs, "advc.108b");
 			int iSkipped = 0;
 			for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 			{
@@ -1703,7 +1703,7 @@ void CvGame::normalizeRemoveBadTerrain()  // advc: refactored
 					iTargetFood = 1;
 				else if (iPlotFood == 1 || iDistance <= iCityRange)
 				{	// advc.027b: was getSorenRandNum
-					iTargetFood = 1 + getMapRand().getInt(2, "Map Upgrade Terrain Food");
+					iTargetFood = 1 + getMapRandNum(2, "Map Upgrade Terrain Food");
 				}
 				else iTargetFood = (p.isCoastalLand() ? 2 : 1);
 
@@ -1738,7 +1738,7 @@ void CvGame::normalizeAddFoodBonuses(  // advc: refactoring
 	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
 		CvPlayer const& kPlayer = *itPlayer;
-		CvPlot* pStartingPlot = kPlayer.getStartingPlot();
+		CvPlot const* pStartingPlot = kPlayer.getStartingPlot();
 		if (pStartingPlot == NULL)
 			continue;
 

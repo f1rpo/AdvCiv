@@ -5485,7 +5485,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 			FOR_EACH_ENUM(Bonus)
 			{
 				TechTypes eRevealTech = GC.getInfo(eLoopBonus).getTechReveal();
-				BonusClassTypes eBonusClass = (BonusClassTypes)GC.getInfo(eLoopBonus).getBonusClassType();
+				BonusClassTypes eBonusClass = GC.getInfo(eLoopBonus).getBonusClassType();
 				if (eRevealTech != NO_TECH)
 				{
 					if ((GET_TEAM(kPlot.getTeam()).isHasTech(eRevealTech)))
