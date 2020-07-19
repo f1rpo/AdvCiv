@@ -16,7 +16,7 @@ public:
 	DllExport static void FreeInstance() { SAFE_DELETE(m_pInst); }
 
 	bool canPlaceBonusAt(BonusTypes eBonus, int iX, int iY,						// Exposed to Python
-			bool bIgnoreLatitude) const;
+			bool bIgnoreLatitude, bool bCheckRange = true) const; // advc.129
 	bool canPlaceGoodyAt(ImprovementTypes eGoody, int iX, int iY) const;		// Exposed to Python
 
 	// does all of the below "add..." functions:

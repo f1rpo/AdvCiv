@@ -20,7 +20,7 @@ CvMapGenerator& CvMapGenerator::GetInstance() // singleton accessor
 
 
 bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY,  // refactored
-	bool bIgnoreLatitude) const
+	bool bIgnoreLatitude, /* advc.129: */ bool bCheckRange) const
 {
 	PROFILE_FUNC();
 
@@ -40,6 +40,21 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY,  // refa
 		if (bOverride)
 			return r;
 	}
+
+	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
+
+	if (p.isWater())
+	{
+		if (((kMap.getNumBonusesOnLand(eBonus) * 100) /
+			(kMap.getNumBonuses(eBonus) + 1)) <
+			kBonus.getMinLandPercent())
+		{
+			return false;
+		}
+	}
+	// <advc.129>
+	if (!bCheckRange)
+		return true; // </advc.129>
 
 	FOR_EACH_ENUM(Direction)
 	{
@@ -565,56 +580,87 @@ void CvMapGenerator::addBonuses()
 	}
 }
 
-void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
+void CvMapGenerator::addUniqueBonusType(BonusTypes eBonus)
 {
-	// K-Mod note: the areas tried stuff was originally done using an array.
-	// I've rewritten it to use std::set, for no good reason. The functionality is unchanged.
-	// (But it is now slightly more efficient and easier to read.)
-	std::set<int> areas_tried;
-
-	CvBonusInfo const& pBonusInfo = GC.getInfo(eBonusType);
-	int const iTarget = calculateNumBonusesToAdd(eBonusType);
+	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
+	int const iTarget = calculateNumBonusesToAdd(eBonus);
 	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
 	// advc.opt: Don't waste time trying to place land resources in the ocean
-	bool const bWater = (pBonusInfo.isTerrain(GC.getWATER_TERRAIN(true)) ||
-			pBonusInfo.isTerrain(GC.getWATER_TERRAIN(false)));
-	FAssertMsg(pBonusInfo.isOneArea(), "addUniqueBonusType called with non-unique bonus type");
-	CvMap& kMap = GC.getMap(); // advc
+	bool const bWater = (kBonus.isTerrain(GC.getWATER_TERRAIN(true)) ||
+			kBonus.isTerrain(GC.getWATER_TERRAIN(false)));
+	FAssertMsg(kBonus.isOneArea(), "addUniqueBonusType called with non-unique bonus type");
+	CvMap& kMap = GC.getMap();
+	CvGame& kGame = GC.getGame();
+
+	/*	K-Mod note: the areas tried stuff was originally done using an array.
+		I've rewritten it to use std::set, for no good reason. The functionality is unchanged.
+		(But it is now slightly more efficient and easier to read.) */
+	std::set<int> areas_tried;
 	// <advc.129>
+	// Sort areas in order to save time below
+	std::vector<std::pair<int,int> > areasBySize;
+	FOR_EACH_AREA(pLoopArea)
+		areasBySize.push_back(std::make_pair(pLoopArea->getNumTiles(), pLoopArea->getID()));
+	std::sort(areasBySize.rbegin(), areasBySize.rend());
+
 	for (int iPass = 0; iPass < 2; iPass++)
 	{	/*  Two passes - just to make sure that the new per-area limit doesn't
 			lead to fewer resources overall. */
 		bool bIgnoreAreaLimit = (iPass == 1); // </advc.129>
-		while (/* advc.129: */kMap.getNumBonuses(eBonusType) < iTarget)
+		while (/* advc.129: */kMap.getNumBonuses(eBonus) < iTarget)
 		{
 			int iBestValue = 0;
-			CvArea *pBestArea = NULL;
-			FOR_EACH_AREA_VAR(pLoopArea)
-			{	// <advc.opt>
-				if (pLoopArea->isWater() && !bWater)
+			CvArea* pBestArea = NULL;
+			for (size_t i = 0; i < areasBySize.size(); i++)
+			{
+				CvArea& kLoopArea = *kMap.getArea(areasBySize[i].second);
+				// <advc.opt>
+				if (kLoopArea.isWater() && !bWater)
 					continue; // </advc.opt>
-				if (areas_tried.count(pLoopArea->getID()) == 0)
+				if (areas_tried.count(kLoopArea.getID()) > 0)
+					continue;
+				int iNumTiles = kLoopArea.getNumTiles();
+				// <advc> Who knows what a map script might do ...
+				if (iNumTiles <= 0)
 				{
-					int iNumTiles = pLoopArea->getNumTiles();
-					int iAddedTotal = kMap.getNumBonuses(eBonusType);
-					if (iAddedTotal * 3 < 2 * iTarget &&
-						iNumTiles < 4 * NUM_CITY_PLOTS) // K-Mod
+					FAssert(iNumTiles > 0);
+					continue;
+				} // </advc>
+				int iAddedTotal = kMap.getNumBonuses(eBonus);
+				if (iAddedTotal * 3 < 2 * iTarget &&
+					iNumTiles < 4 * NUM_CITY_PLOTS) // K-Mod
+				{
+					continue;
+				}
+				// number of unique bonuses starting on the area, plus this one
+				int iNumUniqueBonusesOnArea = 1 + kLoopArea.countNumUniqueBonusTypes();
+				//int iValue = iNumTiles / iNumUniqueBonusesOnArea;
+				int iValue = ((iNumTiles *
+						// advc.129: Decrease the impact of iNumTiles when approaching the target resource count
+						(iTarget - iAddedTotal)) / iTarget +
+						kGame.getMapRandNum(3 * NUM_CITY_PLOTS,
+						"addUniqueBonusType area value (K-Mod)")) / iNumUniqueBonusesOnArea;
+				// <advc.129>
+				if (iValue <= iBestValue) // To save time
+					continue;
+				int iEligible = 0;
+				for (int j = 0; j < kMap.numPlots(); j++)
+				{
+					CvPlot const& kTestPlot = kMap.getPlotByIndex(j);
+					if (kTestPlot.isArea(kLoopArea) &&
+						canPlaceBonusAt(eBonus, kTestPlot.getX(), kTestPlot.getY(),
+						false, false)) // Save some time by skipping range checks
 					{
-						continue;
+						iEligible++;
 					}
-					// number of unique bonuses starting on the area, plus this one
-					int iNumUniqueBonusesOnArea = 1 + pLoopArea->countNumUniqueBonusTypes();
-					//int iValue = iNumTiles / iNumUniqueBonusesOnArea;
-					int iValue = ((iNumTiles *
-							// advc.129: Decrease the impact of iNumTiles when approaching the target resource count
-							(iTarget - iAddedTotal)) / iTarget +
-							GC.getGame().getMapRandNum(3 * NUM_CITY_PLOTS,
-							"addUniqueBonusType area value (K-Mod)")) / iNumUniqueBonusesOnArea; 
-					if (iValue > iBestValue)
-					{
-						iBestValue = iValue;
-						pBestArea = pLoopArea;
-					}
+				}
+				scaled rSuitability(iEligible, iNumTiles);
+				rSuitability = (rSuitability + 2) / 3; // dilute
+				iValue = (rSuitability * iValue).round(); // </advc.129>
+				if (iValue > iBestValue)
+				{
+					iBestValue = iValue;
+					pBestArea = &kLoopArea;
 				}
 			}
 
@@ -629,27 +675,25 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 
 			// Place the bonuses: (advc: some style changes from here on)
 
-			int* aiShuffledIndices = shuffle(kMap.numPlots(), GC.getGame().getMapRand());
+			int* aiShuffledIndices = shuffle(kMap.numPlots(), kGame.getMapRand());
 			for (int iI = 0; iI < kMap.numPlots() &&
 				(bIgnoreAreaLimit || iAdded < iAreaLimit) && // advc.129
-				kMap.getNumBonuses(eBonusType) < iTarget; iI++)
+				kMap.getNumBonuses(eBonus) < iTarget; iI++)
 			{
 				CvPlot& kRandPlot = kMap.getPlotByIndex(aiShuffledIndices[iI]);
-
 				if (pBestArea != kRandPlot.area())
 					continue;
-
-				int const x = kRandPlot.getX();
-				int const y = kRandPlot.getY();
-				if (!canPlaceBonusAt(eBonusType, x, y, bIgnoreLatitude))
+				if (!canPlaceBonusAt(eBonus, kRandPlot.getX(), kRandPlot.getY(),
+					bIgnoreLatitude))
+				{
 					continue;
-
-				/*	<advc.129> About to place a cluster of eBonusType. Don't place that
+				}
+				/*	<advc.129> About to place a cluster of eBonus. Don't place that
 					cluster near an earlier cluster (or any instance) of the same bonus class
 					- that's what can lead to e.g. starts with 5 Gold. canPlaceBonusAt
 					can't enforce this well b/c it doesn't know whether a cluster starts
 					(distance needs to be heeded) or continues (distance mustn't be heeded). */
-				int iClassToAvoid = pBonusInfo.getBonusClassType();
+				BonusClassTypes eClassToAvoid = kBonus.getBonusClassType();
 				/*  Only resources that occur in clusters are problematic. Not sure about
 					the iClassToAvoid>0 clause. 0 is the "general" bonus class containing
 					all the clustered resources except for Gold, Silver, Gems which I've
@@ -657,20 +701,20 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 					of precious bonuses are avoided. Eliminating all double clusters might
 					get in the way of (early) resource trades too much and make the map
 					less exciting than it could be. */
-				if(pBonusInfo.getGroupRand() > 0 && iClassToAvoid > 0)
+				if(kBonus.getGroupRand() > 0 && eClassToAvoid != NO_BONUSCLASS)
 				{
 					bool bSkip = false;
-					/*  Can't use pClassInfo.getUniqueRange() b/c this has to be
+					/*  Can't use kUnitClass.getUniqueRange() b/c this has to be
 						0 for bonuses that appear in clusters. 5 hardcoded. */
 					int const iDist = 5;
-					for (PlotCircleIter it(x, y, iDist); it.hasNext(); ++it)
+					for (PlotCircleIter it(kRandPlot, iDist); it.hasNext(); ++it)
 					{
 						CvPlot const& p = *it;
 						if (!p.sameArea(kRandPlot))
 							continue;
 						BonusTypes eOtherBonus = p.getBonusType();
 						if(eOtherBonus != NO_BONUS && GC.getInfo(eOtherBonus).
-							getBonusClassType() == iClassToAvoid &&
+							getBonusClassType() == eClassToAvoid &&
 							GC.getInfo(eOtherBonus).getGroupRand() > 0)
 						{
 							bSkip = true;
@@ -680,18 +724,18 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 					if(bSkip)
 						continue;
 				} // </advc.129>
-				kRandPlot.setBonusType(eBonusType);
-				// <dvc.129>
+				kRandPlot.setBonusType(eBonus);
+				// <advc.129>
 				iAdded++;
-				iAdded += placeGroup(eBonusType, kRandPlot, bIgnoreLatitude); // Replacing the code below
-				/*for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++) {
-					for (int iDY = -(pBonusInfo.getGroupRange()); iDY <= pBonusInfo.getGroupRange(); iDY++) {
-						if (GC.getMap().getNumBonuses(eBonusType) < iBonusCount) {
+				iAdded += placeGroup(eBonus, kRandPlot, bIgnoreLatitude); // Replacing the code below
+				/*for (int iDX = -(kBonus.getGroupRange()); iDX <= kBonus.getGroupRange(); iDX++) {
+					for (int iDY = -(kBonus.getGroupRange()); iDY <= kBonus.getGroupRange(); iDY++) {
+						if (GC.getMap().getNumBonuses(eBonus) < iBonusCount) {
 							CvPlot* pLoopPlot	= plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
 							if (pLoopPlot != NULL && (pLoopPlot->area() == pBestArea)) {
-								if (canPlaceBonusAt(eBonusType, pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude)) {
-									if (GC.getGame().getMapRandNum(100, "addUniqueBonusType") < pBonusInfo.getGroupRand())
-										pLoopPlot->setBonusType(eBonusType);
+								if (canPlaceBonusAt(eBonus, pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude)) {
+									if (kGame.getMapRandNum(100, "addUniqueBonusType") < kBonus.getGroupRand())
+										pLoopPlot->setBonusType(eBonus);
 				} } } } }*/
 
 			}
