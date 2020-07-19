@@ -221,7 +221,8 @@
 			<iPlayer>100</iPlayer>
 			<iTilesPer>256</iTilesPer>
 			<iMinLandPercent>0</iMinLandPercent>
-			<iUnique>6</iUnique>
+			<!-- advc.129: was 6 -->
+			<iUnique>5</iUnique>
 			<iGroupRange>0</iGroupRange>
 			<iGroupRand>0</iGroupRand>
 			<bArea>0</bArea>
@@ -400,7 +401,8 @@
 			<iPlayer>150</iPlayer>
 			<iTilesPer>512</iTilesPer>
 			<iMinLandPercent>70</iMinLandPercent>
-			<iUnique>7</iUnique>
+			<!-- advc-129: was 7 -->
+			<iUnique>6</iUnique>
 			<iGroupRange>0</iGroupRange>
 			<iGroupRand>0</iGroupRand>
 			<bArea>0</bArea>
