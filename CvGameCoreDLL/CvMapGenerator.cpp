@@ -1066,9 +1066,11 @@ int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonus)
 		if (GC.getDefineBOOL("SUBLINEAR_BONUS_QUANTITIES"))
 		{
 			int iSubtrahend = kBonus.getTilesPer(); // Typically 16 or 32
+			// For normalization; don't want to place fewer resources in general.
+			iSubtrahend = (fixp(0.83) * iSubtrahend).ceil();
 			int iRemainder = iNumPossible;
 			int iResult = 0;
-			/* Place one for the first, say, 16 tiles, the next after 17, then 18 ...
+			/* Place one for the first, say, 14 tiles, the next after 15, then 16 ...
 			   i.e. number of resources placed grows sublinearly with the number of
 			   eligible plots. */
 			while(true)
