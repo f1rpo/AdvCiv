@@ -5181,13 +5181,10 @@ int CvTeamAI::AI_getOpenBordersAttitudeDivisor() const
 	return r;
 }
 
-double CvTeamAI::AI_OpenBordersCounterIncrement(TeamTypes eOther) const
+scaled CvTeamAI::AI_getOpenBordersCounterIncrement(TeamTypes eOther) const
 {
-	if(eOther == getID() || eOther == NO_TEAM)
-	{
-		FAssert(false);
-		return 0;
-	}
+	FAssert(eOther != getID() && eOther != NO_TEAM);
+	
 	int iTotalForeignTrade = 0;
 	int iTradeFromThem = 0;
 	for (MemberIter it(getID()); it.hasNext(); ++it)
@@ -5195,35 +5192,40 @@ double CvTeamAI::AI_OpenBordersCounterIncrement(TeamTypes eOther) const
 		// Based on calculateTradeRoutes in BUG's TradeUtil.py
 		FOR_EACH_CITY(c, *it)
 		{
-			for(int j = 0; j < c->getTradeRoutes(); j++)
+			for (int i = 0; i < c->getTradeRoutes(); i++)
 			{
-				CvCity* pPartnerCity = c->getTradeCity(j);
-				if(pPartnerCity == NULL)
+				CvCity const* pPartnerCity = c->getTradeCity(i);
+				if (pPartnerCity == NULL)
 					continue;
 				TeamTypes ePartnerTeam = pPartnerCity->getTeam();
-				if(ePartnerTeam == NO_TEAM || ePartnerTeam == getID())
+				if (ePartnerTeam == NO_TEAM || ePartnerTeam == getID())
 					continue;
 				int iTradeCommerce = c->calculateTradeYield(YIELD_COMMERCE,
 						c->calculateTradeProfit(pPartnerCity));
 				iTotalForeignTrade += iTradeCommerce;
-				if(ePartnerTeam == eOther)
+				if (ePartnerTeam == eOther)
 					iTradeFromThem += iTradeCommerce;
 			}
 		}
 	}
-	double fromTrade = 0;
-	if(iTotalForeignTrade > 0 && iTradeFromThem > 0)
-		fromTrade = std::sqrt(iTradeFromThem / (double)iTotalForeignTrade);
-	double fromCloseness = 0;
+	scaled rFromTrade = 0;
+	if (iTotalForeignTrade > 0 && iTradeFromThem > 0)
+	{
+		rFromTrade = scaled(iTradeFromThem, iTotalForeignTrade).sqrt();
+		rFromTrade *= fixp(1.3);
+	}
+	scaled rFromCloseness = 0;
 	int iOurCities = getNumCities();
 	int iTheirCities = GET_TEAM(eOther).getNumCities();
-	if(iOurCities > 0 && iTheirCities > 0)
-		fromCloseness = AI_teamCloseness(eOther, DEFAULT_PLAYER_CLOSENESS) /
-				(std::sqrt(iOurCities + (double)iTheirCities) * 20);
+	if (iOurCities > 0 && iTheirCities > 0)
+	{
+		rFromCloseness = AI_teamCloseness(eOther, DEFAULT_PLAYER_CLOSENESS) /
+				(scaled(iOurCities + iTheirCities).sqrt() * 20);
+	}
 	/*  Would be nice to add another, say, 0.25 if any of our units w/o
 		isRivalTerritory is currently inside the borders of an eOther team member,
 		but that's too costly to check here and too complicated to keep track of. */
-	return ::dRange(fromTrade + fromCloseness, 1/6.0, 8/6.0);
+	return scaled::clamp(rFromTrade + rFromCloseness, fixp(1/6.), fixp(8/6.));
 } // </advc.130i>
 
 /*  <advc.130k> Random number to add or subtract from state counters
@@ -5283,13 +5285,12 @@ void CvTeamAI::AI_doCounter()
 		// <advc.130i>
 		if(isOpenBorders(eOther))
 		{
-			double pr = AI_OpenBordersCounterIncrement(eOther) / 2; // advc.130i
+			scaled pr = AI_getOpenBordersCounterIncrement(eOther) / 2;
 			int iMax = 2 * AI_getOpenBordersAttitudeDivisor() + 10;
-			AI_changeOpenBordersCounter(eOther, AI_randomCounterChange(iMax, pr));
-		} // <advc.130k>
+			AI_changeOpenBordersCounter(eOther, AI_randomCounterChange(iMax, pr.getDouble()));
+		} // </advc.130i>  <advc.130k>
 		else AI_setOpenBordersCounter(eOther, (int)(
 				(1 - decay) * AI_getOpenBordersCounter(eOther))); // </advc.130k>
-		// </advc.130i>
 		if(isDefensivePact(eOther))
 			AI_changeDefensivePactCounter(eOther, AI_randomCounterChange());
 		// <advc.130k>
