@@ -3583,11 +3583,19 @@
 		 Vanilla CIV4GameTextInfos.xml	-->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_DISCOVERED_NO_BONUS</Tag>
-		<English>No unclaimed sources of [COLOR_HIGHLIGHT_TEXT]%s1_BonusName[COLOR_REVERT] have been located.</English>
-		<French>Aucune source libre de [COLOR_HIGHLIGHT_TEXT]%s1_BonusName[COLOR_REVERT] n'a été découverte.</French>
-		<German>Keine verfügbaren Vorkommen des Bonusguts [COLOR_HIGHLIGHT_TEXT]%s1_BonusName[COLOR_REVERT] wurden entdeckt.</German>
-		<Italian>Nessuna risorsa libera di [COLOR_HIGHLIGHT_TEXT]%s1_BonusName[COLOR_REVERT] è stato scoperto.</Italian>
-		<Spanish>No se ha descubierto ninguna fuente disponible de [COLOR_HIGHLIGHT_TEXT]%s1_BonusName[COLOR_REVERT].</Spanish>
+		<English>No%s1_Adjective sources of [COLOR_HIGHLIGHT_TEXT]%s2_BonusName[COLOR_REVERT] have been located.</English>
+		<French>Aucune source %s1_Adjective de [COLOR_HIGHLIGHT_TEXT]%s2_BonusName[COLOR_REVERT] n'a été découverte.</French>
+		<German>Keine%s1_Adjective Vorkommen des Bonusguts [COLOR_HIGHLIGHT_TEXT]%s2_BonusName[COLOR_REVERT] wurden entdeckt.</German>
+		<Italian>Nessuna risorsa%s1_Adjective di [COLOR_HIGHLIGHT_TEXT]%s2_BonusName[COLOR_REVERT] è stato scoperto.</Italian>
+		<Spanish>No se ha descubierto ninguna fuente%s1_Adjective de [COLOR_HIGHLIGHT_TEXT]%s2_BonusName[COLOR_REVERT].</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_DISCOVERED_UNCLAIMED</Tag>
+		<English>[SPACE]unclaimed</English>
+		<French>[SPACE]libre</French>
+		<German>[SPACE]verfügbaren</German>
+		<Italian>[SPACE]libera</Italian>
+		<Spanish>[SPACE]disponible</Spanish>
 	</TEXT>
 
 	<!-- advc.160 Originally in CIV4GameTextInfos.xml -->
