@@ -723,10 +723,12 @@ short AIFoundValue::evaluate()
 		iValue /= 100;
 		IFLOG if(iModifier!=100) logBBAI("Times %d percent for starting on a resource", iModifier);
 	}
-	if ((kSet.isStartingLoc() || /* advc.031e: */ kSet.isNormalizing()) &&
-		!kSet.isIgnoreStartingSurroundings()) // advc.027
-	{
-		iValue = adjustToStartingSurroundings(iValue); // (advc: Moved down a bit)
+	if (kSet.isStartingLoc() || /* advc.031e: */ kSet.isNormalizing())
+	{	// <advc.027
+		if (kSet.isIgnoreStartingSurroundings())
+			iValue = adjustToStartingChoices(iValue);
+		else // </advc.027>
+			iValue = adjustToStartingSurroundings(iValue); // (advc: Moved down a bit)
 	}
 	if (bBarbarian)
 		iValue = adjustToBarbarianSurroundings(iValue);
@@ -2422,6 +2424,46 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 	}
 	IFLOG logBBAI("%d from distance to other players", r - iTempValue);
 	return r;
+}
+
+/*	advc.027:  (Not sure how to name this function. It's supposed to encourage
+	-some- strong tiles in the first ring of tiles outside the city radius
+	in order to make the choice whether to settle in place more interesting.) */
+int AIFoundValue::adjustToStartingChoices(int iValue) const
+{
+	int iResources = 0;
+	int iHighYield = 0;
+	int iLowYield = 0;
+	for (PlotCircleIter it(kPlot, CITY_PLOTS_RADIUS + 1, false); it.hasNext(); ++it)
+	{
+		if (it.currPlotDist() <= CITY_PLOTS_RADIUS)
+			continue;
+		CvPlot const& p = *it;
+		// Off the cuff ...
+		if (getBonus(p) != NO_BONUS)
+		{
+			iResources++; // Don't care about the yield or other specifics
+			continue;
+		}
+		int iYieldVal = 0;
+		FOR_EACH_ENUM(Yield)
+		{
+			iYieldVal += (eLoopYield == YIELD_COMMERCE ? 1 : 2) *
+					p.calculateNatureYield(eLoopYield);
+		}
+		if (p.isRiver())
+			iYieldVal++;
+		if (iYieldVal > 4) // E.g. Plains tile as a baseline
+			iHighYield++;
+		else if (iYieldVal < 4)
+			iLowYield++;
+	}
+	iLowYield = std::max(0, iLowYield - 4); // A few low-yield tiles aren't a problem
+	// One resource and one high-yield tile is plenty
+	int iModifier = std::min(10, 4 * iHighYield - 2 * iLowYield + 7 * iResources);
+	if (iModifier < 0)
+		iModifier /= 2;
+	return (iValue * (100 + iModifier / 2)) / 100;
 }
 
 

@@ -185,6 +185,7 @@ private:
 	int evaluateDefense() const;
 	int evaluateGoodies(int iGoodies) const;
 	int adjustToStartingSurroundings(int iValue) const;
+	int adjustToStartingChoices(int iValue) const;
 	int adjustToFood(int iValue, int iSpecialFoodPlus, int iSpecialFoodMinus,
 			int iGreenTiles) const;
 	int adjustToProduction(int iValue, scaled rBaseProduction) const;
