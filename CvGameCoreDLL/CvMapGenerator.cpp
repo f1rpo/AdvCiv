@@ -147,6 +147,8 @@ bool CvMapGenerator::canPlaceGoodyAt(ImprovementTypes eGoody, int iX, int iY) co
 		return false;
 
 	int iUniqueRange = GC.getInfo(eGoody).getGoodyUniqueRange();
+	// advc.314: Adjust to map size
+	iUniqueRange += GC.getWorldInfo(GC.getMap().getWorldSize()).getFeatureGrainChange();
 	for (SquareIter it(*p, iUniqueRange); it.hasNext(); ++it)
 	{
 		if (it->getImprovementType() == eGoody)
@@ -837,7 +839,7 @@ void CvMapGenerator::addGoodies()  // advc: some style changes
 
 			CvArea const& kArea = kPlot.getArea();
 			if (goodiesPerArea[kArea.getID()] < // advc.opt: was kArea.getNumImprovements(eImprov)
-				(kArea.getNumTiles() + iTilesPerGoody / 2) / iTilesPerGoody)
+				ROUND_DIVIDE(kArea.getNumTiles(), iTilesPerGoody))
 			{
 				if (canPlaceGoodyAt(eGoody, kPlot.getX(), kPlot.getY()))
 				{
