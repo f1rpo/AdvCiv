@@ -31,7 +31,7 @@ void TestScaledNum()
 			round() == 32);
 
 	// Spotty unit test (tbd.: improve coverage; especially: IntType short, char)
-	FAssert((fixp(4/3.) * 1000).getInt() == 1333);
+	FAssert((fixp(4/3.) * 1000).round() == 1333);
 	FAssert(scaled(0) == per100(0));
 	FAssert(fixp(-0.3125) * 1024 == -320);
 	FAssert(per1000(2254u).getPercent() == 225);
@@ -48,8 +48,8 @@ void TestScaledNum()
 	FAssert(rSum.approxEquals(10, fixp(3.5)));
 	FAssert(scaled(2).pow(10) == 1024);
 	FAssert(scaled(10).pow(-2) == per100(1));
-	FAssert((scaled(2).sqrt() * 100).getInt() == 141);
-	FAssert((fixp(0.3).pow(fixp(1.7))*100).getInt() == 13);
+	FAssert((scaled(2).sqrt() * 100).round() == 141);
+	FAssert((fixp(0.3).pow(fixp(1.7))*100).round() == 13);
 	FAssert(scaled(24).pow(0) == 1);
 	FAssert(scaled(0).pow(24) == 0);
 	FAssert(scaled(-2).pow(3) == -8);

@@ -89,7 +89,7 @@ CvString ScaledNumBase<Dummy>::szBuf = "";
 	IntType is the type of the underlying integer variable. Has to be an integral type.
 	__int64 isn't currently supported. For unsigned IntType, internal integer
 	divisions are rounded to the nearest IntType value in order to improve precision.
-	For signed INT types, this isn't guaranteed. Using an unsigned IntType also
+	For signed IntType, this isn't guaranteed. Using an unsigned IntType also
 	speeds up multiplication.
 
 	ScaledNum instances of different iSCALE values or different IntTypes can be mixed.
@@ -137,7 +137,7 @@ class ScaledNum : ScaledNumBase<void> // Not named "ScaledInt" b/c what's being 
 	static bool const bSIGNED = std::numeric_limits<IntType>::is_signed;
 	/*	Limits of IntType. Set through std::numeric_limits, but can't do that in-line; and
 		we don't have SIZE_MIN/MAX (cstdint), nor boost::integer_traits<IntType>::const_max.
-		Therefore, can't use INTMIN, INTMAX in static assertions. */
+		Therefore can't use INTMIN, INTMAX in static assertions. */
 	static IntType const INTMIN;
 	static IntType const INTMAX;
 
@@ -220,7 +220,7 @@ public:
 
 	// Scale and integer type conversion constructor
 	template<int iFROM_SCALE, typename OtherIntType, typename OtherEnumType>
-	__forceinline ScaledNum(ScaledNum<iFROM_SCALE,OtherIntType,OtherEnumType>& rOther);
+	__forceinline ScaledNum(ScaledNum<iFROM_SCALE,OtherIntType,OtherEnumType> const& rOther);
 
 	/*	Explicit conversion to default EnumType
 		(can't overload explicit cast operator in C++03) */
@@ -231,11 +231,11 @@ public:
 		return r;
 	}
 
-	__forceinline int getInt() const
-	{
-		// Conversion to int shouldn't be extremely frequent; take the time to round.
-		return round();
-	}
+	/*	Better be explicit about rounding. Since conversion to int should
+		not be extremely frequent, I recommend using 'round' in most cases. */
+	//__forceinline int getInt() const { return round(); }
+	// Cast operator - again, better to be explicit.
+	//__forceinline operator int() const { return getInt(); }
 	int round() const;
 	__forceinline int floor() const
 	{
@@ -246,11 +246,6 @@ public:
 		int r = floor();
 		return r + ((m_i >= 0 && m_i - r * SCALE > 0) ? 1 : 0);
 	}
-	// Cast operator - better require explicit calls to getInt.
-	/*__forceinline operator int() const
-	{
-		return getInt();
-	}*/
 	bool isInt() const
 	{
 		return (m_i % SCALE == 0);
@@ -342,28 +337,29 @@ public:
 		decreaseTo(hi);
 	}
 	template<typename LoType>
-	__forceinline void increaseTo(LoType lo)
+	void increaseTo(LoType lo)
 	{
 		// (std::max doesn't allow differing types)
 		if (*this < lo)
 			*this = lo; // (Will fail to compile for floating point operand)
 	}
 	template<typename HiType>
-	__forceinline void decreaseTo(HiType hi)
+	void decreaseTo(HiType hi)
 	{
 		if (*this > hi)
 			*this = hi;
 	}
-	// Too easy to use these by accident instead of the non-const functions above
+	/*	Too easy to use these by accident instead of the non-const functions above.
+		Could let the above return *this though (tbd.?). */
 	/*template<typename LoType>
-	__forceinline ScaledNum increasedTo(LoType lo) const
+	ScaledNum increasedTo(LoType lo) const
 	{
 		ScaledNum rCopy(*this);
 		rCopy.increaseTo(lo);
 		return rCopy;
 	}
 	template<typename HiType>
-	__forceinline ScaledNum decreasedTo(HiType hi) const
+	ScaledNum decreasedTo(HiType hi) const
 	{
 		ScaledNum rCopy(*this);
 		rCopy.decreaseTo(hi);
@@ -450,7 +446,7 @@ public:
 	{
 		return (getDouble() < d);
 	}
-    __forceinline bool operator>(double d) const
+	__forceinline bool operator>(double d) const
 	{
 		return (getDouble() > d);
 	}*/
@@ -659,7 +655,7 @@ private:
 			i = ROUND_DIVIDE(i, divisor);
 			i /= divisor;
 			return static_cast<ReturnType>(i);
-		} // In all other cases, mulDiv rounds too.
+		} // In all remaining cases, mulDiv rounds too.
 		return mulDiv(multiplicand, multiplier, divisor);
 	}
 
@@ -754,8 +750,8 @@ private:
 		/*	Tbd.: Try replacing this loop with _BitScanReverse (using the /EHsc compiler flag).
 			Or perhaps not available in MSVC03? See: github.com/danaj/Math-Prime-Util/pull/10/
 			*/
-		{	//while (nBaseDiv < *this)
-			IntType const nCeil = ceil(); // Avoid expensive overflow handling
+		{	//while (nBaseDiv < *this) // Would result in expensive overflow handling
+			IntType const nCeil = ceil();
 			while (nBaseDiv < nCeil)
 			{
 				nBaseDiv *= 2;
@@ -841,7 +837,7 @@ template<int iFROM_SCALE, typename OtherIntType, typename OtherEnumType>
 	Taking it by value leads to peculiar compiler errors when an assignment is followed 
 	by an opening curly brace (compiler demands a semicolon then). */
 __forceinline
-ScaledNum_T::ScaledNum(ScaledNum<iFROM_SCALE,OtherIntType,OtherEnumType>& rOther)
+ScaledNum_T::ScaledNum(ScaledNum<iFROM_SCALE,OtherIntType,OtherEnumType> const& rOther)
 {
 	STATIC_ASSERT_COMPATIBLE(EnumType,OtherEnumType);
 	static OtherIntType const FROM_SCALE = ScaledNum<iFROM_SCALE,OtherIntType,OtherEnumType>::SCALE;
@@ -871,7 +867,6 @@ int ScaledNum_T::round() const
 }
 
 template<ScaledNum_PARAMS>
-// Bernoulli trial (coin flip) with success probability equal to m_i/SCALE
 bool ScaledNum_T::bernoulliSuccess(CvRandom& kRand, char const* szLog,
 	int iLogData1 = -1, int iLogData2 = -1) const
 {
@@ -1071,7 +1066,7 @@ ScaledNum_T& ScaledNum_T::operator/=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEn
 	>::type
 /*	Simpler, but crashes the compiler (i.e. the above is a workaround).
 #define COMMON_SCALED_NUM \
-	ScaledNum<(iLeft > iRight ? iLeft : iRight), \
+	ScaledNum<(iLEFT_SCALE > iRIGHT_SCALE ? iLEFT_SCALE : iRIGHT_SCALE), \
 	typename choose_int_type<LeftIntType,RightIntType>::type, \
 	typename choose_type<is_same_type<LeftEnumType,int>::value,RightEnumType,LeftEnumType>::type > */
 
