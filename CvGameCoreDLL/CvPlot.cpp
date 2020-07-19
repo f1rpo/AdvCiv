@@ -3946,14 +3946,14 @@ void CvPlot::updatePotentialCityWork()
 	PROFILE_FUNC();
 
 	bool bValid = false;
-	for (CityPlotIter it(*this); it.hasNext(); ++it)
+	for (CityPlotIter it(*this);
+		!bValid && it.hasNext(); ++it)
 	{
-		if (!it->isWater())
-		{
+		//if (!it->isWater())
+		if (it->canEverFound()) // advc.129d
 			bValid = true;
-			break;
-		}
 	}
+
 	if (isPotentialCityWork() != bValid)
 	{
 		m_bPotentialCityWork = bValid;
@@ -4315,10 +4315,7 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 			}
 		}
 
-		for (CityPlotIter it(*this); it.hasNext(); ++it)
-		{
-			it->updatePotentialCityWork();
-		}
+		// (advc.129d: updatePotentialCityWork moved down)
 
 		GC.getMap().changeLandPlots(isWater() ? -1 : 1);
 
@@ -4419,6 +4416,14 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 			}
 		}
 	}
+	// <advc.129d>
+	if (isWater() != bWasWater || isImpassable() != bWasImpassable)
+	{	// Moved from above. Now also needed when impassable status changes.
+		for (CityPlotIter it(*this); it.hasNext(); ++it)
+		{
+			it->updatePotentialCityWork();
+		}
+	} // </advc.129d>
 	// <advc.030>
 	if (!isWater() && bWasImpassable != isImpassable() &&
 		!bRecalculateAreas && bRecalculate)
@@ -5254,14 +5259,14 @@ int CvPlot::calculateImprovementYieldChange(ImprovementTypes eImprovement, Yield
 
 char CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 {
-	if (bDisplay && GC.getGame().isDebugMode())
-		return getYield(eYield);
-
 	if (getTerrainType() == NO_TERRAIN)  // (advc: Can happen during map initialization)
 		return 0;
 
 	if (!isPotentialCityWork())
 		return 0;
+
+	if (bDisplay && GC.getGame().isDebugMode()) // (advc.129d: Moved down)
+		return getYield(eYield);
 
 	PlayerTypes ePlayer;
 	ImprovementTypes eImprovement;
@@ -5570,55 +5575,51 @@ void CvPlot::setFoundValue(PlayerTypes eIndex, short iNewValue)
 // advc: Cut from CvPlayer::canFound (for advc.027)
 bool CvPlot::canFound(bool bTestVisible) const
 {
-	if (isImpassable())
+	if (!canEverFound()) // advc.129d: Moved into another new function
 		return false;
-	bool bValid = false; // advc.opt: Water check moved up
-
-	/*  UNOFFICIAL_PATCH, Bugfix, 02/16/10, EmperorFool & jdog5000:
-		(canFoundCitiesOnWater callback handling was incorrect and ignored isWater() if it returned true) */
-	if (isWater())
-	{
-		if (GC.getPythonCaller()->canFoundWaterCity(*this))
-		{
-			bValid = true;
-			FAssertMsg(false, "The AdvCiv mod probably does not support cities on water"); // advc
-		}
-		else return false; // advc.opt
-	}
-
+	
 	if (isFeature() && GC.getInfo(getFeatureType()).isNoCity())
 		return false; // (advc.opt: Moved down)
-	if (!bValid)
-	{
-		if (GC.getInfo(getTerrainType()).isFound())
-			bValid = true;
-	}
-	if (!bValid)
-	{
-		if (GC.getInfo(getTerrainType()).isFoundCoast() && isCoastalLand())
-			bValid = true;
-	}
-	if (!bValid)
-	{
-		if (GC.getInfo(getTerrainType()).isFoundFreshWater() &&
-			isFreshWater())
-		{
-			bValid = true;
-		}
-	}
-	if (!bValid)
-		return false;
 
 	if (bTestVisible)
 		return true;
 
-	for (SquareIter it(*this, GC.getDefineINT(CvGlobals::MIN_CITY_RANGE)); it.hasNext(); ++it)
+	for (SquareIter it(*this, GC.getDefineINT(CvGlobals::MIN_CITY_RANGE));
+		it.hasNext(); ++it)
 	{
 		if (it->isCity() && it->sameArea(*this))
 			return false;
 	}
 
 	return true;
+}
+
+/*	advc.129d: Cut from CvPlayer::canFound.
+	Maybe not never ever; e.g. impassable status could change in mods. */
+bool CvPlot::canEverFound() const
+{
+	if (isImpassable())
+		return false;
+	// advc.opt: Water check moved up
+	/*  UNOFFICIAL_PATCH, Bugfix, 02/16/10, EmperorFool & jdog5000:
+		(canFoundCitiesOnWater callback handling was incorrect and ignored isWater() if it returned true) */
+	if (isWater())
+	{
+		if (GC.getPythonCaller()->canFoundWaterCity(*this))
+		{
+			FAssertMsg(false, "The AdvCiv mod probably does not support cities on water"); // advc
+			return true;
+		}
+		return false; // advc.opt
+	}
+	CvTerrainInfo const& kTerrain = GC.getInfo(getTerrainType());
+	if (kTerrain.isFound())
+		return true;
+	if (kTerrain.isFoundCoast() && isCoastalLand())
+		return true;
+	if (kTerrain.isFoundFreshWater() && isFreshWater())
+		return true;
+	return false;
 }
 
 
