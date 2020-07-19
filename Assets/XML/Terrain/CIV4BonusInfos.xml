@@ -1512,7 +1512,8 @@
 			<iMinLandPercent>0</iMinLandPercent>
 			<iUnique>0</iUnique>
 			<iGroupRange>1</iGroupRange>
-			<iGroupRand>50</iGroupRand>
+			<!-- advc.129: was 50 -->
+			<iGroupRand>36</iGroupRand>
 			<bArea>1</bArea>
 			<bHills>0</bHills>
 			<bFlatlands>1</bFlatlands>
@@ -1631,7 +1632,7 @@
 				<iRandApp4>0</iRandApp4>
 			</Rands>
 			<!-- advc.129: was 67 -->
-			<iPlayer>88</iPlayer>
+			<iPlayer>78</iPlayer>
 			<iTilesPer>0</iTilesPer>
 			<iMinLandPercent>0</iMinLandPercent>
 			<iUnique>0</iUnique>
