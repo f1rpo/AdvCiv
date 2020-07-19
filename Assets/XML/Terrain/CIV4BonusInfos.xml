@@ -608,13 +608,15 @@
 			<iHealth>1</iHealth>
 			<iHappiness>0</iHappiness>
 			<iPlacementOrder>4</iPlacementOrder>
-			<iConstAppearance>50</iConstAppearance>
+			<!-- advc.129: was 50 -->
+			<iConstAppearance>60</iConstAppearance>
 			<iMinAreaSize>3</iMinAreaSize>
 			<iMinLatitude>0</iMinLatitude>
 			<iMaxLatitude>90</iMaxLatitude>
+			<!-- advc.129: was 25, 25 -->
 			<Rands>
-				<iRandApp1>25</iRandApp1>
-				<iRandApp2>25</iRandApp2>
+				<iRandApp1>15</iRandApp1>
+				<iRandApp2>15</iRandApp2>
 				<iRandApp3>0</iRandApp3>
 				<iRandApp4>0</iRandApp4>
 			</Rands>
@@ -929,13 +931,15 @@
 			<iHealth>1</iHealth>
 			<iHappiness>0</iHappiness>
 			<iPlacementOrder>6</iPlacementOrder>
-			<iConstAppearance>50</iConstAppearance>
+			<!-- advc.129: was 50 -->
+			<iConstAppearance>60</iConstAppearance>
 			<iMinAreaSize>10</iMinAreaSize>
 			<iMinLatitude>0</iMinLatitude>
 			<iMaxLatitude>90</iMaxLatitude>
+			<!-- advc.129: was 25,25 -->
 			<Rands>
-				<iRandApp1>25</iRandApp1>
-				<iRandApp2>25</iRandApp2>
+				<iRandApp1>15</iRandApp1>
+				<iRandApp2>15</iRandApp2>
 				<iRandApp3>0</iRandApp3>
 				<iRandApp4>0</iRandApp4>
 			</Rands>
