@@ -66,39 +66,30 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY,  // refa
 			return false;
 	}
 
-	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
-
-	if (p.isWater())
+	int const iBonusClassRange = GC.getInfo(kBonus.getBonusClassType()).
+			getUniqueRange();
+	int const iBonusRange = kBonus.getUniqueRange();
+	for (PlotCircleIter it(p, std::max(iBonusClassRange, iBonusRange));
+		it.hasNext(); ++it)
 	{
-		if (((kMap.getNumBonusesOnLand(eBonus) * 100) /
-			(kMap.getNumBonuses(eBonus) + 1)) <
-			kBonus.getMinLandPercent())
+		CvPlot const& kLoopPlot = *it;
+		if (!kLoopPlot.isArea(kArea))
+			continue;
+		BonusTypes eOtherBonus = kLoopPlot.getBonusType();
+		if (eOtherBonus == NO_BONUS)
+			continue;
+		int iDist = it.currPlotDist();
+		// Make sure there are none of the same bonus nearby:
+		if (eBonus == eOtherBonus && iDist <= iBonusRange)
+			return false;
+		// Make sure there are no bonuses of the same class nearby:
+		if (GC.getInfo(eOtherBonus).getBonusClassType() ==
+			kBonus.getBonusClassType() && iDist <= iBonusClassRange)
 		{
 			return false;
 		}
 	}
 
-	int const iRange = pClassInfo.getUniqueRange();
-	for (int iDX = -iRange; iDX <= iRange; iDX++)
-	for (int iDY = -iRange; iDY <= iRange; iDY++)
-	{
-		CvPlot* pLoopPlot = plotXY(iX, iY, iDX, iDY);
-		if(pLoopPlot == NULL || !pLoopPlot->isArea(kArea))
-			continue;
-		if (plotDistance(iX, iY, pLoopPlot->getX(), pLoopPlot->getY()) <= iRange)
-		{
-			BonusTypes eOtherBonus = pLoopPlot->getBonusType();
-			if(eOtherBonus == NO_BONUS)
-				continue;
-			// Make sure there are none of the same bonus nearby:
-			if(eBonus == eOtherBonus)
-				return false;
-			// Make sure there are no bonuses of the same class nearby:
-			if(GC.getInfo(eOtherBonus).getBonusClassType() ==
-					pInfo.getBonusClassType())
-				return false;
-		}
-	}
 	// <advc.129> Prevent more than one adjacent copy regardless of range.
 	int iFound = 0;
 	FOR_EACH_ENUM(Direction)
