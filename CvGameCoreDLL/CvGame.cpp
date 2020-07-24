@@ -1623,7 +1623,7 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: refactored
 				{
 					if (p.isAdjacentToLand() || (iDistance <= iCityRange + 1 &&
 						// advc.027b: was getSorenRandNum
-						fixp(0.5).bernoulliSuccess(getMapRand(), "Remove Bad Feature")))
+						fixp(0.5).bernoulliSuccess(getMapRand(), "Remove Bad Feature 2")))
 					{
 						p.setFeatureType(NO_FEATURE);
 					}
@@ -1642,7 +1642,7 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: refactored
 					else if (p.getBonusType() == NO_BONUS)
 						prRemoval = scaled(1, 3); // </advc.108>
 					// advc.027b: was getSorenRandNum
-					if (prRemoval.bernoulliSuccess(getMapRand(), "Remove Bad Feature"))
+					if (prRemoval.bernoulliSuccess(getMapRand(), "Remove Bad Feature 3"))
 						p.setFeatureType(NO_FEATURE);
 				}
 			}
@@ -1671,7 +1671,7 @@ void CvGame::normalizeRemoveBadTerrain()  // advc: refactored
 			int iDistance = itPlot.currPlotDist();
 			if (!p.isWater() && (iDistance <= iCityRange ||
 				p.isCoastalLand() || scaled(1, 1 + iDistance - iCityRange).
-				bernoulliSuccess(getMapRand(), "Map Upgrade Terrain Food")))
+				bernoulliSuccess(getMapRand(), "Map Upgrade Terrain Food 1")))
 			{
 				CvTerrainInfo const& kTerrain = GC.getInfo(p.getTerrainType());
 				int iPlotFood = kTerrain.getYield(YIELD_FOOD);
@@ -1689,13 +1689,13 @@ void CvGame::normalizeRemoveBadTerrain()  // advc: refactored
 				{
 					continue;
 				}
-				if (prKeep.bernoulliSuccess(getMapRand(), "advc.108"))
+				if (prKeep.bernoulliSuccess(getMapRand(), "Map Upgrade Terrain Food 2"))
 				{
-					if(iPlotFood > 0 ||
+					if (iPlotFood > 0 ||
 					/*  advc.129b: Two chances of removal for Snow river
 						(BuildModifier=50), but not for Desert river. */
 						(p.isRiver() && kTerrain.getBuildModifier() < 30) ||
-						prKeep.bernoulliSuccess(getMapRand(), "advc.108"))
+						prKeep.bernoulliSuccess(getMapRand(), "Map Upgrade Terrain Food 3"))
 					{
 						continue;
 					}
@@ -1706,7 +1706,7 @@ void CvGame::normalizeRemoveBadTerrain()  // advc: refactored
 					iTargetFood = 1;
 				else if (iPlotFood == 1 || iDistance <= iCityRange)
 				{	// advc.027b: was getSorenRandNum
-					iTargetFood = 1 + getMapRandNum(2, "Map Upgrade Terrain Food");
+					iTargetFood = 1 + getMapRandNum(2, "Map Upgrade Terrain Food 4");
 				}
 				else iTargetFood = (p.isCoastalLand() ? 2 : 1);
 
@@ -2450,7 +2450,7 @@ bool CvGame::placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
 		if (kPlot.isGoody())
 			kPlot.setImprovementType(NO_IMPROVEMENT); // </advc.004z>
 		if (gMapLogLevel > 0) logBBAI("    Adding %S for player %d", kLoopBonus.getDescription(), eStartPlayer); // K-Mod
-		kPlot.setBonusType(eLoopBonus);			
+		kPlot.setBonusType(eLoopBonus);
 		return true;
 	}
 	return false;
@@ -2484,8 +2484,8 @@ bool CvGame::skipDuplicateExtraBonus(CvPlot const& kStartPlot, CvPlot const& kPl
 
 // advc: Cut, pasted, refactored from normalizeAddExtras
 bool CvGame::isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
-		CvPlot const& kPlot, bool bCheckCanPlace, bool bIgnoreLatitude) const {
-
+	CvPlot const& kPlot, bool bCheckCanPlace, bool bIgnoreLatitude) const
+{
 	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
 	if (!kBonus.isNormalize())
 		return false;
@@ -5867,11 +5867,11 @@ bool CvGame::isForceCivic(CivicTypes eIndex) const
 
 bool CvGame::isForceCivicOption(CivicOptionTypes eCivicOption) const
 {
-	for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
+	FOR_EACH_ENUM(Civic)
 	{
-		if (GC.getInfo((CivicTypes)iI).getCivicOptionType() == eCivicOption)
+		if (GC.getInfo(eLoopCivic).getCivicOptionType() == eCivicOption)
 		{
-			if (isForceCivic((CivicTypes)iI))
+			if (isForceCivic(eLoopCivic))
 				return true;
 		}
 	}

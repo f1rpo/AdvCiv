@@ -166,7 +166,7 @@ public:
 	void AI_thankLiberator(TeamTypes eLiberator);
 	// </advc.130y>
 	TeamTypes AI_getWorstEnemy() const { return m_eWorstEnemy; } // advc.inl
-	void AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateRivalTrade = true);
+	void AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateTradeMemory = true);
 	// <advc.130p>
 	scaled AI_enemyTradeResentmentFactor(TeamTypes eTo, TeamTypes eFrom,
 			TeamTypes eWarTradeTarget = NO_TEAM, TeamTypes ePeaceTradeTarget = NO_TEAM,
@@ -174,7 +174,7 @@ public:
 	// 0 or less if eEnemy isn't an enemy at all
 	int AI_enmityValue(TeamTypes eEnemy) const;
 	double AI_getDiploDecay() const;
-	double AI_recentlyMetMultiplier(TeamTypes eOther) const;
+	scaled AI_recentlyMetMultiplier(TeamTypes eOther) const;
 	// </advc.130p>
 	// advc.130k: Public b/c CvPlayerAI needs it too
 	int AI_randomCounterChange(int iUpperCap = -1, double pr = 0.5) const;

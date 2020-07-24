@@ -838,7 +838,7 @@ protected:
 	// </advc>
 	bool AI_proposeResourceTrade(PlayerTypes eTo); // advc.133
 	// advc.132:
-	bool AI_checkCivicReligionConsistency(CLinkList<TradeData> const& tradeItems) const;
+	bool AI_checkCivicReligionConsistency(CLinkList<TradeData> const& kTradeItems) const;
 	// <advc.036>
 	bool AI_checkResourceLimits(CLinkList<TradeData> const& kWeGive,
 			CLinkList<TradeData> const& kTheyGive, PlayerTypes eThey,

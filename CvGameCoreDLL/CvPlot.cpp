@@ -1177,10 +1177,10 @@ bool CvPlot::isIrrigationAvailable(bool bIgnoreSelf) const
 	if (isFreshWater())
 		return true;
 
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	FOR_EACH_ENUM(Direction)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-		if (pAdjacentPlot != NULL && pAdjacentPlot->isIrrigated())
+		CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
+		if (pAdj != NULL && pAdj->isIrrigated())
 			return true;
 	}
 
@@ -5190,8 +5190,9 @@ int CvPlot::calculateTotalBestNatureYield(TeamTypes eTeam) const
 			calculateBestNatureYield(YIELD_COMMERCE, eTeam);
 }
 
-// BETTER_BTS_AI_MOD, City AI, 10/06/09, jdog5000: START
-int CvPlot::calculateImprovementYieldChange(ImprovementTypes eImprovement, YieldTypes eYield, PlayerTypes ePlayer, bool bOptimal, bool bBestRoute) const
+// BETTER_BTS_AI_MOD, City AI, 10/06/09, jdog5000:
+int CvPlot::calculateImprovementYieldChange(ImprovementTypes eImprovement, YieldTypes eYield,
+	PlayerTypes ePlayer, bool bOptimal, bool bBestRoute) const
 {
 	PROFILE_FUNC();
 
@@ -5208,9 +5209,10 @@ int CvPlot::calculateImprovementYieldChange(ImprovementTypes eImprovement, Yield
 	if (bOptimal)
 	{
 		int iBestYield = 0;
-		for (int iI = 0; iI < GC.getNumRouteInfos(); ++iI)
+		FOR_EACH_ENUM(Route)
 		{
-			iBestYield = std::max(iBestYield, kImpr.getRouteYieldChanges(iI, eYield));
+			iBestYield = std::max(iBestYield,
+					kImpr.getRouteYieldChanges(eLoopRoute, eYield));
 		}
 		iYield += iBestYield;
 	}
@@ -5229,15 +5231,16 @@ int CvPlot::calculateImprovementYieldChange(ImprovementTypes eImprovement, Yield
 
 	if (bOptimal || ePlayer == NO_PLAYER)
 	{
-		for (int iI = 0; iI < GC.getNumTechInfos(); ++iI)
+		FOR_EACH_ENUM(Tech)
 		{
-			iYield += kImpr.getTechYieldChanges(iI, eYield);
+			iYield += kImpr.getTechYieldChanges(eLoopTech, eYield);
 		}
-		// K-Mod note: this doesn't calculate the 'optimal' yield, because it will count negative effects and it will count effects from competing civics.
-		// Maybe I'll fix it later.
-		for (int iI = 0; iI < GC.getNumCivicInfos(); ++iI)
+		/*	K-Mod note (fixme): this doesn't calculate the 'optimal' yield, because it
+			will count negative effects and it will count effects from competing civics. */
+		FOR_EACH_ENUM(Civic)
 		{
-			iYield += GC.getInfo((CivicTypes)iI).getImprovementYieldChanges(eImprovement, eYield);
+			iYield += GC.getInfo(eLoopCivic).
+					getImprovementYieldChanges(eImprovement, eYield);
 		}
 	}
 	else
@@ -5254,7 +5257,7 @@ int CvPlot::calculateImprovementYieldChange(ImprovementTypes eImprovement, Yield
 	}
 
 	return iYield;
-} // BETTER_BTS_AI_MOD: END
+}
 
 
 char CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const

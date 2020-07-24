@@ -5084,7 +5084,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		if (kLoopCivic.getTechPrereq() == eTech &&
 			!canDoCivics(eLoopCivic)) // k146
 		{
-			CivicTypes eCivic = getCivics((CivicOptionTypes)kLoopCivic.getCivicOptionType());
+			CivicTypes const eCivic = getCivics(kLoopCivic.getCivicOptionType());
 
 			int iCurrentCivicValue = AI_civicValue(eCivic); // Note: scale of AI_civicValue is 1 = commerce/turn
 			int iNewCivicValue = AI_civicValue(eLoopCivic);
@@ -6970,8 +6970,10 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 	if (bForced)
 	{
 		if (GET_TEAM(getTeam()).isVassal(TEAMID(ePlayer))
-				/*&& !GET_TEAM(getTeam()).isCapitulated()))*/) // advc.130v: commented out
+			/*&& !GET_TEAM(getTeam()).isCapitulated()))*/) // advc.130v: commented out
+		{
 			return 100;
+		}
 		// <advc.130v>
 		if (GET_TEAM(getTeam()).isCapitulated()) // Same val as master, but at most Cautious.
 		{
@@ -7549,14 +7551,16 @@ int CvPlayerAI::AI_getFavoriteCivicAttitude(PlayerTypes ePlayer) const
 // <advc.130p> No BtS code left here
 int CvPlayerAI::AI_getTradeAttitude(PlayerTypes ePlayer) const
 {
-	double r = AI_getPeacetimeGrantValue(ePlayer);
-	double tradeValDiff = AI_getPeacetimeTradeValue(ePlayer) -
-			(5/6.0) * GET_PLAYER(ePlayer).AI_getPeacetimeTradeValue(getID());
-	r += std::max(0.0, tradeValDiff);
+	scaled r = AI_getPeacetimeGrantValue(ePlayer);
+	scaled rTradeValDiff = AI_getPeacetimeTradeValue(ePlayer) -
+			fixp(5/6.) * GET_PLAYER(ePlayer).AI_getPeacetimeTradeValue(getID());
+	r += scaled::max(0, rTradeValDiff);
 	if (r > 0)
-		r = 11.5 * std::pow((double)r, 2/3.0); // Diminishing returns
-	return range(::round(r * GET_TEAM(ePlayer).AI_recentlyMetMultiplier(getTeam()))
-			/ AI_peacetimeTradeValDivisor(false), 0, PEACETIME_TRADE_RELATIONS_LIMIT);
+		r = fixp(11.5) * r.pow(fixp(2/3.)); // Diminishing returns
+	r *= GET_TEAM(ePlayer).AI_recentlyMetMultiplier(getTeam());
+	r /= AI_peacetimeTradeValDivisor(false);
+	r.clamp(0, PEACETIME_TRADE_RELATIONS_LIMIT);
+	return r.round();
 	/*  (Adjustment to game progress now happens when recording grant and trade values;
 		decay happens explicitly in AI_doCounter.) */
 }
@@ -7574,83 +7578,81 @@ int CvPlayerAI::AI_peacetimeTradeValDivisor(bool bRival) const
 int CvPlayerAI::AI_getRivalTradeAttitude(PlayerTypes ePlayer) const
 {
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
-	TeamTypes eTeam = TEAMID(ePlayer);
-	int r = kOurTeam.AI_getEnemyPeacetimeGrantValue(eTeam) +
+	TeamTypes const eTeam = TEAMID(ePlayer);
+	scaled r = kOurTeam.AI_getEnemyPeacetimeGrantValue(eTeam) +
 			(kOurTeam.AI_getEnemyPeacetimeTradeValue(eTeam) / 2);
 	if (r > 0)
-		r = ::round(11.5 * std::pow((double)r, 2/3.0)); // Diminishing returns
+		r = fixp(11.5) * r.pow(fixp(2/3.)); // Diminishing returns
 	// OB hurt our feelings also
 	TeamTypes eEnemy = kOurTeam.AI_getWorstEnemy();
 	/*  Checking enemyValue here should - hopefully - fix an oscillation problem,
 		but I don't quite know what I'm doing ...
 		(Checking this in CvTeamAI::AI_getWorstEnemy would be bad for performance.) */
-	if(kOurTeam.AI_enmityValue(eEnemy) <= 0)
+	if (kOurTeam.AI_enmityValue(eEnemy) <= 0)
 		eEnemy = NO_TEAM;
-	double dualDealCounter = 0; // cf. CvDeal::isDual
-	if(eEnemy != NO_TEAM)
+	scaled rDualDealCounter; // cf. CvDeal::isDual
+	if (eEnemy != NO_TEAM && eEnemy != eTeam)
 	{
-		if(GET_TEAM(eTeam).isOpenBorders(eEnemy))
+		if (GET_TEAM(eTeam).isOpenBorders(eEnemy))
 		{
-			dualDealCounter += std::min(20,
+			rDualDealCounter += std::min(20,
 					std::min(kOurTeam.AI_getHasMetCounter(eTeam),
 					GET_TEAM(eTeam).AI_getOpenBordersCounter(eEnemy)));
-			if(kOurTeam.isAtWar(eEnemy))
-				/*  Don't like that enemy units can move through the borders of
+			if (kOurTeam.isAtWar(eEnemy))
+			{	/*  Not happy that enemy units can move through the borders of
 					ePlayer and heal there, but only moderate increase b/c we
 					can't well afford to make further enemies when already in a war. */
-				dualDealCounter *= 1.5;
+				rDualDealCounter *= fixp(1.5);
+			}
 		}
 		/*  Resource trades are handled by CvDeal::doTurn (I wrote the code below
 			before realizing that) */
-		/*dualDealCounter += std::min(20.0,
-				std::min((double)kOurTeam.AI_getHasMetCounter(ePlayer),
-				GET_PLAYER(ePlayer).AI_getBonusTradeCounter(eEnemy) / 2.0));*/
+		/*rDualDealCounter += scaled::min(20,
+				scaled::min(kOurTeam.AI_getHasMetCounter(ePlayer),
+				scaled(GET_PLAYER(ePlayer).AI_getBonusTradeCounter(eEnemy), 2)));*/
 		// <advc.130v> Blame it on the master instead
 		if(GET_TEAM(ePlayer).isCapitulated())
-			dualDealCounter /= 2; // </advc.130v>
+			rDualDealCounter /= 2; // </advc.130v>
 		/*  Our enemy could be liked by everyone else, but we can't afford to hate
 			everyone. */
 		int const iCounterBound = 15;
-		if(dualDealCounter > iCounterBound)
+		if (rDualDealCounter > iCounterBound)
 		{
-			int iOB = 0;
-			int iTotal = 0;
+			int iPotentialOB = 0;
+			int iActualOB = 0;
 			/*  Vassals have their own OB agreements and can agree to embargos;
 				count them fully here. */
-			for(int i = 0; i < MAX_CIV_TEAMS; i++)
+			for (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 			{
-				CvTeam const& t = GET_TEAM((TeamTypes)i);
-				if(t.isAlive() && t.getID() != eEnemy && t.isHasMet(getTeam()))
-				{
-					iTotal++;
-					if(t.isOpenBorders(eEnemy))
-						iOB++;
-				}
+				if (it->getID() == eEnemy)
+					continue;
+				iPotentialOB++;
+				if(it->isOpenBorders(eEnemy))
+					iActualOB++;
 			}
-			double nonOBRatio = (iTotal - iOB) / ((double)iTotal);
-			dualDealCounter = std::max((double)iCounterBound, nonOBRatio);
+			scaled rNonOBRatio(iPotentialOB - iActualOB, iPotentialOB);
+			rDualDealCounter = scaled::max(iCounterBound, rNonOBRatio);
 		}
 		// <advc.130v>
-		int iVassalDealCounter = 0;
-		for(int i = 0; i < MAX_CIV_TEAMS; i++)
+		scaled rVassalDealCounter;
+		for (TeamIter<CIV_ALIVE,VASSAL_OF> it(eTeam); it.hasNext(); ++it)
 		{
-			CvTeamAI const& t = GET_TEAM((TeamTypes)i);
-			if(t.isCapitulated() && t.getID() != getTeam() &&
-				eEnemy != TEAMID(ePlayer) && // Master mustn't be the enemy
-				t.isVassal(TEAMID(ePlayer)) && t.isAlive() && !t.isMinorCiv() &&
-				t.isOpenBorders(eEnemy))
+			if (it->isCapitulated() && it->getID() != getTeam() &&
+				it->isOpenBorders(eEnemy))
 			{
-				int iFromVassal = t.AI_getOpenBordersCounter(eEnemy) / 2;
-				if(iFromVassal > 0)
-					iVassalDealCounter += iFromVassal;
+				scaled rFromVassal(it->AI_getOpenBordersCounter(eEnemy), 2);
+				if (rFromVassal > 0)
+					rVassalDealCounter += rFromVassal;
 			}
 		}
-		dualDealCounter += std::min(iVassalDealCounter, 10);
+		rDualDealCounter += scaled::min(rVassalDealCounter, 10);
 		// </advc.130v>
 	}
-	r = (::round(r * GET_TEAM(ePlayer).AI_recentlyMetMultiplier(getTeam())) +
-			75 * ::round(dualDealCounter)) / AI_peacetimeTradeValDivisor(true);
-	return -range(r, 0, PEACETIME_TRADE_RELATIONS_LIMIT);
+	r *= GET_TEAM(ePlayer).AI_recentlyMetMultiplier(getTeam());
+	r += 75 * rDualDealCounter;
+	r /= AI_peacetimeTradeValDivisor(true);
+	r.clamp(0, PEACETIME_TRADE_RELATIONS_LIMIT);
+	return -r.round();
 	/*  (Adjustment to game progress now happens when recording grant and trade values;
 		decay happens explicitly in AI_doCounter.) */
 }
@@ -10204,20 +10206,21 @@ int CvPlayerAI::AI_tradeAcceptabilityThreshold(PlayerTypes eTrader) const
 	return 100 - iDiscount;
 } // K-Mod end
 
-// <advc.132>
-bool CvPlayerAI::AI_checkCivicReligionConsistency(CLinkList<TradeData> const& tradeItems) const
+// advc.132:
+bool CvPlayerAI::AI_checkCivicReligionConsistency(CLinkList<TradeData> const& kTradeItems) const
 {
-	std::set<int> civicOptions;
+	std::set<CivicOptionTypes> aeCivicOptionsFound;
 	int iReligionChanges = 0;
-	for(CLLNode<TradeData> const* pNode = tradeItems.head(); pNode != NULL; pNode = tradeItems.next(pNode))
+	for(CLLNode<TradeData> const* pNode = kTradeItems.head();
+		pNode != NULL; pNode = kTradeItems.next(pNode))
 	{
 		if(pNode->m_data.m_eItemType == TRADE_CIVIC)
 		{
-			int iCivicOption = GC.getInfo((CivicTypes)pNode->m_data.m_iData).
+			CivicOptionTypes eCivicOption = GC.getInfo((CivicTypes)pNode->m_data.m_iData).
 					getCivicOptionType();
-			if(civicOptions.find(iCivicOption) != civicOptions.end())
+			if(aeCivicOptionsFound.count(eCivicOption) > 0)
 				return false;
-			civicOptions.insert(iCivicOption);
+			aeCivicOptionsFound.insert(eCivicOption);
 		}
 		else if(pNode->m_data.m_eItemType == TRADE_RELIGION)
 		{
@@ -10227,7 +10230,7 @@ bool CvPlayerAI::AI_checkCivicReligionConsistency(CLinkList<TradeData> const& tr
 		}
 	}
 	return true;
-} // </advc.132>
+}
 
 // <advc.036>
 bool CvPlayerAI::AI_checkResourceLimits(CLinkList<TradeData> const& kWeGive,
@@ -12372,11 +12375,11 @@ int CvPlayerAI::AI_civicTradeVal(CivicTypes eCivic, PlayerTypes ePlayer) const
 {
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
 	int iValue = 0;
-	//int iValue = (2 * (getTotalPopulation() + GET_PLAYER(ePlayer).getTotalPopulation())); // XXX
+	//iValue = (2 * (getTotalPopulation() + GET_PLAYER(ePlayer).getTotalPopulation())); // XXX
 	// advc.132: Replacing the above
 	int iAnarchyCost = kPlayer.AI_anarchyTradeVal(eCivic);
 
-	CivicTypes eBestCivic = kPlayer.AI_bestCivic((CivicOptionTypes)(GC.getInfo(eCivic).getCivicOptionType()));
+	CivicTypes eBestCivic = kPlayer.AI_bestCivic(GC.getInfo(eCivic).getCivicOptionType());
 	if (eBestCivic != NO_CIVIC && eBestCivic != eCivic)
 	{
 		iValue += //std::max(0, // advc.132: Handle that below
@@ -12397,45 +12400,36 @@ int CvPlayerAI::AI_civicTradeVal(CivicTypes eCivic, PlayerTypes ePlayer) const
 DenialTypes CvPlayerAI::AI_civicTrade(CivicTypes eCivic, PlayerTypes ePlayer) const
 {
 	if (isHuman())
-	{
 		return NO_DENIAL;
-	}
 
 	if (GET_TEAM(getTeam()).isVassal(GET_PLAYER(ePlayer).getTeam()))
-	{
 		return NO_DENIAL;
-	}
 
 	if (atWar(getTeam(), GET_PLAYER(ePlayer).getTeam()))
-	{
 		return NO_DENIAL;
-	}
 
 	if (TEAMID(ePlayer) == getTeam())
-	{
 		return NO_DENIAL;
-	}
-	CivicOptionTypes eCivicOption = (CivicOptionTypes)GC.getInfo(eCivic).getCivicOptionType(); // advc
+
+	CivicOptionTypes eCivicOption = GC.getInfo(eCivic).getCivicOptionType(); // advc
 	if (getCivicPercentAnger(getCivics(eCivicOption), true) > getCivicPercentAnger(eCivic))
-	{
 		return DENIAL_ANGER_CIVIC;
-	}
 
 	CivicTypes eFavoriteCivic = (CivicTypes)GC.getInfo(getPersonalityType()).getFavoriteCivic();
 	if (eFavoriteCivic != NO_CIVIC)
 	{
-		if (isCivic(eFavoriteCivic) && eCivicOption == GC.getInfo(eFavoriteCivic).getCivicOptionType())
+		if (isCivic(eFavoriteCivic) &&
+			eCivicOption == GC.getInfo(eFavoriteCivic).getCivicOptionType())
 		{
 			return DENIAL_FAVORITE_CIVIC;
 		}
 	}
 
 	if (getCivilization().getInitialCivic(eCivicOption) == eCivic)
-	{
 		return DENIAL_JOKING;
-	}
 
-	if (AI_getAttitude(ePlayer) <= GC.getInfo(getPersonalityType()).getAdoptCivicRefuseAttitudeThreshold())
+	if (AI_getAttitude(ePlayer) <= GC.getInfo(getPersonalityType()).
+		getAdoptCivicRefuseAttitudeThreshold())
 	{
 		return DENIAL_ATTITUDE;
 	}
@@ -12459,7 +12453,8 @@ int CvPlayerAI::AI_religionTradeVal(ReligionTypes eReligion, PlayerTypes ePlayer
 			//iValue += std::max(0, (GET_PLAYER(ePlayer).AI_religionValue(eBestReligion) - GET_PLAYER(ePlayer).AI_religionValue(eReligion)));
 			// K-Mod. AI_religionValue has arbitrary units.
 			// We need to give it some kind of scale for it to be meaningful in this function.
-			iValue *= 100 + std::min(100, 100 * GET_PLAYER(ePlayer).AI_religionValue(eBestReligion) / std::max(1, GET_PLAYER(ePlayer).AI_religionValue(eReligion)));
+			iValue *= 100 + std::min(100, 100 * GET_PLAYER(ePlayer).AI_religionValue(eBestReligion) /
+					std::max(1, GET_PLAYER(ePlayer).AI_religionValue(eReligion)));
 			iValue /= 100;
 			// K-Mod end
 		}
@@ -12468,7 +12463,7 @@ int CvPlayerAI::AI_religionTradeVal(ReligionTypes eReligion, PlayerTypes ePlayer
 	if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isVassal(getTeam()))
 		iValue /= 2;
 	// <advc.132>
-	if(getStateReligion() != eReligion)
+	if (getStateReligion() != eReligion)
 		iValue *= 2; // </advc.132>
 	return GET_TEAM(getTeam()).AI_roundTradeVal(iValue); // advc.104k
 }
@@ -12495,14 +12490,16 @@ DenialTypes CvPlayerAI::AI_religionTrade(ReligionTypes eReligion, PlayerTypes eP
 		return NO_DENIAL;
 
 	if (getStateReligion() != NO_RELIGION &&
-			// advc.132: Original code moved into isMajorReligion
-			!isMajorReligion(eReligion))
+		// advc.132: Original code moved into isMajorReligion
+		!isMajorReligion(eReligion))
+	{
 		return DENIAL_MINORITY_RELIGION;
-
+	}
 	if (AI_getAttitude(ePlayer) <= GC.getInfo(getPersonalityType()).
-			getConvertReligionRefuseAttitudeThreshold())
+		getConvertReligionRefuseAttitudeThreshold())
+	{
 		return DENIAL_ATTITUDE;
-
+	}
 	return NO_DENIAL;
 }
 
@@ -18474,8 +18471,9 @@ void CvPlayerAI::AI_doCommerce()
 	verifyGoldCommercePercent();
 }
 
-// K-Mod. I've rewritten most of this function, based on edits from BBAI. I don't know what's original bts code and what's not.
-// (the BBAI implementation had some bugs)
+/*	K-Mod. I've rewritten most of this function, based on edits from BBAI.
+	I don't know what's original bts code and what's not.
+	(the BBAI implementation had some bugs) */
 void CvPlayerAI::AI_doCivics()
 {
 	FAssertMsg(!isHuman(), "isHuman did not return false as expected");
@@ -18486,16 +18484,15 @@ void CvPlayerAI::AI_doCivics()
 	if (AI_getCivicTimer() > 0)
 	{
 		AI_changeCivicTimer(-1);
-		if (getGoldenAgeTurns() != 1) // K-Mod. If its the last turn of a golden age, consider switching civics anyway.
-		{
+		// K-Mod. If its the last turn of a golden age, consider switching civics anyway.
+		if (getGoldenAgeTurns() != 1)
 			return;
-		}
 	}
 
 	if (!canRevolution(NULL))
 		return;
 
-	// FAssertMsg(AI_getCivicTimer() == 0, "AI Civic timer is expected to be 0"); // Disabled by K-Mod
+	// FAssert(AI_getCivicTimer() == 0); // Disabled by K-Mod
 
 	std::vector<CivicTypes> aeBestCivic(GC.getNumCivicOptionInfos());
 	std::vector<int> aiCurrentValue(GC.getNumCivicOptionInfos());
@@ -18514,18 +18511,18 @@ void CvPlayerAI::AI_doCivics()
 	{
 		bWillSwitch = false;
 		bWantSwitch = false;
-		for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
+		FOR_EACH_ENUM(CivicOption)
 		{
 			int iBestValue=-1;
-			CivicTypes eNewCivic = AI_bestCivic((CivicOptionTypes)iI, &iBestValue);
+			CivicTypes const eNewCivic = AI_bestCivic(eLoopCivicOption, &iBestValue);
 			/*  advc.001r: Same thing as under karadoc's "temporary switch" comment
 				in the loop below */
-			CivicTypes eOtherCivic = aeBestCivic[iI];
+			CivicTypes eOtherCivic = aeBestCivic[eLoopCivicOption];
 			if(eOtherCivic == eNewCivic)
 				continue; // advc
-			aeBestCivic[iI] = eNewCivic; // advc.001r
+			aeBestCivic[eLoopCivicOption] = eNewCivic; // advc.001r
 			int iTestAnarchy = getCivicAnarchyLength(&aeBestCivic[0]);
-			aeBestCivic[iI] = eOtherCivic; // advc.001r
+			aeBestCivic[eLoopCivicOption] = eOtherCivic; // advc.001r
 			/*  using ~30 percent as a rough estimate of revolution cost, and
 				a low threshold regardless of anarchy just for a bit of inertia.
 				reduced threshold if we are already going to have a revolution. */
@@ -18540,20 +18537,22 @@ void CvPlayerAI::AI_doCivics()
 				// </advc.132b>
 			}
 			if (100*iBestValue > (100 + /* advc.131: */ (iBestValue >= 0 ? 1 : -1) *
-				iThreshold)*aiCurrentValue[iI])
+				iThreshold) * aiCurrentValue[eLoopCivicOption])
 			{
-				FAssert(aeBestCivic[iI] != NO_CIVIC);
-				if (gPlayerLogLevel > 0) logBBAI("    %S decides to switch to %S (value: %d vs %d%S)", getCivilizationDescription(0), GC.getInfo(eNewCivic).getDescription(0), iBestValue, aiCurrentValue[iI], bFirstPass?"" :", on recheck");
+				FAssert(aeBestCivic[eLoopCivicOption] != NO_CIVIC);
+				if (gPlayerLogLevel > 0) logBBAI("    %S decides to switch to %S (value: %d vs %d%S)", getCivilizationDescription(0), GC.getInfo(eNewCivic).getDescription(0), iBestValue, aiCurrentValue[eLoopCivicOption], bFirstPass?"" :", on recheck");
 				iAnarchyLength = iTestAnarchy;
-				aeBestCivic[iI] = eNewCivic;
-				aiCurrentValue[iI] = iBestValue;
+				aeBestCivic[eLoopCivicOption] = eNewCivic;
+				aiCurrentValue[eLoopCivicOption] = iBestValue;
 				bWillSwitch = true;
 			}
 			else
 			{
 				if (100 * iBestValue > /* advc.131: */ (iBestValue >= 0 ? 120 : 80)
-						* aiCurrentValue[iI])
+					* aiCurrentValue[eLoopCivicOption])
+				{
 					bWantSwitch = true;
+				}
 			}
 		}
 		bFirstPass = false;
@@ -18564,27 +18563,28 @@ void CvPlayerAI::AI_doCivics()
 	// finally, if our current research would give us a new civic, consider waiting for that.
 	if (iAnarchyLength > 0 && bWillSwitch)
 	{
-		TechTypes eResearch = getCurrentResearch();
+		TechTypes const eResearch = getCurrentResearch();
 		if (eResearch != NO_TECH)
 		{	// <advc.004x>
-			int iResearchTurns = getResearchTurnsLeft(eResearch, true);
+			int const iResearchTurns = getResearchTurnsLeft(eResearch, true);
 			if(iResearchTurns >= 0 && // </advc.004x>
-				iResearchTurns < 2*CIVIC_CHANGE_DELAY/3)
+				iResearchTurns < 2 * CIVIC_CHANGE_DELAY/3)
 			{
-				for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
+				FOR_EACH_ENUM2(Civic, eCivic)
 				{
-					const CvCivicInfo& kCivic = GC.getInfo((CivicTypes)iI);
-					if(kCivic.getTechPrereq() != eResearch || canDoCivics((CivicTypes)iI))
+					CvCivicInfo const& kCivic = GC.getInfo(eCivic);
+					if(kCivic.getTechPrereq() != eResearch || canDoCivics(eCivic))
 						continue; // advc
 					CivicTypes eOtherCivic = aeBestCivic[kCivic.getCivicOptionType()];
 					// temporary switch just to test the anarchy length
-					aeBestCivic[kCivic.getCivicOptionType()] = (CivicTypes)iI;
+					aeBestCivic[kCivic.getCivicOptionType()] = eCivic;
 					if (getCivicAnarchyLength(&aeBestCivic[0]) <= iAnarchyLength)
 					{
 						// if the anarchy length would be the same, consider waiting for the new civic..
-						int iValue = AI_civicValue((CivicTypes)iI);
-						if (100 * iValue > (102+2*iResearchTurns) * aiCurrentValue[kCivic.getCivicOptionType()]
-								&& iValue > 0) // advc.131: Better to be safe
+						int iValue = AI_civicValue(eCivic);
+						if (100 * iValue > (102 + 2 * iResearchTurns) *
+							aiCurrentValue[kCivic.getCivicOptionType()] &&
+							iValue > 0) // advc.131: Better to be safe
 						{
 							if(gPlayerLogLevel > 0)
 								logBBAI("    %S delays revolution to wait for %S (value: %d vs %d)", getCivilizationDescription(0), kCivic.getDescription(0), iValue, aiCurrentValue[kCivic.getCivicOptionType()]);
@@ -18598,9 +18598,11 @@ void CvPlayerAI::AI_doCivics()
 		} // <advc.131>
 		if(iAnarchyLength > 0)
 		{
-			if(getGold() < (iAnarchyLength + std::min(0, getStrikeTurns() - 1)) *
-					-getGoldPerTurn())
+			if(getGold() < (iAnarchyLength + std::min(0, getStrikeTurns() - 1))
+				* -getGoldPerTurn())
+			{
 				return;
+			}
 		} // </advc.131>
 	}
 
@@ -27353,24 +27355,32 @@ bool CvPlayerAI::AI_atWarWithPartner(TeamTypes eOtherTeam, bool bCheckPartnerAtt
 bool CvPlayerAI::AI_disapprovesOfDoW(TeamTypes eAggressor, TeamTypes eVictim) const
 {
 	if(!isAlive() || isBarbarian() || isMinorCiv() || eAggressor == getTeam() ||
-			eVictim == getTeam())
+		eVictim == getTeam())
+	{
 		return false;
+	}
 	CvTeamAI const& kAggressor = GET_TEAM(eAggressor);
 	if(!kAggressor.isAlive() || kAggressor.isBarbarian() || kAggressor.isMinorCiv())
 		return false;
 	CvTeamAI const& kVictim = GET_TEAM(eVictim);
 	if(!kVictim.isAlive() || kVictim.isBarbarian() || kVictim.isMinorCiv() ||
-			kVictim.isCapitulated())
+		kVictim.isCapitulated())
+	{
 		return false;
+	}
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
 	if(//!kOurTeam.isHasMet(eAggressor) || // Not checked by BtS either
-			!kOurTeam.isHasMet(eVictim) || kOurTeam.isAtWar(eVictim) ||
-			kVictim.getMasterTeam() == kOurTeam.getMasterTeam())
+		!kOurTeam.isHasMet(eVictim) || kOurTeam.isAtWar(eVictim) ||
+		kVictim.getMasterTeam() == kOurTeam.getMasterTeam())
+	{
 		return false;
+	}
 	// Not if eTeam is also fighting a partner and (appears to have) started it
 	if((kOurTeam.AI_getMemoryCount(eVictim, MEMORY_DECLARED_WAR_ON_FRIEND) > 0) &&
-			AI_atWarWithPartner(eVictim, true))
+		AI_atWarWithPartner(eVictim, true))
+	{
 		return false;
+	}
 	return (kOurTeam.AI_getAttitude(eVictim) >= ATTITUDE_PLEASED);
 } // </advc.130h>
 
@@ -27469,28 +27479,27 @@ bool CvPlayerAI::AI_isDefenseFocusOnBarbarians(CvArea const& kArea) const
 	return kGame.isBarbarianCreationEra(); // advc.307
 } // </advc.300>
 
-/*  <advc.132> This function is going to overestimate the cost of anarchy
+/*  advc.132: This function is going to overestimate the cost of anarchy
 	when multiple TRADE_CIVIC and TRADE_RELIGION items are on the table.
 	Would have to know the full list of trade items for an accurate cost. */
 int CvPlayerAI::AI_anarchyTradeVal(CivicTypes eCivic) const
 {
 	// This omits food surplus and GPP, but also expenses.
-	double r = estimateYieldRate(YIELD_COMMERCE) +
-			2 * estimateYieldRate(YIELD_PRODUCTION);
+	scaled r = scaled::fromDouble(estimateYieldRate(YIELD_COMMERCE) +
+			2 * estimateYieldRate(YIELD_PRODUCTION));
 	int iAnarchyLength = -1;
 	int iSwitchBackAnarchyLength = -1;
-	if(eCivic != NO_CIVIC)
+	if (eCivic != NO_CIVIC)
 	{
-		CivicTypes* civics = new CivicTypes[GC.getNumCivicOptionInfos()];
-		for(int i = 0; i < GC.getNumCivicOptionInfos(); i++)
-			civics[i] = getCivics((CivicOptionTypes)i);
-		CivicOptionTypes eOption = (CivicOptionTypes)GC.getInfo(eCivic).getCivicOptionType();
+		CivicTypes* aeCivics = new CivicTypes[GC.getNumCivicOptionInfos()];
+		FOR_EACH_ENUM(CivicOption)
+			aeCivics[eLoopCivicOption] = getCivics(eLoopCivicOption);
+		CivicOptionTypes eOption = GC.getInfo(eCivic).getCivicOptionType();
 		if(eOption != NO_CIVICOPTION)
-			civics[eOption] = eCivic;
-		else FAssert(eOption != NO_CIVICOPTION);
-		iAnarchyLength = getCivicAnarchyLength(civics);
-		iSwitchBackAnarchyLength = getCivicAnarchyLength(civics, true);
-		SAFE_DELETE_ARRAY(civics);
+			aeCivics[eOption] = eCivic;
+		iAnarchyLength = getCivicAnarchyLength(aeCivics);
+		iSwitchBackAnarchyLength = getCivicAnarchyLength(aeCivics, true);
+		SAFE_DELETE_ARRAY(aeCivics);
 	}
 	else
 	{
@@ -27505,9 +27514,9 @@ int CvPlayerAI::AI_anarchyTradeVal(CivicTypes eCivic) const
 		benefit from denying gold to a competitor. So far, only humans can
 		trade for religion and civics changes, and they're strong competitors.
 		Therefore multiply by a factor smaller than 2. */
-	r *= 1.73;
-	return ::round(r);
-} // </advc.132>
+	r *= fixp(1.73);
+	return r.round();
+}
 
 // <advc.109> Akin to AI_getTotalAreaCityThreat, but much coarser.
 bool CvPlayerAI::AI_feelsSafe() const

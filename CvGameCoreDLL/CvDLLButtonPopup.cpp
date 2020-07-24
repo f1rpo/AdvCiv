@@ -1611,55 +1611,47 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &info)  // advc: some style changes
 {
 	CivicTypes* paeNewCivics = new CivicTypes[GC.getNumCivicOptionInfos()];
-	if (paeNewCivics == NULL)
-		return false;
 
-	CivicOptionTypes eCivicOption = (CivicOptionTypes)info.getData1();
-	CivicTypes eCivic = (CivicTypes)info.getData2();
+	CivicOptionTypes const eCivicOption = (CivicOptionTypes)info.getData1();
+	CivicTypes const eCivic = (CivicTypes)info.getData2();
 	bool bValid = false;
 	bool bStartButton = true; // advc.004o
 
 	CvPlayer const& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
 	if (eCivic != NO_CIVIC)
 	{
-		for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
+		FOR_EACH_ENUM(CivicOption)
 		{
-			if (iI == eCivicOption)
-			{
-				paeNewCivics[iI] = eCivic;
-			}
-			else
-			{
-				paeNewCivics[iI] = kActivePlayer.getCivics((CivicOptionTypes)iI);
-			}
+			if (eLoopCivicOption == eCivicOption)
+				paeNewCivics[eLoopCivicOption] = eCivic;
+			else paeNewCivics[eLoopCivicOption] = kActivePlayer.getCivics(eLoopCivicOption);
 		}
 
 		if (kActivePlayer.canRevolution(paeNewCivics))
 		{
 			bValid = true;
 			// <advc.004o>
-			for(int i = 0; i < GC.getNumCivicInfos(); i++) {
-				CivicTypes eLoopCivic = (CivicTypes)i;
+			FOR_EACH_ENUM(Civic)
+			{
 				if(eLoopCivic != paeNewCivics[GC.getInfo(eLoopCivic).getCivicOptionType()] &&
-						!kActivePlayer.isCivic(eLoopCivic) &&
-						kActivePlayer.canDoCivics(eLoopCivic)) {
+					!kActivePlayer.isCivic(eLoopCivic) &&
+					kActivePlayer.canDoCivics(eLoopCivic))
+				{
 					bStartButton = false;
 					break;
 				}
 			} // </advc.004o>
 		}
 	}
-	else
-	{
-		bValid = true;
-	}
+	else bValid = true;
 
 	if (bValid)
 	{
 		CvWString szBuffer;
 		if (eCivic != NO_CIVIC)
 		{
-			szBuffer = gDLL->getText("TXT_KEY_POPUP_NEW_CIVIC", GC.getInfo(eCivic).getTextKeyWide());
+			szBuffer = gDLL->getText("TXT_KEY_POPUP_NEW_CIVIC",
+					GC.getInfo(eCivic).getTextKeyWide());
 			if (!CvWString(GC.getInfo(eCivic).getStrategy()).empty())
 			{
 				CvWString szTemp;
@@ -1677,10 +1669,12 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 				getAnarchyPercent() > 1000) // </advc.004o>
 			{
 				szBuffer = gDLL->getText("TXT_KEY_POPUP_YES_START_REVOLUTION");
-				int iAnarchyLength = GET_PLAYER(GC.getGame().getActivePlayer()).getCivicAnarchyLength(paeNewCivics);
+				int iAnarchyLength = GET_PLAYER(GC.getGame().getActivePlayer()).
+						getCivicAnarchyLength(paeNewCivics);
 				if (iAnarchyLength > 0)
 				{
-					szBuffer += gDLL->getText("TXT_KEY_POPUP_TURNS_OF_ANARCHY", iAnarchyLength);
+					szBuffer += gDLL->getText("TXT_KEY_POPUP_TURNS_OF_ANARCHY",
+							iAnarchyLength);
 				}
 				m_kUI.popupAddGenericButton(pPopup, szBuffer, NULL, 0, WIDGET_GENERAL);
 			} // advc.004o

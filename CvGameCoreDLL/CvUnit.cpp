@@ -6879,8 +6879,7 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker, CombatDet
 						bGarrisonStrength); // advc.500b
 			}
 			else iExtraModifier = pPlot->defenseModifier(getTeam(),
-					bIgnoreBuildings, pAttacker->getTeam(), // </advc.012>
-					false, bGarrisonStrength); // advc.500b
+					bIgnoreBuildings, pAttacker->getTeam()); // </advc.012>
 			iModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
 				pCombatDetails->iPlotDefenseModifier = iExtraModifier;

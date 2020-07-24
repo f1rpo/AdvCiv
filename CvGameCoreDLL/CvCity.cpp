@@ -3386,15 +3386,15 @@ int CvCity::getNoMilitaryPercentAnger() const
 			iAnger += GC.getDefineINT(CvGlobals::NO_MILITARY_PERCENT_ANGER);
 		return iAnger;  // <advc.500b>
 	}
-	double targetGarrStr = getPopulation() / 2.0;
-	double actualGarrStr = defensiveGarrison(targetGarrStr);
-	if (actualGarrStr >= targetGarrStr)
+	scaled rTargetGarrStr(getPopulation(), 2);
+	scaled rActualGarrStr = defensiveGarrison(rTargetGarrStr);
+	if (rActualGarrStr >= rTargetGarrStr)
 		return 0;
 	/* Currently (as per vanilla) 334, meaning 33.4% of the population get angry.
 	   The caller adds up all the anger percentages (actually permillages)
 	   before rounding, so rounding shouldn't be a concern in this function. */
 	int iMaxAnger = GC.getDefineINT(CvGlobals::NO_MILITARY_PERCENT_ANGER);
-	return iMaxAnger - (int)(iMaxAnger * actualGarrStr / targetGarrStr);
+	return iMaxAnger - (iMaxAnger * rActualGarrStr / rTargetGarrStr).floor();
 	// </advc.500b>
 }
 
@@ -13012,14 +13012,16 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 	return iMaintenance;
 }
 
-// <advc.500b> (The parameter is important for performance)
-double CvCity::defensiveGarrison(double stopCountingAt) const
+// advc.500b:
+scaled CvCity::defensiveGarrison(
+	scaled rStopCountingAt) const // Param important for performance
 {
-	/*  Time is now acceptable, but still not negligible (slightly above 1%).
-		Probably b/c of the allUpgradesAvailable check. Should simply
-		cache the result of getNoMilitaryPercentAnger. */
+	/*  Time is now acceptable, but still not negligible (slightly above 1%
+		of the total turn time). Probably b/c of the allUpgradesAvailable check.
+		Tbd.: Should simply cache the result of getNoMilitaryPercentAnger. */
 	PROFILE_FUNC();
-	double r = 0;
+
+	scaled r = 0;
 	CvPlayer const& kOwner = GET_PLAYER(getOwner());
 	CvPlot const& kPlot = *plot();
 	CvCity const* pCapital = kOwner.getCapitalCity();
@@ -13030,21 +13032,21 @@ double CvCity::defensiveGarrison(double stopCountingAt) const
 		CvUnit const& kUnit = *kPlot.getUnitByIndex(i);
 		CvUnitInfo const& u = kUnit.getUnitInfo();
 		// Exclude naval units but not Explorer and Gunship
-		if(!u.isMilitaryHappiness() && u.getCultureGarrisonValue() <= 0)
+		if (!u.isMilitaryHappiness() && u.getCultureGarrisonValue() <= 0)
 			continue;
-		double defStr = kUnit.maxCombatStr(&kPlot, NULL, NULL, true);
+		scaled rDefStr = kUnit.maxCombatStr(&kPlot, NULL, NULL, true);
 		// Outdated units count half
-		if(allUpgradesAvailable(kUnit.getUnitType()) != NO_UNIT ||
+		if (allUpgradesAvailable(kUnit.getUnitType()) != NO_UNIT ||
 			(pCapital != NULL && pCapital->allUpgradesAvailable(kUnit.getUnitType())))
 		{
-			defStr /= 2;
+			rDefStr /= 2;
 		}
-		r += defStr;
-		if (stopCountingAt > 0 && r > stopCountingAt)
+		r += rDefStr;
+		if (rStopCountingAt > 0 && r > rStopCountingAt)
 			return r;
 	}
 	return r;
-} // </advc.500b>
+}
 
 // <advc.123f>
 void CvCity::failProduction(int iOrderData, int iInvestedProduction, bool bProject)

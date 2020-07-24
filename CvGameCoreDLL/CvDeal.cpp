@@ -922,10 +922,11 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	case TRADE_CIVIC:
 	{
 		CivicTypes* paeNewCivics = new CivicTypes[GC.getNumCivicOptionInfos()];
-		for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
-			paeNewCivics[iI] = GET_PLAYER(eFromPlayer).getCivics((CivicOptionTypes)iI);
+		FOR_EACH_ENUM(CivicOption)
+			paeNewCivics[eLoopCivicOption] = GET_PLAYER(eFromPlayer).getCivics(eLoopCivicOption);
 
-		paeNewCivics[GC.getInfo((CivicTypes)trade.m_iData).getCivicOptionType()] = (CivicTypes)trade.m_iData;
+		paeNewCivics[GC.getInfo((CivicTypes)trade.m_iData).getCivicOptionType()] = (CivicTypes)
+				trade.m_iData;
 
 		GET_PLAYER(eFromPlayer).revolution(paeNewCivics, true);
 

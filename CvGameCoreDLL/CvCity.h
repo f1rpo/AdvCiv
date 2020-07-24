@@ -1512,7 +1512,7 @@ protected:
 			int iAttempt) const;
 	// </advc.310>
 	void updateBuildingDefense(); // advc.004c
-	double defensiveGarrison(double stopCountingAt = -1) const; // advc.500b
+	scaled defensiveGarrison(scaled stopCountingAt = -1) const; // advc.500b
 	//int calculateMaintenanceDistance() const;
 	// advc.004b: Replacing the above (which was public, but is only used internally)
 	static int calculateMaintenanceDistance(CvPlot const* cityPlot, PlayerTypes owner);

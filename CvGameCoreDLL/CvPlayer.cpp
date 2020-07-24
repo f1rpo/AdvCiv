@@ -3872,7 +3872,10 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 
 		FAssertMsg(GC.getInfo(getPersonalityType()).getFavoriteCivic() != NO_CIVIC, "getFavoriteCivic() must be valid");
 
-		paeNewCivics[GC.getInfo((CivicTypes)(GC.getInfo(getPersonalityType())).getFavoriteCivic()).getCivicOptionType()] = ((CivicTypes)(GC.getInfo(getPersonalityType()).getFavoriteCivic()));
+		paeNewCivics[GC.getInfo(
+				(CivicTypes)(GC.getInfo(getPersonalityType())).getFavoriteCivic()).
+				getCivicOptionType()] = (CivicTypes)
+				GC.getInfo(getPersonalityType()).getFavoriteCivic();
 
 		GET_PLAYER(ePlayer).revolution(paeNewCivics, true);
 
@@ -5916,7 +5919,7 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea& kAr
 			for(int i = 0; i < GC.getNumCivicInfos(); i++)
 			{
 				CivicTypes eCivic = (CivicTypes)i;
-				if(GC.getInfo(eCivic).getCivicOptionType() == eCivicOption)
+				if (GC.getInfo(eCivic).getCivicOptionType() == eCivicOption)
 				{
 					if(!canDoCivics(eCivic))
 					{
@@ -6252,14 +6255,12 @@ int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& i
 	iFreeUnits = GC.getInfo(getHandicapType()).getFreeUnits();
 
 	iFreeUnits += getBaseFreeUnits();
-	iFreeUnits += (((getTotalPopulation()
-		+ iExtraPop) // advc.004b
-		* getFreeUnitsPopulationPercent()) / 100);
+	iFreeUnits += (((getTotalPopulation() /* advc.004b: */ + iExtraPop) *
+			getFreeUnitsPopulationPercent()) / 100);
 
 	iFreeMilitaryUnits = getBaseFreeMilitaryUnits();
-	iFreeMilitaryUnits += (((getTotalPopulation()
-		+ iExtraPop) // advc.004b
-		* getFreeMilitaryUnitsPopulationPercent()) / 100);
+	iFreeMilitaryUnits += (((getTotalPopulation() /* advc.004b: */ + iExtraPop) *
+			getFreeMilitaryUnitsPopulationPercent()) / 100);
 
 	/*if (!isHuman()) {
 		if (GET_TEAM(getTeam()).hasMetHuman()) {
@@ -6268,11 +6269,10 @@ int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& i
 		}
 	}*/ // BtS - Hidden AI bonus removed by BBAI.
 
-	iPaidUnits = std::max(0, getNumUnits() - iFreeUnits
-			+ iExtraUnits); // advc.004b
-	iPaidMilitaryUnits = std::max(0, getNumMilitaryUnits()
-			+ iExtraUnits // advc.004b
-			- iFreeMilitaryUnits);
+	iPaidUnits = std::max(0, getNumUnits() - iFreeUnits +
+			iExtraUnits); // advc.004b
+	iPaidMilitaryUnits = std::max(0, getNumMilitaryUnits() - iFreeMilitaryUnits +
+			iExtraUnits); // advc.004b
 	//iSupport = 0;
 	/*iBaseUnitCost = iPaidUnits * getGoldPerUnit();
 	iMilitaryCost = iPaidMilitaryUnits * getGoldPerMilitaryUnit();
@@ -6292,7 +6292,7 @@ int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& i
 	iUnitCost = iPaidUnits * getGoldPerUnit() * getUnitCostMultiplier() / 10000;
 	iMilitaryCost = iPaidMilitaryUnits * getGoldPerMilitaryUnit() / 100;
 	// <advc.912b>
-	if(!isHuman() && !isBarbarian())
+	if (!isHuman() && !isBarbarian())
 	{
 		iMilitaryCost = ::round(iMilitaryCost * 0.01 * GC.getInfo(
 				GC.getGame().getHandicapType()).getAIUnitSupplyPercent());
@@ -6971,13 +6971,13 @@ bool CvPlayer::canDoCivics(CivicTypes eCivic) const
 	if (eCivic == NO_CIVIC)
 		return true; // UNOFFICIAL_PATCH: END
 
-	if (GC.getGame().isForceCivicOption((CivicOptionTypes)GC.getInfo(eCivic).getCivicOptionType()))
+	if (GC.getGame().isForceCivicOption(GC.getInfo(eCivic).getCivicOptionType()))
 		return GC.getGame().isForceCivic(eCivic);
 
 	if (GC.getPythonCaller()->canDoCivicOverride(getID(), eCivic))
 		return true;
 
-	if (!isHasCivicOption((CivicOptionTypes)GC.getInfo(eCivic).getCivicOptionType()) &&
+	if (!isHasCivicOption(GC.getInfo(eCivic).getCivicOptionType()) &&
 		!GET_TEAM(getTeam()).isHasTech(GC.getInfo(eCivic).getTechPrereq()))
 	{
 		return false;
@@ -7002,46 +7002,32 @@ bool CvPlayer::canDoCivics(CivicTypes eCivic) const
 
 bool CvPlayer::canRevolution(CivicTypes* paeNewCivics) const
 {
-	if (isAnarchy())
-	{
+	if (isAnarchy() || getRevolutionTimer() > 0)
 		return false;
-	}
-
-	if (getRevolutionTimer() > 0)
-	{
-		return false;
-	}
 
 	if (paeNewCivics == NULL)
 	{	// XXX is this necessary?
 		// ^advc: Only for the call in CvPlayer::doAdvancedStartAction I think
-		for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
+		FOR_EACH_ENUM(Civic)
 		{
-			if (canDoCivics((CivicTypes)iI))
+			if (canDoCivics(eLoopCivic))
 			{
-				if (getCivics((CivicOptionTypes)GC.getInfo((CivicTypes) iI).getCivicOptionType()) != iI)
-				{
+				if (getCivics(GC.getInfo(eLoopCivic).getCivicOptionType()) != eLoopCivic)
 					return true;
-				}
 			}
 		}
 	}
 	else
 	{
-		for (int iI = 0; iI < GC.getNumCivicOptionInfos(); ++iI)
+		FOR_EACH_ENUM(CivicOption)
 		{
-			if (GC.getGame().isForceCivicOption((CivicOptionTypes)iI))
+			if (GC.getGame().isForceCivicOption(eLoopCivicOption))
 			{
-				if (!GC.getGame().isForceCivic(paeNewCivics[iI]))
-				{
+				if (!GC.getGame().isForceCivic(paeNewCivics[eLoopCivicOption]))
 					return false;
-				}
 			}
-
-			if (getCivics((CivicOptionTypes)iI) != paeNewCivics[iI])
-			{
+			if (getCivics(eLoopCivicOption) != paeNewCivics[eLoopCivicOption])
 				return true;
-			}
 		}
 	}
 
@@ -7058,37 +7044,38 @@ void CvPlayer::revolution(CivicTypes* paeNewCivics, bool bForce)
 	if (iAnarchyLength > 0)
 	{
 		changeAnarchyTurns(iAnarchyLength);
-		for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
-			setCivics((CivicOptionTypes)iI, paeNewCivics[iI]);
+		FOR_EACH_ENUM(CivicOption)
+			setCivics(eLoopCivicOption, paeNewCivics[eLoopCivicOption]);
 	}
 	else
 	{
-		for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
-			setCivics((CivicOptionTypes)iI, paeNewCivics[iI]);
+		FOR_EACH_ENUM(CivicOption)
+			setCivics(eLoopCivicOption, paeNewCivics[eLoopCivicOption]);
 	}
 
 	setRevolutionTimer(std::max(1, ((100 + getAnarchyModifier()) * GC.getDefineINT("MIN_REVOLUTION_TURNS")) / 100) + iAnarchyLength);
 
 	if (getID() == GC.getGame().getActivePlayer())
 	{
-		gDLL->getInterfaceIFace()->setDirty(Popup_DIRTY_BIT, true); // to force an update of the civic chooser popup
+		// to force an update of the civic chooser popup
+		gDLL->getInterfaceIFace()->setDirty(Popup_DIRTY_BIT, true);
 		// <advc.004x>
 		killAll(BUTTONPOPUP_CHANGECIVIC);
 		if(iAnarchyLength > 0)
 		{
 			killAll(BUTTONPOPUP_CHOOSEPRODUCTION);
 			killAll(BUTTONPOPUP_CHOOSETECH);
-		}
-	} // </advc.004x>
+		} // </advc.004x>
+	}
 }
 
 
-int CvPlayer::getCivicPercentAnger(CivicTypes eCivic, bool bIgnore) const  // advc: style changes
+int CvPlayer::getCivicPercentAnger(CivicTypes eCivic, bool bIgnore) const
 {
 	if (GC.getInfo(eCivic).getCivicPercentAnger() == 0)
 		return 0;
 
-	CivicOptionTypes eCivicOption = (CivicOptionTypes)GC.getInfo(eCivic).getCivicOptionType();
+	CivicOptionTypes const eCivicOption = GC.getInfo(eCivic).getCivicOptionType();
 	if (!bIgnore && getCivics(eCivicOption) == eCivic)
 		return 0;
 
@@ -11869,12 +11856,12 @@ CivicTypes CvPlayer::getCivics(CivicOptionTypes eIndex) const
 
 
 int CvPlayer::getSingleCivicUpkeep(CivicTypes eCivic, bool bIgnoreAnarchy,
-		int iExtraCities) const // advc.004b
+	int iExtraCities) const // advc.004b
 {
 	if (eCivic == NO_CIVIC)
 		return 0;
 
-	if (isNoCivicUpkeep((CivicOptionTypes)GC.getInfo(eCivic).getCivicOptionType()))
+	if (isNoCivicUpkeep(GC.getInfo(eCivic).getCivicOptionType()))
 		return 0;
 
 	if (GC.getInfo(eCivic).getUpkeep() == NO_UPKEEP)
@@ -11898,7 +11885,7 @@ int CvPlayer::getSingleCivicUpkeep(CivicTypes eCivic, bool bIgnoreAnarchy,
 			GC.getNumCivicOptionInfos() / 2) * GC.getInfo((UpkeepTypes)
 			GC.getInfo(eCivic).getUpkeep()).getCityPercent()) / 100;
 
-	iUpkeep *= std::max(0, (getUpkeepModifier() + 100));
+	iUpkeep *= std::max(0, getUpkeepModifier() + 100);
 	iUpkeep /= 100;
 
 	iUpkeep *= GC.getInfo(getHandicapType()).getCivicUpkeepPercent();
@@ -12970,7 +12957,7 @@ void CvPlayer::clearSpaceShipPopups()
 	}
 }
 
-// <advc.004x> Partly cut and pasted from CvTeam::setHasTech
+// advc.004x: Partly cut from CvTeam::setHasTech
 void CvPlayer::doChangeCivicsPopup(CivicTypes eCivic)
 {
 	if(!isHuman()) // Forget reminder during Auto Play
@@ -12990,16 +12977,14 @@ void CvPlayer::doChangeCivicsPopup(CivicTypes eCivic)
 		return;
 	}
 	m_eReminderPending = NO_CIVIC;
-	CivicOptionTypes eCivicOption = (CivicOptionTypes)GC.getInfo(eCivic).
-			getCivicOptionType();
 	CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CHANGECIVIC);
-	if(pInfo != NULL)
+	if (pInfo != NULL)
 	{
-		pInfo->setData1(eCivicOption);
+		pInfo->setData1(GC.getInfo(eCivic).getCivicOptionType());
 		pInfo->setData2(eCivic);
 		gDLL->getInterfaceIFace()->addPopup(pInfo, getID());
 	}
-} // </advc.004x>
+}
 
 
 int CvPlayer::getScoreHistory(int iTurn) const
@@ -20462,13 +20447,13 @@ bool CvPlayer::canForceCivics(PlayerTypes eTarget, CivicTypes eCivic) const
 	   granting extra trade routes (Free Market).
 	   Religion civics are those that allow or disallow a state religion.
 	   Marking "flexible" civics in XML (schema change) would be cleaner. */
-	int iEconomyOption = -1;
+	CivicOptionTypes eEconomyOption = NO_CIVICOPTION;
 	for(int i = 0; i < GC.getNumCivicInfos(); i++)
 	{
 		CvCivicInfo const& kLoopCivic = GC.getInfo((CivicTypes)i);
 		if(kLoopCivic.getTradeRoutes() != 0)
 		{
-			iEconomyOption = kLoopCivic.getCivicOptionType();
+			eEconomyOption = kLoopCivic.getCivicOptionType();
 			break;
 		}
 	}
@@ -20476,7 +20461,7 @@ bool CvPlayer::canForceCivics(PlayerTypes eTarget, CivicTypes eCivic) const
 	return (getCivilization().getInitialCivic((CivicOptionTypes)kCivic.
 			getCivicOptionType()) != eCivic && // Not an initial civic
 			(kCivic.isStateReligion() || kCivic.getNonStateReligionHappiness() > 0 ||
-			kCivic.getCivicOptionType() == iEconomyOption));
+			kCivic.getCivicOptionType() == eEconomyOption));
 }
 
 bool CvPlayer::canForceReligion(PlayerTypes eTarget, ReligionTypes eReligion) const
@@ -20488,10 +20473,12 @@ bool CvPlayer::canForceReligion(PlayerTypes eTarget, ReligionTypes eReligion) co
 	CvPlayer const& kTarget = GET_PLAYER(eTarget);
 	/*  Just the conditions from above. (Better use canConvert, which checks recent
 		religion change? Would also have to use canRevolution then in canForceCivics.) */
-	if(!kTarget.isStateReligion() || !kTarget.canDoReligion(eReligion) ||
-			kTarget.getStateReligion() == eReligion)
+	if (!kTarget.isStateReligion() || !kTarget.canDoReligion(eReligion) ||
+		kTarget.getStateReligion() == eReligion)
+	{
 		return false;
-	if(getStateReligion() == eReligion)
+	}
+	if (getStateReligion() == eReligion)
 		return true;
 	// New: Accept any major religion
 	return kTarget.isMajorReligion(eReligion); // </advc.132>

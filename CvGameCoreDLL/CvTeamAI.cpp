@@ -3852,7 +3852,7 @@ DenialTypes CvTeamAI::AI_permanentAllianceTrade(TeamTypes eWithTeam) const  // a
 }
 
 
-void CvTeamAI::AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateRivalTrade)
+void CvTeamAI::AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateTradeMemory)
 {
 	PROFILE_FUNC();
 
@@ -3886,9 +3886,9 @@ void CvTeamAI::AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateRivalTrade)
 		}
 	}
 	// <advc.130p>
-	if(eBestTeam == m_eWorstEnemy)
+	if (eBestTeam == m_eWorstEnemy)
 		return;
-	if(bUpdateRivalTrade && m_eWorstEnemy != NO_TEAM && m_eWorstEnemy != eBestTeam)
+	if (bUpdateTradeMemory && m_eWorstEnemy != NO_TEAM)
 	{
 		for (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO> it(getID()); it.hasNext(); ++it)
 		{
@@ -3965,8 +3965,8 @@ int CvTeamAI::AI_enmityValue(TeamTypes eEnemy) const
 		return 0;
 	CvTeam const& kEnemy = GET_TEAM(eEnemy);
 	FAssert(eEnemy != getID() && !kEnemy.isMinorCiv() && kEnemy.isHasMet(getID()));
-	if(!kEnemy.isAlive() || kEnemy.isCapitulated() ||
-		isVassal(eEnemy) || // advc.130d
+	if(!kEnemy.isAlive() ||
+		kEnemy.isCapitulated() || // advc.130d
 		((AI_getAttitude(eEnemy) >= ATTITUDE_CAUTIOUS ||
 		AI_getAttitude(eEnemy, false) >= ATTITUDE_CAUTIOUS) && // advc.130d
 		!isAtWar(eEnemy)))
@@ -4197,23 +4197,23 @@ void CvTeamAI::AI_changeEnemyPeacetimeTradeValue(TeamTypes eIndex, int iChange)
 	AI_setEnemyPeacetimeTradeValue(eIndex, (AI_getEnemyPeacetimeTradeValue(eIndex) + iChange));
 }
 
-// <advc.130p><advc.130m> To keep the rate consistent between TeamAI and PlayerAI
+// <advc.130p>, advc.130m To keep the rate consistent between TeamAI and PlayerAI
 double CvTeamAI::AI_getDiploDecay() const
 {
 	/*  On Normal speed, this decay rate halves a value in about 50 turns:
 		0.9865^50 = 0.507 */
 	return 1.45 / GC.getInfo(GC.getGame().getGameSpeedType()).
 			getGoldenAgePercent();
-} // </advc.130m>
+}
 
 // Needed for both RivalTrade and "fair trade"
-double CvTeamAI::AI_recentlyMetMultiplier(TeamTypes eOther) const
+scaled CvTeamAI::AI_recentlyMetMultiplier(TeamTypes eOther) const
 {
-	double recency = std::min(1.0, AI_getHasMetCounter(eOther) /
-			((double)GC.getInfo(GC.getGame().getGameSpeedType()).
-			getResearchPercent()));
+	scaled rRecency = scaled::min(1, scaled(
+			AI_getHasMetCounter(eOther),
+			GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent()));
 	// +50% if just met, declining linearly to +0% if met 100 turns ago (Normal speed)
-	return 1 + 0.5 * (1 - recency);
+	return 1 + (1 - rRecency) / 2;
 } // </advc.130p>
 
 

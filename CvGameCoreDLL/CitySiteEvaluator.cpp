@@ -1311,7 +1311,7 @@ BonusTypes AIFoundValue::getBonus(CvPlot const& p) const
 	return p.getBonusType(bRevealBonus ? NO_TEAM : eTeam);
 }
 
-/*  <advc.031> Rewritten. K-Mod had added a crucial isImprovementBonusTrade check, but
+/*  advc.031: Rewritten. K-Mod had added a crucial isImprovementBonusTrade check, but
 	other important checks were still missing. */
 ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot const& p,
 	bool& bCanTrade, bool& bCanTradeSoon, int* aiYield,
@@ -1323,7 +1323,7 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 
 	ImprovementTypes eBestImprovement = NO_IMPROVEMENT;
 	int iBestYield = -1;
-	FeatureTypes eFeature = p.getFeatureType();
+	FeatureTypes const eFeature = p.getFeatureType();
 	FOR_EACH_ENUM(Build)
 	{
 		CvBuildInfo const& kBuild = GC.getInfo(eLoopBuild);
@@ -1332,8 +1332,7 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 			continue;
 		CvImprovementInfo const& kImprovement = GC.getInfo(eImprovement);
 		TechTypes const eBuildPrereq = kBuild.getTechPrereq();
-		if (eImprovement == NO_IMPROVEMENT ||
-			!kImprovement.isImprovementBonusMakesValid(eBonus) ||
+		if (!kImprovement.isImprovementBonusMakesValid(eBonus) ||
 			!kImprovement.isImprovementBonusTrade(eBonus) ||
 			!isNearTech(eBuildPrereq))
 		{
@@ -1393,9 +1392,13 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 	{
 		aiYield[eLoopYield] = GC.getInfo(eBestImprovement).
 				getImprovementBonusYield(eBonus, eLoopYield);
-		/*	(We don't count GC.getInfo(eBestImprovement).getYieldChange().
-			Most tiles get some improvement; that's not special. Problem with this:
-			overestimates improvements with 0 yield change, i.e. Plantation, Pasture.) */
+		/*	Note/ fixme: We don't count the improvement's YieldChange and
+			IrrigatedYieldChange, i.e. we treat wet farms, dry farms and
+			improvements that don't add any yield (plantation, pasture) all
+			the same and thus overestimate the latter.
+			This separate accounting for "special" yields really needs to go,
+			and then CvPlot::calculateImprovementYieldChange could perhaps
+			be used (for all plots). */
 		if (!bRemoveFeature && eFeature != NO_FEATURE)
 		{
 			aiYield[eLoopYield] += GC.getInfo(eFeature).getYieldChange(eLoopYield);
