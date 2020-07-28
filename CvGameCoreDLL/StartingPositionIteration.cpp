@@ -1167,8 +1167,8 @@ void StartingPositionIteration::computeStartValues(
 				neighbors will make it likelier that SPI places civs with too much
 				space close together to compensate. Better to discourage close starts
 				through volatility. */
-			kResult.m_volatilityValues.add(itPlayer->getID(), scaled::max(0,
-					1 - 2 * rRivalDistFactor - fixp(1/16.)));
+			kResult.m_volatilityValues.add(itPlayer->getID(), 2 * scaled::max(0,
+					1 - rRivalDistFactor - fixp(1/16.)));
 		}
 		else
 		{
