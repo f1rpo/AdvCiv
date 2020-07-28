@@ -659,8 +659,8 @@ public:
 	bool AI_canBeExpectedToTrain(UnitTypes eUnit) const; // advc.104, advc.651
 	bool AI_isDefenseFocusOnBarbarians(CvArea const& kArea) const; // advc.300
 	bool AI_hasSharedPrimaryArea(PlayerTypes eOther) const; // advc
-	bool AI_hasSharedPrimaryArea(PlayerTypes eOther) const;
 
+	int AI_getContactDelay(ContactTypes eContact) const; // advc.130r
 	// <advc.104m>
 	bool AI_proposeEmbargo(PlayerTypes eHuman);
 	bool AI_contactReligion(PlayerTypes eHuman);

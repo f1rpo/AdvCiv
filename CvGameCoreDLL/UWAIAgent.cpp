@@ -776,9 +776,8 @@ bool UWAI::Team::tryFindingMaster(TeamTypes enemyId) {
 			ourList.insertAtEnd(item);
 			if(master.isHuman()) {
 				ourLeader.AI_changeContactTimer(masterLeader.getID(),
-						CONTACT_PERMANENT_ALLIANCE, GC.getInfo(
-						ourLeader.getPersonalityType()).getContactDelay(
-						CONTACT_PERMANENT_ALLIANCE));
+						CONTACT_PERMANENT_ALLIANCE,
+						ourLeader.AI_getContactDelay(CONTACT_PERMANENT_ALLIANCE));
 				CvDiploParameters* pDiplo = new CvDiploParameters(ourLeader.getID());
 				pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_VASSAL"));
 				pDiplo->setAIContact(true);
