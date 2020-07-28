@@ -337,47 +337,58 @@ void StartingPositionIteration::PotentialSites::recordSite(
 	}
 
 	// Update Voronoi cells
-	PlayerTypes eClosestPlayer = closestPlayer(kPlot);
-	if (eClosestPlayer == NO_PLAYER) // Remote sites will be set by updateCurrSites
+	vector<PlayerTypes> aClosestPlayers;
+	closestPlayers(kPlot, aClosestPlayers);
+	if (aClosestPlayers.empty()) // Remote sites will be set by updateCurrSites
 		return;
-	map<PlayerTypes,VoronoiCell*>::iterator pos = m_sitesClosestToCurrSite.
-			find(eClosestPlayer);
-	VoronoiCell& kCell = *pos->second;
-	PlotNumTypes ePlotNum = kMap.plotNum(kPlot);
-	if (bAdd)
-		kCell.insert(ePlotNum);
-	else
+	for (size_t i = 0; i < aClosestPlayers.size(); i++)
 	{
-		VoronoiCell::iterator pos = kCell.find(ePlotNum);
-		if (pos != kCell.end())
-			kCell.erase(pos);
-		else FAssert(pos != kCell.end());
+		map<PlayerTypes,VoronoiCell*>::iterator pos = m_sitesClosestToCurrSite.
+				find(aClosestPlayers[i]);
+		VoronoiCell& kCell = *pos->second;
+		PlotNumTypes ePlotNum = kMap.plotNum(kPlot);
+		if (bAdd)
+			kCell.insert(ePlotNum);
+		else
+		{
+			VoronoiCell::iterator pos = kCell.find(ePlotNum);
+			if (pos != kCell.end())
+				kCell.erase(pos);
+			else FAssert(pos != kCell.end());
+		}
 	}
 }
 
 
-PlayerTypes StartingPositionIteration::PotentialSites::closestPlayer(
-	CvPlot const& kPlot) const
+void StartingPositionIteration::PotentialSites::closestPlayers(
+	CvPlot const& kPlot, vector<PlayerTypes>& kResult) const
 {
-	PlayerTypes eClosestPlayer = NO_PLAYER;
+	FAssert(kResult.empty());
+	vector<std::pair<int,PlayerTypes> > aiePlayersByDistance;
 	CvMap const& kMap = GC.getMap();
 	int iShortestDist = MAX_INT;
+	int const iRemoteSiteThresh = 30;
 	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
 		int iDist = kMap.stepDistance(&kPlot, itPlayer->getStartingPlot());
 		if (iDist <= 0) // Don't include the current sites themselves in Voronoi cells
-			return NO_PLAYER;
+			return;
 		if (!kPlot.isArea(itPlayer->getStartingPlot()->getArea()))
 			iDist += 25;
-		if (iDist < iShortestDist)
-		{
-			iShortestDist = iDist;
-			eClosestPlayer = itPlayer->getID();
-		}
+		aiePlayersByDistance.push_back(make_pair(iDist, itPlayer->getID()));
+		iShortestDist = std::min(iShortestDist, iDist);
 	}
-	if (iShortestDist > 30) // remote site
-		return NO_PLAYER;
-	return eClosestPlayer;
+	if (iShortestDist > iRemoteSiteThresh)
+		return;
+	// Probably faster w/o sorting
+	//std::sort(aiePlayersByDistance.begin(), aiePlayersByDistance.end());
+	int const iDistThresh = std::min(2 * iShortestDist, iRemoteSiteThresh);
+	for (size_t i = 0; i < aiePlayersByDistance.size(); i++)
+	{
+		if (aiePlayersByDistance[i].first < iDistThresh)
+			kResult.push_back(aiePlayersByDistance[i].second);
+		//else break;
+	}
 }
 
 
@@ -421,14 +432,18 @@ void StartingPositionIteration::PotentialSites::updateCurrSites(bool bUpdateCell
 	{
 		PlotNumTypes ePlotNum = it->first;
 		CvPlot const& kPlot = kMap.getPlotByIndex(ePlotNum);
-		PlayerTypes eClosestPlayer = closestPlayer(kPlot);
-		if (eClosestPlayer == NO_PLAYER)
+		vector<PlayerTypes> aClosestPlayers;
+		closestPlayers(kPlot, aClosestPlayers);
+		if (aClosestPlayers.empty())
 		{
 			m_remoteSitesByAreaSize.push_back(make_pair(
 					kPlot.getArea().getNumTiles() * 100 + it->second, ePlotNum));
 		}
 		else if (bUpdateCells)
-			m_sitesClosestToCurrSite[eClosestPlayer]->insert(ePlotNum);
+		{
+			for (size_t i = 0; i < aClosestPlayers.size(); i++)
+				m_sitesClosestToCurrSite[aClosestPlayers[i]]->insert(ePlotNum);
+		}
 	}
 	std::sort(m_remoteSitesByAreaSize.rbegin(), m_remoteSitesByAreaSize.rend());
 }
@@ -1676,8 +1691,8 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		{
 			// Focus on negative outliers while the avg. error is high
-			scaled rNegativeOutlierExtraWeight = fixp(1.1) * 
-					(m_currSolutionAttribs.m_rAvgError - fixp(0.15));
+			scaled rNegativeOutlierExtraWeight = fixp(1.25) * 
+					(m_currSolutionAttribs.m_rAvgError - fixp(0.1));
 			// A little bit of randomness
 			if (iStepsConsidered % 2 == 0)
 				rNegativeOutlierExtraWeight += fixp(0.25);

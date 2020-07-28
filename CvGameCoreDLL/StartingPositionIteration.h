@@ -68,6 +68,8 @@ private:
 
 	static scaled weightedDistance(std::vector<short>& kDistances);
 
+	/*	These cells are going to have some overlap, so they're not really
+		Voronoi cells. */
 	typedef std::set<PlotNumTypes> VoronoiCell;
 	class PotentialSites
 	{
@@ -92,7 +94,7 @@ private:
 
 		scaled computeMinFoundValue();
 		void recordSite(CvPlot const& kPlot, short iFoundValue, bool bAdd);
-		PlayerTypes closestPlayer(CvPlot const& kPlot) const;
+		void closestPlayers(CvPlot const& kPlot, std::vector<PlayerTypes>& kResult) const;
 		int fewestPotentialSites() const;
 	};
 
