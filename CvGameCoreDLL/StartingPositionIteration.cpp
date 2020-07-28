@@ -1161,12 +1161,14 @@ void StartingPositionIteration::computeStartValues(
 		if (rRivalDistFactor < rTypicalDistFactor)
 		{
 			rRivalDistFactor /= rTypicalDistFactor;
-			rRivalDistFactor.exponentiate(fixp(0.82));
+			rRivalDistFactor.exponentiate(fixp(2/3.));
 			/*	Doesn't hurt players that much beyond the effect already covered
-				by rFromExpansionSpace. But close starts should be avoided also
-				to make the early game less tense. */
+				by rFromExpansionSpace. And overestimating the impact of close
+				neighbors will make it likelier that SPI places civs with too much
+				space close together to compensate. Better to discourage close starts
+				through volatility. */
 			kResult.m_volatilityValues.add(itPlayer->getID(), scaled::max(0,
-					1 - rRivalDistFactor - fixp(1/16.)));
+					1 - 2 * rRivalDistFactor - fixp(1/16.)));
 		}
 		else
 		{
