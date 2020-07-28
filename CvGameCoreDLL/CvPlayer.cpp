@@ -7052,8 +7052,8 @@ void CvPlayer::revolution(CivicTypes* paeNewCivics, bool bForce)
 		FOR_EACH_ENUM(CivicOption)
 			setCivics(eLoopCivicOption, paeNewCivics[eLoopCivicOption]);
 	}
-
-	setRevolutionTimer(std::max(1, ((100 + getAnarchyModifier()) * GC.getDefineINT("MIN_REVOLUTION_TURNS")) / 100) + iAnarchyLength);
+	// advc: Revolution turns calculation moved into auxiliary function
+	setRevolutionTimer(iAnarchyLength + getMinTurnsBetweenRevolutions());
 
 	if (getID() == GC.getGame().getActivePlayer())
 	{
@@ -14317,14 +14317,13 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 		if (eTargetPlayer != NO_PLAYER)
 		{
 			announceEspionageToThirdParties(eMission, eTargetPlayer); // advc.120f
-			int iCivic = iExtraData;
+			CivicTypes eCivic = (CivicTypes)iExtraData;
 			szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_SWITCH_CIVIC",
-					GC.getInfo((CivicTypes)iCivic).getDescription()).GetCString();
-			GET_PLAYER(eTargetPlayer).setCivics((CivicOptionTypes)GC.getInfo((CivicTypes)iCivic).
-					getCivicOptionType(), (CivicTypes)iCivic);
-			GET_PLAYER(eTargetPlayer).setRevolutionTimer(std::max(1,
-					((100 + GET_PLAYER(eTargetPlayer).getAnarchyModifier()) *
-					GC.getDefineINT("MIN_REVOLUTION_TURNS")) / 100));
+					GC.getInfo(eCivic).getDescription()).GetCString();
+			GET_PLAYER(eTargetPlayer).setCivics(
+					GC.getInfo(eCivic).getCivicOptionType(), eCivic);
+			// advc: Revolution turns calculation moved into auxiliary function
+			GET_PLAYER(eTargetPlayer).setRevolutionTimer(getMinTurnsBetweenRevolutions());
 			bSomethingHappened = true;
 		}
 	}

@@ -127,7 +127,7 @@ void CvPlayerAI::AI_init()
 
 	// Init other game data ...
 	AI_updatePersonality(); // advc.104: Moved into a subroutine
-	//AI_setCivicTimer(((getMaxAnarchyTurns() == 0) ? (GC.getDefineINT("MIN_REVOLUTION_TURNS") * 2) : CIVIC_CHANGE_DELAY) / 2);  // This was commented out by the BtS expansion
+	//AI_setCivicTimer(((getMaxAnarchyTurns() == 0) ? (GC.getDefineINT(CvGlobals::MIN_REVOLUTION_TURNS) * 2) : CIVIC_CHANGE_DELAY) / 2);  // This was commented out by the BtS expansion
 	AI_setReligionTimer(1);
 	AI_setCivicTimer((getMaxAnarchyTurns() == 0) ? 1 : 2);
 	AI_initStrategyRand(); // K-Mod
@@ -12335,7 +12335,11 @@ int CvPlayerAI::AI_civicTradeVal(CivicTypes eCivic, PlayerTypes ePlayer) const
 	if (eBestCivic != NO_CIVIC && eBestCivic != eCivic)
 	{
 		iValue += //std::max(0, // advc.132: Handle that below
-				2 * (kPlayer.AI_civicValue(eBestCivic) - kPlayer.AI_civicValue(eCivic));
+				2 * (kPlayer.AI_civicValue(eBestCivic) - kPlayer.AI_civicValue(eCivic)
+				/*	advc.132: AI_civicValue is at a scale of 1 commerce per turn.
+					ePlayer will have to run the new civic for more than 2 turns ...
+					2*MIN_REVOLUTION_TURNS is consistent with the end of AI_doCivics. */
+				* GC.getDefineINT(CvGlobals::MIN_REVOLUTION_TURNS));
 	}
 	/*  advc.132: ePlayer charges less than the anarchyCost if they were going to
 		switch anyway. */
@@ -18561,7 +18565,8 @@ void CvPlayerAI::AI_doCivics()
 	if (canRevolution(&aeBestCivic[0]))
 	{
 		revolution(&aeBestCivic[0]);
-		AI_setCivicTimer((getMaxAnarchyTurns() == 0) ? (GC.getDefineINT("MIN_REVOLUTION_TURNS") * 2) : CIVIC_CHANGE_DELAY);
+		AI_setCivicTimer(getMaxAnarchyTurns() != 0 ? CIVIC_CHANGE_DELAY :
+				GC.getDefineINT(CvGlobals::MIN_REVOLUTION_TURNS) * 2);
 	}
 }
 
@@ -27460,8 +27465,11 @@ int CvPlayerAI::AI_anarchyTradeVal(CivicTypes eCivic) const
 	}
 	FAssert(iAnarchyLength >= 0 && iSwitchBackAnarchyLength >= 0);
 	/*  Uncertain whether we'll want to switch back; fair chance that it can
-		be piggybacked on another revolution. */
-	r *= (iAnarchyLength + 0.36 * iSwitchBackAnarchyLength);
+		be piggybacked on another revolution. Also, the new civic or religion
+		may not be so bad; that's something the caller will evaluate anyway. */
+	r *= (iAnarchyLength + fixp(1/4.) * iSwitchBackAnarchyLength);
+	// There's always the inconvenience of not being able to have another revolution
+	r += scaled(getTotalPopulation() * getMinTurnsBetweenRevolutions(), 3);
 	/*  Going to get only half the trade val as gpt. But we're also going to
 		benefit from denying gold to a competitor. So far, only humans can
 		trade for religion and civics changes, and they're strong competitors.

@@ -351,6 +351,12 @@ public:
 	bool canDoCivics(CivicTypes eCivic) const;																														// Exposed to Python
 	bool canRevolution(CivicTypes* paeNewCivics) const;																					// Exposed to Python
 	void revolution(CivicTypes* paeNewCivics, bool bForce = false);												// Exposed to Python
+	// advc: Cut from the body of the revolution function above
+	int getMinTurnsBetweenRevolutions() const
+	{
+		return std::max(1, ((100 + getAnarchyModifier()) *
+				GC.getDefineINT(CvGlobals::MIN_REVOLUTION_TURNS)) / 100);
+	}
 	int getCivicPercentAnger(CivicTypes eCivic, bool bIgnore = false) const;																										// Exposed to Python
 
 	bool canDoReligion(ReligionTypes eReligion) const;																										// Exposed to Python
