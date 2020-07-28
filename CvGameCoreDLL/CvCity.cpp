@@ -3377,16 +3377,20 @@ int CvCity::getOvercrowdingPercentAnger(int iExtra) const
 
 
 int CvCity::getNoMilitaryPercentAnger() const
-{
-	static bool const bDEMAND_BETTER_PROTECTION = GC.getDefineBOOL("DEMAND_BETTER_PROTECTION");
-	if (!bDEMAND_BETTER_PROTECTION) // advc.500b
+{	// <advc.500b>
+	static bool const bDEMAND_BETTER_PROTECTION = GC.getDefineBOOL(
+			"DEMAND_BETTER_PROTECTION");
+	if (!bDEMAND_BETTER_PROTECTION) // </advc.500b>
 	{
 		int iAnger = 0;
 		if (getMilitaryHappinessUnits() == 0)
 			iAnger += GC.getDefineINT(CvGlobals::NO_MILITARY_PERCENT_ANGER);
-		return iAnger;  // <advc.500b>
+		return iAnger;
 	}
-	scaled rTargetGarrStr(getPopulation(), 2);
+	// <advc.500b>
+	static scaled const rPOP_PERCENT = per100(GC.getDefineINT(
+			"DEMAND_BETTER_PROTECTION_POP_PERCENT"));
+	scaled rTargetGarrStr = getPopulation() * rPOP_PERCENT;
 	scaled rActualGarrStr = defensiveGarrison(rTargetGarrStr);
 	if (rActualGarrStr >= rTargetGarrStr)
 		return 0;
@@ -5202,6 +5206,8 @@ int CvCity::GPTurnsLeft() const
 
 void CvCity::GPProjection(std::vector<std::pair<UnitTypes,int> >& r) const
 {
+	if (isDisorder())
+		return;
 	CvCivilization const& kCiv = getCivilization();
 	int const iTurnsLeft = GPTurnsLeft();
 	/*  (advc.001c: Can't use getGreatPeopleProgress() b/c the
@@ -13016,14 +13022,17 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 scaled CvCity::defensiveGarrison(
 	scaled rStopCountingAt) const // Param important for performance
 {
-	/*  Time is now acceptable, but still not negligible (slightly above 1%
-		of the total turn time). Probably b/c of the allUpgradesAvailable check.
-		Tbd.: Should simply cache the result of getNoMilitaryPercentAnger. */
+	/*  Time is acceptable - but not negligible (slightly above 1% of an AI turn) -
+		with rOUTDATED_PERCENT < 1. Perhaps fine if I keep it at 1 in XML.
+		Otherwise, I should simply cache the result of getNoMilitaryPercentAnger. */
 	PROFILE_FUNC();
 
 	scaled r = 0;
 	CvPlayer const& kOwner = GET_PLAYER(getOwner());
-	CvPlot const& kPlot = *plot();
+	CvPlot const& kPlot = getPlot();
+	// ("Obsolete" isn't really the right term for units)
+	static scaled const rOUTDATED_PERCENT = per100(GC.getDefineINT(
+			"DEMAND_BETTER_PROTECTION_OBSOLETE_PERCENT"));
 	CvCity const* pCapital = kOwner.getCapitalCity();
 	if (pCapital == this)
 		pCapital = NULL;
@@ -13035,11 +13044,14 @@ scaled CvCity::defensiveGarrison(
 		if (!u.isMilitaryHappiness() && u.getCultureGarrisonValue() <= 0)
 			continue;
 		scaled rDefStr = per100(kUnit.maxCombatStr(&kPlot, NULL, NULL, true));
-		// Outdated units count half
-		if (allUpgradesAvailable(kUnit.getUnitType()) != NO_UNIT ||
+		if (rOUTDATED_PERCENT != 1 &&
+			allUpgradesAvailable(kUnit.getUnitType()) != NO_UNIT ||
+			/*	Check capital too. Player might remove access to e.g. Copper
+				to avoid Warrior obsoletion penalty, but also cutting the capital
+				off from a strategic resource will rarely be worthwhile. */
 			(pCapital != NULL && pCapital->allUpgradesAvailable(kUnit.getUnitType())))
 		{
-			rDefStr /= 2;
+			rDefStr *= rOUTDATED_PERCENT;
 		}
 		r += rDefStr;
 		if (rStopCountingAt > 0 && r > rStopCountingAt)

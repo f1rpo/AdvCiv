@@ -440,6 +440,22 @@
 		<DefineName>DEMAND_BETTER_PROTECTION</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
+	<!-- Multiplier applied to city population when computing the
+		 defensive strength needed for allying fears for safety.
+		 Recommended: 100%, maybe 50%.
+		 Only relevant if DEMAND_BETTER_PROTECTION is enabled. -->
+	<Define>
+		<DefineName>DEMAND_BETTER_PROTECTION_POP_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<!-- Multiplier applied to the defensive strength of units that either
+		 the current city or the capital can no longer train.
+		 Recommended: 100%, maybe 50%.
+		 Only relevant if DEMAND_BETTER_PROTECTION is enabled. -->
+	<Define>
+		<DefineName>DEMAND_BETTER_PROTECTION_OBSOLETE_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
 
 	<!-- [advc.106]
 		 If set to 1, era transitions are recorded in replays.
