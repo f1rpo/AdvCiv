@@ -20936,8 +20936,17 @@ bool CvPlayerAI::AI_intendsToCede(CvCityAI const& kCity, PlayerTypes eToPlayer,
 			}
 			// City mustn't be too valuable to us
 			{
+				scaled rSizeDiffFactor = 1;
+				if (iKeepVal > 0 && iAttitudeLevel <= ATTITUDE_PLEASED)
+				{	/*	If we're much bigger, then a sizable city can have
+						negligible value to us, but the diplomatic benefits will
+						also be negligigble. */
+					scaled rTheirPopToOurs(kToPlayer.getTotalPopulation(),
+							getTotalPopulation());
+					rSizeDiffFactor = scaled::min(rTheirPopToOurs + fixp(0.375), 1);
+				}
 				scaled rTotalYieldVal = AI_totalYieldVal();
-				if (iKeepVal * rEnemyTradeFactor > rTotalYieldVal /
+				if (iKeepVal * rEnemyTradeFactor > rSizeDiffFactor * rTotalYieldVal /
 					(18 - iAttitudeLevel))
 				{
 					return false;
