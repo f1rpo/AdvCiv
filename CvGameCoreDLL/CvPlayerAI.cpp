@@ -7833,797 +7833,749 @@ int CvPlayerAI::AI_knownRankDifference(PlayerTypes eOther) const
 	return iDelta;
 } // </advc.130c>
 
-PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, VoteSourceTypes eVoteSource, bool bPropose)
+// advc: Refactored (superficially; should really be in a separate class etc.)
+PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData,
+	VoteSourceTypes eVoteSource, bool bPropose)
 {
 	PROFILE_FUNC();
 
-	int iI;
-	CvGame& kGame = GC.getGame(); // advc
-	VoteTypes eVote = kVoteData.eVote;
-
-	CvTeamAI& kOurTeam = GET_TEAM(getTeam()); // K-Mod
+	CvGame& kGame = GC.getGame();
+	VoteTypes const eVote = kVoteData.eVote;
+	CvTeamAI const& kOurTeam = GET_TEAM(getTeam()); // K-Mod
 
 	if (kGame.isTeamVote(eVote))
 	{
 		if (kGame.isTeamVoteEligible(getTeam(), eVoteSource))
 			return (PlayerVoteTypes)getTeam();
+		PlayerVoteTypes eBestTeam = PLAYER_VOTE_ABSTAIN;
 		// <advc.148>
 		int iBestValue = 0;
-		if(GC.getInfo(eVote).isVictory())
+		if (GC.getInfo(eVote).isVictory())
 			iBestValue = 9; // was 7 </advc.148>
-		PlayerVoteTypes eBestTeam = PLAYER_VOTE_ABSTAIN;
 		int iSecondBestVal = iBestValue; // advc.115b
-		for (iI = 0; iI < MAX_TEAMS; iI++)
+		for (TeamIter<MAJOR_CIV,KNOWN_TO> itCandidate(getTeam());
+			itCandidate.hasNext(); ++itCandidate)
 		{
-			if(!GET_TEAM((TeamTypes)iI).isAlive() ||
-				!kGame.isTeamVoteEligible((TeamTypes)iI, eVoteSource))
-			{
-				continue; // advc
-			}
-			if (kOurTeam.isVassal((TeamTypes)iI))
-				return (PlayerVoteTypes)iI;
+			TeamTypes const eCandidate = itCandidate->getID();
+			if (!kGame.isTeamVoteEligible(eCandidate, eVoteSource))
+				continue;
+			if (kOurTeam.isVassal(eCandidate))
+				return (PlayerVoteTypes)eCandidate;
 
-			int iValue = kOurTeam.AI_getAttitudeVal((TeamTypes)iI);
+			int iValue = kOurTeam.AI_getAttitudeVal(eCandidate);
 			/*  <advc.130v> Capitulated vassals don't just vote for
 				their master, but also for civs that the master likes.
 				(Human masters aren't going to like anyone.) */
-			if(kOurTeam.isCapitulated())
+			if (kOurTeam.isCapitulated())
 			{
 				iValue = GET_TEAM(kOurTeam.getMasterTeam()).
-						AI_getAttitudeVal((TeamTypes)iI);
+						AI_getAttitudeVal(eCandidate);
 			} // </advc.130v>
-			if(iValue > iSecondBestVal) // advc.115b
+			if (iValue > iSecondBestVal) // advc.115b
 			{
 				if (iValue > iBestValue)
 				{
 					iSecondBestVal = iBestValue; // advc.115b
 					iBestValue = iValue;
-					eBestTeam = (PlayerVoteTypes)iI;
+					eBestTeam = (PlayerVoteTypes)eCandidate;
 				}
 				else iSecondBestVal = iValue; // advc.115b
 			}
 		} // <advc.115b>
-		if(iBestValue == iSecondBestVal || (eBestTeam != getMasterTeam() &&
+		if (iBestValue == iSecondBestVal || (eBestTeam != getMasterTeam() &&
 			kOurTeam.AI_anyMemberAtVictoryStage4()))
 		{
 			return PLAYER_VOTE_ABSTAIN;
 		} // </advc.115b>
 		return eBestTeam;
 	}
-	else
-	{
-		TeamTypes eSecretaryGeneral = kGame.getSecretaryGeneral(eVoteSource);
-		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
-		/*if (!bPropose) {
-			if (eSecretaryGeneral != NO_TEAM) {
-				if (eSecretaryGeneral == getTeam() ||
-					(GET_TEAM(getTeam()).AI_getAttitude(eSecretaryGeneral) == ATTITUDE_FRIENDLY))
-				{
-					return PLAYER_VOTE_YES;
-				}
-			}
-		}*/ // BtS
-		// Remove blanket auto approval for friendly secretary
-		bool bFriendlyToSecretary = false;
-		// dlph.25: (The bRepeal code is really advc code)
-		bool bRepeal = false;
-		if (!bPropose)
-		{	// dlph.25:
-			bRepeal = (kGame.getVoteOutcome(eVote) == PLAYER_VOTE_YES);
-			if (eSecretaryGeneral != NO_TEAM)
+
+	CvLeaderHeadInfo const& kPersonality = GC.getInfo(getPersonalityType());
+	TeamTypes const eSecretaryGeneral = kGame.getSecretaryGeneral(eVoteSource);
+
+	/*if (!bPropose) {
+		if (eSecretaryGeneral != NO_TEAM) {
+			if (eSecretaryGeneral == getTeam() ||
+				(GET_TEAM(getTeam()).AI_getAttitude(eSecretaryGeneral) == ATTITUDE_FRIENDLY))
 			{
-				if (eSecretaryGeneral == getTeam() ||
-					// <advc.130v>
-					(GET_TEAM(getTeam()).isVassal(eSecretaryGeneral) &&
-					GET_TEAM(getTeam()).isCapitulated())) // </advc.130v>
-				{	// <dlph.25>
-					if(bRepeal)
-						return PLAYER_VOTE_NO; // </dlph.25>
-					return PLAYER_VOTE_YES;
-				}
-				else
-				{
-					bFriendlyToSecretary =
-							(kOurTeam.AI_getAttitude(eSecretaryGeneral) == ATTITUDE_FRIENDLY);
-				}
+				return PLAYER_VOTE_YES;
 			}
 		}
-		// BETTER_BTS_AI_MOD: END
-
-		bool bDefy = false;
-		bool bValid = true;
-
-		//if (bValid) // advc: Redundant; and some other style changes in the loop below.
-		for (iI = 0; iI < GC.getNumCivicInfos(); iI++)
+	}*/ // BtS
+	// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
+	// Remove blanket auto approval for friendly secretary
+	bool bFriendlyToSecretary = false;
+	// dlph.25: (The bRepeal code is really advc code)
+	bool bRepeal = false;
+	if (!bPropose)
+	{	// dlph.25:
+		bRepeal = (kGame.getVoteOutcome(eVote) == PLAYER_VOTE_YES);
+		if (eSecretaryGeneral != NO_TEAM)
 		{
-			if (!GC.getInfo(eVote).isForceCivic(iI) || isCivic((CivicTypes)iI))
-				continue;
-
-			CivicTypes eBestCivic = AI_bestCivic((CivicOptionTypes)
-					GC.getInfo((CivicTypes)iI).getCivicOptionType());
-			if (eBestCivic == NO_CIVIC || eBestCivic == ((CivicTypes)iI))
-				continue;
-
-			int iBestCivicValue = AI_civicValue(eBestCivic);
-			int iNewCivicValue = AI_civicValue((CivicTypes)iI);
-
-			// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
-			/*if (iBestCivicValue > ((iNewCivicValue * 120) / 100)) {
-				bValid = false;
-			if (iBestCivicValue > ((iNewCivicValue * (140 +
-					(GC.getGame().getSorenRandNum(120,
-					"AI Erratic Defiance (Force Civic)"))) / 100)))*/ // BtS
-			// Increase threshold of voting for friend's proposal
-			if (bFriendlyToSecretary)
-			{
-				iNewCivicValue *= 6;
-				iNewCivicValue /= 5;
+			if (eSecretaryGeneral == getTeam() ||
+				// <advc.130v>
+				(GET_TEAM(getTeam()).isVassal(eSecretaryGeneral) &&
+				GET_TEAM(getTeam()).isCapitulated())) // </advc.130v>
+			{	// <dlph.25>
+				if (bRepeal)
+					return PLAYER_VOTE_NO; // </dlph.25>
+				return PLAYER_VOTE_YES;
 			}
-			if (iBestCivicValue > (iNewCivicValue * 120) / 100)
+			else
+			{
+				bFriendlyToSecretary =
+						(kOurTeam.AI_getAttitude(eSecretaryGeneral) == ATTITUDE_FRIENDLY);
+			}
+		}
+	}
+	// BETTER_BTS_AI_MOD: END
+
+	bool bDefy = false;
+	bool bValid = true;
+
+	FOR_EACH_ENUM(Civic)
+	{
+		if (!GC.getInfo(eVote).isForceCivic(eLoopCivic) || isCivic(eLoopCivic))
+			continue;
+		CivicTypes eBestCivic = AI_bestCivic(GC.getInfo(eLoopCivic).getCivicOptionType());
+		if (eBestCivic == NO_CIVIC || eBestCivic == eLoopCivic)
+			continue;
+
+		int iBestCivicValue = AI_civicValue(eBestCivic);
+		int iNewCivicValue = AI_civicValue(eLoopCivic);
+
+		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
+		/*if (iBestCivicValue > ((iNewCivicValue * 120) / 100)) {
+			bValid = false;
+		if (iBestCivicValue > ((iNewCivicValue * (140 +
+				(GC.getGame().getSorenRandNum(120,
+				"AI Erratic Defiance (Force Civic)"))) / 100)))*/ // BtS
+		// Increase threshold of voting for friend's proposal
+		if (bFriendlyToSecretary)
+		{
+			iNewCivicValue *= 6;
+			iNewCivicValue /= 5;
+		}
+		if (iBestCivicValue > (iNewCivicValue * 120) / 100)
+		{
+			bValid = false;
+			// Increase odds of defiance, particularly on AggressiveAI
+			if (iBestCivicValue > iNewCivicValue * (140 +
+				kGame.getSorenRandNum(kGame.isOption(GAMEOPTION_AGGRESSIVE_AI) ?
+				60 : 80, "AI Erratic Defiance (Force Civic)")) / 100)
+			{	// BETTER_BTS_AI_MOD: END
+				bDefy = true;
+			}
+			break;
+		}
+	}
+
+	if (bValid && GC.getInfo(eVote).getTradeRoutes() > 0)
+	{
+		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
+		if (bFriendlyToSecretary)
+		{	// <dlph.25>
+			if (bRepeal)
+				return PLAYER_VOTE_NO; // </dlph.25>
+			return PLAYER_VOTE_YES;
+		} // BETTER_BTS_AI_MOD: END
+		if (getNumCities() > (kGame.getNumCities() * 2) /
+			(kGame.countCivPlayersAlive() + 1))
+		{
+			bValid = false;
+		}
+	}
+
+	if (bValid && GC.getInfo(eVote).isNoNukes())
+	{
+		int iVoteBanThreshold = 0;
+		iVoteBanThreshold += kOurTeam.getNukeInterception() / 3;
+		iVoteBanThreshold += kPersonality.getBuildUnitProb();
+		iVoteBanThreshold *= std::max(1, kPersonality.getWarmongerRespect());
+		if (kGame.isOption(GAMEOPTION_AGGRESSIVE_AI))
+			iVoteBanThreshold *= 2;
+		{
+			bool bRivalSdi = false; // advc: renamed from "bAnyHasSdi"
+			// advc: was (equivalent to) <ALIVE,NOT_SAME_TEAM_AS>
+			for (TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itRival(getTeam());
+				itRival.hasNext(); ++itRival)
+			{
+				if (itRival->getNukeInterception() > 0)
+				{
+					bRivalSdi = true;
+					break;
+				}
+			}
+			if (!bRivalSdi && kOurTeam.getNukeInterception() > 0 &&
+				kOurTeam.getNumNukeUnits() > 0)
+			{
+				iVoteBanThreshold *= 2;
+			}
+		}
+		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
+		if (bFriendlyToSecretary)
+		{	// <dlph.25>
+			if (bRepeal)
+			{
+				iVoteBanThreshold *= 3;
+				iVoteBanThreshold /= 2;
+			}
+			else // </dlph.25>
+			{
+				iVoteBanThreshold *= 2;
+				iVoteBanThreshold /= 3;
+			}
+		} // BETTER_BTS_AI_MOD: END
+
+		bValid = (kGame.getSorenRandNum(100, "AI nuke ban vote") > iVoteBanThreshold);
+
+		if (AI_isDoStrategy(AI_STRATEGY_OWABWNW))
+			bValid = false;
+		else if ((kOurTeam.getNumNukeUnits() /
+			std::max(1, kOurTeam.getNumMembers())) <
+			(kGame.countTotalNukeUnits() / std::max(1, kGame.countCivPlayersAlive())))
+		{
+			bValid = false;
+		}
+		if (!bValid && AI_getNumTrainAIUnits(UNITAI_ICBM) > 0)
+		{
+			if (kGame.getSorenRandNum(AI_isDoStrategy(AI_STRATEGY_OWABWNW) ? 2 : 3,
+				"AI Erratic Defiance (No Nukes)") == 0)
+			{
+				bDefy = true;
+			}
+		}
+	}
+
+	if (bValid && GC.getInfo(eVote).isFreeTrade())
+	{
+		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
+		if (bFriendlyToSecretary)
+		{	// <dlph.25>
+			if (bRepeal)
+				return PLAYER_VOTE_NO; // </dlph.25>
+			return PLAYER_VOTE_YES;
+		} // BETTER_BTS_AI_MOD: END
+
+		int iOpenCount = 0;
+		int iClosedCount = 0;
+		/*	advc.001: Exclude Barbarians, minors, otherwise the
+			iClosedCount == 0 test will always fail. */
+		for (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO> itOtherTeam;
+			itOtherTeam.hasNext(); ++itOtherTeam)
+		{
+			if (kOurTeam.isOpenBorders(itOtherTeam->getID()))
+				iOpenCount += itOtherTeam->getNumCities();
+			else iClosedCount += itOtherTeam->getNumCities();
+		}
+		if (iOpenCount >= getNumCities() * getTradeRoutes())
+			bValid = false;
+		if (iClosedCount == 0)
+			bValid = false;
+	}
+
+	/*	advc: Slightly restructured - to reduce indent. Had treated isOpenBorders,
+		isDefensivePact, isForcePeace, isForceNoTrade, isForceWar, isAssignCity as
+		mutually exclusive (else if). */
+	if (bValid && GC.getInfo(eVote).isOpenBorders())
+	{
+		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
+		if (bFriendlyToSecretary)
+		{	// <dlph.25>
+			if (bRepeal)
+				return PLAYER_VOTE_NO; // </dlph.25>
+			return PLAYER_VOTE_YES;
+		} // BETTER_BTS_AI_MOD: END
+
+		bValid = true;
+		for (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO> itOtherTeam(getTeam());
+			itOtherTeam.hasNext(); ++itOtherTeam)
+		{
+			if (itOtherTeam->isVotingMember(eVoteSource) &&
+				kOurTeam.AI_openBordersTrade(itOtherTeam->getID()) != NO_DENIAL)
 			{
 				bValid = false;
-				// Increase odds of defiance, particularly on AggressiveAI
-				if (iBestCivicValue > iNewCivicValue * (140 +
-					kGame.getSorenRandNum(kGame.isOption(GAMEOPTION_AGGRESSIVE_AI) ?
-					60 : 80, "AI Erratic Defiance (Force Civic)")) / 100)
-				{	// BETTER_BTS_AI_MOD: END
-					bDefy = true;
-				}
 				break;
 			}
 		}
+	}
+	if (bValid && GC.getInfo(eVote).isDefensivePact())
+	{
+		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
+		if (bFriendlyToSecretary)
+		{	// <dlph.25>
+			if (bRepeal)
+				return PLAYER_VOTE_NO; // </dlph.25>
+			return PLAYER_VOTE_YES;
+		} // BETTER_BTS_AI_MOD: END
 
-		if (bValid)
+		bValid = true;
+		for (TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itRival(getTeam());
+			itRival.hasNext(); ++itRival)
 		{
-			if (GC.getInfo(eVote).getTradeRoutes() > 0)
+			if (itRival->isVotingMember(eVoteSource) &&
+				kOurTeam.AI_defensivePactTrade(itRival->getID()) != NO_DENIAL)
 			{
-				// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
-				if (bFriendlyToSecretary)
-				{	// <dlph.25>
-					if(bRepeal)
-						return PLAYER_VOTE_NO; // </dlph.25>
-					return PLAYER_VOTE_YES;
-				} // BETTER_BTS_AI_MOD: END
-				if (getNumCities() > (kGame.getNumCities() * 2) /
-					(kGame.countCivPlayersAlive() + 1))
-				{
-					bValid = false;
-				}
+				bValid = false;
+				break;
 			}
 		}
+	}
+	if (bValid && GC.getInfo(eVote).isForcePeace())
+	{
+		FAssert(kVoteData.ePlayer != NO_PLAYER);
+		TeamTypes const ePeaceTeam = TEAMID(kVoteData.ePlayer);
+		// advc (comment): These are named from ePeaceTeam's perspective
+		int iWarsWinning = 0;
+		int iWarsLosing = 0;
+		int iChosenWar = 0;
+		// K-Mod version of end-war vote decision.
+		/*	Note: Based on BBAI code. I'm not sure which bits are from BBAI
+			and which are from BtS. So I haven't marked individual changes
+			or preserved the original code.
+			The way "winning" and "losing" are calculated are mine. */
+		/*  advc.104n (comment): UWAI can mostly do this better and, if enabled, will
+			overwrite all the K-Mod results except bThisPlayerWinning. */
+		bool bLosingBig = false;
+		bool bWinningBig = false;
+		bool bThisPlayerWinning = false;
 
-		if (bValid)
+		int iSuccessScale = GET_PLAYER(kVoteData.ePlayer).getNumMilitaryUnits() *
+				GC.getDefineINT(CvGlobals::WAR_SUCCESS_ATTACKING) / 5;
+		bool const bAggressiveAI = kGame.isOption(GAMEOPTION_AGGRESSIVE_AI);
+		if (bAggressiveAI)
 		{
-			if (GC.getInfo(eVote).isNoNukes())
+			iSuccessScale *= 3;
+			iSuccessScale /= 2;
+		}
+
+		// Is ePeaceTeam winning wars?
+		int const iPeaceTeamPower = GET_TEAM(ePeaceTeam).getPower(true);
+		for (TeamIter<FREE_MAJOR_CIV,ENEMY_OF> itEnemy(ePeaceTeam);
+			itEnemy.hasNext(); ++itEnemy)
+		{
+			CvTeamAI const& kEnemy = *itEnemy; // advc (note): Could be kOurTeam
+
+			int const iPeaceTeamSuccess = GET_TEAM(ePeaceTeam).
+					AI_getWarSuccess(kEnemy.getID());
+			int const iOtherTeamSuccess = kEnemy.AI_getWarSuccess(ePeaceTeam);
+			int const iOtherTeamPower = kEnemy.getPower(true);
+			if (iPeaceTeamSuccess * iPeaceTeamPower >
+				(iOtherTeamSuccess + iSuccessScale) * iOtherTeamPower)
+			{	// Have to be ahead by at least a few victories to count as win
+				iWarsWinning++;
+				if (iPeaceTeamSuccess * iPeaceTeamPower / std::max(1,
+					(iOtherTeamSuccess + 2 * iSuccessScale) * iOtherTeamPower) >= 2)
+				{
+					bWinningBig = true;
+				}
+			}
+			else if (iOtherTeamSuccess * iOtherTeamPower >
+				(iPeaceTeamSuccess + iSuccessScale) * iPeaceTeamPower)
+			{	// Have to have non-trivial loses
+				iWarsLosing++;
+				if (iOtherTeamSuccess * iOtherTeamPower / std::max(1,
+					(iPeaceTeamSuccess + 2*iSuccessScale) * iPeaceTeamPower) >= 2)
+				{
+					bLosingBig = true;
+				}
+				if (kEnemy.getID() == getTeam())
+					bThisPlayerWinning = true;
+			}
+			else if (GET_TEAM(ePeaceTeam).AI_getAtWarCounter(kEnemy.getID()) < 10)
+			{	// Not winning, just recently attacked, and in multiple wars, be pessimistic
+				// Counts ties from no actual battles
+				if (GET_TEAM(ePeaceTeam).getNumWars() > 1 &&
+					!GET_TEAM(ePeaceTeam).AI_isChosenWar(kEnemy.getID()))
+				{
+					iWarsLosing++;
+				}
+			}
+			if (GET_TEAM(ePeaceTeam).AI_isChosenWar(kEnemy.getID()))
+				iChosenWar++;
+		}
+		// <advc.104n>
+		if (getUWAI.isEnabled())
+		{	// Overwrite everything computed above except bThisPlayerWinning
+			bLosingBig = bWinningBig = false;
+			iWarsWinning = iWarsLosing = iChosenWar = 0;
+			/*  iChosenWar: Shouldn't matter if chosen; trust the war utility computation
+				-- except when we're considering to propose peace with ourselves.
+				If we've just started a war and want to continue that war,
+				the proposal can still be advantageous when it allows us to end
+				some other war. In this case, we should not propose peace with ourselves,
+				but peace with that other team that we don't want to be at war with.
+				The proper solution would be to pick the best proposal instead of a
+				random "valid" one. This is just a temporary fix: */
+			if (getTeam() == ePeaceTeam && bPropose)
 			{
-				int iVoteBanThreshold = 0;
-				iVoteBanThreshold += kOurTeam.getNukeInterception() / 3;
-				iVoteBanThreshold += GC.getInfo(getPersonalityType()).getBuildUnitProb();
-				iVoteBanThreshold *= std::max(1, GC.getInfo(getPersonalityType()).getWarmongerRespect());
-				if (kGame.isOption(GAMEOPTION_AGGRESSIVE_AI))
+				for (TeamIter<FREE_MAJOR_CIV,ENEMY_OF> itEnemy(ePeaceTeam);
+					itEnemy.hasNext(); ++itEnemy)
 				{
-					iVoteBanThreshold *= 2;
-				}
-
-				bool bAnyHasSdi = false;
-				for (iI = 0; iI < MAX_TEAMS; iI++)
-				{
-					if (GET_TEAM((TeamTypes)iI).isAlive() && iI != getTeam())
+					if (GET_TEAM(ePeaceTeam).AI_getAtWarCounter(itEnemy->getID()) < 5 &&
+						!itEnemy->AI_isChosenWar(ePeaceTeam))
 					{
-						if (GET_TEAM((TeamTypes)iI).getNukeInterception() > 0)
-						{
-							bAnyHasSdi = true;
-							break;
-						}
+						return PLAYER_VOTE_NO;
 					}
 				}
+			}
+			int const iWarUtil = -GET_TEAM(ePeaceTeam).uwai().uEndAllWars(eVoteSource);
+			if (iWarUtil < -10)
+				iWarsLosing = 1;
+			else if (iWarUtil > 10)
+				iWarsWinning = 1;
+			if (iWarUtil > 75)
+				bWinningBig = true;
+			else if (iWarUtil < -75)
+				bLosingBig = true;
+		} // </advc.104n>
 
-				if (!bAnyHasSdi && kOurTeam.getNukeInterception() > 0 && kOurTeam.getNumNukeUnits() > 0)
+		if (ePeaceTeam == getTeam())
+		{
+			int iPeaceRand = kPersonality.getBasePeaceWeight();
+			// Note, base peace weight ranges between 0 and 10.
+			iPeaceRand /= (bAggressiveAI ? 2 : 1);
+			iPeaceRand /= (AI_atVictoryStage(AI_VICTORY_CONQUEST2) ? 2 : 1);
+			// <advc.104n>
+			scaled prPeace;
+			if (iPeaceRand > 0)
+				prPeace = 1 - scaled(1, std::max(1, iPeaceRand));
+			// </advc.104n>
+			if (bLosingBig &&
+				//(GC.getGame().getSorenRandNum(iPeaceRand, "AI Force Peace to avoid loss") || bPropose))
+				/*  advc.104n: The BtS code can have us randomly vote
+					against our own proposal. */
+				scaled::hash(kGame.getGameTurn(), getID()) < prPeace)
+			{
+				bValid = true; // Non-warmongers want peace to escape loss
+			}
+			//else if (!bLosingBig && (iChosenWar > iWarsLosing))
+			else if (!bLosingBig && (iChosenWar > iWarsLosing ||
+				(AI_atVictoryStage(AI_VICTORY_CONQUEST3) && // K-Mod
+				// advc.104n: Military victory is covered by war utility
+				!getUWAI.isEnabled())))
+			{
+				bValid = false; // If chosen to be in most wars, keep it going
+			}
+			else
+			{	// If losing most wars, vote for peace
+				bValid = (iWarsLosing > iWarsWinning);
+			}
+			if (!bValid && !bLosingBig && bWinningBig)
+			{
+				// Can we continue this war with defiance penalties?
+				if (!AI_isFinancialTrouble())
 				{
-					iVoteBanThreshold *= 2;
-				}
-
-				// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
-				if (bFriendlyToSecretary)
-				{	// <dlph.25>
-					if(bRepeal) {
-						iVoteBanThreshold *= 3;
-						iVoteBanThreshold /= 2;
-					}
-					else { // </dlph.25>
-						iVoteBanThreshold *= 2;
-						iVoteBanThreshold /= 3;
-					}
-				} // BETTER_BTS_AI_MOD: END
-
-				bValid = (kGame.getSorenRandNum(100, "AI nuke ban vote") > iVoteBanThreshold);
-
-				if (AI_isDoStrategy(AI_STRATEGY_OWABWNW))
-				{
-					bValid = false;
-				}
-				else if ((kOurTeam.getNumNukeUnits() /
-					std::max(1, kOurTeam.getNumMembers())) <
-					(kGame.countTotalNukeUnits() / std::max(1, kGame.countCivPlayersAlive())))
-				{
-					bValid = false;
-				}
-				if (!bValid && AI_getNumTrainAIUnits(UNITAI_ICBM) > 0)
-				{
-					if (kGame.getSorenRandNum(AI_isDoStrategy(AI_STRATEGY_OWABWNW) ? 2 : 3,
-						"AI Erratic Defiance (No Nukes)") == 0)
-					{
+					if (!kGame.getSorenRandNum(iPeaceRand, "AI defy Force Peace!"))
 						bDefy = true;
-					}
 				}
 			}
 		}
-
-		if (bValid)
+		else if (eSecretaryGeneral == getTeam() && !bPropose)
+			bValid = true;
+		else if (GET_TEAM(ePeaceTeam).isAtWar(getTeam()))
 		{
-			if (GC.getInfo(eVote).isFreeTrade())
-			{	// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
-				if (bFriendlyToSecretary)
-				{	// <dlph.25>
-					if(bRepeal)
-						return PLAYER_VOTE_NO;
-					else // </dlph.25>
-						return PLAYER_VOTE_YES;
-				} // BETTER_BTS_AI_MOD: END
+			bool bWeWantToEndWar = ((kOurTeam.AI_endWarVal(ePeaceTeam) >
+					(3 * GET_TEAM(ePeaceTeam).AI_endWarVal(getTeam())) / 2));
+			/*  <advc.118> If we don't want to negotiate, then, apparently,
+				we don't want to end the war */
+			if (!AI_isWillingToTalk(GET_TEAM(ePeaceTeam).getLeaderID()))
+				bWeWantToEndWar = false; // </advc.118>
 
-				int iOpenCount = 0;
-				int iClosedCount = 0;
-				for (iI = 0; iI < MAX_TEAMS; iI++)
-				{
-					if (!GET_TEAM((TeamTypes)iI).isAlive() || iI == getTeam())
-						continue; // advc
-					if (kOurTeam.isOpenBorders((TeamTypes)iI))
-						iOpenCount += GET_TEAM((TeamTypes)iI).getNumCities();
-					else iClosedCount += GET_TEAM((TeamTypes)iI).getNumCities();
-				}
-				if (iOpenCount >= (getNumCities() * getTradeRoutes()))
-					bValid = false;
-				if (iClosedCount == 0)
-					bValid = false;
-			}
-		}
-
-		if (bValid)
-		{
-			if (GC.getInfo(eVote).isOpenBorders())
-			{	// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
-				if (bFriendlyToSecretary)
-				{	// <dlph.25>
-					if(bRepeal)
-						return PLAYER_VOTE_NO; // </dlph.25>
-					return PLAYER_VOTE_YES;
-				} // BETTER_BTS_AI_MOD: END
-
-				bValid = true;
-				for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
-				{
-					if (iI != getTeam())
-					{
-						if (GET_TEAM((TeamTypes)iI).isVotingMember(eVoteSource))
-						{
-							if (NO_DENIAL != kOurTeam.AI_openBordersTrade((TeamTypes)iI))
-							{
-								bValid = false;
-								break;
-							}
-						}
-					}
-				}
-			}
-			else if (GC.getInfo(eVote).isDefensivePact())
-			{	// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
-				if (bFriendlyToSecretary)
-				{	// <dlph.25>
-					if(bRepeal)
-						return PLAYER_VOTE_NO;
-					else // </dlph.25>
-						return PLAYER_VOTE_YES;
-				} // BETTER_BTS_AI_MOD: END
-
-				bValid = true;
-				for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
-				{
-					if (iI == getTeam())
-						continue; // advc
-					if (GET_TEAM((TeamTypes)iI).isVotingMember(eVoteSource))
-					{
-						if (NO_DENIAL != kOurTeam.AI_defensivePactTrade((TeamTypes)iI))
-						{
-							bValid = false;
-							break;
-						}
-					}
-				}
-			}
-			else if (GC.getInfo(eVote).isForcePeace())
+			bValid = bWeWantToEndWar;
+			if (bValid)
 			{
-				FAssert(kVoteData.ePlayer != NO_PLAYER);
-				TeamTypes ePeaceTeam = TEAMID(kVoteData.ePlayer);
-				// advc (comment): These are named from ePeaceTeam's perspective
-				int iWarsWinning = 0;
-				int iWarsLosing = 0;
-				int iChosenWar = 0;
-// K-Mod version of end-war vote decision.
-// Note: this code is based on BBAI code. I'm not sure which bits are from BBAI and which are from BtS.
-// So I haven't marked individual changes or preserved the original code. The way "winning" and "losing" are calculated are mine.
-/*  advc.104n (comment): UWAI can mostly do this better and, if enabled, will
-	overwrite all the K-Mod results except bThisPlayerWinning. */
-				bool bLosingBig = false;
-				bool bWinningBig = false;
-				bool bThisPlayerWinning = false;
+				bValid = bWinningBig || (iWarsWinning > iWarsLosing) ||
+						(kOurTeam.getNumWars(true, true) > 1);
+			}
 
-				int iSuccessScale = GET_PLAYER(kVoteData.ePlayer).getNumMilitaryUnits() *
-						GC.getDefineINT(CvGlobals::WAR_SUCCESS_ATTACKING) / 5;
-				bool const bAggressiveAI = kGame.isOption(GAMEOPTION_AGGRESSIVE_AI);
-				if (bAggressiveAI)
+			if (!getUWAI.isEnabled()) // advc.104n
+			{
+				if (!bValid && bThisPlayerWinning &&
+					(iWarsLosing >= iWarsWinning) && !bPropose && !isAVassal())
 				{
-					iSuccessScale *= 3;
-					iSuccessScale /= 2;
-				}
-
-				// Is ePeaceTeam winning wars?
-				int iPeaceTeamPower = GET_TEAM(ePeaceTeam).getPower(true);
-
-				for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
-				{	// advc: War party other than ePeaceTeam; could be our team.
-					CvTeamAI const& kOtherTeam = GET_TEAM((TeamTypes)iI);
-					if (!kOtherTeam.isAlive() || kOtherTeam.getID() == ePeaceTeam)
-						continue;
-					if (kOtherTeam.isAVassal() || !kOtherTeam.isAtWar(ePeaceTeam))
-						continue;
-
-					int iPeaceTeamSuccess = GET_TEAM(ePeaceTeam).AI_getWarSuccess(kOtherTeam.getID());
-					int iOtherTeamSuccess = kOtherTeam.AI_getWarSuccess(ePeaceTeam);
-					int iOtherTeamPower = kOtherTeam.getPower(true);
-					if (iPeaceTeamSuccess * iPeaceTeamPower >
-						(iOtherTeamSuccess + iSuccessScale) * iOtherTeamPower)
-					{	// Have to be ahead by at least a few victories to count as win
-						iWarsWinning++;
-						if (iPeaceTeamSuccess * iPeaceTeamPower /
-							std::max(1, (iOtherTeamSuccess + 2 * iSuccessScale) * iOtherTeamPower) >= 2)
-						{
-							bWinningBig = true;
-						}
-					}
-					else if (iOtherTeamSuccess * iOtherTeamPower >
-						(iPeaceTeamSuccess + iSuccessScale) * iPeaceTeamPower)
-					{	// Have to have non-trivial loses
-						iWarsLosing++;
-						if (iOtherTeamSuccess * iOtherTeamPower /
-							std::max(1, (iPeaceTeamSuccess + 2*iSuccessScale) * iPeaceTeamPower) >= 2)
-						{
-							bLosingBig = true;
-						}
-						if (kOtherTeam.getID() == getTeam())
-							bThisPlayerWinning = true;
-					}
-					else if (GET_TEAM(ePeaceTeam).AI_getAtWarCounter(kOtherTeam.getID()) < 10)
-					{	// Not winning, just recently attacked, and in multiple wars, be pessimistic
-						// Counts ties from no actual battles
-						if (GET_TEAM(ePeaceTeam).getNumWars() > 1 &&
-							!GET_TEAM(ePeaceTeam).AI_isChosenWar(kOtherTeam.getID()))
-						{
-							iWarsLosing++;
-						}
-					}
-					if (GET_TEAM(ePeaceTeam).AI_isChosenWar(kOtherTeam.getID()))
-						iChosenWar++;
-				} // <advc.104n>
-				if (getUWAI.isEnabled())
-				{	// Overwrite everything computed above except bThisPlayerWinning
-					bLosingBig = bWinningBig = false;
-					iWarsWinning = iWarsLosing = iChosenWar = 0;
-				/*  iChosenWar: Shouldn't matter if chosen; trust the war utility computation
-					-- except when we're considering to propose peace with ourselves.
-					If we've just started a war, and want to continue that war,
-					the proposal can still be advantageous when it allows us to end
-					some other war. In this case, we should not propose peace with
-					ourselves, but peace with that other team that we don't want to
-					be at war with.
-					The proper solution would be to pick the best proposal instead of
-					a random "valid" one. This is just a temporary fix: */
-					if(getTeam() == ePeaceTeam && bPropose)
-					{
-						for(int i = 0; i < MAX_CIV_TEAMS; i++)
-						{
-							CvTeamAI const& kEnemy = GET_TEAM((TeamTypes)i);
-							if(kEnemy.isAlive() && kEnemy.isAtWar(ePeaceTeam) &&
-								GET_TEAM(ePeaceTeam).AI_getAtWarCounter(kEnemy.getID()) < 5 &&
-								!kEnemy.AI_isChosenWar(ePeaceTeam))
-							{
-								return PLAYER_VOTE_NO;
-							}
-						}
-					}
-					int u = -GET_TEAM(ePeaceTeam).uwai().uEndAllWars(eVoteSource);
-					if(u < -10)
-						iWarsLosing = 1;
-					else if(u > 10)
-						iWarsWinning = 1;
-					if(u > 75)
-						bWinningBig = true;
-					else if(u < -75)
-						bLosingBig = true;
-				} // </advc.104n>
-
-				if (ePeaceTeam == getTeam())
-				{
-					int iPeaceRand = GC.getInfo(getPersonalityType()).getBasePeaceWeight();
-					// Note, base peace weight ranges between 0 and 10.
-					iPeaceRand /= (bAggressiveAI ? 2 : 1);
-					iPeaceRand /= (AI_atVictoryStage(AI_VICTORY_CONQUEST2) ? 2 : 1);
-					// <advc.104n>
-					double prPeace = 0;
-					if(iPeaceRand > 0)
-						prPeace = 1 - (1.0 / std::max(1, iPeaceRand));
-					// </advc.104n>
-					if(bLosingBig &&
-						//(GC.getGame().getSorenRandNum(iPeaceRand, "AI Force Peace to avoid loss") || bPropose))
-						/*  advc.104n: The BtS code can have us randomly vote
-							against our own proposal. */
-						::hash(kGame.getGameTurn(), getID()) < prPeace)
-					{
-						bValid = true; // Non-warmongers want peace to escape loss
-					}
-					//else if (!bLosingBig && (iChosenWar > iWarsLosing))
-					else if (!bLosingBig && (iChosenWar > iWarsLosing ||
-						(AI_atVictoryStage(AI_VICTORY_CONQUEST3) && // K-Mod
-						// advc.104n: Military victory is covered by war utility
-						!getUWAI.isEnabled())))
-					{
-						bValid = false; // If chosen to be in most wars, keep it going
-					}
-					else bValid = (iWarsLosing > iWarsWinning); // If losing most wars, vote for peace
-
-					if (!bValid && !bLosingBig && bWinningBig)
+					if (kOurTeam.getNumWars(true) == 1 || bLosingBig)
 					{
 						// Can we continue this war with defiance penalties?
 						if (!AI_isFinancialTrouble())
 						{
-							if (!kGame.getSorenRandNum(iPeaceRand, "AI defy Force Peace!"))
+							int iDefyRand = kPersonality.getBasePeaceWeight();
+							iDefyRand /= (bAggressiveAI ? 2 : 1);
+							if (kGame.getSorenRandNum(iDefyRand,
+								"AI Erratic Defiance (Force Peace)") == 0)
+							{
 								bDefy = true;
-						}
-					}
-				}
-				else if (eSecretaryGeneral == getTeam() && !bPropose)
-					bValid = true;
-				else if (GET_TEAM(ePeaceTeam).isAtWar(getTeam()))
-				{
-					bool bWeWantToEndWar = ((kOurTeam.AI_endWarVal(ePeaceTeam) >
-							(3*GET_TEAM(ePeaceTeam).AI_endWarVal(getTeam()))/2));
-					/*  <advc.118> If we don't want to negotiate, then apparently
-						we don't want to end the war */
-					if(!AI_isWillingToTalk(GET_TEAM(ePeaceTeam).getLeaderID()))
-						bWeWantToEndWar = false; // </advc.118>
-
-					bValid = bWeWantToEndWar;
-					if (bValid)
-					{
-						bValid = bWinningBig || (iWarsWinning > iWarsLosing) ||
-								(kOurTeam.getNumWars(true, true) > 1);
-					}
-
-					if (!getUWAI.isEnabled()) // advc.104n
-					{
-						if(!bValid && bThisPlayerWinning &&
-							(iWarsLosing >= iWarsWinning) && !bPropose && !isAVassal())
-						{
-							if (kOurTeam.getNumWars(true) == 1 || bLosingBig)
-							{
-								// Can we continue this war with defiance penalties?
-								if (!AI_isFinancialTrouble())
-								{
-									int iDefyRand = GC.getInfo(getPersonalityType()).getBasePeaceWeight();
-									iDefyRand /= (bAggressiveAI ? 2 : 1);
-									if (kGame.getSorenRandNum(iDefyRand, "AI Erratic Defiance (Force Peace)") == 0)
-										bDefy = true;
-								}
-							}
-						}
-						// <advc.104n>
-					}
-					else
-					{
-						int u = -GET_TEAM(getTeam()).uwai().uEndWar(ePeaceTeam);
-						bValid = (u < 0);
-						CvCity* pCapital = getCapitalCity();
-						bDefy = false;
-						if(pCapital != NULL)
-						{
-							double cityRatio = 1;
-							// Based on CvPlayer::setDefiedResolution
-							ReligionTypes eReligion = kGame.getVoteSourceReligion(eVoteSource);
-							if(eReligion != NO_RELIGION)
-							{
-								cityRatio = getHasReligionCount(eReligion) /
-										(double)getNumCities();
-							}
-							/*  NB: Low city ratio doesn't just mean that defying
-								won't hurt much - also makes it unlikely that our
-								side will win the vote. */
-							CvLeaderHeadInfo const& lh = GC.getInfo(getPersonalityType());
-							int iDefyCost = ::round(5 * (12 +
-									pCapital->getDefyResolutionAngerTimer() +
-									lh.getBasePeaceWeight() / 2 +
-									lh.getDiplomacyVictoryWeight() / 10) * cityRatio);
-							if(AI_isFinancialTrouble())
-								iDefyCost *= 2;
-							double const prDefy = (u - iDefyCost) / 45.0;
-							if(::bernoulliSuccess(prDefy, "advc.104n"))
-								bDefy = true;
-						}
-					} // </advc.104n>
-
-					if (!bValid && !bDefy && !bPropose)
-					{
-						if((kOurTeam.AI_getAttitude(eSecretaryGeneral) >
-							GC.getInfo(getPersonalityType()).getVassalRefuseAttitudeThreshold()))
-						{
-							// Influence by secretary
-							if (NO_DENIAL == kOurTeam.AI_makePeaceTrade(ePeaceTeam, eSecretaryGeneral))
-							{
-								bValid = true;
-							}
-							else if (eSecretaryGeneral != NO_TEAM && kOurTeam.isVassal(eSecretaryGeneral))
-							{
-								bValid = true;
 							}
 						}
 					}
 				}
-				else
-				{
-					if (kOurTeam.AI_getWarPlan(ePeaceTeam) != NO_WARPLAN)
-					{
-						// Keep planned enemy occupied
-						bValid = false;
-					}
-					else if (kOurTeam.AI_shareWar(ePeaceTeam) && !kOurTeam.isVassal(ePeaceTeam))
-					{
-						// Keep ePeaceTeam at war with our common enemies
-						bValid = false;
-					}
-					else if(iWarsLosing > iWarsWinning)
-					{
-						// Feel pity for team that is losing (if like them enough to not declare war on them)
-						bValid = (kOurTeam.AI_getAttitude(ePeaceTeam)
-								> /* advc.118, advc.001: Was ">=", but that's not how
-									 DeclareWarThemRefuseAttitudeThreshold works */
-								GC.getInfo(getPersonalityType()).getDeclareWarThemRefuseAttitudeThreshold());
-					}
-					else
-						if(iWarsLosing < iWarsWinning) // advc.118
-					{
-						// Stop a team that is winning (if don't like them enough to join them in war)
-						bValid = (kOurTeam.AI_getAttitude(ePeaceTeam) <
-								GC.getInfo(getPersonalityType()).getDeclareWarRefuseAttitudeThreshold());
-					}
-
-					/*  <advc.118> Also vote for peace if neither side is winning,
-						and we like the peace team and all its adversaries.
-						Need to like them so much that we couldn't be brought
-						to declare war on them. */
-					else
-					{
-						AttitudeTypes iDWTR = (AttitudeTypes)GC.getInfo(
-								getPersonalityType()).getDeclareWarThemRefuseAttitudeThreshold();
-						if(!bValid && kOurTeam.AI_getAttitude(ePeaceTeam) > iDWTR)
-						{
-							bValid = true;
-							for(int i = 0; i < MAX_CIV_TEAMS; i++)
-							{
-								TeamTypes tt = (TeamTypes)i; CvTeam& t = GET_TEAM(tt);
-								if(t.isAlive() && tt != ePeaceTeam &&
-									!t.isAVassal() && t.isAtWar(ePeaceTeam) &&
-									kOurTeam.AI_getAttitude(tt) <= iDWTR)
-								{
-									bValid = false;
-									break;
-								}
-							}
-						}
-					} // </advc.118>
-
-					if (!bValid)
-					{
-						if (bFriendlyToSecretary && !kOurTeam.isVassal(ePeaceTeam))
-						{
-							// Influence by secretary
-							bValid = true;
-						}
-					}
-				}
-// K-Mod end
-			}
-			else if (GC.getInfo(eVote).isForceNoTrade())
+			}  // <advc.104n>
+			else
 			{
-				FAssert(kVoteData.ePlayer != NO_PLAYER);
-				TeamTypes eEmbargoTeam = GET_PLAYER(kVoteData.ePlayer).getTeam();
-				// <advc.130f> Try to honor commitments
-				if(isAnyDealTooRecentToCancel(eEmbargoTeam))
-					return PLAYER_VOTE_NO; // </advc.130f>
-				if (eSecretaryGeneral == getTeam() && !bPropose)
+				int const iWarUtil = -GET_TEAM(getTeam()).uwai().uEndWar(ePeaceTeam);
+				bValid = (iWarUtil < 0);
+				CvCity const* pCapital = getCapitalCity();
+				bDefy = false;
+				if (pCapital != NULL)
 				{
-					bValid = true;
-				}
-				else if (eEmbargoTeam == getTeam())
-				{
-					bValid = false;
-					if (!isNoForeignTrade())
-					{
+					scaled rCityRatio = 1;
+					// Based on CvPlayer::setDefiedResolution
+					ReligionTypes eReligion = kGame.getVoteSourceReligion(eVoteSource);
+					if (eReligion != NO_RELIGION)
+						rCityRatio = scaled(getHasReligionCount(eReligion), getNumCities());
+					/*  NB: Low city ratio doesn't just mean that defying
+						won't hurt much - also makes it unlikely that our
+						side will win the vote. */
+					int iDefyCost = (5 *
+							(12 +
+							pCapital->getDefyResolutionAngerTimer() +
+							scaled(kPersonality.getBasePeaceWeight(), 2) +
+							scaled(kPersonality.getDiplomacyVictoryWeight(), 10)) *
+							rCityRatio).round();
+					if (AI_isFinancialTrouble())
+						iDefyCost *= 2;
+					scaled prDefy(iWarUtil - iDefyCost, 45);
+					if (prDefy.bernoulliSuccess(kGame.getSRand(), "advc.104n"))
 						bDefy = true;
-					}
 				}
-				// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
-				else
-				{
-					if (bFriendlyToSecretary)
-					{
-						return PLAYER_VOTE_YES;
-					}
-					else if (canStopTradingWithTeam(eEmbargoTeam))
-					{
-						bValid = (NO_DENIAL == AI_stopTradingTrade(eEmbargoTeam, kVoteData.ePlayer));
-						if (bValid)
-						{
-							bValid = (kOurTeam.AI_getAttitude(eEmbargoTeam) <= ATTITUDE_CAUTIOUS);
-						}
-					}
-					else
-					{
-						bValid = (kOurTeam.AI_getAttitude(eEmbargoTeam) < ATTITUDE_CAUTIOUS);
-					}
-				} // BETTER_BTS_AI_MOD: END
-			}
-			else if (GC.getInfo(eVote).isForceWar())
+			} // </advc.104n>
+
+			if (!bValid && !bDefy && !bPropose)
 			{
-				FAssert(kVoteData.ePlayer != NO_PLAYER);
-				TeamTypes eWarTeam = GET_PLAYER(kVoteData.ePlayer).getTeam();
-
-				if (eSecretaryGeneral == getTeam() && !bPropose)
-				{
-					bValid = true;
-				}
-				// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
-				/*else if (eWarTeam == getTeam())
-					bValid = false;
-				else if (GET_TEAM(eWarTeam).isAtWar(getTeam()))*/ // BtS
-				else if (eWarTeam == getTeam() || kOurTeam.isVassal(eWarTeam))
-				{
-					// Explicit rejection by all who will definitely be attacked
-					bValid = false;
-				} // <dlph.25/advc> Try to honor peace treaty
-				else if(kOurTeam.isForcePeace(eWarTeam))
-					bValid = false; // </dlph.25/advc>
-				else if (kOurTeam.AI_getWarPlan(eWarTeam) != NO_WARPLAN)
-				{	// BETTER_BTS_AI_MOD: END
-					bValid = true;
-				}
-				else
-				{	// BETTER_BTS_AI_MOD, Diplomacy AI, 07/20/09, jdog5000: START
-					/*bValid = (bPropose || NO_DENIAL == GET_TEAM(getTeam()).AI_declareWarTrade(eWarTeam, eSecretaryGeneral));
-					if (bValid)
-						bValid = (GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) < ATTITUDE_CAUTIOUS);*/ // BtS
-					if (!bPropose && isAVassal())
+				if (kOurTeam.AI_getAttitude(eSecretaryGeneral) >
+					kPersonality.getVassalRefuseAttitudeThreshold())
+				{	// Influence by secretary
+					if (kOurTeam.AI_makePeaceTrade(ePeaceTeam, eSecretaryGeneral) == NO_DENIAL)
 					{
-						// Vassals always deny war trade requests and thus previously always voted no
-						bValid = false;
-
-						if (!kOurTeam.AI_isAnyWarPlan())
-						{
-							if (eSecretaryGeneral == NO_TEAM ||
-								kOurTeam.AI_getAttitude(eSecretaryGeneral) >
-								GC.getInfo(getPersonalityType()).getDeclareWarRefuseAttitudeThreshold())
-							{
-								if (eSecretaryGeneral != NO_TEAM && kOurTeam.isVassal(eSecretaryGeneral))
-								{
-									bValid = true;
-								}
-								//else if ((isAVassal() ? GET_TEAM(getTeam()).getCurrentMasterPower(true) : GET_TEAM(getTeam()).getPower(true)) > GET_TEAM(eWarTeam).getDefensivePower())
-								else if (GET_TEAM(kOurTeam.getMasterTeam()).getPower(true) >
-									GET_TEAM(eWarTeam).getDefensivePower())
-								{
-									bValid = true;
-								}
-							}
-						}
+						bValid = true;
 					}
-					else
+					else if (eSecretaryGeneral != NO_TEAM &&
+						kOurTeam.isVassal(eSecretaryGeneral))
 					{
-						bValid = (bPropose ||
-								NO_DENIAL == kOurTeam.AI_declareWarTrade(eWarTeam, eSecretaryGeneral));
+						bValid = true;
 					}
-
-					if (bValid || /* advc.104n: */ getUWAI.isEnabled())
-					{
-						if(!getUWAI.isEnabled()) // advc.104n
-						{
-							// advc.104y:
-							int iNoWarOdds = kOurTeam.AI_noWarProbAdjusted(eWarTeam);
-							bValid = ((iNoWarOdds < 30) || (kGame.getSorenRandNum(100,
-									"AI War Vote Attitude Check (Force War)") > iNoWarOdds));
-						// <advc.104n>
-						}
-						if(getUWAI.isEnabled())
-						{
-							int u = GET_TEAM(getTeam()).uwai().uJointWar(eWarTeam, eVoteSource);
-							bValid = (bValid && u > 0);
-							bDefy = false;
-							/*  The war will be trouble too, but checking fin.
-								trouble is a safeguard against defying repeatedly. */
-							if(!AI_isFinancialTrouble())
-							{
-								double pr = (-u - 125 + 5 * GC.getInfo(getPersonalityType()).
-										getBasePeaceWeight()) / 100.0;
-								if(::bernoulliSuccess(pr, "advc.104n"))
-									bDefy = true;
-							}
-						} // </advc.104n>
-					}
-					/*else{ // Consider defying resolution
-						if (!isAVassal()) {
-							if (eSecretaryGeneral == NO_TEAM || GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) > GET_TEAM(getTeam()).AI_getAttitude(eSecretaryGeneral)) {
-								if(GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) > GC.getInfo(getPersonalityType()).getDefensivePactRefuseAttitudeThreshold()) {
-									int iDefyRand = GC.getInfo(getPersonalityType()).getBasePeaceWeight();
-									iDefyRand /= (GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI) ? 2 : 1);
-									if (GC.getGame().getSorenRandNum(iDefyRand, "AI Erratic Defiance (Force War)") > 0)
-										bDefy = true;
-					} } } }*/
-					// BETTER_BTS_AI_MOD: END
 				}
 			}
-			else if (GC.getInfo(eVote).isAssignCity())
-			{
+		}
+		else
+		{
+			if (kOurTeam.AI_getWarPlan(ePeaceTeam) != NO_WARPLAN)
+			{	// Keep planned enemy occupied
 				bValid = false;
-				FAssert(kVoteData.ePlayer != NO_PLAYER);
-				CvPlayer& kPlayer = GET_PLAYER(kVoteData.ePlayer);
-				CvCity* pCity = kPlayer.getCity(kVoteData.iCityId);
-				if (NULL != pCity)
+			}
+			else if (kOurTeam.AI_shareWar(ePeaceTeam) &&
+				!kOurTeam.isVassal(ePeaceTeam))
+			{	// Keep ePeaceTeam at war with our common enemies
+				bValid = false;
+			}
+			else if (iWarsLosing > iWarsWinning)
+			{
+				/*	Feel pity for team that is losing
+					if we like loser enough to not declare war */
+				bValid = (kOurTeam.AI_getAttitude(ePeaceTeam)
+						> /* advc.118, advc.001: Was ">=", but that's not how
+							 DeclareWarThemRefuseAttitudeThreshold works */
+						kPersonality.getDeclareWarThemRefuseAttitudeThreshold());
+			}
+			else /* advc.118: */ if (iWarsLosing < iWarsWinning)
+			{
+				// Stop a team that is winning if don't like them enough to join them in war
+				bValid = (kOurTeam.AI_getAttitude(ePeaceTeam) <
+						kPersonality.getDeclareWarRefuseAttitudeThreshold());
+			}
+
+			/*  <advc.118> Also vote for peace if neither side is winning,
+				and we like the peace team and all its adversaries.
+				Need to like them so much that we couldn't be brought
+				to declare war on them. */
+			else
+			{
+				AttitudeTypes const eDWTR = (AttitudeTypes)kPersonality.
+						getDeclareWarThemRefuseAttitudeThreshold();
+				if (!bValid && kOurTeam.AI_getAttitude(ePeaceTeam) > eDWTR)
 				{
-					if (NO_PLAYER != kVoteData.eOtherPlayer && kVoteData.eOtherPlayer != pCity->getOwner())
+					bValid = true;
+					for (TeamIter<FREE_MAJOR_CIV,ENEMY_OF> itWarParty(ePeaceTeam);
+						itWarParty.hasNext(); ++itWarParty)
 					{
-						// BETTER_BTS_AI_MOD, Diplomacy AI, 10/03/09, jdog5000: START
-						if (!bPropose && eSecretaryGeneral == getTeam() ||
-							GET_PLAYER(kVoteData.eOtherPlayer).getTeam() == getTeam())
-						{
-							bValid = true;
-						}
-						else if (kPlayer.getTeam() == getTeam())
+						if (kOurTeam.AI_getAttitude(itWarParty->getID()) <= eDWTR)
 						{
 							bValid = false;
-							// BBAI TODO: Wonders, holy city, aggressive AI?
-							// advc.118:
-							if ((kPlayer.getNumCities() <= 1 && kPlayer.getID() == getID()) ||
-								kGame.getSorenRandNum(3, "AI Erratic Defiance (Assign City)") == 0)
-							{
-								bDefy = true;
-							}
+							break;
 						}
-						else
+					}
+				}
+			} // </advc.118>
+
+			if (!bValid && bFriendlyToSecretary && !kOurTeam.isVassal(ePeaceTeam))
+				bValid = true; // Influence by secretary
+		}
+	}
+	// K-Mod end
+	if (bValid && GC.getInfo(eVote).isForceNoTrade())
+	{
+		FAssert(kVoteData.ePlayer != NO_PLAYER);
+		TeamTypes const eEmbargoTeam = GET_PLAYER(kVoteData.ePlayer).getTeam();
+		// <advc.130f> Try to honor commitments
+		if (isAnyDealTooRecentToCancel(eEmbargoTeam))
+			return PLAYER_VOTE_NO; // </advc.130f>
+		if (eSecretaryGeneral == getTeam() && !bPropose)
+			bValid = true;
+		else if (eEmbargoTeam == getTeam())
+		{
+			bValid = false;
+			if (!isNoForeignTrade())
+				bDefy = true;
+		}
+		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
+		else
+		{
+			if (bFriendlyToSecretary)
+				return PLAYER_VOTE_YES;
+			else if (canStopTradingWithTeam(eEmbargoTeam))
+			{
+				bValid = (NO_DENIAL == AI_stopTradingTrade(
+						eEmbargoTeam, kVoteData.ePlayer));
+				if (bValid)
+					bValid = (kOurTeam.AI_getAttitude(eEmbargoTeam) <= ATTITUDE_CAUTIOUS);
+			}
+			else bValid = (kOurTeam.AI_getAttitude(eEmbargoTeam) < ATTITUDE_CAUTIOUS);
+		} // BETTER_BTS_AI_MOD: END
+	}
+	if (bValid && GC.getInfo(eVote).isForceWar())
+	{
+		FAssert(kVoteData.ePlayer != NO_PLAYER);
+		TeamTypes const eWarTeam = GET_PLAYER(kVoteData.ePlayer).getTeam();
+
+		if (eSecretaryGeneral == getTeam() && !bPropose)
+			bValid = true;
+		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
+		/*else if (eWarTeam == getTeam())
+			bValid = false;
+		else if (GET_TEAM(eWarTeam).isAtWar(getTeam()))*/ // BtS
+		else if (eWarTeam == getTeam() || kOurTeam.isVassal(eWarTeam))
+		{	// Explicit rejection by all who will definitely be attacked
+			bValid = false;
+		} // <dlph.25/advc> Try to honor peace treaty
+		else if (kOurTeam.isForcePeace(eWarTeam))
+			bValid = false; // </dlph.25/advc>
+		else if (kOurTeam.AI_getWarPlan(eWarTeam) != NO_WARPLAN) // BETTER_BTS_AI_MOD: END
+			bValid = true;
+		else
+		{	// BETTER_BTS_AI_MOD, Diplomacy AI, 07/20/09, jdog5000: START
+			/*bValid = (bPropose || NO_DENIAL == GET_TEAM(getTeam()).AI_declareWarTrade(eWarTeam, eSecretaryGeneral));
+			if (bValid)
+				bValid = (GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) < ATTITUDE_CAUTIOUS);*/ // BtS
+			if (!bPropose && isAVassal())
+			{
+				// Vassals always deny war trade requests and thus previously always voted no
+				bValid = false;
+
+				if (!kOurTeam.AI_isAnyWarPlan())
+				{
+					if (eSecretaryGeneral == NO_TEAM ||
+						kOurTeam.AI_getAttitude(eSecretaryGeneral) >
+						kPersonality.getDeclareWarRefuseAttitudeThreshold())
+					{
+						if (eSecretaryGeneral != NO_TEAM &&
+							kOurTeam.isVassal(eSecretaryGeneral))
 						{
-							bValid = (AI_getAttitude(kVoteData.ePlayer) <
-								AI_getAttitude(kVoteData.eOtherPlayer));
+							bValid = true;
 						}
-						// BETTER_BTS_AI_MOD: END
+						//else if ((isAVassal() ? GET_TEAM(getTeam()).getCurrentMasterPower(true) : GET_TEAM(getTeam()).getPower(true)) > GET_TEAM(eWarTeam).getDefensivePower())
+						else if (GET_TEAM(kOurTeam.getMasterTeam()).getPower(true) >
+							GET_TEAM(eWarTeam).getDefensivePower())
+						{
+							bValid = true;
+						}
 					}
 				}
 			}
-		}
-		//if (bDefy && canDefyResolution(eVoteSource, kVoteData))
-		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: Don't defy resolutions from friends
-		if (bDefy && !bFriendlyToSecretary && canDefyResolution(eVoteSource, kVoteData))
-		{
-			return PLAYER_VOTE_NEVER;
-		}
+			else
+			{
+				bValid = (bPropose ||
+						NO_DENIAL == kOurTeam.AI_declareWarTrade(eWarTeam, eSecretaryGeneral));
+			}
 
-		return (bValid ? PLAYER_VOTE_YES : PLAYER_VOTE_NO);
+			if (bValid || /* <advc.104n> */ getUWAI.isEnabled())
+			{
+				if (getUWAI.isEnabled())
+				{
+					int const iWarUtil = GET_TEAM(getTeam()).uwai().
+							uJointWar(eWarTeam, eVoteSource);
+					bValid = (bValid && iWarUtil > 0);
+					bDefy = false;
+					/*  The war will be trouble too, but checking fin. trouble is
+						a safeguard against defying repeatedly. */
+					if (!AI_isFinancialTrouble())
+					{
+						scaled pr(-iWarUtil - 125 +
+								5 * kPersonality.getBasePeaceWeight(), 100);
+						if (pr.bernoulliSuccess(kGame.getSRand(), "advc.104n: defiance roll"))
+							bDefy = true;
+					}
+				}
+				else // </advc.104n>
+				{
+					// advc.104y:
+					int iNoWarOdds = kOurTeam.AI_noWarProbAdjusted(eWarTeam);
+					bValid = (iNoWarOdds < 30 || (kGame.getSorenRandNum(100,
+							"AI War Vote Attitude Check (Force War)") > iNoWarOdds));
+					
+				}
+			}
+			/*else{ // Consider defying resolution
+				if (!isAVassal()) {
+					if (eSecretaryGeneral == NO_TEAM || GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) > GET_TEAM(getTeam()).AI_getAttitude(eSecretaryGeneral)) {
+						if (GET_TEAM(getTeam()).AI_getAttitude(eWarTeam) > kPersonality.getDefensivePactRefuseAttitudeThreshold()) {
+							int iDefyRand = kPersonality.getBasePeaceWeight();
+							iDefyRand /= (GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI) ? 2 : 1);
+							if (GC.getGame().getSorenRandNum(iDefyRand, "AI Erratic Defiance (Force War)") > 0)
+								bDefy = true;
+			} } } }*/
+			// BETTER_BTS_AI_MOD: END
+		}
+	}
+	if (bValid && GC.getInfo(eVote).isAssignCity())
+	{
+		bValid = false;
+		CvPlayer const& kPlayer = GET_PLAYER(kVoteData.ePlayer);
+		CvCity const* pCity = kPlayer.getCity(kVoteData.iCityId);
+		if (pCity != NULL && kVoteData.eOtherPlayer != NO_PLAYER &&
+			kVoteData.eOtherPlayer != pCity->getOwner())
+		{
+			// BETTER_BTS_AI_MOD, Diplomacy AI, 10/03/09, jdog5000: START
+			if (!bPropose && eSecretaryGeneral == getTeam() ||
+				GET_PLAYER(kVoteData.eOtherPlayer).getTeam() == getTeam())
+			{
+				bValid = true;
+			}
+			else if (kPlayer.getTeam() == getTeam())
+			{
+				bValid = false;
+				// BBAI TODO: Wonders, holy city, aggressive AI?
+				// advc.118:
+				if ((kPlayer.getNumCities() <= 1 && kPlayer.getID() == getID()) ||
+					kGame.getSorenRandNum(3, "AI Erratic Defiance (Assign City)") == 0)
+				{
+					bDefy = true;
+				}
+			}
+			else
+			{
+				bValid = (AI_getAttitude(kVoteData.ePlayer) <
+						AI_getAttitude(kVoteData.eOtherPlayer));
+			}
+			// BETTER_BTS_AI_MOD: END
+		}
 	}
 
+	//if (bDefy && canDefyResolution(eVoteSource, kVoteData))
+	// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: Don't defy resolutions from friends
+	if (bDefy && !bFriendlyToSecretary && canDefyResolution(eVoteSource, kVoteData))
+		return PLAYER_VOTE_NEVER;
+
+	return (bValid ? PLAYER_VOTE_YES : PLAYER_VOTE_NO);
 }
 
 
