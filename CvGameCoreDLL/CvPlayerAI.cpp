@@ -12346,11 +12346,11 @@ int CvPlayerAI::AI_civicTradeVal(CivicTypes eCivic, PlayerTypes ePlayer) const
 	if (eBestCivic != NO_CIVIC && eBestCivic != eCivic)
 	{
 		iValue += //std::max(0, // advc.132: Handle that below
-				2 * (kPlayer.AI_civicValue(eBestCivic) - kPlayer.AI_civicValue(eCivic)
+				2 * (kPlayer.AI_civicValue(eBestCivic) - kPlayer.AI_civicValue(eCivic))
 				/*	advc.132: AI_civicValue is at a scale of 1 commerce per turn.
-					ePlayer will have to run the new civic for more than 2 turns ...
+					ePlayer will have to run the new civic for longer than 2 turns ...
 					2*MIN_REVOLUTION_TURNS is consistent with the end of AI_doCivics. */
-				* GC.getDefineINT(CvGlobals::MIN_REVOLUTION_TURNS));
+				* GC.getDefineINT(CvGlobals::MIN_REVOLUTION_TURNS);
 	}
 	/*  advc.132: ePlayer charges less than the anarchyCost if they were going to
 		switch anyway. */
