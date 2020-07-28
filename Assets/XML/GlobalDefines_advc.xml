@@ -431,12 +431,11 @@
 		<fDefineFloatVal>5400</fDefineFloatVal>
 	</Define>
 
-	<!-- [advc.500b]
-		 If this is set to a value greater than 0, unhappiness for lack of
-		 military protection is computed based on defensive strength (see
-		 manual). Otherwise, the BtS computation is used, i.e. any combat unit
-		 suffices as protection. (0 for now, until some accompanying changes to
-		 unhappiness are implemented.) -->
+	<!-- advc.500b: If this is set to a value greater than 0, unhappiness for
+		 lack of military protection is computed based on defensive strength.
+		 Otherwise, the BtS computation is used, i.e. any combat unit
+		 suffices as protection. Recommended: 0 for now as there are some
+		 open issues with this rule (see manual). -->
 	<Define>
 		<DefineName>DEMAND_BETTER_PROTECTION</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>

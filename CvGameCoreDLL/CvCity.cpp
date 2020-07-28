@@ -13034,7 +13034,7 @@ scaled CvCity::defensiveGarrison(
 		// Exclude naval units but not Explorer and Gunship
 		if (!u.isMilitaryHappiness() && u.getCultureGarrisonValue() <= 0)
 			continue;
-		scaled rDefStr = kUnit.maxCombatStr(&kPlot, NULL, NULL, true);
+		scaled rDefStr = per100(kUnit.maxCombatStr(&kPlot, NULL, NULL, true));
 		// Outdated units count half
 		if (allUpgradesAvailable(kUnit.getUnitType()) != NO_UNIT ||
 			(pCapital != NULL && pCapital->allUpgradesAvailable(kUnit.getUnitType())))
