@@ -5206,8 +5206,6 @@ int CvCity::GPTurnsLeft() const
 
 void CvCity::GPProjection(std::vector<std::pair<UnitTypes,int> >& r) const
 {
-	if (isDisorder())
-		return;
 	CvCivilization const& kCiv = getCivilization();
 	int const iTurnsLeft = GPTurnsLeft();
 	/*  (advc.001c: Can't use getGreatPeopleProgress() b/c the
