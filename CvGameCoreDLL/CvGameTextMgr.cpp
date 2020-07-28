@@ -10804,10 +10804,12 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 		}
 	}
 	setCommerceChangeHelp(szBuffer, L", ", L"", L"", aiCommerces, false, false);
-	setYieldChangeHelp(szBuffer, L", ", L"", L"",
-			kBuilding.getYieldModifierArray(), true, bCivilopediaText);
-	setCommerceChangeHelp(szBuffer, L", ", L"", L"",
-			kBuilding.getCommerceModifierArray(), true, bCivilopediaText);
+	setYieldChangeHelp(szBuffer,
+			bCivilopediaText ? L"" : L", ", // advc (was treated separately below)
+			L"", L"", kBuilding.getYieldModifierArray(), true, bCivilopediaText);
+	setCommerceChangeHelp(szBuffer,
+			bCivilopediaText ? L"" : L", ", // advc (was treated separately below)
+			L"", L"", kBuilding.getCommerceModifierArray(), true, bCivilopediaText);
 
 	if (kBuilding.getGreatPeopleRateChange() != 0)
 	{
