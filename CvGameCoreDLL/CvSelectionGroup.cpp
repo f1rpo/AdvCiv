@@ -1382,7 +1382,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc: style changes
 					}
 					if (bStay) // </advc.001>
 					{
-						FAssertMsg(false, "Does this generally get the group stuck?"); // advc.test
+						// (advc: Does this always get units stuck? Doesn't appear to ...)
 						bAction = false;
 						bDone = true;
 						break;

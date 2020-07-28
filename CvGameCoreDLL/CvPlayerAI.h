@@ -658,7 +658,7 @@ public:
 	   train a significant number of units of type eUnit? */
 	bool AI_canBeExpectedToTrain(UnitTypes eUnit) const; // advc.104, advc.651
 	bool AI_isDefenseFocusOnBarbarians(CvArea const& kArea) const; // advc.300
-	// advc.001: needed for bNeighbouringReligion in AI_techValue
+	bool AI_hasSharedPrimaryArea(PlayerTypes eOther) const; // advc
 	bool AI_hasSharedPrimaryArea(PlayerTypes eOther) const;
 
 	// <advc.104m>

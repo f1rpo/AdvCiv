@@ -2680,7 +2680,9 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 	CvGame const& kGame = GC.getGame();
 	CvPlayerAI const& kOwner = GET_PLAYER(pCity->getOwner());
 	//int iValue = 1 + pCity->getPopulation() * (50 + pCity->calculateCulturePercent(getID())) / 100;
-	int iValue = 5 + pCity->getPopulation() * (100 + pCity->calculateCulturePercent(getID())) / 150; // K-Mod (to dilute the other effects)
+	// <K-Mod> (to dilute the other effects)
+	int iValue = 5 + pCity->getPopulation() *
+			(100 + pCity->calculateCulturePercent(getID())) / 150; // </K-Mod>
 
 	if (pCity->isCoastal())
 		iValue += 2;
@@ -2715,16 +2717,18 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 	}
 
 	if (!bIgnoreAttackers)
-		iValue += std::min(8, (AI_adjacentPotentialAttackers(*pCity->plot()) + 2) / 3);
-
+	{
+		iValue += std::min(8,
+				(AI_adjacentPotentialAttackers(pCity->getPlot()) + 2) / 3);
+	}
 	for (CityPlotIter it(*pCity); it.hasNext(); ++it)
 	{
 		CvPlot const& kPlot = *it;
 		if (kPlot.getBonusType(getTeam()) != NO_BONUS &&
 			kPlot.getWorkingCity() == pCity) // advc.104d
 		{
-			iValue += std::max(1, AI_bonusVal(kPlot.getBonusType(getTeam()),
-					1, true) / 5);
+			int iBonusVal = AI_bonusVal(kPlot.getBonusType(getTeam()), 1, true) / 5;
+			iValue += std::max(1, iBonusVal);
 		}
 		if (kPlot.getOwner() == getID())
 			iValue++;
@@ -2764,14 +2768,18 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 			if (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4))
 			{
 				iValue += 10; // was 20
-				if (GET_TEAM(pCity->getTeam()).getVictoryCountdown(kGame.getSpaceVictory()) >= 0)
+				if (GET_TEAM(pCity->getTeam()).
+					getVictoryCountdown(kGame.getSpaceVictory()) >= 0)
+				{
 					iValue += 100; // was 30
+				}
 				bThwartVictory = true; // advc.104d
 			}
 		} // <advc.104d> Against Space3, taking any high-production cities helps.
 		else if(!kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4) &&
 			!AI_atVictoryStage4() &&
-			pCity->findYieldRateRank(YIELD_PRODUCTION) < std::min(5, kOwner.getNumCities() / 4))
+			pCity->findYieldRateRank(YIELD_PRODUCTION) <
+			std::min(5, kOwner.getNumCities() / 4))
 		{
 			iValue += 3;
 			bThwartVictory = true;
@@ -2789,7 +2797,8 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 	CvCity* pNearestCity = m.findCity(pCity->getX(), pCity->getY(), getID());
 	if (pNearestCity != NULL)
 	{
-		// Now scales sensibly with map size, on large maps this term was incredibly dominant in magnitude
+		/*	Now scales sensibly with map size,
+			on large maps this term was incredibly dominant in magnitude */
 		int iTempValue = 30;
 		int iPathDist = m.calculatePathDistance(pNearestCity->plot(), pCity->plot());
 		// <advc.104d>
@@ -2801,7 +2810,10 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 	}
 
 	if (bRandomize)
-		iValue += GC.getGame().getSorenRandNum(pCity->getPopulation() / 2 + 1, "AI Target City Value");
+	{
+		iValue += GC.getGame().getSorenRandNum(pCity->getPopulation() / 2 + 1,
+				"AI Target City Value");
+	}
 
 	// K-Mod.
 	//if (pCity->getHighestPopulation() < 1)
@@ -27570,9 +27582,9 @@ int CvPlayerAI::AI_nukeDangerDivisor() const
 	if(bRemoteDanger)
 		return 10;
 	return 20;
-} // </dlph.16>
+}
 
-// <advc> (various uses)  Mostly copy-pasted from the homonymous CvTeamAI function
+// advc: Mostly cut from CvTeamAI::AI_hasSharedPrimaryArea
 bool CvPlayerAI::AI_hasSharedPrimaryArea(PlayerTypes eOther) const
 {
 	FAssert(eOther != getID());

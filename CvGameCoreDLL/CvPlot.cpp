@@ -2193,7 +2193,7 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 {
 	int iModifier = GC.getInfo(getTerrainType()).getDefenseModifier();
 	FeatureTypes eFeature = getFeatureType();
-	if(eFeature != NO_FEATURE)
+	if (eFeature != NO_FEATURE)
 	{
 		iModifier += GC.getInfo(eFeature).getDefenseModifier();
 		// <advc.012>
@@ -2210,8 +2210,11 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 
 	if (eImprovement != NO_IMPROVEMENT)
 	{
-		if (eDefender != NO_TEAM && (getTeam() == NO_TEAM || GET_TEAM(eDefender).isFriendlyTerritory(getTeam())))
+		if (eDefender != NO_TEAM &&
+			(!isOwned() || GET_TEAM(eDefender).isFriendlyTerritory(getTeam())))
+		{
 			iModifier += GC.getInfo(eImprovement).getDefenseModifier();
+		}
 	}
 
 	if (!bHelp)

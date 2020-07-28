@@ -13048,7 +13048,7 @@ scaled CvCity::defensiveGarrison(
 	return r;
 }
 
-// <advc.123f>
+// advc.123f:
 void CvCity::failProduction(int iOrderData, int iInvestedProduction, bool bProject)
 {
 	// Based on code in doCheckProduction
@@ -13078,7 +13078,7 @@ void CvCity::failProduction(int iOrderData, int iInvestedProduction, bool bProje
 	gDLL->UI().addMessage(getOwner(), false, -1, szMsg, getPlot(), "AS2D_WONDERGOLD",
 			MESSAGE_TYPE_MINOR_EVENT, GC.getInfo(COMMERCE_GOLD).getButton(),
 			GC.getColorType("RED"));
-} // </advc.123f>
+}
 
 // <advc.064b>
 int CvCity::failGoldPercent(OrderTypes eOrder) const // Fail and overflow gold
