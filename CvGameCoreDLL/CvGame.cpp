@@ -1602,7 +1602,8 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: refactored
 					// <advc.108>
 					if (itPlot.currID() < NUM_INNER_PLOTS ||
 						(!isPowerfulStartingBonus(p, itPlayer->getID()) &&
-						prRemoval.bernoulliSuccess(getMapRand(), "advc.108")))
+						(prRemoval.bernoulliSuccess(getMapRand(), "Remove Bad Feature 1") ||
+						isWeakStartingFoodBonus(p, itPlayer->getID()))))
 					{	// </advc.108>
 						p.setFeatureType(NO_FEATURE);
 					}
@@ -1697,7 +1698,8 @@ void CvGame::normalizeRemoveBadTerrain()  // advc: refactored
 						(p.isRiver() && kTerrain.getBuildModifier() < 30) ||
 						prKeep.bernoulliSuccess(getMapRand(), "Map Upgrade Terrain Food 3"))
 					{
-						continue;
+						if (!isWeakStartingFoodBonus(p, itPlayer->getID()))
+							continue;
 					}
 				} // </advc.108>
 				int const iTargetTotal = 2;
@@ -2438,9 +2440,11 @@ bool CvGame::placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
 	FOR_EACH_ENUM_RAND(Bonus, getMapRand())
 	{
 		CvBonusInfo const& kLoopBonus = GC.getInfo(eLoopBonus);
-		// <advc.108>
-		if (bNoFood && kLoopBonus.getYieldChange(YIELD_FOOD) > 0)
-			continue; // </advc.108>
+		if (bNoFood && kLoopBonus.getYieldChange(YIELD_FOOD) > 0 || // advc.108
+			kPlot.getBonusType() != NO_BONUS)
+		{
+			continue;
+		}
 		if (!isValidExtraBonus(eLoopBonus, eStartPlayer, kPlot, bCheckCanPlace, bIgnoreLatitude) ||
 			skipDuplicateExtraBonus(kStartPlot, kPlot, eLoopBonus, !bCheckCanPlace)) // advc.108
 		{
@@ -2504,27 +2508,65 @@ bool CvGame::isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
 		b/c all of the isNormalize resources are revealed from the start. */
 	if (!GET_TEAM(eStartPlayer).isHasTech((TechTypes)kBonus.getTechReveal()))
 		return false;
-
-	if (bCheckCanPlace ? CvMapGenerator::GetInstance().
-		canPlaceBonusAt(eBonus, kPlot.getX(), kPlot.getY(), bIgnoreLatitude) :
-		kPlot.canHaveBonus(eBonus, bIgnoreLatitude))
+	if (kPlot.getBonusType() == eBonus)
 	{
+		FAssert(!bCheckCanPlace);
 		return true;
 	}
-	return false;
+	return (bCheckCanPlace ? CvMapGenerator::GetInstance().
+			canPlaceBonusAt(eBonus, kPlot.getX(), kPlot.getY(), bIgnoreLatitude) :
+			kPlot.canHaveBonus(eBonus, bIgnoreLatitude));
 }
 
-// advc.108:
-bool CvGame::isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStartPlayer) const
+// <advc.108>
+bool CvGame::isPowerfulStartingBonus(CvPlot const& kPlot, PlayerTypes eStartPlayer) const
 {
 	if(getStartEra() > 0)
 		return false;
-	BonusTypes eBonus = kStartPlot.getBonusType(TEAMID(eStartPlayer));
+	BonusTypes eBonus = kPlot.getBonusType(TEAMID(eStartPlayer));
 	if(eBonus == NO_BONUS)
 		return false;
 	return (GC.getInfo(eBonus).getBonusClassType() ==
 			GC.getInfoTypeForString("BONUSCLASS_PRECIOUS"));
 }
+
+// Tailored for Tundra Deer, dry Jungle Rice
+bool CvGame::isWeakStartingFoodBonus(CvPlot const& kPlot, PlayerTypes eStartPlayer) const
+{
+	BonusTypes eBonus = kPlot.getBonusType(TEAMID(eStartPlayer));
+	if (eBonus == NO_BONUS ||
+		// To filter out resources that normalizeAddFood doesn't care about
+		!isValidExtraBonus(eBonus, eStartPlayer, kPlot, false, true))
+	{
+		return false;
+	}
+	int iBaseFood = GC.getInfo(eBonus).getYieldChange(YIELD_FOOD);
+	if (iBaseFood <= 0)
+		return false;
+	 iBaseFood += GC.getInfo(kPlot.getTerrainType()).getYield(YIELD_FOOD);
+	// (Some overlap with AIFoundValue::getBonusImprovement)
+	int iBestImprovFood = 0;
+	FOR_EACH_ENUM(Build)
+	{
+		CvBuildInfo const& kBuild = GC.getInfo(eLoopBuild);
+		ImprovementTypes eImprov = kBuild.getImprovement();
+		if (eImprov == NO_IMPROVEMENT)
+			continue;
+		CvImprovementInfo const& kImprov = GC.getInfo(eImprov);
+		if (eImprov == NO_IMPROVEMENT ||
+			!kImprov.isImprovementBonusMakesValid(eBonus) ||
+			!kImprov.isImprovementBonusTrade(eBonus))
+		{
+			continue;
+		}
+		int iImprovFood = kPlot.calculateImprovementYieldChange(
+				eImprov, YIELD_FOOD, eStartPlayer);
+		iBestImprovFood = std::max(iBestImprovFood, iImprovFood);
+	}
+	return (iBaseFood + iBestImprovFood <= 4 &&
+			// Not really a food resource if the improvement doesn't add food
+			iBestImprovFood > 0);
+} // </advc.108>
 
 // For each of n teams, let the closeness score for that team be the average distance of an edge between two players on that team.
 // This function calculates the closeness score for each team and returns the sum of those n scores.

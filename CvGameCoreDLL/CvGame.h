@@ -1067,7 +1067,8 @@ protected:
 	bool normalizeCanAddLakeTo(CvPlot const& kPlot) const;
 	bool skipDuplicateExtraBonus(CvPlot const& kStartPlot, CvPlot const& kPlot,
 			BonusTypes eBonus, bool bSecondPass = false);
-	bool isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStartPlayer) const;
+	bool isPowerfulStartingBonus(CvPlot const& kPlot, PlayerTypes eStartPlayer) const;
+	bool isWeakStartingFoodBonus(CvPlot const& kPlot, PlayerTypes eStartPlayer) const;
 	// </advc.108>
 
 	int getTeamClosenessScore(int** aaiDistances, int* aiStartingLocs);
