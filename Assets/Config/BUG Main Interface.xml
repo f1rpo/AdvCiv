@@ -88,7 +88,7 @@
 			
 			<!-- advc.120c -->
 			<option id="Hide_EspSlider" key="Hide EspSlider" 
-					type="boolean" default="True" 
+					type="boolean" default="False" 
 					get="isHideEspSlider" dirtyBit="PercentButtons, GameData, Espionage_Advisor">
 				<change module="CvCustomizableDomesticAdvisor" function="forcePositionCalc"/>
 			</option>
