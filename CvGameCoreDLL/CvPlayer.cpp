@@ -7081,14 +7081,15 @@ int CvPlayer::getCivicPercentAnger(CivicTypes eCivic, bool bIgnore) const
 
 	int iCount = 0;
 	int iPossibleCount = 0;
-	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	// <advc.155> Don't skip our teammates (but do skip unmet civs)
+	for (PlayerIter<CIV_ALIVE,KNOWN_TO> itOther(getTeam());
+		itOther.hasNext(); ++itOther)
 	{
-		CvPlayer const& kOther = GET_PLAYER((PlayerTypes)iI);
-		if (!kOther.isAlive() || kOther.getTeam() == getTeam())
-			continue;
-		if (kOther.getCivics(eCivicOption) == eCivic)
-			iCount += kOther.getNumCities();
-		iPossibleCount += kOther.getNumCities();
+		if (itOther->getID() == getID())
+			continue; // </advc.155>
+		if (itOther->getCivics(eCivicOption) == eCivic)
+			iCount += itOther->getNumCities();
+		iPossibleCount += itOther->getNumCities();
 	}
 
 	if (iPossibleCount <= 0)
