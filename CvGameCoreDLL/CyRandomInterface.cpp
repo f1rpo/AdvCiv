@@ -13,7 +13,7 @@ void CyRandomPythonInterface()
 
 	python::class_<CvRandom>("CyRandom")
 		.def("get", &CvRandom::get, CvRandom_get_overloads( args("usNum", "pszLog"), "returns a random number"))
-		// dlph.27:
+		// kekm.27:
 		.def("getSeed", &CvRandom::getSeed,  "int () current seed")
 		.def("init", &CvRandom::init, "void (unsigned long int ulSeed)")
 		;

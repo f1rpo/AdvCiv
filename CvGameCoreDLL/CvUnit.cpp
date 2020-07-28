@@ -3008,13 +3008,13 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport) /* advc: */ const
 		eRecipientReligion != m_pUnitInfo->getReligionType())
 	{
 		return false;
-	} // <dlph.4>
+	} // <kekm.4>
 	std::vector<CvUnit*> apCargoUnits;
 	getCargoUnits(apCargoUnits);
 	for(size_t i = 0; i < apCargoUnits.size(); i++)
 	{
 		if(!apCargoUnits[i]->canGift(false, false))
-			return false; // </dlph.4>
+			return false; // </kekm.4>
 	} // </advc.123a>
 
 	// advc.opt: Moved down (check all the one-liners first)
@@ -3061,7 +3061,7 @@ void CvUnit::gift(bool bTestTransport)
 	/*if (pGiftUnit->isGoldenAge())
 		kRecievingPlayer.AI_changeMemoryCount(eOwner, MEMORY_GIVE_HELP, 1);*/
 	// Note: I'm not currently considering special units with < 0 production cost.
-	if (pGiftUnit->canCombat()) // dlph.8: was isCombat
+	if (pGiftUnit->canCombat()) // kekm.8: was isCombat
 	{
 		int iEffectiveWarRating =
 				getPlot().getArea().getAreaAIType(kRecievingPlayer.getTeam()) != AREAAI_NEUTRAL ?
@@ -3627,7 +3627,7 @@ bool CvUnit::isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam) const
 		if (kLoopPlot.getTeam() == eTeam)
 			return true;
 		if (kLoopPlot.plotCheck(PUF_isCombatTeam, eTeam, getTeam()) != NULL &&
-			isEnemy(eTeam)) // dlph.7
+			isEnemy(eTeam)) // kekm.7
 		{
 			return true;
 		}
@@ -3679,10 +3679,10 @@ bool CvUnit::nuke(int iX, int iY)
 		if (abTeamsAffected.get(it->getID()) && !isEnemy(it->getID()))
 		{
 			//GET_TEAM(getTeam()).declareWar(it->getID(), false, WARPLAN_LIMITED);
-			// dlph.26:
+			// kekm.26:
 			CvTeam::queueWar(getTeam(), it->getID(), false, WARPLAN_LIMITED);
 		}
-		CvTeam::triggerWars(); // dlph.26
+		CvTeam::triggerWars(); // kekm.26
 	}
 
 	int iBestInterception = 0;
@@ -7126,12 +7126,12 @@ bool CvUnit::canSiege(TeamTypes eTeam) const
 	return true;
 }
 
-// <dlph.8> "Added function for checking whether a unit is a combat unit."
+// <kekm.8> "Added function for checking whether a unit is a combat unit."
 bool CvUnit::canCombat() const
 {
 	// avdc: Check m_pUnitInfo->isMilitaryProduction() instead?
 	return (baseCombatStr() > 0 || airBaseCombatStr() > 0 || nukeRange() >= 0);
-} // </dlph.8>
+} // </kekm.8>
 
 
 bool CvUnit::canAttack() const

@@ -792,7 +792,7 @@ void CvGame::initGameHandicap()
 			/*  advc.250a: Relies on no strange new handicaps being placed
 				between Settler and Deity. Same in CvTeam::getHandicapType. */
 				setHandicapType((HandicapTypes)
-				::round // dlph.22
+				::round // kekm.22
 				(iSum / (10.0 * iDiv)));
 		}
 		FAssertMsg(iDiv > 0, "All-AI game. Not necessarily wrong, but unexpected.");
@@ -3947,7 +3947,7 @@ EraTypes CvGame::getCurrentEra() const
 	if (iCount > 0)
 	{
 		//return ((EraTypes)(iEra / iCount));
-		return (EraTypes)::round(iEra / (double)iCount); // dlph.17
+		return (EraTypes)::round(iEra / (double)iCount); // kekm.17
 	}
 	FAssert(iCount > 0); // advc
 	return NO_ERA;
@@ -4913,14 +4913,14 @@ bool CvGame::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionSub
 		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
 
 		if (kPlayer.isVotingMember(eVoteSource))
-		{	// <dlph.25/advc>
+		{	// <kekm.25/advc>
 			if(kVote.isForceWar())
 			{
 				if(GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource) &&
 						!kPlayer.canDoResolution(eVoteSource, kData))
 					return false;
 			}
-			else // </dlph.25/advc>
+			else // </kekm.25/advc>
 			if (!kPlayer.canDoResolution(eVoteSource, kData))
 			{
 				return false;
@@ -5028,7 +5028,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 		if(kPlayer.isAVassal()) // advc
 			return false;
 		//if (!kPlayer.isFullMember(eVoteSource))
-		// dlph.25: 'These are not necessarily the same.'
+		// kekm.25: 'These are not necessarily the same.'
 		if (!GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource))
 			return false;
 
@@ -5050,7 +5050,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 	{
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
 		//if (kPlayer.isFullMember(eVoteSource))
-		// dlph.25: 'These are not necessarily the same.'
+		// kekm.25: 'These are not necessarily the same.'
 		if (GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource))
 			return false;
 
@@ -5061,7 +5061,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 			if (kPlayer2.getTeam() != kPlayer.getTeam())
 			{
 				//if (kPlayer2.isFullMember(eVoteSource))
-				// dlph.25: 'These are not necessarily the same.'
+				// kekm.25: 'These are not necessarily the same.'
 				if (GET_TEAM(kPlayer2.getTeam()).isFullMember(eVoteSource))
 				{
 					if (kPlayer2.canStopTradingWithTeam(kPlayer.getTeam()))
@@ -5084,7 +5084,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 		if (kTeam.isAVassal())
 			return false;
 		//if (kPlayer.isFullMember(eVoteSource))
-		// dlph.25: 'These are not necessarily the same.'
+		// kekm.25: 'These are not necessarily the same.'
 		if (GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource))
 			return false;
 
@@ -5109,7 +5109,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 			return false;
 
 		//if (!kPlayer.isVotingMember(eVoteSource))
-		// dlph.25: Replacing the above
+		// kekm.25: Replacing the above
 		if (!GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource))
 		{
 			// Can be passed only if already at war with a member
@@ -5136,7 +5136,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 	{
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
 		//if (kPlayer.isFullMember(eVoteSource) || !kPlayer.isVotingMember(eVoteSource))
-		// dlph.25: 'These are not necessarily the same'
+		// kekm.25: 'These are not necessarily the same'
 		if (GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource) || !GET_TEAM(kPlayer.getTeam()).isVotingMember(eVoteSource))
 			return false;
 
@@ -5158,7 +5158,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 			return false;
 
 		//if (!kOtherPlayer.isFullMember(eVoteSource))
-		// dlph.25: 'These are not necessarily the same'
+		// kekm.25: 'These are not necessarily the same'
 		if (!GET_TEAM(kOtherPlayer.getTeam()).isFullMember(eVoteSource))
 			return false;
 
@@ -6762,7 +6762,7 @@ void CvGame::doGlobalWarming()
 			{
 				// only destroy the improvement if the new terrain cannot support it
 				if (!pPlot->canHaveImprovement(pPlot->getImprovementType()),
-					NO_BUILD, false) // dlph.9
+					NO_BUILD, false) // kekm.9
 				{
 					pPlot->setImprovementType(NO_IMPROVEMENT);
 				}  // <advc.055>
@@ -7714,7 +7714,7 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 		// </advc.300>
 		// K-Mod. Give a combat penalty to barbarian boats.
 		if (pNewUnit && pPlot->isWater() &&
-				!pNewUnit->getUnitInfo().isHiddenNationality()) // dlph.12
+				!pNewUnit->getUnitInfo().isHiddenNationality()) // kekm.12
 		{	// find the "disorganized" promotion. (is there a better way to do this?)
 			PromotionTypes eDisorganized = (PromotionTypes)
 					GC.getInfoTypeForString("PROMOTION_DISORGANIZED", true);
@@ -8319,7 +8319,7 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 			FAssert(NO_PLAYER != kData.kVoteOption.ePlayer);
 			CvPlayer& kPlayer = GET_PLAYER(kData.kVoteOption.ePlayer);
 			if (gTeamLogLevel >= 1) logBBAI("  Vote for forcing peace against team %d (%S) passes", kPlayer.getTeam(), kPlayer.getCivilizationDescription(0)); // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
-			// <dlph.25> 'Cancel defensive pacts with the attackers first'
+			// <kekm.25> 'Cancel defensive pacts with the attackers first'
 			FOR_EACH_DEAL_VAR(pLoopDeal)
 			{
 				if ((TEAMID(pLoopDeal->getFirstPlayer()) == kPlayer.getTeam() &&
@@ -8339,7 +8339,7 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 						}
 					} // advc: Don't bother with SecondTrades; DPs are dual.
 				}
-			} // </dlph.25>
+			} // </kekm.25>
 			for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
 			{
 				CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
@@ -8384,18 +8384,18 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 				it.hasNext(); ++it)
 			{
 				CvTeam& kFullMember = GET_TEAM(it->getTeam());
-				// dlph.25/advc: was isVotingMember
+				// kekm.25/advc: was isVotingMember
 				if (!kFullMember.isFullMember(kData.eVoteSource))
 					continue;
 				if (kFullMember.canChangeWarPeace(kTeam.getID()))
 				{
-					// <dlph.26>
+					// <kekm.26>
 					CvTeam::queueWar(kFullMember.getID(), kTeam.getID(),
-							false, WARPLAN_DOGPILE); // </dlph.26>
+							false, WARPLAN_DOGPILE); // </kekm.26>
 					kTeam.AI_makeUnwillingToTalk(kFullMember.getID()); // advc.104i
 				}
 			}
-			CvTeam::triggerWars(); // dlph.26
+			CvTeam::triggerWars(); // kekm.26
 			setVoteOutcome(kData, NO_PLAYER_VOTE);
 		}
 		else if (kVote.isAssignCity())
@@ -10177,7 +10177,7 @@ VoteTriggeredData* CvGame::addVoteTriggered(VoteSourceTypes eVoteSource, const V
 					kVoter.AI_diploVote(kOptionData, eVoteSource, false));
 			continue; // advc
 		}
-		// <dlph.25> (advc: simplified)
+		// <kekm.25> (advc: simplified)
 		if (isTeamVote(kOptionData.eVote))
 		{
 			TeamTypes const eVoterMaster = kVoter.getMasterTeam();
@@ -10190,7 +10190,7 @@ VoteTriggeredData* CvGame::addVoteTriggered(VoteSourceTypes eVoteSource, const V
 						kVoter.AI_diploVote(kOptionData, eVoteSource, false));
 				continue;
 			}
-		} // </dlph.25>
+		} // </kekm.25>
 		CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DIPLOVOTE);
 		pInfo->setData1(pData->getID());
 		gDLL->getInterfaceIFace()->addPopup(pInfo, kVoter.getID());

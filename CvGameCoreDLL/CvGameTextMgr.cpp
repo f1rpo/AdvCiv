@@ -19583,7 +19583,7 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 
 	int iMissionCost = kPlayer.getEspionageMissionBaseCost(eMission, eTargetPlayer, pPlot, iExtraData, pSpyUnit);
 	//iMissionCost *= GET_TEAM(kPlayer.getTeam()).getNumMembers(); // K-Mod
-	// dlph.33/advc:
+	// kekm.33/advc:
 	iMissionCost = kPlayer.adjustMissionCostToTeamSize(iMissionCost, eTargetPlayer);
 
 	if (kMission.isDestroyImprovement())

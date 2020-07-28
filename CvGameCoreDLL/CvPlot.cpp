@@ -760,19 +760,19 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 			pUnitNode = oldUnits.next(pUnitNode);
 			if (pLoopUnit == NULL || pLoopUnit == pNukeUnit)
 				continue;
-			// <dlph.7>
+			// <kekm.7>
 			TeamTypes eAttackingTeam = NO_TEAM;
 			if(pNukeUnit != NULL)
 				eAttackingTeam = TEAMID(pNukeUnit->getOwner());
-			// </dlph.7>
+			// </kekm.7>
 			if (!pLoopUnit->isNukeImmune() && !pLoopUnit->isDelayedDeath() &&
-				// <dlph.7>
+				// <kekm.7>
 				// Nukes target only enemy and own units.
 				//Needed because blocking by neutral players disabled.
 				(eAttackingTeam == NO_TEAM ||
 				pLoopUnit->isEnemy(eAttackingTeam) ||
 				eAttackingTeam == TEAMID(pLoopUnit->getOwner())))
-				// </dlph.7>
+				// </kekm.7>
 			{
 				int iNukeDamage = (iNUKE_UNIT_DAMAGE_BASE +
 						GC.getGame().getSorenRandNum(iNUKE_UNIT_DAMAGE_RAND_1, "Nuke Damage 1") +
@@ -789,11 +789,11 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 							pNukeUnit->getOwner() : NO_PLAYER);
 				}
 				//else if (iNukeDamage >= GC.getDefineINT("NUKE_NON_COMBAT_DEATH_THRESHOLD"))
-				// <dlph.20>
+				// <kekm.20>
 				else if(GC.getGame().getSorenRandNum(100,"Non-Combat Nuke Rand") * 100 <
 					std::max(0, ((pCity == NULL ? 0 : pCity->getNukeModifier()) + 100)) *
 					(iNUKE_UNIT_DAMAGE_BASE - 1 + (iNUKE_UNIT_DAMAGE_RAND_1 +
-					iNUKE_UNIT_DAMAGE_RAND_2 - 1) / 2)) // </dlph.20>
+					iNUKE_UNIT_DAMAGE_RAND_2 - 1) / 2)) // </kekm.20>
 				{
 					pLoopUnit->kill(false, pNukeUnit != NULL ? pNukeUnit->getOwner() : NO_PLAYER);
 				}
@@ -1728,7 +1728,7 @@ bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude,
 
 
 bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, bool bPotential,
-	BuildTypes eBuild, bool bAnyBuild) const // dlph.9  advc: some style changes
+	BuildTypes eBuild, bool bAnyBuild) const // kekm.9  advc: some style changes
 {
 	/*  K-Mod, 21/dec/10, karadoc
 		changed to check for NO_IMPROVEMENT rather than just assume the input is an actual improvement */
@@ -1737,13 +1737,13 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 		return true;
 	// K-Mod end
 
-	// <dlph.9>
+	// <kekm.9>
 	FAssertMsg(!bAnyBuild || eBuild == NO_BUILD,
 			"expected: if bAnyBuild is true then eBuild is NO_BUILD");
 	FAssertMsg(eBuild == NO_BUILD ||
 			GC.getInfo(eBuild).getImprovement() == eImprovement,
 			"expected that eBuild matches eImprovement");
-	// </dlph.9>
+	// </kekm.9>
 
 	if (isCity())
 		return false;
@@ -1812,7 +1812,7 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 		if (calculateNatureYield(((YieldTypes)iI), eTeam) < GC.getInfo(eImprovement).getPrereqNatureYield(iI))
 			return false;
 	}*/
-	// <dlph.9> Replacing the above
+	// <kekm.9> Replacing the above
 	bool bFound = false;
 	bool bBuildable = false;
 	if (eBuild == NO_BUILD && !bAnyBuild)
@@ -1865,7 +1865,7 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 
 		if (bBuildable && !bFound)
 			return false;
- 	} // </dlph.9>
+ 	} // </kekm.9>
 
 	if (getTeam() == NO_TEAM || !GET_TEAM(getTeam()).isIgnoreIrrigation())
 	{
@@ -1895,7 +1895,7 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 	if (eImprovement != NO_IMPROVEMENT)
 	{
 		if (!canHaveImprovement(eImprovement, GET_PLAYER(ePlayer).getTeam(), bTestVisible,
-			eBuild, false)) // dlph.9
+			eBuild, false)) // kekm.9
 		{
 			return false;
 		}
@@ -7166,7 +7166,7 @@ ColorTypes CvPlot::plotMinimapColor()
 						getKnownPlayerColor()).getColorTypePrimary();
 			}
 		}
-		// dlph.21: Removed !isRevealedBarbarian() clause
+		// kekm.21: Removed !isRevealedBarbarian() clause
 		if (getRevealedOwner(eActiveTeam, true) != NO_PLAYER)
 		{
 			return GC.getInfo(GET_PLAYER(getRevealedOwner(eActiveTeam, true)).

@@ -21,11 +21,11 @@ public:
 	static void initStatics();
 	static void freeStatics(); // </advc.003u>
 
-	// <dlph.26>
+	// <kekm.26>
 	static void queueWar(TeamTypes eAttackingTeam, TeamTypes eDefendingTeam,
 			bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDOW = true);
 	static void triggerWars(/* advc: */ bool bForceUpdateAttitude = false);
-	// </dlph.26>
+	// </kekm.26>
 
 	explicit CvTeam(TeamTypes eID);
 	virtual ~CvTeam();
@@ -84,7 +84,7 @@ public:
 	//int getWarPlanCount(WarPlanTypes eWarPlan, bool bIgnoreMinors = true) const;
 	int getHasMetCivCount(bool bIgnoreMinors = true) const;																		// Exposed to Python
 
-	bool allWarsShared(TeamTypes eOther, // dlph.3
+	bool allWarsShared(TeamTypes eOther, // kekm.3
 			/*  advc.130f: If false, check only if the war enemies of this team
 				are included in those of otherId (set inclusion). */
 			bool bCheckBothWays = true) const;
@@ -588,14 +588,14 @@ protected:
 	mutable int m_iPeaceOfferStage;
 	// </advc.134a>
 
-	// <dlph.26>
+	// <kekm.26>
 	static std::queue<TeamTypes> attacking_queue;
 	static std::queue<TeamTypes> defending_queue;
 	static std::queue<bool> newdiplo_queue;
 	static std::queue<WarPlanTypes> warplan_queue;
 	static std::queue<bool> primarydow_queue;
 	static bool bTriggeringWars;
-	// </dlph.26>
+	// </kekm.26>
 
 	void uninit();
 
@@ -608,7 +608,7 @@ protected:
 	void processTech(TechTypes eTech, int iChange, /* advc.121: */ bool bEndOfTurn);
 
 	void cancelDefensivePacts();
-	void allowDefensivePactsToBeCanceled(); // dlph.3
+	void allowDefensivePactsToBeCanceled(); // kekm.3
 	// <advc.003m>
 	// New name for BBAI's getAtWarCount
 	int countWarEnemies(bool bIgnoreMinors = true, bool bIgnoreVassals = false) const;

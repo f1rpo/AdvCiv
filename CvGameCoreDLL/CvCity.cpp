@@ -10399,13 +10399,13 @@ void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer,  // advc: 
 			{
 				iCultureToAdd = (iCultureToAdd * iCultureToMaster) / 100;
 			} // </advc.025>
-			// <dlph.23> Loss of tile culture upon city trade
+			// <kekm.23> Loss of tile culture upon city trade
 			if (iCultureToAdd < 0)
 			{
 				FAssert(iCultureRateTimes100 < 0);
 				int iPlotCulture = pLoopPlot->getCulture(ePlayer);
 				iCultureToAdd = -std::min(-iCultureToAdd, iPlotCulture);
-			} // </dlph.23>
+			} // </kekm.23>
 			pLoopPlot->changeCulture(ePlayer, iCultureToAdd, bUpdate || !pLoopPlot->isOwned());
 		}
 	} // K-Mod end
@@ -10882,7 +10882,7 @@ void CvCity::doMeltdown()
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eDangerBuilding = kCiv.buildingAt(i);
-		// <dlph.5> (advc: Restructured the Kek-Mod code the code a bit)
+		// <kekm.5> (advc: Restructured the Kek-Mod code the code a bit)
 		int iOddsDivisor = GC.getInfo(eDangerBuilding).getNukeExplosionRand();
 		if (iOddsDivisor <= 0)
 			continue; // Save some time
@@ -10895,14 +10895,14 @@ void CvCity::doMeltdown()
 			!hasBonus(kDangerBuilding.getPowerBonus())))
 		{
 			continue;
-		} // </dlph.5>
+		} // </kekm.5>
 		// <advc> Roll the dice before checking for a safe power source - faster
 		// Adjust odds to game speed:
 		double pr = 1.0 / (iOddsDivisor * GC.getGame().gameSpeedFactor());
 		//if (GC.getGame().getSorenRandNum(GC.getInfo((BuildingTypes)iI).getNukeExplosionRand(), "Meltdown!!!") == 0)
 		if (!::bernoulliSuccess(pr, "Meltdown"))
 			continue; // </advc>
-		// <dlph.5>
+		// <kekm.5>
 		bool bUnused = false;
 		// Check for hydroplant (or any modded plant with less severe drawbacks)
 		for (int j = 0; j < kCiv.getNumBuildings(); j++)
@@ -10948,7 +10948,7 @@ void CvCity::doMeltdown()
 			}
 		}
 		if (bUnused)
-			continue; // </dlph.5>
+			continue; // </kekm.5>
 
 		if (getNumRealBuilding(eDangerBuilding) > 0)
 			setNumRealBuilding(eDangerBuilding, 0);
@@ -12579,7 +12579,7 @@ void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 	PlayerTypes ePlayer = getLiberationPlayer(bConquest);
 	if(ePlayer == NO_PLAYER)
 		return; // advc
-	// dlph.23: No longer used
+	// kekm.23: No longer used
 	/*CvPlot* pPlot = plot();
 	int iOldOwnerCulture = getCultureTimes100(getOwner());
 	bool bPreviouslyOwned = isEverOwned(ePlayer);*/ // K-Mod, for use below
@@ -12630,7 +12630,7 @@ void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 				iNewVassalLand - iOldVassalLand);
 	}
 	GET_PLAYER(ePlayer).AI_updateAttitude(getOwner()); // advc.ctr
-	// dlph.23: setCulture now done by advc.ctr in acquireCity
+	// kekm.23: setCulture now done by advc.ctr in acquireCity
 	/*if (NULL != pPlot) {
 		CvCity* pCity = pPlot->getPlotCity();
 		if (NULL != pCity) {

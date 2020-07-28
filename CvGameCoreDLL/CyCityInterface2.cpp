@@ -1,6 +1,6 @@
 #include "CvGameCoreDLL.h"
 
-// dlph.34/advc: Added in order to reduce the size of CyCityInterface1.cpp
+// kekm.34/advc: Added in order to reduce the size of CyCityInterface1.cpp
 
 void CyCityPythonInterface2(python::class_<CyCity>& x)
 {

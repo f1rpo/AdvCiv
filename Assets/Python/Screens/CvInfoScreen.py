@@ -2690,7 +2690,7 @@ class CvInfoScreen:
 										self.aaWondersBuilt_BUG.append([pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,True,pPlayer.getCivilizationShortDescription(0),pCity, iPlayerLoop])
 									else:
 										self.aaWondersBuilt_BUG.append([pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,False,localText.getText("TXT_KEY_UNKNOWN", ()),pCity,gc.getBARBARIAN_PLAYER()])
-										# dlph: Replaced hardcoded 18 with barbarian player
+										# kekm: Replaced hardcoded 18 with barbarian player
 	#								print("Adding World wonder to list: %s, %d, %s" %(pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,pPlayer.getCivilizationAdjective(0)))
 									self.iNumWonders += 1
 
@@ -2798,7 +2798,7 @@ class CvInfoScreen:
 				playerColor = gc.getPlayerColorInfo(ePlayerColor)
 				if playerColor:
 					#color = playerColor.getColorTypePrimary()
-					color = playerColor.getTextColorType() # dlph.36
+					color = playerColor.getTextColorType() # kekm.36
 
 			if (self.szWonderDisplayMode == self.szWDM_Project):
 				pWonderInfo = gc.getProjectInfo(iWonderType)
@@ -2846,7 +2846,7 @@ class CvInfoScreen:
 				playerColor = gc.getPlayerColorInfo(ePlayerColor)
 				if playerColor:
 					#color = playerColor.getColorTypePrimary()
-					color = playerColor.getTextColorType() # dlph.36
+					color = playerColor.getTextColorType() # kekm.36
 
 			if (self.szWonderDisplayMode == self.szWDM_Project):
 				pWonderInfo = gc.getProjectInfo(iWonderType)

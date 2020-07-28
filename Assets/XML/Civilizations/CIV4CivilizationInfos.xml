@@ -11,7 +11,7 @@
 	 advc.305: Removed (now allowed) Workboat.
 	 advc.307: Allowed Musketman
 	 Disallowed Frigate, Privateer, Paratrooper, Rifleman, Grenadier,
-	 Spy (dlph.6). -->
+	 Spy (kekm.6). -->
 <Civ4CivilizationInfos xmlns="x-schema:CIV4CivilizationsSchema.xml">
 	<CivilizationInfos>
 		<CivilizationInfo>

@@ -818,15 +818,15 @@ int CvTeamAI::AI_chooseElection(const VoteSelectionData& kVoteSelectionData) con
 		{
 			for (MemberIter it(getID()); it.hasNext(); ++it)
 			{
-				PlayerVoteTypes ePlayerVote = // dlph.25: was eVote (name clash)
+				PlayerVoteTypes ePlayerVote = // kekm.25: was eVote (name clash)
 						it->AI_diploVote(kVoteSelectionData.aVoteOptions[iI], eVoteSource, true);
 				//if (eVote != PLAYER_VOTE_YES || eVote == GC.getGame().getVoteOutcome((VoteTypes)iI))
-				/*  <dlph.25> Replacing the above.
+				/*  <kekm.25> Replacing the above.
 					'AI can choose to repeal an already passed resolution
 					if all team members agree' */
 				bool bVoteYes = (ePlayerVote == PLAYER_VOTE_YES);
 				bool bAlreadyPassed = (GC.getGame().getVoteOutcome(eVote) == PLAYER_VOTE_YES);
-				if((bVoteYes && bAlreadyPassed) || (!bVoteYes && !bAlreadyPassed)) // </dlph.25>
+				if((bVoteYes && bAlreadyPassed) || (!bVoteYes && !bAlreadyPassed)) // </kekm.25>
 				{
 					bValid = false;
 					break;
@@ -3790,9 +3790,9 @@ DenialTypes CvTeamAI::AI_defensivePactTrade(TeamTypes eWithTeam) const
 	if (isHuman())
 		return NO_DENIAL;
 
-	// <dlph.3> (actually an advc change): Refuses/ cancels DP when ally makes peace
+	// <kekm.3> (actually an advc change): Refuses/ cancels DP when ally makes peace
 	if(!allWarsShared(eWithTeam))
-		return DENIAL_JOKING; // </dlph.3>
+		return DENIAL_JOKING; // </kekm.3>
 	// <advc.130p>
 	if(AI_getMemoryCount(eWithTeam, MEMORY_CANCELLED_DEFENSIVE_PACT) > 0)
 		return DENIAL_RECENT_CANCEL;
@@ -6013,7 +6013,7 @@ void CvTeamAI::AI_doWar()
 									continue; // </advc.001>
 								iDogpilePower += itDog->getPower(false);
 							}
-							// dlph.3 (advc): No longer holds I think; the target could have a DP despite being at war
+							// kekm.3 (advc): No longer holds I think; the target could have a DP despite being at war
 							//FAssert(bVassal || GET_TEAM(eTarget).getPower(true) == GET_TEAM(eTarget).getDefensivePower(getID()));
 							if ((GET_TEAM(eTarget).getDefensivePower(getID()) * 3) / 2 < iDogpilePower)
 							{

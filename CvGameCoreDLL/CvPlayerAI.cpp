@@ -2807,7 +2807,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 	//if (pCity->getHighestPopulation() < 1)
 	// Usually this means the city would be auto-razed.
 	// (We can't use isAutoRaze for this, because that assumes the city is already captured.)
-	// dlph.29 (bugfix):
+	// kekm.29 (bugfix):
 	if (pCity->getHighestPopulation() == 1 && !kGame.isOption(GAMEOPTION_NO_CITY_RAZING))
 		iValue = (iValue + 2) / 3;
 	// K-Mod end
@@ -7905,10 +7905,10 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData,
 	// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
 	// Remove blanket auto approval for friendly secretary
 	bool bFriendlyToSecretary = false;
-	// dlph.25: (The bRepeal code is really advc code)
+	// kekm.25: (The bRepeal code is really advc code)
 	bool bRepeal = false;
 	if (!bPropose)
-	{	// dlph.25:
+	{	// kekm.25:
 		bRepeal = (kGame.getVoteOutcome(eVote) == PLAYER_VOTE_YES);
 		if (eSecretaryGeneral != NO_TEAM)
 		{
@@ -7916,9 +7916,9 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData,
 				// <advc.130v>
 				(GET_TEAM(getTeam()).isVassal(eSecretaryGeneral) &&
 				GET_TEAM(getTeam()).isCapitulated())) // </advc.130v>
-			{	// <dlph.25>
+			{	// <kekm.25>
 				if (bRepeal)
-					return PLAYER_VOTE_NO; // </dlph.25>
+					return PLAYER_VOTE_NO; // </kekm.25>
 				return PLAYER_VOTE_YES;
 			}
 			else
@@ -7974,9 +7974,9 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData,
 	{
 		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
 		if (bFriendlyToSecretary)
-		{	// <dlph.25>
+		{	// <kekm.25>
 			if (bRepeal)
-				return PLAYER_VOTE_NO; // </dlph.25>
+				return PLAYER_VOTE_NO; // </kekm.25>
 			return PLAYER_VOTE_YES;
 		} // BETTER_BTS_AI_MOD: END
 		if (getNumCities() > (kGame.getNumCities() * 2) /
@@ -8014,13 +8014,13 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData,
 		}
 		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
 		if (bFriendlyToSecretary)
-		{	// <dlph.25>
+		{	// <kekm.25>
 			if (bRepeal)
 			{
 				iVoteBanThreshold *= 3;
 				iVoteBanThreshold /= 2;
 			}
-			else // </dlph.25>
+			else // </kekm.25>
 			{
 				iVoteBanThreshold *= 2;
 				iVoteBanThreshold /= 3;
@@ -8051,9 +8051,9 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData,
 	{
 		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
 		if (bFriendlyToSecretary)
-		{	// <dlph.25>
+		{	// <kekm.25>
 			if (bRepeal)
-				return PLAYER_VOTE_NO; // </dlph.25>
+				return PLAYER_VOTE_NO; // </kekm.25>
 			return PLAYER_VOTE_YES;
 		} // BETTER_BTS_AI_MOD: END
 
@@ -8081,9 +8081,9 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData,
 	{
 		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
 		if (bFriendlyToSecretary)
-		{	// <dlph.25>
+		{	// <kekm.25>
 			if (bRepeal)
-				return PLAYER_VOTE_NO; // </dlph.25>
+				return PLAYER_VOTE_NO; // </kekm.25>
 			return PLAYER_VOTE_YES;
 		} // BETTER_BTS_AI_MOD: END
 
@@ -8103,9 +8103,9 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData,
 	{
 		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
 		if (bFriendlyToSecretary)
-		{	// <dlph.25>
+		{	// <kekm.25>
 			if (bRepeal)
-				return PLAYER_VOTE_NO; // </dlph.25>
+				return PLAYER_VOTE_NO; // </kekm.25>
 			return PLAYER_VOTE_YES;
 		} // BETTER_BTS_AI_MOD: END
 
@@ -8456,9 +8456,9 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData,
 		else if (eWarTeam == getTeam() || kOurTeam.isVassal(eWarTeam))
 		{	// Explicit rejection by all who will definitely be attacked
 			bValid = false;
-		} // <dlph.25/advc> Try to honor peace treaty
+		} // <kekm.25/advc> Try to honor peace treaty
 		else if (kOurTeam.isForcePeace(eWarTeam))
-			bValid = false; // </dlph.25/advc>
+			bValid = false; // </kekm.25/advc>
 		else if (kOurTeam.AI_getWarPlan(eWarTeam) != NO_WARPLAN) // BETTER_BTS_AI_MOD: END
 			bValid = true;
 		else
@@ -18649,9 +18649,9 @@ CvPlayerAI::CancelCode CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes e
 	{
 		DenialTypes eDenial = getTradeDenial(ePlayer, pNode->m_data);
 		if(eDenial != NO_DENIAL &&
-			// <dlph.3> Cancel DP immediately when war no longer shared
+			// <kekm.3> Cancel DP immediately when war no longer shared
 			(((pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT &&
-			eDenial == DENIAL_JOKING)) || // </dlph.3>
+			eDenial == DENIAL_JOKING)) || // </kekm.3>
 			::bernoulliSuccess(0.2, "advc.133")))
 		{
 			if (gDealCancelLogLevel > 1) logBBAICancel(d, getID(), L"dual denial");
@@ -25112,10 +25112,10 @@ UnitTypes CvPlayerAI::AI_bestAdvancedStartUnitAI(CvPlot const& kPlot, // advc: C
 
 CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()  // advc: style changes
 {	// Not quite what Kek-Mod does, but would have the same result:
-	// <dlph.35> "Don't exchange team members starting location."
+	// <kekm.35> "Don't exchange team members starting location."
 	/*CvPlot* pCurrentStart = getStartingPlot();
 	if(pCurrentStart != NULL && getAdvancedStartCityCost(true, pCurrentStart) > 0)
-		return pCurrentStart;*/ // </dlph.35>
+		return pCurrentStart;*/ // </kekm.35>
 	// advc: However, I don't want to make that change for now.
 	CvMap const& m = GC.getMap();
 	CvPlot* pBestPlot = NULL;
@@ -25164,7 +25164,7 @@ CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()  // advc: style changes
 	//Execution should almost never reach here.
 
 	//Update found values just in case - particulary important for simultaneous turns.
-	AI_updateFoundValues(/* dlph.35 (bugfix): */ true);
+	AI_updateFoundValues(/* kekm.35 (bugfix): */ true);
 
 	pBestPlot = NULL;
 	iBestValue = -1;
@@ -27537,7 +27537,7 @@ bool CvPlayerAI::AI_isThreatFromMinorCiv() const
 	return false;
 } // </advc.109>
 
-// <dlph.16> (advc: separate function for this)
+// kekm.16: (advc: separate function for this)
 int CvPlayerAI::AI_nukeDangerDivisor() const
 {
 	if(GC.getGame().isNoNukes())

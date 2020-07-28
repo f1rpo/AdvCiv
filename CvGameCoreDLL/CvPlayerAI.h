@@ -323,7 +323,7 @@ public:
 	int AI_unitCostPerMil() const; // K-Mod
 	int AI_maxUnitCostPerMil(CvArea const* pArea = NULL, int iBuildProb = -1) const; // K-Mod
 	int AI_nukeWeight() const; // K-Mod
-	int AI_nukeDangerDivisor() const; // dlph.16
+	int AI_nukeDangerDivisor() const; // kekm.16
 	bool AI_isLandWar(CvArea const& kArea) const; // K-Mod
 	bool AI_isFocusWar(CvArea const* pArea = NULL) const; // advc.105
 

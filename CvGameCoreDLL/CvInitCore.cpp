@@ -511,10 +511,10 @@ void CvInitCore::resetGame(CvInitCore* pSource, bool bClear, bool bSaveGameType)
 	FOR_EACH_ENUM(GameOption)
 	{
 		bool b = pSource->getOption(eLoopGameOption);
-		// <dlph.18>
+		// <kekm.18>
 		CvGameOptionInfo const& kLoopGameOption = GC.getInfo(eLoopGameOption);
 		if (!kLoopGameOption.getVisible())
-			b = kLoopGameOption.getDefault(); // </dlph.18>
+			b = kLoopGameOption.getDefault(); // </kekm.18>
 		setOption(eLoopGameOption, b);
 	}
 	FOR_EACH_ENUM(MPOption)

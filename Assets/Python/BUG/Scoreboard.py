@@ -56,7 +56,7 @@ NUM_PARTS = 28
 	WAITING,
 	NET_STATS,
 	OOS,
-	LEADER_BUTTON, CIV_BUTTON, # dlph.30
+	LEADER_BUTTON, CIV_BUTTON, # kekm.30
 	GOLDEN_AGE # advc.085
 ) = range(NUM_PARTS)
 
@@ -120,10 +120,10 @@ def init():
 	columns.append(Column('*', WAITING, FIXED, smallText("*")))
 	columns.append(Column('L', NET_STATS, DYNAMIC))
 	columns.append(Column('O', OOS, DYNAMIC))
-	# <dlph.30>
+	# <kekm.30>
 	columns.append(Column('F', LEADER_BUTTON, SPECIAL))
 	columns.append(Column('G', CIV_BUTTON, SPECIAL))
-	# </dlph.30>
+	# </kekm.30>
 	columns.append(Column('J', GOLDEN_AGE, DYNAMIC)) # advc.085
 	
 	global WAR_ICON, PEACE_ICON
@@ -316,13 +316,13 @@ class Scoreboard:
 		
 	def setOOS(self, value):
 		self._set(OOS, smallText(value))
-	# <dlph.30>
+	# <kekm.30>
 	def setLeaderIcon(self, leader):
 		self._set(LEADER_BUTTON, leader)
 
 	def setCivIcon(self, civ):
 		self._set(CIV_BUTTON, civ)
-	# </dlph.30>
+	# </kekm.30>
 	# <advc.085>
 	def setGoldenAge(self, bAnarchy):
 		eWidget = WidgetTypes.WIDGET_GOLDEN_AGE
@@ -560,7 +560,7 @@ class Scoreboard:
 					x -= techIconSize
 					totalWidth += techIconSize + spacing
 					spacing = defaultSpacing
-				# <dlph.30>
+				# <kekm.30>
 				elif c == LEADER_BUTTON:
 					x -= spacing
 					for p, playerScore in enumerate(self._playerScores):
@@ -583,7 +583,7 @@ class Scoreboard:
 					x -= techIconSize
 					totalWidth += techIconSize + spacing
 					spacing = defaultSpacing
-				# </dlph.30>
+				# </kekm.30>
 		
 		for playerScore in self._playerScores:
 			interface.checkFlashReset( playerScore.getID() )

@@ -118,7 +118,7 @@ public:
 			bool bIgnoreFeature = false) const; // advc.129
 	bool canHaveImprovement(ImprovementTypes eImprovement,														// Exposed to Python
 			TeamTypes eTeam = NO_TEAM, bool bPotential = false,
-			BuildTypes eBuild = NO_BUILD, bool bAnyBuild = true) const; // dlph.9
+			BuildTypes eBuild = NO_BUILD, bool bAnyBuild = true) const; // kekm.9
 	bool canBuild(BuildTypes eBuild, PlayerTypes ePlayer = NO_PLAYER, bool bTestVisible = false) const;														// Exposed to Python
 	int getBuildTime(BuildTypes eBuild,																																										// Exposed to Python
 			PlayerTypes ePlayer) const; // advc.251

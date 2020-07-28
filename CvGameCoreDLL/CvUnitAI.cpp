@@ -20964,7 +20964,7 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 									continue;
 								}
 							}
-							// dlph.7: Commented out
+							// kekm.7: Commented out
 							//else FAssertMsg(false, "3rd party unit being considered for nuking.");
 						}
 					}

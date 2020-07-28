@@ -410,7 +410,7 @@ public:
 		return (baseCombatStr() > 0);
 	}
 	bool canSiege(TeamTypes eTeam) const;																	// Exposed to Python
-	bool canCombat() const; // dlph.8
+	bool canCombat() const; // kekm.8
 	bool canAttack() const;																					// Exposed to Python
 	bool canAttack(const CvUnit& kDefender) const;
 	bool canDefend(const CvPlot* pPlot = NULL) const;														// Exposed to Python

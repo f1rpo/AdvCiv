@@ -5308,7 +5308,7 @@
 		<Spanish>from breaking new ground</Spanish>
 	</TEXT>
 
-	<!-- dlph.7 (advc): From CIV4GameText_BTS.xml. Was "Cannot Nuke Friendly
+	<!-- kekm.7 (advc): From CIV4GameText_BTS.xml. Was "Cannot Nuke Friendly
 		 Territory or Units" - that's still true, but units don't prevent
 		 players from firing nukes, which is what matters in this context.
 		 And "friendly" isn't the right term. Strictly speaking, unclaimed

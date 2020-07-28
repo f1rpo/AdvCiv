@@ -75,7 +75,7 @@ public:
 	bool startingPlotWithinRange(CvPlot const& kPlot, PlayerTypes ePlayer, int iRange, int iPass) const;									// Exposed to Python
 	int startingPlotDistanceFactor(CvPlot const& kPlot, PlayerTypes ePlayer, int iRange) const;
 	//int findStartingArea() const;
-	std::vector<std::pair<int,int> > findStartingAreas( // dlph.35
+	std::vector<std::pair<int,int> > findStartingAreas( // kekm.35
 			bool* pbFoundByMapScript = NULL) const; // advc.027
 	// advc.027: New auxiliary function (public only for Debug mode info)
 	int coastRiverStartingAreaScore(CvArea const& a) const;
@@ -154,7 +154,7 @@ public:
 	void doTurnUnits();
 
 	void verifyCivics();
-	void verifyStateReligion(); // dlph.10
+	void verifyStateReligion(); // kekm.10
 	void verifyCityProduction(); // advc.064d
 	void updatePlotGroups();
 
@@ -417,7 +417,7 @@ public:
 			bool bCheckPoints = true) const; // advc.085
 	int getEspionageMissionBaseCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pSpyUnit) const;
 	int getEspionageMissionCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot = NULL, int iExtraData = -1, const CvUnit* pSpyUnit = NULL) const;		// Exposed to Python
-	// dlph.33/advc:
+	// kekm.33/advc:
 	int adjustMissionCostToTeamSize(int iBaseCost, PlayerTypes eTargetPlayer) const;
 	// <advc.120d> New functions, all exposed to Python
 	TechTypes getStealCostTech(PlayerTypes eTargetPlayer) const;

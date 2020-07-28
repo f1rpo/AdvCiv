@@ -67,7 +67,7 @@
 		</GameOptionInfo>
 		<!-- advc: According to DarkLunaPhantom, this option has to remain
 			 in the eighth position.
-			 https://github.com/DarkLunaPhantom/Civ4-K-Mod/commit/908160ecea97d427cc24736fb4fb1e1b51f282f3 -->
+			 github.com/DarkLunaPhantom/Civ4-K-Mod/commit/908160ecea97d427cc24736fb4fb1e1b51f282f3 -->
 		<GameOptionInfo>
 			<Type>GAMEOPTION_RANDOM_PERSONALITIES</Type>
 			<Description>TXT_KEY_GAME_OPTION_RANDOM_PERSONALITIES</Description>

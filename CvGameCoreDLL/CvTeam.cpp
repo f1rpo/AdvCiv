@@ -37,14 +37,14 @@ void CvTeam::freeStatics()
 	SAFE_DELETE_ARRAY(m_aTeams);
 }
 
-// <dlph.26>
+// <kekm.26>
 std::queue<TeamTypes> CvTeam::attacking_queue;
 std::queue<TeamTypes> CvTeam::defending_queue;
 std::queue<bool> CvTeam::newdiplo_queue;
 std::queue<WarPlanTypes> CvTeam::warplan_queue;
 std::queue<bool> CvTeam::primarydow_queue;
 bool CvTeam::bTriggeringWars = false;
-// </dlph.26>
+// </kekm.26>
 
 CvTeam::CvTeam(/* advc.003u: */ TeamTypes eID)
 {
@@ -265,7 +265,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	// K-Mod note: the cancel deals code use to be here. I've moved it lower down.
 
 	shareItems(eTeam);
-	// dlph.26: "This team is not going to be used anymore and doing this might break some things."
+	// kekm.26: "This team is not going to be used anymore and doing this might break some things."
 	//GET_TEAM(eTeam).shareItems(getID());
 
 	for (iI = 0; iI < MAX_TEAMS; iI++)
@@ -291,21 +291,21 @@ void CvTeam::addTeam(TeamTypes eTeam)
 				if (GET_TEAM(eTeam).isAtWar((TeamTypes)iI))
 				{
 					//declareWar((TeamTypes)iI, false, GET_TEAM(eTeam).AI_getWarPlan((TeamTypes)iI));
-					// <dlph.26>
+					// <kekm.26>
 					queueWar(getID(), (TeamTypes)iI, false,
-							GET_TEAM(eTeam).AI_getWarPlan((TeamTypes)iI)); // </dlph.26>
+							GET_TEAM(eTeam).AI_getWarPlan((TeamTypes)iI)); // </kekm.26>
 				}
 				else if (isAtWar((TeamTypes)iI))
 				{
 					//GET_TEAM(eTeam).declareWar(((TeamTypes)iI), false, AI_getWarPlan((TeamTypes)iI));
-					// <dlph.26>
+					// <kekm.26>
 					queueWar(eTeam, (TeamTypes)iI, false,
-							AI().AI_getWarPlan((TeamTypes)iI)); // </dlph.26>
+							AI().AI_getWarPlan((TeamTypes)iI)); // </kekm.26>
 				}
 			}
 		}
 	}
-	// <dlph.26>
+	// <kekm.26>
 	triggerWars();
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
@@ -324,7 +324,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 		}
 	}
 	triggerWars();
-	// </dlph.26>
+	// </kekm.26>
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		if (iI != getID() && iI != eTeam)
@@ -436,14 +436,14 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	/*  K-Mod note: eTeam is not going to be used after we've finished this merge,
 		so the sharing does not need to be two-way. */
 
-	/*  <dlph.26> "Fix for permanent alliance bug that caused permanent espionage visibility
+	/*  <kekm.26> "Fix for permanent alliance bug that caused permanent espionage visibility
 		for cities that only the players with the higher team number sees at the time of the merge. */
 	for(iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
 		if (pLoopPlot->isCity())
 			pLoopPlot->getPlotCity()->setEspionageVisibility(eTeam, false, true);
-	} // </dlph.26>
+	} // </kekm.26>
 
 	/*  advc.104t: Leader id needed later for merging data; unavailable after the
 		loop below. */
@@ -454,7 +454,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			GET_PLAYER((PlayerTypes)iI).setTeam(getID());
 	}
 	updateLeaderID(); // advc.opt
-	// <dlph.13>
+	// <kekm.13>
 	// "AP resident and UN secretary general teams need to be updated if that team will not be used anymore."
 	for (iI = 0; iI < GC.getNumVoteSourceInfos(); iI++)
 	{
@@ -475,7 +475,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 				}
 			}
 		}
-	} // </dlph.13>
+	} // </kekm.13>
 	// K-Mod. Adjust the progress of unfinished research so that it is proportionally the same as it was before the merge.
 	{
 		// cf. CvTeam::getResearchCost
@@ -519,25 +519,25 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			}
 		}
 	}
-	// <dlph.1>
+	// <kekm.1>
 	for(iI = 0; iI < NUM_DOMAIN_TYPES; iI++)
 	{
 		DomainTypes eDomain = (DomainTypes)iI; // advc
 		changeExtraMoves(eDomain, std::max(0, GET_TEAM(eTeam).getExtraMoves(eDomain) -
 				getExtraMoves(eDomain)));
-	} // </dlph.1>
+	} // </kekm.1>
 	CvMap const& m = GC.getMap();
 	for (iI = 0; iI < m.numPlots(); iI++)
 	{
 		CvPlot& p = m.getPlotByIndex(iI); // advc
 
-		/*  dlph.26: This part is moved above to the part where members of the
+		/*  kekm.26: This part is moved above to the part where members of the
 			other team still had their old team number. */
-		// <dlph.2>
+		// <kekm.2>
 		/*if(p.isCity()) {
 			CvCity& c = *p.getPlotCity(); // advc
 			c.setEspionageVisibility(eTeam, false, false);
-		}*/ // </dlph.2>
+		}*/ // </kekm.2>
 
 		p.changeVisibilityCount(getID(), p.getVisibilityCount(eTeam), NO_INVISIBLE, false);
 
@@ -553,7 +553,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	}
 
 	g.updatePlotGroups();
-	int iOtherTeamSize = getNumMembers() - iOriginalTeamSize; // dlph.26
+	int iOtherTeamSize = getNumMembers() - iOriginalTeamSize; // kekm.26
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		if (iI != getID() && iI != eTeam)
@@ -563,7 +563,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			kLoopTeam.AI_setAtWarCounter(getID(), ((kLoopTeam.AI_getAtWarCounter(getID()) + kLoopTeam.AI_getAtWarCounter(eTeam)) / 2));
 			// ... (BtS code deleted)
 			kLoopTeam.setEspionagePointsAgainstTeam(getID(), std::max(kLoopTeam.getEspionagePointsAgainstTeam(getID()), kLoopTeam.getEspionagePointsAgainstTeam(eTeam))); // unofficial patch*/
-			/*  <dlph.26> "These counters now scale properly with number of players in teams.
+			/*  <kekm.26> "These counters now scale properly with number of players in teams.
 				Also, espionage is now sum instead of max. */
 			kLoopTeam.AI_setAtWarCounter(getID(), (iOriginalTeamSize *
 					kLoopTeam.AI_getAtWarCounter(getID()) + iOtherTeamSize *
@@ -611,7 +611,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			kLoopTeam.AI_setEnemyPeacetimeGrantValue(getID(), (iOriginalTeamSize *
 					kLoopTeam.AI_getEnemyPeacetimeGrantValue(getID()) + iOtherTeamSize *
 					kLoopTeam.AI_getEnemyPeacetimeGrantValue(eTeam)) / getNumMembers());
-			// </dlph.26>
+			// </kekm.26>
 
 			if (kLoopTeam.isAlive())
 			{
@@ -641,13 +641,13 @@ void CvTeam::shareItems(TeamTypes eTeam)
 	FOR_EACH_ENUM(Tech)
 	{
 		if (GET_TEAM(eTeam).isHasTech(eLoopTech))
-		{	// <dlph.26> "Preserve no tech brokering status."
+		{	// <kekm.26> "Preserve no tech brokering status."
 			setNoTradeTech(eLoopTech, (!isHasTech(eLoopTech) || isNoTradeTech(eLoopTech)) &&
-					GET_TEAM(eTeam).isNoTradeTech(eLoopTech)); // </dlph.26>
+					GET_TEAM(eTeam).isNoTradeTech(eLoopTech)); // </kekm.26>
 			setHasTech(eLoopTech, true, NO_PLAYER, true, false);
 		}
 	}
-	/*  <dlph.26> "Other direction also done here as other direction of shareItems
+	/*  <kekm.26> "Other direction also done here as other direction of shareItems
 		is not used anymore." */
 	FOR_EACH_ENUM(Tech)
 	{
@@ -659,7 +659,7 @@ void CvTeam::shareItems(TeamTypes eTeam)
 					isNoTradeTech(eLoopTech));
 			GET_TEAM(eTeam).setHasTech(eLoopTech, true, NO_PLAYER, true, false);
 		}
-	} // </dlph.26>
+	} // </kekm.26>
 
 	FOR_EACH_ENUM(Bonus)
 	{
@@ -667,25 +667,25 @@ void CvTeam::shareItems(TeamTypes eTeam)
 			setForceRevealedBonus(eLoopBonus, true);
 	}
 
-	/*  <dlph.26> "Other direction also done here as other direction of shareItems
+	/*  <kekm.26> "Other direction also done here as other direction of shareItems
 		is not used anymore." */
 	FOR_EACH_ENUM(Bonus)
 	{
 		if (isForceRevealedBonus(eLoopBonus))
 			GET_TEAM(eTeam).setForceRevealedBonus(eLoopBonus, true);
-	} // </dlph.26>
+	} // </kekm.26>
 
 	for (int i = 0; i < MAX_TEAMS; i++)
 	{
 		TeamTypes eLoopTeam = (TeamTypes)i;
 		//setEspionagePointsAgainstTeam(eLoopTeam, std::max(GET_TEAM(eTeam).getEspionagePointsAgainstTeam(eLoopTeam), getEspionagePointsAgainstTeam(eLoopteam)));
-		// <dlph.26> "Espionage is now sum instead of max."
+		// <kekm.26> "Espionage is now sum instead of max."
 		setEspionagePointsAgainstTeam(eLoopTeam,
 				GET_TEAM(eTeam).getEspionagePointsAgainstTeam(eLoopTeam) +
-				getEspionagePointsAgainstTeam(eLoopTeam)); // </dlph.26>
+				getEspionagePointsAgainstTeam(eLoopTeam)); // </kekm.26>
 	}
 	//setEspionagePointsEver(std::max(GET_TEAM(eTeam).getEspionagePointsEver(), getEspionagePointsEver())); // K-Mod
-	// dlph.26: Replacing the above
+	// kekm.26: Replacing the above
 	setEspionagePointsEver(GET_TEAM(eTeam).getEspionagePointsEver() + getEspionagePointsEver());
 
 	for(int i = 0; i < MAX_PLAYERS; i++)  // advc: style changes
@@ -718,7 +718,7 @@ void CvTeam::shareItems(TeamTypes eTeam)
 			}
 		}
 	}
-	/*  <dlph.26> "Other direction also done here as other direction of shareItems
+	/*  <kekm.26> "Other direction also done here as other direction of shareItems
 		is not used anymore." */
 	for(int i = 0; i < MAX_PLAYERS; i++)
 	{
@@ -749,7 +749,7 @@ void CvTeam::shareItems(TeamTypes eTeam)
 				GET_TEAM(eTeam).processBuilding(eBuilding, iCityBuildings);
 			}
 		}
-	} // </dlph.26>
+	} // </kekm.26>
 
 	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
@@ -757,7 +757,7 @@ void CvTeam::shareItems(TeamTypes eTeam)
 		if (!kLoopPlayer.isAlive())
 			continue;
 		if (kLoopPlayer.getTeam() == eTeam ||
-			/*  dlph.26: "Other direction also done here as other direction
+			/*  kekm.26: "Other direction also done here as other direction
 				of shareItems is not used anymore." */
 			kLoopPlayer.getTeam() == getID())
 		{
@@ -887,7 +887,7 @@ void CvTeam::shareCounters(TeamTypes eTeam)
 		// unofficial patch
 		/*if (kShareTeam.isHasTech(eTech) && !(kShareTeam.isNoTradeTech(eTech)))
 			setNoTradeTech((eTech), false);*/
-		/*  dlph.26 (commented out): "What was this even supposed to be doing?
+		/*  kekm.26 (commented out): "What was this even supposed to be doing?
 			No tech brokering is now applied if necessary when tech is shared
 			in CvTeam::shareItems. */
 	}
@@ -1248,12 +1248,12 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 		GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getLeaderID(), szBuffer,
 				-1, -1, GC.getColorType("WARNING_TEXT"));
 	}
-	// dlph.26 (advc): EventReporter call moved down
+	// kekm.26 (advc): EventReporter call moved down
 
 	/*  K-Mod / BBAI. This section includes some customization options from BBAI.
 		The code has been modified for K-Mod, so that it uses "bPrimaryDoW" rather than the BBAI parameter.
 		The original BtS code has been deleted. */
-	/* dlph.3: 'BBAI option 1 didn't work because if clauses for canceling pacts
+	/* kekm.3: 'BBAI option 1 didn't work because if clauses for canceling pacts
 	   were wrong. BBAI otpion 2 needs further fixing. When all players have
 	   defensive pacts with all other players and someone declares war the
 	   correct behaviour would be to have all attack the inital attacker,
@@ -1268,14 +1268,14 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 		CvTeam& kThirdTeam = *it;
 		if (kThirdTeam.getID() == getID() || kThirdTeam.getID() == eTarget)
 			continue;
-		// <dlph.3> Ally can already be at war with the aggressor
+		// <kekm.3> Ally can already be at war with the aggressor
 		if(kThirdTeam.isAtWar(eTarget))
-			continue; // </dlph.3>
+			continue; // </kekm.3>
 		if (kThirdTeam.isDefensivePact(eTarget))
 		{
 			FAssert(!kTarget.isAVassal() && !kThirdTeam.isAVassal());
 			//kThirdTeam.declareWar(getID(), bNewDiplo, WARPLAN_DOGPILE, false);
-			// dlph.26:
+			// kekm.26:
 			queueWar(kThirdTeam.getID(), getID(), bNewDiplo, WARPLAN_DOGPILE, false);
 			// <advc.104i>
 			bDefPactTriggered = true;
@@ -1289,14 +1289,14 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 		else if (iDPBehavior > 1 && kThirdTeam.isDefensivePact(getID()))
 		{	// For alliance option.  This teams pacts are canceled above if not using alliance option.
 			//kThirdTeam.declareWar(eTeam, bNewDiplo, WARPLAN_DOGPILE, false);
-			// dlph.26:
+			// kekm.26:
 			queueWar(kThirdTeam.getID(), eTarget, bNewDiplo, WARPLAN_DOGPILE, false);
 		}
 	}
-	if (iDPBehavior == 0)// dlph.3: || (iDPBehavior == 1 && bPrimaryDoW))
+	if (iDPBehavior == 0)// kekm.3: || (iDPBehavior == 1 && bPrimaryDoW))
 		kTarget.cancelDefensivePacts();
 	// K-Mod / BBAI end.
-	kTarget.allowDefensivePactsToBeCanceled(); // dlph.3
+	kTarget.allowDefensivePactsToBeCanceled(); // kekm.3
 	/*  <advc.104i> When other teams come to the help of eTeam through a
 		defensive pact, then eTeam becomes unwilling to talk with us. */
 	if(bDefPactTriggered)
@@ -1309,13 +1309,13 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 		if (kThirdTeam.isVassal(eTarget) || kTarget.isVassal(kThirdTeam.getID()))
 		{
 			//declareWar(kThirdTeam.getID(), bNewDiplo, AI_getWarPlan(eTeam), false);
-			// dlph.26:
+			// kekm.26:
 			queueWar(getID(), kThirdTeam.getID(), bNewDiplo, AI().AI_getWarPlan(eTarget), false);
 		}
 		else if (kThirdTeam.isVassal(getID()) || isVassal(kThirdTeam.getID()))
 		{
 			//kThirdTeam.declareWar(eTeam, bNewDiplo, WARPLAN_DOGPILE, false);
-			// dlph.26:
+			// kekm.26:
 			queueWar(kThirdTeam.getID(), eTarget, bNewDiplo, WARPLAN_DOGPILE, false);
 		}
 	}
@@ -1323,12 +1323,12 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 			GET_PLAYER(i).AI_updateAttitude();
 	}*/
-	// <dlph.26> The above is "updated when the war queue is emptied."
+	// <kekm.26> The above is "updated when the war queue is emptied."
 	/*  advc (bugfix): But not unless this function communicates to triggerWars that
 		a (primary) DoW has already occurred. */
 	triggerWars(true);
 	// advc: Moved down so that war status has already changed when event is reported
-	CvEventReporter::getInstance().changeWar(true, getID(), eTarget); // </dlph.26>
+	CvEventReporter::getInstance().changeWar(true, getID(), eTarget); // </kekm.26>
 }
 
 
@@ -1769,7 +1769,7 @@ int CvTeam::countWarEnemies(bool bIgnoreMinors, bool bIgnoreVassals) const
 	return iCount;
 }
 // BETTER_BTS_AI_MOD: END
-// <dlph.3> (actually an advc change)
+// <kekm.3> (actually an advc change)
 bool CvTeam::allWarsShared(TeamTypes eOther, /* advc.130f: */ bool bCheckBothWays) const
 {
 	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
@@ -1783,7 +1783,7 @@ bool CvTeam::allWarsShared(TeamTypes eOther, /* advc.130f: */ bool bCheckBothWay
 			return false; // </advc.130f>
 	}
 	return true;
-} // </dlph.3>
+} // </kekm.3>
 
 
 int CvTeam::getHasMetCivCount(bool bIgnoreMinors) const
@@ -3319,7 +3319,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 			if (GET_TEAM(eMaster).isAtWar(eThirdParty))
 			{
 				//declareWar((TeamTypes)iI, false, WARPLAN_DOGPILE);
-				// dlph.26: "These wars declared by capitulated vassal don't trigger defensive pacts."
+				// kekm.26: "These wars declared by capitulated vassal don't trigger defensive pacts."
 				queueWar(getID(), eThirdParty, false, WARPLAN_DOGPILE, !bCapitulated);
 			}
 			else if (isAtWar(eThirdParty))
@@ -3329,12 +3329,12 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 				else
 				{
 					//GET_TEAM(eMaster).declareWar((TeamTypes)iI, false, WARPLAN_DOGPILE);
-					// dlph.26:
+					// kekm.26:
 					queueWar(eMaster, eThirdParty, false, WARPLAN_DOGPILE);
 				}
 			}
 		}
-		triggerWars(); // dlph.26
+		triggerWars(); // kekm.26
 		for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		{
 			CvTeamAI& kRival = *it;
@@ -3603,7 +3603,7 @@ void CvTeam::freeVassal(TeamTypes eVassal) const
 	} // </advc.130y>
 }
 
-/*  <dlph.26> "Changed how multiple war declarations work. declareWar used to
+/*  <kekm.26> "Changed how multiple war declarations work. declareWar used to
 	nest war declarations, now they are queued to trigger defensive pacts and
 	everything else in the correct order." */
 void CvTeam::queueWar(TeamTypes eAttackingTeam, TeamTypes eDefendingTeam,
@@ -3641,7 +3641,7 @@ void CvTeam::triggerWars(bool bForceUpdateAttitude)
 			it->AI_updateAttitude();
 	}
 	bTriggeringWars = false;
-} // </dlph.26>
+} // </kekm.26>
 
 
 void CvTeam::changeRouteChange(RouteTypes eIndex, int iChange)
@@ -5004,7 +5004,7 @@ void CvTeam::doBarbarianResearch()
 	FAssert(isBarbarian());
 	CvGame& g = GC.getGame();
 	int iElapsed = g.getElapsedGameTurns();
-	/*  <dlph.28> "Give some starting research to barbarians in advanced start
+	/*  <kekm.28> "Give some starting research to barbarians in advanced start
 		depending on other players' tech status after advanced start. */
 	if (iElapsed == 1 && // This function isn't called on turn 0
 			g.isOption(GAMEOPTION_ADVANCED_START))
@@ -5027,7 +5027,7 @@ void CvTeam::doBarbarianResearch()
 						iPossibleCount, getLeaderID());
 			}
 		}
-	} // </dlph.28>
+	} // </kekm.28>
 	// <advc.307>
 	bool bNoBarbCities = GC.getInfo(g.getCurrentEra()).isNoBarbCities();
 	bool bIgnorePrereqs = bNoBarbCities;
@@ -5114,7 +5114,7 @@ void CvTeam::updateTechShare(TechTypes eTech)
 		{
 			setHasTech(eTech, true, NO_PLAYER, true, true);
 			if(GET_PLAYER(getLeaderID()).isSignificantDiscovery(eTech)) // advc.550e
-				setNoTradeTech(eTech, true); // dlph.31
+				setNoTradeTech(eTech, true); // kekm.31
 			return;
 		}
 	}
@@ -5454,7 +5454,7 @@ void CvTeam::cancelDefensivePacts()
 	}
 }
 
-// <dlph.3> (actually an advc change)
+// <kekm.3> (actually an advc change)
 void CvTeam::allowDefensivePactsToBeCanceled()
 {
 	FOR_EACH_DEAL_VAR(d)
@@ -5464,7 +5464,7 @@ void CvTeam::allowDefensivePactsToBeCanceled()
 		if(d->headFirstTradesNode()->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)
 			d->setInitialGameTurn(-100);
 	}
-} // </dlph.3>
+} // </kekm.3>
 
 
 void CvTeam::read(FDataStreamBase* pStream)

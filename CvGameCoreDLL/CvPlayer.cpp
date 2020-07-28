@@ -1163,9 +1163,9 @@ void CvPlayer::initFreeState()
 
 
 void CvPlayer::initFreeUnits()
-{	// <dlph.28>
+{	// <kekm.28>
 	if(isBarbarian())
-		return; // </dlph.28>
+		return; // </kekm.28>
 	// <advc>
 	CvGame const& kGame = GC.getGame();
 	int const iStartingUnitMultiplier = GC.getInfo(kGame.getStartEra()).
@@ -1468,7 +1468,7 @@ int CvPlayer::coastRiverStartingAreaScore(CvArea const& a) const
 	return r;
 } // </advc.027>
 
-// <dlph.35>
+// <kekm.35>
 class VectorPairSecondGreaterComparator
 {
 public:
@@ -1476,10 +1476,10 @@ public:
 	{
 		return (a.second >= b.second);
 	}
-}; // </dlph.35>
+}; // </kekm.35>
 // Returns the id of the best area, or -1 if it doesn't matter:
 //int CvPlayer::findStartingArea() const
-// dlph.35: "Returns a vector of all starting areas sorted by their value (instead of one best starting area)."
+// kekm.35: "Returns a vector of all starting areas sorted by their value (instead of one best starting area)."
 std::vector<std::pair<int,int> > CvPlayer::findStartingAreas(  // advc: style changes
 	bool* pbFoundByMapScript) const // advc.027
 {
@@ -1487,20 +1487,20 @@ std::vector<std::pair<int,int> > CvPlayer::findStartingAreas(  // advc: style ch
 	// <advc.027>
 	if (pbFoundByMapScript != NULL)
 		*pbFoundByMapScript = false; // </advc.027>
-	std::vector<std::pair<int,int> > areas_by_value; // dlph.35
+	std::vector<std::pair<int,int> > areas_by_value; // kekm.35
 	{
 		CvArea* pyArea = GC.getPythonCaller()->findStartingArea(getID());
 		if (pyArea != NULL)
 		{
-			areas_by_value.push_back(std::make_pair(pyArea->getID(), 1)); // dlph.35
+			areas_by_value.push_back(std::make_pair(pyArea->getID(), 1)); // kekm.35
 			// <advc.027>
 			if (pbFoundByMapScript != NULL)
 				*pbFoundByMapScript = true; // </advc.027>
-			return areas_by_value; // dlph.35
+			return areas_by_value; // kekm.35
 		}
 	}
 	// find best land area
-	//int iBestValue = 0; int iBestArea = -1; // dlph.35
+	//int iBestValue = 0; int iBestArea = -1; // kekm.35
 	FOR_EACH_AREA(pLoopArea)
 	{
 		if (pLoopArea->isWater())
@@ -1529,14 +1529,14 @@ std::vector<std::pair<int,int> > CvPlayer::findStartingAreas(  // advc: style ch
 		/*if (iValue > iBestValue) {
 			iBestValue = iValue;
 			iBestArea = pLoopArea->getID();
-		}*/ // dlph.35:
+		}*/ // kekm.35:
 		areas_by_value.push_back(std::make_pair(pLoopArea->getID(), iValue));
 	}
-	//return iBestArea; // <dlph.35>
+	//return iBestArea; // <kekm.35>
 	VectorPairSecondGreaterComparator kComparator;
 	std::sort(areas_by_value.begin(), areas_by_value.end(), kComparator);
 	areas_by_value.resize(8); // advc: No need to pass around every little island
-	return areas_by_value; // </dlph.35>
+	return areas_by_value; // </kekm.35>
 }
 
 
@@ -1560,12 +1560,12 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize,
 		}
 	}
 	//int iBestArea = -1;
-	// dlph.35: "This function is adjusted to work with a list of possible starting areas instead of a single one."
+	// kekm.35: "This function is adjusted to work with a list of possible starting areas instead of a single one."
 	std::vector<std::pair<int,int> > areas_by_value;
 	bool bNew = false;
 	if (getStartingPlot() != NULL)
 	{
-		//iBestArea = getStartingPlot()->getArea().getID(); // dlph.35:
+		//iBestArea = getStartingPlot()->getArea().getID(); // kekm.35:
 		areas_by_value.push_back(std::make_pair(getStartingPlot()->getArea().getID(), 1));
 		setStartingPlot(NULL, true);
 		bNew = true;
@@ -1576,19 +1576,19 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize,
 	if (!bNew)
 	{
 		//iBestArea = findStartingArea();
-		areas_by_value = findStartingAreas( // dlph.35
+		areas_by_value = findStartingAreas( // kekm.35
 				pbAreaFoundByMapScript); // advc.027
 	}
 	/*  <advc.140> Cut and pasted from CvMap::maxPlotDistance. I've changed that
 		function, but I think the original formula might be needed here.
 		I'm not sure I understand the purpose of this outer loop. */
-	// ^dlph.35 replaces the outer loop
+	// ^kekm.35 replaces the outer loop
 	/*int iMaxPlotDist = std::max(1, ::plotDistance(0, 0, ((m.isWrapX()) ?
 			(m.getGridWidth() / 2) : (m.getGridWidth() - 1)),
 			((m.isWrapY()) ? (m.getGridHeight() / 2) :
 			(m.getGridHeight() - 1))));
 	for(int iPass = 0; iPass < iMaxPlotDist; iPass++)*/ // </advc.140>
-	/*  <dlph.35> "First pass avoids starting locations that have very little food
+	/*  <kekm.35> "First pass avoids starting locations that have very little food
 		(before normalization) to avoid starting on the edge of very bad terrain." */
 	int const iStartingRange = GC.getDefineINT("ADVANCED_START_SIGHT_RANGE");
 	CvMap const& kMap = GC.getMap();
@@ -1596,14 +1596,14 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize,
 	for(int iPass = 0; iPass <= iMaxPass; iPass++)
 	{
 		for(size_t iJ = 0; iJ < areas_by_value.size(); iJ++)
-		{ // </dlph.35>
+		{ // </kekm.35>
 			CvPlot *pBestPlot = NULL;
 			int iBestValue = iMaxPass - iPass; // advc: was 0 flat
 			for (int iI = 0; iI < kMap.numPlots(); iI++)
 			{
 				CvPlot* pLoopPlot = kMap.plotByIndex(iI);
 				//if (iBestArea == -1 || pLoopPlot->getArea() == iBestArea)
-				// <dlph.35>
+				// <kekm.35>
 				if (pLoopPlot->getArea().getID() != areas_by_value[iJ].first)
 					continue;
 				if (iPass == 0) // "Avoid very bad terrain in the first pass."
@@ -1622,7 +1622,7 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize,
 					}
 					if (iTotalFood < std::max(1, iLandPlots) / 2)
 						continue;
-				} // </dlph.35>
+				} // </kekm.35>
 				//the distance factor is now done inside foundValue
 				int iValue = pLoopPlot->getFoundValue(getID());
 				if (bRandomize && iValue > 0)
@@ -1641,7 +1641,7 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize,
 
 			if (pBestPlot != NULL)
 				return pBestPlot;
-		} // dlph.35: end of areas_by_value loop
+		} // kekm.35: end of areas_by_value loop
 		FAssertMsg(iPass != 0, "CvPlayer::findStartingPlot - could not find starting plot in first pass.");
 	}
 
@@ -1996,7 +1996,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		PlayerTypes eLoopPlayer = (PlayerTypes)i;
 		kNewCity.setEverOwned(eLoopPlayer, abEverOwned[eLoopPlayer]);
 		kNewCity.setCultureTimes100(eLoopPlayer, aiCulture[eLoopPlayer], false, false);
-	} // <dlph.23>
+	} // <kekm.23>
 	if(bTrade) // Further repercussions of cession: city culture
 	{
 		int iOldOwnerCulture = kNewCity.getCultureTimes100(eOldOwner);
@@ -2007,7 +2007,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 				iNewOwnerCulture + iConvertedCulture, true, false);
 		kNewCity.setCultureTimes100(eOldOwner,
 				iOldOwnerCulture - iConvertedCulture, true, false);
-	} // </dlph.23>
+	} // </kekm.23>
 
 	// Destruction of buildings
 	for (int i = 0; i < GC.getNumBuildingInfos(); i++)
@@ -3057,7 +3057,7 @@ void CvPlayer::doTurn()  // advc: style changes
 		changeAnarchyTurns(-1);
 	verifyCivics();
 	doChangeCivicsPopup(NO_CIVIC); // advc.004x
-	//verifyStateReligion(); // dlph.10: disabled for now
+	//verifyStateReligion(); // kekm.10: disabled for now
 
 	updateTradeRoutes();
 	updateWarWearinessPercentAnger();
@@ -3210,12 +3210,12 @@ void CvPlayer::verifyCivics()  // advc: refactored
 	}
 }
 
-// <dlph.10>
+// <kekm.10>
 void CvPlayer::verifyStateReligion()
 {
 	if(!isAnarchy() && !canDoReligion(getStateReligion()))
 		setLastStateReligion(NO_RELIGION);
-} // </dlph.10>
+} // </kekm.10>
 
 // <advc.064d>
 void CvPlayer::verifyCityProduction()
@@ -4258,7 +4258,7 @@ bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType
 			!kOurTeam.isDefensivePact(kToTeam.getID()) &&
 			(kOurTeam.isDefensivePactTrading() || kToTeam.isDefensivePactTrading()))
 		{
-			/*  <dlph.3> 'Added possibility of signing defensive pact while in war
+			/*  <kekm.3> 'Added possibility of signing defensive pact while in war
 				if BBAI defensive pact option is >= 1' */
 			if ((kOurTeam.getNumWars() <= 0 && kToTeam.getNumWars() <= 0) ||
 				(GC.getDefineINT(CvGlobals::BBAI_DEFENSIVE_PACT_BEHAVIOR) >= 1
@@ -4266,7 +4266,7 @@ bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType
 					Enough to have the AI refuse such pacts I think
 					(in CvTeamAI::AI_defensivePactTrade). */
 					//&& GET_TEAM(getID()).allWarsShared(theirTeam.getID())
-				)) // </dlph.3>
+				)) // </kekm.3>
 			{
 				if (kOurTeam.canSignDefensivePact(kToTeam.getID()))
 					return true;
@@ -5438,12 +5438,12 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
 		if (eFoundCorp != NO_CORPORATION && isNoCorporations())
 			return false;
 	}
-	// <dlph.19> (advc: simplified)
+	// <kekm.19> (advc: simplified)
 	if (kBuilding.isCapital() && GC.getGame().getGameState() == GAMESTATE_ON &&
 		GET_TEAM(getTeam()).isAnyVictoryCountdown()) // advc.opt
 	{
 		return false;
-	} // </dlph.19>
+	} // </kekm.19>
 	if (kOurTeam.isBuildingClassMaxedOut(eBuildingClass))
 		return false;
 
@@ -8397,9 +8397,9 @@ int CvPlayer::getTypicalUnitValue(UnitAITypes eUnitAI, DomainTypes eDomain) cons
 }
 
 int CvPlayer::getGoldPerUnit() const
-{	// <dlph.14>
+{	// <kekm.14>
 	if(isBarbarian())
-		return 0; // </dlph.14>
+		return 0; // </kekm.14>
 	return m_iGoldPerUnit;
 }
 
@@ -8419,9 +8419,9 @@ void CvPlayer::changeGoldPerUnit(int iChange)
 
 
 int CvPlayer::getGoldPerMilitaryUnit() const
-{	// <dlph.14>
+{	// <kekm.14>
 	if(isBarbarian())
-		return 0; // </dlph.14>
+		return 0; // </kekm.14>
 	return m_iGoldPerMilitaryUnit;
 }
 
@@ -13418,7 +13418,7 @@ int CvPlayer::getEspionageMissionCost(EspionageMissionTypes eMission, PlayerType
 
 	// Multiply cost of mission * number of team members
 	//iMissionCost *= GET_TEAM(getTeam()).getNumMembers(); // K-Mod
-	// dlph.33/advc
+	// kekm.33/advc
 	iMissionCost = adjustMissionCostToTeamSize(iMissionCost, eTargetPlayer);
 
 	iMissionCost *= getEspionageMissionCostModifier(eMission, eTargetPlayer, pPlot, iExtraData, pSpyUnit);
@@ -13427,7 +13427,7 @@ int CvPlayer::getEspionageMissionCost(EspionageMissionTypes eMission, PlayerType
 	return std::max(0, iMissionCost);
 }
 
-// advc: Auxiliary function for dlph.33
+// advc: Auxiliary function for kekm.33
 int CvPlayer::adjustMissionCostToTeamSize(int iBaseCost, PlayerTypes eTargetPlayer) const
 {
 	// Don't compute anything when the teams have equal size
@@ -13437,13 +13437,13 @@ int CvPlayer::adjustMissionCostToTeamSize(int iBaseCost, PlayerTypes eTargetPlay
 		return iBaseCost;
 	// Tie it to the tech cost modifier
 	double extraTeamMemberModifier = GC.getDefineINT(CvGlobals::TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER) / 100.0;
-	/* <dlph.33> "New formula for espionage costs in team. Essentially, I want costs
+	/* <kekm.33> "New formula for espionage costs in team. Essentially, I want costs
 		to scale with 1+0.5(number of members - 1), but since there are two teams
 		(and two directions) involved, it will scale with the square root of the
 		ratio of those values. Idea for formula by Fran." */
 	return (int)(iBaseCost * std::sqrt(
 			(1 + extraTeamMemberModifier * (iOurTeamSize - 1)) /
-			(1 + extraTeamMemberModifier * (iTheirTeamSize - 1)))); // </dlph.33>
+			(1 + extraTeamMemberModifier * (iTheirTeamSize - 1)))); // </kekm.33>
 }
 
 
@@ -14629,7 +14629,7 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 				{
 					CvUnit* pUnit = ::getUnit(pUnitNode->m_data);
 					iCost = getAdvancedStartUnitCost(pUnit->getUnitType(), false,
-							pPlot); // dlph.11
+							pPlot); // kekm.11
 					FAssertMsg(iCost != -1, "If this is -1 then that means it's going to try to delete a unit which shouldn't exist");
 					pUnit->kill(false);
 					changeAdvancedStartPoints(iCost);
@@ -14754,7 +14754,7 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 				if (bPopChanged)
 				{
 					pCity->setHighestPopulation(pCity->getPopulation());
-					// advc.250c, dlph: Commented out
+					// advc.250c, kekm: Commented out
 					/*if (pCity->getPopulation() == 1) {
 						pCity->setFood(0);
 						pCity->setFoodKept(0);
@@ -15229,7 +15229,7 @@ int CvPlayer::getAdvancedStartCityCost(bool bAdd, CvPlot const* pPlot) const
 			iCost /= 100;
 		}
 	} // <advc.250c>
-	if(getNumCities() > 0) // <dlph>
+	if(getNumCities() > 0) // <kekm>
 	{
 		for(int i = 0; i < GC.getNumUnitInfos(); i++)
 		{
@@ -15240,7 +15240,7 @@ int CvPlayer::getAdvancedStartCityCost(bool bAdd, CvPlot const* pPlot) const
 				iCost /= std::max(1, 100 + getProductionModifier(eUnit));
 				break;
 			}
-		} // </dlph>
+		} // </kekm>
 	}
 	return adjustAdvStartPtsToSpeed(iCost); // </advc.250c>
 }
@@ -19446,10 +19446,10 @@ PlayerTypes CvPlayer::getSplitEmpirePlayer(CvArea const& kArea) const // advc: w
 
 	if (eNewPlayer == NO_PLAYER)
 	{
-		/*	<dlph.24> Reusing a defeated player might not work correctly. advc:
+		/*	<kekm.24> Reusing a defeated player might not work correctly. advc:
 			Allow human players to try it, but don't let the AI wreck the game somehow. */
 		if (!isHuman())
-			return NO_PLAYER; // </dlph.24>
+			return NO_PLAYER; // </kekm.24>
 		for (int i = 0; i < MAX_CIV_PLAYERS; ++i)
 		{
 			if (!GET_PLAYER((PlayerTypes)i).isAlive())
@@ -19658,7 +19658,7 @@ bool CvPlayer::splitEmpire(CvArea& kArea) // advc: was iAreaId; and some other s
 				}
 			}
 		}
-		// dlph.24: Commented out
+		// kekm.24: Commented out
 		/*for (int iTeam = 0; iTeam < MAX_TEAMS; ++iTeam) {
 			CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iTeam);
 			if (kLoopTeam.isAlive()) {
@@ -20192,17 +20192,17 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 			if (!kOurTeam.isDefensivePactTrading() && !kVotingMember.isDefensivePactTrading())
 				return false;
 			if ((kOurTeam.getNumWars() > 0 || kVotingMember.getNumWars() > 0) &&
-				// dlph.25: 'Sometimes defensive pact can be signed while at war'
+				// kekm.25: 'Sometimes defensive pact can be signed while at war'
 				GC.getDefineINT(CvGlobals::BBAI_DEFENSIVE_PACT_BEHAVIOR) == 0)
 			{
 				return false;
-			} // <dlph.25>
+			} // <kekm.25>
 			if(kOurTeam.isAtWar(kVotingMember.getID()) ||
-				// advc: Same additional restriction as for DP between AI teams (dlph.3)
+				// advc: Same additional restriction as for DP between AI teams (kekm.3)
 				!kOurTeam.allWarsShared(kVotingMember.getID()))
 			{
 				return false;
-			} // </dlph.25>
+			} // </kekm.25>
 			if (!kOurTeam.canSignDefensivePact(kVotingMember.getID()))
 				return false;
 		}
@@ -20225,12 +20225,12 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 	{
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
 		if (!kOurTeam.isAtWar(kPlayer.getTeam()) &&
-			kOurTeam.isFullMember(eVoteSource)) // dlph.25/advc
+			kOurTeam.isFullMember(eVoteSource)) // kekm.25/advc
 		{
 			CvTeam const& kOurMaster = GET_TEAM(getMasterTeam());
-			if ((kOurMaster.isFullMember(eVoteSource) && // dlph.25/advc: was isVotingMember
+			if ((kOurMaster.isFullMember(eVoteSource) && // kekm.25/advc: was isVotingMember
 				!kOurMaster.canDeclareWar(kPlayer.getTeam()) &&
-				// <dlph.25/advc>
+				// <kekm.25/advc>
 				eSecretaryGeneral == kOurMaster.getID()) ||
 				!kOurMaster.canEventuallyDeclareWar(kPlayer.getTeam()))
 				// </advc.25/advc>
@@ -20269,12 +20269,12 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 		return false;
 
 	CvVoteInfo const& kVote = GC.getInfo(kData.eVote); // advc
-	// <dlph.25/advc> Kek-Mod just checks isAVassal
+	// <kekm.25/advc> Kek-Mod just checks isAVassal
 	if(GET_TEAM(getTeam()).isCapitulated() ||
 		(isAVassal() && (kVote.isForceWar() || kVote.isForcePeace())))
 	{
 		return false;
-	} // </dlph.25/advc>
+	} // </kekm.25/advc>
 	if (kVote.isOpenBorders())
 	{
 		for (TeamIter<MAJOR_CIV,NOT_SAME_TEAM_AS> it(getTeam()); it.hasNext(); ++it)
@@ -20304,12 +20304,12 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 	else if (kVote.isForceWar())
 	{
 		if (!::atWar(getTeam(), TEAMID(kData.ePlayer)) &&
-			// dlph.25: 'Cannot defy war declaration against itself'
+			// kekm.25: 'Cannot defy war declaration against itself'
 			GET_TEAM(kData.ePlayer).getMasterTeam() != getMasterTeam() &&
 			isFullMember(eVoteSource)) // advc
 		{
 			// BETTER_BTS_AI_MOD, 12/31/08, jdog5000: Vassals can't defy declarations of war
-			//if (!GET_TEAM(getTeam()).isAVassal()) // dlph.25: Vassals already handled
+			//if (!GET_TEAM(getTeam()).isAVassal()) // kekm.25: Vassals already handled
 			return true;
 		}
 	}
@@ -20324,7 +20324,7 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 	else if (kVote.isAssignCity())
 	{
 		if (kData.ePlayer == getID() ||
-			// dlph.25: 'You can defy resolution giving you a city'
+			// kekm.25: 'You can defy resolution giving you a city'
 			kData.eOtherPlayer == getID())
 		{
 			return true;
@@ -20342,7 +20342,7 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 void CvPlayer::setDefiedResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData)
 {
 	FAssertMsg(canDefyResolution(eVoteSource, kData),
-			"OK to fail when a team member defies a resolution"); // dlph.25
+			"OK to fail when a team member defies a resolution"); // kekm.25
 	// cities get unhappiness
 	FOR_EACH_CITY_VAR(pLoopCity, *this)
 	{
@@ -21957,7 +21957,7 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 		bool bVisible = kLoopPlot.isVisible(getTeam(), true);
 		if(bVisible)
 		{ // </advc.004z>
-			// dlph.21: include Barbarians; advc.099: include defeated.
+			// kekm.21: include Barbarians; advc.099: include defeated.
 			for (PlayerIter<EVER_ALIVE> it; it.hasNext(); ++it)
 			{
 				PlayerTypes ePlayer = it->getID();

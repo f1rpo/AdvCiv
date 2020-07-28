@@ -873,13 +873,13 @@ void CvSelectionGroup::startMission()
 				}
 				/*if (pLoopUnit->isAttacking())
 					break;*/ // Sea patrol intercept
-				/*  <dlph.37> "If this selection group survives sea patrol battle
+				/*  <kekm.37> "If this selection group survives sea patrol battle
 					then the game crashes because combat clears the mission queue [...].
 					Since post-combat code clears the mission queue (and this sets
 					activity to ACTIVITY_AWAKE) and also deals with unit selection
 					for the active player, we can just skip rest of the function here." */
                 if (!headMissionQueueNode() || pLoopUnit->isAttacking())
-                    return; // </dlph.37>
+                    return; // </kekm.37>
 			}
 			break;
 		}

@@ -37,10 +37,10 @@ public:
 	CvRandom& getCyASyncRand() const;
 	CyTeam* getCyTeam(int i);
 	CyArtFileMgr* getCyArtFileMgr() const;
-	// <dlph.27>
+	// <kekm.27>
 	bool isLogging();
 	bool isRandLogging();
-	// </dlph.27>
+	// </kekm.27>
 	CvEffectInfo* getEffectInfo(int i) const;
 	CvTerrainInfo* getTerrainInfo(int i) const;
 	CvBonusClassInfo* getBonusClassInfo(int i) const;

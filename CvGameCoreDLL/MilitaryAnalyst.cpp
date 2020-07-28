@@ -62,7 +62,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 			for(PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> allyIt(agent.getID());
 					allyIt.hasNext(); ++allyIt) {
 				CvPlayerAI& ally = *allyIt;
-				// Can happen b/c of the dlph.3 change
+				// Can happen b/c of the kekm.3 change
 				if(agent.isAtWar(ally.getTeam()))
 					continue;
 				if(GET_TEAM(civId).uwai().hasDefactoDefensivePact(ally.getTeam()))

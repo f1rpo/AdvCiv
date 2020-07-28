@@ -98,7 +98,7 @@ CyTeam* CyGlobalContext::getCyTeam(int i)
 
 	return i<MAX_TEAMS ? &cyTeams[i] : NULL;
 }
-// <dlph.27> (advc)
+// <kekm.27> (advc)
 bool CyGlobalContext::isLogging() {
 
 	return GC.isLogging();
@@ -107,7 +107,7 @@ bool CyGlobalContext::isLogging() {
 bool CyGlobalContext::isRandLogging() {
 
 	return GC.isRandLogging();
-} // </dlph.27>
+} // </kekm.27>
 
 CvEffectInfo* CyGlobalContext::getEffectInfo(int /*EffectTypes*/ i) const
 {
