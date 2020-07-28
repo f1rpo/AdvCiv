@@ -2703,8 +2703,9 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 	if(pCity->getPlot().defenseModifier(pCity->getTeam(), false) <=
 		GC.getDefineINT(CvGlobals::CITY_DEFENSE_DAMAGE_HEAL_RATE))
 	{
-		if(AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ) || AI_isDoStrategy(AI_STRATEGY_LAND_BLITZ))
-			iValue += 6;
+		if(AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ) ||
+			AI_isDoStrategy(AI_STRATEGY_LAND_BLITZ))
+			iValue += 5; // (was 6 in CD Tweaks mod)
 		else if(AI_isDoStrategy(AI_STRATEGY_FASTMOVERS))
 			iValue += 3;
 		else iValue++;
