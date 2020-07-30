@@ -98,7 +98,7 @@ int intHash(vector<int> const& x, PlayerTypes ePlayer)
 	int iCapitalIndex = -1;
 	if (ePlayer != NO_PLAYER)
 	{
-		CvCity* pCapital = GET_PLAYER(ePlayer).getCapitalCity();
+		CvCity* pCapital = GET_PLAYER(ePlayer).getCapital();
 		if (pCapital != NULL)
 			iCapitalIndex = GC.getMap().plotNum(pCapital->getPlot());
 	}

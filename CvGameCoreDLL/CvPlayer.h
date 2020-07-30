@@ -1,11 +1,7 @@
 #pragma once
 
-// player.h
-
 #ifndef CIV4_PLAYER_H
 #define CIV4_PLAYER_H
-
-#include "CvPlotGroup.h"
 
 class CvTalkingHeadMessage;
 class CvDiploParameters;
@@ -19,6 +15,7 @@ class CvPlayerAI;
 class CvCity; class CvCityAI;
 class CvUnit; class CvUnitAI;
 class CvSelectionGroup; class CvSelectionGroupAI;
+class CvPlotGroup;
 // </advc.003u>
 class CvCivilization; // advc.003w
  /*	advc (note): Can't easily change this to <CvTalkingHeadMessage*>
@@ -214,6 +211,7 @@ public:
 	/* int countPotentialForeignTradeCities(CvArea* pIgnoreArea = NULL) const;
 	int countPotentialForeignTradeCitiesConnected() const; */ // K-Mod: These functions were used exclusively for AI.  I've moved them to CvPlayerAI.
 	bool doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const; // K-Mod
+	bool isSpeedBonusAvailable(BonusTypes eBonus, CvPlot const& kAt) const; // advc.905b
 
 	DllExport bool canContact(PlayerTypes ePlayer) const																									// Exposed to Python
 	{	// <advc> To match CvTeam::canContact
@@ -708,17 +706,25 @@ public:
 	int getStateReligionFreeExperience() const;																																// Exposed to Python
 	void changeStateReligionFreeExperience(int iChange);
 
-	DllExport inline CvCity* getCapitalCity() const // advc.inl																							// Exposed to Python
+	inline CvCity* getCapital() const // advc: abbreviate
 	{
 		return getCity(m_iCapitalCityID);
 	}
-	void setCapitalCity(CvCity* pNewCapitalCity);
+	DllExport CvCity* getCapitalCity() const																				// Exposed to Python
+	{
+		return getCapital();
+	}
+	void setCapitalCity(CvCity* pNewCapital);
 	// <advc.127b> -1 if no capital or (eObserver!=NO_TEAM) unrevealed to eObserver
 	int getCapitalX(TeamTypes eObserver, bool bDebug = false) const;
 	int getCapitalY(TeamTypes eObserver, bool bDebug = false) const;
 	int getCapitalX(PlayerTypes eObserver, bool bDebug = false) const;
 	int getCapitalY(PlayerTypes eObserver, bool bDebug = false) const;
-	// </advc.127b>
+	// </advc.127b>  <advc>
+	inline bool hasCapital() const
+	{	// (Don't want to waste time checking both coordinates)
+		return (m_iCapitalCityID != FFreeList::INVALID_INDEX);
+	} // </advc>
 
 	int getCitiesLost() const;																																								// Exposed to Python
 	void changeCitiesLost(int iChange);
@@ -766,35 +772,38 @@ public:
 	DllExport void setTurnActive(bool bNewValue, bool bDoTurn = true);
 	void onTurnLogging() const; // K-Mod
 
-	bool isAutoMoves() const;
+	bool isAutoMoves() const { return m_bAutoMoves; } // advc.inl
 	void setAutoMoves(bool bNewValue);
 	DllExport void setTurnActiveForPbem(bool bActive);
 
 	DllExport bool isPbemNewTurn() const;
 	DllExport void setPbemNewTurn(bool bNew);
 
-	bool isEndTurn() const;
+	bool isEndTurn() const { return m_bEndTurn; } // advc.inl
 	DllExport void setEndTurn(bool bNewValue);
 
 	DllExport bool isTurnDone() const;
 
-	bool isExtendedGame() const;																																			// Exposed to Python
+	bool isExtendedGame() const { return m_bExtendedGame; } // advc.inl														// Exposed to Python
 	void makeExtendedGame();
 
-	bool isFoundedFirstCity() const;																																	// Exposed to Python
+	bool isFoundedFirstCity() const { return m_bFoundedFirstCity; } // advc.inl												// Exposed to Python
 	void setFoundedFirstCity(bool bNewValue);
 	// <advc.078>
 	bool isAnyGPPEver() const;		// (Exposed to Python)
 	void reportFirstGPP(); // </advc.078>
 
-	bool isStrike() const;																																	// Exposed to Python
+	bool isStrike() const { return m_bStrike; } // advc.inl																	// Exposed to Python
 	void setStrike(bool bNewValue);
 
-	DllExport PlayerTypes getID() const { return m_eID; } // advc.inl																								// Exposed to Python
+	DllExport inline PlayerTypes getID() const { return m_eID; } // advc.inl												// Exposed to Python
 
 	DllExport HandicapTypes getHandicapType() const;																									// Exposed to Python
 
-	DllExport CivilizationTypes getCivilizationType() const;																					// Exposed to Python
+	DllExport CivilizationTypes getCivilizationType() const																	// Exposed to Python
+	{
+		return GC.getInitCore().getCiv(getID()); // advc.inl
+	}
 	// <advc.003u>
 	void setCivilization(CivilizationTypes eCivilization);
 	inline CvCivilization const& getCivilization() const
@@ -802,18 +811,24 @@ public:
 		FAssertMsg(m_pCivilization != NULL, "Player has no civilization type");
 		return *m_pCivilization;
 	} // </advc.003u>
-	DllExport LeaderHeadTypes getLeaderType() const;																									// Exposed to Python
-	LeaderHeadTypes getPersonalityType() const;																												// Exposed to Python
+	DllExport LeaderHeadTypes getLeaderType() const																			// Exposed to Python
+	{
+		return GC.getInitCore().getLeader(getID()); // advc.inl
+	}
+	LeaderHeadTypes getPersonalityType() const { return m_ePersonalityType; } // advc.inl									// Exposed to Python
 	void setPersonalityType(LeaderHeadTypes eNewValue);																					// Exposed to Python
 	// advc.opt: Inlined
 	inline DllExport EraTypes getCurrentEra() const { return m_eCurrentEra; }																										// Exposed to Python
 	void setCurrentEra(EraTypes eNewValue);
 
-	ReligionTypes getLastStateReligion() const;
-	ReligionTypes getStateReligion() const;																									// Exposed to Python
+	ReligionTypes getLastStateReligion() const { return m_eLastStateReligion; } // advc.inl
+	ReligionTypes getStateReligion() const																					// Exposed to Python
+	{
+		return (isStateReligion() ? getLastStateReligion() : NO_RELIGION); // advc.inl
+	}
 	void setLastStateReligion(ReligionTypes eNewValue);																					// Exposed to Python
 
-	PlayerTypes getParent() const;
+	PlayerTypes getParent() const { return m_eParent; }
 	void setParent(PlayerTypes eParent);
 	// <advc> Convenient to have these team-level functions directly at CvPlayer
 	TeamTypes getMasterTeam() const;
@@ -822,7 +837,7 @@ public:
 	void setTeam(TeamTypes eTeam);
 	void updateTeamType();
 
-	PlayerColorTypes getPlayerColor() const;																							// Exposed to Python
+	PlayerColorTypes getPlayerColor() const { return GC.getInitCore().getColor(getID()); } // advc.inl						// Exposed to Python
 	PlayerColorTypes getPlayerColorExternal() const; // advc.058 (exported through .def file)
 	PlayerColorTypes getKnownPlayerColor(TeamTypes eObserver = NO_TEAM) const; // advc.058
 	DllExport int getPlayerTextColorR() const;																												// Exposed to Python

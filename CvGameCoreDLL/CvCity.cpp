@@ -3287,7 +3287,7 @@ bool CvCity::isVisible(TeamTypes eTeam, bool bDebug) const
 
 bool CvCity::isCapital() const
 {
-	return (GET_PLAYER(getOwner()).getCapitalCity() == this);
+	return (GET_PLAYER(getOwner()).getCapital() == this);
 }
 
 // advc: Cut from CvPlot::canTrain
@@ -12654,8 +12654,8 @@ void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 	}*/
 }
 
-// advc: style changes and renamed some variables
-PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const
+
+PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const  // advc: refactoring changes
 {
 	PROFILE_FUNC(); // advc: Fine so far; not frequently called.
 	if (isCapital())
@@ -12668,10 +12668,9 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const
 		CvPlayer& kLoopPlayer = *it;
 		if (kLoopPlayer.getParent() == kOwner.getID())
 		{
-			CvCity* pLoopCapital = kLoopPlayer.getCapitalCity();
-			if (pLoopCapital != NULL)
+			if (kLoopPlayer.hasCapital())
 			{
-				if (sameArea(*pLoopCapital))
+				if (sameArea(*kLoopPlayer.getCapital()))
 					return kLoopPlayer.getID();
 			}
 		}
@@ -12703,14 +12702,16 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const
 			at culture level 0, i.e. to players who never owned the city. */
 		if (!isEverOwned(kLoopPlayer.getID()))
 			continue; // </advc.ctr>
-
-		CvCity* pCapital = kLoopPlayer.getCapitalCity();
-		if (pCapital == NULL)
-			continue;
-		int iCapitalDistance = ::plotDistance(getX(), getY(), pCapital->getX(), pCapital->getY());
-		if (!sameArea(*pCapital))
-			iCapitalDistance *= 2;
-
+		int iCapitalDistance = -1;
+		{
+			CvCity* pCapital = kLoopPlayer.getCapital();
+			if (pCapital == NULL)
+				continue;
+			iCapitalDistance = ::plotDistance(getX(), getY(),
+					pCapital->getX(), pCapital->getY());
+			if (!sameArea(*pCapital))
+				iCapitalDistance *= 2;
+		}
 		int iCultureScore = getCultureTimes100(kLoopPlayer.getID()) /* K-Mod: */ + iBaseCulture;
 		if (bConquest && kLoopPlayer.getID() == getOriginalOwner())
 		{
@@ -12973,11 +12974,11 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 
 	if (GC.getGame().isOption(GAMEOPTION_NO_VASSAL_STATES))
 		return 0;
-
-	CvCity* pCapital = GET_PLAYER(eOwner).getCapitalCity();
-	if (pCapital && pCapital->isArea(kCityArea))
-		return 0;
-
+	{
+		CvCity* pCapital = GET_PLAYER(eOwner).getCapital();
+		if (pCapital != NULL && pCapital->isArea(kCityArea))
+			return 0;
+	}
 	int iNumCitiesPercent = 100;
 
 	iNumCitiesPercent *= (iPopulation + 17);
@@ -13033,7 +13034,7 @@ scaled CvCity::defensiveGarrison(
 	// ("Obsolete" isn't really the right term for units)
 	static scaled const rOUTDATED_PERCENT = per100(GC.getDefineINT(
 			"DEMAND_BETTER_PROTECTION_OBSOLETE_PERCENT"));
-	CvCity const* pCapital = kOwner.getCapitalCity();
+	CvCity const* pCapital = kOwner.getCapital();
 	if (pCapital == this)
 		pCapital = NULL;
 	for (int i = 0; i < kPlot.getNumUnits(); i++)

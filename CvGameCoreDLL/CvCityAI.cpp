@@ -415,7 +415,7 @@ void CvCityAI::AI_chooseProduction()
 	CvTeamAI const& kTeam = GET_TEAM(getTeam());
 	CvGame& g = GC.getGame();
 	CvArea const& kArea = getArea();
-	CvCityAI const* pCapital = kPlayer.AI_getCapitalCity();
+	CvCityAI const* pCapital = kPlayer.AI_getCapital();
 	// </advc>
 
 	if (isProduction())
@@ -1781,12 +1781,16 @@ void CvCityAI::AI_chooseProduction()
 					if (kArea.getAreaAIType(getTeam()) != AREAAI_DEFENSIVE)
 					{	// <advc.030b>
 						bool bAssaultTargetFound = false;
-						for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+						for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+						{
 							CvPlayer const& kTarget = GET_PLAYER((PlayerTypes)i);
 							if(!kTarget.isAlive() || kTeam.AI_getWarPlan(
-									kTarget.getTeam()) == NO_WARPLAN)
+								kTarget.getTeam()) == NO_WARPLAN)
+							{
 								continue;
-							if(pWaterArea->getCitiesPerPlayer(kTarget.getID(), true) > 0) {
+							}
+							if(pWaterArea->getCitiesPerPlayer(kTarget.getID(), true) > 0)
+							{
 								bAssaultTargetFound = true;
 								break;
 							}
@@ -4122,8 +4126,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				//iValue += ((calculateDistanceMaintenance() - 3) * iNumCitiesInArea);
 				// K-mod. More bonus for colonies, because it reduces that extra maintenance too.
 				int iTempValue = 2*(calculateDistanceMaintenance() - 2) * iNumCitiesInArea;
-				const CvCity* pCapitalCity = kOwner.getCapitalCity();
-				if (pCapitalCity == NULL || !sameArea(*pCapitalCity))
+				if (!kOwner.hasCapital() || !sameArea(*kOwner.getCapital()))
 					iTempValue *= 2;
 				iValue += iTempValue;
 				// K-Mod end

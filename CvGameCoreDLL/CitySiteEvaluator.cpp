@@ -358,7 +358,7 @@ AIFoundValue::AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettin
 	eEra = kPlayer.getCurrentEra();
 	bCoastal = kPlot.isCoastalLand(-1);
 	iAreaCities = kArea.getCitiesPerPlayer(ePlayer);
-	pCapital = kPlayer.AI_getCapitalCity();
+	pCapital = kPlayer.AI_getCapital();
 	// <advc.108> Barbarians shouldn't distinguish between earlier and later cities
 	iCities = (bBarbarian ? 5 : kPlayer.getNumCities());
 	FAssert(iCities > 0 || !kPlayer.isFoundedFirstCity());

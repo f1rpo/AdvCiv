@@ -8,6 +8,7 @@
 #include "CvCityAI.h"
 #include "CitySiteEvaluator.h"
 #include "CvDeal.h"
+#include "CvPlotGroup.h"
 #include "CvInfo_All.h"
 #include "CvXMLLoadUtility.h"
 #include "PlotRange.h"
@@ -5680,7 +5681,6 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 
 	szString.append(GC.getInfo(kPlot.getTerrainType()).getDescription());
 
-	FAssertMsg(0 < GC.getNumBonusInfos(), "GC.getNumBonusInfos() is negative but an array is being allocated in CvInterface::updateHelpStrings");
 	// advc.007: Commented out
 	/*for (int iI = 0; iI < GC.getNumBonusInfos(); ++iI) {
 		if (kPlot.isPlotGroupConnectedBonus(GC.getGame().getActivePlayer(), ((BonusTypes)iI))) {
@@ -14422,8 +14422,8 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 				{
 					continue;
 				}
-				if(kProject.isSpaceship() && (pActivePlayer->getCapitalCity() == NULL ||
-					!pActivePlayer->getCapitalCity()->canCreate(eLoopProject, false, true)))
+				if(kProject.isSpaceship() && (!pActivePlayer->hasCapital() ||
+					!pActivePlayer->getCapital()->canCreate(eLoopProject, false, true)))
 				{
 					continue;
 				}
@@ -14439,9 +14439,9 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 					kProject.getDescription()).GetCString()));
 		}
 		// To weed out obsolete units
-		CvCity* pTrainCity = pCity;
+		CvCity const* pTrainCity = pCity;
 		if(pTrainCity == NULL)
-			pTrainCity = pActivePlayer->getCapitalCity();
+			pTrainCity = pActivePlayer->getCapital();
 		std::vector<CvUnitInfo*> aEnables;
 		CvCivilization const& kCiv = *GC.getGame().getActiveCivilization();
 		for (int i = 0; i < kCiv.getNumUnits(); i++)
@@ -19839,7 +19839,7 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 			szBuffer.append(NEWLINE);
 		}
 	}
-	if(!kMission.isReturnToCapital() || kPlayer.getCapitalCity() == NULL)
+	if(!kMission.isReturnToCapital() || kPlayer.getCapital() == NULL)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_NO_RETURN"));
@@ -19950,19 +19950,21 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 			// Distance mod
 			int iDistance = GC.getMap().maxTypicalDistance(); // advc.140: was maxPlotDistance
 
-			CvCity* pOurCapital = kPlayer.getCapitalCity();
-			if (NULL != pOurCapital)
+			CvCity const* pOurCapital = kPlayer.getCapital();
+			if (pOurCapital != NULL)
 			{
 				if (kMission.isSelectPlot() || kMission.isTargetsCity())
 				{
-					iDistance = plotDistance(pOurCapital->getX(), pOurCapital->getY(), pPlot->getX(), pPlot->getY());
+					iDistance = plotDistance(pOurCapital->getX(), pOurCapital->getY(),
+							pPlot->getX(), pPlot->getY());
 				}
 				else
 				{
-					CvCity* pTheirCapital = GET_PLAYER(eTargetPlayer).getCapitalCity();
-					if (NULL != pTheirCapital)
+					CvCity const* pTheirCapital = GET_PLAYER(eTargetPlayer).getCapitalCity();
+					if (pTheirCapital != NULL)
 					{
-						iDistance = plotDistance(pOurCapital->getX(), pOurCapital->getY(), pTheirCapital->getX(), pTheirCapital->getY());
+						iDistance = plotDistance(pOurCapital->getX(), pOurCapital->getY(),
+								pTheirCapital->getX(), pTheirCapital->getY());
 					}
 				}
 			}

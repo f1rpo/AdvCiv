@@ -39,7 +39,7 @@ public:
 	void AI_updatePersonality(); // advc.104
 
 	// <advc.003u> Access to AI-type members. Code mostly duplicated from CvPlayer.
-	inline CvCityAI* AI_getCapitalCity() const {
+	inline CvCityAI* AI_getCapital() const {
 		return AI_getCity(m_iCapitalCityID);
 	}
 	inline CvCityAI* AI_firstCity(int *pIterIdx) const {

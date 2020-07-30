@@ -786,16 +786,17 @@ int CvMapGenerator::placeGroup(BonusTypes eBonus, CvPlot const& kCenter,
 		if(canPlaceBonusAt(eBonus, p.getX(), p.getY(), bIgnoreLatitude))
 			apGroupRange.push_back(&p);
 	}
-	int sz = (int)apGroupRange.size();
-	if(sz <= 0)
+	int iSize = (int)apGroupRange.size();
+	if(iSize <= 0)
 		return 0;
-	std::vector<int> aiShuffled(sz);
+	std::vector<int> aiShuffled(iSize);
 	::shuffleVector(aiShuffled, GC.getGame().getMapRand());
-	for (int j = 0; j < sz && iLimit > 0; j++)
+	for (int j = 0; j < iSize &&
+		iLimit > 0; j++)
 	{
-		int iProb = kBonus.getGroupRand();
-		iProb = ::round(iProb * std::pow(2/3.0, iPlaced));
-		if (GC.getGame().getMapRandNum(100, "addNonUniqueBonusType") < iProb)
+		scaled pr = per100(kBonus.getGroupRand());
+		pr *= fixp(2/3.).pow(iPlaced);
+		if (pr.bernoulliSuccess(GC.getGame().getMapRand(), "addNonUniqueBonusType"))
 		{
 			apGroupRange[aiShuffled[j]]->setBonusType(eBonus);
 			iLimit--;

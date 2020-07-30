@@ -967,13 +967,13 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 					cities */
 				areaWeightAtt = battleArea->getCitiesPerPlayer(id) /
 						(double)remainingCitiesAtt;
-				CvCity* capital = GET_PLAYER(id).getCapitalCity();
+				CvCity* capital = GET_PLAYER(id).getCapital();
 				if(capital != NULL && capital->isArea(*battleArea))
 					areaWeightAtt *= (GET_PLAYER(id).isHuman() ? 1.5 : 1.33);
 				areaWeightAtt = std::min(1.0, areaWeightAtt);
 			}
 			else {
-				CvCity* capital = GET_PLAYER(id).getCapitalCity();
+				CvCity* capital = GET_PLAYER(id).getCapital();
 				if(capital != NULL) {
 					areaWeightAtt = capital->getArea().getCitiesPerPlayer(id) /
 							(double)GET_PLAYER(id).getNumCities();
@@ -994,7 +994,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		if(remainingCitiesDef > 0) {
 			areaWeightDef = battleArea->getCitiesPerPlayer(defender.id) /
 					(double)remainingCitiesDef;
-			CvCity* capital = GET_PLAYER(defender.id).getCapitalCity();
+			CvCity* capital = GET_PLAYER(defender.id).getCapital();
 			if(capital != NULL && capital->isArea(*battleArea))
 				areaWeightDef *= (GET_PLAYER(defender.id).isHuman() ? 1.5 : 1.33);
 			/*  Even if the local army is too small to prevent the (temporary)
@@ -1341,12 +1341,10 @@ CvArea const* InvasionGraph::Node::clashArea(PlayerTypes otherId) const {
 	CvPlayer const& civ2 = GET_PLAYER(otherId);
 	/*  For better performance, treat the very common case of a common
 		capital area upfront. */
-	CvCity* cap1 = civ1.getCapitalCity();
-	if(cap1 != NULL) {
-		CvCity* cap2 = civ2.getCapitalCity();
-		CvArea* const r = cap1->area();
-		if(cap2 != NULL && cap2->isArea(*r))
-			return r;
+	if(civ1.hasCapital() && civ2.hasCapital()) {
+		CvArea const& area1 = civ1.getCapital()->getArea();
+		if(civ2.getCapital()->isArea(area1))
+			return &area1;
 	}
 	CvArea const* r = NULL;
 	int maxCities = 0;

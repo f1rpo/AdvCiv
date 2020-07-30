@@ -686,11 +686,9 @@ double GreedForAssets::threatToCities(PlayerTypes civId) {
 
 	CvPlayerAI& civ = GET_PLAYER(civId);
 	if(civ.getTeam() == agentId || civ.getTeam() == TEAMID(theyId) ||
-			civ.isAVassal() ||
-			!agent.isHasMet(civ.getTeam()) ||
-			we->getCapitalCity() == NULL ||
-			civ.getCapitalCity() == NULL ||
-			!we->AI_deduceCitySite(civ.getCapitalCity()) ||
+			civ.isAVassal() || !agent.isHasMet(civ.getTeam()) ||
+			!we->hasCapital() || !civ.hasCapital() ||
+			!we->AI_deduceCitySite(civ.getCapital()) ||
 			(!civ.isHuman() && civ.AI_getAttitude(weId) >= ATTITUDE_FRIENDLY))
 		return 0;
 	/*  Use present power if civ not part of the analysis. Add a constant b/c
@@ -706,7 +704,7 @@ double GreedForAssets::threatToCities(PlayerTypes civId) {
 		bridgehead for a later war. Too uncertain I think. */
 	if(2 * ourPower > 3 * civPower)
 		return 0;
-	int areaId = civ.getCapitalCity()->getArea().getID();
+	int areaId = civ.getCapital()->getArea().getID();
 	iiMapIt pos = citiesPerArea[civ.getID()]->find(areaId);
 	if(pos == citiesPerArea[civ.getID()]->end() ||
 			pos->second <= (int)weConquerFromThem.size() / 2)
@@ -826,8 +824,8 @@ void GreedForVassals::evaluate() {
 
 	// Military analysis already checks if vassal states disabled in options
 	TeamSet const& newVassals = m->getCapitulationsAccepted(agentId);
-	// Will need their capital later
-	if(newVassals.count(TEAMID(theyId)) <= 0 || they->getCapitalCity() == NULL)
+	if(newVassals.count(TEAMID(theyId)) <= 0 ||
+			!we->hasCapital() || !they->hasCapital()) // Will need the capitals later
 		return;
 	double ourIncome = std::max(8.0, we->estimateYieldRate(YIELD_COMMERCE));
 	double totalUtility = 0;
@@ -868,8 +866,8 @@ void GreedForVassals::evaluate() {
 	nVassalCivs += PlayerIter<ALIVE,VASSAL_OF>::count(agentId);
 	// Diminishing returns from having additional trade partners
 	totalUtility /= std::sqrt((double)nVassalCivs);
-	CvArea const& ourArea = we->getCapitalCity()->getArea();
-	CvArea const& theirArea = they->getCapitalCity()->getArea();
+	CvArea const& ourArea = we->getCapital()->getArea();
+	CvArea const& theirArea = they->getCapital()->getArea();
 	bool isUsefulArea = (ourArea.getID() == theirArea.getID());
 	if(isUsefulArea) { // Look for a future enemy to dogpile on
 		isUsefulArea = false;
@@ -881,7 +879,7 @@ void GreedForVassals::evaluate() {
 					m->isEliminated(civ.getID()) || m->hasCapitulated(t.getID()) ||
 					newVassals.count(t.getID()) > 0)
 				continue;
-			if(civ.getCapitalCity()->isArea(ourArea) &&
+			if(civ.getCapital()->isArea(ourArea) &&
 					(civ.isHuman() || !t.AI_isAvoidWar(agentId) ||
 					we->isHuman() || !agent.AI_isAvoidWar(t.getID(), true))) {
 				isUsefulArea = true;
@@ -2027,8 +2025,8 @@ bool KingMaking::anyVictory(PlayerTypes civId, AIVictoryStage flags, int stage,
 	if(m->isEliminated(civId) || m->hasCapitulated(TEAMID(civId)))
 		return false;
 	if((flags & AI_VICTORY_SPACE4) && stage == 4) {
-		CvCity* capital = civ.getCapitalCity();
-		if(capital != NULL && m->lostCities(civId).count(capital->plotNum()) <= 0)
+		if(civ.hasCapital() &&
+				m->lostCities(civId).count(civ.getCapital()->plotNum()) <= 0)
 			return true;
 	}
 	if(flags & AI_VICTORY_CONQUEST3) {
@@ -2103,7 +2101,7 @@ bool KingMaking::anyVictory(PlayerTypes civId, AIVictoryStage flags, int stage,
 
 void KingMaking::addLeadingCivs(std::set<PlayerTypes>& r, double margin, bool bPredict) const {
 
-	CvCity* ourCapital = we->getCapitalCity();
+	CvCity* ourCapital = we->getCapital();
 	double bestScore = 1;
 	for(PlayerIter<FREE_MAJOR_CIV> it; it.hasNext(); ++it) {
 		PlayerTypes civId = it->getID();
@@ -2118,7 +2116,7 @@ void KingMaking::addLeadingCivs(std::set<PlayerTypes>& r, double margin, bool bP
 			double commerceRate = civ.estimateYieldRate(YIELD_COMMERCE);
 			sc += commerceRate / 2;
 			// Beware of peaceful civs on other landmasses
-			CvCity* cap = civ.getCapitalCity();
+			CvCity* cap = civ.getCapital();
 			if(ourCapital != NULL && cap != NULL &&
 					!ourCapital->sameArea(*cap) &&
 					civ.AI_atVictoryStage(AI_VICTORY_CULTURE2 | AI_VICTORY_SPACE2) &&
@@ -3185,7 +3183,7 @@ void UlteriorMotives::evaluate() {
 		sponsor's motives, and instead live up to our promise (as enforced by
 		HiredHand). */
 	if(m->isPeaceScenario() || theyId != params.getSponsor() ||
-			we->getCapitalCity() == NULL || they->getCapitalCity() == NULL)
+			!we->hasCapital() || !they->hasCapital())
 		return;
 	if(agent.AI_getWarPlan(TEAMID(theyId)) != NO_WARPLAN) {
 		/*  They're probably trying to deflect our attack. That doesn't have to
@@ -3209,8 +3207,8 @@ void UlteriorMotives::evaluate() {
 			target.uwai().canReach(TEAMID(theyId)));
 	if(bHot &&
 			// If the target is in our area but not theirs, that's fishy.
-			(!target.AI_isPrimaryArea(we->getCapitalCity()->getArea()) ||
-			target.AI_isPrimaryArea(they->getCapitalCity()->getArea())))
+			(!target.AI_isPrimaryArea(we->getCapital()->getArea()) ||
+			target.AI_isPrimaryArea(they->getCapital()->getArea())))
 		return;
 	/*  Otherwise, they might want to hurt us as much as the target, and we should
 		demand extra payment to allay our suspicions. Use DWRAT (greater than

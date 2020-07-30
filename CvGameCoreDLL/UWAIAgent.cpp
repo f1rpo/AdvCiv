@@ -320,7 +320,7 @@ void UWAI::Team::alignAreaAI(bool isNaval) {
 	std::set<int> areasNotToAlign;
 	for(MemberIter it(agentId); it.hasNext(); ++it) {
 		CvPlayerAI const& member = *it;
-		CvCity* capital = member.getCapitalCity();
+		CvCity* capital = member.getCapital();
 		if(capital == NULL)
 			continue;
 		CvArea& a = capital->getArea();

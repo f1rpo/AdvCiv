@@ -596,7 +596,7 @@ AreaAITypes ArmamentForecast::getAreaAI(PlayerTypes civId) const {
 
 	if(civId == NO_PLAYER)
 		civId = m.ourId();
-	CvCity const* capital = GET_PLAYER(civId).getCapitalCity();
+	CvCity const* capital = GET_PLAYER(civId).getCapital();
 	if(capital == NULL)
 		return NO_AREAAI;
 	return capital->getArea().getAreaAIType(TEAMID(civId));

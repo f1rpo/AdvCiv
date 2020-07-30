@@ -5,6 +5,7 @@
 #include "CvSelectionGroupAI.h"
 #include "CoreAI.h"
 #include "CvCityAI.h"
+#include "CvPlotGroup.h" // (just for AI_betterPlotBuild)
 #include "PlotRange.h"
 #include "CvArea.h"
 #include "CvInfo_Terrain.h"
@@ -17738,9 +17739,9 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot const& kPlot, BuildTypes eBuild) 
 					iValue /= 100;
 				}
 				int iPlotGroupId = NO_PLOTGROUP;
-				for (int iDirection = 0; iDirection < NUM_DIRECTION_TYPES; iDirection++)
+				FOR_EACH_ENUM(Direction)
 				{
-					CvPlot* pLoopPlot = plotDirection(kPlot.getX(), kPlot.getY(), (DirectionTypes)iDirection);
+					CvPlot* pLoopPlot = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
 					if (pLoopPlot == NULL)
 						continue;
 					if (!kPlot.isRiver() && !pLoopPlot->isRoute())
@@ -20402,10 +20403,11 @@ EspionageMissionTypes CvUnitAI::AI_bestPlotEspionage(PlayerTypes& eTargetPlayer,
 
 	FAssert(pSpyPlot != NULL);
 
-	int iSpyValue = 3*kPlayer.getProductionNeeded(getUnitType()) + 60;
-	if (kPlayer.getCapitalCity() != NULL)
+	int iSpyValue = 3 * kPlayer.getProductionNeeded(getUnitType()) + 60;
+	if (kPlayer.hasCapital())
 	{
-		iSpyValue += stepDistance(getX(), getY(), kPlayer.getCapitalCity()->getX(), kPlayer.getCapitalCity()->getY()) / 2;
+		iSpyValue += stepDistance(getX(), getY(),
+				kPlayer.getCapital()->getX(), kPlayer.getCapital()->getY()) / 2;
 	}
 
 	pPlot = NULL;

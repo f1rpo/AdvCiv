@@ -7,12 +7,12 @@
 #include "CitySiteEvaluator.h"
 #include "CvMap.h"
 #include "CvArea.h"
-#include "PlotRadiusIterator.h"
-#include "CityPlotIterator.h"
+#include "PlotRange.h"
 #include "CvInfo_GameOption.h" // for StartingLocPercent handicap
 
 using std::map;
 using std::vector;
+using std::pair;
 using std::make_pair;
 
 //#define SPI_LOG // Enables log file for starting position iteration
@@ -43,21 +43,21 @@ StartingPositionIteration::StartingPositionIteration() :
 		otherwise in a random order - just as CvGame::assignStartingPlots does.
 		Map scripts might depend on this order. If a map script sets the
 		starting sites, then we have to bail anyway, but we don't know that yet. */
-	vector<CvPlayer*> civPlayers;
+	vector<CvPlayer*> apCivPlayers;
 	for (PlayerIter<HUMAN,ANY_AGENT_RELATION,true> it; it.hasNext(); ++it)
-		civPlayers.push_back(&(*it));
+		apCivPlayers.push_back(&(*it));
 	for (PlayerIter<CIV_ALIVE,ANY_AGENT_RELATION,true> it; it.hasNext(); ++it)
 	{
 		if (!it->isHuman())
-			civPlayers.push_back(&*it);
+			apCivPlayers.push_back(&*it);
 	}
 	FAssert(!GC.getGame().isTeamGame());
 	// In non-team games, Pangaea shouldn't need custom code for starting sites.
 	bool const bIgnoreScript = GC.getInitCore().isPangaea();
 	size_t i = 0;
-	for (; i < civPlayers.size(); i++)
+	for (; i < apCivPlayers.size(); i++)
 	{
-		CvPlayer& kPlayer = *civPlayers[i];
+		CvPlayer& kPlayer = *apCivPlayers[i];
 		if (kPlayer.getStartingPlot() != NULL)
 		{
 			/*	Meaning that, if a map script sets all starting sites in
@@ -80,7 +80,7 @@ StartingPositionIteration::StartingPositionIteration() :
 			but then findStartingPlot will return the same site over and over. */
 		kPlayer.setStartingPlot(pSite, false);
 	}
-	if (i != civPlayers.size()) // Revert any changes and bail
+	if (i != apCivPlayers.size()) // Revert any changes and bail
 	{
 		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 			it->setStartingPlot(NULL, false);
@@ -91,19 +91,19 @@ StartingPositionIteration::StartingPositionIteration() :
 
 	m_pEval = createSiteEvaluator();
 	PotentialSites potentialSiteGen(*m_pEval, m_bRestrictedAreas);
-	if (potentialSiteGen.numSites() < civPlayers.size())
+	if (potentialSiteGen.numSites() < apCivPlayers.size())
 		return;
 	/*for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it) // (debug) Mark original sites with a ruin
 		it->getStartingPlot()->setImprovementType(GC.getRUINS_IMPROVEMENT());*/
 	// Remove the current solution. Just want the alternatives.
 	potentialSiteGen.updateCurrSites();
-	vector<CvPlot const*> aPotentialSites;
-	potentialSiteGen.getPlots(aPotentialSites);
-	/*for (size_t i = 0; i < aPotentialSites.size(); i++) // (debug) Mark alt. sites with a ruin
-		GC.getMap().getPlotByIndex(GC.getMap().plotNum(*aPotentialSites[i])).setImprovementType(GC.getRUINS_IMPROVEMENT());*/
+	vector<CvPlot const*> apPotentialSites;
+	potentialSiteGen.getPlots(apPotentialSites);
+	/*for (size_t i = 0; i < apPotentialSites.size(); i++) // (debug) Mark alt. sites with a ruin
+		GC.getMap().getPlotByIndex(GC.getMap().plotNum(*apPotentialSites[i])).setImprovementType(GC.getRUINS_IMPROVEMENT());*/
 
 	EnumMap<PlotNumTypes,scaled> yieldValues;
-	std::map<CvArea const*,scaled> yieldsPerArea;
+	map<CvArea const*,scaled> yieldsPerArea;
 	{
 		vector<scaled> arLandYields;
 		CitySiteEvaluator yieldEval(m_pEval->getPlayer(), -1, /*bStartingLoc=*/false, true);
@@ -124,18 +124,18 @@ StartingPositionIteration::StartingPositionIteration() :
 		m_rMedianLandYieldVal = stats::median(arLandYields);
 	}
 
-	DistanceTable const* pathDists = NULL;
+	DistanceTable const* pPathDists = NULL;
 	{	// Temp data that I want to go out of scope
 		// Need a vector of all sites. Add the original sites temporarily.
-		for (size_t i = 0; i < civPlayers.size(); i++)
+		for (size_t i = 0; i < apCivPlayers.size(); i++)
 		{
-			aPotentialSites.push_back(civPlayers[i]->getStartingPlot());
+			apPotentialSites.push_back(apCivPlayers[i]->getStartingPlot());
 		}
 		// Also want inter-site distances
 		std::set<PlotNumTypes> sitePlotNums;
-		for (size_t i = 0; i < aPotentialSites.size(); i++)
+		for (size_t i = 0; i < apPotentialSites.size(); i++)
 		{
-			sitePlotNums.insert(kMap.plotNum(*aPotentialSites[i]));
+			sitePlotNums.insert(kMap.plotNum(*apPotentialSites[i]));
 		}
 		std::vector<CvPlot const*> relevantPlots;
 		FOR_EACH_ENUM(PlotNum)
@@ -147,20 +147,20 @@ StartingPositionIteration::StartingPositionIteration() :
 			}
 		}
 		gDLL->callUpdater(); // Dunno if these are needed or have any effect really
-		pathDists = new DistanceTable(aPotentialSites, relevantPlots);
+		pPathDists = new DistanceTable(apPotentialSites, relevantPlots);
 		gDLL->callUpdater();
 		// Remove the original sites again
-		for (size_t i = 0; i < civPlayers.size(); i++)
-			aPotentialSites.pop_back();
+		for (size_t i = 0; i < apCivPlayers.size(); i++)
+			apPotentialSites.pop_back();
 	}
 	// So that subroutines can read - but not write - these
 	m_pYieldValues = &yieldValues;
 	m_pYieldsPerArea = &yieldsPerArea;
-	m_pPathDists = pathDists;
+	m_pPathDists = pPathDists;
 	m_pPotentialSites = &potentialSiteGen;
 
 	doIterations(potentialSiteGen); // May modify the potential sites
-	delete pathDists;
+	delete pPathDists;
 	m_pPathDists = NULL;
 }
 
@@ -364,7 +364,7 @@ void StartingPositionIteration::PotentialSites::closestPlayers(
 	CvPlot const& kPlot, vector<PlayerTypes>& kResult) const
 {
 	FAssert(kResult.empty());
-	vector<std::pair<int,PlayerTypes> > aiePlayersByDistance;
+	vector<pair<int,PlayerTypes> > aiePlayersByDistance;
 	CvMap const& kMap = GC.getMap();
 	int iShortestDist = MAX_INT;
 	int const iRemoteSiteThresh = 30;
@@ -427,7 +427,7 @@ void StartingPositionIteration::PotentialSites::updateCurrSites(bool bUpdateCell
 		}
 	}
 	m_remoteSitesByAreaSize.clear();
-	for (std::map<PlotNumTypes,short>::const_iterator it = m_foundValuesPerSite.begin();
+	for (map<PlotNumTypes,short>::const_iterator it = m_foundValuesPerSite.begin();
 		it != m_foundValuesPerSite.end(); ++it)
 	{
 		PlotNumTypes ePlotNum = it->first;
@@ -862,7 +862,7 @@ struct BreakDownData { PlotNumTypes ePlot; scaled rYieldVal; scaled rAccessFacto
 void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes ePlayer)
 {
 	#ifdef DEBUG_SPACE_BREAKDOWN
-		vector<std::pair<scaled,BreakDownData> > aSpaceBreakDown;
+		vector<pair<scaled,BreakDownData> > aSpaceBreakDown;
 	#endif
 	CvMap const& kMap = GC.getMap();
 	CvPlot const& kStartPlot = *GET_PLAYER(ePlayer).getStartingPlot();
@@ -1002,8 +1002,8 @@ void StartingPositionIteration::computeStartValues(
 		/*	Area size needs to be taken into account explicitly b/c empires spread
 			across multiple areas are difficult to defend and pay colony maintenance */
 		scaled rAreaYields;
-		std::map<CvArea const*,scaled>::const_iterator pos = 
-				m_pYieldsPerArea->find(kStartPlot.area());
+		map<CvArea const*,scaled>::const_iterator pos = m_pYieldsPerArea->
+				find(kStartPlot.area());
 		if (pos != m_pYieldsPerArea->end())
 			rAreaYields = pos->second;
 		int iSameAreaRivals = 0;
@@ -1406,7 +1406,7 @@ scaled StartingPositionIteration::startingPositionValue(
 
 void StartingPositionIteration::currAltSites(PlayerTypes eCurrSitePlayer,
 	// (Low first val means high priority)
-	vector<std::pair<short,PlotNumTypes> >& kAltSitesByPriority,
+	vector<pair<short,PlotNumTypes> >& kAltSitesByPriority,
 	bool bIncludeRemote, PlotNumTypes eTakenSite) const
 {
 	VoronoiCell const* pCell = m_pPotentialSites->getCell(eCurrSitePlayer);
@@ -1420,7 +1420,7 @@ void StartingPositionIteration::currAltSites(PlayerTypes eCurrSitePlayer,
 		iCurrClosestPathDist = std::min(iCurrClosestPathDist,
 				m_pPathDists->d(kCurrSite, *it->getStartingPlot()));
 	}
-	vector<std::pair<short,PlotNumTypes> > altSitesByDist;
+	vector<pair<short,PlotNumTypes> > altSitesByDist;
 	CvMap const& kMap = GC.getMap();
 	std::vector<CvPlot const*> apRivalSites;
 	if (eTakenSite != NO_PLOT_NUM)
@@ -1481,7 +1481,7 @@ void StartingPositionIteration::currAltSites(PlayerTypes eCurrSitePlayer,
 		/*	The above are "remote" sites in a strict sense - remote from everyone.
 			Also include sites that are merely remote from eCurrSitePlayer. */
 		// (Would be better to encapsulate this slice of STL hell somehow ...)
-		typedef std::map<CvArea const*,std::set<PlotNumTypes>*> AreaSiteMap;
+		typedef map<CvArea const*,std::set<PlotNumTypes>*> AreaSiteMap;
 		AreaSiteMap otherAreaSites;
 		/*	Going through rival Voronoi cells ensures that the sites aren't
 			remote sites in the strict sense nor sites in our pCell. */
@@ -1510,7 +1510,7 @@ void StartingPositionIteration::currAltSites(PlayerTypes eCurrSitePlayer,
 				pAreaSites->insert(*itRemoteSite);
 			}
 		}
-		vector<std::pair<PlotNumTypes,int> > otherAreasBySize;
+		vector<pair<PlotNumTypes,int> > otherAreasBySize;
 		for (AreaSiteMap::const_iterator it = otherAreaSites.begin();
 			it != otherAreaSites.end(); ++it)
 		{
@@ -1689,7 +1689,7 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 			pow(fixp(0.6))).round();
 	while (iStepsConsidered < iMaxSteps)
 	{
-		vector<std::pair<scaled,PlayerTypes> > currSitesByOutlierVal;
+		vector<pair<scaled,PlayerTypes> > currSitesByOutlierVal;
 		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		{
 			// Focus on negative outliers while the avg. error is high
@@ -1730,7 +1730,7 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 			CvPlot const& kCurrSite = *GET_PLAYER(eCurrSitePlayer).getStartingPlot();
 			/*	(Low first val meaning high priority. For now, the priority values
 				are distance values.) */
-			vector<std::pair<short,PlotNumTypes> > altSitesByPriority;
+			vector<pair<short,PlotNumTypes> > altSitesByPriority;
 			currAltSites(eCurrSitePlayer, altSitesByPriority,
 					/*	To save time, stop considering remote sites when approaching
 						a decent solution. Unless the prev. step was still a remote one. */
@@ -1744,7 +1744,7 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 						m_pPathDists->d(kCurrSite, kAltSite) >= m_pPathDists->getLongDist());
 				Step singleMoveStep;
 				singleMoveStep.move(eCurrSitePlayer, kAltSite);
-				vector<std::pair<short,PlayerTypes> > otherCurrSitesByDist;
+				vector<pair<short,PlayerTypes> > otherCurrSitesByDist;
 				for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 				{
 					if (itPlayer->getID() != eCurrSitePlayer)
@@ -1784,7 +1784,7 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 					{
 						continue;
 					}
-					vector<std::pair<short,PlotNumTypes> > otherAltSitesByDist;
+					vector<pair<short,PlotNumTypes> > otherAltSitesByDist;
 					currAltSites(otherCurrSitesByDist[k].second, otherAltSitesByDist,
 							// Allow remote site for 2nd move only if 1st move is remote
 							iMoveDist > m_pPathDists->getLongDist(),
@@ -1859,7 +1859,7 @@ bool NormalizationTarget::isReached(CvPlot const& kStartSite,
 	short iCurrFoundVal = -1;
 	vector<scaled> arCurrFoundValues;
 	vector<scaled> arCurrStartValues;
-	for (std::map<PlotNumTypes,StartValBreakdown>::const_iterator it =
+	for (map<PlotNumTypes,StartValBreakdown>::const_iterator it =
 		m_startValData.begin(); it != m_startValData.end(); ++it)
 	{
 		PlotNumTypes const eLoopPlot = it->first;

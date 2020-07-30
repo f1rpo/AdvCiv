@@ -1469,7 +1469,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 		but at least one other city that does have a path to the target, then there
 		is most likely also some mixed path from c to the target. */
 	double mixedPath = 0;
-	CvCity* capital = cacheOwner.getCapitalCity();
+	CvCity* capital = cacheOwner.getCapital();
 	FOR_EACH_CITY(c, cacheOwner) {
 		// Skip small and isolated cities
 		if(!c->isCapital() && (c->getArea().getCitiesPerPlayer(cacheOwnerId) <= 1 ||
@@ -1489,7 +1489,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 			/*  reachByLand refers to our (AI) capital. This is to ensure that the
 				AI can still detect the need for a naval assault when it has a
 				colony near the target civ. */
-			if(c->at(cacheOwner.getCapitalCity()->plot()))
+			if(c->at(cacheOwner.getCapital()->plot()))
 				reachByLand = true;
 		}
 		if(trainAnyCargo) {

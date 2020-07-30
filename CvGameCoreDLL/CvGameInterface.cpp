@@ -1370,9 +1370,9 @@ void CvGame::doControl(ControlTypes eControl)
 
 	case CONTROL_SELECTCAPITAL:
 	{
-		CvCity* pCapitalCity = GET_PLAYER(getActivePlayer()).getCapitalCity();
-		if (pCapitalCity != NULL)
-			kUI.selectCity(pCapitalCity);
+		CvCity* pCapital = GET_PLAYER(getActivePlayer()).getCapital();
+		if (pCapital != NULL)
+			kUI.selectCity(pCapital);
 		break;
 	}
 	case CONTROL_NEXTCITY:

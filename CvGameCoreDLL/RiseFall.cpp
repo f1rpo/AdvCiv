@@ -556,15 +556,11 @@ void RiseFall::welcomeToNextChapter(int pos) {
 
 void RiseFall::centerCamera(PlayerTypes civId) {
 
-	CvPlot* capitalPlot = NULL;
-	CvCity* capital = GET_PLAYER(civId).getCapitalCity();
-	if(capital != NULL)
-		capitalPlot = capital->plot();
-	if(capitalPlot != NULL) {
+	if(GET_PLAYER(civId).hasCapital()) {
 		/*  Apparently, this has no effect, at least not at the time that I call
 			this function. Misplaced camera is also an issue when regenerating
 			the map or using Civ Changer (Alt+Z); perhaps can't be fixed. */
-		gDLL->UI().lookAt(capitalPlot->getPoint(),
+		gDLL->UI().lookAt(GET_PLAYER(civId).getCapital()->getPlot().getPoint(),
 				CAMERALOOKAT_NORMAL);
 		// This doesn't seem to help either:
 		/*NiPoint3 p3 = capitalPlot->getPoint();
@@ -611,7 +607,7 @@ void RiseFall::abandonPlans(PlayerTypes civId) {
 	bool active = (civId == GC.getGame().getActivePlayer() && civ.isHuman());
 	FOR_EACH_GROUP_VAR(gr, civ)
 		gr->splitGroup(1);
-	CvCity* capital = civ.getCapitalCity();
+	CvCity* capital = civ.getCapital();
 	bool unitSelected = false;
 	FOR_EACH_GROUP_VAR(gr, civ) {
 		if(gr->getHeadUnit() == NULL)

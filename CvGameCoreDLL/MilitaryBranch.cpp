@@ -78,8 +78,8 @@ void MilitaryBranch::updateTypicalUnit() {
 				continue;
 		}
 		else {
-			CvCity* capital = owner.getCapitalCity();
-			if(capital == NULL || !capital->canTrain(ut, false, false, false, false,
+			if(!owner.hasCapital() ||
+					!owner.getCapital()->canTrain(ut, false, false, false, false,
 					true)) // Ignore air unit cap
 				continue;
 		}
@@ -104,13 +104,14 @@ void MilitaryBranch::updateTypicalUnit() {
 
 void MilitaryBranch::NuclearArsenal::updateTypicalUnit() {
 
-	double bestVal = 0;
 	CvPlayerAI& owner = GET_PLAYER(ownerId);
+	if(!owner.hasCapital())
+		return;
+	double bestVal = 0;
 	CvCivilization const& civ = owner.getCivilization();
 	for(int i = 0; i < civ.getNumUnits(); i++) {
 		UnitTypes ut = civ.unitAt(i);
-		CvCity* capital = owner.getCapitalCity();
-		if(capital == NULL || !capital->canTrain(ut))
+		if(!owner.getCapitalCity()->canTrain(ut))
 			continue;
 		CvUnitInfo const& u = GC.getInfo(ut);
 		double unitPow = unitPower(u, true);

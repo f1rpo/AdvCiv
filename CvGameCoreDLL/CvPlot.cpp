@@ -2,6 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvPlot.h"
+#include "CvPlotGroup.h"
 #include "PlotRange.h"
 #include "CoreAI.h"
 #include "CvCityAI.h"
@@ -850,9 +851,9 @@ bool CvPlot::isConnectedToCapital(PlayerTypes ePlayer) const
 
 	if (ePlayer != NO_PLAYER)
 	{
-		CvCity* pCapitalCity = GET_PLAYER(ePlayer).getCapitalCity();
-		if (pCapitalCity != NULL)
-			return isConnectedTo(pCapitalCity);
+		CvCity* pCapital = GET_PLAYER(ePlayer).getCapital();
+		if (pCapital != NULL)
+			return isConnectedTo(pCapital);
 	}
 
 	return false;
@@ -866,7 +867,7 @@ int CvPlot::getPlotGroupConnectedBonus(PlayerTypes ePlayer, BonusTypes eBonus) c
 	CvPlotGroup* pPlotGroup = getPlotGroup(ePlayer);
 	if (pPlotGroup != NULL)
 		return pPlotGroup->getNumBonuses(eBonus);
-	else return 0;
+	return 0;
 }
 
 
@@ -2414,78 +2415,80 @@ int CvPlot::getNumCultureRangeCities(PlayerTypes ePlayer) const
 }
 
 // BETTER_BTS_AI_MOD, General AI, 01/10/10, jdog5000: START
-bool CvPlot::isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb) /* advc: */ const  // (and some minor style changes)
+bool CvPlot::isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb) const  // advc: refactored
 {
 	PROFILE_FUNC();
 
-	if (getArea().getNumCities() - GET_TEAM(eAttackerTeam).countNumCitiesByArea(getArea()) == 0)
-		return false;
+	bool bR = false;
 
-	// Imitate instatiation of irrigated finder, pIrrigatedFinder
-	// Can't mimic step finder initialization because it requires creation from the exe
+	if (getArea().getNumCities() == GET_TEAM(eAttackerTeam).countNumCitiesByArea(getArea()))
+		return bR;
+
+	/*	Imitate instatiation of irrigated finder, pIrrigatedFinder.
+		Can't mimic step finder initialization because it requires creation from the exe */
 	std::vector<TeamTypes> aeTeams;
 	aeTeams.push_back(eAttackerTeam);
 	aeTeams.push_back(NO_TEAM);
 	FAStar* pTeamStepFinder = gDLL->getFAStarIFace()->create();
-	CvMap const& m = GC.getMap();
-	gDLL->getFAStarIFace()->Initialize(pTeamStepFinder, m.getGridWidth(), m.getGridHeight(),
-			m.isWrapX(), m.isWrapY(), stepDestValid, stepHeuristic,
+	CvMap const& kMap = GC.getMap();
+	gDLL->getFAStarIFace()->Initialize(pTeamStepFinder,
+			kMap.getGridWidth(), kMap.getGridHeight(),
+			kMap.isWrapX(), kMap.isWrapY(), stepDestValid, stepHeuristic,
 			stepCost, teamStepValid, stepAdd, NULL, NULL);
 	gDLL->getFAStarIFace()->SetData(pTeamStepFinder, &aeTeams);
 
-	bool bFound = false;
-	// First check capitals
-	for (int iI = 0; !bFound && iI < MAX_CIV_PLAYERS; iI++)
+	
+	/*	advc: I guess it's important for performance to check capitals first;
+		So continue doing that, but compute the enemy players only in one place. */
+	std::vector<CvPlayer const*> apEnemies;
+	for (PlayerIter<ALIVE,KNOWN_POTENTIAL_ENEMY_OF> itEnemy(eAttackerTeam);
+		itEnemy.hasNext(); ++itEnemy)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive() && GET_TEAM(eAttackerTeam).AI_getWarPlan(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_WARPLAN)
+		if (bIgnoreBarb && (itEnemy->isBarbarian() || itEnemy->isMinorCiv()))
+			continue;
+		if (GET_TEAM(eAttackerTeam).AI_getWarPlan(itEnemy->getTeam()) != NO_WARPLAN)
+		apEnemies.push_back(&*itEnemy);
+	} 
+
+	for (size_t i = 0; i < apEnemies.size(); i++)
+	{
+		CvCity* pCapital = apEnemies[i]->getCapital();
+		if (pCapital == NULL)
+			continue;
+		if (pCapital->isArea(getArea()))
 		{
-			if (!bIgnoreBarb || !(GET_PLAYER((PlayerTypes)iI).isBarbarian() || GET_PLAYER((PlayerTypes)iI).isMinorCiv()))
+			if (gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder, getX(), getY(),
+				pCapital->getX(), pCapital->getY(), false, 0, true))
 			{
-				CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).getCapitalCity();
-				if (pLoopCity == NULL)
-					continue;
-				if (pLoopCity->isArea(getArea()))
-				{
-					bFound = gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder,
-							getX(), getY(),
-							pLoopCity->getX(), pLoopCity->getY(),
-							false, 0, true);
-					if (bFound)
-						break;
-				}
+				bR = true;
+				goto free_and_return;
 			}
 		}
 	}
 
 	// Check all other cities
-	for (int iI = 0; !bFound && iI < MAX_PLAYERS; iI++)
+	for (size_t i = 0; i < apEnemies.size(); i++)
 	{
-		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-		if (kLoopPlayer.isAlive() && GET_TEAM(eAttackerTeam).AI_getWarPlan(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_WARPLAN)
+		FOR_EACH_CITY(pCity, *apEnemies[i])
 		{
-			if (!bIgnoreBarb || !(kLoopPlayer.isBarbarian() || kLoopPlayer.isMinorCiv()))
+			if (pCity->isArea(getArea()) && !pCity->isCapital())
 			{
-				FOR_EACH_CITY(pLoopCity, kLoopPlayer)
+				if (gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder, getX(), getY(),
+					pCity->getX(), pCity->getY(), false, 0, true))
 				{
-					if (pLoopCity->isArea(getArea()) && !pLoopCity->isCapital())
-					{
-						bFound = gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder,
-								getX(), getY(), pLoopCity->getX(), pLoopCity->getY(),
-								false, 0, true);
-						if (bFound)
-							break;
-					}
+					bR = true;
+					goto free_and_return;
 				}
 			}
 		}
 	}
 
+free_and_return:
 	gDLL->getFAStarIFace()->destroy(pTeamStepFinder);
-
-	return bFound;
+	return bR;
 }
 
-bool CvPlot::isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer) /* advc: */ const  // (and some minor style changes)
+bool CvPlot::isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer) /* advc: */ const
 {
 	PROFILE_FUNC();
 
@@ -2494,8 +2497,8 @@ bool CvPlot::isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer
 	if (getArea().getCitiesPerPlayer(eOtherPlayer) == 0)
 		return false;
 
-	// Imitate instatiation of irrigated finder, pIrrigatedFinder
-	// Can't mimic step finder initialization because it requires creation from the exe
+	/*	Imitate instatiation of irrigated finder, pIrrigatedFinder.
+		Can't mimic step finder initialization because it requires creation from the exe */
 	std::vector<TeamTypes> aeTeams;
 	aeTeams.push_back(eMoveTeam);
 	aeTeams.push_back(GET_PLAYER(eOtherPlayer).getTeam());
@@ -2540,7 +2543,7 @@ int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot const& kTargetPl
 		return false;*/
 	FAssert(eDomain != NO_DOMAIN);
 
-	// Imitate instatiation of irrigated finder, pIrrigatedFinder
+	// Imitate instatiation of irrigated finder, pIrrigatedFinder.
 	// Can't mimic step finder initialization because it requires creation from the exe
 	/*  <advc.104b> vector type changed to int[]; dom, eTargetTeam (instead of
 		NO_TEAM), iMaxPath and target coordinates added. */

@@ -1718,7 +1718,7 @@ bool CvUnit::isActionRecommended(int iAction)
 	if(pPlot == NULL)
 		pPlot = plot();
 
-	switch((MissionTypes)GC.getActionInfo(iAction).getMissionType()) // advc
+	switch(GC.getActionInfo(iAction).getMissionType()) // advc
 	{
 	case MISSION_FORTIFY:
 		if (pPlot->isCity(true, getTeam()) && canDefend(pPlot) &&
@@ -5413,9 +5413,9 @@ int CvUnit::getTradeGold(const CvPlot* pPlot) const
 	CvCity const* pCity = pPlot->getPlotCity();
 	if (pCity == NULL)
 		return 0;
-	CvCity const* pCapitalCity = GET_PLAYER(getOwner()).getCapitalCity();
+	CvCity const* pCapital = GET_PLAYER(getOwner()).getCapital();
 	int iGold = (m_pUnitInfo->getBaseTrade() + (m_pUnitInfo->getTradeMultiplier() *
-			(pCapitalCity != NULL ? pCity->calculateTradeProfit(pCapitalCity) : 0)));
+			(pCapital != NULL ? pCity->calculateTradeProfit(pCapital) : 0)));
 	iGold *= GC.getInfo(GC.getGame().getGameSpeedType()).getUnitTradePercent();
 	iGold /= 100;
 	return std::max(0, iGold);
@@ -5633,7 +5633,7 @@ bool CvUnit::espionage(EspionageMissionTypes eMission, int iData)
 				setMadeAttack(true);
 				finishMoves();
 
-				CvCity* pCapital = GET_PLAYER(getOwner()).getCapitalCity();
+				CvCity* pCapital = GET_PLAYER(getOwner()).getCapital();
 				if(pCapital != NULL &&
 					kMission.isReturnToCapital()) // advc.103
 				{
@@ -6437,22 +6437,20 @@ int CvUnit::baseMoves() const
 {
 	//return (m_pUnitInfo->getMoves() + getExtraMoves() + GET_TEAM(getTeam()).getExtraMoves(getDomainType()));
 	// <advc.905b>
-	int r = m_pUnitInfo->getMoves() + getExtraMoves() + GET_TEAM(getTeam()).getExtraMoves(getDomainType());
+	int iR = m_pUnitInfo->getMoves() + getExtraMoves() +
+			GET_TEAM(getTeam()).getExtraMoves(getDomainType());
 	for(int i = 0; i < GC.getNUM_UNIT_SPEED_BONUSES(getUnitType()); i++)
 	{
 		if(m_pUnitInfo->getSpeedBonuses(i) >= 0)
 		{
-			BonusTypes eBonus = m_pUnitInfo->getSpeedBonuses(i);
-			CvPlotGroup* pPlotGroup = getPlot().getPlotGroup(getOwner());
-			CvCity* pCapital = GET_PLAYER(getOwner()).getCapitalCity();
-			if((pPlotGroup != NULL && pPlotGroup->getNumBonuses(eBonus) > 0) ||
-				(pCapital != NULL && pCapital->hasBonus(eBonus)))
+			if (GET_PLAYER(getOwner()).isSpeedBonusAvailable(
+				m_pUnitInfo->getSpeedBonuses(i), getPlot()))
 			{
-				r += m_pUnitInfo->getExtraMoves(i);
+				iR += m_pUnitInfo->getExtraMoves(i);
 			}
 		}
 	}
-	return r; // </advc.905b>
+	return iR; // </advc.905b>
 }
 
 
