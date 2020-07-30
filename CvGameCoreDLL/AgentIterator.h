@@ -64,16 +64,19 @@ protected:
 		that don't match the predicates. */
 	static CvAgents::AgentSeqCache const eCACHE_SUPER = (
 			eRELATION == ANY_AGENT_RELATION ?
-			CvAgents::MAJOR_ALIVE :
+			CvAgents::MAJOR_ALIVE : // Subseteq cache will handle non-majors
 			eRELATION == MEMBER_OF ?
 				(eSTATUS == EVER_ALIVE ? CvAgents::MEMBER : CvAgents::MEMBER_ALIVE) :
 			eRELATION == VASSAL_OF ?
 				(eSTATUS == ANY_AGENT_STATUS ? CvAgents::ALL :
 				(eSTATUS == EVER_ALIVE ? CvAgents::CIV_EVER_ALIVE : CvAgents::VASSAL_ALIVE)) :
-			// These four can apply to minor civs
+			// These four can apply to non-major agents
 			(eRELATION == POTENTIAL_ENEMY_OF || eRELATION == KNOWN_TO ||
 			eRELATION == KNOWN_POTENTIAL_ENEMY_OF || eRELATION == ENEMY_OF) ?
-				(eSTATUS >= MAJOR_CIV ? CvAgents::MAJOR_ALIVE : CvAgents::CIV_ALIVE) :
+				(eSTATUS >= MAJOR_CIV ? CvAgents::MAJOR_ALIVE :
+				(eSTATUS >= CIV_ALIVE ? CvAgents::CIV_ALIVE : CvAgents::ALL)) :
+			((eRELATION == NOT_A_RIVAL_OF || eRELATION == NOT_SAME_TEAM_AS) && eSTATUS < MAJOR_CIV) ?
+				(eSTATUS == CIV_ALIVE ? CvAgents::CIV_ALIVE : CvAgents::ALL) :
 			CvAgents::MAJOR_ALIVE);
 };
 
