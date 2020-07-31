@@ -308,10 +308,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 		if (GET_TEAM(eTeam).isAtWar(eOther))
 			queueWar(eOther, getID(), false, WARPLAN_DOGPILE, false);
 		else if (isAtWar(eOther))
-		{
-			GET_TEAM(eTeam).declareWar(eOther, false, AI().AI_getWarPlan(eOther));
 			queueWar(eOther, eTeam, false, WARPLAN_DOGPILE, false);
-		}
 	}
 	triggerWars();
 	// </kekm.26>
