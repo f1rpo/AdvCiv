@@ -122,7 +122,6 @@ public:
 	bool hasHeadquarters(CorporationTypes eCorporation) const;																		// Exposed to Python
 	bool hasBonus(BonusTypes eBonus) const;
 	bool isBonusObsolete(BonusTypes eBonus) const;
-	bool canSeeReqBonuses(UnitTypes eUnit); // advc.301
 
 	bool isHuman() const;																																// Exposed to Python
 	// advc: (The Barbarians aren't a proper civ)

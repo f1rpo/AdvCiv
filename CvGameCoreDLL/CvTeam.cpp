@@ -2197,29 +2197,6 @@ bool CvTeam::isBonusObsolete(BonusTypes eBonus) const
 	return (eObsoleteTech != NO_TECH && isHasTech(eObsoleteTech));
 }
 
-/*  <advc.301>: Only used for Barbarians so far. Should arguably also check if the
-	resource can be used, however, the only case in which this matters, is Fusion,
-	which isn't relevant for Barbarians. */
-bool CvTeam::canSeeReqBonuses(UnitTypes eUnit)
-{
-	CvUnitInfo& kUnit = GC.getInfo(eUnit);
-	BonusTypes eAndBonus = kUnit.getPrereqAndBonus();
-	if (eAndBonus != NO_BONUS && !isBonusRevealed(eAndBonus))
-		return false;
-	bool bAllBlank = true; // Handle dummy NONE XML elements
-	for (int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); i++)
-	{
-		BonusTypes eOrBonus = kUnit.getPrereqOrBonuses(i);
-		if (eOrBonus != NO_BONUS)
-		{
-			bAllBlank = false;
-			if(isBonusRevealed(eOrBonus))
-				return true;
-		}
-	}
-	return bAllBlank;
-} // </advc.301>
-
 
 bool CvTeam::isHuman() const
 {

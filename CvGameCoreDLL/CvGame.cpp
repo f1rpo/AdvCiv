@@ -7821,48 +7821,65 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a)
 			!GET_PLAYER(BARBARIAN_PLAYER).canTrain(eUnit))
 		{
 			continue;
-		} // <advc.301>
-		BonusTypes eAndBonus = kUnit.getPrereqAndBonus();
-		TechTypes eAndBonusTech = NO_TECH;
+		}  // <advc.301>
+		BonusTypes const eAndBonus = kUnit.getPrereqAndBonus();
+		std::vector<TechTypes> aeAndBonusTechs(2, NO_TECH);
 		if (eAndBonus != NO_BONUS)
 		{
-			eAndBonusTech = GC.getInfo(eAndBonus).getTechCityTrade();
-			if((eAndBonusTech != NO_TECH &&
-				!GET_TEAM(BARBARIAN_TEAM).isHasTech(eAndBonusTech)) ||
-				!a.hasAnyAreaPlayerBonus(eAndBonus))
+			CvBonusInfo const& kAndBonus = GC.getInfo(eAndBonus);
+			aeAndBonusTechs.push_back(kAndBonus.getTechCityTrade()); // (as in BtS)
+			aeAndBonusTechs.push_back(kAndBonus.getTechReveal());
+			bool bValid = true;
+			for (size_t j = 0; j < aeAndBonusTechs.size(); j++)
 			{
-				continue;
+				if (aeAndBonusTechs[j] != NO_TECH &&
+					!GET_TEAM(BARBARIAN_TEAM).isHasTech(aeAndBonusTechs[j]))
+				{
+					bValid = false;
+					break;
+				}
 			}
+			if (!bValid || !a.hasAnyAreaPlayerBonus(eAndBonus))
+				continue;
 		}
 		/*  No units from more than 1 era ago (obsoletion too difficult to test).
 			hasTech already tested by canTrain, but era shouldn't be
 			tested there b/c it's OK for Barbarian cities to train outdated units
 			(they only will if they can't train anything better). */
-		TechTypes eAndTech = kUnit.getPrereqAndTech();
+		TechTypes const eAndTech = kUnit.getPrereqAndTech();
 		int iUnitEra = 0;
 		if (eAndTech != NO_TECH)
 			iUnitEra = GC.getInfo(eAndTech).getEra();
-		if (eAndBonusTech != NO_TECH)
-			iUnitEra = std::max<int>(iUnitEra, GC.getInfo(eAndBonusTech).getEra());
+		for (size_t j = 0; j < aeAndBonusTechs.size(); j++)
+		{
+			if (aeAndBonusTechs[j] != NO_TECH)
+			{
+				iUnitEra = std::max<int>(iUnitEra,
+						GC.getInfo(aeAndBonusTechs[j]).getEra());
+			}
+		}
 		if (iUnitEra + 1 < getCurrentEra())
 			continue; // </advc.301>
 		bool bFound = false;
 		bool bRequires = false;
-		for (int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); j++)
+		for (int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit) &&
+			!bFound; j++) // advc.301
 		{
 			BonusTypes eOrBonus = kUnit.getPrereqOrBonuses(j);
 			if(eOrBonus == NO_BONUS)
 				continue;
 			CvBonusInfo const& kOrBonus = GC.getInfo(eOrBonus);
-			TechTypes eOrBonusTech = kOrBonus.getTechCityTrade();
-			if (eOrBonusTech != NO_TECH)
+			// <advc.301>
+			std::vector<TechTypes> aeOrBonusTechs(2, NO_TECH);
+			aeOrBonusTechs.push_back(kOrBonus.getTechCityTrade()); // (as in BtS)
+			aeOrBonusTechs.push_back(kOrBonus.getTechReveal());
+			for (size_t k = 0; k < aeOrBonusTechs.size(); k++)
 			{
+				if (aeOrBonusTechs[k] == NO_TECH)
+					continue;
 				bRequires = true;
-				if (GET_TEAM(BARBARIAN_TEAM).isHasTech(eOrBonusTech) &&
-					/*  advc.301: Also require the resource to be connected by
-						someone on this continent; in particular, don't spawn
-						Horse Archers on a horseless continent. */
-					a.hasAnyAreaPlayerBonus(eOrBonus))
+				if (GET_TEAM(BARBARIAN_TEAM).isHasTech(aeOrBonusTechs[k]) &&
+					a.hasAnyAreaPlayerBonus(eOrBonus)) // </advc.301>
 				{
 					bFound = true;
 					break;
@@ -7871,13 +7888,6 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a)
 		}
 		if (bRequires && !bFound)
 			continue;
-		/*  <advc.301>: The code above only checks if they can build the improvements
-			necessary to obtain the required resources; it does not check if they
-			can see/use the resource. This means that Spearmen often appear before
-			Archers b/c they require only Hunting and Mining, and not Bronze Working.
-			Correction: */
-		if (!GET_TEAM(BARBARIAN_TEAM).canSeeReqBonuses(eUnit))
-			continue; // </advc.301>
 		int iValue = (1 + getSorenRandNum(1000, "Barb Unit Selection"));
 		if (kUnit.getUnitAIType(eUnitAI))
 			iValue += 200;
