@@ -2851,12 +2851,10 @@ void Affection::evaluate() {
 		that will only please us when it sees our soldiers approach isn't a true friend. */
 	if(wp != WARPLAN_PREPARING_LIMITED && wp != WARPLAN_PREPARING_TOTAL &&
 			wp != NO_WARPLAN) {
-		directPlanFactor = std::min(1.0, 0.1 * std::max(0,
+		directPlanFactor = std::min(1.0, 0.08 * std::max(1,
 				/*  If war stays imminent for a long time, and relations remain good,
 					affection should matter again. */
-				agent.AI_getWarPlanStateCounter(TEAMID(theyId)) - 3));
-		if(directPlanFactor < 0.01)
-			return;
+				agent.AI_getWarPlanStateCounter(TEAMID(theyId)) - 4));
 	}
 	// We're not fully responsible for wars triggered by our DoW
 	double linkedWarFactor = 0;
@@ -2915,7 +2913,7 @@ void Affection::evaluate() {
 	bool const ignDistr = params.isIgnoreDistraction();
 	/*  The Catherine clause - doesn't make sense for her to consider sponsored
 		war on a friend if the cost is always prohibitive. */
-	bool hiredAgainstFriend = (towardsThem >= ATTITUDE_FRIENDLY &&
+	bool const hiredAgainstFriend = (towardsThem >= ATTITUDE_FRIENDLY &&
 			(params.getSponsor() != NO_PLAYER ||
 			/*  The computations ignoring distraction are also used for decisions
 				on joint wars (see UWAI::Team::declareWarTrade) */
