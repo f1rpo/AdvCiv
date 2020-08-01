@@ -4029,18 +4029,10 @@
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
 			<!-- advc.005a: Was Worker 100. India cleared large areas of
-				 jungle, but that wasn't Gandhi's doing. Give him a second
-				 peaceful bonus. -->
-			<UnitAIWeightModifiers>
-				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_WORKER</UnitAIType>
-					<iWeightModifier>25</iWeightModifier>
-				</UnitAIWeightModifier>
-				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_CITY_SPECIAL</UnitAIType>
-					<iWeightModifier>25</iWeightModifier>
-				</UnitAIWeightModifier>
-			</UnitAIWeightModifiers>
+				 jungle, but that wasn't Gandhi's doing, and don't want to
+				 push the UU more. Defense wasn't his thing either,
+				 nor exploration, proselytization or espionage. -->
+			<UnitAIWeightModifiers/>
 			<!-- advc.005a: was Town and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
