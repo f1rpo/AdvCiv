@@ -632,10 +632,10 @@
 		 the peak percentage. Setting BARB_PEAK_PERCENT to 0 results in BtS
 		 behavior, with B maximal when Barbarians first appear and then
 		 decreasing as the civs expand.
-		 Recommended: 67 -->
+		 Recommended: 60 -->
     <Define>
         <DefineName>BARB_PEAK_PERCENT</DefineName>
-        <iDefineIntVal>67</iDefineIntVal>
+        <iDefineIntVal>60</iDefineIntVal>
     </Define>
 
 	<!-- [advc.300]
