@@ -20,6 +20,11 @@ public:
 
 	T get(OuterArrayType eArray, InnerArrayType eIndex) const;
 	void set(OuterArrayType eArray, InnerArrayType eIndex, T tValue);
+	// advc: Allow individual elements to be reset
+	__forceinline void reset(OuterArrayType eArray, InnerArrayType eIndex)
+	{
+		set(eArray, eIndex, (T)DEFAULT);
+	}
 	void add(OuterArrayType eArray, InnerArrayType eIndex, T tValue);
 
 	bool hasContent() const;

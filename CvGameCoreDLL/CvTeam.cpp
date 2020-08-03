@@ -171,21 +171,21 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 		for (int i = 0; i < MAX_TEAMS; i++)
 		{
 			CvTeam& kLoopTeam = GET_TEAM((TeamTypes)i);
-			kLoopTeam.m_aiStolenVisibilityTimer.set(getID(), 0);
-			kLoopTeam.m_aiWarWeariness.set(getID(), 0);
-			kLoopTeam.m_aiTechShareCount.set(getID(), 0);
-			kLoopTeam.m_aiEspionagePointsAgainstTeam.set(getID(), 0);
-			kLoopTeam.m_aiCounterespionageTurnsLeftAgainstTeam.set(getID(), 0);
-			kLoopTeam.m_aiCounterespionageModAgainstTeam.set(getID(), 0);
-			kLoopTeam.m_abHasMet.set(getID(), false);
-			kLoopTeam.m_abHasSeen.set(getID(), false); // K-Mod
-			kLoopTeam.m_abAtWar.set(getID(), false);
-			kLoopTeam.m_abJustDeclaredWar.set(getID(), false); // advc.162
-			kLoopTeam.m_abPermanentWarPeace.set(getID(), false);
-			kLoopTeam.m_abOpenBorders.set(getID(), false);
-			kLoopTeam.m_abDisengage.set(getID(), false); // advc.034
-			kLoopTeam.m_abDefensivePact.set(getID(), false);
-			kLoopTeam.m_abForcePeace.set(getID(), false);
+			kLoopTeam.m_aiStolenVisibilityTimer.reset(getID());
+			kLoopTeam.m_aiWarWeariness.reset(getID());
+			kLoopTeam.m_aiTechShareCount.reset(getID());
+			kLoopTeam.m_aiEspionagePointsAgainstTeam.reset(getID());
+			kLoopTeam.m_aiCounterespionageTurnsLeftAgainstTeam.reset(getID());
+			kLoopTeam.m_aiCounterespionageModAgainstTeam.reset(getID());
+			kLoopTeam.m_abHasMet.reset(getID());
+			kLoopTeam.m_abHasSeen.reset(getID()); // K-Mod
+			kLoopTeam.m_abAtWar.reset(getID());
+			kLoopTeam.m_abJustDeclaredWar.reset(getID()); // advc.162
+			kLoopTeam.m_abPermanentWarPeace.reset(getID());
+			kLoopTeam.m_abOpenBorders.reset(getID());
+			kLoopTeam.m_abDisengage.reset(getID()); // advc.034
+			kLoopTeam.m_abDefensivePact.reset(getID());
+			kLoopTeam.m_abForcePeace.reset(getID());
 			// <advc.opt>
 			if (kLoopTeam.m_eMaster == getID())
 				kLoopTeam.m_eMaster = NO_TEAM; // </advc.opt>

@@ -85,6 +85,8 @@ public:
 	// array access
 	T get(IndexType eIndex) const;
 	void set(IndexType eIndex, T tValue);
+	// advc: Allow individual elements to be reset
+	__forceinline void reset(IndexType eIndex) { set(eIndex, (T)DEFAULT); }
 	void add(IndexType eIndex, T tValue);
 	void multiply(IndexType eIndex, T tMultiplier); // advc
 
