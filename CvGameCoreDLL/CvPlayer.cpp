@@ -17914,28 +17914,11 @@ bool CvPlayer::canForceCivics(PlayerTypes eTarget, CivicTypes eCivic) const
 {
 	// return (GET_PLAYER(eTarget).canDoCivics(eCivic) && !GET_PLAYER(eTarget).isCivic(eCivic) && isCivic(eCivic));
 	// <advc.132>
-	if(!GET_PLAYER(eTarget).canDoCivics(eCivic) ||
-			GET_PLAYER(eTarget).isCivic(eCivic) || !isCivic(eCivic))
+	if (!GET_PLAYER(eTarget).canDoCivics(eCivic) || GET_PLAYER(eTarget).isCivic(eCivic))
 		return false;
-	/* Identify economy civics as those in the same column as a civic
-	   granting extra trade routes (Free Market).
-	   Religion civics are those that allow or disallow a state religion.
-	   Marking "flexible" civics in XML (schema change) would be cleaner. */
-	CivicOptionTypes eEconomyOption = NO_CIVICOPTION;
-	for(int i = 0; i < GC.getNumCivicInfos(); i++)
-	{
-		CvCivicInfo const& kLoopCivic = GC.getInfo((CivicTypes)i);
-		if(kLoopCivic.getTradeRoutes() != 0)
-		{
-			eEconomyOption = kLoopCivic.getCivicOptionType();
-			break;
-		}
-	}
-	CvCivicInfo const& kCivic = GC.getInfo(eCivic);
-	return (getCivilization().getInitialCivic((CivicOptionTypes)kCivic.
-			getCivicOptionType()) != eCivic && // Not an initial civic
-			(kCivic.isStateReligion() || kCivic.getNonStateReligionHappiness() > 0 ||
-			kCivic.getCivicOptionType() == eEconomyOption));
+	/*	(AdvCiv code for identifying economy and religion civics deleted on 4 Auf 2020
+		and replaced with new XML tag) */
+	return (isCivic(eCivic) || GC.getInfo(eCivic).canAlwaysForce()); // </advc.132>
 }
 
 

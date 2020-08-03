@@ -23,6 +23,7 @@ public: // The const functions are exposed to Python except those (to be) added 
 	int getAnarchyLength() const { return m_iAnarchyLength; }
 	int getUpkeep() const { return m_iUpkeep; }
 	int getAIWeight() const { return m_iAIWeight; }
+	bool canAlwaysForce() const { return m_bCanAlwaysForce; } // advc.132
 	int getGreatPeopleRateModifier() const { return m_iGreatPeopleRateModifier; }
 	int getGreatGeneralRateModifier() const { return m_iGreatGeneralRateModifier; }
 	int getDomesticGreatGeneralRateModifier() const { return m_iDomesticGreatGeneralRateModifier; }
@@ -151,6 +152,7 @@ protected:
 	bool m_bNoForeignCorporations;
 	bool m_bStateReligion;
 	bool m_bNoNonStateReligionSpread;
+	bool m_bCanAlwaysForce; // advc.132
 
 	CvWString m_szWeLoveTheKingKey;
 

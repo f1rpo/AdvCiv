@@ -668,6 +668,8 @@
 	</ElementType>
 	<ElementType name="iAnarchyLength" content="textOnly" dt:type="int"/>
 	<ElementType name="iAIWeight" content="textOnly" dt:type="int"/>
+	<!-- advc.132 -->
+	<ElementType name="bCanAlwaysForce" content="textOnly" dt:type="boolean"/>
 	<ElementType name="iGreatPeopleRateModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iGreatGeneralRateModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iDomesticGreatGeneralRateModifier" content="textOnly" dt:type="int"/>
@@ -805,6 +807,10 @@
 		<element type="iAnarchyLength"/>
 		<element type="Upkeep"/>
 		<element type="iAIWeight"/>
+		<!-- advc.132: Set to 0 by default in the DLL.
+			 1 allows forcing the civic upon other players without running it
+			 in certain situations; see manual for details. -->
+		<element type="bCanAlwaysForce" minOccurs="0"/>
 		<element type="iGreatPeopleRateModifier"/>
 		<element type="iGreatGeneralRateModifier"/>
 		<element type="iDomesticGreatGeneralRateModifier"/>

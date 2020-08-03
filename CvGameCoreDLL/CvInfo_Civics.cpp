@@ -11,6 +11,7 @@ m_eCivicOptionType(NO_CIVICOPTION),
 m_iAnarchyLength(0),
 m_iUpkeep(0),
 m_iAIWeight(0),
+m_bCanAlwaysForce(false), // advc.132
 m_iGreatPeopleRateModifier(0),
 m_iGreatGeneralRateModifier(0),
 m_iDomesticGreatGeneralRateModifier(0),
@@ -215,6 +216,9 @@ void CvCivicInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iAnarchyLength);
 	stream->Read(&m_iUpkeep);
 	stream->Read(&m_iAIWeight);
+	// <advc.132>
+	if (uiFlag >= 4)
+		stream->Read(&m_bCanAlwaysForce); // </advc.132>
 	stream->Read(&m_iGreatPeopleRateModifier);
 	stream->Read(&m_iGreatGeneralRateModifier);
 	stream->Read(&m_iDomesticGreatGeneralRateModifier);
@@ -322,12 +326,14 @@ void CvCivicInfo::write(FDataStreamBase* stream)
 	CvInfoBase::write(stream);
 	uint uiFlag=2;
 	uiFlag = 3; // advc.912c
+	uiFlag = 4; // advc.132
 	stream->Write(uiFlag);
 
 	stream->Write(m_eCivicOptionType);
 	stream->Write(m_iAnarchyLength);
 	stream->Write(m_iUpkeep);
 	stream->Write(m_iAIWeight);
+	stream->Write(m_bCanAlwaysForce); // advc.132
 	stream->Write(m_iGreatPeopleRateModifier);
 	stream->Write(m_iGreatGeneralRateModifier);
 	stream->Write(m_iDomesticGreatGeneralRateModifier);
@@ -402,6 +408,7 @@ bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 	pXML->SetInfoIDFromChildXmlVal(m_iUpkeep, "Upkeep");
 
 	pXML->GetChildXmlValByName(&m_iAIWeight, "iAIWeight");
+	pXML->GetChildXmlValByName(&m_bCanAlwaysForce, "bCanAlwaysForce", false); // advc.132
 	pXML->GetChildXmlValByName(&m_iGreatPeopleRateModifier, "iGreatPeopleRateModifier");
 	pXML->GetChildXmlValByName(&m_iGreatGeneralRateModifier, "iGreatGeneralRateModifier");
 	pXML->GetChildXmlValByName(&m_iDomesticGreatGeneralRateModifier, "iDomesticGreatGeneralRateModifier");
