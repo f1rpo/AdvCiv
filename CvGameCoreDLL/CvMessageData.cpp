@@ -326,12 +326,17 @@ void CvNetDoTask::SetFromBuffer(FDataStreamBase* pStream)
 	pStream->Read(&m_bCtrl);
 }
 
-CvNetUpdateCivics::CvNetUpdateCivics() : CvMessageData(GAMEMESSAGE_UPDATE_CIVICS), m_ePlayer(NO_PLAYER), m_aeCivics(GC.getNumCivicOptionInfos(), NO_CIVIC)
+CvNetUpdateCivics::CvNetUpdateCivics() : CvMessageData(GAMEMESSAGE_UPDATE_CIVICS), m_ePlayer(NO_PLAYER)
 {
 }
 
-CvNetUpdateCivics::CvNetUpdateCivics(PlayerTypes ePlayer, const std::vector<CivicTypes>& aeCivics) : CvMessageData(GAMEMESSAGE_UPDATE_CIVICS), m_ePlayer(ePlayer), m_aeCivics(aeCivics)
+CvNetUpdateCivics::CvNetUpdateCivics(PlayerTypes ePlayer, CivicMap const& kCivics) :
+	CvMessageData(GAMEMESSAGE_UPDATE_CIVICS), m_ePlayer(ePlayer)
 {
+	// <advc.enum>
+	FOR_EACH_ENUM(CivicOption)
+		m_aeCivics.set(eLoopCivicOption, kCivics.get(eLoopCivicOption));
+	// </advc.enum>
 }
 
 
@@ -342,28 +347,22 @@ void CvNetUpdateCivics::Debug(char* szAddendum)
 
 void CvNetUpdateCivics::Execute()
 {
-	if (m_ePlayer != NO_PLAYER && !m_aeCivics.empty())
+	if (m_ePlayer != NO_PLAYER /*&& !m_aeCivics.empty()*/) // advc.enum
 	{
-		GET_PLAYER(m_ePlayer).revolution(&m_aeCivics[0]);
+		GET_PLAYER(m_ePlayer).revolution(m_aeCivics);
 	}
 }
 
 void CvNetUpdateCivics::PutInBuffer(FDataStreamBase* pStream)
 {
 	pStream->Write(m_ePlayer);
-	for (int i = 0; i < GC.getNumCivicOptionInfos(); i++)
-	{
-		pStream->Write(m_aeCivics[i]);
-	}
+	m_aeCivics.Write(pStream);
 }
 
 void CvNetUpdateCivics::SetFromBuffer(FDataStreamBase* pStream)
 {
 	pStream->Read((int*)&m_ePlayer);
-	for (int i = 0; i < GC.getNumCivicOptionInfos(); i++)
-	{
-		pStream->Read((int*)&m_aeCivics[i]);
-	}
+	m_aeCivics.Read(pStream);
 }
 
 CvNetResearch::CvNetResearch() : CvMessageData(GAMEMESSAGE_RESEARCH), m_ePlayer(NO_PLAYER), m_iDiscover(-1), m_bShift(false), m_eTech(NO_TECH)

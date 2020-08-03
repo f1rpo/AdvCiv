@@ -459,7 +459,13 @@ void CyPlayer::removeBuildingClass(int /*BuildingClassTypes*/ eBuildingClass)
 
 bool CyPlayer::canBuild(CyPlot* pPlot, int /*BuildTypes*/ eBuild, bool bTestEra, bool bTestVisible)
 {
-	return m_pPlayer ? m_pPlayer->canBuild(pPlot->getPlot(), (BuildTypes)eBuild, bTestEra, bTestVisible) : false;
+	if (m_pPlayer == NULL)
+		return false;
+	// <advc> Pass by reference
+	CvPlot const* p = pPlot->getPlot();
+	if (p == NULL)
+		return false; // </advc>
+	return m_pPlayer->canBuild(*p, (BuildTypes)eBuild, bTestEra, bTestVisible);
 }
 
 int /*RouteTypes*/ CyPlayer::getBestRoute(CyPlot* pPlot) const
@@ -630,15 +636,27 @@ bool CyPlayer::canDoCivics(int /*CivicTypes*/ eCivic)
 	return m_pPlayer ? m_pPlayer->canDoCivics((CivicTypes)eCivic) : false;
 }
 
-bool CyPlayer::canRevolution(int /*CivicTypes**/ paeNewCivics)
+bool CyPlayer::canRevolution(/* <advc> */int) // (see declaration)
 {
-	return m_pPlayer ? m_pPlayer->canRevolution((CivicTypes*)paeNewCivics) : false;
+	return m_pPlayer ? m_pPlayer->canDoAnyRevolution() : false; // </advc>
+}
+// advc.001:
+bool CyPlayer::canAdopt(boost::python::list& kNewCivics)
+{
+	if (m_pPlayer == NULL)
+		return false;
+	CivicMap aeNewCivics; // advc.enum
+	pyListToCivicMap(kNewCivics, aeNewCivics);
+	return m_pPlayer->canRevolution(aeNewCivics);
 }
 
-void CyPlayer::revolution(int /*CivicTypes**/ paeNewCivics, bool bForce)
+void CyPlayer::revolution(boost::python::list& kNewCivics, bool bForce)
 {
-	if (m_pPlayer)
-		m_pPlayer->revolution((CivicTypes*)paeNewCivics, bForce);
+	if (m_pPlayer == NULL)
+		return;
+	CivicMap aeNewCivics; // advc.enum
+	pyListToCivicMap(kNewCivics, aeNewCivics);
+	m_pPlayer->revolution(aeNewCivics, bForce);
 }
 
 int CyPlayer::getCivicPercentAnger(int /*CivicTypes*/ eCivic)
@@ -704,14 +722,13 @@ void CyPlayer::foundCorporation(int /*CorporationTypes*/ iIndex)
 		m_pPlayer->foundCorporation((CorporationTypes)iIndex);
 }
 
-int CyPlayer::getCivicAnarchyLength(boost::python::list& /*CivicTypes**/ paeNewCivics)
+int CyPlayer::getCivicAnarchyLength(boost::python::list& kNewCivics)
 {
-	int* pCivics = NULL;
-	gDLL->getPythonIFace()->putSeqInArray(paeNewCivics.ptr() /*src*/, &pCivics /*dst*/);
-
-	int iRet = m_pPlayer ? m_pPlayer->getCivicAnarchyLength((CivicTypes*)pCivics) : -1;
-	delete [] pCivics;
-	return iRet;
+	if (m_pPlayer == NULL)
+		return -1;
+	CivicMap aeNewCivics; // advc.enum
+	pyListToCivicMap(kNewCivics, aeNewCivics);
+	return m_pPlayer->getCivicAnarchyLength(aeNewCivics);
 }
 
 int CyPlayer::getReligionAnarchyLength()
@@ -1019,10 +1036,13 @@ int CyPlayer::getHurryModifier()
 
 void CyPlayer::createGreatPeople(int eGreatPersonUnit, bool bIncrementThreshold, bool bIncrementExperience, int iX, int iY)
 {
-	if (m_pPlayer)
-	{
-		m_pPlayer->createGreatPeople((UnitTypes)eGreatPersonUnit, bIncrementThreshold, bIncrementExperience, iX, iY);
-	}
+	if (m_pPlayer == NULL)
+		return;
+	// <advc> Pass by reference
+	CvPlot* p = GC.getMap().plot(iX, iY);
+	if (p == NULL)
+		return; // </advc>
+	m_pPlayer->createGreatPeople((UnitTypes)eGreatPersonUnit, bIncrementThreshold, bIncrementExperience, *p);
 
 }
 
@@ -1864,13 +1884,13 @@ int CyPlayer::getSingleCivicUpkeep(int /*CivicTypes*/ eCivic, bool bIgnoreAnarch
 	return m_pPlayer ? m_pPlayer->getSingleCivicUpkeep((CivicTypes) eCivic, bIgnoreAnarchy) : -1;
 }
 
-int CyPlayer::getCivicUpkeep(boost::python::list& /*CivicTypes*/ paiCivics, bool bIgnoreAnarchy)
+int CyPlayer::getCivicUpkeep(boost::python::list& kCivics, bool bIgnoreAnarchy)
 {
-	int* pCivics = NULL;
-	gDLL->getPythonIFace()->putSeqInArray(paiCivics.ptr() /*src*/, &pCivics /*dst*/);
-	int iRet = m_pPlayer ? m_pPlayer->getCivicUpkeep((CivicTypes*)pCivics, bIgnoreAnarchy) : -1;
-	delete [] pCivics;
-	return iRet;
+	if (m_pPlayer == NULL)
+		return -1;
+	CivicMap aeCivics; // advc.enum
+	pyListToCivicMap(kCivics, aeCivics); // advc
+	return m_pPlayer->getCivicUpkeep(&aeCivics, bIgnoreAnarchy);
 }
 
 void CyPlayer::setCivics(int /*CivicOptionTypes*/ eIndex, int /*CivicTypes*/ eNewValue)
@@ -1882,27 +1902,21 @@ void CyPlayer::setCivics(int /*CivicOptionTypes*/ eIndex, int /*CivicTypes*/ eNe
 int CyPlayer::getCombatExperience() const
 {
 	if (m_pPlayer)
-	{
 		return m_pPlayer->getCombatExperience();
-	}
 	return -1;
 }
 
 void CyPlayer::changeCombatExperience(int iChange)
 {
 	if (m_pPlayer)
-	{
 		m_pPlayer->changeCombatExperience(iChange);
-	}
 
 }
 
 void CyPlayer::setCombatExperience(int iExperience)
 {
 	if (m_pPlayer)
-	{
 		m_pPlayer->setCombatExperience(iExperience);
-	}
 
 }
 
@@ -1919,9 +1933,7 @@ int CyPlayer::findPathLength(int /*TechTypes*/ eTech, bool bCost)
 int CyPlayer::getQueuePosition(int /* TechTypes */ eTech)
 {
 	if (m_pPlayer)
-	{
 		return m_pPlayer->getQueuePosition((TechTypes)eTech);
-	}
 	return -1;
 }
 
@@ -2381,3 +2393,15 @@ bool CyPlayer::isScoreboardExpanded() const
 		return false;
 	return m_pPlayer->isScoreboardExpanded();
 } // </advc.085>
+
+// advc.001: In part cut from getCivicAnarchyLength
+void CyPlayer::pyListToCivicMap(boost::python::list const& kFrom, CivicMap& kTo)
+{
+	int* piTmp = NULL;
+	gDLL->getPythonIFace()->putSeqInArray(kFrom.ptr(), &piTmp);
+	// <advc.enum>
+	FOR_EACH_ENUM(CivicOption)
+		kTo.set(eLoopCivicOption, (CivicTypes)piTmp[eLoopCivicOption]);
+	// </advc.enum>
+	delete[] piTmp;
+}

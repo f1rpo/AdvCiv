@@ -2779,7 +2779,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		while (pSelectedUnitNode != NULL)
 		{
 			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-			if (pSelectedUnit->canBuild(&kMissionPlot, eBuild))
+			if (pSelectedUnit->canBuild(kMissionPlot, eBuild))
 			{
 				bValid = true;
 				break;
@@ -3067,7 +3067,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		int iNowWorkRate = 0;
 		int iThenWorkRate = 0;
 		pSelectedUnitNode = gDLL->UI().headSelectionListNode();
-		int iBuildCost = kUnitOwner.getBuildCost(&kMissionPlot, eBuild);
+		int iBuildCost = kUnitOwner.getBuildCost(kMissionPlot, eBuild);
 		if (iBuildCost > 0)
 		{
 			szBuffer.append(NEWLINE);

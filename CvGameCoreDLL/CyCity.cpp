@@ -46,7 +46,13 @@ void CyCity::chooseProduction(int /*UnitTypes*/ eTrainUnit, int /*BuildingTypes*
 
 int CyCity::getCityPlotIndex(CyPlot* pPlot)
 {
-	return m_pCity ? m_pCity->getCityPlotIndex(pPlot->getPlot()) : -1;
+	if (m_pCity == NULL)
+		return NO_CITYPLOT;
+	// <advc> Pass by reference
+	CvPlot const* p = pPlot->getPlot();
+	if (p == NULL)
+		return NO_CITYPLOT; // </advc>
+	return m_pCity->getCityPlotIndex(*p);
 }
 
 CyPlot* CyCity::getCityIndexPlot(int iIndex)
@@ -56,7 +62,13 @@ CyPlot* CyCity::getCityIndexPlot(int iIndex)
 
 bool CyCity::canWork(CyPlot* pPlot)
 {
-	return m_pCity ? m_pCity->canWork(pPlot ? pPlot->getPlot() : NULL) : false;
+	if (m_pCity == NULL)
+		return false;
+	// <advc> Pass by reference
+	CvPlot const* p = pPlot->getPlot();
+	if (p == NULL)
+		return false; // </advc>
+	return m_pCity->canWork(*p);
 }
 
 void CyCity::clearWorkingOverride(int iIndex)
@@ -1819,7 +1831,8 @@ std::wstring CyCity::getNameKey()
 
 void CyCity::setName(std::wstring szNewValue, bool bFound)
 {
-	if (m_pCity) {
+	if (m_pCity)
+	{
 		m_pCity->setName(CvWString(szNewValue), bFound,
 				// advc.106k: For preplaced cities in scenarios
 				!GC.IsGraphicsInitialized());
@@ -2089,7 +2102,13 @@ bool CyCity::isWorkingPlotByIndex(int iIndex)
 
 bool CyCity::isWorkingPlot(CyPlot* pPlot)
 {
-	return m_pCity ? m_pCity->isWorkingPlot(pPlot->getPlot()) : false;
+	if (m_pCity == NULL)
+		return false;
+	// <advc> Pass by reference
+	CvPlot const* p = pPlot->getPlot();
+	if (p == NULL)
+		return false; // </advc>
+	return m_pCity->isWorkingPlot(*p);
 }
 
 void CyCity::alterWorkingPlot(int iIndex)

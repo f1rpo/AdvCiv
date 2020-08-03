@@ -163,8 +163,15 @@ public:
 
 	bool isCivic(int /*CivicTypes*/ eCivic);
 	bool canDoCivics(int /*CivicTypes*/ eCivic);
-	bool canRevolution(int /*CivicTypes**/ paeNewCivics);
-	void revolution(int /*CivicTypes**/ paeNewCivics, bool bForce);
+	//bool canRevolution(int /*CivicTypes**/ paeNewCivics);
+	//void revolution(int /*CivicTypes**/ paeNewCivics, bool bForce);
+	/*	<advc.001> These need to take a list of civics as parameter,
+		like getCivicanarchyLength. However, only canRevolution is actually called
+		from BtS Python code, always with actual param 0. Let's keep those calls
+		permissible and create a new function canAdopt with the proper parameters. */
+	bool canRevolution(int iDummy);
+	bool canAdopt(boost::python::list& kNewCivics);
+	void revolution(boost::python::list& kNewCivics, bool bForce); // </advc.001>
 	int getCivicPercentAnger(int /*CivicTypes*/ eCivic);
 
 	bool canDoReligion(int /*ReligionTypes*/ eReligion);
@@ -175,7 +182,7 @@ public:
 	int countHolyCities();
 
 	void foundReligion(int /*ReligionTypes*/ eReligion, int /*ReligionTypes*/ iSlotReligion, bool bAward);
-	int getCivicAnarchyLength(boost::python::list& /*CivicTypes**/ paeNewCivics);
+	int getCivicAnarchyLength(boost::python::list& /*CivicTypes**/ kNewCivics);
 	int getReligionAnarchyLength();
 
 	bool hasHeadquarters(int /*CorporationTypes*/ eCorporation);
@@ -437,7 +444,7 @@ public:
 	bool isResearchingTech(int /*TechTypes*/ iIndex);
 	int /*CivicTypes*/ getCivics(int /*CivicOptionTypes*/ iIndex);
 	int getSingleCivicUpkeep(int /*CivicTypes*/ eCivic, bool bIgnoreAnarchy);
-	int getCivicUpkeep(boost::python::list&  /*CivicTypes*/ paiCivics, bool bIgnoreAnarchy);
+	int getCivicUpkeep(boost::python::list&  /*CivicTypes*/ kCivics, bool bIgnoreAnarchy);
 	void setCivics(int /*CivicOptionTypes*/ eIndex, int /*CivicTypes*/ eNewValue);
 
 	int getCombatExperience() const;
@@ -528,6 +535,8 @@ public:
 
 private:
 	CvPlayerAI* m_pPlayer; // advc.003u: was CvPlayer*
+	// advc.enum, advc.001:
+	static void pyListToCivicMap(boost::python::list const& kFrom, CivicMap& kTo);
 };
 
 #endif	// CyPlayer_h

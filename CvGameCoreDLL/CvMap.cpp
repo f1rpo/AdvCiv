@@ -701,57 +701,57 @@ int CvMap::numPlotsExternal() const // advc.inl
 
 int CvMap::plotX(int iIndex) const
 {
-	return (iIndex % getGridWidth());
+	return iIndex % getGridWidth();
 }
 
 
 int CvMap::plotY(int iIndex) const
 {
-	return (iIndex / getGridWidth());
+	return iIndex / getGridWidth();
 }
 
 
-int CvMap::pointXToPlotX(float fX)
+int CvMap::pointXToPlotX(float fX) /* advc: */ const
 {
 	float fWidth, fHeight;
 	gDLL->getEngineIFace()->GetLandscapeGameDimensions(fWidth, fHeight);
-	return (int)(((fX + (fWidth/2.0f)) / fWidth) * getGridWidth());
+	return (int)(((fX + fWidth/2) / fWidth) * getGridWidth());
 }
 
 
-float CvMap::plotXToPointX(int iX)
+float CvMap::plotXToPointX(int iX) /* advc: */ const
 {
 	float fWidth, fHeight;
 	gDLL->getEngineIFace()->GetLandscapeGameDimensions(fWidth, fHeight);
-	return ((iX * fWidth) / ((float)getGridWidth())) - (fWidth / 2.0f) + (GC.getPLOT_SIZE() / 2.0f);
+	return ((iX * fWidth) / getGridWidth()) - fWidth/2 + GC.getPLOT_SIZE()/2;
 }
 
 
-int CvMap::pointYToPlotY(float fY)
+int CvMap::pointYToPlotY(float fY) /* advc: */ const
 {
 	float fWidth, fHeight;
 	gDLL->getEngineIFace()->GetLandscapeGameDimensions(fWidth, fHeight);
-	return (int)(((fY + (fHeight/2.0f)) / fHeight) * getGridHeight());
+	return (int)(((fY + fHeight/2) / fHeight) * getGridHeight());
 }
 
 
-float CvMap::plotYToPointY(int iY)
+float CvMap::plotYToPointY(int iY) /* advc: */ const
 {
 	float fWidth, fHeight;
 	gDLL->getEngineIFace()->GetLandscapeGameDimensions(fWidth, fHeight);
-	return ((iY * fHeight) / ((float)getGridHeight())) - (fHeight / 2.0f) + (GC.getPLOT_SIZE() / 2.0f);
+	return ((iY * fHeight) / getGridHeight()) - fHeight/2 + GC.getPLOT_SIZE()/2;
 }
 
 
 float CvMap::getWidthCoords() const
 {
-	return (GC.getPLOT_SIZE() * ((float)getGridWidth()));
+	return GC.getPLOT_SIZE() * getGridWidth();
 }
 
 
 float CvMap::getHeightCoords() const
 {
-	return (GC.getPLOT_SIZE() * ((float)getGridHeight()));
+	return GC.getPLOT_SIZE() * getGridHeight();
 }
 
 
@@ -822,12 +822,6 @@ void CvMap::changeLandPlots(int iChange)
 }
 
 
-int CvMap::getOwnedPlots() const
-{
-	return m_iOwnedPlots;
-}
-
-
 void CvMap::changeOwnedPlots(int iChange)
 {
 	m_iOwnedPlots = (m_iOwnedPlots + iChange);
@@ -874,25 +868,6 @@ bool CvMap::isWrapExternal() // advc.inl
 {
 	return isWrap();
 }
-
-// advc: const replacement for DllExport getWorldSize
-WorldSizeTypes CvMap::getWorldSize() const
-{
-	return GC.getInitCore().getWorldSize();
-}
-
-
-ClimateTypes CvMap::getClimate() const
-{
-	return GC.getInitCore().getClimate();
-}
-
-
-SeaLevelTypes CvMap::getSeaLevel() const
-{
-	return GC.getInitCore().getSeaLevel();
-}
-
 
 
 int CvMap::getNumCustomMapOptions() const

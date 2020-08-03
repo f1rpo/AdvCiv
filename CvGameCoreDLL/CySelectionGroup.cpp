@@ -182,7 +182,13 @@ CyArea* CySelectionGroup::area()
 
 int /*RouteTypes*/ CySelectionGroup::getBestBuildRoute(CyPlot* pPlot, BuildTypes* peBestBuild)
 {
-	return m_pSelectionGroup ? m_pSelectionGroup->getBestBuildRoute(pPlot->getPlot(), peBestBuild) : -1;
+	if (m_pSelectionGroup == NULL)
+		return NO_ROUTE;
+	// <advc> Pass by reference
+	CvPlot const* p = pPlot->getPlot();
+	if (p == NULL)
+		return NO_ROUTE; // </advc>
+	return m_pSelectionGroup->getBestBuildRoute(*p, peBestBuild);
 }
 
 bool CySelectionGroup::isAmphibPlot(CyPlot* pPlot)

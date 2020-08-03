@@ -332,11 +332,20 @@ public: // advc: made several functions const
 	int plotX(int iIndex) const;																										// Exposed to Python
 	int plotY(int iIndex) const;																										// Exposed to Python
 
-	int pointXToPlotX(float fX);
-	DllExport float plotXToPointX(int iX);
-
-	int pointYToPlotY(float fY);
-	DllExport float plotYToPointY(int iY);
+	int pointXToPlotX(float fX) const;
+	DllExport float plotXToPointX(int iX)  // <advc> const version
+	{
+		CvMap const& kThis(*this);
+		return kThis.plotXToPointX(iX);
+	}
+	float plotXToPointX(int iX) const; // </advc>
+	int pointYToPlotY(float fY) const;
+	DllExport float plotYToPointY(int iY)  // <advc> const version
+	{
+		CvMap const& kThis(*this);
+		return kThis.plotYToPointY(iY);
+	}
+	float plotYToPointY(int iY) const; // </advc>
 
 	float getWidthCoords() const;
 	float getHeightCoords() const;
@@ -360,7 +369,7 @@ public: // advc: made several functions const
 	int getLandPlots() const;																					// Exposed to Python
 	void changeLandPlots(int iChange);
 
-	int getOwnedPlots() const;																				// Exposed to Python
+	int getOwnedPlots() const { return m_iOwnedPlots; }														// Exposed to Python
 	void changeOwnedPlots(int iChange);
 
 	int getTopLatitude() const;																									// Exposed to Python
@@ -379,13 +388,17 @@ public: // advc: made several functions const
 		return m_bWrapX || m_bWrapY;
 	}
 
-	DllExport WorldSizeTypes getWorldSize()															// Exposed to Python
-	// <advc> Need a const version
-	{	CvMap const& kThis = *this;
+	DllExport WorldSizeTypes getWorldSize() // <advc> const version									// Exposed to Python
+	{
+		CvMap const& kThis = *this;
 		return kThis.getWorldSize();
-	} WorldSizeTypes getWorldSize() const; // </advc>
-	ClimateTypes getClimate() const;																	// Exposed to Python
-	SeaLevelTypes getSeaLevel() const;																// Exposed to Python
+	}
+	WorldSizeTypes getWorldSize() const
+	{
+		return GC.getInitCore().getWorldSize();
+	} // </advc>
+	ClimateTypes getClimate() const { return GC.getInitCore().getClimate(); } // advc.inl						// Exposed to Python
+	SeaLevelTypes getSeaLevel() const { return GC.getInitCore().getSeaLevel(); } // advc.inl					// Exposed to Python
 
 	int getNumCustomMapOptions() const;
 	CustomMapOptionTypes getCustomMapOption(int iOption) const;											// Exposed to Python

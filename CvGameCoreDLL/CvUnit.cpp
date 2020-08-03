@@ -1711,18 +1711,17 @@ bool CvUnit::isActionRecommended(int iAction)
 	// advc: Moved up
 	if (GC.getActionInfo(iAction).getCommandType() == COMMAND_PROMOTION)
 		return true;
-
-	CvPlot* pPlot = gDLL->UI().getGotoPlot();
-	if (pPlot == NULL && GC.shiftKey())
-		pPlot = getGroup()->lastMissionPlot();
-	if(pPlot == NULL)
-		pPlot = plot();
-
+	// <advc>
+	CvPlot const* pTmpPlot = gDLL->UI().getGotoPlot();
+	if (pTmpPlot == NULL && GC.shiftKey())
+		pTmpPlot = getGroup()->lastMissionPlot();
+	CvPlot const& kPlot = (pTmpPlot == NULL ? getPlot() : *pTmpPlot);
+	// </advc>
 	switch(GC.getActionInfo(iAction).getMissionType()) // advc
 	{
 	case MISSION_FORTIFY:
-		if (pPlot->isCity(true, getTeam()) && canDefend(pPlot) &&
-			pPlot->getNumDefenders(getOwner()) < (atPlot(pPlot) ? 2 : 1))
+		if (kPlot.isCity(true, getTeam()) && canDefend(&kPlot) &&
+			kPlot.getNumDefenders(getOwner()) < (at(kPlot) ? 2 : 1))
 		{
 			return true;
 		}
@@ -1731,44 +1730,44 @@ bool CvUnit::isActionRecommended(int iAction)
 	case MISSION_HEAL:
 		if (isHurt() && !hasMoved())
 		{
-			if (pPlot->getTeam() == getTeam() || healTurns(pPlot) < 4)
+			if (kPlot.getTeam() == getTeam() || healTurns(&kPlot) < 4)
 				return true;
 		}
 		break;
 	case MISSION_FOUND:
 	{
-		if (canFound(pPlot) && pPlot->isBestAdjacentFound(getOwner()))
+		if (canFound(&kPlot) && kPlot.isBestAdjacentFound(getOwner()))
 			return true;
 		break;
 	}
 	case MISSION_BUILD:
 	{
-		if (pPlot->getOwner() != getOwner())
+		if (kPlot.getOwner() != getOwner())
 			break;
 
 		BuildTypes eBuild = (BuildTypes)GC.getActionInfo(iAction).getMissionData();
 		FAssert(eBuild != NO_BUILD);
 		FAssertMsg(eBuild < GC.getNumBuildInfos(), "Invalid Build");
 
-		if (!canBuild(pPlot, eBuild))
+		if (!canBuild(kPlot, eBuild))
 			break;
 
 		// K-Mod
-		if (pPlot->getBuildProgress(eBuild) > 0)
+		if (kPlot.getBuildProgress(eBuild) > 0)
 			return true;
 		// K-Mod end
 
 		ImprovementTypes const eImprovement = GC.getInfo(eBuild).getImprovement();
 		RouteTypes const eRoute = GC.getInfo(eBuild).getRoute();
 		// K-Mod: was getBonusType
-		BonusTypes const eBonus = pPlot->getNonObsoleteBonusType(getTeam());
-		CvCityAI const* pWorkingCity = pPlot->AI_getWorkingCity();
+		BonusTypes const eBonus = kPlot.getNonObsoleteBonusType(getTeam());
+		CvCityAI const* pWorkingCity = kPlot.AI_getWorkingCity();
 
-		// if (pPlot->getImprovementType() == NO_IMPROVEMENT) { // Disabled by K-Mod (this looks like a bug to me)
+		// if (kPlot.getImprovementType() == NO_IMPROVEMENT) { // Disabled by K-Mod (this looks like a bug to me)
 		BuildTypes eBestBuild = NO_BUILD; // K-Mod. (I use this again later.)
 		if (pWorkingCity != NULL)
 		{
-			CityPlotTypes ePlot = pWorkingCity->getCityPlotIndex(pPlot);
+			CityPlotTypes ePlot = pWorkingCity->getCityPlotIndex(kPlot);
 			FAssert(ePlot != NO_CITYPLOT); // K-Mod. this use to be an if statement in the release code
 
 			eBestBuild = pWorkingCity->AI_getBestBuild(ePlot);
@@ -1784,7 +1783,7 @@ bool CvUnit::isActionRecommended(int iAction)
 			// K-Mod
 			if (eBonus != NO_BONUS &&
 				!GET_PLAYER(getOwner()).doesImprovementConnectBonus(
-				pPlot->getImprovementType(), eBonus) &&
+				kPlot.getImprovementType(), eBonus) &&
 				GET_PLAYER(getOwner()).doesImprovementConnectBonus(eImprovement, eBonus) &&
 				(eBestBuild == NO_BUILD ||
 				!GET_PLAYER(getOwner()).doesImprovementConnectBonus(
@@ -1792,17 +1791,17 @@ bool CvUnit::isActionRecommended(int iAction)
 			{
 				return true;
 			}
-			if (!pPlot->isImproved() && eBonus == NO_BONUS && pWorkingCity == NULL)
+			if (!kPlot.isImproved() && eBonus == NO_BONUS && pWorkingCity == NULL)
 			{
-				if (!pPlot->isFeature() || !GC.getInfo(eBuild).isFeatureRemove(
-					(FeatureTypes)pPlot->getFeatureType()))
+				if (!kPlot.isFeature() || !GC.getInfo(eBuild).isFeatureRemove(
+					kPlot.getFeatureType()))
 				{
 					if (GC.getInfo(eImprovement).isCarriesIrrigation() &&
-						!pPlot->isIrrigated() && pPlot->isIrrigationAvailable(true))
+						!kPlot.isIrrigated() && kPlot.isIrrigationAvailable(true))
 					{
 						return true;
 					}
-					if (pPlot->isFeature() &&
+					if (kPlot.isFeature() &&
 						GC.getInfo(eImprovement).getFeatureGrowthProbability() > 0)
 					{
 						return true;
@@ -1810,15 +1809,15 @@ bool CvUnit::isActionRecommended(int iAction)
 				}
 			} // K-Mod end
 
-			/*if (pPlot->getImprovementType() == NO_IMPROVEMENT) {
-				if (!pPlot->isIrrigated() && pPlot->isIrrigationAvailable(true)) {
+			/*if (kPlot.getImprovementType() == NO_IMPROVEMENT) {
+				if (!kPlot.isIrrigated() && kPlot.isIrrigationAvailable(true)) {
 					if (GC.getInfo(eImprovement).isCarriesIrrigation())
 						return true;
 				}
 				if (pWorkingCity != NULL) {
 					if (GC.getInfo(eImprovement).getYieldChange(YIELD_FOOD) > 0)
 						return true;
-					if (pPlot->isHills()) {
+					if (kPlot.isHills()) {
 						if (GC.getInfo(eImprovement).getYieldChange(YIELD_PRODUCTION) > 0)
 							return true;
 					}
@@ -1830,25 +1829,25 @@ bool CvUnit::isActionRecommended(int iAction)
 
 		if (eRoute != NO_ROUTE)
 		{
-			if (!pPlot->isRoute())
+			if (!kPlot.isRoute())
 			{
 				if (eBonus != NO_BONUS)
 					return true;
 
 				if (pWorkingCity != NULL)
 				{
-					if (pPlot->isRiver())
+					if (kPlot.isRiver())
 						return true;
 				}
 			}
 
 			/*eFinalImprovement = eImprovement;
 			if(eFinalImprovement == NO_IMPROVEMENT)
-				eFinalImprovement = pPlot->getImprovementType();*/ // BtS
+				eFinalImprovement = kPlot.getImprovementType();*/ // BtS
 			// K-Mod
 			ImprovementTypes const eFinalImprovement = CvImprovementInfo::finalUpgrade(
 					eImprovement != NO_IMPROVEMENT ? eImprovement :
-					pPlot->getImprovementType());
+					kPlot.getImprovementType());
 			// K-Mod end
 			if (eFinalImprovement != NO_IMPROVEMENT)
 			{
@@ -1925,11 +1924,11 @@ bool CvUnit::isUnowned() const
 		return true;
 	// The way this function is used, I guess it's possible that the unit has just died, so:
 	// Erik: bugfix, the current plot could be NULL
-	const CvPlot* pPlot = plot();
-	if(pPlot == NULL)
+	CvPlot* pPlot = plot();
+	if (pPlot == NULL)
 		return false; // (end of bugfix)
 	CvCity* pPlotCity = pPlot->getPlotCity();
-	if(pPlotCity != NULL && pPlotCity->isBarbarian())
+	if (pPlotCity != NULL && pPlotCity->isBarbarian())
 		return true;
 	return false;
 }
@@ -5820,13 +5819,13 @@ bool CvUnit::goldenAge()
 }
 
 
-bool CvUnit::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestVisible) const
+bool CvUnit::canBuild(CvPlot const& kPlot, BuildTypes eBuild, bool bTestVisible) const // advc: 1st param was pointer
 {
 	if (!m_pUnitInfo->getBuilds(eBuild))
 		return false;
-	if (!GET_PLAYER(getOwner()).canBuild(pPlot, eBuild, false, bTestVisible))
+	if (!GET_PLAYER(getOwner()).canBuild(kPlot, eBuild, false, bTestVisible))
 		return false;
-	if (!pPlot->isValidDomainForAction(*this))
+	if (!kPlot.isValidDomainForAction(*this))
 		return false;
 	return true;
 }
@@ -5834,12 +5833,12 @@ bool CvUnit::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestVisible)
 // Returns true if build finished...
 bool CvUnit::build(BuildTypes eBuild)
 {
-	if (!canBuild(plot(), eBuild))
+	if (!canBuild(getPlot(), eBuild))
 		return false;
 	// Note: notify entity must come before changeBuildProgress - because once the unit is done building,
 	// that function will notify the entity to stop building.
 	NotifyEntity((MissionTypes)GC.getInfo(eBuild).getMissionType());
-	GET_PLAYER(getOwner()).changeGold(-(GET_PLAYER(getOwner()).getBuildCost(plot(), eBuild)));
+	GET_PLAYER(getOwner()).changeGold(-(GET_PLAYER(getOwner()).getBuildCost(getPlot(), eBuild)));
 	bool bFinished = getPlot().changeBuildProgress(eBuild, workRate(false),
 			/*getTeam()*/ getOwner()); // advc.251
 	finishMoves(); // needs to be at bottom because movesLeft() can affect workRate()...
@@ -6497,10 +6496,8 @@ BuildTypes CvUnit::getBuildType() const
 		case MISSION_ROUTE_TO:
 		{
 			BuildTypes eBuild;
-			if (getGroup()->getBestBuildRoute(plot(), &eBuild) != NO_ROUTE)
-			{
+			if (getGroup()->getBestBuildRoute(getPlot(), &eBuild) != NO_ROUTE)
 				return eBuild;
-			}
 			break;
 		}
 		case MISSION_MOVE_TO_UNIT:
@@ -8325,7 +8322,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 			}
 		}
 		//update facing direction
-		if(pOldPlot != NULL)
+		if (pOldPlot != NULL)
 		{
 			DirectionTypes newDirection = estimateDirection(pOldPlot, pNewPlot);
 			if(newDirection != NO_DIRECTION)
@@ -8394,7 +8391,10 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		if (pWorkingCity != NULL)
 		{
 			if (canSiege(pWorkingCity->getTeam()))
-				pWorkingCity->verifyWorkingPlot(pWorkingCity->getCityPlotIndex(pNewPlot));
+			{
+				pWorkingCity->verifyWorkingPlot(
+						pWorkingCity->getCityPlotIndex(*pNewPlot));
+			}
 		}
 
 		/*if (pNewPlot->isWater()) {

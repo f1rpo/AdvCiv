@@ -125,14 +125,14 @@ class CvNetUpdateCivics : public CvMessageData
 {
 public:
 	CvNetUpdateCivics();
-	CvNetUpdateCivics(PlayerTypes ePlayer, const std::vector<CivicTypes>& aeCivics);
+	CvNetUpdateCivics(PlayerTypes ePlayer, CivicMap const& kCivics);
 	virtual void Debug(char* szAddendum);
 	virtual void Execute();
 	virtual void PutInBuffer(FDataStreamBase* pStream);
 	virtual void SetFromBuffer(FDataStreamBase* pStream);
 private:
 	PlayerTypes m_ePlayer;
-	std::vector<CivicTypes> m_aeCivics;
+	CivicMap m_aeCivics; // advc.enum
 };
 
 class CvNetResearch : public CvMessageData

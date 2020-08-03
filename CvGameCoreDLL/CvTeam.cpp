@@ -3839,17 +3839,18 @@ void CvTeam::changeObsoleteBuildingCount(BuildingTypes eIndex, int iChange)
 	m_aiObsoleteBuildingCount.add(eIndex, iChange);
 	FAssert(getObsoleteBuildingCount(eIndex) >= 0);
 
-	if (bOldObsoleteBuilding != isObsoleteBuilding(eIndex))
+	if (bOldObsoleteBuilding == isObsoleteBuilding(eIndex))
+		return;
+
+	for (MemberIter it(getID()); it.hasNext(); ++it)
 	{
-		for (MemberIter it(getID()); it.hasNext(); ++it)
+		FOR_EACH_CITY_VAR(pLoopCity, *it)
 		{
-			FOR_EACH_CITY_VAR(pLoopCity, *it)
+			if (pLoopCity->getNumBuilding(eIndex) > 0)
 			{
-				if (pLoopCity->getNumBuilding(eIndex) > 0)
-				{
-					pLoopCity->processBuilding(eIndex, isObsoleteBuilding(eIndex) ?
-						-pLoopCity->getNumBuilding(eIndex) : pLoopCity->getNumBuilding(eIndex), true);
-				}
+				pLoopCity->processBuilding(eIndex, isObsoleteBuilding(eIndex) ?
+						-pLoopCity->getNumBuilding(eIndex) :
+						pLoopCity->getNumBuilding(eIndex), true);
 			}
 		}
 	}
@@ -4754,14 +4755,35 @@ void CvTeam::changeEspionagePointsAgainstTeam(TeamTypes eIndex, int iChange)
 	setEspionagePointsAgainstTeam(eIndex, getEspionagePointsAgainstTeam(eIndex) + iChange);
 }
 
-// K-Mod
+// advc.120d:
+bool CvTeam::canSeeTech(TeamTypes eOther) const
+{
+	/*	In part based on drawTechDeals in ExoticForeignAdvisor.py.
+		Exposed to Python via CvPlayer. Therefore has to pretty foolproof. */
+	CvTeam const& kOther = GET_TEAM(eOther);
+	// Can see vassal tech through "we'd like you to research ..."
+	if (getID() == kOther.getID() || kOther.isVassal(getID()))
+		return true;
+	// advc.553: Make tech visible despite No Tech Trading (as in BtS)
+	/*if(GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING) && !canSeeResearch(eOther))
+		return false;*/
+	if (!isAlive() || !kOther.isAlive() ||
+		!isMajorCiv() || !kOther.isMajorCiv() ||
+		isMinorCiv() || kOther.isMinorCiv())
+	{
+		return false;
+	}
+	return (isHasMet(kOther.getID()) && (isTechTrading() || kOther.isTechTrading()));
+}
+
+// K-Mod:
 int CvTeam::getTotalUnspentEspionage() const
 {
 	int iTotal = 0;
 	for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		iTotal += getEspionagePointsAgainstTeam(it->getID());
 	return iTotal;
-} // K-Mod end
+}
 
 int CvTeam::getEspionagePointsEver() const
 {

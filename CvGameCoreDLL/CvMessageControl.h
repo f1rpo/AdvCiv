@@ -12,7 +12,7 @@ public:
 	void sendPushOrder(int iCityID, OrderTypes eOrder, int iData, bool bSave, bool bPop, int iPosition); // K-Mod
 	void sendPopOrder(int iCity, int iNum);
 	void sendDoTask(int iCityID, TaskTypes eTask, int iData1, int iData2, bool bOption, bool bAlt, bool bShift, bool bCtrl);
-	void sendUpdateCivics(const std::vector<CivicTypes>& aeCivics);
+	void sendUpdateCivics(CivicMap const& kCivics);
 	void sendResearch(TechTypes eTech, int iDiscover, bool bShift);
 	void sendEspionageSpendingWeightChange(TeamTypes eTargetTeam, int iChange);
 	DllExport void sendAdvancedStartAction(AdvancedStartActionTypes eAction, PlayerTypes ePlayer, int iX, int iY, int iData, bool bAdd);

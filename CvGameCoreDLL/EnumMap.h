@@ -1,5 +1,5 @@
 /*  advc.enum: From the "We the People" (WtP) mod for Civ4Col, original author: Nightinggale,
-	who is still working on the EnumMap classes. This version is from 3 Nov 2019.
+	who may still be working on the EnumMap classes. This version is from 3 Nov 2019.
 	I have -for now- omitted the WtP serialization functions, and uncoupled the
 	code from the Perl-generated enums that WtP uses. Instead of defining
 	ArrayLength functions, the getEnumLength functions that AdvCiv defines in
@@ -1189,6 +1189,7 @@ SET_XML_ENUM_SIZE1(Direction, Dummy)
 SET_XML_ENUM_SIZE1(WarPlan, Dummy)
 SET_XML_ENUM_SIZE1(CityPlot, Dummy)
 SET_XML_ENUM_SIZE1(ArtStyle, Dummy)
+SET_XML_ENUM_SIZE1(Feat, Dummy)
 
 /*  2 being the default apparently does not mean that these can be omitted
 	(Tbd.: There should be some way to get rid of SET_XML_ENUM_SIZE2.) */
@@ -1288,5 +1289,7 @@ class CivPlayerMap : public EnumMapBase <PlayerTypes, T, DEFAULT, CivPlayerTypes
 template<class T, int DEFAULT = 0>
 class CivTeamMap : public EnumMapBase <TeamTypes, T, DEFAULT, CivTeamTypes, CivTeamTypes> {};
 // </advc>
+
+typedef EnumMap<CivicOptionTypes,CivicTypes> CivicMap; // advc: Needed rather frequently
 
 #endif

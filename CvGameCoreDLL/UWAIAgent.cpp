@@ -2480,8 +2480,8 @@ double UWAI::Civ::warConfidencePersonal(bool isNaval, bool isTotal, PlayerTypes 
 	   having little power. */
 	if(we.isHuman()) {
 		// e.g. 0.62 at Settler, 1.59 at Deity
-		return we.trainingModifierFromHandicap() /
-				GET_PLAYER(vs).trainingModifierFromHandicap();
+		return (we.trainingModifierFromHandicap() /
+				GET_PLAYER(vs).trainingModifierFromHandicap()).getDouble();
 	}
 	CvLeaderHeadInfo const& lh = GC.getInfo(we.getPersonalityType());
 	int const maxWarNearbyPR = lh.getMaxWarNearbyPowerRatio();

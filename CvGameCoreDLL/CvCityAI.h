@@ -237,8 +237,7 @@ protected:
 	// value gained by swapping jobs. (bIsSpecialist, iIndex) pairs.
 	int AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, int> old_job, bool bIgnoreFood,
 			bool bIgnoreStarvation, int iGrowthValue) const;
-	  // advc: Made plot param const in these two functions
-	int AI_plotValue(CvPlot const* pPlot, bool bRemove, bool bIgnoreFood, bool bIgnoreStarvation,
+	int AI_plotValue(CvPlot const& pPlot, bool bRemove, bool bIgnoreFood, bool bIgnoreStarvation,
 			int iGrowthValue) const;
 	// difference between current yields and yields after plot improvement reaches final upgrade.
 	bool AI_finalImprovementYieldDifference(CvPlot const& kPlot, short* piYields) const;
@@ -259,7 +258,9 @@ protected:
 
 	int AI_experienceWeight();
 	int AI_buildUnitProb(/* advc.017: */ bool bDraft = false);
-	void AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peBestBuild, int iFoodPriority, int iProductionPriority, int iCommercePriority, bool bChop, int iHappyAdjust, int iHealthAdjust, int iDesiredFoodChange);
+	void AI_bestPlotBuild(CvPlot const& kPlot, int* piBestValue, BuildTypes* peBestBuild,
+			int iFoodPriority, int iProductionPriority, int iCommercePriority, bool bChop,
+			int iHappyAdjust, int iHealthAdjust, int iDesiredFoodChange);
 
 	void AI_buildGovernorChooseProduction();
 	void AI_barbChooseProduction(); // K-Mod

@@ -1212,7 +1212,7 @@ bool AIFoundValue::isUsablePlot(CityPlotTypes ePlot, int& iTakenTiles, bool& bCi
 		return false;
 	}
 	CvPlot const* pOtherPlot = pOtherCity->plot();
-	CityPlotTypes const eOtherPlotIndex = pOtherCity->getCityPlotIndex(p);
+	CityPlotTypes const eOtherPlotIndex = pOtherCity->getCityPlotIndex(*p);
 	if (GC.getCityPlotPriority()[ePlot] >= GC.getCityPlotPriority()[eOtherPlotIndex])
 	{
 		IFLOG logBBAI("%S has higher priority for (%d,%d)", cityName(*pOtherCity), p->getX(), p->getY());

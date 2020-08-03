@@ -434,6 +434,7 @@ public:
 	int getEspionagePointsAgainstTeam(TeamTypes eIndex) const;																							// Exposed to Python
 	void setEspionagePointsAgainstTeam(TeamTypes eIndex, int iValue);																							// Exposed to Python
 	void changeEspionagePointsAgainstTeam(TeamTypes eIndex, int iChange);																				// Exposed to Python
+	bool canSeeTech(TeamTypes eOther) const; // advc.120d
 
 	int getTotalUnspentEspionage() const; // K-Mod
 

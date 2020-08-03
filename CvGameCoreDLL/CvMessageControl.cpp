@@ -59,11 +59,11 @@ void CvMessageControl::sendDoTask(int iCity, TaskTypes eTask, int iData1, int iD
 	}
 }
 
-void CvMessageControl::sendUpdateCivics(const std::vector<CivicTypes>& aeCivics)
+void CvMessageControl::sendUpdateCivics(/* advc.enum: */ CivicMap const& kCivics)
 {
 	if (NO_PLAYER != GC.getGame().getActivePlayer())
 	{
-		gDLL->sendMessageData(new CvNetUpdateCivics(GC.getGame().getActivePlayer(), aeCivics));
+		gDLL->sendMessageData(new CvNetUpdateCivics(GC.getGame().getActivePlayer(), kCivics));
 	}
 }
 

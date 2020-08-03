@@ -910,9 +910,8 @@ void CvPlot::updatePlotGroupBonus(bool bAdd, /* advc.064d: */ bool bVerifyProduc
 	{
 		if (pPlotCity->isAnyFreeBonus()) // advc.opt
 		{
-			for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
+			FOR_EACH_ENUM(Bonus)
 			{
-				BonusTypes eLoopBonus = (BonusTypes)iI;
 				if (!GET_TEAM(getTeam()).isBonusObsolete(eLoopBonus))
 				{
 					pPlotGroup->changeNumBonuses(eLoopBonus,
@@ -922,9 +921,8 @@ void CvPlot::updatePlotGroupBonus(bool bAdd, /* advc.064d: */ bool bVerifyProduc
 		}
 		if (pPlotCity->isCapital())
 		{
-			for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
+			FOR_EACH_ENUM(Bonus)
 			{
-				BonusTypes eLoopBonus = (BonusTypes)iI;
 				pPlotGroup->changeNumBonuses(eLoopBonus,
 						GET_PLAYER(getOwner()).getBonusExport(eLoopBonus) *
 						(bAdd ? -1 : 1));
@@ -3041,7 +3039,7 @@ bool CvPlot::isBeingWorked() const
 {
 	CvCity* pWorkingCity = getWorkingCity();
 	if (pWorkingCity != NULL)
-		return pWorkingCity->isWorkingPlot(this);
+		return pWorkingCity->isWorkingPlot(*this);
 	return false;
 }
 
@@ -3984,7 +3982,7 @@ void CvPlot::updateShowCitySymbols()  // advc: style changes
 			continue;
 		if (pLoopCity->isCitySelected() && gDLL->UI().isCityScreenUp())
 		{
-			if (pLoopCity->canWork(this))
+			if (pLoopCity->canWork(*this))
 			{
 				bNewShowCitySymbols = true;
 				break;
@@ -4971,7 +4969,7 @@ void CvPlot::updateWorkingCity()
 		return;
 
 	if (pOldWorkingCity != NULL)
-		pOldWorkingCity->setWorkingPlot(this, false);
+		pOldWorkingCity->setWorkingPlot(*this, false);
 
 	if (pBestCity != NULL)
 	{
@@ -5555,20 +5553,20 @@ int CvPlot::getFoundValue(PlayerTypes eIndex, /* advc.052: */ bool bRandomize) c
 }
 
 
-bool CvPlot::isBestAdjacentFound(PlayerTypes eIndex)
+bool CvPlot::isBestAdjacentFound(PlayerTypes eIndex) /* advc: */ const
 {
 	CitySiteEvaluator citySiteEval(GET_PLAYER(eIndex));
 	int iPlotValue = citySiteEval.evaluate(*this);
 	if (iPlotValue == 0)
 		return false;
 
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	FOR_EACH_ENUM(Direction)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-		if (pAdjacentPlot != NULL && pAdjacentPlot->isRevealed(TEAMID(eIndex)))
+		CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
+		if (pAdj != NULL && pAdj->isRevealed(TEAMID(eIndex)))
 		{
 			//if (pAdjacentPlot->getFoundValue(eIndex) >= getFoundValue(eIndex))
-			if (citySiteEval.evaluate(*pAdjacentPlot) > iPlotValue)
+			if (citySiteEval.evaluate(*pAdj) > iPlotValue)
 				return false;
 		}
 	}

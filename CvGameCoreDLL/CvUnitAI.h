@@ -280,7 +280,7 @@ protected:
 	bool AI_cityOffenseSpy(int iRange, CvCity* pSkipCity = NULL);
 	// BETTER_BTS_AI_MOD: END
 	bool AI_espionageSpy();
-	EspionageMissionTypes AI_bestPlotEspionage(PlayerTypes& eTargetPlayer, CvPlot*& pPlot, int& iData) const; // K-Mod
+	EspionageMissionTypes AI_bestPlotEspionage(int& iData) const; // K-Mod
 	bool AI_moveToStagingCity();
 	bool AI_seaRetreatFromCityDanger();
 	bool AI_airRetreatFromCityDanger();

@@ -142,9 +142,9 @@ protected:
 	int m_iStateReligionFreeExperience;
 	int m_iExpInBorderModifier;
 
-	bool m_bMilitaryFoodProduction;
 	//bool m_bNoUnhealthyPopulation;
 	int m_iUnhealthyPopulationModifier; // K-Mod
+	bool m_bMilitaryFoodProduction;
 	bool m_bBuildingOnlyHealthy;
 	bool m_bNoForeignTrade;
 	bool m_bNoCorporations;

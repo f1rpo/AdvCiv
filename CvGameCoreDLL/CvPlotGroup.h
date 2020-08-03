@@ -48,7 +48,7 @@ public:
 	{
 		return m_plots.next(pNode);
 	} // </advc.003s>
-	int getLengthPlots() { return m_plots.getLength(); } // advc.inl
+	int getLengthPlots() const { return m_plots.getLength(); } // advc.inl, const
 	CLLNode<XYCoords>* headPlotsNode() { return m_plots.head(); } // advc.inl
 
 	// for serialization

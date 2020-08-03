@@ -921,26 +921,21 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	}
 	case TRADE_CIVIC:
 	{
-		CivicTypes* paeNewCivics = new CivicTypes[GC.getNumCivicOptionInfos()];
-		FOR_EACH_ENUM(CivicOption)
-			paeNewCivics[eLoopCivicOption] = GET_PLAYER(eFromPlayer).getCivics(eLoopCivicOption);
-
-		paeNewCivics[GC.getInfo((CivicTypes)trade.m_iData).getCivicOptionType()] = (CivicTypes)
-				trade.m_iData;
-
-		GET_PLAYER(eFromPlayer).revolution(paeNewCivics, true);
+		CivicMap aeNewCivics;
+		GET_PLAYER(eFromPlayer).getCivics(aeNewCivics);
+		CivicTypes eCivic = (CivicTypes)trade.m_iData;
+		aeNewCivics.set(GC.getInfo(eCivic).getCivicOptionType(), eCivic);
+		GET_PLAYER(eFromPlayer).revolution(aeNewCivics, true);
 
 		if (GET_PLAYER(eFromPlayer).AI_getCivicTimer() < GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH))
 			GET_PLAYER(eFromPlayer).AI_setCivicTimer(GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
 
 		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) switched civics due to TRADE_CIVICS with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 
-		SAFE_DELETE_ARRAY(paeNewCivics);
 		break;
 	}
 	case TRADE_RELIGION:
-		GET_PLAYER(eFromPlayer).convert((ReligionTypes)trade.m_iData,
-				true); // advc.001v
+		GET_PLAYER(eFromPlayer).convert((ReligionTypes)trade.m_iData, /* advc.001v: */ true); 
 		if (GET_PLAYER(eFromPlayer).AI_getReligionTimer() < GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH))
 			GET_PLAYER(eFromPlayer).AI_setReligionTimer(GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
 		if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) switched religions due to TRADE_RELIGION with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));

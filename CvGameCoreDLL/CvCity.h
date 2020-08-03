@@ -54,10 +54,10 @@ public:
 		m_bChooseProductionDirty = bNewValue;
 	} // </advc.003u>
 
-	CityPlotTypes getCityPlotIndex(CvPlot const* pPlot) const;													// Exposed to Python
+	CityPlotTypes getCityPlotIndex(CvPlot const& kPlot) const;													// Exposed to Python
 	CvPlot* getCityIndexPlot(CityPlotTypes ePlot) const;														// Exposed to Python
 
-	bool canWork(CvPlot const* pPlot) const;																	// Exposed to Python
+	bool canWork(CvPlot const& kPlot) const;																	// Exposed to Python
 	void verifyWorkingPlot(CityPlotTypes ePlot);
 	void verifyWorkingPlots();
 	void clearWorkingOverride(CityPlotTypes ePlot);																// Exposed to Python
@@ -975,7 +975,7 @@ public:
 	void setProjectProduction(ProjectTypes eIndex, int iNewValue);													// Exposed to Python
 	void changeProjectProduction(ProjectTypes eIndex, int iChange);													// Exposed to Python
 
-	int getBuildingOriginalOwner(BuildingTypes eIndex) const														// Exposed to Python
+	PlayerTypes getBuildingOriginalOwner(BuildingTypes eIndex) const														// Exposed to Python
 	{
 		return m_aiBuildingOriginalOwner.get(eIndex);
 	}
@@ -1104,9 +1104,9 @@ public:
 	{
 		return m_abWorkingPlot.get(ePlot);
 	}
-	bool isWorkingPlot(const CvPlot* pPlot) const;																	// Exposed to Python
+	bool isWorkingPlot(CvPlot const& kPlot) const;																	// Exposed to Python
 	void setWorkingPlot(CityPlotTypes ePlot, bool bNewValue);
-	void setWorkingPlot(CvPlot* pPlot, bool bNewValue);
+	void setWorkingPlot(CvPlot& kPlot, bool bNewValue);
 	void alterWorkingPlot(CityPlotTypes ePlot);																		// Exposed to Python
 
 	int getNumRealBuilding(BuildingTypes eIndex) const																// Exposed to Python
@@ -1413,7 +1413,7 @@ protected:
 	EnumMap<ProjectTypes,int> m_aiProjectProduction;
 	EnumMap<BuildingTypes,int> m_aiBuildingProduction;
 	EnumMap<BuildingTypes,int> m_aiBuildingProductionTime;
-	EnumMap<BuildingTypes,int> m_aiBuildingOriginalOwner;
+	EnumMap<BuildingTypes,PlayerTypes> m_aiBuildingOriginalOwner;
 	EnumMapDefault<BuildingTypes,int,MIN_INT> m_aiBuildingOriginalTime;
 	EnumMap<BuildingTypes,int> m_aiNumRealBuilding;
 	EnumMap<BuildingTypes,int> m_aiNumFreeBuilding;

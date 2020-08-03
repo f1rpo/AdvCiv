@@ -81,7 +81,7 @@ void CvGame::updateColoredPlots()
 				ImprovementTypes eImprovement = kPlot.getImprovementType();
 				if (pWorkingCity != NULL && eImprovement != NO_IMPROVEMENT)
 				{
-					CityPlotTypes ePlot = pWorkingCity->getCityPlotIndex(&kPlot);
+					CityPlotTypes ePlot = pWorkingCity->getCityPlotIndex(kPlot);
 					int iBuildValue = pWorkingCity->AI_getBestBuildValue(ePlot);
 					BuildTypes eBestBuild = pWorkingCity->AI_getBestBuild(ePlot);
 					if (eBestBuild != NO_BUILD)
@@ -2548,21 +2548,22 @@ EndTurnButtonStates CvGame::getEndTurnState() const
 }
 
 void CvGame::handleCityScreenPlotPicked(CvCity* pCity, CvPlot* pPlot,
-		bool bAlt, bool bShift, bool bCtrl) const
+	bool bAlt, bool bShift, bool bCtrl) const
 {
-	FAssert(pPlot != NULL);
-	if (pCity != NULL && pPlot != NULL)
+	if (pCity == NULL || pPlot == NULL)
 	{
-		int iIndex = pCity->getCityPlotIndex(pPlot);
-		if (pPlot->getOwner() == getActivePlayer() &&
-			pCity->getOwner() == getActivePlayer() && iIndex != -1)
-		{
-			CvMessageControl::getInstance().sendDoTask(pCity->getID(),
-					TASK_CHANGE_WORKING_PLOT, iIndex, -1, false, bAlt, bShift, bCtrl);
-		}
-		else if (GC.getDefineINT("CITY_SCREEN_CLICK_WILL_EXIT"))
-			gDLL->UI().clearSelectedCities();
+		FAssert(false); // advc (BtS had only asserted pPlot)
+		return;
 	}
+	int iIndex = pCity->getCityPlotIndex(*pPlot);
+	if (pPlot->getOwner() == getActivePlayer() &&
+		pCity->getOwner() == getActivePlayer() && iIndex != -1)
+	{
+		CvMessageControl::getInstance().sendDoTask(pCity->getID(),
+				TASK_CHANGE_WORKING_PLOT, iIndex, -1, false, bAlt, bShift, bCtrl);
+	}
+	else if (GC.getDefineINT("CITY_SCREEN_CLICK_WILL_EXIT"))
+		gDLL->UI().clearSelectedCities();
 }
 
 void CvGame::handleCityScreenPlotDoublePicked(CvCity* pCity, CvPlot* pPlot,
@@ -2577,26 +2578,29 @@ void CvGame::handleCityScreenPlotDoublePicked(CvCity* pCity, CvPlot* pPlot,
 void CvGame::handleCityScreenPlotRightPicked(CvCity* pCity, CvPlot* pPlot,
 	bool bAlt, bool bShift, bool bCtrl) const
 {
-	if (pCity != NULL && pPlot != NULL)
-	{	/*  <advc.004t> Can't assign a working city to the city plot, so use this
-			for exiting the screen. */
-		if(pCity->plot() == pPlot)
-		{
-			CvPlot const* pCityPlot = (gDLL->UI().isCityScreenUp() ?
-					gDLL->UI().getHeadSelectedCity()->plot() : NULL);
-			gDLL->UI().clearSelectedCities();
-			if(pCityPlot != NULL)
-				gDLL->UI().lookAt(pCityPlot->getPoint(), CAMERALOOKAT_NORMAL);
-			return;
-		} // </advc.004t>
-		if (pCity->getOwner() == getActivePlayer() &&
-				pPlot->getOwner() == getActivePlayer() &&
-				pCity->getCityPlotIndex(pPlot) != -1)
-		{
-			CvMessageControl::getInstance().sendDoTask(pCity->getID(),
-					TASK_CLEAR_WORKING_OVERRIDE, pCity->getCityPlotIndex(pPlot),
-					-1, false, bAlt, bShift, bCtrl);
-		}
+	if (pCity == NULL || pPlot == NULL)
+	{
+		FAssert(false); // advc: As in handleCityScreenPlotPicked
+		return;
+	}
+	/*  <advc.004t> Can't assign a working city to the city plot, so use this
+		for exiting the screen. */
+	if(pCity->plot() == pPlot)
+	{
+		CvPlot const* pCityPlot = (gDLL->UI().isCityScreenUp() ?
+				gDLL->UI().getHeadSelectedCity()->plot() : NULL);
+		gDLL->UI().clearSelectedCities();
+		if(pCityPlot != NULL)
+			gDLL->UI().lookAt(pCityPlot->getPoint(), CAMERALOOKAT_NORMAL);
+		return;
+	} // </advc.004t>
+	if (pCity->getOwner() == getActivePlayer() &&
+		pPlot->getOwner() == getActivePlayer() &&
+		pCity->getCityPlotIndex(*pPlot) != -1)
+	{
+		CvMessageControl::getInstance().sendDoTask(pCity->getID(),
+				TASK_CLEAR_WORKING_OVERRIDE, pCity->getCityPlotIndex(*pPlot),
+				-1, false, bAlt, bShift, bCtrl);
 	}
 }
 

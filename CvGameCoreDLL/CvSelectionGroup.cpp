@@ -660,7 +660,8 @@ CvPlot* CvSelectionGroup::lastMissionPlot()
 }
 
 
-bool CvSelectionGroup::canStartMission(int iMission, int iData1, int iData2, CvPlot* pPlot, bool bTestVisible, bool bUseCache)
+bool CvSelectionGroup::canStartMission(int iMission, int iData1, int iData2, CvPlot const* pPlot, // advc: const CvPlot*
+	bool bTestVisible, bool bUseCache)
 {
 	if (bUseCache)
 	{
@@ -672,7 +673,8 @@ bool CvSelectionGroup::canStartMission(int iMission, int iData1, int iData2, CvP
 		if (isBusy())
 			return false;
 	}
-	return canDoMission(iMission, iData1, iData2, pPlot, bTestVisible, false); // K-Mod. (original code merged into CvSelectionGroup::canDoMission
+	// K-Mod: (original code merged into CvSelectionGroup::canDoMission
+	return canDoMission(iMission, iData1, iData2, pPlot, bTestVisible, false);
 }
 
 
@@ -707,8 +709,12 @@ void CvSelectionGroup::startMission()
 	bool bNuke = false;
 	bool bNotify = false;
 
-	if (!canStartMission(headMissionQueueNode()->m_data.eMissionType, headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2, plot()))
+	if (!canStartMission(headMissionQueueNode()->m_data.eMissionType,
+		headMissionQueueNode()->m_data.iData1,
+		headMissionQueueNode()->m_data.iData2, plot()))
+	{
 		bDelete = true;
+	}
 	else
 	{
 		FAssertMsg(GET_PLAYER(getOwner()).isTurnActive() || GET_PLAYER(getOwner()).isHuman(), "It's expected that either the turn is active for this player or the player is human");
@@ -1492,7 +1498,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc: style changes
 		case MISSION_ROUTE_TO:
 			if (at(missionData.iData1, missionData.iData2))
 			{
-				if (getBestBuildRoute(plot()) == NO_ROUTE)
+				if (getBestBuildRoute(getPlot()) == NO_ROUTE)
 					bDone = true;
 			}
 			break;
@@ -2689,7 +2695,7 @@ DomainTypes CvSelectionGroup::getDomainType() const
 }
 
 
-RouteTypes CvSelectionGroup::getBestBuildRoute(CvPlot* pPlot, BuildTypes* peBestBuild) const
+RouteTypes CvSelectionGroup::getBestBuildRoute(CvPlot const& kPlot, BuildTypes* peBestBuild) const // advc: 1st param was pointer
 {
 	PROFILE_FUNC();
 
@@ -2707,7 +2713,7 @@ RouteTypes CvSelectionGroup::getBestBuildRoute(CvPlot* pPlot, BuildTypes* peBest
 			RouteTypes const eRoute = GC.getInfo(eLoopBuild).getRoute();
 			if (eRoute == NO_ROUTE)
 				continue; // advc
-			if (pLoopUnit->canBuild(pPlot, eLoopBuild))
+			if (pLoopUnit->canBuild(kPlot, eLoopBuild))
 			{
 				int iValue = GC.getInfo(eRoute).getValue();
 				if (iValue > iBestValue)
@@ -3033,7 +3039,7 @@ bool CvSelectionGroup::groupRoadTo(int iX, int iY, int iFlags)
 	{
 		BuildTypes eBestBuild = NO_BUILD;
 		//RouteTypes eBestRoute = // advc: unused
-			getBestBuildRoute(plot(), &eBestBuild);
+		getBestBuildRoute(getPlot(), &eBestBuild);
 		if (eBestBuild != NO_BUILD)
 		{
 			groupBuild(eBestBuild);
@@ -3088,7 +3094,7 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 		FAssertMsg(pLoopUnit->atPlot(pPlot), "pLoopUnit is expected to be at pPlot");
-		if(!pLoopUnit->canBuild(pPlot, eBuild))
+		if(!pLoopUnit->canBuild(*pPlot, eBuild))
 			continue; // advc
 
 		bContinue = true;
@@ -3322,13 +3328,16 @@ bool CvSelectionGroup::readyToAuto() /* advc: */ const
 	return readyForMission() || (isAutomated() && getActivityType() == ACTIVITY_AWAKE && canAllMove());
 }
 
-// K-Mod. In the original code, there was an implicit assumption that all missions required "canAllMove".
-// I've removed that assumption by creating a pair of new functions:
-// CvSelectionGroup::canDoMission, which returns true if the group is capable of executing a particular mission - including an optional movement points check.
-// CvSelectionGroup::readyForMission, which basically just calls canDoMission for the current mission, as direct replacement for the canAllMove condition.
-// (canStartMission now calls canDoMission.)
-// (K-Mod note: I'd make this function const, but it would conflict with some dllexport functions)
-// ^advc: I guess canAllMove was the problem; fixed.
+/*	K-Mod. In the original code, there was an implicit assumption
+	that all missions required "canAllMove".
+	I've removed that assumption by creating a pair of new functions:
+	CvSelectionGroup::canDoMission, which returns true if the group is capable of
+	executing a particular mission - including an optional movement points check.
+	CvSelectionGroup::readyForMission, which basically just calls canDoMission
+	for the current mission, as direct replacement for the canAllMove condition.
+	(canStartMission now calls canDoMission.)
+	(K-Mod note: I'd make this function const, but it would conflict with some dllexport functions)
+	^advc: I guess canAllMove was the problem; fixed. */
 bool CvSelectionGroup::readyForMission() const
 {
 	if (headMissionQueueNode() == NULL)
@@ -3349,16 +3358,16 @@ bool CvSelectionGroup::readyForMission() const
 
 	return (canDoMission(kData.eMissionType, kData.iData1, kData.iData2, plot(),
 			false, bCheckMoves) || canAllMove());
-	// note: if the whole group can move, but they can't do the mission, then the mission will be canceled inside CvSelectionGroup::continueMission.
+	/*	note: if the whole group can move, but they can't do the mission,
+		then the mission will be canceled inside CvSelectionGroup::continueMission. */
 }
 
 
 bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2,
-		CvPlot* pPlot, bool bTestVisible, bool bCheckMoves) const
+	CvPlot const* pPlot, bool bTestVisible, bool bCheckMoves) const // advc: const CvPlot*
 {
-	if(pPlot == NULL)
+	if (pPlot == NULL)
 		pPlot = plot();
-
 	bool bValid = false;
 
 	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
@@ -3387,7 +3396,7 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2,
 		case MISSION_ROUTE_TO:
 			if (!bValid)
 			{
-				if (pPlot->at(iData1, iData2) && getBestBuildRoute(pPlot) == NO_ROUTE)
+				if (pPlot->at(iData1, iData2) && getBestBuildRoute(*pPlot) == NO_ROUTE)
 					return false;
 
 				if (!bCheckMoves)
@@ -3401,7 +3410,7 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2,
 
 		case MISSION_MOVE_TO_UNIT:
 		{
-			FAssertMsg(iData1 != NO_PLAYER, "iData1 should be a valid Player");
+			FAssert(iData1 != NO_PLAYER);
 			CvUnit* pTargetUnit = GET_PLAYER((PlayerTypes)iData1).getUnit(iData2);
 			if (!bValid)
 			{
@@ -3434,8 +3443,12 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2,
 			break;
 
 		case MISSION_AIRPATROL:
-			if (pLoopUnit->canAirPatrol(pPlot) && (!bCheckMoves || pLoopUnit->canMove()))
-				return true; // note: this mission will automatically ungroup any unsuitable units.
+			if (pLoopUnit->canAirPatrol(pPlot) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
+				// note: this mission will automatically ungroup any unsuitable units.
+				return true;
+			}
 			break;
 
 		case MISSION_SEAPATROL:
@@ -3449,10 +3462,12 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2,
 				return false;
 			break;
 		case MISSION_HEAL:
-			if (pLoopUnit->canHeal(pPlot)
-					// advc.004l: AI control check only for performance
-					&& (AI_isControlled() || !pLoopUnit->canSentryHeal(pPlot)))
+			if (pLoopUnit->canHeal(pPlot) &&
+				// advc.004l: AI control check only for performance
+				(AI_isControlled() || !pLoopUnit->canSentryHeal(pPlot)))
+			{
 				return true;
+			}
 			break;
 		// <advc.004l> Make the two heal missions mutually exclusive (for humans)
 		case MISSION_SENTRY_HEAL:
@@ -3466,146 +3481,226 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2,
 			break;
 
 		case MISSION_AIRLIFT:
-			if (pLoopUnit->canAirliftAt(pPlot, iData1, iData2) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canAirliftAt(pPlot, iData1, iData2) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_NUKE:
-			if (pLoopUnit->canNukeAt(pPlot, iData1, iData2) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canNukeAt(pPlot, iData1, iData2) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_RECON:
-			if (pLoopUnit->canReconAt(pPlot, iData1, iData2) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canReconAt(pPlot, iData1, iData2) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_PARADROP:
-			if (pLoopUnit->canParadropAt(pPlot, iData1, iData2) && (!bCheckMoves || pLoopUnit->canMove()))
-				return true; // note: this mission will automatically ungroup any unsuitable units.
+			if (pLoopUnit->canParadropAt(pPlot, iData1, iData2) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
+				// note: this mission will automatically ungroup any unsuitable units.
+				return true;
+			}
 			break;
 
 		case MISSION_AIRBOMB:
-			if (pLoopUnit->canAirBombAt(pPlot, iData1, iData2) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canAirBombAt(pPlot, iData1, iData2) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_BOMBARD:
-			if (pLoopUnit->canBombard(*pPlot) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canBombard(*pPlot) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_RANGE_ATTACK:
-			if (pLoopUnit->canRangeStrikeAt(pPlot, iData1, iData2) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canRangeStrikeAt(pPlot, iData1, iData2) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_PLUNDER:
 			if (pLoopUnit->canPlunder(*pPlot, bTestVisible) &&
-					/*  advc.001: Replacing the clause below. The bug occurred when
-						a player set a unit to Blockade (=plunder), spending all its
-						movement points, and then clicking on the Blockade button
-						again. The unit then stopped blockading. Not sure if this
-						is the best way to fix it, but it least it works: Hides the
-						Blockade button when a unit has no moves left. */
-					pLoopUnit->canMove())
-					//(!bCheckMoves || pLoopUnit->canMove()))
+				/*  advc.001: Replacing the clause below. The bug occurred when
+					a player set a unit to Blockade (=plunder), spending all its
+					movement points, and then clicking on the Blockade button
+					again. The unit then stopped blockading. Not sure if this
+					is the best way to fix it, but it least it works: Hides the
+					Blockade button when a unit has no moves left. */
+				pLoopUnit->canMove())
+				//(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_PILLAGE:
-			if (pLoopUnit->canPillage(*pPlot) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canPillage(*pPlot) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_SABOTAGE:
-			if (pLoopUnit->canSabotage(pPlot, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canSabotage(pPlot, bTestVisible) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_DESTROY:
-			if (pLoopUnit->canDestroy(pPlot, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canDestroy(pPlot, bTestVisible) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_STEAL_PLANS:
-			if (pLoopUnit->canStealPlans(pPlot, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canStealPlans(pPlot, bTestVisible) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_FOUND:
-			if (pLoopUnit->canFound(pPlot, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canFound(pPlot, bTestVisible) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_SPREAD:
-			if (pLoopUnit->canSpread(pPlot, (ReligionTypes)iData1, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canSpread(pPlot, (ReligionTypes)iData1, bTestVisible) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_SPREAD_CORPORATION:
-			if (pLoopUnit->canSpreadCorporation(pPlot, (CorporationTypes)iData1, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canSpreadCorporation(pPlot, (CorporationTypes)iData1, bTestVisible) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_JOIN:
-			if (pLoopUnit->canJoin(pPlot, (SpecialistTypes)iData1) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canJoin(pPlot, (SpecialistTypes)iData1) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_CONSTRUCT:
-			if (pLoopUnit->canConstruct(pPlot, (BuildingTypes)iData1, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canConstruct(pPlot, (BuildingTypes)iData1, bTestVisible) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_DISCOVER:
-			if (pLoopUnit->canDiscover(pPlot) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canDiscover(pPlot) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_HURRY:
-			if (pLoopUnit->canHurry(pPlot, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canHurry(pPlot, bTestVisible) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_TRADE:
-			if (pLoopUnit->canTrade(pPlot, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canTrade(pPlot, bTestVisible) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_GREAT_WORK:
-			if (pLoopUnit->canGreatWork(pPlot) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canGreatWork(pPlot) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_INFILTRATE:
-			if (pLoopUnit->canInfiltrate(pPlot, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canInfiltrate(pPlot, bTestVisible) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_GOLDEN_AGE:
 			//this means to play the animation only
 			if (iData1 != -1)
+			{
 				return true;
+			}
 
-			if (pLoopUnit->canGoldenAge(pPlot, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canGoldenAge(pPlot, bTestVisible) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_BUILD:
 			FAssertMsg(((BuildTypes)iData1) < GC.getNumBuildInfos(), "Invalid Build");
-			if (pLoopUnit->canBuild(pPlot, (BuildTypes)iData1, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canBuild(*pPlot, (BuildTypes)iData1, bTestVisible) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_LEAD:
-			if (pLoopUnit->canLead(pPlot, iData1) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canLead(pPlot, iData1) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_ESPIONAGE:
-			if (pLoopUnit->canEspionage(pPlot, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canEspionage(pPlot, bTestVisible) &&
+				(!bCheckMoves || pLoopUnit->canMove()))
+			{
 				return true;
+			}
 			break;
 
 		case MISSION_DIE_ANIMATION:
@@ -3614,7 +3709,9 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2,
 
 		case MISSION_BEGIN_COMBAT:
 		case MISSION_END_COMBAT:
-		case MISSION_AIRSTRIKE: // note: airstrike missions are actually done using MISSION_MOVE_TO. This mission is apparently only used for graphics.
+		case MISSION_AIRSTRIKE:
+			/*	note: airstrike missions are actually done using MISSION_MOVE_TO.
+				This mission is apparently only used for graphics. */
 		case MISSION_SURRENDER:
 		case MISSION_IDLE:
 		case MISSION_DIE:
@@ -3642,10 +3739,7 @@ void CvSelectionGroup::setID(int iID)
 TeamTypes CvSelectionGroup::getTeam() const
 {
 	if (getOwner() != NO_PLAYER)
-	{
 		return GET_PLAYER(getOwner()).getTeam();
-	}
-
 	return NO_TEAM;
 }
 

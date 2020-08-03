@@ -46,7 +46,7 @@ public:
 	void updateMission();
 	DllExport CvPlot* lastMissionPlot();																																					// Exposed to Python
 
-	bool canStartMission(int iMission, int iData1, int iData2, CvPlot* pPlot = NULL, bool bTestVisible = false, bool bUseCache = false);		// Exposed to Python
+	bool canStartMission(int iMission, int iData1, int iData2, CvPlot const* pPlot = NULL, bool bTestVisible = false, bool bUseCache = false);		// Exposed to Python
 	void startMission();
 	//void continueMission(int iSteps = 0);
 	// K-Mod. Split continueMission into two functions to remove the recursion.
@@ -144,7 +144,7 @@ public:
 	CvArea* area() const;																																													// Exposed to Python
 	DomainTypes getDomainType() const;
 
-	RouteTypes getBestBuildRoute(CvPlot* pPlot, BuildTypes* peBestBuild = NULL) const;	// Exposed to Python
+	RouteTypes getBestBuildRoute(CvPlot const& kPlot, BuildTypes* peBestBuild = NULL) const;	// Exposed to Python
 
 	bool groupAttack(int iX, int iY, int iFlags, bool& bFailedAlreadyFighting,
 			bool bMaxSurvival = false); // advc.048
@@ -164,7 +164,7 @@ public:
 	bool readyToAuto() const; // Exposed to Python
 	// K-Mod.
 	bool readyForMission() const;
-	bool canDoMission(int iMission, int iData1, int iData2, CvPlot* pPlot,
+	bool canDoMission(int iMission, int iData1, int iData2, CvPlot const* pPlot,
 			bool bTestVisible, bool bCheckMoves) /* advc.002i: */ const;
 	// K-Mod end
 

@@ -513,7 +513,7 @@ public:
 			bool bNeutral, bool bHostile) const; // </advc.081>
 	int getFoundValue(PlayerTypes eIndex,												// Exposed to Python
 			bool bRandomize = false) const; // advc.052
-	bool isBestAdjacentFound(PlayerTypes eIndex);										// Exposed to Python
+	bool isBestAdjacentFound(PlayerTypes eIndex) const;										// Exposed to Python
 	// K-Mod: I've changed iNewValue to be 'short' instead of 'int', so that it matches the cache.
 	void setFoundValue(PlayerTypes eIndex, short iNewValue);
 	bool canFound(bool bTestVisible = false) const; // advc

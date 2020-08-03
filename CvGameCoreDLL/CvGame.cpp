@@ -9559,13 +9559,11 @@ void CvGame::addPlayer(PlayerTypes eNewPlayer, LeaderHeadTypes eLeader, Civiliza
 	/*	UNOFFICIAL_PATCH Start: Fixed bug with colonies who occupy recycled player slots
 		showing the old leader or civ names */
 	CvWString szEmptyString = L"";
-	LeaderHeadTypes eOldLeader = GET_PLAYER(eNewPlayer).getLeaderType();
+	LeaderHeadTypes const eOldLeader = GET_PLAYER(eNewPlayer).getLeaderType();
 	CvInitCore& kInitCore = GC.getInitCore();
 	if (eOldLeader != NO_LEADER && eOldLeader != eLeader)
-	{
 		kInitCore.setLeaderName(eNewPlayer, szEmptyString);
-	}
-	CivilizationTypes eOldCiv = GET_PLAYER(eNewPlayer).getCivilizationType();
+	CivilizationTypes const eOldCiv = GET_PLAYER(eNewPlayer).getCivilizationType();
 	if (eOldCiv != NO_CIVILIZATION && eOldCiv != eCiv)
 	{
 		kInitCore.setCivAdjective(eNewPlayer, szEmptyString);
