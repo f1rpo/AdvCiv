@@ -15300,7 +15300,7 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 			{
 				if (kTrigger.getBuildingRequired(i) != NO_BUILDINGCLASS)
 				{
-					iNumBuildings +=
+					iNumBuildings += /* advc.001: */ itPlayer->
 							getBuildingClassCount((BuildingClassTypes)
 							kTrigger.getBuildingRequired(i));
 				}
