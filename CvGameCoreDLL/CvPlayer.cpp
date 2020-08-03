@@ -16192,7 +16192,10 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 		{
 			CvPlayer& kObs = *it;
 			if (pTriggeredData->m_eOtherPlayer != NO_PLAYER &&
-				!GET_TEAM(pTriggeredData->m_eOtherPlayer).isHasMet(getTeam()))
+				!GET_TEAM(pTriggeredData->m_eOtherPlayer).isHasMet(//getTeam()
+				/*	advc.001: I think the above was already checked by the caller.
+					Certainly doesn't belong in this loop. */
+				kObs.getTeam()))
 			{
 				continue;
 			}
