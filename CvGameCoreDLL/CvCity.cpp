@@ -8189,13 +8189,16 @@ void CvCity::setName(const wchar* szNewValue, bool bFound, /* advc.106k: */ bool
 void CvCity::doFoundMessage()
 {
 	CvWString szBuffer;
-
-	szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_HAS_BEEN_FOUNDED", getNameKey());
-	gDLL->UI().addMessage(getOwner(), false, -1, szBuffer,
-			ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(),
-			MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
-			NULL, NO_COLOR, getX(), getY());
-
+	/*	advc.106b: Seems that messages aren't supposed to be shown during advanced start
+		and changing the message type causes the EXE to display the message. */
+	if (GET_PLAYER(getOwner()).getAdvancedStartPoints() < 0)
+	{
+		szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_HAS_BEEN_FOUNDED", getNameKey());
+		gDLL->UI().addMessage(getOwner(), false, -1, szBuffer,
+				ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(),
+				MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
+				NULL, NO_COLOR, getX(), getY());
+	}
 	szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_IS_FOUNDED", getNameKey());
 	GC.getGame().addReplayMessage(REPLAY_MESSAGE_CITY_FOUNDED, getOwner(),
 			szBuffer, getX(), getY(),
