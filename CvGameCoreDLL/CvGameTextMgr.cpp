@@ -21042,6 +21042,7 @@ void CvGameTextMgr::getCityDataForAS(std::vector<CvWBData>& mapCityList,
 			{
 				szBuffer.clear();
 				setBuildingHelp(szBuffer, eBuilding);
+				szBuffer.append(gDLL->getText("TXT_KEY_AS_UNREMOVABLE")); // advc.250c
 				mapBuildingList.push_back(CvWBData(eBuilding, szBuffer.getCString(),
 						GC.getInfo(eBuilding).getButton()));
 			}
@@ -21131,7 +21132,11 @@ void CvGameTextMgr::getVisibilityDataForAS(std::vector<CvWBData>& mapVisibilityL
 
 void CvGameTextMgr::getTechDataForAS(std::vector<CvWBData>& mapTechList)
 {
-	mapTechList.push_back(CvWBData(0, gDLL->getText("TXT_KEY_WB_AS_TECH"), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BTN_TECH")->getPath()));
+	static CvWString szTechHelp = // advc.250c
+				CvWString(gDLL->getText("TXT_KEY_WB_AS_TECH")) +
+				gDLL->getText("TXT_KEY_AS_UNREMOVABLE"); // advc.250c
+	mapTechList.push_back(CvWBData(0, szTechHelp.c_str(),
+			ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BTN_TECH")->getPath()));
 }
 
 void CvGameTextMgr::getUnitDataForWB(std::vector<CvWBData>& mapUnitData)
