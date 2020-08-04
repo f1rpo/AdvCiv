@@ -27236,15 +27236,12 @@ void CvPlayerAI::AI_ClearConstructionValueCache()
 	}
 }
 // K-Mod end
-/*  <k146> Check that we have the required bonuses to train the given unit.
+/*  k146: Check that we have the required bonuses to train the given unit.
 	This isn't for any particular city. It's just a rough guide for whether or
 	not we could build the unit. */
 bool CvPlayerAI::AI_haveResourcesToTrain(UnitTypes eUnit) const
 {
-	FAssertBounds(0, GC.getNumUnitInfos(), eUnit);
-
-	const CvUnitInfo& kUnit = GC.getInfo(eUnit);
-	//const CvTeam& kTeam = GET_TEAM(getTeam());
+	CvUnitInfo const& kUnit = GC.getInfo(eUnit);
 
 	// "and" bonus
 	BonusTypes ePrereqAndBonus = kUnit.getPrereqAndBonus();
@@ -27271,7 +27268,7 @@ bool CvPlayerAI::AI_haveResourcesToTrain(UnitTypes eUnit) const
 	}
 
 	return !bMissingBonus;
-} // </k146>
+}
 
 // advc.079: Cut from CvPlayer::getBestAttackUnitKey and refactored
 UnitTypes CvPlayerAI::AI_getBestAttackUnit() const

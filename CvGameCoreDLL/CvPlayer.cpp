@@ -3715,8 +3715,8 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	case TRADE_TECHNOLOGIES:
 	{
 		PROFILE("CvPlayer::canTradeItem.TECH");
-		FAssertBounds(0, GC.getNumTechInfos(), item.m_iData);
 		TechTypes eTech = (TechTypes)item.m_iData;
+		FAssertEnumBounds(eTech);
 		if (GC.getInfo(eTech).isTrade() && kOurTeam.isHasTech(eTech) &&
 			!kOurTeam.isNoTradeTech(eTech) && !kToTeam.isHasTech(eTech) &&
 			GET_PLAYER(eWhoTo).canResearch(eTech, true))
@@ -3728,8 +3728,8 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	case TRADE_RESOURCES:
 	{
 		//PROFILE("CvPlayer::canTradeItem.RESOURCES");
-		FAssertBounds(0, GC.getNumBonusInfos(), item.m_iData);
 		BonusTypes eBonus = (BonusTypes)item.m_iData;
+		FAssertEnumBounds(eBonus);
 		if (!kToTeam.isBonusObsolete(eBonus) &&
 			!kOurTeam.isBonusObsolete(eBonus))
 		{
@@ -3817,8 +3817,8 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	case TRADE_CIVIC:
 	{
 		//PROFILE("CvPlayer::canTradeItem.CIVIC");
-		FAssertBounds(0, GC.getNumCivicInfos(), item.m_iData);
 		CivicTypes eCivic = (CivicTypes)item.m_iData;
+		FAssertEnumBounds(eCivic);
 		if (GET_PLAYER(eWhoTo).isCivic(eCivic) /* <advc.132> */ ||
 			/*  canForceCivic double-checks everything checked here already,
 				plus some clauses that I've added there. */
@@ -3834,8 +3834,8 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	case TRADE_RELIGION:
 	{
 		//PROFILE("CvPlayer::canTradeItem.RELIGION");
-		FAssertBounds(0, GC.getNumReligionInfos(), item.m_iData);
 		ReligionTypes eReligion = (ReligionTypes)item.m_iData;
+		FAssertEnumBounds(eReligion);
 		if (GET_PLAYER(eWhoTo).getStateReligion() == eReligion /* <advc.132> */ ||
 			// Same thing as for civics above
 			((kOurTeam.isVassal(kToTeam.getID()) ||
@@ -14844,7 +14844,7 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit,
 
 const EventTriggeredData* CvPlayer::getEventOccured(EventTypes eEvent) const
 {
-	FAssertBounds(0, GC.getNumEventInfos(), eEvent);
+	FAssertEnumBounds(eEvent);
 	CvEventMap::const_iterator it = m_mapEventsOccured.find(eEvent);
 	if (it == m_mapEventsOccured.end())
 		return NULL;
@@ -14859,7 +14859,7 @@ bool CvPlayer::isTriggerFired(EventTriggerTypes eEventTrigger) const
 
 void CvPlayer::resetEventOccured(EventTypes eEvent, bool bAnnounce)
 {
-	FAssertBounds(0, GC.getNumEventInfos(), eEvent);
+	FAssertEnumBounds(eEvent);
 	CvEventMap::iterator it = m_mapEventsOccured.find(eEvent);
 	if (it != m_mapEventsOccured.end())
 	{
@@ -14871,7 +14871,7 @@ void CvPlayer::resetEventOccured(EventTypes eEvent, bool bAnnounce)
 void CvPlayer::setEventOccured(EventTypes eEvent, EventTriggeredData const& kEventTriggered,
 	bool bOthers)
 {
-	FAssertBounds(0, GC.getNumEventInfos(), eEvent);
+	FAssertEnumBounds(eEvent);
 	m_mapEventsOccured[eEvent] = kEventTriggered;
 	if (GC.getInfo(eEvent).isQuest())
 	{
@@ -14908,7 +14908,7 @@ void CvPlayer::setEventOccured(EventTypes eEvent, EventTriggeredData const& kEve
 
 const EventTriggeredData* CvPlayer::getEventCountdown(EventTypes eEvent) const
 {
-	FAssertBounds(0, GC.getNumEventInfos(), eEvent);
+	FAssertEnumBounds(eEvent);
 	CvEventMap::const_iterator it = m_mapEventCountdown.find(eEvent);
 	if (it == m_mapEventCountdown.end())
 		return NULL;
@@ -14917,13 +14917,13 @@ const EventTriggeredData* CvPlayer::getEventCountdown(EventTypes eEvent) const
 
 void CvPlayer::setEventCountdown(EventTypes eEvent, EventTriggeredData const& kEventTriggered)
 {
-	FAssertBounds(0, GC.getNumEventInfos(), eEvent);
+	FAssertEnumBounds(eEvent);
 	m_mapEventCountdown[eEvent] = kEventTriggered;
 }
 
 void CvPlayer::resetEventCountdown(EventTypes eEvent)
 {
-	FAssertBounds(0, GC.getNumEventInfos(), eEvent);
+	FAssertEnumBounds(eEvent);
 	CvEventMap::iterator it = m_mapEventCountdown.find(eEvent);
 	if (it != m_mapEventCountdown.end())
 		m_mapEventCountdown.erase(it);
@@ -14941,7 +14941,7 @@ void CvPlayer::resetTriggerFired(EventTriggerTypes eTrigger)
 
 void CvPlayer::setTriggerFired(EventTriggeredData const& kTriggeredData, bool bOthers, bool bAnnounce)
 {
-	FAssertBounds(0, GC.getNumEventTriggerInfos(), kTriggeredData.m_eTrigger);
+	FAssertEnumBounds(kTriggeredData.m_eTrigger);
 
 	CvEventTriggerInfo& kTrigger = GC.getInfo(kTriggeredData.m_eTrigger);
 	if (!isTriggerFired(kTriggeredData.m_eTrigger))

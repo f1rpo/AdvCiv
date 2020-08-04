@@ -441,7 +441,7 @@ CvString*& CvGlobals::getEntityEventTypes()
 
 CvString& CvGlobals::getEntityEventTypes(EntityEventTypes e)
 {
-	FAssertBounds(0, getNumEntityEventTypes(), e);
+	FAssertEnumBounds(e);
 	return m_paszEntityEventTypes[e];
 }
 
@@ -468,7 +468,7 @@ CvString*& CvGlobals::getFunctionTypes()
 
 CvString& CvGlobals::getFunctionTypes(FunctionTypes e)
 {
-	FAssertBounds(0, NUM_FUNC_TYPES, e);
+	FAssertEnumBounds(e);
 	return m_paszFunctionTypes[e];
 }
 
@@ -479,7 +479,7 @@ CvString*& CvGlobals::getFlavorTypes()
 
 CvString& CvGlobals::getFlavorTypes(FlavorTypes e)
 {
-	FAssertBounds(0, getNumFlavorTypes(), e);
+	FAssertEnumBounds(e);
 	return m_paszFlavorTypes[e];
 }
 
@@ -506,7 +506,7 @@ CvString*& CvGlobals::getCitySizeTypes()
 
 CvString& CvGlobals::getCitySizeTypes(CitySizeTypes e)
 {
-	FAssertBounds(0, NUM_CITYSIZE_TYPES, e);
+	FAssertEnumBounds(e);
 	return m_paszCitySizeTypes[e];
 }
 
@@ -517,7 +517,7 @@ CvString*& CvGlobals::getContactTypes()
 
 CvString& CvGlobals::getContactTypes(ContactTypes e)
 {
-	FAssertBounds(0, NUM_CONTACT_TYPES, e);
+	FAssertEnumBounds(e);
 	return m_paszContactTypes[e];
 }
 
@@ -528,7 +528,7 @@ CvString*& CvGlobals::getDiplomacyPowerTypes()
 
 CvString& CvGlobals::getDiplomacyPowerTypes(DiplomacyPowerTypes e)
 {
-	FAssertBounds(0, NUM_DIPLOMACYPOWER_TYPES, e);
+	FAssertEnumBounds(e);
 	return m_paszDiplomacyPowerTypes[e];
 }
 
@@ -539,7 +539,7 @@ CvString*& CvGlobals::getAutomateTypes()
 
 CvString& CvGlobals::getAutomateTypes(AutomateTypes e)
 {
-	FAssertBounds(0, NUM_AUTOMATE_TYPES, e);
+	FAssertEnumBounds(e);
 	return m_paszAutomateTypes[e];
 }
 
@@ -550,7 +550,7 @@ CvString*& CvGlobals::getDirectionTypes()
 
 CvString& CvGlobals::getDirectionTypes(AutomateTypes e)
 {
-	FAssertBounds(0, NUM_DIRECTION_TYPES, e);
+	FAssertEnumBounds(e);
 	return m_paszDirectionTypes[e];
 }
 

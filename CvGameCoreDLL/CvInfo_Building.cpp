@@ -289,77 +289,77 @@ const TCHAR* CvBuildingInfo::getMovieDefineTag() const
 
 int CvBuildingInfo::getYieldChange(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piYieldChange ?
 			(YieldTypes)m_piYieldChange[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getYieldModifier(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piYieldModifier ?
 			(YieldTypes)m_piYieldModifier[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getPowerYieldModifier(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piPowerYieldModifier ?
 			(YieldTypes)m_piPowerYieldModifier[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getAreaYieldModifier(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piAreaYieldModifier ?
 			(YieldTypes)m_piAreaYieldModifier[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getGlobalYieldModifier(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piGlobalYieldModifier ?
 			(YieldTypes)m_piGlobalYieldModifier[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getSeaPlotYieldChange(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piSeaPlotYieldChange ?
 			(YieldTypes)m_piSeaPlotYieldChange[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getRiverPlotYieldChange(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piRiverPlotYieldChange ?
 			(YieldTypes)m_piRiverPlotYieldChange[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getGlobalSeaPlotYieldChange(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piGlobalSeaPlotYieldChange ?
 			(YieldTypes)m_piGlobalSeaPlotYieldChange[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getCommerceChange(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piCommerceChange ?
 			(CommerceTypes)m_piCommerceChange[eCommerce] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getObsoleteSafeCommerceChange(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piObsoleteSafeCommerceChange ?
 			(CommerceTypes)m_piObsoleteSafeCommerceChange[eCommerce] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getCommerceChangeDoubleTime(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piCommerceChangeDoubleTime ?
 			(CommerceTypes)m_piCommerceChangeDoubleTime[eCommerce]
 			: 0; // advc.003t: Was -1. 0 means infinity here.
@@ -367,35 +367,35 @@ int CvBuildingInfo::getCommerceChangeDoubleTime(CommerceTypes eCommerce) const
 
 int CvBuildingInfo::getCommerceModifier(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piCommerceModifier ?
 			(CommerceTypes)m_piCommerceModifier[eCommerce] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getGlobalCommerceModifier(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piGlobalCommerceModifier ?
 			(CommerceTypes)m_piGlobalCommerceModifier[eCommerce] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getSpecialistExtraCommerce(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piSpecialistExtraCommerce ?
 			(CommerceTypes)m_piSpecialistExtraCommerce[eCommerce] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getStateReligionCommerce(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piStateReligionCommerce ?
 			(CommerceTypes)m_piStateReligionCommerce[eCommerce] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getCommerceHappiness(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piCommerceHappiness ?
 			(CommerceTypes)m_piCommerceHappiness[eCommerce] : 0; // advc.003t
 }

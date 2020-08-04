@@ -6005,11 +6005,11 @@ bool CvPlot::isRiverCrossing(DirectionTypes eIndex) const
 
 void CvPlot::updateRiverCrossing(DirectionTypes eIndex)
 {
-	FAssertBounds(0, NUM_DIRECTION_TYPES, eIndex);
+	FAssertEnumBounds(eIndex);
 
 	CvPlot* pCornerPlot = NULL;
 	bool bValid = false;
-	CvPlot* pPlot = ::plotDirection(getX(), getY(), eIndex);
+	CvPlot* pPlot = plotDirection(getX(), getY(), eIndex);
 	if ((pPlot == NULL || !pPlot->isWater()) && !isWater())
 	{
 		switch (eIndex)

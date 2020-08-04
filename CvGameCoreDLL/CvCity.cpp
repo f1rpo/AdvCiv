@@ -991,7 +991,7 @@ bool CvCity::canWork(CvPlot /* advc: */ const& kPlot) const
 
 void CvCity::verifyWorkingPlot(CityPlotTypes ePlot) // advc.enum: CityPlotTypes
 {
-	FAssertBounds(0, NUM_CITY_PLOTS, ePlot);
+	FAssertEnumBounds(ePlot);
 	if (isWorkingPlot(ePlot))
 	{
 		CvPlot* pPlot = getCityIndexPlot(ePlot);

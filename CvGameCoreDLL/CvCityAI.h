@@ -114,7 +114,7 @@ public:
 
 	int AI_getBestBuildValue(/* advc.enum: */ CityPlotTypes ePlot) const
 	{
-		FAssertBounds(0, NUM_CITY_PLOTS, ePlot);
+		FAssertEnumBounds(ePlot);
 		return m_aiBestBuildValue[ePlot];
 	}
 	int AI_totalBestBuildValue(CvArea const& kArea) const;

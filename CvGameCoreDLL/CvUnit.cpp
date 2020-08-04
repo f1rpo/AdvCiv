@@ -9735,7 +9735,7 @@ void CvUnit::changeExtraUnitCombatModifier(UnitCombatTypes eUnitCombat, int iCha
 
 bool CvUnit::canAcquirePromotion(PromotionTypes ePromotion) const
 {
-	FAssertBounds(0, GC.getNumPromotionInfos(), ePromotion);
+	FAssertEnumBounds(ePromotion);
 
 	if (isHasPromotion(ePromotion))
 		return false;

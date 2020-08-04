@@ -16788,7 +16788,7 @@ bool CvUnitAI::AI_improveCity(CvCityAI const& kCity) // advc.003u: param was CvC
 	if (!AI_bestCityBuild(kCity, &pBestPlot, &eBestBuild, NULL, this))
 		return false; // advc
 	FAssert(pBestPlot != NULL);
-	FAssertBounds(0, GC.getNumBuildInfos(), eBestBuild);
+	FAssertEnumBounds(eBestBuild);
 
 	MissionTypes eMission = MISSION_MOVE_TO;
 	if (getPlot().getWorkingCity() != &kCity /*||
@@ -16946,7 +16946,7 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, // adv
 
 	if (pBestPlot != NULL)
 	{
-		FAssertBounds(0, GC.getNumBuildInfos(), eBestBuild);
+		FAssertEnumBounds(eBestBuild);
 		// advc.117: No longer guaranteed
 		//FAssert(pBestPlot->getWorkingCity() != NULL);
 		// advc.113b: Now handled by AI_workerMove
@@ -17060,7 +17060,7 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
 
 	if (pBestPlot == NULL)
 		return false;
-	FAssertBounds(0, GC.getNumBuildInfos(), eBestBuild);
+	FAssertEnumBounds(eBestBuild);
 	// advc.113b: Now handled by AI_workerMove
 	/*if (getPlot().getWorkingCity() != NULL)
 		getPlot().getWorkingCity()->AI_changeWorkersHave(-1);

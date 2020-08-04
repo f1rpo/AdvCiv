@@ -8054,7 +8054,7 @@ void CvGame::testAlive()
 
 bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScore) const  // advc: simplified this function a bit
 {
-	FAssertBounds(0, GC.getNumVictoryInfos(), eVictory);
+	FAssertEnumBounds(eVictory);
 	FAssertBounds(0, MAX_CIV_TEAMS, eTeam);
 	FAssert(GET_TEAM(eTeam).isAlive());
 

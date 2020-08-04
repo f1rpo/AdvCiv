@@ -3628,7 +3628,7 @@ void CvTeam::setProjectDefaultArtType(ProjectTypes eIndex, int iValue)
 
 int CvTeam::getProjectArtType(ProjectTypes eIndex, int number) const
 {
-	FAssertBounds(0, GC.getNumProjectInfos(), eIndex);
+	FAssertEnumBounds(eIndex);
 	FAssertBounds(0, getProjectCount(eIndex), number);
 	return m_pavProjectArtTypes[eIndex][number];
 }
@@ -3636,7 +3636,7 @@ int CvTeam::getProjectArtType(ProjectTypes eIndex, int number) const
 
 void CvTeam::setProjectArtType(ProjectTypes eIndex, int number, int value)
 {
-	FAssertBounds(0, GC.getNumProjectInfos(), eIndex);
+	FAssertEnumBounds(eIndex);
 	FAssertBounds(0, getProjectCount(eIndex), number);
 	m_pavProjectArtTypes[eIndex][number] = value;
 }
