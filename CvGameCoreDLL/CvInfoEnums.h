@@ -293,6 +293,17 @@ SET_ENUM_LENGTH_STATIC(Name, PREFIX)
 SET_ENUM_LENGTH_STATIC(Name, PREFIX)
 // (Let's worry about #ifdef _USRDLL only when the source of the EXE is released, i.e. probably never.)
 
+template<typename E>
+inline void assertEnumBounds(E eIndex)
+{
+	FAssertBounds(0, getEnumLength(eIndex), eIndex);
+}
+#ifdef FASSERT_ENABLE
+#define FAssertEnumBounds(eIndex) assertEnumBounds(eIndex)
+#else
+#define FAssertEnumBounds(eIndex) (void)0
+#endif
+
 // Macros for generating CvInfo accessor functions (CvGlobals) ...
 	
 #define MAKE_INFO_ACCESSORS_DYN(Name, Dummy) \
