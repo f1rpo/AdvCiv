@@ -17057,7 +17057,12 @@ bool CvPlayer::getSplitEmpireLeaders(CivLeaderArray& kLeaders) const
 			bool bValid = true;
 			for (PlayerIter<EVER_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 			{
-				if (itPlayer->getPersonalityType() == eLoopLeaderHead)
+				//if (itPlayer->getPersonalityType() == eLoopLeaderHead)
+				/*	advc.001: Relevant for RANDOM_PERSONALITIES option.
+					Duplicate leader appearance seems much more problematic than
+					duplicate (secret) personality. I'll handle personality in
+					CvGame::addPlayer. */
+				if (itPlayer->getLeaderType() == eLoopLeaderHead)
 				{
 					bValid = false;
 					break;

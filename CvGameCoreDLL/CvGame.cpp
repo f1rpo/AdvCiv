@@ -9572,50 +9572,63 @@ void CvGame::addPlayer(PlayerTypes eNewPlayer, LeaderHeadTypes eLeader, Civiliza
 	}
 	// UNOFFICIAL_PATCH End
 	PlayerColorTypes eColor = (PlayerColorTypes)GC.getInfo(eCiv).getDefaultPlayerColor();
-
-	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	// <advc> Restructured these byzantine loops. Hope I got it right.
+	bool bFindNewColor = (eColor == NO_PLAYERCOLOR);
+	if (!bFindNewColor)
 	{
-		if (eColor == NO_PLAYERCOLOR || (GET_PLAYER((PlayerTypes)iI).getPlayerColor() == eColor
-				/*  UNOFFICIAL_PATCH, Bugfix, 12/30/08, jdog5000:
-					Don't invalidate color choice if it's taken by this player */
-				&& (PlayerTypes)iI != eNewPlayer))
+		for (PlayerIter<EVER_ALIVE> itOther; itOther.hasNext(); ++itOther)
 		{
-			for (int iK = 0; iK < GC.getNumPlayerColorInfos(); iK++)
+			if (itOther->getID() != eNewPlayer &&
+				/*  UNOFFICIAL_PATCH, Bugfix, 12/30/08, jdog5000:
+				Don't invalidate color choice if it's taken by this player */
+				itOther->getPlayerColor() == eColor)
 			{
-				if (iK != GC.getInfo((CivilizationTypes)GC.getDefineINT("BARBARIAN_CIVILIZATION")).getDefaultPlayerColor())
-				{
-					bool bValid = true;
-
-					for (int iL = 0; iL < MAX_CIV_PLAYERS; iL++)
-					{
-						if (GET_PLAYER((PlayerTypes)iL).getPlayerColor() == iK)
-						{
-							bValid = false;
-							break;
-						}
-					}
-
-					if (bValid)
-					{
-						eColor = (PlayerColorTypes)iK;
-						iI = MAX_CIV_PLAYERS;
-						break;
-					}
-				}
+				bFindNewColor = true;
+				break;
 			}
 		}
 	}
+	if (bFindNewColor)
+	{
+		PlayerColorTypes const eBarbarianColor = (PlayerColorTypes)GC.getInfo((CivilizationTypes)
+				GC.getDefineINT("BARBARIAN_CIVILIZATION")).getDefaultPlayerColor();
+		FOR_EACH_ENUM(PlayerColor)
+		{
+			if (eLoopPlayerColor == eBarbarianColor)
+				continue;
+			// advc: Better make sure we have _some_ color
+			if (eColor == NO_PLAYERCOLOR)
+				eColor = eLoopPlayerColor;
 
-	TeamTypes eTeam = GET_PLAYER(eNewPlayer).getTeam();
+			bool bValid = true;
+			for (PlayerIter<EVER_ALIVE> itOther; itOther.hasNext(); ++itOther)
+			{
+				if (itOther->getID() != eNewPlayer && // advc: Same as in the bugfix above
+					itOther->getPlayerColor() == eLoopPlayerColor)
+				{
+					bValid = false;
+					break;
+				}
+			}
+			if (bValid)
+			{
+				eColor = eLoopPlayerColor;
+				break;
+			}
+		}
+	} // </advc>
 	kInitCore.setLeader(eNewPlayer, eLeader);
 	kInitCore.setCiv(eNewPlayer, eCiv);
 	kInitCore.setSlotStatus(eNewPlayer, SS_COMPUTER);
 	kInitCore.setColor(eNewPlayer, eColor);
-	// BETTER_BTS_AI_MOD, Bugfix, 12/30/08, jdog5000: START
-	// Team init now handled when appropriate in player initInGame
-	/*GET_TEAM(eTeam).init(eTeam);
+	// advc.001: For RANDOM_PERSONALITIES option
+	GET_PLAYER(eNewPlayer).changePersonalityType();
+	/*GET_TEAM(eNewPlayer).init(eTeam);
 	GET_PLAYER(eNewPlayer).init(eNewPlayer);*/
-	// Standard player init is written for beginning of game, it resets global random events for this player only among other flaws
+	// BETTER_BTS_AI_MOD, Bugfix, 12/30/08, jdog5000: START
+	/*	Team init now handled when appropriate in player initInGame.
+		Standard player init is written for beginning of game,
+		it resets global random events for this player only among other flaws. */
 	GET_PLAYER(eNewPlayer).initInGame(eNewPlayer);
 	// BETTER_BTS_AI_MOD: END
 }
