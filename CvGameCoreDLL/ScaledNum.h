@@ -1133,9 +1133,9 @@ operator/(
 	}
 	else
 	{
-		COMMON_SCALED_NUM r(rRight);
-		r /= rLeft;
-		return r;
+		COMMON_SCALED_NUM rDen(rRight);
+		rLeft /= rDen;
+		return rLeft;
 	}
 }
 
