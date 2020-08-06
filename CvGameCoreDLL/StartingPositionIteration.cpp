@@ -816,6 +816,7 @@ StartingPositionIteration::SpaceEvaluator::SpaceEvaluator(
 	CvMap const& kMap = GC.getMap();
 	// Treat distances beyond this threshold as infinite in order to save time
 	m_iDistThresh = (word)((5 * kDists.getLongDist()) / 4);
+	m_iAvgCityDist = kDists.getAvgCityDist();
 	// Use unsigned types because that'll make exponentiation a wee bit faster
 	word const iDistThresh = m_iDistThresh;
 	word const iAvgCityDist = (word)kDists.getAvgCityDist();
@@ -868,6 +869,7 @@ void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes eP
 	CvPlot const& kStartPlot = *GET_PLAYER(ePlayer).getStartingPlot();
 	scaled rSpaceVal;
 	word const iDistThresh = m_iDistThresh;
+	word const iAvgDist = m_iAvgCityDist;
 	word const iDistSubtr = m_iDistSubtr;
 	// Low-level performance optimizations ...
 	static vector<claim_t> arDelayCache = cacheDelayFactors(iDistThresh);
@@ -879,6 +881,9 @@ void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes eP
 		DistanceTable::DestinationID const eDst = (DistanceTable::DestinationID)i;
 		PlotNumTypes eDestPlot = m_kDists.m_destinationIDToPlotNum[eDst];
 		claim_t rSumOfClaims = m_sumOfClaims.get(eDestPlot);
+		// (For investigating a particular access factor in the debugger:)
+		/*CvPlot const& kDest = kMap.getPlotByIndex(eDestPlot);
+		FAssert(kDest.getX() !=  || kDest.getY() !=  || kStartPlot.getX() != || kStartPlot.getY() != );*/
 		if (rSumOfClaims <= 0)
 			continue;
 		short iStartDist = m_kDists.m_distances[eSrc][eDst];
@@ -898,7 +903,17 @@ void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes eP
 		{
 			rClaim *= rClaim;
 		}
-		else rClaim.exponentiate(claim_t(190, 100));
+		else
+		{
+			//rClaim.exponentiate(claim_t(190, 100));
+			/*  Actually, the longer the distance of the claimants, the less decisive
+				the differences in distance become. */
+			claim_t rExp(std::max(iDist - iAvgDist, 0), iDistThresh - iAvgDist + 1);
+			rExp = 2 - rExp;
+			rClaim.exponentiate(rExp);
+		}
+		// A small competing claim shouldn't make a difference
+		rClaim.decreaseTo(claim_t(55, 100));
 		/*	Apart from competition, nearby plots are better than remote ones.
 			How much better really depends on the shape of the space for expansion;
 			can't take that into account here. It's fair to say that remote plots
@@ -906,10 +921,7 @@ void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes eP
 			is undesirable. Delay being the more important of the two reasons for
 			reducing the yield value of a plot. */
 		// (formula moved into cacheDelayFactors)
-		scaled rAccessFactor = rClaim / arDelayCache[iDist];
-		/*	For uncontested plots very close to kStartPlot, the exact distances
-			shouldn't matter. */
-		rAccessFactor.decreaseTo(fixp(1/3.));
+		scaled rAccessFactor = rClaim * arDelayCache[iDist];
 		scaled rYieldVal = m_kYieldValues.get(eDestPlot);
 		rSpaceVal += rYieldVal * rAccessFactor;
 
@@ -954,16 +966,20 @@ vector<StartingPositionIteration::SpaceEvaluator::claim_t>
 StartingPositionIteration::SpaceEvaluator::cacheDelayFactors(word iMaxDist)
 {
 	std::vector<claim_t> aResult(iMaxDist);
+	claim_t const rDiv = iMaxDist * claim_t(140, 100);
 	for (word iDist = 1; iDist < iMaxDist; iDist++)
 	{
 		claim_t rDelay(iDist);
-		/*	Weird formula, but seems to result in the kind of hyperbola I had in mind.
+		/*	Weird formula - with iDist in both base and exponent, but seems to result
+			in the kind of hyperbola I had in mind.
 			ScaledNum::exponentiate is pretty slow for large bases. It was by far the
 			biggest time sink of the whole SPI algorithm; hence this cache.
 			(Exponentiating 1/iDist doesn't help either as very small bases aren't
 			supported at all by ScaledNum.) */
-		rDelay.exponentiate(claim_t(iDist, iMaxDist * 2));
-		aResult[iDist] = rDelay;
+		rDelay.exponentiate(iDist / rDiv);
+		aResult[iDist] = claim_t(115, 100) / rDelay;
+		// For plots very close to kStartPlot, the exact distances shouldn't matter
+		aResult[iDist].decreaseTo(claim_t(55, 100));
 	}
 	return aResult;
 }
@@ -1054,7 +1070,7 @@ void StartingPositionIteration::computeStartValues(
 	EraTypes const eStartEra = kGame.getStartEra();
 	/*	Adjust this to set the overall balance between city radius
 		and space for expansion */
-	scaled rBaseSpaceWeight = fixp(5/3.);
+	scaled rBaseSpaceWeight = fixp(7/3.);
 	if (eStartEra <= 1)
 	{
 		if (kGame.isOption(GAMEOPTION_NO_BARBARIANS))
@@ -1136,7 +1152,7 @@ void StartingPositionIteration::computeStartValues(
 			}
 			else
 			{
-				scaled const rBaseWarFactor = fixp(0.45);
+				scaled const rBaseWarFactor = fixp(0.4);
 				rWarFactor = rBaseWarFactor;
 				rWarFactor /= scaled(1 + std::min(3, iWarTargets) * rWarFactor).sqrt();
 				rWarFactor /= rBaseWarFactor; // normalize
@@ -1156,6 +1172,11 @@ void StartingPositionIteration::computeStartValues(
 			rTradeFactor *= (1 + rTradeVal * rTradeFactor).pow(fixp(1/3.));
 		}
 		rTradeFactor /= fixp(1.5) * rBaseTradeFactor; // Normalize; looks nicer in the log file.
+		// The above seems to give war targets and trade partners a bit much weight
+		scaled rTradeWarDilution(1, 4);
+		rWarFactor -= (rWarFactor - 1) * rTradeWarDilution;
+		rTradeFactor -= (rTradeFactor - 1) * rTradeWarDilution;
+
 		scaled rRivalDistFactor = rivalDistFactors.get(itPlayer->getID());
 		scaled rSameAreaRivalDistFactor = sameAreaRivalDistFactors.get(itPlayer->getID());
 		if (rRivalDistFactor < rTypicalDistFactor)
@@ -1322,14 +1343,14 @@ scaled StartingPositionIteration::outlierValue(
 	scaled const rStartVal = kStartValues.get(eIndex);
 	scaled r = (rStartVal - rMedian).abs();
 	// Don't mind small differences (at all); uniformity isn't the goal.
-	scaled const rPlusMinus = fixp(0.1);
+	scaled const rPlusMinus = fixp(0.08);
 	r -= rMedian * rPlusMinus;
 	r.increaseTo(0);
 	if (rStartVal < rMedian) // Small outliers are worse
 	{
 		if (pbNegativeOutlier != NULL)
 			*pbNegativeOutlier = true;
-		r *= 2 * (1 + rNegativeOutlierExtraWeight);
+		r *= fixp(2.25) * (1 + rNegativeOutlierExtraWeight);
 		rPercentage = r / (rMedian * (1 + rPlusMinus));
 	}
 	else
@@ -1371,7 +1392,7 @@ scaled StartingPositionIteration::startingPositionValue(
 		rMedian = stats::median(arSamples);
 	}
 	// Encourage strong starting positions
-	scaled r = rSum / fixp(8/3.);
+	scaled r = rSum * fixp(0.4);
 	// Encourage balanced starting positions
 	PlayerIter<CIV_ALIVE> it;
 	for (; it.hasNext(); ++it)
@@ -1392,11 +1413,11 @@ scaled StartingPositionIteration::startingPositionValue(
 	}
 	kResult.m_rAvgError /= it.nextIndex();
 	// Volatility outliers need some strong discouragement
-	scaled rTolerance = fixp(0.11);
+	scaled rTolerance = fixp(0.12);
 	if (rWorstVolatility > rTolerance)
 	{
-		r *= (1 - (rWorstVolatility - rTolerance) /
-				(scaled(it.nextIndex()).sqrt() * fixp(4/3.)));
+		r *= 1 - fixp(1.1) * (rWorstVolatility - rTolerance) /
+				scaled(it.nextIndex()).sqrt();
 		if (kResult.m_eWorstOutlier == NO_PLAYER)
 			kResult.m_eWorstOutlier = eWorstVolatilityPlayer;
 	}
@@ -1693,7 +1714,7 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		{
 			// Focus on negative outliers while the avg. error is high
-			scaled rNegativeOutlierExtraWeight = fixp(1.25) * 
+			scaled rNegativeOutlierExtraWeight = fixp(1.15) * 
 					(m_currSolutionAttribs.m_rAvgError - fixp(0.1));
 			// A little bit of randomness
 			if (iStepsConsidered % 2 == 0)

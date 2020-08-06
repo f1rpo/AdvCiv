@@ -114,6 +114,7 @@ private:
 		EnumMap<PlayerTypes,scaled> m_spaceValues;
 		EnumMap<PlotNumTypes,claim_t> m_sumOfClaims;
 		word m_iDistThresh;
+		word m_iAvgCityDist;
 		word m_iDistSubtr;
 		bool m_bLog;
 	};
