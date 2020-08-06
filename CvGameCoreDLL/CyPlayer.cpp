@@ -1888,8 +1888,10 @@ int CyPlayer::getCivicUpkeep(boost::python::list& kCivics, bool bIgnoreAnarchy)
 {
 	if (m_pPlayer == NULL)
 		return -1;
-	CivicMap aeCivics; // advc.enum
-	pyListToCivicMap(kCivics, aeCivics); // advc
+	// <advc.enum>
+	CivicMap aeCivics;
+	m_pPlayer->getCivics(aeCivics);
+	pyListToCivicMap(kCivics, aeCivics); // </advc.enum>
 	return m_pPlayer->getCivicUpkeep(&aeCivics, bIgnoreAnarchy);
 }
 
@@ -2399,9 +2401,11 @@ void CyPlayer::pyListToCivicMap(boost::python::list const& kFrom, CivicMap& kTo)
 {
 	int* piTmp = NULL;
 	gDLL->getPythonIFace()->putSeqInArray(kFrom.ptr(), &piTmp);
-	// <advc.enum>
-	FOR_EACH_ENUM(CivicOption)
-		kTo.set(eLoopCivicOption, (CivicTypes)piTmp[eLoopCivicOption]);
-	// </advc.enum>
-	delete[] piTmp;
+	if (piTmp != NULL)
+	{	// <advc.enum>
+		FOR_EACH_ENUM(CivicOption)
+			kTo.set(eLoopCivicOption, (CivicTypes)piTmp[eLoopCivicOption]);
+		// </advc.enum>
+		delete[] piTmp;
+	}
 }
