@@ -18,10 +18,10 @@ class CyArea;
 class CyMap
 {
 public:
-	CyMap();
-	CyMap(CvMap* pMap);		// Call from C++
-	CvMap* getMap() { return m_pMap;	}	// Call from C++
-	bool isNone() { return (m_pMap==NULL); }
+	CyMap() : m_kMap(GC.getMap()) {}
+	CyMap(CvMap& kMap) : m_kMap(kMap) {} // Call from C++
+	//CvMap& getMap() { return m_kMap;	} // advc: unused
+	bool isNone() { return /*(m_pMap==NULL)*/ false; } // advc: Initialization guaranteed
 
 	void erasePlots();
 	void setRevealedPlots(int /*TeamTypes*/ eTeam, bool bNewValue, bool bTerrainOnly);
@@ -90,7 +90,7 @@ public:
 	//int getNumPlayerOwnedPlots(int /*PlayerTypes*/ iPlayer);
 
 protected:
-	CvMap* m_pMap;
+	CvMap& m_kMap; // advc: was pointer
 };
 
-#endif	// CyMap_h
+#endif
