@@ -220,6 +220,7 @@ public:
 	   from all calls to this function (except those from Python). */
 	bool isCoastal(int iMinWaterSize = -1) const;																// Exposed to Python
 	bool isDisorder() const;																					// Exposed to Python
+	bool isNoMaintenance() const; //advc
 	bool isHolyCity(ReligionTypes eIndex) const;																// Exposed to Python
 	bool isHolyCity() const;																					// Exposed to Python
 	bool hasShrine(ReligionTypes eReligion) const;

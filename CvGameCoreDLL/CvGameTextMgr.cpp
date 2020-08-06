@@ -16981,40 +16981,46 @@ void CvGameTextMgr::buildFinanceCityMaintString(CvWStringBuffer& szBuffer, Playe
 	if (NO_PLAYER == ePlayer)
 		return;
 
-	int iDistanceMaint = 0;
-	int iColonyMaint = 0;
-	int iCorporationMaint = 0;
-
-	CvPlayer& player = GET_PLAYER(ePlayer);
-	FOR_EACH_CITY(pLoopCity, player)
+	/*	advc: Improve precision a bit. (Rules-wise, costs get rounded down -
+		but only after adding all components up. Don't want to round down in
+		the breakdown, and K-Mod had already been using ROUND_DIVIDE.) */
+	scaled rDistanceMaint;
+	scaled rColonyMaint;
+	scaled rCorpMaint;
+	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
+	FOR_EACH_CITY(pCity, kPlayer)
 	{
-		// K-Mod, 06/sep/10, Karadoc: Bug fix
-		/* Old BTS code
-		iDistanceMaint += (pLoopCity->calculateDistanceMaintenanceTimes100() * std::max(0, (pLoopCity->getMaintenanceModifier() + 100))) / 100;
-		iColonyMaint += (pLoopCity->calculateColonyMaintenanceTimes100() * std::max(0, (pLoopCity->getMaintenanceModifier() + 100))) / 100;
-		iCorporationMaint += (pLoopCity->calculateCorporationMaintenanceTimes100() * std::max(0, (pLoopCity->getMaintenanceModifier() + 100))) / 100;
-		*/
-		if (!pLoopCity->isDisorder() && !pLoopCity->isWeLoveTheKingDay() && (pLoopCity->getPopulation() > 0))
+		if (!pCity->isNoMaintenance()) // K-Mod, 06/sep/10 (bugfix)
 		{
-			iDistanceMaint += (pLoopCity->calculateDistanceMaintenanceTimes100() * std::max(0, (pLoopCity->getMaintenanceModifier() + 100))+50) / 100;
-			iColonyMaint += (pLoopCity->calculateColonyMaintenanceTimes100() * std::max(0, (pLoopCity->getMaintenanceModifier() + 100))+50) / 100;
-			iCorporationMaint += (pLoopCity->calculateCorporationMaintenanceTimes100() * std::max(0, (pLoopCity->getMaintenanceModifier() + 100))+50) / 100;
+			rDistanceMaint += per100(pCity->calculateDistanceMaintenanceTimes100()) *
+					per100(std::max(0, pCity->getMaintenanceModifier() + 100));
+			rColonyMaint += per100(pCity->calculateColonyMaintenanceTimes100()) *
+					per100(std::max(0, pCity->getMaintenanceModifier() + 100));
+			rCorpMaint += per100(pCity->calculateCorporationMaintenanceTimes100()) *
+					per100(std::max(0, pCity->getMaintenanceModifier() + 100));
 		}
-		// K-Mod end
 	}
 	// K-Mod. Changed to include the effects of inflation.
-	int iInflationFactor = player.calculateInflationRate()+100;
+	int const iInflationFactorTimes100 = kPlayer.calculateInflationRate() + 100;
+	scaled const rInflationFactor = per100(iInflationFactorTimes100);
 
-	iDistanceMaint = ROUND_DIVIDE(iDistanceMaint * iInflationFactor, 10000);
-	iColonyMaint = ROUND_DIVIDE(iColonyMaint * iInflationFactor, 10000);
-	iCorporationMaint = ROUND_DIVIDE(iCorporationMaint * iInflationFactor, 10000); // Note: currently, calculateCorporationMaintenanceTimes100 includes the inverse of this factor.
+	rDistanceMaint *= rInflationFactor;
+	rColonyMaint *= rInflationFactor;
+	rCorpMaint *= rInflationFactor;
+	/*	Note: currently, calculateCorporationMaintenanceTimes100
+		includes the inverse of this factor. */
 
-	int iNumCityMaint = ROUND_DIVIDE(player.getTotalMaintenance() * iInflationFactor, 100) - iDistanceMaint - iColonyMaint - iCorporationMaint;
+	int iDistanceMaint = rDistanceMaint.round();
+	int iColonyMaint = rColonyMaint.round();
+	int iCorpMaint = rCorpMaint.round();
+
+	int iNumCityMaint = (kPlayer.getTotalMaintenance() * rInflationFactor).round() -
+			iDistanceMaint - iColonyMaint - iCorpMaint;
 	CvWString szTmp; // advc.086
 	szTmp.append(NEWLINE);
 	szTmp.append(gDLL->getText("TXT_KEY_FINANCE_ADVISOR_CITY_MAINT_COST",
-			iDistanceMaint, iNumCityMaint, iColonyMaint, iCorporationMaint,
-			player.getTotalMaintenance()*iInflationFactor/100));
+			iDistanceMaint, iNumCityMaint, iColonyMaint, iCorpMaint,
+			(kPlayer.getTotalMaintenance() * iInflationFactorTimes100) / 100));
 	// <advc.086>
 	if(szBuffer.isEmpty())
 		szBuffer.assign(szTmp.substr(2, szTmp.length()));

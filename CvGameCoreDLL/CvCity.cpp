@@ -3314,6 +3314,12 @@ bool CvCity::isDisorder() const
 	return (isOccupation() || GET_PLAYER(getOwner()).isAnarchy());
 }
 
+// advc:
+bool CvCity::isNoMaintenance() const
+{
+	return (isDisorder() || isWeLoveTheKingDay() || getPopulation() <= 0);
+}
+
 
 bool CvCity::isHolyCity(ReligionTypes eIndex) const
 {
@@ -4730,14 +4736,14 @@ void CvCity::changeGovernmentCenterCount(int iChange)
 	}
 }
 
-// BUG - Building Saved Maintenance - start
+// BUG - Building Saved Maintenance:
 /*  Returns the total additional gold from saved maintenance times 100 that adding one of the given buildings will provide.
 	Doesn't check if the building can be constructed in this city. */
 int CvCity::getSavedMaintenanceTimes100ByBuilding(BuildingTypes eBuilding) const
 {
 	CvBuildingInfo& kBuilding = GC.getInfo(eBuilding);
 	int iModifier = kBuilding.getMaintenanceModifier();
-	if (iModifier != 0 && !isDisorder() && !isWeLoveTheKingDay() && getPopulation() > 0)
+	if (iModifier != 0 && !isNoMaintenance())
 	{
 		int iNewMaintenance = calculateBaseMaintenanceTimes100() *
 				std::max(0, getMaintenanceModifier() + iModifier + 100) / 100;
@@ -4745,7 +4751,7 @@ int CvCity::getSavedMaintenanceTimes100ByBuilding(BuildingTypes eBuilding) const
 				(100 + GET_PLAYER(getOwner()).calculateInflationRate()), 100); // K-Mod
 	}
 	return 0;
-} // BUG - Building Saved Maintenance - end
+}
 
 
 void CvCity::updateMaintenance()
@@ -4755,7 +4761,7 @@ void CvCity::updateMaintenance()
 	int iOldMaintenance = getMaintenanceTimes100();
 	int iNewMaintenance = 0;
 
-	if (!isDisorder() && !isWeLoveTheKingDay() && getPopulation() > 0)
+	if (!isNoMaintenance())
 	{
 		iNewMaintenance = (calculateBaseMaintenanceTimes100() *
 				std::max(0, getMaintenanceModifier() + 100)) / 100;
