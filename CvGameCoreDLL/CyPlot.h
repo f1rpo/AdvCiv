@@ -207,7 +207,7 @@ public:
 	int getReconCount();
 	int getRiverCrossingCount();
 	int getYield(YieldTypes eIndex);
-	int calculateNatureYield(int /*YieldTypes*/ eIndex, int /*TeamTypes*/ eTeam, bool bIgnoreFeature = false);
+	int calculateNatureYield(YieldTypes eIndex, TeamTypes eTeam, bool bIgnoreFeature = false);
 	int calculateBestNatureYield(YieldTypes eIndex, TeamTypes eTeam);
 	int calculateTotalBestNatureYield(TeamTypes eTeam);
 	int calculateImprovementYieldChange(int /*ImprovementTypes*/ eImprovement, YieldTypes eYield,

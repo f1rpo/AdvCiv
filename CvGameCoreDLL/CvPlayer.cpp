@@ -93,8 +93,8 @@ void CvPlayer::initContainers()
 	m_eventsTriggered.init();
 }
 
-/*  advc.003q: Cut from CvPlayer::init and refactored a bit. Returns false if
-	data not initialized due to slot status. */
+/*  advc.003q: Cut from CvPlayer::init.
+	Returns false if data not initialized due to slot status. */
 bool CvPlayer::initOtherData()
 {
 	SlotStatus eStatus = GC.getInitCore().getSlotStatus(getID());
@@ -108,9 +108,9 @@ bool CvPlayer::initOtherData()
 	{
 		int iBestValue = 0;
 		int const iBARBARIAN_LEADER = GC.getDefineINT("BARBARIAN_LEADER"); // advc.opt
-		for (int iI = 0; iI < GC.getNumLeaderHeadInfos(); iI++)
+		FOR_EACH_ENUM2(LeaderHead, eLoopPersonality)
 		{
-			if (iI == iBARBARIAN_LEADER) // XXX minor civ???
+			if (eLoopPersonality == iBARBARIAN_LEADER) // XXX minor civ???
 				continue;
 
 			int iValue = (1 + GC.getGame().getSorenRandNum(10000, "Choosing Personality"));
@@ -118,14 +118,17 @@ bool CvPlayer::initOtherData()
 			{
 				if (GET_PLAYER((PlayerTypes)iJ).isAlive())
 				{
-					if (GET_PLAYER((PlayerTypes)iJ).getPersonalityType() == iI)
+					if (GET_PLAYER((PlayerTypes)iJ).
+						getPersonalityType() == eLoopPersonality)
+					{
 						iValue /= 2;
+					}
 				}
 			}
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;
-				ePersonality = ((LeaderHeadTypes)iI);
+				ePersonality = eLoopPersonality;
 			}
 		}
 	}
