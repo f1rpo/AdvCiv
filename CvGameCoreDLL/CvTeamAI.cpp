@@ -2403,6 +2403,12 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		iPersonalityModifier += GC.getInfo(itMember->getPersonalityType()).
 				getVassalPowerModifier();
 	}
+	// <advc.112>
+	if (bColony)
+	{
+		iPersonalityModifier /= 2;
+		iPersonalityModifier -= 10;
+	} // </advc.112>
 	scaled rVassalPower = per100(iOurPower * (iPowerMultiplier + iPersonalityModifier /
 			std::max(1, itMember.nextIndex())));
 	if (bWar)
@@ -2434,13 +2440,15 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 			rMasterPower *= per100(90); // was 75%
 		// </advc.112>
 	}
-	else if (kMasterTeam.AI_isLandTarget(getID())
+	else if (/* advc.112: */ !bColony &&
+		!kMasterTeam.AI_isLandTarget(getID()))
+	{
 		rMasterPower /= 2;
-
+	}
 	// K-Mod. (condition moved here from lower down; for efficiency.)
 	// <advc.112> Special treatment of vassal-master power ratio if colony
 	if ((!bColony && 3 * rVassalPower > 2 * rMasterPower) ||
-		(bColony && 5 * getPower(true) > 4 * rMasterPower)) // </advc.112>
+		(bColony && 13 * getPower(true) > 10 * rMasterPower)) // </advc.112>
 	{
 		return DENIAL_POWER_US;
 	} // K-Mod end
@@ -2624,6 +2632,8 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 			// <advc.112> Handled higher up
 			int iAttitudeThresh = GC.getInfo(kOurMember.getPersonalityType()).
 					getVassalRefuseAttitudeThreshold();
+			if (bColony)
+				iAttitudeThresh -= 3;
 			/*  Don't apply thresh worse than Cautious, only increase the
 				relations modifier. */
 			if(iAttitudeThresh < ATTITUDE_CAUTIOUS)
