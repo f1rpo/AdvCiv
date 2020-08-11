@@ -1135,7 +1135,8 @@ bool CvPlot::isAdjacentSaltWater() const
 
 bool CvPlot::isPotentialIrrigation() const
 {
-	if ((isCity() && !isHills()) ||
+	// advc: 2nd condition was !isHills. Mods might allow cities on peaks.
+	if ((isCity() && isFlatlands()) ||
 		(isImproved() && GC.getInfo(getImprovementType()).isCarriesIrrigation()))
 	{
 		if (isOwned() && GET_TEAM(getTeam()).isIrrigation())
@@ -1149,13 +1150,12 @@ bool CvPlot::isPotentialIrrigation() const
 bool CvPlot::canHavePotentialIrrigation() const
 {
 	PROFILE_FUNC(); // advc.test: To be profiled
-	// advc: 2nd check was !isHills. Mods might allow cities on peaks.
-	if (isCity() && isFlatlands())
-		return true;
 	// <advc.opt>
 	if(isWater())
-		return false;
-	// </advc.opt>
+		return false; // </advc.opt>
+	// advc: 2nd condition was !isHills. Mods might allow cities on peaks.
+	if (isCity() && isFlatlands())
+		return true;
 	FOR_EACH_ENUM(Improvement)
 	{
 		if (GC.getInfo(eLoopImprovement).isCarriesIrrigation())

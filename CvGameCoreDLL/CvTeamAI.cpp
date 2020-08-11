@@ -2206,16 +2206,19 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 
 	FAssert(eMasterTeam != getID());
 
-	CvTeamAI& kMasterTeam = GET_TEAM(eMasterTeam);
+	CvTeamAI const& kMasterTeam = GET_TEAM(eMasterTeam);
 	bool const bWar = isAtWar(eMasterTeam);
-	/*  advc.112: Colonies are more loyal than other peace vassals, but not more
+	/*  <advc.112> Colonies are more loyal than other peace vassals, but not more
 		likely to come back once broken away (isVassal is checked). */
-	bool bColony = isVassal(eMasterTeam) && !isCapitulated() && kMasterTeam.isParent(getID());
+	bool const bColony = (isVassal(eMasterTeam) &&
+			!isCapitulated() && kMasterTeam.isParent(getID())); // </advc.112>
 
-	// K-Mod. I've disabled the denial for "war not possible"
-	// In K-Mod, surrendering overrules existing peace treaties - just like defensive pacts overrule peace treaties.
-	// For voluntary vassals, the treaties still apply. [advc: see AI_vassalTrade] */
-	// K-Mod. However, "peace not possible" should still be checked here -- but only if this is a not a peace-vassal deal!
+	/*	K-Mod. I've disabled the denial for "war not possible"
+		In K-Mod, surrendering overrules existing peace treaties -
+		just like defensive pacts overrule peace treaties.
+		For voluntary vassals, the treaties still apply. [advc: see AI_vassalTrade]
+		K-Mod. However, "peace not possible" should still be checked here --
+		but only if this is a not a peace-vassal deal! */
 	if (bWar)
 	{
 		for (TeamIter<FREE_MAJOR_CIV,ENEMY_OF> it(getID()); it.hasNext(); ++it)
@@ -2235,7 +2238,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		return DENIAL_VICTORY;
 	FOR_EACH_ENUM(VoteSource)
 	{
-		// Doesn't imply stage 3 of diplo victory
+		// (Doesn't imply stage 3 of diplo victory)
 		if(GC.getGame().getSecretaryGeneral(eLoopVoteSource) == getID())
 			return DENIAL_VICTORY;
 	}  // <advc>
@@ -2329,7 +2332,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 	}// </advc.143b>
 	int iTotalPower = 0;
 	int iNumNonVassals = 0;
-	std::vector<double> powerValues; // advc.112
+	std::vector<scaled> arPowerValues; // advc.112
 	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
 	{
 		CvTeam& kTeam = *it;
@@ -2340,23 +2343,23 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		else
 		{
 			// <advc.112> For median computation
-			powerValues.push_back(iPow);
+			arPowerValues.push_back(iPow);
 			iTotalPower += iPow;
 			// </advc.112>
 			iNumNonVassals++;
 		}
 	}
 	// advc.112: Probably not much of an improvement over using the mean
-	double medianPow = ::dMedian(powerValues);
-	int iAveragePower = iTotalPower / std::max(1, iNumNonVassals);
-	int iMasterPower = kMasterTeam.getPower(false);
+	scaled rMedianPow = stats::median(arPowerValues);
+	scaled rAveragePower(iTotalPower, std::max(1, iNumNonVassals));
+	scaled rMasterPower = kMasterTeam.getPower(false);
 	// <advc.112>
 	if(bFaraway ||
 		(getNumWars() <= 0 && AI_teamCloseness(eMasterTeam, -1, false, true) <= 0))
 	{
-		iMasterPower = ::round(iMasterPower  * 0.7); // </advc.112>
+		rMasterPower *= fixp(0.7); // </advc.112>
 	}
-	int iOurPower = getPower(true); // K-Mod (this value is used a bunch of times separately)
+	int const iOurPower = getPower(true); // K-Mod (this value is used a bunch of times separately)
 	/*  <advc.143> Reluctant to sign voluntary vassal agreement if we recently
 		canceled one */
 	if(!bWar && !isVassal(eMasterTeam))
@@ -2388,8 +2391,8 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		hashInput.push_back(kGame.getTeamRank(getID()));
 		hashInput.push_back(kGame.getTeamRank(eMasterTeam));
 		hashInput.push_back(getNumWars());
-		double h = ::hash(hashInput, getLeaderID());
-		iPowerMultiplier -= ::round(10 + h * 30);
+		scaled rHash = scaled::hash(hashInput, getLeaderID());
+		iPowerMultiplier -= (10 + rHash * 30).round();
 	}
 	// iPersonalityModifier: moved here from farther up
 	// </advc.112>
@@ -2400,8 +2403,8 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		iPersonalityModifier += GC.getInfo(itMember->getPersonalityType()).
 				getVassalPowerModifier();
 	}
-	int iVassalPower = (iOurPower * (iPowerMultiplier + iPersonalityModifier /
-			std::max(1, itMember.nextIndex()))) / 100;
+	scaled rVassalPower = per100(iOurPower * (iPowerMultiplier + iPersonalityModifier /
+			std::max(1, itMember.nextIndex())));
 	if (bWar)
 	{
 		int iTheirSuccess = std::max(10, kMasterTeam.AI_getWarSuccess(getID()));
@@ -2423,23 +2426,21 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		if (iTheirSuccess < iOthersBestSuccess)
 			iOurSuccess += iOthersBestSuccess - iTheirSuccess;
 		// <advc.112> Instead multiply VassalPower by the inverse factor
-		//iMasterPower = (2 * iMasterPower * iTheirSuccess) / (iTheirSuccess + iOurSuccess);
-		iVassalPower = ::round(iVassalPower * (iTheirSuccess + iOurSuccess) /
-				(1.8 * iTheirSuccess)); // Slightly reduce the coefficient
+		//rMasterPower = (2 * rMasterPower * iTheirSuccess) / (iTheirSuccess + iOurSuccess);
+		rVassalPower *= (iTheirSuccess + iOurSuccess) /
+				(fixp(1.8) * iTheirSuccess); // Slightly reduce the coefficient
 		// FURIOUS clause added; WorstEnemy doesn't say much when at war.
 		if (AI_getWorstEnemy() == eMasterTeam && eTowardMaster <= ATTITUDE_FURIOUS)
-		{	// was 75%, now 90%.
-			iMasterPower *= 9;
-			iMasterPower /= 10; // </advc.112>
-		}
+			rMasterPower *= per100(90); // was 75%
+		// </advc.112>
 	}
-	else if (!kMasterTeam.AI_isLandTarget(getID()))
-		iMasterPower /= 2;
+	else if (kMasterTeam.AI_isLandTarget(getID())
+		rMasterPower /= 2;
 
 	// K-Mod. (condition moved here from lower down; for efficiency.)
 	// <advc.112> Special treatment of vassal-master power ratio if colony
-	if((!bColony && 3 * iVassalPower > 2 * iMasterPower) ||
-		(bColony && 5 * getPower(true) > 4 * iMasterPower)) // </advc.112>
+	if ((!bColony && 3 * rVassalPower > 2 * rMasterPower) ||
+		(bColony && 5 * getPower(true) > 4 * rMasterPower)) // </advc.112>
 	{
 		return DENIAL_POWER_US;
 	} // K-Mod end
@@ -2476,11 +2477,16 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 			}
 			/*  Randomly between these two bounds; randomness from a hash of the
 				turn number */
-			double bound1 = (0.5 * getCurrentEra() + 1.5) * 0.75 * getNumCities();
-			double bound2 = (0.5 * getCurrentEra() + 1.5) * getNumCities();
-			if(iTheirAttackers < bound1 + ::hash(kGame.getGameTurn()) * (bound2 - bound1))
+			scaled rBound1 = (fixp(0.5) * getCurrentEra() + fixp(1.5)) *
+					fixp(0.75) * getNumCities();
+			scaled rBound2 = (fixp(0.5) * getCurrentEra() + fixp(1.5)) *
+					getNumCities();
+			if (iTheirAttackers < rBound1 + scaled::hash(kGame.getGameTurn()) *
+				(rBound2 - rBound1))
+			{
 				return DENIAL_NEVER;
-			if(iSafePopulation / (getTotalPopulation() + 0.1) > 0.3)
+			}
+			if(iSafePopulation / (getTotalPopulation() + fixp(0.1)) > fixp(0.3))
 				return DENIAL_NEVER;
 		}
 	} // </advc.112b>
@@ -2506,24 +2512,27 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		int iEnemyPower = kEnemy.getPower(true); // K-Mod
 		if (iEnemyPower > iOurPower)
 		{
-			if (kEnemy.isAtWar(eMasterTeam) && !kEnemy.isAtWar(getID())
-					&& (!bWar || iMasterPower < 2 * iEnemyPower)) // K-Mod
+			if (kEnemy.isAtWar(eMasterTeam) && !kEnemy.isAtWar(getID()) &&
+				(!bWar || rMasterPower < 2 * iEnemyPower)) // K-Mod
+			{
 				return DENIAL_POWER_YOUR_ENEMIES;
-			iAveragePower = (2 * iAveragePower * iEnemyPower) /
+			}
+			rAveragePower = (2 * rAveragePower * iEnemyPower) /
 					std::max(1, iEnemyPower + iOurPower);
 			// advc.112: The same threat adjustment for the median
-			medianPow = (2 * medianPow * iEnemyPower) / std::max(1, iEnemyPower + iOurPower);
+			rMedianPow = (2 * rMedianPow * iEnemyPower) /
+					std::max(1, iEnemyPower + iOurPower);
 			//iAttitudeModifier += (3 * kEnemy.getPower(true)) / std::max(1, getPower(true)) - 2;
 			/*  advc.112: Commented out K-Mod's replacement as well.
 				Attitude is handled later. */
 			//iAttitudeModifier += (6 * iEnemyPower / std::max(1, iOurPower) - 5)/2; // K-Mod. (effectively -2.5 instead of 2)
 		}
 		if (!kEnemy.isAtWar(eMasterTeam) && kEnemy.isAtWar(getID()))
-		{
-			iAveragePower = iAveragePower *
-					(iOurPower + iMasterPower) / std::max(1, iOurPower + std::max(iOurPower, iEnemyPower)); // K-Mod
+		{	// <K-Mod>
+			rAveragePower *= (iOurPower + rMasterPower) /
+					std::max(1, iOurPower + std::max(iOurPower, iEnemyPower)); // </K-Mod>
 			// <advc.112>
-			medianPow = medianPow * (iOurPower + iMasterPower) /
+			rMedianPow *= (iOurPower + rMasterPower) /
 					std::max(1, iOurPower + std::max(iOurPower, iEnemyPower)); // </advc.112>
 		}
 	}
@@ -2535,12 +2544,15 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 	{
 		// if (iVassalPower > iAveragePower || 3 * iVassalPower > 2 * iMasterPower)
 		// advc.112: Changed coefficients from 5/4 to 1/0.76
-		if (iVassalPower > 0.76*iAveragePower || // K-Mod. (second condition already checked)
+		if (rVassalPower > fixp(0.76) * rAveragePower || // K-Mod. (second condition already checked)
 			// <advc.112> Median condition; randomization when breaking free
-			(!bWar && iVassalPower > 0.76 * medianPow))
+			(!bWar && rVassalPower > fixp(0.76) * rMedianPow))
 		{
-			if(!isAVassal() || ::hash(kGame.getGameTurn(), getLeaderID()) < 0.1) // </advc.112>
+			if(!isAVassal() ||
+				scaled::hash(kGame.getGameTurn(), getLeaderID()) < fixp(0.1))
+			{ // </advc.112>
 				return DENIAL_POWER_US;
+			}
 		}
 	}
 
@@ -2595,8 +2607,8 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		if(isAVassal()) // (should perhaps check master's NoWarProb at Pleased)
 			iAttitudeModifier += 3;
 		if(iAttitudeModifier <= 2 &&
-			4 * iVassalPower > 3 * iAveragePower &&
-			4 * iVassalPower > 3 * medianPow &&
+			4 * rVassalPower > 3 * rAveragePower &&
+			4 * rVassalPower > 3 * rMedianPow &&
 			// Exception: stick to our colonial master
 			(!isAVassal() || !kMasterTeam.isParent(getID())))
 		{
@@ -2612,8 +2624,8 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 			// <advc.112> Handled higher up
 			int iAttitudeThresh = GC.getInfo(kOurMember.getPersonalityType()).
 					getVassalRefuseAttitudeThreshold();
-			/*  Don't use Annoyed thresh from XML, only increase the
-				relations modifier by 1. */
+			/*  Don't apply thresh worse than Cautious, only increase the
+				relations modifier. */
 			if(iAttitudeThresh < ATTITUDE_CAUTIOUS)
 			{
 				iAttitudeModifier += (ATTITUDE_CAUTIOUS - iAttitudeThresh);

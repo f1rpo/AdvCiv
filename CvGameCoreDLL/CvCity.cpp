@@ -8849,12 +8849,12 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, boo
 	m_aiNumRealBuilding.set(eBuilding, iNewValue);
 	if (getNumRealBuilding(eBuilding) > 0)
 	{
-		m_aiBuildingOriginalOwner.set(eBuilding, eOriginalOwner);
+		m_aeBuildingOriginalOwner.set(eBuilding, eOriginalOwner);
 		m_aiBuildingOriginalTime.set(eBuilding, iOriginalTime);
 	}
 	else
 	{
-		m_aiBuildingOriginalOwner.set(eBuilding, NO_PLAYER);
+		m_aeBuildingOriginalOwner.set(eBuilding, NO_PLAYER);
 		m_aiBuildingOriginalTime.set(eBuilding, MIN_INT);
 	}
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
@@ -8889,7 +8889,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, boo
 	if (iChange > 0 && bFirst)
 	{
 		if (kBuilding.isCapital())
-			GET_PLAYER(getOwner()).setCapitalCity(this);
+			GET_PLAYER(getOwner()).setCapital(this);
 
 		if (GC.getGame().isFinalInitialized() && !gDLL->GetWorldBuilderMode())
 		{
@@ -11134,7 +11134,7 @@ void CvCity::read(FDataStreamBase* pStream)
 	m_aiProjectProduction.Read(pStream);
 	m_aiBuildingProduction.Read(pStream);
 	m_aiBuildingProductionTime.Read(pStream);
-	m_aiBuildingOriginalOwner.Read(pStream);
+	m_aeBuildingOriginalOwner.Read(pStream);
 	m_aiBuildingOriginalTime.Read(pStream);
 	m_aiUnitProduction.Read(pStream);
 	m_aiUnitProductionTime.Read(pStream);
@@ -11402,7 +11402,7 @@ void CvCity::write(FDataStreamBase* pStream)
 	m_aiProjectProduction.Write(pStream);
 	m_aiBuildingProduction.Write(pStream);
 	m_aiBuildingProductionTime.Write(pStream);
-	m_aiBuildingOriginalOwner.Write(pStream);
+	m_aeBuildingOriginalOwner.Write(pStream);
 	m_aiBuildingOriginalTime.Write(pStream);
 	m_aiUnitProduction.Write(pStream);
 	m_aiUnitProductionTime.Write(pStream);

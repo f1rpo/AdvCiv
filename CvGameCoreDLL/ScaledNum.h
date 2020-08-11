@@ -87,10 +87,9 @@ CvString ScaledNumBase<Dummy>::szBuf = "";
 	iSCALE, the greater the precision and the tighter the limits.
 
 	IntType is the type of the underlying integer variable. Has to be an integral type.
-	__int64 isn't currently supported. For unsigned IntType, internal integer
-	divisions are rounded to the nearest IntType value in order to improve precision.
-	For signed IntType, this isn't guaranteed. Using an unsigned IntType also
-	speeds up multiplication.
+	__int64 is not supported. For unsigned IntType, internal integer divisions are rounded
+	to the nearest IntType value in order to improve precision. For signed IntType, this
+	isn't guaranteed. Using an unsigned IntType also speeds up multiplication.
 
 	ScaledNum instances of different iSCALE values or different IntTypes can be mixed.
 	Multiplications, divisions and comparisons on differing scales will internally scale
@@ -155,6 +154,13 @@ public:
 		BOOST_STATIC_ASSERT(iDEN != 0);
 		BOOST_STATIC_ASSERT(bSIGNED || (iDEN > 0 && iNUM >= 0));
 		return fromDouble(iNUM / static_cast<double>(iDEN));
+	}
+	// Smallest positive number that can be represented
+	static __forceinline ScaledNum epsilon()
+	{
+		ScaledNum r;
+		r.m_i = 1;
+		return r;
 	}
 
 	__forceinline static ScaledNum max(ScaledNum r1, ScaledNum r2)
@@ -368,9 +374,6 @@ public:
 
 	template<typename NumType, typename Epsilon>
 	bool approxEquals(NumType num, Epsilon e) const;
-	// To make one ScaledNum differ from another by the smallest amount possible
-	__forceinline void addEpsilon() { m_i++; }
-	__forceinline void subtractEpsilon() { m_i--; }
 
 	__forceinline bool isPositive() const { return (m_i > 0); }
 	__forceinline bool isNegative() const { return (bSIGNED && m_i < 0); }
@@ -395,11 +398,11 @@ public:
 	{
 		return (m_i < scaleForComparison(i));
 	}
-    __forceinline bool operator>(int i) const
+	__forceinline bool operator>(int i) const
 	{
 		return (m_i > scaleForComparison(i));
 	}
-    __forceinline bool operator==(int i) const
+	__forceinline bool operator==(int i) const
 	{
 		return (m_i == scaleForComparison(i));
 	}
@@ -411,7 +414,7 @@ public:
 	{
 		return (m_i <= scaleForComparison(i));
 	}
-    __forceinline bool operator>=(int i) const
+	__forceinline bool operator>=(int i) const
 	{
 		return (m_i >= scaleForComparison(i));
 	}
@@ -419,11 +422,11 @@ public:
 	{
 		return (m_i < scaleForComparison(u));
 	}
-    __forceinline bool operator>(uint u) const
+	__forceinline bool operator>(uint u) const
 	{
 		return (m_i > scaleForComparison(u));
 	}
-    __forceinline bool operator==(uint u) const
+	__forceinline bool operator==(uint u) const
 	{
 		return (m_i == scaleForComparison(u));
 	}
@@ -435,12 +438,12 @@ public:
 	{
 		return (m_i <= scaleForComparison(u));
 	}
-    __forceinline bool operator>=(uint u) const
+	__forceinline bool operator>=(uint u) const
 	{
 		return (m_i >= scaleForComparison(u));
 	}
 
-	/*	Can't guarantee here that only const expressions are used.
+	/*	Couldn't guarantee here that only const expressions are used.
 		So floating-point operands will have to be wrapped in fixp. */
 	/*__forceinline bool operator<(double d) const
 	{
@@ -1237,7 +1240,7 @@ template<ScaledNum_PARAMS>
 {
 	return (r <= i);
 }
-/*	Can't guarantee here that only const expressions are used.
+/*	Couldn't guarantee here that only const expressions are used.
 	So floating-point operands will have to be wrapped in fixp. */
 /*template<ScaledNum_PARAMS>
 __forceinline bool operator<(double d, ScaledNum_T r)
@@ -1286,7 +1289,8 @@ __forceinline scaled per10000(int iNum)
 	return scaled(iNum, 10000);
 }
 /*	'scaled' construction from double. Only const expressions are allowed.
-	Can only make sure of that through a macro. Tbd.: Could return a uscaled
+	Can only make sure of that through a macro (as we want to spare the caller
+	the use of angle brackets). Tbd.: Could return a uscaled
 	when the double expression is non-negative:
 	choose_type<(dConstExpr) >= 0,uscaled,scaled>::type::fromRational
 	Arithmetic operations are faster on uscaled, but mixing the two types

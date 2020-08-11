@@ -978,7 +978,7 @@ public:
 
 	PlayerTypes getBuildingOriginalOwner(BuildingTypes eIndex) const														// Exposed to Python
 	{
-		return m_aiBuildingOriginalOwner.get(eIndex);
+		return m_aeBuildingOriginalOwner.get(eIndex);
 	}
 	int getBuildingOriginalTime(BuildingTypes eIndex) const															// Exposed to Python
 	{
@@ -1414,7 +1414,7 @@ protected:
 	EnumMap<ProjectTypes,int> m_aiProjectProduction;
 	EnumMap<BuildingTypes,int> m_aiBuildingProduction;
 	EnumMap<BuildingTypes,int> m_aiBuildingProductionTime;
-	EnumMap<BuildingTypes,PlayerTypes> m_aiBuildingOriginalOwner;
+	EnumMap<BuildingTypes,PlayerTypes> m_aeBuildingOriginalOwner;
 	EnumMapDefault<BuildingTypes,int,MIN_INT> m_aiBuildingOriginalTime;
 	EnumMap<BuildingTypes,int> m_aiNumRealBuilding;
 	EnumMap<BuildingTypes,int> m_aiNumFreeBuilding;

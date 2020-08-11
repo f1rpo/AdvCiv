@@ -739,7 +739,7 @@ public:
 	{
 		return getCapital();
 	}
-	void setCapitalCity(CvCity* pNewCapital);
+	void setCapital(CvCity* pNewCapital);
 	// <advc.127b> -1 if no capital or (eObserver!=NO_TEAM) unrevealed to eObserver
 	int getCapitalX(TeamTypes eObserver, bool bDebug = false) const;
 	int getCapitalY(TeamTypes eObserver, bool bDebug = false) const;
@@ -747,7 +747,7 @@ public:
 	int getCapitalY(PlayerTypes eObserver, bool bDebug = false) const;
 	// </advc.127b>  <advc>
 	inline bool hasCapital() const
-	{	// (Don't want to waste time checking both coordinates)
+	{
 		return (m_iCapitalCityID != FFreeList::INVALID_INDEX);
 	} // </advc>
 

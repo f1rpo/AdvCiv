@@ -8804,8 +8804,10 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 			{
 				TradeData tdata = pNode->m_data;
 				if(tdata.m_eItemType == TRADE_RESOURCES &&
-						kPlayer.getTradeDenial(getID(), tdata) != NO_DENIAL)
+					kPlayer.getTradeDenial(getID(), tdata) != NO_DENIAL)
+				{
 					return false;
+				}
 			}
 		} // </advc.036>  <advc.026>
 		else if(bOurGoldDeal && !AI_checkMaxGold(kWeGive, ePlayer))

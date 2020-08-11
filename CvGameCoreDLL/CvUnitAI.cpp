@@ -14279,8 +14279,10 @@ bool CvUnitAI::AI_blockade()  // advc: some style changes
 	if (atPlot(pBestBlockadePlot))
 	{
 		if (canBombard(getPlot()))
-			getGroup()->pushMission(MISSION_BOMBARD, -1, -1, 0, false, false, MISSIONAI_BLOCKADE, pBestBlockadePlot);
-
+		{
+			getGroup()->pushMission(MISSION_BOMBARD, -1, -1, 0, false, false,
+					MISSIONAI_BLOCKADE, pBestBlockadePlot);
+		}
 		getGroup()->pushMission(MISSION_PLUNDER, -1, -1, 0,
 				//(getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BLOCKADE, pBestBlockadePlot);
 				true, false, MISSIONAI_BLOCKADE, pBestBlockadePlot); // K-Mod

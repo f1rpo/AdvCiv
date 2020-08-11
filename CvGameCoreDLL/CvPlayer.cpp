@@ -1550,7 +1550,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	EnumMap<CorporationTypes,bool> abHasCorporation;
 	EnumMap<CorporationTypes,bool> abHeadquarters;
 	EnumMap<BuildingTypes,int> aiNumRealBuilding;
-	EnumMap<BuildingTypes,PlayerTypes> aiBuildingOriginalOwner;
+	EnumMap<BuildingTypes,PlayerTypes> aeBuildingOriginalOwner;
 	EnumMapDefault<BuildingTypes,int,MIN_INT> aiBuildingOriginalTime;
 
 	PlayerTypes const eOldOwner = pOldCity->getOwner();
@@ -1596,7 +1596,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	FOR_EACH_ENUM2(Building, eBuilding)
 	{
 		aiNumRealBuilding.set(eBuilding, pOldCity->getNumRealBuilding(eBuilding));
-		aiBuildingOriginalOwner.set(eBuilding, pOldCity->getBuildingOriginalOwner(eBuilding));
+		aeBuildingOriginalOwner.set(eBuilding, pOldCity->getBuildingOriginalOwner(eBuilding));
 		aiBuildingOriginalTime.set(eBuilding, pOldCity->getBuildingOriginalTime(eBuilding));
 	}
 	// <advc.001f>
@@ -1755,7 +1755,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 					kNewCity.getNumRealBuilding(eBuilding) +
 					aiNumRealBuilding.get(eBuilding)),
 					false,
-					aiBuildingOriginalOwner.get(eBuilding),
+					aeBuildingOriginalOwner.get(eBuilding),
 					aiBuildingOriginalTime.get(eBuilding));
 		}
 	}
@@ -8178,8 +8178,8 @@ void CvPlayer::changeStateReligionFreeExperience(int iChange)
 	m_iStateReligionFreeExperience += iChange;
 }
 
-
-void CvPlayer::setCapitalCity(CvCity* pNewCapital)
+// advc: Renamed from "setCapitalCity"
+void CvPlayer::setCapital(CvCity* pNewCapital)
 {
 	CvCity* pOldCapital = getCapital();
 	if(pOldCapital == pNewCapital)
