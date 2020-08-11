@@ -1484,6 +1484,7 @@ void CvGame::normalizeRemovePeaks()  // advc: refactored
 		CvPlot* pStartingPlot = itPlayer->getStartingPlot();
 		if (pStartingPlot == NULL)
 			continue;
+		// advc 027 (note): Range corresponds to AIFoundValue::adjustToLandAreaBoundary
 		for (SquareIter itPlot(*pStartingPlot, 3); itPlot.hasNext(); ++itPlot)
 		{
 			if (itPlot->isPeak() &&

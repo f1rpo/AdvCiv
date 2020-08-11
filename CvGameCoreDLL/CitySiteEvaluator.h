@@ -184,6 +184,7 @@ private:
 			int iLandTiles) const;
 	int evaluateDefense() const;
 	int evaluateGoodies(int iGoodies) const;
+	int adjustToLandAreaBoundary(int iValue) const;
 	int adjustToStartingSurroundings(int iValue) const;
 	int adjustToStartingChoices(int iValue) const;
 	int adjustToFood(int iValue, int iSpecialFoodPlus, int iSpecialFoodMinus,
