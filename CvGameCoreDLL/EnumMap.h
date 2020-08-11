@@ -1145,10 +1145,14 @@ SET_ARRAY_DEFAULT(unsigned int);
 SET_ARRAY_DEFAULT(unsigned short);
 SET_ARRAY_DEFAULT(byte);
 SET_ARRAY_DEFAULT(float); // advc
-SET_ARRAY_DEFAULT(scaled); // advc.fract
-// <advc.027> (Can't pass multi-argument instantiation to macro)
-typedef ScaledNum<1024*32,uint> ScaledNum_32_1024_uint;
-SET_ARRAY_DEFAULT(ScaledNum_32_1024_uint); // </advc.027>
+// <advc.fract> (Can't pass template params into SET_ARRAY_DEFAULT)
+template<int iSCALE, typename IntType, typename EnumType>
+__forceinline ScaledNum<iSCALE,IntType,EnumType> ArrayDefault(ScaledNum<iSCALE,IntType,EnumType> var) { return 0; }
+template<int iSCALE, typename IntType, typename EnumType>
+struct EnumMapGetDefault<ScaledNum<iSCALE,IntType,EnumType> >
+{
+	enum { DEFAULT_VALUE = 0, SIZE = ENUMMAP_SIZE_NATIVE, SIZE_OF_T = sizeof(ScaledNum<iSCALE,IntType,EnumType>) };
+}; // </advc.fract>
 
 /*  advc: COMPILE_NUM_TYPES param removed; use NUM_ENUM_TYPES macro instead.
 	JITarrayType accessor, ArrayStart and ArrayLength functions removed.
