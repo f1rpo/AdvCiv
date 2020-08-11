@@ -1096,4 +1096,14 @@
 	<Spanish>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</Spanish>
 </TEXT>
 
+<!-- Little known fact -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_47</Tag>
+	<English>Consider producing settlers and workers in cities with angry or unhealthy citizens. So long as food gets converted into production, angry citizens don't consume food and unhealthiness from population isn't counted.</English>
+	<French>Consider producing settlers and workers in cities with angry or unhealthy citizens. So long as food gets converted into production, angry citizens don't consume food and unhealthiness from population isn't counted.</French>
+	<German>Erwägen Sie, Siedler und Bautrupps in Städten mit wütenden oder kranken Bürgern zu produzieren. Solange Nahrung in Produktion umgewandelt wird, zählen wütende Bürger nicht zum Nahrungsverbrauch und Überbevölkerung trägt nicht zum Krankheitswert bei.</German>
+	<Italian>Consider producing settlers and workers in cities with angry or unhealthy citizens. So long as food gets converted into production, angry citizens don't consume food and unhealthiness from population isn't counted.</Italian>
+	<Spanish>Consider producing settlers and workers in cities with angry or unhealthy citizens. So long as food gets converted into production, angry citizens don't consume food and unhealthiness from population isn't counted.</Spanish>
+</TEXT>
+
 </Civ4GameText>
