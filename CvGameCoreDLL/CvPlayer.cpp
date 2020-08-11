@@ -8182,9 +8182,12 @@ void CvPlayer::changeStateReligionFreeExperience(int iChange)
 void CvPlayer::setCapital(CvCity* pNewCapital)
 {
 	CvCity* pOldCapital = getCapital();
-	if(pOldCapital == pNewCapital)
+	if (pOldCapital == pNewCapital)
+	{	// <advc> Make sure these are consistent
+		if (pNewCapital == NULL)
+			m_iCapitalCityID = FFreeList::INVALID_INDEX; // </advc>
 		return;
-
+	}
 	bool bUpdatePlotGroups = (pOldCapital == NULL || pNewCapital == NULL ||
 			pOldCapital->getPlot().getOwnerPlotGroup() !=
 			pNewCapital->getPlot().getOwnerPlotGroup());
@@ -8469,13 +8472,12 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 		return;
 	/*	<advc.003m> Moved up b/c, once the team's AliveCount is set to 0,
 		at-war status is lost. Need that for lifting blockades.
-		Also seems generally safer to destroy a player's components
-		before killing the player itself. Therefore I've also moved up
-		killAllDeals. Not sure about cities (there should be none anyway). */
+		Not sure about killing cities (there should be none anyway).
+		killAllDeals relies on bAlive=false.  */
 	if (!bNewValue)
 	{
+		setCapital(NULL);
 		killUnits(); // </advc.003m>
-		killAllDeals(); // advc: Moved up
 	}
 	bool const bEverAlive = isEverAlive();
 	m_bAlive = bNewValue;
@@ -8545,7 +8547,7 @@ void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
 		clearPopups(); // advc
 		//killUnits(); // advc.003m: Moved up
 		killCities();
-		//killAllDeals(); // advc: Moved up
+		killAllDeals();
 
 		setTurnActive(false);
 
@@ -9761,8 +9763,9 @@ void CvPlayer::changeBonusExport(BonusTypes eBonus, int iChange)
 	FAssert(getBonusExport(eBonus) >= 0);
 	if (pCapital != NULL)
 		pCapital->getPlot().updatePlotGroupBonus(true);
-
-	AI().AI_updateBonusValue(); // advc.036
+	// <advc.036>
+	if (isAlive()) // Deals can get canceled while dying
+		AI().AI_updateBonusValue(); // </advc.036>
 }
 
 
@@ -9778,8 +9781,9 @@ void CvPlayer::changeBonusImport(BonusTypes eBonus, int iChange)
 	FAssert(getBonusImport(eBonus) >= 0);
 	if (pCapital != NULL)
 		pCapital->getPlot().updatePlotGroupBonus(true);
-
-	AI().AI_updateBonusValue(); // advc.036
+	// <advc.036>
+	if (isAlive()) // Deals can get canceled while dying
+		AI().AI_updateBonusValue(); // </advc.036>
 }
 
 
