@@ -14210,9 +14210,9 @@ bool CvUnitAI::AI_blockade()  // advc: some style changes
 	CvPlot const* pBestPlot = NULL;
 	CvPlot const* pBestBlockadePlot = NULL;
 	int iFlags = MOVE_DECLARE_WAR; // K-Mod
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
-		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
+		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
 		if (!AI_plotValid(kPlot))
 			continue;
 		CvCity* pCity = kPlot.getWorkingCity();
@@ -14220,44 +14220,44 @@ bool CvUnitAI::AI_blockade()  // advc: some style changes
 			continue;
 		if (!AI_mayAttack(kPlot)) // advc.opt: Moved down
 			continue;
-
-		FAssert(isEnemy(pCity->getTeam()) || GET_TEAM(getTeam()).AI_getWarPlan(pCity->getTeam()) != NO_WARPLAN);
-		if (!kPlot.isVisibleEnemyUnit(this) && canPlunder(kPlot))
+		if (kPlot.isVisibleEnemyUnit(this) || !canPlunder(kPlot))
+			continue;
+		if (GET_PLAYER(getOwner()).AI_isAnyPlotTargetMissionAI(
+			kPlot, MISSIONAI_BLOCKADE, getGroup(), 2))
 		{
-			if (GET_PLAYER(getOwner()).AI_isAnyPlotTargetMissionAI(
-				kPlot, MISSIONAI_BLOCKADE, getGroup(), 2))
-			{
-				continue; // advc
-			}
-			int iPathTurns;
-			if (generatePath(&kPlot, iFlags, true, &iPathTurns))
-			{
-				int iValue = 1;
-				iValue += std::min(pCity->getPopulation(), pCity->countNumWaterPlots());
-				iValue += GET_PLAYER(getOwner()).AI_adjacentPotentialAttackers(pCity->getPlot());
-				iValue += 3 * GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(
-						pCity->getPlot(), MISSIONAI_ASSAULT, getGroup(), 2);
-				if (canBombard(kPlot))
-					iValue *= 2;
-				iValue *= 1000;
-				iValue /= (iPathTurns + 1);
-				if (iPathTurns == 1)
-				{
-					//Prefer to have movement remaining to Bombard + Plunder
-					iValue *= 1 + std::min(2, getPathFinder().GetFinalMoves());
-				}
+			continue;
+		}
+		int iPathTurns;
+		if (!generatePath(&kPlot, iFlags, true, &iPathTurns))
+			continue;
+		FAssert(isEnemy(pCity->getTeam()) || GET_TEAM(getTeam()).AI_getWarPlan(
+				GET_TEAM(pCity->getTeam()).getMasterTeam()) != NO_WARPLAN); // advc.104j
 
-				// if not at war with this plot owner, then devalue plot if we already inside this owner's borders
-				// (because declaring war will pop us some unknown distance away)
-				if (!isEnemy(kPlot) && getPlot().getTeam() == kPlot.getTeam())
-					iValue /= 10;
-				if (iValue > iBestValue)
-				{
-					iBestValue = iValue;
-					pBestPlot = getPathEndTurnPlot();
-					pBestBlockadePlot = &kPlot;
-				}
-			}
+		int iValue = 1;
+		iValue += std::min(pCity->getPopulation(), pCity->countNumWaterPlots());
+		iValue += GET_PLAYER(getOwner()).AI_adjacentPotentialAttackers(pCity->getPlot());
+		iValue += 3 * GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(
+				pCity->getPlot(), MISSIONAI_ASSAULT, getGroup(), 2);
+		if (canBombard(kPlot))
+			iValue *= 2;
+		iValue *= 1000;
+		iValue /= (iPathTurns + 1);
+		if (iPathTurns == 1)
+		{
+			//Prefer to have movement remaining to Bombard + Plunder
+			iValue *= 1 + std::min(2, getPathFinder().GetFinalMoves());
+		}
+
+		/*	if not at war with this plot owner,
+			then devalue plot if we already inside this owner's borders
+			(because declaring war will pop us some unknown distance away) */
+		if (!isEnemy(kPlot) && getPlot().getTeam() == kPlot.getTeam())
+			iValue /= 10;
+		if (iValue > iBestValue)
+		{
+			iBestValue = iValue;
+			pBestPlot = getPathEndTurnPlot();
+			pBestBlockadePlot = &kPlot;
 		}
 	}
 
