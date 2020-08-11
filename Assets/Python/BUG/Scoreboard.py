@@ -267,8 +267,8 @@ class Scoreboard:
 		self._set(WAR, PEACE_ICON, self._getDealWidget(TradeableItems.TRADE_PEACE_TREATY))
 	# <advc.085> Widget help added; pass along color.
 	def setPower(self, value, color):
-		self._set(POWER, smallText(value), (WidgetTypes.WIDGET_POWER_RATIO, self._currPlayerScore.getID(), color)) # </advc.085>
-	# <advc.085>
+		self._set(POWER, smallText(value), (WidgetTypes.WIDGET_POWER_RATIO, self._currPlayerScore.getID(), color))
+
 	def setResearch(self, tech, progress): # Third param was 'turns'
 		if tech != -1: # No longer guaranteed by caller </advc.085>
 			if (ScoreOpt.isShowResearchIcons()):
@@ -432,6 +432,9 @@ class Scoreboard:
 				szDisplayOrder = szDisplayOrder.replace(s, '')
 			# Remove any stray underscores as well
 			szDisplayOrder = szDisplayOrder.replace('_', '')
+			# A bit of a hack: Disable the option when there are no fly-out columns
+			if len(stringsToRemove) <= 0 and ScoreOpt.isExpandOnHover():
+				ScoreOpt.setExpandOnHover(False)
 		# </advc.085>
 		format = re.findall('(-?[0-9]+|[^0-9])', szDisplayOrder.replace(' ', '').upper())
 		format.reverse()

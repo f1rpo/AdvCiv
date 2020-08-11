@@ -73,7 +73,7 @@
 					get="isAlignIcons" set="setAlignIcons" dirtyBit="Score"/>
 			<!-- advc.085 -->
 			<option id="ExpandOnHover" key="Expand on Hover" 
-					type="boolean" default="True" dirtyBit="Score"/>
+					type="boolean" default="True" get="isExpandOnHover" set="setExpandOnHover" dirtyBit="Score"/>
 			<!-- advc.106d: Default was !?2WSZVC6EPTUNBDRAHQ*LO in K-Mod,
 				 !WSZVC?EPTUNBDRAHMQ*LO in BUG. (The ! is actually an F in BUG.) -->
 			<option id="DisplayOrder" key="Display Order" 
