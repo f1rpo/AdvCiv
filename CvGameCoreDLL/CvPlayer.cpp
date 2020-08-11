@@ -1723,19 +1723,19 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	} // </kekm.23>
 
 	// Destruction of buildings
-	FOR_EACH_ENUM2(Building, eBuilding)
+	FOR_EACH_ENUM(Building)
 	{
-		if (aiNumRealBuilding.get(eBuilding) <= 0)
+		if (aiNumRealBuilding.get(eLoopBuilding) <= 0)
 			continue;
-
-		CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
-		BuildingClassTypes eBuildingClass = kBuilding.getBuildingClassType();
-		// Can't acquire another civ's unique building
-		if (!kBuilding.isWorldWonder()) // So that Barbarians can capture wonders
-			eBuilding = getCivilization().getBuilding(eBuildingClass);
+		BuildingClassTypes eBuildingClass = GC.getInfo(eLoopBuilding).
+				getBuildingClassType();
+		/*	Can't acquire another civ's unique building.
+			Wonders exception allows Barbarians to capture wonders. */
+		BuildingTypes const eBuilding = (GC.getInfo(eLoopBuilding).isWorldWonder() ?
+				eLoopBuilding : getCivilization().getBuilding(eBuildingClass));
 		if (eBuilding == NO_BUILDING)
 			continue;
-
+		CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
 		// Can acquire never-capture buildings only through city trade
 		if (!bTrade && kBuilding.isNeverCapture())
 			continue;
