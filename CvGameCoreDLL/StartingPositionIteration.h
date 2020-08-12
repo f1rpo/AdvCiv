@@ -5,9 +5,10 @@
 
 class CitySiteEvaluator;
 
-/*  advc.027: New file. A "starting position" is a selection of one starting tile
-	per civ player. This algorithm, inspired by Voronoi iteration, iteratively
-	tries to improve the fairness of an initial starting position. */
+/*  advc.027: Header for the "Starting Position Iteration" (SPI) algorithm.
+	A "starting position" is a selection of one starting tile per civ.
+	The algorithm, inspired by Voronoi iteration, iteratively tries to
+	improve the fairness of an initial starting position. */
 
 class StartingPositionIteration
 {
@@ -105,8 +106,9 @@ private:
 				EnumMap<PlotNumTypes,scaled> const& kYieldValues, bool bLog);
 		scaled getSpaceValue(PlayerTypes ePlayer) const { return m_spaceValues.get(ePlayer); }
 	private:
-		// Claims are inverted distances; pretty small.
-		typedef ScaledNum<1024*32,uint> claim_t;
+		/*	Claims are inverted distances; pretty small. Enum param ensures that
+			claim_t values aren't accidentally mixed with ScaledNum of lower precision. */
+		TYPEDEF_SCALED_ENUM(1024*32, uint, claim_t);
 		void computeSpaceValue(PlayerTypes ePlayer);
 		static std::vector<claim_t> cacheDelayFactors(word iMaxDist);
 		DistanceTable const& m_kDists;

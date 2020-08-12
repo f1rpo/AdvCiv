@@ -38,6 +38,10 @@ StartingPositionIteration::StartingPositionIteration() :
 		limit on the number of iterations is increased. */
 	if (kMap.numPlots() > 12000)
 		return;
+	/*	Bail on extremely overcrowded maps? SPI can't really deal with
+		overlapping city radii, but neither can the BtS algorithm. */
+	/*if (PlayerIter<CIV_ALIVE>::count() > 6 * GC.getGame().getRecommendedPlayers())
+		return;*/
 
 	/*	Generate a starting site for each civ, starting with humans,
 		otherwise in a random order - just as CvGame::assignStartingPlots does.
@@ -871,6 +875,8 @@ void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes eP
 	word const iDistThresh = m_iDistThresh;
 	word const iAvgDist = m_iAvgCityDist;
 	word const iDistSubtr = m_iDistSubtr;
+	scaled const rMaxClaimExp = 2 + (GC.getGame().isOption(GAMEOPTION_ALWAYS_PEACE) ?
+			fixp(1/3.) : 0);
 	// Low-level performance optimizations ...
 	static vector<claim_t> arDelayCache = cacheDelayFactors(iDistThresh);
 	int const iCivsAlive = PlayerIter<CIV_ALIVE>::count();
@@ -896,7 +902,8 @@ void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes eP
 		/*	If one player is twice as far away than the other, then the first player
 			does not have a 1 in 3 chance to claim the plot. 1 in 9 sounds more accurate,
 			but I want to reflect, to some extent, the possibility of claiming the plot
-			militarily. So let's not quite square the proportion. */
+			militarily (except in Always Peace games; see rMaxClaimExp above).
+			So let's not quite square the proportion. */
 		// Not worth the extra time on super-huge maps
 		if (MAX_CIV_PLAYERS > 25 && // Make sure not to branch here w/ the 18-civ DLL
 			iCivsAlive > 25)
@@ -909,11 +916,14 @@ void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes eP
 			/*  Actually, the longer the distance of the claimants, the less decisive
 				the differences in distance become. */
 			claim_t rExp(std::max(iDist - iAvgDist, 0), iDistThresh - iAvgDist + 1);
-			rExp = 2 - rExp;
+			rExp = rMaxClaimExp - rExp;
+			// Don't want to punish the closest claimant through a high exponent though
+			if (rClaim > claim_t(1, 2))
+				rExp.decreaseTo(claim_t(3, 2));
 			rClaim.exponentiate(rExp);
 		}
 		// A small competing claim shouldn't make a difference
-		rClaim.decreaseTo(claim_t(55, 100));
+		rClaim.decreaseTo(claim_t(56, 100));
 		/*	Apart from competition, nearby plots are better than remote ones.
 			How much better really depends on the shape of the space for expansion;
 			can't take that into account here. It's fair to say that remote plots
@@ -921,7 +931,7 @@ void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes eP
 			is undesirable. Delay being the more important of the two reasons for
 			reducing the yield value of a plot. */
 		// (formula moved into cacheDelayFactors)
-		scaled rAccessFactor = rClaim * arDelayCache[iDist];
+		scaled rAccessFactor = (rClaim * arDelayCache[iDist]).convert();
 		scaled rYieldVal = m_kYieldValues.get(eDestPlot);
 		rSpaceVal += rYieldVal * rAccessFactor;
 
@@ -979,7 +989,7 @@ StartingPositionIteration::SpaceEvaluator::cacheDelayFactors(word iMaxDist)
 		rDelay.exponentiate(iDist / rDiv);
 		aResult[iDist] = claim_t(115, 100) / rDelay;
 		// For plots very close to kStartPlot, the exact distances shouldn't matter
-		aResult[iDist].decreaseTo(claim_t(55, 100));
+		aResult[iDist].decreaseTo(claim_t(56, 100));
 	}
 	return aResult;
 }
@@ -1070,7 +1080,7 @@ void StartingPositionIteration::computeStartValues(
 	EraTypes const eStartEra = kGame.getStartEra();
 	/*	Adjust this to set the overall balance between city radius
 		and space for expansion */
-	scaled rBaseSpaceWeight = fixp(7/3.);
+	scaled rBaseSpaceWeight = fixp(2.25);
 	if (eStartEra <= 1)
 	{
 		if (kGame.isOption(GAMEOPTION_NO_BARBARIANS))
@@ -1090,14 +1100,19 @@ void StartingPositionIteration::computeStartValues(
 		}
 		scaled rSpaceWeight = rBaseSpaceWeight;
 		if (rMedianSpaceValue > 0)
+		{
 			rSpaceWeight *= rMedianFoundValue / rMedianSpaceValue;
+			// Avoid overflow (at a later point) on extremely crowded maps
+			rSpaceWeight.decreaseTo(50);
+		}
 		scaled rFoundWeight = 1;
 		scaled rFromSpaceValue = spaceValues.get(itPlayer->getID());
+		scaled rSpaceRatio;
 		if (rMedianFoundValue > 0 && rMedianSpaceValue > 0 &&
-			rFoundValue > 0 && rFromSpaceValue > 0)
+			rFoundValue > 0)
 		{	// Not healthy if these are far apart
 			scaled rFoundRatio = rFoundValue / rMedianFoundValue;
-			scaled rSpaceRatio = rFromSpaceValue / rMedianSpaceValue;
+			rSpaceRatio = rFromSpaceValue / rMedianSpaceValue;
 			scaled rSmaller = std::min(rFoundRatio, rSpaceRatio);
 			scaled rGreater = std::max(rFoundRatio, rSpaceRatio);
 			if (rGreater > 0)
@@ -1144,6 +1159,13 @@ void StartingPositionIteration::computeStartValues(
 			if (iWarTargets == 0)
 			{
 				rWarFactor = fixp(1.1);
+				// Having no war targets is not good when (somewhat) short on space
+				scaled rSpaceRatioAdjusted = rSpaceRatio - fixp(0.08);
+				if (rSpaceRatioAdjusted < 1)
+				{
+					rSpaceRatioAdjusted.increaseTo(fixp(0.5));
+					rWarFactor = (fixp(1.5) * rWarFactor + rSpaceRatioAdjusted) / fixp(2.5);
+				}
 				/*	Strong starting site is less useful
 					if there is no competition for space */
 				scaled rFoundMinus = fixp(1/4.) * rFoundWeight;
@@ -1166,7 +1188,7 @@ void StartingPositionIteration::computeStartValues(
 			if (kGame.isOption(GAMEOPTION_NO_TECH_TRADING))
 				rTradeFactor = fixp(0.4);
 			else if (kGame.isOption(GAMEOPTION_NO_TECH_BROKERING))
-				rTradeFactor -= fixp(0.05) * (std::min(4, iTotalTradeTargets) - 1);
+				rTradeFactor -= fixp(0.04) * (std::min(4, iTotalTradeTargets) - 1);
 			scaled const rTradeVal = iSameAreaTradeTargets + iDifferentAreaTradeTargets *
 					(1 + fixp(0.2) * per100(GC.getDefineINT(CvGlobals::OVERSEAS_TRADE_MODIFIER)));
 			rTradeFactor *= (1 + rTradeVal * rTradeFactor).pow(fixp(1/3.));
@@ -1350,7 +1372,7 @@ scaled StartingPositionIteration::outlierValue(
 	{
 		if (pbNegativeOutlier != NULL)
 			*pbNegativeOutlier = true;
-		r *= fixp(2.25) * (1 + rNegativeOutlierExtraWeight);
+		r *= fixp(2.12) * (1 + rNegativeOutlierExtraWeight);
 		rPercentage = r / (rMedian * (1 + rPlusMinus));
 	}
 	else
@@ -1368,6 +1390,7 @@ scaled StartingPositionIteration::startingPositionValue(
 {
 	scaled rWorstOutlierVal;
 	kResult.m_eWorstOutlier = NO_PLAYER;
+	kResult.m_rAvgError = 0;
 	scaled rMedian;
 	scaled rMax;
 	scaled rSum;
@@ -1416,8 +1439,13 @@ scaled StartingPositionIteration::startingPositionValue(
 	scaled rTolerance = fixp(0.12);
 	if (rWorstVolatility > rTolerance)
 	{
-		r *= 1 - fixp(1.1) * (rWorstVolatility - rTolerance) /
+		scaled rVolatilityPenalty = 1 - fixp(1.1) *
+				(rWorstVolatility - rTolerance) /
 				scaled(it.nextIndex()).sqrt();
+		rVolatilityPenalty.increaseTo(fixp(0.3));
+		if (r.isPositive())
+			r *= rVolatilityPenalty;
+		else r /= rVolatilityPenalty;
 		if (kResult.m_eWorstOutlier == NO_PLAYER)
 			kResult.m_eWorstOutlier = eWorstVolatilityPlayer;
 	}
@@ -1599,12 +1627,14 @@ bool StartingPositionIteration::considerStep(Step& kStep,
 		if (newSolutionAttribs.m_eWorstOutlier == NO_PLAYER ||
 			// Minor improvement in overall fairness and new worst outlier or getting close
 			((newSolutionAttribs.m_eWorstOutlier != kCurrSolutionAttribs.m_eWorstOutlier ||
-			kCurrSolutionAttribs.m_rAvgError < fixp(0.02)) &&
-			newSolutionAttribs.m_rAvgError + fixp(0.01) < kCurrSolutionAttribs.m_rAvgError) ||
+			kCurrSolutionAttribs.m_rAvgError < per1000(50)) &&
+			newSolutionAttribs.m_rAvgError + per1000(10) < kCurrSolutionAttribs.m_rAvgError) ||
 			// Same worst outlier and significant improvement in overall fairness
-			newSolutionAttribs.m_rAvgError + fixp(0.02) < kCurrSolutionAttribs.m_rAvgError)
+			newSolutionAttribs.m_rAvgError +
+			std::max(per1000(23), fixp(0.08) * kCurrSolutionAttribs.m_rAvgError) <
+			kCurrSolutionAttribs.m_rAvgError)
 		{
-			if (kStep.getNumMoves() > 1)
+			//if (kStep.getNumMoves() > 1) // Single move can have side-effects too ...
 			{
 				/*	One last check: The outlier value of the site moved in kStep's first move
 					needs to improve. That's the site we're primarily interested in. */
@@ -1615,7 +1645,7 @@ bool StartingPositionIteration::considerStep(Step& kStep,
 				bool bNegativeOutlier=false;
 				scaled rCurrOutlierVal = outlierValue(kCurrSolutionAttribs.m_startValues,
 						eFirst, rDummy, 0, NULL, &bNegativeOutlier);
-				scaled rCurrStartVal = kCurrSolutionAttribs.m_startValues.get(eFirst); 
+				scaled rCurrStartVal = kCurrSolutionAttribs.m_startValues.get(eFirst);
 				if (rNewOutlierVal * fixp(1.01) > rCurrOutlierVal ||
 					/*	Start value of negative outlier needs to increase,
 						start value of positive outlier needs to decrease.
@@ -1669,14 +1699,16 @@ void StartingPositionIteration::logStep(Step const& kStep,
 	out << kStep.debugStr();
 	// ScaledNum doesn't really support streams; need to cache strings locally.
 	CvString szNewErr = kNewSolution.m_rAvgError.str(1000);
+	CvString szOldErr = kOldSolution.m_rAvgError.str(1000);
 	out << (kNewSolution.m_rAvgError < kOldSolution.m_rAvgError ?
 			"Reduces" : "Increases") <<
 			" avg. error to " << szNewErr <<
-			" (was " << kOldSolution.m_rAvgError.str(1000) << ")\n";
+			" (was " << szOldErr << ")\n";
 	CvString szNewVal = kNewSolution.m_rStartPosVal.str(1);
+	CvString szOldVal = kOldSolution.m_rStartPosVal.str(1);
 	out << (kNewSolution.m_rStartPosVal > kOldSolution.m_rStartPosVal ?
 			"Increases" : "Decreases") << " start position value to " <<
-			szNewVal << " (was " << kOldSolution.m_rStartPosVal.str(1) << ")\n";
+			szNewVal << " (was " << szOldVal << ")\n";
 	if (kNewSolution.m_eWorstOutlier != kOldSolution.m_eWorstOutlier)
 	{
 		out << "New worst outlier: " << kNewSolution.m_eWorstOutlier <<
@@ -1702,12 +1734,12 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 	/*	Iterate until we return due to getting stuck in a (local) optimum
 		or until we run out of time */
 	int iStepsConsidered = 0;
-	/*	The effort is pretty much proportional to width*height*civs,
+	/*	The effort is pretty much proportional to tiles times civs,
 		but everything takes longer on large maps, so players ought to
 		have more patience. Hence the exponent. */
-	int iMaxSteps = (300000 /
+	int iMaxSteps = (1000000 /
 			scaled(kMap.numPlots() * PlayerIter<CIV_ALIVE>::count()).
-			pow(fixp(0.6))).round();
+			pow(fixp(2/3.))).round();
 	while (iStepsConsidered < iMaxSteps)
 	{
 		vector<pair<scaled,PlayerTypes> > currSitesByOutlierVal;
@@ -1755,7 +1787,7 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 			currAltSites(eCurrSitePlayer, altSitesByPriority,
 					/*	To save time, stop considering remote sites when approaching
 						a decent solution. Unless the prev. step was still a remote one. */
-					bPrevStepRemote || m_currSolutionAttribs .m_rAvgError > per1000(285));
+					bPrevStepRemote || m_currSolutionAttribs.m_rAvgError > per1000(295));
 			for (size_t j = 0; j < altSitesByPriority.size(); j++)
 			{
 				PlotNumTypes const eAltSite = altSitesByPriority[j].second;

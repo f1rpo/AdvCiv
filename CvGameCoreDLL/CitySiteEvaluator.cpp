@@ -212,10 +212,12 @@ scaled CitySiteEvaluator::evaluateWorkablePlot(CvPlot const& kPlot) const
 	// Should only be used for StartingPositionIteration
 	FAssert(isNormalizing() && !isDebug());
 	/*	The evaluation is going to be largely independent from any city tile,
-		but it could matter whether it's coastal and on the same landmass. */
+		but it could matter whether it's coastal and on the same landmass.
+		And for the evaluation of water tiles, I want to be able to guess
+		based on the potential city tile whether it's arctic water. */
 	CvPlot const* pBestCityPlot = NULL;
 	int iBestScore = 0;
-	int const iBestPossibleScore = (kPlot.isWater() ? 2 : 3);
+	int const iBestPossibleScore = (kPlot.isWater() ? 4 : 5);
 	for (CityPlotIter it(kPlot, false); it.hasNext(); ++it)
 	{
 		if (!m_kPlayer.canFound(it->getX(), it->getY()))
@@ -224,12 +226,14 @@ scaled CitySiteEvaluator::evaluateWorkablePlot(CvPlot const& kPlot) const
 		if (kPlot.isWater())
 		{
 			if (it->isCoastalLand(-1))
+				iScore += 2;
+			if (GC.getTerrainInfo(it->getTerrainType()).getYield(YIELD_FOOD) > 0)
 				iScore++;
 		}
 		else
 		{
 			if (kPlot.sameArea(*it))
-				iScore += 2;
+				iScore += 4;
 		}
 		if (iScore > iBestScore)
 		{
@@ -3278,6 +3282,17 @@ scaled AIFoundValue::evaluateWorkablePlot(CvPlot const& p) const
 			r += iFeatureHealth * fixp(1/6.);
 		else if (!bRemovableFeature)
 			r += iFeatureHealth * fixp(1/9.);
+	}
+	if (r > 0 && p.isWater())
+	{
+		/*	Decrease value if surrounding land is bad.
+			Save time by only looking at kPlot. */
+		int iYieldScore = 5 * kPlot.calculateNatureYield(YIELD_FOOD, NO_TEAM, true, true) +
+				4 * kPlot.calculateNatureYield(YIELD_PRODUCTION, NO_TEAM, true, true) +
+				2 * kPlot.calculateNatureYield(YIELD_COMMERCE, NO_TEAM, true, true);
+		int const iTargetScore = 8;
+		if (iYieldScore < iTargetScore)
+			r *= 1 - (iTargetScore - iYieldScore) * per100(4);
 	}
 	if (p.isGoody())
 	{
