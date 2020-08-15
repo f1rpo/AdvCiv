@@ -889,7 +889,7 @@ void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes eP
 		claim_t rSumOfClaims = m_sumOfClaims.get(eDestPlot);
 		// (For investigating a particular access factor in the debugger:)
 		/*CvPlot const& kDest = kMap.getPlotByIndex(eDestPlot);
-		FAssert(kDest.getX() !=  || kDest.getY() !=  || kStartPlot.getX() != || kStartPlot.getY() != );*/
+		FAssert(kDest.getX() !=  || kDest.getY() !=  || kStartPlot.getX() !=  || kStartPlot.getY() != );*/
 		if (rSumOfClaims <= 0)
 			continue;
 		short iStartDist = m_kDists.m_distances[eSrc][eDst];
@@ -1118,7 +1118,7 @@ void StartingPositionIteration::computeStartValues(
 			if (rGreater > 0)
 			{
 				kResult.m_volatilityValues.add(itPlayer->getID(),
-						scaled::max(0, 1 - rSmaller / rGreater - fixp(0.1)));
+						scaled::max(0, 1 - (rSmaller / rGreater - fixp(0.1)) / 2));
 			}
 			/*	Very little space is always a problem and very very little
 				really mustn't happen */
