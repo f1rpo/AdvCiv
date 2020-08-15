@@ -15725,9 +15725,10 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 				getCity(pTriggeredData->m_iOtherPlayerCityId);
 	}
 
+	// advc (note): This computation of iGold seems overcomplicated - but correct.
 	int const iRandomGold = getEventCost(eEvent, pTriggeredData->m_eOtherPlayer, true);
-	int const iGold = getEventCost(eEvent, pTriggeredData->m_eOtherPlayer, false) +
-			GC.getGame().getSorenRandNum(iRandomGold - iGold + 1, "Event random gold");
+	int iGold = getEventCost(eEvent, pTriggeredData->m_eOtherPlayer, false);
+	iGold += GC.getGame().getSorenRandNum(iRandomGold - iGold + 1, "Event random gold");
 
 	if (iGold != 0)
 	{
