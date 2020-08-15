@@ -3422,8 +3422,8 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 
 		// K-Mod
 		TechTypes eObsoleteTech = kBuilding.getObsoleteTech();
-		TechTypes eSpObsoleteTech = kBuilding.getSpecialBuildingType() == NO_SPECIALBUILDING ? NO_TECH
-				: (TechTypes)GC.getInfo(kBuilding.getSpecialBuildingType()).getObsoleteTech();
+		TechTypes eSpObsoleteTech = kBuilding.getSpecialBuildingType() == NO_SPECIALBUILDING ?
+				NO_TECH : GC.getInfo(kBuilding.getSpecialBuildingType()).getObsoleteTech();
 
 		if ((eObsoleteTech != NO_TECH && kOwner.getCurrentResearch() == eObsoleteTech) ||
 			(eSpObsoleteTech != NO_TECH && kOwner.getCurrentResearch() == eSpObsoleteTech))

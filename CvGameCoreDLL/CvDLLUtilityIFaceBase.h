@@ -20,19 +20,19 @@ class CvDLLFeatureIFaceBase;
 class CvDLLRouteIFaceBase;
 class CvDLLRiverIFaceBase;
 class CvDLLFAStarIFaceBase;
-class CvDLLEventReporterIFaceBase;
 class CvDLLXmlIFaceBase;
 class CvDLLFlagEntityIFaceBase;
 class CvDLLPythonIFaceBase;
 
+/*class CvDLLEventReporterIFaceBase;
 class CvSymbol;
 class CvPlot;
 class CvUnit;
 class CvCity;
-class CvCacheObject;
 class CvFont;
+class CvAudioGame;*/ // advc: unused
+class CvCacheObject;
 class CvDiploParameters;
-class CvAudioGame;
 struct ProfileSample;
 class CvReplayInfo;
 class CvPopupInfo;

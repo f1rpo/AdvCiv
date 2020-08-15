@@ -368,11 +368,11 @@ void CvDeal::doTurn()
 			}
 		}
 		/*	K-Mod note: for balance reasons this function should probably
-			be called at the boundry of some particular player's turn,
-			rather than at the turn boundry of the game itself.
+			be called at the boundary of some particular player's turn,
+			rather than at the turn boundary of the game itself.
 			-- Unfortunately, the game currently doesn't work like this.
 			Also, note that we do not update attitudes of particular players here,
-			but instead update all of them at the game turn boundry. */
+			but instead update all of them at the game turn boundary. */
 	}
 }
 

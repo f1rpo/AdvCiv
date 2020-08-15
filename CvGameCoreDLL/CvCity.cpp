@@ -1437,7 +1437,7 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 			}
 		}
 	}
-	if (!isValidBuildingLocation(eBuilding))
+	if (!getPlot().canConstruct(eBuilding))
 		return false;
 
 	if (kBuilding.isGovernmentCenter() && isGovernmentCenter())
@@ -11784,32 +11784,6 @@ NiColorA CvCity::getBarBackgroundColor() const
 bool CvCity::isStarCity() const
 {
 	return isCapital();
-}
-
-
-bool CvCity::isValidBuildingLocation(BuildingTypes eBuilding) const
-{
-	// if both the river and water flags are set, we require one of the two conditions, not both
-	if (GC.getInfo(eBuilding).isWater())
-	{
-		if (!GC.getInfo(eBuilding).isRiver() || !getPlot().isRiver())
-		{
-			if (!isCoastal(GC.getInfo(eBuilding).getMinAreaSize()))
-				return false;
-		}
-	}
-	else
-	{
-		if (getArea().getNumTiles() < GC.getInfo(eBuilding).getMinAreaSize())
-			return false;
-
-		if (GC.getInfo(eBuilding).isRiver())
-		{
-			if (!getPlot().isRiver())
-				return false;
-		}
-	}
-	return true;
 }
 
 

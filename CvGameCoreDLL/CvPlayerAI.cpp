@@ -5182,7 +5182,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 						SpecialBuildingTypes eSpecial = kHQBuilding.getSpecialBuildingType();
 						iMissingTechs += ((eSpecial != NO_SPECIALBUILDING &&
-								!kTeam.isHasTech((TechTypes)GC.getInfo(eSpecial).getTechPrereq()))
+								!kTeam.isHasTech(GC.getInfo(eSpecial).getTechPrereq()))
 								? 1 : 0);
 
 						FAssert(iMissingTechs > 0);

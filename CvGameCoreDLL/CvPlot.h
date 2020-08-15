@@ -710,6 +710,7 @@ public:
 	bool canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 			bool bCheckAirUnitCap = true, // advc.001b
 			BonusTypes eAssumeAvailable = NO_BONUS) const; // advc.001u
+	bool canConstruct(BuildingTypes eBuilding) const; // advc
 	bool isEspionageCounterSpy(TeamTypes eTeam) const;
 
 	DllExport int getAreaIdForGreatWall() const;

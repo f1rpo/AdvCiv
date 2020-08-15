@@ -1169,10 +1169,11 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		iWorstCost += (node->m_iX + node->m_iY+1)%3;
 		iWorstCost++; // advc.pf: Essentially 1 extra
 	}
-	// unfortunately, this simple method may have problems at the world-wrap boundaries.
-	// It's difficult to tell when to correct for wrap effects and when not to, because as soon as the
-	// unit starts moving, the start position of the path changes, and so it's no longer possible to tell
-	// whether or not the unit started on the other side of the boundry.  Drat.
+	/*	unfortunately, this simple method may have problems at the world-wrap boundaries.
+		It's difficult to tell when to correct for wrap effects and when not to,
+		because as soon as the unit starts moving, the start position of the path changes,
+		and so it's no longer possible to tell whether or not the unit started
+		on the other side of the boundary. Drat. */
 
 	// end symmetry breaking.
 

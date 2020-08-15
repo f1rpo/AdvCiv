@@ -5799,6 +5799,10 @@ void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes 
 	//FAssert(getVisibilityCount(eTeam) >= 0);
 	/*  <advc.006> Had some problems here with the Earth1000AD scenario (as the
 		initial cities were being placed). The problems remain unresolved. */
+	/*	advc.001: Also works around a problem with nukeExplosion replacing
+		a sight-blocking feature with fallout. To reproduce this bug (in order to
+		fix it properly), it should suffice to drop a nuke onto a fogged Forest
+		or Jungle. */
 	if(getVisibilityCount(eTeam) < 0)
 	{
 		FAssert(m_aiVisibilityCount.get(eTeam) >= 0);
@@ -8172,6 +8176,33 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 		return false;
 	} // </advc.001b>
 
+	return true;
+}
+
+// advc: Replacing CvCity::isValidBuildingLocation. Body cut from there (incl. the comment)
+bool CvPlot::canConstruct(BuildingTypes eBuilding) const
+{
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	/*	If both the river and water flags are set, then
+		we require one of the two conditions, not both. */
+	if (kBuilding.isWater())
+	{
+		if (!kBuilding.isRiver() || !isRiver())
+		{
+			if (!isCoastalLand(kBuilding.getMinAreaSize()))
+				return false;
+		}
+	}
+	else
+	{
+		if (getArea().getNumTiles() < kBuilding.getMinAreaSize())
+			return false;
+		if (kBuilding.isRiver())
+		{
+			if (!isRiver())
+				return false;
+		}
+	}
 	return true;
 }
 

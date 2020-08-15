@@ -4227,11 +4227,11 @@ CvWString const CvTeam::tradeItemString(TradeableItems eItem, int iData, TeamTyp
 void CvTeam::announceTechToPlayers(TechTypes eIndex, /* advc.156: */ PlayerTypes eDiscoverPlayer,
 	bool bPartial)
 {
-	CvGame const& g = GC.getGame();
-	bool bSound = ((g.isNetworkMultiPlayer() ||
+	CvGame const& kGame = GC.getGame();
+	bool bSound = ((kGame.isNetworkMultiPlayer() ||
 			/*  advc.156: I think HotSeat doesn't play sounds along with messages,
 				but let's try. */
-			g.isHotSeat() ||
+			kGame.isHotSeat() ||
 			gDLL->UI().noTechSplash()) && !bPartial);
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 	{

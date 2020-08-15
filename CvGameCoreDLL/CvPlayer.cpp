@@ -47,8 +47,9 @@ CvPlayer::CvPlayer(/* advc.003u: */ PlayerTypes eID) :
 	m_pCivilization(NULL) // advc.003w
 {
 	m_aszBonusHelp = NULL; // advc.003p
-	m_bDisableHuman = false; // bbai
-	m_iChoosingFreeTechCount = 0; // K-Mod
+	// advc: Pretty sure that this is redundant
+	/*m_bDisableHuman = false; // bbai
+	m_iChoosingFreeTechCount = 0;*/ // K-Mod
 	reset(eID, true);
 }
 
@@ -1741,7 +1742,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			continue;
 
 		if (isProductionMaxedBuildingClass(eBuildingClass, true) ||
-			!kNewCity.isValidBuildingLocation(eBuilding))
+			!kCityPlot.canConstruct(eBuilding))
 		{
 			continue;
 		}
@@ -5091,8 +5092,8 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
 		return false;
 	{
 		SpecialBuildingTypes eSpecial = kBuilding.getSpecialBuildingType();
-		if (eSpecial != NO_SPECIALBUILDING && !kOurTeam.isHasTech((TechTypes)
-			GC.getInfo(eSpecial).getTechPrereq()))
+		if (eSpecial != NO_SPECIALBUILDING &&
+			!kOurTeam.isHasTech(GC.getInfo(eSpecial).getTechPrereq()))
 		{
 			return false;
 		}
@@ -8387,7 +8388,8 @@ void CvPlayer::setCombatExperience(int iExperience)
 
 	int iExperienceThreshold = greatPeopleThreshold(true);
 	if (m_iCombatExperience >= iExperienceThreshold && iExperienceThreshold > 0)
-	{	// create great person
+	{
+		// create great person
 		CvCity const* pBestCity = NULL;
 		int iBestValue = MAX_INT;
 		FOR_EACH_CITY(pLoopCity, *this)
@@ -8422,7 +8424,7 @@ void CvPlayer::setCombatExperience(int iExperience)
 			}
 		}
 	} // <advc.078>
-	if(getID() == kGame.getActivePlayer() &&
+	if (getID() == kGame.getActivePlayer() &&
 		BUGOption::isEnabled("MainInterface__Combat_Counter", false))
 	{
 		gDLL->UI().setDirty(GameData_DIRTY_BIT, true);

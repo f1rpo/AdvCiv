@@ -1119,8 +1119,7 @@ public:
 			bool bEndOfTurn = false); // advc.001x
 	void setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool bFirst,
 			PlayerTypes eOriginalOwner, int iOriginalTime, /* advc.001x */ bool bEndOfTurn = false);
-
-	bool isValidBuildingLocation(BuildingTypes eIndex) const;
+	//bool isValidBuildingLocation(BuildingTypes eIndex) const; // advc: Replaced by CvPlot::canConstruct
 
 	int getNumFreeBuilding(BuildingTypes eIndex) const																// Exposed to Python
 	{
