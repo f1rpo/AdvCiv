@@ -217,7 +217,6 @@
     <ClInclude Include="..\CvDLLEngineIFaceBase.h" />
     <ClInclude Include="..\CvDLLEntity.h" />
     <ClInclude Include="..\CvDLLEntityIFaceBase.h" />
-    <ClInclude Include="..\CvDLLEventReporterIFaceBase.h" />
     <ClInclude Include="..\CvDLLFAStarIFaceBase.h" />
     <ClInclude Include="..\CvDLLFlagEntityIFaceBase.h" />
     <ClInclude Include="..\CvDLLIniParserIFaceBase.h" />
