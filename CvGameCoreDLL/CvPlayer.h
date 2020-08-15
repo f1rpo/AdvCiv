@@ -1243,7 +1243,11 @@ public:
 	void clearPopups();
 	DllExport CvPopupInfo* popFrontPopup();
 	DllExport const CvPopupQueue& getPopups() const;
-	void killAll(ButtonPopupTypes ePopupType, int iData1 = -1); // advc.004x
+	// <advc.004x>
+	void killAll(ButtonPopupTypes ePopupType, int iData1 = -1);
+	void playButtonPopupSound(LPCTSTR pszSound) const;
+	void reportButtonPopupLaunched();
+	// </advc.004x>
 	DllExport void addDiplomacy(CvDiploParameters* pDiplo);
 	void clearDiplomacy();
 	DllExport const CvDiploQueue& getDiplomacy() const;
@@ -1492,6 +1496,7 @@ protected:  // <advc.210>
 	int m_iGoldRushHurryCount; // advc.064b
 	int m_iInflationModifier;
 	int m_iChoosingFreeTechCount; // K-Mod (based on the 'Unofficial Patch'
+	int m_iButtonPopupsRelaunching; // advc.004x
 
 	uint m_uiStartTime;  // XXX save these?
 

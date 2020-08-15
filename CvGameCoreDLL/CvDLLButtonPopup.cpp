@@ -951,9 +951,18 @@ bool CvDLLButtonPopup::launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info)
 		break;
 	default:
 		FAssert(false);
-		break;
 	}
-	return (bLaunched);
+	// <advc.004x>
+	CvPlayer& kPlayer = GET_PLAYER(GC.getGame().getActivePlayer());
+	/*	Replacing the AS2D_IF_SCREEN_UP audio script that the EXE had played
+		(which I've disabled through XML). The sound is unchanged. */
+	if (bLaunched)
+		kPlayer.playButtonPopupSound("AS2D_IF_BUTTONPOPUP_UP");
+	/*	Allow CvPlayer to track relaunched popups (doesn't matter for
+		CvPlayer whether the launch was successful) */
+	kPlayer.reportButtonPopupLaunched();
+	// </advc.004x>
+	return bLaunched;
 }
 
 
@@ -1236,18 +1245,21 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	m_kUI.popupLaunch(pPopup, false, POPUPSTATE_MINIMIZED, 252);
 
 	switch (info.getData2())
-	{
+	{	// advc.004x: Play the sounds via CvPlayer
 	case ORDER_TRAIN:
-		m_kUI.playGeneralSound(GC.getInfo((UnitTypes)info.getData3()).
-				getArtInfo(0, GET_PLAYER(pCity->getOwner()).getCurrentEra(), NO_UNIT_ARTSTYLE)->getTrainSound());
+		kOwner.playButtonPopupSound(GC.getInfo((UnitTypes)info.getData3()).
+				getArtInfo(0, kOwner.getCurrentEra(), NO_UNIT_ARTSTYLE)->
+				getTrainSound());
 		break;
 
 	case ORDER_CONSTRUCT:
-		m_kUI.playGeneralSound(GC.getInfo((BuildingTypes)info.getData3()).getConstructSound());
+		kOwner.playButtonPopupSound(GC.getInfo((BuildingTypes)info.getData3()).
+				getConstructSound());
 		break;
 
 	case ORDER_CREATE:
-		m_kUI.playGeneralSound(GC.getInfo((ProjectTypes)info.getData3()).getCreateSound());
+		kOwner.playButtonPopupSound(GC.getInfo((ProjectTypes)info.getData3()).
+				getCreateSound());
 		break;
 
 	default: break;
@@ -1492,7 +1504,7 @@ bool CvDLLButtonPopup::launchDisbandCityPopup(CvPopup* pPopup, CvPopupInfo &info
 			NULL, 1, WIDGET_GENERAL);
 	m_kUI.popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);
 
-	m_kUI.playGeneralSound("AS2D_CULTUREFLIP");
+	kPlayer.playButtonPopupSound("AS2D_CULTUREFLIP"); // advc.004x (was m_kUI.playGeneralSound)
 
 	return true;
 }
@@ -1688,7 +1700,8 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 
 bool CvDLLButtonPopup::launchAlarmPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
-	m_kUI.playGeneralSound("AS2D_ALARM");
+	//m_kUI.playGeneralSound("AS2D_ALARM");
+	GET_PLAYER(GC.getGame().getActivePlayer()).playButtonPopupSound("AS2D_ALARM"); // advc.004x
 
 	m_kUI.popupSetHeaderString(pPopup, gDLL->getText("TXT_KEY_POPUP_ALARM_TITLE").c_str());
 	m_kUI.popupSetBodyString(pPopup, info.getText());

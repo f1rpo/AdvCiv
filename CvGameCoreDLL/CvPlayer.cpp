@@ -423,7 +423,11 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_iPopRushHurryCount = 0;
 	m_iGoldRushHurryCount = 0; // advc.064b
 	m_iInflationModifier = 0;
+	m_iChoosingFreeTechCount = 0; // K-Mod
+	m_iNewMessages = 0; // advc.106b
+	m_iButtonPopupsRelaunching = 0; // advc.004x
 	m_uiStartTime = 0;
+	m_eReminderPending = NO_CIVIC; // advc.004x
 
 	m_bAlive = false;
 	m_bEverAlive = false;
@@ -436,12 +440,9 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_bAnyGPPEver = false; // advc.078
 	m_bStrike = false;
 	m_bDisableHuman = false; // bbai
-	m_iChoosingFreeTechCount = 0; // K-Mod
-	m_iNewMessages = 0; // advc.106b
 	m_bAutoPlayJustEnded = false; // advc.127
 	m_bSavingReplay = false; // advc.106i
 	m_bScoreboardExpanded = false; // advc.085
-	m_eReminderPending = NO_CIVIC; // advc.004x
 
 	m_eID = eID;
 	updateTeamType();
@@ -19614,7 +19615,7 @@ double CvPlayer::estimateYieldRate(YieldTypes eYield, int iSamples) const
 	return ::dMedian(samples);
 }
 
-// advc.004x:
+// <advc.004x>
 void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1)
 {
 	CvGame const& kGame = GC.getGame();
@@ -19628,20 +19629,23 @@ void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1)
 	{
 		return;
 	}
-	// Preserve the popups we don't want killed in newQueue
-	std::list<CvPopupInfo*> newQueue;
+	FAssert(m_iButtonPopupsRelaunching == 0);
+	CvPopupQueue relaunchDisplayed;
+	CvPopupQueue relaunchQueued;
+	int iOnDisplay = 0;
 	for (int iPass = 0; iPass < 2; iPass++)
 	{
-		if(iPass == 1)
+		if (iPass == 1)
 		{
 			// Recall popups already launched
 			gDLL->UI().getDisplayedButtonPopups(m_listPopups);
+			iOnDisplay = m_listPopups.size();
 		}
 		for (std::list<CvPopupInfo*>::iterator it = m_listPopups.begin();
 			it != m_listPopups.end(); it++)
 		{
 			CvPopupInfo* pPopup = *it;
-			if((pPopup->getButtonPopupType() != ePopupType &&
+			if ((pPopup->getButtonPopupType() != ePopupType &&
 				/*	Don't relaunch a found-religion popup in response to a
 					change-religion popup. The player will already have chosen
 					and founded a religion, i.e. the found-religion popup is
@@ -19653,25 +19657,46 @@ void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1)
 				||
 				(iData1 >= 0 && pPopup->getData1() != iData1))
 			{
-				newQueue.push_back(pPopup);
+				(iPass == 0 ? relaunchQueued : relaunchDisplayed).push_back(pPopup);
 			}
-			else
+			else if (iPass <= 0)
 			{
-				if (iPass <= 0)
-					SAFE_DELETE(pPopup);
-				// else it's still in the list of popups on display
-			}
+				SAFE_DELETE(pPopup);
+			} /* Otherwise, the EXE owns it. The clearQueuedPopups call below will
+				 delete it (I assume). */
 		}
 		m_listPopups.clear();
 	}
-	// The EXE will relaunch these from m_listPopups
-	gDLL->UI().clearQueuedPopups();
-	for (std::list<CvPopupInfo*>::iterator it = newQueue.begin();
-		it != newQueue.end(); it++)
+
+	// Relaunch popups already on display only when necessary
+	if (iOnDisplay != relaunchDisplayed.size())
 	{
-		m_listPopups.push_back(*it);
+		gDLL->UI().clearQueuedPopups();
+		// To suppress the sound
+		m_iButtonPopupsRelaunching = relaunchDisplayed.size();
+		m_listPopups.insert(m_listPopups.begin(),
+				relaunchDisplayed.begin(), relaunchDisplayed.end());
 	}
+	m_listPopups.insert(m_listPopups.end(),
+			relaunchQueued.begin(), relaunchQueued.end());
+	/*	Note: The EXE will fetch the CvPopupInfo in m_listPopups,
+		create CvPopup objects (which the DLL can't do) and
+		launch them through CvDLLButtonPopup::launchButtonPopup. */
 }
+
+/*	Wrapper for CvDLLInterfaceIFaceBase::playGeneralSound that suppresses
+	sounds upon relaunching (i.e. merely updating) a popup */
+void CvPlayer::playButtonPopupSound(LPCTSTR pszSound) const
+{
+	if (m_iButtonPopupsRelaunching <= 0)
+		gDLL->UI().playGeneralSound(pszSound);
+}
+
+
+void CvPlayer::reportButtonPopupLaunched()
+{
+	m_iButtonPopupsRelaunching = std::max(m_iButtonPopupsRelaunching - 1, 0);
+} // </advc.004x>
 
 // <advc.314>
 // iProgress <= 0 means guaranteed discovery
