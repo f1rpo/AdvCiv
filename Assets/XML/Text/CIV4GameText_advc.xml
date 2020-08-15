@@ -3038,6 +3038,26 @@
 		<Italian>"Gli uomini pi&#249; saggi conoscono la direzione in cui andare." - Euripide</Italian>
 		<Spanish>"Los hombres m&#225;s sabios siguen su propio rumbo." - Eur&#237;pides</Spanish>
 	</TEXT>
+	<!-- Earliest known source appears to be Wendell Berry. "Native American
+		 song" smells like a romanticization. -->
+	<TEXT>
+		<Tag>TXT_KEY_TECH_ECOLOGY_QUOTE</Tag>
+		<English>"We do not inherit the earth from our ancestors, we borrow it from our children" - unknown</English>
+		<French>"Nous n'h&#233;ritons pas de la Terre de nos anc&#234;tres, nous l'empruntons &#224; nos enfants." - Inconnu</French>
+		<German>"Wir haben die Erde nicht von unseren Vorfahren geerbt, sondern von unseren Kindern geliehen." - Unbekannt</German>
+		<Italian>"Non ereditiamo la terra dai nostri antenati, la prendiamo in prestito per i nostri figli." - Anonimo</Italian>
+		<Spanish>"La Tierra no es una herencia de nuestros padres, sino un pr&#233;stamo de nuestros hijos." - An&#243;nimo</Spanish>
+	</TEXT>
+	<!-- It might be a Native American proverb but has been attributed
+		 to various cultures. -->
+	<TEXT>
+		<Tag>TXT_KEY_TECH_HUNTING_QUOTE</Tag>
+		<English>"If you chase two rabbits, you will lose them both." - proverb</English>
+		<French>"Chasse deux li&#232;vres &#224; la fois et tu n'en attraperas aucun." - Proverbe</French>
+		<German>"Der, der zwei Hasen jagt, l&#228;sst einen zur&#252;ck und verliert den anderen." - Sprichwort</German>
+		<Italian>"Se dai la caccia a due conigli, li perderai entrambi." - Proverbio</Italian>
+		<Spanish>"Si persigues a dos conejos al mismo tiempo, los perder&#225;s a ambos." - Dicho</Spanish>
+	</TEXT>
 	
 	<!-- advc.004i: Originally in CIV4GameText_BTS.xml. Added a variable
 		 for the amount of gold. -->
