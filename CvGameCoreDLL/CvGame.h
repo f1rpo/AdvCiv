@@ -1060,12 +1060,12 @@ protected:
 	bool placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
 			bool bCheckCanPlace, bool bIgnoreLatitude, bool bRemoveFeature,
 			bool bNoFood); // advc.108
-	bool isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer, CvPlot const& kPlot,
+	bool isNormalizationBonus(BonusTypes eBonus, PlayerTypes eStartPlayer, CvPlot const& kPlot,
 			bool bCheckCanPlace, bool bIgnoreLatitude) const; // </advc>
 	CvPlot* normalizeFindLakePlot(PlayerTypes ePlayer);
 	// <advc.108>
 	bool normalizeCanAddLakeTo(CvPlot const& kPlot) const;
-	bool skipDuplicateExtraBonus(CvPlot const& kStartPlot, CvPlot const& kPlot,
+	bool skipDuplicateNormalizationBonus(CvPlot const& kStartPlot, CvPlot const& kPlot,
 			BonusTypes eBonus, bool bSecondPass = false);
 	bool isPowerfulStartingBonus(CvPlot const& kPlot, PlayerTypes eStartPlayer) const;
 	bool isWeakStartingFoodBonus(CvPlot const& kPlot, PlayerTypes eStartPlayer) const;

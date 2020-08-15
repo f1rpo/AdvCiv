@@ -1853,25 +1853,21 @@ void CvGame::normalizeAddFoodBonuses(  // advc: refactoring
 				// <adcv.108>
 				for (int iPass = 0; iPass < 2; iPass++)
 				{
-					bool const bAvoidDuplicates = (iPass == 0); // </advc.108>
+					bool const bInitialPass = (iPass == 0); // </advc.108>
 					// advc.129: Randomize the order in which resources are considered
 					FOR_EACH_ENUM_RAND(Bonus, getMapRand())
 					{
-						CvBonusInfo const& kLoopBonus = GC.getInfo(eLoopBonus);
-						if (!kLoopBonus.isNormalize() ||
-							kLoopBonus.getYieldChange(YIELD_FOOD) <= 0)
+						if (GC.getInfo(eLoopBonus).getYieldChange(YIELD_FOOD) <= 0)
+							continue;
+						/*	advc.108: Let map generator check canPlaceBonusAt in the
+							initial pass (same as in normalizeAddExtras) */
+						if (!isNormalizationBonus(eLoopBonus, kPlayer.getID(), p,
+							bInitialPass, !bInitialPass))
 						{
 							continue;
 						}
-						if (kLoopBonus.getTechCityTrade() != NO_TECH &&
-							GC.getInfo(kLoopBonus.getTechCityTrade()).
-							getEra() > getStartEra())
-						{
-							continue;
-						}
-						if (!GET_TEAM(kPlayer.getTeam()).isHasTech(kLoopBonus.getTechReveal()))
-							continue;
-						// <advc.108> Don't place the food resource on a bad feature
+						// <advc.108>
+						// Don't place the food resource on a bad feature
 						FeatureTypes const eFeature = p.getFeatureType();
 						bool bValid = true;
 						if(eFeature != NO_FEATURE)
@@ -1886,11 +1882,9 @@ void CvGame::normalizeAddFoodBonuses(  // advc: refactoring
 							}
 						}
 						if(!bValid)
-							continue; // </advc.108>
-						if (!p.canHaveBonus(eLoopBonus, bIgnoreLatitude) ||
-							// <advc.108>
-							(bAvoidDuplicates &&
-							skipDuplicateExtraBonus(*pStartingPlot, p, eLoopBonus)))
+							continue;
+						if (bInitialPass &&
+							skipDuplicateNormalizationBonus(*pStartingPlot, p, eLoopBonus))
 						{	// </advc.108>
 							continue;
 						}
@@ -2446,8 +2440,8 @@ bool CvGame::placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
 		{
 			continue;
 		}
-		if (!isValidExtraBonus(eLoopBonus, eStartPlayer, kPlot, bCheckCanPlace, bIgnoreLatitude) ||
-			skipDuplicateExtraBonus(kStartPlot, kPlot, eLoopBonus, !bCheckCanPlace)) // advc.108
+		if (!isNormalizationBonus(eLoopBonus, eStartPlayer, kPlot, bCheckCanPlace, bIgnoreLatitude) ||
+			skipDuplicateNormalizationBonus(kStartPlot, kPlot, eLoopBonus, !bCheckCanPlace)) // advc.108
 		{
 			continue;
 		}
@@ -2463,7 +2457,7 @@ bool CvGame::placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
 
 /*	advc.108: May probabilistically return false when there is already a resource
 	of type eBonus near kStartPlot */
-bool CvGame::skipDuplicateExtraBonus(CvPlot const& kStartPlot, CvPlot const& kPlot,
+bool CvGame::skipDuplicateNormalizationBonus(CvPlot const& kStartPlot, CvPlot const& kPlot,
 	BonusTypes eBonus, bool bSecondPass)
 {
 	scaled rSkipPr = fixp(1/3.);
@@ -2488,7 +2482,7 @@ bool CvGame::skipDuplicateExtraBonus(CvPlot const& kStartPlot, CvPlot const& kPl
 }
 
 // advc: Cut, pasted, refactored from normalizeAddExtras
-bool CvGame::isValidExtraBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
+bool CvGame::isNormalizationBonus(BonusTypes eBonus, PlayerTypes eStartPlayer,
 	CvPlot const& kPlot, bool bCheckCanPlace, bool bIgnoreLatitude) const
 {
 	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
@@ -2537,7 +2531,7 @@ bool CvGame::isWeakStartingFoodBonus(CvPlot const& kPlot, PlayerTypes eStartPlay
 	BonusTypes eBonus = kPlot.getBonusType(TEAMID(eStartPlayer));
 	if (eBonus == NO_BONUS ||
 		// To filter out resources that normalizeAddFood doesn't care about
-		!isValidExtraBonus(eBonus, eStartPlayer, kPlot, false, true))
+		!isNormalizationBonus(eBonus, eStartPlayer, kPlot, false, true))
 	{
 		return false;
 	}
