@@ -20622,8 +20622,8 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 
 		InterfaceModeTypes eInterfaceMode = kUI.getInterfaceMode();
 		// <advc.057>
-		if (eInterfaceMode == INTERFACEMODE_GO_TO || (pMouseOverPlot != NULL &&
-			pMouseOverPlot == kUI.getGotoPlot()))
+		if (pMouseOverPlot != NULL &&
+			(eInterfaceMode == INTERFACEMODE_GO_TO || pMouseOverPlot == kUI.getGotoPlot()))
 		{
 			CvUnit const* pSelectedUnit = kUI.getHeadSelectedUnit();
 			if (!bAlt && pSelectedUnit != NULL && pMouseOverPlot->isRevealed(eActiveTeam) &&
