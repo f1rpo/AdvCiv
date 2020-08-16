@@ -386,14 +386,14 @@ bool CvSelectionGroup::isNeverShowMoves() const
 int CvSelectionGroup::nukeMissionTime() const
 {
 	int const iFull = GC.getInfo(MISSION_NUKE).getTime(); // cut from startMission
-	int const iShortened = iFull / 8;
+	int const iShortened = iFull / 4;
 	if (isNeverShowMoves())
-		return iShortened;
+		return iShortened / 2;
 	CvGame const& kGame = GC.getGame();
+	if (getOwner() != kGame.getActivePlayer())
+		return iShortened / 2;
 	// Nothing to see when particle effects aren't enabled
 	if (gDLL->getGraphicOption(GRAPHICOPTION_EFFECTS_DISABLED))
-		return iShortened;
-	if (getOwner() != kGame.getActivePlayer())
 		return iShortened;
 	return iFull;
 }

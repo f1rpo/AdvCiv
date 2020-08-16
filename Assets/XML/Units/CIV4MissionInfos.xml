@@ -238,8 +238,8 @@
 			<Help>TXT_KEY_MISSION_NUKE_HELP</Help>
 			<Waypoint>NONE</Waypoint>
 			<EntityEventType>ENTITY_EVENT_NUKE</EntityEventType>
-			<!-- advc.002m: Was 40. The DLL will divide the time by 8 when
-				 in some circumstances. -->
+			<!-- advc.002m: Was 40. The DLL will divide the time by 4
+				 or 8 in some circumstances. -->
 			<iTime>32</iTime>
 			<bTarget>0</bTarget>
 			<bBuild>0</bBuild>
