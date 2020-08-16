@@ -19,7 +19,7 @@ public:
 	~CvPythonCaller();
 	bool isUseFinishTextCallback() const; // Needed for a DllExport in CvGlobals
 	void call(char const* szFunctionName, char const* szModuleName = PYGameModule,
-			bool bAssertSuccess = true) const;
+			bool bAssertSuccess = true, bool bCheckExists = false) const;
 
 	// Screens ...
 	void showPythonScreen(char const* szScreenName) const;
@@ -178,11 +178,14 @@ private:
 	mutable bool m_bLastCallSuccessful;
 
 	void call(char const* szFunctionName, CyArgsList& kArgsList, long& lResult,
-			char const* szModuleName = PYGameModule, bool bAssertSuccess = true) const;
+			char const* szModuleName = PYGameModule, bool bAssertSuccess = true,
+			bool bCheckExists = false) const;
 	void call(char const* szFunctionName, long& lResult,
-			char const* szModuleName = PYGameModule, bool bAssertSuccess = true) const;
+			char const* szModuleName = PYGameModule, bool bAssertSuccess = true,
+			bool bCheckExists = false) const;
 	void call(char const* szFunctionName, CyArgsList& kArgsList,
-			char const* szModuleName = PYGameModule, bool bAssertSuccess = true) const;
+			char const* szModuleName = PYGameModule, bool bAssertSuccess = true,
+			bool bCheckExists = false) const;
 	bool isOverride() const;
 	bool canPlaceItemAt(char const* szItemName, CvPlot const& kPlot, bool& bOverride) const;
 	inline bool isUse(CallbackDefines eCallback) const

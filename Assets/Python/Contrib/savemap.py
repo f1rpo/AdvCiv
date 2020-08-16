@@ -193,6 +193,7 @@ def savemap(argsList=None):
 		else:
 			msg += " "
 		# I see no way to make CvDLLPythonIFaceBase aware of the new map script
+		# (CvDLLPythonIFaceBase::moduleExists doesn't do the trick either)
 		msg += "Playing the saved map will require a restart of Civ 4"
 		if customAssets:
 			msg += ", and mods that disable CustomAssets cannot load maps from that location"

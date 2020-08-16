@@ -246,32 +246,55 @@ bool CvPythonCaller::updateColoredPlots() const
 }
 
 void CvPythonCaller::call(char const* szFunctionName, CyArgsList& kArgsList,
-		long& lResult, char const* szModuleName, bool bAssertSuccess) const
+	long& lResult, char const* szModuleName, bool bAssertSuccess,
+	bool bCheckExists) const
 {
-	m_bLastCallSuccessful = m_python.callFunction(szModuleName, szFunctionName,
-			kArgsList.makeFunctionArgs(), &lResult);
+	// Not sure how expensive this check is; otherwise, I'd just always perform it.
+	if (bCheckExists && !m_python.moduleExists(szModuleName, false))
+		m_bLastCallSuccessful = false;
+	else
+	{
+		m_bLastCallSuccessful = m_python.callFunction(szModuleName,
+				szFunctionName, kArgsList.makeFunctionArgs(), &lResult);
+	}
 	FAssert(!bAssertSuccess || m_bLastCallSuccessful);
 }
 
 void CvPythonCaller::call(char const* szFunctionName, long& lResult,
-		char const* szModuleName, bool bAssertSuccess) const
+	char const* szModuleName, bool bAssertSuccess, bool bCheckExists) const
 {
-	m_bLastCallSuccessful = m_python.callFunction(szModuleName, szFunctionName, NULL, &lResult);
+	if (bCheckExists && !m_python.moduleExists(szModuleName, false))
+		m_bLastCallSuccessful = false;
+	else
+	{
+		m_bLastCallSuccessful = m_python.callFunction(szModuleName, szFunctionName,
+				NULL, &lResult);
+	}
 	FAssert(!bAssertSuccess || m_bLastCallSuccessful);
 }
 
 void CvPythonCaller::call(char const* szFunctionName, CyArgsList& kArgsList,
-		char const* szModuleName, bool bAssertSuccess) const
+	char const* szModuleName, bool bAssertSuccess, bool bCheckExists) const
 {
-	m_bLastCallSuccessful = m_python.callFunction(szModuleName, szFunctionName,
-			kArgsList.makeFunctionArgs());
+	if (bCheckExists && !m_python.moduleExists(szModuleName, false))
+		m_bLastCallSuccessful = false;
+	else
+	{
+		m_bLastCallSuccessful = m_python.callFunction(szModuleName, szFunctionName,
+				kArgsList.makeFunctionArgs());
+	}
 	FAssert(!bAssertSuccess || m_bLastCallSuccessful);
 }
 
 void CvPythonCaller::call(char const* szFunctionName,
-		char const* szModuleName, bool bAssertSuccess) const
+	char const* szModuleName, bool bAssertSuccess, bool bCheckExists) const
 {
-	m_bLastCallSuccessful = m_python.callFunction(szModuleName, szFunctionName);
+	if (bCheckExists && !m_python.moduleExists(szModuleName, false))
+		m_bLastCallSuccessful = false;
+	else
+	{
+		m_bLastCallSuccessful = m_python.callFunction(szModuleName, szFunctionName);
+	}
 	FAssert(!bAssertSuccess || m_bLastCallSuccessful);
 }
 
@@ -1193,7 +1216,8 @@ int CvPythonCaller::numCustomMapOptions(char const* szMapScriptName, bool bHidde
 {
 	long lResult = 0;
 	call(bHidden ? "getNumHiddenCustomMapOptions" : "getNumCustomMapOptions",
-			lResult, szMapScriptName, /*!bHidden*/ false); // Earth2 has no getNumCustomMapOptions
+			// Earth2 has no getNumCustomMapOptions
+			lResult, szMapScriptName, /*!bHidden*/ false, true);
 	return toInt(lResult);
 }
 
@@ -1202,10 +1226,10 @@ CustomMapOptionTypes CvPythonCaller::customMapOptionDefault(char const* szMapScr
 	ARGSLIST(NO_CUSTOM_MAPOPTION);
 	argsList.add(iOption);
 	call("getCustomMapOptionDefault", argsList, lResult, szMapScriptName,
-			!GC.getInitCore().getSavedGame());
+			!GC.getInitCore().getSavedGame(), true);
 	return (CustomMapOptionTypes)toInt(lResult);
 }
-// <advc.004>
+// advc.004:
 CvWString CvPythonCaller::customMapOptionDescription(char const* szMapScriptName,
 	int iOption, CustomMapOptionTypes eOptionValue) const
 {
@@ -1213,15 +1237,19 @@ CvWString CvPythonCaller::customMapOptionDescription(char const* szMapScriptName
 	CyArgsList argsList;
 	argsList.add(iOption);
 	argsList.add(eOptionValue);
-	m_bLastCallSuccessful = m_python.callFunction(szMapScriptName, "getCustomMapOptionDescAt",
-			argsList.makeFunctionArgs(), &szResult);
+	if (!m_python.moduleExists(szMapScriptName, false))
+		m_bLastCallSuccessful = false;
+	else
+	{
+		m_bLastCallSuccessful = m_python.callFunction(szMapScriptName,
+				"getCustomMapOptionDescAt", argsList.makeFunctionArgs(), &szResult);
+	}
 	/*  If the game was started from a savegame, then the map script may have been
 		uninstalled; that's OK. */
 	FAssert(m_bLastCallSuccessful || GC.getInitCore().getSavedGame());
 	return szResult;
-} // </advc.004>
-
-// <advc.108>
+}
+// advc.108:
 bool CvPythonCaller::isAnyCustomMapOptionSetTo(CvWString szTranslatedDesc) const
 {
 	CvString szMapScriptNameNarrow(GC.getInitCore().getMapScriptName());
@@ -1234,8 +1262,7 @@ bool CvPythonCaller::isAnyCustomMapOptionSetTo(CvWString szTranslatedDesc) const
 			return true;
 	}
 	return false;
-} // </advc.108>
-
+}
 
 void CvPythonCaller::mapGridDimensions(WorldSizeTypes eWorldSize, int& iWidth, int& iHeight) const
 {
