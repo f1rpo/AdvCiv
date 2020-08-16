@@ -385,8 +385,7 @@ bool CvSelectionGroup::isNeverShowMoves() const
 // advc.002m:
 int CvSelectionGroup::nukeMissionTime() const
 {
-	// Cut from startMission:
-	int const iFull = GC.getInfo(MISSION_NUKE).getTime();
+	int const iFull = GC.getInfo(MISSION_NUKE).getTime(); // cut from startMission
 	int const iShortened = iFull / 8;
 	if (isNeverShowMoves())
 		return iShortened;
@@ -3787,57 +3786,50 @@ void CvSelectionGroup::changeMissionTimer(int iChange)
 }
 
 
-void CvSelectionGroup::updateMissionTimer(int iSteps, /* advc.102: */ CvPlot* pFromPlot)
+void CvSelectionGroup::updateMissionTimer(int iSteps,  // advc: refactored
+	CvPlot* pFromPlot) // advc.102
 {
 	CvGame const& kGame = GC.getGame();
-	int iTime = 0;
-	if (!isHuman() && (!showMoves( // <advc.102>
-		pFromPlot == NULL ? *plot() : *pFromPlot) ||
-		/*	The quick-moves check below uses the owner's options
-			in network games. I guess it's important for simultaneous turns.
-			(Perhaps not showing moves in Globe view in non-simultaneous
-			network games would be OK though?) */
-		((!kGame.isNetworkMultiPlayer() ||
-		getOwner() == kGame.getActivePlayer()) &&
+	if (headMissionQueueNode() == NULL || 
+		(!isHuman() && (!showMoves( // <advc.102>
+		pFromPlot == NULL ? getPlot() : *pFromPlot) ||
+		/*	(showMoves returning true means that simultaneous turns
+			aren't a concern) */
 		gDLL->getEngineIFace()->isGlobeviewUp()))) // </advc.102>
 	{
-		iTime = 0;
+		setMissionTimer(0);
+		return;
 	}
-	else if (headMissionQueueNode() != NULL)
+	int iTime = GC.getInfo((MissionTypes)
+			headMissionQueueNode()->m_data.eMissionType).getTime();
+	if ((headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO) ||
+		(headMissionQueueNode()->m_data.eMissionType == MISSION_ROUTE_TO) ||
+		(headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO_UNIT))
 	{
-		iTime = GC.getInfo((MissionTypes)headMissionQueueNode()->m_data.eMissionType).getTime();
-
-		if ((headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO) ||
-			(headMissionQueueNode()->m_data.eMissionType == MISSION_ROUTE_TO) ||
-			(headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO_UNIT))
+		CvPlot* pTargetPlot = NULL;
+		if (headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO_UNIT)
 		{
-			CvPlot* pTargetPlot = NULL;
-			if (headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO_UNIT)
-			{
-				CvUnit* pTargetUnit = GET_PLAYER((PlayerTypes)headMissionQueueNode()->m_data.iData1).
-						getUnit(headMissionQueueNode()->m_data.iData2);
-				if (pTargetUnit != NULL)
-					pTargetPlot = pTargetUnit->plot();
-			}
-			else
-			{
-				pTargetPlot = GC.getMap().plot(headMissionQueueNode()->m_data.iData1,
-						headMissionQueueNode()->m_data.iData2);
-			}
-			if (atPlot(pTargetPlot))
-				iTime += iSteps;
-			else iTime = std::min(iTime, 2);
+			CvUnit* pTargetUnit = GET_PLAYER((PlayerTypes)headMissionQueueNode()->m_data.iData1).
+					getUnit(headMissionQueueNode()->m_data.iData2);
+			if (pTargetUnit != NULL)
+				pTargetPlot = pTargetUnit->plot();
 		}
-
-		if (isHuman() && (isAutomated() || (GET_PLAYER(
-			kGame.isNetworkMultiPlayer() ? getOwner() :
-			kGame.getActivePlayer()).
-			isOption(PLAYEROPTION_QUICK_MOVES))))
+		else
 		{
-			iTime = std::min(iTime, 1);
+			pTargetPlot = GC.getMap().plot(headMissionQueueNode()->m_data.iData1,
+					headMissionQueueNode()->m_data.iData2);
 		}
+		if (atPlot(pTargetPlot))
+			iTime += iSteps;
+		else iTime = std::min(iTime, 2);
 	}
-
+	if (isHuman() && (isAutomated() || (GET_PLAYER(
+		kGame.isNetworkMultiPlayer() ? getOwner() :
+		kGame.getActivePlayer()).
+		isOption(PLAYEROPTION_QUICK_MOVES))))
+	{
+		iTime = std::min(iTime, 1);
+	}
 	setMissionTimer(iTime);
 }
 
