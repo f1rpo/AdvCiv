@@ -1228,7 +1228,7 @@ template<> struct EnumMapGetDefault<PlotNumTypes> {
 	by adding a dummy call parameter. The getEnumLength functions in CvEnums.h
 	also have that parameter - but, there, it's optional. */
 #define SET_NONXML_ENUM_LENGTH(TypeName, eLength) \
-	__forceinline TypeName getEnumLength(TypeName, bool bAllowForEach) { return eLength; } \
+	__forceinline TypeName getEnumLength(TypeName, bool bAllowFOR_EACH) { return eLength; } \
 	template <> struct EnumMapGetDefault<TypeName> \
 	{ \
 		enum { \

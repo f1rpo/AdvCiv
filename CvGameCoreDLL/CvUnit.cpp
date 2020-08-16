@@ -5748,8 +5748,10 @@ int CvUnit::getSpyInterceptPercent(TeamTypes eTargetTeam, bool bMission) const
 		const CvTeam& kTargetTeam = GET_TEAM(eTargetTeam);
 
 		int iPopScale = 5 * GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities();
-		int iTargetPoints = 10 * kTargetTeam.getEspionagePointsEver() / std::max(1, iPopScale + kTargetTeam.getTotalPopulation(false));
-		int iOurPoints = 10 * kTeam.getEspionagePointsEver() / std::max(1, iPopScale + kTeam.getTotalPopulation(false));
+		int iTargetPoints = 10 * kTargetTeam.getEspionagePointsEver() /
+				std::max(1, iPopScale + kTargetTeam.getTotalPopulation(false));
+		int iOurPoints = 10 * kTeam.getEspionagePointsEver() /
+				std::max(1, iPopScale + kTeam.getTotalPopulation(false));
 		iSuccess += iESPIONAGE_INTERCEPT_SPENDING_MAX * iTargetPoints / std::max(1, iTargetPoints + iOurPoints);
 	}
 	// K-Mod end

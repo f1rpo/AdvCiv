@@ -6038,7 +6038,7 @@ int CvPlayer::calculateInflatedCosts() const
 	PROFILE_FUNC();
 
 	int iCosts = calculatePreInflatedCosts();
-	iCosts *= std::max(0, (calculateInflationRate() + 100));
+	iCosts *= std::max(0, calculateInflationRate() + 100);
 	iCosts /= 100;
 	return iCosts;
 }

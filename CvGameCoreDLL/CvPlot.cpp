@@ -706,9 +706,9 @@ void CvPlot::forceBumpUnits()
 	}
 } // K-Mod end
 
-// K-Mod. Added bBomb argument.
-// bBomb signals that the explosion should damage units, buildings, and city population.
-// (I've also tidied up the code a little bit)
+/*	K-Mod. Added bBomb argument.
+	bBomb signals that the explosion should damage units, buildings, and city population.
+	(I've also tidied up the code a little bit) */
 void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 {
 	// <advc.opt>
