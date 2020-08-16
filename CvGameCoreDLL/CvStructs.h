@@ -375,7 +375,8 @@ protected:
 class NukeMissionDef : public CvMissionDefinition
 {
 public:
-	NukeMissionDef(CvPlot const& kPlot, CvUnit& kNuke, bool bIntercept);
+	NukeMissionDef(CvPlot const& kPlot, CvUnit& kNuke, bool bIntercept,
+			int iBaseTime); // advc.002m
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

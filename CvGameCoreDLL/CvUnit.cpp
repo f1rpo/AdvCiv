@@ -3702,6 +3702,9 @@ bool CvUnit::nuke(int iX, int iY)
 	iBestInterception /= 100;
 
 	setReconPlot(&kPlot);
+	// <advc.002m>
+	int const iMissionTime = getGroup()->nukeMissionTime();
+	bool const bShortAnimation = (iMissionTime <= 8); // </advc.002m>
 
 	if (GC.getGame().getSorenRandNum(100, "Nuke") < iBestInterception)
 	{
@@ -3716,14 +3719,15 @@ bool CvUnit::nuke(int iX, int iY)
 				szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_INTERCEPTED",
 						GET_PLAYER(getOwner()).getNameKey(), getNameKey(),
 						GET_TEAM(eBestTeam).getName().GetCString());
-				gDLL->UI().addMessage(kObs.getID(), kObs.getID() == getOwner(), -1,
-						szBuffer, kPlot, "AS2D_NUKE_INTERCEPTED", MESSAGE_TYPE_MAJOR_EVENT,
-						getButton(), GC.getColorType("RED"));
+				gDLL->UI().addMessage(kObs.getID(), kObs.getID() == getOwner() ||
+						!bShortAnimation, // advc.002m
+						-1, szBuffer, kPlot, "AS2D_NUKE_INTERCEPTED",
+						MESSAGE_TYPE_MAJOR_EVENT, getButton(), GC.getColorType("RED"));
 			}
 		}
 		if (kPlot.isActiveVisible(false))
 		{	// advc: Moved into helper class (was duplicated below)
-			NukeMissionDef kMissionDef(kPlot, *this, true);
+			NukeMissionDef kMissionDef(kPlot, *this, true, iMissionTime);
 			gDLL->getEntityIFace()->AddMission(&kMissionDef);
 		}
 		kill(true);
@@ -3732,7 +3736,7 @@ bool CvUnit::nuke(int iX, int iY)
 
 	if (kPlot.isActiveVisible(false))
 	{	// advc: Moved into helper class
-		NukeMissionDef kMissionDef(kPlot, *this, false);
+		NukeMissionDef kMissionDef(kPlot, *this, false, iMissionTime);
 		gDLL->getEntityIFace()->AddMission(&kMissionDef);
 	}
 
@@ -3850,9 +3854,10 @@ bool CvUnit::nuke(int iX, int iY)
 		{
 			szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_LAUNCHED",
 					GET_PLAYER(getOwner()).getNameKey(), getNameKey());
-			gDLL->UI().addMessage(kObs.getID(), kObs.getID() == getOwner(), -1,
-					szBuffer, kPlot, "AS2D_NUKE_EXPLODES", MESSAGE_TYPE_MAJOR_EVENT,
-					getButton(), GC.getColorType("RED"));
+			gDLL->UI().addMessage(kObs.getID(), kObs.getID() == getOwner() ||
+					!bShortAnimation, // advc.002m
+					-1, szBuffer, kPlot, "AS2D_NUKE_EXPLODES",
+					MESSAGE_TYPE_MAJOR_EVENT, getButton(), GC.getColorType("RED"));
 		}
 	}
 	// <advc.106>

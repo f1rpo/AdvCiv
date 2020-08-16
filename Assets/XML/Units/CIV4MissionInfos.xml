@@ -238,7 +238,9 @@
 			<Help>TXT_KEY_MISSION_NUKE_HELP</Help>
 			<Waypoint>NONE</Waypoint>
 			<EntityEventType>ENTITY_EVENT_NUKE</EntityEventType>
-			<iTime>40</iTime>
+			<!-- advc.002m: Was 40. The DLL will divide the time by 8 when
+				 in some circumstances. -->
+			<iTime>32</iTime>
 			<bTarget>0</bTarget>
 			<bBuild>0</bBuild>
 			<bSound>1</bSound>
@@ -250,7 +252,8 @@
 			<Help>TXT_KEY_MISSION_RECON_HELP</Help>
 			<Waypoint>NONE</Waypoint>
 			<EntityEventType>ENTITY_EVENT_AIRRECON</EntityEventType>
-			<iTime>20</iTime>
+			<!-- advc.002m: was 20 -->
+			<iTime>16</iTime>
 			<bTarget>0</bTarget>
 			<bBuild>0</bBuild>
 			<bSound>1</bSound>
@@ -274,7 +277,8 @@
 			<Help>TXT_KEY_MISSION_AIRBOMB_HELP</Help>
 			<Waypoint>NONE</Waypoint>
 			<EntityEventType>ENTITY_EVENT_AIRBOMB</EntityEventType>
-			<iTime>20</iTime>
+			<!-- advc.002m: was 20 -->
+			<iTime>16</iTime>
 			<bTarget>0</bTarget>
 			<bBuild>0</bBuild>
 			<bSound>1</bSound>
@@ -731,7 +735,8 @@
 			<Help>TXT_KEY_MISSION_BUILD_IMPROVEMENT</Help>
 			<Waypoint>NONE</Waypoint>
 			<EntityEventType>ENTITY_EVENT_AIRSTRIKE</EntityEventType>
-			<iTime>16</iTime>
+			<!-- advc.002m: was 16 (note - not shown at all with Quick Attack) -->
+			<iTime>12</iTime>
 			<bTarget>0</bTarget>
 			<bBuild>0</bBuild>
 			<bSound>0</bSound>

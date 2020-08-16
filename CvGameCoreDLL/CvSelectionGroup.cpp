@@ -298,11 +298,9 @@ void CvSelectionGroup::doTurnPost()
 
 bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 {
-	if (GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) ||
-		GC.getGame().isSimultaneousTeamTurns())
-	{
+	if (isNeverShowMoves()) // advc: Moved into new function
 		return false;
-	}  // <advc.102>
+	// <advc.102>
 	static bool const bShowWorkers = GC.getDefineBOOL("SHOW_FRIENDLY_WORKER_MOVES");
 	static bool const bShowShips = GC.getDefineBOOL("SHOW_FRIENDLY_SEA_MOVES");
 	// Also refers to Executives; those have the same Unit AI.
@@ -377,11 +375,35 @@ bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 	return false;
 }
 
-// <advc.102>
+// advc: Cut from showMoves
+bool CvSelectionGroup::isNeverShowMoves() const
+{
+	return (GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) ||
+			GC.getGame().isSimultaneousTeamTurns());
+}
+
+// advc.002m:
+int CvSelectionGroup::nukeMissionTime() const
+{
+	// Cut from startMission:
+	int const iFull = GC.getInfo(MISSION_NUKE).getTime();
+	int const iShortened = iFull / 8;
+	if (isNeverShowMoves())
+		return iShortened;
+	CvGame const& kGame = GC.getGame();
+	// Nothing to see when particle effects aren't enabled
+	if (gDLL->getGraphicOption(GRAPHICOPTION_EFFECTS_DISABLED))
+		return iShortened;
+	if (getOwner() != kGame.getActivePlayer())
+		return iShortened;
+	return iFull;
+}
+
+// advc.102:
 void CvSelectionGroup::setInitiallyVisible(bool b)
 {
 	m->bInitiallyVisible = b;
-} // </advc.102>
+}
 
 
 void CvSelectionGroup::updateTimers()
@@ -1217,7 +1239,7 @@ void CvSelectionGroup::startMission()
 			}
 		}
 		if (bNuke)
-			setMissionTimer(GC.getInfo(MISSION_NUKE).getTime());
+			setMissionTimer(nukeMissionTime()); // advc.002m: Moved into new function
 		if (!isBusy())
 		{
 			if (bDelete)
@@ -3767,16 +3789,23 @@ void CvSelectionGroup::changeMissionTimer(int iChange)
 
 void CvSelectionGroup::updateMissionTimer(int iSteps, /* advc.102: */ CvPlot* pFromPlot)
 {
+	CvGame const& kGame = GC.getGame();
 	int iTime = 0;
 	if (!isHuman() && (!showMoves( // <advc.102>
-			pFromPlot == NULL ? *plot() : *pFromPlot) ||
-			// Are these timers synchronized?
-			(!GC.getGame().isNetworkMultiPlayer() &&
-			gDLL->getEngineIFace()->isGlobeviewUp()))) // </advc.102>
+		pFromPlot == NULL ? *plot() : *pFromPlot) ||
+		/*	The quick-moves check below uses the owner's options
+			in network games. I guess it's important for simultaneous turns.
+			(Perhaps not showing moves in Globe view in non-simultaneous
+			network games would be OK though?) */
+		((!kGame.isNetworkMultiPlayer() ||
+		getOwner() == kGame.getActivePlayer()) &&
+		gDLL->getEngineIFace()->isGlobeviewUp()))) // </advc.102>
+	{
 		iTime = 0;
+	}
 	else if (headMissionQueueNode() != NULL)
 	{
-		iTime = GC.getInfo((MissionTypes)(headMissionQueueNode()->m_data.eMissionType)).getTime();
+		iTime = GC.getInfo((MissionTypes)headMissionQueueNode()->m_data.eMissionType).getTime();
 
 		if ((headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO) ||
 			(headMissionQueueNode()->m_data.eMissionType == MISSION_ROUTE_TO) ||
@@ -3785,22 +3814,28 @@ void CvSelectionGroup::updateMissionTimer(int iSteps, /* advc.102: */ CvPlot* pF
 			CvPlot* pTargetPlot = NULL;
 			if (headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO_UNIT)
 			{
-				CvUnit* pTargetUnit = GET_PLAYER((PlayerTypes)headMissionQueueNode()->m_data.iData1).getUnit(headMissionQueueNode()->m_data.iData2);
+				CvUnit* pTargetUnit = GET_PLAYER((PlayerTypes)headMissionQueueNode()->m_data.iData1).
+						getUnit(headMissionQueueNode()->m_data.iData2);
 				if (pTargetUnit != NULL)
 					pTargetPlot = pTargetUnit->plot();
 			}
-			else pTargetPlot = GC.getMap().plot(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2);
-
+			else
+			{
+				pTargetPlot = GC.getMap().plot(headMissionQueueNode()->m_data.iData1,
+						headMissionQueueNode()->m_data.iData2);
+			}
 			if (atPlot(pTargetPlot))
 				iTime += iSteps;
 			else iTime = std::min(iTime, 2);
 		}
 
 		if (isHuman() && (isAutomated() || (GET_PLAYER(
-				GC.getGame().isNetworkMultiPlayer() ? getOwner() :
-				GC.getGame().getActivePlayer()).
-				isOption(PLAYEROPTION_QUICK_MOVES))))
+			kGame.isNetworkMultiPlayer() ? getOwner() :
+			kGame.getActivePlayer()).
+			isOption(PLAYEROPTION_QUICK_MOVES))))
+		{
 			iTime = std::min(iTime, 1);
+		}
 	}
 
 	setMissionTimer(iTime);

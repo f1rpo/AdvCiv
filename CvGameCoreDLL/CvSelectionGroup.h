@@ -29,6 +29,7 @@ public:
 	void doTurn();
 	void doTurnPost(); // advc.004l
 	bool showMoves( /* <advc.102> */ CvPlot const& kFromPlot) const;
+	int nukeMissionTime() const; // advc.002m
 	void setInitiallyVisible(bool b); // </advc.102>
 
 	void updateTimers();
@@ -298,6 +299,7 @@ protected:
 
 	void activateHeadMission();
 	void deactivateHeadMission();
+	bool isNeverShowMoves() const; // advc
 	// <advc.075>
 	void handleBoarded();
 	bool canDisembark() const;

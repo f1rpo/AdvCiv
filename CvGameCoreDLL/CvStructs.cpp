@@ -346,10 +346,10 @@ void CvMissionDefinition::setPlot(const CvPlot *plot)
 }
 
 // advc: Body cut from CvUnit::nuke
-NukeMissionDef::NukeMissionDef(CvPlot const& kPlot, CvUnit& kNuke, bool bIntercept)
+NukeMissionDef::NukeMissionDef(CvPlot const& kPlot, CvUnit& kNuke, bool bIntercept,
+	int iBaseTime) // advc.002m
 {
-	setMissionTime(GC.getInfo(MISSION_NUKE).getTime() *
-			gDLL->getSecsPerTurn());
+	setMissionTime(iBaseTime * gDLL->getSecsPerTurn());
 	setMissionType(MISSION_NUKE);
 	setPlot(&kPlot);
 	setUnit(BATTLE_UNIT_ATTACKER, &kNuke);
