@@ -1583,7 +1583,8 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		abEverOwned.set(it->getID(), pOldCity->isEverOwned(it->getID()));
 		aiCulture.set(it->getID(), pOldCity->getCultureTimes100(it->getID()));
 	}
-	abEverOwned.set(getID(), true);
+	// advc.ctr: This gets set automatically when kNewCity is initialized
+	//abEverOwned.set(getID(), true);
 
 	FOR_EACH_ENUM(Religion)
 	{
@@ -1708,7 +1709,9 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 	for (PlayerIter<> it; it.hasNext(); ++it)
 	{
-		kNewCity.setEverOwned(it->getID(), abEverOwned.get(it->getID()));
+		// advc.ctr: Don't overwrite this player's ownership status
+		if (!kNewCity.isEverOwned(it->getID()) && abEverOwned.get(it->getID()))
+			kNewCity.setEverOwned(it->getID(), true);
 		kNewCity.setCultureTimes100(it->getID(),
 				aiCulture.get(it->getID()), false, false);
 	} // <kekm.23>
@@ -1819,15 +1822,15 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		{
 			int iPopPercent = GC.getDefineINT("OCCUPATION_TURNS_POPULATION_PERCENT");
 			kNewCity.changeOccupationTimer(
-				/*  advc.023: Population size as upper bound, and iPopPercent set to
-					0 through XML. (Im multiplying by 1+100*iPopPercent so that the
-					upper bound has no effect if iPopPercent is set back to 50 in XML.)
-					NB: iTeamCulturePercent is city culture, not tile culture;
-					only relevant when a city is reconquered. */
-				std::min(kNewCity.getPopulation() * (1 + iPopPercent * 100),
-				((GC.getDefineINT("BASE_OCCUPATION_TURNS") +
-				((kNewCity.getPopulation() * iPopPercent) / 100)) *
-				(100 - iTeamCulturePercent)) / 100));
+					/*  advc.023: Population size as upper bound, and iPopPercent set to
+						0 through XML. (Im multiplying by 1+100*iPopPercent so that the
+						upper bound has no effect if iPopPercent is set back to 50 in XML.)
+						NB: iTeamCulturePercent is city culture, not tile culture;
+						only relevant when a city is reconquered. */
+					std::min(kNewCity.getPopulation() * (1 + iPopPercent * 100),
+					((GC.getDefineINT("BASE_OCCUPATION_TURNS") +
+					((kNewCity.getPopulation() * iPopPercent) / 100)) *
+					(100 - iTeamCulturePercent)) / 100));
 		}
 		GC.getMap().verifyUnitValidPlot();
 	}
@@ -1878,7 +1881,9 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 				kNewCity.doTask(TASK_RAZE);
 			}
 			else if (!isHuman())
-				AI().AI_conquerCity(kNewCity); // could delete the pointer...
+			{	// May delete kNewCity!
+				AI().AI_conquerCity(kNewCity, abEverOwned.get(getID()));
+			}
 			else
 			{	// popup raze option
 				bool bRaze = canRaze(kNewCity);

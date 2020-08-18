@@ -1607,8 +1607,9 @@ void CvPlayerAI::AI_makeProductionDirty()
 		pLoopCity->setChooseProductionDirty(true);
 }
 
-// BETTER_BTS_AI_MOD, War tactics AI, 05/16/10, jdog5000: START
-void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.003u: param was CvCity*
+// BETTER_BTS_AI_MOD, War tactics AI, 05/16/10, jdog5000:
+void CvPlayerAI::AI_conquerCity(CvCityAI& kCity,  // advc.003u: param was CvCity*
+	bool bEverOwned) // advc.ctr: We already own it; but had we ever previously owned it?
 {
 	if(!canRaze(kCity))
 	{
@@ -1657,8 +1658,8 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 				if(bRaze) logBBAI("  Razing enemy cultural victory city");
 			}
 		} // </advc.116>
-	} // <advc.ctr>
-	if(!isBarbarian() && !kCity.isHolyCity() && !kCity.isEverOwned(getID()) &&
+	}  // <advc.ctr>
+	if (!isBarbarian() && !kCity.isHolyCity() && !bEverOwned &&
 		!kCity.hasActiveWorldWonder() && AI_isAwfulSite(kCity))
 	{
 		bRaze = true;
@@ -1694,9 +1695,8 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 				iRazeValue += GC.getInfo(getPersonalityType()).getRazeCityProb();
 				//iRazeValue -= iCloseness;
 				// <advc.300>
-				int iDeltaEraPop = 1 + std::max(3,
-						(int)GET_PLAYER(kCity.getOwner()).getCurrentEra()) -
-						kCity.getPopulation();
+				int iDeltaEraPop = 1 + std::max<int>(3, kPreviousOwner.getCurrentEra())
+						- kCity.getPopulation();
 				iRazeValue *= iDeltaEraPop;
 				// The BtS raze roll; now used exclusively for Barbarians
 				if(kGame.getSorenRandNum(100, "advc.300") < iRazeValue)

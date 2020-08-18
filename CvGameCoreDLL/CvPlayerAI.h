@@ -95,7 +95,7 @@ public:
 	#if 0 // advc
 	void AI_doCentralizedProduction(); // K-Mod. (not used)
 	#endif
-	void AI_conquerCity(CvCityAI& kCity);
+	void AI_conquerCity(CvCityAI& kCity, /* advc.ctr: */ bool bEverOwned = false);
 	double AI_razeMemoryScore(CvCity const& c) const; // advc.130q
 	bool AI_acceptUnit(CvUnit const& kUnit) const;
 	bool AI_captureUnit(UnitTypes eUnit, CvPlot const& kPlot) const;
