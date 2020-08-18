@@ -3814,16 +3814,15 @@ DenialTypes CvTeamAI::AI_defensivePactTrade(TeamTypes eWithTeam) const
 
 	if (isHuman())
 		return NO_DENIAL;
-
+	//if (GC.getGame().countCivTeamsAlive() == 2)
+	if (TeamIter<FREE_MAJOR_CIV>::count() <= 2) // advc.130t
+		return DENIAL_NO_GAIN;
 	// <kekm.3> (actually an advc change): Refuses/ cancels DP when ally makes peace
 	if(!allWarsShared(eWithTeam))
 		return DENIAL_JOKING; // </kekm.3>
 	// <advc.130p>
 	if(AI_getMemoryCount(eWithTeam, MEMORY_CANCELLED_DEFENSIVE_PACT) > 0)
-		return DENIAL_RECENT_CANCEL;
-	// </advc.130p>
-	if (GC.getGame().countCivTeamsAlive() == 2)
-		return DENIAL_NO_GAIN;
+		return DENIAL_RECENT_CANCEL; // </advc.130p>
 	// <advc.130t>
 	if(!isOpenBorders(eWithTeam))
 		return DENIAL_JOKING; // </advc.130t>
