@@ -1151,7 +1151,8 @@ public:
 	// K-Mod. (the old version is still exposed to Python)
 	void pushOrder(OrderTypes eOrder, int iData1, int iData2 = -1, bool bSave = false,
 			bool bPop = false, int iPosition = 0, bool bForce = false);
-	void popOrder(int iNum, bool bFinish = false, bool bChoose = false,												// Exposed to Python
+	enum ChooseProductionPlayers { NONE_CHOOSE, HUMAN_CHOOSE, AI_CHOOSE, ALL_CHOOSE }; // advc.064d
+	void popOrder(int iNum, bool bFinish = false, ChooseProductionPlayers eChoose = NONE_CHOOSE,							// Exposed to Python
 			bool bEndOfTurn = true); // advc.001x
 	void startHeadOrder();
 	void stopHeadOrder();
@@ -1472,8 +1473,11 @@ protected:
 	void doGrowth();
 	void doCulture();
 	bool doCheckProduction();
-	void upgradeProduction(); // advc.064d
-	bool checkCanContinueProduction(bool bCheckUpgrade = true); // advc.064d
+	// <advc.064d>
+	void upgradeProduction();
+	bool checkCanContinueProduction(bool bCheckUpgrade = true,
+			ChooseProductionPlayers eChoose = ALL_CHOOSE);
+	// </advc.064d>
 	void doProduction(bool bAllowNoProduction);
 	void doDecay();
 	void doReligion();

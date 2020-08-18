@@ -2185,7 +2185,11 @@ void CyCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 void CyCity::popOrder(int iNum, bool bFinish, bool bChoose)
 {
 	if (m_pCity)
-		m_pCity->popOrder(iNum, bFinish, bChoose);
+	{
+		m_pCity->popOrder(iNum, bFinish, //bChoose
+				// advc.064d:
+				bChoose ? CvCity::ALL_CHOOSE : CvCity::NONE_CHOOSE);
+	}
 }
 
 int CyCity::getOrderQueueLength()

@@ -1319,8 +1319,10 @@ void CvCity::verifyProduction()
 	if(isProduction()) // Only want to address invalid orders here; no production is OK.
 	{
 		/*  This doesn't check all preconditions, just the ones that could change
-			throughout a (human) turn. */
-		checkCanContinueProduction();
+			throughout a (human) turn. Don't want the AI to choose a new order
+			b/c it might be another civ's turn, and, in that case,
+			CvPlayerAI::AI_chooseProduction isn't guaranteed to work correctly. */
+		checkCanContinueProduction(true, HUMAN_CHOOSE);
 	}
 }
 
@@ -9662,7 +9664,8 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave,
 }
 
 
-void CvCity::popOrder(int iNum, bool bFinish, bool bChoose,  // advc: style changes
+void CvCity::popOrder(int iNum, bool bFinish,
+	ChooseProductionPlayers eChoose, // advc.064d (was bool bChoose)
 	bool bEndOfTurn) // advc.001x
 {
 	wchar szBuffer[1024];
@@ -9964,7 +9967,10 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose,  // advc: style chan
 	}
 
 	bool bMessage = false;
-	if (bChoose && getOrderQueueLength() == 0)
+	if (getOrderQueueLength() == 0 &&
+		// <advc.064d>
+		(eChoose == ALL_CHOOSE ||
+		(eChoose != NONE_CHOOSE && (eChoose == HUMAN_CHOOSE) == isHuman()))) // </advc.064d>
 	{
 		if (!isHuman() || isProductionAutomated())
 			AI().AI_chooseProduction();
@@ -10542,7 +10548,8 @@ void CvCity::upgradeProduction()
 }
 
 // advc.064d: Cut from doCheckProduction
-bool CvCity::checkCanContinueProduction(bool bCheckUpgrade)
+bool CvCity::checkCanContinueProduction(bool bCheckUpgrade,
+	ChooseProductionPlayers eChoose)
 {
 	bool r = true;
 	for (int i = getOrderQueueLength() - 1; i >= 0; i--)
@@ -10553,9 +10560,9 @@ bool CvCity::checkCanContinueProduction(bool bCheckUpgrade)
 			if (bCheckUpgrade)
 			{
 				upgradeProduction();
-				return checkCanContinueProduction(false);
+				return checkCanContinueProduction(false, eChoose);
 			}
-			popOrder(i, false, true);
+			popOrder(i, false, eChoose);
 			r = false;
 		}
 	}  // <advc.004x> Relaunch choose-production popups
@@ -10591,7 +10598,7 @@ void CvCity::doProduction(bool bAllowNoProduction)
 			getProductionToCommerceModifier(COMMERCE_CULTURE) > 0 &&
 			getCultureLevel() > order.iData2)
 		{
-			popOrder(0, false, true);
+			popOrder(0, false, ALL_CHOOSE);
 		}
 		// K-Mod end
 		return;
@@ -10610,7 +10617,7 @@ void CvCity::doProduction(bool bAllowNoProduction)
 		changeFeatureProduction(-iFeatureProductionUsed); // advc.064b
 
 		if (getProduction() >= getProductionNeeded())
-			popOrder(0, true, true);
+			popOrder(0, true, ALL_CHOOSE);
 	}
 	else
 	{
@@ -12792,7 +12799,12 @@ void CvCity::cheat(bool bCtrl, bool bAlt, bool bShift)
 			changeCulture(getOwner(), 10, true, true);
 		else if (bShift)
 			changePopulation(1);
-		else popOrder(0, true, /* advc.001x: */ false, false);
+		else
+		{
+			popOrder(0, true,
+					NONE_CHOOSE, // advc.001x
+					false);
+		}
 	}
 }
 
@@ -13055,7 +13067,7 @@ void CvCity::failProduction(int iOrderData, int iInvestedProduction, bool bProje
 		if (od != NULL && od->eOrderType == eOrderType && od->iData1 == iOrderData)
 		{
 			FAssert(!canContinueProduction(*od));
-			popOrder(i, false, true);
+			popOrder(i, false, HUMAN_CHOOSE);
 		}
 	}
 	int iGoldPercent = failGoldPercent(eOrderType);

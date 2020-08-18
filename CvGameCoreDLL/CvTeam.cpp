@@ -3142,7 +3142,7 @@ int CvTeam::turnsOfForcedPeaceRemaining(TeamTypes eOther) const
 void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 {
 	FAssertMsg(!bNewValue || !GET_TEAM(eMaster).isAVassal(), "can't become a vassal of a vassal");
-	bool bWasCapitulated = isCapitulated(); // advc.130v
+	bool const bWasCapitulated = isCapitulated(); // advc.130v
 	/*  <advc> If this function is used for turning capitulated into
 		voluntary vassals at some point, then the code for processing this change
 		will have to be placed before this clause, or will also have to check if
@@ -3227,6 +3227,9 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 			kLoopPlot.updateCulture(true, false);
 	}
 
+	/*	advc.064d (note): m_bCapitulated hasn't been set yet. If the
+		plot group update causes an AI city to choose new production
+		immediately, there could be trouble. I don't think that can happen though. */
 	GC.getGame().updatePlotGroups();
 
 	if (isVassal(eMaster))
