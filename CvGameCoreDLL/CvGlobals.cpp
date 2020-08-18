@@ -699,15 +699,26 @@ void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 	m_iEventMessageTime = getDefineINT("EVENT_MESSAGE_TIME");
 } // </advc.opt>
 
-void CvGlobals::cacheGlobalFloats()
+void CvGlobals::cacheGlobalFloats(
+	bool bAllowRecursion) // advc.004m: Probably not needed; feels safer.
 {
-	m_fPOWER_CORRECTION = getDefineFLOAT("POWER_CORRECTION"); // advc.104
-
+	//m_fFIELD_OF_VIEW = getDefineFLOAT("FIELD_OF_VIEW");
+	// <advc.004m>
+	float fNewFoV = getDefineFLOAT("FIELD_OF_VIEW");
+	if (fNewFoV != m_fFIELD_OF_VIEW)
+	{
+		m_fFIELD_OF_VIEW = fNewFoV;
+		if (bAllowRecursion && IsGraphicsInitialized())
+		{
+			updateCameraStartDistance();
+			return;
+		}
+	} // </advc.004m>
+	m_fCAMERA_START_DISTANCE = getDefineFLOAT("CAMERA_START_DISTANCE");
 	m_fCAMERA_MIN_YAW = getDefineFLOAT("CAMERA_MIN_YAW");
 	m_fCAMERA_MAX_YAW = getDefineFLOAT("CAMERA_MAX_YAW");
 	m_fCAMERA_FAR_CLIP_Z_HEIGHT = getDefineFLOAT("CAMERA_FAR_CLIP_Z_HEIGHT");
 	m_fCAMERA_MAX_TRAVEL_DISTANCE = getDefineFLOAT("CAMERA_MAX_TRAVEL_DISTANCE");
-	m_fCAMERA_START_DISTANCE = getDefineFLOAT("CAMERA_START_DISTANCE");
 	m_fAIR_BOMB_HEIGHT = getDefineFLOAT("AIR_BOMB_HEIGHT");
 	m_fPLOT_SIZE = getDefineFLOAT("PLOT_SIZE");
 	m_fCAMERA_SPECIAL_PITCH = getDefineFLOAT("CAMERA_SPECIAL_PITCH");
@@ -715,9 +726,10 @@ void CvGlobals::cacheGlobalFloats()
 	m_fCAMERA_MIN_DISTANCE = getDefineFLOAT("CAMERA_MIN_DISTANCE");
 	m_fCAMERA_UPPER_PITCH = getDefineFLOAT("CAMERA_UPPER_PITCH");
 	m_fCAMERA_LOWER_PITCH = getDefineFLOAT("CAMERA_LOWER_PITCH");
-	m_fFIELD_OF_VIEW = getDefineFLOAT("FIELD_OF_VIEW");
 	m_fSHADOW_SCALE = getDefineFLOAT("SHADOW_SCALE");
 	m_fUNIT_MULTISELECT_DISTANCE = getDefineFLOAT("UNIT_MULTISELECT_DISTANCE");
+
+	m_fPOWER_CORRECTION = getDefineFLOAT("POWER_CORRECTION"); // advc.104
 }
 
 void CvGlobals::cacheGlobals()
@@ -803,6 +815,19 @@ void CvGlobals::setDefineSTRING(char const* szName, char const* szValue, /* advc
 	getDefinesVarSystem()->SetValue(szName, szValue);
 	//cacheGlobals();
 	FAssertMsg(!bUpdateCache, "No strings to update"); // advc.opt
+}
+
+// advc.004m:
+void CvGlobals::updateCameraStartDistance()
+{
+	static float m_fCAMERA_START_DISTANCE_Override = GC.getDefineFLOAT(
+			"CAMERA_START_DISTANCE");
+	float fNewValue = m_fCAMERA_START_DISTANCE_Override;
+	if (fNewValue < 0)
+		fNewValue = std::max(9100 - 100 * getDefineFLOAT("FIELD_OF_VIEW"), 1200.f);
+	setDefineFLOAT("CAMERA_START_DISTANCE", fNewValue,
+			false); // Update the cache explicitly instead:
+	cacheGlobalFloats(false);
 }
 
 int CvGlobals::getMAX_CIV_PLAYERS()

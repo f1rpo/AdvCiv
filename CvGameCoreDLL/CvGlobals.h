@@ -674,6 +674,7 @@ public:
 	inline float getSHADOW_SCALE() const { return m_fSHADOW_SCALE; }
 	DllExport inline float getUNIT_MULTISELECT_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getUNIT_MULTISELECT_DISTANCE(); }
 	inline float getUNIT_MULTISELECT_DISTANCE() const { return m_fUNIT_MULTISELECT_DISTANCE; }
+	void updateCameraStartDistance(); // advc.004m
 
 	DllExport int getUSE_FINISH_TEXT_CALLBACK();
 	// advc.003y: Moved the other callback getters to CvPythonCaller
@@ -935,7 +936,6 @@ protected:
 	float m_fCAMERA_MAX_YAW;
 	float m_fCAMERA_FAR_CLIP_Z_HEIGHT;
 	float m_fCAMERA_MAX_TRAVEL_DISTANCE;
-	float m_fCAMERA_START_DISTANCE;
 	float m_fAIR_BOMB_HEIGHT;
 	float m_fPLOT_SIZE;
 	float m_fCAMERA_SPECIAL_PITCH;
@@ -943,9 +943,10 @@ protected:
 	float m_fCAMERA_MIN_DISTANCE;
 	float m_fCAMERA_UPPER_PITCH;
 	float m_fCAMERA_LOWER_PITCH;
-	float m_fFIELD_OF_VIEW;
 	float m_fSHADOW_SCALE;
 	float m_fUNIT_MULTISELECT_DISTANCE;
+	float m_fFIELD_OF_VIEW;
+	float m_fCAMERA_START_DISTANCE;
 
 	CvXMLLoadUtility* m_pXMLLoadUtility; // advc.003v
 
@@ -957,7 +958,8 @@ protected:
 private:
 	// <advc.opt>
 	void cacheGlobalInts(char const* szChangedDefine = NULL, int iNewValue = 0);
-	void cacheGlobalFloats(); // </advc.opt>
+	void cacheGlobalFloats(/* advc.004m: */ bool bAllowRecursion = true);
+	// </advc.opt>
 	//void addToInfosVectors(void* infoVector); // advc.enum (no longer used)
 };
 

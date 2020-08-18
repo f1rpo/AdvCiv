@@ -423,12 +423,18 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
-	<!-- [advc.004m]
-	     No clue how this is measured. Original value is 2200
-		 (GlobalDefines.xml), recommended: 5400 (4600?). -->
+	<!-- advc.004m: 2200 in BtS.
+		 Determines the camera distance at the start of a new game and after
+		 loading from a savegame, but also affects zoom sensitivity and
+		 the shifts between leader music, era music and ambient sounds.
+		 A lower value results in more fine-grained zoom levels and requires
+		 the player to zoom in farther to hear the leader music.
+		 Recommended: Use a negative value to let the DLL set the
+		 camera start distance dynamically based on the field-of-view value.
+		 -->
 	<Define>
 		<DefineName>CAMERA_START_DISTANCE</DefineName>
-		<fDefineFloatVal>5400</fDefineFloatVal>
+		<fDefineFloatVal>-1</fDefineFloatVal>
 	</Define>
 
 	<!-- advc.500b: If this is set to a value greater than 0, unhappiness for
