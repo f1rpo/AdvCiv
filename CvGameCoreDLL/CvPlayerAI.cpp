@@ -1636,7 +1636,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 				// <advc.116> Count them all before deciding what to do
 			}
 		}
-		int iVictTarget = kGame.culturalVictoryNumCultureCities();
+		int const iVictTarget = kGame.culturalVictoryNumCultureCities();
 		// Razing won't help if they have many high-culture cities
 		if(iHighCultureCount == iVictTarget || iHighCultureCount == iVictTarget + 1)
 		{
@@ -1666,7 +1666,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 
 	if(!bRaze)
 	{
-		int iCloseness = kCity.AI_playerCloseness(getID());
+		int const iCloseness = kCity.AI_playerCloseness(getID());
 		// Reasons to not raze
 		if(!bCultureVictory) // advc.116
 		{
@@ -1706,11 +1706,11 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 		}
 		else
 		{
-			bool bFinancialTrouble = AI_isFinancialTrouble();
-			bool bBarbCity = (kCity.getPreviousOwner() == BARBARIAN_PLAYER &&
+			bool const bFinancialTrouble = AI_isFinancialTrouble();
+			bool const bBarbCity = (kCity.getPreviousOwner() == BARBARIAN_PLAYER &&
 					kCity.getOriginalOwner() == BARBARIAN_PLAYER);
-			bool bPrevOwnerBarb = (kCity.getPreviousOwner() == BARBARIAN_PLAYER);
-			bool bTotalWar = (kPreviousTeam.getNumCities() > 0 && // advc.116
+			bool const bPrevOwnerBarb = (kCity.getPreviousOwner() == BARBARIAN_PLAYER);
+			bool const bTotalWar = (kPreviousTeam.getNumCities() > 0 && // advc.116
 					// K-Mod
 					GET_TEAM(getTeam()).AI_getWarPlan(kPreviousTeam.getID()) == WARPLAN_TOTAL);
 
@@ -1913,12 +1913,12 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 
 			}
 			// <advc.116>
-			PlayerTypes eCulturalOwner = kCity.findHighestCulture();
+			PlayerTypes const eCulturalOwner = kCity.findHighestCulture();
 			if(eCulturalOwner != NO_PLAYER)
 			{
-				CvPlayer& kCulturalOwner = GET_PLAYER(eCulturalOwner);
+				CvPlayer const& kCulturalOwner = GET_PLAYER(eCulturalOwner);
 				if(!kCulturalOwner.isBarbarian() &&
-					!::atWar(getTeam(), kCulturalOwner.getTeam()))
+					!GET_TEAM(getTeam()).isAtWar(kCulturalOwner.getTeam()))
 				{
 					if(eCulturalOwner == getID())
 						iRazeValue -= 15;
@@ -1934,7 +1934,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 			// Don't raze remote cities conquered in early game
 			int iTargetCities = GC.getInfo(GC.getMap().getWorldSize()).
 					getTargetNumCities();
-			if(iTargetCities * 0.75 >= (double)getNumCities())
+			if(iTargetCities * fixp(0.75) >= getNumCities())
 				iRazeValue -= (iTargetCities - getNumCities()) * 5;
 			// </advc.116>
 
@@ -1972,7 +1972,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 		// <advc.ctr>
 		if (iRazeValue < 20)
 		{
-			PlayerTypes eLiberationPlayer = kCity.getLiberationPlayer(true);
+			PlayerTypes const eLiberationPlayer = kCity.getLiberationPlayer(true);
 			if (eLiberationPlayer != NO_PLAYER &&
 				canTradeItem(eLiberationPlayer, TradeData(TRADE_CITIES, kCity.getID())) &&
 				/*	Don't check trade denial b/c that includes conditions for refusal
@@ -2014,10 +2014,13 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 		logBBAI("    Player %d (%S) decides to raze city %S!!!", getID(), getCivilizationDescription(0), kCity.getName().GetCString());
 		kCity.doTask(TASK_RAZE);
 	}
-	else CvEventReporter::getInstance().cityAcquiredAndKept(
+	else
+	{
+		CvEventReporter::getInstance().cityAcquiredAndKept(
 			//kGame.getActivePlayer(), &kCity);
 			getID(), &kCity); // UNOFFICIAL_PATCH, 06/14/09, Maniac & jdog5000
-} // BETTER_BTS_AI_MOD: END
+	}
+}
 
 // <advc.130q> About 7 or 8 is high (important city), below 1 is low
 double CvPlayerAI::AI_razeMemoryScore(CvCity const& c) const
@@ -2861,7 +2864,7 @@ int CvPlayerAI::AI_cityWonderVal(CvCity const& c) const
 	return r;
 }
 
-/*	For advc.104d (bConquest=false), advc.ctr (bConquest=true).
+/*	For advc.104d (bConquest=true), advc.ctr (bConquest=false).
 	Replacing parts of AI_cityTradeVal. Coexisting with similar code
 	in AI_targetCityValue (the similarities aren't that great).
 	Scale: gold per turn */

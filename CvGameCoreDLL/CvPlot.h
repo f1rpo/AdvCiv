@@ -822,7 +822,7 @@ protected:
 	std::vector<CvSymbol*> m_symbols;
 
 	static bool m_bAllFog; // advc.706
-	static int iMaxVisibilityRangeCache; // advc.003h
+	static int m_iMaxVisibilityRangeCache; // advc.003h
 
 	void doFeature();
 	void doCulture();

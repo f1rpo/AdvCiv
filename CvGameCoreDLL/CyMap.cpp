@@ -290,4 +290,3 @@ void CyMap::updateMinOriginalStartDist(CyArea* pArea)
 {
 	m_kMap.updateMinOriginalStartDist(pArea->getArea());
 }
-

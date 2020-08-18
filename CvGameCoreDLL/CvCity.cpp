@@ -4845,7 +4845,8 @@ int CvCity::calculateCorporationMaintenanceTimes100(CorporationTypes eCorporatio
 	int iMaintenance = 0;
 	FOR_EACH_ENUM(Commerce)
 	{
-		iMaintenance += 100 * GC.getInfo(eCorporation).getHeadquarterCommerce(eLoopCommerce);
+		iMaintenance += 100 * GC.getInfo(eCorporation).
+				getHeadquarterCommerce(eLoopCommerce);
 	}
 
 	int iNumBonuses = 0;
@@ -4857,17 +4858,19 @@ int CvCity::calculateCorporationMaintenanceTimes100(CorporationTypes eCorporatio
 	}
 
 	int iBonusMaintenance = GC.getInfo(eCorporation).getMaintenance() * iNumBonuses;
-	iBonusMaintenance *= GC.getInfo(GC.getMap().getWorldSize()).getCorporationMaintenancePercent();
+	iBonusMaintenance *= GC.getInfo(GC.getMap().getWorldSize()).
+			getCorporationMaintenancePercent();
 	iBonusMaintenance /= 100;
 	iMaintenance += iBonusMaintenance;
 
-	iMaintenance *= (getPopulation() + 17);
+	iMaintenance *= getPopulation() + 17;
 	iMaintenance /= 18;
 
 	iMaintenance *= GC.getInfo(getHandicapType()).getCorporationMaintenancePercent();
 	iMaintenance /= 100;
 
-	iMaintenance *= std::max(0, (GET_PLAYER(getOwner()).getCorporationMaintenanceModifier() + 100));
+	iMaintenance *= std::max(0, GET_PLAYER(getOwner()).
+			getCorporationMaintenanceModifier() + 100);
 	iMaintenance /= 100;
 
 	int iInflation = GET_PLAYER(getOwner()).calculateInflationRate() + 100;
@@ -4913,20 +4916,20 @@ void CvCity::changeWarWearinessModifier(int iChange)
 
 void CvCity::changeHurryAngerModifier(int iChange)
 {
-	if (iChange != 0)
+	if (iChange == 0)
+		return;
+
+	int iRatio = 0;
+	if (m_iHurryAngerTimer > 0)
 	{
-		int iRatio = 0;
-		if (m_iHurryAngerTimer > 0)
-		{
-			iRatio = (100 * (m_iHurryAngerTimer - 1)) /
+		iRatio = (100 * (m_iHurryAngerTimer - 1)) /
 				std::max(1, 100 + getHurryAngerModifier());
-		}
-		m_iHurryAngerModifier += iChange;
-		if (m_iHurryAngerTimer > 0)
-		{
-			m_iHurryAngerTimer = (iRatio *
-					std::max(1, 100 + getHurryAngerModifier())) / 100 + 1;
-		}
+	}
+	m_iHurryAngerModifier += iChange;
+	if (m_iHurryAngerTimer > 0)
+	{
+		m_iHurryAngerTimer = (iRatio *
+				std::max(1, 100 + getHurryAngerModifier())) / 100 + 1;
 	}
 }
 
@@ -10593,10 +10596,10 @@ void CvCity::doProduction(bool bAllowNoProduction)
 	{
 		// K-Mod. End the culture process if our borders have expanded.
 		// (This function is called after "doResearch" etc.)
-		const OrderData& order = headOrderQueueNode()->m_data;
-		if (order.iData2 > 0 && GC.getInfo((ProcessTypes)order.iData1).
+		OrderData const& kOrder = headOrderQueueNode()->m_data;
+		if (kOrder.iData2 > 0 && GC.getInfo((ProcessTypes)kOrder.iData1).
 			getProductionToCommerceModifier(COMMERCE_CULTURE) > 0 &&
-			getCultureLevel() > order.iData2)
+			getCultureLevel() > kOrder.iData2)
 		{
 			popOrder(0, false, ALL_CHOOSE);
 		}

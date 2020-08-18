@@ -411,8 +411,8 @@ public:
 	/* <advc.104> Added an optional parameter to allow the computation of
 	   projected maintenance for cities yet to be conquered. */
 	int calculateDistanceMaintenanceTimes100(PlayerTypes eOwner = NO_PLAYER) const;								// Exposed to Python
-	int calculateColonyMaintenanceTimes100(PlayerTypes eOwner = NO_PLAYER) const;
-	int calculateNumCitiesMaintenanceTimes100(PlayerTypes eOwner = NO_PLAYER) const;							// Exposed to Python									// Exposed to Python
+	int calculateColonyMaintenanceTimes100(PlayerTypes eOwner = NO_PLAYER) const;								// Exposed to Python
+	int calculateNumCitiesMaintenanceTimes100(PlayerTypes eOwner = NO_PLAYER) const;							// Exposed to Python
 	// </advc.104>
 	// <advc.004b> A projection for cities yet to be founded
 	static int calculateDistanceMaintenanceTimes100(CvPlot const& kCityPlot,

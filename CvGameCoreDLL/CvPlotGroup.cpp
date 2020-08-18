@@ -179,21 +179,21 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 	}
 }
 
-// <advc.064d>
+// advc.064d:
 void CvPlotGroup::verifyCityProduction()
 {
 	PROFILE_FUNC(); // About 1 permille of the runtime
 	if (m_iRecalculating > 0)
 		return;
-	CvMap const& m = GC.getMap();
+	CvMap const& kMap = GC.getMap();
 	for (CLLNode<XYCoords> const* pPlotNode = headPlotsNode(); pPlotNode != NULL;
 		pPlotNode = nextPlotsNode(pPlotNode))
 	{
-		CvCity* pCity = m.getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY).getPlotCity();
+		CvCity* pCity = kMap.getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY).getPlotCity();
 		if (pCity != NULL && pCity->getOwner() == getOwner())
 			pCity->verifyProduction();
 	}
-} // </advc.064d>
+}
 
 
 void CvPlotGroup::insertAtEndPlots(XYCoords xy)

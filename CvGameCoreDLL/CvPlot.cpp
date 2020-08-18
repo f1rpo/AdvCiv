@@ -21,7 +21,7 @@
 
 #define STANDARD_MINIMAP_ALPHA		(0.75f) // advc.002a: was 0.6
 bool CvPlot::m_bAllFog = false; // advc.706
-int CvPlot::iMaxVisibilityRangeCache; // advc.003h
+int CvPlot::m_iMaxVisibilityRangeCache; // advc.003h
 #define NO_BUILD_IN_PROGRESS (-2) // advc.011
 
 
@@ -1639,20 +1639,20 @@ void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 	}
 }
 
-// <advc.003h> Cut and pasted from CvPlot::updateSeeFromSight
+// advc.003h: Cut and pasted from CvPlot::updateSeeFromSight
 void CvPlot::setMaxVisibilityRangeCache()
 {
 	int iRange = GC.getDefineINT(CvGlobals::UNIT_VISIBILITY_RANGE) + 1;
 	for(int iPromotion = 0; iPromotion < GC.getNumPromotionInfos(); iPromotion++)
 		iRange += GC.getInfo((PromotionTypes)iPromotion).getVisibilityChange();
 	iRange = std::max(GC.getDefineINT(CvGlobals::RECON_VISIBILITY_RANGE) + 1, iRange);
-	iMaxVisibilityRangeCache = iRange;
-} // </advc.003h>
+	m_iMaxVisibilityRangeCache = iRange;
+}
 
 
 void CvPlot::updateSeeFromSight(bool bIncrement, bool bUpdatePlotGroups)
 {
-	for (SquareIter it(*this, /* advc.003h: */ iMaxVisibilityRangeCache);
+	for (SquareIter it(*this, /* advc.003h: */ m_iMaxVisibilityRangeCache);
 		it.hasNext(); ++it)
 	{
 		it->updateSight(bIncrement, bUpdatePlotGroups);
