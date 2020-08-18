@@ -4887,10 +4887,18 @@ int CvCity::calculateCorporationMaintenanceTimes100(CorporationTypes eCorporatio
 }
 
 
-int CvCity::calculateBaseMaintenanceTimes100() const
+int CvCity::calculateBaseMaintenanceTimes100(
+	/* <advc.ctr> */ PlayerTypes eOwner) const
 {
-	return calculateDistanceMaintenanceTimes100() + calculateNumCitiesMaintenanceTimes100() +
-			calculateColonyMaintenanceTimes100() + calculateCorporationMaintenanceTimes100();
+	if (eOwner == NO_PLAYER)
+		eOwner = getOwner(); // </advc.ctr>
+	int iR = calculateDistanceMaintenanceTimes100(eOwner) +
+			calculateNumCitiesMaintenanceTimes100(eOwner) +
+			calculateColonyMaintenanceTimes100(eOwner);
+	// advc.ctr: Anticipating corporation maintenance gets too complicated
+	if (eOwner == getOwner())
+		iR += calculateCorporationMaintenanceTimes100();
+	return iR;
 }
 
 

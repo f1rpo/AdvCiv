@@ -1830,10 +1830,8 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity)  // advc: style changes, advc.0
 			// <advc.116>
 			if (bFinancialTrouble)
 			{
-				iRazeValue += (kCity.calculateDistanceMaintenanceTimes100(getID()) +
-						kCity.calculateDistanceMaintenanceTimes100(getID())) /
-						100; // Replacing:
-						//std::max(0, (70 - 15 * pCity->getPopulation()));
+				iRazeValue += //std::max(0, (70 - 15 * pCity->getPopulation()));
+						kCity.calculateBaseMaintenanceTimes100() / 100;
 			}
 			iRazeValue -= 3 * kCity.getPopulation();
 			// </advc.116>
@@ -3042,9 +3040,7 @@ scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 	}
 	scaled rInflationMultiplier = 1 + per100(calculateInflationRate());
 	// Note: Handles NO_VASSAL_STATES, State Property; not affected by disorder.
-	scaled rMaintCost = per100(c.calculateColonyMaintenanceTimes100(getID()) +
-			c.calculateDistanceMaintenanceTimes100(getID()) +
-			c.calculateNumCitiesMaintenanceTimes100(getID()));
+	scaled rMaintCost = per100(c.calculateBaseMaintenanceTimes100(getID()));
 	// Estimate incr. civic upkeep and incr. maint. in other cities
 	rMaintCost += scaled(GC.getInfo(GC.getMap().getWorldSize()).
 			getNumCitiesMaintenancePercent(), 200) * getNumCities();

@@ -425,7 +425,8 @@ public:
 	// </advc.004b>
 	int calculateCorporationMaintenanceTimes100(CorporationTypes eCorporation) const;							// Exposed to Python
 	int calculateCorporationMaintenanceTimes100() const;														// Exposed to Python
-	int calculateBaseMaintenanceTimes100() const;
+	int calculateBaseMaintenanceTimes100(
+			PlayerTypes eOwner = NO_PLAYER) const; // advc.ctr
 	int getMaintenanceModifier() const { return m_iMaintenanceModifier; }										// Exposed to Python
 	void changeMaintenanceModifier(int iChange);
 
