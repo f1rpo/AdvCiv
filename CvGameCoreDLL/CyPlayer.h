@@ -160,6 +160,7 @@ public:
 
 	bool canSeeResearch(int /*PlayerTypes*/ ePlayer) const; // K-Mod
 	bool canSeeDemographics(int /*PlayerTypes*/ ePlayer) const; // K-Mod
+	bool hasEverSeenDemographics(int iPlayer) const; // advc.091
 
 	bool isCivic(int /*CivicTypes*/ eCivic);
 	bool canDoCivics(int /*CivicTypes*/ eCivic);

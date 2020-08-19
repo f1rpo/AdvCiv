@@ -348,6 +348,12 @@ public:
 			bool bCheckPoints = true) const; // advc.085
 	// advc.085:
 	int espionageNeededToSee(PlayerTypes ePlayer, bool bDemographics) const;
+	// <advc.091>
+	bool hasEverSeenDemographics(PlayerTypes eOther) const // (exposed to python)
+	{
+		return m_abEverSeenDemographics.get(eOther);
+	}
+	void updateEverSeenDemographics(TeamTypes eTargetTeam); // </advc.091>
 	// advc.550e; also need it for advc.314
 	bool isSignificantDiscovery(TechTypes eTech) const;
 
@@ -1572,6 +1578,7 @@ protected:  // <advc.210>
 	EnumMap<FeatTypes,bool> m_abFeatAccomplished;
 	EnumMap<PlayerOptionTypes,bool> m_abOptions;
 	EnumMap<TechTypes,bool> m_abResearchingTech;
+	EnumMap<PlayerTypes,bool> m_abEverSeenDemographics; // advc.091
 	EnumMapDefault<VoteSourceTypes,bool,true> m_abLoyalMember;
 
 	EnumMap2D<SpecialistTypes,YieldTypes,int> m_aaeSpecialistExtraYield;

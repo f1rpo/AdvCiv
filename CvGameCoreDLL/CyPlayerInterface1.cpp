@@ -145,6 +145,8 @@ void CyPlayerPythonInterface1(python::class_<CyPlayer>& x)
 
 		.def("canSeeResearch", &CyPlayer::canSeeResearch, "bool (int /*PlayerTypes*/ ePlayer)") // K-Mod
 		.def("canSeeDemographics", &CyPlayer::canSeeDemographics, "bool (int /*PlayerTypes*/ ePlayer)") // K-Mod
+		// advc.091:
+		.def("hasEverSeenDemographics", &CyPlayer::hasEverSeenDemographics, "bool (int /*PlayerTypes*/ iPlayer)")
 
 		.def("isCivic", &CyPlayer::isCivic, "bool (int (CivicTypes) eCivic)")
 		.def("canDoCivics", &CyPlayer::canDoCivics, "bool (int (CivicTypes) eCivic)")

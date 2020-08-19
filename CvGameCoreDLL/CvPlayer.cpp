@@ -474,7 +474,10 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	if (!bConstructorCall && getID() != NO_PLAYER)
 	{
 		for (int i = 0; i < MAX_PLAYERS; i++)
+		{
 			GET_PLAYER((PlayerTypes)i).m_aiGoldPerTurnByPlayer.reset(getID());
+			GET_PLAYER((PlayerTypes)i).m_abEverSeenDemographics.reset(getID()); // advc.091
+		}
 	}
 	m_aiEspionageSpendingWeightAgainstTeam.reset();
 	if (!bConstructorCall && getTeam() != NO_TEAM)
@@ -509,6 +512,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_abFeatAccomplished.reset();
 	m_abOptions.reset();
 	m_abResearchingTech.reset();
+	m_abEverSeenDemographics.reset(); // advc.091
 	m_abLoyalMember.reset();
 	m_aaeSpecialistExtraYield.reset();
 	m_aaeImprovementYieldChange.reset();
@@ -6536,6 +6540,16 @@ int CvPlayer::espionageNeededToSee(PlayerTypes ePlayer, bool bDemographics) cons
 		}
 	}
 	return iR;
+}
+
+// advc.091:
+void CvPlayer::updateEverSeenDemographics(TeamTypes eTargetTeam)
+{
+	for (MemberIter it(eTargetTeam); it.hasNext(); ++it)
+	{
+		if (!hasEverSeenDemographics(it->getID()) && canSeeDemographics(it->getID()))
+			m_abEverSeenDemographics.set(it->getID(), true);
+	}
 }
 
 // advc.550e:
@@ -14004,6 +14018,21 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	m_aiUpkeepCount.Read(pStream);
 	m_aiSpecialistValidCount.Read(pStream);
 	m_abResearchingTech.Read(pStream);
+	// <advc.091>
+	if (uiFlag >= 12)
+		m_abEverSeenDemographics.Read(pStream);
+	else if(isBarbarian()) // Once all players have been loaded
+	{
+		for (PlayerIter<CIV_ALIVE> itSpyPlayer; itSpyPlayer.hasNext(); ++itSpyPlayer)
+		{
+			for (PlayerIter<CIV_ALIVE> itTargetPlayer; itTargetPlayer.hasNext();
+				++itTargetPlayer)
+			{
+				itSpyPlayer->m_abEverSeenDemographics.set(itTargetPlayer->getID(),
+						itSpyPlayer->canSeeDemographics(itTargetPlayer->getID()));
+			}
+		}
+	} // </advc.091>
 	m_abLoyalMember.Read(pStream);
 	m_aeCivics.Read(pStream);
 	m_aaeSpecialistExtraYield.Read(pStream);
@@ -14360,6 +14389,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	uiFlag = 9; // advc.078
 	uiFlag = 10; // advc.064b
 	uiFlag = 11; // advc.001x
+	uiFlag = 12; // advc.091
 	pStream->Write(uiFlag);
 
 	// <advc.027>
@@ -14526,6 +14556,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	m_aiUpkeepCount.Write(pStream);
 	m_aiSpecialistValidCount.Write(pStream);
 	m_abResearchingTech.Write(pStream);
+	m_abEverSeenDemographics.Write(pStream); // advc.091
 	m_abLoyalMember.Write(pStream);
 	m_aeCivics.Write(pStream);
 	m_aaeSpecialistExtraYield.Write(pStream);

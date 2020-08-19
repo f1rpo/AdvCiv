@@ -653,6 +653,11 @@ bool CyTeam::isHasMet(int /*TeamTypes*/ eIndex)
 {
 	return m_pTeam ? m_pTeam->isHasMet((TeamTypes)eIndex) : false;
 }
+// advc.091:
+int CyTeam::getHasMetTurn(int iOtherTeam)
+{
+	return m_pTeam ? m_pTeam->getHasMetTurn((TeamTypes)iOtherTeam) : -1;
+}
 
 bool CyTeam::isAtWar(int /*TeamTypes*/ iIndex)
 {

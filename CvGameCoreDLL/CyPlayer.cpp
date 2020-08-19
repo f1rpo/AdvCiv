@@ -623,8 +623,12 @@ bool CyPlayer::canSeeResearch(int /*PlayerTypes*/ ePlayer) const
 bool CyPlayer::canSeeDemographics(int /*PlayerTypes*/ ePlayer) const
 {
 	return m_pPlayer ? m_pPlayer->canSeeDemographics((PlayerTypes)ePlayer) : false;
+} // K-Mod end
+// advc.091:
+bool CyPlayer::hasEverSeenDemographics(int iPlayer) const
+{
+	return m_pPlayer ? m_pPlayer->hasEverSeenDemographics((PlayerTypes)iPlayer) : false;
 }
-// K-Mod end
 
 bool CyPlayer::isCivic(int /*CivicTypes*/ eCivic)
 {

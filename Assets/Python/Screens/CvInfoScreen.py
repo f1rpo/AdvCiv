@@ -26,6 +26,7 @@ import BugUtil
 AdvisorOpt = BugCore.game.Advisors
 ScoreOpt = BugCore.game.Scores
 #BUG: Change Graphs - end
+import copy # advc.091
 
 # globals
 gc = CyGlobalContext()
@@ -865,9 +866,17 @@ class CvInfoScreen:
 
 #		print("Rebuilding score cache")
 
+		# <advc.091>
+		aiCachePlayers = copy.copy(self.aiPlayersMet)
+		if scoreType == self.TOTAL_SCORE:
+			for p in self.aiPlayersMetNAEspionage:
+				if self.showTotalScoreGraph(p):
+					aiCachePlayers.append(p)
+		# </advc.091>
+
 		# Get the player with the highest ID
 		maxPlayer = 0
-		for p in self.aiPlayersMet:
+		for p in aiCachePlayers: # advc.091: was self.aiPlayersMet
 			if (maxPlayer < p):
 				maxPlayer = p
 
@@ -875,7 +884,7 @@ class CvInfoScreen:
 		self.scoreCache[scoreType] = []
 		for p in range(maxPlayer + 1):
 
-			if (p not in self.aiPlayersMet):
+			if (p not in aiCachePlayers): # advc.091: was self.aiPlayersMet
 				# Don't compute score for people we haven't met
 				self.scoreCache[scoreType].append(None)
 			else:
@@ -883,8 +892,15 @@ class CvInfoScreen:
 				firstTurn	= CyGame().getStartTurn()
 				thisTurn	= CyGame().getGameTurn()
 				turn	= firstTurn
+				# advc.091:
+				bHideBeginning = (scoreType == self.TOTAL_SCORE and not self.pActivePlayer.hasEverSeenDemographics(p) and p in self.aiPlayersMetNAEspionage)
 				while (turn <= thisTurn):
-					self.scoreCache[scoreType][p].append(self.computeHistory(scoreType, p, turn))
+					# <advc.091>
+					if bHideBeginning and turn < self.pActiveTeam.getHasMetTurn(gc.getPlayer(p).getTeam()):
+						score = -1
+					else: # </advc.091>
+						score = self.computeHistory(scoreType, p, turn)
+					self.scoreCache[scoreType][p].append(score)
 					turn += 1
 
 		return
@@ -1129,6 +1145,9 @@ class CvInfoScreen:
 		for p in self.aiPlayersMet:
 			for turn in range(firstTurn,lastTurn + 1):
 				score = self.getHistory(iGraphID, p, turn - startTurn)
+				# <advc.091>
+				if score < 0:
+					continue # </advc.091>
 				if (max < score):
 					max = score
 				if (min > score):
@@ -1154,8 +1173,16 @@ class CvInfoScreen:
 #		self.timer.log("drawGraph - max, min")
 #		self.timer.start()
 
+		# <advc.091>
+		aiLinePlayers = copy.copy(self.aiPlayersMet)
+		if iGraphID == self.TOTAL_SCORE:
+			for p in self.aiPlayersMetNAEspionage:
+				if self.showTotalScoreGraph(p):
+					aiLinePlayers.append(p)
+		# </advc.091>
+
 		# Draw the lines
-		for p in self.aiPlayersMet:
+		for p in aiLinePlayers: # advc.091: was self.aiPlayersMet
 
 #BUG: Change Graphs - start
 			if AdvisorOpt.isGraphs():
@@ -1179,6 +1206,10 @@ class CvInfoScreen:
 			while (turn >= firstTurn):
 
 				score = self.getHistory(iGraphID, p, turn - startTurn)
+				# <advc.091>
+				if score < 0:
+					turn -= 1
+					continue # </advc.091>
 				if AdvisorOpt.isGraphsLogScale():
 					y = iH_GRAPH - int(yFactor * (self.getLog10(score) - self.getLog10(min)))
 				else:
@@ -1223,31 +1254,41 @@ class CvInfoScreen:
 
 	def drawLegend(self):
 		screen = self.getScreen()
+		# <advc.091>
+		aiLegendPlayers = copy.copy(self.aiPlayersMet)
+		bIgnoreEspionage = False
+		if not AdvisorOpt.isGraphs() or (self.Graph_Status_Current == self.Graph_Status_7in1 or (self.Graph_Status_Current == self.Graph_Status_3in1 and (self.iGraph_3in1[0] == self.TOTAL_SCORE or self.iGraph_3in1[1] == self.TOTAL_SCORE) or self.iGraph_3in1[2] == self.TOTAL_SCORE) or (self.Graph_Status_Current == self.Graph_Status_1in1 and self.iGraphTabID == self.TOTAL_SCORE)):
+			bIgnoreEspionage = True
+		if bIgnoreEspionage:
+			for p in self.aiPlayersMetNAEspionage:
+				if self.showTotalScoreGraph(p):
+					aiLegendPlayers.append(p)
+		# </advc.091>
 
 #BUG: Change Graphs - start
 		iW_LEGEND = self.W_LEGEND
 		if AdvisorOpt.isGraphs():
-			for p in self.aiPlayersMet:
+			for p in aiLegendPlayers:
 				szPlayerName = self.getPlayerName(p)
 				if not gc.getPlayer(p).isAlive(): szPlayerName += " [" + self.BUG_LEGEND_DEAD + "]"
-
 				if iW_LEGEND < self.X_LEGEND_TEXT + CyInterface().determineWidth(szPlayerName) + 10:
 					iW_LEGEND = self.X_LEGEND_TEXT + CyInterface().determineWidth(szPlayerName) + 10
-
 			for p in self.aiPlayersMetNAEspionage:
+				# <advc.091>
+				if bIgnoreEspionage and self.showTotalScoreGraph(p):
+					continue # </advc.091>
 				szPlayerName = self.getPlayerName(p)
 				if not gc.getPlayer(p).isAlive(): szPlayerName += " [" + self.BUG_LEGEND_DEAD + "]"
-
 				if iW_LEGEND < self.X_LEGEND_TEXT + CyInterface().determineWidth(szPlayerName) + 10:
 					iW_LEGEND = self.X_LEGEND_TEXT + CyInterface().determineWidth(szPlayerName) + 10
-
+		iLegendRows = self.iNumPlayersMet + self.iNumPlayersMetNAEspionage # advc.091
 		if not AdvisorOpt.isGraphs():
-			self.H_LEGEND = 2 * self.Y_LEGEND_MARGIN + self.iNumPlayersMet * self.H_LEGEND_TEXT + 3
+			self.H_LEGEND = 2 * self.Y_LEGEND_MARGIN + iLegendRows * self.H_LEGEND_TEXT + 3
 			if AdvisorOpt.isGraphsLogScale():
 				self.H_LEGEND += self.H_LEGEND_TEXT
 			self.Y_LEGEND = self.Y_GRAPH + self.H_GRAPH - self.H_LEGEND
 		else:
-			self.H_LEGEND = 2 * self.Y_LEGEND_MARGIN + (self.iNumPlayersMet + self.iNumPlayersMetNAEspionage + 4) * self.H_LEGEND_TEXT + 3
+			self.H_LEGEND = 2 * self.Y_LEGEND_MARGIN + (iLegendRows + 4) * self.H_LEGEND_TEXT + 3
 			if AdvisorOpt.isGraphsLogScale():
 				self.H_LEGEND += self.H_LEGEND_TEXT
 
@@ -1270,16 +1311,16 @@ class CvInfoScreen:
 		yLine = self.Y_LEGEND_LINE
 		yText = self.Y_LEGEND + self.Y_LEGEND_TEXT
 
-		for p in self.aiPlayersMet:
+		for p in aiLegendPlayers:
 #BUG: Change Graphs - start
 			if AdvisorOpt.isGraphs():
 				name = self.getPlayerName(p)
 			else:
 				name = gc.getPlayer(p).getName()
 
-			i = gc.getPlayer(p).getID()
-			if (self.bPlayerInclude[i]
-			or not AdvisorOpt.isGraphs()):
+			#i = gc.getPlayer(p).getID() # advc: redundant
+			# advc.091: No line when there'll be no graph - also with the non-BUG Advisor
+			if self.bPlayerInclude[p] or (not AdvisorOpt.isGraphs() and (p in self.aiPlayersMet or (self.iGraphTabID == self.TOTAL_SCORE and p in self.aiPlayersMetNAEspionage and self.showTotalScoreGraph(p)))):
 				textColorR = gc.getPlayer(p).getPlayerTextColorR()
 				textColorG = gc.getPlayer(p).getPlayerTextColorG()
 				textColorB = gc.getPlayer(p).getPlayerTextColorB()
@@ -1298,10 +1339,10 @@ class CvInfoScreen:
 
 #BUG: Change Graphs - start
 			if AdvisorOpt.isGraphs():
-				screen.setText(self.sPlayerTextWidget[i], "", u"<font=2>" + str + u"</font>", CvUtil.FONT_LEFT_JUSTIFY,
+				screen.setText(self.sPlayerTextWidget[p], "", u"<font=2>" + str + u"</font>", CvUtil.FONT_LEFT_JUSTIFY,
 							   self.X_LEGEND + self.X_LEGEND_TEXT, yText, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			else:
-				screen.setLabel(self.sPlayerTextWidget[i], "", u"<font=2>" + str + u"</font>", CvUtil.FONT_LEFT_JUSTIFY,
+				screen.setLabel(self.sPlayerTextWidget[p], "", u"<font=2>" + str + u"</font>", CvUtil.FONT_LEFT_JUSTIFY,
 								self.X_LEGEND + self.X_LEGEND_TEXT, yText, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 #BUG: Change Graphs - end
 
@@ -1315,10 +1356,11 @@ class CvInfoScreen:
 			yLine += self.H_LEGEND_TEXT
 			yText += self.H_LEGEND_TEXT
 			for p in self.aiPlayersMetNAEspionage:
+				# <advc.091>
+				if bIgnoreEspionage and self.showTotalScoreGraph(p):
+					continue # </advc.091>
 				i = gc.getPlayer(p).getID()
-
 				name = self.getPlayerName(p)
-
 				if not gc.getPlayer(p).isAlive(): # player is dead!
 					textColorR = 175
 					textColorG = 175
@@ -1330,12 +1372,8 @@ class CvInfoScreen:
 					textColorG = gc.getPlayer(p).getPlayerTextColorG()
 					textColorB = gc.getPlayer(p).getPlayerTextColorB()
 					textColorA = gc.getPlayer(p).getPlayerTextColorA()
-
 				str = u"<color=%d,%d,%d,%d>%s</color>" %(textColorR,textColorG,textColorB,textColorA,name)
-
-				screen.setLabel(self.sPlayerTextWidget[i], "", u"<font=2>" + str + u"</font>", CvUtil.FONT_LEFT_JUSTIFY,
-								self.X_LEGEND + self.X_LEGEND_TEXT + 2, yText, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
-
+				screen.setLabel(self.sPlayerTextWidget[i], "", u"<font=2>" + str + u"</font>", CvUtil.FONT_LEFT_JUSTIFY, self.X_LEGEND + self.X_LEGEND_TEXT + 2, yText, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 				yLine += self.H_LEGEND_TEXT
 				yText += self.H_LEGEND_TEXT
 
@@ -1367,12 +1405,15 @@ class CvInfoScreen:
 		return szPlayerName
 #BUG: Change Graphs - end
 
+	# advc.091:
+	def showTotalScoreGraph(self, iPlayer):
+		return gc.getGame().getGameTurn() - self.pActiveTeam.getHasMetTurn(gc.getPlayer(iPlayer).getTeam()) >= 5 or self.pActivePlayer.hasEverSeenDemographics(iPlayer)
+
 #############################################################################################################
 ################################################# DEMOGRAPHICS ##############################################
 #############################################################################################################
 
 	def drawDemographicsTab(self):
-
 		self.drawTextChart()
 		
 	def getHappyValue(self, pPlayer):

@@ -250,14 +250,15 @@ public:
 	int getExtraMoves(DomainTypes eIndex) const;																				// Exposed to Python
 	void changeExtraMoves(DomainTypes eIndex, int iChange);								// Exposed to Python
 
-	inline bool isHasMet(TeamTypes eIndex) const // advc.inl													// Exposed to Python
+	inline bool isHasMet(TeamTypes eOther) const // advc.inl													// Exposed to Python
 	{
-		return m_abHasMet.get(eIndex);
+		return (m_aiHasMetTurn.get(eOther) >= 0); // advc.091
 	}
-	void makeHasMet(TeamTypes eIndex, bool bNewDiplo,
+	int getHasMetTurn(TeamTypes eOther) { return m_aiHasMetTurn.get(eOther); } // advc.091  (exposed to Python)
+	void makeHasMet(TeamTypes eOther, bool bNewDiplo,
 			FirstContactData* pData = NULL); // advc.071
-	bool isHasSeen(TeamTypes eIndex) const { return m_abHasSeen.get(eIndex); }; // K-Mod
-	void makeHasSeen(TeamTypes eIndex) { m_abHasSeen.set(eIndex, true); }; // K-Mod
+	bool isHasSeen(TeamTypes eOther) const { return m_abHasSeen.get(eOther); }; // K-Mod
+	void makeHasSeen(TeamTypes eOther) { m_abHasSeen.set(eOther, true); }; // K-Mod
 	// <advc.134a>
 	bool isAtWarExternal(TeamTypes eIndex) const; // Exported through .def file
 	inline bool isAtWar(TeamTypes eIndex) const																	// Exposed to Python
@@ -564,12 +565,12 @@ protected:
 	EnumMap<TechTypes,int> m_aiTechCount;
 	EnumMap<TerrainTypes,int> m_aiTerrainTradeCount;
 	EnumMapDefault<VictoryTypes,int,-1> m_aiVictoryCountdown;
+	EnumMapDefault<TeamTypes,short,-1> m_aiHasMetTurn; // advc.091
 
 	EnumMap2D<ImprovementTypes,YieldTypes,int> m_aaiImprovementYieldChange; // Should make this <...,char>
 
 	EnumMap<TeamTypes,bool> m_abAtWar;
 	EnumMap<TeamTypes,bool> m_abJustDeclaredWar; // advc.162
-	EnumMap<TeamTypes,bool> m_abHasMet;
 	EnumMap<TeamTypes,bool> m_abHasSeen; // K-Mod
 	EnumMap<TeamTypes,bool> m_abPermanentWarPeace;
 	EnumMap<TeamTypes,bool> m_abOpenBorders;
