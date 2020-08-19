@@ -824,7 +824,7 @@ void CvGlobals::updateCameraStartDistance()
 			"CAMERA_START_DISTANCE");
 	float fNewValue = m_fCAMERA_START_DISTANCE_Override;
 	if (fNewValue < 0)
-		fNewValue = std::max(9100 - 100 * getDefineFLOAT("FIELD_OF_VIEW"), 1200.f);
+		fNewValue = std::max(8440 - 80 * getDefineFLOAT("FIELD_OF_VIEW"), 1200.f);
 	setDefineFLOAT("CAMERA_START_DISTANCE", fNewValue,
 			false); // Update the cache explicitly instead:
 	cacheGlobalFloats(false);
