@@ -631,13 +631,14 @@ class CvInfoScreen:
 			for j in range(gc.getMAX_CIV_PLAYERS()): # advc.007: was MAX_PLAYERS
 				if (gc.getPlayer(j).isAlive()):
 					screen.addPullDownString(self.szDropdownName, gc.getPlayer(j).getName(), j, j, False)
-					
-		self.bRevealAll = (CyGame().isDebugMode() or CyGame().getGameState() == GameStateTypes.GAMESTATE_OVER) # advc.077
 
 		self.iActivePlayer = CyGame().getActivePlayer()
 		self.pActivePlayer = gc.getPlayer(self.iActivePlayer)
 		self.iActiveTeam = self.pActivePlayer.getTeam()
 		self.pActiveTeam = gc.getTeam(self.iActiveTeam)
+
+		# advc.007: Don't reveal all when perspective switched (I guess this is possible when the game ends while in Debug mode)	
+		self.bRevealAll = (self.iActiveTeam == gc.getGame().getActiveTeam() and (CyGame().isDebugMode() or CyGame().getGameState() == GameStateTypes.GAMESTATE_OVER)) # advc.077
 
 		self.iInvestigateCityMission = -1
 		# See if Espionage allows graph to be shown for each player
@@ -1994,7 +1995,7 @@ class CvInfoScreen:
 				iDistance = 350
 
 			self.szCityAnimWidgets.append(self.getNextWidgetName())
-			# advc.001d: Replaced gc.getGame().getActiveTeam() with self.iActiveTeam
+			# advc.001d: Replaced gc.getGame().getActiveTeam() with self.iActiveTeam. But don't check bRevealAll - addPlotGraphicGFC requires the city to be revealed, will show an empty tile otherwise.
 			# advc.007: bDebug=True unless perspective switched. 
 			if pCity.isRevealed(self.iActiveTeam, self.iActiveTeam == gc.getGame().getActiveTeam()):
 				screen.addPlotGraphicGFC(self.szCityAnimWidgets[iWidgetLoop], self.X_CITY_ANIMATION, self.Y_ROWS_CITIES[iWidgetLoop] + self.Y_CITY_ANIMATION_BUFFER - self.H_CITY_ANIMATION / 2, self.W_CITY_ANIMATION, self.H_CITY_ANIMATION, pPlot, iDistance, false, WidgetTypes.WIDGET_GENERAL, -1, -1)
@@ -2127,8 +2128,8 @@ class CvInfoScreen:
 					szTurnFounded = localText.getText("TXT_KEY_TIME_AD", (iTurnYear,))#"%d %s" %(iTurnYear, self.TEXT_AD)
 				# advc.007: bDebug=True unless perspective switched
 				bRevealed = pCity.GetCy().isRevealed(self.iActiveTeam, self.iActiveTeam == gc.getGame().getActiveTeam())
-				# advc.001d: hasMet clause commented out, replaced gc.getGame().getActiveTeam() with self.iActiveTeam.
-				if bRevealed:# or gc.getTeam(pPlayer.getTeam()).isHasMet(gc.getGame().getActiveTeam()):
+				# advc.001d: hasMet clause commented out, replaced gc.getGame().getActiveTeam() with self.iActiveTeam. Check bRevealAll.
+				if bRevealed or self.bRevealAll:# or gc.getTeam(pPlayer.getTeam()).isHasMet(gc.getGame().getActiveTeam()):
 					self.szCityNames[iRankLoop] = pCity.getName().upper()
 					self.szCityDescs[iRankLoop] = ("%s, %s" %(pPlayer.getCivilizationAdjective(0), localText.getText("TXT_KEY_MISC_FOUNDED_IN", (szTurnFounded,))))
 				else:
@@ -2595,7 +2596,7 @@ class CvInfoScreen:
 									self.iNumWonders += 1
 
 							# National/Team Wonder Mode
-							#advc:
+							# advc:
 							elif self.szWonderDisplayMode == self.szWDM_NatnlWonder and (isNationalWonderClass(pBuilding.getBuildingClassType()) or isTeamWonderClass(pBuilding.getBuildingClassType())):
 
 								# Is this city building a wonder?
@@ -2659,7 +2660,8 @@ class CvInfoScreen:
 		self.aaWondersBuilt_BUG = []
 		self.iNumWonders = 0
 		# advc.007: Use this to reveal all wonders in Debug mode unless perspective switched
-		bDebug = CyGame().isDebugMode() and self.iActiveTeam == gc.getGame().getActiveTeam()
+		# advc.001d: Check bRevealALl
+		bDebug = (CyGame().isDebugMode() or self.bRevealAll) and self.iActiveTeam == gc.getGame().getActiveTeam()
 
 		# Loop through players to determine Wonders
 		for iPlayerLoop in range(gc.getMAX_PLAYERS()):
@@ -2683,7 +2685,8 @@ class CvInfoScreen:
 					pCityPlot = CyMap().plot(pCity.getX(), pCity.getY())
 
 					# advc.007: Note that pCity is a PyCity (PyHelpers.py), whose isRevealed function takes only one argument. Need a CyCity instead.
-					bRevealed = pCity.GetCy().isRevealed(self.iActiveTeam, bDebug)
+					# advc.001d: Check bRevealAll
+					bRevealed = pCity.GetCy().isRevealed(self.iActiveTeam, bDebug) or self.bRevealAll
 
 					# Loop through projects to find any under construction
 					if self.szWonderDisplayMode == self.szWDM_Project:
@@ -2852,9 +2855,9 @@ class CvInfoScreen:
 			szTurnYearBuilt = u"<font=2>%c</font>" % gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar()
 
 			# Check to see if active player can see this city
-			# advc.001d: replaced gc.getGame().getActiveTeam with self.iActiveTeam
+			# advc.001d: replaced gc.getGame().getActiveTeam with self.iActiveTeam. Check bRevealAll.
 			# advc.007: bDebug=True unless perspective switched. 
-			bRevealed = pCity.GetCy().isRevealed(self.iActiveTeam, self.iActiveTeam == gc.getGame().getActiveTeam())
+			bRevealed = pCity.GetCy().isRevealed(self.iActiveTeam, self.iActiveTeam == gc.getGame().getActiveTeam()) or self.bRevealAll
 			if pCity and bRevealed:
 				szCityName = pCity.getName()
 			else:
@@ -2903,9 +2906,9 @@ class CvInfoScreen:
 				szTurnYearBuilt = BugUtil.getDisplayYear(iTurnYearBuilt)
 
 			# Check to see if active player can see this city
-			# advc.001d: Replaced gc.getGame().getActiveTeam with self.iActiveTeam
+			# advc.001d: Replaced gc.getGame().getActiveTeam with self.iActiveTeam. Check bRevealAll.
 			# advc.007: bDebug=True unless perspective switched. 
-			bRevealed = pCity.GetCy().isRevealed(self.iActiveTeam, self.iActiveTeam == gc.getGame().getActiveTeam())
+			bRevealed = pCity.GetCy().isRevealed(self.iActiveTeam, self.iActiveTeam == gc.getGame().getActiveTeam()) or self.bRevealAll
 			if pCity and bRevealed:
 				szCityName = pCity.getName()
 			else:
