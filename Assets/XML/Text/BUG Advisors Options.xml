@@ -343,6 +343,24 @@
 
 <!-- Info Screen -->
 
+	<!-- advc.091: -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_ADVISORS__PARTIALSCOREGRAPHS_TEXT</Tag>
+		<English>Partial Score Graphs</English>
+		<French>Partial Score Graphs</French>
+		<German>Teilweise Punktzahlkurve</German>
+		<Italian>Partial Score Graphs</Italian>
+		<Spanish>Partial Score Graphs</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_ADVISORS__PARTIALSCOREGRAPHS_HOVER</Tag>
+		<English>For players whose full score history has never been visible to you, display a score graph that only shows the player's game scores since the turn that you've first met. (This partial graph won't appear until you've known a player for at least 5 turns, and, in savegames from AdvCiv 0.97 and earlier, players are assumed to have just been met.)</English>
+		<French>For players whose full score history has never been visible to you, display a score graph that only shows the player's game scores since the turn that you've first met. (This partial graph won't appear until you've known a player for at least 5 turns, and, in savegames from AdvCiv 0.97 and earlier, players are assumed to have just been met.)</French>
+		<German>Zeigt für Spieler, deren Punktehistorie Ihnen unbekannt ist, die Punktestände seit Ihrer ersten Begegnung an. (Dieser Kurvenabschnitt wird aber erst angezeigt, wenn Sie einen Spieler seit wenigstens 5 Zügen kennen. In Spielständen, die vor AdvCiv 0.98 entstanden sind, wird angenommen, dass Sie alle Gegner gerade erst kennengelernt haben.)</German>
+		<Italian>For players whose full score history has never been visible to you, display a score graph that only shows the player's game scores since the turn that you've first met. (This partial graph won't appear until you've known a player for at least 5 turns, and, in savegames from AdvCiv 0.97 and earlier, players are assumed to have just been met.)</Italian>
+		<Spanish>For players whose full score history has never been visible to you, display a score graph that only shows the player's game scores since the turn that you've first met. (This partial graph won't appear until you've known a player for at least 5 turns, and, in savegames from AdvCiv 0.97 and earlier, players are assumed to have just been met.)</Spanish>
+	</TEXT>
+
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGGRAPHSLOGSCALE_TEXT</Tag>
 		<English>Graphs Log Scale</English>

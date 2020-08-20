@@ -1408,7 +1408,7 @@ class CvInfoScreen:
 
 	# advc.091:
 	def showTotalScoreGraph(self, iPlayer):
-		return gc.getGame().getGameTurn() - self.pActiveTeam.getHasMetTurn(gc.getPlayer(iPlayer).getTeam()) >= 5 or self.pActivePlayer.hasEverSeenDemographics(iPlayer)
+		return ((gc.getGame().getGameTurn() - self.pActiveTeam.getHasMetTurn(gc.getPlayer(iPlayer).getTeam()) >= 5 and AdvisorOpt.isPartialScoreGraphs()) or self.pActivePlayer.hasEverSeenDemographics(iPlayer))
 
 #############################################################################################################
 ################################################# DEMOGRAPHICS ##############################################

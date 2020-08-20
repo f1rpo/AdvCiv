@@ -95,6 +95,11 @@
 					type="boolean" default="False" 
 					get="isMembers"/>
 	
+			<!-- advc.091: -->
+			<option id="PartialScoreGraphs" key="Partial Score Graphs" 
+					type="boolean" default="False" 
+					get="isPartialScoreGraphs"/>
+
 			<!-- BUG Info Screen (F9) by Ruff_Hi -->
 			<option id="BugGraphsTab" key="Graphs" 
 					type="boolean" default="False" 
