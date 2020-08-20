@@ -10908,30 +10908,30 @@ void CvCity::doMeltdown()
 	if (GC.getPythonCaller()->doMeltdown(*this))
 		return;
 
+	bool bMessage = false; // advc
 	CvCivilization const& kCiv = getCivilization(); // advc.003w
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eDangerBuilding = kCiv.buildingAt(i);
+		CvBuildingInfo const& kDangerBuilding = GC.getInfo(eDangerBuilding);
 		// <kekm.5> (advc: Restructured the Kek-Mod code the code a bit)
-		int iOddsDivisor = GC.getInfo(eDangerBuilding).getNukeExplosionRand();
+		int const iOddsDivisor = kDangerBuilding.getNukeExplosionRand();
 		if (iOddsDivisor <= 0)
 			continue; // Save some time
 		if (getNumActiveBuilding(eDangerBuilding) == 0) // was getNumBuilding
 			continue;
-		CvBuildingInfo const& kDangerBuilding = GC.getInfo(eDangerBuilding);
-		if (kDangerBuilding.getNukeExplosionRand() == 0 || isAreaCleanPower() ||
+		if (iOddsDivisor <= 0 || isAreaCleanPower() ||
 			(!kDangerBuilding.isPower() && kDangerBuilding.getPowerBonus() == NO_BONUS) ||
 			(kDangerBuilding.getPowerBonus() != NO_BONUS &&
 			!hasBonus(kDangerBuilding.getPowerBonus())))
 		{
 			continue;
 		} // </kekm.5>
-		// <advc> Roll the dice before checking for a safe power source - faster
-		// Adjust odds to game speed:
-		double pr = 1.0 / (iOddsDivisor * GC.getGame().gameSpeedFactor());
-		//if (GC.getGame().getSorenRandNum(GC.getInfo((BuildingTypes)iI).getNukeExplosionRand(), "Meltdown!!!") == 0)
-		if (!::bernoulliSuccess(pr, "Meltdown"))
-			continue; // </advc>
+		// advc.opt: Roll the dice before checking for a safe power source.
+		// advc.652: Adjust to game speed
+		scaled rNukePr = 1 / (iOddsDivisor * GC.getGame().gameSpeedMultiplier());
+		if (!rNukePr.bernoulliSuccess(GC.getGame().getSRand(), "Meltdown"))
+			continue;
 		// <kekm.5>
 		bool bUnused = false;
 		// Check for hydroplant (or any modded plant with less severe drawbacks)
@@ -10982,15 +10982,31 @@ void CvCity::doMeltdown()
 
 		if (getNumRealBuilding(eDangerBuilding) > 0)
 			setNumRealBuilding(eDangerBuilding, 0);
-
 		getPlot().nukeExplosion(1, /* K-Mod: */ 0, false);
-
-		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_MELTDOWN_CITY", getNameKey()));
-		gDLL->UI().addMessage(getOwner(), false, -1, szBuffer, getPlot(),
-				"AS2D_MELTDOWN", MESSAGE_TYPE_MINOR_EVENT, ARTFILEMGR.getInterfaceArtPath(
-				"INTERFACE_UNHEALTHY_PERSON"), GC.getColorType("RED"));
+		bMessage = true;
 		break;
 	}
+	if (!bMessage)
+		return;
+	CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_MELTDOWN_CITY", getNameKey()));
+	// advc.106: Notify all players
+	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+	{
+		CvPlayer const& kObs = *it;
+		if (isRevealed(kObs.getTeam()) /* advc.127: */ || kObs.isSpectator())
+		{
+			bool bAffected = kObs.getID() == getOwner();
+			gDLL->UI().addMessage(kObs.getID(), false, -1, szBuffer, getPlot(),
+					"AS2D_MELTDOWN",
+					// advc.106: Was MINOR (and only the owner was notified)
+					bAffected ? MESSAGE_TYPE_MAJOR_EVENT : MESSAGE_TYPE_MINOR_EVENT,
+					ARTFILEMGR.getInterfaceArtPath("INTERFACE_UNHEALTHY_PERSON"),
+					GC.getColorType(bAffected ? "RED" : "BUILDING_TEXT"));
+		}
+	}
+	// <advc.106> Replay msg - or maybe not. Doesn't really affect the cause of the game.
+	/*GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwner(), szBuffer,
+			getX(), getY(), GET_PLAYER(getOwner()).getPlayerTextColor());*/ // </advc.106>
 }
 
 

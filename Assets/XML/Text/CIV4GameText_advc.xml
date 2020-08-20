@@ -572,6 +572,16 @@
 		<Italian>%s1_CityName (%s2_PlyrName) è stata [NUM1:colpito:colpita] da una testata nucleare lanciata da %s3_PlyrName.</Italian>
 		<Spanish>%s1_CityName (%s2_PlyrName) fue [NUM1:golpeado:golpeada] por una ojiva nuclear lanzada por %s3_PlyrName.</Spanish>
 	</TEXT>
+	<!-- From Civ4GameTextInfos.xml. Removed some exlamation marks b/c this gets
+		 shown to all players now. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_MELTDOWN_CITY</Tag>
+		<English>A Nuclear Meltdown has occurred in %s1_CityName!</English>
+		<French>Une r&#233;action nucl&#233;aire s'est produite dans la ville de %s1_CityName !</French>
+		<German>In %s1_CityName hat eine atomare Kernschmelze stattgefunden!</German>
+		<Italian>Disastro nucleare a %s1_CityName!</Italian>
+		<Spanish>&#161;Ha habido un accidente nuclear en %s1_CityName!</Spanish>
+	</TEXT>
 	
 	<!-- advc.106f: Based on TXT_KEY_MISC_PLAYERS_SIGN_DEFENSIVE_PACT in
 		 CIV4GameText_Misc1.xml -->
