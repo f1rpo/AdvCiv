@@ -11053,9 +11053,12 @@ bool CvUnitAI::AI_singleUnitHeal(int iMaxTurnsExposed, int iMaxTurnsOutsideCity)
 		int const iHealTurns = healTurns(plot());
 		if (iHealTurns >= 20) // advc: Feature damage
 			return false;
-		if (iHealTurns <= iMaxTurnsExposed ||  // <advc.299>
+		if (iHealTurns <= iMaxTurnsExposed ||
+			// <advc.299>
 			(iHealTurns <= iMaxTurnsOutsideCity &&
-			getPlot().defenseModifier(getTeam(), true) > 0)) // </advc.299>
+			getPlot().defenseModifier(getTeam(), true) > 0) ||
+			// If the group had urgent business, it probably wouldn't be automated.
+			isAutomated()) // </advc.299>
 		{
 			bHeal = true;
 		}
@@ -11064,8 +11067,8 @@ bool CvUnitAI::AI_singleUnitHeal(int iMaxTurnsExposed, int iMaxTurnsOutsideCity)
 	if (!bHeal && isBarbarian())
 	{
 		int iHeal = healRate(plot());
-		double div = (getDomainType() == DOMAIN_SEA ? 17.5 : 22.5);
-		if (iHeal >= 5 && ::bernoulliSuccess(iHeal / div, "advc.306 (heal)"))
+		scaled rHealPr(2 * iHeal, getDomainType() == DOMAIN_SEA ? 35 : 45);
+		if (iHeal >= 5 && rHealPr.bernoulliSuccess(GC.getGame().getSRand(), "Barbarian Heal"))
 			bHeal = true;
 	} // </advc.306>
 	if (bHeal)
