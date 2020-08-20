@@ -169,7 +169,7 @@ public:
 	int goldenAgeLength() const;																					// Exposed to Python
 	int victoryDelay(VictoryTypes eVictory) const;										// Exposed to Python
 	int getImprovementUpgradeTime(ImprovementTypes eImprovement) const;					// Exposed to Python
-	double gameSpeedFactor() const; // advc
+	scaled gameSpeedMultiplier() const; // advc
 
 	bool canTrainNukes() const;																		// Exposed to Python
 	EraTypes getCurrentEra() const;														// Exposed to Python

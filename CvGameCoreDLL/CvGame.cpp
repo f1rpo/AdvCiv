@@ -3901,27 +3901,23 @@ int CvGame::getImprovementUpgradeTime(ImprovementTypes eImprovement) const
 /*  advc: 3 for Marathon, 0.67 for Quick. Based on VictoryDelay. For cases where
 	there isn't a more specific game speed modifier that could be applied. (E.g.
 	tech costs should be adjusted based on iResearchPercent, not on this function.) */
-double CvGame::gameSpeedFactor() const
+scaled CvGame::gameSpeedMultiplier() const
 {
-	return GC.getInfo(getGameSpeedType()).getVictoryDelayPercent() / 100.0;
-} // </advc>
+	return per100(GC.getInfo(getGameSpeedType()).getVictoryDelayPercent());
+}
 
 bool CvGame::canTrainNukes() const
 {
-	for (int iI = 0; iI < MAX_PLAYERS; iI++)
+	for (PlayerIter<ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iI);
-		if (kPlayer.isAlive())
+		CvCivilization const& kCiv = itPlayer->getCivilization(); // advc.003w
+		for (int i = 0; i < kCiv.getNumUnits(); i++)
 		{
-			CvCivilization const& kCiv = kPlayer.getCivilization(); // advc.003w
-			for (int i = 0; i < kCiv.getNumUnits(); i++)
+			UnitTypes eUnit = kCiv.unitAt(i);
+			if (GC.getInfo(eUnit).getNukeRange() >= 0)
 			{
-				UnitTypes eUnit = kCiv.unitAt(i);
-				if (GC.getInfo(eUnit).getNukeRange() >= 0)
-				{
-					if (kPlayer.canTrain(eUnit))
-						return true;
-				}
+				if (itPlayer->canTrain(eUnit))
+					return true;
 			}
 		}
 	}
@@ -3941,8 +3937,8 @@ EraTypes CvGame::getCurrentEra() const
 	int const iCount = it.nextIndex();
 	if (iCount > 0)
 	{
-		//return ((EraTypes)(iEra / iCount));
-		return (EraTypes)::round(iEra / (double)iCount); // kekm.17
+		//return (EraTypes)(iEra / iCount);
+		return (EraTypes)ROUND_DIVIDE(iEra, iCount); // kekm.17
 	}
 	FAssert(iCount > 0); // advc
 	return NO_ERA;
