@@ -10058,18 +10058,17 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 
 	szTempBuffer.clear();
 	bFirst = true;
-	FOR_EACH_ENUM(UnitCombat)
+	FOR_EACH_ENUM(UnitClass)
 	{
-		if (u.getFlankingStrikeUnitClass(eLoopUnitCombat) > 0)
+		if (u.getFlankingStrikeUnitClass(eLoopUnitClass) > 0)
 		{
 			if (bFirst)
 				bFirst = false;
 			else szTempBuffer += L", ";
 			szTempBuffer += CvWString::format(L"<link=literal>%s</link>",
-					GC.getInfo(eLoopUnitCombat).getDescription());
+					GC.getInfo(eLoopUnitClass).getDescription());
 		}
 	}
-
 	if (!bFirst)
 	{
 		szBuffer.append(NEWLINE);
