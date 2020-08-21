@@ -1578,28 +1578,8 @@ void CvUnit::updateCombat(bool bQuick)
 			}
 		} // <advc.130m>
 
-		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_ENEMY", getNameKey(),
-				pDefender->getNameKeyNoGG()); // advc.004u
-		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, GC.getInfo(
-				GET_PLAYER(getOwner()) // advc.002l
-				.getCurrentEra()).getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL,
-				GC.getColorType("GREEN"), pPlot->getX(), pPlot->getY());
-		if (getVisualOwner(pDefender->getTeam()) != getOwner())
-		{
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED_UNKNOWN",
-					pDefender->getNameKeyNoGG(), // advc.004u
-					getNameKey());
-		}
-		else
-		{
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED",
-					pDefender->getNameKeyNoGG(), // advc.004u
-					getNameKey(), getVisualCivAdjective(pDefender->getTeam()));
-		}
-		gDLL->UI().addMessage(pDefender->getOwner(), true, -1, szBuffer, GC.getInfo(
-				GET_PLAYER(pDefender->getOwner()) // advc.002l
-				.getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL,
-				GC.getColorType("RED"), pPlot->getX(), pPlot->getY());
+		addAttackSuccessMessages(*pDefender, true); // advc.010: Moved into new function
+
 		// report event to Python, along with some other key state
 		CvEventReporter::getInstance().combatResult(this, pDefender);
 
@@ -1661,6 +1641,37 @@ void CvUnit::updateCombat(bool bQuick)
 		getGroup()->clearMissionQueue();
 	}
 }
+
+// advc.010: Cut from resolveCombat. Used for killed noncombatants when bFought=false.
+void CvUnit::addAttackSuccessMessages(CvUnit const& kDefender, bool bFought) const
+{
+	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_ENEMY",
+			getNameKey(), /* advc.004u: */ kDefender.getNameKeyNoGG());
+	CvPlot const& kPlot = kDefender.getPlot();
+	gDLL->UI().addMessage(getOwner(), bFought, -1, szBuffer, bFought ? GC.getInfo(
+			GET_PLAYER(getOwner()) // advc.002l
+			.getCurrentEra()).getAudioUnitVictoryScript()
+			: NULL, // advc.010: No victory sound for killing noncombatant
+			MESSAGE_TYPE_INFO, NULL,
+			GC.getColorType("GREEN"), kPlot.getX(), kPlot.getY());
+	if (getVisualOwner(kDefender.getTeam()) != getOwner())
+	{
+		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED_UNKNOWN",
+				kDefender.getNameKeyNoGG(), // advc.004u
+				getNameKey());
+	}
+	else
+	{
+		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED",
+				kDefender.getNameKeyNoGG(), // advc.004u
+				getNameKey(), getVisualCivAdjective(kDefender.getTeam()));
+	}
+	gDLL->UI().addMessage(kDefender.getOwner(), bFought, -1, szBuffer, GC.getInfo(
+			GET_PLAYER(kDefender.getOwner()) // advc.002l
+			.getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL,
+			GC.getColorType("RED"), kPlot.getX(), kPlot.getY());
+}
+
 
 void CvUnit::checkRemoveSelectionAfterAttack()
 {
@@ -8215,6 +8226,12 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 						}
 						if (!isNoUnitCapture())
 							pLoopUnit->setCapturingPlayer(getOwner());
+						// <advc.010> Report death when pLoopUnit won't be captured
+						if (pLoopUnit->getCaptureUnitType(
+							GET_PLAYER(getOwner()).getCivilizationType()) == NO_UNIT)
+						{
+							addAttackSuccessMessages(*pLoopUnit, false);
+						} // </advc.010>
 						pLoopUnit->kill(false, getOwner());
 					}
 				}
