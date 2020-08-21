@@ -167,6 +167,9 @@ public:
 	virtual void beginMPDiplomacy( PlayerTypes eWhoTalkingTo, bool bRenegotiate = false, bool bSimultaneous = true) = 0;
 	virtual void endMPDiplomacy() = 0;
 
+	/*	advc (note): Don't know what this does. It doesn't say whether "No Sound" is
+		checked under Audio Options. Would have to look that up in the user profile
+		via a Python call (see CvOptionsScreen.drawAudioOptionsTab). */
 	virtual bool getAudioDisabled() = 0;
 	virtual int getAudioTagIndex(const TCHAR* szTag, int iScriptType = -1) = 0;
 

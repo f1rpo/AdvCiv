@@ -557,8 +557,8 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	kOwner.AI_changeNumAIUnits(AI_getUnitAIType(), -1);
 
 	PlayerTypes eCapturingPlayer = getCapturingPlayer();
-	UnitTypes eCaptureUnitType = ((eCapturingPlayer != NO_PLAYER) ?
-			getCaptureUnitType(GET_PLAYER(eCapturingPlayer).getCivilizationType()) : NO_UNIT);
+	UnitTypes eCaptureUnitType = (eCapturingPlayer == NO_PLAYER ? NO_UNIT :
+			getCaptureUnitType(GET_PLAYER(eCapturingPlayer).getCivilizationType()));
 
 	setXY(INVALID_PLOT_COORD, INVALID_PLOT_COORD, true);
 
@@ -1627,7 +1627,7 @@ void CvUnit::updateCombat(bool bQuick)
 			if (!bAdvance)
 			{
 				changeMoves(std::max(GC.getMOVE_DENOMINATOR(),
-					pPlot->movementCost(this, plot())));
+						pPlot->movementCost(this, plot())));
 				checkRemoveSelectionAfterAttack();
 			}
 		}
@@ -1635,7 +1635,7 @@ void CvUnit::updateCombat(bool bQuick)
 		if (pPlot->getNumVisibleEnemyDefenders(this) == 0)
 		{
 			getGroup()->groupMove(pPlot, true, bAdvance ? this : NULL,
-				true); // K-Mod
+					true); // K-Mod
 		}
 
 		// This is is put before the plot advancement, the unit will always try to walk back
