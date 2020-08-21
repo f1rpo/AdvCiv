@@ -10383,18 +10383,21 @@ void CvUnit::flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength,
 	{
 		CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DAMAGED_UNITS_BY_FLANKING",
 				getNameKey(), iNumUnitsHit);
-		gDLL->UI().addMessage(getOwner(), false, -1, szBuffer,
-				GC.getInfo(/* advc.002l: */ GET_PLAYER(getOwner())
-				.getCurrentEra()).getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL,
-				GC.getColorType("GREEN"), pPlot->getX(), pPlot->getY());
+		// advc.106: No sound and bForce=true (for both messages)
+		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer,
+				/*GC.getInfo(GET_PLAYER(getOwner()) // advc.002l
+				.getCurrentEra()).getAudioUnitVictoryScript()*/ NULL,
+				MESSAGE_TYPE_INFO, NULL, GC.getColorType("GREEN"),
+				pPlot->getX(), pPlot->getY());
 		if (pSkipUnit != NULL)
 		{
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_UNITS_DAMAGED_BY_FLANKING",
 					getNameKey(), iNumUnitsHit);
-			gDLL->UI().addMessage(pSkipUnit->getOwner(), false, -1, szBuffer,
-					GC.getInfo(/* advc.002l: */ GET_PLAYER(pSkipUnit->getOwner())
-					.getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL,
-					GC.getColorType("RED"), pPlot->getX(), pPlot->getY());
+			gDLL->UI().addMessage(pSkipUnit->getOwner(), true, -1, szBuffer,
+					/*GC.getInfo(GET_PLAYER(pSkipUnit->getOwner()) // advc.002l
+					.getCurrentEra()).getAudioUnitDefeatScript()*/ NULL,
+					MESSAGE_TYPE_INFO, NULL, GC.getColorType("RED"),
+					pPlot->getX(), pPlot->getY());
 		}
 	}
 }
