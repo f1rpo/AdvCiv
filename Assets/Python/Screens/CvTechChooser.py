@@ -798,7 +798,12 @@ class CvTechChooser:
 				# the player has the tech. Confusing.
 				#and not (gc.getTeam(gc.getPlayer(self.iCivSelected).getTeam()).isTerrainTrade(j)):
 				szTerrainTradeButton = self.getNextWidgetName("TerrainTradeButton")
-				screen.addDDSGFCAt( szTerrainTradeButton, szTechRecord, ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_WATERTRADE").getPath(), iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_TERRAIN_TRADE, i, j, False )
+				# <advc.002d> Use the ocean trade icon for Ocean. For all other terrains, keep using the coastal trade icon.
+				szArtInfoType = "INTERFACE_TECH_WATERTRADE"
+				if j == gc.getDefineINT("DEEP_WATER_TERRAIN"):
+					szArtInfoType = "INTERFACE_TECH_DEEPWATERTRADE"
+				# </advc.002d>
+				screen.addDDSGFCAt( szTerrainTradeButton, szTechRecord, ArtFileMgr.getInterfaceArtInfo(szArtInfoType).getPath(), iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_TERRAIN_TRADE, i, j, False )
 				fX += X_INCREMENT
 
 		j = gc.getNumTerrainInfos()	
