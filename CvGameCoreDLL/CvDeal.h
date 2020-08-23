@@ -17,9 +17,12 @@ public:
 	void uninit();
 	void reset(int iID = 0, PlayerTypes eFirstPlayer = NO_PLAYER, PlayerTypes eSecondPlayer = NO_PLAYER);
 
-	DllExport void kill(bool bKillTeam = true) { // <advc.130p>
-			kill(bKillTeam, NO_PLAYER); }
-	void kill(bool bKillTeam, PlayerTypes eCancelPlayer); // </advc.130p>
+	DllExport void kill(bool bKillTeam = true)  // <advc.130p>
+	{
+		kill(bKillTeam, NO_PLAYER);
+	}
+	void kill(bool bKillTeam, PlayerTypes eCancelPlayer, // </advc.130p>
+			bool bNoSound = false); // advc.002l
 	// advc.036:
 	void killSilent(bool bKillTeam = true, bool bUpdateAttitude = true,
 			PlayerTypes eCancelPlayer = NO_PLAYER); // advc.130p
@@ -144,7 +147,8 @@ protected:
 	void startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam, bool bDual);
 	void endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam);
 	void announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, // advc
-			bool bForce) const; // advc.106j
+			bool bForce, // advc.106j
+			bool bNoSound) const; // advc.002l
 	bool verify(PlayerTypes eRecipient, PlayerTypes eGiver);
 	// advc: was public
 	bool isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReason = NULL) const;

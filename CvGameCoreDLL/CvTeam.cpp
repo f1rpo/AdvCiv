@@ -1062,11 +1062,16 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 		kMembers.push_back(&*it);
 	for (MemberIter it(eTarget); it.hasNext(); ++it)
 		kMembers.push_back(&*it);
-
-	FOR_EACH_DEAL_VAR(pLoopDeal)
 	{
-		if (pLoopDeal->isBetween(getID(), eTarget))
-			pLoopDeal->kill();
+		bool bFirst = true; // advc.002l
+		FOR_EACH_DEAL_VAR(pLoopDeal)
+		{
+			if (pLoopDeal->isBetween(getID(), eTarget))
+			{
+				pLoopDeal->kill(true, NO_PLAYER, /* <advc.002l> */ !bFirst);
+				bFirst = false; // </advc.002l>
+			}
+		}
 	}
 	for (size_t i = 0; i < kMembers.size(); i++)
 		kMembers[i]->updatePlunder(-1, false);

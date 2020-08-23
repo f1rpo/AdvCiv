@@ -51,7 +51,8 @@ void CvDeal::reset(int iID, PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer)
 }
 
 
-void CvDeal::kill(bool bKillTeam, /* advc.130p: */ PlayerTypes eCancelPlayer)
+void CvDeal::kill(bool bKillTeam, /* advc.130p: */ PlayerTypes eCancelPlayer,
+	bool bNoSound) // advc.002l
 {
 	if (getLengthFirstTrades() > 0 || getLengthSecondTrades() > 0)
 	{	// <advc.106j>
@@ -70,15 +71,19 @@ void CvDeal::kill(bool bKillTeam, /* advc.130p: */ PlayerTypes eCancelPlayer)
 		if (GET_TEAM(getFirstPlayer()).isHasMet(TEAMID(getSecondPlayer())))
 		{
 			// advc: Auxiliary function to remove duplicate code
-			announceCancel(getFirstPlayer(), getSecondPlayer(), /* advc.106j: */ bForce);
-			announceCancel(getSecondPlayer(), getFirstPlayer(), /* advc.106j: */ bForce);
+			announceCancel(getFirstPlayer(), getSecondPlayer(), /* advc.106j: */ bForce,
+					bNoSound); // advc.002l
+			announceCancel(getSecondPlayer(), getFirstPlayer(), /* advc.106j: */ bForce,
+					bNoSound); // advc.002l
 		}
 	}
 	// <advc.036>
 	killSilent(bKillTeam, /* advc.130p: */ true, eCancelPlayer);
 }
 // advc: Cut from 'kill' above
-void CvDeal::announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, bool bForce) const
+void CvDeal::announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther,
+	bool bForce, // advc.106j
+	bool bNoSound) const // advc.002l
 {
 	CvWString szString;
 	CvWStringBuffer szDealString;
@@ -87,6 +92,7 @@ void CvDeal::announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, bool bFo
 	szString.Format(L"%s: %s", szCancelString.GetCString(), szDealString.getCString());
 	gDLL->UI().addMessage(eMsgTarget, /* advc.106j: */ bForce,
 			-1, szString,
+			!bNoSound && // advc.002l
 			bForce ? "AS2D_DEAL_CANCELLED" : NULL, // advc.106j
 			// <advc.127b>
 			MESSAGE_TYPE_INFO, NULL, NO_COLOR,
