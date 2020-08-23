@@ -3,22 +3,18 @@
 #ifndef CvGameCoreDLL_h
 #define CvGameCoreDLL_h
 
-//
 // includes (pch) for gamecore dll files
 // Author - Mustafa Thamer
-//
 
-//
-// WINDOWS
-//
+// WINDOWS ...
 #pragma warning( disable: 4530 )	// C++ exception handler used, but unwind semantics are not enabled
-
 #define WIN32_LEAN_AND_MEAN
 // <advc.fract> Otherwise, classes in the PCH can't have members named "max" and "min".
 #ifndef NOMINMAX
 	#define NOMINMAX
 #endif // </advc.fract>
 #include <windows.h>
+
 // advc.fract: Commented out, originally in CvGameCoreUtils.h.
 //#undef max
 //#undef min
@@ -95,8 +91,7 @@ BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 #include "CvStructs.h"
 #include "CvDLLUtilityIFaceBase.h" // includes LinkedList.h
 
-//jason tests
-// advc.make: Removed most of these
+//jason tests (advc.make: removed most of these)
 #include "CvRandom.h"
 #include "CvGameCoreUtils.h"
 #include "ScaledNum.h"
@@ -124,7 +119,7 @@ BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLFAStarIFaceBase.h"
 #include "CvDLLEngineIFaceBase.h"
-#include "CvInitCore.h"
+#include "CvInitCore.h" // Rarely changes and useful to have for inlining
 #include "CvEventReporter.h" // Includes CvStatistics.h and CvDllPythonEvents.h
 #include "CyArgsList.h"
 #include "CyPlot.h"

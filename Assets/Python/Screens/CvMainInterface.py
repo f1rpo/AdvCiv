@@ -2895,6 +2895,8 @@ class CvMainInterface:
 			RowLength = 110
 			if (i == 0):
 			#if (i == gc.getInfoTypeForString(gc.getDefineSTRING("DEFAULT_SPECIALIST"))):
+			# advc.001 (note): If the above is uncommented (I didn't comment it out), the following should be used instead:
+			#if i == gc.getDefineINT("DEFAULT_SPECIALIST"):
 				RowLength *= 2
 			
 			HorizontalSpacing = MAX_SPECIALIST_BUTTON_SPACING	

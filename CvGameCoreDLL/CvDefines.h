@@ -130,19 +130,19 @@
 // python module names
 #define PYDebugToolModule			"CvDebugInterface"
 #define PYScreensModule				"CvScreensInterface"
-#define PYCivModule						"CvAppInterface"
-#define PYWorldBuilderModule	"CvWBInterface"
-#define PYPopupModule					"CvPopupInterface"
+#define PYCivModule					"CvAppInterface"
+#define PYWorldBuilderModule		"CvWBInterface"
+#define PYPopupModule				"CvPopupInterface"
 #define PYDiplomacyModule			"CvDiplomacyInterface"
-#define PYUnitControlModule		"CvUnitControlInterface"
+#define PYUnitControlModule			"CvUnitControlInterface"
 #define PYTextMgrModule				"CvTextMgrInterface"
 #define PYPerfTestModule			"CvPerfTest"
-#define PYDebugScriptsModule	"DebugScripts"
+#define PYDebugScriptsModule		"DebugScripts"
 #define PYPitBossModule				"PbMain"
-#define PYTranslatorModule		"CvTranslator"
-#define PYGameModule					"CvGameInterface"
-#define PYEventModule					"CvEventInterface"
-#define PYRandomEventModule					"CvRandomEventInterface"
+#define PYTranslatorModule			"CvTranslator"
+#define PYGameModule				"CvGameInterface"
+#define PYEventModule				"CvEventInterface"
+#define PYRandomEventModule			"CvRandomEventInterface"
 
 #define DANGER_RANGE						(4)
 #define BORDER_DANGER_RANGE					(2) // K-Mod
