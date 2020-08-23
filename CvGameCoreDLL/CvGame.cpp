@@ -9423,7 +9423,7 @@ void CvGame::onGraphicsInitialized()
 	if (GET_PLAYER(getActivePlayer()).getNumUnits() == 0)
 		setUpdateTimer(UPDATE_LOOK_AT_STARTING_PLOT, 1);
 	// </advc.001>
-	CvGlobals::getInstance().updateCameraStartDistance();
+	GC.getPythonCaller()->callScreenFunction("updateCameraStartDistance"); // advc.004m
 }
 
 

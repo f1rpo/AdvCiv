@@ -117,7 +117,20 @@
 					get="isRememberFieldOfView"/>
 			<option id="FieldOfView_Value" key="Field of View Value"
 					type="string" default="-1"
-					get="getFieldOfView" set="setFieldOfView"/> 
+					get="getFieldOfView" set="setFieldOfView"/>
+
+			<!-- advc.004m: -->
+			<list   id="DefaultCamDistance" key="Default Cam Distance" 
+					type="int" default="0" listType="string" 
+					values="Automatic|Close|Medium|Far|Custom (XML)"
+					get="getDefaultCamDistance">
+				<change module="CvScreensInterface" function="updateDefaultCamDistance"/>
+				<choice id="Automatic"/>
+				<choice id="Close"/>
+				<choice id="Medium"/>
+				<choice id="Far"/>
+				<choice id="Custom"/>
+			</list>
 
 			<!-- Movement Points -->
 			<option id="UnitMovementPointsFraction" key="Unit Movement Points Fraction" 

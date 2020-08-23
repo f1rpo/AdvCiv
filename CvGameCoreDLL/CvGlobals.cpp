@@ -710,7 +710,7 @@ void CvGlobals::cacheGlobalFloats(
 		m_fFIELD_OF_VIEW = fNewFoV;
 		if (bAllowRecursion && IsGraphicsInitialized())
 		{
-			updateCameraStartDistance();
+			GC.getPythonCaller()->callScreenFunction("updateCameraStartDistance");
 			return;
 		}
 	} // </advc.004m>
@@ -818,12 +818,12 @@ void CvGlobals::setDefineSTRING(char const* szName, char const* szValue, /* advc
 }
 
 // advc.004m:
-void CvGlobals::updateCameraStartDistance()
+void CvGlobals::updateCameraStartDistance(bool bReset)
 {
-	static float m_fCAMERA_START_DISTANCE_Override = GC.getDefineFLOAT(
-			"CAMERA_START_DISTANCE");
+	static float m_fCAMERA_START_DISTANCE_Override = std::max(1000.f,
+			GC.getDefineFLOAT("CAMERA_START_DISTANCE"));
 	float fNewValue = m_fCAMERA_START_DISTANCE_Override;
-	if (fNewValue < 0)
+	if (!bReset)
 		fNewValue = std::max(8440 - 80 * getDefineFLOAT("FIELD_OF_VIEW"), 1200.f);
 	setDefineFLOAT("CAMERA_START_DISTANCE", fNewValue,
 			false); // Update the cache explicitly instead:

@@ -674,7 +674,7 @@ public:
 	inline float getSHADOW_SCALE() const { return m_fSHADOW_SCALE; }
 	DllExport inline float getUNIT_MULTISELECT_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getUNIT_MULTISELECT_DISTANCE(); }
 	inline float getUNIT_MULTISELECT_DISTANCE() const { return m_fUNIT_MULTISELECT_DISTANCE; }
-	void updateCameraStartDistance(); // advc.004m
+	void updateCameraStartDistance(bool bReset); // advc.004m  (exposed to Python)
 
 	DllExport int getUSE_FINISH_TEXT_CALLBACK();
 	// advc.003y: Moved the other callback getters to CvPythonCaller

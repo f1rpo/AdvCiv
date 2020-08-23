@@ -343,6 +343,40 @@
 		<Spanish>Muestra una barra deslizante que permite modificar el campo de visión.</Spanish>
 	</TEXT>
 
+	<!-- advc.004m: -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__CAMERA_TEXT</Tag>
+		<English>Camera</English>
+		<French>Camera</French>
+		<German>Camera</German>
+		<Italian>Camera</Italian>
+		<Spanish>Camera</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__DEFAULTCAMDISTANCE_TEXT</Tag>
+		<English>Default Distance</English>
+		<French>Default Distance</French>
+		<German>Standard-Abstand</German>
+		<Italian>Default Distance</Italian>
+		<Spanish>Default Distance</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__DEFAULTCAMDISTANCE_HOVER</Tag>
+		<English>The camera distance at the start of a new game and after loading a savegame. Also affects the volume of music and sound effects.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Automatic[COLOR_REVERT] - Set the default distance based on the Field-of-View value. The greater the field of view, the smaller the default distance.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Close[COLOR_REVERT] - 2200 meters; as in the original game.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Medium[COLOR_REVERT] - 4100 meters[NEWLINE][COLOR_HIGHLIGHT_TEXT]Far[COLOR_REVERT] - 6000 meters; close to the Globe view boundary.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Custom[COLOR_REVERT] - Use the 'CAMERA_START_DISTANCE' value set in XML (GlobalDefines_advc.xml)</English>
+		<French>The camera distance at the start of a new game and after loading a savegame. Also affects the volume of music and sound effects.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Automatic[COLOR_REVERT] - Set the default distance based on the Field-of-View value. The greater the field of view, the smaller the default distance.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Close[COLOR_REVERT] - 2200 meters; as in the original game.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Medium[COLOR_REVERT] - 4100 meters[NEWLINE][COLOR_HIGHLIGHT_TEXT]Far[COLOR_REVERT] - 6000 meters; close to the Globe view boundary.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Custom[COLOR_REVERT] - Use the 'CAMERA_START_DISTANCE' value set in XML (GlobalDefines_advc.xml)</French>
+		<German>Der Kameraabstand nach dem Erstellen oder Laden eines Spiels. Wirkt sich auch auf die Lautstärke von Musik und Effekten aus.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Auto[COLOR_REVERT] - Entsprechend dem Sichtfeld-Wert. Je größer das Sichtfeld, desto kleiner der Standardabstand.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Nah[COLOR_REVERT] - 2200m; wie im Originalspiel.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Mittel[COLOR_REVERT] - 4100m[NEWLINE][COLOR_HIGHLIGHT_TEXT]Weit[COLOR_REVERT] - 6000m; nahe am Übergang zur Weltansicht.[NEWLINE][COLOR_HIGHLIGHT_TEXT]XML-Wert[COLOR_REVERT] - Verwendet den 'CAMERA_START_DISTANCE'-Wert in GlobalDefines_advc.xml.</German>
+		<Italian>The camera distance at the start of a new game and after loading a savegame. Also affects the volume of music and sound effects.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Automatic[COLOR_REVERT] - Set the default distance based on the Field-of-View value. The greater the field of view, the smaller the default distance.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Close[COLOR_REVERT] - 2200 meters; as in the original game.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Medium[COLOR_REVERT] - 4100 meters[NEWLINE][COLOR_HIGHLIGHT_TEXT]Far[COLOR_REVERT] - 6000 meters; close to the Globe view boundary.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Custom[COLOR_REVERT] - Use the 'CAMERA_START_DISTANCE' value set in XML (GlobalDefines_advc.xml)</Italian>
+		<Spanish>The camera distance at the start of a new game and after loading a savegame. Also affects the volume of music and sound effects.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Automatic[COLOR_REVERT] - Set the default distance based on the Field-of-View value. The greater the field of view, the smaller the default distance.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Close[COLOR_REVERT] - 2200 meters; as in the original game.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Medium[COLOR_REVERT] - 4100 meters[NEWLINE][COLOR_HIGHLIGHT_TEXT]Far[COLOR_REVERT] - 6000 meters; close to the Globe view boundary.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Custom[COLOR_REVERT] - Use the 'CAMERA_START_DISTANCE' value set in XML (GlobalDefines_advc.xml).</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__DEFAULTCAMDISTANCE_LIST</Tag>
+		<English>Automatic|Close|Medium|Far|Custom (XML)</English>
+		<French>Automatic|Close|Medium|Far|Custom (XML)</French>
+		<German>Auto|Nah|Mittel|Weit|Wert aus XML</German>
+		<Italian>Automatic|Close|Medium|Far|Custom (XML)</Italian>
+		<Spanish>Automatic|Close|Medium|Far|Custom (XML)</Spanish>
+	</TEXT>
+
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__PROGRESSBARSTICKMARKS_TEXT</Tag>
 		<English>Tick Marks</English>

@@ -1026,6 +1026,30 @@ def updateMusicPath (argsList):
 def refreshOptionsScreen():
 	optionsScreen.refreshScreen()
 
+# <advc.004m>
+def updateCameraStartDistance(): # Called by DLL
+	MainOpt = BugCore.game.MainInterface
+	choice = MainOpt.getDefaultCamDistance()
+	newVal = None
+	gc = CyGlobalContext()
+	if choice == 0:
+		gc.updateCameraStartDistance(False)
+	# If these constants are changed, then they should also be changed in TXT_KEY_BUG_OPT_MAININTERFACE__DEFAULTCAMDISTANCE_HOVER (BUG Main Interface Options.xml).
+	elif choice == 1:
+		newVal = 2200
+	elif choice == 2:
+		newVal = 4100
+	elif choice == 3:
+		newVal = 6000
+	else:
+		gc.updateCameraStartDistance(True)
+	if not newVal is None:
+		gc.setDefineFLOAT('CAMERA_START_DISTANCE', newVal)
+
+def updateDefaultCamDistance(option, value): # Called by BugOptions when dirty
+	updateCameraStartDistance()
+# </advc.004m>
+
 def cityWarningOnClickedCallback(argsList):
 	iButtonId = argsList[0]
 	iData1 = argsList[1]
