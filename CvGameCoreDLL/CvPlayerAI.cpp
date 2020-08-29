@@ -8086,7 +8086,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData,
 		int iClosedCount = 0;
 		/*	advc.001: Exclude Barbarians, minors, otherwise the
 			iClosedCount == 0 test will always fail. */
-		for (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO> itOtherTeam;
+		for (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO> itOtherTeam(getTeam());
 			itOtherTeam.hasNext(); ++itOtherTeam)
 		{
 			if (kOurTeam.isOpenBorders(itOtherTeam->getID()))
