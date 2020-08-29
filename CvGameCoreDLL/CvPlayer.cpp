@@ -8660,8 +8660,10 @@ void CvPlayer::verifyAlive()
 			if (eNextAlive != getID())
 			{
 				setIsHuman(false);
+				setAlive(false);
 				GC.getGame().changeHumanPlayer(eNextAlive);
 				GET_PLAYER(eNextAlive).setHumanDisabled(true);
+				return;
 			}
 			else
 			{
