@@ -1043,7 +1043,8 @@ bool CvTeam::canEventuallyDeclareWar(TeamTypes eTeam) const
 } // bbai end
 
 // K-Mod note: I've shuffled things around a bit in this function.  // advc: refactored
-void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDoW,
+void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan,
+	bool bPrimaryDoW, // K-Mod
 	PlayerTypes eSponsor, // advc.100
 	bool bRandomEvent) // advc.106g
 {
@@ -1237,10 +1238,48 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 				-1, -1, GC.getColorType("WARNING_TEXT"));
 	}
 	// kekm.26 (advc): EventReporter call moved down
+	triggerDefensivePacts(eTarget, bNewDiplo, bPrimaryDoW); // advc: Moved into subroutine
+	for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
+	{
+		CvTeam& kThirdTeam = *it;
+		if (kThirdTeam.getID() == getID() || kThirdTeam.getID() == eTarget)
+			continue;
+		if (kThirdTeam.isVassal(eTarget) || kTarget.isVassal(kThirdTeam.getID()))
+		{
+			//declareWar(kThirdTeam.getID(), bNewDiplo, AI_getWarPlan(eTeam), false);
+			// kekm.26:
+			queueWar(getID(), kThirdTeam.getID(), bNewDiplo, AI().AI_getWarPlan(eTarget), false);
+		}
+		else if (kThirdTeam.isVassal(getID()) || isVassal(kThirdTeam.getID()))
+		{
+			//kThirdTeam.declareWar(eTeam, bNewDiplo, WARPLAN_DOGPILE, false);
+			// kekm.26:
+			queueWar(kThirdTeam.getID(), eTarget, bNewDiplo, WARPLAN_DOGPILE, false);
+		}
+	}
+	/*if (bPrimaryDoW) { // K-Mod. update attitude
+		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
+			GET_PLAYER(i).AI_updateAttitude();
+	}*/
+	// <kekm.26> The above is "updated when the war queue is emptied."
+	/*  advc (bugfix): But not unless this function communicates to triggerWars that
+		a (primary) DoW has already occurred. */
+	triggerWars(true);
+	// advc: Moved down so that war status has already changed when event is reported
+	CvEventReporter::getInstance().changeWar(true, getID(), eTarget); // </kekm.26>
+}
 
-	/*  K-Mod / BBAI. This section includes some customization options from BBAI.
-		The code has been modified for K-Mod, so that it uses "bPrimaryDoW" rather than the BBAI parameter.
-		The original BtS code has been deleted. */
+// advc: Cut from declareWar
+void CvTeam::triggerDefensivePacts(TeamTypes eTarget, bool bNewDiplo, bool bPrimary)
+{
+	/*	advc (kekm3): New vassal joining its master's wars shouldn't trigger DP.
+		Master should already be at war with all DP allies of its enemies, but,
+		at least in multiplayer, this isn't guaranteed (I think). */
+	if (isAVassal())
+		return;
+	/*  K-Mod / BBAI. Customization options from BBAI have been modified, so that
+		they use "bPrimary". The original BtS code has been deleted. */
+
 	/* kekm.3: 'BBAI option 1 didn't work because if clauses for canceling pacts
 	   were wrong. BBAI otpion 2 needs further fixing. When all players have
 	   defensive pacts with all other players and someone declares war the
@@ -1248,8 +1287,9 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 	   but additional wars are declared due to recursive calls of declareWar
 	   in the loop below.' */
 	int const iDPBehavior = GC.getDefineINT(CvGlobals::BBAI_DEFENSIVE_PACT_BEHAVIOR);
-	if(iDPBehavior == 0 || (iDPBehavior == 1 && bPrimaryDoW))
+	if(iDPBehavior == 0 || (iDPBehavior == 1 && bPrimary))
 		cancelDefensivePacts();
+	CvTeamAI& kTarget = GET_TEAM(eTarget);
 	bool bDefPactTriggered = false; // advc.104i
 	for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
@@ -1288,35 +1328,7 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 	/*  <advc.104i> When other teams come to the help of eTeam through a
 		defensive pact, then eTeam becomes unwilling to talk with us. */
 	if(bDefPactTriggered)
-		kTarget.AI().AI_makeUnwillingToTalk(getID()); // </advc.104i>
-	for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
-	{
-		CvTeam& kThirdTeam = *it;
-		if (kThirdTeam.getID() == getID() || kThirdTeam.getID() == eTarget)
-			continue;
-		if (kThirdTeam.isVassal(eTarget) || kTarget.isVassal(kThirdTeam.getID()))
-		{
-			//declareWar(kThirdTeam.getID(), bNewDiplo, AI_getWarPlan(eTeam), false);
-			// kekm.26:
-			queueWar(getID(), kThirdTeam.getID(), bNewDiplo, AI().AI_getWarPlan(eTarget), false);
-		}
-		else if (kThirdTeam.isVassal(getID()) || isVassal(kThirdTeam.getID()))
-		{
-			//kThirdTeam.declareWar(eTeam, bNewDiplo, WARPLAN_DOGPILE, false);
-			// kekm.26:
-			queueWar(kThirdTeam.getID(), eTarget, bNewDiplo, WARPLAN_DOGPILE, false);
-		}
-	}
-	/*if (bPrimaryDoW) { // K-Mod. update attitude
-		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
-			GET_PLAYER(i).AI_updateAttitude();
-	}*/
-	// <kekm.26> The above is "updated when the war queue is emptied."
-	/*  advc (bugfix): But not unless this function communicates to triggerWars that
-		a (primary) DoW has already occurred. */
-	triggerWars(true);
-	// advc: Moved down so that war status has already changed when event is reported
-	CvEventReporter::getInstance().changeWar(true, getID(), eTarget); // </kekm.26>
+		kTarget.AI_makeUnwillingToTalk(getID()); // </advc.104i>
 }
 
 

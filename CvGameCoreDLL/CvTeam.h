@@ -608,6 +608,7 @@ protected:
 
 	void processTech(TechTypes eTech, int iChange, /* advc.121: */ bool bEndOfTurn);
 
+	void triggerDefensivePacts(TeamTypes eTarget, bool bNewDiplo, bool bPrimary); // advc
 	void cancelDefensivePacts();
 	void allowDefensivePactsToBeCanceled(); // kekm.3
 	// <advc.003m>
