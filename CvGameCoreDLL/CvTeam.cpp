@@ -1159,17 +1159,16 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		{
 			CvPlayer const& kObs = *it;
-			// <advc.106b>
-			LPCTSTR szSoundYou = "AS2D_DECLAREWAR";
-			LPCTSTR szSoundThey = "AS2D_THEIRDECLAREWAR";
-			if ((isAVassal() && !isHuman()) || (kTarget.isAVassal() && !kTarget.isHuman()))
-				szSoundYou = szSoundThey = NULL; // </advc.106b>
+			// <advc.002l>
+			LPCTSTR szSoundYou = (bPrimaryDoW ? "AS2D_DECLAREWAR" : NULL);
+			LPCTSTR szSoundThey = (bPrimaryDoW ? "AS2D_THEIRDECLAREWAR" : NULL);
+			// </advc.002l>
 			if (kObs.getTeam() == getID())
 			{
 				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DECLARED_WAR_ON",
 						kTarget.getName().GetCString());
 				gDLL->UI().addMessage(kObs.getID(), true, -1, szBuffer,
-						szSoundYou, // advc.106b
+						szSoundYou, // advc.002l
 						MESSAGE_TYPE_MAJOR_EVENT, NULL, GC.getColorType("WARNING_TEXT"),
 						// advc.127b:
 						kTarget.getCapitalX(kObs.getTeam()), kTarget.getCapitalY(kObs.getTeam()));
@@ -1182,7 +1181,7 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 				else // </advc.100>
 					szBuffer = gDLL->getText("TXT_KEY_MISC_DECLARED_WAR_ON_YOU", getName().GetCString());
 				gDLL->UI().addMessage(kObs.getID(), true, -1, szBuffer,
-						szSoundYou, // advc.106b
+						szSoundYou, // advc.002l
 						MESSAGE_TYPE_MAJOR_EVENT, NULL, GC.getColorType("WARNING_TEXT"),
 						// advc.127b:
 						getCapitalX(kObs.getTeam()), getCapitalY(kObs.getTeam()));
@@ -1203,8 +1202,9 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 							getName().GetCString(), kTarget.getName().GetCString());
 				}
 				gDLL->UI().addMessage(kObs.getID(), false, -1, szBuffer,
+						szSoundThey, // advc.002l
 						// <advc.106b>
-						szSoundThey, (isAVassal() || kTarget.isAVassal() ?
+						(isAVassal() || kTarget.isAVassal() ?
 						MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY : // </advc.106b>
 						MESSAGE_TYPE_MAJOR_EVENT), NULL, GC.getColorType("WARNING_TEXT"),
 						// advc.127b:
@@ -1380,18 +1380,18 @@ void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits,  // advc: refactored
 	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 	{
 		CvPlayer const& kObs = *it;
-		// <advc.106b>
+		// <advc.002l>
 		LPCTSTR szSoundYou = "AS2D_MAKEPEACE";
 		LPCTSTR szSoundThey = "AS2D_THEIRMAKEPEACE";
-		if(isAVassal() && !isHuman() || (kTarget.isAVassal() && !kTarget.isHuman()))
-			szSoundYou = szSoundThey = NULL; // </advc.106b>
+		if (isAVassal() || kTarget.isAVassal())
+			szSoundYou = szSoundThey = NULL; // </advc.002l>
 		bool bWarTeam = false; // advc.039
 		if (kObs.getTeam() == getID())
 		{
 			CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_YOU_MADE_PEACE_WITH",
 					kTarget.getName().GetCString()));
 			gDLL->UI().addMessage(kObs.getID(), true, -1, szBuffer,
-					szSoundYou, // advc.106b
+					szSoundYou, // advc.002l
 					MESSAGE_TYPE_MAJOR_EVENT, NULL, GC.getColorType("HIGHLIGHT_TEXT"),
 					// advc.127b:
 					kTarget.getCapitalX(kObs.getTeam(), true), kTarget.getCapitalY(kObs.getTeam(), true));
@@ -1402,7 +1402,7 @@ void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits,  // advc: refactored
 			CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_YOU_MADE_PEACE_WITH",
 					getName().GetCString()));
 			gDLL->UI().addMessage(kObs.getID(), true, -1, szBuffer,
-					szSoundYou, // advc.106b
+					szSoundYou, // advc.002l
 					MESSAGE_TYPE_MAJOR_EVENT, NULL, GC.getColorType("HIGHLIGHT_TEXT"),
 					// advc.127b:
 					getCapitalX(kObs.getTeam()), getCapitalY(kObs.getTeam()));
@@ -1454,8 +1454,9 @@ void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits,  // advc: refactored
 						getName().GetCString(), kTarget.getName().GetCString());
 			}
 			gDLL->UI().addMessage(kObs.getID(), false, -1, szBuffer,
+					szSoundThey, // advc.002l
 					// <advc.106b>
-					szSoundThey, (isAVassal() || kTarget.isAVassal() ?
+					(isAVassal() || kTarget.isAVassal() ?
 					MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY : // </advc.106b>
 					MESSAGE_TYPE_MAJOR_EVENT), NULL,
 					(bAnyReparations ? NO_COLOR : // advc.039
