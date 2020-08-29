@@ -160,14 +160,18 @@ void applyColorToString(CvWString& s, char const* szColor, bool bLink)
 		s.Format(L"<link=literal>%s</link>", s.GetCString());
 	s.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR(szColor), s.GetCString());
 }
-/*  <advc> Tbd.: Take into account the locale - perhaps through
-	boost::locale::conv - and/ or check for characters that can't be narrowed.
-	So far, it's the same code that CvInitCore::refreshCustomMapOptions had
-	been using. Many logBBAI calls also convert from wide to narrow strings
-	(through the %S format specifier and _vsnprintf - not sure if that's safer). */
-void narrowUnsafe(CvWString const& szWideString, CvString& szNarrowString)
+
+// advc.002i: Formula by T. Riemersma (CompuPhase.com) via Wikipedia ("Color difference")
+float colorDifference(NiColorA const& c1, NiColorA const& c2)
 {
-	szNarrowString = CvString(szWideString);
+	float channelWeights[] = { 2, 4, 3 }; // R, G, B
+	if (c1.r + c2.r > 1)
+		std::swap(channelWeights[0], channelWeights[2]);
+	float fDiff = 0;
+	fDiff += SQR(c1.r - c2.r) * channelWeights[0];
+	fDiff += SQR(c1.g - c2.g) * channelWeights[1];
+	fDiff += SQR(c1.b - c2.b) * channelWeights[2];
+	return fDiff;
 }
 
 DirectionTypes cardinalDirectionToDirection(CardinalDirectionTypes eCard)

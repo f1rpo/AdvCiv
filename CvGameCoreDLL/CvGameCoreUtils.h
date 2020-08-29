@@ -228,6 +228,8 @@ inline char intToChar(int x)
 	return static_cast<char>(std::min<char>(MAX_CHAR, x));
 }
 
+float colorDifference(NiColorA const& c1, NiColorA const& c2); // advc.002i
+
 // (advc.make: Distance functions moved into CvMap.h)
 
 inline CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir)	// Exposed to Python

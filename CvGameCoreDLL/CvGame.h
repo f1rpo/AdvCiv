@@ -997,6 +997,7 @@ protected:
 	void initScenario();
 	void initFreeUnits_bulk();
 	// </advc.051>
+	void setPlayerColors(); // advc.002i
 	void initGameHandicap(); // advc.127
 	void initFreeState();
 	/* <advc.027> */ NormalizationTarget* /* </advc.027> */ assignStartingPlots();

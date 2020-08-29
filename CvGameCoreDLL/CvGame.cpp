@@ -774,6 +774,82 @@ void CvGame::initDiplomacy()
 	}
 }
 
+/*	advc.002i: Assign unique player colors in games where multiple players
+	have the same civ type */
+void CvGame::setPlayerColors()
+{
+	std::vector<std::pair<PlayerTypes,int> > aeiReassign;
+	EnumMap<CivilizationTypes,int> aiPlayersPerCiv;
+	for (PlayerIter<ALIVE> it; it.hasNext(); ++it)
+	{
+		CivilizationTypes eCiv = it->getCivilizationType();
+		aiPlayersPerCiv.add(eCiv, 1);
+		int iPlayers = aiPlayersPerCiv.get(eCiv);
+		if (iPlayers > 1)
+			aeiReassign.push_back(std::make_pair(it->getID(), iPlayers));
+	}
+	for (size_t i = 0; i < aeiReassign.size(); i++)
+	{
+		PlayerTypes const eReassignPlayer = aeiReassign[i].first;
+		bool const bMatchSecondary = (aeiReassign[i].second == 2);
+		bool const bRandomize = (aeiReassign[i].second > 3);
+		CivilizationTypes eBestCiv = NO_CIVILIZATION;
+		float fSmallestDiff = FLT_MAX;
+		CivilizationTypes const eCiv = GET_PLAYER(eReassignPlayer).
+				getCivilizationType();
+		CvPlayerColorInfo const& kDefaultColor = GC.getInfo(
+				(PlayerColorTypes)GC.getInfo(eCiv).getDefaultPlayerColor());
+		/*	Look for a color similar to the secondary color of eCiv.
+			(If we try to match the primary color, it'll be difficult
+			to distinguish from the first player of eCiv.) */
+		NiColorA const& kTargetColor = GC.getInfo(kDefaultColor.
+				getColorTypeSecondary()).getColor();
+		/*	For the third player per civ, try matching a mix of primary
+			and secondary color. For subsequent players, pick a random color. */
+		NiColorA const* pTargetColor2 = (bMatchSecondary || bRandomize) ? NULL :
+				&GC.getInfo(kDefaultColor.getColorTypePrimary()).getColor();
+		FOR_EACH_ENUM2(Civilization, eLoopCiv)
+		{
+			if (aiPlayersPerCiv.get(eLoopCiv) > 0)
+				continue;
+			float fDiffValue = 0;
+			if (bRandomize)
+			{
+				/*	Since RGB values are stored as float, it's conceivable
+					that different colors could get chosen on different machines
+					in multiplayer. That should be OK, but I'd very much prefer for
+					everyone to use the same colors, so I'm not going to use
+					GC.getASyncRand. */
+				fDiffValue += getSorenRandNum(10000, "setPlayerColors");
+			}
+			else
+			{
+				// Candidate color: primary color of an unused civ
+				NiColorA const& kLoopColor = GC.getInfo(GC.getInfo(
+						(PlayerColorTypes)GC.getInfo(eLoopCiv).
+						getDefaultPlayerColor()).getColorTypePrimary()).getColor();
+				fDiffValue += ::colorDifference(kTargetColor, kLoopColor);
+				if (pTargetColor2 != NULL)
+					fDiffValue += ::colorDifference(*pTargetColor2, kLoopColor);
+			}
+			if (fDiffValue < fSmallestDiff)
+			{
+				fSmallestDiff = fDiffValue;
+				eBestCiv = eLoopCiv;
+			}
+		}
+		FAssert(eBestCiv != NO_CIVILIZATION || MAX_PLAYERS > GC.getNumCivilizationInfos());
+		if (eBestCiv != NO_CIVILIZATION)
+		{
+			GC.getInitCore().setColor(eReassignPlayer, (PlayerColorTypes)
+					GC.getInfo(eBestCiv).getDefaultPlayerColor());
+			aiPlayersPerCiv.add(eBestCiv, 1);
+		}
+		/*	(Else keep the colors assigned by the EXE. They're picked from the back
+			of Civ4PlayerColorInfos.xml. Not guaranteed to be unique.) */
+	}
+}
+
 // advc.127:
 void CvGame::initGameHandicap()
 {
@@ -819,6 +895,7 @@ void CvGame::initFreeState()
 	// advc.003g: Want to set this as soon as CvGame knows the GameType
 	m_bFPTestDone = !isNetworkMultiPlayer();
 	GC.getAgents().gameStart(false); // advc.agent
+	setPlayerColors(); // advc.002i
 	initGameHandicap(); // advc.127
 	// <advc.250b>
 	if(!isOption(GAMEOPTION_ADVANCED_START) ||

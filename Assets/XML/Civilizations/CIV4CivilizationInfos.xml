@@ -3831,7 +3831,8 @@
 			<ShortDescription>TXT_KEY_CIV_MINOR_SHORT_DESC</ShortDescription>
 			<Adjective>TXT_KEY_CIV_MINOR_ADJECTIVE</Adjective>
 			<Civilopedia>TXT_KEY_CIV_MINOR_PEDIA</Civilopedia>
-			<DefaultPlayerColor>PLAYERCOLOR_WHITE</DefaultPlayerColor>
+			<!-- advc.002i: was WHITE (clashes with England) -->
+			<DefaultPlayerColor>PLAYERCOLOR_BLACK_AND_GREEN</DefaultPlayerColor>
 			<ArtDefineTag>ART_DEF_CIVILIZATION_MINOR</ArtDefineTag>
 			<ArtStyleType>ARTSTYLE_BARBARIAN</ArtStyleType>
 			<bPlayable>0</bPlayable>
