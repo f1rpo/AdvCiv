@@ -13011,10 +13011,10 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 
 	int iNumCities = (kCityArea.getCitiesPerPlayer(eOwner) - 1 + iExtraCities) *
 			iNumCitiesPercent;
-	int iMaintenance = (iNumCities * iNumCities) / 100;
+	int iMaintenance = SQR(iNumCities) / 100;
 	//iMaintenance = std::min(iMaintenance, (GC.getInfo(getHandicapType()).getMaxColonyMaintenance() * calculateDistanceMaintenanceTimes100()) / 100);
-	/*  K-Mod, 17/dec/10, karadoc
-		Changed colony maintenance cap to not include distance maintenance modifiers (such as state property) */
+	/*  K-Mod, 17/dec/10: Changed colony maintenance cap to not include
+		distance maintenance modifiers (such as state property) */
 	int iMaintenanceCap = 100 * GC.getDefineINT(CvGlobals::MAX_DISTANCE_CITY_MAINTENANCE) *
 			calculateMaintenanceDistance(&kCityPlot, eOwner);
 

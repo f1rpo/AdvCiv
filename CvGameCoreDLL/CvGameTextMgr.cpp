@@ -16510,7 +16510,7 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 		kPlayer.getTeam() != TEAMID(eTargetPlayer))
 	{
 		FAssertMsg(iTotal == iTotalCached, "Attitude cache out of date "
-				"(OK after loading a save created prior to AdvCiv 0.95)");
+				"(OK after loading a save created prior to AdvCiv 0.98)");
 		kPlayer.AI_updateAttitude(eTargetPlayer, true);
 		// Try again, this time without recursion. szBuffer hasn't been changed yet.
 		getAttitudeString(szBuffer, ePlayer, eTargetPlayer, true);

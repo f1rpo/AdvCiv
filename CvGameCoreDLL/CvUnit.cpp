@@ -5938,9 +5938,10 @@ void CvUnit::promote(PromotionTypes ePromotion, int iLeaderUnitId)
 {
 	if (!canPromote(ePromotion, iLeaderUnitId))
 		return;
-
-	bool bSound = true; // advc.002l
-
+	// <advc.002l>
+	bool bSound = true;
+	bool const bSelected = IsSelected();
+	// </advc.002l>
 	if (iLeaderUnitId >= 0)
 	{
 		CvUnit* pWarlord = GET_PLAYER(getOwner()).getUnit(iLeaderUnitId);
@@ -5954,7 +5955,7 @@ void CvUnit::promote(PromotionTypes ePromotion, int iLeaderUnitId)
 			reloadEntity();
 		}
 	}  // <advc.002l>
-	else if (IsSelected())
+	else if (bSelected)
 	{
 		int iSelectedCanPromote = 0;
 		for (CLLNode<IDInfo> const* pNode = gDLL->UI().headSelectionListNode();
@@ -5984,7 +5985,7 @@ void CvUnit::promote(PromotionTypes ePromotion, int iLeaderUnitId)
 	testPromotionReady();
 	CvSelectionGroup::path_finder.Reset(); // K-Mod. (This currently isn't important, because the AI doesn't use promotions mid-turn anyway.)
 
-	if (IsSelected())
+	if (bSelected)
 	{
 		if (bSound) // advc.002l
 			gDLL->UI().playGeneralSound(GC.getInfo(ePromotion).getSound());
