@@ -1074,12 +1074,14 @@ bool CvPlot::isLake() const
 	return (area() == NULL ? false : getArea().isLake());
 }
 
-
 // XXX if this changes need to call updateIrrigated() and pCity->updateFreshWaterHealth()
 // XXX precalculate this???
 bool CvPlot::isFreshWater() const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	/*	advc: Called frequently enough that I don't want to keep profiling it.
+		Caching this in a variable bool m_bFreshWater:1 would save some time,
+		but not quite trivial to keep it updated, so probably not worth it. */
+	//PROFILE_FUNC();
 	if (isWater())
 		return false;
 
@@ -1149,7 +1151,7 @@ bool CvPlot::isPotentialIrrigation() const
 
 bool CvPlot::canHavePotentialIrrigation() const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	//PROFILE_FUNC(); // advc (not called very frequently)
 	// <advc.opt>
 	if(isWater())
 		return false; // </advc.opt>

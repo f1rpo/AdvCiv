@@ -1154,8 +1154,10 @@ byte const* CvMap::getReplayTexture() const
 {
 	// When in HoF or updateReplayTexture was never called or MINIMAP_RENDER_SIZE has changed
 	if (m_replayTexture.size() != CvReplayInfo::minimapPixels(
-			GC.getDefineINT(CvGlobals::MINIMAP_RENDER_SIZE)))
+		GC.getDefineINT(CvGlobals::MINIMAP_RENDER_SIZE)))
+	{
 		return NULL;
+	}
 	return &m_replayTexture[0];
 } // </advc.106n>
 

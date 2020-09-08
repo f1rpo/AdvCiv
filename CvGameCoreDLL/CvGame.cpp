@@ -10617,70 +10617,70 @@ void CvGame::doVoteResults()
 	}
 }
 
-void CvGame::doVoteSelection()  // advc: some changes to reduce indentation
+void CvGame::doVoteSelection()
 {
-	for (int iI = 0; iI < GC.getNumVoteSourceInfos(); ++iI)
+	FOR_EACH_ENUM2(VoteSource, eVS)
 	{
-		VoteSourceTypes eVoteSource = (VoteSourceTypes)iI;
-		if (!isDiploVote(eVoteSource))
+		if (!isDiploVote(eVS))
 			continue;
-	
-		if (getVoteTimer(eVoteSource) > 0)
+		if (getVoteTimer(eVS) > 0)
 		{
-			changeVoteTimer(eVoteSource, -1);
+			changeVoteTimer(eVS, -1);
 			continue;
 		}
-		setVoteTimer(eVoteSource, (GC.getInfo(eVoteSource).getVoteInterval() * GC.getInfo(getGameSpeedType()).getVictoryDelayPercent()) / 100);
+		setVoteTimer(eVS, (GC.getInfo(eVS).getVoteInterval() *
+				GC.getInfo(getGameSpeedType()).getVictoryDelayPercent()) / 100);
 
-		for (int iTeam1 = 0; iTeam1 < MAX_CIV_TEAMS; ++iTeam1)
+		for (TeamIter<MAJOR_CIV> itTeam1; itTeam1.hasNext(); ++itTeam1)
 		{
-			CvTeam& kTeam1 = GET_TEAM((TeamTypes)iTeam1);
-			if (!kTeam1.isAlive() || !kTeam1.isVotingMember(eVoteSource))
+			if (!itTeam1->isVotingMember(eVS))
 				continue;
-			for (int iTeam2 = iTeam1 + 1; iTeam2 < MAX_CIV_TEAMS; ++iTeam2)
+			for (TeamIter<MAJOR_CIV> itTeam2; itTeam2.hasNext(); ++itTeam2)
 			{
-				CvTeam& kTeam2 = GET_TEAM((TeamTypes)iTeam2);
-				if (!kTeam2.isAlive() || !kTeam2.isVotingMember(eVoteSource))
+				if (!itTeam2->isVotingMember(eVS))
 					continue;
-				//kTeam1.meet((TeamTypes)iTeam2, true);
+				//itTeam1->meet(itTeam2->getID(), true);
 				// <advc.071> Check isHasMet b/c getVoteSourceCity is a bit slow
-				if(!kTeam1.isHasMet(kTeam2.getID()))
+				if(!itTeam1->isHasMet(itTeam2->getID()))
 				{
-					CvCity const* pSrcCity = getVoteSourceCity(eVoteSource, NO_TEAM);
+					CvCity const* pSrcCity = getVoteSourceCity(eVS, NO_TEAM);
 					if(pSrcCity == NULL)
-						kTeam1.meet((TeamTypes)iTeam2, true, NULL);
+						itTeam1->meet(itTeam2->getID(), true, NULL);
 					else
 					{
 						FirstContactData fcData(pSrcCity->plot());
-						kTeam1.meet((TeamTypes)iTeam2, true, &fcData);
+						itTeam1->meet(itTeam2->getID(), true, &fcData);
 					} // </advc.071>
 				}
 			}
 		}
-		TeamTypes eSecretaryGeneral = getSecretaryGeneral(eVoteSource);
+		TeamTypes eSecretaryGeneral = getSecretaryGeneral(eVS);
 		PlayerTypes eSecretaryPlayer = NO_PLAYER;
 		if (eSecretaryGeneral != NO_TEAM)
 			eSecretaryPlayer = GET_TEAM(eSecretaryGeneral).getSecretaryID();
 
 		bool bSecretaryGeneralVote = false;
-		if (canHaveSecretaryGeneral(eVoteSource))
+		if (canHaveSecretaryGeneral(eVS))
 		{
-			if (getSecretaryGeneralTimer(eVoteSource) > 0)
-				changeSecretaryGeneralTimer(eVoteSource, -1);
+			if (getSecretaryGeneralTimer(eVS) > 0)
+				changeSecretaryGeneralTimer(eVS, -1);
 			else
 			{
-				setSecretaryGeneralTimer(eVoteSource, GC.getDefineINT("DIPLO_VOTE_SECRETARY_GENERAL_INTERVAL"));
-				for (int iJ = 0; iJ < GC.getNumVoteInfos(); iJ++)
+				setSecretaryGeneralTimer(eVS, GC.getDefineINT("DIPLO_VOTE_SECRETARY_GENERAL_INTERVAL"));
+				FOR_EACH_ENUM(Vote)
 				{
-					if (GC.getInfo((VoteTypes)iJ).isSecretaryGeneral() && GC.getInfo((VoteTypes)iJ).isVoteSourceType(iI))
+					CvVoteInfo const& kLoopVote = GC.getInfo(eLoopVote);
+					if (kLoopVote.isSecretaryGeneral() && kLoopVote.isVoteSourceType(eVS))
 					{
 						VoteSelectionSubData kOptionData;
 						kOptionData.iCityId = -1;
 						kOptionData.ePlayer = NO_PLAYER;
 						kOptionData.eOtherPlayer = NO_PLAYER; // kmodx: Missing initialization
-						kOptionData.eVote = (VoteTypes)iJ;
-						kOptionData.szText = gDLL->getText("TXT_KEY_POPUP_ELECTION_OPTION", GC.getInfo((VoteTypes)iJ).getTextKeyWide(), getVoteRequired((VoteTypes)iJ, eVoteSource), countPossibleVote((VoteTypes)iJ, eVoteSource));
-						addVoteTriggered(eVoteSource, kOptionData);
+						kOptionData.eVote = eLoopVote;
+						kOptionData.szText = gDLL->getText("TXT_KEY_POPUP_ELECTION_OPTION",
+								kLoopVote.getTextKeyWide(), getVoteRequired(eLoopVote, eVS),
+								countPossibleVote(eLoopVote, eVS));
+						addVoteTriggered(eVS, kOptionData);
 						bSecretaryGeneralVote = true;
 						break;
 					}
@@ -10688,15 +10688,16 @@ void CvGame::doVoteSelection()  // advc: some changes to reduce indentation
 			}
 		}
 
-		if (!bSecretaryGeneralVote && eSecretaryGeneral != NO_TEAM && eSecretaryPlayer != NO_PLAYER)
+		if (!bSecretaryGeneralVote &&
+			eSecretaryGeneral != NO_TEAM && eSecretaryPlayer != NO_PLAYER)
 		{
-			VoteSelectionData* pData = addVoteSelection(eVoteSource);
-			if (NULL != pData)
+			VoteSelectionData* pData = addVoteSelection(eVS);
+			if (pData != NULL)
 			{
 				if (GET_PLAYER(eSecretaryPlayer).isHuman())
 				{
 					CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CHOOSEELECTION);
-					if (NULL != pInfo)
+					if (pInfo != NULL)
 					{
 						pInfo->setData1(pData->getID());
 						gDLL->getInterfaceIFace()->addPopup(pInfo, eSecretaryPlayer);
@@ -10704,10 +10705,11 @@ void CvGame::doVoteSelection()  // advc: some changes to reduce indentation
 				}
 				else
 				{
-					setVoteChosen(GET_TEAM(eSecretaryGeneral).AI_chooseElection(*pData), pData->getID());
+					setVoteChosen(GET_TEAM(eSecretaryGeneral).AI_chooseElection(*pData),
+							pData->getID());
 				}
 			}
-			else setVoteTimer(eVoteSource, 0);
+			else setVoteTimer(eVS, 0);
 		}
 	}
 }

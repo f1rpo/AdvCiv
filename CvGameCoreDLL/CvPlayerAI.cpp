@@ -16473,20 +16473,27 @@ int CvPlayerAI::AI_religionValue(ReligionTypes eReligion) const
 	// * up to +100% boost for liked civs having this has their state religion. (depending on personality)
 	// * less potential boost if we have aspirations of being a religious leader
 	// * minimum boost for apostolic palace religion
-	const CvLeaderHeadInfo& kPersonality = GC.getInfo(getPersonalityType());
-	int iDiplomaticBase = 50 + 5 * range(kPersonality.getSameReligionAttitudeChangeLimit() - kPersonality.getDifferentReligionAttitudeChange(), 0, 10);
-	// note. with the default xml, the highest the above number can get is 50 + 5*9 (Zara Yaqob). For most leaders its roughly 50 + 5*5. No one gets 100.
-	// also, most civs with a high base modifier also have iReligionFlavor > 0; and so their final modifier will be reduced.
-	int iDiplomaticModifier = 10 * iDiplomaticBase * iLikedReligionCivs / std::max(1, iTotalCivs);
+	CvLeaderHeadInfo const& kPersonality = GC.getInfo(getPersonalityType());
+	int iDiplomaticBase = 50 + 5 * range(kPersonality.getSameReligionAttitudeChangeLimit() -
+			kPersonality.getDifferentReligionAttitudeChange(), 0, 10);
+	/*	note. with the default xml, the highest the above number can get is
+		50 + 5*9 (Zara Yaqob). For most leaders its roughly 50 + 5*5. No one gets 100.
+		also, most civs with a high base modifier also have iReligionFlavor > 0;
+		and so their final modifier will be reduced. */
+	int iDiplomaticModifier = 10 * iDiplomaticBase * iLikedReligionCivs /
+			std::max(1, iTotalCivs);
 	iDiplomaticModifier /= 10 + iReligionFlavor;
 	// advc.131: AP matters even if diplo modifier already high
 	//if (iDiplomaticModifier < iDiplomaticBase/3) {
-	for (VoteSourceTypes i = (VoteSourceTypes)0; i < GC.getNumVoteSourceInfos(); i = (VoteSourceTypes)(i+1))
+	FOR_EACH_ENUM2(VoteSource, eVS)
 	{	/*  advc.131: Shouldn't check if we're a member now when deciding whether
 			we should be one. */
 		if (/*isLoyalMember(i) &&*/
-				GC.getGame().isDiploVote(i) && GC.getGame().getVoteSourceReligion(i) == eReligion)
-			iDiplomaticModifier += iDiplomaticBase/3; // advc.131: += instead of =
+			GC.getGame().isDiploVote(eVS) &&
+			GC.getGame().getVoteSourceReligion(eVS) == eReligion)
+		{
+			iDiplomaticModifier += iDiplomaticBase / 3; // advc.131: += instead of =
+		}
 	}
 	iValue *= 100 + iDiplomaticModifier;
 	iValue /= 100;
@@ -16519,27 +16526,27 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 	bool const bDisorder = (pCity != NULL && pCity->isDisorder()); // advc.120b
 
 	int iValue = 0;
-	if (bMalicious && GC.getInfo(eMission).isDestroyImprovement())
+	if (bMalicious && GC.getInfo(eMission).isDestroyImprovement() &&
+		pPlot->getOwner() == eTargetPlayer)
 	{
-		if (pPlot->getOwner() == eTargetPlayer)
+		ImprovementTypes eImprovement = pPlot->getImprovementType();
+		if (eImprovement != NO_IMPROVEMENT)
 		{
-			ImprovementTypes eImprovement = pPlot->getImprovementType();
-			if (eImprovement != NO_IMPROVEMENT)
+			BonusTypes eBonus = pPlot->getNonObsoleteBonusType(eTargetTeam);
+			if (eBonus != NO_BONUS)
 			{
-				BonusTypes eBonus = pPlot->getNonObsoleteBonusType(eTargetTeam);
-				if (NO_BONUS != eBonus)
+				iValue += 2*GET_PLAYER(eTargetPlayer).AI_bonusVal(eBonus, -1); // was 1*
+				int iTempValue = 0;
+				if (pPlot->getWorkingCity() != NULL)
 				{
-					iValue += 2*GET_PLAYER(eTargetPlayer).AI_bonusVal(eBonus, -1); // was 1*
-
-					int iTempValue = 0;
-					if (NULL != pPlot->getWorkingCity())
-					{
-						iTempValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_FOOD, pPlot->getOwner()) * 2);
-						iTempValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_PRODUCTION, pPlot->getOwner()) * 1);
-						iTempValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_COMMERCE, pPlot->getOwner()) * 2);
-						iTempValue += GC.getInfo(eImprovement).getUpgradeTime() / 2;
-						iValue += iTempValue;
-					}
+					iTempValue += (pPlot->calculateImprovementYieldChange(
+							eImprovement, YIELD_FOOD, pPlot->getOwner()) * 2);
+					iTempValue += (pPlot->calculateImprovementYieldChange(
+							eImprovement, YIELD_PRODUCTION, pPlot->getOwner()) * 1);
+					iTempValue += (pPlot->calculateImprovementYieldChange(
+							eImprovement, YIELD_COMMERCE, pPlot->getOwner()) * 2);
+					iTempValue += GC.getInfo(eImprovement).getUpgradeTime() / 2;
+					iValue += iTempValue;
 				}
 			}
 		}
@@ -16554,10 +16561,13 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 			CvBuildingInfo& kBuilding = GC.getInfo((BuildingTypes)iData);
 			int iTurns = pCity->getProductionTurnsLeft((BuildingTypes)iData, 1);
 			if (iTurns < MAX_INT && // advc.004x: Let's check iTurns _and_ bDisorder
-					!bDisorder) // K-Mod: disorder messes up the evaluation of production and of building value. That's the only reason for this condition.
-			{	// Note: I'm not allowing recursion in the building evaluation.
-				// This may cause the cached value to be inaccurate, but it doesn't really matter, because the building is already built!
-				// (AI_buildingValue gives units of 4x commerce/turn)
+				/*	K-Mod: disorder messes up the evaluation of production and of building value.
+					That's the only reason for this condition. */
+				!bDisorder)
+			{	/*	Note: I'm not allowing recursion in the building evaluation.
+					This may cause the cached value to be inaccurate, but it doesn't really matter
+					because the building is already built!
+					(AI_buildingValue gives units of 4x commerce/turn) */
 				iValue += kBuilding.getProductionCost() / 2;
 				iValue += (2 + iTurns) * pCity->AI_buildingValue((BuildingTypes)
 						iData, 0, 0, false, false) / 5;
@@ -16571,7 +16581,8 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 		if (canSpyDestroyProject(eTargetPlayer, (ProjectTypes)iData))
 		{
 			CvProjectInfo& kProject = GC.getInfo((ProjectTypes)iData);
-			iValue += getProductionNeeded((ProjectTypes)iData) * (kProject.getMaxTeamInstances() == 1 ? 8 : 6); // was 3 : 2
+			iValue += getProductionNeeded((ProjectTypes)iData) *
+					(kProject.getMaxTeamInstances() == 1 ? 8 : 6); // was 3 : 2
 		}
 	}
 
@@ -16599,56 +16610,58 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 		}
 	}
 
-	if (bMalicious && GC.getInfo(eMission).getDestroyUnitCostFactor() > 0 || GC.getInfo(eMission).getBuyUnitCostFactor() > 0)
+	if (bMalicious && GC.getInfo(eMission).getDestroyUnitCostFactor() > 0 ||
+		GC.getInfo(eMission).getBuyUnitCostFactor() > 0)
 	{
-		CvUnit* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iData);
+		CvUnit const* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iData);
 		if (pUnit != NULL)
 		{
 			UnitTypes eUnit = pUnit->getUnitType();
-
 			iValue += GET_PLAYER(eTargetPlayer).AI_unitValue(eUnit,
 					GC.getInfo(eUnit).getDefaultUnitAIType(), pUnit->area());
 			if (GC.getInfo(eMission).getBuyUnitCostFactor() > 0)
 			{
 				/*if (!canTrain(eUnit) || getProductionNeeded(eUnit) > iCost)
 					iValue += AI_unitValue(eUnit, (UnitAITypes)GC.getInfo(eUnit).getDefaultUnitAIType(), pUnit->area());*/
-				// K-Mod. AI_unitValue is a relative rating value. It shouldn't be used for this.
-				// (The espionage mission is not enabled anyway, so I'm not going to put a lot of effort into it.)
-				iValue += GC.getInfo(eUnit).getProductionCost() * (canTrain(eUnit) ? 4 : 8); // kmodx: Parentheses added; not sure if needed.
-				//
+				/*	K-Mod: AI_unitValue is a relative rating value. It shouldn't be used for this.
+					(The espionage mission is not enabled anyway,
+					so I'm not going to put a lot of effort into it.) */
+				iValue += GC.getInfo(eUnit).getProductionCost() *
+						(canTrain(eUnit) ? 4 : 8); // kmodx (bugfix): parentheses
+
 			}
 		}
 	}
 
-	if (bMalicious && GC.getInfo(eMission).getStealTreasuryTypes() > 0)
+	if (bMalicious && GC.getInfo(eMission).getStealTreasuryTypes() > 0 && pCity != NULL)
 	{
-		if(pCity != NULL)
-		{
-			/* int iGoldStolen = (GET_PLAYER(eTargetPlayer).getGold() * GC.getInfo(eMission).getStealTreasuryTypes()) / 100;
-			iGoldStolen *= pPlot->getPlotCity()->getPopulation();
-			iGoldStolen /= std::max(1, GET_PLAYER(eTargetPlayer).getTotalPopulation());
-			iValue += ((GET_PLAYER(eTargetPlayer).AI_isFinancialTrouble() || AI_isFinancialTrouble()) ? 4 : 2) * (2 * std::max(0, iGoldStolen - iCost));*/
-			// K-Mod
-			int iGoldStolen = getEspionageGoldQuantity(eMission, eTargetPlayer, pCity);
-			iValue += (GET_PLAYER(eTargetPlayer).AI_isFinancialTrouble() || AI_isFinancialTrouble() ? 6 : 4) * iGoldStolen;
-		}
+		/* int iGoldStolen = (GET_PLAYER(eTargetPlayer).getGold() * GC.getInfo(eMission).getStealTreasuryTypes()) / 100;
+		iGoldStolen *= pPlot->getPlotCity()->getPopulation();
+		iGoldStolen /= std::max(1, GET_PLAYER(eTargetPlayer).getTotalPopulation());
+		iValue += ((GET_PLAYER(eTargetPlayer).AI_isFinancialTrouble() || AI_isFinancialTrouble()) ? 4 : 2) * (2 * std::max(0, iGoldStolen - iCost));*/
+		// <K-Mod>
+		int iGoldStolen = getEspionageGoldQuantity(eMission, eTargetPlayer, pCity);
+		iValue += (GET_PLAYER(eTargetPlayer).AI_isFinancialTrouble() ||
+				AI_isFinancialTrouble() ? 6 : 4) * iGoldStolen; // </K-Mod>
 	}
 
 	if (GC.getInfo(eMission).getCounterespionageNumTurns() > 0)
 	{
 		//iValue += 100 * GET_TEAM(getTeam()).AI_getAttitudeVal(eTargetTeam);
-
 		// K-Mod (I didn't comment that line out, btw.)
-		const int iEra = getCurrentEra();
+		int const iEra = getCurrentEra();
 		// advc.001: was logical '||'
-		int iCounterValue = 5 + 3*iEra + (AI_atVictoryStage(AI_VICTORY_CULTURE3 | AI_VICTORY_SPACE3) ? 20 : 0);
+		int iCounterValue = 5 + 3 * iEra +
+				(AI_atVictoryStage(AI_VICTORY_CULTURE3 | AI_VICTORY_SPACE3) ? 20 : 0);
 		// this is pretty bogus. I'll try to come up with something better some other time.
-		iCounterValue *= 50*iEra*(iEra+1)/2 + GET_TEAM(eTargetTeam).getEspionagePointsAgainstTeam(getTeam());
-		iCounterValue /= std::max(1, 50*iEra*(iEra+1) + GET_TEAM(getTeam()).getEspionagePointsAgainstTeam(eTargetTeam))/2;
+		iCounterValue *= 50 * iEra * (iEra + 1) / 2 +
+				GET_TEAM(eTargetTeam).getEspionagePointsAgainstTeam(getTeam());
+		iCounterValue /= std::max(1, 50 * iEra * (iEra + 1) +
+				GET_TEAM(getTeam()).getEspionagePointsAgainstTeam(eTargetTeam)) / 2;
 		iCounterValue *=
-				// advc.130j:
-				(int)ceil(AI_getMemoryCount(eTargetPlayer, MEMORY_SPY_CAUGHT) / 2.0)
-				+ (GET_TEAM(getTeam()).isAtWar(eTargetTeam)?2 :0) + (AI_atVictoryStage(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE3)?2 : 0);
+				ROUND_DIVIDE(AI_getMemoryCount(eTargetPlayer, MEMORY_SPY_CAUGHT), 2) // advc.130j
+				+ (GET_TEAM(getTeam()).isAtWar(eTargetTeam)?2 :0) +
+				(AI_atVictoryStage(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE3) ? 2 : 0);
 		iValue += iCounterValue;
 	}
 
@@ -16661,78 +16674,73 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 		}
 	}
 
-	if (GC.getInfo(eMission).getCityInsertCultureAmountFactor() > 0)
+	if (GC.getInfo(eMission).getCityInsertCultureAmountFactor() > 0 &&
+		pCity != NULL && pCity->getOwner() != getID())
 	{
-		if (pCity != NULL && pCity->getOwner() != getID())
+		int iCultureAmount = GC.getInfo(eMission).getCityInsertCultureAmountFactor() * pPlot->getCulture(getID());
+		iCultureAmount /= 100;
+		/*if (pCity->calculateCulturePercent(getID()) > 40)
+		iValue += iCultureAmount * 3;*/
+		// K-Mod - both offensive & defensive use of spread culture mission. (The first "if" is really just for effeciency.)
+		if (pCity->calculateCulturePercent(getID()) >= 8)
 		{
-			int iCultureAmount = GC.getInfo(eMission).getCityInsertCultureAmountFactor() * pPlot->getCulture(getID());
-			iCultureAmount /= 100;
-			/*if (pCity->calculateCulturePercent(getID()) > 40)
-			iValue += iCultureAmount * 3;*/
-			// K-Mod - both offensive & defensive use of spread culture mission. (The first "if" is really just for effeciency.)
-			if (pCity->calculateCulturePercent(getID()) >= 8)
+			CvMap const& m = GC.getMap(); // advc
+			CvCity const* pOurClosestCity = m.findCity(pPlot->getX(), pPlot->getY(), getID());
+			if (pOurClosestCity != NULL)
 			{
-				CvMap const& m = GC.getMap(); // advc
-				const CvCity* pOurClosestCity = m.findCity(pPlot->getX(), pPlot->getY(), getID());
-				if (pOurClosestCity != NULL)
-				{
-					int iDistance = pCity->cultureDistance(m.xDistance(pPlot->getX(), pOurClosestCity->getX()), m.yDistance(pPlot->getY(), pOurClosestCity->getY()));
-					if (iDistance < 6)
-					{	// advc:
-						int iPressure = std::max(pCity->AI_culturePressureFactor() -
-								100, pOurClosestCity->AI().AI_culturePressureFactor());
-						int iMultiplier = std::min(2, (6 - iDistance) * iPressure / 500);
-						iValue += iCultureAmount * iMultiplier;
-					}
+				int iDistance = pCity->cultureDistance(
+						m.xDistance(pPlot->getX(), pOurClosestCity->getX()),
+						m.yDistance(pPlot->getY(), pOurClosestCity->getY()));
+				if (iDistance < 6)
+				{	// advc:
+					int iPressure = std::max(pCity->AI_culturePressureFactor() -
+							100, pOurClosestCity->AI().AI_culturePressureFactor());
+					int iMultiplier = std::min(2, (6 - iDistance) * iPressure / 500);
+					iValue += iCultureAmount * iMultiplier;
 				}
-			} // K-Mod end
-		}
+			}
+		} // K-Mod end
 	}
 
-	if (bMalicious && GC.getInfo(eMission).getCityPoisonWaterCounter() > 0)
+	if (bMalicious && GC.getInfo(eMission).getCityPoisonWaterCounter() > 0 &&
+		pCity != NULL && /* advc.120b: */ !bDisorder)
 	{
-		if (pCity != NULL && /* advc.120b: */ !bDisorder)
+		int iCityHealth = pCity->goodHealth() - pCity->badHealth(false, 0);
+		//int iBaseUnhealth = GC.getInfo(eMission).getCityPoisonWaterCounter();
+		int iBaseUnhealth = GC.getInfo(eMission).getCityPoisonWaterCounter() -
+				std::max(pCity->getOccupationTimer(), GET_PLAYER(eTargetPlayer).getAnarchyTurns());
+
+		// K-Mod: fixing some "wtf".
+		/*int iAvgFoodShortage = std::max(0, iBaseUnhealth - iCityHealth) - pCity->foodDifference();
+		iAvgFoodShortage += std::max(0, iBaseUnhealth/2 - iCityHealth) - pCity->foodDifference();
+		iAvgFoodShortage /= 2;
+		if (iAvgFoodShortage > 0)
+			iValue += 8 * iAvgFoodShortage * iAvgFoodShortage;*/
+		int iAvgFoodShortage = (std::max(0, iBaseUnhealth - iCityHealth) +
+				std::max(0, -iCityHealth)) / 2 - pCity->foodDifference(true, true);
+		if (iAvgFoodShortage > 0)
 		{
-			int iCityHealth = pCity->goodHealth() - pCity->badHealth(false, 0);
-			//int iBaseUnhealth = GC.getInfo(eMission).getCityPoisonWaterCounter();
-			int iBaseUnhealth = GC.getInfo(eMission).getCityPoisonWaterCounter() - std::max(pCity->getOccupationTimer(), GET_PLAYER(eTargetPlayer).getAnarchyTurns());
-
-			// K-Mod: fixing some "wtf".
-			/*int iAvgFoodShortage = std::max(0, iBaseUnhealth - iCityHealth) - pCity->foodDifference();
-			iAvgFoodShortage += std::max(0, iBaseUnhealth/2 - iCityHealth) - pCity->foodDifference();
-			iAvgFoodShortage /= 2;
-			if (iAvgFoodShortage > 0)
-				iValue += 8 * iAvgFoodShortage * iAvgFoodShortage;*/
-			int iAvgFoodShortage = (std::max(0, iBaseUnhealth - iCityHealth) + std::max(0, -iCityHealth))/2 - pCity->foodDifference(true, true);
-
-			if (iAvgFoodShortage > 0)
-			{
-				iValue += 3 * iAvgFoodShortage * iBaseUnhealth;
-				/*  advc.160: Prefer large cities w/o Granaries.
-				Too little impact?
-				iValue could be sth. like 100, threshold e.g. 30,
-				food kept 12. */
-				iValue += pCity->growthThreshold() - pCity->getFoodKept();
-			}
-			// K-Mod end
+			iValue += 3 * iAvgFoodShortage * iBaseUnhealth;
+			/*  advc.160: Prefer large cities w/o Granaries.
+			Too little impact?
+			iValue could be sth. like 100, threshold e.g. 30,
+			food kept 12. */
+			iValue += pCity->growthThreshold() - pCity->getFoodKept();
 		}
+		// K-Mod end
 	}
 
-	if (bMalicious && GC.getInfo(eMission).getCityUnhappinessCounter() > 0)
+	if (bMalicious && GC.getInfo(eMission).getCityUnhappinessCounter() > 0 &&
+		NULL != pCity && /* advc.120b: */ !bDisorder)
 	{
-		if (NULL != pCity && /* advc.120b: */ !bDisorder)
-		{
-			int iCityCurAngerLevel = pCity->happyLevel() - pCity->unhappyLevel(0);
-			//int iBaseAnger = GC.getInfo(eMission).getCityUnhappinessCounter();
-			// K-Mod:
-			int iBaseAnger = GC.getInfo(eMission).getCityUnhappinessCounter() - std::max(pCity->getOccupationTimer(), GET_PLAYER(eTargetPlayer).getAnarchyTurns());
-
-			int iAvgUnhappy = iCityCurAngerLevel - iBaseAnger/2;
-			if (iAvgUnhappy < 0)
-			{
-				iValue += 7 * abs(iAvgUnhappy) * iBaseAnger;// down from 14
-			}
-		}
+		int iCityCurAngerLevel = pCity->happyLevel() - pCity->unhappyLevel(0);
+		//int iBaseAnger = GC.getInfo(eMission).getCityUnhappinessCounter();
+		// K-Mod:
+		int iBaseAnger = GC.getInfo(eMission).getCityUnhappinessCounter() -
+				std::max(pCity->getOccupationTimer(), GET_PLAYER(eTargetPlayer).getAnarchyTurns());
+		int iAvgUnhappy = iCityCurAngerLevel - iBaseAnger/2;
+		if (iAvgUnhappy < 0)
+			iValue += 7 * abs(iAvgUnhappy) * iBaseAnger; // down from 14
 	}
 
 	/*if (bMalicious && GC.getInfo(eMission).getCityRevoltCounter() > 0)
@@ -16743,13 +16751,13 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 	if (GC.getInfo(eMission).getBuyTechCostFactor() > 0)
 	{
 		FAssert(iData >= 0 && iData < GC.getNumTechInfos());
-
 		//if (iCost < GET_TEAM(getTeam()).getResearchLeft((TechTypes)iData) * 4 / 3)
 		if (canStealTech(eTargetPlayer, (TechTypes)iData)) // K-Mod!
 		{
 			//int iTempValue = GET_TEAM(getTeam()).AI_techTradeVal((TechTypes)iData, GET_PLAYER(eTargetPlayer).getTeam());
 			// K-Mod
-			int iTempValue = GET_TEAM(getTeam()).AI_techTradeVal((TechTypes)iData, eTargetTeam);
+			int iTempValue = GET_TEAM(getTeam()).AI_techTradeVal((TechTypes)
+					iData, eTargetTeam);
 			iTempValue *= AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE) ? 6 : 5;
 			iTempValue /= 3;
 			// K-Mod end
@@ -16759,9 +16767,7 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 	}
 
 	if (bMalicious && GC.getInfo(eMission).getSwitchCivicCostFactor() > 0)
-	{
 		iValue += AI_civicTradeVal((CivicTypes)iData, eTargetPlayer);
-	}
 
 	if (bMalicious && GC.getInfo(eMission).getSwitchReligionCostFactor() > 0)
 	{	// <advc.132>
@@ -16770,15 +16776,14 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 			iValue += AI_religionTradeVal(eReligion, eTargetPlayer);
 	}
 
-	/*if (bMalicious && GC.getInfo(eMission).getPlayerAnarchyCounter() > 0)
-	{
+	/*if (bMalicious && GC.getInfo(eMission).getPlayerAnarchyCounter() > 0) {
 		// AI doesn't use Player Anarchy
 	}*/
 
 	return iValue;
 }
 
-// K-Mod
+// K-Mod:
 bool CvPlayerAI::AI_isMaliciousEspionageTarget(PlayerTypes eTarget) const
 {
 	// advc.120b: was GET_PLAYER(eTarget).getTeam() == getTeam()
@@ -16787,7 +16792,7 @@ bool CvPlayerAI::AI_isMaliciousEspionageTarget(PlayerTypes eTarget) const
 		return false;
 	return
 	(//AI_getAttitude(eTarget) <= (GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI) ? ATTITUDE_PLEASED : ATTITUDE_CAUTIOUS) ||
-			// <advc.120b>: Replacing the above:
+			// <advc.120b>
 			GC.getInfo(getPersonalityType()).getNoWarAttitudeProb(
 			std::min(AI_getAttitude(eTarget) + 1, NUM_ATTITUDE_TYPES - 1)) < 100 ||
 			// </advc.120b>
@@ -16795,7 +16800,7 @@ bool CvPlayerAI::AI_isMaliciousEspionageTarget(PlayerTypes eTarget) const
 			(AI_atVictoryStage4() && GET_PLAYER(eTarget).AI_atVictoryStage4() &&
 			!AI_atVictoryStage(AI_VICTORY_DIPLOMACY3)) // advc.120b: was DIPLOMACY1
 	);
-} // K-Mod end
+}
 
 
 int CvPlayerAI::AI_getPeaceWeight() const

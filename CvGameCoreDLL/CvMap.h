@@ -197,9 +197,7 @@ public:
 		return (stepDistance(&kFirstPlot, &kSecondPlot) <= 1);
 	}
 	/*	advc (for advc.030, advc.027): Cut from teamStepValid in CvGameCoreUtils.
-		Would rather leave it there with the other pathfinding helper functions,
-		but can't inline it there.
-		advc.test: Is it getting inlined here (probably not)? Should it be? */
+		Not getting inlined - which is OK (I've benchmarked it with forceinline). */
 	bool isSeparatedByIsthmus(CvPlot const& kFrom, CvPlot const& kTo) const
 	{
 		return (kFrom.isWater() && kTo.isWater() &&

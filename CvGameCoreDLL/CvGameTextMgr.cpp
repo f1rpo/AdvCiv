@@ -17768,11 +17768,13 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCi
 	bool bBuildingAdditionalCommerce = (BUGOption::isEnabled("MiscHover__BuildingAdditionalCommerce", false)
 			|| GC.altKey()); // advc.063
 	if(NO_COMMERCE == eCommerce ||
-			(kCity.getCommerceRateTimes100(eCommerce) == 0 &&
-			!bBuildingAdditionalCommerce)
+		(kCity.getCommerceRateTimes100(eCommerce) == 0 &&
+		!bBuildingAdditionalCommerce) ||
 	// BUG - Building Additional Commerce - end
-			|| kCity.isDisorder()) // advc.001
+		kCity.isDisorder()) // advc.001
+	{
 		return;
+	}
 	CvCommerceInfo& kCommerce = GC.getInfo(eCommerce);
 	int const iCommerceChar = kCommerce.getChar();
 

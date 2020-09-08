@@ -4768,7 +4768,7 @@ int CvTeam::getEspionagePointsAgainstTeam(TeamTypes eIndex) const
 
 void CvTeam::setEspionagePointsAgainstTeam(TeamTypes eIndex, int iValue)
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC(); // advc: So far not called frequently enough to be of any concern
 	if (iValue != getEspionagePointsAgainstTeam(eIndex))
 	{
 		m_aiEspionagePointsAgainstTeam.set(eIndex, iValue);

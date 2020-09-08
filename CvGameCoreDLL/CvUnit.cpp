@@ -1080,10 +1080,10 @@ void CvUnit::updateAirCombat(bool bQuick)
 // K-Mod. I've edited this function so that it handles the battle planning internally rather than feeding details back to the caller.
 void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 {
-#ifdef LOG_COMBAT_OUTCOMES
-	int iLoggedOdds = getCombatOdds(this, pDefender);
-	iLoggedOdds += (1000 - iLoggedOdds)*withdrawalProbability()/100;
-#endif
+	#ifdef LOG_COMBAT_OUTCOMES
+		int iLoggedOdds = getCombatOdds(this, pDefender);
+		iLoggedOdds += (1000 - iLoggedOdds)*withdrawalProbability()/100;
+	#endif
 
 	// K-Mod. Initialize battle info.
 	// Note: kBattle is only relevant if we are going to show the battle animation.
@@ -1128,12 +1128,14 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 		{
 			if (getCombatFirstStrikes() == 0)
 			{
-				if (getDamage() + iAttackerDamage >= maxHitPoints() && GC.getGame().getSorenRandNum(100, "Withdrawal") < withdrawalProbability())
+				if (getDamage() + iAttackerDamage >= maxHitPoints() &&
+					GC.getGame().getSorenRandNum(100, "Withdrawal") < withdrawalProbability())
 				{
-					flankingStrikeCombat(pPlot, iAttackerStrength, iAttackerFirepower, iAttackerKillOdds, iDefenderDamage, pDefender);
-
+					flankingStrikeCombat(pPlot, iAttackerStrength, iAttackerFirepower,
+							iAttackerKillOdds, iDefenderDamage, pDefender);
 					changeExperience(GC.getDefineINT(CvGlobals::EXPERIENCE_FROM_WITHDRAWL),
-							pDefender->maxXPValue(), true, pPlot->getOwner() == getOwner(), !pDefender->isBarbarian());
+							pDefender->maxXPValue(), true, pPlot->getOwner() == getOwner(),
+							!pDefender->isBarbarian());
 					combat_log.push_back(0); // K-Mod
 					break;
 				}
@@ -1171,10 +1173,12 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 		{
 			if (pDefender->getCombatFirstStrikes() == 0)
 			{
-				if (std::min(GC.getMAX_HIT_POINTS(), pDefender->getDamage() + iDefenderDamage) > combatLimit())
+				if (std::min(GC.getMAX_HIT_POINTS(),
+					pDefender->getDamage() + iDefenderDamage) > combatLimit())
 				{
 					changeExperience(GC.getDefineINT(CvGlobals::EXPERIENCE_FROM_WITHDRAWL),
-							pDefender->maxXPValue(), true, pPlot->getOwner() == getOwner(), !pDefender->isBarbarian());
+							pDefender->maxXPValue(), true, pPlot->getOwner() == getOwner(),
+							!pDefender->isBarbarian());
 					combat_log.push_back(combatLimit() - pDefender->getDamage()); // K-Mod
 					pDefender->setDamage(combatLimit(), getOwner());
 					break;
@@ -1211,14 +1215,9 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 		}
 
 		if (getCombatFirstStrikes() > 0)
-		{
 			changeCombatFirstStrikes(-1);
-		}
-
 		if (pDefender->getCombatFirstStrikes() > 0)
-		{
 			pDefender->changeCombatFirstStrikes(-1);
-		}
 
 		if (isDead() || pDefender->isDead())
 		{
@@ -1226,21 +1225,26 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 			{
 				int iExperience = defenseXPValue();
 				iExperience = ((iExperience * iAttackerStrength) / iDefenderStrength);
-				iExperience = range(iExperience, GC.getDefineINT(CvGlobals::MIN_EXPERIENCE_PER_COMBAT),
+				iExperience = range(iExperience,
+						GC.getDefineINT(CvGlobals::MIN_EXPERIENCE_PER_COMBAT),
 						GC.getDefineINT(CvGlobals::MAX_EXPERIENCE_PER_COMBAT)
 						- (isBarbarian() ? 4 : 0)); // advc.312
-				pDefender->changeExperience(iExperience, maxXPValue(), true, pPlot->getOwner() == pDefender->getOwner(), !isBarbarian());
+				pDefender->changeExperience(iExperience, maxXPValue(), true,
+						pPlot->getOwner() == pDefender->getOwner(), !isBarbarian());
 			}
 			else
 			{
-				flankingStrikeCombat(pPlot, iAttackerStrength, iAttackerFirepower, iAttackerKillOdds, iDefenderDamage, pDefender);
+				flankingStrikeCombat(pPlot, iAttackerStrength, iAttackerFirepower,
+						iAttackerKillOdds, iDefenderDamage, pDefender);
 
 				int iExperience = pDefender->attackXPValue();
 				iExperience = ((iExperience * iDefenderStrength) / iAttackerStrength);
-				iExperience = range(iExperience, GC.getDefineINT(CvGlobals::MIN_EXPERIENCE_PER_COMBAT),
+				iExperience = range(iExperience,
+						GC.getDefineINT(CvGlobals::MIN_EXPERIENCE_PER_COMBAT),
 						GC.getDefineINT(CvGlobals::MAX_EXPERIENCE_PER_COMBAT)
 						/ (pDefender->isBarbarian() ? 2 : 1)); // advc.312
-				changeExperience(iExperience, pDefender->maxXPValue(), true, pPlot->getOwner() == getOwner(), !pDefender->isBarbarian());
+				changeExperience(iExperience, pDefender->maxXPValue(), true,
+						pPlot->getOwner() == getOwner(), !pDefender->isBarbarian());
 			}
 			GET_PLAYER(getOwner()).AI_attackMadeAgainst(*pDefender); // advc.139
 			break;
@@ -1268,15 +1272,14 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 			gDLL->getEntityIFace()->AddMission(&kBattle);
 		}
 	}
-
-#ifdef LOG_COMBAT_OUTCOMES
-	if (!isBarbarian() && !pDefender->isBarbarian()) // don't log barb battles, because they have special rules.
-	{
-		TCHAR message[20];
-		_snprintf(message, 20, "%.2f\t%d\n", (float)iLoggedOdds/1000, isDead() ? 0 : 1);
-		gDLL->logMsg("combat.txt", message ,false, false);
-	}
-#endif
+	#ifdef LOG_COMBAT_OUTCOMES
+		if (!isBarbarian() && !pDefender->isBarbarian()) // don't log barb battles, because they have special rules.
+		{
+			TCHAR message[20];
+			_snprintf(message, 20, "%.2f\t%d\n", (float)iLoggedOdds/1000, isDead() ? 0 : 1);
+			gDLL->logMsg("combat.txt", message ,false, false);
+		}
+	#endif
 }
 
 
