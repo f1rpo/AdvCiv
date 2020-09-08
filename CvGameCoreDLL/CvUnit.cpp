@@ -6159,7 +6159,7 @@ int CvUnit::upgradePrice(UnitTypes eUnit) const
 	}
 	iPrice -= (iPrice * getUpgradeDiscount()) / 100;
 
-	return iPrice;
+	return std::max(0, iPrice); // advc.mnai: max (future-proofing)
 }
 
 // <advc.080> Based on code cut from CvUnit::upgrade. The param is (so far) unused.
