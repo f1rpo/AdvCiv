@@ -1,7 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvReplayInfo.h"
-#include "CvGameAI.h" // advc.104
 #include "CvPlayer.h"
+#include "CvGameAI.h" // advc.104
 #include "CvInfo_GameOption.h"
 #include "CvMap.h"
 #include "CvReplayMessage.h"
@@ -74,83 +74,80 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 {
 	if(!STORE_REPLAYS_AS_BTS) // advc.106i (and moved up)
 		m_szModName = gDLL->getModName();
-	CvGame& game = GC.getGame();
-	CvMap& map = GC.getMap();
+	CvGame const& kGame = GC.getGame();
+	CvMap const& kMap = GC.getMap();
 	/*  <advc>: createInfo gets called when Python scripts are (re-)loaded.
 		Somehow, skipping the code above gets the Python loading code stuck
 		in an infinite loop. Therefore I only skip the somewhat costly
 		copying of the terrain texture after loading scripts for the first time.
 		(Don't know how to identify a Python reload here. Mustn't break Shift+F1.) */
 	static bool bFirstCall = true;
-	if (bFirstCall && game.isFinalInitialized() && game.getGameState() != GAMESTATE_OVER)
+	if (bFirstCall && kGame.isFinalInitialized() && kGame.getGameState() != GAMESTATE_OVER)
 	{
 		bFirstCall = false;
 		return;
 	} // </advc>
 
 	if (ePlayer == NO_PLAYER)
-		ePlayer = game.getActivePlayer();
+		ePlayer = kGame.getActivePlayer();
 
 	if (ePlayer != NO_PLAYER)
 	{
-		CvPlayer const& player = GET_PLAYER(ePlayer);
+		CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
 
-		m_eDifficulty = player.getHandicapType();
-		m_szLeaderName = player.getName();
-		m_szCivDescription = player.getCivilizationDescription();
-		m_szShortCivDescription = player.getCivilizationShortDescription();
-		m_szCivAdjective = player.getCivilizationAdjective();
+		m_eDifficulty = kPlayer.getHandicapType();
+		m_szLeaderName = kPlayer.getName();
+		m_szCivDescription = kPlayer.getCivilizationDescription();
+		m_szShortCivDescription = kPlayer.getCivilizationShortDescription();
+		m_szCivAdjective = kPlayer.getCivilizationAdjective();
 		m_szMapScriptName = GC.getInitCore().getMapScriptName();
-		m_eWorldSize = map.getWorldSize();
-		m_eClimate = map.getClimate();
-		m_eSeaLevel = map.getSeaLevel();
-		m_eEra = game.getStartEra();
-		m_eGameSpeed = game.getGameSpeedType();
+		m_eWorldSize = kMap.getWorldSize();
+		m_eClimate = kMap.getClimate();
+		m_eSeaLevel = kMap.getSeaLevel();
+		m_eEra = kGame.getStartEra();
+		m_eGameSpeed = kGame.getGameSpeedType();
 
 		m_listGameOptions.clear();
-		for (int i = 0; i < NUM_GAMEOPTION_TYPES; i++)
+		FOR_EACH_ENUM(GameOption)
 		{
-			GameOptionTypes eOption = (GameOptionTypes)i;
-			if (game.isOption(eOption))
-			{
-				m_listGameOptions.push_back(eOption);
-			}
+			if (kGame.isOption(eLoopGameOption))
+				m_listGameOptions.push_back(eLoopGameOption);
 		}
 
 		m_listVictoryTypes.clear();
-		for (int i = 0; i < GC.getNumVictoryInfos(); i++)
+		FOR_EACH_ENUM(Victory)
 		{
-			VictoryTypes eVictory = (VictoryTypes)i;
-			if (game.isVictoryValid(eVictory))
-				m_listVictoryTypes.push_back(eVictory);
+			if (kGame.isVictoryValid(eLoopVictory))
+				m_listVictoryTypes.push_back(eLoopVictory);
 		}
-		if (game.getWinner() == player.getTeam())
-			m_eVictoryType = game.getVictory();
+		if (kGame.getWinner() == kPlayer.getTeam())
+			m_eVictoryType = kGame.getVictory();
 		else m_eVictoryType = NO_VICTORY;
 
-		m->iNormalizedScore = player.calculateScore(true, player.getTeam() == game.getWinner());
+		m->iNormalizedScore = kPlayer.calculateScore(
+				true, kPlayer.getTeam() == kGame.getWinner());
 		// <advc.707> Treat R&F games as "Score" victory (previously unused)
-		if(game.isOption(GAMEOPTION_RISE_FALL))
+		if(kGame.isOption(GAMEOPTION_RISE_FALL))
 		{
-			for(int i = 0; i < GC.getNumVictoryInfos(); i++)
+			FOR_EACH_ENUM(Victory)
 			{
-				VictoryTypes eVictory = (VictoryTypes)i;
-				if(GC.getInfo(eVictory).isTargetScore())
+				if(GC.getInfo(eLoopVictory).isTargetScore())
 				{
-					m_eVictoryType = eVictory;
+					m_eVictoryType = eLoopVictory;
 					break;
 				}
 			}
 		} // </advc.707>
 	}
 
-	m_bMultiplayer = game.isGameMultiPlayer();
+	m_bMultiplayer = kGame.isGameMultiPlayer();
 
 
-	m_iInitialTurn = game.getStartTurn();
-	m_iStartYear = game.getStartYear();
-	m_iFinalTurn = game.getGameTurn();
-	GAMETEXT.setYearStr(m_szFinalDate, m_iFinalTurn, false, game.getCalendar(), game.getStartYear(), game.getGameSpeedType());
+	m_iInitialTurn = kGame.getStartTurn();
+	m_iStartYear = kGame.getStartYear();
+	m_iFinalTurn = kGame.getGameTurn();
+	GAMETEXT.setYearStr(m_szFinalDate, m_iFinalTurn, false, kGame.getCalendar(),
+			kGame.getStartYear(), kGame.getGameSpeedType());
 
 	m_eCalendar = kGame.getCalendar();
 
@@ -202,20 +199,23 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 					kGame.getReplayMessageType(i), ePlayerIndex);
 			if (pMsg != NULL)
 			{
-				pMsg->setColor(game.getReplayMessageColor(i));
-				pMsg->setText(game.getReplayMessageText(i));
-				pMsg->setPlot(game.getReplayMessagePlotX(i), game.getReplayMessagePlotY(i));
+				pMsg->setColor(kGame.getReplayMessageColor(i));
+				pMsg->setText(kGame.getReplayMessageText(i));
+				pMsg->setPlot(kGame.getReplayMessagePlotX(i),
+						kGame.getReplayMessagePlotY(i));
 				m_listReplayMessages.push_back(pMsg);
 			}
 		}
 		else
 		{
-			CvReplayMessage* pMsg = new CvReplayMessage(game.getReplayMessageTurn(i), game.getReplayMessageType(i), NO_PLAYER);
+			CvReplayMessage* pMsg = new CvReplayMessage(kGame.getReplayMessageTurn(i),
+					kGame.getReplayMessageType(i), NO_PLAYER);
 			if (pMsg != NULL)
 			{
-				pMsg->setColor(game.getReplayMessageColor(i));
-				pMsg->setText(game.getReplayMessageText(i));
-				pMsg->setPlot(game.getReplayMessagePlotX(i), game.getReplayMessagePlotY(i));
+				pMsg->setColor(kGame.getReplayMessageColor(i));
+				pMsg->setText(kGame.getReplayMessageText(i));
+				pMsg->setPlot(kGame.getReplayMessagePlotX(i),
+						kGame.getReplayMessagePlotY(i));
 				m_listReplayMessages.push_back(pMsg);
 			}
 		}
@@ -224,13 +224,13 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 	if(m->iFinalScore < 0)
 		m->iFinalScore = getFinalPlayerScore(); // </advc.707>
 
-	m_iMapWidth = GC.getMap().getGridWidth();
-	m_iMapHeight = GC.getMap().getGridHeight();
+	m_iMapWidth = kMap.getGridWidth();
+	m_iMapHeight = kMap.getGridHeight();
 	// <advc.106m>
 	if (m_iMinimapSize == -1)
 		setMinimapSizeFromXML();
 	// </advc.106m>  <advc.106n>
-	byte const* pTexture = map.getReplayTexture();
+	byte const* pTexture = kMap.getReplayTexture();
 	if (pTexture == NULL)
 		pTexture = gDLL->UI().getMinimapBaseTexture();
 	// </advc.106n>
@@ -586,11 +586,11 @@ CalendarTypes CvReplayInfo::getCalendar() const
 {
 	return m_eCalendar;
 }
-// <advc>
+// advc:
 CvReplayInfo::TurnData const& CvReplayInfo::getTurnData(int iPlayer, int iTurn) const
 {
 	return m_listPlayerScoreHistory[iPlayer].m_listScore[iTurn-m_iInitialTurn];
-} // </advc>
+}
 
 int CvReplayInfo::getPlayerScore(int iPlayer, int iTurn) const
 {
@@ -665,11 +665,11 @@ const unsigned char* CvReplayInfo::getMinimapPixels() const
 {
 	return m_pcMinimapPixels;
 }
-// <advc.106m>
+// advc.106m:
 int CvReplayInfo::getMinimapSize() const
 {
 	return m_iMinimapSize;
-} // </advc.106m>
+}
 
 const char* CvReplayInfo::getModName() const
 {	/*  <advc.106i> Pretend to the EXE that every replay is an AdvCiv replay.
@@ -747,7 +747,8 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 		if(!checkBounds(m_eClimate, 0, GC.getNumClimateInfos() - 1)) return false; // advc.106i
 		stream.Read(&iType);
 		 // <advc.106i> For compatibility with advc.707
-		if(iVersion != 5 && iVersion >= 6) { // ==5 handled at the end of this function
+		if(iVersion != 5 && iVersion >= 6) // ==5 handled at the end of this function
+		{
 			m->iFinalScore = iType;
 			m_eSeaLevel = NO_SEALEVEL; // unused
 		}
@@ -978,17 +979,17 @@ void CvReplayInfo::setDefaultMinimapSize()
 {
 	m_iMinimapSize = 512; // As in BtS GlobalDefines
 } // </advc.106m>
-// <advc.106i>
+// advc.106i:
 bool CvReplayInfo::checkBounds(int iValue, int iLower, int iUpper) const
 {
 	/*  If CvReplayInfo::read encounters a replay from another mod, it won't be able
 		to tell until it reaches the mod name at the end of the stream. I'm not aware
 		of any mods that change the replay format, but, if they do, the read function
-		is going to get out of step, which may throw an exception, which causes
-		the replay to be disregarded (good). If there is no exception, then the
-		mod name check should reject the replay. But ... I don't know, I don't
-		want to rely on exceptions. As all mods place their replays in the same
-		folder, it's not such an exceptional thing to encounter a strange replay. */
+		is going to get out of step, which may cause an exception. There's a catch(...),
+		but that's not going to catch hardware exceptions unless the /EHa compiler option
+		is used. (AdvCiv, like just about every mod, uses /EHsc.) So I think there could
+		be crash, and, as all mods place their replays in the same folder, encountering
+		a very strange replay doesn't seem so unlikely. */
 	if(m->bDisplayOtherMods) // Still want sanity checks then, but be more generous.
 		iUpper *= 2;
 	if(iValue < iLower || iValue > iUpper)
@@ -1000,4 +1001,4 @@ bool CvReplayInfo::checkBounds(int iValue, int iLower, int iUpper) const
 		return false;
 	}
 	return true;
-} // </advc.106i>
+}
