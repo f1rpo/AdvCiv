@@ -3608,6 +3608,31 @@
 			<Plural>0</Plural>
 		</Spanish>
 	</TEXT>
+	<!-- advc.005: was Asoka -->
+	<TEXT>
+		<Tag>TXT_KEY_LEADER_ASOKA</Tag>
+		<English>Ashoka</English>
+		<French>
+			<Text>Ashoka</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Ashoka</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Ashoka</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Ashoka</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
 	
 	<!-- advc.004r: Based on TXT_KEY_MISC_YOU_DISCOVERED_BONUSin
 		 Vanilla CIV4GameTextInfos.xml	-->
