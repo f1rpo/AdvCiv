@@ -12,7 +12,7 @@ int CvReplayInfo::REPLAY_VERSION = 6; // advc.707, advc.106i: 4 in BtS
 bool CvReplayInfo::STORE_REPLAYS_AS_BTS = false; // advc.106i
 
 CvReplayInfo::CvReplayInfo() :
-	m_iActivePlayer(0),
+	m_eActivePlayer(NO_PLAYER), // (advc: was 0)
 	m_eDifficulty(NO_HANDICAP),
 	m_eWorldSize(NO_WORLDSIZE),
 	m_eClimate(NO_CLIMATE),
@@ -152,52 +152,54 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 	m_iFinalTurn = game.getGameTurn();
 	GAMETEXT.setYearStr(m_szFinalDate, m_iFinalTurn, false, game.getCalendar(), game.getStartYear(), game.getGameSpeedType());
 
-	m_eCalendar = game.getCalendar();
+	m_eCalendar = kGame.getCalendar();
 
-
-	std::map<PlayerTypes, int> mapPlayers;
 	m_listPlayerScoreHistory.clear();
-	int iPlayerIndex = 0;
-	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
+	EnumMap<PlayerTypes,PlayerTypes> aePlayerIndices; // advc.enum
+	/*	advc (note): This loop remaps player IDs so that players never alive are skipped.
+		Not sure if this is really needed. */
+	PlayerTypes eNewIndex = (PlayerTypes)0;
+	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
-		CvPlayer const& player = GET_PLAYER((PlayerTypes)iPlayer);
-		if (player.isEverAlive())
+		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+		if (!kLoopPlayer.isEverAlive())
+			continue; // advc
+		aePlayerIndices.set(kLoopPlayer.getID(), eNewIndex);
+		if (kLoopPlayer.getID() == kGame.getActivePlayer())
+			m_eActivePlayer = eNewIndex;
+		eNewIndex++;
+		PlayerInfo playerInfo;
+		playerInfo.m_eLeader = kLoopPlayer.getLeaderType();
+		playerInfo.m_eColor = GC.getInfo(kLoopPlayer.getPlayerColor()).getColorTypePrimary();
+		// K-Mod. (bypass the conceal colour check.) // advc.007: Not needed anymore
+		//GC.getInitCore().getColor((PlayerTypes)iPlayer)).getColorTypePrimary();
+		for (int iTurn = m_iInitialTurn; iTurn <= m_iFinalTurn; iTurn++)
 		{
-			mapPlayers[(PlayerTypes)iPlayer] = iPlayerIndex;
-			if ((PlayerTypes)iPlayer == game.getActivePlayer())
-				m_iActivePlayer = iPlayerIndex;
-			iPlayerIndex++;
+			TurnData score;
+			score.m_iScore = kLoopPlayer.getScoreHistory(iTurn);
+			score.m_iAgriculture = kLoopPlayer.getAgricultureHistory(iTurn);
+			score.m_iIndustry = kLoopPlayer.getIndustryHistory(iTurn);
+			score.m_iEconomy = kLoopPlayer.getEconomyHistory(iTurn);
 
-			PlayerInfo playerInfo;
-			playerInfo.m_eLeader = player.getLeaderType();
-			playerInfo.m_eColor = GC.getInfo(player.getPlayerColor()).getColorTypePrimary();
-					// K-Mod. (bypass the conceal colour check.) // advc.007: Not needed anymore
-					//GC.getInitCore().getColor((PlayerTypes)iPlayer)).getColorTypePrimary();
-			for (int iTurn = m_iInitialTurn; iTurn <= m_iFinalTurn; iTurn++)
-			{
-				TurnData score;
-				score.m_iScore = player.getScoreHistory(iTurn);
-				score.m_iAgriculture = player.getAgricultureHistory(iTurn);
-				score.m_iIndustry = player.getIndustryHistory(iTurn);
-				score.m_iEconomy = player.getEconomyHistory(iTurn);
-
-				playerInfo.m_listScore.push_back(score);
-			}
-			m_listPlayerScoreHistory.push_back(playerInfo);
+			playerInfo.m_listScore.push_back(score);
 		}
+		m_listPlayerScoreHistory.push_back(playerInfo);
 	}
 
 	m_listReplayMessages.clear();
 	// <advc.106h>
-	if(game.getGameState() == GAMESTATE_OVER &&
-			GC.getDefineINT("SETTINGS_IN_REPLAYS") > 0)
-		addSettingsMsg(); // </advc.106h>
-	for (uint i = 0; i < game.getNumReplayMessages(); i++)
+	if(kGame.getGameState() == GAMESTATE_OVER &&
+		GC.getDefineINT("SETTINGS_IN_REPLAYS") > 0)
 	{
-		std::map<PlayerTypes, int>::iterator it = mapPlayers.find(game.getReplayMessagePlayer(i));
-		if (it != mapPlayers.end())
+		addSettingsMsg();
+	} // </advc.106h>
+	for (uint i = 0; i < kGame.getNumReplayMessages(); i++)
+	{
+		PlayerTypes ePlayerIndex = aePlayerIndices.get(kGame.getReplayMessagePlayer(i));
+		if (ePlayerIndex != NO_PLAYER)
 		{
-			CvReplayMessage* pMsg = new CvReplayMessage(game.getReplayMessageTurn(i), game.getReplayMessageType(i), (PlayerTypes)it->second);
+			CvReplayMessage* pMsg = new CvReplayMessage(kGame.getReplayMessageTurn(i),
+					kGame.getReplayMessageType(i), ePlayerIndex);
 			if (pMsg != NULL)
 			{
 				pMsg->setColor(game.getReplayMessageColor(i));
@@ -384,26 +386,28 @@ bool CvReplayInfo::isValidTurn(int i) const
 	return (i >= m_iInitialTurn && i <= m_iFinalTurn);
 }
 
-int CvReplayInfo::getActivePlayer() const
+/*	advc: Return type was int. This ID may differ from the ID in the original game,
+	but, within the context of a replay, I think it gets used as a proper PlayerTypes ID. */
+PlayerTypes CvReplayInfo::getActivePlayer() const
 {
-	return m_iActivePlayer;
+	return m_eActivePlayer;
 }
 
-LeaderHeadTypes CvReplayInfo::getLeader(int iPlayer) const
+LeaderHeadTypes CvReplayInfo::getLeader(PlayerTypes ePlayer) const
 {
-	if (iPlayer < 0)
-		iPlayer = m_iActivePlayer;
-	if (isValidPlayer(iPlayer))
-		return m_listPlayerScoreHistory[iPlayer].m_eLeader;
+	if (ePlayer == NO_PLAYER)
+		ePlayer = m_eActivePlayer;
+	if (isValidPlayer(ePlayer))
+		return m_listPlayerScoreHistory[ePlayer].m_eLeader;
 	return NO_LEADER;
 }
 
-ColorTypes CvReplayInfo::getColor(int iPlayer) const
+ColorTypes CvReplayInfo::getColor(PlayerTypes ePlayer) const
 {
-	if (iPlayer < 0)
-		iPlayer = m_iActivePlayer;
-	if (isValidPlayer(iPlayer))
-		return m_listPlayerScoreHistory[iPlayer].m_eColor;
+	if (ePlayer == NO_PLAYER)
+		ePlayer = m_eActivePlayer;
+	if (isValidPlayer(ePlayer))
+		return m_listPlayerScoreHistory[ePlayer].m_eColor;
 	return NO_COLOR;
 }
 
@@ -619,7 +623,7 @@ int CvReplayInfo::getFinalScore() const
 // <advc.707> This new function does what getFinalScore used to do
 int CvReplayInfo::getFinalPlayerScore() const
 {
-	return getPlayerScore(m_iActivePlayer, m_iFinalTurn);
+	return getPlayerScore(m_eActivePlayer, m_iFinalTurn);
 }
 // Can now also set the final score to sth. other than the player score
 void CvReplayInfo::setFinalScore(int iScore)
@@ -629,17 +633,17 @@ void CvReplayInfo::setFinalScore(int iScore)
 
 int CvReplayInfo::getFinalEconomy() const
 {
-	return getPlayerEconomy(m_iActivePlayer, m_iFinalTurn);
+	return getPlayerEconomy(m_eActivePlayer, m_iFinalTurn);
 }
 
 int CvReplayInfo::getFinalIndustry() const
 {
-	return getPlayerIndustry(m_iActivePlayer, m_iFinalTurn);
+	return getPlayerIndustry(m_eActivePlayer, m_iFinalTurn);
 }
 
 int CvReplayInfo::getFinalAgriculture() const
 {
-	return getPlayerAgriculture(m_iActivePlayer, m_iFinalTurn);
+	return getPlayerAgriculture(m_eActivePlayer, m_iFinalTurn);
 }
 
 int CvReplayInfo::getNormalizedScore() const
@@ -712,15 +716,18 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 		// </advc.106i>
 		if (iVersion < 2)
 			return false;
-		stream.Read(&m_iActivePlayer);
 		// <advc.106m> Unpack active player id and minimap resolution
-		if (m_iActivePlayer >= MAX_CHAR)
+		int iActivePlayer;
+		stream.Read(&iActivePlayer);
+		if (iActivePlayer >= MAX_CHAR)
 		{
-			m_iMinimapSize = m_iActivePlayer / MAX_CHAR;
-			m_iActivePlayer = m_iActivePlayer % MAX_CHAR;
+			m_iMinimapSize = iActivePlayer / MAX_CHAR;
+			iActivePlayer %= MAX_CHAR;
 		}
-		else setDefaultMinimapSize(); // </advc.106m>
-		if(!checkBounds(m_iActivePlayer, 0, 64)) return false; // advc.106i
+		else setDefaultMinimapSize();
+		m_eActivePlayer = (PlayerTypes)iActivePlayer;
+		// </advc.106m>
+		if(!checkBounds(m_eActivePlayer, 0, 64)) return false; // advc.106i
 		stream.Read(&iType);
 		m_eDifficulty = (HandicapTypes)iType;
 		if(!checkBounds(m_eDifficulty, 0, GC.getNumHandicapInfos())) return false; // advc.106i  (not -1 b/c of advc.250a)
@@ -873,15 +880,15 @@ void CvReplayInfo::write(FDataStreamBase& stream)
 	//stream.Write(REPLAY_VERSION);
 	// <advc.106i> Fold AdvCiv's (hopefully) globally unique id into the replay version
 	stream.Write(GC.getDefineINT("SAVE_VERSION") * 100 + REPLAY_VERSION);
-	// <advc.106m> Fold minimap resolution into m_iActivePlayer
+	// <advc.106m> Fold minimap resolution into active player ID
 	if (!STORE_REPLAYS_AS_BTS)
 	{
 		setMinimapSizeFromXML();
 		FAssert(m_iMinimapSize > 0);
-		stream.Write(m_iMinimapSize * MAX_CHAR + m_iActivePlayer);
+		stream.Write(m_iMinimapSize * MAX_CHAR + m_eActivePlayer);
 	}
 	else // </advc.106m>
-		stream.Write(m_iActivePlayer);
+		stream.Write(m_eActivePlayer);
 	stream.Write((int)m_eDifficulty);
 	stream.WriteString(m_szLeaderName);
 	stream.WriteString(m_szCivDescription);

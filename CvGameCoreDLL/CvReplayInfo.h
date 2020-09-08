@@ -14,9 +14,9 @@ public:
 
 	void createInfo(PlayerTypes ePlayer);
 
-	int getActivePlayer() const;
-	LeaderHeadTypes getLeader(int iPlayer = -1) const;
-	ColorTypes getColor(int iPlayer = -1) const;
+	PlayerTypes getActivePlayer() const;
+	LeaderHeadTypes getLeader(PlayerTypes ePlayer = NO_PLAYER) const;
+	ColorTypes getColor(PlayerTypes ePlayer = NO_PLAYER) const;
 	HandicapTypes getDifficulty() const;
 	const CvWString& getLeaderName() const;
 	const CvWString& getCivDescription() const;
@@ -91,7 +91,7 @@ protected:
 	// </advc.106i>
 	static int REPLAY_VERSION;
 
-	int m_iActivePlayer;
+	PlayerTypes m_eActivePlayer;
 	HandicapTypes m_eDifficulty;
 	CvWString m_szLeaderName;
 	CvWString m_szCivDescription;
