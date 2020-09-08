@@ -4555,9 +4555,10 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 	TeamTypes const eDefTeam = (eRevealedOwner != NO_PLAYER ?
 			GET_PLAYER(eRevealedOwner).getTeam() :
 			NO_TEAM);
-	int iDefWithFeatures = kPlot.defenseModifier(eDefTeam, true, NO_TEAM, true);
-	int iDefWithoutFeatures = kPlot.defenseModifier(eDefTeam, true,
-			kPlot.getTeam(), true);
+	int iDefWithFeatures = kPlot.defenseModifier(
+			eDefTeam, true, NO_TEAM, true);
+	int iDefWithoutFeatures = kPlot.defenseModifier(
+			eDefTeam, true, kPlot.getRevealedTeam(eActiveTeam, true), true);
 	int iDelta = iDefWithFeatures - iDefWithoutFeatures;
 	if(iDefWithoutFeatures != 0 || iDefWithFeatures != 0)
 	{
