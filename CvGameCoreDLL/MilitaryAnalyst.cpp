@@ -465,7 +465,7 @@ void MilitaryAnalyst::logResults(PlayerTypes civId) {
 	if(::round(militaryProduction(civId)) == 0)
 		return;
 	if(civId < 0 || civId > MAX_CIV_PLAYERS) {
-		FAssertMsg(false, "civId out of bounds");
+		FErrorMsg("civId out of bounds");
 		return;
 	}
 	report.log("Results about %s", report.leaderName(civId));

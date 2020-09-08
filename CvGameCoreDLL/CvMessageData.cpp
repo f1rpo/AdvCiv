@@ -69,7 +69,7 @@ CvMessageData* CvMessageData::createMessage(GameMessageTypes eType)
 	case GAMEMESSAGE_FP_TEST:
 		return new CvNetFPTest(); // </advc.003g>
 	default:
-		FAssertMsg(false, "Unknown message type");
+		FErrorMsg("Unknown message type");
 	}
 	return NULL;
 }

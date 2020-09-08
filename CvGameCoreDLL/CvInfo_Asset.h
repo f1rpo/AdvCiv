@@ -386,7 +386,7 @@ public:
 				if(m_aFeatureArtPieces[i].getConnectionMask() == connectionMask)
 					return m_aFeatureArtPieces[i];
 
-			FAssertMsg(false, "[Jason] Failed to find feature art piece with valid connection mask.");
+			FErrorMsg("[Jason] Failed to find feature art piece with valid connection mask.");
 			return m_aFeatureArtPieces[0];
 		}
 		const CvString getFeatureDummyNodeName(const CvString &tagName) const
@@ -396,7 +396,7 @@ public:
 				if(m_aFeatureDummyNodes[i].getTagName().CompareNoCase(tagName) == 0)
 					return m_aFeatureDummyNodes[i].getNodeName();
 			}
-			FAssertMsg(false, "[Jason] Failed to find dummy tag name.");
+			FErrorMsg("[Jason] Failed to find dummy tag name.");
 			return "";
 		}
 		const CvString getFeatureDummyTag(const CvString &nodeName) const

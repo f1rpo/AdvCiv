@@ -392,7 +392,7 @@ bool CvXMLLoadUtility::SetGlobalTypes()
 // Creates a full list of Diplomacy Comments
 void CvXMLLoadUtility::SetDiplomacyCommentTypes(CvString** ppszString, int* iNumVals)
 {
-	FAssertMsg(false, "should never get here");
+	FErrorMsg("should never get here");
 }
 
 // Initialize the appropriate variables at CvGlobals with the values in Terrain\Civ4TerrainInfos.xml
@@ -1882,7 +1882,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* 
 								/*  For the primitive types, 0-entries in XML are usually
 									deliberate (for readability), but empty strings
 									would be strange. */
-								else FAssertMsg(false, "Empty string in list of tag pairs");
+								else FErrorMsg("Empty string in list of tag pairs");
 								// </advc.003t>
 							}
 							gDLL->getXMLIFace()->SetToParent(m_pFXml);

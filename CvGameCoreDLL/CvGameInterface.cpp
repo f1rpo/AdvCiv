@@ -1288,7 +1288,7 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 		break;
 
 	default:
-		FAssertMsg(false, "eControl did not match any valid options");
+		FErrorMsg("eControl did not match any valid options");
 	}
 
 	return false;
@@ -1536,7 +1536,7 @@ void CvGame::doControl(ControlTypes eControl)
 						break;
 					}
 				}
-				FAssertMsg(false, "Failed to find quicksave");
+				FErrorMsg("Failed to find quicksave");
 			} // </advc.003d>
 			gDLL->QuickLoad();
 		}
@@ -1694,7 +1694,7 @@ void CvGame::doControl(ControlTypes eControl)
 			kUI.addPopup(pInfo);
 		break;
 	}
-	default: FAssertMsg(false, "Unknown control type");
+	default: FErrorMsg("Unknown control type");
 	}
 }
 

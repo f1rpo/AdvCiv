@@ -3104,7 +3104,7 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 		(!GC.getInfo(GC.getInfo(eBuild).getImprovement()).isActsAsCity() ||
 		pPlot->getWorkingCity() == NULL)) // </advc.121>
 	{
-		FAssertMsg(false, "AI has issued an order which violates PLAYEROPTION_SAFE_AUTOMATION");
+		FErrorMsg("AI has issued an order which violates PLAYEROPTION_SAFE_AUTOMATION");
 		return false;
 	}
 	// K-Mod end
@@ -4162,7 +4162,7 @@ CvSelectionGroup* CvSelectionGroup::splitGroup(int iSplitSize, CvUnit* pNewHeadU
 
 	if (iSplitSize <= 0)
 	{
-		FAssertMsg(false, "non-positive splitGroup size");
+		FErrorMsg("non-positive splitGroup size");
 		return NULL;
 	}
 
@@ -4365,7 +4365,7 @@ CvUnit* CvSelectionGroup::getUnitAt(int index) const
 	int numUnits = getNumUnits();
 	if(index >= numUnits)
 	{
-		FAssertMsg(false, "[Jason] Selectiongroup unit index out of bounds.");
+		FErrorMsg("[Jason] Selectiongroup unit index out of bounds.");
 		return NULL;
 	}
 	else

@@ -337,7 +337,7 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 					info.getData1(), info.getData2(), info.getData3()),
 					kGame.getActivePlayer(), false, true);
 			break;
-		default: FAssertMsg(false, "Clicked button not recognized");
+		default: FErrorMsg("Clicked button not recognized");
 		}
 		break;
 	}
@@ -2314,7 +2314,7 @@ bool CvDLLButtonPopup::launchConfirmMenu(CvPopup *pPopup, CvPopupInfo &info)
 				gDLL->getText("TXT_KEY_POPUP_ENTER_WB").c_str(), NULL, 0, WIDGET_GENERAL);
 		break;
 	default:
-		FAssertMsg(false, "launchConfirmMenu called with unknown type");
+		FErrorMsg("launchConfirmMenu called with unknown type");
 		return false;
 	}
 	m_kUI.popupAddGenericButton(pPopup,

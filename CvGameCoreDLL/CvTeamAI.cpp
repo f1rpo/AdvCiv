@@ -245,7 +245,7 @@ int CvTeamAI::AI_estimateTotalYieldRate(YieldTypes eYield) const
 			case YIELD_FOOD:
 				p = kMember.getAgricultureHistory(iTurn - (j+1));
 				break;
-			default: FAssertMsg(false, "unknown yield type");
+			default: FErrorMsg("unknown yield type");
 			}
 			if (p > 0)
 			{
@@ -1538,7 +1538,7 @@ int CvTeamAI::AI_warDiplomacyCost(TeamTypes eTarget) const
 {
 	if (isAtWar(eTarget))
 	{
-		//FAssertMsg(false, "AI_warDiplomacyCost called when already at war."); // sometimes we call this function for debug purposes.
+		//FErrorMsg("AI_warDiplomacyCost called when already at war."); // sometimes we call this function for debug purposes.
 		return 0;
 	}
 
@@ -3503,7 +3503,7 @@ int CvTeamAI::AI_declareWarTradeValLegacy(TeamTypes eWarTeam, TeamTypes eTeam) c
 		break;
 
 	default:
-		FAssertMsg(false, "unknown attitude type");
+		FErrorMsg("unknown attitude type");
 	}
 
 	iValue *= std::max(0, (iModifier + 100));
@@ -4884,7 +4884,7 @@ double CvTeamAI::AI_votesToGoForVictory(double* pVoteTarget, bool bForceUN) cons
 			CvVoteInfo& vote = GC.getInfo(eLoopVote);
 			if(vote.getStateReligionVotePercent() == 0 && vote.isVictory())
 			{
-				FAssertMsg(false, "Could not determine vote threshold");
+				FErrorMsg("Could not determine vote threshold");
 				break;
 			}
 		}
@@ -6093,7 +6093,7 @@ int CvTeamAI::AI_getAttitudeWeight(TeamTypes eTeam) const  // advc: refactored
 	case ATTITUDE_CAUTIOUS: return -5;
 	case ATTITUDE_PLEASED: return 50;
 	case ATTITUDE_FRIENDLY: return 100;
-	default: FAssertMsg(false, "unknown attitude type"); return 0;
+	default: FErrorMsg("unknown attitude type"); return 0;
 	}
 }
 

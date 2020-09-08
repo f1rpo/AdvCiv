@@ -94,5 +94,6 @@ bool FAssertDlg( const char*, const char*, const char*, unsigned int,
 #define FAssertBounds(lower,upper,index) (void)0
 
 #endif
+#define FErrorMsg(msg) FAssertMsg(false, msg) // advc.006i
 
 #endif // FASSERT_H

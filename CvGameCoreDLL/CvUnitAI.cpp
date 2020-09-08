@@ -375,7 +375,7 @@ bool CvUnitAI::AI_update()
 		break;
 
 	default:
-		FAssertMsg(false, "Unknown Unit AI type");
+		FErrorMsg("Unknown Unit AI type");
 	}
 
 	return false;
@@ -1322,7 +1322,7 @@ bool CvUnitAI::AI_considerPathDOW(CvPlot const& kPlot, int iFlags) // advc: 1st 
 
 	if (!generatePath(&kPlot, iFlags, true))
 	{
-		FAssertMsg(false, "AI_considerPathDOW didn't find a path.");
+		FErrorMsg("AI_considerPathDOW didn't find a path.");
 		return false;
 	}
 
@@ -1468,7 +1468,7 @@ void CvUnitAI::AI_settleMove()
 				// BETTER_BTS_AI_MOD, Unit AI, 11/30/08, jdog5000: guard added
 				if (!kOwner.AI_isAnyUnitTargetMissionAI(*getGroup()->getHeadUnit(), MISSIONAI_PICKUP))
 				{
-					//FAssertMsg(false, "advc.test: Just to see how frequently the AI scraps settlers"); // hardly ever
+					//FErrorMsg("advc.test: Just to see how frequently the AI scraps settlers"); // hardly ever
 					scrap(); //may seem wasteful, but settlers confuse the AI.
 					return;
 				}
@@ -3475,7 +3475,7 @@ void CvUnitAI::AI_attackCityMove()
 			int iPathTurns;
 			if (!generatePath(pTargetCity->plot(), iMoveFlags, true, &iPathTurns))
 			{	// AI_pickTargetCity now allows boat-only paths, so this assertion no longer holds.
-				//FAssertMsg(false, "failed to find path to target city.");
+				//FErrorMsg("failed to find path to target city.");
 				iPathTurns = 100;
 			}
 			if (!pTargetCity->isBarbarian() ||
@@ -3538,13 +3538,13 @@ void CvUnitAI::AI_attackCityMove()
 							until the preparations are through. Difficult to avoid the assertions below. */
 						/*  this is a last resort. I don't expect that we'll ever actually need it.
 							(it's a pretty ugly function, so I /hope/ we don't need it.) */
-						FAssertMsg(false, "AI_attackCityMove is resorting to AI_solveBlockageProblem");
+						FErrorMsg("AI_attackCityMove is resorting to AI_solveBlockageProblem");
 						if (AI_solveBlockageProblem(pAreaTargetCity->plot(),
 							(GET_TEAM(getTeam()).getNumWars() <= 0)))
 						{
 							return;
 						}  // advc.006:
-						FAssertMsg(false, "AI_solveBlockageProblem returned false");
+						FErrorMsg("AI_solveBlockageProblem returned false");
 					}
 				}
 			}
@@ -5280,7 +5280,7 @@ void CvUnitAI::AI_greatPersonMove()
 							}
 							else
 							{
-								FAssertMsg(false, "great person cannot hurry what it intended to hurry.");
+								FErrorMsg("great person cannot hurry what it intended to hurry.");
 								break;
 							}
 						}
@@ -5295,7 +5295,7 @@ void CvUnitAI::AI_greatPersonMove()
 			}
 			break;
 		default:
-			FAssertMsg(false, "Unhandled great person mission");
+			FErrorMsg("Unhandled great person mission");
 			break;
 		}
 		iChoice++;
@@ -10276,7 +10276,7 @@ bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, int iFlags)
 	CvUnit* pEjectedUnit = AI_getGroup()->AI_ejectBestDefender(plot());
 	if (pEjectedUnit == NULL)
 	{
-		FAssertMsg(false, "AI_ejectBestDefender failed to choose a candidate for AI_guardCity.");
+		FErrorMsg("AI_ejectBestDefender failed to choose a candidate for AI_guardCity.");
 		pEjectedUnit = this;
 		if (getGroup()->getNumUnits() > 0)
 			joinGroup(NULL);
@@ -10780,7 +10780,7 @@ bool CvUnitAI::AI_guardFort(bool bSearch)
 	{
 		if (atPlot(pBestGuardPlot))
 		{
-			FAssertMsg(false, "Current guard plot doesn't need defenders"); // advc
+			FErrorMsg("Current guard plot doesn't need defenders"); // advc
 			getGroup()->pushMission(isFortifyable() ? MISSION_FORTIFY :
 					MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_GUARD_BONUS, pBestGuardPlot);
 			return true;
@@ -11597,7 +11597,7 @@ bool CvUnitAI::AI_spreadCorporation()
 				getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_SPREAD_CORPORATION, pBestSpreadPlot);
 				return true;
 			}
-			// FAssertMsg(false, "AI_spreadCorporation has taken us to a bogus pBestSpreadPlot");
+			// FErrorMsg("AI_spreadCorporation has taken us to a bogus pBestSpreadPlot");
 			// this can happen from time to time. For example, when the player loses their only corp resources while the exec is en route.
 		}
 		else
@@ -17610,7 +17610,7 @@ bool CvUnitAI::AI_improveBonus( // K-Mod. (all that junk wasn't being used anywa
 		}
 		/*else {
 			// the plot may be connected, but not connected to capital, if capital is not on same area, or if civ has no capital (like barbarians)
-			FAssertMsg(false, "Expected that a route could be built to eBestPlot");
+			FErrorMsg("Expected that a route could be built to eBestPlot");
 		}*/
 	}
 	else FAssert(false);
@@ -18270,7 +18270,7 @@ bool CvUnitAI::AI_handleStranded(int iFlags)
 
 	if (isCargo())
 	{	// This is possible, in some rare cases, but I'm currently trying to pin down precisely what those cases are.
-		//FAssertMsg(false, "AI_handleStranded: this unit is already cargo."); // advc.006
+		//FErrorMsg("AI_handleStranded: this unit is already cargo."); // advc.006
 		getGroup()->pushMission(MISSION_SKIP);
 		return true;
 	}
@@ -20970,7 +20970,7 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 								}
 							}
 							// kekm.7: Commented out
-							//else FAssertMsg(false, "3rd party unit being considered for nuking.");
+							//else FErrorMsg("3rd party unit being considered for nuking.");
 						}
 					}
 				} // end unit loop
@@ -21189,7 +21189,7 @@ bool CvUnitAI::AI_plotValid(CvPlot const* pPlot) /* advc: */ const
 		break;
 
 	default:
-		FAssertMsg(false, "AI_plotValid is only for land and sea units"); // advc: msg added
+		FErrorMsg("AI_plotValid is only for land and sea units"); // advc: msg added
 	}
 	return false;
 }

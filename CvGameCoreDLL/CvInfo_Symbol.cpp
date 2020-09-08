@@ -49,7 +49,7 @@ const TCHAR* CvYieldInfo::getSymbolPath(int i) const
 	return m_paszSymbolPath ? m_paszSymbolPath[i] : -1;*/
 	/*  <advc.003j> This function is never called. The paths were unused, so
 		I'm no longer loading them. */
-	FAssertMsg(false, "CvYieldInfo::m_paszSymbolPath not loaded (disabled by AdvCiv)");
+	FErrorMsg("CvYieldInfo::m_paszSymbolPath not loaded (disabled by AdvCiv)");
 	return NULL; // </advc.003j>
 }
 

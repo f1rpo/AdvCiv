@@ -1337,7 +1337,7 @@ void CvUnit::updateCombat(bool bQuick)
 		// K-Mod
 		if (bFinish)
 		{
-			FAssertMsg(false, "Cannot 'finish' combat with NULL defender");
+			FErrorMsg("Cannot 'finish' combat with NULL defender");
 			return;
 		}
 		else getGroup()->groupMove(pPlot, true, canAdvance(pPlot, 0) ? this : NULL, true);

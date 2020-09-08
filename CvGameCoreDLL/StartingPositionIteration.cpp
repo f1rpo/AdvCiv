@@ -473,7 +473,7 @@ StartingPositionIteration::VoronoiCell* StartingPositionIteration::
 			find(eCurrSite);
 	if (pos == m_sitesClosestToCurrSite.end())
 	{
-		FAssertMsg(false, "No current site found for given player");
+		FErrorMsg("No current site found for given player");
 		return NULL;
 	}
 	return pos->second;
@@ -2010,7 +2010,7 @@ NormalizationTarget::StartValBreakdown const* NormalizationTarget::getBreakdown(
 	map<PlotNumTypes,StartValBreakdown>::const_iterator pos = m_startValData.find(ePlot);
 	if (pos == m_startValData.end())
 	{
-		FAssertMsg(false, "Starting plot not found in normalization inputs");
+		FErrorMsg("Starting plot not found in normalization inputs");
 		return NULL;
 	}
 	return &pos->second;

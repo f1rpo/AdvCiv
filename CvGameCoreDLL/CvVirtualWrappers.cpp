@@ -14,7 +14,7 @@
 	Generally helpful to know. Also looks like most/ all wrappers for
 	CvGame and CvSelectionGroup could be removed. (Not: CvTeam and CvPlayer;
 	those have the read/write functions at the end of the vtable.) */
-#define reportCall FAssertMsg(false, "Call from the EXE");
+#define reportCall FErrorMsg("Call from the EXE");
 
 // CvPlayer ...
 

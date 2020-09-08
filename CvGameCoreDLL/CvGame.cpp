@@ -1205,7 +1205,7 @@ NormalizationTarget* CvGame::assignStartingPlots()
 					kPlayer.setStartingPlot(kPlayer.findStartingPlot(), true);
 				if(kPlayer.getStartingPlot() == NULL)
 				{
-					FAssertMsg(false, "No starting plot found");
+					FErrorMsg("No starting plot found");
 					continue;
 				}
 				int iPos = ::range((iCivsAlive *
@@ -2679,7 +2679,7 @@ int CvGame::getTeamClosenessScore(int** aaiDistances, int* aiStartingLocs)
 								}
 								else if (iPlayerStart == iOtherPlayerStart)
 								{
-									FAssertMsg(false, "Two players are (hypothetically) assigned to the same starting location!");
+									FErrorMsg("Two players are (hypothetically) assigned to the same starting location!");
 								}
 								iTeamTotalDist += aaiDistances[iPlayerStart][iOtherPlayerStart];
 							}
@@ -8877,7 +8877,7 @@ void CvGame::handleUpdateTimer(UpdateTimerTypes eTimerType)
 		} // </advc.004j>
 		// advc.106n:
 		case UPDATE_STORE_REPLAY_TEXTURE: GC.getMap().updateReplayTexture(); break;
-		default: FAssertMsg(false, "Unknown update timer type");
+		default: FErrorMsg("Unknown update timer type");
 		}
 	}
 	m_aiUpdateTimers[eTimerType]--;

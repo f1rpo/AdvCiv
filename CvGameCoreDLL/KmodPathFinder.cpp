@@ -234,7 +234,7 @@ void KmodPathFinder::SetSettings(const CvPathSettings& new_settings)
 	// whenever settings are changed, check that we have the right map size.
 	if (!ValidateNodeMap())
 	{
-		FAssertMsg(false, "Failed to validate node map for pathfinder.");
+		FErrorMsg("Failed to validate node map for pathfinder.");
 		settings.pGroup = NULL;
 		return;
 	}

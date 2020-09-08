@@ -9,7 +9,7 @@ CvInfoBase::CvInfoBase() : m_bGraphicalOnly(false) {}
 // advc.xmldefault:
 CvInfoBase::CvInfoBase(CvInfoBase const& kOther)
 {
-	FAssertMsg(false, "Copy-ctor not implemented");
+	FErrorMsg("Copy-ctor not implemented");
 }
 
 CvInfoBase::~CvInfoBase() {}
@@ -443,7 +443,7 @@ bool CvXMLInfo::read(CvXMLLoadUtility* pXML)
 			{
 			case INT_ELEMENT: iIntElements++; break;
 			case BOOL_ELEMENT: iBoolElements++; break;
-			default: FAssertMsg(false, "Data type misses element counting code");
+			default: FErrorMsg("Data type misses element counting code");
 			}
 		}
 		m_aiData.resize(iIntElements);
@@ -482,7 +482,7 @@ bool CvXMLInfo::read(CvXMLLoadUtility* pXML)
 			FAssertBounds(0, m_abData.size(), iEnumValue);
 			m_abData[iEnumValue] = bTmp;
 			break;
-		default: FAssertMsg(false, "Data type misses XML loading code");
+		default: FErrorMsg("Data type misses XML loading code");
 		}
 		delete &kElement;
 	}

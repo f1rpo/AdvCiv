@@ -112,7 +112,7 @@ bool ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>::passFilters(AgentType c
 			return false;
 		break;
 	default:
-		FAssertMsg(false, "Unknown agent status type");
+		FErrorMsg("Unknown agent status type");
 		return false;
 	}
 	switch(eRELATION)
@@ -138,7 +138,7 @@ bool ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>::passFilters(AgentType c
 	case ENEMY_OF:
 		return GET_TEAM(getTeam(kAgent)).isAtWar(m_eTeam);
 	default:
-		FAssertMsg(false, "Unknown agent relation type");
+		FErrorMsg("Unknown agent relation type");
 		return false;
 	}
 	#undef args

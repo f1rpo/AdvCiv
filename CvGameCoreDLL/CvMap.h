@@ -141,7 +141,7 @@ public:
 		if (abs(iDX) > DIRECTION_RADIUS || abs(iDY) > DIRECTION_RADIUS)
 		{
 			// advc.test: (apparently not needed - remove it for next release)
-			FAssertMsg(false, "Just to see if the DIRECTION_RADIUS<abs branch is needed");
+			FErrorMsg("Just to see if the DIRECTION_RADIUS<abs branch is needed");
 			return NO_DIRECTION;
 		}
 		return GC.getXYDirection(iDX + DIRECTION_RADIUS, iDY + DIRECTION_RADIUS);

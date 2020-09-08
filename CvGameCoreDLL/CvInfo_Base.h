@@ -60,12 +60,12 @@ public: // All the const functions are exposed to Python
 	virtual bool read(CvXMLLoadUtility* pXML);
 	virtual bool readPass2(CvXMLLoadUtility* pXML)
 	{
-		FAssertMsg(false, "readPass2 has not been overridden");
+		FErrorMsg("readPass2 has not been overridden");
 		return false;
 	}
 	virtual bool readPass3()
 	{
-		FAssertMsg(false, "readPass3 has not been overridden");
+		FErrorMsg("readPass3 has not been overridden");
 		return false;
 	}
 

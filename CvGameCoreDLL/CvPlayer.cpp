@@ -1369,7 +1369,7 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize,
 		FAssertMsg(iPass != 0, "CvPlayer::findStartingPlot - could not find starting plot in first pass.");
 	}
 
-	FAssertMsg(false, "Could not find starting plot.");
+	FErrorMsg("Could not find starting plot.");
 	return NULL;
 }
 
@@ -2632,7 +2632,7 @@ void CvPlayer::setFlagDecal(CvWString const& szFlagDecal, bool bUpdate)
 	gDLL->UI().setDirty(Flag_DIRTY_BIT, true);
 	if (isBarbarian())
 	{
-		FAssertMsg(false, "CvPlot::clearFlagSymbol might not work correctly when"
+		FErrorMsg("CvPlot::clearFlagSymbol might not work correctly when"
 				" updating flag symbols after changing the Barbarian flag decal.");
 		return;
 	}
@@ -3981,7 +3981,7 @@ bool CvPlayer::canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType
 				kToTeam.isHasMet(getTeam()));
 	// </advc.034>
 	default:
-		FAssertMsg(false, "Unknown trade item type");
+		FErrorMsg("Unknown trade item type");
 		return false;
 	}
 }
@@ -9516,7 +9516,7 @@ bool CvPlayer::setCommercePercent(CommerceTypes eCommerce, int iNewValue, bool b
 {
 	if (!bForce && !isCommerceFlexible(eCommerce))
 	{
-		FAssertMsg(false, "setCommercePercent called without permission.");
+		FErrorMsg("setCommercePercent called without permission.");
 		return false; // can't change percent
 	}
 
@@ -10060,14 +10060,14 @@ void CvPlayer::changeHasCorporationCount(CorporationTypes eCorp, int iChange)
 
 int CvPlayer::getUpkeepCount(UpkeepTypes eUpkeep) const
 {
-	FAssertMsg(false, "m_aiUpkeepCount not unused anymore?"); // advc.003j
+	FErrorMsg("m_aiUpkeepCount not unused anymore?"); // advc.003j
 	return m_aiUpkeepCount.get(eUpkeep);
 }
 
 
 void CvPlayer::changeUpkeepCount(UpkeepTypes eUpkeep, int iChange)
 {
-	FAssertMsg(false, "m_aiUpkeepCount not unused anymore?"); // advc.003j
+	FErrorMsg("m_aiUpkeepCount not unused anymore?"); // advc.003j
 	if (iChange != 0)
 	{
 		m_aiUpkeepCount.add(eUpkeep, iChange);
@@ -18962,7 +18962,7 @@ void CvPlayer::getGlobeLayerColors(GlobeLayerTypes eGlobeLayerType, int iOption,
 		getCultureLayerColors(aColors, aIndicators);
 		break;
 	default:
-		FAssertMsg(false, "Unknown globe layer type");
+		FErrorMsg("Unknown globe layer type");
 	}
 }
 
@@ -19601,12 +19601,12 @@ void CvPlayer::checkAlert(int iAlertID, bool bSilent)
 {
 	if (m_paAlerts.empty())
 	{
-		FAssertMsg(false, "Alerts not initialized for this player");
+		FErrorMsg("Alerts not initialized for this player");
 		return;
 	}
 	if(iAlertID < 0 || iAlertID > (int)m_paAlerts.size())
 	{
-		FAssertMsg(false, "Invalid alert");
+		FErrorMsg("Invalid alert");
 		return;
 	}
 	m_paAlerts[iAlertID]->check(bSilent);

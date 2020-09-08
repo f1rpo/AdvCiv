@@ -1744,7 +1744,7 @@ double InvasionGraph::Node::clashDistance(InvasionGraph::Node const& other) cons
 	// Clash half-way in the middle
 	if(c1 != NULL && c2 != NULL)
 		return (c1->getDistance() + c2->getDistance()) / 2.0;
-	FAssertMsg(false, "Shouldn't clash if not mutually reachable");
+	FErrorMsg("Shouldn't clash if not mutually reachable");
 	return -1;
 }
 

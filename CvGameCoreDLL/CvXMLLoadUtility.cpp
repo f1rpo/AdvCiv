@@ -16,10 +16,10 @@ static const int kBufSize = 2048;
 void CvXMLLoadUtility::errorMessage(char const* szMessage, XMLErrorTypes eErrType)
 {
 	#ifdef _DEBUG
-	FAssertMsg(false, szMessage);
+		FErrorMsg(szMessage);
 	#else
-	gDLL->MessageBox(szMessage, eErrType == XML_LOAD_ERROR ?
-			"XML Load Error" : "XML Error");
+		gDLL->MessageBox(szMessage, eErrType == XML_LOAD_ERROR ?
+				"XML Load Error" : "XML Error");
 	#endif
 }
 

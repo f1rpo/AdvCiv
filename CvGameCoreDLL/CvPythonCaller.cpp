@@ -1323,12 +1323,12 @@ bool CvPythonCaller::generatePlotTypes(int* aiPlotTypes, size_t uiSize) const
 			"generatePlotTypes", NULL, &result);
 	if (!isOverride())
 	{
-		FAssertMsg(false, "Map script has to override generatePlotTypes and mustn't call usingDefaultImpl");
+		FErrorMsg("Map script has to override generatePlotTypes and mustn't call usingDefaultImpl");
 		return false;
 	}
 	if (result.size() != uiSize)
 	{
-		FAssertMsg(false, "Need to set a plot type for every plot");
+		FErrorMsg("Need to set a plot type for every plot");
 		return false;
 	}
 	for (size_t i = 0; i < uiSize; i++)
@@ -1343,12 +1343,12 @@ bool CvPythonCaller::generateTerrainTypes(std::vector<int>& r, size_t uiTargetSi
 			"generateTerrainTypes", NULL, &r);
 	if (!isOverride())
 	{	// PlantGenerator seems to generate terrain in addFeatures, but that's highly irregular.
-		FAssertMsg(false, "Map script has to override generateTerrainTypes and mustn't call usingDefaultImpl");
+		FErrorMsg("Map script has to override generateTerrainTypes and mustn't call usingDefaultImpl");
 		return false;
 	}
 	if (r.size() != uiTargetSize)
 	{
-		FAssertMsg(false, "No terrain generated for some plots");
+		FErrorMsg("No terrain generated for some plots");
 		return false;
 	}
 	return true;

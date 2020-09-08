@@ -3425,7 +3425,7 @@ void CvPlot::setLatitude(int iLatitude)
 {
 	if (iLatitude < 0 || iLatitude > 90)
 	{
-		FAssertMsg(false, "Latitude should be in the interval [0,90]");
+		FErrorMsg("Latitude should be in the interval [0,90]");
 		iLatitude = range(iLatitude, 0, 90);
 	}
 	m_iLatitude = iLatitude;
@@ -5616,7 +5616,7 @@ bool CvPlot::canEverFound() const
 	{
 		if (GC.getPythonCaller()->canFoundWaterCity(*this))
 		{
-			FAssertMsg(false, "The AdvCiv mod probably does not support cities on water"); // advc
+			FErrorMsg("The AdvCiv mod probably does not support cities on water"); // advc
 			return true;
 		}
 		return false; // advc.opt
@@ -6002,7 +6002,7 @@ bool CvPlot::isRiverCrossing(DirectionTypes eIndex) const
 {
 	if (eIndex == NO_DIRECTION)
 	{
-		FAssertMsg(false, "Just to see if the NO_DIRECTION branch is needed"); // advc.test
+		FErrorMsg("Just to see if the NO_DIRECTION branch is needed"); // advc.test
 		return false;
 	}
 	return m_abRiverCrossing.get(eIndex);

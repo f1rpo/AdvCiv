@@ -158,7 +158,7 @@ void CvCityAI::AI_assignWorkingPlots()
 	{
 		if (!AI_removeWorstCitizen())
 		{
-			FAssertMsg(false, "failed to remove extra population");
+			FErrorMsg("failed to remove extra population");
 			break;
 		}
 	}
@@ -213,7 +213,7 @@ void CvCityAI::AI_assignWorkingPlots()
 		{
 			if (!AI_removeWorstCitizen())
 			{
-				FAssertMsg(false, "failed to remove extra population");
+				FErrorMsg("failed to remove extra population");
 				break;
 			}
 		}
@@ -225,7 +225,7 @@ void CvCityAI::AI_assignWorkingPlots()
 		// (AI_addBestCitizen now handles forced specialist logic)
 		if (!AI_addBestCitizen(/*bWorkers*/ true, /*bSpecialists*/ true))
 		{
-			FAssertMsg(false, "failed to assign extra population");
+			FErrorMsg("failed to assign extra population");
 			break;
 		}
 	}
@@ -235,7 +235,7 @@ void CvCityAI::AI_assignWorkingPlots()
 	{
 		if (!AI_addBestCitizen(/*bWorkers*/ false, /*bSpecialists*/ true))
 		{
-			FAssertMsg(false, "failed to assign extra specialist");
+			FErrorMsg("failed to assign extra specialist");
 			break;
 		}
 	}
@@ -1420,7 +1420,7 @@ void CvCityAI::AI_chooseProduction()
 					if (gCityLogLevel >= 2) logBBAI("      City %S uses choose missionary 1", getName().GetCString());
 					return;
 				}
-				FAssertMsg(false, "AI_bestSpreadUnit should provide a valid unit when it returns true");
+				FErrorMsg("AI_bestSpreadUnit should provide a valid unit when it returns true");
 			}
 		}
 	}
@@ -1752,7 +1752,7 @@ void CvCityAI::AI_chooseProduction()
 				if (gCityLogLevel >= 2) logBBAI("      City %S uses choose missionary 2", getName().GetCString());
 				return;
 			}
-			FAssertMsg(false, "AI_bestSpreadUnit should provide a valid unit when it returns true");
+			FErrorMsg("AI_bestSpreadUnit should provide a valid unit when it returns true");
 		}
 	}
 
@@ -2401,7 +2401,7 @@ void CvCityAI::AI_chooseProduction()
 			if (gCityLogLevel >= 2) logBBAI("      City %S uses choose missionary 3", getName().GetCString());
 			return;
 		}
-		FAssertMsg(false, "AI_bestSpreadUnit should provide a valid unit when it returns true");
+		FErrorMsg("AI_bestSpreadUnit should provide a valid unit when it returns true");
 	}
 
 	if (!bUnitExempt && iTotalFloatingDefenders < iNeededFloatingDefenders && (!bFinancialTrouble || bLandWar))
@@ -9401,7 +9401,7 @@ void CvCityAI::AI_juggleCitizens()
 		if (iCycles > getPopulation() + iTotalFreeSpecialists)
 		{
 			// This isn't a serious problem. I just want to know how offen it happens.
-			//FAssertMsg(false, "juggle citizens failed to find a stable solution.");
+			//FErrorMsg("juggle citizens failed to find a stable solution.");
 			PROFILE("juggle citizen failure");
 			bDone = true;
 		}
@@ -9508,7 +9508,7 @@ int CvCityAI::AI_citizenSacrificeCost(int iCitLoss, int iHappyLevel, int iNewAng
 
 	if ((int)job_scores.size() < iCitLoss)
 	{
-		FAssertMsg(false, "Not enough job data to calculate citizen loss cost.");
+		FErrorMsg("Not enough job data to calculate citizen loss cost.");
 		int iBogusData = (1+GC.getFOOD_CONSUMPTION_PER_POPULATION()) * iYieldWeights[YIELD_FOOD];
 		job_scores.resize(iCitLoss, iBogusData);
 		iTotalScore += iBogusData;
@@ -11429,7 +11429,7 @@ void CvCityAI::AI_buildGovernorChooseProduction()
 				{
 					return;
 				}
-				FAssertMsg(false, "AI_bestSpreadUnit should provide a valid unit when it returns true");
+				FErrorMsg("AI_bestSpreadUnit should provide a valid unit when it returns true");
 			}
 		}
 	}

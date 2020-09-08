@@ -822,7 +822,7 @@ bool CvPlayerAI::AI_negotiatePeace(PlayerTypes eOther, int iTheirBenefit, int iO
 		pDiplo->setTheirOfferList(weGive);
 		gDLL->beginDiplomacy(pDiplo, eOther);
 		//advc.test, advc.134a:  (seems to work reliably now)
-		//FAssertMsg(false, "AI sent peace offer; if it doesn't appear, it could be b/c of a change in circumstances, or advc.134a isn't working as intended");
+		//FErrorMsg("AI sent peace offer; if it doesn't appear, it could be b/c of a change in circumstances, or advc.134a isn't working as intended");
 	}
 	else GC.getGame().implementDeal(getID(), eOther, weGive, theyGive);
 	return true;
@@ -954,7 +954,7 @@ void CvPlayerAI::AI_offerCapitulation(PlayerTypes eTo)
 	pDiplo->setTheirOfferList(ourList);
 	gDLL->beginDiplomacy(pDiplo, eTo);
 	//advc.test, advc.134a:
-	/*FAssertMsg(false, "AI sent capitulation offer; if it doesn't appear, "
+	/*FErrorMsg("AI sent capitulation offer; if it doesn't appear, "
 			"it could be b/c of a change in circumstances, or advc.134a isn't working as intended");*/
 }
 // </advc.104h>
@@ -1173,7 +1173,7 @@ int CvPlayerAI::AI_movementPriority(CvSelectionGroupAI const& kGroup) const // a
 			break;
 
 		case UNITAI_COLLATERAL:
-			FAssertMsg(false, "AI_movementPriority: unit AI type doesn't seem to match traits.");
+			FErrorMsg("AI_movementPriority: unit AI type doesn't seem to match traits.");
 			break;
 
 		default:
@@ -1977,7 +1977,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity,  // advc.003u: param was CvCity
 					by recipient. Recipient has no choice here. */
 				AI_intendsToCede(kCity, eLiberationPlayer, true))
 			{
-				FAssertMsg(false, "Just to test AI liberation upon conquest"); // advc.test
+				FErrorMsg("Just to test AI liberation upon conquest"); // advc.test
 				bool bLiberate = true;
 				/*	Don't liberate (not for free anyway) if they're
 					holding one of our cities hostage */
@@ -4117,7 +4117,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 
 	if (best_path_it == tech_paths.end())
 	{
-		FAssertMsg(0, "Failed to create a tech path");
+		FErrorMsg("Failed to create a tech path");
 		return NO_TECH;
 	}
 
@@ -6135,7 +6135,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 					break;
 
 				default:
-					FAssertMsg(false, "Missing UNITAI type in AI_techUnitValue");
+					FErrorMsg("Missing UNITAI type in AI_techUnitValue");
 					break;
 				}
 			}
@@ -7823,7 +7823,7 @@ int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const
 
 int CvPlayerAI::AI_getLostWarAttitude(PlayerTypes ePlayer) const
 {
-	FAssertMsg(false, "this function is obsolete");
+	FErrorMsg("this function is obsolete");
 	if(GET_TEAM(ePlayer).AI_getWarSuccess(getTeam()) >
 			GET_TEAM(getTeam()).AI_getWarSuccess(TEAMID(ePlayer)))
 		return GC.getInfo(getPersonalityType()).getLostWarAttitudeChange();
@@ -11882,7 +11882,7 @@ scaled CvPlayerAI::AI_peaceTreatyAversion(TeamTypes eTarget) const
 		CvTeam const& kTargetMaster = GET_TEAM(GET_TEAM(eTarget).getMasterTeam());
 		if (kMaster.isAVassal() || kTargetMaster.isAVassal())
 		{
-			FAssertMsg(false, "Master is a vassal");
+			FErrorMsg("Master is a vassal");
 			return 0;
 		}
 		return kMaster.AI_peaceTreatyAversion(kTargetMaster.getID());
@@ -17272,7 +17272,7 @@ void CvPlayerAI::AI_setFirstContact(PlayerTypes eIndex, bool bNewValue)
 		DIPLOEVENT_FAILED_CONTACT (CvPlayer::handleDiploEvent) and in CvTeam::declareWar,
 		but AI_isFirstContact was never called. Looks like these two functions were
 		superseded by the team-level functions meet/makeHasMet and isHasMet. */
-	FAssertMsg(false, "m_abFirstContact is obsolete");
+	FErrorMsg("m_abFirstContact is obsolete");
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be within maximum bounds (invalid Index)");
 	m_abFirstContact[eIndex] = bNewValue;
@@ -17281,7 +17281,7 @@ void CvPlayerAI::AI_setFirstContact(PlayerTypes eIndex, bool bNewValue)
 
 bool CvPlayerAI::AI_isFirstContact(PlayerTypes eIndex) const
 {
-	FAssertMsg(false, "m_abFirstContact is obsolete"); // advc.003j
+	FErrorMsg("m_abFirstContact is obsolete"); // advc.003j
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be within maximum bounds (invalid Index)");
 	return m_abFirstContact[eIndex];
@@ -17421,7 +17421,7 @@ void CvPlayerAI::AI_rememberLiberation(CvCity const& kCity, bool bConquest)
 {
 	if (!hasCapital())
 	{
-		FAssertMsg(false, "City liberated to player with 0 cities?");
+		FErrorMsg("City liberated to player with 0 cities?");
 		return;
 	}
 	PlayerTypes const eOwner = kCity.getOwner();
@@ -20046,7 +20046,7 @@ void CvPlayerAI::AI_proposeWarTrade(PlayerTypes eHireling)
 				{
 					continue;
 				}
-				FAssertMsg(false, "Just to verify that this line is reachable; hasn't come up in tests yet"); // advc.test
+				FErrorMsg("Just to verify that this line is reachable; hasn't come up in tests yet"); // advc.test
 				int iKeepVal = AI_cityTradeVal(*pCity, getID());
 				int iAcquireVal = kHireling.AI_cityTradeVal(*pCity, getID());
 				if (iAcquireVal <= 0) // (probably already ensured by trade denial check)
@@ -20631,7 +20631,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, AIDemandTypes eDemand)
 		break;
 	} // </advc.ctr>
 	default:
-		FAssertMsg(false, "Unknown AI demand type");
+		FErrorMsg("Unknown AI demand type");
 		return false;
 	}
 	if (humanGives.getLength() <= 0 ||
@@ -20780,7 +20780,7 @@ bool CvPlayerAI::AI_proposeCityTrade(PlayerTypes eToPlayer)
 		bool const bEvac = AI_getCity(aiiiCityPairs[i].second.first)->AI_isEvacuating();
 		if (aiiiCityPairs[i].second.second != -1)
 		{
-			FAssertMsg(false, "To verify that a city-for-city trade ever happens"); // advc.test
+			FErrorMsg("To verify that a city-for-city trade ever happens"); // advc.test
 			theyGive.insertAtEnd(TradeData(TRADE_CITIES, aiiiCityPairs[i].second.second));
 		}
 		else
@@ -20809,7 +20809,7 @@ bool CvPlayerAI::AI_proposeCityTrade(PlayerTypes eToPlayer)
 			}
 			else
 			{
-				FAssertMsg(false, "Just to verify that this branch is reachable; hasn't come p in tests yet."); // advc.test
+				FErrorMsg("Just to verify that this branch is reachable; hasn't come p in tests yet."); // advc.test
 				/*	Even if we think that gifting a city will benefit us more than them,
 					we're not going to pay a human extra to accept a free city. */
 				if (theyGive.getLength() <= 0 && kToPlayer.isHuman())
@@ -20832,7 +20832,7 @@ bool CvPlayerAI::AI_proposeCityTrade(PlayerTypes eToPlayer)
 		{
 			if (bEvac)
 			{
-				FAssertMsg(false, "AI offers evacuating city to human; not tested, hope for the best."); // advc.test
+				FErrorMsg("AI offers evacuating city to human; not tested, hope for the best."); // advc.test
 				/*	(See comment at the start of this function.
 					advc.130r: Don't bother with game speed adjustment.) */
 				AI_changeContactTimer(eToPlayer, CONTACT_GIVE_HELP, 10);
@@ -25164,7 +25164,7 @@ CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()  // advc: style changes
 		CvPlot* pLoopPlot = kMember.getStartingPlot();
 		if (pLoopPlot == NULL)
 		{
-			FAssertMsg(false, "StartingPlot for a live player is NULL!");
+			FErrorMsg("StartingPlot for a live player is NULL!");
 			continue;
 		}
 		if (getAdvancedStartCityCost(true, pLoopPlot) <= 0)
@@ -25195,7 +25195,7 @@ CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()  // advc: style changes
 	if (pBestPlot != NULL)
 		return pBestPlot;
 
-	FAssertMsg(false, "AS: Failed to find a starting plot for a player");
+	FErrorMsg("AS: Failed to find a starting plot for a player");
 	//Execution should almost never reach here.
 
 	//Update found values just in case - particulary important for simultaneous turns.
@@ -25231,7 +25231,7 @@ CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()  // advc: style changes
 		return pBestPlot;
 
 	//Commence panic.
-	FAssertMsg(false, "Failed to find an advanced start starting plot");
+	FErrorMsg("Failed to find an advanced start starting plot");
 	return NULL;
 }
 
@@ -25334,7 +25334,7 @@ bool CvPlayerAI::AI_advancedStartPlaceCity(CvPlot* pPlot)
 			/*	this should never happen since the cost for a city should be 0 if
 				the city can't be placed.
 				(It can happen if another player has placed a city in the fog) */
-			FAssertMsg(false, "ADVANCEDSTARTACTION_CITY failed in unexpected way");
+			FErrorMsg("ADVANCEDSTARTACTION_CITY failed in unexpected way");
 			return false;
 		}
 	}
@@ -25652,7 +25652,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 			}
 			else
 			{	// advc: Assert added, BtS comment moved into message.
-				FAssertMsg(false, "If this point is reached, the advanced start system is broken.");
+				FErrorMsg("If this point is reached, the advanced start system is broken.");
 				//Find a new starting plot for this player
 				setStartingPlot(findStartingPlot(false), true);
 				//Redo Starting visibility
@@ -27703,7 +27703,7 @@ bool CvPlayerAI::isSafeRangeCacheValid() const
 {
 	/*	advc: To turn the cache back on, the two call locations in AI_getPlotDanger
 		would have to be uncommented. */
-	FAssertMsg(false, "SafeRangeCache is disabled");
+	FErrorMsg("SafeRangeCache is disabled");
 	return false; // K-Mod: Cache disabled. See comments above.
 	//return isTurnActive() && !GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && GC.getGame().getNumGameTurnActive() == 1;
 }

@@ -48,7 +48,7 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 			(widgetDataStruct.m_iData1 <= NO_PLAYER ||
 			widgetDataStruct.m_iData1 >= MAX_PLAYERS))
 		{
-			FAssertMsg(false, "Player id missing in widget data");
+			FErrorMsg("Player id missing in widget data");
 			return;
 		}
 	} // </advc.085>
@@ -1409,7 +1409,7 @@ void CvDLLWidgetData::doResearch(CvWidgetDataStruct &widgetDataStruct)
 		{
 			gDLL->UI().addMessage(GC.getGame().getActivePlayer(), true, -1,
 					gDLL->getText("TXT_KEY_CHEATERS_NEVER_PROSPER"), NULL, MESSAGE_TYPE_MAJOR_EVENT);
-			FAssertMsg(false, "doResearch called for free tech when !isChoosingFreeTech()");
+			FErrorMsg("doResearch called for free tech when !isChoosingFreeTech()");
 			return;
 		}
 		else kPlayer.changeChoosingFreeTechCount(-1);
@@ -4962,7 +4962,7 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 			case CvCity::GRIEVANCE_HURRY: szGrievanceKey += L"HURRY"; break;
 			case CvCity::GRIEVANCE_CONSCRIPT: szGrievanceKey += L"CONSCRIPT"; break;
 			case CvCity::GRIEVANCE_RELIGION: szGrievanceKey += L"RELIGION"; break;
-			default: FAssertMsg(false, "Unknown grievance type");
+			default: FErrorMsg("Unknown grievance type");
 			}
 			szBuffer.append(gDLL->getText(szGrievanceKey.GetCString()));
 		}
@@ -5125,7 +5125,7 @@ void CvDLLWidgetData::parseSelectedHelp(CvWidgetDataStruct &widgetDataStruct,  /
 		break;
 
 	default:
-		FAssertMsg(false, "eOrderType did not match valid options");
+		FErrorMsg("eOrderType did not match valid options");
 		break;
 	}
 }

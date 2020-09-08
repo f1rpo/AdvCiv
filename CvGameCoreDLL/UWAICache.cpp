@@ -524,7 +524,7 @@ void UWAICache::updateCanScrub() {
 		}
 	}
 	if(fallout == NO_FEATURE) {
-		FAssertMsg(false, "Fallout feature not found; should have -50 health");
+		FErrorMsg("Fallout feature not found; should have -50 health");
 		return;
 	}
 	FOR_EACH_ENUM(Build) {
@@ -628,25 +628,25 @@ UWAICache::City* UWAICache::lookupCity(CvCity const& cvCity) const {
 
 void UWAICache::sortCitiesByOwnerAndDistance() {
 
-	FAssertMsg(false, "function no longer used");
+	FErrorMsg("function no longer used");
 	sort(v.begin(), v.end(), City::byOwnerAndDistance);
 }
 
 void UWAICache::sortCitiesByOwnerAndTargetValue() {
 
-	FAssertMsg(false, "function no longer used");
+	FErrorMsg("function no longer used");
 	sort(v.begin(), v.end(), City::byOwnerAndTargetValue);
 }
 
 void UWAICache::sortCitiesByDistance() {
 
-	FAssertMsg(false, "function no longer used");
+	FErrorMsg("function no longer used");
 	sort(v.begin(), v.end(), City::byDistance);
 }
 
 void UWAICache::sortCitiesByTargetValue() {
 
-	FAssertMsg(false, "function no longer used");
+	FErrorMsg("function no longer used");
 	sort(v.begin(), v.end(), City::byTargetValue);
 }
 

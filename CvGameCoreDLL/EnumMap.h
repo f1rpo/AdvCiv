@@ -441,22 +441,22 @@ private:
 	/*template<>
 	void _allocate<true, ENUMMAP_SIZE_NATIVE>(T tValue)
 	{
-		FAssertMsg(false, "EnumMap::_allocate shouldn't be called for classes with inline memory");
+		FErrorMsg("EnumMap::_allocate shouldn't be called for classes with inline memory");
 	}*/ // advc.fract
 	template<>
 	void _allocate<true, ENUMMAP_SIZE_1_BYTE>(T tValue)
 	{
-		FAssertMsg(false, "EnumMap::_allocate shouldn't be called for classes with inline memory");
+		FErrorMsg("EnumMap::_allocate shouldn't be called for classes with inline memory");
 	}
 	template<>
 	void _allocate<true, ENUMMAP_SIZE_2_BYTE>(T tValue)
 	{
-		FAssertMsg(false, "EnumMap::_allocate shouldn't be called for classes with inline memory");
+		FErrorMsg("EnumMap::_allocate shouldn't be called for classes with inline memory");
 	}
 	template<>
 	void _allocate<true, ENUMMAP_SIZE_BOOL>(T tValue)
 	{
-		FAssertMsg(false, "EnumMap::_allocate shouldn't be called for classes with inline memory");
+		FErrorMsg("EnumMap::_allocate shouldn't be called for classes with inline memory");
 	}
 
 	////

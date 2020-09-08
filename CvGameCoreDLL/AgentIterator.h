@@ -177,7 +177,7 @@ protected:
 
 	AgentIterator& operator++()
 	{
-		FAssertMsg(false, "Derived classes should define their own operator++ function");
+		FErrorMsg("Derived classes should define their own operator++ function");
 		// This is what derived classes should do (force-inlined, arguably):
 		generateNext();
 		return *this;

@@ -1162,7 +1162,7 @@ void MilitaryVictory::evaluate() {
 		if(we->AI_atVictoryStage(AI_VICTORY_DIPLOMACY4))
 			voteCost += popLossRate * 40;
 		if(voteCost > 0.5) {
-			FAssertMsg(false, "Just sth. to take a look at b/c it seems to come up"
+			FErrorMsg("Just sth. to take a look at b/c it seems to come up"
 					" very rarely if ever - diplo victory stage discouraging nuclear war");
 			log("Nuclear war jeopardizes diplo victory: %d "
 					"(%d percent population loss expected)",

@@ -233,7 +233,7 @@ void CvAgents::updateVassal(TeamTypes eVassal, TeamTypes eMaster, bool bVassal)
 
 
 #define NO_GENERIC_IMPLEMENTATION() \
-	FAssertMsg(false, "No generic implementation"); \
+	FErrorMsg("No generic implementation"); \
 	return NULL
 
 template<class AgentType>

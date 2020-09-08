@@ -57,7 +57,7 @@ CvReplayInfo::CvReplayInfo() :
 	would seem undesirable. */
 CvReplayInfo::CvReplayInfo(CvReplayInfo const&)
 {
-	FAssertMsg(false, "No copy-constructor implemented for CvReplayInfo");
+	FErrorMsg("No copy-constructor implemented for CvReplayInfo");
 }
 
 CvReplayInfo::~CvReplayInfo()
@@ -848,7 +848,7 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 			}
 			catch(...)
 			{
-				FAssertMsg(false, "Failed to read replay file");
+				FErrorMsg("Failed to read replay file");
 				return false;
 			}
 			if(m_szModName.empty())
@@ -867,7 +867,7 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 	}
 	catch(...)
 	{
-		FAssertMsg(false, "Failed to read replay file");
+		FErrorMsg("Failed to read replay file");
 		return false;
 	} // <advc.707>
 	if(m->iFinalScore == MIN_INT)
@@ -969,7 +969,7 @@ void CvReplayInfo::setMinimapSizeFromXML()
 	if (GC.getDefineINT(CvGlobals::MINIMAP_RENDER_SIZE) >= 10000)
 	{
 		// Not a reasonable resolution, and can't piggyback that safely into the replay file.
-		FAssertMsg(false, "MINIMAP_RENDER_SIZE too large");
+		FErrorMsg("MINIMAP_RENDER_SIZE too large");
 		return;
 	}
 	m_iMinimapSize = GC.getDefineINT(CvGlobals::MINIMAP_RENDER_SIZE);

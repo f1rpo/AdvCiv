@@ -103,7 +103,7 @@ bool CvUnitFormationInfo::read(CvXMLLoadUtility* pXML)
 				m_vctGreatUnitEntries.push_back(unitEntry);
 			else if(szTextVal.CompareNoCase("Siege") == 0)
 				m_vctSiegeUnitEntries.push_back(unitEntry);
-			else FAssertMsg(false, "[Jason] Unknown unit formation entry type.");
+			else FErrorMsg("[Jason] Unknown unit formation entry type.");
 		}
 		while (gDLL->getXMLIFace()->LocateNextSiblingNodeByTagName(pXML->GetXML(), "UnitEntry"));
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
@@ -689,7 +689,7 @@ bool CvSpaceShipInfo::read(CvXMLLoadUtility* pXML)
 		m_eCameraUpAxis = AXIS_Y;
 	else if(szTextVal.CompareNoCase("AXIS_Z") == 0)
 		m_eCameraUpAxis = AXIS_Z;
-	else FAssertMsg(false, "[Jason] Unknown Axis Type.");
+	else FErrorMsg("[Jason] Unknown Axis Type.");
 
 	pXML->GetChildXmlValByName(&m_iPartNumber, "PartNumber");
 	pXML->GetChildXmlValByName(&m_iArtType, "ArtType");
@@ -724,7 +724,7 @@ bool CvSpaceShipInfo::read(CvXMLLoadUtility* pXML)
 		m_eSpaceShipInfoType = SPACE_SHIP_INFO_TYPE_IN_SPACE_SMOKE_ON;
 	else if(szTextVal.CompareNoCase("SPACE_SHIP_INFO_TYPE_IN_GAME_SMOKE_ON") == 0)
 		m_eSpaceShipInfoType = SPACE_SHIP_INFO_TYPE_IN_GAME_SMOKE_ON;
-	else FAssertMsg(false, "[Jason] Unknown SpaceShipInfoType.");
+	else FErrorMsg("[Jason] Unknown SpaceShipInfoType.");
 
 	return true;
 }
@@ -1417,7 +1417,7 @@ m_fProjectileArc(0.0f)
 // advc.xmldefault:
 CvEffectInfo::CvEffectInfo(CvEffectInfo const& kOther)
 {
-	FAssertMsg(false, "Copy-ctor not implemented");
+	FErrorMsg("Copy-ctor not implemented");
 }
 
 bool CvEffectInfo::read(CvXMLLoadUtility* pXML)
@@ -1448,7 +1448,7 @@ CvAttachableInfo::CvAttachableInfo() : m_fUpdateRate(0.0f) {}
 // advc.xmldefault:
 CvAttachableInfo::CvAttachableInfo(CvAttachableInfo const& kOther)
 {
-	FAssertMsg(false, "Copy-ctor not implemented");
+	FErrorMsg("Copy-ctor not implemented");
 }
 
 bool CvAttachableInfo::read(CvXMLLoadUtility* pXML)

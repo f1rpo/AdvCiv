@@ -881,7 +881,7 @@ void CvCity::doTask(TaskTypes eTask, int iData1, int iData2, bool bOption,
 		break;
 
 	default:
-		FAssertMsg(false, "eTask failed to match a valid option");
+		FErrorMsg("eTask failed to match a valid option");
 	}
 }
 
@@ -1611,7 +1611,7 @@ bool CvCity::isProductionLimited() const
 			break;
 
 		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType failed to match a valid option");
+			FErrorMsg("pOrderNode->m_data.eOrderType failed to match a valid option");
 		}
 	}
 	return false;
@@ -1675,7 +1675,7 @@ bool CvCity::canContinueProduction(OrderData order)
 		break;
 
 	default:
-		FAssertMsg(false, "order.eOrderType failed to match a valid option");
+		FErrorMsg("order.eOrderType failed to match a valid option");
 	}
 	return false;
 }
@@ -1748,7 +1748,7 @@ UnitTypes CvCity::getProductionUnit() const
 		case ORDER_MAINTAIN:
 			break;
 		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType failed to match a valid option");
+			FErrorMsg("pOrderNode->m_data.eOrderType failed to match a valid option");
 		}
 	}
 	return NO_UNIT;
@@ -1769,7 +1769,7 @@ UnitAITypes CvCity::getProductionUnitAI() const
 		case ORDER_MAINTAIN:
 			break;
 		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType failed to match a valid option");
+			FErrorMsg("pOrderNode->m_data.eOrderType failed to match a valid option");
 		}
 	}
 	return NO_UNITAI;
@@ -1791,7 +1791,7 @@ BuildingTypes CvCity::getProductionBuilding() const
 		case ORDER_MAINTAIN:
 			break;
 		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType failed to match a valid option");
+			FErrorMsg("pOrderNode->m_data.eOrderType failed to match a valid option");
 		}
 	}
 	return NO_BUILDING;
@@ -1813,7 +1813,7 @@ ProjectTypes CvCity::getProductionProject() const
 		case ORDER_MAINTAIN:
 			break;
 		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType failed to match a valid option");
+			FErrorMsg("pOrderNode->m_data.eOrderType failed to match a valid option");
 		}
 	}
 	return NO_PROJECT;
@@ -1834,7 +1834,7 @@ ProcessTypes CvCity::getProductionProcess() const
 		case ORDER_MAINTAIN:
 			return ((ProcessTypes)(pOrderNode->m_data.iData1));
 		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType failed to match a valid option");
+			FErrorMsg("pOrderNode->m_data.eOrderType failed to match a valid option");
 		}
 	}
 	return NO_PROCESS;
@@ -1857,7 +1857,7 @@ const wchar* CvCity::getProductionName() const
 		case ORDER_MAINTAIN:
 			return GC.getInfo((ProcessTypes) pOrderNode->m_data.iData1).getDescription();
 		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType failed to match a valid option");
+			FErrorMsg("pOrderNode->m_data.eOrderType failed to match a valid option");
 		}
 	}
 	return L"";
@@ -1880,7 +1880,7 @@ const wchar* CvCity::getProductionNameKey() const
 		case ORDER_MAINTAIN:
 			return GC.getInfo((ProcessTypes) pOrderNode->m_data.iData1).getTextKeyWide();
 		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType failed to match a valid option");
+			FErrorMsg("pOrderNode->m_data.eOrderType failed to match a valid option");
 		}
 	}
 	return L"";
@@ -1905,7 +1905,7 @@ bool CvCity::isFoodProduction() const
 			break;
 
 		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType failed to match a valid option");
+			FErrorMsg("pOrderNode->m_data.eOrderType failed to match a valid option");
 			break;
 		}
 	}
@@ -2014,7 +2014,7 @@ int CvCity::getProduction() const
 		case ORDER_MAINTAIN:
 			break;
 		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType failed to match a valid option");
+			FErrorMsg("pOrderNode->m_data.eOrderType failed to match a valid option");
 		}
 	}
 	return 0;
@@ -2037,7 +2037,7 @@ int CvCity::getProductionNeeded() const
 		case ORDER_MAINTAIN:
 			break;
 		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType failed to match a valid option");
+			FErrorMsg("pOrderNode->m_data.eOrderType failed to match a valid option");
 		}
 	}
 	return MAX_INT;
@@ -2091,7 +2091,7 @@ int CvCity::getProductionTurnsLeft() const  // advc: some style changes
 			return getProductionTurnsLeft((ProjectTypes)iData, 0);
 		case ORDER_MAINTAIN:
 			break;
-		default: FAssertMsg(false, "Unknown order type");
+		default: FErrorMsg("Unknown order type");
 		}
 	}
 	return MAX_INT;
@@ -2279,7 +2279,7 @@ int CvCity::getProductionModifier() const
 		case ORDER_MAINTAIN:
 			break;
 		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType failed to match a valid option");
+			FErrorMsg("pOrderNode->m_data.eOrderType failed to match a valid option");
 		}
 	}
 	return 0;
@@ -3860,7 +3860,7 @@ int CvCity::getHurryCostModifier(bool bIgnoreNew) const
 		case ORDER_MAINTAIN:
 			break;
 		default:
-			FAssertMsg(false, "pOrderNode->m_data.eOrderType did not match a valid option");
+			FErrorMsg("pOrderNode->m_data.eOrderType did not match a valid option");
 		}
 	}
 	return iModifier;
@@ -8459,7 +8459,7 @@ bool CvCity::isAnyProductionProgress(OrderTypes eOrder) const
 	case ORDER_CREATE:	return m_aiProjectProduction.hasContent();
 	case ORDER_MAINTAIN: return false; // Can't make progress on a process
 	case ORDER_TRAIN: return m_aiUnitProduction.hasContent();
-	default: FAssertMsg(false, "Unknown type of production order");
+	default: FErrorMsg("Unknown type of production order");
 		return false;
 	}
 }
@@ -9618,7 +9618,7 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave,
 		break;
 	}
 	default:
-		FAssertMsg(false, "iOrder did not match a valid option");
+		FErrorMsg("iOrder did not match a valid option");
 	}
 
 	if (!bValid)
@@ -9898,7 +9898,7 @@ void CvCity::popOrder(int iNum, bool bFinish,
 		break;
 
 	default:
-		FAssertMsg(false, "Unknown production order type");
+		FErrorMsg("Unknown production order type");
 		doPopOrder(pOrderNode); // advc.064d
 	}
 	/*  advc.064d: (BtS code moved into auxiliary function doPopOrder; called

@@ -2138,7 +2138,7 @@ int CyPlayer::AI_foundValue(int iX, int iY, int iMinRivalRange/* = -1*/, bool bS
 			bStartingLoc = true;
 		else bNormalize = true;
 	} // </advc.031e>
-	FAssertMsg(false, "Just to see if this works correctly if it ever happens");
+	FErrorMsg("Just to see if this works correctly if it ever happens");
 	return m_pPlayer->AI_foundValue(iX, iY, iMinRivalRange, bStartingLoc, bNormalize);
 }
 

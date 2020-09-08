@@ -2686,7 +2686,7 @@ static float getCombatOddsSpecific(CvUnit* pAttacker, CvUnit* pDefender, int n_A
 	else
 	{
 		//Unexpected value.  Process should not reach here.
-		FAssertMsg(false, "unexpected value in getCombatOddsSpecific");
+		FErrorMsg("unexpected value in getCombatOddsSpecific");
 	}
 
 	answer = answer / ((float)(AttFSC+DefFSC+1)); // dividing by (t+w+1) as is necessary
@@ -16091,7 +16091,7 @@ void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer
 {
 	if (NO_PLAYER == ePlayer1 || NO_PLAYER == ePlayer2)
 	{
-		FAssertMsg(false, "Deal needs two parties");
+		FErrorMsg("Deal needs two parties");
 		return;
 	}
 
@@ -16635,7 +16635,7 @@ void CvGameTextMgr::getWarWearinessString(CvWStringBuffer& szBuffer, PlayerTypes
 
 void CvGameTextMgr::getEspionageString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer)
 {
-	FAssertMsg(false, "obsolete function. (getEspionageString)"); // K-Mod
+	FErrorMsg("obsolete function. (getEspionageString)"); // K-Mod
 	if (!GC.getGame().isOption(GAMEOPTION_NO_ESPIONAGE))
 	{
 		CvPlayer& kPlayer = GET_PLAYER(ePlayer);
@@ -16939,7 +16939,7 @@ void CvGameTextMgr::buildFinanceUnitCostString(CvWStringBuffer& szBuffer, Player
 		szBuffer.append(gDLL->getText("TXT_KEY_FINANCE_ADVISOR_UNIT_COST_3", iExtraCost));
 	if (iHandicap != 0)
 	{
-		FAssertMsg(false, "not all unit costs were accounted for"); // K-Mod (handicap modifier are now rolled into the other costs)
+		FErrorMsg("not all unit costs were accounted for"); // K-Mod (handicap modifier are now rolled into the other costs)
 		szBuffer.append(gDLL->getText("TXT_KEY_FINANCE_ADVISOR_HANDICAP_COST", iHandicap));
 		szBuffer.append(CvWString::format(L" (%+d%%)", GC.getInfo(kPlayer.getHandicapType()).getUnitCostPercent() - 100)); // K-Mod
 	}
@@ -16967,7 +16967,7 @@ void CvGameTextMgr::buildFinanceAwaySupplyString(CvWStringBuffer& szBuffer, Play
 	CvWString szHandicap;
 	if (iHandicap != 0)
 	{
-		FAssertMsg(false, "not all supply costs were accounted for"); // K-Mod (handicap modifier are now rolled into the other costs)
+		FErrorMsg("not all supply costs were accounted for"); // K-Mod (handicap modifier are now rolled into the other costs)
 		szHandicap = gDLL->getText("TXT_KEY_FINANCE_ADVISOR_HANDICAP_COST", iHandicap);
 	}
 	CvWString szTmp; // advc.086
@@ -17622,7 +17622,7 @@ void CvGameTextMgr::parseWarTradesHelp(CvWStringBuffer& szBuffer,
 void CvGameTextMgr::parseLeaderLineHelp(CvWStringBuffer &szBuffer, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer)
 {
 	// advc: This is apparently dead code
-	FAssertMsg(false, "Just checking if this function is ever even called");
+	FErrorMsg("Just checking if this function is ever even called");
 	if (NO_PLAYER == eThisPlayer || NO_PLAYER == eOtherPlayer)
 		return;
 

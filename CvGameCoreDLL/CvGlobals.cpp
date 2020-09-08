@@ -946,7 +946,7 @@ int CvGlobals::getTypesEnum(const char* szType,
 			gDLL->logMsg("xml.log", szError);
 		}
 		else szError.Format("type %s not found", szType); // advc.006
-		FAssertMsg(false, szError.c_str());
+		FErrorMsg(szError.c_str());
 	}
 	return -1;
 }
@@ -997,7 +997,7 @@ void CvGlobals::setInfoTypeFromString(const char* szType, int idx)
 
 void CvGlobals::infoTypeFromStringReset()
 {
-	FAssertMsg(false, "Just to see if and when CvGlobals::infoTypeFromStringReset is ever called"); // advc.test
+	FErrorMsg("Just to see if and when CvGlobals::infoTypeFromStringReset is ever called"); // advc.test
 	m_infosMap.clear();
 }
 
@@ -1291,7 +1291,7 @@ int CvGlobals::getNUM_LEADERANIM_TYPES() const
 
 void CvGlobals::infosReset()
 {
-	FAssertMsg(false, "Just to see if and when CvGlobals::infosReset is ever called"); // advc.test
+	FErrorMsg("Just to see if and when CvGlobals::infosReset is ever called"); // advc.test
 	// <advc.enum> Replacing a loop through m_aInfoVectors (now deleted)
 	for (size_t i = 0; i < m_paWorldInfo.size(); i++)
 		m_paWorldInfo[i]->reset();

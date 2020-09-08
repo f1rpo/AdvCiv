@@ -828,7 +828,7 @@ bool UWAI::Team::considerPlanTypeChange(TeamTypes targetId, int u) {
 	case WARPLAN_TOTAL:
 		altWarPlan = WARPLAN_LIMITED;
 		break;
-	default: FAssertMsg(false, "Unsuitable war plan type");
+	default: FErrorMsg("Unsuitable war plan type");
 	}
 	if(altWarPlan == NO_WARPLAN)
 		return true;
