@@ -4126,6 +4126,17 @@ int CvCity::cultureStrength(PlayerTypes ePlayer,
 	rSecondPartyModifier.clamp(0, 1);
 	rStrength *= rSecondPartyModifier;
 
+	/*	Culture strength too low in the late game - or garrison strength too high, but
+		garrison strength is what players can directly control; needs to be simple, linear.
+		Make this adjustment before applying grievance modifiers (or any other modifiers
+		that the UI communicates to the player). */
+	static scaled const rFOREIGN_CULTURE_STRENGTH_EXPONENT = per100(
+			GC.getDefineINT("FOREIGN_CULTURE_STRENGTH_EXPONENT"));
+	static scaled const rFOREIGN_CULTURE_STRENGTH_FACTOR = per100(
+			GC.getDefineINT("FOREIGN_CULTURE_STRENGTH_FACTOR"));
+	rStrength.exponentiate(rFOREIGN_CULTURE_STRENGTH_EXPONENT);
+	rStrength *= rFOREIGN_CULTURE_STRENGTH_FACTOR;
+
 	static scaled const rREVOLT_OFFENSE_STATE_RELIGION_MODIFIER = per100(
 			GC.getDefineINT("REVOLT_OFFENSE_STATE_RELIGION_MODIFIER"));
 	static scaled const rREVOLT_DEFENSE_STATE_RELIGION_MODIFIER = per100(
@@ -4199,14 +4210,8 @@ int CvCity::cultureStrength(PlayerTypes ePlayer,
 	if(rGrievanceModifier < 0)
 		rGrievanceModifier /= 2;
 	rStrength *= (1 + scaled::max(-1, rGrievanceModifier));
-	/*	Culture strength too low in the late game - or garrison strength too high, but
-		garrison strength is what players can directly control; needs to be simple, linear. */
-	static scaled const rFOREIGN_CULTURE_STRENGTH_EXPONENT = per100(
-			GC.getDefineINT("FOREIGN_CULTURE_STRENGTH_EXPONENT"));
-	static scaled const rFOREIGN_CULTURE_STRENGTH_FACTOR = per100(
-			GC.getDefineINT("FOREIGN_CULTURE_STRENGTH_FACTOR"));
-	return (rFOREIGN_CULTURE_STRENGTH_FACTOR *
-			rStrength.pow(rFOREIGN_CULTURE_STRENGTH_EXPONENT)).round();
+
+	return rStrength.round();
 }
 
 
