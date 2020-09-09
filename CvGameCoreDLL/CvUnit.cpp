@@ -3475,12 +3475,15 @@ int CvUnit::healRate(const CvPlot* pPlot, bool bLocation, bool bUnits) const
 
 	if (bLocation) // K-Mod
 	{	// advc:
-		bool bFriendly = GET_TEAM(getTeam()).isFriendlyTerritory(pPlot->getTeam());
-		if (pPlot->isCity(true, getTeam()))
+		bool bFriendly = GET_TEAM(getTeam()).isFriendlyTerritory(kPlot.getTeam());
+		if (kPlot.isCity(true, getTeam()))
 		{
 			iTotalHeal += //iCITY_HEAL_RATE + // advc.023: Moved
 					(bFriendly ? getExtraFriendlyHeal() : getExtraNeutralHeal());
-			if (pCity && !pCity->isOccupation())
+			CvCity const* pCity = kPlot.getPlotCity();
+			if (pCity == NULL) // fort
+				iTotalHeal += iCITY_HEAL_RATE;
+			else if (!pCity->isOccupation())
 				iTotalHeal += pCity->getHealRate() /* <advc.023> */ + iCITY_HEAL_RATE;
 			else iTotalHeal += (bFriendly ? iFRIENDLY_HEAL_RATE : iNEUTRAL_HEAL_RATE);
 			// </advc.023>
