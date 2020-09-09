@@ -413,13 +413,14 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 			}
 			/*  if non-human, prefer the last unit that has the best value
 				(so as to avoid splitting the group) */
-			if (iValue > iBestValue || (!bHuman && iValue > 0 && iValue == iBestValue)
-				/*  <advc.048> For human, use sacrifice value to break ties in order
-					to match the choice made in the !bMaxSurvival branch above
+			if (iValue > iBestValue ||
+				(!bHuman && iValue > 0 && iValue == iBestValue) ||
+				/*  <advc.048> For human, use sacrifice value to break ties
+					in order to match the choice made in the !bMaxSurvival branch above
 					and the bSacrifice branch below. */
-				|| (bHuman && iValue < iOddsThresh && iValue == iBestValue &&
+				(bHuman && iValue == iBestValue &&
 				(pBestUnit == NULL || kLoopUnit.AI_sacrificeValue(pPlot) >
-				kLoopUnit.AI_sacrificeValue(pPlot)))) // </advc.048>
+				pBestUnit->AI_sacrificeValue(pPlot)))) // </advc.048>
 			{
 				iBestValue = iValue;
 				iBestOdds = iOdds;
