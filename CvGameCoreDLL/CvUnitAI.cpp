@@ -1221,9 +1221,10 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 		iValue /= std::max(1, 1000 + 1000 * LFBgetRelativeValueRating() *
 				GC.getDefineINT(CvGlobals::LFB_ADJUSTNUMERATOR) /
 				GC.getDefineINT(CvGlobals::LFB_ADJUSTDENOMINATOR));
-		// roughly speaking, the second part of the denominator is the odds adjustment from LFBgetValueAdjustedOdds.
-		// It might be more natural to subtract it from the numerator, but then we can't guarantee a positive value.
-		// K-Mod end
+		/*	roughly speaking, the second part of the denominator
+			is the odds adjustment from LFBgetValueAdjustedOdds.
+			It might be more natural to subtract it from the numerator,
+			but then we can't guarantee a positive value. */ // K-Mod end
 		/*  <advc.048> LFBgetRelativeValueRating is too coarse to account for
 			small XP differences. Make sure that XP will at least break ties. */
 		const int iXP = getExperience();
@@ -3732,8 +3733,9 @@ void CvUnitAI::AI_collateralMove()
 			pUnitNode = getPlot().nextUnitNode(pUnitNode))
 		{
 			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			if (DOMAIN_LAND == pLoopUnit->getDomainType() && pLoopUnit->getOwner() == getOwner()
-				&& pLoopUnit->canMove() && pLoopUnit->collateralDamage() > 0)
+			if (DOMAIN_LAND == pLoopUnit->getDomainType() &&
+				pLoopUnit->getOwner() == getOwner() &&
+				pLoopUnit->canMove() && pLoopUnit->collateralDamage() > 0)
 			{
 				iTally++;
 			}
@@ -8285,7 +8287,7 @@ void CvUnitAI::AI_attackAirMove()
 				}
 			}
 
-			if (healTurns(plot()) > 1)
+			if (healTurns() > 1)
 			{
 				// If very damaged, no sense staying in risky place
 				if (AI_airOffensiveCity())
@@ -9141,10 +9143,8 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 
 		if (iTemp > 0)
 		{
-			if (healRate(plot(), false, true) < iTemp)
-			{
+			if (healRate(false, true) < iTemp)
 				iValue += iTemp * (getGroup()->getNumUnits() > 4 ? 4 : 2);
-			}
 			else iValue += (iTemp / 8);
 		}
 
@@ -11050,7 +11050,7 @@ bool CvUnitAI::AI_singleUnitHeal(int iMaxTurnsExposed, int iMaxTurnsOutsideCity)
 		bHeal = true;
 	else if (!isBarbarian())
 	{
-		int const iHealTurns = healTurns(plot());
+		int const iHealTurns = healTurns();
 		if (iHealTurns >= 20) // advc: Feature damage
 			return false;
 		if (iHealTurns <= iMaxTurnsExposed ||
@@ -11066,7 +11066,7 @@ bool CvUnitAI::AI_singleUnitHeal(int iMaxTurnsExposed, int iMaxTurnsOutsideCity)
 	// <advc.306>
 	if (!bHeal && isBarbarian())
 	{
-		int iHeal = healRate(plot());
+		int iHeal = healRate();
 		scaled rHealPr(2 * iHeal, getDomainType() == DOMAIN_SEA ? 35 : 45);
 		if (iHeal >= 5 && rHealPr.bernoulliSuccess(GC.getGame().getSRand(), "Barbarian Heal"))
 			bHeal = true;
@@ -11107,8 +11107,8 @@ bool CvUnitAI::AI_heal(int iDamagePercent, int iMaxPath)
 	int iTotalHitpoints = 0;
 	int iHurtUnitCount = 0;
 	std::vector<CvUnit*> aeDamagedUnits;
-	for (CLLNode<IDInfo> const* pEntityNode = getGroup()->headUnitNode(); pEntityNode != NULL;
-		pEntityNode = kGroup.nextUnitNode(pEntityNode))
+	for (CLLNode<IDInfo> const* pEntityNode = getGroup()->headUnitNode();
+		pEntityNode != NULL; pEntityNode = kGroup.nextUnitNode(pEntityNode))
 	{
 		CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
 
@@ -11122,7 +11122,8 @@ bool CvUnitAI::AI_heal(int iDamagePercent, int iMaxPath)
 		iTotalDamage += pLoopUnit->getDamage();
 		iTotalHitpoints += pLoopUnit->maxHitPoints();
 		if (pLoopUnit->getDamage() > iDamageThreshold && !pLoopUnit->hasMoved() &&
-			!pLoopUnit->isAlwaysHeal() && pLoopUnit->healTurns(pLoopUnit->plot()) <= iMaxPath)
+			!pLoopUnit->isAlwaysHeal() &&
+			pLoopUnit->healTurns(pLoopUnit->plot()) <= iMaxPath)
 		{
 			aeDamagedUnits.push_back(pLoopUnit);
 		}
@@ -11153,7 +11154,7 @@ bool CvUnitAI::AI_heal(int iDamagePercent, int iMaxPath)
 		FAssert(getGroup()->getNumUnits() > 0);
 		if (AI_moveIntoCity(2))
 			return true;
-		if (healRate(plot()) > 10)
+		if (healRate() > 10)
 		{
 			getGroup()->pushMission(MISSION_HEAL, -1, -1, 0, false, false, MISSIONAI_HEAL);
 			return true;
@@ -13838,7 +13839,7 @@ bool CvUnitAI::AI_leaveAttack(int iRange, int iOddsThreshold, int iStrengthThres
 
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = 0;
-	CvCity* pCity = getPlot().getPlotCity();
+	CvCity const* pCity = getPlot().getPlotCity();
 	if (pCity != NULL && pCity->getOwner() == getOwner())
 	{
 		/*int iOurStrength = GET_PLAYER(getOwner()).AI_getOurPlotStrength(plot(), 0, false, false);
@@ -13851,15 +13852,19 @@ bool CvUnitAI::AI_leaveAttack(int iRange, int iOddsThreshold, int iStrengthThres
 		{
 			if (iOurDefence * 100 / iEnemyStrength < iStrengthThreshold)
 			{
-				// K-Mod.
-				// We should only heed to the threshold if we either we have enough defence to hold the city,
-				// or we don't have enough attack force to wipe the enemy out.
-				// (otherwise, we are better off attacking than defending.)
-				if (iEnemyStrength < iOurDefence
-					|| kOwner.AI_localAttackStrength(plot(), getTeam(), DOMAIN_LAND, 0, false, false, true)
-					 < kOwner.AI_localDefenceStrength(plot(), NO_TEAM, DOMAIN_LAND, 2, false))
-				// K-Mod end
+				/*	K-Mod.
+					We should only heed to the threshold if we
+					either have enough defence to hold the city,
+					or we don't have enough attack force to wipe the enemy out.
+					(otherwise, we are better off attacking than defending.) */
+				if (iEnemyStrength < iOurDefence ||
+					kOwner.AI_localAttackStrength(
+					plot(), getTeam(), DOMAIN_LAND, 0, false, false, true)
+					< kOwner.AI_localDefenceStrength(
+					plot(), NO_TEAM, DOMAIN_LAND, 2, false)) // K-Mod end
+				{
 					return false;
+				}
 			}
 			if (getPlot().plotCount(PUF_canDefendGroupHead, -1, -1, getOwner(),
 				NO_TEAM, PUF_isDomainType, DOMAIN_LAND) // advc.001s
@@ -21245,7 +21250,7 @@ int CvUnitAI::AI_opportuneOdds(int iActualOdds, CvUnit const& kDefender) const
 	// adjust the odds up if the enemy is wounded. We want to attack them now before they heal.
 	r += iOdds * (100 - iOdds) * kDefender.getDamage() / (100 * kDefender.maxHitPoints());
 	// adjust the odds down if our attacker is wounded - but only if healing is viable.
-	if (isHurt() && healRate(plot()) > 10)
+	if (isHurt() && healRate() > 10)
 		r -= iOdds * (100 - iOdds) * getDamage() / (100 * maxHitPoints());
 
 	// We're extra keen to take cites when we can...
@@ -21255,13 +21260,13 @@ int CvUnitAI::AI_opportuneOdds(int iActualOdds, CvUnit const& kDefender) const
 	return r;
 }
 
-// <advc.030>
+// advc.030:
 /*	When moved to the header, the compiler will inline this function (even w/o the
 	inline keyword), but, based on a test, non-inline is faster in this case. */
 bool CvUnitAI::AI_canEnterByLand(CvArea const& kArea) const
 {	// Not checked (to save time): unused canMoveAllTerrain
 	return (isArea(kArea) || (canMoveImpassable() && canEnterArea(kArea)));
-} // </advc.030>
+}
 
 // K-Mod. A simple hash of the unit's birthmark.
 /*	This is to be used for getting a 'random' number which depends on the unit

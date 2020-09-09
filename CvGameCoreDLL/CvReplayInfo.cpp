@@ -988,7 +988,7 @@ bool CvReplayInfo::checkBounds(int iValue, int iLower, int iUpper) const
 		is going to get out of step, which may cause an exception. There's a catch(...),
 		but that's not going to catch hardware exceptions unless the /EHa compiler option
 		is used. (AdvCiv, like just about every mod, uses /EHsc.) So I think there could
-		be crash, and, as all mods place their replays in the same folder, encountering
+		be a crash, and, as all mods place their replays in the same folder, encountering
 		a very strange replay doesn't seem so unlikely. */
 	if(m->bDisplayOtherMods) // Still want sanity checks then, but be more generous.
 		iUpper *= 2;

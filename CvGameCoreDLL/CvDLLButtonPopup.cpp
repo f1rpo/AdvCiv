@@ -1582,15 +1582,13 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 			CvGame const& kGame = GC.getGame(); // advc
 			FOR_EACH_ENUM2(Religion, eReligion)
 			{
-				if (GC.getInfo(eReligion).getTechPrereq() == eTech)
+				if (GC.getInfo(eReligion).getTechPrereq() == eTech &&
+					!kGame.isReligionSlotTaken(eReligion))
 				{
-					if (!kGame.isReligionSlotTaken(eReligion))
-					{
-						szButton = kGame.isOption(GAMEOPTION_PICK_RELIGION) ?
-								GC.getInfo(eReligion).getGenericTechButton() :
-								GC.getInfo(eReligion).getTechButton();
-						break;
-					}
+					szButton = (kGame.isOption(GAMEOPTION_PICK_RELIGION) ?
+							GC.getInfo(eReligion).getGenericTechButton() :
+							GC.getInfo(eReligion).getTechButton());
+					break;
 				}
 			}
 			m_kUI.popupAddGenericButton(pPopup, szBuffer,
@@ -1599,7 +1597,7 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 			iNumTechs++;
 		}
 	}
-	if (iNumTechs == 0)
+	if (iNumTechs <= 0)
 	{
 		// player cannot research anything, so don't show this popup after all
 		return false;

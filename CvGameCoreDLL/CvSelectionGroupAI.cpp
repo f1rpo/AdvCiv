@@ -289,7 +289,7 @@ int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy)
 	if (!pPlot->hasDefender(false, NO_PLAYER, getOwner(), NULL, !bPotentialEnemy, bPotentialEnemy))
 		return 100;
 
-	int iOdds = 0;
+	int iOdds=-1; // (advc: Was 0. Shouldn't matter.)
 	CvUnit* pAttacker = AI_getBestGroupAttacker(pPlot, bPotentialEnemy, iOdds);
 	if (pAttacker == NULL)
 		return 0;
@@ -304,22 +304,21 @@ int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy)
 int CvSelectionGroupAI::AI_getWeightedOdds(CvPlot const* pPlot, bool bPotentialEnemy)
 {
 	PROFILE_FUNC();
-	int iOdds;
-	CvUnitAI* pAttacker = AI_getBestGroupAttacker(pPlot, bPotentialEnemy, iOdds);
-	if (!pAttacker)
+	int iOdds=-1;
+	CvUnitAI const* pAttacker = AI_getBestGroupAttacker(pPlot, bPotentialEnemy, iOdds);
+	if (pAttacker == NULL)
 		return 0;
-	CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, getOwner(), pAttacker,
+	CvUnit const* pDefender = pPlot->getBestDefender(NO_PLAYER, getOwner(), pAttacker,
 			!bPotentialEnemy, bPotentialEnemy,
 			true, false); // advc.028, advc.089 (same as in CvUnitAI::AI_attackOdds)
-
 	if (pDefender == NULL)
 		return 100;
 
-	/*	<advc.114b>: We shouldn't adjust the odds based on an optimistic estimate
-		(increased by AttackOddsChange). It leads to Warriors attacking Tanks
-		because the optimistic odds are considerably above zero and the
-		difference in production cost is great. I'm subtracting the AttackOddsChange
-		temporarily; adding them back in after the adjustments are done.
+	/*	<advc.114b> We shouldn't adjust the odds based on an optimistic estimate
+		(increased by AttackOddsChange) b/c that leads to Warriors attacking Tanks -
+		high difference in production cost and non-negligible optimistic odds.
+		I'm subtracting the AttackOddsChange temporarily;
+		adding them back in after the adjustments are done.
 		(A more elaborate fix would avoid adding them in the first place.) */
 	int const iAttackOddsChange = GET_PLAYER(getOwner()).AI_getAttackOddsChange();
 	iOdds -= iAttackOddsChange;
@@ -339,7 +338,7 @@ int CvSelectionGroupAI::AI_getWeightedOdds(CvPlot const* pPlot, bool bPotentialE
 		// I'm sorry about this. I really am. I'll try to make it better one day...
 		int iDefenders = pAttacker->AI_countEnemyDefenders(*pPlot);
 		iAdjustedOdds *= 2 + getNumUnits();
-		iAdjustedOdds /= 3 + std::min(iDefenders/2, getNumUnits());
+		iAdjustedOdds /= 3 + std::min(iDefenders / 2, getNumUnits());
 	}
 
 	iAdjustedOdds += iAttackOddsChange; // advc.114b
@@ -566,9 +565,10 @@ int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot,
 	int const iBaseCollateral = (bCountCollateral ?
 			estimateCollateralWeight(pAttackedPlot, getTeam()) : 0);
 	int	iSum = 0;
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
+	for (CLLNode<IDInfo> const* pNode = headUnitNode(); pNode != NULL;
+		pNode = nextUnitNode(pNode))
 	{
-		CvUnitAI const& kLoopUnit = *::AI_getUnit(pUnitNode->m_data);
+		CvUnitAI const& kLoopUnit = *::AI_getUnit(pNode->m_data);
 		if (kLoopUnit.isDead() ||
 			// advc.opt: (If we want to count air units, then this'll have to be removed.)
 			!kLoopUnit.canFight()) 

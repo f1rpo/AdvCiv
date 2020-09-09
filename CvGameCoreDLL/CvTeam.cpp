@@ -4551,7 +4551,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,  /
 					continue; // advc
 				}
 				CvCity const* pCity = kMap.findCity(kLoopPlot.getX(), kLoopPlot.getY(), NO_PLAYER,
-						// advc.004r: Pass ID as 'observer' (last param) instead of city owner
+						// advc.004r: Pass ID as eObserver (last param) instead of city owner
 						NO_TEAM, false, false, NO_TEAM, NO_DIRECTION, NULL, getID());
 				if (pCity == NULL)
 					continue;

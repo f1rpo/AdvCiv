@@ -19052,7 +19052,7 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption,
 	std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const
 {
 	// <advc.004z>
-	if(eOption == 2) // Somehow, eOption==GLOBE_LAYER_UNIT_DUMMY doesn't work.
+	if(eOption == GLOBE_LAYER_UNIT_DUMMY)
 		eOption = SHOW_ALL_MILITARY;
 	// </advc.004z>
 	CvMap const& kMap = GC.getMap();

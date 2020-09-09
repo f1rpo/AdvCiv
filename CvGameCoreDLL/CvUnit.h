@@ -110,9 +110,9 @@ public:
 	bool canSentryHeal(const CvPlot* pPlot) const; // advc.004l
 	bool canSentry(const CvPlot* pPlot) const;																// Exposed to Python
 
-	int healRate(const CvPlot* pPlot,
-			bool bLocation = true, bool bUnits = true) const; // K-Mod
-	int healTurns(const CvPlot* pPlot) const;
+	int healRate(/* K-Mod: */ bool bLocation = true, bool bUnits = true,
+			CvPlot const* pAt /* advc: */ = NULL) const;
+	int healTurns(CvPlot const* pAt /* advc: */ = NULL) const;
 	void doHeal();
 
 		// advc (tbd.): Change the iX,iY params to a CvPlot const& kTarget (x10)

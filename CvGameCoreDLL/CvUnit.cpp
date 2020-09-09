@@ -3461,16 +3461,16 @@ bool CvUnit::canSentry(const CvPlot* pPlot) const
 }
 
 
-int CvUnit::healRate(const CvPlot* pPlot, bool bLocation, bool bUnits) const
+int CvUnit::healRate(bool bLocation, bool bUnits, CvPlot const* pAt) const
 {
-	//PROFILE_FUNC(); // advc.003o
+	PROFILE_FUNC();
+	CvPlot const& kPlot = (pAt == NULL ? getPlot() : *pAt); // advc
 	// <advc.opt>
 	static int const iCITY_HEAL_RATE = GC.getDefineINT("CITY_HEAL_RATE");
 	static int const iFRIENDLY_HEAL_RATE = GC.getDefineINT("FRIENDLY_HEAL_RATE");
 	static int const iNEUTRAL_HEAL_RATE = GC.getDefineINT("NEUTRAL_HEAL_RATE");
 	static int const iENEMY_HEAL_RATE = GC.getDefineINT("ENEMY_HEAL_RATE");
 	// </advc.opt>
-	CvCity* pCity = pPlot->getPlotCity();
 	int iTotalHeal = 0;
 
 	if (bLocation) // K-Mod
@@ -3492,7 +3492,7 @@ int CvUnit::healRate(const CvPlot* pPlot, bool bLocation, bool bUnits) const
 		{
 			if (!bFriendly)
 			{
-				if (isEnemy(*pPlot))
+				if (isEnemy(kPlot))
 					iTotalHeal += iENEMY_HEAL_RATE + getExtraEnemyHeal();
 				else iTotalHeal += iNEUTRAL_HEAL_RATE + getExtraNeutralHeal();
 			}
@@ -3502,60 +3502,60 @@ int CvUnit::healRate(const CvPlot* pPlot, bool bLocation, bool bUnits) const
 
 	if (bUnits) // K-Mod
 	{
-		// XXX optimize this (save it?)
+		// <XXX> optimize this (save it?)
 		int iBestHeal = 0;
-		for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
-			pUnitNode = pPlot->nextUnitNode(pUnitNode))
+		for (CLLNode<IDInfo> const* pNode = kPlot.headUnitNode(); pNode != NULL;
+			pNode = kPlot.nextUnitNode(pNode))
 		{
-			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			if (pLoopUnit->getTeam() == getTeam()) // XXX what about alliances?
+			CvUnit const& kLoopUnit = *::getUnit(pNode->m_data);
+			if (kLoopUnit.getTeam() == getTeam()) // XXX what about alliances?
 			{
-				int iHeal = pLoopUnit->getSameTileHeal();
+				int iHeal = kLoopUnit.getSameTileHeal();
 				if (iHeal > iBestHeal)
 					iBestHeal = iHeal;
 			}
 		}
 
-		for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+		FOR_EACH_ENUM(Direction)
 		{
-			CvPlot* pLoopPlot = plotDirection(pPlot->getX(), pPlot->getY(), (DirectionTypes)iI);
-			if (pLoopPlot != NULL)
-			{	// advc.030: Instead check domain type below
-				//if (pLoopPlot->sameArea(*pPlot)) {
-				CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
-				while (pUnitNode != NULL)
-				{
-					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
-					if ( // <advc.030>
-						pLoopUnit->getDomainType() == getDomainType() &&
-						!pLoopUnit->isCargo() && // </advc.030>
-						pLoopUnit->getTeam() == getTeam()) // XXX what about alliances?
+			CvPlot* pAdj = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
+			if (pAdj == NULL)
+				continue;
+			// advc.030: Instead check domain type below
+			//if (pLoopPlot->sameArea(*pPlot)) {
+			for (CLLNode<IDInfo>* pNode = pAdj->headUnitNode(); pNode != NULL;
+				pNode = pAdj->nextUnitNode(pNode))
+			{
+				CvUnit const& kLoopUnit = *::getUnit(pNode->m_data);
+				if ( // <advc.030>
+					kLoopUnit.getDomainType() == getDomainType() &&
+					!kLoopUnit.isCargo() && // </advc.030>
+					kLoopUnit.getTeam() == getTeam()) // XXX what about alliances?
 					{
-						int iHeal = pLoopUnit->getAdjacentTileHeal();
+						int iHeal = kLoopUnit.getAdjacentTileHeal();
 						if (iHeal > iBestHeal)
 							iBestHeal = iHeal;
 					}
-				}
 			}
 		}
 
 		iTotalHeal += iBestHeal;
-		// XXX
+		// </XXX>
 	}
 
 	return iTotalHeal;
 }
 
 
-int CvUnit::healTurns(const CvPlot* pPlot) const
+int CvUnit::healTurns(CvPlot const* pAt) const
 {
 	if (!isHurt())
 		return 0;
 
-	int iHeal = healRate(pPlot);
+	int iHeal = healRate(true, true, pAt);
+	CvPlot const& kPlot = (pAt == NULL ? getPlot() : *pAt); // advc
 	// UNOFFICIAL_PATCH, Bugfix (FeatureDamageFix), 06/02/10, LunarMongoose: START
-	FeatureTypes eFeature = pPlot->getFeatureType();
+	FeatureTypes eFeature = kPlot.getFeatureType();
 	if (eFeature != NO_FEATURE)
 		iHeal -= GC.getInfo(eFeature).getTurnDamage();
 	// UNOFFICIAL_PATCH: END
@@ -3568,13 +3568,13 @@ int CvUnit::healTurns(const CvPlot* pPlot) const
 		return iTurns; */
 		return (getDamage() + iHeal-1) / iHeal; // K-Mod (same, but faster)
 	}
-	else return MAX_INT;
+	return MAX_INT;
 }
 
 
 void CvUnit::doHeal()
 {
-	changeDamage(-(healRate(plot())));
+	changeDamage(-healRate());
 }
 
 

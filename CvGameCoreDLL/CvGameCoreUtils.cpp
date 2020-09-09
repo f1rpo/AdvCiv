@@ -504,59 +504,68 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 	return iOdds;
 }
 
-// K-Mod
-int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTypes eDefenceTeam)
+// K-Mod:
+int estimateCollateralWeight(CvPlot const* pPlot, TeamTypes eAttackTeam,
+	TeamTypes eDefenceTeam)
 {
-	int iBaseCollateral = GC.getDefineINT(CvGlobals::COLLATERAL_COMBAT_DAMAGE); // note: the default xml value is "10"
+	int iBaseCollateral = GC.getDefineINT(CvGlobals::COLLATERAL_COMBAT_DAMAGE); // normally 10
 
-	// Collateral damage does not depend on any kind of strength bonus - so when a unit takes collateral damage, their bonuses are effectively wasted.
-	// Therefore, I'm going to inflate the value of collateral damage based on a rough estimate of the defenders bonuses might be.
+	/*	Collateral damage does not depend on any kind of strength bonus -
+		so when a unit takes collateral damage, their bonuses are effectively wasted.
+		Therefore, I'm going to inflate the value of collateral damage based
+		on a rough estimate of the defenders bonuses. */
 	if (pPlot == NULL)
+		return iBaseCollateral * 110; // advc
+
+	TeamTypes ePlotBonusTeam = eDefenceTeam;
+	if (ePlotBonusTeam == NO_TEAM)
+		ePlotBonusTeam = (pPlot->getTeam() == eAttackTeam ? NO_TEAM : pPlot->getTeam());
+
+	iBaseCollateral *= (pPlot->isCity() ? 130 : 110) +
+			pPlot->defenseModifier(ePlotBonusTeam, false,
+			eAttackTeam); // advc.012
+
+	// Estimate the average collateral damage reduction of the units on the plot
+	int iResistanceSum = 0;
+	int iUnits = 0;
+
+	for (CLLNode<IDInfo> const* pNode = pPlot->headUnitNode(); pNode != NULL;
+		pNode = pPlot->nextUnitNode(pNode))
 	{
-		iBaseCollateral *= 110;
-	}
-	else
-	{
-		TeamTypes ePlotBonusTeam = eDefenceTeam;
-		if (ePlotBonusTeam == NO_TEAM)
-			ePlotBonusTeam = pPlot->getTeam() == eAttackTeam ? NO_TEAM : pPlot->getTeam();
+		CvUnit const& kLoopUnit = *::getUnit(pNode->m_data);
+		if (!kLoopUnit.canDefend(pPlot))
+			continue;
+		if (eDefenceTeam != NO_TEAM && kLoopUnit.getTeam() != eDefenceTeam)
+			continue;
+		if (eAttackTeam != NO_TEAM && kLoopUnit.getTeam() == eAttackTeam)
+			continue;
 
-		iBaseCollateral *= (pPlot->isCity() ? 130 : 110) + pPlot->defenseModifier(ePlotBonusTeam, false,
-				eAttackTeam); // advc.012
-
-		// Estimate the average collateral damage reduction of the units on the plot
-		int iResistanceSum = 0;
-		int iUnits = 0;
-
-		for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
-			pUnitNode = pPlot->nextUnitNode(pUnitNode))
+		iUnits++;
+		/*	Kludge! I'm only checking for immunity against the unit's own combat type.
+			Ideally we'd know what kind of collateral damage we're expecting to be hit by,
+			and check for immunity vs that.
+			Or we could check all types... But the reality is, there are always
+			going to be mods and fringe cases where the esitmate is inaccurate.
+			And currently in K-Mod, all instances of immunity are to the unit's own type anyway.
+			Whichever way we do the estimate, cho-ku-nu is going to mess it up anyway.
+			(Unless I change the game mechanics.) */
+		if ( // advc.001: Animals have no unit combat type (K146 also fixes this)
+			kLoopUnit.getUnitCombatType() != NO_UNITCOMBAT &&
+			kLoopUnit.getUnitInfo().getUnitCombatCollateralImmune(kLoopUnit.getUnitCombatType()))
 		{
-			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			if (!pLoopUnit->canDefend(pPlot))
-				continue;
-			if (eDefenceTeam != NO_TEAM && pLoopUnit->getTeam() != eDefenceTeam)
-				continue;
-			if (eAttackTeam != NO_TEAM && pLoopUnit->getTeam() == eAttackTeam)
-				continue;
-
-			iUnits++;
-			// Kludge! I'm only checking for immunity against the unit's own combat type.
-			// Ideally we'd know what kind of collateral damage we're expecting to be hit by, and check for immunity vs that.
-			// Or we could check all types... But the reality is, there are always going to be mods and fringe cases where
-			// the esitmate is inaccurate. And currently in K-Mod, all instances of immunity are to the units own type anyway.
-			// Whichever way we do the estimate, cho-ku-nu is going to mess it up anyway. (Unless I change the game mechanics.)
-			if ( // advc.001: Animals have no unit combat type (K146 also fixes this)
-				pLoopUnit->getUnitCombatType() != NO_UNITCOMBAT &&
-				pLoopUnit->getUnitInfo().getUnitCombatCollateralImmune(pLoopUnit->getUnitCombatType()))
-				iResistanceSum += 100;
-			else iResistanceSum += pLoopUnit->getCollateralDamageProtection();
+			iResistanceSum += 100;
 		}
-		if (iUnits > 0)
-			iBaseCollateral = iBaseCollateral * (iUnits * 100 - iResistanceSum)/(iUnits * 100);
+		else iResistanceSum += kLoopUnit.getCollateralDamageProtection();
 	}
+	if (iUnits > 0)
+	{
+		iBaseCollateral = iBaseCollateral * (iUnits * 100 - iResistanceSum) /
+				(iUnits * 100);
+	}
+
 	return iBaseCollateral; // note, a factor of 100 is included in the result.
 }
-// K-Mod end
+
 
 void setTradeItem(TradeData* pItem, TradeableItems eItemType, int iData)
 {
