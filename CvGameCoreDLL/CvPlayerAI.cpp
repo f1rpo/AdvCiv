@@ -16659,8 +16659,8 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 		iCounterValue /= std::max(1, 50 * iEra * (iEra + 1) +
 				GET_TEAM(getTeam()).getEspionagePointsAgainstTeam(eTargetTeam)) / 2;
 		iCounterValue *=
-				ROUND_DIVIDE(AI_getMemoryCount(eTargetPlayer, MEMORY_SPY_CAUGHT), 2) // advc.130j
-				+ (GET_TEAM(getTeam()).isAtWar(eTargetTeam)?2 :0) +
+				scaled(AI_getMemoryCount(eTargetPlayer, MEMORY_SPY_CAUGHT), 2).ceil() // advc.130j
+				+ (GET_TEAM(getTeam()).isAtWar(eTargetTeam) ? 2 : 0) +
 				(AI_atVictoryStage(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE3) ? 2 : 0);
 		iValue += iCounterValue;
 	}
