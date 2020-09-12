@@ -1207,7 +1207,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 				when it gets to the point where the UnitCombatType is accessed.
 				(Actually, not so exotic b/c advc.300 allows animals to survive
 				in continents w/o civ cities.) */
-			CvUnit* pUnit = kToPlot.getUnitByIndex(0);
+			CvUnit* pUnit = kToPlot.headUnit();
 			if (pUnit != NULL && !pUnit->isAnimal()) // </advc.001>
 			{
 				iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwner()).

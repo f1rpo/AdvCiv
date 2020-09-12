@@ -430,19 +430,16 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 	}
 	iUnitOdds = iBestOdds;
 	// <advc.048> Cut from CvSelectionGroup::groupAttack
-	if(bSacrifice)
+	if(bSacrifice && iUnitOdds < iOddsThresh)
 	{
-		if(iUnitOdds < iOddsThresh)
+		CvUnitAI* pBestSacrifice = AI_getBestGroupSacrifice(pPlot,
+				bPotentialEnemy, bForce, /* advc.164: */ bNoBlitz);
+		if(pBestSacrifice != NULL)
 		{
-			CvUnitAI* pBestSacrifice = AI_getBestGroupSacrifice(pPlot,
-					bPotentialEnemy, bForce, /* advc.164: */ bNoBlitz);
-			if(pBestSacrifice != NULL)
-			{
-				pBestUnit = pBestSacrifice;
-				/*  I.e. caller mustn't use these odds. Don't want to compute them here
-					if the caller doesn't need them. */
-				iUnitOdds = -1;
-			}
+			pBestUnit = pBestSacrifice;
+			/*  I.e. caller mustn't use these odds. Don't want to compute them here
+				if the caller doesn't need them. */
+			iUnitOdds = -1;
 		}
 	} // </advc.048>
 	return pBestUnit;

@@ -7710,7 +7710,7 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 	int r = 0;
 	if(bCargoAllowed)
 	{
-		CvUnit* pTransport = pShelf->randomBarbarianCargoUnit();
+		CvUnit* pTransport = pShelf->randomBarbarianTransport();
 		if (pTransport != NULL)
 		{
 			UnitAITypes eLoadAI = UNITAI_ATTACK;

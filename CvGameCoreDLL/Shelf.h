@@ -19,7 +19,7 @@ public:
 	int size() const;
 	int countUnownedPlots() const;
 	int countBarbarians() const;
-	CvUnit* randomBarbarianCargoUnit() const; // advc.306
+	CvUnit* randomBarbarianTransport() const; // advc.306
 	bool killBarbarian(); // Just any one Barbarian ship; false if none.
 
 

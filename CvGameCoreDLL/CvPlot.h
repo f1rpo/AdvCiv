@@ -668,7 +668,6 @@ public:
 	void changeInvisibleVisibilityCount(TeamTypes eTeam, InvisibleTypes eInvisible, int iChange);					// Exposed to Python
 
 	inline int getNumUnits() const { return m_units.getLength(); } // advc.inl												// Exposed to Python
-	CvUnit* getUnitByIndex(int iIndex) const;																													// Exposed to Python
 	void addUnit(CvUnit const& kUnit, bool bUpdate = true);
 	void removeUnit(CvUnit* pUnit, bool bUpdate = true);
 	// advc.inl: 2x inline
@@ -691,6 +690,7 @@ public:
 	} // </advc.003s>
 	DllExport CLLNode<IDInfo>* headUnitNode() const { return m_units.head(); } // advc.inl
 	CLLNode<IDInfo>* tailUnitNode() const { return m_units.tail(); } // advc.inl
+	inline CvUnit* headUnit() const { return getUnitByIndex(0); } // advc
 
 	int getNumSymbols() const;
 	CvSymbol* getSymbol(int iID) const;
@@ -836,6 +836,11 @@ protected:
 	ColorTypes plotMinimapColor();
 	void updateImpassable(); // advc.opt
 
+	/*	advc: protected b/c iteration through headUnitNode/ nextUnitNode is faster.
+		Iteration by index is needed for Python export though. */
+	CvUnit* getUnitByIndex(int iIndex) const;															// Exposed to Python
+
+	friend class CyPlot; // advc (see above)
 	// added so under cheat mode we can access protected stuff
 	friend class CvGameTextMgr;
 };

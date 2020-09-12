@@ -1,10 +1,11 @@
-// <advc.300> New class; see Shelf.h for description
+// advc.300: New class; see Shelf.h for description
 
 #include "CvGameCoreDLL.h"
 #include "Shelf.h"
 #include "CvGame.h"
 #include "CvPlot.h"
 #include "CvUnit.h"
+#include "CvPlayer.h"
 
 using std::vector;
 
@@ -105,36 +106,35 @@ bool Shelf::killBarbarian()
 	return false;
 }
 
-// <advc.306>
-CvUnit* Shelf::randomBarbarianCargoUnit() const
+// advc.306:
+CvUnit* Shelf::randomBarbarianTransport() const
 {
-	vector<CvUnit*> legal;
+	vector<CvUnit*> apValid;
 	for(size_t i = 0; i < plots.size(); i++)
 	{
 		if(plots[i] == NULL) continue; CvPlot const& plot = *plots[i];
 		if(plot.isVisibleToCivTeam())
 			continue;
-		for(int j = 0; j < plot.getNumUnits(); j++)
+		for(CLLNode<IDInfo> const* pNode = plot.headUnitNode(); pNode != NULL;
+			pNode = plot.nextUnitNode(pNode))
 		{
-			CvUnit* u = plot.getUnitByIndex(j); if(u == NULL) continue;
-			if(u->getOwner() != BARBARIAN_PLAYER)
+			CvUnit& kUnit = *::getUnit(pNode->m_data);
+			if(kUnit.getOwner() != BARBARIAN_PLAYER)
 				break;
-			CvUnitInfo const& ui = GC.getInfo(u->getUnitType());
-			int cargoSpace = std::min(2, ui.getCargoSpace()); // Load at most 2
-			cargoSpace -= std::max(0, u->getCargo());
-			if(cargoSpace > 0)
-				legal.push_back(u);
+			CvUnitInfo const& u = GC.getInfo(kUnit.getUnitType());
+			int iCargo = std::min(2, u.getCargoSpace()); // Load at most 2
+			iCargo -= std::max(0, kUnit.getCargo());
+			if(iCargo > 0)
+				apValid.push_back(&kUnit);
 		}
 	}
-	int nLegal = legal.size();
-	if(nLegal == 0)
+	if(apValid.empty())
 		return NULL;
-	double pr = 0.2 + nLegal / 10.0;
-	if(!::bernoulliSuccess(pr, "advc.306 (shelf)"))
+	int iValid = apValid.size();
+	scaled rNoneProb = fixp(0.2) + scaled(iValid, 10);
+	if(!rNoneProb.bernoulliSuccess(GC.getGame().getSRand(), "no Barbarian transport"))
 		return NULL;
-	return legal[GC.getGame().getSorenRandNum(nLegal, "advc.306")];
-} // </advc.306>
-
+	return apValid[GC.getGame().getSorenRandNum(iValid, "choose Barbarian transport")];
+}
 
 Shelf::Id::Id(int landId, int waterId) : std::pair<int,int>(landId, waterId) {}
-// </advc.300>

@@ -3482,7 +3482,7 @@ int CvUnit::healRate(bool bLocation, bool bUnits, CvPlot const* pAt) const
 					(bFriendly ? getExtraFriendlyHeal() : getExtraNeutralHeal());
 			CvCity const* pCity = kPlot.getPlotCity();
 			if (pCity == NULL) // fort
-				iTotalHeal += iCITY_HEAL_RATE;
+				iTotalHeal += iCITY_HEAL_RATE; // advc.023
 			else if (!pCity->isOccupation())
 				iTotalHeal += pCity->getHealRate() /* <advc.023> */ + iCITY_HEAL_RATE;
 			else iTotalHeal += (bFriendly ? iFRIENDLY_HEAL_RATE : iNEUTRAL_HEAL_RATE);

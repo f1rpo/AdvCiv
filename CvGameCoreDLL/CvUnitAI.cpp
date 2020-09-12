@@ -10607,43 +10607,43 @@ bool CvUnitAI::AI_barbAmphibiousCapture()
 	MissionAITypes eMissionAI = MISSIONAI_PILLAGE;
 	FOR_EACH_ENUM(Direction)
 	{
-		CvPlot* pLoopPlot = plotDirection(getX(), getY(), eLoopDirection);
-		if (pLoopPlot == NULL)
+		CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
+		if (pAdj == NULL)
 			continue;
 		// <advc.306>
-		if(pLoopPlot->getTeam() != NO_TEAM &&
-			pLoopPlot->getArea().isBorderObstacle(pLoopPlot->getTeam()))
+		if(pAdj->isOwned() &&
+			pAdj->getArea().isBorderObstacle(pAdj->getTeam()))
 		{
 			continue;
 		} // </advc.306>
 		/*  Undefended city (perhaps unnecessary; not sure if the assault routine
 			gets this right, or if it would drop units next to the city) */
-		CvCity* c = pLoopPlot->getPlotCity();
-		if(c != NULL && !c->isBarbarian() && !pLoopPlot->isVisibleEnemyDefender(this))
+		CvCity const* pCity = pAdj->getPlotCity();
+		if(pCity != NULL && pCity->getTeam() != getTeam() && !pAdj->isVisibleEnemyDefender(this))
 		{
-			pDest = pLoopPlot;
+			pDest = pAdj;
 			// Sudden attacks on undefended cities are OK (see below)
 			bTargetWithinOwnBorders = false; // Not a good variable name
 			eMissionAI = MISSIONAI_ASSAULT;
 			break;
 		}
-		if(!pLoopPlot->isUnit() || pLoopPlot->isWater())
+		if(!pAdj->isUnit() || pAdj->isWater())
 			continue;
 		/*  Don't attack stacks of AI civilians. Can't be so lenient with humans;
 			could be exploited by having threatened Workers huddle together. */
-		if(pLoopPlot->getNumUnits() > 2 && pLoopPlot->getOwner() != NO_PLAYER &&
-			!GET_PLAYER(pLoopPlot->getOwner()).isHuman())
+		if(pAdj->getNumUnits() > 2 && pAdj->isOwned() &&
+			!GET_PLAYER(pAdj->getOwner()).isHuman())
 		{
 			continue;
 		}
-		CvUnit* pHead = pLoopPlot->getUnitByIndex(0);
-		if(pHead->getOwner() != getOwner() && !pHead->canFight())
+		CvUnit const* pHead = pAdj->headUnit();
+		if(pHead->getTeam() != getTeam() && !pHead->canFight())
 		{
-			bool bPlotWithinOwnBorders = (pLoopPlot->getOwner() == pHead->getOwner());
+			bool bPlotWithinOwnBorders = (pAdj->getOwner() == pHead->getOwner());
 			// Prefer target outside its borders (see below)
 			if(pDest == NULL || (bTargetWithinOwnBorders && !bPlotWithinOwnBorders))
 			{
-				pDest = pLoopPlot;
+				pDest = pAdj;
 				bTargetWithinOwnBorders = bPlotWithinOwnBorders;
 				if(!bTargetWithinOwnBorders)
 					break;
@@ -19283,16 +19283,19 @@ bool CvUnitAI::AI_airStrike(int iThreshold)
 }
 
 /*  advc: Body cut from AI_airStrike in order to make the code easier to read.
-	iCurrentBest is only for saving time. Comments aren't mine. */
+	iCurrentBest is only for saving time. It's K-Mod code; comments are karadoc's. */
 int CvUnitAI::AI_airStrikeValue(CvPlot const& kPlot, int iCurrentBest, bool& bBombard) const
 {
+	bBombard = false;
+
 	int iStrikeValue = 0;
 	int iBombValue = 0;
 	int iAdjacentAttackers = 0; // (only count adjacent units if we can air-strike)
 	int iAssaultEnRoute = !kPlot.isCity() ? 0 : GET_PLAYER(getOwner()).
 			AI_plotTargetMissionAIs(kPlot, MISSIONAI_ASSAULT, getGroup(), 1);
 
-	// TODO: consider changing the evaluation system so that instead of simply counting units, it counts attack / defence power.
+	/*	TODO: consider changing the evaluation system so that
+		instead of simply counting units, it counts attack / defence power. */
 
 	// air strike (damage)
 	if (canMoveInto(kPlot, true))
@@ -19306,9 +19309,11 @@ int CvUnitAI::AI_airStrikeValue(CvPlot const& kPlot, int iCurrentBest, bool& bBo
 
 			int iDamage = airCombatDamage(pDefender);
 			int iDefenders = kPlot.getNumVisibleEnemyDefenders(this);
-			iStrikeValue = std::max(0, std::min(pDefender->getDamage() + iDamage,
-					airCombatLimit()) - pDefender->getDamage());
-			iStrikeValue += iDamage * collateralDamage() * std::min(iDefenders - 1, collateralDamageMaxUnits()) / 200;
+			iStrikeValue = std::max(0,
+					std::min(pDefender->getDamage() + iDamage, airCombatLimit())
+					- pDefender->getDamage());
+			iStrikeValue += iDamage * collateralDamage() *
+					std::min(iDefenders - 1, collateralDamageMaxUnits()) / 200;
 			iStrikeValue *= (3 + iAdjacentAttackers + iAssaultEnRoute / 2);
 			iStrikeValue /= (iAdjacentAttackers + iAssaultEnRoute > 0 ? 4 : 6) +
 					std::min(iAdjacentAttackers + iAssaultEnRoute / 2, iDefenders)/2;
@@ -19352,20 +19357,19 @@ int CvUnitAI::AI_airStrikeValue(CvPlot const& kPlot, int iCurrentBest, bool& bBo
 			}
 		}
 	}
-	// factor in air defenses but try to avoid using bestInterceptor, because that's a slow function.
-	if (iBombValue <= iCurrentBest && iStrikeValue <= iCurrentBest) // values only decreased from here on.
-	{
-		bBombard = false;
-		return 0;
-	}
+	/*	factor in air defenses but try to avoid using bestInterceptor,
+		because that's a slow function. */
+	if (iBombValue <= iCurrentBest && iStrikeValue <= iCurrentBest)
+		return 0; // values only decreased from here on.
 
 	if (isSuicide())
 	{
 		iStrikeValue /= 2;
 		iBombValue /= 2;
 	}
-	else if (!canAirDefend()) // assume that air defenders are strong.. and that they are willing to fight
+	else if (!canAirDefend())
 	{
+		// assume that air defenders are strong.. and that they are willing to fight
 		CvUnit* pInterceptor = bestInterceptor(&kPlot);
 		if (pInterceptor != NULL)
 		{
@@ -20696,27 +20700,27 @@ bool CvUnitAI::AI_followBombard()
 std::pair<int,int> CvUnitAI::AI_countPiracyTargets(CvPlot const& kPlot,
 	bool bStopIfAnyTarget) const
 {
-	std::pair<int,int> r(0, 0);
+	std::pair<int,int> iiDefTotal(0, 0);
 	if(!isAlwaysHostile(kPlot))
-		//|| !p.isVisible(getTeam(), false))// This is handled by searchRange
+		//|| !kPlot.isVisible(getTeam(), false))// This is handled by searchRange
 	{
-		return r;
+		return iiDefTotal;
 	}
-	for(int i = 0; i < kPlot.getNumUnits(); i++)
+	for (CLLNode<IDInfo> const* pNode = kPlot.headUnitNode(); pNode != NULL;
+		pNode = kPlot.nextUnitNode(pNode))
 	{
-		CvUnit* pUnit = kPlot.getUnitByIndex(i);
-		if(pUnit == NULL) continue; CvUnit const& u = *pUnit;
-		if(u.isInvisible(getTeam(), false))
+		CvUnit const& kUnit = *::getUnit(pNode->m_data);
+		if (kUnit.isInvisible(getTeam(), false))
 			continue;
-		if(!GET_PLAYER(getOwner()).AI_isPiracyTarget(u.getOwner()))
+		if (!GET_PLAYER(getOwner()).AI_isPiracyTarget(kUnit.getOwner()))
 			continue;
-		r.second++;
-		if(bStopIfAnyTarget)
-			return r;
-		if(u.canDefend())
-			r.first++;
+		iiDefTotal.second++;
+		if (bStopIfAnyTarget)
+			return iiDefTotal;
+		if (kUnit.canDefend())
+			iiDefTotal.first++;
 	}
-	return r;
+	return iiDefTotal;
 }
 
 

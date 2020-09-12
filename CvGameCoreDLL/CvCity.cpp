@@ -13061,9 +13061,10 @@ scaled CvCity::defensiveGarrison(
 	CvCity const* pCapital = kOwner.getCapital();
 	if (pCapital == this)
 		pCapital = NULL;
-	for (int i = 0; i < kPlot.getNumUnits(); i++)
+	for (CLLNode<IDInfo> const* pNode = kPlot.headUnitNode(); pNode != NULL;
+		pNode = kPlot.nextUnitNode(pNode))
 	{
-		CvUnit const& kUnit = *kPlot.getUnitByIndex(i);
+		CvUnit const& kUnit = *::getUnit(pNode->m_data);
 		CvUnitInfo const& u = kUnit.getUnitInfo();
 		// Exclude naval units but not Explorer and Gunship
 		if (!u.isMilitaryHappiness() && u.getCultureGarrisonValue() <= 0)
