@@ -10637,7 +10637,7 @@ bool CvUnitAI::AI_barbAmphibiousCapture()
 			continue;
 		}
 		CvUnit* pHead = pLoopPlot->getUnitByIndex(0);
-		if(pHead->getOwner() != getOwner() && !pHead->isCombat())
+		if(pHead->getOwner() != getOwner() && !pHead->canFight())
 		{
 			bool bPlotWithinOwnBorders = (pLoopPlot->getOwner() == pHead->getOwner());
 			// Prefer target outside its borders (see below)
