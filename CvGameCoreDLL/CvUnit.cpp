@@ -6715,8 +6715,8 @@ bool CvUnit::isDefending() const
 	return (isFighting() && !isAttacking());
 }
 
-
-bool CvUnit::isCombat() const
+// advc: Renamed from "isCombat"
+bool CvUnit::isInCombat() const
 {
 	return (isFighting() || isAttacking());
 }
@@ -8870,7 +8870,8 @@ void CvUnit::setAttackPlot(const CvPlot* pNewValue, bool bAirCombat)
 	m_bAirCombat = bAirCombat;
 }
 
-bool CvUnit::isAirCombat() const
+// advc: Renamed from "isAirCombat"
+bool CvUnit::isInAirCombat() const
 {
 	return m_bAirCombat;
 }

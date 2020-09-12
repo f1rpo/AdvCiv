@@ -595,15 +595,20 @@ void CvPlot::verifyUnitValidPlot()  // advc: some style changes
 			FAssertMsg(pLoopUnit != NULL, "Can this happen?"); // advc
 			continue;
 		}
-		if (pLoopUnit->atPlot(this) && !pLoopUnit->isCargo() && !pLoopUnit->isCombat())
+		if (pLoopUnit->atPlot(this) && !pLoopUnit->isCargo() &&
+			!pLoopUnit->isInCombat())
 		{
 			if (!isValidDomainForLocation(*pLoopUnit) ||
 				!pLoopUnit->canEnterTerritory(getTeam(), false, area()))
 			{
 				if (!pLoopUnit->jumpToNearestValidPlot(true))
 					bErased = true;
-				// K-Mod:
-				else bumped_groups.push_back(std::make_pair(pLoopUnit->getOwner(), pLoopUnit->getGroupID()));
+				// <K-Mod>
+				else
+				{
+					bumped_groups.push_back(std::make_pair(
+							pLoopUnit->getOwner(), pLoopUnit->getGroupID()));
+				} // </K-Mod>
 			}
 		}
 		if (bErased)
@@ -625,7 +630,7 @@ void CvPlot::verifyUnitValidPlot()  // advc: some style changes
 			}
 			else
 			{
-				if (pLoopUnit->atPlot(this) && !pLoopUnit->isCombat())
+				if (pLoopUnit->atPlot(this) && !pLoopUnit->isInCombat())
 				{
 					if (pLoopUnit->getTeam() != getTeam() && (getTeam() == NO_TEAM ||
 						!GET_TEAM(getTeam()).isVassal(pLoopUnit->getTeam())))
@@ -694,7 +699,7 @@ void CvPlot::forceBumpUnits()
 		else
 		{
 			if (pLoopUnit->atPlot(this) && !pLoopUnit->isCargo() &&
-				!pLoopUnit->isCombat())
+				!pLoopUnit->isInCombat())
 			{
 				if (!pLoopUnit->jumpToNearestValidPlot(true, true))
 					bErased = true;

@@ -634,7 +634,7 @@ bool CyUnit::isDefending()
 
 bool CyUnit::isCombat()
 {
-	return m_pUnit ? m_pUnit->isCombat() : false;
+	return m_pUnit ? m_pUnit->isInCombat() : false;
 }
 
 int CyUnit::maxHitPoints()

@@ -363,7 +363,7 @@ public:
 	}
 	DllExport bool isAttacking() const;																		// Exposed to Python
 	DllExport bool isDefending() const;																		// Exposed to Python
-	bool isCombat() const;																					// Exposed to Python
+	bool isInCombat() const;																				// Exposed to Python
 
 	DllExport inline int maxHitPoints() const																// Exposed to Python
 	{
@@ -636,7 +636,7 @@ public:
 
 	CvPlot* getAttackPlot() const;
 	void setAttackPlot(const CvPlot* pNewValue, bool bAirCombat);
-	bool isAirCombat() const;
+	bool isInAirCombat() const;
 
 	DllExport int getCombatTimer() const;
 	void setCombatTimer(int iNewValue);

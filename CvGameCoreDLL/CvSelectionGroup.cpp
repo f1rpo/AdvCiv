@@ -420,9 +420,9 @@ void CvSelectionGroup::updateTimers()
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
-		if (pLoopUnit->isCombat())
+		if (pLoopUnit->isInCombat())
 		{
-			if (pLoopUnit->isAirCombat())
+			if (pLoopUnit->isInAirCombat())
 				pLoopUnit->updateAirCombat();
 			else pLoopUnit->updateCombat();
 			bCombat = true;
@@ -2000,7 +2000,7 @@ bool CvSelectionGroup::isBusy() const
 		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		if (pLoopUnit != NULL)
 		{
-			if (pLoopUnit->isCombat())
+			if (pLoopUnit->isInCombat())
 				return true;
 		}
 	}
@@ -2841,8 +2841,8 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 				// K-Mod
 				if (pBestAttackUnit->getPlot().isFighting() || pDestPlot->isFighting())
 					bFailedAlreadyFighting = true;
-				//if (!pBestAttackUnit->isCombat())
-				FAssert(!pBestAttackUnit->isCombat());
+				//if (!pBestAttackUnit->isInCombat())
+				FAssert(!pBestAttackUnit->isInCombat());
 				// we need to issue the attack order to start the attack
 				pBestAttackUnit->attack(pDestPlot, bStack);
 				// K-Mod end
