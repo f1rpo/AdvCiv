@@ -124,7 +124,7 @@
 					type="int" default="0" listType="string" 
 					values="Automatic|Close|Medium|Far|Custom (XML)"
 					get="getDefaultCamDistance">
-				<change module="CvScreensInterface" function="updateDefaultCamDistance"/>
+				<change module="InputUtil" function="updateDefaultCamDistance"/>
 				<choice id="Automatic"/>
 				<choice id="Close"/>
 				<choice id="Medium"/>

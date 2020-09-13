@@ -1027,7 +1027,7 @@ def refreshOptionsScreen():
 	optionsScreen.refreshScreen()
 
 # <advc.004m>
-def updateCameraStartDistance(): # Called by DLL
+def updateCameraStartDistance(): # Called by DLL and by InputUtil.updateCameraStartDistance
 	MainOpt = BugCore.game.MainInterface
 	choice = MainOpt.getDefaultCamDistance()
 	newVal = None
@@ -1045,9 +1045,6 @@ def updateCameraStartDistance(): # Called by DLL
 		gc.updateCameraStartDistance(True)
 	if not newVal is None:
 		gc.setDefineFLOAT('CAMERA_START_DISTANCE', newVal)
-
-def updateDefaultCamDistance(option, value): # Called by BugOptions when dirty
-	updateCameraStartDistance()
 # </advc.004m>
 
 def cityWarningOnClickedCallback(argsList):
