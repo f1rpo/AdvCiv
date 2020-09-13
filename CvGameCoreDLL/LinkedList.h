@@ -4,13 +4,7 @@
 
 // LinkedList.h: A doubly-linked list
 
-
-/*  <advc.003s> Only use this when it's obvious that the body of the loop won't delete
-	a node through some side-effect. */
-// Not yet sure about this. The list objects are often wrapped and thus inaccessible.
-/*#define FOR_EACH_NODE(Type, list, pName) \
-	for (CLLNode<Type> const* pName = list.head(); pName != NULL; pName = list.next(pName))*/
-// </advc.003s>
+#include "LinkedListTraversal.h" // advc.003s
 
 template <class tVARTYPE> class CLinkList;
 

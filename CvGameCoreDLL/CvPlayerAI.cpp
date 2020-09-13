@@ -8634,13 +8634,13 @@ int CvPlayerAI::AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& 
 	// <advc.036>
 	int iHealthBonuses = 0;
 	int iHappyBonuses = 0; // </advc.036>
-	for (CLLNode<TradeData> const* pNode = kList.head(); pNode != NULL; pNode = kList.next(pNode))
+	FOR_EACH_TRADE_ITEM(pItem, kList) // advc.test for advc.003s macro
 	{
-		FAssert(!pNode->m_data.m_bHidden);
+		FAssert(!pItem->m_bHidden);
 		/*  <advc.130p> Replacing the checks in the individual cases. Previously,
 			OB and DP were not counted as annual, but GPT and resources were;
 			now it's the other way around. */
-		TradeableItems eItemType = pNode->m_data.m_eItemType;
+		TradeableItems eItemType = pItem->m_eItemType;
 		if((bIgnoreAnnual && CvDeal::isAnnual(eItemType) && eItemType != TRADE_GOLD_PER_TURN &&
 			eItemType != TRADE_RESOURCES) || (bIgnorePeace && (eItemType == TRADE_PEACE ||
 			eItemType == TRADE_PEACE_TREATY)))
@@ -8650,12 +8650,12 @@ int CvPlayerAI::AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& 
 		switch(eItemType) // </advc.130p>
 		{
 		case TRADE_TECHNOLOGIES:
-			iValue += kOurTeam.AI_techTradeVal((TechTypes)pNode->m_data.m_iData, eFromTeam,
+			iValue += kOurTeam.AI_techTradeVal((TechTypes)pItem->m_iData, eFromTeam,
 					bIgnoreDiscount); // advc.550a
 			break;
 		case TRADE_RESOURCES:
 		{	// <advc.036>
-			BonusTypes eBonus = (BonusTypes)pNode->m_data.m_iData;
+			BonusTypes eBonus = (BonusTypes)pItem->m_iData;
 			CvBonusInfo const& kBonus = GC.getInfo(eBonus);
 			if(kBonus.getHappiness() > 0)
 				iHappyBonuses += iChange;
@@ -8670,7 +8670,7 @@ int CvPlayerAI::AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& 
 		}
 		case TRADE_CITIES:
 		{
-			CvCityAI const* pCity = kFromPlayer.AI_getCity(pNode->m_data.m_iData);
+			CvCityAI const* pCity = kFromPlayer.AI_getCity(pItem->m_iData);
 			if (pCity != NULL)
 			{
 				iValue += AI_cityTradeVal(*pCity,
@@ -8687,7 +8687,7 @@ int CvPlayerAI::AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& 
 			/*	<advc.026> Treat human gold as a multiple of 5 in order to
 				make AI trade acceptance (AI_considerOffer) consistent with
 				AI trade proposals (AI_balanceDeal). */
-			int iGold = pNode->m_data.m_iData;
+			int iGold = pItem->m_iData;
 			if (iGold >= CvGlobals::DIPLOMACY_VALUE_REMAINDER && kFromPlayer.isHuman())
 			{
 				if (iGold % GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER) != 0)
@@ -8697,7 +8697,7 @@ int CvPlayerAI::AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& 
 			break;
 		}
 		case TRADE_GOLD_PER_TURN:
-			iValue += AI_goldPerTurnTradeVal(pNode->m_data.m_iData);
+			iValue += AI_goldPerTurnTradeVal(pItem->m_iData);
 			break;
 		case TRADE_MAPS:
 			iValue += kOurTeam.AI_mapTradeVal(eFromTeam);
@@ -8715,7 +8715,7 @@ int CvPlayerAI::AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& 
 			iValue += kOurTeam.AI_defensivePactTradeVal(eFromTeam);
 			break;
 		case TRADE_PEACE:
-			iValue += kOurTeam.AI_makePeaceTradeVal((TeamTypes)pNode->m_data.m_iData, eFromTeam);
+			iValue += kOurTeam.AI_makePeaceTradeVal((TeamTypes)pItem->m_iData, eFromTeam);
 			break;
 		case TRADE_WAR:
 			// <advc.104o>
@@ -8725,16 +8725,16 @@ int CvPlayerAI::AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& 
 				if(iWars > 1)
 					iValue += 1000000; // More than they can pay
 			} // </advc.104o>
-			iValue += kOurTeam.AI_declareWarTradeVal((TeamTypes)pNode->m_data.m_iData, eFromTeam);
+			iValue += kOurTeam.AI_declareWarTradeVal((TeamTypes)pItem->m_iData, eFromTeam);
 			break;
 		case TRADE_EMBARGO:
-			iValue += AI_stopTradingTradeVal((TeamTypes)pNode->m_data.m_iData, eFromPlayer);
+			iValue += AI_stopTradingTradeVal((TeamTypes)pItem->m_iData, eFromPlayer);
 			break;
 		case TRADE_CIVIC:
-			iValue += AI_civicTradeVal((CivicTypes)pNode->m_data.m_iData, eFromPlayer);
+			iValue += AI_civicTradeVal((CivicTypes)pItem->m_iData, eFromPlayer);
 			break;
 		case TRADE_RELIGION:
-			iValue += AI_religionTradeVal((ReligionTypes)pNode->m_data.m_iData, eFromPlayer);
+			iValue += AI_religionTradeVal((ReligionTypes)pItem->m_iData, eFromPlayer);
 			break;
 		}
 	}

@@ -416,11 +416,8 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	if(canFound() && isHuman())
 		updateFoundingBorder(true); // </advc.004h>
 
-	CLLNode<IDInfo>* pUnitNode = kPlot.headUnitNode();
-	while (pUnitNode != NULL)
+	FOR_EACH_UNIT_VAR_IN(pLoopUnit, kPlot) // advc.test for advc.003s macro
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = kPlot.nextUnitNode(pUnitNode);
 		if (pLoopUnit->getTransportUnit() == this)
 		{
 			if (kPlot.isValidDomainForLocation(*pLoopUnit))
@@ -3225,12 +3222,9 @@ bool CvUnit::shouldLoadOnMove(const CvPlot* pPlot) const
 bool CvUnit::canLoadOntoAnyUnit(CvPlot const& kPlot, /* advc.123c: */ bool bCheckMoves) const
 {
 	//PROFILE_FUNC(); // advc.003o
-
-	for (CLLNode<IDInfo> const* pUnitNode = kPlot.headUnitNode();
-		pUnitNode != NULL; pUnitNode = kPlot.nextUnitNode(pUnitNode))
+	FOR_EACH_UNIT_IN(pTransport, kPlot) // advc.test: for advc.003s macro
 	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if(canLoadOnto(*pLoopUnit, kPlot, /* advc.123c: */ bCheckMoves))
+		if(canLoadOnto(*pTransport, kPlot, /* advc.123c: */ bCheckMoves))
 			return true;
 	}
 	return false;

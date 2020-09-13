@@ -25,3 +25,10 @@
 #define FOR_EACH_ENUM2(TypeName, eVar)
 #define FOR_EACH_ENUM_RAND(TypeName)
 #define FOR_EACH_ENUM_REV(TypeName)
+
+#define FOR_EACH_UNIT_IN(pUnit, kUnitListWrapper)
+#define FOR_EACH_UNITAI_IN(pUnit, kUnitListWrapper)
+#define FOR_EACH_UNIT_VAR_IN(pUnit, kUnitListWrapper)
+#define FOR_EACH_UNITAI_VAR_IN(pUnit, kUnitListWrapper)
+
+FOR_EACH_TRADE_ITEM(pItemVar, itemList)
