@@ -2698,8 +2698,8 @@ class CvInfoScreen:
 							if iProjectProd == iProjectLoop:
 								if iPlayerTeam == self.iActiveTeam or bDebug:
 									self.aaWondersBeingBuilt_BUG.append([iProjectLoop,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
-
-								if (self.pActiveTeam.isHasMet(iPlayerTeam)
+								# advc.001d: elif - Don't list it twice in Debug mode
+								elif (self.pActiveTeam.isHasMet(iPlayerTeam)
 								and self.iInvestigateCityMission != -1 # K-Mod, bugfix
 								and self.pActivePlayer.canDoEspionageMission(self.iInvestigateCityMission, pCity.getOwner(), pCity.plot(), -1) # advc.001d: Replaced gc.getGame().getActiveTeam with self.iActiveTeam
 								and bRevealed) or bDebug:
@@ -2721,8 +2721,8 @@ class CvInfoScreen:
 								if (iBuildingProd == iBuildingLoop):
 									if (iPlayerTeam == self.iActiveTeam):
 										self.aaWondersBeingBuilt_BUG.append([iBuildingLoop,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
-
-									if (self.pActiveTeam.isHasMet(iPlayerTeam)
+									# advc.001d: elif - Don't list it twice in Debug mode
+									elif (self.pActiveTeam.isHasMet(iPlayerTeam)
 									and self.iInvestigateCityMission != -1 # K-Mod, bugfix
 									and self.pActivePlayer.canDoEspionageMission(self.iInvestigateCityMission, pCity.getOwner(), pCity.plot(), -1) # advc.001d: Replaced gc.getGame().getActiveTeam with self.iActiveTeam
 									and bRevealed) or bDebug:
@@ -2746,8 +2746,8 @@ class CvInfoScreen:
 									# Only show our wonders under construction
 									if iPlayerTeam == self.iActiveTeam or bDebug:
 										self.aaWondersBeingBuilt_BUG.append([iBuildingLoop,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
-
-									if (self.pActiveTeam.isHasMet(iPlayerTeam)
+									# advc.001d: elif - Don't list it twice in Debug mode
+									elif (self.pActiveTeam.isHasMet(iPlayerTeam)
 									and self.iInvestigateCityMission != -1 # K-Mod, bugfix
 									and self.pActivePlayer.canDoEspionageMission(self.iInvestigateCityMission, pCity.getOwner(), pCity.plot(), -1) # advc.001d: Replaced gc.getGame().getActiveTeam with self.iActiveTeam
 									and bRevealed) or bDebug:
