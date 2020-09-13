@@ -672,7 +672,9 @@
 		<Italian> dalle caratteristiche</Italian>
 		<Spanish> por accidentes</Spanish>
 	</TEXT>
-	<!-- Based on TXT_KEY_PEDIA_TRAITS in Civ4GameTextInfos.xml. -->
+	<!-- Based on TXT_KEY_PEDIA_TRAITS in Civ4GameTextInfos.xml.
+		 Also used for advc.004g to replace
+		 TXT_KEY_MISC_HELP_FREE_CITY_COMMERCE. -->
 	<TEXT>
 		<Tag>TXT_KEY_FROM_TRAIT</Tag>
 		<English> from Traits</English>

@@ -17845,8 +17845,15 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCi
 	int iFreeCityCommerce = kOwner.getFreeCityCommerce(eCommerce);
 	if(iFreeCityCommerce != 0)
 	{
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_FREE_CITY_COMMERCE",
-				iFreeCityCommerce, iCommerceChar));
+		/*szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_FREE_CITY_COMMERCE",
+				iFreeCityCommerce, iCommerceChar));*/
+		// <advc.004g>
+		szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(BULLET_CHAR)));
+		if (iFreeCityCommerce > 0)
+			szBuffer.append(L"+");
+		szBuffer.append(CvWString::format(L"%d%c ", iFreeCityCommerce, iCommerceChar));
+		szBuffer.append(gDLL->getText("TXT_KEY_FROM_TRAIT"));
+		// </advc.004g>
 		szBuffer.append(NEWLINE);
 		iBaseCommerceRate += 100 * iFreeCityCommerce;
 		bNeedSubtotal = true; // BUG - Base Commerce
