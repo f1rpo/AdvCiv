@@ -183,7 +183,8 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 		m_listPlayerScoreHistory.push_back(playerInfo);
 	}
 
-	m_listReplayMessages.clear();
+	//m_listReplayMessages.clear();
+	FAssert(m_listReplayMessages.empty()); // advc: The above would leak memory
 	// <advc.106h>
 	if(kGame.getGameState() == GAMESTATE_OVER &&
 		GC.getDefineINT("SETTINGS_IN_REPLAYS") > 0)

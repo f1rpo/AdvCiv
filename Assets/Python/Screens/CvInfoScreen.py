@@ -2537,7 +2537,7 @@ class CvInfoScreen:
 			pPlayer = gc.getPlayer(iPlayerLoop)
 			iPlayerTeam = pPlayer.getTeam()
 
-			# No barbs and only display national wonders for the active player's team
+			# No Barbarians and only display national wonders for the active player's team
 			if (pPlayer and not pPlayer.isBarbarian() and ((self.szWonderDisplayMode != self.szWDM_NatnlWonder) or (iPlayerTeam == gc.getTeam(gc.getPlayer(self.iActivePlayer).getTeam()).getID()))):
 
 				# Loop through this player's cities and determine if they have any wonders to display

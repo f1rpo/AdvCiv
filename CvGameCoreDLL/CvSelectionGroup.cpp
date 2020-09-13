@@ -1664,8 +1664,10 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)  // advc: style changes
 					{
 						CvSelectionGroup* pLoopGroup = pLoopUnit->getGroup();
 						if (pLoopGroup->getMissionType(0) == MISSION_BUILD &&
-								pLoopGroup->getMissionData1(0) == eBuildType)
+							pLoopGroup->getMissionData1(0) == eBuildType)
+						{
 							pLoopGroup->deleteMissionQueueNode(pLoopGroup->headMissionQueueNode());
+						}
 					}
 				}
 			}
@@ -2647,8 +2649,10 @@ void CvSelectionGroup::NotifyEntity(MissionTypes eMission)
 void CvSelectionGroup::airCircle(bool bStart)
 {
 	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
-			pUnitNode = nextUnitNode(pUnitNode))
+		pUnitNode = nextUnitNode(pUnitNode))
+	{
 		::getUnit(pUnitNode->m_data)->airCircle(bStart);
+	}
 }
 
 

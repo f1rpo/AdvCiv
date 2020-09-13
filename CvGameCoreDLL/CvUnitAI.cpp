@@ -21534,22 +21534,21 @@ bool CvUnitAI::AI_poach()
 	return false;
 }
 #endif
+
 // K-Mod. I've rewritten most of this function.
 bool CvUnitAI::AI_choke(int iRange, bool bDefensive, int iFlags)
 {
 	PROFILE_FUNC();
 
-	int iPercentDefensive;
+	scaled rDefensive; // advc (nicer)
+	for (CLLNode<IDInfo> const* pUnitNode = getGroup()->headUnitNode();
+		pUnitNode != NULL; pUnitNode = getGroup()->nextUnitNode(pUnitNode))
 	{
-		int iDefCount = 0;
-		for (CLLNode<IDInfo> const* pUnitNode = getGroup()->headUnitNode();
-			pUnitNode != NULL; pUnitNode = getGroup()->nextUnitNode(pUnitNode))
-		{
-			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			iDefCount += pLoopUnit->noDefensiveBonus() ? 0 : 1;
-		}
-		iPercentDefensive = 100 * iDefCount / getGroup()->getNumUnits();
+		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		if (!pLoopUnit->noDefensiveBonus())
+			rDefensive++;
 	}
+	rDefensive /= getGroup()->getNumUnits();
 
 	CvPlot* pBestPlot = 0;
 	CvPlot* pEndTurnPlot = 0;
@@ -21581,9 +21580,11 @@ bool CvUnitAI::AI_choke(int iRange, bool bDefensive, int iFlags)
 			iValue += AI_pillageValue(p, 0) / (bDefensive ? 2 : 1);
 		if (iValue <= 0)
 			continue; // advc
-		iValue *= (bDefensive ? 25 : 50) + (iPercentDefensive *
-				//pLoopPlot->defenseModifier(getTeam(), false)
-				AI_plotDefense(&p)) / 100; // advc.012
+
+		scaled rDefFactor = per100(bDefensive ? 25 : 50) +
+				rDefensive * //p.defenseModifier(getTeam(), false)
+				per100(AI_plotDefense(&p)); // advc.012
+		iValue = (iValue * rDefFactor).round();
 
 		if (bDefensive)
 		{

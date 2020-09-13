@@ -535,13 +535,16 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 		int iTurns = pUnit->getPlot().getBuildTurnsLeft(eBuild,
 				/* advc.251: */ pUnit->getOwner(), 0, 0);
 		bool bSuspend = false;
-		if(iTurns > 1) {
+		if(iTurns > 1)
+		{
 			CLLNode<MissionData>* pNode = pUnit->getGroup()->headMissionQueueNode();
 			if(pNode != NULL)
 			{
 				if(pNode->m_data.bModified && (GC.ctrlKey() ||
-						BUGOption::isEnabled("MiscHover__PartialBuildsAlways", false)))
+					BUGOption::isEnabled("MiscHover__PartialBuildsAlways", false)))
+				{
 					bSuspend = true;
+				}
 			}
 		}
 		if(bSuspend)
@@ -14348,8 +14351,10 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 		{
 			CLLNode<OrderData>* pOrderNode = pCity->headOrderQueueNode();
 			if(pOrderNode != NULL && pOrderNode->m_data.eOrderType == ORDER_CONSTRUCT &&
-					pOrderNode->m_data.iData1 == eBuilding)
+				pOrderNode->m_data.iData1 == eBuilding)
+			{
 				bConstructing = true;
+			}
 		}
 		bool bHighlight = (bConstructing ||
 				(eActivePlayer != NO_PLAYER && pCity == NULL &&

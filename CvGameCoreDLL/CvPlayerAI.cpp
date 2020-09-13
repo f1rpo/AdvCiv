@@ -8790,7 +8790,8 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 
 	if (iChange > -1)
 	{
-		for (CLLNode<TradeData> const* pNode = kWeGive.head(); pNode; pNode = kWeGive.next(pNode))
+		for (CLLNode<TradeData> const* pNode = kWeGive.head(); pNode != NULL;
+			pNode = kWeGive.next(pNode))
 		{
 			if (getTradeDenial(ePlayer, pNode->m_data) != NO_DENIAL)
 				return false;
@@ -14133,20 +14134,20 @@ int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot const& kPlot, bool bTestCan
 		for (CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL;
 			pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
 		{
-			CvUnitAI* pLoopUnit = ::AI_getUnit(pUnitNode->m_data);
+			CvUnitAI const* pLoopUnit = ::AI_getUnit(pUnitNode->m_data);
 			if (pLoopUnit->getOwner() != getID())
 				continue; // advc
 			//if (pLoopUnit->getDomainType() == ((pPlot->isWater()) ? DOMAIN_SEA : DOMAIN_LAND))
 			// advc.030: Replacing the above
 			if(kPlotArea.canBeEntered(kFromArea, pLoopUnit))
 			{
-				if (pLoopUnit->canAttack()
+				if (pLoopUnit->canAttack() &&
 				/*  advc.315: This way, no units with OnlyAttackBarbarians are counted
 					as potential attackers. Could check if the CenterUnit of pPlot
 					is Barbarian, but only Explorer has OnlyAttackBarbarians and
 					I don't think the AI will or should use Explorers for any
 					coordinated attacks anyway. */
-					&& !pLoopUnit->getUnitInfo().isMostlyDefensive())
+					!pLoopUnit->getUnitInfo().isMostlyDefensive())
 				{
 					if (!bTestCanMove || pLoopUnit->canMove())
 					{

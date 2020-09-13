@@ -143,8 +143,10 @@ void CvPlot::erase()  // advc: some style changes
 	CLinkList<IDInfo> oldUnits;
 	{
 		for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
-				pUnitNode = nextUnitNode(pUnitNode))
+			pUnitNode = nextUnitNode(pUnitNode))
+		{
 			oldUnits.insertAtEnd(pUnitNode->m_data);
+		}
 	}
 	// kill units
 	CLLNode<IDInfo>* pUnitNode = oldUnits.head();
@@ -249,7 +251,7 @@ void CvPlot::doTurn()
 	/*if (!isOwned())
 		doImprovementUpgrade();*/ // advc (comment): Was already commented out in BtS
 
-	// advc: This sounds pretty slow and I'm not that I've ever needed it
+	// advc: This sounds pretty slow and I don't think I've ever needed it
 	/*#ifdef _DEBUG // XXX
 	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
 		pUnitNode = nextUnitNode(pUnitNode))

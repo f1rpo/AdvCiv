@@ -6,7 +6,7 @@
 #include "CvSelectionGroupAI.h"
 #include "CoreAI.h"
 #include "CvCityAI.h"
-#include "UWAIAgent.h" // advc.104
+#include "UWAIAgent.h"
 #include "RiseFall.h" // advc.705
 #include "PlotRange.h"
 #include "CvArea.h"
@@ -1915,7 +1915,8 @@ void CvUnit::updateFoundingBorder(bool bForceClear) const
 	if(bForceClear || iMode <= 0 || !canFound())
 		return;
 	CvSelectionGroup* gr = getGroup();
-	for(CLLNode<IDInfo> const* pNode = gr->headUnitNode(); pNode != NULL; pNode = gr->nextUnitNode(pNode))
+	for(CLLNode<IDInfo> const* pNode = gr->headUnitNode(); pNode != NULL;
+		pNode = gr->nextUnitNode(pNode))
 	{
 		CvUnit const* pUnit = ::getUnit(pNode->m_data);
 		if(pUnit == NULL || (pUnit->IsSelected() && !pUnit->canFound()))

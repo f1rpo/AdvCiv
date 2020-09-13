@@ -927,7 +927,7 @@ bool CvGlobals::isDLLProfilerEnabled() const
 int CvGlobals::getTypesEnum(const char* szType,
 	bool bHideAssert, bool bFromPython) const // advc.006
 {
-	FAssertMsg(szType, "null type string");
+	FAssertMsg(szType != NULL, "null type string");
 	TypesMap::const_iterator it = m_typesMap.find(szType);
 	if (it != m_typesMap.end())
 		return it->second;
@@ -974,7 +974,7 @@ void CvGlobals::setHoFScreenUp(bool b)
 int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert,
 	bool bFromPython) const // advc.006
 {
-	FAssertMsg(szType, "null info type string");
+	FAssertMsg(szType != NULL, "null info type string");
 	InfosMap::const_iterator it = m_infosMap.find(szType);
 	if (it != m_infosMap.end())
 		return it->second;
@@ -986,7 +986,7 @@ int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert,
 
 void CvGlobals::setInfoTypeFromString(const char* szType, int idx)
 {
-	FAssertMsg(szType, "null info type string");
+	FAssertMsg(szType != NULL, "null info type string");
 #ifdef _DEBUG
 	InfosMap::const_iterator it = m_infosMap.find(szType);
 	int iExisting = (it!=m_infosMap.end()) ? it->second : -1;

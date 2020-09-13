@@ -245,8 +245,8 @@ void CvPlayer::initAlerts(bool bSilentCheck)
 		return;
 	if (!m_paAlerts.empty())
 	{
-		// OK if this happens when the active player is defeated during Auto Play
-		FAssertMsg(!isAlive() && isHumanDisabled(), "initAlerts called redundantly");
+		FAssertMsg(!isAlive() && isHumanDisabled(), "initAlerts called redundantly "
+				"(OK upon defeat of active player during Auto Play)");
 		uninitAlerts();
 	}
 	/*  The order of this array needs to correspond to the ids returned
@@ -1407,25 +1407,17 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	bool bPeaceDeal) // advc.ctr
 {
 	CvPlot& kCityPlot = *pOldCity->plot();
-	{	// Kill ICBMs
-		CLinkList<IDInfo> oldUnits; // (I doubt that it's necessary to copy the plot's unit list here)
+	// Kill ICBMs
+	//CLinkList<IDInfo> oldUnits; ... // advc: Deleted; unnecessary.
+	CLLNode<IDInfo>* pNode = kCityPlot.headUnitNode();
+	while (pNode != NULL)
+	{
+		CvUnit& kUnit = *::getUnit(pNode->m_data);
+		pNode = kCityPlot.nextUnitNode(pNode);
+		if (kUnit.getDomainType() == DOMAIN_IMMOBILE &&
+			kUnit.getTeam() != getTeam())
 		{
-			for (CLLNode<IDInfo> const* pUnitNode = kCityPlot.headUnitNode(); pUnitNode != NULL;
-				pUnitNode = kCityPlot.nextUnitNode(pUnitNode))
-			{
-				oldUnits.insertAtEnd(pUnitNode->m_data);
-			}
-		}
-		CLLNode<IDInfo>* pUnitNode = oldUnits.head();
-		while (pUnitNode != NULL)
-		{
-			CvUnit& kUnit = *::getUnit(pUnitNode->m_data);
-			pUnitNode = oldUnits.next(pUnitNode);
-			if (kUnit.getTeam() != getTeam())
-			{
-				if (kUnit.getDomainType() == DOMAIN_IMMOBILE)
-					kUnit.kill(false, getID());
-			}
+			kUnit.kill(false, getID());
 		}
 	}
 	if (bConquest) // Force unowned after conquest
@@ -10475,7 +10467,7 @@ int CvPlayer::getQueuePosition(TechTypes eTech) const
 {
 	int i = 1;
 	for (CLLNode<TechTypes>* pResearchNode = headResearchQueueNode();
-		pResearchNode; pResearchNode = nextResearchQueueNode(pResearchNode))
+		pResearchNode != NULL; pResearchNode = nextResearchQueueNode(pResearchNode))
 	{
 		if (pResearchNode->m_data == eTech)
 			return i;

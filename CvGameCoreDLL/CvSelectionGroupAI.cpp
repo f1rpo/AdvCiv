@@ -229,17 +229,20 @@ bool CvSelectionGroupAI::AI_update()
 				/*  What we do here might split the group. So to avoid problems,
 					lets make a list of our units. */
 				std::vector<IDInfo> originalGroup;
-				for(CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
+				for(CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
+					pUnitNode = nextUnitNode(pUnitNode))
  				{
 					originalGroup.push_back(pUnitNode->m_data);
 				}
 				FAssert(originalGroup.size() == getNumUnits());
 				bool bFirst = true;
 				path_finder.Reset();
-				for (std::vector<IDInfo>::iterator it = originalGroup.begin(); it != originalGroup.end(); ++it)
+				for (std::vector<IDInfo>::iterator it = originalGroup.begin();
+					it != originalGroup.end(); ++it)
 				{
 					CvUnitAI* pLoopUnit = ::AI_getUnit(*it);
-					if (pLoopUnit && pLoopUnit->getGroupID() == getID() && pLoopUnit->canMove())
+					if (pLoopUnit && pLoopUnit->getGroupID() == getID() &&
+						pLoopUnit->canMove())
 					{
 						if (pLoopUnit->AI_follow(bFirst))
 						{
