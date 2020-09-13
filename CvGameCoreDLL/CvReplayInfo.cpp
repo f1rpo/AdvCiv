@@ -191,8 +191,10 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 		addSettingsMsg();
 	} // </advc.106h>
 	for (uint i = 0; i < kGame.getNumReplayMessages(); i++)
-	{
-		PlayerTypes ePlayerIndex = aePlayerIndices.get(kGame.getReplayMessagePlayer(i));
+	{	// <advc.enum>
+		PlayerTypes eMsgPlayer = kGame.getReplayMessagePlayer(i);
+		PlayerTypes ePlayerIndex = (eMsgPlayer == NO_PLAYER ? NO_PLAYER :
+				aePlayerIndices.get(kGame.getReplayMessagePlayer(i))); // </advc.enum>
 		if (ePlayerIndex != NO_PLAYER)
 		{
 			CvReplayMessage* pMsg = new CvReplayMessage(kGame.getReplayMessageTurn(i),
