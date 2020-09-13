@@ -8979,7 +8979,8 @@ void CvUnit::changeExtraVisibilityRange(int iChange)
 void CvUnit::changeExtraMoves(int iChange)
 {
 	m_iExtraMoves += iChange;
-	FAssert(getExtraMoves() >= 0);
+	FAssert(getExtraMoves() >= 0 ||
+			getExtraMoves() == -1 && isBarbarian()); // advc.905a
 }
 
 void CvUnit::changeExtraMoveDiscount(int iChange)
