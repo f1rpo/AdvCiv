@@ -329,7 +329,7 @@
 			<iCreatePercent>80</iCreatePercent>
 			<iResearchPercent>60</iResearchPercent>
 			<!-- advc.910: Was 16 in K-Mod, 14 in BBAI. -->
-			<iTechCostModifier>14</iTechCostModifier>
+			<iTechCostModifier>17</iTechCostModifier>
 			<!-- advc.groundbr: start -->
 			<iAIMaxGroundbreakingPenalty>35</iAIMaxGroundbreakingPenalty>
 			<!-- 30 in DoC -->
@@ -404,7 +404,7 @@
 			<iCreatePercent>70</iCreatePercent>
 			<iResearchPercent>50</iResearchPercent>
 			<!-- advc.910: Was 20 in K-Mod, 18 in BBAI. -->
-			<iTechCostModifier>14</iTechCostModifier>
+			<iTechCostModifier>11</iTechCostModifier>
 			<!-- advc.groundbr: start -->
 			<iAIMaxGroundbreakingPenalty>25</iAIMaxGroundbreakingPenalty>
 			<!-- 40 in DoC, but, that late in the game, aren't players
