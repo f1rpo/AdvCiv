@@ -1949,23 +1949,23 @@
 	<!-- advc.137: Copy-pasted from Vanilla Civ4GameTextInfos.xml;
 		 recommendation added (only in English). -->
 	<TEXT>
-		<Tag>TXT_KEY_SEALEVEL_LOW</Tag>
+		<Tag>TXT_KEY_SEALEVEL_LOW_RECOMMEND</Tag>
 		<English>Low - extra players recommended (+35%%)</English>
 		<French>Bas</French>
-		<German>Niedrig</German>
+		<German>Niedrig - zus. Spieler empfohlen (+35%%)</German>
 		<Italian>Basso</Italian>
 		<Spanish>Bajo</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>TXT_KEY_SEALEVEL_HIGH</Tag>
+		<Tag>TXT_KEY_SEALEVEL_HIGH_RECOMMEND</Tag>
 		<English>High - fewer players recommended (-30%%)</English>
 		<French>Haut</French>
-		<German>Hoch</German>
+		<German>Hoch - weniger Spieler empfohlen (-30%%)</German>
 		<Italian>Alto</Italian>
 		<Spanish>Alto</Spanish>
 	</TEXT>
-	<!-- advc.137: New tag name for the original game text (for use on the
-		 Settings screen). -->
+	<!-- advc.137: Better use a separate key for H/M/L when it doesn't refer to
+		 the sea level. Text is the same though (from Civ4GameTextInfos.xml). -->
 	<TEXT>
 		<Tag>TXT_KEY_LOW</Tag>
 		<English>Low</English>
@@ -1973,6 +1973,14 @@
 		<German>Niedrig</German>
 		<Italian>Basso</Italian>
 		<Spanish>Bajo</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MEDIUM</Tag>
+		<English>Medium</English>
+		<French>Normal</French>
+		<German>Mittel</German>
+		<Italian>Medio</Italian>
+		<Spanish>Medio</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_HIGH</Tag>

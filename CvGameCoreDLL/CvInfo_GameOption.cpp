@@ -4,6 +4,7 @@
 #include "CvInfo_GameOption.h"
 #include "CvXMLLoadUtility.h"
 #include "CvDLLXMLIFaceBase.h"
+#include "CvInitCore.h" // advc.137
 
 
 CvGameOptionInfo::CvGameOptionInfo() :
@@ -1521,4 +1522,24 @@ bool CvSeaLevelInfo::read(CvXMLLoadUtility* pXML)
 	FAssert(m_iResearchPercent > 0); // </advc.910>
 
 	return true;
+}
+// advc.137: Include recommendation in description on Custom Game screen
+wchar const* CvSeaLevelInfo::getDescriptionInternal(uint uiForm) const
+{
+	CvInitCore const& kInitCore = GC.getInitCore();
+	if (kInitCore.getActivePlayer() == NO_PLAYER &&
+		/*	This distinguishes Custom Game from Play Now.
+			(Play Now doesn't have enough room for a recommendation,
+			and doesn't allow player counts to be adjusted.) */
+		kInitCore.getSlotStatus((PlayerTypes)0) == SS_OPEN)
+	{
+		CvWString szTag;
+		if (m_iSeaLevelChange < 0)
+			szTag = L"TXT_KEY_SEALEVEL_LOW_RECOMMEND";
+		else if (m_iSeaLevelChange > 0)
+			szTag = L"TXT_KEY_SEALEVEL_HIGH_RECOMMEND";
+		if (!szTag.empty())
+			return gDLL->getText(szTag);
+	}
+	return CvInfoBase::getDescriptionInternal(uiForm);
 }

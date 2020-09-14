@@ -483,13 +483,13 @@ class CvOptionsScreen:
 		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_RES_HELP", ()))
 		
 		# advc.137: Replaced TXT_KEY_SEALEVEL_HIGH with TXT_KEY_HIGH
-		# and ditto for LOW. Also under Render Quality, Globe View
-		# and Movies.
+		# and ditto for MEDIUM and LOW. Also under Render Quality, Globe View
+		# and Movies. Cleaner this way.
 		# Graphics Level
 		#tab.attachLabel(vbox1, "GraphicsLevelLabel", localText.getText("TXT_KEY_OPTIONS_SCREEN_GRAPHICS_LEVEL", ()))
 		#tab.setControlFlag("GraphicsLevelLabel", "CF_LABEL_DEFAULTSIZE")
 		#szDropdownDesc = "GraphicsLevelDropdownBox"
-		#aszDropdownElements = (localText.getText("TXT_KEY_HIGH", ()), localText.getText("TXT_KEY_SEALEVEL_MEDIUM", ()), localText.getText("TXT_KEY_LOW", ()))
+		#aszDropdownElements = (localText.getText("TXT_KEY_HIGH", ()), localText.getText("TXT_KEY_MEDIUM", ()), localText.getText("TXT_KEY_LOW", ()))
 		#szCallbackFunction = "handleGraphicsLevelDropdownBoxInput"
 		#szWidgetName = szDropdownDesc
 		#iInitialSelection = UserProfile.getGraphicsLevel()
@@ -502,7 +502,7 @@ class CvOptionsScreen:
 		tab.attachLabel(vbox1, "GraphicsQualityLabel", localText.getText("TXT_KEY_OPTIONS_SCREEN_RENDER_QUALITY_LEVEL", ()))
 		tab.setControlFlag("GraphicsQualityLabel", "CF_LABEL_DEFAULTSIZE")
 		szDropdownDesc = "RenderQualityDropdownBox"
-		aszDropdownElements = (localText.getText("TXT_KEY_HIGH", ()), localText.getText("TXT_KEY_SEALEVEL_MEDIUM", ()), localText.getText("TXT_KEY_LOW", ()))
+		aszDropdownElements = (localText.getText("TXT_KEY_HIGH", ()), localText.getText("TXT_KEY_MEDIUM", ()), localText.getText("TXT_KEY_LOW", ()))
 		szCallbackFunction = "handleRenderQualityDropdownBoxInput"
 		szWidgetName = self.szRenderQualityDropdownBoxName = "RenderQualityDropdownBox"
 		iInitialSelection = UserProfile.getRenderQualityLevel()
@@ -544,7 +544,7 @@ class CvOptionsScreen:
 		tab.setControlFlag("GlobeViewLabel", "CF_LABEL_DEFAULTSIZE")
 				
 		szDropdownDesc = "GlobeViewDropdownBox"
-		aszDropdownElements = (localText.getText("TXT_KEY_HIGH", ()), localText.getText("TXT_KEY_SEALEVEL_MEDIUM", ()), localText.getText("TXT_KEY_LOW", ()))
+		aszDropdownElements = (localText.getText("TXT_KEY_HIGH", ()), localText.getText("TXT_KEY_MEDIUM", ()), localText.getText("TXT_KEY_LOW", ()))
 		szCallbackFunction = "handleGlobeViewDropdownBoxInput"
 		szWidgetName = self.szGlobeViewDropdownBoxName = "GlobeViewDropdownBox"
 		iInitialSelection = UserProfile.getGlobeViewRenderLevel()
@@ -563,7 +563,7 @@ class CvOptionsScreen:
 		tab.setControlFlag("MovieLabel", "CF_LABEL_DEFAULTSIZE")
 				
 		szDropdownDesc = "MovieDropdownBox"
-		aszDropdownElements = (localText.getText("TXT_KEY_HIGH", ()), localText.getText("TXT_KEY_SEALEVEL_MEDIUM", ()), localText.getText("TXT_KEY_LOW", ()))
+		aszDropdownElements = (localText.getText("TXT_KEY_HIGH", ()), localText.getText("TXT_KEY_MEDIUM", ()), localText.getText("TXT_KEY_LOW", ()))
 		szCallbackFunction = "handleMovieDropdownBoxInput"
 		szWidgetName = self.szMovieDropdownBoxName = "MovieDropdownBox"
 		iInitialSelection = UserProfile.getMovieQualityLevel()

@@ -86,12 +86,12 @@ const wchar* CvInfoBase::getTextKeyWide() const
 	return m_szTextKey;
 }
 
-const wchar* CvInfoBase::getDescription(uint uiForm) const
+wchar const* CvInfoBase::getDescriptionInternal(uint uiForm) const
 {
 	while(m_aCachedDescriptions.size() <= uiForm)
 	{
 		m_aCachedDescriptions.push_back(gDLL->getObjectText(m_szTextKey,
-			m_aCachedDescriptions.size()));
+				m_aCachedDescriptions.size()));
 	}
 	return m_aCachedDescriptions[uiForm];
 }

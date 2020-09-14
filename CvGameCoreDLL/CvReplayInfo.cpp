@@ -274,9 +274,6 @@ void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer)
 		szMapName = szMapName.substr(0, szMapName.length() - szWBEnding.length());
 		bScenario = true;
 	}
-	/*  Can't use getTextKeyWide for sea level b/c of the recommendation text
-		added by advc.137 (same issue in CvVictoryScreen.py) */
-	int iSeaLevelChange = GC.getInfo(getSeaLevel()).getSeaLevelChange();
 	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
 	szSettings += 
 			gDLL->getText("TXT_KEY_NAME_LEADER_CIV",
@@ -288,8 +285,7 @@ void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer)
 			GC.getInfo(getWorldSize()).getTextKeyWide(),
 			getMapScriptName().GetCString()) + L" " +
 			gDLL->getText("TXT_KEY_SETTINGS_SEA_LEVEL",
-			(iSeaLevelChange == 0 ? GC.getInfo(getSeaLevel()).getTextKeyWide() :
-			gDLL->getText((iSeaLevelChange < 0 ? "TXT_KEY_LOW" : "TXT_KEY_HIGH"))))) +
+			GC.getInfo(getSeaLevel()).getTextKeyWide())) +
 			(getClimate() == 0 ? L"" : (L", " +
 			gDLL->getText("TXT_KEY_SETTINGS_CLIMATE",
 			GC.getInfo(getClimate()).getTextKeyWide())));
