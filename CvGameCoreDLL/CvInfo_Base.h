@@ -21,15 +21,17 @@ class CvInfoBase /* advc.003e: */ : private boost::noncopyable
 public: // All the const functions are exposed to Python
 	CvInfoBase();
 	CvInfoBase(CvInfoBase const& kOther); // advc.xmldefault
-	DllExport virtual ~CvInfoBase();
+	/*	advc (note): There is a call location in the EXE according to Dependency Walker,
+		but it might be unreachable: I'm not crashing when I remove the destructor. */
+	DllExport virtual ~CvInfoBase() {}
 
 	virtual void reset();
 
 	bool isGraphicalOnly() const;
 
-	DllExport const TCHAR* getType() const;
+	DllExport TCHAR const* getType() const;
 	bool isDefaultsType() const; // advc.xmldefault
-	virtual const TCHAR* getButton() const;
+	virtual TCHAR const* getButton() const;
 
 	// for python wide string handling
 	std::wstring pyGetTextKey() { return getTextKeyWide(); }
@@ -40,15 +42,15 @@ public: // All the const functions are exposed to Python
 	std::wstring pyGetHelp() { return getHelp(); }
 	std::wstring pyGetStrategy() { return getStrategy(); }
 
-	DllExport const wchar* getTextKeyWide() const;
+	DllExport wchar const* getTextKeyWide() const;
 	DllExport wchar const* getDescription(uint uiForm = 0) const
 	// <advc.137> Allow this to be overridden
 	{ return getDescriptionInternal(uiForm); }
 	virtual wchar const* getDescriptionInternal(uint uiForm) const; // </advc.137>
-	DllExport const wchar* getText() const;
-	const wchar* getCivilopedia() const;
-	DllExport const wchar* getHelp() const;
-	const wchar* getStrategy() const;
+	DllExport wchar const* getText() const;
+	wchar const* getCivilopedia() const;
+	DllExport wchar const* getHelp() const;
+	wchar const* getStrategy() const;
 
 	bool isMatchForLink(std::wstring szLink, bool bKeysOnly) const;
 	#if SERIALIZE_CVINFOS
