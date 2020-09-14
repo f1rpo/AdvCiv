@@ -14,7 +14,7 @@
 			<FreeUnitClass>NONE</FreeUnitClass>
 			<iSpreadFactor>200</iSpreadFactor>
 			<iSpreadCost>50</iSpreadCost>
-			<!-- K-Mod (was 75 in BtS) -->
+			<!-- K-Mod: was 75 in BtS -->
 			<iMaintenance>100</iMaintenance>
 			<PrereqBonuses>
 				<BonusType>BONUS_WHEAT</BonusType>
@@ -30,6 +30,7 @@
 			<CommercesProduced>
 				<iCommerceProduced>0</iCommerceProduced>
 			</CommercesProduced>
+			<!-- K-Mod: was 75 in BtS -->
 			<YieldsProduced>
 				<iYieldProduced>100</iYieldProduced>
 			</YieldsProduced>
@@ -59,6 +60,7 @@
 				<iHeadquarterCommerce>0</iHeadquarterCommerce>
 			</HeadquarterCommerces>
 			<BonusProduced>NONE</BonusProduced>
+			<!-- K-Mod: was 2.00 culture in BtS -->
 			<CommercesProduced>
 				<iCommerceProduced>0</iCommerceProduced>
 				<iCommerceProduced>0</iCommerceProduced>
@@ -129,6 +131,7 @@
 				<iHeadquarterCommerce>0</iHeadquarterCommerce>
 			</HeadquarterCommerces>
 			<BonusProduced>NONE</BonusProduced>
+			<!-- K-Mod: was 3 culture in BtS -->
 			<CommercesProduced>
 				<iCommerceProduced>0</iCommerceProduced>
 				<iCommerceProduced>0</iCommerceProduced>
@@ -154,6 +157,7 @@
 			<iSpreadCost>50</iSpreadCost>
 			<!-- advc.200: As in BtS (was 120 in K-Mod) -->
 			<iMaintenance>100</iMaintenance>
+			<!-- K-Mod: Gold, Silver replaced with Uranium, Aluminum -->
 			<PrereqBonuses>
 				<BonusType>BONUS_COAL</BonusType>
 				<BonusType>BONUS_IRON</BonusType>
@@ -201,6 +205,7 @@
 				<iHeadquarterCommerce>0</iHeadquarterCommerce>
 			</HeadquarterCommerces>
 			<BonusProduced>BONUS_ALUMINUM</BonusProduced>
+			<!-- K-Mod: was 3 research in BtS -->
 			<CommercesProduced>
 				<iCommerceProduced>0</iCommerceProduced>
 				<iCommerceProduced>350</iCommerceProduced>
@@ -236,6 +241,7 @@
 				<iHeadquarterCommerce>0</iHeadquarterCommerce>
 			</HeadquarterCommerces>
 			<BonusProduced>NONE</BonusProduced>
+			<!-- K-Mod: was 4 culture in BtS -->
 			<CommercesProduced>
 				<iCommerceProduced>100</iCommerceProduced>
 				<iCommerceProduced>0</iCommerceProduced>
