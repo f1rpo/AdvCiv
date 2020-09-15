@@ -96,7 +96,7 @@ public:
 	void AI_doCentralizedProduction(); // K-Mod. (not used)
 	#endif
 	void AI_conquerCity(CvCityAI& kCity, /* advc.ctr: */ bool bEverOwned = false);
-	double AI_razeMemoryScore(CvCity const& c) const; // advc.130q
+	scaled AI_razeMemoryScore(CvCity const& kCity) const; // advc.130q
 	bool AI_acceptUnit(CvUnit const& kUnit) const;
 	bool AI_captureUnit(UnitTypes eUnit, CvPlot const& kPlot) const;
 
@@ -248,7 +248,7 @@ public:
 	{
 		return const_cast<CvPlayerAI*>(this)->AI_considerOffer(ePlayer, kTheyGive, kWeGive, iChange, iDealAge, true);
 	} // </advc.130o>
-	double AI_prDenyHelp() const; // advc.144
+	scaled AI_prDenyHelp() const; // advc.144
 	int AI_tradeAcceptabilityThreshold(PlayerTypes eTrader) const; // K-Mod
 	int AI_maxGoldTrade(PlayerTypes ePlayer, /* advc.134a: */ bool bTeamTrade = false) const;
 	int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const;								// Exposed to Python
@@ -782,7 +782,7 @@ protected:
 	void AI_proposeWarTrade(PlayerTypes eAIPlayer); // </advc>
 	// advc.130t:
 	int AI_rivalPactAttitude(PlayerTypes ePlayer, bool bVassalPacts) const;
-	double AI_expansionistHate(PlayerTypes ePlayer) const;
+	scaled AI_expansionistHate(PlayerTypes ePlayer) const;
 	bool AI_canBeAttackedBy(CvUnit const& u) const; // advc.315
 
 	// <advc.130p>
@@ -812,16 +812,16 @@ protected:
 			CLinkList<TradeData> const& kTheyGive, CLinkList<TradeData> const& kWeGive,
 			CLinkList<TradeData> const& kTheirInventory, CLinkList<TradeData> const& kOurInventory,
 			CLinkList<TradeData>& kTheyAlsoGive, CLinkList<TradeData>& kWeAlsoGive,
-			double leniency = 1) const; // advc.705
+			scaled rLeniency = 1) const; // advc.705
 	// <advc>
 	// Variant that writes the proposal into pTheirList and pOurList
 	bool AI_counterPropose(PlayerTypes ePlayer, CLinkList<TradeData>& kTheyGive,
 			CLinkList<TradeData>& kWeGive, bool bTheyMayGiveMore, bool bWeMayGiveMore,
-			double leniency = 1) const;
+			scaled rLeniency = 1) const;
 	bool AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const& kTheirInventory,
 			PlayerTypes ePlayer, int iTheyReceive, int& iWeReceive,
 			CLinkList<TradeData>& kWeWant, CLinkList<TradeData> const& kWeGive,
-			double leniency, // advc.705
+			scaled rLeniency, // advc.705
 			bool bTheyGenerous,
 			int iHappyLeft, int iHealthLeft, int iOtherListLength) const; // advc.036
 	int AI_tradeValToGold(int iTradeVal, bool bOverpay, int iMaxGold = MAX_INT,

@@ -393,6 +393,11 @@ bool CvGameSpeedInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iUnitTradePercent, "iUnitTradePercent");
 	pXML->GetChildXmlValByName(&m_iUnitGreatWorkPercent, "iUnitGreatWorkPercent");
 	pXML->GetChildXmlValByName(&m_iGoldenAgePercent, "iGoldenAgePercent");
+	// <advc>
+	FAssertMsg(m_iResearchPercent >= 100 ?
+			(m_iGoldenAgePercent > m_iResearchPercent / 3 && m_iGoldenAgePercent <= m_iResearchPercent) :
+			(3 * m_iGoldenAgePercent < 4 * m_iResearchPercent && m_iGoldenAgePercent >= m_iResearchPercent),
+			"The Golden Age modifier gets used for various adjustments; unusual values should be avoided."); // </advc>
 	pXML->GetChildXmlValByName(&m_iHurryPercent, "iHurryPercent");
 	pXML->GetChildXmlValByName(&m_iHurryConscriptAngerPercent, "iHurryConscriptAngerPercent");
 	pXML->GetChildXmlValByName(&m_iInflationOffset, "iInflationOffset");

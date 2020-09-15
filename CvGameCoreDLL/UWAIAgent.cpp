@@ -2177,7 +2177,7 @@ bool UWAI::Civ::considerGiftRequest(PlayerTypes theyId, int tradeVal) const {
 	/*  Accept probabilistically regardless of war utility (so long as we're
 		not planning war yet, which the caller ensures).
 		Probability to accept is 45% for Gandhi, 0% for Tokugawa. */
-	double prSuccess = 0.5 - we.AI_prDenyHelp();
+	double prSuccess = 0.5 - we.AI_prDenyHelp().getDouble();
 	// Can't use sync'd RNG here, but don't want the outcome to change after reload.
 	std::vector<int> inputs;
 	inputs.push_back(GC.getGame().getGameTurn());

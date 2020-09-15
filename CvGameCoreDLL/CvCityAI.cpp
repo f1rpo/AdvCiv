@@ -4686,11 +4686,11 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 						if (GC.getInfo(eLoopBuilding).getReligionType() == eStateReligion)
 							aeReligionBuildings.push_back(eBuilding);
 					}
-					double ourBuildings = AI_estimateReligionBuildings(
+					scaled rOurBuildings = AI_estimateReligionBuildings(
 							kOwner.getID(), eStateReligion, aeReligionBuildings);
-					double tempValue = ourBuildings;
-					double rivalFactor = 1.5 * std::sqrt((double)
-							kGame.countCivPlayersAlive());
+					scaled rTempValue = rOurBuildings;
+					scaled rRivalFactor = fixp(1.5) *
+							scaled(kGame.countCivPlayersAlive()).sqrt();
 					int const iEverAlive = kGame.getCivPlayersEverAlive();
 					for (PlayerIter<CIV_ALIVE,KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 					{
@@ -4720,17 +4720,17 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 						{
 							continue;
 						}
-						double loopBuildings = AI_estimateReligionBuildings(
+						scaled rLoopBuildings = AI_estimateReligionBuildings(
 								kBrother.getID(), eStateReligion, aeReligionBuildings);
 						// Don't want to help competitors win; let _them_ produce eBuilding.
 						if(bTheyAhead && eTowardThem < ATTITUDE_FRIENDLY)
-							loopBuildings *= -1;
+							rLoopBuildings.flipSign();
 						else 
 						{
-							loopBuildings = std::min(ourBuildings, loopBuildings);
-							loopBuildings /= rivalFactor;
+							rLoopBuildings.decreaseTo(rOurBuildings);
+							rLoopBuildings /= rRivalFactor;
 						}
-						tempValue += loopBuildings;
+						rTempValue += rLoopBuildings;
 					}
 					FOR_EACH_ENUM(Yield)
 					{
@@ -4739,9 +4739,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 							continue;
 						/*  Would be nicer to use CvPlayerAI::AI_commerceWeight,
 							but that would have to be applied earlier. */
-						tempValue *= iChange * (eLoopYield == YIELD_COMMERCE ? 4 : 8);
+						rTempValue *= iChange * (eLoopYield == YIELD_COMMERCE ? 4 : 8);
 					}
-					iValue += ::round(tempValue);
+					iValue += rTempValue.round();
 				}
 			} // </advc.179>
 			// BETTER_BTS_AI_MOD, City AI, Victory Strategy AI, 05/24/10, jdog5000: START
@@ -12846,8 +12846,8 @@ void CvCityAI::AI_updateWorkersHaveAndNeeded()  // advc: some style changes
 	m_iWorkersHave = iWorkersHave;
 }
 
-// <advc.179>
-double CvCityAI::AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes eReligion,
+// advc.179:
+scaled CvCityAI::AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes eReligion,
 	std::vector<BuildingTypes> const& aeBuildings) const
 {
 	/*  Player whose buildings we're counting
@@ -12885,7 +12885,7 @@ double CvCityAI::AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes
 				iPotential += 2;
 		}
 	}
-	double r = iCertain + iPotential / 4.0;
+	scaled r(iCertain + iPotential, 4);
 	bool bObsolete = false;
 	for(size_t i = 0; i < aeBuildings.size(); i++)
 	{
@@ -12900,7 +12900,7 @@ double CvCityAI::AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes
 	if(bObsolete)
 		r /= 2;
 	return r;
-} // </advc.179>
+}
 
 
 BuildingTypes CvCityAI::AI_bestAdvancedStartBuilding(int iPass) /* advc: */ const

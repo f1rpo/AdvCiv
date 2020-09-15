@@ -43,7 +43,7 @@ public:
 			bool bIgnoreSpecialists = false, // advc.121b
 			bool bObsolete = false) const; // advc.004c
 	// <advc.179>
-	double AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes eReligion,
+	scaled AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes eReligion,
 			std::vector<BuildingTypes> const& aeBuildings) const; // </advc.179>
 	ProjectTypes AI_bestProject(int* piBestValue = 0, /* advc.001n: */ bool bAsync = false) const;
 	int AI_projectValue(ProjectTypes eProject) const;

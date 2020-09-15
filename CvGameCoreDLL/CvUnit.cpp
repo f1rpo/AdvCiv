@@ -3816,8 +3816,8 @@ bool CvUnit::nuke(int iX, int iY)
 			{
 				pReplayCity = &kAffectedCity;
 			} // </advc.106>
-			rScore += scaled::fromDouble(GET_PLAYER(kAffectedCity.getOwner()).
-					AI_razeMemoryScore(kAffectedCity));
+			rScore += GET_PLAYER(kAffectedCity.getOwner()).
+					AI_razeMemoryScore(kAffectedCity);
 		}
 		if (rScore >= 1)
 			aiDamageScore.set(it->getID(), 2);
