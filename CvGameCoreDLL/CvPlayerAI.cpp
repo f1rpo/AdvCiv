@@ -936,23 +936,23 @@ int CvPlayerAI::AI_negotiatePeace(PlayerTypes eRecipient, PlayerTypes eGiver,
 
 void CvPlayerAI::AI_offerCapitulation(PlayerTypes eTo)
 {
-	CLinkList<TradeData> ourList;
-	CLinkList<TradeData> theirList;
-	ourList.insertAtEnd(TradeData(TRADE_SURRENDER));
+	CLinkList<TradeData> weGive;
+	CLinkList<TradeData> theyGive;
+	weGive.insertAtEnd(TradeData(TRADE_SURRENDER));
 	if(!GET_PLAYER(eTo).isHuman())
 	{
-		GC.getGame().implementDeal(getID(), eTo, ourList, theirList);
+		GC.getGame().implementDeal(getID(), eTo, weGive, theyGive);
 		return;
 	} // advc.134a:
-	GET_PLAYER(eTo).AI_counterPropose(getID(), ourList, theirList, true, false, fixp(0.9));
+	GET_PLAYER(eTo).AI_counterPropose(getID(), weGive, theyGive, true, false, fixp(0.9));
 	AI_changeContactTimer(eTo, CONTACT_PEACE_TREATY,
 			// advc.134a: Double the delay
 			2 * AI_getContactDelay(CONTACT_PEACE_TREATY));
 	CvDiploParameters* pDiplo = new CvDiploParameters(getID());
 	pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_PEACE"));
 	pDiplo->setAIContact(true);
-	pDiplo->setOurOfferList(theirList);
-	pDiplo->setTheirOfferList(ourList);
+	pDiplo->setOurOfferList(theyGive);
+	pDiplo->setTheirOfferList(weGive);
 	gDLL->beginDiplomacy(pDiplo, eTo);
 	//advc.test, advc.134a:
 	/*FErrorMsg("AI sent capitulation offer; if it doesn't appear, "
@@ -8967,8 +8967,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 	} // </advc.132>
 	bool bCountLiberation = (kTheyGive.getLength() == 0 || kWeGive.getLength() == 0 ||
 			isLiberationTrade(getID(), ePlayer, kWeGive, kTheyGive));
-	/*  advc: Renamed. Was called iOurValue. (Which, elsewhere in this class,
-		is the value that we assign to what they _give_.) */
+	// advc: Was misleadingly named "iOurValue"
 	int iTheyReceive = kPlayer.AI_dealVal(getID(), kWeGive, false, iChange,
 			false, false, bCountLiberation); // advc.ctr
 	// <advc.705>
@@ -8988,7 +8987,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 		// Don't cancel gift deals to vassals that you like, unless you need the gift back.
 		if (iChange < 0 && GET_TEAM(ePlayer).isVassal(getTeam()))
 		{
-			/*if (iOurValue > AI_dealVal(ePlayer, pOurList, false, 1))
+			/*if (iOurValue > AI_dealVal(ePlayer, weGive, false, 1))
 				return true;
 			else return false; */
 			// Simply comparing deal values doesn't work because the value from voluntary vassals gets halved.
@@ -9289,8 +9288,8 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer,
 
 	// advc.ctr:
 	bool bCountLiberation = isLiberationTrade(getID(), ePlayer, kWeGive, kTheyGive);
-	/*iHumanDealWeight = AI_dealVal(ePlayer, pTheirList);
-	iAIDealWeight = GET_PLAYER(ePlayer).AI_dealVal(getID(), pOurList);*/ // BtS
+	/*iHumanDealWeight = AI_dealVal(ePlayer, theyGive);
+	iAIDealWeight = GET_PLAYER(ePlayer).AI_dealVal(getID(), weGive);*/ // BtS
 	/*	K-Mod: Under normal usage of this fuction, the AI player counters the human proposal -
 		so "they" are human, not us. */
 	// advc: Further changed from "iValueForUs", "iValueForThem". And renamed the lists too.
@@ -18915,8 +18914,8 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 {
 	PROFILE_FUNC();
 	CvDiploParameters* pDiplo;
-	CLinkList<TradeData> ourList;
-	CLinkList<TradeData> theirList;
+	CLinkList<TradeData> weGive;
+	CLinkList<TradeData> theyGive;
 
 	FAssert(!isHuman());
 	FAssert(!isMinorCiv());
@@ -19009,9 +19008,9 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 
 				if (eBestGiveBonus != NO_BONUS)
 				{
-					ourList.clear();
-					theirList.clear();
-					ourList.insertAtEnd(TradeData(TRADE_RESOURCES, eBestGiveBonus));
+					weGive.clear();
+					theyGive.clear();
+					weGive.insertAtEnd(TradeData(TRADE_RESOURCES, eBestGiveBonus));
 					if (kPlayer.isHuman())
 					{
 						if (!abContacted[kPlayer.getTeam()])
@@ -19019,12 +19018,12 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 							pDiplo = new CvDiploParameters(getID());
 							pDiplo->setDiploComment(GC.getAIDiploCommentType("GIVE_HELP"));
 							pDiplo->setAIContact(true);
-							pDiplo->setTheirOfferList(ourList);
+							pDiplo->setTheirOfferList(weGive);
 							gDLL->beginDiplomacy(pDiplo, ePlayer);
 							abContacted[kPlayer.getTeam()] = true;
 						}
 					}
-					else kGame.implementDeal(getID(), ePlayer, ourList, theirList);
+					else kGame.implementDeal(getID(), ePlayer, weGive, theyGive);
 				}
 			}
 
@@ -19079,9 +19078,9 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 
 				if (eBestGiveTech != NO_TECH)
 				{
-					ourList.clear();
-					theirList.clear();
-					ourList.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eBestGiveTech));
+					weGive.clear();
+					theyGive.clear();
+					weGive.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eBestGiveTech));
 
 					if (kPlayer.isHuman())
 					{
@@ -19090,12 +19089,12 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 							pDiplo = new CvDiploParameters(getID());
 							pDiplo->setDiploComment(GC.getAIDiploCommentType("GIVE_HELP"));
 							pDiplo->setAIContact(true);
-							pDiplo->setTheirOfferList(ourList);
+							pDiplo->setTheirOfferList(weGive);
 							gDLL->beginDiplomacy(pDiplo, ePlayer);
 							abContacted[kPlayer.getTeam()] = true;
 						}
 					}
-					else kGame.implementDeal(getID(), ePlayer, ourList, theirList);
+					else kGame.implementDeal(getID(), ePlayer, weGive, theyGive);
 				}
 			}
 
@@ -19129,9 +19128,9 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 
 				if (eBestGiveBonus != NO_BONUS)
 				{
-					theirList.clear();
-					ourList.clear();
-					theirList.insertAtEnd(TradeData(TRADE_RESOURCES, eBestGiveBonus));
+					theyGive.clear();
+					weGive.clear();
+					theyGive.insertAtEnd(TradeData(TRADE_RESOURCES, eBestGiveBonus));
 					if (kPlayer.isHuman())
 					{
 						if (!abContacted[kPlayer.getTeam()])
@@ -19145,7 +19144,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 							}
 						}
 					}
-					else kGame.implementDeal(getID(), ePlayer, ourList, theirList);
+					else kGame.implementDeal(getID(), ePlayer, weGive, theyGive);
 				}
 			}
 
@@ -19162,10 +19161,10 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 						if (canTradeItem(ePlayer, item, true) &&
 							kPlayer.canTradeItem(getID(), item, true))
 						{
-							ourList.clear();
-							theirList.clear();
-							ourList.insertAtEnd(item);
-							theirList.insertAtEnd(item);
+							weGive.clear();
+							theyGive.clear();
+							weGive.insertAtEnd(item);
+							theyGive.insertAtEnd(item);
 							bOffered = true;
 							if (kPlayer.isHuman())
 							{
@@ -19176,15 +19175,15 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 									pDiplo = new CvDiploParameters(getID());
 									pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_DEAL"));
 									pDiplo->setAIContact(true);
-									pDiplo->setOurOfferList(theirList);
-									pDiplo->setTheirOfferList(ourList);
+									pDiplo->setOurOfferList(theyGive);
+									pDiplo->setTheirOfferList(weGive);
 									gDLL->beginDiplomacy(pDiplo, ePlayer);
 									abContacted[kPlayer.getTeam()] = true;
 								}
 							}
 							else
 							{
-								kGame.implementDeal(getID(), ePlayer, ourList, theirList);
+								kGame.implementDeal(getID(), ePlayer, weGive, theyGive);
 								GC.getAgents().allianceFormed(); // advc.agent
 								break; // move on to next player since we are on the same team now
 							}
@@ -19209,9 +19208,9 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 						TradeData item(TRADE_VASSAL);
 						if (canTradeItem(ePlayer, item, true))
 						{
-							ourList.clear();
-							theirList.clear();
-							ourList.insertAtEnd(item);
+							weGive.clear();
+							theyGive.clear();
+							weGive.insertAtEnd(item);
 							if (kPlayer.isHuman())
 							{
 								if (!abContacted[kPlayer.getTeam()])
@@ -19221,8 +19220,8 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 									pDiplo = new CvDiploParameters(getID());
 									pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_VASSAL"));
 									pDiplo->setAIContact(true);
-									pDiplo->setOurOfferList(theirList);
-									pDiplo->setTheirOfferList(ourList);
+									pDiplo->setOurOfferList(theyGive);
+									pDiplo->setTheirOfferList(weGive);
 									gDLL->beginDiplomacy(pDiplo, ePlayer);
 									abContacted[kPlayer.getTeam()] = true;
 								}
@@ -19254,7 +19253,7 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 									}
 								}
 								if(bAccepted)
-									kGame.implementDeal(getID(), ePlayer, ourList, theirList);
+									kGame.implementDeal(getID(), ePlayer, weGive, theyGive);
 							}
 						}
 					} // advc.112
@@ -19370,8 +19369,8 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 
 								if (eBestGiveTech != NO_TECH)
 								{
-									ourList.clear();
-									ourList.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eBestGiveTech));
+									weGive.clear();
+									weGive.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eBestGiveTech));
 									if(kPlayer.isHuman()) // advc.130z
 									{
 										if (!abContacted[kPlayer.getTeam()])
@@ -19381,12 +19380,12 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 											pDiplo = new CvDiploParameters(getID());
 											pDiplo->setDiploComment(GC.getAIDiploCommentType("GIVE_HELP"));
 											pDiplo->setAIContact(true);
-											pDiplo->setTheirOfferList(ourList);
+											pDiplo->setTheirOfferList(weGive);
 											gDLL->beginDiplomacy(pDiplo, ePlayer);
 											abContacted[kPlayer.getTeam()] = true;
 										} // <avdc.130z>
 									}
-									else kGame.implementDeal(getID(), ePlayer, ourList, theirList);
+									else kGame.implementDeal(getID(), ePlayer, weGive, theyGive);
 									// </advc.130z>
 								}
 							}
@@ -19458,10 +19457,10 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 					if (canTradeItem(ePlayer, item, true) &&
 						kPlayer.canTradeItem(getID(), item, true))
 					{
-						ourList.clear();
-						theirList.clear();
-						ourList.insertAtEnd(item);
-						theirList.insertAtEnd(item);
+						weGive.clear();
+						theyGive.clear();
+						weGive.insertAtEnd(item);
+						theyGive.insertAtEnd(item);
 						if (kPlayer.isHuman() && !abContacted[kPlayer.getTeam()])
 						{
 							AI_changeContactTimer(ePlayer, CONTACT_OPEN_BORDERS,
@@ -19469,12 +19468,12 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 							pDiplo = new CvDiploParameters(getID());
 							pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_DEAL"));
 							pDiplo->setAIContact(true);
-							pDiplo->setOurOfferList(theirList);
-							pDiplo->setTheirOfferList(ourList);
+							pDiplo->setOurOfferList(theyGive);
+							pDiplo->setTheirOfferList(weGive);
 							gDLL->beginDiplomacy(pDiplo, ePlayer);
 							abContacted[kPlayer.getTeam()] = true;
 						}
-						else kGame.implementDeal(getID(), ePlayer, ourList, theirList);
+						else kGame.implementDeal(getID(), ePlayer, weGive, theyGive);
 					}
 				}
 
@@ -19494,10 +19493,10 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 						if (canTradeItem(ePlayer, item, true) &&
 							kPlayer.canTradeItem(getID(), item, true))
 						{
-							ourList.clear();
-							theirList.clear();
-							ourList.insertAtEnd(item);
-							theirList.insertAtEnd(item);
+							weGive.clear();
+							theyGive.clear();
+							weGive.insertAtEnd(item);
+							theyGive.insertAtEnd(item);
 							if (kPlayer.isHuman())
 							{
 								if (!abContacted[kPlayer.getTeam()])
@@ -19507,13 +19506,13 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 									pDiplo = new CvDiploParameters(getID());
 									pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_DEAL"));
 									pDiplo->setAIContact(true);
-									pDiplo->setOurOfferList(theirList);
-									pDiplo->setTheirOfferList(ourList);
+									pDiplo->setOurOfferList(theyGive);
+									pDiplo->setTheirOfferList(weGive);
 									gDLL->beginDiplomacy(pDiplo, ePlayer);
 									abContacted[kPlayer.getTeam()] = true;
 								}
 							}
-							else kGame.implementDeal(getID(), ePlayer, ourList, theirList);
+							else kGame.implementDeal(getID(), ePlayer, weGive, theyGive);
 						}
 					}
 				}
@@ -19587,12 +19586,12 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 						{
 							TechTypes eBestGiveTech = NO_TECH;
 							// K-Mod
-							int iOurValue = kOurTeam.AI_techTradeVal(eBestReceiveTech, kPlayer.getTeam());
-							int iTheirValue = 0;
+							int iWeReceive = kOurTeam.AI_techTradeVal(eBestReceiveTech, kPlayer.getTeam());
+							int iTheyReceive = 0;
 							// K-Mod end
 							if (canPossiblyTradeItem(ePlayer, TRADE_TECHNOLOGIES))
 							{	// int iBestValue=0;
-								int iBestDelta = iOurValue; // K-Mod
+								int iBestDelta = iWeReceive; // K-Mod
 								FOR_EACH_ENUM(Tech)
 								{
 									if (canTradeItem(ePlayer, TradeData(
@@ -19604,12 +19603,12 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 										} */ // BtS
 										// K-Mod
 										int iValue = GET_TEAM(ePlayer).AI_techTradeVal(eLoopTech, getTeam());
-										int iDelta = std::abs(iOurValue - ((90 + kGame.getSorenRandNum(
+										int iDelta = std::abs(iWeReceive - ((90 + kGame.getSorenRandNum(
 												21, "AI Tech Trading #2")) * iValue) / 100);
 										if (iDelta < iBestDelta) // aim to trade values as close as possible
 										{
 											iBestDelta = iDelta;
-											iTheirValue = iValue;
+											iTheyReceive = iValue;
 											eBestGiveTech = eLoopTech;
 										} // K-Mod end
 									}
@@ -19618,29 +19617,31 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 
 							// (original bts code deleted)
 
-							ourList.clear();
-							theirList.clear();
+							weGive.clear();
+							theyGive.clear();
 							if (eBestGiveTech != NO_TECH)
-								ourList.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eBestGiveTech));
-							theirList.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eBestReceiveTech));
+								weGive.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eBestGiveTech));
+							theyGive.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eBestReceiveTech));
 
 							/*if (iGiveGold != 0) {
 								setTradeItem(&item, TRADE_GOLD, iGiveGold);
-								ourList.insertAtEnd(item);
+								weGive.insertAtEnd(item);
 							} if (iReceiveGold != 0) {
 								setTradeItem(&item, TRADE_GOLD, iReceiveGold);
-								theirList.insertAtEnd(item);
+								theyGivetheyGive.insertAtEnd(item);
 							}*/ // BtS
 							// K-Mod
 							/* bool bDeal = GET_PLAYER((PlayerTypes)iI).isHuman()
-								? 6*iOurValue > 5*iTheirValue && 3*iTheirValue > 2*iOurValue
-								: 3*iOurValue > 2*iTheirValue && 3*iTheirValue > 2*iOurValue; */
-							bool bDeal = 100 * iOurValue >= AI_tradeAcceptabilityThreshold(ePlayer) * iTheirValue &&
-									100 * iTheirValue >= kPlayer.AI_tradeAcceptabilityThreshold(getID()) * iOurValue;
+								? 6*iWeReceive > 5*iTheyReceive && 3*iTheyReceive > 2*iWeReceive
+								: 3*iWeReceive > 2*iTheyReceive && 3*iTheyReceive > 2*iWeReceive; */
+							bool bDeal = (100 * iWeReceive >=
+									AI_tradeAcceptabilityThreshold(ePlayer) * iTheyReceive &&
+									100 * iTheyReceive >=
+									kPlayer.AI_tradeAcceptabilityThreshold(getID()) * iWeReceive);
 							if (!bDeal &&
-								// <advc.550b> Unlikely to lead to an attractive offer
+								// <advc.550b>
 								(!kPlayer.isHuman() ||
-								2 * iTheirValue > iOurValue ||
+								2 * iTheyReceive > iWeReceive || // else not likely to lead to an attractive offer
 								fixp(0.36).bernoulliSuccess(kGame.getSRand(), "advc.550b")))
 								// </advc.550b>
 							{	// advc.opt: Pushed this down into CvPlayer::buildTradeTable and CvPlayerAI::AI_counterPropose
@@ -19649,13 +19650,13 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 								/*  Note: AI_counterPropose tends to favour the caller, which in this case is the other player.
 									ie. we asked for the trade, but they set the final terms. (unless the original deal is accepted) */
 								// advc: K-Mod code moved into new function
-								if(kPlayer.AI_counterPropose(getID(), ourList, theirList, true, true))
+								if(kPlayer.AI_counterPropose(getID(), weGive, theyGive, true, true))
 								{
 									bDeal = true;
 									// K-Mod note: the following log call will miss the second name if it is a non-standard name (for example, a human player name).
 									// This is a problem in the way the getName function is implimented. Unfortunately, the heart of the problem is in the signature of
 									// some of the dllexport functions - and so it can't easily be fixed.
-									if (gTeamLogLevel >= 2) logBBAI("    %S makes a deal with %S using AI_counterPropose. (%d : %d)", getName(0), kPlayer.getName(0), ourList.getLength(), theirList.getLength());
+									if (gTeamLogLevel >= 2) logBBAI("    %S makes a deal with %S using AI_counterPropose. (%d : %d)", getName(0), kPlayer.getName(0), weGive.getLength(), theyGive.getLength());
 								}
 							}
 							if (bDeal)
@@ -19670,15 +19671,15 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 										pDiplo = new CvDiploParameters(getID());
 										pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_DEAL"));
 										pDiplo->setAIContact(true);
-										pDiplo->setOurOfferList(theirList);
-										pDiplo->setTheirOfferList(ourList);
+										pDiplo->setOurOfferList(theyGive);
+										pDiplo->setTheirOfferList(weGive);
 										gDLL->beginDiplomacy(pDiplo, ePlayer);
 										abContacted[kPlayer.getTeam()] = true;
 									}
 								}
 								else
 								{
-									kGame.implementDeal(getID(), ePlayer, ourList, theirList);
+									kGame.implementDeal(getID(), ePlayer, weGive, theyGive);
 									// advc.550f: I.e. we're done trading tech
 									eBestProgressTech = NO_TECH;
 								}
@@ -19687,20 +19688,20 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 						// <advc.550f>
 						if(eBestProgressTech != NO_TECH && eBestProgressTech != eBestReceiveTech)
 						{
-							int iOurValue = kOurTeam.AI_techTradeVal(eBestProgressTech,
+							int iWeReceive = kOurTeam.AI_techTradeVal(eBestProgressTech,
 									kPlayer.getTeam());
-							int iPrice = (100 * iOurValue) / kPlayer.AI_goldTradeValuePercent();
+							int iPrice = (100 * iWeReceive) / kPlayer.AI_goldTradeValuePercent();
 							if(iPrice <= AI_maxGoldTrade(kPlayer.getID()))
 							{
 								TradeData item(TRADE_GOLD, iPrice);
 								if(canTradeItem(kPlayer.getID(), item))
 								{
-									ourList.clear();
-									ourList.insertAtEnd(item);
-									theirList.clear();
+									weGive.clear();
+									weGive.insertAtEnd(item);
+									theyGive.clear();
 									setTradeItem(&item, TRADE_TECHNOLOGIES, eBestProgressTech);
-									theirList.insertAtEnd(item);
-									kGame.implementDeal(getID(), ePlayer, ourList, theirList);
+									theyGive.insertAtEnd(item);
+									kGame.implementDeal(getID(), ePlayer, weGive, theyGive);
 								}
 							}
 						} // </advc.550f>
@@ -19726,19 +19727,19 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 					TradeData item(TRADE_MAPS);
 					if (kPlayer.canTradeItem(getID(), item, true) && canTradeItem(ePlayer, item, true))
 					{	// <advc.136b>
-						int const iValForThem = GET_TEAM(ePlayer).AI_mapTradeVal(getTeam());
+						int const iTheyReceive = GET_TEAM(ePlayer).AI_mapTradeVal(getTeam());
 						// Apply threshold also to AI b/c map trades slow down AI turns
 						if (//!kPlayer.isHuman() ||
-							(kOurTeam.AI_mapTradeVal(kPlayer.getTeam()) >= iValForThem &&
-							iValForThem > GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER)))
+							(kOurTeam.AI_mapTradeVal(kPlayer.getTeam()) >= iTheyReceive &&
+							iTheyReceive > GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER)))
 							// <advc.136b>
 						{
-							ourList.clear();
-							theirList.clear();
+							weGive.clear();
+							theyGive.clear();
 							setTradeItem(&item, TRADE_MAPS);
-							ourList.insertAtEnd(item);
+							weGive.insertAtEnd(item);
 							setTradeItem(&item, TRADE_MAPS);
-							theirList.insertAtEnd(item);
+							theyGive.insertAtEnd(item);
 
 							if (kPlayer.isHuman())
 							{
@@ -19749,13 +19750,13 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 									pDiplo = new CvDiploParameters(getID());
 									pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_DEAL"));
 									pDiplo->setAIContact(true);
-									pDiplo->setOurOfferList(theirList);
-									pDiplo->setTheirOfferList(ourList);
+									pDiplo->setOurOfferList(theyGive);
+									pDiplo->setTheirOfferList(weGive);
 									gDLL->beginDiplomacy(pDiplo, ePlayer);
 									abContacted[kPlayer.getTeam()] = true;
 								}
 							}
-							else kGame.implementDeal(getID(), ePlayer, ourList, theirList);
+							else kGame.implementDeal(getID(), ePlayer, weGive, theyGive);
 						}
 					}
 				}
@@ -20144,18 +20145,18 @@ void CvPlayerAI::AI_proposeWarTrade(PlayerTypes eHireling)
 
 	if (4 * iHirelingReceives > 3 * iWeReceive)
 	{
-		CLinkList<TradeData> ourList;
-		CLinkList<TradeData> theirList;
+		CLinkList<TradeData> weGive;
+		CLinkList<TradeData> theyGive;
 		if (eeBestGiveTech.first != NO_TECH)
-			ourList.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eeBestGiveTech.first));
+			weGive.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eeBestGiveTech.first));
 		if (eeBestGiveTech.second != NO_TECH)
-			ourList.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eeBestGiveTech.second));
-		theirList.insertAtEnd(TradeData(TRADE_WAR, eBestTarget));
+			weGive.insertAtEnd(TradeData(TRADE_TECHNOLOGIES, eeBestGiveTech.second));
+		theyGive.insertAtEnd(TradeData(TRADE_WAR, eBestTarget));
 		if (iGiveGold != 0)
-			ourList.insertAtEnd(TradeData(TRADE_GOLD, iGiveGold));
+			weGive.insertAtEnd(TradeData(TRADE_GOLD, iGiveGold));
 		if (iReceiveGold != 0)
-			theirList.insertAtEnd(TradeData(TRADE_GOLD, iReceiveGold));
-		kGame.implementDeal(getID(), eHireling, ourList, theirList);
+			theyGive.insertAtEnd(TradeData(TRADE_GOLD, iReceiveGold));
+		kGame.implementDeal(getID(), eHireling, weGive, theyGive);
 	}
 }
 
@@ -20310,17 +20311,17 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 			}
 		}
 	}
-	CLinkList<TradeData> ourList;
-	CLinkList<TradeData> theirList;
+	CLinkList<TradeData> weGive;
+	CLinkList<TradeData> theyGive;
 	/*if(eBestGiveBonus != NO_BONUS && (!kTo.isHuman() ||
 			AI_bonusTradeVal(eBestReceiveBonus, eTo, -1) >=
 			kTo.AI_bonusTradeVal(eBestGiveBonus, getID(), 1))) {
-		ourList.clear();
-		theirList.clear();
+		weGive.clear();
+		theyGive.clear();
 		setTradeItem(&item, TRADE_RESOURCES, eBestGiveBonus);
-		ourList.insertAtEnd(item);
+		weGive.insertAtEnd(item);
 		setTradeItem(&item, TRADE_RESOURCES, eBestReceiveBonus);
-		theirList.insertAtEnd(item);
+		theyGive.insertAtEnd(item);
 	}*/
 	/*  <advc.036> Replacing the above.
 		Rather than trying to trade eBestGiveBonus against eBestReceiveBonus,
@@ -20329,14 +20330,14 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 	bool bDeal = false;
 	if(eBestGiveBonus != NO_BONUS)
 	{
-		ourList.insertAtEnd(TradeData(TRADE_RESOURCES, eBestGiveBonus));
-		if(AI_counterPropose(eTo, theirList, ourList, true, false))
+		weGive.insertAtEnd(TradeData(TRADE_RESOURCES, eBestGiveBonus));
+		if(AI_counterPropose(eTo, theyGive, weGive, true, false))
 			bDeal = true;
 	}
 	if(!bDeal && eBestReceiveBonus != NO_BONUS)
 	{
-		theirList.insertAtEnd(TradeData(TRADE_RESOURCES, eBestReceiveBonus));
-		if(kTo.AI_counterPropose(getID(), ourList, theirList, true, false))
+		theyGive.insertAtEnd(TradeData(TRADE_RESOURCES, eBestReceiveBonus));
+		if(kTo.AI_counterPropose(getID(), weGive, theyGive, true, false))
 			bDeal = true;
 	}
 	if(!bDeal)
@@ -20349,12 +20350,12 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 		CvDiploParameters* pDiplo = new CvDiploParameters(getID());
 		pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_DEAL"));
 		pDiplo->setAIContact(true);
-		pDiplo->setOurOfferList(theirList);
-		pDiplo->setTheirOfferList(ourList);
+		pDiplo->setOurOfferList(theyGive);
+		pDiplo->setTheirOfferList(weGive);
 		gDLL->beginDiplomacy(pDiplo, eTo);
 		return true;
 	}
-	kGame.implementDeal(getID(), eTo, ourList, theirList);
+	kGame.implementDeal(getID(), eTo, weGive, theyGive);
 	return false; // Only true when a human was contacted
 } // </advc.133>
 
