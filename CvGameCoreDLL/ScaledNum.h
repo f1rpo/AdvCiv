@@ -378,6 +378,8 @@ public:
 	__forceinline bool isPositive() const { return (m_i > 0); }
 	__forceinline bool isNegative() const { return (bSIGNED && m_i < 0); }
 
+	__forceinline void flipSign() { *this = -(*this); }
+	__forceinline void flipFraction() { *this = 1 / *this; }
 	__forceinline ScaledNum operator-() const;
 
 	template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
