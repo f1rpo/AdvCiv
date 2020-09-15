@@ -17764,7 +17764,7 @@ void CvPlayerAI::AI_doCounter()  // advc: style changes
 			if (eMem == MEMORY_RECEIVED_TECH_FROM_ANY || eMem == MEMORY_TRADED_TECH_TO_US)
 				rProb = scaled(1, iDecayRand);
 			// Moderate game speed adjustment
-			rProb *= per100(GC.getInfo(kGame.getGameSpeedType()).getGoldenAgePercent());
+			rProb /= per100(GC.getInfo(kGame.getGameSpeedType()).getGoldenAgePercent());
 			// </advc.130r>
 			// <advc.144> No decay of MADE_DEMAND_RECENT while peace treaty
 			if (eMem == MEMORY_MADE_DEMAND_RECENT &&
