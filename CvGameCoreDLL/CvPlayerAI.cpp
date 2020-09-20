@@ -23230,9 +23230,9 @@ int CvPlayerAI::AI_getStrategyRand(int iShift) const
 	x >>= 1; // force positive;
 	FAssert(x <= MAX_INT);
 	return x;
-}
-// K-Mod end
-// <advc.115b>
+} // K-Mod end
+
+// advc.115b:
 bool CvPlayerAI::isCloseToReligiousVictory() const
 {
 	if(!AI_atVictoryStage(AI_VICTORY_DIPLOMACY3))
@@ -23241,7 +23241,8 @@ bool CvPlayerAI::isCloseToReligiousVictory() const
 	if(eVS == NO_VOTESOURCE)
 		return false;
 	return GC.getGame().getVoteSourceReligion(eVS) == getStateReligion();
-}// </advc.115b>
+}
+
 
 bool CvPlayerAI::AI_isDoStrategy(AIStrategy eStrategy, /* advc.007: */ bool bDebug) const
 {

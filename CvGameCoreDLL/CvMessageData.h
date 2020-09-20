@@ -6,7 +6,6 @@ class FDataStreamBase;
 class CvMessageData
 {
 public:
-	CvMessageData(GameMessageTypes eType);
 	virtual ~CvMessageData();
 	virtual void Debug(char* szAddendum) = 0;
 	virtual void Execute() = 0;
@@ -16,6 +15,9 @@ public:
 	DllExport GameMessageTypes getType() const;
 
 	DllExport static CvMessageData* createMessage(GameMessageTypes eType);
+
+protected: // advc
+	CvMessageData(GameMessageTypes eType);
 
 private:
 	GameMessageTypes m_eType;

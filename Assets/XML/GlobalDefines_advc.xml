@@ -351,8 +351,8 @@
     </Define>
 
 	<!-- [advc.125]
-		 A value of 1 or greater enables the culture-from-trade system that
-		 K-Mod has introduced; 0 disables it.
+		 A value of 1 enables the culture-from-trade system that K-Mod
+		 has introduced; 0 disables it.
 		 -1 or less doesn't disable it altogether: Culture from trade is
 		 ignored when the respective trade partner has 0 culture in the
 		 city, i.e. only civs who's culture is already present (due to

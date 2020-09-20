@@ -249,8 +249,12 @@ void CvPythonCaller::call(char const* szFunctionName, CyArgsList& kArgsList,
 	long& lResult, char const* szModuleName, bool bAssertSuccess,
 	bool bCheckExists) const
 {
-	// Not sure how expensive this check is; otherwise, I'd just always perform it.
-	if (bCheckExists && !m_python.moduleExists(szModuleName, false))
+	/*	Not sure how expensive this check is; otherwise, I'd just always perform it.
+		bLoadIfNecessary: Generally won't help I think, except after having run
+		into some error while reloading Python scripts. I doubt that
+		bLoadIfNecessary=true will take extra time when the module is found,
+		and, normally, it should always be found. So let's go with true. */
+	if (bCheckExists && !m_python.moduleExists(szModuleName, true))
 		m_bLastCallSuccessful = false;
 	else
 	{
@@ -263,7 +267,7 @@ void CvPythonCaller::call(char const* szFunctionName, CyArgsList& kArgsList,
 void CvPythonCaller::call(char const* szFunctionName, long& lResult,
 	char const* szModuleName, bool bAssertSuccess, bool bCheckExists) const
 {
-	if (bCheckExists && !m_python.moduleExists(szModuleName, false))
+	if (bCheckExists && !m_python.moduleExists(szModuleName, true))
 		m_bLastCallSuccessful = false;
 	else
 	{
@@ -276,7 +280,7 @@ void CvPythonCaller::call(char const* szFunctionName, long& lResult,
 void CvPythonCaller::call(char const* szFunctionName, CyArgsList& kArgsList,
 	char const* szModuleName, bool bAssertSuccess, bool bCheckExists) const
 {
-	if (bCheckExists && !m_python.moduleExists(szModuleName, false))
+	if (bCheckExists && !m_python.moduleExists(szModuleName, true))
 		m_bLastCallSuccessful = false;
 	else
 	{
@@ -289,7 +293,7 @@ void CvPythonCaller::call(char const* szFunctionName, CyArgsList& kArgsList,
 void CvPythonCaller::call(char const* szFunctionName,
 	char const* szModuleName, bool bAssertSuccess, bool bCheckExists) const
 {
-	if (bCheckExists && !m_python.moduleExists(szModuleName, false))
+	if (bCheckExists && !m_python.moduleExists(szModuleName, true))
 		m_bLastCallSuccessful = false;
 	else
 	{
@@ -1237,7 +1241,7 @@ CvWString CvPythonCaller::customMapOptionDescription(char const* szMapScriptName
 	CyArgsList argsList;
 	argsList.add(iOption);
 	argsList.add(eOptionValue);
-	if (!m_python.moduleExists(szMapScriptName, false))
+	if (!m_python.moduleExists(szMapScriptName, true))
 		m_bLastCallSuccessful = false;
 	else
 	{

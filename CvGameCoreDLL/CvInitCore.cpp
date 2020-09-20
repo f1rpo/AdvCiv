@@ -443,6 +443,11 @@ void CvInitCore::resetGame()
 	// Standard game options
 	m_abOptions.reset();
 	m_abMPOptions.reset();
+	m_abForceControls.reset();
+	m_iMaxCityElimination = 0;
+	m_iNumAdvancedStartPoints = 0;
+
+	// Misc
 	m_bStatReporting = false;
 
 	m_abForceControls.reset();
@@ -452,11 +457,6 @@ void CvInitCore::resetGame()
 	m_iMaxTurns = 0;
 	m_iPitbossTurnTime = 0;
 	m_iTargetScore = 0;
-
-	// City Elimination
-	m_iMaxCityElimination = 0;
-
-	m_iNumAdvancedStartPoints = 0;
 
 	// Unsaved game data
 	m_uiSyncRandSeed = 0;
@@ -521,6 +521,10 @@ void CvInitCore::resetGame(CvInitCore* pSource, bool bClear, bool bSaveGameType)
 	{
 		setMPOption(eLoopMPOption, pSource->getMPOption(eLoopMPOption));
 	}
+	setMaxCityElimination(pSource->getMaxCityElimination());
+	setNumAdvancedStartPoints(pSource->getNumAdvancedStartPoints());
+
+	// Misc
 	setStatReporting(pSource->getStatReporting());
 
 	// Game turn mgmt
@@ -528,11 +532,6 @@ void CvInitCore::resetGame(CvInitCore* pSource, bool bClear, bool bSaveGameType)
 	setMaxTurns(pSource->getMaxTurns());
 	setPitbossTurnTime(pSource->getPitbossTurnTime());
 	setTargetScore(pSource->getTargetScore());
-
-	// City Elimination
-	setMaxCityElimination(pSource->getMaxCityElimination());
-
-	setNumAdvancedStartPoints(pSource->getNumAdvancedStartPoints());
 
 	setSyncRandSeed(pSource->getSyncRandSeed());
 	setMapRandSeed(pSource->getMapRandSeed());
@@ -567,17 +566,18 @@ void CvInitCore::resetPlayer(PlayerTypes eID)
 	m_aszEmail[eID].clear();
 	m_aszSmtpHost[eID].clear();
 
-	m_abWhiteFlag.set(eID, false);
+	m_abWhiteFlag.reset(eID);
 	m_aszFlagDecal[eID].clear();
 
-	m_aeCiv.set(eID, NO_CIVILIZATION);
+	m_aeCiv.reset(eID);
 	m_aeLeader.set(eID, NO_LEADER);
 	m_aeTeam.set(eID, (TeamTypes)eID);
 	// <advc.003c> See comment in resetGame
 	m_aeHandicap.set(eID, GC.isCachingDone() ?
-			(HandicapTypes)GC.getDefineINT("STANDARD_HANDICAP") : NO_HANDICAP); // </advc.003c>
-	m_aeColor.set(eID, NO_PLAYERCOLOR);
-	m_aeArtStyle.set(eID, NO_ARTSTYLE);
+			(HandicapTypes)GC.getDefineINT("STANDARD_HANDICAP") : NO_HANDICAP);
+	// </advc.003c>
+	m_aeColor.reset(eID);
+	m_aeArtStyle.reset(eID);
 
 
 	// Slot data
@@ -585,12 +585,12 @@ void CvInitCore::resetPlayer(PlayerTypes eID)
 	m_aeSlotClaim[eID] = SLOTCLAIM_UNASSIGNED;
 
 	// Civ flags
-	m_abPlayableCiv.set(eID, false);
-	m_abMinorNationCiv.set(eID, false);
+	m_abPlayableCiv.reset(eID);
+	m_abMinorNationCiv.reset(eID);
 
 	// Unsaved player data
-	m_aiNetID.set(eID, -1);
-	m_abReady.set(eID, false);
+	m_aiNetID.reset(eID);
+	m_abReady.reset(eID);
 	m_aszPythonCheck[eID].clear();
 	m_aszXMLCheck[eID].clear();
 
@@ -1388,6 +1388,32 @@ void CvInitCore::setXMLCheck(PlayerTypes eID, CvString const& szXMLCheck)
 	FAssertBounds(0, MAX_PLAYERS, eID);
 	m_aszXMLCheck[eID] = szXMLCheck;
 }
+/*	<advc> Definitions of exported setters moved from the header.
+	Easier to track external calls in the debugger this way. */
+void CvInitCore::setGameName(CvWString const& szGameName)
+{
+	m_szGameName = szGameName;
+}
+
+void CvInitCore::setGamePassword(CvWString const& szGamePassword)
+{
+	m_szGamePassword = szGamePassword;
+}
+
+void CvInitCore::setPitbossTurnTime(int iPitbossTurnTime)
+{
+	m_iPitbossTurnTime = iPitbossTurnTime;
+}
+
+void CvInitCore::setSyncRandSeed(unsigned int uiSyncRandSeed)
+{
+	m_uiSyncRandSeed = uiSyncRandSeed;
+}
+
+void CvInitCore::setMapRandSeed(unsigned int uiMapRandSeed)
+{
+	m_uiMapRandSeed = uiMapRandSeed;
+} // </advc>
 
 void CvInitCore::setAdminPassword(CvWString const& szAdminPassword, bool bEncrypt)
 {

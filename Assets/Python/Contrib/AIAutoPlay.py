@@ -40,11 +40,12 @@ class AIAutoPlay :
 		self.customEM = customEM
 
 		self.customEM.addEventHandler( "kbdEvent", self.onKbdEvent )
-		self.customEM.addEventHandler( "EndGameTurn", self.onEndGameTurn )
+		# advc: Disable unused handler
+		#self.customEM.addEventHandler( "EndGameTurn", self.onEndGameTurn )
+		#self.customEM.addEventHandler( 'OnLoad', self.onGameLoad )
+		#self.customEM.addEventHandler( 'GameStart', self.onGameStart )
 		self.customEM.addEventHandler( 'BeginPlayerTurn', self.onBeginPlayerTurn )
 		self.customEM.addEventHandler( 'EndPlayerTurn', self.onEndPlayerTurn )
-		self.customEM.addEventHandler( 'OnLoad', self.onGameLoad )
-		self.customEM.addEventHandler( 'GameStart', self.onGameStart )
 		self.customEM.addEventHandler( 'victory', self.onVictory )
 		self.customEM.addEventHandler( 'AutoPlayComplete', self.onAutoPlayComplete ) # Erik (BM1)
 
@@ -75,11 +76,12 @@ class AIAutoPlay :
 		print "Removing event handlers from AIAutoPlay"
 		
 		self.customEM.removeEventHandler( "kbdEvent", self.onKbdEvent )
-		self.customEM.removeEventHandler( "EndGameTurn", self.onEndGameTurn )
+		# advc: Disable unused handlers
+		#self.customEM.removeEventHandler( "EndGameTurn", self.onEndGameTurn )
+		#self.customEM.removeEventHandler( 'OnLoad', self.onGameLoad )
+		#self.customEM.removeEventHandler( 'GameStart', self.onGameStart )
 		self.customEM.removeEventHandler( 'BeginPlayerTurn', self.onBeginPlayerTurn )
 		self.customEM.removeEventHandler( 'EndPlayerTurn', self.onEndPlayerTurn )
-		self.customEM.removeEventHandler( 'OnLoad', self.onGameLoad )
-		self.customEM.removeEventHandler( 'GameStart', self.onGameStart )
 		self.customEM.removeEventHandler( 'victory', self.onVictory )
 		self.customEM.addEventHandler( 'AutoPlayComplete', self.onAutoPlayComplete ) # Erik (BM1)
 
@@ -97,23 +99,22 @@ class AIAutoPlay :
 		# Dummy handler to take the second event for popup
 		return
 
+	# advc: Disable unused handlers
+	#def onGameStart( self, argsList ) :
+	#	self.onGameLoad([])
 
-	def onGameStart( self, argsList ) :
-		self.onGameLoad([])
+	#def onGameLoad( self, argsList ) :
+	#	# Init things which require a game object or other game data to exist
+	#	pass
 
-	def onGameLoad( self, argsList ) :
-		# Init things which require a game object or other game data to exist
-
-		pass
+	#def onEndGameTurn( self, argsList ) :
+	#	if( game.getAIAutoPlay() == 1 ) :
+	#		# About to turn off automation
+	#		pass
 
 	def onVictory( self, argsList ) :
 		self.checkPlayer()
 		game.setAIAutoPlay(0)
-		
-	def onEndGameTurn( self, argsList ) :
-		if( game.getAIAutoPlay() == 1 ) :
-			# About to turn off automation
-			pass
 
 	def pickHumanHandler( self, iPlayerID, netUserData, popupReturn ) :
 
@@ -288,13 +289,14 @@ class AIAutoPlay :
 		'City Built'
 		city = argsList[0]
 		#if (city.getOwner() == CyGame().getActivePlayer() and game.getAIAutoPlay() == 0 ):
-		if (game.getAIAutoPlay() == 0): # K-Mod. Some mods may use the event for other player's cities too.
-				self.customEM.onCityBuilt(argsList)
-		else :
-				try :
-					CvUtil.pyPrint('City Built Event: %s' %(city.getName()))
-				except :
-					CvUtil.pyPrint('City Built Event: Error processing city name' )
+		# K-Mod. Some mods may use the event for other player's cities too.
+		if (game.getAIAutoPlay() == 0):
+			self.customEM.onCityBuilt(argsList)
+		else:
+			try :
+				CvUtil.pyPrint('City Built Event: %s' %(city.getName()))
+			except :
+				CvUtil.pyPrint('City Built Event: Error processing city name' )
 
 
 	def toAIChooser( self ) :

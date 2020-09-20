@@ -4726,8 +4726,8 @@ void CvGame::changeCivTeamsEverAlive(int iChange)
 	FAssertBounds(0, MAX_CIV_TEAMS + 1, m_iCivTeamsEverAlive);
 } // </advc.opt>
 
-/*  K-mod, 6/dec/10, karadoc
-	18/dec/10 - added Gw calc functions */
+/*  K-mod, 6/dec/10:
+	(18/dec/10 - added Gw calc functions) */
 int CvGame::getGlobalWarmingIndex() const
 {
 	return m_iGlobalWarmingIndex;
@@ -4829,23 +4829,21 @@ int CvGame::calculateGwSustainabilityThreshold(PlayerTypes ePlayer) const
 
 int CvGame::calculateGwSeverityRating() const
 {
-	// Here are some of the properties I want from this function:
-	// - the severity should be a number between 0 and 100 (ie. a percentage value)
-	// - zero severity should mean zero global warming
-	// - the function should asymptote towards 100
-	//
-	// - It should be a function of the index divided by (total land area * game length).
-
-	// I recommend looking at the graph of this function to get a sense of how it works.
-
-	const long x = GC.getDefineINT("GLOBAL_WARMING_PROB") * getGlobalWarmingIndex() /
-			(std::max(1,4*GC.getInfo(getGameSpeedType()).getVictoryDelayPercent()*GC.getMap().getLandPlots()));
-	const long b = 70; // shape parameter. Lower values result in the function being steeper earlier.
-	return 100L - b*100L/(b+x*x);
-}
-/*
-** K-mod end
-*/
+	/*	Here are some of the properties I want from this function:
+		- the severity should be a number between 0 and 100 (ie. a percentage value)
+		- zero severity should mean zero global warming
+		- the function should asymptote towards 100
+		- It should be a function of the index divided by (total land area * game length).
+	I recommend looking at the graph of this function to get a sense of how it works. */
+	/*	advc: Was long, which is equivalent to int. Could use long long,
+		but it looks like 32 bit should suffice. */
+	int const x = GC.getDefineINT("GLOBAL_WARMING_PROB") * getGlobalWarmingIndex() /
+			std::max(1, GC.getMap().getLandPlots() * 4 *
+			GC.getInfo(getGameSpeedType()).getVictoryDelayPercent());
+	// shape parameter. Lower values result in the function being steeper earlier.
+	int const b = 70;
+	return 100 - (b * 100) / (b + SQR(x));
+} // K-Mod end
 
 unsigned int CvGame::getInitialTime()
 {
@@ -10926,8 +10924,9 @@ BuildingTypes CvGame::getVoteSourceBuilding(VoteSourceTypes eVS) const
 void CvGame::setScenario(bool b)
 {
 	m_bScenario = b;
-	/*  These two apparently check the same thing, but both call the EXE ultimately,
-		so one can't be certain what they check and how long it might take. */
+	/*  These two apparently check the same thing via the EXE,
+		probably by checking the ending of the map script name,
+		which is going to be somewhat slow. */
 	FAssert(m_bScenario == gDLL->isWBMapScript());
 	FAssert(m_bScenario == GC.getInitCore().getWBMapScript());
 }

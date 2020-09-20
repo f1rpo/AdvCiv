@@ -10798,7 +10798,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 		{
 			aiCommerces[e] = kBuilding.getCommerceChange(e);
 			aiCommerces[e] += kBuilding.getObsoleteSafeCommerceChange(e);
-			// K-Mod, 30/dec/10: added relgious building bonus info
+			// K-Mod, 30/dec/10: added religious building bonus info
 			if (ePlayer != NO_PLAYER &&
 				kBuilding.getReligionType() != NO_RELIGION &&
 				kBuilding.getReligionType() == pPlayer->getStateReligion())
@@ -13367,15 +13367,15 @@ void CvGameTextMgr::setAngerHelp(CvWStringBuffer &szBuffer, CvCity& city)
 		}
 		iOldAngerPercent = iNewAngerPercent;
 		iOldAnger = iNewAnger;
-/*
-** K-Mod, 30/dec/10, karadoc
-** Global warming unhappiness
-*/
-		// when I say 'percent' I mean 1/100. Unfortunately, people who made the rest of the game meant something else...
-		// so I have to multiply my GwPercentAnger by 10 to make it fit in.
-		iNewAngerPercent += std::max(0, GET_PLAYER(city.getOwner()).getGwPercentAnger()*10);
-		iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()));
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+		/*	K-Mod, 30/dec/10, Global warming unhappiness (start)
+			when I say 'percent' I mean 1/100. Unfortunately,
+			people who made the rest of the game meant something else...
+			so I have to multiply my GwPercentAnger by 10 to make it fit in. */
+		iNewAngerPercent += std::max(0,
+				GET_PLAYER(city.getOwner()).getGwPercentAnger() * 10);
+		iNewAnger += (iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()
+				-(iOldAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR();
+		iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_GLOBAL_WARMING", iAnger));
@@ -13383,10 +13383,7 @@ void CvGameTextMgr::setAngerHelp(CvWStringBuffer &szBuffer, CvCity& city)
 		}
 		iOldAngerPercent = iNewAngerPercent;
 		iOldAnger = iNewAnger;
-/*
-** K-Mod end
-*/
-
+		// K-Mod end
 		iNewAnger += std::max(0, city.getVassalUnhappiness());
 		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
 		if (iAnger > 0)
@@ -15166,7 +15163,11 @@ void CvGameTextMgr::buildHealthRateString(CvWStringBuffer &szBuffer, TechTypes e
 		{
 			szBuffer.append(NEWLINE);
 		}
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HEALTH_ALL_CITIES", abs(GC.getInfo(eTech).getHealth()), ((GC.getInfo(eTech).getHealth() > 0) ? gDLL->getSymbolID(HEALTHY_CHAR): gDLL->getSymbolID(UNHEALTHY_CHAR))));
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HEALTH_ALL_CITIES",
+				abs(GC.getInfo(eTech).getHealth()),
+				GC.getInfo(eTech).getHealth() > 0 ?
+				gDLL->getSymbolID(HEALTHY_CHAR) :
+				gDLL->getSymbolID(UNHEALTHY_CHAR)));
 	}
 }
 
@@ -18617,49 +18618,54 @@ void CvGameTextMgr::getCityBillboardProductionbarColors(CvCity* pCity, std::vect
 
 void CvGameTextMgr::setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer)
 {
-	if (NO_PLAYER != ePlayer)
-	{
-		CvPlayer& player = GET_PLAYER(ePlayer);
+	if (ePlayer == NO_PLAYER)
+		return;
 
-		int iPop = player.getPopScore();
-		int iMaxPop = GC.getGame().getMaxPopulation();
-		int iPopScore = 0;
-		if (iMaxPop > 0)
+	CvPlayer& kPlayer = GET_PLAYER(ePlayer);
+
+	int iPop = kPlayer.getPopScore();
+	int iMaxPop = GC.getGame().getMaxPopulation();
+	int iPopScore = 0;
+	if (iMaxPop > 0)
+		iPopScore = (GC.getDefineINT("SCORE_POPULATION_FACTOR") * iPop) / iMaxPop;
+	int iLand = kPlayer.getLandScore();
+	int iMaxLand = GC.getGame().getMaxLand();
+	int iLandScore = 0;
+	if (iMaxLand > 0)
+		iLandScore = (GC.getDefineINT("SCORE_LAND_FACTOR") * iLand) / iMaxLand;
+	int iTech = kPlayer.getTechScore();
+	int iMaxTech = GC.getGame().getMaxTech();
+	int iTechScore = 0;
+	if (iMaxTech > 0) // BETTER_BTS_AI_MOD, Bugfix, 02/24/10, jdog5000
+		iTechScore = (GC.getDefineINT("SCORE_TECH_FACTOR") * iTech) / iMaxTech;
+	int iWonders = kPlayer.getWondersScore();
+	int iMaxWonders = GC.getGame().getMaxWonders();
+	int iWondersScore = 0;
+	if (iMaxWonders > 0) // BETTER_BTS_AI_MOD, Bugfix, 02/24/10, jdog5000
+		iWondersScore = (GC.getDefineINT("SCORE_WONDER_FACTOR") * iWonders) / iMaxWonders;
+	int iTotalScore = iPopScore + iLandScore + iTechScore + iWondersScore;
+	int iVictoryScore = kPlayer.calculateScore(true, true);
+	// <advc.250c> Show leader name while in Advanced Start
+	if(GC.getGame().isInAdvancedStart())
+	{
+		szString.append(GC.getInfo(kPlayer.getLeaderType()).getText());
+		szString.append(L"\n");
+	} // </advc.250c>
+	if (iTotalScore == kPlayer.calculateScore())
+	{	// <advc.703> Advertise the Score Tab
+		if(GC.getGame().isOption(GAMEOPTION_RISE_FALL))
 		{
-			iPopScore = (GC.getDefineINT("SCORE_POPULATION_FACTOR") * iPop) / iMaxPop;
+			szString.append(gDLL->getText("TXT_KEY_RF_CIV_SCORE_BREAKDOWN",
+					iPopScore, iPop, iMaxPop, iLandScore, iLand, iMaxLand,
+					iTechScore, iTech, iMaxTech,
+					iWondersScore, iWonders, iMaxWonders, iTotalScore));
 		}
-		int iLand = player.getLandScore();
-		int iMaxLand = GC.getGame().getMaxLand();
-		int iLandScore = 0;
-		if (iMaxLand > 0)
+		else // </advc.703>
 		{
-			iLandScore = (GC.getDefineINT("SCORE_LAND_FACTOR") * iLand) / iMaxLand;
-		}
-		int iTech = player.getTechScore();
-		int iMaxTech = GC.getGame().getMaxTech();
-		int iTechScore = 0;
-		if (iMaxTech > 0) // BETTER_BTS_AI_MOD, Bugfix, 02/24/10, jdog5000
-			iTechScore = (GC.getDefineINT("SCORE_TECH_FACTOR") * iTech) / iMaxTech;
-		int iWonders = player.getWondersScore();
-		int iMaxWonders = GC.getGame().getMaxWonders();
-		int iWondersScore = 0;
-		if (iMaxWonders > 0) // BETTER_BTS_AI_MOD, Bugfix, 02/24/10, jdog5000
-			iWondersScore = (GC.getDefineINT("SCORE_WONDER_FACTOR") * iWonders) / iMaxWonders;
-		int iTotalScore = iPopScore + iLandScore + iTechScore + iWondersScore;
-		int iVictoryScore = player.calculateScore(true, true);
-		// <advc.250c> Show leader name while in Advanced Start
-		if(GC.getGame().isInAdvancedStart())
-		{
-			szString.append(GC.getInfo(GET_PLAYER(ePlayer).
-					getLeaderType()).getText());
-			szString.append(L"\n");
-		} // </advc.250c>
-		if (iTotalScore == player.calculateScore())
-		{	// <advc.703> Advertise the Score Tab
-			if(GC.getGame().isOption(GAMEOPTION_RISE_FALL))
-				szString.append(gDLL->getText("TXT_KEY_RF_CIV_SCORE_BREAKDOWN", iPopScore, iPop, iMaxPop, iLandScore, iLand, iMaxLand, iTechScore, iTech, iMaxTech, iWondersScore, iWonders, iMaxWonders, iTotalScore));
-			else // </advc.703>
-			szString.append(gDLL->getText("TXT_KEY_SCORE_BREAKDOWN", iPopScore, iPop, iMaxPop, iLandScore, iLand, iMaxLand, iTechScore, iTech, iMaxTech, iWondersScore, iWonders, iMaxWonders, iTotalScore, iVictoryScore));
+			szString.append(gDLL->getText("TXT_KEY_SCORE_BREAKDOWN",
+					iPopScore, iPop, iMaxPop, iLandScore, iLand, iMaxLand,
+					iTechScore, iTech, iMaxTech, iWondersScore,
+					iWonders, iMaxWonders, iTotalScore, iVictoryScore));
 		}
 	}
 }

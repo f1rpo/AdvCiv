@@ -97,22 +97,22 @@ public:
 	// add a number to all indexes
 	void addAll(T tValue);
 
-	// get the sum of all elements
-	int getTotal() const;
-	
+	// get the sum of all elements // advc.fract: return type was int
+	T getTotal() const;
+
 	// Check if there is non-default contents.
 	// isAllocated() test for a null pointer while hasContent() will loop the array to test each index for default value.
 	// Useful to avoid looping all 0 arrays and when creating savegames.
 	// Note: hasContent() can release memory if it doesn't alter what get() will return.
 	bool isAllocated() const;
 	bool hasContent() const;
-	
+
 	T getMin() const;
 	T getMax() const;
 
 	void keepMin(IndexType eIndex, T tValue);
 	void keepMax(IndexType eIndex, T tValue);
-	
+
 	// memory allocation and freeing
 	void reset();
 	void setAll(T tValue);
@@ -157,7 +157,7 @@ private: // advc (Maybe some of these should indeed be public, but probably not 
 private: // advc: Since these aren't implemented (yet), make them private.
 	// operator overload
 	EnumMapBase& operator=(const EnumMapBase &rhs);
-	
+
 	template<class T2, int DEFAULT2>
 	EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>&
 			operator=(const EnumMapBase<IndexType, T2, DEFAULT2, T_SUBSET, LengthType> &rhs);
@@ -171,7 +171,7 @@ private: // advc: Since these aren't implemented (yet), make them private.
 	bool operator==(const EnumMapBase<IndexType, T2, DEFAULT2, T_SUBSET, LengthType> &rhs) const;
 	template<class T2, int DEFAULT2>
 	bool operator!=(const EnumMapBase<IndexType, T2, DEFAULT2, T_SUBSET, LengthType> &rhs) const;
-	
+
 
 private:
 
@@ -487,8 +487,8 @@ private:
 			pStream->Read(&bTmp);
 			set(eIndex, bTmp);
 		} // </advc>
-	} 
-	
+	}
+
 	template<>
 	void _Write<ENUMMAP_SIZE_BOOL>(/* <advc> */ FDataStreamBase* pStream, bool bAsInt,
 		bool bAsFloat) const
@@ -593,7 +593,7 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 	FAssert(eIndex >= First() && eIndex < getLength());
 	if (!bINLINE && m_pArrayFull == NULL)
 	{
-		if (tValue == DEFAULT) 
+		if (tValue == DEFAULT)
 		{
 			return;
 		}
@@ -624,7 +624,7 @@ inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 		but tMultiplier==1 in 'multiply' seems far less likely than tValue==0 in 'add'. */
 	//if (tMultiplier != 1)
 	set(eIndex, tMultiplier * get(eIndex));
-} 
+}
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
@@ -665,8 +665,8 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: was inline
-int EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::getTotal() const
+// advc: was inline; advc.fract: return type was int
+T EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::getTotal() const
 {
 	// bINLINE is set at compile time and if true, isAllocated will always be true
 	// used here to tell the compiler that the true statement (not allocated) can be declared unreachable at compile time
@@ -675,13 +675,13 @@ int EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::getTotal() const
 		// no need to loop through unallocated memory
 		return DEFAULT * getLength();
 	}
-	int iReturnVal = 0;
+	T tReturnVal = 0;
 	const int iLength = getLength();
 	for (IndexType eIndex = First(); eIndex < iLength; ++eIndex)
 	{
-		iReturnVal += get(eIndex);
+		tReturnVal = tReturnVal + get(eIndex);
 	}
-	return iReturnVal;
+	return tReturnVal;
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>

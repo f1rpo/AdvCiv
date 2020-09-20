@@ -1803,8 +1803,10 @@ void CyEnumsPythonInterface()
 
 		.value("NUM_ACTIONSUBTYPES", NUM_ACTIONSUBTYPES)
 		;
-
-	python::enum_<GameMessageTypes>("GameMessageTypes")
+	/*	advc (commented out): I don't think Python can use these in a sensible way
+		given that CvMessageData isn't exposed to Python at all. 
+		Should instead use CyMessageControl for network stuff in Python. */
+	/*python::enum_<GameMessageTypes>("GameMessageTypes")
 		.value("GAMEMESSAGE_NETWORK_READY", GAMEMESSAGE_NETWORK_READY)
 		.value("GAMEMESSAGE_SAVE_GAME_FLAG", GAMEMESSAGE_SAVE_GAME_FLAG)
 		.value("GAMEMESSAGE_SAVE_FLAG_ACK", GAMEMESSAGE_SAVE_FLAG_ACK)
@@ -1900,10 +1902,8 @@ void CyEnumsPythonInterface()
 		.value("GAMEMESSAGE_ADVANCED_START_ACTION", GAMEMESSAGE_ADVANCED_START_ACTION)
 		.value("GAMEMESSAGE_FOUND_RELIGION", GAMEMESSAGE_FOUND_RELIGION)
 		.value("GAMEMESSAGE_MOD_NET_MESSAGE", GAMEMESSAGE_MOD_NET_MESSAGE)
-		// advc.011b: Not sure if anything breaks if I don't add this here
-		.value("GAMEMESSAGE_PUSH_MODIFIED_MISSION", GAMEMESSAGE_PUSH_MISSION)
-		.value("GAMEMESSAGE_PUSH_FP_TEST", GAMEMESSAGE_PUSH_MISSION) // advc.003g
-		;
+		// (advc: I've added enumerators, but I won't bother to include them here.)
+		;*/
 
 	python::enum_<PopupControlLayout>("PopupControlLayout")
 		.value("POPUP_LAYOUT_LEFT", POPUP_LAYOUT_LEFT)

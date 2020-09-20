@@ -1046,11 +1046,11 @@
 <!-- advc.savem -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_41</Tag>
-	<English>(experimental) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</English>
-	<French>(experimental) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</French>
-	<German>(experimentell) Mit [Shift + Alt + M] können Sie im laufenden Spiel die Weltkarte als Python-Skript exportieren, z.B. um mit anderen Spieloptionen von vorne anzufangen.</German>
-	<Italian>(experimental) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</Italian>
-	<Spanish>(experimental) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</Spanish>
+	<English>(Savemap) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</English>
+	<French>(Savemap) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</French>
+	<German>(Savemap) Mit [Shift + Alt + M] können Sie im laufenden Spiel die Weltkarte als Python-Skript exportieren, z.B. um mit anderen Spieloptionen von vorne anzufangen.</German>
+	<Italian>(Savemap) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</Italian>
+	<Spanish>(Savemap) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</Spanish>
 </TEXT>
 
 <TEXT>
