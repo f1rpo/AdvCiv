@@ -674,7 +674,9 @@
 	</TEXT>
 	<!-- Based on TXT_KEY_PEDIA_TRAITS in Civ4GameTextInfos.xml.
 		 Also used for advc.004g to replace
-		 TXT_KEY_MISC_HELP_FREE_CITY_COMMERCE. -->
+		 TXT_KEY_MISC_HELP_FREE_CITY_COMMERCE,
+		 TXT_KEY_MISC_GOOD_HEALTH_FROM_CIV,
+		 TXT_KEY_MISC_HEALTH_FROM_CIV. -->
 	<TEXT>
 		<Tag>TXT_KEY_FROM_TRAIT</Tag>
 		<English> from Traits</English>

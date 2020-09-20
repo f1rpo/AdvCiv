@@ -13083,9 +13083,10 @@ void CvGameTextMgr::setBadHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 	iHealth = -(GET_PLAYER(city.getOwner()).getExtraHealth());
 	if (iHealth > 0)
 	{
-		szBuffer.append(gDLL->getText(//"TXT_KEY_MISC_HEALTH_FROM_CIV",
-				"TXT_KEY_FROM_TRAIT", // advc.004
-				iHealth));
+		//szBuffer.append(gDLL->getText("TXT_KEY_MISC_HEALTH_FROM_CIV", iHealth));
+		// <advc.004g>
+		szBuffer.append(CvWString::format(L"%d%c ", iHealth, gDLL->getSymbolID(UNHEALTHY_CHAR)));
+		szBuffer.append(gDLL->getText("TXT_KEY_FROM_TRAIT")); // </advc.004g>
 		szBuffer.append(NEWLINE);
 	}
 
@@ -13191,7 +13192,10 @@ void CvGameTextMgr::setGoodHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 	iHealth = GET_PLAYER(city.getOwner()).getExtraHealth();
 	if (iHealth > 0)
 	{
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_GOOD_HEALTH_FROM_CIV", iHealth));
+		//szBuffer.append(gDLL->getText("TXT_KEY_MISC_GOOD_HEALTH_FROM_CIV", iHealth));
+		// <advc.004g>
+		szBuffer.append(CvWString::format(L"+%d%c ", iHealth, gDLL->getSymbolID(HEALTHY_CHAR)));
+		szBuffer.append(gDLL->getText("TXT_KEY_FROM_TRAIT")); // </advc.004g>
 		szBuffer.append(NEWLINE);
 	}
 
