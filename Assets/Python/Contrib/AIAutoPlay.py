@@ -190,8 +190,10 @@ class AIAutoPlay :
 			if gc.getPlayer(y).isAlive():
 				preceding = y
 				break
-		if preceding > disabledHuman: # If turn order wraps around
-			turnsLeftTarget = 1
+		if preceding > disabledHuman:
+			# This wrap-around check doesn't work correctly in network games; I guess b/c multiple players execute it.
+			if not game.isNetworkMultiPlayer():
+				turnsLeftTarget = 1
 		if turnsLeft <= turnsLeftTarget and iPlayer == preceding:
 			# </advc.127>
 			# About to turn off automation
