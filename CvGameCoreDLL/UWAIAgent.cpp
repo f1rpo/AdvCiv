@@ -1006,8 +1006,9 @@ bool UWAI::Team::considerConcludePreparations(TeamTypes targetId, int u,
 		int u0 = eval.evaluate(directWp);
 		report->log("Utility of immediate switch to direct war plan: %d", u0);
 		if(u0 > 0) {
-			double rand = GC.getGame().getSorenRandNum(100000, "advc.104")
-					/ 100000.0;
+			double rand = GC.getGame().getSRand().get(MAX_UNSIGNED_SHORT,
+					// (CvRandom::getFloat doesn't allow a szLog param)
+					"conclude war prep") / (double)MAX_UNSIGNED_SHORT;
 			/*  The more time remains, the longer we'd still have to wait in order
 				to get utility u. Therefore low thresh if high timeRemaining.
 				Example: 10 turns remaining, u=80: thresh between 32 and 80.

@@ -179,10 +179,11 @@ public:
 	}
 
 	// Result in the half-open interval [0, 1)
-	static ScaledNum rand(CvRandom& kRand, TCHAR const* pszLog)
+	static ScaledNum rand(CvRandom& kRand, TCHAR const* szLog)
 	{
+		BOOST_STATIC_ASSERT(SCALE <= MAX_UNSIGNED_SHORT);
 		ScaledNum r;
-		r.m_i = static_cast<IntType>(kRand.get(static_cast<uint>(iSCALE), pszLog));
+		r.m_i = static_cast<IntType>(kRand.get(static_cast<unsigned short>(iSCALE), szLog));
 		return r;
 	}
 	/*	See intHash (CvGameCoreUtils.h) about the parameters.
@@ -880,11 +881,10 @@ bool ScaledNum_T::bernoulliSuccess(CvRandom& kRand, char const* szLog,
 		return false;
 	if (m_i >= SCALE)
 		return true;
-	BOOST_STATIC_ASSERT(iSCALE <= USHRT_MAX);
+	BOOST_STATIC_ASSERT(SCALE <= USHRT_MAX);
 	/*	When porting ScaledNum to another mod, you may want to use:
 		return (kRand.get(static_cast<unsigned short>(SCALE), szLog) < m_i); */
-	return (kRand.getInt(static_cast<unsigned short>(SCALE),
-			szLog, iLogData1, iLogData2) < m_i);
+	return (kRand.getInt(SCALE, szLog, iLogData1, iLogData2) < m_i);
 }
 
 template<ScaledNum_PARAMS>

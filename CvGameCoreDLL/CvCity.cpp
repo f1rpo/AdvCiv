@@ -10886,6 +10886,10 @@ void CvCity::doGreatPeople()
 		{
 			iTotalGreatPeopleUnitProgress += getGreatPeopleUnitProgress(kCiv.unitAt(i));
 		}
+		// <advc> Should only happen in old savegames (due to a bug in AdvCiv 0.97)
+		bool const bOverflow = (iTotalGreatPeopleUnitProgress > CvRandom::getRange());
+		if (bOverflow)
+			iTotalGreatPeopleUnitProgress = scaled(iTotalGreatPeopleUnitProgress, 100).ceil(); // </advc>
 
 		int iGreatPeopleUnitRand = GC.getGame().getSorenRandNum(
 				iTotalGreatPeopleUnitProgress, "Great Person");
@@ -10894,12 +10898,16 @@ void CvCity::doGreatPeople()
 		for (int i = 0; i < kCiv.getNumUnits(); i++)
 		{
 			UnitTypes eLoopGP = kCiv.unitAt(i);
-			if (iGreatPeopleUnitRand < getGreatPeopleUnitProgress(eLoopGP))
+			int iLoopProgress = getGreatPeopleUnitProgress(eLoopGP);
+			// <advc> (see above)
+			if (bOverflow)
+				iLoopProgress = scaled(iLoopProgress, 100).ceil(); // </advc>
+			if (iGreatPeopleUnitRand < iLoopProgress)
 			{
 				eGreatPeopleUnit = eLoopGP;
 				break;
 			}
-			else iGreatPeopleUnitRand -= getGreatPeopleUnitProgress(eLoopGP);
+			iGreatPeopleUnitRand -= iLoopProgress;
 		}
 
 		if (eGreatPeopleUnit != NO_UNIT)

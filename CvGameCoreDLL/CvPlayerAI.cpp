@@ -23205,14 +23205,19 @@ void CvPlayerAI::AI_updateVictoryStageHash()
 // K-Mod, based on BBAI
 void CvPlayerAI::AI_initStrategyRand()
 {
-	const unsigned iBits = 24;
-	m_iStrategyRand = GC.getGame().getSorenRandNum((1<<(iBits+1))-1, "AI Strategy Rand");
+	//const unsigned iBits = 24;
+	// advc.001: CvRandom uses unsigned short. We probably don't want to exceed that.
+	unsigned short const iBits = 12;
+	m_iStrategyRand = GC.getGame().getSorenRandNum((1 << (iBits + 1)) - 1,
+			"AI Strategy Rand");
 }
 
 
 int CvPlayerAI::AI_getStrategyRand(int iShift) const
 {
 	const unsigned iBits = 24; // cf bits in AI_initStrategyRand
+	/*	^advc (note): I don't suppose it's important for this
+		to correspond to AI_initStrategyRand */
 
 	iShift += getCurrentEra();
 	while (iShift < 0)
