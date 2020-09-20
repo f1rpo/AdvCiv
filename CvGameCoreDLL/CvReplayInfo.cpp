@@ -289,7 +289,7 @@ void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer)
 			(getClimate() == 0 ? L"" : (L", " +
 			gDLL->getText("TXT_KEY_SETTINGS_CLIMATE",
 			GC.getInfo(getClimate()).getTextKeyWide())));
-	// <advc.004>
+	// <advc.190b>
 	CvMap const& kMap = GC.getMap();
 	for(int i = 0; i < kMap.getNumCustomMapOptions(); i++)
 	{
@@ -298,7 +298,7 @@ void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer)
 			continue;
 		szSettings.append(L", ");
 		szSettings.append(szDesc);
-	} // </advc.004>
+	} // </advc.190b>
 	szSettings.append(NEWLINE);
 	szSettings.append(gDLL->getText("TXT_KEY_SETTINGS_GAME_SPEED",
 			GC.getInfo(getGameSpeed()).getTextKeyWide()));

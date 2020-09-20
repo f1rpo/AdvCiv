@@ -16,7 +16,7 @@ public:
 	/*	Returns a value from the half-open interval [0, iNum).
 		advc.006: iNum taken as an int but needs to be in [0, 65535].
 		Will return 0 for iNum=0 (and also for iNum=1). */
-	DllExport inline unsigned short get(int iNum, TCHAR const* szLog = NULL,
+	inline unsigned short get(int iNum, TCHAR const* szLog = NULL,
 			int iData1 = MIN_INT, int iData2 = MIN_INT)
 	{	// <advc.001n>
 		return getInt(iNum, szLog, MIN_INT);
@@ -33,6 +33,8 @@ public:
 	}
 	static inline int getRange() { return MAX_UNSIGNED_SHORT; } // Client code may want to check
 	// </advc.006>
+	// advc.190c: Exported through .def file
+	unsigned short getExternal(unsigned short usNum, TCHAR const* szLog = NULL);
 	DllExport float getFloat();
 
 	void reseed(unsigned long ulNewValue);

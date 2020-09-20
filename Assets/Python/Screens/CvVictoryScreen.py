@@ -937,12 +937,45 @@ class CvVictoryScreen:
 #			failedHOFChecks = True
 #			showHOFSettingChecks = False
 #			screen.appendListBoxStringNoUpdate(szSettingsTable, self.BuffyWarningMac, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-				
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_LEADER_CIV_DESCRIPTION", (activePlayer.getNameKey(), activePlayer.getCivilizationShortDescriptionKey())), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, u"     (" + CyGameTextMgr().parseLeaderTraits(activePlayer.getLeaderType(), activePlayer.getCivilizationType(), True, False) + ")", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-		screen.appendListBoxStringNoUpdate(szSettingsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		g = gc.getGame() # advc
 		m = gc.getMap() # advc
+		# <advc.190c>
+		bCivLeaderSetupKnown = g.isCivLeaderSetupKnown()
+		bScenario = g.isScenario()
+		bAllRandom = False
+		bNoneRandom = False
+		bActiveCivRandom = False
+		bActiveLeaderRandom = False
+		if bCivLeaderSetupKnown:
+			bAllRandom = True
+			bNoneRandom = True
+			for iLoopPlayer in range(gc.getMAX_CIV_PLAYERS()):
+				p = gc.getPlayer(iLoopPlayer)
+				if not p.isEverAlive() or p.isMinorCiv():
+					continue
+				if p.wasCivRandomlyChosen() or p.wasLeaderRandomlyChosen():
+					bNoneRandom = False
+				if not p.wasCivRandomlyChosen() or not p.wasLeaderRandomlyChosen():
+					bAllRandom = False
+		if bCivLeaderSetupKnown and not bAllRandom and not bNoneRandom:
+			szActivePlayerChoice = u"     "
+			bActiveCivRandom = activePlayer.wasCivRandomlyChosen()
+			bActiveLeaderRandom = activePlayer.wasLeaderRandomlyChosen()
+			szCivDesc = activePlayer.getCivilizationShortDescriptionKey()
+			if bActiveCivRandom and bActiveLeaderRandom:
+				szActivePlayerChoice += localText.getText("TXT_KEY_RANDOMLY_CHOSEN", ())
+			elif bActiveCivRandom: # Can only happen with unrestricted leaders
+				szActivePlayerChoice += localText.getText("TXT_KEY_RANDOM_CIV", (szCivDesc,))
+			elif bActiveLeaderRandom:
+				szActivePlayerChoice += localText.getText("TXT_KEY_RANDOM_LEADER", (szCivDesc,))
+			else:
+				szActivePlayerChoice += localText.getText("TXT_KEY_MANUALLY_CHOSEN", ())
+			screen.appendListBoxStringNoUpdate(szSettingsTable, szActivePlayerChoice, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# </advc.190c>
+		screen.appendListBoxStringNoUpdate(szSettingsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		
 		#screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_DIFFICULTY", (gc.getHandicapInfo(activePlayer.getHandicapType()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		# K-Mod. In multiplayer games, show both the game difficulty and the player difficulty
 		if activePlayer.getHandicapType() == g.getHandicapType():
@@ -958,15 +991,25 @@ class CvVictoryScreen:
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_MAP_SIZE", (gc.getWorldInfo(m.getWorldSize()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_CLIMATE", (gc.getClimateInfo(m.getClimate()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (gc.getSeaLevelInfo(m.getSeaLevel()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-		# <advc.004>
+		# <advc.190b>
 		for i in range(m.getNumCustomMapOptions()):
 			# Don't know how to call map script functions in Python, so I've implemented that in the DLL.
 			szDesc = m.getNonDefaultCustomMapOptionDesc(i)
 			if len(szDesc) <= 0: # Meaning that the option is set to its default value
 				continue
-			screen.appendListBoxStringNoUpdate(szSettingsTable, szDesc, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.appendListBoxStringNoUpdate(szSettingsTable, str(g.countCivPlayersEverAlive()) + " " + localText.getText("TXT_KEY_MAIN_MENU_PLAYERS", ()), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		# </advc.004>
+			screen.appendListBoxStringNoUpdate(szSettingsTable, szDesc, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY) # </advc.190b>
+		# <advc.190c>
+		szPlayerCountText = str(g.countCivPlayersEverAlive()) + " " + localText.getText("TXT_KEY_MAIN_MENU_PLAYERS", ())
+		if bAllRandom:
+			szPlayerCountText += " ("
+			szPlayerCountText += localText.getText("TXT_KEY_ALL_AT_RANDOM", ())
+			szPlayerCountText += ")"
+		elif bNoneRandom and not bScenario:
+			szPlayerCountText += " ("
+			szPlayerCountText += localText.getText("TXT_KEY_NONE_AT_RANDOM", ())
+			szPlayerCountText += ")"
+		screen.appendListBoxStringNoUpdate(szSettingsTable, szPlayerCountText, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# </advc.190c>
 		screen.appendListBoxStringNoUpdate(szSettingsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_STARTING_ERA", (gc.getEraInfo(g.getStartEra()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		# <advc.251>
@@ -976,7 +1019,7 @@ class CvVictoryScreen:
 			screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_START_TURN", (iStartTurn, szTurnDate)), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		# </advc.251>
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_GAME_SPEED", (gc.getGameSpeedInfo(g.getGameSpeedType()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-		# advc.106i
+		# advc.190a:
 		screen.appendListBoxStringNoUpdate(szSettingsTable, BugPath.getModName() + " Mod", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 
 		screen.updateListBox(szSettingsTable)
@@ -1010,11 +1053,11 @@ class CvVictoryScreen:
 						szDescr += " " + str(iBarbarianStartTurn) + ")"
 				# </advc.300>
 				screen.appendListBoxStringNoUpdate(szOptionsTable, szDescr, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		# <advc.004> Disabled victory conditions. Some overlap with CvReplayInfo::addSettingsMsg
+		# <advc.190a> Disabled victory conditions. Some overlap with CvReplayInfo::addSettingsMsg
 		for i in range(gc.getNumVictoryInfos()):
 			if not g.isVictoryValid(i):
 				screen.appendListBoxStringNoUpdate(szOptionsTable, gc.getVictoryInfo(i).getDescription() + " " + localText.getText("TXT_KEY_VICTORY_DISABLED",()), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		# </advc.004>
+		# </advc.190a>
 
 		# <advc.104> AI settings
 		bLegacyAI = g.useKModAI()
@@ -1062,18 +1105,63 @@ class CvVictoryScreen:
 		screen.updateListBox(szOptionsTable)
 
 		szCivsPanel = self.getNextWidgetName()
-		screen.addPanel(szCivsPanel, localText.getText("TXT_KEY_RIVALS_MET", ()).upper(), "", True, True, self.SETTINGS_PANEL_X3, self.SETTINGS_PANEL_Y - 10, self.SETTINGS_PANEL_WIDTH, self.SETTINGS_PANEL_HEIGHT, PanelStyles.PANEL_STYLE_MAIN)
+		# <advc.190c>
+		# "Rivals" is misleading: teammates and vassals aren't excluded. (The active player is excluded, but also hasn't "met" itself except in a technical sense.)
+		szRivalsHeadingTag = "TXT_KEY_PLAYERS_MET" #"TXT_KEY_RIVALS_MET"
+		if bCivLeaderSetupKnown:
+			szRivalsHeadingTag = "TXT_KEY_OTHER_PLAYERS" # </advc.190c>
+		screen.addPanel(szCivsPanel, localText.getText(szRivalsHeadingTag, ()).upper(), "", True, True, self.SETTINGS_PANEL_X3, self.SETTINGS_PANEL_Y - 10, self.SETTINGS_PANEL_WIDTH, self.SETTINGS_PANEL_HEIGHT, PanelStyles.PANEL_STYLE_MAIN)
 
 		szCivsTable = self.getNextWidgetName()
 		screen.addListBoxGFC(szCivsTable, "", self.SETTINGS_PANEL_X3 + self.MARGIN, self.SETTINGS_PANEL_Y + self.MARGIN, self.SETTINGS_PANEL_WIDTH - 2*self.MARGIN, self.SETTINGS_PANEL_HEIGHT - 2*self.MARGIN, TableStyles.TABLE_STYLE_EMPTY)
 		screen.enableSelect(szCivsTable, False)
-
-		for iLoopPlayer in range(gc.getMAX_CIV_PLAYERS()):
-			player = gc.getPlayer(iLoopPlayer)
-			if (player.isEverAlive() and iLoopPlayer != self.iActivePlayer and (gc.getTeam(player.getTeam()).isHasMet(activePlayer.getTeam()) or g.isDebugMode()) and not player.isBarbarian() and not player.isMinorCiv()):
-				screen.appendListBoxStringNoUpdate(szCivsTable, localText.getText("TXT_KEY_LEADER_CIV_DESCRIPTION", (player.getNameKey(), player.getCivilizationShortDescriptionKey())), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-				screen.appendListBoxStringNoUpdate(szCivsTable, u"     (" + CyGameTextMgr().parseLeaderTraits(player.getLeaderType(), player.getCivilizationType(), True, False) + ")", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-				screen.appendListBoxStringNoUpdate(szCivsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		# <advc.190c>
+		rivalsMet = []
+		knownRivalsNotMet = []
+		iUnknownRivals = 0
+		for i in range(gc.getMAX_CIV_PLAYERS()):
+			p = gc.getPlayer(i)
+			# No functional change here
+			if not p.isEverAlive() or p.getID() == activePlayer.getID() or p.isMinorCiv():
+				continue
+			if gc.getTeam(p.getTeam()).isHasMet(activePlayer.getTeam()):
+				rivalsMet.append(p)
+			elif bCivLeaderSetupKnown:
+				if p.wasCivRandomlyChosen() and p.wasLeaderRandomlyChosen() and not g.isDebugMode():
+					iUnknownRivals += 1
+				else:
+					knownRivalsNotMet.append(p)
+		for p in rivalsMet: # </advc.190c>
+			screen.appendListBoxStringNoUpdate(szCivsTable, localText.getText("TXT_KEY_LEADER_CIV_DESCRIPTION", (p.getNameKey(), p.getCivilizationShortDescriptionKey())), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.appendListBoxStringNoUpdate(szCivsTable, u"     (" + CyGameTextMgr().parseLeaderTraits(p.getLeaderType(), p.getCivilizationType(), True, False) + ")", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.appendListBoxStringNoUpdate(szCivsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# <advc.190c>
+		for p in knownRivalsNotMet:
+			# Don't call CvPlayer functions here. Use XML data b/c that's what appears during game setup.
+			szLeader = gc.getLeaderHeadInfo(p.getLeaderType()).getDescription()
+			szCiv = gc.getCivilizationInfo(p.getCivilizationType()).getShortDescription(0)
+			szRivalInfo = localText.getText("TXT_KEY_RIVAL_NOT_MET", ())
+			szRivalInfo += ": "
+			if (not p.wasCivRandomlyChosen() and not p.wasLeaderRandomlyChosen()) or g.isDebugMode():
+				szRivalInfo += localText.getText("TXT_KEY_LEADER_CIV_DESCRIPTION", (szLeader, szCiv))
+			elif not p.wasCivRandomlyChosen():
+				szRivalInfo += szCiv
+			else:
+				szRivalInfo += szLeader
+			screen.appendListBoxStringNoUpdate(szCivsTable, szRivalInfo, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			if not p.wasLeaderRandomlyChosen():
+				# (Not relevant for the trait string, but let's pass a proper argument anyway.)
+				eCiv = CivilizationTypes.NO_CIVILIZATION
+				if not p.wasCivRandomlyChosen():
+					eCiv = p.getCivilizationType()
+				screen.appendListBoxStringNoUpdate(szCivsTable, u"     (" + CyGameTextMgr().parseLeaderTraits(p.getLeaderType(), eCiv, True, False) + ")", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.appendListBoxStringNoUpdate(szCivsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY) # newline
+		if iUnknownRivals > 0:
+			szUnknown = localText.getText("TXT_KEY_UNKNOWN_RIVALS", (iUnknownRivals,))
+			if iUnknownRivals == 1:
+				szUnknown = localText.getText("TXT_KEY_ONE_UNKNOWN_RIVAL", ())
+			screen.appendListBoxStringNoUpdate(szCivsTable, szUnknown, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		# </advc.190c>
 
 		screen.updateListBox(szCivsTable)
 

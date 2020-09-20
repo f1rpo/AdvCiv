@@ -400,7 +400,7 @@ public: // advc: made several functions const
 
 	int getNumCustomMapOptions() const;
 	CustomMapOptionTypes getCustomMapOption(int iOption) const;											// Exposed to Python
-	CvWString getNonDefaultCustomMapOptionDesc(int iOption) const; // advc.004 (exposed to Python)
+	CvWString getNonDefaultCustomMapOptionDesc(int iOption) const; // advc.190b (exposed to Python)
 
 	int getNumBonuses(BonusTypes eIndex) const;																	// Exposed to Python
 	void changeNumBonuses(BonusTypes eIndex, int iChange);

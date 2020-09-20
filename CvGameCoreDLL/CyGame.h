@@ -302,6 +302,8 @@ public:
 	bool isRFInterlude();
 	bool isRFBlockPopups(); // </advc.706>
 	void reportCurrentLayer(int iLayer); // advc.004m
+	bool isCivLeaderSetupKnown(); // advc.190c
+	bool isScenario(); // advc.052
 
 protected:
 	CvGame& m_kGame; // advc: was pointer

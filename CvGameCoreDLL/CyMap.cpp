@@ -168,7 +168,7 @@ CustomMapOptionTypes CyMap::getCustomMapOption(int iOption)
 {
 	return m_kMap.getCustomMapOption(iOption);
 }
-// advc.004:
+// advc.190b:
 std::wstring CyMap::getNonDefaultCustomMapOptionDesc(int iOption)
 {
 	return m_kMap.getNonDefaultCustomMapOptionDesc(iOption);

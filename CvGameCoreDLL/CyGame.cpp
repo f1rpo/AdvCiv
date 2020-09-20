@@ -1194,3 +1194,13 @@ void CyGame::reportCurrentLayer(int iLayer)
 {
 	m_kGame.reportCurrentLayer((GlobeLayerTypes)iLayer);
 }
+// advc.190c:
+bool CyGame::isCivLeaderSetupKnown()
+{
+	return GC.getInitCore().isCivLeaderSetupKnown();
+}
+// advc.052:
+bool CyGame::isScenario()
+{
+	return m_kGame.isScenario();
+}

@@ -219,8 +219,13 @@ public:
 	DllExport void setCiv(PlayerTypes eID, CivilizationTypes eCiv);
 
 	DllExport LeaderHeadTypes getLeader(PlayerTypes eID) const { return m_aeLeader.get(eID); }
-	DllExport void setLeader(PlayerTypes eID, LeaderHeadTypes eLeader);
-
+	void setLeader(PlayerTypes eID, LeaderHeadTypes eLeader);
+	// advc.191: (exported through .def file)
+	void setLeaderExternal(PlayerTypes eID, LeaderHeadTypes eLeader);
+	// // <advc.190c> (all exposed to Python via CvPlayer, CvGame)
+	bool wasCivRandomlyChosen(PlayerTypes eID) const;
+	bool wasLeaderRandomlyChosen(PlayerTypes eID) const;
+	bool isCivLeaderSetupKnown() const { return m_bCivLeaderSetupKnown; } // </advc.190c>
 	DllExport TeamTypes getTeam(PlayerTypes eID) const { return m_aeTeam.get(eID); }
 	DllExport void setTeam(PlayerTypes eID, TeamTypes eTeam);
 
@@ -261,6 +266,8 @@ public:
 	DllExport void setXMLCheck(PlayerTypes eID, const CvString& iXMLCheck);
 
 	DllExport void resetAdvancedStartPoints();
+
+	void externalRNGCall(int iUpper, CvRandom const* pRandom); // advc.190c
 
 protected:
 	/* advc.003k (caveat): It's not safe to add data members to this class
@@ -356,6 +363,10 @@ protected:
 	EnumMap<PlayerTypes,HandicapTypes> m_aeHandicap;
 	EnumMap<PlayerTypes,PlayerColorTypes> m_aeColor;
 	EnumMap<PlayerTypes,ArtStyleTypes> m_aeArtStyle;
+	// <advc.190c>
+	EnumMap<PlayerTypes,bool> m_abCivChosenRandomly;
+	EnumMap<PlayerTypes,bool> m_abLeaderChosenRandomly;
+	bool m_bCivLeaderSetupKnown; // </advc.190c>
 
 	// Slot data
 	SlotStatus* m_aeSlotStatus;
@@ -373,6 +384,8 @@ protected:
 	CvString* m_aszXMLCheck;
 	mutable CvString m_szTempCheck;
 
+	void reRandomizeCivsAndLeaders(); // advc.191
+
 	void clearCustomMapOptions();
 	void refreshCustomMapOptions();
 	void updatePangaea(); // advc
@@ -383,8 +396,10 @@ protected:
 
 // Would increase the size of m_abMPOptions to 8 byte
 BOOST_STATIC_ASSERT(NUM_MPOPTION_TYPES <= 32 && NUM_FORCECONTROL_TYPES <= 32);
-/*  advc.003k: Probably OK to increase the size of CvInitCore. Just make sure that
-	new data members are added in the right place. */
-BOOST_STATIC_ASSERT(sizeof(CvInitCore) == (MAX_CIV_PLAYERS <= 32 || MAX_CIV_PLAYERS > 64 ? 404 : 420));
+/*  advc.003k: OK to increase the size of CvInitCore (and to update or remove this
+	assertion). Just make sure that new data members are added in the right place. */
+BOOST_STATIC_ASSERT(sizeof(CvInitCore) ==
+		// EnumMap<PlayerTypes,bool> has size 8 then
+		(MAX_CIV_PLAYERS > 32 && MAX_CIV_PLAYERS <= 64 ? 440 : 416)); 
 
 #endif

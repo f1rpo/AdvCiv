@@ -63,7 +63,10 @@ void CyPlayerPythonInterface2(python::class_<CyPlayer>& x)
 		.def("AI_corporationBonusVal", &CyPlayer::AI_corporationBonusVal, "int (int)")
 		// <advc.085>
 		.def("setScoreboardExpanded", &CyPlayer::setScoreboardExpanded, "void (bool)")
-		.def("isScoreboardExpanded", &CyPlayer::isScoreboardExpanded, "bool (void)")
-		// </advc.085>
+		.def("isScoreboardExpanded", &CyPlayer::isScoreboardExpanded, "bool ()")
+		// </advc.085> <advc.190c>
+		.def("wasCivRandomlyChosen", &CyPlayer::wasCivRandomlyChosen, "bool ()")
+		.def("wasLeaderRandomlyChosen", &CyPlayer::wasLeaderRandomlyChosen, "bool ()")
+		// </advc.190c>
 		;
 }

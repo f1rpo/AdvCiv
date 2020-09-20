@@ -5220,25 +5220,42 @@ class CvMainInterface:
 				if bAlignIcons:
 					scores.setWaiting()
 # BUG - Dead Civs - start
-		#if (ScoreOpt.isUsePlayerName()):
-		if ScoreOpt.isUsePlayerName() or (not pActiveTeam.isHasMet(eTeam) and not g.isDebugMode()): # K-Mod
+		# <advc.190d>
+		# (based on K-Mod)
+		bConcealCiv = False
+		bConcealLeader = False
+		# Note: Not much of a  point in concealing anything in HotSeat mode
+		if not pActiveTeam.isHasMet(eTeam) and not g.isDebugMode() and pPlayer.isAlive() and g.isNetworkMultiPlayer():
+			# (not all uses of these variables are tagged with comments)
+			bConcealCiv = pPlayer.wasCivRandomlyChosen()
+			bConcealLeader = pPlayer.wasLeaderRandomlyChosen()
+			if bConcealCiv:
+				kGPColor = gc.getColorInfo(gc.getInfoTypeForString("COLOR_GREAT_PEOPLE_STORED"))
+				rgba = kGPColor.getColor()
+				iUnmetR = int(255 * rgba.r)
+				iUnmetG = int(255 * rgba.g)
+				iUnmetB = int(255 * rgba.b)
+				iUnmetA = int(255 * rgba.a)
+		# </advc.190d>
+		if ScoreOpt.isUsePlayerName():
 			szPlayerName = pPlayer.getName()
 		else:
 			szPlayerName = gc.getLeaderHeadInfo(pPlayer.getLeaderType()).getDescription()
-		if ScoreOpt.isShowBothNames():
-			szCivName = pPlayer.getCivilizationShortDescription(0)
-			szPlayerName = szPlayerName + "/" + szCivName
-		elif ScoreOpt.isShowBothNamesShort():
-			szCivName = pPlayer.getCivilizationDescription(0)
-			szPlayerName = szPlayerName + "/" + szCivName
-		elif ScoreOpt.isShowLeaderName():
-			pass
-		elif ScoreOpt.isShowCivName():
-			szCivName = pPlayer.getCivilizationShortDescription(0)
-			szPlayerName = szCivName
-		else:
-			szCivName = pPlayer.getCivilizationDescription(0)
-			szPlayerName = szCivName
+		if not bConcealCiv:
+			if ScoreOpt.isShowBothNames():
+				szCivName = pPlayer.getCivilizationShortDescription(0)
+				szPlayerName = szPlayerName + "/" + szCivName
+			elif ScoreOpt.isShowBothNamesShort():
+				szCivName = pPlayer.getCivilizationDescription(0)
+				szPlayerName = szPlayerName + "/" + szCivName
+			elif ScoreOpt.isShowLeaderName():
+				pass
+			elif ScoreOpt.isShowCivName():
+				szCivName = pPlayer.getCivilizationShortDescription(0)
+				szPlayerName = szCivName
+			else:
+				szCivName = pPlayer.getCivilizationDescription(0)
+				szPlayerName = szCivName
 		if not pPlayer.isAlive() and ScoreOpt.isShowDeadTag():
 			szPlayerScore = localText.getText("TXT_KEY_BUG_DEAD_CIV", ())
 			if bAlignIcons:
@@ -5248,7 +5265,7 @@ class CvMainInterface:
 			szPlayerScore = u"%d" % iScore
 			# <advc.155>
 			# (To allow this option without the Advanced/Tabular layout option, simply remove the bAlignIcons check.)
-			if bAlignIcons and gc.getTeam(eTeam).getAliveCount() > 1 and ScoreOpt.isColorCodeTeamScore():
+			if bAlignIcons and gc.getTeam(eTeam).getAliveCount() > 1 and ScoreOpt.isColorCodeTeamScore() and not bConcealCiv:
 				pTeamLeader = gc.getPlayer(gc.getTeam(eTeam).getLeaderID())
 				szPlayerScore = u"<color=%d,%d,%d,%d>%s</color>" %(pTeamLeader.getPlayerTextColorR(), pTeamLeader.getPlayerTextColorG(), pTeamLeader.getPlayerTextColorB(), pTeamLeader.getPlayerTextColorA(), szPlayerScore)
 			# </advc.155>
@@ -5287,13 +5304,21 @@ class CvMainInterface:
 			else:
 				if not pPlayer.isAlive() and ScoreOpt.isGreyOutDeadCivs():
 					szPlayerName = u"<color=%d,%d,%d,%d>%s</color>" %(175, 175, 175, pPlayer.getPlayerTextColorA(), szPlayerName)
+				# <advc.190d>
+				elif bConcealCiv:
+					szPlayerName = u"<color=%d,%d,%d,%d>%s</color>" %(iUnmetR, iUnmetG, iUnmetB, iUnmetA, szPlayerName)
+				# </ advc.190d>
 				else:
 					szPlayerName = u"<color=%d,%d,%d,%d>%s</color>" %(pPlayer.getPlayerTextColorR(), pPlayer.getPlayerTextColorG(), pPlayer.getPlayerTextColorB(), pPlayer.getPlayerTextColorA(), szPlayerName)
 		szTempBuffer = u"%s: %s" %(szPlayerScore, szPlayerName)
 		szBuffer = szBuffer + szTempBuffer
 		if bAlignIcons:
 			scores.setName(szPlayerName)
-			scores.setID(u"<color=%d,%d,%d,%d>%d</color>" %(pPlayer.getPlayerTextColorR(), pPlayer.getPlayerTextColorG(), pPlayer.getPlayerTextColorB(), pPlayer.getPlayerTextColorA(), ePlayer))
+			# <advc.190d>
+			if bConcealCiv:
+				scores.setID(u"<color=%d,%d,%d,%d>%d</color>" %(iUnmetR, iUnmetG, iUnmetB, iUnmetA, ePlayer))
+			else: # </advc.190d>
+				scores.setID(u"<color=%d,%d,%d,%d>%d</color>" %(pPlayer.getPlayerTextColorR(), pPlayer.getPlayerTextColorG(), pPlayer.getPlayerTextColorB(), pPlayer.getPlayerTextColorA(), ePlayer))
 		if pPlayer.isAlive():
 			if bAlignIcons:
 				scores.setAlive()

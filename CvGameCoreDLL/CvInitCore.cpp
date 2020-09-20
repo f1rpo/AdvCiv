@@ -251,6 +251,10 @@ void CvInitCore::reassignPlayer(PlayerTypes eOldID, PlayerTypes eNewID)
 	CvWString szFlagDecal = m_aszFlagDecal[eNewID];
 	CivilizationTypes eCiv = m_aeCiv.get(eNewID);
 	LeaderHeadTypes eLeader = m_aeLeader.get(eNewID);
+	// <advc.190c>
+	bool bRandomCiv = m_abCivChosenRandomly.get(eNewID);
+	bool bRandomLeader = m_abCivChosenRandomly.get(eNewID);
+	// </advc.190c>
 	TeamTypes eTeam = m_aeTeam.get(eNewID);
 	HandicapTypes eHandicap = m_aeHandicap.get(eNewID);
 	PlayerColorTypes eColor = m_aeColor.get(eNewID);
@@ -281,6 +285,10 @@ void CvInitCore::reassignPlayer(PlayerTypes eOldID, PlayerTypes eNewID)
 	//m_aeCiv[eNewID] = m_aeCiv[eOldID];
 	setCiv(eNewID, m_aeCiv.get(eOldID)); // advc.003w
 	m_aeLeader.set(eNewID, m_aeLeader.get(eOldID));
+	// <advc.190c>
+	m_abCivChosenRandomly.set(eNewID, m_abCivChosenRandomly.get(eOldID));
+	m_abLeaderChosenRandomly.set(eNewID, m_abLeaderChosenRandomly.get(eOldID));
+	// </advc.190c>
 	m_aeTeam.set(eNewID, m_aeTeam.get(eOldID));
 	m_aeHandicap.set(eNewID, m_aeHandicap.get(eOldID));
 	m_aeColor.set(eNewID, m_aeColor.get(eOldID));
@@ -311,6 +319,10 @@ void CvInitCore::reassignPlayer(PlayerTypes eOldID, PlayerTypes eNewID)
 	//m_aeCiv[eOldID] = eCiv;
 	setCiv(eOldID, eCiv); // advc.003w
 	m_aeLeader.set(eOldID, eLeader);
+	// <advc.190c>
+	m_abCivChosenRandomly.set(eOldID, bRandomCiv);
+	m_abLeaderChosenRandomly.set(eOldID, bRandomLeader);
+	// </advc.190c>
 	m_aeTeam.set(eOldID, eTeam);
 	m_aeHandicap.set(eOldID, eHandicap);
 	m_aeColor.set(eOldID, eColor);
@@ -449,8 +461,7 @@ void CvInitCore::resetGame()
 
 	// Misc
 	m_bStatReporting = false;
-
-	m_abForceControls.reset();
+	m_bCivLeaderSetupKnown = false; // advc.190c
 
 	// Game turn mgmt
 	m_iGameTurn = 0;
@@ -526,6 +537,7 @@ void CvInitCore::resetGame(CvInitCore* pSource, bool bClear, bool bSaveGameType)
 
 	// Misc
 	setStatReporting(pSource->getStatReporting());
+	m_bCivLeaderSetupKnown = pSource->m_bCivLeaderSetupKnown; // advc.190c
 
 	// Game turn mgmt
 	setGameTurn(pSource->getGameTurn());
@@ -570,7 +582,11 @@ void CvInitCore::resetPlayer(PlayerTypes eID)
 	m_aszFlagDecal[eID].clear();
 
 	m_aeCiv.reset(eID);
-	m_aeLeader.set(eID, NO_LEADER);
+	m_aeLeader.reset(eID);
+	// <advc.190c>
+	m_abCivChosenRandomly.reset(eID);
+	m_abLeaderChosenRandomly.reset(eID);
+	// </advc.190c>
 	m_aeTeam.set(eID, (TeamTypes)eID);
 	// <advc.003c> See comment in resetGame
 	m_aeHandicap.set(eID, GC.isCachingDone() ?
@@ -1448,6 +1464,278 @@ void CvInitCore::resetAdvancedStartPoints()
 	setNumAdvancedStartPoints(iPoints);
 }
 
+// <advc.190c>
+/*	Report external calls to CvRandom so that the DLL can figure out
+	which leaders and civs have been assigned at random by the EXE. */
+void CvInitCore::externalRNGCall(int iUpper, CvRandom const* pRandom)
+{
+	if (getSavedGame())
+		return;
+	/*	RNG call for loading screen hint makes sure that this gets set
+		when a new game is started */
+	m_bCivLeaderSetupKnown = true;
+	/*	With 34 playable civs and 5 players, all set to random civs and leaders,
+		I'm getting 167 calls plus/minus a few. That could be 34+33+32+31+30=160 plus 3 for
+		3 civs with just 1 available leader plus 2x2 for 2 civs 2 available leaders
+		or 4 civs with 1 available leader plus 1 civ with 3 available leaders).
+		I.e. the EXE seems to roll a die for each valid civ and leader. */
+
+	if (iUpper != 10000)
+		return;
+
+	/*	When a player i is set to "Random", m_aeCiv[i], m_aeLeader[i]
+		remain at -1 (NO_...) until the dice have been rolled.
+		So, there's no need to count the RNG calls; we just need to
+		find the first player who doesn't already have a civ, and,
+		if all have a civ, then the first player without a leader. */
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
+		if (GET_PLAYER((PlayerTypes)i).isEverAlive())
+			return; // We're already past the civ and leader assignment at game start
+	}
+
+	std::vector<PlayerTypes> aeSlotPlayer;
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
+		PlayerTypes ePlayer = (PlayerTypes)i;
+		if ((getSlotStatus(ePlayer) == SS_TAKEN ||
+			getSlotStatus(ePlayer) == SS_COMPUTER) &&
+			!getMinorNationCiv(ePlayer))
+		{
+			aeSlotPlayer.push_back(ePlayer);
+		}
+	}
+	for (size_t i = 0; i < aeSlotPlayer.size(); i++)
+	{
+		if (getCiv(aeSlotPlayer[i]) == NO_CIVILIZATION)
+		{
+			m_abCivChosenRandomly.set(aeSlotPlayer[i], true);
+			return;
+		}
+	}
+	bool const bLeadAnyCiv = getOption(GAMEOPTION_LEAD_ANY_CIV);
+	for (size_t i = 0; i < aeSlotPlayer.size(); i++)
+	{
+		if (getLeader(aeSlotPlayer[i]) == NO_LEADER)
+		{
+			// Not truly random if there is only one leader available
+			int iLeaders = 0;
+			FOR_EACH_ENUM(LeaderHead)
+			{
+				if (bLeadAnyCiv ||
+					GC.getInfo(getCiv(aeSlotPlayer[i])).isLeaders(eLoopLeaderHead))
+				{
+					iLeaders++;
+					if (iLeaders > 1)
+					{
+						m_abLeaderChosenRandomly.set(aeSlotPlayer[i], true);
+						break;
+					}
+				}
+			}
+			FAssertMsg(iLeaders > 0, "Civ type w/o any valid leader type");
+			return;
+		}
+	}
+}
+
+
+bool CvInitCore::wasCivRandomlyChosen(PlayerTypes eID) const
+{
+	return m_abCivChosenRandomly.get(eID);
+}
+
+
+bool CvInitCore::wasLeaderRandomlyChosen(PlayerTypes eID) const
+{
+	if (wasCivRandomlyChosen(eID) && !getOption(GAMEOPTION_LEAD_ANY_CIV))
+		return true;
+	return m_abLeaderChosenRandomly.get(eID);
+}
+
+// <advc.191>
+void CvInitCore::setLeaderExternal(PlayerTypes eID, LeaderHeadTypes eLeader)
+{
+	LeaderHeadTypes eOldLeader = getLeader(eID);
+	if (eOldLeader == eLeader)
+		return;
+	setLeader(eID, eLeader); // This is all that BtS did here
+	if (eOldLeader == NO_LEADER &&
+		// BtS behavior is sufficient when only one of them is randomized
+		wasLeaderRandomlyChosen(eID) &&
+		wasCivRandomlyChosen(eID) &&
+		!getSavedGame() && getActivePlayer() != NO_PLAYER)
+	{
+		for (int i = MAX_CIV_PLAYERS - 1; i > eID; i--)
+		{
+			PlayerTypes eLoopPlayer = (PlayerTypes)i;
+			if (getLeader(eLoopPlayer) == NO_LEADER &&
+				!getMinorNationCiv(eLoopPlayer) &&
+				(getSlotStatus(eLoopPlayer) == SS_TAKEN ||
+				getSlotStatus(eLoopPlayer) == SS_COMPUTER))
+			{
+				return;
+			}
+		}
+		// All random leaders have been assigned
+		reRandomizeCivsAndLeaders();
+	}
+}
+
+
+void CvInitCore::reRandomizeCivsAndLeaders()
+{
+	if (getOption(GAMEOPTION_LEAD_ANY_CIV))
+		return;
+	int const iPER_LEADER_EXTRA_CIV_SELECTION_WEIGHT = GC.getDefineINT(
+			"PER_LEADER_EXTRA_CIV_SELECTION_WEIGHT");
+	if (iPER_LEADER_EXTRA_CIV_SELECTION_WEIGHT == 0) // BtS behavior
+		return;
+	FOR_EACH_ENUM2(Civilization, eCiv)
+	{
+		if (GC.getInfo(eCiv).isAIPlayable() != GC.getInfo(eCiv).isPlayable())
+		{
+			FErrorMsg("Not sure how to handle (non)-AI playable leaders; "
+					"falling back on BtS algorithm.");
+			return;
+		}
+	}
+	EnumMap<PlayerTypes,bool> abRandomize;
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
+		PlayerTypes const ePlayer = (PlayerTypes)i;
+		// If only the leader was randomized, then the BtS behavior is fine.
+		if (wasCivRandomlyChosen(ePlayer) &&
+			wasLeaderRandomlyChosen(ePlayer))
+		{
+			abRandomize.set(ePlayer, true);
+		}
+	}
+	if (!abRandomize.hasContent())
+		return;
+	std::vector<PlayerTypes> aeSlotPlayers;
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	{
+		PlayerTypes const ePlayer = (PlayerTypes)i;
+		if (!getMinorNationCiv(ePlayer) &&
+			(getSlotStatus(ePlayer) == SS_TAKEN ||
+			getSlotStatus(ePlayer) == SS_COMPUTER))
+		{
+			aeSlotPlayers.push_back(ePlayer);
+			FAssert(getLeader(ePlayer) != NO_LEADER);
+			FAssert(getCiv(ePlayer) != NO_CIVILIZATION);
+		}
+	}
+	EnumMap<CivilizationTypes,int> aiTakersPerCiv;
+	EnumMap<LeaderHeadTypes,bool> abLeaderTaken;
+	int iRandomLeadersNeeded = 0;
+	for (size_t i = 0; i < aeSlotPlayers.size(); i++)
+	{
+		PlayerTypes const ePlayer = aeSlotPlayers[i];
+		if (!abRandomize.get(ePlayer))
+		{
+			abLeaderTaken.set(getLeader(ePlayer), true);
+			aiTakersPerCiv.add(getCiv(ePlayer), 1);
+		}
+		else iRandomLeadersNeeded++;
+	}
+	std::map<CivilizationTypes,std::vector<LeaderHeadTypes> > leadersPerCiv;
+	int iLeadersAvailable = 0;
+	FOR_EACH_ENUM2(LeaderHead, eLeader)
+	{
+		bool bPlayable = false;
+		FOR_EACH_ENUM2(Civilization, eCiv)
+		{
+			if (GC.getCivilizationInfo(eCiv).isLeaders(eLeader) &&
+				GC.getInfo(eCiv).isPlayable())
+			{
+				leadersPerCiv[eCiv].push_back(eLeader);
+				bPlayable = true;
+			}
+		}
+		if (bPlayable && !abLeaderTaken.get(eLeader))
+			iLeadersAvailable++;
+	}
+	if (iRandomLeadersNeeded > iLeadersAvailable)
+	{
+		FAssertMsg(iRandomLeadersNeeded <= iLeadersAvailable,
+				"Can't assign unique leaders; falling back on BtS algorithm.");
+		return;
+	}
+
+	CvRandom rand;
+	/*	Need to use a synchronized RNG. Don't want to include CvGame here;
+		using a synchronized seed should do. */
+	rand.init(getSyncRandSeed());
+	for (size_t i = 0; i < aeSlotPlayers.size(); i++)
+	{
+		PlayerTypes const ePlayer = aeSlotPlayers[i];
+		if (!abRandomize.get(ePlayer))
+			continue;
+		CivilizationTypes eNewCiv = NO_CIVILIZATION;
+		for (int iMaxTaken = 0; iMaxTaken < ((int)aeSlotPlayers.size()) &&
+			eNewCiv == NO_CIVILIZATION; iMaxTaken++)
+		{
+			EnumMap<CivilizationTypes,int> aiWeights;
+			int iTotalWeight = 0;
+			FOR_EACH_ENUM2(Civilization, eCiv)
+			{
+				if (aiTakersPerCiv.get(eCiv) > iMaxTaken)
+					continue;
+				CvCivilizationInfo const& kCiv = GC.getInfo(eCiv);
+				if (!kCiv.isPlayable())
+					continue;
+				int iWeight = 0;
+				for (size_t j = 0; j < leadersPerCiv[eCiv].size(); j++)
+				{
+					if (!abLeaderTaken.get(leadersPerCiv[eCiv][j]))
+						iWeight += iPER_LEADER_EXTRA_CIV_SELECTION_WEIGHT;
+				}
+				if (iWeight == 0) // All leaders already taken
+					continue;
+				iWeight += 100;
+				iWeight = std::max(iWeight, 0);
+				aiWeights.set(eCiv, iWeight);
+				iTotalWeight += iWeight;
+			}
+			if (iTotalWeight <= 0)
+				continue;
+			int const iRoll = rand.get(iTotalWeight);
+			int iPartialSum = 0;
+			FOR_EACH_ENUM2(Civilization, eCiv)
+			{
+				iPartialSum += aiWeights.get(eCiv);
+				if (iRoll < iPartialSum)
+				{
+					eNewCiv = eCiv;
+					aiTakersPerCiv.add(eNewCiv, 1);
+					break;
+				}
+			}
+		}
+		if (eNewCiv == NO_CIVILIZATION)
+		{
+			FAssert(eNewCiv != NO_CIVILIZATION);
+			return;
+		}
+		std::vector<LeaderHeadTypes> aeAvailableLeaders;
+		for (size_t j = 0; j < leadersPerCiv[eNewCiv].size(); j++)
+		{
+			if (!abLeaderTaken.get(leadersPerCiv[eNewCiv][j]))
+				aeAvailableLeaders.push_back(leadersPerCiv[eNewCiv][j]);
+		}
+		if (aeAvailableLeaders.empty())
+		{
+			FAssert(!aeAvailableLeaders.empty()); // Shouldn't have chosen eNewCiv then
+			return;
+		}
+		LeaderHeadTypes eNewLeader = aeAvailableLeaders[
+				rand.get(aeAvailableLeaders.size())];
+		setCiv(ePlayer, eNewCiv);
+		setLeader(ePlayer, eNewLeader);
+	}
+} // </advc.191>
+
 // advc.250c:
 int CvInitCore::getAdvancedStartMinPoints() const
 {
@@ -1558,6 +1846,13 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	m_aeHandicap.Read(pStream);
 	m_aeColor.Read(pStream);
 	m_aeArtStyle.Read(pStream);
+	// <advc.190c>
+	if (uiFlag >= 5
+	{
+		m_abCivChosenRandomly.Read(pStream);
+		m_abLeaderChosenRandomly.Read(pStream);
+		pStream->Read(&m_bCivLeaderSetupKnown);
+	} // </advc.190c>
 
 	pStream->Read(MAX_PLAYERS, (int*)m_aeSlotStatus);
 	pStream->Read(MAX_PLAYERS, (int*)m_aeSlotClaim);
@@ -1599,6 +1894,7 @@ void CvInitCore::write(FDataStreamBase* pStream)
 	uiFlag = 2; // advc.912d
 	uiFlag = 3; // advc: m_bPangaea
 	uiFlag = 4; // advc.enum: m_abOptions as byte map
+	uiFlag = 5; // advc.190c
 
 	pStream->Write(uiFlag);
 
@@ -1692,6 +1988,10 @@ void CvInitCore::write(FDataStreamBase* pStream)
 	m_aeHandicap.Write(pStream);
 	m_aeColor.Write(pStream);
 	m_aeArtStyle.Write(pStream);
+	// <advc.190c>
+	m_abCivChosenRandomly.Write(pStream);
+	m_abLeaderChosenRandomly.Write(pStream);
+	pStream->Write(m_bCivLeaderSetupKnown); // </advc.190c>
 	REPRO_TEST_END_WRITE(); // (skip slot data)
 	pStream->Write(MAX_PLAYERS, (int*)m_aeSlotStatus);
 	pStream->Write(MAX_PLAYERS, (int*)m_aeSlotClaim);

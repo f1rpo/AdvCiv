@@ -6231,4 +6231,101 @@
 		<Spanish>rodeado de hielo</Spanish>
 	</TEXT>
 
+	<!-- advc.190c -->
+	<!-- Based on TXT_KEY_RIVALS_MET (CIV4GameText_Misc1.xml),
+		 TXT_KEY_MAIN_MENU_PLAYERS (CIV4GameTextInfos.xml). -->
+	<TEXT>
+		<Tag>TXT_KEY_PLAYERS_MET</Tag>
+		<English>Players Met</English>
+		<French>Joueurs rencontr&#233;s</French>
+		<German>Bekannte Spieler</German>
+		<Italian>Giocatori incontrati</Italian>
+		<Spanish>Jugadores encontrados</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_OTHER_PLAYERS</Tag>
+		<English>Other Players</English>
+		<French>Autres joueurs</French>
+		<German>Andere Spieler</German>
+		<Italian>Altri giocatori</Italian>
+		<Spanish>Otros jugadores</Spanish>
+	</TEXT>
+	
+	<!-- Translations based on TXT_KEY_MAIN_MENU_RANDOM.
+		 (Don't have access to an AI translator right now,
+		 so this batch of FIS translations might be -even-
+		 worse than usual.) -->
+	<TEXT>
+		<Tag>TXT_KEY_ALL_AT_RANDOM</Tag>
+		<English>all at Random</English>
+		<French>tous al&#233;atoires</French>
+		<German>alle zufällig</German>
+		<Italian>tutti casuali</Italian>
+		<Spanish>todos al azar</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NONE_AT_RANDOM</Tag>
+		<English>all manually chosen</English>
+		<French>choisi manuellement</French>
+		<German>alle voreingestellt</German>
+		<Italian>scelti manualemente</Italian>
+		<Spanish>escogidos al azar</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RANDOMLY_CHOSEN</Tag>
+		<English>Randomly chosen</English>
+		<French>choix al&#233;atoire</French>
+		<German>zufällig gewählt</German>
+		<Italian>scelta casuale</Italian>
+		<Spanish>escogido al azar</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MANUALLY_CHOSEN</Tag>
+		<English>manually chosen</English>
+		<French>choix manuel</French>
+		<German>voreingestellt</German>
+		<Italian>scelta manuale</Italian>
+		<Spanish>escogido manualmente</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RANDOM_LEADER</Tag>
+		<English>Random leader of %s1_Civ</English>
+		<French>chef al&#233;atoire de %s1_Civ</French>
+		<German>zufälliges %s1_Civ-Oberhaupt</German>
+		<Italian>leader casuale di %s1_Civ</Italian>
+		<Spanish>l&#237;der al azar de %s1_Civ</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RANDOM_CIV</Tag>
+		<English>%s1_Civ chosen at Random</English>
+		<French>%s1_Civ choisi al&#233;atoirement</French>
+		<German>%s1_Civ zufällig gewählt</German>
+		<Italian>%s1_Civ scelta casualmente</Italian>
+		<Spanish>%s1_Civ escogido al azar</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RIVAL_NOT_MET</Tag>
+		<English>not Met</English>
+		<French>sans contact</French>
+		<German>kein Kontakt</German>
+		<Italian>nessun contatto</Italian>
+		<Spanish>sin contacto</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UNKNOWN_RIVALS</Tag>
+		<English>%d1 Unknown Rivals</English>
+		<French>%d1 rivaux inconnus</French>
+		<German>%d1 unbekannte Gegner</German>
+		<Italian>%d1 rivali sconosciuti</Italian>
+		<Spanish>%d1 rivales desconocidos</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ONE_UNKNOWN_RIVAL</Tag>
+		<English>1 Unknown Rival</English>
+		<French>1 rival inconnu</French>
+		<German>1 unbekannter Gegner</German>
+		<Italian>1 rivale sconosciuto</Italian>
+		<Spanish>1 rival desconocido</Spanish>
+	</TEXT>
+
 </Civ4GameText>

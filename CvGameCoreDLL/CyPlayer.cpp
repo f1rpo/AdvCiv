@@ -2401,6 +2401,21 @@ bool CyPlayer::isScoreboardExpanded() const
 	return m_pPlayer->isScoreboardExpanded();
 } // </advc.085>
 
+// <advc.190c>
+bool CyPlayer::wasCivRandomlyChosen() const
+{
+	if (m_pPlayer == NULL)
+		return false;
+	return GC.getInitCore().wasCivRandomlyChosen(m_pPlayer->getID());
+}
+
+bool CyPlayer::wasLeaderRandomlyChosen() const
+{
+	if (m_pPlayer == NULL)
+		return false;
+	return GC.getInitCore().wasLeaderRandomlyChosen(m_pPlayer->getID());
+} // </advc.190c>
+
 // advc.001: In part cut from getCivicAnarchyLength
 void CyPlayer::pyListToCivicMap(boost::python::list const& kFrom, CivicMap& kTo)
 {

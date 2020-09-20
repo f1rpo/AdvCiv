@@ -41,6 +41,14 @@ unsigned short CvRandom::getInt(unsigned short usNum, TCHAR const* szLog,
 	return r;
 }
 
+/*	advc.190c: Separate function for calls from the EXE. So that the DLL can figure out
+	which options were set to "Random" during game setup. */
+unsigned short CvRandom::getExternal(unsigned short usNum, TCHAR const* szLog)
+{
+	GC.getInitCore().externalRNGCall(usNum, this);
+	return get(usNum, szLog);
+}
+
 
 float CvRandom::getFloat()
 {

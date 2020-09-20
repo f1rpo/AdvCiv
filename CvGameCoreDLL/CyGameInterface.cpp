@@ -298,6 +298,8 @@ void CyGamePythonInterface()
 		.def("isRFBlockPopups", &CyGame::isRFBlockPopups, "bool ()") // </advc.706>
 		// advc.004m:
 		.def("reportCurrentLayer", &CyGame::reportCurrentLayer, "void(int /*GlobeLayerTypes*/)")
+		.def("isCivLeaderSetupKnown", &CyGame::isCivLeaderSetupKnown, "bool ()") // advc.190c
+		.def("isScenario", &CyGame::isScenario, "bool ()") // advc.052
 		;
 
 	python::class_<CyDeal>("CyDeal")

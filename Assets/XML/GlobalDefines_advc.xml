@@ -1183,4 +1183,21 @@
 		<iDefineIntVal>51</iDefineIntVal>
 	</Define>
 
+	<!-- advc.190c: This concerns the probability distribution for civs and
+		 leaders when both are set to "Random" during game setup and
+		 "Unrestricted Leaders" isn't checked. Use 0 for BtS behavior, meaning
+		 that the civ (e.g. Rome) gets chosen uniformly at random and then
+		 one of the available leaders (e.g. Julius or Augustus) gets chosen
+		 uniformly at random.
+		 A positive value results in a bias for civs with multiple leaders.
+		 100, specifically, gives every leader the same probability on the
+		 bottom line. A negative value (not recommended, not tested) makes
+		 civs with multiple leaders less likely to be chosen.
+		 Recommended: 20, meaning that e.g. Rome is 1.2 times as likely
+		 to be chosen than Mali and America is 1.4 times as likely as Mali. -->
+	<Define>
+		<DefineName>PER_LEADER_EXTRA_CIV_SELECTION_WEIGHT</DefineName>
+		<iDefineIntVal>20</iDefineIntVal>
+	</Define>
+
 </Civ4Defines>

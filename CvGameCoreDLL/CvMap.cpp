@@ -881,7 +881,7 @@ CustomMapOptionTypes CvMap::getCustomMapOption(int iOption) /* advc: */ const
 	return GC.getInitCore().getCustomMapOption(iOption);
 }
 
-// advc.004: Returns an empty string if the option is set to its default value
+// advc.190b: Returns an empty string if the option is set to its default value
 CvWString CvMap::getNonDefaultCustomMapOptionDesc(int iOption) const
 {
 	CvPythonCaller const& py = *GC.getPythonCaller();

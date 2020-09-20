@@ -26,3 +26,5 @@ EXPORTS
 ?getColorTypePrimary@CvPlayerColorInfo@@QBEHXZ=?getColorTypePrimaryExternal@CvPlayerColorInfo@@QBEHXZ
 ?getColorTypeSecondary@CvPlayerColorInfo@@QBEHXZ=?getColorTypeSecondaryExternal@CvPlayerColorInfo@@QBEHXZ
 ?getPlayerColor@CvPlayer@@QBE?AW4PlayerColorTypes@@XZ=?getPlayerColorExternal@CvPlayer@@QBE?AW4PlayerColorTypes@@XZ
+?get@CvRandom@@QAEGGPBD@Z=?getExternal@CvRandom@@QAEGGPBD@Z
+?setLeader@CvInitCore@@QAEXW4PlayerTypes@@W4LeaderHeadTypes@@@Z=?setLeaderExternal@CvInitCore@@QAEXW4PlayerTypes@@W4LeaderHeadTypes@@@Z

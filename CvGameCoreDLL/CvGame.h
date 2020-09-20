@@ -815,7 +815,7 @@ public:
 	GlobeLayerTypes getCurrentLayer() const;
 	void reportCurrentLayer(GlobeLayerTypes eLayer);		// (exposed to Python)
 	// </advc.004m>  <advc.052>
-	bool isScenario() const { return m_bScenario; }
+	bool isScenario() const { return m_bScenario; }			// (exposed to Python)
 	void setScenario(bool b);
 	// </advc.052>  <advc.127b>
 	/*  Returns (-1,-1) if 'vs' doesn't exist in any city or (eObserver!=NO_TEAM)

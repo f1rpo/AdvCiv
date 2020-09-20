@@ -533,6 +533,9 @@ public:
 	// <advc.085>
 	void setScoreboardExpanded(bool b);
 	bool isScoreboardExpanded() const; // </advc.085>
+	// <advc.190c>
+	bool wasCivRandomlyChosen() const;
+	bool wasLeaderRandomlyChosen() const; // </advc.190c>
 
 private:
 	CvPlayerAI* m_pPlayer; // advc.003u: was CvPlayer*
