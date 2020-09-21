@@ -253,8 +253,8 @@ void CvMapGenerator::addRivers()  // advc: refactored
 				continue;
 
 			gDLL->callUpdater(); // advc.opt: Moved down; shouldn't need to update the UI in every iteration.
-			if (!GC.getMap().findWater(&p, iRiverSourceRange, true) &&
-				!GC.getMap().findWater(&p, iSeaWaterRange, false))
+			if (!GC.getMap().findWater(&p, iRiverSourceRangeLoop, true) &&
+				!GC.getMap().findWater(&p, iSeaWaterRangeLoop, false))
 			{
 				CvPlot* pStartPlot = p.getInlandCorner();
 				if (pStartPlot != NULL)

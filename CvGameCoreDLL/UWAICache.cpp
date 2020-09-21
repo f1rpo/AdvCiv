@@ -1040,7 +1040,7 @@ void UWAICache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
 	/*  I didn't think I'd need to update the city cache during turns, so this
 		is awkward to write ...
 		Necessary though b/c the AI needs to stay up to date with human conquests. */
-	size_t vIndex = -1;
+	int vIndex = -1;
 	if(GET_PLAYER(oldOwnerId).isMajorCiv()) {
 		City* fromCache = NULL;
 		std::map<int,City*>::iterator pos = cityMap.find(c->plotNum());
@@ -1050,7 +1050,7 @@ void UWAICache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
 			if(fromCache->canReach())
 				nReachableCities.add(oldOwnerId, -1);
 			cityMap.erase(pos);
-			for(vIndex = 0; vIndex < v.size(); vIndex++) {
+			for(vIndex = 0; vIndex < (int)v.size(); vIndex++) {
 				if(v[vIndex]->id() == fromCache->id()) {
 					delete v[vIndex];
 					v[vIndex] = NULL;
@@ -1064,7 +1064,7 @@ void UWAICache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
 		matters slower and more complicated elsewhere. */
 	//if(GET_PLAYER(c->getOwner()).isMajorCiv())
 	City* toCache = new City(ownerId, *c);
-	if(vIndex < 0 || vIndex >= v.size()) {
+	if(vIndex < 0 || vIndex >= (int)v.size()) {
 		v.push_back(toCache);
 		// (c could also have become revealed through map trade)
 		//FAssertMsg(oldOwnerId == BARBARIAN_PLAYER);

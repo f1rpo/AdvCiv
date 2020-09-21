@@ -5088,7 +5088,7 @@ int CvPlot::getReconCount() const
 
 void CvPlot::changeReconCount(int iChange)
 {
-	m_iReconCount += m_iReconCount;
+	m_iReconCount += iChange;
 	FAssert(getReconCount() >= 0);
 }
 

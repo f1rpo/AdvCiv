@@ -1939,7 +1939,7 @@ void CvGame::normalizeAddFoodBonuses(  // advc: refactoring
 						/*	advc.108: Let map generator check canPlaceBonusAt in the
 							initial pass (same as in normalizeAddExtras) */
 						if (!isNormalizationBonus(eLoopBonus, kPlayer.getID(), p,
-							bInitialPass, !bInitialPass))
+							bInitialPass, !bInitialPass || bIgnoreLatitude))
 						{
 							continue;
 						}

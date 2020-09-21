@@ -1757,7 +1757,7 @@ void BorderDisputes::evaluate() {
 	if(we->isHuman() && cbac != 0)
 		diplo = ::round((-4.0 * diplo) / cbac);
 	if(m->getCapitulationsAccepted(agentId).count(TEAMID(theyId)) > 0) {
-		int uPlus = diplo * 8;
+		u += diplo * 8;
 		log("They capitulate; shared-borders diplo%s: %d",
 				(we->isHuman() ? " (human)" : ""), diplo);
 		return;
