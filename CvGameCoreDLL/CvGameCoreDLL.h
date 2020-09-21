@@ -44,26 +44,31 @@
 
 #define DllExport   __declspec( dllexport )
 
-typedef unsigned char    byte;
+typedef unsigned char		byte;
 // advc (note): A little strange to me, but consistent with WORD in winnt.h.
-typedef unsigned short   word;
-typedef unsigned int     uint;
-typedef unsigned long    dword;
-typedef unsigned __int64 qword;
-typedef wchar_t          wchar;
+typedef unsigned short		word;
+typedef unsigned int		uint;
+typedef unsigned long		dword;
+typedef unsigned __int64	qword;
+typedef wchar_t				wchar;
 
-#define MAX_CHAR                            (0x7f)
-#define MIN_CHAR                            (0x80)
-#define MAX_SHORT                           (0x7fff)
-#define MIN_SHORT                           (0x8000)
-#define MAX_INT                             (0x7fffffff)
-#define MIN_INT                             (0x80000000)
-#define MAX_UNSIGNED_CHAR                   (0xff)
-#define MIN_UNSIGNED_CHAR                   (0x00)
-#define MAX_UNSIGNED_SHORT                  (0xffff)
-#define MIN_UNSIGNED_SHORT                  (0x0000)
-#define MAX_UNSIGNED_INT                    (0xffffffff)
-#define MIN_UNSIGNED_INT                    (0x00000000)
+/*	advc.001q: Put minus operators into the negative constants, otherwise,
+	if there's only a literal, it can get treated as an unsigned value. */
+#define MAX_CHAR							(0x7f)
+//#define MIN_CHAR							(0x80)
+#define MIN_CHAR							(-MAX_CHAR - 1)
+#define MAX_SHORT							(0x7fff)
+//#define MIN_SHORT							(0x8000)
+#define MIN_SHORT							(-MAX_SHORT - 1)
+#define MAX_INT								(0x7fffffff)
+//#define MIN_INT							(0x80000000)
+#define MIN_INT								(-MAX_INT - 1)
+#define MAX_UNSIGNED_CHAR					(0xff)
+#define MIN_UNSIGNED_CHAR					(0x00)
+#define MAX_UNSIGNED_SHORT					(0xffff)
+#define MIN_UNSIGNED_SHORT					(0x0000)
+#define MAX_UNSIGNED_INT					(0xffffffff)
+#define MIN_UNSIGNED_INT					(0x00000000)
 
 // (advc.make: Some macros moved into new header Trigonometry.h)
 

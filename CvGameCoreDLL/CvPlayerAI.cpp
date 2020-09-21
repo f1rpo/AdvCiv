@@ -12240,13 +12240,13 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 		iValue *= 3;
 	FOR_EACH_DEAL(pLoopDeal)
 	{
-		// <advc.001q> BtS had only checked for ePlayer's team
+		// <advc.001> BtS had only checked for ePlayer's team
 		if (!pLoopDeal->isBetween(TEAMID(ePlayer), eTradeTeam))
 			continue;
 		/*  Should be pLoopDeal->isCancelable(ePlayer), but the param
 			doesn't really have an effect, and I'm disabling this check anyway. */
 		//if (pLoopDeal->isCancelable(getID()) && !(pLoopDeal->isPeaceDeal()))
-		// </advc.001q>  // <advc.130f>
+		// </advc.001>  // <advc.130f>
 		if(pLoopDeal->isPeaceDeal() ||
 			/*  OB don't have a proper trade value and have already been
 				covered above */
