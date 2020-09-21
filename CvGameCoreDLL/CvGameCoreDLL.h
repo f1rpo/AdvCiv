@@ -6,8 +6,12 @@
 // includes (pch) for gamecore dll files
 // Author - Mustafa Thamer
 
+// <advc.make>
+#include "PragmaWarnings.h" // Customize compiler warnings
+#pragma warning(push, 3) // Don't check win, std and boost headers with /W4
+// </advc.make>
+
 // WINDOWS ...
-#pragma warning( disable: 4530 )	// C++ exception handler used, but unwind semantics are not enabled
 #define WIN32_LEAN_AND_MEAN
 // <advc.fract> Otherwise, classes in the PCH can't have members named "max" and "min".
 #ifndef NOMINMAX
@@ -84,6 +88,7 @@ __forceinline float MaxFloat() { return DWtoF(0x7f7fffff); }
 #include "GameBryo.h"
 #include "CvMemoryManager.h"
 #include "BoostPythonPCH.h" // </advc>
+#pragma warning(pop) // advc.make: Restore project warning level
 #include "FAssert.h"
 #include "CvGameCoreDLLDefNew.h"
 #include "FDataStreamBase.h"

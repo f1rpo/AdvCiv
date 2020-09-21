@@ -9,7 +9,7 @@
 ####  Copyright 2010 Danny Daemonic  ####
 #########################################
 
-# advc (2019):
+# advc (2019/2020):
 # Enabled parallel builds (jom) for the Profile configuration
 #   (now called "Profile-fast") and added a configuration Debug-fast. Both use
 #   precompiled headers through the Z7 option as recommended by billw2015.
@@ -24,11 +24,12 @@
 # For selecting a profiler and for balancing speed vs. fidelity of debug builds.
 # Removed unused /DCVGAMECOREDLL_EXPORTS from Debug_DEFINES
 # devolution (Erik) has added the target 'Final_Release' with
-#   whole-program optimization. [There is also a Firaxis define called
-#   FINAL_RELEASE, which merely disables the OutputDebugString function from
-#   debugapi.h. That's used for all non-debug builds.]
+#   whole-program optimization. [To avoid confusion, I've removed the Firaxis flag
+#   "FINAL_RELEASE", which had merely disabled the OutputDebugString function from
+#   debugapi.h in release builds; do that based on _DEBUG instead.]
 # CvGameCoreDLL.rc used only for final release.
 # Use /arch:SSE2 for all release builds.
+# /W3 moved into PROJECT_CFLAGS.
 
 ## User setup
 ##
@@ -85,7 +86,7 @@ FD="bin\fastdep.exe"
 
 #### DEFINES ####
 Debug_DEFINES=/DWIN32 /D_WINDOWS /D_USRDLL /D_DEBUG
-Release_DEFINES=/DWIN32 /D_WINDOWS /D_USRDLL /DCVGAMECOREDLL_EXPORTS /DNDEBUG /DFINAL_RELEASE
+Release_DEFINES=/DWIN32 /D_WINDOWS /D_USRDLL /DCVGAMECOREDLL_EXPORTS /DNDEBUG
 ## Optional: Copy the flags above into "Additional options" in NMAKE properties (Configuration Properties)
 ## to make VC++ aware of what is defined and what isn't, which affects the help popup and red lines.
 ## Use the Release_DEFINES for all targets except debug. Assert adds /DFASSERT_ENABLE,
@@ -134,7 +135,7 @@ SUBDIRPATH15 = ../
 !IF [IF NOT EXIST Makefile.project EXIT 1] != 0
 !IF [ECHO SOURCE_DIR = .>> Makefile.project]
 !ENDIF
-!IF [ECHO PROJECT_CFLAGS = >> Makefile.project]
+!IF [ECHO PROJECT_CFLAGS = /W3 >> Makefile.project]
 !ENDIF
 !IF [ECHO PROJECT_LDFLAGS = >> Makefile.project]
 !ENDIF
@@ -190,7 +191,7 @@ CUSTOM_LDFLAGS =
 FILE_DEPENDS = $(TEMP_TARGET_FILES)\depends
 
 #### CFLAGS ####
-GLOBAL_CFLAGS=/GR /Gy /W3 /EHsc /Gd /Gm- /Fd"$(Target_PDB)" $(CUSTOM_CFLAGS) $(PROJECT_CFLAGS)
+GLOBAL_CFLAGS=/GR /Gy /EHsc /Gd /Gm- /Fd"$(Target_PDB)" $(CUSTOM_CFLAGS) $(PROJECT_CFLAGS)
 Debug_CFLAGS=/MD /Z7 /Od /RTC1 $(Debug_DEFINES) $(GLOBAL_CFLAGS) $(PROJECT_Debug_CFLAGS)
 # (Debug-opt: Using Debug_CFLAGS without /D_DEBUG /RTC1 might accomplish largely the same)
 Debug_Opt_CFLAGS=/MD /O2 /Z7 /Oi /G7 /arch:SSE2 $(Release_DEFINES) $(GLOBAL_CFLAGS) $(PROJECT_DebugOpt_CFLAGS)

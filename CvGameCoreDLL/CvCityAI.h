@@ -232,7 +232,7 @@ protected:
 	//int AI_plotValue(CvPlot* pPlot, bool bAvoidGrowth, bool bRemove, bool bIgnoreFood = false, bool bIgnoreGrowth = false, bool bIgnoreStarvation = false) const;
 	/*	K-Mod. Note: iGrowthValue < 0 means "automatic".
 		It will use AI_growthValuePerFood. iGrowthValue == 0 means "ignore growth". */
-	int AI_yieldValue(short* piYields, short* piCommerceYields, bool bRemove, bool bIgnoreFood,
+	int AI_yieldValue(int* piYields, int* piCommerceYields, bool bRemove, bool bIgnoreFood,
 			bool bIgnoreStarvation, bool bWorkerOptimization, int iGrowthValue) const;
 	// value gained by swapping jobs. (bIsSpecialist, iIndex) pairs.
 	int AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, int> old_job, bool bIgnoreFood,
@@ -240,7 +240,7 @@ protected:
 	int AI_plotValue(CvPlot const& pPlot, bool bRemove, bool bIgnoreFood, bool bIgnoreStarvation,
 			int iGrowthValue) const;
 	// difference between current yields and yields after plot improvement reaches final upgrade.
-	bool AI_finalImprovementYieldDifference(CvPlot const& kPlot, short* piYields) const;
+	bool AI_finalImprovementYieldDifference(CvPlot const& kPlot, int* piYields) const;
 	// time-weighted yields for improvements which have upgrades
 	bool AI_timeWeightedImprovementYields(CvPlot const* pPlot, ImprovementTypes eImprovement,
 			int iTimeScale, std::vector<scaled>& weighted_yields) const;

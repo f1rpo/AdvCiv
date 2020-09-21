@@ -3,8 +3,6 @@
 #ifndef CIV4_MAPGENERATOR_H
 #define CIV4_MAPGENERATOR_H
 
-#pragma warning( disable: 4251 )		// needs to have dll-interface to be used by clients of class
-
 class CvFractal;
 class CvPlot;
 class CvArea;

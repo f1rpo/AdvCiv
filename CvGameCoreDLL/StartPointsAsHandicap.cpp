@@ -243,8 +243,8 @@ void StartPointsAsHandicap::bounce(int i, int j) {
 		of 'randomizePoints' (see above) is that no civ overtake another
 		in terms of start points, though ties can be broken. */
 	int iPts = civs[i]->startPoints_configured();
+	int pursuerIpts = 0;
 	int pursuerI;
-	int pursuerIpts;
 	for(pursuerI = i; pursuerI >= nHuman; pursuerI--) {
 		pursuerIpts = civs[pursuerI]->startPoints_configured();
 		if(pursuerIpts < iPts)
@@ -252,8 +252,8 @@ void StartPointsAsHandicap::bounce(int i, int j) {
 	}
 	int deltaMaxNeg = ::round((iPts - pursuerIpts) / 2.0);
 	int jPts = civs[j]->startPoints_configured();
+	int pursuedByJpts = 0;
 	int pursuedByJ;
-	int pursuedByJpts;
 	for(pursuedByJ = j; pursuedByJ < nCivs; pursuedByJ++) {
 		pursuedByJpts = civs[pursuedByJ]->startPoints_configured();
 		if(pursuedByJpts > jPts)

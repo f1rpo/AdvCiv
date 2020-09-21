@@ -82,7 +82,7 @@ void CvGame::updateColoredPlots()
 				if (pWorkingCity != NULL && eImprovement != NO_IMPROVEMENT)
 				{
 					CityPlotTypes ePlot = pWorkingCity->getCityPlotIndex(kPlot);
-					int iBuildValue = pWorkingCity->AI_getBestBuildValue(ePlot);
+					//int iBuildValue = pWorkingCity->AI_getBestBuildValue(ePlot);
 					BuildTypes eBestBuild = pWorkingCity->AI_getBestBuild(ePlot);
 					if (eBestBuild != NO_BUILD)
 					{
@@ -97,7 +97,7 @@ void CvGame::updateColoredPlots()
 				}
 			}
 		}
-	} // advc.007
+	}
 	// BETTER_BTS_AI_MOD: END
 
 	// City circles when in Advanced Start

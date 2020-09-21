@@ -436,7 +436,6 @@ void CityTradeAlert::check()
 			}
 			if(!bWar)
 			{
-				int iGameTurn = GC.getGame().getGameTurn();
 				FOR_EACH_CITY(pCity, kAlertPlayer)
 				{
 					int iCity = pCity->getID();
@@ -448,7 +447,7 @@ void CityTradeAlert::check()
 							canLiberateNow.push_back(iCity);
 						else willBuyNow.push_back(iCity);
 						if( // Don't report cities right after acquisition
-							//iGameTurn - pCity->getGameTurnAcquired() > 1 &&
+							//GC.getGame().getGameTurn() - pCity->getGameTurnAcquired() > 1 &&
 							// Don't report possible liberation right after making peace
 							/*(!bLiberate || GET_TEAM(kPlayer.getTeam()).
 							AI_getAtPeaceCounter(kAlertPlayer.getTeam()) > 1)*/

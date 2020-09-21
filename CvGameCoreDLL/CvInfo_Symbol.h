@@ -15,8 +15,8 @@ public: // All the const functions are exposed to Python
 	CvYieldInfo();
 	~CvYieldInfo();
 
-	int getChar() const;
-	void setChar(int i);
+	wchar getChar() const; // advc: return wchar (not int)
+	void setChar(/* advc: */ wchar wc);
 	inline int getHillsChange() const { return m_iHillsChange; }
 	inline int getPeakChange() const { return m_iPeakChange; }
 	inline int getLakeChange() const { return m_iLakeChange; }
@@ -36,7 +36,7 @@ public: // All the const functions are exposed to Python
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:
-	int m_iChar;
+	wchar m_wcSymbol;
 	int m_iHillsChange;
 	int m_iPeakChange;
 	int m_iLakeChange;
@@ -62,8 +62,8 @@ public: // All the const functions are exposed to Python
 
 	CvCommerceInfo();
 
-	int getChar() const;
-	void setChar(int i);
+	wchar getChar() const; // advc: return wchar (not int)
+	void setChar(/* advc: */ wchar wc);
 	int getInitialPercent() const;
 	int getInitialHappiness() const;
 	inline int getAIWeightPercent() const { return m_iAIWeightPercent; }
@@ -73,7 +73,7 @@ public: // All the const functions are exposed to Python
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:
-	int m_iChar;
+	wchar m_wcSymbol; // advc
 	int m_iInitialPercent;
 	int m_iInitialHappiness;
 	int m_iAIWeightPercent;

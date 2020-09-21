@@ -228,7 +228,7 @@ void CvMapGenerator::addRivers()  // advc: refactored
 			if (p.isWater())
 				continue;
 
-			bool bValid;
+			bool bValid = false;
 			switch(iPass)
 			{
 			case 0:

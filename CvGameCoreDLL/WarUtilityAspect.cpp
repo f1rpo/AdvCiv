@@ -141,7 +141,7 @@ char const* WarUtilityAspect::aspectName() const {
 		if (szBuffer[i] == '_')
 			szBuffer[i] = ' ';
 		if (i > 0 && szBuffer[i - 1] != ' ')
-			szBuffer[i] = ::tolower(szBuffer[i]);
+			szBuffer[i] = static_cast<char>(::tolower(szBuffer[i]));
 	}
 	return szBuffer.GetCString();
 }

@@ -2,8 +2,9 @@
 
 #ifndef CIV4_GLOBALS_H
 #define CIV4_GLOBALS_H
-// advc: Disable warnings about unknown pragma (MSVC03 doesn't know pragma region)
-#pragma warning(disable:4068)
+// <advc> Disable warnings about unknown pragma (MSVC03 doesn't know pragma region)
+#pragma warning(push)
+#pragma warning(disable: 68) // </advc>
 
 //
 // 'global' vars for Civ IV.  singleton class.
@@ -1018,6 +1019,6 @@ inline FlavorTypes getEnumLength(FlavorTypes) { return (FlavorTypes)gGlobals.get
 #define NUM_GRAPHICLEVELS (GC.getNumGraphicLevels())
 #define NUM_GLOBE_LAYER_TYPES (GC.getNumGlobeLayers())
 #endif
-#pragma warning(default:4068) // advc: Re-enable "unknown pragma" warning
+#pragma warning(pop) // advc: Re-enable "unknown pragma" warning
 
 #endif

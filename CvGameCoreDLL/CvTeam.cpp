@@ -2131,11 +2131,10 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 		// <advc.308>
 		if(kGame.isOption(GAMEOPTION_RAGING_BARBARIANS) && kGame.getStartEra() == 0)
 		{
-			switch(eTechEra)
-			{
-			case 1: rModifier -= per100(14); break;
-			case 2: rModifier -= per100(7); break;
-			}
+			if (eTechEra == 1)
+				rModifier -= per100(14);
+			else if (eTechEra == 2)
+				rModifier -= per100(7);
 		}
 		if(kGame.getStartEra() == 0 && kGame.isOption(GAMEOPTION_NO_BARBARIANS) &&
 			eTechEra <= 1)
@@ -2760,7 +2759,7 @@ void CvTeam::makeHasMet(TeamTypes eOther, bool bNewDiplo,
 	{
 		int iGameTurn = GC.getGame().getGameTurn();
 		FAssert(iGameTurn >= 0);
-		m_aiHasMetTurn.set(eOther, iGameTurn);
+		m_aiHasMetTurn.set(eOther, toShort(iGameTurn));
 	} // </advc.091>
 	updateTechShare();
 
@@ -3737,7 +3736,7 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)  // advc: styl
 		for(int i = 0; i < -iChange; i++)
 			m_pavProjectArtTypes[eIndex].pop_back();
 	}
-	FAssertMsg(getProjectCount(eIndex) == (int)m_pavProjectArtTypes[eIndex].size(), "[Jason] Unbalanced project art types.");
+	FAssertMsg(getProjectCount(eIndex) == m_pavProjectArtTypes[eIndex].size(), "[Jason] Unbalanced project art types.");
 
 	CvProjectInfo& kProject = GC.getInfo(eIndex);
 
@@ -5569,7 +5568,10 @@ void CvTeam::read(FDataStreamBase* pStream)
 		{
 			TeamTypes eTeam = itTeam->getID();
 			if (abHasMet.get(eTeam))
-				m_aiHasMetTurn.set(eTeam, eTeam == getID() ? iStartTurn : iGameTurn);
+			{
+				m_aiHasMetTurn.set(eTeam, toShort(
+						eTeam == getID() ? iStartTurn : iGameTurn));
+			}
 		}
 	}
 	else m_aiHasMetTurn.Read(pStream);

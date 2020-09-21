@@ -392,7 +392,6 @@ void UWAI::Team::alignAreaAI(bool isNaval) {
 bool UWAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 
 	CvTeamAI& agent = GET_TEAM(agentId);
-	CvTeamAI& target = GET_TEAM(targetId);
 	WarPlanTypes wp = agent.AI_getWarPlan(targetId);
 	FAssert(wp != NO_WARPLAN);
 	bool bAtWar = agent.isAtWar(targetId);
@@ -1193,8 +1192,6 @@ void UWAI::Team::scheme() {
 	}
 	vector<TargetData> targets;
 	double totalDrive = 0;
-	CvLeaderHeadInfo& lh = GC.getInfo(GET_PLAYER(agent.getLeaderID()).
-			getPersonalityType());
 	UWAICache& cache = leaderCache();
 	for(TeamIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(agentId); it.hasNext(); ++it) {
 		TeamTypes targetId = it->getID();

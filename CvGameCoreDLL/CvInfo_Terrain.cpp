@@ -405,7 +405,7 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 
 CvBonusInfo::CvBonusInfo() :
 m_eBonusClassType(NO_BONUSCLASS),
-m_iChar(0),
+m_wcSymbol(0),
 m_eTechReveal(NO_TECH),
 m_eTechCityTrade(NO_TECH),
 m_eTechObsolete(NO_TECH),
@@ -448,14 +448,14 @@ CvBonusInfo::~CvBonusInfo()
 	SAFE_DELETE_ARRAY(m_pbFeatureTerrain); // free memory - MT
 }
 
-int CvBonusInfo::getChar() const
+wchar CvBonusInfo::getChar() const
 {
-	return m_iChar;
+	return m_wcSymbol;
 }
 
-void CvBonusInfo::setChar(int i)
+void CvBonusInfo::setChar(wchar wc)
 {
-	m_iChar = i;
+	m_wcSymbol = wc;
 }
 
 int CvBonusInfo::getAITradeModifier() const

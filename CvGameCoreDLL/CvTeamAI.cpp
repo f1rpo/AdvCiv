@@ -1354,7 +1354,6 @@ int CvTeamAI::AI_warCommitmentCost(TeamTypes eTarget, WarPlanTypes eWarPlan,
 		// scale based on our current strength relative to our enemies.
 		// cf. with code in AI_calculateAreaAIType
 		{
-			int iWarSuccessRating = isAtWar(eTarget) ? AI_getWarSuccessRating() : 0;
 			int iOurRelativeStrength = 100 * getPower(true) / (AI_countMilitaryWeight(0) + 20); // whether to include vassals is a tricky issue...
 			// Sum the relative strength for all enemies, including existing wars and wars with civs attached to the target team.
 			int iEnemyRelativeStrength = 0;
@@ -1377,7 +1376,8 @@ int CvTeamAI::AI_warCommitmentCost(TeamTypes eTarget, WarPlanTypes eWarPlan,
 			}
 			//
 
-			//iCommitmentPerMil = iCommitmentPerMil * (100 * iEnemyRelativeStrength) / std::max(1, iOurRelativeStrength * (100+iWarSuccessRating/2));
+			/*int iWarSuccessRating = (isAtWar(eTarget) ? AI_getWarSuccessRating() : 0);
+			iCommitmentPerMil = iCommitmentPerMil * (100 * iEnemyRelativeStrength) / std::max(1, iOurRelativeStrength * (100+iWarSuccessRating/2));*/
 			iCommitmentPerMil = iCommitmentPerMil * iEnemyRelativeStrength / std::max(1, iOurRelativeStrength);
 		}
 
@@ -1779,7 +1779,6 @@ int CvTeamAI::AI_endWarVal(TeamTypes eTeam) const // XXX this should consider ar
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 		iOurAttackers += it->AI_enemyTargetMissions(eTeam);
 	int iTheirAttackers = 0;
-	CvArea* pLoopArea = NULL;
 	FOR_EACH_AREA(pLoopArea)
 		iTheirAttackers += countEnemyDangerByArea(*pLoopArea, eTeam);
 

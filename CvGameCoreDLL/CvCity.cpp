@@ -4163,7 +4163,6 @@ int CvCity::cultureStrength(PlayerTypes ePlayer,
 			Instead, count some religion offense also when the owner's state religion
 			is absent and at least one religion is in the city. This makes (some) sense
 			whether ePlayer is defeated or not. */
-		bool bReligionSuppressed = false;
 		if(eOwnerStateReligion != NO_RELIGION && !isHasReligion(eOwnerStateReligion))
 		{
 			FOR_EACH_ENUM(Religion)

@@ -6,7 +6,7 @@
 
 
 CvYieldInfo::CvYieldInfo() :
-m_iChar(0),
+m_wcSymbol(0),
 m_iHillsChange(0),
 m_iPeakChange(0),
 m_iLakeChange(0),
@@ -27,14 +27,14 @@ CvYieldInfo::~CvYieldInfo()
 	//SAFE_DELETE_ARRAY(m_paszSymbolPath); // advc.003j
 }
 
-int CvYieldInfo::getChar() const
+wchar CvYieldInfo::getChar() const
 {
-	return m_iChar;
+	return m_wcSymbol;
 }
 
-void CvYieldInfo::setChar(int i)
+void CvYieldInfo::setChar(wchar wc)
 {
-	m_iChar = i;
+	m_wcSymbol = wc;
 }
 
 int CvYieldInfo::getColorType() const
@@ -102,21 +102,21 @@ bool CvYieldInfo::read(CvXMLLoadUtility* pXML)
 }
 
 CvCommerceInfo::CvCommerceInfo() :
-m_iChar(0),
+m_wcSymbol(0),
 m_iInitialPercent(0),
 m_iInitialHappiness(0),
 m_iAIWeightPercent(0),
 m_bFlexiblePercent(false)
 {}
 
-int CvCommerceInfo::getChar() const
+wchar CvCommerceInfo::getChar() const
 {
-	return m_iChar;
+	return m_wcSymbol;
 }
 
-void CvCommerceInfo::setChar(int i)
+void CvCommerceInfo::setChar(wchar wc)
 {
-	m_iChar = i;
+	m_wcSymbol = wc;
 }
 
 int CvCommerceInfo::getInitialPercent() const

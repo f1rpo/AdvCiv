@@ -311,6 +311,7 @@
     <ClInclude Include="..\CyUnit.h" />
     <ClInclude Include="..\GameBryo.h" />
     <ClInclude Include="..\LinkedListTraversal.h" />
+    <ClInclude Include="..\PragmaWarnings.h" />
     <ClInclude Include="..\ReproTest.h" />
     <ClInclude Include="..\EnumMap.h" />
     <ClInclude Include="..\EnumMap2D.h" />

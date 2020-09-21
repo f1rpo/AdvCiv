@@ -1,9 +1,10 @@
 SOURCE_DIR = ..
-PROJECT_CFLAGS = /WX
+# Stricter warnings. The code editor (.vcxproj) uses /W3 though (by default).
+PROJECT_CFLAGS = /WX /W4
 # Allow inline expansion of functions with an inline keyword even for debug builds
 PROJECT_Debug_CFLAGS = /Ob1
-# Should _not_ be set when inspecting assembly as it will disable __forceinline
-PROJECT_DebugOpt_CFLAGS = /DFASSERT_ENABLE
+# Should _not_ be set when inspecting disassembly as it will disable __forceinline
+#PROJECT_DebugOpt_CFLAGS = /DFASSERT_ENABLE
 # DLL-internal profiler: /DUSE_INTERNAL_PROFILER
 # Time Stamp Counter profiler: /DUSE_TSC_PROFILER
 # External profiler, e.g. Very Sleepy: No profile flags needed; profile builds always use Z7.

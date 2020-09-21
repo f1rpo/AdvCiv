@@ -73,9 +73,6 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	/*  Much of this function could be written more concisely based on the
 		interface of MilitaryAnalyst; currently relies mostly on WarEvalParamters. */
 	TeamTypes targetTeamId = params.targetId();
-	// Master teams: Needed in order to disregard ongoing wars when in peaceScenario
-	TeamTypes ourMaster = GET_PLAYER(weId).getMasterTeam();
-	TeamTypes targetMaster = GET_TEAM(targetTeamId).getMasterTeam();
 	TeamTypes master = GET_PLAYER(civId).getMasterTeam();
 	int iTotalWars = 0, iWars = 0;
 	// Whether simulation assumes peace between civId and any other civ
@@ -91,7 +88,6 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		if(loopTeam.getID() == tId || !loopTeam.isHasMet(TEAMID(m.ourId())))
 			continue;
 		TeamTypes loopTeamId = loopTeam.getID();
-		TeamTypes loopMaster = loopTeam.getMasterTeam();
 		// Whether the simulation assumes peace between loopTeam and t
 		bool peaceAssumedLoop = peaceScenario && ((m.isOnOurSide(tId) &&
 				m.isOnTheirSide(loopTeamId)) || (m.isOnOurSide(loopTeamId) &&
@@ -175,7 +171,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			   currently under consideration may lead to abandonment of
 			   concurrent war preparations. */
 			(t.AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0 &&
-			master != ourMaster))
+			master != GET_TEAM(weId).getMasterTeam()))
 		intensity = FULL;
 	bool attackedUnprepared = attackedRecently && iWarPlans == 0;
 			// Count preparing limited as unprepared?

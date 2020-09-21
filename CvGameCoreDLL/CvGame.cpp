@@ -173,7 +173,8 @@ void CvGame::init(HandicapTypes eHandicap)
 			char szRandomPassword[iPasswordSize];
 			for (int i = 0; i < iPasswordSize-1; i++)
 			{
-				szRandomPassword[i] = getSorenRandNum(128, NULL);
+				szRandomPassword[i] = /* advc: */ toChar(
+						getSorenRandNum(CHAR_MAX + 1, NULL));
 			}
 			szRandomPassword[iPasswordSize-1] = 0;
 			ic.setAdminPassword(szRandomPassword);
@@ -1625,7 +1626,6 @@ bool CvGame::normalizeCanAddLakeTo(CvPlot const& kPlot) const
 	{
 		return false;
 	}
-	bool bStartingPlot = false;
 	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
 		if (itPlayer->getStartingPlot() == &kPlot)
@@ -1649,7 +1649,6 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: refactored
 		int iBadFeatures = 0;
 		for (CityPlotIter itPlot(*pStartingPlot); itPlot.hasNext(); ++itPlot)
 		{
-			CvPlot& p = *itPlot;
 			// Disregard inner ring later
 			if (itPlot.currID() < NUM_INNER_PLOTS || !itPlot->isFeature())
 				continue;
@@ -7459,7 +7458,6 @@ void CvGame::createBarbarianUnits()
 		}
 		if(iUnownedTotal < iBaseTilesPerLandUnit / 2)
 			continue;
-		int iOwned = iTiles - iUnowned;
 		int iBarbCities = a.getCitiesPerPlayer(BARBARIAN_PLAYER);
 		int iNeededLand = numBarbariansToCreate(iBaseTilesPerLandUnit, iTiles,
 				iUnowned, iLandUnits, iBarbCities);
@@ -9944,7 +9942,7 @@ BuildingTypes CvGame::getShrineBuilding(int eIndex, ReligionTypes eReligion)
 		if (eReligion == NO_RELIGION)
 			eBuilding = (BuildingTypes) m_aiShrineBuilding[eIndex];
 		else for (int iI = 0, iReligiousBuilding = 0; iI < m_iShrineBuildingCount; iI++)
-			if (m_aiShrineReligion[iI] == (int) eReligion)
+			if (m_aiShrineReligion[iI] == eReligion)
 			{
 				if (iReligiousBuilding == eIndex)
 				{
@@ -9974,7 +9972,7 @@ void CvGame::changeShrineBuilding(BuildingTypes eBuilding, ReligionTypes eReligi
 			if (!bFound)
 			{
 				// note, eReligion is not important if we removing, since each building is always one religion
-				if (m_aiShrineBuilding[iI] == (int) eBuilding)
+				if (m_aiShrineBuilding[iI] == eBuilding)
 					bFound = true;
 			}
 

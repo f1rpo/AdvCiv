@@ -5495,8 +5495,6 @@ int CvPlayer::getBuildingClassPrereqBuilding(BuildingTypes eBuilding, BuildingCl
 	if (iPrereqs < 1) // dont bother with the rest of the calcs if we have no prereqs
 		return 0;
 
-	BuildingClassTypes const eBuildingClass = kBuilding.getBuildingClassType();
-
 	iPrereqs *= std::max(0, GC.getInfo(GC.getMap().getWorldSize()).
 			getBuildingClassPrereqModifier() + 100);
 	//iPrereqs /= 100;
@@ -19279,7 +19277,6 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption,
 	aColors.clear();
 	aIndicators.clear();
 
-	PlayerColorTypes ePlayerColor = getPlayerColor();
 	CvWStringBuffer szBuffer;
 	CvMap const& kMap = GC.getMap();
 	for (int i = 0; i < kMap.numPlots(); i++)

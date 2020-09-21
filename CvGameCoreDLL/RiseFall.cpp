@@ -107,7 +107,7 @@ void RiseFall::init() {
 		finalChLen = -1;
 	chapters.push_back(new RFChapter(maxChapters - 1, maxChapters,
 			playLength, finalChLen));
-	FAssert(maxChapters == (int)chapters.size());
+	FAssert(chapters.size() == maxChapters);
 	if(!chapters.empty() && !timeLimit)
 		chapters[chapters.size() - 1]->setEndless(true);
 	for(size_t i = 0; i < chapters.size(); i++) {
@@ -1372,7 +1372,6 @@ int RiseFall::pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
 	}
 	TeamTypes aiTeamId = TEAMID(aiCivId);
 	CvTeamAI const& aiTeam = GET_TEAM(aiTeamId);
-	CvPlayerAI const& aiCiv = GET_PLAYER(aiCivId);
 	CvTeamAI const& humanTeam = GET_TEAM(humanTeamId);
 	CvPlayerAI const& humanCiv = GET_PLAYER(humanCivId);
 	// Loop based on CvPlayerAI::AI_dealVal
@@ -1449,7 +1448,7 @@ void RiseFall::restoreDiploText() {
 	CvDiplomacyResponse* resp = findThanks();
 	if(resp == NULL)
 		return;
-	FAssert(resp->getNumDiplomacyText() == (int)originalThanks.size());
+	FAssert(resp->getNumDiplomacyText() == originalThanks.size());
 	for(int j = 0; j < resp->getNumDiplomacyText(); j++)
 		resp->setDiplomacyText(j, *originalThanks[j]);
 	clearDiploStrings();

@@ -102,10 +102,10 @@ private:
 		void addNukesFired(double nukes) { nukesFired += nukes; }
 		inline double getNukesFired() const { return nukesFired; }
 		void setDoWOn(PlayerTypes aggressorId) { DoWOn.insert(aggressorId); }
-		void setDoWOn(PlyrSetIter& first, PlyrSetIter& last) { DoWOn.insert(first, last); }
+		void setDoWOn(PlyrSetIter const& first, PlyrSetIter const& last) { DoWOn.insert(first, last); }
 		inline PlyrSet const& getDoWOn() const { return DoWOn; }
 		void setDoWBy(PlayerTypes targetId) { DoWBy.insert(targetId); }
-		void setDoWBy(PlyrSetIter& first, PlyrSetIter& last) { DoWBy.insert(first, last); }
+		void setDoWBy(PlyrSetIter const& first, PlyrSetIter const& last) { DoWBy.insert(first, last); }
 		inline PlyrSet const& getDoWBy() const { return DoWBy; }
 		void setWarContinued(PlayerTypes enemyId) { warsCont.insert(enemyId); }
 		inline PlyrSet const& getWarsContinued() const { return warsCont; }

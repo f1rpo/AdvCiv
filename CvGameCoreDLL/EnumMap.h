@@ -333,18 +333,19 @@ private:
 	}
 	template<>
 	__forceinline void _set<false, ENUMMAP_SIZE_1_BYTE>(int iIndex, T tValue)
-	{
-		m_pArrayChar[iIndex] = tValue;
+	{	// advc: Cast added to conform with /W4
+		m_pArrayChar[iIndex] = static_cast<char>(tValue);
 	}
 	template<>
 	__forceinline void _set<false, ENUMMAP_SIZE_2_BYTE>(int iIndex, T tValue)
 	{
-		m_pArrayShort[iIndex] = tValue;
+		m_pArrayShort[iIndex] = static_cast<short>(tValue); // advc: cast (see above)
 	}
 	template<>
 	inline void _set<false, ENUMMAP_SIZE_BOOL>(int iIndex, T tValue)
 	{
-		BitUtil::SetBit(m_pArrayBool[getBoolArrayBlock(iIndex)], getBoolArrayIndexInBlock(iIndex), tValue ? 1 : 0);
+		BitUtil::SetBit(m_pArrayBool[getBoolArrayBlock(iIndex)],
+				getBoolArrayIndexInBlock(iIndex), tValue ? 1 : 0);
 	}
 	/*template<>
 	__forceinline void _set<true, ENUMMAP_SIZE_NATIVE>(int iIndex, T tValue)

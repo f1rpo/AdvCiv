@@ -4,7 +4,6 @@
 #define CvString_h
 
 #include <string>
-//#pragma warning( disable: 4251 ) // needs to have dll-interface to be used by clients of class
 
 //
 // simple string classes, based on stl, but with a few helpers

@@ -1901,7 +1901,7 @@ void InvasionGraph::breakCycle(vector<Node*> const& cyc) {
 	int toughestEnemies_cycIndex = -1;
 	double highestEnemyThreat = -1;
 	// Only for length 2
-	double armyPortion1, armyPortion2;
+	double armyPortion1 = 0, armyPortion2 = 0;
 	for(size_t i = 0; i < cyc.size(); i++) {
 		Node& n = *cyc[i];
 		double threatOfAttackFromCycle = -1;

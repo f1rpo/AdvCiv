@@ -1048,7 +1048,6 @@ void CvMap::read(FDataStreamBase* pStream)
 	pStream->Read(&m_bWrapX);
 	pStream->Read(&m_bWrapY);
 
-	FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated");
 	m_aiNumBonus.Read(pStream);
 	m_aiNumBonusOnLand.Read(pStream);
 

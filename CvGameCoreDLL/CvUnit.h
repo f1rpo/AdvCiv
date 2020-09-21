@@ -7,8 +7,6 @@
 
 #include "CvDLLEntity.h"
 
-#pragma warning( disable: 4251 ) // needs to have dll-interface to be used by clients of class
-
 class CvPlot;
 class CvArea;
 class CvUnitInfo;

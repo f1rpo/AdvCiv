@@ -6,21 +6,21 @@
 
 
 CvOrganizationInfo::CvOrganizationInfo() :
-m_iChar(0),
+m_wcSymbol(0),
 m_iTechPrereq(NO_TECH),
 m_iFreeUnitClass(NO_UNITCLASS),
 m_iSpreadFactor(0),
 m_iMissionType(NO_MISSION)
 {}
 
-int CvOrganizationInfo::getChar() const
+wchar CvOrganizationInfo::getChar() const
 {
-	return m_iChar;
+	return m_wcSymbol;
 }
 
-void CvOrganizationInfo::setChar(int i)
+void CvOrganizationInfo::setChar(wchar wc)
 {
-	m_iChar = i;
+	m_wcSymbol = wc;
 }
 
 int CvOrganizationInfo::getFreeUnitClass() const

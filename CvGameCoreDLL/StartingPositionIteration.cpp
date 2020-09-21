@@ -245,9 +245,11 @@ StartingPositionIteration::PotentialSites::PotentialSites(
 		if (iFoundValue >= rMinFoundVal)
 		{
 			// Randomize a little - mainly so that settling in place isn't a no-brainer
-			iFoundValue = (iFoundValue + iFoundValue *
+			iFoundValue = toShort(
+					(iFoundValue + iFoundValue *
 					((iFoundValue / rMinFoundVal - 1) * fixp(0.05) *
-					(scaled::rand(GC.getGame().getMapRand(), NULL) - fixp(0.5)))).round();
+					(scaled::rand(GC.getGame().getMapRand(), NULL) - fixp(0.5)))).
+					round());
 			m_foundValuesPerSite.insert(make_pair(eLoopPlotNum, iFoundValue));
 		}
 	}
@@ -284,7 +286,7 @@ StartingPositionIteration::PotentialSites::PotentialSites(
 			}
 		}
 		CvPlot const& kMinPlot = kMap.getPlotByIndex(minPos->first);
-		int iMinFoundVal = minPos->second;
+		short iMinFoundVal = minPos->second;
 		m_foundValuesPerSite.erase(minPos);
 		recordSite(kMinPlot, iMinFoundVal, false);
 	}
@@ -643,7 +645,7 @@ namespace
 		CvPlot const* m_pPlot;
 		short m_iDistance;
 	public:
-		Node(CvPlot const& kPlot, int iDistance) : m_pPlot(&kPlot), m_iDistance(iDistance) {}
+		Node(CvPlot const& kPlot, short iDistance) : m_pPlot(&kPlot), m_iDistance(iDistance) {}
 		CvPlot const& get() const { return *m_pPlot; }
 		short getDistance() const { return m_iDistance; }
 		// For inverse ordering by distance
@@ -704,7 +706,7 @@ short StartingPositionIteration::DistanceTable::stepDist(
 		return MAX_SHORT;
 
 	// Land to shallow water and shallow to deep water are frontiers
-	int const iFrontierAdjustment = (bSourceCoastal ? -1 : 1) * 10;
+	short const iFrontierAdjustment = (bSourceCoastal ? -1 : 1) * 10;
 	bool const bDiagonal = (kFrom.getX() != kTo.getX() && kFrom.getY() != kTo.getY());
 	if (!kTo.isWater()) // Land to land, water to land
 		return (bDiagonal ? 12 : 9);
@@ -879,7 +881,9 @@ void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes eP
 			fixp(1/3.) : 0);
 	// Low-level performance optimizations ...
 	static vector<claim_t> arDelayCache = cacheDelayFactors(iDistThresh);
-	int const iCivsAlive = PlayerIter<CIV_ALIVE>::count();
+	#if MAX_CIV_PLAYERS > 25
+		int const iCivsAlive = PlayerIter<CIV_ALIVE>::count();
+	#endif
 	// Use friend status to avoid FOR_EACH_ENUM(PlotNum)
 	DistanceTable::SourceID const eSrc = m_kDists.m_sourceIDs[kMap.plotNum(kStartPlot)];
 	for (size_t i = 0; i < m_kDists.m_distances[eSrc].size(); i++)
@@ -905,12 +909,13 @@ void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes eP
 			militarily (except in Always Peace games; see rMaxClaimExp above).
 			So let's not quite square the proportion. */
 		// Not worth the extra time on super-huge maps
-		if (MAX_CIV_PLAYERS > 25 && // Make sure not to branch here w/ the 18-civ DLL
-			iCivsAlive > 25)
+		#if MAX_CIV_PLAYERS > 25 // Make sure not to branch here w/ the 18-civ DLL
+		if (iCivsAlive > 25)
 		{
 			rClaim *= rClaim;
 		}
 		else
+		#endif
 		{
 			//rClaim.exponentiate(claim_t(190, 100));
 			/*  Actually, the longer the distance of the claimants, the less decisive
@@ -1906,7 +1911,6 @@ bool NormalizationTarget::isReached(CvPlot const& kStartSite,
 	bool bNearlyReached, bool bClearlyExceeded) const
 {
 	CvMap const& kMap = GC.getMap();
-	PlotNumTypes const ePlot = kMap.plotNum(kStartSite);
 
 	scaled rCurrStartVal = -1;
 	short iCurrFoundVal = -1;

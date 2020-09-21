@@ -1847,7 +1847,7 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	m_aeColor.Read(pStream);
 	m_aeArtStyle.Read(pStream);
 	// <advc.190c>
-	if (uiFlag >= 5
+	if (uiFlag >= 5)
 	{
 		m_abCivChosenRandomly.Read(pStream);
 		m_abLeaderChosenRandomly.Read(pStream);

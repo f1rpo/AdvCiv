@@ -163,7 +163,7 @@ protected:
 		}
 		m_iPos = 0;
 		// Cache the cache size (std::vector computes it as 'end' minus 'begin')
-		m_iCacheSize = m_pCache->size();
+		m_iCacheSize = static_cast<short>(m_pCache->size());
 		if (bSYNCRAND_ORDER)
 			m_aiShuffledIndices = ::shuffle(m_iCacheSize, GC.getGame().getSorenRand());
 		generateNext();

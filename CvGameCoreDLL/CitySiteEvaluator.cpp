@@ -266,7 +266,7 @@ void CitySiteEvaluator::setDebug(bool b)
 short CitySiteEvaluator::evaluateWithLogging(CvPlot const& kPlot) const
 {
 	AIFoundValue::setLoggingEnabled(true);
-	int r = evaluate(kPlot);
+	short r = evaluate(kPlot);
 	AIFoundValue::setLoggingEnabled(false);
 	return r;
 }
@@ -762,7 +762,7 @@ short AIFoundValue::evaluate()
 
 	FAssert(iValue >= 0);
 	IFLOG logBBAI("Bottom line (found-city value): %d\n", iValue);
-	return std::max<short>(1, ::intToShort(iValue));
+	return std::max<short>(1, toShort(iValue));
 }
 
 
@@ -1217,7 +1217,6 @@ bool AIFoundValue::isUsablePlot(CityPlotTypes ePlot, int& iTakenTiles, bool& bCi
 		IFLOG logBBAI("Don't want to take (%d,%d) away from %S", p->getX(), p->getY(), cityName(*pOtherCity));
 		return false;
 	}
-	CvPlot const* pOtherPlot = pOtherCity->plot();
 	CityPlotTypes const eOtherPlotIndex = pOtherCity->getCityPlotIndex(*p);
 	if (GC.getCityPlotPriority()[ePlot] >= GC.getCityPlotPriority()[eOtherPlotIndex])
 	{
@@ -2207,28 +2206,28 @@ int AIFoundValue::evaluateFeatureProduction(int iProduction) const
 int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, scaled rProductionModifier,
 	int iLandTiles) const
 {
-	int r = 0;
+	int iR = 0;
 	// <advc.303>
 	if (bBarbarian)
 	{
-		r += 350;
-		IFLOG logBBAI("+%d for coastal (Barbarian)", r);
-		return r;
+		iR += 350;
+		IFLOG logBBAI("+%d for coastal (Barbarian)", iR);
+		return iR;
 	} // </advc.303>
 	//if (kSet.isStartingLoc())
 	if (/* advc.108: */ iCities <= 0)
 	{
 		// BtS: "let other penalties bring this down."
-		r += (kSet.isStartingLoc() ? 360 // advc.031: was 600 in BtS, 500 in K-Mod
+		iR += (kSet.isStartingLoc() ? 360 // advc.031: was 600 in BtS, 500 in K-Mod
 				: 200); // advc.031: Less when normalizing or moving 1st settler
 		if (!kSet.isNormalizing() && kArea.getNumStartingPlots() <= 0)
 		{
 			// advc.031: An inland sea will probably do an isolated civ no good
 			if (GC.getMap().findBiggestArea(true) == kPlot.waterArea(true))
-				r += 450; // advc.031: was 1000 in BtS, 600 in K-Mod
+				iR += 450; // advc.031: was 1000 in BtS, 600 in K-Mod
 		}
-		IFLOG logBBAI("+%d for coastal (1st city)", r);
-		return r;
+		IFLOG logBBAI("+%d for coastal (1st city)", iR);
+		return iR;
 	}
 	if (kArea.getCitiesPerPlayer(ePlayer) <= 0)
 	{
@@ -2238,10 +2237,10 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, scaled rProductionMod
 		// advc.040: Mostly handled by the bFirstColony code elsewhere now
 		if (bGoodFirstColony)
 		{
-			r += 250;
-			IFLOG logBBAI("+%d for promising first colony", r);
+			iR += 250;
+			IFLOG logBBAI("+%d for promising first colony", iR);
 		}
-		return r + 60; // advc.031: For trade routes, ability to produce ships
+		return iR + 60; // advc.031: For trade routes, ability to produce ships
 	}
 	/*  BETTER_BTS_AI_MOD, Settler AI, 02/03/09, jdog5000: START
 		(edited by K-Mod) */
@@ -2250,14 +2249,14 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, scaled rProductionMod
 	if (pWaterArea != NULL)
 	{
 		//120 + (kSet.isSeafaring() ? 160 : 0);
-		r += (kSet.isSeafaring() ? 150 : 100); // advc.031
+		iR += (kSet.isSeafaring() ? 150 : 100); // advc.031
 		if (kTeam.AI_isWaterAreaRelevant(*pWaterArea) &&
 			/*  advc.031: Don't worry about coastal production if we
 				already have many coastal cities. */
 			kPlayer.countNumCoastalCities() <= iCities / 3)
 		{
-			//r += 120 + (kSet.isSeafaring() ? 160 : 0);
-			r += (kSet.isSeafaring() ? 240 : 125); // advc.031
+			//iR += 120 + (kSet.isSeafaring() ? 160 : 0);
+			iR += (kSet.isSeafaring() ? 240 : 125); // advc.031
 			/*if (kPlayer.countNumCoastalCities() < iCities / 4 ||
 				kPlayer.countNumCoastalCitiesByArea(kPlot.getArea()) == 0)*/
 			if (// advc.031: Disabled this clause
@@ -2265,7 +2264,7 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, scaled rProductionMod
 				(kPlot.getArea().getCitiesPerPlayer(ePlayer) > 0 &&
 				kPlayer.countNumCoastalCitiesByArea(kPlot.getArea()) == 0))
 			{
-				r += 200;
+				iR += 200;
 			}
 		}
 	}  // <advc.031>
@@ -2273,9 +2272,8 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, scaled rProductionMod
 	scaled rMult = rProductionModifier;
 	if (GC.getInitCore().isPangaea())
 		rMult /= 2;
-	r = (r * rMult).round();
+	iR = (iR * rMult).round();
 	// Encourage canals
-	int iCanal = 0;
 	if (pWaterArea != NULL &&
 		/*  ... but not if there is so little land that some city
 			will probably create a canal in any case */
@@ -2289,15 +2287,15 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, scaled rProductionMod
 			int iSizeFactor = std::min(30, std::min(iSz1, iSz2));
 			if (iSizeFactor >= GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN))
 			{
-				r += 9 * iSizeFactor;
+				iR += 9 * iSizeFactor;
 				IFLOG logBBAI("Connecting waterbodies of at least size %d", iSizeFactor);
 			}
 		}
 	} // </advc.031>
-	r += 50; // advc: as in K-Mod (was 200 in BBAI)
+	iR += 50; // advc: as in K-Mod (was 200 in BBAI)
 	// BETTER_BTS_AI_MOD: END
-	IFLOG logBBAI("+%d from coastal", r);
-	return r;
+	IFLOG logBBAI("+%d from coastal", iR);
+	return iR;
 }
 
 /*  advc: Should perhaps merge this with the diploFactor code in adjustToCivSurroundings.
@@ -3140,7 +3138,6 @@ scaled AIFoundValue::evaluateWorkablePlot(CvPlot const& p) const
 	ImprovementTypes eBonusImprovement = NO_IMPROVEMENT;
 	if (eBonus != NO_BONUS)
 	{
-		bool abDummy[]={false, false};
 		bool bImprovementRemovesFeature = false;
 		eBonusImprovement = getBonusImprovement(eBonus, p,
 				bCanTradeBonus, bCanSoonTradeBonus, aiBonusImprovementYield,

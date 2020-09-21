@@ -5,8 +5,6 @@
 #ifndef CIV4_PLOT_H
 #define CIV4_PLOT_H
 
-#pragma warning( disable: 4251 ) // needs to have dll-interface to be used by clients of class
-
 class CvArea;
 class CvMap;
 class CvPlotBuilder;
@@ -486,8 +484,7 @@ public:
 	// BETTER_BTS_AI_MOD, City AI, 10/06/09, jdog5000:
 	int calculateImprovementYieldChange(ImprovementTypes eImprovement, YieldTypes eYield,							// Exposed to Python
 			PlayerTypes ePlayer = NO_PLAYER, bool bOptimal = false, bool bBestRoute = false) const;
-	// advc.enum: Return type changed to char (was int)
-	char calculateYield(YieldTypes eIndex, bool bDisplay = false) const;											// Exposed to Python
+	int calculateYield(YieldTypes eIndex, bool bDisplay = false) const;											// Exposed to Python
 	bool hasYield() const { return m_aiYield.hasContent(); } // advc.enum											// Exposed to Python
 	void updateYield();
 	int calculateCityPlotYieldChange(YieldTypes eYield, int iYield, int iCityPopulation) const;

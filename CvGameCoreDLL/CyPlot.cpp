@@ -822,7 +822,7 @@ int CyPlot::getRiverID() const
 void CyPlot::setRiverID(int iNewValue)
 {
 	if (m_pPlot)
-		m_pPlot->setRiverID(iNewValue);
+		m_pPlot->setRiverID(toShort(iNewValue));
 }
 
 int CyPlot::getMinOriginalStartDist()

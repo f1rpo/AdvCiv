@@ -1025,9 +1025,11 @@ void CvPlayerAI::AI_updateFoundValues(bool bStarting)  // advc: refactored
 			iValue = citySiteEval.evaluate(kLoopPlot);
 			// <advc.108> Slight preference for the assigned starting plot
 			if(iCities <= 0 && pStartPlot != NULL && &kLoopPlot == pStartPlot &&
-					// Unless it doesn't have fresh water
-					kLoopPlot.isFreshWater())
-				iValue = ::intToShort(::round(1.05 * iValue)); // </advc.108>
+				// Unless it doesn't have fresh water
+				kLoopPlot.isFreshWater())
+			{
+				iValue = toShort(iValue + ROUND_DIVIDE(iValue, 20));
+			} // </advc.108>
 		}
 		kLoopPlot.setFoundValue(getID(), iValue);
 		if(iValue > kLoopPlot.getArea().getBestFoundValue(getID()))
@@ -3166,7 +3168,6 @@ int CvPlayerAI::AI_getPlotDanger(/* BtS parameters: */ CvPlot const& kPlot, int 
 					// </advc.001i>
 					eRevealedLoopPlayer != BARBARIAN_PLAYER) // advc.300
 				{
-					TeamTypes const eRevealedLoopTeam = TEAMID(eRevealedLoopPlayer);
 					int const iDistance = stepDistance(&kPlot, &p);
 					//if (iDistance == 1)
 					// <advc> Let's also cache border danger when kPlot itself is hostile
@@ -18117,7 +18118,6 @@ void CvPlayerAI::AI_doCommerce()
 		int iEspionageTargetRate = 0;
 		std::vector<int> aiTarget(MAX_CIV_TEAMS, 0);
 		std::vector<int> aiWeight(MAX_CIV_TEAMS, 0);
-		int iHighestTarget = 0;
 		int iMinModifier = MAX_INT;
 		int iApproxTechCost = 0;
 		TeamTypes eMinModTeam = NO_TEAM;
@@ -18923,8 +18923,6 @@ void CvPlayerAI::AI_doDiplo()  // advc: style changes
 
 	if (GC.getPythonCaller()->AI_doDiplo(getID()))
 		return;
-
-	int iGoldValuePercent = AI_goldTradeValuePercent();
 
 	CvGame& kGame = GC.getGame();
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
@@ -19789,7 +19787,6 @@ bool CvPlayerAI::AI_proposeJointWar(PlayerTypes eHuman)
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
 	if(kOurTeam.getNumWars(true, true) <= 0)
 		return false;
-	CvPlayerAI const& kHuman = GET_PLAYER(eHuman);
 	CvGame& kGame = GC.getGame();
 	// <advc.130m> Replacing this with an attitude check at the end:
 		//AI_getMemoryCount(eHuman, MEMORY_DECLARED_WAR) > 0 ||
@@ -21411,10 +21408,9 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 // (K-Mod note: this should be roughly in units of commerce.)
 int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTriggeredData) const
 {
-	CvEventTriggerInfo& kTrigger = GC.getInfo(kTriggeredData.m_eTrigger);
-	CvEventInfo& kEvent = GC.getInfo(eEvent);
+	CvEventInfo const& kEvent = GC.getInfo(eEvent);
 
-	CvTeamAI& kTeam = GET_TEAM(getTeam()); // K-Mod
+	CvTeamAI const& kTeam = GET_TEAM(getTeam()); // K-Mod
 
 	int iNumCities = getNumCities();
 	CvCityAI* pCity = AI_getCity(kTriggeredData.m_iCityId);
@@ -21423,17 +21419,9 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 
 	int iHappy = 0;
 	int iHealth = 0;
-	int aiYields[NUM_YIELD_TYPES];
-	int aiCommerceYields[NUM_COMMERCE_TYPES];
-
-	for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
-	{
-		aiYields[iI] = 0;
-	}
-	for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
-	{
-		aiCommerceYields[iI] = 0;
-	}
+	// <advc.enum>
+	EnumMap<YieldTypes,int> aiYields;
+	EnumMap<CommerceTypes,int> aiCommerceYields; // </advc.enum>
 
 	/*if (NO_PLAYER != kTriggeredData.m_eOtherPlayer) {
 		if (kEvent.isDeclareWar()) {
@@ -21554,39 +21542,38 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 	{	//Yield and other changes
 		if (kEvent.getNumBuildingYieldChanges() > 0)
 		{
-			for (int iBuildingClass = 0; iBuildingClass < GC.getNumBuildingClassInfos(); ++iBuildingClass)
+			FOR_EACH_ENUM(BuildingClass)
 			{
-				for (int iYield = 0; iYield < NUM_YIELD_TYPES; ++iYield)
+				FOR_EACH_ENUM(Yield)
 				{
-					aiYields[iYield] += kEvent.getBuildingYieldChange(iBuildingClass, iYield);
+					aiYields.add(eLoopYield, kEvent.getBuildingYieldChange(
+							eLoopBuildingClass, eLoopYield));
 				}
 			}
 		}
-
 		if (kEvent.getNumBuildingCommerceChanges() > 0)
 		{
-			for (int iBuildingClass = 0; iBuildingClass < GC.getNumBuildingClassInfos(); ++iBuildingClass)
+			FOR_EACH_ENUM(BuildingClass)
 			{
-				for (int iCommerce = 0; iCommerce < NUM_COMMERCE_TYPES; ++iCommerce)
+				FOR_EACH_ENUM(Commerce)
 				{
-					aiCommerceYields[iCommerce] += kEvent.getBuildingCommerceChange(iBuildingClass, iCommerce);
+					aiCommerceYields.add(eLoopCommerce, kEvent.getBuildingCommerceChange(
+							eLoopBuildingClass, eLoopCommerce));
 				}
 			}
 		}
-
 		if (kEvent.getNumBuildingHappyChanges() > 0)
 		{
-			for (int iBuildingClass = 0; iBuildingClass < GC.getNumBuildingClassInfos(); ++iBuildingClass)
+			FOR_EACH_ENUM(BuildingClass)
 			{
-				iHappy += kEvent.getBuildingHappyChange(iBuildingClass);
+				iHappy += kEvent.getBuildingHappyChange(eLoopBuildingClass);
 			}
 		}
-
 		if (kEvent.getNumBuildingHealthChanges() > 0)
 		{
-			for (int iBuildingClass = 0; iBuildingClass < GC.getNumBuildingClassInfos(); ++iBuildingClass)
+			FOR_EACH_ENUM(BuildingClass)
 			{
-				iHealth += kEvent.getBuildingHealthChange(iBuildingClass);
+				iHealth += kEvent.getBuildingHealthChange(eLoopBuildingClass);
 			}
 		}
 	}
@@ -21618,14 +21605,14 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 		iCityTurnValue += ((iHappy + kEvent.getHappy()) * 8);
 		iCityTurnValue += ((iHealth + kEvent.getHealth()) * 6);
 
-		iCityTurnValue += aiYields[YIELD_FOOD] * 5;
-		iCityTurnValue += aiYields[YIELD_PRODUCTION] * 5;
-		iCityTurnValue += aiYields[YIELD_COMMERCE] * 3;
+		iCityTurnValue += aiYields.get(YIELD_FOOD) * 5;
+		iCityTurnValue += aiYields.get(YIELD_PRODUCTION) * 5;
+		iCityTurnValue += aiYields.get(YIELD_COMMERCE) * 3;
 
-		iCityTurnValue += aiCommerceYields[COMMERCE_RESEARCH] * 3;
-		iCityTurnValue += aiCommerceYields[COMMERCE_GOLD] * 3;
-		iCityTurnValue += aiCommerceYields[COMMERCE_CULTURE] * 2; // was 1
-		iCityTurnValue += aiCommerceYields[COMMERCE_ESPIONAGE] * 2;
+		iCityTurnValue += aiCommerceYields.get(COMMERCE_RESEARCH) * 3;
+		iCityTurnValue += aiCommerceYields.get(COMMERCE_GOLD) * 3;
+		iCityTurnValue += aiCommerceYields.get(COMMERCE_CULTURE) * 2; // was 1
+		iCityTurnValue += aiCommerceYields.get(COMMERCE_ESPIONAGE) * 2;
 
 		iValue += (iCityTurnValue * 20 * iGameSpeedPercent) / 100;
 
@@ -21713,18 +21700,19 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 			iValue -= (iBonusValue * 15 * iGameSpeedPercent) / 100;
 		}
 
-		for (int i = 0; i < NUM_YIELD_TYPES; ++i)
+		FOR_EACH_ENUM(Yield)
 		{
-			if (kEvent.getPlotExtraYield(i) != 0)
+			if (kEvent.getPlotExtraYield(eLoopYield) != 0)
 			{
 				if (pPlot->getWorkingCity() != NULL)
 				{
 					FAssertMsg(pPlot->getWorkingCity()->getOwner() == getID(), "Event creates a boni for another player?");
-					aiYields[i] += kEvent.getPlotExtraYield(i);
+					aiYields.add(eLoopYield, kEvent.getPlotExtraYield(eLoopYield));
 				}
 				else
 				{
-					iValue += (20 * 8 * kEvent.getPlotExtraYield(i) * iGameSpeedPercent) / 100;
+					iValue += (20 * 8 * kEvent.getPlotExtraYield(eLoopYield) *
+							iGameSpeedPercent) / 100;
 				}
 			}
 		}
@@ -21737,7 +21725,8 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 
 	if (NULL != pUnit)
 	{
-		iValue += (2 * pUnit->baseCombatStr() * kEvent.getUnitExperience() * GC.getInfo(GC.getGame().getGameSpeedType()).getTrainPercent()) / 100;
+		iValue += (2 * pUnit->baseCombatStr() * kEvent.getUnitExperience() *
+				GC.getInfo(GC.getGame().getGameSpeedType()).getTrainPercent()) / 100;
 
 		iValue -= 10 * kEvent.getUnitImmobileTurns();
 	}
@@ -25769,7 +25758,6 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 
 	iLastPointsTotal = getAdvancedStartPoints();
 	iCityPoints = std::min(iCityPoints, iLastPointsTotal);
-	int iArea = -1; //getStartingPlot()->getArea();
 
 	//Spend econ points on a tech?
 	int iTechRand = 90 + GC.getGame().getSorenRandNum(20, "AI AS Buy Tech 1");
@@ -26480,8 +26468,9 @@ void CvPlayerAI::AI_doEnemyUnitData()
 	std::vector<int> aiUnitCounts(GC.getNumUnitInfos(), 0);
 	std::vector<int> aiDomainSums(NUM_DOMAIN_TYPES, 0);
 
-	int iOldTotal = 0;
-	int iNewTotal = 0;
+	/*int iOldTotal = 0;
+	int iNewTotal = 0;*/ // advc: iOldTotal was unused, so let's just do:
+	int iTotal = 0;
 
 	// Count enemy land and sea units visible to us
 	for (int i = 0; i < GC.getMap().numPlots(); i++)
@@ -26543,11 +26532,11 @@ void CvPlayerAI::AI_doEnemyUnitData()
 			iUnitValue *= pLoopUnit->baseCombatStr();
 			aiUnitCounts[pLoopUnit->getUnitType()] += iUnitValue;
 			aiDomainSums[pLoopUnit->getDomainType()] += iUnitValue;
-			iNewTotal += iUnitValue;
+			iTotal += iUnitValue;
 		}
 	}
 
-	if (iNewTotal == 0)
+	if (iTotal == 0)
 	{
 		//This should rarely happen.
 		return;

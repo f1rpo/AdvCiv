@@ -9983,7 +9983,7 @@ bool CvUnitAI::AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI,
 		FAssertMsg(pSplitGroup != NULL, "splitGroup failed");
 		return false;
 	}
-	CvPlot* pOldPlot = pSplitGroup->plot();
+	//CvPlot* pOldPlot = pSplitGroup->plot();
 	pSplitGroup->pushMission(MISSION_MOVE_TO_UNIT, pBestUnit->getOwner(), pBestUnit->getID(),
 			iFlags, false, false, eMissionAI, NULL, pBestUnit);
 	/* bool bMoved = (pSplitGroup->plot() != pOldPlot);
@@ -14728,7 +14728,6 @@ bool CvUnitAI::AI_pillage(int iBonusValueThreshold, int iFlags)
 	CvPlot const* pBestPlot = NULL;
 	CvPlot const* pBestPillagePlot = NULL;
 	int iBestValue = 0;
-	CvTeam const& kOurTeam = GET_TEAM(getTeam()); // advc
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
 		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
@@ -15077,7 +15076,7 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,
 	int iCollateralDamageScale = estimateCollateralWeight(0, kOurTeam.getID());
 	std::map<CvCityAI const*, int> city_defence_cache; // advc: const
 
-	std::vector<CvUnit const*> aGroupCargo;
+	//std::vector<CvUnit const*> apGroupCargo; // advc: unused
 	for (CLLNode<IDInfo> const* pUnitNode = getPlot().headUnitNode(); pUnitNode != NULL;
 		pUnitNode = getPlot().nextUnitNode(pUnitNode))
 	{
@@ -15086,7 +15085,7 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,
 		if (pTransport == NULL || pTransport->getGroup() != getGroup())
 			continue; // advc
 
-		aGroupCargo.push_back(&kLoopUnit);
+		//apGroupCargo.push_back(&kLoopUnit);
 		// K-Mod. Gather some data for later...
 		iLimitedAttackers += (kLoopUnit.combatLimit() < 100 ? 1 : 0);
 		iAmphibiousAttackers += (kLoopUnit.isAmphib() ? 1 : 0);
@@ -15379,32 +15378,32 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 {
 	PROFILE_FUNC();
 
-	bool bAttackCity = (getUnitAICargo(UNITAI_ATTACK_CITY) > 0);
-
 	FAssert(getGroup()->hasCargo());
 	FAssert(getGroup()->canAllMove()); // K-Mod (replacing a BBAI check that I'm sure is unnecessary.)
 
-	std::vector<CvUnit*> aGroupCargo;
+	std::vector<CvUnit const*> apGroupCargo;
 	for (CLLNode<IDInfo> const* pUnitNode = getPlot().headUnitNode(); pUnitNode != NULL;
 		pUnitNode = getPlot().nextUnitNode(pUnitNode))
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		CvUnit* pTransport = pLoopUnit->getTransportUnit();
 		if (pTransport != NULL && pTransport->getGroup() == getGroup())
-			aGroupCargo.push_back(pLoopUnit);
+			apGroupCargo.push_back(pLoopUnit);
 	}
 
-	// bool bCity = getPlot().isCity(true, getTeam());
-	// K-Mod note: bCity was used in a few places, but it should not be. If we make a decision based on being in a city, then we'll just change our mind as soon as we leave the city!
+	//bool bAttackCity = (getUnitAICargo(UNITAI_ATTACK_CITY) > 0); // advc: unused
 
+	// bool bCity = getPlot().isCity(true, getTeam());
+	/*	K-Mod note: bCity was used in a few places, but it should not be.
+		If we make a decision based on being in a city,
+		then we'll just change our mind as soon as we leave the city! */
 
 	// Loop over nearby plots for groups in enemy territory to reinforce
 	CvPlot const* pBestPlot = NULL;
 	CvPlot const* pBestAssaultPlot = NULL;
-	int iCargo = getGroup()->getCargo();
-	CvArea* pWaterArea = getPlot().waterArea();
-	bool bCanMoveAllTerrain = getGroup()->canMoveAllTerrain();
-	int iFlags = MOVE_AVOID_ENEMY_WEIGHT_3; // K-Mod. (no declare war)
+	CvArea const* pWaterArea = getPlot().waterArea();
+	bool const bCanMoveAllTerrain = getGroup()->canMoveAllTerrain();
+	int const iFlags = MOVE_AVOID_ENEMY_WEIGHT_3; // K-Mod. (no declare war)
 	int iBestValue = 0;
 	for (SquareIter it(*this, 2 * maxMoves()); it.hasNext(); ++it)
 	{
@@ -15493,10 +15492,11 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 						if (iEnemyDefenders > 0 || pLoopPlot->isCity())
 						{
 							bool bCanCargoAllUnload = true;
-							for (size_t i = 0; i < aGroupCargo.size(); ++i)
+							for (size_t i = 0; i < apGroupCargo.size(); ++i)
 							{
-								CvUnit* pAttacker = aGroupCargo[i];
-								if (!pLoopPlot->hasDefender(true, NO_PLAYER, pAttacker->getOwner(), pAttacker, true))
+								CvUnit const* pAttacker = apGroupCargo[i];
+								if (!pLoopPlot->hasDefender(
+									true, NO_PLAYER, pAttacker->getOwner(), pAttacker, true))
 								{
 									bCanCargoAllUnload = false;
 									break;
@@ -17184,9 +17184,11 @@ bool CvUnitAI::AI_irrigateTerritory()  // advc: refactored
 				continue;
 			BonusTypes const eBonus = kLoopPlot.getNonObsoleteBonusType(getTeam());
 			if (eBonus != NO_BONUS &&
-					// !(GC.getInfo(eImprovement).isImprovementBonusTrade(eBonus)))
-					kOwner.doesImprovementConnectBonus(eCurrentImprov, eBonus)) // K-Mod
+				// !(GC.getInfo(eImprovement).isImprovementBonusTrade(eBonus)))
+				kOwner.doesImprovementConnectBonus(eCurrentImprov, eBonus)) // K-Mod
+			{
 				continue;
+			}
 		}
 		if (!kLoopPlot.isIrrigationAvailable(true))
 			continue;
@@ -17196,7 +17198,6 @@ bool CvUnitAI::AI_irrigateTerritory()  // advc: refactored
 		for (int iJ = 0; iJ < static_cast<int>(irrigationCarryingBuilds.size()); iJ++)
 		{
 			const BuildTypes eBuild = irrigationCarryingBuilds[iJ];
-			const ImprovementTypes eIrrigImprov = GC.getInfo(eBuild).getImprovement();
 			if (!canBuild(kLoopPlot, eBuild))
 				continue;
 			/*  <advc.121> Was 10000/(...getTime()+1). Same problem as in
@@ -19161,7 +19162,6 @@ bool CvUnitAI::AI_airCarrier()
 
 	int iBestValue = 0;
 	CvUnit* pBestUnit = NULL;
-	CvTeam const& kOurTeam = GET_TEAM(getTeam()); // advc
 	FOR_EACH_UNIT_VAR(pLoopUnit, kOwner)
 	{
 		CvPlot const& kLoopPlot = pLoopUnit->getPlot();
@@ -21420,7 +21420,6 @@ bool CvUnitAI::AI_moveIntoCity(int iRange)
 
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = 0;
-	CvTeam const& kOurTeam = GET_TEAM(getTeam());
 	for (SquareIter it(*this, AI_searchRange(iRange), false); it.hasNext(); ++it)
 	{
 		CvPlot& p = *it;

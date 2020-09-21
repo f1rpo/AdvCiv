@@ -19,6 +19,12 @@
 #include "CvDLLPlotBuilderIFaceBase.h"
 #include "CvDLLFlagEntityIFaceBase.h"
 
+/*	advc.make: I've added toChar, toShort calls in a few places that looked at least
+	slightly hazardous. Beyond that, explicit casts would only add clutter.
+	NB: Disabling this warning entirely does unfortunately not only allow implicit
+	conversions from larger to smaller int types but also float-to-int conversions. */
+#pragma warning(disable: 244) // "type conversion: possible loss of data"
+
 #define STANDARD_MINIMAP_ALPHA		(0.75f) // advc.002a: was 0.6
 bool CvPlot::m_bAllFog = false; // advc.706
 int CvPlot::m_iMaxVisibilityRangeCache; // advc.003h
@@ -107,8 +113,8 @@ CvPlot::~CvPlot() // advc: Merged with the deleted uninit function
 
 void CvPlot::init(int iX, int iY)
 {
-	m_iX = iX;
-	m_iY = iY;
+	m_iX = toShort(iX);
+	m_iY = toShort(iY);
 	m_iLatitude = calculateLatitude(); // advc.tsl
 }
 
@@ -208,13 +214,13 @@ float CvPlot::getSymbolSize() const
 	{
 		if (isShowCitySymbols())
 			return 1.6f;
-		else return 1.2f;
+		return 1.2f;
 	}
 	else
 	{
 		if (isShowCitySymbols())
 			return 1.2f;
-		else return 0.8f;
+		return 0.8f;
 	}
 }
 
@@ -3427,7 +3433,7 @@ int CvPlot::getYExternal() const
 	return m_iY;
 }
 
-// <advc.tsl>
+// advc.tsl:
 void CvPlot::setLatitude(int iLatitude)
 {
 	if (iLatitude < 0 || iLatitude > 90)
@@ -3435,8 +3441,8 @@ void CvPlot::setLatitude(int iLatitude)
 		FErrorMsg("Latitude should be in the interval [0,90]");
 		iLatitude = range(iLatitude, 0, 90);
 	}
-	m_iLatitude = iLatitude;
-} // </advc.tsl>
+	m_iLatitude = toChar(iLatitude);
+}
 
 
 int CvPlot::getLatitude() const
@@ -3462,7 +3468,7 @@ char CvPlot::calculateLatitude() const
 	else fLatitude = ((getX() * 1.0) / (GC.getMap().getGridWidth()-1));
 	fLatitude = fLatitude * (GC.getMap().getTopLatitude() - GC.getMap().getBottomLatitude());
 	iLatitude = (int)(fLatitude + 0.5);
-	return intToChar(std::min(abs((iLatitude + GC.getMap().getBottomLatitude())), 90));
+	return toChar(std::min(abs((iLatitude + GC.getMap().getBottomLatitude())), 90));
 	// UNOFFICIAL_PATCH: END
 }
 
@@ -3599,18 +3605,13 @@ void CvPlot::setOwnershipDuration(int iNewValue)
 
 	bool bOldOwnershipScore = isOwnershipScore();
 
-	m_iOwnershipDuration = iNewValue;
+	m_iOwnershipDuration = toShort(iNewValue);
 	FAssert(getOwnershipDuration() >= 0);
 
-	if (bOldOwnershipScore != isOwnershipScore())
+	if (bOldOwnershipScore != isOwnershipScore() &&
+		isOwned() && !isWater())
 	{
-		if (isOwned())
-		{
-			if (!isWater())
-			{
-				GET_PLAYER(getOwner()).changeTotalLandScored((isOwnershipScore()) ? 1 : -1);
-			}
-		}
+		GET_PLAYER(getOwner()).changeTotalLandScored(isOwnershipScore() ? 1 : -1);
 	}
 }
 
@@ -3623,7 +3624,7 @@ void CvPlot::changeOwnershipDuration(int iChange)
 
 void CvPlot::setImprovementDuration(int iNewValue)
 {
-	m_iImprovementDuration = iNewValue;
+	m_iImprovementDuration = toShort(iNewValue);
 	FAssert(getImprovementDuration() >= 0);
 }
 
@@ -3654,7 +3655,7 @@ int CvPlot::getUpgradeTimeLeft(ImprovementTypes eImprovement, PlayerTypes ePlaye
 
 void CvPlot::setUpgradeProgress(int iNewValue)
 {
-	m_iUpgradeProgress = iNewValue;
+	m_iUpgradeProgress = toShort(iNewValue);
 	FAssert(getUpgradeProgress() >= 0);
 }
 
@@ -3673,7 +3674,7 @@ bool CvPlot::isForceUnowned() const
 
 void CvPlot::setForceUnownedTimer(int iNewValue)
 {
-	m_iForceUnownedTimer = iNewValue;
+	m_iForceUnownedTimer = toShort(iNewValue);
 	FAssert(getForceUnownedTimer() >= 0);
 }
 
@@ -3686,7 +3687,7 @@ void CvPlot::changeForceUnownedTimer(int iChange)
 
 void CvPlot::changeCityRadiusCount(int iChange)
 {
-	m_iCityRadiusCount = (m_iCityRadiusCount + iChange);
+	m_iCityRadiusCount += iChange;
 	FAssert(getCityRadiusCount() >= 0);
 }
 
@@ -3770,18 +3771,18 @@ void CvPlot::setWOfRiver(bool bNewValue, CardinalDirectionTypes eRiverDir)
 		updateRiverCrossing();
 		updateYield();
 
-		for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+		FOR_EACH_ENUM(Direction)
 		{
-			CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
-			if (pAdjacentPlot != NULL)
+			CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
+			if (pAdj != NULL)
 			{
-				pAdjacentPlot->updateRiverCrossing();
-				pAdjacentPlot->updateYield();
+				pAdj->updateRiverCrossing();
+				pAdj->updateYield();
 			}
 		}
 
 		if (area() != NULL)
-			getArea().changeNumRiverEdges((isWOfRiver()) ? 1 : -1);
+			getArea().changeNumRiverEdges(isWOfRiver() ? 1 : -1);
 		else FAssert(area() != NULL); // advc.test
 	}
 
@@ -4147,9 +4148,9 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 				GET_PLAYER(pLoopUnit->getOwner()).changeNumOutsideUnits(-1);
 			}
 
-			if (pLoopUnit->isBlockading()
+			if (pLoopUnit->isBlockading() &&
 				// advc.033: Owner change shouldn't always disrupt blockade
-				&& !pLoopUnit->canPlunder(pLoopUnit->getPlot()))
+				!pLoopUnit->canPlunder(pLoopUnit->getPlot()))
 			{
 				pLoopUnit->setBlockading(false);
 				pLoopUnit->getGroup()->clearMissionQueue();
@@ -5076,7 +5077,7 @@ int CvPlot::getMinOriginalStartDist() const
 
 void CvPlot::setMinOriginalStartDist(int iNewValue)
 {
-	m_iMinOriginalStartDist = iNewValue;
+	m_iMinOriginalStartDist = toShort(iNewValue);
 }
 
 
@@ -5101,7 +5102,7 @@ int CvPlot::getRiverCrossingCount() const
 
 void CvPlot::changeRiverCrossingCount(int iChange)
 {
-	m_iRiverCrossingCount = (m_iRiverCrossingCount + iChange);
+	m_iRiverCrossingCount += iChange;
 	FAssert(getRiverCrossingCount() >= 0);
 }
 
@@ -5273,7 +5274,7 @@ int CvPlot::calculateImprovementYieldChange(ImprovementTypes eImprovement, Yield
 }
 
 
-char CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
+int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 {
 	if (getTerrainType() == NO_TERRAIN)  // (advc: Can happen during map initialization)
 		return 0;
@@ -5365,7 +5366,8 @@ char CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 	}
 
 	iYield = std::max(0, iYield);
-	return intToChar(iYield); // advc.enum
+	FAssert(iYield <= MAX_CHAR); // advc
+	return iYield;
 }
 
 // advc.031: Cut from calculateYield
@@ -5394,14 +5396,13 @@ void CvPlot::updateYield()
 		return;
 	}
 	bool bChange = false;
-	for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
+	FOR_EACH_ENUM2(Yield, eYield)
 	{
-		YieldTypes eYield = (YieldTypes)iI;
 		char iNewYield = calculateYield(eYield);
 		if (getYield(eYield) == iNewYield)
 			continue; // advc
 
-		char iOldYield = getYield(eYield);
+		int iOldYield = getYield(eYield);
 		m_aiYield.set(eYield, iNewYield);
 		FAssert(getYield(eYield) >= 0);
 
@@ -7204,7 +7205,6 @@ void CvPlot::read(FDataStreamBase* pStream)
 
 	uint uiFlag=0;
 	pStream->Read(&uiFlag);
-
 	pStream->Read(&m_iX);
 	pStream->Read(&m_iY);
 	pStream->Read(&m_iArea);
@@ -7218,7 +7218,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 	if (uiFlag < 5)
 	{
 		short sTmp; pStream->Read(&sTmp);
-		m_iCityRadiusCount = intToChar(sTmp);
+		m_iCityRadiusCount = toChar(sTmp);
 	}
 	else pStream->Read(&m_iCityRadiusCount);
 	int iRiver;
@@ -7233,7 +7233,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 	if (uiFlag < 5)
 	{
 		short sTmp; pStream->Read(&sTmp);
-		m_iRiverCrossingCount = intToChar(sTmp);
+		m_iRiverCrossingCount = toChar(sTmp);
 	}
 	else pStream->Read(&m_iRiverCrossingCount); // </advc.opt>
 	// <advc.tsl>
@@ -7243,7 +7243,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 		{
 			short sTmp;
 			pStream->Read(&sTmp);
-			m_iLatitude = intToChar(sTmp);
+			m_iLatitude = toChar(sTmp);
 		}
 		else pStream->Read(&m_iLatitude);
 	}
@@ -7281,11 +7281,11 @@ void CvPlot::read(FDataStreamBase* pStream)
 	{
 		short sTmp;
 		pStream->Read(&sTmp);
-		m_ePlotType = intToChar(sTmp);
+		m_ePlotType = toChar(sTmp);
 		pStream->Read(&sTmp);
-		m_eTerrainType = intToChar(sTmp);
+		m_eTerrainType = toChar(sTmp);
 		pStream->Read(&sTmp);
-		m_eFeatureType = intToChar(sTmp);
+		m_eFeatureType = toChar(sTmp);
 	}
 	else
 	{ // </advc.opt>
@@ -7302,14 +7302,14 @@ void CvPlot::read(FDataStreamBase* pStream)
 	{
 		short sTmp;
 		pStream->Read(&sTmp);
-		m_eImprovementType = intToChar(sTmp);
+		m_eImprovementType = toChar(sTmp);
 	}
 	else pStream->Read(&m_eImprovementType);
 	if (uiFlag < 5)
 	{
 		short sTmp;
 		pStream->Read(&sTmp);
-		m_eRouteType = intToChar(sTmp);
+		m_eRouteType = toChar(sTmp);
 	}
 	else pStream->Read(&m_eRouteType); // </advc.opt>
 	pStream->Read(&m_eRiverNSDirection);
@@ -7384,7 +7384,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 	if (uiFlag < 5)
 	{
 		int iTmp; pStream->Read(&iTmp);
-		m_iTurnsBuildsInterrupted = ::intToShort(iTmp);
+		m_iTurnsBuildsInterrupted = toShort(iTmp);
 	}
 	else pStream->Read(&m_iTurnsBuildsInterrupted); // </advc.011>
 	// <advc.005c>

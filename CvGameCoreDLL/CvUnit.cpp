@@ -10709,8 +10709,8 @@ int CvUnit::planBattle(CvBattleDefinition& kBattle, const std::vector<int>& comb
 	const int BATTLE_TURNS_SETUP = 4;
 	const int BATTLE_TURNS_ENDING = 4;
 	const int BATTLE_TURNS_MELEE = 6;
-	const int BATTLE_TURNS_RANGED = 6;
-	const int BATTLE_TURN_RECHECK = 4;
+	/*const int BATTLE_TURNS_RANGED = 6;
+	const int BATTLE_TURN_RECHECK = 4;*/ // advc: unused
 
 	CvUnit* pAttackUnit = kBattle.getUnit(BATTLE_UNIT_ATTACKER);
 	CvUnit* pDefenceUnit = kBattle.getUnit(BATTLE_UNIT_DEFENDER);

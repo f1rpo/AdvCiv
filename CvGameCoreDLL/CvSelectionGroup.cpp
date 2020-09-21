@@ -1995,7 +1995,6 @@ bool CvSelectionGroup::isBusy() const
 	if (getMissionTimer() > 0)
 		return true;
 
-	CvPlot* pPlot = plot();
 	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
 		pUnitNode = nextUnitNode(pUnitNode))
 	{
