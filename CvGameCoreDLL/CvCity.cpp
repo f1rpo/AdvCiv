@@ -7142,7 +7142,8 @@ void CvCity::calculateTradeTotals(YieldTypes eIndex, int& iDomesticYield, int& i
 			pTradeCity->getOwner() == eWithPlayer))
 		{
 			int iTradeYield = getBaseTradeProfit(pTradeCity);
-			iTradeYield = calculateTradeYield(YIELD_COMMERCE,
+			iTradeYield = calculateTradeYield(//YIELD_COMMERCE
+					eIndex, // advc.001
 					calculateTradeProfit(pTradeCity));
 			if (pTradeCity->getOwner() == getOwner())
 			{

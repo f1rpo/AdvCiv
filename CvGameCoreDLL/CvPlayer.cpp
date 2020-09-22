@@ -17606,14 +17606,20 @@ void CvPlayer::invalidatePopulationRankCache()
 void CvPlayer::invalidateYieldRankCache(YieldTypes eYield)
 {
 	FOR_EACH_CITY_VAR(pLoopCity, *this)
-		pLoopCity->invalidateYieldRankCache();
+	{
+		pLoopCity->invalidateYieldRankCache(
+				eYield); // advc.001: was NO_YIELD
+	}
 }
 
 
 void CvPlayer::invalidateCommerceRankCache(CommerceTypes eCommerce)
 {
 	FOR_EACH_CITY_VAR(pLoopCity, *this)
-		pLoopCity->invalidateCommerceRankCache();
+	{
+		pLoopCity->invalidateCommerceRankCache(
+				eCommerce); // advc.001: was NO_COMMERCE
+	}
 }
 
 

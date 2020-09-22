@@ -13149,19 +13149,24 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 				{
 					// add a random bias in favour of land paths, so that not all stacks try to use boats.
 					//int iLandBias =AI_getBirthmark()%6 +(AI_getBirthmark() % (bLandPath ? 3 : 6) ? 6 : 1);
-					/*  <advc> That's equivalent to this (I've checked through
-						the assertion below): */
-					int iLandBias = (AI_getBirthmark() % 6) +
-							(((AI_getBirthmark() % (bLandPath ? 3 : 6)) > 0 ? 6 : 1));
-					//FAssert(iLandBias == (AI_getBirthmark()%6 +(AI_getBirthmark() % (bLandPath ? 3 : 6) ? 6 : 1)));
-					/*  But does it make sense? It seems that the expected value is
-						higher if bLand is false, namely 2.5+6*5/6+1/5 > 2.5+6*2/3+1/3.
-						Should it be '==0' instead of '>0'?
-						Also: "so that not all stacks try to use boats" --
-						but we're only picking a target city here; the choice
-						how to move there is made later. */
-					// </advc>
-					if (!pBestTransport && iPathTurns > iLandBias + 2)
+					/*	<advc.001> I guess the intention is to roll a 6-sided die
+						(birthmark%6 plus at least 1 in the end) with another 5 added for
+						some portion of units - depending on whether there is a land path. */
+					int iLandBias = (AI_getBirthmark() % 6) + 1;
+					/*	Now, should 2 in 3 units have increased land bias
+						when there is a land path and otherwise 5 in 6?
+						You'd think that there should be more land bias
+						when there is a land path. So I'm going to flip the condition,
+						i.e. 1 in 3 units have increased land bias
+						when there is a land path and otherwise 1 in 6. */
+					if ((AI_getBirthmark() % (bLandPath ? 3 : 6)) == 0)
+						iLandBias += 5;
+					/*  (I also wonder if such randomization would fit better near the
+						"we have to walk" comment in AI_attackCityMove. AI_pickTargetCity
+						only decides which units target which city, not how they
+						ultimately move there.) */
+					// </advc.001>
+					if (pBestTransport != NULL && iPathTurns > iLandBias + 2)
 					{
 						pBestTransport = AI_findTransport(UNITAI_ASSAULT_SEA, iFlags,
 								std::min(iMaxPathTurns, iPathTurns));
@@ -13199,8 +13204,12 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 						pLoopCity, getGroup(), iPathTurns);
 				if (pLoopCity->isVisible(kOurTeam.getID()))
 				{
-					iEnemyDefence = kOwner.AI_localDefenceStrength(pLoopCity->plot(),
-							NO_TEAM, DOMAIN_LAND, true, iPathTurns > 1 ? 2 : 0);
+					iEnemyDefence = kOwner.AI_localDefenceStrength(
+							pLoopCity->plot(), NO_TEAM, DOMAIN_LAND,
+							/*	advc.001: Probably a remnant of bDefensiveBonuses=true
+								in BBAI's AI_getEnemyPlotStrength. */
+							//true,
+							iPathTurns > 1 ? 2 : 0);
 					if (iPathTurns > 2)
 					{
 						int iAttackRatio = ((GC.getMAX_CITY_DEFENSE_DAMAGE() -

@@ -1241,7 +1241,7 @@ int CyPlayer::getUnhealthyPopulationModifier()
 	return m_pPlayer ? m_pPlayer->getUnhealthyPopulationModifier() : 0;
 }
 
-bool CyPlayer::getExpInBorderModifier()
+int CyPlayer::getExpInBorderModifier() // advc: was bool
 {
 	return m_pPlayer ? m_pPlayer->getExpInBorderModifier() : false;
 }

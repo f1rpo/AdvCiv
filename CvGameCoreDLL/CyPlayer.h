@@ -297,7 +297,7 @@ public:
 	int getOverflowResearch();
 	//bool isNoUnhealthyPopulation();
 	int getUnhealthyPopulationModifier(); // K-Mod
-	bool getExpInBorderModifier();
+	int getExpInBorderModifier();
 	bool isBuildingOnlyHealthy();
 
 	int getDistanceMaintenanceModifier();
