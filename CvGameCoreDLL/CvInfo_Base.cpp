@@ -407,7 +407,7 @@ CvXMLInfo::ElementDataType CvXMLInfo::BoolElement::getDataType() const
 	return BOOL_ELEMENT;
 }
 
-int CvXMLInfo::BoolElement::getDefaultValue() const { return m_bDefaultValue; }
+bool CvXMLInfo::BoolElement::getDefaultValue() const { return m_bDefaultValue; }
 
 void CvXMLInfo::addElements(std::vector<XMLElement*>& r) const
 {

@@ -7125,7 +7125,7 @@ int CvCity::calculateTradeYield(YieldTypes eIndex, int iTradeProfit) const
 	return 0;
 }
 
-// BULL - Trade Hover - start  (advc: simplified a bit, _MOD_FRACTRADE removed)
+// BULL - Trade Hover:  (advc: simplified a bit, _MOD_FRACTRADE removed)
 /*  Adds the yield and count for each trade route with eWithPlayer to the
 	int references (out parameters). */
 void CvCity::calculateTradeTotals(YieldTypes eIndex, int& iDomesticYield, int& iDomesticRoutes,
@@ -7135,9 +7135,9 @@ void CvCity::calculateTradeTotals(YieldTypes eIndex, int& iDomesticYield, int& i
 		return;
 
 	int iNumTradeRoutes = getTradeRoutes();
-	for (int iI = 0; iI < iNumTradeRoutes; iI++)
+	for (int i = 0; i < iNumTradeRoutes; i++)
 	{
-		CvCity* pTradeCity = getTradeCity(iI);
+		CvCity* pTradeCity = getTradeCity(i);
 		if (pTradeCity != NULL && (eWithPlayer == NO_PLAYER ||
 			pTradeCity->getOwner() == eWithPlayer))
 		{
@@ -7157,7 +7157,7 @@ void CvCity::calculateTradeTotals(YieldTypes eIndex, int& iDomesticYield, int& i
 			}
 		}
 	}
-} // BULL - Trade Hover - end
+}
 
 void CvCity::setTradeYield(YieldTypes eIndex, int iNewValue)
 {
@@ -10226,8 +10226,8 @@ void CvCity::addGreatWall(int iAttempt)
 }
 
 // Helper function for placing Great Wall segments
-bool CvCity::needsGreatWallSegment(CvPlot const& kInside, CvPlot const& kOutside,
-	int iAttempt) const
+bool CvCity::needsGreatWallSegment(/* not currently used: */CvPlot const& kInside,
+	CvPlot const& kOutside, int iAttempt) const
 {
 	if(!isArea(kOutside.getArea()) || kOutside.isImpassable() ||
 		!kOutside.isHabitable(true))
@@ -12958,7 +12958,8 @@ int CvCity::calculateMaintenanceDistance(CvPlot const* pCityPlot, PlayerTypes eO
 }
 
 // advc.004b, advc.104: Parameters added
-int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot const& kCityPlot,
+int CvCity::calculateNumCitiesMaintenanceTimes100(
+	CvPlot const& kCityPlot, // (unused - not relevant for NumCitiesMaintenance)
 	PlayerTypes eOwner, int iPopulation, int iExtraCities)
 {
 	if(iPopulation < 0)

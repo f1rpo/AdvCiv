@@ -144,8 +144,10 @@ public:
 	int AI_getCultureWeight() const { return m_iCultureWeight; } // K-Mod
 	void AI_setCultureWeight(int iWeight) { m_iCultureWeight = iWeight; } // K-Mod
 
-	int AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bIncludeNeutral, int iOtherCultureThreshold, bool bLand = true, bool bWater = true) const;
-	int AI_countNumImprovableBonuses(bool bIncludeNeutral, TechTypes eExtraTech = NO_TECH, bool bLand = true, bool bWater = false) const; // BBAI
+	int AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bIncludeNeutral,
+			int iOtherCultureThreshold, bool bLand = true, bool bWater = true) const;
+	int AI_countNumImprovableBonuses(bool bIncludeNeutral, TechTypes eExtraTech = NO_TECH,
+			bool bLand = true, bool bWater = false) const; // BBAI
 
 	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance = 7,
 			bool bConstCache = false) const; // advc.001n
@@ -154,7 +156,7 @@ public:
 	// advc.003j: Both unused
 	/*bool AI_isFrontlineCity() const; // K-Mod
 	int AI_calculateMilitaryOutput() const;*/ // K-Mod
-	int AI_cityThreat(bool bDangerPercent = false) const;
+	int AI_cityThreat(/*bool bDangerPercent = false*/) const; // advc: param was (always) unused
 
 	int AI_getWorkersHave() const;
 	int AI_getWorkersNeeded() const;

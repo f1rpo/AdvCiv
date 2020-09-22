@@ -196,7 +196,7 @@ private:
 	{
 		return static_cast<int>(l); // They're the same in MSVC03 x086
 	}
-	static inline int toBool(long l)
+	static inline bool toBool(long l)
 	{
 		FAssert(l >= 0);
 		return (l == TRUE);

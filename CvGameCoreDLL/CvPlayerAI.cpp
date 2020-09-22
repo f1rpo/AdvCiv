@@ -6426,7 +6426,8 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 	Note: not a lot of thought has gone into this. I've basically just copied
 	the original code [from AI_techValue] and tweaked it a little bit.
 	The scale is roughly 4 = 1 commerce per turn. */
-int CvPlayerAI::AI_techProjectValue(TechTypes eTech, int iPathLength,
+int CvPlayerAI::AI_techProjectValue(TechTypes eTech,
+	int iPathLength, // advc (note): currently unused
 	bool& bEnablesProjectWonder) const
 {
 	int iValue = 0;
@@ -13780,8 +13781,10 @@ int CvPlayerAI::AI_countOwnedBonuses(BonusTypes eBonus) const
 
 	//count bonuses inside city radius or easily claimed
 	FOR_EACH_CITYAI(pLoopCity, *this)
-		iCount += pLoopCity->AI_countNumBonuses(eBonus, true, pLoopCity->getCommerceRate(COMMERCE_CULTURE) > 0, -1);
-
+	{
+		iCount += pLoopCity->AI_countNumBonuses(
+				eBonus, true, pLoopCity->getCommerceRate(COMMERCE_CULTURE) > 0, -1);
+	}
 	return iCount;
 }
 

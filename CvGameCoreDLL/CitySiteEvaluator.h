@@ -70,7 +70,7 @@ private:
 	int m_iBarbDiscouragedRange; // advc.300
 	bool m_bIgnoreStartingSurroundings; // advc.027
 	bool m_bAdvancedStart; // advc
-	int m_bDebug; // advc.007
+	bool m_bDebug; // advc.007
 	bool m_bAllSeeing;
 	int m_iClaimThreshold;
 	bool m_bEasyCulture;

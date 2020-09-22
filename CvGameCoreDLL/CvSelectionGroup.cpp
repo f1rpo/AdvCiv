@@ -2440,28 +2440,26 @@ bool CvSelectionGroup::canBombard(CvPlot const& kPlot) const // advc: CvPlot ref
 int CvSelectionGroup::visibilityRange() const // advc: const; return type was bool
 {
 	int iMaxRange = 0;
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
-		pUnitNode = nextUnitNode(pUnitNode))
+	for (CLLNode<IDInfo> const* pNode = headUnitNode(); pNode != NULL;
+		pNode = nextUnitNode(pNode))
 	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		int iRange = pLoopUnit->visibilityRange();
-		if (iRange > iMaxRange)
-			iMaxRange = iRange;
+		CvUnit const* pUnit = ::getUnit(pNode->m_data);
+		iMaxRange = std::max(iMaxRange, pUnit->visibilityRange());
 	}
 	return iMaxRange;
 }
 
 /*  BETTER_BTS_AI_MOD, General AI, 03/30/10, jdog5000: START
-	Approximate how many turns this group would take to reduce pCity's defense modifier to zero */
+	Approximate how many turns this group would take to reduce pCity's defense to zero */
 int CvSelectionGroup::getBombardTurns(CvCity const* pCity) const // advc: 2x const
 {
 	PROFILE_FUNC();
 
-	bool bHasBomber = (getOwner() != NO_PLAYER ? (GET_PLAYER(getOwner()).AI_calculateTotalBombard(DOMAIN_AIR) > 0) : false);
-	bool bIgnoreBuildingDefense = bHasBomber;
+	bool const bHasBomber = (getOwner() != NO_PLAYER ?
+			(GET_PLAYER(getOwner()).AI_calculateTotalBombard(DOMAIN_AIR) > 0) : false);
 	int iTotalBombardRate = (bHasBomber ? 16 : 0);
+	bool bIgnoreBuildingDefense = bHasBomber;
 	int iUnitBombardRate = 0;
-
 	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
 		pUnitNode = nextUnitNode(pUnitNode))
 	{
@@ -2908,7 +2906,7 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 			if (pLoopUnit == pCombatUnit)
 				continue; // this unit is moved before the loop.
 			// <advc.001>
-			if (pLoopUnit->isNoCityCapture() != (bool)iStage)
+			if (pLoopUnit->isNoCityCapture() == (iStage == 0))
 				continue; // </advc.001>
 			if (pLoopUnit->canMove() &&
 				/*  advc.001: This condition was removed in K-Mod 1.44, but is needed
@@ -3227,12 +3225,11 @@ void CvSelectionGroup::setTransportUnit(CvUnit* pTransportUnit,
 				if (pLoopUnit != NULL && pLoopUnit->getTransportUnit() != pTransportUnit)
 				{
 					// if there is room, load the unit and stop the loop (since setTransportUnit ungroups this unit currently)
-					bool bSpaceAvailable = pTransportUnit->cargoSpaceAvailable(pLoopUnit->getSpecialUnitType(), pLoopUnit->getDomainType());
-					if (bSpaceAvailable)
+					if (pTransportUnit->cargoSpaceAvailable(pLoopUnit->getSpecialUnitType(),
+						pLoopUnit->getDomainType()) > 0)
 					{
 						pLoopUnit->setTransportUnit(pTransportUnit);
 						bLoadedOne = true;
-
 					}
 				}
 			}

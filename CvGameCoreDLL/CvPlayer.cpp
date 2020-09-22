@@ -2246,15 +2246,16 @@ void CvPlayer::disbandUnit(bool bAnnounce)
 
 	if (pBestUnit != NULL)
 	{
-		wchar szBuffer[1024];
-		swprintf(szBuffer, gDLL->getText("TXT_KEY_MISC_UNIT_DISBANDED_NO_MONEY",
-				pBestUnit->getNameKey()).GetCString());
-		gDLL->UI().addMessage(getID(), false, -1, szBuffer, pBestUnit->getPlot(),
-				"AS2D_UNITDISBANDED", MESSAGE_TYPE_MINOR_EVENT, pBestUnit->getButton(),
-				GC.getColorType("RED"));
-
 		FAssert(!pBestUnit->isGoldenAge());
-
+		if (bAnnounce) // advc.001: Param was unused (since Vanilla Civ 4)
+		{
+			wchar szBuffer[1024];
+			swprintf(szBuffer, gDLL->getText("TXT_KEY_MISC_UNIT_DISBANDED_NO_MONEY",
+					pBestUnit->getNameKey()).GetCString());
+			gDLL->UI().addMessage(getID(), false, -1, szBuffer, pBestUnit->getPlot(),
+					"AS2D_UNITDISBANDED", MESSAGE_TYPE_MINOR_EVENT, pBestUnit->getButton(),
+					GC.getColorType("RED"));
+		}
 		pBestUnit->kill(false);
 	}
 }
@@ -6300,8 +6301,9 @@ TechTypes CvPlayer::getDiscoveryTech(UnitTypes eUnit) const
 }
 
 
-bool CvPlayer::canResearch(TechTypes eTech, bool bTrade, bool bFree,
-		bool bCouldResearchAgain) const // advc.126
+bool CvPlayer::canResearch(TechTypes eTech, bool bTrade,
+	bool bFree, // K-Mod (advc.004x: disused)
+	bool bCouldResearchAgain) const // advc.126
 {
 	if (GC.getPythonCaller()->canResearchOverride(getID(), eTech, bTrade))
 		return true;
@@ -6309,7 +6311,8 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade, bool bFree,
 	/*  advc.004x: Commented out - shouldn't matter here.
 		(And wouldn't prevent players from queuing up research during anarchy or
 		before founding a city) */
-	/*if(!isResearch() && !bFree && getAdvancedStartPoints() < 0)
+	/*if(!isResearch() && getAdvancedStartPoints() < 0
+			&& !bFree) // K-Mod
 		return false;*/
 
 	if (GET_TEAM(getTeam()).isHasTech(eTech) /* advc.126: */ && !bCouldResearchAgain)
@@ -6317,9 +6320,9 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade, bool bFree,
 
 	bool bFoundPossible = false;
 	bool bFoundValid = false;
-	for (int iI = 0; iI < GC.getNUM_OR_TECH_PREREQS(eTech); iI++)
+	for (int i = 0; i < GC.getNUM_OR_TECH_PREREQS(eTech); i++)
 	{
-		TechTypes ePrereq = (TechTypes)GC.getInfo(eTech).getPrereqOrTechs(iI);
+		TechTypes ePrereq = (TechTypes)GC.getInfo(eTech).getPrereqOrTechs(i);
 		// <advc.126> Cycle detection
 		if(ePrereq == eTech)
 		{
@@ -6330,9 +6333,9 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade, bool bFree,
 		{
 			bFoundPossible = true;
 
-			if (GET_TEAM(getTeam()).isHasTech(ePrereq)
-					// advc.126: Don't check recursively (for execution speed concerns)
-					&& (bCouldResearchAgain || canResearch(ePrereq, false, true, true)))
+			if (GET_TEAM(getTeam()).isHasTech(ePrereq) &&
+				// advc.126: Don't check recursively (for execution speed concerns)
+				(bCouldResearchAgain || canResearch(ePrereq, false, true, true)))
 			{
 				if (!bTrade || GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING) ||
 					!GET_TEAM(getTeam()).isNoTradeTech(ePrereq))
@@ -6347,16 +6350,17 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade, bool bFree,
 	if (bFoundPossible && !bFoundValid)
 		return false;
 
-	for (int iI = 0; iI < GC.getNUM_AND_TECH_PREREQS(eTech); iI++)
+	for (int i = 0; i < GC.getNUM_AND_TECH_PREREQS(eTech); i++)
 	{
-		TechTypes ePrereq = (TechTypes)GC.getInfo(eTech).getPrereqAndTechs(iI);
+		TechTypes ePrereq = (TechTypes)GC.getInfo(eTech).getPrereqAndTechs(i);
 		if (ePrereq != NO_TECH)
 		{
-			if (!GET_TEAM(getTeam()).isHasTech(ePrereq)
-					// advc.126:
-					|| (bCouldResearchAgain && !canResearch(ePrereq, false, true, true)))
+			if (!GET_TEAM(getTeam()).isHasTech(ePrereq) ||
+				// advc.126:
+				(bCouldResearchAgain && !canResearch(ePrereq, false, true, true)))
+			{
 				return false;
-
+			}
 			if (bTrade && !GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING) &&
 				GET_TEAM(getTeam()).isNoTradeTech(ePrereq))
 			{
@@ -11379,13 +11383,10 @@ void CvPlayer::doResearch()
 	if (isResearch() /* K-Mod: */ && !isAnarchy())
 	{
 		bool bForceResearchChoice = false;
-
 		if (getCurrentResearch() == NO_TECH /* K-Mod: */ && isHuman())
 		{
 			if (getID() == GC.getGame().getActivePlayer())
-			{
 				chooseTech();
-			}
 			//if (GC.getGame().getElapsedGameTurns() > 4) { // advc.124g (commented out)
 			AI().AI_chooseResearch();
 			bForceResearchChoice = true;
@@ -11610,7 +11611,8 @@ int CvPlayer::adjustMissionCostToTeamSize(int iBaseCost, PlayerTypes eTargetPlay
 
 
 int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer,
-	CvPlot const* pPlot, int iExtraData, const CvUnit* pSpyUnit) const
+	CvPlot const* pPlot, int iExtraData,
+	const CvUnit* pSpyUnit) const // advc (note): The unit is not currently a factor
 {
 	if (eMission == NO_ESPIONAGEMISSION) // K-Mod
 		return -1;
@@ -11973,7 +11975,8 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 /*	K-Mod. I've altered this function to give a generic answer
 	when NO_ESPIONAGEMISSION is passed. */
 int CvPlayer::getEspionageMissionCostModifier(EspionageMissionTypes eMission,
-	PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pSpyUnit) const
+	PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData,
+	const CvUnit* pSpyUnit) const
 {
 	// <advc.opt>
 	static int const iESPIONAGE_CITY_POP_EACH_MOD = GC.getDefineINT("ESPIONAGE_CITY_POP_EACH_MOD");
@@ -19666,7 +19669,9 @@ void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1)
 	{
 		return;
 	}
-	FAssert(m_iButtonPopupsRelaunching == 0);
+	/*	Not sure about this. Perhaps it should essentially be 0, but can be 1
+		due to the EXE/DLL/async call sequence, or something. */
+	FAssert(m_iButtonPopupsRelaunching <= 1);
 	CvPopupQueue relaunchDisplayed;
 	CvPopupQueue relaunchQueued;
 	int iOnDisplay = 0;

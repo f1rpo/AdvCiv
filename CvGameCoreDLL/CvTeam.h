@@ -144,7 +144,7 @@ public:
 
 	// advc.inl: In-line definitions for most of the get..Count and is... functions below
 	int getAliveCount() const { return m_iAliveCount; } // advc.155: Exposed to Python
-	inline int isAlive() const { return (m_iAliveCount > 0); }																// Exposed to Python
+	inline bool isAlive() const { return (m_iAliveCount > 0); }																// Exposed to Python
 	void changeAliveCount(int iChange);
 
 	inline int getEverAliveCount() const { return m_iEverAliveCount; }			

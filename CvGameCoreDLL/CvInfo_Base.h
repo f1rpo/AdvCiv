@@ -178,7 +178,7 @@ protected:
 		BoolElement(int iEnumValue, CvString szName);
 		BoolElement(int iEnumValue, CvString szName, bool bDefault);
 		ElementDataType getDataType() const;
-		int getDefaultValue() const;
+		bool getDefaultValue() const;
 	private:
 		int m_bDefaultValue;
 	};

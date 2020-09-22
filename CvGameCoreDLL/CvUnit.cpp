@@ -3663,12 +3663,13 @@ bool CvUnit::isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam) const
 }
 
 
-bool CvUnit::canNukeAt(const CvPlot* pPlot, int iX, int iY) const
+bool CvUnit::canNukeAt(/* advc: renamed from "pPlot" */ CvPlot const* pFrom,
+	int iX, int iY) const
 {
-	if (!canNuke(pPlot))
+	if (!canNuke(pFrom))
 		return false;
 
-	int iDistance = plotDistance(pPlot->getX(), pPlot->getY(), iX, iY);
+	int iDistance = plotDistance(pFrom->getX(), pFrom->getY(), iX, iY);
 	if (iDistance <= nukeRange())
 		return false;
 
@@ -3680,7 +3681,7 @@ bool CvUnit::canNukeAt(const CvPlot* pPlot, int iX, int iY) const
 	{
 		if (isNukeVictim(pTargetPlot, it->getID()))
 		{
-			if (!isEnemy(it->getID(), *pPlot))
+			if (!isEnemy(it->getID(), *pFrom))
 				return false;
 		}
 	}
@@ -6163,7 +6164,7 @@ int CvUnit::upgradePrice(UnitTypes eUnit) const
 	return std::max(0, iPrice); // advc.mnai: max (future-proofing)
 }
 
-// <advc.080> Based on code cut from CvUnit::upgrade. The param is (so far) unused.
+// advc.080: Based on code cut from CvUnit::upgrade. The param is (so far) unused.
 int CvUnit::upgradeXPChange(UnitTypes eUnit) const
 {
 	if(getLeaderUnitType() != NO_UNIT)
@@ -6171,7 +6172,7 @@ int CvUnit::upgradeXPChange(UnitTypes eUnit) const
 
 	static int const iMAX_EXPERIENCE_AFTER_UPGRADE = GC.getDefineINT("MAX_EXPERIENCE_AFTER_UPGRADE");
 	return std::min(0, iMAX_EXPERIENCE_AFTER_UPGRADE - getExperience());
-} // </advc.080>
+}
 
 
 bool CvUnit::upgradeAvailable(UnitTypes eFromUnit, UnitClassTypes eToUnitClass, int iCount) const  // advc: style changes

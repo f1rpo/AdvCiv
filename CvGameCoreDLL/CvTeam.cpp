@@ -4512,7 +4512,8 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,  /
 					CvPlayerAI& kOther = *it;
 					if (!kOther.isHuman() && kOther.isResearchingTech(eTech))
 					{
-						// K-Mod note: we just want to flag it for re-evaluation. Clearing the queue is currently the only way to do that.
+						/*	K-Mod note: we just want to flag it for re-evaluation.
+							Clearing the queue is currently the only way to do that. */
 						kOther.clearResearchQueue();
 					}
 				}
@@ -4638,21 +4639,16 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,  /
 		} // </advc.106>
 	}
 
-	if (bNewValue)
+	if (bNewValue && bAnnounce && kGame.isFinalInitialized() &&
+		!gDLL->GetWorldBuilderMode())
 	{
-		if (bAnnounce)
+		FAssert(ePlayer != NO_PLAYER);
+		if (GET_PLAYER(ePlayer).isResearch() &&
+			GET_PLAYER(ePlayer).getCurrentResearch() == NO_TECH &&
+			GET_PLAYER(ePlayer).isHuman()) // K-Mod
 		{
-			if (kGame.isFinalInitialized() && !gDLL->GetWorldBuilderMode())
-			{
-				FAssert(ePlayer != NO_PLAYER);
-				if (GET_PLAYER(ePlayer).isResearch() &&
-					GET_PLAYER(ePlayer).getCurrentResearch() == NO_TECH &&
-					GET_PLAYER(ePlayer).isHuman()) // K-Mod
-				{
-					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_WHAT_TO_RESEARCH_NEXT");
-					GET_PLAYER(ePlayer).chooseTech(0, szBuffer);
-				}
-			}
+			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_WHAT_TO_RESEARCH_NEXT");
+			GET_PLAYER(ePlayer).chooseTech(0, szBuffer);
 		}
 	}
 

@@ -279,7 +279,7 @@ void CyPlayerPythonInterface1(python::class_<CyPlayer>& x)
 		.def("getOverflowResearch", &CyPlayer::getOverflowResearch, "int ()")
 		//.def("isNoUnhealthyPopulation", &CyPlayer::isNoUnhealthyPopulation, "bool ()")
 		.def("getUnhealthyPopulationModifier", &CyPlayer::getUnhealthyPopulationModifier, "int ()") // K-Mod
-		.def("getExpInBorderModifier", &CyPlayer::getExpInBorderModifier, "bool ()")
+		.def("getExpInBorderModifier", &CyPlayer::getExpInBorderModifier, "int ()")
 		.def("isBuildingOnlyHealthy", &CyPlayer::isBuildingOnlyHealthy, "bool ()")
 
 		.def("getDistanceMaintenanceModifier", &CyPlayer::getDistanceMaintenanceModifier, "int ()")

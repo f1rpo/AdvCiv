@@ -3486,14 +3486,14 @@ void CvUnitAI::AI_attackCityMove()
 				// See if we can get there faster by boat..
 				if (iPathTurns > 5)// && !pTargetCity->isBarbarian())
 				{
-				/*  note: if the only land path to our target happens to go
-					through a tough line of defence...
-					we probably want to take the boat even if our iPathTurns is
-					low. Here's one way to account for that:
-					iPathTurns = std::max(iPathTurns, getPathLastNode()->
-					m_iTotalCost / (2000*GC.getMOVE_DENOMINATOR()));
-					Unfortunately, that "2000"... well I think you know what the
-					problem is. So maybe next time. */
+					/*  note: if the only land path to our target happens to go
+						through a tough line of defence...
+						we probably want to take the boat even if our iPathTurns is
+						low. Here's one way to account for that:
+						iPathTurns = std::max(iPathTurns, getPathLastNode()->
+						m_iTotalCost / (2000*GC.getMOVE_DENOMINATOR()));
+						Unfortunately, that "2000"... well I think you know what the
+						problem is. So maybe next time. */
 					int iLoadTurns = std::max(3, iPathTurns/3 - 1); // k146
 					int iMaxTransportTurns = iPathTurns - iLoadTurns - 2;
 					if (AI_load(UNITAI_ASSAULT_SEA, MISSIONAI_LOAD_ASSAULT, NO_UNITAI,
@@ -13102,8 +13102,10 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc: style changes
 	return false;
 }
 
-// Returns target city
-// This function has been heavily edited for K-Mod (and I got sick of putting "K-Mod" tags all over the place)
+// BETTER_BTS_AI_MOD, 03/29/10, jdog5000 (War tactics AI, Efficiency):
+/*	Returns target city.
+	This function has been heavily edited for K-Mod
+	(and I got sick of putting "K-Mod" tags all over the place) */
 CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBarbs)
 {
 	PROFILE_FUNC();
@@ -13125,9 +13127,9 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 			(isBarbarian() && getArea().getCitiesPerPlayer(BARBARIAN_PLAYER) <= 0 ? NULL :
 			getArea().AI_getTargetCity(getOwner()));
 
-	for (int iI = 0; iI < (bHuntBarbs ? MAX_PLAYERS : MAX_CIV_PLAYERS); iI++)
+	for (int i = 0; i < (bHuntBarbs ? MAX_PLAYERS : MAX_CIV_PLAYERS); i++)
 	{
-		CvPlayer const& kTargetPlayer = GET_PLAYER((PlayerTypes)iI);
+		CvPlayer const& kTargetPlayer = GET_PLAYER((PlayerTypes)i);
 		if(!kTargetPlayer.isAlive() ||
 			!kOurTeam.AI_mayAttack(kTargetPlayer.getTeam()))
 		{
@@ -13145,7 +13147,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 				int iPathTurns = MAX_INT;
 				bool bLandPath = generatePath(pLoopCity->plot(), iFlags, true,
 						&iPathTurns, iMaxPathTurns);
-				if (pLoopCity->isCoastal() && (pBestTransport || iLoadTurns < 0))
+				if (pLoopCity->isCoastal() && (pBestTransport != NULL || iLoadTurns < 0))
 				{
 					// add a random bias in favour of land paths, so that not all stacks try to use boats.
 					//int iLandBias =AI_getBirthmark()%6 +(AI_getBirthmark() % (bLandPath ? 3 : 6) ? 6 : 1);
@@ -13170,7 +13172,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 					{
 						pBestTransport = AI_findTransport(UNITAI_ASSAULT_SEA, iFlags,
 								std::min(iMaxPathTurns, iPathTurns));
-						if (pBestTransport)
+						if (pBestTransport != NULL)
 						{
 							generatePath(pBestTransport->plot(), iFlags, true, &iLoadTurns);
 							FAssert(iLoadTurns > 0 && iLoadTurns < MAX_INT);
@@ -13181,7 +13183,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 						else iLoadTurns = MAX_INT;
 					}
 					int iMaxTransportTurns = std::min(iMaxPathTurns, iPathTurns) - iLoadTurns;
-					if (pBestTransport && iMaxTransportTurns > 0)
+					if (pBestTransport != NULL && iMaxTransportTurns > 0)
 					{
 						transport_path.SetSettings(pBestTransport->getGroup(),
 								iFlags & MOVE_DECLARE_WAR, iMaxTransportTurns,
@@ -13197,8 +13199,9 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 
 				if (iPathTurns >= iMaxPathTurns)
 					continue; // advc
-				// If city is visible and our force already in position is dominantly powerful or we have a huge force
-				// already on the way, pick a different target
+				/*	If city is visible and our force already in position
+					is dominantly powerful or we have a huge force
+					already on the way, pick a different target */
 				int iEnemyDefence = -1; // used later.
 				int iOffenceEnRoute = kOwner.AI_cityTargetStrengthByPath(
 						pLoopCity, getGroup(), iPathTurns);
@@ -13351,7 +13354,8 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 	return pBestCity;
 }
 
-
+/*	BETTER_BTS_AI_MOD, 03/29/10, jdog5000 (War tactics AI, Efficiency):
+	(K-Mod has apparently merged BBAI's AI_goToTargetBarbCity into this) */
 bool CvUnitAI::AI_goToTargetCity(int iFlags, int iMaxPathTurns, CvCity* pTargetCity)  // advc: some refactoring
 {
 	PROFILE_FUNC();
@@ -13421,7 +13425,8 @@ bool CvUnitAI::AI_goToTargetCity(int iFlags, int iMaxPathTurns, CvCity* pTargetC
 	else
 	{
 		pBestPlot = pTargetCity->plot();
-		// K-mod. As far as I know, nothing actually uses MOVE_THROUGH_ENEMY here.. but that doesn't mean we should let the code be wrong.
+		/*	K-mod. As far as I know, nothing actually uses MOVE_THROUGH_ENEMY here..
+			but that doesn't mean we should let the code be wrong. */
 		int iPathTurns;
 		if (!generatePath(pBestPlot, iFlags, true, &iPathTurns, iMaxPathTurns) || iPathTurns > iMaxPathTurns)
 			return false;
@@ -13581,7 +13586,8 @@ bool CvUnitAI::AI_pillageAroundCity(CvCity* pTargetCity, int iBonusValueThreshol
 	return false;
 }
 
-// This function has been completely rewritten (and greatly simplified) for K-Mod
+/*	This function has been completely rewritten (and greatly simplified) for K-Mod
+	(previously revised by BBAI) */
 bool CvUnitAI::AI_bombardCity()
 {
 	// check if we need to declare war before bombarding!

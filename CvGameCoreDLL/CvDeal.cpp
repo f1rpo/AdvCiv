@@ -1023,9 +1023,9 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 }
 
 
-void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
+void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,  // advc: refactored
 	PlayerTypes eToPlayer, bool bTeam, /* advc.036: */ bool bUpdateAttitude,
-	PlayerTypes eCancelPlayer) // advc.130p  advc: refactored
+	PlayerTypes eCancelPlayer) // advc.130p (param no longer used)
 {
 	bool bTeamTradeEnded = false; // advc.133
 	/*	<advc> Skip some steps when a trade ends through the defeat of one party -
@@ -1258,10 +1258,10 @@ bool CvDeal::isEverCancelable(PlayerTypes eByPlayer) const
 
 int CvDeal::turnsToCancel(PlayerTypes eByPlayer) const
 {	// <advc.034>
-	int len = GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH);
+	int iLen = GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH);
 	if(isDisengage())
-		len = std::min(GC.getDefineINT(CvGlobals::DISENGAGE_LENGTH), len);
-	return (getInitialGameTurn() + len - // </advc.034>
+		iLen = std::min(GC.getDefineINT(CvGlobals::DISENGAGE_LENGTH), iLen);
+	return (getInitialGameTurn() + iLen - // </advc.034>
 			GC.getGame().getGameTurn());
 }
 

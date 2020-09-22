@@ -6524,8 +6524,8 @@ void CvGameTextMgr::getOtherRelationsString(CvWStringBuffer& szString,
 	CvWStringBuffer&, PlayerTypes, PlayerTypes). I've merged just one K-Mod
 	change from the latter. */
 void CvGameTextMgr::getOtherRelationsString(CvWStringBuffer& szString,
-		TeamTypes eThisTeam, /* (advc: unused) */ TeamTypes eOtherTeam,
-		TeamTypes eSkipTeam)
+	TeamTypes eThisTeam, /* (advc: unused) */ TeamTypes eOtherTeam,
+	TeamTypes eSkipTeam)
 {
 	if(eThisTeam == NO_TEAM)
 		return;

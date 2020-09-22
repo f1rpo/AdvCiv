@@ -308,7 +308,7 @@ public: // advc: made several functions const
 	bool findWater(CvPlot const* pPlot, int iRange, bool bFreshWater);										// Exposed to Python
 
 	bool isPlotExternal(int iX, int iY) const; // advc.inl: Exported through .def file							// Exposed to Python
-	inline int isPlot(int iX, int iY) const // advc.inl: Renamed from isPlotINLINE
+	inline bool isPlot(int iX, int iY) const // advc.inl: Renamed from isPlotINLINE; return type was int.
 	{
 		return (iX >= 0 && iX < getGridWidth() && iY >= 0 && iY < getGridHeight());
 	}

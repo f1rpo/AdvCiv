@@ -119,8 +119,8 @@ public:
 	bool airlift(int iX, int iY);
 
 	bool isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam) const;											// Exposed to Python
-	bool canNuke(const CvPlot* pPlot) const { return (nukeRange() != -1); }									// Exposed to Python
-	bool canNukeAt(const CvPlot* pPlot, int iX, int iY) const;												// Exposed to Python
+	bool canNuke(const CvPlot* pFrom) const { return (nukeRange() != -1); }									// Exposed to Python
+	bool canNukeAt(const CvPlot* pFrom, int iX, int iY) const;												// Exposed to Python
 	bool nuke(int iX, int iY);
 
 	bool canRecon(const CvPlot* pPlot) const;																// Exposed to Python

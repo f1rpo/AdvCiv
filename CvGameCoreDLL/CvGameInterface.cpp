@@ -2327,7 +2327,7 @@ void CvGame::nextActivePlayer(bool bForward)
 int CvGame::getNextSoundtrack(EraTypes eLastEra, int iLastSoundtrack) const
 {
 	EraTypes eCurEra = GET_PLAYER(getActivePlayer()).getCurrentEra();
-	CvEraInfo& kCurrentEra = GC.getInfo(eCurEra);
+	CvEraInfo const& kCurrentEra = GC.getInfo(eCurEra);
 	if (kCurrentEra.getNumSoundtracks() == 0)
 		return -1;
 	if (kCurrentEra.getNumSoundtracks() == 1 ||
@@ -2356,7 +2356,8 @@ int CvGame::getNextSoundtrack(EraTypes eLastEra, int iLastSoundtrack) const
 
 int CvGame::getSoundtrackSpace() const
 {
-	return std::max(1, GC.getInfo(GET_PLAYER(getActivePlayer()).getCurrentEra()).getSoundtrackSpace());
+	return std::max(1, GC.getInfo(GET_PLAYER(getActivePlayer()).getCurrentEra()).
+			getSoundtrackSpace());
 }
 
 bool CvGame::isSoundtrackOverride(CvString& strSoundtrack) const

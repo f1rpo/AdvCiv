@@ -334,8 +334,8 @@ public:
 	bool isResearch() const;																						// Exposed to Python
 	bool canEverResearch(TechTypes eTech) const;																	// Exposed to Python
 	TechTypes getDiscoveryTech(UnitTypes eUnit) const; // advc: Moved from CvGameCoreUtils
-	bool canResearch(TechTypes eTech, bool bTrade = false,
-			bool bFree = false, // (K-Mod, added bFree.) Exposed to Python
+	bool canResearch(TechTypes eTech, bool bTrade = false,													 // K-Mod: Exposed to Python
+			bool bFree = false, // K-Mod (advc.004x: disused)
 			// advc.126: Disables the isHasTech check
 			bool bCouldResearchAgain = false) const;
 	TechTypes getCurrentResearch() const;																			// Exposed to Python
