@@ -644,6 +644,10 @@ void CvInitCore::resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear,
 	setCiv(eID, pSource->getCiv(eID));
 	setTeam(eID, pSource->getTeam(eID));
 	setLeader(eID, pSource->getLeader(eID));
+	// <advc.190c>
+	m_abCivChosenRandomly.set(eID, pSource->m_abCivChosenRandomly.get(eID));
+	m_abLeaderChosenRandomly.set(eID, pSource->m_abLeaderChosenRandomly.get(eID));
+	// </advc.190c>
 	setColor(eID, pSource->getColor(eID));
 	setArtStyle(eID, pSource->getArtStyle(eID));
 
