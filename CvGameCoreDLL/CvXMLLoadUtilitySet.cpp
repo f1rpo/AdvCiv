@@ -383,7 +383,9 @@ bool CvXMLLoadUtility::SetGlobalTypes()
 
 		gDLL->getXMLIFace()->SetToParent(m_pFXml);
 		gDLL->getXMLIFace()->SetToParent(m_pFXml);
-		SetVariableListTagPair(&GC.getFootstepAudioTags(), "FootstepAudioTags", GC.getFootstepAudioTypes(), GC.getNumFootstepAudioTypes(), "");
+		SetVariableListTagPair(&GC.getFootstepAudioTags(), "FootstepAudioTags",
+				//GC.getFootstepAudioTypes(), // advc: was unused by callee
+				GC.getNumFootstepAudioTypes(), "");
 	}
 	DestroyFXml();
 	return true;
@@ -1901,7 +1903,8 @@ void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* 
 		SAFE_DELETE_ARRAY(*ppszList); // </advc.003t>
 }
 
-// allocate and initialize a list from a tag pair in XML
+// advc: unused
+/*// allocate and initialize a list from a tag pair in XML
 void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,
 	CvString* m_paszTagList, int iTagListLength, int iDefaultListVal)
 {
@@ -1952,7 +1955,6 @@ void CvXMLLoadUtility::SetVariableListTagPair(int **ppiList, const TCHAR* szRoot
 	}
 }
 
-// allocate and initialize a list from a tag pair in the xml for audio scripts
 void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
 	CvString* m_paszTagList, int iTagListLength, int iDefaultListVal)
 {
@@ -2010,63 +2012,6 @@ void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, cons
 	}
 }
 
-// allocate and initialize a list from a tag pair in the xml for audio scripts
-void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName, int iInfoBaseLength, int iDefaultListVal)
-{
-	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szRootTagName))
-	{
-		if (SkipToNextVal())
-		{
-			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(m_pFXml);
-			if(iInfoBaseLength <= 0)
-			{
-				char szMessage[1024];
-				sprintf(szMessage, "Allocating zero or less memory.\nCurrent XML file is: %s",
-						GC.getCurrentXMLFile().GetCString());
-				errorMessage(szMessage);
-			}
-			InitList(ppiList, iInfoBaseLength, iDefaultListVal);
-			int* piList = *ppiList;
-			if (iNumSibs > 0)
-			{
-				if(iNumSibs > iInfoBaseLength)
-				{
-					char szMessage[1024];
-					sprintf(szMessage, "There are more siblings than memory allocated for them.\nCurrent XML file is: %s",
-							GC.getCurrentXMLFile().GetCString());
-					errorMessage(szMessage);
-				}
-				if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
-				{
-					TCHAR szTextVal[256];
-					for (int i = 0; i < iNumSibs; i++)
-					{
-						if (SkipToNextVal() && // K-Mod. (without this, a comment in the xml could break this)
-							GetChildXmlVal(szTextVal))
-						{
-							int iIndexVal = FindInInfoClass(szTextVal);
-							if (iIndexVal >= 0)
-							{
-								CvString szTemp;
-								GetNextXmlVal(szTemp);
-								if (szTemp.GetLength() > 0)
-									piList[iIndexVal] = gDLL->getAudioTagIndex(szTemp);
-								else piList[iIndexVal] = -1;
-							}
-							gDLL->getXMLIFace()->SetToParent(m_pFXml);
-						}
-						if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
-							break;
-					}
-					gDLL->getXMLIFace()->SetToParent(m_pFXml);
-				}
-			}
-		}
-		gDLL->getXMLIFace()->SetToParent(m_pFXml);
-	}
-}
-
-// allocate and initialize a list from a tag pair in the xml
 void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRootTagName,
 	CvString* m_paszTagList, int iTagListLength, bool bDefaultListVal)
 {
@@ -2117,7 +2062,6 @@ void CvXMLLoadUtility::SetVariableListTagPair(bool **ppbList, const TCHAR* szRoo
 	}
 }
 
-// allocate and initialize a list from a tag pair in the xml
 void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* szRootTagName,
 	CvString* m_paszTagList, int iTagListLength, CvString szDefaultListVal)
 {
@@ -2158,6 +2102,63 @@ void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* 
 							int iIndexVal =	GC.getTypesEnum(szTextVal);
 							if (iIndexVal >= 0)
 								GetNextXmlVal(pszList[iIndexVal]);
+							gDLL->getXMLIFace()->SetToParent(m_pFXml);
+						}
+						if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
+							break;
+					}
+					gDLL->getXMLIFace()->SetToParent(m_pFXml);
+				}
+			}
+		}
+		gDLL->getXMLIFace()->SetToParent(m_pFXml);
+	}
+}*/
+
+// allocate and initialize a list from a tag pair in the xml for audio scripts
+void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
+	int iInfoBaseLength, int iDefaultListVal)
+{
+	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szRootTagName))
+	{
+		if (SkipToNextVal())
+		{
+			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(m_pFXml);
+			if(iInfoBaseLength <= 0)
+			{
+				char szMessage[1024];
+				sprintf(szMessage, "Allocating zero or less memory.\nCurrent XML file is: %s",
+						GC.getCurrentXMLFile().GetCString());
+				errorMessage(szMessage);
+			}
+			InitList(ppiList, iInfoBaseLength, iDefaultListVal);
+			int* piList = *ppiList;
+			if (iNumSibs > 0)
+			{
+				if(iNumSibs > iInfoBaseLength)
+				{
+					char szMessage[1024];
+					sprintf(szMessage, "There are more siblings than memory allocated for them.\nCurrent XML file is: %s",
+							GC.getCurrentXMLFile().GetCString());
+					errorMessage(szMessage);
+				}
+				if (gDLL->getXMLIFace()->SetToChild(m_pFXml))
+				{
+					TCHAR szTextVal[256];
+					for (int i = 0; i < iNumSibs; i++)
+					{
+						if (SkipToNextVal() && // K-Mod. (without this, a comment in the xml could break this)
+							GetChildXmlVal(szTextVal))
+						{
+							int iIndexVal = FindInInfoClass(szTextVal);
+							if (iIndexVal >= 0)
+							{
+								CvString szTemp;
+								GetNextXmlVal(szTemp);
+								if (szTemp.GetLength() > 0)
+									piList[iIndexVal] = gDLL->getAudioTagIndex(szTemp);
+								else piList[iIndexVal] = -1;
+							}
 							gDLL->getXMLIFace()->SetToParent(m_pFXml);
 						}
 						if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))

@@ -152,16 +152,16 @@ public:
 	void SetVariableListTagPair(CvString** ppszList, const TCHAR* szRootTagName,
 			int iInfoBaseLength, CvString szDefaultListVal = "");
 
-	void SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,
-		CvString* m_paszTagList, int iTagListLength, int iDefaultListVal = 0);
+	/*void SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,
+			CvString* m_paszTagList, int iTagListLength, int iDefaultListVal = 0);
 	void SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
-		CvString* m_paszTagList, int iTagListLength, int iDefaultListVal = -1);
-	void SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
-		int iInfoBaseLength, int iDefaultListVal = -1);
+			CvString* m_paszTagList, int iTagListLength, int iDefaultListVal = -1);
 	void SetVariableListTagPair(bool **ppbList, const TCHAR* szRootTagName,
-		CvString* m_paszTagList, int iTagListLength, bool bDefaultListVal = false);
+			CvString* m_paszTagList, int iTagListLength, bool bDefaultListVal = false);
 	void SetVariableListTagPair(CvString **ppszList, const TCHAR* szRootTagName,
-		CvString* m_paszTagList, int iTagListLength, CvString szDefaultListVal = "");
+			CvString* m_paszTagList, int iTagListLength, CvString szDefaultListVal = "");*/ // advc: unused
+	void SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
+			int iInfoBaseLength, int iDefaultListVal = -1);
 
 	CvWString HotKeyFromDescription(const TCHAR* pszHotKey, bool bShift = false, bool bAlt = false, bool bCtrl = false);
 	bool SetAndLoadVar(int** ppiVar, int iDefault=0);

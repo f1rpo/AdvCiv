@@ -267,9 +267,12 @@ bool CvEraInfo::read(CvXMLLoadUtility* pXML)
 	}
 
 	pXML->SetVariableListTagPairForAudioScripts(&m_paiCitySoundscapeScriptIds,
-		"CitySoundscapes", CvGlobals::getInstance().getCitySizeTypes(),
-		//sizeof(GC.getCitySizeTypes((CitySizeTypes)0))
-		NUM_CITYSIZE_TYPES); // advc.001 (The above was greater than the correct value, so it didn't do any real harm.)
+			"CitySoundscapes",
+			//CvGlobals::getInstance().getCitySizeTypes(), // advc: callee didn't use it
+			//sizeof(GC.getCitySizeTypes((CitySizeTypes)0))
+			/*	advc.001 (The above was greater than the correct value,
+				so it didn't do any real harm.) */
+			NUM_CITYSIZE_TYPES);
 
 	return true;
 }
