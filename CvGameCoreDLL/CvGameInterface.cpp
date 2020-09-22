@@ -2335,8 +2335,23 @@ int CvGame::getNextSoundtrack(EraTypes eLastEra, int iLastSoundtrack) const
 	{
 		return kCurrentEra.getSoundtracks(0);
 	}
-	return kCurrentEra.getSoundtracks(
-			GC.getASyncRand().get(kCurrentEra.getNumSoundtracks(), "Pick Song ASYNC"));
+	//return kCurrentEra.getSoundtracks(GC.getASyncRand().get(kCurrentEra.getNumSoundtracks(), "Pick Song ASYNC"));
+	/*	<advc.002o> Perhaps was meant to be implemented this way? Why else handle
+		kCurrentEra.getNumSoundtracks()==1 upfront? (Not to mention the unused param.) */
+	std::vector<int> aiTracks;
+	for (int i = 0; i < kCurrentEra.getNumSoundtracks(); i++)
+	{
+		int iTrack = kCurrentEra.getSoundtracks(i);
+		if (iTrack != iLastSoundtrack)
+			aiTracks.push_back(iTrack);
+	}
+	if (aiTracks.empty())
+	{
+		FAssert(!aiTracks.empty());
+		aiTracks.push_back(iLastSoundtrack);
+	}
+	return aiTracks[GC.getASyncRand().get(
+			aiTracks.size(), "Pick Song ASYNC")]; // </advc.002o>
 }
 
 int CvGame::getSoundtrackSpace() const
