@@ -31,12 +31,9 @@
 
 #define FOR_EACH_UNIT_IN_HELPER(pUnit, kUnitListWrapper, CvUnitType, getUnitGlobalFunc) \
 	DECL_ORIGINAL_LIST_LEN(kUnitListWrapper); \
-	CLLNode<IDInfo> const* LISTNODENAME; \
+	CLLNode<IDInfo> const* LISTNODENAME = (kUnitListWrapper).headUnitNode(); \
 	/* Really want to declare pUnit in the header to avoid name clashes */ \
-	for (CvUnitType const* pUnit = \
-		/*	pUnit doesn't need an initial value here, but need an expression */ \
-		/*	so that the node can be initialized through the comma operator. */ \
-		((LISTNODENAME = (kUnitListWrapper).headUnitNode()), NULL); \
+	for (CvUnitType const* pUnit; \
 		LISTNODENAME != NULL \
 		/* I think this is the only way to avoid making a 2nd NULL check */ \
 		&& ((pUnit = ::getUnitGlobalFunc(LISTNODENAME->m_data)) \
@@ -46,9 +43,8 @@
 		LISTNODENAME = (kUnitListWrapper).nextUnitNode(LISTNODENAME))
 
 #define FOR_EACH_UNIT_VAR_IN_HELPER(pUnit, kUnitListWrapper, CvUnitType, getUnitGlobalFunc) \
-	CLLNode<IDInfo>* LISTNODENAME; \
-	for (CvUnitType* pUnit = \
-		((LISTNODENAME = (kUnitListWrapper).headUnitNode()), NULL); \
+	CLLNode<IDInfo>* LISTNODENAME = (kUnitListWrapper).headUnitNode(); \
+	for (CvUnitType* pUnit; \
 		LISTNODENAME != NULL && \
 		((pUnit = ::getUnitGlobalFunc(LISTNODENAME->m_data)), true) && \
 		/* Update the node right after the termination check */ \
