@@ -824,7 +824,21 @@ void CvGlobals::updateCameraStartDistance(bool bReset)
 			GC.getDefineFLOAT("CAMERA_START_DISTANCE"));
 	float fNewValue = m_fCAMERA_START_DISTANCE_Override;
 	if (!bReset)
-		fNewValue = std::max(8440 - 80 * getDefineFLOAT("FIELD_OF_VIEW"), 1200.f);
+	{
+		fNewValue = std::max(8750 - 80 * getDefineFLOAT("FIELD_OF_VIEW"), 1200.f);
+		PlayerTypes eActivePlayer = getGame().getActivePlayer();
+		if (eActivePlayer != NO_PLAYER)
+		{
+			switch((int)GET_PLAYER(eActivePlayer).getCurrentEra())
+			{
+			case 0: fNewValue *= 0.88f; break;
+			case 1: fNewValue *= 0.94f; break;
+			case 2: break;
+			case 3: fNewValue *= 1.05f; break;
+			default: fNewValue *= 1.075f;
+			}
+		}
+	}
 	setDefineFLOAT("CAMERA_START_DISTANCE", fNewValue,
 			false); // Update the cache explicitly instead:
 	cacheGlobalFloats(false);

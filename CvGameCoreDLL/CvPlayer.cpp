@@ -9151,7 +9151,11 @@ void CvPlayer::setCurrentEra(EraTypes eNewValue)
 	gDLL->UI().setDirty(Flag_DIRTY_BIT, true);
 
 	if (getID() == GC.getGame().getActivePlayer())
+	{
 		gDLL->UI().setDirty(Soundtrack_DIRTY_BIT, true);
+		// advc.004m: Default cam distance can depend on era
+		GC.getPythonCaller()->callScreenFunction("updateCameraStartDistance");
+	}
 
 	if (isHuman() && getCurrentEra() != GC.getGame().getStartEra() &&
 		!GC.getGame().isNetworkMultiPlayer())
