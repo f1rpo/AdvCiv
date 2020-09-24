@@ -1196,7 +1196,7 @@
 		 Recommended: 20, meaning that e.g. Rome is 1.2 times as likely
 		 to be chosen than Mali and America is 1.4 times as likely as Mali. -->
 	<Define>
-		<DefineName>PER_LEADER_EXTRA_CIV_SELECTION_WEIGHT</DefineName>
+		<DefineName>PER_EXTRA_LEADER_CIV_SELECTION_WEIGHT</DefineName>
 		<iDefineIntVal>20</iDefineIntVal>
 	</Define>
 

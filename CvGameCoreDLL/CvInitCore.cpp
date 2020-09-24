@@ -1591,9 +1591,9 @@ void CvInitCore::reRandomizeCivsAndLeaders()
 {
 	if (getOption(GAMEOPTION_LEAD_ANY_CIV))
 		return;
-	int const iPER_LEADER_EXTRA_CIV_SELECTION_WEIGHT = GC.getDefineINT(
-			"PER_LEADER_EXTRA_CIV_SELECTION_WEIGHT");
-	if (iPER_LEADER_EXTRA_CIV_SELECTION_WEIGHT == 0) // BtS behavior
+	int const iPER_EXTRA_LEADER_CIV_SELECTION_WEIGHT = GC.getDefineINT(
+			"PER_EXTRA_LEADER_CIV_SELECTION_WEIGHT");
+	if (iPER_EXTRA_LEADER_CIV_SELECTION_WEIGHT == 0) // BtS behavior
 		return;
 	FOR_EACH_ENUM2(Civilization, eCiv)
 	{
@@ -1693,7 +1693,7 @@ void CvInitCore::reRandomizeCivsAndLeaders()
 				for (size_t j = 0; j < leadersPerCiv[eCiv].size(); j++)
 				{
 					if (!abLeaderTaken.get(leadersPerCiv[eCiv][j]))
-						iWeight += iPER_LEADER_EXTRA_CIV_SELECTION_WEIGHT;
+						iWeight += iPER_EXTRA_LEADER_CIV_SELECTION_WEIGHT;
 				}
 				if (iWeight == 0) // All leaders already taken
 					continue;

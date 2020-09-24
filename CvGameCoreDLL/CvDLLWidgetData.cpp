@@ -5976,8 +5976,7 @@ void CvDLLWidgetData::parseGoldenAgeAnarchyHelp(PlayerTypes ePlayer, int iData2,
 	}
 } // </advc.085>
 
-/*  K-Mod, 5/jan/11, karadoc
-	Environmental advisor mouse-over text */
+// <K-Mod> 5/jan/11: Environmental advisor mouse-over text
 void CvDLLWidgetData::parsePollutionOffsetsHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
 	szBuffer.append(gDLL->getText("TXT_KEY_POLLUTION_OFFSETS_HELP"));
@@ -5988,7 +5987,8 @@ void CvDLLWidgetData::parsePollutionOffsetsHelp(CvWidgetDataStruct &widgetDataSt
 		if (iWarmingDefence != 0)
 		{
 			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_OFFSET_PER_FEATURE", -iWarmingDefence, GC.getInfo((FeatureTypes)iI).getTextKeyWide()));
+			szBuffer.append(gDLL->getText("TXT_KEY_OFFSET_PER_FEATURE",
+					-iWarmingDefence, GC.getInfo((FeatureTypes)iI).getTextKeyWide()));
 		}
 	}
 }

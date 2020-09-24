@@ -13103,9 +13103,7 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc: style changes
 }
 
 // BETTER_BTS_AI_MOD, 03/29/10, jdog5000 (War tactics AI, Efficiency):
-/*	Returns target city.
-	This function has been heavily edited for K-Mod
-	(and I got sick of putting "K-Mod" tags all over the place) */
+/*	Returns target city. K-Mod: heavily edited */
 CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBarbs)
 {
 	PROFILE_FUNC();
@@ -13425,7 +13423,7 @@ bool CvUnitAI::AI_goToTargetCity(int iFlags, int iMaxPathTurns, CvCity* pTargetC
 	else
 	{
 		pBestPlot = pTargetCity->plot();
-		/*	K-mod. As far as I know, nothing actually uses MOVE_THROUGH_ENEMY here..
+		/*	K-Mod. As far as I know, nothing actually uses MOVE_THROUGH_ENEMY here..
 			but that doesn't mean we should let the code be wrong. */
 		int iPathTurns;
 		if (!generatePath(pBestPlot, iFlags, true, &iPathTurns, iMaxPathTurns) || iPathTurns > iMaxPathTurns)

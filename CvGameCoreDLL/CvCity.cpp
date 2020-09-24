@@ -567,19 +567,19 @@ void CvCity::doTurn()  // advc: style changes
 	#endif // XXX
 }
 
-// <advc.104u> Cut, pasted, refactored from the end of CvCity::doTurn
-int CvCity::calculateBaseYieldRate(YieldTypes y)
+// advc.104u: Cut, pasted, refactored from the end of CvCity::doTurn
+int CvCity::calculateBaseYieldRate(YieldTypes eYield)
 {
-	int r = 0;
+	int iR = 0;
 	for (WorkingPlotIter it(*this); it.hasNext(); ++it)
 	{
 		CvPlot const* pPlot = getCityIndexPlot(it.currID());
 		if(pPlot != NULL)
-			r += pPlot->getYield(y);
+			iR += pPlot->getYield(eYield);
 	}
 	FOR_EACH_ENUM(Specialist)
 	{
-		r += GET_PLAYER(getOwner()).specialistYield(eLoopSpecialist, y) *
+		iR += GET_PLAYER(getOwner()).specialistYield(eLoopSpecialist, eYield) *
 				(getSpecialistCount(eLoopSpecialist) +
 				getFreeSpecialistCount(eLoopSpecialist));
 	}
@@ -588,13 +588,13 @@ int CvCity::calculateBaseYieldRate(YieldTypes y)
 	{
 		BuildingTypes eBuilding = kCiv.buildingAt(i);
 		CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
-		r += getNumActiveBuilding(eBuilding) * (kBuilding.getYieldChange(y) +
-				getBuildingYieldChange(kBuilding.getBuildingClassType(), y));
+		iR += getNumActiveBuilding(eBuilding) * (kBuilding.getYieldChange(eYield) +
+				getBuildingYieldChange(kBuilding.getBuildingClassType(), eYield));
 	}
-	r += getTradeYield(y);
-	r += getCorporationYield(y);
-	return r;
-} // </advc.104u>
+	iR += getTradeYield(eYield);
+	iR += getCorporationYield(eYield);
+	return iR;
+}
 
 // advc: Code cut and pasted from CvPlot::doCulture; also refactored.
 void CvCity::doRevolt()
@@ -11563,8 +11563,8 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible,
 	TeamTypes const eActiveTeam = GC.getGame().getActiveTeam();
 	bool const bAllVisible = (eActiveTeam != NO_TEAM &&
 			isAllBuildingsVisible(eActiveTeam, true)); // </advc.045>
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
 	std::vector<BuildingTypes> kVisible;
+	CvCivilization const& kCiv = getCivilization(); // advc.003w
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes const eBuilding = kCiv.buildingAt(i);

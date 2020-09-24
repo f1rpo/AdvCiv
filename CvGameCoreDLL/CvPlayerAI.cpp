@@ -20,7 +20,7 @@
 #include "BBAILog.h"
 #include "CvPopupInfo.h"
 
-//#define GREATER_FOUND_RANGE			(5)
+//#define GREATER_FOUND_RANGE		(5)
 #define CIVIC_CHANGE_DELAY			(20) // was 25
 #define RELIGION_CHANGE_DELAY		(15)
 

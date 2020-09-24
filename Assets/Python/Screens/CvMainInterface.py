@@ -5221,7 +5221,6 @@ class CvMainInterface:
 					scores.setWaiting()
 # BUG - Dead Civs - start
 		# <advc.190d>
-		# (based on K-Mod)
 		bConcealCiv = False
 		bConcealLeader = False
 		# Note: Not much of a  point in concealing anything in HotSeat mode

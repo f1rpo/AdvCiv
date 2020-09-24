@@ -15,7 +15,7 @@
 	warnings. BtS had disabled that one through the PCH. */
 
 /*	These should remain enabled even if the global level is dialed back down to 3.
-	But I'm not sure how to keep them disabled in the std headers etc.
+	But I'm not sure how disable them in the std headers etc.
 	May need to put them into a separate header for that, to be included in the PCH
 	after loading the non-conforming headers. */
 /*
@@ -39,8 +39,8 @@
 /*	Level 4 warnings that are too strict ...
 	(at least for day-to-day builds) */
 
-#pragma warning(disable: 100) // "unreferenced formal parameter" x
-#pragma warning(disable: 127) // "conditional expression is constant" x
+#pragma warning(disable: 100) // "unreferenced formal parameter"
+#pragma warning(disable: 127) // "conditional expression is constant"
 #pragma warning(disable: 702) // "unreachable code"
 
 /*	"operator signed/unsigned mismatch"

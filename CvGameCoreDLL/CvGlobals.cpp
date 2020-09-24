@@ -828,7 +828,8 @@ void CvGlobals::updateCameraStartDistance(bool bReset)
 		fNewValue = std::max(8750 - 80 * getDefineFLOAT("FIELD_OF_VIEW"), 1200.f);
 		PlayerTypes eActivePlayer = getGame().getActivePlayer();
 		if (eActivePlayer != NO_PLAYER)
-		{
+		{	/*	Or better use getNumCities (while still calling updateCameraStartDistance
+				only upon entering a new era)? */
 			switch((int)GET_PLAYER(eActivePlayer).getCurrentEra())
 			{
 			case 0: fNewValue *= 0.88f; break;

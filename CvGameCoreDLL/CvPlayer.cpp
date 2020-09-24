@@ -5850,7 +5850,7 @@ int CvPlayer::calculatePollution(int iTypes) const
 	return iTotal;
 }
 
-// K-Mod
+// <K-Mod>
 void CvPlayer::setGwPercentAnger(int iNewValue)
 {
 	if (iNewValue != m_iGwPercentAnger)
@@ -5877,8 +5877,8 @@ int CvPlayer::getUnitCostMultiplier() const
 	}
 
 	return iMultiplier;
-}
-// K-Mod end
+} // </K-Mod>
+
 
 int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& iPaidUnits,
 	int& iPaidMilitaryUnits, int& iUnitCost, int& iMilitaryCost, int& iExtraCost,
