@@ -312,7 +312,7 @@ public: /*  All const functions are exposed to Python except some related to art
 	void updateArtDefineButton();
 
 	const CvArtInfoUnit* getArtInfo(int i, EraTypes eEra, UnitArtStyleTypes eStyle) const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase*);
 	void write(FDataStreamBase*);
 	#endif
@@ -624,7 +624,7 @@ public: // All the const functions are exposed to Python
 	bool getTerrainDoubleMove(int i) const;
 	bool getFeatureDoubleMove(int i) const;
 	bool getUnitCombat(int i) const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif

@@ -72,7 +72,7 @@ public: // advc: All the const functions are exposed to Python except those adde
 	bool isTerrainTrade(int i) const;
 	inline bool isAnyTerrainTrade() const { return (m_pbTerrainTrade != NULL); } // advc.003t
 
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* );
 	void write(FDataStreamBase* );
 	#endif

@@ -7792,15 +7792,15 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 }
 
 // <advc.300>
-CvPlot* CvGame::randomBarbarianPlot(CvArea const& a, Shelf* shelf) const
+CvPlot* CvGame::randomBarbarianPlot(CvArea const& a, Shelf const* pShelf)
 {
-	int restrictionFlags = RANDPLOT_NOT_VISIBLE_TO_CIV |
+	RandPlotTypes const ePredicates = (RANDPLOT_NOT_VISIBLE_TO_CIV |
 			/*  Shelves already ensure this and one-tile islands
 				can't spawn Barbarians anyway. */
 			//RANDPLOT_ADJACENT_LAND |
 			RANDPLOT_PASSABLE |
-			RANDPLOT_HABITABLE | // New flag
-			RANDPLOT_UNOWNED;
+			RANDPLOT_HABITABLE | // new
+			RANDPLOT_UNOWNED);
 	/*  Added the "unowned" flag to prevent spawning in Barbarian land.
 		Could otherwise happen now b/c the visible flag and dist. restriction
 		no longer apply to Barbarians previously spawned; see
@@ -7808,24 +7808,23 @@ CvPlot* CvGame::randomBarbarianPlot(CvArea const& a, Shelf* shelf) const
 	static int const iDist = GC.getDefineINT("MIN_BARBARIAN_STARTING_DISTANCE");
 	// <advc.304> Sometimes don't pick a plot if there are few legal plots
 	int iLegal = 0;
-	CvPlot* r = NULL;
-	if (shelf == NULL)
-		r = GC.getMap().syncRandPlot(restrictionFlags, &a, iDist, -1, &iLegal);
+	CvPlot* pRandPlot = NULL;
+	if (pShelf == NULL)
+		pRandPlot = GC.getMap().syncRandPlot(ePredicates, &a, iDist, -1, &iLegal);
 	else
 	{
-		r = shelf->randomPlot(restrictionFlags, iDist, &iLegal);
-		if(r != NULL && iLegal * 100 < shelf->size())
-			r = NULL;
+		pRandPlot = pShelf->randomPlot(ePredicates, iDist, &iLegal);
+		if(pRandPlot != NULL && iLegal * 100 < pShelf->size())
+			pRandPlot = NULL;
 	}
-	if (r != NULL)
+	if (pRandPlot != NULL && iLegal > 0 && iLegal < 4)
 	{
-		double prSkip = 0;
-		if(iLegal > 0 && iLegal < 4)
-			prSkip = 1 - 1.0 / (5 - iLegal); // Tbd.: Should perhaps be based on a.getNumTiles()
-		if(::bernoulliSuccess(prSkip, "advc.304"))
-			r = NULL;
+		// Tbd.: Should perhaps be based on a.getNumTiles()
+		scaled rSkipProb = 1 - scaled(1, 5 - iLegal);
+		if(rSkipProb.bernoulliSuccess(getSRand(), "randomBarbarianPlot"))
+		pRandPlot = NULL;
 	}
-	return r; // </advc.304>
+	return pRandPlot; // </advc.304>
 }
 
 

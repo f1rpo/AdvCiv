@@ -376,7 +376,7 @@ public: // The const functions are exposed to Python except functions added by m
 	// advc.003t: Return type was int for these two
 	bool isFreeTechs(int i) const;
 	bool isAIFreeTechs(int i) const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif

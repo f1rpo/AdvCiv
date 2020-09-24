@@ -6,8 +6,36 @@
 /*  advc (note): All enums in this file are -probably- exposed to Python through
 	CyEnumsInterface.cpp -- unless a comment states otherwise */
 // <advc.enum>
-#include "CvDefines.h"
 #include "CvInfoEnums.h"
+
+/*	Player limits: Moved from CvDefines into the Enum types.
+	(Can always turn MAX_CIV_PLAYERS back into a preprocessor define
+	if that helps in making the player limits more flexible.) */
+//#ifdef _USRDLL
+//	#define MAX_CIV_PLAYERS ((PlayerTypes)18)
+//#else
+//	#define MAX_CIV_PLAYERS ((PlayerTypes)CvGlobals::getInstance().getMaxCivPlayers())
+//#endif
+enum PlayerTypes
+{
+	NO_PLAYER = -1,
+	FIRST_PLAYER, // When an arbitrary player id is needed
+	// K-Mod (note): default is 18, some people like 48. They are not compatible.
+	/*  advc.056 (note): Scenario (WB) files are now compatible so long
+		as the player ids in the WB file don't exceed MAX_CIV_PLAYERS in the DLL.
+		Savegames are still incompatible. */
+	MAX_CIV_PLAYERS = 18,
+	BARBARIAN_PLAYER = MAX_CIV_PLAYERS,
+	MAX_PLAYERS = MAX_CIV_PLAYERS + 1
+};
+enum TeamTypes
+{
+	NO_TEAM = -1,
+	FIRST_TEAM = 0,
+	MAX_CIV_TEAMS = MAX_CIV_PLAYERS,
+	BARBARIAN_TEAM = MAX_CIV_TEAMS,
+	MAX_TEAMS
+};
 
 // This generates most of the enums with associated XML data
 DO_FOR_EACH_DYN_INFO_TYPE(MAKE_INFO_ENUM)
@@ -1652,16 +1680,6 @@ enum FontSymbols
 #ifdef _USRDLL
 	MAX_NUM_SYMBOLS
 #endif
-};
-
-enum TeamTypes
-{
-	NO_TEAM = -1
-};
-
-enum PlayerTypes
-{
-	NO_PLAYER = -1
 };
 
 enum CustomMapOptionTypes

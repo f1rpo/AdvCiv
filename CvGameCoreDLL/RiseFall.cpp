@@ -335,7 +335,7 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 				interludeCountdown = -1;
 				/*  Don't start a chapter across a game turn (i.e. during the
 					barbs' turn). Switching to civ 0 is handled by atGameTurnStart. */
-				if(nextCivId != (PlayerTypes)0)
+				if(nextCivId != FIRST_PLAYER)
 					currentCh.start();
 			}
 			else if(!currentCh.isScored()) { /*  If scored, then defeat happened
@@ -880,7 +880,7 @@ void RiseFall::prepareForExtendedGame() {
 		}
 		TeamTypes winnerId = g.getWinner();
 		if(winnerId == NO_TEAM) // Can this be?
-			winnerId = (TeamTypes)0;
+			winnerId = FIRST_TEAM;
 		// Try to avoid giving the player control of the winner b/c it's confusing
 		PlayerTypes haltId = nextCivAlive(GET_TEAM(winnerId).getLeaderID());
 		if(haltId == NO_PLAYER)

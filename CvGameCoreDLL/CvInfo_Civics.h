@@ -97,7 +97,7 @@ public: // The const functions are exposed to Python except those (to be) added 
 	bool isSpecialistValid(int i) const;
 
 	int getImprovementYieldChanges(int i, int j) const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif

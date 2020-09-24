@@ -6353,7 +6353,8 @@ void CvUnitAI::AI_reserveSeaMove()
 
 	/*  <advc.017b> Defend bonus if it's threatened, otherwise, consider a bunch of
 		other activities first. (K-Mod's AI_guardBonus(15) moved down instead.) */
-	if(kOwner.AI_isAnyWaterDanger(getPlot(), std::min(maxMoves(), DANGER_RANGE)) &&
+	if(kOwner.AI_isAnyWaterDanger(
+		getPlot(), std::min(maxMoves(), CvPlayerAI::DANGER_RANGE)) &&
 		AI_guardBonus(10))
 	{
 		return;
@@ -19779,7 +19780,7 @@ bool CvUnitAI::AI_nukeRange(int iRange)
 	PROFILE_FUNC();
 
 	int iThresholdValue = 60 + std::max(0, 3 * getUnitInfo().getProductionCost());
-	if (!GET_PLAYER(getOwner()).AI_isAnyPlotDanger(getPlot(), DANGER_RANGE))
+	if (!GET_PLAYER(getOwner()).AI_isAnyPlotDanger(getPlot(), CvPlayerAI::DANGER_RANGE))
 		iThresholdValue = iThresholdValue * 3/2;
 
 	CvPlot* pTargetPlot = 0;

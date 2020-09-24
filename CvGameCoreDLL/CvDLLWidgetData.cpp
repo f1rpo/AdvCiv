@@ -5995,31 +5995,35 @@ void CvDLLWidgetData::parsePollutionOffsetsHelp(CvWidgetDataStruct &widgetDataSt
 
 void CvDLLWidgetData::parsePollutionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	int iFlags = (int)widgetDataStruct.m_iData1;
+	CvPlayer::PollutionTypes eFlags = (CvPlayer::PollutionTypes)widgetDataStruct.m_iData1;
 
 	szBuffer.append(gDLL->getText("TXT_KEY_POLLUTION")+":");
 
-	if (iFlags & POLLUTION_POPULATION)
+	if (eFlags & CvPlayer::POLLUTION_POPULATION)
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_POLLUTION_FROM_POPULATION", GC.getDefineINT("GLOBAL_WARMING_POPULATION_WEIGHT")));
+		szBuffer.append(gDLL->getText("TXT_KEY_POLLUTION_FROM_POPULATION",
+				GC.getDefineINT("GLOBAL_WARMING_POPULATION_WEIGHT")));
 	}
-	if (iFlags & POLLUTION_BUILDINGS)
+	if (eFlags & CvPlayer::POLLUTION_BUILDINGS)
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_POLLUTION_FROM_BUILDINGS", GC.getDefineINT("GLOBAL_WARMING_BUILDING_WEIGHT")));
+		szBuffer.append(gDLL->getText("TXT_KEY_POLLUTION_FROM_BUILDINGS",
+				GC.getDefineINT("GLOBAL_WARMING_BUILDING_WEIGHT")));
 	}
-	if (iFlags & POLLUTION_BONUSES)
+	if (eFlags & CvPlayer::POLLUTION_BONUSES)
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_POLLUTION_FROM_BONUSES", GC.getDefineINT("GLOBAL_WARMING_BONUS_WEIGHT")));
+		szBuffer.append(gDLL->getText("TXT_KEY_POLLUTION_FROM_BONUSES",
+				GC.getDefineINT("GLOBAL_WARMING_BONUS_WEIGHT")));
 	}
-	if (iFlags & POLLUTION_POWER)
+	if (eFlags & CvPlayer::POLLUTION_POWER)
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_POLLUTION_FROM_POWER", GC.getDefineINT("GLOBAL_WARMING_POWER_WEIGHT")));
+		szBuffer.append(gDLL->getText("TXT_KEY_POLLUTION_FROM_POWER",
+				GC.getDefineINT("GLOBAL_WARMING_POWER_WEIGHT")));
 	}
-} // K-Mod end
+} // </K-Mod>
 
 // <advc.ctr>
 bool CvDLLWidgetData::parseCityTradeHelp(CvWidgetDataStruct const& kWidget, CvCity*& pCity,

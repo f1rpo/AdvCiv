@@ -30,6 +30,9 @@ public:
 	// Only for the EXE:
 	DllExport static CvPlayerAI& getPlayerNonInl(PlayerTypes ePlayer);
 	DllExport static bool areStaticsInitialized();
+	// <advc> Moved from CvDefines
+	static int const DANGER_RANGE = 4;
+	static int const BORDER_DANGER_RANGE = 2; // </advc>
 
 	explicit CvPlayerAI(PlayerTypes eID);
 	~CvPlayerAI();

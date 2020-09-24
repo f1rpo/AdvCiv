@@ -12,7 +12,7 @@ CvInfoBase::CvInfoBase(CvInfoBase const& kOther)
 	FErrorMsg("Copy-ctor not implemented");
 }
 
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvInfoBase::read(FDataStreamBase* pStream)
 {
 	reset();
@@ -223,7 +223,7 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 
 	return true;
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvHotkeyInfo::read(FDataStreamBase* pStream)
 {
 	CvXMLInfo::read(pStream); // advc.tag
@@ -487,7 +487,7 @@ bool CvXMLInfo::read(CvXMLLoadUtility* pXML)
 	return true;
 }
 
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvXMLInfo::read(FDataStreamBase* pStream)
 {
 	CvInfoBase::read(pStream);

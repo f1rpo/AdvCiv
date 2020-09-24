@@ -1054,7 +1054,7 @@ namespace // advc
 	template <class T>
 	bool readInfoArray(FDataStreamBase* pStream, std::vector<T*>& array, const char* szClassName)
 	{
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 		//addToInfosVectors(&array); // advc.enum (no longer used)
 		int iSize;
 		pStream->Read(&iSize);
@@ -1088,7 +1088,7 @@ namespace // advc
 	template <class T>
 	bool writeInfoArray(FDataStreamBase* pStream,  std::vector<T*>& array)
 	{
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 		int iSize = sizeof(T);
 		pStream->Write(iSize);
 		pStream->Write(array.size());

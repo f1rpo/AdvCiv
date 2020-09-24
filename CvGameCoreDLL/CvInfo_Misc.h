@@ -524,7 +524,7 @@ public:
 			SAFE_DELETE_ARRAY(m_pbDiplomacyPowerTypes);
 			SAFE_DELETE_ARRAY(m_paszDiplomacyText);
 		}
-		#if SERIALIZE_CVINFOS
+		#if ENABLE_XML_FILE_CACHE
 		void read(FDataStreamBase* stream);
 		void write(FDataStreamBase* stream);
 		#endif
@@ -554,7 +554,7 @@ public:
 	int getNumDiplomacyText(int i) const;
 	const TCHAR* getDiplomacyText(int i, int j) const;
 
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif

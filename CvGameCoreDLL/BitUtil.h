@@ -5,12 +5,10 @@
 
 /*  advc.enum: Helper functions for bitwise operations. Copied from the
 	"We the People" mod (all code by Nightinggale), which keeps these functions
-	directly in CvGameCoreDLL.h. I need them only for EnumMap for now. EnumMap
-	gets included in CvGameCoreDLL.h, but I don't want the functions in the
-	global namespace (for now); so I've put them into a different namespace.
+	directly in CvGameCoreDLL.h.
 	Removed the static keyword (all functions were static). */
 
-namespace BitUtil
+namespace BitUtil // advc: Don't want these in the global namespace (for now)
 {
 	template <typename T>
 	inline bool HasBit(const T x, const int y)

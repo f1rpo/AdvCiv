@@ -126,15 +126,17 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 					break;
 			}
 
-			// write global defines info to cache
-			// advc.003i: Disabled
-			/*bool bOk = gDLL->cacheWrite(cache);
-			if (!bOk) {
-				char	szMessage[1024];
-				sprintf(szMessage, "Failed writing to global defines cache.\nCurrent XML file is: %s", GC.getCurrentXMLFile().GetCString());
-				gDLL->MessageBox(szMessage, "XML Caching Error");
-			}
-			else logMsg("Wrote GlobalDefines to cache");*/
+			#if ENABLE_XML_FILE_CACHE
+				// write global defines info to cache
+				bool bOk = gDLL->cacheWrite(cache);
+				if (!bOk)
+				{
+					char	szMessage[1024];
+					sprintf(szMessage, "Failed writing to global defines cache.\nCurrent XML file is: %s", GC.getCurrentXMLFile().GetCString());
+					gDLL->MessageBox(szMessage, "XML Caching Error");
+				}
+				else logMsg("Wrote GlobalDefines to cache");
+			#endif
 		}
 	}
 	gDLL->getXMLIFace()->DestroyFXml(m_pFXml);
@@ -531,16 +533,18 @@ bool CvXMLLoadUtility::LoadGlobalText()
 
 	DestroyFXml();
 
-	// write global text info to cache
-	// advc.003i: Disabled
-	/*bool bOk = gDLL->cacheWrite(cache);
-	if (!bOk) {
-		char	szMessage[1024];
-		sprintf(szMessage, "Failed writing to Global Text cache.\nCurrent XML file is: %s", GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox(szMessage, "XML Caching Error");
-	}
-	if (bOk)
-		logMsg("Wrote GlobalText to cache");*/
+	#if ENABLE_XML_FILE_CACHE
+		// write global text info to cache
+		bool bOk = gDLL->cacheWrite(cache);
+		if (!bOk)
+		{
+			char	szMessage[1024];
+			sprintf(szMessage, "Failed writing to Global Text cache.\nCurrent XML file is: %s", GC.getCurrentXMLFile().GetCString());
+			gDLL->MessageBox(szMessage, "XML Caching Error");
+		}
+		if (bOk)
+			logMsg("Wrote GlobalText to cache");
+	#endif
 
 	gDLL->destroyCache(cache);
 
@@ -1349,23 +1353,23 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 	const char* szXmlPath, bool bTwoPass,
 	CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*))
 {
-	pArgFunction = NULL; // advc.003i: Disable XML cache
 	bool bLoaded = false;
 	bool bWriteCache = true;
 	CvCacheObject* pCache = NULL;
 	//GC.addToInfosVectors(aInfos); // advc.enum (no longer needed)
-
-	if (pArgFunction != NULL)
-	{
-		pCache = (gDLL->*pArgFunction)(CvString::format("%s.dat", szFileRoot));	// cache file name
-
-		if (gDLL->cacheRead(pCache, CvString::format("xml\\\\%s\\\\%s.xml", szFileDirectory, szFileRoot)))
+	#if ENABLE_XML_FILE_CACHE
+		if (pArgFunction != NULL)
 		{
-			logMsg("Read %s from cache", szFileDirectory);
-			bLoaded = true;
-			bWriteCache = false;
+			pCache = (gDLL->*pArgFunction)(CvString::format("%s.dat", szFileRoot));	// cache file name
+
+			if (gDLL->cacheRead(pCache, CvString::format("xml\\\\%s\\\\%s.xml", szFileDirectory, szFileRoot)))
+			{
+				logMsg("Read %s from cache", szFileDirectory);
+				bLoaded = true;
+				bWriteCache = false;
+			}
 		}
-	}
+	#endif
 	if (!bLoaded)
 	{
 		bLoaded = LoadCivXml(m_pFXml, CvString::format("xml\\%s/%s.xml", szFileDirectory, szFileRoot));
@@ -1439,41 +1443,47 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 					}
 				}
 			} // </advc.rh>
-			// advc.003i: Disabled
-			/*if (NULL != pArgFunction && bWriteCache) {
-				// write info to cache
-				bool bOk = gDLL->cacheWrite(pCache);
-				if (!bOk) {
-					char szMessage[1024];
-					sprintf(szMessage, "Failed writing to %s cache.\nCurrent XML file is: %s", szFileDirectory, GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Caching Error");
+			#if ENABLE_XML_FILE_CACHE
+				if (NULL != pArgFunction && bWriteCache)
+				{
+					// write info to cache
+					bool bOk = gDLL->cacheWrite(pCache);
+					if (!bOk)
+					{
+						char szMessage[1024];
+						sprintf(szMessage, "Failed writing to %s cache.\nCurrent XML file is: %s", szFileDirectory, GC.getCurrentXMLFile().GetCString());
+						gDLL->MessageBox(szMessage, "XML Caching Error");
+					}
+					if (bOk)
+						logMsg("Wrote %s to cache", szFileDirectory);
 				}
-				if (bOk)
-					logMsg("Wrote %s to cache", szFileDirectory);
-			}*/
+			#endif
 		}
 	}
-	if (pArgFunction != NULL)
-		gDLL->destroyCache(pCache);
+	#if ENABLE_XML_FILE_CACHE
+		if (pArgFunction != NULL)
+			gDLL->destroyCache(pCache);
+	#endif
 }
 
 
 void CvXMLLoadUtility::LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfos, const char* szFileRoot, const char* szFileDirectory, const char* szXmlPath, CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*))
 {
 	bool bLoaded = false;
-	bool bWriteCache = true;
-	CvCacheObject* pCache = NULL;
-
-	if (pArgFunction != NULL)
-	{
-		pCache = (gDLL->*pArgFunction)(CvString::format("%s.dat", szFileRoot));	// cache file name
-		if (gDLL->cacheRead(pCache, CvString::format("xml\\\\%s\\\\%s.xml", szFileDirectory, szFileRoot)))
+	#if ENABLE_XML_FILE_CACHE
+		bool bWriteCache = true;
+		CvCacheObject* pCache = NULL;
+		if (pArgFunction != NULL)
 		{
-			logMsg("Read %s from cache", szFileDirectory);
-			bLoaded = true;
-			bWriteCache = false;
+			pCache = (gDLL->*pArgFunction)(CvString::format("%s.dat", szFileRoot));	// cache file name
+			if (gDLL->cacheRead(pCache, CvString::format("xml\\\\%s\\\\%s.xml", szFileDirectory, szFileRoot)))
+			{
+				logMsg("Read %s from cache", szFileDirectory);
+				bLoaded = true;
+				bWriteCache = false;
+			}
 		}
-	}
+	#endif
 
 	if (!bLoaded)
 	{
@@ -1504,23 +1514,27 @@ void CvXMLLoadUtility::LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInf
 					else SetDiplomacyInfo(DiploInfos, szXmlPath);
 				}
 			}
-			// advc.003i: Disabled
-			/*if (NULL != pArgFunction && bWriteCache) {
-				// write info to cache
-				bool bOk = gDLL->cacheWrite(pCache);
-				if (!bOk) {
-					char szMessage[1024];
-					sprintf(szMessage, "Failed writing to %s cache.\nCurrent XML file is: %s", szFileDirectory, GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Caching Error");
+			#if ENABLE_XML_FILE_CACHE
+				if (NULL != pArgFunction && bWriteCache)
+				{
+					// write info to cache
+					bool bOk = gDLL->cacheWrite(pCache);
+					if (!bOk)
+					{
+						char szMessage[1024];
+						sprintf(szMessage, "Failed writing to %s cache.\nCurrent XML file is: %s", szFileDirectory, GC.getCurrentXMLFile().GetCString());
+						gDLL->MessageBox(szMessage, "XML Caching Error");
+					}
+					if (bOk)
+						logMsg("Wrote %s to cache", szFileDirectory);
 				}
-				if (bOk)
-					logMsg("Wrote %s to cache", szFileDirectory);
-			}*/
+			#endif
 		}
 	}
-
-	if (pArgFunction != NULL)
-		gDLL->destroyCache(pCache);
+	#if ENABLE_XML_FILE_CACHE
+		if (pArgFunction != NULL)
+			gDLL->destroyCache(pCache);
+	#endif
 }
 
 // helper sort predicate

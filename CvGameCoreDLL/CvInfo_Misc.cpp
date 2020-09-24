@@ -1310,7 +1310,7 @@ const TCHAR* CvDiplomacyTextInfo::getDiplomacyText(int i, int j) const
 	FAssertBounds(0, getNumDiplomacyText(i), j);
 	return m_pResponses[i].m_paszDiplomacyText[j];
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvDiplomacyTextInfo::Response::read(FDataStreamBase* stream)
 {
 	stream->Read(&m_iNumDiplomacyText);

@@ -392,7 +392,7 @@ void CyEnumsPythonInterface()
 		.value("WIDGET_GLOBELAYER_OPTION", WIDGET_GLOBELAYER_OPTION)
 		.value("WIDGET_GLOBELAYER_TOGGLE", WIDGET_GLOBELAYER_TOGGLE)
 		// K-Mod widgets
-		// Environmental advisor
+		// Environmental advisor  (advc.enum: Pollution flags moved to CyPlayerInterface2.cpp)
 		.value("WIDGET_HELP_POLLUTION_OFFSETS", WIDGET_HELP_POLLUTION_OFFSETS)
 		.value("WIDGET_HELP_POLLUTION_SOURCE", WIDGET_HELP_POLLUTION_SOURCE)
 		.value("WIDGET_HELP_SUSTAINABILITY_THRESHOLD", WIDGET_HELP_SUSTAINABILITY_THRESHOLD)
@@ -427,17 +427,7 @@ void CyEnumsPythonInterface()
 		.value("WIDGET_CITY_TRADE", WIDGET_CITY_TRADE) // advc.ctr
 		.value("NUM_WIDGET_TYPES", NUM_WIDGET_TYPES)
 		;
-	/*  K-Mod, 5/jan/11, karadoc
-		pollution flags */
-	python::enum_<int>("PollutionTypes")
-		.value("POLLUTION_POPULATION", POLLUTION_POPULATION)
-		.value("POLLUTION_BUILDINGS", POLLUTION_BUILDINGS)
-		.value("POLLUTION_BONUSES", POLLUTION_BONUSES)
-		.value("POLLUTION_POWER", POLLUTION_POWER)
 
-		.value("POLLUTION_ALL", POLLUTION_ALL)
-		;
-	// K-Mod end
 	python::enum_<ButtonPopupTypes>("ButtonPopupTypes")
 		.value("BUTTONPOPUP_TEXT", BUTTONPOPUP_TEXT)
 		.value("BUTTONPOPUP_MAIN_MENU", BUTTONPOPUP_MAIN_MENU)

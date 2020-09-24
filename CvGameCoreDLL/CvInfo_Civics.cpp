@@ -205,7 +205,7 @@ int CvCivicInfo::getImprovementYieldChanges(int i, int j) const
 	FAssertBounds(0, NUM_YIELD_TYPES, j);
 	return m_ppiImprovementYieldChanges[i][j];
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvCivicInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);

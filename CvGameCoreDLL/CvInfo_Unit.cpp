@@ -736,7 +736,7 @@ const CvArtInfoUnit* CvUnitInfo::getArtInfo(int i, EraTypes eEra, UnitArtStyleTy
 		return ARTFILEMGR.getUnitArtInfo(getMiddleArtDefineTag(i, eStyle));
 	return ARTFILEMGR.getUnitArtInfo(getEarlyArtDefineTag(i, eStyle));
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvUnitInfo::read(FDataStreamBase* stream)
 {
 	CvHotkeyInfo::read(stream);
@@ -2125,7 +2125,7 @@ bool CvPromotionInfo::getUnitCombat(int i) const
 	FAssertBounds(0, GC.getNumUnitCombatInfos(), i);
 	return m_pbUnitCombat ? m_pbUnitCombat[i] : false;
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvPromotionInfo::read(FDataStreamBase* stream)
 {
 	CvHotkeyInfo::read(stream);

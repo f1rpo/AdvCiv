@@ -557,22 +557,17 @@ int CyPlayer::calculateResearchModifier(int /*TechTypes*/ eTech)
 {
 	return m_pPlayer ? m_pPlayer->calculateResearchModifier((TechTypes)eTech) : -1;
 }
-
-/*
-** K-Mod, 18/dec/10, karadoc
-*/
-int CyPlayer::calculatePollution(int iTypes) const
+// <K-Mod> 18/dec/10
+int CyPlayer::calculatePollution(int iPollution) const
 {
-	return m_pPlayer ? m_pPlayer->calculatePollution(iTypes) : 0;
+	return m_pPlayer ? m_pPlayer->calculatePollution(
+			(CvPlayer::PollutionTypes)iPollution) : -1; // advc.enum
 }
 
 int CyPlayer::getGwPercentAnger() const
 {
-	return m_pPlayer ? m_pPlayer->getGwPercentAnger() : 0;
-}
-/*
-** K-Mod end
-*/
+	return m_pPlayer ? m_pPlayer->getGwPercentAnger() : /* advc: */ -1;
+} // </K-Mod>
 
 /* int CyPlayer::calculateBaseNetResearch()
 {

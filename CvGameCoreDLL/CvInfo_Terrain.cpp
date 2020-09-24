@@ -615,7 +615,7 @@ const TCHAR* CvBonusInfo::getButton() const
 
 	return NULL;
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvBonusInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -1213,7 +1213,7 @@ void CvArtInfoImprovement::setShaderNIF(const TCHAR* szDesc)
 {
 	m_szShaderNIF = szDesc;
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvImprovementInfo::read(FDataStreamBase* stream)
 {
 	CvXMLInfo::read(stream); // advc.tag
@@ -1533,7 +1533,7 @@ int CvImprovementBonusInfo::getYieldChange(int i) const
 	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvImprovementBonusInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);

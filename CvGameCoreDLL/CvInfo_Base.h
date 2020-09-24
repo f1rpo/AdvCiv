@@ -8,6 +8,8 @@
 /*  advc.003x: Cut from CvInfos.h; to be precompiled.
 	CvInfoBase, CvScalableInfo, CvHotkeyInfo */
 
+#define ENABLE_XML_FILE_CACHE 0 // advc.003i
+
 class CvXMLLoadUtility;
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -53,7 +55,7 @@ public: // All the const functions are exposed to Python
 	wchar const* getStrategy() const;
 
 	bool isMatchForLink(std::wstring szLink, bool bKeysOnly) const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
 	#endif
@@ -136,7 +138,7 @@ public:
 		return m_abData[e];
 	}
 	bool read(CvXMLLoadUtility* pXML);
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
 	#endif
@@ -223,7 +225,7 @@ public:
 	} // </advc.tag>
 
 	bool read(CvXMLLoadUtility* pXML);
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
 	#endif

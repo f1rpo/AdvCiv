@@ -143,7 +143,7 @@ bool CvTechInfo::isTerrainTrade(int i) const
 	FAssertBounds(0, GC.getNumTerrainInfos(), i); // advc: check bounds
 	return m_pbTerrainTrade ? m_pbTerrainTrade[i] : false;
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvTechInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);

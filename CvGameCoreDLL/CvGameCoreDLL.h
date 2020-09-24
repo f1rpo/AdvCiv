@@ -94,7 +94,8 @@ __forceinline float MaxFloat() { return DWtoF(0x7f7fffff); }
 #include "FDataStreamBase.h"
 #include "FFreeListTrashArray.h" // advc.003s: includes FreeListTraversal.h
 #include "CvString.h"
-#include "CvEnums.h" // includes CvDefines.h, CvInfoEnum.h
+#include "CvDefines.h"
+#include "CvEnums.h" // includes CvInfoEnum.h
 /*  advc: Smaller numbers may already crash the EXE; the DLL assumes in some places
 	that player ids fit in a single byte. */
 BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
@@ -106,7 +107,8 @@ BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 #include "CvGameCoreUtils.h"
 #include "ScaledNum.h"
 #include "CvGlobals.h"
-#include "EnumMap2D.h" // advc.enum: Includes EnumMap.h, which includes BitUtil.h.
+#include "BitUtil.h" // advc.enum: For EnumMap, but will have other uses too.
+#include "EnumMap2D.h" // advc.enum: Includes EnumMap.h
 #include "CvPythonCaller.h" // advc.003y
 #include "CvDLLLogger.h" // advc.003t
 #include "FProfiler.h"

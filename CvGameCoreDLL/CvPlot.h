@@ -845,4 +845,23 @@ protected:
 // advc.opt: It's fine to change the size, but might want to double check if it can be avoided.
 BOOST_STATIC_ASSERT(MAX_CIV_PLAYERS > 18 || sizeof(CvPlot) <= 212);
 
+/*	advc.enum: For functions that choose random plots.
+	Moved from CvDefines, turned into an enum. */
+enum RandPlotTypes
+{
+	RANDPLOT_ANY = 0,
+	RANDPLOT_LAND =						(1 << 0),
+	RANDPLOT_UNOWNED =					(1 << 1),
+	RANDPLOT_ADJACENT_UNOWNED =			(1 << 2),
+	RANDPLOT_ADJACENT_LAND =			(1 << 3),
+	RANDPLOT_PASSABLE =					(1 << 4),
+	RANDPLOT_NOT_VISIBLE_TO_CIV =		(1 << 5),
+	RANDPLOT_NOT_CITY =					(1 << 6),
+	// <advc.300>
+	RANDPLOT_HABITABLE =				(1 << 7),
+	RANDPLOT_WATERSOURCE =				(1 << 8),
+	// </advc.300>
+};
+OVERRIDE_BITMASK_OPERATORS(RandPlotTypes)
+
 #endif

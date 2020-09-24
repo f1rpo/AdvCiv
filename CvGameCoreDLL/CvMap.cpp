@@ -466,7 +466,7 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 }
 
 
-CvPlot* CvMap::syncRandPlot(int iFlags, CvArea const* pArea,
+CvPlot* CvMap::syncRandPlot(RandPlotTypes ePredicates, CvArea const* pArea,
 	int iMinCivUnitDistance, // advc.300: Renamed from iMinUnitDistance
 	int iTimeout,
 	int* piValidCount) // advc.304: Number of valid tiles
@@ -484,7 +484,7 @@ CvPlot* CvMap::syncRandPlot(int iFlags, CvArea const* pArea,
 		for(int i = 0; i < numPlots(); i++)
 		{
 			CvPlot& kPlot = getPlotByIndex(i);
-			if (isValidRandPlot(kPlot, iFlags, pArea, iMinCivUnitDistance))
+			if (isValidRandPlot(kPlot, ePredicates, pArea, iMinCivUnitDistance))
 				apValidPlots.push_back(&kPlot);
 		}
 		int iValid = (int)apValidPlots.size();
@@ -503,7 +503,7 @@ CvPlot* CvMap::syncRandPlot(int iFlags, CvArea const* pArea,
 		CvPlot& kTestPlot = getPlot(
 				GC.getGame().getSorenRandNum(getGridWidth(), "Rand Plot Width"),
 				GC.getGame().getSorenRandNum(getGridHeight(), "Rand Plot Height"));
-		if (isValidRandPlot(kTestPlot, iFlags, pArea, iMinCivUnitDistance))
+		if (isValidRandPlot(kTestPlot, ePredicates, pArea, iMinCivUnitDistance))
 		{	/*  <advc.304> Not useful, but want to make sure it doesn't stay
 				uninitialized. 1 since we found only 1 valid plot. */
 			if(piValidCount != NULL)
@@ -517,34 +517,40 @@ CvPlot* CvMap::syncRandPlot(int iFlags, CvArea const* pArea,
 }
 
 // advc: Body cut from syncRandPlot
-bool CvMap::isValidRandPlot(CvPlot const& kPlot, int iFlags, CvArea const* pArea,
-		int iMinCivUnitDistance) const
+bool CvMap::isValidRandPlot(CvPlot const& kPlot, RandPlotTypes ePredicates,
+	CvArea const* pArea, int iMinCivUnitDistance) const
 {
 	if (pArea != NULL && !kPlot.isArea(*pArea))
 		return false;
 	/*  advc.300: Code moved into new function isCivUnitNearby;
 		Barbarians in surrounding plots are now ignored. */
-	if(iMinCivUnitDistance >= 0 && (kPlot.isUnit() || kPlot.isCivUnitNearby(iMinCivUnitDistance)))
+	if(iMinCivUnitDistance >= 0 && (kPlot.isUnit() ||
+		kPlot.isCivUnitNearby(iMinCivUnitDistance)))
+	{
 		return false;
-	if ((iFlags & RANDPLOT_LAND) && kPlot.isWater())
+	}
+	if ((ePredicates & RANDPLOT_LAND) && kPlot.isWater())
 		return false;
-	if ((iFlags & RANDPLOT_UNOWNED) && kPlot.isOwned())
+	if ((ePredicates & RANDPLOT_UNOWNED) && kPlot.isOwned())
 		return false;
-	if ((iFlags & RANDPLOT_ADJACENT_UNOWNED) && kPlot.isAdjacentOwned())
+	if ((ePredicates & RANDPLOT_ADJACENT_UNOWNED) && kPlot.isAdjacentOwned())
 		return false;
-	if ((iFlags & RANDPLOT_ADJACENT_LAND) && !kPlot.isAdjacentToLand())
+	if ((ePredicates & RANDPLOT_ADJACENT_LAND) && !kPlot.isAdjacentToLand())
 		return false;
-	if ((iFlags & RANDPLOT_PASSABLE) && kPlot.isImpassable())
+	if ((ePredicates & RANDPLOT_PASSABLE) && kPlot.isImpassable())
 		return false;
-	if ((iFlags & RANDPLOT_NOT_VISIBLE_TO_CIV) && kPlot.isVisibleToCivTeam())
+	if ((ePredicates & RANDPLOT_NOT_VISIBLE_TO_CIV) && kPlot.isVisibleToCivTeam())
 		return false;
-	if ((iFlags & RANDPLOT_NOT_CITY) && kPlot.isCity())
+	if ((ePredicates & RANDPLOT_NOT_CITY) && kPlot.isCity())
 		return false;
 	// <advc.300>
-	if((iFlags & RANDPLOT_HABITABLE) && kPlot.getYield(YIELD_FOOD) <= 0)
+	if((ePredicates & RANDPLOT_HABITABLE) && kPlot.getYield(YIELD_FOOD) <= 0)
 		return false;
-	if((iFlags & RANDPLOT_WATERSOURCE) && !kPlot.isFreshWater() && kPlot.getYield(YIELD_FOOD) <= 0)
-		return false; // </advc.300>
+	if((ePredicates & RANDPLOT_WATERSOURCE) && !kPlot.isFreshWater() &&
+		kPlot.getYield(YIELD_FOOD) <= 0)
+	{
+		return false;
+	} // </advc.300>
 	return true;
 }
 

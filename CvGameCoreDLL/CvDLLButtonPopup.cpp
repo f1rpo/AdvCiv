@@ -20,25 +20,27 @@
 
 CvDLLButtonPopup* CvDLLButtonPopup::m_pInst = NULL;
 
-// K-Mod. In the original code, arbitrary integers are used to express the options of the in-game main menu.
-// I found it confusing, and I know that such use of 'magic numbers' is prone to mistakes - especially since I intended to add a new option into the middle...
-// I've created this enum set to make sure there is no confusion as to what each item number is.
-static enum MainMenuOptions
+namespace
 {
-	MM_EXIT_TO_DESKTOP = 0,
-	MM_EXIT_TO_MAIN_MENU,
-	MM_RETIRE,
-	MM_REGENERATE_MAP,
-	MM_LOAD_GAME,
-	MM_SAVE_GAME,
-	MM_OPTIONS,
-	MM_BUG_OPTIONS, // new in K-Mod
-	MM_ENTER_WB,
-	MM_GAME_DETAILS,
-	MM_PLAYER_DETAILS,
-	MM_CANCEL,
-};
-// K-Mod end
+	/*	K-Mod: In the original code, arbitrary integers are used
+		to express the options of the in-game main menu. */
+	enum MainMenuOptions
+	{
+		MM_EXIT_TO_DESKTOP = 0,
+		MM_EXIT_TO_MAIN_MENU,
+		MM_RETIRE,
+		MM_REGENERATE_MAP,
+		MM_LOAD_GAME,
+		MM_SAVE_GAME,
+		MM_OPTIONS,
+		MM_BUG_OPTIONS, // new in K-Mod
+		MM_ENTER_WB,
+		MM_GAME_DETAILS,
+		MM_PLAYER_DETAILS,
+		MM_CANCEL,
+	};
+}
+
 
 CvDLLButtonPopup& CvDLLButtonPopup::getInstance()
 {

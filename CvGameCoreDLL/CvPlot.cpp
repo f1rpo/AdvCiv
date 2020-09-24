@@ -2588,18 +2588,19 @@ int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot const& kTargetPl
 }
 // BETTER_BTS_AI_MOD: END
 
-// K-Mod. (rewrite of a bbai function)
-// I've changed the purpose of this function - because this is the way it is always used.
+/*	K-Mod (rewrite of a bbai function)
+	I've changed the purpose of this function - because this is the way it is always used. */
 void CvPlot::invalidateBorderDangerCache()
 {
-	for (SquareIter itPlot(*this, BORDER_DANGER_RANGE); itPlot.hasNext(); ++itPlot)
+	for (SquareIter itPlot(*this, CvPlayerAI::BORDER_DANGER_RANGE);
+		itPlot.hasNext(); ++itPlot)
 	{
 		for (TeamIter<> itTeam; itTeam.hasNext(); ++itTeam)
 		{
 			itPlot->setBorderDangerCache(itTeam->getID(), false);
 		}
 	}
-} // K-Mod end
+}
 
 
 PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureRange,

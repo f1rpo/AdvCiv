@@ -6,14 +6,14 @@
 	CvEnums.h and CvGlobals.h are used.
 	Formatting: linebreaks added before scope resolution operators.
 	advc.fract: Disabled the INLINE_NATIVE representation for "small" enum types
-	in order to allow T=ScaledNum. (As suggested to me by Nightinggale.) */
+	in order to allow T=ScaledNum. (As suggested to me by Nightinggale.)
+	Functions for bitwise operations moved into BitUtil.h (included in PCH);
+	WtP defines them directly in the PCH. */
 
 #pragma once
 
 #ifndef ENUM_MAP_H
 #define ENUM_MAP_H
-
-#include "BitUtil.h" // advc.enum: For bitwise operations; WtP uses CvGameCoreDLL.h for that.
 
 // advc: Moved up; (VS2010) IntelliSense needs it here.
 template <class T> struct EnumMapGetDefault {};
@@ -1241,14 +1241,18 @@ template<> struct EnumMapGetDefault<PlotNumTypes> {
 	};
 /*  Don't want to set these in CvEnums.h or anywhere in the global namespace b/c
 	the FOR_EACH_ENUM macro shouldn't be used for them */
-SET_NONXML_ENUM_LENGTH(PlayerTypes, (PlayerTypes)MAX_PLAYERS)
-SET_NONXML_ENUM_LENGTH(TeamTypes, (TeamTypes)MAX_TEAMS)
+SET_NONXML_ENUM_LENGTH(PlayerTypes, MAX_PLAYERS)
+SET_NONXML_ENUM_LENGTH(TeamTypes, MAX_TEAMS)
 
 // For enum maps that exclude the Barbarians
-enum CivPlayerTypes {};
-enum CivTeamTypes {};
-SET_NONXML_ENUM_LENGTH(CivPlayerTypes, (CivPlayerTypes)MAX_CIV_PLAYERS)
-SET_NONXML_ENUM_LENGTH(CivTeamTypes, (CivTeamTypes)MAX_CIV_TEAMS)
+enum CivPlayerTypes {
+	NUM_CIV_PLAYER_TYPES = MAX_CIV_PLAYERS
+};
+enum CivTeamTypes {
+	NUM_CIV_TEAM_TYPES = MAX_CIV_TEAMS,
+};
+SET_NONXML_ENUM_LENGTH(CivPlayerTypes, NUM_CIV_PLAYER_TYPES)
+SET_NONXML_ENUM_LENGTH(CivTeamTypes, NUM_CIV_TEAM_TYPES)
 
 // Not to be used outside of this header
 #undef SET_XML_ENUM_SIZE

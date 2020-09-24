@@ -981,7 +981,7 @@ bool CvHandicapInfo::isAIFreeTechs(int i) const // advc.003t: Return type was in
 	FAssertBounds(0, GC.getNumTechInfos(), i);
 	return (m_pbAIFreeTechs != NULL ? m_pbAIFreeTechs[i] : false);
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvHandicapInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -1539,7 +1539,7 @@ wchar const* CvSeaLevelInfo::getDescriptionInternal(uint uiForm) const
 		/*	This distinguishes Custom Game from Play Now.
 			(Play Now doesn't have enough room for a recommendation,
 			and doesn't allow player counts to be adjusted.) */
-		kInitCore.getSlotStatus((PlayerTypes)0) == SS_OPEN)
+		kInitCore.getSlotStatus(FIRST_PLAYER) == SS_OPEN)
 	{
 		CvWString szTag;
 		if (m_iSeaLevelChange < 0)

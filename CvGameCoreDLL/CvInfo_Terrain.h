@@ -245,7 +245,7 @@ public: // All the const functions are exposed to Python
 
 	const TCHAR* getButton() const;
 	DllExport const CvArtInfoBonus* getArtInfo() const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif
@@ -449,7 +449,7 @@ public: /*  All the const functions are exposed to Python except those dealing w
 
 	const TCHAR* getButton() const;
 	DllExport const CvArtInfoImprovement* getArtInfo() const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif
@@ -522,7 +522,7 @@ public: // The const functions are exposed to Python
 	bool isBonusTrade() const;
 	int getYieldChange(int i) const;
 
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif

@@ -34,7 +34,8 @@ CyPlot* CyMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 {
 	// advc: No longer takes an area id
 	CvArea* pArea = m_kMap.getArea(iArea);
-	return new CyPlot(m_kMap.syncRandPlot(iFlags, pArea, iMinUnitDistance, iTimeout));
+	return new CyPlot(m_kMap.syncRandPlot(/* advc.enum: */(RandPlotTypes)iFlags,
+			pArea, iMinUnitDistance, iTimeout));
 }
 
 CyCity* CyMap::findCity(int iX, int iY, int /*PlayerTypes*/ eOwner, int /*TeamTypes*/ eTeam, bool bSameArea, bool bCoastalOnly,

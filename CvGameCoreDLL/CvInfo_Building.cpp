@@ -593,7 +593,7 @@ bool CvBuildingInfo::nameNeedsArticle() const
 		an article should be used. */
 	return (szText.compare(L".") != 0);
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvBuildingInfo::read(FDataStreamBase* stream)
 {
 	CvHotkeyInfo::read(stream);

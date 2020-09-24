@@ -5826,27 +5826,29 @@ int CvPlayer::calculateTotalCityUnhealthiness() const
 	return iTotalUnhealthiness;
 }
 
-/*	K-Mod: calculate the pollution output of a civ.
-	iTypes is a bit-field whose members are POLLUTION_POPULTION, _BUILDINGS, _BONUS, _POWER. (and _ALL) */
-int CvPlayer::calculatePollution(int iTypes) const
+// K-Mod: calculate the pollution output of a civ
+int CvPlayer::calculatePollution(PollutionTypes ePollution) const
 {
 	int iTotal = 0;
-
-	int iBuildingWeight = ((iTypes & POLLUTION_BUILDINGS) == 0)?0 :GC.getDefineINT("GLOBAL_WARMING_BUILDING_WEIGHT");
-	int iBonusWeight = ((iTypes & POLLUTION_BONUSES) == 0)?0 :GC.getDefineINT("GLOBAL_WARMING_BONUS_WEIGHT");
-	int iPowerWeight = ((iTypes & POLLUTION_POWER) == 0)?0 :GC.getDefineINT("GLOBAL_WARMING_POWER_WEIGHT");
-	int iPopWeight = ((iTypes & POLLUTION_POPULATION) == 0)?0 :GC.getDefineINT("GLOBAL_WARMING_POPULATION_WEIGHT");
+	int iBuildingWeight = 0, iBonusWeight = 0, iPowerWeight = 0, iPopWeight = 0;
+	if (ePollution & POLLUTION_BUILDINGS)
+		iBuildingWeight = GC.getDefineINT("GLOBAL_WARMING_BUILDING_WEIGHT");
+	if (ePollution & POLLUTION_BONUSES)
+		iBonusWeight = GC.getDefineINT("GLOBAL_WARMING_BONUS_WEIGHT");
+	if (ePollution & POLLUTION_POWER)
+		iPowerWeight = GC.getDefineINT("GLOBAL_WARMING_POWER_WEIGHT");
+	if (ePollution & POLLUTION_POPULATION)
+		iPopWeight = GC.getDefineINT("GLOBAL_WARMING_POPULATION_WEIGHT");
 
 	FOR_EACH_CITY(pCity, *this)
 	{
-		// note: "bad health" values are negative, except for population! (crazy, but true. Who writes this junk?)
+		// note: "bad health" values are negative, except for population!
 		iTotal -=
-			(pCity->totalBadBuildingHealth() * iBuildingWeight)
-			+ (pCity->getBonusBadHealth() * iBonusWeight)
-			+ (pCity->getPowerBadHealth() * iPowerWeight)
-			- (pCity->unhealthyPopulation() * iPopWeight);
+				(pCity->totalBadBuildingHealth() * iBuildingWeight)
+				+ (pCity->getBonusBadHealth() * iBonusWeight)
+				+ (pCity->getPowerBadHealth() * iPowerWeight)
+				- (pCity->unhealthyPopulation() * iPopWeight);
 	}
-
 	return iTotal;
 }
 

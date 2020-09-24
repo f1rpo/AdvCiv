@@ -201,7 +201,7 @@ std::string CvCivilizationInfo::getCityNames(int i) const
 	return m_paszCityNames[i];
 }
 
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvCivilizationInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -661,7 +661,7 @@ const TCHAR* CvLeaderHeadInfo::getLeaderHead() const
 
 	return NULL;
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvLeaderHeadInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -1390,7 +1390,7 @@ void CvDiplomacyResponse::setDiplomacyText(int i, CvString szText)
 	FAssertBounds(0, getNumDiplomacyText(), i);
 	m_paszDiplomacyText[i] = szText;
 }
-/*#if SERIALIZE_CVINFOS
+/*#if ENABLE_XML_FILE_CACHE
 void CvDiplomacyResponse::read(FDataStreamBase* stream)
 {
 	uint uiFlag=0;
@@ -1504,8 +1504,8 @@ const TCHAR* CvDiplomacyInfo::getDiplomacyText(int i, int j) const
 	FAssertBounds(0, getNumDiplomacyText(i), j);
 	return m_pResponses[i]->getDiplomacyText(j);
 }
-/*#if SERIALIZE_CVINFOS
-void CvDiplomacyInfo::read(FDataStreamBase* stream)
+//#if ENABLE_XML_FILE_CACHE
+/*void CvDiplomacyInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
 	uint uiFlag=0;

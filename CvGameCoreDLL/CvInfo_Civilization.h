@@ -65,7 +65,7 @@ public: // advc: All the const functions are exposed to Python
 
 	bool read(CvXMLLoadUtility* pXML);
 	bool readPass2(CvXMLLoadUtility* pXML);
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif
@@ -224,7 +224,7 @@ public: // advc: All the const functions are exposed to Python except those adde
 	DllExport const CvArtInfoLeaderhead* getArtInfo() const;
 	const TCHAR* getLeaderHead() const;
 	const TCHAR* getButton() const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif
@@ -434,8 +434,8 @@ public: // advc: All the const functions are exposed to Python (some const quali
 	const CvString* getDiplomacyText() const;
 	void setDiplomacyText(int i, CvString szText);
 	// advc.003i: I don't think these were actually included in the XML cache
-	/*#if SERIALIZE_CVINFOS
-	void read(FDataStreamBase* stream);
+	//#if ENABLE_XML_FILE_CACHE
+	/*void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);*/
 	//#endif
 	bool read(CvXMLLoadUtility* pXML);
@@ -473,8 +473,8 @@ public: // advc: All the const functions are exposed to Python
 
 	const TCHAR* getDiplomacyText(int i, int j) const;
 	// advc.003i: I don't think these were actually included in the XML cache
-	/*#if SERIALIZE_CVINFOS
-	void read(FDataStreamBase* stream);
+	//#if ENABLE_XML_FILE_CACHE
+	/*void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);*/
 	//#endif
 	bool read(CvXMLLoadUtility* pXML);

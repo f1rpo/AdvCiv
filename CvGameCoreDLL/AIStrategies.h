@@ -3,8 +3,6 @@
 #ifndef AI_STRATEGIES_H // advc: Renamed this file from AI_Defines.h
 #define AI_STRATEGIES_H
 
-#include "BitUtil.h" // advc.enum
-
 // BETTER_BTS_AI_MOD, 03/08/10, jdog5000: START
 // Could increase this value now that player closeness is fixed
 #define DEFAULT_PLAYER_CLOSENESS 7

@@ -16,7 +16,7 @@ void Shelf::add(CvPlot* plot)
 }
 
 
-CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance, int* legalCount) const
+CvPlot* Shelf::randomPlot(RandPlotTypes restrictions, int unitDistance, int* legalCount) const
 {
 	/*  Based on CvMap::syncRandPlot, but shelves are (normally) so small
 		that random sampling isn't efficient. Instead, compute the legal
@@ -27,12 +27,12 @@ CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance, int* legalCoun
 		CvPlot* plot = plots[i];
 		bool isLegal =
 		 plot != NULL &&
-		 !(RANDPLOT_LAND & restrictionFlags) &&
-		 (!(RANDPLOT_UNOWNED & restrictionFlags) || !plot->isOwned()) &&
-		 (!(RANDPLOT_ADJACENT_UNOWNED & restrictionFlags) || !plot->isAdjacentOwned()) &&
-		 (!(RANDPLOT_NOT_VISIBLE_TO_CIV & restrictionFlags) || !plot->isVisibleToCivTeam()) &&
+		 !(RANDPLOT_LAND & restrictions) &&
+		 (!(RANDPLOT_UNOWNED & restrictions) || !plot->isOwned()) &&
+		 (!(RANDPLOT_ADJACENT_UNOWNED & restrictions) || !plot->isAdjacentOwned()) &&
+		 (!(RANDPLOT_NOT_VISIBLE_TO_CIV & restrictions) || !plot->isVisibleToCivTeam()) &&
 		 // In case a mod enables sea cities:
-		 (!(RANDPLOT_NOT_CITY) || !plot->isCity()) &&
+		 (!(RANDPLOT_NOT_CITY & restrictions) || !plot->isCity()) &&
 		 (!plot->isCivUnitNearby(unitDistance)) &&
 		 !plot->isUnit();
 		/*  RANDPLOT_PASSIBLE, RANDPLOT_ADJACENT_LAND, RANDPLOT_HABITABLE:
