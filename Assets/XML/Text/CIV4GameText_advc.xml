@@ -1121,6 +1121,34 @@
 		<Spanish>"No es posible que os un&#225;is a la guerra en nuestro bando."</Spanish>
 	</TEXT>
 
+	<!-- advc.004g: "Resources" instead of "Bonuses" -->
+	<!-- from CIV4GameText_Misc1.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_WB_BONUSES</Tag>
+		<English>Resources</English>
+		<French>Bonus</French>
+		<German>Ressourcen</German>
+		<Italian>Bonus</Italian>
+		<Spanish>Bonificaciones</Spanish>
+	</TEXT>
+	<!-- both from Civ4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HEALTH_FROM_BONUSES</Tag>
+		<English>%D1_Change[ICON_UNHEALTHY] from Resources</English>
+		<French>%D1_Change[ICON_UNHEALTHY] (bonus)</French>
+		<German>%D1_Change[ICON_UNHEALTHY] durch Ressourcen</German>
+		<Italian>%D1_Change[ICON_UNHEALTHY] per i bonus</Italian>
+		<Spanish>%D1_Change [ICON_UNHEALTHY] por bonificaciones</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_GOOD_HEALTH_FROM_BONUSES</Tag>
+		<English>%D1_Change[ICON_HEALTHY] from Resources</English>
+		<French>%D1_Change[ICON_HEALTHY] (bonus)</French>
+		<German>%D1_Change[ICON_HEALTHY] durch Ressourcen</German>
+		<Italian>%D1_Change[ICON_HEALTHY] per i bonus</Italian>
+		<Spanish>%D1_Change [ICON_HEALTHY] por bonificaciones</Spanish>
+	</TEXT>
+
 	<!-- advc.004: German translation - "Neuer Random Seed" was just too
 		 awful. Originally in CIV4GameText_Misc1.xml. -->
 	<TEXT>

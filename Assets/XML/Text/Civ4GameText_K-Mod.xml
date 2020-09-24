@@ -442,11 +442,12 @@
 		<Italian>[ICON_BULLET]%d1_Num per [ICON_UNHEALTHY] dagli edifici</Italian>
 		<Spanish>[ICON_BULLET]%d1_Num por [ICON_UNHEALTHY] de edificios</Spanish>
 	</TEXT>
+	<!-- advc.004g: Was "from Bonuses" -->
 	<TEXT>
 		<Tag>TXT_KEY_POLLUTION_FROM_BONUSES</Tag>
-		<English>[ICON_BULLET]%d1_Num per [ICON_UNHEALTHY] from Bonuses</English>
+		<English>[ICON_BULLET]%d1_Num per [ICON_UNHEALTHY] from Resources</English>
 		<French>[ICON_BULLET]%d1_Num par [ICON_UNHEALTHY] (bonus)</French>
-		<German>[ICON_BULLET]%d1_Num pro [ICON_UNHEALTHY] durch Boni</German>
+		<German>[ICON_BULLET]%d1_Num pro [ICON_UNHEALTHY] durch Ressourcen</German>
 		<Italian>[ICON_BULLET]%d1_Num per [ICON_UNHEALTHY] dai bonus</Italian>
 		<Spanish>[ICON_BULLET]%d1_Num por [ICON_UNHEALTHY] de bonificaciones</Spanish>
 	</TEXT>
