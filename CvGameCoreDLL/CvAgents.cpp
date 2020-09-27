@@ -175,7 +175,10 @@ void CvAgents::playerSetAliveInGame(PlayerTypes ePlayer, bool bRevive)
 		insertIntoVector(playerSeqCache(CIV_EVER_ALIVE), pPlayer, false);
 	insertIntoVector(playerSeqCache(CIV_ALIVE), pPlayer);
 	insertIntoVector(playerSeqCache(MAJOR_ALIVE), pPlayer);
-	PlayerVector const& members = memberSeqCache(MEMBER, pTeam->getID());
+	#ifdef FASSERT_ENABLE
+	PlayerVector const& members =
+	#endif
+	memberSeqCache(MEMBER, pTeam->getID());
 	FAssert(std::find(members.begin(), members.end(), pPlayer) != members.end());
 	PlayerVector& membersAlive = memberSeqCache(MEMBER_ALIVE, pTeam->getID());
 	insertIntoVector(membersAlive, pPlayer);

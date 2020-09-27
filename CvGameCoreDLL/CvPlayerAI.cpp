@@ -12521,8 +12521,7 @@ uint CvPlayerAI::AI_unitImpassables(UnitTypes eUnit) const
 	uint const uiCountBits = 3;
 	uint const uiFlagBits = std::numeric_limits<uint>::digits - uiCountBits;
 	uint const uiTerrains = (uint)GC.getNumTerrainInfos();
-	uint const uiFeatures = (uint)GC.getNumFeatureInfos();
-	FAssert(uiTerrains + uiFeatures <= uiFlagBits);
+	FAssert(uiTerrains + ((uint)GC.getNumFeatureInfos()) <= uiFlagBits);
 	uint uiFlags = 0; // </advc.057>
 	FOR_EACH_ENUM(Terrain)
 	{

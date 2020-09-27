@@ -1354,10 +1354,10 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 	CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*))
 {
 	bool bLoaded = false;
-	bool bWriteCache = true;
-	CvCacheObject* pCache = NULL;
 	//GC.addToInfosVectors(aInfos); // advc.enum (no longer needed)
 	#if ENABLE_XML_FILE_CACHE
+		CvCacheObject* pCache = NULL;
+		bool bWriteCache = true;
 		if (pArgFunction != NULL)
 		{
 			pCache = (gDLL->*pArgFunction)(CvString::format("%s.dat", szFileRoot));	// cache file name

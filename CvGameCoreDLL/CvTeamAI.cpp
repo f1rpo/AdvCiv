@@ -810,10 +810,7 @@ int CvTeamAI::AI_chooseElection(const VoteSelectionData& kVoteSelectionData) con
 	for (int iI = 0; iI < (int)kVoteSelectionData.aVoteOptions.size(); ++iI)
 	{
 		VoteTypes eVote = kVoteSelectionData.aVoteOptions[iI].eVote;
-		CvVoteInfo& kVoteInfo = GC.getInfo(eVote);
-
-		FAssert(kVoteInfo.isVoteSourceType(eVoteSource));
-
+		FAssert(GC.getInfo(eVote).isVoteSourceType(eVoteSource));
 		FAssert(GC.getGame().isChooseElection(eVote));
 		bool bValid = true;
 		bool bCanWinDiplo = false; // advc.115b

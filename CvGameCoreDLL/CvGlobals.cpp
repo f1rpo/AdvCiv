@@ -767,8 +767,11 @@ int CvGlobals::getDefineINT(char const* szName,
 {
 	int iReturn = iDefault;
 	// BETTER_BTS_AI_MOD: END
-	bool bSuccess = // advc.003c
-			getDefinesVarSystem()->GetValue(szName, iReturn);
+	// <advc.003c>
+	#ifdef FASSERT_ENABLE
+	bool bSuccess =
+	#endif // </advc.003c>
+	getDefinesVarSystem()->GetValue(szName, iReturn);
 	FAssert(bSuccess); // advc.003c
 	return iReturn;
 }
@@ -777,8 +780,11 @@ int CvGlobals::getDefineINT(char const* szName,
 float CvGlobals::getDefineFLOAT(char const* szName) const
 {
 	float fReturn = 0;
-	bool bSuccess = // advc.003c
-			getDefinesVarSystem()->GetValue(szName, fReturn);
+	// <advc.003c>
+	#ifdef FASSERT_ENABLE
+	bool bSuccess =
+	#endif // </advc.003c>
+	getDefinesVarSystem()->GetValue(szName, fReturn);
 	/*  advc.003c: The EXE queries CAMERA_MIN_DISTANCE during startup, which
 		fails but doesn't cause any problems. */
 	FAssert(bSuccess || std::strcmp("CAMERA_MIN_DISTANCE", szName) == 0);
@@ -788,8 +794,11 @@ float CvGlobals::getDefineFLOAT(char const* szName) const
 char const* CvGlobals::getDefineSTRING(char const* szName) const
 {
 	char const* szReturn = NULL;
-	bool bSuccess = // advc.003c
-			getDefinesVarSystem()->GetValue(szName, szReturn);
+	// <advc.003c>
+	#ifdef FASSERT_ENABLE
+	bool bSuccess =
+	#endif// </advc.003c>
+	getDefinesVarSystem()->GetValue(szName, szReturn);
 	FAssert(bSuccess); // advc.003c
 	return szReturn;
 }

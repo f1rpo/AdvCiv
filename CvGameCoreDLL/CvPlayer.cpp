@@ -10681,7 +10681,10 @@ CvSelectionGroup* CvPlayer::addSelectionGroup()
 
 void CvPlayer::deleteSelectionGroup(int iID)
 {
-	bool bRemoved = m_selectionGroups.removeAt(iID);
+	#ifdef FASSERT_ENABLE
+	bool bRemoved =
+	#endif
+	m_selectionGroups.removeAt(iID);
 	FAssertMsg(bRemoved, "could not find group, delete failed");
 }
 
