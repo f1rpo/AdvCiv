@@ -9,11 +9,9 @@
 //	Copyright (c) 2004 Firaxis Games, Inc. All rights reserved.
 
 #include "CvPlot.h"
-class CvArea;
-// <advc.300>
-#include "Shelf.h"
-#include <map> // </advc.300>
+#include "Shelf.h" // advc.300
 
+class CvArea;
 class FAStar;
 class CvPlotGroup;
 class CvSelectionGroup;

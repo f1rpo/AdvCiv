@@ -3,8 +3,6 @@
 #ifndef CvDLLUtilityIFaceBase_h
 #define CvDLLUtilityIFaceBase_h
 
-#include "LinkedList.h"
-
 //
 // abstract interface for utility functions used by DLL
 // Creator- Mustafa Thamer

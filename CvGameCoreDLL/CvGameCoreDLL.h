@@ -44,6 +44,7 @@
 #include <utility>
 #include <algorithm>
 #include <queue> // k146
+#include <stack> // advc.030
 // K-Mod end
 
 #define DllExport   __declspec( dllexport )
@@ -93,6 +94,7 @@ __forceinline float MaxFloat() { return DWtoF(0x7f7fffff); }
 #include "CvGameCoreDLLDefNew.h"
 #include "FDataStreamBase.h"
 #include "FFreeListTrashArray.h" // advc.003s: includes FreeListTraversal.h
+#include "LinkedList.h"
 #include "CvString.h"
 #include "CvDefines.h"
 #include "CvEnums.h" // includes CvInfoEnum.h
@@ -100,7 +102,7 @@ __forceinline float MaxFloat() { return DWtoF(0x7f7fffff); }
 	that player ids fit in a single byte. */
 BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 #include "CvStructs.h"
-#include "CvDLLUtilityIFaceBase.h" // includes LinkedList.h
+#include "CvDLLUtilityIFaceBase.h"
 
 //jason tests (advc.make: removed most of these)
 #include "CvRandom.h"

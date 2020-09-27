@@ -22,7 +22,6 @@
 #include "CvInfo_GameOption.h"
 #include "CvReplayInfo.h" // advc.106n
 #include "CvDLLIniParserIFaceBase.h"
-#include <stack> // advc.030
 
 
 CvMap::CvMap()
