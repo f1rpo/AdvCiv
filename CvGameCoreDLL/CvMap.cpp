@@ -661,15 +661,16 @@ CvArea* CvMap::findBiggestArea(bool bWater)
 
 int CvMap::getMapFractalFlags() const
 {
-	int wrapX = 0;
+	CvFractal::Predicates eWrapX = CvFractal::NO_PREDICATES;
 	if (isWrapX())
-		wrapX = (int)CvFractal::FRAC_WRAP_X;
+		eWrapX = CvFractal::FRAC_WRAP_X;
 
-	int wrapY = 0;
+	CvFractal::Predicates eWrapY = CvFractal::NO_PREDICATES;
 	if (isWrapY())
-		wrapY = (int)CvFractal::FRAC_WRAP_Y;
-
-	return (wrapX | wrapY);
+		eWrapY = CvFractal::FRAC_WRAP_Y;
+	/*	(advc.enum: Convert to int. It's only used in Python anyway, and
+		don't want to include CvFractal.h in CvMap.h.) */
+	return (eWrapX | eWrapY);
 }
 
 // Check plots for wetlands or seaWater. Returns true if found

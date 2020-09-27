@@ -84,9 +84,9 @@ enum AIVictoryStage // advc: replacing preprocessor defines
 	AI_CITY_ROLE_LICHPIN            =	(1 << 11),	//this city must not fall
 };
 // <advc.enum>
-OVERRIDE_BITMASK_OPERATORS(AICityRole)*/
-OVERRIDE_BITMASK_OPERATORS(AIStrategy)
-OVERRIDE_BITMASK_OPERATORS(AIVictoryStage)
+OVERLOAD_BITWISE_OPERATORS(AICityRole)*/
+OVERLOAD_BITWISE_OPERATORS(AIStrategy)
+OVERLOAD_BITWISE_OPERATORS(AIVictoryStage)
 // </advc.enum>
 
 #endif // AI_DEFINES_H
