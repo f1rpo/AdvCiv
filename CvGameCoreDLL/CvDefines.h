@@ -11,43 +11,46 @@
 
 // The following #defines should not be moddable...
 /*	advc: Which is to say, I think, that the defines have been compiled into
-	the EXE and changing them will either have no effect or result in
+	the EXE and changing them will either have no effect or will result in
 	inconsistencies between EXE and DLL. Of course this doesn't apply
 	to defines added by mods. Imo mods should only add defines here
 	when it's important to group them with the original defines for context. */
 
-// advc.enum (tbd.): Use OVERRIDE_BITMASK_OPERATORS to turn this into an enum
-#define MOVE_IGNORE_DANGER									(0x00000001)
-#define MOVE_SAFE_TERRITORY									(0x00000002)
-#define MOVE_NO_ENEMY_TERRITORY								(0x00000004)
-#define MOVE_DECLARE_WAR									(0x00000008)
-#define MOVE_DIRECT_ATTACK									(0x00000010)
-#define MOVE_THROUGH_ENEMY									(0x00000020)
-#define MOVE_MAX_MOVES										(0x00000040)
-// BETTER_BTS_AI_MOD, General AI, 01/01/09, jdog5000: START
-// These two flags signal to weight the cost of moving through or adjacent to enemy territory higher
-// Used to reduce exposure to attack for approaching enemy cities
-#define MOVE_AVOID_ENEMY_WEIGHT_2							(0x00000080)
-#define MOVE_AVOID_ENEMY_WEIGHT_3							(0x00000100)
-// BETTER_BTS_AI_MOD: END
-// <K-Mod>
-// allow the path to fight through enemy defences, but prefer not to.
-#define MOVE_ATTACK_STACK									(0x00000200)
-// only attack with one unit, not the whole stack
-#define MOVE_SINGLE_ATTACK									(0x00000400)
-// to prevent humans from accidentally attacking unseen units
-#define MOVE_NO_ATTACK										(0x00000800)
-// to signal that at least one step has been taken for this move command
-#define MOVE_HAS_STEPPED									(0x00001000)
-/*	With this flag, the pathfinder will plan around enemy units
-	even if they are not visible. (Note: AI units do this regardless of the flag.) */
-#define MOVE_ASSUME_VISIBLE									(0x00002000)
-// </K-Mod>
-#define MOVE_ROUTE_TO										(0x00004000) // advc.pf
+enum MovementFlags // advc.pf: Turned into an enum; exposed to Python (CyEnumsInterface).
+{
+	NO_MOVEMENT_FLAGS					= 0,
+	MOVE_IGNORE_DANGER 					= (1 << 0),
+	MOVE_SAFE_TERRITORY					= (1 << 1),
+	MOVE_NO_ENEMY_TERRITORY				= (1 << 2),
+	MOVE_DECLARE_WAR					= (1 << 3),
+	MOVE_DIRECT_ATTACK					= (1 << 4),
+	MOVE_THROUGH_ENEMY					= (1 << 5),
+	MOVE_MAX_MOVES						= (1 << 6),
+	/*	BETTER_BTS_AI_MOD, General AI, 01/01/09, jdog5000:
+		These two flags signal to weight the cost of moving through
+		or adjacent to enemy territory higher.
+		To reduce exposure to attack for approaching enemy cities. */
+	MOVE_AVOID_ENEMY_WEIGHT_2			= (1 << 7),
+	MOVE_AVOID_ENEMY_WEIGHT_3			= (1 << 8),
+	// <K-Mod>
+	// allow the path to fight through enemy defences, but prefer not to.
+	MOVE_ATTACK_STACK					= (1 << 9),
+	// only attack with one unit, not the whole stack
+	MOVE_SINGLE_ATTACK					= (1 << 10),
+	// to prevent humans from accidentally attacking unseen units
+	MOVE_NO_ATTACK						= (1 << 11),
+	// to signal that at least one step has been taken for this move command
+	MOVE_HAS_STEPPED					= (1 << 12),
+	/*	With this flag, the pathfinder will plan around enemy units
+		even if they are not visible. (Note: AI units do this regardless of the flag.) */
+	MOVE_ASSUME_VISIBLE					= (1 << 13),
+	// </K-Mod>
+	MOVE_ROUTE_TO						= (1 << 14), // advc.pf
+};
+OVERLOAD_BITWISE_OPERATORS(MovementFlags)
 
 /*	Char Count limit for edit boxes ...
-	advc (note): The DLL uses only some of these and only in CvDLLButtonPopup,
-	but I expect that the EXE uses some or all, so I'm keeping the definitions here. */
+	advc (note): The DLL uses some of these in CvDLLButtonPopup. */
 #define PREFERRED_EDIT_CHAR_COUNT							(15)
 #define MAX_GAMENAME_CHAR_COUNT								(32)
 #define MAX_PLAYERINFO_CHAR_COUNT							(32)

@@ -1,7 +1,5 @@
 #pragma once
 
-// unit.h
-
 #ifndef CIV4_UNIT_H
 #define CIV4_UNIT_H
 
@@ -47,7 +45,8 @@ public:
 
 	//FAStarNode* getPathLastNode() const; // disabled by K-Mod
 	CvPlot* getPathEndTurnPlot() const;																		// Exposed to Python
-	bool generatePath(const CvPlot* pToPlot, int iFlags = 0, bool bReuse = false,							// Exposed to Python
+	bool generatePath(const CvPlot* pToPlot, MovementFlags eFlags = NO_MOVEMENT_FLAGS,						// Exposed to Python
+			bool bReuse = false,
 			int* piPathTurns = NULL,
 			int iMaxPath = -1, // K-Mod
 			bool bUseTempFinder = false) const; // advc.128

@@ -1,7 +1,5 @@
 #pragma once
 
-// CvPlot.h
-
 #ifndef CIV4_PLOT_H
 #define CIV4_PLOT_H
 
@@ -170,15 +168,7 @@ public:
 	bool isWithinCultureRange(PlayerTypes ePlayer) const;																						// Exposed to Python
 	int getNumCultureRangeCities(PlayerTypes ePlayer) const;																				// Exposed to Python
 
-	// BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000: START
-			// advc: const qualifier added to these two
-	bool isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb = true) const;
-	bool isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer = NO_PLAYER) const;
-	int calculatePathDistanceToPlot(TeamTypes eTeam,  // <advc.104b>
-			CvPlot const& kTargetPlot, int iMaxPath = -1,
-			TeamTypes eTargetTeam = BARBARIAN_TEAM,
-			DomainTypes eDomain = DOMAIN_LAND) const; // </advc.104b>
-	// BETTER_BTS_AI_MOD: END
+	// (advc.pf: BBAI path distance functions moved to CvMap, CvTeamAI.)
 	// BETTER_BTS_AI_MOD, Efficiency, 08/21/09, jdog5000: START
 	// Plot danger cache (rewritten for K-Mod to fix bugs and improvement performance)
 	inline int getActivePlayerSafeRangeCache() const { return m_iActivePlayerSafeRangeCache; }
@@ -846,7 +836,7 @@ protected:
 BOOST_STATIC_ASSERT(MAX_CIV_PLAYERS > 18 || sizeof(CvPlot) <= 212);
 
 /*	advc.enum: For functions that choose random plots.
-	Moved from CvDefines, turned into an enum. */
+	Moved from CvDefines, turned into an enum, exposed to Python. */
 enum RandPlotTypes
 {
 	RANDPLOT_ANY = 0,
@@ -862,6 +852,6 @@ enum RandPlotTypes
 	RANDPLOT_WATERSOURCE =				(1 << 8),
 	// </advc.300>
 };
-OVERRIDE_BITMASK_OPERATORS(RandPlotTypes)
+OVERLOAD_BITWISE_OPERATORS(RandPlotTypes)
 
 #endif

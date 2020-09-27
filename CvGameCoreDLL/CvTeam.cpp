@@ -1112,7 +1112,7 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 		// advc.001w: Can now enter each other's territory
 		gDLL->UI().setDirty(Waypoints_DIRTY_BIT, true);
 		// advc.162: DoW increases certain path costs
-		CvSelectionGroup::path_finder.Reset();
+		CvSelectionGroup::resetPath();
 	}
 	// advc.003j: Obsolete
 	/*for (iI = 0; iI < MAX_PLAYERS; iI++) {

@@ -26,7 +26,7 @@ namespace
 		to express the options of the in-game main menu. */
 	enum MainMenuOptions
 	{
-		MM_EXIT_TO_DESKTOP = 0,
+		MM_EXIT_TO_DESKTOP,
 		MM_EXIT_TO_MAIN_MENU,
 		MM_RETIRE,
 		MM_REGENERATE_MAP,

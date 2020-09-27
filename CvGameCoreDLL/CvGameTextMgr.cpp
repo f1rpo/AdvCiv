@@ -5548,25 +5548,22 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 	{
 		if(bAlt && !bShift)
 		{
-			if (kPlot.isHasPathToEnemyCity(kPlot.getTeam()))
-			{
+			if (GET_TEAM(kPlot.getTeam()).AI_isHasPathToEnemyCity(kPlot))
 				szString.append(CvWString::format(L"\nCan reach an enemy city\n\n"));
-			}
-			else
-			{
-				szString.append(CvWString::format(L"\nNo reachable enemy cities\n\n"));
-			}
+			else szString.append(CvWString::format(L"\nNo reachable enemy cities\n\n"));
 			for (int iI = 0; iI < MAX_PLAYERS; ++iI)
 			{
 				if (GET_PLAYER((PlayerTypes)iI).isAlive())
 				{
-					if (kPlot.isHasPathToPlayerCity(kPlot.getTeam(),(PlayerTypes)iI))
+					if (GET_TEAM(kPlot.getTeam()).AI_isHasPathToPlayerCity(kPlot,(PlayerTypes)iI))
 					{
-						szString.append(CvWString::format(SETCOLR L"Can reach %s city" ENDCOLR, TEXT_COLOR("COLOR_GREEN"), GET_PLAYER((PlayerTypes)iI).getName()));
+						szString.append(CvWString::format(SETCOLR L"Can reach %s city" ENDCOLR,
+								TEXT_COLOR("COLOR_GREEN"), GET_PLAYER((PlayerTypes)iI).getName()));
 					}
 					else
 					{
-						szString.append(CvWString::format(SETCOLR L"Cannot reach any %s city" ENDCOLR, TEXT_COLOR("COLOR_NEGATIVE_TEXT"), GET_PLAYER((PlayerTypes)iI).getName()));
+						szString.append(CvWString::format(SETCOLR L"Cannot reach any %s city" ENDCOLR,
+								TEXT_COLOR("COLOR_NEGATIVE_TEXT"), GET_PLAYER((PlayerTypes)iI).getName()));
 					}
 
 					if (GET_TEAM(kPlot.getTeam()).isAtWar(TEAMID((PlayerTypes)iI)))

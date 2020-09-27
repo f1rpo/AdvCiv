@@ -10077,7 +10077,8 @@ void CvGame::doUpdateCacheOnTurn()
 		}
 	}
 	// K-Mod. (todo: move all of that stuff above somewhere else. That doesn't need to be updated every turn!)
-	CvSelectionGroup::path_finder.Reset(); // (one of the few manual resets we need)
+	if (isFinalInitialized()) // advc.pf: Else pathfinder may not have been created yet
+		CvSelectionGroup::resetPath(); // (one of the few manual resets we need)
 	m_ActivePlayerCycledGroups.clear();
 	// K-Mod end
 }

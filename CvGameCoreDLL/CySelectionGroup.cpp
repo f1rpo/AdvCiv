@@ -20,7 +20,11 @@ CySelectionGroup::CySelectionGroup(CvSelectionGroup const& kSelectionGroup) :
 void CySelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2, int iFlags, bool bAppend, bool bManual, MissionAITypes eMissionAI, CyPlot* pMissionAIPlot, CyUnit* pMissionAIUnit)
 {
 	if (m_pSelectionGroup)
-		return m_pSelectionGroup->pushMission(eMission, iData1, iData2, iFlags, bAppend, bManual, eMissionAI, pMissionAIPlot->getPlot(), pMissionAIUnit->getUnit());
+	{
+		return m_pSelectionGroup->pushMission(eMission, iData1, iData2,
+				(MovementFlags)iFlags, bAppend, bManual, eMissionAI,
+				pMissionAIPlot->getPlot(), pMissionAIUnit->getUnit());
+	}
 }
 
 void CySelectionGroup::pushMoveToMission(int iX, int iY)
@@ -262,9 +266,13 @@ CyPlot* CySelectionGroup::getPathEndTurnPlot()
 	return m_pSelectionGroup ? new CyPlot(m_pSelectionGroup->getPathEndTurnPlot()) : NULL;
 }
 
-bool CySelectionGroup::generatePath(CyPlot* pFromPlot, CyPlot* pToPlot, int iFlags, bool bReuse, int* piPathTurns)
+bool CySelectionGroup::generatePath(CyPlot* pFromPlot, CyPlot* pToPlot, int iFlags,
+	bool bReuse, int* piPathTurns)
 {
-	return m_pSelectionGroup ? m_pSelectionGroup->generatePath(pFromPlot->getPlot(), pToPlot->getPlot(), iFlags, bReuse, piPathTurns) : false;
+	if (m_pSelectionGroup == NULL)
+		return false;
+	return m_pSelectionGroup->generatePath(pFromPlot->getPlot(), pToPlot->getPlot(),
+			(MovementFlags)iFlags, bReuse, piPathTurns);
 }
 
 int CySelectionGroup::getNumUnits()

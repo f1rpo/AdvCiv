@@ -1087,7 +1087,7 @@ bool CvPlot::isLake() const
 	return (area() == NULL ? false : getArea().isLake());
 }
 
-// XXX if this changes need to call updateIrrigated() and pCity->updateFreshWaterHealth()
+// XXX if this changes need to call updateIrrigated and CvCity::updateFreshWaterHealth
 // XXX precalculate this???
 bool CvPlot::isFreshWater() const
 {
@@ -2427,167 +2427,6 @@ int CvPlot::getNumCultureRangeCities(PlayerTypes ePlayer) const
 	return iCount;
 }
 
-// BETTER_BTS_AI_MOD, General AI, 01/10/10, jdog5000: START
-bool CvPlot::isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb) const  // advc: refactored
-{
-	PROFILE_FUNC();
-
-	bool bR = false;
-
-	if (getArea().getNumCities() == GET_TEAM(eAttackerTeam).countNumCitiesByArea(getArea()))
-		return bR;
-
-	/*	Imitate instatiation of irrigated finder, pIrrigatedFinder.
-		Can't mimic step finder initialization because it requires creation from the exe */
-	std::vector<TeamTypes> aeTeams;
-	aeTeams.push_back(eAttackerTeam);
-	aeTeams.push_back(NO_TEAM);
-	FAStar* pTeamStepFinder = gDLL->getFAStarIFace()->create();
-	CvMap const& kMap = GC.getMap();
-	gDLL->getFAStarIFace()->Initialize(pTeamStepFinder,
-			kMap.getGridWidth(), kMap.getGridHeight(),
-			kMap.isWrapX(), kMap.isWrapY(), stepDestValid, stepHeuristic,
-			stepCost, teamStepValid, stepAdd, NULL, NULL);
-	gDLL->getFAStarIFace()->SetData(pTeamStepFinder, &aeTeams);
-
-	
-	/*	advc: I guess it's important for performance to check capitals first;
-		So continue doing that, but compute the enemy players only in one place. */
-	std::vector<CvPlayer const*> apEnemies;
-	for (PlayerIter<ALIVE,KNOWN_POTENTIAL_ENEMY_OF> itEnemy(eAttackerTeam);
-		itEnemy.hasNext(); ++itEnemy)
-	{
-		if (bIgnoreBarb && (itEnemy->isBarbarian() || itEnemy->isMinorCiv()))
-			continue;
-		if (GET_TEAM(eAttackerTeam).AI_getWarPlan(itEnemy->getTeam()) != NO_WARPLAN)
-		apEnemies.push_back(&*itEnemy);
-	} 
-
-	for (size_t i = 0; i < apEnemies.size(); i++)
-	{
-		CvCity* pCapital = apEnemies[i]->getCapital();
-		if (pCapital == NULL)
-			continue;
-		if (pCapital->isArea(getArea()))
-		{
-			if (gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder, getX(), getY(),
-				pCapital->getX(), pCapital->getY(), false, 0, true))
-			{
-				bR = true;
-				goto free_and_return;
-			}
-		}
-	}
-
-	// Check all other cities
-	for (size_t i = 0; i < apEnemies.size(); i++)
-	{
-		FOR_EACH_CITY(pCity, *apEnemies[i])
-		{
-			if (pCity->isArea(getArea()) && !pCity->isCapital())
-			{
-				if (gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder, getX(), getY(),
-					pCity->getX(), pCity->getY(), false, 0, true))
-				{
-					bR = true;
-					goto free_and_return;
-				}
-			}
-		}
-	}
-
-free_and_return:
-	gDLL->getFAStarIFace()->destroy(pTeamStepFinder);
-	return bR;
-}
-
-bool CvPlot::isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer) /* advc: */ const
-{
-	PROFILE_FUNC();
-
-	FAssert(eMoveTeam != NO_TEAM);
-
-	if (getArea().getCitiesPerPlayer(eOtherPlayer) == 0)
-		return false;
-
-	/*	Imitate instatiation of irrigated finder, pIrrigatedFinder.
-		Can't mimic step finder initialization because it requires creation from the exe */
-	std::vector<TeamTypes> aeTeams;
-	aeTeams.push_back(eMoveTeam);
-	aeTeams.push_back(GET_PLAYER(eOtherPlayer).getTeam());
-	FAStar* pTeamStepFinder = gDLL->getFAStarIFace()->create();
-	CvMap const& m = GC.getMap();
-	gDLL->getFAStarIFace()->Initialize(pTeamStepFinder, m.getGridWidth(), m.getGridHeight(),
-			m.isWrapX(), m.isWrapY(), stepDestValid, stepHeuristic,
-			stepCost, teamStepValid, stepAdd, NULL, NULL);
-	gDLL->getFAStarIFace()->SetData(pTeamStepFinder, &aeTeams);
-
-	bool bFound = false;
-	FOR_EACH_CITY(pLoopCity, GET_PLAYER(eOtherPlayer))
-	{
-		if (pLoopCity->isArea(getArea()))
-		{
-			bFound = gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder, getX(), getY(),
-					pLoopCity->getX(), pLoopCity->getY(), false, 0, true);
-			if (bFound)
-				break;
-		}
-	}
-
-	gDLL->getFAStarIFace()->destroy(pTeamStepFinder);
-
-	return bFound;
-}
-
-/*  advc.104b (comment): This BBAI function was previously unused, so I'm free
-	to twist it to my purpose. I don't think it had ever been tested either
-	b/c it didn't seem to work at all until I changed the GetLastNode call
-	at the end. */
-int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot const& kTargetPlot,
-	int iMaxPath, TeamTypes eTargetTeam, DomainTypes eDomain) const // advc.104b
-{
-	PROFILE_FUNC(); // advc: The time is mostly spent in teamStepValid_advc
-	FAssert(eTeam != NO_TEAM);
-	FAssert(eTargetTeam != NO_TEAM);
-	/*  advc.104b: Commented out. Want to be able to measure paths between
-		coastal cities of different continents. (And shouldn't return "false"
-		at any rate.) */
-	/*if (pTargetPlot->area() != area())
-		return false;*/
-	FAssert(eDomain != NO_DOMAIN);
-
-	// Imitate instatiation of irrigated finder, pIrrigatedFinder.
-	// Can't mimic step finder initialization because it requires creation from the exe
-	/*  <advc.104b> vector type changed to int[]; dom, eTargetTeam (instead of
-		NO_TEAM), iMaxPath and target coordinates added. */
-	int aStepData[] = {
-		eTeam, eTargetTeam, eDomain, kTargetPlot.getX(), kTargetPlot.getY(), iMaxPath
-	}; // </advc.104b>
-	FAStar* pStepFinder = gDLL->getFAStarIFace()->create();
-	gDLL->getFAStarIFace()->Initialize(pStepFinder,
-			GC.getMap().getGridWidth(),
-			GC.getMap().getGridHeight(),
-			GC.getMap().isWrapX(),
-			GC.getMap().isWrapY(),
-			// advc.104b: Plugging in _advc functions
-			stepDestValid_advc, stepHeuristic, stepCost, teamStepValid_advc, stepAdd,
-			NULL, NULL);
-	gDLL->getFAStarIFace()->SetData(pStepFinder, aStepData);
-
-	int iPathDistance = -1;
-	gDLL->getFAStarIFace()->GeneratePath(pStepFinder, getX(), getY(),
-			kTargetPlot.getX(), kTargetPlot.getY(), false, 0, true);
-	// advc.104b, advc.001: was &GC.getStepFinder() instead of pStepFinder
-	FAStarNode* pNode = gDLL->getFAStarIFace()->GetLastNode(pStepFinder);
-	if (pNode != NULL)
-		iPathDistance = pNode->m_iData1;
-
-	gDLL->getFAStarIFace()->destroy(pStepFinder);
-
-	return iPathDistance;
-}
-// BETTER_BTS_AI_MOD: END
-
 /*	K-Mod (rewrite of a bbai function)
 	I've changed the purpose of this function - because this is the way it is always used. */
 void CvPlot::invalidateBorderDangerCache()
@@ -3877,64 +3716,10 @@ void CvPlot::setIrrigated(bool bNewValue)
 
 void CvPlot::updateIrrigated()
 {
-	PROFILE_FUNC();
-
-	if (area() == NULL)
-	{
-		FAssert(area() != NULL); // advc.test
-		return;
-	}
-	if (!GC.getGame().isFinalInitialized())
-		return;
-
-	CvMap const& kMap = GC.getMap();
-	FAStar* pIrrigatedFinder = gDLL->getFAStarIFace()->create();
-	if (isIrrigated())
-	{
-		if (!isPotentialIrrigation())
-		{
-			setIrrigated(false);
-			for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
-			{
-				CvPlot* pLoopPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-				if (pLoopPlot == NULL)
-					continue; // advc
-
-				bool bFoundFreshWater = false;
-				gDLL->getFAStarIFace()->Initialize(pIrrigatedFinder,
-						kMap.getGridWidth(), kMap.getGridHeight(),
-						kMap.isWrapX(), kMap.isWrapY(), NULL, NULL, NULL,
-						potentialIrrigation, NULL, checkFreshWater,
-						&bFoundFreshWater);
-				gDLL->getFAStarIFace()->GeneratePath(pIrrigatedFinder,
-						pLoopPlot->getX(), pLoopPlot->getY(), -1, -1);
-				if (!bFoundFreshWater)
-				{
-					bool bIrrigated = false;
-					gDLL->getFAStarIFace()->Initialize(pIrrigatedFinder,
-							kMap.getGridWidth(), kMap.getGridHeight(),
-							kMap.isWrapX(), kMap.isWrapY(), NULL, NULL, NULL,
-							potentialIrrigation, NULL, changeIrrigated, &bIrrigated);
-					gDLL->getFAStarIFace()->GeneratePath(pIrrigatedFinder,
-							pLoopPlot->getX(), pLoopPlot->getY(), -1, -1);
-				}
-			}
-		}
-	}
-	else
-	{
-		if (isPotentialIrrigation() && isIrrigationAvailable(true))
-		{
-			bool bIrrigated = true;
-			gDLL->getFAStarIFace()->Initialize(pIrrigatedFinder,
-					kMap.getGridWidth(), kMap.getGridHeight(),
-					kMap.isWrapX(), kMap.isWrapY(), NULL, NULL, NULL,
-					potentialIrrigation, NULL, changeIrrigated, &bIrrigated);
-			gDLL->getFAStarIFace()->GeneratePath(pIrrigatedFinder, getX(), getY(), -1, -1);
-		}
-	}
-
-	gDLL->getFAStarIFace()->destroy(pIrrigatedFinder);
+	//if (area() == NULL) return;
+	FAssert(area() != NULL); // advc
+	// advc.pf: Rather handle the pathfinding in CvMap
+	GC.getMap().updateIrrigated(*this);
 }
 
 

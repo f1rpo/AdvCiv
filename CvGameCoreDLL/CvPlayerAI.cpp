@@ -7,6 +7,8 @@
 #include "CvCityAI.h"
 #include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
+#include "KmodPathFinder.h"
+#include "FAStarNode.h" // for AI_advancedStartDoRoute
 #include "CvDeal.h"
 #include "UWAIAgent.h" // advc.104
 #include "RiseFall.h" // advc.705
@@ -13709,10 +13711,10 @@ int CvPlayerAI::AI_countUnimprovedBonuses(CvArea const& kArea, CvPlot* pFromPlot
 	gDLL->getFAStarIFace()->ForceReset(&GC.getBorderFinder());
 
 	int iCount = 0;
-	CvMap const& m = GC.getMap(); // advc
-	for (int iI = 0; iI < m.numPlots(); iI++)
+	CvMap const& kMap = GC.getMap();
+	for (int i = 0; i < kMap.numPlots(); i++)
 	{
-		CvPlot const& kPlot = m.getPlotByIndex(iI);
+		CvPlot const& kPlot = kMap.getPlotByIndex(i);
 		if (kPlot.getOwner() == getID() && kPlot.isArea(kArea))
 		{	// advc.042: Remaining checks moved into auxiliary function
 			if(AI_isUnimprovedBonus(kPlot, pFromPlot, true))
@@ -14845,11 +14847,12 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 	return iTotal;
 } // K-Mod end
 
-// BETTER_BTS_AI_MOD, General AI, 04/03/10, jdog5000: START
-// K-Mod. I've changed this function to calculation the attack power of our groups, rather than just the number of units.
-// I've also changed it to use a separate instance of the path finder, so that it doesn't clear the reset the existing path data.
+// BETTER_BTS_AI_MOD, General AI, 04/03/10, jdog5000:
+/*	K-Mod. I've changed this function to calculating the attack power of our groups,
+	rather than just the number of units. I've also changed it to use a separate instance
+	of the path finder, so that it doesn't clear the reset the existing path data. */
 //int CvPlayerAI::AI_cityTargetUnitsByPath(
-int CvPlayerAI::AI_cityTargetStrengthByPath(CvCity const* pCity,  // advc: const CvCity*; some style changes
+int CvPlayerAI::AI_cityTargetStrengthByPath(/* advc: */CvCity const* pCity,
 	CvSelectionGroup* pSkipSelectionGroup, int iMaxPathTurns) const
 {
 	PROFILE_FUNC();
@@ -14861,9 +14864,10 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(CvCity const* pCity,  // advc: const
 	FOR_EACH_GROUPAI(pLoopSelectionGroup, *this)
 	{
 		if (pLoopSelectionGroup == pSkipSelectionGroup ||
-				pLoopSelectionGroup->getNumUnits() <= 0)
+			pLoopSelectionGroup->getNumUnits() <= 0)
+		{
 			continue;
-
+		}
 		FAssert(pLoopSelectionGroup->plot() != NULL); // this use to be part of the above condition. I've turned it into an assert. K-Mod.
 		CvPlot* pMissionPlot = pLoopSelectionGroup->AI_getMissionAIPlot();
 		if (pMissionPlot == NULL)
@@ -14879,16 +14883,18 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(CvCity const* pCity,  // advc: const
 				if (iPathTurns <= iMaxPathTurns)
 					iCount += pLoopSelectionGroup->getNumUnits();
 			}*/ // BtS
-			temp_finder.SetSettings(CvPathSettings(pLoopSelectionGroup, 0, iMaxPathTurns, GC.getMOVE_DENOMINATOR()));
+			temp_finder.SetSettings(CvPathSettings(pLoopSelectionGroup, NO_MOVEMENT_FLAGS,
+					iMaxPathTurns, GC.getMOVE_DENOMINATOR()));
 			if (temp_finder.GeneratePath(pMissionPlot))
 			{
-				iTotalStrength += pLoopSelectionGroup->AI_sumStrength(pCity->plot(), DOMAIN_LAND);
+				iTotalStrength += pLoopSelectionGroup->AI_sumStrength(
+						pCity->plot(), DOMAIN_LAND);
 			}
 		}
 	}
 	//return iCount;
 	return iTotalStrength;
-} // BETTER_BTS_AI_MOD: END
+}
 
 /*  <advc.139> May have to update city safety status after one of our units
 	has attacked (possible relief). kDefender can be dead, but all its data
@@ -15010,7 +15016,8 @@ int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit /* advc: */ const& kUnit,  // adv
 			pLoopSelectionGroup->plot() != NULL)
 		{
 			pLoopSelectionGroup->generatePath(pLoopSelectionGroup->plot(),
-					kUnit.plot(), 0, false, &iPathTurns, /* advc.opt: */ iMaxPathTurns);
+					kUnit.plot(), NO_MOVEMENT_FLAGS, false, &iPathTurns,
+					iMaxPathTurns); // advc.opt
 			if (!pLoopSelectionGroup->canAllMove())
 				iPathTurns++;
 		}
@@ -25452,7 +25459,9 @@ bool CvPlayerAI::AI_advancedStartDoRoute(CvPlot* pFromPlot, CvPlot* pToPlot)
 
 	FAStarNode* pNode;
 	gDLL->getFAStarIFace()->ForceReset(&GC.getStepFinder());
-	if (gDLL->getFAStarIFace()->GeneratePath(&GC.getStepFinder(), pFromPlot->getX(), pFromPlot->getY(), pToPlot->getX(), pToPlot->getY(), false, 0, true))
+	if (gDLL->getFAStarIFace()->GeneratePath(&GC.getStepFinder(),
+		pFromPlot->getX(), pFromPlot->getY(),
+		pToPlot->getX(), pToPlot->getY(), false, 0, true))
 	{
 		pNode = gDLL->getFAStarIFace()->GetLastNode(&GC.getStepFinder());
 		if (pNode != NULL)

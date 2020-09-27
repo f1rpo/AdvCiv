@@ -68,7 +68,10 @@ CyPlot* CyUnit::getPathEndTurnPlot()
 
 bool CyUnit::generatePath(CyPlot* pToPlot, int iFlags, bool bReuse, int* piPathTurns)
 {
-	return m_pUnit ? m_pUnit->generatePath(pToPlot->getPlot(), iFlags, bReuse, piPathTurns) : false;
+	if (m_pUnit == NULL)
+		return false;
+	return m_pUnit->generatePath(pToPlot->getPlot(), (MovementFlags)iFlags,
+			bReuse, piPathTurns);
 }
 
 bool CyUnit::canEnterTerritory(int /*TeamTypes*/ eTeam, bool bIgnoreRightOfPassage)

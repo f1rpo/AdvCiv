@@ -4,6 +4,7 @@
 #include "CvUnit.h"
 #include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
+#include "KmodPathFinder.h" // advc.128
 #include "CoreAI.h"
 #include "CvCityAI.h"
 #include "UWAIAgent.h"
@@ -2169,26 +2170,26 @@ CvPlot* CvUnit::getPathEndTurnPlot() const
 }
 
 
-bool CvUnit::generatePath(const CvPlot* pToPlot, int iFlags, bool bReuse,
+bool CvUnit::generatePath(const CvPlot* pToPlot, MovementFlags eFlags, bool bReuse,
 	int* piPathTurns, int iMaxPath, /* <advc.128> */ bool bUseTempFinder) const
 {
 	if(!bUseTempFinder) // </advc.128>
-		return getGroup()->generatePath(plot(), pToPlot, iFlags, bReuse, piPathTurns, iMaxPath);
+		return getGroup()->generatePath(plot(), pToPlot, eFlags, bReuse, piPathTurns, iMaxPath);
 	// <advc.128>
 	FAssert(!bReuse);
 	KmodPathFinder temp_finder;
-	temp_finder.SetSettings(getGroup(), iFlags, iMaxPath, GC.getMOVE_DENOMINATOR());
+	temp_finder.SetSettings(getGroup(), eFlags, iMaxPath, GC.getMOVE_DENOMINATOR());
 	bool r = temp_finder.GeneratePath(pToPlot);
 	if(piPathTurns != NULL)
 		*piPathTurns = temp_finder.GetPathTurns();
 	return r; // </advc.128>
 }
 
-// K-Mod. Return the standard pathfinder, for extracting path information.
+// K-Mod: Return the standard pathfinder, for extracting path information.
 KmodPathFinder& CvUnit::getPathFinder() const
 {
-	return CvSelectionGroup::path_finder;
-} // K-Mod end
+	return CvSelectionGroup::pathFinder();
+}
 
 
 bool CvUnit::canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage,
@@ -4553,9 +4554,9 @@ void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra, /* advc.033: */ 
 				//GC.getMap().calculatePathDistance(plot(), &kLoopPlot);
 				/*  <advc.033> Faster (iMaxPath), but probably doesn't fix the
 					issue described below b/c still uses FAStar. */
-				getPlot().calculatePathDistanceToPlot(BARBARIAN_TEAM, kLoopPlot,
-				iRange + iExtra, BARBARIAN_TEAM, bImpassables ?
-				DOMAIN_IMMOBILE : getDomainType()); // </advc.033>
+				GC.getMap().calculateTeamPathDistance(BARBARIAN_TEAM,
+				getPlot(), kLoopPlot, iRange + iExtra, BARBARIAN_TEAM,
+				bImpassables ? DOMAIN_IMMOBILE : getDomainType()); // </advc.033>
 		// BBAI NOTES (jdog5000, 06/01/09):
 		// There are rare issues where the path finder will return incorrect results
 		// for unknown reasons.  Seems to find a suboptimal path sometimes in partially repeatable
@@ -5985,7 +5986,9 @@ void CvUnit::promote(PromotionTypes ePromotion, int iLeaderUnitId)
 
 	setHasPromotion(ePromotion, true);
 	testPromotionReady();
-	CvSelectionGroup::path_finder.Reset(); // K-Mod. (This currently isn't important, because the AI doesn't use promotions mid-turn anyway.)
+	/*	K-Mod. (This currently isn't important because
+		the AI doesn't use promotions mid-turn anyway.) */
+	CvSelectionGroup::resetPath();
 
 	if (bSelected)
 	{
@@ -6371,7 +6374,7 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 								iValue *= 16;
 
 							// if we cannot path there, not as good (lower numbers are better)
-							if (!generatePath(pLoopCity->plot(), 0, true))
+							if (!generatePath(pLoopCity->plot(), NO_MOVEMENT_FLAGS, true))
 								iValue *= 16;
 							/*	<advc.139> This should really be checked in a CvUnitAI function.
 								That said, the whole search part of this function is really

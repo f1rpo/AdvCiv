@@ -83,13 +83,13 @@ struct MissionData				// Exposed to Python
 	MissionTypes eMissionType;
 	int iData1;
 	int iData2;
-	int iFlags;
+	MovementFlags eFlags;
 	int iPushTurn;
 	bool bModified; // advc.011b
 };
 // <advc.011b> Needed for savegame compatibility
 struct MissionDataLegacy { MissionTypes eMissionType; int iData1; int iData2;
-	int iFlags; int iPushTurn; }; // </advc.011b>
+	MovementFlags eFlags; int iPushTurn; }; // </advc.011b>
 
 struct TradeData					// Exposed to Python
 {

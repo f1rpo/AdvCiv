@@ -5,9 +5,19 @@
 
 // advc.003o: Cut from CvGameCoreDLL.h
 
-#define SAFE_DELETE(p)       { if(p) { delete (p);     (p)=NULL; } }
-#define SAFE_DELETE_ARRAY(p) { if(p) { delete[] (p);   (p)=NULL; } }
-#define SAFE_RELEASE(p)      { if(p) { (p)->Release(); (p)=NULL; } }
+#define SAFE_DELETE(p)			{ if(p) { delete (p);     (p)=NULL; } }
+#define SAFE_DELETE_ARRAY(p)	{ if(p) { delete[] (p);   (p)=NULL; } }
+#define SAFE_RELEASE(p)			{ if(p) { (p)->Release(); (p)=NULL; } }
+// <advc.006>
+#define ASSERT_DELETE(p) \
+{ \
+	if ((p) == NULL) \
+	{ \
+		FAssertMsg((p) != NULL, "Attempted to free memory twice"); \
+		return; \
+	} \
+	delete (p); \
+} // </advc.006>
 
 #ifdef _DEBUG
 //#define MEMORY_TRACKING

@@ -1806,8 +1806,10 @@ void CvCityAI::AI_chooseProduction()
 						if(!bAssaultTargetFound)
 							pAssaultWaterArea = NULL;
 						if(bAssaultTargetFound && // </advc.030b>
-							// BBAI TODO: faster to switch to checking path for some selection group?
-							!getPlot().isHasPathToEnemyCity(getTeam()))
+							/*	BBAI TODO: faster to switch to checking path for some selection group?
+								^advc: That's a can of worms, and unnecessary.
+								See comment in  AI_isHasPathToEnemyCity. */
+							GET_TEAM(getTeam()).AI_isHasPathToEnemyCity(getPlot()))
 						{
 							bBuildAssault = true;
 						}

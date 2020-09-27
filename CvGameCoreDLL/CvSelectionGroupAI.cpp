@@ -236,7 +236,7 @@ bool CvSelectionGroupAI::AI_update()
 				}
 				FAssert(originalGroup.size() == getNumUnits());
 				bool bFirst = true;
-				path_finder.Reset();
+				resetPath();
 				for (std::vector<IDInfo>::iterator it = originalGroup.begin();
 					it != originalGroup.end(); ++it)
 				{
@@ -248,7 +248,7 @@ bool CvSelectionGroupAI::AI_update()
 						{
 							bFollow = true;
 							bFirst = true; // let the next unit start fresh.
-							path_finder.Reset();
+							resetPath();
 							if (!readyToMove(true))
 								break;
 						}
@@ -707,11 +707,11 @@ bool CvSelectionGroupAI::AI_isDeclareWar(CvPlot const& kPlot) const // advc: con
 	}
 }
 
-
 /*	advc: Moved from CvSelectionGroup b/c this checks for the
 	group owner's war plans. Param renamed from bIgnoreMinors
 	b/c it also causes Barbarians to be ignored. */
-bool CvSelectionGroupAI::AI_isHasPathToAreaEnemyCity(bool bMajorOnly, int iFlags, int iMaxPathTurns) const
+bool CvSelectionGroupAI::AI_isHasPathToAreaEnemyCity(bool bMajorOnly,
+	MovementFlags eFlags, int iMaxPathTurns) const
 {
 	PROFILE_FUNC();
 
@@ -721,7 +721,7 @@ bool CvSelectionGroupAI::AI_isHasPathToAreaEnemyCity(bool bMajorOnly, int iFlags
 		if (bMajorOnly && !it->isMajorCiv())
 			continue;
 		if (GET_TEAM(getTeam()).AI_mayAttack(it->getTeam()) &&
-			isHasPathToAreaPlayerCity(it->getID(), iFlags, iMaxPathTurns))
+			isHasPathToAreaPlayerCity(it->getID(), eFlags, iMaxPathTurns))
 		{
 			return true;
 		}

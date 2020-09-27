@@ -1635,7 +1635,7 @@ bool UWAICache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 	if(dom != DOMAIN_LAND && !start.isAdjacentToArea(newDest->getArea()))
 		return false;
 	// The original dest is guaranteed to be owned
-	*r = start.calculatePathDistanceToPlot(start.getTeam(), *newDest,
+	*r = GC.getMap().calculateTeamPathDistance(start.getTeam(), start, *newDest,
 			/*  Path distance counts each step as 1 move; upper bound needs to
 				account for faster movement. */
 			(int)::ceil(maxDist * speedEstimate), dest.getTeam(), dom);

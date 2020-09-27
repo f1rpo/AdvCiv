@@ -4,6 +4,8 @@
 #include "CvCityAI.h"
 #include "CvUnitAI.h"
 #include "CvSelectionGroup.h"
+#include "KmodPathFinder.h"
+#include "FAStarNode.h"
 #include "PlotRange.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Command.h"
@@ -278,13 +280,14 @@ void CvGame::updateColoredPlots()
 		// city sites
 		const CvPlayerAI& kActivePlayer = GET_PLAYER(getActivePlayer());
 		KmodPathFinder site_path;
-		site_path.SetSettings(pHeadSelectedUnit->getGroup(), 0, 7, GC.getMOVE_DENOMINATOR());
+		site_path.SetSettings(pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
+				7, GC.getMOVE_DENOMINATOR());
 		if (pHeadSelectedUnit->canFound()) // advc.004h: was isFound
 		{
 			for (int i = 0; i < kActivePlayer.AI_getNumCitySites(); i++)
 			{
 				CvPlot* pSite = kActivePlayer.AI_getCitySite(i);
-				if (pSite && site_path.GeneratePath(pSite))
+				if (pSite != NULL && site_path.GeneratePath(pSite))
 				{
 					kEngine.addColoredPlot(pSite->getX(), pSite->getY(),
 							GC.getInfo(GC.getColorType("HIGHLIGHT_TEXT")).getColor(),
@@ -302,7 +305,8 @@ void CvGame::updateColoredPlots()
 				iRange++;
 			else iRange--; // </advc.004z>
 			// just a smaller range.
-			site_path.SetSettings(pHeadSelectedUnit->getGroup(), 0, iRange, GC.getMOVE_DENOMINATOR());
+			site_path.SetSettings(pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
+					iRange, GC.getMOVE_DENOMINATOR());
 			for (SquareIter it(*pHeadSelectedUnit, iRange); it.hasNext(); ++it)
 			{
 				CvPlot const& kLoopPlot = *it;
@@ -804,7 +808,7 @@ void CvGame::selectionListMove(CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl
 
 
 void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, int iData4,
-		int iFlags, bool bAlt, bool bShift) const
+	int iFlags, bool bAlt, bool bShift) const
 {
 	int aiPyData[] = { iData2, iData3, iData4 };
 	if (GC.getPythonCaller()->cannotSelectionListNetOverride((GameMessageTypes)
@@ -868,6 +872,7 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 		if (!gDLL->UI().mirrorsSelectionGroup())
 			selectionListGameNetMessage(GAMEMESSAGE_JOIN_GROUP);
 
+		MovementFlags eFlags = (MovementFlags)iFlags;
 		if (eMessage == GAMEMESSAGE_PUSH_MISSION)
 		{	// K-Mod. I've moved the BUTTONPOPUP_DECLAREWARMOVE stuff to here from selectionListMove
 			// so that it can catch left-click moves as well as right-click moves.
@@ -880,7 +885,7 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 			//
 			// (I'd rather not have UI stuff like this in this function,
 			//  but this is the only place where I can catch left-click moves.)
-			if (iData2 == MISSION_MOVE_TO && !(iFlags & MOVE_DECLARE_WAR))
+			if (iData2 == MISSION_MOVE_TO && !(eFlags & MOVE_DECLARE_WAR))
 			{
 				CvPlot* pPlot = GC.getMap().plot(iData3, iData4);
 				FAssert(pPlot);
@@ -924,7 +929,7 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 				bModified = GC.altKey(); // </advc.048>
 			CvMessageControl::getInstance().sendPushMission(pHeadSelectedUnit->getID(),
 					(MissionTypes)iData2, iData3, iData4,
-					iFlags & ~ MOVE_DECLARE_WAR, bShift, // K-Mod end
+					eFlags & ~ MOVE_DECLARE_WAR, bShift, // K-Mod end
 					bModified); // advc.011b
 		}
 		else CvMessageControl::getInstance().sendAutoMission(pHeadSelectedUnit->getID());
@@ -2072,7 +2077,7 @@ void CvGame::applyFlyoutMenu(const CvFlyoutMenuData& kItem)
 			{
 				CvMessageControl::getInstance().sendPushMission(pLoopUnit->getID(),
 						pLoopUnit->isFortifyable() ? MISSION_FORTIFY : MISSION_SLEEP,
-						-1, -1, 0, false, /* advc.011b: */ GC.ctrlKey());
+						-1, -1, NO_MOVEMENT_FLAGS, false, /* advc.011b: */ GC.ctrlKey());
 			}
 		}
 		break;

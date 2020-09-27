@@ -19,6 +19,8 @@
 #include "CvFractal.h"
 #include "CvMapGenerator.h"
 #include "KmodPathFinder.h"
+#include "FAStarNode.h"
+#include "FAStarFunc.h"
 #include "CvInfo_GameOption.h"
 #include "CvReplayInfo.h" // advc.106n
 #include "CvDLLIniParserIFaceBase.h"
@@ -73,6 +75,7 @@ void CvMap::uninit()
 	SAFE_DELETE_ARRAY(m_pMapPlots);
 	m_replayTexture.clear(); // advc.106n
 	m_areas.uninit();
+	CvSelectionGroup::uninitPathFinder(); // advc.pf
 }
 
 // Initializes data members that are serialized.
@@ -82,8 +85,10 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 
 	// set grid size
 	// initially set in terrain cell units
-	m_iGridWidth = (GC.getInitCore().getWorldSize() != NO_WORLDSIZE) ? GC.getInfo(GC.getInitCore().getWorldSize()).getGridWidth (): 0;	//todotw:tcells wide
-	m_iGridHeight = (GC.getInitCore().getWorldSize() != NO_WORLDSIZE) ? GC.getInfo(GC.getInitCore().getWorldSize()).getGridHeight (): 0;
+	m_iGridWidth = (GC.getInitCore().getWorldSize() != NO_WORLDSIZE) ?
+			GC.getInfo(GC.getInitCore().getWorldSize()).getGridWidth() : 0; //todotw:tcells wide
+	m_iGridHeight = (GC.getInitCore().getWorldSize() != NO_WORLDSIZE) ?
+			GC.getInfo(GC.getInitCore().getWorldSize()).getGridHeight() : 0;
 
 	// allow grid size override
 	if (pInitInfo)
@@ -155,9 +160,11 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 // Initializes all data that is not serialized but needs to be initialized after loading.
 void CvMap::setup()
 {
-	PROFILE("CvMap::setup");
+	PROFILE_FUNC();
 
+	CvSelectionGroup::initPathFinder(); // advc.pf
 	KmodPathFinder::InitHeuristicWeights(); // K-Mod
+
 	CvDLLFAStarIFaceBase& kAStar = *gDLL->getFAStarIFace(); // advc
 	kAStar.Initialize(&GC.getPathFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), pathDestValid, pathHeuristic, pathCost, pathValid, pathAdd, NULL, NULL);
 	kAStar.Initialize(&GC.getInterfacePathFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), pathDestValid, pathHeuristic, pathCost, pathValid, pathAdd, NULL, NULL);
@@ -315,8 +322,8 @@ void CvMap::updateSight(bool bIncrement)
 
 void CvMap::updateIrrigated()
 {
-	for(int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).updateIrrigated();
+	for(int i = 0; i < numPlots(); i++)
+		updateIrrigated(getPlotByIndex(i));
 }
 
 // K-Mod. This function is called when the unit selection is changed, or when a selected unit is promoted. (Or when UnitInfo_DIRTY_BIT is set.)
@@ -1008,6 +1015,113 @@ int CvMap::calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) con
 	return -1; // no passable path exists
 }
 
+/*  advc.104: Based on the unused BBAI function CvPlot::calculatePathDistanceToPlot.
+	I don't think it had ever been tested either b/c it didn't work at all until I
+	changed the GetLastNode call at the end. */
+int CvMap::calculateTeamPathDistance(TeamTypes eTeam,
+	CvPlot const& kFrom, CvPlot const& kTo,
+	int iMaxPath, TeamTypes eTargetTeam, DomainTypes eDomain) const // advc.104b
+{
+	PROFILE_FUNC(); // advc: The time is mostly spent in teamStepValid_advc
+	FAssert(eTeam != NO_TEAM);
+	FAssert(eTargetTeam != NO_TEAM);
+	/*  advc.104b: Commented out. Want to be able to measure paths between
+		coastal cities of different continents. (And shouldn't return "false"
+		at any rate.) */
+	/*if (pTargetPlot->area() != area())
+		return false;*/
+	FAssert(eDomain != NO_DOMAIN);
+
+	/*	Imitate instatiation of irrigated finder, pIrrigatedFinder.
+		Can't mimic step finder initialization because it requires creation from the EXE. */
+	/*  <advc.104b> vector type changed to int[]; dom, eTargetTeam (instead of
+		NO_TEAM), iMaxPath and target coordinates added. */
+	int aStepData[] = {
+		eTeam, eTargetTeam, eDomain, kTo.getX(), kTo.getY(), iMaxPath
+	}; // </advc.104b>
+	FAStar* pStepFinder = gDLL->getFAStarIFace()->create();
+	gDLL->getFAStarIFace()->Initialize(pStepFinder,
+			GC.getMap().getGridWidth(),
+			GC.getMap().getGridHeight(),
+			GC.getMap().isWrapX(),
+			GC.getMap().isWrapY(),
+			// advc.104b: Plugging in _advc functions
+			stepDestValid_advc, stepHeuristic, stepCost, teamStepValid_advc, stepAdd,
+			NULL, NULL);
+	gDLL->getFAStarIFace()->SetData(pStepFinder, aStepData);
+
+	int iPathDistance = -1;
+	gDLL->getFAStarIFace()->GeneratePath(pStepFinder, kFrom.getX(), kFrom.getY(),
+			kTo.getX(), kTo.getY(), false, 0, true);
+	// advc.104b, advc.001: was &GC.getStepFinder() instead of pStepFinder
+	FAStarNode* pNode = gDLL->getFAStarIFace()->GetLastNode(pStepFinder);
+	if (pNode != NULL)
+		iPathDistance = pNode->m_iData1;
+
+	gDLL->getFAStarIFace()->destroy(pStepFinder);
+
+	return iPathDistance;
+}
+
+/*	advc.pf: Cut from CvPlot::updateIrrigated
+	so that all the non-unit pathfinding stuff is in one place */
+void CvMap::updateIrrigated(CvPlot& kPlot)
+{
+	PROFILE_FUNC();
+
+	if (!GC.getGame().isFinalInitialized())
+		return;
+
+	FAStar* pIrrigatedFinder = gDLL->getFAStarIFace()->create();
+	if (kPlot.isIrrigated())
+	{
+		if (!kPlot.isPotentialIrrigation())
+		{
+			kPlot.setIrrigated(false);
+			FOR_EACH_ENUM(Direction)
+			{
+				CvPlot const* pAdj = plotDirection(kPlot.getX(), kPlot.getY(),
+						eLoopDirection);
+				if (pAdj == NULL)
+					continue;
+
+				bool bFoundFreshWater = false;
+				gDLL->getFAStarIFace()->Initialize(pIrrigatedFinder,
+						getGridWidth(), getGridHeight(),
+						isWrapX(), isWrapY(), NULL, NULL, NULL,
+						potentialIrrigation, NULL, checkFreshWater,
+						&bFoundFreshWater);
+				gDLL->getFAStarIFace()->GeneratePath(pIrrigatedFinder,
+						pAdj->getX(), pAdj->getY(), -1, -1);
+				if (!bFoundFreshWater)
+				{
+					bool bIrrigated = false;
+					gDLL->getFAStarIFace()->Initialize(pIrrigatedFinder,
+							getGridWidth(), getGridHeight(),
+							isWrapX(), isWrapY(), NULL, NULL, NULL,
+							/*	advc (note): GeneratePath will cause the
+								changeIrrigated function to perform the
+								updates by calling CvPlot::setIrrigated */
+							potentialIrrigation, NULL, changeIrrigated, &bIrrigated);
+					gDLL->getFAStarIFace()->GeneratePath(pIrrigatedFinder,
+							pAdj->getX(), pAdj->getY(), -1, -1);
+				}
+			}
+		}
+	}
+	else if (kPlot.isPotentialIrrigation() && kPlot.isIrrigationAvailable(true))
+	{
+		bool bIrrigated = true;
+		gDLL->getFAStarIFace()->Initialize(pIrrigatedFinder,
+				getGridWidth(), getGridHeight(),
+				isWrapX(), isWrapY(), NULL, NULL, NULL,
+				potentialIrrigation, NULL, changeIrrigated, &bIrrigated);
+		gDLL->getFAStarIFace()->GeneratePath(pIrrigatedFinder,
+				kPlot.getX(), kPlot.getY(), -1, -1);
+	}
+
+	gDLL->getFAStarIFace()->destroy(pIrrigatedFinder);
+}
 
 
 // BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START  // advc: unnecessary NULL checks removed

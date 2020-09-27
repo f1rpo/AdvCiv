@@ -162,6 +162,7 @@
     <ClCompile Include="..\CyTeamInterface.cpp" />
     <ClCompile Include="..\CyUnit.cpp" />
     <ClCompile Include="..\CyUnitInterface1.cpp" />
+    <ClCompile Include="..\FAStarFunc.cpp" />
     <ClCompile Include="..\ReproTest.cpp" />
     <ClCompile Include="..\EnumMapTest.cpp" />
     <ClCompile Include="..\FDialogTemplate.cpp" />
@@ -309,6 +310,7 @@
     <ClInclude Include="..\CySelectionGroup.h" />
     <ClInclude Include="..\CyTeam.h" />
     <ClInclude Include="..\CyUnit.h" />
+    <ClInclude Include="..\FAStarFunc.h" />
     <ClInclude Include="..\GameBryo.h" />
     <ClInclude Include="..\LinkedListTraversal.h" />
     <ClInclude Include="..\PragmaWarnings.h" />

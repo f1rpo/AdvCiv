@@ -76,6 +76,7 @@ public:
 	CyPlot* getPathFirstPlot();
 	CyPlot* getPathEndTurnPlot();
 	bool generatePath(CyPlot* pFromPlot, CyPlot* pToPlot, int iFlags, bool bReuse, int* piPathTurns);
+	//void resetPath(); K-Mod (removed)
 	int getNumUnits();
 	void clearMissionQueue();
 	int getLengthMissionQueue();

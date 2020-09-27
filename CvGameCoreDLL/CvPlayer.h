@@ -303,7 +303,8 @@ public:
 	int calculateTotalCityUnhealthiness() const;																	// Exposed to Python
 
 	/*	K-Mod, 18/dec/10: global warming pollution flags
-		advc.enum: Moved from CvDefines, turned into an enum. */
+		advc.enum: Moved from CvDefines, turned into an enum.
+		(Overloaded bitwise operators at end of file) */
 	enum PollutionTypes // Exposed to Python
 	{
 		POLLUTION_POPULATION = (1 << 0), POLLUTION_BUILDINGS = (1 << 1),
@@ -1792,6 +1793,6 @@ CvUnit* getUnitExternal(IDInfo unit); // exported through .def file
 // </advc.opt>
 
 // advc.enum: For calculatePollution. (Needs to be outside the class definition.)
-OVERRIDE_BITMASK_OPERATORS(CvPlayer::PollutionTypes)
+OVERLOAD_BITWISE_OPERATORS(CvPlayer::PollutionTypes)
 
 #endif

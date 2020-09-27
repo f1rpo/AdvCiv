@@ -75,6 +75,10 @@ public:
 	bool AI_isWarPossible() const;
 	bool AI_isLandTarget(TeamTypes eTarget, /* advc: */ bool bCheckAlliesOfTarget = false) const;
 	//bool AI_isAllyLandTarget(TeamTypes eTeam) const; // advc: Merged into the above
+	// BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000: START  advc.pf: Moved from CvPlot
+	bool AI_isHasPathToEnemyCity(CvPlot const& kFrom, bool bIgnoreBarb = true) const;
+	bool AI_isHasPathToPlayerCity(CvPlot const& kFrom, PlayerTypes eOtherPlayer = NO_PLAYER) const;
+	// BETTER_BTS_AI_MOD: END
 	bool AI_shareWar(TeamTypes eTeam) const;								// Exposed to Python
 	 // advc, advc.130e:
 	void AI_updateAttitude(TeamTypes eTeam, bool bUpdateWorstEnemy = true);
