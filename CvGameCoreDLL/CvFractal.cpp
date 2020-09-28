@@ -36,7 +36,7 @@ void CvFractal::reset()
 	m_iFracYExp = -1;
 	m_iXs = -1;
 	m_iYs = -1;
-	m_eFlags = NO_PREDICATES;
+	m_eFlags = NO_FLAGS;
 	m_iFracX = -1;
 	m_iFracY = -1;
 	m_iXInc = m_iYInc = -1; // advc: better initialize
@@ -46,7 +46,7 @@ void CvFractal::fracInit(int iNewXs, int iNewYs, int iGrain, CvRandom& random,
 	int iFlags, CvFractal* pRifts, int iFracXExp/*=7*/, int iFracYExp/*=6*/)
 {
 	fracInitInternal(iNewXs, iNewYs, iGrain, random, NULL, -1,
-			(Predicates)iFlags, pRifts, iFracXExp, iFracYExp);
+			(Flags)iFlags, pRifts, iFracXExp, iFracYExp);
 }
 
 // pbyHints should be a 1d array of bytes representing a 2d array
@@ -59,13 +59,13 @@ void CvFractal::fracInitHinted(int iNewXs, int iNewYs, int iGrain, CvRandom& ran
 	byte* pbyHints, int iHintsLength, int iFlags, CvFractal* pRifts,
 	int iFracXExp/*=7*/, int iFracYExp/*=6*/)
 {
-	Predicates eFlagsNonPolar = ((Predicates)iFlags) & (~FRAC_POLAR);
+	Flags eFlagsNonPolar = ((Flags)iFlags) & (~FRAC_POLAR);
 	fracInitInternal(iNewXs, iNewYs, iGrain, random, pbyHints, iHintsLength,
 			eFlagsNonPolar, pRifts, iFracXExp, iFracYExp);
 }
 
 void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& random,
-	byte* pbyHints, int iHintsLength, Predicates eFlags, CvFractal* pRifts,
+	byte* pbyHints, int iHintsLength, Flags eFlags, CvFractal* pRifts,
 	int iFracXExp, int iFracYExp)
 {
 	PROFILE("CvFractal::fracInit()");

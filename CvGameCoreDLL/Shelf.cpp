@@ -16,7 +16,7 @@ void Shelf::add(CvPlot* plot)
 }
 
 
-CvPlot* Shelf::randomPlot(RandPlotTypes restrictions, int unitDistance, int* legalCount) const
+CvPlot* Shelf::randomPlot(RandPlotFlags restrictions, int unitDistance, int* legalCount) const
 {
 	/*  Based on CvMap::syncRandPlot, but shelves are (normally) so small
 		that random sampling isn't efficient. Instead, compute the legal

@@ -282,12 +282,12 @@ public: // advc: made several functions const
 	void combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2,
 			bool bVerifyProduction = true); // advc.064d
 
-	CvPlot* syncRandPlot(RandPlotTypes ePredicates = RANDPLOT_ANY,									// Exposed to Python
+	CvPlot* syncRandPlot(RandPlotFlags eFlags = RANDPLOT_ANY,								// Exposed to Python
 			CvArea const* pArea = NULL, // advc: was iArea
 			int iMinCivUnitDistance = -1,
 			int iTimeout = -1, int* piValidCount = NULL); // advc.304 (default timeout was 100)
 	// <advc>
-	bool isValidRandPlot(CvPlot const& kPlot, RandPlotTypes ePredicates,
+	bool isValidRandPlot(CvPlot const& kPlot, RandPlotFlags eFlags,
 			CvArea const* pArea, int iMinCivUnitDistance) const; // </advc>
 
 	DllExport CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM, DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL)	// Exposed to Python

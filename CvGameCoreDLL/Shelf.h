@@ -5,7 +5,7 @@
 
 class CvPlot;
 class CvUnit;
-enum RandPlotTypes;
+enum RandPlotFlags;
 
 /* <advc.300> New class representing a continental shelf, akin to a CvArea
    (but I don't want to inherit from that class). Used for spawning
@@ -15,7 +15,7 @@ class Shelf {
 public:
 
 	void add(CvPlot* plot);
-	CvPlot* randomPlot(RandPlotTypes restrictions, int unitDistance,
+	CvPlot* randomPlot(RandPlotFlags restrictions, int unitDistance,
 			int* legalCount = NULL) const;
 	int size() const;
 	int countUnownedPlots() const;

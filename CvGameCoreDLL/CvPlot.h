@@ -837,7 +837,7 @@ BOOST_STATIC_ASSERT(MAX_CIV_PLAYERS > 18 || sizeof(CvPlot) <= 212);
 
 /*	advc.enum: For functions that choose random plots.
 	Moved from CvDefines, turned into an enum, exposed to Python. */
-enum RandPlotTypes
+enum RandPlotFlags
 {
 	RANDPLOT_ANY = 0,
 	RANDPLOT_LAND =						(1 << 0),
@@ -852,6 +852,6 @@ enum RandPlotTypes
 	RANDPLOT_WATERSOURCE =				(1 << 8),
 	// </advc.300>
 };
-OVERLOAD_BITWISE_OPERATORS(RandPlotTypes)
+OVERLOAD_BITWISE_OPERATORS(RandPlotFlags)
 
 #endif

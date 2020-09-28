@@ -472,7 +472,7 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 }
 
 
-CvPlot* CvMap::syncRandPlot(RandPlotTypes ePredicates, CvArea const* pArea,
+CvPlot* CvMap::syncRandPlot(RandPlotFlags eFlags, CvArea const* pArea,
 	int iMinCivUnitDistance, // advc.300: Renamed from iMinUnitDistance
 	int iTimeout,
 	int* piValidCount) // advc.304: Number of valid tiles
@@ -490,7 +490,7 @@ CvPlot* CvMap::syncRandPlot(RandPlotTypes ePredicates, CvArea const* pArea,
 		for(int i = 0; i < numPlots(); i++)
 		{
 			CvPlot& kPlot = getPlotByIndex(i);
-			if (isValidRandPlot(kPlot, ePredicates, pArea, iMinCivUnitDistance))
+			if (isValidRandPlot(kPlot, eFlags, pArea, iMinCivUnitDistance))
 				apValidPlots.push_back(&kPlot);
 		}
 		int iValid = (int)apValidPlots.size();
@@ -509,7 +509,7 @@ CvPlot* CvMap::syncRandPlot(RandPlotTypes ePredicates, CvArea const* pArea,
 		CvPlot& kTestPlot = getPlot(
 				GC.getGame().getSorenRandNum(getGridWidth(), "Rand Plot Width"),
 				GC.getGame().getSorenRandNum(getGridHeight(), "Rand Plot Height"));
-		if (isValidRandPlot(kTestPlot, ePredicates, pArea, iMinCivUnitDistance))
+		if (isValidRandPlot(kTestPlot, eFlags, pArea, iMinCivUnitDistance))
 		{	/*  <advc.304> Not useful, but want to make sure it doesn't stay
 				uninitialized. 1 since we found only 1 valid plot. */
 			if(piValidCount != NULL)
@@ -523,7 +523,7 @@ CvPlot* CvMap::syncRandPlot(RandPlotTypes ePredicates, CvArea const* pArea,
 }
 
 // advc: Body cut from syncRandPlot
-bool CvMap::isValidRandPlot(CvPlot const& kPlot, RandPlotTypes ePredicates,
+bool CvMap::isValidRandPlot(CvPlot const& kPlot, RandPlotFlags eFlags,
 	CvArea const* pArea, int iMinCivUnitDistance) const
 {
 	if (pArea != NULL && !kPlot.isArea(*pArea))
@@ -535,24 +535,24 @@ bool CvMap::isValidRandPlot(CvPlot const& kPlot, RandPlotTypes ePredicates,
 	{
 		return false;
 	}
-	if ((ePredicates & RANDPLOT_LAND) && kPlot.isWater())
+	if ((eFlags & RANDPLOT_LAND) && kPlot.isWater())
 		return false;
-	if ((ePredicates & RANDPLOT_UNOWNED) && kPlot.isOwned())
+	if ((eFlags & RANDPLOT_UNOWNED) && kPlot.isOwned())
 		return false;
-	if ((ePredicates & RANDPLOT_ADJACENT_UNOWNED) && kPlot.isAdjacentOwned())
+	if ((eFlags & RANDPLOT_ADJACENT_UNOWNED) && kPlot.isAdjacentOwned())
 		return false;
-	if ((ePredicates & RANDPLOT_ADJACENT_LAND) && !kPlot.isAdjacentToLand())
+	if ((eFlags & RANDPLOT_ADJACENT_LAND) && !kPlot.isAdjacentToLand())
 		return false;
-	if ((ePredicates & RANDPLOT_PASSABLE) && kPlot.isImpassable())
+	if ((eFlags & RANDPLOT_PASSABLE) && kPlot.isImpassable())
 		return false;
-	if ((ePredicates & RANDPLOT_NOT_VISIBLE_TO_CIV) && kPlot.isVisibleToCivTeam())
+	if ((eFlags & RANDPLOT_NOT_VISIBLE_TO_CIV) && kPlot.isVisibleToCivTeam())
 		return false;
-	if ((ePredicates & RANDPLOT_NOT_CITY) && kPlot.isCity())
+	if ((eFlags & RANDPLOT_NOT_CITY) && kPlot.isCity())
 		return false;
 	// <advc.300>
-	if((ePredicates & RANDPLOT_HABITABLE) && kPlot.getYield(YIELD_FOOD) <= 0)
+	if((eFlags & RANDPLOT_HABITABLE) && kPlot.getYield(YIELD_FOOD) <= 0)
 		return false;
-	if((ePredicates & RANDPLOT_WATERSOURCE) && !kPlot.isFreshWater() &&
+	if((eFlags & RANDPLOT_WATERSOURCE) && !kPlot.isFreshWater() &&
 		kPlot.getYield(YIELD_FOOD) <= 0)
 	{
 		return false;
@@ -668,11 +668,11 @@ CvArea* CvMap::findBiggestArea(bool bWater)
 
 int CvMap::getMapFractalFlags() const
 {
-	CvFractal::Predicates eWrapX = CvFractal::NO_PREDICATES;
+	CvFractal::Flags eWrapX = CvFractal::NO_FLAGS;
 	if (isWrapX())
 		eWrapX = CvFractal::FRAC_WRAP_X;
 
-	CvFractal::Predicates eWrapY = CvFractal::NO_PREDICATES;
+	CvFractal::Flags eWrapY = CvFractal::NO_FLAGS;
 	if (isWrapY())
 		eWrapY = CvFractal::FRAC_WRAP_Y;
 	/*	(advc.enum: Convert to int. It's only used in Python anyway, and

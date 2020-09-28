@@ -15,16 +15,16 @@ public:
 	/*	advc: ... through the EXE, i.e. the values shouldn't be changed in the DLL
 		b/c that wouldn't affect the values in Python.
 		Renaming the enum doesn't hurt though. */
-	enum /*FracVals*/ Predicates
+	enum /*FracVals*/ Flags
 	{
-		NO_PREDICATES				= 0,
+		NO_FLAGS					= 0,
 		FRAC_WRAP_X					= (1 << 0),
 		FRAC_WRAP_Y					= (1 << 1),
 		FRAC_PERCENT				= (1 << 2),  //  Returns raw data as a percent.
 		FRAC_POLAR					= (1 << 3),  //  Sets polar regions to zero.
 		FRAC_CENTER_RIFT			= (1 << 4),  //  Draws rift in center of world, too.
 		FRAC_INVERT_HEIGHTS			= (1 << 5),  //  Draws inverts the heights
-		// <avdc.enum> Move ..._EXP out and give the enum bitmask operators (see end of file)
+		// <avdc.enum> Move ..._EXP out and give the enum bitwise operators (see end of file)
 	};
 	static int const DEFAULT_FRAC_X_EXP = 7;
 	static int const DEFAULT_FRAC_Y_EXP = 6; // </advc.enum>
@@ -51,7 +51,7 @@ protected:
 	// advc.003k (warning): It's not safe to add data members to this class!
 	int m_iXs;
 	int m_iYs;
-	Predicates m_eFlags; // advc.enum (was int)
+	Flags m_eFlags; // advc.enum (was int)
 
 	int m_iFracX;
 	int m_iFracY;
@@ -65,7 +65,7 @@ protected:
 
 	void fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& random,
 			byte* pbyHints, int iHintsLength,
-			Predicates eFlags, // advc.enum
+			Flags eFlags, // advc.enum
 			CvFractal* pRifts, int iFracXExp, int iFracYExp);
 	void tectonicAction(CvFractal* pRifts);
 	int yieldX(int iBadX);
@@ -74,6 +74,6 @@ protected:
 
 BOOST_STATIC_ASSERT(sizeof(CvFractal) == 44); // advc.003k
 
-OVERLOAD_BITWISE_OPERATORS(CvFractal::Predicates) // advc.enum
+OVERLOAD_BITWISE_OPERATORS(CvFractal::Flags) // advc.enum
 
 #endif

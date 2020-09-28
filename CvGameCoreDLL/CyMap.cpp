@@ -34,7 +34,7 @@ CyPlot* CyMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 {
 	// advc: No longer takes an area id
 	CvArea* pArea = m_kMap.getArea(iArea);
-	return new CyPlot(m_kMap.syncRandPlot(/* advc.enum: */(RandPlotTypes)iFlags,
+	return new CyPlot(m_kMap.syncRandPlot(/* advc.enum: */(RandPlotFlags)iFlags,
 			pArea, iMinUnitDistance, iTimeout));
 }
 

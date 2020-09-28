@@ -7794,7 +7794,7 @@ int CvGame::createBarbarianUnits(int n, CvArea& a, Shelf* pShelf, bool bCargoAll
 // <advc.300>
 CvPlot* CvGame::randomBarbarianPlot(CvArea const& a, Shelf const* pShelf)
 {
-	RandPlotTypes const ePredicates = (RANDPLOT_NOT_VISIBLE_TO_CIV |
+	RandPlotFlags const eFlags = (RANDPLOT_NOT_VISIBLE_TO_CIV |
 			/*  Shelves already ensure this and one-tile islands
 				can't spawn Barbarians anyway. */
 			//RANDPLOT_ADJACENT_LAND |
@@ -7810,10 +7810,10 @@ CvPlot* CvGame::randomBarbarianPlot(CvArea const& a, Shelf const* pShelf)
 	int iLegal = 0;
 	CvPlot* pRandPlot = NULL;
 	if (pShelf == NULL)
-		pRandPlot = GC.getMap().syncRandPlot(ePredicates, &a, iDist, -1, &iLegal);
+		pRandPlot = GC.getMap().syncRandPlot(eFlags, &a, iDist, -1, &iLegal);
 	else
 	{
-		pRandPlot = pShelf->randomPlot(ePredicates, iDist, &iLegal);
+		pRandPlot = pShelf->randomPlot(eFlags, iDist, &iLegal);
 		if(pRandPlot != NULL && iLegal * 100 < pShelf->size())
 			pRandPlot = NULL;
 	}
