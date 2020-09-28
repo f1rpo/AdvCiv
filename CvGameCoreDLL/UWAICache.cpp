@@ -1479,7 +1479,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 		CvPlot* p = c->plot();
 		int pwd = -1; // pairwise (travel) duration
 		int d = -1; // set by measureDistance
-		if(measureDistance(cacheOwnerId, DOMAIN_LAND, *p, *targetCity.plot(), &d)) {
+		if(measureDistance(cacheOwnerId, DOMAIN_LAND, *p, targetCity.getPlot(), &d)) {
 			double speed = estimateMovementSpeed(cacheOwnerId, DOMAIN_LAND, d);
 			// Will practically always have to move through some foreign tiles
 			d = std::min(d, 2) + ::round((d - std::min(d, 2)) / speed);
@@ -1496,7 +1496,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 			DomainTypes dom = DOMAIN_SEA;
 			if(!trainDeepSeaCargo)
 				dom = DOMAIN_IMMOBILE; // Encode non-ocean as IMMOBILE
-			if(measureDistance(cacheOwnerId, dom, *p, *targetCity.plot(), &d)) {
+			if(measureDistance(cacheOwnerId, dom, *p, targetCity.getPlot(), &d)) {
 				FAssert(d >= 0);
 				d = (int)std::ceil(d / estimateMovementSpeed(cacheOwnerId, DOMAIN_SEA, d)) +
 						seaPenalty;

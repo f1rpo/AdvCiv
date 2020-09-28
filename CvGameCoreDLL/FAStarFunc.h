@@ -5,7 +5,8 @@
 
 /*	advc.pf: New header for path finding functions (previously in CvGameCoreUtils.h).
 	Most of these functions get passed to CvDLLFAStarIFaceBase, so they have to
-	remain compatible with that interface. I've replaced return type int with
+	remain compatible with that interface. Also note that those functions get called
+	from the EXE despite not being exported. I've replaced return type int with
 	BOOL (which is a typedef of int) where appropritate. Those functions that
 	KmodPathFinder used to call directly, I've turned into wrappers so that
 	KmodPathFinder can use a more intuitive interface. */

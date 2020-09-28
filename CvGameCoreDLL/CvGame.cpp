@@ -7828,23 +7828,24 @@ CvPlot* CvGame::randomBarbarianPlot(CvArea const& a, Shelf const* pShelf)
 }
 
 
-bool CvGame::killBarbarian(int iPresent, int iTiles, int iBarbPop, CvArea& a, Shelf* shelf)
+bool CvGame::killBarbarian(int iUnitsPresent, int iTiles, int iPop, CvArea& a, Shelf* pShelf)
 {
-	if (iPresent <= 5) // 5 is never a crowd
+	if (iUnitsPresent <= 5) // 5 is never a crowd
 		return false;
-	double divisor = 4 * iBarbPop;
-	if (shelf != NULL)
-		divisor += shelf->size();
-	else divisor += iTiles; /*  Includes 50% shelf (given the way this function
+	scaled rDivisor = std::max(1, 4 * iPop);
+	if (pShelf != NULL)
+		rDivisor += pShelf->size();
+	else rDivisor += iTiles; /*  Includes 50% shelf (given the way this function
 								is currently used). */
 	// Don't want large Barbarian continents crawling with units
-	divisor = 5 * std::pow(divisor, 0.7);
-	if (::bernoulliSuccess(iPresent / divisor, "advc.300 (kill_2)"))
+	rDivisor.exponentiate(fixp(0.7));
+	rDivisor *= 5;
+	if ((iUnitsPresent / rDivisor).bernoulliSuccess(getSRand(), "killBarbarian2"))
 	{
-		if(shelf != NULL)
-			return shelf->killBarbarian();
-		/*  Tbd.: Be a bit more considerate about which unit to sacrifice.
-			Currently, it's the same (arbitrary) method as for animal culling. */
+		if(pShelf != NULL)
+			return pShelf->killBarbarian();
+		/*  The same method as for animal culling. Should result
+			in first-in-first-out behavior; fair enough. */
 		FOR_EACH_UNIT_VAR(pUnit, GET_PLAYER(BARBARIAN_PLAYER))
 		{
 			CvUnit& u = *pUnit;

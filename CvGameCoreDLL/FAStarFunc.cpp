@@ -426,7 +426,7 @@ int pathCost(CvPlot const& kFrom, CvPlot const& kTo,
 				/*	For human-controlled units, only apply the following effects
 					for multi-step moves. (otherwise this might prevent the user
 					from attacking from where they want to attack from.) */
-				if (bAIControl || iKnownCost != 0 || eFlags & MOVE_HAS_STEPPED)
+				if (bAIControl || iKnownCost != 0 || (eFlags & MOVE_HAS_STEPPED))
 				{
 					iAttackCount++;
 					if (!pLoopUnit->noDefensiveBonus())
@@ -520,7 +520,7 @@ int pathCost(CvPlot const& kFrom, CvPlot const& kTo,
 }
 
 
-/*	advc.inl (note): These two functions are ultimately only called in the EXE,
+/*	advc.inl (note): These two functions are only called from the EXE,
 	so there's no point in trying to get them inlined. */
 int stepHeuristic(int iFromX, int iFromY, int iToX, int iToY)
 {

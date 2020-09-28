@@ -62,8 +62,7 @@ void CyUnit::doCommand(CommandTypes eCommand, int iData1, int iData2)
 
 CyPlot* CyUnit::getPathEndTurnPlot()
 {
-	return m_pUnit ? new CyPlot(m_pUnit->getPathEndTurnPlot()) : //false
-			NULL; // advc.001
+	return m_pUnit ? new CyPlot(m_pUnit->getPathEndTurnPlot()) : NULL;
 }
 
 bool CyUnit::generatePath(CyPlot* pToPlot, int iFlags, bool bReuse, int* piPathTurns)

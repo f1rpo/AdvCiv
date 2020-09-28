@@ -1028,7 +1028,7 @@ protected:
 	int createBarbarianUnits(int n, CvArea& a, Shelf* shelf, bool bCargoAllowed = false,
 			bool bOnlyCargo = false);
 	CvPlot* randomBarbarianPlot(CvArea const& a, Shelf const* pShelf);
-	bool killBarbarian(int iPresent, int iTiles, int iPop, CvArea& a, Shelf* shelf);
+	bool killBarbarian(int iUnitsPresent, int iTiles, int iPop, CvArea& a, Shelf* pShelf);
 	UnitTypes randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a);
 	// </advc.300>
 
