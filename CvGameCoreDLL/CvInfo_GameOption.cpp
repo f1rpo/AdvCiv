@@ -1539,7 +1539,7 @@ wchar const* CvSeaLevelInfo::getDescriptionInternal(uint uiForm) const
 		/*	This distinguishes Custom Game from Play Now.
 			(Play Now doesn't have enough room for a recommendation,
 			and doesn't allow player counts to be adjusted.) */
-		kInitCore.getSlotStatus(FIRST_PLAYER) == SS_OPEN)
+		kInitCore.getSlotStatus((PlayerTypes)0) == SS_OPEN)
 	{
 		CvWString szTag;
 		if (m_iSeaLevelChange < 0)

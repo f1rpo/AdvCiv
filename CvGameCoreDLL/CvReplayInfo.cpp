@@ -155,7 +155,7 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 	EnumMap<PlayerTypes,PlayerTypes> aePlayerIndices; // advc.enum
 	/*	advc (note): This loop remaps player IDs so that players never alive are skipped.
 		Not sure if this is really needed. */
-	PlayerTypes eNewIndex = FIRST_PLAYER;
+	PlayerTypes eNewIndex = (PlayerTypes)0;
 	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
 		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
