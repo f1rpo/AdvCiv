@@ -1106,4 +1106,14 @@
 	<Spanish>Consider producing settlers and workers in cities with angry or unhealthy citizens. So long as food gets converted into production, angry citizens don't consume food and unhealthiness from population isn't counted.</Spanish>
 </TEXT>
 
+<!-- advc.004m: -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_48</Tag>
+	<English>(AdvCiv) The audio mix is affected by the camera distance. If e.g. the music volume is too low at your preferred camera distance, consider changing the default camera distance on "Map" tab of the BUG menu.</English>
+	<French>(AdvCiv) The audio mix is affected by the camera distance. If e.g. the music volume is too low at your preferred camera distance, consider changing the default camera distance on "Map" tab of the BUG menu.</French>
+	<German>(AdvCiv) Die Tonmischung hängt vom Kameraabstand ab. Falls z.B. die Musik nicht laut genug ist, kann es helfen, im BUG-Menü den Standard-Kameraabstand zu ändern (unter dem Reiter "Karte").</German>
+	<Italian>(AdvCiv) The audio mix is affected by the camera distance. If e.g. the music volume is too low at your preferred camera distance, consider changing the default camera distance on "Map" tab of the BUG menu.</Italian>
+	<Spanish>(AdvCiv) The audio mix is affected by the camera distance. If e.g. the music volume is too low at your preferred camera distance, consider changing the default camera distance on "Map" tab of the BUG menu.</Spanish>
+</TEXT>
+
 </Civ4GameText>
