@@ -18597,7 +18597,7 @@ bool CvPlayer::getHeadingTradeString(PlayerTypes eOtherPlayer, TradeableItems eI
 }
 
 
-bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
+bool CvPlayer::getItemTradeString(PlayerTypes eRecipient, bool bOffer,
 	bool bShowingCurrent, const TradeData& zTradeData,
 	CvWString& szString, CvString& szIcon) const
 {
@@ -18612,7 +18612,7 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 			TradeableItems eItemType = zTradeData.m_eItemType;
 			if (CvDeal::isAnnual(eItemType) || eItemType == TRADE_PEACE_TREATY)
 			{
-				pDeal = GC.getGame().nextCurrentDeal(eOtherPlayer, getID(),
+				pDeal = GC.getGame().nextCurrentDeal(eRecipient, getID(),
 						eItemType, zTradeData.m_iData);
 				/*  Call nextCurrentDeal for all annual deals plus peace treaties
 					in order to stay in-sync with the iteration done by the EXE,
@@ -18636,7 +18636,7 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 		else
 		{
 			szString = gDLL->getText("TXT_KEY_TRADE_GOLD_NUM",
-					AI().AI_maxGoldTrade(eOtherPlayer));
+					AI().AI_maxGoldTrade(eRecipient));
 		}
 		break;
 	case TRADE_GOLD_PER_TURN:
@@ -18648,7 +18648,7 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 		else
 		{
 			szString = gDLL->getText("TXT_KEY_TRADE_GOLD_PER_TURN_NUM",
-					AI().AI_maxGoldPerTurnTrade(eOtherPlayer));
+					AI().AI_maxGoldPerTurnTrade(eRecipient));
 		}
 		break;
 	case TRADE_MAPS:
@@ -18670,11 +18670,16 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 		szString = gDLL->getText("TXT_KEY_TRADE_PERMANENT_ALLIANCE_STRING");
 		break;
 	case TRADE_PEACE_TREATY:
-		if(GET_TEAM(eOtherPlayer).isAtWar(getTeam())) // advc.072
+		if(GET_TEAM(eRecipient).isAtWar(getTeam())) // advc.072
 		{
 			szString = gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY_STRING",
 					GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
-		}
+		}  // <advc.104m> AI offering a peace treaty at peacetime
+		else if (bOffer)
+		{
+			szString = gDLL->getText("TXT_KEY_TRADE_SIGN_PEACE_TREATY",
+					GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH));
+		} // </advc.104m>
 		else szString = gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY_STR"); // advc.072
 		break;
 	case TRADE_TECHNOLOGIES:
@@ -18686,7 +18691,7 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 		BonusTypes const eBonus = (BonusTypes)zTradeData.m_iData; // advc
 		if (bOffer)
 		{
-			int iResources = GET_PLAYER(eOtherPlayer).getNumTradeableBonuses(eBonus);
+			int iResources = GET_PLAYER(eRecipient).getNumTradeableBonuses(eBonus);
 			if (bShowingCurrent)
 				iResources++;
 			szString = gDLL->getText("TXT_KEY_TRADE_RESOURCE",
@@ -18705,12 +18710,12 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 	{
 		CvCity const* pCity = NULL;
 		if (bOffer)
-			pCity = GET_PLAYER(eOtherPlayer).getCity(zTradeData.m_iData);
+			pCity = GET_PLAYER(eRecipient).getCity(zTradeData.m_iData);
 		else pCity = getCity(zTradeData.m_iData);
 		if (pCity != NULL)
 		{
 			if (pCity->getLiberationPlayer() == //eOtherPlayer)
-				(bOffer ? getID() : eOtherPlayer)) // advc.001 (bugfix?), advc.ctr
+				(bOffer ? getID() : eRecipient)) // advc.001 (bugfix?), advc.ctr
 			{
 				szString.Format(L"%s (%s)", pCity->getName().GetCString(),
 						gDLL->getText("TXT_KEY_LIBERATE_CITY").GetCString());
@@ -18763,7 +18768,7 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
 		break; // <advc.034>
 	case TRADE_DISENGAGE:
 		szString.clear();
-		GAMETEXT.buildDisengageString(szString, getID(), eOtherPlayer);
+		GAMETEXT.buildDisengageString(szString, getID(), eRecipient);
 		break; // </advc.034>
 	default:
 		szString.clear();

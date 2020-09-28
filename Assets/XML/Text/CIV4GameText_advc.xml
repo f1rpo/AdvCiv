@@ -5416,7 +5416,7 @@
 		<Italian>[COLOR_WARNING_TEXT]Impossibile colpire con armi nucleari il territorio e le unit&#224; amiche[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_WARNING_TEXT]No se pueden hacer bombardeos nucleares contra los territorios o unidades amigos[COLOR_REVERT]</Spanish>
 	</TEXT>
-	
+
 	<!-- advc.072: Based on TXT_KEY_TRADE_PEACE_TREATY_STRING in
 		 CIV4GameTextInfos.xml -->
 	<TEXT>
@@ -5427,7 +5427,17 @@
 		<Italian>Trattato di pace</Italian>
 		<Spanish>Tratado de paz</Spanish>
 	</TEXT>
-	
+
+	<!-- advc.104m: -->
+	<TEXT>
+		<Tag>TXT_KEY_TRADE_SIGN_PEACE_TREATY</Tag>
+		<English>Sign Peace Treaty (%d1_Num [NUM1:Turn:Turns])</English>
+		<French>Trait&#233; de paix (%d1_Num [NUM1:tour:tours])</French>
+		<German>Friedensvertrag (%d1_Num [NUM1:Runde:Runden])</German>
+		<Italian>Trattato di pace (%d1_Num [NUM1:turno:turni])</Italian>
+		<Spanish>Tratado de paz (%d1_Num [NUM1:turno:turnos])</Spanish>
+	</TEXT>
+
 	<!-- advc.036 -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_WILL_PAY</Tag>

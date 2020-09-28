@@ -1380,7 +1380,7 @@ public:
 	DllExport void buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourList) const;
 	DllExport bool getHeadingTradeString(PlayerTypes eOtherPlayer, TradeableItems eItem,
 			CvWString& szString, CvString& szIcon) const;
-	DllExport bool getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer, bool bShowingCurrent,
+	DllExport bool getItemTradeString(PlayerTypes eRecipient, bool bOffer, bool bShowingCurrent,
 			TradeData const& zTradeData, CvWString& szString, CvString& szIcon) const;
 	DllExport void updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourInventory,
 			CLinkList<TradeData> const& ourOffer, CLinkList<TradeData> const& theirOffer) const;
