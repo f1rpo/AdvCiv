@@ -6767,329 +6767,299 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 }
 
 
-void CvGameTextMgr::parseTraits(CvWStringBuffer &szHelpString, TraitTypes eTrait, CivilizationTypes eCivilization, bool bDawnOfMan)
+void CvGameTextMgr::parseTraits(CvWStringBuffer &szHelpString, TraitTypes eTrait,
+	CivilizationTypes eCivilization, bool bDawnOfMan)
 {
 	PROFILE_FUNC();
 
-	CvWString szTempBuffer;
-	BuildingTypes eLoopBuilding;
-	UnitTypes eLoopUnit;
-	int iI, iJ;
-	CvWString szText;
+	CvTraitInfo const& kTrait = GC.getInfo(eTrait);
 
-	// Trait Name
-	szText = GC.getInfo(eTrait).getDescription();
+	CvWString szText = kTrait.getDescription();
+	{
+		CvWString szTempBuffer;
+		if (bDawnOfMan)
+			szTempBuffer.Format(L"%s", szText.GetCString());
+		else
+		{
+			szTempBuffer.Format(NEWLINE SETCOLR L"%s" ENDCOLR,
+					TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"), szText.GetCString());
+		}
+		szHelpString.append(szTempBuffer);
+	}
 	if (bDawnOfMan)
+		return;
+
+	//if (!CvWString(kTrait.getHelp()).empty()) // advc: unnecessary
+	szHelpString.append(kTrait.getHelp());
+
+	if (kTrait.getHealth() != 0)
+		szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_HEALTH", kTrait.getHealth()));
+
+	if (kTrait.getHappiness() != 0)
+		szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_HAPPINESS", kTrait.getHappiness()));
+
+	if (kTrait.getMaxAnarchy() != -1)
 	{
-		szTempBuffer.Format(L"%s", szText.GetCString());
+		if (kTrait.getMaxAnarchy() == 0)
+			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_NO_ANARCHY"));
+		else
+		{
+			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_MAX_ANARCHY",
+					kTrait.getMaxAnarchy()));
+		}
 	}
-	else
+	if (kTrait.getUpkeepModifier() != 0)
 	{
-		szTempBuffer.Format(NEWLINE SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"), szText.GetCString());
+		szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_CIVIC_UPKEEP_MODIFIER",
+				kTrait.getUpkeepModifier()));
 	}
-	szHelpString.append(szTempBuffer);
-
-	if (!bDawnOfMan)
+	if (kTrait.getLevelExperienceModifier() != 0)
 	{
-		if (!CvWString(GC.getInfo(eTrait).getHelp()).empty())
+		szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_CIVIC_LEVEL_MODIFIER",
+				kTrait.getLevelExperienceModifier()));
+	}
+	if (kTrait.getGreatPeopleRateModifier() != 0)
+	{
+		szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_GREAT_PEOPLE_MODIFIER",
+				kTrait.getGreatPeopleRateModifier()));
+	}
+	if (kTrait.getGreatGeneralRateModifier() != 0)
+	{
+		szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_GREAT_GENERAL_MODIFIER",
+				kTrait.getGreatGeneralRateModifier()));
+	}
+	if (kTrait.getDomesticGreatGeneralRateModifier() != 0)
+	{
+		szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_DOMESTIC_GREAT_GENERAL_MODIFIER",
+				kTrait.getDomesticGreatGeneralRateModifier()));
+	}
+	// Wonder Production Effects
+	if (kTrait.getMaxGlobalBuildingProductionModifier() != 0 ||
+		kTrait.getMaxTeamBuildingProductionModifier() != 0 ||
+		kTrait.getMaxPlayerBuildingProductionModifier() != 0)
+	{
+		if (kTrait.getMaxGlobalBuildingProductionModifier() ==
+			kTrait.getMaxTeamBuildingProductionModifier() &&
+			kTrait.getMaxGlobalBuildingProductionModifier() ==
+			kTrait.getMaxPlayerBuildingProductionModifier())
 		{
-			szHelpString.append(GC.getInfo(eTrait).getHelp());
+			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_WONDER_PRODUCTION_MODIFIER",
+					kTrait.getMaxGlobalBuildingProductionModifier()));
 		}
-
-		// iHealth
-		if (GC.getInfo(eTrait).getHealth() != 0)
+		else
 		{
-			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_HEALTH", GC.getInfo(eTrait).getHealth()));
-		}
-
-		// iHappiness
-		if (GC.getInfo(eTrait).getHappiness() != 0)
-		{
-			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_HAPPINESS", GC.getInfo(eTrait).getHappiness()));
-		}
-
-		// iMaxAnarchy
-		if (GC.getInfo(eTrait).getMaxAnarchy() != -1)
-		{
-			if (GC.getInfo(eTrait).getMaxAnarchy() == 0)
+			if (kTrait.getMaxGlobalBuildingProductionModifier() != 0)
 			{
-				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_NO_ANARCHY"));
+				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_WORLD_WONDER_PRODUCTION_MODIFIER",
+						kTrait.getMaxGlobalBuildingProductionModifier()));
 			}
-			else
+			if (kTrait.getMaxTeamBuildingProductionModifier() != 0)
 			{
-				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_MAX_ANARCHY", GC.getInfo(eTrait).getMaxAnarchy()));
+				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_TEAM_WONDER_PRODUCTION_MODIFIER",
+						kTrait.getMaxTeamBuildingProductionModifier()));
 			}
-		}
-
-		// iUpkeepModifier
-		if (GC.getInfo(eTrait).getUpkeepModifier() != 0)
-		{
-			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_CIVIC_UPKEEP_MODIFIER", GC.getInfo(eTrait).getUpkeepModifier()));
-		}
-
-		// iLevelExperienceModifier
-		if (GC.getInfo(eTrait).getLevelExperienceModifier() != 0)
-		{
-			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_CIVIC_LEVEL_MODIFIER", GC.getInfo(eTrait).getLevelExperienceModifier()));
-		}
-
-		// iGreatPeopleRateModifier
-		if (GC.getInfo(eTrait).getGreatPeopleRateModifier() != 0)
-		{
-			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_GREAT_PEOPLE_MODIFIER", GC.getInfo(eTrait).getGreatPeopleRateModifier()));
-		}
-
-		// iGreatGeneralRateModifier
-		if (GC.getInfo(eTrait).getGreatGeneralRateModifier() != 0)
-		{
-			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_GREAT_GENERAL_MODIFIER", GC.getInfo(eTrait).getGreatGeneralRateModifier()));
-		}
-
-		if (GC.getInfo(eTrait).getDomesticGreatGeneralRateModifier() != 0)
-		{
-			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_DOMESTIC_GREAT_GENERAL_MODIFIER", GC.getInfo(eTrait).getDomesticGreatGeneralRateModifier()));
-		}
-
-		// Wonder Production Effects
-		if ((GC.getInfo(eTrait).getMaxGlobalBuildingProductionModifier() != 0)
-			|| (GC.getInfo(eTrait).getMaxTeamBuildingProductionModifier() != 0)
-			|| (GC.getInfo(eTrait).getMaxPlayerBuildingProductionModifier() != 0))
-		{
-			if ((GC.getInfo(eTrait).getMaxGlobalBuildingProductionModifier() == GC.getInfo(eTrait).getMaxTeamBuildingProductionModifier())
-				&& 	(GC.getInfo(eTrait).getMaxGlobalBuildingProductionModifier() == GC.getInfo(eTrait).getMaxPlayerBuildingProductionModifier()))
+			if (kTrait.getMaxPlayerBuildingProductionModifier() != 0)
 			{
-				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_WONDER_PRODUCTION_MODIFIER", GC.getInfo(eTrait).getMaxGlobalBuildingProductionModifier()));
-			}
-			else
-			{
-				if (GC.getInfo(eTrait).getMaxGlobalBuildingProductionModifier() != 0)
-				{
-					szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_WORLD_WONDER_PRODUCTION_MODIFIER", GC.getInfo(eTrait).getMaxGlobalBuildingProductionModifier()));
-				}
-
-				if (GC.getInfo(eTrait).getMaxTeamBuildingProductionModifier() != 0)
-				{
-					szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_TEAM_WONDER_PRODUCTION_MODIFIER", GC.getInfo(eTrait).getMaxTeamBuildingProductionModifier()));
-				}
-
-				if (GC.getInfo(eTrait).getMaxPlayerBuildingProductionModifier() != 0)
-				{
-					szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_NATIONAL_WONDER_PRODUCTION_MODIFIER", GC.getInfo(eTrait).getMaxPlayerBuildingProductionModifier()));
-				}
+				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_NATIONAL_WONDER_PRODUCTION_MODIFIER",
+						kTrait.getMaxPlayerBuildingProductionModifier()));
 			}
 		}
-
-		// ExtraYieldThresholds
-		for (iI = 0; iI < NUM_YIELD_TYPES; ++iI)
-		{	// advc.908a:
-			int iExtraYieldThresh = GC.getInfo(eTrait).getExtraYieldThreshold(iI);
-			int iYieldChar = GC.getInfo((YieldTypes) iI).getChar();
-			if(iExtraYieldThresh > 0)
-			{
-				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_EXTRA_YIELD_THRESHOLDS", GC.getInfo((YieldTypes) iI).getChar(),
-						iExtraYieldThresh, iYieldChar,
-						iExtraYieldThresh + 1, iYieldChar)); // advc.908a
-			}
-			// Trade Yield Modifiers
-			if (GC.getInfo(eTrait).getTradeYieldModifier(iI) != 0)
-			{
-				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_TRADE_YIELD_MODIFIERS", GC.getInfo(eTrait).getTradeYieldModifier(iI), GC.getInfo((YieldTypes) iI).getChar(), "YIELD"));
-			}
-		}
-
-		// CommerceChanges
-		for (iI = 0; iI < NUM_COMMERCE_TYPES; ++iI)
+	}
+	FOR_EACH_ENUM2(Yield, eYield)
+	{	// advc.908a:
+		int iExtraYieldThresh = kTrait.getExtraYieldThreshold(eYield);
+		wchar iYieldChar = GC.getInfo(eYield).getChar();
+		if(iExtraYieldThresh > 0)
 		{
-			if (GC.getInfo(eTrait).getCommerceChange(iI) != 0)
-			{
-				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_COMMERCE_CHANGES", 	GC.getInfo(eTrait).getCommerceChange(iI), GC.getInfo((CommerceTypes) iI).getChar(), "COMMERCE"));
-			}
-
-			if (GC.getInfo(eTrait).getCommerceModifier(iI) != 0)
-			{
-				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_COMMERCE_MODIFIERS", GC.getInfo(eTrait).getCommerceModifier(iI), GC.getInfo((CommerceTypes) iI).getChar(), "COMMERCE"));
-			}
+			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_EXTRA_YIELD_THRESHOLDS",
+					GC.getInfo(eYield).getChar(), iExtraYieldThresh, iYieldChar,
+					iExtraYieldThresh + 1, iYieldChar)); // advc.908a
 		}
-
-		// Free Promotions
+		if (kTrait.getTradeYieldModifier(eYield) != 0)
+		{
+			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_TRADE_YIELD_MODIFIERS",
+					kTrait.getTradeYieldModifier(eYield),
+					GC.getInfo(eYield).getChar(), "YIELD"));
+		}
+	}
+	FOR_EACH_ENUM2(Commerce, eCommerce)
+	{
+		if (kTrait.getCommerceChange(eCommerce) != 0)
+		{
+			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_COMMERCE_CHANGES",
+					kTrait.getCommerceChange(eCommerce),
+					GC.getInfo(eCommerce).getChar(), "COMMERCE"));
+		}
+		if (kTrait.getCommerceModifier(eCommerce) != 0)
+		{
+			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_COMMERCE_MODIFIERS",
+					kTrait.getCommerceModifier(eCommerce),
+					GC.getInfo(eCommerce).getChar(), "COMMERCE"));
+		}
+	}
+	{
+		CvWString szTempBuffer;
 		bool bFoundPromotion = false;
-		szTempBuffer.clear();
-		for (iI = 0; iI < GC.getNumPromotionInfos(); ++iI)
+		FOR_EACH_ENUM(Promotion)
 		{
-			if (GC.getInfo(eTrait).isFreePromotion(iI))
+			if (kTrait.isFreePromotion(eLoopPromotion))
 			{
 				if (bFoundPromotion)
-				{
 					szTempBuffer += L", ";
-				}
-
-				szTempBuffer += CvWString::format(L"<link=literal>%s</link>", GC.getInfo((PromotionTypes) iI).getDescription());
+				szTempBuffer += CvWString::format(L"<link=literal>%s</link>",
+						GC.getInfo(eLoopPromotion).getDescription());
 				bFoundPromotion = true;
 			}
 		}
-
 		if (bFoundPromotion)
 		{
-			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_FREE_PROMOTIONS", szTempBuffer.GetCString()));
+			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_FREE_PROMOTIONS",
+					szTempBuffer.GetCString()));
 
-			for (iJ = 0; iJ < GC.getNumUnitCombatInfos(); iJ++)
+			FOR_EACH_ENUM(UnitCombat)
 			{
-				if (GC.getInfo(eTrait).isFreePromotionUnitCombat(iJ))
+				if (kTrait.isFreePromotionUnitCombat(eLoopUnitCombat))
 				{
-					szTempBuffer.Format(L"\n        %c<link=literal>%s</link>", gDLL->getSymbolID(BULLET_CHAR), GC.getInfo((UnitCombatTypes)iJ).getDescription());
+					szTempBuffer.Format(L"\n        %c<link=literal>%s</link>",
+							gDLL->getSymbolID(BULLET_CHAR),
+							GC.getInfo(eLoopUnitCombat).getDescription());
 					szHelpString.append(szTempBuffer);
 				}
 			}
 		}
-
-		// No Civic Maintenance
-		for (iI = 0; iI < GC.getNumCivicOptionInfos(); ++iI)
+	}
+	FOR_EACH_ENUM(CivicOption)
+	{
+		if (GC.getInfo(eLoopCivicOption).getTraitNoUpkeep(eTrait))
 		{
-			if (GC.getInfo((CivicOptionTypes) iI).getTraitNoUpkeep(eTrait))
-			{
-				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_NO_UPKEEP", GC.getInfo((CivicOptionTypes)iI).getTextKeyWide()));
-			}
+			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_NO_UPKEEP",
+					GC.getInfo(eLoopCivicOption).getTextKeyWide()));
 		}
-
-		// Increase Building/Unit Production Speeds
+	}
+	{	// Increase Building/Unit Production Speeds
 		int iLast = 0;
-		for (iI = 0; iI < GC.getNumSpecialUnitInfos(); ++iI)
+		FOR_EACH_ENUM(SpecialUnit)
 		{
-			if (GC.getInfo((SpecialUnitTypes) iI).getProductionTraits(eTrait) != 0)
+			if (GC.getInfo(eLoopSpecialUnit).getProductionTraits(eTrait) != 0)
 			{
-				if (GC.getInfo((SpecialUnitTypes) iI).getProductionTraits(eTrait) == 100)
-				{
+				if (GC.getInfo(eLoopSpecialUnit).getProductionTraits(eTrait) == 100)
 					szText = gDLL->getText("TXT_KEY_TRAIT_DOUBLE_SPEED");
-				}
 				else
 				{
-					szText = gDLL->getText("TXT_KEY_TRAIT_PRODUCTION_MODIFIER", GC.getInfo((SpecialUnitTypes) iI).getProductionTraits(eTrait));
+					szText = gDLL->getText("TXT_KEY_TRAIT_PRODUCTION_MODIFIER",
+							GC.getInfo(eLoopSpecialUnit).getProductionTraits(eTrait));
 				}
-				setListHelp(szHelpString, szText.GetCString(), GC.getInfo((SpecialUnitTypes) iI).getDescription(), L", ", (GC.getInfo((SpecialUnitTypes) iI).getProductionTraits(eTrait) != iLast));
-				iLast = GC.getInfo((SpecialUnitTypes) iI).getProductionTraits(eTrait);
+				setListHelp(szHelpString, szText.GetCString(),
+						GC.getInfo(eLoopSpecialUnit).getDescription(), L", ",
+						(GC.getInfo(eLoopSpecialUnit).getProductionTraits(eTrait) != iLast));
+				iLast = GC.getInfo(eLoopSpecialUnit).getProductionTraits(eTrait);
 			}
 		}
-
-		// Unit Classes
-		iLast = 0;
+	}
+	{	// Unit Classes
+		int iLast = 0;
 		FOR_EACH_ENUM(UnitClass)
 		{
-			if (eCivilization == NO_CIVILIZATION)
-				eLoopUnit = GC.getInfo(eLoopUnitClass).getDefaultUnit();
-			else eLoopUnit = GC.getInfo(eCivilization).getCivilizationUnits(iI);
-
-			if (eLoopUnit != NO_UNIT && !GC.getInfo(eLoopUnitClass).isWorldUnit())
+			UnitTypes const eLoopUnit = (eCivilization == NO_CIVILIZATION ?
+					GC.getInfo(eLoopUnitClass).getDefaultUnit() :
+					GC.getInfo(eCivilization).getCivilizationUnits(eLoopUnitClass));
+			if (eLoopUnit == NO_UNIT || GC.getInfo(eLoopUnitClass).isWorldUnit() ||
+				GC.getInfo(eLoopUnit).getProductionTraits(eTrait) == 0)
 			{
-				if (GC.getInfo(eLoopUnit).getProductionTraits(eTrait) != 0)
-				{
-					if (GC.getInfo(eLoopUnit).getProductionTraits(eTrait) == 100)
-						szText = gDLL->getText("TXT_KEY_TRAIT_DOUBLE_SPEED");
-					else
-					{
-						szText = gDLL->getText("TXT_KEY_TRAIT_PRODUCTION_MODIFIER",
-								GC.getInfo(eLoopUnit).getProductionTraits(eTrait));
-					}
-					CvWString szUnit;
-					szUnit.Format(L"<link=literal>%s</link>",
-							GC.getInfo(eLoopUnit).getDescription());
-					setListHelp(szHelpString, szText.GetCString(), szUnit, L", ",
-							GC.getInfo(eLoopUnit).getProductionTraits(eTrait) != iLast);
-					iLast = GC.getInfo(eLoopUnit).getProductionTraits(eTrait);
-				}
+				continue;
 			}
-		}
-
-		// SpecialBuildings
-		iLast = 0;
-		for (iI = 0; iI < GC.getNumSpecialBuildingInfos(); ++iI)
-		{
-			if (GC.getInfo((SpecialBuildingTypes) iI).getProductionTraits(eTrait) != 0)
-			{
-				if (GC.getInfo((SpecialBuildingTypes) iI).getProductionTraits(eTrait) == 100)
-				{
+			CvUnitInfo const& kLoopUnit = GC.getInfo(eLoopUnit);
+			if (kLoopUnit.getProductionTraits(eTrait) == 100)
 					szText = gDLL->getText("TXT_KEY_TRAIT_DOUBLE_SPEED");
-				}
+			else
+			{
+				szText = gDLL->getText("TXT_KEY_TRAIT_PRODUCTION_MODIFIER",
+						kLoopUnit.getProductionTraits(eTrait));
+			}
+			CvWString szUnit;
+			szUnit.Format(L"<link=literal>%s</link>", kLoopUnit.getDescription());
+			setListHelp(szHelpString, szText.GetCString(), szUnit, L", ",
+					kLoopUnit.getProductionTraits(eTrait) != iLast);
+			iLast = kLoopUnit.getProductionTraits(eTrait);
+		}
+	}
+	{
+		int iLast = 0;
+		FOR_EACH_ENUM(SpecialBuilding)
+		{
+			if (GC.getInfo(eLoopSpecialBuilding).getProductionTraits(eTrait) != 0)
+			{
+				if (GC.getInfo(eLoopSpecialBuilding).getProductionTraits(eTrait) == 100)
+					szText = gDLL->getText("TXT_KEY_TRAIT_DOUBLE_SPEED");
 				else
 				{
-					szText = gDLL->getText("TXT_KEY_TRAIT_PRODUCTION_MODIFIER", GC.getInfo((SpecialBuildingTypes) iI).getProductionTraits(eTrait));
+					szText = gDLL->getText("TXT_KEY_TRAIT_PRODUCTION_MODIFIER",
+							GC.getInfo(eLoopSpecialBuilding).getProductionTraits(eTrait));
 				}
-				setListHelp(szHelpString, szText.GetCString(), GC.getInfo((SpecialBuildingTypes) iI).getDescription(), L", ", (GC.getInfo((SpecialBuildingTypes) iI).getProductionTraits(eTrait) != iLast));
-				iLast = GC.getInfo((SpecialBuildingTypes) iI).getProductionTraits(eTrait);
+				setListHelp(szHelpString, szText.GetCString(),
+						GC.getInfo(eLoopSpecialBuilding).getDescription(), L", ",
+						GC.getInfo(eLoopSpecialBuilding).getProductionTraits(eTrait) != iLast);
+				iLast = GC.getInfo(eLoopSpecialBuilding).getProductionTraits(eTrait);
 			}
 		}
-
-		// Buildings
-		iLast = 0;
-		FOR_EACH_ENUM(BuildingClass)
+	}
+	std::vector<CvBuildingInfo const*> apBuildings; // advc
+	FOR_EACH_ENUM(BuildingClass)
+	{
+		BuildingTypes const eLoopBuilding =  (eCivilization == NO_CIVILIZATION ?
+				GC.getInfo(eLoopBuildingClass).getDefaultBuilding() :
+				GC.getInfo(eCivilization).getCivilizationBuildings(eLoopBuildingClass));
+		if (eLoopBuilding != NO_BUILDING &&
+			!GC.getInfo(eLoopBuildingClass).isWorldWonder())
+		{	// <advc>
+			apBuildings.push_back(&GC.getInfo(eLoopBuilding));
+		}
+	}
+	{
+		int iLast = 0;
+		for (size_t i = 0; i < apBuildings.size(); i++)
 		{
-			if (eCivilization == NO_CIVILIZATION)
-				eLoopBuilding = GC.getInfo(eLoopBuildingClass).getDefaultBuilding();
+			CvBuildingInfo const& kBuilding = *apBuildings[i]; // </advc>
+			if (kBuilding.getProductionTraits(eTrait) == 0)
+				continue;
+			if (kBuilding.getProductionTraits(eTrait) == 100)
+				szText = gDLL->getText("TXT_KEY_TRAIT_DOUBLE_SPEED");
 			else
 			{
-				eLoopBuilding = GC.getInfo(eCivilization).
-						getCivilizationBuildings(eLoopBuildingClass);
+				szText = gDLL->getText("TXT_KEY_TRAIT_PRODUCTION_MODIFIER",
+						kBuilding.getProductionTraits(eTrait));
 			}
-
-			if (eLoopBuilding != NO_BUILDING &&
-				!GC.getInfo(eLoopBuildingClass).isWorldWonder())
-			{
-				if (GC.getInfo(eLoopBuilding).getProductionTraits(eTrait) != 0)
-				{
-					if (GC.getInfo(eLoopBuilding).getProductionTraits(eTrait) == 100)
-						szText = gDLL->getText("TXT_KEY_TRAIT_DOUBLE_SPEED");
-					else
-					{
-						szText = gDLL->getText("TXT_KEY_TRAIT_PRODUCTION_MODIFIER",
-								GC.getInfo(eLoopBuilding).getProductionTraits(eTrait));
-					}
-
-					CvWString szBuilding;
-					szBuilding.Format(L"<link=literal>%s</link>",
-							GC.getInfo(eLoopBuilding).getDescription());
-					setListHelp(szHelpString, szText.GetCString(), szBuilding, L", ",
-							GC.getInfo(eLoopBuilding).getProductionTraits(eTrait) != iLast);
-					iLast = GC.getInfo(eLoopBuilding).getProductionTraits(eTrait);
-				}
-			}
+			CvWString szBuilding;
+			szBuilding.Format(L"<link=literal>%s</link>",
+						kBuilding.getDescription());
+			setListHelp(szHelpString, szText.GetCString(), szBuilding, L", ",
+					kBuilding.getProductionTraits(eTrait) != iLast);
+			iLast = kBuilding.getProductionTraits(eTrait);
 		}
-
-		// Buildings
-		iLast = 0;
-		FOR_EACH_ENUM(BuildingClass)
+	}
+	{
+		int iLast = 0;
+		for (size_t i = 0; i < apBuildings.size(); i++)
 		{
-			if (eCivilization == NO_CIVILIZATION)
-				eLoopBuilding = GC.getInfo(eLoopBuildingClass).getDefaultBuilding();
+			CvBuildingInfo const& kBuilding = *apBuildings[i]; // </advc>
+			int iHappiness = kBuilding.getHappinessTraits(eTrait);
+			if (iHappiness == 0)
+				continue;
+			if (iHappiness > 0)
+			{
+				szText = gDLL->getText("TXT_KEY_TRAIT_BUILDING_HAPPINESS",
+						iHappiness, gDLL->getSymbolID(HAPPY_CHAR));
+			}
 			else
 			{
-				eLoopBuilding = (BuildingTypes)GC.getInfo(eCivilization).
-						getCivilizationBuildings(eLoopBuildingClass);
+				szText = gDLL->getText("TXT_KEY_TRAIT_BUILDING_HAPPINESS",
+						-iHappiness, gDLL->getSymbolID(UNHAPPY_CHAR));
 			}
-
-			if (eLoopBuilding != NO_BUILDING &&
-				!GC.getInfo(eLoopBuildingClass).isWorldWonder())
-			{
-				int iHappiness = GC.getInfo(eLoopBuilding).getHappinessTraits(eTrait);
-				if (iHappiness != 0)
-				{
-					if (iHappiness > 0)
-					{
-						szText = gDLL->getText("TXT_KEY_TRAIT_BUILDING_HAPPINESS",
-								iHappiness, gDLL->getSymbolID(HAPPY_CHAR));
-					}
-					else
-					{
-						szText = gDLL->getText("TXT_KEY_TRAIT_BUILDING_HAPPINESS",
-								-iHappiness, gDLL->getSymbolID(UNHAPPY_CHAR));
-					}
-
-					CvWString szBuilding;
-					szBuilding.Format(L"<link=literal>%s</link>", GC.getInfo(eLoopBuilding).getDescription());
-					setListHelp(szHelpString, szText.GetCString(), szBuilding, L", ", (iHappiness != iLast));
-					iLast = iHappiness;
-				}
-			}
+			CvWString szBuilding;
+			szBuilding.Format(L"<link=literal>%s</link>", kBuilding.getDescription());
+			setListHelp(szHelpString, szText.GetCString(), szBuilding, L", ", iHappiness != iLast);
+			iLast = iHappiness;
 		}
-
 	}
 }
 
@@ -7099,42 +7069,32 @@ void CvGameTextMgr::parseLeaderTraits(CvWStringBuffer &szHelpString, LeaderHeadT
 {
 	PROFILE_FUNC();
 
-	CvWString szTempBuffer;	// Formatting
-	int iI;
-
-	//	Build help string
 	if (eLeader != NO_LEADER)
 	{
 		if (!bDawnOfMan && !bCivilopediaText)
 		{
+			CvWString szTempBuffer;
 			szTempBuffer.Format( SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
 					GC.getInfo(eLeader).getDescription());
 			szHelpString.append(szTempBuffer);
 		}
-
 		bool bFirst = true;
-		for (iI = 0; iI < GC.getNumTraitInfos(); ++iI)
+		FOR_EACH_ENUM(Trait)
 		{
-			if (GC.getInfo(eLeader).hasTrait(iI))
+			if (!GC.getInfo(eLeader).hasTrait(eLoopTrait))
+				continue;
+			if (!bFirst)
 			{
-				if (!bFirst)
-				{
-					if (bDawnOfMan)
-					{
-						szHelpString.append(L", ");
-					}
-				}
-				else
-				{
-					bFirst = false;
-				}
-				parseTraits(szHelpString, ((TraitTypes)iI), eCivilization, bDawnOfMan);
+				if (bDawnOfMan)
+					szHelpString.append(L", ");
 			}
+			else bFirst = false;
+			parseTraits(szHelpString, eLoopTrait, eCivilization, bDawnOfMan);
 		}
 	}
 	else
-	{
-		//	Random leader
+	{	//	Random leader
+		CvWString szTempBuffer;
 		szTempBuffer.Format( SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
 				gDLL->getText("TXT_KEY_TRAIT_PLAYER_UNKNOWN").c_str());
 		szHelpString.append(szTempBuffer);
@@ -7146,28 +7106,22 @@ void CvGameTextMgr::parseLeaderShortTraits(CvWStringBuffer &szHelpString, Leader
 {
 	PROFILE_FUNC();
 
-	int iI;
-
-	//	Build help string
 	if (eLeader != NO_LEADER)
 	{
 		bool bFirst = true;
-		for (iI = 0; iI < GC.getNumTraitInfos(); ++iI)
+		FOR_EACH_ENUM(Trait)
 		{
-			if (GC.getInfo(eLeader).hasTrait(iI))
-			{
-				if (!bFirst)
-				{
-					szHelpString.append(L"/");
-				}
-				szHelpString.append(gDLL->getText(GC.getInfo((TraitTypes)iI).getShortDescription()));
-				bFirst = false;
-			}
+			if (!GC.getInfo(eLeader).hasTrait(eLoopTrait))
+				continue;
+			if (!bFirst)
+				szHelpString.append(L"/");
+			szHelpString.append(gDLL->getText(GC.getInfo(eLoopTrait).
+					getShortDescription()));
+			bFirst = false;
 		}
 	}
 	else
-	{
-		//	Random leader
+	{	//	Random leader
 		szHelpString.append(CvWString("???/???"));
 	}
 }
