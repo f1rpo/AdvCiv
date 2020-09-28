@@ -19,17 +19,19 @@ KmodPathFinder::KmodPathFinder() :
 		But that is not easy to do with the current code-base.
 		Instead I'll just check the pathfinder settings
 		at particular times to make sure the map hasn't changed.) */
-	/*	advc.pf: Now CvSelectionGroup::m_pPathFinder is constructed
-		when the map is ready, and memory can be allocated directly
-		in the constructor (via FAStartNodeMap). */
-	kMap(GC.getMap()), end_node(NULL),
-	nodeMap(*new FAStarNodeMap(kMap.getGridWidth(), kMap.getGridHeight()))
+	/*	<advc.pf> Now CvSelectionGroup::m_pPathFinder is constructed
+		when the map is ready, and memory _could_ be allocated directly
+		in the constructor ... */
+	kMap(GC.getMap()), end_node(NULL), nodeMap(NULL
+		/*	... but let's not do so b/c KmodPathFinder sometimes gets instantiated
+			w/o ultimately getting used. Therefore allocate memory as late as possible. */
+		/*new FAStarNodeMap(kMap.getGridWidth(), kMap.getGridHeight())*/) // </advc.pf>
 {}
 
 KmodPathFinder::~KmodPathFinder()
 {
 	//free(node_data);
-	delete &nodeMap; // advc.pf
+	SAFE_DELETE(nodeMap); // advc.pf
 }
 
 void KmodPathFinder::InitHeuristicWeights()
@@ -79,7 +81,10 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 	// advc.pf:
 	if (!pathDestValid(kMap.getPlot(x2, y2), *settings.pGroup, settings.eFlags))
 		return false;
-
+	// <advc.pf> Allocate just in time
+	if (nodeMap == NULL)
+		nodeMap = new FAStarNodeMap(kMap.getGridWidth(), kMap.getGridHeight());
+	// </advc.pf>
 	if (x1 != start_x || y1 != start_y)
 	{
 		/*	Note: it may be possible to salvage some of the old data to get more speed.
@@ -98,21 +103,21 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 	dest_x = x2;
 	dest_y = y2;
 
-	if (nodeMap.get(x1, y1).m_bOnStack)
+	if (nodeMap->get(x1, y1).m_bOnStack)
 	{
 		int iMoves = ((settings.eFlags & MOVE_MAX_MOVES) ?
 				settings.pGroup->maxMoves() : settings.pGroup->movesLeft());
-		if (iMoves != nodeMap.get(x1, y1).m_iData1)
+		if (iMoves != nodeMap->get(x1, y1).m_iData1)
 		{
 			Reset();
-			FAssert(!nodeMap.get(x1, y1).m_bOnStack);
+			FAssert(!nodeMap->get(x1, y1).m_bOnStack);
 		}
 		/*	Note: This condition isn't actually enough to catch all significant changes.
 			We really need to check max moves /and/ moves left /and/ base moves.
 			but I don't feel like doing all that at the moment. */
 	}
 
-	if (!nodeMap.get(x1, y1).m_bOnStack)
+	if (!nodeMap->get(x1, y1).m_bOnStack)
 	{
 		AddStartNode();
 		bRecalcHeuristics = true;
@@ -120,8 +125,8 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 	//else (not else. maybe start == dest)
 	{
 		// check if the end plot is already mapped.
-		if (nodeMap.get(x2, y2).m_bOnStack)
-			end_node = &nodeMap.get(x2, y2);
+		if (nodeMap->get(x2, y2).m_bOnStack)
+			end_node = &nodeMap->get(x2, y2);
 	}
 
 	if (bRecalcHeuristics)
@@ -253,7 +258,9 @@ void KmodPathFinder::SetSettings(const CvPathSettings& new_settings)
 void KmodPathFinder::Reset()
 {
 	//memset(&node_data[0] 0, sizeof(*node_data) * map_width * map_height);
-	nodeMap.reset(); // advc.pf
+	// <advc.pf>
+	if (nodeMap != NULL)
+		nodeMap->reset(); // </advc.pf>
 	open_list.clear();
 	end_node = NULL;
 	// settings is set separately.
@@ -265,7 +272,7 @@ void KmodPathFinder::AddStartNode()
 	FAssertBounds(0, map_height, start_y);*/ // Now sufficiently safe
 
 	// add initial node.
-	FAStarNode* start_node = &nodeMap.get(start_x, start_y);
+	FAStarNode* start_node = &nodeMap->get(start_x, start_y);
 	start_node->m_iX = start_x;
 	start_node->m_iY = start_y;
 	//pathAdd(NULL, start_node, ASNC_INITIALADD, &settings, NULL);
@@ -330,7 +337,7 @@ bool KmodPathFinder::ProcessNode()
 	open_list.erase(best_it);
 	parent_node->m_eFAStarListType = FASTARLIST_CLOSED;
 
-	FAssert(&nodeMap.get(parent_node->m_iX, parent_node->m_iY) == parent_node);
+	FAssert(&nodeMap->get(parent_node->m_iX, parent_node->m_iY) == parent_node);
 
 	// open a new node for each direction coming off the chosen node.
 	FOR_EACH_ENUM(Direction)
@@ -350,7 +357,7 @@ bool KmodPathFinder::ProcessNode()
 		//int iPlotNum = kMap.plotNum(x, y);
 		//FAssert(iPlotNum >= 0 && iPlotNum < kMap.numPlots());
 
-		FAStarNode* child_node = &nodeMap.get(x, y);
+		FAStarNode* child_node = &nodeMap->get(x, y);
 		bool bNewNode = !child_node->m_bOnStack;
 
 		if (bNewNode)

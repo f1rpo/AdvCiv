@@ -74,7 +74,7 @@ protected:
 	CvMap const& kMap; // advc.pf
 	/*	advc.pf: Wrapper for raw array. Historical note: Before K-Mod 1.45,
 		stdext::hash_map<int,boost::shared_ptr<FAStarNode> > had been used. */
-	FAStarNodeMap& nodeMap;
+	FAStarNodeMap* nodeMap;
 	OpenList_t open_list;
 
 	int dest_x, dest_y;
