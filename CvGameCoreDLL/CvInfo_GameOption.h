@@ -570,7 +570,7 @@ public:
 	int getSeaLevelChange() const; // Exposed to Python
 	inline int getResearchPercent() const { return m_iResearchPercent; } // advc.910
 	bool read(CvXMLLoadUtility* pXML);
-	virtual wchar const* getDescriptionInternal(uint uiForm) const; // advc.137
+	virtual CvWString getDescriptionInternal() const; // advc.137
 
 protected:
 	int m_iSeaLevelChange;

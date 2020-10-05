@@ -84,15 +84,19 @@ wchar const* CvInfoBase::getTextKeyWide() const
 	return m_szTextKey;
 }
 
-wchar const* CvInfoBase::getDescriptionInternal(uint uiForm) const
+/*	<advc.137> Split the original code so that derived classes don't need to worry
+	about the cache */
+wchar const* CvInfoBase::getDescription(uint uiForm) const
 {
 	while(m_aCachedDescriptions.size() <= uiForm)
-	{
-		m_aCachedDescriptions.push_back(gDLL->getObjectText(m_szTextKey,
-				m_aCachedDescriptions.size()));
-	}
+		m_aCachedDescriptions.push_back(getDescriptionInternal());
 	return m_aCachedDescriptions[uiForm];
 }
+
+CvWString CvInfoBase::getDescriptionInternal() const
+{
+	return gDLL->getObjectText(m_szTextKey, m_aCachedDescriptions.size());
+} // </advc.137>
 
 wchar const* CvInfoBase::getText() const
 {

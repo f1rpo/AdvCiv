@@ -45,10 +45,9 @@ public: // All the const functions are exposed to Python
 	std::wstring pyGetStrategy() { return getStrategy(); }
 
 	DllExport wchar const* getTextKeyWide() const;
-	DllExport wchar const* getDescription(uint uiForm = 0) const
-	// <advc.137> Allow this to be overridden
-	{ return getDescriptionInternal(uiForm); }
-	virtual wchar const* getDescriptionInternal(uint uiForm) const; // </advc.137>
+	DllExport wchar const* getDescription(uint uiForm = 0) const;
+	// advc.137: Allow this to be overridden
+	virtual CvWString getDescriptionInternal() const;
 	DllExport wchar const* getText() const;
 	wchar const* getCivilopedia() const;
 	DllExport wchar const* getHelp() const;
