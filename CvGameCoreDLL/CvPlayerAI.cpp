@@ -7593,7 +7593,9 @@ int CvPlayerAI::AI_getFavoriteCivicAttitude(PlayerTypes ePlayer) const
 	return iAttitude;
 }
 
-// <advc.130p> No BtS code left here
+// <advc.130p>
+namespace { int const PEACETIME_TRADE_RELATIONS_LIMIT = 4; }
+// No BtS code left here
 int CvPlayerAI::AI_getTradeAttitude(PlayerTypes ePlayer) const
 {
 	scaled r = AI_getPeacetimeGrantValue(ePlayer);
@@ -8764,33 +8766,71 @@ int CvPlayerAI::AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& 
 	return iValue;
 }
 
-
-bool CvPlayerAI::AI_goldDeal(CLinkList<TradeData> const& kList) // advc: Take the list as a reference
+/*	advc: Was a public static member function AI_goldDeal,
+	but it's not really AI code (apart from the assertion I guess).
+	Since it's only used locally, let's just say: */
+namespace
 {
-	for (CLLNode<TradeData> const* pNode = kList.head(); pNode != NULL;
-		pNode = kList.next(pNode))
+	bool goldDeal(CLinkList<TradeData> const& kList)
 	{
-		FAssert(!pNode->m_data.m_bHidden);
-		// advc: (redundant switch statement deleted)
-		if (CvDeal::isGold(pNode->m_data.m_eItemType))
-			return true;
+		for (CLLNode<TradeData> const* pNode = kList.head(); pNode != NULL;
+			pNode = kList.next(pNode))
+		{
+			FAssert(!pNode->m_data.m_bHidden);
+			// advc: (redundant switch statement deleted)
+			if (CvDeal::isGold(pNode->m_data.m_eItemType))
+				return true;
+		}
+		return false;
 	}
-	return false;
-}
-
-// advc.705:
-bool CvPlayerAI::isAnnualDeal(CLinkList<TradeData> const& itemList)
-{
-	for(CLLNode<TradeData> const* pNode = itemList.head(); pNode != NULL;
-		pNode = itemList.next(pNode))
+	// advc.705:
+	bool annualDeal(CLinkList<TradeData> const& itemList)
 	{
-		if(!CvDeal::isAnnual(pNode->m_data.m_eItemType))
+		for(CLLNode<TradeData> const* pNode = itemList.head(); pNode != NULL;
+			pNode = itemList.next(pNode))
+		{
+			if(!CvDeal::isAnnual(pNode->m_data.m_eItemType))
+				return false;
+		}
+		return true;
+	}
+	// advc.ctr: True iff both players liberate a city
+	bool isLiberationTrade(PlayerTypes eFirst, PlayerTypes eSecond,
+		CLinkList<TradeData> const& kFirstGives, CLinkList<TradeData> const& kSecondGives)
+	{
+		bool bWeLiberate = false;
+		for (CLLNode<TradeData> const* pNode = kFirstGives.head(); pNode != NULL;
+			pNode = kFirstGives.next(pNode))
+		{
+			TradeData data = pNode->m_data;
+			if (data.m_eItemType == TRADE_CITIES)
+			{
+				CvCity const* pCity = GET_PLAYER(eFirst).getCity(data.m_iData);
+				if (pCity != NULL && pCity->getLiberationPlayer() == eSecond)
+				{
+					bWeLiberate = true;
+					break;
+				}
+			}
+		}
+		if (!bWeLiberate)
 			return false;
+		for (CLLNode<TradeData> const* pNode = kSecondGives.head(); pNode != NULL;
+			pNode = kSecondGives.next(pNode))
+		{
+			TradeData data = pNode->m_data;
+			if (data.m_eItemType == TRADE_CITIES)
+			{
+				CvCity const* pCity = GET_PLAYER(eSecond).getCity(data.m_iData);
+				if (pCity != NULL && pCity->getLiberationPlayer() == eFirst)
+					return true;
+			}
+		}
+		return false;
 	}
-	return true;
 }
 
-///*	In this function the AI considers whether or not to accept another player's proposal.
+/*	In this function the AI considers whether or not to accept another player's proposal.
 	This is used when considering proposals from the human player made in the
 	diplomacy window as well as a couple of other places. */
 bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
@@ -8804,8 +8844,8 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 	bool bHuman = kPlayer.isHuman();
 	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
 
-	bool const bOurGoldDeal = AI_goldDeal(kWeGive);
-	if (AI_goldDeal(kTheyGive) && bOurGoldDeal)
+	bool const bOurGoldDeal = goldDeal(kWeGive);
+	if (goldDeal(kTheyGive) && bOurGoldDeal)
 		return false;
 
 	if (iChange > -1)
@@ -9124,7 +9164,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 	{
 		if (bPossibleCollusion)
 		{
-			double thresh = kGame.getRiseFall().dealThresh(isAnnualDeal(kWeGive));
+			double thresh = kGame.getRiseFall().dealThresh(annualDeal(kWeGive));
 			if (iChange < 0)
 				thresh = std::min(thresh, std::max(0.4, thresh - 0.15));
 			if (iPessimisticVal / (iWeReceive + 0.01) < thresh)
@@ -9184,7 +9224,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 		/*  NB: bVassalTrade is currently only true if ePlayer offers to become
 			a vassal, not when this player considers becoming a vassal. (fixme?) */
 		!bVassalTrade && !kOurTeam.isAtWar(kPlayer.getTeam()) &&
-		!AI_goldDeal(kTheyGive) && (kTheyGive.getLength() <= 0 ||
+		!goldDeal(kTheyGive) && (kTheyGive.getLength() <= 0 ||
 		!CvDeal::isDual(kTheyGive.head()->m_data.m_eItemType)))
 	{
 		return false;
@@ -9201,41 +9241,6 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 	{
 		return true;
 	} // </advc.036>
-	return false;
-}
-
-// advc.ctr: True iff both players liberate a city
-bool CvPlayerAI::isLiberationTrade(PlayerTypes eFirst, PlayerTypes eSecond,
-	CLinkList<TradeData> const& kFirstGives, CLinkList<TradeData> const& kSecondGives)
-{
-	bool bWeLiberate = false;
-	for (CLLNode<TradeData> const* pNode = kFirstGives.head(); pNode != NULL;
-		pNode = kFirstGives.next(pNode))
-	{
-		TradeData data = pNode->m_data;
-		if (data.m_eItemType == TRADE_CITIES)
-		{
-			CvCity const* pCity = GET_PLAYER(eFirst).getCity(data.m_iData);
-			if (pCity != NULL && pCity->getLiberationPlayer() == eSecond)
-			{
-				bWeLiberate = true;
-				break;
-			}
-		}
-	}
-	if (!bWeLiberate)
-		return false;
-	for (CLLNode<TradeData> const* pNode = kSecondGives.head(); pNode != NULL;
-		pNode = kSecondGives.next(pNode))
-	{
-		TradeData data = pNode->m_data;
-		if (data.m_eItemType == TRADE_CITIES)
-		{
-			CvCity const* pCity = GET_PLAYER(eSecond).getCity(data.m_iData);
-			if (pCity != NULL && pCity->getLiberationPlayer() == eFirst)
-				return true;
-		}
-	}
 	return false;
 }
 
@@ -9263,8 +9268,8 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer,
 	scaled rLeniency) const // advc.705: Applied to everything that's added to iValueForThem
 {
 	PROFILE_FUNC(); // advc.opt
-	bool bTheyGiveGold = AI_goldDeal(kTheyGive);
-	bool bWeGiveGold = AI_goldDeal(kWeGive);
+	bool bTheyGiveGold = goldDeal(kTheyGive);
+	bool bWeGiveGold = goldDeal(kWeGive);
 	if (bWeGiveGold && bTheyGiveGold)
 		return false;
 	/*  <advc.036> Check trade denial. Should only be needed when renegotiating
@@ -9507,7 +9512,7 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer,
 		{
 			CLinkList<TradeData> const& kWeGiveTotal = (kWeGive.getLength() <= 0 ?
 					kWeAlsoGive : kWeGive);
-			double thresh = kGame.getRiseFall().dealThresh(isAnnualDeal(kWeGiveTotal));
+			double thresh = kGame.getRiseFall().dealThresh(annualDeal(kWeGiveTotal));
 			if(bDeal && kGame.getRiseFall().pessimisticDealVal(getID(), iTheyReceive,
 				kWeGiveTotal) / (iWeReceive + 0.01) < thresh)
 			{

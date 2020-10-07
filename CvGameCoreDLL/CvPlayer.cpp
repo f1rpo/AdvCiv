@@ -12884,6 +12884,18 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 	}
 }
 
+/*	advc.250c: (Should perhaps be moved to CvGame;
+	though it's more convenient to use as it is) */
+namespace
+{
+	int adjustAdvStartPtsToSpeed(int iPoints)
+	{
+		iPoints *= 100;
+		return std::max(0, iPoints / GC.getInfo(GC.getGame().getGameSpeedType()).
+				getGrowthPercent());
+	}
+}
+
 // Adding or removing a unit
 int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const* pPlot) const
 {
@@ -13593,14 +13605,6 @@ int CvPlayer::getAdvancedStartVisibilityCost(bool bAdd, CvPlot const* pPlot) con
 	}
 
 	return adjustAdvStartPtsToSpeed(iCost); // advc.250c
-}
-
-// advc.250c: Should arguably be at CvGame, but more convenient to use at CvPlayer.
-int CvPlayer::adjustAdvStartPtsToSpeed(int iPoints)
-{
-	iPoints *= 100;
-	return std::max(0, iPoints / GC.getInfo(GC.getGame().getGameSpeedType()).
-			getGrowthPercent());
 }
 
 

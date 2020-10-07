@@ -5484,6 +5484,28 @@ void CvCity::updateExtraBuildingHappiness()
 
 /*  BETTER_BTS_AI_MOD, City AI, 02/24/10, EmperorFool: START
 	(BUG - Building Additional Happiness) */
+namespace // advc: These were declared as global functions in the header
+{
+	// advc: Turn these two into CvCity members for now as they're only used by CvCity
+	// Adds iValue to iGood if it is positive or its negative to iBad if it is negative.
+	void addGoodOrBad(int iValue, int& iGood, int& iBad)
+	{
+		if (iValue > 0)
+			iGood += iValue;
+		else if (iValue < 0)
+			iBad -= iValue;
+	}
+
+	// Subtracts iValue from iGood if it is positive or its negative from iBad if it is negative.
+	void subtractGoodOrBad(int iValue, int& iGood, int& iBad)
+	{
+		if (iValue > 0)
+			iGood -= iValue;
+		else if (iValue < 0)
+			iBad += iValue;
+	}
+}
+
 /*	Returns the total additional happiness that adding one of the given buildings
 	will provide and sets the good and bad levels individually.
 	Doesn't reset iGood or iBad to zero.
@@ -5679,25 +5701,6 @@ int CvCity::getAdditionalHealthByBuilding(BuildingTypes eBuilding, int& iGood, i
 	iBad += ROUND_DIVIDE(getPopulation() * iEffectiveModifier, 100);
 	// K-Mod end
 	return iGood - iBad - iStarting;
-}
-
-// advc: Turn these two into CvCity members for now as they're only used by CvCity
-// Adds iValue to iGood if it is positive or its negative to iBad if it is negative.
-void CvCity::addGoodOrBad(int iValue, int& iGood, int& iBad)
-{
-	if (iValue > 0)
-		iGood += iValue;
-	else if (iValue < 0)
-		iBad -= iValue;
-}
-
-// Subtracts iValue from iGood if it is positive or its negative from iBad if it is negative.
-void CvCity::subtractGoodOrBad(int iValue, int& iGood, int& iBad)
-{
-	if (iValue > 0)
-		iGood -= iValue;
-	else if (iValue < 0)
-		iBad += iValue;
 }
 // BETTER_BTS_AI_MOD: END
 

@@ -34,6 +34,8 @@ public:
 	bool isPeaceDeal() const;
 	// advc.130p: BtS function; now unused.
 	//bool isPeaceDealBetweenOthers(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList) const;
+	// advc: Made public; could be useful elsewhere.
+	static bool isVassalTrade(CLinkList<TradeData> const& kList);
 	bool isVassalDeal() const;
 	DllExport static bool isVassalTributeDeal(const CLinkList<TradeData>* pList);
 	/*  advc: The above checks if pList contains only TRADE_RESSOURCE items;
@@ -141,9 +143,6 @@ protected:
 	void endTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bTeam,
 			bool bUpdateAttitude = true, // advc.036
 			PlayerTypes eCancelPlayer = NO_PLAYER); // advc.130p
-	// <advc.130p>
-	static void addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
-			TradeableItems eItemType); // </advc.130p>
 	void startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam, bool bDual);
 	void endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam);
 	void announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, // advc
@@ -152,8 +151,6 @@ protected:
 	bool verify(PlayerTypes eRecipient, PlayerTypes eGiver);
 	// advc: was public
 	bool isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReason = NULL) const;
-
-	static bool isVassalTrade(CLinkList<TradeData> const& kList);
 
 	int m_iID;
 	int m_iInitialGameTurn;

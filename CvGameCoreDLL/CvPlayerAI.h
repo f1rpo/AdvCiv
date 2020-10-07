@@ -241,6 +241,7 @@ public:
 			bool bIgnorePeace = false, // advc.130p  <advc.ctr>
 			bool bCountLiberation = false, bool bAIRequest = false,
 			bool bDiploVal = false) const; // </advc.ctr>
+	//bool AI_goldDeal(CLinkList<TradeData> const* pList) const; // advc: See goldDeal in implementation file
 	bool AI_considerOffer(PlayerTypes ePlayer, CLinkList<TradeData> const& kTheyGive,
 			CLinkList<TradeData> const& kWeGive, int iChange = 1, /* advc.133: */ int iDealAge = 0,
 			// <advc.130o> May change diplo memory if true; const qualifier removed.
@@ -792,7 +793,6 @@ protected:
 	scaled AI_peacetimeTradeMultiplier(PlayerTypes eOtherPlayer,
 			TeamTypes eOtherTeam = NO_TEAM) const;
 	int AI_peacetimeTradeValDivisor(bool bRival) const;
-	static int const PEACETIME_TRADE_RELATIONS_LIMIT = 4;
 	/*  The change-value functions (now called 'process', e.g. AI_processPeacetimeValue)
 		apply adjustments and have a side-effect on EnemyTrade and EnemyGrant values.
 		These here are simple setters. */
@@ -832,8 +832,6 @@ protected:
 	// <advc.ctr>
 	AttitudeTypes AI_cityTradeAttitudeThresh(CvCity const& kCity, PlayerTypes eToPlayer, bool bLiberate) const;
 	scaled AI_peaceTreatyAversion(TeamTypes eTarget) const;
-	static bool isLiberationTrade(PlayerTypes eFirst, PlayerTypes eSecond,
-			CLinkList<TradeData> const& kFirstGives, CLinkList<TradeData> const& kSecondGives);
 	// </advc.ctr>
 	enum CancelCode { NO_CANCEL = -1, RENEGOTIATE, DO_CANCEL };
 	CancelCode AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer);
@@ -856,8 +854,6 @@ protected:
 	void AI_foldDeals(CvDeal& d1, CvDeal& d2) const; // </advc.036>
 	double AI_bonusImportValue(PlayerTypes eFrom) const; // advc.149
 	int AI_anarchyTradeVal(CivicTypes eCivic = NO_CIVIC) const; // advc.132
-	static bool AI_goldDeal(CLinkList<TradeData> const& kList); // advc: static, protected
-	static bool isAnnualDeal(CLinkList<TradeData> const& itemList); // advc.705
 
 	void AI_updateCacheData(); // K-Mod
 	int AI_calculateEspionageWeight() const; // advc.001

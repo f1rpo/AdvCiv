@@ -1658,7 +1658,6 @@ protected:  // <advc.210>
 	void addGoodyMsg(CvWString s, CvPlot const& p, TCHAR const* sound);
 	void promoteFreeUnit(CvUnit& u, scaled pr);
 	// </advc.314>
-	static int adjustAdvStartPtsToSpeed(int iPoints); // advc.250c
 	bool canSeeIntel(PlayerTypes ePlayer, bool bDemographics,
 			bool bCheckPoints = true) const; // advc.085
 	// advc.120f:

@@ -1534,11 +1534,6 @@ protected:
 	void doPopOrder(CLLNode<OrderData>* pOrder); // advc.064d
 	// advc.901:
 	std::pair<int,int> calculateSurroundingHealth(int iExtraGoodPercent = 0, int iExtraBadPercent = 0) const;
-	// BETTER_BTS_AI_MOD (from BUG), 02/24/10, EmperorFool: START
-		// advc: These were declared outside of CvCity (global)
-	static void addGoodOrBad(int iValue, int& iGood, int& iBad);
-	static void subtractGoodOrBad(int iValue, int& iGood, int& iBad);
-	// BETTER_BTS_AI_MOD: END
 };
 
 #endif

@@ -16,6 +16,13 @@ using std::vector;
 using std::string;
 
 
+namespace {
+	inline double powerCorrect(double multiplier) {
+		 return std::pow(multiplier, (double)GC.getPOWER_CORRECTION());
+	}
+}
+
+
 InvasionGraph::InvasionGraph(MilitaryAnalyst& m, PlyrSet const& warParties,
 		bool peaceScenario) :
 		m(m), warParties(warParties),

@@ -1024,6 +1024,39 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	return bSave;
 }
 
+// advc.130p: Cut from CvDeal::endTrade
+namespace
+{
+	void addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
+		TradeableItems eItemType)
+	{
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+		{
+			PlayerTypes eToTeamMember = (PlayerTypes)i;
+			if(!GET_PLAYER(eToTeamMember).isAlive() ||
+				TEAMID(eToTeamMember) != TEAMID(eToPlayer))
+			{
+				continue;
+			}
+			for(int j = 0; j < MAX_CIV_PLAYERS; j++)
+			{
+				PlayerTypes eFromTeamMember = (PlayerTypes)j;
+				if(!GET_PLAYER(eFromTeamMember).isAlive() ||
+					TEAMID(eFromTeamMember) != TEAMID(eFromPlayer))
+				{
+					continue;
+				}
+				MemoryTypes eMemory = MEMORY_CANCELLED_OPEN_BORDERS;
+				if(eItemType == TRADE_DEFENSIVE_PACT)
+					eMemory = MEMORY_CANCELLED_DEFENSIVE_PACT;
+				else if(eItemType == TRADE_VASSAL)
+					eMemory = MEMORY_CANCELLED_VASSAL_AGREEMENT;
+				// advc.130j:
+				GET_PLAYER(eToTeamMember).AI_setMemoryCount(eFromTeamMember, eMemory, 2);
+			}
+		}
+	}
+}
 
 void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,  // advc: refactored
 	PlayerTypes eToPlayer, bool bTeam, /* advc.036: */ bool bUpdateAttitude,
@@ -1138,37 +1171,6 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,  // advc: refact
 		GET_PLAYER(eFromPlayer).AI_updateAttitude(eToPlayer);
 	else GET_TEAM(eFromPlayer).AI_updateAttitude(TEAMID(eToPlayer));
 	// </advc.133>
-}
-
-// advc.130p: Cut from CvDeal::endTrade
-void CvDeal::addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
-		TradeableItems eItemType)
-{
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
-	{
-		PlayerTypes eToTeamMember = (PlayerTypes)i;
-		if(!GET_PLAYER(eToTeamMember).isAlive() ||
-			TEAMID(eToTeamMember) != TEAMID(eToPlayer))
-		{
-			continue;
-		}
-		for(int j = 0; j < MAX_CIV_PLAYERS; j++)
-		{
-			PlayerTypes eFromTeamMember = (PlayerTypes)j;
-			if(!GET_PLAYER(eFromTeamMember).isAlive() ||
-				TEAMID(eFromTeamMember) != TEAMID(eFromPlayer))
-			{
-				continue;
-			}
-			MemoryTypes eMemory = MEMORY_CANCELLED_OPEN_BORDERS;
-			if(eItemType == TRADE_DEFENSIVE_PACT)
-				eMemory = MEMORY_CANCELLED_DEFENSIVE_PACT;
-			else if(eItemType == TRADE_VASSAL)
-				eMemory = MEMORY_CANCELLED_VASSAL_AGREEMENT;
-			// advc.130j:
-			GET_PLAYER(eToTeamMember).AI_setMemoryCount(eFromTeamMember, eMemory, 2);
-		}
-	}
 }
 
 
