@@ -1821,6 +1821,10 @@ void CvXMLLoadUtility::SetVariableListTagPair(T** pptList, const TCHAR* szRootTa
 							int iIndexVal = FindInInfoClass(szTextVal);
 							if (iIndexVal >= 0)
 							{
+								/*	advc.006: Can exceed the bounds here if the wrong type
+									is used in XML, e.g. a UNITCLASS_... where a
+									UNITCOMBAT_... is expected. */
+								FAssert(iIndexVal < iInfoBaseLength);
 								GetNextXmlVal(ptList[iIndexVal]);
 								// <advc.003t>
 								if (ptList[iIndexVal] != tDefaultListVal)
@@ -1889,6 +1893,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* 
 							int iIndexVal = FindInInfoClass(szTextVal);
 							if (iIndexVal >= 0)
 							{
+								FAssert(iIndexVal < iInfoBaseLength); // advc.006
 								GetNextXmlVal(pszList[iIndexVal]);
 								/*  <advc.003t> Since bListModified will only matter
 									if szDefaultListVal is an empty string, let's
@@ -2167,6 +2172,7 @@ void CvXMLLoadUtility::SetVariableListTagPairForAudioScripts(int **ppiList, cons
 							int iIndexVal = FindInInfoClass(szTextVal);
 							if (iIndexVal >= 0)
 							{
+								FAssert(iIndexVal < iInfoBaseLength); // advc.006
 								CvString szTemp;
 								GetNextXmlVal(szTemp);
 								if (szTemp.GetLength() > 0)

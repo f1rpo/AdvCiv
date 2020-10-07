@@ -2301,6 +2301,9 @@ ENUM_END(CityPlot, CITYPLOT)
 	DO(Unit,UnitAI) \
 	DO(SpecialUnit,Unit) \
 	DO(SpecialUnit,UnitClass) \
+	DO(UnitCombat,Unit) \
+	DO(UnitCombat,UnitClass) \
+	DO(UnitCombat,UnitAI) \
 	DO(BuildingClass,UnitClass) \
 	DO(Project,Building) \
 	DO(Project,BuildingClass) \
