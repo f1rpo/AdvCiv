@@ -1486,18 +1486,11 @@ void CvInitCore::externalRNGCall(int iUpper, CvRandom const* pRandom)
 
 	if (iUpper != 10000)
 		return;
-
-	/*	When a player i is set to "Random", m_aeCiv[i], m_aeLeader[i]
-		remain at -1 (NO_...) until the dice have been rolled.
-		So, there's no need to count the RNG calls; we just need to
-		find the first player who doesn't already have a civ, and,
-		if all have a civ, then the first player without a leader. */
 	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
 		if (GET_PLAYER((PlayerTypes)i).isEverAlive())
 			return; // We're already past the civ and leader assignment at game start
 	}
-
 	std::vector<PlayerTypes> aeSlotPlayer;
 	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
@@ -1509,6 +1502,11 @@ void CvInitCore::externalRNGCall(int iUpper, CvRandom const* pRandom)
 			aeSlotPlayer.push_back(ePlayer);
 		}
 	}
+	/*	When a player i is set to "Random", m_aeCiv[i], m_aeLeader[i]
+		remain at -1 (NO_...) until the dice have been rolled.
+		So, there's no need to count the RNG calls; we just need to
+		find the first player who doesn't already have a civ, and,
+		if all have a civ, then the first player without a leader. */
 	for (size_t i = 0; i < aeSlotPlayer.size(); i++)
 	{
 		if (getCiv(aeSlotPlayer[i]) == NO_CIVILIZATION)

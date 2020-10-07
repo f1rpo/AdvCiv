@@ -8790,11 +8790,9 @@ bool CvPlayerAI::isAnnualDeal(CLinkList<TradeData> const& itemList)
 	return true;
 }
 
-/// \brief AI decision making on a proposal it is given
-///
-/// In this function the AI considers whether or not to accept another player's proposal.
-/// This is used when considering proposals from the human player made in the
-/// diplomacy window as well as a couple other places.
+///*	In this function the AI considers whether or not to accept another player's proposal.
+	This is used when considering proposals from the human player made in the
+	diplomacy window as well as a couple of other places. */
 bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 	// advc: Renamed, turned into references (b/c caller ensures non-NULL). Also some other style changes in the body.
 	CLinkList<TradeData> const& kTheyGive, CLinkList<TradeData> const& kWeGive,

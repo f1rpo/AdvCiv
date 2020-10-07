@@ -5828,7 +5828,7 @@ int CvPlayer::calculateTotalCityUnhealthiness() const
 }
 
 // K-Mod: calculate the pollution output of a civ
-int CvPlayer::calculatePollution(PollutionTypes ePollution) const
+int CvPlayer::calculatePollution(PollutionFlags ePollution) const
 {
 	int iTotal = 0;
 	int iBuildingWeight = 0, iBonusWeight = 0, iPowerWeight = 0, iPopWeight = 0;

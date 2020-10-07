@@ -156,7 +156,7 @@ public:
 	// advc.003j: Both unused
 	/*bool AI_isFrontlineCity() const; // K-Mod
 	int AI_calculateMilitaryOutput() const;*/ // K-Mod
-	int AI_cityThreat(/*bool bDangerPercent = false*/) const; // advc: param was (always) unused
+	int AI_cityThreat(/*bool bDangerPercent = false*/) const; // advc: param was (and has always been) unused
 
 	int AI_getWorkersHave() const;
 	int AI_getWorkersNeeded() const;

@@ -109,7 +109,7 @@ public:
 		if(eDirection == NO_DIRECTION)
 			return plotValidXY(iX, iY);
 		// advc.opt: Don't check for INVALID_PLOT_COORD
-		else return plotValidXY(
+		return plotValidXY(
 				iX + GC.getPlotDirectionX()[eDirection],
 				iY + GC.getPlotDirectionY()[eDirection]);
 	}
@@ -223,7 +223,7 @@ private: // Auxiliary functions
 			return iDiff;
 		if (iDiff > iRange / 2)
 			return iDiff - iRange;
-		else if (iDiff < -(iRange / 2))
+		if (iDiff < -(iRange / 2))
 			return iDiff + iRange;
 		return iDiff;
 	}
@@ -234,7 +234,7 @@ private: // Auxiliary functions
 			return iCoord;
 		if (iCoord < 0)
 			return (iRange + (iCoord % iRange));
-		else if (iCoord >= iRange)
+		if (iCoord >= iRange)
 			return (iCoord % iRange);
 		return iCoord;
 	}

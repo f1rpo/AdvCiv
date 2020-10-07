@@ -561,7 +561,7 @@ int CyPlayer::calculateResearchModifier(int /*TechTypes*/ eTech)
 int CyPlayer::calculatePollution(int iPollution) const
 {
 	return m_pPlayer ? m_pPlayer->calculatePollution(
-			(CvPlayer::PollutionTypes)iPollution) : -1; // advc.enum
+			(CvPlayer::PollutionFlags)iPollution) : -1; // advc.enum
 }
 
 int CyPlayer::getGwPercentAnger() const

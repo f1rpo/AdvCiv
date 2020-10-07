@@ -305,13 +305,13 @@ public:
 	/*	K-Mod, 18/dec/10: global warming pollution flags
 		advc.enum: Moved from CvDefines, turned into an enum.
 		(Overloaded bitwise operators at end of file) */
-	enum PollutionTypes // Exposed to Python
+	enum PollutionFlags // Exposed to Python
 	{
 		POLLUTION_POPULATION = (1 << 0), POLLUTION_BUILDINGS = (1 << 1),
 		POLLUTION_BONUSES = (1 << 2), POLLUTION_POWER = (1 << 3),
 		POLLUTION_ALL = (1 << 4) - 1
 	};
-	int calculatePollution(PollutionTypes ePollution = POLLUTION_ALL) const; // K-Mod, Exposed to Python
+	int calculatePollution(PollutionFlags ePollution = POLLUTION_ALL) const; // K-Mod, Exposed to Python
 	int getGwPercentAnger() const { return m_iGwPercentAnger; } // K-Mod, Exposed to Python
 	void setGwPercentAnger(int iNewValue); // K-Mod
 
@@ -1793,6 +1793,6 @@ CvUnit* getUnitExternal(IDInfo unit); // exported through .def file
 // </advc.opt>
 
 // advc.enum: For calculatePollution. (Needs to be outside the class definition.)
-OVERLOAD_BITWISE_OPERATORS(CvPlayer::PollutionTypes)
+OVERLOAD_BITWISE_OPERATORS(CvPlayer::PollutionFlags)
 
 #endif

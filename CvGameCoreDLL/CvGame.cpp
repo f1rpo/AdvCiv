@@ -2867,9 +2867,9 @@ void CvGame::updateScore(bool bForce)
 		setTeamScore(eBestTeam, iBestScore);
 	}
 }
-// <advc.003y> Ported from CvUtil.py
+// advc.003y: Ported from CvUtil.py
 int CvGame::getScoreComponent(int iRawScore, int iInitial, int iMax,
-		int iMultiplier, bool bExponential, bool bFinal, bool bVictory) const
+	int iMultiplier, bool bExponential, bool bFinal, bool bVictory) const
 {
 	if (getEstimateEndTurn() <= 0)
 		return 0;
@@ -2882,10 +2882,10 @@ int CvGame::getScoreComponent(int iRawScore, int iInitial, int iMax,
 	double dMax = iMax;
 	if (bFinal && bVictory) // Not synchronized; floating point math is fine here.
 	{
-		double turnRatio = getGameTurn() / (double)getEstimateEndTurn();
+		double dTurnRatio = getGameTurn() / (double)getEstimateEndTurn();
 		if (bExponential && iInitial > 0)
-			dMax = iInitial * std::pow(dMax / iInitial, turnRatio);
-		else dMax = iInitial + turnRatio * (dMax - iInitial);
+			dMax = iInitial * std::pow(dMax / iInitial, dTurnRatio);
+		else dMax = iInitial + dTurnRatio * (dMax - iInitial);
 	}
 	int iMaxTimes100 = static_cast<int>(100 * dMax);
 	int iFreeScoreTimes100 = (iSCORE_FREE_PERCENT * iMaxTimes100) / 100;
@@ -2895,17 +2895,17 @@ int CvGame::getScoreComponent(int iRawScore, int iInitial, int iMax,
 		iScore= (iMultiplier * (100 * iRawScore + iFreeScoreTimes100)) / iDiv;
 	if (!bVictory && !bFinal)
 		return iScore;
-	double score = iScore;
+	double dScore = iScore;
 	if (bVictory)
-		score = ((100 + iSCORE_VICTORY_PERCENT) * score) / 100.0;
+		dScore = ((100 + iSCORE_VICTORY_PERCENT) * dScore) / 100.0;
 	if (bFinal)
 	{	// <advc.250a>
-		score = ((1000 + 10 * iSCORE_HANDICAP_PERCENT_OFFSET + // Raise the fraction to per-mill
-				getDifficultyForEndScore() * iSCORE_HANDICAP_PERCENT_PER) * score) /
+		dScore = ((1000 + 10 * iSCORE_HANDICAP_PERCENT_OFFSET + // Raise the fraction to per-mill
+				getDifficultyForEndScore() * iSCORE_HANDICAP_PERCENT_PER) * dScore) /
 				1000.0; // </advc.250a>
 	}
-	return ::round(score);
-} // </advc.003y>
+	return ::round(dScore);
+}
 
 void CvGame::updatePlotGroups()
 {
@@ -3405,8 +3405,8 @@ int CvGame::getAdjustedPopulationPercent(VictoryTypes eVictory) const
 		}
 	}
 
-	return std::min(100, (((iNextBestPopulation * 100) / getTotalPopulation()) +
-			GC.getInfo(eVictory).getPopulationPercentLead()));
+	return std::min(100, ((iNextBestPopulation * 100) / getTotalPopulation()) +
+			GC.getInfo(eVictory).getPopulationPercentLead());
 }
 
 
@@ -3429,7 +3429,7 @@ int CvGame::getAdjustedLandPercent(VictoryTypes eVictory) const
 	return std::max(iPercent, GC.getInfo(eVictory).getMinLandPercent());
 }
 
-// <advc.178> Mostly cut and pasted from CvPlayerAI::AI_calculateDiplomacyVictoryStage
+// advc.178: Mostly cut and pasted from CvPlayerAI::AI_calculateDiplomacyVictoryStage
 bool CvGame::isDiploVictoryValid() const
 {
 	for (int iI = 0; iI < GC.getNumVictoryInfos(); iI++)
@@ -3442,7 +3442,7 @@ bool CvGame::isDiploVictoryValid() const
 		}
 	}
 	return false;
-} // </advc.178>
+}
 
 
 bool CvGame::isTeamVote(VoteTypes eVote) const

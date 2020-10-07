@@ -19,6 +19,7 @@ namespace boost
 	}
 	class noncopyable {}; // advc.003e
 }
+void BOOST_STATIC_ASSERT(bool);
 class PyObject;
 #else // </advc.make>
 # include <boost/python/list.hpp>

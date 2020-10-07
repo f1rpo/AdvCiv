@@ -1083,7 +1083,7 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 	setAtWar(eTarget, true);
 	kTarget.setAtWar(getID(), true);
 	// <advc.162>
-	if(GC.getDefineINT("ENABLE_162") > 0)
+	if(GC.getDefineBOOL(CvGlobals::ENABLE_162))
 		m_abJustDeclaredWar.set(eTarget, true); // </advc.162>
 
 	// Plot danger cache (bbai)
@@ -2971,12 +2971,12 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 	// </advc.035>
 }
 
-/*  <advc.162> "Just" meaning on the current turn. Don't want to rely on
+/*  advc.162: "Just" meaning on the current turn. Don't want to rely on
 	AI code (AI_getWarPlanStateCounter) for this. */
 bool CvTeam::hasJustDeclaredWar(TeamTypes eIndex) const
 {
 	return m_abJustDeclaredWar.get(eIndex);
-} // </advc.162>
+}
 
 
 void CvTeam::setPermanentWarPeace(TeamTypes eIndex, bool bNewValue)

@@ -8,7 +8,7 @@
 // <advc.enum>
 #include "CvInfoEnums.h"
 
-/*	Player limits: Moved from CvDefines into the Enum types.
+/*	Player limits: Moved from CvDefines into the enum types.
 	(Can always turn MAX_CIV_PLAYERS back into a preprocessor define
 	if that helps in making the player limits more flexible.) */
 //#ifdef _USRDLL
@@ -25,7 +25,7 @@ enum PlayerTypes
 		Savegames are still incompatible. */
 	MAX_CIV_PLAYERS = 18,
 	BARBARIAN_PLAYER = MAX_CIV_PLAYERS,
-	MAX_PLAYERS = MAX_CIV_PLAYERS + 1
+	MAX_PLAYERS
 };
 enum TeamTypes
 {
@@ -2265,7 +2265,11 @@ enum UnitSubEntityTypes
 };
 
 // <advc.enum>
-// CityPlotTypes enum - idea from "We the People"
+/*	CityPlotTypes enum - idea from "We the People".
+	Replacing preprocessor defines in CvDefines. Note that those defines have
+	been compiled into the EXE, so, to avoid inconsistencies, the values of
+	NUM_CITY_PLOTS, CITY_HOME_PLOT, CITY_PLOTS_RADIUS and CITY_PLOTS_DIAMETER
+	should never be changed. */
 ENUM_START(CityPlot, CITYPLOT)
 	CITY_HOME_PLOT = 0,
 	FIRST_ADJACENT_PLOT = 1,
@@ -2316,7 +2320,7 @@ ENUM_END(CityPlot, CITYPLOT)
 /*  ^No definition - so that these comparisons result in a linker error.
 	The linker error will say in which function the offending call occurs.
 	A compiler error would also provide a line number, but the compiler
-	can't tell if a global function has any call locations. */
+	couldn't tell if a global function has any call locations. */
 
 #define FORBID_ENUM_COMPARISON_OPERATORS(EnumPrefix1, EnumPrefix2) \
 	FORBID_COMPARISON_OPERATORS(EnumPrefix1##Types, EnumPrefix2##Types) \
@@ -2328,6 +2332,10 @@ DO_FOR_EACH_FALSE_FRIEND(FORBID_ENUM_COMPARISON_OPERATORS);
 	enum-int comparisons isn't currently feasible. Perhaps if and when
 	the return types of functions like CvUnitInfo::getPrereqAndBonus
 	are changed to enum types. */
+/*	This doesn't work either:
+	#undef NULL
+	enum null_t { NULL };
+	Couldn't assign that to pointers. */
 /*#define FORBID_INT_EQUALITY_TEST(EnumPrefix, Dummy) \
 	bool operator==(EnumPrefix##Types, int); \
 	bool operator==(int, EnumPrefix##Types); \

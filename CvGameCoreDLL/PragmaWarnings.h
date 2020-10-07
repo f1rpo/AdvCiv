@@ -57,8 +57,8 @@
 #pragma warning(disable: 800)
 
 /*	"assignment operator could not be generated"
-	Don't want to have to write private assignment operators for every class
-	with reference members. */
+	Don't want to be forced to make every class with reference members
+	explicitly noncopyable. */
 #pragma warning(disable: 512)
 
 /*	"copy constructor could not be generated"

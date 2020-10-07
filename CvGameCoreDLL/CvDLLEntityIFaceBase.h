@@ -3,7 +3,7 @@
 #ifndef CvDLLEntityIFaceBase_h
 #define CvDLLEntityIFaceBase_h
 
-//#pragma warning(disable:100) // advc.make: Moved to PCH
+//#pragma warning(disable:100) // advc.make: Moved to PragmaWarnings.h
 
 //
 // abstract class containing entity-related functions that the DLL needs

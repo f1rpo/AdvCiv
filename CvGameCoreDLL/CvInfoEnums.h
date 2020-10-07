@@ -86,8 +86,13 @@ static inline T operator-(T minuend, T subtrahend)
 	for (TypeName##Types eLoop##TypeName = (TypeName##Types)(getEnumLength(((TypeName##Types)0)) - 1); \
 			eLoop##TypeName >= 0; \
 			eLoop##TypeName = (TypeName##Types)(eLoop##TypeName - 1))
-// For accessing an info object in a loop over an info enum (tentative and unused)
-#define _kLoop_(TypeName) \
+/*	For accessing an info object in a loop over an info enum. Tentative and unused.
+	Will make more sense if I add getInfoUnsafe functions that don't assert array bounds
+	to the MAKE_INFO_ACCESSORS... macros (tbd.?). Then SET_LOOP_INFO could avoid the
+	bounds checks (which are unnecessary in a FOR_EACH_ENUM loop) and getInfoUnsafe
+	would probably get inlined in Ob1-debug builds, meaning that one could
+	no longer accidentally step into the getter while debugging. */
+#define SET_LOOP_INFO(TypeName) \
 	Cv##TypeName##Info const& kLoop##TypeName = GC.getInfo(eLoop##TypeName)
 
 // Type lists ...

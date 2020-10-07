@@ -1021,22 +1021,21 @@ bool CvPlot::isAdjacentToLand() const
 
 bool CvPlot::isCoastalLand(int iMinWaterSize) const
 {
-	//PROFILE_FUNC(); // advc.003o: Called very frequently, probably mainly from CvUnitAI::AI_plotValid and teamStepValid_advc (CvGameCoreUtils).
+	//PROFILE_FUNC(); // advc.003o: Called very frequently, probably mainly from path finding code.
 
 	if (isWater())
 		return false;
 	// <advc.003t>
-	if (iMinWaterSize < 0)
+	if (iMinWaterSize < 0) // Tbd.: Cache the result for iMinWaterSize<0
 		iMinWaterSize = GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN);
 	// </advc.003t>
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+	FOR_EACH_ENUM(Direction)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-		if (pAdjacentPlot == NULL)
+		CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
+		if (pAdj == NULL)
 			continue;
-
-		if (pAdjacentPlot->isWater() /* advc.030: */ && !pAdjacentPlot->isImpassable() &&
-			pAdjacentPlot->getArea().getNumTiles() >= iMinWaterSize)
+		if (pAdj->isWater() /* advc.030: */ && !pAdj->isImpassable() &&
+			pAdj->getArea().getNumTiles() >= iMinWaterSize)
 		{
 			return true;
 		}
@@ -1358,62 +1357,69 @@ int CvPlot::seeThroughLevel() const
 void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement,
 	CvUnit const* pUnit, bool bUpdatePlotGroups) // advc: const CvUnit*
 {
-	bool bAerial = (pUnit != NULL && pUnit->getDomainType() == DOMAIN_AIR);
+	PROFILE_FUNC(); // advc.test: See comment in canSeeDisplacementPlot
+
+	bool const bAerial = (pUnit != NULL && pUnit->getDomainType() == DOMAIN_AIR);
 
 	DirectionTypes eFacingDirection = NO_DIRECTION;
 	if (!bAerial && NULL != pUnit)
 		eFacingDirection = pUnit->getFacingDirection(true);
 
 	//fill invisible types
-	std::vector<InvisibleTypes> aSeeInvisibleTypes;
+	std::vector<InvisibleTypes> aeSeeInvisibleTypes;
 	if (pUnit != NULL)
 	{
 		for(int i=0;i<pUnit->getNumSeeInvisibleTypes();i++)
-			aSeeInvisibleTypes.push_back(pUnit->getSeeInvisibleType(i));
+			aeSeeInvisibleTypes.push_back(pUnit->getSeeInvisibleType(i));
 	}
 
-	if(aSeeInvisibleTypes.size() == 0)
-		aSeeInvisibleTypes.push_back(NO_INVISIBLE);
+	if(aeSeeInvisibleTypes.size() == 0)
+		aeSeeInvisibleTypes.push_back(NO_INVISIBLE);
 
 	//check one extra outer ring
 	if (!bAerial)
 		iRange++;
 
-	for(size_t i = 0; i < aSeeInvisibleTypes.size(); i++)
+	for(size_t i = 0; i < aeSeeInvisibleTypes.size(); i++)
 	{
 		for (int dx = -iRange; dx <= iRange; dx++)
 		{
 			for (int dy = -iRange; dy <= iRange; dy++)
 			{
 				//check if in facing direction
-				if (bAerial || shouldProcessDisplacementPlot(dx, dy, iRange - 1, eFacingDirection))
+				if (bAerial ||
+					shouldProcessDisplacementPlot(dx, dy, /*iRange - 1,*/ eFacingDirection))
 				{
 					bool outerRing = false;
 					if (abs(dx) == iRange || abs(dy) == iRange)
 						outerRing = true;
 
 					//check if anything blocking the plot
-					if (bAerial || canSeeDisplacementPlot(eTeam, dx, dy, dx, dy, true, outerRing))
+					if (bAerial ||
+						canSeeDisplacementPlot(eTeam, dx, dy, dx, dy, true, outerRing))
 					{
 						CvPlot* pPlot = plotXY(getX(), getY(), dx, dy);
-						if (NULL != pPlot)
+						if (pPlot != NULL)
 						{
-							pPlot->changeVisibilityCount(eTeam, ((bIncrement) ? 1 : -1), aSeeInvisibleTypes[i], bUpdatePlotGroups,
+							pPlot->changeVisibilityCount(eTeam, bIncrement ? 1 : -1,
+									aeSeeInvisibleTypes[i], bUpdatePlotGroups,
 									pUnit); // advc.071
 						}
 					}
 				}
 
 				if (eFacingDirection != NO_DIRECTION)
-				{
-					if(abs(dx) <= 1 && abs(dy) <= 1) //always reveal adjacent plots when using line of sight
+				{	//always reveal adjacent plots when using line of sight
+					if(abs(dx) <= 1 && abs(dy) <= 1)
 					{
 						CvPlot* pPlot = plotXY(getX(), getY(), dx, dy);
 						if (NULL != pPlot)
 						{
-							pPlot->changeVisibilityCount(eTeam, 1, aSeeInvisibleTypes[i], bUpdatePlotGroups,
+							pPlot->changeVisibilityCount(
+									eTeam, 1, aeSeeInvisibleTypes[i], bUpdatePlotGroups,
 									pUnit); // advc.071
-							pPlot->changeVisibilityCount(eTeam, -1, aSeeInvisibleTypes[i], bUpdatePlotGroups,
+							pPlot->changeVisibilityCount(
+									eTeam, -1, aeSeeInvisibleTypes[i], bUpdatePlotGroups,
 									pUnit); // advc.071
 						}
 					}
@@ -1427,6 +1433,7 @@ void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement,
 bool CvPlot::canSeePlot(CvPlot const* pPlot, TeamTypes eTeam, int iRange, // advc: const CvPlot*
 	DirectionTypes eFacingDirection) const
 {
+	PROFILE_FUNC(); // advc.test: See comment in canSeeDisplacementPlot
 	if (pPlot == NULL)
 		return false;
 
@@ -1435,12 +1442,12 @@ bool CvPlot::canSeePlot(CvPlot const* pPlot, TeamTypes eTeam, int iRange, // adv
 	//find displacement
 	int dx = pPlot->getX() - getX();
 	int dy = pPlot->getY() - getY();
-	CvMap const& m = GC.getMap();
-	dx = m.dxWrap(dx); //world wrap
-	dy = m.dyWrap(dy);
+	CvMap const& kMap = GC.getMap();
+	dx = kMap.dxWrap(dx); //world wrap
+	dy = kMap.dyWrap(dy);
 
 	//check if in facing direction
-	if (shouldProcessDisplacementPlot(dx, dy, iRange - 1, eFacingDirection))
+	if (shouldProcessDisplacementPlot(dx, dy,/* iRange - 1,*/ eFacingDirection))
 	{
 		bool outerRing = false;
 		if (abs(dx) == iRange || abs(dy) == iRange)
@@ -1462,9 +1469,14 @@ namespace
 	// advc: Moved from CvGameCoreUtils.h b/c it was only used here. Then replaced with:
 	inline int getSign(int x) { return (x > 0) - (x < 0); }
 }
-bool CvPlot::canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy,		// advc: some style changes
+bool CvPlot::canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy,
 	int originalDX, int originalDY, bool firstPlot, bool outerRing) const
 {
+	/*	advc.test: Could adopt some optimizations from "We the People":
+		cache seeThroughLevel; remove support for direction of sight
+		-- but is that worthwhile at all in a non-Colonization mod? */
+	PROFILE_FUNC();
+
 	CvPlot const* pPlot = ::plotXY(getX(), getY(), dx, dy);
 	if (pPlot == NULL)
 		return false;
@@ -1533,12 +1545,13 @@ bool CvPlot::canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy,		// advc: s
 }
 
 
-bool CvPlot::shouldProcessDisplacementPlot(int dx, int dy, int range, DirectionTypes eFacingDirection) const  // advc: some style changes
+bool CvPlot::shouldProcessDisplacementPlot(int dx, int dy, //int iRange, // advc: unused
+	DirectionTypes eFacingDirection) const
 {
 	if(eFacingDirection == NO_DIRECTION)
 		return true;
 
-	if((dx == 0) && (dy == 0)) //always process this plot
+	if(dx == 0 && dy == 0) //always process this plot
 		return true;
 
 	//							N		NE		E		SE			S		SW		W			NW
@@ -2254,7 +2267,7 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 	if(pUnit->isInvasionMove(*pFromPlot, *this))
 		return pUnit->movesLeft(); // </advc.162>
 
-	if (pUnit->flatMovementCost() || (pUnit->getDomainType() == DOMAIN_AIR))
+	if (pUnit->flatMovementCost() || pUnit->getDomainType() == DOMAIN_AIR)
 		return GC.getMOVE_DENOMINATOR();
 
 	/*if (pUnit->isHuman()) {
@@ -2454,7 +2467,7 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 		return NO_PLAYER;
 
 	// <advc.035>
-	bool abCityRadius[MAX_PLAYERS] = { false };
+	EnumMap<PlayerTypes,bool> abCityRadius;
 	bool bAnyCityRadius = false;
 	if(bOwnExclusiveRadius)
 	{
@@ -2466,7 +2479,7 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 			PlayerTypes eCityOwner = p.getPlotCity()->getOwner();
 			if(isWithinCultureRange(eCityOwner))
 			{
-				abCityRadius[eCityOwner] = true;
+				abCityRadius.set(eCityOwner, true);
 				bAnyCityRadius = true;
 			}
 		}
@@ -2511,8 +2524,10 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 			if(pLoopCity == NULL)
 				continue;
 			if(pLoopCity->getTeam() != TEAMID(eBestPlayer) &&
-					!GET_TEAM(eBestPlayer).isVassal(pLoopCity->getTeam()))
+				!GET_TEAM(eBestPlayer).isVassal(pLoopCity->getTeam()))
+			{
 				continue;
+			}
 			if(getCulture(pLoopCity->getOwner()) <= 0)
 				continue;
 			/*	advc.099c: 099c cares only about city tile culture, but for consistency,
@@ -2541,9 +2556,9 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 		return eBestPlayer; // advc
 
 	bool bValid = true;
-	for (int iI = 0; iI < NUM_CARDINALDIRECTION_TYPES; ++iI)
+	FOR_EACH_ENUM(CardinalDirection)
 	{
-		CvPlot* pLoopPlot = plotCardinalDirection(getX(), getY(), ((CardinalDirectionTypes)iI));
+		CvPlot* pLoopPlot = plotCardinalDirection(getX(), getY(), eLoopCardinalDirection);
 		if (pLoopPlot == NULL)
 			continue;
 		if (pLoopPlot->isOwned())
@@ -2820,8 +2835,8 @@ void CvPlot::removeGoody()
 bool CvPlot::isCity(bool bCheckImprovement, TeamTypes eForTeam) const
 {
 	//PROFILE_FUNC();
-	/*	advc.003o: Called from teamStepValid_advc (CvGameCoreUtils),
-		CvPlot::isTradeNetworkConnected, CvUnit::isAlwaysHostile and many UnitAI routines. */
+	/*	advc.003o: Called from path finding code, CvPlot::isTradeNetworkConnected,
+		CvUnit::isAlwaysHostile and many UnitAI routines. */
 	if(bCheckImprovement && isImproved() &&
 		GC.getInfo(getImprovementType()).isActsAsCity())
 	{
@@ -3731,10 +3746,10 @@ bool CvPlot::isPotentialCityWorkForArea(CvArea const& kArea) const
 
 	for (CityPlotIter it(*this); it.hasNext(); ++it)
 	{
-		if (bWATER_POTENTIAL_CITY_WORK_FOR_AREA || !it->isWater())
+		if (it->isArea(kArea) && // advc.opt: rearranged
+			(!it->isWater() || bWATER_POTENTIAL_CITY_WORK_FOR_AREA))
 		{
-			if (it->isArea(kArea))
-				return true;
+			return true;
 		}
 	}
 	return false;
@@ -5310,7 +5325,7 @@ void CvPlot::setCulture(PlayerTypes eIndex, int iNewValue, bool bUpdate, bool bU
 void CvPlot::changeCulture(PlayerTypes eIndex, int iChange, bool bUpdate)
 {
 	if(iChange != 0)
-		setCulture(eIndex, (getCulture(eIndex) + iChange), bUpdate, true);
+		setCulture(eIndex, getCulture(eIndex) + iChange, bUpdate, true);
 }
 
 

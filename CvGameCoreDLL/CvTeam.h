@@ -423,11 +423,11 @@ public:
 	void changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2, int iChange);		// Exposed to Python
 
 	bool doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const; // K-Mod
-	// <advc>
+	// advc:
 	bool canPeacefullyEnter(TeamTypes eTerritoryOwner) const
 	{
 		return (isOpenBorders(eTerritoryOwner) || isFriendlyTerritory(eTerritoryOwner));
-	} // </advc>
+	}
 	bool isFriendlyTerritory(TeamTypes eTerritoryOwner) const; // advc: param renamed
 	bool canAccessHappyHealth(CvPlot const& kPlot, int iHealthOrHappy) const; // advc.901
 

@@ -15,7 +15,7 @@
 #include "CvInfo_Water.h"
 
 /*#pragma warning(disable: 251)
-#pragma warning(disable: 127)*/ // advc.make: Handled by PCH
+#pragma warning(disable: 127)*/ // advc.make: Handled by PragmaWarnings.h
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // class	: CvUnitFormationInfo

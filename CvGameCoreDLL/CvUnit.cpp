@@ -2590,6 +2590,9 @@ bool CvUnit::canEnterArea(CvArea const& kArea) const
 // advc.162:
 bool CvUnit::isInvasionMove(CvPlot const& kFrom, CvPlot const& kTo) const
 {
+	// Redundant; only to save time when it's disabled.
+	if (!GC.getDefineBOOL(CvGlobals::ENABLE_162))
+		return false;
 	TeamTypes eToTeam = kTo.getTeam();
 	if(eToTeam == NO_TEAM || eToTeam == kFrom.getTeam() || isRivalTerritory())
 		return false;

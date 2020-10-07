@@ -429,10 +429,12 @@ bool CvDeal::isPeaceDeal() const  // advc: simplified
 	return false;
 }
 
+
 bool CvDeal::isVassalDeal() const
 {
 	return (isVassalTrade(m_firstTrades) || isVassalTrade(m_secondTrades));
 }
+
 
 bool CvDeal::isVassalTrade(CLinkList<TradeData> const& kList)
 {
