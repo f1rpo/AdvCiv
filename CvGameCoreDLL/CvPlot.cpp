@@ -2474,28 +2474,30 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 
 	int iBestCulture = 0;
 	PlayerTypes eBestPlayer = NO_PLAYER;
-	for (int iI = 0; iI < MAX_PLAYERS; ++iI)
-	{	// <advc.035>
-		if(bOwnExclusiveRadius && bAnyCityRadius && !abCityRadius[iI])
+	for (PlayerIter<EVER_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
+	{
+		PlayerTypes const ePlayer = itPlayer->getID();
+		// <advc.035>
+		if(bOwnExclusiveRadius && bAnyCityRadius && !abCityRadius.get(ePlayer))
 			continue; // </advc.035>
-		PlayerTypes eLoopPlayer = (PlayerTypes)iI;
-		if(GET_PLAYER(eLoopPlayer).isAlive() /* advc.099c: */ || bIgnoreCultureRange)
+		if(itPlayer->isAlive() /* advc.099c: */ || bIgnoreCultureRange)
 		{
-			int iCulture = getCulture(eLoopPlayer);
+			int iCulture = getCulture(ePlayer);
 			/*  <advc.035> When the range of a city expands, tile ownership is updated
 				before tile culture is spread. If the expansion is sudden (WorldBuilder,
 				perhaps also culture bomb), 0 tile culture in the new range is possible. */
-			if (bOwnExclusiveRadius && iBestCulture == 0 && abCityRadius[iI])
+			if (bOwnExclusiveRadius && iBestCulture == 0 && abCityRadius.get(ePlayer))
 				iBestCulture = -1;
 			if (iCulture <= iBestCulture) // </advc.035>
 				continue; // advc
 			if (/* advc.099c: */ bIgnoreCultureRange ||
-				isWithinCultureRange(eLoopPlayer))
+				isWithinCultureRange(ePlayer))
 			{
-				if (iCulture > iBestCulture || (iCulture == iBestCulture && getOwner() == eLoopPlayer))
+				if (iCulture > iBestCulture ||
+					(iCulture == iBestCulture && getOwner() == ePlayer))
 				{
 					iBestCulture = iCulture;
-					eBestPlayer = eLoopPlayer;
+					eBestPlayer = ePlayer;
 				}
 			}
 		}
@@ -2522,7 +2524,7 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 			{
 				continue;
 			}
-			int iPriority = GC.getCityPlotPriority()[iI];
+			int iPriority = GC.getCityPlotPriority()[it.currID()];
 			if (pLoopCity->getTeam() == TEAMID(eBestPlayer))
 				iPriority += 5; // priority ranges from 0 to 4 -> give priority to Masters of a Vassal
 			if (iPriority < iBestPriority || (iPriority == iBestPriority &&
