@@ -2415,7 +2415,13 @@ double UWAI::Civ::buildUnitProb() const {
 
 double UWAI::Civ::shipSpeed() const {
 
-	// Tbd.: Use the actual speed of our typical LOGISTICS unit
+	MilitaryBranch const* logistics = getCache().getPowerValues()[LOGISTICS];
+	if(logistics != NULL) {
+		CvUnitInfo const* typicalTransport = logistics->getTypicalUnit();
+		if(typicalTransport != NULL)
+			return typicalTransport->getMoves();
+	}
+	// Fallback (needed?)
 	return ::dRange(GET_PLAYER(weId).getCurrentEra() + 1.0, 3.0, 5.0);
 }
 
