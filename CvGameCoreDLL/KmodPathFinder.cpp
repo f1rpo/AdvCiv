@@ -7,11 +7,12 @@
 #include "CvInfo_Terrain.h"
 #include "CvSelectionGroup.h"
 
-int KmodPathFinder::admissible_scaled_weight = 1;
-int KmodPathFinder::admissible_base_weight = 1;
+// advc: These don't need to be static members
+int admissible_scaled_weight = 1;
+int admissible_base_weight = 1;
 
 
-KmodPathFinder::KmodPathFinder() :
+KmodPathFinder::KmodPathFinder()
 	/*	(Unfortunately, the pathfinder is constructed
 		before the map width and height are determined.
 		Ideally the pathfinder would be initialised with a given CvMap
@@ -22,11 +23,13 @@ KmodPathFinder::KmodPathFinder() :
 	/*	<advc.pf> Now CvSelectionGroup::m_pPathFinder is constructed
 		when the map is ready, and memory _could_ be allocated directly
 		in the constructor ... */
-	kMap(GC.getMap()), end_node(NULL), nodeMap(NULL
+:	kMap(GC.getMap()), end_node(NULL), nodeMap(NULL
 		/*	... but let's not do so b/c KmodPathFinder sometimes gets instantiated
 			w/o ultimately getting used. Therefore allocate memory as late as possible. */
 		/*new FAStarNodeMap(kMap.getGridWidth(), kMap.getGridHeight())*/) // </advc.pf>
-{}
+{
+	start_x = start_y = dest_x = dest_y = INVALID_PLOT_COORD; // advc.001
+}
 
 KmodPathFinder::~KmodPathFinder()
 {
@@ -56,12 +59,6 @@ int KmodPathFinder::MinimumStepCost(int BaseMoves)
 {
 	return std::max(1, std::min(admissible_base_weight,
 			BaseMoves * admissible_scaled_weight));
-}
-
-bool KmodPathFinder::OpenList_sortPred::operator()(
-	const FAStarNode* &left, const FAStarNode* &right)
-{
-	return (left->m_iTotalCost < right->m_iTotalCost);
 }
 
 bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)

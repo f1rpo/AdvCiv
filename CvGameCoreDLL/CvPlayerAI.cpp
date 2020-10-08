@@ -14853,7 +14853,7 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 // BETTER_BTS_AI_MOD, General AI, 04/03/10, jdog5000:
 /*	K-Mod. I've changed this function to calculating the attack power of our groups,
 	rather than just the number of units. I've also changed it to use a separate instance
-	of the path finder, so that it doesn't clear the reset the existing path data. */
+	of the path finder, so that it doesn't reset the existing path data. */
 //int CvPlayerAI::AI_cityTargetUnitsByPath(
 int CvPlayerAI::AI_cityTargetStrengthByPath(/* advc: */CvCity const* pCity,
 	CvSelectionGroup* pSkipSelectionGroup, int iMaxPathTurns) const
@@ -14886,8 +14886,8 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(/* advc: */CvCity const* pCity,
 				if (iPathTurns <= iMaxPathTurns)
 					iCount += pLoopSelectionGroup->getNumUnits();
 			}*/ // BtS
-			temp_finder.SetSettings(CvPathSettings(pLoopSelectionGroup, NO_MOVEMENT_FLAGS,
-					iMaxPathTurns, GC.getMOVE_DENOMINATOR()));
+			temp_finder.SetSettings(pLoopSelectionGroup, NO_MOVEMENT_FLAGS,
+					iMaxPathTurns, GC.getMOVE_DENOMINATOR());
 			if (temp_finder.GeneratePath(pMissionPlot))
 			{
 				iTotalStrength += pLoopSelectionGroup->AI_sumStrength(

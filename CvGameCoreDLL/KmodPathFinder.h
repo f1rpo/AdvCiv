@@ -33,7 +33,6 @@ public:
 	KmodPathFinder();
 	~KmodPathFinder();
 	void Reset();
-	void SetSettings(const CvPathSettings& new_settings);
 	inline void SetSettings(CvSelectionGroup const* pGroup,
 		MovementFlags eFlags = NO_MOVEMENT_FLAGS,
 		int iMaxPath = -1, int iHeuristicWeight = -1)
@@ -60,16 +59,19 @@ protected:
 	void RecalculateHeuristics();
 	bool ProcessNode();
 	void ForwardPropagate(FAStarNode* head, int cost_delta);
+	void SetSettings(CvPathSettings const& new_settings); // advc.pf: protected
 	// advc.pf: Moved into FAStarNodeMap
 	//FAStarNode& GetNode(int x, int y) { return node_data[y * map_width + x]; }
 	// advc.pf: Not needed anymore
 	//bool ValidateNodeMap(); // (Called when SetSettings is used.)
 	typedef std::vector<FAStarNode*> OpenList_t;
-
-	struct OpenList_sortPred
+	/*struct OpenList_sortPred
 	{
-		bool operator()(const FAStarNode* &left, const FAStarNode* &right);
-	};
+		bool operator()(const FAStarNode* &left, const FAStarNode* &right)
+		{
+			return (left->m_iTotalCost < right->m_iTotalCost);
+		}
+	};*/ // advc: unused
 
 	CvMap const& kMap; // advc.pf
 	/*	advc.pf: Wrapper for raw array. Historical note: Before K-Mod 1.45,
@@ -81,9 +83,6 @@ protected:
 	int start_x, start_y;
 	FAStarNode* end_node;
 	CvPathSettings settings;
-
-	static int admissible_scaled_weight;
-	static int admissible_base_weight;
 };
 
 #endif

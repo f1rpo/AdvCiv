@@ -9948,8 +9948,8 @@ bool CvUnitAI::AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI,
 		bool bFoundEnemyPlotInRange = false;
 		// K-Mod. use a separate pathfinder for the transports, so that we don't reset our current path data.
 		KmodPathFinder temp_finder;
-		temp_finder.SetSettings(CvPathSettings(pBestUnit->getGroup(),
-				eFlags & MOVE_DECLARE_WAR, iMaxTransportPath, GC.getMOVE_DENOMINATOR()));
+		temp_finder.SetSettings(pBestUnit->getGroup(),
+				eFlags & MOVE_DECLARE_WAR, iMaxTransportPath, GC.getMOVE_DENOMINATOR());
 		// K-Mod end
 		CvTeamAI const& kOurTeam = GET_TEAM(getTeam()); // advc
 		for (SquareIter it(*pBestUnit, iMaxTransportPath * pBestUnit->baseMoves());
