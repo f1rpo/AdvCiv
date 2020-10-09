@@ -1163,7 +1163,7 @@ void CvMap::read(FDataStreamBase* pStream)
 	pStream->Read(&iRiver);
 	if (iRiver < MIN_SHORT || iRiver > MAX_SHORT)
 		m_iNextRiverID = -1;
-	m_iNextRiverID = static_cast<short>(iRiver);
+	else m_iNextRiverID = static_cast<short>(iRiver);
 	// </advc.opt>
 	pStream->Read(&m_bWrapX);
 	pStream->Read(&m_bWrapY);
@@ -1209,7 +1209,7 @@ void CvMap::read(FDataStreamBase* pStream)
 void CvMap::write(FDataStreamBase* pStream)
 {
 	REPRO_TEST_BEGIN_WRITE("Map");
-	uint uiFlag=0;
+	uint uiFlag;
 	uiFlag = 1; // advc.106n
 	pStream->Write(uiFlag);
 
@@ -1444,7 +1444,7 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart)
 void CvMap::getShelves(CvArea const& kArea, std::vector<Shelf*>& r) const
 {
 	int iArea = kArea.getID();
-	for(std::map<Shelf::Id,Shelf*>::const_iterator it = shelves.begin(); it != shelves.end(); it++)
+	for(std::map<Shelf::Id,Shelf*>::const_iterator it = shelves.begin(); it != shelves.end(); ++it)
 	{
 		if(it->first.first == iArea)
 			r.push_back(it->second);
@@ -1454,7 +1454,7 @@ void CvMap::getShelves(CvArea const& kArea, std::vector<Shelf*>& r) const
 
 void CvMap::computeShelves()
 {
-	for(std::map<Shelf::Id,Shelf*>::iterator it = shelves.begin();it != shelves.end(); it++)
+	for(std::map<Shelf::Id,Shelf*>::iterator it = shelves.begin();it != shelves.end(); ++it)
 		SAFE_DELETE(it->second);
 	shelves.clear();
 
@@ -1467,7 +1467,7 @@ void CvMap::computeShelves()
 		// Add plot to shelves of all adjacent land areas
 		std::set<int> adjLands;
 		p.getAdjacentLandAreaIds(adjLands);
-		for(std::set<int>::iterator it = adjLands.begin(); it != adjLands.end(); it++)
+		for(std::set<int>::iterator it = adjLands.begin(); it != adjLands.end(); ++it)
 		{
 			Shelf::Id shelfID(*it, p.getArea().getID());
 			std::map<Shelf::Id,Shelf*>::iterator shelfPos = shelves.find(shelfID);

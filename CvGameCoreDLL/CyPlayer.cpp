@@ -797,7 +797,7 @@ int CyPlayer::getAveragePopulation()
 	return m_pPlayer ? m_pPlayer->getAveragePopulation() : -1;
 }
 
-long CyPlayer::getRealPopulation()
+int CyPlayer::getRealPopulation() // advc: Return type was long
 {
 	return m_pPlayer ? m_pPlayer->getRealPopulation() : -1;
 }

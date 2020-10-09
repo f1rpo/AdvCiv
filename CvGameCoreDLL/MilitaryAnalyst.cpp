@@ -79,9 +79,9 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 	if((!peaceScenario && !warEvalParams.isConsideringPeace()) || noWarVsExtra) {
 		// Store war-scenario DoW for getWarsDeclaredOn/By
 		for(PlyrSetIter it1 = declaringWar.begin();
-				it1 != declaringWar.end(); it1++) {
+				it1 != declaringWar.end(); ++it1) {
 			for(PlyrSetIter it2 = theirSide.begin();
-					it2 != theirSide.end(); it2++) {
+					it2 != theirSide.end(); ++it2) {
 				if(!GET_TEAM(*it1).isAtWar(TEAMID(*it2))) {
 					playerResult(*it1).setDoWBy(*it2);
 					playerResult(*it2).setDoWOn(*it1);
@@ -106,9 +106,9 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 			FAssert(isect.empty());
 		}
 		#endif
-		for(PlyrSetIter it = theirDPAllies.begin(); it != theirDPAllies.end(); it++)
+		for(PlyrSetIter it = theirDPAllies.begin(); it != theirDPAllies.end(); ++it)
 			playerResult(*it).setDoWBy(declaringWar.begin(), declaringWar.end());
-		for(PlyrSetIter it = declaringWar.begin(); it != declaringWar.end(); it++)
+		for(PlyrSetIter it = declaringWar.begin(); it != declaringWar.end(); ++it)
 			playerResult(*it).setDoWOn(theirDPAllies.begin(), theirDPAllies.end());
 	}
 	// Wars continued
@@ -360,17 +360,17 @@ void MilitaryAnalyst::prepareResults() {
 	// Predict scores as current game score modified based on gained/ lost population
 	CvGame& g = GC.getGame();
 	UWAICache const& ourCache = GET_PLAYER(weId).uwai().getCache();
-	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
-		PlayerTypes civId = it->getID();
+	for(PlayerIter<MAJOR_CIV> itCiv; itCiv.hasNext(); ++itCiv) {
+		PlayerTypes const civId = itCiv->getID();
 		double popIncr = 0;
 		CitySet const& conq = conqueredCities(civId);
-		for(CitySetIter it = conq.begin(); it != conq.end(); it++) {
+		for(CitySetIter it = conq.begin(); it != conq.end(); ++it) {
 			UWAICache::City* c = ourCache.lookupCity(*it);
 			if(c == NULL) continue;
 			popIncr += c->city()->getPopulation();
 		}
 		CitySet const& lost = lostCities(civId);
-		for(CitySetIter it = lost.begin(); it != lost.end(); it++) {
+		for(CitySetIter it = lost.begin(); it != lost.end(); ++it) {
 			UWAICache::City* c = ourCache.lookupCity(*it);
 			if(c == NULL) continue;
 			popIncr -= c->city()->getPopulation();
@@ -488,7 +488,7 @@ void MilitaryAnalyst::logCities(PlayerTypes civId, bool conquests) {
 	if(cities.empty())
 		return;
 	report.log("Cities %s:", conquests ? "conquered" : "lost");
-	for(CitySetIter it = cities.begin(); it != cities.end(); it++) {
+	for(CitySetIter it = cities.begin(); it != cities.end(); ++it) {
 		CvCity* c = UWAICache::City::cityById(*it);
 		if(c != NULL)
 			report.log("%s", report.cityName(*c));
@@ -510,7 +510,7 @@ void MilitaryAnalyst::logCapitulations(PlayerTypes civId) {
 	if(caps.empty())
 		return;
 	report.log("Capitulation accepted from:");
-	for(TeamSetIter it = caps.begin(); it != caps.end(); it++) {
+	for(TeamSetIter it = caps.begin(); it != caps.end(); ++it) {
 		// The team name (e.g. Team1) would not be helpful
 		for(MemberIter memberIt(*it); memberIt.hasNext(); ++memberIt)
 			report.log("%s", report.leaderName(memberIt->getID()));
@@ -526,20 +526,20 @@ void MilitaryAnalyst::logDoW(PlayerTypes civId) {
 	if(!DoWBy.empty()) {
 		report.log("Wars declared by %s:",
 				report.leaderName(civId));
-		for(PlyrSetIter it = DoWBy.begin(); it != DoWBy.end(); it++)
+		for(PlyrSetIter it = DoWBy.begin(); it != DoWBy.end(); ++it)
 			report.log("%s", report.leaderName(*it));
 	}
 	PlyrSet const& DoWOn = result->getDoWOn();
 	if(!DoWOn.empty()) {
 		report.log("Wars declared on %s:",
 				report.leaderName(civId));
-		for(PlyrSetIter it = DoWOn.begin(); it != DoWOn.end(); it++)
+		for(PlyrSetIter it = DoWOn.begin(); it != DoWOn.end(); ++it)
 			report.log("%s", report.leaderName(*it));
 	}
 	PlyrSet const& warsCont = result->getWarsContinued();
 	if(!warsCont.empty()) {
 		report.log("Wars continued:");
-		for(PlyrSetIter it = warsCont.begin(); it != warsCont.end(); it++)
+		for(PlyrSetIter it = warsCont.begin(); it != warsCont.end(); ++it)
 			report.log("%s", report.leaderName(*it));
 	}
 }

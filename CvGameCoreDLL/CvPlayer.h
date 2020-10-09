@@ -416,7 +416,7 @@ public:
 	int getTotalPopulation() const { return m_iTotalPopulation; }													// Exposed to Python
 	int getAveragePopulation() const;																				// Exposed to Python
 	void changeTotalPopulation(int iChange);
-	long getRealPopulation() const;																					// Exposed to Python
+	int getRealPopulation() const;																					// Exposed to Python
 	int getReligionPopulation(ReligionTypes eReligion) const;
 
 	int getTotalLand() const { return m_iTotalLand; }																// Exposed to Python
@@ -1153,7 +1153,7 @@ public:
 	inline int getNumPlotGroups() const { return m_plotGroups.getCount(); }
 	inline CvPlotGroup* getPlotGroup(int iID) const
 	{
-		return (CvPlotGroup*)m_plotGroups.getAt(iID);
+		return m_plotGroups.getAt(iID);
 	}
 	CvPlotGroup* addPlotGroup() { return m_plotGroups.add(); }
 	inline void deletePlotGroup(int iID)

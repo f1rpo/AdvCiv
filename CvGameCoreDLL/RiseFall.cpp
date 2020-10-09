@@ -167,7 +167,7 @@ void RiseFall::write(FDataStreamBase* pStream) {
 	pStream->Write(interludeCountdown);
 	pStream->Write((int)offLimits.size());
 	for(std::set<TeamTypes>::const_iterator it = offLimits.begin();
-			it != offLimits.end(); it++)
+			it != offLimits.end(); ++it)
 		pStream->Write(*it);
 	pStream->Write((int)chapters.size());
 	for(size_t i = 0; i < chapters.size(); i++)
@@ -591,7 +591,7 @@ void RiseFall::showQuests() {
 	CvPlayer& p = GET_PLAYER(GC.getGame().getActivePlayer());
 	CvMessageQueue const& archive = p.getGameMessages();
 	for(std::list<CvTalkingHeadMessage>::const_iterator it = archive.begin();
-			it != archive.end(); it++) {
+			it != archive.end(); ++it) {
 		// CvPlayer::expireEvent should ensure that only ongoing quests are listed
 		if(it->getMessageType() == MESSAGE_TYPE_QUEST) {
 			gDLL->UI().addMessage(p.getID(), true, -1, gDLL->getText("TXT_KEY_GOT_QUESTS"),

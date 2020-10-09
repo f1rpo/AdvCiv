@@ -7221,13 +7221,13 @@ void CvPlot::read(FDataStreamBase* pStream)
 void CvPlot::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
-	uint uiFlag=0;
-	uiFlag = 1; // advc.035
-	uiFlag = 2; // advc.opt
-	uiFlag = 3; // advc.tsl
-	uiFlag = 4; // advc.opt: m_bHills removed
-	uiFlag = 5; // advc.opt, advc.011, advc.enum: some int or short members turned into short or char
-	uiFlag = 6; // advc.opt: m_eTeam
+	uint uiFlag;
+	//uiFlag = 1; // advc.035
+	//uiFlag = 2; // advc.opt
+	//uiFlag = 3; // advc.tsl
+	//uiFlag = 4; // advc.opt: m_bHills removed
+	//uiFlag = 5; // advc.opt, advc.011, advc.enum: some int or short members turned into short or char
+	//uiFlag = 6; // advc.opt: m_eTeam
 	uiFlag = 7; // advc.opt: m_bImpassable
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE(CvString::format("Plot pt1(%d,%d)", getX(), getY()).GetCString());

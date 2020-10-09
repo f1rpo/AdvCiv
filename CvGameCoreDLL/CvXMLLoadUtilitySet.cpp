@@ -51,14 +51,12 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 			// loop through all the Define tags
 			for (int i = 0; i < iNumDefines; i++)
 			{
-				char szNodeType[256]; // holds the type of the current node
-				char szName[256];
-
 				// Skip any comments and stop at the next value we might want
 				if (SkipToNextVal())
 				{
 					// call the function that sets the FXml pointer to the first non-comment child of
 					// the current tag and gets the value of that new node
+					char szName[256];
 					if (GetChildXmlVal(szName))
 					{
 						// set the FXml pointer to the next sibling of the current tag``
@@ -68,6 +66,7 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 							if (SkipToNextVal())
 							{
 								// if we successfuly get the node type for the current tag
+								char szNodeType[256]; // holds the type of the current node
 								if (gDLL->getXMLIFace()->GetLastLocatedNodeType(GetXML(),szNodeType))
 								{
 									if (strcmp(szNodeType,"")!=0)
@@ -205,147 +204,147 @@ bool CvXMLLoadUtility::SetGlobalDefines()
 // Loads those global defines that need to reference a global variable loaded by SetGlobalDefines
 bool CvXMLLoadUtility::SetPostGlobalsGlobalDefines()
 {
-	const char* szVal=NULL; // holds the string value from the define queue
-	int idx;
-	if (GC.getDefinesVarSystem()->GetSize() > 0)
+	if (GC.getDefinesVarSystem()->GetSize() <= 0)
 	{
-		SetGlobalDefine("LAND_TERRAIN", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("LAND_TERRAIN", idx);
-
-		SetGlobalDefine("DEEP_WATER_TERRAIN", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("DEEP_WATER_TERRAIN", idx);
-		GC.setWATER_TERRAIN(false, idx); // advc.opt
-
-		SetGlobalDefine("SHALLOW_WATER_TERRAIN", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("SHALLOW_WATER_TERRAIN", idx);
-		GC.setWATER_TERRAIN(true, idx); // advc.opt
-		//GWMod Start M.A.
-		SetGlobalDefine("FROZEN_TERRAIN", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("FROZEN_TERRAIN", idx);
-
-		SetGlobalDefine("COLD_TERRAIN", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("COLD_TERRAIN", idx);
-
-		SetGlobalDefine("TEMPERATE_TERRAIN", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("TEMPERATE_TERRAIN", idx);
-
-		SetGlobalDefine("DRY_TERRAIN", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("DRY_TERRAIN", idx);
-
-		SetGlobalDefine("BARREN_TERRAIN", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("BARREN_TERRAIN", idx);
-
-		SetGlobalDefine("COLD_FEATURE", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("COLD_FEATURE", idx);
-
-		SetGlobalDefine("TEMPERATE_FEATURE", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("TEMPERATE_FEATURE", idx);
-
-		SetGlobalDefine("WARM_FEATURE", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("WARM_FEATURE", idx);
-		//GWMod end M.A.
-
-		SetGlobalDefine("LAND_IMPROVEMENT", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("LAND_IMPROVEMENT", idx);
-
-		SetGlobalDefine("WATER_IMPROVEMENT", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("WATER_IMPROVEMENT", idx);
-
-		SetGlobalDefine("RUINS_IMPROVEMENT", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("RUINS_IMPROVEMENT", idx);
-		GC.setRUINS_IMPROVEMENT(idx); // advc.opt
-
-		SetGlobalDefine("NUKE_FEATURE", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("NUKE_FEATURE", idx);
-
-		SetGlobalDefine("GLOBAL_WARMING_TERRAIN", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("GLOBAL_WARMING_TERRAIN", idx);
-
-		SetGlobalDefine("CAPITAL_BUILDINGCLASS", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("CAPITAL_BUILDINGCLASS", idx);
-
-		SetGlobalDefine("DEFAULT_SPECIALIST", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("DEFAULT_SPECIALIST", idx);
-		GC.setDEFAULT_SPECIALIST(idx); // advc.opt
-
-		SetGlobalDefine("INITIAL_CITY_ROUTE_TYPE", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("INITIAL_CITY_ROUTE_TYPE", idx);
-
-		SetGlobalDefine("STANDARD_HANDICAP", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("STANDARD_HANDICAP", idx);
-
-		SetGlobalDefine("STANDARD_HANDICAP_QUICK", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("STANDARD_HANDICAP_QUICK", idx);
-
-		SetGlobalDefine("STANDARD_GAMESPEED", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("STANDARD_GAMESPEED", idx);
-
-		SetGlobalDefine("STANDARD_TURNTIMER", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("STANDARD_TURNTIMER", idx);
-
-		SetGlobalDefine("STANDARD_CLIMATE", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("STANDARD_CLIMATE", idx);
-
-		SetGlobalDefine("STANDARD_SEALEVEL", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("STANDARD_SEALEVEL", idx);
-
-		SetGlobalDefine("STANDARD_ERA", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("STANDARD_ERA", idx);
-
-		SetGlobalDefine("STANDARD_CALENDAR", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("STANDARD_CALENDAR", idx);
-
-		SetGlobalDefine("AI_HANDICAP", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("AI_HANDICAP", idx);
-
-		SetGlobalDefine("BARBARIAN_HANDICAP", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("BARBARIAN_HANDICAP", idx);
-
-		SetGlobalDefine("BARBARIAN_CIVILIZATION", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("BARBARIAN_CIVILIZATION", idx);
-
-		SetGlobalDefine("BARBARIAN_LEADER", szVal);
-		idx = FindInInfoClass(szVal);
-		GC.getDefinesVarSystem()->SetValue("BARBARIAN_LEADER", idx);
-
-		return true;
+		char szMessage[1024];
+		sprintf(szMessage, "Size of Global Defines is not greater than 0.\nCurrent XML file is: %s", GC.getCurrentXMLFile().GetCString());
+		errorMessage(szMessage, XML_LOAD_ERROR);
+		return false;
 	}
 
-	char	szMessage[1024];
-	sprintf(szMessage, "Size of Global Defines is not greater than 0.\nCurrent XML file is: %s", GC.getCurrentXMLFile().GetCString());
-	errorMessage(szMessage, XML_LOAD_ERROR);
+	const char* szVal=NULL; // holds the string value from the define queue
+	int idx;
 
-	return false;
+	SetGlobalDefine("LAND_TERRAIN", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("LAND_TERRAIN", idx);
+
+	SetGlobalDefine("DEEP_WATER_TERRAIN", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("DEEP_WATER_TERRAIN", idx);
+	GC.setWATER_TERRAIN(false, idx); // advc.opt
+
+	SetGlobalDefine("SHALLOW_WATER_TERRAIN", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("SHALLOW_WATER_TERRAIN", idx);
+	GC.setWATER_TERRAIN(true, idx); // advc.opt
+	//GWMod Start M.A.
+	SetGlobalDefine("FROZEN_TERRAIN", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("FROZEN_TERRAIN", idx);
+
+	SetGlobalDefine("COLD_TERRAIN", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("COLD_TERRAIN", idx);
+
+	SetGlobalDefine("TEMPERATE_TERRAIN", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("TEMPERATE_TERRAIN", idx);
+
+	SetGlobalDefine("DRY_TERRAIN", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("DRY_TERRAIN", idx);
+
+	SetGlobalDefine("BARREN_TERRAIN", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("BARREN_TERRAIN", idx);
+
+	SetGlobalDefine("COLD_FEATURE", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("COLD_FEATURE", idx);
+
+	SetGlobalDefine("TEMPERATE_FEATURE", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("TEMPERATE_FEATURE", idx);
+
+	SetGlobalDefine("WARM_FEATURE", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("WARM_FEATURE", idx);
+	//GWMod end M.A.
+
+	SetGlobalDefine("LAND_IMPROVEMENT", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("LAND_IMPROVEMENT", idx);
+
+	SetGlobalDefine("WATER_IMPROVEMENT", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("WATER_IMPROVEMENT", idx);
+
+	SetGlobalDefine("RUINS_IMPROVEMENT", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("RUINS_IMPROVEMENT", idx);
+	GC.setRUINS_IMPROVEMENT(idx); // advc.opt
+
+	SetGlobalDefine("NUKE_FEATURE", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("NUKE_FEATURE", idx);
+
+	SetGlobalDefine("GLOBAL_WARMING_TERRAIN", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("GLOBAL_WARMING_TERRAIN", idx);
+
+	SetGlobalDefine("CAPITAL_BUILDINGCLASS", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("CAPITAL_BUILDINGCLASS", idx);
+
+	SetGlobalDefine("DEFAULT_SPECIALIST", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("DEFAULT_SPECIALIST", idx);
+	GC.setDEFAULT_SPECIALIST(idx); // advc.opt
+
+	SetGlobalDefine("INITIAL_CITY_ROUTE_TYPE", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("INITIAL_CITY_ROUTE_TYPE", idx);
+
+	SetGlobalDefine("STANDARD_HANDICAP", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("STANDARD_HANDICAP", idx);
+
+	SetGlobalDefine("STANDARD_HANDICAP_QUICK", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("STANDARD_HANDICAP_QUICK", idx);
+
+	SetGlobalDefine("STANDARD_GAMESPEED", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("STANDARD_GAMESPEED", idx);
+
+	SetGlobalDefine("STANDARD_TURNTIMER", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("STANDARD_TURNTIMER", idx);
+
+	SetGlobalDefine("STANDARD_CLIMATE", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("STANDARD_CLIMATE", idx);
+
+	SetGlobalDefine("STANDARD_SEALEVEL", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("STANDARD_SEALEVEL", idx);
+
+	SetGlobalDefine("STANDARD_ERA", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("STANDARD_ERA", idx);
+
+	SetGlobalDefine("STANDARD_CALENDAR", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("STANDARD_CALENDAR", idx);
+
+	SetGlobalDefine("AI_HANDICAP", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("AI_HANDICAP", idx);
+
+	SetGlobalDefine("BARBARIAN_HANDICAP", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("BARBARIAN_HANDICAP", idx);
+
+	SetGlobalDefine("BARBARIAN_CIVILIZATION", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("BARBARIAN_CIVILIZATION", idx);
+
+	SetGlobalDefine("BARBARIAN_LEADER", szVal);
+	idx = FindInInfoClass(szVal);
+	GC.getDefinesVarSystem()->SetValue("BARBARIAN_LEADER", idx);
+
+	return true;
 }
 
 // Load GlobalTypes.xml
@@ -514,10 +513,10 @@ bool CvXMLLoadUtility::LoadGlobalText()
 		gDLL->enumerateFiles(aszModfiles, "modules\\*_CIV4GameText.xml");
 		aszFiles.insert(aszFiles.end(), aszModfiles.begin(), aszModfiles.end());
 	}
-	bool bLoaded = false;
+
 	for(std::vector<CvString>::iterator it = aszFiles.begin(); it != aszFiles.end(); ++it)
 	{
-		bLoaded = LoadCivXml(m_pFXml, *it); // Load the XML
+		bool bLoaded = LoadCivXml(m_pFXml, *it); // Load the XML
 		if (!bLoaded)
 		{
 			char	szMessage[1024];
@@ -1353,25 +1352,26 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 	const char* szXmlPath, bool bTwoPass,
 	CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*))
 {
-	bool bLoaded = false;
 	//GC.addToInfosVectors(aInfos); // advc.enum (no longer needed)
 	#if ENABLE_XML_FILE_CACHE
-		CvCacheObject* pCache = NULL;
-		bool bWriteCache = true;
-		if (pArgFunction != NULL)
+	bool bLoaded = false;
+	CvCacheObject* pCache = NULL;
+	bool bWriteCache = true;
+	if (pArgFunction != NULL)
+	{
+		pCache = (gDLL->*pArgFunction)(CvString::format("%s.dat", szFileRoot));	// cache file name
+		if (gDLL->cacheRead(pCache, CvString::format("xml\\\\%s\\\\%s.xml", szFileDirectory, szFileRoot)))
 		{
-			pCache = (gDLL->*pArgFunction)(CvString::format("%s.dat", szFileRoot));	// cache file name
-
-			if (gDLL->cacheRead(pCache, CvString::format("xml\\\\%s\\\\%s.xml", szFileDirectory, szFileRoot)))
-			{
-				logMsg("Read %s from cache", szFileDirectory);
-				bLoaded = true;
-				bWriteCache = false;
-			}
+			logMsg("Read %s from cache", szFileDirectory);
+			bLoaded = true;
+			bWriteCache = false;
 		}
-	#endif
+	}
 	if (!bLoaded)
 	{
+	#else
+	bool // ... bLoaded =
+	#endif
 		bLoaded = LoadCivXml(m_pFXml, CvString::format("xml\\%s/%s.xml", szFileDirectory, szFileRoot));
 		if (!bLoaded)
 		{
@@ -1459,8 +1459,8 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 				}
 			#endif
 		}
-	}
 	#if ENABLE_XML_FILE_CACHE
+	}
 		if (pArgFunction != NULL)
 			gDLL->destroyCache(pCache);
 	#endif
@@ -1865,7 +1865,7 @@ void CvXMLLoadUtility::SetVariableListTagPair(CvString **ppszList, const TCHAR* 
 				GC.getCurrentXMLFile().GetCString());
 		errorMessage(szMessage);
 	}
-	bool bListModified = (*ppszList != NULL); // advc.003t, advc.xmldefault
+	bool bListModified = false; // advc.003t, advc.xmldefault
 	InitStringList(ppszList, iInfoBaseLength, szDefaultListVal);
 	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szRootTagName))
 	{

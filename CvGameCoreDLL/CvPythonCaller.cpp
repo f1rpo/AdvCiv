@@ -406,13 +406,13 @@ bool CvPythonCaller::cannotSelectionListNetOverride(GameMessageTypes eMessage,
 	return toBool(lResult);
 }
 
-bool CvPythonCaller::cannotHandleActionOverride(CvPlot const& kPlot, int iAction,
+bool CvPythonCaller::cannotHandleActionOverride(CvPlot* pPlot, int iAction,
 		bool bTestVisible) const
 {
 	if (!isUse(CANNOT_HANDLE_ACTION))
 		return false;
 	ARGSLIST(false);
-	CyPlot* pyPlot = new CyPlot(kPlot);
+	CyPlot* pyPlot = new CyPlot(pPlot);
 	argsList.add(m_python.makePythonObject(pyPlot));
 	argsList.add(iAction);
 	argsList.add(bTestVisible);

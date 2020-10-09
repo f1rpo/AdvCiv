@@ -4,7 +4,7 @@
 #define CIV4_INITCORE_H
 
 
-class CvInitCore
+class CvInitCore /* advc.003e */ : boost::noncopyable
 {
 public:
 

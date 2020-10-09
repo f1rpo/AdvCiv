@@ -24,8 +24,8 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		report(m.evaluationParameters().getReport()),
 		military(military), timeHorizon(timeHorizon) {
 
-	bool const bLogAI = false; // Clogs up the log too much
-	if(!bLogAI && !GET_PLAYER(civId).isHuman())
+#define bLOG_AI false // Clogs up the log too much
+	if(!bLOG_AI && !GET_PLAYER(civId).isHuman())
 	  report.setMute(true);
 	report.log("Armament forecast for *%s*",
 			report.leaderName(civId));
@@ -292,8 +292,9 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		predictArmament(timeHorizon, productionEstimate, prodFromUpgrades,
 				intensity, defensive, navalArmament);
 	}
-	if(!bLogAI && !GET_PLAYER(civId).isHuman())
+	if(!bLOG_AI && !GET_PLAYER(civId).isHuman())
 		report.setMute(false); // advc.test
+#undef bLOG_AI
 }
 
 double ArmamentForecast::getProductionInvested() const {

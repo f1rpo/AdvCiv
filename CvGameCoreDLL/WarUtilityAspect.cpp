@@ -763,8 +763,9 @@ double GreedForAssets::competitionMultiplier() {
 		for our GreedForAssets to account for that risk.
 		Should reduce early-game dogpiling. */
 	int competitors = 0;
-	for(PlayerIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(agentId); it.hasNext(); ++it) {
-		CvPlayer const& rival = *it;
+	for(PlayerIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itRival(agentId);
+			itRival.hasNext(); ++itRival) {
+		CvPlayer const& rival = *itRival;
 		if(!m->isWar(rival.getID(), theyId))
 			continue;
 		/*  Only worry if MilitaryAnalyst says that civ conquers at least as much
@@ -1324,8 +1325,8 @@ double MilitaryVictory::progressRatingDiplomacy() {
 		if(m->conqueredCities(weId).count(*it))
 			conquestsWithWeights.insert(pair<int,double>(*it, 1));
 	}
-	for(PlayerIter<ALIVE,VASSAL_OF> it(agentId); it.hasNext(); ++it) {
-		PlayerTypes civId = it->getID();
+	for(PlayerIter<ALIVE,VASSAL_OF> itCiv(agentId); itCiv.hasNext(); ++itCiv) {
+		PlayerTypes const civId = itCiv->getID();
 		if(!GET_PLAYER(civId).isVotingMember(voteSource))
 			continue;
 		// Halve weight for vassals that are mere voting members
@@ -1886,8 +1887,8 @@ void PreEmptiveWar::evaluate() {
 		return;
 	// threatRating includes their vassals, so include vassals here as well
 	double theirPresentCities = 0, theirPredictedCities = 0;
-	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
-		CvPlayer const& civ = *it;
+	for(PlayerIter<MAJOR_CIV> itCiv; itCiv.hasNext(); ++itCiv) {
+		CvPlayer const& civ = *itCiv;
 		double vassalFactor = 1;
 		if(civ.isAVassal())
 			vassalFactor = 0.5;
@@ -2444,8 +2445,8 @@ int Risk::preEvaluate() {
 
 	// Handle potential losses of our vassals here
 	double uMinus = 0;
-	for(PlayerIter<ALIVE,VASSAL_OF> it(agentId); it.hasNext(); ++it) {
-		PlayerTypes const vId = it->getID();
+	for(PlayerIter<ALIVE,VASSAL_OF> itVassal(agentId); itVassal.hasNext(); ++itVassal) {
+		PlayerTypes const vId = itVassal->getID();
 		CvPlayerAI const& vassal = GET_PLAYER(vId);
 		// OK to peek into our vassal's cache
 		UWAICache const& vassalCache = vassal.uwai().getCache();

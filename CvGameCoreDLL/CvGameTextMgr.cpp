@@ -17485,8 +17485,8 @@ void CvGameTextMgr::parseLeaderHeadHelp(CvWStringBuffer &szBuffer, PlayerTypes e
 	parsePlayerTraits(szBuffer, eThisPlayer);
 
 	// Some debug info: found-site traits, and AI flavours
-	if (/*gDLL->getChtLvl() > 0*/ GC.getGame().isDebugMode() // advc.135c
-		&& GC.altKey())
+	if (/*gDLL->getChtLvl() > 0*/ GC.getGame().isDebugMode() &&// advc.135c
+		GC.altKey())
 	{
 		szBuffer.append(CvWString::format(SETCOLR SEPARATOR NEWLINE, TEXT_COLOR("COLOR_LIGHT_GREY")));
 		szBuffer.append(CvWString::format(L"id=%d\n", eThisPlayer)); // advc.007
@@ -17495,7 +17495,7 @@ void CvGameTextMgr::parseLeaderHeadHelp(CvWStringBuffer &szBuffer, PlayerTypes e
 		bool bFirst = true;
 
 #define trait_info(x) do { \
-	if (citySiteEval.is##x##()) \
+	if (citySiteEval.is##x()) \
 	{ \
 		szBuffer.append(CvWString::format(L"%s"L#x, bFirst? L"" : L", ")); \
 		bFirst = false; \

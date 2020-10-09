@@ -352,7 +352,7 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		else if (pPopupReturn->getButtonClicked() == 0)
 		{
 			CvCity* pCity = GET_PLAYER(kGame.getActivePlayer()).getCity(info.getData1());
-			if (NULL != pCity)
+			if (pCity != NULL)
 			{
 				pCity->chooseProduction();
 				CvEventReporter::getInstance().cityAcquiredAndKept(kGame.getActivePlayer(), pCity);
@@ -422,72 +422,56 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		break;
 
 	case BUTTONPOPUP_DETAILS:
+	{
+		CvInitCore& ic = GC.getInitCore();
+		// Civ details
+		PlayerTypes eID = ic.getActivePlayer();
+		CvWString szLeaderName = ic.getLeaderName(eID);
+		CvWString szCivDescription = ic.getCivDescription(eID);
+		CvWString szCivShortDesc = ic.getCivShortDesc(eID);
+		CvWString szCivAdjective = ic.getCivAdjective(eID);
+		CvWString szCivPassword = PASSWORD_DEFAULT;
+		CvString szEmail = ic.getEmail(eID);
+		CvString szSmtpHost = ic.getSmtpHost(eID);
+
+		if (pPopupReturn->getEditBoxString(0) && *(pPopupReturn->getEditBoxString(0)))
+			szLeaderName = pPopupReturn->getEditBoxString(0);
+		if (pPopupReturn->getEditBoxString(1) && *(pPopupReturn->getEditBoxString(1)))
+			szCivDescription = pPopupReturn->getEditBoxString(1);
+		if (pPopupReturn->getEditBoxString(2) && *(pPopupReturn->getEditBoxString(2)))
+			szCivShortDesc = pPopupReturn->getEditBoxString(2);
+		if (pPopupReturn->getEditBoxString(3) && *(pPopupReturn->getEditBoxString(3)))
+			szCivAdjective = pPopupReturn->getEditBoxString(3);
+		if (kGame.isHotSeat() || kGame.isPbem())
 		{
-			CvInitCore& ic = GC.getInitCore();
-			// Civ details
-			PlayerTypes eID = ic.getActivePlayer();
-			CvWString szLeaderName = ic.getLeaderName(eID);
-			CvWString szCivDescription = ic.getCivDescription(eID);
-			CvWString szCivShortDesc = ic.getCivShortDesc(eID);
-			CvWString szCivAdjective = ic.getCivAdjective(eID);
-			CvWString szCivPassword = PASSWORD_DEFAULT;
-			CvString szEmail = ic.getEmail(eID);
-			CvString szSmtpHost = ic.getSmtpHost(eID);
-
-			if (pPopupReturn->getEditBoxString(0) && *(pPopupReturn->getEditBoxString(0)))
-			{
-				szLeaderName = pPopupReturn->getEditBoxString(0);
-			}
-			if (pPopupReturn->getEditBoxString(1) && *(pPopupReturn->getEditBoxString(1)))
-			{
-				szCivDescription = pPopupReturn->getEditBoxString(1);
-			}
-			if (pPopupReturn->getEditBoxString(2) && *(pPopupReturn->getEditBoxString(2)))
-			{
-				szCivShortDesc = pPopupReturn->getEditBoxString(2);
-			}
-			if (pPopupReturn->getEditBoxString(3) && *(pPopupReturn->getEditBoxString(3)))
-			{
-				szCivAdjective = pPopupReturn->getEditBoxString(3);
-			}
-			if (kGame.isHotSeat() || kGame.isPbem())
-			{
-				if (pPopupReturn->getEditBoxString(4) && *(pPopupReturn->getEditBoxString(4)))
-				{
-					szCivPassword = pPopupReturn->getEditBoxString(4);
-				}
-			}
-			if (kGame.isPitboss() || kGame.isPbem())
-			{
-				if (pPopupReturn->getEditBoxString(5) && *(pPopupReturn->getEditBoxString(5)))
-				{
-					szEmail = CvString(pPopupReturn->getEditBoxString(5));
-				}
-			}
-			if (kGame.isPbem())
-			{
-				if (pPopupReturn->getEditBoxString(6) && *(pPopupReturn->getEditBoxString(6)))
-				{
-					szSmtpHost = CvString(pPopupReturn->getEditBoxString(6));
-				}
-			}
-
-			ic.setLeaderName(eID, szLeaderName);
-			ic.setCivDescription(eID, szCivDescription);
-			ic.setCivShortDesc(eID, szCivShortDesc);
-			ic.setCivAdjective(eID, szCivAdjective);
-			if (szCivPassword != PASSWORD_DEFAULT)
-			{
-				ic.setCivPassword(eID, szCivPassword);
-			}
-			ic.setEmail(eID, szEmail);
-			ic.setSmtpHost(eID, szSmtpHost);
-			gDLL->sendPlayerInfo(eID);
-
-			if (kGame.isPbem() && pPopupReturn->getButtonClicked() == 0)
-				gDLL->sendPbemTurn(NO_PLAYER);
+			if (pPopupReturn->getEditBoxString(4) && *(pPopupReturn->getEditBoxString(4)))
+				szCivPassword = pPopupReturn->getEditBoxString(4);
 		}
+		if (kGame.isPitboss() || kGame.isPbem())
+		{
+			if (pPopupReturn->getEditBoxString(5) && *(pPopupReturn->getEditBoxString(5)))
+				szEmail = CvString(pPopupReturn->getEditBoxString(5));
+		}
+		if (kGame.isPbem() &&
+			pPopupReturn->getEditBoxString(6) && *(pPopupReturn->getEditBoxString(6)))
+		{
+			szSmtpHost = CvString(pPopupReturn->getEditBoxString(6));
+		}
+
+		ic.setLeaderName(eID, szLeaderName);
+		ic.setCivDescription(eID, szCivDescription);
+		ic.setCivShortDesc(eID, szCivShortDesc);
+		ic.setCivAdjective(eID, szCivAdjective);
+		if (szCivPassword != PASSWORD_DEFAULT)
+			ic.setCivPassword(eID, szCivPassword);
+		ic.setEmail(eID, szEmail);
+		ic.setSmtpHost(eID, szSmtpHost);
+		gDLL->sendPlayerInfo(eID);
+
+		if (kGame.isPbem() && pPopupReturn->getButtonClicked() == 0)
+			gDLL->sendPbemTurn(NO_PLAYER);
 		break;
+	}
 
 	case BUTTONPOPUP_ADMIN:
 	{

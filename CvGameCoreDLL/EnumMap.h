@@ -210,11 +210,7 @@ private:
 		IndexType first;
 		IndexType last;
 
-		interval()
-		{
-			first = (IndexType)0;
-			last = (IndexType)0;
-		}
+		interval() : first((IndexType)0), last((IndexType)0) {}
 	};
 
 	// bool helpers

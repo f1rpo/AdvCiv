@@ -664,9 +664,9 @@ void CvArea::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
 	REPRO_TEST_BEGIN_WRITE(CvString::format("Area(%d)", getID()));
-	uint uiFlag=0;
-	uiFlag = 1; // advc.030
-	uiFlag = 2; // advc: Remove m_aiAnimalsPerPlayer, advc.enum: write m_aaiYieldRateModifier as short
+	uint uiFlag;
+	//uiFlag = 1; // advc.030
+	//uiFlag = 2; // advc: Remove m_aiAnimalsPerPlayer, advc.enum: write m_aaiYieldRateModifier as short
 	uiFlag = 3; // advc.opt: Remove m_aiImprovements
 	pStream->Write(uiFlag);
 

@@ -2879,7 +2879,7 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 								(bPrimaryArea ? 1 : 0));
 						aiUnitAIVal[UNITAI_RESERVE_SEA] += std::min(pWaterArea->getNumTiles() / 150,
 								(iCoastalCities * 2 + iMilitaryWeight / 11) / 8 +
-								(bPrimaryArea) ? 1 : 0);
+								(bPrimaryArea ? 1 : 0));
 					}
 				}
 			}
@@ -3566,7 +3566,7 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 		{
 			FAssert((MAX_INT / 1000) > iValue);
 			iValue *= 1000;
-			iValue /= std::max(1, (iTurnsLeft + 3));
+			iValue /= std::max(1, iTurnsLeft + 3);
 
 			iValue = std::max(1, iValue);
 
@@ -4610,9 +4610,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 								if (pLoopCity->canConstruct(eBuilding) && pLoopCity->getProductionBuilding() != eBuilding)
 									iCanBuildPrereq++;
 							}
-							int iHighestValue = 0;
 							if (iCanBuildPrereq >= iPrereqBuildings)
 							{
+								int iHighestValue = 0;
 								FOR_EACH_CITYAI(pLoopCity, kOwner)
 								{
 									if (pLoopCity->getProductionBuilding() != eLoopBuilding &&
@@ -4623,7 +4623,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 											Same problem a bit higher up in this function (K-Mod comment:
 											"This is a minor flaw in the AI.") */
 											pLoopCity->canConstruct(eLoopBuilding, false, true))
-										iHighestValue = std::max(pLoopCity->AI_buildingValue(eLoopBuilding, 0, 0, bConstCache, false), iHighestValue);
+										iHighestValue = std::max(
+												pLoopCity->AI_buildingValue(eLoopBuilding, 0, 0, bConstCache, false),
+												iHighestValue);
 								}
 
 								int iTempValue = iHighestValue;
@@ -4722,7 +4724,6 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				// </advc.115b>  <advc.179>
 				if (kBuilding.isStateReligion() && kOwner.isStateReligion())
 				{
-					ReligionTypes eStateReligion = kOwner.getStateReligion();
 					std::vector<BuildingTypes> aeReligionBuildings;
 					FOR_EACH_ENUM(Building)
 					{
@@ -6884,8 +6885,6 @@ bool CvCityAI::AI_isEmphasize(EmphasizeTypes eIndex) const
 
 void CvCityAI::AI_setEmphasize(EmphasizeTypes eIndex, bool bNewValue)
 {
-	int iI;
-
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumEmphasizeInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
 
@@ -6905,21 +6904,21 @@ void CvCityAI::AI_setEmphasize(EmphasizeTypes eIndex, bool bNewValue)
 			FAssert(AI_getEmphasizeGreatPeopleCount() >= 0);
 		}
 
-		for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
+		FOR_EACH_ENUM(Yield)
 		{
-			if (GC.getInfo(eIndex).getYieldChange(iI))
+			if (GC.getInfo(eIndex).getYieldChange(eLoopYield))
 			{
-				m_aiEmphasizeYieldCount[iI] += ((AI_isEmphasize(eIndex)) ? 1 : -1);
-				FAssert(AI_getEmphasizeYieldCount((YieldTypes)iI) >= 0);
+				m_aiEmphasizeYieldCount[eLoopYield] += (AI_isEmphasize(eIndex) ? 1 : -1);
+				FAssert(AI_getEmphasizeYieldCount(eLoopYield) >= 0);
 			}
 		}
 
-		for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+		FOR_EACH_ENUM(Commerce)
 		{
-			if (GC.getInfo(eIndex).getCommerceChange(iI))
+			if (GC.getInfo(eIndex).getCommerceChange(eLoopCommerce))
 			{
-				m_aiEmphasizeCommerceCount[iI] += ((AI_isEmphasize(eIndex)) ? 1 : -1);
-				FAssert(AI_getEmphasizeCommerceCount((CommerceTypes)iI) >= 0);
+				m_aiEmphasizeCommerceCount[eLoopCommerce] += (AI_isEmphasize(eIndex) ? 1 : -1);
+				FAssert(AI_getEmphasizeCommerceCount(eLoopCommerce) >= 0);
 			}
 		}
 
@@ -7461,7 +7460,6 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 	BonusTypes eBonus = kPlot.getBonusType(getTeam());
 	BonusTypes eNonObsoleteBonus = kPlot.getNonObsoleteBonusType(getTeam());
 
-	int iBestTempBuildValue = 0;
 	BuildTypes eBestTempBuild = NO_BUILD;
 	// first check if the improvement is valid on this plot
 	// this also allows us work out whether or not the improvement will remove the plot feature...
@@ -7471,14 +7469,14 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 		bValid = true;
 	else
 	{
-		int iValue;
+		int iBestTempBuildValue = 0;
 		FOR_EACH_ENUM(Build)
 		{
 			if (GC.getInfo(eLoopBuild).getImprovement() != eImprovement)
 				continue; // advc
 			if (kOwner.canBuild(kPlot, eLoopBuild, false))
 			{
-				iValue = 10000;
+				int iValue = 10000;
 				iValue /= (GC.getInfo(eLoopBuild).getTime() + 1);
 				// XXX feature production???  // advc: I think the chop decision (AI_updateBestBuild) will handle that
 				if (iValue > iBestTempBuildValue)
@@ -8408,19 +8406,19 @@ void CvCityAI::AI_doHurry(bool bForce)
 		}
 
 		// gold hurry information
-		int iHurryGold = hurryGold(eHurry);
-		int iGoldTarget = 0;
+		int const iHurryGold = hurryGold(eHurry);
 		int iGoldCost = 0;
 		if (iHurryGold > 0)
 		{
 			if (iHurryGold > kOwner.getGold() - kOwner.AI_goldTarget(true))
 				continue; // we don't have enough gold for this hurry type.
-			iGoldTarget = kOwner.AI_goldTarget();
+			int const iGoldTarget = kOwner.AI_goldTarget();
 			iGoldCost = iHurryGold;
 			if (kOwner.getGold() - iHurryGold >= iGoldTarget)
 			{
 				iGoldCost *= 100;
-				iGoldCost /= 100 + 50 * (kOwner.getGold() - iHurryGold) / std::max(iGoldTarget, iHurryGold);
+				iGoldCost /= 100 + 50 * (kOwner.getGold() - iHurryGold) /
+						std::max(iGoldTarget, iHurryGold);
 			}
 			if (kOwner.isHuman())
 				iGoldCost = iGoldCost * 3 / 2;
@@ -8428,12 +8426,9 @@ void CvCityAI::AI_doHurry(bool bForce)
 		//
 
 		// population hurry information
-		int iHurryAngerLength = hurryAngerLength(eHurry);
-		int iHurryPopulation = hurryPopulation(eHurry);
+		int const iHurryAngerLength = hurryAngerLength(eHurry);
+		int const iHurryPopulation = hurryPopulation(eHurry);
 
-		int iHappyDiff = 0;
-		int iHappy = 0;
-		int iPopCost = 0;
 		// <advc.101> Don't whip in cities with revolt chance
 		if(iHurryAngerLength >= 3 && (revoltProbability(false, false, true) > 0 ||
 			(getNumRevolts() >= GC.getDefineINT(CvGlobals::NUM_WARNING_REVOLTS) &&
@@ -8441,19 +8436,21 @@ void CvCityAI::AI_doHurry(bool bForce)
 		{
 			continue;
 		} // </advc.101>
+		int iPopCost = 0;
+		int iHappyDiff = 0;
 		int iOverflow = 0; // advc.121b
 		if (iHurryPopulation > 0)
 		{
 			if (!isNoUnhappiness())
 			{
 				iHappyDiff = iHurryPopulation - GC.getDefineINT(CvGlobals::HURRY_POP_ANGER);
-
 				if (iHurryAngerLength > 0 && getHurryAngerTimer() > 1)
-					iHappyDiff -= ROUND_DIVIDE((kOwner.AI_getFlavorValue(FLAVOR_GROWTH) > 0 ? 4 : 3) * getHurryAngerTimer(), iHurryAngerLength);
+				{
+					iHappyDiff -= ROUND_DIVIDE((kOwner.AI_getFlavorValue(FLAVOR_GROWTH) > 0 ? 4 : 3) *
+							getHurryAngerTimer(), iHurryAngerLength);
+				}
 			}
-
-			iHappy = happyLevel() - unhappyLevel();
-
+			int iHappy = happyLevel() - unhappyLevel();
 			if (iHappyDiff > 0 && iGoldCost == 0)
 			{
 				if (iHappy < 0 && iHurryPopulation < -4*iHappy) // don't kill 4 citizens to remove 1 angry citizen.
@@ -8465,9 +8462,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 				}
 			}
 			else if (iHappy + iHappyDiff < 0)
-			{
 				continue; // not enough happiness to afford this hurry
-			}
 
 			if (iHappy + iHappyDiff >= 1 && iGoldCost == 0 && foodDifference() < -iHurryPopulation)
 			{
@@ -8477,13 +8472,12 @@ void CvCityAI::AI_doHurry(bool bForce)
 				return;
 			}
 
-			iPopCost = AI_citizenSacrificeCost(iHurryPopulation, iHappy, GC.getDefineINT(CvGlobals::HURRY_POP_ANGER), iHurryAngerLength);
+			iPopCost = AI_citizenSacrificeCost(iHurryPopulation, iHappy,
+					GC.getDefineINT(CvGlobals::HURRY_POP_ANGER), iHurryAngerLength);
 			iPopCost += std::max(0, 6 * -iHappyDiff) * iHurryAngerLength;
 
 			if (kOwner.isHuman())
-			{
 				iPopCost = iPopCost * 3 / 2;
-			}
 			/*  subtract overflow from the cost; but only if we can be confident the
 				city isn't being over-whipped. (iHappyDiff has been adjusted above based on the anger-timer) */
 			if (iHappyDiff > 0 || isNoUnhappiness() ||
@@ -8846,7 +8840,7 @@ bool CvCityAI::AI_chooseLeastRepresentedUnit(UnitTypeWeightArray &allowedTypes, 
  	std::multimap<int, UnitAITypes, std::greater<int> >::iterator best_it;*/ // BtS
 	std::vector<std::pair<int, UnitAITypes> > bestTypes; // K-Mod
 	UnitTypeWeightArray::iterator it;
-	for (it = allowedTypes.begin(); it != allowedTypes.end(); it++)
+	for (it = allowedTypes.begin(); it != allowedTypes.end(); ++it)
 	{
 		int iValue = it->second;
 		iValue *= 750 + GC.getGame().getSorenRandNum(250, "AI choose least represented unit",
@@ -8860,7 +8854,7 @@ bool CvCityAI::AI_chooseLeastRepresentedUnit(UnitTypeWeightArray &allowedTypes, 
 	std::sort(bestTypes.begin(), bestTypes.end(), std::greater<std::pair<int, UnitAITypes> >());
 	std::vector<std::pair<int, UnitAITypes> >::iterator best_it;
 	// K-Mod end
- 	for (best_it = bestTypes.begin(); best_it != bestTypes.end(); best_it++)
+ 	for (best_it = bestTypes.begin(); best_it != bestTypes.end(); ++best_it)
  	{
 		if (AI_chooseUnit(best_it->second, iOdds))
 		{
@@ -9927,16 +9921,16 @@ int CvCityAI::AI_yieldValue(int* piYields, int* piCommerceYields, bool bRemove,
 		// if food isn't production, then adjust for growth
 		if ((bWorkerOptimization || !bFoodIsProduction) && !AI_isEmphasizeAvoidGrowth())
 		{
-			/*  K-Mod. Happiness boost we expect before we grow.
-				(originally, the boost was added directly to iHappyLevel) */
-			int iFutureHappy = 0;
-
 			/*	only do relative checks on food if we want to grow AND do not emph food.
 				the emph food case will just give a big boost
 				to all food under all circumstances */
 			//if (bWorkerOptimization || (!bIgnoreGrowth && !bEmphasizeFood))
 			if (iGrowthValue > 0)
 			{
+				/*  K-Mod. Happiness boost we expect before we grow.
+					(originally, the boost was added directly to iHappyLevel) */
+				int iFutureHappy = 0;
+
 				// we have less than 10 extra happy, do some checks to see if we can increase it
 				//if (iHappinessLevel < 10)
 				/*	K-Mod. make it 5.
@@ -13123,14 +13117,14 @@ void CvCityAI::read(FDataStreamBase* pStream)
 void CvCityAI::write(FDataStreamBase* pStream)
 {
 	CvCity::write(pStream);
-	uint uiFlag = 0;
-	uiFlag = 1; // K-Mod: m_aiConstructionValue
-	uiFlag = 2; // K-Mod: m_iCultureWeight
-	uiFlag = 3; // advc.139: m_bEvacuate
-	uiFlag = 4; // advc.opt: m_eBestBuild
-	uiFlag = 5; // advc.003u: Move m_bChooseProductionDirty to CvCity
-	uiFlag = 6; // advc.opt: Per-player meta data for closeness cache
-	uiFlag = 7; // advc.139: m_bSafe, m_iCityValPercent
+	uint uiFlag;;
+	//uiFlag = 1; // K-Mod: m_aiConstructionValue
+	//uiFlag = 2; // K-Mod: m_iCultureWeight
+	//uiFlag = 3; // advc.139: m_bEvacuate
+	//uiFlag = 4; // advc.opt: m_eBestBuild
+	//uiFlag = 5; // advc.003u: Move m_bChooseProductionDirty to CvCity
+	//uiFlag = 6; // advc.opt: Per-player meta data for closeness cache
+	//uiFlag = 7; // advc.139: m_bSafe, m_iCityValPercent
 	uiFlag = 8; // advc.139: m_eSafety
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE(CvString::format("CityAI(%d,%d)", getX(), getY()));

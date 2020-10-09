@@ -1016,8 +1016,9 @@ void CvUnitInfo::read(FDataStreamBase* stream)
 void CvUnitInfo::write(FDataStreamBase* stream)
 {
 	CvHotkeyInfo::write(stream);
-	uint uiFlag=1;
-	uiFlag = 2; // advc.315
+	uint uiFlag;
+	//uiFlag = 1; // K-Mod
+	//uiFlag = 2; // advc.315
 	uiFlag = 3; // advc.905b
 	stream->Write(uiFlag);
 
@@ -2219,7 +2220,7 @@ void CvPromotionInfo::read(FDataStreamBase* stream)
 void CvPromotionInfo::write(FDataStreamBase* stream)
 {
 	CvHotkeyInfo::write(stream);
-	uint uiFlag = 0;
+	uint uiFlag;
 	uiFlag = 1; // advc.164
 	stream->Write(uiFlag);
 

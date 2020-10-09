@@ -1095,11 +1095,11 @@ void CvHandicapInfo::read(FDataStreamBase* stream)
 void CvHandicapInfo::write(FDataStreamBase* stream)
 {
 	CvInfoBase::write(stream);
-	uint uiFlag=2;
-	uiFlag = 1; // advc.251
-	uiFlag = 2; // advc.148
-	uiFlag = 3; // advc.251
-	uiFlag = 4; // advc.251 (iBuildTimePercent)
+	uint uiFlag;
+	//uiFlag = 1; // advc.251
+	//uiFlag = 2; // advc.148
+	//uiFlag = 3; // advc.251
+	//uiFlag = 4; // advc.251 (iBuildTimePercent)
 	uiFlag = 5; // advc.251 (iCultureLevelPercent)
 	stream->Write(uiFlag);
 	stream->Write(m_iFreeWinsVsBarbs);

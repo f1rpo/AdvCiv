@@ -3769,8 +3769,10 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	case TRADE_GOLD_PER_TURN:
 		FAssert(item.m_iData >= 0);
 		bValid = true;
+		break;
 	case TRADE_MAPS:
 		bValid = true;
+		break;
 	case TRADE_VASSAL:
 		// advc.112: Make sure that only capitulation is possible between war enemies
 		if (!kToTeam.isAtWar(getTeam()))
@@ -7193,13 +7195,13 @@ void CvPlayer::changeTotalPopulation(int iChange)
 	changePopScore(kGame.getPopulationScore(getTotalPopulation()));
 }
 
-
-long CvPlayer::getRealPopulation() const
+// advc: Return type was long. Not helpful since sizeof(int)==sizeof(long).
+int CvPlayer::getRealPopulation() const
 {
 	long long iTotalPopulation = 0;
 	FOR_EACH_CITY(pLoopCity, *this)
 		iTotalPopulation += pLoopCity->getRealPopulation();
-	return ::longLongToInt(iTotalPopulation); // advc
+	return ::longLongToInt(iTotalPopulation);
 }
 
 
@@ -10782,13 +10784,13 @@ void CvPlayer::postProcessMessages()
 		m_iNewMessages--;
 	// Don't open the Turn Log when there's only first-contact diplo
 	bool bRelevantDiplo = false;
-	TCHAR const* relevantNonOffers[] = { "CANCEL_DEAL", "RELIGION_PRESSURE",
-			"CIVIC_PRESSURE", "JOIN_WAR", "STOP_TRADING",
-	};
 	if(!m_listDiplomacy.empty() && m_iNewMessages > 0)
 	{
+		TCHAR const* relevantNonOffers[] = { "CANCEL_DEAL", "RELIGION_PRESSURE",
+			"CIVIC_PRESSURE", "JOIN_WAR", "STOP_TRADING",
+		};
 		for(CvDiploQueue::const_iterator it = m_listDiplomacy.begin(); it !=
-			m_listDiplomacy.end(); it++)
+			m_listDiplomacy.end(); ++it)
 		{
 			CvDiploParameters* dp = *it;
 			if(dp == NULL)
@@ -11139,9 +11141,9 @@ void CvPlayer::clearSpaceShipPopups()
 				it = m_listPopups.erase(it);
 				SAFE_DELETE(pInfo);
 			}
-			else it++;
+			else ++it;
 		}
-		else it++;
+		else ++it;
 	}
 }
 
@@ -11428,12 +11430,11 @@ void CvPlayer::doEspionagePoints()  // advc: some style changes
 
 	GET_TEAM(getTeam()).changeEspionagePointsEver(getCommerceRate(COMMERCE_ESPIONAGE));
 
-	int iSpending = 0;
 	// Divide up Espionage between Teams
 	for (TeamIter<CIV_ALIVE,OTHER_KNOWN_TO> itOther(getTeam());
 		itOther.hasNext(); ++itOther)
 	{
-		iSpending = getEspionageSpending(itOther->getID());
+		int iSpending = getEspionageSpending(itOther->getID());
 		if (iSpending > 0)
 		{
 			GET_TEAM(getTeam()).changeEspionagePointsAgainstTeam(
@@ -13125,10 +13126,12 @@ int CvPlayer::getAdvancedStartPopCost(bool bAdd, CvCity const* pCity) const
 {
 	if (getNumCities() <= 0)
 		return -1;
-	int iCost = (getGrowthThreshold(1) *
-			GC.getDefineINT("ADVANCED_START_POPULATION_COST")) / 100;
 	if (pCity == NULL)
-		return adjustAdvStartPtsToSpeed(iCost); // advc.250c
+	{
+		return adjustAdvStartPtsToSpeed( // advc.250c
+				(getGrowthThreshold(1) *
+				GC.getDefineINT("ADVANCED_START_POPULATION_COST")) / 100);
+	}
 	if (pCity->getOwner() != getID())
 		return -1;
 
@@ -13143,7 +13146,7 @@ int CvPlayer::getAdvancedStartPopCost(bool bAdd, CvCity const* pCity) const
 		}
 	}
 
-	iCost = (getGrowthThreshold(iPopulation) *
+	int iCost = (getGrowthThreshold(iPopulation) *
 			GC.getDefineINT("ADVANCED_START_POPULATION_COST")) / 100;
 
 	// Increase cost if the XML defines that additional Pop will cost more
@@ -14391,13 +14394,15 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	PROFILE_FUNC(); // advc
 
 	REPRO_TEST_BEGIN_WRITE(CvString::format("PlayerPt1(%d)", getID()));
-	uint uiFlag = 4;
-	uiFlag = 5; // advc.908a
-	uiFlag = 7; // advc.912c (6 used up for a test version)
-	uiFlag = 8; // advc.004x
-	uiFlag = 9; // advc.078
-	uiFlag = 10; // advc.064b
-	uiFlag = 11; // advc.001x
+	uint uiFlag;
+	//uiFlag = 1; // BtS
+	//uiFlag = 5; // K-Mod
+	//uiFlag = 5; // advc.908a (I guess I broke compatibility here)
+	//uiFlag = 7; // advc.912c (6 used up for a test version)
+	//uiFlag = 8; // advc.004x
+	//uiFlag = 9; // advc.078
+	//uiFlag = 10; // advc.064b
+	//uiFlag = 11; // advc.001x
 	uiFlag = 12; // advc.091
 	pStream->Write(uiFlag);
 
@@ -17161,13 +17166,13 @@ bool CvPlayer::splitEmpire(CvArea& kArea) // advc: was iAreaId; and some other s
 	CvWString szMessage; // advc.127b
 	if (!bPlayerExists)
 	{
-		int iBestValue = -1;
 		LeaderHeadTypes eBestLeader = NO_LEADER;
 		CivilizationTypes eBestCiv = NO_CIVILIZATION;
 
 		CivLeaderArray aLeaders;
 		if (getSplitEmpireLeaders(aLeaders))
 		{
+			int iBestValue = -1;
 			CivLeaderArray::iterator it;
 			for (it = aLeaders.begin(); it != aLeaders.end(); ++it)
 			{
@@ -19231,8 +19236,8 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption,
 
 					CvPlotIndicatorData kIndicator;
 					kIndicator.m_pUnit = pUnit;
-					kIndicator.m_strLabel = "UNITS";
-					kIndicator.m_strIcon = pUnit->getButton();
+					kIndicator.m_szLabel = "UNITS";
+					kIndicator.m_szIcon = pUnit->getButton();
 
 					if (eOption == SHOW_ENEMIES_IN_TERRITORY)
 					{
@@ -19346,9 +19351,9 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption,
 		if (bOfInterest)
 		{
 			CvPlotIndicatorData kData;
-			kData.m_strLabel = "RESOURCES";
+			kData.m_szLabel = "RESOURCES";
 			kData.m_eVisibility = PLOT_INDICATOR_VISIBLE_ONSCREEN_ONLY;
-			kData.m_strIcon = // <advc.004z>
+			kData.m_szIcon = // <advc.004z>
 					(eLoopBonus == NO_BONUS ? GC.getInfo(eImpr).
 					getButton() // </advc.004z>
 					: GC.getInfo(eLoopBonus).getButton());
@@ -19699,7 +19704,7 @@ void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1)
 			iOnDisplay = m_listPopups.size();
 		}
 		for (std::list<CvPopupInfo*>::iterator it = m_listPopups.begin();
-			it != m_listPopups.end(); it++)
+			it != m_listPopups.end(); ++it)
 		{
 			CvPopupInfo* pPopup = *it;
 			if ((pPopup->getButtonPopupType() != ePopupType &&

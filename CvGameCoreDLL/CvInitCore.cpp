@@ -1892,10 +1892,11 @@ void CvInitCore::read(FDataStreamBase* pStream)
 void CvInitCore::write(FDataStreamBase* pStream)
 {
 	REPRO_TEST_BEGIN_WRITE("InitCore");
-	uint uiFlag = 1;
-	uiFlag = 2; // advc.912d
-	uiFlag = 3; // advc: m_bPangaea
-	uiFlag = 4; // advc.enum: m_abOptions as byte map
+	uint uiFlag;
+	//uiFlag = 1; // BtS
+	//uiFlag = 2; // advc.912d
+	//uiFlag = 3; // advc: m_bPangaea
+	//uiFlag = 4; // advc.enum: m_abOptions as byte map
 	uiFlag = 5; // advc.190c
 
 	pStream->Write(uiFlag);

@@ -74,12 +74,13 @@ typedef wchar_t				wchar;
 #define MIN_UNSIGNED_SHORT					(0x0000)
 #define MAX_UNSIGNED_INT					(0xffffffff)
 #define MIN_UNSIGNED_INT					(0x00000000)
+/*	advc: These are unused. FLT_MAX and FLT_MIN are used in a few places,
+	so let's keep using those exclusively. */
+/*__forceinline DWORD FtoDW( float f ) { return *(DWORD*)&f; }
+__forceinline float DWtoF( dword n ) { return *(float*)&n; }
+__forceinline float MaxFloat() { return DWtoF(0x7f7fffff); }*/
 
 // (advc.make: Some macros moved into new header Trigonometry.h)
-
-__forceinline DWORD FtoDW( float f ) { return *(DWORD*)&f; }
-__forceinline float DWtoF( dword n ) { return *(float*)&n; }
-__forceinline float MaxFloat() { return DWtoF(0x7f7fffff); }
 
 // <advc.003s> For generating variable names. (The layer of indirection is necessary.)
 #define CONCATVARNAME_IMPL(prefix, lineNum) prefix##lineNum

@@ -6461,7 +6461,7 @@ bool CvGame::isDestroyedCityName(CvWString& szName) const
 {
 	std::vector<CvWString>::const_iterator it;
 
-	for (it = m_aszDestroyedCities.begin(); it != m_aszDestroyedCities.end(); it++)
+	for (it = m_aszDestroyedCities.begin(); it != m_aszDestroyedCities.end(); ++it)
 	{
 		if (*it == szName)
 		{
@@ -6481,7 +6481,7 @@ bool CvGame::isGreatPersonBorn(CvWString& szName) const
 {
 	std::vector<CvWString>::const_iterator it;
 
-	for (it = m_aszGreatPeopleBorn.begin(); it != m_aszGreatPeopleBorn.end(); it++)
+	for (it = m_aszGreatPeopleBorn.begin(); it != m_aszGreatPeopleBorn.end(); ++it)
 	{
 		if (*it == szName)
 		{
@@ -8897,7 +8897,7 @@ void CvGame::addReplayMessage(ReplayMessageTypes eType, PlayerTypes ePlayer,
 void CvGame::clearReplayMessageMap()
 {
 	for (ReplayMessageList::iterator itList = m_listReplayMessages.begin();
-		itList != m_listReplayMessages.end(); itList++)
+		itList != m_listReplayMessages.end(); ++itList)
 	{
 		SAFE_DELETE(*itList);
 	}
@@ -9236,12 +9236,13 @@ void CvGame::read(FDataStreamBase* pStream)
 void CvGame::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
-	uint uiFlag=1;
-	uiFlag = 2; // advc.701: R&F option
-	uiFlag = 3; // advc.052
-	uiFlag = 4; // advc.opt: Players and teams ever alive
-	uiFlag = 5; // advc.004m
-	uiFlag = 6; // advc.106h
+	uint uiFlag;
+	//uiFlag = 1; // BtS
+	//uiFlag = 2; // advc.701: R&F option
+	//uiFlag = 3; // advc.052
+	//uiFlag = 4; // advc.opt: Players and teams ever alive
+	//uiFlag = 5; // advc.004m
+	//uiFlag = 6; // advc.106h
 	uiFlag = 7; // advc.027b
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE("Game pt1");
@@ -10086,12 +10087,12 @@ void CvGame::doUpdateCacheOnTurn()
 
 VoteSelectionData* CvGame::getVoteSelection(int iID) const
 {
-	return ((VoteSelectionData*)(m_voteSelections.getAt(iID)));
+	return m_voteSelections.getAt(iID);
 }
 
 VoteSelectionData* CvGame::addVoteSelection(VoteSourceTypes eVoteSource)
 {
-	VoteSelectionData* pData = (VoteSelectionData*)(m_voteSelections.add());
+	VoteSelectionData* pData = m_voteSelections.add();
 	if (pData == NULL)
 	{
 		FAssert(pData != NULL); // advc.test
@@ -10232,7 +10233,7 @@ void CvGame::deleteVoteSelection(int iID)
 
 VoteTriggeredData* CvGame::getVoteTriggered(int iID) const
 {
-	return (VoteTriggeredData*)m_votesTriggered.getAt(iID);
+	return m_votesTriggered.getAt(iID);
 }
 
 VoteTriggeredData* CvGame::addVoteTriggered(const VoteSelectionData& kData, int iChoice)
@@ -10244,7 +10245,7 @@ VoteTriggeredData* CvGame::addVoteTriggered(const VoteSelectionData& kData, int 
 
 VoteTriggeredData* CvGame::addVoteTriggered(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kOptionData)
 {
-	VoteTriggeredData* pData = (VoteTriggeredData*)m_votesTriggered.add();
+	VoteTriggeredData* pData = m_votesTriggered.add();
 	if (pData == NULL)
 	{
 		FAssert(pData != NULL); // advc.test

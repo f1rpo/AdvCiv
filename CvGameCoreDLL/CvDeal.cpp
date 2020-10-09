@@ -533,7 +533,7 @@ bool CvDeal::isVassalTributeDeal() const
 // advc.034:
 bool CvDeal::isDisengage() const
 {
-	return (m_firstTrades.getLength() == 1 && m_firstTrades.getLength() == 1 &&
+	return (m_firstTrades.getLength() == 1 && m_secondTrades.getLength() == 1 &&
 			m_firstTrades.head()->m_data.m_eItemType == TRADE_DISENGAGE);
 }
 

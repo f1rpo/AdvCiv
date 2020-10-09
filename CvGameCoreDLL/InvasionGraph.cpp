@@ -37,9 +37,9 @@ InvasionGraph::InvasionGraph(MilitaryAnalyst& m, PlyrSet const& warParties,
 	report.log("Constructing invasion graph");
 	// Barbarians, dead players get an element, but it remains NULL.
 	nodeMap.resize(MAX_PLAYERS, NULL);
-	for(PlyrSetIter it = warParties.begin(); it != warParties.end(); it++)
+	for(PlyrSetIter it = warParties.begin(); it != warParties.end(); ++it)
 		nodeMap[*it] = new Node(*it, *this);
-	for(PlyrSetIter it = warParties.begin(); it != warParties.end(); it++)
+	for(PlyrSetIter it = warParties.begin(); it != warParties.end(); ++it)
 		nodeMap[*it]->findAndLinkTarget();
 	if(warParties.empty())
 		report.log("(no civs are currently at war)");
@@ -57,13 +57,13 @@ void InvasionGraph::addFutureWarParties(PlyrSet const& ourSide, PlyrSet const& o
 	allWarPartiesKnown = true;
 	if(ourSide.empty())
 		return; // Don't update targets unnecessarily
-	for(PlyrSetIter it = ourSide.begin(); it != ourSide.end(); it++) {
+	for(PlyrSetIter it = ourSide.begin(); it != ourSide.end(); ++it) {
 		FAssertBounds(0, MAX_CIV_PLAYERS, *it);
 		if(nodeMap[*it] == NULL)
 			nodeMap[*it] = new Node(*it, *this);
 		nodeMap[*it]->addWarOpponents(ourFutureOpponents);
 	}
-	for(PlyrSetIter it = ourFutureOpponents.begin(); it != ourFutureOpponents.end(); it++) {
+	for(PlyrSetIter it = ourFutureOpponents.begin(); it != ourFutureOpponents.end(); ++it) {
 		FAssertBounds(0, MAX_CIV_PLAYERS, *it);
 		if(nodeMap[*it] == NULL)
 			nodeMap[*it] = new Node(*it, *this);
@@ -81,12 +81,12 @@ void InvasionGraph::removeWar(PlyrSet const& ourSide, PlyrSet const& theirSide) 
 	allWarPartiesKnown = true;
 	if(ourSide.empty())
 		return;
-	for(PlyrSetIter it = ourSide.begin(); it != ourSide.end(); it++) {
+	for(PlyrSetIter it = ourSide.begin(); it != ourSide.end(); ++it) {
 		FAssertBounds(0, MAX_CIV_PLAYERS, *it);
 		if(nodeMap[*it] != NULL)
 			nodeMap[*it]->removeWarOpponents(theirSide);
 	}
-	for(PlyrSetIter it = theirSide.begin(); it != theirSide.end(); it++) {
+	for(PlyrSetIter it = theirSide.begin(); it != theirSide.end(); ++it) {
 		FAssertBounds(0, MAX_CIV_PLAYERS, *it);
 		if(nodeMap[*it] != NULL)
 			nodeMap[*it]->removeWarOpponents(ourSide);
@@ -109,7 +109,7 @@ void InvasionGraph::updateTargets() {
 
 void InvasionGraph::addUninvolvedParties(PlyrSet const& parties) {
 
-	for(PlyrSetIter it = parties.begin(); it != parties.end(); it++) {
+	for(PlyrSetIter it = parties.begin(); it != parties.end(); ++it) {
 		FAssertBounds(0, MAX_CIV_PLAYERS, *it);
 		if(nodeMap[*it] == NULL)
 			nodeMap[*it] = new Node(*it, *this);
@@ -190,7 +190,7 @@ InvasionGraph::Node::~Node() {
 
 void InvasionGraph::Node::addWarOpponents(PlyrSet const& wo) {
 
-	for(PlyrSetIter it = wo.begin(); it != wo.end(); it++) {
+	for(PlyrSetIter it = wo.begin(); it != wo.end(); ++it) {
 		if(!isWarOpponent[*it] &&
 				/*  Should arguably be guaranteed somewhere higher up; not currently
 					guaranteed when there is a holy war vote. */
@@ -204,7 +204,7 @@ void InvasionGraph::Node::addWarOpponents(PlyrSet const& wo) {
 
 void InvasionGraph::Node::removeWarOpponents(PlyrSet const& wo) {
 
-	for(PlyrSetIter it = wo.begin(); it != wo.end(); it++) {
+	for(PlyrSetIter it = wo.begin(); it != wo.end(); ++it) {
 		if(isWarOpponent[*it]) {
 			isWarOpponent[*it] = false;
 			warOpponents.erase(*it);
@@ -302,7 +302,7 @@ PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 	PlayerTypes mostMissions = NO_PLAYER; // Against whom this Node has the most missions
 	// Tbd. possibly: Use a fraction of cache.numNonNavy as the threshold
 	int maxCount = 3;
-	for(PlyrSetIter it = warOpponents.begin(); it != warOpponents.end(); it++) {
+	for(PlyrSetIter it = warOpponents.begin(); it != warOpponents.end(); ++it) {
 		PlayerTypes oppId = *it;
 		if (id != weId && oppId != weId) // Don't cheat too much with visibility
 			continue;
@@ -420,7 +420,7 @@ void InvasionGraph::Node::resolveLossesRec() {
 	// Copy targetedBy b/c resolveLossesRec may remove elements
 	PlyrSet tmp;
 	tmp.insert(targetedBy.begin(), targetedBy.end());
-	for(PlyrSetIter it = tmp.begin(); it != tmp.end(); it++) {
+	for(PlyrSetIter it = tmp.begin(); it != tmp.end(); ++it) {
 		if(targetedBy.count(*it) == 0) // Check if current element has been removed
 			continue;
 		outer.nodeMap[*it]->resolveLossesRec();
@@ -528,7 +528,7 @@ void InvasionGraph::Node::predictArmament(int duration, bool noUpgrading) {
 double InvasionGraph::Node::productionPortion() const {
 
 	int lostPop = 0;
-	for(CitySetIter it = losses.begin(); it != losses.end(); it++) {
+	for(CitySetIter it = losses.begin(); it != losses.end(); ++it) {
 		CvCity* c = UWAICache::City::cityById(*it);
 		if(c != NULL)
 			lostPop += c->getPopulation();
@@ -1036,7 +1036,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		Not unrealistic (a larger army can cause the defending army to dig in),
 		but can lead to erratic AI decisions since I'm only considering a
 		single simulation trajectory. */
-	bool defenderOutnumbered = true;
+	bool const defenderOutnumbered = true;
 	if(!defenderOutnumbered || clashOnly) {
 		bool attWin = (armyPowMod > targetArmyPowMod);
 		report.log("Army clash with modified power (A/D): %d/%d",
@@ -1603,7 +1603,7 @@ void InvasionGraph::Node::resolveLosses() {
 	// Threat that carries over from one iteration to the next
 	double pastThreat = 0;
 	do {
-		for(PlyrSetIter it = targetedBy.begin(); it != targetedBy.end(); it++) {
+		for(PlyrSetIter it = targetedBy.begin(); it != targetedBy.end(); ++it) {
 			InvasionGraph::Node& inv = *outer.nodeMap[*it];
 			report.log("Assessing invasion priority (att. duration) of %s",
 					report.leaderName(inv.getId()));
@@ -1787,13 +1787,13 @@ void InvasionGraph::Node::getConquests(CitySet& r) const {
 
 void InvasionGraph::Node::getLosses(CitySet& r) const {
 
-	for(CitySetIter it = losses.begin(); it != losses.end(); it++)
+	for(CitySetIter it = losses.begin(); it != losses.end(); ++it)
 		r.insert(*it);
 }
 
 void InvasionGraph::Node::getCapitulationsAccepted(TeamSet& r) const {
 
-	for(TeamSetIter it = capitulationsAccepted.begin(); it != capitulationsAccepted.end(); it++)
+	for(TeamSetIter it = capitulationsAccepted.begin(); it != capitulationsAccepted.end(); ++it)
 		r.insert(*it);
 }
 
@@ -1917,7 +1917,7 @@ void InvasionGraph::breakCycle(vector<Node*> const& cyc) {
 		   This is taken into account when resolving losses, but not when
 		   breaking cycles. */
 		PlyrSet const& targetedBy = n.getTargetedBy();
-		for(PlyrSetIter it = targetedBy.begin(); it != targetedBy.end(); it++) {
+		for(PlyrSetIter it = targetedBy.begin(); it != targetedBy.end(); ++it) {
 			const char* nodeName = report.leaderName(n.getId());
 			report.log("Assessing threat of %s's army to %s's garrisons "
 					   "(ignoring army of %s)",

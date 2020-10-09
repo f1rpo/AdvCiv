@@ -8,27 +8,28 @@
 class NiColor
 {
 public:
+	NiColor() : r(0), g(0), b(0) {} // advc: Better initialize these
 	float r, g, b;
 };
 class NiColorA
 {
 public:
 	NiColorA(float fr, float fg, float fb, float fa) : r(fr), g(fg), b(fb), a(fa) {}
-	NiColorA() {}
+	NiColorA() /* advc: */ : r(0), g(0), b(0), a(0) {}
 	float r, g, b, a;
 };
 class NiPoint2
 {
 public:
-	NiPoint2() {}
-	NiPoint2(float fx, float fy) : x(fx),y(fy) {}
+	NiPoint2() /* advc: */ : x(-1), y(-1) {}
+	NiPoint2(float fx, float fy) : x(fx), y(fy) {}
 
 	float x, y;
 };
 class NiPoint3
 {
 public:
-	NiPoint3() {}
+	NiPoint3() /* advc: */ : x(0), y(0), z(0) {}
 	NiPoint3(float fx, float fy, float fz) : x(fx),y(fy),z(fz) {}
 
 	bool NiPoint3::operator== (const NiPoint3& pt) const

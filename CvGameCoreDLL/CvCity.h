@@ -359,7 +359,7 @@ public:
 	inline int getPopulation() const { return m_iPopulation; }													// Exposed to Python
 	void setPopulation(int iNewValue);																			// Exposed to Python
 	void changePopulation(int iChange);																			// Exposed to Python
-	long getRealPopulation() const;																				// Exposed to Python
+	int getRealPopulation() const;																				// Exposed to Python
 	int getHighestPopulation() const { return m_iHighestPopulation; }											// Exposed to Python
 	void setHighestPopulation(int iNewValue);
 	int getWorkingPopulation() const { return m_iWorkingPopulation; }											// Exposed to Python

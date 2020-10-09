@@ -38,7 +38,8 @@
 // (edited by K-Mod)
 BOOL pathDestValid(int iToX, int iToY, void const* pointer, FAStar* finder)
 {	// <advc.pf>
-	return pathDestValid(GC.getMap().getPlot(iToX, iToY), *(CvSelectionGroup*)pointer,
+	return pathDestValid(GC.getMap().getPlot(iToX, iToY),
+			*reinterpret_cast<CvSelectionGroup const*>(pointer),
 			(MovementFlags)gDLL->getFAStarIFace()->GetInfo(finder));
 }
 
@@ -140,7 +141,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node,
 	return pathCost(
 			GC.getMap().getPlot(parent->m_iX, parent->m_iY),
 			GC.getMap().getPlot(node->m_iX, node->m_iY),
-			*(CvSelectionGroup*)pointer,
+			*reinterpret_cast<CvSelectionGroup const*>(pointer),
 			(MovementFlags)gDLL->getFAStarIFace()->GetInfo(finder),
 			parent->m_iData1, parent->m_iKnownCost);
 }
@@ -152,10 +153,6 @@ int pathCost(CvPlot const& kFrom, CvPlot const& kTo,
 	int iCurrMovesLeft, int iKnownCost)
 {	// </advc.pf>
 	//PROFILE_FUNC(); // advc.003o
-
-	int iWorstCost = 0;
-	int iWorstMovesLeft = MAX_INT;
-	int iWorstMaxMoves = MAX_INT;
 
 	TeamTypes const eTeam = kGroup.getHeadTeam();
 	// <advc.035>
@@ -209,33 +206,33 @@ int pathCost(CvPlot const& kFrom, CvPlot const& kTo,
 				if it doesn't always work correctly. */
 		}
 	} // </advc.035>
+	int iWorstCost = 0;
+	int iWorstMovesLeft = MAX_INT;
+	//int iWorstMaxMoves = MAX_INT; // advc: unused
+	for (CLLNode<IDInfo> const* pUnitNode = kGroup.headUnitNode();
+		pUnitNode != NULL; pUnitNode = kGroup.nextUnitNode(pUnitNode))
 	{
-		for (CLLNode<IDInfo> const* pUnitNode = kGroup.headUnitNode();
-			pUnitNode != NULL; pUnitNode = kGroup.nextUnitNode(pUnitNode))
+		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		FAssert(pLoopUnit->getDomainType() != DOMAIN_AIR);
+
+		int iMaxMoves = (iCurrMovesLeft > 0 ? iCurrMovesLeft : pLoopUnit->maxMoves());
+		int iMoveCost = kTo.movementCost(pLoopUnit, &kFrom,
+				false); // advc.001i
+		int iMovesLeft = std::max(0, iMaxMoves - iMoveCost);
+
+		iWorstMovesLeft = std::min(iWorstMovesLeft, iMovesLeft);
+		//iWorstMaxMoves = std::min(iWorstMaxMoves, iMaxMoves);
+
+		int iCost = PATH_MOVEMENT_WEIGHT * (iMovesLeft == 0 ? iMaxMoves : iMoveCost);
+		iCost = (iCost * iExploreModifier) / 3;
+		iCost = (iCost * iFlipModifier) / iFlipModifierDiv; // advc.035
+		if (iCost > iWorstCost)
 		{
-			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			FAssert(pLoopUnit->getDomainType() != DOMAIN_AIR);
-
-			int iMaxMoves = (iCurrMovesLeft > 0 ? iCurrMovesLeft : pLoopUnit->maxMoves());
-			int iMoveCost = kTo.movementCost(pLoopUnit, &kFrom,
-					false); // advc.001i
-			int iMovesLeft = std::max(0, iMaxMoves - iMoveCost);
-
-			iWorstMovesLeft = std::min(iWorstMovesLeft, iMovesLeft);
-			iWorstMaxMoves = std::min(iWorstMaxMoves, iMaxMoves);
-
-			int iCost = PATH_MOVEMENT_WEIGHT * (iMovesLeft == 0 ? iMaxMoves : iMoveCost);
-			iCost = (iCost * iExploreModifier) / 3;
-			iCost = (iCost * iFlipModifier) / iFlipModifierDiv; // advc.035
-			if (iCost > iWorstCost)
-			{
-				iWorstCost = iCost;
-				iWorstMovesLeft = iMovesLeft;
-				iWorstMaxMoves = iMaxMoves;
-			}
+			iWorstCost = iCost;
+			iWorstMovesLeft = iMovesLeft;
+			//iWorstMaxMoves = iMaxMoves;
 		}
 	}
-
 	iWorstCost += PATH_STEP_WEIGHT;
 
 	/*	symmetry breaking. This is meant to prevent two paths from having equal cost.
@@ -542,18 +539,18 @@ BOOL pathValid(FAStarNode* parent, FAStarNode* node, int data, void const* point
 	// advc: Was unused (apart from an assertion)
 	/*CvPlot* pFromPlot = ...;
 	CvPlot* pToPlot = ...; */
-	//pSelectionGroup = ((CvSelectionGroup *)pointer);
+	//pSelectionGroup = ((CvSelectionGroup const*)pointer);
 	// K-Mod
-	/*CvSelectionGroup const* pSelectionGroup = finder ? (CvSelectionGroup*)pointer :
-			((CvPathSettings*)pointer)->pGroup;
+	/*CvSelectionGroup const* pSelectionGroup = finder ? (CvSelectionGroup const*)pointer :
+			((CvPathSettings const*)pointer)->pGroup;
 	int iFlags = finder ? gDLL->getFAStarIFace()->GetInfo(finder) :
-			((CvPathSettings*)pointer)->iFlags;*/
+			((CvPathSettings const*)pointer)->iFlags;*/
 	// K-Mod end
 	/*	<advc.pf> KmodPathFinder doesn't call this function, so it
 		doesn't have to be able to handle those arguments. */
 	CvPlot const& kFrom = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
 	CvPlot const& kTo = GC.getMap().getPlot(node->m_iX, node->m_iY);
-	CvSelectionGroup const& kGroup = *(CvSelectionGroup*)pointer;
+	CvSelectionGroup const& kGroup = *reinterpret_cast<CvSelectionGroup const*>(pointer);
 	MovementFlags eFlags = (MovementFlags)gDLL->getFAStarIFace()->GetInfo(finder);
 	// </advc.pf>
 	if (!pathValid_join(kFrom, kTo, kGroup, eFlags))
@@ -692,7 +689,7 @@ bool pathValid_source(CvPlot const& kFrom, CvSelectionGroup const& kGroup, Movem
 
 BOOL pathAdd(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder)
 {	// <advc.pf>
-	CvSelectionGroup const& kGroup = *(CvSelectionGroup*)pointer;
+	CvSelectionGroup const& kGroup = *reinterpret_cast<CvSelectionGroup const*>(pointer);
 	MovementFlags eFlags = (MovementFlags)gDLL->getFAStarIFace()->GetInfo(finder);
 	if (data == ASNC_INITIALADD)
 	{

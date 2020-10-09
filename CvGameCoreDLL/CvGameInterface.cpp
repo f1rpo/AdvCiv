@@ -1002,7 +1002,7 @@ bool CvGame::canHandleAction(int iAction, CvPlot* pPlot, bool bTestVisible, bool
 
 	bool const bShift = GC.shiftKey();
 
-	if (GC.getPythonCaller()->cannotHandleActionOverride(*pPlot, iAction, bTestVisible))
+	if (GC.getPythonCaller()->cannotHandleActionOverride(pPlot, iAction, bTestVisible))
 		return false;
 
 	CvActionInfo const& kAction = GC.getActionInfo(iAction);

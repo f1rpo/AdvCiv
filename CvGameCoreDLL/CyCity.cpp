@@ -800,7 +800,7 @@ void CyCity::changePopulation(int iChange)
 		m_pCity->changePopulation(iChange);
 }
 
-long CyCity::getRealPopulation()
+int CyCity::getRealPopulation() // advc: Return type was long
 {
 	return m_pCity ? m_pCity->getRealPopulation() : -1;
 }

@@ -459,14 +459,14 @@ void CvCity::doTurn()  // advc: style changes
 				getX(), getY(), kOwner.getPlayerTextColor());
 		m_szPreviousName.clear();
 	} // </advc.106k>
-	bool bAllowNoProduction = !doCheckProduction();
-	bAllowNoProduction = false; // advc.064d
+	bool const bForceProduction = true; // advc.064d
+	/*bForceProduction =*/ doCheckProduction();
 
 	doGrowth();
 	doCulture();
 	//doPlotCulture(false, kOwner.getID(), getCommerceRate(COMMERCE_CULTURE));
 	doPlotCultureTimes100(false, kOwner.getID(), getCommerceRateTimes100(COMMERCE_CULTURE), true); // K-Mod
-	doProduction(bAllowNoProduction);
+	doProduction(!bForceProduction);
 	doDecay();
 	doReligion();
 	doGreatPeople();
@@ -2569,7 +2569,7 @@ int CvCity::computeOverflow(int iRawOverflow, int iProductionModifier,
 	return iOverflow;
 } // </advc.064b>
 
-// BUG - Hurry Overflow - start (advc.064)
+// BUG - Hurry Overflow: (advc.064)
 bool CvCity::hurryOverflow(HurryTypes eHurry, int* piProduction, int* piGold, bool bCountThisTurn) const
 {
 	if(piProduction != NULL)
@@ -2618,10 +2618,13 @@ bool CvCity::hurryOverflow(HurryTypes eHurry, int* piProduction, int* piGold, bo
 				option. However: Feature production can no longer contribute to
 				overflow, so ignore that in any case. */
 			getCurrentProductionDifference(!bCountThisTurn, true, true, !bCountThisTurn);
-	*piProduction = computeOverflow(iRawOverflow, iModifier, eOrder, piGold, NULL,
-			-hurryPopulation(eHurry)); // </advc.064b>
+	if (piProduction != NULL)
+	{
+		*piProduction = computeOverflow(iRawOverflow, iModifier, eOrder, piGold, NULL,
+				-hurryPopulation(eHurry)); // </advc.064b>
+	}
 	return true;
-} // BUG - Hurry Overflow - end
+}
 
 // <advc.912d>
 bool CvCity::canPopRush() const
@@ -4538,10 +4541,11 @@ void CvCity::changePopulation(int iChange)
 	setPopulation(getPopulation() + iChange);
 }
 
-
-long CvCity::getRealPopulation() const
+// advc: Return type was long. Not helpful since sizeof(int)==sizeof(long).
+int CvCity::getRealPopulation() const
 {
-	return 1000 * (int)pow((float)getPopulation(), 2.8f);
+	long long iPop = (long long)(std::pow((float)getPopulation(), 2.8f) * 1000);
+	return ::longLongToInt(iPop);
 }
 
 
@@ -7144,8 +7148,7 @@ void CvCity::calculateTradeTotals(YieldTypes eIndex, int& iDomesticYield, int& i
 		if (pTradeCity != NULL && (eWithPlayer == NO_PLAYER ||
 			pTradeCity->getOwner() == eWithPlayer))
 		{
-			int iTradeYield = getBaseTradeProfit(pTradeCity);
-			iTradeYield = calculateTradeYield(//YIELD_COMMERCE
+			int iTradeYield = calculateTradeYield(//YIELD_COMMERCE
 					eIndex, // advc.001
 					calculateTradeProfit(pTradeCity));
 			if (pTradeCity->getOwner() == getOwner())
@@ -9689,9 +9692,6 @@ void CvCity::popOrder(int iNum, bool bFinish,
 	ChooseProductionPlayers eChoose, // advc.064d (was bool bChoose)
 	bool bEndOfTurn) // advc.001x
 {
-	wchar szBuffer[1024];
-	wchar szTempBuffer[1024];
-	TCHAR szSound[1024];
 	CvPlayerAI& kOwner = GET_PLAYER(getOwner());
 	bool const bWasFoodProduction = isFoodProduction();
 
@@ -9781,7 +9781,7 @@ void CvCity::popOrder(int iNum, bool bFinish,
 			pUnit->changeMoves(pUnit->maxMoves());
 			// </advc.001b>
 		}
-		if (pRallyPlot != NULL/* advc.001b: */ && pUnit->at(*plot()))
+		if (pRallyPlot != NULL/* advc.001b: */ && pUnit->at(getPlot()))
 			pUnit->getGroup()->pushMission(MISSION_MOVE_TO, pRallyPlot->getX(), pRallyPlot->getY());
 		if (isHuman())
 		{
@@ -10013,6 +10013,8 @@ void CvCity::popOrder(int iNum, bool bFinish,
 	}
 	if (bFinish && !bMessage)
 	{
+		wchar szBuffer[1024]; // (advc: why not CvWString?)
+		TCHAR szSound[1024];
 		LPCSTR szIcon = NULL;
 		if (eTrainUnit != NO_UNIT)
 		{
@@ -10053,6 +10055,7 @@ void CvCity::popOrder(int iNum, bool bFinish,
 		}
 		if (isProduction())
 		{
+			wchar szTempBuffer[1024];
 			swprintf(szTempBuffer, gDLL->getText(isProductionLimited() ?
 					"TXT_KEY_MISC_WORK_HAS_BEGUN_LIMITED" :
 					"TXT_KEY_MISC_WORK_HAS_BEGUN",
@@ -10219,11 +10222,11 @@ void CvCity::addGreatWall(int iAttempt)
 	/*  The city plot needs to be in the area as well b/c CvEngine will consider
 		only tiles in the same CvArea as the Great Wall city */
 	aiWallPlots.insert(plotNum());
-	for(std::set<int>::iterator it = aiWallPlots.begin(); it != aiWallPlots.end(); it++)
+	for(std::set<int>::iterator it = aiWallPlots.begin(); it != aiWallPlots.end(); ++it)
 		kMap.plotByIndex(*it)->setArea(pTmpArea, /*bProcess=*/false);
 	gDLL->getEngineIFace()->AddGreatWall(this);
 	// Restore actual area
-	for(std::set<int>::iterator it = aiWallPlots.begin(); it != aiWallPlots.end(); it++)
+	for(std::set<int>::iterator it = aiWallPlots.begin(); it != aiWallPlots.end(); ++it)
 		kMap.plotByIndex(*it)->setArea(area(), false);
 	kMap.deleteArea(pTmpArea->getID());
 }
@@ -10577,7 +10580,7 @@ void CvCity::upgradeProduction()
 bool CvCity::checkCanContinueProduction(bool bCheckUpgrade,
 	ChooseProductionPlayers eChoose)
 {
-	bool r = true;
+	bool bAllContinued = true;
 	for (int i = getOrderQueueLength() - 1; i >= 0; i--)
 	{
 		OrderData* pOrder = getOrderFromQueue(i);
@@ -10589,12 +10592,12 @@ bool CvCity::checkCanContinueProduction(bool bCheckUpgrade,
 				return checkCanContinueProduction(false, eChoose);
 			}
 			popOrder(i, false, eChoose);
-			r = false;
+			bAllContinued = false;
 		}
 	}  // <advc.004x> Relaunch choose-production popups
-	if (!r)
+	if (!bAllContinued)
 		GET_PLAYER(getOwner()).killAll(NO_BUTTONPOPUP); // </advc.004x>
-	return r;
+	return bAllContinued;
 }
 
 
@@ -10943,7 +10946,7 @@ void CvCity::doMeltdown()
 			continue; // Save some time
 		if (getNumActiveBuilding(eDangerBuilding) == 0) // was getNumBuilding
 			continue;
-		if (iOddsDivisor <= 0 || isAreaCleanPower() ||
+		if (isAreaCleanPower() ||
 			(!kDangerBuilding.isPower() && kDangerBuilding.getPowerBonus() == NO_BONUS) ||
 			(kDangerBuilding.getPowerBonus() != NO_BONUS &&
 			!hasBonus(kDangerBuilding.getPowerBonus())))
@@ -11304,12 +11307,13 @@ void CvCity::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
 	REPRO_TEST_BEGIN_WRITE(CvString::format("City(%d,%d)", getX(), getY()));
-	uint uiFlag = 1; // flag for expansion
-	uiFlag = 2; // advc.004x
-	uiFlag = 3; // advc.030b
-	uiFlag = 4; // advc.912d
-	uiFlag = 5; // advc.106k
-	uiFlag = 6; // advc.103
+	uint uiFlag;
+	//uiFlag = 1; // K-Mod
+	//uiFlag = 2; // advc.004x
+	//uiFlag = 3; // advc.030b
+	//uiFlag = 4; // advc.912d
+	//uiFlag = 5; // advc.106k
+	//uiFlag = 6; // advc.103
 	uiFlag = 7; // advc.003u: m_bChooseProductionDirty
 	pStream->Write(uiFlag);
 

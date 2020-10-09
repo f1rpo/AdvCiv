@@ -4813,8 +4813,9 @@ void CvTeamAI::write(FDataStreamBase* pStream)
 	CvTeam::write(pStream);
 
 	REPRO_TEST_BEGIN_WRITE(CvString::format("TeamAI(%d)", getID()).GetCString());
-	uint uiFlag=1;
-	uiFlag = 2; // advc.109
+	uint uiFlag;
+	//uiFlag = 1; // K-Mod
+	//uiFlag = 2; // advc.109
 	uiFlag = 3; // advc.opt: m_aiWarPlanCounts
 	pStream->Write(uiFlag);
 
@@ -4830,7 +4831,7 @@ void CvTeamAI::write(FDataStreamBase* pStream)
 	// <advc.130n>
 	pStream->Write((int)m_religionKnownSince.size());
 	for(std::map<ReligionTypes,int>::const_iterator it = m_religionKnownSince.begin();
-		it != m_religionKnownSince.end(); it++)
+		it != m_religionKnownSince.end(); ++it)
 	{
 		pStream->Write(it->first);
 		pStream->Write(it->second);
@@ -6414,10 +6415,10 @@ bool CvTeamAI::AI_isWaterAreaRelevant(CvArea const& kArea) const
 				return true;
 			iTeamCities++;
 			if (iTeamCities >= iTargetCities)
-				goto afterMemberLoop;
+				goto afterAlliesLoop;
 		}
 	}
-	afterMemberLoop:
+	afterAlliesLoop:
 	for (PlayerIter<ALIVE,KNOWN_POTENTIAL_ENEMY_OF> it(getID()); it.hasNext(); ++it)
 	{
 		FOR_EACH_CITY(pLoopCity, *it)
@@ -6429,9 +6430,9 @@ bool CvTeamAI::AI_isWaterAreaRelevant(CvArea const& kArea) const
 				continue; // </advc.001>
 			iOtherTeamCities++;
 			if (iOtherTeamCities >= iTargetCities)
-				goto afterOtherLoop;
+				goto afterRivalsLoop;
 		}
 	}
-	afterOtherLoop:
+	afterRivalsLoop:
 	return (std::min(iTeamCities, iOtherTeamCities) >= iTargetCities);
 }

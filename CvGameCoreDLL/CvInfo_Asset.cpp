@@ -746,9 +746,9 @@ int CvArtInfoFeature::getConnectionMaskFromString(const CvString &connectionStri
 
 int CvArtInfoFeature::getRotatedConnectionMask(int connectionMask, RotationTypes rotation)
 {
-	if(rotation == ROTATE_NONE)
+	/*if(rotation == ROTATE_NONE)
 		connectionMask = connectionMask;
-	else if(rotation == ROTATE_90CW)
+	else*/ if(rotation == ROTATE_90CW)
 		connectionMask = connectionMask << 2; //rotate two directions CW
 	else if(rotation == ROTATE_180CW)
 		connectionMask = connectionMask << 4; //rotate four directions CW

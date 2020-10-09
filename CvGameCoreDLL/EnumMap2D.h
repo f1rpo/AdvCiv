@@ -54,11 +54,7 @@ private:
 		OuterArrayType first;
 		OuterArrayType last;
 
-		interval()
-		{
-			first = (OuterArrayType)0;
-			last = (OuterArrayType)0;
-		}
+		interval() : first((OuterArrayType)0), last((OuterArrayType)0) {}
 	};
 };
 

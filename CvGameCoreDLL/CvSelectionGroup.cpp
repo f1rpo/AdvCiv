@@ -751,7 +751,6 @@ void CvSelectionGroup::startMission()
 	bool bDelete = false;
 	bool bAction = false;
 	bool bNuke = false;
-	bool bNotify = false;
 
 	if (!canStartMission(headMissionQueueNode()->m_data.eMissionType,
 		headMissionQueueNode()->m_data.iData1,
@@ -784,6 +783,7 @@ void CvSelectionGroup::startMission()
 		// K-Mod end
 		resetBoarded(); // advc.075
 
+		bool bNotify = false;
 		// Whole group effects
 		switch (headMissionQueueNode()->m_data.eMissionType)
 		{
@@ -1752,7 +1752,7 @@ bool CvSelectionGroup::canDoCommand(CommandTypes eCommand, int iData1, int iData
 			return false; // </advc.123c>
 	}
 
-	return eCommand == COMMAND_LOAD; // advc.123c: was //return false;
+	return (eCommand == COMMAND_LOAD); // advc.123c: was //return false;
 }
 
 bool CvSelectionGroup::canEverDoCommand(CommandTypes eCommand, int iData1, int iData2,
@@ -4677,8 +4677,8 @@ void CvSelectionGroup::read(FDataStreamBase* pStream)
 
 void CvSelectionGroup::write(FDataStreamBase* pStream)
 {
-	uint uiFlag=0;
-	uiFlag = 1; // advc.011b
+	uint uiFlag;
+	//uiFlag = 1; // advc.011b
 	uiFlag = 2; // advc.004l
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE(CvString::format("SelGroup(%d,%d,%d)", getID(), getX(), getY()));

@@ -1825,13 +1825,10 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 			if (AI_improveCity(*pCity))
 				return;
 	} }*/
-	// <advc>
-	int iNeed = 0;
-	int iHave = 0; // </advc>
 	if (pCity != NULL)
 	{
-		iNeed = pCity->AI_getWorkersNeeded();
-		iHave = pCity->AI_getWorkersHave();
+		int const iNeed = pCity->AI_getWorkersNeeded();
+		int const iHave = pCity->AI_getWorkersHave();
 		/* bts code
 		if (iNeed > 0 && (getPlot().isCity() || iNeed < (1 + iHave * 2) / 3)) */
 		/*  K-Mod. Is it just me, or did they get this backwards?
@@ -1866,7 +1863,7 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 	{
 		//bool bCanal = ((100 * getArea().getNumCities()) / std::max(1, GC.getGame().getNumCities()) < 85);
 		// K-Mod. The current AI for canals doesn't work anyway; so lets skip it to save time.
-		bool bCanal = false;
+		bool const bCanal = false;
 		bool bAirbase = false;
 		bAirbase = (kOwner.AI_totalUnitAIs(UNITAI_PARADROP) ||
 				kOwner.AI_totalUnitAIs(UNITAI_ATTACK_AIR) ||
@@ -1947,7 +1944,7 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 	if (!bBuildFort)
 	{
 		//bool bCanal = ((100 * getArea().getNumCities()) / std::max(1, GC.getGame().getNumCities()) < 85);
-		bool bCanal = false; // K-Mod. The current AI for canals doesn't work anyway; so lets skip it to save time.
+		bool const bCanal = false; // K-Mod. The current AI for canals doesn't work anyway; so lets skip it to save time.
 		bool bAirbase = false;
 		bAirbase = (kOwner.AI_totalUnitAIs(UNITAI_PARADROP) ||
 				kOwner.AI_totalUnitAIs(UNITAI_ATTACK_AIR) ||
@@ -2948,9 +2945,8 @@ void CvUnitAI::AI_attackCityMove()
 		int iOurEra = GET_PLAYER(getOwner()).getCurrentEra();
 		int iBarbarianEra = GET_PLAYER(BARBARIAN_PLAYER).getCurrentEra();
 		int iBarbarianGarrison = 2 + iBarbarianEra;
-		if (!isBarbarian() && !bTurtle &&
-			((eAreaAI != AREAAI_DEFENSIVE && eAreaAI != AREAAI_OFFENSIVE && !bAlert1) ||
-			iBarbarianGarrison < 2 * iOurEra))
+		if ((eAreaAI != AREAAI_DEFENSIVE && eAreaAI != AREAAI_OFFENSIVE && !bAlert1) ||
+			iBarbarianGarrison < 2 * iOurEra)
 		{
 			bHuntBarbs = true;
 		}
@@ -6766,7 +6762,7 @@ void CvUnitAI::AI_exploreSeaMove()
 	{	// <advc.017b>
 		bool bTransform = false;
 		// Don't be too quick to decide that there are too many explorers
-		if(::bernoulliSuccess(0.13, "advc.017b"))
+		if(fixp(0.13).bernoulliSuccess(GC.getGame().getSRand(), "transform explorer"))
 		{
 			bool bTransform = kOwner.AI_isExcessSeaExplorers(*pWaterArea);
 			bExcessExplorers = bTransform;
@@ -6787,9 +6783,9 @@ void CvUnitAI::AI_exploreSeaMove()
 			std::vector<UnitAITypes> transformTypes;
 			transformTypes.push_back(UNITAI_WORKER_SEA);
 			transformTypes.push_back(UNITAI_PIRATE_SEA);
-			AreaAITypes aai = getArea().getAreaAIType(getTeam());
-			if(aai == AREAAI_ASSAULT || aai == AREAAI_ASSAULT_ASSIST ||
-				aai == AREAAI_ASSAULT_MASSING ||
+			AreaAITypes eAreaAI = getArea().getAreaAIType(getTeam());
+			if(eAreaAI == AREAAI_ASSAULT || eAreaAI == AREAAI_ASSAULT_ASSIST ||
+				eAreaAI == AREAAI_ASSAULT_MASSING ||
 				kOwner.AI_totalUnitAIs(UNITAI_SETTLE) <= 0 ||
 				kOwner.AI_totalUnitAIs(UNITAI_SETTLER_SEA) > kOwner.getCurrentEra() / 2)
 			{
@@ -6938,7 +6934,6 @@ void CvUnitAI::AI_assaultSeaMove()
 	bool bReinforce = false;
 	bool bAttack = false;
 	bool const bNoWarPlans = !GET_TEAM(getTeam()).AI_isAnyWarPlan();
-	bool bAttackBarbarian = false;
 	//bool bLandWar = false;
 	bool const bBarbarian = isBarbarian();
 
@@ -7408,7 +7403,6 @@ void CvUnitAI::AI_assaultSeaMove()
 		}
 		if (bNoWarPlans && iCargo >= iTargetReinforcementSize)
 		{
-			bAttackBarbarian = true;
 			AI_getGroup()->AI_separateEmptyTransports();
 			if (!getGroup()->hasCargo())
 			{
@@ -7417,14 +7411,14 @@ void CvUnitAI::AI_assaultSeaMove()
 				return;
 			}
 			FAssert(getGroup()->hasCargo());
-			if (AI_assaultSeaReinforce(bAttackBarbarian))
+			if (AI_assaultSeaReinforce(true))
 				return;
 
 			FAssert(getGroup()->hasCargo());
-			if (AI_assaultSeaTransport(bAttackBarbarian))
+			if (AI_assaultSeaTransport(true))
 				return;
 		}
-	} // <advc.046>
+	}  // <advc.046>
 	bool bHasCargo = getGroup()->hasCargo(); // Moved up
 	/*  If we have room, or are in a city where we could unload, check if there is
 		a good stranded target. This is more important than drawing units together
@@ -11590,10 +11584,8 @@ bool CvUnitAI::AI_spreadCorporation()
 	}
 	bool bHasHQ = GET_TEAM(getTeam()).hasHeadquarters(eCorporation);
 
-	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pBestSpreadPlot = NULL;
-
 	// K-Mod
 	// first, if we are already doing a spread mission, continue that.
 	if (AI_getGroup()->AI_getMissionAIType() == MISSIONAI_SPREAD_CORPORATION)
@@ -11626,6 +11618,7 @@ bool CvUnitAI::AI_spreadCorporation()
 			if (kOwner.AI_executiveValue(eCorporation, area(), &eTargetPlayer, true) <= 0)
 				return false; // corp is not worth spreading in this region.
 		}
+		int iBestValue = 0;
 		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		{
 			CvPlayerAI const& kLoopPlayer = *it;
@@ -13481,10 +13474,10 @@ bool CvUnitAI::AI_goToTargetCity(MovementFlags eFlags,  // advc: some refactorin
 	FAssert(pTargetCity->isArea(getArea())); // advc: This function isn't for naval assault
 
 	CvPlot* pEndTurnPlot = NULL; // K-Mod
-	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
 	if (!(eFlags & MOVE_THROUGH_ENEMY))
 	{
+		int iBestValue = 0;
 		FOR_EACH_ENUM(Direction)
 		{
 			CvPlot* pAdjacentPlot = plotDirection(pTargetCity->getX(), pTargetCity->getY(), eLoopDirection);
@@ -15644,7 +15637,8 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 						if (loop_path.GeneratePath(pLoopPlot)) // K-Mod end
 						{
 							//iOtherPathTurns += 1;
-							iOtherPathTurns = loop_path.GetPathTurns(); // (K-Mod note: I'm not convinced the +1 thing is a good idea.)
+							// (K-Mod note: I'm not convinced the +1 thing is a good idea.)
+							iOtherPathTurns = loop_path.GetPathTurns();
 						}
 						else continue;
 
@@ -15653,9 +15647,9 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 							continue;
 
 						int iEnemyDefenders = pLoopPlot->getNumVisibleEnemyDefenders(this);
+						bool bCanCargoAllUnload = true;
 						if (iEnemyDefenders > 0 || pLoopPlot->isCity())
 						{
-							bool bCanCargoAllUnload = true;
 							for (size_t i = 0; i < apGroupCargo.size(); ++i)
 							{
 								CvUnit const* pAttacker = apGroupCargo[i];
@@ -15678,7 +15672,7 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 						}
 
 						int iValue = (iAssaultsHere * 5);
-						iValue += iTargetCities*10;
+						iValue += iTargetCities * 10;
 
 						iValue *= 100;
 
@@ -15710,7 +15704,7 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 		}
 	}
 
-	if (pBestPlot && pBestAssaultPlot)
+	if (pBestPlot != NULL && pBestAssaultPlot != NULL)
 		return AI_transportGoTo(pBestPlot, pBestAssaultPlot, eFlags, MISSIONAI_REINFORCE);
 
 	// Reinforce our cities in need
@@ -18963,7 +18957,7 @@ bool CvUnitAI::AI_airOffensiveCity()
 	return false;
 }
 
-/*  BETTER_BTS_AI_MOD, Air AI, 04/25/10, jdog5000: START
+/*  BETTER_BTS_AI_MOD, Air AI, 04/25/10, jdog5000:
 	Function for ranking the value of a plot as a base for offensive air units */
 int CvUnitAI::AI_airOffenseBaseValue(CvPlot const& kPlot) // advc: param was CvPlot*
 {
@@ -19028,7 +19022,8 @@ int CvUnitAI::AI_airOffenseBaseValue(CvPlot const& kPlot) // advc: param was CvP
 	bool const bAnyWar = GET_TEAM(getTeam()).AI_isAnyWarPlan();
 	if (bAnyWar)
 	{
-		// Don't count assault assist, don't want to weight defending colonial coasts when homeland might be under attack
+		/*	Don't count assault assist, don't want to weight
+			defending colonial coasts when homeland might be under attack */
 		bool const bAssault = (kPlot.getArea().getAreaAIType(getTeam()) == AREAAI_ASSAULT ||
 				kPlot.getArea().getAreaAIType(getTeam()) == AREAAI_ASSAULT_MASSING);
 
@@ -19110,7 +19105,8 @@ int CvUnitAI::AI_airOffenseBaseValue(CvPlot const& kPlot) // advc: param was CvP
 							iTempValue *= 2;
 						if (pLoopCity->AI_isDanger())
 						{
-							// Multiplier for nearby troops, ours, teammate's, and any other enemy of city
+							/*	Multiplier for nearby troops, ours, teammate's,
+								and any other enemy of city */
 							iTempValue *= 3;
 						}
 					}
@@ -19191,9 +19187,12 @@ int CvUnitAI::AI_airOffenseBaseValue(CvPlot const& kPlot) // advc: param was CvP
 			/*iValue = (pCity->getPopulation() + 20);
 			iValue += pCity->AI_cityThreat();*/ // BtS
 
-			// K-Mod. Try not to waste airspace which we need for air defenders; but use the needed air defenders as a proxy for good offense placement.
-			// AI_cityThreat has arbitrary scale, so it should not be added to population like that.
-			// (the rest of this function still needs some work, but this bit was particularly problematic.)
+			/*	K-Mod. Try not to waste airspace which we need for air defenders;
+				but use the needed air defenders as a proxy for good offense placement.
+				AI_cityThreat has arbitrary scale, so it
+				should not be added to population like that.
+				(the rest of this function still needs some work,
+				but this bit was particularly problematic.) */
 			int iDefNeeded = pCity->AI_neededAirDefenders();
 			int iDefHere = kPlot.plotCount(PUF_isAirIntercept, -1, -1, NO_PLAYER, getTeam()) -
 					(at(kPlot) && PUF_isAirIntercept(this, -1, -1) ? 1 : 0);
@@ -19214,7 +19213,8 @@ int CvUnitAI::AI_airOffenseBaseValue(CvPlot const& kPlot) // advc: param was CvP
 		{
 			if (iDefenders > 0)
 			{
-				iValue = (pCity != NULL) ? 0 : GET_PLAYER(getOwner()).AI_getPlotAirbaseValue(kPlot);
+				iValue = (pCity != NULL) ? 0 :
+						GET_PLAYER(getOwner()).AI_getPlotAirbaseValue(kPlot);
 				iValue /= 6;
 			}
 		}
@@ -19227,7 +19227,8 @@ int CvUnitAI::AI_airOffenseBaseValue(CvPlot const& kPlot) // advc: param was CvP
 			iValue /= 3;
 		}
 
-		// No real enemies, check for minor civ or barbarian cities where attacks could be supported
+		/*	No real enemies, check for minor civ or barbarian cities
+			where attacks could be supported */
 		CvCity* pNearestEnemyCity = GC.getMap().findCity(kPlot.getX(), kPlot.getY(),
 				NO_PLAYER, NO_TEAM, false, false, getTeam());
 
@@ -19254,7 +19255,7 @@ int CvUnitAI::AI_airOffenseBaseValue(CvPlot const& kPlot) // advc: param was CvP
 	}
 
 	return iValue;
-} // BETTER_BTS_AI_MOD: END
+}
 
 // Most of this function has been rewritten for K-Mod, using bbai as the base version. (old code deleted.)
 bool CvUnitAI::AI_airDefensiveCity()

@@ -5696,17 +5696,18 @@ void CvTeam::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
 	REPRO_TEST_BEGIN_WRITE(CvString::format("Team(%d)", getID()));
-	uint uiFlag = 1;
-	uiFlag = 2; // advc.opt: m_eLeader added
-	uiFlag = 3; // advc.034
-	uiFlag = 4; // advc.162
-	uiFlag = 5; // advc.003m
-	uiFlag = 6; // advc.120g
-	uiFlag = 7; // advc.opt: m_bAnyVictoryCountdown
-	uiFlag = 8; // advc.opt: change in updateLeaderID
-	uiFlag = 9; // advc.opt: remove m_abVassal; advc.enum/ advc.034: write m_abDisengage[BARBARIAN_TEAM]
-	uiFlag = 10; // advc.101: m_iTechCount
-	uiFlag = 11; // advc.opt: fix m_aiVictoryCountdown bug
+	uint uiFlag;
+	//uiFlag = 1; // K-Mod
+	//uiFlag = 2; // advc.opt: m_eLeader added
+	//uiFlag = 3; // advc.034
+	//uiFlag = 4; // advc.162
+	//uiFlag = 5; // advc.003m
+	//uiFlag = 6; // advc.120g
+	//uiFlag = 7; // advc.opt: m_bAnyVictoryCountdown
+	//uiFlag = 8; // advc.opt: change in updateLeaderID
+	//uiFlag = 9; // advc.opt: remove m_abVassal; advc.enum/ advc.034: write m_abDisengage[BARBARIAN_TEAM]
+	//uiFlag = 10; // advc.101: m_iTechCount
+	//uiFlag = 11; // advc.opt: fix m_aiVictoryCountdown bug
 	uiFlag = 12; // advc.091
 	pStream->Write(uiFlag);
 

@@ -368,7 +368,7 @@ void UWAI::Team::alignAreaAI(bool isNaval) {
 					areasNotToAlign.begin(), areasNotToAlign.end(),
 					std::inserter(diff, diff.begin()));
 	CvMap& m = GC.getMap();
-	for(std::set<int>::const_iterator it = diff.begin(); it != diff.end(); it++) {
+	for(std::set<int>::const_iterator it = diff.begin(); it != diff.end(); ++it) {
 		CvArea& a = *m.getArea(*it);
 		AreaAITypes oldAAI = a.getAreaAIType(agentId);
 		AreaAITypes newAAI = oldAAI;

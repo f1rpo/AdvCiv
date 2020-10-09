@@ -60,37 +60,39 @@ StartingPositionIteration::StartingPositionIteration() :
 	FAssert(!GC.getGame().isTeamGame());
 	// In non-team games, Pangaea shouldn't need custom code for starting sites.
 	bool const bIgnoreScript = GC.getInitCore().isPangaea();
-	size_t i = 0;
-	for (; i < apCivPlayers.size(); i++)
 	{
-		CvPlayer& kPlayer = *apCivPlayers[i];
-		if (kPlayer.getStartingPlot() != NULL)
+		size_t i = 0;
+		for (; i < apCivPlayers.size(); i++)
 		{
-			/*	Meaning that, if a map script sets all starting sites in
-				assignStartingPlots but still allows the default implementation,
-				then starting position iteration is allowed but can't change
-				the start areas. (for PerfectMongoose) */
-			m_bRestrictedAreas = true;
-			continue;
+			CvPlayer& kPlayer = *apCivPlayers[i];
+			if (kPlayer.getStartingPlot() != NULL)
+			{
+				/*	Meaning that, if a map script sets all starting sites in
+					assignStartingPlots but still allows the default implementation,
+					then starting position iteration is allowed but can't change
+					the start areas. (for PerfectMongoose) */
+				m_bRestrictedAreas = true;
+				continue;
+			}
+			gDLL->callUpdater();
+			bool bSiteFoundByScript=false;
+			bool bRestrictedAreas=false;
+			CvPlot* pSite = kPlayer.findStartingPlot(false,
+					&bSiteFoundByScript, &bRestrictedAreas);
+			if (pSite == NULL || (bSiteFoundByScript && !bIgnoreScript))
+				break;
+			if (bRestrictedAreas)
+				m_bRestrictedAreas = true;
+			/*	Would rather not store sites at players until the end of our computations,
+				but then findStartingPlot will return the same site over and over. */
+			kPlayer.setStartingPlot(pSite, false);
 		}
-		gDLL->callUpdater();
-		bool bSiteFoundByScript=false;
-		bool bRestrictedAreas=false;
-		CvPlot* pSite = kPlayer.findStartingPlot(false,
-				&bSiteFoundByScript, &bRestrictedAreas);
-		if (pSite == NULL || (bSiteFoundByScript && !bIgnoreScript))
-			break;
-		if (bRestrictedAreas)
-			m_bRestrictedAreas = true;
-		/*	Would rather not store sites at players until the end of our computations,
-			but then findStartingPlot will return the same site over and over. */
-		kPlayer.setStartingPlot(pSite, false);
-	}
-	if (i != apCivPlayers.size()) // Revert any changes and bail
-	{
-		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
-			it->setStartingPlot(NULL, false);
-		return;
+		if (i != apCivPlayers.size()) // Revert any changes and bail
+		{
+			for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+				it->setStartingPlot(NULL, false);
+			return;
+		}
 	} // Past this point, we'll have set sensible starting plots; won't revert anymore.
 
 	// Precomputations (too costly to repeat in each iteration) ...
@@ -351,9 +353,7 @@ void StartingPositionIteration::PotentialSites::recordSite(
 		return;
 	for (size_t i = 0; i < aClosestPlayers.size(); i++)
 	{
-		map<PlayerTypes,VoronoiCell*>::iterator pos = m_sitesClosestToCurrSite.
-				find(aClosestPlayers[i]);
-		VoronoiCell& kCell = *pos->second;
+		VoronoiCell& kCell = *m_sitesClosestToCurrSite.find(aClosestPlayers[i])->second;
 		PlotNumTypes ePlotNum = kMap.plotNum(kPlot);
 		if (bAdd)
 			kCell.insert(ePlotNum);
@@ -514,7 +514,7 @@ void StartingPositionIteration::PotentialSites::getCurrFoundValues(
 
 
 StartingPositionIteration::DistanceTable::DistanceTable(
-	vector<CvPlot const*>& kapSources, vector<CvPlot const*>& kapDestinations)
+	vector<CvPlot const*>& kapSources, vector<CvPlot const*>& kDestinations)
 {
 	scaled rStartEraFactor = 1;
 	if (GC.getNumEraInfos() > 1)
@@ -533,16 +533,16 @@ StartingPositionIteration::DistanceTable::DistanceTable(
 	}
 	// Need (fast) 2-way conversion for destination ids and plot numbers
 	m_destinationIDs.resize(kMap.numPlots(), NOT_A_DESTINATION);
-	m_destinationIDToPlotNum.resize(kapDestinations.size(), NO_PLOT_NUM);
-	for (size_t i = 0; i < kapDestinations.size(); i++)
+	m_destinationIDToPlotNum.resize(kDestinations.size(), NO_PLOT_NUM);
+	for (size_t i = 0; i < kDestinations.size(); i++)
 	{
 		DestinationID eDst = (DestinationID)i;
-		PlotNumTypes ePlotNum = kMap.plotNum(*kapDestinations[i]);
+		PlotNumTypes ePlotNum = kMap.plotNum(*kDestinations[i]);
 		m_destinationIDs[ePlotNum] = eDst;
 		m_destinationIDToPlotNum[eDst] = ePlotNum;
 	}
 	m_distances.resize(kapSources.size(),
-			vector<short>(kapDestinations.size(), MAX_SHORT));
+			vector<short>(kDestinations.size(), MAX_SHORT));
 	for (size_t i = 0; i < kapSources.size(); i++)
 	{
 		CvPlot const& kSource = *kapSources[i];
@@ -553,9 +553,9 @@ StartingPositionIteration::DistanceTable::DistanceTable(
 			computeDistance are far too high. (computeDistances can't sort
 			this out b/c it doesn't distinguish between moving a settler
 			into/ through a plot and working a plot.) */
-		for (size_t i = 0; i < kapDestinations.size(); i++)
+		for (size_t j = 0; j < kDestinations.size(); j++)
 		{
-			CvPlot const& kWaterDest = *kapDestinations[i];
+			CvPlot const& kWaterDest = *kDestinations[j];
 			if (!kWaterDest.isWater())
 				continue;
 			/*	Use the distance of the land destination closest to kSource

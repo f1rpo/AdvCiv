@@ -127,11 +127,11 @@ void UWAICache::write(FDataStreamBase* stream) {
 	stream->Write(focusOnPeacefulVictory);
 	stream->Write(readyToCapitulate.size());
 	for(std::set<TeamTypes>::const_iterator it = readyToCapitulate.begin();
-			it != readyToCapitulate.end(); it++)
+			it != readyToCapitulate.end(); ++it)
 		stream->Write(*it);
 	stream->Write(latestTurnReachableBySea.size());
 	for(std::map<int,std::pair<int,int> >::iterator it = latestTurnReachableBySea.
-			begin(); it != latestTurnReachableBySea.end(); it++) {
+			begin(); it != latestTurnReachableBySea.end(); ++it) {
 		stream->Write(it->first);
 		stream->Write(it->second.first);
 		stream->Write(it->second.second);
@@ -757,7 +757,7 @@ void UWAICache::updateAdjacentLand() {
 			adjacentLand.add(o, 1);
 	}
 }
-// <advc.035>
+// advc.035:
 void UWAICache::updateLostTilesAtWar() {
 
 	//PROFILE_FUNC();
@@ -777,7 +777,7 @@ void UWAICache::updateLostTilesAtWar() {
 		}
 		lostTilesAtWar.set(tId, lost);
 	}
-} // </advc.035>
+}
 
 void UWAICache::updateRelativeNavyPower() {
 

@@ -324,8 +324,9 @@ void CvCivicInfo::read(FDataStreamBase* stream)
 void CvCivicInfo::write(FDataStreamBase* stream)
 {
 	CvInfoBase::write(stream);
-	uint uiFlag=2;
-	uiFlag = 3; // advc.912c
+	uint uiFlag;
+	//uiFlag = 2; // K-Mod
+	//uiFlag = 3; // advc.912c
 	uiFlag = 4; // advc.132
 	stream->Write(uiFlag);
 

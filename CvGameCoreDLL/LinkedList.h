@@ -11,7 +11,8 @@ template <class tVARTYPE> class CLinkList;
 template <class tVARTYPE> class CLLNode
 {
 public:
-	CLLNode(const tVARTYPE& val) : m_data(val), m_pNext(NULL), m_pPrev(NULL) {}
+	explicit CLLNode(const tVARTYPE& val)
+	:	m_data(val), m_pNext(NULL), m_pPrev(NULL) {}
 	virtual ~CLLNode() {}
 	tVARTYPE m_data;
 
@@ -39,7 +40,7 @@ public:
 	void insertAtEnd(const tVARTYPE& val);
 	void insertBefore(const tVARTYPE& val, CLLNode<tVARTYPE>* pThisNode);
 	void insertAfter(const tVARTYPE& val, CLLNode<tVARTYPE>* pThisNode);
-	CLLNode<tVARTYPE>* deleteNode(CLLNode<tVARTYPE>* pNode);
+	CLLNode<tVARTYPE>* deleteNode(CLLNode<tVARTYPE>*& pNode);
 	void moveToEnd(CLLNode<tVARTYPE>* pThisNode);
 
 	inline CLLNode<tVARTYPE>* next(CLLNode<tVARTYPE>* pNode) const { return pNode->m_pNext; }
@@ -219,7 +220,9 @@ inline void CLinkList<tVARTYPE>::insertAfter(const tVARTYPE& val, CLLNode<tVARTY
 
 
 template <class tVARTYPE>
-inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::deleteNode(CLLNode<tVARTYPE>* pNode)
+inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::deleteNode(
+	// advc: Take a reference so that we can set the caller's pointer to NULL
+	CLLNode<tVARTYPE>*& pNode)
 {
 	CLLNode<tVARTYPE>* pPrevNode = pNode->m_pPrev;
 	CLLNode<tVARTYPE>* pNextNode = pNode->m_pNext;
@@ -243,7 +246,9 @@ inline CLLNode<tVARTYPE>* CLinkList<tVARTYPE>::deleteNode(CLLNode<tVARTYPE>* pNo
 		m_pHead = NULL;
 		m_pTail = NULL;
 	}
-	SAFE_DELETE(pNode);
+	delete pNode;
+	pNode = NULL;
+	
 	m_iLength--;
 	return pNextNode;
 }
