@@ -6764,7 +6764,7 @@ void CvUnitAI::AI_exploreSeaMove()
 		// Don't be too quick to decide that there are too many explorers
 		if(fixp(0.13).bernoulliSuccess(GC.getGame().getSRand(), "transform explorer"))
 		{
-			bool bTransform = kOwner.AI_isExcessSeaExplorers(*pWaterArea);
+			bTransform = kOwner.AI_isExcessSeaExplorers(*pWaterArea);
 			bExcessExplorers = bTransform;
 		}
 		if(!bTransform &&
