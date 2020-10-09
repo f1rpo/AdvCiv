@@ -9154,7 +9154,7 @@ void CvPlayer::setCurrentEra(EraTypes eNewValue)
 
 	//update unit eras
 	FOR_EACH_UNIT_VAR(pLoopUnit, *this)
-		gDLL->getEntityIFace()->updateGraphicEra(pLoopUnit->getUnitEntity(), eOldEra);
+		gDLL->getEntityIFace()->updateGraphicEra(pLoopUnit->getEntity(), eOldEra);
 
 	//update main interface flag
 	gDLL->UI().setDirty(Flag_DIRTY_BIT, true);
@@ -13617,7 +13617,7 @@ void CvPlayer::doWarnings()
 	FOR_EACH_UNIT_VAR(pLoopUnit, *this)
 	{
 		//update glow
-		gDLL->getEntityIFace()->updateEnemyGlow(pLoopUnit->getUnitEntity());
+		gDLL->getEntityIFace()->updateEnemyGlow(pLoopUnit->getEntity());
 	}
 
 	//update enemy units close to your territory
@@ -16604,7 +16604,7 @@ void CvPlayer::showForeignPromoGlow(bool b)
 			continue;
 		FOR_EACH_UNIT_VAR(u, *itOther)
 		{
-			gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(),
+			gDLL->getEntityIFace()->showPromotionGlow(u->getEntity(),
 					u->isPromotionReady() && b);
 		}
 	}

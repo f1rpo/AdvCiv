@@ -6258,7 +6258,7 @@ void CvPlot::updateFeatureSymbol(bool bForce)
 		gDLL->getFeatureIFace()->init(m_pFeatureSymbol, 0, 0, eFeature, this);
 		updateFeatureSymbolVisibility();
 	} //update position and contours:
-	else gDLL->getEntityIFace()->updatePosition((CvEntity*)m_pFeatureSymbol);
+	else gDLL->getFeatureIFace()->updatePosition(m_pFeatureSymbol);
 }
 
 
@@ -6305,7 +6305,7 @@ void CvPlot::updateRouteSymbol(bool bForce, bool bAdjacent)
 		gDLL->getRouteIFace()->init(m_pRouteSymbol, 0, 0, eRoute, this);
 		setLayoutDirty(true);
 	} //update position and contours:
-	else gDLL->getEntityIFace()->updatePosition((CvEntity*)m_pRouteSymbol);
+	else gDLL->getRouteIFace()->updatePosition(m_pRouteSymbol);
 }
 
 
@@ -6376,14 +6376,14 @@ void CvPlot::updateRiverSymbol(bool bForce, bool bAdjacent)
 			pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)i);
 			if(pAdjacentPlot != NULL && pAdjacentPlot->m_pRiverSymbol != NULL)
 			{	//update position and contours:
-				gDLL->getEntityIFace()->updatePosition((CvEntity*)pAdjacentPlot->m_pRiverSymbol);
+				gDLL->getRiverIFace()->updatePosition(pAdjacentPlot->m_pRiverSymbol);
 			}
 		}
 		// update the symbol
 		setLayoutDirty(true);
 	}
 	//recontour rivers - update position and contours
-	gDLL->getEntityIFace()->updatePosition((CvEntity*)m_pRiverSymbol);
+	gDLL->getRiverIFace()->updatePosition(m_pRiverSymbol);
 }
 
 

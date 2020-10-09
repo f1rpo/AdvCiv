@@ -15,7 +15,7 @@ class CvUnitAI; // advc.003u
 struct CombatDetails;
 
 // (advc.inl: Inlined many getters. Only getX, getY and getOwner were inlined in K-Mod/BtS.)
-class CvUnit : public CvDLLEntity
+class CvUnit : public CvDLLUnitEntity
 {
 public:
 	virtual ~CvUnit();

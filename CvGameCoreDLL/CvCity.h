@@ -16,7 +16,7 @@ class CvCityAI; // advc.003u
 class CvCivilization; // advc.003w
 
 
-class CvCity : public CvDLLEntity
+class CvCity : public CvDLLCityEntity
 {
 public:
 	virtual ~CvCity();

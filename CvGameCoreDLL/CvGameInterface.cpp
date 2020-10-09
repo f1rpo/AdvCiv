@@ -617,7 +617,7 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 		{
 			CvPlayer const& kOwner = GET_PLAYER(pCycleUnit->getOwner());
 			FOR_EACH_UNIT_VAR(u, kOwner)
-				gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(), false);
+				gDLL->getEntityIFace()->showPromotionGlow(u->getEntity(), false);
 		} // </advc.002e>
 	} // K-Mod end
 

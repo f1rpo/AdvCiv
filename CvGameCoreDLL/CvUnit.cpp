@@ -22,7 +22,7 @@
 
 CvUnit::CvUnit() // advc.003u: Body cut from the deleted reset function
 {
-	CvDLLEntity::createUnitEntity(this);
+	createEntity(this);
 
 	m_iID = 0;
 	m_iGroupID = FFreeList::INVALID_INDEX;
@@ -129,7 +129,7 @@ CvUnit::~CvUnit()
 void CvUnit::reloadEntity()
 {
 	uninitEntity();
-	CvDLLEntity::createUnitEntity(this); // create and attach entity to unit
+	createEntity(this); // create and attach entity to unit
 	setupGraphical();
 }
 
@@ -140,9 +140,9 @@ void CvUnit::uninitEntity()
 	if (!gDLL->GetDone() && GC.IsGraphicsInitialized())
 	{
 		gDLL->getEntityIFace()->RemoveUnitFromBattle(this);
-		CvDLLEntity::removeEntity(); // remove entity from engine
+		removeEntity(); // remove entity from engine
 	}
-	CvDLLEntity::destroyEntity(); // delete CvUnitEntity and detach from us
+	destroyEntity(); // delete CvUnitEntity and detach from us
 }
 
 
@@ -618,7 +618,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 
 void CvUnit::NotifyEntity(MissionTypes eMission)
 {
-	gDLL->getEntityIFace()->NotifyEntity(getUnitEntity(), eMission);
+	gDLL->getEntityIFace()->NotifyEntity(getEntity(), eMission);
 }
 
 
@@ -1732,7 +1732,7 @@ bool CvUnit::isActionRecommended(int iAction)
 			if(pUnit != NULL)
 			{
 				bool bGlow = pUnit->isPromotionReady();
-				gDLL->getEntityIFace()->showPromotionGlow(pUnit->getUnitEntity(), bGlow);
+				gDLL->getEntityIFace()->showPromotionGlow(pUnit->getEntity(), bGlow);
 			}
 		}
 	} // </advc.002e>
@@ -8606,7 +8606,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 	}
 	//update glow
 	if (pNewPlot != NULL)
-		gDLL->getEntityIFace()->updateEnemyGlow(getUnitEntity());
+		gDLL->getEntityIFace()->updateEnemyGlow(getEntity());
 
 	// report event to Python, along with some other key state
 	CvEventReporter::getInstance().unitSetXY(pNewPlot, this);
@@ -9363,7 +9363,7 @@ void CvUnit::setPromotionReady(bool bNewValue)
 	}
 
 	if(BUGOption::isEnabled("PLE__ShowPromotionGlow", false)) // advc.002e:
-		gDLL->getEntityIFace()->showPromotionGlow(getUnitEntity(), bNewValue);
+		gDLL->getEntityIFace()->showPromotionGlow(getEntity(), bNewValue);
 
 	if(IsSelected())
 		gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true);
@@ -9581,7 +9581,7 @@ void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 				&& pCombatUnit->getPlot().getPlotCity()->getBuildingDefense() > 0
 				&& cityAttackModifier() >= GC.getDefineINT("MIN_CITY_ATTACK_MODIFIER_FOR_SIEGE_TOWER"))*/ // BtS
 			if (showSiegeTower(pCombatUnit)) // K-Mod
-				CvDLLEntity::SetSiegeTower(true);
+				SetSiegeTower(true);
 		}
 
 		FAssert(getCombatUnit() == NULL);
@@ -9606,7 +9606,7 @@ void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 			if (plot() == gDLL->UI().getSelectionPlot())
 				gDLL->UI().setDirty(PlotListButtons_DIRTY_BIT, true);
 
-			CvDLLEntity::SetSiegeTower(false);
+			SetSiegeTower(false);
 		}
 	}
 
@@ -10021,7 +10021,7 @@ void CvUnit::setHasPromotion(PromotionTypes ePromotion, bool bNewValue)
 	}
 
 	//update graphics
-	gDLL->getEntityIFace()->updatePromotionLayers(getUnitEntity());
+	gDLL->getEntityIFace()->updatePromotionLayers(getEntity());
 }
 
 

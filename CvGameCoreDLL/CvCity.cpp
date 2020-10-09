@@ -20,7 +20,7 @@
 
 CvCity::CvCity() // advc.003u: Merged with the deleted reset function
 {
-	CvDLLEntity::createCityEntity(this); // create and attach entity to city
+	createEntity(this); // create and attach entity to city
 
 	m_iID = 0;
 	m_iX = INVALID_PLOT_COORD;
@@ -142,8 +142,8 @@ CvCity::CvCity() // advc.003u: Merged with the deleted reset function
 
 CvCity::~CvCity() // advc.003u: Merged with the deleted uninit function
 {
-	CvDLLEntity::removeEntity(); // remove entity from engine
-	CvDLLEntity::destroyEntity(); // delete CvCityEntity and detach from us
+	removeEntity(); // remove entity from engine
+	destroyEntity(); // delete CvCityEntity and detach from us
 
 	m_orderQueue.clear();
 }

@@ -3172,7 +3172,7 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 		CvPlayer const& kOwner = GET_PLAYER(pUnit->getOwner());
 		FOR_EACH_UNIT_VAR(u, kOwner)
 		{
-			gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(),
+			gDLL->getEntityIFace()->showPromotionGlow(u->getEntity(),
 					u->atPlot(pUnit->plot()) && u->isPromotionReady());
 		}
 	} // </advc.002e>
@@ -5507,7 +5507,7 @@ void CvGame::updateUnitEnemyGlow()
 		if (!kPlayer.isAlive())
 			continue; // advc.opt
 		FOR_EACH_UNIT_VAR(pLoopUnit, kPlayer)
-			gDLL->getEntityIFace()->updateEnemyGlow(pLoopUnit->getUnitEntity());
+			gDLL->getEntityIFace()->updateEnemyGlow(pLoopUnit->getEntity());
 	}
 }
 
