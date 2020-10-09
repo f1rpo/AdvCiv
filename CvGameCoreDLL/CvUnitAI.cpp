@@ -14576,8 +14576,9 @@ bool CvUnitAI::AI_pirateBlockade()
 								AI_getAttitude(pPlotCity->getOwner());
 						if (iAttitudeLevel > 0)
 						{
-							std::max(1, iAttitudeFactor - ::round(
-									std::pow((double)iAttitudeLevel, 1.5)));
+							iAttitudeFactor = std::max(1,
+									iAttitudeFactor -
+									scaled(iAttitudeLevel).pow(fixp(1.5)).round());
 						}
 						iCityValue *= iAttitudeFactor;
 						TechTypes eTechReq = getUnitInfo().getPrereqAndTech();
