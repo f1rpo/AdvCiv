@@ -103,36 +103,7 @@ bool CvPlayer::initOtherData()
 		return false;
 	initAlerts(); // advc.210
 	setAlive(true);
-	LeaderHeadTypes ePersonality = NO_LEADER; // advc.104: Moved up
-	if (GC.getGame().isOption(GAMEOPTION_RANDOM_PERSONALITIES) &&
-		!isBarbarian() && !isMinorCiv())
-	{
-		int iBestValue = 0;
-		int const iBARBARIAN_LEADER = GC.getDefineINT("BARBARIAN_LEADER"); // advc.opt
-		FOR_EACH_ENUM2(LeaderHead, eLoopPersonality)
-		{
-			if (eLoopPersonality == iBARBARIAN_LEADER) // XXX minor civ???
-				continue;
-
-			int iValue = (1 + GC.getGame().getSorenRandNum(10000, "Choosing Personality"));
-			for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
-			{
-				if (GET_PLAYER((PlayerTypes)iJ).isAlive())
-				{
-					if (GET_PLAYER((PlayerTypes)iJ).
-						getPersonalityType() == eLoopPersonality)
-					{
-						iValue /= 2;
-					}
-				}
-			}
-			if (iValue > iBestValue)
-			{
-				iBestValue = iValue;
-				ePersonality = eLoopPersonality;
-			}
-		}
-	}
+	changePersonalityType(); // advc.003q: Use BBAI subroutine
 
 	changeBaseFreeUnits(GC.getDefineINT("INITIAL_BASE_FREE_UNITS"));
 	changeBaseFreeMilitaryUnits(GC.getDefineINT("INITIAL_BASE_FREE_MILITARY_UNITS"));
@@ -624,7 +595,8 @@ void CvPlayer::processTraits(int iChange)
 	}
 }
 
-
+/*	advc (note): The Change Player mod has copied this from CvPlayer::init.
+	I've deleted the code there, so now it has effectively been moved from init.*/
 void CvPlayer::changePersonalityType()
 {
 	if (isBarbarian())
