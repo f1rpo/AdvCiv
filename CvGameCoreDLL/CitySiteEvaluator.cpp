@@ -705,11 +705,11 @@ short AIFoundValue::evaluate()
 	if (iResourceValue <= 0 && iSpecialFoodPlus <= 0 &&
 		iUnrevealedTiles < 5) // advc.040
 	{
-		int iMultiplier = 60;
+		scaled rMultiplier = per100(60);
 		if (iRiverTiles >= 4)
-			std::min(100, iMultiplier + 6 * iRiverTiles);
-		iValue = ::round((iMultiplier * iValue) / 100.0);
-		IFLOG logBBAI("Times %d percent because the site offers nothing special", iMultiplier);
+			rMultiplier = scaled::min(1, rMultiplier + per100(6) * iRiverTiles);
+		iValue = (rMultiplier * iValue).round();
+		IFLOG if(rMultiplier!=1) logBBAI("Times %d percent because the site offers nothing special", rMultiplier.getPercent());
 	} // </advc.031>
 	/*  advc.108: Obsoletion check added. Probably better not to let players start on
 		a hidden resource; i.e. don't check this->getBonus(kPlot) != NO_BONUS. */
