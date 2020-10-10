@@ -90,13 +90,14 @@ void UWAICache::clear(bool beforeUpdate) {
 void UWAICache::write(FDataStreamBase* stream) {
 
 	PROFILE_FUNC();
-	int savegameVersion = 1;
-	savegameVersion = 2; // advc.035
-	savegameVersion = 3; // hireAgainst added
-	savegameVersion = 4; // granularity of pastWarScore increased
+	int savegameVersion;
+	//savegameVersion = 1;
+	//savegameVersion = 2; // advc.035
+	//savegameVersion = 3; // hireAgainst added
+	//savegameVersion = 4; // granularity of pastWarScore increased
 	/*  I hadn't thought of a version number in the initial release. Need
 		to fold it into ownerId now to avoid breaking compatibility. */
-	savegameVersion = 5; // focusOnPeacefulVictory added
+	//savegameVersion = 5; // focusOnPeacefulVictory added
 	savegameVersion = 6; // advc.enum: Store as float
 	stream->Write(ownerId + 100 * savegameVersion);
 	int n = (int)v.size();

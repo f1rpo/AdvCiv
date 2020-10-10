@@ -1467,26 +1467,29 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 }
 
 
-void CvXMLLoadUtility::LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfos, const char* szFileRoot, const char* szFileDirectory, const char* szXmlPath, CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*))
+void CvXMLLoadUtility::LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfos,
+	const char* szFileRoot, const char* szFileDirectory, const char* szXmlPath,
+	CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*))
 {
-	bool bLoaded = false;
 	#if ENABLE_XML_FILE_CACHE
-		bool bWriteCache = true;
-		CvCacheObject* pCache = NULL;
-		if (pArgFunction != NULL)
+	bool bLoaded = false;
+	bool bWriteCache = true;
+	CvCacheObject* pCache = NULL;
+	if (pArgFunction != NULL)
+	{
+		pCache = (gDLL->*pArgFunction)(CvString::format("%s.dat", szFileRoot));	// cache file name
+		if (gDLL->cacheRead(pCache, CvString::format("xml\\\\%s\\\\%s.xml", szFileDirectory, szFileRoot)))
 		{
-			pCache = (gDLL->*pArgFunction)(CvString::format("%s.dat", szFileRoot));	// cache file name
-			if (gDLL->cacheRead(pCache, CvString::format("xml\\\\%s\\\\%s.xml", szFileDirectory, szFileRoot)))
-			{
-				logMsg("Read %s from cache", szFileDirectory);
-				bLoaded = true;
-				bWriteCache = false;
-			}
+			logMsg("Read %s from cache", szFileDirectory);
+			bLoaded = true;
+			bWriteCache = false;
 		}
-	#endif
-
+	}
 	if (!bLoaded)
 	{
+	#else
+	bool // bLoaded = ...
+	#endif
 		bLoaded = LoadCivXml(m_pFXml, CvString::format("xml\\%s/%s.xml", szFileDirectory, szFileRoot));
 		if (!bLoaded)
 		{
@@ -1530,8 +1533,8 @@ void CvXMLLoadUtility::LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInf
 				}
 			#endif
 		}
-	}
 	#if ENABLE_XML_FILE_CACHE
+	}
 		if (pArgFunction != NULL)
 			gDLL->destroyCache(pCache);
 	#endif

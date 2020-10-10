@@ -23084,7 +23084,7 @@ void CvPlayerAI::AI_updateVictoryStageHash()
 	if (!hasCapital())
 		return;
 
-	bool bStartedOtherLevel3 = false;
+	//bool bStartedOtherLevel3 = false;
 	bool bStartedOtherLevel4 = false;
 
 	// Space victory
@@ -23097,7 +23097,7 @@ void CvPlayerAI::AI_updateVictoryStageHash()
 			m_eVictoryStageHash |= AI_VICTORY_SPACE2;
 			if (iVictoryStage > 2)
 			{
-				bStartedOtherLevel3 = true;
+				//bStartedOtherLevel3 = true;
 				m_eVictoryStageHash |= AI_VICTORY_SPACE3;
 
 				if (iVictoryStage > 3 && !bStartedOtherLevel4)
@@ -23119,7 +23119,7 @@ void CvPlayerAI::AI_updateVictoryStageHash()
 			m_eVictoryStageHash |= AI_VICTORY_CONQUEST2;
 			if (iVictoryStage > 2)
 			{
-				bStartedOtherLevel3 = true;
+				//bStartedOtherLevel3 = true;
 				m_eVictoryStageHash |= AI_VICTORY_CONQUEST3;
 
 				if (iVictoryStage > 3 && !bStartedOtherLevel4)
@@ -23141,7 +23141,7 @@ void CvPlayerAI::AI_updateVictoryStageHash()
 			m_eVictoryStageHash |= AI_VICTORY_DOMINATION2;
 			if (iVictoryStage > 2)
 			{
-				bStartedOtherLevel3 = true;
+				//bStartedOtherLevel3 = true;
 				m_eVictoryStageHash |= AI_VICTORY_DOMINATION3;
 
 				if (iVictoryStage > 3 && !bStartedOtherLevel4)
@@ -23165,11 +23165,13 @@ void CvPlayerAI::AI_updateVictoryStageHash()
 			m_eVictoryStageHash |= AI_VICTORY_CULTURE2;
 			if (iVictoryStage > 2)
 			{
-				bStartedOtherLevel3 = true;
+				//bStartedOtherLevel3 = true;
 				m_eVictoryStageHash |= AI_VICTORY_CULTURE3;
 
 				//if (iVictoryStage > 3 && !bStartedOtherLevel4)
-				if (iVictoryStage > 3) // K-Mod. If we're close to a cultural victory - then allow Culture4 even with other stage4 strategies already running.
+				/*	K-Mod. If we're close to a cultural victory - then allow Culture4
+					even with other stage4 strategies already running. */
+				if (iVictoryStage > 3)
 				{
 					bStartedOtherLevel4 = true;
 					m_eVictoryStageHash |= AI_VICTORY_CULTURE4;
