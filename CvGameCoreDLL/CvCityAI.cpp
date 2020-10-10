@@ -978,7 +978,7 @@ void CvCityAI::AI_chooseProduction()
 		iSeaExplorersNow = kPlayer.AI_totalWaterAreaUnitAIs(*pWaterArea,
 				UNITAI_EXPLORE_SEA);
 	} // </advc.124>
-	if (pWaterArea != NULL && bMaybeWaterArea) // advc.017
+	if (bMaybeWaterArea)
 	{
 		if (!(bLandWar && iWarSuccessRating < -30) && !bDanger && !bFinancialTrouble)
 		{	/*  <advc.017> These were calls to AI_getNumTrainAIUnits, i.e. the
@@ -989,13 +989,18 @@ void CvCityAI::AI_chooseProduction()
 			aeSeaAttackTypes.push_back(UNITAI_ATTACK_SEA);
 			aeSeaAttackTypes.push_back(UNITAI_PIRATE_SEA);
 			aeSeaAttackTypes.push_back(UNITAI_RESERVE_SEA);
-			if (kPlayer.AI_totalWaterAreaUnitAIs(*pWaterArea, aeSeaAttackTypes)
-			/* </advc.017> */  < std::min(3, kPlayer.getNumCities()))
+			if ((bMaybeWaterArea && bWaterDanger) ||
+				(pWaterArea != NULL && bPrimaryArea &&
+				0 < kPlayer.AI_countNumAreaHostileUnits(*pWaterArea, true, false, false, false,
+				plot()))) // advc.081: Range limit
 			{
-				if ((bMaybeWaterArea && bWaterDanger) ||
-					(pWaterArea != NULL && bPrimaryArea &&
-					0 < kPlayer.AI_countNumAreaHostileUnits(*pWaterArea, true, false, false, false,
-					plot()))) // advc.081: Range limit
+				/*	pWaterArea can be NULL if bMaybeWaterArea, i.e. if there is only an
+					unimportant water area. Need to deal with bWaterDanger either way,
+					and need to make sure, either way, not to train too many ships. */
+				CvArea const* pAnyWaterArea = waterArea(true);
+				if (pAnyWaterArea != NULL &&
+					kPlayer.AI_totalWaterAreaUnitAIs(*pAnyWaterArea, aeSeaAttackTypes)
+					/* </advc.017> */  < std::min(3, kPlayer.getNumCities()))
 				{
 					if (gCityLogLevel >= 2) logBBAI("      City %S uses minimal naval", getName().GetCString());
 					/*  <advc.017> Don't prioritize those ships quite as much
