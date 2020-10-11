@@ -1,5 +1,3 @@
-// game.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvGame.h"
 #include "CvDeal.h"
@@ -28,6 +26,11 @@
 #include "CvHallOfFameInfo.h" // advc.106i
 #include "BBAILog.h" // BBAI
 #include "CvBugOptions.h" // K-Mod
+
+/*	<advc.007b> Use this CvGame instance instead of GC.getGame() for RNG calls.
+	(Won't matter so long as CvGame is a singleton class.) */
+#undef GET_CVGAME_INSTANCE_FOR_RNG
+#define GET_CVGAME_INSTANCE_FOR_RNG (*this) // </advc.007b>
 
 
 CvGame::CvGame() :
@@ -263,7 +266,7 @@ void CvGame::setInitialItems()
 			FOR_EACH_DEAL_VAR(d)
 				d->setInitialGameTurn(getGameTurn());
 		} // </advc.251>
-	} // </advc.250c> 
+	} // </advc.250c>
 	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		it->AI_updateFoundValues();
 }

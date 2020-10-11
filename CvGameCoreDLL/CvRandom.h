@@ -50,4 +50,39 @@ protected:
 	unsigned short getInt(unsigned short usNum, TCHAR const* szLog, int iData1, int iData2);
 };
 
+/*	<advc.007b> Some macros that should make the logging aspect less tedious.
+	Still unsure if I want to use them. Unused (and untested) so far. */
+
+/*	I don't think logging the ASyncRand calls is all that useful,
+	so I'm setting the default message to NULL. */
+#define ASRAND(iNumOutcomes) \
+	GC.getASyncRand().get((iNumOutcomes), NULL)
+
+// May well be useful elsewhere, but let's put it where it gets used for now.
+#define STRINGIFY_HELPER2(x) #x
+#define STRINGIFY_HELPER1(x) STRINGIFY_HELPER2(x)
+#define CALL_LOC_STR __FUNCTION__ "(" __FILE__ "):" STRINGIFY_HELPER1(__LINE__)
+
+// The rest will require the CvGame header:
+
+/*	Implementation files that include the CvRandom header can re-define this
+	to use a different CvGame instance */
+#define GET_CVGAME_INSTANCE_FOR_RNG GC.getGame()
+
+/*	The similarity with srand in stdlib is unfortunate. "s" doesn't stand
+	for "seed" here but for "synchronized" and, more specifically for
+	CvGlobals::m_game->m_sorenRand. */
+#define SRAND(iNumOutcomes) \
+	GET_CVGAME_INSTANCE_FOR_RNG.getSRandNum((iNumOutcomes), CALL_LOC_STR)
+#define MAP_RAND(iNumOutcomes) \
+	GET_CVGAME_INSTANCE_FOR_RNG.getMapRandNum((iNumOutcomes), CALL_LOC_STR)
+/*	These take a ScaledNum instance or instantiation as parameter
+	and will therefore require the ScaledNum header. */
+#define SRAND_FRACTION(T) \
+	T::rand(GET_CVGAME_INSTANCE_FOR_RNG.getSRand(), CALL_LOC_STR)
+#define SRAND_SUCCESS(rSuccessProbability) \
+	(rSuccessProbability).bernoulliSuccess( \
+	GET_CVGAME_INSTANCE_FOR_RNG.getSRand(), CALL_LOC_STR)
+// </advc.007b>
+
 #endif

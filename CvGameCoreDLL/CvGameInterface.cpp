@@ -23,6 +23,11 @@
 	Functions previously implemented in CvGame.cpp were moved here.
 	I guess the idea is to separate the UI code from the game rules. */
 
+/*	<advc.007b> The functions in this header arguably shouldn't use any of the
+	synchronized RNGs that are part of CvGame. */
+#undef GET_CVGAME_INSTANCE_FOR_RNG
+#define GET_CVGAME_INSTANCE_FOR_RNG NULL // </advc.007b>
+
 void CvGame::updateColoredPlots()
 {
 	PROFILE_FUNC();

@@ -1,7 +1,5 @@
 #pragma once
 
-// game.h
-
 #ifndef CIV4_GAME_H
 #define CIV4_GAME_H
 
