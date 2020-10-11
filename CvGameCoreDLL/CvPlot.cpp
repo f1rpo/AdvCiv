@@ -2478,7 +2478,7 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 	{
 		PlayerTypes const ePlayer = itPlayer->getID();
 		// <advc.035>
-		if(bOwnExclusiveRadius && bAnyCityRadius && !abCityRadius.get(ePlayer))
+		if(bOwnExclusiveRadius && bAnyCityRadius && !abCityRadius[ePlayer])
 			continue; // </advc.035>
 		if(itPlayer->isAlive() /* advc.099c: */ || bIgnoreCultureRange)
 		{
@@ -2486,7 +2486,7 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 			/*  <advc.035> When the range of a city expands, tile ownership is updated
 				before tile culture is spread. If the expansion is sudden (WorldBuilder,
 				perhaps also culture bomb), 0 tile culture in the new range is possible. */
-			if (bOwnExclusiveRadius && iBestCulture == 0 && abCityRadius.get(ePlayer))
+			if (bOwnExclusiveRadius && iBestCulture == 0 && abCityRadius[ePlayer])
 				iBestCulture = -1;
 			if (iCulture <= iBestCulture) // </advc.035>
 				continue; // advc
