@@ -13,7 +13,7 @@ public:
 	CvDLLLogger(bool bEnabled, bool bRandEnabled);
 	// Requires "RandLog" to be set in addition to "MessageLog"
 	void logRandomNumber(const TCHAR* szMsg, unsigned short usNum, unsigned long ulSeed,
-			int iData1, int iData2);
+			int iData1, int iData2, /* advc.007b: */ CvString const& szFileName);
 	void logTurnActive(PlayerTypes ePlayer);
 	void logCityBuilt(CvCity const& kCity);
 	void logCombat(CvUnit const& kAttacker, CvUnit const& kDefender);

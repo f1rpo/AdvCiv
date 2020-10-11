@@ -16,7 +16,8 @@ CvDLLLogger::CvDLLLogger(bool bEnabled, bool bRandEnabled)
 
 // Cut from CvRandom::getInt
 void CvDLLLogger::logRandomNumber(const TCHAR* szMsg, unsigned short usNum,
-		unsigned long ulSeed, int iData1, int iData2)
+	unsigned long ulSeed, int iData1, int iData2,
+	CvString const& szFileName) // advc.007b
 {
 	if (!isEnabledRand() || szMsg == NULL)
 		return;
@@ -41,6 +42,9 @@ void CvDLLLogger::logRandomNumber(const TCHAR* szMsg, unsigned short usNum,
 	// The second and last %s are new
 	std::sprintf(szOut, "Rand = %ul / %hu (%s%s) on %s%d\n", ulSeed, usNum,
 			szMsg, szData.c_str(), bNetworkMP ? "" : "t", iOn);
+	// <advc.007b>
+	if (!szFileName.empty())
+		gDLL->logMsg(szFileName.c_str(), szOut, false, false); // </advc.007b>
 	if (GC.getDefineBOOL(CvGlobals::PER_PLAYER_MESSAGE_CONTROL_LOG) && bNetworkMP)
 	{
 		CvString logName = CvString::format("MPLog%d.log",

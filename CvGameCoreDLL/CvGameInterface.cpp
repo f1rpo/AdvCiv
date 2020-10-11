@@ -25,8 +25,8 @@
 
 /*	<advc.007b> The functions in this header arguably shouldn't use any of the
 	synchronized RNGs that are part of CvGame. */
-#undef GET_CVGAME_INSTANCE_FOR_RNG
-#define GET_CVGAME_INSTANCE_FOR_RNG NULL // </advc.007b>
+#undef CVGAME_INSTANCE_FOR_RNG
+#define CVGAME_INSTANCE_FOR_RNG NULL // </advc.007b>
 
 void CvGame::updateColoredPlots()
 {

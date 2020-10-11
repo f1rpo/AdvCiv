@@ -7,6 +7,11 @@
 #include "UWAIAgent.h"
 #include "CvInfo_GameOption.h"
 
+// <advc.007b>
+#undef CVGAME_INSTANCE_FOR_RNG
+#define CVGAME_INSTANCE_FOR_RNG (*this) // </advc.007b>
+
+
 
 CvGameAI::CvGameAI()
 {

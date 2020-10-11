@@ -29,8 +29,8 @@
 
 /*	<advc.007b> Use this CvGame instance instead of GC.getGame() for RNG calls.
 	(Won't matter so long as CvGame is a singleton class.) */
-#undef GET_CVGAME_INSTANCE_FOR_RNG
-#define GET_CVGAME_INSTANCE_FOR_RNG (*this) // </advc.007b>
+#undef CVGAME_INSTANCE_FOR_RNG
+#define CVGAME_INSTANCE_FOR_RNG (*this) // </advc.007b>
 
 
 CvGame::CvGame() :
