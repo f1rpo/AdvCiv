@@ -28,7 +28,9 @@ bool StartingPositionIteration::isDebug()
 
 
 StartingPositionIteration::StartingPositionIteration() :
-	m_bRestrictedAreas(false), m_bNormalizationTargetReady(false)
+	m_bRestrictedAreas(false), m_bNormalizationTargetReady(false),
+	m_pEval(NULL), m_pYieldValues(NULL), m_pYieldsPerArea(NULL),
+	m_pPathDists(NULL), m_pPotentialSites(NULL)
 {
 	if (!GC.getDefineBOOL("ENABLE_STARTING_POSITION_ITERATION"))
 		return;
