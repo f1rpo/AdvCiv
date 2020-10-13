@@ -822,7 +822,7 @@ protected:
 
 	FMPIManager * m_pFMPMgr;
 
-	CvRandom* m_asyncRand;
+	CvRandomExtended* m_asyncRand; // advc.007b (was CvRandom)
 	CvPythonCaller* m_pPythonCaller; // advc.003y
 	CvDLLLogger* m_pLogger;
 	CvGameAI* m_game;

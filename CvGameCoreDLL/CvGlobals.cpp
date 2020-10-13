@@ -218,8 +218,10 @@ void CvGlobals::init() // allocate
 	FAssertMsg(gDLL != NULL, "Civ app needs to set gDLL");
 
 	m_VarSystem = new FVariableSystem();
-	m_asyncRand = new CvRandom();
-	m_asyncRand->setLogFileName("ASyncRand.log"); // advc.007b
+	//m_asyncRand = new CvRandom();
+	// <advc.007b>
+	m_asyncRand = new CvRandomExtended();
+	m_asyncRand->setLogFileName("ASyncRand.log"); // </advc.007b>
 	m_initCore = new CvInitCore();
 	m_loadedInitCore = new CvInitCore();
 	m_iniInitCore = new CvInitCore();

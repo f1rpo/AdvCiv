@@ -1,7 +1,5 @@
 #pragma once
 
-// random.h
-
 #ifndef CIV4_RANDOM_H
 #define CIV4_RANDOM_H
 
@@ -12,17 +10,20 @@ public:
 	DllExport virtual ~CvRandom(); // advc (comment): Can't make this non-virtual b/c of DllExport
 
 	DllExport void init(unsigned long ulSeed);
-	void reset(unsigned long ulSeed = 0);
-	void setLogFileName(CvString szName); // advc.007b
+	virtual void reset(unsigned long ulSeed = 0); // advc.007b: virtual
+	// for serialization
+	virtual void read(FDataStreamBase* pStream); // advc.007b: virtual
+	virtual void write(FDataStreamBase* pStream); // advc.007b: virtual
 	/*	Returns a value from the half-open interval [0, iNum).
 		advc.006: iNum taken as an int but needs to be in [0, 65535].
 		Will return 0 for iNum=0 (and also for iNum=1). */
-	inline unsigned short get(int iNum, TCHAR const* szLog = NULL,
-			int iData1 = MIN_INT, int iData2 = MIN_INT)
+	inline unsigned short get(int iNum, TCHAR const* szMsg = NULL,
+			int iData1 = MIN_INT, int iData2 = MIN_INT) // advc.128
 	{	// <advc.001n>
-		return getInt(iNum, szLog, MIN_INT);
+		return getInt(iNum, szMsg, MIN_INT);
 	} // New name to avoid issues in CyRandomPythonInterface
-	inline unsigned short getInt(int iNum, TCHAR const* szLog, int iData1, int iData2 = MIN_INT)
+	inline unsigned short getInt(int iNum, TCHAR const* szMsg,
+		int iData1, int iData2 = MIN_INT)
 	{	/*	</advc.001n>  <advc.006> The compiler doesn't warn when an int variable gets
 			passed as a short int. It does warn when a large int literal is passed, but
 			I think that's not quite good enough. (At the least, the wrapper functions at
@@ -30,29 +31,52 @@ public:
 		FAssertBounds(0, getRange() + 1, iNum);
 		/*	If the upper bound above is exceeded, then e.g. iNum=66868 gets cast to 1332,
 			which is 66868-MAX_UNSIGNED_SHORT+1. Don't know how this works in general. */
-		return getInt(static_cast<unsigned short>(iNum), szLog, iData1, iData2);
+		return getInt(static_cast<unsigned short>(iNum), szMsg, iData1, iData2);
 	}
 	static inline int getRange() { return MAX_UNSIGNED_SHORT; } // Client code may want to check
 	// </advc.006>
 	// advc.190c: Exported through .def file
-	unsigned short getExternal(unsigned short usNum, TCHAR const* szLog = NULL);
-	DllExport float getFloat();
+	unsigned short getExternal(unsigned short usNum, TCHAR const* szMsg = NULL);
+	DllExport float getFloat() // advc.inl
+	{
+		return get(MAX_UNSIGNED_SHORT) / (float)MAX_UNSIGNED_SHORT;
+	}
 
 	void reseed(unsigned long ulNewValue);
 	unsigned long getSeed();
 
-	// for serialization
-	void read(FDataStreamBase* pStream);
-	void write(FDataStreamBase* pStream);
-
 protected:
+	virtual void printToLog(TCHAR const* szMsg, unsigned short usNum, // advc.007b
+			int iData1, int iData2); // advc.001n
+
 	unsigned long m_ulRandomSeed;
-	CvString m_szFileName; // advc.007b
 	// advc.001n, advc.006:
-	unsigned short getInt(unsigned short usNum, TCHAR const* szLog, int iData1, int iData2);
+	unsigned short getInt(unsigned short usNum, TCHAR const* szMsg, int iData1, int iData2);
 };
 
-/*	<advc.007b> Some macros that should make the logging aspect less tedious.
+// advc.003k: Gets instantiated (also) externally; size mustn't change.
+BOOST_STATIC_ASSERT(sizeof(CvRandom) == 8);
+
+// <advc.007b>
+/*	Since I can't store a log file name at CvRandom,
+	let's make a class that'll only get instantiated in the DLL. */
+class CvRandomExtended : public CvRandom
+{
+public:
+	/*	Caveat: Calling this on a serialized CvRandom object will break
+		savegame compatibility unless the owning class increases the uiFlag constant
+		in its write function. */
+	void setLogFileName(CvString szName);
+	// The rest are overrides
+	void reset(unsigned long ulSeed = 0);
+	void read(FDataStreamBase* pStream);
+	void write(FDataStreamBase* pStream);
+	void printToLog(TCHAR const* szMsg, unsigned short usNum, int iData1, int iData2);
+protected:
+	CvString m_szFileName;
+};
+
+/*	Some macros that should make the logging aspect less tedious.
 	Still unsure if I want to use them. Unused (and untested) so far. */
 
 // May well be useful elsewhere, but let's put it where it gets used for now.
