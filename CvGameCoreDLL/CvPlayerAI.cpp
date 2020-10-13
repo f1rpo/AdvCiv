@@ -1665,7 +1665,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity,  // advc.003u: param was CvCity
 		} // </advc.116>
 	}  // <advc.ctr>
 	if (!isBarbarian() && !kCity.isHolyCity() && !bEverOwned &&
-		!kCity.hasActiveWorldWonder() && AI_isAwfulSite(kCity))
+		!kCity.hasActiveWorldWonder() && AI_isAwfulSite(kCity, true))
 	{
 		bRaze = true;
 	} // </advc.ctr>
@@ -26210,11 +26210,14 @@ bool CvPlayerAI::AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const
 	that function work for plots with an actual city.
 	Tbd.: See if this can be replaced with a comparison between
 	AI_cityTradeVal and a threshold. */
-bool CvPlayerAI::AI_isAwfulSite(CvCity const& kCity) const
+bool CvPlayerAI::AI_isAwfulSite(CvCity const& kCity, bool bConquest) const
 {
+	int const iEra = GC.getGame().getCurrentEra();
 	// If the city has grown, the site has somewhat proven its usefulness.
-	if (kCity.getPopulation() >= 4 + 2 * GC.getGame().getCurrentEra())
+	if (kCity.getPopulation() >= (3 * iEra + 8 - (bConquest ? 2 : 0)) / 2)
+	{
 		return false;
+	}
 	scaled rDecentPlots = 0;
 	bool const bCountCoast = kCity.isCoastal();
 	for (CityPlotIter it(kCity, false); it.hasNext(); ++it)
@@ -26225,7 +26228,7 @@ bool CvPlayerAI::AI_isAwfulSite(CvCity const& kCity) const
 		// Third-party culture
 		PlayerTypes eCulturalOwner = p.calculateCulturalOwner();
 		if(eCulturalOwner != NO_PLAYER && eCulturalOwner != getID() &&
-			eCulturalOwner != kCity.getOwner())
+			eCulturalOwner != (bConquest ? kCity.getPreviousOwner() : kCity.getOwner()))
 		{
 			continue;
 		}
@@ -26254,6 +26257,9 @@ bool CvPlayerAI::AI_isAwfulSite(CvCity const& kCity) const
 		if(bCountCoast && p.isWater() && p.isAdjacentToLand())
 			rDecentPlots += fixp(0.4);
 	}
+	int iThresh = 7;
+	if (bConquest && kCity.getPopulation() >= iEra + 4)
+		iThresh--;
 	return (rDecentPlots < 7);
 }
 
