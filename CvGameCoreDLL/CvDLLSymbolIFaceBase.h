@@ -44,7 +44,7 @@ public:
 	virtual void resetModel(CvFeature* pFeature) = 0;
 
 	/*	derived methods
-		advc (note): I guess they correspond to CSymbol functions that CvFeature overrides */
+		advc (note): I guess they correspond to CvSymbol functions that CvFeature overrides */
 	virtual void destroy(CvFeature*& pFeature, bool bSafeDelete = true)
 	{
 		CvSymbol* pSymbol = base(pFeature); // advc

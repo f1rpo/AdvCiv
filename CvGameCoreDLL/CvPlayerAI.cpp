@@ -4174,8 +4174,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	int iCityTarget = GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities();
 	/*	advc.007b: The RNGs write to separate log files now, so the same log messages
 		can be used for both w/o creating confusion. Though I'm not sure if randomness
-		should be used at all when recommending tech (bAsync). Could derive a class
-		ZeroRand that always returns 0 and instantiate it here. */
+		should be used at all when recommending tech (bAsync). */
 	CvRandom& kRand = (bAsync ? GC.getASyncRand() : GC.getGame().getSRand());
 	// <k146>
 	int iRandomFactor = 0; // Amount of random value in the answer.

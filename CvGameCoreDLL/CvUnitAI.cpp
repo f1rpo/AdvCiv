@@ -13089,7 +13089,7 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc: style changes
 	int const iSearchRange = AI_searchRange(iRange);
 	for (SquareIter it(*this, iSearchRange, false); it.hasNext(); ++it)
 	{
-		PROFILE("AI_exploreRange 1");
+		PROFILE("AI_exploreRange loop");
 
 		CvPlot& p = *it;
 		if (!AI_plotValid(p))
@@ -13119,7 +13119,7 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc: style changes
 
 		FOR_EACH_ENUM(Direction)
 		{
-			PROFILE("AI_exploreRange 2");
+			PROFILE("AI_exploreRange adjacent");
 			CvPlot* pAdjacentPlot = plotDirection(p.getX(), p.getY(),
 					eLoopDirection);
 			if (pAdjacentPlot == NULL)
@@ -13134,7 +13134,7 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc: style changes
 		if (p.isVisibleEnemyUnit(this))
 			continue;
 		{
-			PROFILE("AI_exploreRange 3");
+			PROFILE("AI_exploreRange AnyPlotTargetMissionAI");
 			if (kOwner.AI_isAnyPlotTargetMissionAI(
 				p, MISSIONAI_EXPLORE, getGroup(), 3))
 			{
@@ -13143,7 +13143,7 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc: style changes
 		}
 		int iPathTurns;
 		{
-			PROFILE("AI_exploreRange 4");
+			PROFILE("AI_exploreRange Path");
 			if (!generatePath(&p,
 				MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns, iRange))
 			{
@@ -13199,7 +13199,7 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc: style changes
 
 	if (pBestPlot != NULL && pBestExplorePlot != NULL)
 	{
-		PROFILE("AI_exploreRange 5");
+		PROFILE("AI_exploreRange push");
 
 		FAssert(!atPlot(pBestPlot));
 		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX(), pBestPlot->getY(),

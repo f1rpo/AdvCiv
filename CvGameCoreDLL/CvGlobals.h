@@ -6,10 +6,9 @@
 #pragma warning(push)
 #pragma warning(disable: 68) // </advc>
 
-//
-// 'global' vars for Civ IV.  singleton class.
-// All globals and global types should be contained in this class
-//
+/*	'global' vars for Civ IV.  singleton class.
+	All globals and global types should be contained in this class. */
+
 #pragma region ForwardDeclarations
 class FProfiler;
 class CvDLLUtilityIFaceBase;

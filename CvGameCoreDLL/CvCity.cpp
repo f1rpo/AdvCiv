@@ -5488,9 +5488,8 @@ void CvCity::updateExtraBuildingHappiness()
 
 /*  BETTER_BTS_AI_MOD, City AI, 02/24/10, EmperorFool: START
 	(BUG - Building Additional Happiness) */
-namespace // advc: These were declared as global functions in the header
+namespace // advc: These had been declared as global functions in the header
 {
-	// advc: Turn these two into CvCity members for now as they're only used by CvCity
 	// Adds iValue to iGood if it is positive or its negative to iBad if it is negative.
 	void addGoodOrBad(int iValue, int& iGood, int& iBad)
 	{

@@ -220,8 +220,8 @@ void CvSelectionGroup::doTurn()
 			((eActivityType == ACTIVITY_HEAL || eActivityType == ACTIVITY_SENTRY) &&
 			isHuman() && sentryAlert()); // </advc.004l>
 	if (eActivityType == ACTIVITY_HOLD ||
-		(eActivityType == ACTIVITY_HEAL && (AI_isControlled() || !bHurt
-		|| (bSentryAlert && pHeadUnit->canSentryHeal(plot())) // advc.004l
+		(eActivityType == ACTIVITY_HEAL && (AI_isControlled() || !bHurt ||
+		(bSentryAlert && pHeadUnit->canSentryHeal(plot())) // advc.004l
 		)) ||
 		(eActivityType == ACTIVITY_SENTRY && bSentryAlert))
 	{
@@ -2942,11 +2942,16 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 				/*pLoopUnit->joinGroup(NULL, true);
 				pLoopUnit->ExecuteMove(((float)(GC.getInfo(MISSION_MOVE_TO).getTime() * gDLL->getMillisecsPerTurn())) / 1000.0f, false);*/ // BtS
 
-				// K-Mod. all units left behind should stay in the same group. (unless it would mean a change of group AI)
-				// (Note: it is important that units left behind are not in the original group.
-				// The later code assumes that the original group has moved, and if it hasn't, there will be an infinite loop.)
-				if (pStaticGroup != NULL && (isHuman() || pStaticGroup->getHeadUnitAIType() == eHeadAI))
+				/*	K-Mod. all units left behind should stay in the same group.
+					(unless it would mean a change of group AI)
+					(Note: it is important that units left behind are not in the original group.
+					The later code assumes that the original group has moved,
+					and if it hasn't, there will be an infinite loop.) */
+				if (pStaticGroup != NULL && (isHuman() ||
+					pStaticGroup->getHeadUnitAIType() == eHeadAI))
+				{
 					pLoopUnit->joinGroup(pStaticGroup, true);
+				}
 				else
 				{
 					pLoopUnit->joinGroup(NULL, true);
@@ -2954,8 +2959,10 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 				}
 				//
 			}
-			// K-Mod. If the unit is no longer in the original group; then display it's movement animation now.
-			// (this replaces the ExecuteMove line commented out in the above block, and it also handles the case of loading units onto boats.)
+			/*	K-Mod. If the unit is no longer in the original group;
+				then display it's movement animation now.
+				(this replaces the ExecuteMove line commented out in the above block,
+				and it also handles the case of loading units onto boats.) */
 			if (pLoopUnit->getGroupID() != getID())
 			{
 				pLoopUnit->ExecuteMove(((float)(GC.getInfo(MISSION_MOVE_TO).getTime() *
@@ -2973,9 +2980,11 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 			PlayerTypes const eGroupOwner = getOwner();
 			PlayerTypes const eFromOwner = kFrom.getOwner();
 			PlayerTypes const eToOwner = pPlot->getOwner();
-			if (eFromOwner != NO_PLAYER && GET_TEAM(eFromOwner).isAtWar(TEAMID(eGroupOwner)))
+			if (eFromOwner != NO_PLAYER &&
+				GET_TEAM(eFromOwner).isAtWar(TEAMID(eGroupOwner)))
 				GET_PLAYER(eFromOwner).AI_humanEnemyStackMovedInTerritory(kFrom, *pPlot);
-			if (eToOwner != NO_PLAYER && GET_TEAM(eToOwner).isAtWar(TEAMID(eGroupOwner)) &&
+			if (eToOwner != NO_PLAYER &&
+				GET_TEAM(eToOwner).isAtWar(TEAMID(eGroupOwner)) &&
 				eToOwner != eFromOwner)
 			{
 				GET_PLAYER(eToOwner).AI_humanEnemyStackMovedInTerritory(kFrom, *pPlot);

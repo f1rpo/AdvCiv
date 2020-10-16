@@ -72,4 +72,14 @@
 	#pragma warning(disable: 189)
 #endif
 
+
+/*	The 'suppress' warning specifier was introduced in MSVC05. I guess this is the
+	best that we can do:
+	^Nope, in header files, this crashes fastdep.exe. Will have to spell it out. */
+/*#define PRAGMA_SUPPRESS_START(iWarningType) \
+	__pragma(warning(push)) \
+	__pragma(warning(disable: iWarningType))
+#define PRAGMA_SUPPRESS_END \
+	__pragma(warning(pop))*/
+
 #endif

@@ -285,14 +285,14 @@ protected:
 		The game also crashes if I add int[30] to CvSelectionGroupAI. */
 
 	/*	... I see that BBAI ignored the warning. They added some stuff below.
-		(advc: That was the BBAI StrandedCache, removed by K-Mod.)
+		[advc: That was the BBAI StrandedCache, removed by K-Mod.]
 		Removing the BBAI bools from below does not change the size 80.
 		Neither does removing the BBAI virtual functions.
 		but adding another int increases the size to 84. Which is a shame,
 		because I really want to add one more int...
 		Although a single int doesn't cause a startup crash,
 		I'd rather not risk instability. */
-	/*	advc.003k: I have a workaround for this. See nested class 'Data' below.
+	/*	advc.003k: See nested class 'Data' below for a workaround.
 		(Not right here b/c it's safer to keep the members in their original order.) */
 
 	int m_iID;

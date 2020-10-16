@@ -892,7 +892,7 @@ BOOL teamStepValid_advc(FAStarNode* parent, FAStarNode* node,
 		return TRUE;
 	if(GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
 		return TRUE;
-	CvTeamAI const& kTeam = GET_TEAM(eTeam);
+	CvTeam const& kTeam = GET_TEAM(eTeam);
 	if(kTeam.canPeacefullyEnter(ePlotTeam))
 		return TRUE;
 	// A war plan isn't enough; war against eTargetTeam could supplant that plan.

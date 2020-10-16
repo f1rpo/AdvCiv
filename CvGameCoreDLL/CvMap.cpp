@@ -157,7 +157,7 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 	m_areas.removeAll();
 }
 
-// Initializes all data that is not serialized but needs to be initialized after loading.
+// Initializes all data that is not serialized but needs to be initialized after loading
 void CvMap::setup()
 {
 	PROFILE_FUNC();
