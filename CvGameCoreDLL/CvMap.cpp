@@ -18,9 +18,9 @@
 #include "CvPlotGroup.h"
 #include "CvFractal.h"
 #include "CvMapGenerator.h"
-#include "KmodPathFinder.h"
-#include "FAStarNode.h"
+#include "GroupPathFinder.h"
 #include "FAStarFunc.h"
+#include "FAStarNode.h"
 #include "CvInfo_GameOption.h"
 #include "CvReplayInfo.h" // advc.106n
 #include "CvDLLIniParserIFaceBase.h"
@@ -163,16 +163,37 @@ void CvMap::setup()
 	PROFILE_FUNC();
 
 	CvSelectionGroup::initPathFinder(); // advc.pf
-	KmodPathFinder::InitHeuristicWeights(); // K-Mod
+	GroupPathFinder::InitHeuristicWeights(); // K-Mod
 
 	CvDLLFAStarIFaceBase& kAStar = *gDLL->getFAStarIFace(); // advc
-	kAStar.Initialize(&GC.getPathFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), pathDestValid, pathHeuristic, pathCost, pathValid, pathAdd, NULL, NULL);
-	kAStar.Initialize(&GC.getInterfacePathFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), pathDestValid, pathHeuristic, pathCost, pathValid, pathAdd, NULL, NULL);
-	kAStar.Initialize(&GC.getStepFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), stepDestValid, stepHeuristic, stepCost, stepValid, stepAdd, NULL, NULL);
-	kAStar.Initialize(&GC.getRouteFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), NULL, NULL, NULL, routeValid, NULL, NULL, NULL);
-	kAStar.Initialize(&GC.getBorderFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), NULL, NULL, NULL, borderValid, NULL, NULL, NULL);
-	kAStar.Initialize(&GC.getAreaFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), NULL, NULL, NULL, areaValid, NULL, joinArea, NULL);
-	kAStar.Initialize(&GC.getPlotGroupFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), NULL, NULL, NULL, plotGroupValid, NULL, countPlotGroup, NULL);
+	kAStar.Initialize(&GC.getPathFinder(),
+			getGridWidth(),	getGridHeight(),isWrapX(),	isWrapY(),
+			pathDestValid,	pathHeuristic,	pathCost,	pathValid,
+			pathAdd,		NULL,			NULL);
+	kAStar.Initialize(&GC.getInterfacePathFinder(),
+			getGridWidth(),	getGridHeight(),isWrapX(),	isWrapY(),
+			pathDestValid,	pathHeuristic,	pathCost,	pathValid,
+			pathAdd,		NULL,			NULL);
+	kAStar.Initialize(&GC.getStepFinder(),
+			getGridWidth(),	getGridHeight(),isWrapX(),	isWrapY(),
+			stepDestValid,	stepHeuristic,	stepCost,	stepValid,
+			stepAdd,		NULL,			NULL);
+	kAStar.Initialize(&GC.getRouteFinder(),
+			getGridWidth(), getGridHeight(), isWrapX(), isWrapY(),
+			NULL,			NULL,			NULL,		routeValid,
+			NULL,			NULL,			NULL);
+	kAStar.Initialize(&GC.getBorderFinder(),
+			getGridWidth(), getGridHeight(), isWrapX(), isWrapY(),
+			NULL,			NULL,			NULL,		borderValid,
+			NULL,			NULL,			NULL);
+	kAStar.Initialize(&GC.getAreaFinder(),
+			getGridWidth(), getGridHeight(), isWrapX(), isWrapY(),
+			NULL,			NULL,			NULL,		areaValid,
+			NULL,			joinArea,		NULL);
+	kAStar.Initialize(&GC.getPlotGroupFinder(),
+			getGridWidth(), getGridHeight(), isWrapX(), isWrapY(),
+			NULL,			NULL,			NULL,		plotGroupValid,
+			NULL,			countPlotGroup,	NULL);
 }
 
 
@@ -349,7 +370,7 @@ void CvMap::updateCenterUnit()  // advc: some style changes
 		if (eLoopDomain == DOMAIN_LAND || eLoopDomain == DOMAIN_SEA) // advc.rstr
 		{
 			int iStepCost = (eLoopDomain == DOMAIN_LAND ?
-					KmodPathFinder::MinimumStepCost(kLoopUnit.baseMoves()) :
+					GroupPathFinder::MinimumStepCost(kLoopUnit.baseMoves()) :
 					GC.getMOVE_DENOMINATOR());
 			int iMoveRange = kLoopUnit.maxMoves() / iStepCost +
 					(kLoopUnit.canParadrop(kLoopUnit.plot()) ?

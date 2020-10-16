@@ -312,9 +312,9 @@ public: // advc: made several functions const
 		return (iX >= 0 && iX < getGridWidth() && iY >= 0 && iY < getGridHeight());
 	}
 	int numPlotsExternal() const; // advc.inl: Exported through .def file							// Exposed to Python
-	inline int numPlots() const // advc.inl: Renamed from numPlotsINLINE
+	inline PlotNumTypes numPlots() const // advc.inl: Renamed from numPlotsINLINE
 	{
-		return getGridWidth() * getGridHeight();
+		return (PlotNumTypes)(getGridWidth() * getGridHeight());
 	}
 	/*	advc.inl: Merged with plotNumINLINE (plotNum wasn't called externally).
 		advc.enum: return type changed from int. */
@@ -542,7 +542,7 @@ protected:
 // advc.enum: (for EnumMap)
 __forceinline PlotNumTypes getEnumLength(PlotNumTypes, bool bAllowForEach = true)
 {
-	return (PlotNumTypes)GC.getMap().numPlots();
+	return GC.getMap().numPlots();
 }
 
 /* <advc.make> Global wrappers for distance functions. The int versions are

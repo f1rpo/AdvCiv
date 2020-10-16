@@ -163,13 +163,14 @@
     <ClCompile Include="..\CyUnit.cpp" />
     <ClCompile Include="..\CyUnitInterface1.cpp" />
     <ClCompile Include="..\FAStarFunc.cpp" />
+    <ClCompile Include="..\GroupPathFinder.cpp" />
+    <ClCompile Include="..\KmodPathFinderLegacy.cpp" />
     <ClCompile Include="..\ReproTest.cpp" />
     <ClCompile Include="..\EnumMapTest.cpp" />
     <ClCompile Include="..\FDialogTemplate.cpp" />
     <ClCompile Include="..\FFreeListTrashArray.cpp" />
     <ClCompile Include="..\FProfiler.cpp" />
     <ClCompile Include="..\InvasionGraph.cpp" />
-    <ClCompile Include="..\KmodPathFinder.cpp" />
     <ClCompile Include="..\FAssert.cpp" />
     <ClCompile Include="..\MilitaryAnalyst.cpp" />
     <ClCompile Include="..\MilitaryBranch.cpp" />
@@ -312,6 +313,9 @@
     <ClInclude Include="..\CyUnit.h" />
     <ClInclude Include="..\FAStarFunc.h" />
     <ClInclude Include="..\GameBryo.h" />
+    <ClInclude Include="..\GroupPathFinder.h" />
+    <ClInclude Include="..\KmodPathFinder.h" />
+    <ClInclude Include="..\KmodPathFinderLegacy.h" />
     <ClInclude Include="..\LinkedListTraversal.h" />
     <ClInclude Include="..\PragmaWarnings.h" />
     <ClInclude Include="..\ReproTest.h" />
@@ -328,7 +332,6 @@
     <ClInclude Include="..\FreeListTraversal.h" />
     <ClInclude Include="..\FVariableSystem.h" />
     <ClInclude Include="..\InvasionGraph.h" />
-    <ClInclude Include="..\KmodPathFinder.h" />
     <ClInclude Include="..\LinkedList.h" />
     <ClInclude Include="..\MilitaryAnalyst.h" />
     <ClInclude Include="..\MilitaryBranch.h" />

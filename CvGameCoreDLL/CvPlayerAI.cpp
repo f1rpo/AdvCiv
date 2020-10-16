@@ -7,8 +7,8 @@
 #include "CvCityAI.h"
 #include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
-#include "KmodPathFinder.h"
-#include "FAStarNode.h" // for AI_advancedStartDoRoute
+#include "GroupPathFinder.h"
+#include "FAStarNode.h"
 #include "CvDeal.h"
 #include "UWAIAgent.h" // advc.104
 #include "RiseFall.h" // advc.705
@@ -14859,7 +14859,7 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(/* advc: */CvCity const* pCity,
 
 	//int iCount = 0;
 	int iTotalStrength = 0;
-	KmodPathFinder temp_finder;
+	GroupPathFinder tempFinder;
 
 	FOR_EACH_GROUPAI(pLoopSelectionGroup, *this)
 	{
@@ -14868,7 +14868,7 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(/* advc: */CvCity const* pCity,
 		{
 			continue;
 		}
-		FAssert(pLoopSelectionGroup->plot() != NULL); // this use to be part of the above condition. I've turned it into an assert. K-Mod.
+		FAssert(pLoopSelectionGroup->plot() != NULL); // K-Mod (was part of condition above)
 		CvPlot* pMissionPlot = pLoopSelectionGroup->AI_getMissionAIPlot();
 		if (pMissionPlot == NULL)
 			continue;
@@ -14883,9 +14883,9 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(/* advc: */CvCity const* pCity,
 				if (iPathTurns <= iMaxPathTurns)
 					iCount += pLoopSelectionGroup->getNumUnits();
 			}*/ // BtS
-			temp_finder.SetSettings(pLoopSelectionGroup, NO_MOVEMENT_FLAGS,
+			tempFinder.SetSettings(*pLoopSelectionGroup, NO_MOVEMENT_FLAGS,
 					iMaxPathTurns, GC.getMOVE_DENOMINATOR());
-			if (temp_finder.GeneratePath(pMissionPlot))
+			if (tempFinder.GeneratePath(*pMissionPlot))
 			{
 				iTotalStrength += pLoopSelectionGroup->AI_sumStrength(
 						pCity->plot(), DOMAIN_LAND);
@@ -27183,6 +27183,7 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 	if(iRange == -1)
 		iRange = DANGER_RANGE;
 	CvArea const& kPlotArea = pPlot->getArea();
+	GroupPathFinder tempFinder; // advc.opt: Allow reuse of tempFinder
 	for (SquareIter it(*pPlot, iRange); it.hasNext(); ++it)
 	{
 		CvPlot const& p = *it;
@@ -27215,14 +27216,10 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 					if(iPathTurns <= 1)
 						return true;*/ // BtS
 					// K-Mod. Use a temp pathfinder, so as not to interfere with the normal one.
-					/*KmodPathFinder temp_finder;
-					temp_finder.SetSettings(pLoopUnit->getGroup(), MOVE_MAX_MOVES | MOVE_IGNORE_DANGER, 1, GC.getMOVE_DENOMINATOR());
-					if (temp_finder.GeneratePath(pPlot))
-						return true;*/
-					// <advc.128> Moved into CvUnit::generatePath
-					return pLoopUnit->generatePath(pPlot, MOVE_MAX_MOVES |
-							MOVE_IGNORE_DANGER, false, NULL, 1, true);
-					// </advc.128>
+					tempFinder.SetSettings(*pLoopUnit->getGroup(),
+							MOVE_MAX_MOVES | MOVE_IGNORE_DANGER, 1, GC.getMOVE_DENOMINATOR());
+					if (tempFinder.GeneratePath(*pPlot))
+						return true;
 				}
 			}
 		}

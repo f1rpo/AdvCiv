@@ -3,7 +3,7 @@
 #ifndef CIV4_SELECTION_GROUP_H
 #define CIV4_SELECTION_GROUP_H
 
-class KmodPathFinder;
+class GroupPathFinder;
 class CvMap;
 class CvPlot;
 class CvArea;
@@ -15,7 +15,7 @@ class CvSelectionGroup /* advc.003k: */ : private boost::noncopyable
 {
 public:
 	// <advc.pf>
-	static inline KmodPathFinder& pathFinder()
+	static inline GroupPathFinder& pathFinder()
 	{
 		return *m_pPathFinder;
 	}
@@ -24,7 +24,7 @@ public:
 	/*	(disabled by K-mod. Use pathFinder().Reset instead. was exposed to Python.
 		note: the K-Mod finder doesn't need resetting in all the same places.)
 		advc: I'm not going to expose it to Python again, but, in the DLL, it's helpful
-		as a (static) wrapper for avoiding inclusion of the KmodPathFinder header. */
+		as a (static) wrapper for avoiding inclusion of the GroupPathFinder header. */
 	static void resetPath();
 
 	CvSelectionGroup();
@@ -99,11 +99,16 @@ public:
 	bool canCargoAllMove() const; // K-Mod (moved from CvUnit)
 	bool hasMoved() const; // Exposed to Python
 	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false) const;									// Exposed to Python
-	bool canEnterArea(TeamTypes eTeam, CvArea const& kArea, bool bIgnoreRightOfPassage = false) const;									// Exposed to Python
-	DllExport bool canMoveInto(CvPlot* pPlot, bool bAttack = false);																		// Exposed to Python
-	DllExport bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar = false) {					 // Exposed to Python
+	bool canEnterArea(TeamTypes eTeam, CvArea const& kArea, bool bIgnoreRightOfPassage = false) const;					// Exposed to Python
+	DllExport bool canMoveInto(CvPlot* pPlot, bool bAttack = false)														// Exposed to Python
+	{	// <advc>
+		return canMoveInto(*pPlot, bAttack);
+	}
+	bool canMoveInto(CvPlot const& kPlot, bool bAttack = false) const; // </advc>
+	DllExport bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar = false)											// Exposed to Python
+	{
 		return canMoveOrAttackInto(*pPlot, bDeclareWar, false);
-	} // K-Mod. (hack to avoid breaking the DllExport)			advc: 2x const, CvPlot&
+	} // K-Mod. (avoid breaking the DllExport)			advc: 2x const, CvPlot&
 	bool canMoveOrAttackInto(CvPlot const& kPlot, bool bDeclareWar = false, bool bCheckMoves = false, bool bAssumeVisible = true) const;
 	bool canMoveThrough(CvPlot const& kPlot, bool bDeclareWar = false, bool bAssumeVisible = true) const; // Exposed to Python, K-Mod added bDeclareWar and bAssumeVisible; advc: CvPlot const&
 	bool canFight() const;																																										// Exposed to Python
@@ -206,7 +211,8 @@ public:
 	bool generatePath(const CvPlot* pFromPlot, const CvPlot* pToPlot,								// Exposed to Python
 			MovementFlags eFlags = NO_MOVEMENT_FLAGS,
 			bool bReuse = false, int* piPathTurns = NULL,
-			int iMaxPath = -1) const; // K-Mod
+			int iMaxPath = -1, // K-Mod
+			bool bUseTempFinder = false) const; // advc.128
 
 	DllExport void clearUnits();
 	DllExport bool addUnit(CvUnit* pUnit, bool bMinimalChange);
@@ -271,11 +277,11 @@ public:
 protected:
 	// K-Mod! I'd rather this not be static, but I can't do that here.
 	//public: static KmodPathFinder path_finder; protected:
-	/*	advc.pf: So, was it supposed to be a non-static member?
-		We can do that, but that would require some refactoring at this point.
+	/*	advc.pf: Making it a non-static member would indeed be nicer.
+		We can do that, but it'll require some restructuring.
 		Making it a pointer at least allows us to delay initialization
 		until the map has been initialized. */
-	static KmodPathFinder* m_pPathFinder;
+	static GroupPathFinder* m_pPathFinder;
 
 	// WARNING: adding to this class will cause the civ4 exe to crash
 

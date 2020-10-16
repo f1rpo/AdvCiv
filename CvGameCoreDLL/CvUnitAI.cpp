@@ -3,8 +3,8 @@
 #include "CvGameCoreDLL.h"
 #include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
-#include "KmodPathFinder.h"
-#include "FAStarNode.h" // (just for AI_considerPathDOW)
+#include "GroupPathFinder.h"
+#include "FAStarNode.h"
 #include "CoreAI.h"
 #include "CvCityAI.h"
 #include "CvPlotGroup.h" // (just for AI_betterPlotBuild)
@@ -814,18 +814,18 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 		but this function is also used to give action recommendations for the player
 		- and for that I do not want to disrupt the standard pathfinder.
 		(because I'm paranoid about OOS bugs.) */
-	KmodPathFinder alt_finder;
-	KmodPathFinder& pathFinder = (getGroup()->AI_isControlled() ?
-			CvSelectionGroup::pathFinder() : alt_finder);
+	GroupPathFinder altFinder;
+	GroupPathFinder& pathFinder = (getGroup()->AI_isControlled() ?
+			CvSelectionGroup::pathFinder() : altFinder);
 	if (getGroup()->AI_isControlled())
 	{
 		// standard settings. cf. CvUnit::generatePath
-		pathFinder.SetSettings(getGroup(), NO_MOVEMENT_FLAGS);
+		pathFinder.SetSettings(*getGroup(), NO_MOVEMENT_FLAGS);
 	}
 	else
 	{
 		// like I said - this is only for action recommendations. It can be rough.
-		pathFinder.SetSettings(getGroup(), NO_MOVEMENT_FLAGS, 5, GC.getMOVE_DENOMINATOR());
+		pathFinder.SetSettings(*getGroup(), NO_MOVEMENT_FLAGS, 5, GC.getMOVE_DENOMINATOR());
 	} // K-Mod end
 
 	for (int iPass = 0; iPass < 2; iPass++)
@@ -873,7 +873,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 						iMaxWorkers += 10;
 					} }*/ // BtS
 				// K-Mod. basically the same thing, but using pathFinder.
-				if (!pathFinder.GeneratePath(&kPlot))
+				if (!pathFinder.GeneratePath(kPlot))
 					continue;
 				int iPathTurns = pathFinder.GetPathTurns() + (pathFinder.GetFinalMoves() == 0 ? 1 : 0);
 				int iMaxWorkers = (iPathTurns > 1 ? 1 : AI_calculatePlotWorkersNeeded(kPlot, eBuild));
@@ -912,7 +912,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 				iMaxWorkers = AI_calculatePlotWorkersNeeded(pBestPlot, eBestBuild);
 		} */ // BtS
 		// K-Mod. basically the same thing, but using pathFinder.
-		if (pathFinder.GeneratePath(pBestPlot))
+		if (pathFinder.GeneratePath(*pBestPlot))
 		{
 			int iPathTurns = pathFinder.GetPathTurns() +
 					(pathFinder.GetFinalMoves() == 0 ? 1 : 0);
@@ -1335,16 +1335,16 @@ bool CvUnitAI::AI_considerPathDOW(CvPlot const& kPlot, MovementFlags eFlags)
 	}
 
 	bool bDOW = false;
-	FAStarNode* pNode = getPathFinder().GetEndNode(); // TODO: rewrite so that GetEndNode isn't used.
+	GroupPathNode* pNode = getPathFinder().GetEndNode(); // TODO: rewrite so that GetEndNode isn't used.
 	while (!bDOW && pNode)
 	{
-		CvPlot const& kLoopPlot = GC.getMap().getPlot(pNode->m_iX, pNode->m_iY); // advc
+		CvPlot const& kLoopPlot = pNode->getPlot(); // advc
 		/*  we need to check DOW even for moves several turns away -
 			otherwise the actual move mission may fail to find a path.
 			however, I would consider it irresponsible to call this function for multi-move missions.
 			(note: amphibious landings may say 2 turns, even though it is really only 1...) */
-		FAssert(pNode->m_iData2 <= 1 ||
-				(pNode->m_iData2 == 2 && getGroup()->isAmphibPlot(&kLoopPlot)));
+		FAssert(pNode->getPathTurns() <= 1 ||
+				(pNode->getPathTurns() == 2 && getGroup()->isAmphibPlot(&kLoopPlot)));
 		bDOW = AI_considerDOW(kLoopPlot);
 		pNode = pNode->m_pParent;
 	}
@@ -9941,8 +9941,8 @@ bool CvUnitAI::AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI,
 		// Can transport reach enemy in requested time
 		bool bFoundEnemyPlotInRange = false;
 		// K-Mod. use a separate pathfinder for the transports, so that we don't reset our current path data.
-		KmodPathFinder temp_finder;
-		temp_finder.SetSettings(pBestUnit->getGroup(),
+		GroupPathFinder tempFinder;
+		tempFinder.SetSettings(*pBestUnit->getGroup(),
 				eFlags & MOVE_DECLARE_WAR, iMaxTransportPath, GC.getMOVE_DENOMINATOR());
 		// K-Mod end
 		CvTeamAI const& kOurTeam = GET_TEAM(getTeam()); // advc
@@ -9964,11 +9964,13 @@ bool CvUnitAI::AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI,
 					if (pAdjacentPlot == NULL || !pAdjacentPlot->isWater())
 						continue;
 					//if (pBestUnit->generatePath(pAdjacentPlot, 0, true, &iPathTurns, iMaxTransportPath))
-					if (temp_finder.GeneratePath(pAdjacentPlot)) // K-Mod
+					if (tempFinder.GeneratePath(*pAdjacentPlot)) // K-Mod
 					{
 						/*if (pBestUnit->getPathLastNode()->m_iData1 == 0)
-							iPathTurns++;*/
-						int iPathTurns = temp_finder.GetPathTurns() + (temp_finder.GetFinalMoves() == 0 ? 1 : 0); // K-Mod
+							iPathTurns++;*/  // <K-Mod>
+						int iPathTurns = tempFinder.GetPathTurns();
+						if (tempFinder.GetFinalMoves() == 0)
+							iPathTurns++; // </K-Mod>
 						if (iPathTurns <= iMaxTransportPath)
 						{
 							bFoundEnemyPlotInRange = true;
@@ -13226,7 +13228,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 	// iLoadTurns < 0 implies we should look for a transport; otherwise, it is the number of turns to reach the transport.
 	// Also, we only consider using transports if we aren't in enemy territory.
 	int iLoadTurns = isEnemy(getPlot()) ? MAX_INT : -1;
-	KmodPathFinder transport_path;
+	GroupPathFinder transportPath;
 	// K-Mod end
 
 	CvCity* pTargetCity =  // advc.300:
@@ -13291,14 +13293,14 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 					int iMaxTransportTurns = std::min(iMaxPathTurns, iPathTurns) - iLoadTurns;
 					if (pBestTransport != NULL && iMaxTransportTurns > 0)
 					{
-						transport_path.SetSettings(pBestTransport->getGroup(),
+						transportPath.SetSettings(*pBestTransport->getGroup(),
 								eFlags & MOVE_DECLARE_WAR, iMaxTransportTurns,
 								GC.getMOVE_DENOMINATOR());
-						if (transport_path.GeneratePath(pLoopCity->plot()))
+						if (transportPath.GeneratePath(pLoopCity->getPlot()))
 						{
 							// faster by boat
-							FAssert(transport_path.GetPathTurns() + iLoadTurns <= iPathTurns);
-							iPathTurns = transport_path.GetPathTurns() + iLoadTurns;
+							FAssert(transportPath.GetPathTurns() + iLoadTurns <= iPathTurns);
+							iPathTurns = transportPath.GetPathTurns() + iLoadTurns;
 						}
 					}
 				}
@@ -15633,13 +15635,13 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 						int iOtherPathTurns = MAX_INT;
 						//if (pLoopSelectionGroup->generatePath(pLoopSelectionGroup->plot(), pLoopPlot, eFlags, true, &iOtherPathTurns))
 						// K-Mod. Use a different pathfinder, so that we don't clear our path data.
-						KmodPathFinder loop_path;
-						loop_path.SetSettings(pLoopSelectionGroup, eFlags, iPathTurns);
-						if (loop_path.GeneratePath(pLoopPlot)) // K-Mod end
+						GroupPathFinder loopPath;
+						loopPath.SetSettings(*pLoopSelectionGroup, eFlags, iPathTurns);
+						if (loopPath.GeneratePath(*pLoopPlot)) // K-Mod end
 						{
 							//iOtherPathTurns += 1;
 							// (K-Mod note: I'm not convinced the +1 thing is a good idea.)
-							iOtherPathTurns = loop_path.GetPathTurns();
+							iOtherPathTurns = loopPath.GetPathTurns();
 						}
 						else continue;
 
@@ -16016,8 +16018,8 @@ bool CvUnitAI::AI_settlerSeaTransport()
 	int iOtherAreaBestFoundValue = 0;
 	CvPlot* pOtherAreaBestPlot = NULL;
 
-	KmodPathFinder land_path;
-	land_path.SetSettings(pSettlerUnit->getGroup(), MOVE_SAFE_TERRITORY);
+	GroupPathFinder landPath;
+	landPath.SetSettings(*pSettlerUnit->getGroup(), MOVE_SAFE_TERRITORY);
 
 	for (int iI = 0; iI < GET_PLAYER(getOwner()).AI_getNumCitySites(); iI++)
 	{
@@ -16027,7 +16029,7 @@ bool CvUnitAI::AI_settlerSeaTransport()
 		{
 			int iValue = kCitySitePlot.getFoundValue(getOwner());
 			if (kCitySitePlot.isArea(getArea()) &&
-				land_path.GeneratePath(&kCitySitePlot)) // K-Mod
+				landPath.GeneratePath(kCitySitePlot)) // K-Mod
 			{
 				if (iValue > iAreaBestFoundValue)
 				{

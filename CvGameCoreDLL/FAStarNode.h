@@ -1,9 +1,15 @@
 #pragma once
 //  *****************   FIRAXIS GAME ENGINE   ********************
-//  FILE:    FAStarNode.h
-//  AUTHOR:  Casey O'Toole  --  8/21/2002
-//  PURPOSE: A* Pathfinding - based off of A* Explorer from "AI Game Programming Wisdom"
 //  Copyright (c) 2002 Firaxis Games, Inc. All rights reserved.
+//  author: Casey O'Toole  --  8/21/2002
+//  A* Pathfinding - based off of A* Explorer from "AI Game Programming Wisdom"
+//	^advc: Full bibliographic info on that:
+/*	Matthews, J.: Basic A* Pathfinding Made Simple.
+	In: Rabin, S. (ed.) AI Game Programming Wisdom, chapter 3.1,
+	pp. 105–113. Charles River Media, Inc., Rockland (2002) */
+
+#include "CvMap.h" // advc.pf (for inline plot lookup)
+
 #ifndef FASTARNODE_H
 #define FASTARNODE_H
 
@@ -30,7 +36,7 @@ enum FAStarListType
 class FAStarNode
 {
 	/*	advc.pf: This gets initialized through memset by the KmodPathFinder and,
-		apparently, also by the BtS path finder. To save time, presumably.
+		apparently, also by the BtS path finder.
 		I've removed the constructor to make this clearer. Note that the
 		constructor had set m_iX, m_iY and m_eFAStarListType to -1 (not 0). */
 	FAStarNode();
@@ -66,6 +72,16 @@ public:
 	int m_iNumChildren;
 	int m_iData1;
 	int m_iData2;
+	/*	<advc.pf> Adapters to the interface of GroupPathNode - so that both
+		node classes can be used interchangeably as template parameters
+		in code shared by the FAStar path finder and GroupPathFinder. */
+	inline int getMoves() const { return m_iData1; }
+	inline void setMoves(int iMoves) { m_iData1 = iMoves; }
+	inline int getPathTurns() const { return m_iData2; }
+	inline void setPathTurns(int iPathTurns) { m_iData2 = iPathTurns; }
+	// Same thought - don't want to store plots as coordinates in my node classes.
+	inline CvPlot& getPlot() const { return GC.getMap().getPlot(m_iX, m_iY); }
+	// </advc.pf>
 
 	bool m_bOnStack;
 
@@ -82,33 +98,5 @@ public:
 	at the time that the EXE was compiled. I haven't tested it, but I expect that the
 	the size needs to remain unchanged. */
 BOOST_STATIC_ASSERT(sizeof(FAStarNode) == 88);
-
-// advc.pf: Based on code cut from KmodPathFinder
-class FAStarNodeMap
-{
-public:
-	inline FAStarNodeMap(int iWidth, int iHeight)
-	{
-		m_data = new byte[iWidth * iHeight * sizeof(FAStarNode)];
-		m_iWidth = iWidth;
-		m_iHeight = iHeight;
-		reset();
-	}
-	inline ~FAStarNodeMap()
-	{
-		SAFE_DELETE_ARRAY(m_data);
-	}
-	inline FAStarNode& get(int iX, int iY)
-	{
-		return reinterpret_cast<FAStarNode*>(m_data)[iY * m_iWidth + iX];
-	}
-	inline void reset()
-	{
-		memset(m_data, 0, sizeof(FAStarNode) * m_iWidth * m_iHeight);
-	}
-private:
-	byte* m_data;
-	int m_iWidth, m_iHeight;
-};
 
 #endif

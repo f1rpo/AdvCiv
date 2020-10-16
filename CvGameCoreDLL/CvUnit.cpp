@@ -4,7 +4,6 @@
 #include "CvUnit.h"
 #include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
-#include "KmodPathFinder.h" // advc.128
 #include "CoreAI.h"
 #include "CvCityAI.h"
 #include "UWAIAgent.h"
@@ -2173,20 +2172,12 @@ CvPlot* CvUnit::getPathEndTurnPlot() const
 bool CvUnit::generatePath(const CvPlot* pToPlot, MovementFlags eFlags, bool bReuse,
 	int* piPathTurns, int iMaxPath, /* <advc.128> */ bool bUseTempFinder) const
 {
-	if(!bUseTempFinder) // </advc.128>
-		return getGroup()->generatePath(plot(), pToPlot, eFlags, bReuse, piPathTurns, iMaxPath);
-	// <advc.128>
-	FAssert(!bReuse);
-	KmodPathFinder temp_finder;
-	temp_finder.SetSettings(getGroup(), eFlags, iMaxPath, GC.getMOVE_DENOMINATOR());
-	bool r = temp_finder.GeneratePath(pToPlot);
-	if(piPathTurns != NULL)
-		*piPathTurns = temp_finder.GetPathTurns();
-	return r; // </advc.128>
+	return getGroup()->generatePath(plot(), pToPlot, eFlags, bReuse, piPathTurns,
+			iMaxPath, bUseTempFinder);
 }
 
 // K-Mod: Return the standard pathfinder, for extracting path information.
-KmodPathFinder& CvUnit::getPathFinder() const
+GroupPathFinder& CvUnit::getPathFinder() const
 {
 	return CvSelectionGroup::pathFinder();
 }

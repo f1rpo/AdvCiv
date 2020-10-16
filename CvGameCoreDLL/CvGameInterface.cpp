@@ -4,7 +4,7 @@
 #include "CvCityAI.h"
 #include "CvUnitAI.h"
 #include "CvSelectionGroup.h"
-#include "KmodPathFinder.h"
+#include "GroupPathFinder.h"
 #include "FAStarNode.h"
 #include "PlotRange.h"
 #include "CvInfo_City.h"
@@ -283,16 +283,16 @@ void CvGame::updateColoredPlots()
 			the original code has been deleted, because it was quite bulky. */
 
 		// city sites
-		const CvPlayerAI& kActivePlayer = GET_PLAYER(getActivePlayer());
-		KmodPathFinder site_path;
-		site_path.SetSettings(pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
+		CvPlayerAI const& kActivePlayer = GET_PLAYER(getActivePlayer());
+		GroupPathFinder sitePath;
+		sitePath.SetSettings(*pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
 				7, GC.getMOVE_DENOMINATOR());
 		if (pHeadSelectedUnit->canFound()) // advc.004h: was isFound
 		{
 			for (int i = 0; i < kActivePlayer.AI_getNumCitySites(); i++)
 			{
 				CvPlot* pSite = kActivePlayer.AI_getCitySite(i);
-				if (pSite != NULL && site_path.GeneratePath(pSite))
+				if (pSite != NULL && sitePath.GeneratePath(*pSite))
 				{
 					kEngine.addColoredPlot(pSite->getX(), pSite->getY(),
 							GC.getInfo(GC.getColorType("HIGHLIGHT_TEXT")).getColor(),
@@ -310,7 +310,7 @@ void CvGame::updateColoredPlots()
 				iRange++;
 			else iRange--; // </advc.004z>
 			// just a smaller range.
-			site_path.SetSettings(pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
+			sitePath.SetSettings(*pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
 					iRange, GC.getMOVE_DENOMINATOR());
 			for (SquareIter it(*pHeadSelectedUnit, iRange); it.hasNext(); ++it)
 			{
@@ -318,7 +318,7 @@ void CvGame::updateColoredPlots()
 				if (kLoopPlot.isVisible(pHeadSelectedUnit->getTeam()) &&
 					kLoopPlot.isRevealedGoody(pHeadSelectedUnit->getTeam()))
 				{
-					if (site_path.GeneratePath(&kLoopPlot))
+					if (sitePath.GeneratePath(kLoopPlot))
 					{
 						kEngine.addColoredPlot(kLoopPlot.getX(), kLoopPlot.getY(),
 								GC.getInfo(GC.getColorType("HIGHLIGHT_TEXT")).getColor(),

@@ -10,7 +10,7 @@ class CvArea;
 class CvUnitInfo;
 class CvSelectionGroup;
 class CvArtInfoUnit;
-class KmodPathFinder;
+class GroupPathFinder;
 class CvUnitAI; // advc.003u
 struct CombatDetails;
 
@@ -50,7 +50,7 @@ public:
 			int* piPathTurns = NULL,
 			int iMaxPath = -1, // K-Mod
 			bool bUseTempFinder = false) const; // advc.128
-	KmodPathFinder& getPathFinder() const; // K-Mod
+	GroupPathFinder& getPathFinder() const; // K-Mod
 
 	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false,								// Exposed to Python
 			CvArea const* pArea = NULL) const; // advc: canEnterArea merged into canEnterTerritory
