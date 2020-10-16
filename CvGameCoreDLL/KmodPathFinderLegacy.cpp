@@ -1,20 +1,18 @@
-
 #include "CvGameCoreDLL.h"
-#include "KmodPathFinder.h"
-#include "FAStarNode.h" // advc.pf: Moved from header
-#include "FAStarFunc.h"
-#include "CvTeamAI.h"
+#include "KmodPathFinderLegacy.h"
+#include "GroupPathFinder.h" // for the step metric
+#include "CvSelectionGroupAI.h"
+#include "CvUnit.h"
+#include "CoreAI.h"
 #include "CvInfo_Terrain.h"
-#include "CvSelectionGroup.h"
 
-// advc: These don't need to be static members
-int admissible_scaled_weight = 1;
-int admissible_base_weight = 1;
+// advc.tmp: See comment in header
 
-
-KmodPathFinder::KmodPathFinder()
+int KmodPathFinderLegacy::admissible_base_weight = 1;
+int KmodPathFinderLegacy::admissible_scaled_weight = 1;
+KmodPathFinderLegacy::KmodPathFinderLegacy()
 	/*	(Unfortunately, the pathfinder is constructed
-		before the map width and height are determined.
+		before the map dimensions are determined.
 		Ideally the pathfinder would be initialised with a given CvMap
 		and then not refer to any global objects.
 		But that is not easy to do with the current code-base.
@@ -31,13 +29,13 @@ KmodPathFinder::KmodPathFinder()
 	start_x = start_y = dest_x = dest_y = INVALID_PLOT_COORD; // advc.001
 }
 
-KmodPathFinder::~KmodPathFinder()
+KmodPathFinderLegacy::~KmodPathFinderLegacy()
 {
 	//free(node_data);
 	SAFE_DELETE(nodeMap); // advc.pf
 }
 
-void KmodPathFinder::InitHeuristicWeights()
+void KmodPathFinderLegacy::InitHeuristicWeights()
 {
 	admissible_base_weight = GC.getMOVE_DENOMINATOR()/2;
 	admissible_scaled_weight = GC.getMOVE_DENOMINATOR()/2;
@@ -55,13 +53,13 @@ void KmodPathFinder::InitHeuristicWeights()
 	}
 }
 
-int KmodPathFinder::MinimumStepCost(int BaseMoves)
+int KmodPathFinderLegacy::MinimumStepCost(int BaseMoves)
 {
 	return std::max(1, std::min(admissible_base_weight,
 			BaseMoves * admissible_scaled_weight));
 }
 
-bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
+bool KmodPathFinderLegacy::GeneratePath(int x1, int y1, int x2, int y2)
 {
 	PROFILE_FUNC();
 
@@ -76,7 +74,7 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 		return false;
 	//if (!pathDestValid(x2, y2, &settings, NULL))
 	// advc.pf:
-	if (!pathDestValid(kMap.getPlot(x2, y2), *settings.pGroup, settings.eFlags))
+	if (!GroupStepMetric::isValidDest(kMap.getPlot(x2, y2), *settings.pGroup, settings.eFlags))
 		return false;
 	// <advc.pf> Allocate just in time
 	if (nodeMap == NULL)
@@ -143,7 +141,7 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 	return false;
 }
 
-bool KmodPathFinder::GeneratePath(const CvPlot* pToPlot)
+bool KmodPathFinderLegacy::GeneratePath(const CvPlot* pToPlot)
 {
 	if (!settings.pGroup || !pToPlot)
 		return false;
@@ -152,19 +150,19 @@ bool KmodPathFinder::GeneratePath(const CvPlot* pToPlot)
 			pToPlot->getX(), pToPlot->getY());
 }
 
-int KmodPathFinder::GetPathTurns() const
+int KmodPathFinderLegacy::GetPathTurns() const
 {
 	FAssert(end_node);
 	return end_node ? end_node->m_iData2 : 0;
 }
 
-int KmodPathFinder::GetFinalMoves() const
+int KmodPathFinderLegacy::GetFinalMoves() const
 {
 	FAssert(end_node);
 	return end_node ? end_node->m_iData1 : 0;
 }
 
-CvPlot* KmodPathFinder::GetPathFirstPlot() const
+CvPlot* KmodPathFinderLegacy::GetPathFirstPlot() const
 {
 	FAssert(end_node);
 	if (!end_node)
@@ -183,7 +181,7 @@ CvPlot* KmodPathFinder::GetPathFirstPlot() const
 	return kMap.plotSoren(node->m_iX, node->m_iY);
 }
 
-CvPlot* KmodPathFinder::GetPathEndTurnPlot() const
+CvPlot* KmodPathFinderLegacy::GetPathEndTurnPlot() const
 {
 	FAssert(end_node);
 
@@ -203,7 +201,7 @@ CvPlot* KmodPathFinder::GetPathEndTurnPlot() const
 	return kMap.plotSoren(node->m_iX, node->m_iY);
 }
 
-void KmodPathFinder::SetSettings(const CvPathSettings& new_settings)
+void KmodPathFinderLegacy::SetSettings(const CvPathSettings& new_settings)
 {
 	// whenever settings are changed, check that we have the right map size.
 	/*if (!ValidateNodeMap()) {
@@ -252,7 +250,7 @@ void KmodPathFinder::SetSettings(const CvPathSettings& new_settings)
 	}
 }
 
-void KmodPathFinder::Reset()
+void KmodPathFinderLegacy::Reset()
 {
 	//memset(&node_data[0] 0, sizeof(*node_data) * map_width * map_height);
 	// <advc.pf>
@@ -263,7 +261,7 @@ void KmodPathFinder::Reset()
 	// settings is set separately.
 }
 
-void KmodPathFinder::AddStartNode()
+void KmodPathFinderLegacy::AddStartNode()
 {
 	/*FAssertBounds(0, map_width , start_x);
 	FAssertBounds(0, map_height, start_y);*/ // Now sufficiently safe
@@ -274,8 +272,8 @@ void KmodPathFinder::AddStartNode()
 	start_node->m_iY = start_y;
 	//pathAdd(NULL, start_node, ASNC_INITIALADD, &settings, NULL);
 	// <advc.pf>
-	start_node->m_iData1 = pathInitialAdd(*settings.pGroup, settings.eFlags);
 	start_node->m_iData2 = 1;
+	start_node->m_iData1 = GroupStepMetric::initialMoves(*settings.pGroup, settings.eFlags);
 	// </advc.pf>
 	start_node->m_iKnownCost = 0;
 
@@ -293,19 +291,19 @@ void KmodPathFinder::AddStartNode()
 	start_node->m_bOnStack = true;
 }
 
-void KmodPathFinder::RecalculateHeuristics()
+void KmodPathFinderLegacy::RecalculateHeuristics()
 {
 	// recalculate heuristic cost for all open nodes.
 	for (OpenList_t::iterator i = open_list.begin(); i != open_list.end(); ++i)
 	{
-		int h = settings.iHeuristicWeight * pathHeuristic(
+		int h = settings.iHeuristicWeight * GroupStepMetric::heuristicStepCost(
 				(*i)->m_iX, (*i)->m_iY, dest_x, dest_y);
 		(*i)->m_iHeuristicCost = h;
 		(*i)->m_iTotalCost = h + (*i)->m_iKnownCost;
 	}
 }
 
-bool KmodPathFinder::ProcessNode()
+bool KmodPathFinderLegacy::ProcessNode()
 {
 	OpenList_t::iterator best_it = open_list.end();
 	{
@@ -362,8 +360,8 @@ bool KmodPathFinder::ProcessNode()
 			child_node->m_iX = x;
 			child_node->m_iY = y;
 			//pathAdd(parent_node, child_node, ASNC_NEWADD, &settings, NULL);
-			pathAdd(*parent_node, *child_node, *settings.pGroup, settings.eFlags); // advc.pf
-			if (pathValid_join(  // advc.pf: handle plot lookup here
+			GroupStepMetric::updatePathData(*child_node, *parent_node, *settings.pGroup, settings.eFlags); // advc.pf
+			if (GroupStepMetric::isValidStep(  // advc.pf: handle plot lookup here
 				kMap.getPlot(parent_node->m_iX, parent_node->m_iY),
 				kMap.getPlot(child_node->m_iX, child_node->m_iY),
 				*settings.pGroup, settings.eFlags))
@@ -371,12 +369,12 @@ bool KmodPathFinder::ProcessNode()
 				// This path to the new node is valid. So we need to fill in the data.
 				child_node->m_iKnownCost = MAX_INT;
 				child_node->m_iHeuristicCost = settings.iHeuristicWeight *
-						pathHeuristic(x, y, dest_x, dest_y);
+						GroupStepMetric::heuristicStepCost(x, y, dest_x, dest_y);
 				// total cost will be set when the parent is set.
 
 				child_node->m_bOnStack = true;
 
-				if (pathValid_source(  // advc.pf: handle plot lookup here
+				if (GroupStepMetric::canStepThrough(  // advc.pf: handle plot lookup here
 					kMap.getPlot(child_node->m_iX, child_node->m_iY),
 					*settings.pGroup, settings.eFlags,
 					child_node->m_iData1, child_node->m_iData2)) // advc.pf
@@ -397,7 +395,7 @@ bool KmodPathFinder::ProcessNode()
 		}
 		else
 		{
-			if (!pathValid_join(  // advc.pf: handle plot lookup here
+			if (!GroupStepMetric::isValidStep(  // advc.pf: handle plot lookup here
 				kMap.getPlot(parent_node->m_iX, parent_node->m_iY),
 				kMap.getPlot(child_node->m_iX, child_node->m_iY),
 				*settings.pGroup, settings.eFlags))
@@ -416,14 +414,14 @@ bool KmodPathFinder::ProcessNode()
 
 		if (parent_node->m_iKnownCost < child_node->m_iKnownCost)
 		{
-			int iNewCost = parent_node->m_iKnownCost + pathCost(
+			int iNewCost = parent_node->m_iKnownCost + GroupStepMetric::cost(
 					//parent_node, child_node, 666, &settings, NULL);
 					// <advc.pf>
 					kMap.getPlot(parent_node->m_iX, parent_node->m_iY),
 					kMap.getPlot(child_node->m_iX, child_node->m_iY),
 					*settings.pGroup, settings.eFlags,
-					parent_node->m_iData1, parent_node->m_iKnownCost); // </advc.pf>
-					
+					parent_node->m_iData1, parent_node->m_iKnownCost != 0); // </advc.pf>
+
 			FAssert(iNewCost > 0);
 
 			if (iNewCost < child_node->m_iKnownCost)
@@ -458,7 +456,7 @@ bool KmodPathFinder::ProcessNode()
 					FAssert(x_parent->m_iNumChildren == temp - 1);
 					// recalculate movement points
 					//pathAdd(parent_node, child_node, ASNC_PARENTADD_UP, &settings, NULL);
-					pathAdd(*parent_node, *child_node, *settings.pGroup, settings.eFlags); // advc.pf
+					GroupStepMetric::updatePathData(*child_node, *parent_node, *settings.pGroup, settings.eFlags); // advc.pf
 				}
 
 				// add child to the list of the new parent
@@ -479,7 +477,7 @@ bool KmodPathFinder::ProcessNode()
 	return true;
 }
 
-void KmodPathFinder::ForwardPropagate(FAStarNode* head, int cost_delta)
+void KmodPathFinderLegacy::ForwardPropagate(FAStarNode* head, int cost_delta)
 {
 	//FAssert(cost_delta < 0 || head->m_iNumChildren == 0);
 	/*	Note: there are some legitimate cases in which the cost_delta can be positive.
@@ -502,7 +500,7 @@ void KmodPathFinder::ForwardPropagate(FAStarNode* head, int cost_delta)
 		int iOldTurns = head->m_apChildren[i]->m_iData2;
 		int iNewDelta = cost_delta;
 		//pathAdd(head, head->m_apChildren[i], ASNC_PARENTADD_UP, &settings, NULL);
-		pathAdd(*head, *head->m_apChildren[i], *settings.pGroup, settings.eFlags); // advc.pf
+		GroupStepMetric::updatePathData(*head->m_apChildren[i], *head, *settings.pGroup, settings.eFlags); // advc.pf
 
 		// if the moves don't match, we may need to recalculate the path cost.
 		//if (iOldMoves != head->m_apChildren[i]->m_iData1)
@@ -511,13 +509,13 @@ void KmodPathFinder::ForwardPropagate(FAStarNode* head, int cost_delta)
 				but it does - because I wanted to use the path history
 				for path symmetry breaking. But anyway, according to the profiler,
 				this is only going to cost us about a milisecond per turn. */
-			int iPathCost = pathCost(
+			int iPathCost = GroupStepMetric::cost(
 					//head, head->m_apChildren[i], 666, &settings, NULL
 					// <advc.pf>
 					kMap.getPlot(head->m_iX, head->m_iY),
 					kMap.getPlot(head->m_apChildren[i]->m_iX, head->m_apChildren[i]->m_iY),
 					*settings.pGroup, settings.eFlags,
-					head->m_iData1, head->m_iKnownCost); // </advc.pf>
+					head->m_iData1, head->m_iKnownCost != 0); // </advc.pf>
 			iNewDelta = head->m_iKnownCost + iPathCost - head->m_apChildren[i]->m_iKnownCost;
 			//FAssert(iNewDelta <= 0);
 		}
@@ -534,34 +532,3 @@ void KmodPathFinder::ForwardPropagate(FAStarNode* head, int cost_delta)
 		}
 	}
 }
-/*	advc.pf: Actually, this whole thing is obsolete
-	now that we know the map dimensions in the ctor. */
-#if 0
-bool KmodPathFinder::ValidateNodeMap()
-{
-	FAssert(GC.getGame().isFinalInitialized()); // advc: Never seems to happen; assertion should suffice.
-
-	if (map_width == kMap.getGridWidth() && map_height == kMap.getGridHeight())
-		return true;
-	map_height = kMap.getGridHeight();
-	map_width = kMap.getGridWidth();
-
-	//node_data = (FAStarNode*)realloc...
-	// <advc> According to cppcheck, the above is a "common realloc mistake".
-	FAStarNode* new_node_data = static_cast<FAStarNode*>(
-			realloc(node_data, sizeof(*node_data) *
-			map_width * kMap.getGridHeight()));
-	/*	But then, realloc isn't actually going to fail, and if it does,
-		a memory leak is the least of our problems. */
-	FAssertMsg(new_node_data != NULL, "Failed to re-allocate memory");
-	node_data = new_node_data;
-	/*if (new_node_data == NULL)
-	{
-		free(node_data);
-		FAssertMsg(new_node_data != NULL, "Failed to re-allocate memory");
-	}
-	else node_data = new_node_data;*/ // </advc>
-	end_node = NULL;
-	return true;
-}
-#endif

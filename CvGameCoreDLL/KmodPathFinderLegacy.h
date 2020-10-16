@@ -1,12 +1,40 @@
 #pragma once
 
-#ifndef KMOD_PATHFINDER_H
-#define KMOD_PATHFINDER_H
+#ifndef K_MOD_PATH_FINDER_LEGACY_H
+#define K_MOD_PATH_FINDER_LEGACY_H
 
-class CvSelectionGroup;
-class FAStarNode;
-class CvMap;
-class FAStarNodeMap;
+/*	advc.tmp: I'll remove this header once I'm done with my changes to KmodPathFinder.
+	It's the old (AdvCiv 0.98) version of the code. For verifying the correctness of
+	the restructured AdvCiv 0.99 version. */
+
+#include "FAStarNode.h"
+
+class FAStarNodeMap
+{
+public:
+	inline FAStarNodeMap(int iWidth, int iHeight)
+	{
+		m_data = new byte[iWidth * iHeight * sizeof(FAStarNode)];
+		m_iWidth = iWidth;
+		m_iHeight = iHeight;
+		reset();
+	}
+	inline ~FAStarNodeMap()
+	{
+		SAFE_DELETE_ARRAY(m_data);
+	}
+	inline FAStarNode& get(int iX, int iY)
+	{
+		return reinterpret_cast<FAStarNode*>(m_data)[iY * m_iWidth + iX];
+	}
+	inline void reset()
+	{
+		memset(m_data, 0, sizeof(FAStarNode) * m_iWidth * m_iHeight);
+	}
+private:
+	byte* m_data;
+	int m_iWidth, m_iHeight;
+};
 
 struct CvPathSettings
 {
@@ -24,14 +52,14 @@ struct CvPathSettings
 	int iHeuristicWeight;
 };
 
-class KmodPathFinder
+class KmodPathFinderLegacy
 {
 public:
 	static void InitHeuristicWeights();
 	static int MinimumStepCost(int BaseMoves);
 
-	KmodPathFinder();
-	~KmodPathFinder();
+	KmodPathFinderLegacy();
+	~KmodPathFinderLegacy();
 	void Reset();
 	inline void SetSettings(CvSelectionGroup const* pGroup,
 		MovementFlags eFlags = NO_MOVEMENT_FLAGS,
@@ -40,42 +68,22 @@ public:
 		SetSettings(CvPathSettings(pGroup, eFlags, iMaxPath, iHeuristicWeight));
 	}
 	bool GeneratePath(int x1, int y1, int x2, int y2);
-	bool GeneratePath(const CvPlot* pToPlot); // just a wrapper for convenience
+	bool GeneratePath(const CvPlot* pToPlot);
 	bool IsPathComplete() const { return (end_node != NULL); }
 	int GetPathTurns() const;
 	int GetFinalMoves() const;
 	CvPlot* GetPathFirstPlot() const;
 	CvPlot* GetPathEndTurnPlot() const;
-	/*	advc (tbd.): Get rid of this function so that FAStarNode is fully encapasulated.
-		Cf. comment in CvUnitAI::AI_considerPathDOW (the only call location). */
-	FAStarNode* GetEndNode() const
-	{	// Note: the returned pointer becomes invalid if the pathfinder is destroyed.
-		FAssert(end_node != NULL);
-		return end_node;
-	}
 
 protected:
 	void AddStartNode();
 	void RecalculateHeuristics();
 	bool ProcessNode();
 	void ForwardPropagate(FAStarNode* head, int cost_delta);
-	void SetSettings(CvPathSettings const& new_settings); // advc.pf: protected
-	// advc.pf: Moved into FAStarNodeMap
-	//FAStarNode& GetNode(int x, int y) { return node_data[y * map_width + x]; }
-	// advc.pf: Not needed anymore
-	//bool ValidateNodeMap(); // (Called when SetSettings is used.)
+	void SetSettings(CvPathSettings const& new_settings);
 	typedef std::vector<FAStarNode*> OpenList_t;
-	/*struct OpenList_sortPred
-	{
-		bool operator()(const FAStarNode* &left, const FAStarNode* &right)
-		{
-			return (left->m_iTotalCost < right->m_iTotalCost);
-		}
-	};*/ // advc: unused
 
-	CvMap const& kMap; // advc.pf
-	/*	advc.pf: Wrapper for raw array. Historical note: Before K-Mod 1.45,
-		stdext::hash_map<int,boost::shared_ptr<FAStarNode> > had been used. */
+	CvMap const& kMap;
 	FAStarNodeMap* nodeMap;
 	OpenList_t open_list;
 
@@ -83,6 +91,9 @@ protected:
 	int start_x, start_y;
 	FAStarNode* end_node;
 	CvPathSettings settings;
+
+	static int admissible_base_weight;
+	static int admissible_scaled_weight;
 };
 
 #endif
