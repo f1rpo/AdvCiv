@@ -28,23 +28,14 @@ public:
 	{
 		m_iMoves = iMoves;
 	}
-	// Give more specific meaning to the inherited path length data member
+	// Aliases; to give path length a more specific name.
 	__forceinline int getPathTurns() const
 	{
-		return m_iPathLength;
+		return getPathLength();
 	}
 	__forceinline void setPathTurns(int iPathTurns)
 	{
-		m_iPathLength = iPathTurns;
-	}
-	/*	I've added the same function to FAStarNode.
-		To make GroupPathNode and FAStarNode compatible as template parameters
-		in code shared by FAStar and GroupPathFinder. */
-	inline CvPlot& getPlot() const
-	{	/*	Not nice to access a global object here - which, if we weren't sure
-			that there is only one map, could be inconsistent with the map used
-			by GroupPathFinder. */
-		return GC.getMap().getPlotByIndex(m_ePlot);
+		setPathLength(iPathTurns);
 	}
 };
 
@@ -164,7 +155,7 @@ public:
 		int r= getPathLength(); FAssert(r==leg.GetPathTurns()); return r;
 	}
 	inline void reset() { resetNodes(); leg.Reset(); }
-	CvPlot& getPathFirstPlot() { CvPlot& r= KmodPathFinder<GroupStepMetric, GroupPathNode>::getPathFirstPlot(); FAssert(&r ==leg.GetPathFirstPlot()); return r;}
+	CvPlot& getPathFirstPlot() const { CvPlot& r= KmodPathFinder<GroupStepMetric, GroupPathNode>::getPathFirstPlot(); FAssert(&r ==leg.GetPathFirstPlot()); return r;}
 	#endif // </advc.tmp>
 	CvPlot& getPathEndTurnPlot() const;
 	int getFinalMoves() const

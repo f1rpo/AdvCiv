@@ -277,9 +277,12 @@ public:
 protected:
 	// K-Mod! I'd rather this not be static, but I can't do that here.
 	//public: static KmodPathFinder path_finder; protected:
-	/*	advc.pf: Making it a non-static member would indeed be nicer.
-		We can do that, but it'll require some restructuring.
-		Making it a pointer at least allows us to delay initialization
+	/*	advc.pf: We can make it a non-static member of CvSelectionGroup::Data,
+		and that would indeed make the code much cleaner, but would also
+		preclude the sharing of path data between groups in the future
+		and would make it difficult to reuse path data when looping over
+		units that may or may not belong to the same group (e.g. CvPlot::m_units).
+		Just make it a static pointer so that we can at least delay initialization
 		until the map has been initialized. */
 	static GroupPathFinder* m_pPathFinder;
 

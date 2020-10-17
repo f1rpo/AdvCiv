@@ -853,8 +853,8 @@ bool GroupPathFinder::generatePath(CvPlot const& kFrom, CvPlot const& kTo)
 CvPlot& GroupPathFinder::getPathEndTurnPlot() const
 {
 	GroupPathNode* pNode = m_pEndNode;
-	FAssert(pNode->m_iPathLength == 1 || pNode->m_pParent != NULL);
-	while (pNode != NULL && pNode->m_iPathLength > 1)
+	FAssert(pNode->getPathLength() == 1 || pNode->m_pParent != NULL);
+	while (pNode != NULL && pNode->getPathLength() > 1)
 	{
 		pNode = pNode->m_pParent;
 	}
@@ -863,7 +863,7 @@ CvPlot& GroupPathFinder::getPathEndTurnPlot() const
 	return m_kMap.getPlotByIndex(pNode->m_ePlot);
 	// <advc.tmp>
 	#else
-	CvPlot& r=m_kMap.getPlotByIndex(pNode->m_ePlot); FAssert(&r ==leg.GetPathEndTurnPlot());return r;
+	CvPlot& r=pNode->getPlot(); FAssert(&r ==leg.GetPathEndTurnPlot());return r;
 	#endif // </advc.tmp>
 }
 

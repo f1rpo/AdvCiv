@@ -29,16 +29,43 @@ class PathNodeBase
 {
 public:
 	PathNodeBase(); // public - to avoid a compiler warning (c4610), but w/o implementation.
-	// Tbd.: try CvPlot* m_pPlot -- why would we need to look up a node that we already have?
-	PlotNumTypes m_ePlot; // Was (x,y). A single id makes NodeMap more efficient.
-	// Keeping these public (for now) for interchangeability with FAStarNode
+	__forceinline bool isState(PathNodeState eState) const
+	{
+		return (m_iState == eState);
+	}
+	__forceinline void setState(PathNodeState eState)
+	{
+		m_iState = static_cast<char>(eState);
+	}
+	/*	Consistent with a getPlot function added to FAStarNode.
+		To make PathNodes and FAStarNodes interchangeable as template parameters. */
+	__forceinline CvPlot& getPlot() const
+	{
+		return *m_pPlot;
+	}
+	__forceinline void setPlot(CvPlot& kPlot)
+	{
+		m_pPlot = &kPlot;
+	}
+	__forceinline int getPathLength() const
+	{
+		return m_iPathLength;
+	}
+	__forceinline void setPathLength(int iPathLength)
+	{
+		m_iPathLength = iPathLength;
+	}
+protected:
+	CvPlot* m_pPlot; // FAStarNode::m_iX, m_iY in K-MMod
+	int m_iPathLength; // FAStarNode::m_iData2 in K-Mod
+public: // Keeping these public (for now) for interchangeability with FAStarNode
 	int m_iTotalCost;
 	int m_iKnownCost;
 	int m_iHeuristicCost;
-	int m_iPathLength; // FAStarNode::m_iData2 in K-Mod
 	Node* m_pParent;
 	Node* m_apChildren[NUM_DIRECTION_TYPES];
 	short m_iNumChildren;
+private: // (Derived classes probably shouldn't access this)
 	/*	Replaces m_bOnStack and m_eFAStarListType. K-Mod comment (edited for clarity):
 		"I'd like to use NO_FASTARLIST as a signal that the node is uninitialised,
 		but unfortunately the default value for m_eFAStarListType is FASTARLIST_OPEN
@@ -48,15 +75,6 @@ public:
 		m_eFAStarListType was set by K-Mod but never read. A single boolean is
 		indeed sufficient, but multiple states are safer to use and may allow for
 		performance optimizations in the future. */
-	__forceinline bool isState(PathNodeState eState) const
-	{
-		return (m_iState == eState);
-	}
-	__forceinline void setState(PathNodeState eState)
-	{
-		m_iState = static_cast<char>(eState);
-	}
-private:
 	char m_iState;
 };
 
@@ -160,7 +178,7 @@ public:
 		Should return true if any kNode data was changed, false otherwise. */
 	inline bool updatePathData(Node& kNode, Node const& kParent) const
 	{
-		kNode.m_iPathLength = kParent.m_iPathLength + 1; // uniform
+		kNode.setPathLength(kParent.getPathLength() + 1); // uniform
 		return true;
 	}
 	/*	Called on the start node before generating a path.
@@ -168,11 +186,11 @@ public:
 		i.e. they should leave the initialization of path length to this class. */
 	inline void initializePathData(Node& kNode) const
 	{
-		kNode.m_iPathLength = initialPathLength();
+		kNode.setPathLength(initialPathLength());
 	}
 	/*	Called before generating a path if the start node is already initialized
 		from a previous pathfinder call. Returning false will cause the
-		pathfinder's node data to be reset. Don't check kStart.m_iPathLength;
+		pathfinder's node data to be reset. Don't check kStart.getPathLength();
 		KmodPathFinder handles that. */
 	inline bool canReuseInitialPathData(Node const& kStart) const
 	{
@@ -288,7 +306,16 @@ protected:
 public:
 	/*	It's up to the derived classes to define a function for setting up m_stepMetric.
 		This constructor will only call the StepMetric default constructor. */
-	KmodPathFinder();
+	KmodPathFinder()
+	:	m_pStart(NULL), m_pDest(NULL),
+		/*	[...] Ideally the pathfinder would be initialised with a given CvMap
+			and then not refer to any global objects. [...] */
+		// advc: We can do that:
+		m_kMap(GC.getMap()), m_pEndNode(NULL), m_pNodeMap(NULL
+		/*	advc: KmodPathFinder sometimes gets instantiated w/o ultimately getting used.
+			Therefore allocate memory as late as possible. */
+		/*new NodeMap(m_kMap.numPlots())*/)
+	{}
 	virtual ~KmodPathFinder();
 	void resetNodes();
 	bool generatePath(CvPlot const& kStart, CvPlot const& kDest);
@@ -300,7 +327,7 @@ public:
 			FAssert(m_pEndNode != NULL);
 			return 0;
 		}
-		return m_pEndNode->m_iPathLength;
+		return m_pEndNode->getPathLength();
 	}
 	CvPlot& getPathFirstPlot() const;
 
@@ -310,34 +337,19 @@ protected:
 	NodeMap* m_pNodeMap;
 	Node* m_pEndNode;
 	// <advc> Replacing (x,y) coordinates
-	PlotNumTypes m_eStart;
-	PlotNumTypes m_eDest;
 	CvPlot const* m_pStart;
 	CvPlot const* m_pDest; // </advc>
 
-	void addStartNode();
 	void recalculateHeuristics();
 	bool processNode();
 	void forwardPropagate(Node& kHead, int iCostDelta);
+	//void addStartNode(); // advc: Better not to put that in a subroutine
 	// advc: Moved into NodeMap
 	//FAStarNode& GetNode(int x, int y) { return node_data[y * map_width + x]; }
-	// advc: Not needed anymore
-	//bool validateNodeMap();
+	//bool validateNodeMap(); // advc: Not needed anymore
 };
 
 // (Comments below are from K-Mod unless stated otherwise)
-
-template<class StepMetric, class Node>
-KmodPathFinder<StepMetric,Node>::KmodPathFinder()
-	:	m_eStart(NO_PLOT_NUM), m_eDest(NO_PLOT_NUM), m_pStart(NULL), m_pDest(NULL),
-	/*	[...] Ideally the pathfinder would be initialised with a given CvMap
-		and then not refer to any global objects. [...] */
-	// advc: We can do that:
-	m_kMap(GC.getMap()), m_pEndNode(NULL), m_pNodeMap(NULL
-	/*	advc: KmodPathFinder sometimes gets instantiated w/o ultimately getting used.
-		Therefore allocate memory as late as possible. */
-	/*new NodeMap(m_kMap.numPlots())*/)
-{}
 
 template<class StepMetric, class Node>
 KmodPathFinder<StepMetric,Node>::~KmodPathFinder()
@@ -376,15 +388,13 @@ bool KmodPathFinder<StepMetric,Node>::generatePath(
 
 	m_pStart = &kStart;
 	m_pDest = &kDest;
-	m_eStart = m_kMap.plotNum(kStart);
-	m_eDest = m_kMap.plotNum(kDest);
 	{
-		Node& kStartNode = m_pNodeMap->get(m_eStart);
+		Node& kStartNode = m_pNodeMap->get(m_kMap.plotNum(kStart));
 		if (!kStartNode.isState(PATHNODE_UNINITIALIZED))
 		{
 			if (m_stepMetric.canReuseInitialPathData(kStartNode))
 			{	// advc: Currently ensured by &kStart!=m_pStart
-				FAssert(kStartNode.m_iPathLength == m_stepMetric.initialPathLength());
+				FAssert(kStartNode.getPathLength() == m_stepMetric.initialPathLength());
 			}
 			else
 			{
@@ -394,7 +404,17 @@ bool KmodPathFinder<StepMetric,Node>::generatePath(
 		}
 		if (kStartNode.isState(PATHNODE_UNINITIALIZED))
 		{
-			addStartNode();
+			// advc: Can't be helped. No CvPlot is truly const, so the cast is safe.
+			kStartNode.setPlot(*const_cast<CvPlot*>(m_pStart));
+			//pathAdd(NULL, pStartNode, ASNC_INITIALADD, &settings, NULL); // K-Mod
+			m_stepMetric.initializePathData(kStartNode);
+			kStartNode.m_iKnownCost = 0;
+			/*// This means nothing. But maybe one day I'll use it.
+			kStartNode.m_eFAStarListType = FASTARLIST_OPEN;
+			// This means the node is connected and ready to be used.
+			kStartNode.m_bOnStack = true;*/ // (K-Mod)
+			// advc: Now handled by OpenList. See also the comment at the m_iState declaration.
+			m_openList.open(kStartNode);
 			bRecalcHeuristics = true;
 		}
 		/*	advc (note): What if kStartNode is closed?
@@ -403,7 +423,7 @@ bool KmodPathFinder<StepMetric,Node>::generatePath(
 			to that destination remains open. */
 	}
 	{
-		Node& kDestNode = m_pNodeMap->get(m_eDest);
+		Node& kDestNode = m_pNodeMap->get(m_kMap.plotNum(kDest));
 		if (!kDestNode.isState(PATHNODE_UNINITIALIZED))
 			m_pEndNode = &kDestNode;
 		/*	advc (note): If kDestNode is closed, then it could be that we've
@@ -419,7 +439,7 @@ bool KmodPathFinder<StepMetric,Node>::generatePath(
 	}
 
 	if (m_pEndNode != NULL &&
-		(m_pEndNode->m_iPathLength <= m_stepMetric.getMaxPath()))
+		(m_pEndNode->getPathLength() <= m_stepMetric.getMaxPath()))
 	{
 		return true;
 	}
@@ -437,22 +457,6 @@ void KmodPathFinder<StepMetric,Node>::resetNodes()
 }
 
 template<class StepMetric, class Node>
-void KmodPathFinder<StepMetric,Node>::addStartNode()
-{
-	Node& kStartNode = m_pNodeMap->get(m_eStart);
-	kStartNode.m_ePlot = m_eStart;
-	//pathAdd(NULL, pStartNode, ASNC_INITIALADD, &settings, NULL); // K-Mod
-	m_stepMetric.initializePathData(kStartNode);
-	kStartNode.m_iKnownCost = 0;
-	/*// This means nothing. But maybe one day I'll use it.
-	kStartNode.m_eFAStarListType = FASTARLIST_OPEN;
-	// This means the node is connected and ready to be used.
-	kStartNode.m_bOnStack = true;*/ // (K-Mod)
-	// advc: Now handled by OpenList. See also the comment at the m_iState declaration.
-	m_openList.open(kStartNode);
-}
-
-template<class StepMetric, class Node>
 void KmodPathFinder<StepMetric,Node>::recalculateHeuristics()
 {
 	// Recalculate heuristic cost for all open nodes
@@ -460,7 +464,7 @@ void KmodPathFinder<StepMetric,Node>::recalculateHeuristics()
 	{
 		Node& kNode = **it;
 		int iHeuristicCost = m_stepMetric.heuristicCost(
-				m_kMap.getPlotByIndex(kNode.m_ePlot), *m_pDest);
+				kNode.getPlot(), *m_pDest);
 		kNode.m_iHeuristicCost = iHeuristicCost;
 		kNode.m_iTotalCost = iHeuristicCost + kNode.m_iKnownCost;
 	}
@@ -475,7 +479,7 @@ bool KmodPathFinder<StepMetric,Node>::processNode()
 		for (OpenList::iterator it = m_openList.begin(); it != m_openList.end(); ++it)
 		{
 			if ((*it)->m_iTotalCost < iLowestCost &&
-				(*it)->m_iPathLength <= m_stepMetric.getMaxPath())
+				(*it)->getPathLength() <= m_stepMetric.getMaxPath())
 			{
 				itBest = it;
 				iLowestCost = (*it)->m_iTotalCost;
@@ -490,8 +494,7 @@ bool KmodPathFinder<StepMetric,Node>::processNode()
 	/*	Note: Needs to be done before pushing new entries,
 		otherwise the iterator will be invalid. */
 	m_openList.close(itBest);
-	FAssert(&m_pNodeMap->get(kParent.m_ePlot) == &kParent);
-	CvPlot const& kParentPlot = m_kMap.getPlotByIndex(kParent.m_ePlot);
+	CvPlot const& kParentPlot = kParent.getPlot();
 	// (advc: This clutter will go away when I cache plot adjacency lists)
 	int const iParentX = kParentPlot.getX();
 	int const iParentY = kParentPlot.getY();
@@ -499,22 +502,21 @@ bool KmodPathFinder<StepMetric,Node>::processNode()
 	// Open a new node for each direction coming off the chosen node
 	FOR_EACH_ENUM(Direction)
 	{
-		CvPlot const* pChildPlot = plotDirection(iParentX, iParentY, eLoopDirection);
+		CvPlot* pChildPlot = plotDirection(iParentX, iParentY, eLoopDirection);
 		if (pChildPlot == NULL)
 			continue;
-		PlotNumTypes const eChildPlot = m_kMap.plotNum(*pChildPlot);
-		if (kParent.m_pParent != NULL && eChildPlot == kParent.m_pParent->m_ePlot)
+		if (kParent.m_pParent != NULL && pChildPlot == &kParent.m_pParent->getPlot())
 			continue; // don't backtrack
 		// advc: Moved up; no functional difference.
 		if (!m_stepMetric.isValidStep(kParentPlot, *pChildPlot))
 			continue; // Can't get to the plot from here
-		Node& kChild = m_pNodeMap->get(eChildPlot);
+		Node& kChild = m_pNodeMap->get(m_kMap.plotNum(*pChildPlot));
 		bool const bNewNode = kChild.isState(PATHNODE_UNINITIALIZED);
 		if (bNewNode) // (advc: No point in opening a node more than once)
 		{
 			// This path to the new node is valid. So we need to fill in the data.
 			//pathAdd(parent_node, child_node, ASNC_NEWADD, &settings, NULL); // K-Mod
-			kChild.m_ePlot = eChildPlot;
+			kChild.setPlot(*pChildPlot);
 			m_stepMetric.updatePathData(kChild, kParent);
 			kChild.m_iKnownCost = MAX_INT;
 			kChild.m_iHeuristicCost = m_stepMetric.heuristicCost(
@@ -530,8 +532,6 @@ bool KmodPathFinder<StepMetric,Node>::processNode()
 				kChild.setState(PATHNODE_CLOSED);
 			}
 		}
-		FAssert(kChild.m_ePlot == eChildPlot);
-
 		if (pChildPlot == m_pDest)
 		{
 			// We've found our destination but still need to finish our calculations
@@ -628,9 +628,7 @@ void KmodPathFinder<StepMetric,Node>::forwardPropagate(Node& kHead, int iCostDel
 			this is only going to cost us about a milisecond per turn. */
 		int iStepCost = m_stepMetric.cost(
 				//head, head->m_apChildren[i], 666, &settings, NULL // K-Mod
-				m_kMap.getPlotByIndex(kHead.m_ePlot),
-				m_kMap.getPlotByIndex(kLoopChild.m_ePlot),
-				kHead);
+				kHead.getPlot(), kLoopChild.getPlot(), kHead);
 		int iNewDelta = kHead.m_iKnownCost + iStepCost - kLoopChild.m_iKnownCost;
 		//FAssert(iNewDelta <= 0);
 
@@ -650,18 +648,14 @@ template<class StepMetric, class Node>
 CvPlot& KmodPathFinder<StepMetric,Node>::getPathFirstPlot() const
 {
 	FAssert(m_pEndNode != NULL);
-
 	Node* pNode = m_pEndNode;
-
 	if (pNode->m_pParent == NULL)
-		return m_kMap.getPlotByIndex(pNode->m_ePlot);
-
+		return pNode->getPlot();
 	while (pNode->m_pParent->m_pParent != NULL)
 	{
 		pNode = pNode->m_pParent;
 	}
-
-	return m_kMap.getPlotByIndex(pNode->m_ePlot);
+	return pNode->getPlot();
 }
 
 #endif
