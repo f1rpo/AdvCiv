@@ -285,14 +285,14 @@ void CvGame::updateColoredPlots()
 		// city sites
 		CvPlayerAI const& kActivePlayer = GET_PLAYER(getActivePlayer());
 		GroupPathFinder sitePath;
-		sitePath.SetSettings(*pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
+		sitePath.setGroup(*pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
 				7, GC.getMOVE_DENOMINATOR());
 		if (pHeadSelectedUnit->canFound()) // advc.004h: was isFound
 		{
 			for (int i = 0; i < kActivePlayer.AI_getNumCitySites(); i++)
 			{
 				CvPlot* pSite = kActivePlayer.AI_getCitySite(i);
-				if (pSite != NULL && sitePath.GeneratePath(*pSite))
+				if (pSite != NULL && sitePath.generatePath(*pSite))
 				{
 					kEngine.addColoredPlot(pSite->getX(), pSite->getY(),
 							GC.getInfo(GC.getColorType("HIGHLIGHT_TEXT")).getColor(),
@@ -310,7 +310,7 @@ void CvGame::updateColoredPlots()
 				iRange++;
 			else iRange--; // </advc.004z>
 			// just a smaller range.
-			sitePath.SetSettings(*pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
+			sitePath.setGroup(*pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
 					iRange, GC.getMOVE_DENOMINATOR());
 			for (SquareIter it(*pHeadSelectedUnit, iRange); it.hasNext(); ++it)
 			{
@@ -318,7 +318,7 @@ void CvGame::updateColoredPlots()
 				if (kLoopPlot.isVisible(pHeadSelectedUnit->getTeam()) &&
 					kLoopPlot.isRevealedGoody(pHeadSelectedUnit->getTeam()))
 				{
-					if (sitePath.GeneratePath(kLoopPlot))
+					if (sitePath.generatePath(kLoopPlot))
 					{
 						kEngine.addColoredPlot(kLoopPlot.getX(), kLoopPlot.getY(),
 								GC.getInfo(GC.getColorType("HIGHLIGHT_TEXT")).getColor(),

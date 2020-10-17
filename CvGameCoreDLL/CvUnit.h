@@ -44,13 +44,18 @@ public:
 	void doCommand(CommandTypes eCommand, int iData1, int iData2);											// Exposed to Python
 
 	//FAStarNode* getPathLastNode() const; // disabled by K-Mod
-	CvPlot* getPathEndTurnPlot() const;																		// Exposed to Python
-	bool generatePath(const CvPlot* pToPlot, MovementFlags eFlags = NO_MOVEMENT_FLAGS,						// Exposed to Python
+	CvPlot& getPathEndTurnPlot() const;																		// Exposed to Python
+	bool generatePath(CvPlot const& kTo, MovementFlags eFlags = NO_MOVEMENT_FLAGS,							// Exposed to Python
 			bool bReuse = false,
 			int* piPathTurns = NULL,
 			int iMaxPath = -1, // K-Mod
 			bool bUseTempFinder = false) const; // advc.128
 	GroupPathFinder& getPathFinder() const; // K-Mod
+	// <advc>
+	void pushGroupMoveTo(CvPlot const& kTo, MovementFlags eFlags = NO_MOVEMENT_FLAGS,
+			bool bAppend = false, bool bManual = false, MissionAITypes eMissionAI = NO_MISSIONAI,
+			CvPlot const* pMissionAIPlot = NULL, CvUnit const* pMissionAIUnit = NULL,
+			bool bModified = false); // </advc>
 
 	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false,								// Exposed to Python
 			CvArea const* pArea = NULL) const; // advc: canEnterArea merged into canEnterTerritory

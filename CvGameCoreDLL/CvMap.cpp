@@ -163,7 +163,7 @@ void CvMap::setup()
 	PROFILE_FUNC();
 
 	CvSelectionGroup::initPathFinder(); // advc.pf
-	GroupPathFinder::InitHeuristicWeights(); // K-Mod
+	GroupPathFinder::initHeuristicWeights(); // K-Mod
 
 	CvDLLFAStarIFaceBase& kAStar = *gDLL->getFAStarIFace(); // advc
 	kAStar.Initialize(&GC.getPathFinder(),
@@ -370,7 +370,7 @@ void CvMap::updateCenterUnit()  // advc: some style changes
 		if (eLoopDomain == DOMAIN_LAND || eLoopDomain == DOMAIN_SEA) // advc.rstr
 		{
 			int iStepCost = (eLoopDomain == DOMAIN_LAND ?
-					GroupPathFinder::MinimumStepCost(kLoopUnit.baseMoves()) :
+					GroupPathFinder::minimumStepCost(kLoopUnit.baseMoves()) :
 					GC.getMOVE_DENOMINATOR());
 			int iMoveRange = kLoopUnit.maxMoves() / iStepCost +
 					(kLoopUnit.canParadrop(kLoopUnit.plot()) ?

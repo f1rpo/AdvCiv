@@ -732,7 +732,7 @@ int GroupPathFinder::iAdmissibleBaseWeight = 1;
 int GroupPathFinder::iAdmissibleScaledWeight = 1;
 
 
-void GroupPathFinder::InitHeuristicWeights()
+void GroupPathFinder::initHeuristicWeights()
 {	// <advc.tmp>
 	#ifdef FASSERT_ENABLE
 	KmodPathFinderLegacy::InitHeuristicWeights();
@@ -754,7 +754,7 @@ void GroupPathFinder::InitHeuristicWeights()
 }
 
 
-int GroupPathFinder::MinimumStepCost(int iBaseMoves)
+int GroupPathFinder::minimumStepCost(int iBaseMoves)
 {
 	#ifndef FASSERT_ENABLE // advc.tmp
 	return std::max(1, std::min(iAdmissibleBaseWeight,
@@ -769,7 +769,7 @@ int GroupPathFinder::MinimumStepCost(int iBaseMoves)
 }
 
 
-void GroupPathFinder::SetSettings(CvSelectionGroup const& kGroup,
+void GroupPathFinder::setGroup(CvSelectionGroup const& kGroup,
 	MovementFlags eFlags, int iMaxPath, int iHeuristicWeight)
 {	// <advc.tmp>
 	#ifdef FASSERT_ENABLE
@@ -805,7 +805,7 @@ void GroupPathFinder::SetSettings(CvSelectionGroup const& kGroup,
 				no promotions that reduce water movement cost. */
 			iHeuristicWeight = GC.getMOVE_DENOMINATOR();
 		}
-		else iHeuristicWeight = MinimumStepCost(kGroup.baseMoves());
+		else iHeuristicWeight = minimumStepCost(kGroup.baseMoves());
 	}
 	// advc: Use implicitly declared copy assignment operator
 	m_stepMetric = GroupStepMetric(&kGroup, eFlags, iMaxPath, iHeuristicWeight);
@@ -834,19 +834,23 @@ void GroupPathFinder::invalidateGroup(CvSelectionGroup const& kGroup)
 }
 
 
-bool GroupPathFinder::GeneratePath(CvPlot const& kTo)
+bool GroupPathFinder::generatePath(CvPlot const& kTo)
 {
 	FAssertMsg(m_stepMetric.getGroup() != NULL, "Must call SetSettings before GeneratePath");
-	#ifndef FASSERT_ENABLE // advc.tmp
 	return generatePath(m_stepMetric.getGroup()->getPlot(), kTo);
-	// <advc.tmp>
-	#else
-	return generatePath(m_stepMetric.getGroup()->getX(), m_stepMetric.getGroup()->getY(),kTo.getX(),kTo.getY());
-	#endif // </advc.tmp>
 }
+//<advc.tmp>
+#ifdef FASSERT_ENABLE
+bool GroupPathFinder::generatePath(CvPlot const& kFrom, CvPlot const& kTo)
+{
+	bool r=KmodPathFinder<GroupStepMetric,GroupPathNode>::generatePath(kFrom, kTo);FAssert(r==
+		leg.GeneratePath(kFrom.getX(), kFrom.getY(),kTo.getX(),kTo.getY()));
+		return r;
+}
+#endif //</advc.tmp>
 
 
-CvPlot* GroupPathFinder::GetPathEndTurnPlot() const
+CvPlot& GroupPathFinder::getPathEndTurnPlot() const
 {
 	GroupPathNode* pNode = m_pEndNode;
 	FAssert(pNode->m_iPathLength == 1 || pNode->m_pParent != NULL);
@@ -854,16 +858,12 @@ CvPlot* GroupPathFinder::GetPathEndTurnPlot() const
 	{
 		pNode = pNode->m_pParent;
 	}
-	if (pNode == NULL)
-	{
-		FAssert(pNode != NULL);
-		return NULL;
-	}
+	FAssert(pNode != NULL);
 	#ifndef FASSERT_ENABLE // advc.tmp
-	return &m_kMap.getPlotByIndex(pNode->m_ePlot);
+	return m_kMap.getPlotByIndex(pNode->m_ePlot);
 	// <advc.tmp>
 	#else
-	CvPlot* r=&m_kMap.getPlotByIndex(pNode->m_ePlot); FAssert(r ==leg.GetPathEndTurnPlot());return r;
+	CvPlot& r=m_kMap.getPlotByIndex(pNode->m_ePlot); FAssert(&r ==leg.GetPathEndTurnPlot());return r;
 	#endif // </advc.tmp>
 }
 

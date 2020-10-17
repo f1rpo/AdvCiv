@@ -2163,16 +2163,16 @@ void CvUnit::doCommand(CommandTypes eCommand, int iData1, int iData2)
 } */
 
 
-CvPlot* CvUnit::getPathEndTurnPlot() const
+CvPlot& CvUnit::getPathEndTurnPlot() const
 {
 	return getGroup()->getPathEndTurnPlot();
 }
 
 
-bool CvUnit::generatePath(const CvPlot* pToPlot, MovementFlags eFlags, bool bReuse,
+bool CvUnit::generatePath(CvPlot const& kTo, MovementFlags eFlags, bool bReuse,
 	int* piPathTurns, int iMaxPath, /* <advc.128> */ bool bUseTempFinder) const
 {
-	return getGroup()->generatePath(plot(), pToPlot, eFlags, bReuse, piPathTurns,
+	return getGroup()->generatePath(getPlot(), kTo, eFlags, bReuse, piPathTurns,
 			iMaxPath, bUseTempFinder);
 }
 
@@ -2180,6 +2180,18 @@ bool CvUnit::generatePath(const CvPlot* pToPlot, MovementFlags eFlags, bool bReu
 GroupPathFinder& CvUnit::getPathFinder() const
 {
 	return CvSelectionGroup::pathFinder();
+}
+
+
+// advc: Wrapper for brevity
+void CvUnit::pushGroupMoveTo(CvPlot const& kTo, MovementFlags eFlags,
+	bool bAppend, bool bManual, MissionAITypes eMissionAI,
+	CvPlot const* pMissionAIPlot, CvUnit const* pMissionAIUnit,
+	bool bModified)
+{
+	FAssert(!at(kTo));
+	getGroup()->pushMission(MISSION_MOVE_TO, kTo.getX(), kTo.getY(), eFlags,
+			bAppend, bManual, eMissionAI, pMissionAIPlot, pMissionAIUnit, bModified);
 }
 
 
@@ -4552,7 +4564,7 @@ void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra, /* advc.033: */ 
 				getPlot(), kLoopPlot, iRange + iExtra, BARBARIAN_TEAM,
 				bImpassables ? DOMAIN_IMMOBILE : getDomainType()); // </advc.033>
 		// BBAI NOTES (jdog5000, 06/01/09):
-		// There are rare issues where the path finder will return incorrect results
+		// There are rare issues where the pathfinder will return incorrect results
 		// for unknown reasons.  Seems to find a suboptimal path sometimes in partially repeatable
 		// circumstances.  The fix below is a hack to address the permanent one or two tile blockades which
 		// would appear randomly, it should cause extra blockade clearing only very rarely.
@@ -6272,12 +6284,14 @@ CvCity* CvUnit::getUpgradeCity(bool bSearch) const
 	return pBestUpgradeCity;
 }
 
-// finds the 'best' city which has a valid upgrade for the unit, to eUnit type
-// it specifically does not check whether the unit can move, or if the player has enough gold to upgrade
-// those are checked in canUpgrade()
-// if bSearch is true, it will check every city, if not, it will only check the closest valid city
-// if iSearchValue non NULL, then on return it will be the city's proximity value, lower is better
-// NULL result means the upgrade is not possible
+/*	Finds the 'best' city which has a valid upgrade for the unit, to eUnit type.
+	Specifically does not check whether the unit can move,
+	or if the player has enough gold to upgrade; those are checked in canUpgrade().
+	If bSearch is true, it will check every city, if not, it will
+	only check the closest valid city.
+	If iSearchValue is not NULL, then, on return, it will be the city's proximity value,
+	lower is better.
+	NULL result means the upgrade is not possible. */
 CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue) const
 {
 	if (eUnit == NO_UNIT)
@@ -6286,9 +6300,11 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 	CvPlayerAI& kPlayer = GET_PLAYER(getOwner());
 	CvUnitInfo& kToUnit = GC.getInfo(eUnit);
 
-	if (GC.getInfo(kPlayer.getCivilizationType()).getCivilizationUnits(kToUnit.getUnitClassType()) != eUnit)
+	if (GC.getInfo(kPlayer.getCivilizationType()).
+		getCivilizationUnits(kToUnit.getUnitClassType()) != eUnit)
+	{
 		return NULL;
-
+	}
 	if (!upgradeAvailable(getUnitType(), kToUnit.getUnitClassType()))
 		return NULL;
 
@@ -6319,7 +6335,7 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 	}
 
 	// sea units must be built on the coast
-	bool bCoastalOnly = (getDomainType() == DOMAIN_SEA);
+	bool const bCoastalOnly = (getDomainType() == DOMAIN_SEA);
 
 	// results
 	int iBestValue = MAX_INT;
@@ -6368,7 +6384,7 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 								iValue *= 16;
 
 							// if we cannot path there, not as good (lower numbers are better)
-							if (!generatePath(pLoopCity->plot(), NO_MOVEMENT_FLAGS, true))
+							if (!generatePath(pLoopCity->getPlot(), NO_MOVEMENT_FLAGS, true))
 								iValue *= 16;
 							/*	<advc.139> This should really be checked in a CvUnitAI function.
 								That said, the whole search part of this function is really
@@ -6392,7 +6408,8 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 	else
 	{
 		// find the closest city
-		CvCity* pClosestCity = GC.getMap().findCity(getX(), getY(), NO_PLAYER, getTeam(), true, bCoastalOnly);
+		CvCity* pClosestCity = GC.getMap().findCity(getX(), getY(),
+				NO_PLAYER, getTeam(), true, bCoastalOnly);
 		if (pClosestCity != NULL)
 		{
 			// if we can train, then return this city (otherwise it will return NULL)
@@ -6413,6 +6430,7 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 
 	return pBestCity;
 }
+
 
 CvUnit* CvUnit::upgrade(UnitTypes eUnit) // K-Mod: this now returns the new unit.
 {
@@ -6463,6 +6481,7 @@ CivilizationTypes CvUnit::getCivilizationType() const
 {
 	return GET_PLAYER(getOwner()).getCivilizationType();
 }
+
 
 const wchar* CvUnit::getVisualCivAdjective(TeamTypes eForTeam) const
 {

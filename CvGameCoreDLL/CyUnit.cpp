@@ -67,9 +67,9 @@ CyPlot* CyUnit::getPathEndTurnPlot()
 
 bool CyUnit::generatePath(CyPlot* pToPlot, int iFlags, bool bReuse, int* piPathTurns)
 {
-	if (m_pUnit == NULL)
+	if (m_pUnit == NULL || pToPlot->getPlot() == NULL)
 		return false;
-	return m_pUnit->generatePath(pToPlot->getPlot(), (MovementFlags)iFlags,
+	return m_pUnit->generatePath(*pToPlot->getPlot(), (MovementFlags)iFlags,
 			bReuse, piPathTurns);
 }
 

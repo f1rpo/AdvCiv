@@ -206,9 +206,9 @@ public:
 	void setAutomateType(AutomateTypes eNewValue);																											// Exposed to Python
 
 	// FAStarNode* getPathLastNode() const; // disabled by K-Mod. Use pathFinder() instead.
-	CvPlot* getPathFirstPlot() const;																																		// Exposed to Python
-	CvPlot* getPathEndTurnPlot() const;																																	// Exposed to Python
-	bool generatePath(const CvPlot* pFromPlot, const CvPlot* pToPlot,								// Exposed to Python
+	CvPlot& getPathFirstPlot() const;																																		// Exposed to Python
+	CvPlot& getPathEndTurnPlot() const;																																	// Exposed to Python
+	bool generatePath(CvPlot const& kFrom, CvPlot const& kTo,										// Exposed to Python
 			MovementFlags eFlags = NO_MOVEMENT_FLAGS,
 			bool bReuse = false, int* piPathTurns = NULL,
 			int iMaxPath = -1, // K-Mod

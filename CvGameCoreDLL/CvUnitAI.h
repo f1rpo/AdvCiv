@@ -236,7 +236,7 @@ protected:
 			int iMaxAreaCities = MAX_INT); // advc.082
 	bool AI_assaultSeaReinforce(bool bAttackBarbs = false); // BBAI
 	// <K-Mod>
-	bool AI_transportGoTo(CvPlot const* pEndTurnPlot, CvPlot const* pTargetPlot,
+	bool AI_transportGoTo(CvPlot const& kEndTurnPlot, CvPlot const& kTargetPlot,
 			MovementFlags eFlags, MissionAITypes eMissionAI); // </K-Mod>
 
 	bool AI_settlerSeaTransport();

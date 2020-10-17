@@ -36,7 +36,7 @@ void CvSelectionGroup::uninitPathFinder()
 void CvSelectionGroup::resetPath()
 {
 	//gDLL->getFAStarIFace()->ForceReset(&GC.getPathFinder());
-	pathFinder().Reset();
+	pathFinder().reset();
 } // </advc.pf>
 
 
@@ -2531,7 +2531,8 @@ bool CvSelectionGroup::isHasPathToAreaPlayerCity(PlayerTypes ePlayer, MovementFl
 		if (pLoopCity->isArea(*area()))
 		{
 			int iPathTurns;
-			if (generatePath(plot(), pLoopCity->plot(), eFlags, true, &iPathTurns, iMaxPathTurns))
+			if (generatePath(getPlot(), pLoopCity->getPlot(), eFlags, true,
+				&iPathTurns, iMaxPathTurns))
 			{
 				if (iMaxPathTurns < 0 || iPathTurns <= iMaxPathTurns)
 					return true;
@@ -2786,7 +2787,7 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, MovementFlags eFlags, bool& b
 
 	// K-Mod. Rather than clearing the existing path data; use a temporary pathfinder.
 	GroupPathFinder finalPath;
-	finalPath.SetSettings(*this, eFlags & ~MOVE_DECLARE_WAR);
+	finalPath.setGroup(*this, eFlags & ~MOVE_DECLARE_WAR);
 	/*if (eFlags & MOVE_THROUGH_ENEMY) {
 		if (generatePath(plot(), pDestPlot, eFlags))
 			pDestPlot = getPathFirstPlot();
@@ -2794,8 +2795,8 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, MovementFlags eFlags, bool& b
 	// K-Mod
 	if (eFlags & (MOVE_THROUGH_ENEMY | MOVE_ATTACK_STACK) && !(eFlags & MOVE_DIRECT_ATTACK))
 	{
-		if (finalPath.GeneratePath(*pDestPlot))
-			pDestPlot = finalPath.GetPathFirstPlot();
+		if (finalPath.generatePath(*pDestPlot))
+			pDestPlot = &finalPath.getPathFirstPlot();
 	} // K-Mod end
 
 	if (getNumUnits() <= 0)
@@ -2810,8 +2811,8 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, MovementFlags eFlags, bool& b
 	//if ((eFlags & MOVE_DIRECT_ATTACK) || (getDomainType() == DOMAIN_AIR) || (eFlags & MOVE_THROUGH_ENEMY) || (generatePath(plot(), pDestPlot, eFlags) && (getPathFirstPlot() == pDestPlot)))
 	// K-Mod.
 	if (eFlags & (MOVE_THROUGH_ENEMY | MOVE_ATTACK_STACK | MOVE_DIRECT_ATTACK) ||
-		getDomainType() == DOMAIN_AIR || (finalPath.GeneratePath(*pDestPlot) &&
-		finalPath.GetPathFirstPlot() == pDestPlot)) // K-Mod end
+		getDomainType() == DOMAIN_AIR || (finalPath.generatePath(*pDestPlot) &&
+		&finalPath.getPathFirstPlot() == pDestPlot)) // K-Mod end
 	{
 		int iAttackOdds;
 		CvUnit* pBestAttackUnit = AI().AI_getBestGroupAttacker(pDestPlot, true, iAttackOdds);
@@ -3033,11 +3034,11 @@ bool CvSelectionGroup::groupPathTo(int iX, int iY, MovementFlags eFlags)
 		// K-Mod. I've added & ~MOVE_DECLARE_WAR so that if we need to declare war at this point, and haven't yet done so,
 		// the move will fail here rather than splitting the group inside groupMove.
 		// Also, I've changed it to use a different pathfinder, to avoid clearing the path data - and to avoid OOS errors.
-		finalPath.SetSettings(*this, eFlags & ~MOVE_DECLARE_WAR);
-		if (!finalPath.GeneratePath(kDestPlot))
+		finalPath.setGroup(*this, eFlags & ~MOVE_DECLARE_WAR);
+		if (!finalPath.generatePath(kDestPlot))
 			return false;
 
-		pPathPlot = finalPath.GetPathFirstPlot();
+		pPathPlot = &finalPath.getPathFirstPlot();
 		// K-Mod end
 		if (groupAmphibMove(*pPathPlot, eFlags))
 			return false;
@@ -3065,18 +3066,18 @@ bool CvSelectionGroup::groupPathTo(int iX, int iY, MovementFlags eFlags)
 	{
 		//If the step we just took will make us change our path to something longer, then cancel the move.
 		// This prevents units from wasting all their moves by trying to walk around enemy units.
-		FAssert(finalPath.IsPathComplete());
+		FAssert(finalPath.isPathComplete());
 		std::pair<int, int> old_moves = std::make_pair(
-				finalPath.GetPathTurns(), -finalPath.GetFinalMoves());
-		if (!finalPath.GeneratePath(kDestPlot) ||
-			std::make_pair(finalPath.GetPathTurns(), -finalPath.GetFinalMoves()) > old_moves)
+				finalPath.getPathTurns(), -finalPath.getFinalMoves());
+		if (!finalPath.generatePath(kDestPlot) ||
+			std::make_pair(finalPath.getPathTurns(), -finalPath.getFinalMoves()) > old_moves)
 		{
 			clearMissionQueue();
 		}
 		/*	Also, if the step we just took causes us to backtrack -
 			its probably because we've lost vision of a unit that was blocking the path.
 			Apply the MOVE_ASSUME_VISIBLE flag, so that we remember to go the long way around. */
-		else if (finalPath.GetPathFirstPlot() == pOriginPlot)
+		else if (&finalPath.getPathFirstPlot() == pOriginPlot)
 			headMissionQueueNode()->m_data.eFlags |= MOVE_ASSUME_VISIBLE;
 	}
 	// K-Mod end
@@ -3968,19 +3969,19 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue)  // advc: some s
 } */
 
 
-CvPlot* CvSelectionGroup::getPathFirstPlot() const
+CvPlot& CvSelectionGroup::getPathFirstPlot() const
 {
-	return pathFinder().GetPathFirstPlot();
+	return pathFinder().getPathFirstPlot();
 }
 
 
-CvPlot* CvSelectionGroup::getPathEndTurnPlot() const
+CvPlot& CvSelectionGroup::getPathEndTurnPlot() const
 {
-	return pathFinder().GetPathEndTurnPlot();
+	return pathFinder().getPathEndTurnPlot();
 }
 
 
-bool CvSelectionGroup::generatePath( const CvPlot* pFromPlot, const CvPlot* pToPlot,
+bool CvSelectionGroup::generatePath(CvPlot const& kFrom, CvPlot const& kTo,
 	MovementFlags eFlags, bool bReuse, int* piPathTurns, int iMaxPath,
 	bool bUseTempFinder) const // advc.128
 {
@@ -3989,8 +3990,6 @@ bool CvSelectionGroup::generatePath( const CvPlot* pFromPlot, const CvPlot* pToP
 
 	PROFILE("CvSelectionGroup::generatePath()");
 
-	if (pFromPlot == NULL || pToPlot == NULL)
-		return false;
 	// <advc.128>
 	FAssert(!bUseTempFinder || !bReuse);
 	GroupPathFinder tempFinder;
@@ -3998,10 +3997,9 @@ bool CvSelectionGroup::generatePath( const CvPlot* pFromPlot, const CvPlot* pToP
 	// </advc.128>
 	/*if (!bReuse)
 		pathFinder().Reset();*/
-	kPathFinder.SetSettings(*this, eFlags, iMaxPath);
-	bool bSuccess = kPathFinder.generatePath(pFromPlot->getX(), pFromPlot->getY(),
-			pToPlot->getX(), pToPlot->getY());
-	/* test.
+	kPathFinder.setGroup(*this, eFlags, iMaxPath);
+	bool bSuccess = kPathFinder.generatePath(kFrom, kTo);
+	/* test. (K-Mod)
 	if (!bUseTempFinder && bSuccess != gDLL->getFAStarIFace()->GeneratePath(&GC.getPathFinder(), pFromPlot->getX(), pFromPlot->getY(), pToPlot->getX(), pToPlot->getY(), false, eFlags, bReuse)) {
 		pNode = gDLL->getFAStarIFace()->GetLastNode(&GC.getPathFinder());
 		if (bSuccess || iMaxPath < 0 || !pNode || pNode->m_iData2 <= iMaxPath) {
@@ -4014,7 +4012,7 @@ bool CvSelectionGroup::generatePath( const CvPlot* pFromPlot, const CvPlot* pToP
 	{
 		*piPathTurns = MAX_INT;
 		if (bSuccess)
-			*piPathTurns = kPathFinder.GetPathTurns();
+			*piPathTurns = kPathFinder.getPathTurns();
 	}
 
 	return bSuccess;

@@ -3295,7 +3295,7 @@ int CvPlayerAI::AI_countDangerousUnits(CvPlot const& kAttackerPlot, CvPlot const
 					(kUnit.isHuman() && kAttackerPlot.isVisible(eTeam) &&
 					getCurrentEra() <= 1)))
 				{
-					if (!kUnit.generatePath(&kDefenderPlot,
+					if (!kUnit.generatePath(kDefenderPlot,
 						MOVE_MAX_MOVES | MOVE_IGNORE_DANGER, false, NULL, 1, true))
 					{
 						continue;
@@ -14883,9 +14883,9 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(/* advc: */CvCity const* pCity,
 				if (iPathTurns <= iMaxPathTurns)
 					iCount += pLoopSelectionGroup->getNumUnits();
 			}*/ // BtS
-			tempFinder.SetSettings(*pLoopSelectionGroup, NO_MOVEMENT_FLAGS,
+			tempFinder.setGroup(*pLoopSelectionGroup, NO_MOVEMENT_FLAGS,
 					iMaxPathTurns, GC.getMOVE_DENOMINATOR());
-			if (tempFinder.GeneratePath(*pMissionPlot))
+			if (tempFinder.generatePath(*pMissionPlot))
 			{
 				iTotalStrength += pLoopSelectionGroup->AI_sumStrength(
 						pCity->plot(), DOMAIN_LAND);
@@ -15015,8 +15015,8 @@ int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit /* advc: */ const& kUnit,  // adv
 		if (iMaxPathTurns >= 0 && kUnit.plot() != NULL &&
 			pLoopSelectionGroup->plot() != NULL)
 		{
-			pLoopSelectionGroup->generatePath(pLoopSelectionGroup->plot(),
-					kUnit.plot(), NO_MOVEMENT_FLAGS, false, &iPathTurns,
+			pLoopSelectionGroup->generatePath(pLoopSelectionGroup->getPlot(),
+					kUnit.getPlot(), NO_MOVEMENT_FLAGS, false, &iPathTurns,
 					iMaxPathTurns); // advc.opt
 			if (!pLoopSelectionGroup->canAllMove())
 				iPathTurns++;
@@ -27216,9 +27216,9 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 					if(iPathTurns <= 1)
 						return true;*/ // BtS
 					// K-Mod. Use a temp pathfinder, so as not to interfere with the normal one.
-					tempFinder.SetSettings(*pLoopUnit->getGroup(),
+					tempFinder.setGroup(*pLoopUnit->getGroup(),
 							MOVE_MAX_MOVES | MOVE_IGNORE_DANGER, 1, GC.getMOVE_DENOMINATOR());
-					if (tempFinder.GeneratePath(*pPlot))
+					if (tempFinder.generatePath(*pPlot))
 						return true;
 				}
 			}

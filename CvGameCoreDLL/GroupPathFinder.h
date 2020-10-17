@@ -10,7 +10,7 @@
 #include "KmodPathFinderLegacy.h"
 #endif // </advc.tmp>
 
-/*	advc.pf: New header for classes implementing an A* path finder for
+/*	advc.pf: New header for classes implementing an A* pathfinder for
 	selection groups of units. Mostly pre-AdvCiv code, just organized differently. */
 
 class GroupPathNode : public PathNodeBase<GroupPathNode>
@@ -55,7 +55,7 @@ class GroupStepMetric : public StepMetricBase<GroupPathNode>
 {
 public:
 /*	static interface so that GroupStepMetric can share code with the
-	FAStar path finder in the EXE */
+	FAStar pathfinder in the EXE */
 	static bool isValidStep(CvPlot const& kFrom, CvPlot const& kTo,
 			CvSelectionGroup const& kGroup, MovementFlags eFlags);	
 	static bool canStepThrough(CvPlot const& kFrom, CvSelectionGroup const& kGroup,
@@ -140,43 +140,34 @@ protected:
 class GroupPathFinder : public KmodPathFinder<GroupStepMetric, GroupPathNode>
 {
 public:
-	static void InitHeuristicWeights();
-	static int MinimumStepCost(int iBaseMoves);
+	static void initHeuristicWeights();
+	static int minimumStepCost(int iBaseMoves);
 	void invalidateGroup(CvSelectionGroup const& kGroup);
-	// Keep the K-Mod function names b/c there are a great many call locations
-	void SetSettings(CvSelectionGroup const& kGroup,
+	void setGroup( // was "SetSettings"
+			CvSelectionGroup const& kGroup,
 			MovementFlags eFlags = NO_MOVEMENT_FLAGS,
 			int iMaxPath = -1, int iHeuristicWeight = -1);
-	bool GeneratePath(CvPlot const& kTo);
+	bool generatePath(CvPlot const& kTo);
 	#ifndef FASSERT_ENABLE // advc.tmp
-	inline int GetPathTurns() const
+	// Unhide 2-argument version
+	using KmodPathFinder<GroupStepMetric,GroupPathNode>::generatePath;
+	inline int getPathTurns() const
 	{
 		return getPathLength();
 	}
-	__forceinline void Reset() { resetNodes(); }
+	__forceinline void reset() { resetNodes(); }
 	// <advc.tmp>
 	#else
-	int GetPathTurns() const
+	bool generatePath(CvPlot const& kFrom, CvPlot const& kTo);
+	int getPathTurns() const
 	{
 		int r= getPathLength(); FAssert(r==leg.GetPathTurns()); return r;
 	}
-	inline void Reset() { resetNodes(); leg.Reset(); }
-	bool generatePath(int iStartX, int iStartY, int iDestX, int iDestY)
-	{
-		bool r=KmodPathFinder<GroupStepMetric,GroupPathNode>::generatePath(iStartX,iStartY,iDestX,iDestY);
-		FAssert(r==leg.GeneratePath(iStartX,iStartY,iDestX,iDestY));
-		return r;
-	}
-	#endif
-	#ifndef FASSERT_ENABLE // </advc.tmp>
-	__forceinline CvPlot* GetPathFirstPlot() { return getPathFirstPlot(); }
-	// <advc.tmp>
-	#else
-	CvPlot* GetPathFirstPlot() { CvPlot* r= getPathFirstPlot(); FAssert(r ==leg.GetPathFirstPlot()); return r;}
+	inline void reset() { resetNodes(); leg.Reset(); }
+	CvPlot& getPathFirstPlot() { CvPlot& r= KmodPathFinder<GroupStepMetric, GroupPathNode>::getPathFirstPlot(); FAssert(&r ==leg.GetPathFirstPlot()); return r;}
 	#endif // </advc.tmp>
-	CvPlot* GetPathEndTurnPlot() const; //tbd.: could return CvPlot&
-	__forceinline bool IsPathComplete() { return isPathComplete(); }
-	int GetFinalMoves() const
+	CvPlot& getPathEndTurnPlot() const;
+	int getFinalMoves() const
 	{
 		if (m_pEndNode == NULL)
 		{
@@ -187,7 +178,7 @@ public:
 	}
 	/*	advc (tbd.): Remove this function so that GroupPathNode is fully encapasulated.
 		Cf. comment in CvUnitAI::AI_considerPathDOW (the only call location). */
-	GroupPathNode* GetEndNode() const
+	GroupPathNode* getEndNode() const
 	{	// Note: the returned pointer becomes invalid if the pathfinder is destroyed.
 		FAssert(m_pEndNode != NULL);
 		return m_pEndNode;

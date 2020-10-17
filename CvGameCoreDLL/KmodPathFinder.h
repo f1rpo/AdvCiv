@@ -119,7 +119,7 @@ public:
 		FErrorMsg("Should've been hidden by a derived-class member");
 		return false;
 	}
-	/*	kNode is the path finder node associated with kPlot. (The
+	/*	kNode is the pathfinder node associated with kPlot. (The
 		group step metric will require some data from that node.)
 		The node data should not be used to enforce the path length limit;
 		KmodPathFinder handles that. */
@@ -137,7 +137,7 @@ public:
 		The step checker functions above ensure that the step is allowed;
 		so there's no reason to return "infinity" (MAX_INT).
 		kParentNode is the node associated with kFrom. (The cost function
-		of the group path finder needs this info.) */
+		of the group pathfinder needs this info.) */
 	int cost(CvPlot const& kFrom, CvPlot const& kTo, Node const& kParentNode) const
 	{
 		FErrorMsg("Should've been hidden by a derived-class member");
@@ -171,8 +171,8 @@ public:
 		kNode.m_iPathLength = initialPathLength();
 	}
 	/*	Called before generating a path if the start node is already initialized
-		from a previous path finder call. Returning false will cause the
-		path finder's node data to be reset. Don't check kStart.m_iPathLength;
+		from a previous pathfinder call. Returning false will cause the
+		pathfinder's node data to be reset. Don't check kStart.m_iPathLength;
 		KmodPathFinder handles that. */
 	inline bool canReuseInitialPathData(Node const& kStart) const
 	{
@@ -292,13 +292,6 @@ public:
 	virtual ~KmodPathFinder();
 	void resetNodes();
 	bool generatePath(CvPlot const& kStart, CvPlot const& kDest);
-	// Note: Should prefer the version above, i.e. don't pass plots by coordinates.
-	bool generatePath(int iStartX, int iStartY, int iDestX, int iDestY)
-	{
-		return generatePath(
-				m_kMap.getPlot(iStartX, iStartY),
-				m_kMap.getPlot(iDestX, iDestY));
-	}
 	bool isPathComplete() const { return (m_pEndNode != NULL); }
 	int getPathLength() const // advc: Was "getPathTurns"; too specific.
 	{
@@ -309,7 +302,7 @@ public:
 		}
 		return m_pEndNode->m_iPathLength;
 	}
-	CvPlot* getPathFirstPlot() const; // tbd.: could return CvPlot&
+	CvPlot& getPathFirstPlot() const;
 
 protected:
 	CvMap const& m_kMap;
@@ -360,7 +353,7 @@ bool KmodPathFinder<StepMetric,Node>::generatePath(
 	PROFILE_FUNC();
 
 	m_pEndNode = NULL;
-	// advc.104b: Pass kStart for team path finder
+	// advc.104b: Pass kStart for team pathfinder
 	if (!m_stepMetric.isValidDest(kStart, kDest))
 		return false;
 
@@ -654,25 +647,21 @@ void KmodPathFinder<StepMetric,Node>::forwardPropagate(Node& kHead, int iCostDel
 }
 
 template<class StepMetric, class Node>
-CvPlot* KmodPathFinder<StepMetric,Node>::getPathFirstPlot() const
+CvPlot& KmodPathFinder<StepMetric,Node>::getPathFirstPlot() const
 {
-	if (m_pEndNode == NULL)
-	{
-		FAssert(m_pEndNode != NULL);
-		return NULL;
-	}
+	FAssert(m_pEndNode != NULL);
 
 	Node* pNode = m_pEndNode;
 
 	if (pNode->m_pParent == NULL)
-		return &m_kMap.getPlotByIndex(pNode->m_ePlot);
+		return m_kMap.getPlotByIndex(pNode->m_ePlot);
 
 	while (pNode->m_pParent->m_pParent != NULL)
 	{
 		pNode = pNode->m_pParent;
 	}
 
-	return &m_kMap.getPlotByIndex(pNode->m_ePlot);
+	return m_kMap.getPlotByIndex(pNode->m_ePlot);
 }
 
 #endif
