@@ -136,12 +136,9 @@ public:
 
 	inline DirectionTypes directionXY(int iDX, int iDY) const
 	{
-		if (abs(iDX) > DIRECTION_RADIUS || abs(iDY) > DIRECTION_RADIUS)
-		{
-			// advc.test: (apparently not needed - remove it for next release)
-			FErrorMsg("Just to see if the DIRECTION_RADIUS<abs branch is needed");
-			return NO_DIRECTION;
-		}
+		/*if (abs(iDX) > DIRECTION_RADIUS || abs(iDY) > DIRECTION_RADIUS)
+			return NO_DIRECTION;*/ // advc.opt: Apparently can't happen, so:
+		FAssert(!(abs(iDX) > DIRECTION_RADIUS || abs(iDY) > DIRECTION_RADIUS));
 		return GC.getXYDirection(iDX + DIRECTION_RADIUS, iDY + DIRECTION_RADIUS);
 	}
 

@@ -3590,10 +3590,7 @@ void CvPlot::setNOfRiver(bool bNewValue, CardinalDirectionTypes eRiverDir)
 				pAdjacentPlot->updateYield();
 			}
 		}
-
-		if (area() != NULL)
-			getArea().changeNumRiverEdges((isNOfRiver()) ? 1 : -1);
-		else FAssert(area() != NULL); // advc.test
+		getArea().changeNumRiverEdges((isNOfRiver()) ? 1 : -1);
 	}
 	FAssertMsg(eRiverDir == CARDINALDIRECTION_WEST || eRiverDir == CARDINALDIRECTION_EAST || eRiverDir == NO_CARDINALDIRECTION ||
 			/*  <advc.006> The Earth scenarios have one erratic river segment at
@@ -3637,10 +3634,7 @@ void CvPlot::setWOfRiver(bool bNewValue, CardinalDirectionTypes eRiverDir)
 				pAdj->updateYield();
 			}
 		}
-
-		if (area() != NULL)
-			getArea().changeNumRiverEdges(isWOfRiver() ? 1 : -1);
-		else FAssert(area() != NULL); // advc.test
+		getArea().changeNumRiverEdges(isWOfRiver() ? 1 : -1);
 	}
 
 	FAssertMsg(eRiverDir == CARDINALDIRECTION_NORTH || eRiverDir == CARDINALDIRECTION_SOUTH || eRiverDir == NO_CARDINALDIRECTION, "invalid parameter");
@@ -3920,9 +3914,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 		{
 			changeAdjacentSight(getTeam(), GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE),
 					false, NULL, bUpdatePlotGroup);
-			if (area() != NULL)
-				getArea().changeNumOwnedTiles(-1);
-			else FAssert(area() != NULL); // advc.test
+			getArea().changeNumOwnedTiles(-1);
 			GC.getMap().changeOwnedPlots(-1);
 
 			if (!isWater())
@@ -3971,9 +3963,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 		{
 			changeAdjacentSight(getTeam(), GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE),
 					true, NULL, bUpdatePlotGroup);
-			if (area() != NULL)
-				getArea().changeNumOwnedTiles(1);
-			else FAssert(area() != NULL); // advc.test
+			getArea().changeNumOwnedTiles(1);
 			GC.getMap().changeOwnedPlots(1);
 
 			if (!isWater())
@@ -4478,9 +4468,7 @@ void CvPlot::setBonusType(BonusTypes eNewValue)
 
 	if (getBonusType() != NO_BONUS)
 	{
-		if (area() != NULL)
-			getArea().changeNumBonuses(getBonusType(), -1);
-		else FAssert(area() != NULL); // advc.test
+		getArea().changeNumBonuses(getBonusType(), -1);
 		GC.getMap().changeNumBonuses(getBonusType(), -1);
 
 		if (!isWater())
@@ -4493,12 +4481,8 @@ void CvPlot::setBonusType(BonusTypes eNewValue)
 
 	if (getBonusType() != NO_BONUS)
 	{
-		if (area() != NULL)
-			getArea().changeNumBonuses(getBonusType(), 1);
-		else FAssert(area() != NULL); // advc.test
-
+		getArea().changeNumBonuses(getBonusType(), 1);
 		GC.getMap().changeNumBonuses(getBonusType(), 1);
-
 		if (!isWater())
 			GC.getMap().changeNumBonusesOnLand(getBonusType(), 1);
 	}
@@ -5193,11 +5177,7 @@ int CvPlot::calculateCityPlotYieldChange(YieldTypes eYield, int iYield,
 
 void CvPlot::updateYield()
 {
-	if (area() == NULL)
-	{
-		FAssert(area() != NULL); // advc.test
-		return;
-	}
+	FAssert(area() != NULL); // advc
 	bool bChange = false;
 	FOR_EACH_ENUM2(Yield, eYield)
 	{
@@ -5809,27 +5789,16 @@ void CvPlot::updateRevealedOwner(TeamTypes eTeam)
 }
 
 
-bool CvPlot::isRiverCrossing(DirectionTypes eIndex) const
+void CvPlot::updateRiverCrossing(DirectionTypes eDirection)
 {
-	if (eIndex == NO_DIRECTION)
-	{
-		FErrorMsg("Just to see if the NO_DIRECTION branch is needed"); // advc.test
-		return false;
-	}
-	return m_abRiverCrossing.get(eIndex);
-}
-
-
-void CvPlot::updateRiverCrossing(DirectionTypes eIndex)
-{
-	FAssertEnumBounds(eIndex);
+	FAssertEnumBounds(eDirection);
 
 	CvPlot* pCornerPlot = NULL;
 	bool bValid = false;
-	CvPlot* pPlot = plotDirection(getX(), getY(), eIndex);
+	CvPlot* pPlot = plotDirection(getX(), getY(), eDirection);
 	if ((pPlot == NULL || !pPlot->isWater()) && !isWater())
 	{
-		switch (eIndex)
+		switch (eDirection)
 		{
 		case DIRECTION_NORTH:
 			if (pPlot != NULL)
@@ -5886,7 +5855,7 @@ void CvPlot::updateRiverCrossing(DirectionTypes eIndex)
 					bValid = true;
 				else if (pNorthEastPlot->isNOfRiver() && pNorthWestPlot->isNOfRiver())
 					bValid = true;
-				else if (eIndex == DIRECTION_NORTHEAST || eIndex == DIRECTION_SOUTHWEST)
+				else if (eDirection == DIRECTION_NORTHEAST || eDirection == DIRECTION_SOUTHWEST)
 				{
 					if (pNorthEastPlot->isNOfRiver() && (pNorthWestPlot->isWOfRiver() || pNorthWestPlot->isWater()))
 						bValid = true;
@@ -5899,7 +5868,7 @@ void CvPlot::updateRiverCrossing(DirectionTypes eIndex)
 				}
 				else
 				{
-					FAssert((eIndex == DIRECTION_SOUTHEAST) || (eIndex == DIRECTION_NORTHWEST));
+					FAssert(eDirection == DIRECTION_SOUTHEAST || eDirection == DIRECTION_NORTHWEST);
 
 					if (pNorthWestPlot->isNOfRiver() && (pNorthWestPlot->isWOfRiver() || pNorthEastPlot->isWater()))
 						bValid = true;
@@ -5915,18 +5884,18 @@ void CvPlot::updateRiverCrossing(DirectionTypes eIndex)
 		}
 	}
 
-	if (isRiverCrossing(eIndex) != bValid)
+	if (isRiverCrossing(eDirection) != bValid)
 	{
-		m_abRiverCrossing.set(eIndex, bValid);
-		changeRiverCrossingCount(isRiverCrossing(eIndex) ? 1 : -1);
+		m_abRiverCrossing.set(eDirection, bValid);
+		changeRiverCrossingCount(isRiverCrossing(eDirection) ? 1 : -1);
 	}
 }
 
 
 void CvPlot::updateRiverCrossing()
 {
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
-		updateRiverCrossing((DirectionTypes)iI);
+	FOR_EACH_ENUM(Direction)
+		updateRiverCrossing(eLoopDirection);
 }
 
 
@@ -5947,11 +5916,8 @@ void CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, Tea
 	if (bOldValue != bNewValue)
 	{
 		m_abRevealed.set(eTeam, bNewValue);
-
-		if (area() != NULL)
-			getArea().changeNumRevealedTiles(eTeam, isRevealed(eTeam) ? 1 : -1);
-		else FAssert(area() != NULL); // advc.test
-	} // <advc.124> Need to update plot group if any revealed info changes
+		getArea().changeNumRevealedTiles(eTeam, isRevealed(eTeam) ? 1 : -1);
+	}  // <advc.124> Need to update plot group if any revealed info changes
 	if (bUpdatePlotGroup &&
 		(bOldValue != bNewValue ||
 		getRevealedOwner(eTeam) != getOwner() ||

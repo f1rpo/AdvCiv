@@ -20851,7 +20851,7 @@ bool CvPlayerAI::AI_proposeCityTrade(PlayerTypes eToPlayer)
 			}
 			else
 			{
-				FErrorMsg("Just to verify that this branch is reachable; hasn't come p in tests yet."); // advc.test
+				FErrorMsg("Just to verify that this branch is reachable; hasn't come up in tests yet."); // advc.test
 				/*	Even if we think that gifting a city will benefit us more than them,
 					we're not going to pay a human extra to accept a free city. */
 				if (theyGive.getLength() <= 0 && kToPlayer.isHuman())

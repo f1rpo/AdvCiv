@@ -1332,12 +1332,8 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 	BonusTypes eAssumeAvailable) const // advc.001u
 {
 	//PROFILE_FUNC(); // advc.003o
+	FAssert(eUnit != NO_UNIT); // advc
 
-	if(eUnit == NO_UNIT) // advc.test: Safe to remove this check? Apparently. Should move it to CyCity.
-	{
-		FAssert(eUnit != NO_UNIT);
-		return false;
-	}
 	if (GC.getPythonCaller()->canTrainOverride(
 		*this, eUnit, bContinue,  bTestVisible, bIgnoreCost, bIgnoreUpgrades))
 	{
@@ -1384,11 +1380,7 @@ bool CvCity::canTrain(UnitCombatTypes eUnitCombat) const
 bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 	bool bTestVisible, bool bIgnoreCost, bool bIgnoreTech) const
 {
-	if (eBuilding == NO_BUILDING) // advc.test: Safe to remove this check?
-	{
-		FAssert(false);
-		return false;
-	}
+	FAssert(eBuilding != NO_BUILDING); // advc
 
 	if (GC.getPythonCaller()->canConstructOverride(
 		*this, eBuilding, bContinue, bTestVisible, bIgnoreCost))
@@ -12458,11 +12450,7 @@ void CvCity::changeBuildingCommerceChange(BuildingClassTypes eBuildingClass,
 void CvCity::setBuildingHappyChange(BuildingClassTypes eBuildingClass, int iChange)
 {
 	BuildingTypes eBuilding = getCivilization().getBuilding(eBuildingClass); // advc.003w
-	if (eBuilding == NO_BUILDING)
-	{
-		FAssert(eBuilding != NO_BUILDING); // advc.test
-		return; // advc
-	}
+	FAssert(eBuilding != NO_BUILDING); // advc
 	for (BuildingChangeArray::iterator it = m_aBuildingHappyChange.begin();
 		it != m_aBuildingHappyChange.end(); ++it)
 	{
@@ -12535,11 +12523,7 @@ int CvCity::getBuildingHappyChange(BuildingClassTypes eBuildingClass) const
 void CvCity::setBuildingHealthChange(BuildingClassTypes eBuildingClass, int iChange)
 {
 	BuildingTypes eBuilding = getCivilization().getBuilding(eBuildingClass); // advc.003w
-	if (eBuilding == NO_BUILDING)
-	{
-		FAssert(eBuilding != NO_BUILDING); // advc.test
-		return; // advc
-	}
+	FAssert(eBuilding != NO_BUILDING); // advc
 	for (BuildingChangeArray::iterator it = m_aBuildingHealthChange.begin();
 		it != m_aBuildingHealthChange.end(); ++it)
 	{

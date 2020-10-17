@@ -10096,11 +10096,7 @@ VoteSelectionData* CvGame::getVoteSelection(int iID) const
 VoteSelectionData* CvGame::addVoteSelection(VoteSourceTypes eVoteSource)
 {
 	VoteSelectionData* pData = m_voteSelections.add();
-	if (pData == NULL)
-	{
-		FAssert(pData != NULL); // advc.test
-		return NULL;
-	}
+	FAssert(pData != NULL); // advc
 	pData->eVoteSource = eVoteSource;
 	FOR_EACH_ENUM(Vote)  // advc.003n: Minor civs excluded from all loops
 	{
@@ -10249,11 +10245,7 @@ VoteTriggeredData* CvGame::addVoteTriggered(const VoteSelectionData& kData, int 
 VoteTriggeredData* CvGame::addVoteTriggered(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kOptionData)
 {
 	VoteTriggeredData* pData = m_votesTriggered.add();
-	if (pData == NULL)
-	{
-		FAssert(pData != NULL); // advc.test
-		return NULL;
-	}
+	FAssert(pData != NULL); // advc
 	pData->eVoteSource = eVoteSource;
 	pData->kVoteOption = kOptionData;
 	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)

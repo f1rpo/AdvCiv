@@ -138,12 +138,16 @@ bool CyCity::isBuildingsMaxed()
 }
 
 bool CyCity::canTrain(int /*UnitTypes*/ eUnit, bool bContinue, bool bTestVisible)
-{
+{	// <advc> Moved out of CvCity::canTrain
+	if (eUnit == NO_UNIT)
+		return false; // </advc>
 	return m_pCity ? m_pCity->canTrain((UnitTypes)eUnit, bContinue, bTestVisible) : false;
 }
 
 bool CyCity::canConstruct( int /*BuildingTypes*/ eBuilding, bool bContinue, bool bTestVisible, bool bIgnoreCost)
-{
+{	// <advc> Moved out of CvCity::canConstruct
+	if (eBuilding == NO_BUILDING)
+		return false; // </advc>
 	return m_pCity ? m_pCity->canConstruct((BuildingTypes)eBuilding, bContinue, bTestVisible, bIgnoreCost) : false;
 }
 

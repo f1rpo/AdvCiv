@@ -10922,9 +10922,8 @@ const CvPopupQueue& CvPlayer::getPopups() const
 
 void CvPlayer::addDiplomacy(CvDiploParameters* pDiplo)
 {
-	if (pDiplo != NULL)
-		m_listDiplomacy.push_back(pDiplo);
-	else FAssert(pDiplo != NULL); // advc.test
+	FAssert(pDiplo != NULL); // advc
+	m_listDiplomacy.push_back(pDiplo);
 }
 
 

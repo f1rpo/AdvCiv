@@ -559,8 +559,14 @@ public:
 	void setRevealedOwner(TeamTypes eTeam, PlayerTypes eNewValue);
 	void updateRevealedOwner(TeamTypes eTeam);
 
-	DllExport bool isRiverCrossing(DirectionTypes eIndex) const;																				// Exposed to Python
-	void updateRiverCrossing(DirectionTypes eIndex);
+	DllExport bool isRiverCrossing(DirectionTypes eDirection) const																				// Exposed to Python+
+	{
+		/*if (eDirection == NO_DIRECTION)
+			return false;*/ // advc.opt: Apparently not needed, so:
+		FAssertBounds(0, NUM_DIRECTION_TYPES, eDirection);
+		return m_abRiverCrossing.get(eDirection);
+	}
+	void updateRiverCrossing(DirectionTypes eDirection);
 	void updateRiverCrossing();
 
 	DllExport bool isRevealed(TeamTypes eTeam, bool bDebug) const;																								// Exposed to Python
