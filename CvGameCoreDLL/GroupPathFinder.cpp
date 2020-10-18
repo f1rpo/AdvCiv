@@ -728,47 +728,6 @@ template bool GroupStepMetric::updatePathData<FAStarNode>(FAStarNode&, FAStarNod
 		CvSelectionGroup const&, MovementFlags);
 
 
-int GroupPathFinder::iAdmissibleBaseWeight = 1;
-int GroupPathFinder::iAdmissibleScaledWeight = 1;
-
-
-void GroupPathFinder::initHeuristicWeights()
-{	// <advc.tmp>
-	#ifdef FASSERT_ENABLE
-	KmodPathFinderLegacy::InitHeuristicWeights();
-	#endif // </advc.tmp>
-	iAdmissibleBaseWeight = iAdmissibleScaledWeight = GC.getMOVE_DENOMINATOR() / 2;
-	FOR_EACH_ENUM(Route)
-	{
-		CvRouteInfo const& kLoopRoute = GC.getInfo(eLoopRoute);
-		int iCost = kLoopRoute.getMovementCost();
-		FOR_EACH_ENUM(Tech)
-		{
-			if (kLoopRoute.getTechMovementChange(eLoopTech) < 0)
-				iCost += kLoopRoute.getTechMovementChange(eLoopTech);
-		}
-		iAdmissibleBaseWeight = std::min(iAdmissibleBaseWeight, iCost);
-		iAdmissibleScaledWeight = std::min(iAdmissibleScaledWeight,
-				kLoopRoute.getFlatMovementCost());
-	}
-}
-
-
-int GroupPathFinder::minimumStepCost(int iBaseMoves)
-{
-	#ifndef FASSERT_ENABLE // advc.tmp
-	return std::max(1, std::min(iAdmissibleBaseWeight,
-			iBaseMoves * iAdmissibleScaledWeight));
-	//<advc.tmp>
-	#else
-	int r=std::max(1, std::min(iAdmissibleBaseWeight,
-			iBaseMoves * iAdmissibleScaledWeight));
-	FAssert(r==KmodPathFinderLegacy::MinimumStepCost(iBaseMoves));
-	return r;
-	#endif //</advc.tmp>
-}
-
-
 void GroupPathFinder::setGroup(CvSelectionGroup const& kGroup,
 	MovementFlags eFlags, int iMaxPath, int iHeuristicWeight)
 {	// <advc.tmp>

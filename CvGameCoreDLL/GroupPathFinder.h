@@ -131,8 +131,6 @@ protected:
 class GroupPathFinder : public KmodPathFinder<GroupStepMetric, GroupPathNode>
 {
 public:
-	static void initHeuristicWeights();
-	static int minimumStepCost(int iBaseMoves);
 	void invalidateGroup(CvSelectionGroup const& kGroup);
 	void setGroup( // was "SetSettings"
 			CvSelectionGroup const& kGroup,
@@ -174,13 +172,15 @@ public:
 		FAssert(m_pEndNode != NULL);
 		return m_pEndNode;
 	}
-private:
-	static int iAdmissibleBaseWeight;
-	static int iAdmissibleScaledWeight;
 	// <advc.tmp>
 	#ifdef FASSERT_ENABLE
-	KmodPathFinderLegacy leg;
-	#endif // </advc.tmp>
+	static void initHeuristicWeights(int iMinMovementCost, int iMinFlatMovementCost)
+	{
+		KmodPathFinderLegacy::InitHeuristicWeights();
+		KmodPathFinder<GroupStepMetric,GroupPathNode>::initHeuristicWeights(iMinMovementCost, iMinFlatMovementCost);
+	}
+private: KmodPathFinderLegacy leg;
+	#endif // <advc.tmp>
 };
 
 #endif

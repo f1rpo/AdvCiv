@@ -21,6 +21,7 @@
 #include "GroupPathFinder.h"
 #include "FAStarFunc.h"
 #include "FAStarNode.h"
+#include "CvInfo_Terrain.h" // advc.pf (for pathfinder initialization)
 #include "CvInfo_GameOption.h"
 #include "CvReplayInfo.h" // advc.106n
 #include "CvDLLIniParserIFaceBase.h"
@@ -162,9 +163,6 @@ void CvMap::setup()
 {
 	PROFILE_FUNC();
 
-	CvSelectionGroup::initPathFinder(); // advc.pf
-	GroupPathFinder::initHeuristicWeights(); // K-Mod
-
 	CvDLLFAStarIFaceBase& kAStar = *gDLL->getFAStarIFace(); // advc
 	kAStar.Initialize(&GC.getPathFinder(),
 			getGridWidth(),	getGridHeight(),isWrapX(),	isWrapY(),
@@ -194,6 +192,26 @@ void CvMap::setup()
 			getGridWidth(), getGridHeight(), isWrapX(), isWrapY(),
 			NULL,			NULL,			NULL,		plotGroupValid,
 			NULL,			countPlotGroup,	NULL);
+	// <advc.pf>
+	CvSelectionGroup::initPathFinder();
+	// Moved this computation out of KmodPathFinder to avoid a header inclusion
+	int iMinMovementCost = MAX_INT;
+	int iMinFlatMovementCost = MAX_INT;
+	FOR_EACH_ENUM(Route)
+	{
+		CvRouteInfo const& kLoopRoute = GC.getInfo(eLoopRoute);
+		int iCost = kLoopRoute.getMovementCost();
+		FOR_EACH_ENUM(Tech)
+		{
+			if (kLoopRoute.getTechMovementChange(eLoopTech) < 0)
+				iCost += kLoopRoute.getTechMovementChange(eLoopTech);
+		}
+		iMinMovementCost = std::min(iMinMovementCost, iCost);
+		iMinFlatMovementCost = std::min(iMinFlatMovementCost,
+				kLoopRoute.getFlatMovementCost());
+	}
+	GroupPathFinder::initHeuristicWeights( // K-Mod
+			iMinMovementCost, iMinFlatMovementCost); // </advc.pf>
 }
 
 

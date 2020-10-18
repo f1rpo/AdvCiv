@@ -330,6 +330,9 @@ public:
 		return m_pEndNode->getPathLength();
 	}
 	CvPlot& getPathFirstPlot() const;
+	// Both group and team pathfinder need this, so I'll keep it at the base class.
+	static void initHeuristicWeights(int iMinMovementCost, int iMinFlatMovementCost);
+	static int minimumStepCost(int iBaseMoves);
 
 protected:
 	CvMap const& m_kMap;
@@ -339,6 +342,8 @@ protected:
 	// <advc> Replacing (x,y) coordinates
 	CvPlot const* m_pStart;
 	CvPlot const* m_pDest; // </advc>
+	static int iAdmissibleBaseWeight;
+	static int iAdmissibleScaledWeight;
 
 	void recalculateHeuristics();
 	bool processNode();
@@ -348,6 +353,27 @@ protected:
 	//FAStarNode& GetNode(int x, int y) { return node_data[y * map_width + x]; }
 	//bool validateNodeMap(); // advc: Not needed anymore
 };
+
+template<class StepMetric, class Node>
+int KmodPathFinder<StepMetric,Node>::iAdmissibleBaseWeight = 1;
+template<class StepMetric, class Node>
+int KmodPathFinder<StepMetric,Node>::iAdmissibleScaledWeight = 1;
+
+template<class StepMetric, class Node>
+void KmodPathFinder<StepMetric,Node>::initHeuristicWeights(
+	// advc: Let CvMap compute these; don't want to include CvInfo_Terrain.h here.
+	int iMinMovementCost, int iMinFlatMovementCost)
+{
+	iAdmissibleBaseWeight = std::min(GC.getMOVE_DENOMINATOR() / 2, iMinMovementCost);
+	iAdmissibleScaledWeight = std::min(GC.getMOVE_DENOMINATOR() / 2, iMinFlatMovementCost);
+}
+
+template<class StepMetric, class Node>
+int KmodPathFinder<StepMetric,Node>::minimumStepCost(int iBaseMoves)
+{
+	return std::max(1, std::min(iAdmissibleBaseWeight,
+			iBaseMoves * iAdmissibleScaledWeight));
+}
 
 // (Comments below are from K-Mod unless stated otherwise)
 
