@@ -183,6 +183,7 @@
     <ClCompile Include="..\Shelf.cpp" />
     <ClCompile Include="..\StartingPositionIteration.cpp" />
     <ClCompile Include="..\StartPointsAsHandicap.cpp" />
+    <ClCompile Include="..\TeamPathFinder.cpp" />
     <ClCompile Include="..\TSCProfiler.cpp" />
     <ClCompile Include="..\UWAIAgent.cpp" />
     <ClCompile Include="..\UWAI.cpp" />
@@ -312,6 +313,7 @@
     <ClInclude Include="..\CyTeam.h" />
     <ClInclude Include="..\CyUnit.h" />
     <ClInclude Include="..\FAStarFunc.h" />
+    <ClInclude Include="..\FAStarNode.h" />
     <ClInclude Include="..\GameBryo.h" />
     <ClInclude Include="..\GroupPathFinder.h" />
     <ClInclude Include="..\KmodPathFinder.h" />
@@ -322,7 +324,6 @@
     <ClInclude Include="..\EnumMap.h" />
     <ClInclude Include="..\EnumMap2D.h" />
     <ClInclude Include="..\FAssert.h" />
-    <ClInclude Include="..\FAStarNode.h" />
     <ClInclude Include="..\FDataStreamBase.h" />
     <ClInclude Include="..\FDialogTemplate.h" />
     <ClInclude Include="..\FFreeListTrashArray.h" />
@@ -339,6 +340,7 @@
     <ClInclude Include="..\PlotRange.h" />
     <ClInclude Include="..\ScaledNum.h" />
     <ClInclude Include="..\StartingPositionIteration.h" />
+    <ClInclude Include="..\TeamPathFinder.h" />
     <ClInclude Include="..\Trigonometry.h" />
     <ClInclude Include="..\TSCProfiler.h" />
     <ClInclude Include="..\TypeChoice.h" />

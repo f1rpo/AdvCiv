@@ -5,6 +5,7 @@
 #include "CoreAI.h"
 #include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
+#include "TeamPathFinder.h" // advc.104b (advc.tmp)
 #include "CvCityAI.h"
 #include "CitySiteEvaluator.h"
 #include "CvDeal.h"
@@ -5940,6 +5941,88 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 		szString.append(NEWLINE);
 		// BETTER_BTS_AI_MOD: END
 	}
+
+	// <advc.test>, advc.104b
+	{
+		static CvPlot const* pOldPlot = NULL;
+		static int iCost = MAX_INT;
+		static int iLength = MAX_INT;
+		CvUnit const* pUnit = gDLL->UI().getHeadSelectedUnit();
+		CvPlot const* pPlot = gDLL->UI().getMouseOverPlot();
+		if (pUnit != NULL && pPlot != NULL)
+		{
+			if (pPlot != pOldPlot) // Avoid lag from computing the same path over and over
+			{
+				pOldPlot = pPlot;
+				CvTeam const& kTeam = GET_TEAM(pUnit->getTeam());
+				CvTeam const* pWarTeam = NULL;
+				{
+					TeamTypes ePlotTeam = pPlot->getTeam();
+					if (ePlotTeam != NO_TEAM && ePlotTeam != pUnit->getTeam())
+						pWarTeam = &GET_TEAM(ePlotTeam);
+				}
+				int const iMaxPath = 15 * pUnit->baseMoves();
+				CvPlot const& kStart = pUnit->getPlot();
+				CvPlot const& kDest = *pPlot;
+				TeamPath::Mode eMode = TeamPath::LAND;
+				if (pUnit->getDomainType() != DOMAIN_LAND)
+				{
+					TechTypes const eTech = pUnit->getUnitInfo().getPrereqAndTech();
+					if (eTech != NO_TECH && GC.getInfo(eTech).getEra() >= 3)
+						eMode = TeamPath::ANY_WATER;
+					else eMode = TeamPath::SHALLOW_WATER;
+				}
+				// TeamPathFinder isn't intended for dynamic dispatch, so this is awkward.
+				switch(eMode)
+				{
+				case TeamPath::LAND:
+				{
+					TeamPathFinderLand pf(kTeam, pWarTeam, iMaxPath);
+					if (pf.generatePath(kStart, kDest))
+					{
+						iCost = pf.getPathCost();
+						iLength = pf.getPathLength();
+					}
+					else iCost = iLength = MAX_INT;
+					break;
+				}
+				case TeamPath::ANY_WATER:
+				{
+					TeamPathFinderAnyWater pf(kTeam, pWarTeam, iMaxPath);
+					if (pf.generatePath(kStart, kDest))
+					{
+						iCost = pf.getPathCost();
+						iLength = pf.getPathLength();
+					}
+					else iCost = iLength = MAX_INT;
+					break;
+				}
+				case TeamPath::SHALLOW_WATER:
+				{
+					TeamPathFinderShallowWater pf(kTeam, pWarTeam, iMaxPath);
+					if (pf.generatePath(kStart, kDest))
+					{
+						iCost = pf.getPathCost();
+						iLength = pf.getPathLength();
+					}
+					else iCost = iLength = MAX_INT;
+					break;
+				}
+				}
+			}
+			szString.append(NEWLINE);
+			if (iCost == MAX_INT)
+			{
+				FAssert(iLength == MAX_INT);
+				szString.append(L"No team path");
+			}
+			else
+			{
+				szString.append(CvWString::format(
+						L"Team path cost: %d, length: %d", iCost, iLength));
+			}
+		}
+	} // </advc.test>
 
 	/*{
 		szTempBuffer.Format(L"\nStack Str: land=%d(%d), sea=%d(%d), air=%d(%d)",
