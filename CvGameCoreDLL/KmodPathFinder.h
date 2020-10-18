@@ -98,7 +98,8 @@ public:
 		It's up to updatePathData to compute the length and to store it
 		at the given node. */
 	inline int getMaxPath() const { return m_iMaxPath; }
-	// Derived classes should probably not change this
+	/*	If this function is replaced, then initializePathData should be replaced
+		as well. */
 	inline int initialPathLength() const { return 1; }
 protected:
 	/*	Derived classes have to have a 0-argument constructor that will get called
@@ -182,8 +183,9 @@ public:
 		return true;
 	}
 	/*	Called on the start node before generating a path.
-		Derived classes that shadow this function should still call this function;
-		i.e. they should leave the initialization of path length to this class. */
+		Note that the initialPathLength call is not polymorphic,
+		so derived classes that wish to change the initial path length will
+		have to replace both initialPathLength and initializePathData. */
 	inline void initializePathData(Node& kNode) const
 	{
 		kNode.setPathLength(initialPathLength());
@@ -320,13 +322,8 @@ public:
 	void resetNodes();
 	bool generatePath(CvPlot const& kStart, CvPlot const& kDest);
 	bool isPathComplete() const { return (m_pEndNode != NULL); }
-	int getPathLength() const // advc: Was "getPathTurns"; too specific.
+	inline int getPathLength() const // advc: Was "getPathTurns"; too specific.
 	{
-		if (m_pEndNode == NULL)
-		{
-			FAssert(m_pEndNode != NULL);
-			return 0;
-		}
 		return m_pEndNode->getPathLength();
 	}
 	CvPlot& getPathFirstPlot() const;
@@ -475,6 +472,14 @@ bool KmodPathFinder<StepMetric,Node>::generatePath(
 template<class StepMetric, class Node>
 void KmodPathFinder<StepMetric,Node>::resetNodes()
 {
+	/*	advc (note): The node data isn't stored in savegames. Save & reload
+		will thus cause the nodes to be reset. Therefore, it's desirable to
+		ensure that the node data kept (cached) after a generatePath call
+		does not affect the result of subsequent generatePath calls.
+		I don't know if this is currently ensured, or if, instead, it's
+		ensured that saving is not possible in between subsequent
+		non-resetting generatePath calls. */
+
 	//memset(&node_data[0] 0, sizeof(*node_data) * map_width * map_height); // K-Mod
 	if (m_pNodeMap != NULL)
 		m_pNodeMap->reset();

@@ -18,8 +18,8 @@ class CvSelectionGroup;
 
 struct CvMapInitData // holds initialization info
 {
-	int m_iGridW; // in game plots
-	int m_iGridH; // in game plots
+	int m_iGridW; // in-game plots
+	int m_iGridH; // in-game plots
 	int m_iTopLatitude;
 	int m_iBottomLatitude;
 

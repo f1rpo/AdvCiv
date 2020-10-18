@@ -723,7 +723,7 @@ bool GroupStepMetric::updatePathData(Node& kNode, Node const& kParent,
 	}
 	return false;
 }
-class FAStarNode; // explicit instantiation
+// explicit instantiation:
 template bool GroupStepMetric::updatePathData<FAStarNode>(FAStarNode&, FAStarNode const&,
 		CvSelectionGroup const&, MovementFlags);
 

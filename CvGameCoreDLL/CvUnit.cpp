@@ -2282,7 +2282,10 @@ bool CvUnit::willRevealAnyPlotFrom(CvPlot const& kFrom) const
 /*  K-Mod. I've rearranged a few things to make the function slightly faster,
 	and added "bAssumeVisible" which signals that we should check for units on
 	the plot regardless of whether we can actually see. */
-bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bool bIgnoreLoad, bool bAssumeVisible, // advc: 1st param was a pointer
+/*	advc (note): The rules applied by this function need to be consistent with
+	KmodPathFinder and other pathfinding code. */
+bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar,
+	bool bIgnoreLoad, bool bAssumeVisible,
 	bool bDangerCheck) const // advc.001k
 {
 	//PROFILE_FUNC(); // advc.003o

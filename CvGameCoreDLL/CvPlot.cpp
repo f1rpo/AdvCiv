@@ -2259,7 +2259,8 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 	return iModifier;
 }
 
-
+/*	advc (note): The calculations performed by this function need to be
+	consistent with KmodPathFinder and other pathfinding code. */
 int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 	bool bAssumeRevealed) const // advc.001i
 {
@@ -2369,14 +2370,11 @@ void CvPlot::changeExtraMovePathCost(int iChange)
 
 bool CvPlot::isAdjacentOwned() const
 {
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	FOR_EACH_ENUM(Direction)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
-		if (pAdjacentPlot != NULL)
-		{
-			if (pAdjacentPlot->isOwned())
-				return true;
-		}
+		CvPlot const* pAdj = plotDirection(getX(), getY(), eLoopDirection);
+		if (pAdj != NULL && pAdj->isOwned())
+			return true;
 	}
 	return false;
 }
@@ -2384,38 +2382,34 @@ bool CvPlot::isAdjacentOwned() const
 
 bool CvPlot::isAdjacentPlayer(PlayerTypes ePlayer, bool bLandOnly) const
 {
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	FOR_EACH_ENUM(Direction)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-		if (pAdjacentPlot != NULL)
+		CvPlot const* pAdj = plotDirection(getX(), getY(), eLoopDirection);
+		if (pAdj == NULL)
+			continue;
+		if (pAdj->getOwner() == ePlayer)
 		{
-			if (pAdjacentPlot->getOwner() == ePlayer)
-			{
-				if (!bLandOnly || !(pAdjacentPlot->isWater()))
-					return true;
-			}
+			if (!bLandOnly || !(pAdj->isWater()))
+				return true;
 		}
 	}
-
 	return false;
 }
 
 
 bool CvPlot::isAdjacentTeam(TeamTypes eTeam, bool bLandOnly) const
 {
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	FOR_EACH_ENUM(Direction)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
-		if (pAdjacentPlot != NULL)
+		CvPlot const* pAdj = plotDirection(getX(), getY(), eLoopDirection);
+		if (pAdj == NULL)
+			continue;
+		if (pAdj->getTeam() == eTeam)
 		{
-			if (pAdjacentPlot->getTeam() == eTeam)
-			{
-				if (!bLandOnly || !(pAdjacentPlot->isWater()))
-					return true;
-			}
+			if (!bLandOnly || !pAdj->isWater())
+				return true;
 		}
 	}
-
 	return false;
 }
 
@@ -2427,7 +2421,6 @@ bool CvPlot::isWithinCultureRange(PlayerTypes ePlayer) const
 		if (isCultureRangeCity(ePlayer, eLoopCultureLevel))
 			return true;
 	}
-
 	return false;
 }
 

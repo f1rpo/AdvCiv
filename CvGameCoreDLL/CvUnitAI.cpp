@@ -15618,6 +15618,11 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 								}
 							}
 						}
+						/*	advc.test: This is the only result of the loop above.
+							BtS had disregarded pLoopPlot if !bCanCargoAllUnload.
+							This has gotten lost in BBAI, perhaps for the better.
+							But perhaps we should reduce iValue? */
+						FAssert(bCanCargoAllUnload);
 
 						int iValue = (iAssaultsHere * 5);
 						iValue += iTargetCities * 10;
