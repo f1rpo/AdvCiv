@@ -114,6 +114,7 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 			m_iGridHeight *= GC.getLandscapePlotsPerCellY();
 		}
 	}
+	updatePlotNum(); // advc.opt
 
 	m_iLandPlots = 0;
 	m_iOwnedPlots = 0;
@@ -1022,12 +1023,17 @@ void CvMap::deleteArea(int iID)
 }
 
 
-void CvMap::recalculateAreas()
+void CvMap::recalculateAreas(/* advc.opt: */bool bUpdateIsthmuses)
 {
 	PROFILE_FUNC();
-
-	for (int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).setArea(NULL);
+	// <advc.opt>
+	if (bUpdateIsthmuses)
+	{
+		for (int i = 0; i < numPlots(); i++)
+			getPlotByIndex(i).updateAnyIsthmus();
+	} // </advc.opt>
+	for (int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).setArea(NULL);
 	m_areas.removeAll();
 	calculateAreas();
 }
@@ -1192,6 +1198,10 @@ void CvMap::read(FDataStreamBase* pStream)
 
 	pStream->Read(&m_iGridWidth);
 	pStream->Read(&m_iGridHeight);
+	// <advc.opt>
+	if (uiFlag >= 3)
+		pStream->Read((int*)&m_ePlots);
+	else updatePlotNum(); // </advc.opt>
 	pStream->Read(&m_iLandPlots);
 	pStream->Read(&m_iOwnedPlots);
 	pStream->Read(&m_iTopLatitude);
@@ -1212,8 +1222,14 @@ void CvMap::read(FDataStreamBase* pStream)
 	if (numPlots() > 0)
 	{
 		m_pMapPlots = new CvPlot[numPlots()];
-		for (int iI = 0; iI < numPlots(); iI++)
-			m_pMapPlots[iI].read(pStream);
+		for (int i = 0; i < numPlots(); i++)
+			m_pMapPlots[i].read(pStream);
+		// <advc.opt>
+		if (uiFlag < 2)
+		{
+			for (int i = 0; i < numPlots(); i++)
+				m_pMapPlots[i].updateAnyIsthmus();
+		} // </advc.opt>
 	}
 
 	ReadStreamableFFreeListTrashArray(m_areas, pStream);
@@ -1248,11 +1264,14 @@ void CvMap::write(FDataStreamBase* pStream)
 {
 	REPRO_TEST_BEGIN_WRITE("Map");
 	uint uiFlag;
-	uiFlag = 1; // advc.106n
+	//uiFlag = 1; // advc.106n
+	//uiFlag = 2; // advc.opt: CvPlot::m_bAnyIsthmus
+	uiFlag = 3; // advc.opt: m_ePlots
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iGridWidth);
 	pStream->Write(m_iGridHeight);
+	pStream->Write(m_ePlots);
 	pStream->Write(m_iLandPlots);
 	pStream->Write(m_iOwnedPlots);
 	pStream->Write(m_iTopLatitude);
@@ -1290,6 +1309,12 @@ void CvMap::rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitud
 
 	// Init map
 	init(&initData);
+}
+
+// advc.opt:
+void CvMap::updatePlotNum()
+{
+	m_ePlots = (PlotNumTypes)(getGridWidth() * getGridHeight());
 }
 
 // <advc.106n>

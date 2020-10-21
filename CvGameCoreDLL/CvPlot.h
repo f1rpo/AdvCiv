@@ -269,7 +269,10 @@ public:
 
 	bool isValidDomainForLocation(CvUnit const& kUnit) const;																					// Exposed to Python
 	bool isValidDomainForAction(CvUnit const& kUnit) const;																						// Exposed to Python
-	inline bool isImpassable() const { return m_bImpassable; } // advc.opt: cached										// Exposed to Python
+	// <advc.opt>
+	inline bool isImpassable() const { return m_bImpassable; } // cached												// Exposed to Python
+	inline bool isAnyIsthmus() const { return m_bAnyIsthmus; } // Note: always false for land plots
+	void updateAnyIsthmus(); // </advc.opt>
 
 	int getXExternal() const; // advc.inl: Exported through .def file																					// Exposed to Python
 	inline int getX() const { return m_iX; } // advc.inl: Renamed from getX_INLINE
@@ -751,6 +754,7 @@ protected:
 	bool m_bWOfRiver:1;
 	bool m_bIrrigated:1;
 	bool m_bImpassable:1; // advc.opt
+	bool m_bAnyIsthmus:1; // advc.opt
 	bool m_bPotentialCityWork:1;
 	bool m_bShowCitySymbols:1;
 	bool m_bFlagDirty:1;

@@ -195,14 +195,12 @@ public:
 	{
 		return (stepDistance(&kFirstPlot, &kSecondPlot) <= 1);
 	}
-	/*	advc (for advc.030, advc.027): Cut from teamStepValid in CvGameCoreUtils.
-		Not getting inlined - which is OK (I've benchmarked it with forceinline). */
-	bool isSeparatedByIsthmus(CvPlot const& kFrom, CvPlot const& kTo) const
+	// advc.opt: Check cache at CvPlot before doing the computation
+	inline bool isSeparatedByIsthmus(CvPlot const& kFrom, CvPlot const& kTo) const
 	{
-		return (kFrom.isWater() && kTo.isWater() &&
-			// Safe wrt. map edges b/c we know (assume) that kFrom and kTo are adjacent
-			!getPlot(kFrom.getX(), kTo.getY()).isWater() &&
-			!getPlot(kTo.getX(), kFrom.getY()).isWater());
+		if (!kFrom.isAnyIsthmus())
+			return false;
+		return isSeparatedByIsthmus_bulk(kFrom, kTo);
 	}
 
 private: // Auxiliary functions
@@ -240,6 +238,14 @@ private: // Auxiliary functions
 		return iCoord;
 	}
 	// (end of functions moved from CvGameCoreUtils.h) </advc.make>
+	// advc (for advc.030, advc.027): Cut from teamStepValid in CvGameCoreUtils
+	bool isSeparatedByIsthmus_bulk(CvPlot const& kFrom, CvPlot const& kTo) const
+	{
+		return (kFrom.isWater() && kTo.isWater() &&
+			// Safe wrt. map edges b/c we know (assume) that kFrom and kTo are adjacent
+			!getPlot(kFrom.getX(), kTo.getY()).isWater() &&
+			!getPlot(kTo.getX(), kFrom.getY()).isWater());
+	}
 
 	friend class CyMap;
 public:
@@ -315,7 +321,7 @@ public: // advc: made several functions const
 	int numPlotsExternal() const; // advc.inl: Exported through .def file							// Exposed to Python
 	inline PlotNumTypes numPlots() const // advc.inl: Renamed from numPlotsINLINE
 	{
-		return (PlotNumTypes)(getGridWidth() * getGridHeight());
+		return m_ePlots;//getGridWidth() * getGridHeight(); // advc.opt
 	}
 	/*	advc.inl: Merged with plotNumINLINE (plotNum wasn't called externally).
 		advc.enum: return type changed from int. */
@@ -479,7 +485,7 @@ public: // advc: made several functions const
 		return m_areas.nextIter(pIterIdx); // advc.opt
 	}
 
-	void recalculateAreas();																		// Exposed to Python
+	void recalculateAreas(bool bUpdateIsthmuses = true);												// Exposed to Python
 	// <advc.300>
 	void computeShelves();
 	void getShelves(CvArea const& kArea, std::vector<Shelf*>& r) const;
@@ -514,6 +520,7 @@ protected:
 
 	int m_iGridWidth;
 	int m_iGridHeight;
+	PlotNumTypes m_ePlots; // advc.opt
 	int m_iLandPlots;
 	int m_iOwnedPlots;
 	int m_iTopLatitude;
@@ -538,6 +545,7 @@ protected:
 	void calculateAreas_DFS(CvPlot const& p);
 	void updateLakes();
 	// </advc.030>
+	void updatePlotNum(); // advc.opt
 };
 
 // advc.enum: (for EnumMap)

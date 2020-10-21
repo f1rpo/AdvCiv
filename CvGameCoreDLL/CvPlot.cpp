@@ -69,6 +69,7 @@ CvPlot::CvPlot() // advc: Merged with the deleted reset function
 	m_bWOfRiver = false;
 	m_bIrrigated = false;
 	m_bImpassable = false; // advc.opt
+	m_bAnyIsthmus = false; // advc.opt
 	m_bPotentialCityWork = false;
 	m_bShowCitySymbols = false;
 	m_bFlagDirty = false;
@@ -3279,6 +3280,49 @@ void CvPlot::updateImpassable()
 			(!isFeature() ?
 			(getTerrainType() != NO_TERRAIN && GC.getInfo(getTerrainType()).isImpassable()) :
 			GC.getInfo(getFeatureType()).isImpassable()));
+}
+
+// advc.opt:
+void CvPlot::updateAnyIsthmus()
+{
+	if (!isWater()) // Only store isthmus info at water plots (don't need it for land)
+	{
+		m_bAnyIsthmus = false;
+		return;
+	}
+	CvMap const& kMap = GC.getMap();
+	FOR_EACH_ENUM(CardinalDirection)
+	{
+		/*	Look for a pair of orthogonally adjacent land plots that
+			are diagonally adjacent to each other */
+		CvPlot const* pOrthAdj1 = plotCardinalDirection(getX(), getY(),
+				eLoopCardinalDirection);
+		if (pOrthAdj1 == NULL || pOrthAdj1->isWater())
+			continue;
+		CvPlot const* pOrthAdj2 = plotCardinalDirection(getX(), getY(),
+				(CardinalDirectionTypes)
+				((eLoopCardinalDirection + 1) % NUM_CARDINALDIRECTION_TYPES));
+		if (pOrthAdj2 == NULL || pOrthAdj2->isWater())
+			continue;
+		// Check for a water plot adjacent to all three plots
+		int iDiagX, iDiagY;
+		if (pOrthAdj1->getX() == getX())
+		{
+			iDiagX = pOrthAdj2->getX();
+			iDiagY = pOrthAdj1->getY();
+		}
+		else
+		{
+			iDiagX = pOrthAdj1->getX();
+			iDiagY = pOrthAdj2->getY();
+		}
+		if (kMap.getPlot(iDiagX, iDiagY).isWater())
+		{
+			m_bAnyIsthmus = true;
+			return;
+		}
+	}
+	m_bAnyIsthmus = false;
 }
 
 
@@ -7036,6 +7080,11 @@ void CvPlot::read(FDataStreamBase* pStream)
 	{
 		pStream->Read(&bVal);
 		m_bImpassable = bVal;
+	}
+	if (uiFlag >= 8) // else CvMap::read will handle it
+	{
+		pStream->Read(&bVal);
+		m_bAnyIsthmus = bVal;
 	} // </advc.opt>
 	pStream->Read(&bVal);
 	m_bPotentialCityWork = bVal;
@@ -7197,7 +7246,8 @@ void CvPlot::write(FDataStreamBase* pStream)
 	//uiFlag = 4; // advc.opt: m_bHills removed
 	//uiFlag = 5; // advc.opt, advc.011, advc.enum: some int or short members turned into short or char
 	//uiFlag = 6; // advc.opt: m_eTeam
-	uiFlag = 7; // advc.opt: m_bImpassable
+	//uiFlag = 7; // advc.opt: m_bImpassable
+	uiFlag = 8; // advc.opt: m_bAnyIsthmus
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE(CvString::format("Plot pt1(%d,%d)", getX(), getY()).GetCString());
 	pStream->Write(m_iX);
@@ -7221,6 +7271,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	pStream->Write(m_bWOfRiver);
 	pStream->Write(m_bIrrigated);
 	pStream->Write(m_bImpassable); // advc.opt
+	pStream->Write(m_bAnyIsthmus); // advc.opt
 	pStream->Write(m_bPotentialCityWork);
 	// m_bShowCitySymbols not saved
 	// m_bFlagDirty not saved

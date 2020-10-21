@@ -224,7 +224,7 @@ void CvGame::setInitialItems()
 		kMap.plotByIndex(i)->setRiverID(-1); // </advc>
 	// <advc.030> Now that ice has been placed and normalization is through
 	if(GC.getDefineBOOL("PASSABLE_AREAS"))
-		kMap.recalculateAreas();
+		kMap.recalculateAreas(false);
 	// </advc.030>
 	initFreeUnits();
 	// <advc.250c>
