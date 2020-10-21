@@ -1375,14 +1375,18 @@ void CvCityAI::AI_chooseProduction()
 		}
 	}
 
-	if (!bDanger && !bCapitalArea && kArea.getCitiesPerPlayer(getOwner()) > iNumCapitalAreaCities)
+	if (!bDanger && !bCapitalArea &&
+		kArea.getCitiesPerPlayer(getOwner()) > iNumCapitalAreaCities)
 	{
-		// BBAI TODO:  This check should be done by player, not by city and optimize placement
-		// If losing badly in war, don't build big things
+		// BBAI TODO: Should be handled by CvPlayer, not CvCity. And optimize placement.
+		// If losing badly in war, don't build big things.
 		if (!bLandWar || iWarSuccessRating > -30)
 		{
-			if (pCapital == NULL || kArea.getPopulationPerPlayer(getOwner()) >
-				pCapital->getArea().getPopulationPerPlayer(getOwner()))
+			// advc.131: Added multipliers to create some inertia
+			if (pCapital == NULL || (4 * kArea.getPopulationPerPlayer(getOwner()) >
+				5 * pCapital->getArea().getPopulationPerPlayer(getOwner()) &&
+				// advc.131:
+				findBaseYieldRateRank(YIELD_PRODUCTION) <= kPlayer.getNumCities() / 2))
 			{
 				int iOdds = 3 * kArea.getCitiesPerPlayer(getOwner()); // advc.131: was 15 flat
 				if (AI_chooseBuilding(BUILDINGFOCUS_CAPITAL, iOdds))
