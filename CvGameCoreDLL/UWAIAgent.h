@@ -194,7 +194,7 @@ public:
 	// Can this civ hurry production somehow? (Slavery, Univ. Suffrage)
 	bool canHurry() const;
 	double buildUnitProb() const;
-	double shipSpeed() const;
+	int shipSpeed() const;
 	/*  period: Build-up over how many turns? Will be adjusted to game speed
 		by this function! */
 	double estimateBuildUpRate(PlayerTypes civId, int period = 10) const;

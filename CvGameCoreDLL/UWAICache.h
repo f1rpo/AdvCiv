@@ -6,6 +6,7 @@
 class UWAICache;
 class MilitaryBranch;
 class CvCity;
+class TeamPathFinders;
 class FDataStreamBase;
 
 /* advc.104: Cached data used by the war-and-peace AI. Each civ has its own
@@ -133,8 +134,10 @@ public:
 private:
 	// beforeUpdated: Only clear data that is recomputed in 'update'
 	void clear(bool beforeUpdate = false);
-	void updateCities(PlayerTypes civId);
-	void updateLatestTurnReachableBySea();
+	void updateCities(TeamTypes teamId);
+	void add(City& c);
+	TeamPathFinders* createTeamPathFinders(TeamTypes warTarget) const;
+	static void deleteTeamPathFinders(TeamPathFinders& pf);
 	void updateTraits();
 	void updateTargetMissionCounts();
 	void updateThreatRatings();
@@ -205,7 +208,7 @@ public:
 	   for computing war utility. */
 	class City {
 	public:
-		City(PlayerTypes cacheOwnerId, CvCity const& c);
+		City(PlayerTypes cacheOwnerId, CvCity& c, TeamPathFinders* pf);
 		City(PlayerTypes cacheOwnerId); // for reading from savegame
 		PlayerTypes cityOwner() const;
 		bool isOwnCity() const;
@@ -251,7 +254,8 @@ public:
 		/* Auxiliary function for sorting. -1 means one < two, +1 two < one and 0
 		   neither. */
 		static int byOwner(City* one, City* two);
-		void updateDistance(CvCity const& targetCity);
+		void updateDistance(CvCity const& targetCity, TeamPathFinders* pf,
+				PlayerTypes cacheOwnerId);
 		void updateAssetScore();
 
 		int distance, targetValue, assetScore;

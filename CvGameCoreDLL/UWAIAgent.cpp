@@ -5,13 +5,14 @@
 #include "WarEvaluator.h"
 #include "UWAIReport.h"
 #include "WarEvalParameters.h"
+#include "MilitaryBranch.h"
 #include "CvInfo_GameOption.h"
 #include "CvInfo_Building.h" // Just for vote-related info
 //#include "CvInfo_Unit.h" // for UWAI::Civ::militaryPower (now in PCH)
 #include "CoreAI.h"
 #include "CvCityAI.h"
 #include "CvDiploParameters.h"
-#include "CvMap.h"
+#include "TeamPathFinder.h"
 #include "CvArea.h"
 #include "RiseFall.h" // advc.705
 
@@ -335,11 +336,9 @@ void UWAI::Team::alignAreaAI(bool isNaval) {
 				if(!isPushover(targetCity->getTeam()) ||
 						(wp != WARPLAN_TOTAL && wp != WARPLAN_PREPARING_TOTAL)) {
 					// Make sure there isn't an easily reachable target in the capital area
-					int d=-1;
-					UWAICache::City::measureDistance(member.getID(), DOMAIN_LAND,
-							*capital->plot(), *targetCity->plot(), &d);
-					if(::round(d / UWAICache::City::estimateMovementSpeed(
-							member.getID(), DOMAIN_LAND, d)) <= 8)
+					TeamPathFinder<TeamPath::LAND> pf(GET_TEAM(agentId),
+							&GET_TEAM(targetCity->getTeam()), 8);
+					if(pf.generatePath(capital->getPlot(), targetCity->getPlot()))
 						bAlign = false;
 				}
 			}
@@ -2413,7 +2412,7 @@ double UWAI::Civ::buildUnitProb() const {
 	return GC.getInfo(we.getPersonalityType()).getBuildUnitProb() / 100.0;
 }
 
-double UWAI::Civ::shipSpeed() const {
+int UWAI::Civ::shipSpeed() const {
 
 	MilitaryBranch const* logistics = getCache().getPowerValues()[LOGISTICS];
 	if(logistics != NULL) {
@@ -2422,7 +2421,7 @@ double UWAI::Civ::shipSpeed() const {
 			return typicalTransport->getMoves();
 	}
 	// Fallback (needed?)
-	return ::dRange(GET_PLAYER(weId).getCurrentEra() + 1.0, 3.0, 5.0);
+	return ::range(GET_PLAYER(weId).getCurrentEra() + 1, 3, 5);
 }
 
 double UWAI::Civ::humanBuildUnitProb() const {

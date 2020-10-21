@@ -106,15 +106,33 @@ protected:
 	int m_iHeuristicWeight;
 };
 
-// Derive a class for each mode; mainly so that they can be forward-declared.
-// advc.tmp: Maybe won't be needed after all; remove these classes then.
-class TeamPathFinderLand : public TeamPathFinder<TeamPath::LAND>
+class TeamPathFinders // For code that needs all three (and for forward declarations)
 {
 public:
-	TeamPathFinderLand(CvTeam const& kTeam, CvTeam const* pWarTarget = NULL,
-		int iMaxPath = -1)
-	:	TeamPathFinder<TeamPath::LAND>(kTeam, pWarTarget, iMaxPath)
+	TeamPathFinders(
+		TeamPathFinder<TeamPath::LAND>& kLandFinder,
+		TeamPathFinder<TeamPath::ANY_WATER>& kAnyWaterFinder,
+		TeamPathFinder<TeamPath::SHALLOW_WATER>& kShallowWaterFinder)
+	:	m_kLandFinder(kLandFinder),
+		m_kAnyWaterFinder(kAnyWaterFinder),
+		m_kShallowWaterFinder(kShallowWaterFinder)
 	{}
+	inline TeamPathFinder<TeamPath::LAND>& landFinder() const
+	{
+		return m_kLandFinder;
+	}
+	inline TeamPathFinder<TeamPath::ANY_WATER>& anyWaterFinder() const
+	{
+		return m_kAnyWaterFinder;
+	}
+	inline TeamPathFinder<TeamPath::SHALLOW_WATER>& shallowWaterFinder() const
+	{
+		return m_kShallowWaterFinder;
+	}
+private:
+	TeamPathFinder<TeamPath::LAND>& m_kLandFinder;
+	TeamPathFinder<TeamPath::ANY_WATER>& m_kAnyWaterFinder;
+	TeamPathFinder<TeamPath::SHALLOW_WATER>& m_kShallowWaterFinder;
 };
 class TeamPathFinderAnyWater : public TeamPathFinder<TeamPath::ANY_WATER>
 {
