@@ -5,7 +5,7 @@
 #include "CoreAI.h"
 #include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
-#include "TeamPathFinder.h" // advc.104b (advc.tmp)
+#include "TeamPathFinder.h" // advc.104b
 #include "CvCityAI.h"
 #include "CitySiteEvaluator.h"
 #include "CvDeal.h"
@@ -5946,15 +5946,17 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 	// <advc.test>, advc.104b
 	{
 		static CvPlot const* pOldPlot = NULL;
+		static CvUnit const* pOldUnit = NULL;
 		static int iCost = MAX_INT;
 		static int iLength = MAX_INT;
 		CvUnit const* pUnit = gDLL->UI().getHeadSelectedUnit();
 		CvPlot const* pPlot = gDLL->UI().getMouseOverPlot();
 		if (pUnit != NULL && pPlot != NULL)
-		{
-			if (pPlot != pOldPlot) // Avoid lag from computing the same path over and over
+		{	// Avoid lag from computing the same path over and over
+			if (pPlot != pOldPlot || pUnit != pOldUnit)
 			{
 				pOldPlot = pPlot;
+				pOldUnit = pUnit;
 				CvTeam const& kTeam = GET_TEAM(pUnit->getTeam());
 				CvTeam const* pWarTeam = NULL;
 				{
@@ -5965,46 +5967,74 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 				int const iMaxPath = 15 * pUnit->baseMoves();
 				CvPlot const& kStart = pUnit->getPlot();
 				CvPlot const& kDest = *pPlot;
-				TeamPath::Mode eMode = TeamPath::LAND;
+				using namespace TeamPath;
+				Mode eMode = LAND;
 				if (pUnit->getDomainType() != DOMAIN_LAND)
 				{
 					TechTypes const eTech = pUnit->getUnitInfo().getPrereqAndTech();
-					if (eTech != NO_TECH && GC.getInfo(eTech).getEra() >= 3)
-						eMode = TeamPath::ANY_WATER;
-					else eMode = TeamPath::SHALLOW_WATER;
+					if (eTech != NO_TECH && GC.getInfo(eTech).getEra() >= 2)
+						eMode = ANY_WATER;
+					else eMode = SHALLOW_WATER;
 				}
 				// TeamPathFinder isn't intended for dynamic dispatch, so this is awkward.
 				switch(eMode)
 				{
-				case TeamPath::LAND:
+				case LAND:
 				{
-					TeamPathFinderLand pf(kTeam, pWarTeam, iMaxPath);
+					TeamPathFinder<LAND> pf(kTeam, pWarTeam, iMaxPath);
 					if (pf.generatePath(kStart, kDest))
 					{
 						iCost = pf.getPathCost();
 						iLength = pf.getPathLength();
+						#ifdef FASSERT_ENABLE // symmetry test (UWAICache relies on that)
+						bool bSuccess = pf.generatePath(kDest, kStart);
+						FAssert(bSuccess);
+						if (bSuccess)
+						{
+							FAssert(pf.getPathCost() == iCost);
+							FAssert(pf.getPathLength() == iLength);
+						}
+						#endif
 					}
 					else iCost = iLength = MAX_INT;
 					break;
 				}
-				case TeamPath::ANY_WATER:
+				case ANY_WATER:
 				{
-					TeamPathFinderAnyWater pf(kTeam, pWarTeam, iMaxPath);
+					TeamPathFinder<ANY_WATER> pf(kTeam, pWarTeam, iMaxPath);
 					if (pf.generatePath(kStart, kDest))
 					{
 						iCost = pf.getPathCost();
 						iLength = pf.getPathLength();
+						#ifdef FASSERT_ENABLE
+						bool bSuccess = pf.generatePath(kDest, kStart);
+						FAssert(bSuccess);
+						if (bSuccess)
+						{
+							FAssert(pf.getPathCost() == iCost);
+							FAssert(pf.getPathLength() == iLength);
+						}
+						#endif
 					}
 					else iCost = iLength = MAX_INT;
 					break;
 				}
-				case TeamPath::SHALLOW_WATER:
+				case SHALLOW_WATER:
 				{
-					TeamPathFinderShallowWater pf(kTeam, pWarTeam, iMaxPath);
+					TeamPathFinder<SHALLOW_WATER> pf(kTeam, pWarTeam, iMaxPath);
 					if (pf.generatePath(kStart, kDest))
 					{
 						iCost = pf.getPathCost();
 						iLength = pf.getPathLength();
+						#ifdef FASSERT_ENABLE
+						bool bSuccess = pf.generatePath(kDest, kStart);
+						FAssert(bSuccess);
+						if (bSuccess)
+						{
+							FAssert(pf.getPathCost() == iCost);
+							FAssert(pf.getPathLength() == iLength);
+						}
+						#endif
 					}
 					else iCost = iLength = MAX_INT;
 					break;
