@@ -62,7 +62,7 @@ bool TeamStepMetric<eMODE>::canStepThrough(CvPlot const& kPlot) const
 		{
 			if (eMODE != LAND)
 			{	// The first check is redundant, supposed to save time.
-				bCanal = (kPlot.isCity() || kPlot.isCity(true, m_pTeam->getID()));
+				bCanal = (kPlot.isCity() && kPlot.isCity(true, m_pTeam->getID()));
 			}
 			// I expect that this is the slowest check
 			if (!m_pTeam->canPeacefullyEnter(ePlotTeam))
@@ -92,42 +92,49 @@ bool TeamStepMetric<eMODE>::isValidDest(CvPlot const& kStart, CvPlot const& kDes
 			return false;
 		}
 	}
-	/*	The same-area checks below would have to be removed (replaced with true)
-		to allow movement between separate water areas through a canal.
-		As it is, canals can only be used as shortcuts within a water area.
-		Tbd.: See how much of a performance penalty there is if the
-		same-area checks are removed. */
+	/*	The same-area checks below would miss out on canals connecting water areas.
+		Most maps have only one large water area anyway, and lakes can be easily
+		handled in client code by checking CvPlot::isCoastalLand(-1). Also, it's
+		not going to take the pathfinde rlong to realize that a lake is a dead-end. */
 	if (kStart.isWater())
 	{
 		if (kDest.isWater())
-			return kStart.sameArea(kDest);
+			return /*kStart.sameArea(kDest)*/ true;
 		// May unload onto a coastal land plot (but not pass through)
 		FOR_EACH_ENUM(Direction)
 		{
 			CvPlot const* pAdj = plotDirection(kDest.getX(), kDest.getY(),
 					eLoopDirection);
-			if (pAdj != NULL && pAdj->sameArea(kStart))
+			if (pAdj != NULL && //pAdj->sameArea(kStart)
+				pAdj->isWater())
+			{
 				return true;
+			}
 		}
 		return false;
 	}
-	// Water movement starting at land: need to share a water area with kDest
+	// Water movement starting on land: need to be adjacent to water.
 	FOR_EACH_ENUM2(Direction, eDirStart)
 	{
 		CvPlot const* pAdjStart = plotDirection(kStart.getX(), kStart.getY(),
 				eDirStart);
 		if (pAdjStart == NULL || !pAdjStart->isWater())
 			continue;
-		if (pAdjStart->sameArea(kDest))
+		//if (pAdjStart->sameArea(kDest))
+		if (kDest.isWater())
 			return true;
-		if (!kDest.isWater())
+		//if (!kDest.isWater())
+		else
 		{
 			FOR_EACH_ENUM2(Direction, eDirDest)
 			{
 				CvPlot const* pAdjDest = plotDirection(kDest.getX(), kDest.getY(),
 						eDirDest);
-				if (pAdjDest != NULL && pAdjStart->sameArea(*pAdjDest))
+				if (pAdjDest != NULL && //pAdjStart->sameArea(*pAdjDest)
+					pAdjDest->isWater())
+				{
 					return true;
+				}
 			}
 		}
 	}
