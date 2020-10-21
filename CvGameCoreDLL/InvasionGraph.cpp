@@ -360,14 +360,12 @@ PlayerTypes InvasionGraph::Node::findBestTarget(TeamTypes include) const {
 	int iMaxSkip = GET_PLAYER(id).getNumCities() / 2;
 	PlayerTypes bestTarget = NO_PLAYER;
 	for(int i = 0; i < cache.size(); i++) {
-		UWAICache::City* city = cache.getCity(i);
-		if(city == NULL)
-			continue;
+		UWAICache::City& city = cache.cityAt(i);
 		// Because of ordering, first hit is best target (if any target is valid).
-		if(!city->canReach() || city->isOwnCity())
+		if(!city.canReach() || city.isOwnTeamCity())
 			break;
-		if(isValidTarget(*city, include)) {
-			bestTarget = city->cityOwner();
+		if(isValidTarget(city, include)) {
+			bestTarget = city.city().getOwner();
 			if(bestTarget == weId || !bPessimistic || iSkipped >= iMaxSkip)
 				break;
 			iSkipped++;
@@ -383,7 +381,7 @@ PlayerTypes InvasionGraph::Node::findBestTarget(TeamTypes include) const {
 bool InvasionGraph::Node::isValidTarget(UWAICache::City const& c,
 		TeamTypes include) const {
 
-	PlayerTypes const owner = c.cityOwner();
+	PlayerTypes const owner = c.city().getOwner();
 	return (isValidTarget(owner, include) &&
 			!outer.nodeMap[owner]->hasLost(c.id()));
 }
@@ -431,13 +429,13 @@ void InvasionGraph::Node::resolveLossesRec() {
 void InvasionGraph::Node::addConquest(UWAICache::City const& c) {
 
 	report.log("*%s* (%s) assumed to be *conquered* by %s",
-			report.cityName(*c.city()),
-			report.leaderName(c.cityOwner()), report.leaderName(id));
+			report.cityName(c.city()),
+			report.leaderName(c.city().getOwner()), report.leaderName(id));
 	conquests.push_back(&c);
 	// Advance cache index past the city just conquered
 	while(cacheIndex < cache.size()) {
-		 UWAICache::City* cacheCity = cache.getCity(cacheIndex);
-		 if(cacheCity != NULL && cacheCity->id() == c.id())
+		 UWAICache::City& cacheCity = cache.cityAt(cacheIndex);
+		 if(cacheCity.id() == c.id())
 			break;
 		 cacheIndex++;
 	}
@@ -529,9 +527,8 @@ double InvasionGraph::Node::productionPortion() const {
 
 	int lostPop = 0;
 	for(CitySetIter it = losses.begin(); it != losses.end(); ++it) {
-		CvCity* c = UWAICache::City::cityById(*it);
-		if(c != NULL)
-			lostPop += c->getPopulation();
+		CvCity& c = UWAICache::cvCityById(*it);
+		lostPop += c.getPopulation();
 	}
 	int originalPop = GET_PLAYER(id).getTotalPopulation();
 	if(originalPop <= 0)
@@ -559,11 +556,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	UWAICache::City const* const c = (clashOnly ? NULL : targetCity());
 	if(c == NULL && !clashOnly)
 		return NULL;
-	CvCity const* const cvCity = (c == NULL ? NULL : c->city());
-	if(cvCity == NULL && !clashOnly) {
-		FAssert(cvCity != NULL);
-		return NULL;
-	}
+	CvCity const* const cvCity = (c == NULL ? NULL : &c->city());
 	Node& defender = *primaryTarget;
 	int const defCities = GET_PLAYER(defender.id).getNumCities();
 	int const attCities = GET_PLAYER(id).getNumCities();
@@ -781,7 +774,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		   actual game. Reduce distance for subsequent attacks a bit in order to
 		   match an average case. */
 		if(!conquests.empty()) {
-			CvCity const& latestConq = *conquests[conquests.size() - 1]->city();
+			CvCity const& latestConq = conquests[conquests.size() - 1]->city();
 			if(latestConq.getOwner() == defender.id && cvCity->sameArea(latestConq)) {
 				deploymentDistAttacker *= 0.6;
 				// Will have to wait for some units to heal then though
@@ -1460,8 +1453,7 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 					GET_PLAYER(attacker.id).uwai().getDominationStage()) {
 				int nConqueredByAtt = 0;
 				for(size_t i = 0; i < attacker.conquests.size(); i++) {
-					if(attacker.conquests[i] != NULL &&
-							losses.count(attacker.conquests[i]->id()) > 0)
+					if(losses.count(attacker.conquests[i]->id()) > 0)
 						nConqueredByAtt++;
 				}
 				int nConqueredByOther = (int)losses.size() - nConqueredByAtt;
@@ -1565,19 +1557,17 @@ UWAICache::City const* InvasionGraph::Node::targetCity(PlayerTypes owner) const 
 	if(primaryTarget == NULL && owner == NO_PLAYER)
 		return NULL;
 	for(int i = cacheIndex; i < cache.size(); i++) {
-		UWAICache::City* r = cache.getCity(i);
-		if(r == NULL)
-			continue;
-		if(!r->canReach() || r->isOwnCity())
+		UWAICache::City& r = cache.cityAt(i);
+		if(!r.canReach() || r.isOwnTeamCity())
 			break; // Because of sorting, rest is also going to be invalid.
-		PlayerTypes const cityOwner = r->cityOwner();
+		PlayerTypes const cityOwner = r.city().getOwner();
 		if((cityOwner == owner ||
 				(owner == NO_PLAYER && cityOwner == primaryTarget->getId())) &&
 				/* Target may also have conquered the city; however,
 				   cities being won and lost within one military analysis
 				   gets too complicated. */
-				(primaryTarget == NULL || !primaryTarget->hasLost(r->id())))
-			return r;
+				(primaryTarget == NULL || !primaryTarget->hasLost(r.id())))
+			return &r;
 	}
 	return NULL;
 }
@@ -1762,7 +1752,7 @@ bool InvasionGraph::Node::isSneakAttack(InvasionGraph::Node const& other,
 		return false;
 	if(!bClash) {
 		for(size_t i = 0; i < conquests.size(); i++)
-			if(conquests[i]->cityOwner() == other.getId())
+			if(conquests[i]->city().getOwner() == other.getId())
 				return false;
 	}
 	WarEvalParameters const& params = outer.m.evaluationParameters();
@@ -1777,12 +1767,8 @@ bool InvasionGraph::Node::isContinuedWar(Node const& other) const {
 
 void InvasionGraph::Node::getConquests(CitySet& r) const {
 
-	for(size_t i = 0; i < conquests.size(); i++) {
-		 if(conquests[i] == NULL)
-			 continue;
-		 FAssert(conquests[i]->city() != NULL);
+	for(size_t i = 0; i < conquests.size(); i++)
 		 r.insert(conquests[i]->id());
-	}
 }
 
 void InvasionGraph::Node::getLosses(CitySet& r) const {

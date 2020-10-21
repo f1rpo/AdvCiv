@@ -259,19 +259,19 @@ int CvTeamAI::AI_estimateTotalYieldRate(YieldTypes eYield) const
 	return iTotal;
 } // K-Mod end
 
-// K-Mod. return true if is fair enough for the AI to know there is a city here
-bool CvTeamAI::AI_deduceCitySite(const CvCity* pCity) const
+// K-Mod: return true if is fair enough for the AI to know there is a city here
+bool CvTeamAI::AI_deduceCitySite(CvCity const& kCity) const
 {
 	PROFILE_FUNC();
 
-	if (pCity->isRevealed(getID()))
+	if (kCity.isRevealed(getID()))
 		return true;
 
 	// The rule is this:
 	// if we can see more than n plots of the nth culture ring, we can deduce where the city is.
 
 	int iPoints = 0;
-	int iLevel = pCity->getCultureLevel();
+	int iLevel = kCity.getCultureLevel();
 	for (int iDX = -iLevel; iDX <= iLevel; iDX++)
 	{
 		for (int iDY = -iLevel; iDY <= iLevel; iDY++)
@@ -279,9 +279,8 @@ bool CvTeamAI::AI_deduceCitySite(const CvCity* pCity) const
 			int iDist = CvCity::cultureDistance(iDX, iDY);
 			if (iDist > iLevel)
 				continue;
-
-			CvPlot* pLoopPlot = plotXY(pCity->getX(), pCity->getY(), iDX, iDY);
-			if (pLoopPlot && pLoopPlot->getRevealedOwner(getID()) == pCity->getOwner())
+			CvPlot* pLoopPlot = plotXY(kCity.getX(), kCity.getY(), iDX, iDY);
+			if (pLoopPlot && pLoopPlot->getRevealedOwner(getID()) == kCity.getOwner())
 			{
 				/*	if multiple cities have their plot in their range,
 					then that will make it harder to deduce the precise city location. */
@@ -293,7 +292,7 @@ bool CvTeamAI::AI_deduceCitySite(const CvCity* pCity) const
 		}
 	}
 	return false;
-} // K-Mod end
+}
 
 
 bool CvTeamAI::AI_isAnyCapitalAreaAlone() const
@@ -608,7 +607,7 @@ bool CvTeamAI::AI_haveSeenCities(TeamTypes eTeam, bool bPrimaryAreaOnly, int iMi
 		CvPlayer const& kMember = *it;
 		FOR_EACH_CITY(pLoopCity, kMember)
 		{
-			if (AI_deduceCitySite(pLoopCity))
+			if (AI_deduceCitySite(*pLoopCity))
 			{
 				if (!bPrimaryAreaOnly || AI_isPrimaryArea(pLoopCity->getArea()))
 				{
@@ -1256,7 +1255,7 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 		CvPlayerAI const& kLoopPlayer = *itMember;
 		FOR_EACH_CITYAI(pLoopCity, kLoopPlayer)
 		{
-			if (!AI_deduceCitySite(pLoopCity))
+			if (!AI_deduceCitySite(*pLoopCity))
 				continue;
 
 			int iCityValue = pLoopCity->getPopulation();
@@ -6428,7 +6427,7 @@ bool CvTeamAI::AI_isWaterAreaRelevant(CvArea const& kArea) const
 			if (!pLoopCity->getPlot().isAdjacentToArea(kArea))
 				continue;
 			// <advc.001> Don't cheat
-			if (!AI_deduceCitySite(pLoopCity))
+			if (!AI_deduceCitySite(*pLoopCity))
 				continue; // </advc.001>
 			iOtherTeamCities++;
 			if (iOtherTeamCities >= iTargetCities)

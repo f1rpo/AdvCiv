@@ -11451,7 +11451,7 @@ bool CvUnitAI::AI_spreadReligion()
 				{
 					continue;
 				}
-				if (!kOwner.AI_deduceCitySite(pLoopCity) || // K-Mod
+				if (!kOwner.AI_deduceCitySite(*pLoopCity) || // K-Mod
 					!canSpread(pLoopCity->plot(), eReligion) ||
 					pLoopCity->getPlot().isVisibleEnemyUnit(this) ||
 					kOwner.AI_isAnyPlotTargetMissionAI(
@@ -11604,7 +11604,7 @@ bool CvUnitAI::AI_spreadCorporation()
 				{
 					if (AI_canEnterByLand(pLoopCity->getArea()) && // advc.030 (replacing same-area check)
 						//AI_plotValid(pLoopCity->plot()) && // advc.opt: Mostly redundant
-						kOwner.AI_deduceCitySite(pLoopCity) &&
+						kOwner.AI_deduceCitySite(*pLoopCity) &&
 						canSpreadCorporation(pLoopCity->plot(), eCorporation) &&
 						!pLoopCity->getPlot().isVisibleEnemyUnit(this) &&
 						!kOwner.AI_isAnyPlotTargetMissionAI(
@@ -13210,7 +13210,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 				continue; // advc
 			if(!AI_mayAttack(kTargetPlayer.getTeam(), pLoopCity->getPlot()))
 				continue;
-			if (kOwner.AI_deduceCitySite(pLoopCity))
+			if (kOwner.AI_deduceCitySite(*pLoopCity))
 			{
 				// K-Mod. Look for either a direct land path, or a sea transport path.
 				int iPathTurns = MAX_INT;
@@ -20416,7 +20416,7 @@ bool CvUnitAI::AI_cityOffenseSpy(int iMaxPath, CvCity* pSkipCity)
 
 			FOR_EACH_CITY(pLoopCity, kLoopPlayer)
 			{
-				if (pLoopCity == pSkipCity || !kOwner.AI_deduceCitySite(pLoopCity))
+				if (pLoopCity == pSkipCity || !kOwner.AI_deduceCitySite(*pLoopCity))
 					continue;
 
 				if (AI_canEnterByLand(pLoopCity->getArea())) // advc.030: Replacing same-area and canMoveAllTerrain check

@@ -353,7 +353,7 @@ void UWAI::Team::alignAreaAI(bool isNaval) {
 				bAlign = false;
 			else {
 				UWAICache::City* c = member.uwai().getCache().
-						lookupCity(*targetCity);
+						lookupCity(targetCity->plotNum());
 				if(c == NULL || !c->canReachByLand())
 					bAlign = false;
 			}
@@ -1861,15 +1861,14 @@ bool UWAI::Team::isLandTarget(TeamTypes theyId) const {
 		if(!cache.canTrainDeepSeaCargo())
 			distLimit = MAX_INT;
 		for(int j = 0; j < cache.size(); j++) {
-			UWAICache::City* c = cache.getCity(j);
-			if(c == NULL || c->city()->getTeam() != theyId ||
-					!GET_TEAM(agentId).AI_deduceCitySite(c->city()))
+			UWAICache::City& c = cache.cityAt(j);
+			if(c.city().getTeam() != theyId)
 				continue;
-			if(c->city()->isCoastal())
+			if(c.city().isCoastal())
 				hasCoastalCity = true;
-			if(c->canReachByLand()) {
+			if(c.canReachByLand()) {
 				canReachAnyByLand = true;
-				if(c->getDistance() <= distLimit)
+				if(c.getDistance() <= distLimit)
 					return true;
 			}
 		}

@@ -1660,7 +1660,6 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	CvCity* pNewCity = initCity(kCityPlot.getX(), kCityPlot.getY(), !bConquest, false,
 			// advc.ctr: Moved (way) up
 			(bTrade && !bRecapture) ? iOccupationTimer : 0);
-	FAssert(pNewCity != NULL);
 	CvCityAI& kNewCity = pNewCity->AI(); // advc.003u
 
 	kNewCity.setPreviousOwner(eOldOwner);
@@ -1817,14 +1816,10 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	if (bUpdatePlotGroups)
 		GC.getGame().updatePlotGroups();
 
-	// Notify observers
+	// Notify observers ...
 	// <advc.104>
-	if(getUWAI.isEnabled() || getUWAI.isEnabled(true))
-	{
-		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
-			it->uwai().getCache().reportCityOwnerChanged(&kNewCity, eOldOwner);
-	} // </advc.104>
-
+	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+		it->AI_cityCreated(kNewCity); // </advc.104>
 	CvEventReporter::getInstance().cityAcquired(
 			eOldOwner, getID(), &kNewCity, bConquest, bTrade);
 	if (gPlayerLogLevel >= 1) logBBAI("  Player %d (%S) acquires city %S bConq %d bTrade %d", getID(), getCivilizationDescription(0), kNewCity.getName(0).GetCString(), bConquest, bTrade); // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
@@ -4938,6 +4933,12 @@ void CvPlayer::found(int iX, int iY)  // advc: some style changes
 			}
 		}
 	}
+	// <advc.104>
+	else
+	{
+		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+			it->AI_cityCreated(*pCity);
+	} // </advc.104>
 
 	if (isHuman())
 	{	// advc.001: Else branch shouldn't depend on advanced start (minor BtS bug)

@@ -604,7 +604,9 @@ public:
 	// advc.117, advc.121:
 	bool AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const;
 	bool AI_isAwfulSite(CvCity const& kCity, bool bConquest = false) const; // advc.ctr
-	bool AI_deduceCitySite(const CvCity* pCity) const; // K-Mod
+	bool AI_deduceCitySite(CvCity const& pCity) const; // K-Mod
+	void AI_cityKilled(CvCity const& kCity); // advc.104
+	void AI_cityCreated(CvCity& kCity); // advc.104
 	// K-Mod:
 	int AI_countPotentialForeignTradeCities(bool bCheckConnected = true,
 			bool bCheckForeignTradePolicy = true, CvArea const* pIgnoreArea = 0) const;

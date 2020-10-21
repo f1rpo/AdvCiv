@@ -55,7 +55,7 @@ public:
 
 	int AI_estimateTotalYieldRate(YieldTypes eYield) const; // K-Mod
 
-	bool AI_deduceCitySite(const CvCity* pCity) const; // K-Mod
+	bool AI_deduceCitySite(CvCity const& kCity) const; // K-Mod
 
 	bool AI_isAnyCapitalAreaAlone() const;
 	bool AI_isPrimaryArea(CvArea const& kArea) const;

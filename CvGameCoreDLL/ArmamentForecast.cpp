@@ -57,8 +57,6 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	TeamTypes tId = TEAMID(civId);
 	CvTeamAI& t = GET_TEAM(tId);
 	PlayerTypes weId = m.ourId();
-	// Expect caller to make sure of this
-	FAssert(targetCity == NULL || targetCity->city() != NULL);
 	Intensity intensity = NORMAL;
 	if(civ.AI_isDoStrategy(AI_STRATEGY_ALERT1))
 		intensity = INCREASED;
@@ -67,7 +65,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		if(!targetCity->canReachByLand() ||
 				targetCity->getDistance() > getUWAI.maxLandDist())
 			navalArmament = true;
-		report.log("Target city: %s%s", report.cityName(*targetCity->city()),
+		report.log("Target city: %s%s", report.cityName(targetCity->city()),
 				(navalArmament ? " (naval target)": ""));
 	}
 	/*  Much of this function could be written more concisely based on the

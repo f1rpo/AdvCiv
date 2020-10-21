@@ -365,7 +365,9 @@ void CvCity::kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits)
 			}
 		}
 	} // UNOFFICIAL_PATCH: END
-
+	// <advc.104>
+	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+		it->AI_cityKilled(*this); // </advc.104>
 	getArea().changeCitiesPerPlayer(getOwner(), -1);
 	// <advc.030b>
 	CvArea* pWaterArea = waterArea(true);

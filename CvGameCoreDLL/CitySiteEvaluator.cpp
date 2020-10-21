@@ -1189,7 +1189,7 @@ bool AIFoundValue::isUsablePlot(CityPlotTypes ePlot, int& iTakenTiles, bool& bCi
 				better wait for borders to expand. */
 			return false;
 		}
-		if (pOtherCity != NULL && (kTeam.AI_deduceCitySite(pOtherCity) ||
+		if (pOtherCity != NULL && (kTeam.AI_deduceCitySite(*pOtherCity) ||
 			/*  At the start of the game, a single revealed tile should
 				be enough to locate the city. */
 			iCities == 0))
@@ -2605,7 +2605,7 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 			if (pLoopCity->isArea(kArea))
 			{
 				// <advc.031> Don't cheat
-				if (!kSet.isAllSeeing() && !kTeam.AI_deduceCitySite(pLoopCity))
+				if (!kSet.isAllSeeing() && !kTeam.AI_deduceCitySite(*pLoopCity))
 					continue; // </advc.031>
 				int iDistance = plotDistance(iX, iY, pLoopCity->getX(), pLoopCity->getY());
 				if (kOther.getID() == ePlayer && (pOurNearestCity == NULL ||
@@ -2615,7 +2615,7 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 					pOurNearestCity = pLoopCity;
 				}
 				int iCultureRange = pLoopCity->getCultureLevel() + 3;
-				if (iDistance <= iCultureRange && kTeam.AI_deduceCitySite(pLoopCity))
+				if (iDistance <= iCultureRange && kTeam.AI_deduceCitySite(*pLoopCity))
 				{
 					// cf. culture distribution in CvCity::doPlotCultureTimes100
 					iProximity += 90*(iDistance-iCultureRange)*(iDistance-iCultureRange)/

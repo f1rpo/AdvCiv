@@ -21272,16 +21272,26 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	// <advc.104>
 	if(isMajorCiv() && (uiFlag < 15 ? isEverAlive() : isAlive()))
 		m_pUWAI->read(pStream); // </advc.104>
-	// <advc.148>
-	if(uiFlag < 9 && getID() == MAX_PLAYERS - 1)
+	if(getID() == MAX_PLAYERS - 1) // advc: After all players have been loaded ...
 	{
-		for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+		// <advc.148>
+		if(uiFlag < 9)
+		{
+			for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+			{
+				CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
+				if(kPlayer.isAlive())
+					kPlayer.AI_updateAttitude();
+			}
+		} // </advc.148>
+		// <advc.104>
+		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
 			CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)i);
-			if(kPlayer.isAlive())
-				kPlayer.AI_updateAttitude();
-		}
-	} // </advc.148>
+			if (kPlayer.isAlive() && kPlayer.isMajorCiv())
+				kPlayer.uwai().getCache().cacheCitiesAfterRead();
+		} // </advc.104>
+	}
 }
 
 // save object to a stream
@@ -26247,10 +26257,24 @@ bool CvPlayerAI::AI_isAwfulSite(CvCity const& kCity, bool bConquest) const
 	return (rDecentPlots < 7);
 }
 
-// K-Mod
-bool CvPlayerAI::AI_deduceCitySite(const CvCity* pCity) const
+// advc.104:
+void CvPlayerAI::AI_cityKilled(CvCity const& kCity)
 {
-	return GET_TEAM(getTeam()).AI_deduceCitySite(pCity);
+	if (getUWAI.isEnabled() || getUWAI.isEnabled(true))
+		uwai().getCache().reportCityDestroyed(kCity);
+}
+
+// advc.104:
+void CvPlayerAI::AI_cityCreated(CvCity& kCity)
+{
+	if (getUWAI.isEnabled() || getUWAI.isEnabled(true))
+		uwai().getCache().reportCityCreated(kCity);
+}
+
+// K-Mod
+bool CvPlayerAI::AI_deduceCitySite(CvCity const& kCity) const
+{
+	return GET_TEAM(getTeam()).AI_deduceCitySite(kCity);
 }
 
 /*	K-Mod. This function is essentially a merged version of two original bts functions:

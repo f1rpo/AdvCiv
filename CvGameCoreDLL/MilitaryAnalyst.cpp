@@ -367,13 +367,13 @@ void MilitaryAnalyst::prepareResults() {
 		for(CitySetIter it = conq.begin(); it != conq.end(); ++it) {
 			UWAICache::City* c = ourCache.lookupCity(*it);
 			if(c == NULL) continue;
-			popIncr += c->city()->getPopulation();
+			popIncr += c->city().getPopulation();
 		}
 		CitySet const& lost = lostCities(civId);
 		for(CitySetIter it = lost.begin(); it != lost.end(); ++it) {
 			UWAICache::City* c = ourCache.lookupCity(*it);
 			if(c == NULL) continue;
-			popIncr -= c->city()->getPopulation();
+			popIncr -= c->city().getPopulation();
 		}
 		popIncr /= std::max(1, GET_PLAYER(civId).getTotalPopulation());
 		if(popIncr > 0.01) {
@@ -489,9 +489,8 @@ void MilitaryAnalyst::logCities(PlayerTypes civId, bool conquests) {
 		return;
 	report.log("Cities %s:", conquests ? "conquered" : "lost");
 	for(CitySetIter it = cities.begin(); it != cities.end(); ++it) {
-		CvCity* c = UWAICache::City::cityById(*it);
-		if(c != NULL)
-			report.log("%s", report.cityName(*c));
+		CvCity& c = UWAICache::cvCityById(*it);
+		report.log("%s", report.cityName(c));
 	}
 }
 

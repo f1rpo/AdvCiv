@@ -174,19 +174,19 @@ double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal,
 		whole cache. */
 	CitySet const& theyLose = m->lostCities(theyId);
 	FOR_EACH_CITY(cvCity, *they) {
-		if(!agent.AI_deduceCitySite(cvCity))
+		if(!agent.AI_deduceCitySite(*cvCity))
 			continue;
 		City* cp = theyAI->getCache().lookupCity(cvCity->plotNum());
 		if(cp == NULL) continue; City const& c = *cp;
 		/*  Their cached value accounts for GP, but we're not supposed to see those.
 			(Their cache contains some other info we shouldn't see, but nothing
 			crucial.) */
-		double sc = c.getAssetScore() - 4 * c.city()->getNumGreatPeople();
+		double sc = c.getAssetScore() - 4 * c.city().getNumGreatPeople();
 		if(theyLose.count(c.id()) > 0 &&
 				(to == NO_PLAYER || m->conqueredCities(to).count(c.id()) > 0)) {
 			r += sc;
 			// Losing the capital isn't so bad b/c the Palace respawns
-			if(c.city()->isCapital())
+			if(c.city().isCapital())
 				r += 4;
 		}
 		else if(cvCity->isCapital())
@@ -199,7 +199,7 @@ double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal,
 		City* cp = theyAI->getCache().lookupCity(*it);
 		if(cp == NULL) continue; City const& c = *cp;
 		if((to == NO_PLAYER || m->lostCities(to).count(c.id()) > 0) &&
-				c.city()->getTeam() != ignoreGains) {
+				c.city().getTeam() != ignoreGains) {
 			/*  Their cache doesn't account for GP settled in cities of a third
 				party (unless espionage visibility), so we don't subtract
 				NumGreatPeople.
@@ -342,7 +342,7 @@ double WarUtilityAspect::conqAssetScore(bool mute) {
 		City* cp = ourCache->lookupCity(weConquerFromThem[i]);
 		if(cp == NULL) continue; City const& c = *cp;
 		// Capture gold negligible b/c it gets reduced if a city is young
-		if(c.city()->isAutoRaze())
+		if(c.city().isAutoRaze())
 			continue;
 		r += c.getAssetScore();
 	}
@@ -688,7 +688,7 @@ double GreedForAssets::threatToCities(PlayerTypes civId) {
 	if(civ.getTeam() == agentId || civ.getTeam() == TEAMID(theyId) ||
 			civ.isAVassal() || !agent.isHasMet(civ.getTeam()) ||
 			!we->hasCapital() || !civ.hasCapital() ||
-			!we->AI_deduceCitySite(civ.getCapital()) ||
+			!we->AI_deduceCitySite(*civ.getCapital()) ||
 			(!civ.isHuman() && civ.AI_getAttitude(weId) >= ATTITUDE_FRIENDLY))
 		return 0;
 	/*  Use present power if civ not part of the analysis. Add a constant b/c
@@ -801,13 +801,12 @@ void GreedForAssets::initCitiesPerArea() {
 	for(PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		citiesPerArea[it->getID()] = new map<int,int>();
 	for(int i = 0; i < ourCache->size(); i++) {
-		City const* cp = ourCache->getCity(i);
-		if(cp == NULL) continue; City const& c = *cp;
-		PlayerTypes ownerId = c.city()->getOwner();
+		City const& c = ourCache->cityAt(i);
+		PlayerTypes ownerId = c.city().getOwner();
 		// City may have been conquered by barbarians since the last update
 		if(ownerId == BARBARIAN_PLAYER)
 			continue;
-		int areaId = c.city()->getArea().getID();
+		int areaId = c.city().getArea().getID();
 		iiMapIt pos = citiesPerArea[ownerId]->find(areaId);
 		if(pos == citiesPerArea[ownerId]->end())
 			citiesPerArea[ownerId]->insert(pair<int,int>(areaId, 1));
@@ -923,7 +922,7 @@ void GreedForSpace::evaluate() {
 	// Expect to raze only when we have to
 	for(size_t i = 0; i < weConquerFromThem.size(); i++) {
 		City* c = ourCache->lookupCity(weConquerFromThem[i]);
-		if(c != NULL && c->city()->isAutoRaze())
+		if(c != NULL && c->city().isAutoRaze())
 			theirSites++;
 	}
 	/*  All sites could still be claimed by third parties or could be just barely
@@ -1041,7 +1040,7 @@ double Loathing::lossRating() {
 			continue;
 		/*  Already included in theirLostScore, but count it once more for the
 			symbolic value. */
-		if(c->city()->isCapital())
+		if(c->city().isCapital())
 			theirLostScore += 4;
 	}
 	double ourScore = std::max(1.0, ourCache->totalAssetScore());
@@ -1248,7 +1247,7 @@ double MilitaryVictory::progressRatingDomination() {
 		if(cp == NULL) continue; City const& c = *cp;
 		/*  Minus 0.5 for pop lost upon conquest (not -1 b/c target decreases
 			as well) */
-		popGained += c.city()->getPopulation() - 0.5;
+		popGained += c.city().getPopulation() - 0.5;
 		citiesGained = citiesGained + 1;
 	}
 	if(m->getCapitulationsAccepted(agentId).count(TEAMID(theyId)) > 0) {
@@ -1259,7 +1258,7 @@ double MilitaryVictory::progressRatingDomination() {
 			City* cp = ourCache->lookupCity(*it);
 			if(cp == NULL)
 				continue;
-			theirPopRemaining -= cp->city()->getPopulation();
+			theirPopRemaining -= cp->city().getPopulation();
 		}
 		if(theirCitiesRemaining > 0) {
 			log("%d vassal pop gained, and %d cities", theirPopRemaining,
@@ -1366,8 +1365,8 @@ double MilitaryVictory::progressRatingDiplomacy() {
 		if(cp == NULL) continue; City const& c = *cp;
 		/*  Apply weight for new owner. -0.5 for population loss upon conquest
 			(not -1 b/c total decreases as well). */
-		double pop = it->second * (c.city()->getPopulation() - 0.5);
-		PlayerTypes cityOwnerId = c.city()->getOwner();
+		double pop = it->second * (c.city().getPopulation() - 0.5);
+		PlayerTypes cityOwnerId = c.city().getOwner();
 		// Weight for old owner
 		AttitudeTypes att = GET_PLAYER(cityOwnerId).AI_getAttitude(weId);
 		if(!GET_TEAM(cityOwnerId).isHuman() &&
@@ -1379,9 +1378,9 @@ double MilitaryVictory::progressRatingDiplomacy() {
 			if(att == ATTITUDE_PLEASED)
 				pop = 2 * pop / 3;
 		}
-		if(!isUN && !c.city()->isHasReligion(apRel))
+		if(!isUN && !c.city().isHasReligion(apRel))
 			pop *= 0.5; // Not 0 b/c religion can still be spread
-		log("Votes expected from %s: %d", report.cityName(*c.city()), ::round(pop));
+		log("Votes expected from %s: %d", report.cityName(c.city()), ::round(pop));
 		popGained += pop;
 	}
 	if(m->getCapitulationsAccepted(agentId).count(TEAMID(theyId)) > 0) {
@@ -1432,7 +1431,7 @@ void MilitaryVictory::addConquestsByPartner(map<int,double>& r,
 	for(CitySetIter it = theyConquer.begin(); it != theyConquer.end(); ++it) {
 		City* cp = ourCache->lookupCity(*it);
 		if(cp == NULL) continue; City const& c = *cp;
-		PlayerTypes cityOwnerId = c.city()->getOwner();
+		PlayerTypes cityOwnerId = c.city().getOwner();
 		// Never good news when we lose cities
 		if(GET_PLAYER(cityOwnerId).getMasterTeam() == agent.getMasterTeam())
 			continue;
@@ -1536,7 +1535,7 @@ void Reconquista::evaluate() {
 		if(m->lostCities(theyId).count(*it) <= 0)
 			continue;
 		City* cp = ourCache->lookupCity(*it);
-		if(cp == NULL) continue; CvCity& c = *cp->city();
+		if(cp == NULL) continue; CvCity& c = cp->city();
 		if(!c.isEverOwned(weId))
 			continue;
 		/*  Lower the utility if our culture is small; suggests that we only
@@ -1767,7 +1766,7 @@ void BorderDisputes::evaluate() {
 	CitySet const& theyLose = m->lostCities(theyId);
 	for(CitySetIter it = theyLose.begin(); it != theyLose.end(); ++it) {
 		City* cp = ourCache->lookupCity(*it); if(cp == NULL) continue;
-		CvCity const& c = *cp->city();
+		CvCity const& c = cp->city();
 		int ourTileCulturePercent = c.getPlot().calculateCulturePercent(weId);
 		double newOwnerMultiplier = -1;
 		for(PlayerIter<MAJOR_CIV> conqIt; conqIt.hasNext(); ++conqIt) {
@@ -1905,8 +1904,8 @@ void PreEmptiveWar::evaluate() {
 			if(targetId != NO_TEAM && targetId != TEAMID(theyId) && GET_TEAM(targetId).isHuman()) {
 				CitySet const& conq = m->conqueredCities(civ.getID());
 				for(CitySetIter it = conq.begin(); it != conq.end(); ++it) {
-					CvCity* c = UWAICache::City::cityById(*it);
-					if(c != NULL && c->getTeam() == targetId)
+					CvCity& c = *GC.getMap().getPlotByIndex(*it).getPlotCity();
+					if(c.getTeam() == targetId)
 						theirPredictedCities--;
 				}
 				FAssert(theirPredictedCities >= 0);
@@ -2507,17 +2506,17 @@ void Risk::evaluate() {
 		if(c == NULL) continue;
 		double sc = c->getAssetScore();
 		if(bSpace4) {
-			if(c->city()->isCapital() && we->AI_atVictoryStage(AI_VICTORY_SPACE4))
+			if(c->city().isCapital() && we->AI_atVictoryStage(AI_VICTORY_SPACE4))
 				sc += 15;
 		}
 		if(bCulture3) {
-			CvCity const& cvc = *c->city();
+			CvCity const& cvc = c->city();
 			// Same condition as in CvPlayerAI::AI_conquerCity
 			if(2 * cvc.getCulture(cvc.getOwner()) >= cvc.getCultureThreshold(
 					game.culturalVictoryCultureLevel()))
 				sc += (bCulture4 ? 15 : 8);
 		}
-		log("%s: %d lost assets%s", report.cityName(*c->city()), ::round(sc),
+		log("%s: %d lost assets%s", report.cityName(c->city()), ::round(sc),
 				(bCulture3 || bSpace4 ? " (important for victory)" : ""));
 		lostAssets += sc;
 	}
