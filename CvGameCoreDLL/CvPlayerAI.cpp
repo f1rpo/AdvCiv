@@ -20087,11 +20087,11 @@ void CvPlayerAI::AI_proposeWarTrade(PlayerTypes eHireling)
 				{
 					continue;
 				}
-				FErrorMsg("Just to verify that this line is reachable; hasn't come up in tests yet"); // advc.test
-				int iKeepVal = AI_cityTradeVal(*pCity, getID());
-				int iAcquireVal = kHireling.AI_cityTradeVal(*pCity, getID());
-				if (iAcquireVal <= 0) // (probably already ensured by trade denial check)
+				int iKeepVal = AI_cityTradeVal(*pCity, kHireling.getID());
+				int iAcquireVal = kHireling.AI_cityTradeVal(*pCity, kHireling.getID());
+				if (iAcquireVal <= 0) // Hireling insisting on liberation
 					continue;
+				FErrorMsg("Just to verify that this line is reachable; hasn't come up in tests yet"); // advc.test
 				int iFitness = iKeepVal - iAcquireVal;
 				if (iFitness > iBestFitness && (iKeepVal <= 0 ||
 					scaled(iAcquireVal, iKeepVal) - 1 > per100(iWSRating)))
