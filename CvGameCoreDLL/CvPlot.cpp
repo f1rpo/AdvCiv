@@ -1345,12 +1345,18 @@ int CvPlot::seeThroughLevel() const
 	int iLevel = GC.getInfo(getTerrainType()).getSeeThroughLevel();
 	if (isFeature())
 		iLevel += GC.getInfo(getFeatureType()).getSeeThroughChange();
-	if (isPeak())
-		iLevel += GC.getDefineINT(CvGlobals::PEAK_SEE_THROUGH_CHANGE);
-	if (isHills())
+	switch (getPlotType()) // advc.opt: was a sequence of conditionals
+	{
+	case PLOT_HILLS:
 		iLevel += GC.getDefineINT(CvGlobals::HILLS_SEE_THROUGH_CHANGE);
-	if (isWater())
+		break;
+	case PLOT_PEAK:
+		iLevel += GC.getDefineINT(CvGlobals::PEAK_SEE_THROUGH_CHANGE);
+		break;
+	case PLOT_OCEAN:
 		iLevel += GC.getDefineINT(CvGlobals::SEAWATER_SEE_FROM_CHANGE);
+		break;
+	}
 	return iLevel;
 }
 
@@ -2283,17 +2289,18 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 	if (pUnit->flatMovementCost() || pUnit->getDomainType() == DOMAIN_AIR)
 		return GC.getMOVE_DENOMINATOR();
 
+	TeamTypes const eTeam = pUnit->getTeam(); // advc.opt
 	/*if (pUnit->isHuman()) {
-		if (!isRevealed(pUnit->getTeam(), false))
+		if (!isRevealed(eTeam, false))
 			return pUnit->maxMoves();
 	}*/
 	// K-Mod. Why let the AI cheat this?
 	if ( /* advc.001i: The K-Mod condition is OK, but now that the pathfinder passes
 			bAssumeRevealed=false, it's cleaner to check that too. */
 		!bAssumeRevealed &&
-		!isRevealed(pUnit->getTeam()))
+		!isRevealed(eTeam))
 	{
-		/*if (!pFromPlot->isRevealed(pUnit->getTeam(), false))
+		/*if (!pFromPlot->isRevealed(eTeam, false))
 			return pUnit->maxMoves();
 		else return GC.getMOVE_DENOMINATOR() + 1;
 		*/ // (further weight adjustments are now done in the pathfinder's moveCost function.)
@@ -2324,7 +2331,8 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 	}
 
 	bool bHasTerrainCost = (iRegularCost > 1);
-	iRegularCost = std::min(iRegularCost, pUnit->baseMoves());
+	int const iBaseMoves = pUnit->baseMoves(); // advc.opt
+	iRegularCost = std::min(iRegularCost, iBaseMoves);
 	iRegularCost *= GC.getMOVE_DENOMINATOR();
 	if (bHasTerrainCost)
 	{
@@ -2339,24 +2347,24 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 	// <advc.001i> Pass along bAssumeRevealed
 	if (pFromPlot->isValidRoute(pUnit, bAssumeRevealed) &&
 		isValidRoute(pUnit, bAssumeRevealed) && // </advc.001i>
-		(GET_TEAM(pUnit->getTeam()).isBridgeBuilding() ||
+		(GET_TEAM(eTeam).isBridgeBuilding() ||
 		!pFromPlot->isRiverCrossing(directionXY(*pFromPlot, *this))))
 	{	// <advc.001i>
 		RouteTypes eFromRoute = (bAssumeRevealed ? pFromPlot->getRouteType() :
-				pFromPlot->getRevealedRouteType(pUnit->getTeam()));
+				pFromPlot->getRevealedRouteType(eTeam));
 		CvRouteInfo const& kFromRoute = GC.getInfo(eFromRoute);
 		RouteTypes eToRoute = (bAssumeRevealed ? getRouteType() :
-				getRevealedRouteType(pUnit->getTeam()));
+				getRevealedRouteType(eTeam));
 		CvRouteInfo const& kToRoute = GC.getInfo(eToRoute);
 		iRouteCost = std::max(
 				kFromRoute.getMovementCost() +
-				GET_TEAM(pUnit->getTeam()).getRouteChange(eFromRoute),
+				GET_TEAM(eTeam).getRouteChange(eFromRoute),
 				kToRoute.getMovementCost() +
-				GET_TEAM(pUnit->getTeam()).getRouteChange(eToRoute));
+				GET_TEAM(eTeam).getRouteChange(eToRoute));
 		// </advc.001i>
 		iRouteFlatCost = std::max(
-				kFromRoute.getFlatMovementCost() * pUnit->baseMoves(),
-				kToRoute.getFlatMovementCost() * pUnit->baseMoves());
+				kFromRoute.getFlatMovementCost() * iBaseMoves,
+				kToRoute.getFlatMovementCost() * iBaseMoves);
 	}
 	else
 	{
@@ -3065,14 +3073,15 @@ bool CvPlot::isValidRoute(const CvUnit* pUnit, /* advc.001i: */ bool bAssumeReve
 {
 	//if (!isRoute()) return false;
 	// <advc.001i>
+	CvTeam const& kTeam = GET_TEAM(pUnit->getOwner());
 	RouteTypes const eRoute = (bAssumeRevealed ? getRouteType() :
-			getRevealedRouteType(pUnit->getTeam()));
+			getRevealedRouteType(kTeam.getID()));
 	if (eRoute == NO_ROUTE) // </advc.001i>
 		return false;
 	if (!isOwned() || pUnit->isEnemyRoute())
 		return true;
 	return (!pUnit->isEnemy(getTeam(), *this) &&
-		!GET_TEAM(pUnit->getTeam()).isDisengage(getTeam())); // advc.034
+		!kTeam.isDisengage(getTeam())); // advc.034
 }
 
 

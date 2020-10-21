@@ -14173,6 +14173,7 @@ bool CvUnitAI::AI_defendTerritory(int iThreshold, MovementFlags eFlags,
 		// otherwise it's just silly.
 	}
 	FAssert(!bLocal || iRange > 0);
+	TeamTypes const eTeam = getTeam(); // advc.opt
 	while (i < iPlots)
 	{
 		CvPlot* pLoopPlot = bLocal
@@ -14180,7 +14181,7 @@ bool CvUnitAI::AI_defendTerritory(int iThreshold, MovementFlags eFlags,
 			: GC.getMap().plotByIndex(i);
 		i++; // for next cycle.
 
-		if (pLoopPlot == NULL || pLoopPlot->getTeam() != getTeam() ||
+		if (pLoopPlot == NULL || pLoopPlot->getTeam() != eTeam ||
 			!AI_plotValid(pLoopPlot) || !pLoopPlot->isVisibleEnemyUnit(this))
 		{
 			continue; // advc
@@ -14198,7 +14199,7 @@ bool CvUnitAI::AI_defendTerritory(int iThreshold, MovementFlags eFlags,
 			int iValue = iOdds;
 			if (iOdds > 0 && iOdds < 100 && iThreshold > 0)
 			{
-				int iOurAttack = kOwner.AI_localAttackStrength(pLoopPlot, getTeam(),
+				int iOurAttack = kOwner.AI_localAttackStrength(pLoopPlot, eTeam,
 						getDomainType(), 2, true, true, true);
 				int iEnemyDefence = kOwner.AI_localDefenceStrength(pLoopPlot, NO_TEAM,
 						getDomainType(), 0);
@@ -14214,7 +14215,7 @@ bool CvUnitAI::AI_defendTerritory(int iThreshold, MovementFlags eFlags,
 			}
 			if (iValue >= iThreshold)
 			{
-				BonusTypes eBonus = pLoopPlot->getNonObsoleteBonusType(getTeam());
+				BonusTypes eBonus = pLoopPlot->getNonObsoleteBonusType(eTeam);
 				iValue *= 100 + (eBonus == NO_BONUS ? 0 :
 						3*kOwner.AI_bonusVal(eBonus, 0)/2) +
 						(pLoopPlot->getWorkingCity() ? 20 : 0);

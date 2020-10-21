@@ -4482,7 +4482,11 @@ TeamTypes CvSelectionGroup::getHeadTeam() const
 {
 	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
-		return pHeadUnit->getTeam();
+	{
+		//return pHeadUnit->getTeam();
+		// advc.opt: Not nice, but avoids a function call.
+		return TEAMID(pHeadUnit->getOwner());
+	}
 	return NO_TEAM;
 }
 

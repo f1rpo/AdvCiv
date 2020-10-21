@@ -3264,7 +3264,7 @@ int CvPlayerAI::AI_countDangerousUnits(CvPlot const& kAttackerPlot, CvPlot const
 	{
 		CvUnit const& kUnit = *::getUnit(pUnitNode->m_data);
 		// advc.opt: Team check changed to masterTeam
-		if (GET_TEAM(kUnit.getTeam()).getMasterTeam() == eOurMaster)
+		if (GET_TEAM(kUnit.getOwner()).getMasterTeam() == eOurMaster)
 		{
 			if (!kUnit.alwaysInvisible() &&
 				kUnit.getInvisibleType() == NO_INVISIBLE)
@@ -27447,11 +27447,11 @@ bool CvPlayerAI::AI_isDangerFromSubmarines() const
 bool CvPlayerAI::AI_cheatDangerVisibility(CvPlot const& kAt) const
 {
 	scaled const rProb = fixp(0.5);
-	std::vector<int> aiInputs;
-	aiInputs.push_back(kAt.getX());
-	aiInputs.push_back(kAt.getY());
-	aiInputs.push_back(GC.getGame().getGameTurn());
-	aiInputs.push_back(getID());
+	std::vector<int> aiInputs(4); // push_back seems to be slightly slow here
+	aiInputs[0] = kAt.getX();
+	aiInputs[1] = kAt.getY();
+	aiInputs[2] = GC.getGame().getGameTurn();
+	aiInputs[3] = getID();
 	return (scaled::hash(aiInputs) < rProb);
 
 	/*  This is a bit faster, but, in the end, I still had to reduce the number of
