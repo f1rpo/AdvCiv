@@ -1551,22 +1551,22 @@ void CvUnitAI::AI_settleMove()
 	// K-Mod: sometimes an unescorted settler will join up with an escort mid-mission..
 	if(iAreaBestFoundValue + iOtherBestFoundValue > 0) // advc.040: But surely not if we have nowhere to settle
 	{
-		FOR_EACH_GROUPAI_VAR(pLoopSelectionGroup, kOwner)
+		FOR_EACH_GROUPAI_VAR(pLoopGroup, kOwner)
 		{
-			if (pLoopSelectionGroup == getGroup())
+			if (pLoopGroup == getGroup() || pLoopGroup->getNumUnits() <= 0)
 				continue; // advc
-			if (pLoopSelectionGroup->AI_getMissionAIUnit() == this &&
-				pLoopSelectionGroup->AI_getMissionAIType() == MISSIONAI_GROUP)
+			if (pLoopGroup->AI_getMissionAIUnit() == this &&
+				pLoopGroup->AI_getMissionAIType() == MISSIONAI_GROUP)
 			{
 				int iPathTurns = MAX_INT;
-				generatePath(pLoopSelectionGroup->getPlot(), eMoveFlags, true, &iPathTurns, 2);
+				generatePath(pLoopGroup->getPlot(), eMoveFlags, true, &iPathTurns, 2);
 				if (iPathTurns > 2)
 					continue; // advc
 				CvPlot& kEndTurnPlot = getPathEndTurnPlot();
 				if (at(kEndTurnPlot))
 				{
 					//getGroup()->pushMission(MISSION_SKIP, 0, 0, 0, false, false, MISSIONAI_GROUP, pEndTurnPlot);
-					pLoopSelectionGroup->mergeIntoGroup(getGroup());
+					pLoopGroup->mergeIntoGroup(getGroup());
 					FAssert(getGroup()->getNumUnits() > 1);
 					FAssert(getGroup()->getHeadUnitAIType() == UNITAI_SETTLE);
 				}
@@ -1583,7 +1583,7 @@ void CvUnitAI::AI_settleMove()
 					else
 					{
 						pushGroupMoveTo(kEndTurnPlot, eMoveFlags, false, false,
-								MISSIONAI_GROUP, NULL, pLoopSelectionGroup->getHeadUnit());
+								MISSIONAI_GROUP, NULL, pLoopGroup->getHeadUnit());
 					}
 				}
 				return;
@@ -9698,7 +9698,8 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 				}
 			} // </advc.057>
 			int iPathTurns = 0;
-			if (at(kLoopPlot) || generatePath(kLoopPlot, eFlags, true, &iPathTurns, iMaxPath))
+			if (at(kLoopPlot) ||
+				generatePath(kLoopPlot, eFlags, true, &iPathTurns, iMaxPath))
 			{
 				int iCost = 100 * (iPathTurns * iPathTurns + 1);
 				iCost *= 4 + pLoopGroup->getCargo();
@@ -9942,11 +9943,11 @@ bool CvUnitAI::AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI,
 					generatePath only works properly if land units are already loaded */
 				FOR_EACH_ENUM(Direction)
 				{
-					CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
-					if (pAdjacentPlot == NULL || !pAdjacentPlot->isWater())
+					CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
+					if (pAdj == NULL || !pAdj->isWater())
 						continue;
 					//if (pBestUnit->generatePath(pAdjacentPlot, 0, true, &iPathTurns, iMaxTransportPath))
-					if (tempFinder.generatePath(*pAdjacentPlot)) // K-Mod
+					if (tempFinder.generatePath(*pAdj)) // K-Mod
 					{
 						/*if (pBestUnit->getPathLastNode()->m_iData1 == 0)
 							iPathTurns++;*/  // <K-Mod>
@@ -10006,7 +10007,7 @@ bool CvUnitAI::AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI,
 	// BBAI TODO: To split or not to split?
 	// K-Mod. How about this:
 	// Split the group only if it is going to take more than 1 turn to get to the transport.
-	if (generatePath(pBestUnit->getPlot(), eFlags, true, 0, 1))
+	if (generatePath(pBestUnit->getPlot(), eFlags, true, NULL, 1))
 	{
 		// only 1 turn. Don't split.
 		getGroup()->pushMission(MISSION_MOVE_TO_UNIT,
@@ -10535,28 +10536,25 @@ bool CvUnitAI::AI_guardBonus(int iMinValue)
 			iValue += std::max(0, 200 * GC.getInfo(eNonObsoleteBonus).getAIObjective());
 			if (kPlot.getPlotGroupConnectedBonus(getOwner(), eNonObsoleteBonus) == 1)
 				iValue *= 2;
-			if (iValue > iMinValue)
+			if (iValue > iMinValue && !kPlot.isVisibleEnemyUnit(this))
 			{
-				if (!kPlot.isVisibleEnemyUnit(this))
+				int const iPlotTargetMissionAIs = GET_PLAYER(getOwner()).
+						AI_plotTargetMissionAIs(kPlot, MISSIONAI_GUARD_BONUS, getGroup());
+				// K-Mod
+				iValue *= 2;
+				iValue /= 2 + iPlotTargetMissionAIs;
+				if (iValue > iMinValue) // K-Mod end
 				{
-					int const iPlotTargetMissionAIs = GET_PLAYER(getOwner()).
-							AI_plotTargetMissionAIs(kPlot, MISSIONAI_GUARD_BONUS, getGroup());
-					// K-Mod
-					iValue *= 2;
-					iValue /= 2 + iPlotTargetMissionAIs;
-					if (iValue > iMinValue) // K-Mod end
+					int iPathTurns;
+					if (generatePath(kPlot, NO_MOVEMENT_FLAGS, true, &iPathTurns))
 					{
-						int iPathTurns;
-						if (generatePath(kPlot, NO_MOVEMENT_FLAGS, true, &iPathTurns))
+						iValue *= 1000;
+						iValue /= iPathTurns + 4; // was +1
+						if (iValue > iBestValue)
 						{
-							iValue *= 1000;
-							iValue /= iPathTurns + 4; // was +1
-							if (iValue > iBestValue)
-							{
-								iBestValue = iValue;
-								pBestPlot = &getPathEndTurnPlot();
-								pBestGuardPlot = &kPlot;
-							}
+							iBestValue = iValue;
+							pBestPlot = &getPathEndTurnPlot();
+							pBestGuardPlot = &kPlot;
 						}
 					}
 				}
@@ -13305,8 +13303,8 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 
 				int iValue = 0;
 				if (AI_getUnitAIType() == UNITAI_ATTACK_CITY) //lemming?
-					iValue = kOwner.AI_targetCityValue(pLoopCity, false, false);
-				else iValue = kOwner.AI_targetCityValue(pLoopCity, true, true);
+					iValue = kOwner.AI_targetCityValue(*pLoopCity, false, false);
+				else iValue = kOwner.AI_targetCityValue(*pLoopCity, true, true);
 				// adjust value based on defensive bonuses
 				{
 					int iMod = std::min(8, getGroup()->getBombardTurns(pLoopCity)) *
@@ -15358,7 +15356,7 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,
 		{
 			int iDefenceStrength = estimateAndCacheCityDefence(kOwner, pCity, city_defence_cache);
 			FAssert(AI_isPotentialEnemyOf(pCity->getTeam(), kPlot));
-			iBaseValue += kOwner.AI_targetCityValue(pCity, false, false); // maybe false, true?
+			iBaseValue += kOwner.AI_targetCityValue(*pCity, false, false); // maybe false, true?
 
 			if (pCity->plot() == &kPlot)
 			{
@@ -16647,7 +16645,7 @@ bool CvUnitAI::AI_specialSeaTransportSpy()
 		{
 			if (canMoveInto(*pEndTurnPlot) || getGroup()->canCargoAllMove()) // (without this, we could get into an infinite loop when the cargo isn't ready to move)
 			{
-				if (gUnitLogLevel > 2 && pTargetPlot->getOwner() != NO_PLAYER && generatePath(*pTargetPlot, NO_MOVEMENT_FLAGS, true, 0, 1))
+				if (gUnitLogLevel > 2 && pTargetPlot->getOwner() != NO_PLAYER && generatePath(*pTargetPlot, NO_MOVEMENT_FLAGS, true, NULL, 1))
 				{
 					logBBAI("      %S lands sea-spy in %S territory. (%d percent of unspent points)", // apparently it's impossible to actually use a % sign in this Microsoft version of vsnprintf. madness
 						kOurTeam.getName().GetCString(), GET_PLAYER(pTargetPlot->getOwner()).getCivilizationDescription(0), kOurTeam.getEspionagePointsAgainstTeam(pTargetPlot->getTeam())*100/iTotalPoints);

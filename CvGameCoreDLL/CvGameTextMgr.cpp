@@ -2490,8 +2490,9 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 						if(pLoopCity->isArea(kArea))
 						{
 							int iTargetValue = GET_PLAYER(pHeadGroup->getOwner()).
-									AI_targetCityValue(pLoopCity,false,true);
-							if((kMap.calculatePathDistance(&kPlot, pLoopCity->plot()) < 20)) {
+									AI_targetCityValue(*pLoopCity,false,true);
+							if((kMap.calculatePathDistance(&kPlot, pLoopCity->plot()) < 20))
+							{
 								szString.append(CvWString::format(L"\n%s : %d + rand %d",
 										pLoopCity->getName().c_str(), iTargetValue,
 										pLoopCity->getPopulation() / 2));

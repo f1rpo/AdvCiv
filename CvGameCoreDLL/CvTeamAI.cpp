@@ -283,8 +283,10 @@ bool CvTeamAI::AI_deduceCitySite(const CvCity* pCity) const
 			CvPlot* pLoopPlot = plotXY(pCity->getX(), pCity->getY(), iDX, iDY);
 			if (pLoopPlot && pLoopPlot->getRevealedOwner(getID()) == pCity->getOwner())
 			{
-				// if multiple cities have their plot in their range, then that will make it harder to deduce the precise city location.
-				iPoints += 1 + std::max(0, iLevel - iDist - pLoopPlot->getNumCultureRangeCities(pCity->getOwner())+1);
+				/*	if multiple cities have their plot in their range,
+					then that will make it harder to deduce the precise city location. */
+				iPoints += 1 + std::max(0, 1 + iLevel
+						- iDist - pLoopPlot->getNumCultureRangeCities(kCity.getOwner()));
 				if (iPoints > iLevel)
 					return true;
 			}
@@ -597,7 +599,7 @@ int CvTeamAI::AI_calculateAdjacentLandPlots(TeamTypes eTeam) const
 int CvTeamAI::AI_calculateBonusWarValue(TeamTypes eTeam) const { ... }
 int CvTeamAI::AI_calculateCapitalProximity(TeamTypes eTeam) const { ... }*/
 
-// K-Mod. Return true if we can deduce the location of at least 'iMiniumum' cities belonging to eTeam.
+// K-Mod: Return true if we can deduce the location of at least 'iMiniumum' cities belonging to eTeam.
 bool CvTeamAI::AI_haveSeenCities(TeamTypes eTeam, bool bPrimaryAreaOnly, int iMinimum) const
 {
 	int iCount = 0;
@@ -617,7 +619,7 @@ bool CvTeamAI::AI_haveSeenCities(TeamTypes eTeam, bool bPrimaryAreaOnly, int iMi
 		}
 	}
 	return false;
-} // K-Mod end
+}
 
 
 bool CvTeamAI::AI_isWarPossible() const
@@ -633,7 +635,7 @@ bool CvTeamAI::AI_isWarPossible() const
 }
 
 /*	This function has been completely rewritten for K-Mod.
-	The original BtS code, and the BBAI code have been deleted. */
+	The original BtS and BBAI code have been deleted. */
 bool CvTeamAI::AI_isLandTarget(TeamTypes eTarget,
 	bool bCheckAlliesOfTarget) const // advc
 {

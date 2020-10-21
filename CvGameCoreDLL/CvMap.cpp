@@ -92,7 +92,7 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 			GC.getInfo(GC.getInitCore().getWorldSize()).getGridHeight() : 0;
 
 	// allow grid size override
-	if (pInitInfo)
+	if (pInitInfo != NULL)
 	{
 		m_iGridWidth	= pInitInfo->m_iGridW;
 		m_iGridHeight	= pInitInfo->m_iGridH;
@@ -192,9 +192,10 @@ void CvMap::setup()
 			getGridWidth(), getGridHeight(), isWrapX(), isWrapY(),
 			NULL,			NULL,			NULL,		plotGroupValid,
 			NULL,			countPlotGroup,	NULL);
+	// advc (note): IrrigatedFinder gets instantiated in updateIrrigated
 	// <advc.pf>
 	CvSelectionGroup::initPathFinder();
-	// Moved this computation out of KmodPathFinder to avoid a header inclusion
+	// Moved this computation out of KmodPathFinder.h to avoid a header inclusion
 	int iMinMovementCost = MAX_INT;
 	int iMinFlatMovementCost = MAX_INT;
 	FOR_EACH_ENUM(Route)
@@ -210,7 +211,7 @@ void CvMap::setup()
 		iMinFlatMovementCost = std::min(iMinFlatMovementCost,
 				kLoopRoute.getFlatMovementCost());
 	}
-	GroupPathFinder::initHeuristicWeights( // K-Mod
+	GroupPathFinder::initHeuristicWeights(
 			iMinMovementCost, iMinFlatMovementCost); // </advc.pf>
 }
 
@@ -1042,7 +1043,6 @@ int CvMap::calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) con
 {
 	if(pSource == NULL || pDest == NULL)
 		return -1;
-
 	if (gDLL->getFAStarIFace()->GeneratePath(&GC.getStepFinder(),
 		pSource->getX(), pSource->getY(), pDest->getX(), pDest->getY(), false, 0, true))
 	{
@@ -1050,7 +1050,6 @@ int CvMap::calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) con
 		if (pNode != NULL)
 			return pNode->m_iData1;
 	}
-
 	return -1; // no passable path exists
 }
 
@@ -1378,6 +1377,7 @@ void CvMap::calculateAreas_030()
 	}
 }
 
+
 void CvMap::updateLakes()
 {
 	// CvArea::getNumTiles no longer sufficient for identifying lakes
@@ -1391,6 +1391,7 @@ void CvMap::updateLakes()
 	}
 	computeShelves(); // advc.300
 }
+
 
 void CvMap::calculateReprAreas()
 {
@@ -1520,5 +1521,4 @@ void CvMap::computeShelves()
 			pShelf->add(&p);
 		}
 	}
-}
-// </advc.300>
+} // </advc.300>

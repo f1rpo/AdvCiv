@@ -104,9 +104,9 @@ public:
 	void changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement,
 			CvUnit const* pUnit, bool bUpdatePlotGroups);
 	bool canSeePlot(CvPlot const* pPlot, TeamTypes eTeam, int iRange, DirectionTypes eFacingDirection) const;
-	bool canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy,
-			int originalDX, int originalDY, bool firstPlot, bool outerRing) const;
-	bool shouldProcessDisplacementPlot(int dx, int dy,// int range, // advc: unused
+	bool canSeeDisplacementPlot(TeamTypes eTeam, int iDX, int iDY,
+			int iOriginalDX, int iOriginalDY, bool bFirstPlot, bool bOuterRing) const;
+	bool shouldProcessDisplacementPlot(int iDX, int iDY,// int range, // advc: unused
 			DirectionTypes eFacingDirection) const;
 	void updateSight(bool bIncrement, bool bUpdatePlotGroups);
 	void updateSeeFromSight(bool bIncrement, bool bUpdatePlotGroups);
@@ -267,8 +267,8 @@ public:
 	bool isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) const; // advc: param was CvPlot const*								// Exposed to Python
 	bool isRiverNetwork(TeamTypes eTeam) const;
 
-	bool isValidDomainForLocation(const CvUnit& unit) const;																					// Exposed to Python
-	bool isValidDomainForAction(const CvUnit& unit) const;																						// Exposed to Python
+	bool isValidDomainForLocation(CvUnit const& kUnit) const;																					// Exposed to Python
+	bool isValidDomainForAction(CvUnit const& kUnit) const;																						// Exposed to Python
 	inline bool isImpassable() const { return m_bImpassable; } // advc.opt: cached										// Exposed to Python
 
 	int getXExternal() const; // advc.inl: Exported through .def file																					// Exposed to Python

@@ -2676,23 +2676,22 @@ int CvPlayerAI::AI_militaryWeight(CvArea const* pArea) const
 }
 
 // This function has been edited by Mongoose, then by jdog5000, and then by me (karadoc). Some changes are marked, others are not.
-int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bIgnoreAttackers) const  // advc: const CvCity*, some style changes
+int CvPlayerAI::AI_targetCityValue(CvCity const& kCity, bool bRandomize, bool bIgnoreAttackers) const
 {
 	PROFILE_FUNC();
-	FAssertMsg(pCity != NULL, "City is not assigned a valid value");
 
 	CvGame const& kGame = GC.getGame();
-	CvPlayerAI const& kOwner = GET_PLAYER(pCity->getOwner());
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
 	//int iValue = 1 + pCity->getPopulation() * (50 + pCity->calculateCulturePercent(getID())) / 100;
 	// <K-Mod> (to dilute the other effects)
-	int iValue = 5 + pCity->getPopulation() *
-			(100 + pCity->calculateCulturePercent(getID())) / 150; // </K-Mod>
+	int iValue = 5 + kCity.getPopulation() *
+			(100 + kCity.calculateCulturePercent(getID())) / 150; // </K-Mod>
 
-	if (pCity->isCoastal())
+	if (kCity.isCoastal())
 		iValue += 2;
 
 	// advc.104d: Replacing the BBAI code below (essentially with K-Mod code)
-	iValue += AI_cityWonderVal(*pCity);
+	iValue += AI_cityWonderVal(kCity);
 	/*iValue += 4*pCity->getNumActiveWorldWonders();
 	for (int iI = 0; iI < GC.getNumReligionInfos(); iI++) {
 		if (pCity->isHolyCity((ReligionTypes)iI)) {
@@ -2704,7 +2703,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 		}
 	}*/
 	// <cdtw.2>
-	if(pCity->getPlot().defenseModifier(pCity->getTeam(), false) <=
+	if(kCity.getPlot().defenseModifier(kCity.getTeam(), false) <=
 		GC.getDefineINT(CvGlobals::CITY_DEFENSE_DAMAGE_HEAL_RATE))
 	{
 		if(AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ) ||
@@ -2714,23 +2713,23 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 			iValue += 3;
 		else iValue++;
 	} // </cdtw.2>
-	if (pCity->isEverOwned(getID()))
+	if (kCity.isEverOwned(getID()))
 	{
 		iValue += 3; // advc.mnai: was 4
-		if (pCity->getOriginalOwner() == getID())
+		if (kCity.getOriginalOwner() == getID())
 			iValue += 3; // advc.mnai: was 2
 	}
 
 	if (!bIgnoreAttackers)
 	{
 		iValue += std::min(8,
-				(AI_adjacentPotentialAttackers(pCity->getPlot()) + 2) / 3);
+				(AI_adjacentPotentialAttackers(kCity.getPlot()) + 2) / 3);
 	}
-	for (CityPlotIter it(*pCity); it.hasNext(); ++it)
+	for (CityPlotIter it(kCity); it.hasNext(); ++it)
 	{
 		CvPlot const& kPlot = *it;
 		if (kPlot.getBonusType(getTeam()) != NO_BONUS &&
-			kPlot.getWorkingCity() == pCity) // advc.104d
+			kPlot.getWorkingCity() == &kCity) // advc.104d
 		{
 			int iBonusVal = AI_bonusVal(kPlot.getBonusType(getTeam()), 1, true) / 5;
 			iValue += std::max(1, iBonusVal);
@@ -2743,15 +2742,15 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 	bool bThwartVictory = false; // advc.104d
 	if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3))
 	{
-		if (pCity->getCultureLevel() >= kGame.culturalVictoryCultureLevel() - 1)
+		if (kCity.getCultureLevel() >= kGame.culturalVictoryCultureLevel() - 1)
 		{
 			iValue += 10; // advc.104d: Was 15; will reduce distance penalty instead.
 			if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE4))
 			{
 				iValue += 15; // advc.104d: was 25
-				if (pCity->getCultureLevel() >= (kGame.culturalVictoryCultureLevel()) ||
+				if (kCity.getCultureLevel() >= (kGame.culturalVictoryCultureLevel()) ||
 					// <K-Mod>
-					pCity->findCommerceRateRank(COMMERCE_CULTURE) <=
+					kCity.findCommerceRateRank(COMMERCE_CULTURE) <=
 					kGame.culturalVictoryNumCultureCities()) // </K-Mod>
 				{
 					iValue += 50; // advc.104d: Was 60 in K-Mod, 10 in BBAI.
@@ -2763,7 +2762,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 
 	if (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE3))
 	{
-		if (pCity->isCapital())
+		if (kCity.isCapital())
 		{	// <advc.104d>
 			if(!AI_atVictoryStage4()) // Don't worry yet if we're ahead
 			{
@@ -2773,7 +2772,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 			if (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4))
 			{
 				iValue += 10; // was 20
-				if (GET_TEAM(pCity->getTeam()).
+				if (GET_TEAM(kCity.getTeam()).
 					getVictoryCountdown(kGame.getSpaceVictory()) >= 0)
 				{
 					iValue += 100; // was 30
@@ -2783,7 +2782,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 		} // <advc.104d> Against Space3, taking any high-production cities helps.
 		else if(!kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4) &&
 			!AI_atVictoryStage4() &&
-			pCity->findYieldRateRank(YIELD_PRODUCTION) <
+			kCity.findYieldRateRank(YIELD_PRODUCTION) <
 			std::min(5, kOwner.getNumCities() / 4))
 		{
 			iValue += 3;
@@ -2794,18 +2793,18 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 		!kOwner.AI_atVictoryStage3() && !AI_atVictoryStage3())
 	{
 		CvCity* pTargetCapital = kOwner.getCapital();
-		if(pTargetCapital != NULL && pTargetCapital->sameArea(*pCity))
+		if(pTargetCapital != NULL && pTargetCapital->sameArea(kCity))
 			bThwartVictory = true;
 	} // </advc.104d>
 
 	CvMap const& m = GC.getMap();
-	CvCity* pNearestCity = m.findCity(pCity->getX(), pCity->getY(), getID());
+	CvCity const* pNearestCity = m.findCity(kCity.getX(), kCity.getY(), getID());
 	if (pNearestCity != NULL)
 	{
 		/*	Now scales sensibly with map size,
 			on large maps this term was incredibly dominant in magnitude */
 		int iTempValue = 30;
-		int iPathDist = m.calculatePathDistance(pNearestCity->plot(), pCity->plot());
+		int iPathDist = m.calculatePathDistance(pNearestCity->plot(), kCity.plot());
 		// <advc.104d>
 		if(bThwartVictory)
 			iPathDist /= 2; // </advc.104d>
@@ -2816,7 +2815,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 
 	if (bRandomize)
 	{
-		iValue += GC.getGame().getSorenRandNum(pCity->getPopulation() / 2 + 1,
+		iValue += GC.getGame().getSorenRandNum(kCity.getPopulation() / 2 + 1,
 				"AI Target City Value");
 	}
 
@@ -2825,7 +2824,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bI
 	// Usually this means the city would be auto-razed.
 	// (We can't use isAutoRaze for this, because that assumes the city is already captured.)
 	// kekm.29 (bugfix):
-	if (pCity->getHighestPopulation() == 1 && !kGame.isOption(GAMEOPTION_NO_CITY_RAZING))
+	if (kCity.getHighestPopulation() == 1 && !kGame.isOption(GAMEOPTION_NO_CITY_RAZING))
 		iValue = (iValue + 2) / 3;
 	// K-Mod end
 	return iValue;
@@ -3087,7 +3086,7 @@ CvCityAI* CvPlayerAI::AI_findTargetCity(CvArea const& kArea) const // advc.003u:
 		{
 			if (pLoopCity->isArea(kArea))
 			{
-				int iValue = AI_targetCityValue(pLoopCity, true);
+				int iValue = AI_targetCityValue(*pLoopCity, true);
 				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;

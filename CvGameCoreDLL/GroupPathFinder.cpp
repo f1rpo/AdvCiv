@@ -782,6 +782,7 @@ void GroupPathFinder::invalidateGroup(CvSelectionGroup const& kGroup)
 {
 	if (m_stepMetric.getGroup() == &kGroup)
 	{
+		PROFILE("GroupPathFinder::invalidateGroup - resetNodes");
 		resetNodes();
 		m_stepMetric = GroupStepMetric();
 		// <advc.tmp>

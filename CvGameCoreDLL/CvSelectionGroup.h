@@ -234,7 +234,6 @@ public:
 	DllExport int getUnitIndex(CvUnit* pUnit, int maxIndex = -1) const;
 	DllExport inline CLLNode<IDInfo>* headUnitNode() const { return m_units.head(); } // advc.inl
 	DllExport CvUnit* getHeadUnit() const;
-	CvUnit* getUnitAt(int index) const;
 	UnitAITypes getHeadUnitAIType() const; // advc.003u: was getHeadUnitAI
 	PlayerTypes getHeadOwner() const;
 	TeamTypes getHeadTeam() const;
@@ -337,6 +336,9 @@ protected:
 	void getLandCargoGroups(std::vector<CvSelectionGroup*>& r);
 	// </advc.075>
 	bool sentryAlert(/* advc.004l: */ bool bUpdateKnownEnemies = false);
+	// <advc> Was public. Should only be used by Python
+	CvUnit* getUnitAt(int iIndex) const;
+	friend class CySelectionGroup; // </advc>
 
 private: // advc.003u: (See comments in the private section of CvPlayer.h)
 	//virtual void AI_initExternal();

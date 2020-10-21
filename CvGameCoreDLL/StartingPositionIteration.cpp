@@ -514,7 +514,7 @@ void StartingPositionIteration::PotentialSites::getCurrFoundValues(
 
 
 StartingPositionIteration::DistanceTable::DistanceTable(
-	vector<CvPlot const*>& kapSources, vector<CvPlot const*>& kDestinations)
+	vector<CvPlot const*>& kSources, vector<CvPlot const*>& kDestinations)
 {
 	scaled rStartEraFactor = 1;
 	if (GC.getNumEraInfos() > 1)
@@ -527,9 +527,9 @@ StartingPositionIteration::DistanceTable::DistanceTable(
 
 	CvMap const& kMap = GC.getMap();
 	m_sourceIDs.resize(kMap.numPlots(), NOT_A_SOURCE);
-	for (size_t i = 0; i < kapSources.size(); i++)
+	for (size_t i = 0; i < kSources.size(); i++)
 	{
-		m_sourceIDs[kMap.plotNum(*kapSources[i])] = (SourceID)i;
+		m_sourceIDs[kMap.plotNum(*kSources[i])] = (SourceID)i;
 	}
 	// Need (fast) 2-way conversion for destination ids and plot numbers
 	m_destinationIDs.resize(kMap.numPlots(), NOT_A_DESTINATION);
@@ -541,11 +541,11 @@ StartingPositionIteration::DistanceTable::DistanceTable(
 		m_destinationIDs[ePlotNum] = eDst;
 		m_destinationIDToPlotNum[eDst] = ePlotNum;
 	}
-	m_distances.resize(kapSources.size(),
+	m_distances.resize(kSources.size(),
 			vector<short>(kDestinations.size(), MAX_SHORT));
-	for (size_t i = 0; i < kapSources.size(); i++)
+	for (size_t i = 0; i < kSources.size(); i++)
 	{
-		CvPlot const& kSource = *kapSources[i];
+		CvPlot const& kSource = *kSources[i];
 		computeDistances(kSource);
 		/*	Destinations can be (potential) city sites or workable tiles.
 			Water destinations are never city sites. To work a water tile,

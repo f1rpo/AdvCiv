@@ -1357,7 +1357,7 @@ int CvPlot::seeThroughLevel() const
 void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement,
 	CvUnit const* pUnit, bool bUpdatePlotGroups) // advc: const CvUnit*
 {
-	PROFILE_FUNC(); // advc.test: See comment in canSeeDisplacementPlot
+	PROFILE_FUNC(); // advc: See comment in canSeeDisplacementPlot
 
 	bool const bAerial = (pUnit != NULL && pUnit->getDomainType() == DOMAIN_AIR);
 
@@ -1469,74 +1469,85 @@ namespace
 	// advc: Moved from CvGameCoreUtils.h b/c it was only used here. Then replaced with:
 	inline int getSign(int x) { return (x > 0) - (x < 0); }
 }
-bool CvPlot::canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy,
-	int originalDX, int originalDY, bool firstPlot, bool outerRing) const
+bool CvPlot::canSeeDisplacementPlot(TeamTypes eTeam, int iDX, int iDY,
+	int iOriginalDX, int iOriginalDY, bool bFirstPlot, bool bOuterRing) const
 {
-	/*	advc.test: Could adopt some optimizations from "We the People":
-		cache seeThroughLevel; remove support for direction of sight
-		-- but is that worthwhile at all in a non-Colonization mod? */
-	PROFILE_FUNC();
+	/*	advc (note): This gets called very frequently.
+		Could adopt some optimizations from "We the People":
+		cache seeThroughLevel(), remove support for direction of sight
+		(in changeAdjacentSight). But I don't think it's quite bad enough to bother. */
+	//PROFILE_FUNC();
 
-	CvPlot const* pPlot = ::plotXY(getX(), getY(), dx, dy);
+	CvPlot const* pPlot = ::plotXY(getX(), getY(), iDX, iDY);
 	if (pPlot == NULL)
 		return false;
 
-	//base case is current plot
-	if(dx == 0 && dy == 0)
+	// base case is current plot
+	if(iDX == 0 && iDY == 0)
 		return true;
 
-	//find closest of three points (1, 2, 3) to original line from Start (S) to End (E)
-	//The diagonal is computed first as that guarantees a change in position
-	// -------------
-	// |   | 2 | S |
-	// -------------
-	// | E | 1 | 3 |
-	// -------------
-	int displacements[3][2] = {
-		{dx - getSign(dx), dy - getSign(dy)},
-		{dx - getSign(dx), dy},
-		{dx, dy - getSign(dy)}
+	/*	find closest of three points (1, 2, 3) to original line
+		from Start (S) to End (E).
+		The diagonal is computed first as that guarantees a change in position.
+		-------------
+		|   | 2 | S |
+		-------------
+		| E | 1 | 3 |
+		------------- */
+	int aaiDisplacements[3][2] =
+	{
+		{iDX - getSign(iDX), iDY - getSign(iDY)},
+		{iDX - getSign(iDX), iDY},
+		{iDX, iDY - getSign(iDY)}
 	};
-	int allClosest[3];
-	int closest = -1;
+	int aiAllClosest[3];
+	int iClosest = -1;
 	for (int i = 0; i < 3; i++)
 	{
-		//int tempClosest = abs(displacements[i][0] * originalDX - displacements[i][1] * originalDY); //more accurate, but less structured on a grid
-		allClosest[i] = abs(displacements[i][0] * dy - displacements[i][1] * dx); //cross product
-		if(closest == -1 || allClosest[i] < closest)
-			closest = allClosest[i];
+		//more accurate, but less structured on a grid
+		//int iTempClosest = abs(aaiDisplacements[i][0] * iOriginalDX - aaiDisplacements[i][1] * iOriginalDY);
+		// cross product
+		aiAllClosest[i] = abs(aaiDisplacements[i][0] * iDY
+				- aaiDisplacements[i][1] * iDX);
+		if(iClosest == -1 || aiAllClosest[i] < iClosest)
+			iClosest = aiAllClosest[i];
 	}
 
-	//iterate through all minimum plots to see if any of them are passable
+	// iterate through all minimum plots to see if any of them are passable
 	for (int i = 0; i < 3; i++)
 	{
-		int nextDX = displacements[i][0];
-		int nextDY = displacements[i][1];
-		if (nextDX != dx || nextDY != dy) //make sure we change plots
+		int iNextDX = aaiDisplacements[i][0];
+		int iNextDY = aaiDisplacements[i][1];
+		if (iNextDX == iDX && iNextDY == iDY) // make sure we change plots
+			continue;
+		if (aiAllClosest[i] == iClosest && canSeeDisplacementPlot(
+			eTeam, iNextDX, iNextDY, iOriginalDX, iOriginalDY, false, false))
 		{
-			if (allClosest[i] == closest && canSeeDisplacementPlot(
-				eTeam, nextDX, nextDY, originalDX, originalDY, false, false))
+			int iFromLevel = seeFromLevel(eTeam);
+			int iThroughLevel = pPlot->seeThroughLevel();
+			if (bOuterRing) // check strictly higher level
 			{
-				int fromLevel = seeFromLevel(eTeam);
-				int throughLevel = pPlot->seeThroughLevel();
-				if (outerRing) //check strictly higher level
+				CvPlot const* pPassThroughPlot = plotXY(
+						getX(), getY(), iNextDX, iNextDY);
+				int iPassThroughLevel = pPassThroughPlot->seeThroughLevel();
+				if (iFromLevel >= iPassThroughLevel)
 				{
-					CvPlot const* passThroughPlot = ::plotXY(getX(), getY(), nextDX, nextDY);
-					int passThroughLevel = passThroughPlot->seeThroughLevel();
-					if (fromLevel >= passThroughLevel)
+					// either we can see through to it or it is high enough to see from far
+					if(iFromLevel > iPassThroughLevel ||
+						pPlot->seeFromLevel(eTeam) > iFromLevel)
 					{
-						//either we can see through to it or it is high enough to see from far
-						if(fromLevel > passThroughLevel || pPlot->seeFromLevel(eTeam) > fromLevel)
-							return true;
+						return true;
 					}
 				}
-				else
-				{
-					if (fromLevel >= throughLevel) //we can clearly see this level
-						return true;
-					else if (firstPlot) //we can also see it if it is the first plot that is too tall
-						return true;
-				}
+			}
+			else
+			{
+				// we can clearly see this level
+				if (iFromLevel >= iThroughLevel)
+					return true;
+				// we can also see it if it is the first plot that is too tall
+				if (bFirstPlot)
+					return true;
 			}
 		}
 	}
@@ -1545,39 +1556,39 @@ bool CvPlot::canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy,
 }
 
 
-bool CvPlot::shouldProcessDisplacementPlot(int dx, int dy, //int iRange, // advc: unused
+bool CvPlot::shouldProcessDisplacementPlot(int iDX, int iDY, //int iRange, // advc: unused
 	DirectionTypes eFacingDirection) const
 {
-	if(eFacingDirection == NO_DIRECTION)
+	if (eFacingDirection == NO_DIRECTION)
 		return true;
 
-	if(dx == 0 && dy == 0) //always process this plot
+	if (iDX == 0 && iDY == 0) // always process this plot
 		return true;
 
-	//							N		NE		E		SE			S		SW		W			NW
-	int displacements[8][2] = {{0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}};
-	int directionX = displacements[eFacingDirection][0];
-	int directionY = displacements[eFacingDirection][1];
+	//								N		NE		E		SE		 S			SW		W		NW
+	int aaiDisplacements[8][2] = {{0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}};
+	int iDirectionX = aaiDisplacements[eFacingDirection][0];
+	int iDirectionY = aaiDisplacements[eFacingDirection][1];
 
-	//compute angle off of direction
-	int crossProduct = directionX * dy - directionY * dx; //cross product
-	int dotProduct = directionX * dx + directionY * dy; //dot product
+	// compute angle off of direction
+	int iCrossProduct = iDirectionX * iDY - iDirectionY * iDX;
+	int iDotProduct = iDirectionX * iDX + iDirectionY * iDY;
 
-	float theta = atan2((float)crossProduct, (float)dotProduct);
-	float spread = 60 * (float)M_PI / 180;
-	if(abs(dx) <= 1 && abs(dy) <= 1) //close plots use wider spread
-		spread = 90 * (float) M_PI / 180;
+	float fTheta = atan2((float)iCrossProduct, (float)iDotProduct);
+	float fSpread = 60 * (float)M_PI / 180;
+	if (abs(iDX) <= 1 && abs(iDY) <= 1) // close plots use wider spread
+		fSpread = 90 * (float)M_PI / 180;
 
-	if(theta >= -spread / 2 && theta <= spread / 2)
+	if (fTheta >= -fSpread / 2 && fTheta <= fSpread / 2)
 		return true;
 	return false;
 
-	/*DirectionTypes leftDirection = GC.getTurnLeftDirection(eFacingDirection);
-	DirectionTypes rightDirection = GC.getTurnRightDirection(eFacingDirection);
+	/*DirectionTypes eLeftDirection = GC.getTurnLeftDirection(eFacingDirection);
+	DirectionTypes eRightDirection = GC.getTurnRightDirection(eFacingDirection);
 	//test which sides of the line equation (cross product)
-	int leftSide = displacements[leftDirection][0] * dy - displacements[leftDirection][1] * dx;
-	int rightSide = displacements[rightDirection][0] * dy - displacements[rightDirection][1] * dx;
-	if((leftSide <= 0) && (rightSide >= 0))
+	int iLeftSide = aaiDdisplacements[eLeftDirection][0] * iDY - aaiDisplacements[eLeftDirection][1] * iDX;
+	int iRightSide = displacements[eRightDirection][0] * iDY - displacements[rightDirection][1] * iDX;
+	if(iLeftSide <= 0 && iRightSide >= 0)
 		return true;
 	return false;*/
 }
@@ -3236,26 +3247,25 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 }
 
 
-bool CvPlot::isValidDomainForLocation(const CvUnit& unit) const
+bool CvPlot::isValidDomainForLocation(CvUnit const& kUnit) const
 {
-	if (isValidDomainForAction(unit))
+	if (isValidDomainForAction(kUnit))
 		return true;
-
-	return isCity(true, unit.getTeam());
+	return isCity(true, kUnit.getTeam());
 }
 
 
-bool CvPlot::isValidDomainForAction(const CvUnit& unit) const
+bool CvPlot::isValidDomainForAction(CvUnit const& kUnit) const
 {
-	switch (unit.getDomainType())
+	switch (kUnit.getDomainType())
 	{
 	case DOMAIN_SEA:
-		return (isWater() || unit.canMoveAllTerrain());
+		return (isWater() || kUnit.canMoveAllTerrain());
 	case DOMAIN_AIR:
 		return false;
 	case DOMAIN_LAND:
 	case DOMAIN_IMMOBILE:
-		return (!isWater() || unit.canMoveAllTerrain());
+		return (!isWater() || kUnit.canMoveAllTerrain());
 	default:
 		FAssert(false);
 		return false;

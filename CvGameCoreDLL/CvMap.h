@@ -26,9 +26,13 @@ struct CvMapInitData // holds initialization info
 	bool m_bWrapX;
 	bool m_bWrapY;
 
-	CvMapInitData(int iGridW=0, int iGridH=0, int iTopLatitude=90, int iBottomLatitude=-90, bool bWrapX=false, bool bWrapY=false) :
-		m_iGridH(iGridH),m_iGridW(iGridW),m_iTopLatitude(iTopLatitude),m_iBottomLatitude(iBottomLatitude),m_bWrapY(bWrapY),m_bWrapX(bWrapX)
-	{ }
+	CvMapInitData(int iGridW = 0, int iGridH = 0,
+		int iTopLatitude = 90, int iBottomLatitude = -90,
+		bool bWrapX = false, bool bWrapY = false)
+	:	m_iGridH(iGridH), m_iGridW(iGridW),
+		m_iTopLatitude(iTopLatitude), m_iBottomLatitude(iBottomLatitude),
+		m_bWrapY(bWrapY), m_bWrapX(bWrapX)
+	{}
 };
 
 class CvMap /* advc.003e: */ : private boost::noncopyable
@@ -93,7 +97,7 @@ public:
 	// Returns the distance between plots according to the pattern above...
 	int stepDistance(int iX1, int iY1, int iX2, int iY2) const
 	{	// std::opt: Was std::max. inline keyword removed; cf. plotDistance.
-		return max(xDistance(iX1, iX2), yDistance(iY1, iY2));
+		return branchless::max(xDistance(iX1, iX2), yDistance(iY1, iY2));
 	}
 
 	// K-Mod, plot-to-plot alias for convenience:

@@ -259,7 +259,7 @@ public:
 		bool reachBySea;
 		bool canDeduce;
 		int plotIndex;
-		PlayerTypes cacheOwnerId;
+		//CvWString descr; // for debugging
 	};
 };
 

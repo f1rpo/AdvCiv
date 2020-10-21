@@ -125,7 +125,7 @@ public:
 	int AI_militaryWeight(CvArea const* pArea = NULL) const;
 	bool AI_feelsSafe() const; // advc.109
 
-	int AI_targetCityValue(CvCity const* pCity, bool bRandomize, bool bIgnoreAttackers = false) const;
+	int AI_targetCityValue(CvCity const& kCity, bool bRandomize, bool bIgnoreAttackers = false) const;
 	CvCityAI* AI_findTargetCity(CvArea const& kArea) const;
 	int AI_cityWonderVal(CvCity const& c) const; // advc.104d
 	scaled AI_assetVal(CvCityAI const& c, bool bConquest) const; // advc
@@ -591,12 +591,9 @@ public:
 	void AI_doAdvancedStart(bool bNoExit = false);
 
 	int AI_getMinFoundValue() const;
-
 	void AI_recalculateFoundValues(int iX, int iY, int iInnerRadius, int iOuterRadius) const;
-
 	void AI_updateCitySites(int iMinFoundValueThreshold = -1, int iMaxSites = 4); // advc: default values
 	void AI_invalidateCitySites(int iMinFoundValueThreshold);
-
 	int AI_getNumCitySites() const { return m_aiAICitySites.size(); } // advc.inl
 	bool AI_isPlotCitySite(CvPlot const& kPlot) const; // advc: Made plot param const
 	int AI_getNumAreaCitySites(CvArea const& kArea, int& iBestValue) const;

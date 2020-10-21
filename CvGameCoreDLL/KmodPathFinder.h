@@ -209,9 +209,7 @@ protected:
 
 	/*	Replaces
 		typedef std::vector<Node*> OpenList;
-		with a wrapper class that sets the correct PathNodeState.
-		Tbd.: vector::erase is expensive. Try std::list -- though it could be
-		that the fast vector traversal is more important. */
+		with a wrapper class that sets the correct PathNodeState. */
 	class OpenList
 	{
 	public:
@@ -236,6 +234,9 @@ protected:
 		// Does not change the state of the nodes
 		inline void clear()
 		{
+			/*	This erases every element. So does resize(0).
+				The only way to avoid this, I think, would be to use a raw array
+				instead of a vector. */
 			m_pNodes.clear();
 		}
 		// These function do change the state of the nodes (hence the names)
@@ -243,12 +244,14 @@ protected:
 		{
 			m_pNodes.push_back(&kNode);
 			// Inefficient to add the same node multiple times
-			FAssert(!kNode.isState(PATHNODE_OPEN)); // Tbd.: don't keep this assert permanently
+			//FAssert(!kNode.isState(PATHNODE_OPEN)); // (Seems to work; can stop checking.)
 			kNode.setState(PATHNODE_OPEN);
 		}
 		inline void close(iterator pos)
 		{
 			Node& kNode = **pos;
+			/*	Expensive on a vector, but faster iteration more than makes up for it
+				in comparison with a list. */
 			m_pNodes.erase(pos);
 			FAssert(kNode.isState(PATHNODE_OPEN));
 			kNode.setState(PATHNODE_CLOSED);

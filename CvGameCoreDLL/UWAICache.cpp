@@ -606,6 +606,7 @@ UWAICache const& UWAICache::leaderCache() const {
 		return *this;
 	return GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).uwai().getCache();
 }
+
 UWAICache& UWAICache::leaderCache() {
 
 	if(ownerId == GET_TEAM(ownerId).getLeaderID())
@@ -675,11 +676,8 @@ void UWAICache::sortCitiesByAttackPriority() {
 				maxPriority = priority;
 			}
 		}
-		if(iMax >= 0) {
-			City* tmp = v[i];
-			v[i] = v[iMax];
-			v[iMax] = tmp;
-		}
+		if(iMax >= 0)
+			std::swap(v[i], v[iMax]);
 	}
 }
 
@@ -1184,7 +1182,7 @@ void UWAICache::updateMilitaryPower(CvUnitInfo const& u, bool add) {
 UWAICache::City::City(PlayerTypes cacheOwnerId, CvCity const& c)
 		: cacheOwnerId(cacheOwnerId) {
 
-	canDeduce = GET_TEAM(cacheOwnerId).AI_deduceCitySite(&c);
+	//descr = c.getName();
 	// Use plot index as city id (the pointer 'c' isn't serializable)
 	plotIndex = c.plotNum();
 	updateDistance(c);
@@ -1474,7 +1472,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 	FOR_EACH_CITY(c, cacheOwner) {
 		// Skip small and isolated cities
 		if(!c->isCapital() && (c->getArea().getCitiesPerPlayer(cacheOwnerId) <= 1 ||
-				c->getPopulation() < capital->getPopulation() / 3 ||
+				c->getPopulation() * 3 < capital->getPopulation() ||
 				c->getYieldRate(YIELD_PRODUCTION) < 5 + era))
 			continue;
 		CvPlot* p = c->plot();
@@ -1510,7 +1508,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 		if(pwd >= 0) {
 			pairwDurations.push_back(pwd);
 			// Extra weight for our capital
-			if(c->isCapital())
+			if(c == capital)
 				pairwDurations.push_back(pwd);
 		}
 		/*  No path from c, but we assume that there is a path from c to every other

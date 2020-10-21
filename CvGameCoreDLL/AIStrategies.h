@@ -81,7 +81,7 @@ enum AIVictoryStage // advc: replacing preprocessor defines
 	AI_CITY_ROLE_SPECIALIST         =	(1 <<  8),	//
 	AI_CITY_ROLE_FISHING            =	(1 <<  9),	//
 	AI_CITY_ROLE_STAGING            =	(1 << 10),	//send troops here
-	AI_CITY_ROLE_LICHPIN            =	(1 << 11),	//this city must not fall
+	AI_CITY_ROLE_LINCHPIN            =	(1 << 11),	//this city must not fall
 };
 // <advc.enum>
 OVERLOAD_BITWISE_OPERATORS(AICityRole)*/

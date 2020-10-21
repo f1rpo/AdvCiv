@@ -2182,7 +2182,6 @@ GroupPathFinder& CvUnit::getPathFinder() const
 	return CvSelectionGroup::pathFinder();
 }
 
-
 // advc: Wrapper for brevity
 void CvUnit::pushGroupMoveTo(CvPlot const& kTo, MovementFlags eFlags,
 	bool bAppend, bool bManual, MissionAITypes eMissionAI,
@@ -4537,7 +4536,7 @@ bool CvUnit::plunder()
 	return true;
 }
 
-/*  <advc.033> For code shared by updatePlunder, collectBlockadeGold and
+/*  advc.033: For code shared by updatePlunder, collectBlockadeGold and
 	CvGame::updateColoredPlots.
 	See BBAI notes below about the iExtra param. */
 void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra, /* advc.033: */ bool bCheckCanPlunder) const
@@ -4574,7 +4573,7 @@ void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra, /* advc.033: */ 
 		if(iPathDist >= 0 && iPathDist <= iRange + iExtra)
 			r.push_back(&kLoopPlot);
 	}
-} // </advc.033>
+}
 
 
 void CvUnit::updatePlunder(int iChange, bool bUpdatePlotGroups)
@@ -6451,7 +6450,7 @@ CvUnit* CvUnit::upgrade(UnitTypes eUnit) // K-Mod: this now returns the new unit
 	if (!isHuman() && getGroup()->getNumUnits() > 1 &&
 		AI_getUnitAIType() != UNITAI_ASSAULT_SEA &&
 		(kOwner.AI_isAnyImpassable(eUnit) ||
-		kOwner.AI_isAnyImpassable(getGroup()->getUnitAt(0)->getUnitType())))
+		kOwner.AI_isAnyImpassable(getGroup()->getHeadUnit()->getUnitType())))
 	{
 		pUpgradeUnit->joinGroup(NULL);
 	}
