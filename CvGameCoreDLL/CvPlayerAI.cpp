@@ -14858,7 +14858,8 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(/* advc: */CvCity const* pCity,
 
 	//int iCount = 0;
 	int iTotalStrength = 0;
-	GroupPathFinder tempFinder;
+	//GroupPathFinder tempFinder;
+	GroupPathFinder& tempFinder = CvSelectionGroup::getClearPathFinder(); // advc.opt
 
 	FOR_EACH_GROUPAI(pLoopSelectionGroup, *this)
 	{
@@ -27182,7 +27183,7 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 	if(iRange == -1)
 		iRange = DANGER_RANGE;
 	CvArea const& kPlotArea = pPlot->getArea();
-	GroupPathFinder tempFinder; // advc.opt: Allow reuse of tempFinder
+	GroupPathFinder& tempFinder = CvSelectionGroup::getClearPathFinder(); // advc.opt
 	for (SquareIter it(*pPlot, iRange); it.hasNext(); ++it)
 	{
 		CvPlot const& p = *it;

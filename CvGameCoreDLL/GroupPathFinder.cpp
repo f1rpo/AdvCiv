@@ -820,7 +820,7 @@ CvPlot& GroupPathFinder::getPathEndTurnPlot() const
 	}
 	FAssert(pNode != NULL);
 	#ifndef FASSERT_ENABLE // advc.tmp
-	return m_kMap.getPlotByIndex(pNode->m_ePlot);
+	return pNode->getPlot();
 	// <advc.tmp>
 	#else
 	CvPlot& r=pNode->getPlot(); FAssert(&r ==leg.GetPathEndTurnPlot());return r;

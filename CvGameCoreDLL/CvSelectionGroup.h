@@ -19,6 +19,7 @@ public:
 	{
 		return *m_pPathFinder;
 	}
+	static GroupPathFinder& getClearPathFinder(); // advc.opt
 	static void initPathFinder();
 	static void uninitPathFinder(); // </advc.pf>
 	/*	(disabled by K-mod. Use pathFinder().Reset instead. was exposed to Python.
@@ -34,6 +35,7 @@ public:
 	DllExport void uninit();
 	DllExport void reset(int iID = 0, PlayerTypes eOwner = NO_PLAYER, bool bConstructorCall = false);
 	void kill();
+	void invalidateGroupPaths(); // advc.pf
 
 	void doTurn();
 	void doTurnPost(); // advc.004l
@@ -284,6 +286,9 @@ protected:
 		Just make it a static pointer so that we can at least delay initialization
 		until the map has been initialized. */
 	static GroupPathFinder* m_pPathFinder;
+	/*	advc.opt: When we want to avoid resetting the path finder above,
+		and also want to avoid allocating memory. */
+	static GroupPathFinder* m_pAltPathFinder;
 
 	// WARNING: adding to this class will cause the civ4 exe to crash
 

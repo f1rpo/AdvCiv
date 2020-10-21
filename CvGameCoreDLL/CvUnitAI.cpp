@@ -814,9 +814,10 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 		but this function is also used to give action recommendations for the player
 		- and for that I do not want to disrupt the standard pathfinder.
 		(because I'm paranoid about OOS bugs.) */
-	GroupPathFinder altFinder;
+	//GroupPathFinder altFinder;
 	GroupPathFinder& pathFinder = (getGroup()->AI_isControlled() ?
-			CvSelectionGroup::pathFinder() : altFinder);
+			CvSelectionGroup::pathFinder() :
+			CvSelectionGroup::getClearPathFinder()); // advc.opt
 	if (getGroup()->AI_isControlled())
 	{
 		// standard settings. cf. CvUnit::generatePath
@@ -9923,8 +9924,10 @@ bool CvUnitAI::AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI,
 		}
 		// Can transport reach enemy in requested time
 		bool bFoundEnemyPlotInRange = false;
-		// K-Mod. use a separate pathfinder for the transports, so that we don't reset our current path data.
-		GroupPathFinder tempFinder;
+		/*	K-Mod. use a separate pathfinder for the transports,
+			so that we don't reset our current path data. */
+		//GroupPathFinder tempFinder;
+		GroupPathFinder& tempFinder = CvSelectionGroup::getClearPathFinder(); // advc.opt
 		tempFinder.setGroup(*pBestUnit->getGroup(),
 				eFlags & MOVE_DECLARE_WAR, iMaxTransportPath, GC.getMOVE_DENOMINATOR());
 		// K-Mod end
@@ -13185,7 +13188,8 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 	// iLoadTurns < 0 implies we should look for a transport; otherwise, it is the number of turns to reach the transport.
 	// Also, we only consider using transports if we aren't in enemy territory.
 	int iLoadTurns = isEnemy(getPlot()) ? MAX_INT : -1;
-	GroupPathFinder transportPath;
+	//GroupPathFinder transportPath;
+	GroupPathFinder& transportPath = CvSelectionGroup::getClearPathFinder(); // advc.opt
 	// K-Mod end
 
 	CvCity* pTargetCity =  // advc.300:
@@ -15578,7 +15582,8 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 						int iOtherPathTurns = MAX_INT;
 						//if (pLoopSelectionGroup->generatePath(pLoopSelectionGroup->plot(), pLoopPlot, eFlags, true, &iOtherPathTurns))
 						// K-Mod. Use a different pathfinder, so that we don't clear our path data.
-						GroupPathFinder loopPath;
+						//GroupPathFinder loopPath;
+						GroupPathFinder& loopPath = CvSelectionGroup::getClearPathFinder();
 						loopPath.setGroup(*pLoopSelectionGroup, eFlags, iPathTurns);
 						if (loopPath.generatePath(*pLoopPlot)) // K-Mod end
 						{
@@ -15968,7 +15973,8 @@ bool CvUnitAI::AI_settlerSeaTransport()
 	int iOtherAreaBestFoundValue = 0;
 	CvPlot* pOtherAreaBestPlot = NULL;
 
-	GroupPathFinder landPath;
+	//GroupPathFinder landPath;
+	GroupPathFinder& landPath = CvSelectionGroup::getClearPathFinder(); // advc.opt
 	landPath.setGroup(*pSettlerUnit->getGroup(), MOVE_SAFE_TERRITORY);
 
 	for (int iI = 0; iI < GET_PLAYER(getOwner()).AI_getNumCitySites(); iI++)

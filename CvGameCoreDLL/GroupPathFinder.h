@@ -128,7 +128,8 @@ protected:
 };
 
 
-class GroupPathFinder : public KmodPathFinder<GroupStepMetric, GroupPathNode>
+class GroupPathFinder : public KmodPathFinder<GroupStepMetric, GroupPathNode>,
+	private boost::noncopyable
 {
 public:
 	void invalidateGroup(CvSelectionGroup const& kGroup);

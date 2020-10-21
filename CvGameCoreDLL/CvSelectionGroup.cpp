@@ -16,6 +16,7 @@
 
 // K-Mod:
 GroupPathFinder* CvSelectionGroup::m_pPathFinder = NULL; // advc.pf: pointer
+GroupPathFinder* CvSelectionGroup::m_pAltPathFinder = NULL; // advc.opt
 // <advc.pf>
 void CvSelectionGroup::initPathFinder()
 {
@@ -25,10 +26,12 @@ void CvSelectionGroup::initPathFinder()
 		delete m_pPathFinder;
 	}
 	m_pPathFinder = new GroupPathFinder();
+	m_pAltPathFinder = new GroupPathFinder();
 }
 void CvSelectionGroup::uninitPathFinder()
 {
 	SAFE_DELETE(m_pPathFinder);
+	SAFE_DELETE(m_pAltPathFinder);
 }
 /*	Restored this BtS function for callers that
 	otherwise don't need the GroupPathFinder header.
@@ -37,6 +40,14 @@ void CvSelectionGroup::resetPath()
 {
 	//gDLL->getFAStarIFace()->ForceReset(&GC.getPathFinder());
 	pathFinder().reset();
+}
+
+GroupPathFinder& CvSelectionGroup::getClearPathFinder() // advc.opt
+{
+	/*	(Will use this in a place where cached data could cause OOS issues.
+		The point is only to avoid repeated memory allocation.) */
+	m_pAltPathFinder->reset();
+	return *m_pAltPathFinder;
 } // </advc.pf>
 
 
@@ -97,10 +108,18 @@ void CvSelectionGroup::kill()
 	FAssert(getID() != FFreeList::INVALID_INDEX);
 	FAssert(getNumUnits() == 0);
 
-	CvSelectionGroup::m_pPathFinder->invalidateGroup(*this); // advc.pf
+	invalidateGroupPaths(); // advc.pf
 	GET_PLAYER(getOwner()).removeGroupCycle(getID());
 	GET_PLAYER(getOwner()).deleteSelectionGroup(getID());
 }
+
+// advc.pf:
+void CvSelectionGroup::invalidateGroupPaths()
+{
+	m_pPathFinder->invalidateGroup(*this);
+	m_pAltPathFinder->invalidateGroup(*this);
+}
+
 
 bool CvSelectionGroup::sentryAlert(/* advc.004l: */ bool bUpdateKnownEnemies)
 {
@@ -2784,7 +2803,8 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, MovementFlags eFlags,
 	FAssert(!isBusy()); // K-Mod
 
 	// K-Mod. Rather than clearing the existing path data; use a temporary pathfinder.
-	GroupPathFinder finalPath;
+	//GroupPathFinder finalPath;
+	GroupPathFinder& finalPath = getClearPathFinder(); // advc.opt
 	finalPath.setGroup(*this, eFlags & ~MOVE_DECLARE_WAR);
 	/*if (eFlags & MOVE_THROUGH_ENEMY) {
 		if (generatePath(plot(), pDestPlot, eFlags))
@@ -3000,7 +3020,9 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 // Returns true if move was made...
 bool CvSelectionGroup::groupPathTo(int iX, int iY, MovementFlags eFlags)
 {
-	GroupPathFinder finalPath; // K-Mod
+	//GroupPathFinder finalPath; // K-Mod
+	// advc.opt: Avoid allocating new memory
+	GroupPathFinder& finalPath = getClearPathFinder();
 	CvPlot* pOriginPlot = plot(); // K-Mod
 
 	if (at(iX, iY))
@@ -3997,15 +4019,19 @@ bool CvSelectionGroup::generatePath(CvPlot const& kFrom, CvPlot const& kTo,
 	MovementFlags eFlags, bool bReuse, int* piPathTurns, int iMaxPath,
 	bool bUseTempFinder) const // advc.128
 {
-	// K-Mod - if I can stop the UI from messing with this pathfinder, I might be able to reduce OOS bugs.
-	FAssert(AI_isControlled()); // advc.706 (note): Can trigger after defeat of active player in R&F game
-
-	PROFILE("CvSelectionGroup::generatePath()");
-
+	PROFILE_FUNC();
+	/*	K-Mod - if I can stop the UI from messing with this pathfinder,
+		I might be able to reduce OOS bugs.
+		advc.706 (note): Can trigger after defeat of active player in R&F game.
+		advc.128: MAX_MOVES: The AI may use this function to anticipate human moves. */
+	FAssert(AI_isControlled() || (eFlags & MOVE_MAX_MOVES));
 	// <advc.128>
 	FAssert(!bUseTempFinder || !bReuse);
+	/*	Not getClearPathFinder -- want bTempFinder to work correctly even when called
+		while generating a path. */
 	GroupPathFinder tempFinder;
-	GroupPathFinder& kPathFinder = (bUseTempFinder ? tempFinder : pathFinder());
+	GroupPathFinder& kPathFinder = (!bUseTempFinder ?
+			pathFinder() : tempFinder);
 	// </advc.128>
 	/*if (!bReuse)
 		pathFinder().Reset();*/
