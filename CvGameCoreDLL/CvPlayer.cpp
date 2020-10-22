@@ -1065,9 +1065,8 @@ void CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 			if (!kLoopPlot.isGoody() &&
 				!kLoopPlot.isImpassable() && !kLoopPlot.isUnit() &&
 				kLoopPlot.sameArea(*pStartingPlot) &&
-				// <advc.108> Don't place the unit across a large bay
-				GC.getMap().calculateTeamPathDistance(
-				getTeam(), kLoopPlot, *pStartingPlot, 3) <= 3) // </advc.108>
+				// advc.108: Don't place the unit across a large bay
+				GC.getMap().calculatePathDistance(&kLoopPlot, pStartingPlot) <= 3)
 			{
 				pBestPlot = &kLoopPlot;
 				break;

@@ -134,22 +134,36 @@ private:
 	TeamPathFinder<TeamPath::ANY_WATER>& m_kAnyWaterFinder;
 	TeamPathFinder<TeamPath::SHALLOW_WATER>& m_kShallowWaterFinder;
 };
-class TeamPathFinderAnyWater : public TeamPathFinder<TeamPath::ANY_WATER>
+
+// Work around the lack of runtime polymorphism
+class TeamWaterPathFinder
 {
 public:
-	TeamPathFinderAnyWater(CvTeam const& kTeam, CvTeam const* pWarTarget = NULL,
+	TeamWaterPathFinder(CvTeam const& kTeam, CvTeam const* pWarTarget = NULL,
 		int iMaxPath = -1)
-	:	TeamPathFinder<TeamPath::ANY_WATER>(kTeam, pWarTarget, iMaxPath)
-	{}
-};
-class TeamPathFinderShallowWater : public TeamPathFinder<TeamPath::SHALLOW_WATER>
-{
-public:
-	TeamPathFinderShallowWater(CvTeam const& kTeam,
-		CvTeam const* pWarTarget = NULL,
-		int iMaxPath = -1)
-	:	TeamPathFinder<TeamPath::SHALLOW_WATER>(kTeam, pWarTarget, iMaxPath)
-	{}
+	{
+		// (These aren't expensive)
+		m_pAnyWaterFinder = new TeamPathFinder<TeamPath::ANY_WATER>(
+				kTeam, pWarTarget, iMaxPath);
+		m_pShallowWaterFinder = new TeamPathFinder<TeamPath::SHALLOW_WATER>(
+				kTeam, pWarTarget, iMaxPath);
+	}
+	~TeamWaterPathFinder()
+	{
+		delete m_pAnyWaterFinder;
+		delete m_pShallowWaterFinder;
+	}
+	inline TeamPathFinder<TeamPath::ANY_WATER>& anyWaterFinder()
+	{
+		return *m_pAnyWaterFinder;
+	}
+	inline TeamPathFinder<TeamPath::SHALLOW_WATER>& shallowWaterFinder()
+	{
+		return *m_pShallowWaterFinder;
+	}
+private:
+	TeamPathFinder<TeamPath::ANY_WATER>* m_pAnyWaterFinder;
+	TeamPathFinder<TeamPath::SHALLOW_WATER>* m_pShallowWaterFinder;
 };
 
 #endif

@@ -6,6 +6,7 @@
 #include "CvSelectionGroupAI.h"
 #include "CoreAI.h"
 #include "CvCityAI.h"
+#include "TeamPathFinder.h"
 #include "UWAIAgent.h"
 #include "RiseFall.h" // advc.705
 #include "PlotRange.h"
@@ -4538,7 +4539,7 @@ bool CvUnit::plunder()
 
 /*  advc.033: For code shared by updatePlunder, collectBlockadeGold and
 	CvGame::updateColoredPlots.
-	See BBAI notes below about the iExtra param. */
+	See BBAI notes below about the iExtra param; disused for now. */
 void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra, /* advc.033: */ bool bCheckCanPlunder) const
 {
 	if(bCheckCanPlunder && !canPlunder(getPlot()))
@@ -4549,6 +4550,8 @@ void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra, /* advc.033: */ 
 	bool bImpassables = (getDomainType() == DOMAIN_SEA && GET_PLAYER(getOwner()).
 			AI_isAnyImpassable(getUnitType()));
 	int const iRange = GC.getDefineINT(CvGlobals::SHIP_BLOCKADE_RANGE);
+	// advc.033:
+	TeamWaterPathFinder pathFinder(GET_TEAM(BARBARIAN_TEAM), NULL, iRange/* + iExtra*/);
 	for (SquareIter it(*this, iRange); it.hasNext(); ++it)
 	{
 		CvPlot& kLoopPlot = *it;
@@ -4558,19 +4561,28 @@ void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra, /* advc.033: */ 
 			continue;
 		}
 		// BBAI (jdog5000, 12/11/08): No blockading on other side of an isthmus
-		int iPathDist =
-				//GC.getMap().calculatePathDistance(plot(), &kLoopPlot);
-				/*  <advc.033> Faster (iMaxPath), but probably doesn't fix the
-					issue described below b/c still uses FAStar. */
-				GC.getMap().calculateTeamPathDistance(BARBARIAN_TEAM,
-				getPlot(), kLoopPlot, iRange + iExtra, BARBARIAN_TEAM,
-				bImpassables ? DOMAIN_IMMOBILE : getDomainType()); // </advc.033>
-		// BBAI NOTES (jdog5000, 06/01/09):
-		// There are rare issues where the pathfinder will return incorrect results
-		// for unknown reasons.  Seems to find a suboptimal path sometimes in partially repeatable
-		// circumstances.  The fix below is a hack to address the permanent one or two tile blockades which
-		// would appear randomly, it should cause extra blockade clearing only very rarely.
-		if(iPathDist >= 0 && iPathDist <= iRange + iExtra)
+		int iPathDist = -1;
+				//= GC.getMap().calculatePathDistance(plot(), &kLoopPlot);
+		// <advc.033> (Slightly ugly)
+		if (bImpassables)
+		{
+			if (pathFinder.shallowWaterFinder().generatePath(getPlot(), kLoopPlot))
+				iPathDist = pathFinder.shallowWaterFinder().getPathLength();
+		}
+		else
+		{
+			if (pathFinder.anyWaterFinder().generatePath(getPlot(), kLoopPlot))
+				iPathDist = pathFinder.anyWaterFinder().getPathLength();
+		} // </advc.033>
+		/*	BBAI NOTES (jdog5000, 06/01/09):
+			There are rare issues where the pathfinder will return incorrect results.
+			for unknown reasons.  Seems to find a suboptimal path sometimes
+			in partially repeatable circumstances.  The fix below is a hack
+			to address the permanent one or two tile blockades which would
+			appear randomly, it should cause extra blockade clearing only very rarely. */
+		/*	advc.033: Workaround disabled. Let's see if KmodPathFinder has the same
+			defect as FAStar in the EXE. Could well be; perhaps it can be fixed then. */
+		if(iPathDist >= 0 && iPathDist <= iRange/* + iExtra*/)
 			r.push_back(&kLoopPlot);
 	}
 }

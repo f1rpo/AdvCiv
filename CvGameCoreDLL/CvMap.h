@@ -492,11 +492,6 @@ public: // advc: made several functions const
 	// </advc.300>
 	void resetPathDistance();																		// Exposed to Python
 	int calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) const;					// Exposed to Python
-	// advc.104b: (based on BBAI's CvPlot::calculatePathDistanceToPlot)
-	int calculateTeamPathDistance(TeamTypes eTeam,
-			CvPlot const& kFrom, CvPlot const& kTo, int iMaxPath = -1,
-			TeamTypes eTargetTeam = BARBARIAN_TEAM,
-			DomainTypes eDomain = DOMAIN_LAND) const;
 	void updateIrrigated(CvPlot& kPlot); // advc.pf
 
 	// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START

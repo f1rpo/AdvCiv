@@ -1,10 +1,8 @@
-// teamAI.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvTeamAI.h"
 #include "CoreAI.h"
 #include "CvCityAI.h"
-#include "FAStarFunc.h"
+#include "TeamPathFinder.h"
 #include "CityPlotIterator.h"
 #include "CvArea.h"
 #include "CvInfo_City.h"
@@ -651,7 +649,8 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTarget,
 		if (AI_isPrimaryArea(*pLoopArea) && kTarget.AI_isPrimaryArea(*pLoopArea))
 			return true;
 	}
-	CvMap const& kMap = GC.getMap(); // advc
+	// advc.pf: Replacing BBAI instantiation of FAStar
+	TeamPathFinder<TeamPath::LAND> pathFinder(*this, &GET_TEAM(eTarget), 18);
 	for (MemberIter itOur(getID()); itOur.hasNext(); ++itOur)
 	{
 		CvPlayerAI const& kOurMember = *itOur;
@@ -665,31 +664,11 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTarget,
 				const CvPlayerAI& kTheirMember = *itTheir;
 				if (!kTheirMember.AI_isPrimaryArea(pOurCity->getArea()))
 					continue;
-
-				std::vector<TeamTypes> teamVec;
-				teamVec.push_back(getID());
-				teamVec.push_back(eTarget);
-				FAStar* pTeamStepFinder = gDLL->getFAStarIFace()->create();
-				gDLL->getFAStarIFace()->Initialize(pTeamStepFinder,
-						kMap.getGridWidth(), kMap.getGridHeight(), kMap.isWrapX(), kMap.isWrapY(),
-						stepDestValid, stepHeuristic, stepCost, teamStepValid, stepAdd, NULL, NULL);
-				gDLL->getFAStarIFace()->SetData(pTeamStepFinder, &teamVec);
-
 				FOR_EACH_CITY(pTheirCity, kTheirMember)
 				{
-					if (!pTheirCity->sameArea(*pOurCity))
-						continue;
-
-					if (gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder,
-						pOurCity->getX(), pOurCity->getY(), pTheirCity->getX(), pTheirCity->getY(),
-						false, 0, true))
-					{
-						// good.
-						gDLL->getFAStarIFace()->destroy(pTeamStepFinder);
+					if (pathFinder.generatePath(pOurCity->getPlot(), pTheirCity->getPlot()))
 						return true;
-					}
 				}
-				gDLL->getFAStarIFace()->destroy(pTeamStepFinder);
 			}
 		}
 	}
@@ -713,7 +692,6 @@ bool CvTeamAI::AI_isLandTarget(TeamTypes eTarget,
 			}
 		}
 	}
-
 	return false;
 }
 
@@ -725,28 +703,8 @@ bool CvTeamAI::AI_isHasPathToEnemyCity(CvPlot const& kFrom, bool bIgnoreBarb) co
 {
 	PROFILE_FUNC();
 
-	CvArea const& kFromArea = kFrom.getArea();
-
-	if (kFromArea.getNumCities() == countNumCitiesByArea(kFromArea))
+	if (kFrom.getArea().getNumCities() == countNumCitiesByArea(kFrom.getArea()))
 		false;
-
-	/*	Imitate instatiation of irrigated finder, pIrrigatedFinder.
-		Can't mimic step finder initialization because it requires creation from the exe */
-	std::vector<TeamTypes> aeTeams;
-	aeTeams.push_back(getID());
-	aeTeams.push_back(NO_TEAM);
-	FAStar* pTeamStepFinder = gDLL->getFAStarIFace()->create();
-	CvMap const& kMap = GC.getMap();
-	gDLL->getFAStarIFace()->Initialize(pTeamStepFinder,
-			kMap.getGridWidth(), kMap.getGridHeight(),
-			kMap.isWrapX(), kMap.isWrapY(),
-			/*	advc.104 (note): Using stepDestValid_advc, teamStepValid_advc here
-				might save time, but this function really isn't called often, so ...*/
-			stepDestValid, stepHeuristic, stepCost, teamStepValid,
-			stepAdd, NULL, NULL);
-	gDLL->getFAStarIFace()->SetData(pTeamStepFinder, &aeTeams);
-
-	
 	/*	advc: I guess it's important for performance to check capitals first;
 		So continue doing that, but compute the enemy players only in one place. */
 	std::vector<CvPlayer const*> apEnemies;
@@ -758,90 +716,42 @@ bool CvTeamAI::AI_isHasPathToEnemyCity(CvPlot const& kFrom, bool bIgnoreBarb) co
 		if (AI_getWarPlan(itEnemy->getTeam()) != NO_WARPLAN)
 		apEnemies.push_back(&*itEnemy);
 	} 
-
-	bool bR = false;
-
+	// Imitate instatiation of irrigated finder ...
+	// advc.pf: Deleted on 21 Oct 2020, replaced with TeamStepfinder.
+	TeamPathFinder<TeamPath::LAND> pathFinder(*this, NULL, /*iMaxPath=*/18);
 	for (size_t i = 0; i < apEnemies.size(); i++)
 	{
 		CvCity* pCapital = apEnemies[i]->getCapital();
-		if (pCapital == NULL)
-			continue;
-		if (pCapital->isArea(kFromArea))
-		{
-			if (gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder,
-				kFrom.getX(), kFrom.getY(), pCapital->getX(), pCapital->getY(),
-				false, 0, true))
-			{
-				bR = true;
-				goto free_and_return;
-			}
-		}
+		if (pCapital != NULL && pathFinder.generatePath(kFrom, pCapital->getPlot()))
+			return true;
 	}
-
-	// Check all other cities
-	for (size_t i = 0; i < apEnemies.size(); i++)
+	for (size_t i = 0; i < apEnemies.size(); i++) // Check all other enemy cities
 	{
 		FOR_EACH_CITY(pCity, *apEnemies[i])
 		{
-			if (pCity->isArea(kFromArea) && !pCity->isCapital())
-			{
-				if (gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder,
-					kFrom.getX(), kFrom.getY(), pCity->getX(), pCity->getY(),
-					false, 0, true))
-				{
-					bR = true;
-					goto free_and_return;
-				}
-			}
+			if (!pCity->isCapital() &&pathFinder.generatePath(kFrom, pCity->getPlot()))
+				return true;
 		}
 	}
-
-free_and_return:
-	gDLL->getFAStarIFace()->destroy(pTeamStepFinder);
-	return bR;
+	return false;
 }
 
-
+// (currently unused)
 bool CvTeamAI::AI_isHasPathToPlayerCity(CvPlot const& kFrom, PlayerTypes eOtherPlayer) const
 {
 	PROFILE_FUNC();
 
-	CvArea const& kFromArea = kFrom.getArea();
-
-	if (kFromArea.getCitiesPerPlayer(eOtherPlayer) == 0)
+	if (kFrom.getArea().getCitiesPerPlayer(eOtherPlayer) == 0)
 		return false;
-
-	/*	Imitate instatiation of irrigated finder, pIrrigatedFinder.
-		Can't mimic step finder initialization because it requires creation from the exe */
-	std::vector<TeamTypes> aeTeams;
-	aeTeams.push_back(getID());
-	aeTeams.push_back(TEAMID(eOtherPlayer));
-	FAStar* pTeamStepFinder = gDLL->getFAStarIFace()->create();
-	CvMap const& kMap = GC.getMap();
-	gDLL->getFAStarIFace()->Initialize(pTeamStepFinder, kMap.getGridWidth(), kMap.getGridHeight(),
-			kMap.isWrapX(), kMap.isWrapY(),
-			/*	advc.104 (note): Using stepDestValid_advc, teamStepValid_advc here
-				might save time, but this function really isn't called often, so ...*/
-			stepDestValid, stepHeuristic, stepCost, teamStepValid,
-			stepAdd, NULL, NULL);
-	gDLL->getFAStarIFace()->SetData(pTeamStepFinder, &aeTeams);
-
-	bool bFound = false;
-	FOR_EACH_CITY(pLoopCity, GET_PLAYER(eOtherPlayer))
+	// Imitate instatiation of irrigated finder ...
+	// advc.pf: Deleted on 21 Oct 2020, replaced with TeamStepfinder.
+	TeamPathFinder<TeamPath::LAND> pathFinder(*this, &GET_TEAM(eOtherPlayer), 18);
+	FOR_EACH_CITY(pCity, GET_PLAYER(eOtherPlayer))
 	{
-		if (pLoopCity->isArea(kFromArea))
-		{
-			bFound = gDLL->getFAStarIFace()->GeneratePath(pTeamStepFinder,
-					kFrom.getX(), kFrom.getY(), pLoopCity->getX(), pLoopCity->getY(),
-					false, 0, true);
-			if (bFound)
-				break;
-		}
+		if (pathFinder.generatePath(kFrom, pCity->getPlot()))
+			return true;
 	}
-
-	gDLL->getFAStarIFace()->destroy(pTeamStepFinder);
-
-	return bFound;
+	return false;
 } // BETTER_BTS_AI_MOD: END
 
 

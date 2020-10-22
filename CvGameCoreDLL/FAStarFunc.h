@@ -13,34 +13,33 @@
 
 class FAStarNode;
 class FAStar;
-class CvPlot;
-class CvSelectionGroup;
 
 BOOL pathDestValid(int iToX, int iToY, void const* pointer, FAStar* finder);
 int pathHeuristic(int iFromX, int iFromY, int iToX, int iToY);
 int pathCost(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
-int stepHeuristic(int iFromX, int iFromY, int iToX, int iToY);
-int stepCost(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
 BOOL pathValid(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
 BOOL pathAdd(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
 
+// StepFinder ...
 BOOL stepDestValid(int iToX, int iToY, void const* pointer, FAStar* finder);
-// advc.104b:
-BOOL stepDestValid_advc(int iToX, int iToY, void const* pointer, FAStar* finder);
 BOOL stepValid(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
 BOOL stepAdd(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
-// BETTER_BTS_AI_MOD, 11/30/08, jdog5000:
-BOOL teamStepValid(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
-// advc.104b:
-BOOL teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
+int stepHeuristic(int iFromX, int iFromY, int iToX, int iToY);
+int stepCost(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
+// BETTER_BTS_AI_MOD, 11/30/08, jdog5000:  (advc.pf: Deleted on 21 Oct 2020)
+//BOOL teamStepValid(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
 
+// RouteFinder
 BOOL routeValid(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
+// BorderFinder
 BOOL borderValid(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
+// AreaFinder ...
 BOOL areaValid(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
 BOOL joinArea(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
+// PlotGroupFinder ...
 BOOL plotGroupValid(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
 BOOL countPlotGroup(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
-
+// IrrigatedFinder ...
 BOOL potentialIrrigation(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
 BOOL checkFreshWater(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);
 BOOL changeIrrigated(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder);

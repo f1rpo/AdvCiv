@@ -34,19 +34,6 @@ int pathCost(FAStarNode* parent, FAStarNode* node,
 }
 
 
-/*	advc.inl (note): These two functions are only called from the EXE,
-	so there's no point in trying to get them inlined. */
-int stepHeuristic(int iFromX, int iFromY, int iToX, int iToY)
-{
-	return stepDistance(iFromX, iFromY, iToX, iToY);
-}
-
-int stepCost(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder)
-{
-	return 1;
-}
-
-
 BOOL pathValid(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder)
 {
 	PROFILE_FUNC();
@@ -108,97 +95,6 @@ BOOL stepDestValid(int iToX, int iToY, void const* pointer, FAStar* finder)
 	return TRUE;
 }
 
-// <advc.104b> Rule out (basically) no destinations; let teamStepValid_advc decide
-BOOL stepDestValid_advc(int iToX, int iToY, void const* pointer, FAStar* finder)
-{
-	CvPlot* pTo = GC.getMap().plotSoren(iToX, iToY);
-	if(pTo == NULL || pTo->isImpassable())
-		return FALSE;
-	return TRUE;
-}
-
-// Can handle sea paths. Based on teamStepValid.
-BOOL teamStepValid_advc(FAStarNode* parent, FAStarNode* node,
-	int data, // advc (note): unused
-	void const* pointer, FAStar* finder)
-{
-	//PROFILE_FUNC(); // advc.003o
-	/*if(parent == NULL) // I don't think this can happen
-		return TRUE;*/
-	CvMap const& kMap = GC.getMap();
-	CvPlot const& kTo = kMap.getPlot(node->m_iX, node->m_iY);
-	if(kTo.isImpassable())
-		return FALSE;
-	CvPlot const& kFrom = kMap.getPlot(parent->m_iX, parent->m_iY);
-	if(kMap.isSeparatedByIsthmus(kFrom, kTo))
-		return FALSE;
-	TeamTypes const ePlotTeam = kTo.getTeam();
-	int* const v = (int*)pointer;
-	int const iMaxPath = v[5];
-	/*  As far as I understand the code, node (the pToPlot) is still set to 0
-		cost if it's visited for the first time, so we should look at parent
-		(pFromPlot) when enforcing the upper bound (iMaxPath). But it doesn't
-		hurt to check node's cost too. */
-	if(iMaxPath > 0 && (parent->m_iHeuristicCost + parent->m_iKnownCost > iMaxPath ||
-		node->m_iHeuristicCost + node->m_iKnownCost > iMaxPath))
-	{
-		return FALSE;
-	}
-	TeamTypes const eTeam = (TeamTypes)v[0]; // The team that computes the path
-	TeamTypes const eTargetTeam = (TeamTypes)v[1];
-	DomainTypes eDom = (DomainTypes)v[2];
-	// Check domain legality:
-	if(eDom == DOMAIN_LAND && kTo.isWater())
-		return FALSE;
-	/*  <advc.033> Naval blockades (Barbarian eTeam) are allowed to reach a city
-		but mustn't pass through */
-	if(eTeam == BARBARIAN_TEAM && eDom != DOMAIN_LAND && kFrom.isCity() &&
-		kFrom.getTeam() != BARBARIAN_TEAM)
-	{
-		return FALSE;
-	} // </advc.033>
-	bool const bEnterCityFromCoast = (eDom != DOMAIN_LAND && kTo.isCity(true) &&
-			kTo.isCoastalLand());
-	bool const bDestination = kTo.at(v[3], v[4]);
-	// Use DOMAIN_IMMOBILE to encode sea units with impassable terrain
-	bool bImpassableTerrain = false;
-	if(eDom == DOMAIN_IMMOBILE)
-	{
-		bImpassableTerrain = true;
-		eDom = DOMAIN_SEA;
-	}
-	if(eDom == DOMAIN_SEA && !bEnterCityFromCoast && !kTo.isWater() &&
-		!bDestination) // Allow non-city land tile as cargo destination
-	{
-		return FALSE;
-	}
-	if(!bEnterCityFromCoast && !bDestination && ePlotTeam != eTeam && bImpassableTerrain &&
-		/*  This handles only Coast and no other water terrain types that a mod-mod 
-			might make passable */
-		kTo.getTerrainType() != GC.getWATER_TERRAIN(true))
-	{
-		return FALSE;
-	}
-	// Don't check isRevealed; caller ensures that destination city is deducible.
-	if(ePlotTeam == NO_TEAM)
-		return TRUE;
-	if(GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
-		return TRUE;
-	CvTeam const& kTeam = GET_TEAM(eTeam);
-	if(kTeam.canPeacefullyEnter(ePlotTeam))
-		return TRUE;
-	// A war plan isn't enough; war against eTargetTeam could supplant that plan.
-	if(kTeam.isAtWar(ePlotTeam) &&
-		/*  Units can't just move through an enemy city, but they can conquer
-			it. Even ships can when part of a naval assault. They can't really
-			conquer forts though. */
-		(eDom == DOMAIN_LAND || !bEnterCityFromCoast || kTo.isCity()))
-	{
-		return TRUE;
-	}
-	return FALSE;
-} // </advc.104b>
-
 
 BOOL stepValid(FAStarNode* parent, FAStarNode* node,
 	int data, // advc (note): unused
@@ -222,55 +118,6 @@ BOOL stepValid(FAStarNode* parent, FAStarNode* node,
 	return TRUE;
 }
 
-/*  BETTER_BTS_AI_MOD, 02/02/09, jdog5000:
-	Find paths that a team's units could follow without declaring war */
-// advc (comment): Actually does assume a DoW on pointer[1] (eTargetTeam)
-BOOL teamStepValid(FAStarNode* parent, FAStarNode* node,
-	int data, // advc (note): unused
-	void const* pointer, FAStar* finder)
-{
-	/*if (parent == NULL)
-		return TRUE;*/ // advc: I don't think this can happen
-
-	CvMap const& kMap = GC.getMap();
-	CvPlot const& kTo = GC.getMap().getPlot(node->m_iX, node->m_iY);
-
-	if (kTo.isImpassable())
-		return FALSE;
-
-	CvPlot const& kFrom = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
-	if (!kFrom.sameArea(kTo))
-		return FALSE;
-
-	if (kMap.isSeparatedByIsthmus(kFrom, kTo)) // advc: Moved into new function
-		return FALSE;
-
-	TeamTypes ePlotTeam = kTo.getTeam();
-	if (ePlotTeam == NO_TEAM)
-		return TRUE;
-
-	std::vector<TeamTypes> teamVec = *((std::vector<TeamTypes>*)pointer);
-	TeamTypes eTeam = teamVec[0];
-	TeamTypes eTargetTeam = teamVec[1];
-	CvTeamAI& kTeam = GET_TEAM(eTeam);
-	// advc.001: Was just ePlotTeam == eTargetTeam; anticipate DoW on/ by vassals.
-	if(eTargetTeam != NO_TEAM &&
-		GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
-	{
-		return TRUE;
-	}
-	if (kTeam.canPeacefullyEnter(ePlotTeam) ||
-		kTeam.isDisengage(ePlotTeam)) // advc.034
-	{
-		return TRUE;
-	}
-
-	if (kTeam.AI_getWarPlan(ePlotTeam) != NO_WARPLAN)
-		return TRUE;
-
-	return FALSE;
-}
-
 
 BOOL stepAdd(FAStarNode* parent, FAStarNode* node,
 	int data, // advc (note): unused
@@ -281,6 +128,19 @@ BOOL stepAdd(FAStarNode* parent, FAStarNode* node,
 	else node->m_iData1 = (parent->m_iData1 + 1);
 	FAssertMsg(node->m_iData1 >= 0, "invalid Index");
 	return TRUE;
+}
+
+
+/*	advc.inl (note): These two functions are only called from the EXE,
+	so there's no point in trying to get them inlined. */
+int stepHeuristic(int iFromX, int iFromY, int iToX, int iToY)
+{
+	return stepDistance(iFromX, iFromY, iToX, iToY);
+}
+
+int stepCost(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder)
+{
+	return 1;
 }
 
 

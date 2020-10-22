@@ -1059,56 +1059,8 @@ int CvMap::calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) con
 	return -1; // no passable path exists
 }
 
-/*  advc.104: Based on the unused BBAI function CvPlot::calculatePathDistanceToPlot.
-	I don't think it had ever been tested either b/c it didn't work at all until I
-	changed the GetLastNode call at the end. */
-int CvMap::calculateTeamPathDistance(TeamTypes eTeam,
-	CvPlot const& kFrom, CvPlot const& kTo,
-	int iMaxPath, TeamTypes eTargetTeam, DomainTypes eDomain) const // advc.104b
-{
-	PROFILE_FUNC(); // advc: The time is mostly spent in teamStepValid_advc
-	FAssert(eTeam != NO_TEAM);
-	FAssert(eTargetTeam != NO_TEAM);
-	/*  advc.104b: Commented out. Want to be able to measure paths between
-		coastal cities of different continents. (And shouldn't return "false"
-		at any rate.) */
-	/*if (pTargetPlot->area() != area())
-		return false;*/
-	FAssert(eDomain != NO_DOMAIN);
-
-	/*	Imitate instatiation of irrigated finder, pIrrigatedFinder.
-		Can't mimic step finder initialization because it requires creation from the EXE. */
-	/*  <advc.104b> vector type changed to int[]; dom, eTargetTeam (instead of
-		NO_TEAM), iMaxPath and target coordinates added. */
-	int aStepData[] = {
-		eTeam, eTargetTeam, eDomain, kTo.getX(), kTo.getY(), iMaxPath
-	}; // </advc.104b>
-	FAStar* pStepFinder = gDLL->getFAStarIFace()->create();
-	gDLL->getFAStarIFace()->Initialize(pStepFinder,
-			GC.getMap().getGridWidth(),
-			GC.getMap().getGridHeight(),
-			GC.getMap().isWrapX(),
-			GC.getMap().isWrapY(),
-			// advc.104b: Plugging in _advc functions
-			stepDestValid_advc, stepHeuristic, stepCost, teamStepValid_advc, stepAdd,
-			NULL, NULL);
-	gDLL->getFAStarIFace()->SetData(pStepFinder, aStepData);
-
-	int iPathDistance = -1;
-	gDLL->getFAStarIFace()->GeneratePath(pStepFinder, kFrom.getX(), kFrom.getY(),
-			kTo.getX(), kTo.getY(), false, 0, true);
-	// advc.104b, advc.001: was &GC.getStepFinder() instead of pStepFinder
-	FAStarNode* pNode = gDLL->getFAStarIFace()->GetLastNode(pStepFinder);
-	if (pNode != NULL)
-		iPathDistance = pNode->m_iData1;
-
-	gDLL->getFAStarIFace()->destroy(pStepFinder);
-
-	return iPathDistance;
-}
-
 /*	advc.pf: Cut from CvPlot::updateIrrigated
-	so that all the non-unit pathfinding stuff is in one place */
+	so that all the non-unit FAStar stuff is in one place */
 void CvMap::updateIrrigated(CvPlot& kPlot)
 {
 	PROFILE_FUNC();
