@@ -283,6 +283,7 @@ void UWAICache::updateCities(TeamTypes teamId) {
 
 	PROFILE_FUNC();
 	CvTeamAI const& cacheTeam = GET_TEAM(ownerId);
+	bool const isHuman = cacheTeam.isHuman();
 	TeamPathFinders* pf = NULL;
 	if(teamId != cacheTeam.getID())
 		pf = createTeamPathFinders(teamId);
@@ -291,7 +292,9 @@ void UWAICache::updateCities(TeamTypes teamId) {
 		CvPlayerAI& civ = *it;
 		FOR_EACH_CITY_VAR(c, civ) {
 			// c.isRevealed() impedes the AI too much
-			if(teamId == cacheTeam.getID() || cacheTeam.AI_deduceCitySite(c))
+			if(teamId == cacheTeam.getID() ||
+					// Assume that human can locate all cities of known civs
+					isHuman || cacheTeam.AI_deduceCitySite(*c))
 				add(*new City(ownerId, *c, pf));
 		}
 	}
@@ -1381,9 +1384,6 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 	reachBySea = false;
 	bool human = cacheOwner.isHuman();
 	EraTypes const era = cacheOwner.getCurrentEra();
-	// Assume that humans can always locate cities
-	if(!human && !cacheOwner.AI_deduceCitySite(&targetCity))
-		return;
 	bool trainDeepSeaCargo = cacheOwner.uwai().getCache().
 			canTrainDeepSeaCargo();
 	bool trainAnyCargo = cacheOwner.uwai().getCache().
@@ -1490,9 +1490,8 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 	weightedSum /= sumOfWeights; // Normalization
 	/*  Hard to estimate the mixed paths. Their lengths certainly depend on
 		the lengths of the other paths. */
-	distance = std::min(maxDist, ::round(weightedSum + 2 * mixedPath));
-	// The portion of mixed paths doesn't seem helpful after all; tends to be high
-	//* std::max(1.0, 0.75 + mixedPath / ((double)pairwDistances.size() + mixedPath)));
+	distance = std::min((getUWAI.maxLandDist() + getUWAI.maxSeaDist()) / 2,
+			::round(weightedSum + (4 * mixedPath) / (pairwDurations.size() + mixedPath)));
 }
 
 void UWAICache::City::updateAssetScore(PlayerTypes cacheOwnerId) {

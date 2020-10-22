@@ -59,8 +59,7 @@ void UWAI::write(FDataStreamBase* stream) {
 
 int UWAI::maxLandDist() const {
 
-	// Faster speed of ships now covered by estimateMovementSpeed
-	return maxSeaDist(); //- 2;
+	return maxSeaDist() - 1;
 }
 
 int UWAI::maxSeaDist() const {
@@ -69,7 +68,7 @@ int UWAI::maxSeaDist() const {
 	int r = 15;
 	// That's true for Large and Huge maps
 	if(m.getGridWidth() > 100 || m.getGridHeight() > 100)
-		r = 18;
+		r += 3;
 	if(!m.isWrapX() && !m.isWrapY())
 		r = (r * 6) / 5;
 	return r;
