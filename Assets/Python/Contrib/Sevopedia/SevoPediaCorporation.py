@@ -83,7 +83,8 @@ class SevoPediaCorporation:
 			bRequired = False
 			for iBuilding in range(gc.getNumBuildingInfos()):
 				if (gc.getBuildingInfo(iBuilding).getFoundsCorporation() == self.iCorporation):
-					if gc.getUnitInfo(iUnit).getBuildings(iBuilding) or gc.getUnitInfo(iUnit).getForceBuildings(iBuilding):
+					# advc.003t:
+					if gc.getUnitInfo(iUnit).getBuildings(iBuilding):# or gc.getUnitInfo(iUnit).getForceBuildings(iBuilding):
 						bRequired = True
 						break
 			if bRequired:
