@@ -46,7 +46,7 @@ bool TeamStepMetric<eMODE>::canStepThrough(CvPlot const& kPlot) const
 			ePlotTeam != m_pTeam->getID())
 		{
 			return false;
-			}
+		}
 	}
 	/*	The canal check is somewhat expensive; push that down into the
 		owned-by-non-enemy branch. */

@@ -445,7 +445,7 @@ public:
 	{
 		return (airBaseCombatStr() > 0);
 	}
-	bool canAirDefend(const CvPlot* pPlot = NULL) const;													// Exposed to Python
+	bool canAirDefend(CvPlot const* pPlot = NULL) const;													// Exposed to Python
 	int airCombatDamage(const CvUnit* pDefender) const;														// Exposed to Python
 	int rangeCombatDamage(const CvUnit* pDefender) const;													// Exposed to Python
 	CvUnit* bestInterceptor(const CvPlot* pPlot) const;														// Exposed to Python
@@ -1123,7 +1123,7 @@ protected:
 	void collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit = NULL);
 	void flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength,
 			int iAttackerFirepower, int iDefenderOdds, int iDefenderDamage,
-			CvUnit* pSkipUnit = NULL);
+			CvUnit const* pSkipUnit = NULL);
 
 	bool interceptTest(const CvPlot* pPlot);
 	CvUnit* airStrikeTarget(const CvPlot* pPlot) const;

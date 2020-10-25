@@ -159,7 +159,7 @@ protected:
 	bool AI_guardBonus(int iMinValue = 0);
 	bool AI_guardYield(); // advc.300
 	bool AI_barbAmphibiousCapture(); // advc.306
-	int AI_getPlotDefendersNeeded(CvPlot const& kPlot, int iExtra);
+	int AI_getPlotDefendersNeeded(CvPlot const& kPlot, int iExtra /* advc: */ = 0);
 	bool AI_guardFort(bool bSearch = true);
 	bool AI_guardCitySite();
 	bool AI_guardSpy(int iRandomPercent);

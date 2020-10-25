@@ -173,17 +173,17 @@ bool GroupStepMetric::isValidDest(CvPlot const& kPlot, CvSelectionGroup const& k
 	{
 		if (kGroup.isAmphibPlot(&kPlot))
 		{
-			for (CLLNode<IDInfo> const* pUnitNode1 = kGroup.headUnitNode();
-				pUnitNode1 != NULL; pUnitNode1 = kGroup.nextUnitNode(pUnitNode1))
+			for (CLLNode<IDInfo> const* pNode1 = kGroup.headUnitNode();
+				pNode1 != NULL; pNode1 = kGroup.nextUnitNode(pNode1))
 			{
-				CvUnit const* pLoopUnit1 = ::getUnit(pUnitNode1->m_data);
+				CvUnit const* pLoopUnit1 = ::getUnit(pNode1->m_data);
 				if (pLoopUnit1->getCargo() > 0 && pLoopUnit1->domainCargo() == DOMAIN_LAND)
 				{
 					bool bValid = false;
-					for (CLLNode<IDInfo> const* pUnitNode2 = pLoopUnit1->getPlot().headUnitNode();
-						pUnitNode2 != NULL; pUnitNode2 = pLoopUnit1->getPlot().nextUnitNode(pUnitNode2))
+					for (CLLNode<IDInfo> const* pNode2 = pLoopUnit1->getPlot().headUnitNode();
+						pNode2 != NULL; pNode2 = pLoopUnit1->getPlot().nextUnitNode(pNode2))
 					{
-						CvUnit const* pLoopUnit2 = ::getUnit(pUnitNode2->m_data);
+						CvUnit const* pLoopUnit2 = ::getUnit(pNode2->m_data);
 						if (pLoopUnit2->getTransportUnit() == pLoopUnit1)
 						{
 							if (pLoopUnit2->isGroupHead())
@@ -322,7 +322,7 @@ int GroupStepMetric::cost(CvPlot const& kFrom, CvPlot const& kTo,
 		FAssert(pLoopUnit->getDomainType() != DOMAIN_AIR);
 
 		int iMaxMoves = (iCurrMoves > 0 ? iCurrMoves : pLoopUnit->maxMoves());
-		int iMoveCost = kTo.movementCost(pLoopUnit, &kFrom,
+		int iMoveCost = kTo.movementCost(*pLoopUnit, kFrom,
 				false); // advc.001i
 		int iMovesLeft = std::max(0, iMaxMoves - iMoveCost);
 
@@ -660,14 +660,14 @@ bool GroupStepMetric::updatePathData(Node& kNode, Node const& kParent,
 			}
 		}
 		CLLNode<IDInfo> const* pUnitNode = kGroup.headUnitNode();
-		int iMoveCost = kTo.movementCost(::getUnit(pUnitNode->m_data), &kFrom,
+		int iMoveCost = kTo.movementCost(*::getUnit(pUnitNode->m_data), kFrom,
 				false); // advc.001i
 		bool bUniformCost = true;
 		for (pUnitNode = kGroup.nextUnitNode(pUnitNode);
 			bUniformCost && pUnitNode != NULL; pUnitNode = kGroup.nextUnitNode(pUnitNode))
 		{
 			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			int iLoopCost = kTo.movementCost(pLoopUnit, &kFrom,
+			int iLoopCost = kTo.movementCost(*pLoopUnit, kFrom,
 					false); // advc.001i
 			if (iLoopCost != iMoveCost)
 				bUniformCost = false;
@@ -703,7 +703,7 @@ bool GroupStepMetric::updatePathData(Node& kNode, Node const& kParent,
 				int iUnitMoves = (bMaxMoves ? pLoopUnit->maxMoves() : pLoopUnit->movesLeft());
 				for (size_t i = plotList.size() - 1; i > 0; i--)
 				{
-					iUnitMoves -= plotList[i-1]->movementCost(pLoopUnit, plotList[i],
+					iUnitMoves -= plotList[i-1]->movementCost(*pLoopUnit, *plotList[i],
 							false); // advc.001i
 					FAssert(iUnitMoves > 0 || i == 1);
 				}

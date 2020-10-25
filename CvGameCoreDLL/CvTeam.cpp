@@ -4684,28 +4684,30 @@ void CvTeam::changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes e
 	}
 }
 
-// K-Mod. In the original code, there seems to be a lot of confusion about what the exact conditions are for a bonus being connected.
-// There were heaps of bugs where CvImprovementInfo::isImprovementBonusTrade was mistakenly used as the sole condition for a bonus being connected or not.
-// I created this function to make the situation a bit more clear...
+/*	K-Mod: In the original code, there seems to be a lot of confusion
+	about what the exact conditions are for a bonus being connected.
+	There were heaps of bugs where CvImprovementInfo::isImprovementBonusTrade
+	was mistakenly used as the sole condition for a bonus being connected or not.
+	I created this function to make the situation a bit more clear... */
 bool CvTeam::doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const
 {
 	if (eImprovement == NO_IMPROVEMENT || eBonus == NO_BONUS)
 		return false;
 
-	const CvImprovementInfo& kImprovementInfo = GC.getInfo(eImprovement);
-	const CvBonusInfo& kBonusInfo = GC.getInfo(eBonus);
-
-	if (!isHasTech(kBonusInfo.getTechCityTrade()) ||
-		(kBonusInfo.getTechObsolete() != NO_TECH &&
-		isHasTech(kBonusInfo.getTechObsolete())))
+	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
+	if (!isHasTech(kBonus.getTechCityTrade()) ||
+		(kBonus.getTechObsolete() != NO_TECH &&
+		isHasTech(kBonus.getTechObsolete())))
 	{
 		return false;
 	}
-	return (kImprovementInfo.isImprovementBonusTrade(eBonus) || kImprovementInfo.isActsAsCity());
-} // K-Mod end
+	CvImprovementInfo const& kImprovement = GC.getInfo(eImprovement);
+	return (kImprovement.isImprovementBonusTrade(eBonus) ||
+			kImprovement.isActsAsCity());
+}
 
-
-bool CvTeam::isFriendlyTerritory(TeamTypes eTerritoryOwner) const // advc: Param renamed from eTeam in order to clarify its role
+// advc (note): Some overlap with canPeacefullyEnter
+bool CvTeam::isFriendlyTerritory(TeamTypes eTerritoryOwner) const
 {
 	if (eTerritoryOwner == NO_TEAM)
 		return false;

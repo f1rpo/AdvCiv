@@ -17,6 +17,7 @@ class StartingPositionIteration
 	class Step;
 	struct SolutionAttributes
 	{
+		SolutionAttributes() : m_eWorstOutlier(NO_PLAYER) {}
 		scaled m_rStartPosVal; // Optimization goal
 		// For heuristic search
 		EnumMap<PlayerTypes,scaled> m_startValues;

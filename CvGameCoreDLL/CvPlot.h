@@ -145,7 +145,9 @@ public:
 			bool bTestVisible, // advc.028
 			bool bTestCanAttack, bool bAny = false) const; // </advc>
 	// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000:
-	bool hasDefender(bool bTestCanAttack, PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL, bool bTestAtWar = false, bool bTestPotentialEnemy = false
+	bool hasDefender(bool bTestCanAttack, PlayerTypes eOwner,
+			PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL,
+			bool bTestAtWar = false, bool bTestPotentialEnemy = false
 			/*,bool bTestCanMove = false*/) const; // advc: param unused (and doesn't make sense to me)
 	// disabled by K-Mod:
 	//int AI_sumStrength(PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, DomainTypes eDomainType = NO_DOMAIN, bool bDefensiveBonuses = true, bool bTestAtWar = false, bool bTestPotentialEnemy = false) const;
@@ -157,7 +159,7 @@ public:
 			end b/c that parameter is rarely set */
 			TeamTypes eAttacker = NO_TEAM, bool bHelp = false,
 			bool bGarrisonStrength = false) const; // advc.500b
-	int movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,														// Exposed to Python
+	int movementCost(CvUnit const& kUnit, CvPlot const& kFrom,															// Exposed to Python
 			bool bAssumeRevealed = true) const; // advc.001i
 
 	int getExtraMovePathCost() const;																																// Exposed to Python

@@ -1591,7 +1591,7 @@ void CvUnit::updateCombat(bool bQuick)
 			if (!bAdvance)
 			{
 				changeMoves(std::max(GC.getMOVE_DENOMINATOR(),
-						pPlot->movementCost(this, plot())));
+						pPlot->movementCost(*this, getPlot())));
 				checkRemoveSelectionAfterAttack();
 			}
 		}
@@ -1619,7 +1619,7 @@ void CvUnit::updateCombat(bool bQuick)
 				"AS2D_THEIR_WITHDRAWL", MESSAGE_TYPE_INFO, NULL,
 				GC.getColorType("RED"), pPlot->getX(), pPlot->getY());
 
-		changeMoves(std::max(GC.getMOVE_DENOMINATOR(), pPlot->movementCost(this, plot())));
+		changeMoves(std::max(GC.getMOVE_DENOMINATOR(), pPlot->movementCost(*this, getPlot())));
 		checkRemoveSelectionAfterAttack();
 
 		getGroup()->clearMissionQueue();
@@ -2282,8 +2282,6 @@ bool CvUnit::willRevealAnyPlotFrom(CvPlot const& kFrom) const
 /*  K-Mod. I've rearranged a few things to make the function slightly faster,
 	and added "bAssumeVisible" which signals that we should check for units on
 	the plot regardless of whether we can actually see. */
-/*	advc (note): The rules applied by this function need to be consistent with
-	KmodPathFinder and other pathfinding code. */
 bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar,
 	bool bIgnoreLoad, bool bAssumeVisible,
 	bool bDangerCheck) const // advc.001k
@@ -2318,15 +2316,16 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar,
 		{
 			TechTypes eTech = m_pUnitInfo->getFeaturePassableTech(kPlot.getFeatureType());
 			if (eTech == NO_TECH || !kOurTeam.isHasTech(eTech))
-			{	// advc.057: Make this exception for units of all domains
-				if (/*DOMAIN_SEA != getDomainType() ||*/ // sea units can enter impassable in own cultural borders
+			{
+				// sea units can enter impassable in own cultural borders
+				// advc.057: Make this exception for units of all domains
+				if (//DOMAIN_SEA != getDomainType() ||
 					ePlotTeam != kOurTeam.getID())
 				{
 					return false;
 				}
 			}
 		}
-
 		if (m_pUnitInfo->getTerrainImpassable(kPlot.getTerrainType()))
 		{
 			TechTypes eTech = m_pUnitInfo->getTerrainPassableTech(kPlot.getTerrainType());
@@ -2762,7 +2761,7 @@ void CvUnit::move(CvPlot& kPlot, bool bShow, /* advc.163: */ bool bJump, bool bG
 	// <advc.163>
 	if (bJump)
 		setMoves(maxMoves()); // </advc.163>
-	else changeMoves(kPlot.movementCost(this, &kOldPlot));
+	else changeMoves(kPlot.movementCost(*this, kOldPlot));
 	// <advc.162>
 	if(isInvasionMove(kOldPlot, kPlot))
 	{
@@ -3058,9 +3057,7 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport) /* advc: */ const
 	FOR_EACH_ENUM(Corporation)
 	{
 		if (m_pUnitInfo->getCorporationSpreads(eLoopCorporation) > 0)
-		{
 			return false;
-		}
 	}
 
 	// <advc.705>
@@ -3203,10 +3200,12 @@ bool CvUnit::shouldLoadOnMove(const CvPlot* pPlot) const
 	switch (getDomainType())
 	{
 	case DOMAIN_LAND:
-		if (pPlot->isWater()
-				// UNOFFICIAL_PATCH, Bugfix, 10/30/09, Mongoose & jdog5000:
-				&& !canMoveAllTerrain())
+		if (pPlot->isWater() &&
+			// UNOFFICIAL_PATCH, Bugfix, 10/30/09, Mongoose & jdog5000:
+			!canMoveAllTerrain())
+		{
 			return true;
+		}
 		break;
 	case DOMAIN_AIR:
 		if (!pPlot->isFriendlyCity(*this, true))
@@ -6754,16 +6753,21 @@ void CvUnit::setBaseCombatStr(int iCombat)
 	m_iBaseCombat = iCombat;
 }
 
-// maxCombatStr can be called in four different configurations
-//		pPlot == NULL, pAttacker == NULL for combat when this is the attacker
-//		pPlot valid, pAttacker valid for combat when this is the defender
-//		pPlot valid, pAttacker == NULL (new case), when this is the defender, attacker unknown
-//		pPlot valid, pAttacker == this (new case), when the defender is unknown, but we want to calc approx str
-//			note, in this last case, it is expected pCombatDetails == NULL, it does not have to be, but some
-//			values may be unexpectedly reversed in this case (iModifierTotal will be the negative sum)
-int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker, CombatDetails* pCombatDetails,
+/*	maxCombatStr can be called in four different configurations
+	+	pPlot == NULL, pAttacker == NULL for combat when this is the attacker;
+	+	pPlot valid, pAttacker valid for combat when this is the defender;
+	+	pPlot valid, pAttacker == NULL (new case), when this is the defender and
+		the attacker is unknown;
+	+	pPlot valid, pAttacker == this (new case), when the defender is unknown
+		but we want to calc approx str.
+		Note, in this last case, it is expected pCombatDetails == NULL,
+		it does not have to be, but some values may be unexpectedly
+		reversed in this case (iModifierTotal will be the negative sum). */
+int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
+	CombatDetails* pCombatDetails,
 	bool bGarrisonStrength) const // advc.500b
 {
+	PROFILE_FUNC(); // advc.test: To be profiled
 	FAssert(pPlot == NULL || pPlot->getTerrainType() != NO_TERRAIN);
 
 	// handle our new special case
@@ -6943,15 +6947,18 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker, CombatDet
 	{
 		if (!noDefensiveBonus())
 		{
-			// BETTER_BTS_AI_MOD, General AI, 03/30/10, jdog5000:
-			// When pAttacker is NULL but pPlot is not, this is a computation for this units defensive value
-			// against an unknown attacker.  Always ignoring building defense in this case is a conservative estimate,
-			// but causes AI to suicide against castle walls of low culture cities in early game.  Using this units
-			// ignoreBuildingDefense does a little better ... in early game it corrects undervalue of castles.  One
-			// downside is when medieval unit is defending a walled city against gunpowder.  Here, the over value
-			// makes attacker a little more cautious, but with their tech lead it shouldn't matter too much.  Also
-			// makes vulnerable units (ships, etc) feel safer in this case and potentially not leave, but ships
-			// leave when ratio is pretty low anyway.
+			/*	BETTER_BTS_AI_MOD, General AI, 03/30/10, jdog5000:
+				When pAttacker is NULL but pPlot is not, this is a computation
+				for this units defensive value against an unknown attacker.
+				Always ignoring building defense in this case is a conservative estimate,
+				but causes AI to suicide against castle walls of low-culture cities
+				in the early game. Using this unit's ignoreBuildingDefense does
+				a little better ... in early game it corrects undervalue of castles.
+				One downside is when medieval unit is defending a walled city
+				against gunpowder. Here, the overvalue makes attacker a little more cautious,
+				but with their tech lead it shouldn't matter too much. Also makes vulnerable units
+				(ships, etc) feel safer in this case and potentially not leave, but ships leave
+				when ratio is pretty low anyway. */
 			//iExtraModifier = pPlot->defenseModifier(getTeam(), (pAttacker != NULL) ? pAttacker->ignoreBuildingDefense() : true);
 			/*  <advc.012> Only functional change to the BBAI line: feature defense
 				is counted based on AI_plotDefense if the attacker is unknown */
@@ -7557,7 +7564,7 @@ float CvUnit::airCurrCombatStrFloat(const CvUnit* pOther) const
 }
 
 
-bool CvUnit::canAirDefend(const CvPlot* pPlot) const
+bool CvUnit::canAirDefend(CvPlot const* pPlot) const
 {
 	if (pPlot == NULL)
 		pPlot = plot();
@@ -10322,9 +10329,13 @@ bool CvUnit::canAdvance(const CvPlot* pPlot, int iThreshold) const
 	return true;
 }
 
-// K-Mod, I've rewritten this function just to make it a bit easier to understand, a bit more efficient, and a bit more robust.
-// For example, the original code used a std::map<CvUnit*, int>; if the random number in the map turned out to be the same, it could potentially have led to OOS.
-// The actual game mechanics are only very slightly changed. (I've removed the targets cap of "visible units - 1". That seemed like a silly limitation.)
+/*	K-Mod, I've rewritten this function just to make it a bit easier to understand,
+	a bit more efficient, and a bit more robust.
+	For example, the original code used a std::map<CvUnit*,int>; if the random number
+	in the map turned out to be the same, it could potentially have led to OOS.
+	The actual game mechanics are only very slightly changed.
+	(I've removed the targets cap of "visible units - 1".
+	That seemed like a silly limitation.) */
 void CvUnit::collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit)
 {
 	std::vector<std::pair<int, IDInfo> > targetUnits;
@@ -10414,14 +10425,15 @@ void CvUnit::collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit)
 
 
 void CvUnit::flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength,
-	int iAttackerFirepower, int iDefenderOdds, int iDefenderDamage, CvUnit* pSkipUnit)
+	int iAttackerFirepower, int iDefenderOdds, int iDefenderDamage,
+	CvUnit const* pSkipUnit)
 {
 	if (pPlot->isCity(true, pSkipUnit->getTeam()))
 		return;
 
 	CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode();
 	std::vector< std::pair<CvUnit*, int> > listFlankedUnits;
-	while (pUnitNode != NULL)  // advc: Reduced indentation in body
+	while (pUnitNode != NULL)
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = pPlot->nextUnitNode(pUnitNode);

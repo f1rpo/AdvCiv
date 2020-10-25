@@ -385,7 +385,7 @@ public:
 	inline bool isRiverTrade() const																												// Exposed to Python
 	{
 		//return (getRiverTradeCount() > 0);
-		return true; // advc.124 (and inline)
+		return true; // advc.124
 	}
 	void changeRiverTradeCount(int iChange);
 
@@ -423,10 +423,12 @@ public:
 	void changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2, int iChange);		// Exposed to Python
 
 	bool doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const; // K-Mod
-	// advc:
-	bool canPeacefullyEnter(TeamTypes eTerritoryOwner) const
+	// advc.opt:
+	inline bool canPeacefullyEnter(TeamTypes eTerritoryOwner) const
 	{
-		return (isOpenBorders(eTerritoryOwner) || isFriendlyTerritory(eTerritoryOwner));
+		return (isOpenBorders(eTerritoryOwner) || //isFriendlyTerritory(eTerritoryOwner)
+				// (The above checks too much stuff that we don't need)
+				getID() == eTerritoryOwner || getTeam(eTerritoryOwner).isVassal(getID()));
 	}
 	bool isFriendlyTerritory(TeamTypes eTerritoryOwner) const; // advc: param renamed
 	bool canAccessHappyHealth(CvPlot const& kPlot, int iHealthOrHappy) const; // advc.901

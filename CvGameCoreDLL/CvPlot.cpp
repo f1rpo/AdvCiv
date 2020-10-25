@@ -579,7 +579,7 @@ void CvPlot::updateCenterUnit()
 }
 
 
-void CvPlot::verifyUnitValidPlot()  // advc: some style changes
+void CvPlot::verifyUnitValidPlot()
 {
 	//PROFILE_FUNC(); // advc.003o
 	std::vector<std::pair<PlayerTypes, int> > bumped_groups; // K-Mod
@@ -591,32 +591,27 @@ void CvPlot::verifyUnitValidPlot()  // advc: some style changes
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		if (pLoopUnit != NULL)
 			aUnits.push_back(pLoopUnit);
-		FAssertMsg(pLoopUnit != NULL, "Can this happen?"); // advc
+		else FAssert(pLoopUnit != NULL); // advc
 	}
 
 	std::vector<CvUnit*>::iterator it = aUnits.begin();
 	while (it != aUnits.end())
 	{
-		CvUnit* pLoopUnit = *it;
+		CvUnit& kLoopUnit = **it;
 		bool bErased = false;
-		if (pLoopUnit == NULL)
+		if (kLoopUnit.atPlot(this) && !kLoopUnit.isCargo() &&
+			!kLoopUnit.isInCombat())
 		{
-			FAssertMsg(pLoopUnit != NULL, "Can this happen?"); // advc
-			continue;
-		}
-		if (pLoopUnit->atPlot(this) && !pLoopUnit->isCargo() &&
-			!pLoopUnit->isInCombat())
-		{
-			if (!isValidDomainForLocation(*pLoopUnit) ||
-				!pLoopUnit->canEnterTerritory(getTeam(), false, area()))
+			if (!isValidDomainForLocation(kLoopUnit) ||
+				!kLoopUnit.canEnterTerritory(getTeam(), false, area()))
 			{
-				if (!pLoopUnit->jumpToNearestValidPlot(true))
+				if (!kLoopUnit.jumpToNearestValidPlot(true))
 					bErased = true;
 				// <K-Mod>
 				else
 				{
 					bumped_groups.push_back(std::make_pair(
-							pLoopUnit->getOwner(), pLoopUnit->getGroupID()));
+							kLoopUnit.getOwner(), kLoopUnit.getGroupID()));
 				} // </K-Mod>
 			}
 		}
@@ -630,30 +625,24 @@ void CvPlot::verifyUnitValidPlot()  // advc: some style changes
 		it = aUnits.begin();
 		while (it != aUnits.end())
 		{
-			CvUnit* pLoopUnit = *it;
+			CvUnit& kLoopUnit = **it;
 			bool bErased = false;
-			if (pLoopUnit == NULL)
+			if (kLoopUnit.atPlot(this) && !kLoopUnit.isInCombat())
 			{
-				FAssertMsg(pLoopUnit != NULL, "Can this happen?"); // advc
-				continue;
-			}
-			else
-			{
-				if (pLoopUnit->atPlot(this) && !pLoopUnit->isInCombat())
+				if (kLoopUnit.getTeam() != getTeam() && (getTeam() == NO_TEAM ||
+					!GET_TEAM(getTeam()).isVassal(kLoopUnit.getTeam())))
 				{
-					if (pLoopUnit->getTeam() != getTeam() && (getTeam() == NO_TEAM ||
-						!GET_TEAM(getTeam()).isVassal(pLoopUnit->getTeam())))
+					if (isVisibleEnemyUnit(&kLoopUnit) &&
+						!kLoopUnit.isInvisible(getTeam(), false))
 					{
-						if (isVisibleEnemyUnit(pLoopUnit))
+						if (!kLoopUnit.jumpToNearestValidPlot(true))
+							bErased = true;
+						// <K-Mod>
+						else
 						{
-							if (!pLoopUnit->isInvisible(getTeam(), false))
-							{
-								if (!pLoopUnit->jumpToNearestValidPlot(true))
-									bErased = true;
-								// K-Mod:
-								else bumped_groups.push_back(std::make_pair(pLoopUnit->getOwner(), pLoopUnit->getGroupID()));
-							}
-						}
+							bumped_groups.push_back(std::make_pair(
+									kLoopUnit.getOwner(), kLoopUnit.getGroupID()));
+						} // </K-Mod>
 					}
 				}
 			}
@@ -666,15 +655,16 @@ void CvPlot::verifyUnitValidPlot()  // advc: some style changes
 	// K-Mod
 	// first remove duplicate group numbers
 	std::sort(bumped_groups.begin(), bumped_groups.end());
-	bumped_groups.erase(std::unique(bumped_groups.begin(), bumped_groups.end()), bumped_groups.end());
+	bumped_groups.erase(std::unique(bumped_groups.begin(),
+			bumped_groups.end()), bumped_groups.end());
 	// now divide the broken groups
 	for (size_t i = 0; i < bumped_groups.size(); i++)
 	{
-		CvSelectionGroup* pLoopGroup = GET_PLAYER(bumped_groups[i].first).getSelectionGroup(bumped_groups[i].second);
-		if (pLoopGroup)
+		CvSelectionGroup* pLoopGroup = GET_PLAYER(bumped_groups[i].first).
+				getSelectionGroup(bumped_groups[i].second);
+		if (pLoopGroup != NULL)
 			pLoopGroup->regroupSeparatedUnits();
-	}
-	// K-Mod end
+	} // K-Mod end
 }
 
 /*  K-Mod, 2/jan/11, karadoc
@@ -1372,40 +1362,39 @@ void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement,
 	if (!bAerial && NULL != pUnit)
 		eFacingDirection = pUnit->getFacingDirection(true);
 
-	//fill invisible types
+	// fill invisible types
 	std::vector<InvisibleTypes> aeSeeInvisibleTypes;
 	if (pUnit != NULL)
 	{
-		for(int i=0;i<pUnit->getNumSeeInvisibleTypes();i++)
+		for(int i = 0; i < pUnit->getNumSeeInvisibleTypes(); i++)
 			aeSeeInvisibleTypes.push_back(pUnit->getSeeInvisibleType(i));
 	}
-
-	if(aeSeeInvisibleTypes.size() == 0)
+	if(aeSeeInvisibleTypes.empty())
 		aeSeeInvisibleTypes.push_back(NO_INVISIBLE);
 
-	//check one extra outer ring
+	// check one extra outer ring
 	if (!bAerial)
 		iRange++;
 
 	for(size_t i = 0; i < aeSeeInvisibleTypes.size(); i++)
 	{
-		for (int dx = -iRange; dx <= iRange; dx++)
+		for (int iDX = -iRange; iDX <= iRange; iDX++)
 		{
-			for (int dy = -iRange; dy <= iRange; dy++)
+			for (int iDY = -iRange; iDY <= iRange; iDY++)
 			{
-				//check if in facing direction
+				// check if in facing direction
 				if (bAerial ||
-					shouldProcessDisplacementPlot(dx, dy, /*iRange - 1,*/ eFacingDirection))
+					shouldProcessDisplacementPlot(iDX, iDY, /*iRange - 1,*/ eFacingDirection))
 				{
 					bool outerRing = false;
-					if (abs(dx) == iRange || abs(dy) == iRange)
+					if (abs(iDX) == iRange || abs(iDY) == iRange)
 						outerRing = true;
 
-					//check if anything blocking the plot
+					// check if anything blocking the plot
 					if (bAerial ||
-						canSeeDisplacementPlot(eTeam, dx, dy, dx, dy, true, outerRing))
+						canSeeDisplacementPlot(eTeam, iDX, iDY, iDX, iDY, true, outerRing))
 					{
-						CvPlot* pPlot = plotXY(getX(), getY(), dx, dy);
+						CvPlot* pPlot = plotXY(getX(), getY(), iDX, iDY);
 						if (pPlot != NULL)
 						{
 							pPlot->changeVisibilityCount(eTeam, bIncrement ? 1 : -1,
@@ -1416,10 +1405,10 @@ void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement,
 				}
 
 				if (eFacingDirection != NO_DIRECTION)
-				{	//always reveal adjacent plots when using line of sight
-					if(abs(dx) <= 1 && abs(dy) <= 1)
+				{	// always reveal adjacent plots when using line of sight
+					if(abs(iDX) <= 1 && abs(iDY) <= 1)
 					{
-						CvPlot* pPlot = plotXY(getX(), getY(), dx, dy);
+						CvPlot* pPlot = plotXY(getX(), getY(), iDX, iDY);
 						if (NULL != pPlot)
 						{
 							pPlot->changeVisibilityCount(
@@ -2277,22 +2266,21 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 	return iModifier;
 }
 
-/*	advc (note): The calculations performed by this function need to be
-	consistent with KmodPathFinder and other pathfinding code. */
-int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
+
+int CvPlot::movementCost(CvUnit const& kUnit, CvPlot const& kFrom,
 	bool bAssumeRevealed) const // advc.001i
 {
 	// <advc.162>
-	if(pUnit->isInvasionMove(*pFromPlot, *this))
-		return pUnit->movesLeft(); // </advc.162>
+	if(kUnit.isInvasionMove(kFrom, *this))
+		return kUnit.movesLeft(); // </advc.162>
 
-	if (pUnit->flatMovementCost() || pUnit->getDomainType() == DOMAIN_AIR)
+	if (kUnit.flatMovementCost() || kUnit.getDomainType() == DOMAIN_AIR)
 		return GC.getMOVE_DENOMINATOR();
 
-	TeamTypes const eTeam = pUnit->getTeam(); // advc.opt
-	/*if (pUnit->isHuman()) {
+	TeamTypes const eTeam = kUnit.getTeam(); // advc.opt
+	/*if (kUnit.isHuman()) {
 		if (!isRevealed(eTeam, false))
-			return pUnit->maxMoves();
+			return kUnit.maxMoves();
 	}*/
 	// K-Mod. Why let the AI cheat this?
 	if ( /* advc.001i: The K-Mod condition is OK, but now that the pathfinder passes
@@ -2301,22 +2289,21 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 		!isRevealed(eTeam))
 	{
 		/*if (!pFromPlot->isRevealed(eTeam, false))
-			return pUnit->maxMoves();
+			return kUnit.maxMoves();
 		else return GC.getMOVE_DENOMINATOR() + 1;
 		*/ // (further weight adjustments are now done in the pathfinder's moveCost function.)
 		return GC.getMOVE_DENOMINATOR();
 	} // K-Mod end
 
-	if (!pFromPlot->isValidDomainForLocation(*pUnit))
-		return pUnit->maxMoves();
-
-	if (!isValidDomainForAction(*pUnit))
+	if (!kFromPlot.isValidDomainForLocation(kUnit))
+		return kUnit.maxMoves();
+	if (!isValidDomainForAction(kUnit))
 		return GC.getMOVE_DENOMINATOR();
 
-	FAssert(pUnit->getDomainType() != DOMAIN_IMMOBILE);
+	FAssert(kUnit.getDomainType() != DOMAIN_IMMOBILE);
 
 	int iRegularCost;
-	if (pUnit->ignoreTerrainCost())
+	if (kUnit.ignoreTerrainCost())
 		iRegularCost = 1;
 	else
 	{
@@ -2327,31 +2314,31 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
 			iRegularCost += GC.getDefineINT(CvGlobals::HILLS_EXTRA_MOVEMENT);
 
 		if (iRegularCost > 0)
-			iRegularCost = std::max(1, iRegularCost - pUnit->getExtraMoveDiscount());
+			iRegularCost = std::max(1, iRegularCost - kUnit.getExtraMoveDiscount());
 	}
 
 	bool bHasTerrainCost = (iRegularCost > 1);
-	int const iBaseMoves = pUnit->baseMoves(); // advc.opt
+	int const iBaseMoves = kUnit.baseMoves(); // advc.opt
 	iRegularCost = std::min(iRegularCost, iBaseMoves);
 	iRegularCost *= GC.getMOVE_DENOMINATOR();
 	if (bHasTerrainCost)
 	{
-		if ((!isFeature() ? pUnit->isTerrainDoubleMove(getTerrainType()) :
-			pUnit->isFeatureDoubleMove(getFeatureType())) ||
-			(isHills() && pUnit->isHillsDoubleMove()))
+		if ((!isFeature() ? kUnit.isTerrainDoubleMove(getTerrainType()) :
+			kUnit.isFeatureDoubleMove(getFeatureType())) ||
+			(isHills() && kUnit.isHillsDoubleMove()))
 		{
 			iRegularCost /= 2;
 		}
 	}
 	int iRouteCost, iRouteFlatCost;
 	// <advc.001i> Pass along bAssumeRevealed
-	if (pFromPlot->isValidRoute(pUnit, bAssumeRevealed) &&
-		isValidRoute(pUnit, bAssumeRevealed) && // </advc.001i>
+	if (kFrom.isValidRoute(&kUnit, bAssumeRevealed) &&
+		isValidRoute(&kUnit, bAssumeRevealed) && // </advc.001i>
 		(GET_TEAM(eTeam).isBridgeBuilding() ||
-		!pFromPlot->isRiverCrossing(directionXY(*pFromPlot, *this))))
+		!kFrom.isRiverCrossing(directionXY(kFrom, *this))))
 	{	// <advc.001i>
-		RouteTypes eFromRoute = (bAssumeRevealed ? pFromPlot->getRouteType() :
-				pFromPlot->getRevealedRouteType(eTeam));
+		RouteTypes eFromRoute = (bAssumeRevealed ? kFrom.getRouteType() :
+				kFrom.getRevealedRouteType(eTeam));
 		CvRouteInfo const& kFromRoute = GC.getInfo(eFromRoute);
 		RouteTypes eToRoute = (bAssumeRevealed ? getRouteType() :
 				getRevealedRouteType(eTeam));
@@ -2995,12 +2982,12 @@ bool CvPlot::isVisibleEnemyUnit(const CvUnit* pUnit) const
 			NO_PLAYER, NO_TEAM, PUF_isVisible, pUnit->getOwner()) != NULL);
 }
 
-// <advc.004l> Same checks as above, just doesn't loop through all units.
+// advc.004l: Same checks as above, just doesn't loop through all units.
 bool CvPlot::isVisibleEnemyUnit(CvUnit const* pUnit, CvUnit const* pPotentialEnemy) const
 {
 	return (::PUF_isEnemy(pPotentialEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(*this)) &&
 			!pPotentialEnemy->isInvisible(pUnit->getTeam(), false));
-} // </advc.004l>
+}
 
 
 bool CvPlot::isVisibleOtherUnit(PlayerTypes ePlayer) const
@@ -3132,11 +3119,11 @@ bool CvPlot::isTradeNetwork(TeamTypes eTeam) const
 {
 	//PROFILE_FUNC(); // advc.003o
 
-	//if (!isOwned()) // (advc.opt: moved up)
+	//if (!isOwned())
 	if (!isRevealed(eTeam)) // advc.124
 		return false;
 
-	if (getTeam() != NO_TEAM && GET_TEAM(eTeam).isAtWar(getTeam()) && // advc.opt: faster than ::atWar
+	if (isOwned() && GET_TEAM(eTeam).isAtWar(getTeam()) &&
 		/*  advc.124: War blocks trade, but blockades against the plot owner
 			override this. If these blockades also affect eTeam, trade is again
 			blocked (by the next conditional). */
@@ -3159,11 +3146,11 @@ bool CvPlot::isTradeNetwork(TeamTypes eTeam) const
 }
 
 
-bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) const  // advc: some style changes
+bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) const
 {
 	//PROFILE_FUNC(); // advc.003o
 
-	if ((getTeam() != NO_TEAM && GET_TEAM(eTeam).isAtWar(getTeam()) // advc.opt: faster than ::atWar
+	if ((getTeam() != NO_TEAM && GET_TEAM(eTeam).isAtWar(getTeam())
 		// advc.124:
 		&& getBlockadedCount(getTeam()) <= getBlockadedCount(eTeam))
 		||

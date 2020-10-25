@@ -5629,7 +5629,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 					iNumOtherCitySites, iOtherSiteBestValue));
 		}
 	}
-	else if (kPlot.getOwner() != NO_PLAYER && pPlotCity == NULL)
+	else if (kPlot.isOwned() && pPlotCity == NULL)
 	{
 		if(bAlt && !bShift)
 		{
@@ -5640,7 +5640,8 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 			{
 				if (GET_PLAYER((PlayerTypes)iI).isAlive())
 				{
-					if (GET_TEAM(kPlot.getTeam()).AI_isHasPathToPlayerCity(kPlot,(PlayerTypes)iI))
+					if (kPlot.getTeam() == TEAMID((PlayerTypes)iI) || // advc.pf
+						GET_TEAM(kPlot.getTeam()).AI_isHasPathToPlayerCity(kPlot,(PlayerTypes)iI))
 					{
 						szString.append(CvWString::format(SETCOLR L"Can reach %s city" ENDCOLR,
 								TEXT_COLOR("COLOR_GREEN"), GET_PLAYER((PlayerTypes)iI).getName()));

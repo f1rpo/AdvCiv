@@ -524,9 +524,11 @@ void CvCityAI::AI_chooseProduction()
 	/*  if we are the weaker part of a team, and have a land war in our primary
 		area, increase enemy power percent so we aren't overconfident due to a
 		powerful team-mate who may not actually be that much help */
-	if (bLandWar && bPrimaryArea && !kTeam.isAVassal() && kTeam.getNumMembers() > 1) {
+	if (bLandWar && bPrimaryArea && !kTeam.isAVassal() && kTeam.getNumMembers() > 1)
+	{
 		int iOurPowerPercent = (100 * kPlayer.getPower()) / kTeam.getPower(false);
-		if(iOurPowerPercent * kTeam.getNumMembers() < 100) {
+		if (iOurPowerPercent * kTeam.getNumMembers() < 100)
+		{
 			iEnemyPowerPerc *= 100;
 			iEnemyPowerPerc /= std::max(1, iOurPowerPercent * kTeam.getNumMembers());
 		}
@@ -598,26 +600,22 @@ void CvCityAI::AI_chooseProduction()
 	}
 	int iSettlerPriority = 0; // advc.031b
 
-	bool bChooseWorker = false;
-
-	if (iNumCitiesInArea > 2)
+	if (iNumCitiesInArea > 2 &&
+		kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE2) &&
+		iCultureRateRank <= iCulturalVictoryNumCultureCities + 1)
 	{
-		if (kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE2))
+		/*	if we do not have enough cities, then the highest culture city
+			will not get special attention. */
+		if (iCultureRateRank > 1 ||
+			(kPlayer.getNumCities() > (iCulturalVictoryNumCultureCities + 1)))
 		{
-			if (iCultureRateRank <= iCulturalVictoryNumCultureCities + 1)
+			if (iNumAreaCitySites + iNumWaterAreaCitySites > 0 &&
+				kPlayer.getNumCities() < 6 &&
+				kGame.getSorenRandNum(2, "AI Less Culture More Expand") == 0)
 			{
-				// if we do not have enough cities, then the highest culture city will not get special attention
-				if (iCultureRateRank > 1 || (kPlayer.getNumCities() > (iCulturalVictoryNumCultureCities + 1)))
-				{
-					if (iNumAreaCitySites + iNumWaterAreaCitySites > 0 &&
-						kPlayer.getNumCities() < 6 &&
-						kGame.getSorenRandNum(2, "AI Less Culture More Expand") == 0)
-					{
-						bImportantCity = false;
-					}
-					else bImportantCity = true;
-				}
+				bImportantCity = false;
 			}
+			else bImportantCity = true;
 		}
 	}
 
@@ -656,27 +654,25 @@ void CvCityAI::AI_chooseProduction()
 	// Check for military exemption for commerce cities and underdeveloped cities.
 	// Don't give exemptions to cities that don't have anything good to build anyway.
 	bool bUnitExempt = false;
-	if (iBestBuildingValue >= 40)
+	if (iBestBuildingValue >= 40 &&
+		(iProductionRank - 1) * 2 > kPlayer.getNumCities())
 	{
-		if (iProductionRank-1 > kPlayer.getNumCities()/2)
+		bool bBelowMedian = true;
+		FOR_EACH_ENUM(Commerce)
 		{
-			bool bBelowMedian = true;
-			for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+			/*	I'd use the total commerce rank, but there currently
+				isn't a cached value of that. */
+			int iRank = findCommerceRateRank(eLoopCommerce);
+			if (iRank < iProductionRank)
 			{
-				// I'd use the total commerce rank, but there currently isn't a cached value of that.
-				int iRank = findCommerceRateRank((CommerceTypes)iI);
-				if (iRank < iProductionRank)
-				{
-					bUnitExempt = true;
-					break;
-				}
-				if (iRank-1 < kPlayer.getNumCities()/2)
-					bBelowMedian = false;
-			}
-
-			if (bBelowMedian)
 				bUnitExempt = true;
+				break;
+			}
+			if ((iRank - 1) * 2 < kPlayer.getNumCities())
+				bBelowMedian = false;
 		}
+		if (bBelowMedian)
+			bUnitExempt = true;
 	}
 	// K-Mod end
 
@@ -710,26 +706,14 @@ void CvCityAI::AI_chooseProduction()
 	if (getPlot().getNumDefenders(getOwner()) == 0) // XXX check for other team's units?
 	{
 		if (gCityLogLevel >= 2) logBBAI("      City %S uses no defenders", getName().GetCString());
-
 		if (AI_chooseUnit(UNITAI_CITY_DEFENSE))
-		{
 			return;
-		}
-
 		if (AI_chooseUnit(UNITAI_CITY_COUNTER))
-		{
 			return;
-		}
-
 		if (AI_chooseUnit(UNITAI_CITY_SPECIAL))
-		{
 			return;
-		}
-
 		if (AI_chooseUnit(UNITAI_ATTACK))
-		{
 			return;
-		}
 	}
 
 	if (kPlayer.isStrike())
@@ -738,7 +722,7 @@ void CvCityAI::AI_chooseProduction()
 		iStrikeFlags |= BUILDINGFOCUS_GOLD;
 		iStrikeFlags |= BUILDINGFOCUS_MAINTENANCE;
 
-		if(AI_chooseBuilding(iStrikeFlags))
+		if (AI_chooseBuilding(iStrikeFlags))
 		{
 			if (gCityLogLevel >= 2) logBBAI("      City %S uses strike building (w/ flags)", getName().GetCString());
 			return;
@@ -852,6 +836,8 @@ void CvCityAI::AI_chooseProduction()
 	// K-Mod 10/sep/10: iLandBonuses moved up
 	int iLandBonuses = AI_countNumImprovableBonuses(true,//kPlayer.getCurrentResearch()
 			bCloseToNewTech ? eCurrentResearch : NO_TECH); // advc.113
+
+	bool bChooseWorker = false;
 
 	if (isCapital() &&
 		kGame.getElapsedGameTurns() * 100 <
@@ -1152,6 +1138,7 @@ void CvCityAI::AI_chooseProduction()
 			kPlayer.AI_getTotalFloatingDefenders(kArea));
 
 	UnitTypeWeightArray floatingDefenderTypes;
+	floatingDefenderTypes.reserve(4);
 	floatingDefenderTypes.push_back(std::make_pair(UNITAI_CITY_DEFENSE, 125));
 	floatingDefenderTypes.push_back(std::make_pair(UNITAI_CITY_COUNTER, 100));
 	//floatingDefenderTypes.push_back(std::make_pair(UNITAI_CITY_SPECIAL, 0));
@@ -1784,45 +1771,38 @@ void CvCityAI::AI_chooseProduction()
 	{
 		bool bBuildAssault = bAssault;
 		CvArea* pAssaultWaterArea = NULL;
-		if (NULL != pWaterArea)
+		if (pWaterArea != NULL)
 		{
 			// Coastal city extra logic
 
 			pAssaultWaterArea = pWaterArea;
 
 			// If on offensive and can't reach enemy cities from here, act like using AREAAI_ASSAULT
-			if (pAssaultWaterArea != NULL && !bBuildAssault)
+			if (pAssaultWaterArea != NULL && !bBuildAssault && kTeam.AI_isAnyWarPlan() &&
+				kArea.getAreaAIType(getTeam()) != AREAAI_DEFENSIVE)
 			{
-				if (kTeam.AI_isAnyWarPlan())
+				// <advc.030b>
+				bool bAssaultTargetFound = false;
+				for (PlayerIter<CIV_ALIVE,KNOWN_POTENTIAL_ENEMY_OF> itTarget(getTeam());
+					itTarget.hasNext(); ++itTarget)
 				{
-					if (kArea.getAreaAIType(getTeam()) != AREAAI_DEFENSIVE)
-					{	// <advc.030b>
-						bool bAssaultTargetFound = false;
-						for(int i = 0; i < MAX_CIV_PLAYERS; i++)
-						{
-							CvPlayer const& kTarget = GET_PLAYER((PlayerTypes)i);
-							if(!kTarget.isAlive() || kTeam.AI_getWarPlan(
-								kTarget.getTeam()) == NO_WARPLAN)
-							{
-								continue;
-							}
-							if(pWaterArea->getCitiesPerPlayer(kTarget.getID(), true) > 0)
-							{
-								bAssaultTargetFound = true;
-								break;
-							}
-						}
-						if(!bAssaultTargetFound)
-							pAssaultWaterArea = NULL;
-						if(bAssaultTargetFound && // </advc.030b>
-							/*	BBAI TODO: faster to switch to checking path for some selection group?
-								^advc: That's a can of worms, and unnecessary.
-								See comment in  AI_isHasPathToEnemyCity. */
-					!GET_TEAM(getTeam()).AI_isHasPathToEnemyCity(getPlot()))
-						{
-							bBuildAssault = true;
-						}
+					if(kTeam.AI_getWarPlan(itTarget->getTeam()) == NO_WARPLAN)
+						continue;
+					if(pWaterArea->getCitiesPerPlayer(itTarget->getID(), true) > 0)
+					{
+						bAssaultTargetFound = true;
+						break;
 					}
+				}
+				if(!bAssaultTargetFound)
+					pAssaultWaterArea = NULL;
+				if(bAssaultTargetFound && // </advc.030b>
+					/*	BBAI TODO: faster to switch to checking path for some selection group?
+						^advc: That's a can of worms, and unnecessary.
+						See comment in  AI_isHasPathToEnemyCity. */
+					!GET_TEAM(getTeam()).AI_isHasPathToEnemyCity(getPlot()))
+				{
+					bBuildAssault = true;
 				}
 			}
 		}
@@ -2503,10 +2483,7 @@ void CvCityAI::AI_chooseProduction()
 		{
 			int iWonderMaxTurns = 20 + ((iWonderRand - iWonderRoll) * 2);
 			if (bLandWar)
-			{
 				iWonderMaxTurns /= 2;
-			}
-
 			if (AI_chooseBuilding(BUILDINGFOCUS_WORLDWONDER, iWonderMaxTurns))
 			{
 				if (gCityLogLevel >= 2) logBBAI("      City %S uses opportunistic wonder build 3", getName().GetCString());
@@ -2529,16 +2506,12 @@ void CvCityAI::AI_chooseProduction()
 
 	if (!bLandWar)
 	{
-		if (pWaterArea != NULL && bFinancialTrouble)
+		if (pWaterArea != NULL && bFinancialTrouble &&
+			kPlayer.AI_totalAreaUnitAIs(kArea, UNITAI_MISSIONARY) > 0 &&
+			kPlayer.AI_totalWaterAreaUnitAIs(*pWaterArea, UNITAI_MISSIONARY_SEA) <= 0)
 		{
-			if (kPlayer.AI_totalAreaUnitAIs(kArea, UNITAI_MISSIONARY) > 0)
-			{
-				if (kPlayer.AI_totalWaterAreaUnitAIs(*pWaterArea, UNITAI_MISSIONARY_SEA) == 0)
-				{
-					if (AI_chooseUnit(UNITAI_MISSIONARY_SEA))
-						return;
-				}
-			}
+			if (AI_chooseUnit(UNITAI_MISSIONARY_SEA))
+				return;
 		}
 	}
 
@@ -2553,21 +2526,21 @@ void CvCityAI::AI_chooseProduction()
 	{
 		if (!bDanger)
 		{
-			if (AI_chooseBuilding(BUILDINGFOCUS_EXPERIENCE, 20, 0, 3*getPopulation()))
+			if (AI_chooseBuilding(BUILDINGFOCUS_EXPERIENCE, 20, 0, 3 * getPopulation()))
 			{
 				if (gCityLogLevel >= 2) logBBAI("      City %S uses special BUILDINGFOCUS_EXPERIENCE 3", getName().GetCString()); // advc
 				return;
 			}
 		}
 
-		if (AI_chooseBuilding(BUILDINGFOCUS_DEFENSE, 20, 0, bDanger ? -1 : 3*getPopulation()))
+		if (AI_chooseBuilding(BUILDINGFOCUS_DEFENSE, 20, 0, bDanger ? -1 : 3 * getPopulation()))
 		{
 			if (gCityLogLevel >= 2) logBBAI("      City %S uses special BUILDINGFOCUS_DEFENSE", getName().GetCString()); // advc
 			return;
 		}
 		if (bDanger)
 		{
-			if (AI_chooseBuilding(BUILDINGFOCUS_EXPERIENCE, 20, 0, 2*getPopulation()))
+			if (AI_chooseBuilding(BUILDINGFOCUS_EXPERIENCE, 20, 0, 2 * getPopulation()))
 			{
 				if (gCityLogLevel >= 2) logBBAI("      City %S uses special BUILDINGFOCUS_EXPERIENCE 4", getName().GetCString()); // advc
 				return;

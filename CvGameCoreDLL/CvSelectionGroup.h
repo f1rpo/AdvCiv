@@ -171,7 +171,7 @@ public:
 
 	void setTransportUnit(CvUnit* pTransportUnit, CvSelectionGroup** pOtherGroup = NULL); // bbai added pOtherGroup
 
-	bool isAmphibPlot(const CvPlot* pPlot) const;																																		// Exposed to Python
+	bool isAmphibPlot(CvPlot const* pPlot) const;																																		// Exposed to Python
 	bool groupAmphibMove(CvPlot const& kPlot, MovementFlags eFlags);
 
 	DllExport bool readyToSelect(bool bAny = false);																										// Exposed to Python

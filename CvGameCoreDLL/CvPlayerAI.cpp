@@ -3272,7 +3272,7 @@ int CvPlayerAI::AI_countDangerousUnits(CvPlot const& kAttackerPlot, CvPlot const
 				FAssertMsg(r == 0, "Hostile units shouldn't be able to coexist in a plot");
 				return r;
 			}
-		} 
+		}
 		if ( // <advc.104>
 			(eAttackPlayer == NO_PLAYER || kUnit.getCombatOwner(
 			eTeam, kAttackerPlot) == eAttackPlayer) && // </advc.104>
@@ -4674,8 +4674,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 				}
 
 				// The following are not yields, but close enough.
-				iYieldValue += kFinalImprovement.isActsAsCity() ? 100 : 0;
-				iYieldValue += kFinalImprovement.isCarriesIrrigation() ? 100 : 0;
+				iYieldValue += (kFinalImprovement.isActsAsCity() ? 100 : 0);
+				iYieldValue += (kFinalImprovement.isCarriesIrrigation() ? 100 : 0);
 
 				if (getCurrentEra() > GC.getGame().getStartEra())
 					iYieldValue -= 100; // compare to a hypothetical low-value improvement
@@ -13537,8 +13537,8 @@ int CvPlayerAI::AI_totalAreaUnitAIs(CvArea const& kArea, UnitAITypes eUnitAI) co
 
 int CvPlayerAI::AI_totalWaterAreaUnitAIs(CvArea const& kArea, UnitAITypes eUnitAI) const
 {	// <advc.081> ^Now only a wrapper
-	std::vector<UnitAITypes> aeUnitAI;
-	aeUnitAI.push_back(eUnitAI);
+	std::vector<UnitAITypes> aeUnitAI(1);
+	aeUnitAI[0] = eUnitAI;
 	return AI_totalWaterAreaUnitAIs(kArea, aeUnitAI);
 }
 
@@ -26947,11 +26947,8 @@ int CvPlayerAI::AI_getPlotAirbaseValue(CvPlot const& kPlot) const // advc: param
 			}
 			if (eBestImprovement != NO_IMPROVEMENT)
 			{
-				CvImprovementInfo &kImprovementInfo = GC.getInfo(eBestImprovement);
-				if (!kImprovementInfo.isActsAsCity())
-				{
+				if (!GC.getInfo(eBestImprovement).isActsAsCity())
 					return 0;
-				}
 			}
 			// K-Mod end
 		}
@@ -26963,7 +26960,6 @@ int CvPlayerAI::AI_getPlotAirbaseValue(CvPlot const& kPlot) const // advc: param
 	CvPlot const* pMinFriendlyCityPlot = NULL;*/ // advc: unused
 
 	int iOtherCityCount = 0;
-
 	for (SquareIter it(kPlot, 4, false); it.hasNext(); ++it)
 	{
 		CvPlot const& p = *it;
@@ -27071,8 +27067,7 @@ int CvPlayerAI::AI_getPlotCanalValue(CvPlot const& kPlot) const // advc: param w
 	CvArea* pSecondWaterArea = kPlot.secondWaterArea();
 	if (pSecondWaterArea == NULL)
 		return 0;
-
-	//return 10 * std::min(0, pSecondWaterArea->getNumTiles() - 2);
+	// K-Mod bugfix (was min)
 	return 10 * std::max(0, pSecondWaterArea->getNumTiles() - 2);
 }
 
