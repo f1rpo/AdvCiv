@@ -86,7 +86,8 @@ void CyPlotPythonInterface1(python::class_<CyPlot>& x)
 		.def("isRevealedGoody", &CyPlot::isRevealedGoody, "bool (int (TeamTypes) eTeam)")
 
 		.def("isCity", &CyPlot::isCity, "bool ()")
-		.def("isFriendlyCity", &CyPlot::isFriendlyCity, "bool (CyUnit* pUnit, bool bCheckImprovement)")
+		// advc: CvPlot no longer has such a function
+		//.def("isFriendlyCity", &CyPlot::isFriendlyCity, "bool (CyUnit* pUnit, bool bCheckImprovement)")
 		.def("isEnemyCity", &CyPlot::isEnemyCity, "bool (CyUnit* pUnit)")
 		.def("isOccupation", &CyPlot::isOccupation, "bool ()")
 		.def("isBeingWorked", &CyPlot::isBeingWorked, "bool ()")

@@ -809,7 +809,7 @@ void CvSelectionGroup::startMission()
 				/*  Both air attack and rebase are MOVE_TO missions. Want to
 					clear the recon-plot only for rebase. */
 				if(data.eMissionType == MISSION_MOVE_TO && pDest != NULL &&
-					pDest->isFriendlyCity(*getHeadUnit(), true))
+					GET_TEAM(getTeam()).isRevealedAirBase(*pDest))
 				{
 					getHeadUnit()->setReconPlot(NULL);
 				}
@@ -2948,7 +2948,7 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 			if (pLoopUnit->canMove() &&
 				/*  advc.001: This condition was removed in K-Mod 1.44, but is needed
 					b/c canMoveOrAttackInto doesn't cover it (perhaps it should). */
-				!(pLoopUnit->isNoCityCapture() && pPlot->isEnemyCity(*pLoopUnit)) &&
+				!(pLoopUnit->isNoCityCapture() && pLoopUnit->isEnemyCity(*pPlot)) &&
 				(bCombat ? pLoopUnit->canMoveOrAttackInto(*pPlot) : pLoopUnit->canMoveInto(*pPlot)))
 			{
 				pLoopUnit->move(*pPlot, true);
@@ -3308,26 +3308,24 @@ void CvSelectionGroup::setTransportUnit(CvUnit* pTransportUnit,
 	}
 }
 
-bool CvSelectionGroup::isAmphibPlot(const CvPlot* pPlot) const
+bool CvSelectionGroup::isAmphibPlot(CvPlot const* pPlot) const
 {
-	CvUnit* pUnit = getHeadUnit();
-	// K-Mod. I've renamed this from bFriendly, because it was confusing me.
-	bool const bFriendlyCity = (pUnit == NULL ? true :
-			pPlot->isFriendlyCity(*pUnit, true));
-
-	//return ((getDomainType() == DOMAIN_SEA) && pPlot->isCoastalLand() && !bFriendlyCity && !canMoveAllTerrain());
+	PROFILE_FUNC(); // advc.test: To be profiled
+	CvUnit const* pUnit = getHeadUnit();
+	if (pUnit == NULL)
+		return false;
+	if (pUnit->getDomainType() != DOMAIN_SEA)
+		return false;
+	//if (pPlot->isFriendlyCity(*pUnit, true))
+	if (pUnit->isRevealedPlotValid(*pPlot)) // advc
+		return false;
 	// BETTER_BTS_AI_MOD, General AI, 04/18/10, jdog5000: START
-	if (getDomainType() == DOMAIN_SEA)
+	if (pPlot->isCity() &&
+		(pPlot->isCoastalLand() || pPlot->isWater() || canMoveAllTerrain()))
 	{
-		if (pPlot->isCity() && !bFriendlyCity && (pPlot->isCoastalLand() ||
-			pPlot->isWater() || canMoveAllTerrain()))
-		{
-			return true;
-		}
-		return (pPlot->isCoastalLand() && !bFriendlyCity && !canMoveAllTerrain());
-	}
-	return false;
-	// BETTER_BTS_AI_MOD: END
+		return true;
+	} // BETTER_BTS_AI_MOD: END
+	return (pPlot->isCoastalLand() && !canMoveAllTerrain());
 }
 
 // Returns true if attempted an amphib landing...

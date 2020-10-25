@@ -221,14 +221,16 @@ public:
 	bool isRevealedGoody(TeamTypes eTeam = NO_TEAM) const;																						// Exposed to Python
 	void removeGoody();																																								// Exposed to Python
 
-	DllExport bool isCity(bool bCheckImprovement, TeamTypes eForTeam = NO_TEAM) const;																																		// Exposed to Python
-	// advc.inl: Faster version, inlined for CvArea::canBeEntered
-	__forceinline bool isCity() const
+	// advc.inl:
+	inline bool isCity() const
 	{	// (Should perhaps simply turn m_plotCity into a CvCity pointer.)
 		return (m_plotCity.iID != NO_PLAYER); // avoid ::getCity call
 	}
-	bool isFriendlyCity(const CvUnit& kUnit, bool bCheckImprovement) const;																												// Exposed to Python
-	bool isEnemyCity(const CvUnit& kUnit) const;																													// Exposed to Python
+	/*	advc: Deprecated; exported through .def file. Should use more specific checks
+		such as isCity (inline) or (CvTeam) isBase, isCityTrade, isCityDefense, isCityHeal. */
+	bool isCityExternal(bool bCheckImprovement, TeamTypes eForTeam = NO_TEAM) const;										// Exposed to Python
+	/*	advc: isFriendlyCity replaced with CvUnit::isPlotValid;
+		isEnemyCity also moved to CvUnit. */
 
 	bool isOccupation() const;																																				// Exposed to Python
 	bool isBeingWorked() const;																															// Exposed to Python
@@ -270,9 +272,7 @@ public:
 	bool isTradeNetwork(TeamTypes eTeam) const;																												// Exposed to Python
 	bool isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) const; // advc: param was CvPlot const*								// Exposed to Python
 	bool isRiverNetwork(TeamTypes eTeam) const;
-
-	bool isValidDomainForLocation(CvUnit const& kUnit) const;																					// Exposed to Python
-	bool isValidDomainForAction(CvUnit const& kUnit) const;																						// Exposed to Python
+	// advc: isValidDomain... functions moved to CvUnit
 	// <advc.opt>
 	inline bool isImpassable() const { return m_bImpassable; } // cached												// Exposed to Python
 	inline bool isAnyIsthmus() const { return m_bAnyIsthmus; } // Note: always false for land plots

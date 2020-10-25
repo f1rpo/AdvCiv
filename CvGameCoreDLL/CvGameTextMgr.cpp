@@ -20908,25 +20908,27 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 	}
 }
 
-void CvGameTextMgr::getRebasePlotHelp(CvPlot* pPlot, CvWString& strHelp)  // advc: style changes
+void CvGameTextMgr::getRebasePlotHelp(CvPlot* pPlot, CvWString& strHelp)
 {
 	if (pPlot == NULL)
 		return;
-	CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
+	CvUnit const* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
 	if (pHeadSelectedUnit == NULL)
 		return;
-	if (!pPlot->isFriendlyCity(*pHeadSelectedUnit, true))
-		return;
-	CvCity* pCity = pPlot->getPlotCity();
+	CvCity const* pCity = pPlot->getPlotCity();
 	if (pCity == NULL)
 		return;
+	//if (!pPlot->isFriendlyCity(*pHeadSelectedUnit, true))
+	if (!pHeadSelectedUnit->isRevealedPlotValid(*pPlot)) // advc
+		return;
 
-	int iNumUnits = pCity->getPlot().countNumAirUnits(GC.getGame().getActiveTeam());
-	bool bFull = (iNumUnits >= pCity->getAirUnitCapacity(GC.getGame().getActiveTeam()));
+	TeamTypes const eActiveTeam = GC.getGame().getActiveTeam();
+	int const iUnits = pCity->getPlot().countNumAirUnits(eActiveTeam);
+	bool const bFull = (iUnits >= pCity->getAirUnitCapacity(eActiveTeam));
 	if (bFull)
 		strHelp += CvWString::format(SETCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"));
 	strHelp +=  NEWLINE + gDLL->getText("TXT_KEY_CITY_BAR_AIR_UNIT_CAPACITY",
-			iNumUnits, pCity->getAirUnitCapacity(GC.getGame().getActiveTeam()));
+			iUnits, pCity->getAirUnitCapacity(eActiveTeam));
 	if (bFull)
 		strHelp += ENDCOLR;
 	strHelp += NEWLINE;
@@ -21653,7 +21655,7 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_FORTIFY_MOD",
 				iModifier));
 	}
-	if (pPlot->isCity(true, pDefender->getTeam()))
+	if (GET_TEAM(pDefender->getTeam()).isCityDefense(*pPlot)) // advc: was isCity
 	{
 		iModifier = pDefender->cityDefenseModifier();
 		if (iModifier != 0)
@@ -21730,7 +21732,7 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 				iSign * iModifier, GC.getInfo(pDefender->getDomainType()).
 				getTextKeyWide()));
 	}
-	if (pPlot->isCity(true, pDefender->getTeam()))
+	if (GET_TEAM(pDefender->getTeam()).isCityDefense(*pPlot)) // advc: was isCity
 	{
 		iModifier = pAttacker->cityAttackModifier();
 		if (iModifier != 0)

@@ -28,3 +28,4 @@ EXPORTS
 ?getPlayerColor@CvPlayer@@QBE?AW4PlayerColorTypes@@XZ=?getPlayerColorExternal@CvPlayer@@QBE?AW4PlayerColorTypes@@XZ
 ?get@CvRandom@@QAEGGPBD@Z=?getExternal@CvRandom@@QAEGGPBD@Z
 ?setLeader@CvInitCore@@QAEXW4PlayerTypes@@W4LeaderHeadTypes@@@Z=?setLeaderExternal@CvInitCore@@QAEXW4PlayerTypes@@W4LeaderHeadTypes@@@Z
+?isCity@CvPlot@@QBE_N_NW4TeamTypes@@@Z=?isCityExternal@CvPlot@@QBE_N_NW4TeamTypes@@@Z

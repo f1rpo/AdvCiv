@@ -832,8 +832,8 @@ CvUnitAI* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 		{	/*  advc.159: Call AI_currEffectiveStr instead of currEffectiveStr
 				And reduce the precision multiplier from 100 to 10. */
 			int iValue = pLoopUnit->AI_currEffectiveStr(pDefendPlot) * 10;
-
-			if (pDefendPlot->isCity(true, getTeam()))
+			//if (pDefendPlot->isCity(true, getTeam())))
+			if (GET_TEAM(getTeam()).isCityDefense(*pDefendPlot)) // advc
 			{
 				iValue *= 100 + pLoopUnit->cityDefenseModifier();
 				iValue /= 100;

@@ -68,6 +68,26 @@ public:
 			bool bDangerCheck = false) const; // advc.001k
 	// bool canMoveThrough(const CvPlot* pPlot, bool bDeclareWar = false) const; // disabled by K-Mod (was exposed to Python)
 	bool canEnterArea(CvArea const& kArea) const; // advc.030
+	// <advc>
+	bool isEnemyCity(CvPlot const& kPlot) const;											// Exposed to Python /via CyPlot)
+	// was CvPlot::isValidDomainForLocation
+	bool isValidDomain(CvPlot const& kPlot) const;											// Exposed to Python (via CyPlot)
+	bool isRevealedValidDomain(CvPlot const& kPlot) const;
+	// was CvPlot::isValidDomainForAction
+	bool isValidDomain(bool bWater) const													// Exposed to Python (via CyPlot)
+	{
+		switch (getDomainType())
+		{
+			case DOMAIN_SEA: return (bWater || canMoveAllTerrain());
+			case DOMAIN_AIR: return false;
+			case DOMAIN_LAND: // fall through
+			case DOMAIN_IMMOBILE: return (!bWater || canMoveAllTerrain());
+			default: FAssert(false); return false;
+		}
+	}
+	// Replacing CvPlot::isFriendlyCity
+	bool isPlotValid(CvPlot const& kPlot) const;											// Exposed to Python (via CyPlot::isFriendlyCity)
+	bool isRevealedPlotValid(CvPlot const& kPlot) const; // </advc>
 	bool isInvasionMove(CvPlot const& kFrom, CvPlot const& kTo) const; // advc.162
 	void attack(CvPlot* pPlot, bool bQuick);
 	void attackForDamage(CvUnit *pDefender, int attackerDamageChange, int defenderDamageChange);

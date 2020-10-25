@@ -421,7 +421,8 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	{
 		if (pLoopUnit->getTransportUnit() == this)
 		{
-			if (kPlot.isValidDomainForLocation(*pLoopUnit))
+			//if (kPlot.isValidDomainForLocation(*pLoopUnit))
+			if (pLoopUnit->isRevealedValidDomain(kPlot)) // advc
 				pLoopUnit->setCapturingPlayer(NO_PLAYER);
 			pLoopUnit->kill(false, ePlayer);
 		}
@@ -599,7 +600,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 				if (!GET_PLAYER(eCapturingPlayer).isHuman())
 				{
 					CvPlot const* pCapturePlot = pCapturedUnit->plot();
-					if (pCapturePlot != NULL && !pCapturePlot->isCity(false))
+					if (pCapturePlot != NULL && !pCapturePlot->isCity())
 					{
 						if (GET_PLAYER(eCapturingPlayer).AI_isAnyPlotDanger(*pCapturePlot) &&
 							GC.getDefineBOOL("AI_CAN_DISBAND_UNITS"))
@@ -1759,7 +1760,9 @@ bool CvUnit::isActionRecommended(int iAction)
 	switch(GC.getActionInfo(iAction).getMissionType()) // advc
 	{
 	case MISSION_FORTIFY:
-		if (kPlot.isCity(true, getTeam()) && canDefend(&kPlot) &&
+		if (kPlot.getOwner() == getOwner() && // advc.004
+			GET_TEAM(getTeam()).isCityDefense(kPlot) && // advc (was isCity(true,getTeam())
+			canDefend(&kPlot) &&
 			kPlot.getNumDefenders(getOwner()) < (at(kPlot) ? 2 : 1))
 		{
 			return true;
@@ -2344,36 +2347,46 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar,
 	switch (getDomainType())
 	{
 	case DOMAIN_SEA:
-		if (!kPlot.isWater() && !canMoveAllTerrain())
-		{
+		/*if (!kPlot.isWater() && !canMoveAllTerrain()) {
 			if (!kPlot.isFriendlyCity(*this, true) || !kPlot.isCoastalLand())
 				return false;
-		}
+		}*/
+		// <advc.183>
+		if (!kPlot.isWater() && // for performance
+			/*	Check visibility even if bAssumeVisible; otherwise info about
+				fogged forts is leaked. */
+			(!isRevealedPlotValid(kPlot) || !kPlot.isCoastalLand())) // </advc.183>
+		{
+			return false;
+		} // </advc>
 		break;
 
 	case DOMAIN_AIR:
-		if (!bAttack)
+	{
+		if (bAttack)
+			break;
+		bool bValid = false;
+		//if (kPlot.isFriendlyCity(*this, true))
+		// advc.183: (see previous comment)
+		if (!kPlot.isWater() && isRevealedPlotValid(kPlot))
 		{
-			bool bValid = false;
-			if (kPlot.isFriendlyCity(*this, true))
+			bValid = true;
+			if (m_pUnitInfo->getAirUnitCap() > 0)
 			{
-				bValid = true;
-				if (m_pUnitInfo->getAirUnitCap() > 0)
-				{
-					if (kPlot.airUnitSpaceAvailable(kOurTeam.getID()) <= 0)
-						bValid = false;
-				}
-			}
-			if (!bValid)
-			{
-				if (bIgnoreLoad || !canLoadOntoAnyUnit(kPlot))
-					return false;
+				if (kPlot.airUnitSpaceAvailable(kOurTeam.getID()) <= 0)
+					bValid = false;
 			}
 		}
+		if (!bValid)
+		{
+			if (bIgnoreLoad || !canLoadOntoAnyUnit(kPlot))
+				return false;
+		}
 		break;
-
+	}
 	case DOMAIN_LAND:
-		if (kPlot.isWater() && !canMoveAllTerrain())
+		//if (kPlot.isWater() && !canMoveAllTerrain())
+		if (!isValidDomain(kPlot.isWater())) // advc
 		{
 			if (!kPlot.isCity() || !GC.getDefineBOOL(CvGlobals::LAND_UNITS_CAN_ATTACK_WATER_CITIES))
 			{
@@ -2416,7 +2429,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar,
 
 	if (isNoCityCapture())
 	{
-		if (!bAttack && kPlot.isEnemyCity(*this))
+		if (!bAttack && isEnemyCity(kPlot))
 			return false;
 		// K-Mod. Don't let noCapture units attack defenseless cities. (eg. cities with a worker in them)
 		/*if (pPlot->isEnemyCity(*this)) {
@@ -2522,9 +2535,8 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar,
 				//if (!isHuman() || kPlot.isVisible(getTeam()))
 				if (bAssumeVisible || kPlot.isVisible(getTeam())) // K-Mod
 				{
-					if (kPlot.isEnemyCity(*this))
+					if (isEnemyCity(kPlot))
 						return false;
-
 					if (kPlot.isVisibleEnemyUnit(this))
 						return false;
 				}
@@ -2590,6 +2602,94 @@ bool CvUnit::canMoveOrAttackInto(CvPlot const& kPlot, bool bDeclareWar, // advc:
 bool CvUnit::canEnterArea(CvArea const& kArea) const
 {
 	return kArea.canBeEntered(getArea(), this);
+}
+
+/*	advc: Replacing CvPlot::isEnemyCity(CvUnit const&).
+	Just to be consistent with similar functions moved from CvPlot (see below). */
+bool CvUnit::isEnemyCity(CvPlot const& kPlot) const
+{
+	CvCity const* pCity = kPlot.getPlotCity();
+	if (pCity != NULL)
+		return isEnemy(pCity->getTeam(), kPlot);
+	return false;
+}
+
+/*	advc: Body from CvPlot::isValidDomainForLocation, but the combat owner part
+	is from CvPlot::isFriendlyCity. Not sure if that needs to be checked here;
+	it makes isPlotValid easier to implement. */
+bool CvUnit::isValidDomain(CvPlot const& kPlot) const
+{
+	if (isValidDomain(kPlot.isWater()))
+		return true;
+	//return kPlot.isCity(true, getTeam());
+	if (!kPlot.isOwned())
+		return false; // Can't get the combat owner then
+	CvTeam const& kCombatTeam = GET_TEAM(getCombatOwner(kPlot.getTeam(), kPlot));
+	// Allow different rules for air bases
+	switch(getDomainType())
+	{
+	case DOMAIN_SEA:
+		return kCombatTeam.isBase(kPlot);
+	case DOMAIN_AIR:
+		return kCombatTeam.isAirBase(kPlot);
+	}
+	return false;
+}
+
+// advc:
+bool CvUnit::isRevealedValidDomain(CvPlot const& kPlot) const
+{
+	TeamTypes const eTeam = getTeam();
+	if (!kPlot.isRevealed(eTeam))
+		return false;
+	if (isValidDomain(kPlot.isWater()))
+		return true;
+	TeamTypes eRevealedPlotTeam = kPlot.getRevealedTeam(eTeam, false);
+	if (eRevealedPlotTeam == NO_TEAM)
+		return false;
+	CvTeam const& kCombatTeam = GET_TEAM(getCombatOwner(eRevealedPlotTeam, kPlot));
+	switch (getDomainType())
+	{
+	case DOMAIN_SEA:
+		return kCombatTeam.isRevealedBase(kPlot);
+	case DOMAIN_AIR:
+		return kCombatTeam.isRevealedAirBase(kPlot);
+	}
+	return false;
+}
+
+/*	advc: Replacing CvPlot::isFriendlyCity
+	(which was always being called with bCheckImprovement=true).
+	Despite the name, isFriendlyCity had not required isFriendlyTerritory,
+	and neither does isPlotValid. */
+bool CvUnit::isPlotValid(CvPlot const& kPlot) const
+{
+	PROFILE_FUNC(); // advc.test: To be profiled
+	if (!isValidDomain(kPlot))
+		return false;
+	if (isValidDomain(kPlot.isWater()))
+		return true;
+	// Can't attack into plots that don't match the unit's domain
+	if (kPlot.isVisibleEnemyUnit(this))
+		return false;
+	if (kPlot.isOwned() && isEnemy(kPlot.getTeam()))
+		return false;
+	return true;
+}
+
+// advc:
+bool CvUnit::isRevealedPlotValid(CvPlot const& kPlot) const
+{
+	PROFILE_FUNC(); // advc.test: To be profiled
+	if (!isRevealedValidDomain(kPlot))
+		return false;
+	if (isValidDomain(kPlot.isWater()))
+		return true;
+	TeamTypes const eTeam = getTeam();
+	if (kPlot.isVisible(eTeam) && kPlot.isVisibleEnemyUnit(this))
+		return false;
+	TeamTypes eRevealedPlotTeam = kPlot.getRevealedTeam(eTeam, false);
+	return (eRevealedPlotTeam == NO_TEAM || !isEnemy(eRevealedPlotTeam));
 }
 
 // advc.162:
@@ -2812,59 +2912,61 @@ bool CvUnit::jumpToNearestValidPlot(/* K-Mod: */ bool bGroup, bool bForceMove)
 	CvCity* pNearestCity = GC.getMap().findCity(getX(), getY(), getOwner());
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = MAX_INT;
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
-		CvPlot& kLoopPlot = GC.getMap().getPlotByIndex(iI);
-		if (kLoopPlot.isValidDomainForLocation(*this) && canMoveInto(kLoopPlot) &&
+		CvPlot& kLoopPlot = GC.getMap().getPlotByIndex(i);
+		if (//kLoopPlot.isValidDomainForLocation(*this)
+			isRevealedValidDomain(kLoopPlot) && // advc
 			canEnterTerritory(kLoopPlot.getTeam(), false, kLoopPlot.area()) &&
+			canMoveInto(kLoopPlot) &&
 			!isEnemy(kLoopPlot))
 		{
 			FAssert(!atPlot(&kLoopPlot));
-			if (getDomainType() != DOMAIN_AIR || kLoopPlot.isFriendlyCity(*this, true))
+			if (!kLoopPlot.isRevealed(getTeam())) // advc.opt: Moved up
+				continue;
+			/*if (getDomainType() == DOMAIN_AIR &&
+				//!kLoopPlot.isFriendlyCity(*this, true))
+				!GET_TEAM(getTeam()).isRevealedAirBase(kLoopPlot))
 			{
-				if (kLoopPlot.isRevealed(getTeam()))
+				continue;
+			}*/ // advc: canMoveInto already checks thats
+			int iValue = (plotDistance(plot(), &kLoopPlot) * 2);
+			// K-Mod, 2/jan/11 - bForceMove functionality
+			if (bForceMove && iValue == 0)
+				continue; // K-Mod end
+			if (pNearestCity != NULL)
+				iValue += ::plotDistance(&kLoopPlot, pNearestCity->plot());
+			// <advc.opt>
+			if(iValue >= iBestValue)
+				continue; // </advc.opt>
+			if (getDomainType() == DOMAIN_SEA && !getPlot().isWater())
+			{
+				if (!kLoopPlot.isWater() || !kLoopPlot.isAdjacentToArea(getArea()))
+					iValue *= 3;
+			}
+			else
+			{
+				if (!kLoopPlot.isArea(getArea()))
 				{
-					int iValue = (::plotDistance(plot(), &kLoopPlot) * 2);
-					// K-Mod, 2/jan/11 - bForceMove functionality
-					if (bForceMove && iValue == 0)
-						continue; // K-Mod end
-
-					if (pNearestCity != NULL)
-						iValue += ::plotDistance(&kLoopPlot, pNearestCity->plot());
-					/*	<advc.opt> Apart from performance, this also
-						makes it easier to test advc.046 through the debugger. */
-					if(iValue >= iBestValue)
-						continue; // </advc.opt>
-					if (getDomainType() == DOMAIN_SEA && !getPlot().isWater())
+					//iValue *= 3;
+					// <advc.046>
+					int iMult = 3;
+					if(kLoopPlot.getArea().getCitiesPerPlayer(getOwner()) <= 0)
 					{
-						if (!kLoopPlot.isWater() || !kLoopPlot.isAdjacentToArea(getArea()))
-							iValue *= 3;
+						iValue += 4;
+						iMult += 1;
+						if(kLoopPlot.getArea().getNumCities() == 0)
+							iValue += 6;
 					}
-					else
-					{
-						if (!kLoopPlot.isArea(getArea()))
-						{
-							//iValue *= 3;
-							// <advc.046>
-							int iMult = 3;
-							if(kLoopPlot.getArea().getCitiesPerPlayer(getOwner()) <= 0)
-							{
-								iValue += 4;
-								iMult += 1;
-								if(kLoopPlot.getArea().getNumCities() == 0)
-									iValue += 6;
-							}
-							iValue *= iMult; // </advc.046>
-						}
-					} // <advc.046> Perhaps not really needed, but can't hurt.
-					if(kLoopPlot.isLake() && !getPlot().isLake())
-						iValue *= 2; // </advc.046>
-					if (iValue < iBestValue)
-					{
-						iBestValue = iValue;
-						pBestPlot = &kLoopPlot;
-					}
+					iValue *= iMult; // </advc.046>
 				}
+			} // <advc.046> Perhaps not really needed, but can't hurt.
+			if(kLoopPlot.isLake() && !getPlot().isLake())
+				iValue *= 2; // </advc.046>
+			if (iValue < iBestValue)
+			{
+				iBestValue = iValue;
+				pBestPlot = &kLoopPlot;
 			}
 		}
 	}
@@ -2988,7 +3090,6 @@ void CvUnit::scrap()
 bool CvUnit::canGift(bool bTestVisible, bool bTestTransport) /* advc: */ const
 {
 	CvPlot const& kPlot = getPlot();
-	CvUnit* pTransport = getTransportUnit();
 	if (!kPlot.isOwned())
 		return false;
 
@@ -3001,19 +3102,21 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport) /* advc: */ const
 	// <advc.034>
 	if(!GET_TEAM(getTeam()).canPeacefullyEnter(kRecipient.getTeam()))
 		return false; // </advc.034>
-
-	if (kPlot.isVisibleEnemyUnit(this))
-		return false;
-
 	if (kPlot.isVisibleEnemyUnit(kRecipient.getID()))
 		return false;
-
-	if (!kPlot.isValidDomainForLocation(*this) && NULL == pTransport)
+	if (kPlot.isVisibleEnemyUnit(this))
 		return false;
-
-	if (bTestTransport)
+	CvUnit const* pTransport = getTransportUnit();
+	if (pTransport == NULL)
 	{
-		if (pTransport && pTransport->getTeam() != kRecipient.getTeam())
+		//if (!kPlot.isValidDomainForLocation(*this))
+		if (!isRevealedValidDomain(kPlot)) // advc
+			return false;
+	}
+	else if (bTestTransport)
+	{
+		//if (pTransport->getTeam() != kRecipient.getTeam())
+		if (!pTransport->isRevealedValidDomain(kPlot)) // advc
 			return false;
 	}
 
@@ -3171,14 +3274,13 @@ bool CvUnit::canLoadOnto(CvUnit const& kUnit, CvPlot const& kPlot,
 	{
 		return false;
 	}
-	if (NO_SPECIALUNIT != getSpecialUnitType())
+	if (getSpecialUnitType() != NO_SPECIALUNIT &&
+		GC.getInfo(getSpecialUnitType()).isCityLoad() &&
+		//!kPlot.isCity(true, getTeam)
+		!GET_TEAM(getTeam()).isRevealedBase(kPlot)) // advc
 	{
-		if (GC.getInfo(getSpecialUnitType()).isCityLoad())
-		{
-			if (!kPlot.isCity(true, getTeam()))
-				return false;
-		}
-	} // <advc.123c>
+		return false;
+	}  // <advc.123c>
 	if(bCheckMoves && getDomainType() != DOMAIN_AIR && movesLeft() <= 0)
 		return false; // </advc.123>
 	return true;
@@ -3208,7 +3310,8 @@ bool CvUnit::shouldLoadOnMove(const CvPlot* pPlot) const
 		}
 		break;
 	case DOMAIN_AIR:
-		if (!pPlot->isFriendlyCity(*this, true))
+		//if (!pPlot->isFriendlyCity(*this, true))
+		if (!GET_TEAM(getTeam()).isRevealedAirBase(*pPlot)) // advc
 			return true;
 		if (m_pUnitInfo->getAirUnitCap() > 0)
 		{
@@ -3273,33 +3376,28 @@ void CvUnit::load()
 
 bool CvUnit::canUnload() const
 {
-	CvPlot& kPlot = *plot();
-
 	if (getTransportUnit() == NULL)
 		return false;
-
-	if (!kPlot.isValidDomainForLocation(*this))
+	//if (!kPlot.isValidDomainForLocation(*this))
+	if (!isRevealedValidDomain(getPlot())) // advc
 		return false;
 
-	if (getDomainType() == DOMAIN_AIR)
+	if (getDomainType() == DOMAIN_AIR /*&&
+		kPlot.isFriendlyCity(*this, true)*/) // advc: Ensured by the check above
 	{
-		if (kPlot.isFriendlyCity(*this, true))
+		int iNumAirUnits = getPlot().countNumAirUnits(getTeam());
+		CvCity* pCity = getPlot().getPlotCity();
+		if (pCity != NULL)
 		{
-			int iNumAirUnits = kPlot.countNumAirUnits(getTeam());
-			CvCity* pCity = kPlot.getPlotCity();
-			if (NULL != pCity)
-			{
-				if (iNumAirUnits >= pCity->getAirUnitCapacity(getTeam()))
-					return false;
-			}
-			else
-			{
-				if (iNumAirUnits >= GC.getDefineINT(CvGlobals::CITY_AIR_UNIT_CAPACITY))
-					return false;
-			}
+			if (iNumAirUnits >= pCity->getAirUnitCapacity(getTeam()))
+				return false;
+		}
+		else
+		{
+			if (iNumAirUnits >= GC.getDefineINT(CvGlobals::CITY_AIR_UNIT_CAPACITY))
+				return false;
 		}
 	}
-
 	return true;
 }
 
@@ -3445,11 +3543,11 @@ bool CvUnit::canHeal(const CvPlot* pPlot) const
 	return true;
 }
 
-// <advc.004l> Assumes that caller ensures canHeal
+// advc.004l: Assumes that caller ensures canHeal
 bool CvUnit::canSentryHeal(CvPlot const* pPlot) const
 {
-	return !(pPlot->isCity(true, getTeam()) && !pPlot->isEnemyCity(*this));
-} // </advc.004l>
+	return !GET_TEAM(getTeam()).isRevealedCityHeal(*pPlot);
+}
 
 
 bool CvUnit::canSentry(const CvPlot* pPlot) const
@@ -3478,9 +3576,10 @@ int CvUnit::healRate(bool bLocation, bool bUnits, CvPlot const* pAt) const
 	int iTotalHeal = 0;
 
 	if (bLocation) // K-Mod
-	{	// advc:
-		bool bFriendly = GET_TEAM(getTeam()).isFriendlyTerritory(kPlot.getTeam());
-		if (kPlot.isCity(true, getTeam()))
+	{
+		bool bFriendly = GET_TEAM(getTeam()).isFriendlyTerritory(kPlot.getTeam()); // advc
+		//if (kPlot.isCity(true, getTeam()))
+		if (GET_TEAM(getTeam()).isCityHeal(kPlot)) // advc
 		{
 			iTotalHeal += //iCITY_HEAL_RATE + // advc.023: Moved
 					(bFriendly ? getExtraFriendlyHeal() : getExtraNeutralHeal());
@@ -3987,7 +4086,8 @@ bool CvUnit::canParadrop(const CvPlot* pPlot) const
 		return false;
 	if (hasMoved())
 		return false;
-	if (!pPlot->isFriendlyCity(*this, true))
+	//if (!pPlot->isFriendlyCity(*this, true))
+	if (!GET_TEAM(getTeam()).isRevealedAirBase(*pPlot)) // advc
 		return false;
 	return true;
 }
@@ -4012,7 +4112,7 @@ bool CvUnit::canParadropAt(const CvPlot* pPlot, int iX, int iY) const
 
 	if (!canCoexistWithEnemyUnit(NO_TEAM))
 	{
-		if (pTargetPlot->isEnemyCity(*this))
+		if (isEnemyCity(*pTargetPlot))
 			return false;
 		if (pTargetPlot->isVisibleEnemyUnit(this))
 			return false;
@@ -4333,7 +4433,6 @@ bool CvUnit::canPillage(CvPlot const& kPlot) const
 {
 	if (!m_pUnitInfo->isPillage())
 		return false;
-
 	if (kPlot.isCity())
 		return false;
 	/*  UNOFFICIAL_PATCH (Bugfix), 06/23/10, Mongoose & jdog5000: START
@@ -4383,7 +4482,7 @@ bool CvUnit::canPillage(CvPlot const& kPlot) const
 		} // </advc.033>
 	}
 
-	if (!kPlot.isValidDomainForAction(*this))
+	if (!isValidDomain(kPlot.isWater()))
 		return false;
 
 	return true;
@@ -4497,7 +4596,7 @@ bool CvUnit::canPlunder(CvPlot const& kPlot, bool bTestVisible) const
 		return false;
 	if (kPlot.isFreshWater())
 		return false;
-	if (!kPlot.isValidDomainForAction(*this))
+	if (!isValidDomain(kPlot.isWater()))
 		return false;
 	// <advc.033>
 	if(!kPlot.isRevealed(getTeam()) ||
@@ -5892,7 +5991,7 @@ bool CvUnit::canBuild(CvPlot const& kPlot, BuildTypes eBuild, bool bTestVisible)
 		return false;
 	if (!GET_PLAYER(getOwner()).canBuild(kPlot, eBuild, false, bTestVisible))
 		return false;
-	if (!kPlot.isValidDomainForAction(*this))
+	if (!isValidDomain(kPlot.isWater()))
 		return false;
 	return true;
 }
@@ -6981,8 +7080,8 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 		iModifier += iExtraModifier;
 		if (pCombatDetails != NULL)
 			pCombatDetails->iFortifyModifier = iExtraModifier;
-
-		if (pPlot->isCity(true, getTeam()))
+		//if (pPlot->isCity(true, getTeam()))
+		if (GET_TEAM(getTeam()).isCityDefense(*pPlot)) // advc
 		{
 			iExtraModifier = cityDefenseModifier();
 			iModifier += iExtraModifier;
@@ -7020,7 +7119,8 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 	if (pAttacker != NULL && pAttackedPlot != NULL)
 	{
 		int iTempModifier = 0;
-		if (pAttackedPlot->isCity(true, getTeam()))
+		//if (pAttackedPlot->isCity(true, getTeam()))
+		if (GET_TEAM(getTeam()).isCityDefense(*pAttackedPlot)) // advc
 		{
 			iExtraModifier = -pAttacker->cityAttackModifier();
 			iTempModifier += iExtraModifier;
@@ -7268,7 +7368,6 @@ bool CvUnit::canAttack(const CvUnit& kDefender) const
 	/*  Can't attack defenseless units that are stacked
 		with a defender whose damage limit is reached. */
 	if (combatLimit() < 100 && (!kDefender.canFight() ||
-		// (Call CvPlot::isValidDomainForAction instead?)
 		(kDefender.getDomainType() != DOMAIN_LAND && getDomainType() == DOMAIN_LAND)) &&
 		/*  Won't handle invisible defenders correctly
 			(there are none currently that can defend) */
@@ -7290,7 +7389,7 @@ bool CvUnit::canDefend(const CvPlot* pPlot) const
 	if(pPlot == NULL)
 		pPlot = plot();
 
-	if (!pPlot->isValidDomainForAction(*this))
+	if (!isValidDomain(pPlot->isWater()))
 	{
 		if (!GC.getDefineBOOL(CvGlobals::LAND_UNITS_CAN_ATTACK_WATER_CITIES))
 			return false;
@@ -7573,11 +7672,15 @@ bool CvUnit::canAirDefend(CvPlot const* pPlot) const
 		return false;
 
 	if (getDomainType() != DOMAIN_AIR)
-	{	//if (!pPlot->isValidDomainForLocation(*this))
-		/*  UNOFFICIAL_PATCH, Bugfix, 10/30/09, Mongoose & jdog5000
+	{
+		//if (!pPlot->isValidDomainForLocation(*this) ||
+		if (!isRevealedValidDomain(*pPlot) || // advc
+			/*  UNOFFICIAL_PATCH, Bugfix, 10/30/09, Mongoose & jdog5000
 			Land units which are cargo cannot intercept (from Mongoose SDK) */
-		if (!pPlot->isValidDomainForLocation(*this) || isCargo())
+			isCargo())
+		{
 			return false;
+		}
 	}
 
 	return true;
@@ -9526,7 +9629,7 @@ PlayerTypes CvUnit::getVisualOwner(TeamTypes eForTeam) const
 					hostile, then the nationality is obvious. (A teammate could
 					be the owner, but that wouldn't make a big difference.) */
 				//GET_TEAM(r).getNumMembers() > 1 ||
-				(!getPlot().isCity(true, getTeam()) &&
+				(!GET_TEAM(eForTeam).isRevealedBase(getPlot()) &&
 				getPlot().plotCheck(PUF_isPlayer, r, eForTeam) == NULL)) // </advc.061>
 			{
 				return BARBARIAN_PLAYER;
@@ -10322,7 +10425,7 @@ bool CvUnit::canAdvance(const CvPlot* pPlot, int iThreshold) const
 
 	if (isNoCityCapture())
 	{
-		if (pPlot->isEnemyCity(*this))
+		if (isEnemyCity(*pPlot))
 			return false;
 	}
 
@@ -10428,7 +10531,8 @@ void CvUnit::flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength,
 	int iAttackerFirepower, int iDefenderOdds, int iDefenderDamage,
 	CvUnit const* pSkipUnit)
 {
-	if (pPlot->isCity(true, pSkipUnit->getTeam()))
+	//if (pPlot->isCity(true, pSkipUnit->getTeam()))
+	if (GET_TEAM(pSkipUnit->getTeam()).isCityDefense(*pPlot)) // advc
 		return;
 
 	CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode();
@@ -11010,8 +11114,8 @@ int CvUnit::computeWaveSize(bool bRangedRound, int iAttackerMax, int iDefenderMa
 bool CvUnit::isTargetOf(const CvUnit& attacker) const
 {
 	CvUnitInfo const& attackerInfo = attacker.getUnitInfo();
-
-	if (!getPlot().isCity(true, getTeam()))
+	//if (!getPlot().isCity(true, getTeam()))
+	if (!GET_TEAM(getTeam()).isCityDefense(getPlot())) // advc
 	{
 		if (getUnitClassType() != NO_UNITCLASS &&
 			attackerInfo.getTargetUnitClass(getUnitClassType()))
@@ -11285,8 +11389,12 @@ bool CvUnit::isAlwaysHostile(CvPlot const& kPlot) const
 	if (!m_pUnitInfo->isAlwaysHostile())
 		return false;
 	// advc (note): This prevents always-hostile units from attacking into friendly cities
-	if (/*pPlot != NULL &&*/ kPlot.isCity(true, getTeam())) // advc.opt
+	if (//pPlot != NULL && // advc.opt
+		//kPlot.isCity(true, getTeam())
+		GET_TEAM(getTeam()).isBase(kPlot)) // advc
+	{
 		return false;
+	}
 	return true;
 }
 

@@ -26963,31 +26963,28 @@ int CvPlayerAI::AI_getPlotAirbaseValue(CvPlot const& kPlot) const // advc: param
 	for (SquareIter it(kPlot, 4, false); it.hasNext(); ++it)
 	{
 		CvPlot const& p = *it;
+		// advc: Was isCity(true) in the if branch, isCity(false) in the else branch.
+		if (!GET_TEAM(getTeam()).isRevealedAirBase(p))
+			continue;
 		if (p.getTeam() == getTeam())
 		{
-			if (p.isCity(true))
+			int iDist = it.currPlotDist();
+			if (iDist == 1)
+				return 0;
+			if (iDist < iMinFriendlyCityDistance)
 			{
-				int iDist = it.currPlotDist();
-				if (iDist == 1)
-					return 0;
-				if (iDist < iMinFriendlyCityDistance)
-				{
-					iMinFriendlyCityDistance = iDist;
-					//pMinFriendlyCityPlot = &p;
-				}
+				iMinFriendlyCityDistance = iDist;
+				//pMinFriendlyCityPlot = &p;
 			}
 		}
 		else
 		{
-			if (p.isOwned() && p.isCity(false))
+			int iDist = it.currPlotDist();
+			if (iDist < iMinOtherCityDistance)
 			{
-				int iDist = it.currPlotDist();
-				if (iDist < iMinOtherCityDistance)
-				{
-					iMinOtherCityDistance = iDist;
-					//pMinOtherCityPlot = &p;
-					iOtherCityCount++;
-				}
+				iMinOtherCityDistance = iDist;
+				//pMinOtherCityPlot = &p;
+				iOtherCityCount++;
 			}
 		}
 	}
@@ -27048,8 +27045,7 @@ int CvPlayerAI::AI_getPlotCanalValue(CvPlot const& kPlot) const // advc: param w
 				}
 				if (eBestImprovement != NO_IMPROVEMENT)
 				{
-					CvImprovementInfo &kImprovementInfo = GC.getInfo(eBestImprovement);
-					if (!kImprovementInfo.isActsAsCity())
+					if (!GC.getInfo(eBestImprovement).isActsAsCity())
 						return 0;
 				}
 				// K-Mod end
@@ -27060,8 +27056,11 @@ int CvPlayerAI::AI_getPlotCanalValue(CvPlot const& kPlot) const // advc: param w
 	FOR_EACH_ENUM(Direction)
 	{
 		CvPlot* pAdj = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
-		if (pAdj != NULL && pAdj->isCity(true))
+		if (pAdj != NULL &&
+			GET_TEAM(getTeam()).isRevealedBase(*pAdj)) // advc: was isCity(true,getTeam())
+		{
 			return 0;
+		}
 	}
 
 	CvArea* pSecondWaterArea = kPlot.secondWaterArea();

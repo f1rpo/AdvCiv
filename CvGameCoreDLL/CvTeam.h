@@ -430,7 +430,17 @@ public:
 				// (The above checks too much stuff that we don't need)
 				getID() == eTerritoryOwner || getTeam(eTerritoryOwner).isVassal(getID()));
 	}
-	bool isFriendlyTerritory(TeamTypes eTerritoryOwner) const; // advc: param renamed
+	bool isFriendlyTerritory(TeamTypes eTerritoryOwner) const;
+	// <advc> Same as isRevealedBase (but doesn't have to be)
+	inline bool isRevealedAirBase(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
+	inline bool isRevealedCityHeal(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
+	inline bool isRevealedCityTrade(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
+	bool isRevealedBase(CvPlot const& kPlot) const; 
+	// Same as isBase (but doesn't have to be)
+	inline bool isAirBase(CvPlot const& kPlot) const { return isBase(kPlot); }
+	inline bool isCityHeal(CvPlot const& kPlot) const { return isBase(kPlot); }
+	bool isBase(CvPlot const& kPlot) const;
+	bool isCityDefense(CvPlot const& kPlot) const; // </advc>
 	bool canAccessHappyHealth(CvPlot const& kPlot, int iHealthOrHappy) const; // advc.901
 
 	int getEspionageModifier(TeamTypes eTarget) const;								// Exposed to Python (though CyGameCoreUtils)

@@ -96,7 +96,8 @@ public:
 	bool isRevealedGoody(int /*TeamTypes*/ eTeam);
 
 	bool isCity();
-	bool isFriendlyCity(CyUnit* pUnit, bool bCheckImprovement);
+	// advc: CvPlot no longer has such a function
+	//bool isFriendlyCity(CyUnit* pUnit, bool bCheckImprovement);
 	bool isEnemyCity(CyUnit* pUnit);
 	bool isOccupation();
 	bool isBeingWorked();

@@ -602,7 +602,8 @@ void CvPlot::verifyUnitValidPlot()
 		if (kLoopUnit.atPlot(this) && !kLoopUnit.isCargo() &&
 			!kLoopUnit.isInCombat())
 		{
-			if (!isValidDomainForLocation(kLoopUnit) ||
+			//if (!isValidDomainForLocation(*pLoopUnit) ||
+			if (!kLoopUnit.isValidDomain(*this) || // advc
 				!kLoopUnit.canEnterTerritory(getTeam(), false, area()))
 			{
 				if (!kLoopUnit.jumpToNearestValidPlot(true))
@@ -2245,7 +2246,9 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 	if (eImprovement != NO_IMPROVEMENT)
 	{
 		if (eDefender != NO_TEAM &&
-			(!isOwned() || GET_TEAM(eDefender).isFriendlyTerritory(getTeam())))
+			// advc.183: OutsideBorders check added
+			((!isOwned() && GC.getInfo(eImprovement).isOutsideBorders()) ||
+			GET_TEAM(eDefender).isFriendlyTerritory(getTeam())))
 		{
 			iModifier += GC.getInfo(eImprovement).getDefenseModifier();
 		}
@@ -2295,9 +2298,11 @@ int CvPlot::movementCost(CvUnit const& kUnit, CvPlot const& kFrom,
 		return GC.getMOVE_DENOMINATOR();
 	} // K-Mod end
 
-	if (!kFromPlot.isValidDomainForLocation(kUnit))
+	//if (!kFromPlot.isValidDomainForLocation(kUnit))
+	if (!kUnit.isValidDomain(kFrom)) // advc
 		return kUnit.maxMoves();
-	if (!isValidDomainForAction(kUnit))
+	//if (!isValidDomainForAction(kUnit))
+	if (!kUnit.isValidDomain(isWater())) // advc
 		return GC.getMOVE_DENOMINATOR();
 
 	FAssert(kUnit.getDomainType() != DOMAIN_IMMOBILE);
@@ -2833,68 +2838,17 @@ void CvPlot::removeGoody()
 	// </advc.004z>
 }
 
-
-bool CvPlot::isCity(bool bCheckImprovement, TeamTypes eForTeam) const
+// advc: Deprecated; see comment in header.
+bool CvPlot::isCityExternal(bool bCheckImprovement, TeamTypes eForTeam) const
 {
-	//PROFILE_FUNC();
-	/*	advc.003o: Called from path finding code, CvPlot::isTradeNetworkConnected,
-		CvUnit::isAlwaysHostile and many UnitAI routines. */
-	if(bCheckImprovement && isImproved() &&
-		GC.getInfo(getImprovementType()).isActsAsCity())
-	{
-		if(eForTeam == NO_TEAM || (getTeam() == NO_TEAM &&
-			GC.getInfo(getImprovementType()).isOutsideBorders()))
-		{
-			return true;
-		}
-		if (GET_TEAM(eForTeam).isFriendlyTerritory(getTeam()))
-		{
-			// <advc.124>
-			ImprovementTypes const eRevealedImprov = getRevealedImprovementType(eForTeam);
-			if (eRevealedImprov != NO_IMPROVEMENT && GC.getInfo(eRevealedImprov).isActsAsCity())
-				return true; // </advc.124>
-		}
-	}
-	CvCity const* const pPlotCity = getPlotCity();
-	return (pPlotCity != NULL &&
-			(eForTeam == NO_TEAM || pPlotCity->isRevealed(eForTeam))); // advc.124
-}
-
-
-bool CvPlot::isFriendlyCity(const CvUnit& kUnit, bool bCheckImprovement) const
-{
-	if (!isCity(bCheckImprovement, kUnit.getTeam()))
+	FAssertMsg(!bCheckImprovement && eForTeam == NO_TEAM, "Does the EXE ever use those params?");
+	if (!bCheckImprovement)
+		return isCity();
+	if (!isImproved() || !GC.getInfo(getImprovementType()).isActsAsCity())
 		return false;
-
-	if (isVisibleEnemyUnit(&kUnit))
-		return false;
-
-	TeamTypes ePlotTeam = getTeam();
-	if (ePlotTeam == NO_TEAM)
-		return false; // advc
-
-	if (kUnit.isEnemy(ePlotTeam))
-		return false;
-	TeamTypes eTeam = TEAMID(kUnit.getCombatOwner(ePlotTeam, *this));
-	if (eTeam == ePlotTeam)
+	if (eForTeam == NULL)
 		return true;
-
-	if (GET_TEAM(eTeam).isOpenBorders(ePlotTeam))
-		return true;
-
-	if (GET_TEAM(ePlotTeam).isVassal(eTeam))
-		return true;
-
-	return false;
-}
-
-
-bool CvPlot::isEnemyCity(const CvUnit& kUnit) const
-{
-	CvCity* pCity = getPlotCity();
-	if (pCity != NULL)
-		return kUnit.isEnemy(pCity->getTeam(), *this);
-	return false;
+	return GET_TEAM(eForTeam).isBase(*this);
 }
 
 
@@ -3136,13 +3090,13 @@ bool CvPlot::isTradeNetwork(TeamTypes eTeam) const
 
 	if (isTradeNetworkImpassable(eTeam))
 		return false;
-
+	//return isBonusNetwork(eTeam);
+	/*	<advc.124> (bugfix?): A friendly Fort shouldn't require a route to connect with
+		water tiles. (To connect a resource on the Fort tile, a route is still needed.) */
 	if (isBonusNetwork(eTeam))
 		return true;
-	/*	advc.124 (bugfix?): A friendly Fort shouldn't require a route to connect with
-		water tiles. (To connect a resource on the Fort tile, a route is still needed.)
-		isImproved check (inlined) only to avoid isCity call overhead. */
-	return (isImproved() && isCity(true, eTeam));
+	// The first check (inlined) is only done to save time
+	return (isImproved() && GET_TEAM(eTeam).isRevealedCityTrade(*this)); // </advc.124>
 }
 
 
@@ -3181,12 +3135,15 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 		}
 	}
 
-	if (bOtherNetwork && isCity(true, eTeam))
+	if (bOtherNetwork && //isCity(true, eTeam)
+		GET_TEAM(eTeam).isRevealedCityTrade(*this)) // advc.124
+	{
 		return true;
-
+	}
 	if (bNetworkTerrain)
 	{
-		if (kOther.isCity(true, eTeam))
+		//if (kOther.isCity(true, eTeam))
+		if (GET_TEAM(eTeam).isRevealedCityTrade(kOther)) // advc.124
 			return true;
 
 		if (kOther.isRiverNetwork(eTeam))
@@ -3241,32 +3198,6 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 	} // </advc.124>
 
 	return false;
-}
-
-
-bool CvPlot::isValidDomainForLocation(CvUnit const& kUnit) const
-{
-	if (isValidDomainForAction(kUnit))
-		return true;
-	return isCity(true, kUnit.getTeam());
-}
-
-
-bool CvPlot::isValidDomainForAction(CvUnit const& kUnit) const
-{
-	switch (kUnit.getDomainType())
-	{
-	case DOMAIN_SEA:
-		return (isWater() || kUnit.canMoveAllTerrain());
-	case DOMAIN_AIR:
-		return false;
-	case DOMAIN_LAND:
-	case DOMAIN_IMMOBILE:
-		return (!isWater() || kUnit.canMoveAllTerrain());
-	default:
-		FAssert(false);
-		return false;
-	}
 }
 
 // advc.opt:
@@ -4538,16 +4469,18 @@ void CvPlot::setBonusType(BonusTypes eNewValue)
 
 void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 {
-	ImprovementTypes eOldImprovement = getImprovementType();
+	ImprovementTypes const eOldImprovement = getImprovementType();
 	if(getImprovementType() == eNewValue)
-		return; // advc
+		return;
+	bool const bActedAsCity = (eOldImprovement != NO_IMPROVEMENT &&
+			GC.getInfo(eOldImprovement).isActsAsCity()); 
 
-	if (isImproved())
+	if (eOldImprovement != NO_IMPROVEMENT)
 	{	// advc.opt:
 		/*if (area())
-			getArea().changeNumImprovements(getImprovementType(), -1);*/
+			getArea().changeNumImprovements(eOldImprovement, -1);*/
 		if (isOwned())
-			GET_PLAYER(getOwner()).changeImprovementCount(getImprovementType(), -1);
+			GET_PLAYER(getOwner()).changeImprovementCount(eOldImprovement, -1);
 	}
 
 	updatePlotGroupBonus(false, /* advc.064d: */ false);
@@ -4559,13 +4492,15 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 
 	setUpgradeProgress(0);
 
-	for (int iI = 0; iI < MAX_TEAMS; ++iI)
+	for (TeamIter<ALIVE> it; it.hasNext(); ++it)
 	{
-		if (GET_TEAM((TeamTypes)iI).isAlive())
-		{
-			if (isVisible((TeamTypes)iI))
-				setRevealedImprovementType((TeamTypes)iI, getImprovementType());
-		}
+		TeamTypes const eTeam = it->getID();
+		if (isVisible(eTeam))
+			setRevealedImprovementType(eTeam, getImprovementType());
+		/*	<advc.183> Can't keep destroyed forts secret now that air movement is
+			based on the revealed improvement type (cf. CvUnit::canMoveInto). */
+		else if (bActedAsCity)
+			setRevealedImprovementType(eTeam, NO_IMPROVEMENT); // </advc.183>
 	}
 
 	if (isImproved())
@@ -4586,30 +4521,38 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 			pLoopCity->updateSurroundingHealthHappiness();
 	}
 
-	// Building or removing a fort will now force a plotgroup update to verify resource connections.
-	if ((NO_IMPROVEMENT != getImprovementType() && GC.getInfo(getImprovementType()).isActsAsCity()) !=
-		(NO_IMPROVEMENT != eOldImprovement && GC.getInfo(eOldImprovement).isActsAsCity()))
+	/*	Building or removing a fort will now force a plotgroup update to
+		verify resource connections. */
+	if ((getImprovementType() != NO_IMPROVEMENT &&
+		GC.getInfo(getImprovementType()).isActsAsCity()) !=
+		bActedAsCity)
 	{
 		updatePlotGroup(/* advc.064d: */ true);
 	}
 
-	if (eOldImprovement != NO_IMPROVEMENT && GC.getInfo(eOldImprovement).isActsAsCity())
+	if (bActedAsCity)
 		verifyUnitValidPlot();
 
 	if (GC.getGame().isDebugMode())
 		setLayoutDirty(true);
 
 	if (getImprovementType() != NO_IMPROVEMENT)
-		CvEventReporter::getInstance().improvementBuilt(getImprovementType(), getX(), getY());
-
-	if (getImprovementType() == NO_IMPROVEMENT)
-		CvEventReporter::getInstance().improvementDestroyed(eOldImprovement, getOwner(), getX(), getY());
-
-	CvCity* pWorkingCity = getWorkingCity();
-	if (NULL != pWorkingCity)
 	{
-		if ((NO_IMPROVEMENT != eNewValue && pWorkingCity->getImprovementFreeSpecialists(eNewValue) > 0)	||
-			(NO_IMPROVEMENT != eOldImprovement && pWorkingCity->getImprovementFreeSpecialists(eOldImprovement) > 0))
+		CvEventReporter::getInstance().improvementBuilt(
+				getImprovementType(), getX(), getY());
+	}
+	if (getImprovementType() == NO_IMPROVEMENT)
+	{
+		CvEventReporter::getInstance().improvementDestroyed(
+				eOldImprovement, getOwner(), getX(), getY());
+	}
+	CvCity* pWorkingCity = getWorkingCity();
+	if (pWorkingCity != NULL)
+	{
+		if ((eNewValue != NO_IMPROVEMENT&&
+			pWorkingCity->getImprovementFreeSpecialists(eNewValue) > 0)	||
+			(eOldImprovement != NO_IMPROVEMENT&&
+			pWorkingCity->getImprovementFreeSpecialists(eOldImprovement) > 0))
 		{
 			pWorkingCity->AI_setAssignWorkDirty(true);
 		}

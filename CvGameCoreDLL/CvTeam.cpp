@@ -4724,6 +4724,58 @@ bool CvTeam::isFriendlyTerritory(TeamTypes eTerritoryOwner) const
 	return false;
 }
 
+/*	advc: Says whether kPlot is a land plot that sea units of this team can enter
+	-- or could enter if kPlot were adjacent to water (not checked).
+	Was previously handled by CvPlot::isCity(bool,TeamTypes). */
+bool CvTeam::isBase(CvPlot const& kPlot) const
+{
+	//if (!isFriendlyTerritory(kPlot.getTeam())
+	// advc.183: Lower the requirements for using foreign ports
+	if (!kPlot.isOwned() || !canPeacefullyEnter(kPlot.getTeam()))
+		return false;
+	ImprovementTypes eImprov = kPlot.getImprovementType();
+	if (eImprov != NO_IMPROVEMENT)
+		return GC.getInfo(eImprov).isActsAsCity();
+	return kPlot.isCity();
+}
+
+/*	advc: Like isBase, but checks the map knowledge of this team.
+	advc.pf (note): TeamPathFinder doesn't call this function (too slow);
+	may have to be adjusted if isRevealedBase is modified further. */
+bool CvTeam::isRevealedBase(CvPlot const& kPlot) const
+{
+	TeamTypes const eRevealedTeam = kPlot.getRevealedTeam(getID(), false);
+	if (eRevealedTeam == NO_TEAM || !canPeacefullyEnter(eRevealedTeam))
+		return false;
+	ImprovementTypes eRevealedImprov = kPlot.getRevealedImprovementType(getID());
+	if (eRevealedImprov != NO_IMPROVEMENT)
+		return GC.getInfo(eRevealedImprov).isActsAsCity();
+	return (kPlot.isCity() && kPlot.getPlotCity()->isRevealed(getID()));
+}
+
+/*	advc.183: Says whether kPlot is a city friendly to this team or providing
+	city-like defensive advantages to this team. No fog-of-war checks.
+	Was previously handled by CvPlot::isCity(bool,TeamTypes).
+	Needs to be consistent with CvPlot::defenseModifier. */
+bool CvTeam::isCityDefense(CvPlot const& kPlot) const
+{
+	/*	I'm assuming that calls happen in the context of imminent combat, and
+		then the units wouldn't be visible if the plot weren't visible as well.
+		This assertion fails, however, when center units are updated while
+		updating sight (in CvPlot). */
+	//FAssert(kPlot.isVisible(getID()));
+	if (kPlot.isOwned())
+	{
+		if (!isFriendlyTerritory(kPlot.getTeam()))
+			return false;
+		if (kPlot.isCity())
+			return true;
+	}
+	ImprovementTypes eImprov = kPlot.getImprovementType();
+	return (eImprov != NO_IMPROVEMENT && GC.getInfo(eImprov).isActsAsCity() &&
+			GC.getInfo(eImprov).getDefenseModifier() > 0); // idea by Erik
+}
+
 // advc.901:
 bool CvTeam::canAccessHappyHealth(CvPlot const& kPlot, int iHealthOrHappy) const
 {
@@ -5681,6 +5733,23 @@ void CvTeam::read(FDataStreamBase* pStream)
 		pStream->Read((int*)&eBonus);
 		m_aeRevealedBonuses.push_back(eBonus);
 	}
+	// <advc.183> Reveal any destroyed forts (so that aircraft can't rebase to them)
+	if (uiFlag < 13 && isAlive())
+	{
+		FOR_EACH_ENUM(PlotNum)
+		{
+			CvPlot& kPlot = GC.getMap().getPlotByIndex(eLoopPlotNum);
+			if (kPlot.isWater()) // to save time
+				continue;
+			ImprovementTypes eRevealedImprov = kPlot.getRevealedImprovementType(getID());
+			if (eRevealedImprov != NO_IMPROVEMENT &&
+				kPlot.getImprovementType() != eRevealedImprov &&
+				GC.getInfo(eRevealedImprov).isActsAsCity())
+			{
+				kPlot.setRevealedImprovementType(getID(), NO_IMPROVEMENT);
+			}
+		}
+	} // </advc.183>
 }
 
 // <advc.003m>  (for legacy savegames)
@@ -5710,7 +5779,8 @@ void CvTeam::write(FDataStreamBase* pStream)
 	//uiFlag = 9; // advc.opt: remove m_abVassal; advc.enum/ advc.034: write m_abDisengage[BARBARIAN_TEAM]
 	//uiFlag = 10; // advc.101: m_iTechCount
 	//uiFlag = 11; // advc.opt: fix m_aiVictoryCountdown bug
-	uiFlag = 12; // advc.091
+	//uiFlag = 12; // advc.091
+	uiFlag = 13; // advc.183
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iNumMembers);
