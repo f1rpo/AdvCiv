@@ -139,12 +139,13 @@ public:
 private:
 	// beforeUpdated: Only clear data that is recomputed in 'update'
 	void clear(bool beforeUpdate = false);
-	void updateCities(TeamTypes teamId);
+	void updateCities(TeamTypes teamId, TeamPathFinders* pf);
 	void add(CvCity& c);
 	void add(City& c);
 	void remove(CvCity const& c);
-	TeamPathFinders* createTeamPathFinders(TeamTypes warTarget) const;
+	TeamPathFinders* createTeamPathFinders() const;
 	static void deleteTeamPathFinders(TeamPathFinders& pf);
+	void resetTeamPathFinders(TeamPathFinders& pf, TeamTypes warTarget) const;
 	void updateTraits();
 	void updateTargetMissionCounts();
 	void updateThreatRatings();

@@ -233,8 +233,15 @@ void UWAICache::update() {
 	focusOnPeacefulVictory = calculateFocusOnPeacefulVictory();
 	// Needs to be done before updating cities
 	updateTrainCargo();
+	TeamPathFinders* pf = NULL;
+	if (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO>::count(TEAMID(ownerId)) > 0) {
+		// Will have to reset these after each team; but allocate memory only once.
+		pf = createTeamPathFinders();
+	}
 	for(TeamIter<MAJOR_CIV,KNOWN_TO> it(TEAMID(ownerId)); it.hasNext(); ++it)
-		updateCities(it->getID());
+		updateCities(it->getID(), pf);
+	if(pf != NULL)
+		deleteTeamPathFinders(*pf);
 	sortCitiesByAttackPriority();
 	updateTotalAssetScore();
 	updateTargetMissionCounts();
@@ -256,19 +263,17 @@ void UWAICache::update() {
 	}
 }
 
-TeamPathFinders* UWAICache::createTeamPathFinders(TeamTypes warTarget) const
+TeamPathFinders* UWAICache::createTeamPathFinders() const
 {
 	/*	Would be nice to make one instance of each TeamPathFinder class a member of
 		CvTeam rather than creating temporary instances. However - see the comment in
 		KmodPathFinder::resetNodes. */
 	CvTeam const& cacheTeam = GET_TEAM(ownerId);
-	int seaLimit = getUWAI.maxSeaDist() * GET_PLAYER(ownerId).uwai().shipSpeed();
-	int landLimit = getUWAI.maxLandDist();
 	using namespace TeamPath;
 	return new TeamPathFinders(
-			*new TeamPathFinder<LAND>(cacheTeam, &GET_TEAM(warTarget), landLimit),
-			*new TeamPathFinder<ANY_WATER>(cacheTeam, &GET_TEAM(warTarget), seaLimit),
-			*new TeamPathFinder<SHALLOW_WATER>(cacheTeam, &GET_TEAM(warTarget), seaLimit));
+			*new TeamPathFinder<LAND>(cacheTeam),
+			*new TeamPathFinder<ANY_WATER>(cacheTeam),
+			*new TeamPathFinder<SHALLOW_WATER>(cacheTeam));
 }
 
 void UWAICache::deleteTeamPathFinders(TeamPathFinders& pf) {
@@ -279,14 +284,24 @@ void UWAICache::deleteTeamPathFinders(TeamPathFinders& pf) {
 	delete &pf;
 }
 
-void UWAICache::updateCities(TeamTypes teamId) {
+void UWAICache::resetTeamPathFinders(TeamPathFinders& pf, TeamTypes warTargetId) const {
+
+	int seaLimit = getUWAI.maxSeaDist() * GET_PLAYER(ownerId).uwai().shipSpeed();
+	int landLimit = getUWAI.maxLandDist();
+	CvTeam const* warTarget = &GET_TEAM(warTargetId);
+	pf.landFinder().reset(warTarget, landLimit);
+	pf.anyWaterFinder().reset(warTarget, seaLimit);
+	pf.shallowWaterFinder().reset(warTarget, seaLimit);
+}
+
+void UWAICache::updateCities(TeamTypes teamId, TeamPathFinders* pf) {
 
 	PROFILE_FUNC();
 	CvTeamAI const& cacheTeam = GET_TEAM(ownerId);
 	bool const isHuman = cacheTeam.isHuman();
-	TeamPathFinders* pf = NULL;
-	if(teamId != cacheTeam.getID())
-		pf = createTeamPathFinders(teamId);
+	if(teamId == cacheTeam.getID())
+		pf = NULL;
+	else resetTeamPathFinders(*pf, teamId);
 	for (MemberIter it(teamId); it.hasNext(); ++it)
 	{
 		CvPlayerAI& civ = *it;
@@ -298,8 +313,6 @@ void UWAICache::updateCities(TeamTypes teamId) {
 				add(*new City(ownerId, *c, pf));
 		}
 	}
-	if(pf != NULL)
-		deleteTeamPathFinders(*pf);
 }
 
 void UWAICache::add(City& c)
@@ -317,8 +330,10 @@ void UWAICache::add(City& c)
 void UWAICache::add(CvCity& c) {
 
 	TeamPathFinders* pf = NULL;
-	if(c.getTeam() != TEAMID(ownerId))
-		pf = createTeamPathFinders(c.getTeam());
+	if(c.getTeam() != TEAMID(ownerId)) {
+		pf = createTeamPathFinders();
+		resetTeamPathFinders(*pf, c.getTeam());
+	}
 	add(*new City(ownerId, c, pf));
 	if(pf != NULL)
 		deleteTeamPathFinders(*pf);
