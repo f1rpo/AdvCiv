@@ -1818,7 +1818,7 @@ void CvCityAI::AI_chooseProduction()
 							/*	BBAI TODO: faster to switch to checking path for some selection group?
 								^advc: That's a can of worms, and unnecessary.
 								See comment in  AI_isHasPathToEnemyCity. */
-							GET_TEAM(getTeam()).AI_isHasPathToEnemyCity(getPlot()))
+					!GET_TEAM(getTeam()).AI_isHasPathToEnemyCity(getPlot()))
 						{
 							bBuildAssault = true;
 						}
