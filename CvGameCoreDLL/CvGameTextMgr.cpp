@@ -5725,10 +5725,10 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 			szTempBuffer.Format(L"\nAreaScore: %d", total); szString.append(szTempBuffer);
 		}
 	} // </advc.027>
-	// advc.007: BBAI showed this regardless of pressed buttons
 	if(bShift && !bAlt)
 	{
 		// BETTER_BTS_AI_MOD, DEBUG, 07/11/08, jdog5000
+		// advc.007: BBAI showed this regardless of pressed buttons
 		bool bFirst = true;
 		for (int iK = 0; iK < MAX_TEAMS; ++iK)
 		{
@@ -5749,8 +5749,118 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 				}
 				szString.append(CvWString::format(L" %s,", GET_TEAM(eTeam).getName().c_str()));
 			}
-		}
-		// BETTER_BTS_AI_MOD: END
+		} // BETTER_BTS_AI_MOD: END
+		// <advc.test>, advc.104b
+		{
+			static CvPlot const* pOldPlot = NULL;
+			static CvUnit const* pOldUnit = NULL;
+			static int iCost = MAX_INT;
+			static int iLength = MAX_INT;
+			CvUnit const* pUnit = gDLL->UI().getHeadSelectedUnit();
+			CvPlot const* pPlot = gDLL->UI().getMouseOverPlot();
+			if (pUnit != NULL && pPlot != NULL)
+			{	// Avoid lag from computing the same path over and over
+				if (pPlot != pOldPlot || pUnit != pOldUnit)
+				{
+					pOldPlot = pPlot;
+					pOldUnit = pUnit;
+					CvTeam const& kTeam = GET_TEAM(pUnit->getTeam());
+					CvTeam const* pWarTeam = NULL;
+					{
+						TeamTypes ePlotTeam = pPlot->getTeam();
+						if (ePlotTeam != NO_TEAM && ePlotTeam != pUnit->getTeam())
+							pWarTeam = &GET_TEAM(ePlotTeam);
+					}
+					int const iMaxPath = 15 * pUnit->baseMoves();
+					CvPlot const& kStart = pUnit->getPlot();
+					CvPlot const& kDest = *pPlot;
+					using namespace TeamPath;
+					Mode eMode = LAND;
+					if (pUnit->getDomainType() != DOMAIN_LAND)
+					{
+						TechTypes const eTech = pUnit->getUnitInfo().getPrereqAndTech();
+						if (eTech != NO_TECH && GC.getInfo(eTech).getEra() >= 2)
+							eMode = ANY_WATER;
+						else eMode = SHALLOW_WATER;
+					}
+					// TeamPathFinder isn't intended for dynamic dispatch, so this is awkward.
+					switch(eMode)
+					{
+					case LAND:
+					{
+						TeamPathFinder<LAND> pf(kTeam, pWarTeam, iMaxPath);
+						if (pf.generatePath(kStart, kDest))
+						{
+							iCost = pf.getPathCost();
+							iLength = pf.getPathLength();
+							#ifdef FASSERT_ENABLE // symmetry test (UWAICache relies on that)
+							bool bSuccess = pf.generatePath(kDest, kStart);
+							FAssert(bSuccess);
+							if (bSuccess)
+							{
+								FAssert(pf.getPathCost() == iCost);
+								FAssert(pf.getPathLength() == iLength);
+							}
+							#endif
+						}
+						else iCost = iLength = MAX_INT;
+						break;
+					}
+					case ANY_WATER:
+					{
+						TeamPathFinder<ANY_WATER> pf(kTeam, pWarTeam, iMaxPath);
+						if (pf.generatePath(kStart, kDest))
+						{
+							iCost = pf.getPathCost();
+							iLength = pf.getPathLength();
+							#ifdef FASSERT_ENABLE
+							bool bSuccess = pf.generatePath(kDest, kStart);
+							FAssert(bSuccess);
+							if (bSuccess)
+							{
+								FAssert(pf.getPathCost() == iCost);
+								FAssert(pf.getPathLength() == iLength);
+							}
+							#endif
+						}
+						else iCost = iLength = MAX_INT;
+						break;
+					}
+					case SHALLOW_WATER:
+					{
+						TeamPathFinder<SHALLOW_WATER> pf(kTeam, pWarTeam, iMaxPath);
+						if (pf.generatePath(kStart, kDest))
+						{
+							iCost = pf.getPathCost();
+							iLength = pf.getPathLength();
+							#ifdef FASSERT_ENABLE
+							bool bSuccess = pf.generatePath(kDest, kStart);
+							FAssert(bSuccess);
+							if (bSuccess)
+							{
+								FAssert(pf.getPathCost() == iCost);
+								FAssert(pf.getPathLength() == iLength);
+							}
+							#endif
+						}
+						else iCost = iLength = MAX_INT;
+						break;
+					}
+					}
+				}
+				szString.append(NEWLINE);
+				if (iCost == MAX_INT)
+				{
+					FAssert(iLength == MAX_INT);
+					szString.append(L"No team path");
+				}
+				else
+				{
+					szString.append(CvWString::format(
+							L"Team path cost: %d, length: %d", iCost, iLength));
+				}
+			}
+		} // </advc.test>
 	}
 	// <advc.017b> Sea explorers
 	if(!bShift && !bAlt && kPlot.isWater() && kPlot.isOwned())
@@ -5943,119 +6053,6 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 		szString.append(NEWLINE);
 		// BETTER_BTS_AI_MOD: END
 	}
-
-	// <advc.test>, advc.104b
-	{
-		static CvPlot const* pOldPlot = NULL;
-		static CvUnit const* pOldUnit = NULL;
-		static int iCost = MAX_INT;
-		static int iLength = MAX_INT;
-		CvUnit const* pUnit = gDLL->UI().getHeadSelectedUnit();
-		CvPlot const* pPlot = gDLL->UI().getMouseOverPlot();
-		if (pUnit != NULL && pPlot != NULL)
-		{	// Avoid lag from computing the same path over and over
-			if (pPlot != pOldPlot || pUnit != pOldUnit)
-			{
-				pOldPlot = pPlot;
-				pOldUnit = pUnit;
-				CvTeam const& kTeam = GET_TEAM(pUnit->getTeam());
-				CvTeam const* pWarTeam = NULL;
-				{
-					TeamTypes ePlotTeam = pPlot->getTeam();
-					if (ePlotTeam != NO_TEAM && ePlotTeam != pUnit->getTeam())
-						pWarTeam = &GET_TEAM(ePlotTeam);
-				}
-				int const iMaxPath = 15 * pUnit->baseMoves();
-				CvPlot const& kStart = pUnit->getPlot();
-				CvPlot const& kDest = *pPlot;
-				using namespace TeamPath;
-				Mode eMode = LAND;
-				if (pUnit->getDomainType() != DOMAIN_LAND)
-				{
-					TechTypes const eTech = pUnit->getUnitInfo().getPrereqAndTech();
-					if (eTech != NO_TECH && GC.getInfo(eTech).getEra() >= 2)
-						eMode = ANY_WATER;
-					else eMode = SHALLOW_WATER;
-				}
-				// TeamPathFinder isn't intended for dynamic dispatch, so this is awkward.
-				switch(eMode)
-				{
-				case LAND:
-				{
-					TeamPathFinder<LAND> pf(kTeam, pWarTeam, iMaxPath);
-					if (pf.generatePath(kStart, kDest))
-					{
-						iCost = pf.getPathCost();
-						iLength = pf.getPathLength();
-						#ifdef FASSERT_ENABLE // symmetry test (UWAICache relies on that)
-						bool bSuccess = pf.generatePath(kDest, kStart);
-						FAssert(bSuccess);
-						if (bSuccess)
-						{
-							FAssert(pf.getPathCost() == iCost);
-							FAssert(pf.getPathLength() == iLength);
-						}
-						#endif
-					}
-					else iCost = iLength = MAX_INT;
-					break;
-				}
-				case ANY_WATER:
-				{
-					TeamPathFinder<ANY_WATER> pf(kTeam, pWarTeam, iMaxPath);
-					if (pf.generatePath(kStart, kDest))
-					{
-						iCost = pf.getPathCost();
-						iLength = pf.getPathLength();
-						#ifdef FASSERT_ENABLE
-						bool bSuccess = pf.generatePath(kDest, kStart);
-						FAssert(bSuccess);
-						if (bSuccess)
-						{
-							FAssert(pf.getPathCost() == iCost);
-							FAssert(pf.getPathLength() == iLength);
-						}
-						#endif
-					}
-					else iCost = iLength = MAX_INT;
-					break;
-				}
-				case SHALLOW_WATER:
-				{
-					TeamPathFinder<SHALLOW_WATER> pf(kTeam, pWarTeam, iMaxPath);
-					if (pf.generatePath(kStart, kDest))
-					{
-						iCost = pf.getPathCost();
-						iLength = pf.getPathLength();
-						#ifdef FASSERT_ENABLE
-						bool bSuccess = pf.generatePath(kDest, kStart);
-						FAssert(bSuccess);
-						if (bSuccess)
-						{
-							FAssert(pf.getPathCost() == iCost);
-							FAssert(pf.getPathLength() == iLength);
-						}
-						#endif
-					}
-					else iCost = iLength = MAX_INT;
-					break;
-				}
-				}
-			}
-			szString.append(NEWLINE);
-			if (iCost == MAX_INT)
-			{
-				FAssert(iLength == MAX_INT);
-				szString.append(L"No team path");
-			}
-			else
-			{
-				szString.append(CvWString::format(
-						L"Team path cost: %d, length: %d", iCost, iLength));
-			}
-		}
-	} // </advc.test>
-
 	/*{
 		szTempBuffer.Format(L"\nStack Str: land=%d(%d), sea=%d(%d), air=%d(%d)",
 			kPlot.AI_sumStrength(NO_PLAYER, NO_PLAYER, DOMAIN_LAND, false, false, false),

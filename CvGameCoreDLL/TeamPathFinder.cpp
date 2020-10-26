@@ -61,8 +61,12 @@ bool TeamStepMetric<eMODE>::canStepThrough(CvPlot const& kPlot) const
 		if (!bWar)
 		{
 			if (eMODE != LAND)
-			{	// The first check is redundant, supposed to save time.
-				bCanal = (kPlot.isCity() && kPlot.isCity(true, m_pTeam->getID()));
+			{
+				//bCanal = (kPlot.isImproved() && m_pTeam->isBase(kPlot));
+				/*	^Just too needlessly slow. We check most of the conditions here
+					anyway. As much as I don't like having redundant code ... */
+				bCanal = (kPlot.isCity() || (kPlot.isImproved() &&
+						GC.getInfo(kPlot.getImprovementType()).isActsAsCity()));
 			}
 			// I expect that this is the slowest check
 			if (!m_pTeam->canPeacefullyEnter(ePlotTeam))
@@ -147,12 +151,24 @@ int TeamStepMetric<eMODE>::cost(CvPlot const& kFrom, CvPlot const& kTo) const
 	int iCost = GC.getMOVE_DENOMINATOR();
 	if (eMODE != LAND)
 		return iCost;
-	TeamTypes const eToTeam = kTo.getTeam();
-	if (eToTeam != NO_TEAM &&
-		(m_pTeam->isAtWar(eToTeam) ||
-		m_pTeam->getMasterTeam() == m_pWarTarget->getMasterTeam()))
+	// Enemy routes have no effect
 	{
-		return iCost; // Enemy routes have no effect
+		TeamTypes const eToTeam = kTo.getTeam();
+		if (eToTeam != NO_TEAM &&
+			(m_pTeam->isAtWar(eToTeam) ||
+			GET_TEAM(eToTeam).getMasterTeam() == m_pWarTarget->getMasterTeam()))
+		{
+			return iCost; 
+		}
+	}
+	{
+		TeamTypes const eFromTeam = kFrom.getTeam();
+		if (eFromTeam != NO_TEAM &&
+			(m_pTeam->isAtWar(eFromTeam) ||
+			GET_TEAM(eFromTeam).getMasterTeam() == m_pWarTarget->getMasterTeam()))
+		{
+			return iCost;
+		}
 	}
 	/*	Don't bother with hills and features. They're only relevant
 		when units have multiple moves, i.e. not until the Modern era,
