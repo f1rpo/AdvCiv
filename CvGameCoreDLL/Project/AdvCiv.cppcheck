@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- To be loaded by the Cppcheck GUI for a static analysis of the
-	 CvGameCore source code. On 9 Oct, I've addressed all reported
+	 CvGameCore source code. On 9 Oct 2020, I've addressed all reported
 	 issues that I feel should be addressed. For the few dozen that remain,
 	 it should be easy to tell that the code is working as intended. -->
 <project version="1">

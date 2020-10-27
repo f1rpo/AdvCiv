@@ -10210,7 +10210,7 @@ bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, MovementFla
 					PUF_canDefendGroupHead, -1, -1, getOwner(),
 					NO_TEAM, AI_isCityAIType() ? PUF_isCityAIType : 0);
 			if (pCity == pLoopCity)
-				iDefendersHave-=getGroup()->getNumUnits();
+				iDefendersHave -= getGroup()->getNumUnits();
 			// K-Mod end
 			/*  <advc.139> Reinforce city despite evac if group large enough.
 				Don't want cities to be abandoned unnecessarily just b/c few units
@@ -10236,7 +10236,7 @@ bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, MovementFla
 				continue;
 			}
 			int iPathTurns;
-			if (atPlot(pLoopCity->plot()) || !generatePath(pLoopCity->getPlot(),
+			if (at(pLoopCity->getPlot()) || !generatePath(pLoopCity->getPlot(),
 				eFlags, true, &iPathTurns, iMaxPath))
 			{
 				continue;

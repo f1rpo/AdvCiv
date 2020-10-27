@@ -551,12 +551,11 @@ int* CvBuildingInfo::getBonusYieldModifierArray(int i) const
 
 const TCHAR* CvBuildingInfo::getButton() const
 {
-	const CvArtInfoBuilding * pBuildingArtInfo;
+	CvArtInfoBuilding const* pBuildingArtInfo;
 	pBuildingArtInfo = getArtInfo();
-	if (pBuildingArtInfo != NULL)
-		return pBuildingArtInfo->getButton();
-
-	return NULL;
+	if (pBuildingArtInfo == NULL)
+		return NULL;
+	return pBuildingArtInfo->getButton();
 }
 
 const CvArtInfoBuilding* CvBuildingInfo::getArtInfo() const
@@ -566,21 +565,19 @@ const CvArtInfoBuilding* CvBuildingInfo::getArtInfo() const
 
 const CvArtInfoMovie* CvBuildingInfo::getMovieInfo() const
 {
-	const TCHAR* pcTag = getMovieDefineTag();
+	TCHAR const* pcTag = getMovieDefineTag();
 	if (pcTag != NULL && _tcscmp(pcTag, "NONE") != 0)
 		return ARTFILEMGR.getMovieArtInfo(pcTag);
-	
 	return NULL;
 }
 
 const TCHAR* CvBuildingInfo::getMovie() const
 {
-	const CvArtInfoMovie* pArt;
+	CvArtInfoMovie const* pArt;
 	pArt = getMovieInfo();
-	if (pArt != NULL)
-		return pArt->getPath();
-
-	return NULL;
+	if (pArt == NULL)
+		return NULL;
+	return pArt->getPath();
 }
 // advc.008e:
 bool CvBuildingInfo::nameNeedsArticle() const

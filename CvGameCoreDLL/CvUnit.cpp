@@ -11398,6 +11398,7 @@ bool CvUnit::isAlwaysHostile(CvPlot const& kPlot) const
 	return true;
 }
 
+
 bool CvUnit::verifyStackValid()
 {
 	if (!alwaysInvisible())

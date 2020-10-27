@@ -7395,7 +7395,8 @@ bool CvPlot::updatePlotBuilder()
 	return false;
 }
 
-
+/*  The plot layout contains bonuses and improvements --
+	it is, like the city layout, passively computed by LSystems */
 bool CvPlot::isLayoutDirty() const
 {
 	return m_bPlotLayoutDirty;
@@ -7415,7 +7416,7 @@ void CvPlot::setLayoutStateToCurrent()
 	m_bLayoutStateWorked = isBeingWorked();
 }
 
-
+// determines how the improvement state is shown in the engine
 void CvPlot::getVisibleImprovementState(ImprovementTypes& eType, bool& bWorked)
 {
 	eType = NO_IMPROVEMENT;
@@ -7443,7 +7444,7 @@ void CvPlot::getVisibleImprovementState(ImprovementTypes& eType, bool& bWorked)
 		bWorked = true;
 }
 
-
+// determines how the bonus state is shown in the engine
 void CvPlot::getVisibleBonusState(BonusTypes& eType, bool& bImproved, bool& bWorked)
 {
 	eType = NO_BONUS;
