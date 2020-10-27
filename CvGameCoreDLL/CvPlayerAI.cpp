@@ -14145,23 +14145,20 @@ bool CvPlayerAI::AI_isFocusWar(CvArea const* pArea) const
 			AI_isDoStrategy(AI_STRATEGY_ALERT2));
 }
 
-int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot const& kPlot, bool bTestCanMove) const // advc: param was CvPlot*
+int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot const& kPlot, bool bTestCanMove) const
 {
 	int iCount = 0;
 	CvArea const& kPlotArea = kPlot.getArea(); // advc.030
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+	FOR_EACH_ADJ_PLOT(kPlot)
 	{
-		CvPlot* pLoopPlot = plotDirection(kPlot.getX(), kPlot.getY(), (DirectionTypes)iI);
-		if(pLoopPlot == NULL)
-			continue; // advc
 		// <advc.030>
-		CvArea const& kFromArea = pLoopPlot->getArea();
-		//if (pLoopPlot->area() == pPlot->area())
+		CvArea const& kFromArea = pAdj->getArea();
+		//if (pAdj->area() == pPlot->area())
 		// Replacing the above (negated):
 		if(!kPlotArea.canBeEntered(kFromArea))
 			continue; // </advc.030>
-		for (CLLNode<IDInfo> const* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL;
-			pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
+		for (CLLNode<IDInfo> const* pUnitNode = pAdj->headUnitNode(); pUnitNode != NULL;
+			pUnitNode = pAdj->nextUnitNode(pUnitNode))
 		{
 			CvUnitAI const* pLoopUnit = ::AI_getUnit(pUnitNode->m_data);
 			if (pLoopUnit->getOwner() != getID())
@@ -14939,21 +14936,13 @@ void CvPlayerAI::AI_humanEnemyStackMovedInTerritory(CvPlot const& kFrom, CvPlot 
 	aUpdPlots.insert(kMap.plotNum(kTo));
 	if (kFrom.getOwner() == getID())
 	{
-		FOR_EACH_ENUM(Direction)
-		{
-			CvPlot const* pAdj = plotDirection(kFrom.getX(), kFrom.getY(), eLoopDirection);
-			if (pAdj != NULL)
-				aUpdPlots.insert(kMap.plotNum(*pAdj));
-		}
+		FOR_EACH_ADJ_PLOT(kFrom)
+			aUpdPlots.insert(kMap.plotNum(*pAdj));
 	}
 	if (kTo.getOwner() == getID())
 	{
-		FOR_EACH_ENUM(Direction)
-		{
-			CvPlot const* pAdj = plotDirection(kTo.getX(), kTo.getY(), eLoopDirection);
-			if (pAdj != NULL)
-				aUpdPlots.insert(kMap.plotNum(*pAdj));
-		}
+		FOR_EACH_ADJ_PLOT(kTo)
+			aUpdPlots.insert(kMap.plotNum(*pAdj));
 	}
 	for (std::set<int>::const_iterator it = aUpdPlots.begin();
 		it != aUpdPlots.end(); ++it)
@@ -25731,13 +25720,11 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 				AI_advancedStartRevealRadius(&kLoopPlot, CITY_PLOTS_RADIUS);
 			else
 			{
-				FOR_EACH_ENUM(CardinalDirection)
+				FOR_EACH_ORTH_ADJ_PLOT(kLoopPlot)
 				{
-					CvPlot* pAdj = plotCardinalDirection(
-							kLoopPlot.getX(), kLoopPlot.getY(), eLoopCardinalDirection);
-					if (pAdj == NULL || getAdvancedStartVisibilityCost(true, pAdj) <= 0)
-						continue; // advc
-					//Mildly maphackery but any smart human can see the terrain type of a tile.
+					if (getAdvancedStartVisibilityCost(true, pAdj) <= 0)
+						continue;
+					// Mildly maphackery but any smart human can see the terrain type of a tile
 					pAdj->getTerrainType();
 					int iFoodYield = GC.getInfo(pAdj->getTerrainType()).
 							getYield(YIELD_FOOD);
@@ -26183,20 +26170,18 @@ CvPlot* CvPlayerAI::AI_getCitySite(int iIndex) const
 	return GC.getMap().plotByIndex(m_aiAICitySites[iIndex]);
 }
 
-// <advc.121> (Also needed for advc.117)
+// advc.121:  (also needed for advc.117)
 bool CvPlayerAI::AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const
 {
-	if(bCheckCenter && AI_isPlotCitySite(p))
+	if (bCheckCenter && AI_isPlotCitySite(p))
 		return true;
-
-	for(int i = 0; i < NUM_DIRECTION_TYPES; i++)
+	FOR_EACH_ADJ_PLOT(p)
 	{
-		CvPlot const* pAdj = plotDirection(p.getX(), p.getY(), (DirectionTypes)i);
-		if(pAdj != NULL && AI_isPlotCitySite(*pAdj))
+		if(AI_isPlotCitySite(*pAdj))
 			return true;
 	}
 	return false;
-} // </advc.121>
+}
 
 /*  advc.ctr: Says whether kCity is in a spot where probably no city belongs.
 	This player is the AI civ considering to obtain the city.
@@ -27053,11 +27038,10 @@ int CvPlayerAI::AI_getPlotCanalValue(CvPlot const& kPlot) const // advc: param w
 		}
 	}
 
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(kPlot)
 	{
-		CvPlot* pAdj = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
-		if (pAdj != NULL &&
-			GET_TEAM(getTeam()).isRevealedBase(*pAdj)) // advc: was isCity(true,getTeam())
+		if (//pAdj->isCity(true, getTeam())
+			GET_TEAM(getTeam()).isRevealedBase(*pAdj)) // advc
 		{
 			return 0;
 		}

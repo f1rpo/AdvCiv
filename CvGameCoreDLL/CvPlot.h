@@ -232,7 +232,6 @@ public:
 	static void setAllFog(bool b) { m_bAllFog = b; } // </advc.706>
 	// <advc.300>
 	bool isCivUnitNearby(int iRadius) const;
-	void getAdjacentLandAreaIds(std::set<int>& r) const;
 	CvPlot const* nearestInvisiblePlot(bool bOnlyLand, int iMaxPlotDist, TeamTypes eObserver) const;
 	// </advc.300>
 	bool isVisibleToWatchingHuman() const;															// Exposed to Python

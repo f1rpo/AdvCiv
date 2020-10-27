@@ -103,7 +103,8 @@ CvUnit::CvUnit() // advc.003u: Body cut from the deleted reset function
 }
 
 // advc.003u: Param eUnitAI moved to CvUnitAI::init
-void CvUnit::init(int iID, UnitTypes eUnit, PlayerTypes eOwner, int iX, int iY, DirectionTypes eFacingDirection)
+void CvUnit::init(int iID, UnitTypes eUnit, PlayerTypes eOwner, int iX, int iY,
+	DirectionTypes eFacingDirection)
 {
 	FAssert(NO_UNIT != eUnit);
 
@@ -3618,12 +3619,8 @@ int CvUnit::healRate(bool bLocation, bool bUnits, CvPlot const* pAt) const
 					iBestHeal = iHeal;
 			}
 		}
-
-		FOR_EACH_ENUM(Direction)
+		FOR_EACH_ADJ_PLOT(kPlot)
 		{
-			CvPlot* pAdj = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
-			if (pAdj == NULL)
-				continue;
 			// advc.030: Instead check domain type below
 			//if (pLoopPlot->sameArea(*pPlot)) {
 			for (CLLNode<IDInfo>* pNode = pAdj->headUnitNode(); pNode != NULL;
@@ -4320,15 +4317,11 @@ CvCity* CvUnit::bombardTarget(CvPlot const& kPlot) const
 {
 	CvCity* pBestCity = NULL;
 	int iBestValue = MAX_INT;
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(kPlot)
 	{
-		CvPlot* pLoopPlot = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
-		if (pLoopPlot == NULL)
-			continue; // advc
-		CvCity* pLoopCity = pLoopPlot->getPlotCity();
+		CvCity* pLoopCity = pAdj->getPlotCity();
 		if (pLoopCity == NULL || !pLoopCity->isBombardable(this))
-			continue; // advc
-
+			continue;
 		int iValue = pLoopCity->getDefenseDamage();
 		// always prefer cities we are at war with
 		/*	advc (note): Was added in BtS. Not sure if it's correct - or necessary.
@@ -4754,30 +4747,21 @@ int CvUnit::sabotageProb(const CvPlot* pPlot, ProbabilityTypes eProbStyle) const
 	int iCounterSpyCount = 0;
 	if (pPlot->isOwned())
 	{
-		iDefenseCount = pPlot->plotCount(PUF_canDefend, -1, -1, NO_PLAYER, pPlot->getTeam());
-		iCounterSpyCount = pPlot->plotCount(PUF_isCounterSpy, -1, -1, NO_PLAYER, pPlot->getTeam());
-		for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+		iDefenseCount = pPlot->plotCount(
+				PUF_canDefend, -1, -1, NO_PLAYER, pPlot->getTeam());
+		iCounterSpyCount = pPlot->plotCount(
+				PUF_isCounterSpy, -1, -1, NO_PLAYER, pPlot->getTeam());
+		FOR_EACH_ADJ_PLOT(*pPlot)
 		{
-			CvPlot* pLoopPlot = plotDirection(pPlot->getX(), pPlot->getY(), ((DirectionTypes)iI));
-			if (pLoopPlot != NULL)
-			{
-				iCounterSpyCount += pLoopPlot->plotCount(PUF_isCounterSpy, -1, -1, NO_PLAYER, pPlot->getTeam());
-			}
+			iCounterSpyCount += pAdj->plotCount(
+					PUF_isCounterSpy, -1, -1, NO_PLAYER, pPlot->getTeam());
 		}
 	}
-
 	if (eProbStyle == PROBABILITY_HIGH)
-	{
 		iCounterSpyCount = 0;
-	}
-
 	int iProb = (40 / (iDefenseCount + 1)); // XXX
-
 	if (eProbStyle != PROBABILITY_LOW)
-	{
 		iProb += (50 / (iCounterSpyCount + 1)); // XXX
-	}
-
 	return iProb;
 }
 
@@ -4889,18 +4873,17 @@ int CvUnit::destroyProb(const CvPlot* pPlot, ProbabilityTypes eProbStyle) const
 	if (pCity == NULL)
 		return 0;
 
-	int iDefenseCount = pPlot->plotCount(PUF_canDefend, -1, -1, NO_PLAYER, pPlot->getTeam());
-	int iCounterSpyCount = pPlot->plotCount(PUF_isCounterSpy, -1, -1, NO_PLAYER, pPlot->getTeam());
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+	int iDefenseCount = pPlot->plotCount(
+			PUF_canDefend, -1, -1, NO_PLAYER, pPlot->getTeam());
+	int iCounterSpyCount = pPlot->plotCount(
+			PUF_isCounterSpy, -1, -1, NO_PLAYER, pPlot->getTeam());
+	FOR_EACH_ADJ_PLOT(*pPlot)
 	{
-		CvPlot* pLoopPlot = plotDirection(pPlot->getX(), pPlot->getY(), ((DirectionTypes)iI));
-		if (pLoopPlot != NULL)
-			iCounterSpyCount += pLoopPlot->plotCount(PUF_isCounterSpy, -1, -1, NO_PLAYER, pPlot->getTeam());
+		iCounterSpyCount += pAdj->plotCount(
+				PUF_isCounterSpy, -1, -1, NO_PLAYER, pPlot->getTeam());
 	}
-
 	if (eProbStyle == PROBABILITY_HIGH)
 		iCounterSpyCount = 0;
-
 	int iProb = (25 / (iDefenseCount + 1)); // XXX
 	if (eProbStyle != PROBABILITY_LOW)
 		iProb += (50 / (iCounterSpyCount + 1)); // XXX
@@ -5013,18 +4996,17 @@ int CvUnit::stealPlansProb(const CvPlot* pPlot, ProbabilityTypes eProbStyle) con
 	if (pCity == NULL)
 		return 0;
 
-	int iDefenseCount = pPlot->plotCount(PUF_canDefend, -1, -1, NO_PLAYER, pPlot->getTeam());
-	int iCounterSpyCount = pPlot->plotCount(PUF_isCounterSpy, -1, -1, NO_PLAYER, pPlot->getTeam());
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+	int iDefenseCount = pPlot->plotCount(
+			PUF_canDefend, -1, -1, NO_PLAYER, pPlot->getTeam());
+	int iCounterSpyCount = pPlot->plotCount(
+			PUF_isCounterSpy, -1, -1, NO_PLAYER, pPlot->getTeam());
+	FOR_EACH_ADJ_PLOT(*pPlot)
 	{
-		CvPlot* pLoopPlot = plotDirection(pPlot->getX(), pPlot->getY(), ((DirectionTypes)iI));
-		if (pLoopPlot != NULL)
-			iCounterSpyCount += pLoopPlot->plotCount(PUF_isCounterSpy, -1, -1, NO_PLAYER, pPlot->getTeam());
+		iCounterSpyCount += pAdj->plotCount(
+				PUF_isCounterSpy, -1, -1, NO_PLAYER, pPlot->getTeam());
 	}
-
 	if (eProbStyle == PROBABILITY_HIGH)
 		iCounterSpyCount = 0;
-
 	int iProb = (pCity->isGovernmentCenter() ? 20 : 0); // XXX
 	iProb += (20 / (iDefenseCount + 1)); // XXX
 	if (eProbStyle != PROBABILITY_LOW)
@@ -8473,17 +8455,13 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 		}
 		if (pOldPlot->isWater())
 		{
-			FOR_EACH_ENUM(Direction)
+			FOR_EACH_ADJ_PLOT(*pOldPlot)
 			{
-				CvPlot* pLoopPlot = plotDirection(pOldPlot->getX(), pOldPlot->getY(), eLoopDirection);
-				if (pLoopPlot == NULL || !pLoopPlot->isWater())
-					continue; // advc
-				CvCity* pWorkingCity = pLoopPlot->getWorkingCity();
-				if (pWorkingCity != NULL)
-				{
-					if (canSiege(pWorkingCity->getTeam()))
-						pWorkingCity->AI_setAssignWorkDirty(true);
-				}
+				if (!pAdj->isWater())
+					continue;
+				CvCity* pWorkingCity = pAdj->getWorkingCity();
+				if (pWorkingCity != NULL && canSiege(pWorkingCity->getTeam()))
+					pWorkingCity->AI_setAssignWorkDirty(true);
 			}
 		}
 
@@ -8613,17 +8591,13 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 						pWorkingCity->getCityPlotIndex(*pNewPlot));
 			}
 		}
-
 		/*if (pNewPlot->isWater()) {
-			for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++) {
-				pLoopPlot = plotDirection(pNewPlot->getX(), pNewPlot->getY(), (DirectionTypes)iI);
-				if (pLoopPlot != NULL) {
-					if (pLoopPlot->isWater()) {
-						pWorkingCity = pLoopPlot->getWorkingCity();
-						if (pWorkingCity != NULL) {
-							if (canSiege(pWorkingCity->getTeam()))
-								pWorkingCity->verifyWorkingPlot(pWorkingCity->getCityPlotIndex(pLoopPlot));
-		} } } } }*/ // BtS
+			FOR_EACH_ADJ_PLOT(*pNewPlot) {
+				if (pAdj->isWater()) {
+					pWorkingCity = pAdj->getWorkingCity();
+					if (pWorkingCity != NULL && canSiege(pWorkingCity->getTeam()))
+								pWorkingCity->verifyWorkingPlot(pWorkingCity->getCityPlotIndex(*pAdj));
+		} } }*/ // BtS
 		// disabled by K-Mod. The game mechanics that this was meant to handle are no longer used. (Nothing to do with K-Mod.)
 
 		if (pNewPlot->isActiveVisible(true))
@@ -9571,11 +9545,8 @@ void CvUnit::collectBlockadeGold()
 	blockadeRange(apRange, -1);
 	for(size_t i = 0; i < apRange.size(); i++)
 	{
-		for(int j = 0; j < NUM_DIRECTION_TYPES; j++)
+		FOR_EACH_ADJ_PLOT(*apRange[i])
 		{
-			CvPlot* pAdj = plotDirection(apRange[i]->getX(), apRange[i]->getY(), (DirectionTypes)j);
-			if(pAdj == NULL)
-				continue;
 			CvCity* pCity = pAdj->getPlotCity();
 			if(pCity == NULL || apRange[i]->getBlockadedCount(pCity->getTeam()) <= 0)
 				continue; // </advc.033>

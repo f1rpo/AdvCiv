@@ -1077,13 +1077,8 @@ void CvMap::updateIrrigated(CvPlot& kPlot)
 		if (!kPlot.isPotentialIrrigation())
 		{
 			kPlot.setIrrigated(false);
-			FOR_EACH_ENUM(Direction)
+			FOR_EACH_ADJ_PLOT(kPlot)
 			{
-				CvPlot const* pAdj = plotDirection(kPlot.getX(), kPlot.getY(),
-						eLoopDirection);
-				if (pAdj == NULL)
-					continue;
-
 				bool bFoundFreshWater = false;
 				gDLL->getFAStarIFace()->Initialize(pIrrigatedFinder,
 						getGridWidth(), getGridHeight(),
@@ -1392,11 +1387,8 @@ void CvMap::calculateReprAreas()
 			CvPlot& p = getPlotByIndex(i);
 			int const x = p.getX();
 			int const y = p.getY();
-			for(int j = 0; j < NUM_DIRECTION_TYPES; j++)
+			FOR_EACH_ADJ_PLOT_VAR2(pAdjacent, p)
 			{
-				CvPlot* pAdjacent = plotDirection(x, y, (DirectionTypes)j);
-				if(pAdjacent == NULL)
-					continue;
 				CvPlot& q = *pAdjacent;
 				// Only orthogonal adjacency for water tiles
 				if(p.isWater() && x != q.getX() && y != q.getY())
@@ -1439,13 +1431,8 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart)
 	{
 		CvPlot const& p = *stack.top();
 		stack.pop();
-		int const x = p.getX();
-		int const y = p.getY();
-		for(int i = 0; i < NUM_DIRECTION_TYPES; i++)
+		FOR_EACH_ADJ_PLOT_VAR2(pAdjacent, p)
 		{
-			CvPlot* pAdjacent = plotDirection(x, y, (DirectionTypes)i);
-			if(pAdjacent == NULL)
-				continue;
 			CvPlot& q = *pAdjacent;
 			if(q.area() == NULL && p.isWater() == q.isWater() &&
 				!isSeparatedByIsthmus(p, q) &&
@@ -1488,7 +1475,11 @@ void CvMap::computeShelves()
 			continue;
 		// Add plot to shelves of all adjacent land areas
 		std::set<int> adjLands;
-		p.getAdjacentLandAreaIds(adjLands);
+		FOR_EACH_ADJ_PLOT(p)
+		{
+			if(!pAdj->isWater())
+				adjLands.insert(pAdj->getArea().getID());
+		}
 		for(std::set<int>::iterator it = adjLands.begin(); it != adjLands.end(); ++it)
 		{
 			Shelf::Id shelfID(*it, p.getArea().getID());

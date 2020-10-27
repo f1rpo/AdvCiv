@@ -2063,7 +2063,8 @@ bool CvPlayer::isCityNameValid(CvWString& szName, bool bTestDestroyed) const
 }
 
 
-CvUnit* CvPlayer::initUnit(UnitTypes eUnit, int iX, int iY, UnitAITypes eUnitAI, DirectionTypes eFacingDirection)
+CvUnit* CvPlayer::initUnit(UnitTypes eUnit, int iX, int iY, UnitAITypes eUnitAI,
+	DirectionTypes eFacingDirection)
 {
 	//PROFILE_FUNC(); // advc.003o
 
@@ -4770,11 +4771,10 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 		{
 			if(iBarbCount >= iMinBarbs)
 				continue;
-			FOR_EACH_ENUM(Direction)
+			FOR_EACH_ADJ_PLOT(*pPlot)
 			{
-				CvPlot* pLoopPlot = plotDirection(pPlot->getX(), pPlot->getY(), eLoopDirection);
-				if(pLoopPlot == NULL || !pLoopPlot->sameArea(*pPlot) ||
-					pLoopPlot->isImpassable() || pLoopPlot->getNumUnits() > 0)
+				if(!pAdj->sameArea(*pPlot) || pAdj->isImpassable() ||
+					pAdj->getNumUnits() > 0)
 				{
 					continue;
 				}
@@ -4790,9 +4790,8 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 					if(eLoopUnit != NO_UNIT)
 					{
 						GET_PLAYER(BARBARIAN_PLAYER).initUnit(eLoopUnit,
-								pLoopPlot->getX(), pLoopPlot->getY(),
-								((pLoopPlot->isWater()) ? UNITAI_ATTACK_SEA :
-								UNITAI_ATTACK));
+								pAdj->getX(), pAdj->getY(),
+								(pAdj->isWater() ? UNITAI_ATTACK_SEA : UNITAI_ATTACK));
 						iBarbCount++;
 					}
 					if ((iPass > 0 && iBarbCount >= iMinBarbs) || iBarbCount >= iMaxBarbs)
@@ -19827,11 +19826,10 @@ void CvPlayer::promoteFreeUnit(CvUnit& u, scaled pr)
 			int iValue = GC.getGame().getSorenRandNum(100, "advc.314");
 			std::vector<CvPlot const*> apSurroundings;
 			apSurroundings.push_back(u.plot());
-			FOR_EACH_ENUM(Direction)
+			FOR_EACH_ADJ_PLOT(u.getPlot())
 			{
-				CvPlot const* p = plotDirection(u.getX(), u.getY(), eLoopDirection);
-				if (p != NULL && !p->isWater())
-					apSurroundings.push_back(p);
+				if (!pAdj->isWater())
+					apSurroundings.push_back(pAdj);
 			}
 			for(size_t k = 0; k < apSurroundings.size(); k++)
 			{

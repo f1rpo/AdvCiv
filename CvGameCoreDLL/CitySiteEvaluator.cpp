@@ -317,12 +317,8 @@ void CitySiteEvaluator::log(CvPlot const& kPlot)
 	{
 		CvPlot const* pBestAdjSite = NULL;
 		int iBest = 0;
-		FOR_EACH_ENUM(Direction)
+		FOR_EACH_ADJ_PLOT(kPlot)
 		{
-			CvPlot const* pAdj = plotDirection(kPlot.getX(), kPlot.getY(),
-					eLoopDirection);
-			if (pAdj == NULL)
-				continue;
 			int iValue = evaluate(*pAdj);
 			if (iValue > iBest)
 			{

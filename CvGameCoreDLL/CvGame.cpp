@@ -1602,10 +1602,9 @@ void CvGame::normalizeAddLakes()
 CvPlot* CvGame::normalizeFindLakePlot(PlayerTypes ePlayer)
 {
 	CvPlot const& kStart = *GET_PLAYER(ePlayer).getStartingPlot();
-	FOR_EACH_ENUM_RAND(Direction, getMapRand())
+	FOR_EACH_ADJ_PLOT_VAR_RAND(kStart, getMapRand())
 	{
-		CvPlot* pAdj = plotDirection(kStart.getX(), kStart.getY(), eLoopDirection);
-		if (pAdj != NULL && normalizeCanAddLakeTo(*pAdj))
+		if (normalizeCanAddLakeTo(*pAdj))
 			return pAdj;
 	}
 	if (kStart.isAdjacentFreshWater())

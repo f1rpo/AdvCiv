@@ -182,19 +182,15 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits,
 	kPlot.setPlotCity(this);
 
 	int const iFreeCityAdjacentCulture = GC.getDefineINT("FREE_CITY_ADJACENT_CULTURE"); // advc.opt
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT_VAR(getPlot())
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
-		if (pAdjacentPlot == NULL)
-			continue;
-
-		if (pAdjacentPlot->getCulture(getOwner()) < iFreeCityAdjacentCulture)
+		if (pAdj->getCulture(getOwner()) < iFreeCityAdjacentCulture)
 		{
-			pAdjacentPlot->setCulture(getOwner(), iFreeCityAdjacentCulture,
+			pAdj->setCulture(getOwner(), iFreeCityAdjacentCulture,
 					// advc.opt: Updated in the next line in any case
 					false/*was bBumpUnits*/, false);
 		}
-		pAdjacentPlot->updateCulture(bBumpUnits, false);
+		pAdj->updateCulture(bBumpUnits, false);
 	}
 	if (GET_TEAM(getTeam()).isAVassal()) // advc (replacing a loop over "all" masters)
 	{
@@ -395,12 +391,9 @@ void CvCity::kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits)
 	GET_PLAYER(getOwner()).deleteCity(getID());
 
 	kPlot.updateCulture(/*true*/ bBumpUnits, false); // advc.001
-	FOR_EACH_ENUM(Direction)
-	{
-		CvPlot* pAdjacentPlot = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
-		if (pAdjacentPlot != NULL)
-			pAdjacentPlot->updateCulture(true, false);
-	}
+	FOR_EACH_ADJ_PLOT_VAR(kPlot)
+		pAdj->updateCulture(true, false);
+
 	if (GET_TEAM(eOwner).isAVassal()) // advc: Replacing a loop over "all" masters
 	{
 		kPlot.changeAdjacentSight(GET_TEAM(eOwner).getMasterTeam(),
@@ -973,15 +966,12 @@ bool CvCity::canWork(CvPlot /* advc: */ const& kPlot) const
 				return false;
 		}
 
-		/* Replaced by blockade mission, above
-		if (!(kPlot.plotCheck(PUF_canDefend, -1, -1, NO_PLAYER, getTeam()))) {
-			for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++) {
-				CvPlot* pLoopPlot = plotDirection(kPlot.getX(), kPlot.getY(), ((DirectionTypes)iI));
-				if (pLoopPlot != NULL) {
-					if (pLoopPlot->isWater()) {
-						if (pLoopPlot->plotCheck(PUF_canSiege, getOwner()) != NULL)
-							return false;
-		} } } }*/
+		// Replaced by blockade mission, above
+		/*if (!kPlot.plotCheck(PUF_canDefend, -1, -1, NO_PLAYER, getTeam())) {
+			FOR_EACH_ADJ_PLOT(kPlot) {
+				if (pAdj->isWater() && pAdj->plotCheck(PUF_canSiege, getOwner()) != NULL)
+					return false;
+		} }*/
 	}
 
 	if (!kPlot.hasYield())
@@ -3289,10 +3279,9 @@ bool CvCity::isCapital() const
 // advc: Cut from CvPlot::canTrain
 bool CvCity::isPrereqBonusSea() const
 {
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(getPlot())
 	{
-		CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
-		if(pAdj != NULL && pAdj->isWater() &&
+		if (pAdj->isWater() &&
 			!pAdj->isImpassable() && // advc.041
 			pAdj->getArea().isAnyBonus())
 		{
@@ -4063,17 +4052,14 @@ int CvCity::cultureStrength(PlayerTypes ePlayer,
 	// </advc.101>  <advc.099c>
 	if(ePlayer == BARBARIAN_PLAYER)
 		rEraFactor /= 2; // </advc.099c>
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(getPlot())
 	{
-		CvPlot* pLoopPlot = plotDirection(getX(), getY(), eLoopDirection);
-		if(pLoopPlot == NULL)
-			continue;
 		// <advc.035>
-		PlayerTypes eLoopOwner = pLoopPlot->getOwner();
+		PlayerTypes eLoopOwner = pAdj->getOwner();
 		if(GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS) && eLoopOwner != NO_PLAYER &&
 			!GET_TEAM(eLoopOwner).isAtWar(kOwner.getTeam()))
 		{
-			PlayerTypes const eSecondOwner = pLoopPlot->getSecondOwner();
+			PlayerTypes const eSecondOwner = pAdj->getSecondOwner();
 			if(eSecondOwner != eLoopOwner) // Checked only for easier debugging
 				eLoopOwner = eSecondOwner;
 		} // </advc.035>
@@ -4086,8 +4072,8 @@ int CvCity::cultureStrength(PlayerTypes ePlayer,
 		}
 		scaled rCap = fixp(0.25) + fixp(0.75) * rTimeFactor;
 		rStrengthFromInnerRadius += rEraFactor * scaled::clamp(per100(
-				pLoopPlot->calculateCulturePercent(ePlayer) -
-				pLoopPlot->calculateCulturePercent(getOwner())), 0, rCap);
+				pAdj->calculateCulturePercent(ePlayer) -
+				pAdj->calculateCulturePercent(getOwner())), 0, rCap);
 	}
 	rStrengthFromInnerRadius.decreaseTo(rStrength);
 	rStrength += rStrengthFromInnerRadius;
@@ -4418,14 +4404,10 @@ CvArea* CvCity::sharedWaterArea(CvCity* pOtherCity) const
 
 bool CvCity::isBlockaded() const
 {
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(getPlot())
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
-		if (pAdjacentPlot != NULL)
-		{
-			if (pAdjacentPlot->getBlockadedCount(getTeam()) > 0)
-				return true;
-		}
+		if (pAdj->getBlockadedCount(getTeam()) > 0)
+			return true;
 	}
 	return false;
 } // BETTER_BTS_AI_MOD: END
@@ -10159,12 +10141,8 @@ void CvCity::addGreatWall(int iAttempt)
 		/*	Add kInside if we find an adjacent pOutside such that the two should
 			be separated by a segment */
 		bool bFound = false;
-		FOR_EACH_ENUM(CardinalDirection)
+		FOR_EACH_ORTH_ADJ_PLOT2(pOutside, kInside)
 		{
-			CvPlot const* pOutside = plotCardinalDirection(kInside.getX(), kInside.getY(),
-					eLoopCardinalDirection);
-			if (pOutside == NULL)
-				continue;
 			bool bValid = needsGreatWallSegment(kInside, *pOutside, iAttempt);
 			if (!bValid && pOutside->sameArea(kInside) && !pOutside->isImpassable()
 				/*	Commenting this condition out extends the wall by 1 tile into
@@ -10176,12 +10154,8 @@ void CvCity::addGreatWall(int iAttempt)
 					and diagonally adjacent to kInside. The segment will still go between
 					kInside and pOutside b/c there are no diagonal segments.
 					(But never if pOutside is water or impassable; see checks above.) */
-				FOR_EACH_ENUM2(CardinalDirection, eDir)
+				FOR_EACH_ORTH_ADJ_PLOT(*pOutside)
 				{
-					CvPlot const* pAdj = plotCardinalDirection(
-							pOutside->getX(), pOutside->getY(), eDir);
-					if (pAdj == NULL)
-						continue;
 					if (stepDistance(pAdj, &kInside) == 1 &&
 						needsGreatWallSegment(kInside, *pAdj, iAttempt))
 					{
@@ -10240,11 +10214,9 @@ bool CvCity::needsGreatWallSegment(/* not currently used: */CvPlot const& kInsid
 		return true;
 	/*	To avoid creating a Gaza strip, require a third plot that must be habitable,
 		adjacent to the outside plot but not adjacent to our territory. */
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT2(pThird, kOutside)
 	{
-		CvPlot const* pThird = ::plotDirection(kOutside.getX(), kOutside.getY(),
-				eLoopDirection);
-		if(pThird == NULL || !isArea(pThird->getArea()) ||
+		if(!isArea(pThird->getArea()) ||
 			pThird->isImpassable() || !pThird->isHabitable(true))
 		{
 			continue;

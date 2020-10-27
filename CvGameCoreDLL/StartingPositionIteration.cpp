@@ -678,17 +678,12 @@ void StartingPositionIteration::DistanceTable::computeDistances(CvPlot const& kS
 				continue;
 			abReached[iAt] = true;
 		}
-		FOR_EACH_ENUM(Direction)
+		FOR_EACH_ADJ_PLOT(kAt)
 		{
-			CvPlot const* pAdj = kMap.plotDirection(
-					kAt.getX(), kAt.getY(), eLoopDirection);
-			if (pAdj == NULL ||
-				/*	Note: even if not yet reached, it may already be in q;
-					that's what the abReached[iAt] check above is for. */
-				abReached[kMap.plotNum(*pAdj)])
-			{
+			/*	Note: even if not yet reached, it may already be in q;
+				that's what the abReached[iAt] check above is for. */
+			if (abReached[kMap.plotNum(*pAdj)])
 				continue;
-			}
 			short iDistance = stepDist(kAt, *pAdj, bSourceCoastal);
 			if (iDistance < MAX_SHORT)
 				q.push(Node(*pAdj, v.getDistance() + iDistance));

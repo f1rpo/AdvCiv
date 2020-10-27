@@ -4605,20 +4605,20 @@ int CvSelectionGroup::getMissionData2(int iNode) const
 // <advc.075>
 void CvSelectionGroup::handleBoarded()
 {
-	if(!isHuman() || getDomainType() != DOMAIN_SEA ||
+	if (!isHuman() || getDomainType() != DOMAIN_SEA ||
 		GET_PLAYER(getOwner()).isOption(PLAYEROPTION_NO_UNIT_CYCLING))
 	{
 		return;
 	}
 	CLLNode<MissionData>* pMissionNode = headMissionQueueNode();
-	if(pMissionNode == NULL)
+	if (pMissionNode == NULL)
 	{
 		FAssert(pMissionNode != NULL); // MOVE_TO mission should still be queued
 		return;
 	}
-	if(nextMissionQueueNode(pMissionNode) != NULL)
+	if (nextMissionQueueNode(pMissionNode) != NULL)
 		return;
-	if(movesLeft() || !hasMoved())
+	if (movesLeft() || !hasMoved())
 		return;
 	CvPlot const& kAt = getPlot();
 	if(kAt.isWater() && !kAt.isAdjacentToLand())
@@ -4627,16 +4627,16 @@ void CvSelectionGroup::handleBoarded()
 	std::vector<CvSelectionGroup*> apLandCargoGroups;
 	getLandCargoGroups(apLandCargoGroups);
 	std::vector<CvSelectionGroup*> aAwake;
-	for(size_t i = 0; i < apLandCargoGroups.size(); i++)
+	for (size_t i = 0; i < apLandCargoGroups.size(); i++)
 	{
 		CvSelectionGroup& kGroup = *apLandCargoGroups[i];
 		if(kGroup.getActivityType() == ACTIVITY_BOARDED && kGroup.canDisembark())
 			aAwake.push_back(&kGroup);
 	} // Putting all awoken units in one group should be more convenient
-	if(!aAwake.empty())
+	if (!aAwake.empty())
 		aAwake[0]->setActivityType(ACTIVITY_AWAKE);
-	for(size_t i = 1; i < aAwake.size(); i++) {
-		if(aAwake[i]->getDomainType() == aAwake[0]->getDomainType())
+	for (size_t i = 1; i < aAwake.size(); i++) {
+		if (aAwake[i]->getDomainType() == aAwake[0]->getDomainType())
 			aAwake[i]->mergeIntoGroup(aAwake[0]);
 		// One of the doDelayedDeath calls will clean the empty groups up
 	}
@@ -4645,12 +4645,11 @@ void CvSelectionGroup::handleBoarded()
 
 bool CvSelectionGroup::canDisembark() const
 {
-	if(!getPlot().isWater() && movesLeft())
+	if (!getPlot().isWater() && movesLeft())
 		return true;
-	for(int i = 0; i < NUM_DIRECTION_TYPES; i++)
+	FOR_EACH_ADJ_PLOT(getPlot())
 	{
-		CvPlot* pAdj = plotDirection(getX(), getY(), (DirectionTypes)i);
-		if(pAdj != NULL && canMoveOrAttackInto(*pAdj, false, true, false))
+		if (canMoveOrAttackInto(*pAdj, false, true, false))
 			return true;
 	}
 	return false;
@@ -4659,13 +4658,14 @@ bool CvSelectionGroup::canDisembark() const
 
 void CvSelectionGroup::resetBoarded()
 {
-	if(!isHuman() || getDomainType() != DOMAIN_SEA ||
-			GET_PLAYER(getOwner()).isOption(PLAYEROPTION_NO_UNIT_CYCLING))
+	if (!isHuman() || getDomainType() != DOMAIN_SEA ||
+		GET_PLAYER(getOwner()).isOption(PLAYEROPTION_NO_UNIT_CYCLING))
+	{
 		return;
-
+	}
 	std::vector<CvSelectionGroup*> apLandCargoGroups;
 	getLandCargoGroups(apLandCargoGroups);
-	for(size_t i = 0; i < apLandCargoGroups.size(); i++)
+	for (size_t i = 0; i < apLandCargoGroups.size(); i++)
 	{
 		if(apLandCargoGroups[i]->getActivityType() == ACTIVITY_AWAKE)
 			apLandCargoGroups[i]->setActivityType(ACTIVITY_BOARDED);
@@ -4679,14 +4679,14 @@ void CvSelectionGroup::getLandCargoGroups(std::vector<CvSelectionGroup*>& r)
 		pUnitNode = nextUnitNode(pUnitNode))
 	{
 		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if(pLoopUnit->domainCargo() == DOMAIN_LAND && pLoopUnit->hasCargo())
+		if (pLoopUnit->domainCargo() == DOMAIN_LAND && pLoopUnit->hasCargo())
 		{
 			std::vector<CvUnit*> apCargo;
 			pLoopUnit->getCargoUnits(apCargo);
-			for(size_t i = 0; i < apCargo.size(); i++)
+			for (size_t i = 0; i < apCargo.size(); i++)
 			{
 				CvSelectionGroup* gr = apCargo[i]->getGroup();
-				if(gr == NULL)
+				if (gr == NULL)
 				{
 					FAssert(gr != NULL);
 					continue;

@@ -136,7 +136,7 @@ void CvPlot::initAdjList()
 		Which half should start in the north depends on the world wrap.
 		(It's the margins that cause problems.)
 		[Alt. idea: Go N-W-E-S and NE-SE-SW-NW, alternating between these
-		two sequences whenever a (non-NULL) has been added to m_paAdjList.] */
+		two sequences whenever a (non-NULL) plot has been added to m_paAdjList.] */
 	CvMap const& kMap = GC.getMap();
 	int const iWidth = kMap.getGridWidth();
 	int const iHeight = kMap.getGridHeight();
@@ -169,13 +169,13 @@ void CvPlot::initAdjList()
 
 	FOR_EACH_ENUM(Direction)
 	{
-		DirectionTypes eOffsetDir = (DirectionTypes)(
-				(eLoopDirection + iStartDirection) % NUM_DIRECTION_TYPES);
+		DirectionTypes eOffsetDir = (DirectionTypes)
+				((eLoopDirection + iStartDirection) % NUM_DIRECTION_TYPES);
 		CvPlot* p = plotDirection(getX(), getY(), eOffsetDir);
 		if (p != NULL)
 			apAdjList.push_back(p);
 	}
-	m_iAdjPlots = apAdjList.size();
+	m_iAdjPlots = (char)apAdjList.size();
 	m_paAdjList = new CvPlot*[m_iAdjPlots];
 	for (int i = 0; i < m_iAdjPlots; i++)
 		m_paAdjList[i] = apAdjList[i];
@@ -958,28 +958,23 @@ int CvPlot::getPlotGroupConnectedBonus(PlayerTypes ePlayer, BonusTypes eBonus) c
 
 bool CvPlot::isAdjacentPlotGroupConnectedBonus(PlayerTypes ePlayer, BonusTypes eBonus) const
 {
-	// K-Mod. Allow this plot to have whatever resources are available in the city working the plot.
-	// (The purpose of this is to allow railroads to be built the 'oil' from Standard Ethonol.)
+	/*	K-Mod. Allow this plot to have whatever resources are
+		available in the city working the plot. (The purpose of this is to
+		allow railroads to be built the 'oil' from Standard Ethanol.) */
 	CvCity* pCity = getWorkingCity();
-	if (pCity && pCity->getOwner() == ePlayer && pCity->hasBonus(eBonus))
+	if (pCity != NULL && pCity->getOwner() == ePlayer && pCity->hasBonus(eBonus))
 		return true;
 	// K-Mod end
-
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
-		if (pAdjacentPlot != NULL)
-		{
-			if (pAdjacentPlot->isPlotGroupConnectedBonus(ePlayer, eBonus))
-				return true;
-		}
+		if (pAdj->isPlotGroupConnectedBonus(ePlayer, eBonus))
+			return true;
 	}
-
 	return false;
 }
 
 
-void CvPlot::updatePlotGroupBonus(bool bAdd, /* advc.064d: */ bool bVerifyProduction)  // advc: style changes
+void CvPlot::updatePlotGroupBonus(bool bAdd, /* advc.064d: */ bool bVerifyProduction)
 {
 	PROFILE_FUNC();
 
@@ -1039,31 +1034,23 @@ void CvPlot::updatePlotGroupBonus(bool bAdd, /* advc.064d: */ bool bVerifyProduc
 bool CvPlot::isAdjacentToArea(CvArea const& kArea) const
 {
 	PROFILE_FUNC();
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
-		if (pAdjacentPlot != NULL)
-		{
-			if (pAdjacentPlot->isArea(kArea))
-				return true;
-		}
+		if (pAdj->isArea(kArea))
+			return true;
 	}
 	return false;
 }
 
 
-bool CvPlot::shareAdjacentArea(CvPlot const* pPlot) const  // advc: style changes
+bool CvPlot::shareAdjacentArea(CvPlot const* pPlot) const
 {
 	PROFILE_FUNC();
 
 	CvArea const* pLastArea = NULL;
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
-		if (pAdjacentPlot == NULL)
-			continue;
-
-		CvArea const* pCurrArea = pAdjacentPlot->area();
+		CvArea const* pCurrArea = pAdj->area();
 		if (pCurrArea != pLastArea)
 		{
 			if (pPlot->isAdjacentToArea(*pCurrArea))
@@ -1077,15 +1064,11 @@ bool CvPlot::shareAdjacentArea(CvPlot const* pPlot) const  // advc: style change
 
 bool CvPlot::isAdjacentToLand() const
 {
-	PROFILE_FUNC();
-	FOR_EACH_ENUM(Direction)
+	//PROFILE_FUNC(); // advc: Shouldn't be a concern now that we have an adjacency list
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
-		if (pAdjacentPlot != NULL)
-		{
-			if (!pAdjacentPlot->isWater())
-				return true;
-		}
+		if (!pAdj->isWater())
+			return true;
 	}
 	return false;
 }
@@ -1093,19 +1076,16 @@ bool CvPlot::isAdjacentToLand() const
 
 bool CvPlot::isCoastalLand(int iMinWaterSize) const
 {
-	//PROFILE_FUNC(); // advc.003o: Called very frequently, probably mainly from path finding code.
+	//PROFILE_FUNC(); // advc.003o: Called very frequently from pathfinding code
 
 	if (isWater())
 		return false;
 	// <advc.003t>
-	if (iMinWaterSize < 0) // Tbd.: Cache the result for iMinWaterSize<0
+	if (iMinWaterSize < 0) // Tbd.: Cache the result for iMinWaterSize -1 and 0?
 		iMinWaterSize = GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN);
 	// </advc.003t>
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
-		if (pAdj == NULL)
-			continue;
 		if (pAdj->isWater() /* advc.030: */ && !pAdj->isImpassable() &&
 			pAdj->getArea().getNumTiles() >= iMinWaterSize)
 		{
@@ -1123,7 +1103,6 @@ bool CvPlot::isVisibleWorked() const
 		if (getTeam() == GC.getGame().getActiveTeam() || GC.getGame().isDebugMode())
 			return true;
 	}
-
 	return false;
 }
 
@@ -1175,17 +1154,12 @@ bool CvPlot::isFreshWater() const
 	if (isRiver())
 		return true;
 
-	FOR_EACH_ENUM(Direction) // advc: Was a nested iDX,iDY loop
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pLoopPlot = plotDirection(getX(), getY(), eLoopDirection);
-		if (pLoopPlot == NULL)
-			continue;
-
-		if (pLoopPlot->isLake())
+		if (pAdj->isLake())
 			return true;
-
-		if (pLoopPlot->isFeature() &&
-			GC.getInfo(pLoopPlot->getFeatureType()).isAddsFreshWater())
+		if (pAdj->isFeature() &&
+			GC.getInfo(pAdj->getFeatureType()).isAddsFreshWater())
 		{
 			return true;
 		}
@@ -1197,22 +1171,20 @@ bool CvPlot::isFreshWater() const
 // advc.108:
 bool CvPlot::isAdjacentFreshWater() const
 {
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot const* pAdj = plotDirection(getX(), getY(), eLoopDirection);
-		if (pAdj != NULL && pAdj->isFreshWater())
+		if (pAdj->isFreshWater())
 			return true;
 	}
 	return false;
 }
 
-// advc.041:
+// advc.041: (no longer just a matter of area size)
 bool CvPlot::isAdjacentSaltWater() const
 {
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot const* pAdj = plotDirection(getX(), getY(), eLoopDirection);
-		if (pAdj != NULL && pAdj->isWater() && !pAdj->isLake())
+		if (pAdj->isWater() && !pAdj->isLake())
 			return true;
 	}
 	return false;
@@ -1258,17 +1230,13 @@ bool CvPlot::isIrrigationAvailable(bool bIgnoreSelf) const
 {
 	if (!bIgnoreSelf && isIrrigated())
 		return true;
-
 	if (isFreshWater())
 		return true;
-
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
-		if (pAdj != NULL && pAdj->isIrrigated())
+		if (pAdj->isIrrigated())
 			return true;
 	}
-
 	return false;
 }
 
@@ -1904,19 +1872,13 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 	if (GC.getInfo(eImprovement).isRequiresRiverSide())
 	{
 		bool bValid = false;
-		FOR_EACH_ENUM(CardinalDirection)
+		FOR_EACH_ORTH_ADJ_PLOT(*this)
 		{
-			CvPlot* pLoopPlot = plotCardinalDirection(getX(), getY(), eLoopCardinalDirection);
-			if (pLoopPlot == NULL)
-				continue;
-
-			if (isRiverCrossing(directionXY(*this, *pLoopPlot)))
+			if (pAdj->getImprovementType() != eImprovement &&
+				isRiverCrossing(directionXY(*this, *pAdj)))
 			{
-				if (pLoopPlot->getImprovementType() != eImprovement)
-				{
-					bValid = true;
-					break;
-				}
+				bValid = true;
+				break;
 			}
 		}
 		if (!bValid)
@@ -2462,10 +2424,9 @@ void CvPlot::changeExtraMovePathCost(int iChange)
 
 bool CvPlot::isAdjacentOwned() const
 {
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot const* pAdj = plotDirection(getX(), getY(), eLoopDirection);
-		if (pAdj != NULL && pAdj->isOwned())
+		if (pAdj->isOwned())
 			return true;
 	}
 	return false;
@@ -2474,11 +2435,8 @@ bool CvPlot::isAdjacentOwned() const
 
 bool CvPlot::isAdjacentPlayer(PlayerTypes ePlayer, bool bLandOnly) const
 {
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot const* pAdj = plotDirection(getX(), getY(), eLoopDirection);
-		if (pAdj == NULL)
-			continue;
 		if (pAdj->getOwner() == ePlayer)
 		{
 			if (!bLandOnly || !(pAdj->isWater()))
@@ -2491,11 +2449,8 @@ bool CvPlot::isAdjacentPlayer(PlayerTypes ePlayer, bool bLandOnly) const
 
 bool CvPlot::isAdjacentTeam(TeamTypes eTeam, bool bLandOnly) const
 {
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot const* pAdj = plotDirection(getX(), getY(), eLoopDirection);
-		if (pAdj == NULL)
-			continue;
 		if (pAdj->getTeam() == eTeam)
 		{
 			if (!bLandOnly || !pAdj->isWater())
@@ -2605,7 +2560,7 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 	{
 		int iBestPriority = MAX_INT;
 		CvCity* pBestCity = NULL;
-		for (CityPlotIter it(*this); it.hasNext(); ++it)  // advc: reduced indentation
+		for (CityPlotIter it(*this); it.hasNext(); ++it)
 		{
 			CvCity* pLoopCity = it->getPlotCity();
 			if(pLoopCity == NULL)
@@ -2640,32 +2595,19 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 	}
 
 	if(eBestPlayer != NO_PLAYER)
-		return eBestPlayer; // advc
+		return eBestPlayer;
 
-	bool bValid = true;
-	FOR_EACH_ENUM(CardinalDirection)
+	FOR_EACH_ORTH_ADJ_PLOT(*this)
 	{
-		CvPlot* pLoopPlot = plotCardinalDirection(getX(), getY(), eLoopCardinalDirection);
-		if (pLoopPlot == NULL)
-			continue;
-		if (pLoopPlot->isOwned())
+		if (pAdj->isOwned())
 		{
 			if (eBestPlayer == NO_PLAYER)
-				eBestPlayer = pLoopPlot->getOwner();
-			else if (eBestPlayer != pLoopPlot->getOwner())
-			{
-				bValid = false;
-				break;
-			}
+				eBestPlayer = pAdj->getOwner();
+			else if (eBestPlayer != pAdj->getOwner())
+				return NO_PLAYER;
 		}
-		else
-		{
-			bValid = false;
-			break;
-		}
+		else return NO_PLAYER;
 	}
-	if(!bValid)
-		eBestPlayer = NO_PLAYER;
 
 	return eBestPlayer;
 }
@@ -2748,16 +2690,6 @@ bool CvPlot::isVisible(TeamTypes eTeam, bool bDebug) const
 }
 
 // <advc.300>
-void CvPlot::getAdjacentLandAreaIds(std::set<int>& r) const
-{
-	FOR_EACH_ENUM(Direction)
-	{
-		CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
-		if(pAdj != NULL && !pAdj->isWater())
-			r.insert(pAdj->areaID());
-	}
-}
-
 // Mostly cut from CvMap::syncRandPlot. Now ignores Barbarian units.
 bool CvPlot::isCivUnitNearby(int iRadius) const
 {
@@ -2855,31 +2787,22 @@ bool CvPlot::isVisibleToWatchingHuman() const  // advc: style changes
 
 bool CvPlot::isAdjacentVisible(TeamTypes eTeam, bool bDebug) const
 {
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-		if (pAdjacentPlot != NULL)
-		{
-			if (pAdjacentPlot->isVisible(eTeam, bDebug))
-				return true;
-		}
+		if (pAdj->isVisible(eTeam, bDebug))
+			return true;
 	}
-
 	return false;
 }
 
+
 bool CvPlot::isAdjacentNonvisible(TeamTypes eTeam) const
 {
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
-		if (pAdjacentPlot != NULL)
-		{
-			if (!pAdjacentPlot->isVisible(eTeam))
-				return true;
-		}
+		if (!pAdj->isVisible(eTeam))
+			return true;
 	}
-
 	return false;
 }
 
@@ -3069,14 +2992,10 @@ bool CvPlot::canHaveFeature(FeatureTypes eFeature,
 
 	if (kFeature.isNoAdjacent())
 	{
-		FOR_EACH_ENUM(Direction)
+		FOR_EACH_ADJ_PLOT(*this)
 		{
-			CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
-			if (pAdjacentPlot != NULL)
-			{
-				if (pAdjacentPlot->getFeatureType() == eFeature)
-					return false;
-			}
+			if (pAdj->getFeatureType() == eFeature)
+				return false;
 		}
 	}
 
@@ -3408,24 +3327,19 @@ CvArea* CvPlot::waterArea(
 
 	int iBestValue = 0;
 	CvArea* pBestArea = NULL;
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-		if (pAdjacentPlot == NULL ||
-			// advc.030b: Can be NULL while recalculating areas at game start
-			pAdjacentPlot->area() == NULL)
-		{
-			continue; // advc
-		}
-		if (pAdjacentPlot->isWater() &&
+		// advc.030b: Can be NULL while recalculating areas at game start
+		if (pAdj->area() != NULL &&
+			pAdj->isWater() &&
 			// BETTER_BTS_AI_MOD, General AI, 01/02/09, jdog5000
-			(!bNoImpassable || !pAdjacentPlot->isImpassable()))
+			(!bNoImpassable || !pAdj->isImpassable()))
 		{
-			int iValue = pAdjacentPlot->getArea().getNumTiles();
+			int iValue = pAdj->getArea().getNumTiles();
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;
-				pBestArea = pAdjacentPlot->area();
+				pBestArea = pAdj->area();
 			}
 		}
 	}
@@ -3439,23 +3353,19 @@ CvArea* CvPlot::secondWaterArea() const
 	CvArea* pWaterArea = waterArea();
 	int iBestValue = 0;
 	CvArea* pBestArea = NULL;
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-		if (pAdjacentPlot == NULL)
-			continue; // advc
-
-		if (pAdjacentPlot->isWater() &&
+		if (pAdj->isWater() &&
 			/*  advc.031: Same as in waterArea, except that I see no need for a bNoImpassable
 				parameter here - water areas blocked by ice should always be excluded. */
-			!pAdjacentPlot->isImpassable() &&
-			!pAdjacentPlot->isArea(*pWaterArea))
+			!pAdj->isImpassable() &&
+			!pAdj->isArea(*pWaterArea))
 		{
-			int iValue = pAdjacentPlot->getArea().getNumTiles();
+			int iValue = pAdj->getArea().getNumTiles();
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;
-				pBestArea = pAdjacentPlot->area();
+				pBestArea = pAdj->area();
 			}
 		}
 	}
@@ -3635,14 +3545,10 @@ void CvPlot::setNOfRiver(bool bNewValue, CardinalDirectionTypes eRiverDir)
 		updateRiverCrossing();
 		updateYield();
 
-		for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+		FOR_EACH_ADJ_PLOT_VAR(*this)
 		{
-			CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
-			if (pAdjacentPlot != NULL)
-			{
-				pAdjacentPlot->updateRiverCrossing();
-				pAdjacentPlot->updateYield();
-			}
+			pAdj->updateRiverCrossing();
+			pAdj->updateYield();
 		}
 		getArea().changeNumRiverEdges((isNOfRiver()) ? 1 : -1);
 	}
@@ -3679,14 +3585,10 @@ void CvPlot::setWOfRiver(bool bNewValue, CardinalDirectionTypes eRiverDir)
 		updateRiverCrossing();
 		updateYield();
 
-		FOR_EACH_ENUM(Direction)
+		FOR_EACH_ADJ_PLOT_VAR(*this)
 		{
-			CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
-			if (pAdj != NULL)
-			{
-				pAdj->updateRiverCrossing();
-				pAdj->updateYield();
-			}
+			pAdj->updateRiverCrossing();
+			pAdj->updateYield();
 		}
 		getArea().changeNumRiverEdges(isWOfRiver() ? 1 : -1);
 	}
@@ -3715,13 +3617,13 @@ CardinalDirectionTypes CvPlot::getRiverWEDirection() const
 
 CvPlot* CvPlot::getInlandCorner() const
 {
-	CvPlot* pRiverPlot = NULL; // will be a plot through whose SE corner we want the river to run
+	CvPlot* pRiverPlot = NULL; // Plot through whose SE corner we want the river to run
 	int aiShuffle[4];
 	shuffleArray(aiShuffle, 4, GC.getGame().getMapRand());
 	CvMap const& m = GC.getMap();
-	for (int iI = 0; iI < 4; ++iI)
+	for (int i = 0; i < 4; i++)
 	{
-		switch (aiShuffle[iI])
+		switch (aiShuffle[i])
 		{
 		case 0:
 			pRiverPlot = m.plotSoren(getX(), getY()); break;
@@ -3745,16 +3647,16 @@ bool CvPlot::hasCoastAtSECorner() const
 	if (isWater())
 		return true;
 
-	CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), DIRECTION_EAST);
-	if (pAdjacentPlot != NULL && pAdjacentPlot->isWater())
+	CvPlot* pAdj = plotDirection(getX(), getY(), DIRECTION_EAST);
+	if (pAdj != NULL && pAdj->isWater())
 		return true;
 
-	pAdjacentPlot = plotDirection(getX(), getY(), DIRECTION_SOUTHEAST);
-	if (pAdjacentPlot != NULL && pAdjacentPlot->isWater())
+	pAdj = plotDirection(getX(), getY(), DIRECTION_SOUTHEAST);
+	if (pAdj != NULL && pAdj->isWater())
 		return true;
 
-	pAdjacentPlot = plotDirection(getX(), getY(), DIRECTION_SOUTH);
-	if (pAdjacentPlot != NULL && pAdjacentPlot->isWater())
+	pAdj = plotDirection(getX(), getY(), DIRECTION_SOUTH);
+	if (pAdj != NULL && pAdj->isWater())
 		return true;
 
 	return false;
@@ -3765,16 +3667,11 @@ void CvPlot::setIrrigated(bool bNewValue)
 {
 	if(isIrrigated() == bNewValue)
 		return;
-
 	m_bIrrigated = bNewValue;
-	FOR_EACH_ENUM(Direction) // advc: Replacing nested iDX,iDY loop
+	FOR_EACH_ADJ_PLOT_VAR(*this)
 	{
-		CvPlot* pLoopPlot = ::plotDirection(getX(), getY(), eLoopDirection);
-		if (pLoopPlot != NULL)
-		{
-			pLoopPlot->updateYield();
-			pLoopPlot->setLayoutDirty(true);
-		}
+		pAdj->updateYield();
+		pAdj->setLayoutDirty(true);
 	}
 }
 
@@ -4153,11 +4050,8 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 	{
 		if (bRecalculate)
 		{
-			FOR_EACH_ENUM(Direction)
+			FOR_EACH_ADJ_PLOT_VAR(*this)
 			{
-				CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
-				if (pAdj == NULL)
-					continue;
 				if (pAdj->isWater())
 				{
 					pAdj->setTerrainType(GC.getWATER_TERRAIN(pAdj->isAdjacentToLand()),
@@ -4165,15 +4059,10 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 				}
 			}
 		}
-
-		FOR_EACH_ENUM(Direction)
+		FOR_EACH_ADJ_PLOT_VAR(*this)
 		{
-			CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
-			if (pAdj != NULL)
-			{
-				pAdj->updateYield();
-				pAdj->updatePlotGroup();
-			}
+			pAdj->updateYield();
+			pAdj->updatePlotGroup();
 		}
 
 		// (advc.129d: updatePotentialCityWork moved down)
@@ -4197,49 +4086,39 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 			// XXX might want to change this if we allow diagonal water movement...
 			if (isWater())
 			{
-				FOR_EACH_ENUM(CardinalDirection)
+				FOR_EACH_ORTH_ADJ_PLOT(*this)
 				{
-					CvPlot const* pAdj = plotCardinalDirection(getX(), getY(),
-							eLoopCardinalDirection);
-					if (pAdj == NULL)
+					if (!pAdj->getArea().isWater())
 						continue;
-					if (pAdj->getArea().isWater())
+					if (pNewArea == NULL)
+						pNewArea = pAdj->area();
+					else if (pNewArea != pAdj->area())
 					{
-						if (pNewArea == NULL)
-							pNewArea = pAdj->area();
-						else if (pNewArea != pAdj->area())
-						{
-							bRecalculateAreas = true;
-							break;
-						}
+						bRecalculateAreas = true;
+						break;
 					}
 				}
 			}
 			else
 			{
-				FOR_EACH_ENUM(Direction)
+				FOR_EACH_ADJ_PLOT(*this)
 				{
-					CvPlot const* pAdj = plotDirection(getX(), getY(),
-							eLoopDirection);
-					if (pAdj == NULL)
+					if (pAdj->getArea().isWater())
 						continue;
-					if (!pAdj->getArea().isWater())
+					if (pNewArea == NULL)
+						pNewArea = pAdj->area();
+					else if (pNewArea != pAdj->area())
 					{
-						if (pNewArea == NULL)
-							pNewArea = pAdj->area();
-						else if (pNewArea != pAdj->area())
-						{
-							bRecalculateAreas = true;
-							break;
-						}
+						bRecalculateAreas = true;
+						break;
 					}
 				}
 			}
 
 			if (!bRecalculateAreas)
 			{
-				CvArea const* pLastArea = NULL; // advc: Was "pLoopPLot"; don't reuse.
-				{
+				CvArea const* pLastArea = NULL;
+				{	// advc: Was "pLoopPlot"; don't reuse.
 					CvPlot const* pLastPlot = plotDirection(getX(), getY(),
 							(DirectionTypes)(NUM_DIRECTION_TYPES - 1));
 					if (pLastPlot != NULL)
@@ -4296,12 +4175,9 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 			GC.getMap().recalculateAreas();
 		else
 		{
-			FOR_EACH_ENUM(Direction)
+			FOR_EACH_ADJ_PLOT(*this)
 			{
-				CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
-				if (pAdj == NULL || pAdj->isWater())
-					continue;
-				if (!sameArea(*pAdj))
+				if (!pAdj->isWater() && !sameArea(*pAdj))
 				{
 					GC.getMap().recalculateAreas();
 					break;
@@ -4972,12 +4848,8 @@ bool CvPlot::isHabitable(bool bIgnoreSea) const
 		return false;
 	// Count shelf as habitable, but not arctic shelf or adj. only to one land corner.
 	int iAdjHabitableLand = 0;
-	for(int i = 0; i < GC.getNumDirections(); i++)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		DirectionTypes dir = (DirectionTypes)i;
-		CvPlot* pAdj = plotDirection(getX(), getY(), dir);
-		if(pAdj == NULL)
-			continue;
 		if(pAdj->isHabitable(true))
 			iAdjHabitableLand++;
 		if(iAdjHabitableLand >= 2)
@@ -5419,10 +5291,9 @@ bool CvPlot::isBestAdjacentFound(PlayerTypes eIndex) /* advc: */ const
 	if (iPlotValue == 0)
 		return false;
 
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pAdj = plotDirection(getX(), getY(), eLoopDirection);
-		if (pAdj != NULL && pAdj->isRevealed(TEAMID(eIndex)))
+		if (pAdj->isRevealed(TEAMID(eIndex)))
 		{
 			//if (pAdjacentPlot->getFoundValue(eIndex) >= getFoundValue(eIndex))
 			if (citySiteEval.evaluate(*pAdj) > iPlotValue)
@@ -5580,18 +5451,13 @@ void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate,
 			if (isTradeNetwork(eTeam))
 			{
 				bConnected = true;
-				FOR_EACH_ENUM(Direction)
+				FOR_EACH_ADJ_PLOT(*this)
 				{
-					CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
-					if (pAdjacentPlot == NULL)
-						continue; // advc
-					if (pAdjacentPlot->getPlotGroup(ePlayer) == pPlotGroup)
+					if (pAdj->getPlotGroup(ePlayer) == pPlotGroup &&
+						!isTradeNetworkConnected(*pAdj, eTeam))
 					{
-						if (!isTradeNetworkConnected(*pAdjacentPlot, eTeam))
-						{
-							bConnected = false;
-							break;
-						}
+						bConnected = false;
+						break;
 					}
 				}
 			}
@@ -5612,41 +5478,35 @@ void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate,
 		return;
 
 	CvMap& kMap = GC.getMap();
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
-		if (pAdjacentPlot == NULL)
-			continue;
-
-		CvPlotGroup* pAdjacentPlotGroup = pAdjacentPlot->getPlotGroup(ePlayer);
-		if (pAdjacentPlotGroup != NULL && pAdjacentPlotGroup != pPlotGroup)
+		CvPlotGroup* pAdjPlotGroup = pAdj->getPlotGroup(ePlayer);
+		if (pAdjPlotGroup != NULL && pAdjPlotGroup != pPlotGroup &&
+			isTradeNetworkConnected(*pAdj, eTeam))
 		{
-			if (isTradeNetworkConnected(*pAdjacentPlot, eTeam))
+			if (pPlotGroup == NULL)
 			{
-				if (pPlotGroup == NULL)
-				{
-					pAdjacentPlotGroup->addPlot(this);
-					pPlotGroup = pAdjacentPlotGroup;
-					FAssert(getPlotGroup(ePlayer) == pPlotGroup);
-				}
-				else
-				{
-					FAssert(getPlotGroup(ePlayer) == pPlotGroup);
-					kMap.combinePlotGroups(ePlayer, pPlotGroup, pAdjacentPlotGroup,
-							bVerifyProduction); // advc.064d
-					pPlotGroup = getPlotGroup(ePlayer);
-					FAssert(pPlotGroup != NULL);
-				}
+				pAdjPlotGroup->addPlot(this);
+				pPlotGroup = pAdjPlotGroup;
+				FAssert(getPlotGroup(ePlayer) == pPlotGroup);
+			}
+			else
+			{
+				FAssert(getPlotGroup(ePlayer) == pPlotGroup);
+				kMap.combinePlotGroups(ePlayer, pPlotGroup, pAdjPlotGroup,
+						bVerifyProduction); // advc.064d
+				pPlotGroup = getPlotGroup(ePlayer);
+				FAssert(pPlotGroup != NULL);
 			}
 		}
 	}
-
 	if (pPlotGroup == NULL)
 		GET_PLAYER(ePlayer).initPlotGroup(this);
 }
 
 
-void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes eSeeInvisible, bool bUpdatePlotGroups,
+void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange,
+	InvisibleTypes eSeeInvisible, bool bUpdatePlotGroups,
 	CvUnit const* pUnit) // advc.071
 {
 	if(iChange == 0)
@@ -5677,15 +5537,12 @@ void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes 
 	if (isVisible(eTeam))
 	{
 		setRevealed(eTeam, true, false, NO_TEAM, bUpdatePlotGroups);
-		for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+		FOR_EACH_ADJ_PLOT_VAR(*this)
 		{
-			CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-			if (pAdjacentPlot != NULL)
-			{	//pAdjacentPlot->updateRevealedOwner(eTeam);
-				/*  K-Mod: updateRevealedOwner simply checks to see if there is a visible adjacent plot.
-					But we've already checked that, so lets go right to the punch. */
-				pAdjacentPlot->setRevealedOwner(eTeam, pAdjacentPlot->getOwner());
-			}
+			//pAdj->updateRevealedOwner(eTeam);
+			/*  K-Mod: updateRevealedOwner simply checks for a visible adj. plot.
+				But we've already checked that, so lets go right to the punch. */
+			pAdj->setRevealedOwner(eTeam, pAdj->getOwner());
 		}
 
 		if (getTeam() != NO_TEAM)
@@ -5837,16 +5694,12 @@ void CvPlot::updateRevealedOwner(TeamTypes eTeam)
 		bRevealed = true;
 	if (!bRevealed)
 	{
-		for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+		FOR_EACH_ADJ_PLOT(*this)
 		{
-			CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-			if (pAdjacentPlot != NULL)
+			if (pAdj->isVisible(eTeam))
 			{
-				if (pAdjacentPlot->isVisible(eTeam))
-				{
-					bRevealed = true;
-					break;
-				}
+				bRevealed = true;
+				break;
 			}
 		}
 	}
@@ -6059,30 +5912,28 @@ void CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, Tea
 	}
 }
 
-bool CvPlot::isAdjacentRevealed(TeamTypes eTeam, /* advc.205c: */ bool bSkipOcean) const
+
+bool CvPlot::isAdjacentRevealed(TeamTypes eTeam,
+	bool bSkipOcean) const // advc.205c
 {
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-		if (pAdjacentPlot == NULL)
-			continue;
-		if (pAdjacentPlot->isRevealed(eTeam) /* <advc.250c> */ && (!bSkipOcean ||
-				pAdjacentPlot->getTerrainType() != GC.getWATER_TERRAIN(false))) // </advc.250c>
+		if (pAdj->isRevealed(eTeam) /* <advc.250c> */ && (!bSkipOcean ||
+			pAdj->getTerrainType() != GC.getWATER_TERRAIN(false))) // </advc.250c>
+		{
 			return true;
+		}
 	}
 	return false;
 }
 
+
 bool CvPlot::isAdjacentNonrevealed(TeamTypes eTeam) const
 {
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	FOR_EACH_ADJ_PLOT(*this)
 	{
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
-		if (pAdjacentPlot != NULL)
-		{
-			if (!pAdjacentPlot->isRevealed(eTeam))
-				return true;
-		}
+		if (!pAdj->isRevealed(eTeam))
+			return true;
 	}
 	return false;
 }
@@ -6310,13 +6161,10 @@ void CvPlot::updateRouteSymbol(bool bForce, bool bAdjacent)
 
 	if (bAdjacent)
 	{
-		FOR_EACH_ENUM(Direction)
+		FOR_EACH_ADJ_PLOT_VAR(*this)
 		{
-			CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), eLoopDirection);
-			if (pAdjacentPlot == NULL)
-				continue;
-			pAdjacentPlot->updateRouteSymbol(bForce, false);
-			//pAdjacentPlot->setLayoutDirty(true);
+			pAdj->updateRouteSymbol(bForce, false);
+			//pAdj->setLayoutDirty(true);
 		}
 	}
 
@@ -6355,22 +6203,15 @@ CvFeature* CvPlot::getFeatureSymbol() const
 
 void CvPlot::updateRiverSymbol(bool bForce, bool bAdjacent)
 {
-	//PROFILE_FUNC();
-
 	if (!GC.IsGraphicsInitialized())
 		return;
 
-	CvPlot* pAdjacentPlot = NULL;
 	if (bAdjacent)
 	{
-		for(int i = 0; i < NUM_DIRECTION_TYPES; i++)
+		FOR_EACH_ADJ_PLOT_VAR(*this)
 		{
-			pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)i);
-			if (pAdjacentPlot != NULL)
-			{
-				pAdjacentPlot->updateRiverSymbol(bForce, false);
-				//pAdjacentPlot->setLayoutDirty(true);
-			}
+			pAdj->updateRiverSymbol(bForce, false);
+			//pAdj->setLayoutDirty(true);
 		}
 	}
 
@@ -6382,54 +6223,53 @@ void CvPlot::updateRiverSymbol(bool bForce, bool bAdjacent)
 
 	if (bForce || m_pRiverSymbol == NULL)
 	{
-		//create river
+		// create river
 		gDLL->getRiverIFace()->destroy(m_pRiverSymbol);
 		m_pRiverSymbol = gDLL->getRiverIFace()->createRiver();
 		FAssert(m_pRiverSymbol != NULL);
 		gDLL->getRiverIFace()->init(m_pRiverSymbol, 0, 0, 0, this);
 
-		//force tree cuts for adjacent plots
-		DirectionTypes affectedDirections[] = { NO_DIRECTION, DIRECTION_EAST, DIRECTION_SOUTHEAST, DIRECTION_SOUTH };
-		for(int i = 0; i < 4; i++)
+		// force tree cuts for adjacent plots
+		DirectionTypes affectedDirections[] =
 		{
-			pAdjacentPlot = plotDirection(getX(), getY(), affectedDirections[i]);
-			if (pAdjacentPlot != NULL)
-			{
-				gDLL->getEngineIFace()->ForceTreeOffsets(pAdjacentPlot->getX(), pAdjacentPlot->getY());
-			}
+			NO_DIRECTION, DIRECTION_EAST, DIRECTION_SOUTHEAST, DIRECTION_SOUTH
+		};
+		for (int i = 0; i < 4; i++)
+		{
+			CvPlot const* pAdj = plotDirection(getX(), getY(), affectedDirections[i]);
+			if (pAdj != NULL)
+				gDLL->getEngineIFace()->ForceTreeOffsets(pAdj->getX(), pAdj->getY());
 		}
 
-		//cut out canyons
+		// cut out canyons
 		gDLL->getEngineIFace()->RebuildRiverPlotTile(getX(), getY(), true, false);
 
-		//recontour adjacent rivers
-		for(int i = 0; i < NUM_DIRECTION_TYPES; i++)
+		// recontour adjacent rivers
+		FOR_EACH_ADJ_PLOT(*this)
 		{
-			pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)i);
-			if(pAdjacentPlot != NULL && pAdjacentPlot->m_pRiverSymbol != NULL)
-			{	//update position and contours:
-				gDLL->getRiverIFace()->updatePosition(pAdjacentPlot->m_pRiverSymbol);
+			if(pAdj->m_pRiverSymbol != NULL)
+			{	// update position and contours
+				gDLL->getRiverIFace()->updatePosition(pAdj->m_pRiverSymbol);
 			}
 		}
 		// update the symbol
 		setLayoutDirty(true);
 	}
-	//recontour rivers - update position and contours
+	// recontour rivers - update position and contours
 	gDLL->getRiverIFace()->updatePosition(m_pRiverSymbol);
 }
 
 
 void CvPlot::updateRiverSymbolArt(bool bAdjacent)
 {
-	//this is used to update floodplain features
+	// this is used to update floodplain features
 	gDLL->getEntityIFace()->setupFloodPlains(m_pRiverSymbol);
-	if(bAdjacent)
+	if (bAdjacent)
 	{
-		for(int i=0;i<NUM_DIRECTION_TYPES;i++)
+		FOR_EACH_ADJ_PLOT(*this)
 		{
-			CvPlot *pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)i);
-			if(pAdjacentPlot != NULL && pAdjacentPlot->m_pRiverSymbol != NULL)
-				gDLL->getEntityIFace()->setupFloodPlains(pAdjacentPlot->m_pRiverSymbol);
+			if (pAdj->m_pRiverSymbol != NULL)
+				gDLL->getEntityIFace()->setupFloodPlains(pAdj->m_pRiverSymbol);
 		}
 	}
 }
@@ -6724,20 +6564,16 @@ void CvPlot::doFeature()  // advc: some style changes
 			if (getBonusType() != NO_BONUS && !GC.getInfo(getBonusType()).isFeature(eLoopFeature))
 				continue;
 			int iProbability = 0;
-			FOR_EACH_ENUM(CardinalDirection)
+			FOR_EACH_ORTH_ADJ_PLOT(*this)
 			{
-				CvPlot* pLoopPlot = plotCardinalDirection(getX(), getY(), eLoopCardinalDirection);
-				if (pLoopPlot == NULL)
+				if (pAdj->getFeatureType() != eLoopFeature)
 					continue;
-				if (pLoopPlot->getFeatureType() == eLoopFeature)
+				if (!pAdj->isImproved())
+					iProbability += GC.getInfo(eLoopFeature).getGrowthProbability();
+				else
 				{
-					if (!pLoopPlot->isImproved())
-						iProbability += GC.getInfo(eLoopFeature).getGrowthProbability();
-					else
-					{
-						iProbability += GC.getInfo(pLoopPlot->getImprovementType()).
-								getFeatureGrowthProbability();
-					}
+					iProbability += GC.getInfo(pAdj->getImprovementType()).
+							getFeatureGrowthProbability();
 				}
 			}
 			static int const iFEATURE_GROWTH_MODIFIER = GC.getDefineINT("FEATURE_GROWTH_MODIFIER");

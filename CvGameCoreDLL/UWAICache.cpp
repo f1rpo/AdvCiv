@@ -1441,13 +1441,11 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 				// Can reach cities that are one off the coast
 				CvPlot const* newDest = NULL;
 				int shortestStepDist = MAX_INT;
-				FOR_EACH_ENUM(Direction) {
-					CvPlot* adj = ::plotDirection(targetCity.getX(), targetCity.getY(),
-							eLoopDirection);
-					if(adj != NULL && adj->isCoastalLand(-1)) {
-						int d = ::stepDistance(p, adj);
+				FOR_EACH_ADJ_PLOT(targetCity.getPlot()) {
+					if(pAdj->isCoastalLand(-1)) {
+						int d = ::stepDistance(p, pAdj);
 						if(d < shortestStepDist) {
-							newDest = adj;
+							newDest = pAdj;
 							shortestStepDist = d;
 						}
 					}

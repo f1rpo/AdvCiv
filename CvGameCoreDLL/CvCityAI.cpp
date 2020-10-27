@@ -6246,16 +6246,13 @@ int CvCityAI::AI_neededSeaWorkers() /* advc: */ const
 		(Partially based on code in CvPlayer::AI_countUnimprovedBonuses.) */
 	if(isBarbarian())
 	{
-		FOR_EACH_ENUM(Direction)
+		FOR_EACH_ADJ_PLOT(getPlot())
 		{
-			CvPlot* p = plotDirection(getX(), getY(), eLoopDirection);
-			if(p == NULL)
+			if(!pAdj->isWater())
 				continue;
-			if(!p->isWater())
-				continue;
-			BonusTypes eBonus = p->getNonObsoleteBonusType(getTeam());
+			BonusTypes eBonus = pAdj->getNonObsoleteBonusType(getTeam());
 			if(eBonus != NO_BONUS && !GET_PLAYER(getOwner()).
-				doesImprovementConnectBonus(p->getImprovementType(), eBonus))
+				doesImprovementConnectBonus(pAdj->getImprovementType(), eBonus))
 			{
 				iNeededSeaWorkers++;
 			}
@@ -10931,25 +10928,19 @@ void CvCityAI::AI_bestPlotBuild(CvPlot const& kPlot, int* piBestValue, BuildType
 		if (kPlot.isIrrigated() ||
 			(kPlot.isFreshWater() && kPlot.canHavePotentialIrrigation()))
 		{
-			FOR_EACH_ENUM(Direction)
+			FOR_EACH_ADJ_PLOT(kPlot)
 			{
-				CvPlot* pAdj = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
-				if (pAdj == NULL || pAdj->getOwner() != getOwner() ||
-					!pAdj->isCityRadius())
-				{
+				if (pAdj->getOwner() != getOwner() || !pAdj->isCityRadius())
 					continue;
-				}
 				if (!pAdj->isFreshWater() &&
 					/*	check for a city? cities can conduct irrigation and that effect is quite
 						useful... so I think irrigate cities. */
 					pAdj->isPotentialIrrigation())
 				{
 					CvPlot* eBestIrrigationPlot = NULL;
-					FOR_EACH_ENUM2(Direction, eNextDirection) // advc: Renamed some vars in this inner loop
+					FOR_EACH_ADJ_PLOT_VAR2(pDistTwoPlot, *pAdj)
 					{
-						CvPlot* pDistTwoPlot = plotDirection(
-								pAdj->getX(), pAdj->getY(), eNextDirection);
-						if (pDistTwoPlot == NULL || pDistTwoPlot->getOwner() != getOwner())
+						if (pDistTwoPlot->getOwner() != getOwner())
 							continue;
 						BonusTypes const eDistTwoBonus = pDistTwoPlot->
 								getNonObsoleteBonusType(getTeam());
