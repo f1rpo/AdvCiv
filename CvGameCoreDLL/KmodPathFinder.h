@@ -434,7 +434,6 @@ bool KmodPathFinder<StepMetric,Node>::generatePath(
 	m_pStart = &kStart;
 	m_pDest = &kDest;
 	{
-		m_pNodeMap->setDirty(true); // advc.opt (start node will be set after this block)
 		Node& kStartNode = m_pNodeMap->get(m_kMap.plotNum(kStart));
 		if (!kStartNode.isState(PATHNODE_UNINITIALIZED))
 		{
@@ -448,6 +447,7 @@ bool KmodPathFinder<StepMetric,Node>::generatePath(
 				FAssert(kStartNode.isState(PATHNODE_UNINITIALIZED));
 			}
 		}
+		m_pNodeMap->setDirty(true); // advc.opt
 		if (kStartNode.isState(PATHNODE_UNINITIALIZED))
 		{
 			// advc: Can't be helped. No CvPlot is truly const, so the cast is safe.
