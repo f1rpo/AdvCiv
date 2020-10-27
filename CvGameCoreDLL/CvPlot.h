@@ -3,6 +3,8 @@
 #ifndef CIV4_PLOT_H
 #define CIV4_PLOT_H
 
+#include "PlotAdjListTraversal.h" // advc.003s
+
 class CvArea;
 class CvMap;
 class CvPlotBuilder;
@@ -26,6 +28,7 @@ public:
 	~CvPlot();
 
 	void init(int iX, int iY);
+	void initAdjList(); // advc.opt
 	void setupGraphical();
 	void updateGraphicEra();
 
@@ -753,6 +756,17 @@ public:
 	DllExport bool checkLateEra() const;
 	void killRandomUnit(PlayerTypes eOwner, DomainTypes eDomain); // advc.300
 
+	// <advc.opt>
+	/*	advc.003s: No assertion of iAt being within array bounds; should
+		call this only via a FOR_EACH_ADJ_PLOT macro (PlotAdjListTraversal.h). */
+	inline CvPlot* getAdjacentPlotUnchecked(int iAt) const
+	{
+		//FAssertBounds(0, numAdjacentPlots(), iAt);
+		return m_paAdjList[iAt];
+	}
+	inline int numAdjacentPlots() const { return m_iAdjPlots; }
+	// </advc.opt>
+
 	wchar const* debugStr() const; // advc.031c
 
 	void read(FDataStreamBase* pStream);
@@ -806,6 +820,8 @@ protected:
 	char /*CardinalDirectionTypes*/ m_eRiverNSDirection;
 	char /*CardinalDirectionTypes*/ m_eRiverWEDirection;
 	char /*PlayerTypes*/ m_eSecondOwner; // advc.035
+	char m_iAdjPlots; // advc.opt
+	CvPlot** m_paAdjList; // advc.opt (a vector would take up 16 byte)
 	// <advc> m_pArea is enough - except while loading a savegame.
 	union
 	{
@@ -878,7 +894,7 @@ protected:
 };
 
 // advc.opt: It's fine to change the size, but might want to double check if it can be avoided.
-BOOST_STATIC_ASSERT(MAX_CIV_PLAYERS > 18 || sizeof(CvPlot) <= 212);
+BOOST_STATIC_ASSERT(MAX_CIV_PLAYERS > 18 || sizeof(CvPlot) <= 216);
 
 /*	advc.enum: For functions that choose random plots.
 	Moved from CvDefines, turned into an enum, exposed to Python. */

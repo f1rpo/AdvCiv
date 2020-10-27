@@ -585,11 +585,8 @@ int GroupStepMetric::cost(CvPlot const& kFrom, CvPlot const& kTo,
 				iWorstCost *= ((eFlags & MOVE_AVOID_ENEMY_WEIGHT_3) ? 3 : 2);
 			else
 			{
-				FOR_EACH_ENUM(Direction)
+				FOR_EACH_ADJ_PLOT(kTo)
 				{
-					CvPlot const* pAdj = plotDirection(kTo.getX(), kTo.getY(), eLoopDirection);
-					if (pAdj == NULL)
-						continue;
 					if (pAdj->isOwned() &&
 						GET_TEAM(pAdj->getTeam()).isAtWar(kGroup.getHeadTeam()))
 					{
@@ -707,7 +704,6 @@ bool GroupStepMetric::updatePathData(Node& kNode, Node const& kParent,
 							false); // advc.001i
 					FAssert(iUnitMoves > 0 || i == 1);
 				}
-
 				iUnitMoves = std::max(iUnitMoves, 0);
 				iMoves = std::min(iMoves, iUnitMoves);
 			}

@@ -66,6 +66,9 @@ void CvMap::init(CvMapInitData* pInitInfo)
 			getPlot(iX, iY).init(iX, iY);
 		}
 	}
+	// <advc.opt>
+	FOR_EACH_ENUM(PlotNum)
+		getPlotByIndex(eLoopPlotNum).initAdjList(); // </advc.opt>
 	calculateAreas();
 	gDLL->logMemState("CvMap after init plots");
 }
@@ -1177,6 +1180,8 @@ void CvMap::read(FDataStreamBase* pStream)
 		for (int i = 0; i < numPlots(); i++)
 			m_pMapPlots[i].read(pStream);
 		// <advc.opt>
+		for (int i = 0; i < numPlots(); i++)
+			m_pMapPlots[i].initAdjList();
 		if (uiFlag < 2)
 		{
 			for (int i = 0; i < numPlots(); i++)

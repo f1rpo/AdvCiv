@@ -319,6 +319,7 @@
     <ClInclude Include="..\KmodPathFinder.h" />
     <ClInclude Include="..\KmodPathFinderLegacy.h" />
     <ClInclude Include="..\LinkedListTraversal.h" />
+    <ClInclude Include="..\PlotAdjListTraversal.h" />
     <ClInclude Include="..\PragmaWarnings.h" />
     <ClInclude Include="..\ReproTest.h" />
     <ClInclude Include="..\EnumMap.h" />

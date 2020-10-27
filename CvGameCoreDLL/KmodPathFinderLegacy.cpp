@@ -335,12 +335,11 @@ bool KmodPathFinderLegacy::ProcessNode()
 	FAssert(&nodeMap->get(parent_node->m_iX, parent_node->m_iY) == parent_node);
 
 	// open a new node for each direction coming off the chosen node.
-	FOR_EACH_ENUM(Direction)
+	/*	<advc.test> For my testing purposes, the order of iteration here
+		needs to be the same as in the new KmodPathFinder. */
+	CvPlot const& kParentPlot = GC.getMap().getPlot(parent_node->m_iX, parent_node->m_iY);
+	FOR_EACH_ADJ_PLOT_VAR(kParentPlot) // </advc.test>
 	{
-		CvPlot* pAdj = plotDirection(parent_node->m_iX, parent_node->m_iY, eLoopDirection);
-		if (!pAdj)
-			continue;
-
 		const int& x = pAdj->getX(); // convenience
 		const int& y = pAdj->getY(); //
 

@@ -105,24 +105,17 @@ bool TeamStepMetric<eMODE>::isValidDest(CvPlot const& kStart, CvPlot const& kDes
 		if (kDest.isWater())
 			return /*kStart.sameArea(kDest)*/ true;
 		// May unload onto a coastal land plot (but not pass through)
-		FOR_EACH_ENUM(Direction)
+		FOR_EACH_ADJ_PLOT(kDest)
 		{
-			CvPlot const* pAdj = plotDirection(kDest.getX(), kDest.getY(),
-					eLoopDirection);
-			if (pAdj != NULL && //pAdj->sameArea(kStart)
-				pAdj->isWater())
-			{
+			if (pAdj->isWater()) //pAdj->sameArea(kStart)
 				return true;
-			}
 		}
 		return false;
 	}
 	// Water movement starting on land: need to be adjacent to water.
-	FOR_EACH_ENUM2(Direction, eDirStart)
+	FOR_EACH_ADJ_PLOT2(pAdjStart, kStart)
 	{
-		CvPlot const* pAdjStart = plotDirection(kStart.getX(), kStart.getY(),
-				eDirStart);
-		if (pAdjStart == NULL || !pAdjStart->isWater())
+		if (!pAdjStart->isWater())
 			continue;
 		//if (pAdjStart->sameArea(kDest))
 		if (kDest.isWater())
@@ -130,15 +123,10 @@ bool TeamStepMetric<eMODE>::isValidDest(CvPlot const& kStart, CvPlot const& kDes
 		//if (!kDest.isWater())
 		else
 		{
-			FOR_EACH_ENUM2(Direction, eDirDest)
+			FOR_EACH_ADJ_PLOT2(pAdjDest, kDest)
 			{
-				CvPlot const* pAdjDest = plotDirection(kDest.getX(), kDest.getY(),
-						eDirDest);
-				if (pAdjDest != NULL && //pAdjStart->sameArea(*pAdjDest)
-					pAdjDest->isWater())
-				{
+				if (pAdjDest->isWater()) //pAdjStart->sameArea(*pAdjDest)
 					return true;
-				}
 			}
 		}
 	}

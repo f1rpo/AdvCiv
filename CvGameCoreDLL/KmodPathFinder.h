@@ -3,6 +3,8 @@
 #ifndef KMOD_PATHFINDER_H
 #define KMOD_PATHFINDER_H
 
+#include "CvPlot.h" // advc.opt: for accessing adjacency lists
+
 /*	advc.pf, advc.104b: Refactored, moving the parts specific to group movement
 	into a derived class in GroupPathFinder.h.
 	Header-only in order to avoid explicit instantiations.
@@ -549,16 +551,10 @@ bool KmodPathFinder<StepMetric,Node>::processNode()
 		otherwise the iterator will be invalid. */
 	m_openList.close(itBest);
 	CvPlot const& kParentPlot = kParent.getPlot();
-	// (advc: This clutter will go away when I cache plot adjacency lists)
-	int const iParentX = kParentPlot.getX();
-	int const iParentY = kParentPlot.getY();
 
 	// Open a new node for each direction coming off the chosen node
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT_VAR2(pChildPlot, kParentPlot)
 	{
-		CvPlot* pChildPlot = plotDirection(iParentX, iParentY, eLoopDirection);
-		if (pChildPlot == NULL)
-			continue;
 		if (kParent.m_pParent != NULL && pChildPlot == &kParent.m_pParent->getPlot())
 			continue; // don't backtrack
 		// advc: Moved up; no functional difference.

@@ -46,6 +46,9 @@ CvPlot::CvPlot() // advc: Merged with the deleted reset function
 	m_pCenterUnit = NULL;
 	m_szScriptData = NULL;
 	m_szMostRecentCityName = NULL; // advc.005c
+	// <advc.opt>
+	m_paAdjList = NULL;
+	m_iAdjPlots = 0; // </advc.opt>
 
 	m_iX = 0;
 	m_iY = 0;
@@ -97,6 +100,7 @@ CvPlot::~CvPlot() // advc: Merged with the deleted uninit function
 {
 	SAFE_DELETE_ARRAY(m_szScriptData);
 	SAFE_DELETE_ARRAY(m_szMostRecentCityName); // advc.005c
+	SAFE_DELETE_ARRAY(m_paAdjList); // advc.opt
 
 	gDLL->getFeatureIFace()->destroy(m_pFeatureSymbol);
 	if(m_pPlotBuilder)
@@ -117,6 +121,82 @@ void CvPlot::init(int iX, int iY)
 	m_iX = toShort(iX);
 	m_iY = toShort(iY);
 	m_iLatitude = calculateLatitude(); // advc.tsl
+}
+
+// advc.opt:
+void CvPlot::initAdjList()
+{
+	std::vector<CvPlot*> apAdjList;
+	apAdjList.reserve(NUM_DIRECTION_TYPES);
+	/*	To ensure that diagonally adjacent plots receive only odd indices
+		(for fast loops over only orthogonal or only diagonal neighbors),
+		enumerate the adjacent plots starting with the northern neighbor
+		for one half of the map, and starting with the southern neighbor
+		for the other half of the map. Continue clockwise in any case.
+		Which half should start in the north depends on the world wrap.
+		(It's the margins that cause problems.)
+		[Alt. idea: Go N-W-E-S and NE-SE-SW-NW, alternating between these
+		two sequences whenever a (non-NULL) has been added to m_paAdjList.] */
+	CvMap const& kMap = GC.getMap();
+	int const iWidth = kMap.getGridWidth();
+	int const iHeight = kMap.getGridHeight();
+	int iStartDirection = DIRECTION_NORTH;
+	if (!kMap.isWrap())
+	{
+		// Diagonal split: southwestern half starts in the south
+		if (getX() * iHeight > getY() * iWidth)
+			iStartDirection = DIRECTION_SOUTH;
+	}
+	else if (kMap.isWrapX() && !kMap.isWrapY())
+	{
+		// Southern half starts in the south
+		if (2 * getY() < iHeight)
+			iStartDirection = DIRECTION_SOUTH;
+		/*	If the map is a single row, we'll have plots
+			with 2 orthogonal and 0 diagonal neighbors. */
+		FAssert(iHeight > 1);
+	}
+	else if (kMap.isWrapY() && !kMap.isWrapX())
+	{
+		// Eastern half starts in the south
+		if (2 * getX() > iWidth)
+			iStartDirection = DIRECTION_SOUTH;
+		/*	If the map is a single column, we'll have plots
+			with 2 orthogonal and 0 diagonal neighbors. */
+		FAssert(iWidth > 1);
+	}
+	//else ... // If there are no margins, then we can start wherever.
+
+	FOR_EACH_ENUM(Direction)
+	{
+		DirectionTypes eOffsetDir = (DirectionTypes)(
+				(eLoopDirection + iStartDirection) % NUM_DIRECTION_TYPES);
+		CvPlot* p = plotDirection(getX(), getY(), eOffsetDir);
+		if (p != NULL)
+			apAdjList.push_back(p);
+	}
+	m_iAdjPlots = apAdjList.size();
+	m_paAdjList = new CvPlot*[m_iAdjPlots];
+	for (int i = 0; i < m_iAdjPlots; i++)
+		m_paAdjList[i] = apAdjList[i];
+	#ifdef FASSERT_ENABLE // advc.test
+	/*FOR_EACH_ENUM(Direction)
+	{
+		CvPlot const* p = plotDirection(getX(), getY(), eLoopDirection);
+		if (p == NULL)
+			continue;
+		bool bOrth = (p->getX() == getX() || p->getY() == getY());
+		{
+			int i;
+			for (i = 0; i < numAdjacentPlots(); i++)
+			{
+				if (getAdjacentPlotUnchecked(i) == p)
+					break;
+			}
+			FAssert(i % 2 == (bOrth ? 0 : 1));
+		}
+	}*/
+	#endif
 }
 
 

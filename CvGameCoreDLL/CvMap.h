@@ -324,7 +324,8 @@ public: // advc: made several functions const
 		return m_ePlots;//getGridWidth() * getGridHeight(); // advc.opt
 	}
 	/*	advc.inl: Merged with plotNumINLINE (plotNum wasn't called externally).
-		advc.enum: return type changed from int. */
+		advc.enum: return type changed from int.
+		Tbd(?).: Cache this at CvPlot (and possibly CvCity)? */
 	inline PlotNumTypes plotNum(int iX, int iY) const 												// Exposed to Python
 	{
 		return (PlotNumTypes)(iY * getGridWidth() + iX);
