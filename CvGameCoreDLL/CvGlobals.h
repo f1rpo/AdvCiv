@@ -248,7 +248,13 @@ public:
 	DllExport CvWorldPickerInfo& getWorldPickerInfo(int iWorldPicker) { CvGlobals const& kThis = *this; return kThis.getWorldPickerInfo(iWorldPicker); }
 	DllExport CvSpaceShipInfo& getSpaceShipInfo(int iSpaceShip) { CvGlobals const& kThis = *this; return kThis.getSpaceShipInfo(iSpaceShip); }
 	DllExport CvInfoBase& getHints(int iHint) { CvGlobals const& kThis = *this; return kThis.getHintInfo(iHint); }
-	DllExport CvMainMenuInfo& getMainMenus(int iMainMenu) { CvGlobals const& kThis = *this; return kThis.getMainMenuInfo(iMainMenu); }
+	DllExport CvMainMenuInfo& getMainMenus(int iMainMenu)
+	{	/*	advc (note): The caller should check this - but the EXE doesn't. Important
+			for switching in between mods when a mod adds or removes menu backgrounds. */
+		if (iMainMenu >= getNumMainMenuInfos())
+			iMainMenu = 0;
+		CvGlobals const& kThis = *this; return kThis.getMainMenuInfo(iMainMenu);
+	}
 	DllExport CvWaterPlaneInfo& getWaterPlaneInfo(int iWaterPlane) { CvGlobals const& kThis = *this; return kThis.getWaterPlaneInfo(iWaterPlane); }
 	DllExport CvLandscapeInfo& getLandscapeInfo(int iLandscape) { CvGlobals const& kThis = *this; return kThis.getLandscapeInfo(iLandscape); }
 	DllExport CvCameraOverlayInfo& getCameraOverlayInfo(int iCameraOverlay) { CvGlobals const& kThis = *this; return kThis.getCameraOverlayInfo((CameraOverlayTypes)iCameraOverlay); }
