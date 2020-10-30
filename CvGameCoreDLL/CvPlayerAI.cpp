@@ -12359,13 +12359,12 @@ DenialTypes CvPlayerAI::AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes eP
 				continue;
 			bool bPeaceTreaty = false;
 			bool bAnnualPayment = false;
-			for(CLLNode<TradeData> const* pNode = d->headTradesNode(); pNode != NULL;
-				pNode = d->nextTradesNode(pNode))
+			FOR_EACH_TRADE_ITEM(d->getGivesList(getTeam()))
 			{
-				TradeableItems eItem = pNode->m_data.m_eItemType;
-				if(eItem == TRADE_PEACE_TREATY)
+				TradeableItems eType = pItem->m_eItemType;
+				if(eType == TRADE_PEACE_TREATY)
 					bPeaceTreaty = true;
-				if(eItem == TRADE_RESOURCES || eItem == TRADE_GOLD_PER_TURN)
+				if(eType == TRADE_RESOURCES || eType == TRADE_GOLD_PER_TURN)
 					bAnnualPayment = true;
 			}
 			if(bPeaceTreaty && bAnnualPayment)
