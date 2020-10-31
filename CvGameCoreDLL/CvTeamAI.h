@@ -181,7 +181,7 @@ public:
 	scaled AI_recentlyMetMultiplier(TeamTypes eOther) const;
 	// </advc.130p>
 	// advc.130k: Public b/c CvPlayerAI needs it too
-	int AI_randomCounterChange(int iUpperCap = -1, double pr = 0.5) const;
+	int AI_randomCounterChange(int iUpperCap = -1, scaled rProb = scaled(1, 2)) const;
 	int AI_getWarPlanStateCounter(TeamTypes eIndex) const { return m_aiWarPlanStateCounter.get(eIndex); }
 	void AI_setWarPlanStateCounter(TeamTypes eIndex, int iNewValue);
 	void AI_changeWarPlanStateCounter(TeamTypes eIndex, int iChange);

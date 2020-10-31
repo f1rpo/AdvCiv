@@ -63,7 +63,9 @@ public:
 	// advc.003u: These two had returned CvUnit*
 	CvUnitAI* AI_ejectBestDefender(CvPlot* pTargetPlot);
 	CvUnitAI* AI_getMissionAIUnit() const;
-	CvUnitAI* AI_getHeadUnit() const; // advc.003u: Counterpart to CvSelectionGroup::getHeadUnit
+	// <advc.003u> Counterparts to CvSelectionGroup::getHeadUnit
+	CvUnitAI const* AI_getHeadUnit() const;
+	CvUnitAI* AI_getHeadUnit(); // </advc.003u>
 
 	bool AI_isFull();
 

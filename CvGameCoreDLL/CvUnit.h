@@ -594,9 +594,14 @@ public:
 	void setID(int iID);
 
 	int getGroupID() const { return m_iGroupID; }															// Exposed to Python
-	bool isInGroup() const { return(getGroupID() != FFreeList::INVALID_INDEX); }							// Exposed to Python
+	// advc: I don't think a unit is ever supposed to not be in a group
+	//bool isInGroup() const; // Exposed to Python ( advc: still available to Python; see CyUnit.cpp.)
 	bool isGroupHead() const;																				// Exposed to Python
-	DllExport CvSelectionGroup* getGroup() const;															// Exposed to Python
+	CvSelectionGroup* getGroupExternal() const; // advc.003s: exported through .def file
+	// <advc.003s> Should make loops over units in a group less hazardous
+	CvSelectionGroup const* getGroup() const;
+	CvSelectionGroup* getGroup();																			// Exposed to Python
+	// </advc.003s>
 	bool isBeforeUnitCycle(CvUnit const& kOther) const; // advc: Moved from CvGameCoreUtils
 	bool canJoinGroup(const CvPlot* pPlot, CvSelectionGroup const* pSelectionGroup) const;
 	void joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected = false, bool bRejoin = true);
@@ -854,7 +859,8 @@ public:
 	void setCombatUnit(CvUnit* pUnit, bool bAttacking = false);
 	bool showSiegeTower(CvUnit* pDefender) const; // K-Mod
 
-	CvUnit* getTransportUnit() const;																		// Exposed to Python
+	CvUnit const* getTransportUnit() const;																	// Exposed to Python
+	CvUnit* getTransportUnit(); // advc
 	// advc.103f: Force-inlined for CvArea::canBeEntered
 	__forceinline bool isCargo() const																		// Exposed to Python
 	{	// advc.test: (Should perhaps simply turn m_transportUnit into a CvUnit pointer.)
@@ -1140,7 +1146,7 @@ protected:
 	PlayerTypes getCombatOwner_bulk(TeamTypes eForTeam, CvPlot const& kPlot) const; // advc
 
 	bool canAdvance(const CvPlot* pPlot, int iThreshold) const;
-	void collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit = NULL);
+	void collateralCombat(const CvPlot* pPlot, CvUnit const* pSkipUnit = NULL);
 	void flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength,
 			int iAttackerFirepower, int iDefenderOdds, int iDefenderDamage,
 			CvUnit const* pSkipUnit = NULL);

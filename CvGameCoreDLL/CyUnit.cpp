@@ -1063,7 +1063,8 @@ int CyUnit::getGroupID()
 
 bool CyUnit::isInGroup()
 {
-	return m_pUnit ? m_pUnit->isInGroup() : false;
+	// advc: Cut from CvUnit::isInGroup. I've removed that function.
+	return m_pUnit ? (m_pUnit->getGroupID() != FFreeList::INVALID_INDEX) : false;
 }
 
 bool CyUnit::isGroupHead()

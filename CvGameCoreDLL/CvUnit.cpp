@@ -1726,11 +1726,8 @@ bool CvUnit::isActionRecommended(int iAction)
 		to work. (E.g. setupGraphical and shouldShowEnemyGlow are too early.) */
 	if(iAction == 0 && !BUGOption::isEnabled("PLE__ShowPromotionGlow", false))
 	{
-		CvSelectionGroup* gr = getGroup();
-		for(CLLNode<IDInfo> const* pNode = gr->headUnitNode(); pNode != NULL;
-			pNode = gr->nextUnitNode(pNode))
+		FOR_EACH_UNIT_VAR_IN(pUnit, *getGroup())
 		{
-			CvUnit* pUnit = ::getUnit(pNode->m_data);
 			if(pUnit != NULL)
 			{
 				bool bGlow = pUnit->isPromotionReady();
@@ -1919,11 +1916,8 @@ void CvUnit::updateFoundingBorder(bool bForceClear) const
 	gDLL->UI().setDirty(ColoredPlots_DIRTY_BIT, true);
 	if(bForceClear || iMode <= 0 || !canFound())
 		return;
-	CvSelectionGroup* gr = getGroup();
-	for(CLLNode<IDInfo> const* pNode = gr->headUnitNode(); pNode != NULL;
-		pNode = gr->nextUnitNode(pNode))
+	FOR_EACH_UNIT_IN(pUnit, *getGroup())
 	{
-		CvUnit const* pUnit = ::getUnit(pNode->m_data);
 		if(pUnit == NULL || (pUnit->IsSelected() && !pUnit->canFound()))
 			return;
 	}
@@ -2239,7 +2233,7 @@ TeamTypes CvUnit::getDeclareWarMove(const CvPlot* pPlot) const
 	if (eRevealedTeam != NO_TEAM)
 	{
 		if (!canEnterTerritory(eRevealedTeam, false, pPlot->area()) ||
-			(getDomainType() == DOMAIN_SEA &&
+			(getDomainType() == DOMAIN_SEA && /* advc.opt: */ hasCargo() && 
 			!canCargoEnterTerritory(eRevealedTeam, false, pPlot->getArea()) &&
 			getGroup()->isAmphibPlot(pPlot)))
 		{
@@ -2275,7 +2269,7 @@ bool CvUnit::willRevealAnyPlotFrom(CvPlot const& kFrom) const
 	{
 		CvPlot const& kLoopPlot = *it;
 		if (!kLoopPlot.isRevealed(getTeam()) && kFrom.canSeePlot(
-			&kLoopPlot, getTeam(), visibilityRange(), NO_DIRECTION))
+			&kLoopPlot, getTeam(), visibilityRange()))
 		{
 			return true;
 		}
@@ -3336,7 +3330,7 @@ bool CvUnit::shouldLoadOnMove(const CvPlot* pPlot) const
 bool CvUnit::canLoadOntoAnyUnit(CvPlot const& kPlot, /* advc.123c: */ bool bCheckMoves) const
 {
 	//PROFILE_FUNC(); // advc.003o
-	FOR_EACH_UNIT_IN(pTransport, kPlot) // advc.test: for advc.003s macro
+	FOR_EACH_UNIT_IN(pTransport, kPlot)
 	{
 		if(canLoadOnto(*pTransport, kPlot, /* advc.123c: */ bCheckMoves))
 			return true;
@@ -3350,21 +3344,17 @@ void CvUnit::load()
 	if (!canLoadOntoAnyUnit(getPlot()))
 		return;
 
-	CvPlot const& kPlot = getPlot();
 	for (int iPass = 0; iPass < 2; iPass++)
 	{
-		CLLNode<IDInfo>* pUnitNode = kPlot.headUnitNode();
-		while (pUnitNode != NULL)
+		FOR_EACH_UNIT_VAR_IN(pUnit, getPlot())
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = kPlot.nextUnitNode(pUnitNode);
-			if (canLoadOnto(*pLoopUnit, kPlot))
+			if (canLoadOnto(*pUnit, getPlot()))
 			{
 				if (iPass == 0 ?
-					(pLoopUnit->getOwner() == getOwner()) :
-					(pLoopUnit->getTeam() == getTeam()))
+					(pUnit->getOwner() == getOwner()) :
+					(pUnit->getTeam() == getTeam()))
 				{
-					setTransportUnit(pLoopUnit);
+					setTransportUnit(pUnit);
 					break;
 				}
 			}
@@ -3567,7 +3557,7 @@ bool CvUnit::canSentry(const CvPlot* pPlot) const
 int CvUnit::healRate(bool bLocation, bool bUnits, CvPlot const* pAt) const
 {
 	PROFILE_FUNC();
-	CvPlot const& kPlot = (pAt == NULL ? getPlot() : *pAt); // advc
+	CvPlot const& kPlot = (pAt == NULL ? getPlot() : *pAt);
 	// <advc.opt>
 	static int const iCITY_HEAL_RATE = GC.getDefineINT("CITY_HEAL_RATE");
 	static int const iFRIENDLY_HEAL_RATE = GC.getDefineINT("FRIENDLY_HEAL_RATE");
@@ -3608,13 +3598,11 @@ int CvUnit::healRate(bool bLocation, bool bUnits, CvPlot const* pAt) const
 	{
 		// <XXX> optimize this (save it?)
 		int iBestHeal = 0;
-		for (CLLNode<IDInfo> const* pNode = kPlot.headUnitNode(); pNode != NULL;
-			pNode = kPlot.nextUnitNode(pNode))
+		FOR_EACH_UNIT_IN(pUnit, kPlot)
 		{
-			CvUnit const& kLoopUnit = *::getUnit(pNode->m_data);
-			if (kLoopUnit.getTeam() == getTeam()) // XXX what about alliances?
+			if (pUnit->getTeam() == getTeam()) // XXX what about alliances?
 			{
-				int iHeal = kLoopUnit.getSameTileHeal();
+				int iHeal = pUnit->getSameTileHeal();
 				if (iHeal > iBestHeal)
 					iBestHeal = iHeal;
 			}
@@ -3623,16 +3611,14 @@ int CvUnit::healRate(bool bLocation, bool bUnits, CvPlot const* pAt) const
 		{
 			// advc.030: Instead check domain type below
 			//if (pLoopPlot->sameArea(*pPlot)) {
-			for (CLLNode<IDInfo>* pNode = pAdj->headUnitNode(); pNode != NULL;
-				pNode = pAdj->nextUnitNode(pNode))
+			FOR_EACH_UNIT_IN(pUnit, *pAdj)
 			{
-				CvUnit const& kLoopUnit = *::getUnit(pNode->m_data);
 				if ( // <advc.030>
-					kLoopUnit.getDomainType() == getDomainType() &&
-					!kLoopUnit.isCargo() && // </advc.030>
-					kLoopUnit.getTeam() == getTeam()) // XXX what about alliances?
+					pUnit->getDomainType() == getDomainType() &&
+					!pUnit->isCargo() && // </advc.030>
+					pUnit->getTeam() == getTeam()) // XXX what about alliances?
 					{
-						int iHeal = kLoopUnit.getAdjacentTileHeal();
+						int iHeal = pUnit->getAdjacentTileHeal();
 						if (iHeal > iBestHeal)
 							iBestHeal = iHeal;
 					}
@@ -6048,7 +6034,7 @@ void CvUnit::promote(PromotionTypes ePromotion, int iLeaderUnitId)
 	if (iLeaderUnitId >= 0)
 	{
 		CvUnit* pWarlord = GET_PLAYER(getOwner()).getUnit(iLeaderUnitId);
-		if (pWarlord)
+		if (pWarlord != NULL)
 		{
 			pWarlord->giveExperience();
 			if (!pWarlord->getNameNoDesc().empty())
@@ -6144,61 +6130,67 @@ bool CvUnit::lead(int iUnitId)
 }
 
 
-int CvUnit::canLead(const CvPlot* pPlot, int iUnitId) const
+int CvUnit::canLead(CvPlot const* pPlot, int iUnitId) const
 {
 	PROFILE_FUNC();
 
 	if (isDelayedDeath())
 		return 0;
 
-	if (NO_UNIT == getUnitType())
+	if (getUnitType() == NO_UNIT)
 		return 0;
 
-	int iNumUnits = 0;
+	int iUnits = 0;
 
 	if (iUnitId == -1)
 	{
-		for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
-			pUnitNode = pPlot->nextUnitNode(pUnitNode))
+		FOR_EACH_UNIT_IN(pUnit, *pPlot)
 		{
-			CvUnit const* pUnit = ::getUnit(pUnitNode->m_data);
-			if (pUnit != NULL && pUnit != this && pUnit->getOwner() == getOwner() &&
+			if (pUnit == NULL)
+			{
+				FAssertMsg(pUnit != NULL, "Can this happen?"); // advc.test
+				continue;
+			}
+			if (pUnit != this && pUnit->getOwner() == getOwner() &&
 				pUnit->canPromote((PromotionTypes)m_pUnitInfo->getLeaderPromotion(), getID()))
 			{
-				++iNumUnits;
+				iUnits++;
 			}
 		}
 	}
 	else
 	{
 		CvUnit* pUnit = GET_PLAYER(getOwner()).getUnit(iUnitId);
-		if (pUnit && pUnit != this && pUnit->canPromote((PromotionTypes)
+		if (pUnit != NULL && pUnit != this && pUnit->canPromote((PromotionTypes)
 			m_pUnitInfo->getLeaderPromotion(), getID()))
 		{
-			iNumUnits = 1;
+			iUnits = 1;
 		}
 	}
-	return iNumUnits;
+	return iUnits;
 }
 
 
-int CvUnit::canGiveExperience(const CvPlot* pPlot) const
+int CvUnit::canGiveExperience(CvPlot const* pPlot) const
 {
-	int iNumUnits = 0;
-	if (NO_UNIT != getUnitType() && m_pUnitInfo->getLeaderExperience() > 0)
+	int iUnits = 0;
+	if (getUnitType() != NO_UNIT && m_pUnitInfo->getLeaderExperience() > 0)
 	{
-		for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
-			pUnitNode = pPlot->nextUnitNode(pUnitNode))
+		FOR_EACH_UNIT_IN(pUnit, *pPlot)
 		{
-			CvUnit const* pUnit = ::getUnit(pUnitNode->m_data);
-			if (pUnit != NULL && pUnit != this && pUnit->getOwner() == getOwner() &&
+			if (pUnit == NULL)
+			{
+				FAssertMsg(pUnit != NULL, "Can this happen?"); // advc.test
+				continue;
+			}
+			if (pUnit != this && pUnit->getOwner() == getOwner() &&
 				pUnit->canAcquirePromotionAny())
 			{
-				++iNumUnits;
+				iUnits++;
 			}
 		}
 	}
-	return iNumUnits;
+	return iUnits;
 }
 
 bool CvUnit::giveExperience()  // advc: some style changes
@@ -6214,16 +6206,15 @@ bool CvUnit::giveExperience()  // advc: some style changes
 	int iMinExperiencePerUnit = iTotalExperience / iNumUnits;
 	int iRemainder = iTotalExperience % iNumUnits;
 
-	CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
 	int i = 0;
-	while(pUnitNode != NULL)
+	FOR_EACH_UNIT_VAR_IN(pUnit, *pPlot)
 	{
-		CvUnit* pUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = pPlot->nextUnitNode(pUnitNode);
-		if (pUnit && pUnit != this && pUnit->getOwner() == getOwner() &&
-				pUnit->canAcquirePromotionAny())
+		// advc: NULL check removed
+		if (pUnit != this && pUnit->getOwner() == getOwner() &&
+			pUnit->canAcquirePromotionAny())
 		{
-			pUnit->changeExperience(i < iRemainder ? iMinExperiencePerUnit+1 : iMinExperiencePerUnit);
+			pUnit->changeExperience(i < iRemainder ?
+					iMinExperiencePerUnit + 1 : iMinExperiencePerUnit);
 			pUnit->testPromotionReady();
 		}
 		i++;
@@ -6234,9 +6225,10 @@ bool CvUnit::giveExperience()  // advc: some style changes
 int CvUnit::getStackExperienceToGive(int iNumUnits) const
 {
 	return (m_pUnitInfo->getLeaderExperience() * (100 + std::min(
-			//50, (iNumUnits - 1) * GC.getDefineINT("WARLORD_EXTRA_EXPERIENCE_PER_UNIT_PERCENT")))) / 100;
-			// K-Mod, +50% is too low as a maximum.
-			GC.getDefineINT("WARLORD_MAXIMUM_EXTRA_EXPERIENCE_PERCENT"), (iNumUnits - 1) * GC.getDefineINT("WARLORD_EXTRA_EXPERIENCE_PER_UNIT_PERCENT")))) / 100;
+			//50 // K-Mod: +50% is too low as a maximum.
+			GC.getDefineINT("WARLORD_MAXIMUM_EXTRA_EXPERIENCE_PERCENT"),
+			(iNumUnits - 1) *
+			GC.getDefineINT("WARLORD_EXTRA_EXPERIENCE_PER_UNIT_PERCENT")))) / 100;
 }
 
 int CvUnit::upgradePrice(UnitTypes eUnit) const
@@ -6351,13 +6343,13 @@ CvCity* CvUnit::getUpgradeCity(bool bSearch) const
 	int iBestSearchValue = MAX_INT;
 	CvCity* pBestUpgradeCity = NULL;
 
-	for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
+	FOR_EACH_ENUM(Unit)
 	{
-		int iNewValue = kPlayer.AI_unitValue(((UnitTypes)iI), eUnitAI, area());
+		int iNewValue = kPlayer.AI_unitValue(eLoopUnit, eUnitAI, area());
 		if (iNewValue > iCurrentValue)
 		{
 			int iSearchValue;
-			CvCity* pUpgradeCity = getUpgradeCity((UnitTypes)iI, bSearch, &iSearchValue);
+			CvCity* pUpgradeCity = getUpgradeCity(eLoopUnit, bSearch, &iSearchValue);
 			if (pUpgradeCity != NULL)
 			{
 				// if not searching or close enough, then this match will do
@@ -6388,13 +6380,14 @@ CvCity* CvUnit::getUpgradeCity(bool bSearch) const
 	NULL result means the upgrade is not possible. */
 CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue) const
 {
+	PROFILE_FUNC(); // advc.test: To be profiled
 	if (eUnit == NO_UNIT)
 		return NULL; // kmodx: was "false"; five more occurrences of that error in this function
 
-	CvPlayerAI& kPlayer = GET_PLAYER(getOwner());
-	CvUnitInfo& kToUnit = GC.getInfo(eUnit);
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	CvUnitInfo const& kToUnit = GC.getInfo(eUnit);
 
-	if (GC.getInfo(kPlayer.getCivilizationType()).
+	if (GC.getInfo(kOwner.getCivilizationType()).
 		getCivilizationUnits(kToUnit.getUnitClassType()) != eUnit)
 	{
 		return NULL;
@@ -6405,95 +6398,85 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 	if (kToUnit.getCargoSpace() < getCargo())
 		return NULL;
 
-	if (getCargo() > 0) // K-Mod. (no point looping through everything if there is no cargo anyway.)
+	/*if (getCargo() > 0) { // K-Mod. (no point looping through everything if there is no cargo anyway.)
+		FOR_EACH_UNIT_IN(pLoopUnit, getPlot()) {
+			if (pLoopUnit->getTransportUnit() == this) { ... }
+		}
+	}*/ // <advc> Let's just use getCargoUnits (although it's potentially slower)
+	std::vector<CvUnit*> apCargoUnits;
+	getCargoUnits(apCargoUnits);
+	for (size_t i = 0; i < apCargoUnits.size(); i++)
 	{
-		for (CLLNode<IDInfo> const* pUnitNode = getPlot().headUnitNode(); pUnitNode != NULL;
-			pUnitNode = getPlot().nextUnitNode(pUnitNode))
+		CvUnit const& kLoopUnit = *apCargoUnits[i]; // </advc>
+		if (kToUnit.getSpecialCargo() != NO_SPECIALUNIT &&
+			kToUnit.getSpecialCargo() != kLoopUnit.getSpecialUnitType())
 		{
-			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			if (pLoopUnit->getTransportUnit() == this)
-			{
-				if (kToUnit.getSpecialCargo() != NO_SPECIALUNIT)
-				{
-					if (kToUnit.getSpecialCargo() != pLoopUnit->getSpecialUnitType())
-						return NULL;
-				}
-
-				if (kToUnit.getDomainCargo() != NO_DOMAIN)
-				{
-					if (kToUnit.getDomainCargo() != pLoopUnit->getDomainType())
-						return NULL;
-				}
-			}
+			return NULL;
+		}
+		if (kToUnit.getDomainCargo() != NO_DOMAIN &&
+			kToUnit.getDomainCargo() != kLoopUnit.getDomainType())
+		{
+			return NULL;
 		}
 	}
 
 	// sea units must be built on the coast
 	bool const bCoastalOnly = (getDomainType() == DOMAIN_SEA);
 
-	// results
-	int iBestValue = MAX_INT;
 	CvCity* pBestCity = NULL;
+	int iBestValue = MAX_INT;
 
-	// if search is true, check every city for our team
-	if (bSearch)
+	if (bSearch) // check every city for our team
 	{
 		// air units can travel any distance
 		bool bIgnoreDistance = (getDomainType() == DOMAIN_AIR);
-
-		TeamTypes eTeam = getTeam();
-		int iX = getX(), iY = getY();
-
 		// check every player on our team's cities
-		for (int iI = 0; iI < MAX_PLAYERS; iI++)
+		for (MemberIter itMember(getTeam()); itMember.hasNext(); ++itMember)
 		{
-			// is this player on our team?
-			CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-			if (kLoopPlayer.isAlive() && kLoopPlayer.getTeam() == eTeam)
+			FOR_EACH_CITYAI_VAR(pCity, *itMember)
 			{
-				FOR_EACH_CITYAI_VAR(pLoopCity, kLoopPlayer)
+				// if coastal only, then make sure we are coast
+				CvArea const* pWaterArea = NULL;
+				if (bCoastalOnly)
 				{
-					// if coastal only, then make sure we are coast
-					CvArea* pWaterArea = NULL;
-					if (!bCoastalOnly || ((pWaterArea = pLoopCity->waterArea()) != NULL && !pWaterArea->isLake()))
+					pWaterArea = pCity->waterArea();
+					if (pWaterArea == NULL || pWaterArea->isLake())
+						continue;
+				}
+				// can this city train this unit?
+				//if (pLoopCity->canTrain(eUnit, false, false, true))
+				if(pCity->canUpgradeTo(eUnit)) // advc.001b
+				{
+					// if we do not care about distance, then the first match will do.
+					if (bIgnoreDistance)
 					{
-						// can this city train this unit?
-						//if (pLoopCity->canTrain(eUnit, false, false, true))
-						// advc.001b: Replacing the above
-						if(pLoopCity->canUpgradeTo(eUnit))
-						{
-							// if we do not care about distance, then the first match will do
-							if (bIgnoreDistance)
-							{
-								// if we do not care about distance, then return 1 for value
-								if (iSearchValue != NULL)
-									*iSearchValue = 1;
-								return pLoopCity;
-							}
-
-							int iValue = plotDistance(iX, iY, pLoopCity->getX(), pLoopCity->getY());
-
-							// if not same area, not as good (lower numbers are better)
-							if (!isArea(pLoopCity->getArea()) && (!bCoastalOnly || !isArea(*pWaterArea)))
-								iValue *= 16;
-
-							// if we cannot path there, not as good (lower numbers are better)
-							if (!generatePath(pLoopCity->getPlot(), NO_MOVEMENT_FLAGS, true))
-								iValue *= 16;
-							/*	<advc.139> This should really be checked in a CvUnitAI function.
-								That said, the whole search part of this function is really
-								AI code; I don't think it's ever used for human units. */
-							if((!canFight() || getDomainType() != DOMAIN_LAND) &&
-								!pLoopCity->AI_isSafe())
-							{
-								iValue *= (pLoopCity->AI_isEvacuating() ? 12 : 6);
-							} // </advc.139>
-							if (iValue < iBestValue)
-							{
-								iBestValue = iValue;
-								pBestCity = pLoopCity;
-							}
-						}
+						// if we do not care about distance, then return 1 for value.
+						if (iSearchValue != NULL)
+							*iSearchValue = 1;
+						return pCity;
+					}
+					int iValue = plotDistance(plot(), pCity->plot());
+					// if not same area, not as good (lower numbers are better).
+					if (!isArea(pCity->getArea()) &&
+						(pWaterArea == NULL || !isArea(*pWaterArea)))
+					{
+						iValue *= 16;
+					}
+					// if we cannot path there, not as good.
+					if (!generatePath(pCity->getPlot(), NO_MOVEMENT_FLAGS, true))
+						iValue *= 16;
+					/*	<advc.139> This should really be checked in a CvUnitAI function.
+						That said, the whole search part of this function is really
+						AI code; I don't think it's ever used for human units. */
+					if((!canFight() || getDomainType() != DOMAIN_LAND) &&
+						!pCity->AI_isSafe())
+					{
+						iValue *= (pCity->AI_isEvacuating() ? 12 : 6);
+					} // </advc.139>
+					if (iValue < iBestValue)
+					{
+						iBestValue = iValue;
+						pBestCity = pCity;
 					}
 				}
 			}
@@ -6508,18 +6491,16 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 		{
 			// if we can train, then return this city (otherwise it will return NULL)
 			//if (pClosestCity->canTrain(eUnit, false, false, true))
-			// advc.001b: Replacing the above
-			if(pClosestCity->canUpgradeTo(eUnit))
+			if (pClosestCity->canUpgradeTo(eUnit)) // advc.001b
 			{
-				// did not search, always return 1 for search value
+				// did not search, always return 1 for search value.
 				iBestValue = 1;
 				pBestCity = pClosestCity;
 			}
 		}
 	}
 
-	// return the best value, if non-NULL
-	if (iSearchValue != NULL)
+	if (iSearchValue != NULL) // return the best value
 		*iSearchValue = iBestValue;
 
 	return pBestCity;
@@ -6761,9 +6742,10 @@ bool CvUnit::isNoUnitCapture() const
 
 bool CvUnit::isMilitaryHappiness() const
 {
-	return m_pUnitInfo->isMilitaryHappiness() &&  // <advc.001o>
+	return m_pUnitInfo->isMilitaryHappiness() &&
+			/* <advc.184> */ getPlot().isCity() &&
 			(getPlot().getTeam() == getTeam() ||
-			getPlot().getTeam() == GET_TEAM(getTeam()).getMasterTeam()); // </advc.001o>
+			getPlot().getTeam() == GET_TEAM(getTeam()).getMasterTeam()); // </advc.184>
 }
 
 /*	advc.101: Replacing iCultureGarrison in XML, which increases too slowly
@@ -7435,20 +7417,18 @@ bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttack
 	// <advc.028>
 	bool bInvisible = (eAttackerTeam != NO_TEAM && isInvisible(eAttackerTeam, false));
 	// Only pick invisible unit as defender once attack is underway ...
-	if(bInvisible && (pAttacker->getAttackPlot() == NULL ||
+	if (bInvisible && (pAttacker->getAttackPlot() == NULL ||
 		pAttacker->getDomainType() == DOMAIN_AIR)) // And don't defend against air attack
 	{
 		return false;
 	}
 	/*  and if there is some visible team unit that could get attacked otherwise
 		(better: check if our team has the best visible defender; tbd.): */
-	if(bInvisible)
+	if (bInvisible)
 	{
 		bool bFound = false;
-		for (CLLNode<IDInfo> const* pNode = getPlot().headUnitNode(); pNode != NULL;
-			pNode = getPlot().nextUnitNode(pNode))
+		FOR_EACH_UNIT_IN(pUnit, getPlot())
 		{
-			CvUnit const* pUnit = ::getUnit(pNode->m_data);
 			if(pUnit->getTeam() == getTeam() && !pUnit->isInvisible(eAttackerTeam, false))
 				bFound = true;
 		}
@@ -7478,7 +7458,7 @@ bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttack
 			return bUnowned;
 	} // </advc.061>
 
-	if (pAttacker)
+	if (pAttacker != NULL)
 	{
 		if (isTargetOf(*pAttacker) && !pDefender->isTargetOf(*pAttacker))
 			return true;
@@ -7745,13 +7725,11 @@ CvUnit* CvUnit::bestSeaPillageInterceptor(CvUnit* pPillager, int iMinOdds) const
 	for (SquareIter it(*pPillager, 1); it.hasNext(); ++it)
 	{
 		CvPlot const& kLoopPlot = *it;
-		for (CLLNode<IDInfo> const* pUnitNode = kLoopPlot.headUnitNode();
-			pUnitNode != NULL; pUnitNode = kLoopPlot.nextUnitNode(pUnitNode))
+		FOR_EACH_UNIT_VAR_IN(pLoopUnit, kLoopPlot)
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			if (pLoopUnit == NULL)
-			{
-				FAssertMsg(pLoopUnit != NULL, "Can this happen?"); // advc
+			{	// advc.test: (would have to enable sea patrol mission to test it though)
+				FAssertMsg(pLoopUnit != NULL, "Can this happen?");
 				continue;
 			}
 			//if (pLoopUnit->sameArea(*pPillager))
@@ -8055,30 +8033,24 @@ int CvUnit::cargoSpaceAvailable(SpecialUnitTypes eSpecialCargo, DomainTypes eDom
 	return std::max(0, cargoSpace() - getCargo());
 }
 
-
-/* bool CvUnit::canCargoAllMove() const
-{
-	// Deprecated and commented out by K-Mod, deleted by advc.
-}*/
-
 /*	advc.030: Renamed from "canCargoEnterArea" to avoid confusion with canEnterArea
 	(wrapper for CvArea::canBeEntered) */
 bool CvUnit::canCargoEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage,
 	CvArea const& kArea) const
 {
-	CvPlot const& kPlot = getPlot();
-	for (CLLNode<IDInfo> const* pUnitNode = kPlot.headUnitNode(); pUnitNode != NULL;
-		pUnitNode = kPlot.nextUnitNode(pUnitNode))
+	FAssert(hasCargo()); // advc.opt
+	// advc (note): getCargoUnits would be slower
+	FOR_EACH_UNIT_IN(pLoopUnit, getPlot())
 	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (pLoopUnit->getTransportUnit() == this)
+		if (pLoopUnit->getTransportUnit() == this &&
+			!pLoopUnit->canEnterTerritory(eTeam, bIgnoreRightOfPassage, &kArea))
 		{
-			if (!pLoopUnit->canEnterTerritory(eTeam, bIgnoreRightOfPassage, &kArea))
-				return false;
+			return false;
 		}
 	}
 	return true;
 }
+
 
 int CvUnit::getUnitAICargo(UnitAITypes eUnitAI) const
 {
@@ -8112,10 +8084,23 @@ bool CvUnit::isGroupHead() const // XXX is this used???
 }
 
 
-CvSelectionGroup* CvUnit::getGroup() const // advc.003u (comment): The body is duplicated in CvUnitAI::AI_getGroup
+CvSelectionGroup* CvUnit::getGroupExternal() const
 {
 	return GET_PLAYER(getOwner()).getSelectionGroup(getGroupID());
 }
+
+// <advc.003s>
+// advc.003u (note): Duplicated twice more in CvUnitAI::AI_getGroup
+CvSelectionGroup const* CvUnit::getGroup() const
+{
+	return GET_PLAYER(getOwner()).getSelectionGroup(getGroupID());
+}
+
+
+CvSelectionGroup* CvUnit::getGroup()
+{
+	return GET_PLAYER(getOwner()).getSelectionGroup(getGroupID());
+} // </advc.003s>
 
 
 bool CvUnit::isBeforeUnitCycle(CvUnit const& kOther) const
@@ -8147,7 +8132,7 @@ bool CvUnit::canJoinGroup(const CvPlot* pPlot, CvSelectionGroup const* pSelectio
 
 	if (pSelectionGroup->getOwner() == NO_PLAYER)
 	{
-		CvUnit* pHeadUnit = pSelectionGroup->getHeadUnit();
+		CvUnit const* pHeadUnit = pSelectionGroup->getHeadUnit();
 		if (pHeadUnit != NULL)
 		{
 			if (pHeadUnit->getOwner() != getOwner())
@@ -8625,43 +8610,34 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 	{
 		if (hasCargo())
 		{
-			std::vector<std::pair<PlayerTypes, int> > cargo_groups; // K-Mod. (player, group) pair.
+			std::vector<IDInfo> aCargoGroups; // K-Mod (advc: was vector<pair<>>)
 			{
-				CLLNode<IDInfo>* pUnitNode = pOldPlot->headUnitNode();
-				while (pUnitNode != NULL)
+				FOR_EACH_UNIT_VAR_IN(pLoopUnit, *pOldPlot)
 				{
-					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pOldPlot->nextUnitNode(pUnitNode);
 					if (pLoopUnit->getTransportUnit() == this)
 					{
 						pLoopUnit->setXY(iX, iY, bGroup, false);
-						// <K-Mod>
-						cargo_groups.push_back(std::make_pair(
-								pLoopUnit->getOwner(), pLoopUnit->getGroupID())); // </K-Mod>
+						aCargoGroups.push_back(pLoopUnit->getIDInfo()); // K-Mod
 					}
 				}
 			}
 			// K-Mod
-			// If the group of the cargo units we just moved includes units that are not transported
-			// by this transport group, then we need to separate them.
+			/*	If the group of the cargo units we just moved includes units that are
+				not transported by this transport group, then we need to separate them. */
 
 			// first remove duplicate group numbers
-			std::sort(cargo_groups.begin(), cargo_groups.end());
-			cargo_groups.erase(std::unique(cargo_groups.begin(), cargo_groups.end()),
-					cargo_groups.end());
+			std::sort(aCargoGroups.begin(), aCargoGroups.end());
+			aCargoGroups.erase(std::unique(aCargoGroups.begin(), aCargoGroups.end()),
+					aCargoGroups.end());
 
 			// now check the units in each group
-			for (size_t i = 0; i < cargo_groups.size(); i++)
+			for (size_t i = 0; i < aCargoGroups.size(); i++)
 			{
-				CvSelectionGroup* pCargoGroup = GET_PLAYER(cargo_groups[i].first).
-						getSelectionGroup(cargo_groups[i].second);
+				CvSelectionGroup* pCargoGroup = GET_PLAYER(aCargoGroups[i].eOwner).
+						getSelectionGroup(aCargoGroups[i].iID);
 				ActivityTypes eOldActivityType = pCargoGroup->getActivityType();
-				CLLNode<IDInfo>* pUnitNode = pCargoGroup->headUnitNode();
-				while (pUnitNode != NULL)
+				FOR_EACH_UNIT_VAR_IN(pLoopUnit, *pCargoGroup)
 				{
-					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pCargoGroup->nextUnitNode(pUnitNode);
-
 					if (pLoopUnit->getTransportUnit() == NULL ||
 						pLoopUnit->getTransportUnit()->getGroup() != getGroup())
 					{
@@ -8669,7 +8645,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 						if (eOldActivityType != ACTIVITY_MISSION)
 							pLoopUnit->getGroup()->setActivityType(eOldActivityType);
 					}
-					// while we're here, update the air-circling animation for fighter-planes
+					// while we're here, update the air-circling animation for fighter-planes.
 					else if (eOldActivityType == ACTIVITY_INTERCEPT)
 						pLoopUnit->airCircle(true);
 				}
@@ -8941,19 +8917,14 @@ void CvUnit::changeCargo(int iChange)
 void CvUnit::getCargoUnits(std::vector<CvUnit*>& aUnits) const
 {
 	aUnits.clear();
-
 	if (hasCargo())
 	{
-		CvPlot const& kPlot = getPlot();
-		for (CLLNode<IDInfo> const* pUnitNode = kPlot.headUnitNode();
-			pUnitNode != NULL; pUnitNode = kPlot.nextUnitNode(pUnitNode))
+		FOR_EACH_UNIT_VAR_IN(pLoopUnit, getPlot())
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			if (pLoopUnit->getTransportUnit() == this)
 				aUnits.push_back(pLoopUnit);
 		}
 	}
-
 	FAssert(getCargo() == aUnits.size());
 }
 
@@ -9735,7 +9706,14 @@ bool CvUnit::showSiegeTower(CvUnit* pDefender) const
 } // K-Mod end
 
 
-CvUnit* CvUnit::getTransportUnit() const
+CvUnit const* CvUnit::getTransportUnit() const
+{
+	return getUnit(m_transportUnit);
+}
+
+/*	advc: Const/ non-const versions of this function b/c changes to the transport unit
+	are likely to affect this unit */
+CvUnit* CvUnit::getTransportUnit()
 {
 	return getUnit(m_transportUnit);
 }
@@ -10410,19 +10388,17 @@ bool CvUnit::canAdvance(const CvPlot* pPlot, int iThreshold) const
 	The actual game mechanics are only very slightly changed.
 	(I've removed the targets cap of "visible units - 1".
 	That seemed like a silly limitation.) */
-void CvUnit::collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit)
+void CvUnit::collateralCombat(CvPlot const* pPlot, CvUnit const* pSkipUnit)
 {
-	std::vector<std::pair<int, IDInfo> > targetUnits;
+	std::vector<std::pair<int,IDInfo> > aTargetUnits;
 
 	int iCollateralStrength = (getDomainType() == DOMAIN_AIR ?
 			airBaseCombatStr() : baseCombatStr()) * collateralDamage() / 100;
 	if (iCollateralStrength == 0 && getExtraCollateralDamage() == 0)
 		return;
 
-	for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
-		pUnitNode = pPlot->nextUnitNode(pUnitNode))
+	FOR_EACH_UNIT_IN(pLoopUnit, *pPlot)
 	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		if (pLoopUnit != pSkipUnit && isEnemy(pLoopUnit->getTeam(), *pPlot) &&
 			pLoopUnit->canDefend() && !pLoopUnit->isInvisible(getTeam(), false))
 		{
@@ -10430,35 +10406,34 @@ void CvUnit::collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit)
 			int iValue = (1 + GC.getGame().getSorenRandNum(10000, "Collateral Damage"));
 			iValue *= pLoopUnit->currHitPoints();
 
-			targetUnits.push_back(std::make_pair(iValue, pLoopUnit->getIDInfo()));
+			aTargetUnits.push_back(std::make_pair(iValue, pLoopUnit->getIDInfo()));
 		}
 	}
 
-	CvCity* pCity = NULL;
+	CvCity const* pCity = NULL;
 	if (getDomainType() == DOMAIN_AIR)
 		pCity = pPlot->getPlotCity();
 
-	int iPossibleTargets = std::min((int)targetUnits.size(), collateralDamageMaxUnits());
-	std::partial_sort(targetUnits.begin(), targetUnits.begin() + iPossibleTargets,
-			targetUnits.end(), std::greater<std::pair<int, IDInfo> >());
+	int iPossibleTargets = std::min((int)aTargetUnits.size(), collateralDamageMaxUnits());
+	std::partial_sort(aTargetUnits.begin(), aTargetUnits.begin() + iPossibleTargets,
+			aTargetUnits.end(), std::greater<std::pair<int, IDInfo> >());
 
 	int iDamageCount = 0;
 
 	for (int i = 0; i < iPossibleTargets; i++)
 	{
-		CvUnit* pTargetUnit = ::getUnit(targetUnits[i].second);
-		FAssert(pTargetUnit);
+		CvUnit& kTargetUnit = *::getUnit(aTargetUnits[i].second);
 
 		if (getUnitCombatType() == NO_UNITCOMBAT ||
-			!pTargetUnit->getUnitInfo().getUnitCombatCollateralImmune(getUnitCombatType()))
+			!kTargetUnit.m_pUnitInfo->getUnitCombatCollateralImmune(getUnitCombatType()))
 		{
-			int iTheirStrength = pTargetUnit->baseCombatStr();
+			int iTheirStrength = kTargetUnit.baseCombatStr();
 			int iStrengthFactor = ((iCollateralStrength + iTheirStrength + 1) / 2);
 			int iCollateralDamage = (GC.getDefineINT(CvGlobals::COLLATERAL_COMBAT_DAMAGE) *
 					(iCollateralStrength + iStrengthFactor)) /
 					(iTheirStrength + iStrengthFactor);
 			iCollateralDamage *= 100 + getExtraCollateralDamage();
-			iCollateralDamage *= std::max(0, 100 - pTargetUnit->getCollateralDamageProtection());
+			iCollateralDamage *= std::max(0, 100 - kTargetUnit.getCollateralDamageProtection());
 			iCollateralDamage /= 100;
 
 			if (pCity != NULL)
@@ -10472,12 +10447,12 @@ void CvUnit::collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit)
 			int iMaxDamage = std::min(collateralDamageLimit(),
 					(collateralDamageLimit() * (iCollateralStrength + iStrengthFactor)) /
 					(iTheirStrength + iStrengthFactor));
-			int iUnitDamage = std::max(pTargetUnit->getDamage(),
-					std::min(pTargetUnit->getDamage() + iCollateralDamage, iMaxDamage));
+			int iUnitDamage = std::max(kTargetUnit.getDamage(),
+					std::min(kTargetUnit.getDamage() + iCollateralDamage, iMaxDamage));
 
-			if (pTargetUnit->getDamage() != iUnitDamage)
+			if (kTargetUnit.getDamage() != iUnitDamage)
 			{
-				pTargetUnit->setDamage(iUnitDamage, getOwner());
+				kTargetUnit.setDamage(iUnitDamage, getOwner());
 				iDamageCount++;
 			}
 		}
@@ -10506,12 +10481,9 @@ void CvUnit::flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength,
 	if (GET_TEAM(pSkipUnit->getTeam()).isCityDefense(*pPlot)) // advc
 		return;
 
-	CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode();
-	std::vector< std::pair<CvUnit*, int> > listFlankedUnits;
-	while (pUnitNode != NULL)
+	std::vector<std::pair<CvUnit*,int> > aFlankDamagePerUnit;
+	FOR_EACH_UNIT_VAR_IN(pLoopUnit, *pPlot)
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = pPlot->nextUnitNode(pUnitNode);
 		if (pLoopUnit != pSkipUnit &&
 			!pLoopUnit->isDead() && isEnemy(pLoopUnit->getTeam(), *pPlot) &&
 			!pLoopUnit->isInvisible(getTeam(), false) && pLoopUnit->canDefend())
@@ -10535,40 +10507,42 @@ void CvUnit::flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength,
 					int iUnitDamage = std::max(pLoopUnit->getDamage(), std::min(
 							pLoopUnit->getDamage() + iCollateralDamage, collateralDamageLimit()));
 					if (pLoopUnit->getDamage() != iUnitDamage)
-						listFlankedUnits.push_back(std::make_pair(pLoopUnit, iUnitDamage));
+						aFlankDamagePerUnit.push_back(std::make_pair(pLoopUnit, iUnitDamage));
 				}
 			}
 		}
 	}
 
-	int iNumUnitsHit = std::min((int)listFlankedUnits.size(), collateralDamageMaxUnits());
+	int iNumUnitsHit = std::min<int>(aFlankDamagePerUnit.size(),
+			collateralDamageMaxUnits());
 
 	for (int i = 0; i < iNumUnitsHit; ++i)
 	{
-		int iIndexHit = GC.getGame().getSorenRandNum(listFlankedUnits.size(), "Pick Flanked Unit");
-		CvUnit* pUnit = listFlankedUnits[iIndexHit].first;
-		int iDamage = listFlankedUnits[iIndexHit].second;
-		pUnit->setDamage(iDamage, getOwner());
-		if (pUnit->isDead())
+		int iIndexHit = GC.getGame().getSorenRandNum(aFlankDamagePerUnit.size(), "Pick Flanked Unit");
+		CvUnit& kDamagedUnit = *aFlankDamagePerUnit[iIndexHit].first;
+		int const iDamage = aFlankDamagePerUnit[iIndexHit].second;
+		kDamagedUnit.setDamage(iDamage, getOwner());
+		if (kDamagedUnit.isDead())
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_KILLED_UNIT_BY_FLANKING",
-					getNameKey(), pUnit->getNameKey(), pUnit->getVisualCivAdjective(getTeam()));
+					getNameKey(), kDamagedUnit.getNameKey(),
+					kDamagedUnit.getVisualCivAdjective(getTeam()));
 			gDLL->UI().addMessage(getOwner(), false, -1, szBuffer,
 				GC.getInfo(/* advc.002l: */ GET_PLAYER(getOwner())
 					.getCurrentEra()).getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL,
 					GC.getColorType("GREEN"), pPlot->getX(), pPlot->getY());
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_UNIT_DIED_BY_FLANKING", pUnit->getNameKey(),
-					getNameKey(), getVisualCivAdjective(pUnit->getTeam()));
-			gDLL->UI().addMessage(pUnit->getOwner(), false, -1, szBuffer,
-					GC.getInfo(/* advc.002l: */ GET_PLAYER(pUnit->getOwner())
+			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_UNIT_DIED_BY_FLANKING",
+					kDamagedUnit.getNameKey(),
+					getNameKey(), getVisualCivAdjective(kDamagedUnit.getTeam()));
+			gDLL->UI().addMessage(kDamagedUnit.getOwner(), false, -1, szBuffer,
+					GC.getInfo(/* advc.002l: */ GET_PLAYER(kDamagedUnit.getOwner())
 					.getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL,
 					GC.getColorType("RED"), pPlot->getX(), pPlot->getY());
 
-			pUnit->kill(false);
+			kDamagedUnit.kill(false);
 		}
-
-		listFlankedUnits.erase(std::remove(listFlankedUnits.begin(),
-				listFlankedUnits.end(), listFlankedUnits[iIndexHit]));
+		aFlankDamagePerUnit.erase(std::remove(aFlankDamagePerUnit.begin(),
+				aFlankDamagePerUnit.end(), aFlankDamagePerUnit[iIndexHit]));
 	}
 
 	if (iNumUnitsHit > 0)

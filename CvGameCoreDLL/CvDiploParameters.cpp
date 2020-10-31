@@ -109,11 +109,11 @@ DiploCommentTypes CvDiploParameters::getDiploComment() const
 	return m_eCommentType;
 }
 
-void CvDiploParameters::setOurOfferList(const CLinkList<TradeData>& ourOffer)
+void CvDiploParameters::setOurOfferList(CLinkList<TradeData> const& kOurOffer)
 {
 	m_ourOffer.clear();
-	for (CLLNode<TradeData> const* pNode = ourOffer.head(); pNode != NULL; pNode = ourOffer.next(pNode))
-		m_ourOffer.insertAtEnd(pNode->m_data);
+	FOR_EACH_TRADE_ITEM(kOurOffer)
+		m_ourOffer.insertAtEnd(*pItem);
 }
 
 const CLinkList<TradeData>& CvDiploParameters::getOurOfferList() const
@@ -121,14 +121,14 @@ const CLinkList<TradeData>& CvDiploParameters::getOurOfferList() const
 	return m_ourOffer;
 }
 
-void CvDiploParameters::setTheirOfferList(const CLinkList<TradeData>& theirOffer)
+void CvDiploParameters::setTheirOfferList(CLinkList<TradeData> const& kTheirOffer)
 {
 	m_theirOffer.clear();
-	for (CLLNode<TradeData> const* pNode = theirOffer.head(); pNode; pNode = theirOffer.next(pNode))
-		m_theirOffer.insertAtEnd(pNode->m_data);
+	FOR_EACH_TRADE_ITEM(kTheirOffer)
+		m_theirOffer.insertAtEnd(*pItem);
 }
 
-const CLinkList<TradeData>& CvDiploParameters::getTheirOfferList() const
+CLinkList<TradeData> const& CvDiploParameters::getTheirOfferList() const
 {
 	return m_theirOffer;
 }

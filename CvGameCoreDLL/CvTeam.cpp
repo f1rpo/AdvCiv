@@ -478,17 +478,14 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			so we don't check for eTeam anymore. */
 		if (!pLoopDeal->isBetween(getID(), getID())) // advc: Replacing the K-Mod replacement
 			continue;
-
-		for (CLLNode<TradeData> const* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
-			pNode = pLoopDeal->nextTradesNode(pNode))
+		FOR_EACH_TRADE_ITEM(pLoopDeal->getFirstList())
 		{
-			if (pNode->m_data.m_eItemType == TRADE_OPEN_BORDERS ||
-				pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT ||
-				pNode->m_data.m_eItemType == TRADE_PEACE_TREATY ||
-				pNode->m_data.m_eItemType == TRADE_VASSAL ||
-				pNode->m_data.m_eItemType == TRADE_SURRENDER ||
+			TradeableItems eType = pItem->m_eItemType;
+			if (eType == TRADE_OPEN_BORDERS || eType == TRADE_DEFENSIVE_PACT ||
+				eType == TRADE_PEACE_TREATY || eType == TRADE_VASSAL ||
+				eType == TRADE_SURRENDER ||
 				// advc.034: Simplest to just cancel it
-				pNode->m_data.m_eItemType == TRADE_DISENGAGE)
+				eType == TRADE_DISENGAGE)
 			{
 				pLoopDeal->kill();
 				break;
@@ -1436,11 +1433,10 @@ void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits,  // advc: refactored
 				szBuffer = gDLL->getText("TXT_KEY_MISC_PEACE_IN_EXCHANGE",
 						getName().GetCString(), kTarget.getName().GetCString()) + L" ";
 				std::vector<CvWString> aszTradeItems;
-				for (CLLNode<TradeData> const* pNode = pReparations->head(); pNode != NULL;
-					pNode = pReparations->next(pNode))
+				FOR_EACH_TRADE_ITEM(*pReparations)
 				{
 					CvWString const szItem(tradeItemString(
-							pNode->m_data.m_eItemType, pNode->m_data.m_iData, eTarget));
+							pItem->m_eItemType, pItem->m_iData, eTarget));
 					if (szItem.length() > 0)
 						aszTradeItems.push_back(szItem);
 				}
@@ -1526,7 +1522,7 @@ void CvTeam::meet(TeamTypes eTeam, bool bNewDiplo,
 	FirstContactData* pData) // advc.071: Just passing this along
 {
 	if (isHasMet(eTeam))
-		return; // advc
+		return;
 	CvTeam& kTeam = GET_TEAM(eTeam);
 	makeHasMet(eTeam, bNewDiplo, pData);
 	kTeam.makeHasMet(getID(), bNewDiplo, pData);
@@ -3151,8 +3147,8 @@ int CvTeam::turnsOfForcedPeaceRemaining(TeamTypes eOther) const
 		TeamTypes eSecondMaster = GET_PLAYER(d->getSecondPlayer()).getMasterTeam();
 		if (((eFirstMaster == eOurMaster && eSecondMaster == eTheirMaster) ||
 			(eFirstMaster == eTheirMaster && eSecondMaster == eOurMaster)) &&
-			d->headFirstTradesNode() != NULL &&
-			d->headFirstTradesNode()->m_data.m_eItemType == TRADE_PEACE_TREATY)
+			d->getLengthFirst() > 0 &&
+			d->getFirstList().head()->m_data.m_eItemType == TRADE_PEACE_TREATY)
 		{
 			r = std::max(r, d->turnsToCancel());
 		}
@@ -3264,12 +3260,10 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 			// </advc.034>
 			if (!pLoopDeal->involves(getID()))
 				continue;
-
-			for (CLLNode<TradeData> const* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
-				pNode = pLoopDeal->nextTradesNode(pNode))
+			FOR_EACH_TRADE_ITEM(pLoopDeal->getFirstList())
 			{
-				if (pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT ||
-					pNode->m_data.m_eItemType == TRADE_PEACE_TREATY)
+				if (pItem->m_eItemType == TRADE_DEFENSIVE_PACT ||
+					pItem->m_eItemType == TRADE_PEACE_TREATY)
 				{
 					pLoopDeal->kill();
 					break;
@@ -3556,12 +3550,10 @@ void CvTeam::freeVassal(TeamTypes eVassal) const
 	{
 		if (!pLoopDeal->isBetween(getID(), eVassal))
 			continue;
-
-		for (CLLNode<TradeData> const* pNode = pLoopDeal->headGivesNode(eVassal); pNode != NULL;
-			pNode = pLoopDeal->nextGivesNode(pNode, eVassal))
+		FOR_EACH_TRADE_ITEM(pLoopDeal->getGivesList(eVassal))
 		{
-			if (pNode->m_data.m_eItemType == TRADE_VASSAL ||
-				pNode->m_data.m_eItemType == TRADE_SURRENDER)
+			if (pItem->m_eItemType == TRADE_VASSAL ||
+				pItem->m_eItemType == TRADE_SURRENDER)
 			{
 				pLoopDeal->kill();
 				break;
@@ -5510,11 +5502,9 @@ void CvTeam::cancelDefensivePacts()
 	{
 		if (!pLoopDeal->involves(getID()))
 			continue;
-
-		for (CLLNode<TradeData> const* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
-			pNode = pLoopDeal->nextTradesNode(pNode))
+		FOR_EACH_TRADE_ITEM(pLoopDeal->getFirstList())
 		{
-			if (pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)
+			if (pItem->m_eItemType == TRADE_DEFENSIVE_PACT)
 			{
 				pLoopDeal->kill();
 				break;
@@ -5523,26 +5513,25 @@ void CvTeam::cancelDefensivePacts()
 	}
 }
 
-// <kekm.3> (actually an advc change)
+// kekm.3: (actually an advc change)
 void CvTeam::allowDefensivePactsToBeCanceled()
 {
 	FOR_EACH_DEAL_VAR(d)
 	{
-		if (!d->involves(getID()) || d->getFirstTrades()->getLength() <= 0)
+		if (!d->involves(getID()) || d->getLengthFirst() <= 0)
 			continue;
-		if(d->headFirstTradesNode()->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)
+		if(d->getFirstList().head()->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)
 			d->setInitialGameTurn(-100);
 	}
-} // </kekm.3>
+}
 
 
 void CvTeam::read(FDataStreamBase* pStream)
 {
-	// Init data before load
-	reset();
+	reset(); // Init data before load
 
 	uint uiFlag=0;
-	pStream->Read(&uiFlag);	// flags for expansion
+	pStream->Read(&uiFlag);
 
 	pStream->Read(&m_iNumMembers);
 	pStream->Read(&m_iAliveCount);

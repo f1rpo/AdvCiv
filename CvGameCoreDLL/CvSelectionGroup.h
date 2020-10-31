@@ -57,9 +57,16 @@ public:
 	//DllExport void autoMission();
 	bool autoMission(); // K-Mod. (No 'DllExport'? Are you serious!?)
 	void updateMission();
-	DllExport CvPlot* lastMissionPlot();																																					// Exposed to Python
+	DllExport CvPlot* lastMissionPlot()																	// Exposed to Python
+	{	// <advc>
+		CvSelectionGroup const& kThis = *this;
+		return kThis.lastMissionPlot();
+	}
+	CvPlot* lastMissionPlot() const; // </advc>
 
-	bool canStartMission(int iMission, int iData1, int iData2, CvPlot const* pPlot = NULL, bool bTestVisible = false, bool bUseCache = false);		// Exposed to Python
+	bool canStartMission(MissionTypes eMission, int iData1, int iData2,									// Exposed to Python
+			CvPlot const* pPlot = NULL, bool bTestVisible = false,
+			bool bUseCache = false);
 	void startMission();
 	//void continueMission(int iSteps = 0);
 	// K-Mod: Split continueMission into two functions to remove the recursion.
@@ -179,7 +186,7 @@ public:
 	bool readyToAuto() const; // Exposed to Python
 	// K-Mod.
 	bool readyForMission() const;
-	bool canDoMission(int iMission, int iData1, int iData2, CvPlot const* pPlot,
+	bool canDoMission(MissionTypes eMission, int iData1, int iData2, CvPlot const* pPlot,
 			bool bTestVisible, bool bCheckMoves) /* advc.002i: */ const;
 	// K-Mod end
 
@@ -224,19 +231,37 @@ public:
 	void regroupSeparatedUnits(); // K-Mod
 
 	DllExport CLLNode<IDInfo>* deleteUnitNode(CLLNode<IDInfo>* pNode);
-	DllExport inline CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode) const
-	{
-		return m_units.next(pNode); // advc.inl
-	} // <advc.003s> Safer in 'for' loops
+	// <advc.003s>
+	// Exported through .def file ...
+	CLLNode<IDInfo>* nextUnitNodeExternal(CLLNode<IDInfo>* pNode) const;
+	CLLNode<IDInfo>* headUnitNodeExternal() const;
+	CvUnit* getHeadUnitExternal() const;
+	// Safer to use const/ non-const pairs of functions
 	inline CLLNode<IDInfo> const* nextUnitNode(CLLNode<IDInfo> const* pNode) const
 	{
 		return m_units.next(pNode);
-	} // </advc.003s>
-	DllExport int getNumUnits() const;																												// Exposed to Python
-	DllExport int getUnitIndex(CvUnit* pUnit, int maxIndex = -1) const;
-	DllExport inline CLLNode<IDInfo>* headUnitNode() const { return m_units.head(); } // advc.inl
-	DllExport CvUnit* getHeadUnit() const;
-	UnitAITypes getHeadUnitAIType() const; // advc.003u: was getHeadUnitAI
+	} 
+	inline CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode)
+	{
+		return m_units.next(pNode);
+	}
+	inline CLLNode<IDInfo> const* headUnitNode() const
+	{
+		return m_units.head();
+	}
+	inline CLLNode<IDInfo>* headUnitNode()
+	{
+		return m_units.head();
+	}
+	CvUnit const* getHeadUnit() const;
+	CvUnit* getHeadUnit();
+	// </advc.003s>
+	DllExport inline int getNumUnits() const														// Exposed to Python
+	{
+		return m_units.getLength();
+	}
+	DllExport int getUnitIndex(CvUnit* pUnit, int iMaxIndex = -1) const;
+	UnitAITypes getHeadUnitAIType() const; // advc.003u: renamed from "getHeadUnitAI"
 	PlayerTypes getHeadOwner() const;
 	TeamTypes getHeadTeam() const;
 
@@ -338,7 +363,7 @@ protected:
 	void handleBoarded();
 	bool canDisembark() const;
 	void resetBoarded();
-	void getLandCargoGroups(std::vector<CvSelectionGroup*>& r);
+	void getLandCargoGroups(std::vector<CvSelectionGroup*>& kResult);
 	// </advc.075>
 	bool sentryAlert(/* advc.004l: */ bool bUpdateKnownEnemies = false);
 	// <advc> Was public. Should only be used by Python

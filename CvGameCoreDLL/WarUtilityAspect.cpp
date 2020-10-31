@@ -473,18 +473,17 @@ double WarUtilityAspect::partnerUtilFromTrade() {
 		// Handle OB and DP separately (AI_dealVal just counts cities for those)
 		bool skip = false;
 		bool weReceiveResource = false;
-		for(CLLNode<TradeData> const* item = d.headReceivesNode(weId); item != NULL;
-				item = d.nextReceivesNode(item, weId)) {
-			if(CvDeal::isDual(item->m_data.m_eItemType)) {
+		FOR_EACH_TRADE_ITEM(d.getReceivesList(weId)) {
+			if(CvDeal::isDual(pItem->m_eItemType)) {
 				skip = true;
 				continue;
 			}
-			if(item->m_data.m_eItemType == TRADE_RESOURCES) {
+			if(pItem->m_eItemType == TRADE_RESOURCES) {
 				weReceiveResource = true;
 				if(skip)
 					break; // Know everything we need
 			}
-			else FAssert(skip || item->m_data.m_eItemType == TRADE_GOLD_PER_TURN);
+			else FAssert(skip || pItem->m_eItemType == TRADE_GOLD_PER_TURN);
 		}
 		if(skip)
 			continue;
@@ -3508,12 +3507,14 @@ void TacticalSituation::evalEngagement() {
 			int ourDamaged = 0;
 			int iDanger = we->AI_getPlotDanger(
 					groupPlot, 1, false, groupSize, false, theyId);
-			for(CLLNode<IDInfo> const* node = gr->headUnitNode();
-					node != NULL && iDanger > ourDamaged;
-					node = gr->nextUnitNode(node)) { 
-				CvUnit const& u = *::getUnit(node->m_data);
-				if(u.maxHitPoints() - u.getDamage() <= hpThresh)
-					ourDamaged++;
+			if(iDanger > 0) {
+				FOR_EACH_UNIT_IN(groupUnit, *gr) { 
+					if(groupUnit->maxHitPoints() - groupUnit->getDamage() <= hpThresh) {
+						ourDamaged++;
+						if(ourDamaged >= iDanger)
+							break;
+					}
+				}
 			}
 			// Damaged units protected by healthy units aren't exposed
 			ourDamaged = ::range(iDanger + ourDamaged - groupSize, 0, ourDamaged);
@@ -3548,13 +3549,11 @@ void TacticalSituation::evalEngagement() {
 		int theirUnits = 0;
 		int theirDamaged = 0;
 		// Some overlap with CvPlayerAI::AI_countDangerousUnits
-		for(CLLNode<IDInfo> const* pUnitNode = p.headUnitNode();
-				pUnitNode != NULL; pUnitNode = p.nextUnitNode(pUnitNode)) {
-			CvUnit const& u = *::getUnit(pUnitNode->m_data);
-			if(u.getCombatOwner(agentId) != theyId)
+		FOR_EACH_UNIT_IN(plotUnit, p) {
+			if(plotUnit->getCombatOwner(agentId) != theyId)
 				continue;
 			theirUnits++;
-			if(u.currHitPoints() <= hpThresh)
+			if(plotUnit->currHitPoints() <= hpThresh)
 				theirDamaged++;
 			if(theirUnits - theirDamaged >= ourUnits)
 				break;

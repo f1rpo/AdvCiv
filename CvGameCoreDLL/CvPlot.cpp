@@ -225,7 +225,7 @@ void CvPlot::updateGraphicEra()
 		gDLL->getFlagEntityIFace()->updateGraphicEra(m_pFlagSymbol);
 }
 
-void CvPlot::erase()  // advc: some style changes
+void CvPlot::erase()
 {
 	CLinkList<IDInfo> oldUnits;
 	{
@@ -662,87 +662,84 @@ void CvPlot::updateCenterUnit()
 void CvPlot::verifyUnitValidPlot()
 {
 	//PROFILE_FUNC(); // advc.003o
-	std::vector<std::pair<PlayerTypes, int> > bumped_groups; // K-Mod
+	std::vector<std::pair<PlayerTypes, int> > bumpedGroups; // K-Mod
 
-	std::vector<CvUnit*> aUnits;
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
-		pUnitNode = nextUnitNode(pUnitNode))
+	std::vector<CvUnit*> apUnits;
+	FOR_EACH_UNIT_VAR_IN(pUnit, *this)
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (pLoopUnit != NULL)
-			aUnits.push_back(pLoopUnit);
-		else FAssert(pLoopUnit != NULL); // advc
+		FAssert(pUnit != NULL); // advc: was if(pUnit!=NULL)
+		apUnits.push_back(pUnit);
 	}
 
-	std::vector<CvUnit*>::iterator it = aUnits.begin();
-	while (it != aUnits.end())
+	std::vector<CvUnit*>::iterator it = apUnits.begin();
+	while (it != apUnits.end())
 	{
-		CvUnit& kLoopUnit = **it;
+		CvUnit& kUnit = **it;
 		bool bErased = false;
-		if (kLoopUnit.atPlot(this) && !kLoopUnit.isCargo() &&
-			!kLoopUnit.isInCombat())
+		if (kUnit.atPlot(this) && !kUnit.isCargo() &&
+			!kUnit.isInCombat())
 		{
 			//if (!isValidDomainForLocation(*pLoopUnit) ||
-			if (!kLoopUnit.isValidDomain(*this) || // advc
-				!kLoopUnit.canEnterTerritory(getTeam(), false, area()))
+			if (!kUnit.isValidDomain(*this) || // advc
+				!kUnit.canEnterTerritory(getTeam(), false, area()))
 			{
-				if (!kLoopUnit.jumpToNearestValidPlot(true))
+				if (!kUnit.jumpToNearestValidPlot(true))
 					bErased = true;
 				// <K-Mod>
 				else
 				{
-					bumped_groups.push_back(std::make_pair(
-							kLoopUnit.getOwner(), kLoopUnit.getGroupID()));
+					bumpedGroups.push_back(std::make_pair(
+							kUnit.getOwner(), kUnit.getGroupID()));
 				} // </K-Mod>
 			}
 		}
 		if (bErased)
-			it = aUnits.erase(it);
+			it = apUnits.erase(it);
 		else ++it;
 	}
 
 	if (isOwned())
 	{
-		it = aUnits.begin();
-		while (it != aUnits.end())
+		it = apUnits.begin();
+		while (it != apUnits.end())
 		{
-			CvUnit& kLoopUnit = **it;
+			CvUnit& kUnit = **it;
 			bool bErased = false;
-			if (kLoopUnit.atPlot(this) && !kLoopUnit.isInCombat())
+			if (kUnit.atPlot(this) && !kUnit.isInCombat())
 			{
-				if (kLoopUnit.getTeam() != getTeam() && (getTeam() == NO_TEAM ||
-					!GET_TEAM(getTeam()).isVassal(kLoopUnit.getTeam())))
+				if (kUnit.getTeam() != getTeam() && (getTeam() == NO_TEAM ||
+					!GET_TEAM(getTeam()).isVassal(kUnit.getTeam())))
 				{
-					if (isVisibleEnemyUnit(&kLoopUnit) &&
-						!kLoopUnit.isInvisible(getTeam(), false))
+					if (isVisibleEnemyUnit(&kUnit) &&
+						!kUnit.isInvisible(getTeam(), false))
 					{
-						if (!kLoopUnit.jumpToNearestValidPlot(true))
+						if (!kUnit.jumpToNearestValidPlot(true))
 							bErased = true;
 						// <K-Mod>
 						else
 						{
-							bumped_groups.push_back(std::make_pair(
-									kLoopUnit.getOwner(), kLoopUnit.getGroupID()));
+							bumpedGroups.push_back(std::make_pair(
+									kUnit.getOwner(), kUnit.getGroupID()));
 						} // </K-Mod>
 					}
 				}
 			}
 			if (bErased)
-				it = aUnits.erase(it);
+				it = apUnits.erase(it);
 			else ++it;
 		}
 	}
 
 	// K-Mod
 	// first remove duplicate group numbers
-	std::sort(bumped_groups.begin(), bumped_groups.end());
-	bumped_groups.erase(std::unique(bumped_groups.begin(),
-			bumped_groups.end()), bumped_groups.end());
+	std::sort(bumpedGroups.begin(), bumpedGroups.end());
+	bumpedGroups.erase(std::unique(bumpedGroups.begin(),
+			bumpedGroups.end()), bumpedGroups.end());
 	// now divide the broken groups
-	for (size_t i = 0; i < bumped_groups.size(); i++)
+	for (size_t i = 0; i < bumpedGroups.size(); i++)
 	{
-		CvSelectionGroup* pLoopGroup = GET_PLAYER(bumped_groups[i].first).
-				getSelectionGroup(bumped_groups[i].second);
+		CvSelectionGroup* pLoopGroup = GET_PLAYER(bumpedGroups[i].first).
+				getSelectionGroup(bumpedGroups[i].second);
 		if (pLoopGroup != NULL)
 			pLoopGroup->regroupSeparatedUnits();
 	} // K-Mod end
@@ -752,41 +749,29 @@ void CvPlot::verifyUnitValidPlot()
 	forceBumpUnits() forces all units off the plot, onto a nearby plot */
 void CvPlot::forceBumpUnits()
 {
-	// Note: this function is almost certainly not optimal.
-	// I just took the code from another function and I don't want to mess it up.
-	// (advc: Presumably, he based it on verifyUnitValidPlot above.)
-	std::vector<CvUnit*> aUnits;
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
-		pUnitNode = nextUnitNode(pUnitNode))
+	/*	Note: this function is almost certainly not optimal.
+		I just took the code from another function and I don't want to mess it up.
+		(advc: Presumably, he based it on verifyUnitValidPlot above.) */
+	std::vector<CvUnit*> apUnits;
+	FOR_EACH_UNIT_VAR_IN(pUnit, *this)
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (pLoopUnit != NULL)
-			aUnits.push_back(pLoopUnit);
-		FAssertMsg(pLoopUnit != NULL, "Can this happen?"); // advc
+		FAssert(pUnit != NULL); // advc: was if(pUnit!=NULL)
+		apUnits.push_back(pUnit);
 	}
 
-	std::vector<CvUnit*>::iterator it = aUnits.begin();
-	while (it != aUnits.end())
+	std::vector<CvUnit*>::iterator it = apUnits.begin();
+	while (it != apUnits.end())
 	{
-		CvUnit* pLoopUnit = *it;
+		CvUnit& kUnit = **it; // advc: NULL check removed
 		bool bErased = false;
-
-		if (pLoopUnit == NULL)
+		if (kUnit.at(*this) && !kUnit.isCargo() &&
+			!kUnit.isInCombat())
 		{
-			FAssertMsg(pLoopUnit != NULL, "Can this happen?"); // advc
-			continue;
-		}
-		else
-		{
-			if (pLoopUnit->atPlot(this) && !pLoopUnit->isCargo() &&
-				!pLoopUnit->isInCombat())
-			{
-				if (!pLoopUnit->jumpToNearestValidPlot(true, true))
-					bErased = true;
-			}
+			if (!kUnit.jumpToNearestValidPlot(true, true))
+				bErased = true;
 		}
 		if (bErased)
-			it = aUnits.erase(it);
+			it = apUnits.erase(it);
 		else ++it;
 	}
 } // K-Mod end
@@ -1408,7 +1393,7 @@ void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement,
 	bool const bAerial = (pUnit != NULL && pUnit->getDomainType() == DOMAIN_AIR);
 
 	DirectionTypes eFacingDirection = NO_DIRECTION;
-	if (!bAerial && NULL != pUnit)
+	if (!bAerial && pUnit != NULL)
 		eFacingDirection = pUnit->getFacingDirection(true);
 
 	// fill invisible types
@@ -1475,7 +1460,7 @@ void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement,
 }
 
 
-bool CvPlot::canSeePlot(CvPlot const* pPlot, TeamTypes eTeam, int iRange, // advc: const CvPlot*
+bool CvPlot::canSeePlot(CvPlot const* pPlot, TeamTypes eTeam, int iRange,
 	DirectionTypes eFacingDirection) const
 {
 	PROFILE_FUNC(); // advc.test: See comment in canSeeDisplacementPlot
@@ -1661,9 +1646,9 @@ void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 			changeAdjacentSight(GET_TEAM(getTeam()).getMasterTeam(),
 					GC.getDefineINT(CvGlobals::PLOT_VISIBILITY_RANGE),
 					bIncrement, NULL, bUpdatePlotGroups);
-		}	
+		}
 
-		// EspionageEffect
+		// Espionage Effect
 		if (pCity->isAnyEspionageVisibility()) // advc.opt
 		{
 			for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
@@ -1687,12 +1672,10 @@ void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 	}
 
 	// Unit
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
-		pUnitNode = nextUnitNode(pUnitNode))
+	FOR_EACH_UNIT_IN(pUnit, *this)
 	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		changeAdjacentSight(pLoopUnit->getTeam(), pLoopUnit->visibilityRange(),
-				bIncrement, pLoopUnit, bUpdatePlotGroups);
+		changeAdjacentSight(pUnit->getTeam(), pUnit->visibilityRange(),
+				bIncrement, pUnit, bUpdatePlotGroups);
 	}
 
 	if (getReconCount() > 0)
@@ -1708,14 +1691,12 @@ void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 				DomainTypes const eGroupDomain = pGroup->getDomainType();
 				if (eGroupDomain != DOMAIN_AIR && eGroupDomain != DOMAIN_IMMOBILE)
 					continue;
-				for (CLLNode<IDInfo> const* pNode = pGroup->headUnitNode(); pNode != NULL;
-					pNode = pGroup->nextUnitNode(pNode))
+				FOR_EACH_UNIT_IN(pAirUnit, *pGroup) // </advc.opt>
 				{
-					CvUnit const& kAirUnit = *::getUnit(pNode->m_data); // </advc.opt>
-					if (kAirUnit.getReconPlot() == this)
+					if (pAirUnit->getReconPlot() == this)
 					{
-						changeAdjacentSight(kAirUnit.getTeam(), iRange, bIncrement,
-								&kAirUnit, bUpdatePlotGroups);
+						changeAdjacentSight(pAirUnit->getTeam(), iRange, bIncrement,
+								pAirUnit, bUpdatePlotGroups);
 					}
 				}
 			}
@@ -2097,15 +2078,13 @@ int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, /* advc.251: */ PlayerTypes ePl
 
 	if (bIncludeUnits) // advc.011c
 	{
-		for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
-			pUnitNode = nextUnitNode(pUnitNode))
+		FOR_EACH_UNIT_IN(pUnit, *this)
 		{
-			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			if (pLoopUnit->getBuildType() == eBuild)
+			if (pUnit->getBuildType() == eBuild)
 			{
-				if (pLoopUnit->canMove())
-					iNowBuildRate += pLoopUnit->workRate(false);
-				iThenBuildRate += pLoopUnit->workRate(true);
+				if (pUnit->canMove())
+					iNowBuildRate += pUnit->workRate(false);
+				iThenBuildRate += pUnit->workRate(true);
 			}
 		}
 	}
@@ -2209,26 +2188,25 @@ CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer
 	// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000
 	int iBestUnitRank = -1;
 	CvUnit* pBestUnit = NULL;
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL; // advc: while loop replaced
-		pUnitNode = nextUnitNode(pUnitNode))
+	FOR_EACH_UNIT_VAR_IN(pLoopUnit, *this)
 	{
-		CvUnit& kLoopUnit = *::getUnit(pUnitNode->m_data);
-		if (eOwner != NO_PLAYER && kLoopUnit.getOwner() != eOwner)
+		CvUnit& kUnit = *pLoopUnit;
+		if (eOwner != NO_PLAYER && kUnit.getOwner() != eOwner)
 			continue;
-		if (kLoopUnit.isCargo()) // advc: Was previously only checked with bTestCanMove - i.e. never.
+		if (kUnit.isCargo()) // advc: Was previously only checked with bTestCanMove - i.e. never.
 			continue;
 		// <advc> Moved the other conditions into CvUnit::canBeAttackedBy (new function)
-		if(eAttackingPlayer == NO_PLAYER || kLoopUnit.canBeAttackedBy(eAttackingPlayer,
+		if(eAttackingPlayer == NO_PLAYER || kUnit.canBeAttackedBy(eAttackingPlayer,
 			pAttacker, bTestEnemy, bTestPotentialEnemy, /* advc.028: */ bTestVisible,
 			bTestCanAttack))
 		{
 			if (bAny)
-				return &kLoopUnit; // </advc>
-			if (kLoopUnit.isBetterDefenderThan(pBestUnit, pAttacker,
+				return &kUnit; // </advc>
+			if (kUnit.isBetterDefenderThan(pBestUnit, pAttacker,
 				&iBestUnitRank, // UncutDragon
 				bTestVisible)) // advc.061
 			{
-				pBestUnit = &kLoopUnit;
+				pBestUnit = &kUnit;
 			}
 		}
 	}
@@ -2239,12 +2217,10 @@ CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer
 
 CvUnit* CvPlot::getSelectedUnit() const
 {
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
-		pUnitNode = nextUnitNode(pUnitNode))
+	FOR_EACH_UNIT_VAR_IN(pUnit, *this)
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (pLoopUnit->IsSelected())
-			return pLoopUnit;
+		if (pUnit->IsSelected())
+			return pUnit;
 	}
 	return NULL;
 }
@@ -2253,12 +2229,10 @@ CvUnit* CvPlot::getSelectedUnit() const
 int CvPlot::getUnitPower(PlayerTypes eOwner) const
 {
 	int iCount = 0;
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
-		pUnitNode = nextUnitNode(pUnitNode))
+	FOR_EACH_UNIT_IN(pUnit, *this)
 	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (eOwner == NO_PLAYER || pLoopUnit->getOwner() == eOwner)
-			iCount += pLoopUnit->getUnitInfo().getPowerValue();
+		if (eOwner == NO_PLAYER || pUnit->getOwner() == eOwner)
+			iCount += pUnit->getUnitInfo().getPowerValue();
 	}
 	return iCount;
 }
@@ -2613,35 +2587,34 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 }
 
 
-void CvPlot::plotAction(PlotUnitFunc func, int iData1, int iData2, PlayerTypes eOwner, TeamTypes eTeam)
+void CvPlot::plotAction(PlotUnitFunc func, int iData1, int iData2,
+	PlayerTypes eOwner, TeamTypes eTeam)
 {
-	CLLNode<IDInfo>* pUnitNode = headUnitNode();
-	while (pUnitNode != NULL)
+	FOR_EACH_UNIT_VAR_IN(pUnit, *this)
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = nextUnitNode(pUnitNode);
-		if (eOwner == NO_PLAYER || pLoopUnit->getOwner() == eOwner)
+		if (eOwner == NO_PLAYER || pUnit->getOwner() == eOwner)
 		{
-			if (eTeam == NO_TEAM || pLoopUnit->getTeam() == eTeam)
-				func(pLoopUnit, iData1, iData2);
+			if (eTeam == NO_TEAM || pUnit->getTeam() == eTeam)
+				func(pUnit, iData1, iData2);
 		}
 	}
 }
 
 
-int CvPlot::plotCount(ConstPlotUnitFunc funcA, int iData1A, int iData2A, PlayerTypes eOwner, TeamTypes eTeam, ConstPlotUnitFunc funcB, int iData1B, int iData2B) const
+int CvPlot::plotCount(ConstPlotUnitFunc funcA, int iData1A, int iData2A,
+	PlayerTypes eOwner, TeamTypes eTeam,
+	ConstPlotUnitFunc funcB, int iData1B, int iData2B) const
 {
 	int iCount = 0;
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode)) // advc: was a while loop
+	FOR_EACH_UNIT_IN(pUnit, *this)
 	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (eOwner == NO_PLAYER || pLoopUnit->getOwner() == eOwner)
+		if (eOwner == NO_PLAYER || pUnit->getOwner() == eOwner)
 		{
-			if (eTeam == NO_TEAM || pLoopUnit->getTeam() == eTeam)
+			if (eTeam == NO_TEAM || pUnit->getTeam() == eTeam)
 			{
-				if (funcA == NULL || funcA(pLoopUnit, iData1A, iData2A))
+				if (funcA == NULL || funcA(pUnit, iData1A, iData2A))
 				{
-					if (funcB == NULL || funcB(pLoopUnit, iData1B, iData2B))
+					if (funcB == NULL || funcB(pUnit, iData1B, iData2B))
 						iCount++;
 				}
 			}
@@ -2651,19 +2624,20 @@ int CvPlot::plotCount(ConstPlotUnitFunc funcA, int iData1A, int iData2A, PlayerT
 }
 
 
-CvUnit* CvPlot::plotCheck(ConstPlotUnitFunc funcA, int iData1A, int iData2A, PlayerTypes eOwner, TeamTypes eTeam, ConstPlotUnitFunc funcB, int iData1B, int iData2B) const
+CvUnit* CvPlot::plotCheck(ConstPlotUnitFunc funcA, int iData1A, int iData2A,
+	PlayerTypes eOwner, TeamTypes eTeam,
+	ConstPlotUnitFunc funcB, int iData1B, int iData2B) const
 {
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode)) // advc: was a while loop
+	FOR_EACH_UNIT_VAR_IN(pUnit, *this)
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (eOwner == NO_PLAYER || pLoopUnit->getOwner() == eOwner)
+		if (eOwner == NO_PLAYER || pUnit->getOwner() == eOwner)
 		{
-			if (eTeam == NO_TEAM || pLoopUnit->getTeam() == eTeam)
+			if (eTeam == NO_TEAM || pUnit->getTeam() == eTeam)
 			{	// advc.045: Missing NULL check added. Bug? Tagging advc.001.
-				if (funcA == NULL || funcA(pLoopUnit, iData1A, iData2A))
+				if (funcA == NULL || funcA(pUnit, iData1A, iData2A))
 				{
-					if (funcB == NULL || funcB(pLoopUnit, iData1B, iData2B))
-						return pLoopUnit;
+					if (funcB == NULL || funcB(pUnit, iData1B, iData2B))
+						return pUnit;
 				}
 			}
 		}
@@ -3389,10 +3363,9 @@ void CvPlot::setArea(CvArea* pArea, /* advc.310: */ bool bProcess)
 	// advc: Update cached CvArea pointers (even if pArea==NULL)
 	if (isCity())
 		getPlotCity()->updateArea();
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
-		pUnitNode = nextUnitNode(pUnitNode))
+	FOR_EACH_UNIT_VAR_IN(pUnit, *this)
 	{
-		::getUnit(pUnitNode->m_data)->updateArea();
+		pUnit->updateArea();
 	}
 	if (area() != NULL)
 	{
@@ -3881,26 +3854,21 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 
 			updatePlotGroupBonus(false, /* advc.064d: */ false);
 		}
-
-		CLLNode<IDInfo>* pUnitNode = headUnitNode();
-		while (pUnitNode != NULL)
+		FOR_EACH_UNIT_VAR_IN(pUnit, *this)
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = nextUnitNode(pUnitNode);
-
-			if (pLoopUnit->getTeam() != getTeam() && (getTeam() == NO_TEAM ||
-				!GET_TEAM(getTeam()).isVassal(pLoopUnit->getTeam())))
+			if (pUnit->getTeam() != getTeam() && (getTeam() == NO_TEAM ||
+				!GET_TEAM(getTeam()).isVassal(pUnit->getTeam())))
 			{
-				GET_PLAYER(pLoopUnit->getOwner()).changeNumOutsideUnits(-1);
+				GET_PLAYER(pUnit->getOwner()).changeNumOutsideUnits(-1);
 			}
 
-			if (pLoopUnit->isBlockading() &&
+			if (pUnit->isBlockading() &&
 				// advc.033: Owner change shouldn't always disrupt blockade
-				!pLoopUnit->canPlunder(pLoopUnit->getPlot()))
+				!pUnit->canPlunder(pUnit->getPlot()))
 			{
-				pLoopUnit->setBlockading(false);
-				pLoopUnit->getGroup()->clearMissionQueue();
-				pLoopUnit->getGroup()->setActivityType(ACTIVITY_AWAKE);
+				pUnit->setBlockading(false);
+				pUnit->getGroup()->clearMissionQueue();
+				pUnit->getGroup()->setActivityType(ACTIVITY_AWAKE);
 			}
 		}
 
@@ -3930,16 +3898,12 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 
 			updatePlotGroupBonus(true);
 		}
-
-		pUnitNode = headUnitNode();
-		while (pUnitNode != NULL)
+		FOR_EACH_UNIT_VAR_IN(pUnit, *this)
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = nextUnitNode(pUnitNode);
-			if (pLoopUnit->getTeam() != getTeam() && (getTeam() == NO_TEAM ||
-				!GET_TEAM(getTeam()).isVassal(pLoopUnit->getTeam())))
+			if (pUnit->getTeam() != getTeam() && (getTeam() == NO_TEAM ||
+				!GET_TEAM(getTeam()).isVassal(pUnit->getTeam())))
 			{
-				GET_PLAYER(pLoopUnit->getOwner()).changeNumOutsideUnits(1);
+				GET_PLAYER(pUnit->getOwner()).changeNumOutsideUnits(1);
 			}
 		}
 
@@ -3983,10 +3947,9 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 	if (eOldOwner != NO_PLAYER && GET_PLAYER(eOldOwner).isHuman() &&
 		getOwner() != eOldOwner)
 	{
-		for (CLLNode<IDInfo> const* pNode = headUnitNode(); pNode != NULL;
-			pNode = nextUnitNode(pNode))
+		FOR_EACH_UNIT_VAR_IN(pUnit, *this)
 		{
-			CvSelectionGroup& kGroup = *::getUnit(pNode->m_data)->getGroup();
+			CvSelectionGroup& kGroup = *pUnit->getGroup();
 			if (kGroup.getOwner() == eOldOwner && kGroup.getLengthMissionQueue() <= 0 &&
 				(kGroup.getActivityType() == ACTIVITY_SLEEP ||
 				kGroup.getActivityType() == ACTIVITY_SENTRY))
@@ -5553,20 +5516,16 @@ void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange,
 		// K-Mod. Meet the owner of any units you can see.
 		{
 			PROFILE("CvPlot::changeVisibility -- meet units"); // (this is new, so I want to time it.)
-			CvTeam& kTeam = GET_TEAM(eTeam);
-
-			CLLNode<IDInfo> const* pUnitNode = headUnitNode();
-			while (pUnitNode)
-			{
-				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			FOR_EACH_UNIT_IN(pLoopUnit, *this)
+			{	// <advc.opt> No problem here according to the profiler, but still:
+				if (GET_TEAM(eTeam).isHasMet(TEAMID(pLoopUnit->getOwner()))) // (all inlined)
+					continue; // </advc.opt>
 				// advc.071:
 				FirstContactData fcData(this, pUnit == NULL ? NULL : pUnit->plot(), pUnit, pLoopUnit);
-				kTeam.meet(TEAMID(pLoopUnit->getVisualOwner(eTeam)), true,
+				GET_TEAM(eTeam).meet(TEAMID(pLoopUnit->getVisualOwner(eTeam)), true,
 						&fcData); // advc.071
-				pUnitNode = nextUnitNode(pUnitNode);
 			}
-		}
-		// K-Mod end
+		} // K-Mod end
 	}
 
 	CvCity* pCity = getPlotCity();
@@ -6444,7 +6403,7 @@ CvUnit* CvPlot::getUnitByIndex(int iIndex) const
 }
 
 
-void CvPlot::addUnit(CvUnit const& kUnit, bool bUpdate) // advc: const reference param
+void CvPlot::addUnit(CvUnit const& kUnit, bool bUpdate)
 {
 	FAssert(kUnit.at(getX(), getY()));
 
@@ -6488,6 +6447,12 @@ void CvPlot::removeUnit(CvUnit* pUnit, bool bUpdate)
 		updateCenterUnit();
 		setFlagDirty(true);
 	}
+}
+
+
+CLLNode<IDInfo>* CvPlot::nextUnitNodeExternal(CLLNode<IDInfo>* pNode) const
+{
+	return m_units.next(pNode);
 }
 
 
@@ -7574,18 +7539,13 @@ bool CvPlot::canTrigger(EventTriggerTypes eTrigger, PlayerTypes ePlayer) const
 	if (kTrigger.isUnitsOnPlot())
 	{
 		bool bFoundValid = false;
-		CLLNode<IDInfo>* pUnitNode = headUnitNode();
-		while (NULL != pUnitNode)
+		FOR_EACH_UNIT_IN(pUnit, *this)
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = nextUnitNode(pUnitNode);
-			if (pLoopUnit->getOwner() == ePlayer)
+			if (pUnit->getOwner() == ePlayer &&
+				pUnit->getTriggerValue(eTrigger, this, false) != -1)
 			{
-				if (pLoopUnit->getTriggerValue(eTrigger, this, false) != -1)
-				{
-					bFoundValid = true;
-					break;
-				}
+				bFoundValid = true;
+				break;
 			}
 		}
 		if (!bFoundValid)
@@ -7918,14 +7878,12 @@ int CvPlot::countFriendlyCulture(TeamTypes eTeam) const
 int CvPlot::countNumAirUnits(TeamTypes eTeam) const
 {
 	int iCount = 0;
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
-		pUnitNode = nextUnitNode(pUnitNode))
+	FOR_EACH_UNIT_IN(pUnit, *this)
 	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (DOMAIN_AIR == pLoopUnit->getDomainType() && !pLoopUnit->isCargo() &&
-			pLoopUnit->getTeam() == eTeam)
+		if (DOMAIN_AIR == pUnit->getDomainType() && !pUnit->isCargo() &&
+			pUnit->getTeam() == eTeam)
 		{
-			iCount += GC.getInfo(pLoopUnit->getUnitType()).getAirUnitCap();
+			iCount += GC.getInfo(pUnit->getUnitType()).getAirUnitCap();
 		}
 	}
 	return iCount;
@@ -8065,29 +8023,26 @@ bool CvPlot::checkLateEra() const
 	return (GET_PLAYER(eBestPlayer).getCurrentEra() > GC.getNumEraInfos() / 2);
 }
 
-// <advc.300>
+// advc.300:
 void CvPlot::killRandomUnit(PlayerTypes eOwner, DomainTypes eDomain)
 {
 	CvUnit* pVictim = NULL;
-	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	int iBestValue = -1;
-	while(pUnitNode != NULL)
+	FOR_EACH_UNIT_VAR_IN(pUnit, *this)
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = nextUnitNode(pUnitNode);
-		if(pLoopUnit->getOwner() == eOwner && pLoopUnit->getDomainType() == eDomain)
+		if(pUnit->getOwner() == eOwner && pUnit->getDomainType() == eDomain)
 		{
-			int iValue = GC.getGame().getSorenRandNum(1000, "advc.300:killRandomUnit");
+			int iValue = GC.getGame().getSorenRandNum(1000, "killRandomUnit");
 			if(iValue > iBestValue)
 			{
-				pVictim = pLoopUnit;
+				pVictim = pUnit;
 				iBestValue = iValue;
 			}
 		}
 	}
 	if(pVictim != NULL)
 		pVictim->kill(false);
-} // </advc.300>
+}
 
 
 // BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000: START

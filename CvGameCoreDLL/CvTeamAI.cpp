@@ -5300,7 +5300,7 @@ scaled CvTeamAI::AI_getOpenBordersCounterIncrement(TeamTypes eOther) const
 	with 2 trials and a probability of pr.
 	Non-negative result, caller will have to multiply by -1 to decrease a counter.
 	Result is capped at iUpperCap; -1: none. */
-int CvTeamAI::AI_randomCounterChange(int iUpperCap, double pr) const
+int CvTeamAI::AI_randomCounterChange(int iUpperCap, scaled rProb) const
 {
 	CvGameSpeedInfo const& kSpeed = GC.getInfo(GC.getGame().getGameSpeedType());
 	int iSpeedPercent = kSpeed.getGoldenAgePercent();
@@ -5309,11 +5309,11 @@ int CvTeamAI::AI_randomCounterChange(int iUpperCap, double pr) const
 		iSpeedPercent = kSpeed.getGrowthPercent();
 	else if(iOurEra == 1)
 		iSpeedPercent = (kSpeed.getGrowthPercent() + kSpeed.getGoldenAgePercent()) / 2;
-	pr = 100 * pr / std::max(50, iSpeedPercent);
+	rProb *= scaled(100, std::max(50, iSpeedPercent));
 	int r = 0;
-	if(::bernoulliSuccess(pr, "advc.130k"))
+	if(rProb.bernoulliSuccess(GC.getGame().getSRand(), "random counter change"))
 		r++;
-	if(::bernoulliSuccess(pr, "advc.130k"))
+	if(rProb.bernoulliSuccess(GC.getGame().getSRand(), "random counter change"))
 		r++;
 	if(iUpperCap < 0)
 		return r;
@@ -5352,9 +5352,9 @@ void CvTeamAI::AI_doCounter()
 		// <advc.130i>
 		if(isOpenBorders(eOther))
 		{
-			scaled pr = AI_getOpenBordersCounterIncrement(eOther) / 2;
+			scaled rProb = AI_getOpenBordersCounterIncrement(eOther) / 2;
 			int iMax = 2 * AI_getOpenBordersAttitudeDivisor() + 10;
-			AI_changeOpenBordersCounter(eOther, AI_randomCounterChange(iMax, pr.getDouble()));
+			AI_changeOpenBordersCounter(eOther, AI_randomCounterChange(iMax, rProb));
 		} // </advc.130i>  <advc.130k>
 		else AI_setOpenBordersCounter(eOther, (int)(
 				(1 - decay) * AI_getOpenBordersCounter(eOther))); // </advc.130k>

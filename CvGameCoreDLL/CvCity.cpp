@@ -689,29 +689,15 @@ void CvCity::doRevolt()
 	} // </advc.101>
 }
 
-// advc: Code cut and pasted from CvPlot::doCulture; also refactored.
+// advc: Code cut from CvPlot::doCulture; simplified.
 void CvCity::damageGarrison(PlayerTypes eRevoltSource)
 {
-	CvPlot const& kPlot = getPlot();
-	CLinkList<IDInfo> oldUnits;
+	FOR_EACH_UNIT_VAR_IN(pUnit, getPlot())
 	{
-		for(CLLNode<IDInfo> const* pUnitNode = kPlot.headUnitNode();
-			pUnitNode != NULL; pUnitNode = kPlot.nextUnitNode(pUnitNode))
-		{
-			oldUnits.insertAtEnd(pUnitNode->m_data);
-		}
-	}
-	CLLNode<IDInfo>* pUnitNode = oldUnits.head();
-	while(pUnitNode != NULL)
-	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = kPlot.nextUnitNode(pUnitNode);
-		if(pLoopUnit == NULL)
-			continue;
-		if(pLoopUnit->isBarbarian())
-			pLoopUnit->kill(false, eRevoltSource);
-		else if(pLoopUnit->canDefend())
-			pLoopUnit->changeDamage(pLoopUnit->currHitPoints() / 2, eRevoltSource);
+		if (pUnit->isBarbarian())
+			pUnit->kill(false, eRevoltSource);
+		else if(pUnit->canDefend())
+			pUnit->changeDamage(pUnit->currHitPoints() / 2, eRevoltSource);
 	}
 }
 
@@ -13062,28 +13048,27 @@ scaled CvCity::defensiveGarrison(
 
 	scaled r = 0;
 	CvPlayer const& kOwner = GET_PLAYER(getOwner());
-	CvPlot const& kPlot = getPlot();
 	// ("Obsolete" isn't really the right term for units)
 	static scaled const rOUTDATED_PERCENT = per100(GC.getDefineINT(
 			"DEMAND_BETTER_PROTECTION_OBSOLETE_PERCENT"));
 	CvCity const* pCapital = kOwner.getCapital();
 	if (pCapital == this)
 		pCapital = NULL;
-	for (CLLNode<IDInfo> const* pNode = kPlot.headUnitNode(); pNode != NULL;
-		pNode = kPlot.nextUnitNode(pNode))
+	FOR_EACH_UNIT_IN(pUnit, getPlot())
 	{
-		CvUnit const& kUnit = *::getUnit(pNode->m_data);
-		CvUnitInfo const& u = kUnit.getUnitInfo();
 		// Exclude naval units but not Explorer and Gunship
-		if (!u.isMilitaryHappiness() && u.getCultureGarrisonValue() <= 0)
+		if (!pUnit->isMilitaryHappiness() &&
+			pUnit->getUnitInfo().getCultureGarrisonValue() <= 0)
+		{
 			continue;
-		scaled rDefStr = per100(kUnit.maxCombatStr(&kPlot, NULL, NULL, true));
+		}
+		scaled rDefStr = per100(pUnit->maxCombatStr(plot(), NULL, NULL, true));
 		if (rOUTDATED_PERCENT != 1 &&
-			allUpgradesAvailable(kUnit.getUnitType()) != NO_UNIT ||
+			allUpgradesAvailable(pUnit->getUnitType()) != NO_UNIT ||
 			/*	Check capital too. Player might remove access to e.g. Copper
 				to avoid Warrior obsoletion penalty, but also cutting the capital
 				off from a strategic resource will rarely be worthwhile. */
-			(pCapital != NULL && pCapital->allUpgradesAvailable(kUnit.getUnitType())))
+			(pCapital != NULL && pCapital->allUpgradesAvailable(pUnit->getUnitType())))
 		{
 			rDefStr *= rOUTDATED_PERCENT;
 		}

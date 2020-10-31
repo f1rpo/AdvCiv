@@ -173,35 +173,32 @@ bool GroupStepMetric::isValidDest(CvPlot const& kPlot, CvSelectionGroup const& k
 	{
 		if (kGroup.isAmphibPlot(&kPlot))
 		{
-			for (CLLNode<IDInfo> const* pNode1 = kGroup.headUnitNode();
-				pNode1 != NULL; pNode1 = kGroup.nextUnitNode(pNode1))
+			/*	advc.opt: Might be faster to go through kGroup.getPlot() directly
+				but only once (as in CvSelectionGroup::canCargoAllMove). */
+			PROFILE("GroupStepMetric::isValidDest - AmphibPlot");
+			FOR_EACH_UNIT_IN(pTransport, kGroup)
 			{
-				CvUnit const* pLoopUnit1 = ::getUnit(pNode1->m_data);
-				if (pLoopUnit1->getCargo() > 0 && pLoopUnit1->domainCargo() == DOMAIN_LAND)
+				if (!pTransport->hasCargo() ||
+					pTransport->domainCargo() != DOMAIN_LAND)
 				{
-					bool bValid = false;
-					for (CLLNode<IDInfo> const* pNode2 = pLoopUnit1->getPlot().headUnitNode();
-						pNode2 != NULL; pNode2 = pLoopUnit1->getPlot().nextUnitNode(pNode2))
-					{
-						CvUnit const* pLoopUnit2 = ::getUnit(pNode2->m_data);
-						if (pLoopUnit2->getTransportUnit() == pLoopUnit1)
-						{
-							if (pLoopUnit2->isGroupHead())
-							{
-								if (pLoopUnit2->getGroup()->canMoveOrAttackInto(kPlot,
-									//kGroup.AI().AI_isDeclareWar(kPlot) || (eFlags & MOVE_DECLARE_WAR)))
-									// K-Mod. The new AI must be explicit about declaring war.
-									eFlags & MOVE_DECLARE_WAR, false, bAIControl))
-								{
-									bValid = true;
-									break;
-								}
-							}
-						}
-					}
-					if (bValid)
-						return true;
+					continue;
 				}
+				bool bValid = false;
+				FOR_EACH_UNIT_IN(pCargoUnit, pTransport->getPlot())
+				{
+					if (pCargoUnit->getTransportUnit() == pTransport &&
+						pCargoUnit->isGroupHead() &&
+						pCargoUnit->getGroup()->canMoveOrAttackInto(kPlot,
+						//(kGroup.AI().AI_isDeclareWar(kPlot) || (eFlags & MOVE_DECLARE_WAR)))
+						// K-Mod. The new AI must be explicit about declaring war.
+						eFlags & MOVE_DECLARE_WAR, false, bAIControl))
+					{
+						bValid = true;
+						break;
+					}
+				}
+				if (bValid)
+					return true;
 			}
 
 			return false;
@@ -315,16 +312,13 @@ int GroupStepMetric::cost(CvPlot const& kFrom, CvPlot const& kTo,
 	int iWorstCost = 0;
 	int iWorstMovesLeft = MAX_INT;
 	//int iWorstMaxMoves = MAX_INT; // advc: unused
-	for (CLLNode<IDInfo> const* pUnitNode = kGroup.headUnitNode();
-		pUnitNode != NULL; pUnitNode = kGroup.nextUnitNode(pUnitNode))
+	FOR_EACH_UNIT_IN(pGroupUnit, kGroup)
 	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		FAssert(pLoopUnit->getDomainType() != DOMAIN_AIR);
-
-		int iMaxMoves = (iCurrMoves > 0 ? iCurrMoves : pLoopUnit->maxMoves());
-		int iMoveCost = kTo.movementCost(*pLoopUnit, kFrom,
+		FAssert(pGroupUnit->getDomainType() != DOMAIN_AIR);
+		int const iMaxMoves = (iCurrMoves > 0 ? iCurrMoves : pGroupUnit->maxMoves());
+		int const iMoveCost = kTo.movementCost(*pGroupUnit, kFrom,
 				false); // advc.001i
-		int iMovesLeft = std::max(0, iMaxMoves - iMoveCost);
+		int const iMovesLeft = std::max(0, iMaxMoves - iMoveCost);
 
 		iWorstMovesLeft = std::min(iWorstMovesLeft, iMovesLeft);
 		//iWorstMaxMoves = std::min(iWorstMaxMoves, iMaxMoves);
@@ -493,16 +487,14 @@ int GroupStepMetric::cost(CvPlot const& kFrom, CvPlot const& kTo,
 		int iAttackCount = 0;
 		int const iEnemies = kTo.getNumVisibleEnemyDefenders(kGroup.getHeadUnit());
 
-		for (CLLNode<IDInfo> const* pUnitNode = kGroup.headUnitNode();
-			pUnitNode != NULL; pUnitNode = kGroup.nextUnitNode(pUnitNode))
+		FOR_EACH_UNIT_IN(pGroupUnit, kGroup)
 		{
-			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			if (!pLoopUnit->canFight())
+			if (!pGroupUnit->canFight())
 				continue; // advc
 			iDefenceCount++;
-			if (pLoopUnit->canDefend(&kTo))
+			if (pGroupUnit->canDefend(&kTo))
 			{
-				iDefenceMod += pLoopUnit->noDefensiveBonus() ? 0 :
+				iDefenceMod += pGroupUnit->noDefensiveBonus() ? 0 :
 						//pToPlot->defenseModifier(eTeam, false);
 						GET_TEAM(eTeam).AI_plotDefense(kTo); // advc.012
 			}
@@ -524,7 +516,7 @@ int GroupStepMetric::cost(CvPlot const& kFrom, CvPlot const& kTo,
 				if (bAIControl || !bAtStart || (eFlags & MOVE_HAS_STEPPED))
 				{
 					iAttackCount++;
-					if (!pLoopUnit->noDefensiveBonus())
+					if (!pGroupUnit->noDefensiveBonus())
 						iFromDefenceMod += kFrom.defenseModifier(eTeam, false);
 
 					if (!kFrom.isCity())
@@ -533,7 +525,7 @@ int GroupStepMetric::cost(CvPlot const& kFrom, CvPlot const& kTo,
 						/*	it's done this way around rather than subtracting when in a city
 							so that the overall adjustment can't be negative. */
 					}
-					if (pLoopUnit->canAttack() && !pLoopUnit->isRiver() &&
+					if (pGroupUnit->canAttack() && !pGroupUnit->isRiver() &&
 						kFrom.isRiverCrossing(directionXY(kFrom, kTo)))
 					{
 						iAttackWeight -= PATH_RIVER_WEIGHT *
@@ -547,7 +539,7 @@ int GroupStepMetric::cost(CvPlot const& kFrom, CvPlot const& kTo,
 					(This allows humans to choose which plot they attack from.)
 					(note: humans have no way of ordering units to attack units en-route,
 					so the fact that this is an attack move means we are at the destination.) */
-				else if (pLoopUnit->canAttack()) // iKnownCost == 0 && !(eFlags & MOVE_HAS_STEPPED) && !bAIControl
+				else if (pGroupUnit->canAttack()) // iKnownCost == 0 && !(eFlags & MOVE_HAS_STEPPED) && !bAIControl
 					return PATH_STEP_WEIGHT; // DONE!
 			}
 		}

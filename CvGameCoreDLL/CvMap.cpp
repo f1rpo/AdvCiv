@@ -382,10 +382,10 @@ void CvMap::updateCenterUnit()  // advc: some style changes
 	PROFILE_FUNC();
 	int iRange = -1;
 
-	for (CLLNode<IDInfo> const* pSelectionNode = gDLL->UI().headSelectionListNode();
-		pSelectionNode != NULL; pSelectionNode = gDLL->UI().nextSelectionListNode(pSelectionNode))
+	for (CLLNode<IDInfo> const* pNode = gDLL->UI().headSelectionListNode();
+		pNode != NULL; pNode = gDLL->UI().nextSelectionListNode(pNode))
 	{
-		CvUnit const& kLoopUnit = *::getUnit(pSelectionNode->m_data);
+		CvUnit const& kLoopUnit = *::getUnit(pNode->m_data);
 		//if (kLoopUnit.getDomainType() == DOMAIN_AIR)
 		if (kLoopUnit.airRange() > 0) // advc.rstr
 			iRange = std::max(iRange, kLoopUnit.airRange());

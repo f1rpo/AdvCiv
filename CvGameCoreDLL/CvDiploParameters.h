@@ -26,10 +26,10 @@ public:
 	void setDiploComment(DiploCommentTypes eCommentType, int arg1, int arg2, int arg3=MAX_INT);
 
 	DllExport DiploCommentTypes getDiploComment() const;
-	DllExport void setOurOfferList(const CLinkList<TradeData>& ourOffer);
+	DllExport void setOurOfferList(CLinkList<TradeData> const& kOurOffer);
 	DllExport const CLinkList<TradeData>& getOurOfferList() const;
-	DllExport void setTheirOfferList(const CLinkList<TradeData>& theirOffer);
-	DllExport const CLinkList<TradeData>& getTheirOfferList() const;
+	DllExport void setTheirOfferList(CLinkList<TradeData> const& kTheirOffer);
+	DllExport CLinkList<TradeData> const& getTheirOfferList() const;
 	void setRenegotiate(bool bValue);
 	DllExport bool getRenegotiate() const;
 	void setAIContact(bool bValue);

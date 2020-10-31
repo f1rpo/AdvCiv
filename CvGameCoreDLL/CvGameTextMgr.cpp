@@ -1,5 +1,3 @@
-//  CvGameTextMgr.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvGameTextMgr.h"
 #include "CoreAI.h"
@@ -21,8 +19,7 @@
 #include "CvDLLSymbolIFaceBase.h"
 
 
-// For displaying Asserts and error messages
-static char* szErrorMsg;
+static char* szErrorMsg; // for displaying assertion and error messages
 
 
 CvGameTextMgr& CvGameTextMgr::GetInstance()
@@ -633,15 +630,15 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 	}
 	if (bAlt && /*(gDLL->getChtLvl() > 0))*/ /* advc.135c: */ bDebugMode)
 	{
-		CvSelectionGroup* eGroup = pUnit->getGroup();
-		if (eGroup != NULL)
+		CvSelectionGroup const* pGroup = pUnit->getGroup();
+		if (pGroup != NULL)
 		{
 			if (pUnit->isGroupHead())
 				szString.append(CvWString::format(L"\nLeading "));
 			else szString.append(L"\n");
 			CvWString szTempBuffer;
 			szTempBuffer.Format(L"Group(%d), %d units",
-					eGroup->getID(), eGroup->getNumUnits());
+					pGroup->getID(), pGroup->getNumUnits());
 			szString.append(szTempBuffer);
 		}
 	}
@@ -1607,10 +1604,8 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 	int const OTHER = 3;
 	int const ALL = 4;
 	std::vector<CvUnit const*> perOwner[iRogueIndex + 1][ALL+1];
-	for (CLLNode<IDInfo> const* pNode = kPlot.headUnitNode(); pNode != NULL;
-		pNode = kPlot.nextUnitNode(pNode))
+	FOR_EACH_UNIT_IN(pUnit, kPlot)
 	{
-		CvUnit const* pUnit = ::getUnit(pNode->m_data);
 		if(pUnit == NULL)
 		{
 			FAssert(pUnit != NULL);
@@ -1869,14 +1864,15 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot const& kPl
 	bool bIndicator) // advc.061, advc.007
 {
 	PROFILE_FUNC();
+	TeamTypes const eActiveTeam = GC.getGame().getActiveTeam();
 	// <advc.opt>
-	if(!kPlot.isVisible(GC.getGame().getActiveTeam(), true))
+	if(!kPlot.isVisible(eActiveTeam, true))
 		return; // </advc.opt>
 
 	if (//(gDLL->getChtLvl() > 0)
-		GC.getGame().isDebugMode() // advc.135c
-		&& !bIndicator // advc.007: Don't attach debug info to indicator bubbles
-		&& GC.ctrlKey())
+		GC.getGame().isDebugMode() &&// advc.135c
+		!bIndicator && // advc.007: Don't attach debug info to indicator bubbles
+		GC.ctrlKey())
 	{
 		/*  advc: Moved into subroutine. (Note: bShort and bOneLine are unused
 			in BtS; advc.061 gives bShort a minor use.) */
@@ -1890,7 +1886,6 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot const& kPl
 		return;
 	} // </advc.061>
 
-	int const iPromotionInfos = GC.getNumPromotionInfos();
 	/*  advc.002b: Was 15; sometimes takes up a bit too much space with increased
 		font size. */
 	static const uint iMaxNumUnits = 12;
@@ -1898,84 +1893,71 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot const& kPl
 	static std::vector<int> aiUnitNumbers;
 	static std::vector<int> aiUnitStrength;
 	static std::vector<int> aiUnitMaxStrength;
-	static std::vector<CvUnit *> plotUnits;
+	static std::vector<CvUnit*> plotUnits;
 
 	GC.getGame().getPlotUnits(&kPlot, plotUnits);
 
 	int iNumVisibleUnits = 0;
-	if (kPlot.isVisible(GC.getGame().getActiveTeam(), true))
+	if (kPlot.isVisible(eActiveTeam, true))
 	{
-		for (CLLNode<IDInfo> const* pUnitNode5 = kPlot.headUnitNode();
-			pUnitNode5 != NULL; pUnitNode5 = kPlot.nextUnitNode(pUnitNode5))
+		FOR_EACH_UNIT_IN(pUnit, kPlot)
 		{
-			CvUnit const* pUnit = ::getUnit(pUnitNode5->m_data);
-			if (pUnit && !pUnit->isInvisible(GC.getGame().getActiveTeam(), true))
+			if (pUnit && !pUnit->isInvisible(eActiveTeam, true))
 				iNumVisibleUnits++;
 		}
 	}
 
 	apUnits.erase(apUnits.begin(), apUnits.end());
 
+	int const iPromotionInfos = GC.getNumPromotionInfos();
 	if (iNumVisibleUnits > iMaxNumUnits)
 	{
 		aiUnitNumbers.erase(aiUnitNumbers.begin(), aiUnitNumbers.end());
 		aiUnitStrength.erase(aiUnitStrength.begin(), aiUnitStrength.end());
 		aiUnitMaxStrength.erase(aiUnitMaxStrength.begin(), aiUnitMaxStrength.end());
 
-		if (m_apbPromotion.size() == 0)
+		if (m_apbPromotion.empty())
 		{
-			for (int iI = 0; iI < (GC.getNumUnitInfos() * MAX_PLAYERS); ++iI)
-			{
+			for (int i = 0; i < (GC.getNumUnitInfos() * MAX_PLAYERS); i++)
 				m_apbPromotion.push_back(new int[iPromotionInfos]);
-			}
 		}
 
-		for (int iI = 0; iI < (GC.getNumUnitInfos() * MAX_PLAYERS); ++iI)
+		for (int i = 0; i < (GC.getNumUnitInfos() * MAX_PLAYERS); i++)
 		{
 			aiUnitNumbers.push_back(0);
 			aiUnitStrength.push_back(0);
 			aiUnitMaxStrength.push_back(0);
-			for (int iJ = 0; iJ < iPromotionInfos; iJ++)
-			{
-				m_apbPromotion[iI][iJ] = 0;
-			}
+			for (int j = 0; j < iPromotionInfos; j++)
+				m_apbPromotion[i][j] = 0;
 		}
 	}
 
 	int iCount = 0;
-	for (int iI = iMaxNumUnits; iI < iNumVisibleUnits && iI < (int) plotUnits.size(); ++iI)
+	for (int i = iMaxNumUnits;
+		i < iNumVisibleUnits && i < (int)plotUnits.size(); i++)
 	{
-		CvUnit* pLoopUnit = plotUnits[iI];
-
-		if (pLoopUnit != NULL && pLoopUnit != kPlot.getCenterUnit())
+		CvUnit* pLoopUnit = plotUnits[i];
+		if (pLoopUnit == NULL || pLoopUnit == kPlot.getCenterUnit())
+			continue;
+		apUnits.push_back(pLoopUnit);
+		if (iNumVisibleUnits <= iMaxNumUnits)
+			continue;
+		int iIndex = pLoopUnit->getUnitType() * MAX_PLAYERS + pLoopUnit->getOwner();
+		if (aiUnitNumbers[iIndex] == 0)
+			iCount++;
+		aiUnitNumbers[iIndex]++;
+		int iBase = (DOMAIN_AIR == pLoopUnit->getDomainType() ?
+				pLoopUnit->airBaseCombatStr() : pLoopUnit->baseCombatStr());
+		if (iBase > 0 && pLoopUnit->maxHitPoints() > 0)
 		{
-			apUnits.push_back(pLoopUnit);
-
-			if (iNumVisibleUnits > iMaxNumUnits)
-			{
-				int iIndex = pLoopUnit->getUnitType() * MAX_PLAYERS + pLoopUnit->getOwner();
-				if (aiUnitNumbers[iIndex] == 0)
-				{
-					++iCount;
-				}
-				++aiUnitNumbers[iIndex];
-
-				int iBase = (DOMAIN_AIR == pLoopUnit->getDomainType() ?
-						pLoopUnit->airBaseCombatStr() : pLoopUnit->baseCombatStr());
-				if (iBase > 0 && pLoopUnit->maxHitPoints() > 0)
-				{
-					aiUnitMaxStrength[iIndex] += 100 * iBase;
-					aiUnitStrength[iIndex] += (100 * iBase * pLoopUnit->currHitPoints()) / pLoopUnit->maxHitPoints();
-				}
-
-				for (int iJ = 0; iJ < iPromotionInfos; iJ++)
-				{
-					if (pLoopUnit->isHasPromotion((PromotionTypes)iJ))
-					{
-						++m_apbPromotion[iIndex][iJ];
-					}
-				}
-			}
+			aiUnitMaxStrength[iIndex] += 100 * iBase;
+			aiUnitStrength[iIndex] += (100 * iBase * pLoopUnit->currHitPoints()) /
+					pLoopUnit->maxHitPoints();
+		}
+		for (int j = 0; j < iPromotionInfos; j++)
+		{
+			if (pLoopUnit->isHasPromotion((PromotionTypes)j))
+				m_apbPromotion[iIndex][j]++;
 		}
 	}
 
@@ -1989,9 +1971,9 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot const& kPl
 					false, false, bIndicator); // advc.007
 		}
 		uint iNumShown = std::min<uint>(iMaxNumUnits, iNumVisibleUnits);
-		for (uint iI = 0; iI < iNumShown && iI < (int) plotUnits.size(); iI++)
+		for (size_t i = 0; i < iNumShown && i < (int)plotUnits.size(); i++)
 		{
-			CvUnit* pLoopUnit = plotUnits[iI];
+			CvUnit* pLoopUnit = plotUnits[i];
 			if (pLoopUnit != pCenterUnit)
 			{
 				szString.append(NEWLINE);
@@ -2002,11 +1984,11 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot const& kPl
 		if(iNumVisibleUnits > iMaxNumUnits)
 		{
 			//bool bFirst = true;
-			for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
+			FOR_EACH_ENUM(Unit)
 			{
-				for (int iJ = 0; iJ < MAX_PLAYERS; iJ++)
+				for (int i = 0; i < MAX_PLAYERS; i++)
 				{
-					int iIndex = iI * MAX_PLAYERS + iJ;
+					int iIndex = eLoopUnit * MAX_PLAYERS + i;
 					if (aiUnitNumbers[iIndex] <= 0)
 						continue; // advc
 					//if (iCount < 5 || bFirst) // advc.002b
@@ -2017,26 +1999,26 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot const& kPl
 					//else szString.append(L", "); // advc.002b
 					szString.append(CvWString::format(SETCOLR L"%s" ENDCOLR,
 							TEXT_COLOR("COLOR_UNIT_TEXT"),
-							GC.getInfo((UnitTypes)iI).getDescription()));
+							GC.getInfo(eLoopUnit).getDescription()));
 					// <advc.061> Code moved into a subroutine
 					appendAverageStrength(szString, aiUnitMaxStrength[iIndex],
 							aiUnitStrength[iIndex], aiUnitNumbers[iIndex]);
 					// </advc.061>
-					for(int iK = 0; iK < iPromotionInfos; iK++)
+					FOR_EACH_ENUM(Promotion)
 					{
-						if(m_apbPromotion[iIndex][iK] > 0)
+						if(m_apbPromotion[iIndex][eLoopPromotion] > 0)
 						{
 							szString.append(CvWString::format(L"%d<img=%S size=16 />",
-									m_apbPromotion[iIndex][iK],
-									GC.getInfo((PromotionTypes)iK).getButton()));
+									m_apbPromotion[iIndex][eLoopPromotion],
+									GC.getInfo(eLoopPromotion).getButton()));
 						}
 					}
-					if (iJ != GC.getGame().getActivePlayer() &&
-							!GC.getInfo((UnitTypes)iI).isAnimal() &&
-							!GC.getInfo((UnitTypes)iI).isHiddenNationality())
+					if (i != GC.getGame().getActivePlayer() &&
+						!GC.getInfo(eLoopUnit).isAnimal() &&
+						!GC.getInfo(eLoopUnit).isHiddenNationality())
 					{
 						szString.append(L", ");
-						CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iJ);
+						CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 						szString.append(CvWString::format(SETCOLR L"%s" ENDCOLR,
 								PLAYER_TEXT_COLOR(kLoopPlayer), kLoopPlayer.getName()));
 					}
@@ -2057,15 +2039,12 @@ namespace
 	}
 }
 
-// advc: Cut and pasted from setPlotListHelp, and refactored.
+// advc: Cut from setPlotListHelp; refactored.
 void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot)
 {
-	for (CLLNode<IDInfo> const* pUnitNode = kPlot.headUnitNode(); pUnitNode != NULL;
-		pUnitNode = kPlot.nextUnitNode(pUnitNode))
+	FOR_EACH_UNITAI_IN(pHeadUnit, kPlot)
 	{
-		bool const bFinalIteration = (kPlot.nextUnitNode(pUnitNode) == NULL); // advc.007
-		CvUnitAI const* pHeadUnit = ::AI_getUnit(pUnitNode->m_data);
-		// is this unit the head of a group, not cargo, and visible?
+		// Is this unit the head of a group, not cargo, and visible?
 		if(pHeadUnit == NULL || !pHeadUnit->isGroupHead() || pHeadUnit->isCargo())
 			continue;
 		CvGame const& kGame = GC.getGame();
@@ -2074,7 +2053,6 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 			continue;
 		CvMap const& kMap = GC.getMap();
 		CvWString szTempString;
-		int const iPromotions = GC.getNumPromotionInfos();
 		// head unit name and unitai
 		szString.append(CvWString::format(SETCOLR L"%s" ENDCOLR, 255,190,0,255,
 				pHeadUnit->getName().GetCString()));
@@ -2085,13 +2063,12 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 				PLAYER_TEXT_COLOR(kHeadOwner), szTempString.GetCString()));
 
 		// promotion icons
-		for (int iPromotionIndex = 0; iPromotionIndex < iPromotions; iPromotionIndex++)
+		FOR_EACH_ENUM(Promotion)
 		{
-			PromotionTypes ePromotion = (PromotionTypes)iPromotionIndex;
-			if (pHeadUnit->isHasPromotion(ePromotion))
+			if (pHeadUnit->isHasPromotion(eLoopPromotion))
 			{
 				szString.append(CvWString::format(L"<img=%S size=16 />",
-						GC.getInfo(ePromotion).getButton()));
+						GC.getInfo(eLoopPromotion).getButton()));
 			}
 		}
 
@@ -2113,18 +2090,14 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 			int iAverageDamage = 0;
 			/*pUnitNode = pHeadGroup->headUnitNode();
 			while (pUnitNode != NULL)*/
-			// <advc.001> ^Looks like an error. We don't want to disrupt the outer loop.
-			for (CLLNode<IDInfo> const* pNode = pHeadGroup->headUnitNode();
-				pNode != NULL; pNode = pHeadGroup->nextUnitNode(pNode))
-			{ // </advc.001>
-				CvUnit const* pLoopUnit = ::getUnit(pNode->m_data);
+			// advc.001: ^Looks like an error. We don't want to disrupt the outer loop.
+			FOR_EACH_UNIT_IN(pLoopUnit, *pHeadGroup)
+			{
 				iAverageDamage += (pLoopUnit->getDamage() * pLoopUnit->maxHitPoints()) / 100;
 			}
 			iAverageDamage /= pHeadGroup->getNumUnits();
 			if (iAverageDamage > 0)
-			{
 				szString.append(CvWString::format(L" %d%%", 100 - iAverageDamage));
-			}
 		}
 
 		if (!pHeadGroup->isHuman() && pHeadGroup->isStranded())
@@ -2182,15 +2155,13 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 					{
 					case MISSION_MOVE_TO:
 					case MISSION_ROUTE_TO:
-						pMissionPlot =  kMap.plot(pHeadGroup->getMissionData1(0),
+						pMissionPlot = kMap.plot(pHeadGroup->getMissionData1(0),
 								pHeadGroup->getMissionData2(0));
 						break;
 
 					case MISSION_MOVE_TO_UNIT:
 						if (pMissionUnit != NULL)
-						{
 							pMissionPlot = pMissionUnit->plot();
-						}
 						break;
 					}
 				}
@@ -2275,28 +2246,23 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 							PLAYER_TEXT_COLOR(kCargoOwner), szTempString.GetCString()));
 
 					// promotion icons
-					for (int iPromotionIndex = 0; iPromotionIndex < iPromotions; iPromotionIndex++)
+					FOR_EACH_ENUM(Promotion)
 					{
-						PromotionTypes ePromotion = (PromotionTypes)iPromotionIndex;
-						if (pCargoUnit->isHasPromotion(ePromotion))
+						if (pCargoUnit->isHasPromotion(eLoopPromotion))
 						{
 							szString.append(CvWString::format(L"<img=%S size=16 />",
-									GC.getInfo(ePromotion).getButton()));
+									GC.getInfo(eLoopPromotion).getButton()));
 						}
 					}
 				}
 			}
 
 			// display grouped units
-			/*CLLNode<IDInfo>* pUnitNode3 = kPlot.headUnitNode();
-			while(pUnitNode3 != NULL)*/ // advc: What happened to pUnitNode2? Let's just use pNode.
-			for (CLLNode<IDInfo>* pNode = kPlot.headUnitNode(); pNode != NULL;
-				pNode = kPlot.nextUnitNode(pNode))
+			FOR_EACH_UNIT_IN(pUnit, kPlot)
 			{
-				CvUnit const* pUnit = ::getUnit(pNode->m_data);
 				// is this unit not head, in head's group and visible?
 				if (pUnit && pUnit != pHeadUnit && pUnit->getGroupID() == pHeadUnit->getGroupID() &&
-						!pUnit->isInvisible(eActiveTeam, true))
+					!pUnit->isInvisible(eActiveTeam, true))
 				{
 					FAssertMsg(!pUnit->isCargo(), "unit is cargo but head unit is not cargo");
 					// name and unitai
@@ -2309,13 +2275,13 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 							PLAYER_TEXT_COLOR(kUnitOwner), szTempString.GetCString()));
 
 					// promotion icons
-					for (int iPromotionIndex = 0; iPromotionIndex < iPromotions; iPromotionIndex++)
+					FOR_EACH_ENUM(Promotion)
 					{
-						PromotionTypes ePromotion = (PromotionTypes)iPromotionIndex;
-						if (pUnit->isHasPromotion(ePromotion))
+
+						if (pUnit->isHasPromotion(eLoopPromotion))
 						{
 							szString.append(CvWString::format(L"<img=%S size=16 />",
-									GC.getInfo(ePromotion).getButton()));
+									GC.getInfo(eLoopPromotion).getButton()));
 						}
 					}
 
@@ -2339,13 +2305,12 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 									PLAYER_TEXT_COLOR(kCargoOwner), szTempString.GetCString()));
 
 							// promotion icons
-							for (int iPromotionIndex = 0; iPromotionIndex < iPromotions; iPromotionIndex++)
+							FOR_EACH_ENUM(Promotion)
 							{
-								PromotionTypes ePromotion = (PromotionTypes)iPromotionIndex;
-								if (pCargoUnit->isHasPromotion(ePromotion))
+								if (pCargoUnit->isHasPromotion(eLoopPromotion))
 								{
 									szString.append(CvWString::format(L"<img=%S size=16 />",
-											GC.getInfo(ePromotion).getButton()));
+											GC.getInfo(eLoopPromotion).getButton()));
 								}
 							}
 						}
@@ -2502,7 +2467,8 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 				}
 			}
 		} // BETTER_BTS_AI_MOD: END
-		if (!bFinalIteration) // advc.007: No newlines in the final iteration
+		// advc.007: No newlines in the final iteration
+		if (pHeadUnit->getIDInfo() != kPlot.tailUnitNode()->m_data)
 		{
 			// double space non-empty groups
 			if (pHeadGroup->getNumUnits() > 1 || pHeadUnit->hasCargo())
@@ -5116,10 +5082,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 				kPlot.isBuildProgressDecaying(true));
 		if(bDecay) // Check if Workers are getting on the task this turn
 		{
-			for (CLLNode<IDInfo> const* pNode = kPlot.headUnitNode();
-				pNode != NULL; pNode = kPlot.nextUnitNode(pNode))
+			FOR_EACH_UNIT_IN(pUnit, kPlot)
 			{
-				CvUnit const* pUnit = ::getUnit(pNode->m_data);
 				if(pUnit->getTeam() == eActiveTeam && pUnit->movesLeft() > 0 &&
 					pUnit->getGroup()->getMissionType(0) == MISSION_BUILD)
 				{
@@ -16272,38 +16236,26 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 	}
 }
 
-
-void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, CvDeal const& deal, PlayerTypes ePlayerPerspective,
-	bool bCancel) // advc.004w
+// advc: Merge of two getDealString functions. One was just a wrapper.
+void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, CvDeal const& kDeal,
+	PlayerTypes ePlayerPerspective,  // <advc.004w>
+	bool bCancel)
 {
-	PlayerTypes ePlayer1 = deal.getFirstPlayer();
-	PlayerTypes ePlayer2 = deal.getSecondPlayer();
-
-	const CLinkList<TradeData>* pListPlayer1 = deal.getFirstTrades();
-	const CLinkList<TradeData>* pListPlayer2 = deal.getSecondTrades();
-
-	getDealString(szBuffer, ePlayer1, ePlayer2, pListPlayer1, pListPlayer2, ePlayerPerspective,
-			(bCancel ? -1 : deal.turnsToCancel())); // advc.004w
-}
-
-void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer1, PlayerTypes ePlayer2, const CLinkList<TradeData>* pListPlayer1, const CLinkList<TradeData>* pListPlayer2, PlayerTypes ePlayerPerspective,
-	int iTurnsToCancel) // advc.004w
-{
-	if (NO_PLAYER == ePlayer1 || NO_PLAYER == ePlayer2)
-	{
-		FErrorMsg("Deal needs two parties");
-		return;
-	}
+	int const iTurnsToCancel = (bCancel ? -1 : kDeal.turnsToCancel()); // </advc.004w>
+	CvPlayer const& kFirstPlayer = GET_PLAYER(kDeal.getFirstPlayer());
+	CvPlayer const& kSecondPlayer = GET_PLAYER(kDeal.getSecondPlayer());
+	bool const bFirstPerspective = (kFirstPlayer.getID() == ePlayerPerspective);
+	bool const bSecondPerspective = (kSecondPlayer.getID() == ePlayerPerspective);
+	bool const bThirdPerspective = (!bFirstPerspective && !bSecondPerspective);
 
 	CvWStringBuffer szDealOne;
-	if (NULL != pListPlayer1 && pListPlayer1->getLength() > 0)
+	if (kDeal.getLengthFirst() > 0)
 	{
-		CLLNode<TradeData> const* pTradeNode;
 		bool bFirst = true;
-		for (pTradeNode = pListPlayer1->head(); pTradeNode; pTradeNode = pListPlayer1->next(pTradeNode))
+		FOR_EACH_TRADE_ITEM(kDeal.getFirstList())
 		{
 			CvWStringBuffer szTrade;
-			getTradeString(szTrade, pTradeNode->m_data, ePlayer1, ePlayer2,
+			getTradeString(szTrade, *pItem, kFirstPlayer.getID(), kSecondPlayer.getID(),
 					iTurnsToCancel); // advc.004w
 			setListHelp(szDealOne, L"", szTrade.getCString(), L", ", bFirst);
 			bFirst = false;
@@ -16311,94 +16263,90 @@ void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer
 	}
 
 	CvWStringBuffer szDealTwo;
-	if (NULL != pListPlayer2 && pListPlayer2->getLength() > 0)
+	if (kDeal.getLengthSecond() > 0)
 	{
-		CLLNode<TradeData> const* pTradeNode;
 		bool bFirst = true;
-		for (pTradeNode = pListPlayer2->head(); pTradeNode; pTradeNode = pListPlayer2->next(pTradeNode))
+		FOR_EACH_TRADE_ITEM(kDeal.getSecondList())
 		{
 			CvWStringBuffer szTrade;
-			getTradeString(szTrade, pTradeNode->m_data, ePlayer2, ePlayer1,
+			getTradeString(szTrade, *pItem, kSecondPlayer.getID(), kFirstPlayer.getID(),
 					iTurnsToCancel); // advc.004w
 			setListHelp(szDealTwo, L"", szTrade.getCString(), L", ", bFirst);
 			bFirst = false;
 		}
-	} // <advc.004w>
-	bool bAllDual = false;
-	if(pListPlayer1 != NULL && pListPlayer2 != NULL)
-	{
-		for(int pass = 0; pass < 2; pass++)
-		{
-			CLinkList<TradeData> const& list = *(pass == 0 ? pListPlayer1 : pListPlayer2);
-			for(CLLNode<TradeData> const* node = list.head(); node != NULL; node = list.next(node))
-			{
-				TradeableItems item = node->m_data.m_eItemType;
-				if(!CvDeal::isDual(item))
-				{
-					bAllDual = false;
-					break;
-				}
-				else bAllDual = true;
-			}
-		}
 	}
-	if(bAllDual)
+	// <advc.004w>
+	if (!bThirdPerspective && kDeal.isAllDual())
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL_DUAL",
-				szDealOne.getCString(), (ePlayerPerspective == ePlayer1 ?
-				GET_PLAYER(ePlayer2).getNameKey() :
-				GET_PLAYER(ePlayer1).getNameKey())));
+				szDealOne.getCString(), (bFirstPerspective ?
+				kSecondPlayer.getNameKey() : kFirstPlayer.getNameKey())));
 	}
 	else // </advc.004w>
-		if (!szDealOne.isEmpty())
+	if (!szDealOne.isEmpty())
 	{
 		if (!szDealTwo.isEmpty())
 		{
-			if (ePlayerPerspective == ePlayer1)
+			if (bFirstPerspective)
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_OUR_DEAL", szDealOne.getCString(), GET_PLAYER(ePlayer2).getNameKey(), szDealTwo.getCString()));
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_OUR_DEAL",
+						szDealOne.getCString(), kSecondPlayer.getNameKey(),
+						szDealTwo.getCString()));
 			}
-			else if (ePlayerPerspective == ePlayer2)
+			else if (bSecondPerspective)
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_OUR_DEAL", szDealTwo.getCString(), GET_PLAYER(ePlayer1).getNameKey(), szDealOne.getCString()));
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_OUR_DEAL",
+						szDealTwo.getCString(), kFirstPlayer.getNameKey(),
+						szDealOne.getCString()));
 			}
 			else
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL", GET_PLAYER(ePlayer1).getNameKey(), szDealOne.getCString(), GET_PLAYER(ePlayer2).getNameKey(), szDealTwo.getCString()));
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL",
+						kFirstPlayer.getNameKey(), szDealOne.getCString(),
+						kSecondPlayer.getNameKey(), szDealTwo.getCString()));
 			}
 		}
 		else
 		{
-			if (ePlayerPerspective == ePlayer1)
+			if (bFirstPerspective)
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL_ONESIDED_OURS", szDealOne.getCString(), GET_PLAYER(ePlayer2).getNameKey()));
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL_ONESIDED_OURS",
+						szDealOne.getCString(), kSecondPlayer.getNameKey()));
 			}
-			else if (ePlayerPerspective == ePlayer2)
+			else if (bSecondPerspective)
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL_ONESIDED_THEIRS", szDealOne.getCString(), GET_PLAYER(ePlayer1).getNameKey()));
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL_ONESIDED_THEIRS",
+						szDealOne.getCString(), kFirstPlayer.getNameKey()));
 			}
 			else
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL_ONESIDED", GET_PLAYER(ePlayer1).getNameKey(), szDealOne.getCString(), GET_PLAYER(ePlayer2).getNameKey()));
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL_ONESIDED",
+						kFirstPlayer.getNameKey(), szDealOne.getCString(),
+						kSecondPlayer.getNameKey()));
 			}
 		}
 	}
 	else if (!szDealTwo.isEmpty())
 	{
-		if (ePlayerPerspective == ePlayer1)
+		if (bFirstPerspective)
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL_ONESIDED_THEIRS", szDealTwo.getCString(), GET_PLAYER(ePlayer2).getNameKey()));
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL_ONESIDED_THEIRS",
+					szDealTwo.getCString(), kSecondPlayer.getNameKey()));
 		}
-		else if (ePlayerPerspective == ePlayer2)
+		else if (bSecondPerspective)
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL_ONESIDED_OURS", szDealTwo.getCString(), GET_PLAYER(ePlayer1).getNameKey()));
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL_ONESIDED_OURS",
+					szDealTwo.getCString(), kFirstPlayer.getNameKey()));
 		}
 		else
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL_ONESIDED", GET_PLAYER(ePlayer2).getNameKey(), szDealTwo.getCString(), GET_PLAYER(ePlayer1).getNameKey()));
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL_ONESIDED",
+				kSecondPlayer.getNameKey(), szDealTwo.getCString(),
+				kFirstPlayer.getNameKey()));
 		}
 	}
 }
+
 
 void CvGameTextMgr::getWarplanString(CvWStringBuffer& szString, WarPlanTypes eWarPlan)
 {
@@ -16415,6 +16363,7 @@ void CvGameTextMgr::getWarplanString(CvWStringBuffer& szString, WarPlanTypes eWa
 		default:  szString.assign(L"unknown warplan"); break;
 	}
 }
+
 
 void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer,
 	PlayerTypes eTargetPlayer, /* advc.sha: */ bool bConstCache)
@@ -20847,20 +20796,18 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 				TerrainTypes const eTerrain = pMouseOverPlot->getTerrainType();
 				// Check if any selected unit is unable to enter eTerrain
 				bool bCanAllEnter = true;
-				CvPlot const& kUnitPlot = *pSelectedUnit->plot();
-				for (CLLNode<IDInfo> const* pNode = kUnitPlot.headUnitNode(); pNode != NULL;
-					pNode = kUnitPlot.nextUnitNode(pNode))
+				CvPlot const& kUnitPlot = pSelectedUnit->getPlot();
+				FOR_EACH_UNIT_IN(pUnit, kUnitPlot)
 				{
-					CvUnit const& kUnit = *::getUnit(pNode->m_data);
-					if (!kUnit.IsSelected())
+					if (!pUnit->IsSelected())
 						continue;
-					CvUnitInfo const& kUnitInfo = kUnit.getUnitInfo();
-					if (pMouseOverPlot->isImpassable() && !kUnitInfo.canMoveImpassable())
+					CvUnitInfo const& kInfo = pUnit->getUnitInfo();
+					if (pMouseOverPlot->isImpassable() && !kInfo.canMoveImpassable())
 						continue;
-					if (!kUnitInfo.getTerrainImpassable(eTerrain))
+					if (!kInfo.getTerrainImpassable(eTerrain))
 						continue;
 					bCanAllEnter = false;
-					TechTypes eReqTech = kUnitInfo.getTerrainPassableTech(eTerrain);
+					TechTypes eReqTech = kInfo.getTerrainPassableTech(eTerrain);
 					if (eReqTech != NO_TECH && !GET_TEAM(eActiveTeam).isHasTech(eReqTech) &&
 						GC.getInfo(eReqTech).getEra() -
 						GET_PLAYER(pSelectedUnit->getOwner()).getCurrentEra() <=

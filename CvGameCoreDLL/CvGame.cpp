@@ -3133,17 +3133,12 @@ void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) c
 	}
 	if (bSelectGroup)
 	{
-		CvSelectionGroup* pSelectionGroup = pUnit->getGroup();
-
 		gDLL->UI().selectionListPreChange();
-
-		CLLNode<IDInfo>* pEntityNode = pSelectionGroup->headUnitNode();
-		while (pEntityNode != NULL)
+		FOR_EACH_UNIT_VAR_IN(pUnit, *pUnit->getGroup())
 		{
-			FAssertMsg(::getUnit(pEntityNode->m_data), "null entity in selection group");
-			gDLL->UI().insertIntoSelectionList(::getUnit(pEntityNode->m_data),
-					false, bToggle, bGroup, bSound, true);
-			pEntityNode = pSelectionGroup->nextUnitNode(pEntityNode);
+			FAssertMsg(pUnit != NULL, "null entity in selection group");
+			gDLL->UI().insertIntoSelectionList(
+					pUnit, false, bToggle, bGroup, bSound, true);
 		}
 		gDLL->UI().selectionListPostChange();
 	}
@@ -3159,10 +3154,12 @@ void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) c
 	gDLL->UI().makeSelectionListDirty();
 }
 
-
-// K-Mod. I've made an ugly hack to change the functionality of double-click from select-all to wake-all. Here's how it works:
-// if this function is called with only bAlt == true, but without the alt key actually down, then wake-all is triggered rather than select-all.
-// To achieve the select-all functionality without the alt key, call the function with bCtrl && bAlt.
+/*	K-Mod. I've made an ugly hack to change the functionality of double-click
+	from select-all to wake-all. Here's how it works:
+	If this function is called with only bAlt==true, but without the Alt key actually down,
+	then wake-all is triggered rather than select-all.
+	To achieve the select-all functionality without the Alt key,
+	call the function with bCtrl && bAlt. */
 void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) const
 {
 	PROFILE_FUNC();
@@ -3179,19 +3176,19 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 		}
 	} // </advc.002e>
 	// K-Mod. the hack (see above)
-	if (bAlt && !bShift && !bCtrl && !GC.altKey() && !gDLL->altKey()) // (using gDLL->altKey, to better match the state of bAlt)
+	if (bAlt && !bShift && !bCtrl && !GC.altKey() &&
+		!gDLL->altKey()) // (using gDLL->altKey, to better match the state of bAlt)
 	{
-		// the caller says alt is pressed, but the computer says otherwise. Lets assume this is a double-click.
-		CvPlot* pUnitPlot = pUnit->plot();
-		CLLNode<IDInfo>* pUnitNode = pUnitPlot->headUnitNode();
-		while (pUnitNode != NULL)
+		/*	The caller says alt is pressed, but the computer says otherwise.
+			Lets assume this is a double-click. */
+		CvPlot const& kUnitPlot = pUnit->getPlot();
+		FOR_EACH_UNIT_VAR_IN(pLoopUnit, kUnitPlot)
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = pUnitPlot->nextUnitNode(pUnitNode);
-
-			if (pLoopUnit->getOwner() == getActivePlayer() && pLoopUnit->isGroupHead() && pLoopUnit->isWaiting())
+			if (pLoopUnit->getOwner() == getActivePlayer() &&
+				pLoopUnit->isGroupHead() && pLoopUnit->isWaiting())
 			{
-				CvMessageControl::getInstance().sendDoCommand(pLoopUnit->getID(), COMMAND_WAKE, -1, -1, false);
+				CvMessageControl::getInstance().sendDoCommand(
+						pLoopUnit->getID(), COMMAND_WAKE, -1, -1, false);
 			}
 		}
 		gDLL->UI().selectUnit(pUnit, true, false, true);
@@ -3202,11 +3199,10 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 	if (bAlt || bCtrl)
 	{
 		gDLL->UI().clearSelectedCities();
-
-		CvPlot* pUnitPlot = pUnit->plot();
-		DomainTypes eDomain = pUnit->getDomainType(); // K-Mod
-		bool bCheckMoves = pUnit->canMove() || pUnit->IsSelected(); // K-Mod.
-		// (Note: the IsSelected check is to stop selected units with no moves from make it hard to select moveable units by clicking on the map.)
+		DomainTypes const eDomain = pUnit->getDomainType(); // K-Mod
+		bool const bCheckMoves = pUnit->canMove() || pUnit->IsSelected(); // K-Mod.
+		/*	(Note: The IsSelected check is to stop selected units with no moves
+			from making it hard to select moveable units by clicking on the map.) */
 
 		bool bGroup;
 		if (!bShift)
@@ -3220,27 +3216,27 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 			// K-Mod. Treat shift as meaning we should always form a group
 			if (!gDLL->UI().mirrorsSelectionGroup())
 				selectionListGameNetMessage(GAMEMESSAGE_JOIN_GROUP);
-			bGroup = true; // note: sometimes this won't work. (see comments in CvGame::selectUnit.) Unfortunately, it's too fiddly to fix.
+			/*	note: sometimes this won't work. (see comments in CvGame::selectUnit.)
+				Unfortunately, it's too fiddly to fix. */
+			bGroup = true;
 			// K-Mod end
 		}
-
-		CLLNode<IDInfo>* pUnitNode = pUnitPlot->headUnitNode();
 		gDLL->getInterfaceIFace()->selectionListPreChange();
-		while (pUnitNode != NULL)
+		CvPlot const& kUnitPlot = pUnit->getPlot();
+		FOR_EACH_UNIT_VAR_IN(pLoopUnit, kUnitPlot)
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = pUnitPlot->nextUnitNode(pUnitNode);
-			if (pLoopUnit->getOwner() == getActivePlayer())
+			if (pLoopUnit->getOwner() != getActivePlayer())
+				continue;
+			// K-Mod: added domain check and bCheckMoves
+			if (pLoopUnit->getDomainType() == eDomain &&
+				(!bCheckMoves || pLoopUnit->canMove()))
 			{
-				if (pLoopUnit->getDomainType() == eDomain && (!bCheckMoves || pLoopUnit->canMove())) // K-Mod added domain check and bCheckMoves.
+				// disabled by K-Mod:
+				//if (!isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || getTurnSlice() - pLoopUnit->getLastMoveTurn() > GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES"))
+				if (bAlt || pLoopUnit->getUnitType() == pUnit->getUnitType())
 				{
-					//if (!isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || getTurnSlice() - pLoopUnit->getLastMoveTurn() > GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES")) // disabled by K-Mod
-					{
-						if (bAlt || (pLoopUnit->getUnitType() == pUnit->getUnitType()))
-						{
-							gDLL->getInterfaceIFace()->insertIntoSelectionList(pLoopUnit, false, false, bGroup, false, true);
-						}
-					}
+					gDLL->getInterfaceIFace()->insertIntoSelectionList(
+							pLoopUnit, false, false, bGroup, false, true);
 				}
 			}
 		}
@@ -3253,25 +3249,18 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 
 void CvGame::selectAll(CvPlot* pPlot) const
 {
-	CvUnit* pSelectUnit;
-	CvUnit* pCenterUnit;
-
-	pSelectUnit = NULL;
-
+	CvUnit* pSelectUnit = NULL;
 	if (pPlot != NULL)
 	{
-		pCenterUnit = pPlot->getDebugCenterUnit();
-
-		if ((pCenterUnit != NULL) && (pCenterUnit->getOwner() == getActivePlayer()))
-		{
+		CvUnit* pCenterUnit = pPlot->getDebugCenterUnit();
+		if (pCenterUnit != NULL && pCenterUnit->getOwner() == getActivePlayer())
 			pSelectUnit = pCenterUnit;
-		}
 	}
-
 	if (pSelectUnit != NULL)
 	{
-		//gDLL->getInterfaceIFace()->selectGroup(pSelectUnit, false, false, true);
-		gDLL->getInterfaceIFace()->selectGroup(pSelectUnit, false, true, true); // K-Mod
+		gDLL->getInterfaceIFace()->selectGroup(pSelectUnit,
+				//false, false, true);
+				false, true, true); // K-Mod
 	}
 }
 
@@ -3283,38 +3272,34 @@ bool CvGame::selectionListIgnoreBuildingDefense() const
 	bool bIgnoreBuilding = false;
 	bool bAttackLandUnit = false;
 
-	CLLNode<IDInfo>* pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-	while (pSelectedUnitNode != NULL)
+	for (CLLNode<IDInfo> const* pNode = gDLL->UI().headSelectionListNode();
+		pNode != NULL; pNode = gDLL->UI().nextSelectionListNode(pNode))
 	{
-		CvUnit* pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-		pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-		if (pSelectedUnit != NULL)
+		CvUnit* pSelectedUnit = ::getUnit(pNode->m_data);
+		if (pSelectedUnit == NULL)
+			continue;
+		if (pSelectedUnit->ignoreBuildingDefense())
+			bIgnoreBuilding = true;
+		if (pSelectedUnit->getDomainType() == DOMAIN_LAND &&
+			pSelectedUnit->canAttack())
 		{
-			if (pSelectedUnit->ignoreBuildingDefense())
-			{
-				bIgnoreBuilding = true;
-			}
-
-			if ((pSelectedUnit->getDomainType() == DOMAIN_LAND) && pSelectedUnit->canAttack())
-			{
-				bAttackLandUnit = true;
-			}
+			bAttackLandUnit = true;
 		}
 	}
 
-	if (!bIgnoreBuilding && !bAttackLandUnit)
+	if (!bIgnoreBuilding && !bAttackLandUnit &&
+		getBestLandUnit() != NO_UNIT)
 	{
-		if (getBestLandUnit() != NO_UNIT)
-		{
-			bIgnoreBuilding = GC.getInfo(getBestLandUnit()).isIgnoreBuildingDefense();
-		}
+		bIgnoreBuilding = GC.getInfo(getBestLandUnit()).isIgnoreBuildingDefense();
 	}
 
 	return bIgnoreBuilding;
 }
 
 
-void CvGame::implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirList, bool bForce)
+void CvGame::implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho,
+	CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirList,
+	bool bForce)
 {
 	// <advc> Not sure if the EXE ever calls implementDeal with a NULL list
 	CLinkList<TradeData> emptyList;
@@ -3324,14 +3309,16 @@ void CvGame::implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<Tr
 			bForce);
 }
 
-void CvGame::implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData> const& kOurList, CLinkList<TradeData> const& kTheirList, bool bForce)
+void CvGame::implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho,
+	CLinkList<TradeData>& kOurList, CLinkList<TradeData>& kTheirList,
+	bool bForce)
 {
 	// </advc>  <advc.036>
 	implementAndReturnDeal(eWho, eOtherWho, kOurList, kTheirList, bForce);
 }
 
 CvDeal* CvGame::implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho,
-	CLinkList<TradeData> const& kOurList, CLinkList<TradeData> const& kTheirList,
+	CLinkList<TradeData>& kOurList, CLinkList<TradeData>& kTheirList,
 	bool bForce) // </advc.036>
 {
 	FAssert(eWho != NO_PLAYER);
@@ -3340,8 +3327,8 @@ CvDeal* CvGame::implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho,
 
 	CvDeal* pDeal = addDeal();
 	pDeal->init(pDeal->getID(), eWho, eOtherWho);
-	pDeal->addTrades(kOurList, kTheirList, !bForce);
-	if (pDeal->getLengthFirstTrades() <= 0 && pDeal->getLengthSecondTrades() <= 0)
+	pDeal->addTradeItems(kOurList, kTheirList, !bForce);
+	if (pDeal->getLengthFirst() <= 0 && pDeal->getLengthSecond() <= 0)
 	{
 		pDeal->kill();
 		return NULL; // advc.036
@@ -8405,10 +8392,9 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 					GET_TEAM(pLoopDeal->getFirstPlayer()).
 					isVotingMember(kData.eVoteSource)))
 				{
-					for(CLLNode<TradeData> const* pNode = pLoopDeal->headFirstTradesNode();
-						pNode != NULL; pNode = pLoopDeal->nextFirstTradesNode(pNode))
+					FOR_EACH_TRADE_ITEM(pLoopDeal->getFirstList())
 					{
-						if(pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)
+						if(pItem->m_eItemType == TRADE_DEFENSIVE_PACT)
 						{
 							pLoopDeal->kill();
 							break;
@@ -8547,28 +8533,27 @@ CvDeal* CvGame::nextCurrentDeal(PlayerTypes eGivePlayer, PlayerTypes eReceivePla
 		{
 			if(!d->isBetween(eGivePlayer, eReceivePlayer))
 				continue;
-			CLinkList<TradeData> const& kGiveList = *(d->getFirstPlayer() == eGivePlayer ?
-					d->getFirstTrades() : d->getSecondTrades());
-			for(CLLNode<TradeData> const* pNode = kGiveList.head(); pNode != NULL;
-				pNode = kGiveList.next(pNode))
+			CLinkList<TradeData> const& kGiveList = (d->getFirstPlayer() == eGivePlayer ?
+					d->getFirstList() : d->getSecondList());
+			FOR_EACH_TRADE_ITEM(kGiveList)
 			{
-				if(!CvDeal::isAnnual(pNode->m_data.m_eItemType) &&
-					pNode->m_data.m_eItemType != TRADE_PEACE_TREATY)
+				if(!CvDeal::isAnnual(pItem->m_eItemType) &&
+					pItem->m_eItemType != TRADE_PEACE_TREATY)
 				{
 					break;
 				}
 				if(!bFirstFound)
 				{
-					if(pNode->m_data.m_eItemType != eItemType ||
-						pNode->m_data.m_iData != iData)
+					if(pItem->m_eItemType != eItemType ||
+						pItem->m_iData != iData)
 					{
 						FAssert(false);
 						return NULL;
 					}
 					bFirstFound = true;
 				}
-				DealItemData data(eGivePlayer, eReceivePlayer, pNode->m_data.m_eItemType,
-						pNode->m_data.m_iData, d->getID());
+				DealItemData data(eGivePlayer, eReceivePlayer, pItem->m_eItemType,
+						pItem->m_iData, d->getID());
 				kCurrentDeals.insertAtEnd(data);
 			}
 		}

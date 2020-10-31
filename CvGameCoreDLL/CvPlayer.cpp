@@ -1381,15 +1381,12 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	CvPlot& kCityPlot = *pOldCity->plot();
 	// Kill ICBMs
 	//CLinkList<IDInfo> oldUnits; ... // advc: Deleted; unnecessary.
-	CLLNode<IDInfo>* pNode = kCityPlot.headUnitNode();
-	while (pNode != NULL)
+	FOR_EACH_UNIT_VAR_IN(pUnit, kCityPlot)
 	{
-		CvUnit& kUnit = *::getUnit(pNode->m_data);
-		pNode = kCityPlot.nextUnitNode(pNode);
-		if (kUnit.getDomainType() == DOMAIN_IMMOBILE &&
-			kUnit.getTeam() != getTeam())
+		if (pUnit->getDomainType() == DOMAIN_IMMOBILE &&
+			pUnit->getTeam() != getTeam())
 		{
-			kUnit.kill(false, getID());
+			pUnit->kill(false, getID());
 		}
 	}
 	if (bConquest) // Force unowned after conquest
@@ -2093,139 +2090,142 @@ void CvPlayer::disbandUnit(bool bAnnounce)
 		{
 			continue;
 		}
-		if (!pLoopUnit->isMilitaryHappiness() || !pLoopUnit->getPlot().isCity() ||
-			pLoopUnit->getPlot().plotCount(PUF_isMilitaryHappiness, -1, -1, getID()) > 1)
+		if (pLoopUnit->isMilitaryHappiness() &&
+			pLoopUnit->getPlot().plotCount(PUF_isMilitaryHappiness, -1, -1, getID()) <= 1)
 		{
-			int iValue = (10000 + GC.getGame().getSorenRandNum(1000, "Disband Unit"));
-			iValue += (pLoopUnit->getUnitInfo().getProductionCost() * 5);
-			iValue += (pLoopUnit->getExperience() * 20);
-			iValue += (pLoopUnit->getLevel() * 100);
+			continue;
+		}
+		int iValue = (10000 + GC.getGame().getSorenRandNum(1000, "Disband Unit"));
+		iValue += (pLoopUnit->getUnitInfo().getProductionCost() * 5);
+		iValue += (pLoopUnit->getExperience() * 20);
+		iValue += (pLoopUnit->getLevel() * 100);
 
-			if (pLoopUnit->canDefend() && pLoopUnit->getPlot().isCity()
-				/*  advc.001s: I suppose this clause is intended for
+		if (pLoopUnit->canDefend() && pLoopUnit->getPlot().isCity() &&
+			/*  advc.001s: I suppose this clause is intended for
 				potential city defenders */
-				&& pLoopUnit->getDomainType() == DOMAIN_LAND)
-				iValue *= 2;
-
-			if (pLoopUnit->getPlot().getTeam() == pLoopUnit->getTeam())
-				iValue *= 3;
-
-			switch (pLoopUnit->AI_getUnitAIType())
-			{
-			case UNITAI_UNKNOWN:
-			case UNITAI_ANIMAL:
-				break;
-
-			case UNITAI_SETTLE:
-				iValue *= 20;
-				break;
-
-			case UNITAI_WORKER:
-				iValue *= 10;
-				break;
-
-			case UNITAI_ATTACK:
-			case UNITAI_ATTACK_CITY:
-			case UNITAI_COLLATERAL:
-			case UNITAI_PILLAGE:
-			case UNITAI_RESERVE:
-			case UNITAI_COUNTER:
-				iValue *= 2;
-				break;
-
-			case UNITAI_CITY_DEFENSE:
-			case UNITAI_CITY_COUNTER:
-			case UNITAI_CITY_SPECIAL:
-			case UNITAI_PARADROP:
-				iValue *= 6;
-				break;
-
-			case UNITAI_EXPLORE:
-				iValue *= 15;
-				break;
-
-			case UNITAI_MISSIONARY:
-				iValue *= 8;
-				break;
-
-			case UNITAI_PROPHET:
-			case UNITAI_ARTIST:
-			case UNITAI_SCIENTIST:
-			case UNITAI_GENERAL:
-			case UNITAI_MERCHANT:
-			case UNITAI_ENGINEER:
-			case UNITAI_GREAT_SPY: // K-Mod
-				break;
-
-			case UNITAI_SPY:
-				iValue *= 12;
-				break;
-
-			case UNITAI_ICBM:
-				iValue *= 4;
-				break;
-
-			case UNITAI_WORKER_SEA:
-				iValue *= 18;
-				break;
-
-			case UNITAI_ATTACK_SEA:
-			case UNITAI_RESERVE_SEA:
-			case UNITAI_ESCORT_SEA:
-				break;
-
-			case UNITAI_EXPLORE_SEA:
-				iValue *= 25;
-				break;
-
-			case UNITAI_ASSAULT_SEA:
-			case UNITAI_SETTLER_SEA:
-			case UNITAI_MISSIONARY_SEA:
-			case UNITAI_SPY_SEA:
-			case UNITAI_CARRIER_SEA:
-			case UNITAI_MISSILE_CARRIER_SEA:
-				iValue *= 5;
-				break;
-
-			case UNITAI_PIRATE_SEA:
-			case UNITAI_ATTACK_AIR:
-				break;
-
-			case UNITAI_DEFENSE_AIR:
-			case UNITAI_CARRIER_AIR:
-			case UNITAI_MISSILE_AIR:
-				iValue *= 3;
-				break;
-
-			default:
-				FAssert(false);
-			}
-
-			if (pLoopUnit->getUnitInfo().getExtraCost() > 0)
-				iValue /= (pLoopUnit->getUnitInfo().getExtraCost() + 1);
-
-			if (iValue < iBestValue)
-			{
-				iBestValue = iValue;
-				pBestUnit = pLoopUnit;
-			}
-		}
-	}
-
-	if (pBestUnit != NULL)
-	{
-		FAssert(!pBestUnit->isGoldenAge());
-		if (bAnnounce) // advc.001: Param was unused (since Vanilla Civ 4)
+			pLoopUnit->getDomainType() == DOMAIN_LAND)
 		{
-			wchar szBuffer[1024];
-			swprintf(szBuffer, gDLL->getText("TXT_KEY_MISC_UNIT_DISBANDED_NO_MONEY",
-					pBestUnit->getNameKey()).GetCString());
-			gDLL->UI().addMessage(getID(), false, -1, szBuffer, pBestUnit->getPlot(),
-					"AS2D_UNITDISBANDED", MESSAGE_TYPE_MINOR_EVENT, pBestUnit->getButton(),
-					GC.getColorType("RED"));
+			iValue *= 2;
 		}
-		pBestUnit->kill(false);
+		if (pLoopUnit->getPlot().getTeam() == pLoopUnit->getTeam())
+			iValue *= 3;
+
+		switch (pLoopUnit->AI_getUnitAIType())
+		{
+		case UNITAI_UNKNOWN:
+		case UNITAI_ANIMAL:
+			break;
+
+		case UNITAI_SETTLE:
+			iValue *= 20;
+			break;
+
+		case UNITAI_WORKER:
+			iValue *= 10;
+			break;
+
+		case UNITAI_ATTACK:
+		case UNITAI_ATTACK_CITY:
+		case UNITAI_COLLATERAL:
+		case UNITAI_PILLAGE:
+		case UNITAI_RESERVE:
+		case UNITAI_COUNTER:
+			iValue *= 2;
+			break;
+
+		case UNITAI_CITY_DEFENSE:
+		case UNITAI_CITY_COUNTER:
+		case UNITAI_CITY_SPECIAL:
+		case UNITAI_PARADROP:
+			iValue *= 6;
+			break;
+
+		case UNITAI_EXPLORE:
+			iValue *= 15;
+			break;
+
+		case UNITAI_MISSIONARY:
+			iValue *= 8;
+			break;
+
+		case UNITAI_PROPHET:
+		case UNITAI_ARTIST:
+		case UNITAI_SCIENTIST:
+		case UNITAI_GENERAL:
+		case UNITAI_MERCHANT:
+		case UNITAI_ENGINEER:
+		case UNITAI_GREAT_SPY: // K-Mod
+			break;
+
+		case UNITAI_SPY:
+			iValue *= 12;
+			break;
+
+		case UNITAI_ICBM:
+			iValue *= 4;
+			break;
+
+		case UNITAI_WORKER_SEA:
+			iValue *= 18;
+			break;
+
+		case UNITAI_ATTACK_SEA:
+		case UNITAI_RESERVE_SEA:
+		case UNITAI_ESCORT_SEA:
+			break;
+
+		case UNITAI_EXPLORE_SEA:
+			iValue *= 25;
+			break;
+
+		case UNITAI_ASSAULT_SEA:
+		case UNITAI_SETTLER_SEA:
+		case UNITAI_MISSIONARY_SEA:
+		case UNITAI_SPY_SEA:
+		case UNITAI_CARRIER_SEA:
+		case UNITAI_MISSILE_CARRIER_SEA:
+			iValue *= 5;
+			break;
+
+		case UNITAI_PIRATE_SEA:
+		case UNITAI_ATTACK_AIR:
+			break;
+
+		case UNITAI_DEFENSE_AIR:
+		case UNITAI_CARRIER_AIR:
+		case UNITAI_MISSILE_AIR:
+			iValue *= 3;
+			break;
+
+		default:
+			FAssert(false);
+		}
+
+		if (pLoopUnit->getUnitInfo().getExtraCost() > 0)
+			iValue /= (pLoopUnit->getUnitInfo().getExtraCost() + 1);
+
+		if (iValue < iBestValue)
+		{
+			iBestValue = iValue;
+			pBestUnit = pLoopUnit;
+		}
 	}
+
+	if (pBestUnit == NULL)
+		return;
+
+	FAssert(!pBestUnit->isGoldenAge());
+	if (bAnnounce) // advc.001: Param was unused (since Vanilla Civ 4)
+	{
+		wchar szBuffer[1024];
+		swprintf(szBuffer, gDLL->getText("TXT_KEY_MISC_UNIT_DISBANDED_NO_MONEY",
+				pBestUnit->getNameKey()).GetCString());
+		gDLL->UI().addMessage(getID(), false, -1, szBuffer, pBestUnit->getPlot(),
+				"AS2D_UNITDISBANDED", MESSAGE_TYPE_MINOR_EVENT, pBestUnit->getButton(),
+				GC.getColorType("RED"));
+	}
+	pBestUnit->kill(false);
+
 }
 
 
@@ -4156,11 +4156,9 @@ int CvPlayer::getNumTradeBonusImports(PlayerTypes eFromPlayer) const // advc: Si
 	{
 		if (!pLoopDeal->isBetween(getID(), eFromPlayer))
 			continue;
-
-		for (CLLNode<TradeData> const* pNode = pLoopDeal->headGivesNode(eFromPlayer);
-			pNode != NULL; pNode = pLoopDeal->nextGivesNode(pNode, eFromPlayer))
+		FOR_EACH_TRADE_ITEM(pLoopDeal->getGivesList(eFromPlayer))
 		{
-			if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
+			if (pItem->m_eItemType == TRADE_RESOURCES)
 				iCount++;
 		}
 	}
@@ -6355,9 +6353,9 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade,
 TechTypes CvPlayer::getCurrentResearch() const
 {
 	CLLNode<TechTypes>* pResearchNode = headResearchQueueNode();
-	if (pResearchNode != NULL)
-		return pResearchNode->m_data;
-	return NO_TECH;
+	if (pResearchNode == NULL)
+		return NO_TECH;
+	return pResearchNode->m_data;
 }
 
 
@@ -11023,20 +11021,18 @@ void CvPlayer::validateDiplomacy()
 			apInvalid.push_back(pDiplo);
 			continue;
 		}
-		CLLNode<TradeData> const* pNode = NULL;
 		bool bCapitulate = false;
 		bool bValid = true;
-		for (pNode = pDiplo->getOurOfferList().head(); pNode != NULL;
-			pNode = pDiplo->getOurOfferList().next(pNode))
+		FOR_EACH_TRADE_ITEM(pDiplo->getOurOfferList())
 		{
 			/*  Also test trade denial (although the EXE doesn't do that);
 				important for capitulation. */
-			if (!canTradeItem(eWho, pNode->m_data, true))
+			if (!canTradeItem(eWho, *pItem, true))
 			{
 				bValid = false;
 				break;
 			}
-			if (pNode->m_data.m_eItemType == TRADE_SURRENDER)
+			if (pItem->m_eItemType == TRADE_SURRENDER)
 				bCapitulate = true;
 		}
 		if (!bValid)
@@ -11044,15 +11040,14 @@ void CvPlayer::validateDiplomacy()
 			apInvalid.push_back(pDiplo);
 			continue;
 		}
-		for (pNode = pDiplo->getTheirOfferList().head(); pNode != NULL;
-				pNode = pDiplo->getTheirOfferList().next(pNode))
+		FOR_EACH_TRADE_ITEM(pDiplo->getTheirOfferList())
 		{
-			if (!who.canTradeItem(getID(), pNode->m_data, true))
+			if (!who.canTradeItem(getID(), *pItem, true))
 			{
 				bValid = false;
 				break;
 			}
-			if (pNode->m_data.m_eItemType == TRADE_SURRENDER)
+			if (pItem->m_eItemType == TRADE_SURRENDER)
 				bCapitulate = true;
 		}
 		if (!bValid)
@@ -11740,10 +11735,8 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 		int iCost = MAX_INT;
 		if (pUnit == NULL && pPlot != NULL)
 		{
-			for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode();
-				pUnitNode != NULL; pUnitNode = pPlot->nextUnitNode(pUnitNode))
+			FOR_EACH_UNIT_IN(pLoopUnit, *pPlot)
 			{
-				CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				if (canSpyDestroyUnit(eTargetPlayer, *pLoopUnit))
 				{
 					int iValue = getProductionNeeded(pLoopUnit->getUnitType());
@@ -11809,20 +11802,18 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 		int iCost = MAX_INT;
 		if (pUnit == NULL && pPlot != NULL)
 		{
-			for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode();
-				pUnitNode != NULL; pUnitNode = pPlot->nextUnitNode(pUnitNode))
+			FOR_EACH_UNIT_IN(pLoopUnit, *pPlot)
+			{
+				if (canSpyBribeUnit(eTargetPlayer, *pLoopUnit))
 				{
-					CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					if (canSpyBribeUnit(eTargetPlayer, *pLoopUnit))
+					int iValue = getProductionNeeded(pLoopUnit->getUnitType());
+					if (iValue < iCost)
 					{
-						int iValue = getProductionNeeded(pLoopUnit->getUnitType());
-						if (iValue < iCost)
-						{
-							iCost = iValue;
-							pUnit = pLoopUnit;
-						}
+						iCost = iValue;
+						pUnit = pLoopUnit;
 					}
 				}
+			}
 		}
 		else iCost = getProductionNeeded(pUnit->getUnitType());
 		if (pUnit != NULL)
@@ -12535,29 +12526,28 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 			// If cost is -1 we already know this unit isn't present
 			if (iCost != -1)
 			{
-				CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
-				while (pUnitNode != NULL)
+				FOR_EACH_UNIT_VAR_IN(pUnit, *pPlot)
 				{
-					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pPlot->nextUnitNode(pUnitNode);
-					if (pLoopUnit->getUnitType() == eUnit)
+					if (pUnit->getUnitType() == eUnit)
 					{
-						pLoopUnit->kill(false);
+						pUnit->kill(false);
 						changeAdvancedStartPoints(iCost);
 						return;
 					}
 				}
 			}
-			// Proper unit not found above, delete first found
-			CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
-			if (pUnitNode != NULL)
 			{
-				CvUnit* pUnit = ::getUnit(pUnitNode->m_data);
-				iCost = getAdvancedStartUnitCost(pUnit->getUnitType(), false,
-						pPlot); // kekm.11
-				FAssertMsg(iCost != -1, "If this is -1 then that means it's going to try to delete a unit which shouldn't exist");
-				pUnit->kill(false);
-				changeAdvancedStartPoints(iCost);
+			// Proper unit not found above, delete first found.
+				CLLNode<IDInfo>* pNode = pPlot->headUnitNode();
+				if (pNode != NULL)
+				{
+					CvUnit* pUnit = ::getUnit(pNode->m_data);
+					iCost = getAdvancedStartUnitCost(pUnit->getUnitType(), false,
+							pPlot); // kekm.11
+					FAssertMsg(iCost != -1, "Trying to delete a unit which shouldn't exist");
+					pUnit->kill(false);
+					changeAdvancedStartPoints(iCost);
+				}
 			}
 		}
 		if (getID() == GC.getGame().getActivePlayer())
@@ -12969,11 +12959,9 @@ int CvPlayer::getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot const*
 		else // Must be this unit at plot in order to remove
 		{
 			bool bUnitFound = false;
-			for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode();
-				pUnitNode != NULL; pUnitNode = pPlot->nextUnitNode(pUnitNode))
+			FOR_EACH_UNIT_IN(pUnit, *pPlot)
 			{
-				CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-				if (pLoopUnit->getUnitType() == eUnit)
+				if (pUnit->getUnitType() == eUnit)
 					bUnitFound = true;
 			}
 			if (!bUnitFound)
@@ -14074,21 +14062,20 @@ void CvPlayer::read(FDataStreamBase* pStream)
 		for (CvDiploQueue::_Alloc::size_type i = 0; i < iSize; i++)
 		{
 			CvDiploParameters* pDiplo = new CvDiploParameters(NO_PLAYER);
-			if (NULL != pDiplo)
+			if (pDiplo != NULL)
 			{
 				pDiplo->read(*pStream);
 				m_listDiplomacy.push_back(pDiplo);
 				// <advc.074> (see comment in CvPlayerAI::AI_doDeals)
 				if (pDiplo->getDiploComment() == GC.getAIDiploCommentType("CANCEL_DEAL"))
 				{
-					for (CLLNode<TradeData> const* pNode = pDiplo->getOurOfferList().head();
-						pNode != NULL; pNode =  pDiplo->getOurOfferList().next(pNode))
+					FOR_EACH_TRADE_ITEM(pDiplo->getOurOfferList())
 					{
-						if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
+						if (pItem->m_eItemType == TRADE_RESOURCES)
 						{
 							m_cancelingExport.insertAtEnd(std::make_pair(
 									pDiplo->getWhoTalkingTo(),
-									(BonusTypes)pNode->m_data.m_iData));
+									(BonusTypes)pItem->m_iData));
 						}
 					}
 				} // </advc.074>
@@ -18014,17 +18001,14 @@ bool CvPlayer::canSpyBribeUnit(PlayerTypes eTarget, CvUnit const& kUnit) const
 	if (!GET_TEAM(getTeam()).canPeacefullyEnter(TEAMID(eTarget)))
 		return false;
 
-	for (CLLNode<IDInfo> const* pUnitNode = kUnit.getPlot().headUnitNode();
-		pUnitNode != NULL; pUnitNode = kUnit.getPlot().nextUnitNode(pUnitNode))
+	FOR_EACH_UNIT_IN(pLoopUnit, kUnit.getPlot())
 	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (pLoopUnit != NULL && pLoopUnit != &kUnit)
+		if (pLoopUnit == NULL)
+			continue;
+		if (pLoopUnit != &kUnit && pLoopUnit->isEnemy(getTeam()))
 		{
-			if (pLoopUnit->isEnemy(getTeam()))
-			{
-				// If we buy the unit, we will be on the same plot as an enemy unit! Not good.
-				return false;
-			}
+			// If we buy the unit, we will be on the same plot as an enemy unit! Not good.
+			return false;
 		}
 	}
 
@@ -18109,12 +18093,11 @@ bool CvPlayer::resetPeaceTreaty(PlayerTypes ePlayer)
 	int iGameTurn = GC.getGame().getGameTurn();
 	FOR_EACH_DEAL_VAR(d)
 	{
-		if(d->isBetween(getID(), ePlayer) && d->getFirstTrades() != NULL)
+		if (d->isBetween(getID(), ePlayer))
 		{
-			for(CLLNode<TradeData> const* pNode = d->getFirstTrades()->head();
-				pNode != NULL; pNode = d->getFirstTrades()->next(pNode))
+			FOR_EACH_TRADE_ITEM(d->getFirstList())
 			{
-				if(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY)
+				if(pItem->m_eItemType == TRADE_PEACE_TREATY)
 				{
 					d->setInitialGameTurn(iGameTurn);
 					return true; // Assume that there is at most 1 peace treaty
@@ -18764,75 +18747,72 @@ bool CvPlayer::getItemTradeString(PlayerTypes eRecipient, bool bOffer,
 }
 
 
-void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourInventory,
-	CLinkList<TradeData> const& ourOffer, CLinkList<TradeData> const& theirOffer) const
+void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& kOurInventory,
+	CLinkList<TradeData> const& kOurOffer, CLinkList<TradeData> const& kTheirOffer) const
 {
-	for (CLLNode<TradeData>* pNode = ourInventory.head(); pNode != NULL;
-		pNode = ourInventory.next(pNode))
+	FOR_EACH_TRADE_ITEM_VAR(kOurInventory)
 	{
-		pNode->m_data.m_bHidden = false;
+		pItem->m_bHidden = false;
 
 		// Don't show peace treaties when not at war
 		if (!::atWar(getTeam(), GET_PLAYER(eOtherPlayer).getTeam()))
 		{
-			if (pNode->m_data.m_eItemType == TRADE_PEACE_TREATY ||
-				pNode->m_data.m_eItemType == TRADE_SURRENDER)
+			if (pItem->m_eItemType == TRADE_PEACE_TREATY ||
+				pItem->m_eItemType == TRADE_SURRENDER)
 			{
-				pNode->m_data.m_bHidden = true;
+				pItem->m_bHidden = true;
 			}
 		}
 		// Don't show technologies with no tech trading game option
 		if (GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING) &&
-			pNode->m_data.m_eItemType == TRADE_TECHNOLOGIES)
+			pItem->m_eItemType == TRADE_TECHNOLOGIES)
 		{
-			pNode->m_data.m_bHidden = true;
+			pItem->m_bHidden = true;
 		}
 	}
 
-	for (CLLNode<TradeData>* pNode = ourInventory.head(); pNode != NULL;
-		pNode = ourInventory.next(pNode))
+	FOR_EACH_TRADE_ITEM_VAR(kOurInventory)
 	{
-		switch (pNode->m_data.m_eItemType)
+		switch (pItem->m_eItemType)
 		{
 		case TRADE_PEACE_TREATY:
-			for (CLLNode<TradeData>* pOfferNode = ourOffer.head(); pOfferNode != NULL;
-				pOfferNode = ourOffer.next(pOfferNode))
+		{
+			FOR_EACH_TRADE_ITEM2(pOfferItem, kOurOffer)
 			{
 				// Don't show vassal deals if peace treaty is already on the table
-				if (CvDeal::isVassal(pOfferNode->m_data.m_eItemType))
+				if (CvDeal::isVassal(pOfferItem->m_eItemType))
 				{
-					pNode->m_data.m_bHidden = true;
+					pItem->m_bHidden = true;
 					break;
 				}
 			}
 			break;
+		}
 		case TRADE_VASSAL:
 		case TRADE_SURRENDER:
-			for (CLLNode<TradeData>* pOfferNode = theirOffer.head(); pOfferNode != NULL;
-				pOfferNode = theirOffer.next(pOfferNode))
+		{
+			FOR_EACH_TRADE_ITEM2(pOfferItem, kTheirOffer)
 			{
 				// Don't show vassal deals if another type of vassal deal is on the table
-				if (CvDeal::isVassal(pOfferNode->m_data.m_eItemType))
+				if (CvDeal::isVassal(pOfferItem->m_eItemType))
 				{
-					pNode->m_data.m_bHidden = true;
+					pItem->m_bHidden = true;
 					break;
 				}
 			}
-
-			if (!pNode->m_data.m_bHidden)
+			if (pItem->m_bHidden)
+				break;
+			FOR_EACH_TRADE_ITEM2(pOfferItem, kOurOffer)
 			{
-				for (CLLNode<TradeData>* pOfferNode = ourOffer.head(); pOfferNode != NULL;
-					pOfferNode = ourOffer.next(pOfferNode))
+				// Don't show peace deals if the other player is offering to be a vassal
+				if (CvDeal::isEndWar(pOfferItem->m_eItemType))
 				{
-					// Don't show peace deals if the other player is offering to be a vassal
-					if (CvDeal::isEndWar(pOfferNode->m_data.m_eItemType))
-					{
-						pNode->m_data.m_bHidden = true;
-						break;
-					}
+					pItem->m_bHidden = true;
+					break;
 				}
 			}
 			break;
+		}
 		/*// <advc.004> Only one side can pay gold  [better keep all gold on display I guess]
 		case TRADE_GOLD:
 		case TRADE_GOLD_PER_TURN:
@@ -18851,24 +18831,23 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 
 	if (!isHuman() || !GET_PLAYER(eOtherPlayer).isHuman()) // everything allowed in human-human trades
 	{
-		CLLNode<TradeData>* pFirstOffer = ourOffer.head();
+		CLLNode<TradeData>* pFirstOffer = kOurOffer.head();
 		if (pFirstOffer == NULL)
-			pFirstOffer = theirOffer.head();
+			pFirstOffer = kTheirOffer.head();
 		if (pFirstOffer != NULL)
 		{
 			//if (!CvDeal::isEndWar(pFirstOffer->m_data.m_eItemType) || !::atWar(getTeam(), GET_PLAYER(eOtherPlayer).getTeam()))
 			if (!::atWar(getTeam(), GET_PLAYER(eOtherPlayer).getTeam())) // K-Mod
 			{
-				for (CLLNode<TradeData>* pNode = ourInventory.head(); pNode != NULL;
-					pNode = ourInventory.next(pNode))
+				FOR_EACH_TRADE_ITEM_VAR(kOurInventory)
 				{	// advc.ctr: Allow cities to be bought
 					/*if (pFirstOffer->m_data.m_eItemType == TRADE_CITIES || pNode->m_data.m_eItemType == TRADE_CITIES)
 						pNode->m_data.m_bHidden = true;
 					else*/
 					if (CvDeal::isAnnual(pFirstOffer->m_data.m_eItemType) !=
-						CvDeal::isAnnual(pNode->m_data.m_eItemType))
+						CvDeal::isAnnual(pItem->m_eItemType))
 					{
-						pNode->m_data.m_bHidden = true;
+						pItem->m_bHidden = true;
 					}
 				}
 			}
@@ -18880,27 +18859,27 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 	mark it as m_bOffering == true.
 	(This is usually done somewhere in the game engine,
 	or when the offer list is being generated or something.) */
-void CvPlayer::markTradeOffers(CLinkList<TradeData>& ourInventory,
-	CLinkList<TradeData> const& ourOffer) const
+void CvPlayer::markTradeOffers(CLinkList<TradeData>& kOurInventory,
+	// advc: Was const, but we do change the bOffering status.
+	CLinkList<TradeData>& kOurOffer) const
 {
-	for (CLLNode<TradeData>* pOfferNode = ourOffer.head();
-		pOfferNode != NULL; pOfferNode = ourOffer.next(pOfferNode))
+	FOR_EACH_TRADE_ITEM_VAR2(pOfferItem, kOurOffer)
 	{
 		CLLNode<TradeData>* pInvNode; // (defined here just for the assertion at the end)
-		for (pInvNode = ourInventory.head(); pInvNode != NULL;
-			pInvNode = ourInventory.next(pInvNode))
+		for (pInvNode = kOurInventory.head(); pInvNode != NULL;
+			pInvNode = kOurInventory.next(pInvNode))
 		{
-			if (pInvNode->m_data.m_eItemType == pOfferNode->m_data.m_eItemType &&
-				pInvNode->m_data.m_iData == pOfferNode->m_data.m_iData)
+			if (pInvNode->m_data.m_eItemType == pOfferItem->m_eItemType &&
+				pInvNode->m_data.m_iData == pOfferItem->m_iData)
 			{
-				pInvNode->m_data.m_bOffering = pOfferNode->m_data.m_bOffering = true;
+				pInvNode->m_data.m_bOffering = pOfferItem->m_bOffering = true;
 				break;
 			}
 		}
 		FAssertMsg(pInvNode != NULL ||
 				// <advc.134a> I guess it's OK that these aren't part of the inventory
-				pOfferNode->m_data.m_eItemType == TRADE_SURRENDER ||
-				pOfferNode->m_data.m_eItemType == TRADE_PEACE_TREATY, // </advc.134a>
+				pOfferItem->m_eItemType == TRADE_SURRENDER ||
+				pOfferItem->m_eItemType == TRADE_PEACE_TREATY, // </advc.134a>
 				"failed to find offered item in inventory");
 	}
 }
@@ -19080,10 +19059,8 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption,
 			float fPlotStrength = 0.0f;
 			bool bShowIndicator = false;
 
-			for (CLLNode<IDInfo> const* pUnitNode = kPlot.headUnitNode();
-				pUnitNode != NULL; pUnitNode = kPlot.nextUnitNode(pUnitNode))
+			FOR_EACH_UNIT_IN(pUnit, kPlot)
 			{
-				CvUnit const* pUnit = ::getUnit(pUnitNode->m_data);
 				if (pUnit->getVisualOwner() != eLoopPlayer ||
 					pUnit->isInvisible(getTeam(), true))
 				{

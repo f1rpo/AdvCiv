@@ -350,14 +350,14 @@ public:
 	} // </advc.opt>
 	// advc: TargetMissionAI counting: const CvPlot&. advc.opt: iMaxCount params added.
 	inline int AI_plotTargetMissionAIs(CvPlot const& kPlot, MissionAITypes eMissionAI,
-		CvSelectionGroup* pSkipSelectionGroup = NULL, int iRange = 0, int iMaxCount = MAX_INT) const
+		CvSelectionGroup const* pSkipSelectionGroup = NULL, int iRange = 0, int iMaxCount = MAX_INT) const
 	{
 		return AI_plotTargetMissionAIs(kPlot, &eMissionAI, 1, pSkipSelectionGroup,
 				iRange, iMaxCount);
 	}
 	// advc: Unused (out-)param iClosestTargetRange removed
 	int AI_plotTargetMissionAIs(CvPlot const& kPlot, MissionAITypes* aeMissionAI,
-			int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup = NULL,
+			int iMissionAICount, CvSelectionGroup const* pSkipSelectionGroup = NULL,
 			int iRange = 0, int iMaxCount = MAX_INT) const;
 	// <advc.opt>
 	inline bool AI_isAnyPlotTargetMissionAI(CvPlot const& kPlot, MissionAITypes eMissionAI,
@@ -846,12 +846,12 @@ protected:
 	// <advc.026>
 	int AI_maxGoldTradeGenerous(PlayerTypes eTo) const;
 	int AI_maxGoldPerTurnTradeGenerous(PlayerTypes eTo) const;
-	bool AI_checkMaxGold(CLinkList<TradeData> const& items, PlayerTypes eTo) const;
+	bool AI_checkMaxGold(CLinkList<TradeData> const& kItems, PlayerTypes eTo) const;
 	// </advc.026>
 	int AI_adjustTradeGoldToDiplo(int iGold, PlayerTypes eTo) const;
 	void AI_foldDeals() const;
 	void AI_foldDeals(CvDeal& d1, CvDeal& d2) const; // </advc.036>
-	double AI_bonusImportValue(PlayerTypes eFrom) const; // advc.149
+	scaled AI_bonusImportValue(PlayerTypes eFrom) const; // advc.149
 	int AI_anarchyTradeVal(CivicTypes eCivic = NO_CIVIC) const; // advc.132
 
 	void AI_updateCacheData(); // K-Mod

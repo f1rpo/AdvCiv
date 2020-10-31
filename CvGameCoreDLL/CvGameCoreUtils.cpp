@@ -502,15 +502,13 @@ int estimateCollateralWeight(CvPlot const* pPlot, TeamTypes eAttackTeam,
 	int iResistanceSum = 0;
 	int iUnits = 0;
 
-	for (CLLNode<IDInfo> const* pNode = pPlot->headUnitNode(); pNode != NULL;
-		pNode = pPlot->nextUnitNode(pNode))
+	FOR_EACH_UNIT_IN(pUnit, *pPlot)
 	{
-		CvUnit const& kLoopUnit = *::getUnit(pNode->m_data);
-		if (!kLoopUnit.canDefend(pPlot))
+		if (!pUnit->canDefend(pPlot))
 			continue;
-		if (eDefenceTeam != NO_TEAM && kLoopUnit.getTeam() != eDefenceTeam)
+		if (eDefenceTeam != NO_TEAM && pUnit->getTeam() != eDefenceTeam)
 			continue;
-		if (eAttackTeam != NO_TEAM && kLoopUnit.getTeam() == eAttackTeam)
+		if (eAttackTeam != NO_TEAM && pUnit->getTeam() == eAttackTeam)
 			continue;
 
 		iUnits++;
@@ -523,12 +521,12 @@ int estimateCollateralWeight(CvPlot const* pPlot, TeamTypes eAttackTeam,
 			Whichever way we do the estimate, cho-ku-nu is going to mess it up anyway.
 			(Unless I change the game mechanics.) */
 		if ( // advc.001: Animals have no unit combat type (K146 also fixes this)
-			kLoopUnit.getUnitCombatType() != NO_UNITCOMBAT &&
-			kLoopUnit.getUnitInfo().getUnitCombatCollateralImmune(kLoopUnit.getUnitCombatType()))
+			pUnit->getUnitCombatType() != NO_UNITCOMBAT &&
+			pUnit->getUnitInfo().getUnitCombatCollateralImmune(pUnit->getUnitCombatType()))
 		{
 			iResistanceSum += 100;
 		}
-		else iResistanceSum += kLoopUnit.getCollateralDamageProtection();
+		else iResistanceSum += pUnit->getCollateralDamageProtection();
 	}
 	if (iUnits > 0)
 	{
@@ -840,10 +838,10 @@ bool PUF_isAvailableUnitAITypeGroupie(const CvUnit* pUnit, int iData1, int iData
 	return ((PUF_isUnitAITypeGroupie(pUnit,iData1,iData2)) && !(pUnit->isCargo()));
 }
 
-bool PUF_isUnitAITypeGroupie(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isUnitAITypeGroupie(CvUnit const* pUnit, int iData1, int iData2)
 {
-	CvUnit* pGroupHead = pUnit->getGroup()->getHeadUnit();
-	return (PUF_isUnitAIType(pGroupHead,iData1,iData2));
+	CvUnit const* pGroupHead = pUnit->getGroup()->getHeadUnit();
+	return (PUF_isUnitAIType(pGroupHead, iData1, iData2));
 }
 
 bool PUF_isFiniteRangeAndNotJustProduced(const CvUnit* pUnit, int iData1, int iData2)

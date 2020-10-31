@@ -1382,9 +1382,11 @@ public:
 			CvWString& szString, CvString& szIcon) const;
 	DllExport bool getItemTradeString(PlayerTypes eRecipient, bool bOffer, bool bShowingCurrent,
 			TradeData const& zTradeData, CvWString& szString, CvString& szIcon) const;
-	DllExport void updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourInventory,
-			CLinkList<TradeData> const& ourOffer, CLinkList<TradeData> const& theirOffer) const;
-	void markTradeOffers(CLinkList<TradeData>& ourInventory, CLinkList<TradeData> const& ourOffer) const; // K-Mod
+	DllExport void updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& kOurInventory,
+			CLinkList<TradeData> const& kOurOffer, CLinkList<TradeData> const& kTheirOffer) const;
+	// <K-Mod>
+	void markTradeOffers(CLinkList<TradeData>& kOurInventory,
+			CLinkList<TradeData>& kOurOffer) const; // </K-Mod>
 	DllExport int getIntroMusicScriptId(PlayerTypes eForPlayer) const;
 	DllExport int getMusicScriptId(PlayerTypes eForPlayer) const;
 	DllExport void getGlobeLayerColors(GlobeLayerTypes eGlobeLayerType, int iOption,

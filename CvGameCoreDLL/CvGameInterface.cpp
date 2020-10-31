@@ -167,19 +167,21 @@ void CvGame::updateColoredPlots()
 		}
 		else
 		{
-			for (CLLNode<IDInfo> const* pSelectedCityNode = kUI.headSelectedCitiesNode();
-				pSelectedCityNode != NULL; pSelectedCityNode = kUI.nextSelectedCitiesNode(pSelectedCityNode))
+			for (CLLNode<IDInfo> const* pNode = kUI.headSelectedCitiesNode();
+				pNode != NULL; pNode = kUI.nextSelectedCitiesNode(pNode))
 			{
-				CvCity const* pSelectedCity = ::getCity(pSelectedCityNode->m_data);
-				if (pSelectedCity != NULL)
+				CvCity const* pSelectedCity = ::getCity(pNode->m_data);
+				if (pSelectedCity == NULL)
 				{
-					CvPlot* pRallyPlot = pSelectedCity->getRallyPlot();
-					if (pRallyPlot != NULL)
-					{
-						kEngine.addColoredPlot(pRallyPlot->getX(), pRallyPlot->getY(),
-								GC.getInfo(GC.getColorType("YELLOW")).getColor(),
-								PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
-					}
+					FAssertMsg(pSelectedCity != NULL, "Can this happen?");
+					continue;
+				}
+				CvPlot* pRallyPlot = pSelectedCity->getRallyPlot();
+				if (pRallyPlot != NULL)
+				{
+					kEngine.addColoredPlot(pRallyPlot->getX(), pRallyPlot->getY(),
+							GC.getInfo(GC.getColorType("YELLOW")).getColor(),
+							PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 				}
 			}
 		} // <advc>
@@ -216,10 +218,10 @@ void CvGame::updateColoredPlots()
 	if (pHeadSelectedUnit->airRange() > 0)
 	{
 		int iMaxAirRange = 0;
-		for (CLLNode<IDInfo> const* pSelectedUnitNode = kUI.headSelectionListNode();
-			pSelectedUnitNode != NULL; pSelectedUnitNode = kUI.nextSelectionListNode(pSelectedUnitNode))
+		for (CLLNode<IDInfo> const* pNode = kUI.headSelectionListNode();
+			pNode != NULL; pNode = kUI.nextSelectionListNode(pNode))
 		{
-			CvUnit const* pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			CvUnit const* pSelectedUnit = ::getUnit(pNode->m_data);
 			if (pSelectedUnit != NULL)
 				iMaxAirRange = std::max(iMaxAirRange, pSelectedUnit->airRange());
 		}
@@ -476,7 +478,8 @@ void CvGame::updateTestEndTurn()  // advc: nested else branches replaced w/ retu
 }
 
 // advc: Merge of two BtS functions that had largely the same body
-CvUnit* CvGame::getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUnits, int iIndex) const
+CvUnit* CvGame::getPlotUnits(CvPlot const* pPlot,
+	std::vector<CvUnit*>* pPlotUnits, int iIndex) const
 {
 	PROFILE_FUNC();
 
@@ -493,33 +496,27 @@ CvUnit* CvGame::getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUni
 	TeamTypes eActiveTeam = getActiveTeam();
 	for (int iPass = 0; iPass < 2; iPass++)
 	{
-		for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
-			pUnitNode = pPlot->nextUnitNode(pUnitNode))
+		FOR_EACH_UNIT_VAR_IN(pUnit, *pPlot)
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			if ((pLoopUnit->getOwner() == eActivePlayer) != (iPass == 0))
+			if ((pUnit->getOwner() == eActivePlayer) != (iPass == 0))
 				continue;
-			if (pLoopUnit->isInvisible(eActiveTeam, true) || pLoopUnit->isCargo())
+			if (pUnit->isInvisible(eActiveTeam, true) || pUnit->isCargo())
 				continue;
 
 			if (iCount == iIndex)
-				return pLoopUnit;
+				return pUnit;
 
 			iCount++;
 			if (pPlotUnits != NULL)
-				pPlotUnits->push_back(pLoopUnit);
+				pPlotUnits->push_back(pUnit);
 			//if (pLoopUnit1->getTeam() == activeTeam || isDebugMode()) {
-			if (!pLoopUnit->hasCargo())
+			if (!pUnit->hasCargo())
 				continue;
-
-			for (CLLNode<IDInfo> const* pCargoUnitNode = pPlot->headUnitNode(); pCargoUnitNode != NULL;
-				pCargoUnitNode = pPlot->nextUnitNode(pCargoUnitNode))
+			FOR_EACH_UNIT_VAR_IN(pCargoUnit, *pPlot)
 			{
-				CvUnit* pCargoUnit = ::getUnit(pCargoUnitNode->m_data);
 				if (pCargoUnit->isInvisible(eActiveTeam, true))
 					continue;
-
-				if (pCargoUnit->getTransportUnit() == pLoopUnit)
+				if (pCargoUnit->getTransportUnit() == pUnit)
 				{
 					if (iCount == iIndex)
 						return pCargoUnit;
@@ -1047,7 +1044,7 @@ bool CvGame::canHandleAction(int iAction, CvPlot* pPlot, bool bTestVisible, bool
 			}
 		}
 		else pMissionPlot = pSelectedInterfaceList->plot();
-		if (pSelectedInterfaceList->canStartMission(kAction.getMissionType(),
+		if (pSelectedInterfaceList->canStartMission((MissionTypes)kAction.getMissionType(),
 			kAction.getMissionData(), -1, pMissionPlot, bTestVisible, bUseCache))
 		{
 			return true;
@@ -1350,9 +1347,11 @@ void CvGame::doControl(ControlTypes eControl)
 				// disabled by K-Mod
 				//if (!isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || getTurnSlice() - kUnit.getLastMoveTurn() > GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES")) {
 				if (kUnit.getOwner() == getActivePlayer() && kUnit.isHurt() &&
-						// advc.001z: Can't select units of different domains
-						kUnit.getDomainType() == pHeadSelectedUnit->getDomainType())
+					// advc.001z: Can't select units of different domains
+					kUnit.getDomainType() == pHeadSelectedUnit->getDomainType())
+				{
 					toBeSelected.push_back(&kUnit);
+				}
 			}
 			if (!toBeSelected.empty()) // advc.001z
 			{
@@ -1816,18 +1815,16 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 	bool bSleepUnit = false;
 	bool bWakeUnit = false;
 
-	for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
-		pUnitNode = pPlot->nextUnitNode(pUnitNode))
+	FOR_EACH_UNIT_IN(pUnit, *pPlot)
 	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (pLoopUnit->getOwner() != getActivePlayer())
+		if (pUnit->getOwner() != getActivePlayer())
 			continue;
 		bUnits = true;
-		if (pLoopUnit->canFortify(pPlot))
+		if (pUnit->canFortify(pPlot))
 			bFortifyUnit = true;
-		else if (pLoopUnit->canSleep(pPlot))
+		else if (pUnit->canSleep(pPlot))
 			bSleepUnit = true;
-		else if (pLoopUnit->isWaiting())
+		else if (pUnit->isWaiting())
 			bWakeUnit = true;
 	}
 
@@ -2059,33 +2056,33 @@ void CvGame::applyFlyoutMenu(const CvFlyoutMenuData& kItem)
 		break;
 
 	case FLYOUT_WAKE_ALL:
-		for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
-			pUnitNode = pPlot->nextUnitNode(pUnitNode))
+	{
+		FOR_EACH_UNIT_IN(pUnit, *pPlot)
 		{
-			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			if (pLoopUnit->isGroupHead() &&
-			pLoopUnit->getOwner() == getActivePlayer()) // K-Mod
+			if (pUnit->isGroupHead() &&
+				pUnit->getOwner() == getActivePlayer()) // K-Mod
 			{
-				CvMessageControl::getInstance().sendDoCommand(pLoopUnit->getID(),
+				CvMessageControl::getInstance().sendDoCommand(pUnit->getID(),
 						COMMAND_WAKE, -1, -1, false);
 			}
 		}
 		break;
-
+	}
 	case FLYOUR_FORTIFY_ALL:
 	case FLYOUR_SLEEP_ALL:
-		for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
-			pUnitNode = pPlot->nextUnitNode(pUnitNode))
+	{
+		FOR_EACH_UNIT_IN(pUnit, *pPlot)
 		{
-			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			if (pLoopUnit->isGroupHead() && pLoopUnit->getOwner() == getActivePlayer()) // K-Mod
+			if (pUnit->isGroupHead() &&
+				pUnit->getOwner() == getActivePlayer()) // K-Mod
 			{
-				CvMessageControl::getInstance().sendPushMission(pLoopUnit->getID(),
-						pLoopUnit->isFortifyable() ? MISSION_FORTIFY : MISSION_SLEEP,
+				CvMessageControl::getInstance().sendPushMission(pUnit->getID(),
+						pUnit->isFortifyable() ? MISSION_FORTIFY : MISSION_SLEEP,
 						-1, -1, NO_MOVEMENT_FLAGS, false, /* advc.011b: */ GC.ctrlKey());
 			}
 		}
 		break;
+	}
 	}
 }
 

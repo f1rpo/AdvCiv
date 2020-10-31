@@ -1034,17 +1034,14 @@ void UWAICache::reportWarEnding(TeamTypes enemyId,
 	bool bForceFailure = false;
 	bool bForceNoFailure = false;
 	bool bForceNoSuccess = false;
-	CLLNode<TradeData> const* node = NULL;
-	TradeableItems ti;
 	if(weReceive != NULL) {
 		int iTechs = 0;
 		int iCities = 0;
 		// Ignore gold for simplicity (although a large sum could of course be relevant)
-		for(node = weReceive->head(); node != NULL; node = weReceive->next(node)) {
-			ti = node->m_data.m_eItemType;
-			if(ti == TRADE_TECHNOLOGIES)
+		FOR_EACH_TRADE_ITEM(*weReceive) {
+			if(pItem->m_eItemType == TRADE_TECHNOLOGIES)
 				iTechs++;
-			else if(ti == TRADE_CITIES)
+			else if(pItem->m_eItemType == TRADE_CITIES)
 				iCities++;
 		}
 		if(iTechs + iCities > 0)
@@ -1054,11 +1051,10 @@ void UWAICache::reportWarEnding(TeamTypes enemyId,
 	} else if(wePay != NULL) {
 		int iTechs = 0;
 		int iCities = 0;
-		for(node = wePay->head(); node != NULL; node = wePay->next(node)) {
-			ti = node->m_data.m_eItemType;
-			if(ti == TRADE_TECHNOLOGIES)
+		FOR_EACH_TRADE_ITEM(*wePay) {
+			if(pItem->m_eItemType == TRADE_TECHNOLOGIES)
 				iTechs++;
-			else if(ti == TRADE_CITIES)
+			else if(pItem->m_eItemType == TRADE_CITIES)
 				iCities++;
 		}
 		if(iTechs + iCities > 0)

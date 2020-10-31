@@ -46,7 +46,8 @@ CyPlot* CySelectionGroup::lastMissionPlot()
 
 bool CySelectionGroup::canStartMission(int iMission, int iData1, int iData2, CyPlot* pPlot, bool bTestVisible)
 {
-	return m_pSelectionGroup ? m_pSelectionGroup->canStartMission(iMission, iData1, iData2, pPlot->getPlot(), bTestVisible) : false;
+	return m_pSelectionGroup ? m_pSelectionGroup->canStartMission((MissionTypes)iMission,
+			iData1, iData2, pPlot->getPlot(), bTestVisible) : false;
 }
 
 bool CySelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode)
@@ -305,9 +306,14 @@ CyUnit* CySelectionGroup::getHeadUnit()
 	return m_pSelectionGroup ? new CyUnit(m_pSelectionGroup->getHeadUnit()) : NULL;
 }
 
-CyUnit* CySelectionGroup::getUnitAt(int index)
+CyUnit* CySelectionGroup::getUnitAt(int iIndex)
 {
-	return m_pSelectionGroup ? new CyUnit(m_pSelectionGroup->getUnitAt(index)) : NULL;
+	if (m_pSelectionGroup == NULL)
+		return NULL;
+	// <advc> Moved from CvSelectionGroup. Foolproofing should be handled here.
+	if (iIndex < 0 || m_pSelectionGroup->getNumUnits() <= iIndex)
+		return NULL; // </advc>
+	return new CyUnit(m_pSelectionGroup->getUnitAt(iIndex));
 }
 
 int CySelectionGroup::getMissionType(int iNode)

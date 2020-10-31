@@ -56,7 +56,7 @@ public:
 protected:
 	void check();
 private:
-	void getExportData(CLinkList<TradeData> const* list, PlayerTypes toId,
+	void getExportData(CLinkList<TradeData> const& list, PlayerTypes toId,
 			std::vector<int>& r) const;
 	void doMsg(PlayerTypes fromId, int data, int newQuantity,
 			int oldQuantity);

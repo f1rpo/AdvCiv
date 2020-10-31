@@ -107,7 +107,7 @@ public:
 	void changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement,
 			CvUnit const* pUnit, bool bUpdatePlotGroups);
 	bool canSeePlot(CvPlot const* pPlot, TeamTypes eTeam, int iRange,
-			DirectionTypes eFacingDirection) const;
+			DirectionTypes eFacingDirection /* advc: */ = NO_DIRECTION) const;
 	bool canSeeDisplacementPlot(TeamTypes eTeam, int iDX, int iDY,
 			int iOriginalDX, int iOriginalDY, bool bFirstPlot, bool bOuterRing) const;
 	bool shouldProcessDisplacementPlot(int iDX, int iDY,// int range, // advc: unused
@@ -687,16 +687,15 @@ public:
 	}
 	void changeCultureRangeCities(PlayerTypes eOwnerIndex, CultureLevelTypes eRangeIndex,
 			int iChange, bool bUpdatePlotGroups);
-	// advc.inl: 2x inline
 	inline int getInvisibleVisibilityCount(TeamTypes eTeam,											// Exposed to Python
 		InvisibleTypes eInvisible) const
 	{
-		return m_aaiInvisibleVisibilityCount.get(eTeam, eInvisible);
+		return m_aaiInvisibleVisibilityCount.get(eTeam, eInvisible); // advc.inl
 	}
 	inline bool isInvisibleVisible(TeamTypes eTeam,													// Exposed to Python
 			InvisibleTypes eInvisible) const
 	{
-		return (getInvisibleVisibilityCount(eTeam, eInvisible) > 0);
+		return (getInvisibleVisibilityCount(eTeam, eInvisible) > 0); // advc.inl
 	}
 	void changeInvisibleVisibilityCount(TeamTypes eTeam,											// Exposed to Python
 			InvisibleTypes eInvisible, int iChange);
@@ -704,27 +703,36 @@ public:
 	inline int getNumUnits() const { return m_units.getLength(); } // advc.inl						// Exposed to Python
 	void addUnit(CvUnit const& kUnit, bool bUpdate = true);
 	void removeUnit(CvUnit* pUnit, bool bUpdate = true);
-	// advc.inl: 2x inline
-	DllExport inline CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode) const
+	DllExport inline CLLNode<IDInfo>* headUnitNode() const
+	{
+		return m_units.head(); // advc.inl
+	}
+	inline CLLNode<IDInfo>* tailUnitNode() const
+	{
+		return m_units.tail(); // advc.inl
+	}
+	inline CvUnit* headUnit() const { return getUnitByIndex(0); }
+	// <advc.003s>
+	// Exported through .def file ...
+	CLLNode<IDInfo>* nextUnitNodeExternal(CLLNode<IDInfo>* pNode) const;
+	// Safer to use const/ non-const pairs of functions
+	inline CLLNode<IDInfo> const* nextUnitNode(CLLNode<IDInfo> const* pNode) const
 	{
 		return m_units.next(pNode);
 	}
-	inline CLLNode<IDInfo>* prevUnitNode(CLLNode<IDInfo>* pNode) const
-	{
-		return m_units.prev(pNode);
-	}
-	// <advc.003s> Safer in 'for' loops
-	inline CLLNode<IDInfo> const* nextUnitNode(CLLNode<IDInfo> const* pNode) const
+	inline CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode) const
 	{
 		return m_units.next(pNode);
 	}
 	inline CLLNode<IDInfo> const* prevUnitNode(CLLNode<IDInfo> const* pNode) const
 	{
 		return m_units.prev(pNode);
-	} // </advc.003s>
-	DllExport CLLNode<IDInfo>* headUnitNode() const { return m_units.head(); } // advc.inl
-	CLLNode<IDInfo>* tailUnitNode() const { return m_units.tail(); } // advc.inl
-	inline CvUnit* headUnit() const { return getUnitByIndex(0); } // advc
+	}
+	inline CLLNode<IDInfo>* prevUnitNode(CLLNode<IDInfo>* pNode) const
+	{
+		return m_units.prev(pNode);
+	}
+	// </advc.003s>
 
 	int getNumSymbols() const;
 	CvSymbol* getSymbol(int iID) const;

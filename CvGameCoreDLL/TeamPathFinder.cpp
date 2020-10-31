@@ -167,8 +167,6 @@ int TeamStepMetric<eMODE>::cost(CvPlot const& kFrom, CvPlot const& kTo) const
 		route type eFromRoute. */
 	if (eFromRoute != NO_ROUTE && kTo.getRouteType() != NO_ROUTE)
 	{
-		/*	Could perhaps help CPU cache performance to
-			precompute this in an EnumMap<RouteTypes,int> member? */
 		iCost = GC.getInfo(eFromRoute).getMovementCost() +
 				m_pTeam->getRouteChange(eFromRoute);
 	}

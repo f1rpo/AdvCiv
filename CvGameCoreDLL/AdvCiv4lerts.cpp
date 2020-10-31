@@ -244,11 +244,11 @@ void BonusThirdPartiesAlert::check()
 		if(d->getFirstPlayer() == ownerId || d->getSecondPlayer() == ownerId)
 			continue;
 		vector<int> dealData;
-		getExportData(d->getFirstTrades(), d->getSecondPlayer(), dealData);
+		getExportData(d->getFirstList(), d->getSecondPlayer(), dealData);
 		for(size_t i = 0; i < dealData.size(); i++)
 			updatedDeals[d->getFirstPlayer()].insert(dealData[i]);
 		dealData.clear();
-		getExportData(d->getSecondTrades(), d->getFirstPlayer(), dealData);
+		getExportData(d->getSecondList(), d->getFirstPlayer(), dealData);
 		for(size_t i = 0; i < dealData.size(); i++)
 			updatedDeals[d->getSecondPlayer()].insert(dealData[i]);
 	}
@@ -285,17 +285,13 @@ void BonusThirdPartiesAlert::check()
 	}
 }
 
-void BonusThirdPartiesAlert::getExportData(CLinkList<TradeData> const* list,
+void BonusThirdPartiesAlert::getExportData(CLinkList<TradeData> const& list,
 	PlayerTypes toId, std::vector<int>& r) const
 {
-	if(list == NULL)
-		return;
-	CLinkList<TradeData> const& li = *list;
-	for(CLLNode<TradeData> const* node = li.head(); node != NULL; node = li.next(node))
+	FOR_EACH_TRADE_ITEM(list)
 	{
-		TradeData tdata = node->m_data;
-		if(tdata.m_eItemType == TRADE_RESOURCES)
-			r.push_back(GC.getNumBonusInfos() * toId + tdata.m_iData);
+		if(pItem->m_eItemType == TRADE_RESOURCES)
+			r.push_back(GC.getNumBonusInfos() * toId + pItem->m_iData);
 	}
 }
 
@@ -307,14 +303,18 @@ void BonusThirdPartiesAlert::doMsg(PlayerTypes fromId, int data, int newQuantity
 	CvPlayerAI const& to = GET_PLAYER(toId);
 	// Don't report ended trade when the reason is obvious
 	if(!from.isAlive() || !to.isAlive() || GET_TEAM(from.getTeam()).isAtWar(to.getTeam()) ||
-			from.AI_getMemoryCount(toId, MEMORY_STOPPED_TRADING_RECENT) > 0 ||
-			to.AI_getMemoryCount(fromId, MEMORY_STOPPED_TRADING_RECENT) > 0)
+		from.AI_getMemoryCount(toId, MEMORY_STOPPED_TRADING_RECENT) > 0 ||
+		to.AI_getMemoryCount(fromId, MEMORY_STOPPED_TRADING_RECENT) > 0)
+	{
 		return;
+	}
 	// Don't report unseen trades
 	if(!GET_PLAYER(ownerId).isSpectator() && // advc.127
-			(!GET_TEAM(ownerId).isHasMet(from.getTeam()) ||
-			!GET_TEAM(ownerId).isHasMet(to.getTeam())))
+		(!GET_TEAM(ownerId).isHasMet(from.getTeam()) ||
+		!GET_TEAM(ownerId).isHasMet(to.getTeam())))
+	{
 		return;
+	}
 	int bonusChar = GC.getInfo(bonusId).getChar();
 	CvWString msgStr;
 	CvWString quantityStr;
@@ -425,8 +425,10 @@ void CityTradeAlert::check()
 							alertPlayerReceives.insertAtEnd(peaceTreaty);
 							alertPlayerReceives.insertAtEnd(item);
 							if(!kPlayer.AI_considerHypotheticalOffer(kAlertPlayer.getID(),
-									alertPlayerGives, alertPlayerReceives, 1))
+								alertPlayerGives, alertPlayerReceives, 1))
+							{
 								continue;
+							}
 						}
 						willCedeNow.push_back(iCity);
 						if(std::find(wasWilling.begin(), wasWilling.end(), iCity) == wasWilling.end())

@@ -117,9 +117,14 @@ public:
 
 	DllExport void implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirList, bool bForce = false);
 	// advc: Take the lists as const&
-	void implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData> const& kOurList, CLinkList<TradeData> const& kTheirList, bool bForce = false);
-	// advc.036:
-	CvDeal* implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData> const& kOurList, CLinkList<TradeData> const& kTheirList, bool bForce = false);
+	void implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho,
+			// advc (note): Not const; callee may perform in-place preprocessing.
+			CLinkList<TradeData>& kOurList, CLinkList<TradeData>& kTheirList,
+			bool bForce = false);
+	// <advc.036>
+	CvDeal* implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho,
+			CLinkList<TradeData>& kOurList, CLinkList<TradeData>& kTheirList,
+			bool bForce = false); // </advc.036>
 	void verifyDeals();
 
 	DllExport void getGlobeviewConfigurationParameters(TeamTypes eTeam, bool& bStarsVisible, bool& bWorldIsRound);
@@ -1072,7 +1077,9 @@ protected:
 
 	int getTeamClosenessScore(int** aaiDistances, int* aiStartingLocs);
 	void doUpdateCacheOnTurn();
-	CvUnit* getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUnits, int iIndex = -1) const; // advc
+	// <advc>
+	CvUnit* getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUnits,
+			int iIndex = -1) const; // </advc>
 
 private: // advc.003u: (See comments in the private section of CvPlayer.h)
 	//virtual void AI_initExternal();

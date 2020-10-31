@@ -45,7 +45,8 @@ public:
 	void AI_setBirthmark(int iNewValue);
 	inline UnitAITypes AI_getUnitAIType() const { return m_eUnitAIType; } // advc.inl: inline (now that it's no longer virtual)			// Exposed to Python
 	void AI_setUnitAIType(UnitAITypes eNewValue);
-	CvSelectionGroupAI* AI_getGroup() const; // advc.003u
+	CvSelectionGroupAI const* AI_getGroup() const; // advc.003u
+	CvSelectionGroupAI* AI_getGroup(); // advc.003u
 
 	// <advc.159>
 	int AI_currEffectiveStr(CvPlot const* pPlot = NULL, CvUnit const* pOther = NULL,
