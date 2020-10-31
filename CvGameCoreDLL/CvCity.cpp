@@ -713,9 +713,12 @@ void CvCity::damageGarrison(PlayerTypes eRevoltSource)
 		pUnitNode = kPlot.nextUnitNode(pUnitNode);
 		if(pLoopUnit == NULL)
 			continue;
-		if(pLoopUnit->isBarbarian())
+		/*	advc.101: (Didn't matter in BtS because
+			Barbarian cities would flip on the first revolt) */
+		/*if(pLoopUnit->isBarbarian())
 			pLoopUnit->kill(false, eRevoltSource);
-		else if(pLoopUnit->canDefend())
+		else*/
+		if(pLoopUnit->canDefend())
 			pLoopUnit->changeDamage(pLoopUnit->currHitPoints() / 2, eRevoltSource);
 	}
 }
