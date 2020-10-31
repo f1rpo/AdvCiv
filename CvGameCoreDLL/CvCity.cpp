@@ -11295,19 +11295,47 @@ void CvCity::read(FDataStreamBase* pStream)
 		if(pWaterArea != NULL)
 			pWaterArea->changeCitiesPerPlayer(getOwner(), 1);
 	} // </advc.030b>
+	// <advc.310>
+	if (uiFlag < 8)
+	{
+		BuildingTypes eVersailles = (BuildingTypes)GC.getInfoTypeForString(
+				"BUILDING_VERSAILLES");
+		if (eVersailles != NO_BUILDING && getNumBuilding(eVersailles) > 0)
+		{
+			CvBuildingInfo const& kVersailles = GC.getInfo(eVersailles);
+			int iRateChange = kVersailles.getGreatPeopleRateChange();
+			UnitClassTypes eOldGPClass = (UnitClassTypes)GC.getInfoTypeForString(
+						"UNITCLASS_MERCHANT");
+			UnitClassTypes eNewGPClass = (UnitClassTypes)kVersailles.getGreatPeopleUnitClass();
+			/*	To provide some safety against messing up savegames of a mod-mod
+				that may not have adopted this XML change */
+			if (eNewGPClass == GC.getInfoTypeForString("UNITCLASS_GREAT_SPY") &&
+				iRateChange == 2 && eOldGPClass != NO_UNITCLASS)
+			{
+				UnitTypes eOldGPUnit = getCivilization().getUnit(eOldGPClass);
+				UnitTypes eNewGPUnit = getCivilization().getUnit(eNewGPClass);
+				if (eOldGPUnit != NO_UNIT && eNewGPUnit != NO_UNIT)
+				{
+					changeGreatPeopleUnitRate(eOldGPUnit, -iRateChange);
+					changeGreatPeopleUnitRate(eNewGPUnit, iRateChange);
+				}
+			}
+		}
+	} // </advc.310>
 }
 
 void CvCity::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
 	REPRO_TEST_BEGIN_WRITE(CvString::format("City(%d,%d)", getX(), getY()));
-	uint uiFlag = 1; // flag for expansion
+	uint uiFlag = 1;
 	uiFlag = 2; // advc.004x
 	uiFlag = 3; // advc.030b
 	uiFlag = 4; // advc.912d
 	uiFlag = 5; // advc.106k
 	uiFlag = 6; // advc.103
 	uiFlag = 7; // advc.003u: m_bChooseProductionDirty
+	uiFlag = 8; // advc.310
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iID);
