@@ -9962,10 +9962,15 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const& kThe
 		}
 	} // <advc.036> Special treatment for one-for-one resource trades
 	if (bSingleResource && iTheyReceive - iWeReceive <= m_iSingleBonusTradeTolerance &&
-		((kWeWant.getLength() <= 0 && iOtherListLength == 1 &&
-		pGoldPerTurnNode != NULL) ||
-		(kWeWant.getLength() == 1 &&
-		kWeWant.head()->m_data.m_eItemType == TRADE_RESOURCES)))
+		(
+			(kWeWant.getLength() <= 0 && iOtherListLength == 1 &&
+			// Haven't added gold or unable to trade it
+			(pGoldPerTurnNode != NULL ||
+			!kPlayer.canTradeItem(getID(), TradeData(TRADE_GOLD_PER_TURN, 0))))
+		||
+			(kWeWant.getLength() == 1 &&
+			kWeWant.head()->m_data.m_eItemType == TRADE_RESOURCES)
+		))
 	{
 		return true;
 	} // </advc.036>
