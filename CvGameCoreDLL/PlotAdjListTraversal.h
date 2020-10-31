@@ -8,14 +8,18 @@
 // Helpers ...
 
 #define iANON_ADJ_LIST_POS CONCATVARNAME(iAnonAdjListPos_, __LINE__)
+/*	kCenterPlot in the macro below can be e.g. a conditional expression.
+	Don't want to evaluate that more than once. */
+#define kANON_CACHED_CENTER_PLOT CONCATVARNAME(kAnonCachedCenterPlot_, __LINE__)
 
 #define FOR_EACH_ADJ_PLOT_HELPER(kCenterPlot, pLoopPlot, CvPlotType, iInitialPos, iStep) \
+	CvPlot const& kANON_CACHED_CENTER_PLOT = (kCenterPlot); \
 	int iANON_ADJ_LIST_POS = iInitialPos; \
 	for (CvPlotType* pLoopPlot; \
 		/* Need to do the loop step as part of the termination check */ \
 		/* to avoid stepping out of bounds */ \
-		iANON_ADJ_LIST_POS < (kCenterPlot).numAdjacentPlots() && \
-		(pLoopPlot = (kCenterPlot).getAdjacentPlotUnchecked(iANON_ADJ_LIST_POS), true) && \
+		iANON_ADJ_LIST_POS < kANON_CACHED_CENTER_PLOT.numAdjacentPlots() && \
+		(pLoopPlot = kANON_CACHED_CENTER_PLOT.getAdjacentPlotUnchecked(iANON_ADJ_LIST_POS), true) && \
 		(iANON_ADJ_LIST_POS += iStep, true); )
 
 #define aiANON_ADJ_LIST_INDICES CONCATVARNAME(aiAnonAdjListIndices, __LINE__)
