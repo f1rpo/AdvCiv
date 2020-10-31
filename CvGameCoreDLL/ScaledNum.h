@@ -737,7 +737,8 @@ private:
 		}
 		/*	Recall that: If x=y+z, then b^x=(b^y)*(b^z).
 						 If b=a*c, then b^x=(a^x)*(c^x). */
-		// Split rExp into the sum of an integer and a (scaled) fraction between 0 and 1
+		/*	Split rExp into the sum of an integer and a (scaled) fraction between 0 and 1.
+			(Due to rounding, the fractional part can take the value 1.) */
 		// Running example: 5.2^2.1 at SCALE 1024, i.e. (5325/1024)^(2150/1024)
 		IntType nExpInt = rExp.m_i / SCALE; // 2 in the example
 		// Use uint in all local ScaledNum variables for more accurate rounding
@@ -748,7 +749,7 @@ private:
 		IntType nBaseDiv = 1;
 		// Look up approximate result of 2^rExpFrac in precomputed table
 		#ifdef SCALED_NUM_EXTRA_ASSERTS
-			FAssertBounds(0, 128, rExpFrac.m_i);
+			FAssertBounds(0, 129, rExpFrac.m_i);
 		#endif
 		ScaledNum<256,uint> rPowOfTwo; // Ex.: Array position [13] is 19, so rPowOfTwo=19/256
 		rPowOfTwo.m_i = FixedPointPowTables::powersOfTwoNormalized_256[rExpFrac.m_i];
@@ -915,7 +916,7 @@ ScaledNum_T ScaledNum_T::operator-() const
 {
 	BOOST_STATIC_ASSERT(bSIGNED);
 	#ifdef SCALED_NUM_EXTRA_ASSERTS
-		FAssertMsg(m_i != MININT, "MININT can't be inverted");
+		FAssertMsg(m_i != INTMIN, "INTMIN can't be inverted");
 	#endif
 	ScaledNum_T r;
 	r.m_i = -m_i;
@@ -1018,7 +1019,7 @@ ScaledNum_T& ScaledNum_T::operator+=(ScaledNum rOther)
 {
 	#ifdef SCALED_NUM_EXTRA_ASSERTS
 		FAssert(rOther <= 0 || m_i <= INTMAX - rOther.m_i);
-		FAssert(rOther >= 0 || m_i >= INTMIN + rOther.m_i);
+		FAssert(rOther >= 0 || m_i >= INTMIN - rOther.m_i);
 	#endif
 	m_i += rOther.m_i;
 	return *this;
@@ -1030,7 +1031,7 @@ ScaledNum_T& ScaledNum_T::operator-=(ScaledNum rOther)
 {
 	#ifdef SCALED_NUM_EXTRA_ASSERTS
 		FAssert(rOther >= 0 || m_i <= INTMAX + rOther.m_i);
-		FAssert(rOther <= 0 || m_i >= INTMIN - rOther.m_i);
+		FAssert(rOther <= 0 || m_i >= INTMIN + rOther.m_i);
 	#endif
 	m_i -= rOther.m_i;
 	return *this;
