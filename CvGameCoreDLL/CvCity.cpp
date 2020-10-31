@@ -689,14 +689,17 @@ void CvCity::doRevolt()
 	} // </advc.101>
 }
 
-// advc: Code cut from CvPlot::doCulture; simplified.
+// advc: Cut from CvPlot::doCulture; simplified.
 void CvCity::damageGarrison(PlayerTypes eRevoltSource)
 {
 	FOR_EACH_UNIT_VAR_IN(pUnit, getPlot())
 	{
-		if (pUnit->isBarbarian())
+		/*	advc.101: (Didn't matter in BtS because
+			Barbarian cities would flip on the first revolt) */
+		/*if (pUnit->isBarbarian())
 			pUnit->kill(false, eRevoltSource);
-		else if(pUnit->canDefend())
+		else*/
+		if(pUnit->canDefend())
 			pUnit->changeDamage(pUnit->currHitPoints() / 2, eRevoltSource);
 	}
 }
@@ -7887,7 +7890,7 @@ double CvCity::probabilityOccupationDecrement() const
 	return r;
 } // </advc.023>
 
-// K-Mod. The following function defines whether or not the city is allowed to flip to the given player
+// K-Mod: The following function defines whether or not the city is allowed to flip to the given player
 bool CvCity::canCultureFlip(PlayerTypes eToPlayer, /* advc.101: */ bool bCheckPriorRevolts) const
 {
 	/*if (isBarbarian())
@@ -7909,7 +7912,7 @@ bool CvCity::canCultureFlip(PlayerTypes eToPlayer, /* advc.101: */ bool bCheckPr
 		(!bCheckPriorRevolts || // advc.101
 		getNumRevolts(eToPlayer) >= GC.getDefineINT(CvGlobals::NUM_WARNING_REVOLTS)
 		- (isBarbarian() ? 1 : 0))); // advc.101
-} // K-Mod end
+}
 
 
 int CvCity::calculateCulturePercent(PlayerTypes eIndex) const
