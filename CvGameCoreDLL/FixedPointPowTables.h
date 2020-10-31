@@ -7,17 +7,18 @@
 
 namespace FixedPointPowTables
 {
-	// ((2^(i/128)) - 1)*256 for i=0..127
-	// (The -1 is for efficiency. No non-negative power of 2 is less than 1.)
-	static unsigned char const powersOfTwoNormalized_256[128] = {
-		0,   1,   3,   4,   6,   7,   8,  10,
+	/*	((2^(i/128)) - 1)*256 for i=0..127 and
+		255 for i=128 (special case to accommodate rounding errors in ScaledNum::pow).
+		The -1 is for memory efficiency. No non-negative power of 2 is less than 1. */
+	static unsigned char const powersOfTwoNormalized_256[129] = {
+		0,   1,   3,   4,   6,   7,   8,   10,
 		11,  13,  14,  16,  17,  19,  20,  22,
 		23,  25,  26,  28,  29,  31,  32,  34,
 		36,  37,  39,  40,  42,  44,  45,  47,
 		48,  50,  52,  53,  55,  57,  58,  60,
 		62,  64,  65,  67,  69,  71,  72,  74,
 		76,  78,  80,  81,  83,  85,  87,  89,
-		91,  93,  94,  96,  98, 100, 102, 104,
+		91,  93,  94,  96,  98,  100, 102, 104,
 		106, 108, 110, 112, 114, 116, 118, 120,
 		122, 124, 126, 128, 130, 132, 135, 137,
 		139, 141, 143, 145, 147, 150, 152, 154,
@@ -25,7 +26,7 @@ namespace FixedPointPowTables
 		175, 177, 179, 182, 184, 186, 189, 191,
 		194, 196, 198, 201, 203, 206, 208, 211,
 		214, 216, 219, 221, 224, 226, 229, 232,
-		234, 237, 240, 242, 245, 248, 250, 253
+		234, 237, 240, 242, 245, 248, 250, 253, 255
 	};
 
 	// ((i/64)^(j/128) * 256)-1 for i=1..63, j=1..127
