@@ -10499,9 +10499,12 @@ void CvPlayerAI::AI_foldDeals(CvDeal& d1, CvDeal& d2) const
 	}
 	FAssert(iGPT1 > 0 && iGPT2 > 0 && eBonus1 != NO_BONUS && eBonus2 != NO_BONUS);
 	int iDelta = iGPT1 - iGPT2;
-	// Got enough info for the new deal
+	// Important to grab the player ids before deleting the deal objects
+	PlayerTypes const eFirstPlayer = d1.getFirstPlayer();
+	PlayerTypes const eSecondPlayer = d1.getSecondPlayer();
 	d1.killSilent(false, false);
 	d2.killSilent(false, false);
+	// Got enough info for the new deal
 	CLinkList<TradeData> give1;
 	CLinkList<TradeData> give2;
 	give1.insertAtEnd(TradeData(TRADE_RESOURCES, eBonus1));
@@ -10512,7 +10515,7 @@ void CvPlayerAI::AI_foldDeals(CvDeal& d1, CvDeal& d2) const
 		give2.insertAtEnd(TradeData(TRADE_GOLD_PER_TURN, -iDelta));
 	// Call counterPropose?
 	//CvDeal* pNewDeal =...
-	GC.getGame().implementAndReturnDeal(d1.getFirstPlayer(), d1.getSecondPlayer(),
+	GC.getGame().implementAndReturnDeal(eFirstPlayer, eSecondPlayer,
 			give1, give2, true);
 	// Allow new deal to be canceled right away?
 	/*if(pNewDeal != NULL)

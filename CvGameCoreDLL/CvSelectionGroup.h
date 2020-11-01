@@ -192,6 +192,7 @@ public:
 
 	inline int getID() const { return m_iID; } // advc.inl																																// Exposed to Python
 	void setID(int iID);
+	IDInfo getIDInfo() const { return IDInfo(getOwner(), getID()); } // advc
 
 	int getMissionTimer() const;
 	void setMissionTimer(int iNewValue);

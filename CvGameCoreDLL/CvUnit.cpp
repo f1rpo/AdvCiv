@@ -8617,7 +8617,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 					if (pLoopUnit->getTransportUnit() == this)
 					{
 						pLoopUnit->setXY(iX, iY, bGroup, false);
-						aCargoGroups.push_back(pLoopUnit->getIDInfo()); // K-Mod
+						aCargoGroups.push_back(pLoopUnit->getGroup()->getIDInfo()); // K-Mod
 					}
 				}
 			}
@@ -8633,10 +8633,10 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 			// now check the units in each group
 			for (size_t i = 0; i < aCargoGroups.size(); i++)
 			{
-				CvSelectionGroup* pCargoGroup = GET_PLAYER(aCargoGroups[i].eOwner).
+				CvSelectionGroup& kCargoGroup = *GET_PLAYER(aCargoGroups[i].eOwner).
 						getSelectionGroup(aCargoGroups[i].iID);
-				ActivityTypes eOldActivityType = pCargoGroup->getActivityType();
-				FOR_EACH_UNIT_VAR_IN(pLoopUnit, *pCargoGroup)
+				ActivityTypes eOldActivityType = kCargoGroup.getActivityType();
+				FOR_EACH_UNIT_VAR_IN(pLoopUnit, kCargoGroup)
 				{
 					if (pLoopUnit->getTransportUnit() == NULL ||
 						pLoopUnit->getTransportUnit()->getGroup() != getGroup())
