@@ -992,11 +992,11 @@
 <!-- advc.106i -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_37</Tag>
-	<English>Replays created by the AdvCiv mod (v0.95 or later) can be viewed with any BtS installation; the mod isn't required.</English>
-	<French>Replays created by the AdvCiv mod (v0.95 or later) can be viewed with any BtS installation; the mod isn't required.</French>
-	<German>Wiederholungen von AdvCiv-Partien (ab Version 0.95) lassen sich von jeder BtS-Installation abspielen; der Mod wird nicht benötigt.</German>
-	<Italian>Replays created by the AdvCiv mod (v0.95 or later) can be viewed with any BtS installation; the mod isn't required.</Italian>
-	<Spanish>Replays created by the AdvCiv mod (v0.95 or later) can be viewed with any BtS installation; the mod isn't required.</Spanish>
+	<English>Replays created by the AdvCiv mod can be viewed with any BtS installation; the mod isn't required.</English>
+	<French>Replays created by the AdvCiv mod can be viewed with any BtS installation; the mod isn't required.</French>
+	<German>Wiederholungen von AdvCiv-Partien lassen sich von jeder BtS-Installation abspielen; der Mod wird nicht benötigt.</German>
+	<Italian>Replays created by the AdvCiv mod can be viewed with any BtS installation; the mod isn't required.</Italian>
+	<Spanish>Replays created by the AdvCiv mod can be viewed with any BtS installation; the mod isn't required.</Spanish>
 </TEXT>
 
 <!-- advc.164 -->

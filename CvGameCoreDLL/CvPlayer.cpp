@@ -1,8 +1,6 @@
-// player.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvPlayer.h"
-#include "CvAgents.h" // advc.agent
+#include "CvAgents.h"
 #include "CoreAI.h"
 #include "CvCityAI.h"
 #include "CvUnitAI.h"
@@ -10,18 +8,18 @@
 #include "CvPlotGroup.h"
 #include "CvDeal.h"
 #include "CvTalkingHeadMessage.h"
-#include "UWAIAgent.h" // advc.104
+#include "UWAIAgent.h"
 #include "PlotRange.h"
 #include "CvArea.h"
 #include "CvInfo_All.h"
 #include "CvDiploParameters.h"
 #include "CvPopupInfo.h"
 #include "CvGameTextMgr.h"
-#include "RiseFall.h" // advc.700
-#include "AdvCiv4lerts.h" // advc.210
-#include "CvBugOptions.h" // advc.106b
+#include "RiseFall.h"
+#include "AdvCiv4lerts.h"
+#include "CvBugOptions.h"
 #include "CvDLLFlagEntityIFaceBase.h" // BBAI
-#include "BBAILog.h" // BBAI
+#include "BBAILog.h"
 
 // advc.003u: Statics moved from CvPlayerAI
 CvPlayerAI** CvPlayer::m_aPlayers = NULL;
@@ -44,10 +42,10 @@ void CvPlayer::freeStatics()
 
 
 CvPlayer::CvPlayer(/* advc.003u: */ PlayerTypes eID) :
-	m_pCivilization(NULL) // advc.003w
+	m_pCivilization(NULL), // advc.003w
+	m_aszBonusHelp(NULL) // advc.003p
 {
-	m_aszBonusHelp = NULL; // advc.003p
-	// advc: Pretty sure that this is redundant
+	// advc: redundant
 	/*m_bDisableHuman = false; // bbai
 	m_iChoosingFreeTechCount = 0;*/ // K-Mod
 	reset(eID, true);
@@ -11163,30 +11161,36 @@ const CvPlayerRecord* CvPlayer::getPlayerRecord() const
 			/*m_kStatistics.*/getPlayerRecord(getID());
 }
 
+
 std::string CvPlayer::getScriptData() const
 {
 	return m_szScriptData;
 }
+
 
 void CvPlayer::setScriptData(std::string szNewValue)
 {
 	m_szScriptData = szNewValue;
 }
 
+
 const CvString CvPlayer::getPbemEmailAddress() const
 {
 	return GC.getInitCore().getEmail(getID());
 }
+
 
 void CvPlayer::setPbemEmailAddress(const char* szAddress)
 {
 	GC.getInitCore().setEmail(getID(), szAddress);
 }
 
+
 const CvString CvPlayer::getSmtpHost() const
 {
 	return GC.getInitCore().getSmtpHost(getID());
 }
+
 
 void CvPlayer::setSmtpHost(const char* szHost)
 {

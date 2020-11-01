@@ -5398,8 +5398,6 @@ void CvPlot::updatePlotGroup(/* advc.064d: */ bool bVerifyProduction)
 void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate,
 	bool bVerifyProduction) // advc.064d
 {
-	//PROFILE("CvPlot::updatePlotGroup(Player)");
-
 	if (!GC.getGame().isFinalInitialized())
 		return;
 

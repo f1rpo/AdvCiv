@@ -8628,7 +8628,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData,
 }
 
 
-int CvPlayerAI::AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& kList, // advc: Take the list as a reference; some style changes
+int CvPlayerAI::AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& kList,
 	bool bIgnoreAnnual, int iChange,
 	bool bIgnoreDiscount, // advc.550a
 	bool bIgnorePeace, // advc.130p  <advc.ctr>
@@ -18869,7 +18869,7 @@ bool CvPlayerAI::AI_checkMaxGold(CLinkList<TradeData> const& kItems,
 } // </advc.026>
 
 
-void CvPlayerAI::AI_doDiplo()  // advc: style changes
+void CvPlayerAI::AI_doDiplo()
 {
 	PROFILE_FUNC();
 	CvDiploParameters* pDiplo;
