@@ -215,27 +215,28 @@ protected:
 	class OpenList
 	{
 	public:
-		typedef typename std::vector<Node*>::iterator iterator;
-		typedef typename std::vector<Node*>::const_iterator const_iterator;
+		typedef std::vector<Node*> container_t;
+		typedef typename container_t::iterator iterator;
+		typedef typename container_t::const_iterator const_iterator;
 		inline const_iterator begin() const
 		{
-			return m_pNodes.begin();
+			return m_nodes.begin();
 		}
 		inline const_iterator end() const
 		{
-			return m_pNodes.end();
+			return m_nodes.end();
 		}
 		inline iterator begin()
 		{
-			return m_pNodes.begin();
+			return m_nodes.begin();
 		}
 		inline iterator end()
 		{
-			return m_pNodes.end();
+			return m_nodes.end();
 		}
 		inline void reserve(int iCapacity)
 		{
-			m_pNodes.reserve(iCapacity);
+			m_nodes.reserve(iCapacity);
 		}
 		// Does not change the state of the nodes
 		inline void clear()
@@ -243,12 +244,12 @@ protected:
 			/*	This erases every element. So does resize(0).
 				The only way to avoid this, I think, would be to use a raw array
 				instead of a vector. */
-			m_pNodes.clear();
+			m_nodes.clear();
 		}
 		// These function do change the state of the nodes (hence the names)
 		inline void open(Node& kNode)
 		{
-			m_pNodes.push_back(&kNode);
+			m_nodes.push_back(&kNode);
 			// Inefficient to add the same node multiple times
 			//FAssert(!kNode.isState(PATHNODE_OPEN)); // (Seems to work; can stop checking.)
 			kNode.setState(PATHNODE_OPEN);
@@ -256,14 +257,15 @@ protected:
 		inline void close(iterator pos)
 		{
 			Node& kNode = **pos;
-			/*	Expensive on a vector, but faster iteration more than makes up for it
-				in comparison with a list. */
-			m_pNodes.erase(pos);
 			FAssert(kNode.isState(PATHNODE_OPEN));
 			kNode.setState(PATHNODE_CLOSED);
+			/*	Expensive on a vector, but faster iteration more than makes up for it
+				in comparison with a list. A deque performs much better than a list, but
+				still worse than the vector. */
+			m_nodes.erase(pos);
 		}
 	private:
-		std::vector<Node*> m_pNodes;
+		container_t m_nodes;
 	};
 	/*struct OpenList_sortPred {
 		bool operator()(FAStarNode const*& kpLeft, FAStarNode const*& kpRight) {
@@ -417,7 +419,10 @@ bool KmodPathFinder<StepMetric,Node>::generatePath(
 	if (m_pNodeMap == NULL)
 	{
 		m_pNodeMap = new NodeMap(m_kMap.numPlots());
-		m_openList.reserve(32); // advc.opt
+		/*	advc.opt: In a test over a few turns on a Giant map with 36 civs,
+			the mean list size at the start of processNode was 80, and the
+			maximal list size 333. */
+		m_openList.reserve(128);
 	}
 	if (&kStart != m_pStart)
 	{
@@ -534,11 +539,12 @@ bool KmodPathFinder<StepMetric,Node>::processNode()
 		int iLowestCost = (m_pEndNode != NULL ? m_pEndNode->m_iKnownCost : MAX_INT);
 		for (OpenList::iterator it = m_openList.begin(); it != m_openList.end(); ++it)
 		{
-			if ((*it)->m_iTotalCost < iLowestCost &&
-				(*it)->getPathLength() <= m_stepMetric.getMaxPath())
+			Node const& kNode = **it;
+			if (kNode.m_iTotalCost < iLowestCost &&
+				kNode.getPathLength() <= m_stepMetric.getMaxPath())
 			{
 				itBest = it;
-				iLowestCost = (*it)->m_iTotalCost;
+				iLowestCost = kNode.m_iTotalCost;
 			}
 		}
 	}
