@@ -261,7 +261,11 @@ protected:
 			kNode.setState(PATHNODE_CLOSED);
 			/*	Expensive on a vector, but faster iteration more than makes up for it
 				in comparison with a list. A deque performs much better than a list, but
-				still worse than the vector. */
+				still worse than the vector. I've also tried replacing closed nodes with
+				a blank dummy node (not NULL b/c that would require an additional check
+				in KmodPathFinder::processNode), and cleaning out blank nodes
+				periodically. At least with 18 civs, this was slightly slower than
+				vector::erase, all in all. */
 			m_nodes.erase(pos);
 		}
 	private:
@@ -421,7 +425,8 @@ bool KmodPathFinder<StepMetric,Node>::generatePath(
 		m_pNodeMap = new NodeMap(m_kMap.numPlots());
 		/*	advc.opt: In a test over a few turns on a Giant map with 36 civs,
 			the mean list size at the start of processNode was 80, and the
-			maximal list size 333. */
+			maximal list size 333. In a longer test on a Huge map with 18 civs,
+			128 was faster than 32, 200 and 256 (power of 2 does seem to help). */
 		m_openList.reserve(128);
 	}
 	if (&kStart != m_pStart)
