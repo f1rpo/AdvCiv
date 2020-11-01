@@ -2818,10 +2818,13 @@ void CvGame::updateScore(bool bForce)
 		setRankPlayer(iI, eBestPlayer);
 		setPlayerRank(eBestPlayer, iI);
 		setPlayerScore(eBestPlayer, iBestScore);
-		GET_PLAYER(eBestPlayer).updateScoreHistory(getGameTurn(), iBestScore);
-	} // <advc.001>
+		// <advc.004s>
+		GET_PLAYER(eBestPlayer).updateHistory(PLAYER_HISTORY_SCORE, getGameTurn(),
+				iBestScore); // </advc.004s>
+	}
 	/*for(size_t i = 0; i < updateAttitude.size(); i++)
 		GET_PLAYER(updateAttitude[i]).AI_updateAttitude();*/
+	// <advc.001>
 	/*  The above isn't enough; the attitudes of those outside updateAttitude
 		toward those inside could also change. */
 	if(!aeUpdateAttitude.empty())

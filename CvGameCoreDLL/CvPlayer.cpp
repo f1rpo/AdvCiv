@@ -495,8 +495,12 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 		m_aszBonusHelp = new CvWString*[GC.getNumBonusInfos()];
 		for(int i = 0; i < GC.getNumBonusInfos(); i++)
 			m_aszBonusHelp[i] = NULL;
-		// </advc.003p>
-
+		// </advc.003p>  <advc.004s>
+		FOR_EACH_ENUM(PlayerHistory)
+		{
+			m_playerHistory[eLoopPlayerHistory].reset(getID(),
+					eLoopPlayerHistory == PLAYER_HISTORY_SCORE ? 0 : 3);
+		} // </advc.004s>
 		m_mapEventsOccured.clear();
 		m_mapEventCountdown.clear();
 		m_aFreeUnitCombatPromotions.clear();
@@ -2767,13 +2771,21 @@ void CvPlayer::doTurn()  // advc: style changes
 	/*  advc.074: Make sure (if only for performance) that we don't keep expecting
 		a cancel-trade popup that never comes (the importer may have died) */
 	m_cancelingExport.clear();
-	int iGameTurn = kGame.getGameTurn();
-	updateEconomyHistory(iGameTurn, calculateTotalCommerce());
-	updateIndustryHistory(iGameTurn, calculateTotalYield(YIELD_PRODUCTION));
-	updateAgricultureHistory(iGameTurn, calculateTotalYield(YIELD_FOOD));
-	updatePowerHistory(iGameTurn, getPower());
-	updateCultureHistory(iGameTurn, countTotalCulture());
-	updateEspionageHistory(iGameTurn, GET_TEAM(getTeam()).getEspionagePointsEver());
+	int const iGameTurn = kGame.getGameTurn();
+	// <advc.004s>
+	updateHistory(PLAYER_HISTORY_ECONOMY, iGameTurn,
+			calculateTotalCommerce());
+	updateHistory(PLAYER_HISTORY_INDUSTRY, iGameTurn,
+			calculateTotalYield(YIELD_PRODUCTION));
+	updateHistory(PLAYER_HISTORY_AGRICULTURE, iGameTurn,
+			calculateTotalYield(YIELD_FOOD));
+	updateHistory(PLAYER_HISTORY_POWER, iGameTurn,
+			getPower());
+	updateHistory(PLAYER_HISTORY_CULTURE, iGameTurn,
+			countTotalCulture());
+	updateHistory(PLAYER_HISTORY_ESPIONAGE, iGameTurn,
+			GET_TEAM(getTeam()).getEspionagePointsEver());
+	// </advc.004s>
 	expireMessages();  // turn log
 
 	showForeignPromoGlow(false); // advc.002e: To match call in doWarnings
@@ -8871,9 +8883,9 @@ void CvPlayer::onTurnLogging() const
 			{
 				if (iGameTurn - iI >= 0)
 				{
-					iEconomy += getEconomyHistory(iGameTurn - iI);
-					iProduction += getIndustryHistory(iGameTurn - iI);
-					iAgri += getAgricultureHistory(iGameTurn - iI);
+					iEconomy += getHistory(PLAYER_HISTORY_ECONOMY, iGameTurn - iI);
+					iProduction += getHistory(PLAYER_HISTORY_INDUSTRY, iGameTurn - iI);
+					iAgri += getHistory(PLAYER_HISTORY_AGRICULTURE, iGameTurn - iI);
 					iCount++;
 				}
 			}
@@ -11139,126 +11151,6 @@ void CvPlayer::doChangeCivicsPopup(CivicTypes eCivic)
 		pInfo->setData2(eCivic);
 		gDLL->UI().addPopup(pInfo, getID());
 	}
-}
-
-
-int CvPlayer::getScoreHistory(int iTurn) const
-{
-	CvTurnScoreMap::const_iterator it = m_mapScoreHistory.find(iTurn);
-	if (it != m_mapScoreHistory.end())
-		return it->second;
-	return 0;
-}
-
-void CvPlayer::updateScoreHistory(int iTurn, int iBestScore)
-{
-	m_mapScoreHistory[iTurn] = iBestScore;
-}
-
-int CvPlayer::getEconomyHistory(int iTurn) const
-{
-	CvTurnScoreMap::const_iterator it = m_mapEconomyHistory.find(iTurn);
-	if (it != m_mapEconomyHistory.end())
-		return it->second;
-	return 0;
-}
-
-// advc.004s:
-void CvPlayer::updateHistoryMovingAvg(CvTurnScoreMap& kHistory, int iGameTurn, int iNewSample)
-{
-	int iOldSamples = std::min(2, iGameTurn - 1); // Not sure if i=0 would be a valid sample
-	int iSamples = iOldSamples;
-	int iSum = 0;
-	// Discard NewSample if in anarchy
-	if(!isAnarchy() || iGameTurn == 0)
-	{
-		iSum += iNewSample;
-		iSamples++;
-	}
-	for(int i = iGameTurn - 1; i >= iGameTurn - iOldSamples; i--)
-		iSum += kHistory[i];
-	kHistory[iGameTurn] = scaled(iSum, std::max(1, iSamples)).round();
-}
-
-
-void CvPlayer::updateEconomyHistory(int iTurn, int iBestEconomy)
-{
-	//m_mapEconomyHistory[iTurn] = iBestEconomy;
-	// advc.004s: Replacing the above
-	updateHistoryMovingAvg(m_mapEconomyHistory, iTurn, iBestEconomy);
-}
-
-int CvPlayer::getIndustryHistory(int iTurn) const
-{
-	CvTurnScoreMap::const_iterator it = m_mapIndustryHistory.find(iTurn);
-	if (it != m_mapIndustryHistory.end())
-		return it->second;
-	return 0;
-}
-
-void CvPlayer::updateIndustryHistory(int iTurn, int iBestIndustry)
-{
-	//m_mapIndustryHistory[iTurn] = iBestIndustry;
-	// advc.004s: Replacing the above
-	updateHistoryMovingAvg(m_mapIndustryHistory, iTurn, iBestIndustry);
-}
-
-int CvPlayer::getAgricultureHistory(int iTurn) const
-{
-	CvTurnScoreMap::const_iterator it = m_mapAgricultureHistory.find(iTurn);
-	if (it != m_mapAgricultureHistory.end())
-		return it->second;
-	return 0;
-}
-
-void CvPlayer::updateAgricultureHistory(int iTurn, int iBestAgriculture)
-{
-	//m_mapAgricultureHistory[iTurn] = iBestAgriculture;
-	// advc.004s: Replacing the above
-	updateHistoryMovingAvg(m_mapAgricultureHistory, iTurn, iBestAgriculture);
-}
-
-int CvPlayer::getPowerHistory(int iTurn) const
-{
-	CvTurnScoreMap::const_iterator it = m_mapPowerHistory.find(iTurn);
-	if (it != m_mapPowerHistory.end())
-		return it->second;
-	return 0;
-}
-
-void CvPlayer::updatePowerHistory(int iTurn, int iBestPower)
-{
-	m_mapPowerHistory[iTurn] = iBestPower;
-}
-
-int CvPlayer::getCultureHistory(int iTurn) const
-{
-	CvTurnScoreMap::const_iterator it = m_mapCultureHistory.find(iTurn);
-	if (it != m_mapCultureHistory.end())
-		return it->second;
-	return 0;
-}
-
-void CvPlayer::updateCultureHistory(int iTurn, int iBestCulture)
-{
-	//m_mapCultureHistory[iTurn] = iBestCulture;
-	// advc.004s: Replacing the above
-	updateHistoryMovingAvg(m_mapCultureHistory, iTurn, iBestCulture);
-}
-
-int CvPlayer::getEspionageHistory(int iTurn) const
-{
-	CvTurnScoreMap::const_iterator it = m_mapEspionageHistory.find(iTurn);
-	if (it != m_mapEspionageHistory.end())
-		return it->second;
-	return 0;
-}
-
-void CvPlayer::updateEspionageHistory(int iTurn, int iBestEspionage)
-{
-	//m_mapEspionageHistory[iTurn] = iBestEspionage;
-	// advc.004s: Replacing the above
-	updateHistoryMovingAvg(m_mapEspionageHistory, iTurn, iBestEspionage);
 }
 
 /*	K-Mod:  Note, this function is a friend of CvEventReporter, so that it can access the data we need.
@@ -14082,103 +13974,12 @@ void CvPlayer::read(FDataStreamBase* pStream)
 			}
 		}
 	}
-
+	// <advc.004s>
+	FOR_EACH_ENUM(PlayerHistory)
 	{
-		uint iSize;
-		pStream->Read(&iSize);
-		for (uint i = 0; i < iSize; i++)
-		{
-			int iTurn;
-			int iScore;
-			pStream->Read(&iTurn);
-			pStream->Read(&iScore);
-			m_mapScoreHistory[iTurn] = iScore;
-		}
-	}
-
-	{
-		m_mapEconomyHistory.clear();
-		uint iSize;
-		pStream->Read(&iSize);
-		for (uint i = 0; i < iSize; i++)
-		{
-			int iTurn;
-			int iScore;
-			pStream->Read(&iTurn);
-			pStream->Read(&iScore);
-			m_mapEconomyHistory[iTurn] = iScore;
-		}
-	}
-
-	{
-		m_mapIndustryHistory.clear();
-		uint iSize;
-		pStream->Read(&iSize);
-		for (uint i = 0; i < iSize; i++)
-		{
-			int iTurn;
-			int iScore;
-			pStream->Read(&iTurn);
-			pStream->Read(&iScore);
-			m_mapIndustryHistory[iTurn] = iScore;
-		}
-	}
-
-	{
-		m_mapAgricultureHistory.clear();
-		uint iSize;
-		pStream->Read(&iSize);
-		for (uint i = 0; i < iSize; i++)
-		{
-			int iTurn;
-			int iScore;
-			pStream->Read(&iTurn);
-			pStream->Read(&iScore);
-			m_mapAgricultureHistory[iTurn] = iScore;
-		}
-	}
-
-	{
-		m_mapPowerHistory.clear();
-		uint iSize;
-		pStream->Read(&iSize);
-		for (uint i = 0; i < iSize; i++)
-		{
-			int iTurn;
-			int iScore;
-			pStream->Read(&iTurn);
-			pStream->Read(&iScore);
-			m_mapPowerHistory[iTurn] = iScore;
-		}
-	}
-
-	{
-		m_mapCultureHistory.clear();
-		uint iSize;
-		pStream->Read(&iSize);
-		for (uint i = 0; i < iSize; i++)
-		{
-			int iTurn;
-			int iScore;
-			pStream->Read(&iTurn);
-			pStream->Read(&iScore);
-			m_mapCultureHistory[iTurn] = iScore;
-		}
-	}
-
-	{
-		m_mapEspionageHistory.clear();
-		uint iSize;
-		pStream->Read(&iSize);
-		for (uint i = 0; i < iSize; i++)
-		{
-			int iTurn;
-			int iScore;
-			pStream->Read(&iTurn);
-			pStream->Read(&iScore);
-			m_mapEspionageHistory[iTurn] = iScore;
-		}
-	}
+		PlayerHistory& kHist = m_playerHistory[eLoopPlayerHistory];
+		kHist.read(pStream, getID(), uiFlag < 13);
+	} // </advc.004s>
 
 	{
 		m_mapEventsOccured.clear();
@@ -14360,7 +14161,8 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	//uiFlag = 9; // advc.078
 	//uiFlag = 10; // advc.064b
 	//uiFlag = 11; // advc.001x
-	uiFlag = 12; // advc.091
+	//uiFlag = 12; // advc.091
+	uiFlag = 13; // advc.004s
 	pStream->Write(uiFlag);
 
 	// <advc.027>
@@ -14608,83 +14410,9 @@ void CvPlayer::write(FDataStreamBase* pStream)
 				pDiplo->write(*pStream);
 		}
 	}
-
-	{
-		uint iSize = m_mapScoreHistory.size();
-		pStream->Write(iSize);
-		CvTurnScoreMap::iterator it;
-		for (it = m_mapScoreHistory.begin(); it != m_mapScoreHistory.end(); ++it)
-		{
-			pStream->Write(it->first);
-			pStream->Write(it->second);
-		}
-	}
-
-	{
-		uint iSize = m_mapEconomyHistory.size();
-		pStream->Write(iSize);
-		CvTurnScoreMap::iterator it;
-		for (it = m_mapEconomyHistory.begin(); it != m_mapEconomyHistory.end(); ++it)
-		{
-			pStream->Write(it->first);
-			pStream->Write(it->second);
-		}
-	}
-
-	{
-		uint iSize = m_mapIndustryHistory.size();
-		pStream->Write(iSize);
-		CvTurnScoreMap::iterator it;
-		for (it = m_mapIndustryHistory.begin(); it != m_mapIndustryHistory.end(); ++it)
-		{
-			pStream->Write(it->first);
-			pStream->Write(it->second);
-		}
-	}
-
-	{
-		uint iSize = m_mapAgricultureHistory.size();
-		pStream->Write(iSize);
-		CvTurnScoreMap::iterator it;
-		for (it = m_mapAgricultureHistory.begin(); it != m_mapAgricultureHistory.end(); ++it)
-		{
-			pStream->Write(it->first);
-			pStream->Write(it->second);
-		}
-	}
-
-	{
-		uint iSize = m_mapPowerHistory.size();
-		pStream->Write(iSize);
-		CvTurnScoreMap::iterator it;
-		for (it = m_mapPowerHistory.begin(); it != m_mapPowerHistory.end(); ++it)
-		{
-			pStream->Write(it->first);
-			pStream->Write(it->second);
-		}
-	}
-
-	{
-		uint iSize = m_mapCultureHistory.size();
-		pStream->Write(iSize);
-		CvTurnScoreMap::iterator it;
-		for (it = m_mapCultureHistory.begin(); it != m_mapCultureHistory.end(); ++it)
-		{
-			pStream->Write(it->first);
-			pStream->Write(it->second);
-		}
-	}
-
-	{
-		uint iSize = m_mapEspionageHistory.size();
-		pStream->Write(iSize);
-		CvTurnScoreMap::iterator it;
-		for (it = m_mapEspionageHistory.begin(); it != m_mapEspionageHistory.end(); ++it)
-		{
-			pStream->Write(it->first);
-			pStream->Write(it->second);
-		}
-	}
+	// <advc.004s>
+	FOR_EACH_ENUM(PlayerHistory)
+		m_playerHistory[eLoopPlayerHistory].write(pStream); // </advc.004s>
 
 	{
 		uint iSize = m_mapEventsOccured.size();
@@ -19590,10 +19318,11 @@ double CvPlayer::estimateYieldRate(YieldTypes eYield, int iSamples) const
 	int iGameTurn = kGame.getGameTurn();
 	int iTurnsPlayed = iGameTurn - kGame.getStartTurn();
 	iSamples = std::min(iSamples, iTurnsPlayed - 1);
-	std::vector<double> samples; // double for ::dMedian
+	std::vector<double> adSamples; // double for ::dMedian
+	adSamples.reserve(iSamples);
 	/* When anarchy lasts several turns, the sample may not contain a single
 	   non-revolution turn. In this case, increase the sample size gradually. */
-	while (samples.empty() && iSamples < iTurnsPlayed)
+	while (adSamples.empty() && iSamples < iTurnsPlayed)
 	{
 		for (int i = 1; i <= iSamples; i++)
 		{
@@ -19602,24 +19331,24 @@ double CvPlayer::estimateYieldRate(YieldTypes eYield, int iSamples) const
 			switch (eYield)
 			{
 			case YIELD_COMMERCE:
-				iHist = getEconomyHistory(iSampleIndex);
+				iHist = getHistory(PLAYER_HISTORY_ECONOMY, iSampleIndex);
 				break;
 			case YIELD_PRODUCTION:
-				iHist = getIndustryHistory(iSampleIndex);
+				iHist = getHistory(PLAYER_HISTORY_INDUSTRY, iSampleIndex);
 				break;
 			case YIELD_FOOD:
-				iHist = getAgricultureHistory(iSampleIndex);
+				iHist = getHistory(PLAYER_HISTORY_AGRICULTURE, iSampleIndex);
 				break;
 			default: FAssert(false);
 			}
 			if (iHist > 0) // Omit revolution turns
-				samples.push_back(iHist);
+				adSamples.push_back(iHist);
 		}
 		iSamples++;
 	}
-	if (samples.empty())
+	if (adSamples.empty())
 		return 0;
-	return ::dMedian(samples);
+	return ::dMedian(adSamples);
 }
 
 // <advc.004x>

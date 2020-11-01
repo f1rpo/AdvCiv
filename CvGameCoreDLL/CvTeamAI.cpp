@@ -236,13 +236,13 @@ int CvTeamAI::AI_estimateTotalYieldRate(YieldTypes eYield) const
 			switch (eYield)
 			{
 			case YIELD_PRODUCTION:
-				p = kMember.getIndustryHistory(iTurn - (j+1));
+				p = kMember.getHistory(PLAYER_HISTORY_INDUSTRY, iTurn - (j+1));
 				break;
 			case YIELD_COMMERCE:
-				p = kMember.getEconomyHistory(iTurn - (j+1));
+				p = kMember.getHistory(PLAYER_HISTORY_ECONOMY, iTurn - (j+1));
 				break;
 			case YIELD_FOOD:
-				p = kMember.getAgricultureHistory(iTurn - (j+1));
+				p = kMember.getHistory(PLAYER_HISTORY_AGRICULTURE, iTurn - (j+1));
 				break;
 			default: FErrorMsg("unknown yield type");
 			}

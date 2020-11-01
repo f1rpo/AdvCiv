@@ -2446,8 +2446,8 @@ double UWAI::Civ::estimateBuildUpRate(PlayerTypes civId, int period) const {
 		return 0;
 	int turnNumber = g.getGameTurn();
 	CvPlayerAI& civ = GET_PLAYER(civId);
-	int pastPow = std::max(1, civ.getPowerHistory(turnNumber - 1 - period));
-	double delta = civ.getPowerHistory(turnNumber - 1) - pastPow;
+	int pastPow = std::max(1, civ.getHistory(PLAYER_HISTORY_POWER, turnNumber - 1 - period));
+	double delta = civ.getHistory(PLAYER_HISTORY_POWER, turnNumber - 1) - pastPow;
 	return std::max(0.0, delta / pastPow);
 }
 

@@ -2238,37 +2238,37 @@ void CyPlayer::AI_setExtraGoldTarget(int iNewValue)
 
 int CyPlayer::getScoreHistory(int iTurn) const
 {
-	return (NULL != m_pPlayer ? m_pPlayer->getScoreHistory(iTurn) : 0);
+	return (NULL != m_pPlayer ? m_pPlayer->getHistorySafe(PLAYER_HISTORY_SCORE, iTurn) : -1);
 }
 
 int CyPlayer::getEconomyHistory(int iTurn) const
 {
-	return (NULL != m_pPlayer ? m_pPlayer->getEconomyHistory(iTurn) : 0);
+	return (NULL != m_pPlayer ? m_pPlayer->getHistorySafe(PLAYER_HISTORY_ECONOMY, iTurn) : -1);
 }
 
 int CyPlayer::getIndustryHistory(int iTurn) const
 {
-	return (NULL != m_pPlayer ? m_pPlayer->getIndustryHistory(iTurn) : 0);
+	return (NULL != m_pPlayer ? m_pPlayer->getHistorySafe(PLAYER_HISTORY_INDUSTRY, iTurn) : -1);
 }
 
 int CyPlayer::getAgricultureHistory(int iTurn) const
 {
-	return (NULL != m_pPlayer ? m_pPlayer->getAgricultureHistory(iTurn) : 0);
+	return (NULL != m_pPlayer ? m_pPlayer->getHistorySafe(PLAYER_HISTORY_AGRICULTURE, iTurn) : -1);
 }
 
 int CyPlayer::getPowerHistory(int iTurn) const
 {
-	return (NULL != m_pPlayer ? m_pPlayer->getPowerHistory(iTurn) : 0);
+	return (NULL != m_pPlayer ? m_pPlayer->getHistorySafe(PLAYER_HISTORY_POWER, iTurn) : -1);
 }
 
 int CyPlayer::getCultureHistory(int iTurn) const
 {
-	return (NULL != m_pPlayer ? m_pPlayer->getCultureHistory(iTurn) : 0);
+	return (NULL != m_pPlayer ? m_pPlayer->getHistorySafe(PLAYER_HISTORY_CULTURE, iTurn) : -1);
 }
 
 int CyPlayer::getEspionageHistory(int iTurn) const
 {
-	return (NULL != m_pPlayer ? m_pPlayer->getEspionageHistory(iTurn) : 0);
+	return (NULL != m_pPlayer ? m_pPlayer->getHistorySafe(PLAYER_HISTORY_ESPIONAGE, iTurn) : -1);
 }
 
 std::string CyPlayer::getScriptData() const

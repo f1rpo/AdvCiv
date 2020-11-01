@@ -3,6 +3,9 @@
 #ifndef CIV4_PLAYER_H
 #define CIV4_PLAYER_H
 
+#include "PlayerHistory.h" // advc.004s: Replacing the typedef below
+//typedef stdext::hash_map<int,int> CvTurnScoreMap;
+
 class CvTalkingHeadMessage;
 class CvDiploParameters;
 class CvPopupInfo;
@@ -23,7 +26,6 @@ class CvCivilization; // advc.003w
 typedef std::list<CvTalkingHeadMessage> CvMessageQueue;
 typedef std::list<CvPopupInfo*> CvPopupQueue;
 typedef std::list<CvDiploParameters*> CvDiploQueue;
-typedef stdext::hash_map<int,int> CvTurnScoreMap;
 typedef stdext::hash_map<EventTypes,EventTriggeredData> CvEventMap;
 typedef std::vector<std::pair<UnitCombatTypes,PromotionTypes> > UnitCombatPromotionArray;
 typedef std::vector<std::pair<UnitClassTypes,PromotionTypes> > UnitClassPromotionArray;
@@ -1271,24 +1273,22 @@ public:
 	DllExport void showSpaceShip();
 	DllExport void clearSpaceShipPopups();
 	void doChangeCivicsPopup(CivicTypes eCivic); // advc.004x
-
-	int getScoreHistory(int iTurn) const;																			// Exposed to Python
-	void updateScoreHistory(int iTurn, int iBestScore);
-
-	int getEconomyHistory(int iTurn) const;																			// Exposed to Python
-	void updateEconomyHistory(int iTurn, int iBestEconomy);
-	int getIndustryHistory(int iTurn) const;																		// Exposed to Python
-	void updateIndustryHistory(int iTurn, int iBestIndustry);
-	int getAgricultureHistory(int iTurn) const;																		// Exposed to Python
-	void updateAgricultureHistory(int iTurn, int iBestAgriculture);
-	int getPowerHistory(int iTurn) const;																			// Exposed to Python
-	void updatePowerHistory(int iTurn, int iBestPower);
-	int getCultureHistory(int iTurn) const;																			// Exposed to Python
-	void updateCultureHistory(int iTurn, int iBestCulture);
-	int getEspionageHistory(int iTurn) const;																		// Exposed to Python
-	void updateEspionageHistory(int iTurn, int iBestEspionage);
-	// advc.004s:
-	void updateHistoryMovingAvg(CvTurnScoreMap& kHistory, int iGameTurn, int iNewSample);
+	// <advc.004s> Replacing implementation based on stdext::map
+	inline int getHistory(PlayerHistoryTypes eHistory, int iTurn) const
+	{
+		FAssertEnumBounds(eHistory);
+		return m_playerHistory[eHistory].get(iTurn);
+	}
+	inline int getHistorySafe(PlayerHistoryTypes eHistory, int iTurn) const	// Exposed to Python (as e.g. getScoreHistory)
+	{
+		FAssertEnumBounds(eHistory);
+		return m_playerHistory[eHistory].getSafe(iTurn);
+	}
+	inline void updateHistory(PlayerHistoryTypes eHistory, int iTurn, int iBestScore)
+	{
+		FAssertEnumBounds(eHistory);
+		m_playerHistory[eHistory].set(iTurn, iBestScore);
+	} // </advc.004s>
 	const CvPlayerRecord* getPlayerRecord() const; // K-Mod
 
 	// Script data needs to be a narrow string for pickling in Python
@@ -1628,13 +1628,8 @@ protected:  // <advc.210>
 
 	CivicTypes m_eReminderPending; // advc.004x
 	CvWString** m_aszBonusHelp; // advc.003p  (not serialized)
-	CvTurnScoreMap m_mapScoreHistory;
-	CvTurnScoreMap m_mapEconomyHistory;
-	CvTurnScoreMap m_mapIndustryHistory;
-	CvTurnScoreMap m_mapAgricultureHistory;
-	CvTurnScoreMap m_mapPowerHistory;
-	CvTurnScoreMap m_mapCultureHistory;
-	CvTurnScoreMap m_mapEspionageHistory;
+	// advc.004s: Replacing seven separate maps
+	PlayerHistory m_playerHistory[NUM_PLAYER_HISTORY_TYPES];
 
 	void uninit();
 	void initContainers();
