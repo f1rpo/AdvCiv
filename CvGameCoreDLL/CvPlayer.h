@@ -1273,7 +1273,7 @@ public:
 	DllExport void showSpaceShip();
 	DllExport void clearSpaceShipPopups();
 	void doChangeCivicsPopup(CivicTypes eCivic); // advc.004x
-	// <advc.004s> Replacing implementation based on stdext::map
+	// <advc.004s> Replacing implementation based on stdext::hash_map
 	inline int getHistory(PlayerHistoryTypes eHistory, int iTurn) const
 	{
 		FAssertEnumBounds(eHistory);

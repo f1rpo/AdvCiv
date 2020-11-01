@@ -25,7 +25,7 @@ void PlayerHistory::set(int iTurn, int iValue)
 	}
 	for (int i = iTurn - 1; i >= iTurn - iOldSamples; i--)
 		iSum += std::max(m_aiValues[i], 0);
-	m_aiValues[iTurn] = scaled(iSum, std::max(1, iSamples)).round();
+	m_aiValues[iTurn] = ROUND_DIVIDE(iSum, std::max(1, iSamples));
 }
 
 

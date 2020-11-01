@@ -11,7 +11,7 @@ class PlayerHistory
 {
 public:
 	PlayerHistory() : m_iMovingAvgSamples(0), m_eOwner(NO_PLAYER) {}
-	void reset(PlayerTypes eOwner, int iMovingAvgSamples = 3)
+	void reset(PlayerTypes eOwner, int iMovingAvgSamples = 0)
 	{
 		m_eOwner = eOwner;
 		m_iMovingAvgSamples = iMovingAvgSamples;
