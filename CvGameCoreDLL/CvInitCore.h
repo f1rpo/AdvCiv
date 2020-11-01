@@ -400,6 +400,6 @@ BOOST_STATIC_ASSERT(NUM_MPOPTION_TYPES <= 32 && NUM_FORCECONTROL_TYPES <= 32);
 	assertion). Just make sure that new data members are added in the right place. */
 BOOST_STATIC_ASSERT(sizeof(CvInitCore) ==
 		// EnumMap<PlayerTypes,bool> has size 8 then
-		(MAX_CIV_PLAYERS > 32 && MAX_CIV_PLAYERS <= 64 ? 440 : 416)); 
+		(MAX_PLAYERS > 32 && MAX_PLAYERS <= 64 ? 440 : 416)); 
 
 #endif
