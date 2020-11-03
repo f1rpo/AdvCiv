@@ -5041,7 +5041,7 @@ double CvTeamAI::AI_votesToGoForVictory(double* pVoteTarget, bool bForceUN) cons
 		candidates (NO_TEAM). */
 	TeamTypes counterCandidate = (bUN ? AI_diploVoteCounterCandidate(eVS) : NO_TEAM);
 	// This team: already covered above
-	for(TeamIter<FREE_MAJOR_CIV,NOT_SAME_TEAM_AS> it(getID()); it.hasNext(); ++it)
+	for(TeamIter<MAJOR_CIV,NOT_SAME_TEAM_AS> it(getID()); it.hasNext(); ++it)
 	{
 		CvTeamAI const& kTeam = *it;
 		// No votes from human non-vassals
