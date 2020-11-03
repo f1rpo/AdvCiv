@@ -212,7 +212,7 @@ private:
 	double progressRatingDiplomacy();
 	void addConquestsByPartner(std::map<int,double>& r, AttitudeTypes attThresh,
 			double weight);
-	double votesToGo;
+	int votesToGo;
 	bool enoughVotes;
 };
 

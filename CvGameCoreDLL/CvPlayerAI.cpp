@@ -22911,13 +22911,14 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 		iValue += 100;
 	else iValue += GC.getInfo(getPersonalityType()).getDiplomacyVictoryWeight();
 	iValue = ::round(iValue * 0.67); // Victory weight too high
-	double voteTarget = -2;
-	double votesToGo = GET_TEAM(getTeam()).AI_votesToGoForVictory(&voteTarget);
-	if(voteTarget == -1)
+	int iVoteTarget=MIN_INT;
+	int iVotesToGo = GET_TEAM(getTeam()).AI_votesToGoForVictory(&iVoteTarget);
+	if(iVoteTarget == -1)
 		return 0;
-	FAssert(voteTarget > 0);
-	double progressRatio = ::dRange((voteTarget - votesToGo) / voteTarget, 0.0, 1.0);
-	double membersProgress = 1;
+	FAssert(iVoteTarget > 0);
+	scaled rProgressRatio(iVoteTarget - iVotesToGo, iVoteTarget);
+	rProgressRatio.clamp(0, 1);
+	scaled rMembersProgress = 1;
 	VoteSourceTypes eVS = GET_TEAM(getTeam()).AI_getLatestVictoryVoteSource();
 	if (eVS != NO_VOTESOURCE)
 	{
@@ -22925,17 +22926,19 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 		// If AP religion hasn't spread far, our high voter portion doesn't help
 		int iNonMembers = GET_TEAM(getTeam()).uwai().countNonMembers(eVS);
 		int iTargetMembers = kGame.countCivPlayersAlive();
-		membersProgress = (iTargetMembers - iNonMembers) / ((double)iTargetMembers);
-		progressRatio = std::min(membersProgress, progressRatio);
+		rMembersProgress = scaled(iTargetMembers - iNonMembers, iTargetMembers);
+		rProgressRatio.decreaseTo(rMembersProgress);
 		/*  UWAI uses the UN vote target if neither vote source is
 			active yet. Also should look at UN votes in Industrial era if AP victory
 			looks infeasible. */
-		if (progressRatio < 0.66 && getCurrentEra() >= 4 && bAP)
+		if (rProgressRatio < fixp(2/3.) && getCurrentEra() >= 4 && bAP)
 		{
-			votesToGo = GET_TEAM(getTeam()).AI_votesToGoForVictory(&voteTarget, /*forceUN=*/true);
-			progressRatio = ::dRange((voteTarget - votesToGo) / voteTarget, 0.0, 1.0);
+			iVotesToGo = GET_TEAM(getTeam()).AI_votesToGoForVictory(&iVoteTarget,
+					true); // force UN
+			rProgressRatio = scaled(iVoteTarget - iVotesToGo, iVoteTarget);
+			rProgressRatio.clamp(0, 1);
 			bVoteEligible = false;
-			membersProgress = 1; // not a concern for UN
+			rMembersProgress = 1; // not a concern for UN
 		}
 	}
 	/*  LeaderHead weight is between 0 and 70. We're adding a hash between
@@ -22943,7 +22946,7 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 		This here is the intelligent part; put it between 0 and 180.
 		Square b/c having e.g. 50% of the necessary votes isn't nearly enough;
 		need to get close to the vote target. */
-	iValue += ::round(200 * progressRatio * progressRatio * membersProgress * membersProgress);
+	iValue += (200 * SQR(rProgressRatio * rMembersProgress)).round();
 	// </advc.115b>
 
 	// advc.115b: commented out
@@ -22964,7 +22967,7 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 	{
 		// BBAI TODO: Level 4 - close to enough to win a vote?
 		// <advc.115b>
-		if (iValue > 185 && membersProgress >= 1)
+		if (iValue > 185 && rMembersProgress >= 1)
 			return 4; // </advc.115b>
 		return 3;
 	}

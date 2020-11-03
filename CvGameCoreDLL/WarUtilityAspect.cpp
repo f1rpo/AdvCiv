@@ -1407,9 +1407,9 @@ double MilitaryVictory::progressRatingDiplomacy() {
 	}
 	if(popGained > 0.5)
 		log("Total expected votes: %d, current votes-to-go: %d",
-				::round(popGained), ::round(votesToGo));
+				::round(popGained), votesToGo);
 	FAssert(votesToGo > 0);
-	popGained = std::min(popGained, votesToGo);
+	popGained = std::min<double>(popGained, votesToGo);
 	double r = popGained / votesToGo;
 	if(apObstacles < 1)
 		return r;

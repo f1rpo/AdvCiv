@@ -4882,10 +4882,10 @@ VoteSourceTypes CvTeamAI::AI_getLatestVictoryVoteSource() const
 	return r;
 }
 
-// pVoteTarget - Additional (optional) return value: vote target for diplo vict.
-double CvTeamAI::AI_votesToGoForVictory(double* pVoteTarget, bool bForceUN) const
+// pVoteTarget (out param): Vote target for diplo victory; -1 if there is none.
+int CvTeamAI::AI_votesToGoForVictory(int* piVoteTarget, bool bForceUN) const
 {
-	CvGame& kGame = GC.getGame();
+	CvGame const& kGame = GC.getGame();
 	VoteSourceTypes eVS = AI_getLatestVictoryVoteSource();
 	bool bUN = false;
 	if (eVS == NO_VOTESOURCE)
@@ -4897,8 +4897,8 @@ double CvTeamAI::AI_votesToGoForVictory(double* pVoteTarget, bool bForceUN) cons
 		bUN = true;
 	if (bUN && getCurrentEra() <= 3)
 	{
-		if(pVoteTarget != NULL)
-			*pVoteTarget = -1;
+		if(piVoteTarget != NULL)
+			*piVoteTarget = -1;
 		return -1;
 	}
 	int iPopThresh = -1;
@@ -4925,65 +4925,67 @@ double CvTeamAI::AI_votesToGoForVictory(double* pVoteTarget, bool bForceUN) cons
 				break;
 			}
 		}
-		if(pVoteTarget != NULL)
-			*pVoteTarget = -1;
+		if(piVoteTarget != NULL)
+			*piVoteTarget = -1;
 		return -1;
 	}
-	double totalPop = kGame.getTotalPopulation();
+	scaled rTotalPop = kGame.getTotalPopulation();
 	if(!bUN)
-		totalPop = totalPop * kGame.calculateReligionPercent(eAPReligion, true) / 100.0;
-	double targetPop = iPopThresh * totalPop / 100.0;
-	if(pVoteTarget != NULL)
-		*pVoteTarget = targetPop;
-	/*  targetPop assumes 1 vote per pop, but member cities actually
+		rTotalPop = rTotalPop * per100(kGame.calculateReligionPercent(eAPReligion, true));
+	scaled rTargetPop = per100(iPopThresh) * rTotalPop;
+	if(piVoteTarget != NULL)
+		*piVoteTarget = rTargetPop.ceil();
+	/*  rTargetPop assumes 1 vote per pop, but member cities actually
 		cast 2 votes per pop. */
-	double APVoteNormalizer = 1;
+	scaled rAPVoteNormalizer = 1;
 	if(!bUN)
 	{
-		APVoteNormalizer = 100.0 /
-				(100 + GC.getInfo(eVictoryVote).getStateReligionVotePercent());
+		rAPVoteNormalizer = scaled(100,
+				100 + GC.getInfo(eVictoryVote).getStateReligionVotePercent());
 	}
-	double r = targetPop;
-	double ourVotes = getTotalPopulation();
+	scaled rVotesToGo = rTargetPop;
+	scaled rOurVotes = getTotalPopulation();
 	if(eVS != NO_VOTESOURCE && !bForceUN)
-		ourVotes = getVotes(eVictoryVote, eVS) * APVoteNormalizer;
-	r -= ourVotes;
-	double votesFromOthers = 0;
+		rOurVotes = getVotes(eVictoryVote, eVS) * rAPVoteNormalizer;
+	rVotesToGo -= rOurVotes;
+	scaled rVotesFromOthers = 0;
 	/*  Will only work in obvious cases, otherwise we'll work with unknown
 		candidates (NO_TEAM). */
-	TeamTypes counterCandidate = (bUN ? AI_diploVoteCounterCandidate(eVS) : NO_TEAM);
+	TeamTypes eCounterCandidate = (bUN ? AI_diploVoteCounterCandidate(eVS) : NO_TEAM);
 	// This team: already covered above
-	for(TeamIter<FREE_MAJOR_CIV,NOT_SAME_TEAM_AS> it(getID()); it.hasNext(); ++it)
+	for(TeamIter<MAJOR_CIV,NOT_SAME_TEAM_AS> it(getID()); it.hasNext(); ++it)
 	{
 		CvTeamAI const& kTeam = *it;
 		// No votes from human non-vassals
 		if((kTeam.isHuman() && !kTeam.isVassal(getID())) ||
-				kTeam.getMasterTeam() == counterCandidate)
-			continue;
-		double pop = kTeam.getTotalPopulation();
-		if(eVS != NO_VOTESOURCE && !bForceUN)
-			pop = kTeam.getVotes(eVictoryVote, eVS) * APVoteNormalizer;
-		// Count vassals as fully supportive
-		if(kTeam.isVassal(getID()))
+			kTeam.getMasterTeam() == eCounterCandidate)
 		{
-			r -= pop;
 			continue;
 		}
-		/*  Count Friendly rivals as 80% supportive b/c relations may soon sour,
-			and b/c the rival may like the counter candidate even better. */
+		scaled rPop = kTeam.getTotalPopulation();
+		if(eVS != NO_VOTESOURCE && !bForceUN)
+			rPop = kTeam.getVotes(eVictoryVote, eVS) * rAPVoteNormalizer;
+		// Count our vassals as fully supportive
+		if(kTeam.isVassal(getID()))
+		{
+			rVotesToGo -= rPop;
+			continue;
+		}
+		/*  Count Friendly rivals as only partially supportive b/c relations may
+			soon sour, and b/c the rival may like the counter candidate even better. */
 		if(!kTeam.isHuman() && kTeam.AI_getAttitude(getID()) >= ATTITUDE_FRIENDLY)
 		{
-			votesFromOthers += (4 * pop) / 5.0;
+			rVotesFromOthers += rPop * fixp(0.8);
 			continue;
 		}
 	}
 	/*  To account for an unknown counter-candidate. This will usually neutralize
 		our votes from friends, leaving only our own (and vassals') votes. */
-	if(counterCandidate == NO_TEAM)
-		votesFromOthers -= 1.3 * totalPop / TeamIter<MAJOR_CIV>::count();
-	if(votesFromOthers > 0)
-		r -= votesFromOthers;
-	return std::max(0.0, r);
+	if(eCounterCandidate == NO_TEAM)
+		rVotesFromOthers -= fixp(1.3) * rTotalPop / TeamIter<MAJOR_CIV>::count();
+	if(rVotesFromOthers > 0)
+		rVotesToGo -= rVotesFromOthers;
+	return std::max(0, rVotesToGo.round());
 }
 
 

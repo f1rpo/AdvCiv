@@ -146,7 +146,7 @@ public:
 		otherwise UN */
 	VoteSourceTypes AI_getLatestVictoryVoteSource() const;
 	bool AI_isAnyCloseToReligiousVictory() const;
-	double AI_votesToGoForVictory(double* pVoteTarget = NULL, bool bForceUN = false) const;
+	int AI_votesToGoForVictory(int* piVoteTarget = NULL, bool bForceUN = false) const;
 	// </advc.115b>
 
 	int AI_makePeaceTradeVal(TeamTypes ePeaceTeam, TeamTypes eTeam) const;
