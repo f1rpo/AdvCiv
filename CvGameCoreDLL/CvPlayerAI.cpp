@@ -7993,22 +7993,22 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData,
 
 		int iBestCivicValue = AI_civicValue(eBestCivic);
 		int iNewCivicValue = AI_civicValue(eLoopCivic);
-
 		// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
-		/*if (iBestCivicValue > ((iNewCivicValue * 120) / 100)) {
-			bValid = false;
-		if (iBestCivicValue > ((iNewCivicValue * (140 +
-				(GC.getGame().getSorenRandNum(120,
-				"AI Erratic Defiance (Force Civic)"))) / 100)))*/ // BtS
 		// Increase threshold of voting for friend's proposal
 		if (bFriendlyToSecretary)
 		{
 			iNewCivicValue *= 6;
 			iNewCivicValue /= 5;
-		}
-		if (iBestCivicValue > (iNewCivicValue * 120) / 100)
+		} // BETTER_BTS_AI_MOD: END
+		/*	advc.131: Was 100/120. Don't be quite so willing to adopt a bad civic
+			only to (supposedly) hurt other civs. */
+		if (iBestCivicValue * 100 > iNewCivicValue * 115)
 		{
 			bValid = false;
+			/*if (iBestCivicValue > ((iNewCivicValue * (140 +
+				(GC.getGame().getSorenRandNum(120,
+				"AI Erratic Defiance (Force Civic)"))) / 100)))*/ // BtS
+			// BETTER_BTS_AI_MOD, Diplomacy AI, 12/30/08, jdog5000: START
 			// Increase odds of defiance, particularly on AggressiveAI
 			if (iBestCivicValue > iNewCivicValue * (140 +
 				kGame.getSorenRandNum(kGame.isOption(GAMEOPTION_AGGRESSIVE_AI) ?
