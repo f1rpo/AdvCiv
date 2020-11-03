@@ -2818,9 +2818,8 @@ void CvGame::updateScore(bool bForce)
 		setRankPlayer(iI, eBestPlayer);
 		setPlayerRank(eBestPlayer, iI);
 		setPlayerScore(eBestPlayer, iBestScore);
-		// <advc.004s>
-		GET_PLAYER(eBestPlayer).updateHistory(PLAYER_HISTORY_SCORE, getGameTurn(),
-				iBestScore); // </advc.004s>
+		// advc.004s:
+		GET_PLAYER(eBestPlayer).updateHistory(PLAYER_HISTORY_SCORE, getGameTurn());
 	}
 	/*for(size_t i = 0; i < updateAttitude.size(); i++)
 		GET_PLAYER(updateAttitude[i]).AI_updateAttitude();*/

@@ -173,10 +173,15 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 		for (int iTurn = m_iInitialTurn; iTurn <= m_iFinalTurn; iTurn++)
 		{
 			TurnData score;
-			score.m_iScore = kLoopPlayer.getHistory(PLAYER_HISTORY_SCORE, iTurn);
-			score.m_iAgriculture = kLoopPlayer.getHistory(PLAYER_HISTORY_AGRICULTURE, iTurn);
-			score.m_iIndustry = kLoopPlayer.getHistory(PLAYER_HISTORY_INDUSTRY, iTurn);
-			score.m_iEconomy = kLoopPlayer.getHistory(PLAYER_HISTORY_ECONOMY, iTurn);
+			// advc.004s: max(0,) b/c unavailable data is represented as -1
+			score.m_iScore = std::max(0, kLoopPlayer.getHistorySafe(
+					PLAYER_HISTORY_SCORE, iTurn));
+			score.m_iAgriculture = std::max(0, kLoopPlayer.getHistorySafe(
+					PLAYER_HISTORY_AGRICULTURE, iTurn));
+			score.m_iIndustry = std::max(0, kLoopPlayer.getHistorySafe(
+					PLAYER_HISTORY_INDUSTRY, iTurn));
+			score.m_iEconomy = std::max(0, kLoopPlayer.getHistorySafe(
+					PLAYER_HISTORY_ECONOMY, iTurn));
 
 			playerInfo.m_listScore.push_back(score);
 		}

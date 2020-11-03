@@ -1284,12 +1284,8 @@ public:
 		FAssertEnumBounds(eHistory);
 		return m_playerHistory[eHistory].getSafe(iTurn);
 	}
-	inline void updateHistory(PlayerHistoryTypes eHistory, int iTurn, int iBestScore)
-	{
-		FAssertEnumBounds(eHistory);
-		m_playerHistory[eHistory].set(iTurn, iBestScore);
-	} // </advc.004s>
-	const CvPlayerRecord* getPlayerRecord() const; // K-Mod
+	void updateHistory(PlayerHistoryTypes eHistory, int iTurn); // </advc.004s>
+	CvPlayerRecord const* getPlayerRecord() const; // K-Mod
 
 	// Script data needs to be a narrow string for pickling in Python
 	std::string getScriptData() const;																				// Exposed to Python

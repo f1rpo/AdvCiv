@@ -90,6 +90,11 @@ void CvPlayer::initContainers()
 	m_units.init();
 	m_selectionGroups.init();
 	m_eventsTriggered.init();
+	// <advc.004s> For civs that don't start on turn 0
+	FOR_EACH_ENUM(PlayerHistory)
+	{
+		m_playerHistory[eLoopPlayerHistory].grow(GC.getGame().getGameTurn());
+	} // </advc.004s>
 }
 
 /*  advc.003q: Cut from CvPlayer::init.
@@ -2770,21 +2775,14 @@ void CvPlayer::doTurn()  // advc: style changes
 		a cancel-trade popup that never comes (the importer may have died) */
 	m_cancelingExport.clear();
 	int const iGameTurn = kGame.getGameTurn();
-	// <advc.004s>
-	updateHistory(PLAYER_HISTORY_ECONOMY, iGameTurn,
-			calculateTotalCommerce());
-	updateHistory(PLAYER_HISTORY_INDUSTRY, iGameTurn,
-			calculateTotalYield(YIELD_PRODUCTION));
-	updateHistory(PLAYER_HISTORY_AGRICULTURE, iGameTurn,
-			calculateTotalYield(YIELD_FOOD));
-	updateHistory(PLAYER_HISTORY_POWER, iGameTurn,
-			getPower());
-	updateHistory(PLAYER_HISTORY_CULTURE, iGameTurn,
-			countTotalCulture());
-	updateHistory(PLAYER_HISTORY_ESPIONAGE, iGameTurn,
-			GET_TEAM(getTeam()).getEspionagePointsEver());
-	// </advc.004s>
-	expireMessages();  // turn log
+	// <advc.004s> BtS code moved into updateHistory
+	FOR_EACH_ENUM(PlayerHistory)
+	{
+		if (eLoopPlayerHistory == PLAYER_HISTORY_SCORE)
+			continue; // Handled by CvGame
+		updateHistory(eLoopPlayerHistory, iGameTurn);
+	} // </advc.004s>
+	expireMessages(); // turn log
 
 	showForeignPromoGlow(false); // advc.002e: To match call in doWarnings
 	gDLL->UI().setDirty(CityInfo_DIRTY_BIT, true);
@@ -11198,9 +11196,43 @@ void CvPlayer::doChangeCivicsPopup(CivicTypes eCivic)
 	}
 }
 
+// advc.004s: Rewritten, in part with code from doTurn and CvGame::updateScore.
+void CvPlayer::updateHistory(PlayerHistoryTypes eHistory, int iTurn)
+{
+	FAssertEnumBounds(eHistory);
+	int iNewValue = -1;
+	switch(eHistory)
+	{
+	case PLAYER_HISTORY_SCORE:
+		iNewValue = GC.getGame().getPlayerScore(getID());
+		break;
+	case PLAYER_HISTORY_ECONOMY:
+		iNewValue = calculateTotalCommerce();
+		break;
+	case PLAYER_HISTORY_INDUSTRY:
+		iNewValue = calculateTotalYield(YIELD_PRODUCTION);
+		break;
+	case PLAYER_HISTORY_AGRICULTURE:
+		iNewValue = calculateTotalYield(YIELD_FOOD);
+		break;
+	case PLAYER_HISTORY_POWER:
+		iNewValue = getPower();
+		break;
+	case PLAYER_HISTORY_CULTURE:
+		iNewValue = countTotalCulture();
+		break;
+	case PLAYER_HISTORY_ESPIONAGE:
+		iNewValue = GET_TEAM(getTeam()).getEspionagePointsEver();
+		break;
+	default: FErrorMsg("Unknown player history type");
+	}
+	m_playerHistory[eHistory].set(iTurn, iNewValue);
+} // </advc.004s>
+
+
 /*	K-Mod:  Note, this function is a friend of CvEventReporter, so that it can access the data we need.
 	(This saves us from having to use the built-in CyStatistics class) */
-const CvPlayerRecord* CvPlayer::getPlayerRecord() const
+CvPlayerRecord const* CvPlayer::getPlayerRecord() const
 {
 	return CvEventReporter::getInstance().
 			/*	advc.make: CvEventReporter::getPlayerRecord added.

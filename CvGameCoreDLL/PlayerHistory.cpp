@@ -4,11 +4,17 @@
 
 // advc.004s: New implementation file; see comment in header.
 
+void PlayerHistory::grow(int iSize)
+{
+	FAssert(iSize >= 0);
+	while (iSize >= size())
+		m_aiValues.push_back(-1);
+}
+
+
 void PlayerHistory::set(int iTurn, int iValue)
 {
-	FAssert(iTurn >= 0);
-	while (iTurn >= size())
-		m_aiValues.push_back(-1);
+	grow(iTurn);
 	if (m_iMovingAvgSamples <= 0)
 	{
 		m_aiValues[iTurn] = iValue;

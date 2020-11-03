@@ -978,6 +978,20 @@ void CvInitCore::setForceControl(ForceControlTypes eIndex, bool bOption)
 
 void CvInitCore::setActivePlayer(PlayerTypes eActivePlayer)
 {
+	/*	<advc.004s>, advc.001: Player switching skips the player history updates.
+		In BtS, this merely results in a discontinuity in the graphs, but the new
+		PlayerHistory class doesn't tolerate this at all. */
+	if (m_eActivePlayer != NO_PLAYER)
+	{
+		CvPlayer& kPrevActivePlayer = GET_PLAYER(m_eActivePlayer);
+		if (kPrevActivePlayer.isAlive())
+		{
+			FOR_EACH_ENUM(PlayerHistory)
+			{
+				kPrevActivePlayer.updateHistory(eLoopPlayerHistory, getGameTurn());
+			}
+		}
+	} // </advc.004s>
 	m_eActivePlayer = eActivePlayer;
 	if (m_eActivePlayer != NO_PLAYER)
 	{
