@@ -582,6 +582,32 @@
 		<Italian>Disastro nucleare a %s1_CityName!</Italian>
 		<Spanish>&#161;Ha habido un accidente nuclear en %s1_CityName!</Spanish>
 	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_CAPITAL_MOVED</Tag>
+		<English>%s1_CityName is now the capital of %s2_CivShortDesc (was %s3_CityName).</English>
+		<French>%s1_CityName est la nouvelle capitale des %s2_CivShortDesc (à la place de %s3_CityName).</French>
+		<German>%s1_CityName ist die neue Hauptstadt von %s2_CivShortDesc (anstatt %s3_CityName).</German>
+		<Italian>%s1_CityName è la nouva capitale %s2:3_CivShortDesc (in cambio di %s3_CityName).</Italian>
+		<Spanish>%s1_CityName es la nueva capital de %s2_CivShortDesc (en lugar de %s3_CityName).</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_IS_NOW_CAPITAL</Tag>
+		<English>%s1_CityName is now the capital of %s2_CivShortDesc.</English>
+		<French>%s1_CityName est la nouvelle capitale des %s2_CivShortDesc.</French>
+		<German>%s1_CityName ist die neue Hauptstadt von %s2_CivShortDesc.</German>
+		<Italian>%s1_CityName è la nouva capitale %s2:3_CivShortDesc.</Italian>
+		<Spanish>%s1_CityName es la nueva capital de %s2_CivShortDesc.</Spanish>
+	</TEXT>
+	<!-- (Starting with the civ name sounds less weird than the other way around
+		 when the city was razed) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_NO_LONGER_CAPITAL</Tag>
+		<English>The capital of %s1_CivShortDesc is no longer %s2_CityName.</English>
+		<French>La capitale des %s1_CivShortDesc n'est plus %s2_CityName.</French>
+		<German>Die Hauptstadt von %s1_CivShortDesc ist nicht mehr %s2_CityName.</German>
+		<Italian>La capitale %s1:3_CivShortDesc non è più %s2_CityName.</Italian>
+		<Spanish>La capital de %s1_CivShortDesc ya no es %s2_CityName.</Spanish>
+	</TEXT>
 	
 	<!-- advc.106f: Based on TXT_KEY_MISC_PLAYERS_SIGN_DEFENSIVE_PACT in
 		 CIV4GameText_Misc1.xml -->

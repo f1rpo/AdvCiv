@@ -4323,10 +4323,11 @@ void CvPlayer::findNewCapital()  // advc style changes
 
 	if (pBestCity != NULL)
 	{
-		if (pOldCapital != NULL)
-			pOldCapital->setNumRealBuilding(eCapitalBuilding, 0);
 		FAssert(pBestCity->getNumRealBuilding(eCapitalBuilding) == 0);
 		pBestCity->setNumRealBuilding(eCapitalBuilding, 1);
+		// advc.106: Moved down so that setCapital can announce the old capital
+		if (pOldCapital != NULL)
+			pOldCapital->setNumRealBuilding(eCapitalBuilding, 0);
 	}
 }
 
@@ -8180,7 +8181,7 @@ void CvPlayer::changeStateReligionFreeExperience(int iChange)
 // advc: Renamed from "setCapitalCity"
 void CvPlayer::setCapital(CvCity* pNewCapital)
 {
-	CvCity* pOldCapital = getCapital();
+	CvCity* const pOldCapital = getCapital();
 	if (pOldCapital == pNewCapital)
 	{	// <advc> Make sure these are consistent
 		if (pNewCapital == NULL)
@@ -8223,6 +8224,52 @@ void CvPlayer::setCapital(CvCity* pNewCapital)
 		pNewCapital->updateCommerce();
 		pNewCapital->setInfoDirty(true);
 	}
+	// <advc.106> Announcement:
+	if (pOldCapital != NULL && pNewCapital != NULL)
+	{
+		CvWString szFullInfo = gDLL->getText("TXT_KEY_MISC_CAPITAL_MOVED",
+				pNewCapital->getNameKey(), getCivilizationShortDescriptionKey(),
+				pOldCapital->getNameKey());
+		CvWString szOnlyOldKnown = gDLL->getText("TXT_KEY_MISC_NO_LONGER_CAPITAL",
+				getCivilizationShortDescriptionKey(), pOldCapital->getNameKey());
+		CvWString szOnlyNewKnown = gDLL->getText("TXT_KEY_MISC_IS_NOW_CAPITAL",
+				pNewCapital->getNameKey(), getCivilizationShortDescriptionKey());
+		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+		{
+			CvPlayer const& kObs = *it;
+			if (kObs.getID() == getID())
+				continue;
+			if (GET_TEAM(getTeam()).isHasMet(kObs.getTeam()) ||
+				 kObs.isSpectator()) // advc.127
+			{
+				CvWString* pszMsg = NULL;
+				bool bOldRevealed = pOldCapital->isRevealed(kObs.getTeam(),
+						kObs.isSpectator()); // advc.127
+				bool bNewRevealed = pNewCapital->isRevealed(kObs.getTeam(),
+						kObs.isSpectator()); // advc.127
+				if (bOldRevealed && bNewRevealed)
+					pszMsg = &szFullInfo;
+				else if (bOldRevealed)
+					pszMsg = &szOnlyOldKnown;
+				else if (bNewRevealed)
+					pszMsg = &szOnlyNewKnown;
+				if (pszMsg != NULL)
+				{
+					CvPlot const& kFlashPlot = (bNewRevealed ?
+							pNewCapital->getPlot() : pOldCapital->getPlot());
+					/*	<advc.127> Not really a major event, but minor events
+						don't get shown in spectator mode. */
+					InterfaceMessageTypes eMsgType = (kObs.isSpectator() ?
+							MESSAGE_TYPE_MAJOR_EVENT : MESSAGE_TYPE_MINOR_EVENT);
+					// </advc.127>
+					gDLL->UI().addMessage(kObs.getID(), false, -1, *pszMsg, NULL,
+							eMsgType, ARTFILEMGR.getInterfaceArtInfo(
+							"INTERFACE_CITY_BAR_CAPITAL_TEXTURE")->getPath(),
+							NO_COLOR, kFlashPlot.getX(), kFlashPlot.getY());
+				}
+			}
+		}
+	} // </advc.106>
 }
 
 // <advc.127b>

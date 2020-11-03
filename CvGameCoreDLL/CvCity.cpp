@@ -385,7 +385,10 @@ void CvCity::kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits)
 	FAssert(!isProduction());
 
 	PlayerTypes eOwner = getOwner();
-	bool bCapital = isCapital();
+	bool const bCapital = isCapital();
+	// <advc.106> Moved up so that the old capital can be announced
+	if (bCapital)
+		GET_PLAYER(eOwner).findNewCapital(); // </advc.106>
 	kPlot.setImprovementType(GC.getRUINS_IMPROVEMENT());
 	CvEventReporter::getInstance().cityLost(this);
 	GET_PLAYER(getOwner()).deleteCity(getID());
@@ -412,9 +415,9 @@ void CvCity::kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits)
 	GC.getMap().updateWorkingCity();
 	GC.getGame().AI_makeAssignWorkDirty();
 
-	if (bCapital != NULL)
+	if (bCapital)
 	{
-		GET_PLAYER(eOwner).findNewCapital();
+		//GET_PLAYER(eOwner).findNewCapital(); // advc.106: Moved up
 		GET_TEAM(eOwner).resetVictoryProgress();
 	}
 
