@@ -2809,10 +2809,6 @@ void CvPlot::removeGoody()
 	if (!isGoody())
 		return; // </advc>
 	setImprovementType(NO_IMPROVEMENT);
-	// <advc.004z>
-	if(GC.getGame().getCurrentLayer() == GLOBE_LAYER_RESOURCE && isVisibleToWatchingHuman())
-		gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
-	// </advc.004z>
 }
 
 // advc: Deprecated; see comment in header.
@@ -4391,8 +4387,12 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	ImprovementTypes const eOldImprovement = getImprovementType();
 	if(getImprovementType() == eNewValue)
 		return;
+	// <advc.183>
 	bool const bActedAsCity = (eOldImprovement != NO_IMPROVEMENT &&
-			GC.getInfo(eOldImprovement).isActsAsCity()); 
+			GC.getInfo(eOldImprovement).isActsAsCity()); // </advc.183>
+	// <advc.004z>
+	bool const bWasGoody = (eOldImprovement != NO_IMPROVEMENT &&
+			GC.getInfo(eOldImprovement).isGoody()); // </advc.004z>
 
 	if (eOldImprovement != NO_IMPROVEMENT)
 	{	// advc.opt:
@@ -4442,7 +4442,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 
 	/*	Building or removing a fort will now force a plotgroup update to
 		verify resource connections. */
-	if ((getImprovementType() != NO_IMPROVEMENT &&
+	if ((isImproved() &&
 		GC.getInfo(getImprovementType()).isActsAsCity()) !=
 		bActedAsCity)
 	{
@@ -4455,12 +4455,19 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	if (GC.getGame().isDebugMode())
 		setLayoutDirty(true);
 
-	if (getImprovementType() != NO_IMPROVEMENT)
-	{
+	if (isImproved())
+	{	// <advc.004z> Update resource indicators (if we must)
+		if (bWasGoody && GC.getInfo(getImprovementType()).isGoody() &&
+			GC.getGame().getCurrentLayer() == GLOBE_LAYER_RESOURCE &&
+			!gDLL->UI().isDirty(GlobeInfo_DIRTY_BIT) &&
+			isVisibleToWatchingHuman())
+		{
+			gDLL->UI().setDirty(GlobeInfo_DIRTY_BIT, true);
+		} // </advc.004z>
 		CvEventReporter::getInstance().improvementBuilt(
 				getImprovementType(), getX(), getY());
 	}
-	if (getImprovementType() == NO_IMPROVEMENT)
+	else
 	{
 		CvEventReporter::getInstance().improvementDestroyed(
 				eOldImprovement, getOwner(), getX(), getY());

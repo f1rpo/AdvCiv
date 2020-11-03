@@ -251,7 +251,7 @@ public:
 	void setEstimateEndTurn(int iNewValue);												// Exposed to Python
 	double gameTurnProgress(int iDelay = 0) const; // advc
 
-	DllExport int getTurnSlice() const;																			// Exposed to Python
+	DllExport int getTurnSlice() const { return m_iTurnSlice; } // advc.inl							// Exposed to Python
 	int getMinutesPlayed() const;																	// Exposed to Python
 	void setTurnSlice(int iNewValue);
 	void changeTurnSlice(int iChange);

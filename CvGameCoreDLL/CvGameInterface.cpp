@@ -31,9 +31,11 @@
 void CvGame::updateColoredPlots()
 {
 	PROFILE_FUNC();
-
-	CvDLLEngineIFaceBase& kEngine = *gDLL->getEngineIFace(); // advc
-	CvDLLInterfaceIFaceBase& kUI = gDLL->UI(); // advc
+	// <advc.004z> Too early; player options haven't been set yet.
+	if (getTurnSlice() <= 0)
+		return; // </advc.004z>
+	CvDLLEngineIFaceBase& kEngine = *gDLL->getEngineIFace();
+	CvDLLInterfaceIFaceBase& kUI = gDLL->UI();
 
 	kEngine.clearColoredPlots(PLOT_LANDSCAPE_LAYER_BASE);
 	kEngine.clearAreaBorderPlots(AREA_BORDER_LAYER_CITY_RADIUS);

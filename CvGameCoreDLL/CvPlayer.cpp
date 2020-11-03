@@ -9787,6 +9787,15 @@ bool CvPlayer::isOption(PlayerOptionTypes eOption) const
 void CvPlayer::setOption(PlayerOptionTypes eOption, bool bNewValue)
 {
 	m_abOptions.set(eOption, bNewValue);
+	/*	<advc.004z> At game start, colors and plot indicators get updated
+		before player options are set. Need to do another update after
+		the recommendations option has been set. And, actually, should always
+		do an update when that option changes. */
+	if (eOption == PLAYEROPTION_NO_UNIT_RECOMMENDATIONS)
+	{
+		gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
+		gDLL->UI().setDirty(ColoredPlots_DIRTY_BIT, true);
+	} // </advc.004z>
 }
 
 
@@ -18720,6 +18729,9 @@ void CvPlayer::getGlobeLayerColors(GlobeLayerTypes eGlobeLayerType, int iOption,
 {
 	PROFILE_FUNC(); // advc.opt
 	CvGame const& kGame = GC.getGame();
+	// <advc.004z> Too early; player options haven't been set yet.
+	if (kGame.getTurnSlice() <= 0)
+		return; // </advc.004z>
 	/*  <advc> These get cleared by some of the subroutines, but should be
 		empty to begin with. If not, there could be a memory leak. */
 	FAssert(aColors.empty() && aIndicators.empty());
