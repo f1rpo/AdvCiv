@@ -9035,7 +9035,10 @@ void CvGame::read(FDataStreamBase* pStream)
 	if(uiFlag >= 5)
 	{
 		pStream->Read((int*)&m_eCurrentLayer);
-		m_bLayerFromSavegame = true;
+		/*	Initial autosave doesn't contain valid info about the globe layers.
+			b/c it gets created before Python calls reportCurrentLayer */
+		if (getTurnSlice() > 0)
+			m_bLayerFromSavegame = true;
 	} // </advc.004m>
 	pStream->ReadString(m_szScriptData);
 

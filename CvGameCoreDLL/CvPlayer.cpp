@@ -9733,6 +9733,15 @@ bool CvPlayer::isOption(PlayerOptionTypes eOption) const
 void CvPlayer::setOption(PlayerOptionTypes eOption, bool bNewValue)
 {
 	m_abOptions.set(eOption, bNewValue);
+	/*	<advc.004z>, advc.001: At game start, colors and plot indicators get
+		updated before player options are set. Need to do another update after
+		the recommendations option has been set. And, actually, should always
+		do an update when that option changes. */
+	if (eOption == PLAYEROPTION_NO_UNIT_RECOMMENDATIONS)
+	{
+		gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
+		gDLL->UI().setDirty(ColoredPlots_DIRTY_BIT, true);
+	} // </advc.004z>
 }
 
 
