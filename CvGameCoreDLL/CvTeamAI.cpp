@@ -837,7 +837,7 @@ int CvTeamAI::AI_getMemoryCount(TeamTypes eTeam, MemoryTypes eMemory) const
 }
 
 
-int CvTeamAI::AI_chooseElection(const VoteSelectionData& kVoteSelectionData) const
+int CvTeamAI::AI_chooseElection(VoteSelectionData const& kVoteSelectionData) const
 {
 	VoteSourceTypes eVoteSource = kVoteSelectionData.eVoteSource;
 
@@ -846,10 +846,10 @@ int CvTeamAI::AI_chooseElection(const VoteSelectionData& kVoteSelectionData) con
 
 	int iBestVote = -1;
 	int iBestValue = 0;
-
-	for (int iI = 0; iI < (int)kVoteSelectionData.aVoteOptions.size(); ++iI)
+	for (int i = 0; i < (int)kVoteSelectionData.aVoteOptions.size(); i++)
 	{
-		VoteTypes eVote = kVoteSelectionData.aVoteOptions[iI].eVote;
+		VoteSelectionSubData const& kVoteData = kVoteSelectionData.aVoteOptions[i];
+		VoteTypes const eVote = kVoteData.eVote;
 		FAssert(GC.getInfo(eVote).isVoteSourceType(eVoteSource));
 		FAssert(GC.getGame().isChooseElection(eVote));
 		bool bValid = true;
@@ -859,11 +859,10 @@ int CvTeamAI::AI_chooseElection(const VoteSelectionData& kVoteSelectionData) con
 			for (MemberIter it(getID()); it.hasNext(); ++it)
 			{
 				PlayerVoteTypes ePlayerVote = // kekm.25: was eVote (name clash)
-						it->AI_diploVote(kVoteSelectionData.aVoteOptions[iI], eVoteSource, true);
+						it->AI_diploVote(kVoteData, eVoteSource, true);
 				//if (eVote != PLAYER_VOTE_YES || eVote == GC.getGame().getVoteOutcome((VoteTypes)iI))
-				/*  <kekm.25> Replacing the above.
-					'AI can choose to repeal an already passed resolution
-					if all team members agree' */
+				/*  <kekm.25> "AI can choose to repeal an already passed resolution
+					if all team members agree" */
 				bool bVoteYes = (ePlayerVote == PLAYER_VOTE_YES);
 				bool bAlreadyPassed = (GC.getGame().getVoteOutcome(eVote) == PLAYER_VOTE_YES);
 				if((bVoteYes && bAlreadyPassed) || (!bVoteYes && !bAlreadyPassed)) // </kekm.25>
@@ -886,7 +885,7 @@ int CvTeamAI::AI_chooseElection(const VoteSelectionData& kVoteSelectionData) con
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;
-				iBestVote = iI;
+				iBestVote = i;
 			}
 		}
 	}

@@ -429,7 +429,7 @@ void CvCity::kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits)
 }
 
 
-void CvCity::doTurn()  // advc: style changes
+void CvCity::doTurn()
 {
 	PROFILE("CvCity::doTurn()");
 

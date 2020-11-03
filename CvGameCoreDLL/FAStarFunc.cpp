@@ -50,8 +50,7 @@ BOOL pathValid(FAStarNode* parent, FAStarNode* node, int data, void const* point
 	int iFlags = finder ? gDLL->getFAStarIFace()->GetInfo(finder) :
 			((CvPathSettings const*)pointer)->iFlags;*/
 	// K-Mod end
-	/*	<advc.pf> KmodPathFinder doesn't call this function, so it
-		doesn't have to be able to handle those arguments. */
+	// <advc.pf>
 	CvPlot const& kFrom = GC.getMap().getPlot(parent->m_iX, parent->m_iY);
 	CvPlot const& kTo = GC.getMap().getPlot(node->m_iX, node->m_iY);
 	CvSelectionGroup const& kGroup = *reinterpret_cast<CvSelectionGroup const*>(pointer);

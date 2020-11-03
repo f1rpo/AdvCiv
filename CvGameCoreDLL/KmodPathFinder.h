@@ -12,7 +12,7 @@
 	state otherwise; all comments elsewhere are from AdvCiv unless they state otherwise. */
 
 
-enum PathNodeState // Replacing FAStarListType; cf. PathNodeBase::isState.
+enum PathNodeState // Replacing FAStarListType; cf. PathNodeBase::m_iState.
 {
 	PATHNODE_UNINITIALIZED, // default
 	PATHNODE_OPEN,
@@ -156,7 +156,7 @@ public:
 	}
 	/*	Cost of the step from kFrom to kTo. Should return a positive value.
 		The step checker functions above ensure that the step is allowed;
-		so there's no reason to return "infinity" (MAX_INT).
+		so there's no reason to return MAX_INT or some other "infinite" value.
 		kParentNode is the node associated with kFrom. (The cost function
 		of the group pathfinder needs this info.) */
 	int cost(CvPlot const& kFrom, CvPlot const& kTo, Node const& kParentNode) const
@@ -307,7 +307,7 @@ protected:
 				return;
 			{
 			/*	advc: Could keep track of the smallest and highest dirty index
-				(to be updated by the get function, using branchless ::min, ::max)
+				(to be updated by the get function, using branchless::min, max)
 				to save time here.
 				Or divide m_data into 4 or 8 columns with individual dirty bits.
 				There's a section "Beating memset" by Dan Higgins in the book
@@ -338,7 +338,7 @@ public:
 		This constructor will only call the StepMetric default constructor. */
 	inline KmodPathFinder()
 	:	m_pStart(NULL), m_pDest(NULL),
-		/*	[...] Ideally the pathfinder would be initialised with a given CvMap
+		/*	K-Mod: [...] Ideally the pathfinder would be initialised with a given CvMap
 			and then not refer to any global objects. [...] */
 		// advc: We can do that:
 		m_kMap(GC.getMap()), m_pEndNode(NULL), m_pNodeMap(NULL
@@ -400,7 +400,7 @@ int KmodPathFinder<StepMetric,Node>::minimumStepCost(int iBaseMoves)
 			iBaseMoves * iAdmissibleScaledWeight));
 }
 
-// (Comments below are from K-Mod unless stated otherwise)
+// (Comments below are from K-Mod unless stating otherwise)
 
 template<class StepMetric, class Node>
 KmodPathFinder<StepMetric,Node>::~KmodPathFinder()
@@ -426,7 +426,8 @@ bool KmodPathFinder<StepMetric,Node>::generatePath(
 		/*	advc.opt: In a test over a few turns on a Giant map with 36 civs,
 			the mean list size at the start of processNode was 80, and the
 			maximal list size 333. In a longer test on a Huge map with 18 civs,
-			128 was faster than 32, 200 and 256 (power of 2 does seem to help). */
+			reserving memory for 128 nodes was faster than for either 32, 200 or 256
+			(power of 2 does seem to help). K-Mod didn't reserve any memory. */
 		m_openList.reserve(128);
 	}
 	if (&kStart != m_pStart)
@@ -625,7 +626,7 @@ bool KmodPathFinder<StepMetric,Node>::processNode()
 				We have to break the news to them.
 				This would easier if we had STL instead of bog arrays.
 				[advc: Could use a vector, but since karadoc has already
-				worked it out ...]*/
+				worked it out ...] */
 			for (int j = 0; j < kOldParent.m_iNumChildren; j++)
 			{
 				if (kOldParent.m_apChildren[j] == &kChild)
@@ -697,9 +698,10 @@ void KmodPathFinder<StepMetric,Node>::forwardPropagate(Node& kHead, int iCostDel
 		kLoopChild.m_iTotalCost += iNewDelta;
 
 		FAssert(kLoopChild.m_iKnownCost > kHead.m_iKnownCost);
-		/*	advc (tbd.?): iNewDelta is never 0 here in tests. Often it's -4.
+		/*	advc: iNewDelta is never 0 here in tests. Often it's -4.
 			Perhaps that makes sense as a result of symmetry breaking.
-			No need then, though, to check and return bChange in updatePathData. */
+			Tests also suggest that this check (and the one in GroupPathFinder::
+			updatePathData) are pretty irrelevant for the overall performance. */
 		if (bChanged || iNewDelta != 0)
 			forwardPropagate(kLoopChild, iNewDelta);
 	}

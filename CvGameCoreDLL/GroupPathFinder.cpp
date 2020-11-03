@@ -760,7 +760,7 @@ void GroupPathFinder::setGroup(CvSelectionGroup const& kGroup,
 
 /*	advc: To make sure we don't end up with a dangling pointer.
 	Seems highly unlikely that such a pointer would clash with the group
-	passed in the next SetSettings call, but better not to take that chance.
+	passed in the next setGroup call, but better not to take that chance.
 	(That said, I'm only going to call this function on
 	CvSelectionGroup::m_pPathFinder, so things may still not be perfectly safe.
 	The metric could store IDInfo about the group; that would prevent going

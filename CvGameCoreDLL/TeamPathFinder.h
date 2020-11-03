@@ -31,9 +31,9 @@ namespace TeamPath
 		LAND,
 		/*	... a sea unit that can move through all water terrain at a uniform cost
 			unless it is categorically impassable, can't move through land unless
-			a friendly city or improvement acts as a canal, and may have a
-			coastal land plot as its destination. No extra cost is counted for
-			loading and unloading of cargo. */
+			a city or improvement acts as a canal, and may have a coastal land plot
+			as its destination. No extra cost is counted for loading and unloading
+			of cargo. */
 		ANY_WATER,
 		SHALLOW_WATER, // Like ANY_WATER but mustn't enter deep water
 		// (and all moves have to respect borders unless war is assumed)

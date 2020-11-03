@@ -9276,8 +9276,6 @@ void CvPlayer::setLastStateReligion(ReligionTypes eNewValue)
 		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		{
 			CvPlayer const& kObs = *it;
-			if (!kObs.isAlive())
-				continue; // advc
 			if (GET_TEAM(getTeam()).isHasMet(kObs.getTeam()) ||
 				 kObs.isSpectator()) // advc.127
 			{
@@ -18745,13 +18743,13 @@ void CvPlayer::getGlobeLayerColors(GlobeLayerTypes eGlobeLayerType, int iOption,
 		getTradeLayerColors(aColors, aIndicators);
 		break;
 	case GLOBE_LAYER_UNIT:
-		getUnitLayerColors((GlobeLayerUnitOptionTypes) iOption, aColors, aIndicators);
+		getUnitLayerColors((GlobeLayerUnitOptionTypes)iOption, aColors, aIndicators);
 		break;
 	case GLOBE_LAYER_RESOURCE:
-		getResourceLayerColors((GlobeLayerResourceOptionTypes) iOption, aColors, aIndicators);
+		getResourceLayerColors((GlobeLayerResourceOptionTypes)iOption, aColors, aIndicators);
 		break;
 	case GLOBE_LAYER_RELIGION:
-		getReligionLayerColors((ReligionTypes) iOption, aColors, aIndicators);
+		getReligionLayerColors((ReligionTypes)iOption, aColors, aIndicators);
 		break;
 	case GLOBE_LAYER_CULTURE:
 		getCultureLayerColors(aColors, aIndicators);

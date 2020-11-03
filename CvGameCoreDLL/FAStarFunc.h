@@ -7,7 +7,7 @@
 	Most of these functions get passed to CvDLLFAStarIFaceBase, so they have to
 	remain compatible with that interface. Also note that those functions get called
 	from the EXE despite not being exported. I've replaced return type int with
-	BOOL (which is a typedef of int) where appropritate. Those functions that
+	BOOL (which is a typedef of int) where appropriate. Those functions that
 	KmodPathFinder used to call directly, I've turned into wrappers so that
 	GroupPathFinder can use a more intuitive interface. */
 

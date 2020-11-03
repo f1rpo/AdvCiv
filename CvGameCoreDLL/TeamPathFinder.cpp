@@ -99,7 +99,7 @@ bool TeamStepMetric<eMODE>::isValidDest(CvPlot const& kStart, CvPlot const& kDes
 	/*	The same-area checks below would miss out on canals connecting water areas.
 		Most maps have only one large water area anyway, and lakes can be easily
 		handled in client code by checking CvPlot::isCoastalLand(-1). Also, it's
-		not going to take the pathfinde rlong to realize that a lake is a dead-end. */
+		not going to take the pathfinder long to realize that a lake is a dead-end. */
 	if (kStart.isWater())
 	{
 		if (kDest.isWater())

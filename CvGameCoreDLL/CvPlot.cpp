@@ -2745,7 +2745,7 @@ bool CvPlot::isVisibleToCivTeam() const
 }
 
 
-bool CvPlot::isVisibleToWatchingHuman() const  // advc: style changes
+bool CvPlot::isVisibleToWatchingHuman() const
 {
 	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
