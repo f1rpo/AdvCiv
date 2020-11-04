@@ -1030,6 +1030,7 @@ protected:
 	CvPlot* randomBarbarianPlot(CvArea const& a, Shelf const* pShelf);
 	bool killBarbarian(int iUnitsPresent, int iTiles, int iPop, CvArea& a, Shelf* pShelf);
 	UnitTypes randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a);
+	scaled barbarianPeakLandRatio() const;
 	// </advc.300>
 
 	void verifyCivics();

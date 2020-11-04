@@ -631,10 +631,17 @@
 		 the peak percentage. Setting BARB_PEAK_PERCENT to 0 results in BtS
 		 behavior, with B maximal when Barbarians first appear and then
 		 decreasing as the civs expand.
-		 Recommended: 55 -->
+		 Recommended: 56 -->
     <Define>
         <DefineName>BARB_PEAK_PERCENT</DefineName>
-        <iDefineIntVal>55</iDefineIntVal>
+        <iDefineIntVal>56</iDefineIntVal>
+    </Define>
+	<!-- Used instead of the value above when the Raging Barbarians option
+		 is enabled. Recommended: Somewhat higher, say 7 points, than
+		 BARB_PEAK_PERCENT so that the early game doesn't become too tense. -->
+	<Define>
+        <DefineName>BARB_RAGE_PEAK_PERCENT</DefineName>
+        <iDefineIntVal>63</iDefineIntVal>
     </Define>
 
 	<!-- [advc.300]
