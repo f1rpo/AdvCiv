@@ -4921,7 +4921,8 @@ bool CvGame::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionSub
 	return true;
 }
 
-bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData) const
+// advc (note): Needs to be consistent with processVote
+bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, VoteSelectionSubData const& kData) const
 {
 	if (kData.ePlayer!= NO_PLAYER)
 	{
@@ -4943,67 +4944,69 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 		//if (GET_TEAM((TeamTypes)iTeam).isVotingMember(eVoteSource))
 		// K-Mod. to prevent "AP cheese", only count full members for victory votes.
 		if (GET_TEAM((TeamTypes)iTeam).isFullMember(eVoteSource) ||
-			(!GC.getInfo(kData.eVote).isVictory() && GET_TEAM((TeamTypes)iTeam).isVotingMember(eVoteSource)))
+			(!GC.getInfo(kData.eVote).isVictory() &&
+			GET_TEAM((TeamTypes)iTeam).isVotingMember(eVoteSource)))
 		// K-Mod end
 		{
 			++iNumVoters;
 		}
 	}
 	if (iNumVoters  < GC.getInfo(kData.eVote).getMinVoters())
-	{
 		return false;
-	}
 
 	if (GC.getInfo(kData.eVote).isOpenBorders())
 	{
-		bool bOpenWithEveryone = true;
-		for (int iTeam1 = 0; iTeam1 < MAX_CIV_TEAMS; ++iTeam1)
+		bool bOpenBordersWithEveryone = true;
+		for (TeamIter<MAJOR_CIV> itFirst; itFirst.hasNext(); ++itFirst)
 		{
-			if (GET_TEAM((TeamTypes)iTeam1).isFullMember(eVoteSource))
+			/*	advc (note): Applies to all members, but becomes unavailable if
+				all full members already have OB. Not sure if that's sensible. */
+			if (!itFirst->isFullMember(eVoteSource))
+				continue;
+			for (TeamIter<MAJOR_CIV> itSecond; itSecond.hasNext(); ++itSecond)
 			{
-				for (int iTeam2 = iTeam1 + 1; iTeam2 < MAX_CIV_TEAMS; ++iTeam2)
+				if (!itSecond->isFullMember(eVoteSource))
+					continue;
+				if (itSecond->getID() > itFirst->getID())
 				{
-					CvTeam& kTeam2 = GET_TEAM((TeamTypes)iTeam2);
-					if (kTeam2.isFullMember(eVoteSource))
+					if (!itSecond->isOpenBorders(itFirst->getID()))
 					{
-						if (!kTeam2.isOpenBorders((TeamTypes)iTeam1))
-						{
-							bOpenWithEveryone = false;
-							break;
-						}
+						bOpenBordersWithEveryone = false;
+						break;
 					}
 				}
 			}
 		}
-		if (bOpenWithEveryone)
+		if (bOpenBordersWithEveryone)
 			return false;
 	}
 	else if (GC.getInfo(kData.eVote).isDefensivePact())
 	{
-		bool bPactWithEveryone = true;
-		for (int iTeam1 = 0; iTeam1 < MAX_CIV_TEAMS; ++iTeam1)
+		bool bDefensivePactWithEveryone = true;
+		// advc.001: Exclude vassals
+		for (TeamIter<FREE_MAJOR_CIV> itFirst; itFirst.hasNext(); ++itFirst)
 		{
-			CvTeam& kTeam1 = GET_TEAM((TeamTypes)iTeam1);
-			if (kTeam1.isFullMember(eVoteSource) /* advc.001: */ && !kTeam1.isAVassal())
+			/*	advc (note): Applies to all members, but becomes unavailable if
+				all full members already have DP. Not sure if that's sensible. */
+			if (!itFirst->isFullMember(eVoteSource))
+				continue;
+			// advc.001: Exclude vassals
+			for (TeamIter<FREE_MAJOR_CIV> itSecond; itSecond.hasNext(); ++itSecond)
 			{
-				for (int iTeam2 = iTeam1 + 1; iTeam2 < MAX_CIV_TEAMS; ++iTeam2)
+				if (!itSecond->isFullMember(eVoteSource))
+					continue;
+				if (itSecond->getID() > itFirst->getID())
 				{
-					CvTeam& kTeam2 = GET_TEAM((TeamTypes)iTeam2);
-					if (kTeam2.isFullMember(eVoteSource) /* advc.001: */ && !kTeam2.isAVassal())
+					if (!itFirst->isDefensivePact(itSecond->getID()))
 					{
-						if (!kTeam2.isDefensivePact((TeamTypes)iTeam1))
-						{
-							bPactWithEveryone = false;
-							break;
-						}
+						bDefensivePactWithEveryone = false;
+						break;
 					}
 				}
 			}
 		}
-		if (bPactWithEveryone)
-		{
+		if (bDefensivePactWithEveryone)
 			return false;
-		}
 	}
 	else if (GC.getInfo(kData.eVote).isForcePeace())
 	{
@@ -8314,10 +8317,13 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 			{
 				if (!itSecond->isVotingMember(kData.eVoteSource))
 					continue;
-				if (kVote.isOpenBorders())
-					itFirst->signOpenBorders(itSecond->getID());
-				if (kVote.isDefensivePact())
-					itFirst->signDefensivePact(itSecond->getID());
+				if (itSecond->getID() > itFirst->getID())
+				{
+					if (kVote.isOpenBorders())
+						itFirst->signOpenBorders(itSecond->getID());
+					if (kVote.isDefensivePact())
+						itFirst->signDefensivePact(itSecond->getID());
+				}
 			}
 		}
 		setVoteOutcome(kData, NO_PLAYER_VOTE);
