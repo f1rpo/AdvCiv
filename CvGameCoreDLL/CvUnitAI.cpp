@@ -15434,10 +15434,11 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 			if (pLoopPlot != NULL && //isPotentialEnemy(pLoopPlot->getTeam(), pLoopPlot)
 				pLoopPlot->isOwned() && kOurTeam.AI_mayAttack(pLoopPlot->getTeam())) // advc
 			{
+				CvPlot const& p = *pLoopPlot; // advc: abbreviate
 				if (bCanMoveAllTerrain ||
-					(pWaterArea != NULL && pLoopPlot->isAdjacentToArea(*pWaterArea)))
+					(pWaterArea != NULL && p.isAdjacentToArea(*pWaterArea)))
 				{
-					int iTargetCities = pLoopPlot->getArea().getCitiesPerPlayer(pLoopPlot->getOwner());
+					int iTargetCities = p.getArea().getCitiesPerPlayer(p.getOwner());
 					if (iTargetCities <= 0)
 						continue;
 
@@ -15446,20 +15447,20 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 						continue;
 
 					int iPathTurns;
-					if (generatePath(*pLoopPlot, eFlags, true, &iPathTurns))
+					if (generatePath(p, eFlags, true, &iPathTurns))
 					{
 						CvPlot& kEndTurnPlot = getPathEndTurnPlot();
 						int iOtherPathTurns = MAX_INT;
 						//if (pLoopSelectionGroup->generatePath(pLoopSelectionGroup->plot(), pLoopPlot, eFlags, true, &iOtherPathTurns))
 						// K-Mod. Use a different pathfinder, so that we don't clear our path data.
 						//GroupPathFinder loopPath;
-						GroupPathFinder& loopPath = CvSelectionGroup::getClearPathFinder();
-						loopPath.setGroup(*pLoopSelectionGroup, eFlags, iPathTurns);
-						if (loopPath.generatePath(*pLoopPlot)) // K-Mod end
+						GroupPathFinder& kLoopPath = CvSelectionGroup::getClearPathFinder();
+						kLoopPath.setGroup(*pLoopSelectionGroup, eFlags, iPathTurns);
+						if (kLoopPath.generatePath(p)) // K-Mod end
 						{
 							//iOtherPathTurns += 1;
 							// (K-Mod note: I'm not convinced the +1 thing is a good idea.)
-							iOtherPathTurns = loopPath.getPathTurns();
+							iOtherPathTurns = kLoopPath.getPathTurns();
 						}
 						else continue;
 
@@ -15467,52 +15468,68 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 						if (iPathTurns >= iOtherPathTurns + 5)
 							continue;
 
-						int iEnemyDefenders = pLoopPlot->getNumVisibleEnemyDefenders(this);
-						bool bCanCargoAllUnload = true;
-						if (iEnemyDefenders > 0 || pLoopPlot->isCity())
+						int iValue = iAssaultsHere * 5;
+						iValue += iTargetCities * 10;
 						{
-							for (size_t i = 0; i < apGroupCargo.size(); ++i)
+							//bool bCanCargoAllUnload = true;
+							int iCannotUnload = 0; // advc.082
+							bool const bCity = p.isCity();
+							if (bCity ||
+								//p.getNumVisibleEnemyDefenders(this) > 0
+								p.isVisibleEnemyDefender(this)) // advc.opt
 							{
-								CvUnit const* pAttacker = apGroupCargo[i];
-								if (!pLoopPlot->hasDefender(
-									true, NO_PLAYER, pAttacker->getOwner(), pAttacker, true))
+								for (size_t i = 0; i < apGroupCargo.size(); ++i)
 								{
-									bCanCargoAllUnload = false;
-									break;
-								}
-								else if (pLoopPlot->isCity() && !pLoopPlot->isVisible(getTeam()))
-								{
-									// Artillery can't naval invade, so don't try
-									if (pAttacker->combatLimit() < 100)
+									CvUnit const* pAttacker = apGroupCargo[i];
+									if (p.isVisible(getTeam()) && // advc.082
+										!p.hasDefender(true, NO_PLAYER,
+										pAttacker->getOwner(), pAttacker, true))
 									{
-										bCanCargoAllUnload = false;
-										break;
+										iCannotUnload++;
+										//break;
+									}
+									else if (bCity
+										/*	advc.082: Doesn't make sense to me.
+											If there's a city, then units w/ a combat limit
+											can't attack it. Visibility shouldn't matter.
+											It should matter for the hasDefender check above. */
+										/*&& !p.isVisible(getTeam())*/)
+									{
+										// Artillery can't naval invade, so don't try
+										if (pAttacker->combatLimit() < 100)
+										{
+											iCannotUnload++;
+											//break;
+										}
 									}
 								}
+								/*	<advc.082> BtS had disregarded pLoopPlot
+									if !bCanCargoAllUnload. This has gotten lost in BBAI. */
+								/*	For a start, if pLoopSelectionGroup is headed directly
+									for a city, it'll likely not need reinforcements. */
+								if (bCity)
+									iValue /= 2;
+								// Additional discouragement for units that can't unload
+								if (iCannotUnload > 0)
+								{
+									if (iCannotUnload * 3 >= (int)apGroupCargo.size())
+										continue;
+									iValue *= SQR(apGroupCargo.size() - iCannotUnload);
+									iValue /= SQR(apGroupCargo.size());
+								} // </advc.081>
 							}
 						}
-						/*	advc.test: This is the only result of the loop above.
-							BtS had disregarded pLoopPlot if !bCanCargoAllUnload.
-							This has gotten lost in BBAI, perhaps for the better.
-							But perhaps we should reduce iValue? */
-						FAssert(bCanCargoAllUnload);
-
-						int iValue = (iAssaultsHere * 5);
-						iValue += iTargetCities * 10;
-
 						iValue *= 100;
-
 						/*
 						// if more than 3 turns to get there, then put some randomness into our preference of distance
-						// +/- 33%
 						if (iPathTurns > 3) {
 							int iPathAdjustment = GC.getGame().getSorenRandNum(67, "AI Assault Target");
-							iPathTurns *= 66 + iPathAdjustment;
+							iPathTurns *= 66 + iPathAdjustment; // +/- 33%
 							iPathTurns /= 100;
 						}
 						iValue /= (iPathTurns + 1);*/ // BtS
 						// K-Mod. More consistent randomness, to prevent decisions from oscillating.
-						iValue *= 70 + (AI_unitPlotHash(pLoopPlot, getGroup()->getNumUnits()) % 61);
+						iValue *= 70 + (AI_unitPlotHash(&p, getGroup()->getNumUnits()) % 61);
 						iValue /= 100;
 
 						iValue /= (iPathTurns + 2);
@@ -15522,7 +15539,7 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 						{
 							iBestValue = iValue;
 							pBestPlot = &kEndTurnPlot;
-							pBestAssaultPlot = pLoopPlot;
+							pBestAssaultPlot = &p;
 						}
 					}
 				}
