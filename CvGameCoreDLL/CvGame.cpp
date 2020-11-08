@@ -7400,7 +7400,7 @@ void CvGame::createBarbarianUnits()
 		/*  advc.300: No need to delay Barbarians (bAnimals=true) if they start
 			slowly (PEAK_PERCENT>=35). For slow game speed settings, there is
 			now a similar check in CvUnitAI::AI_barbAttackMove. */
-		GC.getDefineINT(CvGlobals::BARB_PEAK_PERCENT) < 35)
+		barbarianPeakLandRatio() < per100(35))
 	{
 		bAnimals = true;
 	}
@@ -7636,24 +7636,25 @@ int CvGame::getBarbarianStartTurn() const
 int CvGame::numBarbariansToCreate(int iTilesPerUnit, int iTiles, int iUnowned,
 		int iUnitsPresent, int iBarbarianCities)
 {
-	int iOwned = iTiles - iUnowned;
-	int iPeakPercent = ::range(GC.getDefineINT(CvGlobals::BARB_PEAK_PERCENT), 0, 100);
-	if (iOwned == 0 || iPeakPercent == 0)
+	int const iOwned = iTiles - iUnowned;
+	scaled const rPeakRatio = barbarianPeakLandRatio();
+	if (iOwned == 0 || rPeakRatio == 0)
 		return 0;
-	double peak = iPeakPercent / 100.0;
-	double ownedRatio = iOwned / (double)iTiles;
-	bool bPeakReached = (ownedRatio > peak);
-	double divisor = iTilesPerUnit;
-	double dividend = -1;
-	if (bPeakReached)
+	scaled rDivisor = iTilesPerUnit;
+	scaled rDividend;
 	{
-		divisor *= (1 - peak);
-		dividend = iUnowned;
-	}
-	else
-	{
-		divisor *= peak;
-		dividend = iOwned;
+		scaled rOwnedRatio(iOwned, iTiles);
+		bool bPeakReached = (rOwnedRatio >= rPeakRatio);
+		if (bPeakReached)
+		{
+			rDivisor *= (1 - rPeakRatio);
+			rDividend = iUnowned;
+		}
+		else
+		{
+			rDivisor *= rPeakRatio;
+			rDividend = iOwned;
+		}
 	}
 	/*	For Rage, reduce divisor to 60% (50% in BtS), but
 		<advc.307> reduces it further based on the game era. */
@@ -7662,24 +7663,25 @@ int CvGame::numBarbariansToCreate(int iTilesPerUnit, int iTiles, int iUnowned,
 		int iCurrentEra = getCurrentEra();
 		/*  Don't reduce divisor in start era (gets too tough on Classical
 			and Medieval starts b/c the starting defenders are mere Archers). */
-		if(iCurrentEra <= getStartEra())
+		if (iCurrentEra <= getStartEra())
 			iCurrentEra = 0;
-		double rageMultiplier = 0.6;
-		rageMultiplier *= (8 - iCurrentEra) / 8.0;
-		divisor = divisor * rageMultiplier;
-		divisor = std::max(divisor, 10.0);
+		scaled rRageMultiplier = fixp(0.6);
+		rRageMultiplier.mulDiv(8 - iCurrentEra, 8);
+		rDivisor *= rRageMultiplier;
+		rDivisor.increaseTo(10);
 	} // </advc.307>
-	else divisor = std::max(divisor, 14.0);
-	double target = std::min(dividend / divisor,
-			/*  Make sure that there's enough unowned land where the Barbarians
-				could plausibly gather. */
-			iUnowned / 6.0);
-	static double const adjustment = (GC.getDefineINT("BARB_ACTIVITY_ADJUSTMENT") + 100) / 100.0;
-	target *= adjustment;
+	else rDivisor.increaseTo(14);
+	scaled rTarget = rDividend / rDivisor;
+	/*  Make sure that there's enough unowned land where the Barbarians
+		could plausibly gather. */
+	rTarget.decreaseTo(scaled(iUnowned, 6));
+	static scaled const rAdjustment = 1 + per100(GC.getDefineINT(
+			"BARB_ACTIVITY_ADJUSTMENT"));
+	rTarget *= rAdjustment;
 
 	int iInitialDefenders = GC.getInfo(getHandicapType()).
 			getBarbarianInitialDefenders();
-	double r = target - std::max(0, iUnitsPresent
+	scaled r = rTarget - std::max(0, iUnitsPresent
 	/*  Don't count city defenders. Settled Barbarians being less aggressive makes
 		sense, but cities also reduce the number of unowned tiles; that's enough.
 		(Alt. idea: Subtract half the Barbarian population in this area.)
@@ -7688,19 +7690,19 @@ int CvGame::numBarbariansToCreate(int iTilesPerUnit, int iTiles, int iUnowned,
 			- iBarbarianCities * std::max(0, iInitialDefenders));
 	if (r < 1)
 		return 0; // Avoid very small creation probabilities
-	double creationRate = 0.25; // the BtS rate
+	scaled rCreationRate = fixp(0.25); // the BtS rate
 	// Novel: adjusted to game speed
-	creationRate /= (GC.getInfo(getGameSpeedType()).getBarbPercent() / 100.0);
-	r *= creationRate;
+	rCreationRate /= per100(GC.getInfo(getGameSpeedType()).getBarbPercent());
+	r *= rCreationRate;
 	/*  BtS always created at least one unit, but, on Marathon, this could be too fast.
 		Probabilistic instead. */
 	if (r < 1)
 	{
-		if (::bernoulliSuccess(r, "advc.300 (numBarbariansToCreate)"))
+		if (r.bernoulliSuccess(getSRand(), "numBarbariansToCreate"))
 			return 1;
-		else return 0;
+		return 0;
 	}
-	return ::round(r);
+	return r.round();
 }
 
 // Returns the number of land units spawned (possibly in cargo). The first half is new code.
@@ -7969,6 +7971,26 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a)
 			iBestValue = iValue;
 		}
 	}
+	return r;
+}
+
+// (See documentation in XML)
+scaled CvGame::barbarianPeakLandRatio() const
+{
+	scaled r;
+	if (isOption(GAMEOPTION_RAGING_BARBARIANS))
+	{
+		static scaled const rRagingRatio = per100(GC.getDefineINT(
+				"BARB_RAGE_PEAK_PERCENT"));
+		r = rRagingRatio;
+	}
+	else
+	{
+		static scaled const rNormalRatio = per100(GC.getDefineINT(
+				"BARB_PEAK_PERCENT"));
+		r = rNormalRatio;
+	}
+	r.clamp(0, 1);
 	return r;
 }
 // </advc.300>
