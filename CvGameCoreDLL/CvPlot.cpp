@@ -2442,6 +2442,10 @@ bool CvPlot::isWithinCultureRange(PlayerTypes ePlayer) const
 		if (isCultureRangeCity(ePlayer, eLoopCultureLevel))
 			return true;
 	}
+	/*	<advc.099c> Make sure that all city plots are considered to be
+		within their owner's culture range */
+	if (isCity() && getOwner() == ePlayer)
+		return true; // </advc.099c>
 	return false;
 }
 

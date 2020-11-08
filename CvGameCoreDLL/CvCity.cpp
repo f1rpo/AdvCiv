@@ -4191,12 +4191,12 @@ int CvCity::cultureStrength(PlayerTypes ePlayer,
 
 int CvCity::cultureGarrison(PlayerTypes ePlayer) const
 {
-	/*  <advc.101> Barbarian garrisons are not supposed to prevent revolts.
-		BtS enforces this in CvPlot::doCulture (now renamed to CvPlot::doRevolts).
-		Easier to do it here. */
-	if(isBarbarian())
-		return 0;
-
+	/*  <advc.101> BtS makes Barbarian units ineligible as culture garrison
+		through CvPlot::doCulture (now renamed to CvPlot::doRevolts).
+		Easier to do it here -- but I do want them to be eligible. In fact,
+		I'll give them extra strength below. */
+	/*if(isBarbarian())
+		return 0;*/
 	int iGarrison = 0; // was 1  </advc.101>
 	for(CLLNode<IDInfo> const* pUnitNode = getPlot().headUnitNode(); pUnitNode != NULL;
 		pUnitNode = getPlot().nextUnitNode(pUnitNode))
@@ -4206,7 +4206,7 @@ int CvCity::cultureGarrison(PlayerTypes ePlayer) const
 	}
 	/*if (atWar(GET_PLAYER(ePlayer).getTeam(), getTeam()))
 		iGarrison *= 2;*/ // advc.023: commented out
-	return iGarrison / 100; // advc.101: iGarrison now has times-100 precision
+	return ROUND_DIVIDE(iGarrison, 100); // advc.101: iGarrison now has times-100 precision
 }
 
 // <advc.099c>
@@ -8000,14 +8000,19 @@ void CvCity::changeNumRevolts(PlayerTypes eIndex, int iChange)
 }
 
 
-double CvCity::getRevoltTestProbability() const // advc.101: Changed return type
+double CvCity::getRevoltTestProbability() const // advc.101: Return type was int; tbd.: change it to scaled.
 {
-	int iProtection = getRevoltProtection(); // advc.101: Moved into new function
+	// <advc.101>
+	CvGame const& kGame = GC.getGame();
+	// Was based on getVictoryDelayPercent() in K-Mod
+	scaled rSpeedFactor = per100(GC.getInfo(kGame.getGameSpeedType()).getGoldenAgePercent());
+	// Need to cut cities recently acquired by Barbarians some slack
+	if (isBarbarian() && kGame.getGameTurn() - getGameTurnAcquired() < 8 * rSpeedFactor)
+		return 0; // </advc.101>
 	static scaled const rREVOLT_TEST_PROB = per100(GC.getDefineINT("REVOLT_TEST_PROB")); // advc.opt
-	scaled r = rREVOLT_TEST_PROB * per100(100 - iProtection) /
-			// <advc.101> was .getVictoryDelayPercent() in K-Mod
-			per100(GC.getInfo(GC.getGame().getGameSpeedType()).getGoldenAgePercent());
-	r.decreaseTo(1); // Upper bound used to be handled by the caller </advc.101>
+	scaled r = rREVOLT_TEST_PROB * per100(100 - getRevoltProtection());
+	r /= rSpeedFactor;
+	r.decreaseTo(1); // advc.101: Upper bound used to be handled by the caller
 	return r.getDouble();
 }
 
