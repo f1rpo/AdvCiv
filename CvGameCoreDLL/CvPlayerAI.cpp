@@ -25939,7 +25939,7 @@ int CvPlayerAI::AI_getMinFoundValue() const
 
 	//int iValue = 600;
 	static int const iBBAI_MINIMUM_FOUND_VALUE = GC.getDefineINT("BBAI_MINIMUM_FOUND_VALUE"); // advc.opt
-	int iValue = iBBAI_MINIMUM_FOUND_VALUE; // K-Mod
+	scaled rValue = iBBAI_MINIMUM_FOUND_VALUE; // K-Mod
 	//int iNetCommerce = 1 + getCommerceRate(COMMERCE_GOLD) + getCommerceRate(COMMERCE_RESEARCH) + std::max(0, getGoldPerTurn());
 	int iNetCommerce = AI_getAvailableIncome(); // K-Mod
 	int iNetExpenses = calculateInflatedCosts() + std::max(0, -getGoldPerTurn());
@@ -25947,40 +25947,38 @@ int CvPlayerAI::AI_getMinFoundValue() const
 		maintenance becomes a major factor */
 	iNetExpenses = std::max(0, iNetExpenses -
 			countHeadquarters() * getNumCities() * 4); // </advc.031>
-	iValue *= iNetCommerce;
-	iValue /= std::max(std::max(1, iNetCommerce / 4), iNetCommerce - iNetExpenses);
+	rValue *= iNetCommerce;
+	rValue /= scaled::max(scaled::max(1, scaled(iNetCommerce, 4)),
+			iNetCommerce - iNetExpenses);
 
 	// advc.105: Don't do this at all
 	/*if (GET_TEAM(getTeam()).getAnyWarPlanCount(1) > 0)
-		iValue *= 2;*/
-
+		rValue *= 2;*/
+	// <advc.031> Expand more recklessly when nearing victory threshold
+	if (AI_atVictoryStage(AI_VICTORY_DOMINATION3))
+		rValue /= fixp(1.5); // </advc.031>
 	// K-Mod. # of cities maintenance cost increase...
-	int iNumCitiesPercent = 100;
-	//iNumCitiesPercent *= (getAveragePopulation() + 17);
-	//iNumCitiesPercent /= 18;
+	scaled rNumCitiesMult = 1;
+	//rNumCitiesMult.mulDiv(getAveragePopulation() + 17, 18);
+	rNumCitiesMult *= per100(GC.getInfo(GC.getMap().getWorldSize()).
+			getNumCitiesMaintenancePercent());
+	rNumCitiesMult *= per100(GC.getInfo(getHandicapType()).
+			getNumCitiesMaintenancePercent());
+	//rNumCitiesMult *= per100(std::max(0, getNumCitiesMaintenanceModifier() + 100));
 
-	iNumCitiesPercent *= GC.getInfo(GC.getMap().getWorldSize()).getNumCitiesMaintenancePercent();
-	iNumCitiesPercent /= 100;
-
-	iNumCitiesPercent *= GC.getInfo(getHandicapType()).getNumCitiesMaintenancePercent();
-	iNumCitiesPercent /= 100;
-
-	//iNumCitiesPercent *= std::max(0, getNumCitiesMaintenanceModifier() + 100);
-	//iNumCitiesPercent /= 100;
-
-	// The marginal cost increase is roughly equal to double the cost of a current city...
-	// But we're really going to have to fudge it anyway, because the city value is in arbitrary units
-	// lets just say each gold per turn is worth roughly 60 'value points'.
-	// In the future, this could be AI flavour based.
-	iValue += (iNumCitiesPercent * getNumCities() * //60) / 100;
+	/*	The marginal cost increase is roughly equal to double the cost of a current city...
+		But we're really going to have to fudge it anyway, because the city value
+		is in arbitrary units. Lets just say each gold per turn is worth roughly
+		60 'value points'. In the future, this could be AI flavour based. */
+	rValue += rNumCitiesMult * getNumCities() * //60) / 100;
 			/*  advc.130v: We may not be paying much for cities, but our master
 				will have to pay as well. */
-			// advc.031: Also raise the MinFoundValue a bit overall (60->70)
-			(70 + (GET_TEAM(getTeam()).isCapitulated() ? 33 : 0))) / 100;
+			// advc.031: Also raise the MinFoundValue a bit overall (60->70%)
+			(per100(70) + (GET_TEAM(getTeam()).isCapitulated() ? fixp(1/3.) : 0));
 	// K-Mod end
-	// advc.031:
-	iValue = ::round(iValue / std::min(1.0, 1.65 * AI_amortizationMultiplier(15)));
-	return iValue;
+	// advc.031: (tbd.: AI_amortizationMultiplier should return scaled)
+	rValue /= scaled::fromDouble(std::min(1.0, 1.65 * AI_amortizationMultiplier(15)));
+	return rValue.round();
 }
 
 void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
