@@ -368,15 +368,12 @@ void UWAICache::updateTotalAssetScore() {
 	for(int i = size() - 1; i >= 0; i--) {
 		City const& c = cityAt(i);
 		if(!c.isOwnTeamCity())
-			break; // Sorted so that owner's cities are at the end
+			break; // Sorted so that cities of owner's team are at the end
 		CvCity& cvc = c.city();
 		if(cvc.getOwner() == ownerId)
 			/*  National wonders aren't included in the per-city asset score b/c
 				they shouldn't count for rival cities. */
 			totalAssets += c.getAssetScore() + cvc.getNumNationalWonders() * 4;
-		/*  Cached cities have just been updated, so ownership info can't be
-			out of date. */
-		else FAssert(false);
 	}
 }
 
