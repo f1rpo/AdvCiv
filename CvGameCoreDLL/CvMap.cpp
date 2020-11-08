@@ -1470,7 +1470,6 @@ void CvMap::computeShelves()
 	for(int i = 0; i < numPlots(); i++)
 	{
 		CvPlot& p = getPlotByIndex(i);
-		// For each passable marine water plot
 		if(!p.isWater() || p.isLake() || p.isImpassable() || !p.isHabitable())
 			continue;
 		// Add plot to shelves of all adjacent land areas

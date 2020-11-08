@@ -647,8 +647,8 @@ void CvCity::doRevolt()
 		This is just what I need now that the occupation timer decreases
 		probabilistically, but it wasn't committed to the K-Mod repository;
 		so I'm adding it here. */
-	int iTurnsOccupation = GC.getDefineINT("BASE_REVOLT_OCCUPATION_TURNS")
-			+ getNumRevolts(eCulturalOwner); // </advc.023>
+	int iTurnsOccupation = GC.getDefineINT("BASE_REVOLT_OCCUPATION_TURNS") +
+			getNumRevolts(eCulturalOwner); // </advc.023>
 	// K-Mod end
 	changeNumRevolts(eCulturalOwner, 1);
 	if(!isOccupation()) // advc.023: Don't prolong revolt
@@ -4209,11 +4209,11 @@ int CvCity::cultureGarrison(PlayerTypes ePlayer) const
 	return ROUND_DIVIDE(iGarrison, 100); // advc.101: iGarrison now has times-100 precision
 }
 
-// <advc.099c>
+// advc.099c:
 PlayerTypes CvCity::calculateCulturalOwner() const
 {
 	return getPlot().calculateCulturalOwner(GC.getDefineBOOL(CvGlobals::REVOLTS_IGNORE_CULTURE_RANGE));
-} // </advc.099c>
+}
 
 
 int CvCity::getNumBuilding(BuildingTypes eIndex) const
@@ -4222,14 +4222,14 @@ int CvCity::getNumBuilding(BuildingTypes eIndex) const
 			getNumRealBuilding(eIndex) + getNumFreeBuilding(eIndex));
 }
 
-// <advc.003w>
+// advc.003w:
 int CvCity::getNumBuilding(BuildingClassTypes eBuildingClass) const
 {
 	BuildingTypes eBuilding = getCivilization().getBuilding(eBuildingClass);
 	if (eBuilding == NO_BUILDING)
 		return 0;
 	return getNumBuilding(eBuilding);
-} // </advc.003w>
+}
 
 
 int CvCity::getNumActiveBuilding(BuildingTypes eIndex) const
@@ -7811,8 +7811,9 @@ PlayerTypes CvCity::findHighestCulture() const
 	}
 	return eBestPlayer;
 }
-// <advc.101>
-/*  Doesn't check if city will flip. Doesn't take into account that the revolt test
+
+/*  advc.101:
+	Doesn't check if city will flip. Doesn't take into account that the revolt test
 	is skipped when decreasing the occupation timer.
 	Difference from getRevoltTestProbability: that function only returns the
 	probability of the first revolt test, not the second one based on
@@ -7826,14 +7827,14 @@ double CvCity::revoltProbability(bool bIgnoreWar,
 	bool bIgnoreGarrison, bool bIgnoreOccupation) const // advc.023
 {
 	PlayerTypes eCulturalOwner = calculateCulturalOwner(); // advc.099c
-	CvGame const& g = GC.getGame();
+	CvGame const& kGame = GC.getGame();
 	static bool const bBARBS_REVOLT = GC.getDefineBOOL("BARBS_REVOLT");
 	if(eCulturalOwner == NO_PLAYER || TEAMID(eCulturalOwner) == getTeam() ||
 		// <advc.099c> Barbarian revolts
 		(eCulturalOwner == BARBARIAN_PLAYER && !bBARBS_REVOLT) ||
 		(GET_PLAYER(getOwner()).getCurrentEra() <= 0 &&
-		g.getGameTurn() - getGameTurnFounded() <
-		(10 * GC.getInfo(g.getGameSpeedType()).
+		kGame.getGameTurn() - getGameTurnFounded() <
+		(10 * GC.getInfo(kGame.getGameSpeedType()).
 		getConstructPercent()) / 100)) // </advc.099c>
 	{
 		return 0;
@@ -7842,13 +7843,13 @@ double CvCity::revoltProbability(bool bIgnoreWar,
 	double occupationFactor = 1;
 	if(isOccupation() && !bIgnoreOccupation)
 	{
-		occupationFactor = 0.5;
 		if(!bIgnoreWar && !isBarbarian() && !GET_TEAM(getTeam()).isMinorCiv() &&
 			GET_PLAYER(eCulturalOwner).isAlive() &&
 			GET_TEAM(getTeam()).isAtWar(TEAMID(eCulturalOwner)))
 		{
 			return 0;
 		}
+		occupationFactor = 0.5;
 	} // </advc.023>
 	int iCityStrength = cultureStrength(eCulturalOwner);
 	int iGarrison =
@@ -7867,9 +7868,9 @@ double CvCity::revoltProbability(bool bIgnoreWar,
 	if(r > 0.999)
 		return 1;
 	return r;
-} // </advc.101>
+}
 
-// <advc.023>
+// advc.023:
 double CvCity::probabilityOccupationDecrement() const
 {
 	if(!isOccupation())
@@ -7891,7 +7892,7 @@ double CvCity::probabilityOccupationDecrement() const
 	if(r > 0.999)
 		return 1;
 	return r;
-} // </advc.023>
+}
 
 // K-Mod: The following function defines whether or not the city is allowed to flip to the given player
 bool CvCity::canCultureFlip(PlayerTypes eToPlayer, /* advc.101: */ bool bCheckPriorRevolts) const

@@ -215,7 +215,7 @@ void CvPlayer::initInGame(PlayerTypes eID)
 // <advc.210>
 void CvPlayer::initAlerts(bool bSilentCheck)
 {
-	if (!isHuman()) // advc.test: Hopefully OK this way in networked multiplayer
+	if (!isHuman())
 		return;
 	if (!m_paAlerts.empty())
 	{
@@ -1614,7 +1614,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	}
 
 	pOldCity->kill(false, /* advc.001: */ false); // Don't bump units yet
-	pOldCity = NULL; // advc: Shouldn't access that past this point
+	pOldCity = NULL; // advc: Mustn't access that past this point
 
 	if (bTrade) // Repercussions of cession: tile culture, war success (city culture: further down)
 	{
@@ -3147,7 +3147,7 @@ void CvPlayer::chooseTech(int iDiscover, CvWString szText, bool bFront)
 	}
 }
 
-
+// advc (caveat): Needs to be consistent with CvGameTextMgr::setScoreHelp
 int CvPlayer::calculateScore(bool bFinal, bool bVictory) const
 {
 	PROFILE_FUNC();
@@ -3174,11 +3174,11 @@ int CvPlayer::calculateScore(bool bFinal, bool bVictory) const
 			kGame.getMaxTech(), iSCORE_TECH_FACTOR, true, bFinal, bVictory);
 	int iWondersScore = kGame.getScoreComponent(getWondersScore(), kGame.getInitWonders(),
 			kGame.getMaxWonders(), iSCORE_WONDER_FACTOR, false, bFinal, bVictory);
-	int r = iPopulationScore + iLandScore + iWondersScore + iTechScore;
+	int iTotal = iPopulationScore + iLandScore + iWondersScore + iTechScore;
 
-	GC.getPythonCaller()->doPlayerScore(getID(), bFinal, bVictory, r); // </advc.003y>
+	GC.getPythonCaller()->doPlayerScore(getID(), bFinal, bVictory, iTotal); // </advc.003y>
 
-	return r;
+	return iTotal;
 }
 
 
@@ -8759,7 +8759,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 
 		if (bDoTurn)
 		{
-			if (isAlive() && !isHuman() && !isBarbarian() && (getAdvancedStartPoints() >= 0))
+			if (isAlive() && !isHuman() && !isBarbarian() && getAdvancedStartPoints() >= 0)
 				AI().AI_doAdvancedStart();
 
 			if (kGame.getElapsedGameTurns() > 0 && isAlive())
@@ -8878,7 +8878,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				}
 				else
 				{
-					for (int iI = (getID() + 1); iI < MAX_PLAYERS; iI++)
+					for (int iI = getID() + 1; iI < MAX_PLAYERS; iI++)
 					{
 						if (GET_PLAYER((PlayerTypes)iI).isAlive())
 						{
@@ -9786,8 +9786,8 @@ bool CvPlayer::isOption(PlayerOptionTypes eOption) const
 void CvPlayer::setOption(PlayerOptionTypes eOption, bool bNewValue)
 {
 	m_abOptions.set(eOption, bNewValue);
-	/*	<advc.004z> At game start, colors and plot indicators get updated
-		before player options are set. Need to do another update after
+	/*	<advc.004z>, advc.001: At game start, colors and plot indicators get
+		updated before player options are set. Need to do another update after
 		the recommendations option has been set. And, actually, should always
 		do an update when that option changes. */
 	if (eOption == PLAYEROPTION_NO_UNIT_RECOMMENDATIONS)
@@ -10975,7 +10975,7 @@ const CvPopupQueue& CvPlayer::getPopups() const
 {
 	// advc.test:
 	FAssertMsg(GC.getGame().getActivePlayer() == getID(),
-			"Just to see under which circumstances the EXE adds popups to AI players");
+			"Just to see under which circumstances (if any) the EXE adds popups to AI players");
 	return m_listPopups;
 }
 
@@ -19410,7 +19410,7 @@ double CvPlayer::estimateYieldRate(YieldTypes eYield, int iSamples) const
 	//PROFILE_FUNC(); // Called very frequently; about 1.5% of the turn times (July 2019).
 	CvGame const& kGame = GC.getGame();
 	int iGameTurn = kGame.getGameTurn();
-	int iTurnsPlayed = iGameTurn - kGame.getStartTurn();
+	int const iTurnsPlayed = iGameTurn - kGame.getStartTurn();
 	iSamples = std::min(iSamples, iTurnsPlayed - 1);
 	std::vector<double> adSamples; // double for ::dMedian
 	adSamples.reserve(iSamples);

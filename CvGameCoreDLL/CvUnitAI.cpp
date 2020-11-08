@@ -7442,9 +7442,9 @@ void CvUnitAI::AI_assaultSeaMove()
 void CvUnitAI::AI_settlerSeaMove()
 {
 	PROFILE_FUNC();
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwner()); // K-Mod
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 
-	bool bEmpty = !getGroup()->hasCargo();
+	bool const bEmpty = !getGroup()->hasCargo();
 
 	// BETTER_BTS_AI_MOD, Naval AI, 10/21/08, Solver & jdog5000: START
 	if (AI_isThreatenedFromLand() >= PROBABILITY_REAL) // advc.139: Moved into subroutine
@@ -15894,30 +15894,27 @@ bool CvUnitAI::AI_settlerSeaTransport()
 		CvPlot const* pBestPlot = NULL;
 		CvPlot const* pBestFoundPlot = NULL;
 		int iBestValue = 0;
-		for (int iI = 0; iI < GET_PLAYER(getOwner()).AI_getNumCitySites(); iI++)
+		for (int i = 0; i < GET_PLAYER(getOwner()).AI_getNumCitySites(); i++)
 		{
-			CvPlot& kCitySitePlot = *GET_PLAYER(getOwner()).AI_getCitySite(iI);
-			if (!kCitySitePlot.isVisibleEnemyUnit(this))
+			CvPlot& kCitySitePlot = *GET_PLAYER(getOwner()).AI_getCitySite(i);
+			if (!kCitySitePlot.isVisibleEnemyUnit(this) &&
+				!GET_PLAYER(getOwner()).AI_isAnyPlotTargetMissionAI(
+				kCitySitePlot, MISSIONAI_FOUND, getGroup(), 4))
 			{
-				if (!GET_PLAYER(getOwner()).AI_isAnyPlotTargetMissionAI(
-					kCitySitePlot, MISSIONAI_FOUND, getGroup(), 4))
+				int iPathTurns;
+				/*	BBAI TODO: Nearby plots too if much shorter (settler walk from there)
+					also, if plots are in an area where player already has cities,
+					then may not be coastal ... (see Earth 1000 AD map for Inca) */
+				if (generatePath(kCitySitePlot, NO_MOVEMENT_FLAGS, true, &iPathTurns))
 				{
-					int iPathTurns;
-					/*	BBAI TODO: Nearby plots too if much shorter (settler walk from there)
-						also, if plots are in an area where player already has cities,
-						then may not be coastal ... (see Earth 1000 AD map for Inca) */
-					if (generatePath(kCitySitePlot, NO_MOVEMENT_FLAGS, true, &iPathTurns))
+					int iValue = kCitySitePlot.getFoundValue(getOwner());
+					iValue *= 1000;
+					iValue /= (2 + iPathTurns);
+					if (iValue > iBestValue)
 					{
-						int iValue = kCitySitePlot.getFoundValue(getOwner());
-						iValue *= 1000;
-						iValue /= (2 + iPathTurns);
-
-						if (iValue > iBestValue)
-						{
-							iBestValue = iValue;
-							pBestPlot = &getPathEndTurnPlot();
-							pBestFoundPlot = &kCitySitePlot;
-						}
+						iBestValue = iValue;
+						pBestPlot = &getPathEndTurnPlot();
+						pBestFoundPlot = &kCitySitePlot;
 					}
 				}
 			}

@@ -18755,7 +18755,7 @@ void CvGameTextMgr::getCityBillboardProductionbarColors(CvCity* pCity, std::vect
 	aColors[INFOBAR_EMPTY] = GC.getInfo(GC.getColorType("EMPTY")).getColor();
 }
 
-
+// advc (caveat): Needs to be consistent with CvPlayer::calculateScore
 void CvGameTextMgr::setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer)
 {
 	if (ePlayer == NO_PLAYER)
@@ -18767,22 +18767,34 @@ void CvGameTextMgr::setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer)
 	int iMaxPop = GC.getGame().getMaxPopulation();
 	int iPopScore = 0;
 	if (iMaxPop > 0)
-		iPopScore = (GC.getDefineINT("SCORE_POPULATION_FACTOR") * iPop) / iMaxPop;
+	{
+		iPopScore = ROUND_DIVIDE( // advc.003y: round
+				GC.getDefineINT("SCORE_POPULATION_FACTOR") * iPop, iMaxPop);
+	}
 	int iLand = kPlayer.getLandScore();
 	int iMaxLand = GC.getGame().getMaxLand();
 	int iLandScore = 0;
 	if (iMaxLand > 0)
-		iLandScore = (GC.getDefineINT("SCORE_LAND_FACTOR") * iLand) / iMaxLand;
+	{
+		iLandScore = ROUND_DIVIDE( // advc.003y
+				GC.getDefineINT("SCORE_LAND_FACTOR") * iLand, iMaxLand);
+	}
 	int iTech = kPlayer.getTechScore();
 	int iMaxTech = GC.getGame().getMaxTech();
 	int iTechScore = 0;
 	if (iMaxTech > 0) // BETTER_BTS_AI_MOD, Bugfix, 02/24/10, jdog5000
-		iTechScore = (GC.getDefineINT("SCORE_TECH_FACTOR") * iTech) / iMaxTech;
+	{
+		iTechScore = ROUND_DIVIDE( // advc.003y
+				GC.getDefineINT("SCORE_TECH_FACTOR") * iTech, iMaxTech);
+	}
 	int iWonders = kPlayer.getWondersScore();
 	int iMaxWonders = GC.getGame().getMaxWonders();
 	int iWondersScore = 0;
 	if (iMaxWonders > 0) // BETTER_BTS_AI_MOD, Bugfix, 02/24/10, jdog5000
-		iWondersScore = (GC.getDefineINT("SCORE_WONDER_FACTOR") * iWonders) / iMaxWonders;
+	{
+		iWondersScore = ROUND_DIVIDE( // advc.003y
+				GC.getDefineINT("SCORE_WONDER_FACTOR") * iWonders, iMaxWonders);
+	}
 	int iTotalScore = iPopScore + iLandScore + iTechScore + iWondersScore;
 	int iVictoryScore = kPlayer.calculateScore(true, true);
 	// <advc.250c> Show leader name while in Advanced Start

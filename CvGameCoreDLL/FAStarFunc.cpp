@@ -42,7 +42,7 @@ BOOL pathValid(FAStarNode* parent, FAStarNode* node, int data, void const* point
 		return TRUE;
 	// advc: Was unused (apart from an assertion)
 	/*CvPlot* pFromPlot = ...;
-	CvPlot* pToPlot = ...; */
+	CvPlot* pToPlot = ...;*/
 	//pSelectionGroup = ((CvSelectionGroup const*)pointer);
 	// K-Mod
 	/*CvSelectionGroup const* pSelectionGroup = finder ? (CvSelectionGroup const*)pointer :

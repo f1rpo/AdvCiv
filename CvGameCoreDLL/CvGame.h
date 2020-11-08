@@ -588,7 +588,7 @@ public:
 	{
 		return GC.getInitCore().getVictory(eIndex); // advc.inl
 	}
-	void setVictoryValid(VictoryTypes eIndex, bool bValid);
+	void setVictoryValid(VictoryTypes eVict, bool bValid);
 												// advc: const
 	bool isSpecialUnitValid(SpecialUnitTypes eIndex) const;														// Exposed to Python
 	void makeSpecialUnitValid(SpecialUnitTypes eIndex);													// Exposed to Python

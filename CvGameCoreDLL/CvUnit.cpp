@@ -418,7 +418,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	if(canFound() && isHuman())
 		updateFoundingBorder(true); // </advc.004h>
 
-	FOR_EACH_UNIT_VAR_IN(pLoopUnit, kPlot) // advc.test for advc.003s macro
+	FOR_EACH_UNIT_VAR_IN(pLoopUnit, kPlot)
 	{
 		if (pLoopUnit->getTransportUnit() == this)
 		{
@@ -7331,7 +7331,8 @@ bool CvUnit::canAttack(const CvUnit& kDefender) const
 		return false;
 	/*  Can't attack defenseless units that are stacked
 		with a defender whose damage limit is reached. */
-	if (combatLimit() < 100 && (!kDefender.canFight() ||
+	if (combatLimit() < 100 &&
+		(!kDefender.canFight() ||
 		(kDefender.getDomainType() != DOMAIN_LAND && getDomainType() == DOMAIN_LAND)) &&
 		/*  Won't handle invisible defenders correctly
 			(there are none currently that can defend) */

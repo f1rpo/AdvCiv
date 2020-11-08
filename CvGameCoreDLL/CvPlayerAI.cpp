@@ -22986,12 +22986,12 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 	return 0;
 }
 
-/// Returns whether player is pursuing a particular stage of a victory strategy.
-/// Victory stages are computed on demand once per turn and stored for the rest
-/// of the turn.  Each victory strategy type has 4 stages, the first two are
-/// determined largely from AI tendencies and random dice rolls. The second
-/// two are based on measurables and past actions, so the AI can use them to
-/// determine what other players (including the human player) are doing.
+/*	Returns whether player is pursuing a particular stage of a victory strategy.
+	Victory stages are computed on demand once per turn and stored for the rest
+	of the turn.  Each victory strategy type has 4 stages, the first two are
+	determined largely from AI tendencies and random dice rolls. The second
+	two are based on measurables and past actions, so the AI can use them to
+	determine what other players (including the human player) are doing. */
 bool CvPlayerAI::AI_atVictoryStage(AIVictoryStage eStage) const
 {
 	if (isBarbarian() || isMinorCiv() || !isAlive())
