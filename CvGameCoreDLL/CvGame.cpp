@@ -901,6 +901,21 @@ void CvGame::initFreeState()
 	GC.getAgents().gameStart(false); // advc.agent
 	setPlayerColors(); // advc.002i
 	initGameHandicap(); // advc.127
+	// <advc.084>
+	if (getCivTeamsEverAlive() == 1)
+	{
+		FOR_EACH_ENUM(Victory)
+		{
+			CvVictoryInfo const& kLoopVictory = GC.getInfo(eLoopVictory);
+			if (kLoopVictory.isConquest() || kLoopVictory.isDiploVote()
+				/*	Domination victory isn't going to be fun, but let's
+					let the player decide whether to disable it. */
+				/*|| kLoopVictory.getPopulationPercentLead() > 0*/)
+			{
+				setVictoryValid(eLoopVictory, false);
+			}
+		}
+	} // </advc.084>
 	// <advc.250b>
 	if(!isOption(GAMEOPTION_ADVANCED_START) ||
 		PlayerIter<HUMAN>::count() == PlayerIter<CIV_ALIVE>::count())
@@ -5502,22 +5517,24 @@ void CvGame::setHandicapType(HandicapTypes eHandicap)
 	m_eHandicap = eHandicap;
 }
 
-/*  advc.250: This was originally a one-liner in CvUtils.py (getScoreComponent)
-	but gets a bit more involved with SPaH. */
+// advc.250: This was originally a one-liner in CvUtils.py
 int CvGame::getDifficultyForEndScore() const
 {
 	CvHandicapInfo const& kGameHandicap = GC.getInfo(getHandicapType());
-	int r = kGameHandicap.getDifficulty();
+	scaled r = kGameHandicap.getDifficulty();
+	// <advc.084>
+	if (getCivTeamsEverAlive() == 1)
+		r /= 4; // </advc.084>
 	if(isOption(GAMEOPTION_ONE_CITY_CHALLENGE))
 		r += 30;
 	if(!isOption(GAMEOPTION_SPAH))
-		return r;
+		return r.round();
 	std::vector<int> aiStartPointDistrib;
 	m_pSpah->distribution(aiStartPointDistrib);
-	std::vector<scaled> distr;
+	std::vector<scaled> arDistr;
 	for(size_t i = 0; i < aiStartPointDistrib.size(); i++)
-		distr.push_back(aiStartPointDistrib[i]);
-	return r + ((stats::max(distr) + stats::mean(distr)) /
+		arDistr.push_back(aiStartPointDistrib[i]);
+	return (r + (stats::max(arDistr) + stats::mean(arDistr)) /
 			kGameHandicap.getAIAdvancedStartPercent()).round();
 }
 
@@ -8151,22 +8168,17 @@ bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScor
 	CvTeam const& kTeam = GET_TEAM(eTeam);
 	if (kVictory.isConquest())
 	{
-		if (kTeam.getNumCities() == 0)
+		if (kTeam.getNumCities() <= 0)
 			return false;
-
-		int iEverAlive = 0; // advc.084
-		for (int iK = 0; iK < MAX_CIV_TEAMS; iK++)
+		for (int i = 0; i < MAX_CIV_TEAMS; i++)
 		{
-			CvTeam const& kLoopTeam = GET_TEAM((TeamTypes)iK);
-			if (kLoopTeam.isAlive() && iK != eTeam &&
-					!kLoopTeam.isVassal(eTeam) && kLoopTeam.getNumCities() > 0)
+			CvTeam const& kLoopTeam = GET_TEAM((TeamTypes)i);
+			if (kLoopTeam.isAlive() && kLoopTeam.getID() != eTeam &&
+				!kLoopTeam.isVassal(eTeam) && kLoopTeam.getNumCities() > 0)
+			{
 				return false;
-			// <advc.084>
-			if(kLoopTeam.isEverAlive())
-				iEverAlive++;
+			}
 		}
-		if(iEverAlive <= 1)
-			return false; // </advc.084>
 	}
 	if (kVictory.isDiploVote())
 	{
