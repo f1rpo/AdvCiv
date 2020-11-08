@@ -30,7 +30,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node,
 			GC.getMap().getPlot(node->m_iX, node->m_iY),
 			*reinterpret_cast<CvSelectionGroup const*>(pointer),
 			(MovementFlags)gDLL->getFAStarIFace()->GetInfo(finder),
-			parent->m_iData1, parent->m_iKnownCost != 0); // </advc.pf>
+			parent->m_iData1, parent->m_iKnownCost == 0); // </advc.pf>
 }
 
 
