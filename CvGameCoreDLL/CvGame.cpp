@@ -2915,7 +2915,7 @@ int CvGame::getScoreComponent(int iRawScore, int iInitial, int iMax,
 	scaled rScore = iMultiplier;
 	scaled rDiv = rFreeScore + rMax;
 	if (rDiv >= 1)
-		rScore = iMultiplier * (iRawScore + rFreeScore) / rDiv;
+		rScore = (iRawScore + rFreeScore) * (iMultiplier / rDiv);
 	if (!bVictory && !bFinal)
 		return rScore.round();
 	if (bVictory)
