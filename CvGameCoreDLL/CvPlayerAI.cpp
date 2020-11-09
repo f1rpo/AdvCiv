@@ -9523,6 +9523,8 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer,
 			!GET_TEAM(ePlayer).isGoldTrading() &&
 			rLeniency != rSecondAttempt)
 		{
+			kTheyAlsoGive.clear();
+			kWeAlsoGive.clear();
 			return AI_counterPropose(ePlayer, kTheyGive, kWeGive,
 					kTheirInventory, kOurInventory, kTheyAlsoGive, kWeAlsoGive,
 					rSecondAttempt);
