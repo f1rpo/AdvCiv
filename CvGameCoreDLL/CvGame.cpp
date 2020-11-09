@@ -4901,8 +4901,10 @@ bool CvGame::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionSub
 			if(kVote.isForceWar())
 			{
 				if(GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource) &&
-						!kPlayer.canDoResolution(eVoteSource, kData))
+					!kPlayer.canDoResolution(eVoteSource, kData))
+				{
 					return false;
+				}
 			}
 			else // </kekm.25/advc>
 			if (!kPlayer.canDoResolution(eVoteSource, kData))
@@ -6547,7 +6549,7 @@ void CvGame::doTurn()
 
 	stopProfilingDLL(true);
 	// <advc.044>
-	if (isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
+	if (isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || isHotSeat())
 		autoSave();
 	else
 	{
