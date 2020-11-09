@@ -8757,7 +8757,8 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				} // </advc.106b>
 			}
 			// <advc.044>
-			if (isHuman() || isHumanDisabled())
+			if ((isHuman() || isHumanDisabled()) &&
+				!kGame.isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && !kGame.isHotSeat())
 			{
 				// <advc.700>
 				if(kGame.isOption(GAMEOPTION_RISE_FALL))

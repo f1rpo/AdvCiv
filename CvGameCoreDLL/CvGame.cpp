@@ -6627,11 +6627,16 @@ void CvGame::doTurn()
 
 	stopProfilingDLL(true);
 	// <advc.044>
-	CvPlayer const& kActivePlayer = GET_PLAYER(getActivePlayer());
-	if (!kActivePlayer.isAlive())
-	{
-		FAssert(kActivePlayer.isHumanDisabled());
+	if (isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || isHotSeat())
 		autoSave();
+	else
+	{
+		CvPlayer const& kActivePlayer = GET_PLAYER(getActivePlayer());
+		if (!kActivePlayer.isAlive())
+		{
+			FAssert(kActivePlayer.isHumanDisabled());
+			autoSave();
+		}
 	} // (Otherwise, autosave in CvPlayer::setTurnActive.)
 	// </advc.044>
 }
