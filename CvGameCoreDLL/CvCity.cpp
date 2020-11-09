@@ -607,8 +607,8 @@ void CvCity::doRevolt()
 		changeOccupationTimer(-1);
 		return;
 	} // </advc.023>
-	PlayerTypes eCulturalOwner = calculateCulturalOwner();
 	// <advc.099c>
+	PlayerTypes eCulturalOwner = getPlot().calculateCulturalOwner();
 	PlayerTypes eOwnerIgnRange = eCulturalOwner;
 	if(GC.getDefineBOOL(CvGlobals::REVOLTS_IGNORE_CULTURE_RANGE))
 		eOwnerIgnRange = getPlot().calculateCulturalOwner(true);
@@ -7930,7 +7930,7 @@ bool CvCity::canCultureFlip(PlayerTypes eToPlayer, /* advc.101: */ bool bCheckPr
 		return true;*/ // advc.101: Commented out
 	// <advc.099c>
 	if (eToPlayer == NO_PLAYER)
-		eToPlayer = calculateCulturalOwner();
+		eToPlayer = getPlot().calculateCulturalOwner();
 	if(eToPlayer == NO_PLAYER || eToPlayer == getOwner() ||
 		!GET_PLAYER(eToPlayer).isAlive() || eToPlayer == BARBARIAN_PLAYER ||
 		GET_TEAM(eToPlayer).isVassal(getTeam()))
