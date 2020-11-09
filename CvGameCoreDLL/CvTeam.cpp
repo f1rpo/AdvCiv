@@ -1721,7 +1721,8 @@ bool CvTeam::isFullMember(VoteSourceTypes eVoteSource) const
 {
 	if (isForceTeamVoteEligible(eVoteSource))
 		return true;
-
+	if (!isAlive())
+		return false;
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 	{
 		if (!it->isFullMember(eVoteSource))
