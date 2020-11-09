@@ -5573,8 +5573,8 @@ def getCustomMapOptionDescAt(argsList):
 		else:
 			return "Flat"
 	elif optionID == 1:
-		# advc.021b: was just "Old World"
-		owMsg = "Old World (unless Pangaea); -25% players recommended"
+		# advc.021b: Was just "Old World". The recommendation partly takes into account that the Old World option often doesn't have much of an effect. If it were working reliably, the recommendation should be -25% to -30%.
+		owMsg = "Old World (unless Pangaea); -20% players recommended"
 		if mc.AllowNewWorld:
 			if selectionID == 0:
 				return owMsg
