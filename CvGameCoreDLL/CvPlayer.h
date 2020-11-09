@@ -1351,8 +1351,8 @@ public:
 	bool canHaveTradeRoutesWith(PlayerTypes ePlayer) const;
 
 	void forcePeace(PlayerTypes ePlayer);																			// Exposed to Python
-	// advc.032: True iff a treaty was found and its turnsToCancel reset
-	bool resetPeaceTreaty(PlayerTypes ePlayer);
+	// advc.032: True iff a deal of eDealType was found and its turnsToCancel reset
+	bool resetDualDeal(PlayerTypes ePlayer, TradeableItems eDealType);
 	bool canSpiesEnterBorders(PlayerTypes ePlayer) const;
 	int getNewCityProductionValue() const;
 

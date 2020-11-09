@@ -62,9 +62,9 @@ public:
 	void meet(TeamTypes eTeam, bool bNewDiplo,																			// Exposed to Python
 			FirstContactData* pData = NULL); // advc.071
 	void signPeaceTreaty(TeamTypes eTeam, bool bForce = false); // K-Mod (advc: bForce)
-	void signOpenBorders(TeamTypes eTeam);																				// Exposed to Python
+	void signOpenBorders(TeamTypes eTeam, /* advc.032: */ bool bProlong = false);																				// Exposed to Python
 	void signDisengage(TeamTypes otherId); // advc.034
-	void signDefensivePact(TeamTypes eTeam);																			// Exposed to Python
+	void signDefensivePact(TeamTypes eTeam, /* advc.032: */ bool bProlong = false);																			// Exposed to Python
 	bool canSignDefensivePact(TeamTypes eTeam) /* advc: */ const;
 
 	int getAssets() const;																															// Exposed to Python

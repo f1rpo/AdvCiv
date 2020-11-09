@@ -896,6 +896,15 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	case TRADE_OPEN_BORDERS:
 		if (trade.m_iData <= 0) // advc: was ==
 		{
+			// <advc.032>
+			if (GET_TEAM(eFromPlayer).isOpenBorders(TEAMID(eToPlayer)))
+			{
+				if (GET_PLAYER(eFromPlayer).resetDualDeal(eToPlayer, TRADE_OPEN_BORDERS))
+				{
+					if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S_1) prolongs open borders with player %d (%S_2)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
+					break;
+				}
+			} // </advc.032>
 			startTeamTrade(TRADE_OPEN_BORDERS, TEAMID(eFromPlayer), TEAMID(eToPlayer), true);
 			GET_TEAM(eFromPlayer).setOpenBorders(TEAMID(eToPlayer), true);
 			if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S_1) signs open borders due to TRADE_OPEN_BORDERS with player %d (%S_2)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
@@ -906,6 +915,15 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	case TRADE_DEFENSIVE_PACT:
 		if (trade.m_iData <= 0) // advc: was ==
 		{
+			// <advc.032>
+			if (GET_TEAM(eFromPlayer).isDefensivePact(TEAMID(eToPlayer)))
+			{
+				if (GET_PLAYER(eFromPlayer).resetDualDeal(eToPlayer, TRADE_DEFENSIVE_PACT))
+				{
+					if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) prolongs defensive pact with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
+					break;
+				}
+			} // </advc.032>
 			startTeamTrade(TRADE_DEFENSIVE_PACT, TEAMID(eFromPlayer), TEAMID(eToPlayer), true);
 			GET_TEAM(eFromPlayer).setDefensivePact(TEAMID(eToPlayer), true);
 			if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) signs defensive pact due to TRADE_DEFENSIVE_PACT with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
@@ -916,10 +934,11 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	case TRADE_PERMANENT_ALLIANCE:
 		break;
 
-	case TRADE_PEACE_TREATY:  // <advc.032>
+	case TRADE_PEACE_TREATY:
+		// <advc.032>
 		if (GET_TEAM(eFromPlayer).isForcePeace(TEAMID(eToPlayer)))
 		{
-			if (GET_PLAYER(eFromPlayer).resetPeaceTreaty(eToPlayer))
+			if (GET_PLAYER(eFromPlayer).resetDualDeal(eToPlayer, TRADE_PEACE_TREATY))
 			{
 				if (gTeamLogLevel >= 2) logBBAI("    Player %d (%S) prolongs peace treaty with player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0));
 				break;

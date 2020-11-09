@@ -8320,9 +8320,9 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 				if (itSecond->getID() > itFirst->getID())
 				{
 					if (kVote.isOpenBorders())
-						itFirst->signOpenBorders(itSecond->getID());
+						itFirst->signOpenBorders(itSecond->getID(), /* advc.032: */ true);
 					if (kVote.isDefensivePact())
-						itFirst->signDefensivePact(itSecond->getID());
+						itFirst->signDefensivePact(itSecond->getID(), /* advc.032: */ true);
 				}
 			}
 		}

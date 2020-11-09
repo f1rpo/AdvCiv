@@ -17907,7 +17907,7 @@ void CvPlayer::forcePeace(PlayerTypes ePlayer)
 }
 
 // advc.032:
-bool CvPlayer::resetPeaceTreaty(PlayerTypes ePlayer)
+bool CvPlayer::resetDualDeal(PlayerTypes ePlayer, TradeableItems eDealType)
 {
 	int iGameTurn = GC.getGame().getGameTurn();
 	FOR_EACH_DEAL_VAR(d)
@@ -17916,10 +17916,10 @@ bool CvPlayer::resetPeaceTreaty(PlayerTypes ePlayer)
 		{
 			FOR_EACH_TRADE_ITEM(d->getFirstList())
 			{
-				if(pItem->m_eItemType == TRADE_PEACE_TREATY)
+				if(pItem->m_eItemType == eDealType)
 				{
 					d->setInitialGameTurn(iGameTurn);
-					return true; // Assume that there is at most 1 peace treaty
+					return true; // Assume that there can be at most one deal of eDealType
 				}
 			}
 		}

@@ -1541,6 +1541,24 @@ void CvTeam::meet(TeamTypes eTeam, bool bNewDiplo,
 	kTeam.AI().AI_updateAttitude(getID()); // </advc.001>
 }
 
+// advc.034: Sign a disengagement agreement (based on signOpenBorders)
+void CvTeam::signDisengage(TeamTypes otherId)
+{
+	CvTeam& other = GET_TEAM(otherId);
+	TradeData item(TRADE_DISENGAGE);
+	if (!GET_PLAYER(getLeaderID()).canTradeItem(other.getLeaderID(), item) ||
+		!GET_PLAYER(other.getLeaderID()).canTradeItem(getLeaderID(), item))
+	{
+		return;
+	}
+	CLinkList<TradeData> ourList;
+	CLinkList<TradeData> theirList;
+	ourList.insertAtEnd(item);
+	theirList.insertAtEnd(item);
+	GC.getGame().implementDeal(getLeaderID(), other.getLeaderID(), ourList, theirList);
+}
+
+
 // K-Mod:
 void CvTeam::signPeaceTreaty(TeamTypes eTeam, /* advc: */ bool bForce)
 {
@@ -1558,7 +1576,7 @@ void CvTeam::signPeaceTreaty(TeamTypes eTeam, /* advc: */ bool bForce)
 }
 
 
-void CvTeam::signOpenBorders(TeamTypes eTeam)
+void CvTeam::signOpenBorders(TeamTypes eTeam, /* advc.032: */ bool bProlong)
 {
 	FAssert(eTeam != NO_TEAM);
 	FAssert(eTeam != getID());
@@ -1566,54 +1584,42 @@ void CvTeam::signOpenBorders(TeamTypes eTeam)
 	if (!isAtWar(eTeam) && (getID() != eTeam))
 	{
 		TradeData item(TRADE_OPEN_BORDERS);
-		if (GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
-			GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item))
+		if ((bProlong && isOpenBorders(eTeam)) || // advc.032
+			(GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
+			GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item)))
 		{
 			CLinkList<TradeData> ourList;
 			CLinkList<TradeData> theirList;
 			ourList.insertAtEnd(item);
 			theirList.insertAtEnd(item);
-			GC.getGame().implementDeal(getLeaderID(), GET_TEAM(eTeam).getLeaderID(), ourList, theirList);
+			GC.getGame().implementDeal(getLeaderID(), GET_TEAM(eTeam).getLeaderID(),
+					ourList, theirList, /* advc.132: */ bProlong);
 		}
 	}
 }
 
-// <advc.034> Sign a disengagement agreement (based on signOpenBorders)
-void CvTeam::signDisengage(TeamTypes otherId)
-{
-	CvTeam& other = GET_TEAM(otherId);
-	TradeData item(TRADE_DISENGAGE);
-	if (!GET_PLAYER(getLeaderID()).canTradeItem(other.getLeaderID(), item) ||
-		!GET_PLAYER(other.getLeaderID()).canTradeItem(getLeaderID(), item))
-	{
-		return;
-	}
-	CLinkList<TradeData> ourList;
-	CLinkList<TradeData> theirList;
-	ourList.insertAtEnd(item);
-	theirList.insertAtEnd(item);
-	GC.getGame().implementDeal(getLeaderID(), other.getLeaderID(), ourList, theirList);
-} // </advc.034>
 
-
-void CvTeam::signDefensivePact(TeamTypes eTeam)  // advc: style changes
+void CvTeam::signDefensivePact(TeamTypes eTeam, /* advc.032: */ bool bProlong)
 {
 	FAssert(eTeam != getID());
 	if (isAtWar(eTeam))
 		return;
 
 	TradeData item(TRADE_DEFENSIVE_PACT);
-	if (GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
-		GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item))
+	if ((bProlong && isDefensivePact(eTeam)) || // advc.032
+		(GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
+		GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item)))
 	{
 		CLinkList<TradeData> ourList;
 		CLinkList<TradeData> theirList;
 		ourList.insertAtEnd(item);
 		theirList.insertAtEnd(item);
 
-		GC.getGame().implementDeal(getLeaderID(), GET_TEAM(eTeam).getLeaderID(), ourList, theirList);
+		GC.getGame().implementDeal(getLeaderID(), GET_TEAM(eTeam).getLeaderID(),
+				ourList, theirList, /* advc.132: */ bProlong);
 	}
 }
+
 
 bool CvTeam::canSignDefensivePact(TeamTypes eTeam) const  // advc: const, style changes
 {
