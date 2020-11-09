@@ -3618,13 +3618,13 @@ TeamTypes CvGame::getSecretaryGeneral(VoteSourceTypes eVoteSource) const
 	}
 	FOR_EACH_ENUM(Vote)
 	{
-		if (GC.getInfo(eLoopVote).isVoteSourceType(eVoteSource))
+		if (GC.getInfo(eLoopVote).isVoteSourceType(eVoteSource) &&
+			GC.getInfo(eLoopVote).isSecretaryGeneral() &&
+			isVotePassed(eLoopVote))
 		{
-			if (GC.getInfo(eLoopVote).isSecretaryGeneral() &&
-				isVotePassed(eLoopVote))
-			{
-				return ((TeamTypes)getVoteOutcome(eLoopVote));
-			}
+			TeamTypes eSecretary = (TeamTypes)getVoteOutcome(eLoopVote);
+			if (GET_TEAM(eSecretary).isAlive()) // advc.001
+				return eSecretary;
 		}
 	}
 	return NO_TEAM;
