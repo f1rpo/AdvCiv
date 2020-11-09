@@ -1564,7 +1564,7 @@ class CvInfoScreen:
 		# Loop through all players to determine Rank and relative Strength
 		for iPlayerLoop in range(gc.getMAX_PLAYERS()):
 			# advc.077: Exclude MinorCivs (from the Dawn of Civilization mod)
-			if gc.getPlayer(iPlayerLoop).isAlive() and not gc.getPlayer(iPlayerLoop).isBarbarian() and not gc.getPlayer(iPlayerLoop).isMinorCiv():
+			if (gc.getPlayer(iPlayerLoop).isAlive() or iPlayerLoop == self.iActivePlayer) and not gc.getPlayer(iPlayerLoop).isBarbarian() and not gc.getPlayer(iPlayerLoop).isMinorCiv():
 
 				#iNumActivePlayers += 1 # advc.077: Replaced below
 				pCurrPlayer = gc.getPlayer(iPlayerLoop)
@@ -1607,7 +1607,11 @@ class CvInfoScreen:
 				# advc.077: was *1000
 				iValue = pCurrPlayer.getPower() * iMilitaryCoeff
 				if iPlayerLoop == self.iActivePlayer:
-					iMilitary = iValue
+					# <advc.077> Don't show positive military (from tech) for defeated player
+					if not gc.getPlayer(iPlayerLoop).isAlive():
+						iMilitary = 0
+					else: # </advc.077>
+						iMilitary = iValue
 				else:
 					iMilitaryGameAverage += iValue
 				aiGroupMilitary.append((iValue, iPlayerLoop))

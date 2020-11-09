@@ -203,8 +203,8 @@ class AIAutoPlay :
 	def checkPlayer( self ) :
 		
 		pPlayer = gc.getActivePlayer()
-		# advc.127: Unit check added to avoid multiple popups. Note however: Normally, CvPlayer::verifyAlive automatically transfers human control to a different player when the active player is defeated. The popup here remains only as a fallback.
-		if( not pPlayer.isAlive() and pPlayer.getNumUnits() <= 0 ) :
+		# advc.127: Unit check added to avoid multiple popups. Note however: Normally, CvPlayer::verifyAlive automatically transfers human control to a different player when the active player is defeated. The popup here remains only as a fallback. Also added not-human check - should obviously only affect AI Auto Play. Don't know if and how that was working previously.
+		if not pPlayer.isAlive() and pPlayer.getNumUnits() <= 0 and not pPlayer.isHuman():
 			popup = PyPopup.PyPopup(7052,contextType = EventContextTypes.EVENTCONTEXT_ALL)
 			popup.setHeaderString( localText.getText("TXT_KEY_AIAUTOPLAY_PICK_CIV", ()) )
 			popup.setBodyString( localText.getText("TXT_KEY_AIAUTOPLAY_CIV_DIED", ()) )
