@@ -26,7 +26,8 @@
 				<iYieldChange>1</iYieldChange>
 				<iYieldChange>0</iYieldChange>
 			</YieldChanges>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.036: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iAIObjective>0</iAIObjective>
 			<iHealth>0</iHealth>
 			<iHappiness>0</iHappiness>
@@ -136,7 +137,8 @@
 				<iYieldChange>1</iYieldChange>
 				<iYieldChange>0</iYieldChange>
 			</YieldChanges>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.036: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iAIObjective>0</iAIObjective>
 			<iHealth>0</iHealth>
 			<iHappiness>0</iHappiness>
@@ -261,7 +263,8 @@
 				<iYieldChange>1</iYieldChange>
 				<iYieldChange>0</iYieldChange>
 			</YieldChanges>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.036: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iAIObjective>0</iAIObjective>
 			<iHealth>0</iHealth>
 			<iHappiness>0</iHappiness>
@@ -383,7 +386,8 @@
 				<iYieldChange>1</iYieldChange>
 				<iYieldChange>0</iYieldChange>
 			</YieldChanges>
-			<iAITradeModifier>20</iAITradeModifier>
+			<!-- advc.036: was 20 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iAIObjective>0</iAIObjective>
 			<iHealth>0</iHealth>
 			<iHappiness>0</iHappiness>
@@ -508,7 +512,8 @@
 				<iYieldChange>0</iYieldChange>
 				<iYieldChange>0</iYieldChange>
 			</YieldChanges>
-			<iAITradeModifier>30</iAITradeModifier>
+			<!-- advc.036: was 30 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iAIObjective>0</iAIObjective>
 			<iHealth>0</iHealth>
 			<iHappiness>0</iHappiness>
