@@ -3628,7 +3628,9 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		CvCityAI* pCity = GET_PLAYER((PlayerTypes)iData1).AI_getCity(iData2);
 		if (pCity != NULL)
 		{
-			pCity->getArea().AI_setTargetCity(getID(), pCity);
+			pCity->getArea().AI_setTargetCity(getID(),
+					// advc.001: Set no target if the requested target isn't revealed
+					pCity->isRevealed(getTeam()) ? pCity : NULL);
 			AI().AI_setCityTargetTimer(GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH)); // K-Mod
 		}
 		break;

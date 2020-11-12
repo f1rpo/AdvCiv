@@ -2452,7 +2452,9 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 						continue;
 					FOR_EACH_CITY(pLoopCity, pl)
 					{
-						if(pLoopCity->isArea(kArea))
+						if(pLoopCity->isArea(kArea) &&
+							// advc.001:
+							GET_TEAM(pHeadGroup->getTeam()).AI_deduceCitySite(*pLoopCity))
 						{
 							int iTargetValue = GET_PLAYER(pHeadGroup->getOwner()).
 									AI_targetCityValue(*pLoopCity,false,true);

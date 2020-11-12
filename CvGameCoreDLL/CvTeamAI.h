@@ -255,7 +255,7 @@ public:
 	inline bool AI_isAnyWarPlan() const { return m_bAnyWarPlan; } // </advc.opt>
 	bool AI_isSneakAttackReady(TeamTypes eIndex /* K-Mod (any team): */ = NO_TEAM) const;
 	bool AI_isSneakAttackPreparing(TeamTypes eIndex /* advc: */= NO_TEAM) const;
-	void AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar = true);
+	void AI_setWarPlan(TeamTypes eTarget, WarPlanTypes eNewValue, bool bWar = true);
 	// <advc.opt>
 	bool AI_mayAttack(TeamTypes eDefender) const;
 	bool AI_mayAttack(CvPlot const& kPlot) const; // </advc.opt>

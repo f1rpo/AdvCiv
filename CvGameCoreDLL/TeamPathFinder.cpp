@@ -10,9 +10,9 @@ using namespace TeamPath;
 template<Mode eMODE>
 void TeamPathFinder<eMODE>::reset(CvTeam const* pWarTarget = NULL, int iMaxPath = -1)
 {
-	FAssert(pWarTarget != &m_kTeam);
+	FAssert(pWarTarget != m_pTeam);
 	resetNodes();
-	m_stepMetric = TeamStepMetric<eMODE>(&m_kTeam,
+	m_stepMetric = TeamStepMetric<eMODE>(m_pTeam,
 			// Avoid NULL checks down the line
 			pWarTarget == NULL ? &GET_TEAM(BARBARIAN_TEAM) : pWarTarget,
 			iMaxPath, m_iHeuristicWeight);

@@ -86,8 +86,17 @@ class TeamPathFinder : public KmodPathFinder<TeamStepMetric<eMODE> >
 public:
 	TeamPathFinder(CvTeam const& kTeam, CvTeam const* pWarTarget = NULL,
 		int iMaxPath = -1)
-	:	m_kTeam(kTeam)
 	{
+		init(kTeam, pWarTarget, iMaxPath);
+	}
+	void reset(CvTeam const* pWarTarget = NULL, int iMaxPath = -1);
+	/*	ctor allowing m_pTeam to be set later so that different teams
+		can use the same node map w/o memory reallocation */
+	TeamPathFinder() : m_pTeam(NULL), m_iHeuristicWeight(-1) {}
+	void init(CvTeam const& kTeam, CvTeam const* pWarTarget = NULL,
+		int iMaxPath = -1)
+	{
+		m_pTeam = &kTeam;
 		if (eMODE == TeamPath::LAND)
 			m_iHeuristicWeight = minimumStepCost(1);
 		else
@@ -96,13 +105,12 @@ public:
 		}
 		reset(pWarTarget, iMaxPath);
 	}
-	void reset(CvTeam const* pWarTarget = NULL, int iMaxPath = -1);
 	inline int getPathCost() const
 	{
 		return m_pEndNode->m_iTotalCost;
 	}
 protected:
-	CvTeam const& m_kTeam;
+	CvTeam const* m_pTeam;
 	int m_iHeuristicWeight;
 };
 

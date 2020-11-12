@@ -11,6 +11,7 @@ class CvDeal;
 class CvCityAI;
 class CvUnitAI;
 class CvSelectionGroupAI;
+class UWAICity; // advc.104d
 
 /*	<advc.003u> Overwrite definition in CvPlayer.h (should perhaps instead define a
 	new macro "PLAYERAI" - a lot of call locations to change though ...) */
@@ -125,7 +126,9 @@ public:
 	int AI_militaryWeight(CvArea const* pArea = NULL) const;
 	bool AI_feelsSafe() const; // advc.109
 
-	int AI_targetCityValue(CvCity const& kCity, bool bRandomize, bool bIgnoreAttackers = false) const;
+	int AI_targetCityValue(CvCity const& kCity, bool bRandomize,
+			bool bIgnoreAttackers = false,
+			UWAICity const* pUWAICity = NULL) const; // advc.104d
 	CvCityAI* AI_findTargetCity(CvArea const& kArea) const;
 	int AI_cityWonderVal(CvCity const& c) const; // advc.104d
 	scaled AI_assetVal(CvCityAI const& c, bool bConquest) const; // advc

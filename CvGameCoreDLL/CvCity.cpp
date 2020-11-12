@@ -12783,17 +12783,20 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const  // advc: refactor
 }*/
 
 
-bool CvCity::isAutoRaze() const
+bool CvCity::isAutoRaze(/* <advc> */ PlayerTypes eConqueror) const
 {
-	if (!GC.getGame().isOption(GAMEOPTION_NO_CITY_RAZING))
+	CvPlayer const& kAssumedOwner = GET_PLAYER(eConqueror == NO_PLAYER ?
+			getOwner() : eConqueror); // </advc>
+	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) &&
+		kAssumedOwner.isHuman()) // advc
 	{
-		if (getHighestPopulation() == 1)
-			return true;
-
-		if (GC.getGame().getMaxCityElimination() > 0)
-			return true;
+		return true;
 	}
-	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
+	if (GC.getGame().isOption(GAMEOPTION_NO_CITY_RAZING))
+		return false;
+	if (GC.getGame().getMaxCityElimination() > 0)
+		return true;
+	if (getHighestPopulation() == 1)
 		return true;
 	return false;
 }

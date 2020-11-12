@@ -16,6 +16,26 @@ class FDataStreamBase;
    heuristic functions belong to this class. (Maybe it would be cleaner
    if the heuristics were moved to UWAI::Civ? Will have to split
    it up a bit more at some point b/c this class is getting too large.) */
+
+// Interface of UWAICache::City for use outside of the UWAI component
+class UWAICity {
+public:
+	inline int getAssetScore() const { return assetScore; }
+	inline bool canReach() const { return (distance >= 0); }
+	inline bool canReachByLand() const { return reachByLand; }
+	/*	-1 if unreachable, 0 for cities of the cache owner's team
+		(and never for cities of other teams). */
+	inline int getDistance() const { return distance; }
+
+protected:
+	int distance;
+	int assetScore;
+	bool reachByLand;
+
+	UWAICity() : distance(-1), assetScore(-1), reachByLand(false) {}
+};
+
+
 class UWAICache {
 
 public:
@@ -214,21 +234,16 @@ private:
 public:
 	/* Information to be cached about a CvCity and scoring functions useful
 	   for computing war utility. */
-	class City {
+	class City : public UWAICity {
 	public:
 		City(PlayerTypes cacheOwnerId, CvCity& c, TeamPathFinders* pf);
-		City(); // for reading from savegame
+		// for reading from savegame:
+		City() : cvCity(NULL), targetValue(-1), plotIndex(-1) {}
 		inline bool isOwnTeamCity() const { return (distance == 0); }
-		inline int getAssetScore() const { return assetScore; }
-		inline bool canReach() const { return (distance >= 0); }
-		/*	-1 if unreachable, 0 for cities of the cache owner's team
-			(and never for cities of other teams). */
-		inline int getDistance() const { return distance; }
 		inline int getTargetValue() const { return targetValue; }
 		/* A mix of target value and distance. Target value alone would
 		   ignore opportunistic attacks. */
 		double attackPriority() const;
-		inline bool canReachByLand() const { return reachByLand; }
 		inline CvCity& city() const { return *cvCity; }
 		inline int id() const { return plotIndex; }
 		void cacheCvCity();
@@ -254,9 +269,7 @@ public:
 				PlayerTypes cacheOwnerId);
 		void updateAssetScore(PlayerTypes cacheOwnerId);
 
-		int distance, targetValue, assetScore;
-		bool reachByLand;
-		bool reachBySea;
+		int targetValue;
 		int plotIndex;
 		CvCity* cvCity; // Retrieving this based on plotIndex wastes too much time
 		//CvWString descr; // for debugging

@@ -342,7 +342,7 @@ double WarUtilityAspect::conqAssetScore(bool mute) {
 		City* cp = ourCache->lookupCity(weConquerFromThem[i]);
 		if(cp == NULL) continue; City const& c = *cp;
 		// Capture gold negligible b/c it gets reduced if a city is young
-		if(c.city().isAutoRaze())
+		if(c.city().isAutoRaze(weId))
 			continue;
 		r += c.getAssetScore();
 	}
@@ -921,7 +921,7 @@ void GreedForSpace::evaluate() {
 	// Expect to raze only when we have to
 	for(size_t i = 0; i < weConquerFromThem.size(); i++) {
 		City* c = ourCache->lookupCity(weConquerFromThem[i]);
-		if(c != NULL && c->city().isAutoRaze())
+		if(c != NULL && c->city().isAutoRaze(weId))
 			theirSites++;
 	}
 	/*  All sites could still be claimed by third parties or could be just barely

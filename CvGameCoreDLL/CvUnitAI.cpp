@@ -14840,8 +14840,8 @@ bool CvUnitAI::AI_pillageRange(int iRange, int iBonusValueThreshold, MovementFla
 		if(pWorkingCity == NULL || !AI_mayAttack(p)) // advc.opt: Attack check moved down
 			continue;
 		if ((pWorkingCity != getArea().AI_getTargetCity(getOwner()) ||
-			/*  advc.001: Barbarians perhaps shouldn't have a target city at all.
-				At any rate, they should not exclude that city from pillaging. */
+			/*  advc.001: Barbarians should not exclude any city from pillaging.
+				(Bugfix obsolete b/c Barbarians no longer have a target city.) */
 			isBarbarian()) &&
 			canPillage(p))
 		{
@@ -15141,11 +15141,15 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,
 			continue;
 
 		CvCityAI const* pCity = kPlot.AI_getPlotCity();
-		// If the plot can't be seen, then just roughly estimate what the AI might think is there...
-		int iEnemyDefenders = (kPlot.isVisible(kOurTeam.getID()) ||
+		// <advc.001> kPlot is revealed, but pCity might not be.
+		if (pCity != NULL && !kOurTeam.AI_deduceCitySite(*pCity))
+			pCity = NULL; // </advc.001>
+		/*	If the plot can't be seen, then just roughly estimate
+			what the AI might think is there... */
+		int iEnemyDefenders = ((kPlot.isVisible(kOurTeam.getID()) ||
 				kOurTeam.AI_getStrengthMemory(&kPlot)) ?
 				AI_countEnemyDefenders(kPlot) :
-				(pCity ? pCity->AI_neededDefenders() : 0);
+				(pCity != NULL ? pCity->AI_neededDefenders() : 0));
 
 		int iBaseValue = 10 + std::min(9, 3*iTargetCities);
 		int iValueMultiplier = 100;
@@ -15217,8 +15221,8 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,
 						break;
 					pAdjCity = NULL;
 				}
-			} // <advc.001>
-			if(pAdjCity != NULL)
+			}  // <advc.001>
+			if(pAdjCity != NULL && kOurTeam.AI_deduceCitySite(*pAdjCity))
 			{
 				pCity = pAdjCity;
 				// Copied from above

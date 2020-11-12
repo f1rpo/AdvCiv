@@ -1235,7 +1235,7 @@ public:
 		return (getNoBonusCount(eBonus) > 0);
 	}
 
-	bool isAutoRaze() const;
+	bool isAutoRaze(/* advc: */ PlayerTypes eConqueror = NO_PLAYER) const;
 
 	DllExport int getMusicScriptId() const;
 	DllExport int getSoundscapeScriptId() const;

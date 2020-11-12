@@ -4445,15 +4445,24 @@ bool CvTeamAI::AI_isSneakAttackPreparing(TeamTypes eIndex) const
 }
 
 
-void CvTeamAI::AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar)  // advc: style changes
+void CvTeamAI::AI_setWarPlan(TeamTypes eTarget, WarPlanTypes eNewValue, bool bWar)  // advc: style changes
 {
-	FAssertBounds(0, MAX_TEAMS, eIndex);
-	FAssert(eIndex != getID() || eNewValue == NO_WARPLAN); // advc: Moved from AI_getWarPlan
-	if(AI_getWarPlan(eIndex) == eNewValue || (!bWar && isAtWar(eIndex)))
+	FAssertBounds(0, MAX_TEAMS, eTarget);
+	FAssert(eTarget != getID() || eNewValue == NO_WARPLAN); // advc: Moved from AI_getWarPlan
+	WarPlanTypes const eOldValue = AI_getWarPlan(eTarget);
+	if (eOldValue == eNewValue || (!bWar && isAtWar(eTarget)))
 		return;
-	AI_updateWarPlanCounts(eIndex, m_aeWarPlan.get(eIndex), eNewValue); // advc.opt
-	m_aeWarPlan.set(eIndex, eNewValue);
-	AI_setWarPlanStateCounter(eIndex, 0);
+	AI_updateWarPlanCounts(eTarget, m_aeWarPlan.get(eTarget), eNewValue); // advc.opt
+	m_aeWarPlan.set(eTarget, eNewValue);
+	AI_setWarPlanStateCounter(eTarget, 0);
+	// <advc.104d> Make per-area targets dirty
+	if (eNewValue != WARPLAN_PREPARING_LIMITED && eNewValue != WARPLAN_PREPARING_TOTAL &&
+		(eNewValue != NO_WARPLAN ||
+		eOldValue != WARPLAN_PREPARING_LIMITED && eOldValue != WARPLAN_PREPARING_TOTAL))
+	{
+		for (MemberIter it(getID()); it.hasNext(); ++it)
+			it->AI_setCityTargetTimer(0);
+	} // </advc.104d>
 	AI_updateAreaStrategies();
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 	{
@@ -4474,10 +4483,12 @@ void CvTeamAI::AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar
 	for (TeamIter<ALIVE,VASSAL_OF> it(getID()); it.hasNext(); ++it)
 	{
 		CvTeamAI& kOurAIVassal = *it;
-		if(!kOurAIVassal.isHuman() &&
-				// Don't set NO_WARPLAN before the vassal has been set to !isAtWar
-				(eVassalWP != NO_WARPLAN || !kOurAIVassal.isAtWar(eIndex)))
-			kOurAIVassal.AI_setWarPlan(eIndex, eVassalWP);
+		if (!kOurAIVassal.isHuman() &&
+			// Don't set NO_WARPLAN before the vassal has been set to !isAtWar
+			(eVassalWP != NO_WARPLAN || !kOurAIVassal.isAtWar(eTarget)))
+		{
+			kOurAIVassal.AI_setWarPlan(eTarget, eVassalWP);
+		}
 	} // </advc.104j>
 }
 

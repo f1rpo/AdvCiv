@@ -1219,19 +1219,14 @@ UWAICache::City::City(PlayerTypes cacheOwnerId, CvCity& c, TeamPathFinders* pf) 
 	cvCity = &c;
 	plotIndex = c.plotNum();
 	updateDistance(c, pf, cacheOwnerId);
-	// AI_targetCityValue doesn't account for reachability (probably should)
-	if(!canReach() || cacheOwnerId == c.getOwner())
-		targetValue = -1;
-	else targetValue = GET_PLAYER(cacheOwnerId).AI_targetCityValue(
-			city(), false, true);
 	updateAssetScore(cacheOwnerId);
-}
-
-UWAICache::City::City() {
-
-	cvCity = NULL;
-	assetScore = distance = targetValue = plotIndex = -1;
-	reachByLand = reachBySea = false;
+	if(!canReach() || TEAMID(cacheOwnerId) == c.getTeam())
+		targetValue = -1;
+	/*	Important that UWAICity is fully initialized b/c we're passing it to
+		AI_targetCityValue */
+	else targetValue = GET_PLAYER(cacheOwnerId).AI_targetCityValue(
+			c, false, true, this);
+	
 }
 
 void UWAICache::City::cacheCvCity() {
@@ -1247,7 +1242,8 @@ void UWAICache::City::write(FDataStreamBase* stream) {
 
 	int savegameVersion;
 	//savegameVersion = 1; // canDeduce
-	savegameVersion = 2; // take out can canDeduce again
+	//savegameVersion = 2; // take out can canDeduce again
+	savegameVersion = 3; // reachBySea removed
 	stream->Write(plotIndex);
 	stream->Write(assetScore);
 	/*  I hadn't thought of a version number in the initial release.
@@ -1259,7 +1255,6 @@ void UWAICache::City::write(FDataStreamBase* stream) {
 	stream->Write(distance + 1 + 10000 * savegameVersion);
 	stream->Write(targetValue);
 	stream->Write(reachByLand);
-	stream->Write(reachBySea);
 }
 
 void UWAICache::City::read(FDataStreamBase* stream) {
@@ -1272,7 +1267,10 @@ void UWAICache::City::read(FDataStreamBase* stream) {
 	distance = (tmp % 10000) - 1;
 	stream->Read(&targetValue);
 	stream->Read(&reachByLand);
-	stream->Read(&reachBySea);
+	if(savegameVersion < 3) {
+		bool reachBySea; // discard
+		stream->Read(&reachBySea);
+	}
 	if(savegameVersion == 1) {
 		bool canDeduce; // discard
 		stream->Read(&canDeduce);
@@ -1383,13 +1381,12 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 	if(pf == NULL) { // City of our team
 		distance = 0;
 		reachByLand = true;
-		reachBySea = true;
 		return;
 	}
 	CvPlayerAI& cacheOwner = GET_PLAYER(cacheOwnerId);
 	distance = -1;
 	reachByLand = false;
-	reachBySea = false;
+	bool reachBySea = false;
 	bool human = cacheOwner.isHuman();
 	EraTypes const era = cacheOwner.getCurrentEra();
 	bool trainDeepSeaCargo = cacheOwner.uwai().getCache().
