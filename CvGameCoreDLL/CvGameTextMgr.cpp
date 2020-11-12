@@ -6301,7 +6301,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 		}
 
 		CvCity const* pTargetCity = kPlot.getArea().AI_getTargetCity(kPlot.getOwner());
-		if (pTargetCity)
+		if (pTargetCity != NULL)
 		{
 			szString.append(CvWString::format(L"\nTarget City: %s", pTargetCity->getName().c_str()));
 		}

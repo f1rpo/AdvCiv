@@ -437,10 +437,10 @@ void CvPlayerAI::AI_doTurnUnitsPre()
 	{
 		AI_updateAreaTargets();
 	}  // <advc.102>
-	FOR_EACH_GROUP_VAR(gr, *this)
+	FOR_EACH_GROUP_VAR(pGroup, *this)
 	{
-		if(gr->getNumUnits() > 0)
-			gr->setInitiallyVisible(gr->getPlot().isVisibleToWatchingHuman());
+		if(pGroup->getNumUnits() > 0)
+			pGroup->setInitiallyVisible(pGroup->getPlot().isVisibleToWatchingHuman());
 	} // </advc.102>
 
 	if (isHuman() || isBarbarian())
@@ -1047,18 +1047,20 @@ void CvPlayerAI::AI_updateFoundValues(bool bStarting)  // advc: refactored
 
 void CvPlayerAI::AI_updateAreaTargets()
 {
-	bool bResetTimer = AI_getCityTargetTimer() > 4; // K-Mod. (reset the timer if it is above the minimum time)
-
-	FOR_EACH_AREA_VAR(pLoopArea)
+	// K-Mod: (reset the timer if it is above the minimum time)
+	bool bResetTimer = (AI_getCityTargetTimer() > 4);
+	bool const bSneakAttackReady = GET_TEAM(getTeam()).AI_isSneakAttackReady(); // advc.104p
+	FOR_EACH_AREA_VAR(pArea)
 	{
-		if (!pLoopArea->isWater())
+		if (pArea->isWater() /* advc.opt: */ || pArea->getNumCities() <= 0)
+			continue;
+		if(!bSneakAttackReady && // advc.104p
+			GC.getGame().getSorenRandNum(3, "AI_updateAreaTargets") == 0)
 		{
-			if(!GET_TEAM(getTeam()).AI_isSneakAttackReady() && // advc.104p
-					GC.getGame().getSorenRandNum(3, "AI Target City") == 0)
-				pLoopArea->AI_setTargetCity(getID(), NULL);
-			else pLoopArea->AI_setTargetCity(getID(), AI_findTargetCity(*pLoopArea));
-			bResetTimer = bResetTimer || pLoopArea->AI_getTargetCity(getID()); // K-Mod
+			pArea->AI_setTargetCity(getID(), NULL);
 		}
+		else pArea->AI_setTargetCity(getID(), AI_findTargetCity(*pArea));
+		bResetTimer = (bResetTimer || pArea->AI_getTargetCity(getID()) != NULL); // K-Mod
 	}
 	// K-Mod. (guarantee a short amount of time before randomly updating again)
 	if (bResetTimer)
@@ -1066,12 +1068,13 @@ void CvPlayerAI::AI_updateAreaTargets()
 	// K-Mod end
 }
 
-// Returns priority for unit movement (lower values move first...)
-// This function has been heavily edited for K-Mod
+/*	Returns priority for unit movement (lower values move first...)
+	This function has been heavily edited for K-Mod */
 int CvPlayerAI::AI_movementPriority(CvSelectionGroupAI const& kGroup) const // advc.003u: param was CvSelectionGroup*
 {
-	// If the group is trying to do a stack attack, let it go first!
-	// (this is required for amphibious assults; during which a low priority group can be ordered to attack before its turn.)
+	/*	If the group is trying to do a stack attack, let it go first!
+		(this is required for amphibious assults; during which a low priority group
+		can be ordered to attack before its turn.) */
 	if (kGroup.AI_isGroupAttack())
 		return -1;
 
@@ -1099,7 +1102,8 @@ int CvPlayerAI::AI_movementPriority(CvSelectionGroupAI const& kGroup) const // a
 
 		if (pHeadUnit->getDomainType() == DOMAIN_AIR)
 		{
-			// give recon units top priority. Unfortunately, these are not easy to identify because there is no air_recon AI type.
+			/*	give recon units top priority. Unfortunately, these are
+				not easy to identify because there is no air_recon AI type. */
 			if (pHeadUnit->airBombBaseRate() == 0 && !pHeadUnit->canAirDefend())
 				return 0;
 
@@ -1144,7 +1148,9 @@ int CvPlayerAI::AI_movementPriority(CvSelectionGroupAI const& kGroup) const // a
 	{
 		int iPriority = 65; // allow + or - 50
 
-		iPriority += (GC.getGame().getBestLandUnitCombat()*100 - pHeadUnit->currCombatStr(NULL, NULL) + 10) / 20; // note: currCombatStr has a factor of 100 built in.
+		iPriority += (GC.getGame().getBestLandUnitCombat() * 100
+				// note: currCombatStr has a factor of 100 built in.
+				- pHeadUnit->currCombatStr(NULL, NULL) + 10) / 20;
 
 		if (kGroup.getNumUnits() > 1)
 		{
@@ -2849,7 +2855,7 @@ int CvPlayerAI::AI_cityWonderVal(CvCity const& c) const
 				still not have the religion. Or if they do, we can use these
 				cities to build missionaries to convert foreign cities. */
 			if(getStateReligion() == eLoopReligion)
-				iReligionCities += ::round(getNumCities() / 2.5);
+				iReligionCities += ROUND_DIVIDE(2 * getNumCities(), 5);
 			/* K-Mod comment: "the -4 at the end is mostly there to offset the
 				'wonder' value that will be added later. I don't want to double count
 				the value of the shrine, and the religion [the holy city?]

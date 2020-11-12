@@ -174,7 +174,8 @@ bool GroupStepMetric::isValidDest(CvPlot const& kPlot, CvSelectionGroup const& k
 		if (kGroup.isAmphibPlot(&kPlot))
 		{
 			/*	advc.opt: Might be faster to go through kGroup.getPlot() directly
-				but only once (as in CvSelectionGroup::canCargoAllMove). */
+				but only once (as in CvSelectionGroup::canCargoAllMove).
+				However, the profiler suggests that this branch executes quite rarely. */
 			PROFILE("GroupStepMetric::isValidDest - AmphibPlot");
 			FOR_EACH_UNIT_IN(pTransport, kGroup)
 			{

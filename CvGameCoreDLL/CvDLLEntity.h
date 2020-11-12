@@ -55,8 +55,7 @@ protected:
 
 /*	Derived classes for more type safety and shorter function names. Without definitions
 	of the classes derived from CvEntity (in the EXE), the compiler can't know
-	that they're related; so reinterpret casts will have to occur at some point,
-	even if template parameters were introduced.*/
+	that they're related; so reinterpret casts have to occur at some point. */
 
 class CvDLLCityEntity : public CvDLLEntity
 {

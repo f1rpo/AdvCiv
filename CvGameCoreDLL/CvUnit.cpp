@@ -2659,7 +2659,7 @@ bool CvUnit::isRevealedValidDomain(CvPlot const& kPlot) const
 	and neither does isPlotValid. */
 bool CvUnit::isPlotValid(CvPlot const& kPlot) const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC(); // (currently not called at all)
 	if (!isValidDomain(kPlot))
 		return false;
 	if (isValidDomain(kPlot.isWater()))
@@ -2675,7 +2675,7 @@ bool CvUnit::isPlotValid(CvPlot const& kPlot) const
 // advc:
 bool CvUnit::isRevealedPlotValid(CvPlot const& kPlot) const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	//PROFILE_FUNC(); // Called frequently, but not frequently enough to be a concern.
 	if (!isRevealedValidDomain(kPlot))
 		return false;
 	if (isValidDomain(kPlot.isWater()))
@@ -6380,7 +6380,7 @@ CvCity* CvUnit::getUpgradeCity(bool bSearch) const
 	NULL result means the upgrade is not possible. */
 CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue) const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	//PROFILE_FUNC(); // advc (Not called all that frequently)
 	if (eUnit == NO_UNIT)
 		return NULL; // kmodx: was "false"; five more occurrences of that error in this function
 
@@ -6830,7 +6830,7 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 	CombatDetails* pCombatDetails,
 	bool bGarrisonStrength) const // advc.500b
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC(); // advc: This does get called a lot. Not all that slow though.
 	FAssert(pPlot == NULL || pPlot->getTerrainType() != NO_TERRAIN);
 
 	// handle our new special case
@@ -6851,45 +6851,7 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 
 	if (pCombatDetails != NULL)
 	{
-		pCombatDetails->iExtraCombatPercent = 0;
-		pCombatDetails->iAnimalCombatModifierTA = 0;
-		pCombatDetails->iAIAnimalCombatModifierTA = 0;
-		pCombatDetails->iAnimalCombatModifierAA = 0;
-		pCombatDetails->iAIAnimalCombatModifierAA = 0;
-		pCombatDetails->iBarbarianCombatModifierTB = 0;
-		pCombatDetails->iAIBarbarianCombatModifierTB = 0;
-		pCombatDetails->iBarbarianCombatModifierAB = 0;
-		pCombatDetails->iAIBarbarianCombatModifierAB = 0;
-		pCombatDetails->iPlotDefenseModifier = 0;
-		pCombatDetails->iFortifyModifier = 0;
-		pCombatDetails->iCityDefenseModifier = 0;
-		pCombatDetails->iHillsAttackModifier = 0;
-		pCombatDetails->iHillsDefenseModifier = 0;
-		pCombatDetails->iFeatureAttackModifier = 0;
-		pCombatDetails->iFeatureDefenseModifier = 0;
-		pCombatDetails->iTerrainAttackModifier = 0;
-		pCombatDetails->iTerrainDefenseModifier = 0;
-		pCombatDetails->iCityAttackModifier = 0;
-		pCombatDetails->iDomainDefenseModifier = 0;
-		pCombatDetails->iCityBarbarianDefenseModifier = 0;
-		pCombatDetails->iClassDefenseModifier = 0;
-		pCombatDetails->iClassAttackModifier = 0;
-		pCombatDetails->iCombatModifierA = 0;
-		pCombatDetails->iCombatModifierT = 0;
-		pCombatDetails->iDomainModifierA = 0;
-		pCombatDetails->iDomainModifierT = 0;
-		pCombatDetails->iAnimalCombatModifierA = 0;
-		pCombatDetails->iAnimalCombatModifierT = 0;
-		pCombatDetails->iRiverAttackModifier = 0;
-		pCombatDetails->iAmphibAttackModifier = 0;
-		pCombatDetails->iKamikazeModifier = 0;
-		pCombatDetails->iModifierTotal = 0;
-		pCombatDetails->iBaseCombatStr = 0;
-		pCombatDetails->iCombat = 0;
-		pCombatDetails->iMaxCombatStr = 0;
-		pCombatDetails->iCurrHitPoints = 0;
-		pCombatDetails->iMaxHitPoints = 0;
-		pCombatDetails->iCurrCombatStr = 0;
+		pCombatDetails->setAllToNull(); // advc
 		pCombatDetails->eOwner = getOwner();
 		pCombatDetails->eVisualOwner = getVisualOwner();
 		pCombatDetails->sUnitName = getName().GetCString();
@@ -6918,18 +6880,14 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 				iExtraModifier = GC.getInfo(GET_PLAYER(pAttacker->getOwner()).getHandicapType()).getAnimalCombatModifier(); // K-Mod
 				iModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iAnimalCombatModifierTA = iExtraModifier;
-				}
 			}
 			else
 			{
 				iExtraModifier = GC.getInfo(GC.getGame().getHandicapType()).getAIAnimalCombatModifier();
 				iModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iAIAnimalCombatModifierTA = iExtraModifier;
-				}
 			}
 		}
 
@@ -6941,18 +6899,14 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 				iExtraModifier = -GC.getInfo(GET_PLAYER(getOwner()).getHandicapType()).getAnimalCombatModifier(); // K-Mod
 				iModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iAnimalCombatModifierAA = iExtraModifier;
-				}
 			}
 			else
 			{
 				iExtraModifier = -GC.getInfo(GC.getGame().getHandicapType()).getAIAnimalCombatModifier();
 				iModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iAIAnimalCombatModifierAA = iExtraModifier;
-				}
 			}
 		}
 
@@ -6965,18 +6919,14 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 				iExtraModifier += GC.getInfo(GET_PLAYER(pAttacker->getOwner()).getHandicapType()).getBarbarianCombatModifier(); // K-Mod
 				iModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iBarbarianCombatModifierTB = iExtraModifier;
-				}
 			}
 			else
 			{
 				iExtraModifier += GC.getInfo(GC.getGame().getHandicapType()).getAIBarbarianCombatModifier();
 				iModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iAIBarbarianCombatModifierTB = iExtraModifier;
-				}
 			}
 		}
 
@@ -6989,18 +6939,14 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 				iExtraModifier += -GC.getInfo(GET_PLAYER(getOwner()).getHandicapType()).getBarbarianCombatModifier(); // K-Mod
 				iModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iBarbarianCombatModifierAB = iExtraModifier;
-				}
 			}
 			else
 			{
 				iExtraModifier += -GC.getInfo(GC.getGame().getHandicapType()).getAIBarbarianCombatModifier();
 				iModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-				{
 					pCombatDetails->iAIBarbarianCombatModifierTB = iExtraModifier;
-				}
 			}
 		}
 	}

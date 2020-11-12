@@ -3788,6 +3788,7 @@ int CvGame::countReligionLevels(ReligionTypes eReligion) const
 	return iCount;
 }
 
+
 int CvGame::countCorporationLevels(CorporationTypes eCorporation) const
 {
 	int iCount = 0;

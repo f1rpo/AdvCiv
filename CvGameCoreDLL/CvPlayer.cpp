@@ -3620,7 +3620,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		break;
 
 	case DIPLOEVENT_RESEARCH_TECH:
-		pushResearch(((TechTypes)iData1), true);
+		pushResearch((TechTypes)iData1, true);
 		break;
 
 	case DIPLOEVENT_TARGET_CITY:
@@ -8350,8 +8350,8 @@ int CvPlayer::getPopScore(bool bIncludeVassals) const
 			iVassalScore += itVassal->getPopScore(false) / 2;
 		}
 	}
-	return m_iPopulationScore + iVassalScore /
-			std::max(1, GET_TEAM(getTeam()).getNumMembers());
+	return m_iPopulationScore +
+			iVassalScore / std::max(1, GET_TEAM(getTeam()).getNumMembers());
 }
 
 void CvPlayer::changePopScore(int iChange)
@@ -8379,8 +8379,8 @@ int CvPlayer::getLandScore(bool bIncludeVassals) const
 			iVassalScore += itVassal->getLandScore(false) / 2;
 		}
 	}
-	return m_iLandScore + iVassalScore /
-			std::max(1, GET_TEAM(getTeam()).getNumMembers());
+	return m_iLandScore +
+			iVassalScore / std::max(1, GET_TEAM(getTeam()).getNumMembers());
 }
 
 

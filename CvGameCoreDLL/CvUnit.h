@@ -1225,6 +1225,11 @@ struct CombatDetails											// Exposed to Python
 	PlayerTypes eOwner;
 	PlayerTypes eVisualOwner;
 	std::wstring sUnitName;
+	// advc:
+	void setAllToNull()
+	{
+		memset(this, 0, sizeof(*this));
+	}
 };
 
 #endif

@@ -2921,7 +2921,7 @@ bool CvSelectionGroup::groupPathTo(int iX, int iY, MovementFlags eFlags)
 			clearMissionQueue();
 		}
 		/*	Also, if the step we just took causes us to backtrack -
-			its probably because we've lost vision of a unit that was blocking the path.
+			it's probably because we've lost vision of a unit that was blocking the path.
 			Apply the MOVE_ASSUME_VISIBLE flag, so that we remember
 			to go the long way around. */
 		else if (&finalPath.getPathFirstPlot() == pOriginPlot)
@@ -3131,7 +3131,7 @@ void CvSelectionGroup::setTransportUnit(CvUnit* pTransportUnit,
 
 bool CvSelectionGroup::isAmphibPlot(CvPlot const* pPlot) const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	//PROFILE_FUNC(); // advc (Not called all that frequently)
 	CvUnit const* pUnit = getHeadUnit();
 	if (pUnit == NULL)
 		return false;

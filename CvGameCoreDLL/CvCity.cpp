@@ -4239,7 +4239,7 @@ int CvCity::getNumActiveBuilding(BuildingTypes eIndex) const
 	return getNumBuilding(eIndex);
 }
 
-// UNOFFICIAL_PATCH, War tactics AI, 03/04/10, Mongoose & jdog5000: START
+// UNOFFICIAL_PATCH, War tactics AI, 03/04/10, Mongoose & jdog5000:
 int CvCity::getNumActiveWorldWonders(int iStopCountAt, // advc
 	PlayerTypes eOwner) const // advc.104d
 {
@@ -4265,7 +4265,7 @@ int CvCity::getNumActiveWorldWonders(int iStopCountAt, // advc
 		}
 	}
 	return iCount;
-} // UNOFFICIAL_PATCH: END
+}
 
 
 int CvCity::getReligionCount() const

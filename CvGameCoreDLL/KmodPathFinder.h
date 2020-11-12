@@ -23,7 +23,7 @@ enum PathNodeState // Replacing FAStarListType; cf. PathNodeBase::m_iState.
 	Instead of the all-purpose m_iData1, m_iData2 members, the path length
 	is now always part of the node data. Classes derived from KmodPathFinder that
 	require additional data should derive a node class from PathNode.
-	No constructors should be added; PathNodeMap handles the memory allocation
+	No constructors should be added; PathNodeMap handles the initialization
 	through memset (as in K-Mod). This also means that all data members will have
 	the initial value 0. */
 template<class Node> // (CRT pattern)

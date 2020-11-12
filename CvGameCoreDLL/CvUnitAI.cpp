@@ -11135,7 +11135,7 @@ bool CvUnitAI::AI_heal(int iDamagePercent, int iMaxPath)
 	still contain similar code. */
 ProbabilityTypes CvUnitAI::AI_isThreatenedFromLand() const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC(); // advc: Not called frequently at all (currently)
 	FAssert(getDomainType() != DOMAIN_LAND);
 	if (getPlot().isWater())
 		return NO_PROBABILITY;
@@ -15068,8 +15068,10 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,
 
 		//apGroupCargo.push_back(&kLoopUnit);
 		// K-Mod. Gather some data for later...
-		iLimitedAttackers += (pLoopUnit->combatLimit() < 100 ? 1 : 0);
-		iAmphibiousAttackers += (pLoopUnit->isAmphib() ? 1 : 0);
+		if (pLoopUnit->combatLimit() < 100)
+			iLimitedAttackers++;
+		if (pLoopUnit->isAmphib())
+			iAmphibiousAttackers++;
 
 		// Estimate attack strength, both for landed assaults and amphibious assaults.
 		//
@@ -15103,8 +15105,8 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,
 	CvPlot const* pBestPlot = NULL;
 	CvPlot const* pBestAssaultPlot = NULL;
 	int iBestValue = 0;
-	// K-Mod note: I've restructured and rewritten this section for efficiency, clarity, and sometimes even to improve the AI!
-	// Most of the original code has been deleted.
+	/*	K-Mod note: I've restructured and rewritten this section for efficiency, clarity,
+		and sometimes even to improve the AI! Most of the original code has been deleted. */
 	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
 		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
@@ -15152,8 +15154,8 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,
 			worth attacking them amphibiously. */
 		if (iEnemyDefenders > 0)
 		{
-			if ((iLimitedAttackers > 0 || iAmphibiousAttackers < iCargo/2) &&
-				iEnemyDefenders*3 > 2*(iCargo-iLimitedAttackers))
+			if ((iLimitedAttackers > 0 || 2 * iAmphibiousAttackers < iCargo) &&
+				3 * iEnemyDefenders > 2 * (iCargo - iLimitedAttackers))
 			{
 				continue;
 			}
@@ -15244,8 +15246,10 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,
 				/*	prefer to join existing assaults.
 					(maybe we should calculate the actual attack strength here and roll it
 					into the strength comparison modifier below) */
-				int iModifier = std::min(kOwner.AI_plotTargetMissionAIs(kPlot, MISSIONAI_ASSAULT, getGroup()) +
-						kOwner.AI_adjacentPotentialAttackers(pCity->getPlot()), 2 * iCargo) * 100 / iCargo;
+				int iModifier = std::min(kOwner.AI_plotTargetMissionAIs(
+						kPlot, MISSIONAI_ASSAULT, getGroup()) +
+						kOwner.AI_adjacentPotentialAttackers(pCity->getPlot()), 2 * iCargo) *
+						100 / iCargo;
 				iValueMultiplier = (100+iModifier)*iValueMultiplier / 100;
 
 				/*	Prefer to target cities that we can defeat.
@@ -15255,8 +15259,19 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,
 				if (iDefenceStrength > 0 || kPlot.isVisible(kOurTeam.getID()))
 				{
 					if (kPlot.isVisible(kOurTeam.getID()))
-						iModifier = std::min(100, 125 * iLandedAttackStrength / std::max(1, iDefenceStrength) - 25);
-					else iModifier = std::min(50, 75 * iLandedAttackStrength / std::max(1, iDefenceStrength) - 25);
+					{
+						iModifier = (125 * iLandedAttackStrength) /
+								std::max(1, iDefenceStrength);
+						iModifier -= 25;
+						iModifier = std::min(iModifier, 100);
+					}
+					else
+					{
+						iModifier = (75 * iLandedAttackStrength) /
+								std::max(1, iDefenceStrength);
+						iModifier -= 25;
+						iModifier = std::min(iModifier, 50);
+					}
 				} // otherwise, assume we have no idea what's there.
 				iValueMultiplier = (100 + iModifier) * iValueMultiplier / 100;
 			}
@@ -15332,7 +15347,8 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,
 		else if (iPathTurns > 2)
 		{
 			//iValue *= 60 + GC.getGame().getSorenRandNum(81, "AI Assault Target");
-			iValueMultiplier *= 60 + (AI_unitPlotHash(&kPlot, getGroup()->getNumUnits()) % 81);
+			iValueMultiplier *= 60 +
+					(AI_unitPlotHash(&kPlot, getGroup()->getNumUnits()) % 81);
 			iValueMultiplier /= 100;
 		}
 		int iValue = iBaseValue * iValueMultiplier / (iPathTurns +2);
@@ -15452,7 +15468,8 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 						CvPlot& kEndTurnPlot = getPathEndTurnPlot();
 						int iOtherPathTurns = MAX_INT;
 						//if (pLoopSelectionGroup->generatePath(pLoopSelectionGroup->plot(), pLoopPlot, eFlags, true, &iOtherPathTurns))
-						// K-Mod. Use a different pathfinder, so that we don't clear our path data.
+						/*	K-Mod. Use a different pathfinder
+							so that we don't clear our path data. */
 						//GroupPathFinder loopPath;
 						GroupPathFinder& kLoopPath = CvSelectionGroup::getClearPathFinder();
 						kLoopPath.setGroup(*pLoopSelectionGroup, eFlags, iPathTurns);

@@ -4458,14 +4458,14 @@ void CvTeamAI::AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 	{
 		CvPlayerAI& kOurAIMember = *it;
-		if(!kOurAIMember.isHuman())
+		if (!kOurAIMember.isHuman())
 			kOurAIMember.AI_makeProductionDirty();
 	}
 	// <advc.104j>
-	if(isHuman()) // Human has to instruct vassals manually
+	if (isHuman()) // Human has to instruct vassals manually
 		return;
 	WarPlanTypes eVassalWP = NO_WARPLAN;
-	if(eNewValue == NO_WARPLAN)
+	if (eNewValue == NO_WARPLAN)
 		eVassalWP = NO_WARPLAN;
 	else if(eNewValue == WARPLAN_PREPARING_LIMITED || eNewValue == WARPLAN_PREPARING_TOTAL)
 		eVassalWP = WARPLAN_PREPARING_LIMITED;
