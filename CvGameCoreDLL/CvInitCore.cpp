@@ -1426,6 +1426,13 @@ void CvInitCore::setXMLCheck(PlayerTypes eID, CvString const& szXMLCheck)
 	Easier to track external calls in the debugger this way. */
 void CvInitCore::setGameName(CvWString const& szGameName)
 {
+	/*	<advc.135c> Changing the game name can be a step to enable debug tools.
+		Make sure that the other players are aware. */
+	if (getMultiplayer() && !m_szGameName.empty() && m_szGameName != szGameName &&
+		getActivePlayer() != NO_PLAYER)
+	{
+		GET_PLAYER(getActivePlayer()).announceGameNameChange(m_szGameName, szGameName);
+	} // </advc.135c>
 	m_szGameName = szGameName;
 }
 

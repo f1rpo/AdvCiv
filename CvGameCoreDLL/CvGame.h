@@ -421,6 +421,7 @@ public:
 	DllExport void toggleDebugMode();																				// Exposed to Python
 	DllExport void updateDebugModeCache();
 	bool isDebugToolsAllowed(bool bWB) const; // advc.135c
+	bool isGameNameEnableDebugTools(CvWString const& kGameName) const; // advc.135c
 	DllExport int getPitbossTurnTime() const;																			// Exposed to Python
 	DllExport void setPitbossTurnTime(int iHours);																			// Exposed to Python
 

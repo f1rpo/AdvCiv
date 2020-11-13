@@ -6392,4 +6392,22 @@
 		<Spanish>1 rival desconocido</Spanish>
 	</TEXT>
 
+	<!-- advc.135c -->
+	<TEXT>
+		<Tag>TXT_KEY_GAME_NAME_CHANGED</Tag>
+		<English>The game name has been changed from "%s1_OldName" to "%s2_NewName".</English>
+		<French>The game name has been changed from "%s1_OldName" to "%s2_NewName".</French>
+		<German>Der Spielname wurde geändert von "%s1_OldName" in "%s2_NewName".</German>
+		<Italian>The game name has been changed from "%s1_OldName" to "%s2_NewName".</Italian>
+		<Spanish>The game name has been changed from "%s1_OldName" to "%s2_NewName".</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_DEBUG_TOOLS_ENABLED</Tag>
+		<English>Debug tools have been enabled.</English>
+		<French>Debug tools have been enabled.</French>
+		<German>Debug tools have been enabled.</German>
+		<Italian>Debug tools have been enabled.</Italian>
+		<Spanish>Debug tools have been enabled.</Spanish>
+	</TEXT>
+
 </Civ4GameText>

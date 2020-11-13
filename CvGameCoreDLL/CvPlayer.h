@@ -1391,6 +1391,7 @@ public:
 	DllExport void cheat(bool bCtrl, bool bAlt, bool bShift);
 	DllExport const CvArtInfoUnit* getUnitArtInfo(UnitTypes eUnit, int iMeshGroup = 0) const;
 	DllExport bool hasSpaceshipArrived() const;
+	void announceGameNameChange(CvWString szOldName, CvWString szNewName); // advc.135c
 	// <advc.003u>
 	__forceinline CvPlayerAI& AI()
 	{	//return *static_cast<CvPlayerAI*>(const_cast<CvPlayer*>(this));

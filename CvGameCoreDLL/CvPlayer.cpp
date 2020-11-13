@@ -19389,6 +19389,21 @@ bool CvPlayer::hasSpaceshipArrived() const
 	return GET_TEAM(getTeam()).hasSpaceshipArrived();
 }
 
+// advc.135c: (see call location CvInitCore::setGameName)
+void CvPlayer::announceGameNameChange(CvWString szOldName, CvWString szNewName)
+{
+	gDLL->UI().addMessage(getID(), true, -1,
+			gDLL->getText("TXT_KEY_GAME_NAME_CHANGED",
+			szOldName.GetCString(), szNewName.GetCString()),
+			NULL, MESSAGE_TYPE_MINOR_EVENT);
+	if (GC.getGame().isGameNameEnableDebugTools(szNewName))
+	{
+		gDLL->UI().addMessage(getID(), true, -1,
+				gDLL->getText("TXT_KEY_DEBUG_TOOLS_ENABLED"),
+				NULL, MESSAGE_TYPE_MAJOR_EVENT);
+	}
+}
+
 // advc.210:
 void CvPlayer::checkAlert(int iAlertID, bool bSilent)
 {

@@ -5204,7 +5204,7 @@ void CvGame::updateDebugModeCache()
 	else m_bDebugModeCache = false;
 }
 
-// <advc.135c>
+// advc.135c:
 bool CvGame::isDebugToolsAllowed(bool bWB) const
 {
 	if(gDLL->getInterfaceIFace()->isInAdvancedStart())
@@ -5217,9 +5217,7 @@ bool CvGame::isDebugToolsAllowed(bool bWB) const
 			return false;
 		if(isHotSeat())
 			return true;
-		// (CvGame::getName isn't const)
-		CvWString const& szGameName = GC.getInitCore().getGameName();
-		return (szGameName.compare(L"chipotle") == 0);
+		return isGameNameEnableDebugTools(GC.getInitCore().getGameName());
 	}
 	if(bWB)
 	{
@@ -5227,7 +5225,13 @@ bool CvGame::isDebugToolsAllowed(bool bWB) const
 		return GC.getInitCore().getAdminPassword().empty();
 	}
 	return gDLL->getChtLvl() > 0;
-} // </advc.135c>
+}
+
+// advc.135c:
+bool CvGame::isGameNameEnableDebugTools(CvWString const& kGameName) const
+{
+	return (kGameName.compare(L"chipotle") == 0);
+}
 
 
 int CvGame::getPitbossTurnTime() const
