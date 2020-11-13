@@ -11547,7 +11547,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 			return NO_DENIAL;
 		}
 	}
-	if (GET_TEAM(getTeam()).AI_getWorstEnemy() == TEAMID(eToPlayer))
+	if (!isHuman() && GET_TEAM(getTeam()).AI_getWorstEnemy() == TEAMID(eToPlayer))
 		return DENIAL_WORST_ENEMY;
 	// advc.036: Commented out
 	/*if (AI_corporationBonusVal(eBonus) > 0)
