@@ -10792,9 +10792,9 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
 	return iValue;
 }
 
-//Value sans corporation
-// (K-Mod note: very vague units. roughly 4x gold / turn / city.)
-int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) const  // advc: Some style changes
+/*	Value sans corporation
+	(K-Mod note: very vague units. roughly 4x gold / turn / city.) */
+int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) const
 {
 	//recalculate if not defined
 	if(!bTrade && // advc.036
@@ -11095,8 +11095,8 @@ int CvPlayerAI::AI_baseBonusUnitVal(BonusTypes eBonus, UnitTypes eUnit,
 
 	// devalue units for which we already have a better replacement.
 	UnitAITypes const eDefaultAI = kUnit.getDefaultUnitAIType();
-	int iNewTypeValue = AI_unitValue(eUnit, eDefaultAI, 0);
-	int iBestTypeValue = AI_bestAreaUnitAIValue(eDefaultAI, 0);
+	int iNewTypeValue = AI_unitValue(eUnit, eDefaultAI, NULL);
+	int iBestTypeValue = AI_bestAreaUnitAIValue(eDefaultAI, NULL);
 	if(iBestTypeValue > 0)
 	{
 		iValue = (iValue * std::max(0, std::min(
@@ -11538,7 +11538,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 	if(bVassal && GET_TEAM(getTeam()).isCapitulated()) // </advc.037>
 		return NO_DENIAL;
 
-	if (::atWar(getTeam(), TEAMID(eToPlayer)))
+	if (GET_TEAM(getTeam()).isAtWar(TEAMID(eToPlayer)))
 	{	/*  advc.036 (comment): Doesn't help b/c there is no trade network while
 			at war, and no feasible way to ensure that it will exist after
 			making peace. */
@@ -26515,6 +26515,7 @@ int CvPlayerAI::AI_bestAreaUnitAIValue(UnitAITypes eUnitAI, CvArea const* pArea,
 	return AI_bestCityUnitAIValue(eUnitAI, pCity, peBestUnitType);
 }
 
+
 int CvPlayerAI::AI_bestCityUnitAIValue(UnitAITypes eUnitAI, CvCity const* pCity, UnitTypes* peBestUnitType) const // advc: const CvCity*
 {
 	FAssertMsg(eUnitAI != NO_UNITAI, "UnitAI is not assigned a valid value");
@@ -26541,6 +26542,7 @@ int CvPlayerAI::AI_bestCityUnitAIValue(UnitAITypes eUnitAI, CvCity const* pCity,
 	}
 	return iBestValue;
 }
+
 
 int CvPlayerAI::AI_calculateTotalBombard(DomainTypes eDomain) const
 {
@@ -26574,6 +26576,7 @@ int CvPlayerAI::AI_calculateTotalBombard(DomainTypes eDomain) const
 	return iTotalBombard;
 }
 
+
 void CvPlayerAI::AI_updateBonusValue(BonusTypes eBonus)
 {
 	FAssertEnumBounds(eBonus); // advc
@@ -26592,6 +26595,7 @@ void CvPlayerAI::AI_updateBonusValue(BonusTypes eBonus)
 	} // </advc.036>
 }
 
+
 void CvPlayerAI::AI_updateBonusValue()
 {
 	PROFILE_FUNC(); // advc.036: Slow only in multiplayer (see comment above)
@@ -26599,6 +26603,7 @@ void CvPlayerAI::AI_updateBonusValue()
 	FOR_EACH_ENUM(Bonus)
 		AI_updateBonusValue(eLoopBonus);
 }
+
 
 int CvPlayerAI::AI_getUnitClassWeight(UnitClassTypes eUnitClass) const
 {
@@ -26609,6 +26614,7 @@ int CvPlayerAI::AI_getUnitCombatWeight(UnitCombatTypes eUnitCombat) const
 {
 	return m_aiUnitCombatWeights[eUnitCombat] / 100;
 }
+
 
 void CvPlayerAI::AI_doEnemyUnitData()
 {
@@ -27015,6 +27021,7 @@ ReligionTypes CvPlayerAI::AI_chooseReligion()
 	return NO_RELIGION;*/
 }
 
+
 int CvPlayerAI::AI_getAttitudeWeight(PlayerTypes ePlayer) const
 {
 	int iAttitudeWeight = 0;
@@ -27135,6 +27142,7 @@ int CvPlayerAI::AI_getPlotAirbaseValue(CvPlot const& kPlot) const // advc: param
 	iValue /= 100;
 	return iValue;
 }
+
 
 int CvPlayerAI::AI_getPlotCanalValue(CvPlot const& kPlot) const // advc: param was CvPlot*
 {
@@ -27263,6 +27271,7 @@ int CvPlayerAI::AI_getHappinessWeight(int iHappy, int iExtraPop, bool bPercent) 
 
 	return (iCount == 0) ? 50 * iHappy : iValue / iCount;
 }
+
 
 int CvPlayerAI::AI_getHealthWeight(int iHealth, int iExtraPop, bool bPercent) const
 {

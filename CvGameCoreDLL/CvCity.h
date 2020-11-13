@@ -1386,7 +1386,9 @@ protected:
 	PlayerTypes m_eOriginalOwner;
 	CultureLevelTypes m_eCultureLevel;
 
-	// <advc.enum> (Tbd.: short int would suffice; except for m_aiCulture.)
+	/*	<advc.enum> (Tbd.: short int would suffice; except for m_aiCulture.
+		Also, the EnumMap<UnitTypes,...> are a bit wasteful. Consider using
+		std::map for those.) */
 	EnumMap<YieldTypes,int> m_aiSeaPlotYield;
 	EnumMap<YieldTypes,int> m_aiRiverPlotYield;
 	EnumMap<YieldTypes,int> m_aiBaseYieldRate;

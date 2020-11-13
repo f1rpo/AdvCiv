@@ -801,7 +801,7 @@ int CvMapGenerator::placeGroup(BonusTypes eBonus, CvPlot const& kCenter,
 }
 
 
-void CvMapGenerator::addGoodies()  // advc: some style changes
+void CvMapGenerator::addGoodies()
 {
 	PROFILE_FUNC();
 
