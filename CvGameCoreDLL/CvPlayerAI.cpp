@@ -26553,36 +26553,28 @@ int CvPlayerAI::AI_calculateTotalBombard(DomainTypes eDomain) const
 
 void CvPlayerAI::AI_updateBonusValue(BonusTypes eBonus)
 {
-	FAssert(m_aiBonusValue != NULL);
+	FAssertEnumBounds(eBonus); // advc
+	m_aiBonusValue[eBonus] = -1;
+	m_aiBonusValueTrade[eBonus] = -1;
 	/*  <advc.036> Don't just reset; recompute them all, and never update the
-		cache in AI_baseBonusVal. This should make sure we're not going OOS. */
-	if(GC.getGame().isNetworkMultiPlayer())
+		cache in AI_baseBonusVal. This should make sure we're not going OOS.
+		Tbd.: Updating only on demand could lead to undesirable side-effects
+		in singleplayer, and the multiplayer code is perhaps not just slower,
+		but also less accurate. Implement a bConstCache param for AI_baseBonusVal?
+		Would have to add the param to AI_bonusVal and AI_corporationValue too. */
+	if (GC.getGame().isNetworkMultiPlayer())
 	{
 		m_aiBonusValue[eBonus] = AI_baseBonusVal(eBonus, false);
 		m_aiBonusValueTrade[eBonus] = AI_baseBonusVal(eBonus, true);
-	}
-	else // Reset and update on demand is faster
-	{
-	/*  Tbd.: Could lead to undesirable side-effects in singleplayer, and
-		the multiplayer code is perhaps not just slower, but also less
-		accurate. Implement a bConstCache param for AI_baseBonusVal?
-		Would have to add the param to AI_bonusVal and AI_corporationValue too. */
-	// </advc.036>
-		m_aiBonusValue[eBonus] = -1;
-		m_aiBonusValueTrade[eBonus] = -1;
-	}
+	} // </advc.036>
 }
 
 void CvPlayerAI::AI_updateBonusValue()
 {
-	PROFILE_FUNC(); // advc.036 (comment): Performance could be an issue in multiplayer
-
+	PROFILE_FUNC(); // advc.036: Slow only in multiplayer (see comment above)
 	FAssert(m_aiBonusValue != NULL);
-
-	for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
-	{
-		AI_updateBonusValue((BonusTypes)iI);
-	}
+	FOR_EACH_ENUM(Bonus)
+		AI_updateBonusValue(eLoopBonus);
 }
 
 int CvPlayerAI::AI_getUnitClassWeight(UnitClassTypes eUnitClass) const
