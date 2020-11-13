@@ -10925,16 +10925,41 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 	if(pCoastalCity == NULL && pUnconnectedCoastalCity != NULL)
 		pCoastalCity = pUnconnectedCoastalCity;
 
-	// advc: Moved into subroutines
-	for (int i = 0; i < kCiv.getNumUnits(); i++)
+	// advc: Unit, building, project, route evaluation moved into subroutines ...
+
 	{
-		rValue += AI_baseBonusUnitVal(eBonus, kCiv.unitAt(i), pCapital,
-				pCoastalCity, bTrade);
+		int iUnitsEnabled = 0; // advc.036b
+		for (int i = 0; i < kCiv.getNumUnits(); i++)
+		{
+			// <advc.036b>
+			scaled rLoopValue = AI_baseBonusUnitVal(eBonus, kCiv.unitAt(i),
+					pCapital, pCoastalCity, bTrade);
+			if (rLoopValue.isPositive())
+				iUnitsEnabled++;
+			if (rLoopValue.isNegative()) // (future-proofing)
+				iUnitsEnabled--; // </advc.036b>
+			rValue += rLoopValue;
+		}
+		/*	<advc.036b> If numerous units become enabled, there will probably be some
+			redundancy (which AI_baseBonusUnitVal can't address). */
+		if (iUnitsEnabled > 1)
+			rValue /= scaled(iUnitsEnabled).pow(fixp(1/8.));
 	}
-	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
-		rValue += AI_baseBonusBuildingVal(eBonus, kCiv.buildingAt(i),
-				iCities, iCoastalCities, bTrade);
+		int iBuildingsEnabled = 0; // advc.036b
+		for (int i = 0; i < kCiv.getNumBuildings(); i++)
+		{
+			scaled rLoopValue = AI_baseBonusBuildingVal(eBonus, kCiv.buildingAt(i),
+					iCities, iCoastalCities, bTrade);
+			if (rLoopValue.isPositive())
+				iBuildingsEnabled++;
+			if (rLoopValue.isNegative()) // (future-proofing)
+				iBuildingsEnabled--; // </advc.036b>
+			rValue += rLoopValue;
+		}
+		// <advc.036b> 
+		if (iBuildingsEnabled > 1)
+			rValue /= scaled(iBuildingsEnabled).pow(fixp(1/10.)); // </advc.036b>
 	}
 	FOR_EACH_ENUM(Project)
 	{
