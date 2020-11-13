@@ -5771,15 +5771,13 @@ int CvPlayerAI::AI_obsoleteBuildingPenalty(TechTypes eTech, bool bConstCache) co
 int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bEnablesWonder) const
 {
 	PROFILE_FUNC();
-	/*  advc.004x (comment): I had changed this to !isAnarchy()||isHuman(), but
-		now that humans aren't prompted to choose research during anarchy,
-		the original assertion should hold. */
-	FAssertMsg(!isAnarchy(), "AI_techBuildingValue should not be used while in anarchy. Results will be inaccurate.");
+	CvGame const& kGame = GC.getGame();
+	FAssertMsg(!isAnarchy() /* advc.004x: */ || (isHuman() && kGame.isNetworkMultiPlayer()),
+			"AI_techBuildingValue should not be used while in anarchy. Results will be inaccurate.");
 	/*  advc.001n: Don't rely on caller to initialize this. Initialization was
 		still present in the BBAI code, must've been lost in the K-Mod rewrite. */
 	bEnablesWonder = false;
 	int iTotalValue = 0;
-	CvGame const& kGame = GC.getGame();
 	CvGameSpeedInfo const& kGameSpeed = GC.getInfo(kGame.getGameSpeedType());
 	// (this will be populated when we find a building that needs to be evaluated)
 	std::vector<const CvCityAI*> relevant_cities;

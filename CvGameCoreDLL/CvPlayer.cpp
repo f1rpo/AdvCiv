@@ -6296,9 +6296,11 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade,
 	/*  advc.004x: Commented out - shouldn't matter here.
 		(And wouldn't prevent players from queuing up research during anarchy or
 		before founding a city) */
-	/*if(!isResearch() && getAdvancedStartPoints() < 0
-			&& !bFree) // K-Mod
-		return false;*/
+	/*if(!isResearch() && getAdvancedStartPoints() < 0 &&
+		!bFree) // K-Mod
+	{
+		return false;
+	}*/
 
 	if (GET_TEAM(getTeam()).isHasTech(eTech) /* advc.126: */ && !bCouldResearchAgain)
 		return false;
@@ -19467,9 +19469,12 @@ void CvPlayer::killAll(ButtonPopupTypes ePopupType, int iData1)
 {
 	CvGame const& kGame = GC.getGame();
 	if (getID() != kGame.getActivePlayer() || !isHuman() ||
-		/*	(If outdated non-minimized popups are also a problem, then this
-			check could just be removed; should work alright.) */
-		!isOption(PLAYEROPTION_MINIMIZE_POP_UPS) ||
+		/*	Non-minimized popups don't usually become outdated, but
+			it can happen when multiple popups trigger at the same time and
+			the handler for one popup affects game state relevant for another.
+			E.g. when a tech is discovered that enables a civic (revolution via
+			change-civic popup will invalidate the choose-next-tech popup). */
+		//!isOption(PLAYEROPTION_MINIMIZE_POP_UPS) ||
 		/*	I can't get this to work in network games. The delays introduced by
 			net messages cause popups to appear several times. */
 		kGame.isNetworkMultiPlayer())
