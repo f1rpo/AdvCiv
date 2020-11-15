@@ -725,54 +725,53 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 		CvGlobals::getInstance().loadOptionalXMLInfo(); // </advc.003v>
 }
 
-
+/*	The EXE calls this after generating the map but before initFreeState
+	(i.e. also before assigning starting plots). Seems like a good place
+	for various initializations as it gets called for all game types
+	(unlike setInitialItems). */
 void CvGame::initDiplomacy()
 {
 	PROFILE_FUNC();
 
-	for(int i = 0; i < MAX_TEAMS; i++)  // advc: style changes
+	GC.getAgents().gameStart(false); // advc.agent
+	m_bFPTestDone = !isNetworkMultiPlayer(); // advc.003g
+	setPlayerColors(); // advc.002i
+
+	for (TeamIter<> itTeam; itTeam.hasNext(); ++itTeam)
 	{
-		CvTeam& t = GET_TEAM((TeamTypes)i);
-		t.meet(t.getID(), false);
-		if(i == BARBARIAN_TEAM || t.isMinorCiv())
+		itTeam->meet(itTeam->getID(), false);
+		if (!itTeam->isMajorCiv())
 		{
-			for(int j = 0; j < MAX_CIV_TEAMS; j++)
+			for (TeamIter<CIV_ALIVE> itCiv; itCiv.hasNext(); ++itCiv) // advc.003m: ALIVE
 			{
-				CvTeam& kTarget = GET_TEAM((TeamTypes)j);
-				if(kTarget.isAlive() && i != j) // advc.003m: Alive check added
-					t.declareWar(kTarget.getID(), false, NO_WARPLAN);
+				if(itTeam->getID() != itCiv->getID())
+					itTeam->declareWar(itCiv->getID(), false, NO_WARPLAN);
 			}
 		}
 	}
 
 	// Forced peace at the beginning of Advanced starts
-	if (isOption(GAMEOPTION_ADVANCED_START)
+	if (isOption(GAMEOPTION_ADVANCED_START) &&
 		/*  advc.250b: No need to protect the AI from the player when human
 			start is advanced, and AI won't start wars within 10 turns anyway. */
-		&& !isOption(GAMEOPTION_SPAH))
+		!isOption(GAMEOPTION_SPAH))
 	{
-		CLinkList<TradeData> player1List;
-		CLinkList<TradeData> player2List;
-		TradeData peaceTreaty(TRADE_PEACE_TREATY);
-		player1List.insertAtEnd(peaceTreaty);
-		player2List.insertAtEnd(peaceTreaty);
-
-		for (int iPlayer1 = 0; iPlayer1 < MAX_CIV_PLAYERS; ++iPlayer1)
+		CLinkList<TradeData> items1;
+		CLinkList<TradeData> items2;
 		{
-			CvPlayer& kLoopPlayer1 = GET_PLAYER((PlayerTypes)iPlayer1);
-			if (kLoopPlayer1.isAlive())
+			TradeData peaceTreaty(TRADE_PEACE_TREATY);
+			items1.insertAtEnd(peaceTreaty);
+			items2.insertAtEnd(peaceTreaty);
+		}
+		// advc.001: I don't think this should happen for minor civs
+		for (PlayerIter<MAJOR_CIV> itFirst; itFirst.hasNext(); ++itFirst)
+		{
+			for (PlayerIter<MAJOR_CIV> itSecond; itSecond.hasNext(); ++itSecond)
 			{
-				for (int iPlayer2 = iPlayer1 + 1; iPlayer2 < MAX_CIV_PLAYERS; ++iPlayer2)
-				{
-					CvPlayer& kLoopPlayer2 = GET_PLAYER((PlayerTypes)iPlayer2);
-					if (kLoopPlayer2.isAlive())
-					{
-						if (GET_TEAM(kLoopPlayer1.getTeam()).canChangeWarPeace(kLoopPlayer2.getTeam()))
-						{
-							implementDeal((PlayerTypes)iPlayer1, (PlayerTypes)iPlayer2, player1List, player2List);
-						}
-					}
-				}
+				if (itFirst->getID() <= itSecond->getID())
+					continue;
+				if (GET_TEAM(itFirst->getTeam()).canChangeWarPeace(itSecond->getTeam()))
+					implementDeal(itFirst->getID(), itSecond->getID(), items2, items2);
 			}
 		}
 	}
@@ -896,10 +895,6 @@ void CvGame::initGameHandicap()
 
 void CvGame::initFreeState()
 {
-	// advc.003g: Want to set this as soon as CvGame knows the GameType
-	m_bFPTestDone = !isNetworkMultiPlayer();
-	GC.getAgents().gameStart(false); // advc.agent
-	setPlayerColors(); // advc.002i
 	initGameHandicap(); // advc.127
 	// <advc.084>
 	if (getCivTeamsEverAlive() == 1)
