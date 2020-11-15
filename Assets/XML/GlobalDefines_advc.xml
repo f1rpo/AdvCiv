@@ -6,15 +6,12 @@
 
 <Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
 
-	<!-- advc.002b: The DLL needs to know (well, it's not crucial ...) if font
-		 sizes have been increased through a custom theme, and I don't know
-		 how to check that from within the DLL. Therefore this GlobalDefine.
-		 Should be set to the Size1_Normal value in Civ4Theme_Common.thm;
-		 that's 14 if the AdvCiv theme hasn't been changed. 12 if the AdvCiv
-		 theme has been removed and not replaced with another custom theme
-		 (though that's something the DLL code will detect anyway).
-		 Note: FONT_SIZE_FACTOR does not actually change the font size;
-		 only Civ4Theme_Common.thm can do that. -->
+	<!-- advc.002b: The DLL needs to know (well, it's not crucial ...) the
+		 font size of Size1_Normal in Civ4Theme_Common.thm. AdvCiv sets that
+		 to 14. If a mod-mod changes Size1_Normal, then FONT_SIZE_FACTOR should
+		 be adjusted accordingly. If the AdvCiv theme is removed (and not
+		 replaced with a different custom theme), then there should be no need
+		 to edit this value; the DLL can figure that out on its own. -->
 	<Define>
 		<DefineName>FONT_SIZE_FACTOR</DefineName>
 		<iDefineIntVal>14</iDefineIntVal>
@@ -247,6 +244,17 @@
         <iDefineIntVal>3</iDefineIntVal>
     </Define>
 
+	<!-- advc.027: Enables the iterative algorithm for balancing
+		 starting positions on map scripts that don't override either
+		 assignStartingPlots or findStartingPosition.
+		 (The advc.108 settings below are independent from this; they mostly
+		 deal with start plot "normalization" whereas starting position
+		 iteration mostly moves the BtS starting locations around.) -->
+	<Define>
+        <DefineName>ENABLE_STARTING_POSITION_ITERATION</DefineName>
+        <iDefineIntVal>1</iDefineIntVal>
+    </Define>
+
 	<!-- [advc.108]
 		 If set to 1 or greater, starting plots are improved ("normalized") as
 		 aggressively as in BtS. 0 or less (recommended) means that normalization
@@ -256,19 +264,6 @@
 	<Define>
         <DefineName>NORMALIZE_STARTPLOTS_AGGRESSIVELY</DefineName>
         <iDefineIntVal>0</iDefineIntVal>
-    </Define>
-
-	<!-- [advc.108]
-	     The game ensures that no starting position is far better than another
-		 starting position by raising the (city-)found value of each
-		 starting position to at least STARTVAL_LOWER_BOUND-PERCENT of the best
-		 found value. Recommended: 70%.
-		 K-Mod uses 80%, and this value is also used if
-		 NORMALIZE_STARTPLOTS_AGGRESSIVELY is set. (I.e. this setting only
-		 matters if NORMALIZE_STARTPLOTS_AGGRESSIVELY isn't set.) -->
-	<Define>
-        <DefineName>STARTVAL_LOWER_BOUND-PERCENT</DefineName>
-        <iDefineIntVal>70</iDefineIntVal>
     </Define>
 
 	 <!-- [advc.108]
@@ -356,8 +351,8 @@
     </Define>
 
 	<!-- [advc.125]
-		 A value of 1 or greater enables the culture-from-trade system that
-		 K-Mod has introduced; 0 disables it.
+		 A value of 1 enables the culture-from-trade system that K-Mod
+		 has introduced; 0 disables it.
 		 -1 or less doesn't disable it altogether: Culture from trade is
 		 ignored when the respective trade partner has 0 culture in the
 		 city, i.e. only civs who's culture is already present (due to
@@ -428,23 +423,37 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
-	<!-- [advc.004m]
-	     No clue how this is measured. Original value is 2200
-		 (GlobalDefines.xml), recommended: 5400 (4600?). -->
+	<!-- advc.004m: 2200 in BtS. Now ignored unless the "Default Camera Distance"
+		 BUG option is set to "Custom". -->
 	<Define>
 		<DefineName>CAMERA_START_DISTANCE</DefineName>
 		<fDefineFloatVal>5400</fDefineFloatVal>
 	</Define>
 
-	<!-- [advc.500b]
-		 If this is set to a value greater than 0, unhappiness for lack of
-		 military protection is computed based on defensive strength (see
-		 manual). Otherwise, the BtS computation is used, i.e. any combat unit
-		 suffices as protection. (0 for now, until some accompanying changes to
-		 unhappiness are implemented.) -->
+	<!-- advc.500b: If this is set to a value greater than 0, unhappiness for
+		 lack of military protection is computed based on defensive strength.
+		 Otherwise, the BtS computation is used, i.e. any combat unit
+		 suffices as protection. Recommended: 0 for now as there are some
+		 open issues with this rule (see manual). -->
 	<Define>
 		<DefineName>DEMAND_BETTER_PROTECTION</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- Multiplier applied to city population when computing the
+		 defensive strength needed for allying fears for safety.
+		 Recommended: 100%, maybe 50%.
+		 Only relevant if DEMAND_BETTER_PROTECTION is enabled. -->
+	<Define>
+		<DefineName>DEMAND_BETTER_PROTECTION_POP_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<!-- Multiplier applied to the defensive strength of units that either
+		 the current city or the capital can no longer train.
+		 Recommended: 100%, maybe 50%.
+		 Only relevant if DEMAND_BETTER_PROTECTION is enabled. -->
+	<Define>
+		<DefineName>DEMAND_BETTER_PROTECTION_OBSOLETE_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
 
 	<!-- [advc.106]
@@ -622,10 +631,17 @@
 		 the peak percentage. Setting BARB_PEAK_PERCENT to 0 results in BtS
 		 behavior, with B maximal when Barbarians first appear and then
 		 decreasing as the civs expand.
-		 Recommended: 67 -->
+		 Recommended: 56 -->
     <Define>
         <DefineName>BARB_PEAK_PERCENT</DefineName>
-        <iDefineIntVal>67</iDefineIntVal>
+        <iDefineIntVal>56</iDefineIntVal>
+    </Define>
+	<!-- Used instead of the value above when the Raging Barbarians option
+		 is enabled. Recommended: Somewhat higher, say 7 points, than
+		 BARB_PEAK_PERCENT so that the early game doesn't become too tense. -->
+	<Define>
+        <DefineName>BARB_RAGE_PEAK_PERCENT</DefineName>
+        <iDefineIntVal>63</iDefineIntVal>
     </Define>
 
 	<!-- [advc.300]
@@ -1172,6 +1188,23 @@
 	<Define>
 		<DefineName>MAX_CITY_COUNT_FOR_MAINTENANCE</DefineName>
 		<iDefineIntVal>51</iDefineIntVal>
+	</Define>
+
+	<!-- advc.190c: This concerns the probability distribution for civs and
+		 leaders when both are set to "Random" during game setup and
+		 "Unrestricted Leaders" isn't checked. Use 0 for BtS behavior, meaning
+		 that the civ (e.g. Rome) gets chosen uniformly at random and then
+		 one of the available leaders (e.g. Julius or Augustus) gets chosen
+		 uniformly at random.
+		 A positive value results in a bias for civs with multiple leaders.
+		 100, specifically, gives every leader the same probability on the
+		 bottom line. A negative value (not recommended, not tested) makes
+		 civs with multiple leaders less likely to be chosen.
+		 Recommended: 20, meaning that e.g. Rome is 1.2 times as likely
+		 to be chosen than Mali and America is 1.4 times as likely as Mali. -->
+	<Define>
+		<DefineName>PER_EXTRA_LEADER_CIV_SELECTION_WEIGHT</DefineName>
+		<iDefineIntVal>20</iDefineIntVal>
 	</Define>
 
 </Civ4Defines>

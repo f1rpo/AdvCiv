@@ -3,8 +3,6 @@
 #ifndef CvDLLUtilityIFaceBase_h
 #define CvDLLUtilityIFaceBase_h
 
-#include "LinkedList.h"
-
 //
 // abstract interface for utility functions used by DLL
 // Creator- Mustafa Thamer
@@ -20,19 +18,19 @@ class CvDLLFeatureIFaceBase;
 class CvDLLRouteIFaceBase;
 class CvDLLRiverIFaceBase;
 class CvDLLFAStarIFaceBase;
-class CvDLLEventReporterIFaceBase;
 class CvDLLXmlIFaceBase;
 class CvDLLFlagEntityIFaceBase;
 class CvDLLPythonIFaceBase;
 
+/*class CvDLLEventReporterIFaceBase;
 class CvSymbol;
 class CvPlot;
 class CvUnit;
 class CvCity;
-class CvCacheObject;
 class CvFont;
+class CvAudioGame;*/ // advc: unused
+class CvCacheObject;
 class CvDiploParameters;
-class CvAudioGame;
 struct ProfileSample;
 class CvReplayInfo;
 class CvPopupInfo;
@@ -167,6 +165,9 @@ public:
 	virtual void beginMPDiplomacy( PlayerTypes eWhoTalkingTo, bool bRenegotiate = false, bool bSimultaneous = true) = 0;
 	virtual void endMPDiplomacy() = 0;
 
+	/*	advc (note): Don't know what this does. It doesn't say whether "No Sound" is
+		checked under Audio Options. Would have to look that up in the user profile
+		via a Python call (see CvOptionsScreen.drawAudioOptionsTab). */
 	virtual bool getAudioDisabled() = 0;
 	virtual int getAudioTagIndex(const TCHAR* szTag, int iScriptType = -1) = 0;
 

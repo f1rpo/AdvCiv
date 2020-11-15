@@ -12,7 +12,6 @@
 #include "CityPlotIterator.h"
 #include "CvArea.h"
 #include "CvInfo_Building.h"
-#include "CvInfo_Unit.h"
 #include "CvInfo_Terrain.h"
 
 using std::vector;
@@ -525,7 +524,7 @@ void UWAICache::updateCanScrub() {
 		}
 	}
 	if(fallout == NO_FEATURE) {
-		FAssertMsg(false, "Fallout feature not found; should have -50 health");
+		FErrorMsg("Fallout feature not found; should have -50 health");
 		return;
 	}
 	FOR_EACH_ENUM(Build) {
@@ -550,7 +549,7 @@ void UWAICache::updateTrainCargo() {
 			/*  A check for GC.getWATER_TERRAIN(false) would be better for
 				future modding. However, counting impassable terrain types is
 				used everywhere else as well. */
-			if(owner.AI_unitImpassableCount(ut) == 0)
+			if(!owner.AI_isAnyImpassable(ut))
 				trainDeepSeaCargo = true;
 		}
 	}
@@ -629,25 +628,25 @@ UWAICache::City* UWAICache::lookupCity(CvCity const& cvCity) const {
 
 void UWAICache::sortCitiesByOwnerAndDistance() {
 
-	FAssertMsg(false, "function no longer used");
+	FErrorMsg("function no longer used");
 	sort(v.begin(), v.end(), City::byOwnerAndDistance);
 }
 
 void UWAICache::sortCitiesByOwnerAndTargetValue() {
 
-	FAssertMsg(false, "function no longer used");
+	FErrorMsg("function no longer used");
 	sort(v.begin(), v.end(), City::byOwnerAndTargetValue);
 }
 
 void UWAICache::sortCitiesByDistance() {
 
-	FAssertMsg(false, "function no longer used");
+	FErrorMsg("function no longer used");
 	sort(v.begin(), v.end(), City::byDistance);
 }
 
 void UWAICache::sortCitiesByTargetValue() {
 
-	FAssertMsg(false, "function no longer used");
+	FErrorMsg("function no longer used");
 	sort(v.begin(), v.end(), City::byTargetValue);
 }
 
@@ -898,7 +897,7 @@ double UWAICache::longTermPower(TeamTypes tId, bool defensive) const {
 			continue;
 		UWAI::Civ const& uwai = civ.uwai();
 		MilitaryBranch& army = *uwai.getCache().getPowerValues()[ARMY];
-		int typicalUnitProd = army.getTypicalUnitCost();
+		double typicalUnitProd = army.getTypicalUnitCost();
 		if(typicalUnitProd <= 0)
 			continue;
 		/*  Long-term power mostly depends on production capacity and willingness
@@ -909,7 +908,7 @@ double UWAICache::longTermPower(TeamTypes tId, bool defensive) const {
 				0.35 * civ.estimateYieldRate(YIELD_FOOD) +
 				0.25 * civ.estimateYieldRate(YIELD_COMMERCE)) *
 				(uwai.buildUnitProb() + 0.15) * army.getTypicalUnitPower() /
-				(double)typicalUnitProd;
+				typicalUnitProd;
 	}
 	return r;
 }
@@ -1041,7 +1040,7 @@ void UWAICache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
 	/*  I didn't think I'd need to update the city cache during turns, so this
 		is awkward to write ...
 		Necessary though b/c the AI needs to stay up to date with human conquests. */
-	size_t vIndex = -1;
+	int vIndex = -1;
 	if(GET_PLAYER(oldOwnerId).isMajorCiv()) {
 		City* fromCache = NULL;
 		std::map<int,City*>::iterator pos = cityMap.find(c->plotNum());
@@ -1051,7 +1050,7 @@ void UWAICache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
 			if(fromCache->canReach())
 				nReachableCities.add(oldOwnerId, -1);
 			cityMap.erase(pos);
-			for(vIndex = 0; vIndex < v.size(); vIndex++) {
+			for(vIndex = 0; vIndex < (int)v.size(); vIndex++) {
 				if(v[vIndex]->id() == fromCache->id()) {
 					delete v[vIndex];
 					v[vIndex] = NULL;
@@ -1065,7 +1064,7 @@ void UWAICache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
 		matters slower and more complicated elsewhere. */
 	//if(GET_PLAYER(c->getOwner()).isMajorCiv())
 	City* toCache = new City(ownerId, *c);
-	if(vIndex < 0 || vIndex >= v.size()) {
+	if(vIndex < 0 || vIndex >= (int)v.size()) {
 		v.push_back(toCache);
 		// (c could also have become revealed through map trade)
 		//FAssertMsg(oldOwnerId == BARBARIAN_PLAYER);
@@ -1470,7 +1469,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 		but at least one other city that does have a path to the target, then there
 		is most likely also some mixed path from c to the target. */
 	double mixedPath = 0;
-	CvCity* capital = cacheOwner.getCapitalCity();
+	CvCity* capital = cacheOwner.getCapital();
 	FOR_EACH_CITY(c, cacheOwner) {
 		// Skip small and isolated cities
 		if(!c->isCapital() && (c->getArea().getCitiesPerPlayer(cacheOwnerId) <= 1 ||
@@ -1480,7 +1479,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 		CvPlot* p = c->plot();
 		int pwd = -1; // pairwise (travel) duration
 		int d = -1; // set by measureDistance
-		if(measureDistance(cacheOwnerId, DOMAIN_LAND, *p, *targetCity.plot(), &d)) {
+		if(measureDistance(cacheOwnerId, DOMAIN_LAND, *p, targetCity.getPlot(), &d)) {
 			double speed = estimateMovementSpeed(cacheOwnerId, DOMAIN_LAND, d);
 			// Will practically always have to move through some foreign tiles
 			d = std::min(d, 2) + ::round((d - std::min(d, 2)) / speed);
@@ -1490,14 +1489,14 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 			/*  reachByLand refers to our (AI) capital. This is to ensure that the
 				AI can still detect the need for a naval assault when it has a
 				colony near the target civ. */
-			if(c->at(cacheOwner.getCapitalCity()->plot()))
+			if(c->at(cacheOwner.getCapital()->plot()))
 				reachByLand = true;
 		}
 		if(trainAnyCargo) {
 			DomainTypes dom = DOMAIN_SEA;
 			if(!trainDeepSeaCargo)
 				dom = DOMAIN_IMMOBILE; // Encode non-ocean as IMMOBILE
-			if(measureDistance(cacheOwnerId, dom, *p, *targetCity.plot(), &d)) {
+			if(measureDistance(cacheOwnerId, dom, *p, targetCity.getPlot(), &d)) {
 				FAssert(d >= 0);
 				d = (int)std::ceil(d / estimateMovementSpeed(cacheOwnerId, DOMAIN_SEA, d)) +
 						seaPenalty;
@@ -1636,7 +1635,7 @@ bool UWAICache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
 	if(dom != DOMAIN_LAND && !start.isAdjacentToArea(newDest->getArea()))
 		return false;
 	// The original dest is guaranteed to be owned
-	*r = start.calculatePathDistanceToPlot(start.getTeam(), *newDest,
+	*r = GC.getMap().calculateTeamPathDistance(start.getTeam(), start, *newDest,
 			/*  Path distance counts each step as 1 move; upper bound needs to
 				account for faster movement. */
 			(int)::ceil(maxDist * speedEstimate), dest.getTeam(), dom);

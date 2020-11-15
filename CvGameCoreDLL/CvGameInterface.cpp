@@ -4,6 +4,8 @@
 #include "CvCityAI.h"
 #include "CvUnitAI.h"
 #include "CvSelectionGroup.h"
+#include "KmodPathFinder.h"
+#include "FAStarNode.h"
 #include "PlotRange.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Command.h"
@@ -49,7 +51,7 @@ void CvGame::updateColoredPlots()
 	CvMap const& kMap = GC.getMap();
 	int const iPlots = kMap.numPlots();
 	// BETTER_BTS_AI_MOD, Debug, 06/25/09, jdog5000: START
-	if(kUI.isShowYields()) // advc.007
+	if(kUI.isShowYields() && !gDLL->GetWorldBuilderMode()) // advc.007
 	{
 		// City circles for debugging
 		if (isDebugMode())
@@ -81,8 +83,8 @@ void CvGame::updateColoredPlots()
 				ImprovementTypes eImprovement = kPlot.getImprovementType();
 				if (pWorkingCity != NULL && eImprovement != NO_IMPROVEMENT)
 				{
-					CityPlotTypes ePlot = pWorkingCity->getCityPlotIndex(&kPlot);
-					int iBuildValue = pWorkingCity->AI_getBestBuildValue(ePlot);
+					CityPlotTypes ePlot = pWorkingCity->getCityPlotIndex(kPlot);
+					//int iBuildValue = pWorkingCity->AI_getBestBuildValue(ePlot);
 					BuildTypes eBestBuild = pWorkingCity->AI_getBestBuild(ePlot);
 					if (eBestBuild != NO_BUILD)
 					{
@@ -97,7 +99,7 @@ void CvGame::updateColoredPlots()
 				}
 			}
 		}
-	} // advc.007
+	}
 	// BETTER_BTS_AI_MOD: END
 
 	// City circles when in Advanced Start
@@ -278,13 +280,14 @@ void CvGame::updateColoredPlots()
 		// city sites
 		const CvPlayerAI& kActivePlayer = GET_PLAYER(getActivePlayer());
 		KmodPathFinder site_path;
-		site_path.SetSettings(pHeadSelectedUnit->getGroup(), 0, 7, GC.getMOVE_DENOMINATOR());
+		site_path.SetSettings(pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
+				7, GC.getMOVE_DENOMINATOR());
 		if (pHeadSelectedUnit->canFound()) // advc.004h: was isFound
 		{
 			for (int i = 0; i < kActivePlayer.AI_getNumCitySites(); i++)
 			{
 				CvPlot* pSite = kActivePlayer.AI_getCitySite(i);
-				if (pSite && site_path.GeneratePath(pSite))
+				if (pSite != NULL && site_path.GeneratePath(pSite))
 				{
 					kEngine.addColoredPlot(pSite->getX(), pSite->getY(),
 							GC.getInfo(GC.getColorType("HIGHLIGHT_TEXT")).getColor(),
@@ -302,7 +305,8 @@ void CvGame::updateColoredPlots()
 				iRange++;
 			else iRange--; // </advc.004z>
 			// just a smaller range.
-			site_path.SetSettings(pHeadSelectedUnit->getGroup(), 0, iRange, GC.getMOVE_DENOMINATOR());
+			site_path.SetSettings(pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
+					iRange, GC.getMOVE_DENOMINATOR());
 			for (SquareIter it(*pHeadSelectedUnit, iRange); it.hasNext(); ++it)
 			{
 				CvPlot const& kLoopPlot = *it;
@@ -804,13 +808,14 @@ void CvGame::selectionListMove(CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl
 
 
 void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, int iData4,
-		int iFlags, bool bAlt, bool bShift) const
+	int iFlags, bool bAlt, bool bShift) const
 {
 	int aiPyData[] = { iData2, iData3, iData4 };
 	if (GC.getPythonCaller()->cannotSelectionListNetOverride((GameMessageTypes)
-			eMessage, aiPyData, iFlags, bAlt, bShift))
+		eMessage, aiPyData, iFlags, bAlt, bShift))
+	{
 		return;
-
+	}
 	CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
 	if (pHeadSelectedUnit == NULL || pHeadSelectedUnit->getOwner() != getActivePlayer())
 		return; // advc
@@ -867,6 +872,7 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 		if (!gDLL->UI().mirrorsSelectionGroup())
 			selectionListGameNetMessage(GAMEMESSAGE_JOIN_GROUP);
 
+		MovementFlags eFlags = (MovementFlags)iFlags;
 		if (eMessage == GAMEMESSAGE_PUSH_MISSION)
 		{	// K-Mod. I've moved the BUTTONPOPUP_DECLAREWARMOVE stuff to here from selectionListMove
 			// so that it can catch left-click moves as well as right-click moves.
@@ -879,7 +885,7 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 			//
 			// (I'd rather not have UI stuff like this in this function,
 			//  but this is the only place where I can catch left-click moves.)
-			if (iData2 == MISSION_MOVE_TO && !(iFlags & MOVE_DECLARE_WAR))
+			if (iData2 == MISSION_MOVE_TO && !(eFlags & MOVE_DECLARE_WAR))
 			{
 				CvPlot* pPlot = GC.getMap().plot(iData3, iData4);
 				FAssert(pPlot);
@@ -923,7 +929,7 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 				bModified = GC.altKey(); // </advc.048>
 			CvMessageControl::getInstance().sendPushMission(pHeadSelectedUnit->getID(),
 					(MissionTypes)iData2, iData3, iData4,
-					iFlags & ~ MOVE_DECLARE_WAR, bShift, // K-Mod end
+					eFlags & ~ MOVE_DECLARE_WAR, bShift, // K-Mod end
 					bModified); // advc.011b
 		}
 		else CvMessageControl::getInstance().sendAutoMission(pHeadSelectedUnit->getID());
@@ -1066,8 +1072,8 @@ void CvGame::setupActionCache() const
 
 void CvGame::handleAction(int iAction)
 {
-	bool bAlt = GC.altKey();
-	bool bShift = GC.shiftKey();
+	bool const bAlt = GC.altKey();
+	bool const bShift = GC.shiftKey();
 
 	if (!gDLL->UI().canHandleAction(iAction))
 		return;
@@ -1287,7 +1293,7 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 		break;
 
 	default:
-		FAssertMsg(false, "eControl did not match any valid options");
+		FErrorMsg("eControl did not match any valid options");
 	}
 
 	return false;
@@ -1369,9 +1375,9 @@ void CvGame::doControl(ControlTypes eControl)
 
 	case CONTROL_SELECTCAPITAL:
 	{
-		CvCity* pCapitalCity = GET_PLAYER(getActivePlayer()).getCapitalCity();
-		if (pCapitalCity != NULL)
-			kUI.selectCity(pCapitalCity);
+		CvCity* pCapital = GET_PLAYER(getActivePlayer()).getCapital();
+		if (pCapital != NULL)
+			kUI.selectCity(pCapital);
 		break;
 	}
 	case CONTROL_NEXTCITY:
@@ -1535,7 +1541,7 @@ void CvGame::doControl(ControlTypes eControl)
 						break;
 					}
 				}
-				FAssertMsg(false, "Failed to find quicksave");
+				FErrorMsg("Failed to find quicksave");
 			} // </advc.003d>
 			gDLL->QuickLoad();
 		}
@@ -1693,7 +1699,7 @@ void CvGame::doControl(ControlTypes eControl)
 			kUI.addPopup(pInfo);
 		break;
 	}
-	default: FAssertMsg(false, "Unknown control type");
+	default: FErrorMsg("Unknown control type");
 	}
 }
 
@@ -2071,7 +2077,7 @@ void CvGame::applyFlyoutMenu(const CvFlyoutMenuData& kItem)
 			{
 				CvMessageControl::getInstance().sendPushMission(pLoopUnit->getID(),
 						pLoopUnit->isFortifyable() ? MISSION_FORTIFY : MISSION_SLEEP,
-						-1, -1, 0, false, /* advc.011b: */ GC.ctrlKey());
+						-1, -1, NO_MOVEMENT_FLAGS, false, /* advc.011b: */ GC.ctrlKey());
 			}
 		}
 		break;
@@ -2093,9 +2099,10 @@ ColorTypes CvGame::getPlotHighlightColor(CvPlot* pPlot) const  // advc: refactor
 	if (pPlot == NULL)
 		return NO_COLOR;
 
-	ColorTypes eDefaultColor = GC.getColorType("GREEN");
+	ColorTypes const eDefaultColor = GC.getColorType("GREEN");
 	if (gDLL->GetWorldBuilderMode())
 		return eDefaultColor;
+	ColorTypes const eNegativeColor = GC.getColorType("DARK_GREY");
 
 	switch (gDLL->UI().getInterfaceMode())
 	{
@@ -2103,21 +2110,23 @@ ColorTypes CvGame::getPlotHighlightColor(CvPlot* pPlot) const  // advc: refactor
 	case INTERFACEMODE_SIGN:
 		if (!pPlot->isRevealed(getActiveTeam(), true))
 			return NO_COLOR;
+		return eDefaultColor;
 	case INTERFACEMODE_PYTHON_PICK_PLOT:
 		if (!pPlot->isRevealed(getActiveTeam(), true) ||
 			!GC.getPythonCaller()->canPickRevealedPlot(*pPlot))
 		{
 			return NO_COLOR;
 		}
+		return eDefaultColor;
 	case INTERFACEMODE_SAVE_PLOT_NIFS:
-		return GC.getColorType("DARK_GREY");
+		return eNegativeColor;
 	}
-	if (!gDLL->UI().getSelectionList()->canDoInterfaceModeAt(
+	if (gDLL->UI().getSelectionList()->canDoInterfaceModeAt(
 		gDLL->UI().getInterfaceMode(), pPlot))
 	{
-		return GC.getColorType("DARK_GREY");
+		return eDefaultColor;
 	}
-	return eDefaultColor;
+	return eNegativeColor;
 }
 
 void CvGame::loadBuildQueue(const CvString& strItem) const
@@ -2308,8 +2317,8 @@ void CvGame::nextActivePlayer(bool bForward)
 			GC.getInitCore().setSlotStatus(eNewPlayer, SS_TAKEN);*/
 			/*  <advc.210> The CHANGE_PLAYER component added a wrapper for that
 				(which now also initializes alerts) */
-			GET_PLAYER(getActivePlayer()).setIsHuman(false);
-			GET_PLAYER(eNewPlayer).setIsHuman(true);
+			GET_PLAYER(getActivePlayer()).setIsHuman(false, true);
+			GET_PLAYER(eNewPlayer).setIsHuman(true, true);
 			// </advc.210>
 			GET_PLAYER(getActivePlayer()).setTurnActive(false, false);
 			GET_PLAYER(eNewPlayer).setTurnActive(true, false);
@@ -2323,7 +2332,7 @@ void CvGame::nextActivePlayer(bool bForward)
 int CvGame::getNextSoundtrack(EraTypes eLastEra, int iLastSoundtrack) const
 {
 	EraTypes eCurEra = GET_PLAYER(getActivePlayer()).getCurrentEra();
-	CvEraInfo& kCurrentEra = GC.getInfo(eCurEra);
+	CvEraInfo const& kCurrentEra = GC.getInfo(eCurEra);
 	if (kCurrentEra.getNumSoundtracks() == 0)
 		return -1;
 	if (kCurrentEra.getNumSoundtracks() == 1 ||
@@ -2331,13 +2340,29 @@ int CvGame::getNextSoundtrack(EraTypes eLastEra, int iLastSoundtrack) const
 	{
 		return kCurrentEra.getSoundtracks(0);
 	}
-	return kCurrentEra.getSoundtracks(
-			GC.getASyncRand().get(kCurrentEra.getNumSoundtracks(), "Pick Song ASYNC"));
+	//return kCurrentEra.getSoundtracks(GC.getASyncRand().get(kCurrentEra.getNumSoundtracks(), "Pick Song ASYNC"));
+	/*	<advc.002o> Perhaps was meant to be implemented this way? Why else handle
+		kCurrentEra.getNumSoundtracks()==1 upfront? (Not to mention the unused param.) */
+	std::vector<int> aiTracks;
+	for (int i = 0; i < kCurrentEra.getNumSoundtracks(); i++)
+	{
+		int iTrack = kCurrentEra.getSoundtracks(i);
+		if (iTrack != iLastSoundtrack)
+			aiTracks.push_back(iTrack);
+	}
+	if (aiTracks.empty())
+	{
+		FAssert(!aiTracks.empty());
+		aiTracks.push_back(iLastSoundtrack);
+	}
+	return aiTracks[GC.getASyncRand().get(
+			aiTracks.size(), "Pick Song ASYNC")]; // </advc.002o>
 }
 
 int CvGame::getSoundtrackSpace() const
 {
-	return std::max(1, GC.getInfo(GET_PLAYER(getActivePlayer()).getCurrentEra()).getSoundtrackSpace());
+	return std::max(1, GC.getInfo(GET_PLAYER(getActivePlayer()).getCurrentEra()).
+			getSoundtrackSpace());
 }
 
 bool CvGame::isSoundtrackOverride(CvString& strSoundtrack) const
@@ -2544,21 +2569,22 @@ EndTurnButtonStates CvGame::getEndTurnState() const
 }
 
 void CvGame::handleCityScreenPlotPicked(CvCity* pCity, CvPlot* pPlot,
-		bool bAlt, bool bShift, bool bCtrl) const
+	bool bAlt, bool bShift, bool bCtrl) const
 {
-	FAssert(pPlot != NULL);
-	if (pCity != NULL && pPlot != NULL)
+	if (pCity == NULL || pPlot == NULL)
 	{
-		int iIndex = pCity->getCityPlotIndex(pPlot);
-		if (pPlot->getOwner() == getActivePlayer() &&
-			pCity->getOwner() == getActivePlayer() && iIndex != -1)
-		{
-			CvMessageControl::getInstance().sendDoTask(pCity->getID(),
-					TASK_CHANGE_WORKING_PLOT, iIndex, -1, false, bAlt, bShift, bCtrl);
-		}
-		else if (GC.getDefineINT("CITY_SCREEN_CLICK_WILL_EXIT"))
-			gDLL->UI().clearSelectedCities();
+		FAssert(false); // advc (BtS had only asserted pPlot)
+		return;
 	}
+	int iIndex = pCity->getCityPlotIndex(*pPlot);
+	if (pPlot->getOwner() == getActivePlayer() &&
+		pCity->getOwner() == getActivePlayer() && iIndex != -1)
+	{
+		CvMessageControl::getInstance().sendDoTask(pCity->getID(),
+				TASK_CHANGE_WORKING_PLOT, iIndex, -1, false, bAlt, bShift, bCtrl);
+	}
+	else if (GC.getDefineINT("CITY_SCREEN_CLICK_WILL_EXIT"))
+		gDLL->UI().clearSelectedCities();
 }
 
 void CvGame::handleCityScreenPlotDoublePicked(CvCity* pCity, CvPlot* pPlot,
@@ -2573,26 +2599,29 @@ void CvGame::handleCityScreenPlotDoublePicked(CvCity* pCity, CvPlot* pPlot,
 void CvGame::handleCityScreenPlotRightPicked(CvCity* pCity, CvPlot* pPlot,
 	bool bAlt, bool bShift, bool bCtrl) const
 {
-	if (pCity != NULL && pPlot != NULL)
-	{	/*  <advc.004t> Can't assign a working city to the city plot, so use this
-			for exiting the screen. */
-		if(pCity->plot() == pPlot)
-		{
-			CvPlot const* pCityPlot = (gDLL->UI().isCityScreenUp() ?
-					gDLL->UI().getHeadSelectedCity()->plot() : NULL);
-			gDLL->UI().clearSelectedCities();
-			if(pCityPlot != NULL)
-				gDLL->UI().lookAt(pCityPlot->getPoint(), CAMERALOOKAT_NORMAL);
-			return;
-		} // </advc.004t>
-		if (pCity->getOwner() == getActivePlayer() &&
-				pPlot->getOwner() == getActivePlayer() &&
-				pCity->getCityPlotIndex(pPlot) != -1)
-		{
-			CvMessageControl::getInstance().sendDoTask(pCity->getID(),
-					TASK_CLEAR_WORKING_OVERRIDE, pCity->getCityPlotIndex(pPlot),
-					-1, false, bAlt, bShift, bCtrl);
-		}
+	if (pCity == NULL || pPlot == NULL)
+	{
+		FAssert(false); // advc: As in handleCityScreenPlotPicked
+		return;
+	}
+	/*  <advc.004t> Can't assign a working city to the city plot, so use this
+		for exiting the screen. */
+	if(pCity->plot() == pPlot)
+	{
+		CvPlot const* pCityPlot = (gDLL->UI().isCityScreenUp() ?
+				gDLL->UI().getHeadSelectedCity()->plot() : NULL);
+		gDLL->UI().clearSelectedCities();
+		if(pCityPlot != NULL)
+			gDLL->UI().lookAt(pCityPlot->getPoint(), CAMERALOOKAT_NORMAL);
+		return;
+	} // </advc.004t>
+	if (pCity->getOwner() == getActivePlayer() &&
+		pPlot->getOwner() == getActivePlayer() &&
+		pCity->getCityPlotIndex(*pPlot) != -1)
+	{
+		CvMessageControl::getInstance().sendDoTask(pCity->getID(),
+				TASK_CLEAR_WORKING_OVERRIDE, pCity->getCityPlotIndex(*pPlot),
+				-1, false, bAlt, bShift, bCtrl);
 	}
 }
 

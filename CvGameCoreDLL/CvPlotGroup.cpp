@@ -44,7 +44,7 @@ void CvPlotGroup::reset(int iID, PlayerTypes eOwner, bool bConstructorCall)
 	m_eOwner = eOwner;
 
 	if (!bConstructorCall)
-		m_paiNumBonuses.reset();
+		m_aiNumBonuses.reset();
 }
 
 
@@ -159,7 +159,7 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 		return; // advc
 
 	//iOldNumBonuses = getNumBonuses(eBonus);
-	m_paiNumBonuses.add(eBonus, iChange);
+	m_aiNumBonuses.add(eBonus, iChange);
 
 	//FAssert(m_paiNumBonuses.get(eBonus) >= 0); // XXX
 	// K-Mod note, m_paiNumBonuses[eBonus] is often temporarily negative while plot groups are being updated.
@@ -179,21 +179,21 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 	}
 }
 
-// <advc.064d>
+// advc.064d:
 void CvPlotGroup::verifyCityProduction()
 {
 	PROFILE_FUNC(); // About 1 permille of the runtime
 	if (m_iRecalculating > 0)
 		return;
-	CvMap const& m = GC.getMap();
+	CvMap const& kMap = GC.getMap();
 	for (CLLNode<XYCoords> const* pPlotNode = headPlotsNode(); pPlotNode != NULL;
 		pPlotNode = nextPlotsNode(pPlotNode))
 	{
-		CvCity* pCity = m.getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY).getPlotCity();
+		CvCity* pCity = kMap.getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY).getPlotCity();
 		if (pCity != NULL && pCity->getOwner() == getOwner())
 			pCity->verifyProduction();
 	}
-} // </advc.064d>
+}
 
 
 void CvPlotGroup::insertAtEndPlots(XYCoords xy)
@@ -220,7 +220,7 @@ void CvPlotGroup::read(FDataStreamBase* pStream)
 	pStream->Read(&uiFlag);
 	pStream->Read(&m_iID);
 	pStream->Read((int*)&m_eOwner);
-	m_paiNumBonuses.Read(pStream);
+	m_aiNumBonuses.Read(pStream);
 	m_plots.Read(pStream);
 }
 
@@ -231,6 +231,6 @@ void CvPlotGroup::write(FDataStreamBase* pStream)
 	pStream->Write(uiFlag);
 	pStream->Write(m_iID);
 	pStream->Write(m_eOwner);
-	m_paiNumBonuses.Write(pStream);
+	m_aiNumBonuses.Write(pStream);
 	m_plots.Write(pStream);
 }

@@ -253,7 +253,7 @@ class MapConstants:
 
 		#This variable can be used to turn off 'New world' logic and place starting positions
 		#anywhere in the world. For some mods, a new world doesn't make sense.
-		# advc.021b (comment): This gets overwritten when custom options are read. Apparently, AllowNewWorld stands for "enable the New World logic", meaning that starts in the New World are actually disallowed!
+		# advc.021b (comment): This gets overwritten when custom options are read. Apparently, AllowNewWorld stands for "allow there to be a New World", which really means that starts in the New World are disallowed!
 		self.AllowNewWorld = False
 
 		## (Mongoose Setting)
@@ -269,7 +269,7 @@ class MapConstants:
 		#depending on map size, meteors, and which landmass generator was selected.
 		#self.landPercent   = 0.2889
 		# advc.021b: See comments about sea level above. Gets further modified in initInGameOptions.
-		self.landPercent = 0.26
+		self.landPercent = 0.27
 
 		#Percentage of land squares high enough to be Hills or Peaks.
 		self.HillPercent   = 0.30 # advc.021b: was 42
@@ -3799,6 +3799,8 @@ class ContinentMap:
 		#interesting and possibly bigger new worlds
 		continentList.sort(lambda x, y:cmp(x.ID, y.ID))
 		continentList.reverse()
+		# Was > 0.6. A larger Old World plays better, while the true ratio (Africa+Eurasia)/(Africa+EurasiaAmerica+Oceania) is indeed just 62.5%. Use randomness to make a realistic size possible but rather unlikely.
+		oldWorldTargetPercent = (60 + PRand.randint(0, 9)) / 100.0
 		for n in range(len(continentList)):
 			# <advc.021b> Small land masses are no use for the Old World b/c civs can't start there
 			if continentList[0].size < 50:
@@ -3807,8 +3809,7 @@ class ContinentMap:
 				continue # </advc.021b>
 			oldWorldSize += continentList[0].size
 			del continentList[0]
-			# Was > 0.6. A larger Old World plays better, while the true ratio (Africa+Eurasia)/(Africa+EurasiaAmerica+Oceania) is indeed just 62.5%. Use randomness to make a realistic size possible but rather unlikely.
-			if float(oldWorldSize) / float(totalLand) > (60 + PRand.randint(0, 9)) / 100.0:
+			if float(oldWorldSize) / float(totalLand) > oldWorldTargetPercent:
 				break
 		# advc.021b: A too small Old World is going to be unplayable; rather reserve no New World then (or just some islands).
 		if reservedSecondBiggest and float(oldWorldSize) / float(iCivs) < 85:
@@ -4548,7 +4549,8 @@ class StartingPlotFinder:
 			areas = CvMapGeneratorUtil.getAreas()
 			#get old/new world status
 			areaOldWorld = self.setupOldWorldAreaList()
-			print "len(areaOldWorld) = %d" % len(areaOldWorld)
+			# advc.021b: Not helpful; it's the same as len(areas).
+			#print "len(areaOldWorld) = %d" % len(areaOldWorld)
 			self.CachePlotValue()
 			#Shuffle players so the same player doesn't always get the first pick.
 			#lifted from Highlands.py that ships with Civ.
@@ -4941,6 +4943,8 @@ class StartingPlotFinder:
 
 
 	def ensureMinimumHills(self, x, y):
+		# advc.021b: Made same changes below b/c I meant to keep the extra hills, then I realized that the DLL does the same thing. So:
+		return
 		gc = CyGlobalContext()
 		gameMap = CyMap()
 		hillsFound = 0
@@ -5002,7 +5006,8 @@ class StartingPlotFinder:
 					hillsNeeded -= 1
 			if hillsNeeded > 0:
 				for plot in plotList:
-					if plot.getPlotType() != PlotTypes.PLOT_HILLS and plot.getArea() == gameMap.plot(x, y).getArea() and (bonusInfo == None or not bonusInfo.isRequiresFlatlands()):
+					# advc.001: Was 'not bonusInfo.isRequiresFlatlands()' - that function doesn't exist. Use isHills instead (like in the DLL).
+					if plot.getPlotType() != PlotTypes.PLOT_HILLS and plot.getArea() == gameMap.plot(x, y).getArea() and (bonusInfo == None or bonusInfo.isHills()):
 						plot.setPlotType(PlotTypes.PLOT_HILLS, True, True)
 						hillsNeeded -= 1
 						if requiresFlatlands:
@@ -5568,8 +5573,8 @@ def getCustomMapOptionDescAt(argsList):
 		else:
 			return "Flat"
 	elif optionID == 1:
-		# advc.021b: was just "Old World"
-		owMsg = "Old World (unless Pangaea); -35% players recommended"
+		# advc.021b: Was just "Old World". The recommendation partly takes into account that the Old World option often doesn't have much of an effect. If it were working reliably, the recommendation should be -25% to -30%.
+		owMsg = "Old World (unless Pangaea); -20% players recommended"
 		if mc.AllowNewWorld:
 			if selectionID == 0:
 				return owMsg
@@ -5952,7 +5957,7 @@ def replaceRivers(x, y):
 
 '''
 It looks bad to have a lake, fed by a river, sitting right next to the coast.
-This function tries to minimize that occurance by replacing it with a
+This function tries to minimize that occurrence by replacing it with a
 natural harbor, which looks much better.
 '''
 def makeHarbor(x, y, oceanMap):
@@ -6173,22 +6178,25 @@ def addFeatures():
 						# Also convert grassland to plains
 						if tm.tData[i] == mc.GRASS:
 							tm.tData[i] = mc.PLAINS
-							# I think terrain has already been set at this point; need to overwrite that.
+							# Terrain has already been set at this point; need to overwrite that.
 							plot.setTerrainType(gc.getInfoTypeForString("TERRAIN_PLAINS"), False, False)
 					else:
 					# </advc.021b>					
-						plot.setFeatureType(fJungle, 0)
+						setFeature(plot, fJungle, 0)
 				elif cm.RainfallMap.data[i] >= tm.plainsThreshold * mc.JungleFactor * PRand.random() and PRand.random() < (mc.MaxTreeChance * mc.ForestChance): # advc.021b: Multiplication by ForestChance added
 					if tm.tData[i] == mc.TUNDRA:
-						plot.setFeatureType(fForest, FORESTSNOWY)
+						setFeature(plot, fForest, FORESTSNOWY)
 					elif cm.TemperatureMap.data[i] >= mc.ForestTemp:
-						plot.setFeatureType(fForest, FORESTLEAFY)
+						setFeature(plot, fForest, FORESTLEAFY)
 					else:
-						plot.setFeatureType(fForest, FORESTEVERGREEN)
+						setFeature(plot, fForest, FORESTEVERGREEN)
 			#Floodplains, Oasis
 			elif not plot.isWater() and tm.tData[i] == mc.DESERT and tm.pData[i] == mc.LAND:
-				if plot.isRiver():
-					plot.setFeatureType(fFloodPlains, 0)
+				#if plot.isRiver():
+					#plot.setFeatureType(fFloodPlains, 0)
+				# <advc.021b> Let the DLL check that
+				if setFeature(plot, fFloodPlains, 0):
+					pass # </advc.021b>
 				else:
 					#is this square surrounded by desert?
 					valid = True
@@ -6211,7 +6219,15 @@ def addFeatures():
 						if not valid:
 							break
 					if valid and PRand.random() < mc.OasisChance:
-						plot.setFeatureType(fOasis, 0)
+						setFeature(plot, fOasis, 0)
+
+# <advc.021b> Make sure that placement rules are consistent with DLL.
+# setFeatureType calls above redirected here.
+def setFeature(plot, feature, variety):
+	if not plot.canHaveFeature(feature):
+		return False
+	plot.setFeatureType(feature, variety)
+	return True # </advc.021b>
 
 
 def createIce():
@@ -6274,7 +6290,9 @@ def addBonuses():
 
 
 def assignStartingPlots():
-	sf.SetStartingPlots()
+	# advc.027: If we set starting plots, then starting position iteration can't move starting plots to uninhabited landmasses. That's good if those landmasses are reserved for a New World, bad otherwise.
+	if mc.AllowNewWorld or CyGlobalContext().getDefineINT("ENABLE_STARTING_POSITION_ITERATION") <= 0:
+		sf.SetStartingPlots()
 	# advc.021b: Let CvGame::asignStartingPlots shuffle plots around based on difficulty
 	CyPythonMgr().allowDefaultImpl()
 

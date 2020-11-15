@@ -2,7 +2,7 @@
 #ifndef CVDIPLOPARAMETERS_H
 #define CVDIPLOPARAMETERS_H
 
-#include "FVariableSystem.h"
+class FVariable;
 
 class CvDiploParameters
 {

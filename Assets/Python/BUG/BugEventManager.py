@@ -426,7 +426,7 @@ class BugEventManager(CvEventManager.CvEventManager):
 	# right after loading a game. Still fires when Python modules
 	# are reloaded, which causes (harmless) exceptions in Civ4lerts.
 	# Tbd.: BugEventManager should somehow detect during initialization
-	# whether it's the game is starting or if modules are being reloaded.
+	# whether the game is starting or if modules are being reloaded.
 	# In the latter case, resetActiveTurnAfterLoad needs to be called
 	# instead of resetActiveTurn.
 	def resetActiveTurnAfterLoad(self, argsList=None):

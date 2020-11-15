@@ -29,7 +29,6 @@ void CyInfoPythonInterface1()
 		;
 
 	python::class_<CvScalableInfo, boost::noncopyable>("CvScalableInfo")
-		.def("setScale", &CvScalableInfo::setScale, "void (float fScale)")
 		.def("getScale", &CvScalableInfo::getScale, "float  ()")
 		;
 

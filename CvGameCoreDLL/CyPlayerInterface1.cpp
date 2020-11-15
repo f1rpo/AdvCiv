@@ -2,9 +2,6 @@
 #include "CyPlayer.h"
 #include "CySelectionGroup.h"
 #include "CyArea.h"
-//# include <boost/python/manage_new_object.hpp>
-//# include <boost/python/return_value_policy.hpp>
-//# include <boost/python/scope.hpp>
 
 //
 // published python interface for CyPlayer
@@ -21,7 +18,7 @@ void CyPlayerPythonInterface1(python::class_<CyPlayer>& x)
 		// CHANGE_PLAYER, 08/27/08, jdog5000: START
 		.def("changeLeader", &CyPlayer::changeLeader, "void ( int /*LeaderHeadTypes*/ eNewLeader) - change leader of player")
 		.def("changeCiv", &CyPlayer::changeCiv, "void ( int /*CivilizationTypes*/ eNewCiv ) - change civilization of player")
-		.def( "setIsHuman", &CyPlayer::setIsHuman, "void ( bool bNewValue ) - set whether player is human")
+		.def("setIsHuman", &CyPlayer::setIsHuman, "void ( bool bNewValue ) - set whether player is human")
 		// CHANGE_PLAYER: END
 		.def("startingPlotRange", &CyPlayer::startingPlotRange, "int ()")
 		.def("startingPlotWithinRange", &CyPlayer::startingPlotWithinRange, "bool (CyPlot *pPlot, int /*PlayerTypes*/ ePlayer, int iRange, int iPass)")
@@ -148,11 +145,17 @@ void CyPlayerPythonInterface1(python::class_<CyPlayer>& x)
 
 		.def("canSeeResearch", &CyPlayer::canSeeResearch, "bool (int /*PlayerTypes*/ ePlayer)") // K-Mod
 		.def("canSeeDemographics", &CyPlayer::canSeeDemographics, "bool (int /*PlayerTypes*/ ePlayer)") // K-Mod
+		// advc.091:
+		.def("hasEverSeenDemographics", &CyPlayer::hasEverSeenDemographics, "bool (int /*PlayerTypes*/ iPlayer)")
 
 		.def("isCivic", &CyPlayer::isCivic, "bool (int (CivicTypes) eCivic)")
 		.def("canDoCivics", &CyPlayer::canDoCivics, "bool (int (CivicTypes) eCivic)")
-		.def("canRevolution", &CyPlayer::canRevolution, "bool (int (CivicTypes*) paeNewCivics)")
-		.def("revolution", &CyPlayer::revolution, "void (int (CivicTypes*) paeNewCivics, bool bForce)")
+		 /*	<advc> For compatibility with BtS Python code. int param is needed but ignored.
+			Corresponds to CvPlayer::canDoAnyRevolution. */
+		.def("canRevolution", &CyPlayer::canRevolution, "bool (int iDummy)")
+		 // Proper can-revolution function:
+		.def("canAdopt", &CyPlayer::canAdopt, "bool (int* (CivicTypes*) paeNewCivics)") // </advc.001>
+		.def("revolution", &CyPlayer::revolution, "void (int* (CivicTypes*) paeNewCivics, bool bForce)")
 		.def("getCivicPercentAnger", &CyPlayer::getCivicPercentAnger, "int (int /*CivicTypes*/ eCivic)")
 
 		.def("canDoReligion", &CyPlayer::canDoReligion, "int (int /*ReligionTypes*/ eReligion)")
@@ -276,7 +279,7 @@ void CyPlayerPythonInterface1(python::class_<CyPlayer>& x)
 		.def("getOverflowResearch", &CyPlayer::getOverflowResearch, "int ()")
 		//.def("isNoUnhealthyPopulation", &CyPlayer::isNoUnhealthyPopulation, "bool ()")
 		.def("getUnhealthyPopulationModifier", &CyPlayer::getUnhealthyPopulationModifier, "int ()") // K-Mod
-		.def("getExpInBorderModifier", &CyPlayer::getExpInBorderModifier, "bool ()")
+		.def("getExpInBorderModifier", &CyPlayer::getExpInBorderModifier, "int ()")
 		.def("isBuildingOnlyHealthy", &CyPlayer::isBuildingOnlyHealthy, "bool ()")
 
 		.def("getDistanceMaintenanceModifier", &CyPlayer::getDistanceMaintenanceModifier, "int ()")

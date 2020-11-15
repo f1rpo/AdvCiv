@@ -46,19 +46,9 @@ const TCHAR * CvWaterPlaneInfo::getBaseTexture() const
 	return m_szBaseTexture;
 }
 
-void CvWaterPlaneInfo::setBaseTexture(const TCHAR* szVal)
-{
-	m_szBaseTexture=szVal;
-}
-
 const TCHAR * CvWaterPlaneInfo::getTransitionTexture() const
 {
 	return m_szTransitionTexture;
-}
-
-void CvWaterPlaneInfo::setTransitionTexture(const TCHAR* szVal)
-{
-	m_szTransitionTexture=szVal;
 }
 
 float CvWaterPlaneInfo::getTextureScaling() const
@@ -78,7 +68,6 @@ float CvWaterPlaneInfo::getTextureScrollRateV() const
 
 bool CvWaterPlaneInfo::read(CvXMLLoadUtility* pXML)
 {
-	CvString  szTextVal;
 	if (!CvInfoBase::read(pXML))
 		return false;
 
@@ -119,8 +108,7 @@ bool CvWaterPlaneInfo::read(CvXMLLoadUtility* pXML)
 	{
 		if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "WaterBaseTexture"))
 		{
-			pXML->GetChildXmlValByName( szTextVal, "TextureFile");
-			setBaseTexture(szTextVal);
+			pXML->GetChildXmlValByName(m_szBaseTexture, "TextureFile");
 
 			pXML->GetChildXmlValByName( &m_BaseTextureScale, "TextureScaling");
 			pXML->GetChildXmlValByName( &m_fURate, "URate");
@@ -129,10 +117,9 @@ bool CvWaterPlaneInfo::read(CvXMLLoadUtility* pXML)
 			gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 
 		}
-		if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"WaterTransitionTexture"))
+		if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "WaterTransitionTexture"))
 		{
-			pXML->GetChildXmlValByName( szTextVal, "TextureFile");
-			setTransitionTexture(szTextVal);
+			pXML->GetChildXmlValByName(m_szTransitionTexture, "TextureFile");
 		}
 
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
@@ -182,11 +169,6 @@ const TCHAR * CvTerrainPlaneInfo::getBaseTexture() const
 	return m_szBaseTexture;
 }
 
-void CvTerrainPlaneInfo::setBaseTexture(const TCHAR* szVal)
-{
-	m_szBaseTexture=szVal;
-}
-
 float CvTerrainPlaneInfo::getTextureScalingU() const
 {
 	return m_BaseTextureScaleU;
@@ -227,9 +209,7 @@ bool CvTerrainPlaneInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName( &m_fMaterialAlpha, "MaterialAlpha");
 	pXML->GetChildXmlValByName( &m_fCloseAlpha, "CloseAlpha");
 
-	CvString  szTextVal;
-	pXML->GetChildXmlValByName( szTextVal, "TextureFile");
-	setBaseTexture(szTextVal);
+	pXML->GetChildXmlValByName(m_szBaseTexture, "TextureFile");
 
 	pXML->GetChildXmlValByName( &m_BaseTextureScaleU, "TextureScalingU");
 	pXML->GetChildXmlValByName( &m_BaseTextureScaleV, "TextureScalingV");
@@ -237,6 +217,7 @@ bool CvTerrainPlaneInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName( &m_fVRate, "VRate");
 	pXML->GetChildXmlValByName( &m_fZHeight, "ZHeight");
 
+	CvString szTextVal;
 	pXML->GetChildXmlValByName( szTextVal, "FogType");
 	if(szTextVal.CompareNoCase("FOG_TYPE_NONE") == 0)
 		m_eFogType = FOG_TYPE_NONE;
@@ -246,7 +227,7 @@ bool CvTerrainPlaneInfo::read(CvXMLLoadUtility* pXML)
 		m_eFogType = FOG_TYPE_PROJECTED;
 	else
 	{
-		FAssertMsg(false, "[Jason] Unknown fog type.");
+		FErrorMsg("[Jason] Unknown fog type.");
 		m_eFogType = FOG_TYPE_NONE;
 	}
 
@@ -268,11 +249,6 @@ const TCHAR * CvCameraOverlayInfo::getBaseTexture() const
 	return m_szBaseTexture;
 }
 
-void CvCameraOverlayInfo::setBaseTexture(const TCHAR* szVal)
-{
-	m_szBaseTexture = szVal;
-}
-
 CameraOverlayTypes CvCameraOverlayInfo::getCameraOverlayType() const
 {
 	return m_eCameraOverlayType;
@@ -284,12 +260,9 @@ bool CvCameraOverlayInfo::read(CvXMLLoadUtility* pXML)
 		return false;
 
 	pXML->GetChildXmlValByName(&m_bVisible, "bVisible");
+	pXML->GetChildXmlValByName(m_szBaseTexture, "TextureFile");
 
 	CvString szTextVal;
-
-	pXML->GetChildXmlValByName(szTextVal, "TextureFile");
-	setBaseTexture(szTextVal);
-
 	pXML->GetChildXmlValByName(szTextVal, "CameraOverlayType");
 	if(szTextVal.CompareNoCase("CAMERA_OVERLAY_DECAL") == 0)
 		m_eCameraOverlayType = CAMERA_OVERLAY_DECAL;
@@ -297,7 +270,7 @@ bool CvCameraOverlayInfo::read(CvXMLLoadUtility* pXML)
 		m_eCameraOverlayType = CAMERA_OVERLAY_ADDITIVE;
 	else
 	{
-		FAssertMsg(false, "[Jason] Unknown camera overlay type.");
+		FErrorMsg("[Jason] Unknown camera overlay type.");
 		m_eCameraOverlayType = CAMERA_OVERLAY_DECAL;
 	}
 

@@ -5,7 +5,6 @@
 #include "CvXMLLoadUtility.h"
 #include "CvGameTextMgr.h"
 #include "CvInfo_Building.h"
-#include "CvInfo_Unit.h"
 #include "CvInfo_Terrain.h"
 
 

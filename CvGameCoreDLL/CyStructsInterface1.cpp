@@ -64,7 +64,7 @@ void CyStructsPythonInterface1()
 		.def_readwrite("eMissionType", &MissionData::eMissionType)
 		.def_readwrite("iData1", &MissionData::iData1)
 		.def_readwrite("iData2", &MissionData::iData2)
-		.def_readwrite("iFlags", &MissionData::iFlags)
+		.def_readwrite("iFlags", &MissionData::eFlags)
 		.def_readwrite("iPushTurn", &MissionData::iPushTurn)
 		;
 

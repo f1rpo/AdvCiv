@@ -3,15 +3,16 @@
 #ifndef FREE_LIST_TRAVERSAL_H
 #define FREE_LIST_TRAVERSAL_H
 
-// advc.003s: Macros for traversing  FFreeListTrashArray
+// advc.003s: Macros for traversing FFreeListTrashArray
 // advc.003u: Added variants that provide a pointer to an AI object (e.g. FOR_EACH_UNITAI).
 
 /*  All FOR_EACH macros need to be listed in cpp.hint so that Visual Studio can
 	parse them properly! Otherwise, the navigation bar will show "Global Scope"
-	for any functions that use the macros. */
+	for any functions that use the macros. (At least in VS2010; perhaps not an issue
+	with more recent versions.) */
 
 // ('iLoopCounter_##__LINE__' won't work)
-#define LOOPCOUNTERNAME CONCATVARNAME(iLoopCounter_, __LINE__)
+#define LOOPCOUNTERNAME CONCATVARNAME(iAnonLoopCounter_, __LINE__)
 
 /*  pointerType argument to allow the caller to choose AI or non-AI type and
 	const or non-const. -- Not intuitive enough; create a separate macro for every

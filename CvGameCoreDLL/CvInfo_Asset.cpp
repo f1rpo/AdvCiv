@@ -73,7 +73,7 @@ bool CvArtInfoAsset::read(CvXMLLoadUtility* pXML)
 // advc.xmldefault:
 CvArtInfoScalableAsset::CvArtInfoScalableAsset(CvArtInfoScalableAsset const& kOther)
 {
-	FAssertMsg(false, "No copy-ctor implemented");
+	FErrorMsg("No copy-ctor implemented");
 }
 
 bool CvArtInfoScalableAsset::read(CvXMLLoadUtility* pXML)
@@ -601,7 +601,7 @@ bool CvArtInfoFeature::read(CvXMLLoadUtility* pXML)
 		m_eTileArtType = TILE_ART_TYPE_HALF_TILING;
 	else if(szTemp.CompareNoCase("TILE_ART_TYPE_PLOT_TILING") == 0)
 		m_eTileArtType = TILE_ART_TYPE_PLOT_TILING;
-	else FAssertMsg(false, "[Jason] Unknown TileArtType.");
+	else FErrorMsg("[Jason] Unknown TileArtType.");
 
 	pXML->GetChildXmlValByName(szTemp, "LightType");
 	if(szTemp.CompareNoCase("LIGHT_TYPE_NONE") == 0)
@@ -612,7 +612,7 @@ bool CvArtInfoFeature::read(CvXMLLoadUtility* pXML)
 		m_eLightType = LIGHT_TYPE_TERRAIN;
 	else if(szTemp.CompareNoCase("LIGHT_TYPE_UNIT") == 0)
 		m_eLightType = LIGHT_TYPE_UNIT;
-	else FAssertMsg(false, "[Jason] Unknown LightType.");
+	else FErrorMsg("[Jason] Unknown LightType.");
 
 	//feature varieties
 	if(gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"FeatureVariety"))
@@ -736,7 +736,7 @@ int CvArtInfoFeature::getConnectionMaskFromString(const CvString &connectionStri
 				connectionMask |= DIRECTION_SOUTHWEST_MASK;
 			else if(token.CompareNoCase("W") == 0)
 				connectionMask |= DIRECTION_WEST_MASK;
-			else FAssertMsg(false, "[Jason] Invalid connection direction.");
+			else FErrorMsg("[Jason] Invalid connection direction.");
 		}
 
 		FAssertMsg(connectionMask > 0, "[Jason] Did not find feature connection mask.");

@@ -59,11 +59,11 @@ void CvMessageControl::sendDoTask(int iCity, TaskTypes eTask, int iData1, int iD
 	}
 }
 
-void CvMessageControl::sendUpdateCivics(const std::vector<CivicTypes>& aeCivics)
+void CvMessageControl::sendUpdateCivics(/* advc.enum: */ CivicMap const& kCivics)
 {
 	if (NO_PLAYER != GC.getGame().getActivePlayer())
 	{
-		gDLL->sendMessageData(new CvNetUpdateCivics(GC.getGame().getActivePlayer(), aeCivics));
+		gDLL->sendMessageData(new CvNetUpdateCivics(GC.getGame().getActivePlayer(), kCivics));
 	}
 }
 
@@ -129,12 +129,14 @@ void CvMessageControl::sendJoinGroup(int iUnitID, int iHeadID)
 	}
 }
 
-void CvMessageControl::sendPushMission(int iUnitID, MissionTypes eMission, int iData1, int iData2, int iFlags, bool bShift,
+void CvMessageControl::sendPushMission(int iUnitID, MissionTypes eMission,
+	int iData1, int iData2, MovementFlags eFlags, bool bShift,
 	bool bModified) // advc.011b
 {
 	if (NO_PLAYER != GC.getGame().getActivePlayer())
 	{
-		gDLL->sendMessageData(new CvNetPushMission(GC.getGame().getActivePlayer(), iUnitID, eMission, iData1, iData2, iFlags, bShift,
+		gDLL->sendMessageData(new CvNetPushMission(GC.getGame().getActivePlayer(),
+				iUnitID, eMission, iData1, iData2, eFlags, bShift,
 				bModified)); // advc.011b
 	}
 }

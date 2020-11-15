@@ -4,7 +4,16 @@
 <!-- Sid Meier's Civilization 4 -->
 <!-- Copyright Firaxis Games 2005 -->
 <!-- -->
-<!-- 2D Sound Scripts -->
+<!-- 2D Sound Scripts
+	 advc (note): In-line comments will crash the parser -->
+<!-- K-Mod has corrected the sound id of AS2D_THEIRALLIANCE,
+	 has increased the volume of AS2D_BLIGHT from 60 to 100
+	 and added AS2D_SQUISH. -->
+<!-- advc.004x: Set the volume of AS2D_IF_SCREEN_UP to 0 in order to prevent
+	 the EXE from playing the screen-up sound. (There seems to be no "NONE"
+	 sound id for disabling an audio script properly.) Added a copy of
+	 AS2D_IF_SCREEN_UP named "AS2D_IF_BUTTONPOPUP_UP" with normal volume
+	 so that the DLL can play the screen-up sound. -->
 <Script2DSounds xmlns="x-schema:AudioScriptSchema.xml">
 	<Script2DSound>
 		<ScriptID>AS2D_ERROR</ScriptID>
@@ -9415,6 +9424,29 @@
 	</Script2DSound>
 	<Script2DSound>
 		<ScriptID>AS2D_IF_SCREEN_UP</ScriptID>
+		<SoundID>SND_IF_SCREENUP</SoundID>
+		<SoundType>GAME_INTERFACE</SoundType>
+		<iMinVolume>0</iMinVolume>
+		<iMaxVolume>0</iMaxVolume>
+		<iPitchChangeDown>0</iPitchChangeDown>
+		<iPitchChangeUp>0</iPitchChangeUp>
+		<iMinLeftPan>-1</iMinLeftPan>
+		<iMaxLeftPan>-1</iMaxLeftPan>
+		<iMinRightPan>-1</iMinRightPan>
+		<iMaxRightPan>-1</iMaxRightPan>
+		<bLooping>0</bLooping>
+		<iMinTimeDelay>0</iMinTimeDelay>
+		<iMaxTimeDelay>0</iMaxTimeDelay>
+		<bTaperForSoundtracks>0</bTaperForSoundtracks>
+		<iLengthOfSound>0</iLengthOfSound>
+		<fMinDryLevel>1.0</fMinDryLevel>
+		<fMaxDryLevel>1.0</fMaxDryLevel>
+		<fMinWetLevel>0.0</fMinWetLevel>
+		<fMaxWetLevel>0.0</fMaxWetLevel>
+		<iNotPlayPercent>0</iNotPlayPercent>
+	</Script2DSound>
+	<Script2DSound>
+		<ScriptID>AS2D_IF_BUTTONPOPUP_UP</ScriptID>
 		<SoundID>SND_IF_SCREENUP</SoundID>
 		<SoundType>GAME_INTERFACE</SoundType>
 		<iMinVolume>80</iMinVolume>

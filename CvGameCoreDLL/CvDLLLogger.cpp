@@ -116,8 +116,7 @@ void appendPercentage(std::ostringstream& os, char const* szLabel, int iAbsolute
 void appendPercentage(std::ostringstream& os, wchar const* szLabel, int iAbsolute, int iTotal)
 {
 	CvWString szWide(szLabel);
-	CvString szNarrow;
-	::narrowUnsafe(szWide, szNarrow);
+	CvString szNarrow(szWide);
 	appendPercentage(os, szNarrow.c_str(), iAbsolute, iTotal);
 }
 }
@@ -212,8 +211,7 @@ void CvDLLLogger::logMapStats()
 				continue;
 			CvBonusInfo const& kBonus = GC.getInfo((BonusTypes)i);
 			CvWString szWide(kBonus.getDescription());
-			CvString szNarrow;
-			::narrowUnsafe(szWide, szNarrow);
+			CvString szNarrow(szWide);
 			out << szNarrow.c_str() << ": " << resourceCounts[i] << "\n";
 		}
 	}

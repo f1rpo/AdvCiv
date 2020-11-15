@@ -131,7 +131,7 @@ static inline T operator-(T minuend, T subtrahend)
 	DO(CultureLevel, CULTURELEVEL) \
 	DO(CivicOption, CIVICOPTION)
 
-// Number of instances not known at compile time; might be greater than MAX_CHAR.
+// Number of instances not known at compile time; can be greater than MAX_CHAR.
 #define DO_FOR_EACH_BIG_DYN_INFO_TYPE(DO) \
 	/* getInfo function exported */ \
 	DO(Color, COLOR) \
@@ -256,16 +256,16 @@ static inline T operator-(T minuend, T subtrahend)
 #define NUM_ENUM_TYPES(INFIX) NUM_##INFIX##_TYPES
 #define NO_ENUM_TYPE(SUFFIX) NO_##SUFFIX = -1
 
-// (See SET_NONXML_ENUM_LENGTH in EnumMap.h about the bAllowForEach parameter)
+// (See SET_NONXML_ENUM_LENGTH in EnumMap.h about the bAllowFOR_EACH parameter)
 #define SET_ENUM_LENGTH_STATIC(Name, INFIX) \
-	__forceinline Name##Types getEnumLength(Name##Types, bool bAllowForEach = true) \
+	__forceinline Name##Types getEnumLength(Name##Types, bool bAllowFOR_EACH = true) \
 	{ \
 		return NUM_ENUM_TYPES(INFIX); \
 	}
 /*  This gets used in CvGlobals.h. (I wanted to do it in MAKE_INFO_ENUM, which is
 	used in CvEnums.h, but that lead to a circular dependency.) */
 #define SET_ENUM_LENGTH(Name, PREFIX) \
-	__forceinline Name##Types getEnumLength(Name##Types, bool bAllowForEach = true) \
+	__forceinline Name##Types getEnumLength(Name##Types, bool bAllowFOR_EACH = true) \
 	{ \
 		return static_cast<Name##Types>(gGlobals.getNum##Name##Infos()); \
 	}
@@ -292,6 +292,20 @@ SET_ENUM_LENGTH_STATIC(Name, PREFIX)
 }; \
 SET_ENUM_LENGTH_STATIC(Name, PREFIX)
 // (Let's worry about #ifdef _USRDLL only when the source of the EXE is released, i.e. probably never.)
+
+namespace info_enum_detail
+{
+	template<typename E>
+	inline void assertEnumBounds(E eIndex)
+	{
+		FAssertBounds(0, getEnumLength(eIndex), eIndex);
+	}
+};
+#ifdef FASSERT_ENABLE
+#define FAssertEnumBounds(eIndex) info_enum_detail::assertEnumBounds(eIndex)
+#else
+#define FAssertEnumBounds(eIndex) (void)0
+#endif
 
 // Macros for generating CvInfo accessor functions (CvGlobals) ...
 	

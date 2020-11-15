@@ -519,7 +519,7 @@ const wchar* CvEventInfo::getOtherPlayerPopup() const
 {
 	return m_szOtherPlayerPopup;
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvEventInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -1529,7 +1529,7 @@ const char* CvEventTriggerInfo::getPythonCanDoUnit() const
 {
 	return m_szPythonCanDoUnit;
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvEventTriggerInfo::read(FDataStreamBase* stream)
 {
 	CvWString szElement;

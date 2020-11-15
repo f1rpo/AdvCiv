@@ -1,7 +1,5 @@
 #pragma once
 
-// area.h
-
 #ifndef CIV4_AREA_H
 #define CIV4_AREA_H
 
@@ -14,11 +12,10 @@ class CvArea
 public:
 
 	CvArea();
-	virtual ~CvArea();
-
 	void init(bool bWater);
-	void uninit();
-	void reset(int iID = 0, bool bWater = false, bool bConstructorCall = false);
+	virtual ~CvArea();
+	virtual void read(FDataStreamBase* pStream);
+	virtual void write(FDataStreamBase* pStream);
 
 	int calculateTotalBestNatureYield() const;															// Exposed to Python
 
@@ -43,13 +40,15 @@ public:
 	bool canBeEntered(CvArea const& kFrom, CvUnit const* u = NULL) const;
 	// </advc.030>
 
-	inline int getNumTiles() const { return m_iNumTiles; }												// Exposed to Python
+	inline PlotNumTypes getNumTiles() const																// Exposed to Python
+	{ return (PlotNumTypes)m_iNumTiles; } // advc.enum: Return type was int
 	void changeNumTiles(int iChange);
 	void changeNumOwnedTiles(int iChange);
-	inline int getNumOwnedTiles() const { return m_iNumOwnedTiles; }									// Exposed to Python
-	inline int getNumUnownedTiles() const																// Exposed to Python
+	inline PlotNumTypes getNumOwnedTiles() const														// Exposed to Python
+	{ return (PlotNumTypes)m_iNumOwnedTiles; } // advc.enum
+	inline PlotNumTypes getNumUnownedTiles() const														// Exposed to Python
 	{
-		return getNumTiles() - getNumOwnedTiles();
+		return (PlotNumTypes)(getNumTiles() - getNumOwnedTiles()); // advc.enum
 	}
 	// <advc.300>
 	std::pair<int,int> countOwnedUnownedHabitableTiles( // advc.021b: Exposed to Python as getNumHabitableTiles
@@ -68,7 +67,8 @@ public:
 	inline int getNumRiverEdges() const { return m_iNumRiverEdges; }									// Exposed to Python
 
 	void changeNumStartingPlots(int iChange);
-	inline int getNumStartingPlots() const { return m_iNumStartingPlots; }								// Exposed to Python
+	// advc.enum: return type was int
+	inline PlotNumTypes getNumStartingPlots() const { return (PlotNumTypes)m_iNumStartingPlots; }		// Exposed to Python
 	
 	inline int getNumUnits() const { return m_iNumUnits; }												// Exposed to Python
 	inline int getNumCities() const { return m_iNumCities; }											// Exposed to Python
@@ -196,9 +196,6 @@ public:
 	/*int getNumImprovements(ImprovementTypes eImprovement) const;										// Exposed to Python
 	void changeNumImprovements(ImprovementTypes eImprovement, int iChange);*/
 
-	virtual void read(FDataStreamBase* pStream);
-	virtual void write(FDataStreamBase* pStream);
-
 protected:
 
 	int m_iID;
@@ -237,6 +234,9 @@ protected:
 	EnumMap2D<PlayerTypes,UnitAITypes,int> m_aaiNumAIUnits; // </advc.enum>
 
 	IDInfo* m_aTargetCities;
+
+	void uninit();
+	void reset(int iID = 0, bool bWater = false, bool bConstructorCall = false);
 };
 
 #endif

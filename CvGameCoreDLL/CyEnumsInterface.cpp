@@ -1,9 +1,10 @@
 #include "CvGameCoreDLL.h"
-#include"CvEnums.h"
+#include "CvEnums.h"
 
-#include "CvGameCoreDLLUnDefNew.h"
+// advc.make: PCH now includes enum.hpp (before CvGameCoreDLLDefNew.h)
+/*#include "CvGameCoreDLLUnDefNew.h"
 # include <boost/python/enum.hpp>
-#include "CvGameCoreDLLDefNew.h"
+#include "CvGameCoreDLLDefNew.h"*/
 
 //
 // Python interface for free enums
@@ -391,7 +392,7 @@ void CyEnumsPythonInterface()
 		.value("WIDGET_GLOBELAYER_OPTION", WIDGET_GLOBELAYER_OPTION)
 		.value("WIDGET_GLOBELAYER_TOGGLE", WIDGET_GLOBELAYER_TOGGLE)
 		// K-Mod widgets
-		// Environmental advisor
+		// Environmental advisor  (advc.enum: Pollution flags moved to CyPlayerInterface2.cpp)
 		.value("WIDGET_HELP_POLLUTION_OFFSETS", WIDGET_HELP_POLLUTION_OFFSETS)
 		.value("WIDGET_HELP_POLLUTION_SOURCE", WIDGET_HELP_POLLUTION_SOURCE)
 		.value("WIDGET_HELP_SUSTAINABILITY_THRESHOLD", WIDGET_HELP_SUSTAINABILITY_THRESHOLD)
@@ -426,17 +427,7 @@ void CyEnumsPythonInterface()
 		.value("WIDGET_CITY_TRADE", WIDGET_CITY_TRADE) // advc.ctr
 		.value("NUM_WIDGET_TYPES", NUM_WIDGET_TYPES)
 		;
-	/*  K-Mod, 5/jan/11, karadoc
-		pollution flags */
-	python::enum_<int>("PollutionTypes")
-		.value("POLLUTION_POPULATION", POLLUTION_POPULATION)
-		.value("POLLUTION_BUILDINGS", POLLUTION_BUILDINGS)
-		.value("POLLUTION_BONUSES", POLLUTION_BONUSES)
-		.value("POLLUTION_POWER", POLLUTION_POWER)
 
-		.value("POLLUTION_ALL", POLLUTION_ALL)
-		;
-	// K-Mod end
 	python::enum_<ButtonPopupTypes>("ButtonPopupTypes")
 		.value("BUTTONPOPUP_TEXT", BUTTONPOPUP_TEXT)
 		.value("BUTTONPOPUP_MAIN_MENU", BUTTONPOPUP_MAIN_MENU)
@@ -1802,8 +1793,10 @@ void CyEnumsPythonInterface()
 
 		.value("NUM_ACTIONSUBTYPES", NUM_ACTIONSUBTYPES)
 		;
-
-	python::enum_<GameMessageTypes>("GameMessageTypes")
+	/*	advc (commented out): I don't think Python can use these in a sensible way
+		given that CvMessageData isn't exposed to Python at all. 
+		Should instead use CyMessageControl for network stuff in Python. */
+	/*python::enum_<GameMessageTypes>("GameMessageTypes")
 		.value("GAMEMESSAGE_NETWORK_READY", GAMEMESSAGE_NETWORK_READY)
 		.value("GAMEMESSAGE_SAVE_GAME_FLAG", GAMEMESSAGE_SAVE_GAME_FLAG)
 		.value("GAMEMESSAGE_SAVE_FLAG_ACK", GAMEMESSAGE_SAVE_FLAG_ACK)
@@ -1899,10 +1892,8 @@ void CyEnumsPythonInterface()
 		.value("GAMEMESSAGE_ADVANCED_START_ACTION", GAMEMESSAGE_ADVANCED_START_ACTION)
 		.value("GAMEMESSAGE_FOUND_RELIGION", GAMEMESSAGE_FOUND_RELIGION)
 		.value("GAMEMESSAGE_MOD_NET_MESSAGE", GAMEMESSAGE_MOD_NET_MESSAGE)
-		// advc.011b: Not sure if anything breaks if I don't add this here
-		.value("GAMEMESSAGE_PUSH_MODIFIED_MISSION", GAMEMESSAGE_PUSH_MISSION)
-		.value("GAMEMESSAGE_PUSH_FP_TEST", GAMEMESSAGE_PUSH_MISSION) // advc.003g
-		;
+		// (advc: I've added enumerators, but I won't bother to include them here.)
+		;*/
 
 	python::enum_<PopupControlLayout>("PopupControlLayout")
 		.value("POPUP_LAYOUT_LEFT", POPUP_LAYOUT_LEFT)
@@ -1992,7 +1983,7 @@ void CyEnumsPythonInterface()
 		.value("ADVANCEDSTARTACTION_VISIBILITY", ADVANCEDSTARTACTION_VISIBILITY)
 		.value("ADVANCEDSTARTACTION_AUTOMATE", ADVANCEDSTARTACTION_AUTOMATE)
 		;
-	// <advc.004m>
+	// advc.004m:
 	python::enum_<GlobeLayerTypes>("GlobeLayerTypes")
 		.value("GLOBE_LAYER_STRATEGY", GLOBE_LAYER_STRATEGY)
 		.value("GLOBE_LAYER_TRADE", GLOBE_LAYER_TRADE)
@@ -2002,5 +1993,24 @@ void CyEnumsPythonInterface()
 		.value("GLOBE_LAYER_CULTURE", GLOBE_LAYER_CULTURE)
 		.value("NUM_GLOBE_LAYER_TYPES", NUM_GLOBE_LAYER_TYPES)
 		.value("NO_GLOBE_LAYER", NUM_GLOBE_LAYER_TYPES)
-		; // </advc.004m>
+		;
+	// advc.pf: If generatePath (CvUnit, CvSelectionGroup) is exposed, so should be this.
+	python::enum_<MovementFlags>("MovementFlags")
+		.value("NO_MOVEMENT_FLAGS", NO_MOVEMENT_FLAGS)
+		.value("MOVE_IGNORE_DANGER", MOVE_IGNORE_DANGER)
+		.value("MOVE_SAFE_TERRITORY", MOVE_SAFE_TERRITORY)
+		.value("MOVE_NO_ENEMY_TERRITORY", MOVE_NO_ENEMY_TERRITORY)
+		.value("MOVE_DECLARE_WAR", MOVE_DECLARE_WAR)
+		.value("MOVE_DIRECT_ATTACK", MOVE_DIRECT_ATTACK)
+		.value("MOVE_THROUGH_ENEMY", MOVE_THROUGH_ENEMY)
+		.value("MOVE_MAX_MOVES", MOVE_MAX_MOVES)
+		.value("MOVE_AVOID_ENEMY_WEIGHT_2", MOVE_AVOID_ENEMY_WEIGHT_2)
+		.value("MOVE_AVOID_ENEMY_WEIGHT_3", MOVE_AVOID_ENEMY_WEIGHT_3)
+		.value("MOVE_ATTACK_STACK", MOVE_ATTACK_STACK)
+		.value("MOVE_SINGLE_ATTACK", MOVE_SINGLE_ATTACK)
+		.value("MOVE_NO_ATTACK", MOVE_NO_ATTACK)
+		.value("MOVE_HAS_STEPPED", MOVE_HAS_STEPPED)
+		.value("MOVE_ASSUME_VISIBLE", MOVE_ASSUME_VISIBLE)
+		.value("MOVE_ROUTE_TO", MOVE_ROUTE_TO)
+		;
 }

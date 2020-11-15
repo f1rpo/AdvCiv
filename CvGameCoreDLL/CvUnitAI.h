@@ -74,9 +74,9 @@ protected:
 	int m_iSearchRangeRandPercent; // advc.128
 
 	bool AI_considerDOW(CvPlot const& kPlot); // K-Mod
-	bool AI_considerPathDOW(CvPlot const& kPlot, int iFlags); // K-Mod
+	bool AI_considerPathDOW(CvPlot const& kPlot, MovementFlags eFlags); // K-Mod
 	// K-Mod
-	CvUnit* AI_findTransport(UnitAITypes eUnitAI, int iFlags = 0,
+	CvUnit* AI_findTransport(UnitAITypes eUnitAI, MovementFlags eFlags = NO_MOVEMENT_FLAGS,
 			int iMaxPath = MAX_INT, UnitAITypes ePassengerAI = NO_UNITAI,
 			int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1,
 			int iMaxCargoOurUnitAI = -1);
@@ -129,18 +129,33 @@ protected:
 	// BETTER_BTS_AI_MOD (Unit AI), 04/01/10, jdog5000:
 			bool bOutsideCityOnly = false, int iMaxPath = MAX_INT);
 	// K-Mod. I've created AI_omniGroup with the intention of using it to phase out AI_group and AI_groupMergeRange.
-	bool AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup = -1, int iMaxOwnUnitAI = -1, bool bStackOfDoom = false, int iFlags = 0, int iMaxPath = -1, bool bMergeGroups = true, bool bSafeOnly = true, bool bIgnoreFaster = false, bool bIgnoreOwnUnitType = false, bool bBiggerOnly = true, int iMinUnitAI = -1, bool bWithCargoOnly = false, bool bIgnoreBusyTransports = false);
-	bool AI_group(UnitAITypes eUnitAI, int iMaxGroup = -1, int iMaxOwnUnitAI = -1, int iMinUnitAI = -1, bool bIgnoreFaster = false, bool bIgnoreOwnUnitType = false, bool bStackOfDoom = false, int iMaxPath = MAX_INT, bool bAllowRegrouping = false, bool bWithCargoOnly = false, bool bInCityOnly = false, MissionAITypes eIgnoreMissionAIType = NO_MISSIONAI);
-	bool AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI, UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1, int iMaxCargoOurUnitAI = -1, int iFlags = 0, int iMaxPath = MAX_INT,
+	bool AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup = -1, int iMaxOwnUnitAI = -1,
+			bool bStackOfDoom = false, MovementFlags eFlags = NO_MOVEMENT_FLAGS,
+			int iMaxPath = -1, bool bMergeGroups = true, bool bSafeOnly = true,
+			bool bIgnoreFaster = false, bool bIgnoreOwnUnitType = false,
+			bool bBiggerOnly = true, int iMinUnitAI = -1, bool bWithCargoOnly = false,
+			bool bIgnoreBusyTransports = false);
+	bool AI_group(UnitAITypes eUnitAI, int iMaxGroup = -1, int iMaxOwnUnitAI = -1,
+			int iMinUnitAI = -1, bool bIgnoreFaster = false, bool bIgnoreOwnUnitType = false,
+			bool bStackOfDoom = false, int iMaxPath = MAX_INT, bool bAllowRegrouping = false,
+			bool bWithCargoOnly = false, bool bInCityOnly = false,
+			MissionAITypes eIgnoreMissionAIType = NO_MISSIONAI);
+	bool AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI,
+			UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1,
+			int iMinCargoSpace = -1, int iMaxCargoSpace = -1,
+			int iMaxCargoOurUnitAI = -1, MovementFlags eFlags = NO_MOVEMENT_FLAGS, int iMaxPath = MAX_INT,
 			// BETTER_BTS_AI_MOD, War tactics AI, Unit AI, 04/18/10, jdog5000:
 			int iMaxTransportPath = MAX_INT);
 
 	bool AI_guardCityBestDefender();
 	bool AI_guardCityOnlyDefender(); // K-Mod
 	bool AI_guardCityMinDefender(bool bSearch = true);
-	bool AI_guardCity(bool bLeave = false, bool bSearch = false, int iMaxPath = MAX_INT, int iFlags = 0);
+	bool AI_guardCity(bool bLeave = false, bool bSearch = false, int iMaxPath = MAX_INT,
+			MovementFlags eFlags = NO_MOVEMENT_FLAGS);
 	bool AI_guardCityAirlift();
-	bool AI_guardCoast(bool bPrimaryOnly = false, int iFlags = 0, int iMaxPath = -1); // K-Mod
+	// <K-Mod>
+	bool AI_guardCoast(bool bPrimaryOnly = false,
+			MovementFlags eFlags = NO_MOVEMENT_FLAGS, int iMaxPath = -1); // </K-Mod>
 	bool AI_guardBonus(int iMinValue = 0);
 	bool AI_guardYield(); // advc.300
 	bool AI_barbAmphibiousCapture(); // advc.306
@@ -165,14 +180,15 @@ protected:
 	bool AI_discover(bool bThisTurnOnly = false, bool bFirstResearchOnly = false);
 	bool AI_lead(std::vector<UnitAITypes>& aeAIUnitTypes);
 	bool AI_join(int iMaxCount = MAX_INT);
-	bool AI_construct(int iMaxCount = MAX_INT, int iMaxSingleBuildingCount = MAX_INT, int iThreshold = 15);
+	bool AI_construct(int iMaxCount = MAX_INT, int iMaxSingleBuildingCount = MAX_INT,
+			int iThreshold = 15);
 	/*bool AI_switchHurry(); // advc.003j
 	bool AI_hurry();*/
 	//bool AI_greatWork(); // disabled by K-Mod
 	bool AI_offensiveAirlift();
 	bool AI_paradrop(int iRange);
 	#if 0 // advc: unused
-	bool AI_protect(int iOddsThreshold, int iFlags = 0, int iMaxPathTurns = MAX_INT);
+	bool AI_protect(int iOddsThreshold, MovementFlags eFlags = NO_MOVEMENT_FLAGS, int iMaxPathTurns = MAX_INT);
 	#endif
 	bool AI_patrol();
 	bool AI_defend();
@@ -181,34 +197,47 @@ protected:
 	bool AI_goody(int iRange);
 	bool AI_explore();
 	bool AI_exploreRange(int iRange);
+	bool AI_foundFirstCity(); // advc.108
 
 	// BETTER_BTS_AI_MOD, War tactics AI, 03/29/10, jdog5000: START
-	CvCity* AI_pickTargetCity(int iFlags = 0, int iMaxPathTurns = MAX_INT, bool bHuntBarbs = false);
-	bool AI_goToTargetCity(int iFlags = 0, int iMaxPathTurns = MAX_INT, CvCity* pTargetCity = NULL);
+	CvCity* AI_pickTargetCity(MovementFlags eFlags = NO_MOVEMENT_FLAGS,
+			int iMaxPathTurns = MAX_INT, bool bHuntBarbs = false);
+	bool AI_goToTargetCity(MovementFlags eFlags = NO_MOVEMENT_FLAGS,
+			int iMaxPathTurns = MAX_INT, CvCity* pTargetCity = NULL);
 	//bool AI_goToTargetBarbCity(int iMaxPathTurns = 10); // disabled by K-Mod. (duplicate code ftl)
-	bool AI_pillageAroundCity(CvCity* pTargetCity, int iBonusValueThreshold = 0, int iFlags = 0, int iMaxPathTurns = MAX_INT);
+	bool AI_pillageAroundCity(CvCity* pTargetCity, int iBonusValueThreshold = 0,
+			MovementFlags eFlags = NO_MOVEMENT_FLAGS, int iMaxPathTurns = MAX_INT);
 	bool AI_bombardCity();
-	bool AI_cityAttack(int iRange, int iOddsThreshold, int iFlags = 0, bool bFollow = false);
-	bool AI_anyAttack(int iRange, int iOddsThreshold, int iFlags = 0, int iMinStack = 0, bool bAllowCities = true, bool bFollow = false);
+	bool AI_cityAttack(int iRange, int iOddsThreshold,
+			MovementFlags eFlags = NO_MOVEMENT_FLAGS, bool bFollow = false);
+	bool AI_anyAttack(int iRange, int iOddsThreshold,
+			MovementFlags eFlags = NO_MOVEMENT_FLAGS, int iMinStack = 0,
+			bool bAllowCities = true, bool bFollow = false);
 	// BETTER_BTS_AI_MOD: END
 	bool AI_rangeAttack(int iRange);
 	bool AI_leaveAttack(int iRange, int iThreshold, int iStrengthThreshold);
 	bool AI_defensiveCollateral(int iThreshold, int iSearchRange); // K-Mod
 	bool AI_evacuateCity(); // advc.139
-	bool AI_defendTerritory(int iThreshold, int iFlags, int iMaxPathTurns, bool bLocal = false); // K-Mod
-	bool AI_stackVsStack(int iSearchRange, int iAttackThreshold, int iRiskThreshold, int iFlags); // K-Mod
+	// <K-Mod>
+	bool AI_defendTerritory(int iThreshold, MovementFlags eFlags, int iMaxPathTurns,
+			bool bLocal = false);
+	bool AI_stackVsStack(int iSearchRange, int iAttackThreshold, int iRiskThreshold,
+			MovementFlags eFlags /* advc: */ = NO_MOVEMENT_FLAGS); // </K-Mod>
 	bool AI_blockade();
 	bool AI_pirateBlockade();
 	bool AI_seaBombardRange(int iMaxRange);
-	bool AI_pillage(int iBonusValueThreshold = 0, int iFlags = 0);
-	bool AI_pillageRange(int iRange, int iBonusValueThreshold = 0, int iFlags = 0);
-	bool AI_found(int iFlags = MOVE_NO_ENEMY_TERRITORY); // K-Mod added iFlags
+	bool AI_pillage(int iBonusValueThreshold = 0, MovementFlags eFlags = NO_MOVEMENT_FLAGS);
+	bool AI_pillageRange(int iRange, int iBonusValueThreshold = 0,
+			MovementFlags eFlags = NO_MOVEMENT_FLAGS);
+	bool AI_found(MovementFlags eFlags = MOVE_NO_ENEMY_TERRITORY); // K-Mod added flags
 	//bool AI_foundRange(int iRange, bool bFollow = false); // disabled by K-Mod
 	bool AI_foundFollow(); // K-Mod
 	bool AI_assaultSeaTransport(bool bAttackBarbs = false, /* K-Mod: */ bool bLocal = false,
 			int iMaxAreaCities = MAX_INT); // advc.082
 	bool AI_assaultSeaReinforce(bool bAttackBarbs = false); // BBAI
-	bool AI_transportGoTo(CvPlot const* pEndTurnPlot, CvPlot const* pTargetPlot, int iFlags, MissionAITypes eMissionAI); // K-Mod
+	// <K-Mod>
+	bool AI_transportGoTo(CvPlot const* pEndTurnPlot, CvPlot const* pTargetPlot,
+			MovementFlags eFlags, MissionAITypes eMissionAI); // </K-Mod>
 
 	bool AI_settlerSeaTransport();
 	bool AI_ferryWorkers();
@@ -235,7 +264,7 @@ protected:
 	bool AI_routeTerritory(bool bImprovementOnly = false);
 	bool AI_travelToUpgradeCity();
 	bool AI_retreatToCity(bool bPrimary = false, bool bPrioritiseAirlift = false, int iMaxPath = MAX_INT);
-	bool AI_handleStranded(int iFlags = 0); // K-Mod
+	bool AI_handleStranded(MovementFlags eFlags = NO_MOVEMENT_FLAGS); // K-Mod
 	// BETTER_BTS_AI_MOD, Naval AI, 01/15/09, jdog5000: START
 	bool AI_pickup(UnitAITypes eUnitAI, bool bCountProduction = false, int iMaxPath = MAX_INT);
 	bool AI_pickupStranded(UnitAITypes eUnitAI = NO_UNITAI, int iMaxPath = MAX_INT);
@@ -279,7 +308,7 @@ protected:
 	bool AI_cityOffenseSpy(int iRange, CvCity* pSkipCity = NULL);
 	// BETTER_BTS_AI_MOD: END
 	bool AI_espionageSpy();
-	EspionageMissionTypes AI_bestPlotEspionage(PlayerTypes& eTargetPlayer, CvPlot*& pPlot, int& iData) const; // K-Mod
+	EspionageMissionTypes AI_bestPlotEspionage(int& iData) const; // K-Mod
 	bool AI_moveToStagingCity();
 	bool AI_seaRetreatFromCityDanger();
 	bool AI_airRetreatFromCityDanger();
@@ -322,11 +351,13 @@ protected:
 	bool AI_stackAttackCity(int iPowerThreshold = -1);
 	bool AI_moveIntoCity(int iRange);
 
-	bool AI_groupMergeRange(UnitAITypes eUnitAI, int iRange, bool bBiggerOnly = true, bool bAllowRegrouping = false, bool bIgnoreFaster = false);
+	bool AI_groupMergeRange(UnitAITypes eUnitAI, int iRange, bool bBiggerOnly = true,
+			bool bAllowRegrouping = false, bool bIgnoreFaster = false);
 
 	//bool AI_artistCultureVictoryMove(); // disabled by K-Mod
 	bool AI_poach();
-	bool AI_choke(int iRange = 1, bool bDefensive = false, int iFlags = 0);
+	bool AI_choke(int iRange = 1, bool bDefensive = false,
+			MovementFlags eFlags = NO_MOVEMENT_FLAGS);
 	// advc.012: CvUnit::plot if pPlot=NULL; cf. CvTeamAI::plotDefense.
 	int AI_plotDefense(CvPlot const* pPlot = NULL) const;
 

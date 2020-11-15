@@ -15,62 +15,62 @@
 class CvCivicInfo : public CvInfoBase
 {
 public: // The const functions are exposed to Python except those (to be) added by AdvCiv
-
+		// advc.inl: Inlined all non-array getters
 	CvCivicInfo();
 	~CvCivicInfo();
 
-	int getCivicOptionType() const;
-	int getAnarchyLength() const;
-	int getUpkeep() const;
-	int getAIWeight() const;
-	int getGreatPeopleRateModifier() const;
-	int getGreatGeneralRateModifier() const;
-	int getDomesticGreatGeneralRateModifier() const;
-	int getStateReligionGreatPeopleRateModifier() const;
-	int getDistanceMaintenanceModifier() const;
-	int getNumCitiesMaintenanceModifier() const;
-	int getCorporationMaintenanceModifier() const;
-	int getExtraHealth() const;
+	CivicOptionTypes getCivicOptionType() const { return m_eCivicOptionType; }
+	int getAnarchyLength() const { return m_iAnarchyLength; }
+	int getUpkeep() const { return m_iUpkeep; }
+	int getAIWeight() const { return m_iAIWeight; }
+	bool canAlwaysForce() const { return m_bCanAlwaysForce; } // advc.132
+	int getGreatPeopleRateModifier() const { return m_iGreatPeopleRateModifier; }
+	int getGreatGeneralRateModifier() const { return m_iGreatGeneralRateModifier; }
+	int getDomesticGreatGeneralRateModifier() const { return m_iDomesticGreatGeneralRateModifier; }
+	int getStateReligionGreatPeopleRateModifier() const { return m_iStateReligionGreatPeopleRateModifier; }
+	int getDistanceMaintenanceModifier() const { return m_iDistanceMaintenanceModifier; }
+	int getNumCitiesMaintenanceModifier() const { return m_iNumCitiesMaintenanceModifier; }
+	int getCorporationMaintenanceModifier() const { return m_iCorporationMaintenanceModifier; }
+	int getExtraHealth() const { return m_iExtraHealth; }
 	int getExtraHappiness() const { return m_iExtraHappiness; } // K-Mod, Exposed to Python
-	int getFreeExperience() const;
-	int getWorkerSpeedModifier() const;
-	int getImprovementUpgradeRateModifier() const;
-	int getMilitaryProductionModifier() const;
-	int getBaseFreeUnits() const;
-	int getBaseFreeMilitaryUnits() const;
-	int getFreeUnitsPopulationPercent() const;
-	int getFreeMilitaryUnitsPopulationPercent() const;
-	int getGoldPerUnit() const;
-	int getGoldPerMilitaryUnit() const;
-	int getHappyPerMilitaryUnit() const;
-	int getLuxuryModifier() const; // advc.912c
-	int getLargestCityHappiness() const;
-	int getWarWearinessModifier() const;
-	int getFreeSpecialist() const;
-	int getTradeRoutes() const;
+	int getFreeExperience() const { return m_iFreeExperience; }
+	int getWorkerSpeedModifier() const { return m_iWorkerSpeedModifier; }
+	int getImprovementUpgradeRateModifier() const { return m_iImprovementUpgradeRateModifier; }
+	int getMilitaryProductionModifier() const { return m_iMilitaryProductionModifier; }
+	int getBaseFreeUnits() const { return m_iBaseFreeUnits; }
+	int getBaseFreeMilitaryUnits() const { return m_iBaseFreeMilitaryUnits; }
+	int getFreeUnitsPopulationPercent() const { return m_iFreeUnitsPopulationPercent; }
+	int getFreeMilitaryUnitsPopulationPercent() const { return m_iFreeMilitaryUnitsPopulationPercent; }
+	int getGoldPerUnit() const { return m_iGoldPerUnit; }
+	int getGoldPerMilitaryUnit() const { return m_iGoldPerMilitaryUnit; }
+	int getHappyPerMilitaryUnit() const { return m_iHappyPerMilitaryUnit; }
+	int getLuxuryModifier() const { return m_iLuxuryModifier; } // advc.912c
+	int getLargestCityHappiness() const { return m_iLargestCityHappiness; }
+	int getWarWearinessModifier() const { return m_iWarWearinessModifier; }
+	int getFreeSpecialist() const { return m_iFreeSpecialist; }
+	int getTradeRoutes() const { return m_iTradeRoutes; }
 	TechTypes getTechPrereq() const { return m_eTechPrereq; } // advc.inl (return type was int)
-	int getCivicPercentAnger() const;
-	int getMaxConscript() const;
-	int getStateReligionHappiness() const;
-	int getNonStateReligionHappiness() const;
-	int getStateReligionUnitProductionModifier() const;
-	int getStateReligionBuildingProductionModifier() const;
-	int getStateReligionFreeExperience() const;
-	int getExpInBorderModifier() const;
+	int getCivicPercentAnger() const { return m_iCivicPercentAnger; }
+	int getMaxConscript() const { return m_iMaxConscript; }
+	int getStateReligionHappiness() const { return m_iStateReligionHappiness; }
+	int getNonStateReligionHappiness() const { return m_iNonStateReligionHappiness; }
+	int getStateReligionUnitProductionModifier() const { return m_iStateReligionUnitProductionModifier; }
+	int getStateReligionBuildingProductionModifier() const { return m_iStateReligionBuildingProductionModifier; }
+	int getStateReligionFreeExperience() const { return m_iStateReligionFreeExperience; }
+	int getExpInBorderModifier() const { return m_iExpInBorderModifier; }
 
-	bool isMilitaryFoodProduction() const;
-	//bool isNoUnhealthyPopulation() const;
-	int getUnhealthyPopulationModifier() const;	// K-Mod, Exposed to Python
-	bool isBuildingOnlyHealthy() const;
-	bool isNoForeignTrade() const;
-	bool isNoCorporations() const;
-	bool isNoForeignCorporations() const;
-	bool isStateReligion() const;
-	bool isNoNonStateReligionSpread() const;
+	bool isMilitaryFoodProduction() const { return m_bMilitaryFoodProduction; }
+	//bool isNoUnhealthyPopulation() const; // K-Mod, 27/dec/10:
+	int getUnhealthyPopulationModifier() const { return m_iUnhealthyPopulationModifier; }	// Exposed to Python
+	bool isBuildingOnlyHealthy() const { return m_bBuildingOnlyHealthy; }
+	bool isNoForeignTrade() const { return m_bNoForeignTrade; }
+	bool isNoCorporations() const { return m_bNoCorporations; }
+	bool isNoForeignCorporations() const { return m_bNoForeignCorporations; }
+	bool isStateReligion() const { return m_bStateReligion; }
+	bool isNoNonStateReligionSpread() const { return m_bNoNonStateReligionSpread; }
 
 	std::wstring pyGetWeLoveTheKing() { return getWeLoveTheKing(); }
 	const wchar* getWeLoveTheKing();
-	void setWeLoveTheKingKey(const TCHAR* szVal);
 
 	// Array access:
 
@@ -97,14 +97,14 @@ public: // The const functions are exposed to Python except those (to be) added 
 	bool isSpecialistValid(int i) const;
 
 	int getImprovementYieldChanges(int i, int j) const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:
-	int m_iCivicOptionType;
+	CivicOptionTypes m_eCivicOptionType;
 	int m_iAnarchyLength;
 	int m_iUpkeep;
 	int m_iAIWeight;
@@ -143,15 +143,16 @@ protected:
 	int m_iStateReligionFreeExperience;
 	int m_iExpInBorderModifier;
 
-	bool m_bMilitaryFoodProduction;
 	//bool m_bNoUnhealthyPopulation;
 	int m_iUnhealthyPopulationModifier; // K-Mod
+	bool m_bMilitaryFoodProduction;
 	bool m_bBuildingOnlyHealthy;
 	bool m_bNoForeignTrade;
 	bool m_bNoCorporations;
 	bool m_bNoForeignCorporations;
 	bool m_bStateReligion;
 	bool m_bNoNonStateReligionSpread;
+	bool m_bCanAlwaysForce; // advc.132
 
 	CvWString m_szWeLoveTheKingKey;
 
@@ -196,9 +197,14 @@ class CvUpkeepInfo : public CvInfoBase
 public:
 	CvUpkeepInfo();
 
-	int getPopulationPercent() const; //	Exposed to Python
-	int getCityPercent() const;	//	Exposed to Python
-
+	int getPopulationPercent() const //	Exposed to Python
+	{
+		return m_iPopulationPercent; // advc.inl
+	}
+	int getCityPercent() const	//	Exposed to Python
+	{
+		return m_iCityPercent; // advc.inl
+	}
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:

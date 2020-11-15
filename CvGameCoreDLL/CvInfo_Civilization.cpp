@@ -136,11 +136,6 @@ const TCHAR* CvCivilizationInfo::getArtDefineTag() const
 	return m_szArtDefineTag;
 }
 
-void CvCivilizationInfo::setArtDefineTag(const TCHAR* szVal)
-{
-	m_szArtDefineTag = szVal;
-}
-
 BuildingTypes CvCivilizationInfo::getCivilizationBuildings(int i) const
 {
 	FAssertBounds(0, GC.getNumBuildingClassInfos(), i);
@@ -206,7 +201,7 @@ std::string CvCivilizationInfo::getCityNames(int i) const
 	return m_paszCityNames[i];
 }
 
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvCivilizationInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -295,11 +290,9 @@ bool CvCivilizationInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(m_szAdjectiveKey, "Adjective");
 
 	pXML->SetInfoIDFromChildXmlVal(m_iDefaultPlayerColor, "DefaultPlayerColor");
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
-		setArtDefineTag(szTextVal);
-	}
+
+	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag");
+
 	pXML->SetInfoIDFromChildXmlVal(m_iArtStyleType, "ArtStyleType");
 	{
 		CvString szTextVal;
@@ -513,35 +506,38 @@ m_piDiploWarMusicScriptIds(NULL)
 {}
 
 // <advc.xmldefault>
-#define ALLOCCOPY_INT(pDst, pSrc, iSize) \
-	if (pSrc != NULL) \
-	{ \
-		pDst = new int[iSize]; \
-		memcpy(pDst, pSrc, iSize * sizeof(int)); \
+namespace
+{
+	template<typename T>
+	void allocCopy(T*& pDst, T* pSrc, int iSize)
+	{
+		if (pSrc != NULL)
+		{
+			pDst = new T[iSize];
+			memcpy(pDst, pSrc, iSize * sizeof(T));
+		}
 	}
-#define ALLOCCOPY_BOOL(pDst, pSrc, iSize) \
-	if (pSrc != NULL) \
-	{ \
-		pDst = new bool[iSize]; \
-		memcpy(pDst, pSrc, iSize * sizeof(bool)); \
-	}
+}
 
 CvLeaderHeadInfo::CvLeaderHeadInfo(CvLeaderHeadInfo const& kOther)
 {
-	memcpy(this, &kOther, sizeof(CvLeaderHeadInfo));
-	ALLOCCOPY_BOOL(m_pbTraits, kOther.m_pbTraits, GC.getNumTraitInfos());
-	ALLOCCOPY_INT(m_piFlavorValue, kOther.m_piFlavorValue, GC.getNumFlavorTypes());
-	ALLOCCOPY_INT(m_piContactRand, kOther.m_piContactRand, NUM_CONTACT_TYPES);
-	ALLOCCOPY_INT(m_piContactDelay, kOther.m_piContactDelay, NUM_CONTACT_TYPES);
-	ALLOCCOPY_INT(m_piMemoryDecayRand, kOther.m_piMemoryDecayRand, NUM_MEMORY_TYPES);
-	ALLOCCOPY_INT(m_piMemoryAttitudePercent, kOther.m_piMemoryAttitudePercent, NUM_MEMORY_TYPES);
-	ALLOCCOPY_INT(m_piNoWarAttitudeProb, kOther.m_piNoWarAttitudeProb, NUM_ATTITUDE_TYPES);
-	ALLOCCOPY_INT(m_piUnitAIWeightModifier, kOther.m_piUnitAIWeightModifier, NUM_UNITAI_TYPES);
-	ALLOCCOPY_INT(m_piImprovementWeightModifier, kOther.m_piImprovementWeightModifier, GC.getNumImprovementInfos());
-	ALLOCCOPY_INT(m_piDiploPeaceIntroMusicScriptIds, kOther.m_piDiploPeaceIntroMusicScriptIds, GC.getNumEraInfos());
-	ALLOCCOPY_INT(m_piDiploPeaceMusicScriptIds, kOther.m_piDiploPeaceMusicScriptIds, GC.getNumEraInfos());
-	ALLOCCOPY_INT(m_piDiploWarIntroMusicScriptIds, kOther.m_piDiploWarIntroMusicScriptIds, GC.getNumEraInfos());
-	ALLOCCOPY_INT(m_piDiploWarMusicScriptIds, kOther.m_piDiploWarMusicScriptIds, GC.getNumEraInfos());
+	/*	Better not to memcpy the base class.
+		m_iWonderConstructRand is the first data member of CvLeaderHeadInfo. */
+	memcpy(&m_iWonderConstructRand, &kOther.m_iWonderConstructRand,
+			sizeof(CvLeaderHeadInfo) - sizeof(CvInfoBase));
+	allocCopy(m_pbTraits, kOther.m_pbTraits, GC.getNumTraitInfos());
+	allocCopy(m_piFlavorValue, kOther.m_piFlavorValue, GC.getNumFlavorTypes());
+	allocCopy(m_piContactRand, kOther.m_piContactRand, NUM_CONTACT_TYPES);
+	allocCopy(m_piContactDelay, kOther.m_piContactDelay, NUM_CONTACT_TYPES);
+	allocCopy(m_piMemoryDecayRand, kOther.m_piMemoryDecayRand, NUM_MEMORY_TYPES);
+	allocCopy(m_piMemoryAttitudePercent, kOther.m_piMemoryAttitudePercent, NUM_MEMORY_TYPES);
+	allocCopy(m_piNoWarAttitudeProb, kOther.m_piNoWarAttitudeProb, NUM_ATTITUDE_TYPES);
+	allocCopy(m_piUnitAIWeightModifier, kOther.m_piUnitAIWeightModifier, NUM_UNITAI_TYPES);
+	allocCopy(m_piImprovementWeightModifier, kOther.m_piImprovementWeightModifier, GC.getNumImprovementInfos());
+	allocCopy(m_piDiploPeaceIntroMusicScriptIds, kOther.m_piDiploPeaceIntroMusicScriptIds, GC.getNumEraInfos());
+	allocCopy(m_piDiploPeaceMusicScriptIds, kOther.m_piDiploPeaceMusicScriptIds, GC.getNumEraInfos());
+	allocCopy(m_piDiploWarIntroMusicScriptIds, kOther.m_piDiploWarIntroMusicScriptIds, GC.getNumEraInfos());
+	allocCopy(m_piDiploWarMusicScriptIds, kOther.m_piDiploWarMusicScriptIds, GC.getNumEraInfos());
 } // </advc.xmldefault>
 
 CvLeaderHeadInfo::~CvLeaderHeadInfo()
@@ -571,409 +567,9 @@ const TCHAR* CvLeaderHeadInfo::getButton() const
 	else return NULL;
 }
 
-int CvLeaderHeadInfo::getWonderConstructRand() const
-{
-	return m_iWonderConstructRand;
-}
-
-int CvLeaderHeadInfo::getBaseAttitude() const
-{
-	return m_iBaseAttitude;
-}
-
-int CvLeaderHeadInfo::getBasePeaceWeight() const
-{
-	return m_iBasePeaceWeight;
-}
-
-int CvLeaderHeadInfo::getPeaceWeightRand() const
-{
-	return m_iPeaceWeightRand;
-}
-
-int CvLeaderHeadInfo::getWarmongerRespect() const
-{
-	return m_iWarmongerRespect;
-}
-
-int CvLeaderHeadInfo::getEspionageWeight() const
-{
-	return m_iEspionageWeight;
-}
-
-int CvLeaderHeadInfo::getRefuseToTalkWarThreshold() const
-{
-	return m_iRefuseToTalkWarThreshold;
-}
-
-int CvLeaderHeadInfo::getNoTechTradeThreshold() const
-{
-	return m_iNoTechTradeThreshold;
-}
-
-int CvLeaderHeadInfo::getTechTradeKnownPercent() const
-{
-	return m_iTechTradeKnownPercent;
-}
-
-int CvLeaderHeadInfo::getMaxGoldTradePercent() const
-{
-	return m_iMaxGoldTradePercent;
-}
-
-int CvLeaderHeadInfo::getMaxGoldPerTurnTradePercent() const
-{
-	return m_iMaxGoldPerTurnTradePercent;
-}
-// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/21/10, jdog5000: START
-int CvLeaderHeadInfo::getCultureVictoryWeight() const
-{
-	return m_iCultureVictoryWeight;
-}
-
-int CvLeaderHeadInfo::getSpaceVictoryWeight() const
-{
-	return m_iSpaceVictoryWeight;
-}
-
-int CvLeaderHeadInfo::getConquestVictoryWeight() const
-{
-	return m_iConquestVictoryWeight;
-}
-
-int CvLeaderHeadInfo::getDominationVictoryWeight() const
-{
-	return m_iDominationVictoryWeight;
-}
-
-int CvLeaderHeadInfo::getDiplomacyVictoryWeight() const
-{
-	return m_iDiplomacyVictoryWeight;
-}
-// BETTER_BTS_AI_MOD: END
-int CvLeaderHeadInfo::getMaxWarRand() const
-{
-	return m_iMaxWarRand;
-}
-
-int CvLeaderHeadInfo::getMaxWarNearbyPowerRatio() const
-{
-	return m_iMaxWarNearbyPowerRatio;
-}
-
-int CvLeaderHeadInfo::getMaxWarDistantPowerRatio() const
-{
-	return m_iMaxWarDistantPowerRatio;
-}
-
-int CvLeaderHeadInfo::getMaxWarMinAdjacentLandPercent() const
-{
-	return m_iMaxWarMinAdjacentLandPercent;
-}
-
-int CvLeaderHeadInfo::getLimitedWarRand() const
-{
-	return m_iLimitedWarRand;
-}
-
-int CvLeaderHeadInfo::getLimitedWarPowerRatio() const
-{
-	return m_iLimitedWarPowerRatio;
-}
-
-int CvLeaderHeadInfo::getDogpileWarRand() const
-{
-	return m_iDogpileWarRand;
-}
-
-int CvLeaderHeadInfo::getMakePeaceRand() const
-{
-	return m_iMakePeaceRand;
-}
-
-int CvLeaderHeadInfo::getDeclareWarTradeRand() const
-{
-	return m_iDeclareWarTradeRand;
-}
-
-int CvLeaderHeadInfo::getDemandRebukedSneakProb() const
-{
-	return m_iDemandRebukedSneakProb;
-}
-
-int CvLeaderHeadInfo::getDemandRebukedWarProb() const
-{
-	return m_iDemandRebukedWarProb;
-}
-
-int CvLeaderHeadInfo::getRazeCityProb() const
-{
-	return m_iRazeCityProb;
-}
-
-int CvLeaderHeadInfo::getBaseAttackOddsChange() const
-{
-	return m_iBaseAttackOddsChange;
-}
-
-int CvLeaderHeadInfo::getAttackOddsChangeRand() const
-{
-	return m_iAttackOddsChangeRand;
-}
-
-int CvLeaderHeadInfo::getWorseRankDifferenceAttitudeChange() const
-{
-	return m_iWorseRankDifferenceAttitudeChange;
-}
-
-int CvLeaderHeadInfo::getBetterRankDifferenceAttitudeChange() const
-{
-	return m_iBetterRankDifferenceAttitudeChange;
-}
-
-int CvLeaderHeadInfo::getCloseBordersAttitudeChange() const
-{
-	return m_iCloseBordersAttitudeChange;
-}
-
-int CvLeaderHeadInfo::getLostWarAttitudeChange() const
-{
-	return m_iLostWarAttitudeChange;
-}
-
-int CvLeaderHeadInfo::getAtWarAttitudeDivisor() const
-{
-	return m_iAtWarAttitudeDivisor;
-}
-
-int CvLeaderHeadInfo::getAtWarAttitudeChangeLimit() const
-{
-	return m_iAtWarAttitudeChangeLimit;
-}
-
-int CvLeaderHeadInfo::getAtPeaceAttitudeDivisor() const
-{
-	return m_iAtPeaceAttitudeDivisor;
-}
-
-int CvLeaderHeadInfo::getAtPeaceAttitudeChangeLimit() const
-{
-	return m_iAtPeaceAttitudeChangeLimit;
-}
-
-int CvLeaderHeadInfo::getSameReligionAttitudeChange() const
-{
-	return m_iSameReligionAttitudeChange;
-}
-
-int CvLeaderHeadInfo::getSameReligionAttitudeDivisor() const
-{
-	return m_iSameReligionAttitudeDivisor;
-}
-
-int CvLeaderHeadInfo::getSameReligionAttitudeChangeLimit() const
-{
-	return m_iSameReligionAttitudeChangeLimit;
-}
-
-int CvLeaderHeadInfo::getDifferentReligionAttitudeChange() const
-{
-	return m_iDifferentReligionAttitudeChange;
-}
-
-int CvLeaderHeadInfo::getDifferentReligionAttitudeDivisor() const
-{
-	return m_iDifferentReligionAttitudeDivisor;
-}
-
-int CvLeaderHeadInfo::getDifferentReligionAttitudeChangeLimit() const
-{
-	return m_iDifferentReligionAttitudeChangeLimit;
-}
-
-int CvLeaderHeadInfo::getBonusTradeAttitudeDivisor() const
-{
-	return m_iBonusTradeAttitudeDivisor;
-}
-
-int CvLeaderHeadInfo::getBonusTradeAttitudeChangeLimit() const
-{
-	return m_iBonusTradeAttitudeChangeLimit;
-}
-
-int CvLeaderHeadInfo::getOpenBordersAttitudeDivisor() const
-{
-	return m_iOpenBordersAttitudeDivisor;
-}
-
-int CvLeaderHeadInfo::getOpenBordersAttitudeChangeLimit() const
-{
-	return m_iOpenBordersAttitudeChangeLimit;
-}
-
-int CvLeaderHeadInfo::getDefensivePactAttitudeDivisor() const
-{
-	return m_iDefensivePactAttitudeDivisor;
-}
-
-int CvLeaderHeadInfo::getDefensivePactAttitudeChangeLimit() const
-{
-	return m_iDefensivePactAttitudeChangeLimit;
-}
-
-int CvLeaderHeadInfo::getShareWarAttitudeChange() const
-{
-	return m_iShareWarAttitudeChange;
-}
-
-int CvLeaderHeadInfo::getShareWarAttitudeDivisor() const
-{
-	return m_iShareWarAttitudeDivisor;
-}
-
-int CvLeaderHeadInfo::getShareWarAttitudeChangeLimit() const
-{
-	return m_iShareWarAttitudeChangeLimit;
-}
-
-int CvLeaderHeadInfo::getFavoriteCivicAttitudeChange() const
-{
-	return m_iFavoriteCivicAttitudeChange;
-}
-
-int CvLeaderHeadInfo::getFavoriteCivicAttitudeDivisor() const
-{
-	return m_iFavoriteCivicAttitudeDivisor;
-}
-
-int CvLeaderHeadInfo::getFavoriteCivicAttitudeChangeLimit() const
-{
-	return m_iFavoriteCivicAttitudeChangeLimit;
-}
-
-int CvLeaderHeadInfo::getDemandTributeAttitudeThreshold() const
-{
-	return m_iDemandTributeAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getNoGiveHelpAttitudeThreshold() const
-{
-	return m_iNoGiveHelpAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getTechRefuseAttitudeThreshold() const
-{
-	return m_iTechRefuseAttitudeThreshold;
-}
-// <advc.ctr>
-int CvLeaderHeadInfo::getCityRefuseAttitudeThreshold() const
-{
-	return m_iCityRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getNativeCityRefuseAttitudeThreshold() const
-{
-	return m_iNativeCityRefuseAttitudeThreshold;
-} // </advc.ctr>
-
-int CvLeaderHeadInfo::getStrategicBonusRefuseAttitudeThreshold() const
-{
-	return m_iStrategicBonusRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getHappinessBonusRefuseAttitudeThreshold() const
-{
-	return m_iHappinessBonusRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getHealthBonusRefuseAttitudeThreshold() const
-{
-	return m_iHealthBonusRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getMapRefuseAttitudeThreshold() const
-{
-	return m_iMapRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getDeclareWarRefuseAttitudeThreshold() const
-{
-	return m_iDeclareWarRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getDeclareWarThemRefuseAttitudeThreshold() const
-{
-	return m_iDeclareWarThemRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getStopTradingRefuseAttitudeThreshold() const
-{
-	return m_iStopTradingRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getStopTradingThemRefuseAttitudeThreshold() const
-{
-	return m_iStopTradingThemRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getAdoptCivicRefuseAttitudeThreshold() const
-{
-	return m_iAdoptCivicRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getConvertReligionRefuseAttitudeThreshold() const
-{
-	return m_iConvertReligionRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getOpenBordersRefuseAttitudeThreshold() const
-{
-	return m_iOpenBordersRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getDefensivePactRefuseAttitudeThreshold() const
-{
-	return m_iDefensivePactRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getPermanentAllianceRefuseAttitudeThreshold() const
-{
-	return m_iPermanentAllianceRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getVassalRefuseAttitudeThreshold() const
-{
-	return m_iVassalRefuseAttitudeThreshold;
-}
-
-int CvLeaderHeadInfo::getVassalPowerModifier() const
-{
-	return m_iVassalPowerModifier;
-}
-
-int CvLeaderHeadInfo::getFavoriteCivic() const
-{
-	return m_iFavoriteCivic;
-}
-
-int CvLeaderHeadInfo::getFavoriteReligion() const
-{
-	return m_iFavoriteReligion;
-}
-
-int CvLeaderHeadInfo::getFreedomAppreciation() const
-{
-	return m_iFreedomAppreciation;
-}
-
 const TCHAR* CvLeaderHeadInfo::getArtDefineTag() const
 {
 	return m_szArtDefineTag;
-}
-
-void CvLeaderHeadInfo::setArtDefineTag(const TCHAR* szVal)
-{
-	m_szArtDefineTag = szVal;
 }
 
 bool CvLeaderHeadInfo::hasTrait(int i) const
@@ -1003,13 +599,7 @@ int CvLeaderHeadInfo::getContactDelay(int i) const
 int CvLeaderHeadInfo::getMemoryDecayRand(int i) const
 {
 	FAssertBounds(0, NUM_MEMORY_TYPES, i);
-	// <advc.104i>
-	if(m_piMemoryDecayRand == NULL)
-		return -1;
-	// The "clean" approach would be to set this 52 times in LeaderHead XML
-	if(i == MEMORY_DECLARED_WAR_RECENT && m_piMemoryDecayRand[i] == 0)
-		return 11;
-	return m_piMemoryDecayRand[i]; // </advc.104i>
+	return m_piMemoryDecayRand ? m_piMemoryDecayRand[i] : -1;
 }
 
 int CvLeaderHeadInfo::getMemoryAttitudePercent(int i) const
@@ -1071,7 +661,7 @@ const TCHAR* CvLeaderHeadInfo::getLeaderHead() const
 
 	return NULL;
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvLeaderHeadInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -1332,13 +922,10 @@ bool CvLeaderHeadInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
 		return false;
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag",
-				// advc.xmldefault:
-				m_szArtDefineTag.empty() ? NULL : m_szArtDefineTag.c_str());
-		setArtDefineTag(szTextVal);
-	}
+
+	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag",
+			// advc.xmldefault:
+			m_szArtDefineTag.empty() ? NULL : m_szArtDefineTag.c_str());
 	/*	advc.xmldefault: Redirect the CvXMLLoadUtility::GetChildXmlValByName
 		calls through CvLeaderHeadInfo::GetChildXmlValByName. */
 	m_pXML = pXML;
@@ -1803,7 +1390,7 @@ void CvDiplomacyResponse::setDiplomacyText(int i, CvString szText)
 	FAssertBounds(0, getNumDiplomacyText(), i);
 	m_paszDiplomacyText[i] = szText;
 }
-/*#if SERIALIZE_CVINFOS
+/*#if ENABLE_XML_FILE_CACHE
 void CvDiplomacyResponse::read(FDataStreamBase* stream)
 {
 	uint uiFlag=0;
@@ -1917,8 +1504,8 @@ const TCHAR* CvDiplomacyInfo::getDiplomacyText(int i, int j) const
 	FAssertBounds(0, getNumDiplomacyText(i), j);
 	return m_pResponses[i]->getDiplomacyText(j);
 }
-/*#if SERIALIZE_CVINFOS
-void CvDiplomacyInfo::read(FDataStreamBase* stream)
+//#if ENABLE_XML_FILE_CACHE
+/*void CvDiplomacyInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
 	uint uiFlag=0;

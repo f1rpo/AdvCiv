@@ -51,7 +51,6 @@ void TestEnumMap()
 	{
 		EnumMap<RouteTypes, PlayerTypes> test;
 		RouteTypes var = static_cast<RouteTypes>(0);
-		PlayerTypes FIRST_PLAYER = (PlayerTypes)0; // advc
 
 		FAssert(test.get(var) == NO_PLAYER);
 		FAssert(!test.hasContent());

@@ -13,8 +13,8 @@ class CvOrganizationInfo : public CvHotkeyInfo
 public: // All the const functions are exposed to Python
 	CvOrganizationInfo();
 
-	int getChar() const;
-	void setChar(int i);
+	wchar getChar() const; // advc: return wchar (not int)
+	void setChar(/* advc: */ wchar wc);
 	inline int getTechPrereq() const { return m_iTechPrereq; } // advc.130f: inline
 	int getFreeUnitClass() const;
 	inline int getSpreadFactor() const { return m_iSpreadFactor; } // advc.130f: inline
@@ -22,16 +22,13 @@ public: // All the const functions are exposed to Python
 	void setMissionType(int iNewType);
 
 	const TCHAR* getMovieFile() const;
-	void setMovieFile(const TCHAR* szVal);
 	const TCHAR* getMovieSound() const;
-	void setMovieSound(const TCHAR* szVal);
 	const TCHAR* getSound() const;
-	void setSound(const TCHAR* szVal);
 
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:
-	int m_iChar;
+	wchar m_wcSymbol; // advc
 	int m_iTechPrereq;
 	int m_iFreeUnitClass;
 	int m_iSpreadFactor;
@@ -56,13 +53,9 @@ public: // All the const functions are exposed to Python
 	int getNumFreeUnits() const;
 
 	const TCHAR* getTechButton() const;
-	void setTechButton(const TCHAR* szVal);
 	const TCHAR* getGenericTechButton() const;
-	void setGenericTechButton(const TCHAR* szVal);
-
 	const TCHAR* getButtonDisabled() const;
 
-	void setAdjectiveKey(const TCHAR* szVal);
 	const wchar* getAdjectiveKey() const;
 	std::wstring pyGetAdjectiveKey() { return getAdjectiveKey(); }
 

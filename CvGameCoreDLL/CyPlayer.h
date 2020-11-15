@@ -147,7 +147,7 @@ public:
 	int calculateTotalCommerce();
 	int calculateResearchRate(int /*TechTypes*/ eTech);
 	int calculateResearchModifier(int /*TechTypes*/ eTech);
-	int calculatePollution(int iTypes) const; // K-Mod
+	int calculatePollution(int iPollution) const; // K-Mod
 	int getGwPercentAnger() const; // K-Mod
 	// int calculateBaseNetResearch();
 	bool isResearch();
@@ -160,11 +160,19 @@ public:
 
 	bool canSeeResearch(int /*PlayerTypes*/ ePlayer) const; // K-Mod
 	bool canSeeDemographics(int /*PlayerTypes*/ ePlayer) const; // K-Mod
+	bool hasEverSeenDemographics(int iPlayer) const; // advc.091
 
 	bool isCivic(int /*CivicTypes*/ eCivic);
 	bool canDoCivics(int /*CivicTypes*/ eCivic);
-	bool canRevolution(int /*CivicTypes**/ paeNewCivics);
-	void revolution(int /*CivicTypes**/ paeNewCivics, bool bForce);
+	//bool canRevolution(int /*CivicTypes**/ paeNewCivics);
+	//void revolution(int /*CivicTypes**/ paeNewCivics, bool bForce);
+	/*	<advc.001> These need to take a list of civics as parameter,
+		like getCivicanarchyLength. However, only canRevolution is actually called
+		from BtS Python code, always with actual param 0. Let's keep those calls
+		permissible and create a new function canAdopt with the proper parameters. */
+	bool canRevolution(int iDummy);
+	bool canAdopt(boost::python::list& kNewCivics);
+	void revolution(boost::python::list& kNewCivics, bool bForce); // </advc.001>
 	int getCivicPercentAnger(int /*CivicTypes*/ eCivic);
 
 	bool canDoReligion(int /*ReligionTypes*/ eReligion);
@@ -175,7 +183,7 @@ public:
 	int countHolyCities();
 
 	void foundReligion(int /*ReligionTypes*/ eReligion, int /*ReligionTypes*/ iSlotReligion, bool bAward);
-	int getCivicAnarchyLength(boost::python::list& /*CivicTypes**/ paeNewCivics);
+	int getCivicAnarchyLength(boost::python::list& /*CivicTypes**/ kNewCivics);
 	int getReligionAnarchyLength();
 
 	bool hasHeadquarters(int /*CorporationTypes*/ eCorporation);
@@ -289,7 +297,7 @@ public:
 	int getOverflowResearch();
 	//bool isNoUnhealthyPopulation();
 	int getUnhealthyPopulationModifier(); // K-Mod
-	bool getExpInBorderModifier();
+	int getExpInBorderModifier();
 	bool isBuildingOnlyHealthy();
 
 	int getDistanceMaintenanceModifier();
@@ -437,7 +445,7 @@ public:
 	bool isResearchingTech(int /*TechTypes*/ iIndex);
 	int /*CivicTypes*/ getCivics(int /*CivicOptionTypes*/ iIndex);
 	int getSingleCivicUpkeep(int /*CivicTypes*/ eCivic, bool bIgnoreAnarchy);
-	int getCivicUpkeep(boost::python::list&  /*CivicTypes*/ paiCivics, bool bIgnoreAnarchy);
+	int getCivicUpkeep(boost::python::list&  /*CivicTypes*/ kCivics, bool bIgnoreAnarchy);
 	void setCivics(int /*CivicOptionTypes*/ eIndex, int /*CivicTypes*/ eNewValue);
 
 	int getCombatExperience() const;
@@ -476,8 +484,8 @@ public:
 	EventTriggeredData* initTriggeredData(int /*EventTriggerTypes*/ eEventTrigger, bool bFire, int iCityId, int iPlotX, int iPlotY, int /*PlayerTypes*/ eOtherPlayer, int iOtherPlayerCityId, int /*ReligionTypes*/ eReligion, int /*CorporationTypes*/ eCorporation, int iUnitId, int /*BuildingTypes*/ eBuilding);
 	int getEventTriggerWeight(int /*EventTriggerTypes*/ eTrigger);
 
-	void AI_updateFoundValues(bool bStartingLoc);
-	int AI_foundValue(int iX, int iY, int iMinRivalRange/* = -1*/, bool bStartingLoc/* = false*/);
+	void AI_updateFoundValues(bool bStarting);
+	int AI_foundValue(int iX, int iY, int iMinRivalRange/* = -1*/, bool bStarting/* = false*/);
 	bool AI_isFinancialTrouble();
 	// advc.104l: Moved definition into .cpp file
 	bool AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer); // K-Mod
@@ -525,9 +533,14 @@ public:
 	// <advc.085>
 	void setScoreboardExpanded(bool b);
 	bool isScoreboardExpanded() const; // </advc.085>
+	// <advc.190c>
+	bool wasCivRandomlyChosen() const;
+	bool wasLeaderRandomlyChosen() const; // </advc.190c>
 
 private:
 	CvPlayerAI* m_pPlayer; // advc.003u: was CvPlayer*
+	// advc.enum, advc.001:
+	static void pyListToCivicMap(boost::python::list const& kFrom, CivicMap& kTo);
 };
 
 #endif	// CyPlayer_h

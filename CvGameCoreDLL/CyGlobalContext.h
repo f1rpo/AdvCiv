@@ -37,10 +37,10 @@ public:
 	CvRandom& getCyASyncRand() const;
 	CyTeam* getCyTeam(int i);
 	CyArtFileMgr* getCyArtFileMgr() const;
-	// <dlph.27>
+	// <kekm.27>
 	bool isLogging();
 	bool isRandLogging();
-	// </dlph.27>
+	// </kekm.27>
 	CvEffectInfo* getEffectInfo(int i) const;
 	CvTerrainInfo* getTerrainInfo(int i) const;
 	CvBonusClassInfo* getBonusClassInfo(int i) const;
@@ -299,6 +299,8 @@ public:
 	float getFIELD_OF_VIEW() const { return kGlobals.getFIELD_OF_VIEW(); }
 	float getSHADOW_SCALE() const { return kGlobals.getSHADOW_SCALE(); }
 	float getUNIT_MULTISELECT_DISTANCE() const { return kGlobals.getUNIT_MULTISELECT_DISTANCE(); }
+	// advc.004m:
+	void updateCameraStartDistance(bool bReset) { kGlobals.updateCameraStartDistance(bReset); }
 
 	int getMAX_CIV_PLAYERS() const { return MAX_CIV_PLAYERS; }
 	int getMAX_PLAYERS() const { return MAX_PLAYERS; }

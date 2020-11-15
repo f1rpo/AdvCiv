@@ -8,7 +8,7 @@
 	and building- and unit-related info classes (via include). */
 
 #include "CvInfo_Building.h"
-#include "CvInfo_Unit.h"
+//#include "CvInfo_Unit.h" // now in PCH
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvProcessInfo
@@ -51,7 +51,6 @@ public: // All the const functions are exposed to Python
 	int getFlavorValue(int i) const;
 
 	const TCHAR* getTexture() const;
-	void setTexture(const TCHAR* szVal);
 
 	bool read(CvXMLLoadUtility* pXML);
 

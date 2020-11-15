@@ -1,8 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvPlot.h"
 #include "CyArea.h"
-//# include <boost/python/manage_new_object.hpp>
-//# include <boost/python/return_value_policy.hpp>
 
 //
 // published python interface for CyPlot
@@ -255,4 +253,20 @@ void CyPlotPythonInterface1(python::class_<CyPlot>& x)
 		.def("getScriptData", &CyPlot::getScriptData, "str () - Get stored custom data")
 		.def("setScriptData", &CyPlot::setScriptData, "void (str) - Set stored custom data")
 	;
+
+	// advc.enum: For CyMap::syncRandPlot
+	python::enum_<int>("RandPlotTypes")
+		.value("RANDPLOT_ANY", RANDPLOT_ANY)
+		.value("RANDPLOT_LAND", RANDPLOT_LAND)
+		.value("RANDPLOT_UNOWNED", RANDPLOT_UNOWNED)
+		.value("RANDPLOT_ADJACENT_UNOWNED", RANDPLOT_ADJACENT_UNOWNED)
+		.value("RANDPLOT_ADJACENT_LAND", RANDPLOT_ADJACENT_LAND)
+		.value("RANDPLOT_PASSABLE", RANDPLOT_PASSABLE)
+		.value("RANDPLOT_ADJACENT_LAND", RANDPLOT_ADJACENT_LAND)
+		.value("RANDPLOT_NOT_VISIBLE_TO_CIV", RANDPLOT_NOT_VISIBLE_TO_CIV)
+		/* <advc.300> */
+		.value("RANDPLOT_HABITABLE", RANDPLOT_HABITABLE)
+		.value("RANDPLOT_WATERSOURCE", RANDPLOT_WATERSOURCE)
+		/* </advc.300> */
+		;
 }

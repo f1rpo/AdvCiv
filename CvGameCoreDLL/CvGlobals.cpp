@@ -24,11 +24,6 @@ m_bRandLogging(false),
 m_bOverwriteLogs(false),
 m_bSynchLogging(false),
 m_bDLLProfiler(false),
-m_pkMainMenu(NULL),
-m_iNewPlayers(0),
-m_bZoomOut(false),
-m_bZoomIn(false),
-m_bLoadGameFromFile(false),
 m_pFMPMgr(NULL),
 m_asyncRand(NULL),
 m_pPythonCaller(NULL), // advc.003y
@@ -73,7 +68,6 @@ m_fCAMERA_UPPER_PITCH(0), m_fCAMERA_LOWER_PITCH(0),
 m_fFIELD_OF_VIEW(0), m_fSHADOW_SCALE(0),
 m_fUNIT_MULTISELECT_DISTANCE(0),
 // <advc> Safer to initialize these
-m_paszEntityEventTypes2(NULL),
 m_paszEntityEventTypes(NULL),
 m_paszAnimationOperatorTypes(NULL),
 m_paszFunctionTypes(NULL),
@@ -92,10 +86,11 @@ m_iNumFlavorTypes(0),
 m_iNumArtStyleTypes(0),
 m_iNumFootstepAudioTypes(0),
 // </advc>  <advc.opt>
-m_iRUINS_IMPROVEMENT(NO_IMPROVEMENT),
-m_iDEFAULT_SPECIALIST(NO_SPECIALIST)
+m_iEventMessageTime(-1),
+m_eRUINS_IMPROVEMENT(NO_IMPROVEMENT),
+m_eDEFAULT_SPECIALIST(NO_SPECIALIST)
 {
-	m_aiWATER_TERRAIN[0] = m_aiWATER_TERRAIN[1] = -1; // </advc.opt>
+	m_aeWATER_TERRAIN[0] = m_aeWATER_TERRAIN[1] = NO_TERRAIN; // </advc.opt>
 	setCurrentXMLFile(NULL); // advc.006e
 }
 
@@ -446,7 +441,7 @@ CvString*& CvGlobals::getEntityEventTypes()
 
 CvString& CvGlobals::getEntityEventTypes(EntityEventTypes e)
 {
-	FAssertBounds(0, getNumEntityEventTypes(), e);
+	FAssertEnumBounds(e);
 	return m_paszEntityEventTypes[e];
 }
 
@@ -473,7 +468,7 @@ CvString*& CvGlobals::getFunctionTypes()
 
 CvString& CvGlobals::getFunctionTypes(FunctionTypes e)
 {
-	FAssertBounds(0, NUM_FUNC_TYPES, e);
+	FAssertEnumBounds(e);
 	return m_paszFunctionTypes[e];
 }
 
@@ -484,7 +479,7 @@ CvString*& CvGlobals::getFlavorTypes()
 
 CvString& CvGlobals::getFlavorTypes(FlavorTypes e)
 {
-	FAssertBounds(0, getNumFlavorTypes(), e);
+	FAssertEnumBounds(e);
 	return m_paszFlavorTypes[e];
 }
 
@@ -511,7 +506,7 @@ CvString*& CvGlobals::getCitySizeTypes()
 
 CvString& CvGlobals::getCitySizeTypes(CitySizeTypes e)
 {
-	FAssertBounds(0, NUM_CITYSIZE_TYPES, e);
+	FAssertEnumBounds(e);
 	return m_paszCitySizeTypes[e];
 }
 
@@ -522,7 +517,7 @@ CvString*& CvGlobals::getContactTypes()
 
 CvString& CvGlobals::getContactTypes(ContactTypes e)
 {
-	FAssertBounds(0, NUM_CONTACT_TYPES, e);
+	FAssertEnumBounds(e);
 	return m_paszContactTypes[e];
 }
 
@@ -533,7 +528,7 @@ CvString*& CvGlobals::getDiplomacyPowerTypes()
 
 CvString& CvGlobals::getDiplomacyPowerTypes(DiplomacyPowerTypes e)
 {
-	FAssertBounds(0, NUM_DIPLOMACYPOWER_TYPES, e);
+	FAssertEnumBounds(e);
 	return m_paszDiplomacyPowerTypes[e];
 }
 
@@ -544,7 +539,7 @@ CvString*& CvGlobals::getAutomateTypes()
 
 CvString& CvGlobals::getAutomateTypes(AutomateTypes e)
 {
-	FAssertBounds(0, NUM_AUTOMATE_TYPES, e);
+	FAssertEnumBounds(e);
 	return m_paszAutomateTypes[e];
 }
 
@@ -555,7 +550,7 @@ CvString*& CvGlobals::getDirectionTypes()
 
 CvString& CvGlobals::getDirectionTypes(AutomateTypes e)
 {
-	FAssertBounds(0, NUM_DIRECTION_TYPES, e);
+	FAssertEnumBounds(e);
 	return m_paszDirectionTypes[e];
 }
 
@@ -660,6 +655,8 @@ void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 				break;
 			}
 		}
+		if (strcmp(szChangedDefine, "EVENT_MESSAGE_TIME") == 0)
+			m_iEventMessageTime = iNewValue; // (See m_iEventMessageTime in header)
 		return;
 	}
 
@@ -699,17 +696,29 @@ void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 		}
 		m_aiGlobalDefinesCache[i] = getDefineINT(aszGlobalDefinesTagNames[i], iDefault);
 	}
+	m_iEventMessageTime = getDefineINT("EVENT_MESSAGE_TIME");
 } // </advc.opt>
 
-void CvGlobals::cacheGlobalFloats()
+void CvGlobals::cacheGlobalFloats(
+	bool bAllowRecursion) // advc.004m: Probably not needed; feels safer.
 {
-	m_fPOWER_CORRECTION = getDefineFLOAT("POWER_CORRECTION"); // advc.104
-
+	//m_fFIELD_OF_VIEW = getDefineFLOAT("FIELD_OF_VIEW");
+	// <advc.004m>
+	float fNewFoV = getDefineFLOAT("FIELD_OF_VIEW");
+	if (fNewFoV != m_fFIELD_OF_VIEW)
+	{
+		m_fFIELD_OF_VIEW = fNewFoV;
+		if (bAllowRecursion && IsGraphicsInitialized())
+		{
+			GC.getPythonCaller()->callScreenFunction("updateCameraStartDistance");
+			return;
+		}
+	} // </advc.004m>
+	m_fCAMERA_START_DISTANCE = getDefineFLOAT("CAMERA_START_DISTANCE");
 	m_fCAMERA_MIN_YAW = getDefineFLOAT("CAMERA_MIN_YAW");
 	m_fCAMERA_MAX_YAW = getDefineFLOAT("CAMERA_MAX_YAW");
 	m_fCAMERA_FAR_CLIP_Z_HEIGHT = getDefineFLOAT("CAMERA_FAR_CLIP_Z_HEIGHT");
 	m_fCAMERA_MAX_TRAVEL_DISTANCE = getDefineFLOAT("CAMERA_MAX_TRAVEL_DISTANCE");
-	m_fCAMERA_START_DISTANCE = getDefineFLOAT("CAMERA_START_DISTANCE");
 	m_fAIR_BOMB_HEIGHT = getDefineFLOAT("AIR_BOMB_HEIGHT");
 	m_fPLOT_SIZE = getDefineFLOAT("PLOT_SIZE");
 	m_fCAMERA_SPECIAL_PITCH = getDefineFLOAT("CAMERA_SPECIAL_PITCH");
@@ -717,9 +726,10 @@ void CvGlobals::cacheGlobalFloats()
 	m_fCAMERA_MIN_DISTANCE = getDefineFLOAT("CAMERA_MIN_DISTANCE");
 	m_fCAMERA_UPPER_PITCH = getDefineFLOAT("CAMERA_UPPER_PITCH");
 	m_fCAMERA_LOWER_PITCH = getDefineFLOAT("CAMERA_LOWER_PITCH");
-	m_fFIELD_OF_VIEW = getDefineFLOAT("FIELD_OF_VIEW");
 	m_fSHADOW_SCALE = getDefineFLOAT("SHADOW_SCALE");
 	m_fUNIT_MULTISELECT_DISTANCE = getDefineFLOAT("UNIT_MULTISELECT_DISTANCE");
+
+	m_fPOWER_CORRECTION = getDefineFLOAT("POWER_CORRECTION"); // advc.104
 }
 
 void CvGlobals::cacheGlobals()
@@ -738,17 +748,17 @@ void CvGlobals::cacheGlobals()
 // <advc.opt>
 void CvGlobals::setRUINS_IMPROVEMENT(int iValue)
 {
-	m_iRUINS_IMPROVEMENT = iValue;
+	m_eRUINS_IMPROVEMENT = (ImprovementTypes)iValue;
 }
 
 void CvGlobals::setWATER_TERRAIN(bool bShallow, int iValue)
 {
-	m_aiWATER_TERRAIN[bShallow] = iValue;
+	m_aeWATER_TERRAIN[bShallow] = (TerrainTypes)iValue;
 } 
 
 void CvGlobals::setDEFAULT_SPECIALIST(int iValue)
 {
-	m_iDEFAULT_SPECIALIST = iValue;
+	m_eDEFAULT_SPECIALIST = (SpecialistTypes)iValue;
 } // </advc.opt>
 
 int CvGlobals::getDefineINT(char const* szName,
@@ -757,8 +767,11 @@ int CvGlobals::getDefineINT(char const* szName,
 {
 	int iReturn = iDefault;
 	// BETTER_BTS_AI_MOD: END
-	bool bSuccess = // advc.003c
-			getDefinesVarSystem()->GetValue(szName, iReturn);
+	// <advc.003c>
+	#ifdef FASSERT_ENABLE
+	bool bSuccess =
+	#endif // </advc.003c>
+	getDefinesVarSystem()->GetValue(szName, iReturn);
 	FAssert(bSuccess); // advc.003c
 	return iReturn;
 }
@@ -767,8 +780,11 @@ int CvGlobals::getDefineINT(char const* szName,
 float CvGlobals::getDefineFLOAT(char const* szName) const
 {
 	float fReturn = 0;
-	bool bSuccess = // advc.003c
-			getDefinesVarSystem()->GetValue(szName, fReturn);
+	// <advc.003c>
+	#ifdef FASSERT_ENABLE
+	bool bSuccess =
+	#endif // </advc.003c>
+	getDefinesVarSystem()->GetValue(szName, fReturn);
 	/*  advc.003c: The EXE queries CAMERA_MIN_DISTANCE during startup, which
 		fails but doesn't cause any problems. */
 	FAssert(bSuccess || std::strcmp("CAMERA_MIN_DISTANCE", szName) == 0);
@@ -778,8 +794,11 @@ float CvGlobals::getDefineFLOAT(char const* szName) const
 char const* CvGlobals::getDefineSTRING(char const* szName) const
 {
 	char const* szReturn = NULL;
-	bool bSuccess = // advc.003c
-			getDefinesVarSystem()->GetValue(szName, szReturn);
+	// <advc.003c>
+	#ifdef FASSERT_ENABLE
+	bool bSuccess =
+	#endif// </advc.003c>
+	getDefinesVarSystem()->GetValue(szName, szReturn);
 	FAssert(bSuccess); // advc.003c
 	return szReturn;
 }
@@ -805,6 +824,34 @@ void CvGlobals::setDefineSTRING(char const* szName, char const* szValue, /* advc
 	getDefinesVarSystem()->SetValue(szName, szValue);
 	//cacheGlobals();
 	FAssertMsg(!bUpdateCache, "No strings to update"); // advc.opt
+}
+
+// advc.004m:
+void CvGlobals::updateCameraStartDistance(bool bReset)
+{
+	static float m_fCAMERA_START_DISTANCE_Override = std::max(1000.f,
+			GC.getDefineFLOAT("CAMERA_START_DISTANCE"));
+	float fNewValue = m_fCAMERA_START_DISTANCE_Override;
+	if (!bReset)
+	{
+		fNewValue = std::max(8750 - 80 * getDefineFLOAT("FIELD_OF_VIEW"), 1200.f);
+		PlayerTypes eActivePlayer = getGame().getActivePlayer();
+		if (eActivePlayer != NO_PLAYER)
+		{	/*	Or better use getNumCities (while still calling updateCameraStartDistance
+				only upon entering a new era)? */
+			switch((int)GET_PLAYER(eActivePlayer).getCurrentEra())
+			{
+			case 0: fNewValue *= 0.88f; break;
+			case 1: fNewValue *= 0.94f; break;
+			case 2: break;
+			case 3: fNewValue *= 1.05f; break;
+			default: fNewValue *= 1.075f;
+			}
+		}
+	}
+	setDefineFLOAT("CAMERA_START_DISTANCE", fNewValue,
+			false); // Update the cache explicitly instead:
+	cacheGlobalFloats(false);
 }
 
 int CvGlobals::getMAX_CIV_PLAYERS()
@@ -904,7 +951,7 @@ bool CvGlobals::isDLLProfilerEnabled() const
 int CvGlobals::getTypesEnum(const char* szType,
 	bool bHideAssert, bool bFromPython) const // advc.006
 {
-	FAssertMsg(szType, "null type string");
+	FAssertMsg(szType != NULL, "null type string");
 	TypesMap::const_iterator it = m_typesMap.find(szType);
 	if (it != m_typesMap.end())
 		return it->second;
@@ -923,7 +970,7 @@ int CvGlobals::getTypesEnum(const char* szType,
 			gDLL->logMsg("xml.log", szError);
 		}
 		else szError.Format("type %s not found", szType); // advc.006
-		FAssertMsg(false, szError.c_str());
+		FErrorMsg(szError.c_str());
 	}
 	return -1;
 }
@@ -951,7 +998,7 @@ void CvGlobals::setHoFScreenUp(bool b)
 int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert,
 	bool bFromPython) const // advc.006
 {
-	FAssertMsg(szType, "null info type string");
+	FAssertMsg(szType != NULL, "null info type string");
 	InfosMap::const_iterator it = m_infosMap.find(szType);
 	if (it != m_infosMap.end())
 		return it->second;
@@ -963,7 +1010,7 @@ int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert,
 
 void CvGlobals::setInfoTypeFromString(const char* szType, int idx)
 {
-	FAssertMsg(szType, "null info type string");
+	FAssertMsg(szType != NULL, "null info type string");
 #ifdef _DEBUG
 	InfosMap::const_iterator it = m_infosMap.find(szType);
 	int iExisting = (it!=m_infosMap.end()) ? it->second : -1;
@@ -974,7 +1021,7 @@ void CvGlobals::setInfoTypeFromString(const char* szType, int idx)
 
 void CvGlobals::infoTypeFromStringReset()
 {
-	FAssertMsg(false, "Just to see if and when CvGlobals::infoTypeFromStringReset is ever called"); // advc.test
+	FErrorMsg("Just to see if and when CvGlobals::infoTypeFromStringReset is ever called"); // advc.test
 	m_infosMap.clear();
 }
 
@@ -1016,7 +1063,7 @@ namespace // advc
 	template <class T>
 	bool readInfoArray(FDataStreamBase* pStream, std::vector<T*>& array, const char* szClassName)
 	{
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 		//addToInfosVectors(&array); // advc.enum (no longer used)
 		int iSize;
 		pStream->Read(&iSize);
@@ -1050,7 +1097,7 @@ namespace // advc
 	template <class T>
 	bool writeInfoArray(FDataStreamBase* pStream,  std::vector<T*>& array)
 	{
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 		int iSize = sizeof(T);
 		pStream->Write(iSize);
 		pStream->Write(array.size());
@@ -1268,7 +1315,7 @@ int CvGlobals::getNUM_LEADERANIM_TYPES() const
 
 void CvGlobals::infosReset()
 {
-	FAssertMsg(false, "Just to see if and when CvGlobals::infosReset is ever called"); // advc.test
+	FErrorMsg("Just to see if and when CvGlobals::infosReset is ever called"); // advc.test
 	// <advc.enum> Replacing a loop through m_aInfoVectors (now deleted)
 	for (size_t i = 0; i < m_paWorldInfo.size(); i++)
 		m_paWorldInfo[i]->reset();

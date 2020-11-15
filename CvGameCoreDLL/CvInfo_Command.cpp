@@ -19,11 +19,6 @@ int CvCommandInfo::getAutomate() const
 	return m_iAutomate;
 }
 
-void CvCommandInfo::setAutomate(int i)
-{
-	m_iAutomate = i;
-}
-
 bool CvCommandInfo::getConfirmCommand() const
 {
 	return m_bConfirmCommand;
@@ -46,7 +41,7 @@ bool CvCommandInfo::read(CvXMLLoadUtility* pXML)
 
 	CvString szTextVal;
 	if (pXML->GetChildXmlValByName(szTextVal, "Automate", /* advc.006b: */ ""))
-		setAutomate(GC.getTypesEnum(szTextVal));
+		m_iAutomate = GC.getTypesEnum(szTextVal);
 
 	pXML->GetChildXmlValByName(&m_bConfirmCommand, "bConfirmCommand", /* advc.006b: */ false);
 	pXML->GetChildXmlValByName(&m_bVisible, "bVisible", /* advc.006b: */ false);
@@ -67,19 +62,9 @@ int CvAutomateInfo::getCommand() const
 	return m_iCommand;
 }
 
-void CvAutomateInfo::setCommand(int i)
-{
-	m_iCommand = i;
-}
-
 int CvAutomateInfo::getAutomate() const
 {
 	return m_iAutomate;
-}
-
-void CvAutomateInfo::setAutomate(int i)
-{
-	m_iAutomate = i;
 }
 
 bool CvAutomateInfo::getConfirmCommand() const
@@ -97,11 +82,8 @@ bool CvAutomateInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvHotkeyInfo::read(pXML))
 		return false;
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "Command");
-	setCommand(pXML->FindInInfoClass(szTextVal));
-	pXML->GetChildXmlValByName(szTextVal, "Automate");
-	setAutomate(GC.getTypesEnum(szTextVal));
+	pXML->SetInfoIDFromChildXmlVal(m_iCommand, "Command");
+	pXML->SetInfoIDFromChildXmlVal(m_iAutomate, "Automate");
 
 	pXML->GetChildXmlValByName(&m_bConfirmCommand, "bConfirmCommand", /* advc.006b: */ false);
 	pXML->GetChildXmlValByName(&m_bVisible, "bVisible");
@@ -117,12 +99,13 @@ m_eSubType(NO_ACTIONSUBTYPE)
 int CvActionInfo::getMissionData() const
 {
 	if (ACTIONSUBTYPE_BUILD == m_eSubType ||
-			ACTIONSUBTYPE_RELIGION == m_eSubType ||
-			ACTIONSUBTYPE_CORPORATION == m_eSubType ||
-			ACTIONSUBTYPE_SPECIALIST == m_eSubType	||
-			ACTIONSUBTYPE_BUILDING == m_eSubType)
+		ACTIONSUBTYPE_RELIGION == m_eSubType ||
+		ACTIONSUBTYPE_CORPORATION == m_eSubType ||
+		ACTIONSUBTYPE_SPECIALIST == m_eSubType	||
+		ACTIONSUBTYPE_BUILDING == m_eSubType)
+	{
 		return m_iOriginalIndex;
-
+	}
 	return -1;
 }
 

@@ -155,6 +155,7 @@ void CyTeamPythonInterface()
 		.def("changeExtraMoves", &CyTeam::changeExtraMoves, "void (int /*DomainTypes*/ eIndex, int iChange)")
 
 		.def("isHasMet", &CyTeam::isHasMet, "bool (int /*TeamTypes*/ eIndex)")
+		.def("getHasMetTurn", &CyTeam::getHasMetTurn, "int (int /*TeamTypes*/ iOtherTeam)") // advc.091
 		.def("isAtWar", &CyTeam::isAtWar, "bool (int /*TeamTypes*/ eIndex)")
 		.def("isPermanentWarPeace", &CyTeam::isPermanentWarPeace, "bool (int /*TeamTypes*/ eIndex)")
 		.def("setPermanentWarPeace", &CyTeam::setPermanentWarPeace, "void (int /*TeamTypes*/ eIndex, bool bNewValue)")

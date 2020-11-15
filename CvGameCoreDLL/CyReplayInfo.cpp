@@ -33,7 +33,7 @@ int CyReplayInfo::getLeader(int iPlayer) const
 {
 	if (m_pHoF)
 	{
-		return (int)(m_pHoF->getLeader(iPlayer));
+		return m_pHoF->getLeader((PlayerTypes)iPlayer);
 	}
 	return -1;
 }
@@ -42,7 +42,7 @@ int CyReplayInfo::getColor(int iPlayer) const
 {
 	if (m_pHoF)
 	{
-		return (int)(m_pHoF->getColor(iPlayer));
+		return m_pHoF->getColor((PlayerTypes)iPlayer);
 	}
 	return -1;
 }

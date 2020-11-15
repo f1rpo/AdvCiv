@@ -626,9 +626,17 @@
 			<Type>INTERFACE_TECH_WATERMOVES</Type>
 			<Path>Art/Interface/Screens/TechTree/Moves_For_WaterUnit.dds</Path>
 		</InterfaceArtInfo>
+		<!-- advc.002d: The non-atlas path was Ocean_Trade. Note that
+			 INTERFACE_TECH_WATERTRADE is used for all terrain trade effects -
+			 except Ocean; see below.-->
 		<InterfaceArtInfo>
 			<Type>INTERFACE_TECH_WATERTRADE</Type>
-			<Path>,Art/Interface/Screens/TechTree/Ocean_Trade.dds,Art/Interface/Buttons/Beyond_the_Sword_Atlas.dds,8,3</Path>
+			<Path>,Art/Interface/Screens/TechTree/Trade_On_Coast.dds,Art/Interface/Buttons/Beyond_the_Sword_Atlas.dds,8,3</Path>
+		</InterfaceArtInfo>
+		<!-- advc.002d: -->
+		<InterfaceArtInfo>
+			<Type>INTERFACE_TECH_DEEPWATERTRADE</Type>
+			<Path>,Art/Interface/Screens/TechTree/Ocean_Trade.dds,Art/Interface/Buttons/Mainmenu_Techscreen_Worldbuilder_Popups_Atlas.dds,1,3</Path>
 		</InterfaceArtInfo>
 		<InterfaceArtInfo>
 			<Type>INTERFACE_TECH_RIVERTRADE</Type>

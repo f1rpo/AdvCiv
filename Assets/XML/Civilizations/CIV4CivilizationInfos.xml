@@ -5,13 +5,13 @@
 <!-- -->
 <!-- Civilization Infos -->
 <!-- advc.303: Not sure where comments are allowed in this file;
-     demonstrably not everywhere. Added NONE entries to the barbarians
+     demonstrably not everywhere. Added NONE entries to the Barbarians
 	 starting at Monument (still called "Obelisk" internally) until
 	 Supermarket.
 	 advc.305: Removed (now allowed) Workboat.
 	 advc.307: Allowed Musketman
 	 Disallowed Frigate, Privateer, Paratrooper, Rifleman, Grenadier,
-	 Spy (dlph.6). -->
+	 Spy (kekm.6). -->
 <Civ4CivilizationInfos xmlns="x-schema:CIV4CivilizationsSchema.xml">
 	<CivilizationInfos>
 		<CivilizationInfo>
@@ -3831,7 +3831,8 @@
 			<ShortDescription>TXT_KEY_CIV_MINOR_SHORT_DESC</ShortDescription>
 			<Adjective>TXT_KEY_CIV_MINOR_ADJECTIVE</Adjective>
 			<Civilopedia>TXT_KEY_CIV_MINOR_PEDIA</Civilopedia>
-			<DefaultPlayerColor>PLAYERCOLOR_WHITE</DefaultPlayerColor>
+			<!-- advc.002i: was WHITE (clashes with England) -->
+			<DefaultPlayerColor>PLAYERCOLOR_BLACK_AND_GREEN</DefaultPlayerColor>
 			<ArtDefineTag>ART_DEF_CIVILIZATION_MINOR</ArtDefineTag>
 			<ArtStyleType>ARTSTYLE_BARBARIAN</ArtStyleType>
 			<bPlayable>0</bPlayable>

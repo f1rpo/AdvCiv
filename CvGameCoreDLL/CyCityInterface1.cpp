@@ -1,9 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CyArea.h"
 
-//# include <boost/python/manage_new_object.hpp>
-//# include <boost/python/return_value_policy.hpp>
-
 //
 // published python interface for CyCity
 //
@@ -301,13 +298,13 @@ void CyCityPythonInterface1(python::class_<CyCity>& x)
 		.def("getCultureUpdateTimer", &CyCity::getCultureUpdateTimer, "int () - Culture Update Timer")
 		.def("changeCultureUpdateTimer", &CyCity::changeCultureUpdateTimer, "void (iChange) - adjusts the Culture Update Timer by iChange")
 		.def("isNeverLost", &CyCity::isNeverLost, "bool ()")
-		.def("setNeverLost", &CyCity::setNeverLost, "void (iNewValue)")
+		.def("setNeverLost", &CyCity::setNeverLost, "void (bNewValue)")
 		.def("isBombarded", &CyCity::isBombarded, "bool ()")
-		.def("setBombarded", &CyCity::setBombarded, "void (iNewValue)")
+		.def("setBombarded", &CyCity::setBombarded, "void (bNewValue)")
 		.def("isDrafted", &CyCity::isDrafted, "bool ()")
-		.def("setDrafted", &CyCity::setDrafted, "void (iNewValue)")
+		.def("setDrafted", &CyCity::setDrafted, "void (bNewValue)")
 		.def("isAirliftTargeted", &CyCity::isAirliftTargeted, "bool ()")
-		.def("setAirliftTargeted", &CyCity::setAirliftTargeted, "void (iNewValue)")
+		.def("setAirliftTargeted", &CyCity::setAirliftTargeted, "void (bNewValue)")
 		.def("isCitizensAutomated", &CyCity::isCitizensAutomated, "bool () - are citizens under automation?")
 		.def("setCitizensAutomated", &CyCity::setCitizensAutomated, "void (bool bNewValue) - set city animation bNewValue")
 		.def("isProductionAutomated", &CyCity::isProductionAutomated, "bool () - is production under automation?")
@@ -316,7 +313,7 @@ void CyCityPythonInterface1(python::class_<CyCity>& x)
 		.def("setWallOverride", &CyCity::setWallOverride, "setWallOverride(bool bOverride)")
 		.def("setCitySizeBoost", &CyCity::setCitySizeBoost, "setCitySizeBoost(int iBoost)")
 		.def("isPlundered", &CyCity::isPlundered, "bool ()")
-		.def("setPlundered", &CyCity::setPlundered, "void (iNewValue)")
+		.def("setPlundered", &CyCity::setPlundered, "void (bNewValue)")
 		.def("getOwner", &CyCity::getOwner, "int /*PlayerTypes*/ ()")
 		.def("getTeam", &CyCity::getTeam, "int /*TeamTypes*/ ()")
 		.def("getPreviousOwner", &CyCity::getPreviousOwner, "int /*PlayerTypes*/ ()")

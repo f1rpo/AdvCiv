@@ -193,6 +193,7 @@ def savemap(argsList=None):
 		else:
 			msg += " "
 		# I see no way to make CvDLLPythonIFaceBase aware of the new map script
+		# (CvDLLPythonIFaceBase::moduleExists doesn't do the trick either)
 		msg += "Playing the saved map will require a restart of Civ 4"
 		if customAssets:
 			msg += ", and mods that disable CustomAssets cannot load maps from that location"
@@ -211,6 +212,30 @@ def savemap(argsList=None):
 	f.write('from CvPythonExtensions import *\n')
 	f.write('import CvMapGeneratorUtil\n')
 	f.write('from random import random, seed, shuffle\n')
+	f.write('\n')
+	# advc.savem: Moved up for quick inspection
+	f.write('def getDescription():\n')
+	#string = '\treturn "Saved Map, based on ' + str(map.getMapScriptName()) + ' ('+str(width)+' x '+str(height)+') with '+str(numPlayers)+' civs"\n'
+	# <advc.savem> Use the above for the file name instead
+	string = '\treturn '
+	string += "\"Originally created with the following settings by:\\n"
+	# This isn't portable; based on advc.106h.
+	settingsStr = map.getSettingsString()
+	settingsStr = settingsStr.replace('\n', '\\n')
+	string += settingsStr + "\\n"
+	string += "Original players:\\n"
+	for playerID in range(numPlayers):
+		player = gc.getPlayer(playerID)
+		civInfo = gc.getCivilizationInfo(player.getCivilizationType())
+		leaderInfo = gc.getLeaderHeadInfo(player.getLeaderType())
+		string += str(playerID) + " - " + leaderInfo.getDescription() + " of " + civInfo.getShortDescription(0)
+		if player.isHuman():
+			string += " (human)"
+		string += "\\n"
+	string += "Saved on turn " + str(game.getGameTurn()) + "\""
+	string += '\n'
+	# </advc.savem>
+	f.write(string)
 	f.write('\n')
 	f.write('gc = CyGlobalContext()\n')
 	f.write('\n')
@@ -235,29 +260,6 @@ def savemap(argsList=None):
 	string = 'improvements = ' + str(improvements) + '\n'
 	f.write(string)
 	string = 'numPlots = ' + str(numPlots) + '\n'
-	f.write(string)
-	f.write('\n')
-	f.write('def getDescription():\n')
-	#string = '\treturn "Saved Map, based on ' + str(map.getMapScriptName()) + ' ('+str(width)+' x '+str(height)+') with '+str(numPlayers)+' civs"\n'
-	# <advc.savem> Use the above for the file name instead
-	string = '\treturn '
-	string += "\"Originally created with the following settings by:\\n"
-	# This isn't portable; based on advc.106h.
-	settingsStr = map.getSettingsString()
-	settingsStr = settingsStr.replace('\n', '\\n')
-	string += settingsStr + "\\n"
-	string += "Original players:\\n"
-	for playerID in range(numPlayers):
-		player = gc.getPlayer(playerID)
-		civInfo = gc.getCivilizationInfo(player.getCivilizationType())
-		leaderInfo = gc.getLeaderHeadInfo(player.getLeaderType())
-		string += str(playerID) + " - " + leaderInfo.getDescription() + " of " + civInfo.getShortDescription(0)
-		if player.isHuman():
-			string += " (human)"
-		string += "\\n"
-	string += "Saved on turn " + str(game.getGameTurn()) + "\""
-	string += '\n'
-	# </advc.savem>
 	f.write(string)
 	f.write('\n')
 	f.write('def isAdvancedMap():\n')
@@ -303,15 +305,15 @@ def savemap(argsList=None):
 	# advc.savem: was "Use Fixed Starting Locations, but assign Civs at Random".
 	f.write('\t\t\t1: "Shuffled Starts",\n')
 	# advc.savem: Was "Ignore Fixed Locations". Warn that the normalization step will be skipped?
-	f.write('\t\t\t2: "Random Starts"\n')
+	f.write('\t\t\t2: "New Starts"\n')
 	f.write('\t\t\t},\n')
 	f.write('\t\t1:\t{\n')
 	f.write('\t\t\t0: "Original Bonuses",\n') # advc.savem: was "Use Fixed Bonuses"
-	f.write('\t\t\t1: "Random Bonuses"\n') # advc.savem: was "Randomize Bonuses"
+	f.write('\t\t\t1: "New Bonuses"\n') # advc.savem: was "Randomize Bonuses"
 	f.write('\t\t\t},\n')
 	f.write('\t\t2:\t{\n')
 	f.write('\t\t\t0: "Original Huts",\n') # advc.savem: was "Use fixed Goody Huts"
-	f.write('\t\t\t1: "Random Huts"\n') # advc.savem: was "Randomize Goody Huts"
+	f.write('\t\t\t1: "New Huts"\n') # advc.savem: was "Randomize Goody Huts"
 	f.write('\t\t\t}\n')
 	f.write('\t\t}\n')
 	f.write('\ttranslated_text = unicode(CyTranslator().getText(selection_names[iOption][iSelection], ()))\n')
@@ -419,6 +421,11 @@ def savemap(argsList=None):
 	f.write('\treturn None\n')
 	f.write('\n')
 	f.write('def assignStartingPlots():\n')
+	# <advc.027> Allow StartingPositionIteration to assign the plots
+	f.write('\tif CyMap().getCustomMapOption(0) == 2:\n')
+	f.write('\t\tCyPythonMgr().allowDefaultImpl()\n')
+	f.write('\t\treturn None\n')
+	# </advc.027>
 	string = '\t# civs are ' + str(civsDesc) + '\n'
 	f.write(string)
 	string = '\tcivs = ' + str(civs) + '\n'
@@ -442,7 +449,8 @@ def savemap(argsList=None):
 	f.write('\t\t\t\tplotindex = findStartingPlot(i)\n')
 	f.write('\t\t\tplayer.setStartingPlot(CyMap().plotByIndex(plotindex), 1)\n')
 	f.write('\t\t# fixed locations\n')
-	f.write('\t\telif CyMap().getCustomMapOption(0) == 0:\n')
+	#f.write('\t\telif CyMap().getCustomMapOption(0) == 0:\n')
+	f.write('\t\telse:\n') # advc.027: Replacing the above
 	f.write('\t\t\tciv = int(player.getCivilizationType())\n')
 	f.write('\t\t\tif(civs.count(civ) == 1):\n')
 	f.write('\t\t\t\tpindex = civs.index(civ)\n')
@@ -451,10 +459,11 @@ def savemap(argsList=None):
 	f.write('\t\t\t\tplayer.setStartingPlot(CyMap().plotByIndex(plotindex), 1)\n')
 	f.write('\t\t\telse:\n')
 	f.write('\t\t\t\tnotinlist.append(i)\n')
-	f.write('\t\t# fully random (ignore fixed locations)\n')
-	f.write('\t\telse:\n')
-	f.write('\t\t\tplotindex = findStartingPlot(i)\n')
-	f.write('\t\t\tplayer.setStartingPlot(CyMap().plotByIndex(plotindex), 1)\n')
+	# advc.027: Commented out (now handled upfront)
+	#f.write('\t\t# fully random (ignore fixed locations)\n')
+	#f.write('\t\telse:\n')
+	#f.write('\t\t\tplotindex = findStartingPlot(i)\n')
+	#f.write('\t\t\tplayer.setStartingPlot(CyMap().plotByIndex(plotindex), 1)\n')
 	f.write('\t\n')
 	f.write('\t# handle unassigned civs\n')
 	f.write('\topenstartingPlots = list(set(startingPlots) - set(usedstartingPlots))\n')
@@ -472,6 +481,11 @@ def savemap(argsList=None):
 	f.write('\n')
 	f.write('def findStartingPlot(argsList):\n')
 	f.write('\tplayerID = argsList\n')
+	# <advc.027>
+	f.write('\tif CyMap().getCustomMapOption(0) == 2:\n')
+	f.write('\t\tCyPythonMgr().allowDefaultImpl()\n')
+	f.write('\t\treturn None\n')
+	# </advc.027>
 	f.write('\treturn CvMapGeneratorUtil.findStartingPlot(playerID)\n')
 	f.write('\n')
 	f.write('def normalizeStartingPlotLocations():\n')

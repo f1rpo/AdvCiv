@@ -65,8 +65,10 @@
 			<option id="GPTechPrefs" key="GP Tech Prefs" 
 					type="boolean" default="False" 
 					get="isShowGPTechPrefs"/>
+			<!-- advc.004: Was False.
+				 (Doesn't really matter; the option isn't used anymore.) -->
 			<option id="WideTechScreen" key="Wide Tech Screen" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isWideTechScreen"/>
 			<!-- advc.068: dirtyBit added -->
 			<option id="ShowTechEra" key="Show Tech Era" 
@@ -93,6 +95,11 @@
 					type="boolean" default="False" 
 					get="isMembers"/>
 	
+			<!-- advc.091: -->
+			<option id="PartialScoreGraphs" key="Partial Score Graphs" 
+					type="boolean" default="False" 
+					get="isPartialScoreGraphs"/>
+
 			<!-- BUG Info Screen (F9) by Ruff_Hi -->
 			<option id="BugGraphsTab" key="Graphs" 
 					type="boolean" default="False" 

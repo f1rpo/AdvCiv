@@ -1,11 +1,7 @@
 #pragma once
 
-// CvPlot.h
-
 #ifndef CIV4_PLOT_H
 #define CIV4_PLOT_H
-
-#pragma warning( disable: 4251 ) // needs to have dll-interface to be used by clients of class
 
 class CvArea;
 class CvMap;
@@ -83,6 +79,8 @@ public:
 
 	DllExport bool isLake() const;																															// Exposed to Python
 	bool isFreshWater() const;																												// Exposed to Python
+	bool isAdjacentFreshWater() const; // advc.108
+	bool isAdjacentSaltWater() const; // advc.041
 	bool isPotentialIrrigation() const;																													// Exposed to Python
 	bool canHavePotentialIrrigation() const;																										// Exposed to Python
 	DllExport bool isIrrigationAvailable(bool bIgnoreSelf = false) const;													// Exposed to Python
@@ -116,7 +114,7 @@ public:
 			bool bIgnoreFeature = false) const; // advc.129
 	bool canHaveImprovement(ImprovementTypes eImprovement,														// Exposed to Python
 			TeamTypes eTeam = NO_TEAM, bool bPotential = false,
-			BuildTypes eBuild = NO_BUILD, bool bAnyBuild = true) const; // dlph.9
+			BuildTypes eBuild = NO_BUILD, bool bAnyBuild = true) const; // kekm.9
 	bool canBuild(BuildTypes eBuild, PlayerTypes ePlayer = NO_PLAYER, bool bTestVisible = false) const;														// Exposed to Python
 	int getBuildTime(BuildTypes eBuild,																																										// Exposed to Python
 			PlayerTypes ePlayer) const; // advc.251
@@ -170,15 +168,7 @@ public:
 	bool isWithinCultureRange(PlayerTypes ePlayer) const;																						// Exposed to Python
 	int getNumCultureRangeCities(PlayerTypes ePlayer) const;																				// Exposed to Python
 
-	// BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000: START
-			// advc: const qualifier added to these two
-	bool isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb = true) const;
-	bool isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer = NO_PLAYER) const;
-	int calculatePathDistanceToPlot(TeamTypes eTeam,  // <advc.104b>
-			CvPlot const& kTargetPlot, int iMaxPath = -1,
-			TeamTypes eTargetTeam = BARBARIAN_TEAM,
-			DomainTypes eDomain = DOMAIN_LAND) const; // </advc.104b>
-	// BETTER_BTS_AI_MOD: END
+	// (advc.pf: BBAI path distance functions moved to CvMap, CvTeamAI.)
 	// BETTER_BTS_AI_MOD, Efficiency, 08/21/09, jdog5000: START
 	// Plot danger cache (rewritten for K-Mod to fix bugs and improvement performance)
 	inline int getActivePlayerSafeRangeCache() const { return m_iActivePlayerSafeRangeCache; }
@@ -285,7 +275,6 @@ public:
 	int getYExternal() const; // advc.inl: Exported through .def file																					// Exposed to Python
 	inline int getY() const { return m_iY; } // advc.inl: Renamed from getY_INLINE
 	bool at(int iX, int iY) const {  return (getX() == iX && getY() == iY); } // advc.inl								// Exposed to Python
-	int getMapIndex() const; // advc
 	int getLatitude() const;																																					// Exposed to Python
 	void setLatitude(int iLatitude); // advc.tsl	(exposed to Python)
 	int getFOWIndex() const;
@@ -478,15 +467,15 @@ public:
 	{
 		return m_aiYield.get(eIndex);
 	}
-	int calculateNatureYield(YieldTypes eIndex, TeamTypes eTeam /* advc: */ = NO_TEAM,						// Exposed to Python
+	int calculateNatureYield(YieldTypes eIndex, TeamTypes eTeam /* advc: */ = NO_TEAM,								// Exposed to Python
 			bool bIgnoreFeature = false, /* advc.300: */ bool bIgnoreHills = false) const;
-	int calculateBestNatureYield(YieldTypes eIndex, TeamTypes eTeam) const;															// Exposed to Python
+	int calculateBestNatureYield(YieldTypes eIndex, TeamTypes eTeam) const;											// Exposed to Python
 	int calculateTotalBestNatureYield(TeamTypes eTeam) const;																						// Exposed to Python
 	// BETTER_BTS_AI_MOD, City AI, 10/06/09, jdog5000:
-	int calculateImprovementYieldChange(ImprovementTypes eImprovement, YieldTypes eYield, PlayerTypes ePlayer, bool bOptimal = false, bool bBestRoute = false) const;	// Exposed to Python
-	// advc.enum: Return type changed to char (was int)
-	char calculateYield(YieldTypes eIndex, bool bDisplay = false) const;												// Exposed to Python
-	bool hasYield() const { return m_aiYield.hasContent(); } // advc.enum												// Exposed to Python
+	int calculateImprovementYieldChange(ImprovementTypes eImprovement, YieldTypes eYield,							// Exposed to Python
+			PlayerTypes ePlayer = NO_PLAYER, bool bOptimal = false, bool bBestRoute = false) const;
+	int calculateYield(YieldTypes eIndex, bool bDisplay = false) const;											// Exposed to Python
+	bool hasYield() const { return m_aiYield.hasContent(); } // advc.enum											// Exposed to Python
 	void updateYield();
 	int calculateCityPlotYieldChange(YieldTypes eYield, int iYield, int iCityPopulation) const;
 	// int calculateMaxYield(YieldTypes eYield) const; // disabled by K-Mod
@@ -499,21 +488,23 @@ public:
 	TeamTypes findHighestCultureTeam() const;																														// Exposed to Python
 	PlayerTypes findHighestCulturePlayer(
 			bool bAlive = false) const; // advc.035
-	int calculateCulturePercent(PlayerTypes eIndex) const;																		// Exposed to Python
+	int calculateCulturePercent(PlayerTypes eIndex) const;																// Exposed to Python
 	int calculateTeamCulturePercent(TeamTypes eIndex) const;																						// Exposed to Python
 	void setCulture(PlayerTypes eIndex, int iNewValue, bool bUpdate, bool bUpdatePlotGroups);																		// Exposed to Python
 	void changeCulture(PlayerTypes eIndex, int iChange, bool bUpdate);																	// Exposed to Python
 
-	int countNumAirUnits(TeamTypes eTeam) const;																					// Exposed to Python
+	int countNumAirUnits(TeamTypes eTeam) const;																		// Exposed to Python
 	int airUnitSpaceAvailable(TeamTypes eTeam) const;
 	// <advc.081>
 	int countHostileUnits(PlayerTypes ePlayer, bool bPlayer, bool bTeam,
 			bool bNeutral, bool bHostile) const; // </advc.081>
 	int getFoundValue(PlayerTypes eIndex,												// Exposed to Python
 			bool bRandomize = false) const; // advc.052
-	bool isBestAdjacentFound(PlayerTypes eIndex);										// Exposed to Python
+	bool isBestAdjacentFound(PlayerTypes eIndex) const;										// Exposed to Python
 	// K-Mod: I've changed iNewValue to be 'short' instead of 'int', so that it matches the cache.
 	void setFoundValue(PlayerTypes eIndex, short iNewValue);
+	bool canFound(bool bTestVisible = false) const; // advc
+	bool canEverFound() const; // advc.129d
 	
 	// advc.inl: 2x inline
 	inline int getPlayerCityRadiusCount(PlayerTypes eIndex) const																							// Exposed to Python
@@ -606,7 +597,8 @@ public:
 	bool changeBuildProgress(BuildTypes eBuild, int iChange,									// Exposed to Python
 			//TeamTypes eTeam = NO_TEAM
 			PlayerTypes ePlayer); // advc.251
-	bool decayBuildProgress(bool bTest = false); // advc.011
+	bool isBuildProgressDecaying(bool bWarn = false) const; // advc.011
+	void decayBuildProgress(); // advc.011
 
 	void updateFeatureSymbolVisibility();
 	void updateFeatureSymbol(bool bForce = false);
@@ -663,7 +655,6 @@ public:
 	void changeInvisibleVisibilityCount(TeamTypes eTeam, InvisibleTypes eInvisible, int iChange);					// Exposed to Python
 
 	inline int getNumUnits() const { return m_units.getLength(); } // advc.inl												// Exposed to Python
-	CvUnit* getUnitByIndex(int iIndex) const;																													// Exposed to Python
 	void addUnit(CvUnit const& kUnit, bool bUpdate = true);
 	void removeUnit(CvUnit* pUnit, bool bUpdate = true);
 	// advc.inl: 2x inline
@@ -686,6 +677,7 @@ public:
 	} // </advc.003s>
 	DllExport CLLNode<IDInfo>* headUnitNode() const { return m_units.head(); } // advc.inl
 	CLLNode<IDInfo>* tailUnitNode() const { return m_units.tail(); } // advc.inl
+	inline CvUnit* headUnit() const { return getUnitByIndex(0); } // advc
 
 	int getNumSymbols() const;
 	CvSymbol* getSymbol(int iID) const;
@@ -705,6 +697,7 @@ public:
 	bool canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 			bool bCheckAirUnitCap = true, // advc.001b
 			BonusTypes eAssumeAvailable = NO_BONUS) const; // advc.001u
+	bool canConstruct(BuildingTypes eBuilding) const; // advc
 	bool isEspionageCounterSpy(TeamTypes eTeam) const;
 
 	DllExport int getAreaIdForGreatWall() const;
@@ -816,7 +809,7 @@ protected:
 	std::vector<CvSymbol*> m_symbols;
 
 	static bool m_bAllFog; // advc.706
-	static int iMaxVisibilityRangeCache; // advc.003h
+	static int m_iMaxVisibilityRangeCache; // advc.003h
 
 	void doFeature();
 	void doCulture();
@@ -830,11 +823,35 @@ protected:
 	ColorTypes plotMinimapColor();
 	void updateImpassable(); // advc.opt
 
+	/*	advc: protected b/c iteration through headUnitNode/ nextUnitNode is faster.
+		Iteration by index is needed for Python export though. */
+	CvUnit* getUnitByIndex(int iIndex) const;															// Exposed to Python
+
+	friend class CyPlot; // advc (see above)
 	// added so under cheat mode we can access protected stuff
 	friend class CvGameTextMgr;
 };
 
 // advc.opt: It's fine to change the size, but might want to double check if it can be avoided.
 BOOST_STATIC_ASSERT(MAX_CIV_PLAYERS > 18 || sizeof(CvPlot) <= 212);
+
+/*	advc.enum: For functions that choose random plots.
+	Moved from CvDefines, turned into an enum, exposed to Python. */
+enum RandPlotFlags
+{
+	RANDPLOT_ANY = 0,
+	RANDPLOT_LAND =						(1 << 0),
+	RANDPLOT_UNOWNED =					(1 << 1),
+	RANDPLOT_ADJACENT_UNOWNED =			(1 << 2),
+	RANDPLOT_ADJACENT_LAND =			(1 << 3),
+	RANDPLOT_PASSABLE =					(1 << 4),
+	RANDPLOT_NOT_VISIBLE_TO_CIV =		(1 << 5),
+	RANDPLOT_NOT_CITY =					(1 << 6),
+	// <advc.300>
+	RANDPLOT_HABITABLE =				(1 << 7),
+	RANDPLOT_WATERSOURCE =				(1 << 8),
+	// </advc.300>
+};
+OVERLOAD_BITWISE_OPERATORS(RandPlotFlags)
 
 #endif

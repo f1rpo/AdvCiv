@@ -6,7 +6,6 @@ class FDataStreamBase;
 class CvMessageData
 {
 public:
-	CvMessageData(GameMessageTypes eType);
 	virtual ~CvMessageData();
 	virtual void Debug(char* szAddendum) = 0;
 	virtual void Execute() = 0;
@@ -16,6 +15,9 @@ public:
 	DllExport GameMessageTypes getType() const;
 
 	DllExport static CvMessageData* createMessage(GameMessageTypes eType);
+
+protected: // advc
+	CvMessageData(GameMessageTypes eType);
 
 private:
 	GameMessageTypes m_eType;
@@ -125,14 +127,14 @@ class CvNetUpdateCivics : public CvMessageData
 {
 public:
 	CvNetUpdateCivics();
-	CvNetUpdateCivics(PlayerTypes ePlayer, const std::vector<CivicTypes>& aeCivics);
+	CvNetUpdateCivics(PlayerTypes ePlayer, CivicMap const& kCivics);
 	virtual void Debug(char* szAddendum);
 	virtual void Execute();
 	virtual void PutInBuffer(FDataStreamBase* pStream);
 	virtual void SetFromBuffer(FDataStreamBase* pStream);
 private:
 	PlayerTypes m_ePlayer;
-	std::vector<CivicTypes> m_aeCivics;
+	CivicMap m_aeCivics; // advc.enum
 };
 
 class CvNetResearch : public CvMessageData
@@ -287,7 +289,7 @@ class CvNetPushMission : public CvMessageData
 public:
 	CvNetPushMission();
 	CvNetPushMission(PlayerTypes ePlayer, int iUnitID, MissionTypes eMission,
-			int iData1, int iData2, int iFlags, bool bShift,
+			int iData1, int iData2, MovementFlags eFlags, bool bShift,
 			bool bModified); // advc.011b
 	virtual void Debug(char* szAddendum);
 	virtual void Execute();
@@ -299,7 +301,7 @@ private:
 	MissionTypes m_eMission;
 	int m_iData1;
 	int m_iData2;
-	int m_iFlags;
+	MovementFlags m_eFlags;
 	bool m_bShift;
 	// advc.011b: Modifier key down (could be anything except Shift)
 	bool m_bModified;

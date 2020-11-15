@@ -2,10 +2,9 @@
 
 #ifndef CyGame_h
 #define CyGame_h
-//
+
 // Python wrapper class for CvGame
 // SINGLETON
-// updated 6-5
 
 class CvGame;
 class CvGameAI;
@@ -18,11 +17,11 @@ class CyPlot;
 class CyGame
 {
 public:
-	CyGame();
-	CyGame(CvGame* pGame);			// Call from C++
-	CyGame(CvGameAI* pGame);			// Call from C++;
-	CvGame* getGame() { return m_pGame;	}	// Call from C++
-	bool isNone() { return (m_pGame==NULL); }
+	CyGame(CvGame& kGame) : m_kGame(kGame) {} // Call from C++
+	/*CyGame(CvGameAI const& kGame);
+	CvGame const& getGame() { return m_kGame;	}*/ // advc: unused
+	CyGame() : m_kGame(GC.getGame()) {}
+	bool isNone() { return /*(m_pGame==NULL)*/ false; } // advc: Initialization is guaranteed
 
 	void updateScore(bool bForce);
 	void cycleCities(bool bForward, bool bAdd);
@@ -303,9 +302,11 @@ public:
 	bool isRFInterlude();
 	bool isRFBlockPopups(); // </advc.706>
 	void reportCurrentLayer(int iLayer); // advc.004m
+	bool isCivLeaderSetupKnown(); // advc.190c
+	bool isScenario(); // advc.052
 
 protected:
-	CvGame* m_pGame;
+	CvGame& m_kGame; // advc: was pointer
 };
 
 #endif	// #ifndef CyGame

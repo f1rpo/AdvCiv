@@ -112,7 +112,7 @@ void *__cdecl operator new(size_t size, char* pcFile, int iLine)
 
 void *__cdecl operator new[](size_t size, char* pcFile, int iLine)
 {
-	FAssertMsg(false, "To check if operator new[](size_t*,char*,int) is ever used"); // advc.test
+	FErrorMsg("To check if operator new[](size_t*,char*,int) is ever used"); // advc.test
 	//void* result = gDLL->newMem(size, pcFile, iLine);
 	// advc.001: Looks like a copy-paste error
 	void* result = gDLL->newMemArray(size, pcFile, iLine);
@@ -127,7 +127,7 @@ void __cdecl operator delete(void* pvMem, char* pcFile, int iLine)
 
 void __cdecl operator delete[](void* pvMem, char* pcFile, int iLine)
 {
-	FAssertMsg(false, "To check if operator delete[](void*,char*,int) is ever used"); // advc.test
+	FErrorMsg("To check if operator delete[](void*,char*,int) is ever used"); // advc.test
 	//gDLL->delMem(pvMem, pcFile, iLine);
 	// advc.001: Looks like a copy-paste error
 	gDLL->delMemArray(pvMem, pcFile, iLine);

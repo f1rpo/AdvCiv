@@ -54,10 +54,10 @@ public:
 		m_bChooseProductionDirty = bNewValue;
 	} // </advc.003u>
 
-	CityPlotTypes getCityPlotIndex(CvPlot const* pPlot) const;													// Exposed to Python
+	CityPlotTypes getCityPlotIndex(CvPlot const& kPlot) const;													// Exposed to Python
 	CvPlot* getCityIndexPlot(CityPlotTypes ePlot) const;														// Exposed to Python
 
-	bool canWork(CvPlot const* pPlot) const;																	// Exposed to Python
+	bool canWork(CvPlot const& kPlot) const;																	// Exposed to Python
 	void verifyWorkingPlot(CityPlotTypes ePlot);
 	void verifyWorkingPlots();
 	void clearWorkingOverride(CityPlotTypes ePlot);																// Exposed to Python
@@ -215,11 +215,12 @@ public:
 	}
 
 	bool isCapital() const;																						// Exposed to Python
-	bool isPrereqBonusSea() const; // advc.041
+	bool isPrereqBonusSea() const; // advc
 	/* advc: -1 means use MIN_WATER_SIZE_FOR_OCEAN. Removed MIN_WATER_SIZE_FOR_OCEAN
 	   from all calls to this function (except those from Python). */
 	bool isCoastal(int iMinWaterSize = -1) const;																// Exposed to Python
 	bool isDisorder() const;																					// Exposed to Python
+	bool isNoMaintenance() const; //advc
 	bool isHolyCity(ReligionTypes eIndex) const;																// Exposed to Python
 	bool isHolyCity() const;																					// Exposed to Python
 	bool hasShrine(ReligionTypes eReligion) const;
@@ -410,8 +411,8 @@ public:
 	/* <advc.104> Added an optional parameter to allow the computation of
 	   projected maintenance for cities yet to be conquered. */
 	int calculateDistanceMaintenanceTimes100(PlayerTypes eOwner = NO_PLAYER) const;								// Exposed to Python
-	int calculateColonyMaintenanceTimes100(PlayerTypes eOwner = NO_PLAYER) const;
-	int calculateNumCitiesMaintenanceTimes100(PlayerTypes eOwner = NO_PLAYER) const;							// Exposed to Python									// Exposed to Python
+	int calculateColonyMaintenanceTimes100(PlayerTypes eOwner = NO_PLAYER) const;								// Exposed to Python
+	int calculateNumCitiesMaintenanceTimes100(PlayerTypes eOwner = NO_PLAYER) const;							// Exposed to Python
 	// </advc.104>
 	// <advc.004b> A projection for cities yet to be founded
 	static int calculateDistanceMaintenanceTimes100(CvPlot const& kCityPlot,
@@ -424,7 +425,8 @@ public:
 	// </advc.004b>
 	int calculateCorporationMaintenanceTimes100(CorporationTypes eCorporation) const;							// Exposed to Python
 	int calculateCorporationMaintenanceTimes100() const;														// Exposed to Python
-	int calculateBaseMaintenanceTimes100() const;
+	int calculateBaseMaintenanceTimes100(
+			PlayerTypes eOwner = NO_PLAYER) const; // advc.ctr
 	int getMaintenanceModifier() const { return m_iMaintenanceModifier; }										// Exposed to Python
 	void changeMaintenanceModifier(int iChange);
 
@@ -718,7 +720,7 @@ public:
 	}
 	void setBaseYieldRate(YieldTypes eIndex, int iNewValue);														// Exposed to Python
 	void changeBaseYieldRate(YieldTypes eIndex, int iChange);														// Exposed to Python
-	int calculateBaseYieldRate(YieldTypes eIndex); // advc.104u
+	int calculateBaseYieldRate(YieldTypes eYield); // advc.104u
 	int getYieldRateModifier(YieldTypes eIndex) const { return m_aiYieldRateModifier.get(eIndex); }					// Exposed to Python
 	void changeYieldRateModifier(YieldTypes eIndex, int iChange);
 
@@ -975,9 +977,9 @@ public:
 	void setProjectProduction(ProjectTypes eIndex, int iNewValue);													// Exposed to Python
 	void changeProjectProduction(ProjectTypes eIndex, int iChange);													// Exposed to Python
 
-	int getBuildingOriginalOwner(BuildingTypes eIndex) const														// Exposed to Python
+	PlayerTypes getBuildingOriginalOwner(BuildingTypes eIndex) const														// Exposed to Python
 	{
-		return m_aiBuildingOriginalOwner.get(eIndex);
+		return m_aeBuildingOriginalOwner.get(eIndex);
 	}
 	int getBuildingOriginalTime(BuildingTypes eIndex) const															// Exposed to Python
 	{
@@ -1104,9 +1106,9 @@ public:
 	{
 		return m_abWorkingPlot.get(ePlot);
 	}
-	bool isWorkingPlot(const CvPlot* pPlot) const;																	// Exposed to Python
+	bool isWorkingPlot(CvPlot const& kPlot) const;																	// Exposed to Python
 	void setWorkingPlot(CityPlotTypes ePlot, bool bNewValue);
-	void setWorkingPlot(CvPlot* pPlot, bool bNewValue);
+	void setWorkingPlot(CvPlot& kPlot, bool bNewValue);
 	void alterWorkingPlot(CityPlotTypes ePlot);																		// Exposed to Python
 
 	int getNumRealBuilding(BuildingTypes eIndex) const																// Exposed to Python
@@ -1118,8 +1120,7 @@ public:
 			bool bEndOfTurn = false); // advc.001x
 	void setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool bFirst,
 			PlayerTypes eOriginalOwner, int iOriginalTime, /* advc.001x */ bool bEndOfTurn = false);
-
-	bool isValidBuildingLocation(BuildingTypes eIndex) const;
+	//bool isValidBuildingLocation(BuildingTypes eIndex) const; // advc: Replaced by CvPlot::canConstruct
 
 	int getNumFreeBuilding(BuildingTypes eIndex) const																// Exposed to Python
 	{
@@ -1151,7 +1152,8 @@ public:
 	// K-Mod. (the old version is still exposed to Python)
 	void pushOrder(OrderTypes eOrder, int iData1, int iData2 = -1, bool bSave = false,
 			bool bPop = false, int iPosition = 0, bool bForce = false);
-	void popOrder(int iNum, bool bFinish = false, bool bChoose = false,												// Exposed to Python
+	enum ChooseProductionPlayers { NONE_CHOOSE, HUMAN_CHOOSE, AI_CHOOSE, ALL_CHOOSE }; // advc.064d
+	void popOrder(int iNum, bool bFinish = false, ChooseProductionPlayers eChoose = NONE_CHOOSE,							// Exposed to Python
 			bool bEndOfTurn = true); // advc.001x
 	void startHeadOrder();
 	void stopHeadOrder();
@@ -1413,7 +1415,7 @@ protected:
 	EnumMap<ProjectTypes,int> m_aiProjectProduction;
 	EnumMap<BuildingTypes,int> m_aiBuildingProduction;
 	EnumMap<BuildingTypes,int> m_aiBuildingProductionTime;
-	EnumMap<BuildingTypes,int> m_aiBuildingOriginalOwner;
+	EnumMap<BuildingTypes,PlayerTypes> m_aeBuildingOriginalOwner;
 	EnumMapDefault<BuildingTypes,int,MIN_INT> m_aiBuildingOriginalTime;
 	EnumMap<BuildingTypes,int> m_aiNumRealBuilding;
 	EnumMap<BuildingTypes,int> m_aiNumFreeBuilding;
@@ -1472,8 +1474,11 @@ protected:
 	void doGrowth();
 	void doCulture();
 	bool doCheckProduction();
-	void upgradeProduction(); // advc.064d
-	bool checkCanContinueProduction(bool bCheckUpgrade = true); // advc.064d
+	// <advc.064d>
+	void upgradeProduction();
+	bool checkCanContinueProduction(bool bCheckUpgrade = true,
+			ChooseProductionPlayers eChoose = ALL_CHOOSE);
+	// </advc.064d>
 	void doProduction(bool bAllowNoProduction);
 	void doDecay();
 	void doReligion();
@@ -1512,7 +1517,7 @@ protected:
 			int iAttempt) const;
 	// </advc.310>
 	void updateBuildingDefense(); // advc.004c
-	double defensiveGarrison(double stopCountingAt = -1) const; // advc.500b
+	scaled defensiveGarrison(scaled stopCountingAt = -1) const; // advc.500b
 	//int calculateMaintenanceDistance() const;
 	// advc.004b: Replacing the above (which was public, but is only used internally)
 	static int calculateMaintenanceDistance(CvPlot const* cityPlot, PlayerTypes owner);

@@ -62,12 +62,15 @@ void CyUnit::doCommand(CommandTypes eCommand, int iData1, int iData2)
 
 CyPlot* CyUnit::getPathEndTurnPlot()
 {
-	return m_pUnit ? new CyPlot(m_pUnit->getPathEndTurnPlot()) : false;
+	return m_pUnit ? new CyPlot(m_pUnit->getPathEndTurnPlot()) : NULL;
 }
 
 bool CyUnit::generatePath(CyPlot* pToPlot, int iFlags, bool bReuse, int* piPathTurns)
 {
-	return m_pUnit ? m_pUnit->generatePath(pToPlot->getPlot(), iFlags, bReuse, piPathTurns) : false;
+	if (m_pUnit == NULL)
+		return false;
+	return m_pUnit->generatePath(pToPlot->getPlot(), (MovementFlags)iFlags,
+			bReuse, piPathTurns);
 }
 
 bool CyUnit::canEnterTerritory(int /*TeamTypes*/ eTeam, bool bIgnoreRightOfPassage)
@@ -307,7 +310,9 @@ bool CyUnit::canSpread(CyPlot* pPlot, int /*ReligionTypes*/ eReligion, bool bTes
 
 bool CyUnit::canJoin(CyPlot* pPlot, int /*SpecialistTypes*/ eSpecialist)
 {
-	return m_pUnit ? m_pUnit->canFound(pPlot->getPlot(), (SpecialistTypes) eSpecialist) : false;
+	return m_pUnit ? //m_pUnit->canFound(
+			m_pUnit->canJoin( // advc.001
+			pPlot->getPlot(), (SpecialistTypes)eSpecialist) : false;
 }
 
 bool CyUnit::canConstruct(CyPlot* pPlot, int /*BuildingTypes*/ eBuilding)
@@ -387,7 +392,13 @@ bool CyUnit::canGoldenAge(CyPlot* pPlot, bool bTestVisible)
 
 bool CyUnit::canBuild(CyPlot* pPlot, int /*BuildTypes*/ eBuild, bool bTestVisible)
 {
-	return m_pUnit ? m_pUnit->canBuild(pPlot->getPlot(), (BuildTypes) eBuild, bTestVisible) : false;
+	if (m_pUnit == NULL)
+		return false;
+	// <advc> Pass by reference
+	CvPlot const* p = pPlot->getPlot();
+	if (p == NULL)
+		return false; // </advc>
+	return m_pUnit->canBuild(*p, (BuildTypes)eBuild, bTestVisible);
 }
 
 int CyUnit::canLead(CyPlot* pPlot, int iUnitId) const
@@ -628,7 +639,7 @@ bool CyUnit::isDefending()
 
 bool CyUnit::isCombat()
 {
-	return m_pUnit ? m_pUnit->isCombat() : false;
+	return m_pUnit ? m_pUnit->isInCombat() : false;
 }
 
 int CyUnit::maxHitPoints()

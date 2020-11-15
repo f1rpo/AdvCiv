@@ -3,7 +3,6 @@
 <!-- Sid Meier's Civilization 4 -->
 <!-- Copyright Firaxis Games 2005 -->
 <!-- Building Infos -->
-<!-- advc.310: Renamed iGlobalTradeRoutes to iAreaTradeRoutes -->
 
 <Civ4BuildingInfos xmlns="x-schema:CIV4BuildingsSchema.xml">
 	<BuildingInfos>
@@ -178,7 +177,7 @@
 			<iHotKeyPriority>0</iHotKeyPriority>
 		</BuildingInfo>
 		<BuildingInfo>
-			<BuildingClass>BUILDINGCLASS_GREAT_PALACE</BuildingClass>
+			<BuildingClass>BUILDINGCLASS_GREAT_PALACE</BuildingClass> <!-- advc: a.k.a. Forbidden Palace -->
 			<Type>BUILDING_GREAT_PALACE</Type>
 			<SpecialBuildingType>NONE</SpecialBuildingType>
 			<Description>TXT_KEY_BUILDING_GREAT_PALACE</Description>
@@ -395,7 +394,8 @@
 			<FreeBuilding>NONE</FreeBuilding>
 			<FreePromotion>NONE</FreePromotion>
 			<CivicOption>NONE</CivicOption>
-			<GreatPeopleUnitClass>UNITCLASS_MERCHANT</GreatPeopleUnitClass>
+			<!-- advc.310: was MERCHANT -->
+			<GreatPeopleUnitClass>UNITCLASS_GREAT_SPY</GreatPeopleUnitClass>
 			<iGreatPeopleRateChange>2</iGreatPeopleRateChange>
 			<iHurryAngerModifier>0</iHurryAngerModifier>
 			<bBorderObstacle>0</bBorderObstacle>
@@ -1039,7 +1039,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>2</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>5</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -1241,7 +1242,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>2</iAsset>
-			<iPower>3</iPower>
+			<!-- advc.131c: was 3 -->
+			<iPower>6</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -3842,7 +3844,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>3</iAsset>
-			<iPower>1</iPower>
+			<!-- advc.131c: was 1 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges>
 				<iYield>1</iYield>
@@ -4907,7 +4910,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>5</iAsset>
-			<iPower>0</iPower>
+			<!-- advc.131c: was 0 -->
+			<iPower>15</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -5085,7 +5089,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>4</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -5276,7 +5281,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>5</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -5472,7 +5478,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>6</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -5663,7 +5670,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>6</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -6022,7 +6030,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>0</iAsset>
-			<iPower>1</iPower>
+			<!-- advc.131c: was 1 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -6534,7 +6543,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>6</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -7549,7 +7559,8 @@
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
 			<bBuildingOnlyHealthy>0</bBuildingOnlyHealthy>
 			<bNeverCapture>0</bNeverCapture>
-			<bNukeImmune>0</bNukeImmune>
+			<!-- advc.650: was 0 -->
+			<bNukeImmune>1</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
 			<iAIWeight>0</iAIWeight>
@@ -9711,7 +9722,9 @@
 			<bCtrlDown>0</bCtrlDown>
 			<iHotKeyPriority>0</iHotKeyPriority>
 		</BuildingInfo>
-		<!-- advc.200 BEGIN Copy-pasted the entries for Colosseum and all unique replacements from BtS. Only kept the K-Mod change to Odeon (one fewer culture) -->
+		<!-- advc.200 BEGIN Copy-pasted the entries for Colosseum and all
+			unique replacements from BtS. Only kept the K-Mod change to Odeon
+			(one less culture). -->
 		<BuildingInfo>
 			<BuildingClass>BUILDINGCLASS_COLOSSEUM</BuildingClass>
 			<Type>BUILDING_COLOSSEUM</Type>
@@ -13351,7 +13364,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>2</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges>
@@ -13516,7 +13530,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>4</iAsset>
-			<iPower>2</iPower>
+			<!-- advc.131c: was 2 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges>
 				<iYield>0</iYield>
@@ -20455,7 +20470,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>8</iAsset>
-			<iPower>4</iPower>
+			<!-- advc.131c: was 4 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -20992,7 +21008,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>8</iAsset>
-			<iPower>4</iPower>
+			<!-- advc.131c: was 4 -->
+			<iPower>15</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -21117,7 +21134,8 @@
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
 			<bBuildingOnlyHealthy>0</bBuildingOnlyHealthy>
 			<bNeverCapture>0</bNeverCapture>
-			<bNukeImmune>0</bNukeImmune>
+			<!-- advc.650: was 0 -->
+			<bNukeImmune>1</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
 			<iAIWeight>0</iAIWeight>
@@ -21178,7 +21196,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>8</iAsset>
-			<iPower>8</iPower>
+			<!-- advc.131c: was 8 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -23412,6 +23431,7 @@
 				<iCommerce>0</iCommerce>
 				<iCommerce>2</iCommerce>
 			</SpecialistExtraCommerces>
+			<!-- Reduced by K-Mod; was 5 culture in BtS. -->
 			<StateReligionCommerces>
 				<iCommerce>0</iCommerce>
 				<iCommerce>0</iCommerce>
@@ -25392,7 +25412,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>20</iAsset>
-			<iPower>0</iPower>
+			<!-- advc.131c: was 0 -->
+			<iPower>30</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -25845,7 +25866,8 @@
 			<iUnhealthyPopulationModifier>0</iUnhealthyPopulationModifier>
 			<bBuildingOnlyHealthy>0</bBuildingOnlyHealthy>
 			<bNeverCapture>0</bNeverCapture>
-			<bNukeImmune>0</bNukeImmune>
+			<!-- advc.650: was 0 -->
+			<bNukeImmune>1</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
 			<iAIWeight>0</iAIWeight>
@@ -26374,6 +26396,10 @@
 			<iGreatPeopleRateChange>2</iGreatPeopleRateChange>
 			<iHurryAngerModifier>0</iHurryAngerModifier>
 			<bBorderObstacle>1</bBorderObstacle>
+			<!-- advc.310: Causes the DLL to disable bBorderObstacle,
+				 iAreaTradeRoutes or iDomesticGreatGeneralRateModifier
+				 depending on the Barbarian game options. -->
+			<bConditionalAbilities>1</bConditionalAbilities>
 			<bTeamShare>1</bTeamShare>
 			<bWater>0</bWater>
 			<bRiver>0</bRiver>
@@ -26443,7 +26469,7 @@
 			<iGlobalSpaceProductionModifier>0</iGlobalSpaceProductionModifier>
 			<iTradeRoutes>0</iTradeRoutes>
 			<iCoastalTradeRoutes>0</iCoastalTradeRoutes>
-			<!-- advc.310: Was 0 -->
+			<!-- advc.310 -->
 			<iAreaTradeRoutes>1</iAreaTradeRoutes>
 			<iTradeRouteModifier>0</iTradeRouteModifier>
 			<iForeignTradeRouteModifier>0</iForeignTradeRouteModifier>
@@ -26455,7 +26481,8 @@
 			<iEspionageDefense>0</iEspionageDefense>
 			<!-- advc.310: Was 5; now a more potent building. -->
 			<iAsset>9</iAsset>
-			<iPower>10</iPower>
+			<!-- advc.131c: was 10 -->
+			<iPower>5</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges/>
 			<RiverPlotYieldChanges/>
@@ -27393,7 +27420,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>5</iAsset>
-			<iPower>10</iPower>
+			<!-- advc.131c: was 10 -->
+			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<SeaPlotYieldChanges>
 				<iYield>0</iYield>
@@ -27480,6 +27508,7 @@
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>NONE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
+			<!-- K-Mod: was REFRIGERATION -->
 			<PrereqTech>TECH_MEDICINE</PrereqTech>
 			<TechTypes>
 				<PrereqTech>TECH_CORPORATION</PrereqTech>
@@ -27663,6 +27692,7 @@
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>NONE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
+			<!-- K-Mod: was MEDICINE -->
 			<PrereqTech>TECH_REFRIGERATION</PrereqTech>
 			<TechTypes>
 				<PrereqTech>TECH_CORPORATION</PrereqTech>
@@ -27846,6 +27876,7 @@
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>NONE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
+			<!-- K-Mod: was PLASTICS -->
 			<PrereqTech>TECH_COMBUSTION</PrereqTech>
 			<TechTypes>
 				<PrereqTech>TECH_CORPORATION</PrereqTech>
@@ -28029,6 +28060,7 @@
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>NONE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
+			<!-- K-Mod: was COMBUSTION -->
 			<PrereqTech>TECH_STEEL</PrereqTech>
 			<TechTypes>
 				<PrereqTech>TECH_CORPORATION</PrereqTech>
@@ -28578,11 +28610,10 @@
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>NONE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
-			<!-- advc.200: Restored Mass Media and moved Corporation
-			     into TechTypes -->
-			<PrereqTech>TECH_MASS_MEDIA</PrereqTech>
+			<!-- K-Mod: was MASS_MEDIA -->
+			<PrereqTech>TECH_CORPORATION</PrereqTech>
 			<TechTypes>
-				<PrereqTech>TECH_CORPORATION</PrereqTech>
+				<PrereqTech>NONE</PrereqTech>
 				<PrereqTech>NONE</PrereqTech>
 				<PrereqTech>NONE</PrereqTech>
 			</TechTypes>

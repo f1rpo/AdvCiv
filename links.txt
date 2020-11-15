@@ -6,5 +6,7 @@ Source code on GitHub:
 	https://github.com/f1rpo/AdvCiv/tree/master/CvGameCoreDLL
 Discussion thread on CivFanatics:
 	https://forums.civfanatics.com/threads/advanced-civ.614217
+Since July 2020, there is also a dedicated subforum:
+	https://forums.civfanatics.com/forums/civ-4-advanced-civ.603/
 A half-finished Earth scenario for AdvCiv:
 	https://github.com/f1rpo/AdvCiv/tree/master/EuroWorld%20scenario

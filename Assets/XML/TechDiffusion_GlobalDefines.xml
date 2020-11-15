@@ -61,10 +61,10 @@
 		 Note: When a ground-breaking penalty coincides with a bonus from tech
 		 diffusion, only the sum of the two modifiers is shown by the UI. -->
 	<Define>
-		<!-- Groundbreaking penalties for AI teams.
-			 If enabled, the DLL will also apply an era-specific
-			 normalization factor (based on the penalty associated with the
-			 tech's era) to the tech costs of all teams. -->
+		<!-- Setting this to 1 enables groundbreaking penalties for AI teams.
+			 The DLL will then also apply an era-specific normalization factor
+			 (based on the penalty associated with the tech's era) to the
+			 tech costs of all teams. -->
 		<DefineName>AI_GROUNDBREAKING_PENALTY_ENABLE</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>

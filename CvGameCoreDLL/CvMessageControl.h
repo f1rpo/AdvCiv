@@ -12,7 +12,7 @@ public:
 	void sendPushOrder(int iCityID, OrderTypes eOrder, int iData, bool bSave, bool bPop, int iPosition); // K-Mod
 	void sendPopOrder(int iCity, int iNum);
 	void sendDoTask(int iCityID, TaskTypes eTask, int iData1, int iData2, bool bOption, bool bAlt, bool bShift, bool bCtrl);
-	void sendUpdateCivics(const std::vector<CivicTypes>& aeCivics);
+	void sendUpdateCivics(CivicMap const& kCivics);
 	void sendResearch(TechTypes eTech, int iDiscover, bool bShift);
 	void sendEspionageSpendingWeightChange(TeamTypes eTargetTeam, int iChange);
 	DllExport void sendAdvancedStartAction(AdvancedStartActionTypes eAction, PlayerTypes ePlayer, int iX, int iY, int iData, bool bAdd);
@@ -23,7 +23,8 @@ public:
 	DllExport void sendLaunch(PlayerTypes ePlayer, VictoryTypes eVictory);
 	void sendEventTriggered(PlayerTypes ePlayer, EventTypes eEvent, int iEventTriggeredId);
 	DllExport void sendJoinGroup(int iUnitID, int iHeadID);
-	void sendPushMission(int iUnitID, MissionTypes eMission, int iData1, int iData2, int iFlags, bool bShift,
+	void sendPushMission(int iUnitID, MissionTypes eMission, int iData1, int iData2,
+			MovementFlags eFlags, bool bShift,
 			bool bModified); // advc.011b
 	void sendAutoMission(int iUnitID);
 	void sendDoCommand(int iUnitID, CommandTypes eCommand, int iData1, int iData2, bool bAlt);

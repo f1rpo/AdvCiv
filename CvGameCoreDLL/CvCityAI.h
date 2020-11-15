@@ -43,7 +43,7 @@ public:
 			bool bIgnoreSpecialists = false, // advc.121b
 			bool bObsolete = false) const; // advc.004c
 	// <advc.179>
-	double AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes eReligion,
+	scaled AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes eReligion,
 			std::vector<BuildingTypes> const& aeBuildings) const; // </advc.179>
 	ProjectTypes AI_bestProject(int* piBestValue = 0, /* advc.001n: */ bool bAsync = false) const;
 	int AI_projectValue(ProjectTypes eProject) const;
@@ -114,7 +114,7 @@ public:
 
 	int AI_getBestBuildValue(/* advc.enum: */ CityPlotTypes ePlot) const
 	{
-		FAssertBounds(0, NUM_CITY_PLOTS, ePlot);
+		FAssertEnumBounds(ePlot);
 		return m_aiBestBuildValue[ePlot];
 	}
 	int AI_totalBestBuildValue(CvArea const& kArea) const;
@@ -144,8 +144,10 @@ public:
 	int AI_getCultureWeight() const { return m_iCultureWeight; } // K-Mod
 	void AI_setCultureWeight(int iWeight) { m_iCultureWeight = iWeight; } // K-Mod
 
-	int AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bIncludeNeutral, int iOtherCultureThreshold, bool bLand = true, bool bWater = true) const;
-	int AI_countNumImprovableBonuses(bool bIncludeNeutral, TechTypes eExtraTech = NO_TECH, bool bLand = true, bool bWater = false) const; // BBAI
+	int AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bIncludeNeutral,
+			int iOtherCultureThreshold, bool bLand = true, bool bWater = true) const;
+	int AI_countNumImprovableBonuses(bool bIncludeNeutral, TechTypes eExtraTech = NO_TECH,
+			bool bLand = true, bool bWater = false) const; // BBAI
 
 	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance = 7,
 			bool bConstCache = false) const; // advc.001n
@@ -154,7 +156,7 @@ public:
 	// advc.003j: Both unused
 	/*bool AI_isFrontlineCity() const; // K-Mod
 	int AI_calculateMilitaryOutput() const;*/ // K-Mod
-	int AI_cityThreat(bool bDangerPercent = false) const;
+	int AI_cityThreat(/*bool bDangerPercent = false*/) const; // advc: param was (always) unused
 
 	int AI_getWorkersHave() const;
 	int AI_getWorkersNeeded() const;
@@ -232,16 +234,15 @@ protected:
 	//int AI_plotValue(CvPlot* pPlot, bool bAvoidGrowth, bool bRemove, bool bIgnoreFood = false, bool bIgnoreGrowth = false, bool bIgnoreStarvation = false) const;
 	/*	K-Mod. Note: iGrowthValue < 0 means "automatic".
 		It will use AI_growthValuePerFood. iGrowthValue == 0 means "ignore growth". */
-	int AI_yieldValue(short* piYields, short* piCommerceYields, bool bRemove, bool bIgnoreFood,
+	int AI_yieldValue(int* piYields, int* piCommerceYields, bool bRemove, bool bIgnoreFood,
 			bool bIgnoreStarvation, bool bWorkerOptimization, int iGrowthValue) const;
 	// value gained by swapping jobs. (bIsSpecialist, iIndex) pairs.
 	int AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, int> old_job, bool bIgnoreFood,
 			bool bIgnoreStarvation, int iGrowthValue) const;
-	  // advc: Made plot param const in these two functions
-	int AI_plotValue(CvPlot const* pPlot, bool bRemove, bool bIgnoreFood, bool bIgnoreStarvation,
+	int AI_plotValue(CvPlot const& pPlot, bool bRemove, bool bIgnoreFood, bool bIgnoreStarvation,
 			int iGrowthValue) const;
 	// difference between current yields and yields after plot improvement reaches final upgrade.
-	bool AI_finalImprovementYieldDifference(CvPlot const& kPlot, short* piYields) const;
+	bool AI_finalImprovementYieldDifference(CvPlot const& kPlot, int* piYields) const;
 	// time-weighted yields for improvements which have upgrades
 	bool AI_timeWeightedImprovementYields(CvPlot const* pPlot, ImprovementTypes eImprovement,
 			int iTimeScale, std::vector<scaled>& weighted_yields) const;
@@ -259,7 +260,9 @@ protected:
 
 	int AI_experienceWeight();
 	int AI_buildUnitProb(/* advc.017: */ bool bDraft = false);
-	void AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peBestBuild, int iFoodPriority, int iProductionPriority, int iCommercePriority, bool bChop, int iHappyAdjust, int iHealthAdjust, int iDesiredFoodChange);
+	void AI_bestPlotBuild(CvPlot const& kPlot, int* piBestValue, BuildTypes* peBestBuild,
+			int iFoodPriority, int iProductionPriority, int iCommercePriority, bool bChop,
+			int iHappyAdjust, int iHealthAdjust, int iDesiredFoodChange);
 
 	void AI_buildGovernorChooseProduction();
 	void AI_barbChooseProduction(); // K-Mod

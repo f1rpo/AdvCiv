@@ -88,7 +88,7 @@ bool SafeGetLastNodeValue(FXml* pXml, T& r, T tDefault = false)
 	bool bSuccess = true;
 	if (gDLL->getXMLIFace()->GetLastNodeTextSize(pXml) == 0)
 	{
-		FAssertMsg(false, "Empty element");
+		FErrorMsg("Empty element");
 		bSuccess = false;
 	}
 	if (bSuccess)
@@ -199,7 +199,7 @@ bool CvXMLLoadUtility::GetNextXmlVal(std::string& r, char const* szDefault)
 		}
 		else // otherwise we can't find a non-comment node on this level
 		{
-			FAssertMsg(false, "Error in GetNextXmlVal function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetNextXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
@@ -220,7 +220,7 @@ bool CvXMLLoadUtility::GetNextXmlVal(std::wstring& r, wchar const* szDefault)
 		}
 		else // otherwise we can't find a non-comment node on this level
 		{
-			FAssertMsg(false, "Error in GetNextXmlVal function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetNextXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
@@ -264,7 +264,7 @@ bool CvXMLLoadUtility::GetNextXmlVal(wchar* r, wchar const* szDefault)
 		}
 		else // otherwise we can't find a non-comment node on this level
 		{
-			FAssertMsg(false, "Error in GetNextXmlVal function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetNextXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
@@ -282,7 +282,7 @@ bool CvXMLLoadUtility::GetNextXmlVal(int& r, int iDefault)
 			return SafeGetLastNodeValue(m_pFXml, r, iDefault); // advc.006d
 		else // otherwise we can't find a non-comment node on this level
 		{
-			FAssertMsg(false, "Error in GetNextXmlVal function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetNextXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
@@ -300,7 +300,7 @@ bool CvXMLLoadUtility::GetNextXmlVal(float& r, float fDefault)
 			return SafeGetLastNodeValue(m_pFXml, r, fDefault); // advc.006d
 		else // otherwise we can't find a non-comment node on this level
 		{
-			FAssertMsg(false, "Error in GetNextXmlVal function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetNextXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
@@ -318,7 +318,7 @@ bool CvXMLLoadUtility::GetNextXmlVal(bool& r, bool bDefault)
 			return SafeGetLastNodeValue(m_pFXml, r, bDefault); // advc.006d
 		else // otherwise we can't find a non-comment node on this level
 		{
-			FAssertMsg(false, "Error in GetNextXmlVal function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetNextXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
@@ -444,12 +444,12 @@ bool CvXMLLoadUtility::GetChildXmlVal(float& r, float fDefault)
 			return SafeGetLastNodeValue(m_pFXml, r, fDefault); // advc.006d
 		else // otherwise we can't find a non-comment node on this level
 		{
-			FAssertMsg(false, "Error in GetChildXmlVal function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetChildXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
 	// otherwise there are no child nodes, but we were expecting them so.
-	FAssertMsg(false, "Error in GetChildXmlVal function, unable to find a child node");
+	FErrorMsg("Error in GetChildXmlVal function, unable to find a child node");
 	return false;
 }
 
@@ -464,12 +464,12 @@ bool CvXMLLoadUtility::GetChildXmlVal(bool& r, bool bDefault)
 			return SafeGetLastNodeValue(m_pFXml, r, bDefault); // advc.006d
 		else // otherwise we can't find a non-comment node on this level
 		{
-			FAssertMsg(false, "Error in GetChildXmlVal function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetChildXmlVal function, unable to find the next non-comment node");
 			return false;
 		}
 	}
 	// otherwise there are no child nodes, but we were expecting them.
-	FAssertMsg(false, "Error in GetChildXmlVal function, unable to find a child node");
+	FErrorMsg("Error in GetChildXmlVal function, unable to find a child node");
 	return false;
 }
 
@@ -481,7 +481,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(wchar* r, TCHAR const* szName, wchar
 {
 	assignDefault(r, szDefault);
 	/*int iNumChildrenByTagName=1;
-	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName);
+	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml, szName);
 	FAssertMsg((iNumChildrenByTagName < 2),"More children with tag name than expected, should only be 1.");
 	// we only continue if there are one and only one children with this tag name
 	if (iNumChildrenByTagName == 1)
@@ -489,10 +489,10 @@ bool CvXMLLoadUtility::GetChildXmlValByName(wchar* r, TCHAR const* szName, wchar
 	/*  advc.006b: The iNumChildrenByTagName check had already been disabled.
 		Keep it that way b/c NumOfChildrenByTagName can't handle comments in XML.
 		As comments don't seem to lead to overcounting, one could still do this: */
-	//FAssertMsg(gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName) < 2,"More children with tag name than expected, should only be 1.");
+	//FAssertMsg(gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml, szName) < 2,"More children with tag name than expected, should only be 1.");
 	// ... However, I think FXML already detects duplicate tags when enforcing the XML schema.
 
-	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szName))
+	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml, szName))
 	{
 		// skip to the next non-comment node
 		if (SkipToNextVal())
@@ -504,17 +504,17 @@ bool CvXMLLoadUtility::GetChildXmlValByName(wchar* r, TCHAR const* szName, wchar
 		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
 		else
 		{
-			FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetChildXmlValByName function, unable to find the next non-comment node");
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
 			return false;
 		}
 	}
 	/*else {
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	} }
 	else {
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b> Replacing the asserts above (which were already commented out)
 	/*  If pszDefault was set by the caller, we assume that it's OK to fall back
@@ -529,12 +529,12 @@ bool CvXMLLoadUtility::GetChildXmlValByName(char* r, TCHAR const* szName, char c
 	assignDefault(r, szDefault);
 	// advc.006b: See GetChildXmlValByName(wchar*...)
 	/*int iNumChildrenByTagName=1;
-	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName);
+	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml, szName);
 	FAssertMsg((iNumChildrenByTagName < 2),"More children with tag name than expected, should only be 1.");
 	// we only continue if there are one and only one children with this tag name
 	if (iNumChildrenByTagName == 1)
 	{*/
-	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szName))
+	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml, szName))
 	{
 		// skip to the next non-comment node
 		if (SkipToNextVal())
@@ -547,17 +547,17 @@ bool CvXMLLoadUtility::GetChildXmlValByName(char* r, TCHAR const* szName, char c
 		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
 		else
 		{
-			FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetChildXmlValByName function, unable to find the next non-comment node");
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
 			return false;
 		}
 	}
 	/*else {
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	} }
 	else {
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
 	FAssertMsg(szDefault != NULL || !m->bAssertMandatory, (szAssertMsg + szName).c_str());
@@ -570,12 +570,12 @@ bool CvXMLLoadUtility::GetChildXmlValByName(std::string& r, TCHAR const* szName,
 	assignDefault(r, szDefault);
 	// advc.006b: See GetChildXmlValByName(wchar*...)
 	/*int iNumChildrenByTagName=1;
-	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName);
+	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml, szName);
 	FAssertMsg((iNumChildrenByTagName < 2),"More children with tag name than expected, should only be 1.");
 	// we only continue if there are one and only one children with this tag name
 	if (iNumChildrenByTagName == 1)
 	{*/
-	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szName))
+	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml, szName))
 	{
 		if (SkipToNextVal()) // skip to the next non-comment node
 		{
@@ -586,17 +586,17 @@ bool CvXMLLoadUtility::GetChildXmlValByName(std::string& r, TCHAR const* szName,
 		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
 		else
 		{
-			FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetChildXmlValByName function, unable to find the next non-comment node");
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
 			return false;
 		}
 	}
 	/*else {
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	} }
 	else {
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
 	FAssertMsg(szDefault != NULL || !m->bAssertMandatory, (szAssertMsg + szName).c_str());
@@ -609,12 +609,12 @@ bool CvXMLLoadUtility::GetChildXmlValByName(std::wstring& r, TCHAR const* szName
 	assignDefault(r, szDefault);
 	// advc.006b: See GetChildXmlValByName(wchar*...)
 	/*int iNumChildrenByTagName=1;
-	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName);
+	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml, szName);
 	FAssertMsg((iNumChildrenByTagName < 2),"More children with tag name than expected, should only be 1.");
 	// we only continue if there are one and only one children with this tag name
 	if (iNumChildrenByTagName == 1)
 	{*/
-	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szName))
+	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml, szName))
 	{
 		if (SkipToNextVal()) // skip to the next non-comment node
 		{
@@ -625,17 +625,17 @@ bool CvXMLLoadUtility::GetChildXmlValByName(std::wstring& r, TCHAR const* szName
 		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
 		else
 		{
-			FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetChildXmlValByName function, unable to find the next non-comment node");
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
 			return false;
 		}
 	}
 	/*else {
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	} }
 	else {
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
 	FAssertMsg(szDefault != NULL || !m->bAssertMandatory, (szAssertMsg + szName).c_str());
@@ -648,12 +648,12 @@ bool CvXMLLoadUtility::GetChildXmlValByName(int* r, TCHAR const* szName, int iDe
 	assignDefault(*r, iDefault);
 	// advc.006b: See GetChildXmlValByName(wchar*...)
 	/*int iNumChildrenByTagName=1;
-	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName);
+	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml, szName);
 	FAssertMsg((iNumChildrenByTagName < 2),"More children with tag name than expected, should only be 1.");
 	// we only continue if there are one and only one children with this tag name
 	if (iNumChildrenByTagName == 1)
 	{*/
-	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szName))
+	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml, szName))
 	{
 		if (SkipToNextVal()) // skip to the next non-comment node
 		{
@@ -664,22 +664,22 @@ bool CvXMLLoadUtility::GetChildXmlValByName(int* r, TCHAR const* szName, int iDe
 		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
 		else
 		{
-			FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetChildXmlValByName function, unable to find the next non-comment node");
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
 			return false;
 		}
 	}
 	/*else {
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	} }
 	else {
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
 	if (*r == MIN_INT && m->bAssertMandatory)
 	{
-		FAssertMsg(false, (szAssertMsg + szName).c_str());
+		FErrorMsg((szAssertMsg + szName).c_str());
 		/*  Try to allow the caller to ignore the error by setting a
 			more sensible default than MIN_INT: */
 		*r = 0; // (0 is also the "default default" that was set in this function's declaration in BtS)
@@ -693,12 +693,12 @@ bool CvXMLLoadUtility::GetChildXmlValByName(float* r, TCHAR const* szName, float
 	assignDefault(*r, fDefault);
 	// advc.006b: See GetChildXmlValByName(wchar*...)
 	/*int iNumChildrenByTagName=1;
-	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName);
+	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml, szName);
 	FAssertMsg((iNumChildrenByTagName < 2),"More children with tag5 name than expected, should only be 1.");
 	// we only continue if there are one and only one children with this tag name
 	if (iNumChildrenByTagName == 1)
 	{*/
-	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szName))
+	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml, szName))
 	{
 		if (SkipToNextVal()) // skip to the next non-comment node
 		{
@@ -709,22 +709,22 @@ bool CvXMLLoadUtility::GetChildXmlValByName(float* r, TCHAR const* szName, float
 		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
 		else
 		{
-			FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetChildXmlValByName function, unable to find the next non-comment node");
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
 			return false;
 		}
 	}
 	/*else {
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	} }
 	else {
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
 	if (*r == FLT_MIN && m->bAssertMandatory)
 	{
-		FAssertMsg(false, (szAssertMsg + szName).c_str());
+		FErrorMsg((szAssertMsg + szName).c_str());
 		*r = 0; // See See GetChildXmlValByName(int*...)
 	}
 	return false; // </advc.006b>
@@ -737,12 +737,12 @@ bool CvXMLLoadUtility::GetChildXmlValByName(bool* r, TCHAR const* szName,
 	assignDefault(*r, bDefault);
 	// advc.006b: See GetChildXmlValByName(wchar*...)
 	/*int iNumChildrenByTagName=1;
-	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml,szName);
+	iNumChildrenByTagName = gDLL->getXMLIFace()->NumOfChildrenByTagName(m_pFXml, szName);
 	FAssertMsg((iNumChildrenByTagName < 2),"More children with tag name than expected, should only be 1.");
 	// we only continue if there are one and only one children with this tag name
 	if (iNumChildrenByTagName == 1)
 	{*/
-	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml,szName))
+	if (gDLL->getXMLIFace()->SetToChildByTagName(m_pFXml, szName))
 	{
 		if (SkipToNextVal()) // skip to the next non-comment node
 		{
@@ -753,17 +753,17 @@ bool CvXMLLoadUtility::GetChildXmlValByName(bool* r, TCHAR const* szName,
 		// otherwise we can't find a non-comment node on this level so we will FAssert and return false
 		else
 		{
-			FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find the next non-comment node");
+			FErrorMsg("Error in GetChildXmlValByName function, unable to find the next non-comment node");
 			gDLL->getXMLIFace()->SetToParent(m_pFXml);
 			return false;
 		}
 	}
 	/*else {
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	} }
 	else {
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
 	FAssertMsg(!bMandatory || !m->bAssertMandatory, (szAssertMsg + szName).c_str());

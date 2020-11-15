@@ -3,8 +3,6 @@
 #ifndef AI_STRATEGIES_H // advc: Renamed this file from AI_Defines.h
 #define AI_STRATEGIES_H
 
-#include "BitUtil.h" // advc.enum
-
 // BETTER_BTS_AI_MOD, 03/08/10, jdog5000: START
 // Could increase this value now that player closeness is fixed
 #define DEFAULT_PLAYER_CLOSENESS 7
@@ -86,9 +84,9 @@ enum AIVictoryStage // advc: replacing preprocessor defines
 	AI_CITY_ROLE_LICHPIN            =	(1 << 11),	//this city must not fall
 };
 // <advc.enum>
-OVERRIDE_BITMASK_OPERATORS(AICityRole)*/
-OVERRIDE_BITMASK_OPERATORS(AIStrategy)
-OVERRIDE_BITMASK_OPERATORS(AIVictoryStage)
+OVERLOAD_BITWISE_OPERATORS(AICityRole)*/
+OVERLOAD_BITWISE_OPERATORS(AIStrategy)
+OVERLOAD_BITWISE_OPERATORS(AIVictoryStage)
 // </advc.enum>
 
 #endif // AI_DEFINES_H

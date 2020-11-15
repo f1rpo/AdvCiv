@@ -94,7 +94,7 @@ bool CvSelectionGroupAI::AI_separateImpassable()
 	{
 		CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
 		pEntityNode = nextUnitNode(pEntityNode);
-		if (kPlayer.AI_unitImpassableCount(pLoopUnit->getUnitType()) > 0)
+		if (kPlayer.AI_isAnyImpassable(pLoopUnit->getUnitType()))
 		{
 			pLoopUnit->joinGroup(NULL);
 			bSeparated = true;
@@ -229,23 +229,26 @@ bool CvSelectionGroupAI::AI_update()
 				/*  What we do here might split the group. So to avoid problems,
 					lets make a list of our units. */
 				std::vector<IDInfo> originalGroup;
-				for(CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
+				for(CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
+					pUnitNode = nextUnitNode(pUnitNode))
  				{
 					originalGroup.push_back(pUnitNode->m_data);
 				}
 				FAssert(originalGroup.size() == getNumUnits());
 				bool bFirst = true;
-				path_finder.Reset();
-				for (std::vector<IDInfo>::iterator it = originalGroup.begin(); it != originalGroup.end(); ++it)
+				resetPath();
+				for (std::vector<IDInfo>::iterator it = originalGroup.begin();
+					it != originalGroup.end(); ++it)
 				{
 					CvUnitAI* pLoopUnit = ::AI_getUnit(*it);
-					if (pLoopUnit && pLoopUnit->getGroupID() == getID() && pLoopUnit->canMove())
+					if (pLoopUnit && pLoopUnit->getGroupID() == getID() &&
+						pLoopUnit->canMove())
 					{
 						if (pLoopUnit->AI_follow(bFirst))
 						{
 							bFollow = true;
 							bFirst = true; // let the next unit start fresh.
-							path_finder.Reset();
+							resetPath();
 							if (!readyToMove(true))
 								break;
 						}
@@ -289,7 +292,7 @@ int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy)
 	if (!pPlot->hasDefender(false, NO_PLAYER, getOwner(), NULL, !bPotentialEnemy, bPotentialEnemy))
 		return 100;
 
-	int iOdds = 0;
+	int iOdds=-1; // (advc: Was 0. Shouldn't matter.)
 	CvUnit* pAttacker = AI_getBestGroupAttacker(pPlot, bPotentialEnemy, iOdds);
 	if (pAttacker == NULL)
 		return 0;
@@ -304,22 +307,21 @@ int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy)
 int CvSelectionGroupAI::AI_getWeightedOdds(CvPlot const* pPlot, bool bPotentialEnemy)
 {
 	PROFILE_FUNC();
-	int iOdds;
-	CvUnitAI* pAttacker = AI_getBestGroupAttacker(pPlot, bPotentialEnemy, iOdds);
-	if (!pAttacker)
+	int iOdds=-1;
+	CvUnitAI const* pAttacker = AI_getBestGroupAttacker(pPlot, bPotentialEnemy, iOdds);
+	if (pAttacker == NULL)
 		return 0;
-	CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, getOwner(), pAttacker,
+	CvUnit const* pDefender = pPlot->getBestDefender(NO_PLAYER, getOwner(), pAttacker,
 			!bPotentialEnemy, bPotentialEnemy,
 			true, false); // advc.028, advc.089 (same as in CvUnitAI::AI_attackOdds)
-
 	if (pDefender == NULL)
 		return 100;
 
-	/*	<advc.114b>: We shouldn't adjust the odds based on an optimistic estimate
-		(increased by AttackOddsChange). It leads to Warriors attacking Tanks
-		because the optimistic odds are considerably above zero and the
-		difference in production cost is great. I'm subtracting the AttackOddsChange
-		temporarily; adding them back in after the adjustments are done.
+	/*	<advc.114b> We shouldn't adjust the odds based on an optimistic estimate
+		(increased by AttackOddsChange) b/c that leads to Warriors attacking Tanks -
+		high difference in production cost and non-negligible optimistic odds.
+		I'm subtracting the AttackOddsChange temporarily;
+		adding them back in after the adjustments are done.
 		(A more elaborate fix would avoid adding them in the first place.) */
 	int const iAttackOddsChange = GET_PLAYER(getOwner()).AI_getAttackOddsChange();
 	iOdds -= iAttackOddsChange;
@@ -339,7 +341,7 @@ int CvSelectionGroupAI::AI_getWeightedOdds(CvPlot const* pPlot, bool bPotentialE
 		// I'm sorry about this. I really am. I'll try to make it better one day...
 		int iDefenders = pAttacker->AI_countEnemyDefenders(*pPlot);
 		iAdjustedOdds *= 2 + getNumUnits();
-		iAdjustedOdds /= 3 + std::min(iDefenders/2, getNumUnits());
+		iAdjustedOdds /= 3 + std::min(iDefenders / 2, getNumUnits());
 	}
 
 	iAdjustedOdds += iAttackOddsChange; // advc.114b
@@ -413,13 +415,14 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 			}
 			/*  if non-human, prefer the last unit that has the best value
 				(so as to avoid splitting the group) */
-			if (iValue > iBestValue || (!bHuman && iValue > 0 && iValue == iBestValue)
-				/*  <advc.048> For human, use sacrifice value to break ties in order
-					to match the choice made in the !bMaxSurvival branch above
+			if (iValue > iBestValue ||
+				(!bHuman && iValue > 0 && iValue == iBestValue) ||
+				/*  <advc.048> For human, use sacrifice value to break ties
+					in order to match the choice made in the !bMaxSurvival branch above
 					and the bSacrifice branch below. */
-				|| (bHuman && iValue < iOddsThresh && iValue == iBestValue &&
+				(bHuman && iValue == iBestValue &&
 				(pBestUnit == NULL || kLoopUnit.AI_sacrificeValue(pPlot) >
-				kLoopUnit.AI_sacrificeValue(pPlot)))) // </advc.048>
+				pBestUnit->AI_sacrificeValue(pPlot)))) // </advc.048>
 			{
 				iBestValue = iValue;
 				iBestOdds = iOdds;
@@ -430,19 +433,16 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 	}
 	iUnitOdds = iBestOdds;
 	// <advc.048> Cut from CvSelectionGroup::groupAttack
-	if(bSacrifice)
+	if(bSacrifice && iUnitOdds < iOddsThresh)
 	{
-		if(iUnitOdds < iOddsThresh)
+		CvUnitAI* pBestSacrifice = AI_getBestGroupSacrifice(pPlot,
+				bPotentialEnemy, bForce, /* advc.164: */ bNoBlitz);
+		if(pBestSacrifice != NULL)
 		{
-			CvUnitAI* pBestSacrifice = AI_getBestGroupSacrifice(pPlot,
-					bPotentialEnemy, bForce, /* advc.164: */ bNoBlitz);
-			if(pBestSacrifice != NULL)
-			{
-				pBestUnit = pBestSacrifice;
-				/*  I.e. caller mustn't use these odds. Don't want to compute them here
-					if the caller doesn't need them. */
-				iUnitOdds = -1;
-			}
+			pBestUnit = pBestSacrifice;
+			/*  I.e. caller mustn't use these odds. Don't want to compute them here
+				if the caller doesn't need them. */
+			iUnitOdds = -1;
 		}
 	} // </advc.048>
 	return pBestUnit;
@@ -565,9 +565,10 @@ int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot,
 	int const iBaseCollateral = (bCountCollateral ?
 			estimateCollateralWeight(pAttackedPlot, getTeam()) : 0);
 	int	iSum = 0;
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
+	for (CLLNode<IDInfo> const* pNode = headUnitNode(); pNode != NULL;
+		pNode = nextUnitNode(pNode))
 	{
-		CvUnitAI const& kLoopUnit = *::AI_getUnit(pUnitNode->m_data);
+		CvUnitAI const& kLoopUnit = *::AI_getUnit(pNode->m_data);
 		if (kLoopUnit.isDead() ||
 			// advc.opt: (If we want to count air units, then this'll have to be removed.)
 			!kLoopUnit.canFight()) 
@@ -706,11 +707,11 @@ bool CvSelectionGroupAI::AI_isDeclareWar(CvPlot const& kPlot) const // advc: con
 	}
 }
 
-
 /*	advc: Moved from CvSelectionGroup b/c this checks for the
 	group owner's war plans. Param renamed from bIgnoreMinors
 	b/c it also causes Barbarians to be ignored. */
-bool CvSelectionGroupAI::AI_isHasPathToAreaEnemyCity(bool bMajorOnly, int iFlags, int iMaxPathTurns) const
+bool CvSelectionGroupAI::AI_isHasPathToAreaEnemyCity(bool bMajorOnly,
+	MovementFlags eFlags, int iMaxPathTurns) const
 {
 	PROFILE_FUNC();
 
@@ -720,7 +721,7 @@ bool CvSelectionGroupAI::AI_isHasPathToAreaEnemyCity(bool bMajorOnly, int iFlags
 		if (bMajorOnly && !it->isMajorCiv())
 			continue;
 		if (GET_TEAM(getTeam()).AI_mayAttack(it->getTeam()) &&
-			isHasPathToAreaPlayerCity(it->getID(), iFlags, iMaxPathTurns))
+			isHasPathToAreaPlayerCity(it->getID(), eFlags, iMaxPathTurns))
 		{
 			return true;
 		}
@@ -839,10 +840,13 @@ CvUnitAI* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 			}
 
 			iValue *= 100;
-			iValue /= (100 + pLoopUnit->cityAttackModifier() + pLoopUnit->getExtraCityAttackPercent());
+			//iValue /= (100 + pLoopUnit->cityAttackModifier() + pLoopUnit->getExtraCityAttackPercent());
+			// advc.mnai: (Note that cityAttackModifier includes ExtraCityAttackPercent)
+			iValue /= 100 + std::max(-50, 2 * pLoopUnit->cityAttackModifier());
 
-			iValue /= 2 + pLoopUnit->getLevel();
-
+			iValue /= 2 + (pLoopUnit->getLevel() *
+					// advc.mnai:
+					(pLoopUnit->AI_getUnitAIType() == UNITAI_ATTACK_CITY ? 2 : 1));
 			if (iValue > iBestUnitValue)
 			{
 				iBestUnitValue = iValue;

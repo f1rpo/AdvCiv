@@ -17,10 +17,6 @@
 #ifndef CV_WATERINFO_H
 #define CV_WATERINFO_H
 
-// advc: Was probably never needed here
-//#pragma warning(disable: 4251) // "needs to have dll-interface to be used by clients of class"
-//class CvXMLLoadUtility;
-
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvWaterPlaneInfo
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -38,11 +34,8 @@ public:
 	DllExport float getTextureScrollRateU() const; // The water plane's texture scroll rate in U
 	DllExport float getTextureScrollRateV() const; // The water plane's texture scroll rate in V
 
-	DllExport const TCHAR * getBaseTexture() const; // The filename of the base texture
-	void setBaseTexture(const TCHAR* szVal);
-
-	DllExport const TCHAR *getTransitionTexture() const; // The transition texture for fading ocean into land
-	void setTransitionTexture(const TCHAR* szVal);
+	DllExport const TCHAR* getBaseTexture() const; // The filename of the base texture
+	DllExport const TCHAR* getTransitionTexture() const; // The transition texture for fading ocean into land
 
 	bool read(CvXMLLoadUtility*);
 
@@ -83,7 +76,6 @@ public:
 	DllExport FogTypes getFogType() const;
 
 	DllExport const TCHAR * getBaseTexture() const; // The filename of the base texture
-	void setBaseTexture(const TCHAR* szVal);
 
 	bool read(CvXMLLoadUtility*);
 
@@ -117,7 +109,6 @@ public:
 	DllExport CameraOverlayTypes getCameraOverlayType() const;
 
 	DllExport const TCHAR * getBaseTexture() const; // The filename of the base texture
-	void setBaseTexture(const TCHAR* szVal);
 
 	bool read(CvXMLLoadUtility*);
 

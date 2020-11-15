@@ -6,21 +6,21 @@
 
 
 CvOrganizationInfo::CvOrganizationInfo() :
-m_iChar(0),
+m_wcSymbol(0),
 m_iTechPrereq(NO_TECH),
 m_iFreeUnitClass(NO_UNITCLASS),
 m_iSpreadFactor(0),
 m_iMissionType(NO_MISSION)
 {}
 
-int CvOrganizationInfo::getChar() const
+wchar CvOrganizationInfo::getChar() const
 {
-	return m_iChar;
+	return m_wcSymbol;
 }
 
-void CvOrganizationInfo::setChar(int i)
+void CvOrganizationInfo::setChar(wchar wc)
 {
-	m_iChar = i;
+	m_wcSymbol = wc;
 }
 
 int CvOrganizationInfo::getFreeUnitClass() const
@@ -43,29 +43,14 @@ const TCHAR* CvOrganizationInfo::getMovieFile() const
 	return m_szMovieFile;
 }
 
-void CvOrganizationInfo::setMovieFile(const TCHAR* szVal)
-{
-	m_szMovieFile = szVal;
-}
-
 const TCHAR* CvOrganizationInfo::getMovieSound() const
 {
 	return m_szMovieSound;
 }
 
-void CvOrganizationInfo::setMovieSound(const TCHAR* szVal)
-{
-	m_szMovieSound = szVal;
-}
-
 const TCHAR* CvOrganizationInfo::getSound() const
 {
 	return m_szSound;
-}
-
-void CvOrganizationInfo::setSound(const TCHAR* szVal)
-{
-	m_szSound=szVal;
 }
 
 bool CvOrganizationInfo::read(CvXMLLoadUtility* pXML)
@@ -78,13 +63,9 @@ bool CvOrganizationInfo::read(CvXMLLoadUtility* pXML)
 
 	pXML->GetChildXmlValByName(&m_iSpreadFactor, "iSpreadFactor");
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "MovieFile");
-	setMovieFile(szTextVal);
-	pXML->GetChildXmlValByName(szTextVal, "MovieSound");
-	setMovieSound(szTextVal);
-	pXML->GetChildXmlValByName(szTextVal, "Sound");
-	setSound(szTextVal);
+	pXML->GetChildXmlValByName(m_szMovieFile, "MovieFile");
+	pXML->GetChildXmlValByName(m_szMovieSound, "MovieSound");
+	pXML->GetChildXmlValByName(m_szSound, "Sound");
 
 	return true;
 }
@@ -124,19 +105,9 @@ const TCHAR* CvReligionInfo::getTechButton() const
 	return m_szTechButton;
 }
 
-void CvReligionInfo::setTechButton(const TCHAR* szVal)
-{
-	m_szTechButton=szVal;
-}
-
 const TCHAR* CvReligionInfo::getGenericTechButton() const
 {
 	return m_szGenericTechButton;
-}
-
-void CvReligionInfo::setGenericTechButton(const TCHAR* szVal)
-{
-	m_szGenericTechButton = szVal;
 }
 
 const TCHAR* CvReligionInfo::getButtonDisabled() const
@@ -153,11 +124,6 @@ const TCHAR* CvReligionInfo::getButtonDisabled() const
 	}
 
 	return szDisabled;
-}
-
-void CvReligionInfo::setAdjectiveKey(const TCHAR* szVal)
-{
-	m_szAdjectiveKey = szVal;
 }
 
 const wchar* CvReligionInfo::getAdjectiveKey() const
@@ -203,8 +169,6 @@ bool CvReligionInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvOrganizationInfo::read(pXML))
 		return false;
 
-	CvString szTextVal;
-
 	pXML->GetChildXmlValByName(&m_iNumFreeUnits, "iFreeUnits");
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"GlobalReligionCommerces"))
@@ -228,14 +192,9 @@ bool CvReligionInfo::read(CvXMLLoadUtility* pXML)
 	}
 	else pXML->InitList(&m_paiStateReligionCommerce, NUM_COMMERCE_TYPES);
 
-	pXML->GetChildXmlValByName(szTextVal, "TechButton");
-	setTechButton(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "GenericTechButton");
-	setGenericTechButton(szTextVal);
-
-	pXML->GetChildXmlValByName(szTextVal, "Adjective");
-	setAdjectiveKey(szTextVal);
+	pXML->GetChildXmlValByName(m_szTechButton, "TechButton");
+	pXML->GetChildXmlValByName(m_szGenericTechButton, "GenericTechButton");
+	pXML->GetChildXmlValByName(m_szAdjectiveKey, "Adjective");
 
 	return true;
 }

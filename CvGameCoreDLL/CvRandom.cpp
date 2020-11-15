@@ -29,16 +29,24 @@ void CvRandom::reset(unsigned long ulSeed)
 }
 
 
-unsigned short CvRandom::getInt(unsigned short usNum, const TCHAR* pszLog,
+unsigned short CvRandom::getInt(unsigned short usNum, TCHAR const* szLog,
 		int iData1, int iData2) // advc.001n
 {
-	GC.getLogger().logRandomNumber(pszLog, usNum, m_ulRandomSeed, iData1, iData2); // advc.003t
+	GC.getLogger().logRandomNumber(szLog, usNum, m_ulRandomSeed, iData1, iData2); // advc.003t
 
 	m_ulRandomSeed = (RANDOM_A * m_ulRandomSeed) + RANDOM_C;
 	unsigned short r = (unsigned short)
-		((((m_ulRandomSeed >> RANDOM_SHIFT) & MAX_UNSIGNED_SHORT) *
-		((unsigned long)usNum)) / (MAX_UNSIGNED_SHORT + 1));
+			((((m_ulRandomSeed >> RANDOM_SHIFT) & MAX_UNSIGNED_SHORT) *
+			((unsigned long)usNum)) / (MAX_UNSIGNED_SHORT + 1));
 	return r;
+}
+
+/*	advc.190c: Separate function for calls from the EXE. So that the DLL can figure out
+	which options were set to "Random" during game setup. */
+unsigned short CvRandom::getExternal(unsigned short usNum, TCHAR const* szLog)
+{
+	GC.getInitCore().externalRNGCall(usNum, this);
+	return get(usNum, szLog);
 }
 
 

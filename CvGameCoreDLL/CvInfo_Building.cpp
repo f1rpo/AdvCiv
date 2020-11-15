@@ -102,6 +102,7 @@ m_bPower(false),
 m_bDirtyPower(false),
 m_bAreaCleanPower(false),
 m_bAreaBorderObstacle(false),
+m_bConditional(false), // advc.310
 m_bForceTeamVoteEligible(false),
 m_bCapital(false),
 m_bGovernmentCenter(false),
@@ -213,12 +214,12 @@ CvBuildingInfo::~CvBuildingInfo()
 		SAFE_DELETE_ARRAY(m_ppaiBonusYieldModifier);
 	}
 }
-// <advc.tag>
+// advc.tag:
 void CvBuildingInfo::addElements(std::vector<XMLElement*>& r) const
 {
 	CvHotkeyInfo::addElements(r);
 	r.push_back(new IntElement(RaiseDefense, "RaiseDefense", 0)); // advc.004c
-} // </advc.tag>
+}
 
 // advc.003w:
 bool CvBuildingInfo::isTechRequired(TechTypes eTech) const
@@ -241,17 +242,17 @@ bool CvBuildingInfo::isTechRequired(TechTypes eTech) const
 
 int CvBuildingInfo::getDomesticGreatGeneralRateModifier() const
 {	// <advc.310>
-	if(!m_bEnabledDomesticGreatGeneralRateModifier)
+	if(!m_bEnabledDomesticGreatGeneralRateModifier && m_bConditional)
 		return 0; // </advc.310>
 	return m_iDomesticGreatGeneralRateModifier;
 }
-// <advc.310>
+// advc.310:
 int CvBuildingInfo::getAreaTradeRoutes() const
 {
-	if(!m_bEnabledAreaTradeRoutes)
+	if(!m_bEnabledAreaTradeRoutes && m_bConditional)
 		return 0;
 	return m_iAreaTradeRoutes;
-} // </advc.310>
+}
 
 void CvBuildingInfo::setMissionType(MissionTypes eNewType)
 {
@@ -265,7 +266,7 @@ float CvBuildingInfo::getVisibilityPriority() const
 
 bool CvBuildingInfo::isAreaBorderObstacle() const
 {	// <advc.310>
-	if(!m_bEnabledAreaBorderObstacle)
+	if(!m_bEnabledAreaBorderObstacle && m_bConditional)
 		return false; // </advc.310>
 	return m_bAreaBorderObstacle;
 }
@@ -275,19 +276,9 @@ const TCHAR* CvBuildingInfo::getConstructSound() const
 	return m_szConstructSound;
 }
 
-void CvBuildingInfo::setConstructSound(const TCHAR* szVal)
-{
-	m_szConstructSound = szVal;
-}
-
 const TCHAR* CvBuildingInfo::getArtDefineTag() const
 {
 	return m_szArtDefineTag;
-}
-
-void CvBuildingInfo::setArtDefineTag(const TCHAR* szVal)
-{
-	m_szArtDefineTag = szVal;
 }
 
 const TCHAR* CvBuildingInfo::getMovieDefineTag() const
@@ -295,85 +286,80 @@ const TCHAR* CvBuildingInfo::getMovieDefineTag() const
 	return m_szMovieDefineTag;
 }
 
-void CvBuildingInfo::setMovieDefineTag(const TCHAR* szVal)
-{
-	m_szMovieDefineTag = szVal;
-}
-
 
 int CvBuildingInfo::getYieldChange(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piYieldChange ?
 			(YieldTypes)m_piYieldChange[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getYieldModifier(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piYieldModifier ?
 			(YieldTypes)m_piYieldModifier[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getPowerYieldModifier(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piPowerYieldModifier ?
 			(YieldTypes)m_piPowerYieldModifier[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getAreaYieldModifier(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piAreaYieldModifier ?
 			(YieldTypes)m_piAreaYieldModifier[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getGlobalYieldModifier(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piGlobalYieldModifier ?
 			(YieldTypes)m_piGlobalYieldModifier[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getSeaPlotYieldChange(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piSeaPlotYieldChange ?
 			(YieldTypes)m_piSeaPlotYieldChange[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getRiverPlotYieldChange(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piRiverPlotYieldChange ?
 			(YieldTypes)m_piRiverPlotYieldChange[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getGlobalSeaPlotYieldChange(YieldTypes eYield) const
 {
-	FAssertBounds(0, NUM_YIELD_TYPES, eYield);
+	FAssertEnumBounds(eYield);
 	return m_piGlobalSeaPlotYieldChange ?
 			(YieldTypes)m_piGlobalSeaPlotYieldChange[eYield] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getCommerceChange(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piCommerceChange ?
 			(CommerceTypes)m_piCommerceChange[eCommerce] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getObsoleteSafeCommerceChange(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piObsoleteSafeCommerceChange ?
 			(CommerceTypes)m_piObsoleteSafeCommerceChange[eCommerce] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getCommerceChangeDoubleTime(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piCommerceChangeDoubleTime ?
 			(CommerceTypes)m_piCommerceChangeDoubleTime[eCommerce]
 			: 0; // advc.003t: Was -1. 0 means infinity here.
@@ -381,35 +367,35 @@ int CvBuildingInfo::getCommerceChangeDoubleTime(CommerceTypes eCommerce) const
 
 int CvBuildingInfo::getCommerceModifier(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piCommerceModifier ?
 			(CommerceTypes)m_piCommerceModifier[eCommerce] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getGlobalCommerceModifier(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piGlobalCommerceModifier ?
 			(CommerceTypes)m_piGlobalCommerceModifier[eCommerce] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getSpecialistExtraCommerce(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piSpecialistExtraCommerce ?
 			(CommerceTypes)m_piSpecialistExtraCommerce[eCommerce] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getStateReligionCommerce(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piStateReligionCommerce ?
 			(CommerceTypes)m_piStateReligionCommerce[eCommerce] : 0; // advc.003t
 }
 
 int CvBuildingInfo::getCommerceHappiness(CommerceTypes eCommerce) const
 {
-	FAssertBounds(0, NUM_COMMERCE_TYPES, eCommerce);
+	FAssertEnumBounds(eCommerce);
 	return m_piCommerceHappiness ?
 			(CommerceTypes)m_piCommerceHappiness[eCommerce] : 0; // advc.003t
 }
@@ -607,7 +593,7 @@ bool CvBuildingInfo::nameNeedsArticle() const
 		an article should be used. */
 	return (szText.compare(L".") != 0);
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvBuildingInfo::read(FDataStreamBase* stream)
 {
 	CvHotkeyInfo::read(stream);
@@ -710,6 +696,7 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_bDirtyPower);
 	stream->Read(&m_bAreaCleanPower);
 	stream->Read(&m_bAreaBorderObstacle);
+	stream->Read(&m_bConditional); // advc.310
 	stream->Read(&m_bForceTeamVoteEligible);
 	stream->Read(&m_bCapital);
 	stream->Read(&m_bGovernmentCenter);
@@ -990,6 +977,7 @@ void CvBuildingInfo::write(FDataStreamBase* stream)
 	stream->Write(m_bDirtyPower);
 	stream->Write(m_bAreaCleanPower);
 	stream->Write(m_bAreaBorderObstacle);
+	stream->Write(m_bConditional); // advc.310
 	stream->Write(m_bForceTeamVoteEligible);
 	stream->Write(m_bCapital);
 	stream->Write(m_bGovernmentCenter);
@@ -1059,13 +1047,8 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	pXML->SetInfoIDFromChildXmlVal(m_iBuildingClassType, "BuildingClass");
 	pXML->SetInfoIDFromChildXmlVal(m_iSpecialBuildingType, "SpecialBuildingType");
 	pXML->SetInfoIDFromChildXmlVal(m_iAdvisorType, "Advisor");
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
-		setArtDefineTag(szTextVal);
-		pXML->GetChildXmlValByName(szTextVal, "MovieDefineTag");
-		setMovieDefineTag(szTextVal);
-	}
+	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag");
+	pXML->GetChildXmlValByName(m_szMovieDefineTag, "MovieDefineTag");
 	pXML->SetInfoIDFromChildXmlVal(m_iHolyCity, "HolyCity");
 	pXML->SetInfoIDFromChildXmlVal(m_iReligionType, "ReligionType");
 	pXML->SetInfoIDFromChildXmlVal(m_iStateReligion, "StateReligion");
@@ -1167,6 +1150,7 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bDirtyPower, "bDirtyPower");
 	pXML->GetChildXmlValByName(&m_bAreaCleanPower, "bAreaCleanPower");
 	pXML->GetChildXmlValByName(&m_bAreaBorderObstacle, "bBorderObstacle");
+	pXML->GetChildXmlValByName(&m_bConditional, "bConditional", false); // advc.310
 	pXML->GetChildXmlValByName(&m_bForceTeamVoteEligible, "bForceTeamVoteEligible");
 	pXML->GetChildXmlValByName(&m_bCapital, "bCapital");
 	pXML->GetChildXmlValByName(&m_bGovernmentCenter, "bGovernmentCenter");
@@ -1375,11 +1359,7 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	}
 	else pXML->InitList(&m_pbCommerceChangeOriginalOwner, NUM_COMMERCE_TYPES);
 
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "ConstructSound");
-		setConstructSound(szTextVal);
-	}
+	pXML->GetChildXmlValByName(m_szConstructSound, "ConstructSound");
 
 	pXML->SetVariableListTagPair(&m_piBonusHealthChanges, "BonusHealthChanges", GC.getNumBonusInfos());
 	pXML->SetVariableListTagPair(&m_piBonusHappinessChanges, "BonusHappinessChanges", GC.getNumBonusInfos());
@@ -1597,9 +1577,9 @@ bool CvBuildingClassInfo::readPass3()
 }
 
 CvSpecialBuildingInfo::CvSpecialBuildingInfo() :
-m_iObsoleteTech(NO_TECH),
-m_iTechPrereq(NO_TECH),
-m_iTechPrereqAnyone(NO_TECH),
+m_eObsoleteTech(NO_TECH),
+m_eTechPrereq(NO_TECH),
+m_eTechPrereqAnyone(NO_TECH),
 m_bValid(false),
 m_piProductionTraits(NULL)
 {}
@@ -1607,26 +1587,6 @@ m_piProductionTraits(NULL)
 CvSpecialBuildingInfo::~CvSpecialBuildingInfo()
 {
 	SAFE_DELETE_ARRAY(m_piProductionTraits);
-}
-
-int CvSpecialBuildingInfo::getObsoleteTech() const
-{
-	return m_iObsoleteTech;
-}
-
-int CvSpecialBuildingInfo::getTechPrereq() const
-{
-	return m_iTechPrereq;
-}
-
-int CvSpecialBuildingInfo::getTechPrereqAnyone() const
-{
-	return m_iTechPrereqAnyone;
-}
-
-bool CvSpecialBuildingInfo::isValid() const
-{
-	return m_bValid;
 }
 
 int CvSpecialBuildingInfo::getProductionTraits(int i) const
@@ -1641,9 +1601,9 @@ bool CvSpecialBuildingInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	pXML->SetInfoIDFromChildXmlVal(m_iObsoleteTech, "ObsoleteTech");
-	pXML->SetInfoIDFromChildXmlVal(m_iTechPrereq, "TechPrereq");
-	pXML->SetInfoIDFromChildXmlVal(m_iTechPrereqAnyone, "TechPrereqAnyone");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eObsoleteTech, "ObsoleteTech");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eTechPrereq, "TechPrereq");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eTechPrereqAnyone, "TechPrereqAnyone");
 
 	pXML->GetChildXmlValByName(&m_bValid, "bValid");
 
@@ -1968,7 +1928,7 @@ int CvProjectInfo::getVictoryMinThreshold(int i) const
 	FAssertBounds(0, GC.getNumVictoryInfos(), i);
 	// <advc.003t>
 	if (m_piVictoryMinThreshold == NULL)
-		return 0;
+		return getVictoryThreshold(i); // !!
 	if (m_piVictoryMinThreshold[i] != 0) // </advc.003t>
 		return m_piVictoryMinThreshold[i];
 	return getVictoryThreshold(i);

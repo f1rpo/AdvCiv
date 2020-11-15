@@ -8,12 +8,15 @@
 #include "CvMap.h"
 
 /*  Iterators over the CvPlot objects within a radius around a central plot or unit.
-	For now, I've only implemented a square, which is the most frequently used
-	plot range. The radius is measured according to the stepDistance metric.
-	A more circular range (plostDistance metric) can be generated through the
-	b_IN_CIRCLE template parameter. The implementation of the in-circle
-	isn't terribly efficient: A square is generated and plots outside of the
-	plostDistance radius are skipped. (That's also what the BtS code did.)
+	If bINCIRCLE is false, then the radius is measured according to the
+	stepDistance metric, which results in a square of plots. The center plot
+	doesn't count toward the radius, so e.g. iRadius=3 yields a 7x7 square.
+
+	If bINCIRCLE is true, then the plotDistance metric is used, which corresponds
+	to a range of plots that approximates the incircle of a square of the same radius.
+	The implementation for bINCIRCLE=true isn't terribly efficient: A square is
+	generated and plots outside of the plostDistance radius are skipped.
+	(That's also what the BtS code did.)
 	There are derived classes at the end of this file that hide the template parameter.
 	For the special case of iterating over a city radius, see CityPlotIterator.h.
 
@@ -22,7 +25,7 @@
 	checked when considering to move into a tile, and even then there can be faster
 	alternatives (see comments at the definition of AI_plotValid). */
 
-template<bool bIN_CIRCLE = false>
+template<bool bINCIRCLE = false>
 class SquareIterator
 {
 public:
@@ -117,7 +120,7 @@ protected:
 			computeNext();
 			return; // tail recursion
 		}
-		if (bIN_CIRCLE)
+		if (bINCIRCLE)
 		{
 			if (currPlotDist() > m_iRadius)
 				computeNext();

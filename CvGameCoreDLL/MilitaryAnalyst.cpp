@@ -62,7 +62,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 			for(PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> allyIt(agent.getID());
 					allyIt.hasNext(); ++allyIt) {
 				CvPlayerAI& ally = *allyIt;
-				// Can happen b/c of the dlph.3 change
+				// Can happen b/c of the kekm.3 change
 				if(agent.isAtWar(ally.getTeam()))
 					continue;
 				if(GET_TEAM(civId).uwai().hasDefactoDefensivePact(ally.getTeam()))
@@ -409,13 +409,12 @@ bool MilitaryAnalyst::isWar(TeamTypes t1, TeamTypes t2) const {
 
 bool MilitaryAnalyst::hasCapitulated(TeamTypes teamId) const {
 
-	CvTeam const& t = GET_TEAM(teamId);
 	FAssert(teamId != BARBARIAN_TEAM);
 	for(MemberIter it(teamId); it.hasNext(); ++it) {
 		PlayerTypes civId = it->getID();
 		InvasionGraph::Node* node = ig->getNode(civId);
 		if(node != NULL && node->hasCapitulated()) {
-			FAssert(!t.isAVassal());
+			FAssert(!GET_TEAM(teamId).isAVassal());
 			return true;
 		}
 	}
@@ -465,7 +464,7 @@ void MilitaryAnalyst::logResults(PlayerTypes civId) {
 	if(::round(militaryProduction(civId)) == 0)
 		return;
 	if(civId < 0 || civId > MAX_CIV_PLAYERS) {
-		FAssertMsg(false, "civId out of bounds");
+		FErrorMsg("civId out of bounds");
 		return;
 	}
 	report.log("Results about %s", report.leaderName(civId));

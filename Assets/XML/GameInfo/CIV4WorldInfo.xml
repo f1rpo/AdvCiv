@@ -21,7 +21,7 @@
 			<!-- advc.140: was 37 -->
 			<iWarWearinessModifier>30</iWarWearinessModifier>
 			<!-- advc.137: was 10 -->
-			<iGridWidth>8</iGridWidth>
+			<iGridWidth>9</iGridWidth>
 			<iGridHeight>6</iGridHeight>
 			<iTerrainGrainChange>-1</iTerrainGrainChange>
 			<iFeatureGrainChange>-1</iFeatureGrainChange>
@@ -84,8 +84,7 @@
 			<iMaxConscriptModifier>0</iMaxConscriptModifier>
 			<!-- advc.140: was 10 -->
 			<iWarWearinessModifier>12</iWarWearinessModifier>
-			<!-- advc.137: was 16 -->
-			<iGridWidth>15</iGridWidth>
+			<iGridWidth>16</iGridWidth>
 			<iGridHeight>10</iGridHeight>
 			<iTerrainGrainChange>0</iTerrainGrainChange>
 			<iFeatureGrainChange>0</iFeatureGrainChange>
@@ -121,8 +120,7 @@
 			<iMaxConscriptModifier>15</iMaxConscriptModifier>
 			<!-- advc.140: was -10 -->
 			<iWarWearinessModifier>0</iWarWearinessModifier>
-			<!-- advc.137: was 21 -->
-			<iGridWidth>20</iGridWidth>
+			<iGridWidth>21</iGridWidth>
 			<iGridHeight>13</iGridHeight>
 			<iTerrainGrainChange>0</iTerrainGrainChange>
 			<iFeatureGrainChange>0</iFeatureGrainChange>
@@ -156,8 +154,7 @@
 			<iWarWearinessModifier>-13</iWarWearinessModifier>
 			<!-- advc.137: was 26 -->
 			<iGridWidth>25</iGridWidth>
-			<!-- advc.137: was 16 -->
-			<iGridHeight>15</iGridHeight>
+			<iGridHeight>16</iGridHeight>
 			<iTerrainGrainChange>1</iTerrainGrainChange>
 			<iFeatureGrainChange>1</iFeatureGrainChange>
 			<!-- advc.910: was 140 -->
@@ -191,8 +188,7 @@
 			<iWarWearinessModifier>-25</iWarWearinessModifier>
 			<!-- advc.137: was 32 -->
 			<iGridWidth>31</iGridWidth>
-			<!-- advc.137: was 20 -->
-			<iGridHeight>19</iGridHeight>
+			<iGridHeight>20</iGridHeight>
 			<iTerrainGrainChange>1</iTerrainGrainChange>
 			<iFeatureGrainChange>1</iFeatureGrainChange>
 			<iResearchPercent>150</iResearchPercent>

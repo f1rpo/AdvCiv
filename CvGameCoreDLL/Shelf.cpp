@@ -1,11 +1,11 @@
-// <advc.300> New class; see Shelf.h for description
+// advc.300: New class; see Shelf.h for description
 
 #include "CvGameCoreDLL.h"
 #include "Shelf.h"
-#include "CvInfo_Unit.h"
 #include "CvGame.h"
 #include "CvPlot.h"
 #include "CvUnit.h"
+#include "CvPlayer.h"
 
 using std::vector;
 
@@ -16,7 +16,7 @@ void Shelf::add(CvPlot* plot)
 }
 
 
-CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance, int* legalCount) const
+CvPlot* Shelf::randomPlot(RandPlotFlags restrictions, int unitDistance, int* legalCount) const
 {
 	/*  Based on CvMap::syncRandPlot, but shelves are (normally) so small
 		that random sampling isn't efficient. Instead, compute the legal
@@ -27,12 +27,12 @@ CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance, int* legalCoun
 		CvPlot* plot = plots[i];
 		bool isLegal =
 		 plot != NULL &&
-		 !(RANDPLOT_LAND & restrictionFlags) &&
-		 (!(RANDPLOT_UNOWNED & restrictionFlags) || !plot->isOwned()) &&
-		 (!(RANDPLOT_ADJACENT_UNOWNED & restrictionFlags) || !plot->isAdjacentOwned()) &&
-		 (!(RANDPLOT_NOT_VISIBLE_TO_CIV & restrictionFlags) || !plot->isVisibleToCivTeam()) &&
+		 !(RANDPLOT_LAND & restrictions) &&
+		 (!(RANDPLOT_UNOWNED & restrictions) || !plot->isOwned()) &&
+		 (!(RANDPLOT_ADJACENT_UNOWNED & restrictions) || !plot->isAdjacentOwned()) &&
+		 (!(RANDPLOT_NOT_VISIBLE_TO_CIV & restrictions) || !plot->isVisibleToCivTeam()) &&
 		 // In case a mod enables sea cities:
-		 (!(RANDPLOT_NOT_CITY) || !plot->isCity()) &&
+		 (!(RANDPLOT_NOT_CITY & restrictions) || !plot->isCity()) &&
 		 (!plot->isCivUnitNearby(unitDistance)) &&
 		 !plot->isUnit();
 		/*  RANDPLOT_PASSIBLE, RANDPLOT_ADJACENT_LAND, RANDPLOT_HABITABLE:
@@ -106,36 +106,35 @@ bool Shelf::killBarbarian()
 	return false;
 }
 
-// <advc.306>
-CvUnit* Shelf::randomBarbarianCargoUnit() const
+// advc.306:
+CvUnit* Shelf::randomBarbarianTransport() const
 {
-	vector<CvUnit*> legal;
+	vector<CvUnit*> apValid;
 	for(size_t i = 0; i < plots.size(); i++)
 	{
 		if(plots[i] == NULL) continue; CvPlot const& plot = *plots[i];
 		if(plot.isVisibleToCivTeam())
 			continue;
-		for(int j = 0; j < plot.getNumUnits(); j++)
+		for(CLLNode<IDInfo> const* pNode = plot.headUnitNode(); pNode != NULL;
+			pNode = plot.nextUnitNode(pNode))
 		{
-			CvUnit* u = plot.getUnitByIndex(j); if(u == NULL) continue;
-			if(u->getOwner() != BARBARIAN_PLAYER)
+			CvUnit& kUnit = *::getUnit(pNode->m_data);
+			if(kUnit.getOwner() != BARBARIAN_PLAYER)
 				break;
-			CvUnitInfo const& ui = GC.getInfo(u->getUnitType());
-			int cargoSpace = std::min(2, ui.getCargoSpace()); // Load at most 2
-			cargoSpace -= std::max(0, u->getCargo());
-			if(cargoSpace > 0)
-				legal.push_back(u);
+			CvUnitInfo const& u = GC.getInfo(kUnit.getUnitType());
+			int iCargo = std::min(2, u.getCargoSpace()); // Load at most 2
+			iCargo -= std::max(0, kUnit.getCargo());
+			if(iCargo > 0)
+				apValid.push_back(&kUnit);
 		}
 	}
-	int nLegal = legal.size();
-	if(nLegal == 0)
+	if(apValid.empty())
 		return NULL;
-	double pr = 0.2 + nLegal / 10.0;
-	if(!::bernoulliSuccess(pr, "advc.306 (shelf)"))
+	int iValid = apValid.size();
+	scaled rNoneProb = fixp(0.2) + scaled(iValid, 10);
+	if(!rNoneProb.bernoulliSuccess(GC.getGame().getSRand(), "no Barbarian transport"))
 		return NULL;
-	return legal[GC.getGame().getSorenRandNum(nLegal, "advc.306")];
-} // </advc.306>
-
+	return apValid[GC.getGame().getSorenRandNum(iValid, "choose Barbarian transport")];
+}
 
 Shelf::Id::Id(int landId, int waterId) : std::pair<int,int>(landId, waterId) {}
-// </advc.300>

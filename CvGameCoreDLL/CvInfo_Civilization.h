@@ -45,7 +45,6 @@ public: // advc: All the const functions are exposed to Python
 
 	DllExport const TCHAR* getFlagTexture() const;
 	const TCHAR* getArtDefineTag() const;
-	void setArtDefineTag(const TCHAR* szVal);
 
 	// Array access:
 
@@ -66,7 +65,7 @@ public: // advc: All the const functions are exposed to Python
 
 	bool read(CvXMLLoadUtility* pXML);
 	bool readPass2(CvXMLLoadUtility* pXML);
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif
@@ -111,97 +110,98 @@ class CvLeaderHeadInfo : public CvInfoBase
 {
 friend class UWAI; // advc.104x (for applyPersonalityWeight)
 public: // advc: All the const functions are exposed to Python except those added by mods
+		// advc.inl: Inlined all non-array getters
 	CvLeaderHeadInfo();
 	CvLeaderHeadInfo(CvLeaderHeadInfo const& kOther); // advc.xmldefault
 	~CvLeaderHeadInfo();
 
-	int getWonderConstructRand() const;
-	int getBaseAttitude() const;
-	int getBasePeaceWeight() const;
-	int getPeaceWeightRand() const;
-	int getWarmongerRespect() const;
-	int getEspionageWeight() const;
-	int getRefuseToTalkWarThreshold() const;
-	int getNoTechTradeThreshold() const;
-	int getTechTradeKnownPercent() const;
-	int getMaxGoldTradePercent() const;
-	int getMaxGoldPerTurnTradePercent() const;
+	int getWonderConstructRand() const { return m_iWonderConstructRand; }
+	int getBaseAttitude() const { return m_iBaseAttitude; }
+	int getBasePeaceWeight() const { return m_iBasePeaceWeight; }
+	int getPeaceWeightRand() const { return m_iPeaceWeightRand; }
+	int getWarmongerRespect() const { return m_iWarmongerRespect; }
+	int getEspionageWeight() const { return m_iEspionageWeight; }
+	int getRefuseToTalkWarThreshold() const { return m_iRefuseToTalkWarThreshold; }
+	int getNoTechTradeThreshold() const { return m_iNoTechTradeThreshold; }
+	int getTechTradeKnownPercent() const { return m_iTechTradeKnownPercent; }
+	int getMaxGoldTradePercent() const { return m_iMaxGoldTradePercent; }
+	int getMaxGoldPerTurnTradePercent() const { return m_iMaxGoldPerTurnTradePercent; }
 	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/21/10, jdog5000: START
-	int getCultureVictoryWeight() const;
-	int getSpaceVictoryWeight() const;
-	int getConquestVictoryWeight() const;
-	int getDominationVictoryWeight() const;
-	int getDiplomacyVictoryWeight() const;
+	int getCultureVictoryWeight() const { return m_iCultureVictoryWeight; }
+	int getSpaceVictoryWeight() const { return m_iSpaceVictoryWeight; }
+	int getConquestVictoryWeight() const { return m_iConquestVictoryWeight; }
+	int getDominationVictoryWeight() const { return m_iDominationVictoryWeight; }
+	int getDiplomacyVictoryWeight() const { return m_iDiplomacyVictoryWeight; }
 	// BETTER_BTS_AI_MOD: END
-	int getMaxWarRand() const;
-	int getMaxWarNearbyPowerRatio() const;
-	int getMaxWarDistantPowerRatio() const;
-	int getMaxWarMinAdjacentLandPercent() const;
-	int getLimitedWarRand() const;
-	int getLimitedWarPowerRatio() const;
-	int getDogpileWarRand() const;
-	int getMakePeaceRand() const;
-	int getDeclareWarTradeRand() const;
-	int getDemandRebukedSneakProb() const;
-	int getDemandRebukedWarProb() const;
-	int getRazeCityProb() const;
-	inline int getBuildUnitProb() const { return m_iBuildUnitProb; } // advc.inl
-	int getBaseAttackOddsChange() const;
-	int getAttackOddsChangeRand() const;
-	int getWorseRankDifferenceAttitudeChange() const;
-	int getBetterRankDifferenceAttitudeChange() const;
-	int getCloseBordersAttitudeChange() const;
-	int getLostWarAttitudeChange() const;
-	int getAtWarAttitudeDivisor() const;
-	int getAtWarAttitudeChangeLimit() const;
-	int getAtPeaceAttitudeDivisor() const;
-	int getAtPeaceAttitudeChangeLimit() const;
-	int getSameReligionAttitudeChange() const;
-	int getSameReligionAttitudeDivisor() const;
-	int getSameReligionAttitudeChangeLimit() const;
-	int getDifferentReligionAttitudeChange() const;
-	int getDifferentReligionAttitudeDivisor() const;
-	int getDifferentReligionAttitudeChangeLimit() const;
-	int getBonusTradeAttitudeDivisor() const;
-	int getBonusTradeAttitudeChangeLimit() const;
-	int getOpenBordersAttitudeDivisor() const;
-	int getOpenBordersAttitudeChangeLimit() const;
-	int getDefensivePactAttitudeDivisor() const;
-	int getDefensivePactAttitudeChangeLimit() const;
-	int getShareWarAttitudeChange() const;
-	int getShareWarAttitudeDivisor() const;
-	int getShareWarAttitudeChangeLimit() const;
-	int getFavoriteCivicAttitudeChange() const;
-	int getFavoriteCivicAttitudeDivisor() const;
-	int getFavoriteCivicAttitudeChangeLimit() const;
-	int getDemandTributeAttitudeThreshold() const;
-	int getNoGiveHelpAttitudeThreshold() const;
-	int getTechRefuseAttitudeThreshold() const;
+	int getMaxWarRand() const { return m_iMaxWarRand; }
+	int getMaxWarNearbyPowerRatio() const { return m_iMaxWarNearbyPowerRatio; }
+	int getMaxWarDistantPowerRatio() const { return m_iMaxWarDistantPowerRatio; }
+	int getMaxWarMinAdjacentLandPercent() const { return m_iMaxWarMinAdjacentLandPercent; }
+	int getLimitedWarRand() const { return m_iLimitedWarRand; }
+	int getLimitedWarPowerRatio() const { return m_iLimitedWarPowerRatio; }
+	int getDogpileWarRand() const { return m_iDogpileWarRand; }
+	int getMakePeaceRand() const { return m_iMakePeaceRand; }
+	int getDeclareWarTradeRand() const { return m_iDeclareWarTradeRand; }
+	int getDemandRebukedSneakProb() const { return m_iDemandRebukedSneakProb; }
+	int getDemandRebukedWarProb() const { return m_iDemandRebukedWarProb; }
+	int getRazeCityProb() const { return m_iRazeCityProb; }
+	inline int getBuildUnitProb() const { return m_iBuildUnitProb; }
+	int getBaseAttackOddsChange() const { return m_iBaseAttackOddsChange; }
+	int getAttackOddsChangeRand() const { return m_iAttackOddsChangeRand; }
+	int getWorseRankDifferenceAttitudeChange() const { return m_iWorseRankDifferenceAttitudeChange; }
+	int getBetterRankDifferenceAttitudeChange() const { return m_iBetterRankDifferenceAttitudeChange; }
+	int getCloseBordersAttitudeChange() const { return m_iCloseBordersAttitudeChange; }
+	int getLostWarAttitudeChange() const { return m_iLostWarAttitudeChange; }
+	int getAtWarAttitudeDivisor() const { return m_iAtWarAttitudeDivisor; }
+	int getAtWarAttitudeChangeLimit() const { return m_iAtWarAttitudeChangeLimit; }
+	int getAtPeaceAttitudeDivisor() const { return m_iAtPeaceAttitudeDivisor; }
+	int getAtPeaceAttitudeChangeLimit() const { return m_iAtPeaceAttitudeChangeLimit; }
+	int getSameReligionAttitudeChange() const { return m_iSameReligionAttitudeChange; }
+	int getSameReligionAttitudeDivisor() const { return m_iSameReligionAttitudeDivisor; }
+	int getSameReligionAttitudeChangeLimit() const { return m_iSameReligionAttitudeChangeLimit; }
+	int getDifferentReligionAttitudeChange() const { return m_iDifferentReligionAttitudeChange; }
+	int getDifferentReligionAttitudeDivisor() const { return m_iDifferentReligionAttitudeDivisor; }
+	int getDifferentReligionAttitudeChangeLimit() const { return m_iDifferentReligionAttitudeChangeLimit; }
+	int getBonusTradeAttitudeDivisor() const { return m_iBonusTradeAttitudeDivisor; }
+	int getBonusTradeAttitudeChangeLimit() const { return m_iBonusTradeAttitudeChangeLimit; }
+	int getOpenBordersAttitudeDivisor() const { return m_iOpenBordersAttitudeDivisor; }
+	int getOpenBordersAttitudeChangeLimit() const { return m_iOpenBordersAttitudeChangeLimit; }
+	int getDefensivePactAttitudeDivisor() const { return m_iDefensivePactAttitudeDivisor; }
+	int getDefensivePactAttitudeChangeLimit() const { return m_iDefensivePactAttitudeChangeLimit; }
+	int getShareWarAttitudeChange() const { return m_iShareWarAttitudeChange; }
+	int getShareWarAttitudeDivisor() const { return m_iShareWarAttitudeDivisor; }
+	int getShareWarAttitudeChangeLimit() const { return m_iShareWarAttitudeChangeLimit; }
+	int getFavoriteCivicAttitudeChange() const { return m_iFavoriteCivicAttitudeChange; }
+	int getFavoriteCivicAttitudeDivisor() const { return m_iFavoriteCivicAttitudeDivisor; }
+	int getFavoriteCivicAttitudeChangeLimit() const { return m_iFavoriteCivicAttitudeChangeLimit; }
+	int getDemandTributeAttitudeThreshold() const { return m_iDemandTributeAttitudeThreshold; }
+	int getNoGiveHelpAttitudeThreshold() const { return m_iNoGiveHelpAttitudeThreshold; }
+	int getTechRefuseAttitudeThreshold() const { return m_iTechRefuseAttitudeThreshold; }
 	// <advc.ctr>
-	int getCityRefuseAttitudeThreshold() const;
-	int getNativeCityRefuseAttitudeThreshold() const; // </advc.ctr>
-	int getStrategicBonusRefuseAttitudeThreshold() const;
-	int getHappinessBonusRefuseAttitudeThreshold() const;
-	int getHealthBonusRefuseAttitudeThreshold() const;
-	int getMapRefuseAttitudeThreshold() const;
-	int getDeclareWarRefuseAttitudeThreshold() const;
-	int getDeclareWarThemRefuseAttitudeThreshold() const;
-	int getStopTradingRefuseAttitudeThreshold() const;
-	int getStopTradingThemRefuseAttitudeThreshold() const;
-	int getAdoptCivicRefuseAttitudeThreshold() const;
-	int getConvertReligionRefuseAttitudeThreshold() const;
-	int getOpenBordersRefuseAttitudeThreshold() const;
-	int getDefensivePactRefuseAttitudeThreshold() const;
-	int getPermanentAllianceRefuseAttitudeThreshold() const;
-	int getVassalRefuseAttitudeThreshold() const;
-	int getVassalPowerModifier() const;
-	int getFavoriteCivic() const;
-	int getFavoriteReligion() const;
-	int getFreedomAppreciation() const;
+	int getCityRefuseAttitudeThreshold() const { return m_iCityRefuseAttitudeThreshold; }
+	int getNativeCityRefuseAttitudeThreshold() const { return m_iNativeCityRefuseAttitudeThreshold; }
+	// </advc.ctr>
+	int getStrategicBonusRefuseAttitudeThreshold() const { return m_iStrategicBonusRefuseAttitudeThreshold; }
+	int getHappinessBonusRefuseAttitudeThreshold() const { return m_iHappinessBonusRefuseAttitudeThreshold; }
+	int getHealthBonusRefuseAttitudeThreshold() const { return m_iHealthBonusRefuseAttitudeThreshold; }
+	int getMapRefuseAttitudeThreshold() const { return m_iMapRefuseAttitudeThreshold; }
+	int getDeclareWarRefuseAttitudeThreshold() const { return m_iDeclareWarRefuseAttitudeThreshold; }
+	int getDeclareWarThemRefuseAttitudeThreshold() const { return m_iDeclareWarThemRefuseAttitudeThreshold; }
+	int getStopTradingRefuseAttitudeThreshold() const { return m_iStopTradingRefuseAttitudeThreshold; }
+	int getStopTradingThemRefuseAttitudeThreshold() const { return m_iStopTradingThemRefuseAttitudeThreshold; }
+	int getAdoptCivicRefuseAttitudeThreshold() const { return m_iAdoptCivicRefuseAttitudeThreshold; }
+	int getConvertReligionRefuseAttitudeThreshold() const { return m_iConvertReligionRefuseAttitudeThreshold; }
+	int getOpenBordersRefuseAttitudeThreshold() const { return m_iOpenBordersRefuseAttitudeThreshold; }
+	int getDefensivePactRefuseAttitudeThreshold() const { return m_iDefensivePactRefuseAttitudeThreshold; }
+	int getPermanentAllianceRefuseAttitudeThreshold() const { return m_iPermanentAllianceRefuseAttitudeThreshold; }
+	int getVassalRefuseAttitudeThreshold() const { return m_iVassalRefuseAttitudeThreshold; }
+	int getVassalPowerModifier() const { return m_iVassalPowerModifier; }
+	int getFavoriteCivic() const { return m_iFavoriteCivic; }
+	int getFavoriteReligion() const { return m_iFavoriteReligion; }
+	int getFreedomAppreciation() const { return m_iFreedomAppreciation; }
 	int getLoveOfPeace() const { return m_iLoveOfPeace; } // advc.104
 
 	const TCHAR* getArtDefineTag() const;
-	void setArtDefineTag(const TCHAR* szVal);
 
 	// Array access:
 
@@ -224,13 +224,15 @@ public: // advc: All the const functions are exposed to Python except those adde
 	DllExport const CvArtInfoLeaderhead* getArtInfo() const;
 	const TCHAR* getLeaderHead() const;
 	const TCHAR* getButton() const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:
+	/*	advc.xmldefault (note): The copy-ctor relies on m_iWonderConstructRand
+		being the first data member */
 	int m_iWonderConstructRand;
 	int m_iBaseAttitude;
 	int m_iBasePeaceWeight;
@@ -432,8 +434,8 @@ public: // advc: All the const functions are exposed to Python (some const quali
 	const CvString* getDiplomacyText() const;
 	void setDiplomacyText(int i, CvString szText);
 	// advc.003i: I don't think these were actually included in the XML cache
-	/*#if SERIALIZE_CVINFOS
-	void read(FDataStreamBase* stream);
+	//#if ENABLE_XML_FILE_CACHE
+	/*void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);*/
 	//#endif
 	bool read(CvXMLLoadUtility* pXML);
@@ -471,8 +473,8 @@ public: // advc: All the const functions are exposed to Python
 
 	const TCHAR* getDiplomacyText(int i, int j) const;
 	// advc.003i: I don't think these were actually included in the XML cache
-	/*#if SERIALIZE_CVINFOS
-	void read(FDataStreamBase* stream);
+	//#if ENABLE_XML_FILE_CACHE
+	/*void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);*/
 	//#endif
 	bool read(CvXMLLoadUtility* pXML);

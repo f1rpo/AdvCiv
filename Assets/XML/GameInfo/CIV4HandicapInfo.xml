@@ -20,7 +20,7 @@
 			<iGold>0</iGold>
 			<iFreeUnits>24</iFreeUnits>
 			<iUnitCostPercent>20</iUnitCostPercent>
-			<!-- advc.251 (start> -->
+			<!-- advc.251 (start) -->
 			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>80</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>80</iGPThresholdPercent>
@@ -865,7 +865,7 @@
 			<iNumCitiesMaintenancePercent>90</iNumCitiesMaintenancePercent>
 			<!-- advc.exp.1: was 7 -->
 			<iMaxNumCitiesMaintenance>7000</iMaxNumCitiesMaintenance>
-			<!-- advc.251: was 115 -->
+			<!-- advc.251: was 130 -->
 			<iColonyMaintenancePercent>115</iColonyMaintenancePercent>
 			<iMaxColonyMaintenance>200</iMaxColonyMaintenance>
 			<!-- advc.251: was 130 -->
@@ -1343,126 +1343,5 @@
 			<!-- advc.250a -->
 			<iDifficulty>85</iDifficulty>
 		</HandicapInfo>
-		<!-- advc.250a: Uncomment this to enable the King difficulty: -->
-		<!--<HandicapInfo>
-			<Type>HANDICAP_KING</Type>
-			<Description>TXT_KEY_HANDICAP_KING</Description>
-			<Help>TXT_KEY_HANDICAP_KING_HELP</Help>
-			<iFreeWinsVsBarbs>0</iFreeWinsVsBarbs>
-			<iAnimalAttackProb>90</iAnimalAttackProb>
-			<iStartingLocPercent>100</iStartingLocPercent>
-			<iAdvancedStartPointsMod>100</iAdvancedStartPointsMod>
-			<iGold>0</iGold>
-			<iFreeUnits>5</iFreeUnits>
-			<iUnitCostPercent>70</iUnitCostPercent>
-			<iBuildTimePercent>100</iBuildTimePercent>
-			<iBaseGrowthThresholdPercent>100</iBaseGrowthThresholdPercent>
-			<iGPThresholdPercent>100</iGPThresholdPercent>
-			<iResearchPercent>110</iResearchPercent>
-			<iTrainPercent>100</iTrainPercent>
-			<iConstructPercent>100</iConstructPercent>
-			<iCreatePercent>100</iCreatePercent>
-			<iDistanceMaintenancePercent>90</iDistanceMaintenancePercent>
-			<iNumCitiesMaintenancePercent>90</iNumCitiesMaintenancePercent>
-			<iMaxNumCitiesMaintenance>6000</iMaxNumCitiesMaintenance>
-			<iColonyMaintenancePercent>115</iColonyMaintenancePercent>
-			<iMaxColonyMaintenance>200</iMaxColonyMaintenance>
-			<iCorporationMaintenancePercent>115</iCorporationMaintenancePercent>
-			<iCivicUpkeepPercent>100</iCivicUpkeepPercent>
-			<iInflationPercent>100</iInflationPercent>
-			<iHealthBonus>2</iHealthBonus>
-			<iHappyBonus>4</iHappyBonus>
-			<iAttitudeChange>0</iAttitudeChange>
-			<iNoTechTradeModifier>50</iNoTechTradeModifier>
-			<iTechTradeKnownModifier>0</iTechTradeKnownModifier>
-			<iUnownedTilesPerGameAnimal>40</iUnownedTilesPerGameAnimal>
-			<iUnownedTilesPerBarbarianUnit>40</iUnownedTilesPerBarbarianUnit>
-			<iUnownedWaterTilesPerBarbarianUnit>400</iUnownedWaterTilesPerBarbarianUnit>
-			<iUnownedTilesPerBarbarianCity>100</iUnownedTilesPerBarbarianCity>
-			<iBarbarianCreationTurnsElapsed>35</iBarbarianCreationTurnsElapsed>			<iBarbarianCityCreationTurnsElapsed>40</iBarbarianCityCreationTurnsElapsed>
-			<iBarbarianCityCreationProb>6</iBarbarianCityCreationProb>
-			<iAnimalBonus>-20</iAnimalBonus>
-			<iBarbarianBonus>-5</iBarbarianBonus>
-			<iAIAnimalBonus>-25</iAIAnimalBonus>
-			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
-			<iStartingDefenseUnits>0</iStartingDefenseUnits>
-			<iStartingWorkerUnits>0</iStartingWorkerUnits>
-			<iStartingExploreUnits>0</iStartingExploreUnits>
-			<iAIStartingUnitMultiplier>0</iAIStartingUnitMultiplier>
-			<iAIStartingDefenseUnits>2</iAIStartingDefenseUnits>
-			<iAIStartingWorkerUnits>1</iAIStartingWorkerUnits>
-			<iAIStartingExploreUnits>0</iAIStartingExploreUnits>
-			<iBarbarianDefenders>2</iBarbarianDefenders>
-			<iAIDeclareWarProb>100</iAIDeclareWarProb>
-			<iAIWorkRateModifier>10</iAIWorkRateModifier>
-			<iAIGrowthPercent>100</iAIGrowthPercent>
-			<iAIGPThresholdPercent>95</iAIGPThresholdPercent>
-			<iAIResearchPercent>100</iAIResearchPercent>
-			<iAITrainPercent>100</iAITrainPercent>
-			<iAIWorldTrainPercent>100</iAIWorldTrainPercent>
-			<iAIConstructPercent>100</iAIConstructPercent>
-			<iAIWorldConstructPercent>100</iAIWorldConstructPercent>
-			<iAICreatePercent>100</iAICreatePercent>
-			<iAIWorldCreatePercent>100</iAIWorldCreatePercent>
-			<iAICivicUpkeepPercent>90</iAICivicUpkeepPercent>
-			<iAIUnitCostPercent>90</iAIUnitCostPercent>
-			<iAIUnitSupplyPercent>50</iAIUnitSupplyPercent>
-			<iAIUnitUpgradePercent>50</iAIUnitUpgradePercent>
-			<iAIInflationPercent>80</iAIInflationPercent>
-			<iAIWarWearinessPercent>80</iAIWarWearinessPercent>
-			<iAIHandicapIncrementTurns>33</iAIHandicapIncrementTurns>
-			<iAIAdvancedStartPercent>200</iAIAdvancedStartPercent>
-			<iAIAttitudeChangePercent>60</iAIAttitudeChangePercent>
-			<Goodies>
-                <GoodyType>GOODY_HIGH_GOLD</GoodyType>
-                <GoodyType>GOODY_HIGH_GOLD</GoodyType>
-                <GoodyType>GOODY_LOW_GOLD</GoodyType>
-                <GoodyType>GOODY_LOW_GOLD</GoodyType>
-                <GoodyType>GOODY_BARBARIANS_STRONG</GoodyType>
-				<GoodyType>GOODY_TECH</GoodyType>
-                <GoodyType>GOODY_MAP</GoodyType>
-                <GoodyType>GOODY_MAP</GoodyType>
-                <GoodyType>GOODY_WARRIOR</GoodyType>
-                <GoodyType>GOODY_WARRIOR</GoodyType>
-                <GoodyType>GOODY_SCOUT</GoodyType>
-                <GoodyType>GOODY_EXPERIENCE</GoodyType>
-                <GoodyType>GOODY_EXPERIENCE</GoodyType>
-                <GoodyType>GOODY_HEALING</GoodyType>
-                <GoodyType>GOODY_TECH</GoodyType>
-                <GoodyType>GOODY_TECH</GoodyType>
-                <GoodyType>GOODY_BARBARIANS_WEAK</GoodyType>
-                <GoodyType>GOODY_BARBARIANS_WEAK</GoodyType>
-                <GoodyType>GOODY_BARBARIANS_WEAK</GoodyType>
-                <GoodyType>GOODY_BARBARIANS_STRONG</GoodyType>
-            </Goodies>
-			<FreeTechs/>
-			<AIFreeTechs>
-				<FreeTech>
-					<TechType>TECH_POTTERY</TechType>
-					<bFreeTech>1</bFreeTech>
-				</FreeTech>
-				<FreeTech>
-					<TechType>TECH_MATHEMATICS</TechType>
-					<bFreeTech>1</bFreeTech>
-				</FreeTech>
-				<FreeTech>
-					<TechType>TECH_MACHINERY</TechType>
-					<bFreeTech>1</bFreeTech>
-				</FreeTech>
-				<FreeTech>
-					<TechType>TECH_PRINTING_PRESS</TechType>
-					<bFreeTech>1</bFreeTech>
-				</FreeTech>
-				<FreeTech>
-					<TechType>TECH_STEAM_POWER</TechType>
-					<bFreeTech>1</bFreeTech>
-				</FreeTech>
-				<FreeTech>
-					<TechType>TECH_PLASTICS</TechType>
-					<bFreeTech>1</bFreeTech>
-				</FreeTech>
-			</AIFreeTechs>
-			<iDifficulty>65</iDifficulty>
-		</HandicapInfo>-->
 	</HandicapInfos>
 </Civ4HandicapInfo>

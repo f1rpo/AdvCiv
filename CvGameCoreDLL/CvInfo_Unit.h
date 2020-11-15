@@ -312,7 +312,7 @@ public: /*  All const functions are exposed to Python except some related to art
 	void updateArtDefineButton();
 
 	const CvArtInfoUnit* getArtInfo(int i, EraTypes eEra, UnitArtStyleTypes eStyle) const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase*);
 	void write(FDataStreamBase*);
 	#endif
@@ -563,14 +563,9 @@ public: // All the const functions are exposed to Python
 
 	int getLayerAnimationPath() const;
 	int getPrereqPromotion() const;
-	void setPrereqPromotion(int i);
 	int getPrereqOrPromotion1() const;
-	void setPrereqOrPromotion1(int i);
 	int getPrereqOrPromotion2() const;
-	void setPrereqOrPromotion2(int i);
-	// K-Mod, 7/jan/11, karadoc
-	int getPrereqOrPromotion3() const;
-	void setPrereqOrPromotion3(int i); // K-Mod end
+	int getPrereqOrPromotion3() const; // K-Mod, 7/jan/11
 	int getTechPrereq() const;
 	int getStateReligionPrereq() const;
 	int getVisibilityChange() const;
@@ -616,7 +611,6 @@ public: // All the const functions are exposed to Python
 	bool isImmuneToFirstStrikes() const;
 
 	const TCHAR* getSound() const;
-	void setSound(const TCHAR* szVal);
 
 	// Array access:
 
@@ -630,7 +624,7 @@ public: // All the const functions are exposed to Python
 	bool getTerrainDoubleMove(int i) const;
 	bool getFeatureDoubleMove(int i) const;
 	bool getUnitCombat(int i) const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif

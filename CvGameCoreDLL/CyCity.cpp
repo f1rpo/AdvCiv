@@ -46,7 +46,13 @@ void CyCity::chooseProduction(int /*UnitTypes*/ eTrainUnit, int /*BuildingTypes*
 
 int CyCity::getCityPlotIndex(CyPlot* pPlot)
 {
-	return m_pCity ? m_pCity->getCityPlotIndex(pPlot->getPlot()) : -1;
+	if (m_pCity == NULL)
+		return NO_CITYPLOT;
+	// <advc> Pass by reference
+	CvPlot const* p = pPlot->getPlot();
+	if (p == NULL)
+		return NO_CITYPLOT; // </advc>
+	return m_pCity->getCityPlotIndex(*p);
 }
 
 CyPlot* CyCity::getCityIndexPlot(int iIndex)
@@ -56,7 +62,13 @@ CyPlot* CyCity::getCityIndexPlot(int iIndex)
 
 bool CyCity::canWork(CyPlot* pPlot)
 {
-	return m_pCity ? m_pCity->canWork(pPlot ? pPlot->getPlot() : NULL) : false;
+	if (m_pCity == NULL)
+		return false;
+	// <advc> Pass by reference
+	CvPlot const* p = pPlot->getPlot();
+	if (p == NULL)
+		return false; // </advc>
+	return m_pCity->canWork(*p);
 }
 
 void CyCity::clearWorkingOverride(int iIndex)
@@ -1406,10 +1418,10 @@ bool CyCity::isNeverLost()
 	return m_pCity ? m_pCity->isNeverLost() : false;
 }
 
-void CyCity::setNeverLost(int iNewValue)
+void CyCity::setNeverLost(bool bNewValue) // advc: was int
 {
 	if (m_pCity)
-		m_pCity->setNeverLost(iNewValue);
+		m_pCity->setNeverLost(bNewValue);
 }
 
 bool CyCity::isBombarded()
@@ -1417,10 +1429,10 @@ bool CyCity::isBombarded()
 	return m_pCity ? m_pCity->isBombarded(): false;
 }
 
-void CyCity::setBombarded(int iNewValue)
+void CyCity::setBombarded(bool bNewValue) // advc: was int
 {
 	if (m_pCity)
-		m_pCity->setBombarded(iNewValue);
+		m_pCity->setBombarded(bNewValue);
 }
 
 bool CyCity::isDrafted()
@@ -1428,10 +1440,10 @@ bool CyCity::isDrafted()
 	return m_pCity ? m_pCity->isDrafted(): false;
 }
 
-void CyCity::setDrafted(int iNewValue)
+void CyCity::setDrafted(bool bNewValue) // advc: was int
 {
 	if (m_pCity)
-		m_pCity->setDrafted(iNewValue);
+		m_pCity->setDrafted(bNewValue);
 }
 
 bool CyCity::isAirliftTargeted()
@@ -1439,10 +1451,10 @@ bool CyCity::isAirliftTargeted()
 	return m_pCity ? m_pCity->isAirliftTargeted(): false;
 }
 
-void CyCity::setAirliftTargeted(int iNewValue)
+void CyCity::setAirliftTargeted(bool bNewValue) // advc: was int
 {
 	if (m_pCity)
-		m_pCity->setAirliftTargeted(iNewValue);
+		m_pCity->setAirliftTargeted(bNewValue);
 }
 
 bool CyCity::isCitizensAutomated()
@@ -1819,7 +1831,8 @@ std::wstring CyCity::getNameKey()
 
 void CyCity::setName(std::wstring szNewValue, bool bFound)
 {
-	if (m_pCity) {
+	if (m_pCity)
+	{
 		m_pCity->setName(CvWString(szNewValue), bFound,
 				// advc.106k: For preplaced cities in scenarios
 				!GC.IsGraphicsInitialized());
@@ -2089,7 +2102,13 @@ bool CyCity::isWorkingPlotByIndex(int iIndex)
 
 bool CyCity::isWorkingPlot(CyPlot* pPlot)
 {
-	return m_pCity ? m_pCity->isWorkingPlot(pPlot->getPlot()) : false;
+	if (m_pCity == NULL)
+		return false;
+	// <advc> Pass by reference
+	CvPlot const* p = pPlot->getPlot();
+	if (p == NULL)
+		return false; // </advc>
+	return m_pCity->isWorkingPlot(*p);
 }
 
 void CyCity::alterWorkingPlot(int iIndex)
@@ -2166,7 +2185,11 @@ void CyCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 void CyCity::popOrder(int iNum, bool bFinish, bool bChoose)
 {
 	if (m_pCity)
-		m_pCity->popOrder(iNum, bFinish, bChoose);
+	{
+		m_pCity->popOrder(iNum, bFinish, //bChoose
+				// advc.064d:
+				bChoose ? CvCity::ALL_CHOOSE : CvCity::NONE_CHOOSE);
+	}
 }
 
 int CyCity::getOrderQueueLength()

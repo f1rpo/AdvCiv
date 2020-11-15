@@ -1,13 +1,10 @@
 #pragma once
 
-// selectionGroup.h
+#ifndef CIV4_SELECTION_GROUP_H
+#define CIV4_SELECTION_GROUP_H
 
-#ifndef CIV4_GROUP_H
-#define CIV4_GROUP_H
-
-#include "LinkedList.h"
-#include "KmodPathFinder.h"
-
+class KmodPathFinder;
+class CvMap;
 class CvPlot;
 class CvArea;
 class FAStarNode;
@@ -17,6 +14,18 @@ class CvSelectionGroupAI; // advc.003u
 class CvSelectionGroup /* advc.003k: */ : private boost::noncopyable
 {
 public:
+	// <advc.pf>
+	static inline KmodPathFinder& pathFinder()
+	{
+		return *m_pPathFinder;
+	}
+	static void initPathFinder();
+	static void uninitPathFinder(); // </advc.pf>
+	/*	(disabled by K-mod. Use pathFinder().Reset instead. was exposed to Python.
+		note: the K-Mod finder doesn't need resetting in all the same places.)
+		advc: I'm not going to expose it to Python again, but, in the DLL, it's helpful
+		as a (static) wrapper for avoiding inclusion of the KmodPathFinder header. */
+	static void resetPath();
 
 	CvSelectionGroup();
 	virtual ~CvSelectionGroup();
@@ -29,6 +38,7 @@ public:
 	void doTurn();
 	void doTurnPost(); // advc.004l
 	bool showMoves( /* <advc.102> */ CvPlot const& kFromPlot) const;
+	int nukeMissionTime() const; // advc.002m
 	void setInitiallyVisible(bool b); // </advc.102>
 
 	void updateTimers();
@@ -36,7 +46,8 @@ public:
 
 	void playActionSound();
 
-	void pushMission(MissionTypes eMission, int iData1 = -1, int iData2 = -1, int iFlags = 0,		// Exposed to Python
+	void pushMission(MissionTypes eMission, int iData1 = -1, int iData2 = -1,							// Exposed to Python
+			MovementFlags eFlags = NO_MOVEMENT_FLAGS,
 			bool bAppend = false, bool bManual = false, MissionAITypes eMissionAI = NO_MISSIONAI,
 			CvPlot const* pMissionAIPlot = NULL, CvUnit const* pMissionAIUnit = NULL,
 			bool bModified = false); // advc.011b
@@ -46,15 +57,11 @@ public:
 	void updateMission();
 	DllExport CvPlot* lastMissionPlot();																																					// Exposed to Python
 
-	bool canStartMission(int iMission, int iData1, int iData2, CvPlot* pPlot = NULL, bool bTestVisible = false, bool bUseCache = false);		// Exposed to Python
+	bool canStartMission(int iMission, int iData1, int iData2, CvPlot const* pPlot = NULL, bool bTestVisible = false, bool bUseCache = false);		// Exposed to Python
 	void startMission();
 	//void continueMission(int iSteps = 0);
-	// K-Mod. Split continueMission into two functions to remove the recursion.
+	// K-Mod: Split continueMission into two functions to remove the recursion.
 	void continueMission();
-protected:
-	bool continueMission_bulk(int iSteps);
-public:
-	// K-Mod end
 
 	DllExport bool canDoInterfaceMode(InterfaceModeTypes eInterfaceMode);													// Exposed to Python
 	DllExport bool canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, CvPlot* pPlot);				// Exposed to Python
@@ -102,11 +109,12 @@ public:
 	bool canFight() const;																																										// Exposed to Python
 	bool canDefend() const;																																										// Exposed to Python
 	bool canBombard(CvPlot const& kPlot) const;
-	bool visibilityRange() const;
+	int visibilityRange() const;
 
 	// BETTER_BTS_AI_MOD, General AI, 08/19/09, jdog5000: START
 	int getBombardTurns(CvCity const* pCity) const;
-	bool isHasPathToAreaPlayerCity(PlayerTypes ePlayer, int iFlags = 0, int iMaxPathTurns = -1) /* Erik (CODE1): */ const;
+	bool isHasPathToAreaPlayerCity(PlayerTypes ePlayer, MovementFlags eFlags = NO_MOVEMENT_FLAGS,
+			int iMaxPathTurns = -1) /* Erik (CODE1): */ const;
 	// (advc: isHasPathToAreaEnemyCity moved to CvSelectionGroupAI)
 	bool isStranded() const; // Note: K-Mod no longer uses the stranded cache. I have a new system.
 	//void invalidateIsStrandedCache(); // deleted by K-Mod
@@ -144,27 +152,27 @@ public:
 	CvArea* area() const;																																													// Exposed to Python
 	DomainTypes getDomainType() const;
 
-	RouteTypes getBestBuildRoute(CvPlot* pPlot, BuildTypes* peBestBuild = NULL) const;	// Exposed to Python
+	RouteTypes getBestBuildRoute(CvPlot const& kPlot, BuildTypes* peBestBuild = NULL) const;	// Exposed to Python
 
-	bool groupAttack(int iX, int iY, int iFlags, bool& bFailedAlreadyFighting,
+	bool groupAttack(int iX, int iY, MovementFlags eFlags, bool& bFailedAlreadyFighting,
 			bool bMaxSurvival = false); // advc.048
 	void groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUnit = NULL, bool bEndMove = false);
-	bool groupPathTo(int iX, int iY, int iFlags);
-	bool groupRoadTo(int iX, int iY, int iFlags);
+	bool groupPathTo(int iX, int iY, MovementFlags eFlags);
+	bool groupRoadTo(int iX, int iY, MovementFlags eFlags);
 	bool groupBuild(BuildTypes eBuild,
 			bool bFinish = true); // advc.011b
 
 	void setTransportUnit(CvUnit* pTransportUnit, CvSelectionGroup** pOtherGroup = NULL); // bbai added pOtherGroup
 
 	bool isAmphibPlot(const CvPlot* pPlot) const;																																		// Exposed to Python
-	bool groupAmphibMove(CvPlot const& kPlot, int iFlags);
+	bool groupAmphibMove(CvPlot const& kPlot, MovementFlags eFlags);
 
 	DllExport bool readyToSelect(bool bAny = false);																										// Exposed to Python
 	bool readyToMove(bool bAny = false) const; // Exposed to Python
 	bool readyToAuto() const; // Exposed to Python
 	// K-Mod.
 	bool readyForMission() const;
-	bool canDoMission(int iMission, int iData1, int iData2, CvPlot* pPlot,
+	bool canDoMission(int iMission, int iData1, int iData2, CvPlot const* pPlot,
 			bool bTestVisible, bool bCheckMoves) /* advc.002i: */ const;
 	// K-Mod end
 
@@ -192,11 +200,13 @@ public:
 	bool isAutomated() const { return (getAutomateType() != NO_AUTOMATE); }							// Exposed to Python
 	void setAutomateType(AutomateTypes eNewValue);																											// Exposed to Python
 
-	// FAStarNode* getPathLastNode() const; // disabled by K-Mod. Use path_finder methods instead.
+	// FAStarNode* getPathLastNode() const; // disabled by K-Mod. Use pathFinder() instead.
 	CvPlot* getPathFirstPlot() const;																																		// Exposed to Python
 	CvPlot* getPathEndTurnPlot() const;																																	// Exposed to Python
-	bool generatePath(const CvPlot* pFromPlot, const CvPlot* pToPlot, int iFlags = 0, bool bReuse = false, int* piPathTurns = NULL, int iMaxPath = -1) const; // Exposed to Python (K-mod added iMaxPath)
-	// void resetPath() const; // disabled by K-mod. Use path_finder.Reset instead. (was exposed to Python)
+	bool generatePath(const CvPlot* pFromPlot, const CvPlot* pToPlot,								// Exposed to Python
+			MovementFlags eFlags = NO_MOVEMENT_FLAGS,
+			bool bReuse = false, int* piPathTurns = NULL,
+			int iMaxPath = -1) const; // K-Mod
 
 	DllExport void clearUnits();
 	DllExport bool addUnit(CvUnit* pUnit, bool bMinimalChange);
@@ -259,18 +269,29 @@ public:
 	virtual bool AI_isControlled() /* advc: */ const = 0;
 
 protected:
+	// K-Mod! I'd rather this not be static, but I can't do that here.
+	//public: static KmodPathFinder path_finder; protected:
+	/*	advc.pf: So, was it supposed to be a non-static member?
+		We can do that, but that would require some refactoring at this point.
+		Making it a pointer at least allows us to delay initialization
+		until the map has been initialized. */
+	static KmodPathFinder* m_pPathFinder;
+
 	// WARNING: adding to this class will cause the civ4 exe to crash
 
-	// K-Mod: I've done some basic tests of the above warning.
-	// I've found that it does indeed crash during startup if I add int[30]
-	// but it does not crash if I only add int[2]. (I haven't tested inbetween.)
-	// The game also crashes if I add int[30] to CvSelectionGroupAI.
+	/*	K-Mod: I've done some basic tests of the above warning.
+		I've found that it does indeed crash during startup if I add int[30]
+		but it does not crash if I only add int[2]. (I haven't tested inbetween.)
+		The game also crashes if I add int[30] to CvSelectionGroupAI. */
 
-	// ... I see that BBAI ignored the warning. They added some stuff below.
-	// (advc: That was the BBAI StrandedCache, removed by K-Mod.)
-	// Removing the BBAI bools from below does not change the size 80. Neither does removing the BBAI virtual functions.
-	// but adding another int increases the size to 84. Which is a shame, because I really want to add one more int...
-	// Although a single int doesn't cause a startup crash, I'd rather not risk instability.
+	/*	... I see that BBAI ignored the warning. They added some stuff below.
+		(advc: That was the BBAI StrandedCache, removed by K-Mod.)
+		Removing the BBAI bools from below does not change the size 80.
+		Neither does removing the BBAI virtual functions.
+		but adding another int increases the size to 84. Which is a shame,
+		because I really want to add one more int...
+		Although a single int doesn't cause a startup crash,
+		I'd rather not risk instability. */
 	/*	advc.003k: I have a workaround for this. See nested class 'Data' below.
 		(Not right here b/c it's safer to keep the members in their original order.) */
 
@@ -296,8 +317,10 @@ protected:
 	std::vector<CvUnit const*> m_aDifferentUnitCache; // advc: const
 	bool m_bIsBusyCache;
 
+	bool continueMission_bulk(int iSteps); // K-Mod
 	void activateHeadMission();
 	void deactivateHeadMission();
+	bool isNeverShowMoves() const; // advc
 	// <advc.075>
 	void handleBoarded();
 	bool canDisembark() const;
@@ -306,8 +329,6 @@ protected:
 	// </advc.075>
 	bool sentryAlert(/* advc.004l: */ bool bUpdateKnownEnemies = false);
 
-public:
-	static KmodPathFinder path_finder; // K-Mod! I'd rather this not be static, but I can't do that here.
 private: // advc.003u: (See comments in the private section of CvPlayer.h)
 	//virtual void AI_initExternal();
 	virtual void AI_resetExternal();

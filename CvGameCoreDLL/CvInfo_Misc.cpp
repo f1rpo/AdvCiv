@@ -103,7 +103,7 @@ bool CvUnitFormationInfo::read(CvXMLLoadUtility* pXML)
 				m_vctGreatUnitEntries.push_back(unitEntry);
 			else if(szTextVal.CompareNoCase("Siege") == 0)
 				m_vctSiegeUnitEntries.push_back(unitEntry);
-			else FAssertMsg(false, "[Jason] Unknown unit formation entry type.");
+			else FErrorMsg("[Jason] Unknown unit formation entry type.");
 		}
 		while (gDLL->getXMLIFace()->LocateNextSiblingNodeByTagName(pXML->GetXML(), "UnitEntry"));
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
@@ -128,19 +128,9 @@ const TCHAR* CvRiverModelInfo::getModelFile() const
 	return m_szModelFile;
 }
 
-void CvRiverModelInfo::setModelFile(const TCHAR* szVal)
-{
-	m_szModelFile=szVal;
-}
-
 const TCHAR* CvRiverModelInfo::getBorderFile() const
 {
 	return m_szBorderFile;
-}
-
-void CvRiverModelInfo::setBorderFile(const TCHAR* szVal)
-{
-	m_szBorderFile=szVal;
 }
 
 int CvRiverModelInfo::getTextureIndex() const
@@ -168,11 +158,8 @@ bool CvRiverModelInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-	if(pXML->GetChildXmlValByName(szTextVal, "ModelFile"))
-		setModelFile(szTextVal);
-	if(pXML->GetChildXmlValByName(szTextVal, "BorderFile"))
-		setBorderFile(szTextVal);
+	if(pXML->GetChildXmlValByName(m_szModelFile, "ModelFile"))
+	if(pXML->GetChildXmlValByName(m_szBorderFile, "BorderFile"))
 
 	pXML->GetChildXmlValByName(&m_iTextureIndex, "TextureIndex");
 	pXML->GetChildXmlValByName(m_szDeltaString, "DeltaType");
@@ -202,29 +189,14 @@ const TCHAR* CvRouteModelInfo::getModelFile() const
 	return m_szModelFile;
 }
 
-void CvRouteModelInfo::setModelFile(const TCHAR* szVal)
-{
-	m_szModelFile=szVal;
-}
-
 const TCHAR* CvRouteModelInfo::getLateModelFile() const
 {
 	return m_szLateModelFile;
 }
 
-void CvRouteModelInfo::setLateModelFile(const TCHAR* szVal)
-{
-	m_szLateModelFile=szVal;
-}
-
 const TCHAR* CvRouteModelInfo::getModelFileKey() const
 {
 	return m_szModelFileKey;
-}
-
-void CvRouteModelInfo::setModelFileKey(const TCHAR* szVal)
-{
-	m_szModelFileKey=szVal;
 }
 
 bool CvRouteModelInfo::isAnimated() const
@@ -252,13 +224,9 @@ bool CvRouteModelInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "ModelFile");
-	setModelFile(szTextVal);
-	pXML->GetChildXmlValByName(szTextVal, "LateModelFile");
-	setLateModelFile(szTextVal);
-	pXML->GetChildXmlValByName(szTextVal, "ModelFileKey");
-	setModelFileKey(szTextVal);
+	pXML->GetChildXmlValByName(m_szModelFile, "ModelFile");
+	pXML->GetChildXmlValByName(m_szLateModelFile, "LateModelFile");
+	pXML->GetChildXmlValByName(m_szModelFileKey, "ModelFileKey");
 
 	pXML->GetChildXmlValByName(&m_bAnimated, "Animated");
 
@@ -274,11 +242,6 @@ bool CvRouteModelInfo::read(CvXMLLoadUtility* pXML)
 const TCHAR* CvAdvisorInfo::getTexture() const
 {
 	return m_szTexture;
-}
-
-void CvAdvisorInfo::setTexture(const TCHAR* szVal)
-{
-	m_szTexture = szVal;
 }
 
 int CvAdvisorInfo::getNumCodes() const
@@ -303,10 +266,8 @@ bool CvAdvisorInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "Texture",
+	pXML->GetChildXmlValByName(m_szTexture, "Texture",
 			""); // advc.006b: Actually, none of them has a texture.
-	setTexture(szTextVal);
 
 	gDLL->getXMLIFace()->SetToChild(pXML->GetXML());
 	while(gDLL->getXMLIFace()->LocateNextSiblingNodeByTagName(pXML->GetXML(), "EventCodes"))
@@ -376,19 +337,9 @@ const TCHAR* CvThroneRoomInfo::getEvent()
 	return m_szEvent;
 }
 
-void CvThroneRoomInfo::setEvent(const TCHAR* szVal)
-{
-	m_szEvent = szVal;
-}
-
 const TCHAR* CvThroneRoomInfo::getNodeName()
 {
 	return m_szNodeName;
-}
-
-void CvThroneRoomInfo::setNodeName(const TCHAR* szVal)
-{
-	m_szNodeName = szVal;
 }
 
 int CvThroneRoomInfo::getFromState()
@@ -396,19 +347,9 @@ int CvThroneRoomInfo::getFromState()
 	return m_iFromState;
 }
 
-void CvThroneRoomInfo::setFromState(int iVal)
-{
-	m_iFromState = iVal;
-}
-
 int CvThroneRoomInfo::getToState()
 {
 	return m_iToState;
-}
-
-void CvThroneRoomInfo::setToState(int iVal)
-{
-	m_iToState = iVal;
 }
 
 int CvThroneRoomInfo::getAnimation()
@@ -416,28 +357,16 @@ int CvThroneRoomInfo::getAnimation()
 	return m_iAnimation;
 }
 
-void CvThroneRoomInfo::setAnimation(int iVal)
-{
-	m_iAnimation= iVal;
-}
-
 bool CvThroneRoomInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-	int iVal;
-	pXML->GetChildXmlValByName(szTextVal, "Event");
-	setEvent(szTextVal);
-	pXML->GetChildXmlValByName(&iVal, "iFromState");
-	setFromState(iVal);
-	pXML->GetChildXmlValByName(&iVal, "iToState");
-	setToState(iVal);
-	pXML->GetChildXmlValByName(szTextVal, "NodeName");
-	setNodeName(szTextVal);
-	pXML->GetChildXmlValByName(&iVal, "iAnimation");
-	setAnimation(iVal);
+	pXML->GetChildXmlValByName(m_szEvent, "Event");
+	pXML->GetChildXmlValByName(&m_iFromState, "iFromState");
+	pXML->GetChildXmlValByName(&m_iToState, "iToState");
+	pXML->GetChildXmlValByName(m_szNodeName, "NodeName");
+	pXML->GetChildXmlValByName(&m_iAnimation, "iAnimation");
 
 	return true;
 }
@@ -447,19 +376,9 @@ const TCHAR* CvThroneRoomStyleInfo::getArtStyleType()
 	return m_szArtStyleType;
 }
 
-void CvThroneRoomStyleInfo::setArtStyleType(const TCHAR* szVal)
-{
-	m_szArtStyleType = szVal;
-}
-
 const TCHAR* CvThroneRoomStyleInfo::getEraType()
 {
 	return m_szEraType;
-}
-
-void CvThroneRoomStyleInfo::setEraType(const TCHAR* szVal)
-{
-	m_szEraType = szVal;
 }
 
 const TCHAR* CvThroneRoomStyleInfo::getFileName()
@@ -467,26 +386,18 @@ const TCHAR* CvThroneRoomStyleInfo::getFileName()
 	return m_szFileName;
 }
 
-void CvThroneRoomStyleInfo::setFileName(const TCHAR* szVal)
-{
-	m_szFileName = szVal;
-}
-
 bool CvThroneRoomStyleInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "ArtStyleType");
-	setArtStyleType(szTextVal);
-	pXML->GetChildXmlValByName(szTextVal, "EraType");
-	setEraType(szTextVal);
-	pXML->GetChildXmlValByName(szTextVal, "FileName");
-	setFileName(szTextVal);
+	pXML->GetChildXmlValByName(m_szArtStyleType, "ArtStyleType");
+	pXML->GetChildXmlValByName(m_szEraType, "EraType");
+	pXML->GetChildXmlValByName(m_szFileName, "FileName");
 
 	if(gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 	{
+		CvString szTextVal;
 		while(gDLL->getXMLIFace()->LocateNextSiblingNodeByTagName(pXML->GetXML(), "NodeName"))
 		{
 			pXML->GetXmlVal(szTextVal);
@@ -497,6 +408,7 @@ bool CvThroneRoomStyleInfo::read(CvXMLLoadUtility* pXML)
 
 	if(gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 	{
+		CvString szTextVal;
 		while(gDLL->getXMLIFace()->LocateNextSiblingNodeByTagName(pXML->GetXML(), "TextureName"))
 		{
 			pXML->GetXmlVal(szTextVal);
@@ -584,19 +496,9 @@ const TCHAR* CvWorldPickerInfo::getMapName()
 	return m_szMapName;
 }
 
-void CvWorldPickerInfo::setMapName(const TCHAR* szVal)
-{
-	m_szMapName = szVal;
-}
-
 const TCHAR* CvWorldPickerInfo::getModelFile()
 {
 	return m_szModelFile;
-}
-
-void CvWorldPickerInfo::setModelFile(const TCHAR* szVal)
-{
-	m_szModelFile = szVal;
 }
 
 int CvWorldPickerInfo::getNumSizes()
@@ -644,11 +546,8 @@ bool CvWorldPickerInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "MapName");
-	setMapName(szTextVal);
-	pXML->GetChildXmlValByName(szTextVal, "ModelFile");
-	setModelFile(szTextVal);
+	pXML->GetChildXmlValByName(m_szMapName, "MapName");
+	pXML->GetChildXmlValByName(m_szModelFile, "ModelFile");
 
 	if(gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "Sizes"))
 	{
@@ -670,6 +569,7 @@ bool CvWorldPickerInfo::read(CvXMLLoadUtility* pXML)
 	{
 		if(gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "ClimatePath"))
 		{
+			CvString szTextVal;
 			do
 			{
 				pXML->GetXmlVal(szTextVal);
@@ -685,6 +585,7 @@ bool CvWorldPickerInfo::read(CvXMLLoadUtility* pXML)
 	{
 		if(gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "WaterLevelDecalPath"))
 		{
+			CvString szTextVal;
 			do
 			{
 				pXML->GetXmlVal(szTextVal);
@@ -700,6 +601,7 @@ bool CvWorldPickerInfo::read(CvXMLLoadUtility* pXML)
 	{
 		if(gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "WaterLevelGlossPath"))
 		{
+			CvString szTextVal;
 			do
 			{
 				pXML->GetXmlVal(szTextVal);
@@ -726,11 +628,6 @@ m_eCameraUpAxis(AXIS_X)
 const TCHAR* CvSpaceShipInfo::getNodeName()
 {
 	return m_szNodeName;
-}
-
-void CvSpaceShipInfo::setNodeName(const TCHAR* szVal)
-{
-	m_szNodeName = szVal;
 }
 
 const TCHAR* CvSpaceShipInfo::getProjectName()
@@ -779,12 +676,12 @@ bool CvSpaceShipInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
+	pXML->GetChildXmlValByName(m_szNodeName, "NodeName");
+
 	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "NodeName");
-	setNodeName(szTextVal);
+
 	pXML->GetChildXmlValByName(szTextVal, "ProjectName");
 	setProjectName(szTextVal);
-
 	pXML->GetChildXmlValByName(szTextVal, "CameraUpAxis");
 	if(szTextVal.CompareNoCase("AXIS_X") == 0)
 		m_eCameraUpAxis = AXIS_X;
@@ -792,7 +689,7 @@ bool CvSpaceShipInfo::read(CvXMLLoadUtility* pXML)
 		m_eCameraUpAxis = AXIS_Y;
 	else if(szTextVal.CompareNoCase("AXIS_Z") == 0)
 		m_eCameraUpAxis = AXIS_Z;
-	else FAssertMsg(false, "[Jason] Unknown Axis Type.");
+	else FErrorMsg("[Jason] Unknown Axis Type.");
 
 	pXML->GetChildXmlValByName(&m_iPartNumber, "PartNumber");
 	pXML->GetChildXmlValByName(&m_iArtType, "ArtType");
@@ -827,7 +724,7 @@ bool CvSpaceShipInfo::read(CvXMLLoadUtility* pXML)
 		m_eSpaceShipInfoType = SPACE_SHIP_INFO_TYPE_IN_SPACE_SMOKE_ON;
 	else if(szTextVal.CompareNoCase("SPACE_SHIP_INFO_TYPE_IN_GAME_SMOKE_ON") == 0)
 		m_eSpaceShipInfoType = SPACE_SHIP_INFO_TYPE_IN_GAME_SMOKE_ON;
-	else FAssertMsg(false, "[Jason] Unknown SpaceShipInfoType.");
+	else FErrorMsg("[Jason] Unknown SpaceShipInfoType.");
 
 	return true;
 }
@@ -1413,7 +1310,7 @@ const TCHAR* CvDiplomacyTextInfo::getDiplomacyText(int i, int j) const
 	FAssertBounds(0, getNumDiplomacyText(i), j);
 	return m_pResponses[i].m_paszDiplomacyText[j];
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvDiplomacyTextInfo::Response::read(FDataStreamBase* stream)
 {
 	stream->Read(&m_iNumDiplomacyText);
@@ -1520,7 +1417,7 @@ m_fProjectileArc(0.0f)
 // advc.xmldefault:
 CvEffectInfo::CvEffectInfo(CvEffectInfo const& kOther)
 {
-	FAssertMsg(false, "Copy-ctor not implemented");
+	FErrorMsg("Copy-ctor not implemented");
 }
 
 bool CvEffectInfo::read(CvXMLLoadUtility* pXML)
@@ -1551,7 +1448,7 @@ CvAttachableInfo::CvAttachableInfo() : m_fUpdateRate(0.0f) {}
 // advc.xmldefault:
 CvAttachableInfo::CvAttachableInfo(CvAttachableInfo const& kOther)
 {
-	FAssertMsg(false, "Copy-ctor not implemented");
+	FErrorMsg("Copy-ctor not implemented");
 }
 
 bool CvAttachableInfo::read(CvXMLLoadUtility* pXML)
@@ -1784,21 +1681,6 @@ const TCHAR* CvTutorialMessage::getSound() const
 	return m_szTutorialMessageSound;
 }
 
-void CvTutorialMessage::setText(const TCHAR* szText)
-{
-	m_szTutorialMessageText = szText;
-}
-
-void CvTutorialMessage::setImage(const TCHAR* szText)
-{
-	m_szTutorialMessageImage = szText;
-}
-
-void CvTutorialMessage::setSound(const TCHAR* szText)
-{
-	m_szTutorialMessageSound = szText;
-}
-
 int CvTutorialMessage::getNumTutorialScripts() const
 {
 	return m_iNumTutorialScripts;
@@ -1814,15 +1696,11 @@ bool CvTutorialMessage::read(CvXMLLoadUtility* pXML)
 	if (!pXML->SkipToNextVal())
 		return false;
 
-	CvString szTextVal;
-
 	pXML->MapChildren(); // try to hash children for fast lookup by name
-	if (pXML->GetChildXmlValByName(szTextVal, "TutorialMessageText"))
-		setText(szTextVal);
-	if (pXML->GetChildXmlValByName(szTextVal, "TutorialMessageImage"))
-		setImage(szTextVal);
-	if (pXML->GetChildXmlValByName(szTextVal, "TutorialMessageSound"))
-		setSound(szTextVal);
+	pXML->GetChildXmlValByName(m_szTutorialMessageText, "TutorialMessageText");
+	pXML->GetChildXmlValByName(m_szTutorialMessageImage, "TutorialMessageImage");
+	pXML->GetChildXmlValByName(m_szTutorialMessageSound, "TutorialMessageSound");
+
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "TutorialScripts"))
 	{
 		pXML->SetStringList(&m_paszTutorialScripts, &m_iNumTutorialScripts);
@@ -1846,11 +1724,6 @@ CvTutorialInfo::~CvTutorialInfo()
 const TCHAR* CvTutorialInfo::getNextTutorialInfoType()
 {
 	return m_szNextTutorialInfoType;
-}
-
-void CvTutorialInfo::setNextTutorialInfoType(const TCHAR* szVal)
-{
-	m_szNextTutorialInfoType = szVal;
 }
 
 bool CvTutorialInfo::initTutorialMessages(int iNum)
@@ -1882,17 +1755,11 @@ bool CvTutorialInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
 	pXML->MapChildren(); // try to hash children for fast lookup by name
-	if (pXML->GetChildXmlValByName(szTextVal, "NextTutorialInfoType", /* advc.006b: */ ""))
-	{
-		setNextTutorialInfoType(szTextVal);
-	}
-
+	pXML->GetChildXmlValByName(m_szNextTutorialInfoType, "NextTutorialInfoType", /* advc.006b: */ "");
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"TutorialMessages"))
 	{
-		int iNum;
-		iNum = gDLL->getXMLIFace()->NumOfChildrenByTagName(pXML->GetXML(), "TutorialMessage");
+		int iNum = gDLL->getXMLIFace()->NumOfChildrenByTagName(pXML->GetXML(), "TutorialMessage");
 		if (iNum > 0)
 		{
 			gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"TutorialMessage");

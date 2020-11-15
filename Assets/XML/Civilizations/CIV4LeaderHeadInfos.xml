@@ -451,6 +451,11 @@
 					<MemoryType>MEMORY_INDEPENDENCE</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.104i -->
+				<MemoryDecay>
+					<MemoryType>MEMORY_DECLARED_WAR_RECENT</MemoryType>
+					<iMemoryRand>11</iMemoryRand>
+				</MemoryDecay>
 				<!-- advc.130r END -->
 				<!-- advc.144: was 200 -->
 				<MemoryDecay>
@@ -678,6 +683,11 @@
 				<MemoryAttitudePercent>
 					<MemoryType>MEMORY_INDEPENDENCE</MemoryType>
 					<iMemoryAttitudePercent>100</iMemoryAttitudePercent>
+				</MemoryAttitudePercent>
+				<!-- advc.104i -->
+				<MemoryAttitudePercent>
+					<MemoryType>MEMORY_DECLARED_WAR_RECENT</MemoryType>
+					<iMemoryAttitudePercent>0</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
 			</MemoryAttitudePercents>
 			<NoWarAttitudeProbs>
@@ -3999,14 +4009,19 @@
 					<iMemoryAttitudePercent>0</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
 			</MemoryAttitudePercents>
+			<!-- advc.005a: was 0/30/70/100 -->
 			<NoWarAttitudeProbs>
 				<NoWarAttitudeProb>
-					<AttitudeType>ATTITUDE_ANNOYED</AttitudeType>
+					<AttitudeType>ATTITUDE_FURIOUS</AttitudeType>
 					<iNoWarProb>20</iNoWarProb>
 				</NoWarAttitudeProb>
 				<NoWarAttitudeProb>
+					<AttitudeType>ATTITUDE_ANNOYED</AttitudeType>
+					<iNoWarProb>50</iNoWarProb>
+				</NoWarAttitudeProb>
+				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_CAUTIOUS</AttitudeType>
-					<iNoWarProb>70</iNoWarProb>
+					<iNoWarProb>80</iNoWarProb>
 				</NoWarAttitudeProb>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_PLEASED</AttitudeType>
@@ -4014,18 +4029,10 @@
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
 			<!-- advc.005a: Was Worker 100. India cleared large areas of
-				 jungle, but that wasn't Gandhi's doing. Give him a second
-				 peaceful bonus. -->
-			<UnitAIWeightModifiers>
-				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_WORKER</UnitAIType>
-					<iWeightModifier>25</iWeightModifier>
-				</UnitAIWeightModifier>
-				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_CITY_SPECIAL</UnitAIType>
-					<iWeightModifier>25</iWeightModifier>
-				</UnitAIWeightModifier>
-			</UnitAIWeightModifiers>
+				 jungle, but that wasn't Gandhi's doing, and don't want to
+				 push the UU more. Defense wasn't his thing either,
+				 nor exploration, proselytization or espionage. -->
+			<UnitAIWeightModifiers/>
 			<!-- advc.005a: was Town and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
@@ -6137,6 +6144,7 @@
 					<iMemoryAttitudePercent>15</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
 			</MemoryAttitudePercents>
+			<!-- advc.005a: was 80 at Cautious -->
 			<NoWarAttitudeProbs>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_ANNOYED</AttitudeType>
@@ -6144,7 +6152,7 @@
 				</NoWarAttitudeProb>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_CAUTIOUS</AttitudeType>
-					<iNoWarProb>80</iNoWarProb>
+					<iNoWarProb>70</iNoWarProb>
 				</NoWarAttitudeProb>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_PLEASED</AttitudeType>
@@ -6600,10 +6608,11 @@
 					<iMemoryAttitudePercent>15</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
 			</MemoryAttitudePercents>
+			<!-- advc.005a: was 40 at Annoyed -->
 			<NoWarAttitudeProbs>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_ANNOYED</AttitudeType>
-					<iNoWarProb>40</iNoWarProb>
+					<iNoWarProb>30</iNoWarProb>
 				</NoWarAttitudeProb>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_CAUTIOUS</AttitudeType>
@@ -10038,10 +10047,11 @@
 					<iMemoryAttitudePercent>5</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
 			</MemoryAttitudePercents>
+			<!-- advc.005a: was 50 at Annoyed -->
 			<NoWarAttitudeProbs>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_ANNOYED</AttitudeType>
-					<iNoWarProb>50</iNoWarProb>
+					<iNoWarProb>40</iNoWarProb>
 				</NoWarAttitudeProb>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_CAUTIOUS</AttitudeType>

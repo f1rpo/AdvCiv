@@ -244,3 +244,9 @@ def toggleDebugMode(argsList=None):
 def unselectAll(argsList=None):
 	CyInterface().clearSelectionList()
 # </advc.088>
+
+# <advc.004m> Called by BugOptions when dirty. Defining this handler directly in CvScreensInterface.py leads to problems when reloading scripts, specifically in ChangeHandler.handle (BugOptions.py).
+def updateDefaultCamDistance(option, value):
+	import CvScreensInterface
+	CvScreensInterface.updateCameraStartDistance()
+# </advc.004m>

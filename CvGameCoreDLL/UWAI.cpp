@@ -183,7 +183,7 @@ void UWAI::applyPersonalityWeight() {
 		FOR_EACH_ENUM(Improvement)
 			paiPersonalityVector->push_back(&kLeader.m_piImprovementWeightModifier[eLoopImprovement]);
 		personalityMatrix.push_back(paiPersonalityVector);
-		FAssert(iMembers == -1 || iMembers == (int)paiPersonalityVector->size());
+		FAssert(iMembers == -1 || iMembers == paiPersonalityVector->size());
 		iMembers = (int)paiPersonalityVector->size();
 		if(iWeight == 0) { // Clear fav. civic and religion
 			kLeader.m_iFavoriteCivic = NO_CIVIC;

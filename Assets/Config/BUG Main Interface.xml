@@ -88,7 +88,7 @@
 			
 			<!-- advc.120c -->
 			<option id="Hide_EspSlider" key="Hide EspSlider" 
-					type="boolean" default="True" 
+					type="boolean" default="False" 
 					get="isHideEspSlider" dirtyBit="PercentButtons, GameData, Espionage_Advisor">
 				<change module="CvCustomizableDomesticAdvisor" function="forcePositionCalc"/>
 			</option>
@@ -117,7 +117,20 @@
 					get="isRememberFieldOfView"/>
 			<option id="FieldOfView_Value" key="Field of View Value"
 					type="string" default="-1"
-					get="getFieldOfView" set="setFieldOfView"/> 
+					get="getFieldOfView" set="setFieldOfView"/>
+
+			<!-- advc.004m: -->
+			<list   id="DefaultCamDistance" key="Default Cam Distance" 
+					type="int" default="0" listType="string" 
+					values="Automatic|Close|Medium|Far|Custom (XML)"
+					get="getDefaultCamDistance">
+				<change module="InputUtil" function="updateDefaultCamDistance"/>
+				<choice id="Automatic"/>
+				<choice id="Close"/>
+				<choice id="Medium"/>
+				<choice id="Far"/>
+				<choice id="Custom"/>
+			</list>
 
 			<!-- Movement Points -->
 			<option id="UnitMovementPointsFraction" key="Unit Movement Points Fraction" 

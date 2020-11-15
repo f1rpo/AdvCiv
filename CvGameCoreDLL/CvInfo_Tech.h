@@ -53,10 +53,7 @@ public: // advc: All the const functions are exposed to Python except those adde
 	inline bool isRiverTrade() const { return m_bRiverTrade; }
 
 	std::wstring getQuote() const;
-	void setQuoteKey(const TCHAR* szVal);
-	void setSound(const TCHAR* szVal);
 	const TCHAR* getSound() const;
-	void setSoundMP(const TCHAR* szVal);
 	const TCHAR* getSoundMP() const;
 
 	// Array access:
@@ -75,7 +72,7 @@ public: // advc: All the const functions are exposed to Python except those adde
 	bool isTerrainTrade(int i) const;
 	inline bool isAnyTerrainTrade() const { return (m_pbTerrainTrade != NULL); } // advc.003t
 
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* );
 	void write(FDataStreamBase* );
 	#endif

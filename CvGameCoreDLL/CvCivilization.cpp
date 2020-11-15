@@ -3,7 +3,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvCivilization.h"
 #include "CvInfo_Building.h"
-#include "CvInfo_Unit.h"
 
 
 CvCivilization::CvCivilization(CvCivilizationInfo const& kInfo) : m_kInfo(kInfo)

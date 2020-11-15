@@ -19,11 +19,11 @@ def getGridSize(argsList):
 		return ()
 	sizeModifiers = {
 		WorldSizeTypes.WORLDSIZE_DUEL:		( 0, 0),
-		WorldSizeTypes.WORLDSIZE_TINY:		( 0,-1),
-		WorldSizeTypes.WORLDSIZE_SMALL:		(-1, 0),
+		WorldSizeTypes.WORLDSIZE_TINY:		( 0, 0),
+		WorldSizeTypes.WORLDSIZE_SMALL:		( 0,-1),
 		WorldSizeTypes.WORLDSIZE_STANDARD:	(-1,-1),
 		WorldSizeTypes.WORLDSIZE_LARGE:		(-2,-1),
-		WorldSizeTypes.WORLDSIZE_HUGE:		(-2,-2)
+		WorldSizeTypes.WORLDSIZE_HUGE:		(-1,-2)
 	}
 	wi = CyGlobalContext().getWorldInfo(iWorldSize)
 	return (sizeModifiers[iWorldSize][0] + wi.getGridWidth(), sizeModifiers[iWorldSize][1] + wi.getGridHeight())
@@ -34,14 +34,14 @@ def isAdvancedMap():
 	return 0
 
 def getNumCustomMapOptions():
-	return 3 # dlph.32
+	return 3 # kekm.32
 
 def getCustomMapOptionName(argsList):
 	[iOption] = argsList
 	option_names = {
 		0:	"TXT_KEY_MAP_SCRIPT_CONTINENTS_SIZE",
 		1:	"TXT_KEY_MAP_SCRIPT_ISLANDS_SIZE",
-		2:	"TXT_KEY_MAP_WORLD_WRAP" # dlph.32
+		2:	"TXT_KEY_MAP_WORLD_WRAP" # kekm.32
 		}
 	translated_text = unicode(CyTranslator().getText(option_names[iOption], ()))
 	return translated_text
@@ -51,7 +51,7 @@ def getNumCustomMapOptionValues(argsList):
 	option_values = {
 		0:	3,
 		1:	2,
-		2:	3 # dlph.32
+		2:	3 # kekm.32
 		}
 	return option_values[iOption]
 
@@ -67,12 +67,12 @@ def getCustomMapOptionDescAt(argsList):
 			0: "TXT_KEY_MAP_SCRIPT_ISLANDS",
 			1: "TXT_KEY_MAP_SCRIPT_TINY_ISLANDS"
 			},
-		# <dlph.32>
+		# <kekm.32>
 		2:	{
 			0: "TXT_KEY_MAP_WRAP_FLAT",
 			1: "TXT_KEY_MAP_WRAP_CYLINDER",
 			2: "TXT_KEY_MAP_WRAP_TOROID"
-			} # </dlph.32>
+			} # </kekm.32>
 		}
 	translated_text = unicode(CyTranslator().getText(selection_names[iOption][iSelection], ()))
 	return translated_text
@@ -82,15 +82,15 @@ def getCustomMapOptionDefault(argsList):
 	option_defaults = {
 		0:	1,
 		1:	0,
-		2:	1 # dlph.32
+		2:	1 # kekm.32
 		}
 	return option_defaults[iOption]
-# <dlph.32>
+# <kekm.32>
 def getWrapX():
 	return (CyMap().getCustomMapOption(2) >= 1)
 
 def getWrapY():
-	return (CyMap().getCustomMapOption(2) == 2) # </dlph.32>
+	return (CyMap().getCustomMapOption(2) == 2) # </kekm.32>
 
 # advc.027: Leave this up to the DLL entirely
 #def minStartingDistanceModifier():

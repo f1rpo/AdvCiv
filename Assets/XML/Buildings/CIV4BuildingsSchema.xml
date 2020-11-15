@@ -171,6 +171,8 @@
 	<ElementType name="iAllCityDefense" content="textOnly" dt:type="int"/>
 	<ElementType name="iEspionageDefense" content="textOnly" dt:type="int"/>
 	<ElementType name="iAsset" content="textOnly" dt:type="int"/>
+	<!-- advc.131c (note): Now only used for buildings with defense, XP and
+		 war weariness abilities, not for production abilities. -->
 	<ElementType name="iPower" content="textOnly" dt:type="int"/>
 	<ElementType name="fVisibilityPriority" content="textOnly"/>
 	<ElementType name="FreePromotion" content="textOnly"/>
@@ -179,6 +181,8 @@
 	<ElementType name="iGreatPeopleRateChange" content="textOnly" dt:type="int"/>
 	<ElementType name="iHurryAngerModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="bBorderObstacle" content="textOnly" dt:type="boolean"/>
+	<!-- advc.310 -->
+	<ElementType name="bConditionalAbilities" content="textOnly" dt:type="boolean"/>
 	<ElementType name="iYield" content="textOnly" dt:type="int"/>
 	<ElementType name="SeaPlotYieldChanges" content="eltOnly">
 		<element type="iYield" minOccurs="0" maxOccurs="*"/>
@@ -423,6 +427,11 @@
 		<element type="iGreatPeopleRateChange"/>
 		<element type="iHurryAngerModifier"/>
 		<element type="bBorderObstacle"/>
+		<!-- advc.310: Only used for the Great Wall (see Civ4BuildingInfos.xml)
+			 but could perhaps be used elsewhere if another building needs to
+			 have abilities that get disabled by the DLL depending on
+			 game options (or map options). -->
+		<element type="bConditionalAbilities" minOccurs="0"/>
 		<element type="bTeamShare"/>
 		<element type="bWater"/>
 		<element type="bRiver"/>

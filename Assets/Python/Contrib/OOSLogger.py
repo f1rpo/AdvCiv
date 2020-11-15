@@ -11,7 +11,7 @@ bWroteLog = False # (advc: This doesn't seem to accomplish anything(?))
 
 SEPERATOR = "-----------------------------------------------------------------\n"
 
-# dlph.27
+# kekm.27
 # DarkLunaPhantom - OOS logging, idea from Fall from Heaven 2 by Kael. This implementation is a slight modification of the one from ExtraModMod by Terkhen. Implemented as a BUG module.
 
 # Simply checks every game turn for OOS. If it finds it, writes the

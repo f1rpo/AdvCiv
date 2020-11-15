@@ -2,7 +2,7 @@
 ##
 ## Utilities for dealing with Players and their Teams, Cities and Units.
 ##
-## All functions in thie module that take a playerOrID or teamOrID as their
+## All functions in this module that take a playerOrID or teamOrID as their
 ## parameter will accept either the CyPlayer/CyTeam object or its ID.
 ## Many of them will probably also accept a PyPlayer/PyTeam wrapper, but I
 ## recommend that you use getCy() on the object instead.
@@ -449,6 +449,9 @@ def isWHEOOH(playerOrID, askingPlayerOrID):
 	askingPlayer, askingTeam = getPlayerAndTeam(askingPlayerOrID)
 	if not TradeUtil.canTrade(askingPlayer, askedPlayer):
 		return False
+	# <advc.004> Don't need the UI to tell us when war has already been declared
+	if askedTeam.getAtWarCount(True) > 0:
+		return False # </advc.004>
 	tradeData = TradeData()
 	tradeData.ItemType = TradeableItems.TRADE_WAR
 	for player in players(alive=True, barbarian=False, minor=False):

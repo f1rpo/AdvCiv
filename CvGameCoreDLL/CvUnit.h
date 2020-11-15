@@ -1,16 +1,9 @@
 #pragma once
 
-// unit.h
-
 #ifndef CIV4_UNIT_H
 #define CIV4_UNIT_H
 
 #include "CvDLLEntity.h"
-/*	advc.inl: So that I can inline the wrappers. I've also inlined many other functions.
-	Only getX, getY and getOwner were inlined in K-Mod/BtS. */
-#include "CvInfo_Unit.h"
-
-#pragma warning( disable: 4251 ) // needs to have dll-interface to be used by clients of class
 
 class CvPlot;
 class CvArea;
@@ -21,7 +14,7 @@ class KmodPathFinder;
 class CvUnitAI; // advc.003u
 struct CombatDetails;
 
-
+// (advc.inl: Inlined many getters. Only getX, getY and getOwner were inlined in K-Mod/BtS.)
 class CvUnit : public CvDLLEntity
 {
 public:
@@ -52,7 +45,8 @@ public:
 
 	//FAStarNode* getPathLastNode() const; // disabled by K-Mod
 	CvPlot* getPathEndTurnPlot() const;																		// Exposed to Python
-	bool generatePath(const CvPlot* pToPlot, int iFlags = 0, bool bReuse = false,							// Exposed to Python
+	bool generatePath(const CvPlot* pToPlot, MovementFlags eFlags = NO_MOVEMENT_FLAGS,						// Exposed to Python
+			bool bReuse = false,
 			int* piPathTurns = NULL,
 			int iMaxPath = -1, // K-Mod
 			bool bUseTempFinder = false) const; // advc.128
@@ -113,9 +107,9 @@ public:
 	bool canSentryHeal(const CvPlot* pPlot) const; // advc.004l
 	bool canSentry(const CvPlot* pPlot) const;																// Exposed to Python
 
-	int healRate(const CvPlot* pPlot,
-			bool bLocation = true, bool bUnits = true) const; // K-Mod
-	int healTurns(const CvPlot* pPlot) const;
+	int healRate(/* K-Mod: */ bool bLocation = true, bool bUnits = true,
+			CvPlot const* pAt /* advc: */ = NULL) const;
+	int healTurns(CvPlot const* pAt /* advc: */ = NULL) const;
 	void doHeal();
 
 		// advc (tbd.): Change the iX,iY params to a CvPlot const& kTarget (x10)
@@ -124,8 +118,8 @@ public:
 	bool airlift(int iX, int iY);
 
 	bool isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam) const;											// Exposed to Python
-	bool canNuke(const CvPlot* pPlot) const { return (nukeRange() != -1); }									// Exposed to Python
-	bool canNukeAt(const CvPlot* pPlot, int iX, int iY) const;												// Exposed to Python
+	bool canNuke(const CvPlot* pFrom) const { return (nukeRange() != -1); }									// Exposed to Python
+	bool canNukeAt(const CvPlot* pFrom, int iX, int iY) const;												// Exposed to Python
 	bool nuke(int iX, int iY);
 
 	bool canRecon(const CvPlot* pPlot) const;																// Exposed to Python
@@ -216,7 +210,7 @@ public:
 	bool canGoldenAge(const CvPlot* pPlot, bool bTestVisible = false) const;								// Exposed to Python
 	bool goldenAge();
 
-	bool canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestVisible = false) const;					// Exposed to Python
+	bool canBuild(CvPlot const& pPlot, BuildTypes eBuild, bool bTestVisible = false) const;					// Exposed to Python
 	bool build(BuildTypes eBuild);
 
 	bool canPromote(PromotionTypes ePromotion, int iLeaderUnitId) const;									// Exposed to Python
@@ -366,7 +360,7 @@ public:
 	}
 	DllExport bool isAttacking() const;																		// Exposed to Python
 	DllExport bool isDefending() const;																		// Exposed to Python
-	bool isCombat() const;																					// Exposed to Python
+	bool isInCombat() const;																				// Exposed to Python
 
 	DllExport inline int maxHitPoints() const																// Exposed to Python
 	{
@@ -413,7 +407,7 @@ public:
 		return (baseCombatStr() > 0);
 	}
 	bool canSiege(TeamTypes eTeam) const;																	// Exposed to Python
-	bool canCombat() const; // dlph.8
+	bool canCombat() const; // kekm.8
 	bool canAttack() const;																					// Exposed to Python
 	bool canAttack(const CvUnit& kDefender) const;
 	bool canDefend(const CvPlot* pPlot = NULL) const;														// Exposed to Python
@@ -639,7 +633,7 @@ public:
 
 	CvPlot* getAttackPlot() const;
 	void setAttackPlot(const CvPlot* pNewValue, bool bAirCombat);
-	bool isAirCombat() const;
+	bool isInAirCombat() const;
 
 	DllExport int getCombatTimer() const;
 	void setCombatTimer(int iNewValue);
@@ -1144,6 +1138,9 @@ protected:
 	bool isCombatVisible(const CvUnit* pDefender) const;
 	//void resolveCombat(CvUnit* pDefender, CvPlot* pPlot, CvBattleDefinition& kBattle);
 	void resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible); // K-Mod
+	void addAttackSuccessMessages(CvUnit const& kDefender, bool bFought) const; // advc.010
+	void addDefenseSuccessMessages(CvUnit const& kDefender) const; // advc
+	bool suppressStackAttackSound(CvUnit const& kDefender) const; // advc.002l
 	void resolveAirCombat(CvUnit* pInterceptor, CvPlot* pPlot, CvAirMissionDefinition& kBattle);
 	void checkRemoveSelectionAfterAttack();
 // <advc.003u>

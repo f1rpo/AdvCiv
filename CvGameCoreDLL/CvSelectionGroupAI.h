@@ -46,7 +46,8 @@ public:
 
 	bool AI_isControlled() const { return (!isHuman() || isAutomated()); } // advc.inl
 	bool AI_isDeclareWar(CvPlot const& kPlot) const;
-	bool AI_isHasPathToAreaEnemyCity(bool bMajorOnly = true, int iFlags = 0, int iMaxPathTurns = -1) /* Erik (CODE1): */ const;
+	bool AI_isHasPathToAreaEnemyCity(bool bMajorOnly = true,
+			MovementFlags eFlags = NO_MOVEMENT_FLAGS, int iMaxPathTurns = -1) /* Erik (CODE1): */ const;
 
 	CvPlot* AI_getMissionAIPlot() const;
 

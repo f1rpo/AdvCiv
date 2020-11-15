@@ -157,6 +157,7 @@ public:
 	void changeExtraMoves(int /*DomainTypes*/ eIndex, int iChange);
 
 	bool isHasMet(int /*TeamTypes*/ eIndex);
+	int getHasMetTurn(int iOtherTeam); // advc.091
 	bool isAtWar(int /*TeamTypes*/ eIndex);
 	bool isPermanentWarPeace(int /*TeamTypes*/ eIndex);
 	void setPermanentWarPeace(int /*TeamTypes*/ eIndex, bool bNewValue);

@@ -1,7 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvReplayInfo.h"
-#include "CvGameAI.h" // advc.104
 #include "CvPlayer.h"
+#include "CvGameAI.h" // advc.104
 #include "CvInfo_GameOption.h"
 #include "CvMap.h"
 #include "CvReplayMessage.h"
@@ -12,7 +12,7 @@ int CvReplayInfo::REPLAY_VERSION = 6; // advc.707, advc.106i: 4 in BtS
 bool CvReplayInfo::STORE_REPLAYS_AS_BTS = false; // advc.106i
 
 CvReplayInfo::CvReplayInfo() :
-	m_iActivePlayer(0),
+	m_eActivePlayer(NO_PLAYER), // (advc: was 0)
 	m_eDifficulty(NO_HANDICAP),
 	m_eWorldSize(NO_WORLDSIZE),
 	m_eClimate(NO_CLIMATE),
@@ -57,7 +57,7 @@ CvReplayInfo::CvReplayInfo() :
 	would seem undesirable. */
 CvReplayInfo::CvReplayInfo(CvReplayInfo const&)
 {
-	FAssertMsg(false, "No copy-constructor implemented for CvReplayInfo");
+	FErrorMsg("No copy-constructor implemented for CvReplayInfo");
 }
 
 CvReplayInfo::~CvReplayInfo()
@@ -74,146 +74,151 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 {
 	if(!STORE_REPLAYS_AS_BTS) // advc.106i (and moved up)
 		m_szModName = gDLL->getModName();
-	CvGame& game = GC.getGame();
-	CvMap& map = GC.getMap();
+	CvGame const& kGame = GC.getGame();
+	CvMap const& kMap = GC.getMap();
 	/*  <advc>: createInfo gets called when Python scripts are (re-)loaded.
 		Somehow, skipping the code above gets the Python loading code stuck
 		in an infinite loop. Therefore I only skip the somewhat costly
 		copying of the terrain texture after loading scripts for the first time.
 		(Don't know how to identify a Python reload here. Mustn't break Shift+F1.) */
 	static bool bFirstCall = true;
-	if (bFirstCall && game.isFinalInitialized() && game.getGameState() != GAMESTATE_OVER)
+	if (bFirstCall && kGame.isFinalInitialized() && kGame.getGameState() != GAMESTATE_OVER)
 	{
 		bFirstCall = false;
 		return;
 	} // </advc>
 
 	if (ePlayer == NO_PLAYER)
-		ePlayer = game.getActivePlayer();
+		ePlayer = kGame.getActivePlayer();
 
 	if (ePlayer != NO_PLAYER)
 	{
-		CvPlayer const& player = GET_PLAYER(ePlayer);
+		CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
 
-		m_eDifficulty = player.getHandicapType();
-		m_szLeaderName = player.getName();
-		m_szCivDescription = player.getCivilizationDescription();
-		m_szShortCivDescription = player.getCivilizationShortDescription();
-		m_szCivAdjective = player.getCivilizationAdjective();
+		m_eDifficulty = kPlayer.getHandicapType();
+		m_szLeaderName = kPlayer.getName();
+		m_szCivDescription = kPlayer.getCivilizationDescription();
+		m_szShortCivDescription = kPlayer.getCivilizationShortDescription();
+		m_szCivAdjective = kPlayer.getCivilizationAdjective();
 		m_szMapScriptName = GC.getInitCore().getMapScriptName();
-		m_eWorldSize = map.getWorldSize();
-		m_eClimate = map.getClimate();
-		m_eSeaLevel = map.getSeaLevel();
-		m_eEra = game.getStartEra();
-		m_eGameSpeed = game.getGameSpeedType();
+		m_eWorldSize = kMap.getWorldSize();
+		m_eClimate = kMap.getClimate();
+		m_eSeaLevel = kMap.getSeaLevel();
+		m_eEra = kGame.getStartEra();
+		m_eGameSpeed = kGame.getGameSpeedType();
 
 		m_listGameOptions.clear();
-		for (int i = 0; i < NUM_GAMEOPTION_TYPES; i++)
+		FOR_EACH_ENUM(GameOption)
 		{
-			GameOptionTypes eOption = (GameOptionTypes)i;
-			if (game.isOption(eOption))
-			{
-				m_listGameOptions.push_back(eOption);
-			}
+			if (kGame.isOption(eLoopGameOption))
+				m_listGameOptions.push_back(eLoopGameOption);
 		}
 
 		m_listVictoryTypes.clear();
-		for (int i = 0; i < GC.getNumVictoryInfos(); i++)
+		FOR_EACH_ENUM(Victory)
 		{
-			VictoryTypes eVictory = (VictoryTypes)i;
-			if (game.isVictoryValid(eVictory))
-				m_listVictoryTypes.push_back(eVictory);
+			if (kGame.isVictoryValid(eLoopVictory))
+				m_listVictoryTypes.push_back(eLoopVictory);
 		}
-		if (game.getWinner() == player.getTeam())
-			m_eVictoryType = game.getVictory();
+		if (kGame.getWinner() == kPlayer.getTeam())
+			m_eVictoryType = kGame.getVictory();
 		else m_eVictoryType = NO_VICTORY;
 
-		m->iNormalizedScore = player.calculateScore(true, player.getTeam() == game.getWinner());
+		m->iNormalizedScore = kPlayer.calculateScore(
+				true, kPlayer.getTeam() == kGame.getWinner());
 		// <advc.707> Treat R&F games as "Score" victory (previously unused)
-		if(game.isOption(GAMEOPTION_RISE_FALL))
+		if(kGame.isOption(GAMEOPTION_RISE_FALL))
 		{
-			for(int i = 0; i < GC.getNumVictoryInfos(); i++)
+			FOR_EACH_ENUM(Victory)
 			{
-				VictoryTypes eVictory = (VictoryTypes)i;
-				if(GC.getInfo(eVictory).isTargetScore())
+				if(GC.getInfo(eLoopVictory).isTargetScore())
 				{
-					m_eVictoryType = eVictory;
+					m_eVictoryType = eLoopVictory;
 					break;
 				}
 			}
 		} // </advc.707>
 	}
 
-	m_bMultiplayer = game.isGameMultiPlayer();
+	m_bMultiplayer = kGame.isGameMultiPlayer();
 
 
-	m_iInitialTurn = game.getStartTurn();
-	m_iStartYear = game.getStartYear();
-	m_iFinalTurn = game.getGameTurn();
-	GAMETEXT.setYearStr(m_szFinalDate, m_iFinalTurn, false, game.getCalendar(), game.getStartYear(), game.getGameSpeedType());
+	m_iInitialTurn = kGame.getStartTurn();
+	m_iStartYear = kGame.getStartYear();
+	m_iFinalTurn = kGame.getGameTurn();
+	GAMETEXT.setYearStr(m_szFinalDate, m_iFinalTurn, false, kGame.getCalendar(),
+			kGame.getStartYear(), kGame.getGameSpeedType());
 
-	m_eCalendar = game.getCalendar();
+	m_eCalendar = kGame.getCalendar();
 
-
-	std::map<PlayerTypes, int> mapPlayers;
 	m_listPlayerScoreHistory.clear();
-	int iPlayerIndex = 0;
-	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
+	EnumMap<PlayerTypes,PlayerTypes> aePlayerIndices; // advc.enum
+	/*	advc (note): This loop remaps player IDs so that players never alive are skipped.
+		Not sure if this is really needed. */
+	PlayerTypes eNewIndex = (PlayerTypes)0;
+	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
-		CvPlayer const& player = GET_PLAYER((PlayerTypes)iPlayer);
-		if (player.isEverAlive())
+		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+		if (!kLoopPlayer.isEverAlive())
+			continue; // advc
+		aePlayerIndices.set(kLoopPlayer.getID(), eNewIndex);
+		if (kLoopPlayer.getID() == kGame.getActivePlayer())
+			m_eActivePlayer = eNewIndex;
+		eNewIndex++;
+		PlayerInfo playerInfo;
+		playerInfo.m_eLeader = kLoopPlayer.getLeaderType();
+		playerInfo.m_eColor = GC.getInfo(kLoopPlayer.getPlayerColor()).getColorTypePrimary();
+		// K-Mod. (bypass the conceal colour check.) // advc.007: Not needed anymore
+		//GC.getInitCore().getColor((PlayerTypes)iPlayer)).getColorTypePrimary();
+		for (int iTurn = m_iInitialTurn; iTurn <= m_iFinalTurn; iTurn++)
 		{
-			mapPlayers[(PlayerTypes)iPlayer] = iPlayerIndex;
-			if ((PlayerTypes)iPlayer == game.getActivePlayer())
-				m_iActivePlayer = iPlayerIndex;
-			iPlayerIndex++;
+			TurnData score;
+			score.m_iScore = kLoopPlayer.getScoreHistory(iTurn);
+			score.m_iAgriculture = kLoopPlayer.getAgricultureHistory(iTurn);
+			score.m_iIndustry = kLoopPlayer.getIndustryHistory(iTurn);
+			score.m_iEconomy = kLoopPlayer.getEconomyHistory(iTurn);
 
-			PlayerInfo playerInfo;
-			playerInfo.m_eLeader = player.getLeaderType();
-			playerInfo.m_eColor = GC.getInfo(player.getPlayerColor()).getColorTypePrimary();
-					// K-Mod. (bypass the conceal colour check.) // advc.007: Not needed anymore
-					//GC.getInitCore().getColor((PlayerTypes)iPlayer)).getColorTypePrimary();
-			for (int iTurn = m_iInitialTurn; iTurn <= m_iFinalTurn; iTurn++)
-			{
-				TurnData score;
-				score.m_iScore = player.getScoreHistory(iTurn);
-				score.m_iAgriculture = player.getAgricultureHistory(iTurn);
-				score.m_iIndustry = player.getIndustryHistory(iTurn);
-				score.m_iEconomy = player.getEconomyHistory(iTurn);
-
-				playerInfo.m_listScore.push_back(score);
-			}
-			m_listPlayerScoreHistory.push_back(playerInfo);
+			playerInfo.m_listScore.push_back(score);
 		}
+		m_listPlayerScoreHistory.push_back(playerInfo);
 	}
 
-	m_listReplayMessages.clear();
+	//m_listReplayMessages.clear();
+	FAssert(m_listReplayMessages.empty()); // advc: The above would leak memory
 	// <advc.106h>
-	if(game.getGameState() == GAMESTATE_OVER &&
-			GC.getDefineINT("SETTINGS_IN_REPLAYS") > 0)
-		addSettingsMsg(); // </advc.106h>
-	for (uint i = 0; i < game.getNumReplayMessages(); i++)
+	if(kGame.getGameState() == GAMESTATE_OVER &&
+		GC.getDefineINT("SETTINGS_IN_REPLAYS") > 0)
 	{
-		std::map<PlayerTypes, int>::iterator it = mapPlayers.find(game.getReplayMessagePlayer(i));
-		if (it != mapPlayers.end())
+		addSettingsMsg();
+	} // </advc.106h>
+	for (uint i = 0; i < kGame.getNumReplayMessages(); i++)
+	{	// <advc.enum>
+		PlayerTypes eMsgPlayer = kGame.getReplayMessagePlayer(i);
+		PlayerTypes ePlayerIndex = (eMsgPlayer == NO_PLAYER ? NO_PLAYER :
+				aePlayerIndices.get(kGame.getReplayMessagePlayer(i))); // </advc.enum>
+		if (ePlayerIndex != NO_PLAYER)
 		{
-			CvReplayMessage* pMsg = new CvReplayMessage(game.getReplayMessageTurn(i), game.getReplayMessageType(i), (PlayerTypes)it->second);
+			CvReplayMessage* pMsg = new CvReplayMessage(kGame.getReplayMessageTurn(i),
+					kGame.getReplayMessageType(i), ePlayerIndex);
 			if (pMsg != NULL)
 			{
-				pMsg->setColor(game.getReplayMessageColor(i));
-				pMsg->setText(game.getReplayMessageText(i));
-				pMsg->setPlot(game.getReplayMessagePlotX(i), game.getReplayMessagePlotY(i));
+				pMsg->setColor(kGame.getReplayMessageColor(i));
+				pMsg->setText(kGame.getReplayMessageText(i));
+				pMsg->setPlot(kGame.getReplayMessagePlotX(i),
+						kGame.getReplayMessagePlotY(i));
 				m_listReplayMessages.push_back(pMsg);
 			}
 		}
 		else
 		{
-			CvReplayMessage* pMsg = new CvReplayMessage(game.getReplayMessageTurn(i), game.getReplayMessageType(i), NO_PLAYER);
+			CvReplayMessage* pMsg = new CvReplayMessage(kGame.getReplayMessageTurn(i),
+					kGame.getReplayMessageType(i), NO_PLAYER);
 			if (pMsg != NULL)
 			{
-				pMsg->setColor(game.getReplayMessageColor(i));
-				pMsg->setText(game.getReplayMessageText(i));
-				pMsg->setPlot(game.getReplayMessagePlotX(i), game.getReplayMessagePlotY(i));
+				pMsg->setColor(kGame.getReplayMessageColor(i));
+				pMsg->setText(kGame.getReplayMessageText(i));
+				pMsg->setPlot(kGame.getReplayMessagePlotX(i),
+						kGame.getReplayMessagePlotY(i));
 				m_listReplayMessages.push_back(pMsg);
 			}
 		}
@@ -222,13 +227,13 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 	if(m->iFinalScore < 0)
 		m->iFinalScore = getFinalPlayerScore(); // </advc.707>
 
-	m_iMapWidth = GC.getMap().getGridWidth();
-	m_iMapHeight = GC.getMap().getGridHeight();
+	m_iMapWidth = kMap.getGridWidth();
+	m_iMapHeight = kMap.getGridHeight();
 	// <advc.106m>
 	if (m_iMinimapSize == -1)
 		setMinimapSizeFromXML();
 	// </advc.106m>  <advc.106n>
-	byte const* pTexture = map.getReplayTexture();
+	byte const* pTexture = kMap.getReplayTexture();
 	if (pTexture == NULL)
 		pTexture = gDLL->UI().getMinimapBaseTexture();
 	// </advc.106n>
@@ -269,9 +274,6 @@ void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer)
 		szMapName = szMapName.substr(0, szMapName.length() - szWBEnding.length());
 		bScenario = true;
 	}
-	/*  Can't use getTextKeyWide for sea level b/c of the recommendation text
-		added by advc.137 (same issue in CvVictoryScreen.py) */
-	int iSeaLevelChange = GC.getInfo(getSeaLevel()).getSeaLevelChange();
 	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
 	szSettings += 
 			gDLL->getText("TXT_KEY_NAME_LEADER_CIV",
@@ -283,12 +285,11 @@ void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer)
 			GC.getInfo(getWorldSize()).getTextKeyWide(),
 			getMapScriptName().GetCString()) + L" " +
 			gDLL->getText("TXT_KEY_SETTINGS_SEA_LEVEL",
-			(iSeaLevelChange == 0 ? GC.getInfo(getSeaLevel()).getTextKeyWide() :
-			gDLL->getText((iSeaLevelChange < 0 ? "TXT_KEY_LOW" : "TXT_KEY_HIGH"))))) +
+			GC.getInfo(getSeaLevel()).getTextKeyWide())) +
 			(getClimate() == 0 ? L"" : (L", " +
 			gDLL->getText("TXT_KEY_SETTINGS_CLIMATE",
 			GC.getInfo(getClimate()).getTextKeyWide())));
-	// <advc.004>
+	// <advc.190b>
 	CvMap const& kMap = GC.getMap();
 	for(int i = 0; i < kMap.getNumCustomMapOptions(); i++)
 	{
@@ -297,7 +298,7 @@ void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer)
 			continue;
 		szSettings.append(L", ");
 		szSettings.append(szDesc);
-	} // </advc.004>
+	} // </advc.190b>
 	szSettings.append(NEWLINE);
 	szSettings.append(gDLL->getText("TXT_KEY_SETTINGS_GAME_SPEED",
 			GC.getInfo(getGameSpeed()).getTextKeyWide()));
@@ -352,8 +353,8 @@ void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer)
 	}
 	if(iOptions > 0)
 		szSettings = szSettings.substr(0, szSettings.length() - 2) + L"\n";
+	// CvWString szModName(gDLL->getModName(false)) // I'd like the prefix to be optional
 	CvWString const szKey = "TXT_KEY_REPLAY_PREFIX";
-	// gDLL->getModName(false) doesn't yield a wstring
 	CvWString szModName = gDLL->getText(szKey);
 	// Don't list mod name if the tag isn't present
 	if(szKey.compare(szModName) == 0)
@@ -384,26 +385,28 @@ bool CvReplayInfo::isValidTurn(int i) const
 	return (i >= m_iInitialTurn && i <= m_iFinalTurn);
 }
 
-int CvReplayInfo::getActivePlayer() const
+/*	advc: Return type was int. This ID may differ from the ID in the original game,
+	but, within the context of a replay, I think it gets used as a proper PlayerTypes ID. */
+PlayerTypes CvReplayInfo::getActivePlayer() const
 {
-	return m_iActivePlayer;
+	return m_eActivePlayer;
 }
 
-LeaderHeadTypes CvReplayInfo::getLeader(int iPlayer) const
+LeaderHeadTypes CvReplayInfo::getLeader(PlayerTypes ePlayer) const
 {
-	if (iPlayer < 0)
-		iPlayer = m_iActivePlayer;
-	if (isValidPlayer(iPlayer))
-		return m_listPlayerScoreHistory[iPlayer].m_eLeader;
+	if (ePlayer == NO_PLAYER)
+		ePlayer = m_eActivePlayer;
+	if (isValidPlayer(ePlayer))
+		return m_listPlayerScoreHistory[ePlayer].m_eLeader;
 	return NO_LEADER;
 }
 
-ColorTypes CvReplayInfo::getColor(int iPlayer) const
+ColorTypes CvReplayInfo::getColor(PlayerTypes ePlayer) const
 {
-	if (iPlayer < 0)
-		iPlayer = m_iActivePlayer;
-	if (isValidPlayer(iPlayer))
-		return m_listPlayerScoreHistory[iPlayer].m_eColor;
+	if (ePlayer == NO_PLAYER)
+		ePlayer = m_eActivePlayer;
+	if (isValidPlayer(ePlayer))
+		return m_listPlayerScoreHistory[ePlayer].m_eColor;
 	return NO_COLOR;
 }
 
@@ -582,11 +585,11 @@ CalendarTypes CvReplayInfo::getCalendar() const
 {
 	return m_eCalendar;
 }
-// <advc>
+// advc:
 CvReplayInfo::TurnData const& CvReplayInfo::getTurnData(int iPlayer, int iTurn) const
 {
 	return m_listPlayerScoreHistory[iPlayer].m_listScore[iTurn-m_iInitialTurn];
-} // </advc>
+}
 
 int CvReplayInfo::getPlayerScore(int iPlayer, int iTurn) const
 {
@@ -619,7 +622,7 @@ int CvReplayInfo::getFinalScore() const
 // <advc.707> This new function does what getFinalScore used to do
 int CvReplayInfo::getFinalPlayerScore() const
 {
-	return getPlayerScore(m_iActivePlayer, m_iFinalTurn);
+	return getPlayerScore(m_eActivePlayer, m_iFinalTurn);
 }
 // Can now also set the final score to sth. other than the player score
 void CvReplayInfo::setFinalScore(int iScore)
@@ -629,17 +632,17 @@ void CvReplayInfo::setFinalScore(int iScore)
 
 int CvReplayInfo::getFinalEconomy() const
 {
-	return getPlayerEconomy(m_iActivePlayer, m_iFinalTurn);
+	return getPlayerEconomy(m_eActivePlayer, m_iFinalTurn);
 }
 
 int CvReplayInfo::getFinalIndustry() const
 {
-	return getPlayerIndustry(m_iActivePlayer, m_iFinalTurn);
+	return getPlayerIndustry(m_eActivePlayer, m_iFinalTurn);
 }
 
 int CvReplayInfo::getFinalAgriculture() const
 {
-	return getPlayerAgriculture(m_iActivePlayer, m_iFinalTurn);
+	return getPlayerAgriculture(m_eActivePlayer, m_iFinalTurn);
 }
 
 int CvReplayInfo::getNormalizedScore() const
@@ -661,21 +664,23 @@ const unsigned char* CvReplayInfo::getMinimapPixels() const
 {
 	return m_pcMinimapPixels;
 }
-// <advc.106m>
+// advc.106m:
 int CvReplayInfo::getMinimapSize() const
 {
 	return m_iMinimapSize;
-} // </advc.106m>
+}
 
 const char* CvReplayInfo::getModName() const
 {	/*  <advc.106i> Pretend to the EXE that every replay is an AdvCiv replay.
 		(Let CvReplayInfo::read decide which ones to show in HoF.) */
 	if(STORE_REPLAYS_AS_BTS || GC.getDefineINT("HOF_DISPLAY_BTS_REPLAYS") > 0 ||
-			GC.getDefineINT("HOF_DISPLAY_OTHER_MOD_REPLAYS") > 0 ||
-			/*  It seems that some earlier version of AdvCiv has written an empty string
-				as the mod name. (I don't remember if this was on purpose.) */
-			m_szModName.empty())
-		return m->szPurportedModName; // </advc.106i>
+		GC.getDefineINT("HOF_DISPLAY_OTHER_MOD_REPLAYS") > 0 ||
+		/*  It seems that some earlier version of AdvCiv has written an empty string
+			as the mod name. (I don't remember if this was on purpose.) */
+		m_szModName.empty())
+	{
+		return m->szPurportedModName;
+	} // </advc.106i>
 	return m_szModName;
 }
 
@@ -710,15 +715,18 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 		// </advc.106i>
 		if (iVersion < 2)
 			return false;
-		stream.Read(&m_iActivePlayer);
 		// <advc.106m> Unpack active player id and minimap resolution
-		if (m_iActivePlayer >= MAX_CHAR)
+		int iActivePlayer;
+		stream.Read(&iActivePlayer);
+		if (iActivePlayer >= MAX_CHAR)
 		{
-			m_iMinimapSize = m_iActivePlayer / MAX_CHAR;
-			m_iActivePlayer = m_iActivePlayer % MAX_CHAR;
+			m_iMinimapSize = iActivePlayer / MAX_CHAR;
+			iActivePlayer %= MAX_CHAR;
 		}
-		else setDefaultMinimapSize(); // </advc.106m>
-		if(!checkBounds(m_iActivePlayer, 0, 64)) return false; // advc.106i
+		else setDefaultMinimapSize();
+		m_eActivePlayer = (PlayerTypes)iActivePlayer;
+		// </advc.106m>
+		if(!checkBounds(m_eActivePlayer, 0, 64)) return false; // advc.106i
 		stream.Read(&iType);
 		m_eDifficulty = (HandicapTypes)iType;
 		if(!checkBounds(m_eDifficulty, 0, GC.getNumHandicapInfos())) return false; // advc.106i  (not -1 b/c of advc.250a)
@@ -738,7 +746,8 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 		if(!checkBounds(m_eClimate, 0, GC.getNumClimateInfos() - 1)) return false; // advc.106i
 		stream.Read(&iType);
 		 // <advc.106i> For compatibility with advc.707
-		if(iVersion != 5 && iVersion >= 6) { // ==5 handled at the end of this function
+		if(iVersion != 5 && iVersion >= 6) // ==5 handled at the end of this function
+		{
 			m->iFinalScore = iType;
 			m_eSeaLevel = NO_SEALEVEL; // unused
 		}
@@ -838,7 +847,7 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 			}
 			catch(...)
 			{
-				FAssertMsg(false, "Failed to read replay file");
+				FErrorMsg("Failed to read replay file");
 				return false;
 			}
 			if(m_szModName.empty())
@@ -857,7 +866,7 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 	}
 	catch(...)
 	{
-		FAssertMsg(false, "Failed to read replay file");
+		FErrorMsg("Failed to read replay file");
 		return false;
 	} // <advc.707>
 	if(m->iFinalScore == MIN_INT)
@@ -871,15 +880,15 @@ void CvReplayInfo::write(FDataStreamBase& stream)
 	//stream.Write(REPLAY_VERSION);
 	// <advc.106i> Fold AdvCiv's (hopefully) globally unique id into the replay version
 	stream.Write(GC.getDefineINT("SAVE_VERSION") * 100 + REPLAY_VERSION);
-	// <advc.106m> Fold minimap resolution into m_iActivePlayer
+	// <advc.106m> Fold minimap resolution into active player ID
 	if (!STORE_REPLAYS_AS_BTS)
 	{
 		setMinimapSizeFromXML();
 		FAssert(m_iMinimapSize > 0);
-		stream.Write(m_iMinimapSize * MAX_CHAR + m_iActivePlayer);
+		stream.Write(m_iMinimapSize * MAX_CHAR + m_eActivePlayer);
 	}
 	else // </advc.106m>
-		stream.Write(m_iActivePlayer);
+		stream.Write(m_eActivePlayer);
 	stream.Write((int)m_eDifficulty);
 	stream.WriteString(m_szLeaderName);
 	stream.WriteString(m_szCivDescription);
@@ -959,7 +968,7 @@ void CvReplayInfo::setMinimapSizeFromXML()
 	if (GC.getDefineINT(CvGlobals::MINIMAP_RENDER_SIZE) >= 10000)
 	{
 		// Not a reasonable resolution, and can't piggyback that safely into the replay file.
-		FAssertMsg(false, "MINIMAP_RENDER_SIZE too large");
+		FErrorMsg("MINIMAP_RENDER_SIZE too large");
 		return;
 	}
 	m_iMinimapSize = GC.getDefineINT(CvGlobals::MINIMAP_RENDER_SIZE);
@@ -969,17 +978,17 @@ void CvReplayInfo::setDefaultMinimapSize()
 {
 	m_iMinimapSize = 512; // As in BtS GlobalDefines
 } // </advc.106m>
-// <advc.106i>
+// advc.106i:
 bool CvReplayInfo::checkBounds(int iValue, int iLower, int iUpper) const
 {
 	/*  If CvReplayInfo::read encounters a replay from another mod, it won't be able
 		to tell until it reaches the mod name at the end of the stream. I'm not aware
 		of any mods that change the replay format, but, if they do, the read function
-		is going to get out of step, which may throw an exception, which causes
-		the replay to be disregarded (good). If there is no exception, then the
-		mod name check should reject the replay. But ... I don't know, I don't
-		want to rely on exceptions. As all mods place their replays in the same
-		folder, it's not such an exceptional thing to encounter a strange replay. */
+		is going to get out of step, which may cause an exception. There's a catch(...),
+		but that's not going to catch hardware exceptions unless the /EHa compiler option
+		is used. (AdvCiv, like just about every mod, uses /EHsc.) So I think there could
+		be a crash, and, as all mods place their replays in the same folder, encountering
+		a very strange replay doesn't seem so unlikely. */
 	if(m->bDisplayOtherMods) // Still want sanity checks then, but be more generous.
 		iUpper *= 2;
 	if(iValue < iLower || iValue > iUpper)
@@ -991,4 +1000,4 @@ bool CvReplayInfo::checkBounds(int iValue, int iLower, int iUpper) const
 		return false;
 	}
 	return true;
-} // </advc.106i>
+}

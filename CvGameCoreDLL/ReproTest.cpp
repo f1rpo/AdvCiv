@@ -21,7 +21,7 @@ ReproTest::ReproTest(int iTurns)
 	CvGame& kGame = GC.getGame();
 	if (!kGame.canDoControl(CONTROL_QUICK_SAVE))
 	{
-		FAssertMsg(false, "Open widget blocks quick-save. Repro test canceled.");
+		FErrorMsg("Open widget blocks quick-save. Repro test canceled.");
 		return;
 	}
 	kGame.doControl(CONTROL_QUICK_SAVE);
@@ -71,7 +71,7 @@ void ReproTest::endWrite(bool bFinal)
 		{
 			if (!kGame.canDoControl(CONTROL_QUICK_LOAD))
 			{
-				FAssertMsg(false, "Open widget blocks quick-load. Repro test canceled.");
+				FErrorMsg("Open widget blocks quick-load. Repro test canceled.");
 				SAFE_DELETE(m_pReproTest);
 				return;
 			}
@@ -124,7 +124,7 @@ void ReproTest::endWrite(bool bFinal)
 				for (size_t j = 0; j < i; j++)
 					szLoopMsg += CvString::format("%d.", m_aaSaveData[m_iPos][j]);
 			}
-			FAssertMsg(false, szLoopMsg.GetCString());
+			FErrorMsg(szLoopMsg.GetCString());
 			bSame = false;
 			if (bCancelAfterFirstDifference)
 				break;

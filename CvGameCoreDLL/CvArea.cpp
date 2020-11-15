@@ -187,7 +187,7 @@ int CvArea::countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwne
 
 void CvArea::updateLake(bool bCheckRepr)
 {
-	PROFILE("CvArea::updateLake");
+	PROFILE_FUNC();
 	m_bLake = false;
 	if(!isWater())
 		return;
@@ -201,7 +201,9 @@ void CvArea::updateLake(bool bCheckRepr)
 	}
 	FOR_EACH_AREA(pOther)
 	{
-		if(pOther->m_iRepresentativeAreaId == m_iRepresentativeAreaId && pOther->getID() != getID()) {
+		if(pOther->m_iRepresentativeAreaId == m_iRepresentativeAreaId &&
+			pOther->getID() != getID())
+		{
 			iTotalTiles += pOther->getNumTiles();
 			if(iTotalTiles > GC.getDefineINT(CvGlobals::LAKE_MAX_AREA_SIZE))
 				return;
@@ -524,7 +526,7 @@ void CvArea::changeYieldRateModifier(PlayerTypes eIndex1, YieldTypes eIndex2, in
 	if (iChange == 0)
 		return;
 
-	m_aaiYieldRateModifier.add(eIndex1, eIndex2, iChange);
+	m_aaiYieldRateModifier.add(eIndex1, eIndex2, toShort(iChange));
 
 	GET_PLAYER(eIndex1).invalidateYieldRankCache(eIndex2);
 	if (eIndex2 == YIELD_COMMERCE)

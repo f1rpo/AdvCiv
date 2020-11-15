@@ -376,7 +376,7 @@ public: // The const functions are exposed to Python except functions added by m
 	// advc.003t: Return type was int for these two
 	bool isFreeTechs(int i) const;
 	bool isAIFreeTechs(int i) const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif
@@ -570,6 +570,7 @@ public:
 	int getSeaLevelChange() const; // Exposed to Python
 	inline int getResearchPercent() const { return m_iResearchPercent; } // advc.910
 	bool read(CvXMLLoadUtility* pXML);
+	virtual CvWString getDescriptionInternal() const; // advc.137
 
 protected:
 	int m_iSeaLevelChange;

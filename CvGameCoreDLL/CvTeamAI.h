@@ -75,6 +75,10 @@ public:
 	bool AI_isWarPossible() const;
 	bool AI_isLandTarget(TeamTypes eTarget, /* advc: */ bool bCheckAlliesOfTarget = false) const;
 	//bool AI_isAllyLandTarget(TeamTypes eTeam) const; // advc: Merged into the above
+	// BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000: START  advc.pf: Moved from CvPlot
+	bool AI_isHasPathToEnemyCity(CvPlot const& kFrom, bool bIgnoreBarb = true) const;
+	bool AI_isHasPathToPlayerCity(CvPlot const& kFrom, PlayerTypes eOtherPlayer = NO_PLAYER) const;
+	// BETTER_BTS_AI_MOD: END
 	bool AI_shareWar(TeamTypes eTeam) const;								// Exposed to Python
 	 // advc, advc.130e:
 	void AI_updateAttitude(TeamTypes eTeam, bool bUpdateWorstEnemy = true);
@@ -93,7 +97,7 @@ public:
 			bool bConstCache = false) const; // advc.001n
 	int AI_endWarVal(TeamTypes eTeam) const;
 
-	int CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const; // K-Mod
+	scaled CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const; // K-Mod
 
 	int AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam,
 			bool bIgnoreDiscount = false, // advc.550a
@@ -166,7 +170,7 @@ public:
 	void AI_thankLiberator(TeamTypes eLiberator);
 	// </advc.130y>
 	TeamTypes AI_getWorstEnemy() const { return m_eWorstEnemy; } // advc.inl
-	void AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateRivalTrade = true);
+	void AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateTradeMemory = true);
 	// <advc.130p>
 	scaled AI_enemyTradeResentmentFactor(TeamTypes eTo, TeamTypes eFrom,
 			TeamTypes eWarTradeTarget = NO_TEAM, TeamTypes ePeaceTradeTarget = NO_TEAM,
@@ -174,7 +178,7 @@ public:
 	// 0 or less if eEnemy isn't an enemy at all
 	int AI_enmityValue(TeamTypes eEnemy) const;
 	double AI_getDiploDecay() const;
-	double AI_recentlyMetMultiplier(TeamTypes eOther) const;
+	scaled AI_recentlyMetMultiplier(TeamTypes eOther) const;
 	// </advc.130p>
 	// advc.130k: Public b/c CvPlayerAI needs it too
 	int AI_randomCounterChange(int iUpperCap = -1, double pr = 0.5) const;
@@ -355,7 +359,7 @@ protected:
 	// advc.104o:
 	int AI_declareWarTradeValLegacy(TeamTypes eWarTeam, TeamTypes eTeam) const;
 	int AI_getOpenBordersAttitudeDivisor() const; // advc.130i
-	double AI_OpenBordersCounterIncrement(TeamTypes eOther) const; // advc.130z
+	scaled AI_getOpenBordersCounterIncrement(TeamTypes eOther) const; // advc.130z
 	bool isAnyLandRevealed(TeamTypes eOwner) const; // advc.124
 	bool AI_isPursuingCircumnavigation() const; // advc.136a
 	TeamTypes AI_diploVoteCounterCandidate(VoteSourceTypes eVS) const; // advc.115b

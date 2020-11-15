@@ -21,11 +21,11 @@ public:
 	static void initStatics();
 	static void freeStatics(); // </advc.003u>
 
-	// <dlph.26>
+	// <kekm.26>
 	static void queueWar(TeamTypes eAttackingTeam, TeamTypes eDefendingTeam,
 			bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDOW = true);
 	static void triggerWars(/* advc: */ bool bForceUpdateAttitude = false);
-	// </dlph.26>
+	// </kekm.26>
 
 	explicit CvTeam(TeamTypes eID);
 	virtual ~CvTeam();
@@ -84,7 +84,7 @@ public:
 	//int getWarPlanCount(WarPlanTypes eWarPlan, bool bIgnoreMinors = true) const;
 	int getHasMetCivCount(bool bIgnoreMinors = true) const;																		// Exposed to Python
 
-	bool allWarsShared(TeamTypes eOther, // dlph.3
+	bool allWarsShared(TeamTypes eOther, // kekm.3
 			/*  advc.130f: If false, check only if the war enemies of this team
 				are included in those of otherId (set inclusion). */
 			bool bCheckBothWays = true) const;
@@ -122,7 +122,6 @@ public:
 	bool hasHeadquarters(CorporationTypes eCorporation) const;																		// Exposed to Python
 	bool hasBonus(BonusTypes eBonus) const;
 	bool isBonusObsolete(BonusTypes eBonus) const;
-	bool canSeeReqBonuses(UnitTypes eUnit); // advc.301
 
 	bool isHuman() const;																																// Exposed to Python
 	// advc: (The Barbarians aren't a proper civ)
@@ -145,7 +144,7 @@ public:
 
 	// advc.inl: In-line definitions for most of the get..Count and is... functions below
 	int getAliveCount() const { return m_iAliveCount; } // advc.155: Exposed to Python
-	inline int isAlive() const { return (m_iAliveCount > 0); }																// Exposed to Python
+	inline bool isAlive() const { return (m_iAliveCount > 0); }																// Exposed to Python
 	void changeAliveCount(int iChange);
 
 	inline int getEverAliveCount() const { return m_iEverAliveCount; }			
@@ -251,14 +250,15 @@ public:
 	int getExtraMoves(DomainTypes eIndex) const;																				// Exposed to Python
 	void changeExtraMoves(DomainTypes eIndex, int iChange);								// Exposed to Python
 
-	inline bool isHasMet(TeamTypes eIndex) const // advc.inl													// Exposed to Python
+	inline bool isHasMet(TeamTypes eOther) const // advc.inl													// Exposed to Python
 	{
-		return m_abHasMet.get(eIndex);
+		return (m_aiHasMetTurn.get(eOther) >= 0); // advc.091
 	}
-	void makeHasMet(TeamTypes eIndex, bool bNewDiplo,
+	int getHasMetTurn(TeamTypes eOther) { return m_aiHasMetTurn.get(eOther); } // advc.091  (exposed to Python)
+	void makeHasMet(TeamTypes eOther, bool bNewDiplo,
 			FirstContactData* pData = NULL); // advc.071
-	bool isHasSeen(TeamTypes eIndex) const { return m_abHasSeen.get(eIndex); }; // K-Mod
-	void makeHasSeen(TeamTypes eIndex) { m_abHasSeen.set(eIndex, true); }; // K-Mod
+	bool isHasSeen(TeamTypes eOther) const { return m_abHasSeen.get(eOther); }; // K-Mod
+	void makeHasSeen(TeamTypes eOther) { m_abHasSeen.set(eOther, true); }; // K-Mod
 	// <advc.134a>
 	bool isAtWarExternal(TeamTypes eIndex) const; // Exported through .def file
 	inline bool isAtWar(TeamTypes eIndex) const																	// Exposed to Python
@@ -435,6 +435,7 @@ public:
 	int getEspionagePointsAgainstTeam(TeamTypes eIndex) const;																							// Exposed to Python
 	void setEspionagePointsAgainstTeam(TeamTypes eIndex, int iValue);																							// Exposed to Python
 	void changeEspionagePointsAgainstTeam(TeamTypes eIndex, int iChange);																				// Exposed to Python
+	bool canSeeTech(TeamTypes eOther) const; // advc.120d
 
 	int getTotalUnspentEspionage() const; // K-Mod
 
@@ -564,12 +565,12 @@ protected:
 	EnumMap<TechTypes,int> m_aiTechCount;
 	EnumMap<TerrainTypes,int> m_aiTerrainTradeCount;
 	EnumMapDefault<VictoryTypes,int,-1> m_aiVictoryCountdown;
+	EnumMapDefault<TeamTypes,short,-1> m_aiHasMetTurn; // advc.091
 
 	EnumMap2D<ImprovementTypes,YieldTypes,int> m_aaiImprovementYieldChange; // Should make this <...,char>
 
 	EnumMap<TeamTypes,bool> m_abAtWar;
 	EnumMap<TeamTypes,bool> m_abJustDeclaredWar; // advc.162
-	EnumMap<TeamTypes,bool> m_abHasMet;
 	EnumMap<TeamTypes,bool> m_abHasSeen; // K-Mod
 	EnumMap<TeamTypes,bool> m_abPermanentWarPeace;
 	EnumMap<TeamTypes,bool> m_abOpenBorders;
@@ -588,14 +589,14 @@ protected:
 	mutable int m_iPeaceOfferStage;
 	// </advc.134a>
 
-	// <dlph.26>
+	// <kekm.26>
 	static std::queue<TeamTypes> attacking_queue;
 	static std::queue<TeamTypes> defending_queue;
 	static std::queue<bool> newdiplo_queue;
 	static std::queue<WarPlanTypes> warplan_queue;
 	static std::queue<bool> primarydow_queue;
 	static bool bTriggeringWars;
-	// </dlph.26>
+	// </kekm.26>
 
 	void uninit();
 
@@ -607,8 +608,9 @@ protected:
 
 	void processTech(TechTypes eTech, int iChange, /* advc.121: */ bool bEndOfTurn);
 
+	void triggerDefensivePacts(TeamTypes eTarget, bool bNewDiplo, bool bPrimary); // advc
 	void cancelDefensivePacts();
-	void allowDefensivePactsToBeCanceled(); // dlph.3
+	void allowDefensivePactsToBeCanceled(); // kekm.3
 	// <advc.003m>
 	// New name for BBAI's getAtWarCount
 	int countWarEnemies(bool bIgnoreMinors = true, bool bIgnoreVassals = false) const;

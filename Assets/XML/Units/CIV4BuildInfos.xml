@@ -4,7 +4,7 @@
 <!-- Copyright Firaxis Games 2005 -->
 <!-- -->
 <!-- Build Infos -->
-<!-- dlph.9: Added FeatureStruct FALLOUT to all 12 non-route builds.
+<!-- kekm.9: Added FeatureStruct FALLOUT to all 12 non-route builds.
 	 (XML parser fails if I place comments inside FeatureStructs to mark these
 	 changes.) -->
 <Civ4BuildInfos xmlns="x-schema:CIV4UnitSchema.xml">

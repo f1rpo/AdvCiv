@@ -96,7 +96,7 @@ bool CvDllTranslator::replaceOur(const CvWString& szKey, int iForm, CvWString& s
 	}
 	else
 	{
-		FAssertMsg(false, "Unknown Diplomacy String");
+		FErrorMsg("Unknown Diplomacy String");
 		return false;
 	}
 	return true;
@@ -135,7 +135,7 @@ bool CvDllTranslator::replaceCt(const CvWString& szKey, int iForm, CvWString& sz
 	}
 	else
 	{
-		FAssertMsg(false, "Unknown Diplomacy String");
+		FErrorMsg("Unknown Diplomacy String");
 		return false;
 	}
 	return true;

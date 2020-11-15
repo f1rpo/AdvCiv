@@ -221,7 +221,8 @@
 			<iPlayer>100</iPlayer>
 			<iTilesPer>256</iTilesPer>
 			<iMinLandPercent>0</iMinLandPercent>
-			<iUnique>6</iUnique>
+			<!-- advc.129: was 6 -->
+			<iUnique>5</iUnique>
 			<iGroupRange>0</iGroupRange>
 			<iGroupRand>0</iGroupRand>
 			<bArea>0</bArea>
@@ -400,7 +401,8 @@
 			<iPlayer>150</iPlayer>
 			<iTilesPer>512</iTilesPer>
 			<iMinLandPercent>70</iMinLandPercent>
-			<iUnique>7</iUnique>
+			<!-- advc-129: was 7 -->
+			<iUnique>6</iUnique>
 			<iGroupRange>0</iGroupRange>
 			<iGroupRand>0</iGroupRand>
 			<bArea>0</bArea>
@@ -606,13 +608,15 @@
 			<iHealth>1</iHealth>
 			<iHappiness>0</iHappiness>
 			<iPlacementOrder>4</iPlacementOrder>
-			<iConstAppearance>50</iConstAppearance>
+			<!-- advc.129: was 50 -->
+			<iConstAppearance>60</iConstAppearance>
 			<iMinAreaSize>3</iMinAreaSize>
 			<iMinLatitude>0</iMinLatitude>
 			<iMaxLatitude>90</iMaxLatitude>
+			<!-- advc.129: was 25, 25 -->
 			<Rands>
-				<iRandApp1>25</iRandApp1>
-				<iRandApp2>25</iRandApp2>
+				<iRandApp1>15</iRandApp1>
+				<iRandApp2>15</iRandApp2>
 				<iRandApp3>0</iRandApp3>
 				<iRandApp4>0</iRandApp4>
 			</Rands>
@@ -820,7 +824,8 @@
 			<iPlacementOrder>6</iPlacementOrder>
 			<iConstAppearance>50</iConstAppearance>
 			<iMinAreaSize>10</iMinAreaSize>
-			<iMinLatitude>40</iMinLatitude>
+			<!-- advc.129: was 40 -->
+			<iMinLatitude>25</iMinLatitude>
 			<iMaxLatitude>90</iMaxLatitude>
 			<Rands>
 				<iRandApp1>25</iRandApp1>
@@ -926,18 +931,21 @@
 			<iHealth>1</iHealth>
 			<iHappiness>0</iHappiness>
 			<iPlacementOrder>6</iPlacementOrder>
-			<iConstAppearance>50</iConstAppearance>
+			<!-- advc.129: was 50 -->
+			<iConstAppearance>60</iConstAppearance>
 			<iMinAreaSize>10</iMinAreaSize>
 			<iMinLatitude>0</iMinLatitude>
 			<iMaxLatitude>90</iMaxLatitude>
+			<!-- advc.129: was 25,25 -->
 			<Rands>
-				<iRandApp1>25</iRandApp1>
-				<iRandApp2>25</iRandApp2>
+				<iRandApp1>15</iRandApp1>
+				<iRandApp2>15</iRandApp2>
 				<iRandApp3>0</iRandApp3>
 				<iRandApp4>0</iRandApp4>
 			</Rands>
 			<iPlayer>0</iPlayer>
-			<iTilesPer>32</iTilesPer>
+			<!-- advc.129: was 32 -->
+			<iTilesPer>35</iTilesPer>
 			<iMinLandPercent>0</iMinLandPercent>
 			<iUnique>1</iUnique>
 			<iGroupRange>0</iGroupRange>
@@ -1341,7 +1349,8 @@
 			<iMinLandPercent>0</iMinLandPercent>
 			<iUnique>0</iUnique>
 			<iGroupRange>1</iGroupRange>
-			<iGroupRand>25</iGroupRand>
+			<!-- advc.129: was 25 -->
+			<iGroupRand>17</iGroupRand>
 			<!-- advc.129: was 1 -->
 			<bArea>0</bArea>
 			<bHills>1</bHills>
@@ -1404,7 +1413,8 @@
 			<bHills>1</bHills>
 			<bFlatlands>0</bFlatlands>
 			<bNoRiverSide>0</bNoRiverSide>
-			<bNormalize>1</bNormalize>
+			<!-- advc.108: was 1 -->
+			<bNormalize>0</bNormalize>
 			<!-- advc.129: Added SNOW -->
 			<TerrainBooleans>
 				<TerrainBoolean>
@@ -1506,7 +1516,8 @@
 			<iMinLandPercent>0</iMinLandPercent>
 			<iUnique>0</iUnique>
 			<iGroupRange>1</iGroupRange>
-			<iGroupRand>50</iGroupRand>
+			<!-- advc.129: was 50 -->
+			<iGroupRand>36</iGroupRand>
 			<bArea>1</bArea>
 			<bHills>0</bHills>
 			<bFlatlands>1</bFlatlands>
@@ -1625,12 +1636,13 @@
 				<iRandApp4>0</iRandApp4>
 			</Rands>
 			<!-- advc.129: was 67 -->
-			<iPlayer>88</iPlayer>
+			<iPlayer>78</iPlayer>
 			<iTilesPer>0</iTilesPer>
 			<iMinLandPercent>0</iMinLandPercent>
 			<iUnique>0</iUnique>
 			<iGroupRange>1</iGroupRange>
-			<iGroupRand>25</iGroupRand>
+			<!-- advc.129: was 25 -->
+			<iGroupRand>12</iGroupRand>
 			<!-- advc.129: was 1 -->
 			<bArea>0</bArea>
 			<bHills>1</bHills>

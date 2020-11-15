@@ -57,6 +57,8 @@ void CyGlobalContextPythonInterface2(python::class_<CyGlobalContext>& x)
 		.def("getFIELD_OF_VIEW", &CyGlobalContext::getFIELD_OF_VIEW, "float ()")
 		.def("getSHADOW_SCALE", &CyGlobalContext::getSHADOW_SCALE, "float ()")
 		.def("getUNIT_MULTISELECT_DISTANCE", &CyGlobalContext::getUNIT_MULTISELECT_DISTANCE, "float ()")
+		// advc.004m:
+		.def("updateCameraStartDistance", &CyGlobalContext::updateCameraStartDistance, "void (bReset)")
 
 		.def("getMAX_CIV_PLAYERS", &CyGlobalContext::getMAX_CIV_PLAYERS, "int ()")
 		.def("getMAX_PLAYERS", &CyGlobalContext::getMAX_PLAYERS, "int ()")

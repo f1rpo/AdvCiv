@@ -162,6 +162,7 @@
     <ClCompile Include="..\CyTeamInterface.cpp" />
     <ClCompile Include="..\CyUnit.cpp" />
     <ClCompile Include="..\CyUnitInterface1.cpp" />
+    <ClCompile Include="..\FAStarFunc.cpp" />
     <ClCompile Include="..\ReproTest.cpp" />
     <ClCompile Include="..\EnumMapTest.cpp" />
     <ClCompile Include="..\FDialogTemplate.cpp" />
@@ -177,8 +178,9 @@
     <ClCompile Include="..\RFChapterScore.cpp" />
     <ClCompile Include="..\RFTotalScore.cpp" />
     <ClCompile Include="..\RiseFall.cpp" />
-    <ClCompile Include="..\ScaledIntTest.cpp" />
+    <ClCompile Include="..\ScaledNumTest.cpp" />
     <ClCompile Include="..\Shelf.cpp" />
+    <ClCompile Include="..\StartingPositionIteration.cpp" />
     <ClCompile Include="..\StartPointsAsHandicap.cpp" />
     <ClCompile Include="..\TSCProfiler.cpp" />
     <ClCompile Include="..\UWAIAgent.cpp" />
@@ -198,6 +200,7 @@
     <ClInclude Include="..\ArmamentForecast.h" />
     <ClInclude Include="..\BBAILog.h" />
     <ClInclude Include="..\BitUtil.h" />
+    <ClInclude Include="..\BoostPythonPCH.h" />
     <ClInclude Include="..\CityPlotIterator.h" />
     <ClInclude Include="..\CitySiteEvaluator.h" />
     <ClInclude Include="..\CoreAI.h" />
@@ -215,7 +218,6 @@
     <ClInclude Include="..\CvDLLEngineIFaceBase.h" />
     <ClInclude Include="..\CvDLLEntity.h" />
     <ClInclude Include="..\CvDLLEntityIFaceBase.h" />
-    <ClInclude Include="..\CvDLLEventReporterIFaceBase.h" />
     <ClInclude Include="..\CvDLLFAStarIFaceBase.h" />
     <ClInclude Include="..\CvDLLFlagEntityIFaceBase.h" />
     <ClInclude Include="..\CvDLLIniParserIFaceBase.h" />
@@ -264,6 +266,7 @@
     <ClInclude Include="..\CvInitCore.h" />
     <ClInclude Include="..\CvMap.h" />
     <ClInclude Include="..\CvMapGenerator.h" />
+    <ClInclude Include="..\CvMemoryManager.h" />
     <ClInclude Include="..\CvMessageControl.h" />
     <ClInclude Include="..\CvMessageData.h" />
     <ClInclude Include="..\CvPlayer.h" />
@@ -307,6 +310,10 @@
     <ClInclude Include="..\CySelectionGroup.h" />
     <ClInclude Include="..\CyTeam.h" />
     <ClInclude Include="..\CyUnit.h" />
+    <ClInclude Include="..\FAStarFunc.h" />
+    <ClInclude Include="..\GameBryo.h" />
+    <ClInclude Include="..\LinkedListTraversal.h" />
+    <ClInclude Include="..\PragmaWarnings.h" />
     <ClInclude Include="..\ReproTest.h" />
     <ClInclude Include="..\EnumMap.h" />
     <ClInclude Include="..\EnumMap2D.h" />
@@ -327,7 +334,9 @@
     <ClInclude Include="..\MilitaryBranch.h" />
     <ClInclude Include="..\PlotRadiusIterator.h" />
     <ClInclude Include="..\PlotRange.h" />
-    <ClInclude Include="..\ScaledInt.h" />
+    <ClInclude Include="..\ScaledNum.h" />
+    <ClInclude Include="..\StartingPositionIteration.h" />
+    <ClInclude Include="..\Trigonometry.h" />
     <ClInclude Include="..\TSCProfiler.h" />
     <ClInclude Include="..\TypeChoice.h" />
     <ClInclude Include="..\UWAISets.h" />

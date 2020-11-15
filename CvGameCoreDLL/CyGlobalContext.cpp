@@ -37,14 +37,14 @@ bool CyGlobalContext::isDebugBuild() const
 
 CyGame* CyGlobalContext::getCyGame() const
 {
-	static CyGame cyGame(&GC.getGame());
+	static CyGame cyGame(GC.getGame());
 	return &cyGame;
 }
 
 
 CyMap* CyGlobalContext::getCyMap() const
 {
-	static CyMap cyMap(&GC.getMap());
+	static CyMap cyMap(GC.getMap());
 	return &cyMap;
 }
 
@@ -98,7 +98,7 @@ CyTeam* CyGlobalContext::getCyTeam(int i)
 
 	return i<MAX_TEAMS ? &cyTeams[i] : NULL;
 }
-// <dlph.27> (advc)
+// <kekm.27> (advc)
 bool CyGlobalContext::isLogging() {
 
 	return GC.isLogging();
@@ -107,7 +107,7 @@ bool CyGlobalContext::isLogging() {
 bool CyGlobalContext::isRandLogging() {
 
 	return GC.isRandLogging();
-} // </dlph.27>
+} // </kekm.27>
 
 CvEffectInfo* CyGlobalContext::getEffectInfo(int /*EffectTypes*/ i) const
 {

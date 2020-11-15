@@ -208,7 +208,8 @@
 			<iImprovementPercent>67</iImprovementPercent>
 			<iGreatPeoplePercent>67</iGreatPeoplePercent>
 			<iCulturePercent>67</iCulturePercent>
-			<iAnarchyPercent>67</iAnarchyPercent>
+			<!-- advc.912e (from Civ 4 Reimagined): was 66 -->
+			<iAnarchyPercent>75</iAnarchyPercent>
 			<iBarbPercent>67</iBarbPercent>
 			<iFeatureProductionPercent>67</iFeatureProductionPercent>
 			<iUnitDiscoverPercent>67</iUnitDiscoverPercent>

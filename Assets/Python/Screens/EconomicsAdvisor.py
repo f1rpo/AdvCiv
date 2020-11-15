@@ -504,11 +504,11 @@ class EconomicsAdvisor:
 		szText = localText.getText("TXT_KEY_GW_SEVERITY_RATING", ()).upper() + ": "
 
 		# hopefully the words for low, medium, and high for sealevel will be good enough for GW severity as well...
-		# advc.137: Not anymore: One instance of SEALEVEL_LOW and SEALEVEL_HIGH replaced.
+		# advc.137: Better use separate keys
 		if (iSeverityRating < 30):
 			szText += localText.getColorText("TXT_KEY_LOW", (), gc.getInfoTypeForString ("COLOR_GREEN")).upper()
 		elif (iSeverityRating < 75):
-			szText += localText.getColorText("TXT_KEY_SEALEVEL_MEDIUM", (), gc.getInfoTypeForString ("COLOR_YELLOW")).upper()
+			szText += localText.getColorText("TXT_KEY_MEDIUM", (), gc.getInfoTypeForString ("COLOR_YELLOW")).upper()
 		else:
 			szText += localText.getColorText("TXT_KEY_HIGH", (), gc.getInfoTypeForString ("COLOR_RED")).upper()
 

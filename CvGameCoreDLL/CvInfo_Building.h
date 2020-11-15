@@ -248,11 +248,8 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 	bool isAllowsNukes() const { return m_bAllowsNukes; }
 
 	const TCHAR* getConstructSound() const;
-	void setConstructSound(const TCHAR* szVal);
 	const TCHAR* getArtDefineTag() const;
-	void setArtDefineTag(const TCHAR* szVal);
 	const TCHAR* getMovieDefineTag() const;
-	void setMovieDefineTag(const TCHAR* szVal);
 
 	// Array access:
 	friend void CyInfoPythonInterface1(); // advc.003x
@@ -370,7 +367,7 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 
 	bool nameNeedsArticle() const; // advc.008e
 
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase*);
 	void write(FDataStreamBase*);
 	#endif
@@ -480,6 +477,7 @@ protected:
 	bool m_bDirtyPower;
 	bool m_bAreaCleanPower;
 	bool m_bAreaBorderObstacle;
+	bool m_bConditional; // advc.310
 	bool m_bForceTeamVoteEligible;
 	bool m_bCapital;
 	bool m_bGovernmentCenter;
@@ -557,24 +555,24 @@ protected:
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvSpecialBuildingInfo : public CvInfoBase
 {
-public: // All the const functions are exposed to Python
+public: // All the const functions are exposed to Python. advc.inl: Inlined the non-array getters.
 	CvSpecialBuildingInfo();
 	virtual ~CvSpecialBuildingInfo();
 
-	int getObsoleteTech() const;
-	int getTechPrereq() const;
-	int getTechPrereqAnyone() const;
+	TechTypes getObsoleteTech() const { return m_eObsoleteTech; }
+	TechTypes getTechPrereq() const { return m_eTechPrereq; }
+	TechTypes getTechPrereqAnyone() const { return m_eTechPrereqAnyone; }
 
-	bool isValid() const;
+	bool isValid() const { return m_bValid; }
 
 	int getProductionTraits(int i) const;
 
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:
-	int m_iObsoleteTech;
-	int m_iTechPrereq;
-	int m_iTechPrereqAnyone;
+	TechTypes m_eObsoleteTech;
+	TechTypes m_eTechPrereq;
+	TechTypes m_eTechPrereqAnyone;
 
 	bool m_bValid;
 

@@ -1230,7 +1230,8 @@ class TerrainGenerator:
 	# </advc.129c>
 	
 class FeatureGenerator:
-	def __init__(self, iJunglePercent=80, iForestPercent=60,
+	# advc.108: Default iForestPercent lowered from 60 - to compensate for fewer forests placed during normalization. (Smaller percentage leads to more forests.)
+	def __init__(self, iJunglePercent=80, iForestPercent=57,
 				 jungle_grain=5, forest_grain=6, 
 				 fracXExp=-1, fracYExp=-1):
 		

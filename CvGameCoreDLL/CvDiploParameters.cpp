@@ -1,6 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvDiploParameters.h"
 #include "CvGamePlay.h"
+#include "FVariableSystem.h" // advc (moved from header)
 
 
 CvDiploParameters::CvDiploParameters(PlayerTypes ePlayer) :

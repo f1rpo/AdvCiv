@@ -8,48 +8,25 @@
 PopupReturn::PopupReturn(const PopupReturn &popupReturn)
 {
 	// advc: (and original code commented out)
-	FAssertMsg(false, "PopupReturn copy-constructor not implemented");
+	FErrorMsg("PopupReturn copy-constructor not implemented");
 	/*int iI;
 
 	for (iI = 0; iI < popupReturn.getRadioButtonSize(); iI++)
-	{
 		CvPopup_SetAtGrow(m_aiSelectedRadioButton, iI, popupReturn.getSelectedRadioButton(iI));
-	}
-
 	for (iI = 0; iI < popupReturn.getCheckboxSize(); iI++)
-	{
 		CvPopup_SetAtGrow(m_aiBitField, iI, popupReturn.getCheckboxBitfield(iI));
-	}
-
 	for (iI = 0; iI < popupReturn.getEditboxSize(); iI++)
-	{
 		CvPopup_SetAtGrow(m_aszEditBoxString, iI, popupReturn.getEditBoxString(iI));
-	}
-
 	for (iI = 0; iI < popupReturn.getSpinnerWidsize(); iI++)
-	{
 		CvPopup_SetAtGrow(m_aiSpinnerWidgetValues, iI, popupReturn.getSpinnerWidgetValue(iI));
-	}
-
 	for (iI = 0; iI < popupReturn.getPulldownSize(); iI++)
-	{
 		CvPopup_SetAtGrow(m_aiPulldownID, iI, popupReturn.getSelectedPullDownValue(iI));
-	}
-
 	for (iI = 0; iI < popupReturn.getListBoxSize(); iI++)
-	{
 		CvPopup_SetAtGrow(m_aiListBoxID, iI, popupReturn.getSelectedListBoxValue(iI));
-	}
-
 	for (iI = 0; iI < popupReturn.getSpinBoxSize(); iI++)
-	{
 		CvPopup_SetAtGrow(m_aiSpinBoxID, iI, popupReturn.getSpinnerWidgetValue(iI));
-	}
-
 	for (iI = 0; iI < popupReturn.getButtonSize(); iI++)
-	{
-		CvPopup_SetAtGrow(m_aiButtonID, iI, popupReturn.getButtonClicked(iI));
-	}*/
+		CvPopup_SetAtGrow(m_aiButtonID, iI, popupReturn.getButtonClicked(iI));*/
 }
 
 // Assignment operator

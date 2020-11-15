@@ -40,11 +40,12 @@ class AIAutoPlay :
 		self.customEM = customEM
 
 		self.customEM.addEventHandler( "kbdEvent", self.onKbdEvent )
-		self.customEM.addEventHandler( "EndGameTurn", self.onEndGameTurn )
+		# advc: Disable unused handler
+		#self.customEM.addEventHandler( "EndGameTurn", self.onEndGameTurn )
+		#self.customEM.addEventHandler( 'OnLoad', self.onGameLoad )
+		#self.customEM.addEventHandler( 'GameStart', self.onGameStart )
 		self.customEM.addEventHandler( 'BeginPlayerTurn', self.onBeginPlayerTurn )
 		self.customEM.addEventHandler( 'EndPlayerTurn', self.onEndPlayerTurn )
-		self.customEM.addEventHandler( 'OnLoad', self.onGameLoad )
-		self.customEM.addEventHandler( 'GameStart', self.onGameStart )
 		self.customEM.addEventHandler( 'victory', self.onVictory )
 		self.customEM.addEventHandler( 'AutoPlayComplete', self.onAutoPlayComplete ) # Erik (BM1)
 
@@ -75,11 +76,12 @@ class AIAutoPlay :
 		print "Removing event handlers from AIAutoPlay"
 		
 		self.customEM.removeEventHandler( "kbdEvent", self.onKbdEvent )
-		self.customEM.removeEventHandler( "EndGameTurn", self.onEndGameTurn )
+		# advc: Disable unused handlers
+		#self.customEM.removeEventHandler( "EndGameTurn", self.onEndGameTurn )
+		#self.customEM.removeEventHandler( 'OnLoad', self.onGameLoad )
+		#self.customEM.removeEventHandler( 'GameStart', self.onGameStart )
 		self.customEM.removeEventHandler( 'BeginPlayerTurn', self.onBeginPlayerTurn )
 		self.customEM.removeEventHandler( 'EndPlayerTurn', self.onEndPlayerTurn )
-		self.customEM.removeEventHandler( 'OnLoad', self.onGameLoad )
-		self.customEM.removeEventHandler( 'GameStart', self.onGameStart )
 		self.customEM.removeEventHandler( 'victory', self.onVictory )
 		self.customEM.addEventHandler( 'AutoPlayComplete', self.onAutoPlayComplete ) # Erik (BM1)
 
@@ -97,23 +99,22 @@ class AIAutoPlay :
 		# Dummy handler to take the second event for popup
 		return
 
+	# advc: Disable unused handlers
+	#def onGameStart( self, argsList ) :
+	#	self.onGameLoad([])
 
-	def onGameStart( self, argsList ) :
-		self.onGameLoad([])
+	#def onGameLoad( self, argsList ) :
+	#	# Init things which require a game object or other game data to exist
+	#	pass
 
-	def onGameLoad( self, argsList ) :
-		# Init things which require a game object or other game data to exist
-
-		pass
+	#def onEndGameTurn( self, argsList ) :
+	#	if( game.getAIAutoPlay() == 1 ) :
+	#		# About to turn off automation
+	#		pass
 
 	def onVictory( self, argsList ) :
 		self.checkPlayer()
 		game.setAIAutoPlay(0)
-		
-	def onEndGameTurn( self, argsList ) :
-		if( game.getAIAutoPlay() == 1 ) :
-			# About to turn off automation
-			pass
 
 	def pickHumanHandler( self, iPlayerID, netUserData, popupReturn ) :
 
@@ -190,8 +191,10 @@ class AIAutoPlay :
 			if gc.getPlayer(y).isAlive():
 				preceding = y
 				break
-		if preceding > disabledHuman: # If turn order wraps around
-			turnsLeftTarget = 1
+		if preceding > disabledHuman:
+			# This wrap-around check doesn't work correctly in network games; I guess b/c multiple players execute it.
+			if not game.isNetworkMultiPlayer():
+				turnsLeftTarget = 1
 		if turnsLeft <= turnsLeftTarget and iPlayer == preceding:
 			# </advc.127>
 			# About to turn off automation
@@ -200,8 +203,8 @@ class AIAutoPlay :
 	def checkPlayer( self ) :
 		
 		pPlayer = gc.getActivePlayer()
-		# advc.127: Unit check added to avoid multiple popups. Note however: Normally, CvPlayer::verifyAlive automatically transfers human control to a different player when the active player is defeated. The popup here remains only as a fallback.
-		if( not pPlayer.isAlive() and pPlayer.getNumUnits() <= 0 ) :
+		# advc.127: Unit check added to avoid multiple popups. Note however: Normally, CvPlayer::verifyAlive automatically transfers human control to a different player when the active player is defeated. The popup here remains only as a fallback. Also added not-human check - should obviously only affect AI Auto Play. Don't know if and how that was working previously.
+		if not pPlayer.isAlive() and pPlayer.getNumUnits() <= 0 and not pPlayer.isHuman():
 			popup = PyPopup.PyPopup(7052,contextType = EventContextTypes.EVENTCONTEXT_ALL)
 			popup.setHeaderString( localText.getText("TXT_KEY_AIAUTOPLAY_PICK_CIV", ()) )
 			popup.setBodyString( localText.getText("TXT_KEY_AIAUTOPLAY_CIV_DIED", ()) )
@@ -286,13 +289,14 @@ class AIAutoPlay :
 		'City Built'
 		city = argsList[0]
 		#if (city.getOwner() == CyGame().getActivePlayer() and game.getAIAutoPlay() == 0 ):
-		if (game.getAIAutoPlay() == 0): # K-Mod. Some mods may use the event for other player's cities too.
-				self.customEM.onCityBuilt(argsList)
-		else :
-				try :
-					CvUtil.pyPrint('City Built Event: %s' %(city.getName()))
-				except :
-					CvUtil.pyPrint('City Built Event: Error processing city name' )
+		# K-Mod. Some mods may use the event for other player's cities too.
+		if (game.getAIAutoPlay() == 0):
+			self.customEM.onCityBuilt(argsList)
+		else:
+			try :
+				CvUtil.pyPrint('City Built Event: %s' %(city.getName()))
+			except :
+				CvUtil.pyPrint('City Built Event: Error processing city name' )
 
 
 	def toAIChooser( self ) :

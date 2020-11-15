@@ -14,9 +14,8 @@
 // advc.003x: Include this with the other info classes that aren't needed in the DLL
 #include "CvInfo_Water.h"
 
-// advc: Appear to be unnecessary; perhaps needed for compiling the EXE.
-//#pragma warning(disable: 4251) // "needs to have dll-interface to be used by clients of class"
-//#pragma warning(disable: 4127)
+/*#pragma warning(disable: 251)
+#pragma warning(disable: 127)*/ // advc.make: Handled by PCH
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // class	: CvUnitFormationInfo
@@ -79,9 +78,7 @@ public: // All const functions are exposed to Python
 	CvRiverModelInfo();
 
 	DllExport const TCHAR* getModelFile() const; // The model filename
-	void setModelFile(const TCHAR* szVal);
 	DllExport const TCHAR* getBorderFile() const; // The border filename
-	void setBorderFile(const TCHAR* szVal);
 
 	DllExport int getTextureIndex() const; // (not exposed to Python)
 	DllExport const TCHAR* getDeltaString() const; // The delta type
@@ -113,11 +110,8 @@ public: // All the const functions are exposed to Python
 	DllExport RouteTypes getRouteType() const; // The route type
 
 	DllExport const TCHAR* getModelFile() const; // The model filename
-	void setModelFile(const TCHAR* szVal);
 	DllExport const TCHAR* getLateModelFile() const; // The model filename
-	void setLateModelFile(const TCHAR* szVal);
 	const TCHAR* getModelFileKey() const; // The model file key reference
-	void setModelFileKey(const TCHAR* szVal);
 
 	DllExport bool isAnimated() const;
 	// The connections this cell makes ( N S E W NE NW SE SW )
@@ -149,7 +143,6 @@ class CvAdvisorInfo : public CvInfoBase
 {
 public:
 	const TCHAR* getTexture() const; // Exposed to Python
-	void setTexture(const TCHAR* szVal);
 	int getNumCodes() const;
 	int getEnableCode(uint uiCode) const;
 	int getDisableCode(uint uiCode) const;
@@ -198,15 +191,10 @@ public:
 	CvThroneRoomInfo();
 
 	DllExport const TCHAR* getEvent();
-	void setEvent(const TCHAR* szVal);
 	DllExport const TCHAR* getNodeName();
-	void setNodeName(const TCHAR* szVal);
 	DllExport int getFromState();
-	void setFromState(int iVal);
 	DllExport int getToState();
-	void setToState(int iVal);
 	DllExport int getAnimation();
-	void setAnimation(int iVal);
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -226,11 +214,8 @@ class CvThroneRoomStyleInfo : public CvInfoBase
 {
 public:
 	DllExport const TCHAR* getArtStyleType();
-	void setArtStyleType(const TCHAR* szVal);
 	DllExport const TCHAR* getEraType();
-	void setEraType(const TCHAR* szVal);
 	DllExport const TCHAR* getFileName();
-	void setFileName(const TCHAR* szVal);
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -286,9 +271,7 @@ class CvWorldPickerInfo : public CvInfoBase
 {
 public:
 	DllExport const TCHAR* getMapName();
-	void setMapName(const TCHAR* szVal);
 	DllExport const TCHAR* getModelFile();
-	void setModelFile(const TCHAR* szVal);
 	DllExport int getNumSizes();
 	DllExport float getSize(int index);
 	DllExport int getNumClimates();
@@ -318,7 +301,6 @@ public:
 	CvSpaceShipInfo();
 
 	DllExport const TCHAR* getNodeName();
-	void setNodeName(const TCHAR* szVal);
 	DllExport const TCHAR* getProjectName();
 	void setProjectName(const TCHAR* szVal);
 	DllExport ProjectTypes getProjectType();
@@ -542,7 +524,7 @@ public:
 			SAFE_DELETE_ARRAY(m_pbDiplomacyPowerTypes);
 			SAFE_DELETE_ARRAY(m_paszDiplomacyText);
 		}
-		#if SERIALIZE_CVINFOS
+		#if ENABLE_XML_FILE_CACHE
 		void read(FDataStreamBase* stream);
 		void write(FDataStreamBase* stream);
 		#endif
@@ -572,7 +554,7 @@ public:
 	int getNumDiplomacyText(int i) const;
 	const TCHAR* getDiplomacyText(int i, int j) const;
 
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif
@@ -725,11 +707,6 @@ public:
 	const TCHAR* getImage() const;
 	const TCHAR* getSound() const;
 
-	void setText(const TCHAR* szText);
-	void setImage(const TCHAR* szText);
-	void setSound(const TCHAR* szText);
-	void setScript(int iIndex, const TCHAR* szText);
-
 	int getNumTutorialScripts() const;
 	const TCHAR* getTutorialScriptByIndex(int i) const;
 	bool read(CvXMLLoadUtility* pXML);
@@ -751,7 +728,6 @@ public:
 	virtual ~CvTutorialInfo();
 
 	const TCHAR* getNextTutorialInfoType();
-	void setNextTutorialInfoType(const TCHAR* szVal);
 
 	bool initTutorialMessages(int iNum);
 	void resetMessages();

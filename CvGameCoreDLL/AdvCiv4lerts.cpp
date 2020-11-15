@@ -2,7 +2,6 @@
 
 #include "CvGameCoreDLL.h"
 #include "AdvCiv4lerts.h"
-#include "CvInfo_Unit.h"
 #include "CvInfo_Terrain.h"
 #include "CoreAI.h"
 #include "CvDeal.h"
@@ -82,22 +81,29 @@ void WarTradeAlert::check()
 				owner.canContact(warTeam.getLeaderID(), true));
 		std::vector<TeamTypes> willTradeMsgTeams;
 		std::vector<TeamTypes> noLongerTradeMsgTeams;
+		bool nowTooManyWars = false; // Only relevant when UWAI is disabled
 		for(int j = 0; j < MAX_CIV_TEAMS; j++)
 		{
 			CvTeam const& victim = GET_TEAM((TeamTypes)j);
-			bool newValue = (valid && victim.isAlive() && !victim.isAVassal() &&
+			bool otherValid = (valid && victim.isAlive() && !victim.isAVassal() &&
 					!victim.isMinorCiv() && victim.getID() != owner.getTeam() &&
 					victim.getID() != warTeam.getID() &&
 					!warTeam.isAtWar(victim.getID()) &&
 					GET_TEAM(owner.getTeam()).isHasMet(victim.getID()) &&
 					// Can't suggest war trade otherwise
-					warTeam.isOpenBordersTrading() &&
-					warTeam.AI_declareWarTrade(victim.getID(), owner.getTeam()) ==
-					NO_DENIAL);
-			if(newValue == willWar[i][j])
+					warTeam.isOpenBordersTrading());
+			DenialTypes tradeDenial = (otherValid ? warTeam.AI_declareWarTrade(
+					victim.getID(), owner.getTeam()) : NO_DENIAL);
+			bool willNowWar = (otherValid && tradeDenial == NO_DENIAL);
+			if (!getUWAI.isEnabled() && otherValid && !nowTooManyWars &&
+				tradeDenial == DENIAL_TOO_MANY_WARS && warTeam.getNumWars() <= 0)
+			{
+				nowTooManyWars = true;
+			}
+			if(willNowWar == willWar[i][j])
 				continue;
-			willWar[i][j] = newValue;
-			if(newValue)
+			willWar[i][j] = willNowWar;
+			if(willNowWar)
 				willTradeMsgTeams.push_back(victim.getID());
 			/*  Obviously can't hire warTeam if it has already declared war
 				or if victim has been eliminated. */
@@ -105,19 +111,27 @@ void WarTradeAlert::check()
 				noLongerTradeMsgTeams.push_back(victim.getID());
 		}
 		msg(warTeam.getID(), willTradeMsgTeams, true);
-		if(GC.getDefineINT("ALERT_ON_NO_LONGER_WAR_TRADE") > 0)
+		if(GC.getDefineBOOL("ALERT_ON_NO_LONGER_WAR_TRADE"))
 			msg(warTeam.getID(), noLongerTradeMsgTeams, false);
+		if (!getUWAI.isEnabled() && nowTooManyWars != tooManyWars.get(warTeam.getID()) &&
+			// Willingness to start a war implies not having "too much on their hands"
+			(willTradeMsgTeams.empty() || nowTooManyWars))
+		{
+			msg(warTeam.getID(), nowTooManyWars);
+		}
+		tooManyWars.set(warTeam.getID(), nowTooManyWars);
 	}
 }
 
-void WarTradeAlert::msg(TeamTypes warTeamId, std::vector<TeamTypes> victims, bool bTrade)
+void WarTradeAlert::msg(TeamTypes warTeamId, std::vector<TeamTypes> victims,
+	bool bTrade) const
 {
 	if(victims.empty())
 		return;
 	CvTeam const& warTeam = GET_TEAM(warTeamId);
 	CvWString text = gDLL->getText((bTrade ? "TXT_KEY_CIV4LERTS_TRADE_WAR" :
 			"TXT_KEY_CIV4LERTS_NO_LONGER_TRADE_WAR"),
-			warTeam.getName().GetCString());
+			GET_PLAYER(warTeam.getLeaderID()).getName());
 	if(victims.size() > 1)
 		text += L":";
 	text += L" ";
@@ -128,10 +142,26 @@ void WarTradeAlert::msg(TeamTypes warTeamId, std::vector<TeamTypes> victims, boo
 			text += L", ";
 		else text += L".";
 	}
+	msg(text, warTeamId);
+}
+
+
+void WarTradeAlert::msg(TeamTypes warTeamId, bool bNowTooManyWars) const
+{
+	CvTeam const& warTeam = GET_TEAM(warTeamId);
+	CvWString text = gDLL->getText((bNowTooManyWars ? "TXT_KEY_CIV4LERTS_TOO_MANY_WARS" :
+			"TXT_KEY_CIV4LERTS_NO_LONGER_TOO_MANY_WARS"),
+			warTeam.getName().GetCString());
+	msg(text, warTeamId);
+}
+
+
+void WarTradeAlert::msg(CvWString text, TeamTypes warTeamId) const
+{
 	AdvCiv4lert::msg(text, NULL,
 			// <advc.127b>
-			warTeam.getCapitalX(TEAMID(ownerId)),
-			warTeam.getCapitalY(TEAMID(ownerId)), // </advc.127b>
+			GET_TEAM(warTeamId).getCapitalX(TEAMID(ownerId)),
+			GET_TEAM(warTeamId).getCapitalY(TEAMID(ownerId)), // </advc.127b>
 			GC.getColorType("WAR_TRADE_ALERT"));
 } // </advc.210a>
 
@@ -406,7 +436,6 @@ void CityTradeAlert::check()
 			}
 			if(!bWar)
 			{
-				int iGameTurn = GC.getGame().getGameTurn();
 				FOR_EACH_CITY(pCity, kAlertPlayer)
 				{
 					int iCity = pCity->getID();
@@ -418,7 +447,7 @@ void CityTradeAlert::check()
 							canLiberateNow.push_back(iCity);
 						else willBuyNow.push_back(iCity);
 						if( // Don't report cities right after acquisition
-							//iGameTurn - pCity->getGameTurnAcquired() > 1 &&
+							//GC.getGame().getGameTurn() - pCity->getGameTurnAcquired() > 1 &&
 							// Don't report possible liberation right after making peace
 							/*(!bLiberate || GET_TEAM(kPlayer.getTeam()).
 							AI_getAtPeaceCounter(kAlertPlayer.getTeam()) > 1)*/

@@ -309,13 +309,13 @@ public:
 	int getCultureUpdateTimer();
 	void changeCultureUpdateTimer(int iChange);
 	bool isNeverLost();
-	void setNeverLost(int iNewValue);
+	void setNeverLost(bool bNewValue);
 	bool isBombarded();
-	void setBombarded(int iNewValue);
+	void setBombarded(bool bNewValue);
 	bool isDrafted();
-	void setDrafted(int iNewValue);
+	void setDrafted(bool bNewValue);
 	bool isAirliftTargeted();
-	void setAirliftTargeted(int iNewValue);
+	void setAirliftTargeted(bool bNewValue);
 	bool isCitizensAutomated();
 	void setCitizensAutomated(bool bNewValue);
 	bool isProductionAutomated();

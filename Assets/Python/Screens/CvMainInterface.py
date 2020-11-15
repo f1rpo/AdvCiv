@@ -2895,6 +2895,8 @@ class CvMainInterface:
 			RowLength = 110
 			if (i == 0):
 			#if (i == gc.getInfoTypeForString(gc.getDefineSTRING("DEFAULT_SPECIALIST"))):
+			# advc.001 (note): If the above is uncommented (I didn't comment it out), the following should be used instead:
+			#if i == gc.getDefineINT("DEFAULT_SPECIALIST"):
 				RowLength *= 2
 			
 			HorizontalSpacing = MAX_SPECIALIST_BUTTON_SPACING	
@@ -5097,11 +5099,11 @@ class CvMainInterface:
 			screen.hide( szName )
 			szName = "ScoreTech" + str(i)
 			screen.hide( szName )
-			# <dlph.30>
+			# <kekm.30>
 			szName = "ScoreLeader" + str(i)
 			screen.hide( szName )
 			szName = "ScoreCiv" + str(i)
-			screen.hide( szName ) # </dlph.30>
+			screen.hide( szName ) # </kekm.30>
 			for j in range( Scoreboard.NUM_PARTS ):
 				szName = "ScoreText%d-%d" %( i, j )
 				screen.hide( szName )
@@ -5218,25 +5220,41 @@ class CvMainInterface:
 				if bAlignIcons:
 					scores.setWaiting()
 # BUG - Dead Civs - start
-		#if (ScoreOpt.isUsePlayerName()):
-		if ScoreOpt.isUsePlayerName() or (not pActiveTeam.isHasMet(eTeam) and not g.isDebugMode()): # K-Mod
+		# <advc.190d>
+		bConcealCiv = False
+		bConcealLeader = False
+		# Note: Not much of a  point in concealing anything in HotSeat mode
+		if not pActiveTeam.isHasMet(eTeam) and not g.isDebugMode() and pPlayer.isAlive() and g.isNetworkMultiPlayer():
+			# (not all uses of these variables are tagged with comments)
+			bConcealCiv = pPlayer.wasCivRandomlyChosen()
+			bConcealLeader = pPlayer.wasLeaderRandomlyChosen()
+			if bConcealCiv:
+				kGPColor = gc.getColorInfo(gc.getInfoTypeForString("COLOR_GREAT_PEOPLE_STORED"))
+				rgba = kGPColor.getColor()
+				iUnmetR = int(255 * rgba.r)
+				iUnmetG = int(255 * rgba.g)
+				iUnmetB = int(255 * rgba.b)
+				iUnmetA = int(255 * rgba.a)
+		# </advc.190d>
+		if ScoreOpt.isUsePlayerName():
 			szPlayerName = pPlayer.getName()
 		else:
 			szPlayerName = gc.getLeaderHeadInfo(pPlayer.getLeaderType()).getDescription()
-		if ScoreOpt.isShowBothNames():
-			szCivName = pPlayer.getCivilizationShortDescription(0)
-			szPlayerName = szPlayerName + "/" + szCivName
-		elif ScoreOpt.isShowBothNamesShort():
-			szCivName = pPlayer.getCivilizationDescription(0)
-			szPlayerName = szPlayerName + "/" + szCivName
-		elif ScoreOpt.isShowLeaderName():
-			pass
-		elif ScoreOpt.isShowCivName():
-			szCivName = pPlayer.getCivilizationShortDescription(0)
-			szPlayerName = szCivName
-		else:
-			szCivName = pPlayer.getCivilizationDescription(0)
-			szPlayerName = szCivName
+		if not bConcealCiv:
+			if ScoreOpt.isShowBothNames():
+				szCivName = pPlayer.getCivilizationShortDescription(0)
+				szPlayerName = szPlayerName + "/" + szCivName
+			elif ScoreOpt.isShowBothNamesShort():
+				szCivName = pPlayer.getCivilizationDescription(0)
+				szPlayerName = szPlayerName + "/" + szCivName
+			elif ScoreOpt.isShowLeaderName():
+				pass
+			elif ScoreOpt.isShowCivName():
+				szCivName = pPlayer.getCivilizationShortDescription(0)
+				szPlayerName = szCivName
+			else:
+				szCivName = pPlayer.getCivilizationDescription(0)
+				szPlayerName = szCivName
 		if not pPlayer.isAlive() and ScoreOpt.isShowDeadTag():
 			szPlayerScore = localText.getText("TXT_KEY_BUG_DEAD_CIV", ())
 			if bAlignIcons:
@@ -5246,7 +5264,7 @@ class CvMainInterface:
 			szPlayerScore = u"%d" % iScore
 			# <advc.155>
 			# (To allow this option without the Advanced/Tabular layout option, simply remove the bAlignIcons check.)
-			if bAlignIcons and gc.getTeam(eTeam).getAliveCount() > 1 and ScoreOpt.isColorCodeTeamScore():
+			if bAlignIcons and gc.getTeam(eTeam).getAliveCount() > 1 and ScoreOpt.isColorCodeTeamScore() and not bConcealCiv:
 				pTeamLeader = gc.getPlayer(gc.getTeam(eTeam).getLeaderID())
 				szPlayerScore = u"<color=%d,%d,%d,%d>%s</color>" %(pTeamLeader.getPlayerTextColorR(), pTeamLeader.getPlayerTextColorG(), pTeamLeader.getPlayerTextColorB(), pTeamLeader.getPlayerTextColorA(), szPlayerScore)
 			# </advc.155>
@@ -5285,13 +5303,21 @@ class CvMainInterface:
 			else:
 				if not pPlayer.isAlive() and ScoreOpt.isGreyOutDeadCivs():
 					szPlayerName = u"<color=%d,%d,%d,%d>%s</color>" %(175, 175, 175, pPlayer.getPlayerTextColorA(), szPlayerName)
+				# <advc.190d>
+				elif bConcealCiv:
+					szPlayerName = u"<color=%d,%d,%d,%d>%s</color>" %(iUnmetR, iUnmetG, iUnmetB, iUnmetA, szPlayerName)
+				# </ advc.190d>
 				else:
 					szPlayerName = u"<color=%d,%d,%d,%d>%s</color>" %(pPlayer.getPlayerTextColorR(), pPlayer.getPlayerTextColorG(), pPlayer.getPlayerTextColorB(), pPlayer.getPlayerTextColorA(), szPlayerName)
 		szTempBuffer = u"%s: %s" %(szPlayerScore, szPlayerName)
 		szBuffer = szBuffer + szTempBuffer
 		if bAlignIcons:
 			scores.setName(szPlayerName)
-			scores.setID(u"<color=%d,%d,%d,%d>%d</color>" %(pPlayer.getPlayerTextColorR(), pPlayer.getPlayerTextColorG(), pPlayer.getPlayerTextColorB(), pPlayer.getPlayerTextColorA(), ePlayer))
+			# <advc.190d>
+			if bConcealCiv:
+				scores.setID(u"<color=%d,%d,%d,%d>%d</color>" %(iUnmetR, iUnmetG, iUnmetB, iUnmetA, ePlayer))
+			else: # </advc.190d>
+				scores.setID(u"<color=%d,%d,%d,%d>%d</color>" %(pPlayer.getPlayerTextColorR(), pPlayer.getPlayerTextColorG(), pPlayer.getPlayerTextColorB(), pPlayer.getPlayerTextColorA(), ePlayer))
 		if pPlayer.isAlive():
 			if bAlignIcons:
 				scores.setAlive()
@@ -5307,11 +5333,11 @@ class CvMainInterface:
 				if bAlignIcons:
 					scores.setNotMet()
 			# K-Mod end
-			# <dlph.30>
+			# <kekm.30>
 			if bAlignIcons:
 				scores.setLeaderIcon(pPlayer.getLeaderType())
 				scores.setCivIcon(pPlayer.getCivilizationType())
-			# </dlph.30>
+			# </kekm.30>
 			# K-Mod
 			if pTeam.isAlive() and (pActiveTeam.isHasMet(eTeam) or g.isDebugMode()):
 			# K-Mod end
@@ -5448,13 +5474,15 @@ class CvMainInterface:
 					if bAlignIcons:
 						scores.setWorstEnemy()
 # BUG - Worst Enemy - end
-# BUG - WHEOOH - start  # advc.104: Permanently disabled
-			#if ScoreOpt.isShowWHEOOH(): 
-			#	if PlayerUtil.isWHEOOH(ePlayer, PlayerUtil.getActivePlayerID()):
-			#		szTempBuffer = u"%c" %(g.getSymbolID(FontSymbols.OCCUPATION_CHAR))
-			#		szBuffer = szBuffer + szTempBuffer
-			#		if bAlignIcons:
-			#			scores.setWHEOOH()
+# BUG - WHEOOH - start
+			#if ScoreOpt.isShowWHEOOH():
+			# advc.104: Enable iff UWAI is disabled. But the icon still won't show up unless it gets added to the scoreboard string.
+			if CyGame().useKModAI(): 
+				if PlayerUtil.isWHEOOH(ePlayer, PlayerUtil.getActivePlayerID()):
+					szTempBuffer = u"%c" %(g.getSymbolID(FontSymbols.OCCUPATION_CHAR))
+					szBuffer = szBuffer + szTempBuffer
+					if bAlignIcons:
+						scores.setWHEOOH()
 # BUG - WHEOOH - end
 # BUG - Num Cities - start
 			if ScoreOpt.isShowCountCities():

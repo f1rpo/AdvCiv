@@ -406,7 +406,7 @@ def getPlotHealFactor(pUnit):
 		pLoopUnit = pPlot.getUnit(i)
 		eLoopUnitDomain = gc.getUnitInfo(pLoopUnit.getUnitType()).getDomainType()
 		# a sea or air unit in a city, behaves like a land unit
-		if pLoopPlot.isCity():
+		if pPlot.isCity(): # advc.001, advc.069: was pLoopPlot
 			eLoopUnitDomain = DomainTypes.DOMAIN_LAND
 		# same tile heal does only work if the units are of the same domain type
 		if (eDomain == eLoopUnitDomain):

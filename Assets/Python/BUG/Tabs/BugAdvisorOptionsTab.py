@@ -80,12 +80,14 @@ class BugAdvisorOptionsTab(BugOptionsTab.BugOptionsTab):
 
 		# K-Mod, info stuff moved from center panel to right
 		self.addLabel(screen, right, "Info_Screens", "Info [F9]:")
-		# <advc.004> Moved up b/c the sub-option looked strange at the end of the block
+		# <advc.004>
+		# Moved up b/c the sub-option looked strange at the end of the block
 		self.addCheckbox(screen, right, "Advisors__BugInfoWonders")
 		self.addCheckbox(screen, right, "Advisors__BugInfoWondersPlayerColor", True)
-		# </advc.004>
-		# advc.004: Put this one before GraphsTab to make clear that GraphsTab isn't a prereq
+		# Put this one before GraphsTab to make clear that GraphsTab isn't a prereq
 		self.addCheckbox(screen, right, "Advisors__BugGraphsLogScale")
+		# </advc.004>
+		self.addCheckbox(screen, right, "Advisors__PartialScoreGraphs") # advc.091
 		self.addCheckbox(screen, right, "Advisors__BugGraphsTab")
 		self.addCheckbox(screen, right, "Advisors__BugStatsTab")
 		# advc.004: No longer optional

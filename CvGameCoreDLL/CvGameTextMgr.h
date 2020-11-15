@@ -15,8 +15,6 @@
 #ifndef CIV4_GAME_TEXT_MGR_H
 #define CIV4_GAME_TEXT_MGR_H
 
-#pragma warning( disable: 4251 )	// needs to have dll-interface to be used by clients of class
-
 class CvCity;
 class CvDeal;
 class CvPopupInfo;
@@ -62,7 +60,7 @@ public:
 	// <advc.089>
 	void setCannotAttackHelp(CvWStringBuffer& szHelp, CvUnit const& kAttacker,
 			CvUnit const& kDefender); // </advc.089>
-	void setPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
+	void setPlotHelp(CvWStringBuffer &szString, CvPlot const& kPlot);
 	void setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity);
 	void setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer);
 
@@ -102,7 +100,7 @@ public:
 	void setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool bCivilopediaText = false, bool bStrategyText = false, bool bTechChooserText = false, CvCity* pCity = NULL);
 	void setBuildingHelp(CvWStringBuffer &szBuffer, BuildingTypes eBuilding, bool bCivilopediaText = false, bool bStrategyText = false, bool bTechChooserText = false, CvCity* pCity = NULL);
 // BUG - Building Additional Happiness - start
-	void setBuildingNetEffectsHelp(CvWStringBuffer &szBuffer, BuildingTypes eBuilding, CvCity* pCity);
+	void setBuildingNetEffectsHelp(CvWStringBuffer &szBuffer, BuildingTypes eBuilding, CvCity const* pCity);
 	void setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTypes eBuilding, bool bCivilopediaText = false, bool bStrategyText = false, bool bTechChooserText = false, CvCity* pCity = NULL, bool bActual = true);
 // BUG - Building Additional Happiness - end
 	void setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProject, bool bCivilopediaText = false, CvCity* pCity = NULL);

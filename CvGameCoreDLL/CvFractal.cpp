@@ -36,15 +36,17 @@ void CvFractal::reset()
 	m_iFracYExp = -1;
 	m_iXs = -1;
 	m_iYs = -1;
-	m_iFlags = 0;
+	m_eFlags = NO_FLAGS;
 	m_iFracX = -1;
 	m_iFracY = -1;
-	m_iXInc = m_iYInc = -1; // advc: Risky not to initialize these
+	m_iXInc = m_iYInc = -1; // advc: better initialize
 }
 
-void CvFractal::fracInit(int iNewXs, int iNewYs, int iGrain, CvRandom& random, int iFlags, CvFractal* pRifts, int iFracXExp/*=7*/, int iFracYExp/*=6*/)
+void CvFractal::fracInit(int iNewXs, int iNewYs, int iGrain, CvRandom& random,
+	int iFlags, CvFractal* pRifts, int iFracXExp/*=7*/, int iFracYExp/*=6*/)
 {
-	fracInitInternal(iNewXs, iNewYs, iGrain, random, NULL, -1, iFlags, pRifts, iFracXExp, iFracYExp);
+	fracInitInternal(iNewXs, iNewYs, iGrain, random, NULL, -1,
+			(Flags)iFlags, pRifts, iFracXExp, iFracYExp);
 }
 
 // pbyHints should be a 1d array of bytes representing a 2d array
@@ -53,29 +55,27 @@ void CvFractal::fracInit(int iNewXs, int iNewYs, int iGrain, CvRandom& random, i
 // where minExp = std::min(iFracXExp, iFracYExp)
 // Note above that an extra value is required in a dimension in which the map does not wrap.
 
-void CvFractal::fracInitHinted(int iNewXs, int iNewYs, int iGrain, CvRandom& random, byte* pbyHints, int iHintsLength, int iFlags, CvFractal* pRifts, int iFracXExp/*=7*/, int iFracYExp/*=6*/)
+void CvFractal::fracInitHinted(int iNewXs, int iNewYs, int iGrain, CvRandom& random,
+	byte* pbyHints, int iHintsLength, int iFlags, CvFractal* pRifts,
+	int iFracXExp/*=7*/, int iFracYExp/*=6*/)
 {
-	int iFlagsNonPolar = iFlags & (~FRAC_POLAR);
-	fracInitInternal(iNewXs, iNewYs, iGrain, random, pbyHints, iHintsLength, iFlagsNonPolar, pRifts, iFracXExp, iFracYExp);
+	Flags eFlagsNonPolar = ((Flags)iFlags) & (~FRAC_POLAR);
+	fracInitInternal(iNewXs, iNewYs, iGrain, random, pbyHints, iHintsLength,
+			eFlagsNonPolar, pRifts, iFracXExp, iFracYExp);
 }
 
-void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& random, byte* pbyHints, int iHintsLength, int iFlags, CvFractal* pRifts, int iFracXExp, int iFracYExp)
+void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& random,
+	byte* pbyHints, int iHintsLength, Flags eFlags, CvFractal* pRifts,
+	int iFracXExp, int iFracYExp)
 {
 	PROFILE("CvFractal::fracInit()");
-
-	int iX, iY;
-	int iI;
 
 	reset();
 
 	if (iFracXExp < 0)
-	{
 		iFracXExp = DEFAULT_FRAC_X_EXP;
-	}
 	if (iFracYExp < 0)
-	{
 		iFracYExp = DEFAULT_FRAC_Y_EXP;
-	}
 
 	m_iFracXExp = iFracXExp;
 	m_iFracYExp = iFracYExp;
@@ -84,10 +84,10 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 
 	// Init m_aaiFrac to all zeroes:
 	m_aaiFrac = new int*[m_iFracX + 1];
-	for (iX = 0; iX < m_iFracX + 1; iX++)
+	for (int iX = 0; iX < m_iFracX + 1; iX++)
 	{
 		m_aaiFrac[iX] = new int[m_iFracY + 1];
-		for (iY = 0; iY < m_iFracY + 1; iY++)
+		for (int iY = 0; iY < m_iFracY + 1; iY++)
 		{
 			m_aaiFrac[iX][iY] = 0;
 		}
@@ -95,15 +95,15 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 
 	m_iXs = iNewXs;
 	m_iYs = iNewYs;
-	m_iFlags = iFlags;
+	m_eFlags = eFlags;
 	m_iXInc = ((m_iFracX * FLOAT_PRECISION) / m_iXs);
 	m_iYInc = ((m_iFracY * FLOAT_PRECISION) / m_iYs);
 
 	int iMinExp = std::min(m_iFracXExp, m_iFracYExp);
 	int iSmooth = range(iMinExp - iGrain, 0, iMinExp);
 
-	int iHintsWidth = (1 << (m_iFracXExp - iSmooth)) + ((m_iFlags & FRAC_WRAP_X) ? 0 : 1);
-	int iHintsHeight = (1 << (m_iFracYExp - iSmooth)) + ((m_iFlags & FRAC_WRAP_Y) ? 0 : 1);
+	int iHintsWidth = (1 << (m_iFracXExp - iSmooth)) + ((m_eFlags & FRAC_WRAP_X) ? 0 : 1);
+	int iHintsHeight = (1 << (m_iFracYExp - iSmooth)) + ((m_eFlags & FRAC_WRAP_Y) ? 0 : 1);
 
 	FAssertMsg(pbyHints == NULL || iHintsLength == iHintsWidth*iHintsHeight, "pbyHints is the wrong size!");
 
@@ -113,62 +113,61 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 	{
 		int iScreen = 0;  // This screens out already marked spots in m_aaiFrac[][];
 
-		for (iI = 0; iI <= iPass; iI++)
+		for (int i = 0; i <= iPass; i++)
 		{
-			iScreen |= (1 << iI);
+			iScreen |= (1 << i);
 		}
 
-		if (m_iFlags & FRAC_WRAP_Y)
+		if (m_eFlags & FRAC_WRAP_Y)
 		{
-			for (iX = 0; iX < m_iFracX + 1; iX++)
+			for (int iX = 0; iX < m_iFracX + 1; iX++)
 			{
 				m_aaiFrac[iX][m_iFracY] = m_aaiFrac[iX][0];
 			}
 		}
-		else if (m_iFlags & FRAC_POLAR)
+		else if (m_eFlags & FRAC_POLAR)
 		{
-			for (iX = 0; iX < m_iFracX + 1; iX++)
+			for (int iX = 0; iX < m_iFracX + 1; iX++)
 			{
 				m_aaiFrac[iX][   0    ] = iPolarHeight;
 				m_aaiFrac[iX][m_iFracY] = iPolarHeight;
 			}
 		}
 
-		if (m_iFlags & FRAC_WRAP_X)
+		if (m_eFlags & FRAC_WRAP_X)
 		{
-			for (iY = 0; iY < m_iFracY + 1; iY++)
+			for (int iY = 0; iY < m_iFracY + 1; iY++)
 			{
 				m_aaiFrac[m_iFracX][iY] = m_aaiFrac[0][iY];
 			}
 		}
-		else if (m_iFlags & FRAC_POLAR)
+		else if (m_eFlags & FRAC_POLAR)
 		{
-			for (iY = 0; iY < m_iFracY + 1; iY++)
+			for (int iY = 0; iY < m_iFracY + 1; iY++)
 			{
 				m_aaiFrac[   0    ][iY] = iPolarHeight;
 				m_aaiFrac[m_iFracX][iY] = iPolarHeight;
 			}
 		}
 
-		if (m_iFlags & FRAC_CENTER_RIFT)
+		if (m_eFlags & FRAC_CENTER_RIFT)
 		{
-			if (m_iFlags & FRAC_WRAP_Y)
+			if (m_eFlags & FRAC_WRAP_Y)
 			{
-				for (iX = 0; iX < m_iFracX + 1; iX++)
+				for (int iX = 0; iX < m_iFracX + 1; iX++)
 				{
-					for (iY = 0; iY < (m_iFracY / 6); iY++)
+					for (int iY = 0; iY < (m_iFracY / 6); iY++)
 					{
 						m_aaiFrac[iX][        iY         ] /= (abs((m_iFracY / 12) - iY) + 1);
 						m_aaiFrac[iX][(m_iFracY / 2) + iY] /= (abs((m_iFracY / 12) - iY) + 1);
 					}
 				}
 			}
-
-			if (m_iFlags & FRAC_WRAP_X)
+			if (m_eFlags & FRAC_WRAP_X)
 			{
-				for (iY = 0; iY < m_iFracY + 1; iY++)
+				for (int iY = 0; iY < m_iFracY + 1; iY++)
 				{
-					for (iX = 0; iX < (m_iFracX / 6); iX++)
+					for (int iX = 0; iX < (m_iFracX / 6); iX++)
 					{
 						m_aaiFrac[        iX         ][iY] /= (abs((m_iFracX / 12) - iX) + 1);
 						m_aaiFrac[(m_iFracX / 2) + iX][iY] /= (abs((m_iFracX / 12) - iX) + 1);
@@ -177,12 +176,14 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 			}
 		}
 
-		for (iX = 0; iX < (m_iFracX >> iPass) + ((m_iFlags & FRAC_WRAP_X) ? 0 : 1); iX++)
+		for (int iX = 0; iX < (m_iFracX >> iPass) +
+			((m_eFlags & FRAC_WRAP_X) ? 0 : 1); iX++)
 		{
 			gDLL->callUpdater();
-			for (iY = 0; iY < (m_iFracY >> iPass) + ((m_iFlags & FRAC_WRAP_Y) ? 0 : 1); iY++)
+			for (int iY = 0; iY < (m_iFracY >> iPass) +
+				((m_eFlags & FRAC_WRAP_Y) ? 0 : 1); iY++)
 			{
-				if ((iPass == iSmooth))// If this is the first, pass, set the initial random spots
+				if (iPass == iSmooth)// If this is the first, pass, set the initial random spots
 				{
 					if (pbyHints == NULL)
 					{
@@ -248,15 +249,13 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 	}
 
 	if (pRifts)
-	{
 		tectonicAction(pRifts);  //  Assumes FRAC_WRAP_X is on.
-	}
 
-	if (m_iFlags & FRAC_INVERT_HEIGHTS)
+	if (m_eFlags & FRAC_INVERT_HEIGHTS)
 	{
-		for (iX = 0; iX < m_iFracX; iX++)
+		for (int iX = 0; iX < m_iFracX; iX++)
 		{
-			for (iY = 0; iY < m_iFracY; iY++)
+			for (int iY = 0; iY < m_iFracY; iY++)
 			{
 				m_aaiFrac[iX][iY] = (255 - m_aaiFrac[iX][iY]);
 			}
@@ -267,18 +266,14 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 
 int CvFractal::getHeight(int iX, int iY)
 {
-	FAssertMsg(0 <= iX && iX < m_iXs, "iX out of range");
-	FAssertMsg(0 <= iY && iY < m_iYs, "iY out of range");
+	FAssertBounds(0, m_iXs, iX);
+	FAssertBounds(0, m_iYs, iY);
 	int iLowX = ((m_iXInc * iX) / FLOAT_PRECISION);
 	if (iLowX > m_iFracX - 1)
-	{
 		iLowX = m_iFracX - 1;	// clamp so that iLowX+1 doesn't overrun array
-	}
 	int iLowY = ((m_iYInc * iY) / FLOAT_PRECISION);
 	if (iLowY > m_iFracY - 1)
-	{
 		iLowY = m_iFracY - 1;	// clamp so that iLowY+1 doesn't overrun array
-	}
 	int iErrX = ((m_iXInc * iX) - (iLowX * FLOAT_PRECISION));
 	int iErrY = ((m_iYInc * iY) - (iLowY * FLOAT_PRECISION));
 
@@ -287,46 +282,30 @@ int CvFractal::getHeight(int iX, int iY)
 	iSum += ((                  iErrX) * (FLOAT_PRECISION - iErrY) * m_aaiFrac[iLowX + 1][iLowY    ]);
 	iSum += ((FLOAT_PRECISION - iErrX) * (                  iErrY) * m_aaiFrac[iLowX    ][iLowY + 1]);
 	iSum += ((                  iErrX) * (                  iErrY) * m_aaiFrac[iLowX + 1][iLowY + 1]);
-
 	iSum /= (FLOAT_PRECISION * FLOAT_PRECISION);
 
 	int iHeight = range(iSum, 0, 255);
-
-	if (m_iFlags & FRAC_PERCENT)
-	{
-		int iI = ((iHeight * 100) >> 8);
-
-		return iI;
-	}
-	else
-	{
-		return iHeight;
-	}
+	if (m_eFlags & FRAC_PERCENT)
+		return (iHeight * 100) >> 8;
+	return iHeight;
 }
 
 
 int CvFractal::getHeightFromPercent(int iPercent)
 {
-	PROFILE("CvFractal::getHeightFromPercent()");
-	int iEstimate;
-	int iLowerBound;
-	int iUpperBound;
-	int iSum;
-	int iX, iY;
-
-	iLowerBound = 0;
-	iUpperBound = 255;
+	PROFILE_FUNC();
 
 	iPercent = range(iPercent, 0, 100);
-	iEstimate = 255 * iPercent / 100;
 
+	int iEstimate = 255 * iPercent / 100;
+	int iLowerBound = 0;
+	int iUpperBound = 255;
 	while (iEstimate != iLowerBound)
 	{
-		iSum = 0;
-
-		for (iX = 0; iX < m_iFracX; iX++)
+		int iSum = 0;
+		for (int iX = 0; iX < m_iFracX; iX++)
 		{
-			for (iY = 0; iY < m_iFracY; iY++)
+			for (int iY = 0; iY < m_iFracY; iY++)
 			{
 				if (m_aaiFrac[iX][iY] < iEstimate)
 				{
@@ -345,7 +324,6 @@ int CvFractal::getHeightFromPercent(int iPercent)
 			iEstimate = (iUpperBound + iLowerBound) / 2;
 		}
 	}
-
 	return iEstimate;
 }
 
@@ -395,27 +373,22 @@ void CvFractal::tectonicAction(CvFractal* pRifts)  //  Assumes FRAC_WRAP_X is on
 int CvFractal::yieldX(int iBadX)  //  Assumes FRAC_WRAP_X is on.
 {
 	if (iBadX < 0)
-	{
 		return (iBadX + m_iFracX);
-	}
-
 	if (iBadX >= m_iFracX)
-	{
 		return (iBadX - m_iFracX);
-	}
-
 	return iBadX;
 }
 
-// <advc.tsl> Wrap this in a protected function so that subclasses can override it
-int CvFractal::polarHeight() {
-
+// advc.tsl: Wrap this in a protected function so that subclasses can override it
+int CvFractal::polarHeight()
+{
 	/*  No easy way to let map scripts set this because the code that exposes
 		CvFractal (and CvFractal::FracVals) is in the EXE. */
-	if(GC.getInitCore().getMapScriptName().compare(L"Fractal") == 0) {
+	if(GC.getInitCore().getMapScriptName().compare(L"Fractal") == 0)
+	{
 		/*  A power of 2 probably has no advantage here, but 64 also happens to work
 			pretty well. The closer to 0 this is set, the wider the polar water bands. */
 		return (1 << 6);
 	}
 	return 0;
-} // </advc.tsl>
+}

@@ -822,7 +822,7 @@ int CyPlot::getRiverID() const
 void CyPlot::setRiverID(int iNewValue)
 {
 	if (m_pPlot)
-		m_pPlot->setRiverID(iNewValue);
+		m_pPlot->setRiverID(toShort(iNewValue));
 }
 
 int CyPlot::getMinOriginalStartDist()
@@ -846,9 +846,12 @@ int CyPlot::getYield(YieldTypes eIndex)
 }
 
 // K-Mod, 26/Jun/2011, karadoc: changed enum types to ints, so that it actually works...
-int CyPlot::calculateNatureYield(int /*YieldTypes*/ eIndex, int /*TeamTypes*/ eTeam, bool bIgnoreFeature)
+/*	advc: Reverted the K-Mod change. It seems that no automatic type conversion will
+	take place either way. It's not clear that accepting only int params is better than
+	accepting only enum params. */
+int CyPlot::calculateNatureYield(YieldTypes eIndex, TeamTypes eTeam, bool bIgnoreFeature)
 {
-	return m_pPlot ? m_pPlot->calculateNatureYield((YieldTypes)eIndex, (TeamTypes)eTeam, bIgnoreFeature) : -1;
+	return m_pPlot ? m_pPlot->calculateNatureYield(eIndex, eTeam, bIgnoreFeature) : -1;
 }
 
 int CyPlot::calculateBestNatureYield(YieldTypes eIndex, TeamTypes eTeam)

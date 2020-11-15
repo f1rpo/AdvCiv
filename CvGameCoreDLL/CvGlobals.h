@@ -2,8 +2,9 @@
 
 #ifndef CIV4_GLOBALS_H
 #define CIV4_GLOBALS_H
-// advc: Disable warnings about unknown pragma (MSVC03 doesn't know pragma region)
-#pragma warning(disable:4068)
+// <advc> Disable warnings about unknown pragma (MSVC03 doesn't know pragma region)
+#pragma warning(push)
+#pragma warning(disable: 68) // </advc>
 
 //
 // 'global' vars for Civ IV.  singleton class.
@@ -33,7 +34,6 @@ class CMPDiplomacyScreen;
 class FMPIManager;
 class FAStar;
 class CvInterface;
-class CMainMenu;
 class CvArtFileMgr;
 class FVariableSystem;
 class CvMap;
@@ -138,7 +138,7 @@ public:
 	DllExport bool& getSynchLogging() { return m_bSynchLogging; }
 	DllExport bool& overwriteLogs() { return m_bOverwriteLogs; }
 	// <advc> const inline versions of the above
-	// The first two are exposed to Python for dlph.27
+	// The first two are exposed to Python for kekm.27
 	inline bool isLogging() const { return m_bLogging; }
 	inline bool isRandLogging() const { return m_bRandLogging; }
 	inline bool isSynchLogging() const { return m_bSynchLogging; }
@@ -249,7 +249,13 @@ public:
 	DllExport CvWorldPickerInfo& getWorldPickerInfo(int iWorldPicker) { CvGlobals const& kThis = *this; return kThis.getWorldPickerInfo(iWorldPicker); }
 	DllExport CvSpaceShipInfo& getSpaceShipInfo(int iSpaceShip) { CvGlobals const& kThis = *this; return kThis.getSpaceShipInfo(iSpaceShip); }
 	DllExport CvInfoBase& getHints(int iHint) { CvGlobals const& kThis = *this; return kThis.getHintInfo(iHint); }
-	DllExport CvMainMenuInfo& getMainMenus(int iMainMenu) { CvGlobals const& kThis = *this; return kThis.getMainMenuInfo(iMainMenu); }
+	DllExport CvMainMenuInfo& getMainMenus(int iMainMenu)
+	{	/*	advc (note): The caller should check this - but the EXE doesn't. Important
+			for switching in between mods when a mod adds or removes menu backgrounds. */
+		if (iMainMenu >= getNumMainMenuInfos())
+			iMainMenu = 0;
+		CvGlobals const& kThis = *this; return kThis.getMainMenuInfo(iMainMenu);
+	}
 	DllExport CvWaterPlaneInfo& getWaterPlaneInfo(int iWaterPlane) { CvGlobals const& kThis = *this; return kThis.getWaterPlaneInfo(iWaterPlane); }
 	DllExport CvLandscapeInfo& getLandscapeInfo(int iLandscape) { CvGlobals const& kThis = *this; return kThis.getLandscapeInfo(iLandscape); }
 	DllExport CvCameraOverlayInfo& getCameraOverlayInfo(int iCameraOverlay) { CvGlobals const& kThis = *this; return kThis.getCameraOverlayInfo((CameraOverlayTypes)iCameraOverlay); }
@@ -395,24 +401,26 @@ public:
 	void cacheGlobals();
 
 	// ***** EXPOSED TO PYTHON *****
-	DllExport inline int getDefineINT(const char * szName) const
+	DllExport inline int getDefineINT(char const* szName) const
 	{
 		return getDefineINT(szName, 0); // advc.opt: Call the BBAI version
 	}
 	// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000:
-	int getDefineINT(const char * szName, const int iDefault) const;
+	int getDefineINT(char const* szName, int iDefault) const;
 	// <advc>
-	inline bool getDefineBOOL(const char * szName, const bool bDefault = false) const
+	inline bool getDefineBOOL(char const* szName, bool bDefault = false) const
 	{
 		return (getDefineINT(szName, (int)bDefault) > 0);
 	} // </advc>
-	DllExport float getDefineFLOAT(const char * szName) const;
-	DllExport const char * getDefineSTRING(const char * szName) const;
+	DllExport float getDefineFLOAT(char const* szName) const;
+	/*	advc (note): Global TextVals loaded by CvXMLLoadUtility::
+		SetPostGlobalsGlobalDefines need to be accessed through getDefineINT instead. */
+	DllExport const char* getDefineSTRING(char const* szName) const;
 	/*  advc.opt: Params for suppressing cache update added. False for string b/c
 		there are none that we could update. */
-	void setDefineINT(const char * szName, int iValue, bool bUpdateCache = true);
-	void setDefineFLOAT(const char * szName, float fValue, bool bUpdateCache = true);
-	void setDefineSTRING(const char * szName, const char * szValue, bool bUpdateCache = false);
+	void setDefineINT(char const* szName, int iValue, bool bUpdateCache = true);
+	void setDefineFLOAT(char const* szName, float fValue, bool bUpdateCache = true);
+	void setDefineSTRING(char const* szName, char const* szValue, bool bUpdateCache = false);
 	// advc.opt:
 #pragma region GlobalDefines
 	/*  Access cached integer GlobalDefines through enum values
@@ -426,7 +434,6 @@ public:
 		DO(MAX_DISTANCE_CITY_MAINTENANCE) /* advc.140 */ \
 		DO(OWN_EXCLUSIVE_RADIUS) /* advc.035 */ \
 		DO(ANNOUNCE_REPARATIONS) /* advc.039 */ \
-		DO(BARB_PEAK_PERCENT) /* advc.300 */ \
 		DO(PER_PLAYER_MESSAGE_CONTROL_LOG) /* advc.007 */ \
 		DO(MINIMAP_WATER_MODE) /* advc.002a */ \
 		DO(DELAY_UNTIL_BUILD_DECAY) /* advc.011 */ \
@@ -492,6 +499,8 @@ public:
 		DO(ENABLE_DEBUG_TOOLS_MULTIPLAYER) \
 		DO(FREE_VASSAL_LAND_PERCENT) \
 		DO(FREE_VASSAL_POPULATION_PERCENT) \
+		DO(OVERSEAS_TRADE_MODIFIER) \
+		DO(MIN_REVOLUTION_TURNS) \
 		/* </advc.opt> */ \
 		DO(PATH_DAMAGE_WEIGHT) \
 		DO(HILLS_EXTRA_DEFENSE) \
@@ -514,7 +523,7 @@ public:
 		DO(MAX_HIT_POINTS) \
 		DO(MAX_PLOT_LIST_ROWS) \
 		DO(UNIT_MULTISELECT_MAX) \
-		DO(EVENT_MESSAGE_TIME) \
+		/*DO(EVENT_MESSAGE_TIME) \ (cached separately) */ \
 		DO(EVENT_MESSAGE_TIME_LONG) \
 		DO(NUM_UNIT_PREREQ_OR_BONUSES) \
 		DO(NUM_UNIT_AND_TECH_PREREQS) \
@@ -565,9 +574,9 @@ public:
 	inline int getMAX_PLOT_LIST_ROWS() const { return getDefineINT(MAX_PLOT_LIST_ROWS); }
 	DllExport inline int getUNIT_MULTISELECT_MAX() { CvGlobals const& kThis = *this; return kThis.getUNIT_MULTISELECT_MAX(); }
 	inline int getUNIT_MULTISELECT_MAX() const { return getDefineINT(UNIT_MULTISELECT_MAX); }
+	// Note: The EXE calls this during audio init if all audio devices are disabled
 	DllExport inline int getEVENT_MESSAGE_TIME() { CvGlobals const& kThis = *this; return kThis.getEVENT_MESSAGE_TIME(); }
-	inline int getEVENT_MESSAGE_TIME() const { return getDefineINT(EVENT_MESSAGE_TIME); }
-	inline int getEVENT_MESSAGE_TIME_LONG() const { return getDefineINT(EVENT_MESSAGE_TIME_LONG); } // advc: Treat these two the same
+	inline int getEVENT_MESSAGE_TIME() const { return m_iEventMessageTime; }
 	// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
 	inline int getWAR_SUCCESS_CITY_CAPTURING() const { return getDefineINT(WAR_SUCCESS_CITY_CAPTURING); }
 	inline int getCOMBAT_DIE_SIDES() const { return getDefineINT(COMBAT_DIE_SIDES); }
@@ -577,21 +586,21 @@ public:
 		updated when a setDefine... function is called.) */
 	inline ImprovementTypes getRUINS_IMPROVEMENT() const
 	{
-		FAssertMsg(m_iRUINS_IMPROVEMENT != NO_IMPROVEMENT, "RUINS_IMPROVEMENT accessed before CvXMLLoadUtility::SetPostGlobalsGlobalDefines");
-		return (ImprovementTypes)m_iRUINS_IMPROVEMENT;
+		FAssertMsg(m_eRUINS_IMPROVEMENT != NO_IMPROVEMENT, "RUINS_IMPROVEMENT accessed before CvXMLLoadUtility::SetPostGlobalsGlobalDefines");
+		return m_eRUINS_IMPROVEMENT;
 	}
 	void setRUINS_IMPROVEMENT(int iVal);
 	inline SpecialistTypes getDEFAULT_SPECIALIST() const
 	{
-		FAssertMsg(m_iDEFAULT_SPECIALIST != NO_SPECIALIST, "DEFAULT_SPECIALIST accessed before CvXMLLoadUtility::SetPostGlobalsGlobalDefines");
-		return (SpecialistTypes)m_iDEFAULT_SPECIALIST;
+		FAssertMsg(m_eDEFAULT_SPECIALIST != NO_SPECIALIST, "DEFAULT_SPECIALIST accessed before CvXMLLoadUtility::SetPostGlobalsGlobalDefines");
+		return m_eDEFAULT_SPECIALIST;
 	}
 	void setDEFAULT_SPECIALIST(int iVal);
 	inline TerrainTypes getWATER_TERRAIN(bool bShallow) const
 	{
-		int r = m_aiWATER_TERRAIN[bShallow];
+		TerrainTypes r = m_aeWATER_TERRAIN[bShallow];
 		FAssertMsg(r != NO_TERRAIN, "WATER_TERRAIN accessed before CvXMLLoadUtility::SetPostGlobalsGlobalDefines");
-		return (TerrainTypes)r;
+		return r;
 	}
 	void setWATER_TERRAIN(bool bShallow, int iValue);
 	// </advc.opt>
@@ -673,12 +682,13 @@ public:
 	inline float getSHADOW_SCALE() const { return m_fSHADOW_SCALE; }
 	DllExport inline float getUNIT_MULTISELECT_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getUNIT_MULTISELECT_DISTANCE(); }
 	inline float getUNIT_MULTISELECT_DISTANCE() const { return m_fUNIT_MULTISELECT_DISTANCE; }
+	void updateCameraStartDistance(bool bReset); // advc.004m  (exposed to Python)
 
 	DllExport int getUSE_FINISH_TEXT_CALLBACK();
 	// advc.003y: Moved the other callback getters to CvPythonCaller
 #pragma endregion GlobalDefines
-	// K-Mod: more reliable versions of the 'gDLL->xxxKey' functions
-	// NOTE: I've replaced all calls to the gDLL key functions with calls to these functions.
+	/*	K-Mod: more reliable versions of the 'gDLL->xxxKey' functions
+		NOTE: I've replaced all calls to the gDLL key functions with calls to these functions. */
 	inline bool altKey() const { return (GetKeyState(VK_MENU) & 0x8000); }
 	inline bool ctrlKey() const { return (GetKeyState(VK_CONTROL) & 0x8000); }
 	inline bool shiftKey() const { return (GetKeyState(VK_SHIFT) & 0x8000); }
@@ -808,14 +818,12 @@ protected:
 	bool m_bRandLogging;
 	bool m_bSynchLogging;
 	bool m_bOverwriteLogs;
-	//NiPoint3  m_pt3CameraDir; // advc.003j: Unused; not even written.
+	/*NiPoint3  m_pt3CameraDir;
 	int m_iNewPlayers;
-
 	CMainMenu* m_pkMainMenu;
-
 	bool m_bZoomOut;
 	bool m_bZoomIn;
-	bool m_bLoadGameFromFile;
+	bool m_bLoadGameFromFile;*/ // advc.003j: Unused; not even written.
 
 	FMPIManager * m_pFMPMgr;
 
@@ -868,9 +876,8 @@ protected:
 	DirectionTypes m_aeTurnRightDirection[NUM_DIRECTION_TYPES];
 	DirectionTypes m_aaeXYDirection[DIRECTION_DIAMETER][DIRECTION_DIAMETER];
 
-	/***********************************************************************************************************************
-	Globals loaded from XML
-	************************************************************************************************************************/
+
+	// Globals loaded from XML ...
 
 	// all type strings are upper case and are kept in this hash map for fast lookup, Moose
 	typedef stdext::hash_map<std::string /* type string */, int /* info index */> InfosMap;
@@ -886,16 +893,15 @@ protected:
 	DO_FOR_EACH_INFO_TYPE(DECLARE_INFO_VECTOR) // </advc.enum>
 	std::vector<CvWorldInfo*> m_paWorldInfo;
 
-	//////////////////////////////////////////////////////////////////////////
-	// GLOBAL TYPES
-	//////////////////////////////////////////////////////////////////////////
+
+	// GLOBAL TYPES ...
 
 	// all type strings are upper case and are kept in this hash map for fast lookup, Moose
 	typedef stdext::hash_map<std::string /* type string */, int /*enum value */> TypesMap;
 	TypesMap m_typesMap;
 
 	// XXX These are duplicates and are kept for enumeration convenience - most could be removed, Moose
-	CvString *m_paszEntityEventTypes2;
+	//CvString *m_paszEntityEventTypes2; // advc.003j: actually unused
 	CvString *m_paszEntityEventTypes;
 	int m_iNumEntityEventTypes;
 
@@ -924,24 +930,20 @@ protected:
 
 	CvString m_szCurrentXMLFile;
 	bool m_bHoFScreenUp; // advc.106i
-	//////////////////////////////////////////////////////////////////////////
-	// Formerly Global Defines
-	//////////////////////////////////////////////////////////////////////////
 
 	FVariableSystem* m_VarSystem;
-
-	int* m_aiGlobalDefinesCache;
 	// <advc.opt>
-	int m_iRUINS_IMPROVEMENT;
-	int m_iDEFAULT_SPECIALIST;
-	int m_aiWATER_TERRAIN[2]; // </advc.opt>
+	int* m_aiGlobalDefinesCache;
+	int m_iEventMessageTime; // Cached separately b/c the EXE can access it before XML loading
+	ImprovementTypes m_eRUINS_IMPROVEMENT;
+	SpecialistTypes m_eDEFAULT_SPECIALIST;
+	TerrainTypes m_aeWATER_TERRAIN[2]; // </advc.opt>
 	float m_fPOWER_CORRECTION; // advc.104
 
 	float m_fCAMERA_MIN_YAW;
 	float m_fCAMERA_MAX_YAW;
 	float m_fCAMERA_FAR_CLIP_Z_HEIGHT;
 	float m_fCAMERA_MAX_TRAVEL_DISTANCE;
-	float m_fCAMERA_START_DISTANCE;
 	float m_fAIR_BOMB_HEIGHT;
 	float m_fPLOT_SIZE;
 	float m_fCAMERA_SPECIAL_PITCH;
@@ -949,30 +951,31 @@ protected:
 	float m_fCAMERA_MIN_DISTANCE;
 	float m_fCAMERA_UPPER_PITCH;
 	float m_fCAMERA_LOWER_PITCH;
-	float m_fFIELD_OF_VIEW;
 	float m_fSHADOW_SCALE;
 	float m_fUNIT_MULTISELECT_DISTANCE;
+	float m_fFIELD_OF_VIEW;
+	float m_fCAMERA_START_DISTANCE;
 
 	CvXMLLoadUtility* m_pXMLLoadUtility; // advc.003v
 
-	// DLL interface
 	CvDLLUtilityIFaceBase* m_pDLL;
 
-	FProfiler* m_Profiler;		// profiler
+	FProfiler* m_Profiler;
 	CvString m_szDllProfileText;
 
 private:
 	// <advc.opt>
 	void cacheGlobalInts(char const* szChangedDefine = NULL, int iNewValue = 0);
-	void cacheGlobalFloats(); // </advc.opt>
+	void cacheGlobalFloats(/* advc.004m: */ bool bAllowRecursion = true);
+	// </advc.opt>
 	//void addToInfosVectors(void* infoVector); // advc.enum (no longer used)
 };
 
 extern CvGlobals gGlobals;	// for debugging
 
-//
-// inlines
-//
+
+// inlines ...
+
 __forceinline CvGlobals& CvGlobals::getInstance()
 {
 	return gGlobals;
@@ -993,9 +996,9 @@ inline WorldSizeTypes getEnumLength(WorldSizeTypes) { return (WorldSizeTypes)gGl
 inline FlavorTypes getEnumLength(FlavorTypes) { return (FlavorTypes)gGlobals.getNumFlavorTypes(); }
 // </advc.enum>
 
-//
-// helpers
-//
+
+// helpers ...
+
 #define GC CvGlobals::getConstInstance() // advc: was ...getInstance()
 #ifndef _USRDLL
 #define gDLL GC.getDLLIFaceNonInl()
@@ -1021,6 +1024,6 @@ inline FlavorTypes getEnumLength(FlavorTypes) { return (FlavorTypes)gGlobals.get
 #define NUM_GRAPHICLEVELS (GC.getNumGraphicLevels())
 #define NUM_GLOBE_LAYER_TYPES (GC.getNumGlobeLayers())
 #endif
-#pragma warning(default:4068) // advc: Re-enable "unknown pragma" warning
+#pragma warning(pop) // advc: Re-enable "unknown pragma" warning
 
 #endif

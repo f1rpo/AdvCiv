@@ -246,32 +246,59 @@ bool CvPythonCaller::updateColoredPlots() const
 }
 
 void CvPythonCaller::call(char const* szFunctionName, CyArgsList& kArgsList,
-		long& lResult, char const* szModuleName, bool bAssertSuccess) const
+	long& lResult, char const* szModuleName, bool bAssertSuccess,
+	bool bCheckExists) const
 {
-	m_bLastCallSuccessful = m_python.callFunction(szModuleName, szFunctionName,
-			kArgsList.makeFunctionArgs(), &lResult);
+	/*	Not sure how expensive this check is; otherwise, I'd just always perform it.
+		bLoadIfNecessary: Generally won't help I think, except after having run
+		into some error while reloading Python scripts. I doubt that
+		bLoadIfNecessary=true will take extra time when the module is found,
+		and, normally, it should always be found. So let's go with true. */
+	if (bCheckExists && !m_python.moduleExists(szModuleName, true))
+		m_bLastCallSuccessful = false;
+	else
+	{
+		m_bLastCallSuccessful = m_python.callFunction(szModuleName,
+				szFunctionName, kArgsList.makeFunctionArgs(), &lResult);
+	}
 	FAssert(!bAssertSuccess || m_bLastCallSuccessful);
 }
 
 void CvPythonCaller::call(char const* szFunctionName, long& lResult,
-		char const* szModuleName, bool bAssertSuccess) const
+	char const* szModuleName, bool bAssertSuccess, bool bCheckExists) const
 {
-	m_bLastCallSuccessful = m_python.callFunction(szModuleName, szFunctionName, NULL, &lResult);
+	if (bCheckExists && !m_python.moduleExists(szModuleName, true))
+		m_bLastCallSuccessful = false;
+	else
+	{
+		m_bLastCallSuccessful = m_python.callFunction(szModuleName, szFunctionName,
+				NULL, &lResult);
+	}
 	FAssert(!bAssertSuccess || m_bLastCallSuccessful);
 }
 
 void CvPythonCaller::call(char const* szFunctionName, CyArgsList& kArgsList,
-		char const* szModuleName, bool bAssertSuccess) const
+	char const* szModuleName, bool bAssertSuccess, bool bCheckExists) const
 {
-	m_bLastCallSuccessful = m_python.callFunction(szModuleName, szFunctionName,
-			kArgsList.makeFunctionArgs());
+	if (bCheckExists && !m_python.moduleExists(szModuleName, true))
+		m_bLastCallSuccessful = false;
+	else
+	{
+		m_bLastCallSuccessful = m_python.callFunction(szModuleName, szFunctionName,
+				kArgsList.makeFunctionArgs());
+	}
 	FAssert(!bAssertSuccess || m_bLastCallSuccessful);
 }
 
 void CvPythonCaller::call(char const* szFunctionName,
-		char const* szModuleName, bool bAssertSuccess) const
+	char const* szModuleName, bool bAssertSuccess, bool bCheckExists) const
 {
-	m_bLastCallSuccessful = m_python.callFunction(szModuleName, szFunctionName);
+	if (bCheckExists && !m_python.moduleExists(szModuleName, true))
+		m_bLastCallSuccessful = false;
+	else
+	{
+		m_bLastCallSuccessful = m_python.callFunction(szModuleName, szFunctionName);
+	}
 	FAssert(!bAssertSuccess || m_bLastCallSuccessful);
 }
 
@@ -1015,7 +1042,7 @@ short CvPythonCaller::AI_foundValue(PlayerTypes ePlayer, CvPlot const& kPlot) co
 	argsList.add(kPlot.getY());
 	call("getCityFoundValue", argsList, lResult);
 	FAssert(lResult <= MAX_SHORT); // K-Mod
-	return ::intToShort(lResult);
+	return toShort(lResult);
 }
 
 TechTypes CvPythonCaller::AI_chooseTech(PlayerTypes ePlayer, bool bFree) const
@@ -1193,7 +1220,8 @@ int CvPythonCaller::numCustomMapOptions(char const* szMapScriptName, bool bHidde
 {
 	long lResult = 0;
 	call(bHidden ? "getNumHiddenCustomMapOptions" : "getNumCustomMapOptions",
-			lResult, szMapScriptName, /*!bHidden*/ false); // Earth2 has no getNumCustomMapOptions
+			// Earth2 has no getNumCustomMapOptions
+			lResult, szMapScriptName, /*!bHidden*/ false, true);
 	return toInt(lResult);
 }
 
@@ -1202,10 +1230,10 @@ CustomMapOptionTypes CvPythonCaller::customMapOptionDefault(char const* szMapScr
 	ARGSLIST(NO_CUSTOM_MAPOPTION);
 	argsList.add(iOption);
 	call("getCustomMapOptionDefault", argsList, lResult, szMapScriptName,
-			!GC.getInitCore().getSavedGame());
+			!GC.getInitCore().getSavedGame(), true);
 	return (CustomMapOptionTypes)toInt(lResult);
 }
-// <advc.004>
+// advc.004:
 CvWString CvPythonCaller::customMapOptionDescription(char const* szMapScriptName,
 	int iOption, CustomMapOptionTypes eOptionValue) const
 {
@@ -1213,19 +1241,22 @@ CvWString CvPythonCaller::customMapOptionDescription(char const* szMapScriptName
 	CyArgsList argsList;
 	argsList.add(iOption);
 	argsList.add(eOptionValue);
-	m_bLastCallSuccessful = m_python.callFunction(szMapScriptName, "getCustomMapOptionDescAt",
-			argsList.makeFunctionArgs(), &szResult);
+	if (!m_python.moduleExists(szMapScriptName, true))
+		m_bLastCallSuccessful = false;
+	else
+	{
+		m_bLastCallSuccessful = m_python.callFunction(szMapScriptName,
+				"getCustomMapOptionDescAt", argsList.makeFunctionArgs(), &szResult);
+	}
 	/*  If the game was started from a savegame, then the map script may have been
 		uninstalled; that's OK. */
 	FAssert(m_bLastCallSuccessful || GC.getInitCore().getSavedGame());
 	return szResult;
-} // </advc.004>
-
-// <advc.108>
+}
+// advc.108:
 bool CvPythonCaller::isAnyCustomMapOptionSetTo(CvWString szTranslatedDesc) const
 {
-	CvString szMapScriptNameNarrow;
-	::narrowUnsafe(GC.getInitCore().getMapScriptName(), szMapScriptNameNarrow);
+	CvString szMapScriptNameNarrow(GC.getInitCore().getMapScriptName());
 	for (int i = 0; i < GC.getMap().getNumCustomMapOptions(); i++)
 	{
 		CustomMapOptionTypes eOptionValue = GC.getInitCore().getCustomMapOption(i);
@@ -1235,8 +1266,7 @@ bool CvPythonCaller::isAnyCustomMapOptionSetTo(CvWString szTranslatedDesc) const
 			return true;
 	}
 	return false;
-} // </advc.108>
-
+}
 
 void CvPythonCaller::mapGridDimensions(WorldSizeTypes eWorldSize, int& iWidth, int& iHeight) const
 {
@@ -1297,12 +1327,12 @@ bool CvPythonCaller::generatePlotTypes(int* aiPlotTypes, size_t uiSize) const
 			"generatePlotTypes", NULL, &result);
 	if (!isOverride())
 	{
-		FAssertMsg(false, "Map script has to override generatePlotTypes and mustn't call usingDefaultImpl");
+		FErrorMsg("Map script has to override generatePlotTypes and mustn't call usingDefaultImpl");
 		return false;
 	}
 	if (result.size() != uiSize)
 	{
-		FAssertMsg(false, "Need to set a plot type for every plot");
+		FErrorMsg("Need to set a plot type for every plot");
 		return false;
 	}
 	for (size_t i = 0; i < uiSize; i++)
@@ -1317,12 +1347,12 @@ bool CvPythonCaller::generateTerrainTypes(std::vector<int>& r, size_t uiTargetSi
 			"generateTerrainTypes", NULL, &r);
 	if (!isOverride())
 	{	// PlantGenerator seems to generate terrain in addFeatures, but that's highly irregular.
-		FAssertMsg(false, "Map script has to override generateTerrainTypes and mustn't call usingDefaultImpl");
+		FErrorMsg("Map script has to override generateTerrainTypes and mustn't call usingDefaultImpl");
 		return false;
 	}
 	if (r.size() != uiTargetSize)
 	{
-		FAssertMsg(false, "No terrain generated for some plots");
+		FErrorMsg("No terrain generated for some plots");
 		return false;
 	}
 	return true;
@@ -1377,12 +1407,12 @@ int CvPythonCaller::riverValue(CvPlot const& kPlot, bool& bOverride) const
 	delete pyPlot;
 	bOverride = isOverride();
 	if (!bOverride)
-		return -1;
+		return 0;
 	if (lResult < 0)
 	{
 		FAssert(lResult >= 0);
 		bOverride = false;
-		return -1;
+		return 0;
 	}
 	return toInt(lResult);
 }

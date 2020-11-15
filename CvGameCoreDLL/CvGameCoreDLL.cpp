@@ -16,7 +16,10 @@ BOOL APIENTRY DllMain(HANDLE hModule,
 		printToConsole("DLL_PROCESS_ATTACH\n");
 
 		// set timer precision
-		MMRESULT iTimeSet = timeBeginPeriod(1);		// set timeGetTime and sleep resolution to 1 ms, otherwise it's 10-16ms
+		#ifdef FASSERT_ENABLE // advc.make (avoid warning about unused var)
+		MMRESULT iTimeSet =
+		#endif
+		timeBeginPeriod(1);		// set timeGetTime and sleep resolution to 1 ms, otherwise it's 10-16ms
 		FAssertMsg(iTimeSet==TIMERR_NOERROR, "failed setting timer resolution to 1 ms");
 		}
 		break;

@@ -13,97 +13,105 @@ CvMapGenerator* CvMapGenerator::m_pInst = NULL; // static
 
 CvMapGenerator& CvMapGenerator::GetInstance() // singleton accessor
 {
-	if (m_pInst==NULL)
+	if (m_pInst == NULL)
 		m_pInst = new CvMapGenerator;
 	return *m_pInst;
 }
 
 
-bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIgnoreLatitude)  // advc: style changes
+bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY,  // refactored
+	bool bIgnoreLatitude, /* advc.129: */ bool bCheckRange) const
 {
 	PROFILE_FUNC();
 
-	CvMap& m = GC.getMap();
-	CvPlot* pPlot = m.plot(iX, iY);
+	CvMap const& kMap = GC.getMap();
+	CvPlot const* pPlot = kMap.plot(iX, iY);
 	if(pPlot == NULL)
 		return false;
-	CvArea const& kArea = pPlot->getArea();
+	CvPlot const& p = *pPlot;
+	CvArea const& kArea = p.getArea();
 
-	if(!pPlot->canHaveBonus(eBonus, bIgnoreLatitude))
+	if (!p.canHaveBonus(eBonus, bIgnoreLatitude))
 		return false;
 
 	{
 		bool bOverride=false;
-		bool r = GC.getPythonCaller()->canPlaceBonusAt(*pPlot, bOverride);
+		bool r = GC.getPythonCaller()->canPlaceBonusAt(p, bOverride);
 		if (bOverride)
 			return r;
 	}
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
-	{
-		CvPlot* pLoopPlot = plotDirection(iX, iY, ((DirectionTypes)iI));
-		if(pLoopPlot == NULL)
-			continue;
-		BonusTypes eLoopBonus = pLoopPlot->getBonusType();
-		if(eLoopBonus != NO_BONUS && eLoopBonus != eBonus)
-			return false;
-	}
 
-	CvBonusInfo& pInfo = GC.getInfo(eBonus);
-	CvBonusClassInfo& pClassInfo = GC.getInfo((BonusClassTypes)
-			pInfo.getBonusClassType());
+	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
 
-	if(pPlot->isWater())
+	if (p.isWater())
 	{
-		if(((m.getNumBonusesOnLand(eBonus) * 100) / (m.getNumBonuses(eBonus) + 1)) <
-				pInfo.getMinLandPercent())
-			return false;
-	}
-
-	int const iRange = pClassInfo.getUniqueRange();
-	for (int iDX = -iRange; iDX <= iRange; iDX++)
-	for (int iDY = -iRange; iDY <= iRange; iDY++)
-	{
-		CvPlot* pLoopPlot = plotXY(iX, iY, iDX, iDY);
-		if(pLoopPlot == NULL || !pLoopPlot->isArea(kArea))
-			continue;
-		if (plotDistance(iX, iY, pLoopPlot->getX(), pLoopPlot->getY()) <= iRange)
+		if (((kMap.getNumBonusesOnLand(eBonus) * 100) /
+			(kMap.getNumBonuses(eBonus) + 1)) <
+			kBonus.getMinLandPercent())
 		{
-			BonusTypes eOtherBonus = pLoopPlot->getBonusType();
-			if(eOtherBonus == NO_BONUS)
-				continue;
-			// Make sure there are none of the same bonus nearby:
-			if(eBonus == eOtherBonus)
-				return false;
-			// Make sure there are no bonuses of the same class nearby:
-			if(GC.getInfo(eOtherBonus).getBonusClassType() ==
-					pInfo.getBonusClassType())
-				return false;
+			return false;
 		}
 	}
+	// <advc.129>
+	if (!bCheckRange)
+		return true; // </advc.129>
+
+	FOR_EACH_ENUM(Direction)
+	{
+		CvPlot const* pAdj = plotDirection(p.getX(), p.getY(), eLoopDirection);
+		if (pAdj == NULL)
+			continue;
+		BonusTypes eLoopBonus = pAdj->getBonusType();
+		if (eLoopBonus != NO_BONUS && eLoopBonus != eBonus)
+			return false;
+	}
+
+	int const iBonusClassRange = GC.getInfo(kBonus.getBonusClassType()).
+			getUniqueRange();
+	int const iBonusRange = kBonus.getUniqueRange();
+	for (PlotCircleIter it(p, std::max(iBonusClassRange, iBonusRange));
+		it.hasNext(); ++it)
+	{
+		CvPlot const& kLoopPlot = *it;
+		if (!kLoopPlot.isArea(kArea))
+			continue;
+		BonusTypes eOtherBonus = kLoopPlot.getBonusType();
+		if (eOtherBonus == NO_BONUS)
+			continue;
+		int iDist = it.currPlotDist();
+		// Make sure there are none of the same bonus nearby:
+		if (eBonus == eOtherBonus && iDist <= iBonusRange)
+			return false;
+		// Make sure there are no bonuses of the same class nearby:
+		if (GC.getInfo(eOtherBonus).getBonusClassType() ==
+			kBonus.getBonusClassType() && iDist <= iBonusClassRange)
+		{
+			return false;
+		}
+	}
+
 	// <advc.129> Prevent more than one adjacent copy regardless of range.
 	int iFound = 0;
-	for(int i = 0; i < NUM_DIRECTION_TYPES; i++)
+	FOR_EACH_ENUM(Direction)
 	{
-		CvPlot* pp = plotDirection(iX, iY, (DirectionTypes)i);
-		if(pp == NULL) continue; CvPlot const& p = *pp;
-		if(!p.isArea(kArea))
+		CvPlot const* pAdj = plotDirection(p.getX(), p.getY(), eLoopDirection);
+		if (pAdj == NULL || !pAdj->isArea(kArea))
 			continue;
-		if(p.getBonusType() == eBonus)
+		if (pAdj->getBonusType() == eBonus)
 		{
 			iFound++;
-			if(iFound >= 2)
+			if (iFound >= 2)
 				return false;
 			/*  A single adjacent copy could already have another adjacent copy.
 				However, if that's prohibited, clusters of more than 2 resources
 				won't be placed at all. (They're only placed around one central
 				tile, which also gets the resource.) Better to change the placement
 				pattern then (addUniqueBonusType). */
-			/*for(int j = 0; j < NUM_DIRECTION_TYPES; j++) {
-				CvPlot* pp2 = plotDirection(p.getX(), p.getY(),
-						(DirectionTypes)j);
-				if(pp2 == NULL) continue; CvPlot const& p2 = *pp2;
-				if(!p2.isArea(kArea)) continue;
-				if(p2.getBonusType() == eBonus)
+			/*FOR_EACH_ENUM2(Direction, eDir2) {
+				CvPlot const* pAdjAdj = plotDirection(pAdj->getX(), pAdj->getY(), eDir2);
+				if (pAdjAdj == NULL || !pAdjAdj->isArea(kArea))
+					continue;
+				if(pAdjAdj->getBonusType() == eBonus)
 					return false;
 			}*/
 		}
@@ -112,38 +120,39 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIg
 	return true;
 }
 
-
-bool CvMapGenerator::canPlaceGoodyAt(ImprovementTypes eImprovement, int iX, int iY)
+// advc: param renamed from 'eImprovement'; const
+bool CvMapGenerator::canPlaceGoodyAt(ImprovementTypes eGoody, int iX, int iY) const
 {
 	PROFILE_FUNC();
 
-	FAssertMsg(eImprovement != NO_IMPROVEMENT, "Improvement is not assigned a valid value");
-	FAssertMsg(GC.getInfo(eImprovement).isGoody(), "ImprovementType eImprovement is expected to be a goody");
+	FAssert(eGoody != NO_IMPROVEMENT);
+	FAssert(GC.getInfo(eGoody).isGoody());
 
 	if (GC.getGame().isOption(GAMEOPTION_NO_GOODY_HUTS))
 		return false;
 
-	CvPlot* pPlot = GC.getMap().plot(iX, iY);
-	if (!pPlot->canHaveImprovement(eImprovement, NO_TEAM))
+	CvPlot const* p = GC.getMap().plot(iX, iY);
+	// <advc> May get called from Python; better check p.
+	if (p == NULL)
+		return false; // </advc>
+	if (!p->canHaveImprovement(eGoody, NO_TEAM))
 		return false;
 	{
 		bool bOverride=false;
-		bool r = GC.getPythonCaller()->canPlaceGoodyAt(*pPlot, bOverride);
+		bool r = GC.getPythonCaller()->canPlaceGoodyAt(*p, bOverride);
 		if (bOverride)
 			return r;
 	}
-	if (pPlot->isImproved() || pPlot->getBonusType() != NO_BONUS || pPlot->isImpassable())
+	if (p->isImproved() || p->getBonusType() != NO_BONUS || p->isImpassable())
 		return false;
 
-	int iUniqueRange = GC.getInfo(eImprovement).getGoodyUniqueRange();
-	for (int iDX = -iUniqueRange; iDX <= iUniqueRange; iDX++)
+	int iUniqueRange = GC.getInfo(eGoody).getGoodyUniqueRange();
+	// advc.314: Adjust to map size
+	iUniqueRange += GC.getWorldInfo(GC.getMap().getWorldSize()).getFeatureGrainChange();
+	for (SquareIter it(*p, iUniqueRange); it.hasNext(); ++it)
 	{
-		for (int iDY = -iUniqueRange; iDY <= iUniqueRange; iDY++)
-		{
-			CvPlot* pLoopPlot = plotXY(iX, iY, iDX, iDY);
-			if (pLoopPlot != NULL && pLoopPlot->getImprovementType() == eImprovement)
-				return false;
-		}
+		if (it->getImprovementType() == eGoody)
+			return false;
 	}
 
 	return true;
@@ -181,29 +190,19 @@ void CvMapGenerator::addLakes()
 
 	gDLL->NiTextOut("Adding Lakes...");
 	int const iLAKE_PLOT_RAND = GC.getDefineINT("LAKE_PLOT_RAND"); // advc.opt
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
 		//gDLL->callUpdater(); // advc.opt: Not needed I reckon
-		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
-		FAssertMsg(pLoopPlot != NULL, "LoopPlot is not assigned a valid value");
-
-		if (!pLoopPlot->isWater())
+		CvPlot& p = GC.getMap().getPlotByIndex(i);
+		if (!p.isWater() && !p.isCoastalLand() && !p.isRiver())
 		{
-			if (!pLoopPlot->isCoastalLand())
-			{
-				if (!pLoopPlot->isRiver())
-				{
-					if (GC.getGame().getMapRandNum(iLAKE_PLOT_RAND, "addLakes") == 0)
-					{
-						pLoopPlot->setPlotType(PLOT_OCEAN);
-					}
-				}
-			}
+			if (GC.getGame().getMapRandNum(iLAKE_PLOT_RAND, "addLakes") == 0)
+				p.setPlotType(PLOT_OCEAN);
 		}
 	}
 }
 
-void CvMapGenerator::addRivers()  // advc: Refactored
+void CvMapGenerator::addRivers()  // advc: refactored
 {
 	PROFILE_FUNC();
 
@@ -224,40 +223,40 @@ void CvMapGenerator::addRivers()  // advc: Refactored
 
 		for (int i = 0; i < GC.getMap().numPlots(); i++)
 		{
-			CvPlot const* pLoopPlot = GC.getMap().plotByIndex(
+			CvPlot const& p = GC.getMap().getPlotByIndex(
 					aiShuffledIndices[i]); // advc.129
-			if (pLoopPlot->isWater())
+			if (p.isWater())
 				continue;
 
-			bool bValid;
+			bool bValid = false;
 			switch(iPass)
 			{
 			case 0:
-				bValid = (pLoopPlot->isHills() || pLoopPlot->isPeak());
+				bValid = (p.isHills() || p.isPeak());
 				break;
 			case 1:
-				bValid = (!pLoopPlot->isCoastalLand() &&
+				bValid = (!p.isCoastalLand() &&
 						GC.getGame().getMapRandNum(8, "addRivers") == 0);
 				break;
 			case 2:
-				bValid =  ((pLoopPlot->isHills() || pLoopPlot->isPeak()) &&
-					  pLoopPlot->getArea().getNumRiverEdges() < 1 +
-					  pLoopPlot->getArea().getNumTiles() / iPlotsPerRiverEdge);
+				bValid =  ((p.isHills() || p.isPeak()) &&
+					  p.getArea().getNumRiverEdges() < 1 +
+					  p.getArea().getNumTiles() / iPlotsPerRiverEdge);
 				break;
 			case 3:
-				bValid = (pLoopPlot->getArea().getNumRiverEdges() < 1 +
-						pLoopPlot->getArea().getNumTiles() / iPlotsPerRiverEdge);
+				bValid = (p.getArea().getNumRiverEdges() < 1 +
+						p.getArea().getNumTiles() / iPlotsPerRiverEdge);
 				break;
-			default: FAssertMsg(false, "Invalid iPass");
+			default: FErrorMsg("Invalid iPass");
 			}
 			if (!bValid)
 				continue;
 
 			gDLL->callUpdater(); // advc.opt: Moved down; shouldn't need to update the UI in every iteration.
-			if (!GC.getMap().findWater(pLoopPlot, iRiverSourceRange, true) &&
-				!GC.getMap().findWater(pLoopPlot, iSeaWaterRange, false))
+			if (!GC.getMap().findWater(&p, iRiverSourceRangeLoop, true) &&
+				!GC.getMap().findWater(&p, iSeaWaterRangeLoop, false))
 			{
-				CvPlot* pStartPlot = pLoopPlot->getInlandCorner();
+				CvPlot* pStartPlot = p.getInlandCorner();
 				if (pStartPlot != NULL)
 					doRiver(pStartPlot);
 			}
@@ -355,7 +354,7 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 	}
 	else
 	{
-		//FAssertMsg(false, "Illegal direction type");
+		//FErrorMsg("Illegal direction type");
 		// River is starting here, set the direction in the next step
 		pRiverPlot = pStartPlot;
 
@@ -377,11 +376,11 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 			if (eOppositeDir != eOriginalCardinalDirection &&
 				eOppositeDir != eLastCardinalDirection)
 			{
-				pAdjacentPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(),
+				CvPlot* pLoopPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(),
 						eLoopCardinalDirection);
-				if (pAdjacentPlot != NULL)
+				if (pLoopPlot != NULL)
 				{
-					int iValue = getRiverValueAtPlot(pAdjacentPlot);
+					int iValue = getRiverValueAtPlot(*pLoopPlot);
 					if (iValue < iBestValue)
 					{
 						iBestValue = iValue;
@@ -489,7 +488,7 @@ bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)
 				break;
 
 			default:
-				FAssertMsg(false, "invalid cardinal direction");
+				FErrorMsg("invalid cardinal direction");
 			}
 
 			if (pRiverPlot != NULL && !pRiverPlot->hasCoastAtSECorner())
@@ -514,9 +513,9 @@ void CvMapGenerator::addFeatures()
 	if (GC.getPythonCaller()->addFeatures())
 		return;
 
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
-		CvPlot& kPlot = GC.getMap().getPlotByIndex(iI);
+		CvPlot& kPlot = GC.getMap().getPlotByIndex(i);
 		FOR_EACH_ENUM(Feature)
 		{
 			if (kPlot.canHaveFeature(eLoopFeature))
@@ -542,9 +541,9 @@ void CvMapGenerator::addBonuses()
 	/*  <advc.129> Only do an iteration for those PlacementOrder numbers that are
 		actually used in the BonusInfos. */
 	std::vector<int> aiOrdinals;
-	for (int i = 0; i < GC.getNumBonusInfos(); i++)
+	FOR_EACH_ENUM(Bonus)
 	{
-		int iOrder = GC.getInfo((BonusTypes)i).getPlacementOrder();
+		int iOrder = GC.getInfo(eLoopBonus).getPlacementOrder();
 		if (iOrder >= 0) // The negative ones aren't supposed to be placed at all
 			aiOrdinals.push_back(iOrder);
 	}
@@ -574,56 +573,87 @@ void CvMapGenerator::addBonuses()
 	}
 }
 
-void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
+void CvMapGenerator::addUniqueBonusType(BonusTypes eBonus)
 {
-	// K-Mod note: the areas tried stuff was originally done using an array.
-	// I've rewritten it to use std::set, for no good reason. The functionality is unchanged.
-	// (But it is now slightly more efficient and easier to read.)
-	std::set<int> areas_tried;
-
-	CvBonusInfo const& pBonusInfo = GC.getInfo(eBonusType);
-	int const iTarget = calculateNumBonusesToAdd(eBonusType);
+	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
+	int const iTarget = calculateNumBonusesToAdd(eBonus);
 	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
 	// advc.opt: Don't waste time trying to place land resources in the ocean
-	bool const bWater = (pBonusInfo.isTerrain(GC.getWATER_TERRAIN(true)) ||
-			pBonusInfo.isTerrain(GC.getWATER_TERRAIN(false)));
-	FAssertMsg(pBonusInfo.isOneArea(), "addUniqueBonusType called with non-unique bonus type");
-	CvMap& kMap = GC.getMap(); // advc
+	bool const bWater = (kBonus.isTerrain(GC.getWATER_TERRAIN(true)) ||
+			kBonus.isTerrain(GC.getWATER_TERRAIN(false)));
+	FAssertMsg(kBonus.isOneArea(), "addUniqueBonusType called with non-unique bonus type");
+	CvMap& kMap = GC.getMap();
+	CvGame& kGame = GC.getGame();
+
+	/*	K-Mod note: the areas tried stuff was originally done using an array.
+		I've rewritten it to use std::set, for no good reason. The functionality is unchanged.
+		(But it is now slightly more efficient and easier to read.) */
+	std::set<int> areas_tried;
 	// <advc.129>
+	// Sort areas in order to save time below
+	std::vector<std::pair<int,int> > areasBySize;
+	FOR_EACH_AREA(pLoopArea)
+		areasBySize.push_back(std::make_pair(pLoopArea->getNumTiles(), pLoopArea->getID()));
+	std::sort(areasBySize.rbegin(), areasBySize.rend());
+
 	for (int iPass = 0; iPass < 2; iPass++)
 	{	/*  Two passes - just to make sure that the new per-area limit doesn't
 			lead to fewer resources overall. */
 		bool bIgnoreAreaLimit = (iPass == 1); // </advc.129>
-		while (/* advc.129: */kMap.getNumBonuses(eBonusType) < iTarget)
+		while (/* advc.129: */kMap.getNumBonuses(eBonus) < iTarget)
 		{
 			int iBestValue = 0;
-			CvArea *pBestArea = NULL;
-			FOR_EACH_AREA_VAR(pLoopArea)
-			{	// <advc.opt>
-				if (pLoopArea->isWater() && !bWater)
+			CvArea* pBestArea = NULL;
+			for (size_t i = 0; i < areasBySize.size(); i++)
+			{
+				CvArea& kLoopArea = *kMap.getArea(areasBySize[i].second);
+				// <advc.opt>
+				if (kLoopArea.isWater() && !bWater)
 					continue; // </advc.opt>
-				if (areas_tried.count(pLoopArea->getID()) == 0)
+				if (areas_tried.count(kLoopArea.getID()) > 0)
+					continue;
+				int iNumTiles = kLoopArea.getNumTiles();
+				// <advc> Who knows what a map script might do ...
+				if (iNumTiles <= 0)
 				{
-					int iNumTiles = pLoopArea->getNumTiles();
-					int iAddedTotal = kMap.getNumBonuses(eBonusType);
-					if (iAddedTotal * 3 < 2 * iTarget &&
-						iNumTiles < 4 * NUM_CITY_PLOTS) // K-Mod
+					FAssert(iNumTiles > 0);
+					continue;
+				} // </advc>
+				int iAddedTotal = kMap.getNumBonuses(eBonus);
+				if (iAddedTotal * 3 < 2 * iTarget &&
+					iNumTiles < 4 * NUM_CITY_PLOTS) // K-Mod
+				{
+					continue;
+				}
+				// number of unique bonuses starting on the area, plus this one
+				int iNumUniqueBonusesOnArea = 1 + kLoopArea.countNumUniqueBonusTypes();
+				//int iValue = iNumTiles / iNumUniqueBonusesOnArea;
+				int iValue = ((iNumTiles *
+						// advc.129: Decrease the impact of iNumTiles when approaching the target resource count
+						(iTarget - iAddedTotal)) / iTarget +
+						kGame.getMapRandNum(3 * NUM_CITY_PLOTS,
+						"addUniqueBonusType area value (K-Mod)")) / iNumUniqueBonusesOnArea;
+				// <advc.129>
+				if (iValue <= iBestValue) // To save time
+					continue;
+				int iEligible = 0;
+				for (int j = 0; j < kMap.numPlots(); j++)
+				{
+					CvPlot const& kTestPlot = kMap.getPlotByIndex(j);
+					if (kTestPlot.isArea(kLoopArea) &&
+						canPlaceBonusAt(eBonus, kTestPlot.getX(), kTestPlot.getY(),
+						false, false)) // Save some time by skipping range checks
 					{
-						continue;
+						iEligible++;
 					}
-					// number of unique bonuses starting on the area, plus this one
-					int iNumUniqueBonusesOnArea = 1 + pLoopArea->countNumUniqueBonusTypes();
-					//int iValue = iNumTiles / iNumUniqueBonusesOnArea;
-					int iValue = ((iNumTiles *
-							// advc.129: Decrease the impact of iNumTiles when approaching the target resource count
-							(iTarget - iAddedTotal)) / iTarget +
-							GC.getGame().getMapRandNum(3 * NUM_CITY_PLOTS,
-							"addUniqueBonusType area value (K-Mod)")) / iNumUniqueBonusesOnArea; 
-					if (iValue > iBestValue)
-					{
-						iBestValue = iValue;
-						pBestArea = pLoopArea;
-					}
+				}
+				scaled rSuitability(iEligible, iNumTiles);
+				rSuitability = (rSuitability + 2) / 3; // dilute
+				iValue = (rSuitability * iValue).round(); // </advc.129>
+				if (iValue > iBestValue)
+				{
+					iBestValue = iValue;
+					pBestArea = &kLoopArea;
 				}
 			}
 
@@ -638,27 +668,25 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 
 			// Place the bonuses: (advc: some style changes from here on)
 
-			int* aiShuffledIndices = shuffle(kMap.numPlots(), GC.getGame().getMapRand());
+			int* aiShuffledIndices = shuffle(kMap.numPlots(), kGame.getMapRand());
 			for (int iI = 0; iI < kMap.numPlots() &&
 				(bIgnoreAreaLimit || iAdded < iAreaLimit) && // advc.129
-				kMap.getNumBonuses(eBonusType) < iTarget; iI++)
+				kMap.getNumBonuses(eBonus) < iTarget; iI++)
 			{
 				CvPlot& kRandPlot = kMap.getPlotByIndex(aiShuffledIndices[iI]);
-
 				if (pBestArea != kRandPlot.area())
 					continue;
-
-				int const x = kRandPlot.getX();
-				int const y = kRandPlot.getY();
-				if (!canPlaceBonusAt(eBonusType, x, y, bIgnoreLatitude))
+				if (!canPlaceBonusAt(eBonus, kRandPlot.getX(), kRandPlot.getY(),
+					bIgnoreLatitude))
+				{
 					continue;
-
-				/*	<advc.129> About to place a cluster of eBonusType. Don't place that
+				}
+				/*	<advc.129> About to place a cluster of eBonus. Don't place that
 					cluster near an earlier cluster (or any instance) of the same bonus class
 					- that's what can lead to e.g. starts with 5 Gold. canPlaceBonusAt
 					can't enforce this well b/c it doesn't know whether a cluster starts
 					(distance needs to be heeded) or continues (distance mustn't be heeded). */
-				int iClassToAvoid = pBonusInfo.getBonusClassType();
+				BonusClassTypes eClassToAvoid = kBonus.getBonusClassType();
 				/*  Only resources that occur in clusters are problematic. Not sure about
 					the iClassToAvoid>0 clause. 0 is the "general" bonus class containing
 					all the clustered resources except for Gold, Silver, Gems which I've
@@ -666,20 +694,20 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 					of precious bonuses are avoided. Eliminating all double clusters might
 					get in the way of (early) resource trades too much and make the map
 					less exciting than it could be. */
-				if(pBonusInfo.getGroupRand() > 0 && iClassToAvoid > 0)
+				if(kBonus.getGroupRand() > 0 && eClassToAvoid != NO_BONUSCLASS)
 				{
 					bool bSkip = false;
-					/*  Can't use pClassInfo.getUniqueRange() b/c this has to be
+					/*  Can't use kUnitClass.getUniqueRange() b/c this has to be
 						0 for bonuses that appear in clusters. 5 hardcoded. */
 					int const iDist = 5;
-					for (PlotCircleIter it(x, y, iDist); it.hasNext(); ++it)
+					for (PlotCircleIter it(kRandPlot, iDist); it.hasNext(); ++it)
 					{
 						CvPlot const& p = *it;
 						if (!p.sameArea(kRandPlot))
 							continue;
 						BonusTypes eOtherBonus = p.getBonusType();
 						if(eOtherBonus != NO_BONUS && GC.getInfo(eOtherBonus).
-							getBonusClassType() == iClassToAvoid &&
+							getBonusClassType() == eClassToAvoid &&
 							GC.getInfo(eOtherBonus).getGroupRand() > 0)
 						{
 							bSkip = true;
@@ -689,18 +717,18 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 					if(bSkip)
 						continue;
 				} // </advc.129>
-				kRandPlot.setBonusType(eBonusType);
-				// <dvc.129>
+				kRandPlot.setBonusType(eBonus);
+				// <advc.129>
 				iAdded++;
-				iAdded += placeGroup(eBonusType, kRandPlot, bIgnoreLatitude); // Replacing the code below
-				/*for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++) {
-					for (int iDY = -(pBonusInfo.getGroupRange()); iDY <= pBonusInfo.getGroupRange(); iDY++) {
-						if (GC.getMap().getNumBonuses(eBonusType) < iBonusCount) {
+				iAdded += placeGroup(eBonus, kRandPlot, bIgnoreLatitude); // Replacing the code below
+				/*for (int iDX = -(kBonus.getGroupRange()); iDX <= kBonus.getGroupRange(); iDX++) {
+					for (int iDY = -(kBonus.getGroupRange()); iDY <= kBonus.getGroupRange(); iDY++) {
+						if (GC.getMap().getNumBonuses(eBonus) < iBonusCount) {
 							CvPlot* pLoopPlot	= plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
 							if (pLoopPlot != NULL && (pLoopPlot->area() == pBestArea)) {
-								if (canPlaceBonusAt(eBonusType, pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude)) {
-									if (GC.getGame().getMapRandNum(100, "addUniqueBonusType") < pBonusInfo.getGroupRand())
-										pLoopPlot->setBonusType(eBonusType);
+								if (canPlaceBonusAt(eBonus, pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude)) {
+									if (kGame.getMapRandNum(100, "addUniqueBonusType") < kBonus.getGroupRand())
+										pLoopPlot->setBonusType(eBonus);
 				} } } } }*/
 
 			}
@@ -709,34 +737,32 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 	}
 }
 
-void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
+void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonus)
 {
-	int iBonusCount = calculateNumBonusesToAdd(eBonusType);
+	int iBonusCount = calculateNumBonusesToAdd(eBonus);
 	if (iBonusCount == 0)
 		return;
 
 	int *aiShuffledIndices = shuffle(GC.getMap().numPlots(), GC.getGame().getMapRand());
-	// advc.129: Moved into placeGroup
-	//CvBonusInfo& pBonusInfo = GC.getInfo(eBonusType);
 	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
-		CvPlot& kPlot = GC.getMap().getPlotByIndex(aiShuffledIndices[iI]);
-		if (!canPlaceBonusAt(eBonusType, kPlot.getX(), kPlot.getY(), bIgnoreLatitude))
+		CvPlot& p = GC.getMap().getPlotByIndex(aiShuffledIndices[i]);
+		if (!canPlaceBonusAt(eBonus, p.getX(), p.getY(), bIgnoreLatitude))
 			continue; // advc
 
-		kPlot.setBonusType(eBonusType);
+		p.setBonusType(eBonus);
 		iBonusCount--;
 		// advc.129: Replacing the loop below
-		iBonusCount -= placeGroup(eBonusType, kPlot, bIgnoreLatitude, iBonusCount);
-		/*for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++) {
-			for (int iDY = -(pBonusInfo.getGroupRange()); iDY <= pBonusInfo.getGroupRange(); iDY++) {
+		iBonusCount -= placeGroup(eBonus, p, bIgnoreLatitude, iBonusCount);
+		/*for (int iDX = -(kBonus.getGroupRange()); iDX <= kBonus.getGroupRange(); iDX++) {
+			for (int iDY = -(kBonus.getGroupRange()); iDY <= kBonus.getGroupRange(); iDY++) {
 				if (iBonusCount > 0) {
-					CvPlot* pLoopPlot	= plotXY(kPlot.getX(), kPlot.getY(), iDX, iDY);
+					CvPlot* pLoopPlot	= plotXY(p.getX(), p.getY(), iDX, iDY);
 					if (pLoopPlot != NULL) {
-						if (canPlaceBonusAt(eBonusType, pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude)) {
-							if (GC.getGame().getMapRandNum(100, "addNonUniqueBonusType") < pBonusInfo.getGroupRand()) {
-								pLoopPlot->setBonusType(eBonusType);
+						if (canPlaceBonusAt(eBonus, pLoopPlot->getX(), pLoopPlot->getY(), bIgnoreLatitude)) {
+							if (GC.getGame().getMapRandNum(100, "addNonUniqueBonusType") < kBonus.getGroupRand()) {
+								pLoopPlot->setBonusType(eBonus);
 								iBonusCount--;
 		} } } } } }
 		FAssertMsg(iBonusCount >= 0, "iBonusCount must be >= 0");*/
@@ -746,42 +772,40 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 	SAFE_DELETE_ARRAY(aiShuffledIndices);
 }
 
-
-// <advc.129>
-int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& kCenter,
+// advc.129:
+int CvMapGenerator::placeGroup(BonusTypes eBonus, CvPlot const& kCenter,
 		bool bIgnoreLatitude, int iLimit)
 {
-	CvBonusInfo const& kBonus = GC.getInfo(eBonusType);
+	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
 	// The one in the center is already placed, but that doesn't count here.
 	int iPlaced = 0;
 	std::vector<CvPlot*> apGroupRange;
 	for (SquareIter it(kCenter, kBonus.getGroupRange()); it.hasNext(); ++it)
 	{
-		{
-			CvPlot& p = *it;
-			if(canPlaceBonusAt(eBonusType, p.getX(), p.getY(), bIgnoreLatitude))
-				apGroupRange.push_back(&p);
-		}
+		CvPlot& p = *it;
+		if(canPlaceBonusAt(eBonus, p.getX(), p.getY(), bIgnoreLatitude))
+			apGroupRange.push_back(&p);
 	}
-	int sz = (int)apGroupRange.size();
-	if(sz <= 0)
+	int iSize = (int)apGroupRange.size();
+	if(iSize <= 0)
 		return 0;
-	std::vector<int> aiShuffled(sz);
+	std::vector<int> aiShuffled(iSize);
 	::shuffleVector(aiShuffled, GC.getGame().getMapRand());
-	for(int j = 0; j < sz && iLimit > 0; j++)
+	for (int j = 0; j < iSize &&
+		iLimit > 0; j++)
 	{
-		int iProb = kBonus.getGroupRand();
-		iProb = ::round(iProb * std::pow(2/3.0, iPlaced));
-		if (GC.getGame().getMapRandNum(100, "addNonUniqueBonusType") < iProb)
+		scaled pr = per100(kBonus.getGroupRand());
+		pr *= fixp(2/3.).pow(iPlaced);
+		if (pr.bernoulliSuccess(GC.getGame().getMapRand(), "addNonUniqueBonusType"))
 		{
-			apGroupRange[aiShuffled[j]]->setBonusType(eBonusType);
+			apGroupRange[aiShuffled[j]]->setBonusType(eBonus);
 			iLimit--;
 			iPlaced++;
 		}
 	}
 	FAssert(iLimit >= 0);
 	return iPlaced;
-} // </advc.129>
+}
 
 
 void CvMapGenerator::addGoodies()  // advc: some style changes
@@ -816,7 +840,7 @@ void CvMapGenerator::addGoodies()  // advc: some style changes
 
 			CvArea const& kArea = kPlot.getArea();
 			if (goodiesPerArea[kArea.getID()] < // advc.opt: was kArea.getNumImprovements(eImprov)
-				(kArea.getNumTiles() + iTilesPerGoody / 2) / iTilesPerGoody)
+				ROUND_DIVIDE(kArea.getNumTiles(), iTilesPerGoody))
 			{
 				if (canPlaceGoodyAt(eGoody, kPlot.getX(), kPlot.getY()))
 				{
@@ -934,85 +958,122 @@ void CvMapGenerator::afterGeneration()
 void CvMapGenerator::setPlotTypes(const int* paiPlotTypes)
 {
 	CvMap& kMap = GC.getMap();
-	for (int iI = 0; iI < kMap.numPlots(); iI++)
+	for (int i = 0; i < kMap.numPlots(); i++)
 	{
 		//gDLL->callUpdater(); // advc.opt: Not needed I reckon
-		kMap.getPlotByIndex(iI).setPlotType((PlotTypes)paiPlotTypes[iI], false, false);
+		kMap.getPlotByIndex(i).setPlotType((PlotTypes)paiPlotTypes[i], false, false);
 	}
 
 	kMap.recalculateAreas();
 
-	for (int iI = 0; iI < kMap.numPlots(); iI++)
+	for (int i = 0; i < kMap.numPlots(); i++)
 	{
 		//gDLL->callUpdater(); // advc.opt
-		CvPlot& kPlot = kMap.getPlotByIndex(iI);
-		if (kPlot.isWater())
+		CvPlot& p = kMap.getPlotByIndex(i);
+		if (p.isWater())
 		{
-			if (kPlot.isAdjacentToLand())
-				kPlot.setTerrainType(GC.getWATER_TERRAIN(true), false, false);
-			else kPlot.setTerrainType(GC.getWATER_TERRAIN(false), false, false);
+			if (p.isAdjacentToLand())
+				p.setTerrainType(GC.getWATER_TERRAIN(true), false, false);
+			else p.setTerrainType(GC.getWATER_TERRAIN(false), false, false);
 		}
 	}
 }
 
 
-int CvMapGenerator::getRiverValueAtPlot(CvPlot* pPlot)
+int CvMapGenerator::getRiverValueAtPlot(CvPlot const& kPlot) const // advc: const x2
 {
 	bool bOverride=false;
-	int pyValue = GC.getPythonCaller()->riverValue(*pPlot, bOverride);
+	int pyValue = GC.getPythonCaller()->riverValue(kPlot, bOverride);
 	if (bOverride)
 		return pyValue;
 	int iSum = pyValue; // Add to value from Python
 
-	iSum += (NUM_PLOT_TYPES - pPlot->getPlotType()) * 20;
-
-	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
-	{
-		CvPlot* pAdjacentPlot = plotDirection(pPlot->getX(), pPlot->getY(), (DirectionTypes)iI);
+	/*iSum += (NUM_PLOT_TYPES - kPlot.getPlotType()) * 20;
+	FOR_EACH_ENUM(Direction) {
+		CvPlot* pAdjacentPlot = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
 		if (pAdjacentPlot != NULL)
 			iSum += (NUM_PLOT_TYPES - pAdjacentPlot->getPlotType());
 		else iSum += (NUM_PLOT_TYPES * 10);
-	}
+	}*/
+	/*	<advc.129> kPlot is the plot at whose southeastern corner the river will arrive.
+		That corner also touches 3 other plots, which are no less important.
+		In addition to those 4, I'm going to count the 8 plots orthogonally adjacent
+		to them, resulting in a 4x4 square without its 4 corners.
+		(This range is awkward to traverse b/c it doesn't have a center plot.) */
+	CvMap const& kMap = GC.getMap();
+	for (int iDX = 0; iDX < 4; iDX++)
+	{
+		int const iX = kPlot.getX() - 1 + iDX; // west to east
+		for (int iDY = 0; iDY < 4; iDY++)
+		{
+			int const iY = kPlot.getY() + 1 - iDY; // north to south
+			// Skip corners
+			if ((iDX == 0 || iDX == 3) && (iDY == 0 || iDY == 3))
+				continue;
+			CvPlot const* p = kMap.plotValidXY(iX, iY);
+			int iPlotVal = NUM_PLOT_TYPES * 3; // p == NULL
+			if (p != NULL)
+			{
+				if (p->isWater() && !p->isLake())
+				{	/*	The term in the else branch (as in BtS) counts 1 more
+						for hills than for flat and would count 1 less
+						for water than for flat. I'm making (non-lake) water
+						symmetrical with peak instead. */
+					iPlotVal = 0;
+				}
+				else iPlotVal = NUM_PLOT_TYPES - p->getPlotType();
+			}
+			// Inner plots have much higher weight
+			if ((iDX == 1 || iDX == 2) && (iDY == 1 || iDY == 2))
+				iPlotVal *= 6;
+			iSum += iPlotVal;
+		}
+	} // <advc.129>
 	CvRandom riverRand;
-	riverRand.init((pPlot->getX() * 43251267) + (pPlot->getY() * 8273903));
-	iSum += riverRand.get(10, "River Rand");
+	riverRand.init(kPlot.getX() * 43251267 + kPlot.getY() * 8273903);
+	// advc.129: Was 10. The scale hasn't really changed; I just want more randomness.
+	iSum += riverRand.get(20, "River Rand");
 
 	return iSum;
 }
 
-int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonusType)
+// Calculates and returns the number of resources of eBonus to be placed
+int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonus)
 {
-	CvBonusInfo& pBonusInfo = GC.getInfo(eBonusType);
+	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
+	CvGame& kGame = GC.getGame();
+	CvMap const& kMap = GC.getMap();
 
-	// Calculate iBonusCount, the amount of this bonus to be placed:
-
-	int iRand1 = GC.getGame().getMapRandNum(pBonusInfo.getRandAppearance1(), "calculateNumBonusesToAdd-1");
-	int iRand2 = GC.getGame().getMapRandNum(pBonusInfo.getRandAppearance2(), "calculateNumBonusesToAdd-2");
-	int iRand3 = GC.getGame().getMapRandNum(pBonusInfo.getRandAppearance3(), "calculateNumBonusesToAdd-3");
-	int iRand4 = GC.getGame().getMapRandNum(pBonusInfo.getRandAppearance4(), "calculateNumBonusesToAdd-4");
-	int iBaseCount = pBonusInfo.getConstAppearance() + iRand1 + iRand2 + iRand3 + iRand4;
-
+	int iBaseCount = kBonus.getConstAppearance();
+	{
+		int iRand1 = kGame.getMapRandNum(kBonus.getRandAppearance1(), "calculateNumBonusesToAdd-1");
+		int iRand2 = kGame.getMapRandNum(kBonus.getRandAppearance2(), "calculateNumBonusesToAdd-2");
+		int iRand3 = kGame.getMapRandNum(kBonus.getRandAppearance3(), "calculateNumBonusesToAdd-3");
+		int iRand4 = kGame.getMapRandNum(kBonus.getRandAppearance4(), "calculateNumBonusesToAdd-4");
+		iBaseCount += iRand1 + iRand2 + iRand3 + iRand4;
+	}
 	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
 
-	// Calculate iNumPossible, the number of plots that are eligible to have this bonus:
-
-	int iLandTiles = 0;
-	if (pBonusInfo.getTilesPer() > 0)
+	//int iLandTiles = 0; // advc: misleadingly named
+	int iFromTiles = 0;
+	if (kBonus.getTilesPer() > 0)
 	{
-		int iNumPossible = 0;
-		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+		int iNumPossible = 0; // Number of plots eligible to have this bonus
+		for (int i = 0; i < kMap.numPlots(); i++)
 		{
-			CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
-			if (kPlot.canHaveBonus(eBonusType, bIgnoreLatitude))
+			CvPlot const& kPlot = kMap.getPlotByIndex(i);
+			if (kPlot.canHaveBonus(eBonus, bIgnoreLatitude))
 				iNumPossible++;
 		}
 		// <advc.129>
-		if(GC.getDefineBOOL("SUBLINEAR_BONUS_QUANTITIES"))
+		if (GC.getDefineBOOL("SUBLINEAR_BONUS_QUANTITIES"))
 		{
-			int iSubtrahend = pBonusInfo.getTilesPer(); // Typically 16 or 32
+			int iSubtrahend = kBonus.getTilesPer(); // Typically 16 or 32
+			// For normalization; don't want to place fewer resources in general.
+			iSubtrahend = (fixp(0.83) * iSubtrahend).ceil();
 			int iRemainder = iNumPossible;
 			int iResult = 0;
-			/* Place one for the first, say, 16 tiles, the next after 17, then 18 ...
+			/* Place one for the first, say, 14 tiles, the next after 15, then 16 ...
 			   i.e. number of resources placed grows sublinearly with the number of
 			   eligible plots. */
 			while(true)
@@ -1023,14 +1084,14 @@ int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonusType)
 				iResult++;
 				iSubtrahend++;
 			}
-			iLandTiles += iResult;
+			iFromTiles += iResult;
 		}
 		else // </advc.129>
-			iLandTiles += (iNumPossible / pBonusInfo.getTilesPer());
+			iFromTiles += (iNumPossible / kBonus.getTilesPer());
 	}
 
-	int iPlayers = (GC.getGame().countCivPlayersAlive() * pBonusInfo.getPercentPerPlayer()) / 100;
-	int iBonusCount = (iBaseCount * (iLandTiles + iPlayers)) / 100;
-	iBonusCount = std::max(1, iBonusCount);
-	return iBonusCount;
+	int iFromPlayers = (kGame.countCivPlayersAlive() *
+			kBonus.getPercentPerPlayer()) / 100;
+	int iBonusCount = (iBaseCount * (iFromTiles + iFromPlayers)) / 100;
+	return std::max(1, iBonusCount);
 }

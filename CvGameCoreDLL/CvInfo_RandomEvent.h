@@ -102,7 +102,7 @@ public: // All the const functions returning primitive types are exposed to Pyth
 	const wchar* getQuestFailTextKey() const;
 	const wchar* getOtherPlayerPopup() const;
 	const wchar* getLocalInfoTextKey() const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* );
 	void write(FDataStreamBase* );
 	#endif
@@ -292,7 +292,7 @@ public: // All the const functions returning primitive types are exposed to Pyth
 	const char* getPythonCanDo() const;
 	const char* getPythonCanDoCity() const;
 	const char* getPythonCanDoUnit() const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* );
 	void write(FDataStreamBase* );
 	#endif

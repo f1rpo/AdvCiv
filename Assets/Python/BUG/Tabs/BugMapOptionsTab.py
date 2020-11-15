@@ -60,9 +60,12 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, center, "MainInterface__CityNetworkIcon")
 		self.addCheckbox(screen, center, "MainInterface__AirportIcon")
 		# </advc.002f>
-		self.addLabel(screen, right, "Misc", "Misc:")
+		self.addLabel(screen, right, "Camera", "Camera:") # advc.004m
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView")
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView_Remember", True)
+		# advc.004m:
+		self.addTextDropdown(screen, right, right, "MainInterface__DefaultCamDistance")
+		self.addLabel(screen, right, "Misc", "Misc:")
 		self.addCheckbox(screen, right, "EventSigns__Enabled")
 		
 		#self.addCheckbox(screen, right, "Actions__IgnoreHarmlessBarbarians")

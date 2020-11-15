@@ -57,6 +57,9 @@
 			<option id="WorstEnemy" key="Worst Enemy Icons" 
 					type="boolean" default="False" 
 					get="isShowWorstEnemy" set="setShowWorstEnemy" dirtyBit="Score"/>
+			<!-- advc.104 (note): Disabled this option through CvMainInterface.py.
+				 The indicator will still work if the letter M is added to the
+				 scoreboard string and the K-Mod (legacy) war AI is enabled. -->
 			<option id="WHEOOH" key="WHEOOH" 
 					type="boolean" default="False" 
 					get="isShowWHEOOH" set="setShowWHEOOH" dirtyBit="Score"/>
@@ -70,10 +73,11 @@
 					get="isAlignIcons" set="setAlignIcons" dirtyBit="Score"/>
 			<!-- advc.085 -->
 			<option id="ExpandOnHover" key="Expand on Hover" 
-					type="boolean" default="True" dirtyBit="Score"/>
-			<!-- advc.106d: Default was !?2WSZVC6EPTUNBDRAHQ*LO -->
+					type="boolean" default="True" get="isExpandOnHover" set="setExpandOnHover" dirtyBit="Score"/>
+			<!-- advc.106d: Default was !?2WSZVC6EPTUNBDRAHQ*LO in K-Mod,
+				 !WSZVC?EPTUNBDRAHMQ*LO in BUG. (The ! is actually an F in BUG.) -->
 			<option id="DisplayOrder" key="Display Order" 
-					type="string" default="_J_P_D_B_N!?2WSZCTURAHQ*LO"
+					type="string" default="_J_P_D_B_N!?2WSZCTURAHMQ*LO"
 					get="getDisplayOrder" set="setDisplayOrder" dirtyBit="Score"/>
 			<list   id="DefaultSpacing" key="Default Column Spacing" 
 					type="int" default="0" values="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10" 

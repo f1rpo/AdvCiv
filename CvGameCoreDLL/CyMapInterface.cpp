@@ -2,8 +2,6 @@
 #include "CyMap.h"
 #include "CyArea.h"
 #include "CySelectionGroup.h"
-//# include <boost/python/manage_new_object.hpp>
-//# include <boost/python/return_value_policy.hpp>
 
 //
 // published python interface for CyMap
@@ -55,7 +53,7 @@ void CyMapPythonInterface()
 
 		.def("getNumCustomMapOptions", &CyMap::getNumCustomMapOptions, "int () - number of custom map settings")
 		.def("getCustomMapOption", &CyMap::getCustomMapOption, "CustomMapOptionTypes () - user defined map setting at this option id")
-		// advc.004:
+		// advc.190b:
 		.def("getNonDefaultCustomMapOptionDesc", &CyMap::getNonDefaultCustomMapOptionDesc, "wstring (int)")
 		.def("getSettingsString", &CyMap::getSettingsString, "wstring ()") // advc.savem
 

@@ -9,11 +9,10 @@ CvInfoBase::CvInfoBase() : m_bGraphicalOnly(false) {}
 // advc.xmldefault:
 CvInfoBase::CvInfoBase(CvInfoBase const& kOther)
 {
-	FAssertMsg(false, "Copy-ctor not implemented");
+	FErrorMsg("Copy-ctor not implemented");
 }
 
-CvInfoBase::~CvInfoBase() {}
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvInfoBase::read(FDataStreamBase* pStream)
 {
 	reset();
@@ -52,11 +51,10 @@ bool CvInfoBase::isGraphicalOnly() const
 	return m_bGraphicalOnly;
 }
 
-const TCHAR* CvInfoBase::getType() const
+TCHAR const* CvInfoBase::getType() const
 {
 	if (m_szType.empty())
 		return NULL;
-
 	return m_szType;
 }
 
@@ -68,12 +66,12 @@ bool CvInfoBase::isDefaultsType() const
 	CvString const szEnding = "_DEFAULTS";
 	return (m_szType.length() > szEnding.length() &&
 			m_szType.compare(
-				m_szType.length() - szEnding.length(),
-				szEnding.length(),
-				szEnding) == 0);
+			m_szType.length() - szEnding.length(),
+			szEnding.length(),
+			szEnding) == 0);
 }
 
-const TCHAR* CvInfoBase::getButton() const
+TCHAR const* CvInfoBase::getButton() const
 {
 	if (m_szButton.empty())
 		return NULL;
@@ -81,22 +79,26 @@ const TCHAR* CvInfoBase::getButton() const
 	return m_szButton;
 }
 
-const wchar* CvInfoBase::getTextKeyWide() const
+wchar const* CvInfoBase::getTextKeyWide() const
 {
 	return m_szTextKey;
 }
 
-const wchar* CvInfoBase::getDescription(uint uiForm) const
+/*	<advc.137> Split the original code so that derived classes don't need to worry
+	about the cache */
+wchar const* CvInfoBase::getDescription(uint uiForm) const
 {
 	while(m_aCachedDescriptions.size() <= uiForm)
-	{
-		m_aCachedDescriptions.push_back(gDLL->getObjectText(m_szTextKey,
-			m_aCachedDescriptions.size()));
-	}
+		m_aCachedDescriptions.push_back(getDescriptionInternal());
 	return m_aCachedDescriptions[uiForm];
 }
 
-const wchar* CvInfoBase::getText() const
+CvWString CvInfoBase::getDescriptionInternal() const
+{
+	return gDLL->getObjectText(m_szTextKey, m_aCachedDescriptions.size());
+} // </advc.137>
+
+wchar const* CvInfoBase::getText() const
 {
 	// used instead of getDescription for Info entries that are not objects
 	// so they do not have gender/plurality/forms defined in the Translator system
@@ -105,21 +107,21 @@ const wchar* CvInfoBase::getText() const
 	return m_szCachedText;
 }
 
-const wchar* CvInfoBase::getCivilopedia() const
+wchar const* CvInfoBase::getCivilopedia() const
 {
 	if(m_szCachedCivilopedia.empty())
 		m_szCachedCivilopedia = gDLL->getText(m_szCivilopediaKey);
 	return m_szCachedCivilopedia;
 }
 
-const wchar* CvInfoBase::getHelp() const
+wchar const* CvInfoBase::getHelp() const
 {
 	if (m_szCachedHelp.empty())
 		m_szCachedHelp = gDLL->getText(m_szHelpKey);
 	return m_szCachedHelp;
 }
 
-const wchar* CvInfoBase::getStrategy() const
+wchar const* CvInfoBase::getStrategy() const
 {
 	if (m_szCachedStrategy.empty())
 		m_szCachedStrategy = gDLL->getText(m_szStrategyKey);
@@ -166,11 +168,8 @@ bool CvInfoBase::read(CvXMLLoadUtility* pXML)
 
 bool CvScalableInfo::read(CvXMLLoadUtility* pXML)
 {
-	float fScale;
-	pXML->GetChildXmlValByName(&fScale, "fScale");
-	setScale(fScale);
-	pXML->GetChildXmlValByName(&fScale, "fInterfaceScale", 1.0f);
-	setInterfaceScale(fScale);
+	pXML->GetChildXmlValByName(&m_fScale, "fScale");
+	pXML->GetChildXmlValByName(&m_fInterfaceScale, "fInterfaceScale", 1.0f);
 	return true;
 }
 
@@ -179,19 +178,9 @@ float CvScalableInfo::getScale() const
 	return m_fScale;
 }
 
-void CvScalableInfo::setScale(float fScale)
-{
-	m_fScale = fScale;
-}
-
 float CvScalableInfo::getInterfaceScale() const
 {
 	return m_fInterfaceScale;
-}
-
-void CvScalableInfo::setInterfaceScale(float fInterfaceScale)
-{
-	m_fInterfaceScale = fInterfaceScale;
 }
 
 CvHotkeyInfo::CvHotkeyInfo() :
@@ -200,7 +189,7 @@ m_iHotKeyVal(-1),
 m_iHotKeyPriority(-1),
 m_iHotKeyValAlt(-1),
 m_iHotKeyPriorityAlt(-1),
-m_iOrderPriority(5), // advc.006b: Moved from CvHotkeyInfo::read
+m_iOrderPriority(-1),
 m_bAltDown(false),
 m_bShiftDown(false),
 m_bCtrlDown(false),
@@ -214,52 +203,31 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvXMLInfo::read(pXML)) // advc.tag
 		return false;
 
-	int iVal;
-	bool bVal;
-	CvString szTextVal;
-
 	// advc.006b: Default arguments added to GetChildXmlValByName calls
 
-	if (pXML->GetChildXmlValByName(szTextVal, "HotKey", ""))
-		setHotKey(szTextVal);
+	pXML->GetChildXmlValByName(m_szHotKey, "HotKey", "");
+	m_iHotKeyVal = pXML->GetHotKeyInt(m_szHotKey);
+	pXML->GetChildXmlValByName(&m_iHotKeyPriority, "iHotKeyPriority",  -1);
+	{
+		CvString szTextVal;
+		if (pXML->GetChildXmlValByName(szTextVal, "HotKeyAlt", ""))
+			m_iHotKeyValAlt =  pXML->GetHotKeyInt(szTextVal);
+	}
+	pXML->GetChildXmlValByName(&m_iHotKeyPriorityAlt, "iHotKeyPriorityAlt", -1);
+	pXML->GetChildXmlValByName(&m_bAltDown, "bAltDown", false);
+	pXML->GetChildXmlValByName(&m_bShiftDown, "bShiftDown", false);
+	pXML->GetChildXmlValByName(&m_bCtrlDown, "bCtrlDown", false);
+	pXML->GetChildXmlValByName(&m_bAltDownAlt, "bAltDownAlt", false);
+	pXML->GetChildXmlValByName(&m_bShiftDownAlt, "bShiftDownAlt", false);
+	pXML->GetChildXmlValByName(&m_bCtrlDownAlt, "bCtrlDownAlt", false);
+	pXML->GetChildXmlValByName(&m_iOrderPriority, "iOrderPriority", 5);
 
-	setHotKeyVal(pXML->GetHotKeyInt(szTextVal));
-
-	if (pXML->GetChildXmlValByName(&iVal, "iHotKeyPriority",  -1))
-		setHotKeyPriority(iVal);
-
-	if (pXML->GetChildXmlValByName(szTextVal, "HotKeyAlt", ""))
-		setHotKeyValAlt(pXML->GetHotKeyInt(szTextVal));
-
-	if (pXML->GetChildXmlValByName(&iVal, "iHotKeyPriorityAlt", -1))
-		setHotKeyPriorityAlt(iVal);
-
-	if (pXML->GetChildXmlValByName(&bVal, "bAltDown", false))
-		setAltDown(bVal);
-
-	if (pXML->GetChildXmlValByName(&bVal, "bShiftDown", false))
-		setShiftDown(bVal);
-
-	if (pXML->GetChildXmlValByName(&bVal, "bCtrlDown", false))
-		setCtrlDown(bVal);
-
-	if (pXML->GetChildXmlValByName(&bVal, "bAltDownAlt", false))
-		setAltDownAlt(bVal);
-
-	if (pXML->GetChildXmlValByName(&bVal, "bShiftDownAlt", false))
-		setShiftDownAlt(bVal);
-
-	if (pXML->GetChildXmlValByName(&bVal, "bCtrlDownAlt", false))
-		setCtrlDownAlt(bVal);
-
-	if (pXML->GetChildXmlValByName(&iVal, "iOrderPriority", 0))
-		setOrderPriority(iVal);
-
-	setHotKeyDescription(getTextKeyWide(), NULL, pXML->HotKeyFromDescription(getHotKey(), m_bShiftDown, m_bAltDown, m_bCtrlDown));
+	setHotKeyDescription(getTextKeyWide(), NULL, pXML->HotKeyFromDescription(
+			getHotKey(), m_bShiftDown, m_bAltDown, m_bCtrlDown));
 
 	return true;
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvHotkeyInfo::read(FDataStreamBase* pStream)
 {
 	CvXMLInfo::read(pStream); // advc.tag
@@ -328,19 +296,9 @@ int CvHotkeyInfo::getHotKeyVal() const
 	return m_iHotKeyVal;
 }
 
-void CvHotkeyInfo::setHotKeyVal(int i)
-{
-	m_iHotKeyVal = i;
-}
-
 int CvHotkeyInfo::getHotKeyPriority() const
 {
 	return m_iHotKeyPriority;
-}
-
-void CvHotkeyInfo::setHotKeyPriority(int i)
-{
-	m_iHotKeyPriority = i;
 }
 
 int CvHotkeyInfo::getHotKeyValAlt() const
@@ -348,19 +306,9 @@ int CvHotkeyInfo::getHotKeyValAlt() const
 	return m_iHotKeyValAlt;
 }
 
-void CvHotkeyInfo::setHotKeyValAlt(int i)
-{
-	m_iHotKeyValAlt = i;
-}
-
 int CvHotkeyInfo::getHotKeyPriorityAlt() const
 {
 	return m_iHotKeyPriorityAlt;
-}
-
-void CvHotkeyInfo::setHotKeyPriorityAlt(int i)
-{
-	m_iHotKeyPriorityAlt = i;
 }
 
 int CvHotkeyInfo::getOrderPriority() const
@@ -368,19 +316,9 @@ int CvHotkeyInfo::getOrderPriority() const
 	return m_iOrderPriority;
 }
 
-void CvHotkeyInfo::setOrderPriority(int i)
-{
-	m_iOrderPriority = i;
-}
-
 bool CvHotkeyInfo::isAltDown() const
 {
 	return m_bAltDown;
-}
-
-void CvHotkeyInfo::setAltDown(bool b)
-{
-	m_bAltDown = b;
 }
 
 bool CvHotkeyInfo::isShiftDown() const
@@ -388,19 +326,9 @@ bool CvHotkeyInfo::isShiftDown() const
 	return m_bShiftDown;
 }
 
-void CvHotkeyInfo::setShiftDown(bool b)
-{
-	m_bShiftDown = b;
-}
-
 bool CvHotkeyInfo::isCtrlDown() const
 {
 	return m_bCtrlDown;
-}
-
-void CvHotkeyInfo::setCtrlDown(bool b)
-{
-	m_bCtrlDown = b;
 }
 
 bool CvHotkeyInfo::isAltDownAlt() const
@@ -408,19 +336,9 @@ bool CvHotkeyInfo::isAltDownAlt() const
 	return m_bAltDownAlt;
 }
 
-void CvHotkeyInfo::setAltDownAlt(bool b)
-{
-	m_bAltDownAlt = b;
-}
-
 bool CvHotkeyInfo::isShiftDownAlt() const
 {
 	return m_bShiftDownAlt;
-}
-
-void CvHotkeyInfo::setShiftDownAlt(bool b)
-{
-	m_bShiftDownAlt = b;
 }
 
 bool CvHotkeyInfo::isCtrlDownAlt() const
@@ -428,19 +346,9 @@ bool CvHotkeyInfo::isCtrlDownAlt() const
 	return m_bCtrlDownAlt;
 }
 
-void CvHotkeyInfo::setCtrlDownAlt(bool b)
-{
-	m_bCtrlDownAlt = b;
-}
-
 const TCHAR* CvHotkeyInfo::getHotKey() const
 {
 	return m_szHotKey;
-}
-
-void CvHotkeyInfo::setHotKey(const TCHAR* szVal)
-{
-	m_szHotKey = szVal;
 }
 
 std::wstring CvHotkeyInfo::getHotKeyDescription() const
@@ -503,7 +411,7 @@ CvXMLInfo::ElementDataType CvXMLInfo::BoolElement::getDataType() const
 	return BOOL_ELEMENT;
 }
 
-int CvXMLInfo::BoolElement::getDefaultValue() const { return m_bDefaultValue; }
+bool CvXMLInfo::BoolElement::getDefaultValue() const { return m_bDefaultValue; }
 
 void CvXMLInfo::addElements(std::vector<XMLElement*>& r) const
 {
@@ -537,7 +445,7 @@ bool CvXMLInfo::read(CvXMLLoadUtility* pXML)
 			{
 			case INT_ELEMENT: iIntElements++; break;
 			case BOOL_ELEMENT: iBoolElements++; break;
-			default: FAssertMsg(false, "Data type misses element counting code");
+			default: FErrorMsg("Data type misses element counting code");
 			}
 		}
 		m_aiData.resize(iIntElements);
@@ -576,14 +484,14 @@ bool CvXMLInfo::read(CvXMLLoadUtility* pXML)
 			FAssertBounds(0, m_abData.size(), iEnumValue);
 			m_abData[iEnumValue] = bTmp;
 			break;
-		default: FAssertMsg(false, "Data type misses XML loading code");
+		default: FErrorMsg("Data type misses XML loading code");
 		}
 		delete &kElement;
 	}
 	return true;
 }
 
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvXMLInfo::read(FDataStreamBase* pStream)
 {
 	CvInfoBase::read(pStream);

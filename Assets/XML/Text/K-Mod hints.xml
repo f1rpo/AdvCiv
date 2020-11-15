@@ -54,12 +54,12 @@
 	<Italian>(K-Mod) Se una civiltà rivale punta a dominare il mondo - attenzione! Potrebbe decidere di attacacrti anche se appare amichevole.</Italian>
 	<Spanish>(K-Mod) Si un rival se ha obsesionado en la dominación mundial - ¡ten cuidado! Pueden decidir atacarte incluso si parecen amistosos.</Spanish>
 </TEXT>
-<!-- advc.008c: Apparently a mix-up of Assembly Line and Industrial Park-->
+<!-- advc.008c: Apparently a mix-up of Assembly Line and Industrial Park. Added mention of global warming. -->
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_5</Tag>
-	<English>Factories and Industrial Parks create extra pollution with coal and oil. If you aren't using your fossil fuels, consider removing access to them so that your people will be healthier.</English>
-	<French>Factories and Industrial Parks create extra pollution with coal and oil. If you aren't using your fossil fuels, consider removing access to them so that your people will be healthier.</French>
-	<German>Fabriken und Industriegebiete erzeugen zusätzliche Verschmutzung mit Kohle und Öl. Benötigen Sie ihre fossilen Brennstoffe nicht, ziehen Sie in Betracht, den Zugang zu ihnen abzuschneiden, damit Ihre Bevölkerung gesünder wird.</German>
+	<English>Factories and Industrial Parks create extra pollution with coal and oil. If you aren't using your fossil fuels, consider removing access to them so that your people will be healthier - and to slow down global warming.</English>
+	<French>Factories and Industrial Parks create extra pollution with coal and oil. If you aren't using your fossil fuels, consider removing access to them so that your people will be healthier - and to slow down global warming.</French>
+	<German>Fabriken und Industriegebiete erzeugen zusätzliche Verschmutzung mit Kohle und Öl. Benötigen Sie ihre fossilen Brennstoffe nicht, ziehen Sie in Betracht, den Zugang zu ihnen abzuschneiden, damit Ihre Bevölkerung gesünder wird - und um die globale Erwärmung zu bremsen.</German>
 	<Italian>Fabbriche e Linee di produzione causano ulteriore inquinamento con carbone e petrolio. Se non usi combustibili fossili, considera di rimuoverne l'accesso per aumentare la salute di cittadini.</Italian>
 	<Spanish>Las fábricas y cadenas de montaje pueden producir polución extra con carbón y petróleo. Si no estás usando combustibles fósiles, considera quitar el acceso a ellos para que tu gente sea más saludable.</Spanish>
 </TEXT>

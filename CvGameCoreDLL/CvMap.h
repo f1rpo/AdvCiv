@@ -3,32 +3,23 @@
 #ifndef CIV4_MAP_H
 #define CIV4_MAP_H
 
-//
 //	FILE:	 CvMap.h
 //	AUTHOR:  Soren Johnson
 //	PURPOSE: Game map class
-//-----------------------------------------------------------------------------
 //	Copyright (c) 2004 Firaxis Games, Inc. All rights reserved.
-//-----------------------------------------------------------------------------
-//
 
 #include "CvPlot.h"
-class CvArea;
-// <advc.300>
-#include "Shelf.h"
-#include <map> // </advc.300>
+#include "Shelf.h" // advc.300
 
+class CvArea;
 class FAStar;
 class CvPlotGroup;
 class CvSelectionGroup;
 
-//
-// holds initialization info
-//
-struct CvMapInitData
+struct CvMapInitData // holds initialization info
 {
-	int m_iGridW;						// in game plots
-	int m_iGridH;						// in game plots
+	int m_iGridW; // in game plots
+	int m_iGridH; // in game plots
 	int m_iTopLatitude;
 	int m_iBottomLatitude;
 
@@ -40,11 +31,7 @@ struct CvMapInitData
 	{ }
 };
 
-//
-// CvMap
-//
-class CvMap
-		: private boost::noncopyable // advc.003e
+class CvMap /* advc.003e: */ : private boost::noncopyable
 {
 	/*  <advc.make> All the inline functions below used to be global functions
 		in CvGameCoreUtils.h except for coordRange, which was already in CvMap.h,
@@ -67,11 +54,18 @@ public:
 	// 4 | 4 | 3 | 3 | 3 | 4 | 4
 	//
 	// Returns the distance between plots according to the pattern above...
-	inline int plotDistance(int iX1, int iY1, int iX2, int iY2) const
-	{
+	int plotDistance(int iX1, int iY1, int iX2, int iY2) const
+	{	/*	advc.opt: inline keyword removed. Wasn't getting inlined either.
+			xDistance and yDistance and its auxiliary functions are getting inlined.
+			I'm guessing that's why the compiler resists inlining plotDistance;
+			inlining the whole computation is probably bad for branch prediction. */
 		int iDX = xDistance(iX1, iX2);
 		int iDY = yDistance(iY1, iY2);
-		return std::max(iDX, iDY) + (std::min(iDX, iDY) / 2);
+		//return std::max(iDX, iDY) + std::min(iDX, iDY) / 2;
+		/*	advc.opt: Non-branching replacement
+			(abs in stdlib uses just xor and sub). Could also use the max and min
+			functions in CvGameCoreUtils.h, but this here seems a little faster. */
+		return (3 * (iDX + iDY) + abs(iDX - iDY)) / 4;
 	}
 
 	// K-Mod, plot-to-plot alias for convenience:
@@ -81,7 +75,6 @@ public:
 				plot1->getX(), plot1->getY(),
 				plot2->getX(), plot2->getY());
 	}
-	// K-Mod end
 
 	// 3 | 3 | 3 | 3 | 3 | 3 | 3
 	// -------------------------
@@ -98,9 +91,9 @@ public:
 	// 3 | 3 | 3 | 3 | 3 | 3 | 3
 	//
 	// Returns the distance between plots according to the pattern above...
-	inline int stepDistance(int iX1, int iY1, int iX2, int iY2) const
-	{
-		return std::max(xDistance(iX1, iX2), yDistance(iY1, iY2));
+	int stepDistance(int iX1, int iY1, int iX2, int iY2) const
+	{	// std::opt: Was std::max. inline keyword removed; cf. plotDistance.
+		return max(xDistance(iX1, iX2), yDistance(iY1, iY2));
 	}
 
 	// K-Mod, plot-to-plot alias for convenience:
@@ -109,7 +102,7 @@ public:
 		return stepDistance(
 				plot1->getX(), plot1->getY(),
 				plot2->getX(), plot2->getY());
-	} // K-Mod end
+	}
 
 	inline CvPlot* plotDirection(int iX, int iY, DirectionTypes eDirection) const
 	{
@@ -121,7 +114,8 @@ public:
 				iY + GC.getPlotDirectionY()[eDirection]);
 	}
 
-	inline CvPlot* plotCardinalDirection(int iX, int iY, CardinalDirectionTypes eCardinalDirection) const
+	inline CvPlot* plotCardinalDirection(int iX, int iY,
+		CardinalDirectionTypes eCardinalDirection) const
 	{
 		// advc.opt: Don't check for INVALID_PLOT_COORD
 		return plotValidXY(
@@ -144,7 +138,8 @@ public:
 	{
 		if (abs(iDX) > DIRECTION_RADIUS || abs(iDY) > DIRECTION_RADIUS)
 		{
-			FAssertMsg(false, "Just to see if the DIRECTION_RADIUS<abs branch is needed"); // advc.test
+			// advc.test: (apparently not needed - remove it for next release)
+			FErrorMsg("Just to see if the DIRECTION_RADIUS<abs branch is needed");
 			return NO_DIRECTION;
 		}
 		return GC.getXYDirection(iDX + DIRECTION_RADIUS, iDY + DIRECTION_RADIUS);
@@ -199,16 +194,27 @@ public:
 	{
 		return (stepDistance(&kFirstPlot, &kSecondPlot) <= 1);
 	}
+	/*	advc (for advc.030, advc.027): Cut from teamStepValid in CvGameCoreUtils.
+		Not getting inlined - which is OK (I've benchmarked it with forceinline). */
+	bool isSeparatedByIsthmus(CvPlot const& kFrom, CvPlot const& kTo) const
+	{
+		return (kFrom.isWater() && kTo.isWater() &&
+			// Safe wrt. map edges b/c we know (assume) that kFrom and kTo are adjacent
+			!getPlot(kFrom.getX(), kTo.getY()).isWater() &&
+			!getPlot(kTo.getX(), kFrom.getY()).isWater());
+	}
 
 private: // Auxiliary functions
-	/*	These look too large and branchy for inlining, but the keywords do seem
-		to improve performance a little bit. Were also present in BtS. */
+	/*	These look too large and branchy for inlining, but the keywords
+		(already present in BtS) do seem to improve performance a little bit.
+		Maybe b/c plotDistance and stepDistance aren't being inlined. */
 
 	inline int coordDistance(int iFrom, int iTo, int iRange, bool bWrap) const
 	{
-		if (bWrap && abs(iFrom - iTo) > iRange / 2)
-			return iRange - abs(iFrom - iTo);
-		return abs(iFrom - iTo);
+		int iDelta = abs(iFrom - iTo); // advc.opt: Make sure this is computed only once
+		if (bWrap && iDelta > iRange / 2)
+			return iRange - iDelta;
+		return iDelta;
 	}
 
 	inline int wrapCoordDifference(int iDiff, int iRange, bool bWrap) const
@@ -232,7 +238,7 @@ private: // Auxiliary functions
 			return (iCoord % iRange);
 		return iCoord;
 	}
-	// </advc.make>
+	// (end of functions moved from CvGameCoreUtils.h) </advc.make>
 
 	friend class CyMap;
 public:
@@ -276,12 +282,13 @@ public: // advc: made several functions const
 	void combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2,
 			bool bVerifyProduction = true); // advc.064d
 
-	CvPlot* syncRandPlot(int iFlags = 0, CvArea const* pArea = NULL, // advc: was iArea								// Exposed to Python
+	CvPlot* syncRandPlot(RandPlotFlags eFlags = RANDPLOT_ANY,								// Exposed to Python
+			CvArea const* pArea = NULL, // advc: was iArea
 			int iMinCivUnitDistance = -1,
 			int iTimeout = -1, int* piValidCount = NULL); // advc.304 (default timeout was 100)
 	// <advc>
-	bool isValidRandPlot(CvPlot const& kPlot, int iFlags, CvArea const* pArea,
-			int iMinCivUnitDistance) const; // </advc>
+	bool isValidRandPlot(CvPlot const& kPlot, RandPlotFlags eFlags,
+			CvArea const* pArea, int iMinCivUnitDistance) const; // </advc>
 
 	DllExport CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM, DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL)	// Exposed to Python
 	{	// <advc.004r>
@@ -296,11 +303,11 @@ public: // advc: made several functions const
 
 	CvArea* findBiggestArea(bool bWater);																						// Exposed to Python
 
-	int getMapFractalFlags() const;																												// Exposed to Python
+	int getMapFractalFlags() const;																				// Exposed to Python
 	bool findWater(CvPlot const* pPlot, int iRange, bool bFreshWater);										// Exposed to Python
 
 	bool isPlotExternal(int iX, int iY) const; // advc.inl: Exported through .def file							// Exposed to Python
-	inline int isPlot(int iX, int iY) const // advc.inl: Renamed from isPlotINLINE
+	inline bool isPlot(int iX, int iY) const // advc.inl: Renamed from isPlotINLINE; return type was int.
 	{
 		return (iX >= 0 && iX < getGridWidth() && iY >= 0 && iY < getGridHeight());
 	}
@@ -309,22 +316,33 @@ public: // advc: made several functions const
 	{
 		return getGridWidth() * getGridHeight();
 	}
-	inline int plotNum(int iX, int iY) const // advc.inl: Merged with plotNumINLINE (plotNum wasn't called externally)			// Exposed to Python
+	/*	advc.inl: Merged with plotNumINLINE (plotNum wasn't called externally).
+		advc.enum: return type changed from int. */
+	inline PlotNumTypes plotNum(int iX, int iY) const 												// Exposed to Python
 	{
-		return ((iY * getGridWidth()) + iX);
-	}  // <advc> wrapper
-	__forceinline int plotNum(CvPlot const& kPlot) const
+		return (PlotNumTypes)(iY * getGridWidth() + iX);
+	}  // advc: wrapper
+	__forceinline PlotNumTypes plotNum(CvPlot const& kPlot) const
 	{
 		return plotNum(kPlot.getX(), kPlot.getY());
-	} // </advc>
+	}
 	int plotX(int iIndex) const;																										// Exposed to Python
 	int plotY(int iIndex) const;																										// Exposed to Python
 
-	int pointXToPlotX(float fX);
-	DllExport float plotXToPointX(int iX);
-
-	int pointYToPlotY(float fY);
-	DllExport float plotYToPointY(int iY);
+	int pointXToPlotX(float fX) const;
+	DllExport float plotXToPointX(int iX)  // <advc> const version
+	{
+		CvMap const& kThis(*this);
+		return kThis.plotXToPointX(iX);
+	}
+	float plotXToPointX(int iX) const; // </advc>
+	int pointYToPlotY(float fY) const;
+	DllExport float plotYToPointY(int iY)  // <advc> const version
+	{
+		CvMap const& kThis(*this);
+		return kThis.plotYToPointY(iY);
+	}
+	float plotYToPointY(int iY) const; // </advc>
 
 	float getWidthCoords() const;
 	float getHeightCoords() const;
@@ -348,7 +366,7 @@ public: // advc: made several functions const
 	int getLandPlots() const;																					// Exposed to Python
 	void changeLandPlots(int iChange);
 
-	int getOwnedPlots() const;																				// Exposed to Python
+	int getOwnedPlots() const { return m_iOwnedPlots; }														// Exposed to Python
 	void changeOwnedPlots(int iChange);
 
 	int getTopLatitude() const;																									// Exposed to Python
@@ -367,17 +385,21 @@ public: // advc: made several functions const
 		return m_bWrapX || m_bWrapY;
 	}
 
-	DllExport WorldSizeTypes getWorldSize()															// Exposed to Python
-	// <advc> Need a const version
-	{	CvMap const& kThis = *this;
+	DllExport WorldSizeTypes getWorldSize() // <advc> const version									// Exposed to Python
+	{
+		CvMap const& kThis = *this;
 		return kThis.getWorldSize();
-	} WorldSizeTypes getWorldSize() const; // </advc>
-	ClimateTypes getClimate() const;																	// Exposed to Python
-	SeaLevelTypes getSeaLevel() const;																// Exposed to Python
+	}
+	WorldSizeTypes getWorldSize() const
+	{
+		return GC.getInitCore().getWorldSize();
+	} // </advc>
+	ClimateTypes getClimate() const { return GC.getInitCore().getClimate(); } // advc.inl						// Exposed to Python
+	SeaLevelTypes getSeaLevel() const { return GC.getInitCore().getSeaLevel(); } // advc.inl					// Exposed to Python
 
 	int getNumCustomMapOptions() const;
 	CustomMapOptionTypes getCustomMapOption(int iOption) const;											// Exposed to Python
-	CvWString getNonDefaultCustomMapOptionDesc(int iOption) const; // advc.004 (exposed to Python)
+	CvWString getNonDefaultCustomMapOptionDesc(int iOption) const; // advc.190b (exposed to Python)
 
 	int getNumBonuses(BonusTypes eIndex) const;																	// Exposed to Python
 	void changeNumBonuses(BonusTypes eIndex, int iChange);
@@ -386,6 +408,7 @@ public: // advc: made several functions const
 	void changeNumBonusesOnLand(BonusTypes eIndex, int iChange);
 
 	CvPlot* plotByIndexExternal(int iIndex) const; // advc.inl: Exported through .def file							// Exposed to Python
+	// advc.enum (tbd.): Change param to PlotNumTypes
 	inline CvPlot* plotByIndex(int iIndex) const // advc.inl: Renamed from plotByIndexINLINE
 	{
 		return ((iIndex >= 0 && iIndex < numPlots()) ? &(m_pMapPlots[iIndex]) : NULL);
@@ -462,6 +485,12 @@ public: // advc: made several functions const
 	// </advc.300>
 	void resetPathDistance();																		// Exposed to Python
 	int calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) const;					// Exposed to Python
+	// advc.104b: (based on BBAI's CvPlot::calculatePathDistanceToPlot)
+	int calculateTeamPathDistance(TeamTypes eTeam,
+			CvPlot const& kFrom, CvPlot const& kTo, int iMaxPath = -1,
+			TeamTypes eTargetTeam = BARBARIAN_TEAM,
+			DomainTypes eDomain = DOMAIN_LAND) const;
+	void updateIrrigated(CvPlot& kPlot); // advc.pf
 
 	// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START
 	//void invalidateIsActivePlayerNoDangerCache();
@@ -509,6 +538,12 @@ protected:
 	void updateLakes();
 	// </advc.030>
 };
+
+// advc.enum: (for EnumMap)
+__forceinline PlotNumTypes getEnumLength(PlotNumTypes, bool bAllowForEach = true)
+{
+	return (PlotNumTypes)GC.getMap().numPlots();
+}
 
 /* <advc.make> Global wrappers for distance functions. The int versions are
 	exposed to Python */

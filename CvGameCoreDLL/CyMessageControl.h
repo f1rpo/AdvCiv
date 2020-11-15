@@ -3,8 +3,6 @@
 #ifndef _CYMESSAGECONTROL_H
 #define _CYMESSAGECONTROL_H
 
-#include <boost/python/list.hpp>
-#include <boost/python/tuple.hpp>
 namespace python = boost::python;
 
 class CyMessageControl

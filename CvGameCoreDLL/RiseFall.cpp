@@ -107,7 +107,7 @@ void RiseFall::init() {
 		finalChLen = -1;
 	chapters.push_back(new RFChapter(maxChapters - 1, maxChapters,
 			playLength, finalChLen));
-	FAssert(maxChapters == (int)chapters.size());
+	FAssert(chapters.size() == maxChapters);
 	if(!chapters.empty() && !timeLimit)
 		chapters[chapters.size() - 1]->setEndless(true);
 	for(size_t i = 0; i < chapters.size(); i++) {
@@ -462,8 +462,8 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 		GC.getInitCore().setHandicap(civId, g.getHandicapType());
 	}
 	else {
-		civ.setIsHuman(false);
 		GC.getInitCore().setHandicap(civId, g.getAIHandicap());
+		civ.setIsHuman(false, true);
 		GC.getInitCore().setLeaderName(civId,
 				GC.getInfo(civ.getLeaderType()).getDescription());
 		gDLL->UI().flushTalkingHeadMessages();
@@ -488,12 +488,15 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 		CvPlayerAI& other = GET_PLAYER((PlayerTypes)i);
 		if(!other.isAlive() || other.isMinorCiv())
 			continue;
-		if(other.getID() != civId && GET_TEAM(civId).isHasMet(other.getTeam()))
-			other.AI_updateAttitude(civId);
-		if(b && formerHumanCiv != NO_PLAYER && civId != formerHumanCiv &&
-				other.getID() != formerHumanCiv && GET_TEAM(formerHumanCiv).
-				isHasMet(other.getTeam()))
-			other.AI_updateAttitude(formerHumanCiv);
+		if (b) // (Otherwise CvPlayer::setIsHuman has already updated the full attitude cache)
+		{
+			if(other.getID() != civId && GET_TEAM(civId).isHasMet(other.getTeam()))
+				other.AI_updateAttitude(civId);
+			if(formerHumanCiv != NO_PLAYER && civId != formerHumanCiv &&
+					other.getID() != formerHumanCiv && GET_TEAM(formerHumanCiv).
+					isHasMet(other.getTeam()))
+				other.AI_updateAttitude(formerHumanCiv);
+		}
 	}
 	if(b) { // Updates to apply human modifiers
 		civ.updateWarWearinessPercentAnger();
@@ -553,15 +556,11 @@ void RiseFall::welcomeToNextChapter(int pos) {
 
 void RiseFall::centerCamera(PlayerTypes civId) {
 
-	CvPlot* capitalPlot = NULL;
-	CvCity* capital = GET_PLAYER(civId).getCapitalCity();
-	if(capital != NULL)
-		capitalPlot = capital->plot();
-	if(capitalPlot != NULL) {
+	if(GET_PLAYER(civId).hasCapital()) {
 		/*  Apparently, this has no effect, at least not at the time that I call
 			this function. Misplaced camera is also an issue when regenerating
 			the map or using Civ Changer (Alt+Z); perhaps can't be fixed. */
-		gDLL->UI().lookAt(capitalPlot->getPoint(),
+		gDLL->UI().lookAt(GET_PLAYER(civId).getCapital()->getPlot().getPoint(),
 				CAMERALOOKAT_NORMAL);
 		// This doesn't seem to help either:
 		/*NiPoint3 p3 = capitalPlot->getPoint();
@@ -608,7 +607,7 @@ void RiseFall::abandonPlans(PlayerTypes civId) {
 	bool active = (civId == GC.getGame().getActivePlayer() && civ.isHuman());
 	FOR_EACH_GROUP_VAR(gr, civ)
 		gr->splitGroup(1);
-	CvCity* capital = civ.getCapitalCity();
+	CvCity* capital = civ.getCapital();
 	bool unitSelected = false;
 	FOR_EACH_GROUP_VAR(gr, civ) {
 		if(gr->getHeadUnit() == NULL)
@@ -1373,7 +1372,6 @@ int RiseFall::pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
 	}
 	TeamTypes aiTeamId = TEAMID(aiCivId);
 	CvTeamAI const& aiTeam = GET_TEAM(aiTeamId);
-	CvPlayerAI const& aiCiv = GET_PLAYER(aiCivId);
 	CvTeamAI const& humanTeam = GET_TEAM(humanTeamId);
 	CvPlayerAI const& humanCiv = GET_PLAYER(humanCivId);
 	// Loop based on CvPlayerAI::AI_dealVal
@@ -1450,7 +1448,7 @@ void RiseFall::restoreDiploText() {
 	CvDiplomacyResponse* resp = findThanks();
 	if(resp == NULL)
 		return;
-	FAssert(resp->getNumDiplomacyText() == (int)originalThanks.size());
+	FAssert(resp->getNumDiplomacyText() == originalThanks.size());
 	for(int j = 0; j < resp->getNumDiplomacyText(); j++)
 		resp->setDiplomacyText(j, *originalThanks[j]);
 	clearDiploStrings();

@@ -2867,6 +2867,7 @@ class CvCustomizableDomesticAdvisor:
 
 		if(self.PAGES is None):
 			if(self.isFlavorful):
+				# advc.002b: Column width increased for CULTURE (was 53), PRODUCTION, GOLD, RESEARCH (were 38).
 				self.PAGES =	[
 					{
 						"name" : "Executive Summary", 
@@ -2883,13 +2884,13 @@ class CvCustomizableDomesticAdvisor:
 							("HEALTH", 30, "int"),
 							("GROWTH", 35, "int"),
 							("FOOD", 35, "int"),
-							("PRODUCTION", 38, "int"),
+							("PRODUCTION", 40, "int"),
 							("MAINTENANCE", 30, "int"),
 							("BASE_COMMERCE", 38, "int"),
-							("GOLD", 38, "int"),
-							("RESEARCH", 38, "int"),
+							("GOLD", 40, "int"),
+							("RESEARCH", 40, "int"),
 							("CULTURE_RATE", 38, "int"),
-							("CULTURE", 53, "int"),
+							("CULTURE", 56, "int"),
 							("GREATPEOPLE_RATE", 38, "int"),
 							("GREATPEOPLE", 45, "int"),
 							("PRODUCING", 90, "text"),

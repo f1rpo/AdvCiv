@@ -37,11 +37,6 @@ const TCHAR* CvTerrainInfo::getArtDefineTag() const
 	return m_szArtDefineTag;
 }
 
-void CvTerrainInfo::setArtDefineTag(const TCHAR* szTag)
-{
-	m_szArtDefineTag = szTag;
-}
-
 int CvTerrainInfo::getWorldSoundscapeScriptId() const
 {
 	return m_iWorldSoundscapeScriptId;
@@ -77,9 +72,7 @@ bool CvTerrainInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName( szTextVal, "ArtDefineTag");
-	setArtDefineTag(szTextVal);
+	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag");
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"Yields"))
 	{
@@ -115,12 +108,13 @@ bool CvTerrainInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iDefenseModifier, "iDefense");
 
 	pXML->SetVariableListTagPairForAudioScripts(&m_pi3DAudioScriptFootstepIndex, "FootstepSounds", GC.getNumFootstepAudioTypes());
-
-	pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
-	if (szTextVal.GetLength() > 0)
-		m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE);
-	else m_iWorldSoundscapeScriptId = -1;
-
+	{
+		CvString szTextVal;
+		pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
+		if (szTextVal.GetLength() > 0)
+			m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE);
+		else m_iWorldSoundscapeScriptId = -1;
+	}
 	return true;
 }
 
@@ -152,6 +146,7 @@ m_iTurnDamage(0),
 m_iWarmingDefense(0), //GWMod
 m_bNoCoast(false),
 m_bNoRiver(false),
+m_bNoRiverSide(false), // advc.129b
 m_bNoAdjacent(false),
 m_bRequiresFlatlands(false),
 m_bRequiresRiver(false),
@@ -219,6 +214,11 @@ bool CvFeatureInfo::isNoRiver() const
 {
 	return m_bNoRiver;
 }
+// advc.129b:
+bool CvFeatureInfo::isNoRiverSide() const
+{
+	return m_bNoRiverSide;
+}
 
 bool CvFeatureInfo::isNoAdjacent() const
 {
@@ -234,11 +234,11 @@ bool CvFeatureInfo::isRequiresRiver() const
 {
 	return m_bRequiresRiver;
 }
-// <advc.129b>
+// advc.129b:
 bool CvFeatureInfo::isRequiresRiverSide() const
 {
 	return m_bRequiresRiverSide;
-} // </advc.129b>
+}
 
 bool CvFeatureInfo::isAddsFreshWater() const
 {
@@ -268,11 +268,6 @@ const TCHAR* CvFeatureInfo::getOnUnitChangeTo() const
 const TCHAR* CvFeatureInfo::getArtDefineTag() const
 {
 	return m_szArtDefineTag;
-}
-
-void CvFeatureInfo::setArtDefineTag(const TCHAR* szTag)
-{
-	m_szArtDefineTag = szTag;
 }
 
 int CvFeatureInfo::getWorldSoundscapeScriptId() const
@@ -328,9 +323,7 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	CvString szTextVal;
-	pXML->GetChildXmlValByName( szTextVal, "ArtDefineTag");
-	setArtDefineTag(szTextVal);
+	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag");
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"YieldChanges"))
 	{
@@ -373,12 +366,19 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iDisappearanceProbability, "iDisappearance");
 	pXML->GetChildXmlValByName(&m_iGrowthProbability, "iGrowth");
 	pXML->GetChildXmlValByName(&m_bNoCoast, "bNoCoast");
+	// advc.129b:
+	pXML->GetChildXmlValByName(&m_bNoRiverSide, "bNoRiverSide", false);
 	pXML->GetChildXmlValByName(&m_bNoRiver, "bNoRiver");
+	// <advc.129b> Make sure these are consistent
+	if (m_bNoRiver)
+		m_bNoRiverSide = true; // </advc.129b>
 	pXML->GetChildXmlValByName(&m_bNoAdjacent, "bNoAdjacent");
 	pXML->GetChildXmlValByName(&m_bRequiresFlatlands, "bRequiresFlatlands");
 	pXML->GetChildXmlValByName(&m_bRequiresRiver, "bRequiresRiver");
-	// advc.129b:
+	// <advc.129b>
 	pXML->GetChildXmlValByName(&m_bRequiresRiverSide, "bRequiresRiverSide", false);
+	if (m_bRequiresRiverSide)
+		m_bRequiresRiver = true; // </advc.129b>
 	pXML->GetChildXmlValByName(&m_bAddsFreshWater, "bAddsFreshWater");
 	pXML->GetChildXmlValByName(&m_bImpassable, "bImpassable");
 	pXML->GetChildXmlValByName(&m_bNoCity, "bNoCity");
@@ -388,12 +388,13 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(m_szOnUnitChangeTo, "OnUnitChangeTo");
 
 	pXML->SetVariableListTagPairForAudioScripts(&m_pi3DAudioScriptFootstepIndex, "FootstepSounds", GC.getNumFootstepAudioTypes());
-
-	pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
-	if (szTextVal.GetLength() > 0)
-		m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE);
-	else m_iWorldSoundscapeScriptId = -1;
-
+	{
+		CvString szTextVal;
+		pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
+		if (szTextVal.GetLength() > 0)
+			m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex(szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE);
+		else m_iWorldSoundscapeScriptId = -1;
+	}
 	pXML->GetChildXmlValByName(m_szEffectType, "EffectType");
 	pXML->GetChildXmlValByName(&m_iEffectProbability, "iEffectProbability");
 
@@ -403,11 +404,12 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 }
 
 CvBonusInfo::CvBonusInfo() :
-m_iBonusClassType(NO_BONUSCLASS),
-m_iChar(0),
+m_eBonusClassType(NO_BONUSCLASS),
+m_wcSymbol(0),
 m_eTechReveal(NO_TECH),
 m_eTechCityTrade(NO_TECH),
 m_eTechObsolete(NO_TECH),
+m_eeTechImprove(std::make_pair(NO_TECH, NO_TECH)), // advc.003w
 m_iAITradeModifier(0),
 m_iAIObjective(0),
 m_iHealth(0),
@@ -446,19 +448,14 @@ CvBonusInfo::~CvBonusInfo()
 	SAFE_DELETE_ARRAY(m_pbFeatureTerrain); // free memory - MT
 }
 
-int CvBonusInfo::getBonusClassType() const
+wchar CvBonusInfo::getChar() const
 {
-	return m_iBonusClassType;
+	return m_wcSymbol;
 }
 
-int CvBonusInfo::getChar() const
+void CvBonusInfo::setChar(wchar wc)
 {
-	return m_iChar;
-}
-
-void CvBonusInfo::setChar(int i)
-{
-	m_iChar = i;
+	m_wcSymbol = wc;
 }
 
 int CvBonusInfo::getAITradeModifier() const
@@ -576,11 +573,6 @@ const TCHAR* CvBonusInfo::getArtDefineTag() const
 	return m_szArtDefineTag;
 }
 
-void CvBonusInfo::setArtDefineTag(const TCHAR* szVal)
-{
-	m_szArtDefineTag = szVal;
-}
-
 const CvArtInfoBonus* CvBonusInfo::getArtInfo() const
 {
 	return ARTFILEMGR.getBonusArtInfo( getArtDefineTag());
@@ -623,14 +615,14 @@ const TCHAR* CvBonusInfo::getButton() const
 
 	return NULL;
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvBonusInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
 	uint uiFlag=0;
 	stream->Read(&uiFlag);
 
-	stream->Read(&m_iBonusClassType);
+	stream->Read((int*)&m_eBonusClassType);
 	stream->Read(&m_iChar);
 	stream->Read((int*)&m_eTechReveal);
 	stream->Read((int*)&m_eTechCityTrade);
@@ -680,7 +672,7 @@ void CvBonusInfo::write(FDataStreamBase* stream)
 	uint uiFlag=0;
 	stream->Write(uiFlag);
 
-	stream->Write(m_iBonusClassType);
+	stream->Write(m_eBonusClassType);
 	stream->Write(m_iChar);
 	stream->Write(m_eTechReveal);
 	stream->Write(m_eTechCityTrade);
@@ -721,12 +713,10 @@ bool CvBonusInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	pXML->SetInfoIDFromChildXmlVal(m_iBonusClassType, "BonusClassType");
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
-		setArtDefineTag(szTextVal);
-	}
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eBonusClassType, "BonusClassType");
+
+	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag");
+
 	pXML->SetInfoIDFromChildXmlVal((int&)m_eTechReveal, "TechReveal");
 	pXML->SetInfoIDFromChildXmlVal((int&)m_eTechCityTrade, "TechCityTrade");
 	pXML->SetInfoIDFromChildXmlVal((int&)m_eTechObsolete, "TechObsolete");
@@ -778,6 +768,64 @@ bool CvBonusInfo::read(CvXMLLoadUtility* pXML)
 
 	return true;
 }
+
+// <advc.003w>
+TechTypes CvBonusInfo::getTechImprove(bool bWater) const
+{
+	return (bWater ? m_eeTechImprove.second : m_eeTechImprove.first);
+}
+
+void CvBonusInfo::updateCache(BonusTypes eBonus)
+{
+	std::pair<int,int> iiLowestTechCost = std::make_pair(MAX_INT, MAX_INT);
+	FOR_EACH_ENUM2(Build, eBuild)
+	{
+		CvBuildInfo const& kBuild = GC.getInfo(eBuild);
+		TechTypes eBuildTech = kBuild.getTechPrereq();
+		if (eBuildTech == NO_TECH)
+			continue;
+		ImprovementTypes eImprov = kBuild.getImprovement();
+		if (eImprov == NO_IMPROVEMENT)
+			continue;
+		CvImprovementInfo const& kImprov = GC.getInfo(eImprov);
+		bool bAnyImprovYield = false;
+		FOR_EACH_ENUM(Yield)
+		{
+			if (kImprov.getImprovementBonusYield(eBonus,eLoopYield) > 0)
+			{
+				bAnyImprovYield = true;
+				break;
+			}
+		}
+		if (!bAnyImprovYield)
+			continue;
+		int iTechCost = GC.getInfo(eBuildTech).getResearchCost();
+		if (kImprov.isWater())
+		{
+			if (iTechCost < iiLowestTechCost.second)
+			{
+				iiLowestTechCost.second = iTechCost;
+				m_eeTechImprove.second = eBuildTech;
+			}
+		}
+		else
+		{
+			if (iTechCost < iiLowestTechCost.first)
+			{
+				iiLowestTechCost.first = iTechCost;
+				m_eeTechImprove.first = eBuildTech;
+			}
+		}
+	}
+	if (m_eTechReveal == NO_TECH)
+		return;
+	// Will have to reveal (but not trade) the resource in order to improve it
+	int iRevealTechCost = GC.getInfo(m_eTechReveal).getResearchCost();
+	if (m_eeTechImprove.first == NO_TECH || iRevealTechCost > iiLowestTechCost.first)
+		m_eeTechImprove.first = m_eTechReveal;
+	if (m_eeTechImprove.second == NO_TECH || iRevealTechCost > iiLowestTechCost.second)
+		m_eeTechImprove.second = m_eTechReveal;
+} // </advc.003w>
 
 CvBonusClassInfo::CvBonusClassInfo() : m_iUniqueRange(0) {}
 
@@ -1004,11 +1052,6 @@ const TCHAR* CvImprovementInfo::getArtDefineTag() const
 	return m_szArtDefineTag;
 }
 
-void CvImprovementInfo::setArtDefineTag(const TCHAR* szVal)
-{
-	m_szArtDefineTag = szVal;
-}
-
 int CvImprovementInfo::getWorldSoundscapeScriptId() const
 {
 	return m_iWorldSoundscapeScriptId;
@@ -1105,11 +1148,11 @@ int* CvImprovementInfo::getRouteYieldChangesArray(int i) const
 	return m_ppiRouteYieldChanges[i];
 }
 
-int CvImprovementInfo::getImprovementBonusYield(int i, int j) const
+int CvImprovementInfo::getImprovementBonusYield(int iBonus, int iYield) const
 {
-	FAssertBounds(0, GC.getNumBonusInfos(), i);
-	FAssertBounds(0, NUM_YIELD_TYPES, j);
-	return m_paImprovementBonus[i].m_piYieldChange ? m_paImprovementBonus[i].getYieldChange(j) : 0; // advc.003t
+	FAssertBounds(0, GC.getNumBonusInfos(), iBonus);
+	FAssertBounds(0, NUM_YIELD_TYPES, iYield);
+	return m_paImprovementBonus[iBonus].m_piYieldChange ? m_paImprovementBonus[iBonus].getYieldChange(iYield) : 0; // advc.003t
 }
 
 bool CvImprovementInfo::isImprovementBonusMakesValid(int i) const
@@ -1170,7 +1213,7 @@ void CvArtInfoImprovement::setShaderNIF(const TCHAR* szDesc)
 {
 	m_szShaderNIF = szDesc;
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvImprovementInfo::read(FDataStreamBase* stream)
 {
 	CvXMLInfo::read(stream); // advc.tag
@@ -1319,11 +1362,9 @@ bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvXMLInfo::read(pXML)) // advc.tag
 		return false;
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "ArtDefineTag");
-		setArtDefineTag(szTextVal);
-	}
+
+	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag");
+
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"PrereqNatureYields"))
 	{
 		pXML->SetYields(&m_piPrereqNatureYield);
@@ -1492,7 +1533,7 @@ int CvImprovementBonusInfo::getYieldChange(int i) const
 	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
 }
-#if SERIALIZE_CVINFOS
+#if ENABLE_XML_FILE_CACHE
 void CvImprovementBonusInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -1616,20 +1657,13 @@ const TCHAR* CvGoodyInfo::getSound() const
 	return m_szSound;
 }
 
-void CvGoodyInfo::setSound(const TCHAR* szVal)
-{
-	m_szSound=szVal;
-}
-
 bool CvGoodyInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
 		return false;
-	{
-		CvString szTextVal;
-		pXML->GetChildXmlValByName(szTextVal, "Sound");
-		setSound(szTextVal);
-	}
+
+	pXML->GetChildXmlValByName(m_szSound, "Sound");
+
 	pXML->GetChildXmlValByName(&m_iGold, "iGold");
 	pXML->GetChildXmlValByName(&m_iGoldRand1, "iGoldRand1");
 	pXML->GetChildXmlValByName(&m_iGoldRand2, "iGoldRand2");

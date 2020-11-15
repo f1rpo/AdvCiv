@@ -87,12 +87,14 @@ char const* UWAIReport::cityName(CvCity const& c, int charLimit) {
 char const* UWAIReport::narrow(const wchar* ws, int charLimit) {
 
 	CvString cvs(ws);
-	/* I'm sure the narrowing procedure is needlessly complicated,
-	   but I can't sort it out. */
+	/*	I'm sure the narrowing procedure is needlessly complicated,
+		but I can't sort it out.
+		Upd.: Should arguably return a CvString - which can be constructed from a
+		CvWString. */
 	string s = cvs.substr(0, charLimit);
-	/* Trailing (or leading for that matter) spaces in names of units, leaders
-	   etc. mess up the Textile formatting. Such spaces don't normally occur,
-	   but char limit can leave a space at the end. */
+	/*	Trailing (or leading for that matter) spaces in names of units, leaders
+		etc. mess up the Textile formatting. Such spaces don't normally occur,
+		but char limit can leave a space at the end. */
 	while(s[s.length() - 1] == ' ')
 		s = s.substr(0, s.length() - 1);
 	char const* cstr = s.c_str();

@@ -1,10 +1,10 @@
-// advc.fract: Test code for the ScaledInt class
+// advc.fract: Test code for the ScaledNum class
 
 #include "CvGameCoreDLL.h"
-#include "ScaledInt.h"
+#include "ScaledNum.h"
 
-//#define SCALED_INT_TEST
-#ifdef SCALED_INT_TEST
+//#define SCALED_NUM_TEST
+#ifdef SCALED_NUM_TEST
 #include "TSCProfiler.h"
 #include "CvInfo_GameOption.h"
 
@@ -15,23 +15,23 @@ TYPEDEF_SCALED_ENUM(1024,int,CurrCombatStr)
 
 /*  To be called once XML data has been loaded. (Need some test data that is unknown
 	at compile time.) */
-void TestScaledInt()
+void TestScaledNum()
 {
-#ifndef SCALED_INT_TEST
+#ifndef SCALED_NUM_TEST
 	return;
 #else
 
 	// These numbers match the running example commented on in pow.
 	//FAssert(scaled(fixp(5.2)).pow(scaled(fixp(2.1))).round() == 32);
 	// The example assumes scale 1024, hence the explicit calls. */
-	FAssert(ScaledInt<1024>(
-			ScaledInt<1024>::fromRational<(int)(5.2 * 10000 + 0.5), 10000>()).
-			pow(ScaledInt<1024>(
-			ScaledInt<1024>::fromRational<(int)(2.1 * 10000 + 0.5), 10000>())).
+	FAssert(ScaledNum<1024>(
+			ScaledNum<1024>::fromRational<(int)(5.2 * 10000 + 0.5), 10000>()).
+			pow(ScaledNum<1024>(
+			ScaledNum<1024>::fromRational<(int)(2.1 * 10000 + 0.5), 10000>())).
 			round() == 32);
 
 	// Spotty unit test (tbd.: improve coverage; especially: IntType short, char)
-	FAssert((fixp(4/3.) * 1000).getInt() == 1333);
+	FAssert((fixp(4/3.) * 1000).round() == 1333);
 	FAssert(scaled(0) == per100(0));
 	FAssert(fixp(-0.3125) * 1024 == -320);
 	FAssert(per1000(2254u).getPercent() == 225);
@@ -48,8 +48,8 @@ void TestScaledInt()
 	FAssert(rSum.approxEquals(10, fixp(3.5)));
 	FAssert(scaled(2).pow(10) == 1024);
 	FAssert(scaled(10).pow(-2) == per100(1));
-	FAssert((scaled(2).sqrt() * 100).getInt() == 141);
-	FAssert((fixp(0.3).pow(fixp(1.7))*100).getInt() == 13);
+	FAssert((scaled(2).sqrt() * 100).round() == 141);
+	FAssert((fixp(0.3).pow(fixp(1.7))*100).round() == 13);
 	FAssert(scaled(24).pow(0) == 1);
 	FAssert(scaled(0).pow(24) == 0);
 	FAssert(scaled(-2).pow(3) == -8);
@@ -57,13 +57,13 @@ void TestScaledInt()
 	rTest.increaseTo(3);
 	FAssert(rTest == 3);
 	// The exact result would be 4.5/1024
-	FAssert(ScaledInt<100>(30,100) * ScaledInt<1024>(15,1024) == ScaledInt<1024>(5,1024));
+	FAssert(ScaledNum<100>(30,100) * ScaledNum<1024>(15,1024) == ScaledNum<1024>(5,1024));
 	// If multiplication was performed like this, we'd get 4/1024:
-	FAssert(ScaledInt<1024>(ScaledInt<100>(30,100)) *
-			ScaledInt<1024>(15,1024) == ScaledInt<1024>(4,1024));
+	FAssert(ScaledNum<1024>(ScaledNum<100>(30,100)) *
+			ScaledNum<1024>(15,1024) == ScaledNum<1024>(4,1024));
 	// Now force a result on the smaller scale:
-	ScaledInt<100> rTestPerc = fixp(0.3);
-	rTestPerc *= ScaledInt<1024>(15,1024);
+	ScaledNum<100> rTestPerc = fixp(0.3);
+	rTestPerc *= ScaledNum<1024>(15,1024);
 	FAssert(rTestPerc == 0);
 	rTest.decreaseTo(scaled(1, 2));
 	FAssert(rTest == fixp(0.5));
@@ -81,7 +81,7 @@ void TestScaledInt()
 	rTest.mulDiv(4, 5);
 	FAssert(rTest == 2);
 	FAssert(std::strcmp(scaled(2).str(100), "200 percent") == 0);
-	FAssert(std::strcmp(ScaledInt<1024>(2).str(), "2048/1024") == 0);
+	FAssert(std::strcmp(ScaledNum<1024>(2).str(), "2048/1024") == 0);
 	FAssert(std::strcmp(scaled(2).str(1), "2") == 0);
 	FAssert(std::strcmp(fixp(2.2).str(1), "ca. 2") == 0);
 	FAssert(scaled(42).roundToMultiple(5) == 40);
@@ -119,24 +119,24 @@ void TestScaledInt()
 		but comparisons are exact. */
 	FAssert(rMoves.approxEquals(rCombat.convert(), fixp(0.001)));
 	// Types smaller than int (tbd.: more tests)
-	ScaledInt<128,short> rTestShort = fixp(1/3.);
+	ScaledNum<128,short> rTestShort = fixp(1/3.);
 	FAssert((rTestShort * 30).round() == 10);
 	rTestShort = 1;
 	rTest = rTestShort;
 	FAssert(rTest == rTestShort);
-	ScaledInt<100,unsigned char> rTestUChar;
+	ScaledNum<100,unsigned char> rTestUChar;
 	rTestUChar = rTestShort;
 	rTest -= rTestUChar;
 	/*	Almost works, but there really is no point in using an enum as the IntType.
 		What doesn't work is the initialization of MAXÌNT and MININT. */
-	//ScaledInt<1024,PlayerTypes> rEnum;
+	//ScaledNum<1024,PlayerTypes> rEnum;
 	//rEnum = rTest;
 	//rEnum *= 3; // ! Failed runtime assertion due to MAXINT==0
 
 	// Ensure that even extremely high scale factors don't overflow on mulDiv
 	uscaled rAlmostSqrtOfTwo = scaled(2).sqrt() - fixp(0.001);
-	ScaledInt<MAX_INT,uint> r1 = rAlmostSqrtOfTwo;
-	ScaledInt<MAX_INT - 1,uint> r2 = rAlmostSqrtOfTwo;
+	ScaledNum<MAX_INT,uint> r1 = rAlmostSqrtOfTwo;
+	ScaledNum<MAX_INT - 1,uint> r2 = rAlmostSqrtOfTwo;
 	FAssert(r2.MAX() == 2);
 	r2 *= r1;
 	// (But an approxEquals check isn't possible so close to r2.MAX())
@@ -368,7 +368,7 @@ void TestScaledInt()
 	{
 		for (int i = 0; i < 10; i++)
 		{
-			//	Result: 2087 cycles on average (scaled_int w/ MulDiv).
+			//	Result: 2087 cycles on average (scaled w/ MulDiv).
 			//	672 for scaled_uint, 579 for scaled_uint w/o overflow handling.
 			//	394 if the per100 arguments are also cast to uint.
 			//TSC_PROFILE("CONST_MODIFIERS_SCALED");
@@ -436,5 +436,5 @@ void TestScaledInt()
 		FAssert(false);
 		CvGlobals::getInstance().getLogging() = true;
 	}
-#endif // SCALED_INT_TEST
+#endif // SCALED_NUM_TEST
 }

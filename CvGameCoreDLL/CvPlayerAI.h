@@ -30,6 +30,9 @@ public:
 	// Only for the EXE:
 	DllExport static CvPlayerAI& getPlayerNonInl(PlayerTypes ePlayer);
 	DllExport static bool areStaticsInitialized();
+	// <advc> Moved from CvDefines
+	static int const DANGER_RANGE = 4;
+	static int const BORDER_DANGER_RANGE = 2; // </advc>
 
 	explicit CvPlayerAI(PlayerTypes eID);
 	~CvPlayerAI();
@@ -39,7 +42,7 @@ public:
 	void AI_updatePersonality(); // advc.104
 
 	// <advc.003u> Access to AI-type members. Code mostly duplicated from CvPlayer.
-	inline CvCityAI* AI_getCapitalCity() const {
+	inline CvCityAI* AI_getCapital() const {
 		return AI_getCity(m_iCapitalCityID);
 	}
 	inline CvCityAI* AI_firstCity(int *pIterIdx) const {
@@ -81,7 +84,7 @@ public:
 	// advc.134a:
 	bool AI_upholdPeaceOffer(PlayerTypes eHuman, CvDiploParameters const& kOffer) const;
 
-	void AI_updateFoundValues(bool bStartingLoc = false);
+	void AI_updateFoundValues(bool bStarting = false);
 	void AI_updateAreaTargets();
 
 	int AI_movementPriority(CvSelectionGroupAI const& kGroup) const;
@@ -95,8 +98,8 @@ public:
 	#if 0 // advc
 	void AI_doCentralizedProduction(); // K-Mod. (not used)
 	#endif
-	void AI_conquerCity(CvCityAI& kCity);
-	double AI_razeMemoryScore(CvCity const& c) const; // advc.130q
+	void AI_conquerCity(CvCityAI& kCity, /* advc.ctr: */ bool bEverOwned = false);
+	scaled AI_razeMemoryScore(CvCity const& kCity) const; // advc.130q
 	bool AI_acceptUnit(CvUnit const& kUnit) const;
 	bool AI_captureUnit(UnitTypes eUnit, CvPlot const& kPlot) const;
 
@@ -109,7 +112,8 @@ public:
 	// <advc.035>
 	bool AI_isPlotContestedByRival(CvPlot const& kPlot,
 			PlayerTypes eRival = NO_PLAYER) const; // </advc.035>
-	short AI_foundValue(int iX, int iY, int iMinRivalRange = -1, bool bStartingLoc = false) const;		// Exposed to Python
+	short AI_foundValue(int iX, int iY, int iMinRivalRange = -1, bool bStartingLoc = false,			// Exposed to Python
+			bool bNormalize = false) const; // advc.031e
 	// advc: Replaced by the CitySiteEvaluator class
 	//struct CvFoundSettings { ... } // K-Mod
 	//short AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet) const; // K-Mod
@@ -139,11 +143,11 @@ public:
 	}
 	//int AI_getUnitDanger(CvUnit* pUnit, int iRange = -1, bool bTestMoves = true, bool bAnyDanger = true) const;
 	// BETTER_BTS_AI_MOD: END
-	int AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves = true,
+	int AI_getWaterDanger(CvPlot const& kPlot, int iRange = DANGER_RANGE,
 			/* <advc.opt> */ int iMaxCount = MAX_INT) const;
-	inline bool AI_isAnyWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves = true) const
+	inline bool AI_isAnyWaterDanger(CvPlot const& kPlot, int iRange = DANGER_RANGE) const
 	{
-		return (AI_getWaterDanger(pPlot, iRange, bTestMoves, 1) >= 1);
+		return (AI_getWaterDanger(kPlot, iRange, 1) >= 1);
 	} // </advc.opt>
 
 	bool AI_avoidScience() const;
@@ -247,7 +251,7 @@ public:
 	{
 		return const_cast<CvPlayerAI*>(this)->AI_considerOffer(ePlayer, kTheyGive, kWeGive, iChange, iDealAge, true);
 	} // </advc.130o>
-	double AI_prDenyHelp() const; // advc.144
+	scaled AI_prDenyHelp() const; // advc.144
 	int AI_tradeAcceptabilityThreshold(PlayerTypes eTrader) const; // K-Mod
 	int AI_maxGoldTrade(PlayerTypes ePlayer, /* advc.134a: */ bool bTeamTrade = false) const;
 	int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const;								// Exposed to Python
@@ -289,7 +293,14 @@ public:
 	int AI_religionTradeVal(ReligionTypes eReligion, PlayerTypes ePlayer) const;
 	DenialTypes AI_religionTrade(ReligionTypes eReligion, PlayerTypes ePlayer) const;
 
-	int AI_unitImpassableCount(UnitTypes eUnit) const;
+	uint AI_unitImpassables(UnitTypes eUnit) const;
+	// advc.057:
+	inline bool AI_isAnyImpassable(UnitTypes eUnit) const
+	{
+		/*	BBAI note [moved from some call location]: For galleys, triremes, ironclads ...
+			unit types which are limited in what terrain they can operate in. */
+		return (AI_unitImpassables(eUnit) != 0u);
+	}
 
 	int AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const* pArea = NULL) const;			// Exposed to Python
 	int AI_totalUnitAIs(UnitAITypes eUnitAI) const;														// Exposed to Python
@@ -315,7 +326,7 @@ public:
 	int AI_unitCostPerMil() const; // K-Mod
 	int AI_maxUnitCostPerMil(CvArea const* pArea = NULL, int iBuildProb = -1) const; // K-Mod
 	int AI_nukeWeight() const; // K-Mod
-	int AI_nukeDangerDivisor() const; // dlph.16
+	int AI_nukeDangerDivisor() const; // kekm.16
 	bool AI_isLandWar(CvArea const& kArea) const; // K-Mod
 	bool AI_isFocusWar(CvArea const* pArea = NULL) const; // advc.105
 
@@ -585,7 +596,7 @@ public:
 	void AI_updateCitySites(int iMinFoundValueThreshold = -1, int iMaxSites = 4); // advc: default values
 	void AI_invalidateCitySites(int iMinFoundValueThreshold);
 
-	int AI_getNumCitySites() const;
+	int AI_getNumCitySites() const { return m_aiAICitySites.size(); } // advc.inl
 	bool AI_isPlotCitySite(CvPlot const& kPlot) const; // advc: Made plot param const
 	int AI_getNumAreaCitySites(CvArea const& kArea, int& iBestValue) const;
 	int AI_getNumAdjacentAreaCitySites(int& iBestValue, CvArea const& kWaterArea,
@@ -594,7 +605,7 @@ public:
 	CvPlot* AI_getCitySite(int iIndex) const;
 	// advc.117, advc.121:
 	bool AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const;
-	bool AI_isAwfulSite(CvCity const& kCity) const; // advc.ctr
+	bool AI_isAwfulSite(CvCity const& kCity, bool bConquest = false) const; // advc.ctr
 	bool AI_deduceCitySite(const CvCity* pCity) const; // K-Mod
 	// K-Mod:
 	int AI_countPotentialForeignTradeCities(bool bCheckConnected = true,
@@ -650,9 +661,9 @@ public:
 	   train a significant number of units of type eUnit? */
 	bool AI_canBeExpectedToTrain(UnitTypes eUnit) const; // advc.104, advc.651
 	bool AI_isDefenseFocusOnBarbarians(CvArea const& kArea) const; // advc.300
-	// advc.001: needed for bNeighbouringReligion in AI_techValue
-	bool AI_hasSharedPrimaryArea(PlayerTypes eOther) const;
+	bool AI_hasSharedPrimaryArea(PlayerTypes eOther) const; // advc
 
+	int AI_getContactDelay(ContactTypes eContact) const; // advc.130r
 	// <advc.104m>
 	bool AI_proposeEmbargo(PlayerTypes eHuman);
 	bool AI_contactReligion(PlayerTypes eHuman);
@@ -760,6 +771,7 @@ protected:
 	void AI_doReligion();
 	void AI_doDiplo();
 	void AI_doCheckFinancialTrouble();
+	int AI_GPModifierCivicVal(std::vector<int>& kBaseRates, int iModifier) const; // advc
 	// <advc.026>
 	void AI_roundTradeValBounds(int& iTradeVal, bool bPreferRoundingUp = false,
 			int iLower = MIN_INT, int iUpper = MAX_INT) const; // </advc.026>
@@ -773,7 +785,7 @@ protected:
 	void AI_proposeWarTrade(PlayerTypes eAIPlayer); // </advc>
 	// advc.130t:
 	int AI_rivalPactAttitude(PlayerTypes ePlayer, bool bVassalPacts) const;
-	double AI_expansionistHate(PlayerTypes ePlayer) const;
+	scaled AI_expansionistHate(PlayerTypes ePlayer) const;
 	bool AI_canBeAttackedBy(CvUnit const& u) const; // advc.315
 
 	// <advc.130p>
@@ -803,16 +815,16 @@ protected:
 			CLinkList<TradeData> const& kTheyGive, CLinkList<TradeData> const& kWeGive,
 			CLinkList<TradeData> const& kTheirInventory, CLinkList<TradeData> const& kOurInventory,
 			CLinkList<TradeData>& kTheyAlsoGive, CLinkList<TradeData>& kWeAlsoGive,
-			double leniency = 1) const; // advc.705
+			scaled rLeniency = 1) const; // advc.705
 	// <advc>
 	// Variant that writes the proposal into pTheirList and pOurList
 	bool AI_counterPropose(PlayerTypes ePlayer, CLinkList<TradeData>& kTheyGive,
 			CLinkList<TradeData>& kWeGive, bool bTheyMayGiveMore, bool bWeMayGiveMore,
-			double leniency = 1) const;
+			scaled rLeniency = 1) const;
 	bool AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const& kTheirInventory,
 			PlayerTypes ePlayer, int iTheyReceive, int& iWeReceive,
 			CLinkList<TradeData>& kWeWant, CLinkList<TradeData> const& kWeGive,
-			double leniency, // advc.705
+			scaled rLeniency, // advc.705
 			bool bTheyGenerous,
 			int iHappyLeft, int iHealthLeft, int iOtherListLength) const; // advc.036
 	int AI_tradeValToGold(int iTradeVal, bool bOverpay, int iMaxGold = MAX_INT,
@@ -829,7 +841,7 @@ protected:
 	// </advc>
 	bool AI_proposeResourceTrade(PlayerTypes eTo); // advc.133
 	// advc.132:
-	bool AI_checkCivicReligionConsistency(CLinkList<TradeData> const& tradeItems) const;
+	bool AI_checkCivicReligionConsistency(CLinkList<TradeData> const& kTradeItems) const;
 	// <advc.036>
 	bool AI_checkResourceLimits(CLinkList<TradeData> const& kWeGive,
 			CLinkList<TradeData> const& kTheyGive, PlayerTypes eThey,
@@ -880,8 +892,17 @@ protected:
 	void AI_doEnemyUnitData();
 	//void AI_invalidateCloseBordersAttitude(); // disabled by K-Mod
 	bool AI_isCommercePlot(CvPlot* pPlot) const; // advc: Was public; deprecated.
-	void AI_setHumanDisabled(bool bDisabled); // advc.127
-	void logFoundValue(int iX, int iY, bool bStartingLoc = false) const; // advc.031c
+	// <advc>
+	int AI_baseBonusUnitVal(BonusTypes eBonus, UnitTypes eUnit, CvCity const* pCapital,
+			CvCity const* pCoastalCity, bool bTrade) const;
+	int AI_baseBonusBuildingVal(BonusTypes eBonus, BuildingTypes eBuilding, int iCities,
+			int iCoastalCities, bool bTrade) const;
+	int AI_baseBonusProjectVal(BonusTypes eBonus, ProjectTypes eProject, bool bTrade) const;
+	int AI_baseBonusRouteVal(BonusTypes eBonus, RouteTypes eRoute,
+			RouteTypes eBestRoute, TechTypes eBuildTech, bool bTrade) const;
+	// </advc>
+	void AI_setHuman(bool b); // advc.127
+	void logFoundValue(CvPlot const& kPlot, bool bStartingLoc = false) const; // advc.031c
 
 	friend class CvGameTextMgr;
 	friend class CvPlayer; // advc.003u: So that protected functions can be called through CvPlayer::AI

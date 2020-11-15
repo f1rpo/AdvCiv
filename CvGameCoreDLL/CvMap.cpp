@@ -19,10 +19,11 @@
 #include "CvFractal.h"
 #include "CvMapGenerator.h"
 #include "KmodPathFinder.h"
+#include "FAStarNode.h"
+#include "FAStarFunc.h"
 #include "CvInfo_GameOption.h"
 #include "CvReplayInfo.h" // advc.106n
 #include "CvDLLIniParserIFaceBase.h"
-#include <stack> // advc.030
 
 
 CvMap::CvMap()
@@ -38,9 +39,8 @@ CvMap::~CvMap()
 	uninit();
 }
 
-// Initializes the map
-// Parameters:
-//	pInitInfo  - Optional init structure (used for WB load)
+/*	Initializes the map
+	pInitInfo  - Optional init structure (used for WB load) */
 void CvMap::init(CvMapInitData* pInitInfo)
 {
 	PROFILE("CvMap::init");
@@ -55,6 +55,7 @@ void CvMap::init(CvMapInitData* pInitInfo)
 	m_areas.init(); // Init containers
 	setup();
 	gDLL->logMemState("CvMap before init plots");
+	FAssert(numPlots() <= (EnumMap<PlotNumTypes,scaled>::MAX_LENGTH)); // advc.enum
 	m_pMapPlots = new CvPlot[numPlots()];
 	for (int iX = 0; iX < getGridWidth(); iX++)
 	{
@@ -74,6 +75,7 @@ void CvMap::uninit()
 	SAFE_DELETE_ARRAY(m_pMapPlots);
 	m_replayTexture.clear(); // advc.106n
 	m_areas.uninit();
+	CvSelectionGroup::uninitPathFinder(); // advc.pf
 }
 
 // Initializes data members that are serialized.
@@ -83,8 +85,10 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 
 	// set grid size
 	// initially set in terrain cell units
-	m_iGridWidth = (GC.getInitCore().getWorldSize() != NO_WORLDSIZE) ? GC.getInfo(GC.getInitCore().getWorldSize()).getGridWidth (): 0;	//todotw:tcells wide
-	m_iGridHeight = (GC.getInitCore().getWorldSize() != NO_WORLDSIZE) ? GC.getInfo(GC.getInitCore().getWorldSize()).getGridHeight (): 0;
+	m_iGridWidth = (GC.getInitCore().getWorldSize() != NO_WORLDSIZE) ?
+			GC.getInfo(GC.getInitCore().getWorldSize()).getGridWidth() : 0; //todotw:tcells wide
+	m_iGridHeight = (GC.getInitCore().getWorldSize() != NO_WORLDSIZE) ?
+			GC.getInfo(GC.getInitCore().getWorldSize()).getGridHeight() : 0;
 
 	// allow grid size override
 	if (pInitInfo)
@@ -156,9 +160,11 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 // Initializes all data that is not serialized but needs to be initialized after loading.
 void CvMap::setup()
 {
-	PROFILE("CvMap::setup");
+	PROFILE_FUNC();
 
+	CvSelectionGroup::initPathFinder(); // advc.pf
 	KmodPathFinder::InitHeuristicWeights(); // K-Mod
+
 	CvDLLFAStarIFaceBase& kAStar = *gDLL->getFAStarIFace(); // advc
 	kAStar.Initialize(&GC.getPathFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), pathDestValid, pathHeuristic, pathCost, pathValid, pathAdd, NULL, NULL);
 	kAStar.Initialize(&GC.getInterfacePathFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), pathDestValid, pathHeuristic, pathCost, pathValid, pathAdd, NULL, NULL);
@@ -316,8 +322,8 @@ void CvMap::updateSight(bool bIncrement)
 
 void CvMap::updateIrrigated()
 {
-	for(int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).updateIrrigated();
+	for(int i = 0; i < numPlots(); i++)
+		updateIrrigated(getPlotByIndex(i));
 }
 
 // K-Mod. This function is called when the unit selection is changed, or when a selected unit is promoted. (Or when UnitInfo_DIRTY_BIT is set.)
@@ -466,7 +472,7 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 }
 
 
-CvPlot* CvMap::syncRandPlot(int iFlags, CvArea const* pArea,
+CvPlot* CvMap::syncRandPlot(RandPlotFlags eFlags, CvArea const* pArea,
 	int iMinCivUnitDistance, // advc.300: Renamed from iMinUnitDistance
 	int iTimeout,
 	int* piValidCount) // advc.304: Number of valid tiles
@@ -484,7 +490,7 @@ CvPlot* CvMap::syncRandPlot(int iFlags, CvArea const* pArea,
 		for(int i = 0; i < numPlots(); i++)
 		{
 			CvPlot& kPlot = getPlotByIndex(i);
-			if (isValidRandPlot(kPlot, iFlags, pArea, iMinCivUnitDistance))
+			if (isValidRandPlot(kPlot, eFlags, pArea, iMinCivUnitDistance))
 				apValidPlots.push_back(&kPlot);
 		}
 		int iValid = (int)apValidPlots.size();
@@ -503,7 +509,7 @@ CvPlot* CvMap::syncRandPlot(int iFlags, CvArea const* pArea,
 		CvPlot& kTestPlot = getPlot(
 				GC.getGame().getSorenRandNum(getGridWidth(), "Rand Plot Width"),
 				GC.getGame().getSorenRandNum(getGridHeight(), "Rand Plot Height"));
-		if (isValidRandPlot(kTestPlot, iFlags, pArea, iMinCivUnitDistance))
+		if (isValidRandPlot(kTestPlot, eFlags, pArea, iMinCivUnitDistance))
 		{	/*  <advc.304> Not useful, but want to make sure it doesn't stay
 				uninitialized. 1 since we found only 1 valid plot. */
 			if(piValidCount != NULL)
@@ -517,34 +523,40 @@ CvPlot* CvMap::syncRandPlot(int iFlags, CvArea const* pArea,
 }
 
 // advc: Body cut from syncRandPlot
-bool CvMap::isValidRandPlot(CvPlot const& kPlot, int iFlags, CvArea const* pArea,
-		int iMinCivUnitDistance) const
+bool CvMap::isValidRandPlot(CvPlot const& kPlot, RandPlotFlags eFlags,
+	CvArea const* pArea, int iMinCivUnitDistance) const
 {
 	if (pArea != NULL && !kPlot.isArea(*pArea))
 		return false;
 	/*  advc.300: Code moved into new function isCivUnitNearby;
 		Barbarians in surrounding plots are now ignored. */
-	if(iMinCivUnitDistance >= 0 && (kPlot.isUnit() || kPlot.isCivUnitNearby(iMinCivUnitDistance)))
+	if(iMinCivUnitDistance >= 0 && (kPlot.isUnit() ||
+		kPlot.isCivUnitNearby(iMinCivUnitDistance)))
+	{
 		return false;
-	if ((iFlags & RANDPLOT_LAND) && kPlot.isWater())
+	}
+	if ((eFlags & RANDPLOT_LAND) && kPlot.isWater())
 		return false;
-	if ((iFlags & RANDPLOT_UNOWNED) && kPlot.isOwned())
+	if ((eFlags & RANDPLOT_UNOWNED) && kPlot.isOwned())
 		return false;
-	if ((iFlags & RANDPLOT_ADJACENT_UNOWNED) && kPlot.isAdjacentOwned())
+	if ((eFlags & RANDPLOT_ADJACENT_UNOWNED) && kPlot.isAdjacentOwned())
 		return false;
-	if ((iFlags & RANDPLOT_ADJACENT_LAND) && !kPlot.isAdjacentToLand())
+	if ((eFlags & RANDPLOT_ADJACENT_LAND) && !kPlot.isAdjacentToLand())
 		return false;
-	if ((iFlags & RANDPLOT_PASSABLE) && kPlot.isImpassable())
+	if ((eFlags & RANDPLOT_PASSABLE) && kPlot.isImpassable())
 		return false;
-	if ((iFlags & RANDPLOT_NOT_VISIBLE_TO_CIV) && kPlot.isVisibleToCivTeam())
+	if ((eFlags & RANDPLOT_NOT_VISIBLE_TO_CIV) && kPlot.isVisibleToCivTeam())
 		return false;
-	if ((iFlags & RANDPLOT_NOT_CITY) && kPlot.isCity())
+	if ((eFlags & RANDPLOT_NOT_CITY) && kPlot.isCity())
 		return false;
 	// <advc.300>
-	if((iFlags & RANDPLOT_HABITABLE) && kPlot.getYield(YIELD_FOOD) <= 0)
+	if((eFlags & RANDPLOT_HABITABLE) && kPlot.getYield(YIELD_FOOD) <= 0)
 		return false;
-	if((iFlags & RANDPLOT_WATERSOURCE) && !kPlot.isFreshWater() && kPlot.getYield(YIELD_FOOD) <= 0)
-		return false; // </advc.300>
+	if((eFlags & RANDPLOT_WATERSOURCE) && !kPlot.isFreshWater() &&
+		kPlot.getYield(YIELD_FOOD) <= 0)
+	{
+		return false;
+	} // </advc.300>
 	return true;
 }
 
@@ -656,15 +668,16 @@ CvArea* CvMap::findBiggestArea(bool bWater)
 
 int CvMap::getMapFractalFlags() const
 {
-	int wrapX = 0;
+	CvFractal::Flags eWrapX = CvFractal::NO_FLAGS;
 	if (isWrapX())
-		wrapX = (int)CvFractal::FRAC_WRAP_X;
+		eWrapX = CvFractal::FRAC_WRAP_X;
 
-	int wrapY = 0;
+	CvFractal::Flags eWrapY = CvFractal::NO_FLAGS;
 	if (isWrapY())
-		wrapY = (int)CvFractal::FRAC_WRAP_Y;
-
-	return (wrapX | wrapY);
+		eWrapY = CvFractal::FRAC_WRAP_Y;
+	/*	(advc.enum: Convert to int. It's only used in Python anyway, and
+		don't want to include CvFractal.h in CvMap.h.) */
+	return (eWrapX | eWrapY);
 }
 
 // Check plots for wetlands or seaWater. Returns true if found
@@ -701,57 +714,57 @@ int CvMap::numPlotsExternal() const // advc.inl
 
 int CvMap::plotX(int iIndex) const
 {
-	return (iIndex % getGridWidth());
+	return iIndex % getGridWidth();
 }
 
 
 int CvMap::plotY(int iIndex) const
 {
-	return (iIndex / getGridWidth());
+	return iIndex / getGridWidth();
 }
 
 
-int CvMap::pointXToPlotX(float fX)
+int CvMap::pointXToPlotX(float fX) /* advc: */ const
 {
 	float fWidth, fHeight;
 	gDLL->getEngineIFace()->GetLandscapeGameDimensions(fWidth, fHeight);
-	return (int)(((fX + (fWidth/2.0f)) / fWidth) * getGridWidth());
+	return (int)(((fX + fWidth/2) / fWidth) * getGridWidth());
 }
 
 
-float CvMap::plotXToPointX(int iX)
+float CvMap::plotXToPointX(int iX) /* advc: */ const
 {
 	float fWidth, fHeight;
 	gDLL->getEngineIFace()->GetLandscapeGameDimensions(fWidth, fHeight);
-	return ((iX * fWidth) / ((float)getGridWidth())) - (fWidth / 2.0f) + (GC.getPLOT_SIZE() / 2.0f);
+	return ((iX * fWidth) / getGridWidth()) - fWidth/2 + GC.getPLOT_SIZE()/2;
 }
 
 
-int CvMap::pointYToPlotY(float fY)
+int CvMap::pointYToPlotY(float fY) /* advc: */ const
 {
 	float fWidth, fHeight;
 	gDLL->getEngineIFace()->GetLandscapeGameDimensions(fWidth, fHeight);
-	return (int)(((fY + (fHeight/2.0f)) / fHeight) * getGridHeight());
+	return (int)(((fY + fHeight/2) / fHeight) * getGridHeight());
 }
 
 
-float CvMap::plotYToPointY(int iY)
+float CvMap::plotYToPointY(int iY) /* advc: */ const
 {
 	float fWidth, fHeight;
 	gDLL->getEngineIFace()->GetLandscapeGameDimensions(fWidth, fHeight);
-	return ((iY * fHeight) / ((float)getGridHeight())) - (fHeight / 2.0f) + (GC.getPLOT_SIZE() / 2.0f);
+	return ((iY * fHeight) / getGridHeight()) - fHeight/2 + GC.getPLOT_SIZE()/2;
 }
 
 
 float CvMap::getWidthCoords() const
 {
-	return (GC.getPLOT_SIZE() * ((float)getGridWidth()));
+	return GC.getPLOT_SIZE() * getGridWidth();
 }
 
 
 float CvMap::getHeightCoords() const
 {
-	return (GC.getPLOT_SIZE() * ((float)getGridHeight()));
+	return GC.getPLOT_SIZE() * getGridHeight();
 }
 
 
@@ -822,12 +835,6 @@ void CvMap::changeLandPlots(int iChange)
 }
 
 
-int CvMap::getOwnedPlots() const
-{
-	return m_iOwnedPlots;
-}
-
-
 void CvMap::changeOwnedPlots(int iChange)
 {
 	m_iOwnedPlots = (m_iOwnedPlots + iChange);
@@ -875,25 +882,6 @@ bool CvMap::isWrapExternal() // advc.inl
 	return isWrap();
 }
 
-// advc: const replacement for DllExport getWorldSize
-WorldSizeTypes CvMap::getWorldSize() const
-{
-	return GC.getInitCore().getWorldSize();
-}
-
-
-ClimateTypes CvMap::getClimate() const
-{
-	return GC.getInitCore().getClimate();
-}
-
-
-SeaLevelTypes CvMap::getSeaLevel() const
-{
-	return GC.getInitCore().getSeaLevel();
-}
-
-
 
 int CvMap::getNumCustomMapOptions() const
 {
@@ -906,17 +894,18 @@ CustomMapOptionTypes CvMap::getCustomMapOption(int iOption) /* advc: */ const
 	return GC.getInitCore().getCustomMapOption(iOption);
 }
 
-// <advc.004> Returns an empty string if the option is set to its default value
+// advc.190b: Returns an empty string if the option is set to its default value
 CvWString CvMap::getNonDefaultCustomMapOptionDesc(int iOption) const
 {
 	CvPythonCaller const& py = *GC.getPythonCaller();
-	CvString szMapScriptNameNarrow;
-	::narrowUnsafe(GC.getInitCore().getMapScriptName(), szMapScriptNameNarrow);
+	CvString szMapScriptNameNarrow(GC.getInitCore().getMapScriptName());
 	CustomMapOptionTypes eOptionValue = getCustomMapOption(iOption);
-	if (eOptionValue == py.customMapOptionDefault(szMapScriptNameNarrow.c_str(), iOption))
+	int iDefaultValue = py.customMapOptionDefault(szMapScriptNameNarrow.c_str(), iOption);
+	// Negative value means that default couldn't be loaded (script may have been removed)
+	if (iDefaultValue < 0 || eOptionValue == iDefaultValue)
 		return L"";
 	return py.customMapOptionDescription(szMapScriptNameNarrow.c_str(), iOption, eOptionValue);
-} // </advc.004>
+}
 
 
 int CvMap::getNumBonuses(BonusTypes eIndex) const
@@ -1026,6 +1015,113 @@ int CvMap::calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) con
 	return -1; // no passable path exists
 }
 
+/*  advc.104: Based on the unused BBAI function CvPlot::calculatePathDistanceToPlot.
+	I don't think it had ever been tested either b/c it didn't work at all until I
+	changed the GetLastNode call at the end. */
+int CvMap::calculateTeamPathDistance(TeamTypes eTeam,
+	CvPlot const& kFrom, CvPlot const& kTo,
+	int iMaxPath, TeamTypes eTargetTeam, DomainTypes eDomain) const // advc.104b
+{
+	PROFILE_FUNC(); // advc: The time is mostly spent in teamStepValid_advc
+	FAssert(eTeam != NO_TEAM);
+	FAssert(eTargetTeam != NO_TEAM);
+	/*  advc.104b: Commented out. Want to be able to measure paths between
+		coastal cities of different continents. (And shouldn't return "false"
+		at any rate.) */
+	/*if (pTargetPlot->area() != area())
+		return false;*/
+	FAssert(eDomain != NO_DOMAIN);
+
+	/*	Imitate instatiation of irrigated finder, pIrrigatedFinder.
+		Can't mimic step finder initialization because it requires creation from the EXE. */
+	/*  <advc.104b> vector type changed to int[]; dom, eTargetTeam (instead of
+		NO_TEAM), iMaxPath and target coordinates added. */
+	int aStepData[] = {
+		eTeam, eTargetTeam, eDomain, kTo.getX(), kTo.getY(), iMaxPath
+	}; // </advc.104b>
+	FAStar* pStepFinder = gDLL->getFAStarIFace()->create();
+	gDLL->getFAStarIFace()->Initialize(pStepFinder,
+			GC.getMap().getGridWidth(),
+			GC.getMap().getGridHeight(),
+			GC.getMap().isWrapX(),
+			GC.getMap().isWrapY(),
+			// advc.104b: Plugging in _advc functions
+			stepDestValid_advc, stepHeuristic, stepCost, teamStepValid_advc, stepAdd,
+			NULL, NULL);
+	gDLL->getFAStarIFace()->SetData(pStepFinder, aStepData);
+
+	int iPathDistance = -1;
+	gDLL->getFAStarIFace()->GeneratePath(pStepFinder, kFrom.getX(), kFrom.getY(),
+			kTo.getX(), kTo.getY(), false, 0, true);
+	// advc.104b, advc.001: was &GC.getStepFinder() instead of pStepFinder
+	FAStarNode* pNode = gDLL->getFAStarIFace()->GetLastNode(pStepFinder);
+	if (pNode != NULL)
+		iPathDistance = pNode->m_iData1;
+
+	gDLL->getFAStarIFace()->destroy(pStepFinder);
+
+	return iPathDistance;
+}
+
+/*	advc.pf: Cut from CvPlot::updateIrrigated
+	so that all the non-unit pathfinding stuff is in one place */
+void CvMap::updateIrrigated(CvPlot& kPlot)
+{
+	PROFILE_FUNC();
+
+	if (!GC.getGame().isFinalInitialized())
+		return;
+
+	FAStar* pIrrigatedFinder = gDLL->getFAStarIFace()->create();
+	if (kPlot.isIrrigated())
+	{
+		if (!kPlot.isPotentialIrrigation())
+		{
+			kPlot.setIrrigated(false);
+			FOR_EACH_ENUM(Direction)
+			{
+				CvPlot const* pAdj = plotDirection(kPlot.getX(), kPlot.getY(),
+						eLoopDirection);
+				if (pAdj == NULL)
+					continue;
+
+				bool bFoundFreshWater = false;
+				gDLL->getFAStarIFace()->Initialize(pIrrigatedFinder,
+						getGridWidth(), getGridHeight(),
+						isWrapX(), isWrapY(), NULL, NULL, NULL,
+						potentialIrrigation, NULL, checkFreshWater,
+						&bFoundFreshWater);
+				gDLL->getFAStarIFace()->GeneratePath(pIrrigatedFinder,
+						pAdj->getX(), pAdj->getY(), -1, -1);
+				if (!bFoundFreshWater)
+				{
+					bool bIrrigated = false;
+					gDLL->getFAStarIFace()->Initialize(pIrrigatedFinder,
+							getGridWidth(), getGridHeight(),
+							isWrapX(), isWrapY(), NULL, NULL, NULL,
+							/*	advc (note): GeneratePath will cause the
+								changeIrrigated function to perform the
+								updates by calling CvPlot::setIrrigated */
+							potentialIrrigation, NULL, changeIrrigated, &bIrrigated);
+					gDLL->getFAStarIFace()->GeneratePath(pIrrigatedFinder,
+							pAdj->getX(), pAdj->getY(), -1, -1);
+				}
+			}
+		}
+	}
+	else if (kPlot.isPotentialIrrigation() && kPlot.isIrrigationAvailable(true))
+	{
+		bool bIrrigated = true;
+		gDLL->getFAStarIFace()->Initialize(pIrrigatedFinder,
+				getGridWidth(), getGridHeight(),
+				isWrapX(), isWrapY(), NULL, NULL, NULL,
+				potentialIrrigation, NULL, changeIrrigated, &bIrrigated);
+		gDLL->getFAStarIFace()->GeneratePath(pIrrigatedFinder,
+				kPlot.getX(), kPlot.getY(), -1, -1);
+	}
+
+	gDLL->getFAStarIFace()->destroy(pIrrigatedFinder);
+}
 
 
 // BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START  // advc: unnecessary NULL checks removed
@@ -1072,7 +1168,6 @@ void CvMap::read(FDataStreamBase* pStream)
 	pStream->Read(&m_bWrapX);
 	pStream->Read(&m_bWrapY);
 
-	FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated");
 	m_aiNumBonus.Read(pStream);
 	m_aiNumBonusOnLand.Read(pStream);
 
@@ -1178,8 +1273,10 @@ byte const* CvMap::getReplayTexture() const
 {
 	// When in HoF or updateReplayTexture was never called or MINIMAP_RENDER_SIZE has changed
 	if (m_replayTexture.size() != CvReplayInfo::minimapPixels(
-			GC.getDefineINT(CvGlobals::MINIMAP_RENDER_SIZE)))
+		GC.getDefineINT(CvGlobals::MINIMAP_RENDER_SIZE)))
+	{
 		return NULL;
+	}
 	return &m_replayTexture[0];
 } // </advc.106n>
 
@@ -1328,16 +1425,8 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart)
 			if(pAdjacent == NULL)
 				continue;
 			CvPlot& q = *pAdjacent;
-			/*  The two neighbors that p and q have in common if p and q are
-				diagonally adjacent: */
-			CvPlot* s = plot(p.getX(), q.getY());
-			CvPlot* t = plot(q.getX(), p.getY());
-			FAssertMsg(s != NULL && t != NULL, "Map appears to be non-convex");
 			if(q.area() == NULL && p.isWater() == q.isWater() &&
-				// For water tiles, orthogonal adjacency is unproblematic.
-				(!p.isWater() || x == q.getX() || y == q.getY() ||
-				// Diagonal adjacency only works if either s or t are water
-				s == NULL || s->isWater() || t == NULL || t->isWater()) &&
+				!isSeparatedByIsthmus(p, q) &&
 				/*  Depth-first search that doesn't continue at impassables
 					except to other impassables so that mountain ranges and
 					ice packs end up in one CvArea. */

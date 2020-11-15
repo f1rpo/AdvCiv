@@ -37,7 +37,6 @@ public: // All the const functions are exposed to Python except for those relate
 	inline bool isFoundFreshWater() const { return m_bFoundFreshWater; }
 
 	DllExport const TCHAR* getArtDefineTag() const;
-	void setArtDefineTag(const TCHAR* szTag);
 
 	int getWorldSoundscapeScriptId() const;
 
@@ -101,6 +100,7 @@ public: /*  All the const functions are exposed to Python except for those deali
 
 	bool isNoCoast() const;
 	bool isNoRiver() const;
+	bool isNoRiverSide() const; // advc.129b
 	bool isNoAdjacent() const;
 	bool isRequiresFlatlands() const;
 	bool isRequiresRiver() const;
@@ -114,7 +114,6 @@ public: /*  All the const functions are exposed to Python except for those deali
 	const TCHAR* getOnUnitChangeTo() const;
 
 	const TCHAR* getArtDefineTag() const;
-	void setArtDefineTag(const TCHAR* szTag);
 
 	int getWorldSoundscapeScriptId() const;
 
@@ -161,6 +160,7 @@ protected:
 
 	bool m_bNoCoast;
 	bool m_bNoRiver;
+	bool m_bNoRiverSide; // advc.129b
 	bool m_bNoAdjacent;
 	bool m_bRequiresFlatlands;
 	bool m_bRequiresRiver;
@@ -199,12 +199,13 @@ public: // All the const functions are exposed to Python
 	CvBonusInfo();
 	virtual ~CvBonusInfo();
 
-	int getBonusClassType() const;
-	int getChar() const;
-	void setChar(int i);
+	BonusClassTypes getBonusClassType() const { return m_eBonusClassType; }
+	wchar getChar() const; // advc: return wchar (not int)
+	void setChar(/* advc: */ wchar wc);
 	inline TechTypes getTechReveal() const { return m_eTechReveal; }
 	inline TechTypes getTechCityTrade() const { return m_eTechCityTrade; }
 	inline TechTypes getTechObsolete() const { return m_eTechObsolete; }
+	TechTypes getTechImprove(bool bWater) const; // advc.003w
 	int getAITradeModifier() const;
 	int getAIObjective() const;
 	inline int getHealth() const { return m_iHealth; }
@@ -232,7 +233,6 @@ public: // All the const functions are exposed to Python
 	bool isNormalize() const;
 
 	const TCHAR* getArtDefineTag() const;
-	void setArtDefineTag(const TCHAR* szVal);
 
 	int getYieldChange(int i) const;
 	int* getYieldChangeArray();
@@ -245,18 +245,20 @@ public: // All the const functions are exposed to Python
 
 	const TCHAR* getButton() const;
 	DllExport const CvArtInfoBonus* getArtInfo() const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif
 	bool read(CvXMLLoadUtility* pXML);
+	void updateCache(BonusTypes eBonus); // advc.003w
 
 protected:
-	int m_iBonusClassType;
-	int m_iChar;
+	BonusClassTypes m_eBonusClassType;
+	wchar m_wcSymbol; // advc
 	TechTypes m_eTechReveal;
 	TechTypes m_eTechCityTrade;
 	TechTypes m_eTechObsolete;
+	std::pair<TechTypes,TechTypes> m_eeTechImprove; // advc.003w
 	int m_iAITradeModifier;
 	int m_iAIObjective;
 	int m_iHealth;
@@ -407,7 +409,6 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	inline bool isOutsideBorders() const { return m_bOutsideBorders; }
 
 	const TCHAR* getArtDefineTag() const;
-	void setArtDefineTag(const TCHAR* szVal);
 
 	int getWorldSoundscapeScriptId() const;
 
@@ -435,7 +436,7 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	// For Moose - CvWidgetData XXX
 	int* getRouteYieldChangesArray(int i) /* advc: */ const;
 
-	int getImprovementBonusYield(int i, int j) const;
+	int getImprovementBonusYield(int iBonus, int iYield) const;
 	bool isImprovementBonusMakesValid(int i) const;
 	bool isImprovementBonusTrade(int i) const;
 	int getImprovementBonusDiscoverRand(int i) const;
@@ -448,7 +449,7 @@ public: /*  All the const functions are exposed to Python except those dealing w
 
 	const TCHAR* getButton() const;
 	DllExport const CvArtInfoImprovement* getArtInfo() const;
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif
@@ -521,7 +522,7 @@ public: // The const functions are exposed to Python
 	bool isBonusTrade() const;
 	int getYieldChange(int i) const;
 
-	#if SERIALIZE_CVINFOS
+	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif
@@ -558,7 +559,6 @@ public: // The const functions are exposed to Python
 	bool isBad() const;
 
 	const TCHAR* getSound() const;
-	void setSound(const TCHAR* szVal);
 
 	bool read(CvXMLLoadUtility* pXML);
 
