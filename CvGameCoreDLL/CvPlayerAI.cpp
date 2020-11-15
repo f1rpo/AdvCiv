@@ -3221,7 +3221,7 @@ scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 
 CvCityAI* CvPlayerAI::AI_findTargetCity(CvArea const& kArea) const // advc.003u: return CvCityAI
 {
-	FAssert(!isBarbarian()); // advc.001
+	FAssert(!isBarbarian()); // advc.300
 	CvCityAI* pBestCity = NULL;
 	int iBestValue = 0;
 	// advc.001: Only known targets

@@ -5265,14 +5265,11 @@ void CvGame::setFinalInitialized(bool bNewValue)
 
 	updatePlotGroups();
 	GC.getMap().updateIrrigated();
-
-	for (int iI = 0; iI < MAX_TEAMS; iI++)
-	{
-		CvTeamAI& kTeam = GET_TEAM((TeamTypes)iI);
-		kTeam.AI_initMemory(); // K-Mod
-		if (kTeam.isAlive())
-			kTeam.AI_updateAreaStrategies();
-	}
+	// <K-Mod>
+	for (TeamIter<> itTeam; itTeam.hasNext(); ++itTeam)
+		itTeam->AI_initMemory(); // </K-Mod>
+	for (TeamIter<CIV_ALIVE> itTeam; itTeam.hasNext(); ++itTeam) // advc.300: non-Barbarian
+		itTeam->AI_updateAreaStrategies();
 }
 
 // <advc.004x>
