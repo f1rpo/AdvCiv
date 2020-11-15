@@ -102,7 +102,7 @@
 		 no such log output is created. -->
 	<Define>
 		<DefineName>LOG_MAP_STATS</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 
 	<!-- advc: Setting this to 1 causes the game to ignore the
