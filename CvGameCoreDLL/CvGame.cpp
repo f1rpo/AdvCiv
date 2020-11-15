@@ -727,6 +727,11 @@ void CvGame::initDiplomacy()
 {
 	PROFILE_FUNC();
 
+	// advc.003g: Want to set this as soon as CvGame knows the GameType
+	m_bFPTestDone = !isNetworkMultiPlayer();
+	GC.getAgents().gameStart(false); // advc.agent
+	setPlayerColors(); // advc.002i
+
 	for(int i = 0; i < MAX_TEAMS; i++)  // advc: style changes
 	{
 		CvTeam& t = GET_TEAM((TeamTypes)i);
@@ -893,10 +898,6 @@ void CvGame::initGameHandicap()
 
 void CvGame::initFreeState()
 {
-	// advc.003g: Want to set this as soon as CvGame knows the GameType
-	m_bFPTestDone = !isNetworkMultiPlayer();
-	GC.getAgents().gameStart(false); // advc.agent
-	setPlayerColors(); // advc.002i
 	initGameHandicap(); // advc.127
 	// <advc.250b>
 	if(!isOption(GAMEOPTION_ADVANCED_START) ||
