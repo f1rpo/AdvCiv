@@ -23,7 +23,7 @@ enum PlayerTypes
 	/*  advc.056 (note): Scenario (WB) files are now compatible so long
 		as the player ids in the WB file don't exceed MAX_CIV_PLAYERS in the DLL.
 		Savegames are still incompatible. */
-	MAX_CIV_PLAYERS = 18,
+	MAX_CIV_PLAYERS = 48,
 	BARBARIAN_PLAYER = MAX_CIV_PLAYERS,
 	MAX_PLAYERS = MAX_CIV_PLAYERS + 1
 };
