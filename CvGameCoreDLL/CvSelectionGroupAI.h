@@ -35,10 +35,13 @@ public:
 	CvUnitAI* AI_getBestGroupAttacker(const CvPlot* pPlot, bool bPotentialEnemy,
 			int& iUnitOdds, bool bForce = false, bool bNoBlitz = false,
 			bool bSacrifice = false, bool bMaxSurvival = false) const; // advc.048
-	CvUnitAI* AI_getBestGroupSacrifice(const CvPlot* pPlot, bool bPotentialEnemy, bool bForce = false, bool bNoBlitz = false) const;
+	CvUnitAI* AI_getBestGroupSacrifice(const CvPlot* pPlot, bool bPotentialEnemy,
+			bool bForce = false, bool bNoBlitz = false) const;
 	// K-Mod has removed bCheckCanMove param from these two and bPotentialEnemy from AI_compareStacks
-	int AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAttack = false) const;
-	int AI_sumStrength(const CvPlot* pAttackedPlot = NULL, DomainTypes eDomainType = NO_DOMAIN, bool bCheckCanAttack = false) const;
+	int AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAttack = false,
+			bool bConstCache = false) const; // advc.001n
+	int AI_sumStrength(const CvPlot* pAttackedPlot = NULL, DomainTypes eDomainType = NO_DOMAIN,
+			bool bCheckCanAttack = false) const;
 
 	void AI_queueGroupAttack(int iX, int iY);
 	inline void AI_cancelGroupAttack() { m_bGroupAttack = false; } // K-Mod (made inline)

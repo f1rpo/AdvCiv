@@ -4357,11 +4357,13 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 	szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
 
 	//if ((gDLL->getChtLvl() > 0))
-	if (GC.getGame().isDebugMode() // BBAI: Only display this info in debug mode so game can be played with cheat code entered
-		&& bShift) // advc.007
+	// BBAI: Only display this info in debug mode so game can be played with cheat code entered
+	if (GC.getGame().isDebugMode() &&
+		bShift) // advc.007
 	{
 		szTempBuffer.Format(L"\nStack Compare Value = %d",
-				kSelectionList.AI_compareStacks(pPlot));
+				kSelectionList.AI_compareStacks(pPlot,
+				false, true)); // advc.001n
 		szString.append(szTempBuffer);
 
 		if (pPlot->getPlotCity() != NULL)

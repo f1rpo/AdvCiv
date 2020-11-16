@@ -7,6 +7,7 @@
 
 #include "CvTeam.h"
 #include "UWAI.h" // advc.104
+#include "AIStrengthMemoryMap.h" // advc.158
 #include "AIStrategies.h" // advc.enum
 
 /*  <advc.003u> Overwrite definition in CvTeam.h (should perhaps instead define a
@@ -36,7 +37,6 @@ public:
 	explicit CvTeamAI(TeamTypes eID);
 	~CvTeamAI();
 	void AI_init();
-	void AI_initMemory(); // K-Mod. (needs game map to be initialized first)
 	void AI_uninit();
 	void AI_reset(bool bConstructor);
 
@@ -263,6 +263,8 @@ public:
 	bool AI_isMasterPlanningLandWar(CvArea const& kArea) const;
 	bool AI_isMasterPlanningSeaWar(CvArea const& kArea) const;
 	// BETTER_BTS_AI_MOD: END
+	// advc.158:
+	inline AIStrengthMemoryMap& AI_strengthMemory() const { return m_strengthMemory; }
 	// advc.104:
 	void AI_setWarPlanNoUpdate(TeamTypes eIndex, WarPlanTypes eNewValue);
 	int AI_teamCloseness(TeamTypes eIndex, int iMaxDistance = -1,
@@ -299,20 +301,7 @@ public:
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
 
-
-	// K-Mod. Strength Memory - a very basic and rough reminder-map of how strong the enemy presence is on each plot.
-	int AI_getStrengthMemory(int x, int y) const;
-	void AI_setStrengthMemory(int x, int y, int value);
-	// <advc.make> No longer inlined. To avoid including CvPlot.h.
-	int AI_getStrengthMemory(const CvPlot* pPlot) const;
-	void AI_setStrengthMemory(const CvPlot* pPlot, int value); // </advc.make>
-
 protected:
-	std::vector<int> m_aiStrengthMemory;
-	// exponentially dimishes memory, and clears obviously obsolete memory.
-	void AI_updateStrengthMemory();
-	// K-Mod end
-
 	TeamTypes m_eWorstEnemy;
 	std::map<ReligionTypes,int> m_religionKnownSince; // advc.130n
 	/*  <advc.enum> (Tbd.: Should be CivTeamMap so that Barbarians are excluded;
@@ -334,6 +323,7 @@ protected:
 	bool m_bAnyWarPlan; // advc.opt
 	bool m_bLonely; // advc.109
 
+	mutable AIStrengthMemoryMap m_strengthMemory; // advc.158
 	UWAI::Team* m_pUWAI; // advc.104
 
 	int AI_noTechTradeThreshold() const;

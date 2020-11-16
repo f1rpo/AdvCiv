@@ -155,6 +155,8 @@ void CvPlayer::initInGame(PlayerTypes eID)
 		bTeamInit = true;
 		GET_TEAM(getTeam()).init(getTeam());
 		GET_TEAM(getTeam()).resetPlotAndCityData();
+		// advc.158:
+		GET_TEAM(getTeam()).AI_strengthMemory().init(GC.getMap().numPlots(), getTeam());
 	}
 	if (bTeamInit || (GET_TEAM(getTeam()).getNumMembers() == iOtherTeamMembers))
 	{

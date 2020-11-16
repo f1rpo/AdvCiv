@@ -495,7 +495,8 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
 /*	Returns ratio of strengths of stacks times 100
 	(so 100 is an even ratio, numbers over 100 mean that
 	this group is more powerful than the stack on a plot) */
-int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAttack) const
+int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAttack,
+	bool bConstCache) const // advc.001n
 {
 	FAssert(pPlot != NULL);
 
@@ -520,8 +521,9 @@ int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAtta
 	// K-Mod. Note. This function currently does not support bPotentialEnemy == false.
 	//FAssert(bPotentialEnemy);
 	int iDefenderSum = pPlot->isVisible(getHeadTeam()) ?
-			GET_PLAYER(eOwner).AI_localDefenceStrength(pPlot, NO_TEAM, eDomainType, 0) :
-			GET_TEAM(getHeadTeam()).AI_getStrengthMemory(pPlot);
+			GET_PLAYER(eOwner).AI_localDefenceStrength(pPlot, NO_TEAM, eDomainType, 0,
+			true, false, bConstCache) : // advc.001n
+			GET_TEAM(getHeadTeam()).AI_strengthMemory().get(*pPlot);
 	// K-Mod end
 	iCompareRatio /= std::max(1, iDefenderSum);
 

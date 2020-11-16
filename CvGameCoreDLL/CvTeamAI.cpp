@@ -38,20 +38,14 @@ void CvTeamAI::AI_init()
 	AI_reset(false);
 }
 
-// K-Mod
-void CvTeamAI::AI_initMemory()
-{
-	// Note. this needs to be done after the map is set. unfortunately, AI_init is called before that happens.
-	FAssert(GC.getMap().numPlots() > 0);
-	m_aiStrengthMemory.clear();
-	m_aiStrengthMemory.resize(GC.getMap().numPlots(), 0);
-}
-// K-Mod end
-
 
 void CvTeamAI::AI_uninit()
 {
-	//m_aiStrengthMemory.clear(); // K-Mod. Clearing the memory will cause problems if the game is still in progress.
+	/*	K-Mod. Clearing the memory will cause problems
+		if the game is still in progress. */
+	//m_aiStrengthMemory.clear();
+	/*	advc.158 (note): I'm not seeing a problem with clearing strength memory here,
+		but reset and destructor will handle it. */
 }
 
 
@@ -96,6 +90,7 @@ void CvTeamAI::AI_reset(bool bConstructor)
 	m_bAnyWarPlan = false; // advc.opt
 	m_bLonely = false; // advc.109
 	m_religionKnownSince.clear(); // advc.130n
+	m_strengthMemory.reset(); // advc.158
 }
 
 
@@ -125,11 +120,9 @@ void CvTeamAI::AI_doTurnPre()
 
 void CvTeamAI::AI_doTurnPost()
 {
-	// K-Mod
-	AI_updateStrengthMemory();
+	//AI_updateStrengthMemory(); // K-Mod
+	m_strengthMemory.decay(); // advc.158
 
-	// update the attitude cache for all team members.
-	// (Note: attitude use to be updated near the start of CvGame::doTurn. I've moved it here for various reasons.)
 	if(isMajorCiv()) // advc.003n
 	{
 		for (MemberIter it(getID()); it.hasNext(); ++it)
@@ -4703,12 +4696,7 @@ void CvTeamAI::read(FDataStreamBase* pStream)
 	// <advc.109>
 	if(uiFlag >= 2)
 		pStream->Read(&m_bLonely); // </advc.109>
-	// K-Mod
-	m_aiStrengthMemory.resize(GC.getMap().numPlots(), 0);
-	FAssert(m_aiStrengthMemory.size() > 0);
-	if (uiFlag >= 1)
-		pStream->Read(m_aiStrengthMemory.size(), &m_aiStrengthMemory[0]);
-	// K-Mod end
+	m_strengthMemory.read(pStream, uiFlag, getID()); // advc.158
 	// <advc.104>
 	if(isEverAlive() && !isBarbarian() && !isMinorCiv())
 		m_pUWAI->read(pStream); // </advc.104>
@@ -4735,9 +4723,10 @@ void CvTeamAI::write(FDataStreamBase* pStream)
 
 	REPRO_TEST_BEGIN_WRITE(CvString::format("TeamAI(%d)", getID()).GetCString());
 	uint uiFlag;
-	//uiFlag = 1; // K-Mod
+	//uiFlag = 1; // K-Mod: StrengthMemory
 	//uiFlag = 2; // advc.109
-	uiFlag = 3; // advc.opt: m_aiWarPlanCounts
+	//uiFlag = 3; // advc.opt: m_aiWarPlanCounts
+	uiFlag = 4; // advc.158
 	pStream->Write(uiFlag);
 
 	m_aiWarPlanStateCounter.Write(pStream);
@@ -4765,13 +4754,7 @@ void CvTeamAI::write(FDataStreamBase* pStream)
 	m_aeWarPlan.Write(pStream);
 	pStream->Write(m_eWorstEnemy);
 	pStream->Write(m_bLonely); // advc.109
-
-	// K-Mod.
-	FAssert(m_aiStrengthMemory.size() == GC.getMap().numPlots());
-	m_aiStrengthMemory.resize(GC.getMap().numPlots()); // the consequences of the assert failing are really bad.
-	FAssert(m_aiStrengthMemory.size() > 0);
-	pStream->Write(m_aiStrengthMemory.size(), &m_aiStrengthMemory[0]); // uiFlag >= 1
-	// K-Mod end
+	m_strengthMemory.write(pStream); // advc.158
 	// <advc.104>
 	if(isEverAlive() && !isBarbarian() && !isMinorCiv())
 		uwai().write(pStream); // </advc.104>
@@ -5055,55 +5038,6 @@ bool CvTeamAI::AI_isAnyCloseToReligiousVictory() const
 	}
 	return false;
 } //</advc.115b>
-
-// K-Mod - AI tactical memory.
-// The AI uses this to remember how strong the enemy defence is at particular plots.
-// NOTE: AI_setStrengthMemory should not be used by human players - because it may cause OOS errors.
-int CvTeamAI::AI_getStrengthMemory(int x, int y) const
-{
-	FAssert(m_aiStrengthMemory.size() == GC.getMap().numPlots());
-	return m_aiStrengthMemory[GC.getMap().plotNum(x, y)];
-}
-
-void CvTeamAI::AI_setStrengthMemory(int x, int y, int value)
-{
-	FAssert(m_aiStrengthMemory.size() == GC.getMap().numPlots());
-	m_aiStrengthMemory[GC.getMap().plotNum(x, y)] = value;
-}
-// <advc.make> Was inlined in CvTeamAI.h
-int CvTeamAI::AI_getStrengthMemory(const CvPlot* pPlot) const
-{
-	//return AI_getStrengthMemory(pPlot->getX(), pPlot->getY());
-	// To make sure that it won't be slower than before
-	return m_aiStrengthMemory[GC.getMap().plotNum(*pPlot)];
-}
-
-void CvTeamAI::AI_setStrengthMemory(const CvPlot* pPlot, int value)
-{
-	//AI_setStrengthMemory(pPlot->getX(), pPlot->getY(), value);
-	m_aiStrengthMemory[GC.getMap().plotNum(*pPlot)] = value;
-} // </advc.make>
-
-void CvTeamAI::AI_updateStrengthMemory()
-{
-	PROFILE_FUNC();
-
-	if (!isAlive() || isHuman() || isMinorCiv() || isBarbarian())
-		return;
-
-	FAssert(m_aiStrengthMemory.size() == GC.getMap().numPlots());
-	for (int i = 0; i < GC.getMap().numPlots(); i++)
-	{
-		if (m_aiStrengthMemory[i] == 0)
-			continue;
-
-		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
-		if (kPlot.isVisible(getID()) && !kPlot.isVisibleEnemyUnit(getLeaderID()))
-			m_aiStrengthMemory[i] = 0;
-		// reduce by 4%, rounding down. (arbitrary number)
-		else m_aiStrengthMemory[i] = 96 * m_aiStrengthMemory[i] / 100;
-	}
-} // K-Mod end
 
 
 int CvTeamAI::AI_noTechTradeThreshold() const

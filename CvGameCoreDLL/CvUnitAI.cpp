@@ -13244,7 +13244,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 				}
 				// Reduce the value if we can see, or remember, that the city is well defended.
 				// Note. This adjustment can be more heavy handed because it is harder to feign strong defence than weak defence.
-				iEnemyDefence = kOurTeam.AI_getStrengthMemory(pLoopCity->plot());
+				iEnemyDefence = kOurTeam.AI_strengthMemory().get(pLoopCity->getPlot());
 				if (iEnemyDefence > iTotalOffence)
 				{
 					// a more sensitive adjustment than usual (w/ modifier on the denominator), so as not to be too deterred before bombarding.
@@ -15147,7 +15147,7 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,
 		/*	If the plot can't be seen, then just roughly estimate
 			what the AI might think is there... */
 		int iEnemyDefenders = ((kPlot.isVisible(kOurTeam.getID()) ||
-				kOurTeam.AI_getStrengthMemory(&kPlot)) ?
+				kOurTeam.AI_strengthMemory().get(kPlot)) ?
 				AI_countEnemyDefenders(kPlot) :
 				(pCity != NULL ? pCity->AI_neededDefenders() : 0));
 
@@ -15170,7 +15170,7 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,
 			{
 				iDefenceStrength = (kPlot.isVisible(kOurTeam.getID()) ?
 						kOwner.AI_localDefenceStrength(&kPlot, NO_TEAM) :
-						kOurTeam.AI_getStrengthMemory(&kPlot));
+						kOurTeam.AI_strengthMemory().get(kPlot));
 			}
 			/*	Note: the amphibious attack modifier is already taken into account by
 				AI_localAttackStrength, but I'm going to apply a similar penality again

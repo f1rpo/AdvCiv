@@ -12261,7 +12261,8 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes eToPlaye
 		if (iThirdPartyAttack > 0)
 		{
 			int iToPlayerDefense = kToPlayer.AI_localDefenceStrength(&kCityPlot,
-					kToPlayer.getTeam(), DOMAIN_LAND, 1);
+					kToPlayer.getTeam(), DOMAIN_LAND, 1,
+					true, false, true); // don't cache
 			if (iToPlayerDefense < 2 * iThirdPartyAttack)
 				return DENIAL_POWER_THEM;
 		}
@@ -14895,13 +14896,15 @@ int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eD
 				iPlotTotal += iUnitStr;
 			}
 		}
-		if (!bNoCache && !isHuman() && eDefenceTeam == NO_TEAM &&
+		/*	since we're here, we might as well update our memory.
+			(human players don't track strength memory)
+			advc.158: They do track it now (unless bNoCache). But not the Barbarians.
+			Note that this is currently the _only_ place where strength memory is set. */
+		if (!bNoCache && /*!isHuman() &&*/ !isBarbarian() && eDefenceTeam == NO_TEAM &&
 			eDomainType == DOMAIN_LAND && !bCheckMoves &&
 			(!bMoveToTarget || &p == pDefencePlot))
 		{
-			// while since we're here, we might as well update our memory.
-			// (human players don't track strength memory)
-			GET_TEAM(getTeam()).AI_setStrengthMemory(&p, iPlotTotal);
+			GET_TEAM(getTeam()).AI_strengthMemory().set(p, iPlotTotal);
 			FAssert(isTurnActive());
 		}
 		iTotal += iPlotTotal;

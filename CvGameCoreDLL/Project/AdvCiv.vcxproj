@@ -38,6 +38,7 @@
     <ClCompile Include="..\AdvCiv4lerts.cpp" />
     <ClCompile Include="..\AgentIterator.cpp" />
     <ClCompile Include="..\AgentIteratorTest.cpp" />
+    <ClCompile Include="..\AIStrengthMemoryMap.cpp" />
     <ClCompile Include="..\ArmamentForecast.cpp" />
     <ClCompile Include="..\BBAILog.cpp" />
     <ClCompile Include="..\CitySiteEvaluator.cpp" />
@@ -200,6 +201,7 @@
     <ClInclude Include="..\AgentIterator.h" />
     <ClInclude Include="..\AgentPredicates.h" />
     <ClInclude Include="..\AIStrategies.h" />
+    <ClInclude Include="..\AIStrengthMemoryMap.h" />
     <ClInclude Include="..\ArmamentForecast.h" />
     <ClInclude Include="..\BBAILog.h" />
     <ClInclude Include="..\BitUtil.h" />

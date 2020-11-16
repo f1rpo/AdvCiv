@@ -5265,9 +5265,12 @@ void CvGame::setFinalInitialized(bool bNewValue)
 
 	updatePlotGroups();
 	GC.getMap().updateIrrigated();
-	// <K-Mod>
-	for (TeamIter<> itTeam; itTeam.hasNext(); ++itTeam)
-		itTeam->AI_initMemory(); // </K-Mod>
+	// <advc.158> Replacing K-Mod code. If spawned later, CvPlayer::initInGame will handle it.
+	for (TeamIter<ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
+	{
+		itTeam->AI_strengthMemory().init(
+				GC.getMap().numPlots(), itTeam->getID());
+	} // </advc.158>
 	for (TeamIter<CIV_ALIVE> itTeam; itTeam.hasNext(); ++itTeam) // advc.300: non-Barbarian
 		itTeam->AI_updateAreaStrategies();
 }
