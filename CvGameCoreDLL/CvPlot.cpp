@@ -3824,8 +3824,11 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 				if (pLoopUnit->isEnemy(pNewCity->getTeam(), *this))
 				{
 					FAssert(pLoopUnit->getTeam() != pNewCity->getTeam());
-					//pLoopUnit->kill(false, pNewCity->getTeam());
-					pLoopUnit->jumpToNearestValidPlot(); // advc.101: don't kill
+					/*	<advc.101> Kill only Barbarians (which no longer get killed
+						by CvCity::damageGarrison) */
+					if (pLoopUnit->isBarbarian())
+						pLoopUnit->kill(false, /*pNewCity->getPlayer()*/NO_PLAYER);
+					else pLoopUnit->jumpToNearestValidPlot(); // </advc.101>
 				}
 			}
 		}

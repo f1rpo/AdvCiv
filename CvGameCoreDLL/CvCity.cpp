@@ -697,8 +697,8 @@ void CvCity::damageGarrison(PlayerTypes eRevoltSource)
 {
 	FOR_EACH_UNIT_VAR_IN(pUnit, getPlot())
 	{
-		/*	advc.101: (Didn't matter in BtS because
-			Barbarian cities would flip on the first revolt) */
+		/*	advc.101: OK in BtS b/c Barbarian cities would flip on the first revolt.
+			Now killed only when the city flips through CvPlot::setOwner. */
 		/*if (pUnit->isBarbarian())
 			pUnit->kill(false, eRevoltSource);
 		else*/
