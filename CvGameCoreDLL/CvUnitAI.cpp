@@ -14993,9 +14993,9 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 	... // advc: Body deleted
 }*/ // BtS - disabled by K-Mod
 
-// K-Mod: this function simply checks if we are standing at our target destination
-// and if we are, we issue the found command and return true.
-// I've disabled (badly flawed) AI_foundRange, which was previously used for 'follow' AI.
+/*	K-Mod: this function simply checks if we are standing at our target destination
+	and if we are, we issue the found command and return true.
+	I've disabled (badly flawed) AI_foundRange, which was previously used for 'follow' AI. */
 bool CvUnitAI::AI_foundFollow()
 {
 	if (canFound(plot()) && atPlot(AI_getGroup()->AI_getMissionAIPlot()) &&
@@ -15009,31 +15009,40 @@ bool CvUnitAI::AI_foundFollow()
 	return false;
 }
 
-// K-Mod. helper function for AI_assaultSeaTransport. (just to avoid code duplication)
-static int estimateAndCacheCityDefence(CvPlayerAI& kPlayer, CvCityAI const* pCity, std::map<CvCityAI const*, int>& city_defence_cache) // advc.003u: CvCityAI const*
+namespace
 {
-	// calculate the city's defences, or read from the cache if we've already done it.
-	std::map<CvCityAI const*, int>::iterator city_it = city_defence_cache.find(pCity);
-	int iDefenceStrength = -1;
-	if (city_it == city_defence_cache.end())
+	// K-Mod. helper function for AI_assaultSeaTransport. (just to avoid code duplication)
+	int estimateAndCacheCityDefence(CvPlayerAI& kPlayer, CvCityAI const* pCity, // advc.003u: was CvCity*
+		std::map<CvCityAI const*, int>& city_defence_cache)
 	{
-		if (pCity->getPlot().isVisible(kPlayer.getTeam()))
-			iDefenceStrength = kPlayer.AI_localDefenceStrength(pCity->plot(), NO_TEAM);
+		// calculate the city's defences, or read from the cache if we've already done it.
+		std::map<CvCityAI const*,int>::iterator city_it = city_defence_cache.find(pCity);
+		int iDefenceStrength = -1;
+		if (city_it == city_defence_cache.end())
+		{
+			if (pCity->getPlot().isVisible(kPlayer.getTeam()))
+				iDefenceStrength = kPlayer.AI_localDefenceStrength(pCity->plot(), NO_TEAM);
+			else
+			{
+				/*	If we don't have vision of the city, we should try to
+					estimate its strength based the expected number of defenders. */
+				int iUnitStr = GET_PLAYER(pCity->getOwner()).
+						getTypicalUnitValue(UNITAI_CITY_DEFENSE, DOMAIN_LAND) *
+						GC.getGame().getBestLandUnitCombat() / 100;
+				iDefenceStrength = std::max(GET_TEAM(kPlayer.getTeam()).
+						AI_strengthMemory().get(pCity->getPlot()),
+						pCity->AI_neededDefenders()*iUnitStr);
+			}
+			city_defence_cache[pCity] = iDefenceStrength;
+		}
 		else
 		{
-			// If we don't have vision of the city, we should try to estimate its strength based the expected number of defenders.
-			int iUnitStr = GET_PLAYER(pCity->getOwner()).getTypicalUnitValue(UNITAI_CITY_DEFENSE, DOMAIN_LAND) * GC.getGame().getBestLandUnitCombat() / 100;
-			iDefenceStrength = std::max(GET_TEAM(kPlayer.getTeam()).AI_getStrengthMemory(pCity->plot()), pCity->AI_neededDefenders()*iUnitStr);
+			// use the cached value
+			iDefenceStrength = city_it->second;
 		}
-		city_defence_cache[pCity] = iDefenceStrength;
-	}
-	else
-	{
-		// use the cached value
-		iDefenceStrength = city_it->second;
-	}
-	return iDefenceStrength;
-} // K-Mod end
+		return iDefenceStrength;
+	} // K-Mod end
+}
 
 // This function has been mostly rewritten for K-Mod.
 bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal,

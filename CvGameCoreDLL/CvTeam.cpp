@@ -2374,9 +2374,8 @@ void CvTeam::changeAliveCount(int iChange)
 			// </advc.003m>  <advc.opt> Also keep WarPlanCounts updated
 			kLoopTeam.AI_setWarPlanNoUpdate(getID(), NO_WARPLAN);
 			AI().AI_setWarPlanNoUpdate(kLoopTeam.getID(), NO_WARPLAN);
-			// </advc.opt>
 		}
-	}  // <advc.opt>
+	}
 	if (!isBarbarian() && m_iAliveCount - iChange <= 0 && m_iAliveCount > 0 && !bEverAlive)
 		GC.getGame().changeCivTeamsEverAlive(1); // </advc.opt>
 	// <advc.104> Can't do this in AI_init because alive status isn't yet set at that point

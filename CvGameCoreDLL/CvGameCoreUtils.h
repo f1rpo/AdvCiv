@@ -150,10 +150,11 @@ template<typename T> void removeDuplicates(std::vector<T>& v)
 	std::set<T> aeTmp(v.begin(), v.end());
 	v.assign(aeTmp.begin(), aeTmp.end());
 } // </advc.130h>
+
 // <advc>
-// Erik: "Back-ported" from C++11
 namespace std11
 {
+// Erik: "Back-ported" from C++11
 template<class ForwardIt, class T>
 void iota(ForwardIt first, ForwardIt last, T value)
 {
@@ -172,7 +173,7 @@ void narrowUnsafe(CvWString const& szWideString, CvString& szNarowString); // ad
 
 inline int range(int iNum, int iLow, int iHigh)
 {
-	FAssertMsg(iHigh >= iLow, "High should be higher than low");
+	FAssert(iHigh >= iLow);
 
 	if (iNum < iLow)
 		return iLow;
@@ -183,7 +184,7 @@ inline int range(int iNum, int iLow, int iHigh)
 
 inline float range(float fNum, float fLow, float fHigh)
 {
-	FAssertMsg(fHigh >= fLow, "High should be higher than low");
+	FAssert(fHigh >= fLow);
 
 	if (fNum < fLow)
 		return fLow;
@@ -192,8 +193,7 @@ inline float range(float fNum, float fLow, float fHigh)
 	else return fNum;
 }
 
-/*  <advc.003g> Don't want to work with float in places where memory usage isn't a
-	concern. */
+// advc.003g:
 inline double dRange(double d, double low, double high)
 {
 	if(d < low)
@@ -201,16 +201,15 @@ inline double dRange(double d, double low, double high)
 	if(d > high)
 		return high;
 	return d;
-} // </advc.003g>
+}
 
-// advc: Body cut from CvUnitAI::AI_sacrificeValue. (K-Mod had used long -> int.)
+// advc: Body cut from CvUnitAI::AI_sacrificeValue
 inline int longLongToInt(long long x)
 {
 	FAssert(x <= MAX_INT && x >= MIN_INT);
 	//return std::min((long)MAX_INT, iValue); // K-Mod
-	/*  Erik (BUG1): We cannot change the signature [of AI_sacrificeValue] due to
-		the virtual specifier so we have to truncate the final value to an int. */
-	/*	Igor: if iValue is greater than MAX_INT, std::min<long long> ensures that it is truncated to MAX_INT, which makes sense logically.
+	/*	Igor: if iValue is greater than MAX_INT, std::min<long long> ensures that
+		it is truncated to MAX_INT, which makes sense logically.
 		static_cast<int>(iValue) doesn't guarantee that and the resulting value is implementation-defined. */
 	//return static_cast<int>(std::min(static_cast<long long>(MAX_INT), x));
 	/*  advc: Can't use std::min as above here, probably b/c of a conflicting definition

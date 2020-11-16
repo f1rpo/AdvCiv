@@ -14834,7 +14834,7 @@ int CvPlayerAI::AI_plotTargetMissionAIs(CvPlot const& kPlot, MissionAITypes* aeM
 /*  advc.159 (note): This is not simply the sum of the relevant combat strength values.
 	The result should only be compared with AI_localAttackStrength, AI_localDefenceStrength,
 	AI_cityTargetStrengthByPath or CvSelectionGroupAI::AI_sumStrength. */
-int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eDefenceTeam,  // advc: some style changes in the body
+int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eDefenceTeam,
 	DomainTypes eDomainType, int iRange, /* advc: renamed from "bAtTarget" */ bool bMoveToTarget,
 	bool bCheckMoves, bool bNoCache,
 	bool bPredictPromotions) const // advc.139
@@ -14913,17 +14913,18 @@ int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eD
 	return iTotal;
 }
 
-// Total attack strength of units that can move iRange steps to reach pAttackPlot
-// advc.159: See note above AI_localDefenceStrength  
-int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAttackTeam,  // advc: some style changes in the body
-	DomainTypes eDomainType, int iRange, bool bUseTarget, bool bCheckMoves, bool bCheckCanAttack,
+/*	Total attack strength of units that can move iRange steps to reach pAttackPlot
+	advc.159: See note above AI_localDefenceStrength */
+int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot,
+	TeamTypes eAttackTeam, DomainTypes eDomainType, int iRange, bool bUseTarget,
+	bool bCheckMoves, bool bCheckCanAttack,
 	int* piAttackerCount) const // advc.139
 {
 	PROFILE_FUNC();
 
-	int iBaseCollateral = bUseTarget
-		? estimateCollateralWeight(pTargetPlot, getTeam())
-		: estimateCollateralWeight(0, getTeam());
+	int const iBaseCollateral = (bUseTarget ?
+			estimateCollateralWeight(pTargetPlot, getTeam()) :
+			estimateCollateralWeight(0, getTeam()));
 
 	int	iTotal = 0;
 	// <advc.139>

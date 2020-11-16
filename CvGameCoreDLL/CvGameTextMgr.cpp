@@ -6057,23 +6057,28 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 	if (kPlot.isOwned())
 	{
 		CvPlayerAI const& kOwner = GET_PLAYER(kPlot.getOwner()); // advc
-		szTempBuffer.Format(L"\nThis player has %d area cities", kPlot.getArea().getCitiesPerPlayer(kOwner.getID()));
+		szTempBuffer.Format(L"\nThis player has %d area cities",
+				kPlot.getArea().getCitiesPerPlayer(kOwner.getID()));
 		szString.append(szTempBuffer);
-		for (int iI = 0; iI < GC.getNumReligionInfos(); ++iI)
+		FOR_EACH_ENUM(Religion)
 		{
-			int iNeededMissionaries = kOwner.AI_neededMissionaries(kPlot.getArea(), (ReligionTypes)iI);
+			int iNeededMissionaries = kOwner.AI_neededMissionaries(
+					kPlot.getArea(), eLoopReligion);
 			if (iNeededMissionaries > 0)
 			{
-				szTempBuffer.Format(L"\nNeeded %c missionaries = %d", GC.getInfo((ReligionTypes)iI).getChar(), iNeededMissionaries);
+				szTempBuffer.Format(L"\nNeeded %c missionaries = %d",
+						GC.getInfo(eLoopReligion).getChar(), iNeededMissionaries);
 				szString.append(szTempBuffer);
 			}
 		}
 
-		int iOurDefense = kOwner.AI_localDefenceStrength(&kPlot, kPlot.getTeam(), DOMAIN_LAND, 0, true, false, true);
+		int iOurDefense = kOwner.AI_localDefenceStrength(&kPlot, kPlot.getTeam(), DOMAIN_LAND, 0,
+				true, false, true);
 		int iEnemyOffense = kOwner.AI_localAttackStrength(&kPlot, NO_TEAM);
 		if (iEnemyOffense > 0)
 		{
-			szString.append(CvWString::format(SETCOLR L"\nDanger: %.2f (%d/%d)" ENDCOLR, TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
+			szString.append(CvWString::format(SETCOLR L"\nDanger: %.2f (%d/%d)" ENDCOLR,
+				TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
 				(iEnemyOffense * 1.0f) / std::max(1, iOurDefense), iEnemyOffense, iOurDefense));
 		}
 
@@ -6083,7 +6088,8 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			/* szTempBuffer.Format(L"\n\nCulture Pressure Value = %d (%d)", pCity->AI_calculateCulturePressure(), pCity->culturePressureFactor());
 			szString.append(szTempBuffer); */
 
-			szTempBuffer.Format(L"\nWater World Percent = %d", pCity->AI_calculateWaterWorldPercent());
+			szTempBuffer.Format(L"\nWater World Percent = %d",
+					pCity->AI_calculateWaterWorldPercent());
 			szString.append(szTempBuffer);
 
 			CvPlayerAI& kCityOwner = GET_PLAYER(pCity->getOwner());
@@ -6094,24 +6100,31 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			// K-Mod
 			int iBuildUnitProb = pCity->AI_buildUnitProb(); // advc (cast)
 			szString.append(CvWString::format(L"\nUnit Cost: %d (max: %d)",
-					kCityOwner.AI_unitCostPerMil(), kCityOwner.AI_maxUnitCostPerMil(pCity->area(), iBuildUnitProb)));
+					kCityOwner.AI_unitCostPerMil(),
+					kCityOwner.AI_maxUnitCostPerMil(pCity->area(), iBuildUnitProb)));
 			// K-Mod end
 
-			szString.append(CvWString::format(L"\nUpgrade all units: %d gold", kCityOwner.AI_getGoldToUpgradeAllUnits()));
+			szString.append(CvWString::format(L"\nUpgrade all units: %d gold",
+					kCityOwner.AI_getGoldToUpgradeAllUnits()));
 			// K-Mod
 			{
 				int iValue = 0;
-				for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
-					iValue += kCityOwner.getCommerceRate((CommerceTypes)iI) * kCityOwner.AI_commerceWeight((CommerceTypes)iI)/100;
+				FOR_EACH_ENUM(Commerce)
+				{
+					iValue += (kCityOwner.getCommerceRate(eLoopCommerce) *
+							kCityOwner.AI_commerceWeight(eLoopCommerce)) / 100;
+				}
 				FOR_EACH_CITY(pLoopCity, kCityOwner)
 					iValue += 2*pLoopCity->getYieldRate(YIELD_PRODUCTION);
 				iValue /= kCityOwner.getTotalPopulation();
 				szString.append(CvWString::format(L"\nAverage citizen value: %d", iValue));
 
 				//
-				szString.append(CvWString::format(L"\nBuild unit prob: %d%%", iBuildUnitProb));
-				BuildingTypes eBestBuilding = pCity->AI_bestBuildingThreshold(0, 0, 0, true); // advc (cast)
-				int iBestBuildingValue = (eBestBuilding == NO_BUILDING) ? 0 : pCity->AI_buildingValue(eBestBuilding, 0, 0, true);
+				szString.append(CvWString::format(L"\nBuild unit prob: %d%%",
+						iBuildUnitProb));
+				BuildingTypes eBestBuilding = pCity->AI_bestBuildingThreshold(0, 0, 0, true);
+				int iBestBuildingValue = (eBestBuilding == NO_BUILDING) ? 0 :
+						pCity->AI_buildingValue(eBestBuilding, 0, 0, true);
 
 				// Note. cf. adjustments made in AI_chooseProduction
 				if (GC.getNumEraInfos() > 1)
@@ -6139,15 +6152,25 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			// K-Mod end
 
 			szString.append(CvWString::format(L"\n\nRanks:"));
-			szString.append(CvWString::format(L"\nPopulation:%d", pCity->findPopulationRank()));
+			szString.append(CvWString::format(L"\nPopulation:%d",
+					pCity->findPopulationRank()));
 
-			szString.append(CvWString::format(L"\nFood:%d(%d), ", pCity->findYieldRateRank(YIELD_FOOD), pCity->findBaseYieldRateRank(YIELD_FOOD)));
-			szString.append(CvWString::format(L"Prod:%d(%d), ", pCity->findYieldRateRank(YIELD_PRODUCTION), pCity->findBaseYieldRateRank(YIELD_PRODUCTION)));
-			szString.append(CvWString::format(L"Commerce:%d(%d)", pCity->findYieldRateRank(YIELD_COMMERCE), pCity->findBaseYieldRateRank(YIELD_COMMERCE)));
+			szString.append(CvWString::format(L"\nFood:%d(%d), ",
+					pCity->findYieldRateRank(YIELD_FOOD),
+					pCity->findBaseYieldRateRank(YIELD_FOOD)));
+			szString.append(CvWString::format(L"Prod:%d(%d), ",
+					pCity->findYieldRateRank(YIELD_PRODUCTION),
+					pCity->findBaseYieldRateRank(YIELD_PRODUCTION)));
+			szString.append(CvWString::format(L"Commerce:%d(%d)",
+					pCity->findYieldRateRank(YIELD_COMMERCE),
+					pCity->findBaseYieldRateRank(YIELD_COMMERCE)));
 
-			szString.append(CvWString::format(L"\nGold:%d, ", pCity->findCommerceRateRank(COMMERCE_GOLD)));
-			szString.append(CvWString::format(L"Research:%d, ", pCity->findCommerceRateRank(COMMERCE_RESEARCH)));
-			szString.append(CvWString::format(L"Culture:%d", pCity->findCommerceRateRank(COMMERCE_CULTURE)));
+			szString.append(CvWString::format(L"\nGold:%d, ",
+					pCity->findCommerceRateRank(COMMERCE_GOLD)));
+			szString.append(CvWString::format(L"Research:%d, ",
+					pCity->findCommerceRateRank(COMMERCE_RESEARCH)));
+			szString.append(CvWString::format(L"Culture:%d",
+					pCity->findCommerceRateRank(COMMERCE_CULTURE)));
 		}
 		szString.append(NEWLINE);
 
@@ -6263,7 +6286,9 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 
 		szString.append(szTempBuffer);
 		CvTeamAI const& kPlotTeam = GET_TEAM(kPlot.getTeam()); // advc
-		szString.append(CvWString::format(L"\n\nNum Wars: %d + %d minor", kPlotTeam.getNumWars(), kPlotTeam.getNumWars(false) - kPlotTeam.getNumWars()));
+		szString.append(CvWString::format(L"\n\nNum Wars: %d + %d minor",
+				kPlotTeam.getNumWars(),
+				kPlotTeam.getNumWars(false) - kPlotTeam.getNumWars()));
 		szString.append(CvWString::format(L"\nWarplans:"));
 		for (int iK = 0; iK < MAX_TEAMS; ++iK)
 		{
@@ -6273,24 +6298,41 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			{
 				WarPlanTypes eWarPlan = kPlotTeam.AI_getWarPlan(eTeam);
 				switch(eWarPlan) { // advc: if-else replaced with switch
-				case WARPLAN_ATTACKED: szString.append(CvWString::format(L"\n%s: ATTACKED", GET_TEAM(eTeam).getName().c_str()));
+				case WARPLAN_ATTACKED:
+					szString.append(CvWString::format(L"\n%s: ATTACKED",
+							GET_TEAM(eTeam).getName().c_str()));
 					break;
-				case WARPLAN_ATTACKED_RECENT: szString.append(CvWString::format(L"\n%s: ATTACKED_RECENT", GET_TEAM(eTeam).getName().c_str()));
+				case WARPLAN_ATTACKED_RECENT:
+					szString.append(CvWString::format(L"\n%s: ATTACKED_RECENT",
+							GET_TEAM(eTeam).getName().c_str()));
 					break;
-				case WARPLAN_PREPARING_LIMITED: szString.append(CvWString::format(L"\n%s: PREP_LIM", GET_TEAM(eTeam).getName().c_str()));
+				case WARPLAN_PREPARING_LIMITED:
+					szString.append(CvWString::format(L"\n%s: PREP_LIM",
+							GET_TEAM(eTeam).getName().c_str()));
 					break;
-				case WARPLAN_PREPARING_TOTAL: szString.append(CvWString::format(L"\n%s: PREP_TOTAL", GET_TEAM(eTeam).getName().c_str()));
+				case WARPLAN_PREPARING_TOTAL:
+					szString.append(CvWString::format(L"\n%s: PREP_TOTAL",
+							GET_TEAM(eTeam).getName().c_str()));
 					break;
-				case WARPLAN_LIMITED: szString.append(CvWString::format(L"\n%s: LIMITED", GET_TEAM(eTeam).getName().c_str()));
+				case WARPLAN_LIMITED:
+					szString.append(CvWString::format(L"\n%s: LIMITED",
+							GET_TEAM(eTeam).getName().c_str()));
 					break;
-				case WARPLAN_TOTAL: szString.append(CvWString::format(L"\n%s: TOTAL", GET_TEAM(eTeam).getName().c_str()));
+				case WARPLAN_TOTAL:
+					szString.append(CvWString::format(L"\n%s: TOTAL",
+							GET_TEAM(eTeam).getName().c_str()));
 					break;
-				case WARPLAN_DOGPILE: szString.append(CvWString::format(L"\n%s: DOGPILE", GET_TEAM(eTeam).getName().c_str()));
+				case WARPLAN_DOGPILE:
+					szString.append(CvWString::format(L"\n%s: DOGPILE",
+							GET_TEAM(eTeam).getName().c_str()));
 					break;
 				default:
 					if (kPlotTeam.isAtWar(eTeam))
 					{
-						szString.append(CvWString::format(SETCOLR L"\n%s: NO_WARPLAN!" ENDCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"), GET_TEAM(eTeam).getName().c_str()));
+						szString.append(CvWString::format(
+								SETCOLR L"\n%s: NO_WARPLAN!" ENDCOLR,
+								TEXT_COLOR("COLOR_WARNING_TEXT"),
+								GET_TEAM(eTeam).getName().c_str()));
 					}
 				}
 			}
@@ -6299,7 +6341,10 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			{
 				if (kPlot.getTeam() != eTeam && !kPlotTeam.isAtWar(eTeam))
 				{
-					szString.append(CvWString::format(SETCOLR L"\n%s: minor/barb not at war!" ENDCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"), GET_TEAM(eTeam).getName().c_str()));
+					szString.append(CvWString::format(
+							SETCOLR L"\n%s: minor/barb not at war!" ENDCOLR,
+							TEXT_COLOR("COLOR_WARNING_TEXT"),
+							GET_TEAM(eTeam).getName().c_str()));
 				}
 			}
 		}
@@ -6307,7 +6352,8 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 		CvCity const* pTargetCity = kPlot.getArea().AI_getTargetCity(kPlot.getOwner());
 		if (pTargetCity != NULL)
 		{
-			szString.append(CvWString::format(L"\nTarget City: %s", pTargetCity->getName().c_str()));
+			szString.append(CvWString::format(L"\nTarget City: %s",
+					pTargetCity->getName().c_str()));
 		}
 		else szString.append(CvWString::format(L"\nTarget City: None"));
 		// BETTER_BTS_AI_MOD: END
@@ -6340,20 +6386,27 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 					//=kPlayer.AI_foundValue(x, y, -1, true);
 			int iBestAreaFoundValue = kPlot.getArea().getBestFoundValue(ePlayer);
 			int iCitySiteBestValue=-1;
-			int iNumAreaCitySites = kLoopPlayer.AI_getNumAreaCitySites(kPlot.getArea(), iCitySiteBestValue);
+			int iNumAreaCitySites = kLoopPlayer.AI_getNumAreaCitySites(
+					kPlot.getArea(), iCitySiteBestValue);
 
 			if (iActualFoundValue > 0 || iCalcFoundValue > 0 || iStartingFoundValue > 0 ||
 				(kPlot.getOwner() == iI && iBestAreaFoundValue > 0))
 			{
 				if (bFirst)
 				{
-					szString.append(CvWString::format(SETCOLR L"\nFound Values:" ENDCOLR, TEXT_COLOR("COLOR_UNIT_TEXT")));
+					szString.append(CvWString::format(
+							SETCOLR L"\nFound Values:" ENDCOLR,
+							TEXT_COLOR("COLOR_UNIT_TEXT")));
 					bFirst = false;
 				}
 
 				szString.append(NEWLINE);
 
-				szString.append(CvWString::format(SETCOLR, TEXT_COLOR(bRevealed ? (((iActualFoundValue > 0) && (iActualFoundValue == iBestAreaFoundValue)) ? "COLOR_UNIT_TEXT" : "COLOR_ALT_HIGHLIGHT_TEXT") : "COLOR_HIGHLIGHT_TEXT")));
+				szString.append(CvWString::format(
+						SETCOLR, TEXT_COLOR(bRevealed ?
+						((iActualFoundValue > 0 && iActualFoundValue == iBestAreaFoundValue) ?
+						"COLOR_UNIT_TEXT" : "COLOR_ALT_HIGHLIGHT_TEXT") :
+						"COLOR_HIGHLIGHT_TEXT")));
 
 				//if (!bRevealed) // advc.007
 				{
@@ -6388,7 +6441,8 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 
 				if (kLoopPlayer.AI_isPlotCitySite(kPlot))
 				{
-					szTempBuffer.Format(L", " SETCOLR L"X" ENDCOLR, TEXT_COLOR("COLOR_UNIT_TEXT"));
+					szTempBuffer.Format(L", " SETCOLR L"X" ENDCOLR,
+							TEXT_COLOR("COLOR_UNIT_TEXT"));
 					szString.append(szTempBuffer);
 				}
 
@@ -6396,7 +6450,8 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 				{
 					int iBestFoundValue = kLoopPlayer.findBestFoundValue();
 
-					szTempBuffer.Format(L"\n  Area Best = %d, Best = %d, Sites = %d", iBestAreaFoundValue, iBestFoundValue, iNumAreaCitySites);
+					szTempBuffer.Format(L"\n  Area Best = %d, Best = %d, Sites = %d",
+							iBestAreaFoundValue, iBestFoundValue, iNumAreaCitySites);
 					szString.append(szTempBuffer);
 				}
 			}

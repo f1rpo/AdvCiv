@@ -125,6 +125,9 @@ void CvTeamAI::AI_doTurnPost()
 
 	if(isMajorCiv()) // advc.003n
 	{
+		/*	K-Mod. Update the attitude cache for all team members.
+			(Note: attitude use to be updated near the start of CvGame::doTurn.
+			I've moved it here for various reasons.) */
 		for (MemberIter it(getID()); it.hasNext(); ++it)
 		{
 			it->AI_updateCloseBorderAttitude();
@@ -144,13 +147,10 @@ void CvTeamAI::AI_doTurnPost()
 
 	AI_updateAreaStrategies(false);
 
-	/* if (isHuman())
-		return;
-	if (isBarbarian())
-		return;
-	if (isMinorCiv())
+	/* if (isHuman() || !isMajorCiv())
 		return;*/
-	// disabled by K-Mod. There are some basic things inside AI_doWar which are important for all players.
+	/*	disabled by K-Mod. There are some basic things inside AI_doWar
+		which are important for all players. */
 
 	AI_doWar();
 }
