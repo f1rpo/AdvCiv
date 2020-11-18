@@ -906,7 +906,6 @@ void CvMapGenerator::generateRandomMap()
 	// <advc.108>
 	if (py.isAnyCustomMapOptionSetTo(gDLL->getText("TXT_KEY_MAP_BALANCED")))
 		GC.getGame().setStartingPlotNormalizationLevel(CvGame::NORMALIZE_HIGH);
-	else GC.getGame().setStartingPlotNormalizationLevel(CvGame::NORMALIZE_DEFAULT);
 	// </advc.108>
 }
 
