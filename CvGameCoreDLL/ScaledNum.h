@@ -312,7 +312,7 @@ public:
 
 	// Bernoulli trial (coin flip) with success probability equal to m_i/SCALE
 	bool bernoulliSuccess(CvRandom& kRand, char const* szLog,
-			int iLogData1 = -1, int iLogData2 = -1) const;
+			int iLogData1 = MIN_INT, int iLogData2 = MIN_INT) const;
 
 	ScaledNum pow(int iExp) const;
 	__forceinline ScaledNum pow(ScaledNum rExp) const
@@ -877,7 +877,7 @@ int ScaledNum_T::round() const
 
 template<ScaledNum_PARAMS>
 bool ScaledNum_T::bernoulliSuccess(CvRandom& kRand, char const* szLog,
-	int iLogData1 = -1, int iLogData2 = -1) const
+	int iLogData1, int iLogData2) const
 {
 	// Guards for better performance and to avoid unnecessary log output
 	if (m_i <= 0)

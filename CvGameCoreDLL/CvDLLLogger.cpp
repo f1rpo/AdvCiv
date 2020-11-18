@@ -28,7 +28,7 @@ void CvDLLLogger::logRandomNumber(const TCHAR* szMsg, unsigned short usNum,
 	TCHAR szOut[1024];
 	// <advc.007>
 	CvString szData;
-	if (iData1 < MIN_INT)
+	if (iData1 > MIN_INT)
 	{
 		if(iData2 == MIN_INT)
 			szData.Format(" (%d)", iData1);
@@ -45,7 +45,8 @@ void CvDLLLogger::logRandomNumber(const TCHAR* szMsg, unsigned short usNum,
 			szMsg, szData.c_str(), bNetworkMP ? "" : "t", iOn);
 	// <advc.007b>
 	if (pszFileName != NULL)
-		gDLL->logMsg(pszFileName->c_str(), szOut, false, false); // </advc.007b>
+		gDLL->logMsg(pszFileName->c_str(), szOut, false, false);
+	else // </advc.007b>
 	if (GC.getDefineBOOL(CvGlobals::PER_PLAYER_MESSAGE_CONTROL_LOG) && bNetworkMP)
 	{
 		CvString logName = CvString::format("MPLog%d.log",

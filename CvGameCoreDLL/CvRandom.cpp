@@ -8,9 +8,9 @@
 #define RANDOM_SHIFT  (16)
 
 unsigned short CvRandom::getInt(unsigned short usNum, TCHAR const* szLog,
-		int iData1, int iData2) // advc.001n
+	int iData1, int iData2) // advc.001n
 {	// <advc.003t>
-	if (GC.getLogger().isEnabledRand())
+	if (GC.getLogger().isEnabledRand() && szLog != NULL)
 		printToLog(szLog, usNum, iData1, iData2); // </advc.003t>
 	m_ulRandomSeed = (RANDOM_A * m_ulRandomSeed) + RANDOM_C;
 	unsigned short r = (unsigned short)
@@ -94,7 +94,6 @@ void CvRandomExtended::printToLog(TCHAR const* szMsg, unsigned short usNum,
 void CvRandomExtended::reset(unsigned long ulSeed)
 {
 	CvRandom::reset(ulSeed);
-	m_szFileName.clear();
 }
 
 
@@ -107,6 +106,7 @@ void CvRandomExtended::setLogFileName(CvString szName)
 void CvRandomExtended::read(FDataStreamBase* pStream)
 {
 	CvRandom::read(pStream);
+	m_szFileName.clear();
 	pStream->ReadString(m_szFileName);
 }
 

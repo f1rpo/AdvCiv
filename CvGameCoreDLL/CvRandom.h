@@ -71,8 +71,9 @@ public:
 	void reset(unsigned long ulSeed = 0);
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
-	void printToLog(TCHAR const* szMsg, unsigned short usNum, int iData1, int iData2);
 protected:
+	// Override:
+	void printToLog(TCHAR const* szMsg, unsigned short usNum, int iData1, int iData2);
 	CvString m_szFileName;
 };
 
