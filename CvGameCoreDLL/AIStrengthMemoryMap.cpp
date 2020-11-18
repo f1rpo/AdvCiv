@@ -121,17 +121,22 @@ void AIStrengthMemoryMap::decay()
 			continue;
 		FAssert(m_aiMap[i] > 0);
 		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);*/
-	for (PlotStrengthMap::iterator it = m_map.begin(); it != m_map.end(); ++it)
+	PlotStrengthMap::iterator it = m_map.begin();
+	while (it != m_map.end())
 	{
 		CvPlot const& kPlot = GC.getMap().getPlotByIndex(it->first);
 		if (kPlot.isVisible(m_eTeam) &&
 			!kPlot.isVisibleEnemyUnit(kTeam.getLeaderID()))
 		{
-			it->second = 0;
+			it = m_map.erase(it);
 			//m_aiMap[i] = 0;
 		}
 		// K-Mod: reduce by 4% (arbitrary number), rounding down.
 		//else m_aiMap[i] = (96 * m_aiMap[i]) / 100;
-		else it->second = (96 * it->second) / 100;
+		else
+		{
+			it->second = (96 * it->second) / 100;
+			++it;
+		}
 	}
 }
