@@ -1376,17 +1376,17 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 	if (kSet.isStartingLoc() || kSet.isNormalizing())
 	{
 		TechTypes eRevealTech = GC.getInfo(eBonus).getTechReveal();
-		if (!isNearTech(eTradeTech))
-		{
-			bCanTradeSoon = false;
-			bCanImproveSoon = false;
-		}
 		if (!kTeam.isHasTech(eRevealTech))
 		{
 			bCanTrade = false;
 			bCanImprove = false;
+			if (!isNearTech(eRevealTech))
+			{
+				bCanTradeSoon = false;
+				bCanImproveSoon = false;
+			}
 		}
-	} // </advc.108>
+	}  // </advc.108>
 	if (eBestImprovement == NO_IMPROVEMENT)
 		return NO_IMPROVEMENT;
 	FOR_EACH_ENUM(Yield)
@@ -3069,7 +3069,7 @@ void AIFoundValue::logPlot(CvPlot const& p, int iPlotValue, int const* aiYield,
 		}
 		else
 		{
-			FAssert(bCanSoonImproveBonus);
+			FAssert(bCanSoonImproveBonus || kSet.isAllSeeing());
 			if (!bCanSoonTradeBonus)
 				logBBAI("Can't connect resource");
 			else if (!bCanTradeBonus)
