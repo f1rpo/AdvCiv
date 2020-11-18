@@ -1114,6 +1114,7 @@ int CvPlayer::startingPlotDistanceFactor(CvPlot const& kPlot, PlayerTypes ePlaye
 	PROFILE_FUNC();
 
 	FAssert(ePlayer != getID());
+	FAssert(iRange > 0);
 
 	int iValue = 1000;
 	CvPlot const* pStartingPlot = getStartingPlot();

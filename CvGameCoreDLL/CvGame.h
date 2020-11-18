@@ -881,7 +881,7 @@ protected:
 	int m_iGwEventTally;		// K-Mod
 	int m_iTurnLoadedFromSave; // advc.044
 	// <advc.opt>
-	int m_iStartingPlotRange;
+	mutable int m_iStartingPlotRange;
 	int m_iCivPlayersEverAlive;
 	int m_iCivTeamsEverAlive;
 	// </advc.opt>
@@ -1006,7 +1006,7 @@ protected:
 	void initFreeState();
 	/* <advc.027> */ NormalizationTarget* /* </advc.027> */ assignStartingPlots();
 	void normalizeStartingPlots(/* advc.027: */ NormalizationTarget const* pTarget = NULL);
-	void updateStartingPlotRange(); // advc.opt
+	void updateStartingPlotRange() const; // advc.opt
 	void applyOptionEffects(bool bEnableAll = false); // advc.310
 	void doTurn();
 	void doDeals();

@@ -1488,11 +1488,11 @@ CvGame::StartingPlotNormalizationLevel CvGame::getStartingPlotNormalizationLevel
 	return m_eNormalizationLevel;
 } // </advc.108
 
-/*  <advc.opt> Replacing CvPlayer::startingPlotRange. And now precomputed through
-	CvGame::updateStartingPlotRange. */
+// advc.opt: Replacing CvPlayer::startingPlotRange. Now cached.
 int CvGame::getStartingPlotRange() const
 {
-	FAssertMsg(m_iStartingPlotRange > 0, "CvGame::updateStartingPlotRange hasn't been called");
+	if (m_iStartingPlotRange <= 0)
+		updateStartingPlotRange();
 	return m_iStartingPlotRange;
 } // </advc.opt>
 
@@ -2484,8 +2484,9 @@ void CvGame::normalizeStartingPlots(NormalizationTarget const* pTarget)
 }
 
 /*  advc.opt: Body cut from CvPlayer::startingPlotRange. Not player-dependent,
-	and there's no need to recompute it for every prospective starting plot. */
-void CvGame::updateStartingPlotRange()
+	and there's no need to recompute it for every prospective starting plot.
+	const b/c it only updates a mutable cache. */
+void CvGame::updateStartingPlotRange() const
 {
 	CvMap const& kMap = GC.getMap();
 	int iRange = kMap.maxStepDistance() + 10;
