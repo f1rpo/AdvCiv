@@ -43,6 +43,9 @@ void PlayerHistory::read(FDataStreamBase* pStream, PlayerTypes eOwner, bool bLeg
 	{
 		size_t iSize;
 		pStream->Read(&iSize);
+		// Temporarily disable moving average
+		int iMovingAvgSamples = m_iMovingAvgSamples;
+		m_iMovingAvgSamples = 0;
 		for (size_t i = 0; i < iSize; i++)
 		{
 			int iTurn;
@@ -51,6 +54,7 @@ void PlayerHistory::read(FDataStreamBase* pStream, PlayerTypes eOwner, bool bLeg
 			pStream->Read(&iValue);
 			set(iTurn, iValue);
 		}
+		int m_iMovingAvgSamples = iMovingAvgSamples;
 		return;
 	}
 	int iSize;
