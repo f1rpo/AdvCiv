@@ -1354,8 +1354,10 @@ bool CvCity::canTrain(UnitCombatTypes eUnitCombat) const
 	{
 		UnitTypes eUnit = kCiv.unitAt(i);
 		if (GC.getInfo(eUnit).getUnitCombatType() == eUnitCombat &&
-				canTrain(eUnit))
+			canTrain(eUnit))
+		{
 			return true;
+		}
 	}
 	return false;
 }

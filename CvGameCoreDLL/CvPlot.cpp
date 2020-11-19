@@ -5235,7 +5235,6 @@ int CvPlot::getFoundValue(PlayerTypes eIndex, /* advc.052: */ bool bRandomize) c
 		short iValue = GC.getPythonCaller()->AI_foundValue(eIndex, *this);
 		if (iValue == -1)
 			m_aiFoundValue.set(eIndex, GET_PLAYER(eIndex).AI_foundValue(getX(), getY(), -1, true));
-
 		if (m_aiFoundValue.get(eIndex) > getArea().getBestFoundValue(eIndex))
 			getArea().setBestFoundValue(eIndex, m_aiFoundValue.get(eIndex));
 	}
@@ -7799,9 +7798,9 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 
 	bool bRequiresBonus = false;
 	bool bNeedsBonus = true;
-	for (int iI = 0; iI < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); ++iI)
+	for (int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); i++)
 	{
-		BonusTypes ePrereqOrBonus = kUnit.getPrereqOrBonuses(iI); // advc
+		BonusTypes ePrereqOrBonus = kUnit.getPrereqOrBonuses(i); // advc
 		if(ePrereqOrBonus != NO_BONUS &&
 			ePrereqOrBonus != eAssumeAvailable) // advc.001u
 		{
@@ -7838,7 +7837,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 	return true;
 }
 
-// advc: Replacing CvCity::isValidBuildingLocation. Body cut from there (incl. the comment)
+// advc: Replacing CvCity::isValidBuildingLocation. Body cut from there (incl. the comment).
 bool CvPlot::canConstruct(BuildingTypes eBuilding) const
 {
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);

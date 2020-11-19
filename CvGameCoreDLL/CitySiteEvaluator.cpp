@@ -1389,7 +1389,7 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 				bCanImproveSoon = false;
 			}
 		}
-	}  // </advc.108>
+	} // </advc.108>
 	if (eBestImprovement == NO_IMPROVEMENT)
 		return NO_IMPROVEMENT;
 	FOR_EACH_ENUM(Yield)
@@ -1687,9 +1687,9 @@ int AIFoundValue::evaluateYield(int const* aiYield, CvPlot const* p,
 			r += 8 * (aiYield[YIELD_COMMERCE] + aiYield[YIELD_PRODUCTION]);
 		}
 		else r /= 3;
-		if (kSet.isStartingLoc())
+		if (kSet.isStartingLoc() && !bCoastal)
 		{
-			r += bCoastal ? 0 : -75; // advc.031: was -400 in BtS, -120 in K-Mod
+			r -= 75; // advc.031: was -400 in BtS, -120 in K-Mod
 			/*	(K-Mod comment: "I'm pretty much forbidding starting 1 tile
 				inland non-coastal with more than a few non-lake water tiles.) */
 		}
@@ -2137,11 +2137,11 @@ int AIFoundValue::evaluateSpecialYields(int const* aiSpecialYield,
 	/*	Starting sites are exempt from adjustToFood. Mostly don't want them
 		to be exempt from the special food adjustment. */
 	else rFoodModifier = (rFoodModifier + fixp(0.5)) / fixp(1.5);
-	int r = (rFromSpecial * rFoodModifier).round();
-	IFLOG logBBAI("+%d from special yields %dF%dP%dC (food surplus modifier: %d percent)", r,
+	int iResult = (rFromSpecial * rFoodModifier).round();
+	IFLOG logBBAI("+%d from special yields %dF%dP%dC (food surplus modifier: %d percent)", iResult,
 			aiSpecialYield[YIELD_FOOD], aiSpecialYield[YIELD_PRODUCTION], aiSpecialYield[YIELD_COMMERCE],
 			rFoodModifier.getPercent());
-	return r;
+	return iResult;
 	// </advc.031>
 }
 
@@ -2398,9 +2398,9 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 			iTempValue += p.isWater() ? -2 : 0;
 			if (iTempValue < 13)
 			{
-				// 3 points for unworkable plots (desert, ice, far-ocean)
-				// 2 points for bad plots (ocean, tundra)
-				// 1 point for fixable bad plots (jungle)
+				/*	3 points for unworkable plots (desert, ice, far-ocean)
+					2 points for bad plots (ocean, tundra)
+					1 point for fixable bad plots (jungle) */
 				iGreaterBadTile++;
 				if (p.calculateBestNatureYield(YIELD_FOOD, eTeam) < 2)
 				{
@@ -2426,7 +2426,7 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 	}*/ // BtS
 	// K-Mod. note: the range has been extended, and the 'bad' counting has been rescaled.
 	iGreaterBadTile /= 3;
-	int iGreaterRangePlots = 2*(iRange*iRange + iRange) + 1;
+	int iGreaterRangePlots = 2 * (SQR(iRange) + iRange) + 1;
 	int iGreaterRangeFactor = iGreaterRangePlots / 6; // advc
 	if (iGreaterBadTile > iGreaterRangeFactor)
 	{

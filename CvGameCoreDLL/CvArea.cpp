@@ -90,9 +90,9 @@ int CvArea::calculateTotalBestNatureYield() const
 {
 	int iCount = 0;
 	CvMap const& kMap = GC.getMap();
-	for (int iI = 0; iI < kMap.numPlots(); iI++)
+	for (int i = 0; i < kMap.numPlots(); i++)
 	{
-		CvPlot const& kPlot = kMap.getPlotByIndex(iI);
+		CvPlot const& kPlot = kMap.getPlotByIndex(i);
 		if (kPlot.isArea(*this))
 			iCount += kPlot.calculateTotalBestNatureYield(NO_TEAM);
 	}

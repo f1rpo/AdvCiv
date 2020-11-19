@@ -14,6 +14,9 @@ void logBBAI(TCHAR* format, ... )
 	va_start(args, format);
 	_vsnprintf(buf, 2048-4, format, args);
 	va_end(args); // kmodx
+	/*CvString logname; // For OOS debugging on one PC. May well need this again. :(
+	logname.Format("BBAI%d.log", (int)GC.getGame().getActivePlayer());
+	gDLL->logMsg(logname.GetCString(), ...*/
 	gDLL->logMsg("BBAI.log", buf, /* advc.007: No time stamps */ false, false);
 #endif
 }

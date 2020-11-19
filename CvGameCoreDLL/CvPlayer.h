@@ -411,7 +411,7 @@ public:
 	int specialistYield(SpecialistTypes eSpecialist, YieldTypes eYield) const;										// Exposed to Python
 	int specialistCommerce(SpecialistTypes eSpecialist, CommerceTypes eCommerce) const;								// Exposed to Python
 
-	// advc.027: Inline (called a lot by StartingPositionIteration)
+	// advc.027: Inline (called frequently by StartingPositionIteration)
 	inline CvPlot* getStartingPlot() const { return m_pStartingPlot; }												// Exposed to Python
 	void setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist);													// Exposed to Python
 

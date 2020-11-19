@@ -1220,7 +1220,7 @@ std::vector<std::pair<int,int> > CvPlayer::findStartingAreas(  // advc: style ch
 				pLoopArea->getNumRiverEdges() +*/
 				coastRiverStartingAreaScore(*pLoopArea) + // Replacing the above
 				// New: factor in bonus resources
-				::round(pLoopArea->getNumTotalBonuses() * 1.5) +
+				ROUND_DIVIDE(pLoopArea->getNumTotalBonuses() * 3, 2) +
 				pLoopArea->getNumTiles() / 2; // Halved
 		// </advc.027>
 		int iValue = iTileValue / iNumPlayersOnArea;
@@ -1269,22 +1269,22 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize,
 	}
 	//int iBestArea = -1;
 	// kekm.35: "This function is adjusted to work with a list of possible starting areas instead of a single one."
-	std::vector<std::pair<int,int> > areas_by_value;
+	std::vector<std::pair<int,int> > areasByValue;
 	bool bNew = false;
 	if (getStartingPlot() != NULL)
 	{
 		//iBestArea = getStartingPlot()->getArea().getID(); // kekm.35:
-		areas_by_value.push_back(std::make_pair(getStartingPlot()->getArea().getID(), 1));
+		areasByValue.push_back(std::make_pair(getStartingPlot()->getArea().getID(), 1));
 		setStartingPlot(NULL, true);
 		bNew = true;
 	}
 
-	AI().AI_updateFoundValues(true);//this sets all plots found values to -1
+	AI().AI_updateFoundValues(true);
 
 	if (!bNew)
 	{
 		//iBestArea = findStartingArea();
-		areas_by_value = findStartingAreas( // kekm.35
+		areasByValue = findStartingAreas( // kekm.35
 				pbAreaFoundByMapScript); // advc.027
 	}
 	/*  <advc.140> Cut and pasted from CvMap::maxPlotDistance. I've changed that
@@ -1301,9 +1301,9 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize,
 	int const iStartingRange = GC.getDefineINT("ADVANCED_START_SIGHT_RANGE");
 	CvMap const& kMap = GC.getMap();
 	int const iMaxPass = 1;
-	for(int iPass = 0; iPass <= iMaxPass; iPass++)
+	for (int iPass = 0; iPass <= iMaxPass; iPass++)
 	{
-		for(size_t j = 0; j < areas_by_value.size(); j++)
+		for (size_t j = 0; j < areasByValue.size(); j++)
 		{ // </kekm.35>
 			CvPlot *pBestPlot = NULL;
 			int iBestValue = iMaxPass - iPass; // advc: was 0 flat
@@ -1312,7 +1312,7 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize,
 				CvPlot* pLoopPlot = kMap.plotByIndex(i);
 				//if (iBestArea == -1 || pLoopPlot->getArea() == iBestArea)
 				// <kekm.35>
-				if (pLoopPlot->getArea().getID() != areas_by_value[j].first)
+				if (pLoopPlot->getArea().getID() != areasByValue[j].first)
 					continue;
 				if (iPass == 0) // "Avoid very bad terrain in the first pass."
 				{
@@ -1339,14 +1339,12 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize,
 						(if any) use bRandomize=true, so I'm not changing this. */
 					iValue += GC.getGame().getSorenRandNum(10000, "Randomize Starting Location");
 				}
-
 				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;
 					pBestPlot = pLoopPlot;
 				}
 			}
-
 			if (pBestPlot != NULL)
 				return pBestPlot;
 		} // kekm.35: end of areas_by_value loop

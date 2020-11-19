@@ -1086,34 +1086,34 @@ NormalizationTarget* CvGame::assignStartingPlots()
 	// K-Mod. Same functionality, but much faster and easier to read.
 	//
 	// First, make a list of all the pre-marked starting plots on the map.
-	std::vector<CvPlot*> starting_plots;
+	std::vector<CvPlot*> apStartingPlots;
 	for (int i = 0; i < kMap.numPlots(); i++)
 	{	// advc.opt: Shouldn't be necessary; the loop body is very fast.
 		//gDLL->callUpdater(); // allow window updates during launch
 		CvPlot* pLoopPlot = kMap.plotByIndex(i);
 		if (pLoopPlot->isStartingPlot())
-			starting_plots.push_back(pLoopPlot);
+			apStartingPlots.push_back(pLoopPlot);
 	}
 	// Now, randomly assign a starting plot to each player.
 	for (PlayerIter<CIV_ALIVE> it; it.hasNext() &&
-		starting_plots.size() > 0; ++it)
+		apStartingPlots.size() > 0; ++it)
 	{
 		if (it->getStartingPlot() != NULL)
 			continue; // Already got one
 		// advc.027b: was getSorenRandNum
-		int iRandOffset = getMapRandNum(starting_plots.size(), "Starting Plot");
-		it->setStartingPlot(starting_plots[iRandOffset], true);
+		int iRandOffset = getMapRandNum(apStartingPlots.size(), "Starting Plot");
+		it->setStartingPlot(apStartingPlots[iRandOffset], true);
 		// remove this plot from the list.
-		starting_plots[iRandOffset] = starting_plots[starting_plots.size()-1];
-		starting_plots.pop_back();
+		apStartingPlots[iRandOffset] = apStartingPlots[apStartingPlots.size() - 1];
+		apStartingPlots.pop_back();
 	} // K-Mod end
 	if (GC.getPythonCaller()->callMapFunction("assignStartingPlots"))
 		return /* <advc.027> */ NULL;
 
 	NormalizationTarget* pNormalizationTarget = NULL; // </advc.027>
 
-	std::vector<PlayerTypes> playerOrder; // advc: was <int>
-	std::vector<bool> newPlotFound(MAX_CIV_PLAYERS, false); // advc.108b
+	std::vector<PlayerTypes> aePlayerOrder; // advc: was <int>
+	std::vector<bool> abNewPlotFound(MAX_CIV_PLAYERS, false); // advc.108b
 	if (isTeamGame())
 	{	/*  advc (comment): This assignment is just a starting point for
 			normalizeStartingPlotLocations */
@@ -1131,15 +1131,15 @@ NormalizationTarget* CvGame::assignStartingPlots()
 
 				for (MemberIter itMember(eLoopTeam); itMember.hasNext(); ++itMember)
 				{	// <advc.108b>
-					if (newPlotFound[itMember->getID()])
+					if (abNewPlotFound[itMember->getID()])
 						continue; // </advc.108b>
 					if (itMember->getStartingPlot() == NULL)
 						itMember->setStartingPlot(itMember->findStartingPlot(), true);
 					if(itMember->getStartingPlot() != NULL)
 					{
-						playerOrder.push_back(itMember->getID());
+						aePlayerOrder.push_back(itMember->getID());
 						bStartFound = true;
-						newPlotFound[itMember->getID()] = true; // advc.108b
+						abNewPlotFound[itMember->getID()] = true; // advc.108b
 						break;
 					}
 				}
@@ -1153,7 +1153,7 @@ NormalizationTarget* CvGame::assignStartingPlots()
 		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		{
 			FAssert(it->getStartingPlot() != NULL &&
-					newPlotFound[it->getID()]); // advc.108b
+					abNewPlotFound[it->getID()]); // advc.108b
 		}
 		#endif
 	} /* advc.108b: Replace all this. Don't want handicaps to be ignored in
@@ -1170,8 +1170,8 @@ NormalizationTarget* CvGame::assignStartingPlots()
 	}
 	//Now iterate over the player starts in the original order and re-place them.
 	//std::vector<PlayerTypes>::iterator itPlayerOrder;
-	for (itPlayerOrder = playerOrder.begin(); itPlayerOrder != playerOrder.end(); ++itPlayerOrder)
-		GET_PLAYER(*itPlayerOrder).setStartingPlot(GET_PLAYER*playerOrderIter).findStartingPlot(), true);*/
+	for (itPlayerOrder = aePlayerOrder.begin(); itPlayerOrder != aePlayerOrder.end(); ++itPlayerOrder)
+		GET_PLAYER(*itPlayerOrder).setStartingPlot(GET_PLAYER(*playerOrderIter).findStartingPlot(), true);*/
 	// <advc.108b>
 	else // i.e. if not a team game
 	{	/*	<advc.027> If the map script allows it, StartingPositionIteration will
@@ -1184,8 +1184,8 @@ NormalizationTarget* CvGame::assignStartingPlots()
 		/*	Apply StartingLocationPercent from handicap.
 			Note: Would be better to do this _after_ normalization. */
 		int const iCivsAlive = PlayerIter<CIV_ALIVE>::count();
-		FAssert(playerOrder.empty());
-		playerOrder.resize(iCivsAlive, NO_PLAYER); // advc (replacing a loop)
+		FAssert(aePlayerOrder.empty());
+		aePlayerOrder.resize(iCivsAlive, NO_PLAYER); // advc (replacing a loop)
 		for (int iPass = 0; iPass < 2; iPass++)
 		{
 			bool bHuman = (iPass == 0);
@@ -1215,7 +1215,7 @@ NormalizationTarget* CvGame::assignStartingPlots()
 						((i + iRandOffset) % MAX_CIV_PLAYERS));
 				if(!kPlayer.isAlive() || kPlayer.isHuman() != bHuman)
 					continue;
-				FAssert(!newPlotFound[kPlayer.getID()]);
+				FAssert(!abNewPlotFound[kPlayer.getID()]);
 				gDLL->callUpdater();
 				// If map script [advc.027: or StartingPositionIteration] haven't set a plot ...
 				if(kPlayer.getStartingPlot() == NULL)
@@ -1228,26 +1228,26 @@ NormalizationTarget* CvGame::assignStartingPlots()
 				int iPos = ::range((iCivsAlive *
 						GC.getInfo(kPlayer.getHandicapType()).
 						getStartingLocationPercent()) / 100, 0, iCivsAlive - 1);
-				if (playerOrder[iPos] != NO_PLAYER) // Pos already taken
+				if (aePlayerOrder[iPos] != NO_PLAYER) // Pos already taken
 				{
 					for(int j = 1; j < std::max(iPos + 1, iCivsAlive - iPos); j++)
 					{
 						// Alternate between better and worse positions
-						if(iPos + j < iCivsAlive && playerOrder[iPos + j] == NO_PLAYER)
+						if(iPos + j < iCivsAlive && aePlayerOrder[iPos + j] == NO_PLAYER)
 						{
 							iPos += j;
 							break;
 						}
-						if(iPos - j >= 0 && playerOrder[iPos - j] == NO_PLAYER)
+						if(iPos - j >= 0 && aePlayerOrder[iPos - j] == NO_PLAYER)
 						{
 							iPos -= j;
 							break;
 						}
 					}
-					FAssert(playerOrder[iPos] == NO_PLAYER);
+					FAssert(aePlayerOrder[iPos] == NO_PLAYER);
 				}
-				playerOrder[iPos] = kPlayer.getID();
-				newPlotFound[kPlayer.getID()] = true;
+				aePlayerOrder[iPos] = kPlayer.getID();
+				abNewPlotFound[kPlayer.getID()] = true;
 			}
 		}
 	}
@@ -1281,14 +1281,14 @@ NormalizationTarget* CvGame::assignStartingPlots()
 		// minus rValue for descending order
 		startPlots.push_back(std::make_pair(-rValue, kMap.plotNum(*p)));
 	}
-	FAssert(startPlots.size() == playerOrder.size());
+	FAssert(startPlots.size() == aePlayerOrder.size());
 	std::sort(startPlots.begin(), startPlots.end());
 	// <advc.027> Try to avoid giving human players a high-volatility start
-	if (pNormalizationTarget != NULL && playerOrder.size() > 5u)
+	if (pNormalizationTarget != NULL && aePlayerOrder.size() > 5u)
 	{
-		for (size_t i = 0; i < playerOrder.size(); i++)
+		for (size_t i = 0; i < aePlayerOrder.size(); i++)
 		{
-			if (playerOrder[i] == NO_PLAYER || !GET_PLAYER(playerOrder[i]).isHuman())
+			if (aePlayerOrder[i] == NO_PLAYER || !GET_PLAYER(aePlayerOrder[i]).isHuman())
 				continue;
 			CvPlot const* pStart = kMap.plotByIndex(startPlots[i].second);
 			if (pStart == NULL)
@@ -1300,9 +1300,9 @@ NormalizationTarget* CvGame::assignStartingPlots()
 				a less volatile start only one up and one down in the player order. */
 			std::vector<std::pair<int,PlayerTypes> > aieSwapPlayers;
 			if (i > 0)
-				aieSwapPlayers.push_back(std::make_pair((int)(i - 1), playerOrder[i - 1]));
-			if (i < playerOrder.size() - 1)
-				aieSwapPlayers.push_back(std::make_pair((int)(i + 1), playerOrder[i + 1]));
+				aieSwapPlayers.push_back(std::make_pair((int)(i - 1), aePlayerOrder[i - 1]));
+			if (i < aePlayerOrder.size() - 1)
+				aieSwapPlayers.push_back(std::make_pair((int)(i + 1), aePlayerOrder[i + 1]));
 			int iBestSwapIndex = -1;
 			// Tiny improvements in volatility aren't worth swapping for
 			scaled rBestSwapVal = fixp(0.1);
@@ -1327,20 +1327,20 @@ NormalizationTarget* CvGame::assignStartingPlots()
 			}
 			if (iBestSwapIndex >= 0)
 			{
-				std::swap(playerOrder[i], playerOrder[iBestSwapIndex]);
+				std::swap(aePlayerOrder[i], aePlayerOrder[iBestSwapIndex]);
 				if (iBestSwapIndex == i + 1)
 					i++; // Skip next iteration to make sure not to swap again
 			}
 		}
 	} // </advc.027>
-	for (size_t i = 0; i < playerOrder.size(); i++)
+	for (size_t i = 0; i < aePlayerOrder.size(); i++)
 	{
-		if (playerOrder[i] == NO_PLAYER)
+		if (aePlayerOrder[i] == NO_PLAYER)
 		{
-			FAssert(playerOrder[i] != NO_PLAYER);
+			FAssert(aePlayerOrder[i] != NO_PLAYER);
 			continue;
 		}
-		GET_PLAYER(playerOrder[i]).setStartingPlot(
+		GET_PLAYER(aePlayerOrder[i]).setStartingPlot(
 				kMap.plotByIndex(startPlots[i].second), true);
 	} // </advc.108b>
 	return pNormalizationTarget; // advc.027
@@ -1498,10 +1498,10 @@ int CvGame::getStartingPlotRange() const
 	if (m_iStartingPlotRange <= 0)
 		updateStartingPlotRange();
 	return m_iStartingPlotRange;
-} // </advc.opt>
+}
 
 
-void CvGame::normalizeAddRiver()  // advc: style changes
+void CvGame::normalizeAddRiver()
 {
 	CvMap const& kMap = GC.getMap();
 	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
@@ -1566,12 +1566,12 @@ void CvGame::normalizeAddRiver()  // advc: style changes
 }
 
 
-void CvGame::normalizeRemovePeaks()  // advc: refactored
+void CvGame::normalizeRemovePeaks()
 {
 	// <advc.108>
-	scaled prRemoval = 1;
+	scaled rRemovalProb = 1;
 	if(m_eNormalizationLevel <= NORMALIZE_LOW)
-		prRemoval = per100(GC.getDefineINT("REMOVAL_CHANCE_PEAK"));
+		rRemovalProb = per100(GC.getDefineINT("REMOVAL_CHANCE_PEAK"));
 	// </advc.108>
 
 	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
@@ -1583,7 +1583,7 @@ void CvGame::normalizeRemovePeaks()  // advc: refactored
 		for (SquareIter itPlot(*pStartingPlot, 3); itPlot.hasNext(); ++itPlot)
 		{
 			if (itPlot->isPeak() &&
-				prRemoval.bernoulliSuccess(getMapRand(), "advc.108")) // advc.108
+				rRemovalProb.bernoulliSuccess(getMapRand(), "advc.108")) // advc.108
 			{
 				itPlot->setPlotType(PLOT_HILLS);
 			}
@@ -1651,7 +1651,7 @@ bool CvGame::normalizeCanAddLakeTo(CvPlot const& kPlot) const
 }
 
 
-void CvGame::normalizeRemoveBadFeatures()  // advc: refactored
+void CvGame::normalizeRemoveBadFeatures()
 {
 	// advc.108
 	int const iThreshBadFeatPerCity = GC.getDefineINT("THRESH-BAD-FEAT-PER-CITY");
@@ -1675,14 +1675,14 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: refactored
 			}
 		}
 		{
-			scaled prRemoval;
+			scaled rRemovalProb;
 			if (iBadFeatures > iThreshBadFeatPerCity)
 			{
-				prRemoval = 1 - m_eNormalizationLevel *
+				rRemovalProb = 1 - m_eNormalizationLevel *
 						scaled(iThreshBadFeatPerCity, iBadFeatures);
 			}
 			if (m_eNormalizationLevel >= NORMALIZE_HIGH)
-				prRemoval = 1;
+				rRemovalProb = 1;
 			// </advc.108>
 			for (CityPlotIter itPlot(*pStartingPlot); itPlot.hasNext(); ++itPlot)
 			{
@@ -1695,7 +1695,7 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: refactored
 					// <advc.108>
 					if (itPlot.currID() < NUM_INNER_PLOTS ||
 						(!isPowerfulStartingBonus(p, itPlayer->getID()) &&
-						(prRemoval.bernoulliSuccess(getMapRand(), "Remove Bad Feature 1") ||
+						(rRemovalProb.bernoulliSuccess(getMapRand(), "Remove Bad Feature 1") ||
 						isWeakStartingFoodBonus(p, itPlayer->getID()))))
 					{	// </advc.108>
 						p.setFeatureType(NO_FEATURE);
@@ -1745,12 +1745,12 @@ void CvGame::normalizeRemoveBadFeatures()  // advc: refactored
 }
 
 
-void CvGame::normalizeRemoveBadTerrain()  // advc: refactored
+void CvGame::normalizeRemoveBadTerrain()
 {
 	// <advc.108>
-	scaled prKeep;
+	scaled rKeepProb;
 	if(m_eNormalizationLevel <= NORMALIZE_LOW)
-		prKeep = 1 - per100(GC.getDefineINT("REMOVAL_CHANCE_BAD_TERRAIN"));
+		rKeepProb = 1 - per100(GC.getDefineINT("REMOVAL_CHANCE_BAD_TERRAIN"));
 	// </advc.108>
 	int const iCityRange = CITY_PLOTS_RADIUS;
 	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
@@ -1783,13 +1783,13 @@ void CvGame::normalizeRemoveBadTerrain()  // advc: refactored
 				{
 					continue;
 				}
-				if (prKeep.bernoulliSuccess(getMapRand(), "Map Upgrade Terrain Food 2"))
+				if (rKeepProb.bernoulliSuccess(getMapRand(), "Map Upgrade Terrain Food 2"))
 				{
 					if (iPlotFood > 0 ||
 					/*  advc.129b: Two chances of removal for Snow river
 						(BuildModifier=50), but not for Desert river. */
 						(p.isRiver() && kTerrain.getBuildModifier() < 30) ||
-						prKeep.bernoulliSuccess(getMapRand(), "Map Upgrade Terrain Food 3"))
+						rKeepProb.bernoulliSuccess(getMapRand(), "Map Upgrade Terrain Food 3"))
 					{
 						if (!isWeakStartingFoodBonus(p, itPlayer->getID()))
 							continue;
@@ -1827,8 +1827,7 @@ void CvGame::normalizeRemoveBadTerrain()  // advc: refactored
 }
 
 
-void CvGame::normalizeAddFoodBonuses(  // advc: refactoring
-	NormalizationTarget const* pTarget) // advc.027
+void CvGame::normalizeAddFoodBonuses(/* advc.027: */ NormalizationTarget const* pTarget)
 {
 	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
 	int const iFoodPerPop = GC.getFOOD_CONSUMPTION_PER_POPULATION(); // K-Mod
@@ -2019,7 +2018,7 @@ void CvGame::normalizeAddFoodBonuses(  // advc: refactoring
 }
 
 
-void CvGame::normalizeAddGoodTerrain()  // advc: refactoring
+void CvGame::normalizeAddGoodTerrain()
 {
 	// <advc.108>
 	if(m_eNormalizationLevel <= NORMALIZE_LOW)
@@ -2087,8 +2086,7 @@ void CvGame::normalizeAddGoodTerrain()  // advc: refactoring
 }
 
 
-void CvGame::normalizeAddExtras(  // advc: some refactoring
-	NormalizationTarget const* pTarget) // advc.027
+void CvGame::normalizeAddExtras(/* advc.027: */ NormalizationTarget const* pTarget)
 {
 	bool const bIgnoreLatitude = GC.getPythonCaller()->isBonusIgnoreLatitude();
 
@@ -2656,12 +2654,13 @@ bool CvGame::isWeakStartingFoodBonus(CvPlot const& kPlot, PlayerTypes eStartPlay
 			iBestImprovFood > 0);
 } // </advc.108>
 
-// For each of n teams, let the closeness score for that team be the average distance of an edge between two players on that team.
-// This function calculates the closeness score for each team and returns the sum of those n scores.
-// The lower the result, the better "clumped" the players' starting locations are.
-//
-// Note: for the purposes of this function, player i will be assumed to start in the location of player aiStartingLocs[i]
-
+/*	For each of n teams, let the closeness score for that team be the
+	average distance of an edge between two players on that team.
+	This function calculates the closeness score for each team and
+	returns the sum of those n scores. The lower the result, the better "clumped"
+	the players' starting locations are.
+	Note: for the purposes of this function, player i will be assumed to start
+	in the location of player aiStartingLocs[i] */
 int CvGame::getTeamClosenessScore(int** aaiDistances, int* aiStartingLocs)
 {
 	int iScore = 0;
@@ -2706,14 +2705,12 @@ int CvGame::getTeamClosenessScore(int** aaiDistances, int* aiStartingLocs)
 
 			int iTeamScore;
 			if (iNumEdges == 0)
-			{
 				iTeamScore = 0;
-			}
 			else
 			{
-				iTeamScore = iTeamTotalDist/iNumEdges; // the avg distance between team edges is the team score
+				// the avg distance between team edges is the team score
+				iTeamScore = iTeamTotalDist/iNumEdges;
 			}
-
 			iScore += iTeamScore;
 		}
 	}
@@ -3021,9 +3018,7 @@ void CvGame::autoSave(bool bInitial)
 void CvGame::testExtendedGame()
 {
 	if (getGameState() != GAMESTATE_OVER)
-	{
 		return;
-	}
 
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{

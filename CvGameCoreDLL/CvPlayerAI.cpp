@@ -1001,8 +1001,8 @@ void CvPlayerAI::AI_updateFoundValues(bool bStarting)  // advc: refactored
 		normalization, which is no longer subsumed under "StartingLoc".) */
 	if (bStarting)
 	{
-		for(int iI = 0; iI < GC.getMap().numPlots(); iI++)
-			GC.getMap().getPlotByIndex(iI).setFoundValue(getID(), -1);
+		for(int i = 0; i < GC.getMap().numPlots(); i++)
+			GC.getMap().getPlotByIndex(i).setFoundValue(getID(), -1);
 		return;
 	}
 	CitySiteEvaluator citySiteEval(*this);
@@ -1010,9 +1010,9 @@ void CvPlayerAI::AI_updateFoundValues(bool bStarting)  // advc: refactored
 	// <advc.108>
 	int iCities = getNumCities();
 	CvPlot const* pStartPlot = getStartingPlot(); // </advc.108>
-	for(int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	for(int i = 0; i < GC.getMap().numPlots(); i++)
 	{
-		CvPlot& kLoopPlot = GC.getMap().getPlotByIndex(iI);
+		CvPlot& kLoopPlot = GC.getMap().getPlotByIndex(i);
 		if(!kLoopPlot.isRevealed(getTeam()))
 			//&& !AI_isPrimaryArea(kLoopPlot.getArea()))
 		/*  K-Mod: Clear out any junk found values.
@@ -2677,9 +2677,9 @@ bool CvPlayerAI::AI_isPrimaryArea(CvArea const& kArea) const
 
 int CvPlayerAI::AI_militaryWeight(CvArea const* pArea) const
 {
-	return pArea != NULL
+	return (pArea != NULL
 		? pArea->getPopulationPerPlayer(getID()) + pArea->getCitiesPerPlayer(getID()) + 1
-		: getTotalPopulation() + getNumCities() + 1; // K-Mod: count all areas
+		: getTotalPopulation() + getNumCities() + 1); // K-Mod: count all areas
 }
 
 /*	This function has been edited by Mongoose, then by jdog5000, and then by me (karadoc).
@@ -10987,14 +10987,8 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 	iValue = std::max(0, iValue);
 	/*  To address karadoc's "@*#!" comment in the middle of this function;
 		coupled with a change in AI_updateBonusValue(BonusTypes). */
-	if(GC.getGame().isNetworkMultiPlayer())
-		return iValue;
-	if(!bTrade)
-	{
-		m_aiBonusValue[eBonus] = iValue;
-		return iValue;
-	}
-	m_aiBonusValueTrade[eBonus] = iValue;
+	if (!GC.getGame().isNetworkMultiPlayer())
+		(bTrade ? m_aiBonusValueTrade : m_aiBonusValue)[eBonus] = iValue;	
 	return iValue; // </advc.036>
 }
 
@@ -25943,7 +25937,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 		}
 		int iBestFoundValue = 0;
 		CvPlot* pBestFoundPlot = NULL;
-		AI_updateFoundValues(false);
+		AI_updateFoundValues();
 		for (int i = 0; i < GC.getMap().numPlots(); i++)
 		{
 			CvPlot& kLoopPlot = GC.getMap().getPlotByIndex(i);
@@ -26232,12 +26226,12 @@ void CvPlayerAI::AI_invalidateCitySites(int iMinFoundValueThreshold)
 	std::vector<int> keptSites;
 	if (iMinFoundValueThreshold > 0) // less than zero means clear all.
 	{
-		for (size_t iI = 0; iI < m_aiAICitySites.size(); iI++)
+		for (size_t i = 0; i < m_aiAICitySites.size(); i++)
 		{
-			if (GC.getMap().plotByIndex(m_aiAICitySites[iI])->getFoundValue(getID()) >=
+			if (GC.getMap().plotByIndex(m_aiAICitySites[i])->getFoundValue(getID()) >=
 				iMinFoundValueThreshold)
 			{
-				keptSites.push_back(m_aiAICitySites[iI]);
+				keptSites.push_back(m_aiAICitySites[i]);
 			}
 		}
 	}
