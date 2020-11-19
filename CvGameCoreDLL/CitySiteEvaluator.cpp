@@ -2439,7 +2439,7 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 	int const iTempValue = r; // advc.031c
 	int iMinDistanceFactor = MAX_INT;
 	int const iMinRange = //startingPlotRange();
-			kGame.getStartingPlotRange(); // advc.opt: Now precomputed
+			kGame.getStartingPlotRange(); // advc.opt (now cached)
 	//r *= 100; // (disabled by K-Mod to prevent int overflow)
 	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
