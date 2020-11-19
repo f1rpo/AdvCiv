@@ -112,7 +112,6 @@ void CvGame::init(HandicapTypes eHandicap)
 	// Init non-serialized data ...
 
 	m_bAllGameDataRead = true; // advc: Not loading from savegame
-	m_eNormalizationLevel = NORMALIZE_DEFAULT; // advc.108
 
 	// Turn off all MP options if it's a single player game
 	if (ic.getType() == GAME_SP_NEW || ic.getType() == GAME_SP_SCENARIO)
@@ -559,6 +558,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_eVictory = NO_VICTORY;
 	m_eGameState = GAMESTATE_ON;
 	m_eInitialActivePlayer = NO_PLAYER; // advc.106h
+	m_eNormalizationLevel = NORMALIZE_DEFAULT; // advc.108
 	m_szScriptData = "";
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
@@ -722,14 +722,20 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 		CvGlobals::getInstance().loadOptionalXMLInfo(); // </advc.003v>
 }
 
-
+/*	The EXE calls this after generating the map but before initFreeState
+	(i.e. also before assigning starting plots). Seems like a good place
+	for various initializations as it gets called for all game types
+	(unlike setInitialItems). */
 void CvGame::initDiplomacy()
 {
 	PROFILE_FUNC();
 
-	// advc.003g: Want to set this as soon as CvGame knows the GameType
-	m_bFPTestDone = !isNetworkMultiPlayer();
 	GC.getAgents().gameStart(false); // advc.agent
+	m_bFPTestDone = !isNetworkMultiPlayer(); // advc.003g
+	// <advc.108>
+	// Don't overwrite "Balanced" custom map option
+	if (m_eNormalizationLevel != NORMALIZE_HIGH)
+		setStartingPlotNormalizationLevel(); // </advc.108>
 	setPlayerColors(); // advc.002i
 
 	for(int i = 0; i < MAX_TEAMS; i++)  // advc: style changes
@@ -1469,7 +1475,8 @@ void CvGame::setStartingPlotNormalizationLevel(StartingPlotNormalizationLevel eL
 	m_eNormalizationLevel = eLevel;
 }
 
-
+/*	(Note: Only for external callers.
+	Within CvGame, m_eNormalizationLevel gets accessed directly.) */
 CvGame::StartingPlotNormalizationLevel CvGame::getStartingPlotNormalizationLevel() const
 {
 	return m_eNormalizationLevel;

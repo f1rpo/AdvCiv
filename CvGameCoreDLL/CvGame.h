@@ -54,7 +54,8 @@ public:
 	enum StartingPlotNormalizationLevel {
 		NORMALIZE_DEFAULT, NORMALIZE_LOW, NORMALIZE_MEDIUM, NORMALIZE_HIGH };
 	StartingPlotNormalizationLevel getStartingPlotNormalizationLevel() const;
-	void setStartingPlotNormalizationLevel(StartingPlotNormalizationLevel eLevel);
+	void setStartingPlotNormalizationLevel(
+			StartingPlotNormalizationLevel eLevel = NORMALIZE_DEFAULT);
 	// </advc.108>
 	int getStartingPlotRange() const; // advc.opt (exposed to Python via CyPlayer)
 
