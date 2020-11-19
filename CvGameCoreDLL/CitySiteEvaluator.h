@@ -24,6 +24,7 @@ public:
 	scaled evaluateWorkablePlot(CvPlot const& kPlot) const; // advc.027
 	CvPlayerAI const& getPlayer() const { return m_kPlayer; }
 	bool isStartingLoc() const { return m_bStartingLoc; }
+	bool isScenario() const { return m_bScenario; }
 	bool isNormalizing() const { return m_bNormalize; } // advc.031e
 	int getMinRivalRange() const { return m_iMinRivalRange; }
 	// <advc.300>
@@ -65,6 +66,7 @@ public:
 private:
 	CvPlayerAI const& m_kPlayer;
 	bool m_bStartingLoc;
+	bool m_bScenario; // advc
 	bool m_bNormalize;
 	int m_iMinRivalRange;
 	int m_iBarbDiscouragedRange; // advc.300

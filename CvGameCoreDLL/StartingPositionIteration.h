@@ -40,6 +40,7 @@ public:
 
 private:
 	bool m_bRestrictedAreas;
+	bool m_bScenario;
 	CitySiteEvaluator* m_pEval;
 	EnumMap<PlotNumTypes,scaled> const* m_pYieldValues;
 	std::map<CvArea const*,scaled> const* m_pYieldsPerArea;

@@ -28,10 +28,11 @@ bool StartingPositionIteration::isDebug()
 
 
 StartingPositionIteration::StartingPositionIteration() :
-	m_bRestrictedAreas(false), m_bNormalizationTargetReady(false),
+	m_bRestrictedAreas(false), m_bScenario(false), m_bNormalizationTargetReady(false),
 	m_pEval(NULL), m_pYieldValues(NULL), m_pYieldsPerArea(NULL),
 	m_pPathDists(NULL), m_pPotentialSites(NULL)
 {
+	m_bScenario = GC.getInitCore().getWBMapScript();
 	if (!GC.getDefineBOOL("ENABLE_STARTING_POSITION_ITERATION"))
 		return;
 	CvMap const& kMap = GC.getMap();
@@ -1095,7 +1096,7 @@ void StartingPositionIteration::computeStartValues(
 	{
 		scaled rFoundValue = kFoundValues.get(itPlayer->getID());
 		// Anticipate normalization
-		if (rFoundValue < rMedianFoundValue)
+		if (!m_bScenario && rFoundValue < rMedianFoundValue)
 		{
 			rFoundValue = std::min((rMedianFoundValue + rFoundValue) / 2,
 					rFoundValue + rMedianFoundValue / 10);
@@ -1726,7 +1727,7 @@ void StartingPositionIteration::logStep(Step const& kStep,
 void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 {
 	evaluateCurrPosition(m_currSolutionAttribs, true);
-	m_bNormalizationTargetReady = true;
+	m_bNormalizationTargetReady = !m_bScenario;
 
 	if (m_currSolutionAttribs.m_eWorstOutlier == NO_PLAYER)
 		return;

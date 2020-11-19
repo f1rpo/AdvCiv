@@ -19,13 +19,16 @@ static int const iDEFAULT_BARB_DISCOURAGED_RANGE = 8; // advc.303
 
 // Body cut from K-Mod's CvPlayerAI::CvFoundSettings::CvFoundSettings
 CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRange,
-	bool bStartingLoc, /* advc.031e: */ bool bNormalize) :
-	m_kPlayer(kPlayer), m_iMinRivalRange(iMinRivalRange), m_bStartingLoc(bStartingLoc),
-	m_bNormalize(bNormalize), m_bAmbitious(false), m_bFinancial(false), m_bDefensive(false),
+	bool bStartingLoc, /* advc.031e: */ bool bNormalize)
+:	m_kPlayer(kPlayer), m_iMinRivalRange(iMinRivalRange), m_bStartingLoc(bStartingLoc),
+	m_bNormalize(bNormalize),
+	m_bScenario(false), m_bAmbitious(false), m_bFinancial(false), m_bDefensive(false),
 	m_bSeafaring(false), m_bExpansive(false), /* advc.007: */ m_bDebug(false),
 	m_bAdvancedStart(false), /* advc.027: */ m_bIgnoreStartingSurroundings(false),
 	m_iBarbDiscouragedRange(iDEFAULT_BARB_DISCOURAGED_RANGE) // advc.303
 {
+	m_bScenario = (bStartingLoc ? GC.getInitCore().getWBMapScript() : // advc.031f
+			GC.getGame().isScenario()); // advc
 	m_bAdvancedStart = (kPlayer.getAdvancedStartPoints() > 0);
 	m_bEasyCulture = (kPlayer.getNumCities() <= 0 || // advc.108: from MNAI (was =bStartingLoc)
 			m_bAdvancedStart); // advc.031
@@ -685,7 +688,7 @@ short AIFoundValue::evaluate()
 	iValue += evaluateDefense();
 	IFLOG logBBAI("=%d in total before modifiers", iValue);
 
-	if (!kSet.isStartingLoc())
+	if (!kSet.isStartingLoc() /* advc.031f: */ || kSet.isScenario())
 	{
 		/*  <advc.031> Moved down to the other modifiers. But don't adjust the
 			non-yield resource value -- don't need food for a trade connection. */
@@ -747,7 +750,7 @@ short AIFoundValue::evaluate()
 
 	iValue = adjustToBadTiles(iValue, iBadTiles /* advc.031: */ + (4 * iTakenTiles) / 10
 			-(bBarbarian ? 2 : (4 + iGreenTiles + iSpecialFoodPlus)) // advc.303
-			/ (kSet.isStartingLoc() ? 2 : 1)); // advc.108
+			/ (kSet.isStartingLoc() && !kSet.isScenario() ? 2 : 1)); // advc.108, advc.031f
 	iValue = adjustToBadHealth(iValue, iHealth);
 	// <advc.031>
 	if (kSet.isNormalizing())
@@ -788,7 +791,7 @@ bool AIFoundValue::isSiteValid() const
 	}
 	if (kSet.isStartingLoc())
 	{
-		if (kPlot.isGoody() /* advc.027: */ && kGame.isScenario())
+		if (kPlot.isGoody() /* advc.027: */ && kSet.isScenario())
 		{
 			IFLOG logBBAI("Can't start on goody hut");
 			return false;
@@ -997,7 +1000,7 @@ int AIFoundValue::countBadTiles(/* advc.031: */ int& iInnerRadius,
 			{
 				iBadLoop++;
 				// <advc.108> Ocean can't be "normalized" away later on
-				if (kSet.isStartingLoc())
+				if (kSet.isStartingLoc() /* adv.031f: */ && !kSet.isScenario())
 					iBadLoop++; // </advc.108>
 			}
 			if(!bCoastal)
@@ -2097,6 +2100,13 @@ int AIFoundValue::evaluateSpecialYields(int const* aiSpecialYield,
 			/*  advc.108: For moving the starting Settler. Though a commercial
 				resource at the second city is also valuable, so: */
 			iCities <= 1 && eEra <= 0 ? fixp(0.48) : fixp(0.32)};
+	// <advc.031f> When there will be no normalization
+	if (kSet.isStartingLoc() && kSet.isScenario())
+	{
+		arWeight[YIELD_FOOD] *= 2;
+		arWeight[YIELD_PRODUCTION] *= fixp(1.7);
+		arWeight[YIELD_COMMERCE] *= fixp(1.4);
+	} // </advc.031f>
 	scaled const rDiv = iSpecialYieldTiles;
 	scaled rFromSpecial;
 	FOR_EACH_ENUM(Yield)
@@ -2892,7 +2902,8 @@ int AIFoundValue::adjustToBadTiles(int iValue, int iBadTiles) const
 	{
 		/*	A scenario is more likely to mix some very good tiles with a lot of
 			bad ones. Better to be more conservative on regular maps. */
-		scaled const rExponent = (kGame.isScenario() ? fixp(1.385) : fixp(1.5));
+		scaled const rExponent = (kSet.isScenario() && !kSet.isStartingLoc() ?
+				fixp(1.385) : fixp(1.5));
 		r -= scaled(iBadTiles).pow(rExponent) * 100 *  // <advc.108>
 				(fixp(1/3.) + (kSet.isStartingLoc() ?
 				fixp(1/3.) : 0) + (iCities <= 0 ? fixp(1/3.) : 0)); // </advc.108>
@@ -2920,7 +2931,7 @@ int AIFoundValue::adjustToBadHealth(int iValue, int iGoodHealth) const
 		{
 			iMult = 2;
 			iDiv = 3;
-			if (kSet.isStartingLoc())
+			if (kSet.isStartingLoc() && !kSet.isScenario())
 			{
 				iMult = 3;
 				iDiv = 4;
@@ -3006,6 +3017,8 @@ void CitySiteEvaluator::logSettings() const
 	// </advc.300>
 	if (isStartingLoc())
 		logBBAI("StartingLoc");
+	if (isScenario())
+		logBBAI("WBScenario");
 	// <advc.031e>
 	if (isNormalizing())
 		logBBAI("Normalizing"); // </advc.031e>
