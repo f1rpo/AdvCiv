@@ -2377,10 +2377,12 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 			iNumNonVassals++;
 		}
 	}
+	// The default precision looks a bit precarious here wrt. overflow
+	typedef ScaledNum<128> scaled128_t;
 	// advc.112: Probably not much of an improvement over using the mean
-	scaled rMedianPow = stats::median(arPowerValues);
-	scaled rAveragePower(iTotalPower, std::max(1, iNumNonVassals));
-	scaled rMasterPower = kMasterTeam.getPower(false);
+	scaled128_t rMedianPow = stats::median(arPowerValues);
+	scaled128_t rAveragePower(iTotalPower, std::max(1, iNumNonVassals));
+	scaled128_t rMasterPower = kMasterTeam.getPower(false);
 	// <advc.112>
 	if(bFaraway ||
 		(getNumWars() <= 0 && AI_teamCloseness(eMasterTeam, -1, false, true) <= 0))
@@ -2437,7 +2439,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		iPersonalityModifier /= 2;
 		iPersonalityModifier -= 10;
 	} // </advc.112>
-	scaled rVassalPower = per100(iOurPower * (iPowerMultiplier + iPersonalityModifier /
+	scaled128_t rVassalPower = per100(iOurPower * (iPowerMultiplier + iPersonalityModifier /
 			std::max(1, itMember.nextIndex())));
 	if (bWar)
 	{
@@ -2553,11 +2555,10 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 			{
 				return DENIAL_POWER_YOUR_ENEMIES;
 			}
-			rAveragePower = (2 * rAveragePower * iEnemyPower) /
-					std::max(1, iEnemyPower + iOurPower);
+			scaled128_t rMult(2 * iEnemyPower, std::max(1, iEnemyPower + iOurPower));
+			rAveragePower *= rMult;
 			// advc.112: The same threat adjustment for the median
-			rMedianPow = (2 * rMedianPow * iEnemyPower) /
-					std::max(1, iEnemyPower + iOurPower);
+			rMedianPow *= rMult;
 			//iAttitudeModifier += (3 * kEnemy.getPower(true)) / std::max(1, getPower(true)) - 2;
 			/*  advc.112: Commented out K-Mod's replacement as well.
 				Attitude is handled later. */
