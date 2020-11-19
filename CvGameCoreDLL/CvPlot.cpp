@@ -5241,22 +5241,21 @@ int CvPlot::getFoundValue(PlayerTypes eIndex, /* advc.052: */ bool bRandomize) c
 	}
 	//return m_aiFoundValue[eIndex];
 	// <advc.052>
-	int r = m_aiFoundValue.get(eIndex);
+	int iResult = m_aiFoundValue.get(eIndex);
 	if(bRandomize && !GET_PLAYER(eIndex).isHuman() && GC.getGame().isScenario())
 	{	// Randomly change the value by +/- 1.5%
-		double const plusMinus = 0.015;
-		std::vector<int> hashInput;
+		scaled const rPlusMinus = per1000(15);
+		std::vector<int> aiHashInput;
 		/*  Base the random multiplier on a number that is unique
 			per game, but doesn't change throughout a game. */
-		hashInput.push_back(GC.getGame().getSorenRand().
-				getSeed());
-		hashInput.push_back(getX());
-		hashInput.push_back(getY());
-		hashInput.push_back(eIndex);
-		double randMult = 1 - plusMinus + 2 * plusMinus * ::hash(hashInput);
-		r = ::round(r * randMult);
+		aiHashInput.push_back(GC.getGame().getInitialRandSeed().first);
+		aiHashInput.push_back(getX());
+		aiHashInput.push_back(getY());
+		aiHashInput.push_back(eIndex);
+		scaled rRandMult = 1 - rPlusMinus + 2 * rPlusMinus * scaled::hash(aiHashInput);
+		iResult = (iResult * rRandMult).round();
 	}
-	return r;
+	return iResult;
 	// </advc.052>
 }
 
