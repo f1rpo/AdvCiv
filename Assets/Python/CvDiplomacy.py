@@ -173,7 +173,11 @@ class CvDiplomacy:
 					self.addUserComment("USER_DIPLOCOMMENT_OFFER_PEACE", -1, -1)
 	
 			# If one of us has something on the table
-			if (self.diploScreen.ourOfferEmpty() == 0 or self.diploScreen.theirOfferEmpty() == 0):
+			# <advc.ctr>
+			bOurOfferEmpty = self.diploScreen.ourOfferEmpty()
+			bTheirOfferEmpty = self.diploScreen.theirOfferEmpty()
+			# </advc.ctr>
+			if not bOurOfferEmpty or not bTheirOfferEmpty:
 	
 				# If the offer is from the AI
 				if (self.diploScreen.isAIOffer()):
@@ -184,9 +188,16 @@ class CvDiplomacy:
 
 				# Otherwise this is a player offer to the AI
 				else:
-
+					# <advc.ctr>
+					# Treat offer as empty if it's only a peace treaty at peacetime. Since such peace treaties are always appended at the end of the offer list (by CvPlayder::updateTradeList), it's sufficient to check iIndex=0. (I'm not sure if any other position can be safely checked as the interface of CyDiplomacy doesn't have getters for the list lengths.)
+					if not self.diploScreen.atWar():
+						if not bOurOfferEmpty and self.diploScreen.getPlayerTradeOffer(0).ItemType == TradeableItems.TRADE_PEACE_TREATY:
+							bOurOfferEmpty = True
+						if not bTheirOfferEmpty and self.diploScreen.getTheirTradeOffer(0).ItemType == TradeableItems.TRADE_PEACE_TREATY:
+							bTheirOfferEmpty = True
+					# </advc.ctr>
 					# This is a two way deal
-					if (self.diploScreen.ourOfferEmpty() == 0 and self.diploScreen.theirOfferEmpty() == 0):
+					if not bOurOfferEmpty and not bTheirOfferEmpty:
 					
 						# Insert the propose trade button
 						self.addUserComment("USER_DIPLOCOMMENT_PROPOSE", -1, -1)
@@ -197,7 +208,7 @@ class CvDiplomacy:
 								self.addUserComment("USER_DIPLOCOMMENT_COMPLETE_DEAL", -1, -1)
 
 					# Otherwise they have something on the table and we dont
-					elif (self.diploScreen.theirOfferEmpty() == 0):
+					elif not bTheirOfferEmpty:
 
 						# If we are at war, demand the items for peace or ask what they want
 						if (self.diploScreen.atWar()):

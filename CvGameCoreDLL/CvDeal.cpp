@@ -145,49 +145,44 @@ void CvDeal::addTradeItems(
 {
 	if (isVassalTrade(kFirstList) && isVassalTrade(kSecondList))
 		return;
+	if (bCheckAllowed) // advc.opt (moved up)
+	{
+		FOR_EACH_TRADE_ITEM_VAR(kFirstList)
+		{
+			if (!GET_PLAYER(getFirstPlayer()).canTradeItem(getSecondPlayer(), *pItem))
+				return;
+		}
+		FOR_EACH_TRADE_ITEM_VAR(kSecondList)
+		{
+			if (!GET_PLAYER(getSecondPlayer()).canTradeItem(getFirstPlayer(), *pItem))
+				return;
+		}
+	}
 	// <advc.130p>
 	TeamTypes eWarTradeTarget = NO_TEAM;
 	TeamTypes ePeaceTradeTarget = NO_TEAM; // </advc.130p>
 	bool bPeaceTreaty = false; // advc.ctr
-
-	FOR_EACH_TRADE_ITEM_VAR(kFirstList)
-	{	// <advc.130p>
-		if(pItem->m_eItemType == TRADE_WAR)
-			eWarTradeTarget = (TeamTypes)pItem->m_iData;
-		else if(pItem->m_eItemType == TRADE_PEACE)
-			ePeaceTradeTarget = (TeamTypes)pItem->m_iData;
-		// </advc.130p>  <advc.104m> (cf. CvPlayer::buildTradeTable)
-		if (pItem->m_eItemType == TRADE_PEACE_TREATY)
-		{
-			pItem->m_bHidden = false;
-			bPeaceTreaty = true;
-		} // </advc.104m>
-		if (bCheckAllowed &&
-			!GET_PLAYER(getFirstPlayer()).canTradeItem(getSecondPlayer(), *pItem))
-		{
-			return;
+	bool bPeaceTreatyFromTrade = false; // advc.ctr
+	// <advc>
+	CLinkList<TradeData>* apLists[] = { &kFirstList, &kSecondList };
+	for (int i = 0; i < 2; i++)
+	{
+		FOR_EACH_TRADE_ITEM_VAR(*apLists[i])
+		{	// <advc.130p>
+			if(pItem->m_eItemType == TRADE_WAR)
+				eWarTradeTarget = (TeamTypes)pItem->m_iData;
+			else if(pItem->m_eItemType == TRADE_PEACE)
+				ePeaceTradeTarget = (TeamTypes)pItem->m_iData;
+			// </advc.130p>  <advc.104m> (cf. CvPlayer::buildTradeTable)
+			if (pItem->m_eItemType == TRADE_PEACE_TREATY)
+			{
+				pItem->m_bHidden = false;
+				bPeaceTreaty = true;
+				if (pItem->m_iData > 0) // Set in CvPlayer::updateTradeList
+					bPeaceTreatyFromTrade = true;
+			} // </advc.104m>
 		}
-	}
-
-	FOR_EACH_TRADE_ITEM_VAR(kSecondList)
-	{	// <advc.130p>
-		if(pItem->m_eItemType == TRADE_WAR)
-			eWarTradeTarget = (TeamTypes)pItem->m_iData;
-		else if(pItem->m_eItemType == TRADE_PEACE)
-			ePeaceTradeTarget = (TeamTypes)pItem->m_iData;
-		// </advc.130p>  <advc.104m>
-		if (pItem->m_eItemType == TRADE_PEACE_TREATY)
-		{
-			pItem->m_bHidden = false;
-			bPeaceTreaty = true;
-		} // </advc.104m>
-		if (bCheckAllowed &&
-			!GET_PLAYER(getSecondPlayer()).canTradeItem(getFirstPlayer(), *pItem))
-		{
-			return;
-		}
-	}
-
+	} // </advc>
 	TeamTypes eFirstTeam = GET_PLAYER(getFirstPlayer()).getTeam();
 	TeamTypes eSecondTeam = GET_PLAYER(getSecondPlayer()).getTeam();
 	bool bBumpUnits = false; // K-Mod
@@ -196,17 +191,19 @@ void CvDeal::addTradeItems(
 		no longer at war. */
 	bool const bMakingPeace = ::atWar(eFirstTeam, eSecondTeam);
 	bool bUpdateAttitude = false;
+	// advc.ctr:
+	bool const bAIRequest = (bPeaceTreaty && !bPeaceTreatyFromTrade && !bMakingPeace);
 	/*  Calls to changePeacetimeTradeValue moved into a new function
 		(also for advc.ctr) */
 	if (GET_PLAYER(getSecondPlayer()).AI_processTradeValue(kFirstList, getFirstPlayer(),
 		kSecondList.getLength() <= 0, bMakingPeace, ePeaceTradeTarget, eWarTradeTarget,
-		bPeaceTreaty && !bMakingPeace)) // advc.ctr
+		bAIRequest)) // advc.ctr
 	{
 		bUpdateAttitude = true;
 	}
 	if (GET_PLAYER(getFirstPlayer()).AI_processTradeValue(kSecondList, getSecondPlayer(),
 		kFirstList.getLength() <= 0, bMakingPeace, ePeaceTradeTarget, eWarTradeTarget,
-		bPeaceTreaty && !bMakingPeace)) // advc.ctr
+		bAIRequest)) // advc.ctr
 	{
 		bUpdateAttitude = true;
 	}
@@ -550,7 +547,7 @@ bool CvDeal::isDisengage() const
 			getFirstList().head()->m_data.m_eItemType == TRADE_DISENGAGE);
 }
 
-// advc.130p: Replaced by code in recordTradeValue
+// advc.130p: Replaced by code in CvPlayerAI::AI_processTradeValue
 /*bool CvDeal::isPeaceDealBetweenOthers(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList) const {
 //... }*/
 

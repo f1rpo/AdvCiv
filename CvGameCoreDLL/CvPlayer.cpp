@@ -4090,17 +4090,15 @@ DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 			return DENIAL_MYSTERY;
 		// K-Mod end
 		return kOurTeam.AI_permanentAllianceTrade(TEAMID(eWhoTo));
-
-	case TRADE_PEACE_TREATY:
+	/*	advc.ctr: Disabled. I don't think this case can occur in K-Mod
+		(future-proofing?), but it can get in the way of implied peace treaties,
+		which the AI evaluates more properly under the trade item that mandates
+		the peace treaty. */
+	/*case TRADE_PEACE_TREATY:
 		// K-Mod
 		if (kOurTeam.AI_refusePeace(TEAMID(eWhoTo)))
-			return DENIAL_VICTORY;
-		// K-Mod end
-		break;
-	/*  <advc.034> Can't be traded voluntarily anyway, but NO_DENIAL suppresses
-		explanation text in CvDLLWidgetData::parseTradeItem */
-	case TRADE_DISENGAGE:
-		return NO_DENIAL; // <advc.034>
+			return DENIAL_VICTORY; // K-Mod end
+		break;*/
 	}
 
 	return NO_DENIAL;
@@ -18679,6 +18677,110 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& k
 			}
 		}
 	}
+	/*	<advc.ctr> Add PEACE_TREATY items to offers that imply a peace treaty.
+		Note that this is only done to inform the human player. There is code
+		elsewhere for signing the peace treaty upon implementation of the deal.
+		For deals that involve a human, the game will end up attemping to
+		implement the peace treaty twice. No harm in that.
+		I don't know if updateTradeList gets called for all AI trades;
+		don't want to rely on it. */
+	if ((GC.getGame().getActivePlayer() != getID() &&
+		GC.getGame().getActivePlayer() != eOtherPlayer) ||
+		GET_TEAM(eOtherPlayer).isAtWar(getTeam()))
+	{
+		return;
+	}
+	TradeableItems eForcePeaceItemType = NO_TRADE_ITEM;
+	TradeableItems aeForcePeace[] = { TRADE_CITIES, /* advc.146: */ TRADE_WAR };
+	int const iForcePeaceSz = sizeof(aeForcePeace) / sizeof(TradeableItems);
+	/*	When a player tries to deselect a peace treaty, the trade screen will
+		remove it (temporarily) only from one player's side. Therefore need
+		to check each player individually for an offered peace treaty. */
+	bool abPeaceTreatyFound[] = { false, false };
+	CLinkList<TradeData> const* apOffers[] = { &kOurOffer, &kTheirOffer };
+	for (int i = 0; i < 2; i++)
+	{
+		FOR_EACH_TRADE_ITEM(*apOffers[i])
+		{
+			if (pItem->m_eItemType == TRADE_PEACE_TREATY)
+			{
+				FAssert(!abPeaceTreatyFound[i]);
+				abPeaceTreatyFound[i] = true;
+			}
+			else FAssert(!CvDeal::isEndWar(pItem->m_eItemType))
+			for (int j = 0; j < iForcePeaceSz; j++)
+			{
+				if (pItem->m_eItemType == aeForcePeace[j])
+				{
+					// No peace treaty through liberation
+					if (pItem->m_eItemType == TRADE_CITIES)
+					{
+						CvCity const* pCity = GET_PLAYER(
+								i == 0 ? getID() : eOtherPlayer).
+								getCity(pItem->m_iData);
+						if (pCity == NULL || pCity->getLiberationPlayer() == getID())
+							continue;
+					}
+					eForcePeaceItemType = pItem->m_eItemType;
+				}
+			}
+		}
+	}
+	bool bPeaceTreatyNeeded = (eForcePeaceItemType != NO_TRADE_ITEM);
+	if (!abPeaceTreatyFound[0] && !abPeaceTreatyFound[1] && !bPeaceTreatyNeeded)
+		return;
+	/*	kOurOffer and kTheirOffer are most likely not really const objects.
+		Perhaps call-by-const-reference could've gotten replaced with call-by-value
+		when the EXE was compiled, but tests show that this hasn't happened. */
+	CLinkList<TradeData>* apOffersVar[] =
+	{
+		const_cast<CLinkList<TradeData>*>(&kOurOffer),
+		const_cast<CLinkList<TradeData>*>(&kTheirOffer)
+	};
+	/*	Always remove any peacetime peace treaties. Re-append if necessary.
+		So that they're always at the bottom of the offer lists.
+		That's important for CvDiplomacy.determineResponses in Python. */
+	for (int i = 0; i < 2; i++)
+	{
+		if (!abPeaceTreatyFound[i])
+			continue;
+		for (CLLNode<TradeData>* pNode = apOffersVar[i]->head();
+			pNode != NULL; pNode = apOffersVar[i]->next(pNode))
+		{
+			if (pNode->m_data.m_eItemType == TRADE_PEACE_TREATY)
+			{
+				apOffersVar[i]->deleteNode(pNode);
+				break; // There should be at most one
+			}
+		}
+	}
+	if (bPeaceTreatyNeeded)
+	{
+		for (int i = 0; i < 2; i++)
+		{
+			TradeData item(TRADE_PEACE_TREATY);
+			if (canTradeItem(eOtherPlayer, item) &&
+				GET_PLAYER(eOtherPlayer).canTradeItem(getID(), item))
+			{
+				item.m_bOffering = true;
+				/*	So that we can later (when processing trade values) tell
+					whether the deal is the result of an AI request.
+					(If it comes through here, then there's no AI request.) */
+				item.m_iData = eForcePeaceItemType;
+				apOffersVar[i]->insertAtEnd(item);
+				if (i == 0)
+				{
+					/*	Update offering status in inventory
+						(though probably unnecessary) */
+					FOR_EACH_TRADE_ITEM_VAR(kOurInventory)
+					{
+						if (pItem->m_eItemType == TRADE_PEACE_TREATY)
+							pItem->m_bOffering = true;
+					}
+				}
+			}
+		}
+	} // </advc.ctr>
 }
 
 /*	K-Mod: Find each item from the offer list in the inventory list -
