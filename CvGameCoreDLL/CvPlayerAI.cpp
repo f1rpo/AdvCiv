@@ -1049,6 +1049,9 @@ void CvPlayerAI::AI_updateFoundValues(bool bStarting)  // advc: refactored
 
 void CvPlayerAI::AI_updateAreaTargets()
 {
+	// <advc.300>
+	if (isBarbarian())
+		return; // </advc.300>
 	// K-Mod: (reset the timer if it is above the minimum time)
 	bool bResetTimer = (AI_getCityTargetTimer() > 4);
 	bool const bSneakAttackReady = GET_TEAM(getTeam()).AI_isSneakAttackReady(); // advc.104p

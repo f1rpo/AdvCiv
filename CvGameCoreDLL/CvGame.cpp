@@ -5271,7 +5271,7 @@ void CvGame::setFinalInitialized(bool bNewValue)
 		itTeam->AI_strengthMemory().init(
 				GC.getMap().numPlots(), itTeam->getID());
 	} // </advc.158>
-	for (TeamIter<CIV_ALIVE> itTeam; itTeam.hasNext(); ++itTeam) // advc.300: non-Barbarian
+	for (TeamIter<ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
 		itTeam->AI_updateAreaStrategies();
 }
 
