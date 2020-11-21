@@ -6105,7 +6105,7 @@ bool CvUnit::lead(int iUnitId)
 
 	PromotionTypes eLeaderPromotion = (PromotionTypes)m_pUnitInfo->getLeaderPromotion();
 
-	if (-1 == iUnitId)
+	if (iUnitId == -1)
 	{
 		CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_LEADUNIT, eLeaderPromotion, getID());
 		if (pInfo)
@@ -9744,16 +9744,19 @@ const wchar* CvUnit::getNameKey() const
 	return m_szName.GetCString();
 }
 
-/*  <advc.004u> Like getNameKey, but use the unit type name when it's a
-	Great Person or a unit with an attached Great Warlord. */
+/*	advc.004u: Like getNameKey, but use the unit type name when it's
+	a Great Person or a unit with an attached Great Warlord. */
 wchar const* CvUnit::getNameKeyNoGG() const
 {
-	if(getLeaderUnitType() == NO_UNIT && m_pUnitInfo->getDefaultUnitAIType() !=
-			UNITAI_GENERAL && !isGoldenAge())
+	if(getLeaderUnitType() == NO_UNIT &&
+		m_pUnitInfo->getDefaultUnitAIType() != UNITAI_GENERAL &&
+		!isGoldenAge())
+	{
 		return getNameKey();
+	}
 	return m_pUnitInfo->getTextKeyWide();
 }
-// </advc.004u>
+
 
 const CvWString& CvUnit::getNameNoDesc() const
 {

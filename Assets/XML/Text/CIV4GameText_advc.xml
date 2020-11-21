@@ -4681,8 +4681,7 @@
 		<Spanish>%s1_Ldr ha abandonado sus planes de guerra contra %s2_Ldr.</Spanish>
 	</TEXT>
 	
-	<!-- advc.034: Based on TXT_KEY_TRADE_OPEN_BORDERS in CIV4GameTextInfos.xml
-		 and Google Translate for the Romance languages. -->
+	<!-- advc.034: Based on TXT_KEY_TRADE_OPEN_BORDERS in CIV4GameTextInfos.xml -->
 	<TEXT>
 		<Tag>TXT_KEY_TRADE_DISENGAGE</Tag>
 		<English>Right-of-Passage for a limited number of turns to allow units to be repositioned after a war.</English>

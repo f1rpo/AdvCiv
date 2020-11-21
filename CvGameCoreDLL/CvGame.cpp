@@ -8705,7 +8705,7 @@ int CvGame::calculateOptionsChecksum()
 	return iValue;
 }
 
-// <advc.001n>
+// advc.001n:
 bool CvGame::checkInSync()
 {
 	if(!isNetworkMultiPlayer())
@@ -8728,7 +8728,7 @@ bool CvGame::checkInSync()
 		}
 	}
 	return true;
-} // </advc.001n>
+}
 
 /*  <advc.003g> Test the platform's floating point behavior (intermediate precision
 	and/or rounding). */

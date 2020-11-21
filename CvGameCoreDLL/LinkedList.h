@@ -76,6 +76,9 @@ public:
 	}
 
 protected:
+	/*	advc.003k (note): This class appears to have been compiled into the EXE
+		(it occurs in the parameter lists of exported CvPlayer member functions),
+		so changing the memory layout may not be safe. */
 	int m_iLength;
 	CLLNode<tVARTYPE>* m_pHead;
 	CLLNode<tVARTYPE>* m_pTail;

@@ -10259,11 +10259,9 @@ int CvPlayerAI::AI_tradeValToGold(int iTradeVal, bool bOverpay, int iMaxGold,
 	in kTheyGive and/or kWeGive - these have to be included -, and this function
 	tries to sweeten the deal for whichever side needs it (can leave that up to
 	this function by setting both MayGiveMore variables).
-	Based on K-Mod code in AI_doDiplo; karadoc's comment cut and pasted from there
-	(can't say I really understand the final note):
+	Based on K-Mod code in AI_doDiplo; karadoc's comment cut and pasted from there:
 	"unfortunately, the API is pretty clumsy for setting up this counter proposal.
-	 please just bear with me. (Note: this would be faster if we just built the lists
-	 directly, but by using the existing API, we are kind of future-proofing)" */
+	 please just bear with me. */
 bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer,
 	CLinkList<TradeData>& kTheyGive,
 	CLinkList<TradeData>& kWeGive,
@@ -10282,6 +10280,8 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer,
 	if(bTheyMayGiveMore)
 	{
 		CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
+		/*	"(Note: this would be faster if we just built the lists
+			directly, but by using the existing API, we are kind of future-proofing)" */
 		// "all tradeable items"
 		kPlayer.buildTradeTable(getID(), theirInventory);
 		// "K-Mod function - set m_bOffering on each item offered"
@@ -14826,7 +14826,6 @@ int CvPlayerAI::AI_plotTargetMissionAIs(CvPlot const& kPlot, MissionAITypes* aeM
 }
 
 // K-Mod
-
 // Total defensive strength of units that can move iRange steps to reach pDefencePlot
 /*  advc.159 (note): This is not simply the sum of the relevant combat strength values.
 	The result should only be compared with AI_localAttackStrength, AI_localDefenceStrength,

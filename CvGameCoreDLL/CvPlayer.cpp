@@ -18139,7 +18139,7 @@ bool CvPlayer::isScoreboardExpanded() const
 } // </advc.085>
 
 
-void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourList) const
+void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& kOurInventory) const
 {
 	PROFILE_FUNC(); // advc.opt (not frequently called)
 	TradeData item;
@@ -18147,40 +18147,40 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 
 	setTradeItem(&item, TRADE_GOLD);
 	if (canTradeItem(eOtherPlayer, item))
-		ourList.insertAtEnd(item);
+		kOurInventory.insertAtEnd(item);
 
 	setTradeItem(&item, TRADE_GOLD_PER_TURN);
 	if (canTradeItem(eOtherPlayer, item))
-		ourList.insertAtEnd(item);
+		kOurInventory.insertAtEnd(item);
 
 	setTradeItem(&item, TRADE_MAPS, 0);
 	if (canTradeItem(eOtherPlayer, item))
-		ourList.insertAtEnd(item);
+		kOurInventory.insertAtEnd(item);
 
 	setTradeItem(&item, TRADE_VASSAL, 0);
 	if (canTradeItem(eOtherPlayer, item))
-		ourList.insertAtEnd(item);
+		kOurInventory.insertAtEnd(item);
 
 	setTradeItem(&item, TRADE_OPEN_BORDERS);
 	if (canTradeItem(eOtherPlayer, item))
-		ourList.insertAtEnd(item);
+		kOurInventory.insertAtEnd(item);
 
 	setTradeItem(&item, TRADE_DEFENSIVE_PACT);
 	if (canTradeItem(eOtherPlayer, item))
-		ourList.insertAtEnd(item);
+		kOurInventory.insertAtEnd(item);
 
 	setTradeItem(&item, TRADE_PERMANENT_ALLIANCE);
 	if (canTradeItem(eOtherPlayer, item))
-		ourList.insertAtEnd(item);
+		kOurInventory.insertAtEnd(item);
 
 	if (GET_TEAM(getTeam()).isAtWar(TEAMID(eOtherPlayer)))
 	{
 		setTradeItem(&item, TRADE_PEACE_TREATY);
-		ourList.insertAtEnd(item);
+		kOurInventory.insertAtEnd(item);
 
 		setTradeItem(&item, TRADE_SURRENDER, 0);
 		if (canTradeItem(eOtherPlayer, item))
-			ourList.insertAtEnd(item);
+			kOurInventory.insertAtEnd(item);
 	}
 	/*  <advc.104m> Make peace treaties hidden items at peacetime
 		so that the trade screen (EXE) doesn't discard them from
@@ -18189,7 +18189,7 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 	{
 		setTradeItem(&item, TRADE_PEACE_TREATY);
 		item.m_bHidden = true;
-		ourList.insertAtEnd(item);
+		kOurInventory.insertAtEnd(item);
 	} // </advc.104m>
 
 	//	Initial build of the inventory lists and buttons.
@@ -18210,7 +18210,7 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 				if (canTradeItem(eOtherPlayer, item))
 				{
 					bFoundItemUs = true;
-					ourList.insertAtEnd(item);
+					kOurInventory.insertAtEnd(item);
 				}
 			}
 			break;
@@ -18249,7 +18249,7 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 				if(bValid) // </advc.074>
 				{
 					bFoundItemUs = true;
-					ourList.insertAtEnd(item);
+					kOurInventory.insertAtEnd(item);
 				}
 			}
 			break;
@@ -18276,7 +18276,7 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 					if (bValid)*/
 					{
 						bFoundItemUs = true;
-						ourList.insertAtEnd(item);
+						kOurInventory.insertAtEnd(item);
 					}
 				}
 			}
@@ -18295,7 +18295,7 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 				setTradeItem(&item, eItemType, itThirdTeam->getID());
 				if (canTradeItem(eOtherPlayer, item))
 				{
-					ourList.insertAtEnd(item);
+					kOurInventory.insertAtEnd(item);
 					bFoundItemUs = true;
 				}
 			}
@@ -18311,7 +18311,7 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 						getTradeDenial(eOtherPlayer, item) != DENIAL_JOKING) {
 					// </advc.074>
 						bFoundItemUs = true;
-						ourList.insertAtEnd(item);
+						kOurInventory.insertAtEnd(item);
 					}
 				}
 			}
@@ -18324,7 +18324,7 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 				if (canTradeItem(eOtherPlayer, item))
 				{
 					bFoundItemUs = true;
-					ourList.insertAtEnd(item);
+					kOurInventory.insertAtEnd(item);
 				}
 			}
 			break;
@@ -18333,7 +18333,7 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 }
 
 /*	advc (note): This function doesn't use any CvPlayer members, but I suppose
-	that could be changed. Can't easily move it b/c of DllExport. */
+	that could change. Can't easily move it b/c of DllExport. */
 bool CvPlayer::getHeadingTradeString(PlayerTypes eOtherPlayer, TradeableItems eItem,
 	CvWString& szString, CvString& szIcon) const
 {

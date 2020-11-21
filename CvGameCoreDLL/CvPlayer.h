@@ -1373,7 +1373,7 @@ public:
 	void setScoreboardExpanded(bool b);
 	bool isScoreboardExpanded() const;
 	// </advc.085>
-	DllExport void buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourList) const;
+	DllExport void buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& kOurInventory) const;
 	DllExport bool getHeadingTradeString(PlayerTypes eOtherPlayer, TradeableItems eItem,
 			CvWString& szString, CvString& szIcon) const;
 	DllExport bool getItemTradeString(PlayerTypes eRecipient, bool bOffer, bool bShowingCurrent,

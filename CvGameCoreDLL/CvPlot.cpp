@@ -340,28 +340,28 @@ void CvPlot::doTurn()
 
 	// advc: This sounds pretty slow and I don't think I've ever needed it
 	/*#ifdef _DEBUG // XXX
-	for (CLLNode<IDInfo> const* pUnitNode = headUnitNode(); pUnitNode != NULL;
-		pUnitNode = nextUnitNode(pUnitNode))
+	FOR_EACH_UNIT_IN(pUnit, *this)
 	{
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		FAssertMsg(pLoopUnit->atPlot(this), "pLoopUnit is expected to be at the current plot instance");
+		FAssertMsg(pUnit->at(*this), "pUnit is expected to be at the current plot instance");
 	}*/
 	//#endif // XXX
 }
 
 
-void CvPlot::doImprovement()  // advc: some style changes
+void CvPlot::doImprovement()
 {
 	PROFILE_FUNC();
 
-	FAssert(isBeingWorked() && isOwned());
+	FAssert(isBeingWorked());
+	CvPlayer const& kOwner = GET_PLAYER(getOwner());
+	FAssert(!kOwner.isAnarchy()); // advc
 
 	if (isImproved() && getBonusType() == NO_BONUS)
 	{
 		FOR_EACH_ENUM(Bonus)
 		{
 			CvBonusInfo const& kLoopBonus = GC.getInfo(eLoopBonus);
-			if (!GET_TEAM(getTeam()).isHasTech(kLoopBonus.getTechReveal()))
+			if (!GET_TEAM(kOwner.getTeam()).isHasTech(kLoopBonus.getTechReveal()))
 				continue;
 			/*if (GC.getInfo(getImprovementType()).getImprovementBonusDiscoverRand(eLoopBonus) > 0) { // BtS
 				if (GC.getGame().getSorenRandNum(GC.getInfo(getImprovementType()).getImprovementBonusDiscoverRand(eLoopBonus), "Bonus Discovery") == 0) {*/
@@ -380,48 +380,43 @@ void CvPlot::doImprovement()  // advc: some style changes
 			if (GC.getGame().getSorenRandNum(iOdds, "Bonus Discovery") == 0)
 			{	// UNOFFICIAL_PATCH: END
 				setBonusType(eLoopBonus);
-				CvCity* pCity = GC.getMap().findCity(getX(), getY(), getOwner(), NO_TEAM, false);
+				CvCity* pCity = GC.getMap().findCity(getX(), getY(), kOwner.getID(), NO_TEAM, false);
 				if (pCity != NULL)
 				{
 					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_DISCOVERED_NEW_RESOURCE",
 							kLoopBonus.getTextKeyWide(), pCity->getNameKey());
-					gDLL->UI().addMessage(getOwner(), false, -1, szBuffer, *this,
+					gDLL->UI().addMessage(kOwner.getID(), false, -1, szBuffer, *this,
 							"AS2D_DISCOVERBONUS", MESSAGE_TYPE_MINOR_EVENT, kLoopBonus.getButton());
 				}
 				break;
 			}
 		}
 	}
-
-	doImprovementUpgrade();
-}
-
-void CvPlot::doImprovementUpgrade()
-{
+	/*	advc: doImprovementUpgrade merged into doImprovement.
+		Makes clearer which conditions are ensured by the caller. */
 	if (!isImproved())
-		return; // advc
-
+		return;
 	ImprovementTypes eImprovementUpdrade = GC.getInfo(getImprovementType()).
 			getImprovementUpgrade();
 	if (eImprovementUpdrade != NO_IMPROVEMENT)
 	{
-		if ((isBeingWorked() &&
-			!getWorkingCity()->isDisorder()) || // advc.001
-			GC.getInfo(eImprovementUpdrade).isOutsideBorders())
-		{
-			changeUpgradeProgress(GET_PLAYER(getOwner()).getImprovementUpgradeRate());
-			if (getUpgradeProgress() >= GC.getGame().getImprovementUpgradeTime(getImprovementType()))
-				setImprovementType(eImprovementUpdrade);
-		}
+		/*	advc: Caller already ensures isBeingWorked (and isOwned()).
+			In other words, improvement upgrades outside of borders
+			aren't correctly implemented, and I'm not going to fix that. */
+		//if (isBeingWorked() || GC.getInfo(eImprovementUpdrade).isOutsideBorders())
+		changeUpgradeProgress(kOwner.getImprovementUpgradeRate());
+		if (getUpgradeProgress() >= GC.getGame().getImprovementUpgradeTime(getImprovementType()))
+			setImprovementType(eImprovementUpdrade);
 	}
 }
+
 
 void CvPlot::updateCulture(bool bBumpUnits, bool bUpdatePlotGroups)
 {
 	PROFILE_FUNC(); // advc
 
 	if(isCity())
-		return; // advc
+		return;
 
 	// <advc.035>
 	PlayerTypes eCulturalOwner = calculateCulturalOwner();
@@ -476,7 +471,7 @@ void CvPlot::updateFog()
 
 void CvPlot::updateVisibility()
 {
-	PROFILE("CvPlot::updateVisibility");
+	PROFILE_FUNC();
 
 	if (!GC.IsGraphicsInitialized())
 		return;
@@ -549,38 +544,36 @@ void CvPlot::updateSymbols()
 
 	deleteAllSymbols();
 
-	int yieldAmounts[NUM_YIELD_TYPES];
-	int maxYield = 0;
-	for (int iYieldType = 0; iYieldType < NUM_YIELD_TYPES; iYieldType++)
+	int aiYieldRate[NUM_YIELD_TYPES];
+	int iMaxYieldRate = 0;
+	FOR_EACH_ENUM(Yield)
 	{
-		int iYield = calculateYield(((YieldTypes)iYieldType), true);
-		yieldAmounts[iYieldType] = iYield;
-		if(iYield > maxYield)
-			maxYield = iYield;
+		int iYieldRate = calculateYield(eLoopYield, true);
+		aiYieldRate[eLoopYield] = iYieldRate;
+		iMaxYieldRate = std::max(iMaxYieldRate, iYieldRate);
 	}
 
-	if(maxYield>0)
+	if (iMaxYieldRate > 0)
 	{
-		static int maxYieldStack = GC.getDefineINT("MAX_YIELD_STACK"); // advc.opt: static
-		int layers = maxYield /maxYieldStack + 1;
+		static int iMAX_YIELD_STACK = GC.getDefineINT("MAX_YIELD_STACK"); // advc.opt: static
+		int iLayers = iMaxYieldRate / iMAX_YIELD_STACK + 1;
 
-		CvSymbol *pSymbol= NULL;
-		for(int i=0;i<layers;i++)
+		CvSymbol* pSymbol = NULL;
+		for (int i = 0; i < iLayers; i++)
 		{
 			pSymbol = addSymbol();
-			for (int iYieldType = 0; iYieldType < NUM_YIELD_TYPES; iYieldType++)
+			FOR_EACH_ENUM(Yield)
 			{
-				int iYield = yieldAmounts[iYieldType] - (maxYieldStack * i);
-				iYield = range(iYield, 0, maxYieldStack);
-				if(yieldAmounts[iYieldType])
-					gDLL->getSymbolIFace()->setTypeYield(pSymbol,iYieldType,iYield);
+				int iYieldRate = aiYieldRate[eLoopYield] - (iMAX_YIELD_STACK * i);
+				iYieldRate = range(iYieldRate, 0, iMAX_YIELD_STACK);
+				if (aiYieldRate[eLoopYield])
+					gDLL->getSymbolIFace()->setTypeYield(pSymbol, eLoopYield, iYieldRate);
 			}
 		}
-		for(int i=0;i<getNumSymbols();i++)
+		for (int i = 0; i < getNumSymbols(); i++)
 		{
-			SymbolTypes eSymbol  = (SymbolTypes)0;
-			pSymbol = getSymbol(i);
-			gDLL->getSymbolIFace()->init(pSymbol, gDLL->getSymbolIFace()->getID(pSymbol), i, eSymbol, this);
+			gDLL->getSymbolIFace()->init(getSymbol(i),
+					gDLL->getSymbolIFace()->getID(pSymbol), i, (SymbolTypes)0, this);
 		}
 	}
 
@@ -6463,12 +6456,6 @@ void CvPlot::removeUnit(CvUnit* pUnit, bool bUpdate)
 CLLNode<IDInfo>* CvPlot::nextUnitNodeExternal(CLLNode<IDInfo>* pNode) const
 {
 	return m_units.next(pNode);
-}
-
-
-int CvPlot::getNumSymbols() const
-{
-	return m_symbols.size();
 }
 
 

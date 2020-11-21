@@ -734,7 +734,7 @@ public:
 	}
 	// </advc.003s>
 
-	int getNumSymbols() const;
+	int getNumSymbols() const { return m_symbols.size(); } // advc.inl
 	CvSymbol* getSymbol(int iID) const;
 	CvSymbol* addSymbol();
 
@@ -886,7 +886,6 @@ protected:
 	int areaID() const;
 	void processArea(CvArea& kArea, int iChange);
 	char calculateLatitude() const; // advc.tsl
-	void doImprovementUpgrade();
 	void doCultureDecay(); // advc.099b
 	ColorTypes plotMinimapColor();
 	void updateImpassable(); // advc.opt

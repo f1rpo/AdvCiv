@@ -16076,7 +16076,7 @@ void CvGameTextMgr::buildTechTreeString(CvWStringBuffer &szBuffer, TechTypes eTe
 	}
 }
 
-// <advc.034>
+// advc.034:
 void CvGameTextMgr::buildDisengageString(CvWString& szString, PlayerTypes ePlayer,
 	PlayerTypes eOther)
 {
@@ -16093,7 +16093,7 @@ void CvGameTextMgr::buildDisengageString(CvWString& szString, PlayerTypes ePlaye
 	// This is "%s1 (%d2 [NUM2:Turn:Turns])", just what I need.
 	szString.append(gDLL->getText("INTERFACE_CITY_PRODUCTION",
 			gDLL->getText("TXT_KEY_MISC_OPEN_BORDERS").GetCString(), iTurns));
-} // </advc.034>
+}
 
 
 void CvGameTextMgr::setPromotionHelp(CvWStringBuffer &szBuffer, PromotionTypes ePromotion, bool bCivilopediaText)
