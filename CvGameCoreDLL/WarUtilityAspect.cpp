@@ -2850,10 +2850,18 @@ void Affection::evaluate() {
 		that will only please us when it sees our soldiers approach isn't a true friend. */
 	if(wp != WARPLAN_PREPARING_LIMITED && wp != WARPLAN_PREPARING_TOTAL &&
 			wp != NO_WARPLAN) {
-		directPlanFactor = std::min(1.0, 0.08 * std::max(1,
+		directPlanFactor = std::min(1.0, 0.085 * std::max(1.0,
 				/*  If war stays imminent for a long time, and relations remain good,
-					affection should matter again. */
-				agent.AI_getWarPlanStateCounter(TEAMID(theyId)) - 4));
+					affection should matter again. Adjust a bit for game progress b/c
+					turns feel longer in the late game. (This runs counter to the
+					progress adjustment in the end.) If a human player _feels_ that
+					relations have been good for quite some time when war is declared,
+					then that's a problem.
+					Take into account the time spent on prepartions? That would reflect the
+					sunk cost of the AI and would also tend to be shorter in the late game.
+					But that duration isn't currently kept track of by the team AI. */
+				agent.AI_getWarPlanStateCounter(TEAMID(theyId))
+				- 4 * (2.5 * gameProgressFactor - 1.5)));
 	}
 	// We're not fully responsible for wars triggered by our DoW
 	double linkedWarFactor = 0;
