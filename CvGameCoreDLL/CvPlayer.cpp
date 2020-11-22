@@ -1106,6 +1106,7 @@ int CvPlayer::startingPlotDistanceFactor(CvPlot const& kPlot, PlayerTypes ePlaye
 	PROFILE_FUNC();
 
 	FAssert(ePlayer != getID());
+	FAssert(iRange > 0);
 
 	int iValue = 1000;
 	CvPlot const* pStartingPlot = getStartingPlot();
@@ -1232,7 +1233,9 @@ std::vector<std::pair<int,int> > CvPlayer::findStartingAreas(  // advc: style ch
 	//return iBestArea; // <kekm.35>
 	VectorPairSecondGreaterComparator kComparator;
 	std::sort(areas_by_value.begin(), areas_by_value.end(), kComparator);
-	areas_by_value.resize(8); // advc: No need to pass around every little island
+	// advc: No need to consider every little island
+	areas_by_value.resize(std::min<int>(areas_by_value.size(),
+			PlayerIter<CIV_ALIVE>::count()));
 	return areas_by_value; // </kekm.35>
 }
 
