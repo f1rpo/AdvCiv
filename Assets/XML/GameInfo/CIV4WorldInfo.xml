@@ -59,7 +59,7 @@
 			<iTerrainGrainChange>-1</iTerrainGrainChange>
 			<iFeatureGrainChange>-1</iFeatureGrainChange>
 			<!-- advc.910: was 110 -->
-			<iResearchPercent>100</iResearchPercent>
+			<iResearchPercent>98</iResearchPercent>
 			<!-- advc.140: was 70 -->
 			<iTradeProfitPercent>63</iTradeProfitPercent>
 			<!-- advc.140: was 60 -->
@@ -89,7 +89,7 @@
 			<iTerrainGrainChange>0</iTerrainGrainChange>
 			<iFeatureGrainChange>0</iFeatureGrainChange>
 			<!-- advc.910: was 120 -->
-			<iResearchPercent>104</iResearchPercent>
+			<iResearchPercent>102</iResearchPercent>
 			<!-- advc.140: was 60 -->
 			<iTradeProfitPercent>55</iTradeProfitPercent>
 			<!-- advc.140: was 70 -->
