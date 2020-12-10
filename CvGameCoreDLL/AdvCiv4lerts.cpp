@@ -61,13 +61,6 @@ void AdvCiv4lert::check(bool silent)
 }
 
 // <advc.210a>
-WarTradeAlert::WarTradeAlert(PlayerTypes eOwner) : AdvCiv4lert(eOwner)
-{
-	for(int i = 0; i < MAX_CIV_TEAMS; i++)
-		for(int j = 0; j < MAX_CIV_TEAMS; j++)
-			willWar[i][j] = false;
-}
-
 void WarTradeAlert::check()
 {
 	CvPlayer const& owner = GET_PLAYER(ownerId);
@@ -100,9 +93,9 @@ void WarTradeAlert::check()
 			{
 				nowTooManyWars = true;
 			}
-			if(willNowWar == willWar[i][j])
+			if(willNowWar == willWar.get(warTeam.getID(), victim.getID()))
 				continue;
-			willWar[i][j] = willNowWar;
+			willWar.set(warTeam.getID(), victim.getID(), willNowWar);
 			if(willNowWar)
 				willTradeMsgTeams.push_back(victim.getID());
 			/*  Obviously can't hire warTeam if it has already declared war

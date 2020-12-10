@@ -3962,7 +3962,7 @@ int CvTeam::getTechCount(TechTypes eIndex)		 const
 	return m_aiTechCount.get(eIndex);
 }
 
-// BETTER_BTS_AI_MOD, General AI, 07/27/09, jdog5000: START
+// BETTER_BTS_AI_MOD, General AI, 07/27/09, jdog5000:
 int CvTeam::getBestKnownTechScorePercent() const
 {
 	int iOurTechScore = 0;
@@ -3975,7 +3975,7 @@ int CvTeam::getBestKnownTechScorePercent() const
 
 	FAssert(iBestKnownTechScore >= iOurTechScore /* advc: */ || isBarbarian());
 	return (100 * iOurTechScore) / std::max(iBestKnownTechScore, 1);
-} // BETTER_BTS_AI_MOD: END
+}
 
 
 void CvTeam::changeTerrainTradeCount(TerrainTypes eIndex, int iChange)

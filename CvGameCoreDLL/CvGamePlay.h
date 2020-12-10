@@ -13,10 +13,6 @@
 #include "CvPlayer.h"
 #include "AgentIterator.h" // advc.agent
 #include "CvCivilization.h" // advc.003w
-/*  Not: CvCity.h - not much use without CvCityList, which, in turn, includes
-	CvCityAI.h. Same problem with CvUnit.h, CvSelectionGroup.h.
-	To amend this, the constructor and destructor calls would have to be moved out of
-	FFreeListTrashArray. */
 
 // <advc.003u>
 #ifndef GET_TEAM // Prefer the definition in CoreAI.h

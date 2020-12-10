@@ -1861,10 +1861,10 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam,
 	FAssert(eFromTeam != getID());
 
 	CvTechInfo const& kTech = GC.getInfo(eTech);
-	scaled rValue = (fixp(0.25) // advc.551: was 0.5
+	scaled rValue = (fixp(0.25) + // advc.551: was 0.5
 			/*	K-Mod. Standardized the modifier for # of teams with the tech;
 				and removed the effect of team size. */
-			+ AI_knownTechValModifier(eTech)) *
+			AI_knownTechValModifier(eTech)) *
 			/*	advc.551, advc.001: Revert the 2nd part of the K-Mod change.
 				A correct implementation would have to take the team size modifier
 				out of the research progress; but I think it'd still be a bad idea.*/
@@ -4368,7 +4368,7 @@ bool CvTeamAI::AI_isChosenWarPlan(WarPlanTypes eWarPlanType)
 	}
 }
 
-// <advc.105>
+// advc.105:
 bool CvTeamAI::AI_isAnyChosenWar() const
 {
 	FOR_EACH_ENUM(WarPlan)
@@ -4377,7 +4377,7 @@ bool CvTeamAI::AI_isAnyChosenWar() const
 			return true;
 	}
 	return false;
-} // </advc.105>
+}
 
 /*  advc: Body based on the deleted CvTeam::getWarPlanCount. (War plans are an AI thing.)
 	NUM_WARPLAN_TYPES causes all war plans (except NO_WARPLAN) to be counted.
@@ -4426,21 +4426,21 @@ bool CvTeamAI::AI_isSneakAttackReady(TeamTypes eIndex) const
 
 bool CvTeamAI::AI_isSneakAttackPreparing(TeamTypes eIndex) const
 {
-	if(eIndex != NO_TEAM) // advc
+	if(eIndex != NO_TEAM)
 	{
 		WarPlanTypes eWarPlan = AI_getWarPlan(GET_TEAM(eIndex).getMasterTeam()); // advc.104j
 		return (eWarPlan == WARPLAN_PREPARING_LIMITED || eWarPlan == WARPLAN_PREPARING_TOTAL);
-	} // <advc>
+	}
 	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
 	{
 		if (AI_isSneakAttackPreparing(it->getID()))
 			return true;
 	}
-	return false; // </advc>
+	return false;
 }
 
 
-void CvTeamAI::AI_setWarPlan(TeamTypes eTarget, WarPlanTypes eNewValue, bool bWar)  // advc: style changes
+void CvTeamAI::AI_setWarPlan(TeamTypes eTarget, WarPlanTypes eNewValue, bool bWar)
 {
 	FAssertBounds(0, MAX_TEAMS, eTarget);
 	FAssert(eTarget != getID() || eNewValue == NO_WARPLAN); // advc: Moved from AI_getWarPlan
@@ -4585,15 +4585,15 @@ bool CvTeamAI::AI_isMasterPlanningSeaWar(CvArea const& kArea) const
 	return false;
 } // BETTER_BTS_AI_MOD: END
 
-// <advc.104>
+// advc.104:
 void CvTeamAI::AI_setWarPlanNoUpdate(TeamTypes eIndex, WarPlanTypes eNewValue)
 {
 	FAssertBounds(0, MAX_TEAMS, eIndex);
 	AI_updateWarPlanCounts(eIndex, m_aeWarPlan.get(eIndex), eNewValue); // advc.opt
 	m_aeWarPlan.set(eIndex, eNewValue);
-} // </advc.104>
+}
 
-// <advc.opt>
+// advc.opt:
 void CvTeamAI::AI_updateWarPlanCounts(TeamTypes eTarget, WarPlanTypes eOldPlan, WarPlanTypes eNewPlan)
 {
 	if (eTarget == BARBARIAN_TEAM || eOldPlan == eNewPlan)
@@ -4619,13 +4619,13 @@ void CvTeamAI::AI_updateWarPlanCounts(TeamTypes eTarget, WarPlanTypes eOldPlan, 
 		}
 	}
 	m_bAnyWarPlan = false;
-} // </advc.opt>
+}
 
 //if this number is over 0 the teams are "close"
 //this may be expensive to run, kinda O(N^2)...
 int CvTeamAI::AI_teamCloseness(TeamTypes eIndex, int iMaxDistance,
-		bool bConsiderLandTarget, // advc.104o
-		bool bConstCache) const // advc.001n
+	bool bConsiderLandTarget, // advc.104o
+	bool bConstCache) const // advc.001n
 {
 	//PROFILE_FUNC(); // advc.003o (the cache seems to be very effective)
 
@@ -4750,7 +4750,6 @@ void CvTeamAI::write(FDataStreamBase* pStream)
 	} // </advc.130n>
 	m_aiEnemyPeacetimeTradeValue.Write(pStream);
 	m_aiEnemyPeacetimeGrantValue.Write(pStream);
-
 	m_aiWarPlanCounts.Write(pStream); // advc.opt
 	pStream->Write(m_bAnyWarPlan); // advc.opt
 	m_aeWarPlan.Write(pStream);

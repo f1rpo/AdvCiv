@@ -213,7 +213,8 @@ bool CvUnitAI::AI_update()
 			break;
 		}
 	}
-	if(getPlot().isCity() && getPlot().getTeam() == getTeam() && !isBarbarian() && bEvacAI)
+	if(getPlot().isCity() && getPlot().getTeam() == getTeam() &&
+		!isBarbarian() && bEvacAI)
 	{
 		if (AI_evacuateCity())
 			return false;
@@ -21358,9 +21359,9 @@ int CvUnitAI::AI_stackOfDoomExtra() const
 		rMult += fixp(0.225);
 	if(kOurTeam.AI_getNumWarPlans(WARPLAN_TOTAL) <= 0)
 		rMult *= fixp(0.85);
-	r = (rMult * r).round();
-	FAssert(r > 0);
-	return std::max(1, r); // </advc.104p>
+	iR = (rMult * iR).round();
+	FAssert(iR > 0);
+	return std::max(1, iR); // </advc.104p>
 }
 
 // This function has been significantly modified for K-Mod

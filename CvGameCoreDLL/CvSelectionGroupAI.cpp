@@ -438,8 +438,9 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 	return pBestUnit;
 }
 
+
 CvUnitAI* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
-		bool bPotentialEnemy, bool bForce, bool bNoBlitz) const
+	bool bPotentialEnemy, bool bForce, bool bNoBlitz) const
 {
 	int iBestValue = -1; // advc.048: was 0
 	CvUnitAI* pBestUnit = NULL;

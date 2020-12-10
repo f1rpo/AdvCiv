@@ -306,7 +306,7 @@ void CvGame::regenerateMap()
 	for (PlayerIter<> it; it.hasNext(); ++it)
 	{
 		it->setFoundedFirstCity(false);
-		it->setStartingPlot(NULL, false);
+		it->setStartingPlot(NULL);
 		// <advc.004x>
 		if (it->isHuman())
 			it->killAll(BUTTONPOPUP_CHOOSETECH); // </advc.004x>
@@ -728,7 +728,8 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 /*	The EXE calls this after generating the map but before initFreeState
 	(i.e. also before assigning starting plots). Seems like a good place
 	for various initializations as it gets called for all game types
-	(unlike setInitialItems). */
+	(unlike setInitialItems, which isn't called for scenarios with fixed
+	civs and leaders). */
 void CvGame::initDiplomacy()
 {
 	PROFILE_FUNC();
@@ -1050,17 +1051,14 @@ void CvGame::initFreeUnits()
 	} // </advc.250b>
 }
 
+
 void CvGame::initFreeUnits_bulk() // </advc.051>
 {
-	for (int iI = 0; iI < MAX_PLAYERS; iI++)
+	// kekm.28: exclude Barbarians
+	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if ((GET_PLAYER((PlayerTypes)iI).getNumUnits() == 0) && (GET_PLAYER((PlayerTypes)iI).getNumCities() == 0))
-			{
-				GET_PLAYER((PlayerTypes)iI).initFreeUnits();
-			}
-		}
+		if (itPlayer->getNumUnits() == 0 && itPlayer->getNumCities() == 0)
+			itPlayer->initFreeUnits();
 	}
 }
 
@@ -2504,7 +2502,7 @@ void CvGame::updateStartingPlotRange() const
 	m_iStartingPlotRange = std::max(iRange, GC.getDefineINT("MIN_CIV_STARTING_DISTANCE"));
 }
 
-// advc: Cut, pasted, refactored from normalizeAddExtras
+// advc: Cut, refactored from normalizeAddExtras
 bool CvGame::placeExtraBonus(PlayerTypes eStartPlayer, CvPlot& kPlot,
 		bool bCheckCanPlace, bool bIgnoreLatitude, bool bRemoveFeature,
 		bool bNoFood) // advc.108
@@ -5939,9 +5937,7 @@ void CvGame::changeForceCivicCount(CivicTypes eIndex, int iChange)
 	FAssert(getForceCivicCount(eIndex) >= 0);
 
 	if (bOldForceCivic != isForceCivic(eIndex))
-	{
 		verifyCivics();
-	}
 }
 
 
@@ -10799,6 +10795,7 @@ std::pair<int,int> CvGame::getVoteSourceXY(VoteSourceTypes eVS, TeamTypes eObser
 	return r;
 }
 
+
 CvCity* CvGame::getVoteSourceCity(VoteSourceTypes eVS, TeamTypes eObserver, bool bDebug) const
 {
 	BuildingTypes eVSBuilding = getVoteSourceBuilding(eVS);
@@ -10820,7 +10817,7 @@ CvCity* CvGame::getVoteSourceCity(VoteSourceTypes eVS, TeamTypes eObserver, bool
 	return NULL;
 }
 
-// <advc> Used in several places and I want to make a small change
+// advc: Used in several places and I want to make a small change
 bool CvGame::isFreeStartEraBuilding(BuildingTypes eBuilding) const
 {
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
@@ -10829,7 +10826,7 @@ bool CvGame::isFreeStartEraBuilding(BuildingTypes eBuilding) const
 			// <advc.126>
 			(kBuilding.getMaxStartEra() == NO_ERA ||
 			kBuilding.getMaxStartEra() >= getStartEra())); // </advc.126>
-} // </advc>
+}
 
 
 BuildingTypes CvGame::getVoteSourceBuilding(VoteSourceTypes eVS) const
@@ -10860,13 +10857,13 @@ StartPointsAsHandicap const& CvGame::startPointsAsHandicap() const
 	return *m_pSpah;
 }
 
-// <advc.106i>
+// advc.106i:
 void CvGame::setHallOfFame(CvHallOfFameInfo* pHallOfFame)
 {
 	m_pHallOfFame = pHallOfFame;
-} // </advc.106i>
+}
 
-// <advc>
+// advc:
 std::set<int>& CvGame::getActivePlayerCycledGroups()
 {
 	return m_ActivePlayerCycledGroups; // Was public; now protected.

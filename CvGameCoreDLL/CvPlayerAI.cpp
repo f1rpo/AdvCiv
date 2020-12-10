@@ -23,9 +23,10 @@
 #include "BBAILog.h"
 #include "CvPopupInfo.h"
 
-//#define GREATER_FOUND_RANGE		(5)
-#define CIVIC_CHANGE_DELAY			(20) // was 25
-#define RELIGION_CHANGE_DELAY		(15)
+//#define GREATER_FOUND_RANGE			(5)
+#define CIVIC_CHANGE_DELAY				(20) // was 25
+#define RELIGION_CHANGE_DELAY			(15)
+#define iSINGLE_BONUS_TRADE_TOLERANCE	(20) // advc.036
 
 // statics ... (advc.003u: Mostly moved to CvPlayer)
 
@@ -130,9 +131,9 @@ void CvPlayerAI::AI_init()
 
 	// Init other game data ...
 	AI_updatePersonality(); // advc.104: Moved into a subroutine
-	//AI_setCivicTimer(((getMaxAnarchyTurns() == 0) ? (GC.getDefineINT(CvGlobals::MIN_REVOLUTION_TURNS) * 2) : CIVIC_CHANGE_DELAY) / 2);  // This was commented out by the BtS expansion
+	//AI_setCivicTimer((getMaxAnarchyTurns() == 0 ? GC.getDefineINT(CvGlobals::MIN_REVOLUTION_TURNS) * 2 : CIVIC_CHANGE_DELAY) / 2);  // This was commented out by the BtS expansion
 	AI_setReligionTimer(1);
-	AI_setCivicTimer((getMaxAnarchyTurns() == 0) ? 1 : 2);
+	AI_setCivicTimer(getMaxAnarchyTurns() == 0 ? 1 : 2);
 	AI_initStrategyRand(); // K-Mod
 	AI_updateCacheData(); // K-Mod
 	// <advc.104>
@@ -377,8 +378,10 @@ void CvPlayerAI::AI_doTurnPre()
 
 	AI_doCounter();
 
-	/*  K-Mod note: attitude cache is not refreshed here because there are still some attitude-affecting changes to come, in CvTeamAI::AI_doCounter
-		for efficiency, I've put AI_updateCloseBorderAttitude in CvTeam::doTurn rather than here. */
+	/*  K-Mod note: attitude cache is not refreshed here because there are still
+		some attitude-affecting changes to come, in CvTeamAI::AI_doCounter.
+		For efficiency, I've put AI_updateCloseBorderAttitude in CvTeam::doTurn
+		rather than here. */
 
 	AI_updateBonusValue();
 	// K-Mod. Update commerce weight before calculating great person weight
@@ -3791,8 +3794,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 	{
 		techs_to_depth.push_back(iTechCount);
 
-		for (TechTypes eTech = (TechTypes)0; eTech < GC.getNumTechInfos();
-				eTech=(TechTypes)(eTech+1))
+		FOR_EACH_ENUM2(Tech, eTech)
 		{
 			const CvTechInfo& kTech = GC.getInfo(eTech);
 			const std::vector<std::pair<int,TechTypes> >::iterator
@@ -3818,9 +3820,11 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 			if (GC.getInfo(eTech).getEra() > getCurrentEra() + 1)
 				continue; // too far in the future to consider. (This condition is only for efficiency.)
 
-			if (std::find_if(techs.begin(), tech_search_end, PairSecondEq<int, TechTypes>(eTech)) != tech_search_end)
+			if (std::find_if(techs.begin(), tech_search_end,
+				PairSecondEq<int, TechTypes>(eTech)) != tech_search_end)
+			{
 				continue; // already evaluated
-
+			}
 			// Check "or" prereqs
 			bool bMissingPrereq = false;
 			for (int p = 0; p < GC.getNUM_OR_TECH_PREREQS(); ++p)
@@ -3828,12 +3832,15 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 				TechTypes ePrereq = (TechTypes)kTech.getPrereqOrTechs(p);
 				if (ePrereq != NO_TECH)
 				{
-					if (kTeam.isHasTech(ePrereq) || std::find_if(techs.begin(), tech_search_end, PairSecondEq<int, TechTypes>(ePrereq)) != tech_search_end)
+					if (kTeam.isHasTech(ePrereq) ||
+						std::find_if(techs.begin(), tech_search_end,
+						PairSecondEq<int, TechTypes>(ePrereq)) != tech_search_end)
 					{
 						bMissingPrereq = false; // we have a prereq
 						break;
 					}
-					bMissingPrereq = true; // A prereq exists, and we don't have it.
+					// A prereq exists, and we don't have it.
+					bMissingPrereq = true;
 				}
 			}
 			if (bMissingPrereq)
@@ -3845,7 +3852,9 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 				TechTypes ePrereq = (TechTypes)kTech.getPrereqAndTechs(p);
 				if (ePrereq != NO_TECH)
 				{
-					if (!GET_TEAM(getTeam()).isHasTech(ePrereq) && std::find_if(techs.begin(), tech_search_end, PairSecondEq<int, TechTypes>(ePrereq)) == tech_search_end)
+					if (!GET_TEAM(getTeam()).isHasTech(ePrereq) &&
+						std::find_if(techs.begin(), tech_search_end,
+						PairSecondEq<int, TechTypes>(ePrereq)) == tech_search_end)
 					{
 						bMissingPrereq = true;
 						break;
@@ -4123,7 +4132,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 					TechTypes ePrereq = (TechTypes)GC.getInfo(
 							techs_to_check.front()).getPrereqAndTechs(p);
 					if (!kTeam.isHasTech(ePrereq) &&
-							techs_in_path.find(ePrereq) == techs_in_path.end())
+						techs_in_path.find(ePrereq) == techs_in_path.end())
 					{
 						bMissingPrereq = true;
 						// find the tech. (Lambda would be nice...)
@@ -4203,19 +4212,14 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 				}
 
 				if (bMissingPrereq)
-				{
-					break; // failured to add prereqs to the path
-				}
-				else
-				{
-					techs_to_check.pop(); // prereqs are satisfied
-				}
+					break; // failed to add prereqs to the path
+				else techs_to_check.pop(); // prereqs are satisfied
 			} // end techs_to_check (prereqs loop)
 
 			/*  If we couldn't add all the prereqs (eg. too many),
 				abort the path. */
-			if ((int)techs_in_path.size() > iMaxPathLength ||
-					!techs_to_check.empty())
+			if (((int)techs_in_path.size()) > iMaxPathLength ||
+				!techs_to_check.empty())
 			{
 				tech_paths.pop_back();
 				continue;
@@ -4223,12 +4227,12 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 
 			/*  If we haven't already filled the path with prereqs,
 				fill the remaining slots with the highest value unused techs. */
-			if (((int)techs_in_path.size() < iMaxPathLength))
+			if (((int)techs_in_path.size()) < iMaxPathLength)
 			{
 				/*  todo: consider backfilling the list with deeper techs if
 					we've matched their prereqs already. */
-				for (int j = 0; j < techs_to_depth[1] && (int)techs_in_path.size() <
-						iMaxPathLength; j++)
+				for (int j = 0; j < techs_to_depth[1] &&
+					((int)techs_in_path.size()) < iMaxPathLength; j++)
 				{
 					if (techs_in_path.count(techs[j].second) == 0)
 					{
@@ -4238,8 +4242,8 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 							where in our path. Try to research highest values first. */
 						for (; k < (int)tech_paths.back().second.size(); k++)
 						{
-							if (techs[j].first < techs[tech_paths.back().
-									second[k]].first)
+							if (techs[j].first <
+								techs[tech_paths.back().second[k]].first)
 							{
 
 								// Note: we'll need to recalculate the total value.
@@ -5714,7 +5718,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	return ::longLongToInt(iValue); // </advc.001>
 }
 
-/*	K-mod. This function returns the (positive) value of
+/*	K-Mod. This function returns the (positive) value of
 	the buildings we will lose by researching eTech.
 	(I think it's crazy that this stuff wasn't taken into account in original BtS.) */
 int CvPlayerAI::AI_obsoleteBuildingPenalty(TechTypes eTech, bool bConstCache) const
@@ -9379,7 +9383,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 		return true;
 
 	// <advc.036>
-	if (bHuman && iWeReceive + m_iSingleBonusTradeTolerance >= iTheyReceive &&
+	if (bHuman && iWeReceive + iSINGLE_BONUS_TRADE_TOLERANCE >= iTheyReceive &&
 		kWeGive.getLength() == 1 && kTheyGive.getLength() == 1 &&
 		kWeGive.head()->m_data.m_eItemType == TRADE_RESOURCES &&
 		kTheyGive.head()->m_data.m_eItemType == TRADE_RESOURCES)
@@ -9954,7 +9958,7 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const& kThe
 			if (iItemValue > 0 &&
 				(bTheyGenerous || iTheyReceive >= iWeReceive + iItemValue ||
 				// <advc.036>
-				(iTheyReceive + m_iSingleBonusTradeTolerance >= iItemValue &&
+				(iTheyReceive + iSINGLE_BONUS_TRADE_TOLERANCE >= iItemValue &&
 				kWeWant.getLength() <= 0 && iOtherListLength <= 0 &&
 				bSingleResource && pItem->m_eItemType == TRADE_RESOURCES)))
 			{
@@ -10081,7 +10085,7 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const& kThe
 				int iItemValue = it->second;
 				if (iTheyReceive >= iWeReceive + iItemValue /* <advc.036> */ ||	
 					(bSingleResource && iTheyReceive +
-					m_iSingleBonusTradeTolerance >= iWeReceive &&
+					iSINGLE_BONUS_TRADE_TOLERANCE >= iWeReceive &&
 					kWeWant.getLength() <= 0 && iOtherListLength <= 0 &&
 					it->first.m_eItemType == TRADE_RESOURCES)) // </advc.036>
 				{
@@ -10092,7 +10096,7 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const& kThe
 			}
 		}
 	} // <advc.036> Special treatment for one-for-one resource trades
-	if (bSingleResource && iTheyReceive - iWeReceive <= m_iSingleBonusTradeTolerance &&
+	if (bSingleResource && iTheyReceive - iWeReceive <= iSINGLE_BONUS_TRADE_TOLERANCE &&
 		(
 			(kWeWant.getLength() <= 0 && iOtherListLength == 1 &&
 			// Haven't added gold or unable to trade it
@@ -15388,8 +15392,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 			}
 		}
 	}
-	int const iBestReligionCities = (eBestReligion ==
-			(NO_RELIGION ? 0 : getHasReligionCount(eBestReligion)));
+	int const iBestReligionCities = (eBestReligion == NO_RELIGION ?
+			0 : getHasReligionCount(eBestReligion));
 	/*	K-Mod note. max war rand is between 50 and 400,
 		so I've renamed the above number from iWarmongerPercent to iWarmongerFactor.
 		I don't know what it is meant to be a percentage of. It's roughly between 56 and 167. */
@@ -16321,8 +16325,9 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		int iTempValue = 0;
 
 		// K-Mod
-		iTempValue += kCivic.getCommerceModifier(eCommerce) *
-				100*getCommerceRate(eCommerce) / AI_averageCommerceMultiplier(eCommerce);
+		iTempValue += (kCivic.getCommerceModifier(eCommerce) *
+				100 * getCommerceRate(eCommerce)) /
+				AI_averageCommerceMultiplier(eCommerce);
 		if (pCapital != NULL)
 		{
 			iTempValue += kCivic.getCapitalCommerceModifier(eCommerce) *
@@ -21364,8 +21369,9 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 
 	pStream->Read(GC.getNumBonusInfos(), m_aiBonusValue);
 	// <advc.036>
-	if(uiFlag >= 10)
+	if (uiFlag >= 10)
 		pStream->Read(GC.getNumBonusInfos(), m_aiBonusValueTrade); // </advc.036>
+
 	pStream->Read(GC.getNumUnitClassInfos(), m_aiUnitClassWeights);
 	pStream->Read(GC.getNumUnitCombatInfos(), m_aiUnitCombatWeights);
 	// K-Mod
@@ -21524,6 +21530,7 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 
 	pStream->Write(GC.getNumBonusInfos(), m_aiBonusValue);
 	pStream->Write(GC.getNumBonusInfos(), m_aiBonusValueTrade); // advc.036
+
 	pStream->Write(GC.getNumUnitClassInfos(), m_aiUnitClassWeights);
 	pStream->Write(GC.getNumUnitCombatInfos(), m_aiUnitCombatWeights);
 	// K-Mod. save great person weights.
@@ -25824,7 +25831,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 			{	// advc: Assert added, BtS comment moved into message.
 				FErrorMsg("If this point is reached, the advanced start system is broken.");
 				//Find a new starting plot for this player
-				setStartingPlot(findStartingPlot(false), true);
+				setStartingPlot(findStartingPlot());
 				//Redo Starting visibility
 				CvPlot const* pStartingPlot = getStartingPlot();
 				if (pStartingPlot != NULL)
@@ -26224,7 +26231,8 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 void CvPlayerAI::AI_invalidateCitySites(int iMinFoundValueThreshold)
 {
 	// m_aiAICitySites.clear(); // BtS
-	// K-Mod. note: this clear-by-value stuff isn't actually used yet... but at least it works now.
+	/*	K-Mod. note: this clear-by-value stuff isn't actually used yet...
+		but at least it works now. */
 	std::vector<int> keptSites;
 	if (iMinFoundValueThreshold > 0) // less than zero means clear all.
 	{
@@ -26291,7 +26299,8 @@ int CvPlayerAI::AI_getNumAdjacentAreaCitySites(int& iBestValue, CvArea const& kW
 	return iCount;
 }
 
-// K-Mod. Return the number of city sites that are in a primary area, with a site value above the minimum
+/*	K-Mod: Return the number of city sites that are in a primary area
+	with a site value above the minimum */
 int CvPlayerAI::AI_getNumPrimaryAreaCitySites(int iMinimumValue) const
 {
 	int iCount = 0;
@@ -26307,7 +26316,7 @@ int CvPlayerAI::AI_getNumPrimaryAreaCitySites(int iMinimumValue) const
 	}
 	return iCount;
 }
-// K-Mod end
+
 
 CvPlot* CvPlayerAI::AI_getCitySite(int iIndex) const
 {

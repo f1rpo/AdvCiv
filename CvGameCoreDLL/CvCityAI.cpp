@@ -1289,7 +1289,7 @@ void CvCityAI::AI_chooseProduction()
 	if (!bUnitExempt && !bGetBetterUnits && bCapitalArea && (iAreaBestFoundValue < iMinFoundValue * 2))
 	{	//Building city hunting stack.
 		if ((getDomainFreeExperience(DOMAIN_LAND) == 0) &&
-				getYieldRate(YIELD_PRODUCTION) > 4)
+			getYieldRate(YIELD_PRODUCTION) > 4)
 		{
 			if (AI_chooseBuilding(BUILDINGFOCUS_EXPERIENCE, (iOwnerEra > 1) ? 0 : 7, 33))
 			{

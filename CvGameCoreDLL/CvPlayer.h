@@ -413,7 +413,8 @@ public:
 
 	// advc.027: Inline (called frequently by StartingPositionIteration)
 	inline CvPlot* getStartingPlot() const { return m_pStartingPlot; }												// Exposed to Python
-	void setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist);													// Exposed to Python
+	// advc: No update by default. Non-Python calls should never have to use that param.
+	void setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist = false);													// Exposed to Python
 
 	int getTotalPopulation() const { return m_iTotalPopulation; }													// Exposed to Python
 	int getAveragePopulation() const;																				// Exposed to Python

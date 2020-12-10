@@ -371,7 +371,7 @@ public: // advc: made several functions const
 		return m_iGridHeight;
 	}
 
-	int getLandPlots() const;																					// Exposed to Python
+	int getLandPlots() const { return m_iLandPlots; } // advc.inl										// Exposed to Python
 	void changeLandPlots(int iChange);
 
 	int getOwnedPlots() const { return m_iOwnedPlots; }														// Exposed to Python

@@ -873,9 +873,7 @@ void CvPlayer::initFreeState()
 
 
 void CvPlayer::initFreeUnits()
-{	// <kekm.28>
-	if(isBarbarian())
-		return; // </kekm.28>
+{
 	// <advc>
 	CvGame const& kGame = GC.getGame();
 	int const iStartingUnitMultiplier = GC.getInfo(kGame.getStartEra()).
@@ -1102,14 +1100,15 @@ int CvPlayer::startingPlotRange() const
 }
 
 
-bool CvPlayer::startingPlotWithinRange(CvPlot const& kPlot, PlayerTypes ePlayer, int iRange, int iPass) const // advc: 1st param was CvPlot*
+bool CvPlayer::startingPlotWithinRange(CvPlot const& kPlot, PlayerTypes ePlayer, int iRange, int iPass) const
 {
 	/*	XXX changes to AI_foundValue (which are far more flexible) make this function
 		redundant but it is still called from Python. */
 	return false;
 }
 
-int CvPlayer::startingPlotDistanceFactor(CvPlot const& kPlot, PlayerTypes ePlayer, int iRange) const // advc: 1st param was CvPlot*
+
+int CvPlayer::startingPlotDistanceFactor(CvPlot const& kPlot, PlayerTypes ePlayer, int iRange) const
 {
 	PROFILE_FUNC();
 
@@ -1119,7 +1118,7 @@ int CvPlayer::startingPlotDistanceFactor(CvPlot const& kPlot, PlayerTypes ePlaye
 	int iValue = 1000;
 	CvPlot const* pStartingPlot = getStartingPlot();
 	if (pStartingPlot == NULL)
-		return iValue; // advc
+		return iValue;
 
 	if (GC.getGame().isTeamGame())
 	{
@@ -7121,7 +7120,7 @@ void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 {
 	CvPlot* pOldStartingPlot = getStartingPlot();
 	if (pOldStartingPlot == pNewValue)
-		return; // advc
+		return;
 
 	if (pOldStartingPlot != NULL)
 	{
@@ -12573,8 +12572,8 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 				if (eClosestPlayer != getID())
 				{
 					CvPlot* pTempPlot = GET_PLAYER(eClosestPlayer).getStartingPlot();
-					GET_PLAYER(eClosestPlayer).setStartingPlot(getStartingPlot(), false);
-					setStartingPlot(pTempPlot, false);
+					GET_PLAYER(eClosestPlayer).setStartingPlot(getStartingPlot());
+					setStartingPlot(pTempPlot);
 				}
 			}
 			if (getAdvancedStartPoints() >= iCost || getNumCities() <= 0)

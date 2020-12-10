@@ -2857,9 +2857,9 @@ void Affection::evaluate() {
 					progress adjustment in the end.) If a human player _feels_ that
 					relations have been good for quite some time when war is declared,
 					then that's a problem.
-					Take into account the time spent on prepartions? That would reflect the
+					Take into account the time spent on preparations? That would reflect the
 					sunk cost of the AI and would also tend to be shorter in the late game.
-					But that duration isn't currently kept track of by the team AI. */
+					But that duration isn't currently kept track of by the team AI ... */
 				agent.AI_getWarPlanStateCounter(TEAMID(theyId))
 				- 4 * (2.5 * gameProgressFactor - 1.5)));
 	}

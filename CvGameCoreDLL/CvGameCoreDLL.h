@@ -144,7 +144,7 @@ BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 #ifdef _DEBUG
 	/*	<advc.wine> Wrap a macro around OutputDebugString that prints to both the VS console
 		(as before through WinBase.h) and to a regular console e.g. for Wine. */
-	// Caveat: szMsg has to be 0-terminated -- no fixed-size char buffers!
+	// Caveat: szMsg has to be zero-terminated -- no fixed-size char buffers!
 	#define printToConsole(szMsg) \
 		OutputDebugString(szMsg); \
 		printf("OutputDebugString: %s", szMsg);

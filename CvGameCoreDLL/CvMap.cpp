@@ -866,12 +866,6 @@ int CvMap::getGridHeightExternal() const // advc.inl
 }
 
 
-int CvMap::getLandPlots() const
-{
-	return m_iLandPlots;
-}
-
-
 void CvMap::changeLandPlots(int iChange)
 {
 	m_iLandPlots = (m_iLandPlots + iChange);

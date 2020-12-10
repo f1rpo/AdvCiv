@@ -68,7 +68,7 @@ enum FlavorTypes
 	FLAVOR_CULTURE,
 	FLAVOR_GROWTH,
 	// K-Mod end
-	/*  <advc.001> Added by BtS, missing in karadoc's list. Not a bug really, just
+	/*  advc.001: Added by BtS, missing in karadoc's list. Not a bug really, just
 		means that it was impossible to base AI code on FLAVOR_ESPIONAGE. */
 	FLAVOR_ESPIONAGE,
 };
@@ -835,6 +835,7 @@ ENUM_START(Automate, AUTOMATE)
 	AUTOMATE_CITY,
 	AUTOMATE_EXPLORE,
 	AUTOMATE_RELIGION,
+	// Any additions need to be reflected in GlobalTypes.xml
 ENUM_END(Automate, AUTOMATE)
 
 ENUM_START(Mission, MISSION)
@@ -888,7 +889,7 @@ ENUM_START(Mission, MISSION)
 	MISSION_MULTI_DESELECT,
 
 	MISSION_SENTRY_HEAL, // advc.004l
-	// Any additions need to be reflected in GlobalTypes.xml
+	// Any additions need to be reflected in Civ4MissionInfos.xml
 ENUM_END(Mission, MISSION)
 
 ENUM_START(MissionAI, MISSIONAI)
@@ -949,7 +950,7 @@ ENUM_START(Command, COMMAND)
 	COMMAND_UNLOAD,
 	COMMAND_UNLOAD_ALL,
 	COMMAND_HOTKEY,
-	// Any additions need to be reflected in GlobalTypes.xml
+	// Any additions need to be reflected in Civ4CommandInfos.xml
 ENUM_END(Command, COMMAND)
 
 ENUM_START(Control, CONTROL)
@@ -1016,6 +1017,7 @@ ENUM_START(Control, CONTROL)
 	CONTROL_SELECT_HEALTHY,
 	CONTROL_ESPIONAGE_SCREEN,
 	CONTROL_FREE_COLONY,
+	// Any additions need to be reflected in XML\Units\Civ4ControlInfos.xml
 ENUM_END(Control, CONTROL)
 
 ENUM_START(WarPlan, WARPLAN)
@@ -1154,6 +1156,7 @@ ENUM_START(Contact, CONTACT)
 	CONTACT_TRADE_TECH,
 	CONTACT_TRADE_BONUS,
 	CONTACT_TRADE_MAP,
+	// Any additions need to be reflected in GlobalTypes.xml
 ENUM_END(Contact, CONTACT)
 
 ENUM_START(Memory, MEMORY)

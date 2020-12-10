@@ -11044,9 +11044,8 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 	if (kBuilding.getGreatPeopleRateChange() != 0)
 	{
 		szTempBuffer.Format(
-				// advc.004w: Doesn't fit in one line
-				(bInBuildingList ? L"\n%s%d%c" :
-				L", %s%d%c"), ((kBuilding.getGreatPeopleRateChange() > 0) ? "+" : ""),
+				(bInBuildingList ? L"\n%s%d%c" : // advc.004w: Doesn't fit in one line
+				L", %s%d%c"), (kBuilding.getGreatPeopleRateChange() > 0) ? "+" : "",
 				kBuilding.getGreatPeopleRateChange(), gDLL->getSymbolID(GREAT_PEOPLE_CHAR));
 		szBuffer.append(szTempBuffer);
 		UnitClassTypes eGPClass = (UnitClassTypes)kBuilding.getGreatPeopleUnitClass(); // advc
@@ -11068,8 +11067,8 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 	// test for unique building
 	BuildingTypes eDefaultBuilding = GC.getInfo(eBuildingClass).getDefaultBuilding();
 
-	if (eDefaultBuilding != NO_BUILDING && eDefaultBuilding != eBuilding
-		&& !bInBuildingList) // advc.004w
+	if (eDefaultBuilding != NO_BUILDING && eDefaultBuilding != eBuilding &&
+		!bInBuildingList) // advc.004w
 	{
 		FOR_EACH_ENUM(Civilization)
 		{
@@ -16667,7 +16666,7 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 				iTotal += iAttitudeChange;
 			}*/ // END: Show Hidden Attitude Mod
 		} // </advc.sha>
-		// <advc.004q> Kludge. Really need default values for personality stats.
+		// <advc.004q>
 		static MemoryTypes aeObscureMemoryTypes[] =
 		{
 			MEMORY_DENIED_STOP_TRADING, MEMORY_DENIED_JOIN_WAR,
@@ -16699,7 +16698,8 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 							break;
 						}
 					}
-					iAttitudeChange = (iAttitudeChange > 0 ? iAbsAttitudeChange : -iAbsAttitudeChange);
+					iAttitudeChange = (iAttitudeChange > 0 ?
+							iAbsAttitudeChange : -iAbsAttitudeChange);
 				} // </advc.004q>
 				szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR(
 						(iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"),

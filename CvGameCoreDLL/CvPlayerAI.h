@@ -754,7 +754,8 @@ protected:
 	std::map<int,int> m_neededExplorersByArea; // advc.opt
 	static int const m_iSingleBonusTradeTolerance = 20; // advc.036
 	//mutable int* m_aiCloseBordersAttitude;
-	std::vector<int> m_aiCloseBordersAttitude; // K-Mod. (the original system was prone to mistakes.)
+	// K-Mod: (the original system was prone to mistakes.)
+	std::vector<int> m_aiCloseBordersAttitude;
 	std::vector<int> m_aiAttitude; // K-Mod
 
 	bool* m_abFirstContact; // advc.003j: Now unused

@@ -2370,7 +2370,7 @@ int AIFoundValue::adjustToLandAreaBoundary(int iValue) const
 // Taking into account tiles beyond the city radius
 int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 {
-	int r = iValue;
+	int iR = iValue;
 	int iGreaterBadTile = 0;
 	int const iRange = 6; // K-Mod (was 5)
 	for (SquareIter it(kPlot, iRange); it.hasNext(); ++it)
@@ -2410,15 +2410,15 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 				}
 			}
 			if (p.isWater() || p.isArea(kArea))
-				r += iTempValue;
+				iR += iTempValue;
 			else if (iTempValue >= 13)
 				iGreaterBadTile++; // add at least 1 badness point for other islands.
 			// K-Mod end
 		}
 	}
-	IFLOG logBBAI("+%d from surroundings", r - iValue);
+	IFLOG logBBAI("+%d from surroundings", iR - iValue);
 	if (kSet.isNormalizing())
-		return r; // advc
+		return iR;
 	/*iGreaterBadTile /= 2;
 	if (iGreaterBadTile > 12) {
 		r *= 11;
@@ -2430,8 +2430,8 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 	int iGreaterRangeFactor = iGreaterRangePlots / 6; // advc
 	if (iGreaterBadTile > iGreaterRangeFactor)
 	{
-		r *= iGreaterRangeFactor;
-		r /= iGreaterBadTile;
+		iR *= iGreaterRangeFactor;
+		iR /= iGreaterBadTile;
 		IFLOG logBBAI("Times %d/%d for bad tiles in the greater range", iGreaterRangeFactor, iGreaterBadTile);
 	}
 
@@ -2442,7 +2442,7 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 	/*  advc: Unused BtS and K-Mod code dealing with WaterCount and
 		MinOriginalStartDist deleted */
 
-	int const iTempValue = r; // advc.031c
+	int const iTempValue = iR; // advc.031c
 	int iMinDistanceFactor = MAX_INT;
 	int const iMinRange = //startingPlotRange();
 			kGame.getStartingPlotRange(); // advc.opt (now cached)
@@ -2456,29 +2456,27 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 		iMinDistanceFactor = std::min(iClosenessFactor, iMinDistanceFactor);
 		if (iClosenessFactor < 1000)
 		{
-			/*r *= 2000 + iClosenessFactor;
-			r /= 3000;*/
-			// advc.031: If overflow is a concern ...
-			r = ::round(r * ((2000 + iClosenessFactor) / 3000.0));
+			iR *= 2000 + iClosenessFactor;
+			iR /= 3000;
 		}
 	}
 	if (iMinDistanceFactor > 1000)
 	{
 		//give a maximum boost of 25% for somewhat distant locations, don't go overboard.
 		iMinDistanceFactor = std::min(1500, iMinDistanceFactor);
-		r *= (1000 + iMinDistanceFactor);
-		r /= 2000;
+		iR *= (1000 + iMinDistanceFactor);
+		iR /= 2000;
 	}
 	else if (iMinDistanceFactor < 1000)
 	{
 		//this is too close so penalize again.
-		r *= iMinDistanceFactor;
-		r /= 1000;
-		r *= iMinDistanceFactor;
-		r /= 1000;
+		iR *= iMinDistanceFactor;
+		iR /= 1000;
+		iR *= iMinDistanceFactor;
+		iR /= 1000;
 	}
-	IFLOG logBBAI("%d from distance to other players", r - iTempValue);
-	return r;
+	IFLOG logBBAI("%d from distance to other players", iR - iTempValue);
+	return iR;
 }
 
 /*	advc.027:  (Not sure how to name this function. It's supposed to encourage
@@ -3200,42 +3198,40 @@ scaled AIFoundValue::evaluateWorkablePlot(CvPlot const& p) const
 			bAnySpecial = true;
 		}
 	}
+	scaled rYieldVal;
+	// Equal weight for food and production, but penalize low food later.
+	int const aiYieldWeight[NUM_YIELD_TYPES] = {20, 20, 10};
+	FOR_EACH_ENUM(Yield)
 	{
-		scaled rYieldVal;
-		// Equal weight for food and production, but penalize low food later.
-		int const aiYieldWeight[NUM_YIELD_TYPES] = {20, 20, 10};
-		FOR_EACH_ENUM(Yield)
+		scaled rWeight = aiYieldWeight[eLoopYield];
+		int iYield = aiYield[eLoopYield];
+		if (iYield < 0) // BonusImprovementYield can be negative
+			rWeight /= 2;
+		rYieldVal += aiYield[eLoopYield] * rWeight;
+	}
+	{
+		bool const bCanNeverImprove = (eFeature != NO_FEATURE &&
+				GC.getInfo(eFeature).isNoImprovement());
+		// Anticipate terrain improvement
+		if (!bCanNeverImprove && !bAnySpecial && !p.isWater())
 		{
-			scaled rWeight = aiYieldWeight[eLoopYield];
-			int iYield = aiYield[eLoopYield];
-			if (iYield < 0) // BonusImprovementYield can be negative
-				rWeight /= 2;
-			rYieldVal += aiYield[eLoopYield] * rWeight;
+			rYieldVal *= (  // Too slow for what it accomplishes?
+					/*p.isFreshWater() && p.canHavePotentialIrrigation()) ? fixp(1.8) :*/
+					fixp(1.75));
 		}
-		{
-			bool const bCanNeverImprove = (eFeature != NO_FEATURE &&
-					GC.getInfo(eFeature).isNoImprovement());
-			// Anticipate terrain improvement
-			if (!bCanNeverImprove && !bAnySpecial && !p.isWater())
-			{
-				rYieldVal *= (  // Too slow for what it accomplishes?
-						/*p.isFreshWater() && p.canHavePotentialIrrigation()) ? fixp(1.8) :*/
-						fixp(1.75));
-			}
-			if (bCanNeverImprove) // Not having to improve it is valuable
-				rYieldVal *= fixp(4/3.);
-		}
-		if (aiYield[YIELD_FOOD] < GC.getFOOD_CONSUMPTION_PER_POPULATION())
-			rYieldVal *= fixp(0.9); // 0 food isn't necessarily worse
-		rYieldVal -= (GC.getFOOD_CONSUMPTION_PER_POPULATION() + fixp(1/3.))
-				* aiYieldWeight[YIELD_FOOD] // for pop growth and sustenance
-				+ scaled(aiYieldWeight[YIELD_COMMERCE], 4); // expenses per population
-		if (rYieldVal > 0)
-		{
-			rYieldVal.exponentiate(fixp(1.3));
-			rYieldVal *= rSpecialYieldModifier;
-			r += rYieldVal;
-		}
+		if (bCanNeverImprove) // Not having to improve it is valuable
+			rYieldVal *= fixp(4/3.);
+	}
+	if (aiYield[YIELD_FOOD] < GC.getFOOD_CONSUMPTION_PER_POPULATION())
+		rYieldVal *= fixp(0.9); // 0 food isn't necessarily worse
+	rYieldVal -= (GC.getFOOD_CONSUMPTION_PER_POPULATION() + fixp(1/3.))
+			* aiYieldWeight[YIELD_FOOD] // for pop growth and sustenance
+			+ scaled(aiYieldWeight[YIELD_COMMERCE], 4); // expenses per population
+	if (rYieldVal > 0)
+	{
+		rYieldVal.exponentiate(fixp(1.3));
+		rYieldVal *= rSpecialYieldModifier;
+		r += rYieldVal;
 	}
 	if (!p.isImpassable())
 	{	/*	Even with marginal tile yields, just having space is valuable

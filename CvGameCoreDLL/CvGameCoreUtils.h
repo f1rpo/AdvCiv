@@ -161,7 +161,7 @@ void iota(ForwardIt first, ForwardIt last, T value)
 	while (first != last)
 	{
 		*first++ = value;
-		++value;
+		value++;
 	}
 }
 }; // </advc>

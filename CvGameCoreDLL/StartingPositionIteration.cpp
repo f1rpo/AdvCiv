@@ -86,12 +86,12 @@ StartingPositionIteration::StartingPositionIteration() :
 				m_bRestrictedAreas = true;
 			/*	Would rather not store sites at players until the end of our computations,
 				but then findStartingPlot will return the same site over and over. */
-			kPlayer.setStartingPlot(pSite, false);
+			kPlayer.setStartingPlot(pSite);
 		}
 		if (i != apCivPlayers.size()) // Revert any changes and bail
 		{
 			for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
-				it->setStartingPlot(NULL, false);
+				it->setStartingPlot(NULL);
 			return;
 		}
 	} // Past this point, we'll have set sensible starting plots; won't revert anymore.
@@ -223,7 +223,7 @@ CitySiteEvaluator* StartingPositionIteration::createSiteEvaluator(bool bNormaliz
 
 StartingPositionIteration::PotentialSites::PotentialSites(
 	CitySiteEvaluator const& kEval, bool bRestrictedAreas) :
-	m_kEval(kEval), m_pVicinityPenaltiesPerPlot(NULL)
+	m_kEval(kEval)
 {
 	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
@@ -264,12 +264,12 @@ StartingPositionIteration::PotentialSites::PotentialSites(
 
 	// "Clearing the neighborhood"
 
-	m_pVicinityPenaltiesPerPlot = new EnumMap<PlotNumTypes,scaled>();
+	EnumMap<PlotNumTypes,scaled> arVicinityPenaltiesPerPlot;
 	for (map<PlotNumTypes,short>::const_iterator itSite = m_foundValuesPerSite.begin();
 		itSite != m_foundValuesPerSite.end(); ++itSite)
 	{
 		CvPlot const& p = kMap.getPlotByIndex(itSite->first);
-		recordSite(p, itSite->second, true);
+		recordSite(p, itSite->second, true, arVicinityPenaltiesPerPlot);
 	}
 	while (numSites() > iPlayers * 8u)
 	{
@@ -283,7 +283,7 @@ StartingPositionIteration::PotentialSites::PotentialSites(
 			it != m_foundValuesPerSite.end(); ++it)
 		{
 			scaled rVal = it->second * std::max(fixp(0.3),
-					1 - m_pVicinityPenaltiesPerPlot->get(it->first));
+					1 - arVicinityPenaltiesPerPlot.get(it->first));
 			if (rVal < rMinVal)
 			{
 				rMinVal = rVal;
@@ -293,11 +293,8 @@ StartingPositionIteration::PotentialSites::PotentialSites(
 		CvPlot const& kMinPlot = kMap.getPlotByIndex(minPos->first);
 		short iMinFoundVal = minPos->second;
 		m_foundValuesPerSite.erase(minPos);
-		recordSite(kMinPlot, iMinFoundVal, false);
+		recordSite(kMinPlot, iMinFoundVal, false, arVicinityPenaltiesPerPlot);
 	}
-	/*	Pointer member b/c I want to free the memory here; only the ctor and
-		its subroutines use it. */
-	SAFE_DELETE(m_pVicinityPenaltiesPerPlot);
 }
 
 
@@ -329,7 +326,8 @@ scaled StartingPositionIteration::PotentialSites::computeMinFoundValue()
 /*	(Could get the found value from m_foundValuesPerSite, but the callers
 	happen to have it at hand.) */
 void StartingPositionIteration::PotentialSites::recordSite(
-	CvPlot const& kPlot, short iFoundValue, bool bAdd)
+	CvPlot const& kPlot, short iFoundValue, bool bAdd,
+	EnumMap<PlotNumTypes,scaled>& kVicinityPenaltiesPerPlot)
 {
 	CvMap const& kMap = GC.getMap();
 
@@ -341,9 +339,9 @@ void StartingPositionIteration::PotentialSites::recordSite(
 		map<PlotNumTypes,short>::const_iterator pos = m_foundValuesPerSite.find(eLoopPlot);
 		if (pos != m_foundValuesPerSite.end() && pos->second < iFoundValue)
 		{
-			m_pVicinityPenaltiesPerPlot->add(eLoopPlot, iSign *
+			kVicinityPenaltiesPerPlot.add(eLoopPlot, iSign *
 					scaled(1, 4 << it.currPlotDist()));
-			FAssert(!m_pVicinityPenaltiesPerPlot->get(eLoopPlot).isNegative());
+			FAssert(!kVicinityPenaltiesPerPlot.get(eLoopPlot).isNegative());
 		}
 	}
 
@@ -750,7 +748,7 @@ void StartingPositionIteration::Step::take()
 	for (size_t i = 0; i < m_moves.size(); i++)
 	{
 		GET_PLAYER(m_moves[i].first).setStartingPlot(
-				m_moves[i].second, false);
+				m_moves[i].second);
 	}
 }
 
@@ -760,7 +758,7 @@ void StartingPositionIteration::Step::takeBack()
 	for (size_t i = 0; i < m_originalPosition.size(); i++)
 	{
 		GET_PLAYER(m_originalPosition[i].first).setStartingPlot(
-				m_originalPosition[i].second, false);
+				m_originalPosition[i].second);
 	}
 }
 
@@ -1260,7 +1258,9 @@ void StartingPositionIteration::computeStartValues(
 		scaled rFromFoundVal = rFoundValue * rFoundWeight;
 		if (bLog)
 		{
-			out << "Site #" << (int)itPlayer->getID() << "(" << CvString(itPlayer->getName()).c_str() << ")" << "\n";
+			out << "Site #" << (int)itPlayer->getID() << ": " <<
+					CvString(itPlayer->getName()).c_str() << ", (" <<
+					kStartPlot.getX() << "," << kStartPlot.getY() << ")\n";
 			out << "From found value: " << rFromFoundVal.str(1);
 			if (rFoundWeight.getPercent() != 100)
 				out << " (weight " << rFoundWeight.str(100) << ")";
@@ -1871,6 +1871,7 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 		}
 		return; // No step taken; apparently we're done.
 		next_iteration: // To allow breaking out of the inner loops
+		gDLL->callUpdater();
 		kPotentialSites.updateCurrSites(true); // Also ensures that we never return to a site
 	}
 	#ifdef SPI_LOG
@@ -1961,7 +1962,7 @@ bool NormalizationTarget::isReached(CvPlot const& kStartSite,
 	if (bNearlyReached)
 	{
 		/*	(Not sure if rTolerance really has a big impact in general.
-			I did in some of my tests.) */
+			It did in some of my tests.) */
 		switch(GC.getGame().getStartingPlotNormalizationLevel())
 		{
 		case CvGame::NORMALIZE_HIGH: rTolerance += 2;
