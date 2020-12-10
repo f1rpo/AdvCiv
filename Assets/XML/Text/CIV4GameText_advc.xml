@@ -2904,7 +2904,17 @@
 		<Italian>"Non ci piaci abbastanza."</Italian>
 		<Spanish>"No nos ca&#233;is lo bastante bien."</Spanish>
 	</TEXT>
-	
+
+	<!-- advc.112b (FIS from DENIAL_NEVER - which had been used
+		 instead of NO_CURRENT_THREAT until AdvCiv 0.99) -->
+	<TEXT>
+		<Tag>TXT_KEY_DENIAL_NO_CURRENT_THREAT</Tag>
+		<English>"It looks like your offensive has run its course ..."</English>
+		<French>"Il faudra d'abord nous passer sur le corps !"</French>
+		<German>"Eure Offensive scheint so ziemlich am Ende zu sein ..."</German>
+		<Italian>"Dovrai passare sul nostro cadavere."</Italian>
+		<Spanish>"Nos lo arrebatar&#233;is por encima de nuestro cad&#225;ver."</Spanish>
+	</TEXT>
 
 	<!-- advc.130w: Explanation text for new diplo modifier -->
 	<TEXT>

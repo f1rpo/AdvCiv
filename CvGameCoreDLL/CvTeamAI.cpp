@@ -2482,7 +2482,8 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 	{
 		return DENIAL_POWER_US;
 	} // K-Mod end
-	// <advc.112b> Don't surrender if there isn't an acute threat
+	/*	<advc.112b> Don't surrender if there isn't an acute threat.
+		(Had used DENIAL_NEVER until v0.99.) */
 	if(bWar)
 	{
 		int iNukes = 0;
@@ -2522,10 +2523,10 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 			if (iTheirAttackers < rBound1 + scaled::hash(kGame.getGameTurn()) *
 				(rBound2 - rBound1))
 			{
-				return DENIAL_NEVER;
+				return DENIAL_NO_CURRENT_THREAT;
 			}
 			if(iSafePopulation / (getTotalPopulation() + fixp(0.1)) > fixp(0.3))
-				return DENIAL_NEVER;
+				return DENIAL_NO_CURRENT_THREAT;
 		}
 	} // </advc.112b>
 	if (!bWar) // advc: Moved out of the loop below
