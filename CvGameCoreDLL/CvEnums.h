@@ -2303,6 +2303,8 @@ ENUM_END(CityPlot, CITYPLOT)
 	DO(Yield,Commerce) \
 	DO(Direction,CardinalDirection) \
 	DO(Vote,VoteSource) \
+	DO(Vote,PlayerVote) \
+	DO(VoteSource,PlayerVote) \
 	DO(Religion,Corporation) \
 	DO(Civic,CivicOption) \
 	DO(Color,PlayerColor) \

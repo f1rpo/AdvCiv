@@ -584,7 +584,7 @@ public:
 
 	PlayerVoteTypes getVoteOutcome(VoteTypes eIndex) const;																	// Exposed to Python
 	bool isVotePassed(VoteTypes eIndex) const;																	// Exposed to Python
-	void setVoteOutcome(const VoteTriggeredData& kData, PlayerVoteTypes eNewValue);
+	void setVoteOutcome(VoteTriggeredData const& kData, PlayerVoteTypes eNewValue);
 
 	bool isVictoryValid(VictoryTypes eIndex) const															// Exposed to Python
 	{
@@ -935,7 +935,8 @@ protected:
 	int* m_paiBuildingClassCreatedCount;
 	int* m_paiProjectCreatedCount;
 	int* m_paiForceCivicCount;
-	PlayerVoteTypes* m_paiVoteOutcome;
+	// advc.enum:  (Tbd.: The other arrays should also be turned into EnumMaps)
+	EnumMap<VoteTypes,PlayerVoteTypes> m_aiVoteOutcome;
 	int* m_paiReligionGameTurnFounded;
 	int* m_paiCorporationGameTurnFounded;
 	int* m_aiSecretaryGeneralTimer;

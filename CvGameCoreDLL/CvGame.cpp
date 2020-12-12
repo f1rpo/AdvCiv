@@ -49,7 +49,6 @@ CvGame::CvGame() :
 	m_paiBuildingClassCreatedCount = NULL;
 	m_paiProjectCreatedCount = NULL;
 	m_paiForceCivicCount = NULL;
-	m_paiVoteOutcome = NULL;
 	m_paiReligionGameTurnFounded = NULL;
 	m_paiCorporationGameTurnFounded = NULL;
 	m_aiSecretaryGeneralTimer = NULL;
@@ -404,7 +403,6 @@ void CvGame::uninit()
 	SAFE_DELETE_ARRAY(m_paiBuildingClassCreatedCount);
 	SAFE_DELETE_ARRAY(m_paiProjectCreatedCount);
 	SAFE_DELETE_ARRAY(m_paiForceCivicCount);
-	SAFE_DELETE_ARRAY(m_paiVoteOutcome);
 	SAFE_DELETE_ARRAY(m_paiReligionGameTurnFounded);
 	SAFE_DELETE_ARRAY(m_paiCorporationGameTurnFounded);
 	SAFE_DELETE_ARRAY(m_aiSecretaryGeneralTimer);
@@ -615,13 +613,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 			m_paiForceCivicCount[iI] = 0;
 		}
 
-		FAssertMsg(0 < GC.getNumVoteInfos(), "GC.getNumVoteInfos() is not greater than zero in CvGame::reset");
-		FAssertMsg(m_paiVoteOutcome==NULL, "about to leak memory, CvGame::m_paiVoteOutcome");
-		m_paiVoteOutcome = new PlayerVoteTypes[GC.getNumVoteInfos()];
-		for (iI = 0; iI < GC.getNumVoteInfos(); iI++)
-		{
-			m_paiVoteOutcome[iI] = NO_PLAYER_VOTE;
-		}
+		m_aiVoteOutcome.reset();
 
 		FAssertMsg(0 < GC.getNumVoteSourceInfos(), "GC.getNumVoteSourceInfos() is not greater than zero in CvGame::reset");
 		FAssertMsg(m_aiDiploVote==NULL, "about to leak memory, CvGame::m_aiDiploVote");
@@ -5954,9 +5946,7 @@ void CvGame::changeForceCivicCount(CivicTypes eIndex, int iChange)
 
 PlayerVoteTypes CvGame::getVoteOutcome(VoteTypes eIndex) const
 {
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumVoteInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
-	return m_paiVoteOutcome[eIndex];
+	return m_aiVoteOutcome.get(eIndex);
 }
 
 
@@ -5965,41 +5955,25 @@ bool CvGame::isVotePassed(VoteTypes eIndex) const
 	PlayerVoteTypes ePlayerVote = getVoteOutcome(eIndex);
 
 	if (isTeamVote(eIndex))
-	{
 		return (ePlayerVote >= 0 && ePlayerVote < MAX_CIV_TEAMS);
-	}
-	else
-	{
-		return (ePlayerVote == PLAYER_VOTE_YES);
-	}
+	return (ePlayerVote == PLAYER_VOTE_YES);
 }
 
 
-void CvGame::setVoteOutcome(const VoteTriggeredData& kData, PlayerVoteTypes eNewValue)
+void CvGame::setVoteOutcome(VoteTriggeredData const& kData, PlayerVoteTypes eNewValue)
 {
-	VoteTypes eIndex = kData.kVoteOption.eVote;
-	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < GC.getNumVoteInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
-
-	if (getVoteOutcome(eIndex) != eNewValue)
+	VoteTypes eVote = kData.kVoteOption.eVote;
+	FAssertEnumBounds(eVote);
+	if (getVoteOutcome(eVote) != eNewValue)
 	{
-		bool bOldPassed = isVotePassed(eIndex);
-
-		m_paiVoteOutcome[eIndex] = eNewValue;
-
-		if (bOldPassed != isVotePassed(eIndex))
-		{
-			processVote(kData, ((isVotePassed(eIndex)) ? 1 : -1));
-		}
+		bool bOldPassed = isVotePassed(eVote);
+		m_aiVoteOutcome.set(eVote, eNewValue);
+		if (bOldPassed != isVotePassed(eVote))
+			processVote(kData, isVotePassed(eVote) ? 1 : -1);
 	}
-
-	for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
+	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-		if (kPlayer.isAlive())
-		{
-			kPlayer.setVote(kData.getID(), NO_PLAYER_VOTE);
-		}
+		itPlayer->setVote(kData.getID(), NO_PLAYER_VOTE);
 	}
 }
 
@@ -8994,7 +8968,7 @@ void CvGame::read(FDataStreamBase* pStream)
 	pStream->Read(GC.getNumBuildingClassInfos(), m_paiBuildingClassCreatedCount);
 	pStream->Read(GC.getNumProjectInfos(), m_paiProjectCreatedCount);
 	pStream->Read(GC.getNumCivicInfos(), m_paiForceCivicCount);
-	pStream->Read(GC.getNumVoteInfos(), (int*)m_paiVoteOutcome);
+	m_aiVoteOutcome.Read(pStream);
 	pStream->Read(GC.getNumReligionInfos(), m_paiReligionGameTurnFounded);
 	pStream->Read(GC.getNumCorporationInfos(), m_paiCorporationGameTurnFounded);
 	pStream->Read(GC.getNumVoteSourceInfos(), m_aiSecretaryGeneralTimer);
@@ -9249,7 +9223,7 @@ void CvGame::write(FDataStreamBase* pStream)
 	pStream->Write(GC.getNumBuildingClassInfos(), m_paiBuildingClassCreatedCount);
 	pStream->Write(GC.getNumProjectInfos(), m_paiProjectCreatedCount);
 	pStream->Write(GC.getNumCivicInfos(), m_paiForceCivicCount);
-	pStream->Write(GC.getNumVoteInfos(), (int*)m_paiVoteOutcome);
+	m_aiVoteOutcome.Write(pStream);
 	pStream->Write(GC.getNumReligionInfos(), m_paiReligionGameTurnFounded);
 	pStream->Write(GC.getNumCorporationInfos(), m_paiCorporationGameTurnFounded);
 	pStream->Write(GC.getNumVoteSourceInfos(), m_aiSecretaryGeneralTimer);
@@ -10878,4 +10852,4 @@ void CvGame::setHallOfFame(CvHallOfFameInfo* pHallOfFame)
 std::set<int>& CvGame::getActivePlayerCycledGroups()
 {
 	return m_ActivePlayerCycledGroups; // Was public; now protected.
-} // </advc>
+}

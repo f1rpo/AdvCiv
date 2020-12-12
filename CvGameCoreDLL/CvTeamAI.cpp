@@ -839,7 +839,7 @@ int CvTeamAI::AI_chooseElection(VoteSelectionData const& kVoteSelectionData) con
 
 	int iBestVote = -1;
 	int iBestValue = 0;
-	for (int i = 0; i < (int)kVoteSelectionData.aVoteOptions.size(); i++)
+	for (size_t i = 0; i < kVoteSelectionData.aVoteOptions.size(); i++)
 	{
 		VoteSelectionSubData const& kVoteData = kVoteSelectionData.aVoteOptions[i];
 		VoteTypes const eVote = kVoteData.eVote;
@@ -855,7 +855,7 @@ int CvTeamAI::AI_chooseElection(VoteSelectionData const& kVoteSelectionData) con
 						it->AI_diploVote(kVoteData, eVoteSource, true);
 				//if (eVote != PLAYER_VOTE_YES || eVote == GC.getGame().getVoteOutcome((VoteTypes)iI))
 				/*  <kekm.25> "AI can choose to repeal an already passed resolution
-					if all team members agree" */
+					if all team members agree" (Tagging advc.001 b/c the BtS check was incorrect) */
 				bool bVoteYes = (ePlayerVote == PLAYER_VOTE_YES);
 				bool bAlreadyPassed = (GC.getGame().getVoteOutcome(eVote) == PLAYER_VOTE_YES);
 				if((bVoteYes && bAlreadyPassed) || (!bVoteYes && !bAlreadyPassed)) // </kekm.25>
