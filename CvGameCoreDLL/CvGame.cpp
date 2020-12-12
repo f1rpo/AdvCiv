@@ -2493,10 +2493,21 @@ void CvGame::updateStartingPlotRange() const
 	iRange *= GC.getDefineINT("STARTING_DISTANCE_PERCENT");
 	iRange /= 100;
 	int const iAlive = countCivPlayersAlive();
-	iRange *= kMap.getLandPlots() / (std::max(GC.getInfo(kMap.getWorldSize()).
+	int const iLand = kMap.getLandPlots();
+	iRange *= iLand / (std::max(GC.getInfo(kMap.getWorldSize()).
 			getTargetNumCities(), 1) * iAlive);
 	iRange /= NUM_CITY_PLOTS;
-	iRange += std::min((kMap.getNumAreas() + 1) / 2, iAlive);
+	// <advc.031> Replacing kMap.getNumAreas(). Tiny islands shouldn't matter.
+	int iMajorAreas = 0;
+	FOR_EACH_AREA(pArea)
+	{
+		if (pArea->getNumTiles() * iAlive > iLand)
+			iMajorAreas++;
+	}
+	if (iMajorAreas == 0)
+		iMajorAreas = iAlive;
+	// </advc.031>
+	iRange += std::min((iMajorAreas + 1) / 2, iAlive);
 	iRange *= 100 + GC.getPythonCaller()->minStartingDistanceMod();
 	iRange /= 100;
 	m_iStartingPlotRange = std::max(iRange, GC.getDefineINT("MIN_CIV_STARTING_DISTANCE"));

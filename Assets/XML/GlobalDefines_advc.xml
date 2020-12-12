@@ -255,6 +255,13 @@
         <iDefineIntVal>1</iDefineIntVal>
     </Define>
 
+	<!-- advc.137: 12 in BtS. Recommended: 10 to match the
+		 higher default player counts in AdvCiv. -->
+	<Define>
+		<DefineName>STARTING_DISTANCE_PERCENT</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+
 	<!-- [advc.108]
 		 If set to 1 or greater, starting plots are improved ("normalized") as
 		 aggressively as in BtS. 0 or less (recommended) means that normalization

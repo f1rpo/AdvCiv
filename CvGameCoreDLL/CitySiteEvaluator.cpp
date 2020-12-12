@@ -2472,9 +2472,15 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 		//this is too close so penalize again.
 		iR *= iMinDistanceFactor;
 		iR /= 1000;
-		iR *= iMinDistanceFactor;
-		iR /= 1000;
+		/*iR *= iMinDistanceFactor;
+		iR /= 1000;*/
+		// <advc.031> Squaring the iMinDistanceFactor/1000 ratio is too drastic
 	}
+	if (iMinDistanceFactor < 666)
+	{
+		iR *= iMinDistanceFactor;
+		iR /= 666;
+	} // </advc.031>
 	IFLOG logBBAI("%d from distance to other players", iR - iTempValue);
 	return iR;
 }
