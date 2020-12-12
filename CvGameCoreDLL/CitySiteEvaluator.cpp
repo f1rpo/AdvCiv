@@ -3281,6 +3281,15 @@ scaled AIFoundValue::evaluateWorkablePlot(CvPlot const& p) const
 				rNonYieldBonusVal /= (2 + SQR(iEraDiff));
 			}
 		}
+		// Settling near low-yield resources (especially Snow Fur) is an inconvenience
+		scaled const rYieldThresh = 48;
+		if (rYieldVal < rYieldThresh)
+		{
+			// Halve if rYieldVal equal to -rYieldThresh or less; 75% if rYieldVal=0.
+			scaled rLowYieldMult = fixp(0.75) +
+					(1 / (4 * rYieldThresh)) * scaled::max(-rYieldThresh, rYieldVal);
+			rNonYieldBonusVal *= rLowYieldMult;
+		}
 		r += rNonYieldBonusVal;
 	}
 	{
