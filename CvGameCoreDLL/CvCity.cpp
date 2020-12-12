@@ -11681,7 +11681,7 @@ void CvCity::getVisibleEffects(ZoomLevelTypes eCurZoom,
 				"FIREWORKS_BLUE_LARGE_SLOW",
 				"FIREWORKS_BLUE_SMALL_FAST"
 			};
-			int const iNumEffects = sizeof(szFireworkEffects) / sizeof(TCHAR*);
+			int const iNumEffects = ARRAY_LENGTH(szFireworkEffects);
 			for (int i = 0; i < (iNumEffects < 3 ? iNumEffects : 3); i++)
 			{
 				kEffectNames.push_back(szFireworkEffects[kRand.get(iNumEffects)]);

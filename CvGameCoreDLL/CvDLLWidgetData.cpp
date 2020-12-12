@@ -33,7 +33,8 @@ void CvDLLWidgetData::freeInstance()
 void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &widgetDataStruct)
 {
 	// <advc.085> Replacing a few sporadic tests in the parse... functions
-	static WidgetTypes aePlayerAsData1[] = {
+	static WidgetTypes aePlayerAsData1[] =
+	{
 		WIDGET_HELP_FINANCE_AWAY_SUPPLY, WIDGET_HELP_FINANCE_CITY_MAINT,
 		WIDGET_HELP_FINANCE_CIVIC_UPKEEP, WIDGET_HELP_FINANCE_DOMESTIC_TRADE,
 		WIDGET_HELP_FINANCE_FOREIGN_INCOME, WIDGET_HELP_FINANCE_INFLATED_COSTS,
@@ -41,8 +42,9 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 		WIDGET_HELP_FINANCE_UNIT_COST,
 		WIDGET_LEADERHEAD, WIDGET_LEADERHEAD_RELATIONS, WIDGET_LEADER_LINE,
 		WIDGET_CONTACT_CIV, WIDGET_SCORE_BREAKDOWN, WIDGET_POWER_RATIO,
-		WIDGET_GOLDEN_AGE, WIDGET_ANARCHY };
-	for(int i = 0; i < sizeof(aePlayerAsData1) / sizeof(WidgetTypes); i++)
+		WIDGET_GOLDEN_AGE, WIDGET_ANARCHY
+	};
+	for(int i = 0; i < ARRAY_LENGTH(aePlayerAsData1); i++)
 	{
 		if(widgetDataStruct.m_eWidgetType == aePlayerAsData1[i] &&
 			(widgetDataStruct.m_iData1 <= NO_PLAYER ||
@@ -687,12 +689,13 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 	}
 	if (GC.getGame().getActivePlayer() == NO_PLAYER)
 		return;
-	static WidgetTypes aeExpandTypes[] = {
+	static WidgetTypes aeExpandTypes[] =
+	{
 		WIDGET_CONTACT_CIV, WIDGET_DEAL_KILL, WIDGET_PEDIA_JUMP_TO_TECH,
 		WIDGET_EXPAND_SCORES, WIDGET_SCORE_BREAKDOWN, WIDGET_POWER_RATIO,
 		WIDGET_GOLDEN_AGE, WIDGET_ANARCHY
 	};
-	for(int i = 0; i < sizeof(aeExpandTypes) / sizeof(WidgetTypes); i++)
+	for(int i = 0; i < ARRAY_LENGTH(aeExpandTypes); i++)
 	{
 		if((widgetDataStruct.m_eWidgetType == aeExpandTypes[i] &&
 			widgetDataStruct.m_iData2 == 0) ||

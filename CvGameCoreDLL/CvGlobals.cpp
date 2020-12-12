@@ -651,7 +651,7 @@ void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 	const char* const aszGlobalDefinesTagNames[] = {
 		DO_FOR_EACH_GLOBAL_DEFINE(MAKE_STRING)
 	};
-	FAssert(sizeof(aszGlobalDefinesTagNames) / sizeof(char*) == NUM_GLOBAL_DEFINES);
+	FAssert(ARRAY_LENGTH(aszGlobalDefinesTagNames) == NUM_GLOBAL_DEFINES);
 
 	if (szChangedDefine != NULL) // Cache update
 	{

@@ -82,7 +82,7 @@ CvPythonCaller::CvPythonCaller() : m_python(*gDLL->getPythonIFace()), m_bLastCal
 	const char* const aszGlobalCallbackTagNames[] = {
 		DO_FOR_EACH_CALLBACK_DEFINE(MAKE_STRING)
 	};
-	FAssert(sizeof(aszGlobalCallbackTagNames) / sizeof(char*) == NUM_CALLBACK_DEFINES);
+	FAssert(ARRAY_LENGTH(aszGlobalCallbackTagNames) == NUM_CALLBACK_DEFINES);
 	m_abUseCallback = new bool[NUM_CALLBACK_DEFINES];
 	for (int i = 0; i < NUM_CALLBACK_DEFINES; i++)
 		m_abUseCallback[i] = GC.getDefineBOOL(aszGlobalCallbackTagNames[i]);

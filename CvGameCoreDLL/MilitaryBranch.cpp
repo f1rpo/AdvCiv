@@ -231,7 +231,7 @@ double MilitaryBranch::HomeGuard::initUnitsTrained(int numNonNavalUnits,
 		UNITAI_RESERVE,
 	};
 	number = 0;
-	for(int i = 0; i < sizeof(guardAITypes) / sizeof(UnitAITypes); i++)
+	for(int i = 0; i < ARRAY_LENGTH(guardAITypes); i++)
 		number += owner.AI_getNumAIUnits(guardAITypes[i]);
 	/* 1.5 per city might be more realistic, but humans tend to use especially
 	   weak units as garrisons. */

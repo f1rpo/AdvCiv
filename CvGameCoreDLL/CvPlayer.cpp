@@ -10822,7 +10822,7 @@ void CvPlayer::postProcessMessages()
 	bool bRelevantDiplo = false;
 	if(!m_listDiplomacy.empty() && m_iNewMessages > 0)
 	{
-		TCHAR const* relevantNonOffers[] = { "CANCEL_DEAL", "RELIGION_PRESSURE",
+		TCHAR const* aszRelevantNonOffers[] = { "CANCEL_DEAL", "RELIGION_PRESSURE",
 			"CIVIC_PRESSURE", "JOIN_WAR", "STOP_TRADING",
 		};
 		for(CvDiploQueue::const_iterator it = m_listDiplomacy.begin(); it !=
@@ -10840,9 +10840,9 @@ void CvPlayer::postProcessMessages()
 				bRelevantDiplo = true;
 				break;
 			}
-			for(int i = 0; i < sizeof(relevantNonOffers) / sizeof(TCHAR*); i++)
+			for(int i = 0; i < ARRAY_LENGTH(aszRelevantNonOffers); i++)
 			{
-				if(dp->getDiploComment() == GC.getAIDiploCommentType(relevantNonOffers[i]))
+				if(dp->getDiploComment() == GC.getAIDiploCommentType(aszRelevantNonOffers[i]))
 				{
 					bRelevantDiplo = true;
 					break;
@@ -18691,7 +18691,7 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& k
 	}
 	TradeableItems eForcePeaceItemType = NO_TRADE_ITEM;
 	TradeableItems aeForcePeace[] = { TRADE_CITIES, /* advc.146: */ TRADE_WAR };
-	int const iForcePeaceSz = sizeof(aeForcePeace) / sizeof(TradeableItems);
+	int const iForcePeaceSz = ARRAY_LENGTH(aeForcePeace);
 	/*	When a player tries to deselect a peace treaty, the trade screen will
 		remove it (temporarily) only from one player's side. Therefore need
 		to check each player individually for an offered peace treaty. */
@@ -19075,7 +19075,7 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption,
 					};
 					PlayerTypes eActivePlayer = GC.getGame().getActivePlayer();
 					TeamTypes eActiveTeam = GC.getGame().getActiveTeam();
-					for (int j = 0; j < sizeof(aePriorityList) / sizeof(UnitAITypes); j++)
+					for (int j = 0; j < ARRAY_LENGTH(aePriorityList); j++)
 					{
 						// Use unit owner as tiebreaker
 						for (int k = 0; k < 3; k++)
