@@ -419,6 +419,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_bAutoPlayJustEnded = false; // advc.127
 	m_bSavingReplay = false; // advc.106i
 	m_bScoreboardExpanded = false; // advc.085
+	m_bRandomWBStart = false; // advc.027
 
 	m_eID = eID;
 	updateTeamType();
@@ -880,9 +881,12 @@ void CvPlayer::initFreeUnits()
 			getStartingUnitMultiplier(); // </advc>
 	// <advc.027> Goody huts no longer block starting sites
 	CvPlot* pStartingPlot = getStartingPlot();
-	if (pStartingPlot != NULL && !kGame.isScenario() && pStartingPlot->isGoody())
-		pStartingPlot->setImprovementType(NO_IMPROVEMENT);
-	else FAssert(pStartingPlot != NULL); // (can this happen?)
+	if (pStartingPlot != NULL && !kGame.isScenario())
+	{
+		if (pStartingPlot->isGoody())
+			pStartingPlot->setImprovementType(NO_IMPROVEMENT);
+	}
+	else FAssertMsg(pStartingPlot != NULL, "Player in scenario has no starting plot");
 	// </advc.027>
 	if (kGame.isOption(GAMEOPTION_ADVANCED_START) &&
 		(!isHuman() || !kGame.isOption(GAMEOPTION_SPAH))) // advc.250b
@@ -1247,8 +1251,9 @@ std::vector<std::pair<int,int> > CvPlayer::findStartingAreas(  // advc: style ch
 }
 
 
-CvPlot* CvPlayer::findStartingPlot(bool bRandomize,
-	bool* pbPlotFoundByMapScript, bool* pbAreaFoundByMapScript) // advc.027
+CvPlot* CvPlayer::findStartingPlot(
+	// advc.027: (bRandomize param replaced with m_bRandomWBStart)
+	bool* pbPlotFoundByMapScript, bool* pbAreaFoundByMapScript)
 {
 	PROFILE_FUNC();
 	// <advc.027>
@@ -1274,7 +1279,7 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize,
 	{
 		//iBestArea = getStartingPlot()->getArea().getID(); // kekm.35:
 		areasByValue.push_back(std::make_pair(getStartingPlot()->getArea().getID(), 1));
-		setStartingPlot(NULL, true);
+		setStartingPlot(NULL/*, true*/); // advc.opt
 		bNew = true;
 	}
 
@@ -1331,13 +1336,16 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize,
 						continue;
 				} // </kekm.35>
 				//the distance factor is now done inside foundValue
-				int iValue = pLoopPlot->getFoundValue(getID());
-				if (bRandomize && iValue > 0)
-				{	/*  advc (comment): That's a high random portion (high found values tend
-						to range between 3000 and 5000), but I'm not sure which map scripts
-						(if any) use bRandomize=true, so I'm not changing this. */
-					iValue += GC.getGame().getSorenRandNum(10000, "Randomize Starting Location");
-				}
+				int iValue = pLoopPlot->getFoundValue(getID(),
+						/*	advc.027: Replacing the randomization below, which is crude
+							and too much. Also, findStartingPlot no longer has a
+							bRandomize param. It had only been used by the WB scenario
+							parser for the RandomStartLocation flag. The parser now uses
+							CyPlayer::forceRandomWBStart. Note: Among the BtS scenarios,
+							only "Europe" uses RandomStartLocation=true. */
+						m_bRandomWBStart);
+				/*if (bRandomize && iValue > 0)
+					iValue += GC.getGame().getSorenRandNum(10000, "Randomize Starting Location");*/
 				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;
@@ -13785,13 +13793,16 @@ void CvPlayer::read(FDataStreamBase* pStream)
 
 	uint uiFlag=0;
 	pStream->Read(&uiFlag);
-	// <advc.027> (No longer stored as x,y)
-	{
+	// <advc.027>
+	{	// (No longer stored as x,y)
 		int iStartingX, iStartingY;
 		pStream->Read(&iStartingX);
 		pStream->Read(&iStartingY);
 		m_pStartingPlot = GC.getMap().plot(iStartingX, iStartingY);
-	} // </advc.027>
+	}
+	if (uiFlag >= 14)
+		pStream->Read(&m_bRandomWBStart);
+	// </advc.027>
 	pStream->Read(&m_iTotalPopulation);
 	pStream->Read(&m_iTotalLand);
 	pStream->Read(&m_iTotalLandScored);
@@ -14257,7 +14268,8 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	//uiFlag = 10; // advc.064b
 	//uiFlag = 11; // advc.001x
 	//uiFlag = 12; // advc.091
-	uiFlag = 13; // advc.004s
+	//uiFlag = 13; // advc.004s
+	uiFlag = 14; // advc.027 (m_bRandomWBStart)
 	pStream->Write(uiFlag);
 
 	// <advc.027>
@@ -14268,7 +14280,11 @@ void CvPlayer::write(FDataStreamBase* pStream)
 		iStartingY = m_pStartingPlot->getY();
 	}
 	pStream->Write(iStartingX);
-	pStream->Write(iStartingY); // </advc.027>
+	pStream->Write(iStartingY);
+	/*	Should only be needed at game start, but let's save it anyway.
+		Might actually be needed for map regeneration. */
+	pStream->Write(&m_bRandomWBStart);
+	// </advc.027>
 	pStream->Write(m_iTotalPopulation);
 	pStream->Write(m_iTotalLand);
 	pStream->Write(m_iTotalLandScored);

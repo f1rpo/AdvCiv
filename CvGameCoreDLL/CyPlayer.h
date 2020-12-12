@@ -200,6 +200,7 @@ public:
 
 	CyPlot* getStartingPlot();
 	void setStartingPlot(CyPlot* pPlot, bool bUpdateStartDist);
+	void forceRandomWBStart(); // advc.027
 	int getTotalPopulation();
 	int getAveragePopulation();
 	int getRealPopulation();

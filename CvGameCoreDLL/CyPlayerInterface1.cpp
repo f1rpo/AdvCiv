@@ -184,6 +184,7 @@ void CyPlayerPythonInterface1(python::class_<CyPlayer>& x)
 
 		.def("getStartingPlot", &CyPlayer::getStartingPlot, python::return_value_policy<python::manage_new_object>(), "CyPlot* ()")
 		.def("setStartingPlot", &CyPlayer::setStartingPlot, "void (CyPlot*, bool) - sets the player's starting plot")
+		.def("forceRandomWBStart", &CyPlayer::forceRandomWBStart, "void forceRandomWBStart()") // advc.027
 		.def("getTotalPopulation", &CyPlayer::getTotalPopulation, "int ()")
 		.def("getAveragePopulation", &CyPlayer::getAveragePopulation, "int ()")
 		.def("getRealPopulation", &CyPlayer::getRealPopulation, "long int ()")

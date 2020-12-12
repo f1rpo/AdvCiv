@@ -373,6 +373,7 @@ public: // advc: made several functions const
 
 	int getLandPlots() const { return m_iLandPlots; } // advc.inl										// Exposed to Python
 	void changeLandPlots(int iChange);
+	int getWaterPlots() const { return numPlots() - getLandPlots(); } // advc
 
 	int getOwnedPlots() const { return m_iOwnedPlots; }														// Exposed to Python
 	void changeOwnedPlots(int iChange);

@@ -78,7 +78,7 @@ public:
 			bool* pbFoundByMapScript = NULL) const; // advc.027
 	// advc.027: New auxiliary function (public only for Debug mode info)
 	int coastRiverStartingAreaScore(CvArea const& a) const;
-	CvPlot* findStartingPlot(bool bRandomize = false,																// Exposed to Python
+	CvPlot* findStartingPlot(																						// Exposed to Python
 			bool* pbPlotFoundByMapScript = NULL, bool* pbAreaFoundByMapScript = NULL); // advc.027
 
 	CvPlotGroup* initPlotGroup(CvPlot* pPlot);
@@ -414,7 +414,10 @@ public:
 	// advc.027: Inline (called frequently by StartingPositionIteration)
 	inline CvPlot* getStartingPlot() const { return m_pStartingPlot; }												// Exposed to Python
 	// advc: No update by default. Non-Python calls should never have to use that param.
-	void setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist = false);													// Exposed to Python
+	void setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist = false);											// Exposed to Python
+	// <advc.027>
+	void setRandomWBStart(bool b) { m_bRandomWBStart = b; } // (exposed to Python as forceRandomWBStart)
+	bool isRandomWBStart() const { return m_bRandomWBStart; } // </advc.027>
 
 	int getTotalPopulation() const { return m_iTotalPopulation; }													// Exposed to Python
 	int getAveragePopulation() const;																				// Exposed to Python
@@ -1532,6 +1535,7 @@ protected:  // <advc.210>
 	// AI_AUTO_PLAY_MOD: END
 	bool m_bSavingReplay; // advc.106i
 	bool m_bScoreboardExpanded; // advc.085
+	bool m_bRandomWBStart; // advc.027
 
 	LeaderHeadTypes m_ePersonalityType;
 	EraTypes m_eCurrentEra;

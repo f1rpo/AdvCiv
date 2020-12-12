@@ -56,7 +56,15 @@ bool CyPlayer::startingPlotWithinRange(CyPlot *pPlot, int /*PlayerTypes*/ ePlaye
 
 CyPlot* CyPlayer::findStartingPlot(bool bRandomize)
 {
-	return m_pPlayer ? new CyPlot(m_pPlayer->findStartingPlot(bRandomize)) : NULL;
+	if (m_pPlayer == NULL)
+		return NULL;
+	//return new CyPlot(m_pPlayer->findStartingPlot(true));
+	// <advc.027> bRandomize param no longer exists
+	/*	This is intended for the WB scenario parser, but will also work
+		if a map script uses the bRandomize param. */
+	if (bRandomize)
+		m_pPlayer->setRandomWBStart(true);
+	return new CyPlot(m_pPlayer->findStartingPlot()); // </advc.027>
 }
 
 CyCity* CyPlayer::initCity(int x, int y)
@@ -785,6 +793,13 @@ void CyPlayer::setStartingPlot(CyPlot* pPlot, bool bUpdateStartDist)
 	}
 
 	m_pPlayer->setStartingPlot(NULL != pPlot ? pPlot->getPlot() : NULL, bUpdateStartDist);
+}
+// advc.027:
+void CyPlayer::forceRandomWBStart()
+{
+	if (m_pPlayer == NULL)
+		return;
+	m_pPlayer->setRandomWBStart(true);
 }
 
 int CyPlayer::getTotalPopulation()

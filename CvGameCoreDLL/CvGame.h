@@ -1054,8 +1054,19 @@ protected:
 	bool isValidReplayIndex(uint i) const; // advc
 
 	void processVote(const VoteTriggeredData& kData, int iChange);
-	
-	void normalizeStartingPlotLocations();
+
+	//void normalizeStartingPlotLocations();
+	// <advc.108b>
+	void rearrangeTeamStarts(
+			bool bOnlyWithinArea = false, scaled rInertia = 0); // advc.027
+	void applyStartingLocHandicaps(/* advc.027: */ NormalizationTarget const* pStartValues);
+	template<class Agent>
+	sortByStartingLocHandicap(
+			std::vector<std::pair<Agent*,int> > const& kStartingLocPercentPerAgent,
+			std::vector<Agent*>& kResult); // </advc.108b>
+	int getTeamClosenessScore( // <advc>
+			EnumMap2D<PlayerTypes,PlayerTypes,int> const& kDistances,
+			std::vector<PlayerTypes> const& kStartingLocs); // </advc>
 	void normalizeAddRiver();
 	void normalizeRemovePeaks();
 	void normalizeAddLakes();
@@ -1077,11 +1088,8 @@ protected:
 			BonusTypes eBonus, bool bSecondPass = false);
 	bool isPowerfulStartingBonus(CvPlot const& kPlot, PlayerTypes eStartPlayer) const;
 	bool isWeakStartingFoodBonus(CvPlot const& kPlot, PlayerTypes eStartPlayer) const;
-	// </advc.108>
-
-	int getTeamClosenessScore(int** aaiDistances, int* aiStartingLocs);
+	// </advc.108>  <advc>
 	void doUpdateCacheOnTurn();
-	// <advc>
 	CvUnit* getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUnits,
 			int iIndex = -1) const; // </advc>
 
