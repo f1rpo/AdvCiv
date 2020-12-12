@@ -4543,7 +4543,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 						{
 							szString.append(gDLL->getText(
 									"TXT_KEY_GARRISON_STRENGTH_EXCESS_SHORT",
-									iSafeToRemove));
+									std::min(999, iSafeToRemove)));
 							szString.append(NEWLINE);
 						}
 					}

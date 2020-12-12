@@ -4981,7 +4981,7 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_GARRISON_STRENGTH_EXCESS",
-				iGarrisonStr - iCultureStr));
+				std::min(999, iGarrisonStr - iCultureStr)));
 	}
 	if (eCulturalOwner != c.getOwner())
 	{
