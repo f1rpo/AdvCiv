@@ -325,7 +325,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 			navalArmament ? "yes" : "no", strIntensity(intensity));
 
 	// Armament portion of the total production; based on intensity
-	double armamentPortion = uwai.buildUnitProb();
+	double armamentPortion = uwai.buildUnitProb() * 0.8;
 	/*  Total vs. limited war mostly affects pre-war build-up, but there are also
 		a few lines of (mostly K-Mod) code that make the AI focus more on production
 		when in a total war. The computation of the intensity doesn't cover this
@@ -353,23 +353,23 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	if(intensity == DECREASED)
 		armamentPortion -= 0.1;
 	else if(intensity == INCREASED)
-		armamentPortion += 0.25;
+		armamentPortion += 0.18;
 	else if(intensity == FULL)
-		armamentPortion = std::max(0.7,
-			armamentPortion); // Only relevant if a mod sets a buildUnitProb >= 50%
+		armamentPortion += 0.3;
 	armamentPortion += atWarAdjustment;
+	armamentPortion = std::min(armamentPortion, 0.7);
 	if(GET_PLAYER(civId).getMaxConscript() > 0 && intensity >= INCREASED) {
 		if(intensity == INCREASED)
-			armamentPortion += 0.05;
+			armamentPortion += 0.04;
 		else if(intensity == FULL)
-			armamentPortion += 0.1;
+			armamentPortion += 0.08;
 		report.log("Armament portion increased b/c of conscription");
 	}
-	armamentPortion = ::dRange(armamentPortion, 0.0, 0.8);
+	armamentPortion = ::dRange(armamentPortion, 0.0, 0.75);
 	// Portions of the military branches
 	double branchPortions[NUM_BRANCHES] = {0.0};
 	// Little defense by default
-	branchPortions[HOME_GUARD] = 0.13;
+	branchPortions[HOME_GUARD] = 0.18;
 	if(navalArmament) {
 		branchPortions[FLEET] = 0.2;
 		int rev = 0, revCoast = 0;
@@ -383,9 +383,9 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 		if(rev > 0) {
 			if(rev >= civ.getNumCities() && revCoast <= 0)
 				branchPortions[FLEET] = 0;
-			// Assume very little defensive build-up when attacking across the sea
+			// Assume little defensive build-up when attacking across the sea
 			else if(!defensive)
-				branchPortions[HOME_GUARD] = 0.05;
+				branchPortions[HOME_GUARD] = 0.12;
 			double coastRatio = revCoast / (double)rev;
 			branchPortions[FLEET] = std::min(0.08 + coastRatio / 2.8, 0.35);
 		}
