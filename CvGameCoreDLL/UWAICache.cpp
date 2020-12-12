@@ -298,7 +298,7 @@ void UWAICache::updateCities(TeamTypes teamId, TeamPathFinders* pf) {
 
 	PROFILE_FUNC();
 	CvTeamAI const& cacheTeam = GET_TEAM(ownerId);
-	bool const isHuman = cacheTeam.isHuman();
+	bool const isHuman = GET_PLAYER(ownerId).isHuman();
 	if(teamId == cacheTeam.getID())
 		pf = NULL;
 	else resetTeamPathFinders(*pf, teamId);
