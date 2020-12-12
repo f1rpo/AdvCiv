@@ -8111,6 +8111,18 @@ void CvGameTextMgr::parsePromotionHelp(CvWStringBuffer &szBuffer, PromotionTypes
 	// </advc.004e>
 }
 
+// advc.mnai (lfgr UI 11/2020): For "Allows civic" buttons in Tech tree
+void CvGameTextMgr::parseSingleCivicRevealHelp(CvWStringBuffer& szBuffer, CivicTypes eCivic)
+{
+	szBuffer.append(CvWString::format(SETCOLR L"%s" ENDCOLR,
+			TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+			GC.getCivicInfo(eCivic).getDescription()));
+	CvWStringBuffer szCivicHelp;
+	GAMETEXT.parseCivicInfo(szCivicHelp, eCivic,
+			true, true, true); // bCiviliopedia=true to hide tech prereq
+	szBuffer.append(szCivicHelp);
+}
+
 
 void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivic, bool bCivilopediaText,
 	bool bPlayerContext, bool bSkipName)
