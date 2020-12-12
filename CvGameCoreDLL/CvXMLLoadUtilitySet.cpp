@@ -855,216 +855,167 @@ void CvXMLLoadUtility::SetGlobalStringArray(CvString **ppszString, char* szTagNa
 	}
 }
 
-// <advc> Get rid of some duplicate code
-#define NOT_GREATER_ZERO_MESSAGE_BOX(VAR) \
-	if ((VAR) <= 0) \
-	{ \
-		char szMessage[1024]; \
-		sprintf(szMessage, #VAR" is not greater than zero in CvXMLLoadUtility::SetGlobalActionInfo.\nCurrent XML file is: %s", \
-				GC.getCurrentXMLFile().GetCString()); \
-		errorMessage(szMessage); \
-	} // </advc>
 
+namespace // advc: To get rid of some duplicate code in SetGlobalActionInfo
+{
+	template <class T, typename /* enum */ E>
+	void setActionData(T& kInfo, int iAction, E eMissionCommand)
+	{
+		kInfo.setHotKeyDescription(kInfo.getTextKeyWide(),
+				GC.getInfo(eMissionCommand).getTextKeyWide(),
+				CvXMLLoadUtility::HotKeyFromDescription(kInfo.getHotKey(),
+				kInfo.isShiftDown(), kInfo.isAltDown(), kInfo.isCtrlDown()));
+	}
+}
+
+
+struct OrderIndex {int m_iPriority; int m_iIndex;}; // helper sort predicate
+bool sortHotkeyPriority(OrderIndex const orderIndex1, OrderIndex const orderIndex2)
+{
+	return (orderIndex1.m_iPriority > orderIndex2.m_iPriority);
+}
 
 /*	Looks for szTagName in XML and, if it exists, loads its value into ppActionInfo
-	and sets iNumVals to the total number of occurrences of szTagName in XML. */
+	and sets iNumVals to the total number of occurrences of szTagName in XML.
+	advc: Refactored using vectors, macros. */
 void CvXMLLoadUtility::SetGlobalActionInfo()
 {
 	PROFILE_FUNC();
 	logMsg("SetGlobalActionInfo\n");
 
-	NOT_GREATER_ZERO_MESSAGE_BOX(NUM_INTERFACEMODE_TYPES);
-	NOT_GREATER_ZERO_MESSAGE_BOX(GC.getNumBuildInfos());
-	NOT_GREATER_ZERO_MESSAGE_BOX(GC.getNumPromotionInfos());
-	NOT_GREATER_ZERO_MESSAGE_BOX(GC.getNumUnitClassInfos());
-	NOT_GREATER_ZERO_MESSAGE_BOX(GC.getNumSpecialistInfos());
-	NOT_GREATER_ZERO_MESSAGE_BOX(GC.getNumBuildingInfos());
-	NOT_GREATER_ZERO_MESSAGE_BOX(NUM_CONTROL_TYPES);
-	NOT_GREATER_ZERO_MESSAGE_BOX(NUM_AUTOMATE_TYPES);
-	NOT_GREATER_ZERO_MESSAGE_BOX(NUM_COMMAND_TYPES);
-	NOT_GREATER_ZERO_MESSAGE_BOX(NUM_MISSION_TYPES);
+	int const iOldActionInfos = GC.getNumActionInfos();
+	int const iActionInfos = iOldActionInfos +
+			NUM_INTERFACEMODE_TYPES +
+			GC.getNumBuildInfos() +
+			GC.getNumPromotionInfos() +
+			GC.getNumReligionInfos() +
+			GC.getNumCorporationInfos() +
+			GC.getNumUnitInfos() +
+			GC.getNumSpecialistInfos() +
+			GC.getNumBuildingInfos() +
+			NUM_CONTROL_TYPES +
+			NUM_COMMAND_TYPES +
+			NUM_AUTOMATE_TYPES +
+			NUM_MISSION_TYPES;
+	std::vector<int> aiIndexList(iActionInfos);
+	std::vector<int> aiPriorityList(iActionInfos);
+	std::vector<int> aiActionInfoTypeList(iActionInfos);
+	int iTotalActionInfos = 0;
+	#define SET_ACTION_DATA(EnumName, ActionSubTypeName) \
+		FOR_EACH_ENUM(EnumName) \
+		{ \
+			int iLength = getEnumLength(eLoop##EnumName); \
+			if (iLength <= 0) \
+			{ \
+				char szMessage[1024]; \
+				sprintf(szMessage, \
+						"%d is not greater than zero in CvXMLLoadUtility::SetGlobalActionInfo.\nCurrent XML file is: %s", \
+						iLength, GC.getCurrentXMLFile().GetCString()); \
+				errorMessage(szMessage); \
+			} \
+			/* Safer to use vector::at here (rather than operator[]) */ \
+			aiIndexList.at(iTotalActionInfos) = eLoop##EnumName; \
+			aiPriorityList.at(iTotalActionInfos) = GC.getInfo(eLoop##EnumName).getOrderPriority(); \
+			aiActionInfoTypeList.at(iTotalActionInfos) = ACTIONSUBTYPE_##ActionSubTypeName; \
+			iTotalActionInfos++; \
+		}
+	SET_ACTION_DATA(Command, COMMAND);
+	SET_ACTION_DATA(InterfaceMode, INTERFACEMODE);
+	SET_ACTION_DATA(Build, BUILD);
+	SET_ACTION_DATA(Promotion, PROMOTION);
+	SET_ACTION_DATA(Unit, UNIT);
+	SET_ACTION_DATA(Religion, RELIGION);
+	SET_ACTION_DATA(Corporation, CORPORATION);
+	SET_ACTION_DATA(Specialist, SPECIALIST);
+	SET_ACTION_DATA(Building, BUILDING);
+	SET_ACTION_DATA(Control, CONTROL);
+	SET_ACTION_DATA(Automate, AUTOMATE);
+	SET_ACTION_DATA(Mission, MISSION);
+	#undef SET_ACTION_DATA
+	FAssert(iTotalActionInfos == iActionInfos);
 
-	int* piOrderedIndex=NULL;
+	/*	advc: Cut from deleted function orderHotkeyInfo. Also deleted
+		pre-BtS functions orderHotkeyInfoOld, sortHotkeyPriorityOld that had
+		already been commented out. */
+	std::vector<int> aiOrderedIndex(iActionInfos);
+	std::vector<OrderIndex> aiOrderPriority;
+	aiOrderPriority.resize(aiOrderedIndex.size());
+	for (size_t i = 0; i < aiOrderPriority.size(); i++)
+	{
+		aiOrderPriority[i].m_iPriority = aiPriorityList[i];
+		aiOrderPriority[i].m_iIndex = i;
+	}
+	std::sort(aiOrderPriority.begin(), aiOrderPriority.end(), sortHotkeyPriority);
+	for (size_t i = 0; i < aiOrderedIndex.size(); i++)
+		aiOrderedIndex[i] = aiOrderPriority[i].m_iIndex;
 
-	int iNumOrigVals = GC.getNumActionInfos();
-
-	int iNumActionInfos = iNumOrigVals +
-		NUM_INTERFACEMODE_TYPES +
-		GC.getNumBuildInfos() +
-		GC.getNumPromotionInfos() +
-		GC.getNumReligionInfos() +
-		GC.getNumCorporationInfos() +
-		GC.getNumUnitInfos() +
-		GC.getNumSpecialistInfos() +
-		GC.getNumBuildingInfos() +
-		NUM_CONTROL_TYPES +
-		NUM_COMMAND_TYPES +
-		NUM_AUTOMATE_TYPES +
-		NUM_MISSION_TYPES;
-
-	int* piIndexList = new int[iNumActionInfos];
-	int* piPriorityList = new int[iNumActionInfos];
-	int* piActionInfoTypeList = new int[iNumActionInfos];
-
-	int iTotalActionInfoCount = 0;
-
-	for (int i = 0; i < NUM_COMMAND_TYPES; i++)
-	{
-		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getInfo((CommandTypes)i).getOrderPriority();
-		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_COMMAND;
-		iTotalActionInfoCount++;
-	}
-	for (int i = 0; i < NUM_INTERFACEMODE_TYPES; i++)
-	{
-		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getInfo((InterfaceModeTypes)i).getOrderPriority();
-		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_INTERFACEMODE;
-		iTotalActionInfoCount++;
-	}
-	for (int i = 0; i < GC.getNumBuildInfos(); i++)
-	{
-		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getInfo((BuildTypes)i).getOrderPriority();
-		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_BUILD;
-		iTotalActionInfoCount++;
-	}
-	for (int i = 0; i < GC.getNumPromotionInfos(); i++)
-	{
-		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getInfo((PromotionTypes)i).getOrderPriority();
-		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_PROMOTION;
-		iTotalActionInfoCount++;
-	}
-	for (int i = 0; i < GC.getNumUnitInfos(); i++)
-	{
-		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getInfo((UnitTypes)i).getOrderPriority();
-		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_UNIT;
-		iTotalActionInfoCount++;
-	}
-	for (int i = 0; i < GC.getNumReligionInfos(); i++)
-	{
-		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getInfo((ReligionTypes)i).getOrderPriority();
-		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_RELIGION;
-		iTotalActionInfoCount++;
-	}
-	for (int i = 0; i < GC.getNumCorporationInfos(); i++)
-	{
-		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getInfo((CorporationTypes)i).getOrderPriority();
-		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_CORPORATION;
-		iTotalActionInfoCount++;
-	}
-	for (int i = 0; i < GC.getNumSpecialistInfos(); i++)
-	{
-		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getInfo((SpecialistTypes)i).getOrderPriority();
-		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_SPECIALIST;
-		iTotalActionInfoCount++;
-	}
-	for (int i = 0; i < GC.getNumBuildingInfos(); i++)
-	{
-		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getInfo((BuildingTypes)i).getOrderPriority();
-		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_BUILDING;
-		iTotalActionInfoCount++;
-	}
-	for (int i = 0; i < NUM_CONTROL_TYPES; i++)
-	{
-		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getInfo((ControlTypes)i).getOrderPriority();
-		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_CONTROL;
-		iTotalActionInfoCount++;
-	}
-	for (int i = 0; i < NUM_AUTOMATE_TYPES; i++)
-	{
-		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getInfo((AutomateTypes)i).getOrderPriority();
-		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_AUTOMATE;
-		iTotalActionInfoCount++;
-	}
-	for (int i = 0; i < NUM_MISSION_TYPES; i++)
-	{
-		piIndexList[iTotalActionInfoCount] = i;
-		piPriorityList[iTotalActionInfoCount] = GC.getInfo((MissionTypes)i).getOrderPriority();
-		piActionInfoTypeList[iTotalActionInfoCount] = ACTIONSUBTYPE_MISSION;
-		iTotalActionInfoCount++;
-	}
-
-	SAFE_DELETE_ARRAY(piOrderedIndex);
-	piOrderedIndex = new int[iNumActionInfos];
-
-	orderHotkeyInfo(&piOrderedIndex, piPriorityList, iNumActionInfos);
-	for (int i = 0; i < iNumActionInfos; i++)
+	for (int i = 0; i < iActionInfos; i++)
 	{
 		CvActionInfo* pActionInfo = new CvActionInfo;
-		// <advc>
-		int const iOrdered = piOrderedIndex[i];
-		int const iInfo = piIndexList[iOrdered]; // <advc>
+		int const iOrdered = aiOrderedIndex[i];
+		int const iInfo = aiIndexList[iOrdered];
 		pActionInfo->setOriginalIndex(iInfo);
-		pActionInfo->setSubType((ActionSubTypes)piActionInfoTypeList[iOrdered]);
-		if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_COMMAND)
+		pActionInfo->setSubType((ActionSubTypes)aiActionInfoTypeList[iOrdered]);
+		if ((ActionSubTypes)aiActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_COMMAND)
 		{
 			GC.getInfo((CommandTypes)iInfo).setActionInfoIndex(i);
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_INTERFACEMODE)
+		else if ((ActionSubTypes)aiActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_INTERFACEMODE)
 		{
 			GC.getInfo((InterfaceModeTypes)iInfo).setActionInfoIndex(i);
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_BUILD)
+		else if ((ActionSubTypes)aiActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_BUILD)
 		{
 			GC.getInfo((BuildTypes)iInfo).setMissionType(FindInInfoClass("MISSION_BUILD"));
 			GC.getInfo((BuildTypes)iInfo).setActionInfoIndex(i);
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_CONTROL)
+		else if ((ActionSubTypes)aiActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_CONTROL)
 		{
 			GC.getControlInfo((ControlTypes)iInfo).setActionInfoIndex(i);
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_AUTOMATE)
+		else if ((ActionSubTypes)aiActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_AUTOMATE)
 		{
 			GC.getAutomateInfo((AutomateTypes)iInfo).setActionInfoIndex(i);
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_MISSION)
+		else if ((ActionSubTypes)aiActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_MISSION)
 		{
-			GC.getMissionInfo((MissionTypes)iInfo).setActionInfoIndex(i + iNumOrigVals);
+			GC.getMissionInfo((MissionTypes)iInfo).setActionInfoIndex(i + iOldActionInfos);
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_PROMOTION)
+		else if ((ActionSubTypes)aiActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_PROMOTION)
 		{
 			CvPromotionInfo& kPromo = GC.getInfo((PromotionTypes)iInfo);
 			kPromo.setCommandType(FindInInfoClass("COMMAND_PROMOTION"));
 			setActionData(kPromo, i, (CommandTypes)kPromo.getCommandType());
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_UNIT)
+		else if ((ActionSubTypes)aiActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_UNIT)
 		{
 			CvUnitInfo& kUnit = GC.getInfo((UnitTypes)iInfo);
 			kUnit.setCommandType((CommandTypes)FindInInfoClass("COMMAND_UPGRADE"));
 			kUnit.setActionInfoIndex(i);
 			setActionData(kUnit, i, kUnit.getCommandType());
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_RELIGION)
+		else if ((ActionSubTypes)aiActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_RELIGION)
 		{
 			CvReligionInfo& kReligion = GC.getInfo((ReligionTypes)iInfo);
 			kReligion.setMissionType(FindInInfoClass("MISSION_SPREAD"));
 			kReligion.setActionInfoIndex(i);
 			setActionData(kReligion, i, (MissionTypes)kReligion.getMissionType());
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_CORPORATION)
+		else if ((ActionSubTypes)aiActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_CORPORATION)
 		{
 			CvCorporationInfo& kCorp = GC.getInfo((CorporationTypes)iInfo);
 			kCorp.setMissionType(FindInInfoClass("MISSION_SPREAD_CORPORATION"));
 			kCorp.setActionInfoIndex(i);
 			setActionData(kCorp, i, (MissionTypes)kCorp.getMissionType());
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_SPECIALIST)
+		else if ((ActionSubTypes)aiActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_SPECIALIST)
 		{
 			CvSpecialistInfo& kSpecialist = GC.getInfo((SpecialistTypes)iInfo);
 			kSpecialist.setMissionType(FindInInfoClass("MISSION_JOIN"));
 			kSpecialist.setActionInfoIndex(i);
 			setActionData(kSpecialist, i, (MissionTypes)kSpecialist.getMissionType());
 		}
-		else if ((ActionSubTypes)piActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_BUILDING)
+		else if ((ActionSubTypes)aiActionInfoTypeList[iOrdered] == ACTIONSUBTYPE_BUILDING)
 		{
 			CvBuildingInfo& kBuilding = GC.getInfo((BuildingTypes)iInfo);
 			kBuilding.setMissionType((MissionTypes)FindInInfoClass("MISSION_CONSTRUCT"));
@@ -1074,21 +1025,6 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 
 		GC.m_paActionInfo.push_back(pActionInfo);
 	}
-
-	SAFE_DELETE_ARRAY(piOrderedIndex);
-	SAFE_DELETE_ARRAY(piIndexList);
-	SAFE_DELETE_ARRAY(piPriorityList);
-	SAFE_DELETE_ARRAY(piActionInfoTypeList);
-}
-
-// advc: To get rid of some duplicate code in SetGlobalActionInfo
-template <class T, typename /* enum */ E>
-void CvXMLLoadUtility::setActionData(T& kInfo, int iAction, E eMissionCommand)
-{
-	kInfo.setHotKeyDescription(kInfo.getTextKeyWide(),
-			GC.getInfo(eMissionCommand).getTextKeyWide(),
-			HotKeyFromDescription(kInfo.getHotKey(),
-			kInfo.isShiftDown(), kInfo.isAltDown(), kInfo.isCtrlDown()));
 }
 
 /*	Looks for szTagName in XML and, if it exists, loads its value into ppAnimationPathInfo
@@ -1541,62 +1477,6 @@ void CvXMLLoadUtility::LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInf
 		gDLL->destroyCache(pCache);
 	#endif
 }
-
-// helper sort predicate
-struct OrderIndex {int m_iPriority; int m_iIndex;};
-bool sortHotkeyPriority(const OrderIndex orderIndex1, const OrderIndex orderIndex2)
-{
-	return (orderIndex1.m_iPriority > orderIndex2.m_iPriority);
-}
-
-void CvXMLLoadUtility::orderHotkeyInfo(int** ppiSortedIndex, int* pHotkeyIndex, int iLength)
-{
-	std::vector<OrderIndex> viOrderPriority;
-	viOrderPriority.resize(iLength);
-	int* piSortedIndex = *ppiSortedIndex;
-
-	for(int iI = 0; iI < iLength; iI++) // set up vector
-	{
-		viOrderPriority[iI].m_iPriority = pHotkeyIndex[iI];
-		viOrderPriority[iI].m_iIndex = iI;
-	}
-	// sort the array
-	std::sort(viOrderPriority.begin(), viOrderPriority.end(), sortHotkeyPriority);
-
-	// insert new order into the array to return
-	for (int iI = 0; iI < iLength; iI++)
-		piSortedIndex[iI] = viOrderPriority[iI].m_iIndex;
-}
-
-// helper sort predicate
-/*bool sortHotkeyPriorityOld(const CvHotkeyInfo* hotkey1, const CvHotkeyInfo* hotkey2)
-{
-	return (hotkey1->getOrderPriority() < hotkey2->getOrderPriority());
-}*/
-// order a hotkey info derived class
-// ppHotkeyInfos is a hotkey info derived class
-// iLength is the length of the hotkey info derived class array
-/*template <class T>
-void CvXMLLoadUtility::orderHotkeyInfoOld(T **ppHotkeyInfos, int iLength)
-{
-	std::vector<T*> vHotkeyInfo;
-	T* pHotkeyInfo;	// local pointer to the hotkey info memory
-	for (int iI=0;iI<iLength;iI++)
-	{
-		pHotkeyInfo = new T;
-		*pHotkeyInfo = (*ppHotkeyInfos)[iI];
-		vHotkeyInfo.push_back(pHotkeyInfo);
-	}
-	std::sort(vHotkeyInfo.begin(), vHotkeyInfo.end(), sortHotkeyPriority);
-	for (int iI=0;iI<iLength;iI++)
-		(*ppHotkeyInfos)[iI] = *vHotkeyInfo[iI];
-	for (int iI=0;iI<(int)vHotkeyInfo.size();iI++)
-	{
-		vHotkeyInfo[iI]->reset();
-		SAFE_DELETE(vHotkeyInfo[iI]);
-	}
-	vHotkeyInfo.clear();
-}*/
 
 /*  Allocate memory for the yield parameter and set it to the values in XML.
 	The current/last located node must be the first child of the yield changes node */

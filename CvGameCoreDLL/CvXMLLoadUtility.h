@@ -163,7 +163,8 @@ public:
 	void SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
 			int iInfoBaseLength, int iDefaultListVal = -1);
 
-	CvWString HotKeyFromDescription(const TCHAR* pszHotKey, bool bShift = false, bool bAlt = false, bool bCtrl = false);
+	static CvWString HotKeyFromDescription(TCHAR const* pszHotKey,  // advc: static
+			bool bShift = false, bool bAlt = false, bool bCtrl = false);
 	bool SetAndLoadVar(int** ppiVar, int iDefault=0);
 	bool SetStringList(CvString** ppszStringArray, int* piSize);
 	int GetHotKeyInt(const TCHAR* pszHotKeyVal);
@@ -216,15 +217,12 @@ private:
 	// special cases of set class info which don't use the template because of extra code they have
 	//
 	void SetGlobalActionInfo();
-	// advc:
-	template <class T, typename E> void setActionData(T& kInfo, int iAction, E eMissionCommand);
+
 	void SetGlobalAnimationPathInfo(CvAnimationPathInfo** ppAnimationPathInfo, char* szTagName, int* iNumVals);
 	//void SetGameText(const char* szTextGroup, const char* szTagName);
 	void SetGameText(const char* szTextGroup, const char* szTagName, const std::string& language_name); // K-Mod
 
-	CvWString KeyStringFromKBCode(const TCHAR* pszHotKey);
-
-	void orderHotkeyInfo(int** ppiSortedIndex, int* pHotkeyIndex, int iLength);
+	static CvWString KeyStringFromKBCode(TCHAR const* pszHotKey); // advc: static
 	/*	<advc.006g> (The BtS code sometimes said "XML Error", sometimes "XML Load Error"
 		not sure if that's meanigful, but I'm going to preserve it.)*/
 	enum XMLErrorTypes
