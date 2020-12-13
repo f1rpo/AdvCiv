@@ -1393,15 +1393,23 @@ void CvGame::normalizeStartingPlotLocations()
 
 	int iBestScore = getTeamClosenessScore(aaiDistances, aiStartingLocs);
 	bool bFoundSwap = true;
+	/*	<advc.027> I worry that going through the players in turn order
+		can lead to biases toward or against the (human) team of player 0.
+		(PlayerIter unfortunately only knows how to use SRand; I want MapRand here.) */
+	int aiPlayersShuffled[MAX_CIV_PLAYERS];
+	::shuffleArray(aiPlayersShuffled, MAX_CIV_PLAYERS, getMapRand()); // </advc.027>
 	while (bFoundSwap)
 	{
 		bFoundSwap = false;
-		for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+		// <advc.027>
+		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
+			int iI = aiPlayersShuffled[i]; // </advc.027>
 			if (GET_PLAYER((PlayerTypes)iI).isAlive())
-			{
-				for (iJ = 0; iJ < iI; iJ++)
+			{	// <advc.027>
+				for (int j = 0; j < i; j++)
 				{
+					int iJ = aiPlayersShuffled[j]; // </advc.027>
 					if (GET_PLAYER((PlayerTypes)iJ).isAlive())
 					{
 						int iTemp = aiStartingLocs[iI];
