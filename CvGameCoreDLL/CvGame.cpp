@@ -2923,7 +2923,6 @@ void CvGame::update()
 		updateTurnTimer();
 		AI().AI_updateAssignWork();
 		testAlive();
-		AI().uwai().invalidateUICache(); // advc.104l
 		if (getAIAutoPlay() == 0 && !gDLL->GetAutorun() && GAMESTATE_EXTENDED != getGameState())
 		{
 			if (countHumanPlayersAlive() == 0 &&
@@ -2933,6 +2932,12 @@ void CvGame::update()
 			}
 		}
 		changeTurnSlice(1);
+		/*	<advc.104l> Make sure that UI (specifically willing-to-talk indicator)
+			doesn't become outdated throughout a turn. Or at least not for long.
+			advc.085: Invalidating on every turn slice might slightly hurt
+			responsiveness when hovering over the scoreboard. (Not sure.) */
+		if (getTurnSlice() % 4 == 0)
+			AI().uwai().invalidateUICache(); // </advc.104l>
 
 		if (getActivePlayer() != NO_PLAYER && GET_PLAYER(getActivePlayer()).getAdvancedStartPoints() >= 0 &&
 			!gDLL->UI().isInAdvancedStart())
