@@ -5553,6 +5553,10 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 							GC.getInfo(eLoopTech).getDescription(),
 							iPathLength, kOwner.AI_techValue(eLoopTech,
 							1, false, true, aiBonusClassRevealed,
+							/*	advc (note): Could now disable randomization through
+								bRandomize=false. Currently, the UI will show the values
+								fluctuate randomly. Perhaps this is better than just
+								hiding the randomness. */
 							aiBonusClassUnrevealed, aiBonusClassHave)));
 					szString.append(CvWString::format(L" (bld:%d, ",
 							kOwner.AI_techBuildingValue(eLoopTech, true, bDummy)));

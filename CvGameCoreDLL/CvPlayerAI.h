@@ -172,9 +172,10 @@ public:
 			EnumMap<BonusClassTypes,int> const& kBonusClassRevealed,
 			EnumMap<BonusClassTypes,int> const& viBonusClassUnrevealed,
 			EnumMap<BonusClassTypes,int> const& viBonusClassHave,
-			PlayerTypes eFromPlayer = NO_PLAYER) const; // advc.144
+			PlayerTypes eFromPlayer = NO_PLAYER, // advc.144
+			bool bRandomize = true) const; // advc
 	int AI_obsoleteBuildingPenalty(TechTypes eTech, bool bConstCache) const; // K-Mod
-	int AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bEnablesWonder) const; // Rewritten for K-Mod
+	int AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bEnablesWonder) const;
 	int AI_techUnitValue(TechTypes eTech, int iPathLength, bool &bEnablesUnitWonder) const;
 	// BETTER_BTS_AI_MOD: END
 	// k146:

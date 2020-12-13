@@ -4375,6 +4375,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	EnumMap<BonusClassTypes,int> const& kBonusClassUnrevealed,
 	EnumMap<BonusClassTypes,int> const& kBonusClassHave,
 	PlayerTypes eFromPlayer, // advc.144
+	/*	advc: Not needed after all (but may yet want to use it; if only for debug output).
+		false implies that the game state mustn't be modified - may or may not be run in-sync. */
+	bool bRandomize) const
 {
 	PROFILE_FUNC();
 
@@ -4402,16 +4405,19 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	CvRandom& kRand = (bAsync ? GC.getASyncRand() : GC.getGame().getSRand());
 	// <k146>
 	int iRandomFactor = 0; // Amount of random value in the answer.
-	int iRandomMax = 0;   // Max random value. (These randomness trackers aren't actually used, and may not even be accurate.)
+	// (These randomness trackers aren't actually used, and may not even be accurate.)
+	int iRandomMax = 0; // Max random value.
 	//if (iPathLength <= 1) // Don't include random bonus for follow-on tech values.
 	{/*  </k146> advc.131: Decrease the random summand (was 80), but increase the
 		random multiplier at the end of the function. */
-		int const iRandPlusMax = 26; //80
-		iRandomFactor = kRand.get(iRandPlusMax * iCityCount, "AI Research");
-		iRandomMax = iRandPlusMax * iCityCount;
+		int const iRandPlusMax = 26 * iCityCount; //80
+		iRandomFactor = (bRandomize ? kRand.get(iRandPlusMax, "AI Research") :
+				iRandPlusMax / 2); // advc
 		iValue += iRandomFactor;
+		if (bRandomize)
+			iRandomMax = iRandPlusMax;
 	}
-	if(!bFreeTech) // k146
+	if (!bFreeTech) // k146
 		iValue += kTeam.getResearchProgress(eTech) / 4;
 	// advc.007: Might need this again
 	//FAssert(!canResearch(eTech) || std::wcscmp(kTech.getDescription(), L"Feudalism") != 0);
@@ -5201,35 +5207,40 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	bool bEnablesUnitWonder;
 	iValue += AI_techUnitValue( eTech, iPathLength, bEnablesUnitWonder);
 
-	if (bEnablesUnitWonder
-			&& getTotalPopulation() > 5) // k146
-	{	// <k146>
-		int const iBaseRand = std::max(10, 110-30*iPathLength); // 80, 50, 20, 10
-		int iWonderRandom = kRand.get(iBaseRand, "AI Research Wonder Unit");
+	if (bEnablesUnitWonder &&  // <k146>
+		getTotalPopulation() > 5)
+	{
 		int iFactor = 100 * std::min(iCityCount, iCityTarget) /
 				std::max(1, iCityTarget);
+		int const iBaseRand = std::max(10, 110-30*iPathLength); // 80, 50, 20, 10
+		int const iWonderRandom = bRandomize ?
+				kRand.get(iBaseRand, "AI Research Wonder Unit") :
+				iBaseRand / 2; // advc
+		if (bRandomize)
+		{
+			iRandomMax += iBaseRand * iFactor / 100;
+			iRandomFactor += iWonderRandom * iFactor / 100;
+		}
 		iValue += (iWonderRandom + (bCapitalAlone ? 50 : 0)) * iFactor / 100;
-		iRandomMax += iBaseRand * iFactor / 100;
 		// </k146>
-		iRandomFactor += iWonderRandom * iFactor / 100;
 	}
 
 
 	/* ------------------ Building Value  ------------------ */
-	bool bEnablesWonder
-			/*  advc.001n: AI_techBuildingValue now guaranteed to assign a value,
-				but wasn't previously, and caller shouldn't rely on it. */
-			= false;
-	iValue += AI_techBuildingValue(eTech, bAsync, bEnablesWonder); // changed by K-Mod
-	iValue -= AI_obsoleteBuildingPenalty(eTech, bAsync); // K-Mod!
+	bool bEnablesWonder/* advc.001n:*/=false;
+	iValue += AI_techBuildingValue(eTech, bAsync || !bRandomize, bEnablesWonder);
+	iValue -= AI_obsoleteBuildingPenalty(eTech, bAsync || !bRandomize); // K-Mod!
 
 	// K-Mod. Scale the random wonder bonus based on leader personality.
 	/*  k146 (note): the value of the building itself was already counted by
 		AI_techBuildingValue. This extra value is just because we like wonders. */
 	if (bEnablesWonder && getTotalPopulation() > 5)
 	{
-		const int iBaseRand = std::max(10, 110-30*iPathLength); // 80, 50, 20, 10 (was 300)
-		int iWonderRandom = kRand.get(iBaseRand, "AI Research Wonder Building");
+		// 80, 50, 20, 10 (was 300)
+		int const iBaseRand = std::max(10, 110 - 30 * iPathLength);
+		int const iWonderRandom = bRandomize ?
+				kRand.get(iBaseRand, "AI Research Wonder Building") :
+				iBaseRand / 2; // advc
 		// note: highest value of iWonderConstructRand 50 in the default xml.
 		int iFactor = 10 + GC.getInfo(getPersonalityType()).getWonderConstructRand();
 		iFactor += AI_atVictoryStage(AI_VICTORY_CULTURE1) ? 15 : 0;
@@ -5239,8 +5250,11 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		iFactor += 50; // k146: This puts iFactor around 100, roughly.
 		iValue += (40 // k146: was 200
 				+ iWonderRandom) * iFactor / 100;
-		iRandomMax += iBaseRand * iFactor / 100;
-		iRandomFactor += iWonderRandom * iFactor / 100;
+		if (bRandomize)
+		{
+			iRandomMax += iBaseRand * iFactor / 100;
+			iRandomFactor += iWonderRandom * iFactor / 100;
+		}
 	}
 	// K-Mod end
 
@@ -5249,10 +5263,16 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	iValue += AI_techProjectValue(eTech, iPathLength, bEnablesProjectWonder);
 	if (bEnablesProjectWonder)
 	{
-		int iWonderRandom = kRand.get(56, "AI Research Wonder Project");
+		int const iBaseRand = 56;
+		int iWonderRandom = bRandomize ?
+				kRand.get(iBaseRand, "AI Research Wonder Project") :
+				iBaseRand / 2; // advc
 		iValue += iWonderRandom;
-		iRandomMax += 56;
-		iRandomFactor += iWonderRandom;
+		if (bRandomize)
+		{
+			iRandomMax += iBaseRand;
+			iRandomFactor += iWonderRandom;
+		}
 	}
 
 
@@ -5374,7 +5394,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		{
 			/*if (GC.getInfo(eLoopCorporation).getTechPrereq() == eTech) {
 				if (!GC.getGame().isCorporationFounded(eLoopCorporation)) {
-					iValue += 100 + kRand.get(2400, "AI Research Corporation");
+					int iBaseRand = 2400;
+					iValue += 100 + (bRandomize ? kRand.get(iBaseRand, "AI Research Corporation") : iBaseRand / 2);
 				}
 			}*/ // BtS
 			// K-Mod
@@ -5429,15 +5450,24 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 						{
 							iCorpValue *= 20 + AI_getFlavorValue(FLAVOR_GOLD);
 							iCorpValue /= 20;
-							iValue += iCorpValue / 2;
-							iValue += kRand.get(iCorpValue, "AI Research Corporation");
-							iRandomMax += iCorpValue;
+							if (bRandomize)
+							{
+								iValue += iCorpValue / 2;
+								iValue += kRand.get(iCorpValue, "AI Research Corporation");
+								iRandomMax += iCorpValue;
+							}
+							else iValue += iCorpValue; // advc
 						}
 						else
 						{
 							iValue += iCorpValue / 3;
-							iValue += kRand.get((4 * iCorpValue) / 3, "AI Research Corporation");
-							iRandomMax += 4*iCorpValue/3;
+							int const iRandBase = (4 * iCorpValue) / 3;
+							if (bRandomize)
+							{
+								iValue += kRand.get(iRandBase, "AI Research Corporation");
+								iRandomMax += iRandBase;
+							}
+							else iValue += iRandBase / 2; // advc
 						}
 					}
 				}
@@ -5478,8 +5508,10 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 					if (!(GC.getGame().isReligionSlotTaken((ReligionTypes)iJ)))
 						iPotentialReligions++;
 				}*/ // BtS
-				// K-Mod. iPotentialReligions will only be non-zero during the first few turns of advanced start games. Otherwise it is always zero.
-				// Presumably that's what the original developers intended... so I'm going to leave that alone, and create a new value: iAvailableReligions.
+				/*	K-Mod. iPotentialReligions will only be non-zero during the
+					first few turns of advanced start games. Otherwise it is always zero.
+					Presumably that's what the original developers intended...
+					so I'm going to leave that alone, and create a new value: iAvailableReligions. */
 				if (!GC.getGame().isReligionSlotTaken(eLoopReligion))
 				{
 					iAvailableReligions++;
@@ -5510,10 +5542,13 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 						iRoll /= 200;
 						if (iRaceModifier > 10 && AI_getFlavorValue(FLAVOR_RELIGION) > 0)
 							iReligionValue += iRoll * (iRaceModifier-10) / 300;
-
-						iReligionValue += kRand.get(iRoll, "AI Research Religion");
-						// Note: relation value will be scaled down by other factors in the next section.
-						iRandomMax += iRoll; // (Note: this doesn't include factors used later.)
+						if (bRandomize)
+						{
+							iReligionValue += kRand.get(iRoll, "AI Research Religion");
+							// Note: relation value will be scaled down by other factors in the next section.
+							iRandomMax += iRoll; // (Note: this doesn't include factors used later.)
+						}
+						else iReligionValue += iRoll / 2; // advc
 					}
 				}
 			}
@@ -5536,14 +5571,18 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 				if (countTotalHasReligion() == 0 && iPotentialReligions == 0)
 				{
 					bool bNeighbouringReligions = false;
-					for (PlayerTypes i = (PlayerTypes)0; !bNeighbouringReligions && i < MAX_CIV_PLAYERS; i = (PlayerTypes)(i+1))
+					for (PlayerTypes i = (PlayerTypes)0;
+						!bNeighbouringReligions && i < MAX_CIV_PLAYERS; i = (PlayerTypes)(i+1))
 					{
 						const CvPlayer& kLoopPlayer = GET_PLAYER(i);
 						if (kLoopPlayer.isAlive() && kTeam.isHasMet(kLoopPlayer.getTeam()) &&
 							kLoopPlayer.getStateReligion() != NO_RELIGION &&
 							// <advc.001>
-							((getTeam() != kLoopPlayer.getTeam() && kTeam.AI_hasSharedPrimaryArea(kLoopPlayer.getTeam())) ||
-							(getTeam() == kLoopPlayer.getTeam() && getID() != kLoopPlayer.getID() && AI_hasSharedPrimaryArea(kLoopPlayer.getID()))))
+							((getTeam() != kLoopPlayer.getTeam() &&
+							kTeam.AI_hasSharedPrimaryArea(kLoopPlayer.getTeam())) ||
+							(getTeam() == kLoopPlayer.getTeam() &&
+							getID() != kLoopPlayer.getID() &&
+							AI_hasSharedPrimaryArea(kLoopPlayer.getID()))))
 						/*  The case where both civs are on the same team previously led to a
 							failed assertion in CvTeamAI::hasSharedPrimaryArea.
 							Added a new clause that checks if the civs (not their teams)
@@ -5594,17 +5633,21 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			{
 				// K-Mod
 				int iRoll = 2 * (100 + AI_getGreatPersonWeight((UnitClassTypes)GC.getInfo(eTech).getFirstFreeUnitClass()));
-				// I've diluted the weight because free great people doesn't have the negative effect of making it harder to get more great people
+				/*	I've diluted the weight because free great people doesn't have
+					the negative effect of making it harder to get more great people */
 				iRoll *= 200 + iRaceModifier;
 				iRoll /= 200;
 				if (iRaceModifier > 20 && AI_getFlavorValue(FLAVOR_SCIENCE) + AI_getFlavorValue(FLAVOR_GROWTH) > 0)
 					iValue += iRoll * (iRaceModifier - 10) / 400;
-				iValue += kRand.get(iRoll, "AI Research Great People");
-				iRandomMax += iRoll;
-				// K-Mod end
+				if (bRandomize) 
+				{
+					iValue += kRand.get(iRoll, "AI Research Great People");
+					iRandomMax += iRoll;
+				} // K-Mod end
+				else iValue += iRoll / 2; // advc
 			}
 
-			//iValue += kTech.getFirstFreeTechs() * (200 + (bCapitalAlone ? 400 : 0) + kRand.get(3200, "AI Research Free Tech"));
+			//iValue += kTech.getFirstFreeTechs() * (200 + (bCapitalAlone ? 400 : 0) + (bRandomize ? kRand.get(3200, "AI Research Free Tech") : 1600));
 			// K-Mod. Very rough evaluation of free tech.
 			if (kTech.getFirstFreeTechs() > 0)
 			{	// <k146>
@@ -5640,10 +5683,14 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 				if (iRaceModifier > 20 && iRaceModifier < 100) // save the free tech if we have no competition!
 					iTempValue += iBase * (iRaceModifier-20) / 200;
 				//int iTempValue = (iRaceModifier >= 0 ? 196 : 98) + (bCapitalAlone ? 28 : 0); // some value regardless of race or random.
-				iTempValue += kRand.get(iBase, "AI Research Free Tech");
-				// </k146>
+				if (bRandomize)
+				{
+					iTempValue += kRand.get(iBase, "AI Research Free Tech");
+					// </k146>
+					iRandomMax += iBase * kTech.getFirstFreeTechs();
+				}
+				else iTempValue += iBase / 2; // advc
 				iValue += iTempValue * kTech.getFirstFreeTechs();
-				iRandomMax += iBase * kTech.getFirstFreeTechs();
 			}
 			// K-Mod end
 		}
@@ -5668,9 +5715,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	if (iValue > 0)
 	{
 		/*  Don't want a higher overall value on account of flavor. Therefore,
-			divide by a sort of median flavor multiplier (1.03).
-			(Although e.g. tech-for-gold trades aren't made based on
-			AI_techValue, so I don't think this is crucial.) */
+			divide by a sort of median flavor multiplier (1.03). Althóugh,
+			AI_techValue doesn't have a particular scale, so - probably unnecessary. */
 		iValue = (iValue * rFlavorFactor.getPercent()) / 103;
 		// Fixme: If I can turn iValue back into an int:
 		//iValue = (iValue * rFlavorFactor / per100(103)).round();
@@ -5697,7 +5743,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		bool bCheapBooster = (iTurnsLeft >= 0 && // advc.004x
 				iTurnsLeft < (2 * iAdjustment) &&
 				eFromPlayer == NO_PLAYER && // advc.144
-				kRand.get(5, "AI Choose Cheap") == 0);
+				(bRandomize && kRand.get(5, "AI Choose Cheap") == 0));
 		/*  <advc.004x> Shouldn't normally be called during anarchy, but if it is,
 			assume a usual time to research. */
 		if(iTurnsLeft < 0)
@@ -5766,12 +5812,18 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 	/*  K-Mod, 12/sep/10, Karadoc
 		Use a random _factor_ at the end. */
-	// advc: Renamed from iRandomFactor, which is already defined (though unused).
-	int iFinalRandomFactor = kRand.get(200, "AI Research factor"); // k146: was 100
-	// k146: was 950+...
-	iValue *= (900 + iFinalRandomFactor); // between 90% and 110%
-	FAssert(iValue < MAX_INT); // advc.test: Where would int iValue overflow?
-	iValue /= 1000;
+	if (bRandomize)
+	{
+		// advc: Renamed from iRandomFactor, which is already defined (though unused).
+		int iFinalRandomFactor = kRand.get(200, "AI Research factor"); // k146: was 100
+		// k146: was 950+...
+		iValue *= (900 + iFinalRandomFactor); // between 90% and 110%
+		FAssert(iValue < MAX_INT); // advc.test: Where would int iValue overflow?
+		iValue /= 1000;
+	}
+	/*	advc: iRandomMax is disused; checking it only to make sure
+		that I haven't missed any randomized code. */
+	else FAssert(iRandomMax == 0);
 
 	/*iValue = range(iValue, 0, MAX_INT);
 	return iValue;*/ // K-Mod end
