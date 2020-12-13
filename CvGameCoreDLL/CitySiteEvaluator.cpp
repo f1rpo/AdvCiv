@@ -3191,42 +3191,40 @@ scaled AIFoundValue::evaluateWorkablePlot(CvPlot const& p) const
 			bAnySpecial = true;
 		}
 	}
+	scaled rYieldVal;
+	// Equal weight for food and production, but penalize low food later.
+	int const aiYieldWeight[NUM_YIELD_TYPES] = {20, 20, 10};
+	FOR_EACH_ENUM(Yield)
 	{
-		scaled rYieldVal;
-		// Equal weight for food and production, but penalize low food later.
-		int const aiYieldWeight[NUM_YIELD_TYPES] = {20, 20, 10};
-		FOR_EACH_ENUM(Yield)
+		scaled rWeight = aiYieldWeight[eLoopYield];
+		int iYield = aiYield[eLoopYield];
+		if (iYield < 0) // BonusImprovementYield can be negative
+			rWeight /= 2;
+		rYieldVal += aiYield[eLoopYield] * rWeight;
+	}
+	{
+		bool const bCanNeverImprove = (eFeature != NO_FEATURE &&
+				GC.getInfo(eFeature).isNoImprovement());
+		// Anticipate terrain improvement
+		if (!bCanNeverImprove && !bAnySpecial && !p.isWater())
 		{
-			scaled rWeight = aiYieldWeight[eLoopYield];
-			int iYield = aiYield[eLoopYield];
-			if (iYield < 0) // BonusImprovementYield can be negative
-				rWeight /= 2;
-			rYieldVal += aiYield[eLoopYield] * rWeight;
+			rYieldVal *= (  // Too slow for what it accomplishes?
+					/*p.isFreshWater() && p.canHavePotentialIrrigation()) ? fixp(1.8) :*/
+					fixp(1.75));
 		}
-		{
-			bool const bCanNeverImprove = (eFeature != NO_FEATURE &&
-					GC.getInfo(eFeature).isNoImprovement());
-			// Anticipate terrain improvement
-			if (!bCanNeverImprove && !bAnySpecial && !p.isWater())
-			{
-				rYieldVal *= (  // Too slow for what it accomplishes?
-						/*p.isFreshWater() && p.canHavePotentialIrrigation()) ? fixp(1.8) :*/
-						fixp(1.75));
-			}
-			if (bCanNeverImprove) // Not having to improve it is valuable
-				rYieldVal *= fixp(4/3.);
-		}
-		if (aiYield[YIELD_FOOD] < GC.getFOOD_CONSUMPTION_PER_POPULATION())
-			rYieldVal *= fixp(0.9); // 0 food isn't necessarily worse
-		rYieldVal -= (GC.getFOOD_CONSUMPTION_PER_POPULATION() + fixp(1/3.))
-				* aiYieldWeight[YIELD_FOOD] // for pop growth and sustenance
-				+ scaled(aiYieldWeight[YIELD_COMMERCE], 4); // expenses per population
-		if (rYieldVal > 0)
-		{
-			rYieldVal.exponentiate(fixp(1.3));
-			rYieldVal *= rSpecialYieldModifier;
-			r += rYieldVal;
-		}
+		if (bCanNeverImprove) // Not having to improve it is valuable
+			rYieldVal *= fixp(4/3.);
+	}
+	if (aiYield[YIELD_FOOD] < GC.getFOOD_CONSUMPTION_PER_POPULATION())
+		rYieldVal *= fixp(0.9); // 0 food isn't necessarily worse
+	rYieldVal -= (GC.getFOOD_CONSUMPTION_PER_POPULATION() + fixp(1/3.))
+			* aiYieldWeight[YIELD_FOOD] // for pop growth and sustenance
+			+ scaled(aiYieldWeight[YIELD_COMMERCE], 4); // expenses per population
+	if (rYieldVal > 0)
+	{
+		rYieldVal.exponentiate(fixp(1.3));
+		rYieldVal *= rSpecialYieldModifier;
+		r += rYieldVal;
 	}
 	if (!p.isImpassable())
 	{	/*	Even with marginal tile yields, just having space is valuable
@@ -3269,6 +3267,15 @@ scaled AIFoundValue::evaluateWorkablePlot(CvPlot const& p) const
 				rNonYieldBonusVal *= 2;
 				rNonYieldBonusVal /= (2 + SQR(iEraDiff));
 			}
+		}
+		// Settling near low-yield resources (especially Snow Fur) is an inconvenience
+		scaled const rYieldThresh = 48;
+		if (rYieldVal < rYieldThresh)
+		{
+			// Halve if rYieldVal equal to -rYieldThresh or less; 75% if rYieldVal=0.
+			scaled rLowYieldMult = fixp(0.75) +
+					(1 / (4 * rYieldThresh)) * scaled::max(-rYieldThresh, rYieldVal);
+			rNonYieldBonusVal *= rLowYieldMult;
 		}
 		r += rNonYieldBonusVal;
 	}
