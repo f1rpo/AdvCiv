@@ -21323,23 +21323,39 @@ int CvUnitAI::AI_stackOfDoomExtra() const
 	//return ((AI_getBirthmark() % (1 + GET_PLAYER(getOwner()).getCurrentEra())) + 4);
 	// K-Mod
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	CvTeamAI const& kOurTeam = GET_TEAM(kOwner.getTeam()); //advc
 	int iFlavourExtra = kOwner.AI_getFlavorValue(FLAVOR_MILITARY)/2 +
 			(kOwner.AI_getFlavorValue(FLAVOR_MILITARY) > 0 ?
 			4 : 2); // <advc.104p> was 8:4
-	/*  Would be best to use the era of the target, but stacks aren't formed
-		against a particular target. Game era is still better than using
-		our era: If we're more advanced than our rivals, it doesn't mean that
-		we need larger stacks than theirs. */
-	int const iEra = GC.getGame().getCurrentEra(); // </advc.104p>
+	//int iEra = kOwner.getCurrentEra();
+	/*	<advc.104p> We don't need more units as _we_ become more advanced.
+		Instead check what era our potential targets are in. */
+	scaled rMeanTargetEra;
+	int iEnemies = 0;
+	for (PlayerIter<CIV_ALIVE,KNOWN_POTENTIAL_ENEMY_OF> itEnemy(kOurTeam.getID());
+		itEnemy.hasNext(); ++itEnemy)
+	{
+		if (kOurTeam.AI_getWarPlan(itEnemy->getTeam()) != NO_WARPLAN)
+		{
+			rMeanTargetEra += itEnemy->getCurrentEra();
+			iEnemies++;
+		}
+	}
+	if (rMeanTargetEra == 0)
+	{
+		rMeanTargetEra += GET_PLAYER(BARBARIAN_PLAYER).getCurrentEra();
+		iEnemies++;
+	}
+	rMeanTargetEra /= iEnemies; // </advc.104p>
 	// 4 base. then rand between 0 and ... (1 or 2 + iEra + flavour * era ratio)
 	// <advc.104p> Put that era ratio in a variable and round modulus to nearest
-	scaled rEraRatio(iEra + 1, std::max(1, GC.getNumEraInfos()));
+	scaled rEraRatio = (rMeanTargetEra + 1) / std::max(1, GC.getNumEraInfos());
 	int iModulus = ( // </advc.104p>
 			((kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH) ? 2 : 1) +
 			rEraRatio * iFlavourExtra +
-			// <advc.104p> Half of iEra factored into the non-random portion
-			iEra/2)).round();
-	int r = (iEra+1)/2 + // </advc.104p>
+			// <advc.104p> Half of rMeanTargetEra factored into the non-random portion
+			rMeanTargetEra / 2)).round();
+	int iR = (rMeanTargetEra / 2).ceil() + // </advc.104p>
 			4 + (AI_getBirthmark() % iModulus);
 	// K-Mod end
 	// <advc.104p>
@@ -21353,7 +21369,6 @@ int CvUnitAI::AI_stackOfDoomExtra() const
 		rTrainMod.increaseTo(fixp(0.75));
 		rMult /= rTrainMod;
 	}
-	CvTeamAI const& kOurTeam = GET_TEAM(kOwner.getTeam());
 	// A little extra for naval assault
 	if(getArea().getAreaAIType(kOurTeam.getID()) == AREAAI_ASSAULT)
 		rMult += fixp(0.225);
