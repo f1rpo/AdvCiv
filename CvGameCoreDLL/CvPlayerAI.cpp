@@ -5767,30 +5767,66 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	{
 		if (kTech.isTechTrading() || kTeam.isTechTrading())
 		{
-			// K-Mod. We should either consider 'tech ground breaking' for all techs this turn, or none at all - otherwise it will just mess things up.
-			// Also, if the value adjustment isn't too big, it should be ok to do this most of the time.
-			if (AI_getStrategyRand(GC.getGame().getGameTurn()) %
-				std::max(1, GC.getInfo(getPersonalityType()).getContactRand(CONTACT_TRADE_TECH)) == 0)
+			/*	K-Mod. We should either consider 'tech ground breaking'
+				for all techs this turn, or none at all -
+				otherwise it will just mess things up.
+				Also, if the value adjustment isn't too big, it should be
+				ok to do this most of the time. */
+			int iModulus = GC.getInfo(getPersonalityType()).
+					getContactRand(CONTACT_TRADE_TECH);
+			/*	<advc.550h> Apply groundbreaking modifier more often -
+				except for Alphabet. Don't want that tech prioritized too much. */
+			if (kTeam.isTechTrading())
+			{
+				iModulus *= 3;
+				iModulus /= 5;
+			} // </advc.550h>
+			iModulus = std::max(1, iModulus);
+			if (AI_getStrategyRand(GC.getGame().getGameTurn()) % iModulus == 0)
 			{
 				int iAlreadyKnown = 0;
-				int iPotentialTrade = 0;
-				for (TeamTypes i = (TeamTypes)0; i < MAX_CIV_TEAMS; i = (TeamTypes)(i+1))
+				scaled rPotentialTrade;
+				for (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 				{
-					const CvTeamAI& kLoopTeam = GET_TEAM(i);
-					if (i != getTeam() && kLoopTeam.isAlive() && kTeam.isHasMet(i))
+					CvTeamAI& kLoopTeam = *it;
+					/*	<advc.156> No longer sufficient to check only the current research
+						of kLoopTeam.getleaderID(). */
+					bool bAlreadyKnown = kLoopTeam.isHasTech(eTech);
+					for (MemberIter itMember(kLoopTeam.getID());
+						!bAlreadyKnown && itMember.hasNext(); ++itMember)
 					{
-						if (kLoopTeam.isHasTech(eTech) || (canSeeResearch(kLoopTeam.getLeaderID()) && GET_PLAYER(kLoopTeam.getLeaderID()).getCurrentResearch() == eTech))
-							iAlreadyKnown++;
-						else if (!kTeam.isAtWar(i) && kLoopTeam.AI_techTrade(NO_TECH, getTeam()) == NO_DENIAL && kTeam.AI_techTrade(NO_TECH, i) == NO_DENIAL)
-							iPotentialTrade++;
+						if (canSeeResearch(itMember->getID()) &&
+							itMember->getCurrentResearch() == eTech)
+						{
+							bAlreadyKnown = true;
+						}
+					} // </advc.156>
+					if (bAlreadyKnown)
+						iAlreadyKnown++;
+					else if (!kTeam.isAtWar(kLoopTeam.getID()) &&
+						kLoopTeam.AI_techTrade(NO_TECH, getTeam()) == NO_DENIAL &&
+						kTeam.AI_techTrade(NO_TECH, kLoopTeam.getID()) == NO_DENIAL)
+					{
+						//iPotentialTrade++;
+						// <advc.550h> Don't (fully) count teams that are far behind
+						rPotentialTrade += scaled::min(1, scaled(
+								GET_PLAYER(kLoopTeam.getLeaderID()).getTechScore(),
+								getTechScore())); // </advc.550h>
 					}
 				}
-
-				int iTradeModifier = iPotentialTrade * (GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING) ?
-						30 : 15); // k146: was 20:12
-				iTradeModifier *= 200 - GC.getInfo(getPersonalityType()).getTechTradeKnownPercent();
+				int iTradeModifier = (rPotentialTrade *
+						(GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING) ?
+						// advc.550h: Was 30:15 in K-Mod 1.46 and 20:12 in earlier versions
+						37 : 20)).round();
+				iTradeModifier *= 200 - GC.getInfo(getPersonalityType()).
+						getTechTradeKnownPercent();
 				iTradeModifier /= 150;
-				iTradeModifier /= 1 + 2 * iAlreadyKnown;
+				iTradeModifier /= 1 +
+						/*	<advc.550h> NO_TECH_BROKERING makes it less likely that
+							the already-knowns will spoil our trades */
+						(GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING) ?
+						scaled(3 * iAlreadyKnown, 2).ceil() : // </advc.550h>
+						2 * iAlreadyKnown);
 				iValue *= 100 + std::min(100, iTradeModifier);
 				FAssert(iValue < MAX_INT); // advc.test: Where would int iValue overflow?
 				iValue /= 100;
