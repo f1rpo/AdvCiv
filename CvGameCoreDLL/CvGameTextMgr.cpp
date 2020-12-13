@@ -10749,7 +10749,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 			aiCommerces[e] = kBuilding.getCommerceChange(e);
 			aiCommerces[e] += kBuilding.getObsoleteSafeCommerceChange(e);
 			// K-Mod, 30/dec/10: added religious building bonus info
-			if (ePlayer != NO_PLAYER &&
+			if (ePlayer != NO_PLAYER && /* advc: */ !bCivilopediaText &&
 				kBuilding.getReligionType() != NO_RELIGION &&
 				kBuilding.getReligionType() == pPlayer->getStateReligion())
 			{
