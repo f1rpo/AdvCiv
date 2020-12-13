@@ -162,12 +162,16 @@ public:
 	TechTypes AI_bestTech(int iMaxPathLength = 1, bool bFreeTech = false, bool bAsync = false,
 			TechTypes eIgnoreTech = NO_TECH, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR,
 			PlayerTypes eFromPlayer = NO_PLAYER) const; // advc.144
-
+	scaled AI_getTechRank(TechTypes eTech) const; // advc.550g
+	// advc:
+	void AI_calculateOwnedBonuses(EnumMap<BonusClassTypes,int>& kBonusClassRevealed,
+			EnumMap<BonusClassTypes,int>& viBonusClassUnrevealed,
+			EnumMap<BonusClassTypes,int>& viBonusClassHave) const;
 	// BETTER_BTS_AI_MOD, Tech AI, 03/18/10, jdog5000: START
 	int AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, bool bAsync,
-			const std::vector<int>& viBonusClassRevealed,
-			const std::vector<int>& viBonusClassUnrevealed,
-			const std::vector<int>& viBonusClassHave,
+			EnumMap<BonusClassTypes,int> const& kBonusClassRevealed,
+			EnumMap<BonusClassTypes,int> const& viBonusClassUnrevealed,
+			EnumMap<BonusClassTypes,int> const& viBonusClassHave,
 			PlayerTypes eFromPlayer = NO_PLAYER) const; // advc.144
 	int AI_obsoleteBuildingPenalty(TechTypes eTech, bool bConstCache) const; // K-Mod
 	int AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bEnablesWonder) const; // Rewritten for K-Mod
@@ -752,7 +756,8 @@ protected:
 	bool m_abTheyBarelyAhead[MAX_CIV_PLAYERS]; // </advc.130c>
 	std::map<UnitClassTypes, int> m_GreatPersonWeights; // K-Mod
 	std::map<int,int> m_neededExplorersByArea; // advc.opt
-	static int const m_iSingleBonusTradeTolerance = 20; // advc.036
+
+	mutable std::vector<TechTypes> m_aeBestTechs; // advc.550g
 	//mutable int* m_aiCloseBordersAttitude;
 	// K-Mod: (the original system was prone to mistakes.)
 	std::vector<int> m_aiCloseBordersAttitude;

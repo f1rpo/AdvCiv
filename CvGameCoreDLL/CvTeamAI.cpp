@@ -1858,6 +1858,7 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam,
 	bool bIgnoreDiscount, // advc.550a
 	bool bPeaceDeal) const // advc.140h
 {
+	PROFILE_FUNC(); // advc.test: To be profiled
 	FAssert(eFromTeam != getID());
 
 	CvTechInfo const& kTech = GC.getInfo(eTech);
@@ -1920,6 +1921,34 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam,
 		if(rDiscountModifier < 1)
 			rValue *= rDiscountModifier;
 	} // </advc.550a>
+	// <advc.550g>
+	if (!isHuman()) // Don't let the AI gauge the human tech value
+	{
+		scaled rTeamRank;
+		int iValidMembers = 0;
+		for (MemberIter itMember(getID()); itMember.hasNext(); ++itMember)
+		{
+			/*	Unfortunately, these ranks are biased toward cheap techs.
+				Still better than nothing (perhaps). */
+			scaled rRank = itMember->AI_getTechRank(eTech);
+			if (!rRank.isNegative())
+			{
+				rTeamRank += rRank;
+				iValidMembers++;
+			}
+		}
+		if (iValidMembers > 0)
+		{
+			rTeamRank /= iValidMembers;
+			FAssert(!rTeamRank.isNegative() && rTeamRank <= 1);
+			scaled rModifier = 1;
+			if (rTeamRank < scaled(1, 2))
+				rModifier += rTeamRank / 2;
+			else if (rTeamRank > scaled(1, 2))
+				rModifier -= (2 * (rTeamRank - scaled(1, 2))) / 3;
+			rValue *= rModifier;
+		}
+	} // </advc.550g>
 	return AI_roundTradeVal(rValue.round()); // advc.104k
 }
 

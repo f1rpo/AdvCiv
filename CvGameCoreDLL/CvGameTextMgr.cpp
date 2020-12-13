@@ -5537,24 +5537,12 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 		// advc.007: Moved up; show this only on the capital.
 		if(bAlt && kPlot.getPlotCity()->isCapital())
 		{
-			std::vector<int> viBonusClassRevealed(GC.getNumBonusClassInfos(), 0);
-			std::vector<int> viBonusClassUnrevealed(GC.getNumBonusClassInfos(), 0);
-			std::vector<int> viBonusClassHave(GC.getNumBonusClassInfos(), 0);
-			FOR_EACH_ENUM(Bonus)
-			{
-				TechTypes eRevealTech = GC.getInfo(eLoopBonus).getTechReveal();
-				BonusClassTypes eBonusClass = GC.getInfo(eLoopBonus).getBonusClassType();
-				if (eRevealTech != NO_TECH)
-				{
-					if ((GET_TEAM(kPlot.getTeam()).isHasTech(eRevealTech)))
-						viBonusClassRevealed[eBonusClass]++;
-					else viBonusClassUnrevealed[eBonusClass]++;
-					if (kOwner.getNumAvailableBonuses(eLoopBonus) > 0)
-						viBonusClassHave[eBonusClass]++;
-					else if (kOwner.AI_countOwnedBonuses(eLoopBonus) > 0)
-						viBonusClassHave[eBonusClass]++;
-				}
-			}
+			// advc: Redundant calculation of owned bonuses deleted
+			EnumMap<BonusClassTypes,int> aiBonusClassRevealed;
+			EnumMap<BonusClassTypes,int> aiBonusClassUnrevealed;
+			EnumMap<BonusClassTypes,int> aiBonusClassHave;
+			kOwner.AI_calculateOwnedBonuses(
+					aiBonusClassRevealed, aiBonusClassUnrevealed, aiBonusClassHave);
 			bool bDummy;
 			FOR_EACH_ENUM(Tech)
 			{
@@ -5564,8 +5552,8 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 					szString.append(CvWString::format(L"\n%s(%d)=%8d",
 							GC.getInfo(eLoopTech).getDescription(),
 							iPathLength, kOwner.AI_techValue(eLoopTech,
-							1, false, true, viBonusClassRevealed,
-							viBonusClassUnrevealed, viBonusClassHave)));
+							1, false, true, aiBonusClassRevealed,
+							aiBonusClassUnrevealed, aiBonusClassHave)));
 					szString.append(CvWString::format(L" (bld:%d, ",
 							kOwner.AI_techBuildingValue(eLoopTech, true, bDummy)));
 					int iObs = kOwner.AI_obsoleteBuildingPenalty(eLoopTech, true);

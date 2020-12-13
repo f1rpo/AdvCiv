@@ -286,6 +286,7 @@ void CvPlayerAI::AI_reset(bool bConstructor)
 		m_aiBonusValue[iI] = -1;
 		m_aiBonusValueTrade[iI] = -1; // advc.036
 	}
+	m_aeBestTechs.clear(); // advc.550g
 
 	FAssert(m_aiUnitClassWeights == NULL);
 	m_aiUnitClassWeights = new int[GC.getNumUnitClassInfos()];
@@ -3753,30 +3754,18 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 
 	CvTeam& kTeam = GET_TEAM(getTeam());
 
-	std::vector<int> viBonusClassRevealed(GC.getNumBonusClassInfos(), 0);
-	std::vector<int> viBonusClassUnrevealed(GC.getNumBonusClassInfos(), 0);
-	std::vector<int> viBonusClassHave(GC.getNumBonusClassInfos(), 0);
-	// k146 (comment): Find make lists of which bonuses we have / don't have / can see. This is used for tech evaluation
-	FOR_EACH_ENUM(Bonus)
-	{
-		TechTypes eRevealTech = GC.getInfo(eLoopBonus).getTechReveal();
-		BonusClassTypes eBonusClass = GC.getInfo(eLoopBonus).getBonusClassType();
-		if (eRevealTech == NO_TECH)
-			continue; // advc
-		if (kTeam.isHasTech(eRevealTech))
-			viBonusClassRevealed[eBonusClass]++;
-		else viBonusClassUnrevealed[eBonusClass]++;
-
-		if (getNumAvailableBonuses(eLoopBonus) > 0)
-			viBonusClassHave[eBonusClass]++;
-		else if (AI_countOwnedBonuses(eLoopBonus) > 0)
-			viBonusClassHave[eBonusClass]++;
-	}
-
-#ifdef DEBUG_TECH_CHOICES
-	CvWString szPlayerName = getName();
-	DEBUGLOG("AI_bestTech:%S\n", szPlayerName.GetCString());
-#endif
+	// advc.enum: Replacing vector<int>
+	EnumMap<BonusClassTypes,int> aiBonusClassRevealed;
+	EnumMap<BonusClassTypes,int> aiBonusClassUnrevealed;
+	EnumMap<BonusClassTypes,int> aiBonusClassHave;
+	// <advc> Moved into subroutine
+	AI_calculateOwnedBonuses(
+			aiBonusClassRevealed, aiBonusClassUnrevealed, aiBonusClassHave);
+	// </advc>
+	/*#ifdef DEBUG_TECH_CHOICES
+		CvWString szPlayerName = getName();
+		DEBUGLOG("AI_bestTech:%S\n", szPlayerName.GetCString());
+	//#endif*/ // advc: The DEBUGLOG macro isn't part of the public K-Mod codebase
 	// <k146>
 	/*  Instead of choosing a tech anywhere inside the max path length with no
 		adjustments for how deep the tech is, we'll evaluate all techs inside
@@ -3869,7 +3858,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 				from lower depths. We're ready to evaluate this tech and add it
 				to the list. */
 			int iValue = AI_techValue(eTech, iDepth+1, iDepth == 0 && bFreeTech, bAsync,
-					viBonusClassRevealed, viBonusClassUnrevealed, viBonusClassHave,
+					aiBonusClassRevealed, aiBonusClassUnrevealed, aiBonusClassHave,
 					eFromPlayer); // advc.144
 
 			techs.push_back(std::make_pair(iValue, eTech));
@@ -4278,47 +4267,120 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 
 	/*  Return the tech corresponding to the back (first step) of the tech path
 		with the highest value. */
-	std::vector<std::pair<int, std::vector<int> > >::iterator best_path_it =
-			std::max_element(tech_paths.begin(), tech_paths.end(),
-			PairFirstLess<int, std::vector<int> >());
-
-	if (best_path_it == tech_paths.end())
+	/*std::vector<std::pair<int, std::vector<int> > >::iterator best_path_it =
+			std::max_element(tech_paths.begin(), tech_paths.end(), PairFirstLess<int,std::vector<int> >());
+	if (best_path_it == tech_paths.end())*/
+	// <advc.550g> Need the whole thing sorted
+	std::sort(tech_paths.begin(), tech_paths.end(), PairFirstLess<int,std::vector<int> >());
+	if (tech_paths.empty()) // </advc.550g>
 	{
 		FErrorMsg("Failed to create a tech path");
 		return NO_TECH;
 	}
 
-	TechTypes eBestTech = techs[best_path_it->second.back()].second;
+	TechTypes eBestTech = techs[
+			/*best_path_it->*/tech_paths[0]. // advc.550g
+			second.back()].second;
 	if (gPlayerLogLevel >= 1)
 	{
 		logBBAI("  Player %d (%S) selects tech %S with value %d. (Aiming for %S)",
-				getID(), getCivilizationDescription(0),
-				GC.getInfo(eBestTech).getDescription(),
-				techs[best_path_it->second.back()].first,
-				GC.getInfo(techs[best_path_it->second.front()].second).
-				getDescription());
+				getID(), getCivilizationDescription(0), GC.getInfo(eBestTech).getDescription(),
+				techs[/*best_path_it->*/tech_paths[0].second.back()].first, GC.getInfo(
+				techs[/*best_path_it->*/tech_paths[0].second.front()].second).getDescription());
 	}
 	FAssert(!isResearch() || getAdvancedStartPoints() < 0 ||
 			canResearch(eBestTech, false, bFreeTech));
 	// </k146>
+	// <advc.550g>
+	if (!bAsync)
+	{
+		m_aeBestTechs.clear();
+		for (size_t i = 0; i < tech_paths.size(); i++)
+		{
+			TechTypes eLoopTech = techs[tech_paths[i].second.back()].second;
+			if (std::find(m_aeBestTechs.begin(), m_aeBestTechs.end(), eLoopTech) ==
+				m_aeBestTechs.end())
+			{
+				m_aeBestTechs.push_back(eLoopTech);
+			}
+		}
+		/*	For the remaining depth-0 techs, we only have flat tech values,
+			but that's better than nothing. */
+		if (techs_to_depth.size() >= 2)
+		{
+			FAssertBounds(techs_to_depth[0], techs.size() + 1, techs_to_depth[1]);
+			for (int i = techs_to_depth[0]; i < techs_to_depth[1]; i++)
+			{
+				TechTypes eLoopTech = techs[i].second;
+				if (std::find(m_aeBestTechs.begin(), m_aeBestTechs.end(), eLoopTech) ==
+					m_aeBestTechs.end())
+				{
+					FAssert(canResearch(eLoopTech));
+					m_aeBestTechs.push_back(eLoopTech);
+				}
+			}
+		}
+	} // </advc.550g>
 	return eBestTech;
 }
 
-// This function has been mostly rewritten for K-Mod.
-// Note: many of the values used in this function are arbitrary; but adjusted them all to get closer to having a common scale.
-// The scale before research time is taken into account is roughly 4 = 1 commerce per turn. Afterwards it is arbitrary.
-// (Compared to the original numbers, this is * 1/100 * 7 * 4. 28/100)
+/*	advc.550g: Percentile rank within the (sorted) cache of best techs.
+	-1 if no rank available. */
+scaled CvPlayerAI::AI_getTechRank(TechTypes eTech) const
+{
+	int const iSize = m_aeBestTechs.size();
+	if (iSize <= 2) // Too few techs cached for a sensible ranking
+		return -1;
+	std::vector<TechTypes>::iterator itPos = std::find(
+			m_aeBestTechs.begin(), m_aeBestTechs.end(), eTech);
+	if (itPos == m_aeBestTechs.end())
+		return -1;
+	return scaled(std::distance(m_aeBestTechs.begin(), itPos), iSize);
+}
+
+// advc: Cut from AI_bestTech. advc.enum: K-Mod had used std::vector<int>.
+/*	k146: Make lists of which bonuses we have / don't have / can see.
+	This is used for tech evaluation. */
+void CvPlayerAI::AI_calculateOwnedBonuses(EnumMap<BonusClassTypes,int>& kBonusClassRevealed,
+	EnumMap<BonusClassTypes,int>& kBonusClassUnrevealed,
+	EnumMap<BonusClassTypes,int>& kBonusClassHave) const
+{
+	FOR_EACH_ENUM(Bonus)
+	{
+		TechTypes const eRevealTech = GC.getInfo(eLoopBonus).getTechReveal();
+		BonusClassTypes const eBonusClass = GC.getInfo(eLoopBonus).getBonusClassType();
+		if (eRevealTech == NO_TECH)
+			continue;
+		if (GET_TEAM(getTeam()).isHasTech(eRevealTech))
+			kBonusClassRevealed.add(eBonusClass, 1);
+		else kBonusClassUnrevealed.add(eBonusClass, 1);
+
+		if (getNumAvailableBonuses(eLoopBonus) > 0)
+			kBonusClassHave.add(eBonusClass, 1);
+		else if (AI_countOwnedBonuses(eLoopBonus) > 0)
+			kBonusClassHave.add(eBonusClass, 1);
+	}
+}
+
+/*	This function has been mostly rewritten for K-Mod.
+	Note: many of the values used in this function are arbitrary;
+	but adjusted them all to get closer to having a common scale.
+	The scale before research time is taken into account is roughly
+	4 = 1 commerce per turn. Afterwards it is arbitrary.
+	(Compared to the original numbers, this is * 1/100 * 7 * 4. 28/100)
+	BBAI (05/14/10, jdog5000): This function was split off AI_bestTech. */
 int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
-	bool bAsync, const std::vector<int>& viBonusClassRevealed,
-	const std::vector<int>& viBonusClassUnrevealed,
-	const std::vector<int>& viBonusClassHave,
-	PlayerTypes eFromPlayer) const // advc.144
+	bool bAsync,
+	EnumMap<BonusClassTypes,int> const& kBonusClassRevealed,
+	EnumMap<BonusClassTypes,int> const& kBonusClassUnrevealed,
+	EnumMap<BonusClassTypes,int> const& kBonusClassHave,
+	PlayerTypes eFromPlayer, // advc.144
 {
 	PROFILE_FUNC();
-	FAssert(viBonusClassRevealed.size() == GC.getNumBonusClassInfos());
-	FAssert(viBonusClassUnrevealed.size() == GC.getNumBonusClassInfos());
-	FAssert(viBonusClassHave.size() == GC.getNumBonusClassInfos());
-	// advc.001: Was just long; see Erik's comment in CvUnitAI::AI_sacrificeValue.
+
+	/*	advc.001: Was long. Probably can no longer overflow - if that had really
+		ever happened. I've added some iValue > MAX_INT assertions that, so far,
+		have never failed. */
 	long long iValue = 1; // K-Mod. (the int was overflowing in parts of the calculation)
 
 	CvCity const* pCapital = getCapital();
@@ -5081,8 +5143,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			int iRevealValue = 8;
 			iRevealValue += AI_bonusVal(eLoopBonus, 1, true) * iCityCount * 2/3;
 			BonusClassTypes eBonusClass = kLoopBonus.getBonusClassType();
-			int iBonusClassTotal = (viBonusClassRevealed[eBonusClass] +
-					viBonusClassUnrevealed[eBonusClass]);
+			int iBonusClassTotal = kBonusClassRevealed.get(eBonusClass) +
+					kBonusClassUnrevealed.get(eBonusClass);
 			//iMultiplier is basically a desperation value
 			//it gets larger as the AI runs out of options
 			//Copper after failing to get horses is +66%
@@ -5091,14 +5153,14 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			int iMultiplier = 0;
 			if (iBonusClassTotal > 0)
 			{
-				iMultiplier = (viBonusClassRevealed[eBonusClass] -
-						viBonusClassHave[eBonusClass]);
+				iMultiplier = kBonusClassRevealed.get(eBonusClass)
+						- kBonusClassHave.get(eBonusClass);
 				iMultiplier *= 100;
 				iMultiplier /= iBonusClassTotal;
 
-				iMultiplier *= (viBonusClassRevealed[eBonusClass] + 1);
-				iMultiplier /= ((viBonusClassHave[eBonusClass] *
-						iBonusClassTotal) + 1);
+				iMultiplier *= kBonusClassRevealed.get(eBonusClass) + 1;
+				iMultiplier /= (kBonusClassHave.get(eBonusClass) *
+						iBonusClassTotal) + 1;
 			}
 			iMultiplier *= std::min(3, getNumCities());
 			iMultiplier /= 3;
@@ -21389,6 +21451,20 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 		}
 	}
 	// K-Mod end
+	// <advc.550g>
+	if (uiFlag >= 17)
+	{
+		int iSize;
+		pStream->Read(&iSize);
+		if (iSize > 0)
+			m_aeBestTechs.resize(iSize);
+		for (int i = 0; i < iSize; i++)
+		{
+			int iTech;
+			pStream->Read(&iTech);
+			m_aeBestTechs[i] = (TechTypes)iTech;
+		}
+	} // </advc.550g>
 	//pStream->Read(MAX_PLAYERS, m_aiCloseBordersAttitude);
 	pStream->Read(MAX_PLAYERS, &m_aiCloseBordersAttitude[0]); // K-Mod
 	// <advc.opt>
@@ -21451,7 +21527,8 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	//uiFlag = 12; // advc.079
 	//uiFlag = 14; // advc.130c
 	//uiFlag = 15; // advc.104: Don't save UWAI cache of dead civ
-	uiFlag = 16; // advc.651
+	//uiFlag = 16; // advc.651
+	uiFlag = 17; // advc.550g
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iPeaceWeight);
@@ -21545,6 +21622,10 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 		}
 	}
 	// K-Mod end
+	// <advc.550g>
+	pStream->Write((int)m_aeBestTechs.size());
+	pStream->Write(m_aeBestTechs.size(), (int*)&m_aeBestTechs[0]);
+	// </advc.550g>
 	//pStream->Write(MAX_PLAYERS, m_aiCloseBordersAttitude);
 	pStream->Write(MAX_PLAYERS, &m_aiCloseBordersAttitude[0]); // K-Mod
 	// <advc.opt>
