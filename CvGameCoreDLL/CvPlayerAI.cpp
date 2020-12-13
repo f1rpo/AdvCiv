@@ -5715,7 +5715,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	if (iValue > 0)
 	{
 		/*  Don't want a higher overall value on account of flavor. Therefore,
-			divide by a sort of median flavor multiplier (1.03). Althóugh,
+			divide by a sort of median flavor multiplier (1.03). Although,
 			AI_techValue doesn't have a particular scale, so - probably unnecessary. */
 		iValue = (iValue * rFlavorFactor.getPercent()) / 103;
 		// Fixme: If I can turn iValue back into an int:

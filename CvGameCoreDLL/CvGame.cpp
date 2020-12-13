@@ -1185,7 +1185,7 @@ NormalizationTarget* CvGame::assignStartingPlots()
 			#endif
 		}
 		bool bRearrange = !bTeamAssignmentDone;
-		/*	<advc.027> Run the BtS rerrangement code on top of SPI
+		/*	<advc.027> Run the BtS rearrangement code on top of SPI
 			(though not across areas) when the continents are relatively large.
 			(On archipelagic maps, I think the BtS code would do more harm than good
 			b/c it doesn't take into account shallow-water connections.) */
