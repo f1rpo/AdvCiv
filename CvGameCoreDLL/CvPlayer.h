@@ -765,12 +765,12 @@ public:
 	int getCapitalX(TeamTypes eObserver, bool bDebug = false) const;
 	int getCapitalY(TeamTypes eObserver, bool bDebug = false) const;
 	int getCapitalX(PlayerTypes eObserver, bool bDebug = false) const;
-	int getCapitalY(PlayerTypes eObserver, bool bDebug = false) const;
-	// </advc.127b>  <advc>
+	int getCapitalY(PlayerTypes eObserver, bool bDebug = false) const; // </advc.127b>
+	// advc:
 	inline bool hasCapital() const
 	{
 		return (m_iCapitalCityID != FFreeList::INVALID_INDEX);
-	} // </advc>
+	}
 
 	int getCitiesLost() const { return m_iCitiesLost; }																// Exposed to Python
 	void changeCitiesLost(int iChange);

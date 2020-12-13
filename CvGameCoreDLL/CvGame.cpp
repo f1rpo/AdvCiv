@@ -1631,6 +1631,57 @@ void CvGame::rearrangeTeamStarts(/* advc.027: */ bool bOnlyWithinArea, scaled rI
 	}
 }
 
+/*	For each of n teams, let the closeness score for that team be the
+	average distance of an edge between two players on that team.
+	This function calculates the closeness score for each team and
+	returns the sum of those n scores. The lower the result, the better "clumped"
+	the players' starting locations are.
+	Note: for the purposes of this function, player i will be assumed to start
+	in the location of player kStartingLocs[i] */
+int CvGame::getTeamClosenessScore(  // advc: params used to be arrays
+	EnumMap2D<PlayerTypes,PlayerTypes,int> const& kDistances,
+	std::vector<PlayerTypes> const& kStartingLocs)
+{
+	int iScore = 0;
+	for (TeamIter<CIV_ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
+	{
+		int iTeamTotalDist = 0;
+		int iNumEdges = 0;
+		for (MemberIter itFirstMember(itTeam->getID()); itFirstMember.hasNext();
+			++itFirstMember)
+		{
+			for (MemberIter itSecondMember(itTeam->getID()); itSecondMember.hasNext();
+				++itSecondMember)
+			{
+				PlayerTypes const eFirst = itFirstMember->getID();
+				PlayerTypes const eSecond = itSecondMember->getID();
+				if (eFirst <= eSecond)
+					continue;
+				// Add the edge between these two players that are on the same team
+				iNumEdges++;
+				PlayerTypes eFirstStart = kStartingLocs.at(eFirst);
+				PlayerTypes eSecondStart = kStartingLocs.at(eSecond);
+				if (eFirstStart < eSecondStart) // Ensure eFirstStart > eSecondStart
+					std::swap(eFirstStart, eSecondStart);
+				else FAssertMsg(eFirstStart != eSecondStart,
+						"Two players are (hypothetically) assigned to the same starting location!");
+				FAssertMsg(kDistances.get(eFirstStart, eSecondStart) > 0, "Distance not computed?"); // advc
+				iTeamTotalDist += kDistances.get(eFirstStart, eSecondStart);
+			}
+		}
+		int iTeamScore;
+		if (iNumEdges == 0)
+			iTeamScore = 0;
+		else
+		{
+			// The avg distance between team edges is the team score
+			iTeamScore = ROUND_DIVIDE(iTeamTotalDist, iNumEdges);
+		}
+		iScore += iTeamScore;
+	}
+	return iScore;
+}
+
 // <advc.108>
 void CvGame::setStartingPlotNormalizationLevel(StartingPlotNormalizationLevel eLevel)
 {
@@ -2822,57 +2873,6 @@ bool CvGame::isWeakStartingFoodBonus(CvPlot const& kPlot, PlayerTypes eStartPlay
 			// Not really a food resource if the improvement doesn't add food
 			iBestImprovFood > 0);
 } // </advc.108>
-
-/*	For each of n teams, let the closeness score for that team be the
-	average distance of an edge between two players on that team.
-	This function calculates the closeness score for each team and
-	returns the sum of those n scores. The lower the result, the better "clumped"
-	the players' starting locations are.
-	Note: for the purposes of this function, player i will be assumed to start
-	in the location of player kStartingLocs[i] */
-int CvGame::getTeamClosenessScore(  // advc: params used to be arrays
-	EnumMap2D<PlayerTypes,PlayerTypes,int> const& kDistances,
-	std::vector<PlayerTypes> const& kStartingLocs)
-{
-	int iScore = 0;
-	for (TeamIter<CIV_ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
-	{
-		int iTeamTotalDist = 0;
-		int iNumEdges = 0;
-		for (MemberIter itFirstMember(itTeam->getID()); itFirstMember.hasNext();
-			++itFirstMember)
-		{
-			for (MemberIter itSecondMember(itTeam->getID()); itSecondMember.hasNext();
-				++itSecondMember)
-			{
-				PlayerTypes const eFirst = itFirstMember->getID();
-				PlayerTypes const eSecond = itSecondMember->getID();
-				if (eFirst <= eSecond)
-					continue;
-				// Add the edge between these two players that are on the same team
-				iNumEdges++;
-				PlayerTypes eFirstStart = kStartingLocs.at(eFirst);
-				PlayerTypes eSecondStart = kStartingLocs.at(eSecond);
-				if (eFirstStart < eSecondStart) // Ensure eFirstStart > eSecondStart
-					std::swap(eFirstStart, eSecondStart);
-				else FAssertMsg(eFirstStart != eSecondStart,
-						"Two players are (hypothetically) assigned to the same starting location!");
-				FAssertMsg(kDistances.get(eFirstStart, eSecondStart) > 0, "Distance not computed?"); // advc
-				iTeamTotalDist += kDistances.get(eFirstStart, eSecondStart);
-			}
-		}
-		int iTeamScore;
-		if (iNumEdges == 0)
-			iTeamScore = 0;
-		else
-		{
-			// The avg distance between team edges is the team score
-			iTeamScore = ROUND_DIVIDE(iTeamTotalDist, iNumEdges);
-		}
-		iScore += iTeamScore;
-	}
-	return iScore;
-}
 
 
 void CvGame::update()

@@ -21558,15 +21558,14 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	// <advc.opt>
 	if(uiFlag >= 8)
 	{
-		int sz=0;
-		pStream->Read(&sz);
-		for(int i = 0; i < sz; i++)
+		int iSize;
+		pStream->Read(&iSize);
+		for(int i = 0; i < iSize; i++)
 		{
-			int first = -1, second = 0;
-			pStream->Read(&first);
-			pStream->Read(&second);
-			FAssert(first >= 0);
-			m_neededExplorersByArea[first] = second;
+			int iFirst, iSecond;
+			pStream->Read(&iFirst);
+			pStream->Read(&iSecond);
+			m_neededExplorersByArea[iFirst] = iSecond;
 		}
 	}
 	else if(isAlive())
