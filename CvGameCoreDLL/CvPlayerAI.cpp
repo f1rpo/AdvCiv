@@ -4083,8 +4083,8 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 	int iThreshold = techs[std::min(iMaxPathLength-1,
 			(int)techs.size()-1)].first;
 	// Note: this works even if depth=0 isn't big enough.
-
-	scaled rDepthRate = fixp(0.62); // advc: 0.8 in k146
+	// advc.550: 0.8 in K-Mod 1.46. AdvCiv had used 0.62 until version 0.99.
+	scaled const rDepthRate = fixp(2/3.);
 
 	for (int end_depth = 0; end_depth < iMaxPathLength; ++end_depth)
 	{
