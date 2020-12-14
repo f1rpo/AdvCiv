@@ -626,7 +626,7 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  //
 		if (eTeam != NO_TEAM && kLoopPlayer.getTeam() != eTeam)
 			continue;
 
-		FOR_EACH_CITY_VAR(pLoopCity, kLoopPlayer) // advc: Body refactored
+		FOR_EACH_CITY_VAR(pLoopCity, kLoopPlayer)
 		{	// <advc.004r>
 			if(eObserver != NO_TEAM && !pLoopCity->isRevealed(eObserver))
 				continue; // </advc.004r>
@@ -634,7 +634,7 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  //
 				(bCoastalOnly && pLoopCity->waterArea() == getPlot(iX, iY).area()))
 			{
 				if ((!bCoastalOnly || pLoopCity->isCoastal()) &&
-					eTeamAtWarWith == NO_TEAM || ::atWar(kLoopPlayer.getTeam(), eTeamAtWarWith) &&
+					(eTeamAtWarWith == NO_TEAM || ::atWar(kLoopPlayer.getTeam(), eTeamAtWarWith)) &&
 					(eDirection == NO_DIRECTION || estimateDirection(
 					dxWrap(pLoopCity->getX() - iX), dyWrap(pLoopCity->getY() - iY)) == eDirection) &&
 					(pSkipCity == NULL || pLoopCity != pSkipCity))
