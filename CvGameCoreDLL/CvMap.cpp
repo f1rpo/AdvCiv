@@ -590,7 +590,7 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  //
 				(bCoastalOnly && pLoopCity->waterArea() == getPlot(iX, iY).area()))
 			{
 				if ((!bCoastalOnly || pLoopCity->isCoastal()) &&
-					eTeamAtWarWith == NO_TEAM || ::atWar(kLoopPlayer.getTeam(), eTeamAtWarWith) &&
+					(eTeamAtWarWith == NO_TEAM || ::atWar(kLoopPlayer.getTeam(), eTeamAtWarWith)) &&
 					(eDirection == NO_DIRECTION || estimateDirection(
 					dxWrap(pLoopCity->getX() - iX), dyWrap(pLoopCity->getY() - iY)) == eDirection) &&
 					(pSkipCity == NULL || pLoopCity != pSkipCity))
