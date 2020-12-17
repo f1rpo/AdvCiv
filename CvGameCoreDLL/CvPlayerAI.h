@@ -533,7 +533,6 @@ public:
 
 	int AI_calculateCultureVictoryStage(
 			int iCountdownThresh = -1) const; // advc.115
-
 	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/17/10, jdog5000: START
 	/* (functions renamed and edited for K-Mod;
 		advc: 'calculate' functions moved to protected section;
@@ -548,6 +547,10 @@ public:
 	// BETTER_BTS_AI_MOD: END
 	bool isCloseToReligiousVictory() const;
 	bool AI_isDoStrategy(AIStrategy eStrategy, /* advc.007: */ bool bDebug = false) const;
+	// <advc.erai>
+	scaled AI_getCurrEraFactor() const;
+	inline int AI_getCurrEra() const { return AI_getCurrEraFactor().round(); }
+	// </advc.erai>
 
 	void AI_updateGreatPersonWeights(); // K-Mod
 	int AI_getGreatPersonWeight(UnitClassTypes eGreatPerson) const; // K-Mod

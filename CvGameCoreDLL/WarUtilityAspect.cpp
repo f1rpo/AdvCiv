@@ -27,8 +27,9 @@ typedef UWAICache::City City;
 WarUtilityAspect::WarUtilityAspect(WarEvalParameters const& params) :
 
 	params(params), agentId(params.agentId()), agent(GET_TEAM(agentId)),
-	agentAI(agent.uwai()), report(params.getReport()), game(GC.getGame()),
-	gameEra(game.getCurrentEra()), speed(GC.getInfo(game.getGameSpeedType())) {
+	agentAI(agent.uwai()), report(params.getReport()), game(GC.AI_getGame()),
+	gameEra(game.getCurrentEra()), gameEraAIFactor(game.AI_getCurrEraFactor()),
+	speed(GC.getInfo(game.getGameSpeedType())) {
 
 	u = 0;
 	// In case that a derived class tries to access these before 'evaluate' is called
@@ -649,7 +650,8 @@ double GreedForAssets::defensibilityCost() {
 	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		threatFactor += threatToCities(it->getID());
 	freeCitiesPerArea();
-	if(ourDist > 5 && !game.isOption(GAMEOPTION_NO_BARBARIANS) && gameEra < 2) {
+	if(ourDist > 5 && !game.isOption(GAMEOPTION_NO_BARBARIANS) &&
+			gameEraAIFactor < fixp(1.5)) {
 		double barbThreat = 1;
 		if(game.isOption(GAMEOPTION_RAGING_BARBARIANS))
 			barbThreat *= 1.5;
@@ -1959,6 +1961,8 @@ void PreEmptiveWar::evaluate() {
 int KingMaking::preEvaluate() {
 
 	PROFILE_FUNC();
+	/*	(Scoreboard ranks just aren't meaningful off the bat, even if the game
+		starts in the Modern era.) */
 	if(gameEra <= game.getStartEra())
 		return 0;
 	addWinning(winningFuture, true);
@@ -1969,7 +1973,7 @@ int KingMaking::preEvaluate() {
 			agent.AI_isChosenWar(params.targetId()) ||
 			!agent.AI_isAvoidWar(params.targetId(), true))) {
 		log("We'll be the only winners");
-		return agent.getCurrentEra() * 9;
+		return (agent.AI_getCurrEraFactor() * 9).round();
 	}
 	return 0;
 }
@@ -2109,9 +2113,10 @@ void KingMaking::addLeadingCivs(std::set<PlayerTypes>& r, double margin, bool bP
 		/*  Count extra score for commerce so that civs that are getting far
 			ahead in tech are identified as a threat */
 		CvPlayerAI const& civ = GET_PLAYER(civId);
-		if(civ.getCurrentEra() >= 3 &&
+		scaled civEraFactor = civ.AI_getCurrEraFactor();
+		if(civEraFactor > fixp(2.5) &&
 				// The late game is covered by victory stages
-				civ.getCurrentEra() <= 4 && game.getCurrentEra() <= 4) {
+				civEraFactor < fixp(4.5) && gameEraAIFactor < fixp(4.5)) {
 			double commerceRate = civ.estimateYieldRate(YIELD_COMMERCE);
 			sc += commerceRate / 2;
 			// Beware of peaceful civs on other landmasses
@@ -2156,7 +2161,8 @@ void KingMaking::evaluate() {
 	// NB: The two conditions above are superfluous; just for performance.
 	double attitudeMultiplier = 0.03 + 0.25 * (ATTITUDE_PLEASED - att);
 	double caughtUpBonus = 0;
-	double catchUpVal = std::pow((16.0 * gameEra) / winningPresent.size(), 0.75);
+	double catchUpVal = std::pow(
+			(16.0 * gameEraAIFactor.getDouble()) / winningPresent.size(), 0.75);
 	catchUpVal *= std::pow((1 + weAI->amortizationMultiplier()) / 2, 2);
 	bool bCaughtUp = false;
 	// We're less inclined to interfere if several rivals are in competition
@@ -2299,7 +2305,7 @@ int Effort::preEvaluate() {
 				and Settlers, and less danger of pillaging */
 			uMinus += m->turnsSimulated() / ((allWarsLongDist ? 8.0 : 5.5) +
 					// Workers not much of a concern later on
-					we->getCurrentEra() / 2);
+					we->AI_getCurrEraFactor().getDouble() / 2);
 			log("Cost for wartime economy and ravages: %d%s", ::round(uMinus),
 					(allWarsLongDist ? " (reduced b/c of distance)" : ""));
 		}
@@ -3335,8 +3341,8 @@ void FairPlay::evaluate() {
 		return;*/
 	/*  Actually, never mind checking for starting tech. Don't want early rushes
 		on low difficulty either. */
-	EraTypes startEra = game.getStartEra();
-	int trainMod = speed.getTrainPercent() * GC.getInfo(startEra).getTrainPercent();
+	EraTypes const startEra = game.getStartEra();
+	int const trainMod = speed.getTrainPercent() * GC.getInfo(startEra).getTrainPercent();
 	if(trainMod <= 0) {
 		FAssert(trainMod > 0);
 		return;
@@ -3369,7 +3375,7 @@ void FairPlay::evaluate() {
 		scoreRatio.clamp(fixp(0.4), fixp(5/3.));
 		uMinus *= scoreRatio.getDouble();
 	}
-	if(gameEra > 1) // Dogpiling remains an issue in the Classical era
+	if(gameEraAIFactor > fixp(1.5)) // Dogpiling remains an issue in the Classical era
 		return;
 	// Don't dogpile when human has lost cities in the early game
 	int theyFounded = they->getPlayerRecord()->getNumCitiesBuilt();
@@ -3662,9 +3668,9 @@ void TacticalSituation::evalOperational() {
 		return;
 	// Similar to CvUnitAI::AI_stackOfDoomExtra
 	double targetAttackers = 4;
-	int theyEra = they->getCurrentEra();
+	double theyEra = they->AI_getCurrEraFactor().getDouble();
 	if(theyEra > 0)
-		targetAttackers += std::pow((double)theyEra, 1.3);
+		targetAttackers += std::pow(theyEra, 1.3);
 	if(params.isNaval())
 		targetAttackers *= 1.3;
 	double trainMod = GC.getInfo(game.getHandicapType()).getAITrainPercent() / 100.0;

@@ -64,8 +64,9 @@ protected:
 	UWAI::Team const& agentAI;
 	int u;
 	UWAIReport& report;
-	CvGame const& game;
+	CvGameAI const& game;
 	EraTypes const gameEra;
+	scaled const gameEraAIFactor;
 	CvGameSpeedInfo const& speed;
 
 	/*  Subclasses must not access these members until evaluate(m) has been called.

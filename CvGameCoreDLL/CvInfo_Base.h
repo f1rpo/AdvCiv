@@ -114,11 +114,13 @@ protected:
 	float m_fInterfaceScale; 
 };
 
-// <advc.tag> Abstract class that allows XML elements to be added and accessed through enum values
+/*	advc.tag: Abstract class that allows XML elements to be added
+	and accessed through enum values */
 class CvXMLInfo : public CvInfoBase
 {
 public:
-	enum IntElementTypes // To be extended by derived classes (see CvImprovementInfo for an example)
+	// To be extended by derived classes (see CvImprovementInfo for an example)
+	enum IntElementTypes
 	{
 		NUM_INT_ELEMENT_TYPES
 	};
@@ -194,7 +196,7 @@ protected:
 private:
 	std::vector<int> m_aiData;
 	std::vector<bool> m_abData;
-}; // </advc.tag>
+};
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvHotkeyInfo

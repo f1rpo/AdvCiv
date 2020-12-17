@@ -61,6 +61,15 @@ bool CvMPOptionInfo::read(CvXMLLoadUtility* pXML)
 	return true;
 }
 
+// <advc.erai>
+EraTypes CvEraInfo::m_eAIAgeOfExploration = ERA_NEVER;
+EraTypes CvEraInfo::m_eAIAgeOfPestilence = ERA_NEVER;
+EraTypes CvEraInfo::m_eAIAgeOfPollution = ERA_NEVER;
+EraTypes CvEraInfo::m_eAIAgeOfFertility = ERA_NEVER;
+EraTypes CvEraInfo::m_eAIAgeOfGuns = ERA_NEVER;
+EraTypes CvEraInfo::m_eAIAtomicAge = ERA_NEVER;
+// </advc.erai>
+
 CvEraInfo::CvEraInfo() :
 m_iStartingUnitMultiplier(0),
 m_iStartingDefenseUnits(0),
@@ -202,15 +211,24 @@ int CvEraInfo::getCitySoundscapeScriptId(int i) const
 	FAssertBounds(0, NUM_CITYSIZE_TYPES, i); // advc: Check for upper bound added
 	return m_paiCitySoundscapeScriptIds ? m_paiCitySoundscapeScriptIds[i] : 0; // advc.003t
 }
-// <advc.tag>
+// advc.tag:
 void CvEraInfo::addElements(std::vector<XMLElement*>& r) const
 {
 	CvXMLInfo::addElements(r);
 	// <advc.groundbr>
 	r.push_back(new IntElement(AIMaxGroundbreakingPenalty, "AIMaxGroundbreakingPenalty", 0));
 	r.push_back(new IntElement(HumanMaxGroundbreakingPenalty, "HumanMaxGroundbreakingPenalty", 0));
-	// </advc.groundbr>
-} // </advc.tag>
+	// </advc.groundbr>  <advc.erai>
+	r.push_back(new IntElement(AIEraFactor, "AIEraFactor", -1));
+	r.push_back(new BoolElement(AIAgeOfExploration, "AIAgeOfExploration", false));
+	r.push_back(new BoolElement(AIAgeOfPestilence, "AIAgeOfPestilence", false));
+	r.push_back(new BoolElement(AIAgeOfPollution, "AIAgeOfPollution", false));
+	r.push_back(new BoolElement(AIAgeOfFertility, "AIAgeOfFertility", false));
+	r.push_back(new BoolElement(AIAgeOfGuns, "AIAgeOfGuns", false));
+	r.push_back(new BoolElement(AIAtomicAge, "AIAtomicAge", false));
+	// </advc.erai>
+	r.push_back(new BoolElement(AllGoodyTechs, "AllGoodyTechs", false)); // advc.314
+}
 
 bool CvEraInfo::read(CvXMLLoadUtility* pXML)
 {
@@ -275,6 +293,60 @@ bool CvEraInfo::read(CvXMLLoadUtility* pXML)
 			NUM_CITYSIZE_TYPES);
 
 	return true;
+}
+
+// advc.erai:
+void CvEraInfo::allInfosRead()
+{
+	FOR_EACH_ENUM(Era)
+	{
+		CvEraInfo& kLoopEra = GC.getInfo(eLoopEra);
+		// Set default values for AI era factors
+		if (kLoopEra.get(CvEraInfo::AIEraFactor) == -1)
+		{
+			kLoopEra.set((CvXMLInfo::IntElementTypes)
+					CvEraInfo::AIEraFactor, 100 * eLoopEra);
+			/*	The idea is to map the eras of a mod to the BtS eras that the
+				AI code has been written for. Therefore shouldn't exceed 100 times
+				the highest BtS era index. */
+			FAssertBounds(0, 601, kLoopEra.get(CvEraInfo::AIEraFactor));
+			FAssert(eLoopEra <= 0 ||
+					// Era factors should increase strictly
+					GC.getInfo((EraTypes)(eLoopEra - 1)).get(CvEraInfo::AIEraFactor) <
+					kLoopEra.get(CvEraInfo::AIEraFactor));
+		}
+		// Set AI ages
+		if (m_eAIAgeOfExploration == ERA_NEVER &&
+			kLoopEra.get(CvEraInfo::AIAgeOfExploration))
+		{
+			m_eAIAgeOfExploration = eLoopEra;
+		}
+		if (m_eAIAgeOfPestilence == ERA_NEVER &&
+			kLoopEra.get(CvEraInfo::AIAgeOfPestilence))
+		{
+			m_eAIAgeOfPestilence = eLoopEra;
+		}
+		if (m_eAIAgeOfPollution == ERA_NEVER &&
+			kLoopEra.get(CvEraInfo::AIAgeOfPollution))
+		{
+			m_eAIAgeOfPollution = eLoopEra;
+		}
+		if (m_eAIAgeOfFertility == ERA_NEVER &&
+			kLoopEra.get(CvEraInfo::AIAgeOfFertility))
+		{
+			m_eAIAgeOfFertility = eLoopEra;
+		}
+		if (m_eAIAgeOfGuns == ERA_NEVER &&
+			kLoopEra.get(CvEraInfo::AIAgeOfGuns))
+		{
+			m_eAIAgeOfGuns = eLoopEra;
+		}
+		if (m_eAIAtomicAge == ERA_NEVER &&
+			kLoopEra.get(CvEraInfo::AIAtomicAge))
+		{
+			m_eAIAtomicAge = eLoopEra;
+		}
+	}
 }
 
 CvGameSpeedInfo::CvGameSpeedInfo() :

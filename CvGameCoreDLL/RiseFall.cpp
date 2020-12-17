@@ -1402,7 +1402,7 @@ int RiseFall::pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
 		}
 		/*  Don't hinder low-value trades (e.g. a little payment for switching
 			to a religion that is already the majority religion) */
-		if(itemVal <= (GC.getGame().getCurrentEra() + 1) * 100)
+		if(itemVal <= (GC.AI_getGame().AI_getCurrEraFactor() + 1) * 100)
 			continue;
 		if(replVal < 0)
 			replVal = ::round(itemVal / 1.5);

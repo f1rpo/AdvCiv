@@ -1094,7 +1094,7 @@ int UWAI::Team::uJointWar(TeamTypes targetId, TeamTypes allyId) const {
 		just a few, but enough to tip the scales. Highly unlikely in the first half
 		of the game. */
 	if(!GET_TEAM(allyId).uwai().isLandTarget(targetId) &&
-			GET_TEAM(allyId).getCurrentEra() < 3)
+			GET_TEAM(allyId).getCurrentEra() < CvEraInfo::AI_getAgeOfExploration())
 		return std::min(0, r);
 	return r;
 }
@@ -1478,12 +1478,12 @@ DenialTypes UWAI::Team::makePeaceTrade(TeamTypes enemyId, TeamTypes brokerId) co
 		if(ourReluct < 55)
 			bNoDenial = true;
 		else {
-			CvGame const& g = GC.getGame();
+			CvGameAI const& g = GC.AI_getGame();
 			scaled scoreRatio(g.getTeamScore(agentId),
 					g.getTeamScore(g.getRankTeam(0)));
-			int const gameEra = g.getCurrentEra();
+			scaled const gameEra = g.AI_getCurrEraFactor();
 			if(gameEra > 0 &&
-					scoreRatio < (scaled(gameEra - 1, gameEra) + fixp(2/3.)) / 2) {
+					scoreRatio < ((gameEra - 1) / gameEra + fixp(2/3.)) / 2) {
 				// We're not doing well in score; the broker might be doing much better.
 				if(ourReluct < 70)
 					bNoDenial = true;
@@ -1531,7 +1531,8 @@ int UWAI::Team::makePeaceTradeVal(TeamTypes enemyId, TeamTypes brokerId) const {
 	FAssert(warDuration > 0);
 	/*  warDuration could be as small as 1 I think. Then the mark-up is
 		+175% in the Ancient era. None for a Renaissance war after 15 turns. */
-	double timeModifier = std::max(0.75, (5.5 - agent.getCurrentEra() / 2.0) /
+	double timeModifier = std::max(0.75,
+			(5.5 - agent.AI_getCurrEraFactor().getDouble() / 2) /
 			std::sqrt(warDuration + 1.0));
 	r = r * attitudeModifier * timeModifier;
 	return agent.AI_roundTradeVal(::round(r));
@@ -1984,7 +1985,7 @@ double UWAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {
 		in order to reach fixedBound. Neither side should feel confident if there
 		isn't much action. */
 	float progressFactor = std::max(3.0f,
-			11 - GET_TEAM(agentId).getCurrentEra() * 1.5f);
+			11 - GET_TEAM(agentId).AI_getCurrEraFactor().getFloat() * 1.5f);
 	float totalBasedBound = (100 - (progressFactor *
 			(ourSuccess + theirSuccess)) / timeAtWar) / 100;
 	float r = successRatio;
@@ -2103,7 +2104,7 @@ bool UWAI::Civ::amendTensions(PlayerTypes humanId) const {
 	FAssert(GET_TEAM(weId).getLeaderID() == weId);
 	CvPlayerAI& we = GET_PLAYER(weId);
 	// Lower contact probabilities in later eras
-	int era = we.getCurrentEra();
+	double const era = we.AI_getCurrEraFactor().getDouble();
 	CvLeaderHeadInfo const& lh = GC.getInfo(we.getPersonalityType());
 	if(we.AI_getAttitude(humanId) <= lh.getDemandTributeAttitudeThreshold()) {
 		FOR_EACH_ENUM(AIDemand) {
@@ -2425,12 +2426,12 @@ int UWAI::Civ::shipSpeed() const {
 
 double UWAI::Civ::humanBuildUnitProb() const {
 
-	CvPlayer& human = GET_PLAYER(weId);
+	CvPlayerAI const& human = GET_PLAYER(weId);
 	double r = 0.25; // 30 is about average, Gandhi 15
 	if(human.getCurrentEra() == 0)
 		r += 0.1;
 	if(GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS) &&
-			human.getCurrentEra() <= 2)
+			human.AI_getCurrEraFactor() <= 2)
 		r += 0.05;
 	return r;
 }

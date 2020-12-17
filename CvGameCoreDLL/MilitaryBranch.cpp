@@ -67,7 +67,7 @@ void MilitaryBranch::updateTypicalUnit() {
 		CvUnitClassInfo const& uci = GC.getInfo(uct);
 		int nationalLimit = uci.getMaxPlayerInstances();
 		if(nationalLimit >= 0 && nationalLimit <
-				(GC.getGame().getCurrentEra() + 1) * 4)
+				(GC.AI_getGame().AI_getCurrEraFactor() + 1) * 4)
 			continue;
 		if(uci.getInstanceCostModifier() >= 20)
 			continue;
@@ -154,9 +154,9 @@ double MilitaryBranch::getTypicalUnitCost(PlayerTypes pov) const {
 
 	if(typicalUnitType == NO_UNIT)
 		return -1;
-	CvPlayer const& owner = GET_PLAYER(ownerId);
+	CvPlayerAI const& owner = GET_PLAYER(ownerId);
 	double r = owner.getProductionNeeded(typicalUnitType,
-			::round(estimateExtraInstances(owner.getCurrentEra())));
+			::round(estimateExtraInstances(owner.AI_getCurrEraFactor())));
 	if(canKnowTypicalUnit(pov))
 		return r;
 	// Underestimate cost
@@ -179,7 +179,7 @@ bool MilitaryBranch::canKnowTypicalUnit(PlayerTypes pov) const {
 double MilitaryBranch::estimateProductionCost(CvUnitInfo const& u) {
 
 	double r = u.getProductionCost();
-	CvPlayer const& owner = GET_PLAYER(ownerId);
+	CvPlayerAI const& owner = GET_PLAYER(ownerId);
 	UnitClassTypes const uct = u.getUnitClassType();
 	/*  CvPlayer::getProductionNeeded would be needlessly slow. Don't need all
 		those modifiers, and we need a projection for InstanceCostModifier anyway. */
@@ -187,7 +187,7 @@ double MilitaryBranch::estimateProductionCost(CvUnitInfo const& u) {
 	if(instanceCostMod > 0) {
 		r *= 1 + (instanceCostMod * 0.01 *
 					(owner.getUnitClassCount(uct) +
-					estimateExtraInstances(owner.getCurrentEra())));
+					estimateExtraInstances(owner.AI_getCurrEraFactor())));
 	}
 	return r;
 }

@@ -443,7 +443,7 @@ void CvGame::uninit()
 	m_pRiseFall->reset();
 }
 
-// advc.250c: Cut from CvGame::init
+// advc: Cut from CvGame::init
 void CvGame::setStartTurnYear(int iTurn)
 {
 	CvGameSpeedInfo const& kSpeed = GC.getInfo(getGameSpeedType()); // advc
@@ -4085,7 +4085,9 @@ bool CvGame::canTrainNukes() const
 
 EraTypes CvGame::getCurrentEra() const
 {
-	//PROFILE_FUNC(); // advc.opt: OK - negligble
+	/*	advc.opt: OK - negligble. NB: Some call locations changed
+		to CvGameAI::AI_getCurrEraFactor (computing time also negligible). */
+	//PROFILE_FUNC();
 
 	int iEra = 0;
 	// K-Mod: don't count the barbarians
@@ -7382,8 +7384,8 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 				Barbarians appear there. Once there is a Barbarian city on a
 				small landmass, there may not be room for another city, and a
 				naval attack on a Barbarian city is difficult to execute for the AI. */
-			double mult = 0.5 + 0.88 * iEra;
-			iTargetCities = ::round(mult * iTargetCities); // </advc.300>
+			scaled rMult = per100(50) + per100(88) * iEra;
+			iTargetCities = (rMult * iTargetCities).round(); // </advc.300>
 		}
 		int iUnownedTilesThreshold = GC.getInfo(getHandicapType()).getUnownedTilesPerBarbarianCity();
 		if (iAreaSz < iUnownedTilesThreshold / 3)
@@ -7662,7 +7664,7 @@ void CvGame::createAnimals()  // advc: style changes
 	}
 }
 
-// <advc.307>
+// advc.307:
 bool CvGame::isBarbarianCreationEra() const
 {
 	if(isOption(GAMEOPTION_NO_BARBARIANS))
@@ -7688,9 +7690,11 @@ int CvGame::getBarbarianStartTurn() const
 	int iStartTurn = getStartTurn();
 	// Have Barbarians appear earlier in Ancient Advanced Start too
 	if(isOption(GAMEOPTION_ADVANCED_START) && getStartEra() <= 0 &&
-			// advc.250b: Earlier Barbarians only if humans start Advanced too
-			!isOption(GAMEOPTION_SPAH))
+		// advc.250b: Earlier Barbarians only if humans start Advanced too
+		!isOption(GAMEOPTION_SPAH))
+	{
 		iStartTurn /= 2;
+	}
 	return iStartTurn + iTargetElapsed;
 }
 
@@ -10977,11 +10981,10 @@ bool CvGame::isFreeStartEraBuilding(BuildingTypes eBuilding) const
 
 BuildingTypes CvGame::getVoteSourceBuilding(VoteSourceTypes eVS) const
 {
-	for(int i = 0; i < GC.getNumBuildingInfos(); i++)
+	FOR_EACH_ENUM(Building)
 	{
-		BuildingTypes eBuilding = (BuildingTypes)i;
-		if(GC.getInfo(eBuilding).getVoteSourceType() == eVS)
-			return eBuilding;
+		if(GC.getInfo(eLoopBuilding).getVoteSourceType() == eVS)
+			return eLoopBuilding;
 	}
 	return NO_BUILDING;
 } // </advc.127b>

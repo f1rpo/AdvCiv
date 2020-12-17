@@ -401,12 +401,12 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 					navy; otherwise, the AI may assume that a naval assault is
 					hopeless. */
 				double mult = (::dRange(2 - military[LOGISTICS]->power() /
-						(typicalCargo * civ.getCurrentEra()), 1, 1.5) + 1) / 2;
+						(typicalCargo * civ.AI_getCurrEraFactor().getDouble()), 1, 1.5) + 1) / 2;
 				branchPortions[LOGISTICS] *= mult;
 				double typicalFleetPow = military[FLEET]->getTypicalUnitPower(m.ourId());
 				if(typicalFleetPow > 0.1) {
 					mult = (::dRange(2 - military[FLEET]->power() /
-							(typicalFleetPow * civ.getCurrentEra()), 1, 1.5) + 1) / 2;
+							(typicalFleetPow * civ.AI_getCurrEraFactor().getDouble()), 1, 1.5) + 1) / 2;
 					branchPortions[FLEET] *= mult;
 				}
 			}

@@ -8017,7 +8017,7 @@ bool CvPlot::checkLateEra() const
 			}
 		}
 	}
-	return (GET_PLAYER(eBestPlayer).getCurrentEra() > GC.getNumEraInfos() / 2);
+	return (GET_PLAYER(eBestPlayer).getCurrentEra() * 2 > GC.getNumEraInfos());
 }
 
 // advc.300:

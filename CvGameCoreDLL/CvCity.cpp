@@ -9087,11 +9087,11 @@ void CvCity::setHasReligion(ReligionTypes eReligion, bool bNewValue, bool bAnnou
 	// </advc.106e>
 	if (isHasReligion(eReligion))
 	{
-		CvGame& g = GC.getGame();
-		g.makeReligionFounded(eReligion, kOwner.getID());
+		CvGame& kGame = GC.getGame();
+		kGame.makeReligionFounded(eReligion, kOwner.getID());
 		if (bAnnounce)
 		{
-			if (g.getHolyCity(eReligion) != this)
+			if (kGame.getHolyCity(eReligion) != this)
 			{
 				for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 				{
@@ -9128,8 +9128,8 @@ void CvCity::setHasReligion(ReligionTypes eReligion, bool bNewValue, bool bAnnou
 				}
 				/*	<advc.004w> Update text of resource indicators
 					(CvGameTextMgr::setBonusExtraHelp) */
-				if (kOwner.getID() == g.getActivePlayer() &&
-					g.getCurrentLayer() == GLOBE_LAYER_RESOURCE)
+				if (kOwner.getID() == kGame.getActivePlayer() &&
+					kGame.getCurrentLayer() == GLOBE_LAYER_RESOURCE)
 				{
 					gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
 					// advc.003p:

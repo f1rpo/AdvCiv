@@ -111,6 +111,7 @@ private:
 	CvGame const& kGame;
 	bool bBarbarian;
 	EraTypes eEra;
+	scaled rAIEraFactor;
 	int iX, iY;
 	CvCityAI const* pCapital;
 	bool bCoastal;

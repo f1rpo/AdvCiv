@@ -228,22 +228,6 @@
 		<iDefineIntVal>40</iDefineIntVal>
 	</Define>
 
-    <!-- [advc.107]
-		 Starting from this game era, the AI keeps an extra defender in all of
-		 its cities. The era codes are:
-         -1: no era (no extra defender, bare minimum remains 1 for the entire
-		  game)
-          0: ancient era (an extra defender from the start; this would hamper
-		  AI scouting)
-          1: classical era (this is the BtS behavior)
-          2: medieval era
-          3: renaissance era (recommended)
-          4: industrial era; 5: modern era -->
-	<Define>
-        <DefineName>EXTRA-DEFENDER_ERA</DefineName>
-        <iDefineIntVal>3</iDefineIntVal>
-    </Define>
-
 	<!-- advc.027: Enables the iterative algorithm for balancing
 		 starting positions on map scripts that don't override either
 		 assignStartingPlots or findStartingPosition.

@@ -285,6 +285,22 @@ bool CvTeamAI::AI_deduceCitySite(CvCity const& kCity) const
 	return false;
 }
 
+// advc.erai (based on CvTeam::getCurrentEra):
+scaled CvTeamAI::AI_getCurrEraFactor() const
+{
+	scaled rSum;
+	MemberIter it(getID());
+	for (; it.hasNext(); ++it)
+		rSum += it->AI_getCurrEraFactor();
+	int const iDiv = it.nextIndex();
+	if (iDiv <= 0)
+	{
+		FAssertMsg(iDiv > 0, "Shouldn't calculate AI era of dead team");
+		return -1;
+	}
+	return rSum / iDiv;
+}
+
 
 bool CvTeamAI::AI_isAnyCapitalAreaAlone() const
 {
@@ -1145,13 +1161,15 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 		iYieldMultiplier += kLoopPlayer.AI_averageYieldMultiplier(YIELD_COMMERCE) * iFoodMulti / 100;
 	}
 	iYieldMultiplier /= std::max(1, 2 * getAliveCount());
-	// now.. here's a bit of ad-hoccery.
-	// the actual yield multiplayer is not the only thing that goes up as the game progresses.
-	// the raw produce of land also tends to increase, as improvements become more powerful. Therefore...:
-	iYieldMultiplier = iYieldMultiplier * (1 + GET_PLAYER(getLeaderID()).getCurrentEra() + GC.getNumEraInfos()) / std::max(1, GC.getNumEraInfos());
-	//
+	iYieldMultiplier = iYieldMultiplier *
+			/*	now.. here's a bit of ad-hoccery.
+				the actual yield multiplayer is not the only thing that goes up
+				as the game progresses. the raw produce of land also tends to increase
+				as improvements become more powerful. Therefore... */
+			(1 + GET_PLAYER(getLeaderID()).getCurrentEra() + GC.getNumEraInfos()) /
+			std::max(1, GC.getNumEraInfos());
 
-	std::set<int> close_areas; // set of area IDs for which the enemy has cities close to ours.
+	std::set<int> close_areas; // IDs of areas in which the enemy has cities close to ours
 	for (MemberIter itMember(eTarget); itMember.hasNext(); ++itMember)
 	{
 		CvPlayerAI const& kLoopPlayer = *itMember;
@@ -1178,13 +1196,16 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 				{
 					continue;
 				}
-				// This is a very rough estimate of the value of the plot. It's a bit ad-hoc. I'm sorry about that, but I want it to be fast.
+				/*	This is a very rough estimate of the value of the plot.
+					It's a bit ad-hoc. I'm sorry about that, but I want it to be fast. */
 				//BonusTypes eBonus = pLoopPlot->getBonusType(getID());
 				int iPlotValue = 0;
-				iPlotValue += 3 * kPlot.calculateBestNatureYield(YIELD_FOOD, getID()); // don't ignore floodplains
-				iPlotValue += 2 * kPlot.calculateNatureYield(YIELD_PRODUCTION, getID(), true); // ignore forest
-				iPlotValue += (GC.getInfo(kPlot.getTerrainType()).getYield(YIELD_FOOD) >= // bonus for grassland
-						GC.getFOOD_CONSUMPTION_PER_POPULATION() ? 1 : 0);
+				// don't ignore floodplains
+				iPlotValue += 3 * kPlot.calculateBestNatureYield(YIELD_FOOD, getID());
+				// ignore forest
+				iPlotValue += 2 * kPlot.calculateNatureYield(YIELD_PRODUCTION, getID(), true);
+				iPlotValue += (GC.getInfo(kPlot.getTerrainType()).getYield(YIELD_FOOD) >=
+						GC.getFOOD_CONSUMPTION_PER_POPULATION() ? 1 : 0); // bonus for grassland
 				iPlotValue += kPlot.isRiver() ? 1 : 0;
 				if (kPlot.getBonusType(getID()) != NO_BONUS)
 					iPlotValue = iPlotValue * 3/2;
@@ -1192,8 +1213,15 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 
 				plot_values.push_back(iPlotValue);
 			}
-			std::partial_sort(plot_values.begin(), plot_values.begin() + std::min(iPopCap, (int)plot_values.size()), plot_values.end(), std::greater<int>());
-			iCityValue = std::accumulate(plot_values.begin(), plot_values.begin() + std::min(iPopCap, (int)plot_values.size()), iCityValue);
+			std::partial_sort(
+					plot_values.begin(),
+					plot_values.begin() + std::min<int>(iPopCap, plot_values.size()),
+					plot_values.end(),
+					std::greater<int>());
+			iCityValue = std::accumulate(
+					plot_values.begin(),
+					plot_values.begin() + std::min<int>(iPopCap, plot_values.size()),
+					iCityValue);
 			iCityValue = iCityValue * iYieldMultiplier / 100;
 
 			// holy city value
@@ -1204,8 +1232,10 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 					iCityValue += std::max(0, GC.getGame().countReligionLevels(eLoopReligion) /
 							(pLoopCity->hasShrine(eLoopReligion) ? 1 : 2) - 4);
 				}
-				// note: the -4 at the end is mostly there to offset the 'wonder' value that will be added later.
-				// I don't want to double-count the value of the shrine, and the religion without the shrine isn't worth much anyway.
+				/*	note: the -4 at the end is mostly there to
+					offset the 'wonder' value that will be added later.
+					I don't want to double-count the value of the shrine,
+					and the religion without the shrine isn't worth much anyway. */
 			}
 
 			// corp HQ value
@@ -1226,7 +1256,8 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 			if (2*pLoopCity->getCulture(kLoopPlayer.getID()) >
 				pLoopCity->getCultureThreshold(GC.getGame().culturalVictoryCultureLevel()))
 			{
-				iDeniedValue += (kLoopPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE4) ? 100 : 30) * iDenyFactor / 100;
+				iDeniedValue += ((kLoopPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE4) ? 100 : 30) *
+						iDenyFactor) / 100;
 			}
 			if (bImminentVictory && pLoopCity->isCapital())
 			{
@@ -1241,12 +1272,16 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 					iGainFactor = 70;
 				else
 				{
-					if (bOverseasWar && GET_PLAYER(pLoopCity->getOwner()).AI_isPrimaryArea(pLoopCity->getArea()))
+					if (bOverseasWar &&
+						GET_PLAYER(pLoopCity->getOwner()).
+						AI_isPrimaryArea(pLoopCity->getArea()))
+					{
 						iGainFactor = 45;
-					else
-						iGainFactor = 30;
+					}
+					else iGainFactor = 30;
 
-					iGainFactor += AI_anyMemberAtVictoryStage(AI_VICTORY_CONQUEST3 | AI_VICTORY_DOMINATION2) ? 10 : 0;
+					iGainFactor += AI_anyMemberAtVictoryStage(
+							AI_VICTORY_CONQUEST3 | AI_VICTORY_DOMINATION2) ? 10 : 0;
 				}
 			}
 			else
@@ -1273,7 +1308,8 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 		CvPlot* pLoopPlot = GC.getMap().plotByIndex(i);
 		if (pLoopPlot->getTeam() == eTarget)
 		{
-			// note: There are ways of knowning that the team has resources even if the plot cannot be seen; so my handling of isRevealed is a bit ad-hoc.
+			/*	note: There are ways of knowning that the team has resources even
+				if the plot cannot be seen; so my handling of isRevealed is a bit ad-hoc. */
 			BonusTypes eBonus = pLoopPlot->getNonObsoleteBonusType(getID());
 			if (eBonus != NO_BONUS)
 			{
@@ -1306,7 +1342,8 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
 		// ignore denied value.
 	}
 
-	// magnify the gained value based on how many of the target's cities are in close areas
+	/*	magnify the gained value based on how many of the target's cities
+		are in close areas */
 	int iCloseCities = 0;
 	for (std::set<int>::iterator it = close_areas.begin(); it != close_areas.end(); ++it)
 	{
@@ -1344,7 +1381,8 @@ bool CvTeamAI::isFutureWarEnemy(TeamTypes eTeam, TeamTypes eTarget, bool bDefens
 	CvTeam const& kEnemy = GET_TEAM(eTeam);
 	TeamTypes eTargetMaster = GET_TEAM(eTarget).getMasterTeam();
 	return (kEnemy.getMasterTeam() == eTargetMaster || isAtWar(kEnemy.getID()) ||
-			(bDefensivePacts && GET_TEAM(kEnemy.getMasterTeam()).isDefensivePact(eTargetMaster)));
+			(bDefensivePacts &&
+			GET_TEAM(kEnemy.getMasterTeam()).isDefensivePact(eTargetMaster)));
 }
 
 int CvTeamAI::AI_warCommitmentCost(TeamTypes eTarget, WarPlanTypes eWarPlan,
@@ -1361,16 +1399,21 @@ int CvTeamAI::AI_warCommitmentCost(TeamTypes eTarget, WarPlanTypes eWarPlan,
 	// diplomacy
 	// opportunity cost (need for expansion, research, etc.)
 
-	// For most parts of the calculation, it is actually more important to consider the master of the target rather than the target itself.
-	// (this is important for defensive pacts; and it also affects relative power, relative productivity, and so on.)
+	/*	For most parts of the calculation, it is actually more important to
+		consider the master of the target rather than the target itself.
+		(this is important for defensive pacts; and it also affects
+		relative power, relative productivity, and so on.) */
 	TeamTypes eTargetMaster = GET_TEAM(eTarget).getMasterTeam();
 	FAssert(eTargetMaster == eTarget || GET_TEAM(eTarget).isAVassal());
 
 	const CvTeamAI& kTargetMasterTeam = GET_TEAM(eTargetMaster);
 
-	bool bTotalWar = eWarPlan == WARPLAN_TOTAL || eWarPlan == WARPLAN_PREPARING_TOTAL;
-	bool bAttackWar = bTotalWar || (eWarPlan == WARPLAN_DOGPILE && kTargetMasterTeam.getNumWars() + (isAtWar(eTarget) ? 0 : 1) > 1);
-	bool bPendingDoW = !isAtWar(eTarget) && eWarPlan != WARPLAN_ATTACKED && eWarPlan != WARPLAN_ATTACKED_RECENT;
+	bool const bTotalWar = (eWarPlan == WARPLAN_TOTAL || eWarPlan == WARPLAN_PREPARING_TOTAL);
+	bool const bAttackWar = (bTotalWar ||
+			(eWarPlan == WARPLAN_DOGPILE &&
+			kTargetMasterTeam.getNumWars() + (isAtWar(eTarget) ? 0 : 1) > 1));
+	bool const bPendingDoW = (!isAtWar(eTarget) &&
+			eWarPlan != WARPLAN_ATTACKED && eWarPlan != WARPLAN_ATTACKED_RECENT);
 
 	int iTotalCost = 0;
 
@@ -1378,7 +1421,8 @@ int CvTeamAI::AI_warCommitmentCost(TeamTypes eTarget, WarPlanTypes eWarPlan,
 	{
 		// Base commitment for a war of this type.
 		int iCommitmentPerMil = bTotalWar ? 540 : 250;
-		const int iBaseline = -25; // this value will be added to iCommitmentPerMil at the end of the calculation.
+		// this value will be added to iCommitmentPerMil at the end of the calculation.
+		int const iBaseline = -25;
 
 		// scale based on our current strength relative to our enemies.
 		// cf. with code in AI_calculateAreaAIType
@@ -1811,7 +1855,8 @@ int CvTeamAI::AI_endWarVal(TeamTypes eTeam) const // XXX this should consider ar
 	FOR_EACH_AREA(pLoopArea)
 		iTheirAttackers += countEnemyDangerByArea(*pLoopArea, eTeam);
 
-	int iAttackerRatio = (100 * iOurAttackers) / std::max(1 + GC.getGame().getCurrentEra(), iTheirAttackers);
+	int iAttackerRatio = (100 * iOurAttackers) /
+			std::max(1 + GC.getGame().getCurrentEra(), iTheirAttackers);
 
 	if (GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI))
 	{
@@ -2362,8 +2407,10 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		{
 			// <advc.112>
 			bFaraway = true;
-			if(kMasterTeam.getCurrentEra() < 4) // </advc.112>
+			if (kMasterTeam.getCurrentEra() < CvEraInfo::AI_getAgeOfExploration() + 1)
+			{	// </advc.112>
 				return DENIAL_TOO_FAR;
+			}
 		}
 	}
 	// <advc.112>
@@ -2776,7 +2823,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 	for (TeamIter<CIV_ALIVE,ENEMY_OF> it(getID()); it.hasNext(); ++it)
 	{
 		CvTeam const& kEnemy = *it;
-		if(kEnemy.getCurrentEra() < 5) // for performance
+		if(kEnemy.getCurrentEra() < CvEraInfo::AI_getAtomicAge()) // for performance
 			continue;
 		// advc.130q: The average nuke adds 2 to memory
 		rNuked += fixp(0.5) * AI_getMemoryCount(kEnemy.getID(), MEMORY_NUKED_US);
@@ -3027,7 +3074,7 @@ bool CvTeamAI::AI_acceptSurrender(TeamTypes eSurrenderTeam) const  // advc: styl
 		if (kOther.getID() == getID()) 
 			continue;
 		if (kSurrenderTeam.AI_getAtWarCounter(kOther.getID()) <
-			12 - kOther.getCurrentEra() && // advc.112: was 10 flat
+			12 - kOther.AI_getCurrEraFactor() && // advc.112: was 10 flat
 			kSurrenderTeam.AI_getWarSuccess(kOther.getID()) +
 			std::min(kSurrenderTeam.getNumCities(), 4) *
 			GC.getWAR_SUCCESS_CITY_CAPTURING() <
@@ -3335,8 +3382,11 @@ void CvTeamAI::AI_getWarThresholds(int &iTotalWarThreshold, int &iLimitedWarThre
 	iTotalWarThreshold /= 3;
 	iTotalWarThreshold += bAggressive ? 1 : 0;
 
-	if (bAggressive && GET_PLAYER(getLeaderID()).getCurrentEra() < 3)
+	if (bAggressive &&
+		GET_PLAYER(getLeaderID()).getCurrentEra() < CvEraInfo::AI_getAgeOfExploration())
+	{
 		iLimitedWarThreshold += 2;
+	}
 }
 
 // Returns odds of player declaring total war times 100
@@ -4840,8 +4890,8 @@ void CvTeamAI::AI_forgiveEnemy(TeamTypes eEnemyTeam, bool bCapitulated, bool bFr
 			/*  Forgiveness if war success small, but only if memory high and
 				no other forgiveness condition applies, and not (times 0) in the
 				Ancient era (attacks on Workers and Settlers). */
-			if(iLimit <= -3 && iDelta >= 0 && iWS < 0.3 * getCurrentEra() *
-				GC.getWAR_SUCCESS_CITY_CAPTURING())
+			if (iLimit <= -3 && iDelta >= 0 &&
+				iWS < fixp(0.3) * AI_getCurrEraFactor() * GC.getWAR_SUCCESS_CITY_CAPTURING())
 			{
 				iDeltaLoop--;
 			}
@@ -4908,17 +4958,17 @@ VoteSourceTypes CvTeamAI::AI_getLatestVictoryVoteSource() const
 // pVoteTarget (out param): Vote target for diplo victory; -1 if there is none.
 int CvTeamAI::AI_votesToGoForVictory(int* piVoteTarget, bool bForceUN) const
 {
-	CvGame const& kGame = GC.getGame();
+	CvGameAI const& kGame = GC.AI_getGame();
 	VoteSourceTypes eVS = AI_getLatestVictoryVoteSource();
 	bool bUN = false;
 	if (eVS == NO_VOTESOURCE)
 		bUN = true;
 	else bUN = (GC.getInfo(eVS).getVoteInterval() < 7);
-	ReligionTypes eAPReligion = kGame.getVoteSourceReligion(eVS);
+	ReligionTypes const eAPReligion = kGame.getVoteSourceReligion(eVS);
 	FAssert((eAPReligion == NO_RELIGION) == bUN);
 	if (bForceUN)
 		bUN = true;
-	if (bUN && getCurrentEra() <= 3)
+	if (bUN && getCurrentEra() + 1 < kGame.AI_getVoteSourceEra()) // not close to UN
 	{
 		if(piVoteTarget != NULL)
 			*piVoteTarget = -1;
@@ -4928,7 +4978,7 @@ int CvTeamAI::AI_votesToGoForVictory(int* piVoteTarget, bool bForceUN) const
 	VoteTypes eVictoryVote = NO_VOTE;
 	FOR_EACH_ENUM(Vote)
 	{
-		CvVoteInfo& kVote = GC.getInfo(eLoopVote);
+		CvVoteInfo const& kVote = GC.getInfo(eLoopVote);
 		if((kVote.getStateReligionVotePercent() == 0) == bUN && kVote.isVictory())
 		{
 			iPopThresh = kVote.getPopulationThreshold();
@@ -5280,10 +5330,10 @@ int CvTeamAI::AI_randomCounterChange(int iUpperCap, scaled rProb) const
 {
 	CvGameSpeedInfo const& kSpeed = GC.getInfo(GC.getGame().getGameSpeedType());
 	int iSpeedPercent = kSpeed.getGoldenAgePercent();
-	int iOurEra = getCurrentEra();
-	if(iOurEra <= 0)
+	scaled rOurEra = AI_getCurrEraFactor();
+	if(rOurEra < fixp(0.5))
 		iSpeedPercent = kSpeed.getGrowthPercent();
-	else if(iOurEra == 1)
+	else if (rOurEra < fixp(1.5))
 		iSpeedPercent = (kSpeed.getGrowthPercent() + kSpeed.getGoldenAgePercent()) / 2;
 	rProb *= scaled(100, std::max(50, iSpeedPercent));
 	int r = 0;

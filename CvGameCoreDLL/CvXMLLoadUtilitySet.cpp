@@ -656,7 +656,10 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	LoadGlobalClassInfo(GC.m_paMPOptionInfo, "CIV4MPOptionInfos", "GameInfo", "Civ4MPOptionInfos/MPOptionInfos/MPOptionInfo", false);
 	LoadGlobalClassInfo(GC.m_paForceControlInfo, "CIV4ForceControlInfos", "GameInfo", "Civ4ForceControlInfos/ForceControlInfos/ForceControlInfo", false);
 
-	// add types to global var system
+	// Allow data to be cached
+	CvEraInfo::allInfosRead(); // advc.erai
+
+	// Add types to global var system
 	for (int i = 0; i < GC.getNumCursorInfos(); ++i)
 	{
 		int iVal;
@@ -670,15 +673,11 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 		GC.getDefinesVarSystem()->SetValue(szType, i);
 	}
 
-	// Check Playables
-	for (int i=0; i < GC.getNumCivilizationInfos(); ++i)
+	FOR_EACH_ENUM(Civilization)
 	{
-		// if the civilization is playable we will increment the playable var
-		if (GC.getInfo((CivilizationTypes) i).isPlayable())
+		if (GC.getInfo(eLoopCivilization).isPlayable())
 			GC.getNumPlayableCivilizationInfos() += 1;
-
-		// if the civilization is playable by AI increments num playable
-		if (GC.getInfo((CivilizationTypes) i).isAIPlayable())
+		if (GC.getInfo(eLoopCivilization).isAIPlayable())
 			GC.getNumAIPlayableCivilizationInfos() += 1;
 	}
 

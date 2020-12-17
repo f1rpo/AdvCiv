@@ -2044,9 +2044,9 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 						not at all a reason to scrap. But having way too many
 						workers in the area is a problem. */
 					getTargetNumCities(), (kOwner.getNumCities() * 3) / 2);
-			int iOwnerEra = kOwner.getCurrentEra();
+			int const iOwnerEra = kOwner.getCurrentEra();
 			// Higher threshold if climate is tropical
-			if (iOwnerEra <= 3 || iOwnerEra == GC.getGame().getStartEra())
+			if (iOwnerEra == GC.getGame().getStartEra() || kOwner.AI_getCurrEra() <= 3)
 			{	// Between 2 (Tropical) and 6 (Arid, Cold). Temperate: 5
 				int iJungleLatitude = ::range(GC.getInfo(GC.getMap().getClimate()).
 						getJungleLatitude(), 0, 9);
@@ -2056,11 +2056,11 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 				then we probably don't have too many. */
 			int iTotalHave = kOwner.AI_getNumAIUnits(UNITAI_WORKER);
 			if (iTotalHave > iTotalThresh &&
-					getArea().getNumAIUnits(getOwner(), UNITAI_WORKER) >
-					// advc.113: Add 1 b/c e.g. 2 have, 1 needed shouldn't lead to scrapping
-					(iNeededWorkersInArea * 3 + 1) / 2 &&
+				getArea().getNumAIUnits(getOwner(), UNITAI_WORKER) >
+				// advc.113: Add 1 b/c e.g. 2 have, 1 needed shouldn't lead to scrapping
+				(iNeededWorkersInArea * 3 + 1) / 2 &&
 		// K-Mod end
-					kOwner.calculateUnitCost() > 0)
+				kOwner.calculateUnitCost() > 0)
 			{	// <advc.113>
 				if (pCity == NULL || pCity->AI_getWorkersNeeded() < pCity->AI_getWorkersHave() + 1)
 				{	/*  Scrap eventually b/c the worker could be stuck in this area,
@@ -2952,12 +2952,14 @@ void CvUnitAI::AI_attackCityMove()
 	// <advc.300>
 	if (!isBarbarian() && !bTurtle)
 	{
-		int iGroupSz = getGroup()->getNumUnits();
-		int iOurEra = GET_PLAYER(getOwner()).getCurrentEra();
-		int iBarbarianEra = GET_PLAYER(BARBARIAN_PLAYER).getCurrentEra();
+		int const iGroupSz = getGroup()->getNumUnits();
+		scaled const rOurEra = GET_PLAYER(getOwner()).AI_getCurrEraFactor();
+		/*	(Don't use AI era factor for Barbarians; don't expect them
+			to develop faster in a mod with fewer eras.) */
+		int const iBarbarianEra = GET_PLAYER(BARBARIAN_PLAYER).getCurrentEra();
 		int iBarbarianGarrison = 2 + iBarbarianEra;
 		if ((eAreaAI != AREAAI_DEFENSIVE && eAreaAI != AREAAI_OFFENSIVE && !bAlert1) ||
-			iBarbarianGarrison < 2 * iOurEra)
+			iBarbarianGarrison < 2 * rOurEra)
 		{
 			bHuntBarbs = true;
 		}
@@ -2968,10 +2970,10 @@ void CvUnitAI::AI_attackCityMove()
 		bool bHuntOnlyBarbs = (bHuntBarbs &&
 				!GET_TEAM(getTeam()).AI_isSneakAttackReady() &&
 				GET_TEAM(getTeam()).getNumWars() <= 0);
-		if(!bHuntOnlyBarbs && iGroupSz >= AI_stackOfDoomExtra())
+		if (!bHuntOnlyBarbs && iGroupSz >= AI_stackOfDoomExtra())
 			bReadyToAttack = true;
-		else if(bHuntOnlyBarbs &&
-			iGroupSz + iOurEra >=
+		else if (bHuntOnlyBarbs &&
+			iGroupSz + rOurEra >=
 			fixp(1.25) * iBarbarianGarrison + iBarbarianEra &&
 			// Don't send a giant stack. (Tbd.: Should perhaps split the group up then.)
 			iGroupSz < 3 * iBarbarianGarrison)
@@ -5588,7 +5590,7 @@ void CvUnitAI::AI_spyMove()
 		}
 	}
 
-	// Do with have enough points on anyone for an attack mission to be useful?
+	// Do we have enough points on anyone for an attack mission to be useful?
 	int iAttackChance = 0;
 	int iTransportChance = 0;
 	{
@@ -6720,7 +6722,7 @@ void CvUnitAI::AI_exploreSeaMove()
 			/*  In the early game, it'll often take a better explorer (Galley
 				vs Work Boat) too long to reach an unexplored area; better to
 				let the outdated explorer continue. */
-			kOwner.getCurrentEra() > 1 &&
+			kOwner.AI_getCurrEraFactor() > 1 &&
 			kOwner.AI_isOutdatedUnit(getUnitType(), UNITAI_EXPLORE_SEA, pWaterArea))
 		{
 			bTransform = true;
@@ -6736,7 +6738,8 @@ void CvUnitAI::AI_exploreSeaMove()
 			if(eAreaAI == AREAAI_ASSAULT || eAreaAI == AREAAI_ASSAULT_ASSIST ||
 				eAreaAI == AREAAI_ASSAULT_MASSING ||
 				kOwner.AI_totalUnitAIs(UNITAI_SETTLE) <= 0 ||
-				kOwner.AI_totalUnitAIs(UNITAI_SETTLER_SEA) > kOwner.getCurrentEra() / 2)
+				kOwner.AI_totalUnitAIs(UNITAI_SETTLER_SEA) >
+				kOwner.AI_getCurrEraFactor() / 2)
 			{
 				transformTypes.push_back(UNITAI_ASSAULT_SEA);
 				transformTypes.push_back(UNITAI_SETTLER_SEA);
@@ -7561,12 +7564,12 @@ void CvUnitAI::AI_settlerSeaMove()
 			FAssert(pWaterArea != NULL);
 			if (pWaterArea != NULL)
 			{
-				if (kOwner.AI_totalWaterAreaUnitAIs(*pWaterArea, UNITAI_SETTLER_SEA) > 1
-					// <advc.017b>
-					+ kOwner.getCurrentEra() / 2 ||
+				if (kOwner.AI_totalWaterAreaUnitAIs(*pWaterArea, UNITAI_SETTLER_SEA) >
+					1 + /* <advc.017b> */ kOwner.getCurrentEra() / 2 ||
 					/*  Also convert if no colonies (which may need Workers)
+						- check matches w/ a check in CvPlayerAI::AI_chooseProduction -
 						and no Settler on the horizon. */
-					(kOwner.getCurrentEra() < 3 && // To match the check in CvPlayerAI::AI_chooseProduction
+					(kOwner.getCurrentEra() < CvEraInfo::AI_getAgeOfExploration() &&
 					kOwner.AI_totalUnitAIs(UNITAI_SETTLE) <= 0 &&
 					// </advc.017b>
 					kOwner.getNumCities() == getArea().getCitiesPerPlayer(getOwner()) &&
@@ -13994,8 +13997,10 @@ bool CvUnitAI::AI_evacuateCity()
 	{
 		rEvacProb = fixp(0.8);
 		rEvacProb -= scaled(currHitPoints(), std::max(1, maxHitPoints()));
-		int iDefenseMod = fortifyModifier() + getPlot().defenseModifier(getTeam(),
-				GC.getGame().getCurrentEra() > 3) + cityDefenseModifier() +
+		int iDefenseMod = fortifyModifier() +
+				getPlot().defenseModifier(getTeam(),
+				GC.getGame().getCurrentEra() >= CvEraInfo::AI_getAgeOfGuns()) +
+				cityDefenseModifier() +
 				(getPlot().isHills() ? hillsDefenseModifier() : 0);
 		if (AI_getUnitAIType() == UNITAI_CITY_DEFENSE)
 			iDefenseMod = std::max(iDefenseMod, 100);
@@ -14414,11 +14419,11 @@ bool CvUnitAI::AI_pirateBlockade()
 								GET_PLAYER(getOwner()).getCurrentEra() :
 								GC.getInfo(eTechReq).getEra());
 						int iTheirEra = GET_PLAYER(pPlotCity->getOwner()).getCurrentEra();
-						double iEraFactor = 1.5;
+						scaled rEraFactor = fixp(1.5);
 						if(iTheirEra > iOurEra)
-							iEraFactor = 0.5;
+							rEraFactor = fixp(0.5);
 						if(iOurEra > iTheirEra)
-							iEraFactor = 2.5;
+							rEraFactor = fixp(2.5);
 						/*  Era alone is too coarse. A civ in early Renaissance
 							is a fine target for Privateers.
 							Tbd.: Should check sth. like isTechTrading first --
@@ -14426,9 +14431,9 @@ bool CvUnitAI::AI_pirateBlockade()
 						if(eTechReq != NO_TECH && GET_TEAM(pPlotCity->getTeam()).
 							isHasTech(eTechReq))
 						{
-							iEraFactor /= 2;
+							rEraFactor /= 2;
 						}
-						iCityValue = ::round(iCityValue * iEraFactor);
+						iCityValue = (iCityValue * rEraFactor).round();
 					} // </advc.033>
 					iCityValue *= (atWar(getTeam(), pPlotCity->getTeam()) ? 1 : 3);
 					if (GET_PLAYER(pPlotCity->getOwner()).isNoForeignTrade())
@@ -16142,11 +16147,11 @@ bool CvUnitAI::AI_ferryWorkers()
 	{
 		CvCity* pCurrentCity = getPlot().getPlotCity();
 		CvUnitAI const& kWorker = pWorker->AI();
-		int iOwnerEra = kOwner.getCurrentEra();
-		CvMap const& m = GC.getMap();
-		for (int i = 0; i < m.numPlots(); i++)
+		scaled const rOwnerAIEraFactor = kOwner.AI_getCurrEraFactor();
+		CvMap const& kMap = GC.getMap();
+		for (int i = 0; i < kMap.numPlots(); i++)
 		{
-			CvPlot& kPlot = m.getPlotByIndex(i);
+			CvPlot& kPlot = kMap.getPlotByIndex(i);
 			if(kPlot.isWater() || kPlot.getOwner() != kOwner.getID())
 				continue;
 			CvCityAI* pWorkingCity = NULL;
@@ -16230,7 +16235,8 @@ bool CvUnitAI::AI_ferryWorkers()
 			/*  For cities, it's 4+... in the divisor. 1 extra to deprioritize islands.
 				(Or we could say it's the extra turn for unloading outside a city.) */
 			iValue = (1000 * iValue) / (5 + iPathTurns);
-			iValue += GC.getGame().getSorenRandNum(65 + 40 * iOwnerEra, "advc.040");
+			iValue += GC.getGame().getSorenRandNum(
+					65 + (40 * rOwnerAIEraFactor).round(), "AI_ferryWorkers");
  			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;
@@ -18232,8 +18238,10 @@ bool CvUnitAI::AI_retreatToCity(bool bPrimary, bool bPrioritiseAirlift, int iMax
 						Moreover, I'm only considering the fastest path, not any detours
 						that could be safer. Adding a maxDanger parameter to generatePath
 						(or generalizing MOVE_IGNORE_DANGER) could help. */
-							(!bEvac || kOwner.AI_getPlotDanger(getPathEndTurnPlot())
-							<= kOwner.getCurrentEra())) // </advc.139>
+						(!bEvac ||
+						kOwner.AI_getPlotDanger(getPathEndTurnPlot()) <=
+						kOwner.AI_getCurrEraFactor()))
+						// </advc.139>
 					{
 						iShortestPath = iPathTurns;
 						pBestPlot = &getPathEndTurnPlot();
@@ -20241,12 +20249,16 @@ bool CvUnitAI::AI_cityOffenseSpy(int iMaxPath, CvCity* pSkipCity)
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pEndTurnPlot = NULL;
 
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwner());
-	const CvTeamAI& kTeam = GET_TEAM(getTeam());
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	CvTeamAI const& kTeam = GET_TEAM(getTeam());
 
-	const int iEra = kOwner.getCurrentEra();
-	int iBaselinePoints = 50 * iEra * (iEra+1); // cf the "big espionage" minimum value.
-	int iAverageUnspentPoints;
+	// cf the "big espionage" minimum value. (AI_bestPlotEspionage)
+	int iBaselinePoints = 50;
+	{
+		int iEra = kOwner.getCurrentEra();
+		iBaselinePoints *= iEra * (iEra + 1);
+	}
+	int iAverageUnspentPoints=0;
 	{
 		int iTeamCount = 0;
 		int iTotalUnspentPoints = 0;

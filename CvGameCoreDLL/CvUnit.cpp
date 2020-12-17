@@ -10788,12 +10788,12 @@ int CvUnit::planBattle(CvBattleDefinition& kBattle, const std::vector<int>& comb
 	static const int iStandardNumRounds = GC.getDefineINT("STANDARD_BATTLE_ANIMATION_ROUNDS", 6);
 	// <advc.002m>
 	static const int iPerEraNumRounds = GC.getDefineINT("PER_ERA_BATTLE_ANIMATION_ROUNDS");
-	CvGame const& g = GC.getGame();
-	bool bNetworkedMP = g.isNetworkMultiPlayer();
+	CvGame const& kGame = GC.getGame();
+	bool const bNetworkedMP = kGame.isNetworkMultiPlayer();
 	/*  I prefer using the player era, but karadoc's comment at the end of
 		this function suggests that this could cause OOS problems. */
-	int iEra = (bNetworkedMP ? g.getCurrentEra() :
-			GET_PLAYER(g.getActivePlayer()).getCurrentEra());
+	int const iEra = (bNetworkedMP ? kGame.getCurrentEra() :
+			GET_PLAYER(kGame.getActivePlayer()).getCurrentEra());
 	int iBaseRounds = iStandardNumRounds + iPerEraNumRounds * iEra;
 	iBaseRounds = std::max(2, iBaseRounds);
 	if(!bNetworkedMP && gDLL->getGraphicOption(GRAPHICOPTION_SINGLE_UNIT_GRAPHICS))
@@ -11065,14 +11065,13 @@ void CvUnit::getDefenderCombatValues(CvUnit& kDefender, const CvPlot* pPlot, int
 	iTheirStrength = kDefender.currCombatStr(pPlot, this, pTheirDetails);
 	int iTheirFirepower = kDefender.currFirepower(pPlot, this);
 
-	FAssert((iOurStrength + iTheirStrength) > 0);
-	FAssert((iOurFirepower + iTheirFirepower) > 0);
+	FAssert(iOurStrength + iTheirStrength > 0);
+	FAssert(iOurFirepower + iTheirFirepower > 0);
 
-	iTheirOdds = ((GC.getCOMBAT_DIE_SIDES() * iTheirStrength) / (iOurStrength + iTheirStrength));
+	iTheirOdds = (GC.getCOMBAT_DIE_SIDES() * iTheirStrength) / (iOurStrength + iTheirStrength);
 	// <advc.250b>
-	CvGame const& g = GC.getGame();
-	if(!g.isOption(GAMEOPTION_SPAH) && !g.isOption(GAMEOPTION_RISE_FALL))
-	{ // </advc.250b>
+	if(!GC.getGame().isOption(GAMEOPTION_SPAH) && !GC.getGame().isOption(GAMEOPTION_RISE_FALL))
+	{	// </advc.250b>
 		if (kDefender.isBarbarian())
 		{
 			if (GET_PLAYER(getOwner()).getWinsVsBarbs() < GC.getInfo(GET_PLAYER(getOwner()).
@@ -11391,7 +11390,8 @@ void CvUnit::getLayerAnimationPaths(std::vector<AnimationPathTypes>& aAnimationP
 
 int CvUnit::getSelectionSoundScript() const
 {
-	int iScriptId = getArtInfo(0, GET_PLAYER(getOwner()).getCurrentEra())->getSelectionSoundScriptId();
+	int iScriptId = getArtInfo(0, GET_PLAYER(getOwner()).getCurrentEra())->
+			getSelectionSoundScriptId();
 	if (iScriptId == -1)
 		iScriptId = GC.getInfo(getCivilizationType()).getSelectionSoundScriptId();
 	return iScriptId;

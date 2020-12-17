@@ -57,11 +57,19 @@ public: // All the const functions are exposed to Python except those added by m
 	{	// <advc.groundbr>
 		AIMaxGroundbreakingPenalty = CvXMLInfo::NUM_INT_ELEMENT_TYPES,
 		HumanMaxGroundbreakingPenalty, // </advc.groundbr>
+		AIEraFactor, // advc.erai
 		NUM_INT_ELEMENT_TYPES
 	};
-	enum BoolElementTypes // unused so far
-	{
-		NUM_BOOL_ELEMENT_TYPES = CvXMLInfo::NUM_BOOL_ELEMENT_TYPES
+	enum BoolElementTypes
+	{	// <advc.erai>
+		AIAgeOfExploration = CvXMLInfo::NUM_BOOL_ELEMENT_TYPES,
+		AIAgeOfPestilence,
+		AIAgeOfPollution,
+		AIAgeOfFertility,
+		AIAgeOfGuns,
+		AIAtomicAge, // </advc.erai>
+		AllGoodyTechs, // advc.314
+		NUM_BOOL_ELEMENT_TYPES
 	};
 	using CvXMLInfo::get; // unhide
 	__forceinline int get(IntElementTypes e) const
@@ -110,8 +118,61 @@ public: // All the const functions are exposed to Python except those added by m
 	int getCitySoundscapeScriptId(int i) const;
 
 	bool read(CvXMLLoadUtility* pXML);
+	// <advc.erai>
+	static void allInfosRead();
+	/*	NB: The "age" functions return ERA_NEVER instead of NO_ERA.
+		Not MAX_INT b/c we don't want callers to get in trouble with overflow. */
+	#define ERA_NEVER ((EraTypes)100)
+	static inline EraTypes AI_getAgeOfExploration()
+	{
+		return m_eAIAgeOfExploration;
+	}
+	static inline EraTypes AI_getAgeOfPestilence()
+	{
+		return m_eAIAgeOfPestilence;
+	}
+	static inline EraTypes AI_getAgeOfPollution()
+	{
+		return m_eAIAgeOfPollution;
+	}
+	static inline EraTypes AI_getAgeOfFertility()
+	{
+		return m_eAIAgeOfFertility;
+	}
+	static inline EraTypes AI_getAgeOfGuns()
+	{
+		return m_eAIAgeOfGuns;
+	}
+	static inline EraTypes AI_getAtomicAge()
+	{
+		return m_eAIAtomicAge;
+	}
+	// Akin to normalizeEraFactor in Kek-Mod (CvGameCoreUtils)
+	static inline scaled normalizeEraNum(int iEra)
+	{
+		/*	Important that iEra is on the scale of the available eras.
+			E.g. when AI code written for the 7 BtS eras checks
+			kGame.getCurrentEra() > 1
+			then it's the left side of the inequation that needs to be
+			normalized, not the right side. Safer to use kGame.AI_getCurrEraFactor
+			in such a case. normalizeEraNum is really only for era differences. */
+		FAssertEnumBounds((EraTypes)iEra);
+		/*	[Kek-Mod doesn't count the BtS Future era here:
+			ROUND_DIVIDE(eEra * 6, GC.getNumEraInfos() - 1)] */
+		return scaled(iEra * 7, GC.getNumEraInfos());
+	}
+	// </advc.erai>
 
 protected:
+	// <advc.erai>
+	static EraTypes m_eAIAgeOfExploration;
+	static EraTypes m_eAIAgeOfPestilence;
+	static EraTypes m_eAIAgeOfPollution;
+	static EraTypes m_eAIAgeOfFertility;
+	static EraTypes m_eAIAgeOfGuns;
+	static EraTypes m_eAIAtomicAge;
+	// </advc.erai>
+
 	int m_iStartingUnitMultiplier;
 	int m_iStartingDefenseUnits;
 	int m_iStartingWorkerUnits;

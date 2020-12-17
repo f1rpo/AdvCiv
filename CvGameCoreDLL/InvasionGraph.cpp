@@ -10,6 +10,7 @@
 #include "CvCity.h"
 #include "CvPlot.h"
 #include "CvArea.h"
+#include "CvInfo_GameOption.h"
 
 using std::ostringstream;
 using std::vector;
@@ -798,7 +799,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	}
 	int deploymentDuration = ::round(deploymentDistAttacker);
 	if(attackerUnprepared)
-		deploymentDuration += (5 - GET_PLAYER(id).getCurrentEra() / 2);
+		deploymentDuration += (5 - GET_PLAYER(id).AI_getCurrEraFactor() / 2).floor();
 	double reinforcementDist = deploymentDistAttacker;
 	/* The reduction in attacking army power based on distance mainly accounts for
 	   two effects:
@@ -1179,8 +1180,9 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	   AI tends to bring enough siege to bomb. twice per turn on average
 	   (on the final turn, some siege units will also attack, i.e. can't bomb).
 	   Too little? 10 * instead of 8? */
-	double bombPerTurn = 8 * (GET_PLAYER(id).getCurrentEra() + 1) *
-			(6.0 - conquests.size()) / 6;
+	int eraFactor = std::max(1, GET_PLAYER(id).getCurrentEra() +
+			5 - CvEraInfo::AI_getAgeOfGuns());
+	double bombPerTurn = 8 * eraFactor * (6.0 - conquests.size()) / 6;
 	/*  Don't assume that AI will endlessly bombard.
 		For a Medieval Castle backed by Chichen Itza (i.e. 125% def),
 		tileBonus / bombPerTurn is about 5.2. W/o bombardment, an attack is pretty
@@ -1426,7 +1428,7 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 			attacker.warTimeSimulated += step.getDuration();
 			attacker.addConquest(c);
 			// The conquerer leaves part of his army behind to protect the city
-			int nUnitsLeftBehind = 2 + GET_PLAYER(id).getCurrentEra();
+			int nUnitsLeftBehind = 2 + GET_PLAYER(id).AI_getCurrEra();
 			if(GET_PLAYER(attacker.id).isHuman())
 				nUnitsLeftBehind = (2 * nUnitsLeftBehind) / 3;
 			double powLeftBehind = military[ARMY]->getTypicalUnitPower(outer.weId)

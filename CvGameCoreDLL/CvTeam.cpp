@@ -2068,34 +2068,41 @@ int CvTeam::countEnemyDangerByArea(CvArea const& kArea, TeamTypes eEnemyTeam) co
 	return iCount;
 }
 
-// advc.112b:
+/*	advc.112b: (Akin to CvGame::getCurrentEra;
+	in part duplicated in CvTeamAI::AI_getCurrEraFactor) */
 EraTypes CvTeam::getCurrentEra() const
 {
-	double sum = 0;
+	scaled rSum;
 	MemberIter it(getID());
 	for (; it.hasNext(); ++it)
-		sum += it->getCurrentEra();
+		rSum += it->getCurrentEra();
 	int const iDiv = it.nextIndex();
-	FAssertMsg(iDiv > 0, "No team members alive");
-	return (EraTypes)::round(sum / iDiv);
+	if (iDiv <= 0)
+	{
+		FAssertMsg(iDiv > 0, "Shouldn't calculate era of dead team");
+		return NO_ERA;
+	}
+	return (EraTypes)(rSum / iDiv).round();
 }
 
-// K-Mod
+// K-Mod:
 int CvTeam::getTypicalUnitValue(UnitAITypes eUnitAI, DomainTypes eDomain) const
 {
 	int iMax = 0;
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 		iMax = std::max(iMax, it->getTypicalUnitValue(eUnitAI, eDomain));
 	return iMax;
-} // K-Mod end.
+}
 
 
-int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSizeModifiers) const // K-Mod: params added
+int CvTeam::getResearchCost(TechTypes eTech,
+	bool bGlobalModifiers, bool bTeamSizeModifiers) const // K-Mod: params added
 {
 	CvGame const& kGame = GC.getGame();
+	CvTechInfo const& kTech = GC.getInfo(eTech);
 
 	// advc.251: To reduce rounding errors (as there are quite a few modifiers to apply)
-	scaled rCost = GC.getInfo(eTech).getResearchCost();
+	scaled rCost = kTech.getResearchCost();
 	rCost *= per100(GC.getInfo(getHandicapType()).getResearchPercent());
 	// <advc.251>
 	if (!isHuman() && !isBarbarian())
@@ -2105,7 +2112,7 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 				getAIResearchPercent() + kGame.AIHandicapAdjustment());
 	}
 	// <advc.910> Moved from CvPlayer::calculateResearchModifier
-	EraTypes eTechEra = (EraTypes)GC.getInfo(eTech).getEra();
+	EraTypes const eTechEra = kTech.getEra();
 	scaled rModifier = 1 + per100(GC.getInfo(eTechEra).getTechCostModifier());
 	/*  This is a BBAI tech diffusion thing, but, since it applies always, I think
 		it's better to let it reduce the tech cost than to modify research rate. */
@@ -2145,7 +2152,8 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 			rModifier += per100(3);
 		} // </advc.308>
 		// <advc.550d>
-		if (kGame.isOption(GAMEOPTION_NO_TECH_TRADING) && eTechEra > 0 && eTechEra < 6)
+		if (kGame.isOption(GAMEOPTION_NO_TECH_TRADING) &&
+			eTechEra > 0 && !kTech.isRepeat())
 		{
 			static scaled const rTECH_COST_NOTRADE_MODIFIER = per100(
 					GC.getDefineINT("TECH_COST_NOTRADE_MODIFIER"));
@@ -5066,12 +5074,12 @@ void CvTeam::doWarWeariness()
 void CvTeam::doBarbarianResearch()
 {
 	FAssert(isBarbarian());
-	CvGame& g = GC.getGame();
-	int iElapsed = g.getElapsedGameTurns();
+	CvGame const& kGame = GC.getGame();
+	int iElapsed = kGame.getElapsedGameTurns();
 	/*  <kekm.28> "Give some starting research to barbarians in advanced start
 		depending on other players' tech status after advanced start. */
 	if (iElapsed == 1 && // This function isn't called on turn 0
-			g.isOption(GAMEOPTION_ADVANCED_START))
+		kGame.isOption(GAMEOPTION_ADVANCED_START))
 	{
 		FOR_EACH_ENUM(Tech)
 		{
@@ -5093,25 +5101,27 @@ void CvTeam::doBarbarianResearch()
 		}
 	} // </kekm.28>
 	// <advc.307>
-	bool bNoBarbCities = GC.getInfo(g.getCurrentEra()).isNoBarbCities();
-	bool bIgnorePrereqs = bNoBarbCities;
+	bool const bNoBarbCities = GC.getInfo(kGame.getCurrentEra()).isNoBarbCities();
+	bool const bIgnorePrereqs = bNoBarbCities;
 			/*  Barbs get all tech from earlier eras for free. Don't need
 				to catch up. */ //|| g.getStartEra() > 0;
 	// </advc.307>
 	/*  K-Mod. Delay the start of the barbarian research. (This is an
 		experimental change. It is currently compensated by an increase in
 		the barbarian tech rate.) */
-	if (iElapsed < GC.getInfo(g.getHandicapType()).
-			getBarbarianCreationTurnsElapsed() *
-			GC.getInfo(g.getGameSpeedType()).getBarbPercent() / 200)
+	if (iElapsed < GC.getInfo(kGame.getHandicapType()).
+		getBarbarianCreationTurnsElapsed() *
+		GC.getInfo(kGame.getGameSpeedType()).getBarbPercent() / 200)
+	{
 		return;
+	}
 
 	CvPlayerAI const& kBarbPlayer = GET_PLAYER(BARBARIAN_PLAYER);
 	FOR_EACH_ENUM(Tech)
 	{
 		if (!isHasTech(eLoopTech) && /* advc.307: */ (bIgnorePrereqs ||
-				// K-Mod. Make no progress on techs until prereqs are researched.
-				kBarbPlayer.canResearch(eLoopTech, false, true)))
+			// K-Mod. Make no progress on techs until prereqs are researched.
+			kBarbPlayer.canResearch(eLoopTech, false, true)))
 		{
 			int iCount = 0;
 			int iHasTech = 0; // advc.307

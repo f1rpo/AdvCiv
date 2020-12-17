@@ -2665,7 +2665,8 @@ ArtStyleTypes CvPlayer::getArtStyleType() const
 
 TCHAR const* CvPlayer::getUnitButton(UnitTypes eUnit) const
 {
-	return GC.getInfo(eUnit).getArtInfo(0, getCurrentEra(), (UnitArtStyleTypes) GC.getInfo(getCivilizationType()).getUnitArtStyleType())->getButton();
+	return GC.getInfo(eUnit).getArtInfo(0, getCurrentEra(), (UnitArtStyleTypes)
+			GC.getInfo(getCivilizationType()).getUnitArtStyleType())->getButton();
 }
 
 /*  advc (comment): Contains the entire sequence of an AI turn, and is called
@@ -4707,8 +4708,9 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 				if(kUnit.getPrereqOrBonuses(0) == NO_BONUS &&
 					kUnit.getPrereqAndBonus() == NO_BONUS &&
 					kUnit.getCombat() > 0 &&
-					(kUnit.getPrereqAndTech() == NO_TECH || // pre-Industrial:
-					GC.getInfo(kUnit.getPrereqAndTech()).getEra() <= 3) &&
+					(kUnit.getPrereqAndTech() == NO_TECH ||
+					GC.getInfo(kUnit.getPrereqAndTech()).getEra() <=
+					CvEraInfo::AI_getAgeOfExploration()) &&
 					GET_PLAYER(BARBARIAN_PLAYER).canTrain(eUnit, false, true))
 				{
 					int iValue = kUnit.getCombat() + (kGoody.isBad() ?
@@ -5624,7 +5626,7 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea& kAr
 }
 
 
-bool CvPlayer::canBuild(CvPlot const& kPlot, BuildTypes eBuild, bool bTestEra, bool bTestVisible) const // advc: 1st param was pointer
+bool CvPlayer::canBuild(CvPlot const& kPlot, BuildTypes eBuild, bool bTestEra, bool bTestVisible) const
 {
 	//PROFILE_FUNC(); // advc.003o
 	if (!kPlot.canBuild(eBuild, getID(), bTestVisible))
@@ -13531,9 +13533,12 @@ int CvPlayer::getAdvancedStartVisibilityCost(bool bAdd, CvPlot const* pPlot) con
 		{
 			if(pPlot->isRevealed(getTeam()))
 				return -1;
-			if(!pPlot->isAdjacentRevealed(getTeam(),
-					GC.getGame().getStartEra() < 4)) // advc.250c
+			if (!pPlot->isAdjacentRevealed(getTeam(),
+				// advc.250c:
+				GC.getGame().getStartEra() <= CvEraInfo::AI_getAgeOfExploration()))
+			{
 				return -1;
+			}
 		}
 		else if (!pPlot->isRevealed(getTeam()))
 			return -1;
@@ -19677,10 +19682,16 @@ void CvPlayer::reportButtonPopupLaunched()
 bool CvPlayer::isGoodyTech(TechTypes eTech, int iProgress) const
 {
 	CvTechInfo const& kTech = GC.getInfo(eTech);
-	if(iProgress <= 0 && !kTech.isGoodyTech())
-		return false;
-	if(iProgress > 0 && kTech.getEra() >= 4)
-		return false;
+	if (!kTech.isGoodyTech())
+	{
+		if (iProgress <= 0)
+			return false;
+		if (kTech.getEra() == NO_ERA ||
+			!GC.getInfo(kTech.getEra()).get(CvEraInfo::AllGoodyTechs))
+		{
+			return false;
+		}
+	}
 	if (!isFoundedFirstCity() && // Can't receive a holy city (or corp. HQ) then
 		// OK if the tech won't be discovered right away
 		(iProgress <= 0 || iProgress > fixp(2/3.) *

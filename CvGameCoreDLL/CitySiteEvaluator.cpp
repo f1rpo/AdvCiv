@@ -159,7 +159,7 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 		int iCitiesTarget = std::max(1,
 				GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities());
 		m_iClaimThreshold = 100 +
-				100 * kPlayer.getCurrentEra() / std::max(1, GC.getNumEraInfos() - 1);
+				(100 * kPlayer.getCurrentEra()) / std::max(1, GC.getNumEraInfos() - 1);
 		m_iClaimThreshold += 80 * std::max(0,
 				iCitiesTarget - kPlayer.getNumCities()) / iCitiesTarget;
 
@@ -359,6 +359,7 @@ AIFoundValue::AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettin
 
 	bBarbarian = kPlayer.isBarbarian();
 	eEra = kPlayer.getCurrentEra();
+	rAIEraFactor = kPlayer.AI_getCurrEraFactor();
 	bCoastal = kPlot.isCoastalLand(-1);
 	iAreaCities = kArea.getCitiesPerPlayer(ePlayer);
 	pCapital = kPlayer.AI_getCapital();
@@ -1661,7 +1662,8 @@ int AIFoundValue::evaluateYield(int const* aiYield, CvPlot const* p,
 	/*  <advc.108> For moving the starting Settler and for more
 		early-game commerce in general */
 	if(iCities <= 1 && eEra <= 0)
-		aiWeight[YIELD_COMMERCE] += 5; // </advc.108>  <advc.303>
+		aiWeight[YIELD_COMMERCE] += 5; // </advc.108>
+	// <advc.303>
 	if (bBarbarian)
 	{
 		aiWeight[YIELD_FOOD] -= 4;
@@ -1926,9 +1928,9 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus,
 	{	/*  <advc.031> Why halve the value of water bonuses? Perhaps because
 			they're costly to improve. But that's only true in the early game.
 			Because they tend to be common? AI_bonusVal takes care of that. */
-		if (p.isWater()/*) {//r /= 2;*/ && eEra < 3)
+		if (p.isWater()/*) {//r /= 2;*/ && eEra < CvEraInfo::AI_getAgeOfExploration())
 		{
-			int iWaterPenalty = (3 - eEra) * 16;
+			int iWaterPenalty = (CvEraInfo::AI_getAgeOfExploration() - eEra) * 16;
 			r -= iWaterPenalty;
 			r.increaseTo(0);
 			IFLOG logBBAI("Penalty for water resource: %d", iWaterPenalty);
@@ -2162,7 +2164,7 @@ int AIFoundValue::adjustToFood(int iValue, int iSpecialFoodPlus, int iSpecialFoo
 	int iGreenTiles) const
 {
 	scaled rLowFoodModifier = 1;
-	if (eEra < 4)
+	if (eEra < CvEraInfo::AI_getAgeOfFertility())
 	{
 		int iSpecialSurplus = (iSpecialFoodPlus - iSpecialFoodMinus + 1) / 2; // ceil
 		rLowFoodModifier = (fixp(8.5) + iGreenTiles + iSpecialSurplus) / fixp(11.5);
@@ -2187,7 +2189,7 @@ int AIFoundValue::evaluateLongTermHealth(int& iHealthPercent) const
 	//iValue += (iHealth / 5);
 	/*  <advc.031> The above may have accounted for feature production; now
 		evaluated separately elsewhere. */
-	if (iHealthPercent > 0 || eEra > 1)
+	if (iHealthPercent > 0 || eEra >= CvEraInfo::AI_getAgeOfPestilence())
 		r += std::min(iHealthPercent, 350) / 6;
 	// Extra bonus for persistent health (as in BtS/ K-Mod): // </advc.031> 
 	r += iFreshWaterHealth * 30;
@@ -2203,7 +2205,10 @@ int AIFoundValue::evaluateFeatureProduction(int iProduction) const
 {
 	/*  Can't chop in the very early game (would be nicer to check for
 		feature removal tech and sufficient workers than to go by era) */
-	scaled r(iProduction * 3, (eEra == 0 ? 2 : eEra) + 2);
+	scaled r = iProduction * 3;
+	if (rAIEraFactor <= 0)
+		r /= 4;
+	else r /= rAIEraFactor + 2;
 	IFLOG if(r!=0) logBBAI("+%d from %d feature production", r, iProduction);
 	return r.round();
 }
@@ -2699,7 +2704,7 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 			if (kPlot.isHills())
 				rDiploFactor += 16;
 			// The importance of a few stolen tiles decreases over time
-			rDiploFactor += eEra * 13;
+			rDiploFactor += rAIEraFactor * 13;
 			rDiploFactor = fixp(1.6) * rDiploFactor / iStealPercent;
 			rDiploFactor.clamp(fixp(0.6), 1);
 			iValue = (iValue * rDiploFactor).round();
@@ -2804,7 +2809,8 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 		::plotDistance(&kPlot, pCapital->plot()) >= 10 ||
 		kArea.getNumTiles() >= NUM_CITY_PLOTS)
 	{
-		int iDistPenalty = 5100 - std::min<int>(4, eEra) * 775; // (was 8000 flat)
+		//int iDistPenalty = 8000;
+		int iDistPenalty = 5100 - (scaled::min(4, rAIEraFactor) * 775).round();
 		// </advc.031> (no functional change below)
 		iDistPenalty *= iDistance;
 		iDistPenalty /= GC.getMap().maxTypicalDistance(); // advc.140: was maxPlotDistance
@@ -2929,20 +2935,20 @@ int AIFoundValue::adjustToBadHealth(int iValue, int iGoodHealth) const
 			GC.getInfo(kPlayer.getHandicapType()).getHealthBonus();
 	if (iBadHealth >= -2) // I.e. can only grow to size 2
 	{
-		int iDiv = std::max(1, 3 - eEra + iBadHealth);
+		scaled rDiv = scaled::max(1, 3 - rAIEraFactor + iBadHealth);
 		int iMult = 1;
-		if (iDiv <= 1)
+		if (rDiv <= 1)
 		{
 			iMult = 2;
-			iDiv = 3;
+			rDiv = 3;
 			if (kSet.isStartingLoc() && !kSet.isScenario())
 			{
 				iMult = 3;
-				iDiv = 4;
+				rDiv = 4;
 			}
 		}
-		iValue = (iMult * iValue) / iDiv;
-		IFLOG if (iDiv>1) logBBAI("Times %d/%d for bad health", iMult, iDiv);
+		iValue = ((iMult * iValue) / rDiv).round();
+		IFLOG if (rDiv.round()>1) logBBAI("Times %d/%d for bad health", iMult, rDiv.round());
 	}
 	return iValue;
 }
@@ -3268,17 +3274,17 @@ scaled AIFoundValue::evaluateWorkablePlot(CvPlot const& p) const
 				b/c their reward is greatly delayed and b/c they're not supposed to
 				steer starting positions much in any case. */
 			TechTypes eTech = GC.getInfo(eBonus).getTechImprove(p.isWater());
-			int iEraDiff = (eTech == NO_TECH ? 0 :
-					 GC.getInfo(eTech).getEra() - eEra);
-			if (iEraDiff >= 4)
+			scaled rEraDiff = CvEraInfo::normalizeEraNum(
+					(eTech == NO_TECH ? 0 : GC.getInfo(eTech).getEra() - eEra));
+			if (rEraDiff >= 4)
 			{	/*	Some special yield is counted for all resources; that should be
 					enough and more for late-game resources. */
 				rNonYieldBonusVal = 0;
 			}
-			else if (iEraDiff > 0)
+			else if (rEraDiff.isPositive())
 			{
 				rNonYieldBonusVal *= 2;
-				rNonYieldBonusVal /= (2 + SQR(iEraDiff));
+				rNonYieldBonusVal /= (2 + SQR(rEraDiff));
 			}
 		}
 		// Settling near low-yield resources (especially Snow Fur) is an inconvenience

@@ -471,13 +471,13 @@ double UWAICache::goldPerProdSites() {
 				sites += std::pow(std::min((double)targetVal, refVal) / refVal, 3.0);
 		}
 	}
-	CvGame& g = GC.getGame();
+	CvGameAI const& g = GC.AI_getGame();
 	int gameEra = g.getCurrentEra();
 	/*  Rage makes it more worthwhile to focus on early expansion (at least for
 		the AI), regardless of whether the additional cities are new or conquered
 		from the barbs. */
 	if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) &&
-			(gameEra < 2 || gameEra == g.getStartEra()))
+			(g.AI_getCurrEraFactor() < fixp(1.5) || gameEra == g.getStartEra()))
 		sites *= 1.25;
 	double cities = std::max(1, owner.getNumCities());
 	// Shouldn't expect to claim all sites with few cities
@@ -1066,9 +1066,9 @@ void UWAICache::reportWarEnding(TeamTypes enemyId,
 			!bForceFailure && !bForceSuccess)
 		return;
 	// Use our era as the baseline for what is significant war success
-	int iOurTechEra = GET_PLAYER(ownerId).getCurrentEra();
+	double ourTechEra = GET_PLAYER(ownerId).AI_getCurrEraFactor().getDouble();
 	double successRatio = iOurSuccess / (double)std::max(1, iTheirSuccess);
-	double successThresh = GC.getWAR_SUCCESS_CITY_CAPTURING() * iOurTechEra * 0.7;
+	double successThresh = GC.getWAR_SUCCESS_CITY_CAPTURING() * ourTechEra * 0.7;
 	if(	  (successRatio > 1 && iOurSuccess < successThresh) ||
 		  (successRatio < 1 && iTheirSuccess < successThresh))
 		successRatio = 1;

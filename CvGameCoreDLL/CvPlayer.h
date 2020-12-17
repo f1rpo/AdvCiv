@@ -863,8 +863,8 @@ public:
 	}
 	LeaderHeadTypes getPersonalityType() const { return m_ePersonalityType; }										// Exposed to Python
 	void setPersonalityType(LeaderHeadTypes eNewValue);																// Exposed to Python
-	// advc.opt: Inlined
-	inline DllExport EraTypes getCurrentEra() const { return m_eCurrentEra; }										// Exposed to Python
+
+	inline DllExport EraTypes getCurrentEra() const { return m_eCurrentEra; } // advc.inl							// Exposed to Python
 	void setCurrentEra(EraTypes eNewValue);
 
 	ReligionTypes getLastStateReligion() const { return m_eLastStateReligion; }

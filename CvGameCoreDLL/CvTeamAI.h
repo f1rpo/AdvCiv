@@ -54,8 +54,11 @@ public:
 	int AI_countMilitaryWeight(CvArea const* pArea = NULL) const;
 
 	int AI_estimateTotalYieldRate(YieldTypes eYield) const; // K-Mod
-
 	bool AI_deduceCitySite(CvCity const& kCity) const; // K-Mod
+	// <advc.erai>
+	scaled AI_getCurrEraFactor() const;
+	inline int AI_getCurrEra() const { return AI_getCurrEraFactor().round(); }
+	// </advc.erai>
 
 	bool AI_isAnyCapitalAreaAlone() const;
 	bool AI_isPrimaryArea(CvArea const& kArea) const;
