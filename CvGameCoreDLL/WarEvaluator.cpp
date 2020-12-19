@@ -27,7 +27,7 @@ bool WarEvaluator::cacheCleared = true;
 /*  Cache size: Calls alternate between naval/ non-naval,
 	limited/ total or mutual war utility of two civs,
 	so caching just the last result isn't effective. */
-#define cacheSz 16;
+#define cacheSz 16
 static int lastCallParams[cacheSz];
 static int lastCallResult[cacheSz];
 static int lastIndex;
