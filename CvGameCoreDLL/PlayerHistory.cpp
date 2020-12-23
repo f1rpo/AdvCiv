@@ -54,7 +54,7 @@ void PlayerHistory::read(FDataStreamBase* pStream, PlayerTypes eOwner, bool bLeg
 			pStream->Read(&iValue);
 			set(iTurn, iValue);
 		}
-		int m_iMovingAvgSamples = iMovingAvgSamples;
+		m_iMovingAvgSamples = iMovingAvgSamples;
 		return;
 	}
 	int iSize;
