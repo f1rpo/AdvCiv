@@ -3786,7 +3786,7 @@ void CvUnitAI::AI_collateralMove()
 			}
 			/*	Try again with just half the units, just in case our only problem is
 				that we can't find a big enough target stack. */
-			iTally = (iTally-1)/2;
+			iTally = (iTally - 1) / 2;
 		} while (iTally > 1);
 	}
 	// K-Mod end
@@ -10129,8 +10129,10 @@ bool CvUnitAI::AI_guardCityMinDefender(bool bSearch)
 	return false;
 }
 
-// K-Mod. This function was so full of useless cruft and duplicated code and double-counting mistakes...
-// I've deleted the bulk of the old code, and rewritten it to be much much simpler - and also better.
+/*	K-Mod. This function was so full of useless cruft
+	and duplicated code and double-counting mistakes...
+	I've deleted the bulk of the old code, and rewritten it
+	to be much much simpler - and also better. */
 bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, MovementFlags eFlags)
 {
 	PROFILE_FUNC();
@@ -10150,7 +10152,7 @@ bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, MovementFla
 		if (!bLeave || pCity->AI_isDanger())
 			iExtra = (bSearch ? 0 : kOwner.AI_getPlotDanger(kPlot, 2));
 
-		int iHave = kPlot.plotCount(PUF_canDefendGroupHead, -1, -1, kOwner.getID(),
+		int const iHave = kPlot.plotCount(PUF_canDefendGroupHead, -1, -1, kOwner.getID(),
 				// -1 because this unit is being counted as a defender
 				NO_TEAM, AI_isCityAIType() ? PUF_isCityAIType : NULL) - 1;
 
@@ -13748,7 +13750,8 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, MovementFlags eFlags
 	{	// <advc.163>
 		if(!canMove())
 			return true; // </advc.163>
-		// after DOW, we might not be able to get to our target this turn... but try anyway.
+		/*	after DOW, we might not be able to get to our target this turn...
+			but try anyway. */
 		if (!generatePath(*pBestPlot, eFlags))
 			return false;
 		if (bFollow && pBestPlot != &getPathEndTurnPlot())
@@ -13757,7 +13760,8 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, MovementFlags eFlags
 	}
 	if (bFollow && AI_isAnyEnemyDefender(*pBestPlot))
 	{
-		// we need to ungroup to capture the undefended unit / city. (because not everyone in our group can move)
+		/*	we need to ungroup to capture the undefended unit / city.
+			(because not everyone in our group can move) */
 		joinGroup(NULL);
 		bFollow = false;
 	}
@@ -14060,9 +14064,9 @@ bool CvUnitAI::AI_defendTerritory(int iThreshold, MovementFlags eFlags,
 	TeamTypes const eTeam = getTeam(); // advc.opt
 	while (i < iPlots)
 	{
-		CvPlot* pLoopPlot = bLocal
+		CvPlot* pLoopPlot = (bLocal
 			? plotXY(getX(), getY(), -iRange + i % (2*iRange+1), -iRange + i / (2*iRange+1))
-			: GC.getMap().plotByIndex(i);
+			: GC.getMap().plotByIndex(i));
 		i++; // for next cycle.
 
 		if (pLoopPlot == NULL || pLoopPlot->getTeam() != eTeam ||
@@ -21200,9 +21204,9 @@ int CvUnitAI::AI_searchRange(int iRange)
 {
 	if (iRange == 0)
 		return 0;
-	if (flatMovementCost() || (getDomainType() == DOMAIN_SEA))
-		return (iRange * baseMoves());
-	return ((iRange + 1) * (baseMoves() + 1));
+	if (flatMovementCost() || getDomainType() == DOMAIN_SEA)
+		return iRange * baseMoves();
+	return (iRange + 1) * (baseMoves() + 1);
 }
 
 // XXX at some point test the game with and without this function...

@@ -246,7 +246,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits,
 	//kOwner.setFoundedFirstCity(true); // advc.104: Moved to CvPlayer::initCity
 
 	// advc: Moved down
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		if (kOwner.isBuildingFree(kCiv.buildingAt(i)))
@@ -581,7 +581,7 @@ int CvCity::calculateBaseYieldRate(YieldTypes eYield)
 				(getSpecialistCount(eLoopSpecialist) +
 				getFreeSpecialistCount(eLoopSpecialist));
 	}
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eBuilding = kCiv.buildingAt(i);
@@ -1185,12 +1185,12 @@ int CvCity::findCommerceRateRank(CommerceTypes eCommerce) const
 UnitTypes CvCity::allUpgradesAvailable(UnitTypes eUnit, int iUpgradeCount,
 	BonusTypes eAssumeAvailable) const // advc.001u
 {
-	PROFILE_FUNC(); // advc.opt
+	PROFILE_FUNC(); // advc
 
 	FAssert(eUnit != NO_UNIT);
 
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
-	if (iUpgradeCount > kCiv.getNumUnits()) // (was >GC.getNumUnitClassInfos())
+	CvCivilization const& kCiv = getCivilization();
+	if (iUpgradeCount > kCiv.getNumUnits()) // (advc.003w: was >GC.getNumUnitClassInfos())
 		return NO_UNIT;
 
 	UnitTypes eUpgradeUnit = NO_UNIT;
@@ -1349,7 +1349,7 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 
 bool CvCity::canTrain(UnitCombatTypes eUnitCombat) const
 {
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
 		UnitTypes eUnit = kCiv.unitAt(i);
@@ -1507,7 +1507,7 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 					if(getNumBuilding(ePrereqBuilding) <= 0)
 							//&& (bContinue || (getFirstBuildingOrder(ePrereqBuilding) == -1))) // advc (comment): This was already commented out in Vanilla Civ 4
 						return false;
-				}*/ // <advc.003w> Replacing the above
+				}*/  // <advc.003w>
 				if (getNumBuilding(eLoopBuildingClass) <= 0)
 					return false; // </advc.003w>
 			}
@@ -2620,7 +2620,7 @@ UnitTypes CvCity::getConscriptUnit() const
 {
 	int iBestValue = 0;
 	UnitTypes eBestUnit = NO_UNIT;
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
 		UnitTypes eLoopUnit = kCiv.unitAt(i);
@@ -2738,8 +2738,8 @@ void CvCity::conscript()
 	if (!canConscript())
 		return;
 
-	int iPopChange = -(getConscriptPopulation());
-	int iAngerLength = flatConscriptAngerLength();
+	int const iPopChange = -getConscriptPopulation();
+	int const iAngerLength = flatConscriptAngerLength();
 	changePopulation(iPopChange);
 	changeConscriptAngerTimer(iAngerLength);
 
@@ -2769,7 +2769,7 @@ void CvCity::conscript()
 int CvCity::getBonusHealth(BonusTypes eBonus) const
 {
 	int iHealth = GC.getInfo(eBonus).getHealth();
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes const eBuilding = kCiv.buildingAt(i);
@@ -2783,7 +2783,7 @@ int CvCity::getBonusHealth(BonusTypes eBonus) const
 int CvCity::getBonusHappiness(BonusTypes eBonus) const
 {
 	int iHappiness = GC.getInfo(eBonus).getHappiness();
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes const eBuilding = kCiv.buildingAt(i);
@@ -2797,7 +2797,7 @@ int CvCity::getBonusHappiness(BonusTypes eBonus) const
 int CvCity::getBonusPower(BonusTypes eBonus, bool bDirty) const
 {
 	int iCount = 0;
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes const eBuilding = kCiv.buildingAt(i);
@@ -2815,7 +2815,7 @@ int CvCity::getBonusPower(BonusTypes eBonus, bool bDirty) const
 int CvCity::getBonusYieldRateModifier(YieldTypes eIndex, BonusTypes eBonus) const
 {
 	int iModifier = 0;
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes const eBuilding = kCiv.buildingAt(i);
@@ -2829,7 +2829,7 @@ int CvCity::getBonusYieldRateModifier(YieldTypes eIndex, BonusTypes eBonus) cons
 void CvCity::processBonus(BonusTypes eBonus, int iChange)
 {
 	bool const bActivePlayer = (getOwner() == GC.getGame().getActivePlayer());
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	{
 		int iValue = GC.getInfo(eBonus).getHealth();
 		int iGoodValue = std::max(0, iValue);
@@ -3199,11 +3199,11 @@ CivilizationTypes CvCity::getCivilizationType() const
 	return GET_PLAYER(getOwner()).getCivilizationType();
 }
 
-// <advc.003w>
+// advc.003w:
 CvCivilization const& CvCity::getCivilization() const
 {
 	return GET_PLAYER(getOwner()).getCivilization();
-} // </advc.003w>
+}
 
 
 LeaderHeadTypes CvCity::getPersonalityType() const
@@ -4253,7 +4253,7 @@ int CvCity::getNumActiveWorldWonders(int iStopCountAt, // advc
 	CvTeam const& kObsTeam = GET_TEAM(eOwner == NO_PLAYER ? getTeam() : TEAMID(eOwner));
 
 	int iCount = 0;
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes const eBuilding = kCiv.buildingAt(i);
@@ -5434,7 +5434,7 @@ void CvCity::updateExtraBuildingHappiness()
 	int iNewExtraBuildingGoodHappiness = 0;
 	int iNewExtraBuildingBadHappiness = 0;
 
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes const eBuilding = kCiv.buildingAt(i);
@@ -5685,7 +5685,7 @@ void CvCity::updateExtraBuildingHealth()
 	int iNewExtraBuildingGoodHealth = 0;
 	int iNewExtraBuildingBadHealth = 0;
 
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes const eBuilding = kCiv.buildingAt(i);
@@ -6735,7 +6735,7 @@ int CvCity::getAdditionalBaseYieldRateByBuilding(YieldTypes eYield, BuildingType
 	int iExtraRate = 0;
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
 	// <advc.179> Some overlap with code in CvGameTextMgr::buildBuildingReligionYieldString
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	FOR_EACH_ENUM(VoteSource)
 	{
 		VoteSourceTypes const eVS = eLoopVoteSource;
@@ -6858,7 +6858,7 @@ int CvCity::getAdditionalYieldRateModifierByBuilding(YieldTypes eYield, Building
 			(kBuilding.getPowerBonus() != NO_BONUS &&
 			hasBonus(kBuilding.getPowerBonus())))
 		{
-			CvCivilization const& kCiv = getCivilization(); // advc.003w
+			CvCivilization const& kCiv = getCivilization();
 			for (int i = 0; i < kCiv.getNumBuildings(); i++)
 			{
 				BuildingTypes eBuilding = kCiv.buildingAt(i);
@@ -8293,7 +8293,7 @@ void CvCity::changeNumBonuses(BonusTypes eIndex, int iChange)
 		updateCorporation();
 }
 
-// <advc.149>
+// advc.149:
 int CvCity::countUniqueBonuses() const
 {
 	int r = 0;
@@ -8303,7 +8303,7 @@ int CvCity::countUniqueBonuses() const
 			r++;
 	}
 	return r;
-} // </advc.149>
+}
 
 
 bool CvCity::isCorporationBonus(BonusTypes eBonus) const
@@ -8628,19 +8628,19 @@ void CvCity::changeForceSpecialistCount(SpecialistTypes eIndex, int iChange)
 
 int CvCity::getAddedFreeSpecialistCount(SpecialistTypes eIndex) const
 {
-	int r = getFreeSpecialistCount(eIndex);
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	int iR = getFreeSpecialistCount(eIndex);
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eBuilding = kCiv.buildingAt(i);
 		if (GC.getInfo(eBuilding).getFreeSpecialistCount(eIndex) > 0)
 		{
-			r -= getNumActiveBuilding(eBuilding) *
+			iR -= getNumActiveBuilding(eBuilding) *
 					GC.getInfo(eBuilding).getFreeSpecialistCount(eIndex);
 		}
 	}
-	FAssert(r >= 0);
-	return std::max(0, r);
+	FAssert(iR >= 0);
+	return std::max(0, iR);
 }
 
 
@@ -9022,7 +9022,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, boo
 			kBuilding.getAreaTradeRoutes() > 0)
 		{
 			int iCountExisting = 0;
-			CvCivilization const& kCiv = getCivilization(); // advc.003w
+			CvCivilization const& kCiv = getCivilization();
 			for (int i = 0; i < kCiv.getNumBuildings(); i++)
 			{
 				BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
@@ -9211,7 +9211,7 @@ int CvCity::getReligionGrip(ReligionTypes eReligion) const
 			iScore += iRELIGION_INFLUENCE_STATE_RELIGION_WEIGHT;
 	}
 
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eBuilding = kCiv.buildingAt(i);
@@ -10829,7 +10829,7 @@ void CvCity::doGreatPeople()
 	if (isDisorder())
 		return;
 
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 
 	changeGreatPeopleProgress(getGreatPeopleRate());
 	// <advc> Verify that GreatPeopleRate is the sum of the GreatPeopleUnitRates
@@ -10903,7 +10903,7 @@ void CvCity::doMeltdown()
 		return;
 
 	bool bMessage = false; // advc
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eDangerBuilding = kCiv.buildingAt(i);
@@ -11567,7 +11567,7 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible,
 	bool const bAllVisible = (eActiveTeam != NO_TEAM &&
 			isAllBuildingsVisible(eActiveTeam, true)); // </advc.045>
 	std::vector<BuildingTypes> kVisible;
-	CvCivilization const& kCiv = getCivilization(); // advc.003w
+	CvCivilization const& kCiv = getCivilization();
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes const eBuilding = kCiv.buildingAt(i);

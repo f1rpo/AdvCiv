@@ -6409,9 +6409,9 @@ bool CvCityAI::AI_isAirDefended(
 			AI_neededAirDefenders());
 }
 
-// BETTER_BTS_AI_MOD, War strategy AI, Barbarian AI, 04/25/10, jdog5000: START
+// BETTER_BTS_AI_MOD, War strategy AI, Barbarian AI, 04/25/10, jdog5000:
 int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
-	bool bConstCache) const // advc.001n  advc: some style changes
+	bool bConstCache) const // advc.001n
 {
 	PROFILE_FUNC();
 
@@ -6525,7 +6525,7 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 	iDefenders = std::max(iDefenders, AI_minDefenders());
 
 	return iDefenders;
-} // BETTER_BTS_AI_MOD: END
+}
 
 
 int CvCityAI::AI_minDefenders() /* advc: */ const

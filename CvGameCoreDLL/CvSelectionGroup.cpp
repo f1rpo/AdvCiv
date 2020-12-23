@@ -1564,8 +1564,8 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 	}
 
 	if (bAction &&
-			//(bDone || !canAllMove())
-			(bDone || !readyForMission())) // K-Mod (I don't think this actually matters)
+		//(bDone || !canAllMove())
+		(bDone || !readyForMission())) // K-Mod (I don't think this actually matters)
 	{	// <advc.102>
 		bool bDestVisible = getPlot().isVisibleToWatchingHuman();
 		bool bStartVisible = pFromPlot->isVisibleToWatchingHuman();

@@ -998,7 +998,8 @@ void CvPlot::updatePlotGroupBonus(bool bAdd, /* advc.064d: */ bool bVerifyProduc
 				if ((pPlotGroup != NULL) && isBonusNetwork(getTeam()))
 					pPlotGroup->changeNumBonuses(eNonObsoleteBonus, ((bAdd) ? 1 : -1));
 	} } }*/ // BtS
-	// K-Mod. I'm just trying to standardize the code to reduce the potential for mistakes. There are no functionality changes here.
+	/*	K-Mod. Just trying to standardize the code to reduce the potential for mistakes.
+		There are no functionality changes here. */
 	BonusTypes eBonus = getNonObsoleteBonusType(getTeam(), true);
 	if (eBonus != NO_BONUS && pPlotGroup && isBonusNetwork(getTeam()))
 		pPlotGroup->changeNumBonuses(eBonus, bAdd ? 1 : -1);
@@ -4475,9 +4476,9 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	CvCity* pWorkingCity = getWorkingCity();
 	if (pWorkingCity != NULL)
 	{
-		if ((eNewValue != NO_IMPROVEMENT&&
+		if ((eNewValue != NO_IMPROVEMENT &&
 			pWorkingCity->getImprovementFreeSpecialists(eNewValue) > 0)	||
-			(eOldImprovement != NO_IMPROVEMENT&&
+			(eOldImprovement != NO_IMPROVEMENT &&
 			pWorkingCity->getImprovementFreeSpecialists(eOldImprovement) > 0))
 		{
 			pWorkingCity->AI_setAssignWorkDirty(true);
@@ -4493,7 +4494,7 @@ void CvPlot::setRouteType(RouteTypes eNewValue, bool bUpdatePlotGroups)
 	if(getRouteType() == eNewValue)
 		return;
 
-	bool bOldRoute = isRoute(); // XXX is this right???
+	bool const bOldRoute = isRoute(); // XXX is this right???
 
 	updatePlotGroupBonus(false, /* advc.064d: */ false);
 	m_eRouteType = eNewValue;
@@ -7360,13 +7361,14 @@ bool CvPlot::shouldUsePlotBuilder()
 	return (eBonusType != NO_BONUS || eImprovementType != NO_IMPROVEMENT);
 }
 
-/* This function has been disabled by K-Mod, because it doesn't work correctly and so using it is just a magnet for bugs.
-int CvPlot::calculateMaxYield(YieldTypes eYield) const
-{ // advc: body deleted  }*/
+/* This function has been disabled by K-Mod, because it
+	doesn't work correctly and so using it is just a magnet for bugs. */
+//int CvPlot::calculateMaxYield(YieldTypes eYield) const
+//{ /* advc: body deleted */ }
 
 int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUpgrade) const
 {
-	int iYield = 0;
+	int iYieldRate = 0;
 
 	bool bIgnoreFeature = false;
 	if (isFeature())
@@ -7376,15 +7378,17 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 	}
 	int iNatureYield = // advc.908a: Preserve this for later
 			calculateNatureYield(eYield, getTeam(), bIgnoreFeature);
-	iYield += iNatureYield;
+	iYieldRate += iNatureYield;
 
 	ImprovementTypes eImprovement = GC.getInfo(eBuild).getImprovement();
 	// K-Mod. if the build doesn't have its own improvement - use the existing one!
 	if (eImprovement == NO_IMPROVEMENT)
 	{
 		eImprovement = getImprovementType();
-		// note: unfortunately this won't account for the fact that some builds will destroy the existing improvement without creating a new one.
-		// eg. chopping a forest which has a lumbermill. I'm sorry about that. I may correct it later.
+		/*	note: unfortunately this won't account for the fact that
+			some builds will destroy the existing improvement
+			without creating a new one. eg. chopping a forest which has a lumbermill.
+			I'm sorry about that. I may correct it later. */
 	}
 	// K-Mod end
 
@@ -7392,8 +7396,8 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 	{
 		if (bWithUpgrade)
 		{
-			//in the case that improvements upgrade, use 2 upgrade levels higher for the
-			//yield calculations.
+			/*	in the case that improvements upgrade, use 2 upgrade levels higher
+				for the yield calculations. */
 			/*ImprovementTypes eUpgradeImprovement = GC.getInfo(eImprovement).getImprovementUpgrade();
 			if (eUpgradeImprovement != NO_IMPROVEMENT) {
 				//unless it's commerce on a low food tile, in which case only use 1 level higher
@@ -7405,15 +7409,15 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 			}
 			if ((eUpgradeImprovement != NO_IMPROVEMENT) && (eUpgradeImprovement != eImprovement))
 				eImprovement = eUpgradeImprovement;*/
-			// <k146> Replacing the above
-			// stuff that. Just use 2 levels.
+			// <k146> stuff that. Just use 2 levels.
 			ImprovementTypes eFinalImprovement = CvImprovementInfo::finalUpgrade(eImprovement);
 			if (eFinalImprovement != NO_IMPROVEMENT)
 				eImprovement = eFinalImprovement;
 			// </k146>
 		}
 
-		iYield += calculateImprovementYieldChange(eImprovement, eYield, getOwner(), false);
+		iYieldRate += calculateImprovementYieldChange(
+				eImprovement, eYield, getOwner(), false);
 	}
 
 	RouteTypes const eRoute = GC.getInfo(eBuild).getRoute();
@@ -7425,23 +7429,24 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 			CvImprovementInfo const& kImprov = GC.getInfo(eImprovement);
 			FOR_EACH_ENUM(Yield)
 			{
-				iYield += kImprov.getRouteYieldChanges(eRoute, eLoopYield);
+				iYieldRate += kImprov.getRouteYieldChanges(eRoute, eLoopYield);
 				if (isRoute())
-					iYield -= kImprov.getRouteYieldChanges(getRouteType(), eLoopYield);
+					iYieldRate -= kImprov.getRouteYieldChanges(getRouteType(), eLoopYield);
 			}
 		}
 	}
 
-	// K-Mod. Count the 'extra yield' for financial civs. (Don't bother with golden-age bonuses.)
+	/*	K-Mod. Count the 'extra yield' for financial civs.
+		(Don't bother with golden-age bonuses.) */
 	int iThreshold = GET_PLAYER(getOwner()).getExtraYieldThreshold(eYield);
 	if (iThreshold > 0 &&
-		(iYield > iThreshold || iNatureYield >= iThreshold)) // advc.908a
+		(iYieldRate > iThreshold || iNatureYield >= iThreshold)) // advc.908a
 	{
-		iYield += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
+		iYieldRate += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
 	} // K-Mod end
 
-	//return iYield;
-	return std::max(0, iYield); // K-Mod - so that it matches calculateYield()
+	//return iYieldRate;
+	return std::max(0, iYieldRate); // K-Mod - so that it matches calculateYield()
 }
 
 

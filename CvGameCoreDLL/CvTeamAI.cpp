@@ -425,9 +425,11 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea const& kArea, bool bPreparin
 				bChosenTargets = true;
 
 				if (isAtWar(eTarget) ?
-						(AI_getAtWarCounter(eTarget) < 10) :
-						AI_isSneakAttackReady(eTarget))
+					(AI_getAtWarCounter(eTarget) < 10) :
+					AI_isSneakAttackReady(eTarget))
+				{
 					bDeclaredTargets = true;
+				}
 			}
 		}
 		else
@@ -556,10 +558,12 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea const& kArea, bool bPreparin
 		if (iAreaCities > (getNumMembers() * 3))
 		{
 			if (GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI) ||
-					GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR) ||
-					(countPowerByArea(kArea) >
-					((AI_countEnemyPowerByArea(kArea) * 3) / 2)))
+				GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR) ||
+				(countPowerByArea(kArea) >
+				((AI_countEnemyPowerByArea(kArea) * 3) / 2)))
+			{
 				return AREAAI_MASSING;
+			}
 		}
 		return AREAAI_DEFENSIVE;
 	}

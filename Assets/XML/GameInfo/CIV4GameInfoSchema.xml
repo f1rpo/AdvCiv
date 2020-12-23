@@ -1188,7 +1188,7 @@
 			 a desert-themed mod). -->
 		<element type="bAIAgeOfExploration" minOccurs="0"/>
 		<!-- Should be 1 for the era during which health tends to become a
-			 limiting factor for city growth. In BtS, that the Medieval era -
+			 limiting factor for city growth. In BtS, that's the Medieval era -
 			 because of population growth ("pestilence" is just a colorful
 			 way of describing that era). -->
 		<element type="bAIAgeOfPestilence" minOccurs="0"/>
