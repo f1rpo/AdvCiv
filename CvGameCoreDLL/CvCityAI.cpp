@@ -5258,10 +5258,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					// K-Mod
 					int iExpectedSpread = kGame.countReligionLevels(eGlobalCommerceReligion);
 					iExpectedSpread += ((//GC.getNumEraInfos() - iOwnerEra +
-							// <advc.erai>
-							scaled::max(0,
-							CvEraInfo::normalizeEraNum(GC.getNumEraInfos() - iOwnerEra)) +
-							// </advc.erai>
+							// advc.erai: Subsequent eras plus current era
+							(CvEraInfo::normalizeEraNum(GC.getNumEraInfos() - iOwnerEra - 1) + 1) +
 							(eStateReligion == eGlobalCommerceReligion ? 2 : 0)) *
 							//GC.getInfo(GC.getMap().getWorldSize()).getDefaultPlayers()
 							kGame.getRecommendedPlayers()).round(); // advc.137
