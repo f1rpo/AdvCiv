@@ -7681,9 +7681,9 @@ void CvCity::updateCorporationYield(YieldTypes eIndex)
 }
 
 
-void CvCity::updateCorporation()
+void CvCity::updateCorporation(/* advc.064d: */ bool bVerifyProduction)
 {
-	updateCorporationBonus();
+	updateCorporationBonus(/* advc.06d: */ bVerifyProduction);
 	updateBuildingCommerce();
 
 	for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
@@ -7696,7 +7696,7 @@ void CvCity::updateCorporation()
 }
 
 
-void CvCity::updateCorporationBonus()  // advc: style changes
+void CvCity::updateCorporationBonus(/* advc.064d: */ bool bVerifyProduction)
 {
 	std::vector<int> aiExtraCorpProducedBonuses;
 	std::vector<int> aiLastCorpProducedBonuses;
@@ -7759,7 +7759,9 @@ void CvCity::updateCorporationBonus()  // advc: style changes
 			else
 			{
 				processBonus(eLoopBonus, -1);
-				verifyProduction(); // advc.064d
+				// <advc.064d>
+				if (bVerifyProduction)
+					verifyProduction(); // </advc.064d>
 			}
 		}
 	}
@@ -8302,7 +8304,8 @@ int CvCity::getNumBonuses(BonusTypes eIndex) const
 }
 
 
-void CvCity::changeNumBonuses(BonusTypes eIndex, int iChange)
+void CvCity::changeNumBonuses(BonusTypes eIndex, int iChange,
+	bool bVerifyProduction) // advc.064d
 {
 	if (iChange == 0)
 		return;
@@ -8317,7 +8320,7 @@ void CvCity::changeNumBonuses(BonusTypes eIndex, int iChange)
 	}
 
 	if (isCorporationBonus(eIndex))
-		updateCorporation();
+		updateCorporation(/* advc.06d: */ bVerifyProduction);
 }
 
 // <advc.149>

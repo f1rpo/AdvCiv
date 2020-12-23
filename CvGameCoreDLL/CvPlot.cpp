@@ -3975,7 +3975,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 			if (isImproved())
 				GET_PLAYER(getOwner()).changeImprovementCount(getImprovementType(), 1);
 
-			updatePlotGroupBonus(true);
+			updatePlotGroupBonus(true, /* advc.064d */ false);
 		}
 
 		pUnitNode = headUnitNode();
@@ -5468,7 +5468,10 @@ void CvPlot::setPlotGroup(PlayerTypes ePlayer, CvPlotGroup* pNewValue,
 	if (pOldPlotGroup != NULL && pCity != NULL && pCity->getOwner() == ePlayer)
 	{
 		FOR_EACH_ENUM(Bonus)
-			pCity->changeNumBonuses(eLoopBonus, -pOldPlotGroup->getNumBonuses(eLoopBonus));
+		{
+			pCity->changeNumBonuses(eLoopBonus, -pOldPlotGroup->getNumBonuses(eLoopBonus),
+					false); // advc.064d (handled by CvPlotGroup::recalculatePlots ... I hope)
+		}
 	}
 
 	if (pNewValue == NULL)
@@ -5492,7 +5495,7 @@ void CvPlot::updatePlotGroup(/* advc.064d: */ bool bVerifyProduction)
 	for (PlayerIter<ALIVE> it; it.hasNext(); ++it)
 	{
 		CvPlayer& kPlayer = *it;
-		updatePlotGroup(kPlayer.getID(), /* <advc.064d> */ false);
+		updatePlotGroup(kPlayer.getID(), /* <advc.064d> */ true, false);
 		/*  When recalculation of plot groups starts with updatePlotGroup, then
 			bVerifyProduction sometimes interrupts city production prematurely;
 			not sure why exactly. Will have to verify all cities instead. */
@@ -5543,7 +5546,7 @@ void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate,
 
 				pPlotGroup->removePlot(this, /* advc.064d: */ bVerifyProduction);
 				if (!bEmpty)
-					pPlotGroup->recalculatePlots();
+					pPlotGroup->recalculatePlots(/* advc.064d: */ bVerifyProduction);
 			}
 		}
 		pPlotGroup = getPlotGroup(ePlayer);
@@ -5566,7 +5569,7 @@ void CvPlot::updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate,
 			{
 				if (pPlotGroup == NULL)
 				{
-					pAdjacentPlotGroup->addPlot(this);
+					pAdjacentPlotGroup->addPlot(this, /* advc.064d: */ bVerifyProduction);
 					pPlotGroup = pAdjacentPlotGroup;
 					FAssert(getPlotGroup(ePlayer) == pPlotGroup);
 				}

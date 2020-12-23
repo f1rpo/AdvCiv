@@ -826,10 +826,10 @@ public:
 	int getCorporationCommerceByCorporation(CommerceTypes eIndex, CorporationTypes eCorporation) const;				// Exposed to Python
 	int getCorporationYield(YieldTypes eIndex) const { return m_aiCorporationYield.get(eIndex); }					// Exposed to Python
 	int getCorporationYieldByCorporation(YieldTypes eIndex, CorporationTypes eCorporation) const;					// Exposed to Python
-	void updateCorporation();
+	void updateCorporation(/* advc.064d: */ bool bVerifyProduction = true);
 	void updateCorporationCommerce(CommerceTypes eIndex);
 	void updateCorporationYield(YieldTypes eIndex);
-	void updateCorporationBonus();
+	void updateCorporationBonus(/* advc.064d: */ bool bVerifyProduction = true);
 
 	int getCommerceRateModifier(CommerceTypes eIndex) const															// Exposed to Python
 	{
@@ -947,7 +947,8 @@ public:
 	{
 		return (getNumBonuses(eIndex) > 0);
 	}
-	void changeNumBonuses(BonusTypes eIndex, int iChange);
+	void changeNumBonuses(BonusTypes eIndex, int iChange,
+			bool bVerifyProduction = true); // advc.064d
 	int countUniqueBonuses() const; // advc.149
 	int getNumCorpProducedBonuses(BonusTypes eIndex) const
 	{
