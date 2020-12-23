@@ -7670,18 +7670,15 @@ void CvCity::updateCorporation()
 
 void CvCity::updateCorporationBonus()  // advc: style changes
 {
-	std::vector<int> aiExtraCorpProducedBonuses;
-	std::vector<int> aiLastCorpProducedBonuses;
-	std::vector<bool> abHadBonuses;
-
+	EnumMap<BonusTypes,int> aiLastCorpProducedBonuses;
+	EnumMap<BonusTypes,bool> abHadBonuses;
 	FOR_EACH_ENUM(Bonus)
 	{
-		abHadBonuses.push_back(hasBonus(eLoopBonus));
-		m_aiNumCorpProducedBonuses.set(eLoopBonus, 0);
-		aiLastCorpProducedBonuses.push_back(getNumBonuses(eLoopBonus));
-		aiExtraCorpProducedBonuses.push_back(0);
+		abHadBonuses.set(eLoopBonus, hasBonus(eLoopBonus));
+		aiLastCorpProducedBonuses.set(eLoopBonus, getNumBonuses(eLoopBonus));
 	}
-
+	m_aiNumCorpProducedBonuses.reset();
+	EnumMap<BonusTypes,int> aiExtraCorpProducedBonuses;
 	CvTeam const& kTeam = GET_TEAM(getTeam());
 	for (int iIter = 0; iIter < GC.getNumCorporationInfos(); iIter++)
 	{
@@ -7699,32 +7696,35 @@ void CvCity::updateCorporationBonus()  // advc: style changes
 			{
 				for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); i++)
 				{
-					BonusTypes eBonusConsumed = (BonusTypes)GC.getInfo(eLoopCorporation).getPrereqBonus(i);
+					BonusTypes eBonusConsumed = (BonusTypes)
+							GC.getInfo(eLoopCorporation).getPrereqBonus(i);
 					if (eBonusConsumed != NO_BONUS)
-						aiExtraCorpProducedBonuses[eBonusProduced] += aiLastCorpProducedBonuses[eBonusConsumed];
+					{
+						aiExtraCorpProducedBonuses.add(eBonusProduced,
+								aiLastCorpProducedBonuses.get(eBonusConsumed));
+					}
 				}
 			}
 		}
 		bool bChanged = false;
 		FOR_EACH_ENUM2(Bonus, e)
 		{
-			if (aiExtraCorpProducedBonuses[e] != 0)
+			if (aiExtraCorpProducedBonuses.get(e) != 0)
 			{
-				m_aiNumCorpProducedBonuses.add(e, aiExtraCorpProducedBonuses[e]);
+				m_aiNumCorpProducedBonuses.add(e, aiExtraCorpProducedBonuses.get(e));
 				bChanged = true;
 			}
-			aiLastCorpProducedBonuses[e] = aiExtraCorpProducedBonuses[e];
-			aiExtraCorpProducedBonuses[e] = 0;
+			aiLastCorpProducedBonuses.set(e, aiExtraCorpProducedBonuses.get(e));
 		}
+		aiExtraCorpProducedBonuses.reset();
 		if (!bChanged)
 			break;
-
-		FAssertMsg(iIter < GC.getNumCorporationInfos() - 1, "Corporation cyclical resource dependency");
+		FAssertMsg(iIter < GC.getNumCorporationInfos() - 1, "cyclical resource dependency");
 	}
 
 	FOR_EACH_ENUM(Bonus)
 	{
-		if (abHadBonuses[eLoopBonus] != hasBonus(eLoopBonus))
+		if (abHadBonuses.get(eLoopBonus) != hasBonus(eLoopBonus))
 		{
 			if (hasBonus(eLoopBonus))
 				processBonus(eLoopBonus, 1);

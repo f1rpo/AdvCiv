@@ -7284,9 +7284,7 @@ bool CvPlot::isLayoutDirty() const
 
 bool CvPlot::isLayoutStateDifferent() const
 {
-	bool bSame = true;
-	bSame &= (m_bLayoutStateWorked == isBeingWorked()); // is worked
-	return !bSame; // done
+	return (m_bLayoutStateWorked != isBeingWorked());
 }
 
 

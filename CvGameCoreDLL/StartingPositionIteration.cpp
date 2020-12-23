@@ -2046,7 +2046,7 @@ int StartingPositionIteration::teamValue(PlayerTypes eSitePlayer, TeamTypes eFor
 			{
 				CvPlot const& kOtherSite = *GET_PLAYER(
 						m_sitesPerTeam[eLoopTeam][k]).getStartingPlot();
-				FAssert(&kOtherSite != &kSite)
+				FAssert(&kOtherSite != &kSite);
 				short iCloseness = m_pPathDists->getLongDist() -
 						m_pPathDists->d(kSite, kOtherSite);
 				if (iCloseness > 0)

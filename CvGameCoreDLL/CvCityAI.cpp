@@ -6602,21 +6602,20 @@ int CvCityAI::AI_neededCultureDefenders() const
 
 	int const iPop = getPopulation();
 	bool const bWillFlip = canCultureFlip(eCulturalOwner);
-	double targetPr = std::max(0.0, 0.05 - iPop / 1000.0);
+	scaled rTargetProb = scaled::max(0, 50 - iPop) / 1000;
 	if (bWillFlip)
-		targetPr = 0;
+		rTargetProb = 0;
 	else if (getNumRevolts(eCulturalOwner) > 0)
-		targetPr /= 4;
+		rTargetProb /= 4;
 	int const iCultureStr = cultureStrength(eCulturalOwner);
-	/*	Based on the formula in CvCity::revoltProbability
-		Tbd.: Use scaled instead of double*/
-	double targetGarrisonStr = iCultureStr - iCultureStr * targetPr /
-			std::max(0.01, getRevoltTestProbability());
+	// Based on the formula in CvCity::revoltProbability
+	scaled rTargetGarrisonStr = iCultureStr - iCultureStr * rTargetProb /
+			scaled::max(per100(1), scaled::fromDouble(getRevoltTestProbability()));
 
-	double const dAIEraFactor = kOwner.AI_getCurrEraFactor().getDouble();
-	double r = ::ceil(targetGarrisonStr /
-			std::max((dAIEraFactor + 0.5) * (dAIEraFactor < 3.5 ? 3 : 4), 3.0));
-	if (r > std::max<double>(iPop, 3 + dAIEraFactor))
+	scaled const rAIEraFactor = kOwner.AI_getCurrEraFactor();
+	scaled r = rTargetGarrisonStr / scaled::max(3,
+			(rAIEraFactor + fixp(0.5)) * (rAIEraFactor < fixp(3.5) ? 3 : 4));
+	if (r > scaled::max(iPop, 3 + rAIEraFactor))
 		return 0; // Not worth it
 	if (isOccupation())
 		r++;
@@ -6630,10 +6629,10 @@ int CvCityAI::AI_neededCultureDefenders() const
 		{
 			int iWSRating = range(GET_TEAM(kOwner.getTeam()).
 					AI_getWarSuccessRating(), -100, 100);
-			r *= 0.75 + iWSRating / 400.0;
+			r *= fixp(0.75) + scaled(iWSRating, 400);
 		}
 	}
-	return ::round(r);
+	return r.round();
 }
 
 // This function has been completely rewritten for K-Mod. (The original code has been deleted.)

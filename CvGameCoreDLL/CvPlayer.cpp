@@ -18727,7 +18727,7 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& k
 				FAssert(!abPeaceTreatyFound[i]);
 				abPeaceTreatyFound[i] = true;
 			}
-			else FAssert(!CvDeal::isEndWar(pItem->m_eItemType))
+			else FAssert(!CvDeal::isEndWar(pItem->m_eItemType));
 			for (int j = 0; j < iForcePeaceSz; j++)
 			{
 				if (pItem->m_eItemType == aeForcePeace[j])

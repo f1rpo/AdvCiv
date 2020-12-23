@@ -10214,9 +10214,11 @@ bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, MovementFla
 			int iDelta = iDefendersNeeded - iDefendersHave;
 			if(iDelta <= 0)
 				continue; // No functional change from BtS
-			if(pLoopCity->AI_isEvacuating() && iDelta > ::round(0.75 * getGroup()->getNumUnits()))
+			if(pLoopCity->AI_isEvacuating() &&
+				iDelta > fixp(0.75) * getGroup()->getNumUnits())
+			{
 				continue;
-			// </advc.139>
+			} // </advc.139>
 			/*if (pLoopCity->getPlot().isVisibleEnemyUnit(this)) // advc.opt: It's our city
 				continue;*/
 
@@ -13688,10 +13690,12 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, MovementFlags eFlags
 	}
 
 	int const iSearchRange = (bFollow ? 1 : AI_searchRange(iRange));
-	// advc.128: Within this range, the AI is able see to units on hidden tiles
-	int const iSearchRangeRand = std::max(1, ::round((iSearchRange * m_iSearchRangeRandPercent) / 100.0));
+	// <advc.128> Within this range, the AI is able see to units on hidden tiles.
+	int const iSearchRangeRand = std::max(1,
+			ROUND_DIVIDE(iSearchRange * m_iSearchRangeRandPercent, 100)); // </advc.128>
 	bool const bDeclareWar = (eFlags & MOVE_DECLARE_WAR);
-	CvPlot* pBestPlot = NULL; // advc (note): Maximizing iOddsThreshold
+	CvPlot* pBestPlot = NULL;
+	int iBestOdds = iOddsThreshold - 1; // advc
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
 	for (SquareIter it(*this, iSearchRange, false); it.hasNext(); ++it)
 	{
@@ -13733,9 +13737,9 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, MovementFlags eFlags
 			// 101 for cities, because that's a better thing to capture.
 			int iOdds = (iEnemyDefenders == 0 ? (p.isCity() ? 101 : 100) :
 					AI_getGroup()->AI_getWeightedOdds(&p, false));
-			if (iOdds >= iOddsThreshold)
+			if (iOdds > iBestOdds)
 			{
-				iOddsThreshold = iOdds;
+				iBestOdds = iOdds;
 				pBestPlot = &(bFollow ? p : getPathEndTurnPlot());
 			}
 		}
