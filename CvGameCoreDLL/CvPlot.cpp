@@ -4457,14 +4457,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 		setLayoutDirty(true);
 
 	if (isImproved())
-	{	// <advc.004z> Update resource indicators (if we must)
-		if (bWasGoody && GC.getInfo(getImprovementType()).isGoody() &&
-			GC.getGame().getCurrentLayer() == GLOBE_LAYER_RESOURCE &&
-			!gDLL->UI().isDirty(GlobeInfo_DIRTY_BIT) &&
-			isVisibleToWatchingHuman())
-		{
-			gDLL->UI().setDirty(GlobeInfo_DIRTY_BIT, true);
-		} // </advc.004z>
+	{
 		CvEventReporter::getInstance().improvementBuilt(
 				getImprovementType(), getX(), getY());
 	}
@@ -4473,6 +4466,14 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 		CvEventReporter::getInstance().improvementDestroyed(
 				eOldImprovement, getOwner(), getX(), getY());
 	}
+	// <advc.004z> Update resource indicators (if we must)
+	if (bWasGoody && (!isImproved() || !GC.getInfo(getImprovementType()).isGoody()) &&
+		GC.getGame().getCurrentLayer() == GLOBE_LAYER_RESOURCE &&
+		isVisibleToWatchingHuman() &&
+		GET_PLAYER(GC.getGame().getActivePlayer()).showGoodyOnResourceLayer())
+	{
+		gDLL->UI().setDirty(GlobeInfo_DIRTY_BIT, true);
+	} // </advc.004z>
 	CvCity* pWorkingCity = getWorkingCity();
 	if (pWorkingCity != NULL)
 	{

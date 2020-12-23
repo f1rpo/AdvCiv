@@ -19201,6 +19201,13 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption,
 	}
 }
 
+// advc.004z:
+bool CvPlayer::showGoodyOnResourceLayer() const
+{
+	return (isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS) &&
+			BUGOption::isEnabled("MainInterface__TribalVillageIcons", true));
+}
+
 // Used by Globeview resource layer
 void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption,
 	std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const
@@ -19239,8 +19246,7 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption,
 		} // <advc.004z>
 		ImprovementTypes eImpr = NO_IMPROVEMENT;
 		if(!bOfInterest && eOption == SHOW_ALL_RESOURCES &&
-			isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS) &&
-			BUGOption::isEnabled("MainInterface__TribalVillageIcons", true))
+			showGoodyOnResourceLayer())
 		{
 			eImpr = kPlot.getRevealedImprovementType(getTeam());
 			bOfInterest = (eImpr != NO_IMPROVEMENT && GC.getInfo(eImpr).
