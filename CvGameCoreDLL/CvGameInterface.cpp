@@ -2446,7 +2446,7 @@ bool CvGame::shouldDisplayEndTurn() const
 
 bool CvGame::shouldDisplayWaitingOthers() const
 {	// <advc.706>
-	if(CvPlot::isAllFog())
+	if (!GET_PLAYER(getActivePlayer()).isHuman())
 		return false; // </advc.706>
 	if (!gDLL->UI().isCitySelection())
 	{
