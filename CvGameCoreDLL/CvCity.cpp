@@ -2753,10 +2753,13 @@ void CvCity::conscript()
 	if (pUnit != NULL)
 	{
 		if (GC.getGame().getActivePlayer() == getOwner() &&
-			 !CvPlot::isAllFog()) // advc.706
+			isHuman()) // advc.127, advc.706
 		{
-			gDLL->UI().lookAt(getPlot().getPoint(), CAMERALOOKAT_NORMAL); // K-Mod
+			/*	advc.001o: Conscription had caused the main map to black out.
+				The true cause of that problem may lie elsewhere, but switching
+				these two statements is at least a workaround. */
 			gDLL->UI().selectUnit(pUnit, true, false, true);
+			gDLL->UI().lookAt(getPlot().getPoint(), CAMERALOOKAT_NORMAL); // K-Mod
 		}
 		if (gCityLogLevel >= 2 && !isHuman()) logBBAI("      City %S does conscript of a %S at cost of %d pop, %d anger", getName().GetCString(), pUnit->getName().GetCString(), iPopChange, iAngerLength); // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 	}
