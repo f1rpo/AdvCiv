@@ -14936,7 +14936,8 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 	CvPlot* pBestFoundPlot = NULL;
 	int iBestFoundValue = 0;
 	bool const bRandomize = (!isHuman() && GC.getGame().isScenario()); // advc.052
-	bool const bCanDefend = getGroup()->canDefend(); // advc.opt
+	bool const bSafe = (getGroup()->canDefend() ||
+			getInvisibleType() != NO_INVISIBLE); // advc.057b
 	for (int i = 0; i < GET_PLAYER(getOwner()).AI_getNumCitySites(); i++)
 	{
 		CvPlot& kSite = *GET_PLAYER(getOwner()).AI_getCitySite(i);
@@ -14948,7 +14949,7 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 				!GET_PLAYER(getOwner()).AI_isAnyPlotTargetMissionAI(
 				kSite, MISSIONAI_FOUND, getGroup()))
 			{
-				if (bCanDefend ||
+				if (bSafe ||
 					GET_PLAYER(getOwner()).AI_isAnyPlotTargetMissionAI(
 					kSite, MISSIONAI_GUARD_CITY))
 				{
@@ -14957,7 +14958,7 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 					{
 						if (!kSite.isVisible(getTeam()) || // K-Mod
 							!kSite.isVisibleEnemyUnit(this) ||
-							(iPathTurns > 1 && getGroup()->canDefend())) // K-Mod
+							(iPathTurns > 1 && bSafe)) // K-Mod
 						{
 							int iValue = kSite.getFoundValue(getOwner());
 							// <advc.052>
@@ -14970,7 +14971,7 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 							} // </advc.052>
 							iValue *= 1000;
 							//iValue /= (iPathTurns + 1);
-							iValue /= iPathTurns + (getGroup()->canDefend() ? 4 : 1); // K-Mod
+							iValue /= iPathTurns + (bSafe ? 4 : 1); // K-Mod
 							if (iValue > iBestFoundValue)
 							{
 								iBestFoundValue = iValue;
