@@ -86,11 +86,15 @@ bool FAssertDlg( const char*, const char*, const char*, unsigned int,
 		FAssertMsg(static_cast<int>(index) < static_cast<int>(upper), acOut); \
 	}
 // K-Mod end
+// <advc.006>
+#define FAssertBOOL(i) \
+	FAssertBounds(0, 2, i); // </advc.006>
 #else // FASSERT_ENABLE not defined - advc.006c: void(0) added.
 #define FAssert(expr) (void)0
 #define FAssertMsg(expr, msg) (void)0
 // K-Mod:
 #define FAssertBounds(lower,upper,index) (void)0
+#define FAssertBOOL(i) void(0) // advc.006
 #endif
 
 #define FErrorMsg(msg) FAssertMsg(false, msg) // advc.006i (from C2C)

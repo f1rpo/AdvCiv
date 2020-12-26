@@ -3298,7 +3298,8 @@ int CvPlayerAI::AI_getPlotDanger(/* BtS parameters: */ CvPlot const& kPlot, int 
 			//bool bCheckBorder = (!isHuman() && !kPlot.isCity());
 			/*  K-Mod. I don't want auto-workers on the frontline.
 				So count border danger for humans too, unless the plot is defended. */
-			(!isHuman() || !kPlot.plotCheck(PUF_canDefend, -1, -1, getID(), NO_TEAM))); // advc.opt: was plotCount
+			// advc.opt: was plotCount
+			(!isHuman() || kPlot.plotCheck(PUF_canDefend, -1, -1, getID(), NO_TEAM) == NULL));
 	if(bCheckBorder)
 	{
 		//if (iRange >= DANGER_RANGE && kPlot.isTeamBorderCache(eTeam))

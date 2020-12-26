@@ -1018,8 +1018,8 @@ int CvUnitAI::AI_countEnemyDefenders(CvPlot const& kPlot) const
 // advc.opt: (plotCheck, apart from that, copy-pasted from above)
 bool CvUnitAI::AI_isAnyEnemyDefender(CvPlot const& kPlot) const
 {
-	return kPlot.plotCheck(PUF_canDefendPotentialEnemy, getOwner(), isAlwaysHostile(kPlot),
-			NO_PLAYER, NO_TEAM, PUF_isVisible, getOwner());
+	return (kPlot.plotCheck(PUF_canDefendPotentialEnemy, getOwner(), isAlwaysHostile(kPlot),
+			NO_PLAYER, NO_TEAM, PUF_isVisible, getOwner()) != NULL);
 }
 
 
@@ -20807,12 +20807,12 @@ bool CvUnitAI::AI_defendPlot(CvPlot* pPlot)
 			// advc.001s: Want up to 1 defender per domain type
 			NO_TEAM, PUF_isDomainType, getDomainType())
 			<= (atPlot(pPlot) ? 1 : 0))
-		{
-			if (pPlot->plotCount(PUF_cannotDefend, -1, -1, getOwner(),
+		{	// advc.opt: was plotCount ... > 0
+			if (pPlot->plotCheck(PUF_cannotDefend, -1, -1, getOwner(),
 				/*  advc.001s: A land unit can defend non-land units in a Fort,
 					but not vice versa. */
 				NO_TEAM, getDomainType() == DOMAIN_LAND ? NULL : PUF_isDomainType, getDomainType())
-				> 0)
+				!= NULL)
 			{
 				return true;
 			}

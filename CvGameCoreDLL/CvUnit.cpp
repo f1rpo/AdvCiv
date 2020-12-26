@@ -2246,12 +2246,13 @@ TeamTypes CvUnit::getDeclareWarMove(const CvPlot* pPlot) const
 		if (pPlot->isActiveVisible(false))
 		{
 			//if (canMoveInto(pPlot, true, true, true))
-			// K-Mod. Don't give the "declare war" popup unless we need war to move into the plot.
+			/*	K-Mod. Don't give the "declare war" popup unless we
+				need war to move into the plot */
 			if (canMoveInto(*pPlot, true, true, true, false) &&
 				!canMoveInto(*pPlot, false, false, false, false))
 			// K-Mod end
 			{
-				CvUnit* pUnit = pPlot->plotCheck(PUF_canDeclareWar,
+				CvUnit const* pUnit = pPlot->plotCheck(PUF_canDeclareWar,
 						getOwner(), isAlwaysHostile(*pPlot),
 						NO_PLAYER, NO_TEAM, PUF_isVisible, getOwner());
 				if (pUnit != NULL)
@@ -7283,7 +7284,7 @@ bool CvUnit::canAttack(const CvUnit& kDefender) const
 		/*  Won't handle invisible defenders correctly
 			(there are none currently that can defend) */
 		kDefender.getPlot().plotCheck(PUF_isEnemy, getOwner(), false,
-		NO_PLAYER, NO_TEAM, PUF_canDefend))
+		NO_PLAYER, NO_TEAM, PUF_canDefend) != NULL)
 	{
 		return false;
 	} // </advc.089>
@@ -9505,7 +9506,7 @@ PlayerTypes CvUnit::getVisualOwner(TeamTypes eForTeam) const
 	if (NO_TEAM == eForTeam)
 		eForTeam = GC.getGame().getActiveTeam();
 
-	PlayerTypes r = getOwner(); // advc.061
+	PlayerTypes eR = getOwner(); // advc.061
 	if (getTeam() != eForTeam && eForTeam != BARBARIAN_TEAM)
 	{
 		if (m_pUnitInfo->isHiddenNationality() &&
@@ -9519,14 +9520,13 @@ PlayerTypes CvUnit::getVisualOwner(TeamTypes eForTeam) const
 					be the owner, but that wouldn't make a big difference.) */
 				//GET_TEAM(r).getNumMembers() > 1 ||
 				(!GET_TEAM(eForTeam).isRevealedBase(getPlot()) &&
-				getPlot().plotCheck(PUF_isPlayer, r, eForTeam) == NULL)) // </advc.061>
+				getPlot().plotCheck(PUF_isPlayer, eR, eForTeam) == NULL)) // </advc.061>
 			{
 				return BARBARIAN_PLAYER;
 			}
 		}
 	}
-
-	return r;
+	return eR;
 }
 
 /*	advc.inl: This part of getCombatOwner is only relevant for alwaysHostile units,

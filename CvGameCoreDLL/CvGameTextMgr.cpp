@@ -4407,7 +4407,7 @@ void CvGameTextMgr::setCannotAttackHelp(CvWStringBuffer& szHelp,
 	{
 		if (!kDefender.canFight() && kAttacker.combatLimit() < 100 &&
 			kDefender.getPlot().plotCheck(PUF_isEnemy, kAttacker.getOwner(), false,
-			NO_PLAYER, NO_TEAM, PUF_canDefend))
+			NO_PLAYER, NO_TEAM, PUF_canDefend) != NULL)
 		{
 			iLimit = kAttacker.combatLimit();
 		}

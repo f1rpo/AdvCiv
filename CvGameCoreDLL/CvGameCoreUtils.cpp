@@ -571,253 +571,297 @@ void setListHelp(CvWStringBuffer& szBuffer, const wchar* szStart, const wchar* s
 	szBuffer.append(szItem);
 }
 
-bool PUF_isGroupHead(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isGroupHead(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
-	return (pUnit->isGroupHead());
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
+	return pUnit->isGroupHead();
 }
 
-bool PUF_isPlayer(const CvUnit* pUnit, int iData1, int iData2)
-{
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	// <advc.061>
-	TeamTypes eForTeam = (TeamTypes)iData2;
-	PlayerTypes eOwner = (PlayerTypes)iData1;
-	if(eForTeam == NO_TEAM || eOwner == NO_PLAYER || eForTeam == TEAMID(eOwner))
-	{
-		// </advc.061>
-		return (pUnit->getOwner() == iData1);
-	} // <advc.061>
-	return (pUnit->getOwner() == iData1 && !pUnit->isInvisible(eForTeam, false) &&
-			!pUnit->getUnitInfo().isHiddenNationality()); // </advc.061>
+bool PUF_isPlayer(CvUnit const* pUnit, int iOwner, int iForTeam)
+{	// advc.061: rewritten
+	TeamTypes eForTeam = (TeamTypes)iForTeam;
+	PlayerTypes eOwner = (PlayerTypes)iOwner;
+	FAssertEnumBounds(eOwner);
+	if(eForTeam == NO_TEAM || eForTeam == TEAMID(eOwner))
+		return (pUnit->getOwner() == eOwner);
+	FAssertEnumBounds(eForTeam);
+	return (pUnit->getOwner() == eOwner && !pUnit->isInvisible(eForTeam, false) &&
+			!pUnit->getUnitInfo().isHiddenNationality());
 }
 
-bool PUF_isTeam(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isTeam(CvUnit const* pUnit, int iTeam, int iDummy)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (pUnit->getTeam() == iData1);
+	FAssert(iDummy == -1);
+	TeamTypes eTeam = (TeamTypes)iTeam;
+	FAssertEnumBounds(eTeam);
+	return (pUnit->getTeam() == eTeam);
 }
 
-bool PUF_isCombatTeam(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isCombatTeam(CvUnit const* pUnit, int iTeam, int iForTeam)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
-
-	return (TEAMID(pUnit->getCombatOwner((TeamTypes)iData2, pUnit->getPlot())) ==
-			iData1 && !pUnit->isInvisible((TeamTypes)iData2, false, false));
+	TeamTypes eTeam = (TeamTypes)iTeam;
+	FAssertEnumBounds(eTeam);
+	TeamTypes eForTeam = (TeamTypes)iForTeam;
+	FAssertEnumBounds(eForTeam);
+	return (TEAMID(pUnit->getCombatOwner(eForTeam, pUnit->getPlot())) ==
+			eTeam && !pUnit->isInvisible(eForTeam, false, false));
 }
 
-bool PUF_isOtherPlayer(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isOtherPlayer(CvUnit const* pUnit, int iPlayer, int iDummy)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (pUnit->getOwner() != iData1);
+	FAssert(iDummy == -1);
+	PlayerTypes ePlayer = (PlayerTypes)iPlayer;
+	FAssertEnumBounds(ePlayer);
+	return (pUnit->getOwner() != ePlayer);
 }
 
-bool PUF_isOtherTeam(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isOtherTeam(CvUnit const* pUnit, int iPlayer, int iDummy)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	TeamTypes eTeam = GET_PLAYER((PlayerTypes)iData1).getTeam();
+	FAssert(iDummy == -1);
+	PlayerTypes ePlayer = (PlayerTypes)iPlayer;
+	FAssertEnumBounds(ePlayer);
+	TeamTypes eTeam = TEAMID(ePlayer);
 	if (pUnit->canCoexistWithEnemyUnit(eTeam))
-	{
 		return false;
-	}
-
 	return (pUnit->getTeam() != eTeam);
 }
 
-bool PUF_isEnemy(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_canDefend(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
-
-	TeamTypes eOtherTeam = TEAMID((PlayerTypes)iData1);
-	TeamTypes eOurTeam = TEAMID(pUnit->getCombatOwner(eOtherTeam));
-	if (pUnit->canCoexistWithEnemyUnit(eOtherTeam))
-		return false;
-	return (iData2 ? eOtherTeam != eOurTeam : GET_TEAM(eOtherTeam).isAtWar(eOurTeam));
-}
-// advc.ctr:
-bool PUF_isEnemyCityAttacker(const CvUnit* pUnit, int iData1, int iData2)
-{
-	if(iData2 >= 0)
-	{
-		CvTeam const& kAssumePeace = GET_TEAM((TeamTypes)iData2);
-		if(GET_TEAM(pUnit->getTeam()).getMasterTeam() == kAssumePeace.getMasterTeam())
-			return false;
-	}
-	CvUnitInfo& u = pUnit->getUnitInfo();
-	if(u.getCargoSpace() <= 0 || u.getSpecialCargo() != NO_SPECIALUNIT)
-	{
-		if(u.getDomainType() != DOMAIN_LAND)
-			return false;
-		if(u.isOnlyDefensive() || u.getCombat() <= 0)
-			return false;
-	}
-	return PUF_isEnemy(pUnit, iData1, false);
-}
-
-bool PUF_isVisible(const CvUnit* pUnit, int iData1, int iData2)
-{
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return !pUnit->isInvisible(TEAMID((PlayerTypes)iData1), false);
-}
-
-bool PUF_isVisibleDebug(const CvUnit* pUnit, int iData1, int iData2)
-{
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return !(pUnit->isInvisible(GET_PLAYER((PlayerTypes)iData1).getTeam(), true));
-}
-
-bool PUF_canSiege(const CvUnit* pUnit, int iData1, int iData2)
-{
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return pUnit->canSiege(TEAMID((PlayerTypes)iData1));
-}
-
-bool PUF_isPotentialEnemy(const CvUnit* pUnit, int iData1, int iData2)
-{
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
-	// advc: Switched the Our/Other variable names. iData1 is the team whose war plans matter.
-	TeamTypes eOurTeam = TEAMID((PlayerTypes)iData1);
-	TeamTypes eOtherTeam = TEAMID(pUnit->getCombatOwner(eOurTeam));
-	if (pUnit->canCoexistWithEnemyUnit(eOurTeam))
-		return false;
-	return (iData2 ? eOurTeam != eOtherTeam : GET_TEAM(eOurTeam).AI_mayAttack(eOtherTeam));
-}
-
-bool PUF_canDeclareWar(const CvUnit* pUnit, int iData1, int iData2)
-{
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
-
-	TeamTypes eOtherTeam = TEAMID((PlayerTypes)iData1);
-	TeamTypes eOurTeam = TEAMID(pUnit->getCombatOwner(eOtherTeam));
-	if (pUnit->canCoexistWithEnemyUnit(eOtherTeam))
-		return false;
-
-	return (iData2 ? false : GET_TEAM(eOtherTeam).canDeclareWar(eOurTeam));
-}
-
-bool PUF_canDefend(const CvUnit* pUnit, int iData1, int iData2)
-{
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->canDefend();
 }
 
-bool PUF_cannotDefend(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_cannotDefend(const CvUnit* pUnit, int iDummy1, int iDummy2)
 {
-	return !(pUnit->canDefend());
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
+	return !pUnit->canDefend();
 }
 
-bool PUF_canDefendGroupHead(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_canDefendGroupHead(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
-	return (PUF_canDefend(pUnit, iData1, iData2) && PUF_isGroupHead(pUnit, iData1, iData2));
+	return (PUF_canDefend(pUnit, iDummy1, iDummy2) &&
+			PUF_isGroupHead(pUnit, iDummy1, iDummy2));
 }
 
-bool PUF_canDefendEnemy(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_canDefendPotentialEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
-	return (PUF_canDefend(pUnit, iData1, iData2) && PUF_isEnemy(pUnit, iData1, iData2));
+	return (PUF_canDefend(pUnit) && PUF_isPotentialEnemy(pUnit, iPlayer, iAlwaysHostile));
 }
 
-bool PUF_canDefendPotentialEnemy(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_canDefendEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (PUF_canDefend(pUnit, iData1, iData2) && PUF_isPotentialEnemy(pUnit, iData1, iData2));
+	return (PUF_canDefend(pUnit) && PUF_isEnemy(pUnit, iPlayer, iAlwaysHostile));
 }
 
-bool PUF_canAirAttack(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isPotentialEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile)
 {
+	PlayerTypes ePlayer = (PlayerTypes)iPlayer;
+	FAssertEnumBounds(ePlayer);
+	FAssertBOOL(iAlwaysHostile);
+	bool bAlwaysHostile = iAlwaysHostile;
+	// advc: Switched the Our/Other variable names. It's iPlayer whose war plans matter.
+	TeamTypes eOurTeam = TEAMID(ePlayer);
+	TeamTypes eOtherTeam = TEAMID(pUnit->getCombatOwner(eOurTeam));
+	if (pUnit->canCoexistWithEnemyUnit(eOurTeam))
+		return false;
+	return (bAlwaysHostile ? eOurTeam != eOtherTeam :
+			GET_TEAM(eOurTeam).AI_mayAttack(eOtherTeam));
+}
+
+bool PUF_isEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile)
+{
+	PlayerTypes ePlayer = (PlayerTypes)iPlayer;
+	FAssertEnumBounds(ePlayer);
+	FAssertBOOL(iAlwaysHostile);
+	bool bAlwaysHostile = iAlwaysHostile;
+	// advc: Switched the Our/Other variable names
+	TeamTypes eOurTeam = TEAMID(ePlayer);
+	TeamTypes eOtherTeam = TEAMID(pUnit->getCombatOwner(eOurTeam));
+	if (pUnit->canCoexistWithEnemyUnit(eOurTeam))
+		return false;
+	return (bAlwaysHostile ? eOurTeam != eOtherTeam :
+			GET_TEAM(eOurTeam).isAtWar(eOtherTeam));
+}
+
+bool PUF_canDeclareWar(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile)
+{
+	PlayerTypes ePlayer = (PlayerTypes)iPlayer;
+	FAssertEnumBounds(ePlayer);
+	FAssertBOOL(iAlwaysHostile);
+	bool bAlwaysHostile = iAlwaysHostile;
+	/*	advc: Switched the Our/Other variable names. This function says whether
+		iPlayer can declare war on the combat owner of pUnit. */
+	TeamTypes eOurTeam = TEAMID(ePlayer);
+	TeamTypes eOtherTeam = TEAMID(pUnit->getCombatOwner(eOurTeam));
+	if (pUnit->canCoexistWithEnemyUnit(eOurTeam))
+		return false;
+	return (bAlwaysHostile ? false : GET_TEAM(eOurTeam).canDeclareWar(eOtherTeam));
+}
+// advc.ctr:
+bool PUF_isEnemyCityAttacker(CvUnit const* pUnit, int iPlayer, int iAssumePeaceTeam)
+{
+	TeamTypes eAssumePeaceTeam = (TeamTypes)iAssumePeaceTeam;
+	if (eAssumePeaceTeam != NO_TEAM)
+	{
+		FAssertEnumBounds(eAssumePeaceTeam);
+		if (GET_TEAM(pUnit->getTeam()).getMasterTeam() == GET_TEAM(eAssumePeaceTeam).getMasterTeam())
+			return false;
+	}
+	CvUnitInfo& u = pUnit->getUnitInfo();
+	if (u.getCargoSpace() <= 0 || u.getSpecialCargo() != NO_SPECIALUNIT)
+	{
+		if (u.getDomainType() != DOMAIN_LAND)
+			return false;
+		if (u.isOnlyDefensive() || u.getCombat() <= 0)
+			return false;
+	}
+	return PUF_isEnemy(pUnit, iPlayer, false);
+}
+
+bool PUF_isVisible(CvUnit const* pUnit, int iPlayer, int iDummy)
+{
+	FAssert(iDummy == -1);
+	PlayerTypes ePlayer = (PlayerTypes)iPlayer;
+	FAssertEnumBounds(ePlayer);
+	return !pUnit->isInvisible(TEAMID(ePlayer), false);
+}
+
+bool PUF_isVisibleDebug(CvUnit const* pUnit, int iPlayer, int iDummy)
+{
+	FAssert(iDummy == -1);
+	PlayerTypes ePlayer = (PlayerTypes)iPlayer;
+	FAssertEnumBounds(ePlayer);
+	return !pUnit->isInvisible(TEAMID(ePlayer), true);
+}
+
+bool PUF_canSiege(CvUnit const* pUnit, int iTargetPlayer, int iDummy)
+{
+	FAssert(iDummy == -1);
+	PlayerTypes eTargetPlayer = (PlayerTypes)iTargetPlayer;
+	FAssertEnumBounds(eTargetPlayer);
+	return pUnit->canSiege(TEAMID(eTargetPlayer));
+}
+
+bool PUF_canAirAttack(CvUnit const* pUnit, int iDummy1, int iDummy2)
+{
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->canAirAttack();
 }
 
-bool PUF_canAirDefend(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_canAirDefend(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->canAirDefend();
 }
-
-bool PUF_isFighting(const CvUnit* pUnit, int iData1, int iData2)
+// K-Mod:
+bool PUF_isAirIntercept(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
+	return (pUnit->getDomainType() == DOMAIN_AIR &&
+			pUnit->getGroup()->getActivityType() == ACTIVITY_INTERCEPT);
+}
+
+bool PUF_isFighting(CvUnit const* pUnit, int iDummy1, int iDummy2)
+{
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->isFighting();
 }
 
-bool PUF_isAnimal( const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isAnimal(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->isAnimal();
 }
 
-bool PUF_isMilitaryHappiness(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isMilitaryHappiness(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->isMilitaryHappiness();
 }
 
-bool PUF_isInvestigate(const CvUnit* pUnit, int iData1, int iData2)
-{	// <advc.103>
+bool PUF_isInvestigate(CvUnit const* pUnit, int iDummy1, int iDummy2)
+{
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
+	// <advc.103>
 	if(pUnit->hasMoved())
 		return false; // </advc.103>
 	return pUnit->isInvestigate();
 }
 
-bool PUF_isCounterSpy(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isCounterSpy(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->isCounterSpy();
 }
 
-bool PUF_isSpy(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isSpy(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->isSpy();
 }
 
-bool PUF_isDomainType(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isDomainType(CvUnit const* pUnit, int iDomain, int iDummy)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (pUnit->getDomainType() == iData1);
+	FAssert(iDummy == -1);
+	DomainTypes eDomain = (DomainTypes)iDomain;
+	FAssertEnumBounds(eDomain);
+	return (pUnit->getDomainType() == eDomain);
 }
 
-bool PUF_isUnitType(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isUnitType(CvUnit const* pUnit, int iUnit, int iDummy)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (pUnit->getUnitType() == iData1);
+	FAssert(iDummy == -1);
+	UnitTypes eUnit = (UnitTypes)iUnit;
+	FAssertEnumBounds(eUnit);
+	return (pUnit->getUnitType() == eUnit);
 }
 
-bool PUF_isUnitAIType(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isUnitAIType(CvUnit const* pUnit, int iUnitAI, int iDummy)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (pUnit->AI_getUnitAIType() == iData1);
+	FAssert(iDummy == -1);
+	UnitAITypes eUnitAI = (UnitAITypes)iUnitAI;
+	FAssertEnumBounds(eUnitAI);
+	return (pUnit->AI_getUnitAIType() == eUnitAI);
+}
+// K-Mod:
+bool PUF_isMissionAIType(CvUnit const* pUnit, int iMissionAI, int iDummy)
+{
+	FAssert(iDummy == -1);
+	MissionAITypes eMissionAI = (MissionAITypes)iMissionAI;
+	FAssertEnumBounds(eMissionAI);
+	return (pUnit->AI().AI_getGroup()->AI_getMissionAIType() == eMissionAI);
 }
 
-bool PUF_isCityAIType(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isCityAIType(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->AI().AI_isCityAIType();
 }
 
-bool PUF_isNotCityAIType(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isNotCityAIType(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
-	return !(PUF_isCityAIType(pUnit, iData1, iData2));
+	return !PUF_isCityAIType(pUnit);
 }
 // advc.003j (comment): unused
-bool PUF_isSelected(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isSelected(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->IsSelected();
 }
 
-bool PUF_makeInfoBarDirty(CvUnit* pUnit, int iData1, int iData2)
+/*bool PUF_isNoMission(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
-	pUnit->setInfoBarDirty(true);
-	return true;
-}
-
-/*bool PUF_isNoMission(const CvUnit* pUnit, int iData1, int iData2)
-{
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	//return (pUnit->getGroup()->getActivityType() != ACTIVITY_MISSION); // BtS
 	return (pUnit->getGroup()->AI_getMissionAIType() == NO_MISSIONAI); // K-Mod
 }*/
-/*  <advc.113b> The above won't do for counting the workers available to a city:
+/*  advc.113b: The above won't do for counting the workers available to a city:
 	Doesn't count retreated workers and does count workers in cargo. */
 /*  Replacement: Count pUnit if its mission plot has the given city as its
 	working city. If pUnit has no mission, then it's counted if its current plot
 	has the given city as its working city. */
-bool PUF_isMissionPlotWorkingCity(const CvUnit* pUnit, int iCity, int iCityOwner)
+bool PUF_isMissionPlotWorkingCity(CvUnit const* pUnit, int iCity, int iCityOwner)
 {
 	CvCity* pCity = GET_PLAYER((PlayerTypes)iCityOwner).getCity(iCity);
 	if(pCity == NULL || pUnit->isCargo())
@@ -826,38 +870,32 @@ bool PUF_isMissionPlotWorkingCity(const CvUnit* pUnit, int iCity, int iCityOwner
 	if(pMissionPlot == NULL)
 		pMissionPlot = pUnit->plot();
 	return (pMissionPlot->getWorkingCity() == pCity);
-} // </advc.113b>
+}
 
-bool PUF_isFiniteRange(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isFiniteRange(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
-	return ((pUnit->getDomainType() != DOMAIN_AIR) || (pUnit->getUnitInfo().getAirRange() > 0));
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
+	return (pUnit->getDomainType() != DOMAIN_AIR || pUnit->getUnitInfo().getAirRange() > 0);
 }
 // BETTER_BTS_AI_MOD, General AI, 01/15/09, jdog5000: START
-bool PUF_isAvailableUnitAITypeGroupie(const CvUnit* pUnit, int iData1, int iData2)
-{
-	return ((PUF_isUnitAITypeGroupie(pUnit,iData1,iData2)) && !(pUnit->isCargo()));
+bool PUF_isAvailableUnitAITypeGroupie(CvUnit const* pUnit, int iUnitAI, int iDummy)
+{	// (advc: Removed unnecessary helper function)
+	return (PUF_isUnitAIType(pUnit->getGroup()->getHeadUnit(), iUnitAI) &&
+			!pUnit->isCargo());
 }
 
-bool PUF_isUnitAITypeGroupie(CvUnit const* pUnit, int iData1, int iData2)
+bool PUF_isFiniteRangeAndNotJustProduced(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
-	CvUnit const* pGroupHead = pUnit->getGroup()->getHeadUnit();
-	return (PUF_isUnitAIType(pGroupHead, iData1, iData2));
-}
-
-bool PUF_isFiniteRangeAndNotJustProduced(const CvUnit* pUnit, int iData1, int iData2)
-{
-	return (PUF_isFiniteRange(pUnit,iData1,iData2) && ((GC.getGame().getGameTurn() - pUnit->getGameTurnCreated()) > 1));
+	return (PUF_isFiniteRange(pUnit) &&
+			GC.getGame().getGameTurn() - pUnit->getGameTurnCreated() > 1);
 } // BETTER_BTS_AI_MOD: END
-// <K-Mod>
-bool PUF_isMissionAIType(const CvUnit* pUnit, int iData1, int iData2)
-{
-	return pUnit->AI().AI_getGroup()->AI_getMissionAIType() == iData1;
-}
 
-bool PUF_isAirIntercept(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_makeInfoBarDirty(CvUnit* pUnit, int iDummy1, int iDummy2)
 {
-	return pUnit->getDomainType() == DOMAIN_AIR && pUnit->getGroup()->getActivityType() == ACTIVITY_INTERCEPT;
-} // </K-Mod>
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
+	pUnit->setInfoBarDirty(true);
+	return true;
+}
 
 // advc.003j (comment): Unused
 int baseYieldToSymbol(int iNumYieldTypes, int iYieldStack)

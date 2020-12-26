@@ -4602,8 +4602,8 @@ bool CvTeamAI::AI_mayAttack(CvPlot const& kPlot) const
 		Would have to change several PUF... signatures to remedy that. */
 	PlayerTypes const ePlayer = getLeaderID();
 	// <K-Mod>
-	return kPlot.plotCheck(PUF_isPotentialEnemy, ePlayer, false,
-			NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer); // </K-Mod>
+	return (kPlot.plotCheck(PUF_isPotentialEnemy, ePlayer, false,
+			NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer) != NULL); // </K-Mod>
 }
 
 // BETTER_BTS_AI_MOD, General AI, 07/20/09, jdog5000: START

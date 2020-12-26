@@ -288,52 +288,52 @@ void setListHelp(wchar* szBuffer, const wchar* szStart, const wchar* szItem, con
 void setListHelp(CvWString& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst);
 void setListHelp(CvWStringBuffer& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst);
 
-// PlotUnitFunc's...
-bool PUF_isGroupHead( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isPlayer( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isTeam( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isCombatTeam(const CvUnit* pUnit, int iData1, int iData2);
-bool PUF_isOtherPlayer( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isOtherTeam( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isEnemy( const CvUnit* pUnit, int iData1, int iData2 = -1);
+// PlotUnitFunc's...  (advc: Parameters iData1, iData2 renamed)
+bool PUF_isGroupHead(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isPlayer(CvUnit const* pUnit, int iOwner, int iForTeam = NO_TEAM);
+bool PUF_isTeam(CvUnit const* pUnit, int iTeam, int iDummy = -1);
+bool PUF_isCombatTeam(CvUnit const* pUnit, int iTeam, int iForTeam);
+bool PUF_isOtherPlayer(CvUnit const* pUnit, int iPlayer, int iDummy = -1);
+bool PUF_isOtherTeam(CvUnit const* pUnit, int iPlayer, int iDummy = -1);
+bool PUF_canDefend(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_cannotDefend(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_canDefendGroupHead(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_canDefendPotentialEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile = false);
+bool PUF_canDefendEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile = false);
+bool PUF_isPotentialEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile = false);
+bool PUF_isEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile = false);
+bool PUF_canDeclareWar(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile = false);
 // advc.ctr:
-bool PUF_isEnemyCityAttacker( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isVisible( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isVisibleDebug( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_canSiege( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isPotentialEnemy( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_canDeclareWar( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_canDefend( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_cannotDefend( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_canDefendGroupHead( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_canDefendEnemy( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_canDefendPotentialEnemy( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_canAirAttack( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_canAirDefend( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isFighting( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isAnimal( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isMilitaryHappiness( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isInvestigate( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isCounterSpy( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isSpy( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isUnitType( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isDomainType( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isUnitAIType( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isCityAIType( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isNotCityAIType( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isSelected( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_makeInfoBarDirty(CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-//bool PUF_isNoMission(const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
+bool PUF_isEnemyCityAttacker(CvUnit const* pUnit, int iPlayer, int iAssumePeaceTeam = NO_TEAM);
+bool PUF_isVisible(CvUnit const* pUnit, int iPlayer, int iDummy = -1);
+bool PUF_isVisibleDebug(CvUnit const* pUnit, int iTargetPlayer, int iDummy = -1);
+bool PUF_canSiege(CvUnit const* pUnit, int iTargetPlayer, int iDummy = -1);
+bool PUF_canAirAttack(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_canAirDefend(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isAirIntercept(CvUnit const* pUnit, int iDummy1, int iDummy2); // K-Mod
+bool PUF_isFighting(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isAnimal(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isMilitaryHappiness(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isInvestigate(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isCounterSpy(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isSpy(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isDomainType(CvUnit const* pUnit, int iDomain, int iDummy = -1);
+bool PUF_isUnitType(CvUnit const* pUnit, int iUnit, int iDummy = -1);
+bool PUF_isUnitAIType(CvUnit const* pUnit, int iUnitAI, int iDummy = -1);
+bool PUF_isMissionAIType(CvUnit const* pUnit, int iMissionAI, int iDummy = -1); // K-Mod
+bool PUF_isCityAIType(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isNotCityAIType(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isSelected(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+//bool PUF_isNoMission(const CvUnit* pUnit, int iDummy1 = -1, int iDummy2 = -1);
 // advc.113b:
-bool PUF_isMissionPlotWorkingCity(const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isFiniteRange(const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
+bool PUF_isMissionPlotWorkingCity(CvUnit const* pUnit, int iCity, int iOwner);
+bool PUF_isFiniteRange(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
 // bbai start
-bool PUF_isAvailableUnitAITypeGroupie(const CvUnit* pUnit, int iData1, int iData2);
-bool PUF_isUnitAITypeGroupie(const CvUnit* pUnit, int iData1, int iData2);
-bool PUF_isFiniteRangeAndNotJustProduced(const CvUnit* pUnit, int iData1, int iData2);
+bool PUF_isAvailableUnitAITypeGroupie(CvUnit const* pUnit, int iUnitAI, int iDummy);
+bool PUF_isFiniteRangeAndNotJustProduced(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
 // bbai end
-bool PUF_isMissionAIType(const CvUnit* pUnit, int iData1, int iData2); // K-Mod
-bool PUF_isAirIntercept(const CvUnit* pUnit, int iData1, int iData2); // K-Mod
+
+bool PUF_makeInfoBarDirty(CvUnit* pUnit, int iDummy1 = -1, int iDummy2 = -1);
 
 // FAStarFunc... // advc.pf: Moved into new header FAStarFunc.h
 

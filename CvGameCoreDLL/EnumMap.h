@@ -1184,6 +1184,8 @@ SET_XML_ENUM_SIZE(AreaAI, AREAAI)
 	};
 DO_FOR_EACH_SMALL_DYN_INFO_TYPE(SET_XML_ENUM_SIZE1)
 // Not included in the list above:
+SET_XML_ENUM_SIZE1(Player, Dummy)
+SET_XML_ENUM_SIZE1(Team, Dummy)
 SET_XML_ENUM_SIZE1(WorldSize, Dummy)
 SET_XML_ENUM_SIZE1(Flavor, Dummy)
 SET_XML_ENUM_SIZE1(Direction, Dummy)
@@ -1224,7 +1226,9 @@ template<> struct EnumMapGetDefault<PlotNumTypes> {
 	For players and teams, I don't want the FOR_EACH_ENUM macro to be used, so
 	I'm going to make those getEnumLength function inaccessible to that macro
 	by adding a dummy call parameter. The getEnumLength functions in CvEnums.h
-	also have that parameter - but, there, it's optional. */
+	also have that parameter - but, there, it's optional.
+	Upd.: Actually, I do want to have getEnumLength for players and teams,
+	so I guess the bool param is obsolete. */
 #define SET_NONXML_ENUM_LENGTH(TypeName, eLength) \
 	__forceinline TypeName getEnumLength(TypeName, bool bAllowFOR_EACH) { return eLength; } \
 	template <> struct EnumMapGetDefault<TypeName> \
@@ -1236,10 +1240,6 @@ template<> struct EnumMapGetDefault<PlotNumTypes> {
 			MAX_LENGTH = eLength, \
 		}; \
 	};
-/*  Don't want to set these in CvEnums.h or anywhere in the global namespace b/c
-	the FOR_EACH_ENUM macro shouldn't be used for them */
-SET_NONXML_ENUM_LENGTH(PlayerTypes, MAX_PLAYERS)
-SET_NONXML_ENUM_LENGTH(TeamTypes, MAX_TEAMS)
 
 // For enum maps that exclude the Barbarians
 enum CivPlayerTypes {

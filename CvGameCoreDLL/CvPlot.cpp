@@ -2875,7 +2875,8 @@ int CvPlot::getNumVisibleEnemyDefenders(const CvUnit* pUnit) const
 
 bool CvPlot::isVisibleEnemyUnit(PlayerTypes ePlayer) const
 {
-	return (plotCheck(PUF_isEnemy, ePlayer, false, NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer) != NULL);
+	return (plotCheck(PUF_isEnemy, ePlayer, false,
+			NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer) != NULL);
 }
 
 // advc.ctr:
@@ -2894,7 +2895,9 @@ bool CvPlot::isVisibleEnemyCityAttacker(PlayerTypes eDefender, TeamTypes eAssume
 	return false;
 }
 
-
+/*	advc (note): Not used internally. Some of the getPlotList... functions
+	(available to the DLL through CvDLLInterfaceIFaceBase) call it, and it seems
+	that the EXE also exposes it to Python. */
 int CvPlot::getNumVisibleUnits(PlayerTypes ePlayer) const
 {
 	return plotCount(PUF_isVisibleDebug, ePlayer);
@@ -2910,14 +2913,15 @@ bool CvPlot::isVisibleEnemyUnit(const CvUnit* pUnit) const
 // advc.004l: Same checks as above, just doesn't loop through all units.
 bool CvPlot::isVisibleEnemyUnit(CvUnit const* pUnit, CvUnit const* pPotentialEnemy) const
 {
-	return (::PUF_isEnemy(pPotentialEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(*this)) &&
+	return (PUF_isEnemy(pPotentialEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(*this)) &&
 			!pPotentialEnemy->isInvisible(pUnit->getTeam(), false));
 }
 
 
 bool CvPlot::isVisibleOtherUnit(PlayerTypes ePlayer) const
 {
-	return (plotCheck(PUF_isOtherTeam, ePlayer, -1, NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer) != NULL);
+	return (plotCheck(PUF_isOtherTeam, ePlayer, -1,
+			NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer) != NULL);
 }
 
 
@@ -7930,7 +7934,8 @@ bool CvPlot::isEspionageCounterSpy(TeamTypes eTeam) const
 		if (pCity->getEspionageDefenseModifier() > 0)
 			return true;
 	}
-	return plotCheck(PUF_isCounterSpy, -1, -1, NO_PLAYER, eTeam); // advc.opt: was plotCount...>0
+	// advc.opt: was plotCount... > 0
+	return (plotCheck(PUF_isCounterSpy, -1, -1, NO_PLAYER, eTeam) != NULL);
 }
 
 
