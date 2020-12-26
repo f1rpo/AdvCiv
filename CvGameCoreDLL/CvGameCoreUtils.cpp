@@ -734,6 +734,12 @@ bool PUF_isVisibleDebug(CvUnit const* pUnit, int iPlayer, int iDummy)
 	FAssertEnumBounds(ePlayer);
 	return !pUnit->isInvisible(TEAMID(ePlayer), true);
 }
+// advc.298:
+bool PUF_isLethal(CvUnit const* pUnit, int iDummy1, int iDummy2)
+{
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
+	return (pUnit->canAttack() && pUnit->combatLimit() >= 100);
+}
 
 bool PUF_canSiege(CvUnit const* pUnit, int iTargetPlayer, int iDummy)
 {

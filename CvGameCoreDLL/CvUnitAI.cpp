@@ -13739,8 +13739,39 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, MovementFlags eFlags
 					AI_getGroup()->AI_getWeightedOdds(&p, false));
 			if (iOdds > iBestOdds)
 			{
-				iBestOdds = iOdds;
-				pBestPlot = &(bFollow ? p : getPathEndTurnPlot());
+				/*	<advc.298> Non-lethal units should make random attacks only
+					when there is a lethal unit nearby */
+				bool bValid = true;
+				if (combatLimit() < 100 && !bFollow && iEnemyDefenders > 0 &&
+					&getPathEndTurnPlot() != &p)
+				{
+					bValid = false;
+					// Look for a lethal attacker in our group
+					FOR_EACH_UNIT_IN(pGroupUnit, *getGroup())
+					{
+						if (PUF_isLethal(pGroupUnit))
+						{
+							bValid = true;
+							break;
+						}
+					}
+					// Look for a lethal attacker near p
+					TeamTypes const eOurTeam = getTeam();
+					for (SquareIter itInner(p, std::min(it.currStepDist(), 2), false);
+						!bValid && itInner.hasNext(); ++itInner)
+					{
+						if (itInner->plotCheck(PUF_isLethal, -1, -1,
+							NO_PLAYER, eOurTeam) != NULL)
+						{
+							bValid = true;
+						}
+					}
+				}
+				if (bValid)
+				{	// </advc.298>
+					iBestOdds = iOdds;
+					pBestPlot = &(bFollow ? p : getPathEndTurnPlot());
+				}
 			}
 		}
 	}

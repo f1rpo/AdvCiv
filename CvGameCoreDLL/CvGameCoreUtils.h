@@ -307,6 +307,7 @@ bool PUF_canDeclareWar(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile = f
 bool PUF_isEnemyCityAttacker(CvUnit const* pUnit, int iPlayer, int iAssumePeaceTeam = NO_TEAM);
 bool PUF_isVisible(CvUnit const* pUnit, int iPlayer, int iDummy = -1);
 bool PUF_isVisibleDebug(CvUnit const* pUnit, int iTargetPlayer, int iDummy = -1);
+bool PUF_isLethal(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1); // advc.298
 bool PUF_canSiege(CvUnit const* pUnit, int iTargetPlayer, int iDummy = -1);
 bool PUF_canAirAttack(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
 bool PUF_canAirDefend(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
