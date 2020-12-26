@@ -1740,13 +1740,13 @@ void CvGame::enterWorldBuilder()
 {
 	FAssert(canDoControl(CONTROL_WORLD_BUILDER));
 	if (GC.getInitCore().getAdminPassword().empty())
-	{	// <advc.315c>
+	{	// <advc.135c>
 		/*  In multiplayer, setWorldBuilder apparently checks ChtLvl>0 and setChtLvl
 			doesn't work. Need to make the EXE believe that we're in singleplayer. */
 		m_bFeignSP = true;
-		gDLL->setChtLvl(1); // </advc.315c>
-		gDLL->UI().setWorldBuilder(!(gDLL->GetWorldBuilderMode()));
-		m_bFeignSP = false; // advc.315c
+		gDLL->setChtLvl(1); // </advc.135c>
+		gDLL->UI().setWorldBuilder(!gDLL->GetWorldBuilderMode());
+		m_bFeignSP = false; // advc.135c
 	}
 	else
 	{

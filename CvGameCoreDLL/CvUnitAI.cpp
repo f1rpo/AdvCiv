@@ -4255,7 +4255,7 @@ void CvUnitAI::AI_counterMove()
 		}
 	}
 
-	AreaAITypes eAreaAIType = getArea().getAreaAIType(getTeam());
+	AreaAITypes const eAreaAIType = getArea().getAreaAIType(getTeam());
 
 	if (getPlot().getOwner() == getOwner())
 	{
@@ -13746,7 +13746,7 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, MovementFlags eFlags
 	}
 
 	if (pBestPlot == NULL)
-		return false; // advc
+		return false;
 
 	FAssert(!at(*pBestPlot));
 	// K-Mod
@@ -21762,8 +21762,8 @@ bool CvUnitAI::AI_solveBlockageProblem(CvPlot* pDestPlot, bool bDeclareWar)
 		{
 			FAssert(canAttack());
 			CvPlot const* pBestPlot = &kStepPlot;
-			//To prevent puppeteering attempt to barge through
-			//if quite close
+			/*	To prevent puppeteering attempt to barge through
+				if quite close */
 			if (getPathFinder().getPathTurns() > 3)
 				pBestPlot = &getPathEndTurnPlot();
 			pushGroupMoveTo(*pBestPlot, MOVE_DIRECT_ATTACK);
@@ -21818,45 +21818,32 @@ bool CvUnitAI::AI_canGroupWithAIType(UnitAITypes eUnitAI) const
 }
 
 
-bool CvUnitAI::AI_allowGroup(CvUnitAI const& kUnit, UnitAITypes eUnitAI) const // advc.003u: 1st param was CvUnit const*
+bool CvUnitAI::AI_allowGroup(CvUnitAI const& kUnit, UnitAITypes eUnitAI) const // advc.003u: 1st param was CvUnit
 {
 	CvSelectionGroupAI const* pGroup = kUnit.AI_getGroup();
 	CvPlot* pPlot = kUnit.plot();
 
-	if (&kUnit == this)
+	if (&kUnit == this || !kUnit.isGroupHead() || pGroup == getGroup() ||
+		kUnit.isCargo() || kUnit.AI_getUnitAIType() != eUnitAI)
+	{
 		return false;
-
-	if (!kUnit.isGroupHead())
-		return false;
-
-	if (pGroup == getGroup())
-		return false;
-
-	if (kUnit.isCargo())
-		return false;
-
-	if (kUnit.AI_getUnitAIType() != eUnitAI)
-		return false;
-
+	}
 	switch (pGroup->AI_getMissionAIType())
 	{
-	case MISSIONAI_GUARD_CITY:
-		// do not join groups that are guarding cities
-		// intentional fallthrough
+	case MISSIONAI_GUARD_CITY: // do not join groups that are guarding cities
+	/*	do not join groups that are loading into transports
+		(we might not fit and get stuck in loop forever) */
 	case MISSIONAI_LOAD_SETTLER:
 	case MISSIONAI_LOAD_ASSAULT:
 	case MISSIONAI_LOAD_SPECIAL:
-		// do not join groups that are loading into transports (we might not fit and get stuck in loop forever)
 		return false;
-		break;
-	default:
-		break;
 	}
 
 	if (pGroup->getActivityType() == ACTIVITY_HEAL)
 	{
-		// do not attempt to join groups which are healing this turn
-		// (healing is cleared every turn for automated groups, so we know we pushed a heal this turn)
+		/*	do not attempt to join groups which are healing this turn
+			(healing is cleared every turn for automated groups,
+			so we know we pushed a heal this turn) */
 		return false;
 	}
 
@@ -21901,10 +21888,10 @@ bool CvUnitAI::AI_allowGroup(CvUnitAI const& kUnit, UnitAITypes eUnitAI) const /
 		}
 	}
 
-	if (kUnit.getInvisibleType() != NO_INVISIBLE)
+	if (kUnit.getInvisibleType() != NO_INVISIBLE &&
+		getInvisibleType() == NO_INVISIBLE)
 	{
-		if (getInvisibleType() == NO_INVISIBLE)
-			return false;
+		return false;
 	}
 
 	return true;

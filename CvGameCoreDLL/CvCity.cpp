@@ -4198,8 +4198,7 @@ int CvCity::cultureGarrison(PlayerTypes ePlayer) const
 {
 	/*  <advc.101> BtS makes Barbarian units ineligible as culture garrison
 		through CvPlot::doCulture (now renamed to CvPlot::doRevolts).
-		Easier to do it here -- but I do want them to be eligible. In fact,
-		I'll give them extra strength below. */
+		Easier to do it here -- but I do want them to be eligible. */
 	/*if(isBarbarian())
 		return 0;*/
 	int iGarrison = 0; // was 1  </advc.101>

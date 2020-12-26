@@ -1174,7 +1174,7 @@
 		<!-- The DLL sets this to the era id (earliest era: 0) times 100
 			 by default. AI code generally assumes that the era factor is
 			 between 0 and 600, 0 meaning very early game and 600 meaning
-			 endgame. Mod-mods with more or fewer than 6 eras should use
+			 endgame. Mod-mods with more or fewer than 7 eras should use
 			 iAIEraFactor to map the available eras to that range.
 			 Don't use negative values. -->
 		<element type="iAIEraFactor" minOccurs="0"/>

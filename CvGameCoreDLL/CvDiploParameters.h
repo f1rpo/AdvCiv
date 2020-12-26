@@ -47,7 +47,8 @@ public:
 	DllExport void setChatText(const wchar* szText);
 	DllExport const wchar* getChatText() const;
 	const std::vector<FVariable>& getDiploCommentArgs() const { return m_diploCommentArgs; }
-
+	/*	advc (note): These two get called externally when a human-to-human trade
+		is offered in a hotseat game. They get called internally when creating a savegame. */
 	DllExport void read(FDataStreamBase& stream);
 	DllExport void write(FDataStreamBase& stream) const;
 

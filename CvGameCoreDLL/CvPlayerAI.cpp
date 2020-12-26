@@ -8,7 +8,6 @@
 #include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
 #include "GroupPathFinder.h"
-#include "TeamPathFinder.h"
 #include "FAStarNode.h"
 #include "CvDeal.h"
 #include "UWAIAgent.h" // advc.104
@@ -15283,7 +15282,7 @@ void CvPlayerAI::AI_humanEnemyStackMovedInTerritory(CvPlot const& kFrom, CvPlot 
 } // </advc.139>
 
 
-int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit /* advc: */ const& kUnit,  // advc: some refactoring
+int CvPlayerAI::AI_unitTargetMissionAIs(CvUnit const& kUnit,
 	MissionAITypes* aeMissionAI, int iMissionAICount,
 	CvSelectionGroup* pSkipSelectionGroup, int iMaxPathTurns, int iMaxCount) const
 {
