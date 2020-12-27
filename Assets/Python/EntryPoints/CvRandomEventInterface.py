@@ -1880,14 +1880,26 @@ def getHelpImpactCrater2(argsList):
 	return szHelp
 
 
-# <advc.311>
-def numUnitsUprising(civId):
-	player = gc.getPlayer(civId)
+# advc.311:
+def numUnitsUprising(playerId):
+	# BtS code (deleted at the call locations):
+	#map = gc.getMap()
+	#if map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_DUEL'):
+	#	iNumUnits  = 1
+	#elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_TINY'):
+	#	iNumUnits  = 2
+	#elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_SMALL'):
+	#	iNumUnits  = 3
+	#elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_STANDARD'):
+	#	iNumUnits  = 4
+	#elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_LARGE'):
+	#	iNumUnits  = 5
+	#else: 
+	#	iNumUnits  = 6
 	r = 2;
-	for i in range(player.getCurrentEra() + 1):
+	for i in range(gc.getPlayer(playerId).getCurrentEra() + 1):
 		r += i
 	return r
-# </advc.311>
 
 
 ######## THE_HUNS ###########
@@ -1980,19 +1992,6 @@ def applyTheHuns1(argsList):
 		return
 			
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Hun event location")])
-	
-	if map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_DUEL'):
-		iNumUnits  = 1
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_TINY'):
-		iNumUnits  = 2
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_SMALL'):
-		iNumUnits  = 3
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_STANDARD'):
-		iNumUnits  = 4
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_LARGE'):
-		iNumUnits  = 5
-	else: 
-		iNumUnits  = 6
 	# advc.311:
 	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer)
 		
@@ -2093,19 +2092,6 @@ def applyTheVandals1(argsList):
 		return
 			
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Vandal event location")])
-	
-	if map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_DUEL'):
-		iNumUnits  = 1
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_TINY'):
-		iNumUnits  = 2
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_SMALL'):
-		iNumUnits  = 3
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_STANDARD'):
-		iNumUnits  = 4
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_LARGE'):
-		iNumUnits  = 5
-	else: 
-		iNumUnits  = 6
 	# advc.311:
 	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer)
 		
@@ -2206,19 +2192,6 @@ def applyTheGoths1(argsList):
 		return
 			
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Goth event location")])
-	
-	if map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_DUEL'):
-		iNumUnits  = 1
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_TINY'):
-		iNumUnits  = 2
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_SMALL'):
-		iNumUnits  = 3
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_STANDARD'):
-		iNumUnits  = 4
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_LARGE'):
-		iNumUnits  = 5
-	else: 
-		iNumUnits  = 6
 	# advc.311:
 	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer)
 		
@@ -2319,19 +2292,6 @@ def applyThePhilistines1(argsList):
 		return
 			
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Philistine event location")])
-	
-	if map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_DUEL'):
-		iNumUnits  = 1
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_TINY'):
-		iNumUnits  = 2
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_SMALL'):
-		iNumUnits  = 3
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_STANDARD'):
-		iNumUnits  = 4
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_LARGE'):
-		iNumUnits  = 5
-	else: 
-		iNumUnits  = 6
 	# advc.311:
 	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer)
 		
@@ -2432,19 +2392,6 @@ def applyTheVedicAryans1(argsList):
 		return
 			
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Vedic Aryan event location")])
-	
-	if map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_DUEL'):
-		iNumUnits  = 1
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_TINY'):
-		iNumUnits  = 2
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_SMALL'):
-		iNumUnits  = 3
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_STANDARD'):
-		iNumUnits  = 4
-	elif map.getWorldSize() == CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), 'WORLDSIZE_LARGE'):
-		iNumUnits  = 5
-	else: 
-		iNumUnits  = 6
 	# advc.311:
 	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer)
 		
