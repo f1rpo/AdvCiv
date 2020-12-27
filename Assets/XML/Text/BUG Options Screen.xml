@@ -386,7 +386,7 @@
 		<Spanish>Barra Grandes Personajes:</Spanish>
 	</TEXT>
 	
-	<!-- advc.004: The English name of the mod component is arguably too
+	<!-- advc.063: The English name of the mod component is arguably too
 		 established to be changed, but can at least change it in German. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_BUILDINGEFFECTS</Tag>

@@ -68,7 +68,9 @@ class BugCityScreenOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, left, "MiscHover__BuildingAdditionalProduction")
 		self.addCheckbox(screen, left, "MiscHover__BuildingAdditionalCommerce")
 		self.addCheckbox(screen, left, "MiscHover__BuildingSavedMaintenance")
-		self.addSpacer(screen, right, "CityScreen2a")
+		#self.addSpacer(screen, right, "CityScreen2a")
+		# advc.063 (instead of the spacer):
+		self.addCheckbox(screen, right, "MiscHover__SpecialistActualEffects")
 		self.addCheckbox(screen, right, "MiscHover__BuildingAdditionalHealth")
 		self.addCheckbox(screen, right, "MiscHover__BuildingAdditionalHappiness")
 		self.addCheckbox(screen, right, "MiscHover__BuildingAdditionalGreatPeople")
