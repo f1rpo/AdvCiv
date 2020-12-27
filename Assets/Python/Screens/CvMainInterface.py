@@ -674,7 +674,6 @@ class CvMainInterface:
 		MinimapOptions.init() # advc.002a: Let DLL cache minimap options
 		self.initMinimap(screen) # advc: Moved into new function
 		gc.getMap().updateMinimapColor()
-
 		self.createMinimapButtons()
 
 		# Help button (always visible)
@@ -1103,6 +1102,7 @@ class CvMainInterface:
 		return 0
 
 	def initMinimap(self, screen): # advc (needed in two places)
+		# This should recreate the minimap on load games and returns if already exists -JW
 		screen.initMinimap(self.iMiniMapX1, self.iMiniMapX2, self.iMiniMapY1, self.iMiniMapY2, -0.1 )
 
 	# Will update the screen (every 250 MS)
@@ -1125,7 +1125,6 @@ class CvMainInterface:
 		yResolution = screen.getYResolution()
 #		self.m_iNumPlotListButtons = (xResolution - (iMultiListXL+iMultiListXR) - 68) / 34
 		
-		# This should recreate the minimap on load games and returns if already exists -JW
 		self.initMinimap(screen)
 
 		messageControl = CyMessageControl()
