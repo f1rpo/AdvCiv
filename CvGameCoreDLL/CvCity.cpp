@@ -2775,10 +2775,13 @@ void CvCity::conscript()
 	if (pUnit != NULL)
 	{
 		if (GC.getGame().getActivePlayer() == getOwner() &&
-			 !CvPlot::isAllFog()) // advc.706
+			isHuman()) // advc.127, advc.706
 		{
-			gDLL->UI().lookAt(getPlot().getPoint(), CAMERALOOKAT_NORMAL); // K-Mod
+			/*	advc.001o: Conscription had caused the main map to black out.
+				The true cause of that problem may lie elsewhere, but switching
+				these two statements is at least a workaround. */
 			gDLL->UI().selectUnit(pUnit, true, false, true);
+			gDLL->UI().lookAt(getPlot().getPoint(), CAMERALOOKAT_NORMAL); // K-Mod
 		}
 		if (gCityLogLevel >= 2 && !isHuman()) logBBAI("      City %S does conscript of a %S at cost of %d pop, %d anger", getName().GetCString(), pUnit->getName().GetCString(), iPopChange, iAngerLength); // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 	}
@@ -7678,9 +7681,9 @@ void CvCity::updateCorporationYield(YieldTypes eIndex)
 }
 
 
-void CvCity::updateCorporation()
+void CvCity::updateCorporation(/* advc.064d: */ bool bVerifyProduction)
 {
-	updateCorporationBonus();
+	updateCorporationBonus(/* advc.06d: */ bVerifyProduction);
 	updateBuildingCommerce();
 
 	for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
@@ -7693,7 +7696,7 @@ void CvCity::updateCorporation()
 }
 
 
-void CvCity::updateCorporationBonus()  // advc: style changes
+void CvCity::updateCorporationBonus(/* advc.064d: */ bool bVerifyProduction)
 {
 	std::vector<int> aiExtraCorpProducedBonuses;
 	std::vector<int> aiLastCorpProducedBonuses;
@@ -7756,7 +7759,9 @@ void CvCity::updateCorporationBonus()  // advc: style changes
 			else
 			{
 				processBonus(eLoopBonus, -1);
-				verifyProduction(); // advc.064d
+				// <advc.064d>
+				if (bVerifyProduction)
+					verifyProduction(); // </advc.064d>
 			}
 		}
 	}
@@ -8299,7 +8304,8 @@ int CvCity::getNumBonuses(BonusTypes eIndex) const
 }
 
 
-void CvCity::changeNumBonuses(BonusTypes eIndex, int iChange)
+void CvCity::changeNumBonuses(BonusTypes eIndex, int iChange,
+	bool bVerifyProduction) // advc.064d
 {
 	if (iChange == 0)
 		return;
@@ -8314,7 +8320,7 @@ void CvCity::changeNumBonuses(BonusTypes eIndex, int iChange)
 	}
 
 	if (isCorporationBonus(eIndex))
-		updateCorporation();
+		updateCorporation(/* advc.06d: */ bVerifyProduction);
 }
 
 // <advc.149>

@@ -5005,8 +5005,8 @@ bool CvUnit::found()
 {
 	if (!canFound(plot()))
 		return false;
-	if (GC.getGame().getActivePlayer() == getOwner()
-		&& !CvPlot::isAllFog()) // advc.706
+	if (GC.getGame().getActivePlayer() == getOwner() &&
+		isHuman()) // advc.127, advc.706
 	{
 		gDLL->UI().lookAt(getPlot().getPoint(), CAMERALOOKAT_NORMAL);
 	}

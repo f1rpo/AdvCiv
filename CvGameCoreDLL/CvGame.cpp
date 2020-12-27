@@ -1393,15 +1393,23 @@ void CvGame::normalizeStartingPlotLocations()
 
 	int iBestScore = getTeamClosenessScore(aaiDistances, aiStartingLocs);
 	bool bFoundSwap = true;
+	/*	<advc.027> I worry that going through the players in turn order
+		can lead to biases toward or against the (human) team of player 0.
+		(PlayerIter unfortunately only knows how to use SRand; I want MapRand here.) */
+	int aiPlayersShuffled[MAX_CIV_PLAYERS];
+	::shuffleArray(aiPlayersShuffled, MAX_CIV_PLAYERS, getMapRand()); // </advc.027>
 	while (bFoundSwap)
 	{
 		bFoundSwap = false;
-		for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+		// <advc.027>
+		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
+			int iI = aiPlayersShuffled[i]; // </advc.027>
 			if (GET_PLAYER((PlayerTypes)iI).isAlive())
-			{
-				for (iJ = 0; iJ < iI; iJ++)
+			{	// <advc.027>
+				for (int j = 0; j < i; j++)
 				{
+					int iJ = aiPlayersShuffled[j]; // </advc.027>
 					if (GET_PLAYER((PlayerTypes)iJ).isAlive())
 					{
 						int iTemp = aiStartingLocs[iI];
@@ -2488,10 +2496,21 @@ void CvGame::updateStartingPlotRange() const
 	iRange *= GC.getDefineINT("STARTING_DISTANCE_PERCENT");
 	iRange /= 100;
 	int const iAlive = countCivPlayersAlive();
-	iRange *= kMap.getLandPlots() / (std::max(GC.getInfo(kMap.getWorldSize()).
+	int const iLand = kMap.getLandPlots();
+	iRange *= iLand / (std::max(GC.getInfo(kMap.getWorldSize()).
 			getTargetNumCities(), 1) * iAlive);
 	iRange /= NUM_CITY_PLOTS;
-	iRange += std::min((kMap.getNumAreas() + 1) / 2, iAlive);
+	// <advc.031> Replacing kMap.getNumAreas(). Tiny islands shouldn't matter.
+	int iMajorAreas = 0;
+	FOR_EACH_AREA(pArea)
+	{
+		if (pArea->getNumTiles() * iAlive > iLand)
+			iMajorAreas++;
+	}
+	if (iMajorAreas == 0)
+		iMajorAreas = iAlive;
+	// </advc.031>
+	iRange += std::min((iMajorAreas + 1) / 2, iAlive);
 	iRange *= 100 + GC.getPythonCaller()->minStartingDistanceMod();
 	iRange /= 100;
 	m_iStartingPlotRange = std::max(iRange, GC.getDefineINT("MIN_CIV_STARTING_DISTANCE"));

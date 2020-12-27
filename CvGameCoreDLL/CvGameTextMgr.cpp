@@ -4486,7 +4486,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 						{
 							szString.append(gDLL->getText(
 									"TXT_KEY_GARRISON_STRENGTH_EXCESS_SHORT",
-									iSafeToRemove));
+									std::min(999, iSafeToRemove)));
 							szString.append(NEWLINE);
 						}
 					}
@@ -10749,7 +10749,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 			aiCommerces[e] = kBuilding.getCommerceChange(e);
 			aiCommerces[e] += kBuilding.getObsoleteSafeCommerceChange(e);
 			// K-Mod, 30/dec/10: added religious building bonus info
-			if (ePlayer != NO_PLAYER &&
+			if (ePlayer != NO_PLAYER && /* advc: */ !bCivilopediaText &&
 				kBuilding.getReligionType() != NO_RELIGION &&
 				kBuilding.getReligionType() == pPlayer->getStateReligion())
 			{
