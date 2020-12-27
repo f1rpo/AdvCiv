@@ -467,13 +467,13 @@ nmake clean /NOLOGO</NMakeCleanCommandLine>
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeBuildCommandLine>
+bin\jom build /NOLOGO</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>set TARGET=Debug-opt
 nmake clean /NOLOGO
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeReBuildCommandLine>
+bin\jom build /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Debug-opt
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /DFASSERT_ENABLE /D_CODE_EDITOR</AdditionalOptions>
@@ -499,13 +499,13 @@ nmake clean /NOLOGO</NMakeCleanCommandLine>
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeBuildCommandLine>
+bin\jom build /NOLOGO</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>set TARGET=Assert
 nmake clean /NOLOGO
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeReBuildCommandLine>
+bin\jom build /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Assert
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DFASSERT_ENABLE /D_CODE_EDITOR /DUSE_DATA_DIR</AdditionalOptions>
@@ -516,13 +516,13 @@ nmake clean /NOLOGO</NMakeCleanCommandLine>
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeBuildCommandLine>
+bin\jom build /NOLOGO</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>set TARGET=Profile
 nmake clean /NOLOGO
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeReBuildCommandLine>
+bin\jom build /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Profile
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /D_CODE_EDITOR /DUSE_TSC_PROFILER /DUSE_INTERNAL_PROFILER</AdditionalOptions>
@@ -533,13 +533,13 @@ nmake clean /NOLOGO</NMakeCleanCommandLine>
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeBuildCommandLine>
+bin\jom build /NOLOGO</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>set TARGET=Debug
 nmake clean /NOLOGO
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeReBuildCommandLine>
+bin\jom build /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Debug
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /D_DEBUG /DUSE_DATA_DIR /D_CODE_EDITOR</AdditionalOptions>
@@ -550,13 +550,13 @@ nmake clean /NOLOGO</NMakeCleanCommandLine>
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeBuildCommandLine>
+bin\jom build /NOLOGO</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>set TARGET=Release
 nmake clean /NOLOGO
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeReBuildCommandLine>
+bin\jom build /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Release
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /D_CODE_EDITOR</AdditionalOptions>
@@ -567,13 +567,13 @@ nmake clean /NOLOGO</NMakeCleanCommandLine>
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeBuildCommandLine>
+bin\jom build /NOLOGO</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>set TARGET=Final_Release
 nmake clean /NOLOGO
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeReBuildCommandLine>
+bin\jom build /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Final_Release
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /D_CODE_EDITOR</AdditionalOptions>
