@@ -80,6 +80,8 @@ import ProgressBarUtil
 # PLE Code
 import PLE
 
+import MinimapOptions # advc.002a
+
 # <advc.090>
 import math
 def floor(f):
@@ -669,8 +671,8 @@ class CvMainInterface:
 		screen.addPanel( "MiniMapPanel", u"", u"", True, False, iMiniMapPanelX, iMiniMapPanelY, iMiniMapPanelWidth, iMiniMapPanelHeight, PanelStyles.PANEL_STYLE_STANDARD )
 		screen.setStyle( "MiniMapPanel", "Panel_Game_HudMap_Style" )
 		screen.hide( "MiniMapPanel" )
-		self.initMinimap(screen) # advc
-
+		MinimapOptions.init() # advc.002a: Let DLL cache minimap options
+		self.initMinimap(screen) # advc: Moved into new function
 		gc.getMap().updateMinimapColor()
 
 		self.createMinimapButtons()

@@ -512,6 +512,34 @@ public: // advc: made several functions const
 			int iNumCustomMapOptions, CustomMapOptionTypes* eCustomMapOptions);
 	void updateReplayTexture(); // advc.106n
 	byte const* getReplayTexture() const; // advc.106n
+	/*	<advc.002a> Set through BUG options, but I worry that accessing those
+		while redrawing the minimap plot for plot would be too slow.
+		Let BUG cache the settings here whenever they change. */
+	class MinimapSettings : private boost::noncopyable
+	{
+	public:
+		MinimapSettings()
+		:	m_bShowUnits(false),
+			/*	Replacing STANDARD_MINIMAP_ALPHA in CvPlot.cpp,
+				which was 0.6f. */
+			m_fLandAlpha(0.75f),
+			m_fWaterAlpha(m_fLandAlpha)
+		{}
+		// All exposed to Python via CyMap
+		void setShowUnits(bool b) { m_bShowUnits = b; }
+		void setWaterAlpha(float f) { m_fWaterAlpha = f; }
+		void setLandAlpha(float f) { m_fLandAlpha = f; }
+		bool isShowUnits() const { return m_bShowUnits; }
+		float getWaterAlpha() const { return m_fWaterAlpha; }
+		float getLandAlpha() const { return m_fLandAlpha; }
+	private:
+		bool m_bShowUnits;
+		float m_fWaterAlpha;
+		float m_fLandAlpha;
+	};
+	MinimapSettings& getMinimapSettings() { return m_minimapSettings; }
+	MinimapSettings const& getMinimapSettings() const { return m_minimapSettings; }
+	// </advc.002a>
 
 protected:
 
@@ -534,6 +562,7 @@ protected:
 	std::map<Shelf::Id,Shelf*> shelves; // advc.300
 	FFreeListTrashArray<CvArea> m_areas;
 	std::vector<byte> m_replayTexture; // advc.106n
+	MinimapSettings m_minimapSettings; // advc.002a
 
 	void calculateAreas();
 	// <advc.030>

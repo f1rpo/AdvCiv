@@ -132,6 +132,22 @@
 				<choice id="Custom"/>
 			</list>
 
+			<!-- advc.002a: -->
+			<list   id="MinimapWaterColor" key="Minimap Water Color" 
+					type="int" default="1" listType="string" 
+					values="Maximal|Medium|Zero"
+					get="getMinimapWaterColor">
+				<change module="MinimapOptions" function="updateMinimapWaterColor"/>
+				<choice id="Maximal"/>
+				<choice id="Medium"/>
+				<choice id="Zero"/>
+			</list>
+			<option id="UnitsOnMinimap" key="Units On Minimap" 
+					type="boolean" default="False"
+					get="isUnitsOnMinimap">
+				<change module="MinimapOptions" function="updateUnitsOnMinimap"/>
+			</option>
+
 			<!-- Movement Points -->
 			<option id="UnitMovementPointsFraction" key="Unit Movement Points Fraction" 
 					type="boolean" default="True" 

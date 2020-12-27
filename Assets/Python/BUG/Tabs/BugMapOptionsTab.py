@@ -65,6 +65,11 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView_Remember", True)
 		# advc.004m:
 		self.addTextDropdown(screen, right, right, "MainInterface__DefaultCamDistance")
+		# <advc.002a>
+		self.addLabel(screen, right, "Minimap", "Minimap:")
+		self.addTextDropdown(screen, right, right, "MainInterface__MinimapWaterColor")
+		self.addCheckbox(screen, right, "MainInterface__UnitsOnMinimap")
+		# </advc.002a>
 		self.addLabel(screen, right, "Misc", "Misc:")
 		self.addCheckbox(screen, right, "EventSigns__Enabled")
 		

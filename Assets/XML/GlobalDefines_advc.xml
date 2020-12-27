@@ -381,18 +381,6 @@
         <iDefineIntVal>0</iDefineIntVal>
     </Define>
 
-	<!-- [advc.002a]
-		 Determines the color of cultural borders of water tiles on the
-		 minimap.
-		 5 means that the tile is colored at 50% opactiy.
-		 6 (recommended) is like 5 but doesn't show units on the minimap.
-		 4 is the BtS behavior: full color.
-		 3 leaves the tiles uncolored (as in Civ 3). -->
-    <Define>
-        <DefineName>MINIMAP_WATER_MODE</DefineName>
-        <iDefineIntVal>6</iDefineIntVal>
-    </Define>
-
 	<!-- [advc.004f]
 		 City celebrations ("we-love-the-king day") trigger only in cities
 		 with at least this much population. The chance is population / 1000

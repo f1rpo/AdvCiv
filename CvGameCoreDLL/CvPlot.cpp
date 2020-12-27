@@ -25,7 +25,6 @@
 	conversions from larger to smaller int types but also float-to-int conversions. */
 #pragma warning(disable: 244) // "type conversion: possible loss of data"
 
-#define STANDARD_MINIMAP_ALPHA		(0.75f) // advc.002a: was 0.6
 bool CvPlot::m_bAllFog = false; // advc.706
 int CvPlot::m_iMaxVisibilityRangeCache; // advc.003h
 #define NO_BUILD_IN_PROGRESS (-2) // advc.011
@@ -588,12 +587,11 @@ void CvPlot::updateMinimapColor()
 	if (!GC.IsGraphicsInitialized())
 		return;
 	// <advc.002a>
-	int const iMode = GC.getDefineINT(CvGlobals::MINIMAP_WATER_MODE);
-	if(iMode == 3 && isWater())
-		return; // </advc.002a>
+	CvMap::MinimapSettings const& kSettings = GC.getMap().getMinimapSettings();
+	float fAlpha = (isWater() ? kSettings.getWaterAlpha() : kSettings.getLandAlpha());
+	// </advc.002a>
 	gDLL->UI().setMinimapColor(MINIMAPMODE_TERRITORY, getX(), getY(),
-			plotMinimapColor(), STANDARD_MINIMAP_ALPHA
-			/ ((isWater() && iMode != 4) ? 2.3f : 1.f)); // advc.002a
+			plotMinimapColor(), fAlpha);
 }
 
 
@@ -6817,7 +6815,7 @@ ColorTypes CvPlot::plotMinimapColor()
 			return GC.getColorType("WHITE");
 
 		if (isActiveVisible(true) &&
-			GC.getDefineINT(CvGlobals::MINIMAP_WATER_MODE) != 6) // advc.002a
+			GC.getMap().getMinimapSettings().isShowUnits()) // advc.002a
 		{
 			CvUnit* pCenterUnit = getDebugCenterUnit();
 			if (pCenterUnit != NULL)

@@ -434,7 +434,6 @@ public:
 		DO(OWN_EXCLUSIVE_RADIUS) /* advc.035 */ \
 		DO(ANNOUNCE_REPARATIONS) /* advc.039 */ \
 		DO(PER_PLAYER_MESSAGE_CONTROL_LOG) /* advc.007 */ \
-		DO(MINIMAP_WATER_MODE) /* advc.002a */ \
 		DO(DELAY_UNTIL_BUILD_DECAY) /* advc.011 */ \
 		DO(DISENGAGE_LENGTH) /* advc.034 */ \
 		DO(AT_WAR_ATTITUDE_CHANGE) /* advc.130g */ \

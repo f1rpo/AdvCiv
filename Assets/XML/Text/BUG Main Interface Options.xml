@@ -377,6 +377,58 @@
 		<Spanish>Automatic|Close|Medium|Far|Custom (XML)</Spanish>
 	</TEXT>
 
+	<!-- advc.002a: -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MINIMAP_TEXT</Tag>
+		<English>Minimap</English>
+		<French>Minimap</French>
+		<German>Minimap</German>
+		<Italian>Minimap</Italian>
+		<Spanish>Minimap</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MINIMAPWATERCOLOR_TEXT</Tag>
+		<English>Opacity on Water</English>
+		<French>Opacity on Water</French>
+		<German>Farbdeckung auf Wasser</German>
+		<Italian>Opacity on Water</Italian>
+		<Spanish>Opacity on Water</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MINIMAPWATERCOLOR_HOVER</Tag>
+		<English>Opacity of civ colors on water tiles. This affects only the minimap on the main screen, not the one on the Military Advisor screen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Maximal[COLOR_REVERT] - Same as the opacity on land tiles; like in BtS.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Medium[COLOR_REVERT] - More transparent than on land tiles; similar to the Military Advisor.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Zero[COLOR_REVERT] - No civ colors on water tiles; like in Civ III.</English>
+		<French>Opacity of civ colors on water tiles. This affects only the minimap on the main screen, not the one on the Military Advisor screen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Maximal[COLOR_REVERT] - Same as the opacity on land tiles; like in BtS.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Medium[COLOR_REVERT] - More transparent than on land tiles; similar to the Military Advisor.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Zero[COLOR_REVERT] - No civ colors on water tiles; like in Civ III.</French>
+		<German>Deckkraft von Zivilisations-Farben auf Wasserfeldern. Betrifft nur die Mini-Karte auf dem Hauptbildschirm, nicht die auf dem Militärberater-Bildschirm.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Maximal[COLOR_REVERT] - Gleiche Opazität wie auf Landfeldern; so wie in BtS.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Mittel[COLOR_REVERT] - Höhere Transparenz als auf Landfeldern; ähnlich wie im Militärberater.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Null[COLOR_REVERT] - Keine Farben auf Wasserfeldern; wie in Civ III.</German>
+		<Italian>Opacity of civ colors on water tiles. This affects only the minimap on the main screen, not the one on the Military Advisor screen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Maximal[COLOR_REVERT] - Same as the opacity on land tiles; like in BtS.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Medium[COLOR_REVERT] - More transparent than on land tiles; similar to the Military Advisor.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Zero[COLOR_REVERT] - No civ colors on water tiles; like in Civ III.</Italian>
+		<Spanish>Opacity of civ colors on water tiles. This affects only the minimap on the main screen, not the one on the Military Advisor screen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Maximal[COLOR_REVERT] - Same as the opacity on land tiles; like in BtS.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Medium[COLOR_REVERT] - More transparent than on land tiles; similar to the Military Advisor.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Zero[COLOR_REVERT] - No civ colors on water tiles; like in Civ III.</Spanish>
+	</TEXT>
+	<!-- (It's not truly "maximal", i.e. 100%,
+		 but I don't want to commit to numbers here.) -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MINIMAPWATERCOLOR_LIST</Tag>
+		<English>Maximal|Medium|Zero</English>
+		<French>Maximal|Medium|Zero</French>
+		<German>Maximal|Mittel|Null</German>
+		<Italian>Maximal|Medium|Zero</Italian>
+		<Spanish>Maximal|Medium|Zero</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__UNITSONMINIMAP_TEXT</Tag>
+		<English>Show Units</English>
+		<French>Show Units</French>
+		<German>Einheiten anzeigen</German>
+		<Italian>Show Units</Italian>
+		<Spanish>Show Units</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__UNITSONMINIMAP_HOVER</Tag>
+		<English>If checked, units outside their owners' borders are shown as colored blips on the main screen minimap.</English>
+		<French>If checked, units outside their owners' borders are shown as colored blips on the main screen minimap.</French>
+		<German>Zeigt Einheiten, die sich außerhalb ihres Territoriums befinden, als Farbkleckse auf der Mini-Karte (Hauptbildschirm) an.</German>
+		<Italian>If checked, outside their owners' borders units are shown as colored blips on the main screen minimap.</Italian>
+		<Spanish>If checked, outside their owners' borders units are shown as colored blips on the main screen minimap.</Spanish>
+	</TEXT>
+
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__PROGRESSBARSTICKMARKS_TEXT</Tag>
 		<English>Tick Marks</English>

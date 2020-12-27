@@ -291,3 +291,34 @@ void CyMap::updateMinOriginalStartDist(CyArea* pArea)
 {
 	m_kMap.updateMinOriginalStartDist(pArea->getArea());
 }
+
+// <advc.002a>
+void CyMap::setMinimapShowUnits(bool b)
+{
+	m_kMap.getMinimapSettings().setShowUnits(b);
+}
+
+void CyMap::setMinimapWaterAlpha(float f)
+{
+	m_kMap.getMinimapSettings().setWaterAlpha(f);
+}
+
+void CyMap::setMinimapLandAlpha(float f)
+{
+	m_kMap.getMinimapSettings().setLandAlpha(f);
+}
+
+bool CyMap::isMinimapShowUnits()
+{
+	return m_kMap.getMinimapSettings().isShowUnits();
+}
+
+float CyMap::getMinimapWaterAlpha()
+{
+	return m_kMap.getMinimapSettings().getWaterAlpha();
+}
+
+float CyMap::getMinimapLandAlpha()
+{
+	return m_kMap.getMinimapSettings().getLandAlpha();
+} // </advc.002a>
