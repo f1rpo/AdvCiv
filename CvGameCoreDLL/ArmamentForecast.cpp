@@ -326,7 +326,18 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 			navalArmament ? "yes" : "no", strIntensity(intensity));
 
 	// Armament portion of the total production; based on intensity
-	double armamentPortion = uwai.buildUnitProb() * 0.8;
+	double armamentPortion = uwai.buildUnitProb();
+	scaled const civEra = civ.getCurrentEra();
+	{	/*	Don't know if there are really especially few distractions in era 1.
+			Could be - still few buildings available and early expansion is over.
+			Anyway, buildUnitProb (unadjusted) has been working well for getting some
+			warfare going in the early Classical era; want to keep it that way, mostly. */
+		scaled eraAdjust = (1 - civEra).abs() / 10;
+		if(civEra == 0)
+			eraAdjust *= 2;
+		eraAdjust.decreaseTo(fixp(0.2));
+		armamentPortion *= 1 - eraAdjust.getDouble();
+	}
 	/*  Total vs. limited war mostly affects pre-war build-up, but there are also
 		a few lines of (mostly K-Mod) code that make the AI focus more on production
 		when in a total war. The computation of the intensity doesn't cover this
