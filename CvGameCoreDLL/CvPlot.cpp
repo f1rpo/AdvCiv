@@ -26,7 +26,7 @@
 #pragma warning(disable: 244) // "type conversion: possible loss of data"
 
 bool CvPlot::m_bAllFog = false; // advc.706
-int CvPlot::m_iMaxVisibilityRangeCache; // advc.003h
+int CvPlot::m_iMaxVisibilityRangeCache = -1; // advc.003h
 #define NO_BUILD_IN_PROGRESS (-2) // advc.011
 
 
@@ -6807,32 +6807,35 @@ void CvPlot::processArea(CvArea& kArea, int iChange)  // advc: style changes
 
 ColorTypes CvPlot::plotMinimapColor()
 {
-	if (GC.getGame().getActivePlayer() != NO_PLAYER)
-	{
-		CvCity* pCity = getPlotCity();
-		TeamTypes eActiveTeam = GC.getGame().getActiveTeam(); // advc
-		if (pCity != NULL && pCity->isRevealed(eActiveTeam, true))
-			return GC.getColorType("WHITE");
+	// <advc.opt> (Probably quite unnecessary)
+	static ColorTypes const eColorClear = GC.getColorType("CLEAR");
+	static ColorTypes const eColorWhite = GC.getColorType("WHITE");
+	// </advc.opt>
+	if (GC.getGame().getActivePlayer() == NO_PLAYER)
+		return eColorClear;
 
-		if (isActiveVisible(true) &&
-			GC.getMap().getMinimapSettings().isShowUnits()) // advc.002a
+	CvCity* pCity = getPlotCity();
+	TeamTypes eActiveTeam = GC.getGame().getActiveTeam(); // advc
+	if (pCity != NULL && pCity->isRevealed(eActiveTeam, true))
+		return eColorWhite;
+
+	if (isActiveVisible(true) &&
+		GC.getMap().getMinimapSettings().isShowUnits()) // advc.002a
+	{
+		CvUnit* pCenterUnit = getDebugCenterUnit();
+		if (pCenterUnit != NULL)
 		{
-			CvUnit* pCenterUnit = getDebugCenterUnit();
-			if (pCenterUnit != NULL)
-			{
-				return GC.getInfo(GET_PLAYER(pCenterUnit->getVisualOwner()).
-						getKnownPlayerColor()).getColorTypePrimary();
-			}
-		}
-		// kekm.21: Removed !isRevealedBarbarian() clause
-		if (getRevealedOwner(eActiveTeam, true) != NO_PLAYER)
-		{
-			return GC.getInfo(GET_PLAYER(getRevealedOwner(eActiveTeam, true)).
+			return GC.getInfo(GET_PLAYER(pCenterUnit->getVisualOwner()).
 					getKnownPlayerColor()).getColorTypePrimary();
 		}
 	}
-
-	return GC.getColorType("CLEAR");
+	// kekm.21: Removed !isRevealedBarbarian() clause
+	if (getRevealedOwner(eActiveTeam, true) != NO_PLAYER)
+	{
+		return GC.getInfo(GET_PLAYER(getRevealedOwner(eActiveTeam, true)).
+				getKnownPlayerColor()).getColorTypePrimary();
+	}
+	return eColorClear;
 }
 
 // read object from a stream. used during load.
