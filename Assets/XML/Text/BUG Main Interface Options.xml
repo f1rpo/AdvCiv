@@ -306,6 +306,24 @@
 		<Italian>[SPACE](sulla schermata dello spionaggio)</Italian>
 		<Spanish>[SPACE](en la pantalla de espionaje)</Spanish>
 	</TEXT>
+
+	<!-- advc.004p: -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOTALCULTURERATE_TEXT</Tag>
+		<English>Total Culture Rate</English>
+		<French>Total Culture Rate</French>
+		<German>Gesamt-Kulturrate</German>
+		<Italian>Total Culture Rate</Italian>
+		<Spanish>Total Culture Rate</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOTALCULTURERATE_HOVER</Tag>
+		<English>If checked, the total [ICON_CULTURE] output (sum over all cities) is displayed next to the Culture slider.</English>
+		<French>If checked, the total [ICON_CULTURE] output (sum over all cities) is displayed next to the Culture slider.</French>
+		<German>Zeigt die Gesamt-[ICON_CULTURE]-Rate (Summe aller Städte) neben dem Kulturregler an.</German>
+		<Italian>If checked, the total [ICON_CULTURE] output (sum over all cities) is displayed next to the Culture slider.</Italian>
+		<Spanish>If checked, the total [ICON_CULTURE] output (sum over all cities) is displayed next to the Culture slider.</Spanish>
+	</TEXT>
 	
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__CITYARROWS_TEXT</Tag>

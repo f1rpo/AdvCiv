@@ -3146,7 +3146,7 @@ class CvMainInterface:
 					if not CyInterface().isCityScreenUp():
 						szOutText = u"<font=2>" + localText.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", (gc.getPlayer(ePlayer).getCommerceRate(CommerceTypes(eCommerce)), )) + u"</font>"
 						# <advc.004p>
-						if eCommerce == CommerceTypes.COMMERCE_CULTURE:
+						if eCommerce == CommerceTypes.COMMERCE_CULTURE and not MainOpt.isShowTotalCultureRate():
 							szOutText = u""
 						# </advc.004p>
 						szString = "RateText" + str(iI)
@@ -3187,18 +3187,19 @@ class CvMainInterface:
 					szRateText = " ("
 					szRateText += BugUtil.getText("TXT_KEY_MISC_PER_TURN", iGoldRate)
 					szRateText += ")"
-					iRateColor = MainOpt.getGoldRateBrokeColor()
-					# </advc.070>
+					# (I've removed the broke color option again in order to make room on the BUG menu)
+					#iRateColor = MainOpt.getGoldRateBrokeColor()
 					if iGoldRate >= 0:
 						iRateColor = MainOpt.getPositiveGoldRateColor()
 						#szText += BugUtil.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", iGoldRate)
-					elif iGold + iGoldRate >= 0:
+					#elif iGold + iGoldRate >= 0:
+					else:
 						iRateColor = MainOpt.getNegativeGoldRateColor()
 						#szText += BugUtil.getText("TXT_KEY_MISC_NEG_WARNING_GOLD_PER_TURN", iGoldRate)
 					#else:
 						#szText += BugUtil.getText("TXT_KEY_MISC_NEG_GOLD_PER_TURN", iGoldRate)
-					# advc.070:
 					szText += localText.changeTextColor(szRateText, iRateColor)
+					# </advc.070>
 						
 			if pPlayer.isStrike():
 				szText += BugUtil.getPlainText("TXT_KEY_MISC_STRIKE")

@@ -92,6 +92,12 @@
 					get="isHideEspSlider" dirtyBit="PercentButtons, GameData, Espionage_Advisor">
 				<change module="CvCustomizableDomesticAdvisor" function="forcePositionCalc"/>
 			</option>
+
+			<!-- advc.004p: -->
+			<option id="TotalCultureRate" key="Total Culture Rate" 
+					type="boolean" default="False" 
+					get="isShowTotalCultureRate" dirtyBit="GameData">
+			</option>
 			
 			<!-- City Cycle Arrows by SimCutie -->
 			<option id="CityArrows" key="City Cycle Arrows" 

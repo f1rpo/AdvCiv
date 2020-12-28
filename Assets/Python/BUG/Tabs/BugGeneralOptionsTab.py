@@ -108,13 +108,16 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		# Moved these two from createMiscellaneousPanel
 		self.addCheckbox(screen, panel, "MainInterface__MinMax_Commerce")
 		self.addCheckbox(screen, panel, "MainInterface__Hide_EspSlider")
+		# advc.004p:
+		self.addCheckbox(screen, panel, "MainInterface__TotalCultureRate")
 		#self.addCheckbox(screen, panel, "MainInterface__GoldRateWarning")
 		# <advc.070>
 		self.addLabel(screen, panel, "GoldRate", "Gold Rate:", None, True)
 		panelLeft, panelRight = self.addTwoColumnLayout(screen, panel, "GoldRateOptions")
 		self.addColorDropdown(screen, panelLeft, panelRight, "MainInterface__PositiveGoldRateColor", True)
 		self.addColorDropdown(screen, panelLeft, panelRight, "MainInterface__NegativeGoldRateColor", True)
-		self.addColorDropdown(screen, panelLeft, panelRight, "MainInterface__GoldRateBrokeColor", True)
+		# Disable this again to save space
+		#self.addColorDropdown(screen, panelLeft, panelRight, "MainInterface__GoldRateBrokeColor", True)
 		# </advc.070>
 
 	# </advc.120c>
