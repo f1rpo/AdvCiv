@@ -80,6 +80,8 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		# </advc.004>
 		# advc.004k:
 		self.addCheckbox(screen, panel, "MainInterface__SeaPatrol")
+		# advc.002m:
+		self.addTextDropdown(screen, panel, panel, "MainInterface__NukeMissionTime", True)
 		
 	def createTechSplashPanel(self, screen, panel):
 		self.addLabel(screen, panel, "TechWindow", "Tech Splash Screen:")

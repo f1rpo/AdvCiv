@@ -8,6 +8,7 @@
 #include "CvGamePlay.h"
 #include "CvCity.h"
 #include "BBAILog.h"
+#include "CvBugOptions.h" // advc.002m
 #include "CvInfo_Command.h"
 #include "CvInfo_Terrain.h" // for getBestBuildRoute
 //#include "CvInfo_Unit.h" // for canAnyMoveAllTerrain (now in PCH)
@@ -421,12 +422,22 @@ int CvSelectionGroup::nukeMissionTime() const
 	int const iShortened = iFull / 4;
 	if (isNeverShowMoves())
 		return iShortened / 2;
+	enum NukeMissionTimeChoices
+	{
+		FULL, SHORTENED, ZERO // These match the BUG config in XML
+	};
+	int const iBUGChoice = BUGOption::getValue("MainInterface__NukeMissionTime", 0);
+	if (iBUGChoice == ZERO)
+		return 0;
 	CvGame const& kGame = GC.getGame();
 	if (getOwner() != kGame.getActivePlayer())
 		return iShortened / 2;
 	// Nothing to see when particle effects aren't enabled
-	if (gDLL->getGraphicOption(GRAPHICOPTION_EFFECTS_DISABLED))
+	if (gDLL->getGraphicOption(GRAPHICOPTION_EFFECTS_DISABLED) ||
+		iBUGChoice == SHORTENED)
+	{
 		return iShortened;
+	}
 	return iFull;
 }
 

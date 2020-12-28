@@ -693,6 +693,32 @@
 		<Italian>Quando è selezionato, la selezione automatica tra le unità è istantanea anzichè con ritardo.</Italian>
 		<Spanish>Activada, la selección de unidades automática ocurre instantáneamente más que con un retardo.</Spanish>
 	</TEXT>
+
+	<!-- 002m: -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NUKEMISSIONTIME_TEXT</Tag>
+		<English>Nuke Animations</English>
+		<French>Nuke Animations</French>
+		<German>Atomexplosionen</German>
+		<Italian>Nuke Animations</Italian>
+		<Spanish>Nuke Animations</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NUKEMISSIONTIME_LIST</Tag>
+		<English>Full|Rumble|None</English>
+		<French>Full|Rumble|None</French>
+		<German>Komplett|Abgekürzt|Keine</German>
+		<Italian>Full|Rumble|None</Italian>
+		<Spanish>Full|Rumble|None</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NUKEMISSIONTIME_HOVER</Tag>
+		<English>The duration of the animations shown for nuclear attacks.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Full[COLOR_REVERT]: The whole animation is shown. Exceptions: Only a short camera rumble is shown when the [COLOR_HIGHLIGHT_TEXT]No Particle Effects[COLOR_REVERT] graphics option is enabled and for nuclear attacks launched against you.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Rumble[COLOR_REVERT]: All nuke animations are aborted after a couple of seconds, resulting just in a camera rumble and (depending on camera distance) the explosion sound. This setting is always used in games with simultaneous turns.[NEWLINE][COLOR_HIGHLIGHT_TEXT]None[COLOR_REVERT]: No animation is shown. This also disables the recon effect that nukes normally have.</English>
+		<French>The duration of the animations shown for nuclear attacks.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Full[COLOR_REVERT]: The whole animation is shown. Exceptions: Only a short camera rumble is shown when the [COLOR_HIGHLIGHT_TEXT]No Particle Effects[COLOR_REVERT] graphics option is enabled and for nuclear attacks launched against you.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Rumble[COLOR_REVERT]: All nuke animations are aborted after a couple of seconds, resulting just in a camera rumble and (depending on camera distance) the explosion sound. This setting is always used in games with simultaneous turns.[NEWLINE][COLOR_HIGHLIGHT_TEXT]None[COLOR_REVERT]: No animation is shown. This also disables the recon effect that nukes normally have.</French>
+		<German>Die Animationsdauer von Atomangriffen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Vollständig[COLOR_REVERT]: Zeigt die gesamte Animation. Ausnahmen: Die Animation wird stark abgekürzt (s.u.), wenn die Grafikoption [COLOR_HIGHLIGHT_TEXT]Keine Partikeleffekte[COLOR_REVERT] aktiviert ist, und bei Atomschlägen Ihrer Gegner.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Abgekürzt[COLOR_REVERT]: Die Animation wird i.W. auf ein Rütteln der Kamera und (je nach Kameraabstand) das Explosionsgeräusch reduziert. Diese Einstellung wird in Spielen mit gleichzeitigen Zügen zwangsweise verwendet.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Keine[COLOR_REVERT]: Atomangriffe werden nicht animiert. Damit entfällt auch das Aufdecken der betroffenen Felder.</German>
+		<Italian>The duration of the animations shown for nuclear attacks.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Full[COLOR_REVERT]: The whole animation is shown. Exceptions: Only a short camera rumble is shown when the [COLOR_HIGHLIGHT_TEXT]No Particle Effects[COLOR_REVERT] graphics option is enabled and for nuclear attacks launched against you.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Rumble[COLOR_REVERT]: All nuke animations are aborted after a couple of seconds, resulting just in a camera rumble and (depending on camera distance) the explosion sound. This setting is always used in games with simultaneous turns.[NEWLINE][COLOR_HIGHLIGHT_TEXT]None[COLOR_REVERT]: No animation is shown. This also disables the recon effect that nukes normally have.</Italian>
+		<Spanish>The duration of the animations shown for nuclear attacks.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Full[COLOR_REVERT]: The whole animation is shown. Exceptions: Only a short camera rumble is shown when the [COLOR_HIGHLIGHT_TEXT]No Particle Effects[COLOR_REVERT] graphics option is enabled and for nuclear attacks launched against you.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Rumble[COLOR_REVERT]: All nuke animations are aborted after a couple of seconds, resulting just in a camera rumble and (depending on camera distance) the explosion sound. This setting is always used in games with simultaneous turns.[NEWLINE][COLOR_HIGHLIGHT_TEXT]None[COLOR_REVERT]: No animation is shown. This also disables the recon effect that nukes normally have.</Spanish>
+	</TEXT>
 	
 	<!-- advc.004: German was too long -->
 	<TEXT>

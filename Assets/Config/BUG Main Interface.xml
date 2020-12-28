@@ -199,6 +199,15 @@
 				<choice id="Large" get="isBuildIconSizeLarge"/>
 			</list>
 
+			<!-- advc.002m: (Note: the DLL relies on this order of the choices) -->
+			<list   id="NukeMissionTime" key="Nuke Mission Time" 
+					type="int" default="0" listType="string" 
+					values="Full Length|Shortened|None">
+				<choice id="Full"/>
+				<choice id="Short"/>
+				<choice id="None"/>
+			</list>
+
 			<!-- Rapid unit cycling, by karadoc -->
 			<option id="RapidUnitCycling" key="Rapid Unit Cycling"
 					type="boolean" default="False"/>
