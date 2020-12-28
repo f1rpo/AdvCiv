@@ -32,6 +32,8 @@ class BugAlertsOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, leftR, "Civ4lerts__CityHealthiness")		
 		self.addCheckbox(screen, leftL, "Civ4lerts__CityPendingHappiness")
 		self.addCheckbox(screen, leftR, "Civ4lerts__CityHappiness")
+		# advc.106d:
+		self.addCheckbox(screen, left, "Civ4lerts__CityPendingPositive")
 		# <advc.210b> Replacing these two left/right boxes with a single one
 		# for the revolt alert.
 		#self.addCheckbox(screen, leftL, "Civ4lerts__CityPendingOccupation")

@@ -44,12 +44,13 @@
 		<Spanish>Pendiente</Spanish>
 	</TEXT>
 	
-	<!-- advc.106d: No longer triggers on growth -->
+	<!-- advc.106d: No longer triggers on growth (normally).
+		 Note added about the strange end-turn condition. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__CITYPENDINGGROWTH_HOVER</Tag>
-		<English>Displays an alert when a city's population will shrink next turn.</English>
+		<English>Displays an alert when a city's population will shrink next turn. Note: This alert is checked (only) once all units have received orders.</English>
 		<French>En activant, une alerte sera montrée quand la population d'une ville retrécira au prochain tour.</French>
-		<German>Meldet, wenn die Bevölkerung einer Stadt in der nächsten Runde schrumpfen wird.</German>
+		<German>Meldet, wenn die Bevölkerung einer Stadt in der nächsten Runde schrumpfen wird. Bemerkung: Die Meldung erfolgt am Zugende, und zwar nur, wenn alle Einheiten Befehle erhalten haben.</German>
 		<Italian>Quando è selezionato, viene visualizzato un avviso quando la popolazione di una città si ridurrà al turno successivo.</Italian>
 		<Spanish>Muestra un aviso cuando la población de una ciudad vaya a reducirse en el próximo turno.</Spanish>
 	</TEXT>
@@ -80,8 +81,8 @@
 		<Spanish>Pendiente</Spanish>
 	</TEXT>
 	
-	<!-- advc.106d: No longer triggers on will-become-happy. And German text
-		 was misleading and too long. ICON added. -->
+	<!-- advc.106d: No longer triggers on will-become-happy (normally).
+		 And German text was misleading and too long. ICON added. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__CITYPENDINGHAPPINESS_HOVER</Tag>
 		<English>Displays an alert when a city will become unhappy ([ICON_UNHAPPY]) next turn.</English>
@@ -119,8 +120,8 @@
 		<Spanish>Pendiente</Spanish>
 	</TEXT>
 	
-	<!-- advc.106d: No longer triggers on will-become-healthy. And German text
-		 was misleading and too long. ICON added. -->
+	<!-- advc.106d: No longer triggers on will-become-healthy (normally).
+		 And German text was misleading and too long. ICON added. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__CITYPENDINGHEALTHINESS_HOVER</Tag>
 		<English>Displays an alert when a city will become unhealthy ([ICON_UNHEALTHY]) next turn.</English>
@@ -147,6 +148,24 @@
 		<German>Meldet, wenn sich die Gesundheit der Bevölkerung einer Stadt verbessert oder verschlechtert hat ([ICON_HEALTHY]/[ICON_UNHEALTHY]).</German>
 		<Italian>Quando è selezionato, viene visualizzato un avviso quando una città diviene salubre o insalubre.</Italian>
 		<Spanish>Muestra un aviso cuando la ciudad se vuelva sana o insalubre.</Spanish>
+	</TEXT>
+
+	<!-- advc.106d: -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__CITYPENDINGPOSITIVE_TEXT</Tag>
+		<English>Also Positive Pending</English>
+		<French>Also Positive Pending</French>
+		<German>Auch positive bevorst. Änderungen</German>
+		<Italian>Also Positive Pending</Italian>
+		<Spanish>Also Positive Pending</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__CITYPENDINGPOSITIVE_HOVER</Tag>
+		<English>Trigger the [COLOR_HIGHLIGHT_TEXT]Pending[COLOR_REVERT] alerts for [COLOR_HIGHLIGHT_TEXT]Growth[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]Happiness[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Health[COLOR_REVERT] also when a positive change is pending. Normally, those alerts cover only negative pending changes (e.g. population loss).</English>
+		<French>Trigger the [COLOR_HIGHLIGHT_TEXT]Pending[COLOR_REVERT] alerts for [COLOR_HIGHLIGHT_TEXT]Growth[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]Happiness[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Health[COLOR_REVERT] also when a positive change is pending. Normally, those alerts cover only negative pending changes (e.g. population loss).</French>
+		<German>Zeigt [COLOR_HIGHLIGHT_TEXT]Nächste[COLOR_REVERT]-[COLOR_HIGHLIGHT_TEXT]Runde[COLOR_REVERT]-Meldungen bzgl. [COLOR_HIGHLIGHT_TEXT]Wachstum[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]Zufriedenheit[COLOR_REVERT] und [COLOR_HIGHLIGHT_TEXT]Gesundheit[COLOR_REVERT] auch dann an, wenn eine positive Veränderung bevorsteht (z.B. Bevölkerungszuwachs). Ansonsten werden bevorstehende Veränderungen nur dann gemeldet, wenn sie negativ sind.</German>
+		<Italian>Trigger the [COLOR_HIGHLIGHT_TEXT]Pending[COLOR_REVERT] alerts for [COLOR_HIGHLIGHT_TEXT]Growth[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]Happiness[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Health[COLOR_REVERT] also when a positive change is pending. Normally, those alerts cover only negative pending changes (e.g. population loss).</Italian>
+		<Spanish>Trigger the [COLOR_HIGHLIGHT_TEXT]Pending[COLOR_REVERT] alerts for [COLOR_HIGHLIGHT_TEXT]Growth[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]Happiness[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Health[COLOR_REVERT] also when a positive change is pending. Normally, those alerts cover only negative pending changes (e.g. population loss).</Spanish>
 	</TEXT>
 	
 	<!-- advc.210b: Now unused -->

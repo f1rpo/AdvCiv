@@ -634,12 +634,13 @@
 	</TEXT>
 	
 	<!-- Alerts Tab -->
-	
+
+	<!-- advc.106d: German was "Warnungen" -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTTAB_ALERTS</Tag>
 		<English>Alerts</English>
 		<French>Alertes</French>
-		<German>Warnungen</German>
+		<German>Meldungen</German>
 		<Italian>Avvisi</Italian>
 		<Spanish>Alertas</Spanish>
 	</TEXT>

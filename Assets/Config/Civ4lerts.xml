@@ -73,6 +73,11 @@
 			<option id="Revolt" key="Revolts" 
 					type="boolean" default="True" and="Enabled" 
 					get="isShowRevoltAlert"/>
+
+			<!-- advc.106d: New option -->
+			<option id="CityPendingPositive" key="City Pending Positive" 
+					type="boolean" default="False" and="Enabled" 
+					get="isShowPendingPositive"/>
 			
 			<option id="CityCanHurryPop" key="City Can Hurry Pop" 
 					type="boolean" default="False" and="Enabled" 
