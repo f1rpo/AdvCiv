@@ -267,12 +267,12 @@ class AIAutoPlay :
 				if theKey == int(InputTypes.KB_B):
 					self.bBenchmark = True # </advc>
 				self.toAIChooser()
-
-		if theKey == int(InputTypes.KB_M):
+		# advc.127: Disable this feature
+		#if theKey == int(InputTypes.KB_M):
 			# Toggle auto moves
-			if self.LOG_DEBUG:
-				CyInterface().addImmediateMessage("Moving your units...","")
-			game.setAIAutoPlay(1)
+		#	if self.LOG_DEBUG:
+		#		CyInterface().addImmediateMessage("Moving your units...","")
+		#	game.setAIAutoPlay(1)
 		if theKey == int(InputTypes.KB_O):
 			doRefortify( game.getActivePlayer() )
 

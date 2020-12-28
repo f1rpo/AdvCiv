@@ -148,6 +148,12 @@
 				<change module="MinimapOptions" function="updateUnitsOnMinimap"/>
 			</option>
 
+			<!-- advc.savem: -->
+			<option id="EnableSavemap" key="Enable Savemap" 
+					type="boolean" default="True"
+					get="isSavemapEnabled">
+			</option>
+
 			<!-- Movement Points -->
 			<option id="UnitMovementPointsFraction" key="Unit Movement Points Fraction" 
 					type="boolean" default="True" 

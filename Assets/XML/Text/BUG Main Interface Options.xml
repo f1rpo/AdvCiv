@@ -429,6 +429,24 @@
 		<Spanish>If checked, outside their owners' borders units are shown as colored blips on the main screen minimap.</Spanish>
 	</TEXT>
 
+	<!-- advc.savem: -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__ENABLESAVEMAP_TEXT</Tag>
+		<English>Enable Savemap</English>
+		<French>Enable Savemap</French>
+		<German>Savemap-Funktion aktivieren</German>
+		<Italian>Enable Savemap</Italian>
+		<Spanish>Enable Savemap</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__ENABLESAVEMAP_HOVER</Tag>
+		<English>If checked, [COLOR_HIGHLIGHT_TEXT]Alt+Shift+M[COLOR_REVERT] can be pressed at any point of a (non-network) game to export the map into a map script and save it to [COLOR_BUILDING_TEXT]AdvCiv\PrivateMaps[COLOR_REVERT] or (as a fallback) [COLOR_BUILDING_TEXT]My Games\Beyond the Sword\PublicMaps[COLOR_REVERT]. Disabling the key combination has no performance benefit, but makes sure that it isn't pressed by accident.</English>
+		<French>If checked, [COLOR_HIGHLIGHT_TEXT]Alt+Shift+M[COLOR_REVERT] can be pressed at any point of a (non-network) game to export the map into a map script and save it to [COLOR_BUILDING_TEXT]AdvCiv\PrivateMaps[COLOR_REVERT] or (as a fallback) [COLOR_BUILDING_TEXT]My Games\Beyond the Sword\PublicMaps[COLOR_REVERT]. Disabling the key combination has no performance benefit, but makes sure that it isn't pressed by accident.</French>
+		<German>Exportiert die aktuelle Karte als spielbares Python-Skript, wenn [COLOR_HIGHLIGHT_TEXT]Alt+Umschalt+M[COLOR_REVERT] gedrückt wird. Das Skript wird unter [COLOR_BUILDING_TEXT]AdvCiv\PrivateMaps[COLOR_REVERT] oder (Ausweichlösung) [COLOR_BUILDING_TEXT]My Games\Beyond the Sword\PublicMaps[COLOR_REVERT] abgelegt. Das Deaktivieren der Tastenkombination bringt keine Zeitersparnis, stellt aber sicher, dass sie nicht versehentlich gedrückt wird. In Netzwerk-Spielen ist sie in jedem Fall deaktiviert.</German>
+		<Italian>If checked, [COLOR_HIGHLIGHT_TEXT]Alt+Shift+M[COLOR_REVERT] can be pressed at any point of a (non-network) game to export the map into a map script and save it to [COLOR_BUILDING_TEXT]AdvCiv\PrivateMaps[COLOR_REVERT] or (as a fallback) [COLOR_BUILDING_TEXT]My Games\Beyond the Sword\PublicMaps[COLOR_REVERT]. Disabling the key combination has no performance benefit, but makes sure that it isn't pressed by accident.</Italian>
+		<Spanish>If checked, [COLOR_HIGHLIGHT_TEXT]Alt+Shift+M[COLOR_REVERT] can be pressed at any point of a (non-network) game to export the map into a map script and save it to [COLOR_BUILDING_TEXT]AdvCiv\PrivateMaps[COLOR_REVERT] or (as a fallback) [COLOR_BUILDING_TEXT]My Games\Beyond the Sword\PublicMaps[COLOR_REVERT]. Disabling the key combination has no performance benefit, but makes sure that it isn't pressed by accident.</Spanish>
+	</TEXT>
+
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__PROGRESSBARSTICKMARKS_TEXT</Tag>
 		<English>Tick Marks</English>

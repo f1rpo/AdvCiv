@@ -8,14 +8,23 @@ from CvPythonExtensions import *
 import os
 # <advc.savem>
 import BugPath
-import BugUtil # </advc.savem>
+import BugUtil
+import BugCore
+import CvEventInterface
+import BugEventManager
+# </advc.savem>
 
 gc = CyGlobalContext()
 # <advc.savem>
 pathnames = []
 
 def savemap(argsList=None):
-
+	# <advc.savem>
+	if gc.getGame().isNetworkMultiPlayer() and not CvEventInterface.getEventManager().isCheatsEnabled():
+		return
+	if not BugCore.game.MainInterface.isSavemapEnabled():
+		return
+	# </advc.savem>
 	# First choice: Mod folder
 	pathnames.append(str(BugPath.getModDir()) + "\\PrivateMaps\\")
 	# Under MyGames. Can't load it from there into AdvCiv w/o toggling NoCustomAssets.

@@ -72,6 +72,8 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		# </advc.002a>
 		self.addLabel(screen, right, "Misc", "Misc:")
 		self.addCheckbox(screen, right, "EventSigns__Enabled")
+		# advc.savem
+		self.addCheckbox(screen, right, "MainInterface__EnableSavemap")
 		
 		#self.addCheckbox(screen, right, "Actions__IgnoreHarmlessBarbarians")
 		
