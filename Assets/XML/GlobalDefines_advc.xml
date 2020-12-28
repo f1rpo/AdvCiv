@@ -916,12 +916,6 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
-	<!-- [advc.004t] Copied from BtS GlobalDefines.xml where it's set to 1. -->
-	<Define>
-		<DefineName>CITY_SCREEN_CLICK_WILL_EXIT</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
-
 	<!-- [advc.700] Rise & Fall parameters. The first four are applied at game
 		 start; changing them in a running game has no effect.  -->
 	<!-- Base value for the number of chapters; recommended: 7. Has to be

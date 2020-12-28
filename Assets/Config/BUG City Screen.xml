@@ -38,6 +38,10 @@
 				<choice id="Owned" get="isRawYieldsDefaultTilesOwned"/>
 				<!--choice id="All" get="isRawYieldsDefaultTilesAll"/-->
 			</list>
+
+			<!-- advc.004t: -->
+			<option id="ClickMapToExit" key="Click Map To Exit" 
+					type="boolean" default="False"/>
 			
 			<!-- FoodAssist by EmperorFool -->
 			<option id="FoodAssist" key="FoodAssist" 

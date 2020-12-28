@@ -2581,22 +2581,27 @@ void CvGame::handleCityScreenPlotPicked(CvCity* pCity, CvPlot* pPlot,
 	}
 	int iIndex = pCity->getCityPlotIndex(*pPlot);
 	if (pPlot->getOwner() == getActivePlayer() &&
-		pCity->getOwner() == getActivePlayer() && iIndex != -1)
+		pCity->getOwner() == getActivePlayer() && iIndex != NO_CITYPLOT)
 	{
 		CvMessageControl::getInstance().sendDoTask(pCity->getID(),
 				TASK_CHANGE_WORKING_PLOT, iIndex, -1, false, bAlt, bShift, bCtrl);
 	}
-	else if (GC.getDefineINT("CITY_SCREEN_CLICK_WILL_EXIT"))
+	else //if (GC.getDefineINT("CITY_SCREEN_CLICK_WILL_EXIT"))
+	if (BUGOption::isEnabled("CityScreen__ClickMapToExit", false)) // advc.004t
 		gDLL->UI().clearSelectedCities();
 }
 
 void CvGame::handleCityScreenPlotDoublePicked(CvCity* pCity, CvPlot* pPlot,
 	bool bAlt, bool bShift, bool bCtrl) const
-{	// advc.004t: Commented out
-	/*if (pCity != NULL) {
-		if (pCity->plot() == pPlot)
-			gDLL->UI().clearSelectedCities();
-	}*/
+{
+	if (pCity != NULL && pCity->plot() == pPlot)
+	{
+		/*	<advc.004t> Exit upon double click outside the radius, not upon
+			double click on the city center. */
+		/*gDLL->UI().clearSelectedCities()*/;
+	}
+	else if (pPlot != NULL && pCity->getCityPlotIndex(*pPlot) == NO_CITYPLOT)
+		gDLL->UI().clearSelectedCities(); // </advc.004t>
 }
 
 void CvGame::handleCityScreenPlotRightPicked(CvCity* pCity, CvPlot* pPlot,

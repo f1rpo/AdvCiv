@@ -79,6 +79,24 @@
 		<Italian>Lavorate|Citt‡|Possedute</Italian>
 		<Spanish>Trabajadas|Ciudad|Territorio</Spanish>
 	</TEXT>
+
+	<!-- advc.004t: -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYSCREEN__CLICKMAPTOEXIT_TEXT</Tag>
+		<English>Click Map to Exit</English>
+		<French>Click Map to Exit</French>
+		<German>Schlieﬂen bei Klick auf Karte</German>
+		<Italian>Click Map to Exit</Italian>
+		<Spanish>Click Map to Exit</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYSCREEN__CLICKMAPTOEXIT_HOVER</Tag>
+		<English>If checked, the city screen can be exited by left-clicking on a tile outside the city radius. (Otherwise, the city screen can still be exited via the middle mouse button, double-click outside the city radius, right-click on the city center tile, left-click on the mini-map, Esc, Enter and Space.)</English>
+		<French>If checked, the city screen can be exited by left-clicking on a tile outside the city radius. (Otherwise, the city screen can still be exited via the middle mouse button, double-click outside the city radius, right-click on the city center tile, left-click on the mini-map, Esc, Enter and Space.)</French>
+		<German>Schlieﬂt den Stadtbildschirm bei einem Linksklick auf ein Feld auﬂerhalb des Stadtradius. (Der Stadtbildschirm kann in jedem Fall auf folgenden Wegen geschlossen werden: Mittlere Maustaste, Doppelklick auﬂerhalb des Stadtradius, Rechtsklick aufs Stadtfeld, Linksklick auf die Mini-Karte rechts unten, Esc, Eingabe und Leertaste.)</German>
+		<Italian>If checked, the city screen can be exited by left-clicking on a tile outside the city radius. (Otherwise, the city screen can still be exited via the middle mouse button, double-click outside the city radius, right-click on the city center tile, left-click on the mini-map, Esc, Enter and Space.)</Italian>
+		<Spanish>If checked, the city screen can be exited by left-clicking on a tile outside the city radius. (Otherwise, the city screen can still be exited via the middle mouse button, double-click outside the city radius, right-click on the city center tile, left-click on the mini-map, Esc, Enter and Space.)</Spanish>
+	</TEXT>
 	
 	<!-- advc.004: "Detailed food info" sounds a bit grand (as does "Food
 		 Assist") -->
@@ -90,7 +108,6 @@
 		<Italian>Informazioni alimentari dettagliate</Italian>
 		<Spanish>Comida Detallada</Spanish>
 	</TEXT>
-	
 	<!-- advc.004: Minor changes -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYSCREEN__FOODASSIST_HOVER</Tag>

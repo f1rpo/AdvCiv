@@ -123,7 +123,8 @@ class BugCityScreenOptionsTab(BugOptionsTab.BugOptionsTab):
 		
 	def createMiscellaneousPanel(self, screen, panel):
 		self.addLabel(screen, panel, "Misc", "Miscellaneous:")
-		
+		# advc.004t: New option
+		self.addCheckbox(screen, panel, "CityScreen__ClickMapToExit")
 		# advc.004: Moved up
 		self.addTextDropdown(screen, panel, panel, "CityScreen__Specialists", True)
 		#self.addCheckbox(screen, panel, "MiscHover__RemoveSpecialist")
