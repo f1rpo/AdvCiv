@@ -10889,13 +10889,13 @@ int CvPlayer::getStartOfTurnMessageLimit() const
 {
 	if(!BUGOption::isEnabled("MainInterface__AutoOpenEventLog", true))
 		return -1;
-	int r = BUGOption::getValue("MainInterface__MessageLimit", 3);
+	int iR = BUGOption::getValue("MainInterface__MessageLimit", 3);
 	if(!isOption(PLAYEROPTION_MINIMIZE_POP_UPS) &&
 		GC.getDefineINT("MESSAGE_LIMIT_WITHOUT_MPU") == 0)
 	{
 		return -1;
 	}
-	return r;
+	return iR;
 } // </advc.106b>
 
 

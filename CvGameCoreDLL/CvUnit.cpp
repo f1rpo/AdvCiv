@@ -1,5 +1,3 @@
-// unit.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvUnit.h"
 #include "CvUnitAI.h"
