@@ -1321,9 +1321,9 @@ int CvGlobals::getNUM_LEADERANIM_TYPES() const
 	return NUM_LEADERANIM_TYPES;
 }
 
+// advc (note): The EXE calls this (only?) when the display language is changed
 void CvGlobals::infosReset()
 {
-	FErrorMsg("Just to see if and when CvGlobals::infosReset is ever called"); // advc.test
 	// <advc.enum> Replacing a loop through m_aInfoVectors (now deleted)
 	for (size_t i = 0; i < m_paWorldInfo.size(); i++)
 		m_paWorldInfo[i]->reset();

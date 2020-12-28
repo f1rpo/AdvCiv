@@ -372,7 +372,7 @@
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__DEFAULTCAMDISTANCE_LIST</Tag>
 		<English>Automatic|Close|Medium|Far|Custom (XML)</English>
 		<French>Automatic|Close|Medium|Far|Custom (XML)</French>
-		<German>Auto|Nah|Mittel|Weit|Wert aus XML</German>
+		<German>Auto|Nah|Mittel|Weit|XML-Wert</German>
 		<Italian>Automatic|Close|Medium|Far|Custom (XML)</Italian>
 		<Spanish>Automatic|Close|Medium|Far|Custom (XML)</Spanish>
 	</TEXT>
@@ -390,7 +390,7 @@
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MINIMAPWATERCOLOR_TEXT</Tag>
 		<English>Opacity on Water</English>
 		<French>Opacity on Water</French>
-		<German>Farbdeckung auf Wasser</German>
+		<German>Farben auf Wasser</German>
 		<Italian>Opacity on Water</Italian>
 		<Spanish>Opacity on Water</Spanish>
 	</TEXT>
@@ -765,7 +765,7 @@
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FOUNDINGBORDER_TEXT</Tag>
 		<English>Founding Border</English>
 		<French>Founding Border</French>
-		<German>Siedler-Grenzanzeige</German>
+		<German>Siedler-Grenzen</German>
 		<Italian>Founding Border</Italian>
 		<Spanish>Founding Border</Spanish>
 	</TEXT>
