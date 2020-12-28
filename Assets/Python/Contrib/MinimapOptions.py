@@ -2,7 +2,6 @@
 
 from CvPythonExtensions import *
 import BugCore
-import BugOptions
 
 gc = CyGlobalContext()
 
