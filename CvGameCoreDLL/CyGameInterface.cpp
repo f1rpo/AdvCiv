@@ -273,6 +273,8 @@ void CyGamePythonInterface()
 
 		.def("isEventActive", &CyGame::isEventActive, "bool (int /*EventTriggerTypes*/ eTrigger)")
 		.def("doControl", &CyGame::doControl, "void (int /*ControlTypes*/ iControl)")
+		// advc.095:
+		.def("setCityBarWidth", &CyGame::setCityBarWidth, "void (bool)")
 		// BULL - AutoSave:
 		.def("saveGame", &CyGame::saveGame, "void saveGame(string fullyQualifiedFileName)")
 		// advc.104:

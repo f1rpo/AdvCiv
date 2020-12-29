@@ -229,14 +229,17 @@
 		<Italian>Casella Selezionata:</Italian>
 		<Spanish>Texto Flotante Casilla:</Spanish>
 	</TEXT>
-	<!-- advc.002f -->
+	<!-- advc.002f, advc.095: I had used "City Icons" at first,
+		 but now that I'm also placing city bar options here,
+		 I need a more generic term. "Billboard" is also used in
+		 CvCity::getCityBillboardSizeIconColors. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_CITYICONS</Tag>
-		<English>City Icons:</English>
-		<French>City Icons:</French>
-		<German>Städte-Symbole:</German>
-		<Italian>City Icons:</Italian>
-		<Spanish>City Icons:</Spanish>
+		<English>City Billboards:</English>
+		<French>City Billboards:</French>
+		<German>Städte-Balken:</German>
+		<Italian>City Billboards:</Italian>
+		<Spanish>City Billboards:</Spanish>
 	</TEXT>
 	<!-- advc.009c: Commented out -->
 	<!--TEXT>

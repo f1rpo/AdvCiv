@@ -1104,8 +1104,13 @@ void CyGame::doControl(int iControl)
 {
 	m_kGame.doControl((ControlTypes) iControl);
 }
+// advc.095:
+void CyGame::setCityBarWidth(bool bWide)
+{
+	m_kGame.setCityBarWidth(bWide);
+}
 // BULL - AutoSave:
-void CyGame::saveGame(std::string szFileName) const
+void CyGame::saveGame(std::string szFileName)
 {
 	// <advc> The BULL code had instead cast szFileName to a CvString&
 	static CvString szTmp;

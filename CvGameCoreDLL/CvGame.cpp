@@ -9568,6 +9568,8 @@ void CvGame::onAllGameDataRead()
 	(w/e that means exactly) */
 void CvGame::onGraphicsInitialized()
 {
+	// advc.095:
+	setCityBarWidth(BUGOption::isEnabled("MainInterface__WideCityBars", false));
 	/*	<advc.001> After loading, the camera tries to center on some unit
 		(apparently; I don't know where that's implemented). If there is
 		none, it seems to center on some random(?) unrevealed tile. */

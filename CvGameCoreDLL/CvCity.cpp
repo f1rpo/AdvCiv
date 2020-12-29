@@ -290,6 +290,16 @@ void CvCity::setupGraphical()
 	setLayoutDirty(true);
 }
 
+// advc.095: Based on CvUnit::reloadEntity
+void CvCity::reloadEntity()
+{
+	FAssert(GC.IsGraphicsInitialized());
+	removeEntity();
+	destroyEntity();
+	createEntity(this);
+	setupGraphical();
+}
+
 
 void CvCity::kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits)
 {

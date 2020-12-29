@@ -22,6 +22,7 @@ public:
 	virtual ~CvCity();
 
 	void setupGraphical();
+	void reloadEntity(); // advc.095
 	void kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits = true);									// Exposed to Python
 	void doTurn();
 	void doRevolt(); // advc: previously in CvPlot::doCulture

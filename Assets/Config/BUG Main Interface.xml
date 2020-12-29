@@ -252,6 +252,11 @@
 					type="boolean" default="False" dirtyBit="CityInfo"/>
 			<option id="AirportIcon" key="Airport Icon" 
 					type="boolean" default="True" dirtyBit="CityInfo"/>
+			<!-- advc.095 (should perhaps be in 'BULL City Bar.xml' instead) -->
+			<option id="WideCityBars" key="Wide City Bars" 
+					type="boolean" default="False">
+				<change module="InputUtil" function="updateCityBarWidth"/>
+			</option>
 		</section>
 	</options>
 	

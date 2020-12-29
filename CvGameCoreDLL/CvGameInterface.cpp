@@ -2571,6 +2571,62 @@ EndTurnButtonStates CvGame::getEndTurnState() const
 	return eNewState;
 }
 
+// advc.095:
+void CvGame::setCityBarWidth(bool bWide)
+{
+	// The three art define tags that we have wider graphics for
+	TCHAR const* aszCityBarTags[] =
+	{
+		"INTERFACE_CITY_BAR_MODEL",
+		"INTERFACE_CITY_BAR_REGULAR_GLOW",
+		"INTERFACE_CITY_BAR_CAPITAL_GLOW"
+	};
+	int const iCityBarTags = ARRAY_LENGTH(aszCityBarTags);
+	CvArtInfoInterface* apCityBarArtInfos[iCityBarTags];
+	for (int i = 0; i < iCityBarTags; i++)
+	{
+		apCityBarArtInfos[i] = ARTFILEMGR.getInterfaceArtInfo(aszCityBarTags[i]);
+		if (apCityBarArtInfos[i] == NULL)
+			return; // Art file manager not ready (or tags missing in XML)
+	}
+	CvString const szPattern(bWide ? "CityBar" : "WideCityBar");
+	CvString const szPatternLC(bWide ? "citybar" : "widecitybar");
+	CvString const szReplacement(!bWide ? "CityBar" : "WideCityBar");
+	CvString const szReplacementLC(!bWide ? "citybar" : "widecitybar");
+	for (int i = 0; i < iCityBarTags; i++)
+	{
+		CvString szPath(apCityBarArtInfos[i]->getPath());
+		size_t iPos = szPath.rfind(szPattern);
+		if (iPos != CvString::npos &&
+			// Don't replace a CityBar directory name
+			iPos < szPath.length() - 1 && szPath.at(iPos + 1) != '/')
+		{
+			szPath.replace(iPos, szPattern.length(), szReplacement);
+		}
+		else
+		{
+			// Try lower case (though AdvCiv uses mixed case)
+			iPos = szPath.rfind(szPatternLC);
+			if (iPos != CvString::npos &&
+				iPos < szPath.length() - 1 && szPath.at(iPos + 1) != '/')
+			{
+				szPath.replace(iPos, szPatternLC.length(), szReplacementLC);
+			}
+			else
+			{
+				FAssert(i == 0);
+				return; // Apparently the width is already according to bWidth
+			}
+		}
+		apCityBarArtInfos[i]->setPath(szPath);
+	}
+	for (PlayerIter<ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
+	{
+		FOR_EACH_CITY_VAR(pCity, *itPlayer)
+			pCity->reloadEntity();
+	}
+}
+
 void CvGame::handleCityScreenPlotPicked(CvCity* pCity, CvPlot* pPlot,
 	bool bAlt, bool bShift, bool bCtrl) const
 {

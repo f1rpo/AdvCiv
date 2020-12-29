@@ -282,7 +282,8 @@ public:
 	bool isEventActive(int /*EventTriggerTypes*/ eTrigger);
 	void doControl(int iControl);
 
-	void saveGame(std::string szFileName) const; // BULL - AutoSave
+	void setCityBarWidth(bool bWide); // advc.095
+	void saveGame(std::string szFileName); // BULL - AutoSave
 	bool useKModAI(); // advc.104
 	int getBarbarianStartTurn(); // advc.300
 	std::wstring SPaHPointsForSettingsScreen(); // advc.250b

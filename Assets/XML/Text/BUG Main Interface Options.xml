@@ -902,5 +902,23 @@
 		<Italian>Quando è selezionato, aggiunge l'icona [ICON_AIRPORT] alle città che hanno un Aeroporto.</Italian>
 		<Spanish>Muestra el icono [ICON_AIRPORT] sobre las barras de ciudad que tengan un aeropuerto.</Spanish>
 	</TEXT>
+
+	<!-- advc.095: -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__WIDECITYBARS_TEXT</Tag>
+		<English>Wide City Bars</English>
+		<French>Wide City Bars</French>
+		<German>Breite Fortschrittsbalken</German>
+		<Italian>Wide City Bars</Italian>
+		<Spanish>Wide City Bars</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__WIDECITYBARS_HOVER</Tag>
+		<English>When checked, the main map displays the wide city bars from the BUG mod. (Known issue with those bars: the right half can't be moused over.)</English>
+		<French>When checked, the main map displays the wide city bars from the BUG mod. (Known issue with those bars: the right half can't be moused over.)</French>
+		<German>Zeigt die extra-breiten Stadtbalken aus der BUG-Mod auf der Hauptkarte an. (Die rechten Hälften dieser Balken lassen sich nicht anklicken - bekanntes Problem.)</German>
+		<Italian>When checked, the main map displays the wide city bars from the BUG mod. (Known issue with those bars: the right half can't be moused over.)</Italian>
+		<Spanish>When checked, the main map displays the wide city bars from the BUG mod. (Known issue with those bars: the right half can't be moused over.)</Spanish>
+	</TEXT>
 	
 </Civ4GameText>

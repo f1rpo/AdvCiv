@@ -234,19 +234,19 @@ def toggleShowFriendlyMoves(argsList=None):
 	# currentProfile.setPlayerOption(eFriendlyMoves, not bCurrentlyEnabled)
 	# So the toggling isn't going to be visible on the Options screen and will be lost upon exiting the game.
 # </advc.102>
-# <advc.135c>
+# advc.135c:
 def toggleDebugMode(argsList=None): 
 	# The built-in shortcut (also Ctrl+Z) works iff ChtLvl>0. Let CvGame::toggleDebugMode decide whether ChtLvl should matter.
 	if getChtLvl() <= 0:
 		gc.getGame().toggleDebugMode()
-# </advc.135c>
-# <advc.088>
+# advc.088:
 def unselectAll(argsList=None):
 	CyInterface().clearSelectionList()
-# </advc.088>
-
-# <advc.004m> Called by BugOptions when dirty. Defining this handler directly in CvScreensInterface.py leads to problems when reloading scripts, specifically in ChangeHandler.handle (BugOptions.py).
+# advc.004m: Called by BugOptions when dirty. Defining this handler directly in CvScreensInterface.py leads to problems when reloading scripts, specifically in ChangeHandler.handle (BugOptions.py).
 def updateDefaultCamDistance(option, value):
 	import CvScreensInterface
 	CvScreensInterface.updateCameraStartDistance()
-# </advc.004m>
+
+# <advc.095:
+def updateCityBarWidth(option, value):
+	gc.getGame().setCityBarWidth(value)
