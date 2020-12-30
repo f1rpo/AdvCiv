@@ -18680,22 +18680,35 @@ bool CvUnitAI::AI_pickupStranded(UnitAITypes eUnitAI, int iMaxPath)
 		// Units are stranded, attempt rescue
 
 		int iCount = pLoopGroup->getNumUnits();
-		if (1000*iCount > iBestValue)
+		if (1000 * iCount > iBestValue)
 		{
-			CvPlot* pTargetPlot = 0;
+			CvPlot* pTargetPlot = NULL;
 			int iPathTurns = MAX_INT;
-
-			FOR_EACH_ADJ_PLOT(*pPickupPlot)
+			// <advc.001> This can happen, apparently.
+			if (at(*pPickupPlot))
 			{
-				if ((atPlot(pAdj) ||
-					canMoveInto(*pAdj)) &&
-					generatePath(*pAdj, NO_MOVEMENT_FLAGS, true, &iPathTurns, iMaxPath))
+				pTargetPlot = pPickupPlot;
+				iPathTurns = 0;
+			}
+			else // </advc.001>
+			{
+				// advc.046: Don't pick an arbitrary adjacent plot
+				int iBestAdjTurns = MAX_INT;
+				FOR_EACH_ADJ_PLOT(*pPickupPlot)
 				{
-					pTargetPlot = &getPathEndTurnPlot();
-					break;
+					if ((at(*pAdj) ||
+						canMoveInto(*pAdj)) &&
+						// advc.001:
+						!GC.getMap().isSeparatedByIsthmus(*pAdj, *pPickupPlot) &&
+						generatePath(*pAdj, NO_MOVEMENT_FLAGS, true, &iPathTurns, iMaxPath) &&
+						iPathTurns < iBestAdjTurns) // advc.046
+					{
+						pTargetPlot = &getPathEndTurnPlot();
+						//break;
+						iBestAdjTurns = iPathTurns; // advc.046
+					}
 				}
 			}
-
 			if (pTargetPlot != NULL)
 			{
 				FAssert(iPathTurns <= iMaxPath);
@@ -18704,10 +18717,8 @@ bool CvUnitAI::AI_pickupStranded(UnitAITypes eUnitAI, int iMaxPath)
 				iCount -= cargoSpace() * kPlayer.AI_unitTargetMissionAIs( // estimate
 						*pHeadUnit, &eMissionAIType, 1, getGroup(), iPathTurns);
 
-				int iValue = 1000*iCount;
-
-				iValue /= (iPathTurns + 1);
-
+				int iValue = 1000 * iCount;
+				iValue /= iPathTurns + 1;
 				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;
@@ -18718,46 +18729,37 @@ bool CvUnitAI::AI_pickupStranded(UnitAITypes eUnitAI, int iMaxPath)
 		}
 	}
 
-	if (pBestUnit)
-	{	// <advc.046>
-		int iCargo = getGroup()->getCargo();
-		if (iCargo > 0)
-		{
-			/*  Only unload the current cargo if the stranded units aren't too few
-				or too far away. */
-			if(iCargo * 150 > iBestValue || atPlot(pEndTurnPlot))
-				return false;
-			if(!getPlot().isCity() || getPlot().getOwner() != getOwner())
-				return false;
-			getGroup()->unloadAll();
-			if(getGroup()->hasCargo())
-				return false;
-		} // </advc.046>
-		// <advc.001> (I haven't gotten to the bottom of this problem)
-		if (!at(*pEndTurnPlot) && at(pBestUnit->getPlot()))
-		{
-			FAssert(false); // Hopefully amended by the line below
-			pEndTurnPlot = pBestUnit->plot();
-		} // </advc.001>
-
-		if (atPlot(pEndTurnPlot))
-		{
-			getGroup()->pushMission(MISSION_SKIP, -1, -1, NO_MOVEMENT_FLAGS,
-					false, false, MISSIONAI_PICKUP, 0, pBestUnit);
-			return true;
-		}
-		else
-		{
-			//FAssert(!at(pBestUnit->getPlot())); // advc.001: Replaced by the assertion above
-			//getGroup()->pushMission(MISSION_MOVE_TO_UNIT, pBestUnit->getOwner(), pBestUnit->getID(), MOVE_AVOID_ENEMY_WEIGHT_3, false, false, MISSIONAI_PICKUP, NULL, pBestUnit);
-			pushGroupMoveTo(*pEndTurnPlot, NO_MOVEMENT_FLAGS, false, false,
-					MISSIONAI_PICKUP, 0, pBestUnit);
-			return true;
-		}
+	if (pBestUnit == NULL)
+		return false;
+	// <advc.046>
+	int iCargo = getGroup()->getCargo();
+	if (iCargo > 0)
+	{
+		/*  Only unload the current cargo if the stranded units aren't too few
+			or too far away. */
+		if(iCargo * 150 > iBestValue || atPlot(pEndTurnPlot))
+			return false;
+		if(!getPlot().isCity() || getPlot().getOwner() != getOwner())
+			return false;
+		getGroup()->unloadAll();
+		if(getGroup()->hasCargo())
+			return false;
+	} // </advc.046>
+	if (at(*pEndTurnPlot))
+	{
+		getGroup()->pushMission(MISSION_SKIP, -1, -1, NO_MOVEMENT_FLAGS,
+				false, false, MISSIONAI_PICKUP, 0, pBestUnit);
+		return true;
 	}
-
-	return false;
-} // BETTER_BTS_AI_MOD: END
+	else
+	{
+		FAssert(!at(pBestUnit->getPlot()));
+		//getGroup()->pushMission(MISSION_MOVE_TO_UNIT, pBestUnit->getOwner(), pBestUnit->getID(), MOVE_AVOID_ENEMY_WEIGHT_3, false, false, MISSIONAI_PICKUP, NULL, pBestUnit);
+		pushGroupMoveTo(*pEndTurnPlot, NO_MOVEMENT_FLAGS, false, false,
+				MISSIONAI_PICKUP, 0, pBestUnit);
+		return true;
+	}
+}
 
 
 bool CvUnitAI::AI_airOffensiveCity()
