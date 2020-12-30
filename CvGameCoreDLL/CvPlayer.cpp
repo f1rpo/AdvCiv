@@ -6320,12 +6320,7 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade,
 	for (int i = 0; i < GC.getNUM_OR_TECH_PREREQS(eTech); i++)
 	{
 		TechTypes ePrereq = (TechTypes)GC.getInfo(eTech).getPrereqOrTechs(i);
-		// <advc.126> Cycle detection
-		if(ePrereq == eTech)
-		{
-			FAssert(false);
-			continue;
-		} // </advc.126>
+		FAssert(ePrereq != eTech); // advc
 		if (ePrereq != NO_TECH)
 		{
 			bFoundPossible = true;

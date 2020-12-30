@@ -4278,10 +4278,23 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 		FErrorMsg("Failed to create a tech path");
 		return NO_TECH;
 	}
-
-	TechTypes eBestTech = techs[
-			/*best_path_it->*/tech_paths[0]. // advc.550g
-			second.back()].second;
+	/*	<advc.126> Haven't checked the prereqs of the prereqs.
+		E.g. in Earth1000AD, India starts with Paper but w/o its prereqs.
+		Under AdvCiv rules, India is then prohibited from researching Education. */
+	TechTypes eBestTech;
+	{
+		size_t i = 0;
+		do
+		{
+			eBestTech = techs[
+					/*best_path_it->*/tech_paths[i]. // advc.550g
+					second.back()].second;
+			i++;
+		} while(i < tech_paths.size() &&
+				// K-Mod had asserted the negation of this
+				(isResearch() && getAdvancedStartPoints() >= 0 &&
+				!canResearch(eBestTech, false, bFreeTech)));
+	} // </advc.126>
 	if (gPlayerLogLevel >= 1)
 	{
 		logBBAI("  Player %d (%S) selects tech %S with value %d. (Aiming for %S)",
@@ -4289,8 +4302,6 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 				techs[/*best_path_it->*/tech_paths[0].second.back()].first, GC.getInfo(
 				techs[/*best_path_it->*/tech_paths[0].second.front()].second).getDescription());
 	}
-	FAssert(!isResearch() || getAdvancedStartPoints() < 0 ||
-			canResearch(eBestTech, false, bFreeTech));
 	// </k146>
 	// <advc.550g>
 	if (!bAsync)
@@ -4316,7 +4327,9 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 				if (std::find(m_aeBestTechs.begin(), m_aeBestTechs.end(), eLoopTech) ==
 					m_aeBestTechs.end())
 				{
-					FAssert(canResearch(eLoopTech));
+					FAssert(canResearch(eLoopTech) ||
+							// advc.126: See comment above about Earth1000AD
+							GC.getGame().isScenario() && !GC.getInitCore().getWBMapNoPlayers())
 					m_aeBestTechs.push_back(eLoopTech);
 				}
 			}
