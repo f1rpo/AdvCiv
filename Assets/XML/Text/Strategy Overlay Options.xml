@@ -80,12 +80,12 @@
 		<Spanish>Número del icono a colocar en el centro de los bordes de las ciudades planeadas.</Spanish>
 	</TEXT-->
 	
-	<!-- advc.004: was "Brightness" -->
+	<!-- advc.004: Was "Brightness"; "Transparenz" in German -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__DOTMAPBRIGHTNESS_TEXT</Tag>
 		<English>Opacity</English>
 		<French>Brightness</French>
-		<German>Transparenz</German>
+		<German>Opazität</German>
 		<Italian>Trasparenza</Italian>
 		<Spanish>Brillo</Spanish>
 	</TEXT>
@@ -93,7 +93,7 @@
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__DOTMAPBRIGHTNESS_HOVER</Tag>
 		<English>Sets the opacity of the overlay.</English>
 		<French>Determines the brightness of planned cities.</French>
-		<German>Regelt die Transparenz (Alpha-Wert) des Overlays.</German>
+		<German>Regelt die Deckstärke (Alpha-Wert) des Overlays.</German>
 		<Italian>Determina la trasparenza delle Città posizionate.</Italian>
 		<Spanish>Brillo con que se muestran las ciudades planeadas.</Spanish>
 	</TEXT>
@@ -103,7 +103,7 @@
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__DOTMAPHIGHLIGHTBRIGHTNESS_TEXT</Tag>
 		<English>Cursor Opacity</English>
 		<French>Highlight Brightness</French>
-		<German>Cursor-Transp.</German>
+		<German>Cursor-Opazität.</German>
 		<Italian>Trasparenza di selezione</Italian>
 		<Spanish>Brillo Actual</Spanish>
 	</TEXT>
@@ -112,7 +112,7 @@
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__DOTMAPHIGHLIGHTBRIGHTNESS_HOVER</Tag>
 		<English>Sets the opacity of the city cross shown at the cursor position when placing a city marker through Alt+X.</English>
 		<French>Determines the brightness of the highlighted city being placed.</French>
-		<German>Regelt die Transparenz des Stadt-Kreuzes, das beim Platzieren einer Stadtmarkierung (Alt+X) an der Cursor-Position eingeblendet wird.</German>
+		<German>Regelt die Deckstärke (Alpha-Wert) des Stadt-Kreuzes, das beim Platzieren einer Stadtmarkierung (Alt+X) an der Cursor-Position eingeblendet wird.</German>
 		<Italian>Determina la trasparenza della Città selezionata che viene posizionata.</Italian>
 		<Spanish>Determina el brillo de la ciudad siendo colocada.</Spanish>
 	</TEXT>

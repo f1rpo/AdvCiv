@@ -370,9 +370,11 @@
 		<Italian>Camera</Italian>
 		<Spanish>Camera</Spanish>
 	</TEXT>
+	<!-- Sadly has to be abbreviated in order to make room for advc.002f
+		 in the center column -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__DEFAULTCAMDISTANCE_TEXT</Tag>
-		<English>Default Distance</English>
+		<English>Default Dist.</English>
 		<French>Default Distance</French>
 		<German>Standard-Abstand</German>
 		<Italian>Default Distance</Italian>
@@ -866,7 +868,7 @@
 		<Spanish>Activa las marcas de recursos al inicio del juego.</Spanish>
 	</TEXT>
 	
-	<!-- advc.002f -->
+	<!-- advc.002f: -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__CITYNETWORKICON_TEXT</Tag>
 		<English>Trade Network</English>
@@ -901,6 +903,134 @@
 		<German>Zeigt das [ICON_AIRPORT]-Symbol über den Namen von Städten an, die über einen Flughafen verfügen.</German>
 		<Italian>Quando è selezionato, aggiunge l'icona [ICON_AIRPORT] alle città che hanno un Aeroporto.</Italian>
 		<Spanish>Muestra el icono [ICON_AIRPORT] sobre las barras de ciudad que tengan un aeropuerto.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOPPRODUCTIONICON_TEXT</Tag>
+		<English>Top Production</English>
+		<French>Top Production</French>
+		<German>Top-Produktion</German>
+		<Italian>Top Production</Italian>
+		<Spanish>Top Production</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOPPRODUCTIONICON_HOVER</Tag>
+		<English>When checked, the [ICON_PRODUCTION] icon is shown above the billboard of your city with the highest production rate if that city generates at least 10 [ICON_PRODUCTION] per turn.</English>
+		<French>When checked, the [ICON_PRODUCTION] icon is shown above the billboard of your city with the highest production rate if that city generates at least 10 [ICON_PRODUCTION] per turn.</French>
+		<German>Zeigt das [ICON_PRODUCTION]-Symbol über dem Namen ihrer Stadt mit der höchsten Produktionsrate an - falls diese Stadt wenigstens 10 [ICON_PRODUCTION] pro Zug generiert.</German>
+		<Italian>When checked, the [ICON_PRODUCTION] icon is shown above the billboard of your city with the highest production rate if that city generates at least 10 [ICON_PRODUCTION] per turn.</Italian>
+		<Spanish>When checked, the [ICON_PRODUCTION] icon is shown above the billboard of your city with the highest production rate if that city generates at least 10 [ICON_PRODUCTION] per turn.</Spanish>
+	</TEXT>
+		<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOPGOLDICON_TEXT</Tag>
+		<English>Top Gold</English>
+		<French>Top Gold</French>
+		<German>Top-Gold</German>
+		<Italian>Top Gold</Italian>
+		<Spanish>Top Gold</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOPGOLDICON_HOVER</Tag>
+		<English>When checked, the [ICON_GOLD] icon is shown above the billboard of your city with the highest gold rate if that city generates at least 10 [ICON_GOLD] per turn.</English>
+		<French>When checked, the [ICON_GOLD] icon is shown above the billboard of your city with the highest gold rate if that city generates at least 10 [ICON_GOLD] per turn.</French>
+		<German>Zeigt das [ICON_GOLD]-Symbol über dem Namen ihrer Stadt mit der höchsten Goldrate an - falls diese Stadt wenigstens 10 [ICON_GOLD] pro Zug generiert.</German>
+		<Italian>When checked, the [ICON_GOLD] icon is shown above the billboard of your city with the highest gold rate if that city generates at least 10 [ICON_GOLD] per turn.</Italian>
+		<Spanish>When checked, the [ICON_GOLD] icon is shown above the billboard of your city with the highest gold rate if that city generates at least 10 [ICON_GOLD] per turn.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOPRESEARCHICON_TEXT</Tag>
+		<English>Top Research</English>
+		<French>Top Research</French>
+		<German>Top-Forschung</German>
+		<Italian>Top Research</Italian>
+		<Spanish>Top Research</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOPRESEARCHICON_HOVER</Tag>
+		<English>When checked, the [ICON_RESEARCH] icon is shown above the billboard of your city with the highest research rate if that city generates at least 10 [ICON_RESEARCH] per turn.</English>
+		<French>When checked, the [ICON_RESEARCH] icon is shown above the billboard of your city with the highest research rate if that city generates at least 10 [ICON_RESEARCH] per turn.</French>
+		<German>Zeigt das [ICON_RESEARCH]-Symbol über dem Namen ihrer Stadt mit der höchsten Forschungsrate an - falls diese Stadt wenigstens 10 [ICON_RESEARCH] pro Zug generiert.</German>
+		<Italian>When checked, the [ICON_RESEARCH] icon is shown above the billboard of your city with the highest research rate if that city generates at least 10 [ICON_RESEARCH] per turn.</Italian>
+		<Spanish>When checked, the [ICON_RESEARCH] icon is shown above the billboard of your city with the highest research rate if that city generates at least 10 [ICON_RESEARCH] per turn.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOPESPIONAGEICON_TEXT</Tag>
+		<English>Top Espionage</English>
+		<French>Top Espionage</French>
+		<German>Top-Spionage</German>
+		<Italian>Top Espionage</Italian>
+		<Spanish>Top Espionage</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOPESPIONAGEICON_HOVER</Tag>
+		<English>When checked, the [ICON_ESPIONAGE] icon is shown above the billboard of your city with the highest espionage rate if that city generates at least 10 [ICON_ESPIONAGE] per turn.</English>
+		<French>When checked, the [ICON_ESPIONAGE] icon is shown above the billboard of your city with the highest espionage rate if that city generates at least 10 [ICON_ESPIONAGE] per turn.</French>
+		<German>Zeigt das [ICON_ESPIONAGE]-Symbol über dem Namen ihrer Stadt mit der höchsten Spionagerate an - falls diese Stadt wenigstens 10 [ICON_ESPIONAGE] pro Zug generiert.</German>
+		<Italian>When checked, the [ICON_ESPIONAGE] icon is shown above the billboard of your city with the highest espionage rate if that city generates at least 10 [ICON_ESPIONAGE] per turn.</Italian>
+		<Spanish>When checked, the [ICON_ESPIONAGE] icon is shown above the billboard of your city with the highest espionage rate if that city generates at least 10 [ICON_ESPIONAGE] per turn.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOPXPICON_TEXT</Tag>
+		<English>Top Experience</English>
+		<French>Top Experience</French>
+		<German>Top-Erfahrung</German>
+		<Italian>Top Experience</Italian>
+		<Spanish>Top Experience</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOPXPICON_HOVER</Tag>
+		<English>When checked, the [ICON_GREATGENERAL] icon is shown above the billboard of your city with the highest amount of free experience. Experience that doesn't apply to all military units is counted half in this context.</English>
+		<French>When checked, the [ICON_GREATGENERAL] icon is shown above the billboard of your city with the highest amount of free experience. Experience that doesn't apply to all military units is counted half in this context.</French>
+		<German>Zeigt das [ICON_GREATGENERAL]-Symbol über dem Namen Ihrer Stadt mit den höchsten Zusatzerfahrungspunkten an. Erfahrungspunkte, die nicht allen Militäreinheiten zukommen, zählen dabei nur halb.</German>
+		<Italian>When checked, the [ICON_GREATGENERAL] icon is shown above the billboard of your city with the highest amount of free experience. Experience that doesn't apply to all military units is counted half in this context.</Italian>
+		<Spanish>When checked, the [ICON_GREATGENERAL] icon is shown above the billboard of your city with the highest amount of free experience. Experience that doesn't apply to all military units is counted half in this context.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NEXTGPICON_TEXT</Tag>
+		<English>Next GP</English>
+		<French>Next GP</French>
+		<German>Nächste GP</German>
+		<Italian>Next GP</Italian>
+		<Spanish>Next GP</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NEXTGPICON_HOVER</Tag>
+		<English>When checked, the [ICON_GREATPEOPLE] icon is shown above the billboard of the city where your next Great Person will be born if the current [ICON_GREATPEOPLE] rates remain unchanged.</English>
+		<French>When checked, the [ICON_GREATPEOPLE] icon is shown above the billboard of the city where your next Great Person will be born if the current [ICON_GREATPEOPLE] rates remain unchanged.</French>
+		<German>Zeigt das [ICON_GREATPEOPLE]-Symbol über dem Namen der Stadt an, in der Ihre nächste große Persönlichkeit geboren werden wird, wenn die derzeitigen [ICON_GREATPEOPLE]-Raten beibehalten werden.</German>
+		<Italian>When checked, the [ICON_GREATPEOPLE] icon is shown above the billboard of the city where your next Great Person will be born if the current [ICON_GREATPEOPLE] rates remain unchanged.</Italian>
+		<Spanish>When checked, the [ICON_GREATPEOPLE] icon is shown above the billboard of the city where your next Great Person will be born if the current [ICON_GREATPEOPLE] rates remain unchanged.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NOUNHAPPYICON_TEXT</Tag>
+		<English>No Unhappiness</English>
+		<French>No Unhappiness</French>
+		<German>Nie unzufrieden</German>
+		<Italian>No Unhappiness</Italian>
+		<Spanish>No Unhappiness</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NOUNHAPPYICON_HOVER</Tag>
+		<English>When checked, the [ICON_HAPPY] icon is shown above the billboard of cities that are immune to [ICON_UNHAPPY].</English>
+		<French>When checked, the [ICON_HAPPY] icon is shown above the billboard of cities that are immune to [ICON_UNHAPPY].</French>
+		<German>Zeigt das [ICON_HAPPY]-Symbol über den Namen von Städten an, die gegen Unzufriedenheit immun sind.</German>
+		<Italian>When checked, the [ICON_HAPPY] icon is shown above the billboard of cities that are immune to [ICON_UNHAPPY].</Italian>
+		<Spanish>When checked, the [ICON_HAPPY] icon is shown above the billboard of cities that are immune to [ICON_UNHAPPY].</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NOBADHEALTHICON_TEXT</Tag>
+		<English>No Bad Health</English>
+		<French>No Bad Health</French>
+		<German>Nie krank</German>
+		<Italian>No Bad Health</Italian>
+		<Spanish>No Bad Health</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NOBADHEALTHICON_HOVER</Tag>
+		<English>When checked, the [ICON_HEALTHY] icon is shown above the billboard of cities that are immune to [ICON_UNHEALTHY] from population.</English>
+		<French>When checked, the [ICON_HEALTHY] icon is shown above the billboard of cities that are immune to [ICON_UNHEALTHY] from population.</French>
+		<German>Zeigt das [ICON_HEALTHY]-Symbol über den Namen von Städten an, deren Bevölkerung keine [ICON_UNHEALTHY]-Punkte generiert.</German>
+		<Italian>When checked, the [ICON_HEALTHY] icon is shown above the billboard of cities that are immune to [ICON_UNHEALTHY] from population.</Italian>
+		<Spanish>When checked, the [ICON_HEALTHY] icon is shown above the billboard of cities that are immune to [ICON_UNHEALTHY] from population.</Spanish>
 	</TEXT>
 
 	<!-- advc.095: -->

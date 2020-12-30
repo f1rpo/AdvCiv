@@ -1693,8 +1693,7 @@ enum FontSymbols
 	MAP_CHAR,
 	OCCUPATION_CHAR,
 	POWER_CHAR,
-	/*  <advc.002f> From BULL. Only using AIRPORT_CHAR so far, but need all of them
-		in order to be compatible with BULL's GameFont.tga */
+	// <advc.002f> from BULL
 	CITIZEN_CHAR,
 	GREAT_GENERAL_CHAR,
 	AIRPORT_CHAR, // </advc.002f>

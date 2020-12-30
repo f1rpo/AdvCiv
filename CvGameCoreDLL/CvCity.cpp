@@ -1669,12 +1669,19 @@ bool CvCity::canContinueProduction(OrderData order)
 }
 
 
-int CvCity::getProductionExperience(UnitTypes eUnit) const
+int CvCity::getProductionExperience(UnitTypes eUnit, /* <advc.002f> */
+	bool bScore) const
 {
+	FAssert(!bScore || eUnit == NO_UNIT); // </advc.002f>
+	CvPlayer const& kOwner = GET_PLAYER(getOwner());
 	int iExperience = getFreeExperience();
-	iExperience += GET_PLAYER(getOwner()).getFreeExperience();
+	iExperience += kOwner.getFreeExperience();
 	iExperience += getSpecialistFreeExperience(); // K-Mod (moved from below)
-
+	if (kOwner.getStateReligion() != NO_RELIGION)
+	{
+		if (isHasReligion(kOwner.getStateReligion()))
+			iExperience += kOwner.getStateReligionFreeExperience();
+	}
 	if (eUnit != NO_UNIT)
 	{
 		if (GC.getInfo(eUnit).getUnitCombatType() != NO_UNITCOMBAT)
@@ -1685,13 +1692,16 @@ int CvCity::getProductionExperience(UnitTypes eUnit) const
 		iExperience += getDomainFreeExperience(GC.getInfo(eUnit).getDomainType());
 		//iExperience += getSpecialistFreeExperience();
 	}
-	CvPlayer const& kOwner = GET_PLAYER(getOwner());
-	if (kOwner.getStateReligion() != NO_RELIGION)
+	// <advc.002f> AI score for comparing cities wrt. their free XP
+	else if (bScore)
 	{
-		if (isHasReligion(kOwner.getStateReligion()))
-			iExperience += kOwner.getStateReligionFreeExperience();
-	}
-
+		int iNonGenericXP = 0;
+		FOR_EACH_ENUM(UnitCombat)
+			iNonGenericXP += getUnitCombatFreeExperience(eLoopUnitCombat);
+		FOR_EACH_ENUM(Domain)
+			iNonGenericXP += getDomainFreeExperience(eLoopDomain);
+		iExperience += iExperience + (iNonGenericXP + 1) / 2;
+	} // </advc.002f>
 	return std::max(0, iExperience);
 }
 
@@ -5202,12 +5212,12 @@ int CvCity::GPTurnsLeft() const
 	if(getGreatPeopleRate() <= 0)
 		return -1;
 	int iGPPLeft = GET_PLAYER(getOwner()).greatPeopleThreshold(false) - getGreatPeopleProgress();
-	if(iGPPLeft <= 0)
+	if (iGPPLeft <= 0)
 		return 0;
-	int r = iGPPLeft / getGreatPeopleRate();
-	if(r * getGreatPeopleRate() <  iGPPLeft)
-		r++;
-	return r;
+	int iR = iGPPLeft / getGreatPeopleRate();
+	if (iR * getGreatPeopleRate() < iGPPLeft)
+		iR++;
+	return iR;
 }
 
 void CvCity::GPProjection(std::vector<std::pair<UnitTypes,int> >& r) const

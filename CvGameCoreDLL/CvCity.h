@@ -102,7 +102,8 @@ public:
 	bool isProductionProcess() const;																			// Exposed to Python
 
 	bool canContinueProduction(OrderData order);																// Exposed to Python
-	int getProductionExperience(UnitTypes eUnit = NO_UNIT) const;												// Exposed to Python
+	int getProductionExperience(UnitTypes eUnit = NO_UNIT,														// Exposed to Python
+			bool bScore = false) const; // advc.002f
 	void addProductionExperience(CvUnit* pUnit, bool bConscript = false);										// Exposed to Python
 
 	UnitTypes getProductionUnit() const;																		// Exposed to Python

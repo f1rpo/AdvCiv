@@ -18636,18 +18636,102 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(UNHEALTHY_CHAR)));
 		// advc.076: Disabled
 		/*if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_DETAIL)) {
-			if (GET_PLAYER(pCity->getOwner()).getNumCities() > 2) {
-				if (pCity->findYieldRateRank(YIELD_PRODUCTION) == 1)
-					szBuffer.append(CvWString::format(L"%c", GC.getInfo(YIELD_PRODUCTION).getChar()));
-				if (pCity->findCommerceRateRank(COMMERCE_GOLD) == 1)
-					szBuffer.append(CvWString::format(L"%c", GC.getInfo(COMMERCE_GOLD).getChar()));
-				if (pCity->findCommerceRateRank(COMMERCE_RESEARCH) == 1)
-					szBuffer.append(CvWString::format(L"%c", GC.getInfo(COMMERCE_RESEARCH).getChar()));
+			if (GET_PLAYER(pCity->getOwner()).getNumCities() > 2) {*/
+		// <advc.002f> Replacement
+		if (GET_PLAYER(pCity->getOwner()).getNumCities() > 1)
+		{
+			if (BUGOption::isEnabled("MainInterface__TopProductionIcon", false) &&
+				pCity->getYieldRate(YIELD_PRODUCTION) >= 10 &&
+				pCity->findYieldRateRank(YIELD_PRODUCTION) == 1)
+			{
+				szBuffer.append(CvWString::format(L"%c",
+						GC.getInfo(YIELD_PRODUCTION).getChar()));
 			}
-		}*/
-
-		if (pCity->isConnectedToCapital()
-			&& BUGOption::isEnabled("MainInterface__CityNetworkIcon", false)) // advc.002f
+			FOR_EACH_ENUM(Commerce)
+			{
+				bool bValid = true;
+				CvString szOptionId("MainInterface__Top");
+				switch(eLoopCommerce)
+				{
+				case COMMERCE_GOLD: szOptionId += "Gold"; break;
+				case COMMERCE_RESEARCH: szOptionId += "Research"; break;
+				case COMMERCE_ESPIONAGE: szOptionId += "Espionage"; break;
+				default:
+					bValid = false;
+				}
+				if (!bValid)
+					continue;
+				szOptionId += "Icon";
+				if (BUGOption::isEnabled(szOptionId.c_str(), false) &&
+					pCity->getCommerceRate(eLoopCommerce) >= 10 &&
+					pCity->findCommerceRateRank(eLoopCommerce) == 1)
+				{
+					szBuffer.append(CvWString::format(L"%c",
+							GC.getInfo(eLoopCommerce).getChar()));
+				}
+			}
+			if (BUGOption::isEnabled("MainInterface__TopXPIcon", false))
+			{
+				CvCity const* pMaxXPCity = NULL;
+				int iMaxXP = 0;
+				FOR_EACH_CITY(pLoopCity, GET_PLAYER(pCity->getOwner()))
+				{
+					int iXP = pLoopCity->getProductionExperience(NO_UNIT, true);
+					if (iXP > iMaxXP)
+					{
+						pMaxXPCity = pLoopCity;
+						iMaxXP = iXP;
+					}
+				}
+				if (iMaxXP > 0 && pMaxXPCity == pCity)
+				{
+					szBuffer.append(CvWString::format(L"%c",
+							gDLL->getSymbolID(GREAT_GENERAL_CHAR)));
+				}
+			}
+			if (BUGOption::isEnabled("MainInterface__NextGPIcon", false))
+			{
+				CvCity const* pNextGPCity = NULL;
+				int iMinTurns = MAX_INT;
+				/*	Break ties in favor of pCity - so that all cities receive the
+					icon when tied. Not consistent with the other icons, but seems
+					(more) important for usability. */
+				std::vector<CvCity const*> apCities;
+				apCities.push_back(pCity);
+				FOR_EACH_CITY(pLoopCity, GET_PLAYER(pCity->getOwner()))
+				{
+					if (pLoopCity != pCity)
+						apCities.push_back(pLoopCity);
+				}
+				for (size_t i = 0; i < apCities.size(); i++)
+				{
+					CvCity const* pLoopCity = apCities[i];
+					int iTurns = pLoopCity->GPTurnsLeft();
+					if (iTurns >= 0 && iTurns < iMinTurns)
+					{
+						pNextGPCity = pLoopCity;
+						iMinTurns = iTurns;
+					}
+				}
+				if (iMinTurns < MAX_INT && pNextGPCity == pCity)
+				{
+					szBuffer.append(CvWString::format(L"%c",
+							gDLL->getSymbolID(GREAT_PEOPLE_CHAR)));
+				}
+			}
+		}
+		if (pCity->isNoUnhappiness() &&
+			BUGOption::isEnabled("MainInterface__NoUnhappyIcon", false))
+		{
+			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(HAPPY_CHAR)));
+		}
+		if (pCity->getUnhealthyPopulationModifier() <= -100 &&
+			BUGOption::isEnabled("MainInterface__NoBadHealthIcon", false))
+		{
+			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(HEALTHY_CHAR)));
+		} // </advc.002f>
+		if (pCity->isConnectedToCapital() &&
+			BUGOption::isEnabled("MainInterface__CityNetworkIcon", false)) // advc.002f
 		{
 			if (GET_PLAYER(pCity->getOwner()).countNumCitiesConnectedToCapital() > 1)
 				szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(TRADE_CHAR)));
