@@ -18692,14 +18692,12 @@ bool CvUnitAI::AI_pickupStranded(UnitAITypes eUnitAI, int iMaxPath)
 			}
 			else // </advc.001>
 			{
-				// advc.046: Don't pick an arbitrary adjacent plot
+				// advc.046: Don't choose an arbitrary adjacent plot
 				int iBestAdjTurns = MAX_INT;
 				FOR_EACH_ADJ_PLOT(*pPickupPlot)
 				{
 					if ((at(*pAdj) ||
 						canMoveInto(*pAdj)) &&
-						// advc.001:
-						!GC.getMap().isSeparatedByIsthmus(*pAdj, *pPickupPlot) &&
 						generatePath(*pAdj, NO_MOVEMENT_FLAGS, true, &iPathTurns, iMaxPath) &&
 						iPathTurns < iBestAdjTurns) // advc.046
 					{
