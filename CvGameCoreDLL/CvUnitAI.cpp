@@ -16768,8 +16768,14 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 			if(isBarbarian())
 			{
 				CvCity* c = kPlot.getWorkingCity();
-				if(c == NULL || !at(kPlot) || kPlot.isConnectedTo(c))
+				int iDummy;
+				if(c == NULL || !at(kPlot) || kPlot.isConnectedTo(c) ||
+					/*	If Barbarians expand their borders somehow,
+						then the city might not be adjacent. */
+					!generatePath(c->getPlot(), MOVE_SAFE_TERRITORY, false, &iDummy, 2))
+				{
 					return false;
+				}
 				getGroup()->pushMission(MISSION_ROUTE_TO, c->getX(), c->getY(),
 						MOVE_SAFE_TERRITORY, false, false, MISSIONAI_BUILD, &kPlot);
 				return true;
