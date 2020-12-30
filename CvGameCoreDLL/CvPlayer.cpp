@@ -9308,16 +9308,18 @@ void CvPlayer::setLastStateReligion(ReligionTypes eNewValue)
 
 	// Python Event
 	CvEventReporter::getInstance().playerChangeStateReligion(getID(), eNewValue, eOldReligion);
-	// <K-Mod>
-	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) // advc.003n
-	{
-		CvPlayerAI& kLoopPlayer = *it;
-		if (kLoopPlayer.getStateReligion() != NO_RELIGION)
+	if (isMajorCiv()) // advc.003n
+	{	// <K-Mod>
+		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) // advc.003n
 		{
-			AI().AI_updateAttitude(kLoopPlayer.getID());
-			kLoopPlayer.AI_updateAttitude(getID());
-		}
-	} // </K-Mod end>
+			CvPlayerAI& kLoopPlayer = *it;
+			if (kLoopPlayer.getStateReligion() != NO_RELIGION)
+			{
+				AI().AI_updateAttitude(kLoopPlayer.getID());
+				kLoopPlayer.AI_updateAttitude(getID());
+			}
+		} // </K-Mod end>
+	}
 }
 
 
@@ -10305,12 +10307,14 @@ void CvPlayer::setCivics(CivicOptionTypes eCivicOption, CivicTypes eNewValue)
 		}
 	} // K-Mod. (environmentalism can change this. It's nice to see the effects immediately.)
 	GC.getGame().updateGwPercentAnger();
-	// <K-Mod>
-	for (PlayerIter<MAJOR_CIV> it(getTeam()); it.hasNext(); ++it)
-	{
-		AI().AI_updateAttitude(it->getID());
-		it->AI_updateAttitude(getID());
-	} // </K-Mod>
+	if (isMajorCiv()) // advc.003n
+	{	// <K-Mod>
+		for (PlayerIter<MAJOR_CIV> it(getTeam()); it.hasNext(); ++it) // advc.003n
+		{
+			AI().AI_updateAttitude(it->getID());
+			it->AI_updateAttitude(getID());
+		} // </K-Mod>
+	}
 }
 
 

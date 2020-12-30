@@ -7204,10 +7204,14 @@ AttitudeTypes CvPlayerAI::AI_getAttitudeFromValue(int iAttitudeVal)
 // K-Mod  // advc: Renamed from "updateAttitudeCache"; "update" pretty much implies "cache".
 void CvPlayerAI::AI_updateAttitude()
 {
-	// advc.003n: Was done for all players
-	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+	// advc.agent (note): No PlayerIter b/c CvAgents may still be uninitialized here
+	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
-		AI_updateAttitude(it->getID(),
+		PlayerTypes eLoopPlayer = (PlayerTypes)i;
+		// <advc.003n>
+		if (GET_PLAYER(eLoopPlayer).isMinorCiv())
+			continue; // </advc.003n>
+		AI_updateAttitude(eLoopPlayer,
 				false); // advc.130e: Sufficient to upd. worst enemy once in the end
 	}
 	GET_TEAM(getTeam()).AI_updateWorstEnemy(); // advc.130e
@@ -7288,16 +7292,14 @@ void CvPlayerAI::AI_changeCachedAttitude(PlayerTypes ePlayer, int iChange)
 	CvPlot param b/c the city may have been razed. */
 void CvPlayerAI::AI_updateCityAttitude(CvPlot const& kCityPlot)
 {
-	if (isBarbarian())
+	if (!isMajorCiv())
 		return;
-	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	for (PlayerIter<MAJOR_CIV,KNOWN_TO> itOther(getTeam()); itOther.hasNext(); ++itOther)
 	{
-		CvPlayerAI& kOtherCiv = GET_PLAYER((PlayerTypes)i);
-		if(kOtherCiv.isAlive() && kOtherCiv.getID() != getID() && !kOtherCiv.isMinorCiv() &&
-			kCityPlot.isRevealed(kOtherCiv.getTeam()) &&
-			GET_TEAM(kOtherCiv.getTeam()).isHasMet(getTeam()))
+		if(itOther->getID() != getID() &&
+			kCityPlot.isRevealed(itOther->getTeam()))
 		{
-			kOtherCiv.AI_updateAttitude(getID());
+			itOther->AI_updateAttitude(getID());
 		}
 	}
 }
