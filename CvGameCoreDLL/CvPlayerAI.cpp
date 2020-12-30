@@ -23422,9 +23422,12 @@ void CvPlayerAI::AI_updateVictoryStageHash()
 	m_eVictoryStageHash = AI_DEFAULT_VICTORY_STAGE;
 	//m_iVictoryStrategyHashCacheTurn = GC.getGame().getGameTurn();
 
-	if (!hasCapital())
+	if (!hasCapital() ||
+		// advc.115: Can't estimate yield rates on turn 0
+		GC.getGame().getElapsedGameTurns() <= 0)
+	{
 		return;
-
+	}
 	//bool bStartedOtherLevel3 = false;
 	bool bStartedOtherLevel4 = false;
 

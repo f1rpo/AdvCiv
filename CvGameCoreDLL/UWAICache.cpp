@@ -246,7 +246,9 @@ void UWAICache::update() {
 	updateTotalAssetScore();
 	updateTargetMissionCounts();
 	updateTypicalUnits();
-	updateThreatRatings();
+	bool const playerHistAvailable = (GC.getGame().getElapsedGameTurns() > 0);
+	if(playerHistAvailable) // Can't do yield estimates on the first turn
+		updateThreatRatings();
 	updateVassalScores();
 	updateAdjacentLand();
 	updateLostTilesAtWar(); // advc.035
@@ -256,7 +258,7 @@ void UWAICache::update() {
 	updateCanScrub();
 
 	// Any values used by war evaluation need to be updated before this!
-	if(GC.getGame().getElapsedGameTurns() > 0) { /* On turn 0, the
+	if(playerHistAvailable) { /* Apart from the yield estimation problem, the
 			other civs' caches aren't up to date, which can cause problems
 			in scenarios. */
 		updateWarUtility();
