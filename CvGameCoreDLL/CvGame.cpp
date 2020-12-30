@@ -8563,7 +8563,7 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 				kNewOwner.acquireCity(pCity, false, true, true);
 			}
 		}
-		else FAssert(pCity != NULL);
+		// advc (note): Otherwise, the city has changed owner while the votes were cast.
 		setVoteOutcome(kData, NO_PLAYER_VOTE);
 	}
 }

@@ -34,8 +34,8 @@ __forceinline PlayerTypes getEnumLength(PlayerTypes, bool bAllowFOR_EACH = true)
 enum TeamTypes
 {
 	NO_TEAM = -1,
-	MAX_CIV_TEAMS = MAX_CIV_PLAYERS,
-	BARBARIAN_TEAM = MAX_CIV_TEAMS,
+	BARBARIAN_TEAM = MAX_CIV_PLAYERS,
+	MAX_CIV_TEAMS = BARBARIAN_TEAM,
 	MAX_TEAMS
 };
 __forceinline TeamTypes getEnumLength(TeamTypes, bool bAllowFOR_EACH = true)

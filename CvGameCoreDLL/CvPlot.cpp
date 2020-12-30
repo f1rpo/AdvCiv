@@ -5489,8 +5489,9 @@ void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange,
 
 	m_aiVisibilityCount.add(eTeam, iChange);
 	//FAssert(getVisibilityCount(eTeam) >= 0);
-	/*  <advc.006> Had some problems here with the Earth1000AD scenario (as the
-		initial cities were being placed). The problems remain unresolved. */
+	/*  <advc.006> Had some problems here with the Earth1000AD scenario as the
+		initial cities were being placed and over the first few turns.
+		The problems remain unresolved. */
 	/*	advc.001: Also works around a problem with nukeExplosion replacing
 		a sight-blocking feature with fallout. To reproduce this bug (in order to
 		fix it properly), it should suffice to drop a nuke onto a fogged Forest

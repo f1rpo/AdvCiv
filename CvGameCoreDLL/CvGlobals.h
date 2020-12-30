@@ -90,7 +90,7 @@ public:
 	DllExport CvInterface* getInterfacePtr();
 	DllExport int getMaxCivPlayers() const;
 	#ifdef _USRDLL // inlined for perf reasons, do not use outside of dll
-	// advc.inl: These three were defined in-line, but didn't have any inline keyword.
+	// advc.inl: forceinline just to be sure
 	__forceinline CvMap& getMap() const { return *m_map; } // was getMapINLINE
 	__forceinline CvGame& getGame() const // was getGameINLINE; advc.003u: return type was CvGameAI&
 	{	// Can't be helped; this function has to be inlined, and I won't include CvGameAI.h here.

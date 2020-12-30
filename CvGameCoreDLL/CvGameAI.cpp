@@ -33,9 +33,8 @@ void CvGameAI::AI_init()
 	AI_sortOutUWAIOptions(false); // advc.104
 }
 
-// <advc.104u>
-/*  Parts of the AI don't seem to get properly initialized in scenarios. Not
-	sure if this has always been the case, if it has to do with K-Mod changes to
+/*	advc.104u: Parts of the AI don't seem to get properly initialized in scenarios.
+	Not sure if this has always been the case, if it has to do with K-Mod changes to
 	the turn order (team turns vs. player turns) or is a problem I introduced.
 	Amendment: */
 void CvGameAI::AI_initScenario()

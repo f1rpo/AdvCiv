@@ -6921,9 +6921,11 @@ void CvPlayerAI::AI_chooseResearch()
 					continue;
 				// advc.156: Priority for human members
 				if(((iPass == 0) == kOtherMember.isHuman()) &&
-						kOtherMember.getCurrentResearch() != NO_TECH &&
-						canResearch(kOtherMember.getCurrentResearch()))
+					kOtherMember.getCurrentResearch() != NO_TECH &&
+					canResearch(kOtherMember.getCurrentResearch()))
+				{
 					pushResearch(kOtherMember.getCurrentResearch());
+				}
 			}
 		}
 	}
@@ -20417,8 +20419,8 @@ void CvPlayerAI::AI_proposeWarTrade(PlayerTypes eHireling)
 				int iAcquireVal = kHireling.AI_cityTradeVal(*pCity, kHireling.getID());
 				if (iAcquireVal <= 0) // Hireling insisting on liberation
 					continue;
-				FErrorMsg("Just to verify that this line is reachable; hasn't come up in tests yet"); // advc.test
 				int iFitness = iKeepVal - iAcquireVal;
+				FErrorMsg("Just for testing the condition below; hasn't been true in tests so far."); // advc.test
 				if (iFitness > iBestFitness && (iKeepVal <= 0 ||
 					scaled(iAcquireVal, iKeepVal) - 1 > per100(iWSRating)))
 				{

@@ -19558,7 +19558,7 @@ double CvPlayer::estimateYieldRate(YieldTypes eYield, int iSamples) const
 {
 	//PROFILE_FUNC(); // Called very frequently; about 1.5% of the turn times (July 2019).
 	CvGame const& kGame = GC.getGame();
-	int iGameTurn = kGame.getGameTurn();
+	int const iGameTurn = kGame.getGameTurn();
 	int const iTurnsPlayed = iGameTurn - kGame.getStartTurn();
 	iSamples = std::min(iSamples, iTurnsPlayed - 1);
 	std::vector<double> adSamples; // double for ::dMedian

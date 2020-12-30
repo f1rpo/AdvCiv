@@ -18638,8 +18638,8 @@ bool CvUnitAI::AI_considerPickup(UnitAITypes eUnitAI, CvCityAI const& kCity) con
 	// BETTER_BTS_AI_MOD: END
 }
 
-// BETTER_BTS_AI_MOD, Naval AI, 02/22/10, jdog5000: START
-// (this function has been significantly edited for K-Mod)  // advc: minor style changes
+/*	BETTER_BTS_AI_MOD, Naval AI, 02/22/10, jdog5000:
+	(this function has been significantly edited for K-Mod) */
 bool CvUnitAI::AI_pickupStranded(UnitAITypes eUnitAI, int iMaxPath)
 {
 	PROFILE_FUNC();

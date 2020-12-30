@@ -1,13 +1,8 @@
 /**********************************************************************
-
 File:		CvBugOptions.cpp
 Author:		EmperorFool
-Created:	2009-01-21
-
-		Copyright (c) 2009 The BUG Mod. All rights reserved.
-
+Created:	2009-01-21Copyright (c) 2009 The BUG Mod. All rights reserved.
 **********************************************************************/
-
 // This file has been edited for K-Mod
 
 #include "CvGameCoreDLL.h"
@@ -31,10 +26,11 @@ int getDefineINT(const char* xmlKey, int iDefault) {
 	else return iDefault;
 }*/
 
-// <advc>
-bool checkBUGStatus(const char* optionKey, bool bWarn) {
-
-	if(!GC.IsGraphicsInitialized() || GC.getGame().getActivePlayer() == NO_PLAYER) {
+// advc:
+bool checkBUGStatus(const char* optionKey, bool bWarn)
+{
+	if(!GC.IsGraphicsInitialized() || GC.getGame().getActivePlayer() == NO_PLAYER)
+	{
 		if(!bWarn)
 			return false;
 		CvString szMsg = "BUG option ";
@@ -45,7 +41,7 @@ bool checkBUGStatus(const char* optionKey, bool bWarn) {
 		return false;
 	}
 	return true;
-} // </advc>
+}
 
 
 bool BUGOption::isEnabled(const char* id, bool bDefault, bool bWarn)
@@ -74,10 +70,10 @@ int BUGOption::getValue(const char* id, int iDefault, bool bWarn)
 	gDLL->getPythonIFace()->callFunction(PYBugOptionsModule, "getOptionINT", argsList.makeFunctionArgs(), &lResult);
 	return lResult;
 }
-// <advc.003d>
+// advc.003d:
 CvString BUGOption::userDirPath()
 {
 	CvString r;
 	gDLL->getPythonIFace()->callFunction(PYBugOptionsModule, "getUserDirStr", NULL, &r);
 	return r;
-} // </advc.003d>
+}
