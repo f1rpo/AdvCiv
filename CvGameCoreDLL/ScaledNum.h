@@ -11,7 +11,7 @@
 	(Tbd.: Move those global functions here.)
 	For inclusion in PCH, one may have to define NOMINMAX before including windows.h;
 	see CvGameCoreDLL.h.
-	May want to define __forceinline as inline if FASSERT_ENABLE is defined;
+	May want to define __forceinline as __inline if FASSERT_ENABLE is defined;
 	see FAssert.h.
 	The bernoulliSuccess function assumes that CvRandom can include two integer values
 	in its log messages; see comment in bernoulliSuccess. */
@@ -28,7 +28,7 @@
 #endif
 
 /*	Uncomment for some additional runtime assertions
-	checking conditions that are really the client's responsibility. */
+	checking conditions that are really the user's responsibility. */
 //#define SCALED_NUM_EXTRA_ASSERTS
 
 // For members shared by all instantiations of ScaledNum
@@ -213,7 +213,9 @@ public:
 	}
 	__forceinline ScaledNum(uint u) : m_i(static_cast<IntType>(SCALE * u))
 	{
-		FAssert(u <= static_cast<uint>(INTMAX) / static_cast<uint>(SCALE));
+		#ifdef SCALED_NUM_EXTRA_ASSERTS
+			FAssert(u <= static_cast<uint>(INTMAX) / static_cast<uint>(SCALE));
+		#endif
 	}
 	// Construction from rational
 	__forceinline ScaledNum(int iNum, int iDen)
@@ -243,7 +245,7 @@ public:
 	//__forceinline int getInt() const { return round(); }
 	// Cast operator - again, better to be explicit.
 	//__forceinline operator int() const { return getInt(); }
-	int round() const;
+	int round() const; // (expect this to get inlined for unsigned IntType)
 	__forceinline int floor() const
 	{
 		return static_cast<int>(m_i / SCALE);
@@ -310,7 +312,7 @@ public:
 
 	// Bernoulli trial (coin flip) with success probability equal to m_i/SCALE
 	bool bernoulliSuccess(CvRandom& kRand, char const* szLog,
-			int iLogData1 = -1, int iLogData2 = -1) const;
+			int iLogData1 = MIN_INT, int iLogData2 = MIN_INT) const;
 
 	ScaledNum pow(int iExp) const;
 	__forceinline ScaledNum pow(ScaledNum rExp) const
@@ -799,7 +801,7 @@ private:
 		return lNum * SCALE;
 	}
 
-	/*	Tbd.: Public only as a temporary measure for code bases that use
+	/*	Tbd.: Public only as a temporary measure for codebases that use
 		floating-point numbers and can't immediately replace them all with ScaledNum.
 		Converting from double to ScaledNum at runtime really defeats the
 		purpose of the ScaledNum class. */
@@ -875,7 +877,7 @@ int ScaledNum_T::round() const
 
 template<ScaledNum_PARAMS>
 bool ScaledNum_T::bernoulliSuccess(CvRandom& kRand, char const* szLog,
-	int iLogData1 = -1, int iLogData2 = -1) const
+	int iLogData1, int iLogData2) const
 {
 	// Guards for better performance and to avoid unnecessary log output
 	if (m_i <= 0)
