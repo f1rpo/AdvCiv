@@ -18620,30 +18620,20 @@ void CvGameTextMgr::parseGreatGeneralHelp(CvWStringBuffer &szBuffer, CvPlayer& k
 }
 
 
-//------------------------------------------------------------------------------------------------
-
 void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvCity* pCity)
 {
 	szBuffer.clear();
 
 	// government center icon
 	if (pCity->isGovernmentCenter() && !(pCity->isCapital()))
-	{
 		szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(SILVER_STAR_CHAR)));
-	}
-
 	// happiness, healthiness, superlative icons
 	if (pCity->canBeSelected())
 	{
 		if (pCity->angryPopulation() > 0)
-		{
 			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(UNHAPPY_CHAR)));
-		}
-
 		if (pCity->healthRate() < 0)
-		{
 			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(UNHEALTHY_CHAR)));
-		}
 		// advc.076: Disabled
 		/*if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_DETAIL)) {
 			if (GET_PLAYER(pCity->getOwner()).getNumCities() > 2) {
@@ -18666,81 +18656,81 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 		// BUG - Airport Icon - start
 		if (BUGOption::isEnabled("MainInterface__AirportIcon", true))
 		{
-			BuildingClassTypes eAirportClass = (BuildingClassTypes)GC.getInfoTypeForString("BUILDINGCLASS_AIRPORT"
+			BuildingClassTypes eAirportClass = (BuildingClassTypes)
+					GC.getInfoTypeForString("BUILDINGCLASS_AIRPORT"
 					// Mod-mods that don't have an airport should set bHideAssert:
 					/*,true*/);
 			if (eAirportClass != NO_BUILDINGCLASS)
 			{
-				BuildingTypes eAirport = pCity->getCivilization().getBuilding(eAirportClass);
+				BuildingTypes eAirport = pCity->getCivilization().
+						getBuilding(eAirportClass);
 				if (eAirport != NO_BUILDING && pCity->getNumBuilding(eAirport) > 0)
 				{
-					szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(AIRPORT_CHAR)));
+					szBuffer.append(CvWString::format(L"%c",
+							gDLL->getSymbolID(AIRPORT_CHAR)));
 				}
 			}
 		} // BUG - Airport Icon - end
 		// </advc.002f>
 	}
-
 	// religion icons
-	for (int iI = 0; iI < GC.getNumReligionInfos(); ++iI)
+	FOR_EACH_ENUM(Religion)
 	{
-		if (pCity->isHasReligion((ReligionTypes)iI))
+		if (pCity->isHasReligion(eLoopReligion))
 		{
-			if (pCity->isHolyCity((ReligionTypes)iI))
+			if (pCity->isHolyCity(eLoopReligion))
 			{
-				szBuffer.append(CvWString::format(L"%c", GC.getInfo((ReligionTypes) iI).getHolyCityChar()));
+				szBuffer.append(CvWString::format(L"%c",
+						GC.getInfo(eLoopReligion).getHolyCityChar()));
 			}
 			else
 			{
-				szBuffer.append(CvWString::format(L"%c", GC.getInfo((ReligionTypes) iI).getChar()));
+				szBuffer.append(CvWString::format(L"%c",
+						GC.getInfo(eLoopReligion).getChar()));
 			}
 		}
 	}
-
 	// corporation icons
-	for (int iI = 0; iI < GC.getNumCorporationInfos(); ++iI)
+	FOR_EACH_ENUM2(Corporation, eLoopCorp)
 	{
-		if (pCity->isHeadquarters((CorporationTypes)iI))
+		if (pCity->isHeadquarters(eLoopCorp))
 		{
-			if (pCity->isHasCorporation((CorporationTypes)iI))
+			if (pCity->isHasCorporation(eLoopCorp))
 			{
-				szBuffer.append(CvWString::format(L"%c", GC.getInfo((CorporationTypes) iI).getHeadquarterChar()));
+				szBuffer.append(CvWString::format(L"%c",
+						GC.getInfo(eLoopCorp).getHeadquarterChar()));
 			}
 		}
 		else
 		{
-			if (pCity->isActiveCorporation((CorporationTypes)iI))
+			if (pCity->isActiveCorporation(eLoopCorp))
 			{
-				szBuffer.append(CvWString::format(L"%c", GC.getInfo((CorporationTypes) iI).getChar()));
+				szBuffer.append(CvWString::format(L"%c",
+						GC.getInfo(eLoopCorp).getChar()));
 			}
 		}
 	}
-
-	if (pCity->getTeam() == GC.getGame().getActiveTeam())
+	if (pCity->getTeam() == GC.getGame().getActiveTeam() && pCity->isPower())
 	{
-		if (pCity->isPower())
-		{
-			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(POWER_CHAR)));
-		}
+		szBuffer.append(CvWString::format(L"%c",
+				gDLL->getSymbolID(POWER_CHAR)));
 	}
-
-	// XXX out this in bottom bar???
-	if (pCity->isOccupation())
+	if (pCity->isOccupation()) // XXX out this in bottom bar???
 	{
-		szBuffer.append(CvWString::format(L" (%c:%d)", gDLL->getSymbolID(OCCUPATION_CHAR), pCity->getOccupationTimer()));
+		szBuffer.append(CvWString::format(L" (%c:%d)",
+				gDLL->getSymbolID(OCCUPATION_CHAR), pCity->getOccupationTimer()));
 	}
-
 	// defense icon and text
 	//if (pCity->getTeam() != GC.getGame().getActiveTeam())
 	{
 		if (pCity->isVisible(GC.getGame().getActiveTeam(), true))
 		{
-			int iDefenseModifier = pCity->getDefenseModifier(GC.getGame().selectionListIgnoreBuildingDefense());
-
+			int iDefenseModifier = pCity->getDefenseModifier(
+					GC.getGame().selectionListIgnoreBuildingDefense());
 			if (iDefenseModifier != 0)
 			{
 				//szBuffer.append(CvWString::format(L" %c:%s%d%%", gDLL->getSymbolID(DEFENSE_CHAR), ((iDefenseModifier > 0) ? "+" : ""), iDefenseModifier));
-				// <advc.002f> Replacing the above
+				// <advc.002f>
 				szBuffer.append(CvWString::format(L"   " SETCOLR L"%s%d%%" ENDCOLR L"%c",
 						// I've tried some other colors, but they're no easier to read.
 						TEXT_COLOR("COLOR_WHITE"),
