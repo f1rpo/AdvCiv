@@ -16184,16 +16184,21 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 							GC.getInfo(eLoopTech).getTextKeyWide()));
 				}
 			}
-		}
-
-		//	Civics
-		for (int iYield = 0; iYield < NUM_YIELD_TYPES; iYield++)
+		}  // <advc.004> Based on Python code in Pedia
+		FOR_EACH_ENUM(Route)
 		{
-			for (int iCivic = 0; iCivic < GC.getNumCivicInfos(); iCivic++)
+			FOR_EACH_ENUM(Yield)
 			{
-				int iChange = GC.getInfo((CivicTypes)iCivic).getImprovementYieldChanges(eImprovement, iYield);
-				if (iChange != 0)
+				int iYieldChange = kImprov.getRouteYieldChanges(eLoopRoute, eLoopYield);
+				if (iYieldChange != 0)
 				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_WITH_ROUTE",
+							iYieldChange, GC.getInfo(eLoopYield).getChar(),
+							GC.getInfo(eLoopRoute).getTextKeyWide()));		
+				}
+			}
+		} // </advc.004>
 		FOR_EACH_ENUM(Civic)
 		{
 			FOR_EACH_ENUM(Yield)

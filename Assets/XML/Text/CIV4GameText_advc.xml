@@ -6419,6 +6419,20 @@
 		<Spanish>Debug tools have been enabled.</Spanish>
 	</TEXT>
 
+	<!-- advc.004: Based on TXT_KEY_IMPROVEMENT_WITH_TECH
+		 (CIV4GameTextInfos.xml). There isn't really an established color
+		 for routes, so I'm not using one. Other colors, in this context, are
+		 HIGHLIGHT_TEXT for civics and TECH_TEXT for techs. (But there are also
+		 some other uncolored bullets.) -->
+	<TEXT>
+		<Tag>TXT_KEY_IMPROVEMENT_WITH_ROUTE</Tag>
+		<English>[ICON_BULLET]%D1_Change%F2_YieldIcon with %s3_RouteName</English>
+		<French>[ICON_BULLET]%D1_Change%F2_YieldIcon avec : %s3_RouteName</French>
+		<German>[ICON_BULLET]%D1_Change%F2_YieldIcon mit %s3_RouteName</German>
+		<Italian>[ICON_BULLET]%D1_Change%F2_YieldIcon con [NUM3:il:la:gli:le] %s3_RouteName</Italian>
+		<Spanish>[ICON_BULLET]%D1_Change %F2_YieldIcon con [NUM3:el:la:los:las] %s3_RouteName</Spanish>
+	</TEXT>
+
 	<!-- advc.004 -->
 	<!-- Replacing key in Civ4GameTextInfos.xml.
 		 Don't refer to the food store as "growth" b/c that's a bit misleading
