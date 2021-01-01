@@ -1116,4 +1116,14 @@
 	<Spanish>(AdvCiv) The audio mix is affected by the camera distance. If e.g. the music volume is too low at your preferred camera distance, consider changing the default camera distance on the "Map" tab of the BUG menu.</Spanish>
 </TEXT>
 
+<!-- advc.002f -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_49</Tag>
+	<English>(AdvCiv) When a city is set to [COLOR_HIGHLIGHT_TEXT]Avoid Growth[COLOR_REVERT], a warning icon is (optionally) shown above the city bar on the main map. On a related note, make sure that citizen automation is enabled if you want the governor maximize production and commerce while avoiding growth.</English>
+	<French>(AdvCiv) When a city is set to [COLOR_HIGHLIGHT_TEXT]Avoid Growth[COLOR_REVERT], a warning icon is (optionally) shown above the city bar on the main map. On a related note, make sure that citizen automation is enabled if you want the governor maximize production and commerce while avoiding growth.</French>
+	<German>(AdvCiv) Wenn in einer Stadt [COLOR_HIGHLIGHT_TEXT]Wachstum vermeiden[COLOR_REVERT] aktiviert ist, erscheint (optional) zur Erinnerung ein Symbol über dem Stadtnamen auf der Hauptkarte. Übrigens: Wenn der KI-Gouverneur beim Vermeiden von Wachstum andere Erträge maximieren soll, muss auch die Bürgerautomatisierung aktiv sein.</German>
+	<Italian>(AdvCiv) When a city is set to [COLOR_HIGHLIGHT_TEXT]Avoid Growth[COLOR_REVERT], a warning icon is (optionally) shown above the city bar on the main map. On a related note, make sure that citizen automation is enabled if you want the governor maximize production and commerce while avoiding growth.</Italian>
+	<Spanish>(AdvCiv) When a city is set to [COLOR_HIGHLIGHT_TEXT]Avoid Growth[COLOR_REVERT], a warning icon is (optionally) shown above the city bar on the main map. On a related note, make sure that citizen automation is enabled if you want the governor maximize production and commerce while avoiding growth.</Spanish>
+</TEXT>
+
 </Civ4GameText>

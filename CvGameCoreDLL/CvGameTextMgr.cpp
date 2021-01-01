@@ -6848,18 +6848,36 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 	CvWString szTempBuffer;
 
 	szString.append(pCity->getName());
-
-	int iFoodDifference = pCity->foodDifference();
-	if (iFoodDifference <= 0)
 	{
-		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_GROWTH",
-				pCity->getFood(), pCity->growthThreshold()));
-	}
-	else
-	{
-		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_FOOD_GROWTH",
-				iFoodDifference, pCity->getFood(), pCity->growthThreshold(),
-				pCity->getFoodTurnsLeft()));
+		int const iFoodDifference = pCity->foodDifference();
+		// advc.002f:
+		bool const bAvoidGrowth = pCity->AI().AI_isEmphasizeAvoidGrowth();
+		if (iFoodDifference == 0) // advc.004: was <=
+		{
+			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_GROWTH",
+					pCity->getFood(), pCity->growthThreshold()));
+		}
+		else
+		{
+			szString.append(gDLL->getText(
+					iFoodDifference < 0 ? "TXT_KEY_CITY_BAR_STARVATION" : // advc.004
+					"TXT_KEY_CITY_BAR_FOOD_GROWTH",
+					iFoodDifference < 0 ? -iFoodDifference : // advc.004
+					iFoodDifference, pCity->getFood(),
+					pCity->growthThreshold(), pCity->getFoodTurnsLeft()));
+		}
+		// <advc.002f>
+		if (bAvoidGrowth)
+		{
+			szTempBuffer += gDLL->getText("TXT_KEY_CITY_BAR_AVOID_GROWTH");
+			if (pCity->getFoodTurnsLeft() == 1)
+			{
+				szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
+						TEXT_COLOR("COLOR_WARNING_TEXT"), szTempBuffer.GetCString());
+			}
+			szString.append(L" - ");
+			szString.append(szTempBuffer);
+		} // </advc.002f>
 	}
 	if (pCity->getProductionNeeded() != MAX_INT)
 	{
@@ -18629,7 +18647,12 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 		szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(SILVER_STAR_CHAR)));
 	// happiness, healthiness, superlative icons
 	if (pCity->canBeSelected())
-	{
+	{	// <advc.002f>
+		if (pCity->AI().AI_isEmphasizeAvoidGrowth() &&
+			BUGOption::isEnabled("MainInterface__AvoidGrowthIcon", false))
+		{
+			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(BAD_FOOD_CHAR)));
+		} // </advc.002f>
 		if (pCity->angryPopulation() > 0)
 			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(UNHAPPY_CHAR)));
 		if (pCity->healthRate() < 0)

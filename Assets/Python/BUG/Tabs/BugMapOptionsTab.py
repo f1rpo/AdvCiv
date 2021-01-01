@@ -59,8 +59,9 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		# <advc.002f>
 		self.addLabel(screen, center, "CityIcons", "City Billboards:")
 		# advc.095:
-		self.addCheckbox(screen, center, "MainInterface__WideCityBars")
 		centerL, centerR = self.addTwoColumnLayout(screen, center, "CityIcons", False)
+		self.addCheckbox(screen, centerL, "MainInterface__WideCityBars")
+		self.addCheckbox(screen, centerR, "MainInterface__AvoidGrowthIcon")
 		self.addCheckbox(screen, centerL, "MainInterface__CityNetworkIcon")
 		self.addCheckbox(screen, centerR, "MainInterface__AirportIcon")
 		self.addCheckbox(screen, centerL, "MainInterface__TopProductionIcon")

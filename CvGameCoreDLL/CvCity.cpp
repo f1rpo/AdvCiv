@@ -11718,14 +11718,13 @@ void CvCity::getVisibleEffects(ZoomLevelTypes eCurZoom,
 
 void CvCity::getCityBillboardSizeIconColors(NiColorA& kDotColor, NiColorA& kTextColor) const
 {
-	PlayerColorTypes ePlayerColor = //GET_PLAYER(getOwner()).getPlayerColor())
+	PlayerColorTypes const ePlayerColor = //GET_PLAYER(getOwner()).getPlayerColor())
 		/*  advc.001: CvPlayer::getPlayerColor will return the Barbarian color
 			if the city owner hasn't been met (city revealed through map trade) */
 			GC.getInitCore().getColor(getOwner());
 	NiColorA kPlayerColor = GC.getInfo(GC.getInfo(ePlayerColor).
 			getColorTypePrimary()).getColor();
-	NiColorA kGrowing;
-	kGrowing = NiColorA(0.73f, 1,0.73f, 1);
+	NiColorA kGrowing(0.73f, 1,0.73f, 1);
 	NiColorA kShrinking(1, 0.73f, 0.73f, 1);
 	NiColorA kStagnant(0.83f, 0.83f, 0.83f, 1);
 	NiColorA kUnknown(.5f, .5f, .5f, 1);
@@ -11734,29 +11733,27 @@ void CvCity::getCityBillboardSizeIconColors(NiColorA& kDotColor, NiColorA& kText
 
 	if (getTeam() == GC.getGame().getActiveTeam() /* advc.127: */ && isHuman())
 	{
-		if (foodDifference() < 0)
+		kTextColor = kBlack;
+		int const iFoodDifference = foodDifference();
+		int const iFood = getFood();
+		int const iGrowthThreshold = growthThreshold();
+		if (iFoodDifference < 0)
 		{
-			if (foodDifference() == -1 && getFood() >= (75 * growthThreshold()) / 100)
-			{
+			if (iFoodDifference == -1 && iFood * 100 >= 75 * iGrowthThreshold)
 				kDotColor = kStagnant;
-				kTextColor = kBlack;
-			}
-			else
+			else kDotColor = kShrinking;
+		}
+		else if (iFoodDifference > 0)
+		{	// <advc.002f>
+			if (AI().AI_isEmphasizeAvoidGrowth())
 			{
-				kDotColor = kShrinking;
-				kTextColor = kBlack;
-			}
+				if (iFood + iFoodDifference >= iGrowthThreshold) // Food being wasted
+					kDotColor = kShrinking;
+				else kDotColor = kStagnant; // Food will be wasted - and not growing
+			} // </advc.002f>
+			else kDotColor = kGrowing;
 		}
-		else if (foodDifference() > 0)
-		{
-			kDotColor = kGrowing;
-			kTextColor = kBlack;
-		}
-		else if (foodDifference() == 0)
-		{
-			kDotColor = kStagnant;
-			kTextColor = kBlack;
-		}
+		else kDotColor = kStagnant;
 	}
 	else
 	{

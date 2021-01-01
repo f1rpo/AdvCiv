@@ -869,6 +869,24 @@
 	</TEXT>
 	
 	<!-- advc.002f: -->
+	<!-- Based on TXT_KEY_EMPHASIZE_AVOID_GROWTH.
+		 There is very little space for German. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__AVOIDGROWTHICON_TEXT</Tag>
+		<English>Avoid Growth</English>
+		<French>Evitant croissance</French>
+		<German>Wächst nie</German>
+		<Italian>Evitando crescita</Italian>
+		<Spanish>Evitando crecimiento</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__AVOIDGROWTHICON_HOVER</Tag>
+		<English>When checked, the [ICON_BAD_FOOD] icon is shown above the billboard of any cities that are set to "Avoid Growth".</English>
+		<French>When checked, the [ICON_BAD_FOOD] icon is shown above the billboard of any cities that are set to "Avoid Growth".</French>
+		<German>Zeigt das [ICON_BAD_FOOD]-Symbol über den Namen von Städten an, in denen die Funktion "Wachstum vermeiden" aktiviert ist.</German>
+		<Italian>When checked, the [ICON_BAD_FOOD] icon is shown above the billboard of any cities that are set to "Avoid Growth".</Italian>
+		<Spanish>When checked, the [ICON_BAD_FOOD] icon is shown above the billboard of any cities that are set to "Avoid Growth".</Spanish>
+	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__CITYNETWORKICON_TEXT</Tag>
 		<English>Trade Network</English>
@@ -1038,7 +1056,7 @@
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__WIDECITYBARS_TEXT</Tag>
 		<English>Wide City Bars</English>
 		<French>Wide City Bars</French>
-		<German>Breite Fortschrittsbalken</German>
+		<German>Verbreitern</German>
 		<Italian>Wide City Bars</Italian>
 		<Spanish>Wide City Bars</Spanish>
 	</TEXT>
@@ -1046,7 +1064,7 @@
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__WIDECITYBARS_HOVER</Tag>
 		<English>When checked, the main map displays the wide city bars from the BUG mod. (Known issue with those bars: the right half can't be moused over.)</English>
 		<French>When checked, the main map displays the wide city bars from the BUG mod. (Known issue with those bars: the right half can't be moused over.)</French>
-		<German>Zeigt die extra-breiten Stadtbalken aus der BUG-Mod auf der Hauptkarte an. (Die rechten Hälften dieser Balken lassen sich nicht anklicken - bekanntes Problem.)</German>
+		<German>Zeigt die extra-breiten Fortschritts-Balken aus der BUG-Mod auf der Hauptkarte an. (Die rechten Hälften dieser Balken lassen sich nicht anklicken - bekanntes Problem.)</German>
 		<Italian>When checked, the main map displays the wide city bars from the BUG mod. (Known issue with those bars: the right half can't be moused over.)</Italian>
 		<Spanish>When checked, the main map displays the wide city bars from the BUG mod. (Known issue with those bars: the right half can't be moused over.)</Spanish>
 	</TEXT>

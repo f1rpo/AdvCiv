@@ -6419,4 +6419,57 @@
 		<Spanish>Debug tools have been enabled.</Spanish>
 	</TEXT>
 
+	<!-- advc.004 -->
+	<!-- Replacing key in Civ4GameTextInfos.xml.
+		 Don't refer to the food store as "growth" b/c that's a bit misleading
+		 when growth is stagnating. -->
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_GROWTH</Tag>
+		<English>[NEWLINE]%d1/%d2 [ICON_FOOD]</English>
+		<French>[NEWLINE]%d1/%d2 [ICON_FOOD]</French>
+		<German>[NEWLINE]%d1/%d2 [ICON_FOOD]</German>
+		<Italian>[NEWLINE]%d1/%d2 [ICON_FOOD]</Italian>
+		<Spanish>[NEWLINE]%d1/%d2 [ICON_FOOD]</Spanish>
+	</TEXT>
+	<!-- Replacing TXT_KEY_CITY_BAR_FOOD_GROWTH; Don't like the word "growth"
+		 here either. The idea is, apparently, to mirror the text for production,
+		 which names the production order and then shows the turns remaining.
+		 FIS unchanged. -->
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_FOOD_GROWTH</Tag>
+		<English>[NEWLINE]%d1 [ICON_FOOD]/Turn[NEWLINE]%d2/%d3 [ICON_FOOD] (%d4 [NUM4:Turn:Turns])</English>
+		<French>[NEWLINE]%d1 [ICON_FOOD]/tour[NEWLINE]Croissance : %d2/%d3 [ICON_FOOD] (%d4 [NUM4:tour:tours])</French>
+		<German>[NEWLINE]%d1 [ICON_FOOD]/Runde[ICON_FOOD]%d2/%d3 (%d4 [NUM4:Turn:Turns])</German>
+		<Italian>[NEWLINE]%d1 [ICON_FOOD]/Turno[NEWLINE]Crescita: %d2/%d3 [ICON_FOOD] (%d4 [NUM4:turno:turni])</Italian>
+		<Spanish>[NEWLINE]%d1 [ICON_FOOD]/turno[NEWLINE]Crecimiento: %d2/%d3 [ICON_FOOD] (%d4 [NUM4:turno:turnos])</Spanish>
+	</TEXT>
+	<!-- As above, but with bad food. (No need for text color in addition.) -->
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_STARVATION</Tag>
+		<English>[NEWLINE]%d1 [ICON_BAD_FOOD]/Turn[NEWLINE]%d2/%d3 [ICON_FOOD] (%d4 [NUM4:Turn:Turns]) </English>
+		<French>[NEWLINE]%d1 [ICON_BAD_FOOD]/tour[NEWLINE]Croissance : %d2/%d3 [ICON_FOOD] (%d4 [NUM4:tour:tours])</French>
+		<German>[NEWLINE]%d1 [ICON_BAD_FOOD]/Runde[NEWLINE]%d2/%d3 [ICON_FOOD] (%d4 [NUM4:Turn:Turns])</German>
+		<Italian>[NEWLINE]%d1 [ICON_BAD_FOOD]/Turno[NEWLINE]Crescita: %d2/%d3 [ICON_FOOD] (%d4 [NUM4:turno:turni])</Italian>
+		<Spanish>[NEWLINE]%d1 [ICON_BAD_FOOD]/turno[NEWLINE]Crecimiento: %d2/%d3 [ICON_FOOD] (%d4 [NUM4:turno:turnos])</Spanish>
+	</TEXT>
+
+	<!-- advc.002f: Based on INTERFACE_CITY_GROWING (Civ4GameTextInfos.xml) and
+		 TXT_KEY_BUG_OPT_MAININTERFACE__AVOIDGROWTHICON_TEXT. -->
+	<TEXT>
+		<Tag>INTERFACE_CITY_AVOIDING_GROWTH</Tag>
+		<English>Avoiding Growth ([COLOR_WARNING_TEXT]%d1 [NUM1:Turn:Turns][COLOR_REVERT])</English>
+		<French>Evitant croissance ([COLOR_WARNING_TEXT]%d1 [NUM1:tour:tours][COLOR_REVERT])</French>
+		<German>Vermeide Wachstum ([COLOR_WARNING_TEXT]%d1 [NUM1:Runde:Runden][COLOR_REVERT])</German>
+		<Italian>Evitando crescita ([COLOR_WARNING_TEXT]%d1 [NUM1:Turno:Turni][COLOR_REVERT])</Italian>
+		<Spanish>Evitando crecimiento ([COLOR_WARNING_TEXT]%d1 [NUM1:turno:turnos][COLOR_REVERT])</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_AVOID_GROWTH</Tag>
+		<English>Avoiding Growth</English>
+		<French>evitant croissance</French>
+		<German>vermeide Wachstum</German>
+		<Italian>evitando crescita</Italian>
+		<Spanish>evitando crecimiento</Spanish>
+	</TEXT>
+
 </Civ4GameText>

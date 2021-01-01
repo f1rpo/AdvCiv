@@ -249,6 +249,8 @@
 			</list>
 
 			<!-- advc.002f: -->
+			<option id="AvoidGrowthIcon" key="Avoid Growth Icon" 
+					type="boolean" default="True" dirtyBit="CityInfo"/>
 			<option id="CityNetworkIcon" key="City Network Icon" 
 					type="boolean" default="False" dirtyBit="CityInfo"/>
 			<option id="AirportIcon" key="Airport Icon" 

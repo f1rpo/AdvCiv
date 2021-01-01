@@ -3669,7 +3669,12 @@ class CvMainInterface:
 #					if (CityUtil.willGrowThisTurn(pHeadSelectedCity)):   # K-Mod disabled this. I think 'Growth!' sounds lame.
 #						szBuffer = localText.getText("INTERFACE_CITY_GROWTH", ()) #was elif on next line
 					if (iFoodDifference > 0):
-						szBuffer = localText.getText("INTERFACE_CITY_GROWING", (pHeadSelectedCity.getFoodTurnsLeft(), ))	
+						# <advc.002f>
+						if CityUtil.avoidingGrowth(pHeadSelectedCity):
+							szBuffer = localText.getText("INTERFACE_CITY_AVOIDING_GROWTH", (pHeadSelectedCity.getFoodTurnsLeft(), ))
+						else:
+						# </advc.002f>
+							szBuffer = localText.getText("INTERFACE_CITY_GROWING", (pHeadSelectedCity.getFoodTurnsLeft(), ))
 					elif (iFoodDifference < 0):
 						if (CityScreenOpt.isShowFoodAssist()):
 							iTurnsToStarve = pHeadSelectedCity.getFood() / -iFoodDifference + 1
