@@ -1063,20 +1063,10 @@ int CvImprovementInfo::getPrereqNatureYield(int i) const
 	return m_piPrereqNatureYield ? m_piPrereqNatureYield[i] : 0; // advc.003t
 }
 
-int* CvImprovementInfo::getPrereqNatureYieldArray()
-{
-	return m_piPrereqNatureYield;
-}
-
 int CvImprovementInfo::getYieldChange(int i) const
 {
 	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piYieldChange ? m_piYieldChange[i] : 0; // advc.003t
-}
-
-int* CvImprovementInfo::getYieldChangeArray()
-{
-	return m_piYieldChange;
 }
 
 int CvImprovementInfo::getRiverSideYieldChange(int i) const
@@ -1085,31 +1075,16 @@ int CvImprovementInfo::getRiverSideYieldChange(int i) const
 	return m_piRiverSideYieldChange ? m_piRiverSideYieldChange[i] : 0; // advc.003t
 }
 
-int* CvImprovementInfo::getRiverSideYieldChangeArray()
-{
-	return m_piRiverSideYieldChange;
-}
-
 int CvImprovementInfo::getHillsYieldChange(int i) const
 {
 	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piHillsYieldChange ? m_piHillsYieldChange[i] : 0; // advc.003t
 }
 
-int* CvImprovementInfo::getHillsYieldChangeArray()
-{
-	return m_piHillsYieldChange;
-}
-
 int CvImprovementInfo::getIrrigatedYieldChange(int i) const
 {
 	FAssertBounds(0, NUM_YIELD_TYPES, i);
 	return m_piIrrigatedChange ? m_piIrrigatedChange[i] : 0; // advc.003t
-}
-
-int* CvImprovementInfo::getIrrigatedYieldChangeArray()
-{
-	return m_piIrrigatedChange;
 }
 
 bool CvImprovementInfo::getTerrainMakesValid(int i) const
@@ -1131,8 +1106,9 @@ int CvImprovementInfo::getTechYieldChanges(int i, int j) const
 	return m_ppiTechYieldChanges[i][j];
 }
 
-int* CvImprovementInfo::getTechYieldChangesArray(int i) const
+int const* CvImprovementInfo::getTechYieldChangesArray(int i) const
 {
+	FAssertBounds(0, GC.getNumTechInfos(), i); // advc
 	return m_ppiTechYieldChanges[i];
 }
 
@@ -1143,8 +1119,9 @@ int CvImprovementInfo::getRouteYieldChanges(int i, int j) const
 	return m_ppiRouteYieldChanges[i][j];
 }
 
-int* CvImprovementInfo::getRouteYieldChangesArray(int i) const
+int const* CvImprovementInfo::getRouteYieldChangesArray(int i) const
 {
+	FAssertBounds(0, GC.getNumRouteInfos(), i); // advc
 	return m_ppiRouteYieldChanges[i];
 }
 

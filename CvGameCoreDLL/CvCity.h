@@ -1183,14 +1183,9 @@ public:
 	}
 	DllExport OrderData getOrderData(int iIndex) const;
 
-	// fill the kVisible array with buildings that you want shown in city, as well as the number of generics
-	// This function is called whenever CvCity::setLayoutDirty() is called
 	DllExport void getVisibleBuildings(std::list<BuildingTypes>& kVisible, int& iNumGenerics);
 	bool isAllBuildingsVisible(TeamTypes eTeam, bool bDebug) const; // advc.045
 
-	// Fill the kEffectNames array with references to effects in the CIV4EffectInfos.xml to have a
-	// city play a given set of effects. This is called whenever the interface updates the city billboard
-	// or when the zoom level changes
 	DllExport void getVisibleEffects(ZoomLevelTypes eCurrentZoom, std::vector<const TCHAR*>& kEffectNames);
 
 	// Billboard appearance controls

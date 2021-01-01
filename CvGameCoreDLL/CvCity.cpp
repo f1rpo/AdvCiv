@@ -11581,6 +11581,9 @@ public:
 	}
 };
 
+/*	Fill the kVisible array with buildings that you want shown in city,
+	as well as the number of generics
+	This function is called whenever CvCity::setLayoutDirty() is called. */
 void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible,
 	int& iChosenNumGenerics)
 {
@@ -11663,6 +11666,9 @@ bool CvCity::isAllBuildingsVisible(TeamTypes eTeam, bool bDebug) const
 
 // (advc: natGetDeterministicRandom deleted; should use 'hash' in CvGameCoreUtils instead.)
 
+/*	Fill the kEffectNames array with references to effects in CIV4EffectInfos.xml
+	to have a city play a given set of effects. This is called whenever the interface
+	updates the city billboard or when the zoom level changes. */
 void CvCity::getVisibleEffects(ZoomLevelTypes eCurZoom,
 	std::vector<const TCHAR*>& kEffectNames)
 {

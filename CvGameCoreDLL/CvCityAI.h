@@ -87,14 +87,14 @@ public:
 
 	// advc: Moved from CvCity b/c it's part of the AI
 	int AI_culturePressureFactor() const; // K-Mod
-	int AI_getEmphasizeAvoidGrowthCount() const;
-	bool AI_isEmphasizeAvoidGrowth() const;
+	int AI_getEmphasizeAvoidGrowthCount() const { return m_iEmphasizeAvoidGrowthCount; }
+	bool AI_isEmphasizeAvoidGrowth() const { return (AI_getEmphasizeAvoidGrowthCount() > 0); }
 
-	int AI_getEmphasizeGreatPeopleCount() const;
-	bool AI_isEmphasizeGreatPeople() const;
+	int AI_getEmphasizeGreatPeopleCount() const { return m_iEmphasizeGreatPeopleCount; }
+	bool AI_isEmphasizeGreatPeople() const { return (AI_getEmphasizeGreatPeopleCount() > 0); }
 
-	bool AI_isAssignWorkDirty() const;
-	void AI_setAssignWorkDirty(bool bNewValue);
+	bool AI_isAssignWorkDirty() const { return m_bAssignWorkDirty; }
+	void AI_setAssignWorkDirty(bool bNewValue) { m_bAssignWorkDirty = bNewValue; }
 
 	//bool AI_isChooseProductionDirty() const; // advc.003u: Moved to CvCity
 	//void AI_setChooseProductionDirty(bool bNewValue);

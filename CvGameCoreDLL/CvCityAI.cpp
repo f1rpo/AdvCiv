@@ -6801,42 +6801,6 @@ int CvCityAI::AI_culturePressureFactor() const
 }
 
 
-int CvCityAI::AI_getEmphasizeAvoidGrowthCount() const
-{
-	return m_iEmphasizeAvoidGrowthCount;
-}
-
-
-bool CvCityAI::AI_isEmphasizeAvoidGrowth() const
-{
-	return (AI_getEmphasizeAvoidGrowthCount() > 0);
-}
-
-
-int CvCityAI::AI_getEmphasizeGreatPeopleCount() const
-{
-	return m_iEmphasizeGreatPeopleCount;
-}
-
-
-bool CvCityAI::AI_isEmphasizeGreatPeople() const
-{
-	return (AI_getEmphasizeGreatPeopleCount() > 0);
-}
-
-
-bool CvCityAI::AI_isAssignWorkDirty() const
-{
-	return m_bAssignWorkDirty;
-}
-
-
-void CvCityAI::AI_setAssignWorkDirty(bool bNewValue)
-{
-	m_bAssignWorkDirty = bNewValue;
-}
-
-
 CvCityAI* CvCityAI::AI_getRouteToCity() const // advc.003u: return type was CvCity*
 {
 	return AI_getCity(m_routeToCity);
@@ -6933,13 +6897,13 @@ void CvCityAI::AI_setEmphasize(EmphasizeTypes eIndex, bool bNewValue)
 
 		if (GC.getInfo(eIndex).isAvoidGrowth())
 		{
-			m_iEmphasizeAvoidGrowthCount += ((AI_isEmphasize(eIndex)) ? 1 : -1);
+			m_iEmphasizeAvoidGrowthCount += (AI_isEmphasize(eIndex) ? 1 : -1);
 			FAssert(AI_getEmphasizeAvoidGrowthCount() >= 0);
 		}
 
 		if (GC.getInfo(eIndex).isGreatPeople())
 		{
-			m_iEmphasizeGreatPeopleCount += ((AI_isEmphasize(eIndex)) ? 1 : -1);
+			m_iEmphasizeGreatPeopleCount += (AI_isEmphasize(eIndex) ? 1 : -1);
 			FAssert(AI_getEmphasizeGreatPeopleCount() >= 0);
 		}
 

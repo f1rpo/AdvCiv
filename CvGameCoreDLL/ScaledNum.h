@@ -73,7 +73,7 @@ CvString ScaledNumBase<Dummy>::szBuf = "";
 	Conversion from percentage: macro 'per100' (also 'per1000', 'per10000')
 	'scaled' and 'uscaled' typedefs for default precision.
 
-	In code that uses Hungarian notation, I propose the prefix 'r' for
+	In code that uses Systems Hungarian notation, I propose the prefix 'r' for
 	ScaledNum variables, or more generally for any types that represent
 	rational numbers without a floating point.
 

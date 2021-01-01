@@ -6843,8 +6843,6 @@ void CvGameTextMgr::setYieldValueString(CvWStringBuffer &szString, int iValue, b
 void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 {
 	PROFILE_FUNC();
-
-	int iI;
 	CvWString szTempBuffer;
 
 	szString.append(pCity->getName());
@@ -6925,66 +6923,70 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 					pCity->getProductionNeeded()));
 		}
 	}
-
-	bool bFirst = true;
-
-	for (iI = 0; iI < NUM_COMMERCE_TYPES; ++iI)
 	{
-		int iRate = pCity->getCommerceRateTimes100((CommerceTypes)iI);
+		bool bFirst = true;
+		FOR_EACH_ENUM(Commerce)
+		{
+			int iRate = pCity->getCommerceRateTimes100(eLoopCommerce);
+			if (iRate != 0)
+			{
+				szTempBuffer.Format(L"%d.%02d %c", iRate/100, iRate%100,
+						GC.getInfo(eLoopCommerce).getChar());
+				setListHelp(szString, NEWLINE, szTempBuffer, L", ", bFirst);
+				bFirst = false;
+			}
+		}
+		int iRate = pCity->getGreatPeopleRate();
 		if (iRate != 0)
 		{
-			szTempBuffer.Format(L"%d.%02d %c", iRate/100, iRate%100, GC.getInfo((CommerceTypes)iI).getChar());
+			szTempBuffer.Format(L"%d%c", iRate, gDLL->getSymbolID(GREAT_PEOPLE_CHAR));
 			setListHelp(szString, NEWLINE, szTempBuffer, L", ", bFirst);
 			bFirst = false;
 		}
+		if (!bFirst)
+			szString.append(gDLL->getText("TXT_KEY_PER_TURN"));
 	}
-
-	int iRate = pCity->getGreatPeopleRate();
-	if (iRate != 0)
-	{
-		szTempBuffer.Format(L"%d%c", iRate, gDLL->getSymbolID(GREAT_PEOPLE_CHAR));
-		setListHelp(szString, NEWLINE, szTempBuffer, L", ", bFirst);
-		bFirst = false;
-	}
-
-	if (!bFirst)
-	{
-		szString.append(gDLL->getText("TXT_KEY_PER_TURN"));
-	}
-
 	szString.append(NEWLINE);
 	szString.append(gDLL->getText("INTERFACE_CITY_MAINTENANCE"));
-	//int iMaintenance = pCity->getMaintenanceTimes100();
-	int iMaintenance = pCity->getMaintenanceTimes100() * (100+GET_PLAYER(pCity->getOwner()).calculateInflationRate()) / 100; // K-Mod
-	szString.append(CvWString::format(L" -%d.%02d %c", iMaintenance/100, iMaintenance%100, GC.getInfo(COMMERCE_GOLD).getChar()));
-
-	bFirst = true;
-	for (iI = 0; iI < GC.getNumBuildingInfos(); ++iI)
+	int iMaintenance = pCity->getMaintenanceTimes100() *
+			(100+GET_PLAYER(pCity->getOwner()).calculateInflationRate()) / 100; // K-Mod
+	szString.append(CvWString::format(L" -%d.%02d %c", iMaintenance/100, iMaintenance%100,
+			GC.getInfo(COMMERCE_GOLD).getChar()));
 	{
-		if (pCity->getNumRealBuilding((BuildingTypes)iI) > 0)
+		bool bFirst = true;
+		FOR_EACH_ENUM(Building)
 		{
-			setListHelp(szString, NEWLINE, GC.getInfo((BuildingTypes)iI).getDescription(), L", ", bFirst);
-			bFirst = false;
+			if (pCity->getNumRealBuilding(eLoopBuilding) > 0)
+			{
+				setListHelp(szString, NEWLINE,
+						GC.getInfo(eLoopBuilding).getDescription(), L", ", bFirst);
+				bFirst = false;
+			}
 		}
 	}
-
 	if (pCity->getCultureLevel() != NO_CULTURELEVEL)
 	{
-		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_CULTURE", pCity->getCulture(pCity->getOwner()), pCity->getCultureThreshold(), GC.getInfo(pCity->getCultureLevel()).getTextKeyWide()));
+		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_CULTURE",
+				pCity->getCulture(pCity->getOwner()),
+				pCity->getCultureThreshold(),
+				GC.getInfo(pCity->getCultureLevel()).getTextKeyWide()));
 	}
-
 	if (pCity->getGreatPeopleProgress() > 0)
 	{
-		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_GREAT_PEOPLE", pCity->getGreatPeopleProgress(), GET_PLAYER(pCity->getOwner()).greatPeopleThreshold(false)));
+		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_GREAT_PEOPLE",
+				pCity->getGreatPeopleProgress(),
+				GET_PLAYER(pCity->getOwner()).greatPeopleThreshold(false)));
 	}
-
-	int iNumUnits = pCity->getPlot().countNumAirUnits(GC.getGame().getActiveTeam());
-	if (pCity->getAirUnitCapacity(GC.getGame().getActiveTeam()) > 0 && iNumUnits > 0)
 	{
-		szString.append(NEWLINE);
-		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_AIR_UNIT_CAPACITY", iNumUnits, pCity->getAirUnitCapacity(GC.getGame().getActiveTeam())));
+		TeamTypes const eActiveTeam = GC.getGame().getActiveTeam();
+		int const iUnits = pCity->getPlot().countNumAirUnits(eActiveTeam);
+		if (iUnits > 0 && pCity->getAirUnitCapacity(eActiveTeam) > 0)
+		{
+			szString.append(NEWLINE);
+			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_AIR_UNIT_CAPACITY",
+					iUnits, pCity->getAirUnitCapacity(eActiveTeam)));
+		}
 	}
-
 	szString.append(NEWLINE);
 
 	szString.append(gDLL->getText("TXT_KEY_CITY_BAR_SELECT", pCity->getNameKey()));
@@ -16151,26 +16153,35 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 	CvWString szTempBuffer;
 	CvWString szFirstBuffer;
 
-	CvImprovementInfo& info = GC.getInfo(eImprovement);
-	if (!bCivilopediaText)
+	CvImprovementInfo const& kImprov = GC.getInfo(eImprovement);
+	if (!bCivilopediaText) // advc (note): Redundantly implemented in Pedia
 	{
-		szTempBuffer.Format( SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), info.getDescription());
+		szTempBuffer.Format( SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+				kImprov.getDescription());
 		szBuffer.append(szTempBuffer);
 
-		setYieldChangeHelp(szBuffer, L", ", L"", L"", info.getYieldChangeArray(), false, false);
+		setYieldChangeHelp(szBuffer, L", ", L"", L"", kImprov.getYieldChangeArray(), false, false);
 
-		setYieldChangeHelp(szBuffer, L"", L"", gDLL->getText("TXT_KEY_MISC_WITH_IRRIGATION").c_str(), info.getIrrigatedYieldChangeArray());
-		setYieldChangeHelp(szBuffer, L"", L"", gDLL->getText("TXT_KEY_MISC_ON_HILLS").c_str(), info.getHillsYieldChangeArray());
-		setYieldChangeHelp(szBuffer, L"", L"", gDLL->getText("TXT_KEY_MISC_ALONG_RIVER").c_str(), info.getRiverSideYieldChangeArray());
-
-		for (int iTech = 0; iTech < GC.getNumTechInfos(); iTech++)
+		setYieldChangeHelp(szBuffer, L"", L"",
+				gDLL->getText("TXT_KEY_MISC_WITH_IRRIGATION").c_str(),
+				kImprov.getIrrigatedYieldChangeArray());
+		setYieldChangeHelp(szBuffer, L"", L"",
+				gDLL->getText("TXT_KEY_MISC_ON_HILLS").c_str(),
+				kImprov.getHillsYieldChangeArray());
+		setYieldChangeHelp(szBuffer, L"", L"",
+				gDLL->getText("TXT_KEY_MISC_ALONG_RIVER").c_str(),
+				kImprov.getRiverSideYieldChangeArray());
+		FOR_EACH_ENUM(Tech)
 		{
-			for (int iYield = 0; iYield < NUM_YIELD_TYPES; iYield++)
+			FOR_EACH_ENUM(Yield)
 			{
-				if (info.getTechYieldChanges(iTech, iYield) != 0)
+				int iYieldChange = kImprov.getTechYieldChanges(eLoopTech, eLoopYield);
+				if (iYieldChange != 0)
 				{
 					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_WITH_TECH", info.getTechYieldChanges(iTech, iYield), GC.getInfo((YieldTypes)iYield).getChar(), GC.getInfo((TechTypes)iTech).getTextKeyWide()));
+					szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_WITH_TECH",
+							iYieldChange, GC.getInfo(eLoopYield).getChar(),
+							GC.getInfo(eLoopTech).getTextKeyWide()));
 				}
 			}
 		}
@@ -16183,59 +16194,68 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 				int iChange = GC.getInfo((CivicTypes)iCivic).getImprovementYieldChanges(eImprovement, iYield);
 				if (iChange != 0)
 				{
+		FOR_EACH_ENUM(Civic)
+		{
+			FOR_EACH_ENUM(Yield)
+			{
+				int iYieldChange = GC.getInfo(eLoopCivic).getImprovementYieldChanges(
+						eImprovement, eLoopYield);
+				if (iYieldChange != 0)
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_CIVIC_IMPROVEMENT_YIELD_CHANGE",
+							iYieldChange, GC.getInfo(eLoopYield).getChar()));
 					szTempBuffer.Format( SETCOLR L"%s" ENDCOLR ,
 							TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
-							GC.getInfo((CivicTypes)iCivic).getDescription());
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_CIVIC_IMPROVEMENT_YIELD_CHANGE", iChange, GC.getInfo((YieldTypes)iYield).getChar()));
+							GC.getInfo(eLoopCivic).getDescription());
 					szBuffer.append(szTempBuffer);
 				}
 			}
 		}
 	}
 
-	if (info.isRequiresRiverSide())
+	if (kImprov.isRequiresRiverSide())
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_REQUIRES_RIVER"));
 	}
-	if (info.isCarriesIrrigation())
+	if (kImprov.isCarriesIrrigation())
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_CARRIES_IRRIGATION"));
 	}
 	if (bCivilopediaText)
 	{
-		if (info.isNoFreshWater())
+		if (kImprov.isNoFreshWater())
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_NO_BUILD_FRESH_WATER"));
 		}
-		if (info.isWater())
+		if (kImprov.isWater())
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_BUILD_ONLY_WATER"));
 		}
-		if (info.isRequiresFlatlands())
+		if (kImprov.isRequiresFlatlands())
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_ONLY_BUILD_FLATLANDS"));
 		}
 	}
 
-	if (info.getImprovementUpgrade() != NO_IMPROVEMENT)
+	if (kImprov.getImprovementUpgrade() != NO_IMPROVEMENT)
 	{
 		int iTurns = GC.getGame().getImprovementUpgradeTime(eImprovement);
 
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_EVOLVES",
-				GC.getInfo(info.getImprovementUpgrade()).getTextKeyWide(), iTurns));
+				GC.getInfo(kImprov.getImprovementUpgrade()).getTextKeyWide(), iTurns));
 	}
 
 	int iLast = -1;
 	for (int iBonus = 0; iBonus < GC.getNumBonusInfos(); iBonus++)
 	{
-		int iRand = info.getImprovementBonusDiscoverRand(iBonus);
+		int iRand = kImprov.getImprovementBonusDiscoverRand(iBonus);
 		if (iRand > 0)
 		{
 			szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_IMPROVEMENT_CHANCE_DISCOVER").c_str());
@@ -16245,13 +16265,13 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 		}
 	}
 
-	if (info.getDefenseModifier() != 0)
+	if (kImprov.getDefenseModifier() != 0)
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_DEFENSE_MODIFIER", info.getDefenseModifier()));
+		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_DEFENSE_MODIFIER", kImprov.getDefenseModifier()));
 	}
 	{
-		int iHappiness = info.getHappiness();
+		int iHappiness = kImprov.getHappiness();
 		if (iHappiness != 0)
 		{
 			szBuffer.append(NEWLINE);
@@ -16263,7 +16283,7 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 		}
 	}  // <advc.901>
 	{
-		int iHealthPercent = info.get(CvImprovementInfo::HealthPercent);
+		int iHealthPercent = kImprov.get(CvImprovementInfo::HealthPercent);
 		if (iHealthPercent != 0)
 		{
 			szBuffer.append(NEWLINE);
@@ -16277,13 +16297,13 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 					gDLL->getSymbolID(UNHEALTHY_CHAR)));
 		}
 	} // </advc.901>
-	if (info.isActsAsCity())
+	if (kImprov.isActsAsCity())
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_DEFENSE_MODIFIER_EXTRA"));
 	}
-	int iGWFeatureProtection = info.get(CvImprovementInfo::GWFeatureProtection); // advc.055
-	if (info.getFeatureGrowthProbability() > 0)
+	int iGWFeatureProtection = kImprov.get(CvImprovementInfo::GWFeatureProtection); // advc.055
+	if (kImprov.getFeatureGrowthProbability() > 0)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_MORE_GROWTH"));
@@ -16295,7 +16315,7 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 			iGWFeatureProtection = 0; // Don't display again
 		} // </advc.055>
 	}
-	else if (info.getFeatureGrowthProbability() < 0)
+	else if (kImprov.getFeatureGrowthProbability() < 0)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_LESS_GROWTH"));
@@ -16308,10 +16328,10 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 	} // </advc.055>
 	if (bCivilopediaText)
 	{
-		if (info.getPillageGold() > 0)
+		if (kImprov.getPillageGold() > 0)
 		{
 			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_PILLAGE_YIELDS", info.getPillageGold()));
+			szBuffer.append(gDLL->getText("TXT_KEY_IMPROVEMENT_PILLAGE_YIELDS", kImprov.getPillageGold()));
 		}
 	}
 }
