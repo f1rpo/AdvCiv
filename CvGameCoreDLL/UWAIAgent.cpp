@@ -2578,9 +2578,21 @@ double UWAI::Civ::confidenceAgainstHuman() const {
 int UWAI::Civ::vengefulness() const {
 
 	CvPlayerAI const& we = GET_PLAYER(weId);
-	// AI assumes that humans are calculating, not vengeful
-	if(we.isHuman())
-		return 0;
+	/*	AI assumes that humans are mostly calculating.
+		But player feedback has shown that most humans are at least
+		a little bit vengeful, casual players a bit more so.
+		On the bottom line, this is relevant mainly for the reparations
+		that the AI is willing to pay. */
+	if(we.isHuman()) {
+		if(GC.getGame().isOption(GAMEOPTION_RISE_FALL)) // Difficulty not so telling in R&F
+			return 1;
+		int const diffic = GC.getInfo(we.getHandicapType()).getDifficulty();
+		if(diffic >= 50)
+			return 1;
+		if(diffic > 20)
+			return 2;
+		return 3;
+	}
 	/*  RefuseToTalkWarThreshold loses its original meaning because UWAI
 		doesn't sulk. It fits pretty well for carrying a grudge. Sitting Bull
 		has the highest value (12) and De Gaulle the lowest (5).

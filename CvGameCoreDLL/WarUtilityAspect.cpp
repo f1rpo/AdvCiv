@@ -981,7 +981,8 @@ void Loathing::evaluate() {
 				worst enemy, but Furious attitude is unusual even when at war. */
 			agent.AI_getWorstEnemy() != TEAMID(theyId))) ||
 			// Capitulated is as good as dead
-			GET_TEAM(theyId).isCapitulated())
+			GET_TEAM(theyId).isCapitulated() ||
+			m->isEliminated(weId)) // Don't suicide just to inconvenience an enemy
 		return;
 	int veng = weAI->vengefulness();
 	if(veng == 0) {
