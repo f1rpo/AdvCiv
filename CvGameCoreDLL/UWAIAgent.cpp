@@ -673,27 +673,53 @@ bool UWAI::Team::considerPeace(TeamTypes targetId, int u) {
 bool UWAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUtility,
 		int masterReluctancePeace) {
 
-	int const uThresh = -75;
-	if(ourWarUtility > -uThresh) {
-		report->log("No capitulation b/c war utility not low enough (%d>%d)",
-				ourWarUtility, uThresh);
-		return true;
+	{	int const uThresh = -75;
+		if(ourWarUtility * 4 > uThresh) {
+			report->log("Don't compute capitulation utility b/c probably not low enough (%d>%d)",
+					ourWarUtility, uThresh / 4);
+			return true;
+		}
+		if(ourWarUtility > uThresh) {
+			int capUtility = ourWarUtility;
+			if(GET_TEAM(agentId).getNumWars(true, true) > 1) {
+				/*	Looks like war utility is low, but not low enough. Perhaps
+					this is b/c we haven't yet accounted for the protection that
+					the master grants us from third parties.
+					NB: Ideally, considerCapitulation should not rely on ourWarUtility
+					at all when there are multiple (free) war enemies, but that's
+					now difficult to change at the call site. */
+				report->log("Computing war utility of capitulation (%d>%d)",
+						ourWarUtility, uThresh);
+				WarEvalParameters params(agentId, masterId, *report, false, NO_PLAYER,
+							masterId);
+				WarEvaluator eval(params);
+				capUtility = eval.evaluate(GET_TEAM(agentId).AI_getWarPlan(masterId));
+			}
+			if(capUtility > uThresh) {
+				report->log("No capitulation b/c utility not low enough (%d>%d)",
+						capUtility, uThresh);
+				return true;
+			}
+		}
 	}
 	/*  Low reluctance to peace can just mean that there isn't much left for
 		them to conquer; doesn't have to mean that they'll soon offer peace.
 		Probability test to ensure that we eventually capitulate even if
 		master's reluctance remains low. */
-	double prSkip = 1 - (masterReluctancePeace * 0.015 + 0.25);
+	double prSkip = 1 - (masterReluctancePeace * 0.015 + 0.3);
 	int ourCities = GET_TEAM(agentId).getNumCities();
+	prSkip = ::dRange(prSkip, 0.0,
+			// Reduce maximal waiting time in the late game
+			0.87 - 0.04 * GET_TEAM(masterId).AI_getCurrEraFactor().getDouble());
 	// If few cities remain, we can't afford to wait
-	if(ourCities <= 2) prSkip -= 0.2;
-	if(ourCities <= 1) prSkip -= 0.1;
-	prSkip = ::dRange(prSkip, 0.0, 0.87);
+	if(ourCities <= 2)
+		prSkip -= 0.2;
+	if(ourCities <= 1)
+		prSkip -= 0.1;
 	report->log("%d percent probability to delay capitulation based on master's "
 			"reluctance to peace (%d)", ::round(100 * prSkip), masterReluctancePeace);
 	if(::bernoulliSuccess(prSkip, "advc.104 (cap)")) {
-		if(prSkip < 1)
-			report->log("No capitulation this turn");
+		report->log("No capitulation this turn");
 		return true;
 	}
 	if(prSkip > 0)

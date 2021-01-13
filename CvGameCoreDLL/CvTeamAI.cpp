@@ -2768,12 +2768,25 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		int iMasterSuccess = kMasterTeam.AI_getWarSuccess(getID());
 		int iTargetDelta = std::min(getNumCities(), 4) *
 				GC.getWAR_SUCCESS_CITY_CAPTURING(); // </advc>
-		// <advc.104o> Factor in past wars
-		if(getUWAI.isEnabled())
-		{
+		// <advc.104>
+		if (getUWAI.isEnabled())
+		{	/*	Try not to be too inconsistent with UWAI::Team::considerCapitulation
+				(to avoid answering "not right now" when in fact not close).
+				The cached utility values don't account for the peace with 3rd parties
+				(implied by capitulation), and it's out of date on a human master's turn,
+				so this is all a bit fuzzy. */
+			if (uwai().leaderUWAI().getCache().
+				warUtilityIgnoringDistraction(eMasterTeam) > -40 ||
+				// Expect to tire master out
+				kMasterTeam.uwai().leaderUWAI().getCache().
+				warUtilityIgnoringDistraction(getID()) < -25)
+			{
+				return DENIAL_POWER_US;
+			}
+			// </advc.104>  <advc.104o> Take into account past wars
 			int iPastWarScore = GET_PLAYER(getLeaderID()).uwai().getCache().
 					pastWarScore(eMasterTeam);
-			if(iPastWarScore < 0)
+			if (iPastWarScore < 0)
 				iTargetDelta = ::round(iTargetDelta * 2 / 3.0);
 		} // </advc.104o>
 		if (iVassalSuccess + iTargetDelta > iMasterSuccess)

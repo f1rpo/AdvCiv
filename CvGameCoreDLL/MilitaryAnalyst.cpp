@@ -155,6 +155,10 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 					std::inserter(diff, diff.begin()));
 			ig->removeWar(declaringWar, diff);
 		}
+		/*	Capitulation: Not fully implemented; misses the wars that we need
+			to declare on the enemies of theyId. */
+		else if(warEvalParams.getCapitulationTeam() == theyId)
+			ig->removeWar(declaringWar, currentlyAtWar);
 		else ig->removeWar(declaringWar, theirSide);
 	}
 	int timeHorizon = 25;
