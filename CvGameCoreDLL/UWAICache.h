@@ -272,7 +272,6 @@ public:
 		int targetValue;
 		int plotIndex;
 		CvCity* cvCity; // Retrieving this based on plotIndex wastes too much time
-		//CvWString descr; // for debugging
 	};
 };
 

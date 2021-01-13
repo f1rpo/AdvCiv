@@ -6715,11 +6715,12 @@ int CvUnit::workRate(bool bMax) const
 	if (!bMax && !canMove())
 		return 0;
 	int iRate = m_pUnitInfo->getWorkRate();
-	iRate *= std::max(0, (GET_PLAYER(getOwner()).getWorkerSpeedModifier() + 100));
+	iRate *= std::max(0, GET_PLAYER(getOwner()).getWorkerSpeedModifier() + 100);
 	iRate /= 100;
 	if (!isHuman() && !isBarbarian())
 	{
-		iRate *= std::max(0, (GC.getInfo(GC.getGame().getHandicapType()).getAIWorkRateModifier() + 100));
+		iRate *= std::max(0, GC.getInfo(GC.getGame().getHandicapType()).
+				getAIWorkRateModifier() + 100);
 		iRate /= 100;
 	}
 	return iRate;

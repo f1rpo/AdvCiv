@@ -1216,7 +1216,6 @@ void UWAICache::updateMilitaryPower(CvUnitInfo const& u, bool add) {
 
 UWAICache::City::City(PlayerTypes cacheOwnerId, CvCity& c, TeamPathFinders* pf) {
 
-	//descr = c.getName();
 	// Use plot index as city id (the pointer 'c' isn't serializable)
 	cvCity = &c;
 	plotIndex = c.plotNum();
@@ -1385,7 +1384,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 		reachByLand = true;
 		return;
 	}
-	CvPlayerAI& cacheOwner = GET_PLAYER(cacheOwnerId);
+	CvPlayerAI const& cacheOwner = GET_PLAYER(cacheOwnerId);
 	distance = -1;
 	reachByLand = false;
 	bool reachBySea = false;

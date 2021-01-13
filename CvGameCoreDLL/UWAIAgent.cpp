@@ -709,7 +709,7 @@ bool UWAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUtility,
 	}
 	bool human = GET_TEAM(masterId).isHuman();
 	/*  Make master accept if it's not sure about continuing the war. Note that
-		due to change 130v, gaining a vassal can't really hurt the master. */
+		due to change advc.130v, gaining a vassal can't really hurt the master. */
 	bool checkAccept = !human && masterReluctancePeace >= 15;
 	if(!checkAccept && !human)
 		report->log("Master accepts capitulation b/c of low reluctance to peace (%d)",

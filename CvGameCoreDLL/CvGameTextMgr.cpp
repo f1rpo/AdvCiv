@@ -6948,10 +6948,13 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 	}
 	szString.append(NEWLINE);
 	szString.append(gDLL->getText("INTERFACE_CITY_MAINTENANCE"));
-	int iMaintenance = pCity->getMaintenanceTimes100() *
-			(100+GET_PLAYER(pCity->getOwner()).calculateInflationRate()) / 100; // K-Mod
-	szString.append(CvWString::format(L" -%d.%02d %c", iMaintenance/100, iMaintenance%100,
-			GC.getInfo(COMMERCE_GOLD).getChar()));
+	{
+		int iMaintenance = pCity->getMaintenanceTimes100() *
+				(100 + GET_PLAYER(pCity->getOwner()).calculateInflationRate()) / 100; // K-Mod
+		szString.append(CvWString::format(L" -%d.%02d %c",
+				iMaintenance/100, iMaintenance%100,
+				GC.getInfo(COMMERCE_GOLD).getChar()));
+	}
 	{
 		bool bFirst = true;
 		FOR_EACH_ENUM(Building)

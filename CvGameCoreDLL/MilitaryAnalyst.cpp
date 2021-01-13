@@ -29,7 +29,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 	capitulationsAcceptedPerTeam.resize(MAX_CIV_TEAMS);
 	report.log("Military analysis from the pov of %s", report.leaderName(weId));
 	CvTeamAI& agent = GET_TEAM(weId);
-	PlyrSet currentlyAtWar; // 'atWar' is already a name of a global-context function
+	PlyrSet currentlyAtWar; // 'atWar' is already a name of a global function
 	PlyrSet ourFutureOpponents;
 	PlyrSet ourSide;
 	PlyrSet theirSide;
@@ -148,7 +148,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 		FAssert(!agent.isAtWar(theyId) || !GET_TEAM(theyId).isAVassal()); /*
 				Master isn't included in the removed war opponents
 				(theirSide) then. */
-		if(noWarVsExtra) { // diff = theirSide - theyAndTheirVassals
+		if(noWarVsExtra) { // diff = theirSide minus theyAndTheirVassals
 			PlyrSet diff;
 			std::set_difference(theirSide.begin(), theirSide.end(),
 					theyAndTheirVassals.begin(), theyAndTheirVassals.end(),

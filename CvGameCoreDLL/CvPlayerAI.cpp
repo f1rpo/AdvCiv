@@ -2910,13 +2910,12 @@ int CvPlayerAI::AI_targetCityValue(CvCity const& kCity, bool bRandomize,
 		too much work. Stick to the distance in the UWAI cache - if available. */
 	if (pUWAICity != NULL && pUWAICity->canReach())
 	{
-		if (pUWAICity->canReachByLand())
-			iPathTurns = pUWAICity->getDistance();
-		// Attack by sea (BtS ignored distance in that case)
-		else
+		iPathTurns = pUWAICity->getDistance();
+		// Attack by sea (BtS had ignored distance in that case)
+		if (!pUWAICity->canReachByLand())
 		{
-			// Accounts for speed of ships and time for loading/ unloading
-			iPathTurns = pUWAICity->getDistance();
+			/*	NB: If we take this branch, iPathTurns already accounts
+				for the speed of ships and time for loading/ unloading */
 			FAssert(iPathTurns >= 0);
 			// How much should we prefer a land target?
 			if (!bThwartVictory)
@@ -2941,7 +2940,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity const& kCity, bool bRandomize,
 		if (iPathTurns >= 0)
 			iValue += ROUND_DIVIDE(4 * std::max(0, 30 - iPathTurns), 3);
 	}
-	else 
+	else
 	{
 		/*	Fall-back for distance calculation. Moved from above. (The UWAI distances
 			aren't necessarily up to date.) */
@@ -2973,7 +2972,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity const& kCity, bool bRandomize,
 		{
 			iValue *= 100 + GC.getGame().getSorenRandNum(33, "AI Target City Value 2");
 			iValue /= 100;
-		} 
+		}
 	}
 	// Now handled upfront
 	/*if (kCity.isAutoRaze(getID()))

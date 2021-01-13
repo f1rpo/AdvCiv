@@ -21814,7 +21814,7 @@ bool CvUnitAI::AI_solveBlockageProblem(CvPlot* pDestPlot, bool bDeclareWar)
 
 int CvUnitAI::AI_calculatePlotWorkersNeeded(CvPlot const& kPlot, BuildTypes eBuild) const
 {
-	int iWorkRate = workRate(true);
+	int const iWorkRate = workRate(true);
 	if (iWorkRate <= 0)
 	{
 		FAssert(false);

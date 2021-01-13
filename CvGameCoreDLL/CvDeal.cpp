@@ -418,7 +418,7 @@ bool CvDeal::verify(PlayerTypes eRecipient, PlayerTypes eGiver)
 		if (pItem->m_eItemType == TRADE_RESOURCES)
 		{
 			BonusTypes eBonus = (BonusTypes)pItem->m_iData;
-			// XXX embargoes?
+			// XXX embargoes? // advc.130f (note): Handled by CvPlayer::stopTradingWithTeam
 			if ((kGiver.getNumTradeableBonuses(eBonus) < 0) ||
 				!kGiver.canTradeNetworkWith(eRecipient) ||
 				GET_TEAM(kGiver.getTeam()).isBonusObsolete(eBonus) ||

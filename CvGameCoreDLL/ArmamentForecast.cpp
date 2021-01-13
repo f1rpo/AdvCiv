@@ -53,10 +53,10 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	if(prodFromUpgrades > 0.01)
 		report.log("Production from upgrades: %d", ::round(prodFromUpgrades));
 
-	CvPlayerAI& civ = GET_PLAYER(civId);
-	TeamTypes tId = TEAMID(civId);
-	CvTeamAI& t = GET_TEAM(tId);
-	PlayerTypes weId = m.ourId();
+	CvPlayerAI const& civ = GET_PLAYER(civId);
+	TeamTypes const tId = TEAMID(civId);
+	CvTeamAI const& t = GET_TEAM(tId);
+	PlayerTypes const weId = m.ourId();
 	Intensity intensity = NORMAL;
 	if(civ.AI_isDoStrategy(AI_STRATEGY_ALERT1))
 		intensity = INCREASED;
@@ -70,8 +70,8 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	}
 	/*  Much of this function could be written more concisely based on the
 		interface of MilitaryAnalyst; currently relies mostly on WarEvalParamters. */
-	TeamTypes targetTeamId = params.targetId();
-	TeamTypes master = GET_PLAYER(civId).getMasterTeam();
+	TeamTypes const targetTeamId = params.targetId();
+	TeamTypes const master = GET_PLAYER(civId).getMasterTeam();
 	int iTotalWars = 0, iWars = 0;
 	// Whether simulation assumes peace between civId and any other civ
 	bool peaceAssumed = false;

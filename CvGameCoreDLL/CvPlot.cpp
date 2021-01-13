@@ -1,5 +1,3 @@
-// plot.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvPlot.h"
 #include "CvPlotGroup.h"
@@ -3091,8 +3089,8 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 		return false;
 	// <advc.opt> Moved up
 	bool const bNetworkTerrain = isNetworkTerrain(eTeam);
-	bool const bOtherNetwork = kOther.isNetworkTerrain(eTeam);
-	if (bNetworkTerrain && bOtherNetwork)
+	bool const bOtherNetworkTerrain = kOther.isNetworkTerrain(eTeam);
+	if (bNetworkTerrain && bOtherNetworkTerrain)
 		return true; // </advc.opt>
 
 	if (isRoute() /* advc.124: */ && getRevealedRouteType(eTeam) != NO_ROUTE)
@@ -3104,7 +3102,7 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 		}
 	}
 
-	if (bOtherNetwork && //isCity(true, eTeam)
+	if (bOtherNetworkTerrain && //isCity(true, eTeam)
 		GET_TEAM(eTeam).isRevealedCityTrade(*this)) // advc.124
 	{
 		return true;
@@ -3140,7 +3138,7 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 
 	if (isRiverNetwork(eTeam))
 	{
-		if (bOtherNetwork)
+		if (bOtherNetworkTerrain)
 		{
 			if (isRiverConnection(directionXY(*this, kOther)))
 				return true;
@@ -3155,7 +3153,7 @@ bool CvPlot::isTradeNetworkConnected(CvPlot const& kOther, TeamTypes eTeam) cons
 	}
 
 	// <advc.124> Case 2: This plot has a route and kOther has network terrain
-	if (isRoute() && isCityRadius() && getTeam() == eTeam && bOtherNetwork)
+	if (isRoute() && isCityRadius() && getTeam() == eTeam && bOtherNetworkTerrain)
 	{
 		CvCity const* pWorkingCity = getWorkingCity();
 		if (pWorkingCity != NULL &&
