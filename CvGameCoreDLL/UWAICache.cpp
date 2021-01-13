@@ -1244,7 +1244,8 @@ void UWAICache::City::write(FDataStreamBase* stream) {
 	int savegameVersion;
 	//savegameVersion = 1; // canDeduce
 	//savegameVersion = 2; // take out can canDeduce again
-	savegameVersion = 3; // reachBySea removed
+	//savegameVersion = 3; // reachBySea removed
+	savegameVersion = 4; // capitalArea added
 	stream->Write(plotIndex);
 	stream->Write(assetScore);
 	/*  I hadn't thought of a version number in the initial release.
@@ -1256,6 +1257,7 @@ void UWAICache::City::write(FDataStreamBase* stream) {
 	stream->Write(distance + 1 + 10000 * savegameVersion);
 	stream->Write(targetValue);
 	stream->Write(reachByLand);
+	stream->Write(capitalArea);
 }
 
 void UWAICache::City::read(FDataStreamBase* stream) {
@@ -1268,6 +1270,9 @@ void UWAICache::City::read(FDataStreamBase* stream) {
 	distance = (tmp % 10000) - 1;
 	stream->Read(&targetValue);
 	stream->Read(&reachByLand);
+	if(savegameVersion >= 4)
+		stream->Read(&capitalArea);
+	else capitalArea = reachByLand;
 	if(savegameVersion < 3) {
 		bool reachBySea; // discard
 		stream->Read(&reachBySea);
@@ -1381,12 +1386,17 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 
 	if(pf == NULL) { // City of our team
 		distance = 0;
-		reachByLand = true;
+		CvPlayerAI const& cityOwner = GET_PLAYER(targetCity.getOwner());
+		CvArea const& cityArea = targetCity.getArea();
+		reachByLand = cityOwner.AI_isPrimaryArea(cityArea);
+		capitalArea = (&cityArea == (cityOwner.getCapital() == NULL ?
+				NULL : cityOwner.getCapital()->area()));
 		return;
 	}
 	CvPlayerAI const& cacheOwner = GET_PLAYER(cacheOwnerId);
 	distance = -1;
 	reachByLand = false;
+	capitalArea = false;
 	bool reachBySea = false;
 	bool human = cacheOwner.isHuman();
 	EraTypes const era = cacheOwner.getCurrentEra();
@@ -1416,11 +1426,10 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 					GC.getMOVE_DENOMINATOR());
 			if(pwd == 0) // Make sure 0 is reserved for own cities
 				pwd = 1;
-			/*  reachByLand refers to our (AI) capital. This is to ensure that the
-				AI can still detect the need for a naval assault when it has a
-				colony near the target civ. */
-			if(c->at(cacheOwner.getCapital()->plot()))
+			if(cacheOwner.AI_isPrimaryArea(c->getArea()))
 				reachByLand = true;
+			if(c->isCapital())
+				capitalArea = true;
 		}
 		if(trainAnyCargo &&
 				// This ignores cities that can access the ocean only through a canal

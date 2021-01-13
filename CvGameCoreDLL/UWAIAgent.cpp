@@ -354,7 +354,7 @@ void UWAI::Team::alignAreaAI(bool isNaval) {
 			else {
 				UWAICache::City* c = member.uwai().getCache().
 						lookupCity(targetCity->plotNum());
-				if(c == NULL || !c->canReachByLand())
+				if(c == NULL || !c->canReachByLandFromCapital())
 					bAlign = false;
 			}
 		}

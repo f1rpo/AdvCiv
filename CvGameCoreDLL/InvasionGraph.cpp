@@ -627,12 +627,15 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		UWAICache::City const* defTargetCity = defender.targetCity();
 		UWAICache::City const* attTargetCity = targetCity();
 		if(defTargetCity != NULL && attTargetCity != NULL) {
-			isNaval = !canReachByLand(attTargetCity->id()) &&
-					!defender.canReachByLand(defTargetCity->id());
+			/*	Not clear whether reachability from a primary area
+				should suffice for !isNaval. As a compromise, check reachability
+				from capital when clashing but not when conquering cities. */
+			isNaval = !canReachByLand(attTargetCity->id(), true) &&
+					!defender.canReachByLand(defTargetCity->id(), true);
 		}
 		else FAssert(false); // They shouldn't clash then
 	}
-	else isNaval = !canReachByLand(c->id());
+	else isNaval = !canReachByLand(c->id(), false);
 	bool canBombard = false;
 	bool canBombardFromSea = false;
 	bool canSoften = false;
@@ -1326,14 +1329,14 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	return rptr;
 }
 
-bool InvasionGraph::Node::canReachByLand(int cityId) const {
+bool InvasionGraph::Node::canReachByLand(int cityId, bool fromCapital) const {
 
 	// Allow weId to magically know whether other civs can reach a city by land
 	UWAICache::City* c = cache.lookupCity(cityId);
 	if(c == NULL) // Then they don't even know where it is
 		return false;
-	return c->canReachByLand() && (c->getDistance() <= getUWAI.maxLandDist() ||
-			!cache.canTrainDeepSeaCargo());
+	return (fromCapital ? c->canReachByLandFromCapital() : c->canReachByLand()) &&
+			(c->getDistance() <= getUWAI.maxLandDist() || !cache.canTrainDeepSeaCargo());
 }
 
 CvArea const* InvasionGraph::Node::clashArea(PlayerTypes otherId) const {

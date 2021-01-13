@@ -62,7 +62,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		intensity = INCREASED;
 	bool navalArmament = false;
 	if(targetCity != NULL) {
-		if(!targetCity->canReachByLand() ||
+		if(!targetCity->canReachByLandFromCapital() ||
 				targetCity->getDistance() > getUWAI.maxLandDist())
 			navalArmament = true;
 		report.log("Target city: %s%s", report.cityName(targetCity->city()),

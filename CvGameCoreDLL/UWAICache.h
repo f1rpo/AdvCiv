@@ -22,7 +22,8 @@ class UWAICity {
 public:
 	inline int getAssetScore() const { return assetScore; }
 	inline bool canReach() const { return (distance >= 0); }
-	inline bool canReachByLand() const { return reachByLand; }
+	inline bool canReachByLand() const { return reachByLand; } // from a primary area
+	inline bool canReachByLandFromCapital() const { return capitalArea; }
 	/*	-1 if unreachable, 0 for cities of the cache owner's team
 		(and never for cities of other teams). */
 	inline int getDistance() const { return distance; }
@@ -30,9 +31,12 @@ public:
 protected:
 	int distance;
 	int assetScore;
+	bool capitalArea;
 	bool reachByLand;
 
-	UWAICity() : distance(-1), assetScore(-1), reachByLand(false) {}
+	UWAICity()
+	:	distance(-1), assetScore(-1), reachByLand(false), capitalArea(false)
+	{}
 };
 
 

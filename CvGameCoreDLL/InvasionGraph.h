@@ -160,7 +160,7 @@ friend class Node;
 		 double clashDistance(Node const& other) const;
 		 bool isSneakAttack(Node const& other, bool bClash) const;
 		 bool isContinuedWar(Node const& other) const;
-		 bool canReachByLand(int cityId) const;
+		 bool canReachByLand(int cityId, bool fromCapital) const;
 		 CvArea const* clashArea(PlayerTypes otherId) const;
 
 		 std::vector<UWAICache::City const*> conquests;
