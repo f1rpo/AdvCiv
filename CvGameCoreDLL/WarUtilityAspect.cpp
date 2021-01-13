@@ -1963,8 +1963,12 @@ int KingMaking::preEvaluate() {
 
 	PROFILE_FUNC();
 	/*	(Scoreboard ranks just aren't meaningful off the bat, even if the game
-		starts in the Modern era.) */
+		starts in the Modern era. Leaving winningPresent empty causes 0 utility
+		to be counted by evaluate.) */
 	if(gameEra <= game.getStartEra())
+		return 0;
+	// Don't start or continue suicidal wars out of spite
+	if(m->isEliminated(weId))
 		return 0;
 	addWinning(winningFuture, true);
 	addWinning(winningPresent, false);
@@ -2143,7 +2147,7 @@ void KingMaking::addLeadingCivs(std::set<PlayerTypes>& r, double margin, bool bP
 
 void KingMaking::evaluate() {
 
-	if(gameEra <= 0 || winningPresent.empty() || winningPresent.count(theyId) <= 0)
+	if(winningPresent.empty() || winningPresent.count(theyId) <= 0)
 		return;
 	// Vassals are assumed to be out of contention
 	if(GET_TEAM(theyId).isAVassal())
@@ -2159,7 +2163,7 @@ void KingMaking::evaluate() {
 		thwart the victory of a disliked civ) */
 	if(att >= ATTITUDE_FRIENDLY)
 		return;
-	// NB: The two conditions above are superfluous; just for performance.
+	// NB: The two checks above are just for performance
 	double attitudeMultiplier = 0.03 + 0.25 * (ATTITUDE_PLEASED - att);
 	double caughtUpBonus = 0;
 	double catchUpVal = std::pow(
