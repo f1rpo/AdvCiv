@@ -3123,7 +3123,22 @@ void PublicOpposition::evaluate() {
 		log("Expected increase in ww: %d percent (%d conquered cities, %s war)",
 				::round(incr * 100), conqueredFromThem, (isTotal ? "total" : "limited"));
 	double angerRate = (wwAnger * (1 + incr) + faithAnger) / pop;
+	if(angerRate <= 0)
+		return;
 	double uMinus = 125 * angerRate;
+	// Don't go too high
+	uMinus = std::pow(uMinus, 0.75) * 2; // (normalization factor)
+	/*	Shouldn't be much of a deterrent when playing for military victory.
+		(Letting the utility counted for the MilitaryVictory aspect cancel out
+		the PublicOpposition isn't quite working out, I think, b/c the
+		latter aspect is being overvalued so that it can serve as a safeguard
+		against interminable wars.) */
+	if(we->AI_atVictoryStage(AI_VICTORY_MILITARY3)) {
+		int const div = (we->isHuman() ? 3 : 2); // Humans are especially goal-driven
+		uMinus /= div;
+		if(we->AI_atVictoryStage(AI_VICTORY_MILITARY4))
+			uMinus /= div;
+	}
 	log("War anger rate: %d percent%s", ::round(angerRate * 100),
 			(uMinus < 0.5 ? " (negligible)" : ""));
 	u -= ::round(uMinus);
