@@ -18706,6 +18706,7 @@ bool CvUnitAI::AI_pickupStranded(UnitAITypes eUnitAI, int iMaxPath)
 						iBestAdjTurns = iPathTurns; // advc.046
 					}
 				}
+				iPathTurns = iBestAdjTurns; // advc.046
 			}
 			if (pTargetPlot != NULL)
 			{
