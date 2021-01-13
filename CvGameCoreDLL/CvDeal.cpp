@@ -427,6 +427,16 @@ bool CvDeal::verify(PlayerTypes eRecipient, PlayerTypes eGiver)
 				return false;
 			}
 		}
+		// <advc.133> Force-cancel GPT deals when broke
+		if (pItem->m_eItemType == TRADE_GOLD_PER_TURN)
+		{
+			if (kGiver.getCommercePercent(COMMERCE_GOLD) >= 100 &&
+				kGiver.getGold() < pItem->m_iData && !kGiver.isAnarchy() &&
+				kGiver.calculateGoldRate() < 0)
+			{
+				return false;
+			}
+		} // </advc.133>
 	}
 	return true;
 }
