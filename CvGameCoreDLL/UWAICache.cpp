@@ -75,7 +75,6 @@ void UWAICache::clear(bool beforeUpdate) {
 	warUtilityIgnDistraction.reset();
 
 	if(!beforeUpdate) {
-		latestTurnReachableBySea.clear();
 		nNonNavyUnits = 0;
 		for(size_t i = 0; i < militaryPower.size(); i++)
 			SAFE_DELETE(militaryPower[i]);
@@ -99,7 +98,8 @@ void UWAICache::write(FDataStreamBase* stream) {
 	/*  I hadn't thought of a version number in the initial release. Need
 		to fold it into ownerId now to avoid breaking compatibility. */
 	//savegameVersion = 5; // focusOnPeacefulVictory added
-	savegameVersion = 6; // advc.enum: Store as float
+	//savegameVersion = 6; // advc.enum: Store as float
+	savegameVersion = 7; // advc: remove latestTurnReachableBySea
 	stream->Write(ownerId + 100 * savegameVersion);
 	int n = (int)v.size();
 	stream->Write(n);
@@ -131,13 +131,6 @@ void UWAICache::write(FDataStreamBase* stream) {
 	for(std::set<TeamTypes>::const_iterator it = readyToCapitulate.begin();
 			it != readyToCapitulate.end(); ++it)
 		stream->Write(*it);
-	stream->Write(latestTurnReachableBySea.size());
-	for(std::map<int,std::pair<int,int> >::iterator it = latestTurnReachableBySea.
-			begin(); it != latestTurnReachableBySea.end(); ++it) {
-		stream->Write(it->first);
-		stream->Write(it->second.first);
-		stream->Write(it->second.second);
-	}
 	for(size_t i = 0; i < militaryPower.size(); i++)
 		militaryPower[i]->write(stream);
 	stream->Write(nNonNavyUnits);
@@ -193,21 +186,27 @@ void UWAICache::read(FDataStreamBase* stream) {
 	stream->Read(&trainAnyCargo);
 	if(savegameVersion >= 5)
 		stream->Read(&focusOnPeacefulVictory);
-	int sz=0;
-	stream->Read(&sz);
-	for(int i = 0; i < sz; i++) {
-		int masterId;
-		stream->Read(&masterId);
-		FAssert(masterId >= 0 && masterId < MAX_CIV_TEAMS); // Sanity check
-		readyToCapitulate.insert((TeamTypes)masterId);
+	{
+		int sz=0;
+		stream->Read(&sz);
+		for(int i = 0; i < sz; i++) {
+			int masterId;
+			stream->Read(&masterId);
+			FAssert(masterId >= 0 && masterId < MAX_CIV_TEAMS); // Sanity check
+			readyToCapitulate.insert((TeamTypes)masterId);
+		}
 	}
-	stream->Read(&sz);
-	for(int i = 0; i < sz; i++) {
-		int key, firstVal, secondVal;
-		stream->Read(&key);
-		stream->Read(&firstVal);
-		stream->Read(&secondVal);
-		latestTurnReachableBySea[key] = std::make_pair(firstVal, secondVal);
+	if(savegameVersion < 7) {
+		int sz=0;
+		stream->Read(&sz);
+		for(int i = 0; i < sz; i++) {
+			int key, firstVal, secondVal;
+			stream->Read(&key);
+			stream->Read(&firstVal);
+			stream->Read(&secondVal);
+			// No longer used; just discard the data.
+			//latestTurnReachableBySea[key] = std::make_pair(firstVal, secondVal);
+		}
 	}
 	militaryPower.push_back(new MilitaryBranch::HomeGuard(ownerId));
 	militaryPower.push_back(new MilitaryBranch::Army(ownerId));
@@ -1371,9 +1370,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 		Some cities of the agent are also skipped, both for performance reasons
 		(the pathfinding is computationally expensive) and b/c I want distance to
 		reflect typical deployment distances, and insignificant cities don't
-		deploy units. Can fall back on latestTurnReachableBySea when an important
-		coastal city becomes unproductive b/c of unrest or e.g. poisoned water;
-		don't need to deal with these things here.
+		deploy units.
 
 		NB: targetCity and this City refer to the same city (but targetCity has
 		type CvCity*).

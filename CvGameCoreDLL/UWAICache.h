@@ -202,7 +202,6 @@ private:
 	std::vector<City*> v;
 	// I've tried stdext::hash_map for both of these. That was a little bit slower.
 	std::map<int,City*> cityMap;
-	std::map<int,std::pair<int,int> > latestTurnReachableBySea;
 	std::vector<MilitaryBranch*> militaryPower;
 
 	int nNonNavyUnits;
