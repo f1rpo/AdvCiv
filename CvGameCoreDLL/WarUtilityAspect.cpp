@@ -2563,6 +2563,18 @@ void Risk::evaluate() {
 		uMinus += costForCapitulation;
 		log("Cost halved because of capitulation; %d added", costForCapitulation);
 	}
+	/*	Count something extra for elimination just to make sure that peace is
+		sought even when fighting multiple hopeless wars. */
+	if(m->isEliminated(weId) && m->isWar(weId, theyId) &&
+			/*	Don't require them to conquer any cities in the military analysis.
+				Another war enemy may get to us much faster, but it's still good
+				to end wars with any dangerous enemy. */
+			theyAI->getCache().numReachableCities(weId) >= we->getNumCities() &&
+			/*	Require _some_ action though; don't want players to declare war
+				just to extract some reparations. */
+			GET_TEAM(theyId).AI_getWarSuccess(agentId) >= GC.getWAR_SUCCESS_CITY_CAPTURING()) {
+		uMinus += they->getNumCities(); // a little arbitrary ...
+	}
 	u -= ::round(uMinus);
 }
 
