@@ -3606,14 +3606,16 @@ void TacticalSituation::evalEngagement() {
 			if(plotUnit->currHitPoints() <= hpThresh)
 				theirDamaged++;
 			/*if(theirUnits - theirDamaged >= ourUnits)
-				break;*/ // Need the fully count of iTheirUnits after all
+				break;*/ // Need the full count of iTheirUnits after all
 		}
 		// Damaged units protected by healthy units aren't exposed
 		theirDamaged = ::range(ourUnits + theirDamaged - theirUnits, 0, theirDamaged);
 		/*	If their healthy units outnumber or outclass ours
 			then we probably won't want to engage. */
-		ourUnits = ::round(ourUnits * std::min(1.0,
-				(1.3 * ourUnits * eraMult) / (theirUnits - theirDamaged)));
+		if (theirUnits > theirDamaged) {
+			ourUnits = ::round(ourUnits * std::min(1.0,
+					(1.3 * ourUnits * eraMult) / (theirUnits - theirDamaged)));
+		}
 		/*  Count at most one enemy unit per unit of ours as "entangled", i.e. count
 			pairs of units. */
 		theirUnits = std::min(theirUnits, ourUnits);
@@ -3649,7 +3651,7 @@ void TacticalSituation::evalEngagement() {
 			(1 - initiativeFactor) * ourExposed) + ourMissions) /
 			ourTotal;
 	// getNumUnits is an information cheat, but it's all quite fuzzy anyway.
-	uPlus += (2.0 * entangled) / (ourTotal + they->getNumUnits());
+	uPlus += (2.0 * entangled) / std::max(1, ourTotal + they->getNumUnits());
 	if(we->getTotalPopulation() > 0)
 		uPlus += 3.0 * (theirEvac - 1.35 * ourEvac) / we->getTotalPopulation();
 	uPlus *= 100;
