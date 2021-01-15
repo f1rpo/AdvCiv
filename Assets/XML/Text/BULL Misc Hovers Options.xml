@@ -108,11 +108,11 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__PARTIALBUILDSALWAYS_HOVER</Tag>
-		<English>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the Ctrl key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</English>
-		<French>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the Ctrl key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</French>
-		<German>Zeigt im Hilfetext stets unvollständige Arbeiten an. Ohne diese Option werden solche Arbeiten nur angezeigt, wenn Sie die Strg-Taste gedrückt halten. (In jedem Fall können Sie Arbeiter anweisen, einen Auftrag einen Zug vor der Fertigstellung zu unterbrechen, indem Sie bei Erteilung des Auftrags Strg gedrückt halten.)</German>
-		<Italian>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the Ctrl key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</Italian>
-		<Spanish>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the Ctrl key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</Spanish>
+		<English>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the [COLOR_HIGHLIGHT_TEXT]Ctrl[COLOR_REVERT] key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</English>
+		<French>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the [COLOR_HIGHLIGHT_TEXT]Ctrl[COLOR_REVERT] key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</French>
+		<German>Zeigt im Hilfetext stets unvollständige Arbeiten an. Ohne diese Option werden solche Arbeiten nur angezeigt, wenn Sie die [COLOR_HIGHLIGHT_TEXT]Strg[COLOR_REVERT]-Taste gedrückt halten. (In jedem Fall können Sie Arbeiter anweisen, einen Auftrag einen Zug vor der Fertigstellung zu unterbrechen, indem Sie bei Erteilung des Auftrags Strg gedrückt halten.)</German>
+		<Italian>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the [COLOR_HIGHLIGHT_TEXT]Ctrl[COLOR_REVERT] key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</Italian>
+		<Spanish>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the [COLOR_HIGHLIGHT_TEXT]Ctrl[COLOR_REVERT] key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</Spanish>
 	</TEXT>
 
 	<!-- advc.099f -->
@@ -126,11 +126,11 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__CULTUREINUNOWNEDTILES_HOVER</Tag>
-		<English>When checked, culture percentages are shown in the help text of any actively visible tile. Otherwise, culture percentages in unowned tiles are only shown when the [Shift] key is held down. (Culture on unowned tiles is a common occurrence because K-Mod lets cities spread culture beyond their owner's borders.)</English>
-		<French>When checked, culture percentages are shown in the help text of any actively visible tile. Otherwise, culture percentages in unowned tiles are only shown when the [Shift] key is held down. (Culture on unowned tiles is a common occurrence because K-Mod lets cities spread culture beyond their owner's borders.)</French>
-		<German>Zeigt Kulturanteile im Hilfetext aller einsehbaren Felder an. Wenn diese Option nicht angekreuzt ist, werden Kulturanteile neutraler Felder nur bei gedrückter Umschalttaste angezeigt.</German>
-		<Italian>When checked, culture percentages are shown in the help text of any actively visible tile. Otherwise, culture percentages in unowned tiles are only shown when the [Shift] key is held down. (Culture on unowned tiles is a common occurrence because K-Mod lets cities spread culture beyond their owner's borders.)</Italian>
-		<Spanish>When checked, culture percentages are shown in the help text of any actively visible tile. Otherwise, culture percentages in unowned tiles are only shown when the [Shift] key is held down. (Culture on unowned tiles is a common occurrence because K-Mod lets cities spread culture beyond their owner's borders.)</Spanish>
+		<English>When checked, culture percentages are shown in the help text of any actively visible tile. Otherwise, culture percentages in unowned tiles are only shown when the [COLOR_HIGHLIGHT_TEXT]Shift[COLOR_REVERT] key is held down. (Culture on unowned tiles is a common occurrence because K-Mod lets cities spread culture beyond their owner's borders.)</English>
+		<French>When checked, culture percentages are shown in the help text of any actively visible tile. Otherwise, culture percentages in unowned tiles are only shown when the [COLOR_HIGHLIGHT_TEXT]Shift[COLOR_REVERT] key is held down. (Culture on unowned tiles is a common occurrence because K-Mod lets cities spread culture beyond their owner's borders.)</French>
+		<German>Zeigt Kulturanteile im Hilfetext aller einsehbaren Felder an. Wenn diese Option nicht angekreuzt ist, werden Kulturanteile neutraler Felder nur bei gedrückter [COLOR_HIGHLIGHT_TEXT]Umschalt[COLOR_REVERT]taste angezeigt.</German>
+		<Italian>When checked, culture percentages are shown in the help text of any actively visible tile. Otherwise, culture percentages in unowned tiles are only shown when the [COLOR_HIGHLIGHT_TEXT]Shift[COLOR_REVERT] key is held down. (Culture on unowned tiles is a common occurrence because K-Mod lets cities spread culture beyond their owner's borders.)</Italian>
+		<Spanish>When checked, culture percentages are shown in the help text of any actively visible tile. Otherwise, culture percentages in unowned tiles are only shown when the [COLOR_HIGHLIGHT_TEXT]Shift[COLOR_REVERT] key is held down. (Culture on unowned tiles is a common occurrence because K-Mod lets cities spread culture beyond their owner's borders.)</Spanish>
 	</TEXT>
 
 <!-- Unit -->
