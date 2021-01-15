@@ -4159,20 +4159,22 @@ bool CvUnit::canAirBombAt(const CvPlot* pPlot, int iX, int iY) const
 	if (plotDistance(pPlot, pTargetPlot) > airRange())
 		return false;
 
-	if (pTargetPlot->isOwned())
+	if (pTargetPlot->isOwned() &&
+		// advc.004c: Don't give away revealed owner to humans
+		(!isHuman() || pTargetPlot->getRevealedOwner(getTeam()) != NO_PLAYER))
 	{
 		// advc (note): This boils down to isEnemy for humans
 		if (!AI().AI_mayAttack(*pTargetPlot))
 			return false;
 	}
 
-	CvCity* pCity = pTargetPlot->getPlotCity();
-	if (pCity != NULL)
+	CvCity const* pCity = pTargetPlot->getPlotCity();
+	if (pCity != NULL &&
+		// advc.004c: Don't give away unrevealed cities to humans
+		(!isHuman() || pCity->isRevealed(getTeam())))
 	{
 		if (!pCity->isBombardable(this) || /* K-Mod: */ !pCity->isRevealed(getTeam()))
-		{
 			return false;
-		}
 	}
 	else
 	{
@@ -4185,17 +4187,42 @@ bool CvUnit::canAirBombAt(const CvPlot* pPlot, int iX, int iY) const
 		// K-Mod. Don't allow the player to bomb improvements that they don't know exist.
 		ImprovementTypes eActualImprovement = pTargetPlot->getImprovementType();
 		ImprovementTypes eRevealedImprovement = pTargetPlot->getRevealedImprovementType(getTeam());
-
+		/*	<advc.004c> The K-Mod code still gives away improvements that
+			have been removed. Instead, allow humans to make futile attacks
+			against improvements that no longer exist. */
+		if (isHuman())
+		{
+			if (!pTargetPlot->isVisible(getTeam()))
+				eActualImprovement = eRevealedImprovement;
+			else FAssert(eActualImprovement == eRevealedImprovement);
+		} // </advc.004c>
 		if (eActualImprovement == NO_IMPROVEMENT || eRevealedImprovement == NO_IMPROVEMENT)
 			return false;
-		if (GC.getInfo(eActualImprovement).isPermanent() || GC.getInfo(eRevealedImprovement).isPermanent())
+		if (GC.getInfo(eActualImprovement).isPermanent() ||
+			GC.getInfo(eRevealedImprovement).isPermanent())
+		{
 			return false;
-		if (GC.getInfo(eActualImprovement).getAirBombDefense() == -1 || GC.getInfo(eRevealedImprovement).getAirBombDefense() == -1)
+		}
+		if (GC.getInfo(eActualImprovement).getAirBombDefense() == -1 ||
+			GC.getInfo(eRevealedImprovement).getAirBombDefense() == -1)
+		{
 			return false;
-		// K-Mod end
+		} // K-Mod end
 	}
 
 	return true;
+}
+
+// advc: Moved out of CvUnit::airBomb
+int CvUnit::airBombDefenseDamage(CvCity const& kCity) const
+{
+	/*  <advc.004c> Same as in damageToBombardTarget except that IgnoreBuildingDefense
+		doesn't have to be checked here b/c all air units have that */
+	int iDefWithBuildings = kCity.getDefenseModifier(false);
+	int iDefSansBuildings = kCity.getDefenseModifier(true);
+	FAssertMsg(iDefSansBuildings > 0 || isHuman(),
+			"The AI shoudn't bombard cities whose def is already 0");
+	return (airBombCurrRate() * scaled(iDefWithBuildings, iDefSansBuildings)).round();
 }
 
 
@@ -4219,20 +4246,13 @@ bool CvUnit::airBomb(int iX, int iY)
 	CvCity* pCity = kPlot.getPlotCity();
 	if (pCity != NULL)
 	{
-		/*  <advc.004c> Same as in CvUnit::bombard except that IgnoreBuildingDefense
-			doesn't have to be checked here b/c all air units have that */
-		int iDefWithBuildings = pCity->getDefenseModifier(false);
-		int iDefSansBuildings = pCity->getDefenseModifier(true);
-		FAssertMsg(iDefSansBuildings > 0 || isHuman(),
-				"The AI shoudn't bombard cities whose def is already 0");
-		double chg = -airBombCurrRate() * (iDefWithBuildings / (double)iDefSansBuildings);
-		pCity->changeDefenseModifier(std::min(0, ::round(chg)));
-		// Replacing this line: // </advc.004c>
 		//pCity->changeDefenseModifier(-airBombCurrRate());
-
+		// advc.004c:
+		pCity->changeDefenseModifier(-std::max(0, airBombDefenseDamage(*pCity)));	
 		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DEFENSES_REDUCED_TO",
 				pCity->getNameKey(), pCity->getDefenseModifier(false), getNameKey());
-		gDLL->UI().addMessage(pCity->getOwner(), false, -1, szBuffer, pCity->getPlot(),
+		gDLL->UI().addMessage(pCity->getOwner(), true, // advc.004g: was false
+				-1, szBuffer, pCity->getPlot(),
 				"AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"));
 		szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_DEFENSES_REDUCED_TO", getNameKey(),
 				pCity->getNameKey(), pCity->getDefenseModifier(false));
@@ -4242,9 +4262,12 @@ bool CvUnit::airBomb(int iX, int iY)
 	else
 	{
 		if (kPlot.isImproved())
-		{
-			if (GC.getGame().getSorenRandNum(airBombCurrRate(), "Air Bomb - Offense") >=
-				GC.getGame().getSorenRandNum(GC.getInfo(kPlot.getImprovementType()).getAirBombDefense(), "Air Bomb - Defense"))
+		{	/*	advc.004c (note) Changes to this dice roll should be matched with
+				changes to the probability display in CvGameTextMgr::getAirBombPlotHelp */
+			if (GC.getGame().getSorenRandNum(
+				airBombCurrRate(), "Air Bomb - Offense") >=
+				GC.getGame().getSorenRandNum(
+				GC.getInfo(kPlot.getImprovementType()).getAirBombDefense(), "Air Bomb - Defense"))
 			{
 				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_IMP", getNameKey(),
 						GC.getInfo(kPlot.getImprovementType()).getTextKeyWide());
@@ -4256,11 +4279,12 @@ bool CvUnit::airBomb(int iX, int iY)
 					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_IMP_WAS_DESTROYED",
 							GC.getInfo(kPlot.getImprovementType()).getTextKeyWide(), getNameKey(), 
 							getVisualCivAdjective(kPlot.getTeam()));
-					gDLL->UI().addMessage(kPlot.getOwner(), /* advc.106j: */ true, -1,
-							szBuffer, kPlot, "AS2D_PILLAGED", MESSAGE_TYPE_INFO,
+					gDLL->UI().addMessage(kPlot.getOwner(), true, // advc.004g: was false
+							-1, szBuffer, kPlot, "AS2D_PILLAGED", MESSAGE_TYPE_INFO,
 							getButton(), GC.getColorType("RED"));
 				}
-				kPlot.setImprovementType(GC.getInfo(kPlot.getImprovementType()).getImprovementPillage());
+				kPlot.setImprovementType(GC.getInfo(kPlot.getImprovementType()).
+						getImprovementPillage());
 			}
 			else
 			{
@@ -4270,7 +4294,14 @@ bool CvUnit::airBomb(int iX, int iY)
 						"AS2D_BOMB_FAILS", MESSAGE_TYPE_INFO, getButton(),
 						GC.getColorType("RED"), kPlot.getX(), kPlot.getY());
 			}
-		}
+		}  // <advc.004c> Can now fail when the improvement only existed in the FoW
+		else
+		{
+			szBuffer = gDLL->getText("TXT_KEY_MISC_AIR_BOMB_FAIL_IMP_GONE", getNameKey());
+			gDLL->UI().addMessage(getOwner(), true, -1, szBuffer,
+					"AS2D_BOMB_FAILS", MESSAGE_TYPE_INFO, getButton(),
+					NO_COLOR, kPlot.getX(), kPlot.getY());
+		} // </advc.004c>
 	}
 
 	setReconPlot(&kPlot);
@@ -4341,6 +4372,33 @@ bool CvUnit::canBombard(CvPlot const& kPlot) const
 	return true;
 }
 
+// Moved out of CvUnit::bombard (note: may exceed the target's defensive modifier)
+int CvUnit::damageToBombardTarget(CvPlot const& kPlot) const
+{
+	CvCity const* pBombardCity = bombardTarget(kPlot);
+	if (pBombardCity == NULL)
+		return 0;
+	// <advc.004c>
+	int iDefWithBuildings = pBombardCity->getDefenseModifier(false);
+	FAssertMsg(iDefWithBuildings > 0 || isHuman(),
+			"The AI shoudn't bombard cities whose def is already 0");
+	int iDefSansBuildings = pBombardCity->getDefenseModifier(true);
+	bool const bIgnore = ignoreBuildingDefense();
+	// </advc.004c>
+	int iBombardModifier = 0;
+	if (!bIgnore) // advc.004c
+		iBombardModifier -= pBombardCity->getBuildingBombardDefense();
+	// <advc.004c> Same formula as in BtS (except for rounding)
+	scaled rDamage = bombardRate();
+	rDamage *= 1 + per100(iBombardModifier);
+	rDamage.increaseTo(0);
+	if (bIgnore && iDefSansBuildings > 0) /*  bIgnore doesn't just ignore
+			BombardDefense, also need to decrease DefenseModifier proportional
+			to the effect of buildings in order to properly ignore BuildingDefense. */
+		rDamage *= scaled(iDefWithBuildings, iDefSansBuildings);
+	return rDamage.round(); // </advc.004c>
+}
+
 
 bool CvUnit::bombard()
 {
@@ -4352,25 +4410,11 @@ bool CvUnit::bombard()
 	{
 		//getGroup()->groupDeclareWar(pTargetPlot, true); // Disabled by K-Mod
 		return false;
-	} // <advc.004c>
-	bool bIgnore = ignoreBuildingDefense();
-	int iDefWithBuildings = pBombardCity->getDefenseModifier(false);
-	FAssertMsg(iDefWithBuildings > 0 || isHuman(),
-			"The AI shoudn't bombard cities whose def is already 0");
-	int iDefSansBuildings = pBombardCity->getDefenseModifier(true);
-	// </advc.004c>
-	int iBombardModifier = 0;
-	if (!bIgnore) // advc.004c
-		iBombardModifier -= pBombardCity->getBuildingBombardDefense();
-	// <advc.004c> Same formula as in BtS (except for rounding)
-	double chg = -(bombardRate() * std::max(0, 100 + iBombardModifier)) / 100.0;
-	if(bIgnore && iDefSansBuildings > 0) /*  bIgnore doesn't just ignore
-			BombardDefense, also need to decrease DefenseModifier proportional
-			to the effect of buildings in order to properly ignore BuildingDefense. */
-		chg *= iDefWithBuildings / (double)iDefSansBuildings;
+	}
+
 	bool bFirstBombardment = !pBombardCity->isBombarded(); // advc.004g
-	pBombardCity->changeDefenseModifier(std::min(0, ::round(chg)));
-	// </advc.004c>
+	// advc: Moved into subroutine
+	pBombardCity->changeDefenseModifier(-std::max(0, damageToBombardTarget(getPlot())));
 	setMadeAttack(true);
 	changeMoves(GC.getMOVE_DENOMINATOR());
 
@@ -4385,7 +4429,8 @@ bool CvUnit::bombard()
 			"AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"));
 	szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_REDUCE_CITY_DEFENSES",
 			getNameKey(), pBombardCity->getNameKey(),
-			pBombardCity->getDefenseModifier(bIgnore)); // advc.004g: arg was false
+			pBombardCity->getDefenseModifier(//false
+			ignoreBuildingDefense())); // advc.004g
 	gDLL->UI().addMessage(getOwner(), true,
 			-1, szBuffer, "AS2D_BOMBARD",
 			MESSAGE_TYPE_INFO, getButton(), GC.getColorType("GREEN"),

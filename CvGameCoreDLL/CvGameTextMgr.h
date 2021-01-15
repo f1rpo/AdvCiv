@@ -267,6 +267,7 @@ public:
 	DllExport void getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* pFlagPlot, bool bAlt, CvWStringBuffer& strHelp);
 	void getRebasePlotHelp(CvPlot* pPlot, CvWString& strHelp);
 	void getNukePlotHelp(CvPlot* pPlot, CvWString& strHelp);
+	void getAirBombPlotHelp(CvPlot* pPlot, CvWString& strHelp); // advc.004c
 	DllExport void getInterfaceCenterText(CvWString& strText);
 	DllExport void getTurnTimerText(CvWString& strText);
 	DllExport void getFontSymbols(std::vector< std::vector<wchar> >& aacSymbols, std::vector<int>& aiMaxNumRows);

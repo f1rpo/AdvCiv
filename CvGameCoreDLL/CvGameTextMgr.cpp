@@ -1236,19 +1236,32 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 						szTempBuffer.GetCString()));
 			}
 		}
-		if (pUnit->bombardRate() > 0)
 		{
-			if (bShort)
+			int iBombRate = pUnit->bombardRate();
+			// <advc.004c>
+			bool bAirBomb = false;
+			if (iBombRate <= 0)
 			{
-				szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_UNIT_BOMBARD_RATE_SHORT",
-						(pUnit->bombardRate() * 100) / GC.getMAX_CITY_DEFENSE_DAMAGE()));
-			}
-			else
+				iBombRate = pUnit->airBombCurrRate();
+				bAirBomb = true;
+			} // </advc.004c>
+			if (iBombRate > 0)
 			{
-				szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_UNIT_BOMBARD_RATE",
-						(pUnit->bombardRate() * 100) / GC.getMAX_CITY_DEFENSE_DAMAGE()));
+				if (bShort ||
+					bAirBomb) // advc.004c: Always use the short version for that
+				{
+					szString.append(NEWLINE);
+					szString.append(gDLL->getText(
+							bAirBomb ? "TXT_KEY_UNIT_AIR_BOMB_RATE_SHORT" : // advc.004c
+							"TXT_KEY_UNIT_BOMBARD_RATE_SHORT",
+							(iBombRate * 100) / GC.getMAX_CITY_DEFENSE_DAMAGE()));
+				}
+				else
+				{
+					szString.append(NEWLINE);
+					szString.append(gDLL->getText("TXT_KEY_UNIT_BOMBARD_RATE",
+							(iBombRate * 100) / GC.getMAX_CITY_DEFENSE_DAMAGE()));
+				}
 			}
 		}
 
@@ -1557,17 +1570,28 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 	// (The code below was written for iFontSize=14, so that's fontFactor=1.)
 	double fontFactor = 14.0 / iFontSize;
 	// </advc.002b>
-	CvGame const& g = GC.getGame();
-	int iScreenHeight = g.getScreenHeight();
+	CvGame const& kGame = GC.getGame();
+	int iScreenHeight = kGame.getScreenHeight();
 	int iLineLimit = (iScreenHeight == 0 ? 25 :
-			::round(32 * fontFactor * g.getScreenHeight() / 1000.0 - 5));
+			::round(32 * fontFactor * kGame.getScreenHeight() / 1000.0 - 5));
 	/*  When hovering over an indicator bubble (unit layer), only info about units
 		in kPlot is shown. This means more space. Same when hovering over a flag
 		(bShort). */
 	if(bIndicator || bShort)
 		iLineLimit += 4;
-	TeamTypes eActiveTeam = g.getActiveTeam();
-	PlayerTypes eActivePlayer = g.getActivePlayer();
+	{	// Reserve space for interface mode info
+		InterfaceModeTypes eMode = gDLL->UI().getInterfaceMode();
+		if (eMode != INTERFACEMODE_SELECTION && eMode != INTERFACEMODE_GRIP &&
+			eMode != INTERFACEMODE_PYTHON_PICK_PLOT && eMode != INTERFACEMODE_GO_TO)
+		{
+			iLineLimit--;
+			// <advc.004c> Will usually take up an extra line
+			if (eMode == INTERFACEMODE_AIRBOMB)
+				iLineLimit--; // </advc.004c>
+		}
+	}
+	TeamTypes const eActiveTeam = kGame.getActiveTeam();
+	PlayerTypes const eActivePlayer = kGame.getActivePlayer();
 	// Adjust to other info to be displayed
 	iLineLimit += 4;
 	if(kPlot.isImproved())
@@ -21045,6 +21069,10 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 			case INTERFACEMODE_NUKE:
 				getNukePlotHelp(pMouseOverPlot, szTempBuffer);
 				break;
+			// <advc.004c>
+			case INTERFACEMODE_AIRBOMB:
+				getAirBombPlotHelp(pMouseOverPlot, szTempBuffer);
+				break; // </advc.004c>
 			}
 			szTempBuffer += strHelp.getCString();
 			strHelp.assign(szTempBuffer);
@@ -21092,13 +21120,103 @@ void CvGameTextMgr::getNukePlotHelp(CvPlot* pPlot, CvWString& strHelp)
 		TeamTypes eVictimTeam = (TeamTypes)iI;
 		if(pHeadSelectedUnit->isNukeVictim(pPlot, eVictimTeam) &&
 			!pHeadSelectedUnit->isEnemy(eVictimTeam))
-		{
-			// advc.130q: No newline
+		{	// advc.130q: No newline
 			strHelp += gDLL->getText("TXT_KEY_CANT_NUKE_FRIENDS");
 			break;
 		}
 	}
-	strHelp += NEWLINE; // advc.130q: Newline added
+	strHelp += NEWLINE; // advc.130q
+}
+
+/*	advc.004c: (Beginning based on getNukePlotHelp; the middle part is akin
+	to the MISSION_BOMBARD case in CvDLLWidgetData::parseActionHelp_Mission): */
+void CvGameTextMgr::getAirBombPlotHelp(CvPlot* pPlot, CvWString& strHelp)
+{
+	if(pPlot == NULL)
+		return;
+	CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
+	if(pHeadSelectedUnit == NULL)
+		return;
+
+	TeamTypes const eActiveTeam = GC.getGame().getActiveTeam();
+	CvCity const* pBombardCity = pPlot->getPlotCity();
+	if (pBombardCity != NULL && pBombardCity->isRevealed(eActiveTeam))
+	{
+		int const iMaxDamage = (pBombardCity->isVisible(eActiveTeam) ?
+				pBombardCity->getDefenseModifier(true) : MAX_INT);
+		int iDamage = 0;
+		for (CLLNode<IDInfo> const* pNode = gDLL->UI().headSelectionListNode();
+			pNode != NULL; pNode = gDLL->UI().nextSelectionListNode(pNode))
+		{
+			CvUnit const& kSelectedUnit = *::getUnit(pNode->m_data);
+			iDamage += kSelectedUnit.airBombDefenseDamage(*pBombardCity);
+			if (iDamage >= iMaxDamage)
+			{
+				iDamage = iMaxDamage;
+				break;
+			}
+		}
+		if (iDamage > 0)
+		{
+			strHelp.append(gDLL->getText("TXT_KEY_AIR_BOMB_MODE_HELP_CITY_DEFENSE",
+					pBombardCity->getNameKey(), iDamage));
+		}
+		else strHelp.append(gDLL->getText("TXT_KEY_AIR_BOMB_MODE_HELP_CITY_DEFENSE_NO_DAMAGE",
+					pBombardCity->getNameKey()));
+		strHelp.append(NEWLINE);
+	}
+	else
+	{
+		ImprovementTypes eImprov = pPlot->getRevealedImprovementType(eActiveTeam);
+		if (eImprov != NO_IMPROVEMENT)
+		{
+			CvUnit const* pBestSelectedUnit = NULL;
+			/*	Selection of best unit needs to be consistent with prioritization
+				in CvSelectionGroup::startMission */
+			int iMaxPriority = 0;
+			for (CLLNode<IDInfo> const* pNode = gDLL->UI().headSelectionListNode();
+				pNode != NULL; pNode = gDLL->UI().nextSelectionListNode(pNode))
+			{
+				CvUnit const& kSelectedUnit = *::getUnit(pNode->m_data);
+				int iPriority = 1;
+				if (kSelectedUnit.canMove())
+					iPriority += 1000;
+				iPriority += kSelectedUnit.airBombCurrRate();
+				if (iPriority > iMaxPriority)
+				{
+					iPriority = iMaxPriority;
+					pBestSelectedUnit = &kSelectedUnit;
+				}
+			}
+			// Formula matches dice roll in CvUnit::airBomb
+			int const iAttack = pBestSelectedUnit->airBombCurrRate();
+			int const iDefense = GC.getInfo(eImprov).getAirBombDefense();
+			scaled prSuccess = 1;
+			if (iDefense > 0)
+			{
+				if (iAttack <= 0)
+					prSuccess = 0;
+				else
+				{	/*	Probability of iAttack-sided die rolling greater than
+						or equal to iDefense-sided die */
+					prSuccess = (iAttack > iDefense ?
+							1 - scaled(iDefense - 1, 2 * iAttack) :
+							scaled(iAttack + 1, 2 * iDefense));
+				}
+			}
+			if (prSuccess > 0)
+			{
+				int iRounded = prSuccess.getPercent();
+				if (iRounded == 0) // Don't show uncertain outcome as certain
+					iRounded++;
+				if (iRounded == 100 && prSuccess < 1)
+					iRounded--;
+				strHelp.append(gDLL->getText("TXT_KEY_AIR_BOMB_MODE_HELP_DESTR_IMPROV",
+						GC.getInfo(eImprov).getDescription(), iRounded));
+				strHelp.append(NEWLINE);
+			}
+		}
+	}
 }
 
 void CvGameTextMgr::getInterfaceCenterText(CvWString& strText)

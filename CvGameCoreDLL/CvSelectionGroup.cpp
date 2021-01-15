@@ -744,6 +744,29 @@ bool CvSelectionGroup::canStartMission(
 	return canDoMission(eMission, iData1, iData2, pPlot, bTestVisible, false);
 }
 
+// advc.004c: Auxiliary functions for mission start prioritization (within a group)
+namespace
+{
+	scaled bombMissionPriority(CvUnit const& kUnit)
+	{	// Crude ...
+		return kUnit.getUnitInfo().getProductionCost() *
+				(1 + per100(6) * kUnit.getExperience());
+	}
+
+	scaled bombMissionPriority(CvUnit const& kUnit, int iDamage, int iRemainingDefense)
+	{
+		int iWasted = 0;
+		if (iDamage > 0)
+		{
+			iWasted = iDamage - iRemainingDefense;
+			iWasted = std::max(0, iWasted);
+		}
+		scaled rPriority = std::max(0, iDamage - iWasted) * 1000 - iWasted * 100;
+		rPriority -= bombMissionPriority(kUnit);
+		return rPriority;
+	}
+}
+
 
 void CvSelectionGroup::startMission()
 {
@@ -888,8 +911,6 @@ void CvSelectionGroup::startMission()
 		case MISSION_NUKE:
 		case MISSION_RECON:
 		case MISSION_PARADROP:
-		case MISSION_AIRBOMB:
-		case MISSION_BOMBARD:
 		case MISSION_RANGE_ATTACK:
 		case MISSION_SABOTAGE:
 		case MISSION_DESTROY:
@@ -911,30 +932,32 @@ void CvSelectionGroup::startMission()
 		case MISSION_PILLAGE:
 		{
 			// Fast units pillage first
-			std::vector<std::pair<int,int> > aUnitsByPriority;
+			std::vector<std::pair<int,int> > aiiUnitsByPriority;
 			FOR_EACH_UNIT_IN(pUnit, *this)
 			{
-				if (pUnit->canMove() && pUnit->canPillage(pUnit->getPlot()))
-				{
-					int iPriority = 0;
-					if (pUnit->bombardRate() > 0)
-						iPriority--;
-					if (pUnit->isMadeAttack())
-						iPriority++;
-					if (pUnit->isHurt() && !pUnit->hasMoved())
-						iPriority--;
-
-					iPriority = (3 + iPriority) * pUnit->movesLeft() / 3;
-					aUnitsByPriority.push_back(std::make_pair(
-							iPriority, pUnit->getID()));
-				}
+				if (!pUnit->canMove() || !pUnit->canPillage(pUnit->getPlot()))
+					continue;
+				int iPriority = 3;
+				if (pUnit->bombardRate() > 0)
+					iPriority--;
+				if (pUnit->isMadeAttack())
+					iPriority++;
+				if (pUnit->isHurt() && !pUnit->hasMoved())
+					iPriority--;
+				// <advc.004c>
+				iPriority *= 10000;
+				iPriority -= bombMissionPriority(*pUnit).round();
+				// </advc.004c>
+				//iPriority = (3 + iPriority) * pUnit->movesLeft() / 3;
+				// advc.004c: Add 3 upfront. Don't see what good the division would do.
+				iPriority *= pUnit->movesLeft();
+				aiiUnitsByPriority.push_back(std::make_pair(iPriority, pUnit->getID()));
 			}
-			std::sort(aUnitsByPriority.begin(), aUnitsByPriority.end(),
-					std::greater<std::pair<int, int> >());
-			CvPlayer const& kOwner = GET_PLAYER(getOwner());
-			for (size_t i = 0; i < aUnitsByPriority.size(); i++)
+			std::sort(aiiUnitsByPriority.begin(), aiiUnitsByPriority.end(),
+					std::greater<std::pair<int,int> >());
+			for (size_t i = 0; i < aiiUnitsByPriority.size(); i++)
 			{
-				CvUnit& kUnit = *kOwner.getUnit(aUnitsByPriority[i].second);
+				CvUnit& kUnit = *kOwner.getUnit(aiiUnitsByPriority[i].second);
 				if (kUnit.pillage())
 				{
 					bAction = true;
@@ -949,12 +972,99 @@ void CvSelectionGroup::startMission()
 					Since post-combat code clears the mission queue (and this sets
 					activity to ACTIVITY_AWAKE) and also deals with unit selection
 					for the active player, we can just skip rest of the function here." */
-                if (!headMissionQueueNode() || kUnit.isAttacking())
+                if (headMissionQueueNode() == NULL || kUnit.isAttacking())
                     return; // </kekm.37>
 			}
 			break;
 		}
-
+		case MISSION_BOMBARD:
+		/*	<advc.004c> Based on the K-Mod code above (pillage case). Use selection sort
+			though b/c that makes it easier to compute the wasted damage. */
+		{
+			while (true)
+			{
+				CvUnit* pBestUnit = NULL;
+				scaled rMaxPriority = scaled::MIN();
+				CvPlot const& kAt = getPlot();
+				FOR_EACH_UNIT_VAR_IN(pLoopUnit, *this)
+				{
+					if (!pLoopUnit->canMove() || !pLoopUnit->canBombard(kAt))
+						continue;
+					int iDamage = pLoopUnit->damageToBombardTarget(kAt);
+					scaled rPriority = bombMissionPriority(*pLoopUnit,
+							iDamage, iDamage <= 0 ? 0 :
+							pLoopUnit->bombardTarget(kAt)->
+							getDefenseModifier(pLoopUnit->ignoreBuildingDefense()));
+					if (rPriority > rMaxPriority)
+					{
+						rMaxPriority = rPriority;
+						pBestUnit = pLoopUnit;
+					}
+				}
+				if (pBestUnit == NULL || !pBestUnit->bombard())
+					break;
+				bAction = true;
+			}
+			break;
+		}
+		case MISSION_AIRBOMB:
+		{
+			CvPlot const& kMissionPlot = GC.getMap().getPlot(
+					headMissionQueueNode()->m_data.iData1,
+					headMissionQueueNode()->m_data.iData2);
+			if (kMissionPlot.isCity())
+			{
+				CvCity const& kTargetCity = *kMissionPlot.getPlotCity();
+				while (true)
+				{
+					CvUnit* pBestUnit = NULL;
+					scaled rMaxPriority = scaled::MIN();
+					FOR_EACH_UNIT_VAR_IN(pLoopUnit, *this)
+					{
+						if (!pLoopUnit->canMove() || !pLoopUnit->canAirBomb(&kMissionPlot))
+							continue;
+						int iDamage = pLoopUnit->airBombDefenseDamage(kTargetCity);
+						scaled rPriority = bombMissionPriority(*pLoopUnit, iDamage,
+								iDamage <= 0 ? 0 : kTargetCity.getDefenseModifier(false));
+						if (rPriority > rMaxPriority)
+						{
+							rMaxPriority = rPriority;
+							pBestUnit = pLoopUnit;
+						}
+					}
+					if (pBestUnit == NULL ||
+						!pBestUnit->airBomb(kMissionPlot.getX(), kMissionPlot.getY()))
+					{
+						break;
+					}
+					bAction = true;
+				}
+			}
+			else
+			{
+				std::vector<std::pair<scaled,int> > ariUnitsByPriority;
+				FOR_EACH_UNIT_IN(pUnit, *this)
+				{
+					if (!pUnit->canMove())
+						continue;
+					/*	Maximize airBombCurrRate. This needs to be consistent with
+						CvGameTextMgr::getAirBombPlotHelp. */
+					scaled rPriority = pUnit->airBombCurrRate();
+					rPriority *= 10000;
+					rPriority -= bombMissionPriority(*pUnit); // Tie-breaker
+					ariUnitsByPriority.push_back(std::make_pair(rPriority, pUnit->getID()));
+				}
+				std::sort(ariUnitsByPriority.begin(), ariUnitsByPriority.end(),
+						std::greater<std::pair<scaled,int> >());
+				for (size_t i = 0; i < ariUnitsByPriority.size(); i++)
+				{
+					CvUnit& kUnit = *kOwner.getUnit(ariUnitsByPriority[i].second);
+					if (kUnit.airBomb(kMissionPlot.getX(), kMissionPlot.getY()))
+						bAction = true;
+				}
+			}
+			break;
+		} // </advc.004c>
 		/*	K-Mod. If the worker is already in danger when the command is issued,
 			use the MOVE_IGNORE_DANGER flag. */
 		case MISSION_BUILD:
@@ -1034,6 +1144,9 @@ void CvSelectionGroup::startMission()
 				case MISSION_SENTRY_HEAL: // advc.004l
 				case MISSION_SENTRY:
 				case MISSION_PILLAGE:
+				// <advc.004c> Already handled above
+				case MISSION_BOMBARD:
+				case MISSION_AIRBOMB: // </advc.004c>
 				case MISSION_BUILD:
 					// K-Mod. Nothing to do, so we might as well abort the unit loop.
 					goto exit_unit_loop;
@@ -1073,15 +1186,14 @@ void CvSelectionGroup::startMission()
 					else apUnitsLeftBehind.push_back(pUnit); // K-Mod
 					break;
 
-				case MISSION_AIRBOMB:
+				/*case MISSION_AIRBOMB:
 					if (pUnit->airBomb(iData1, iData2))
 						bAction = true;
 					break;
-
 				case MISSION_BOMBARD:
 					if (pUnit->bombard())
 						bAction = true;
-					break;
+					break;*/ // advc.004c: Moved up
 
 				case MISSION_RANGE_ATTACK:
 					if (pUnit->rangeStrike(iData1, iData2))

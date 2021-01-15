@@ -153,10 +153,12 @@ public:
 
 	bool canAirBomb(const CvPlot* pPlot) const;																// Exposed to Python
 	bool canAirBombAt(const CvPlot* pPlot, int iX, int iY) const;											// Exposed to Python
+	int airBombDefenseDamage(CvCity const& kCity) const; // advc
 	bool airBomb(int iX, int iY);
 
 	CvCity* bombardTarget(CvPlot const& kPlot) const;														// Exposed to Python
 	bool canBombard(CvPlot const& kPlot) const;																// Exposed to Python
+	int damageToBombardTarget(CvPlot const& kPlot) const; // advc
 	bool bombard();
 
 	bool canParadrop(const CvPlot* pPlot) const;															// Exposed to Python

@@ -6236,6 +6236,87 @@
 		<Italian>[ICON_BULLET]%d1_Mod%% alla difesa in tutte le citt&#224;</Italian>
 		<Spanish>[ICON_BULLET]%d1_Mod%% a la defensa en todas las ciudades</Spanish>
 	</TEXT>
+	<!-- advc.004c: Replacing the generic TXT_KEY_MISSION_BOMBARD_HELP
+		 (CIV4GameText_Help.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_BOMBARD_MISSION</Tag>
+		<English>Reduces the defensive modifier of %s1_CityName by %d2[ICON_DEFENSE] points.</English>
+		<French>R&#233;duire le modificateur d&#233;fensif de %s1_CityName par %d2 points [ICON_DEFENSE].</French>
+		<German>Senkt den Defensivbonus von %s1_CityName um %d2[ICON_DEFENSE]-Punkte.</German>
+		<Italian>Riduce il modificatore difensivo di %s1_CityName per %d2 punti [ICON_DEFENSE].</Italian>
+		<Spanish>Reduce lel modificador defensivo de %s1_CityName en %d2 puntos [ICON_DEFENSE].</Spanish>
+	</TEXT>
+	<!-- (Too lazy for proper FIS translations) -->
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_BOMBARD_MISSION_NO_DAMAGE</Tag>
+		<English>Prevents the defensive modifier of %s1_CityName from recovering in between turns.</English>
+		<French>R&#233;duire le modificateur d&#233;fensif de %s1_CityName par 0 points [ICON_DEFENSE].</French>
+		<German>Verhindert, dass sich der Verteidigungsbonus von %s1_CityName am Zugende wiederauflädt.</German>
+		<Italian>Riduce il modificatore difensivo di %s1_CityName per 0 punti [ICON_DEFENSE].</Italian>
+		<Spanish>Reduce lel modificador defensivo de %s1_CityName en 0 puntos [ICON_DEFENSE].</Spanish>
+	</TEXT>
+	<!-- Same for air bomb interface mode (more compact) -->
+	<TEXT>
+		<Tag>TXT_KEY_AIR_BOMB_MODE_HELP_CITY_DEFENSE</Tag>
+		<English>Bomb [COLOR_HIGHLIGHT_TEXT]%s1_CityName[COLOR_REVERT]: -%d2[ICON_DEFENSE] points</English>
+		<French>R&#233;duire le modificateur d&#233;fensif de %s1_CityName par %d2 points [ICON_DEFENSE].</French>
+		<German>Bombardiere [COLOR_HIGHLIGHT_TEXT]%s1_CityName[COLOR_REVERT]: -%d2[ICON_DEFENSE]-Punkte.</German>
+		<Italian>Riduce il modificatore difensivo di %s1_CityName per %d2 punti [ICON_DEFENSE].</Italian>
+		<Spanish>Reduce lel modificador defensivo de %s1_CityName en %d2 puntos [ICON_DEFENSE].</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AIR_BOMB_MODE_HELP_CITY_DEFENSE_NO_DAMAGE</Tag>
+		<English>Bomb [COLOR_HIGHLIGHT_TEXT]%s1_CityName[COLOR_REVERT]: Prevent [ICON_DEFENSE] from recovering in between turns</English>
+		<French>R&#233;duire le modificateur d&#233;fensif de %s1_CityName par 0 points [ICON_DEFENSE].</French>
+		<German>Bombardiere [COLOR_HIGHLIGHT_TEXT]%s1_CityName[COLOR_REVERT] (verhindert Aufladen von [ICON_DEFENSE] am Zugende).</German>
+		<Italian>Riduce il modificatore difensivo di %s1_CityName per 0 punti [ICON_DEFENSE].</Italian>
+		<Spanish>Reduce lel modificador defensivo de %s1_CityName en 0 puntos [ICON_DEFENSE].</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AIR_BOMB_MODE_HELP_DESTR_IMPROV</Tag>
+		<English>Bomb [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: %d2%% Odds (if not Intercepted)</English>
+		<French>Bombarder [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: %d2%% probabilit&#233; (sans interception)</French>
+		<German>Bombardiere [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: %d2%% Chance (falls nicht abgefangen)</German>
+		<Italian>Bomba [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: %d2%% probabilità (se non intercettata)</Italian>
+		<Spanish>Bombear [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: %d2%% probabilidades (si no es interceptada)</Spanish>
+	</TEXT>
+	<!-- advc.004c: Both from CIV4GameTextInfos.xml.
+		 I'm only replacing the percentage sign with the defense icon. -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_BOMBARD_RATE</Tag>
+		<English>[ICON_BULLET]Can Bombard City Defenses (-%d1_Mod[ICON_DEFENSE]/Turn)</English>
+		<French>[ICON_BULLET]Peut bombarder les d&#233;fenses d'une ville (-%d1_Mod[ICON_DEFENSE]/tour)</French>
+		<German>[ICON_BULLET]Kann Stadtverteidigungen bombardieren (-%d1_Mod[ICON_DEFENSE]/Runde)</German>
+		<Italian>[ICON_BULLET]Pu&#242; bombardare le difese cittadine (-%d1_Mod[ICON_DEFENSE]/turno)</Italian>
+		<Spanish>[ICON_BULLET]Puede ca&#241;onear las defensas de las ciudades (-%d1_Mod[ICON_DEFENSE]/turno)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_BOMBARD_RATE_SHORT</Tag>
+		<English>[ICON_BULLET]Bombard City: -%d1_Mod[ICON_DEFENSE]/Turn</English>
+		<French>[ICON_BULLET]Bombardement : -%d1_Mod[ICON_DEFENSE]/tour</French>
+		<German>[ICON_BULLET]Stadt bombardieren: -%d1_Mod[ICON_DEFENSE]/Runde</German>
+		<Italian>[ICON_BULLET]Bombarda citt&#224;: -%d1_Mod[ICON_DEFENSE]/turno</Italian>
+		<Spanish>[ICON_BULLET]Ca&#241;onear ciudad: -%d1_Mod[ICON_DEFENSE]/turno</Spanish>
+	</TEXT>
+	<!-- Based on the above (translations actually exactly as above) -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_AIR_BOMB_RATE_SHORT</Tag>
+		<English>[ICON_BULLET]Air Bomb City: -%d1_Mod[ICON_DEFENSE]/Turn</English>
+		<French>[ICON_BULLET]Bombardement : -%d1_Mod[ICON_DEFENSE]/tour</French>
+		<German>[ICON_BULLET]Stadt bombardieren: -%d1_Mod[ICON_DEFENSE]/Runde</German>
+		<Italian>[ICON_BULLET]Bombarda citt&#224;: -%d1_Mod[ICON_DEFENSE]/turno</Italian>
+		<Spanish>[ICON_BULLET]Ca&#241;onear ciudad: -%d1_Mod[ICON_DEFENSE]/turno</Spanish>
+	</TEXT>
+	<!-- advc.004c: Based on TXT_KEY_MISC_YOU_UNIT_FAIL_DESTROY_IMP
+		 (CIV4GameTextInfos.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_AIR_BOMB_FAIL_IMP_GONE</Tag>
+		<English>Your %s1_UnitName has failed to engage any air bomb target. (Looks like it had existed only in the Fog of War.)</English>
+		<French>Votre unit&#233; (%s1_UnitName) n'a pas pu d&#233;truire l'am&#233;nagement.</French>
+		<German>Eure Einheit %s1_UnitName hat kein Ziel für eine Bombardierung vorgefunden. (Es existierte wohl bloß im Nebel des Krieges.)</German>
+		<Italian>[NUM1:Il tuo: La tua: I tuoi: Le tue] %s1_UnitName non sono riusciti a distruggere il miglioramento.</Italian>
+		<Spanish>[NUM1:Vuestro:Vuestra:Vuestros:Vuestras] %s1_UnitName no [NUM1:ha:ha:han:han] conseguido destruir la mejora.</Spanish>
+	</TEXT>
 
 	<!-- advc.004k: From CIV4GameText_BTS.xml. Clarify who attacks and
 		 under which circumstances. German was totally wrong. (FIS unchanged)-->

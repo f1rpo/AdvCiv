@@ -2687,6 +2687,37 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		GAMETEXT.setEspionageMissionHelp(szBuffer, &kUnit);
 		break;
 	}
+	/*	<advc.004c> (Note: similar code in CvGameTextMgr::getAirBombPlotHelp
+		for air bomb mission) */
+	case MISSION_BOMBARD:
+	{
+		CvCity const* pBombardCity = kUnit.bombardTarget(kMissionPlot);
+		if (pBombardCity == NULL)
+			break;
+		int const iMaxDamage = pBombardCity->getDefenseModifier(
+				kUnit.ignoreBuildingDefense());
+		int iDamage = 0;
+		for (CLLNode<IDInfo> const* pNode = gDLL->UI().headSelectionListNode();
+			pNode != NULL; pNode = gDLL->UI().nextSelectionListNode(pNode))
+		{
+			CvUnit const& kSelectedUnit = *::getUnit(pNode->m_data);
+			iDamage += kSelectedUnit.damageToBombardTarget(kMissionPlot);
+			if (iDamage >= iMaxDamage)
+			{
+				iDamage = iMaxDamage;
+				break;
+			}
+		}
+		szBuffer.append(NEWLINE);
+		if (iDamage > 0)
+		{
+			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_BOMBARD_MISSION",
+					pBombardCity->getNameKey(), iDamage));
+		}
+		else szBuffer.append(gDLL->getText("TXT_KEY_ACTION_BOMBARD_MISSION_NO_DAMAGE",
+					pBombardCity->getNameKey()));
+		break;
+	} // </advc.004c>
 	case MISSION_BUILD:
 	{
 		BuildTypes eBuild = (BuildTypes)kAction.getMissionData();
@@ -3065,9 +3096,12 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 
 	if (!CvWString(GC.getInfo(eMission).getHelp()).empty())
 	{	// <advc.004a>
-		if(eMission == MISSION_DISCOVER)
+		if (eMission == MISSION_DISCOVER)
 			szBuffer.append(getDiscoverPathText(kUnit.getUnitType(), kUnitOwner.getID()));
-		else // </advc.004a>
+		else // </advc.004a>  <advc.004c>
+		if (eMission == MISSION_BOMBARD && kUnit.bombardTarget(kMissionPlot) != NULL)
+		{} // Fully handled in switch block above
+		else // </advc.004c>
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(GC.getInfo(eMission).getHelp());
