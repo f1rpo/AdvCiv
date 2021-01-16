@@ -2881,8 +2881,8 @@ void CvUnit::move(CvPlot& kPlot, bool bShow, /* advc.163: */ bool bJump, bool bG
 		}
 	}
 
-	if (getOwner() == GC.getGame().getActivePlayer() && !kPlot.isOwned()
-		&& eFeature != NO_FEATURE) // spawn birds if trees present - JW
+	if (getOwner() == GC.getGame().getActivePlayer() && !kPlot.isOwned() &&
+		eFeature != NO_FEATURE) // spawn birds if trees present - JW
 	{
 		CvFeatureInfo const& kFeature = GC.getInfo(eFeature);
 		if (GC.getASyncRand().get(100) < kFeature.getEffectProbability())
@@ -4142,10 +4142,12 @@ bool CvUnit::canAirBomb(const CvPlot* pPlot) const
 	if (airBombBaseRate() == 0)
 		return false;
 	if (//isMadeAttack()
-			/*  advc.164: In case aircraft are ever allowed to have Blitz
-				(there'd probably be other issues though) */
-			isMadeAllAttacks())
+		/*  advc.164: In case aircraft are ever allowed to have Blitz
+			(there'd probably be other issues though) */
+		isMadeAllAttacks())
+	{
 		return false;
+	}
 	return true;
 }
 
@@ -4317,8 +4319,8 @@ bool CvUnit::airBomb(int iX, int iY)
 		kAirMission.setDamage(BATTLE_UNIT_DEFENDER, 0);
 		kAirMission.setDamage(BATTLE_UNIT_ATTACKER, 0);
 		kAirMission.setPlot(&kPlot);
-		kAirMission.setMissionTime(GC.getInfo((MissionTypes)MISSION_AIRBOMB).getTime() * gDLL->getSecsPerTurn());
-
+		kAirMission.setMissionTime(GC.getInfo(MISSION_AIRBOMB).getTime() *
+				gDLL->getSecsPerTurn());
 		gDLL->getEntityIFace()->AddMission(&kAirMission);
 	}
 
@@ -4552,8 +4554,8 @@ bool CvUnit::pillage()
 		{
 			int iPillageGold = 0;
 			if (!GC.getPythonCaller()->doPillageGold(*this, kPlot, iPillageGold))
-			{	// K-Mod. C version of the original python code
-				int iPillageBase = GC.getInfo((ImprovementTypes)kPlot.getImprovementType()).
+			{	// K-Mod. C version of the original python code (CvGameUtils.doPillageGold)
+				int const iPillageBase = GC.getInfo(kPlot.getImprovementType()).
 						getPillageGold();
 				iPillageGold += GC.getGame().getSorenRandNum(iPillageBase,
 						"Pillage Gold 1");
@@ -4564,7 +4566,7 @@ bool CvUnit::pillage()
 					iPillageGold++;
 				iPillageGold += GC.getGame().getSorenRandNum(iPillageBase - 1, // </advc.004>
 						"Pillage Gold 2");
-				iPillageGold += getPillageChange() * iPillageGold / 100;
+				iPillageGold += (getPillageChange() * iPillageGold) / 100;
 				// K-Mod end
 			}
 			if (iPillageGold > 0)

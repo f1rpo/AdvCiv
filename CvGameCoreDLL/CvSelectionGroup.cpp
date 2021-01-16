@@ -579,9 +579,7 @@ void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2
 
 void CvSelectionGroup::popMission()
 {
-	CLLNode<MissionData>* pTailNode;
-	FAssert(getOwner() != NO_PLAYER);
-	pTailNode = tailMissionQueueNode();
+	CLLNode<MissionData>* pTailNode = tailMissionQueueNode();
 	if (pTailNode != NULL)
 		deleteMissionQueueNode(pTailNode);
 }
@@ -773,20 +771,18 @@ void CvSelectionGroup::startMission()
 	//PROFILE_FUNC();
 
 	FAssert(!isBusy());
-	FAssert(getOwner() != NO_PLAYER);
 	FAssert(headMissionQueueNode() != NULL);
 
-	if (!GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+
+	if (!GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && !kOwner.isTurnActive())
 	{
-		if (!GET_PLAYER(getOwner()).isTurnActive())
+		if (kOwner.getID() == GC.getGame().getActivePlayer())
 		{
-			if (getOwner() == GC.getGame().getActivePlayer())
-			{
-				if (IsSelected())
-					GC.getGame().cycleSelectionGroups_delayed(1, true);
-			}
-			return;
+			if (IsSelected())
+				GC.getGame().cycleSelectionGroups_delayed(1, true);
 		}
+		return;
 	}
 
 	/*if (canAllMove())
@@ -806,7 +802,7 @@ void CvSelectionGroup::startMission()
 	}
 	else
 	{
-		FAssertMsg(GET_PLAYER(getOwner()).isTurnActive() || GET_PLAYER(getOwner()).isHuman(), "It's expected that either the turn is active for this player or the player is human");
+		FAssert(kOwner.isTurnActive() || kOwner.isHuman());
 		// K-Mod. Moved from outside.
 		if (readyForMission())
 		{
@@ -1071,7 +1067,7 @@ void CvSelectionGroup::startMission()
 			if (!AI_isControlled() &&
 				headMissionQueueNode()->m_data.iPushTurn == GC.getGame().getGameTurn() &&
 				// cf. condition used in CvSelectionGroup::doTurn.
-				GET_PLAYER(getOwner()).AI_isAnyPlotDanger(*plot(), 2, true, false))
+				kOwner.AI_isAnyPlotDanger(*plot(), 2, true, false))
 			{
 				headMissionQueueNode()->m_data.eFlags |= MOVE_IGNORE_DANGER;
 			}
@@ -1084,7 +1080,6 @@ void CvSelectionGroup::startMission()
 
 		default:
 			FAssert(false);
-			break;
 		}
 
 		if (bNotify)
@@ -1342,20 +1337,20 @@ void CvSelectionGroup::startMission()
 				if (headMissionQueueNode())
 					activateHeadMission();
 				// K-Mod end
-				if (getOwner() == GC.getGame().getActivePlayer() && IsSelected())
+				if (kOwner.getID() == GC.getGame().getActivePlayer() && IsSelected())
 				{
 					GC.getGame().cycleSelectionGroups_delayed(
-							GET_PLAYER(getOwner()).isOption(PLAYEROPTION_QUICK_MOVES) ?
+							kOwner.isOption(PLAYEROPTION_QUICK_MOVES) ?
 							1 : 2, true, readyToSelect(true));
 				}
 			}
 			else if (getActivityType() == ACTIVITY_MISSION)
 				continueMission();
 			// K-Mod
-			else if (getOwner() == GC.getGame().getActivePlayer() &&
+			else if (kOwner.getID() == GC.getGame().getActivePlayer() &&
 				IsSelected() && !canAnyMove())
 			{
-				GC.getGame().cycleSelectionGroups_delayed(GET_PLAYER(getOwner()).
+				GC.getGame().cycleSelectionGroups_delayed(kOwner.
 						isOption(PLAYEROPTION_QUICK_MOVES) ? 1 : 2, true);
 			}
 			// K-Mod end
@@ -1591,13 +1586,13 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 
 		case MISSION_BUILD:
 			if(!groupBuild((BuildTypes)missionData.iData1,
-					!missionData.bModified)) // advc.011b
+				!missionData.bModified)) // advc.011b
+			{
 				bDone = true;
+			}
 			break;
 
-		default:
-			FAssert(false);
-			break;
+		default: FAssert(false);
 		}
 	}
 
@@ -1760,7 +1755,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 				for all of our workers groups with the same job.
 				(this isn't strictly neccessary, because the workers will
 				know to end their own mission anyway, but ending it now
-				helps give a better unit cycling order.)´*/
+				helps give a better unit cycling order.) */
 			if (missionData.eMissionType == MISSION_BUILD)
 			{
 				// (the head mission will be deleted soon)
@@ -1783,7 +1778,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 			else deleteMissionQueueNode(pHeadMission);
 
 			// start the next mission
-			if (headMissionQueueNode())
+			if (headMissionQueueNode() != NULL)
 				activateHeadMission();
 		} // K-Mod end
 	}
@@ -2936,7 +2931,7 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 						gDLL->getMillisecsPerTurn()) / 1000.0f, false);
 			} // K-Mod end
 		}
-	} // advc.001: end of iStage loop
+	}
 
 	//execute move
 	if (bEndMove || !canAllMove())
@@ -4217,7 +4212,7 @@ CvSelectionGroup* CvSelectionGroup::splitGroup(int iSplitSize,
 	FAssert(iCarry == 0);
 
 	// make the new group for the new head
-	pNewHeadUnit->joinGroup(0);
+	pNewHeadUnit->joinGroup(NULL);
 	CvSelectionGroup* pSplitGroup = pNewHeadUnit->getGroup();
 	aiNewGroupAIs.add(eNewHeadAI, -1);
 	aiTotalAIs.add(eNewHeadAI, -1);

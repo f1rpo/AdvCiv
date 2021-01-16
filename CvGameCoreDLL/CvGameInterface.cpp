@@ -631,18 +631,18 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 	}
 }
 
-// K-Mod
+// K-Mod:
 void CvGame::cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bDelayOnly)
 {
-	PROFILE_FUNC(); // I'm just hoping that the python call doesn't hurt the respose times
+	PROFILE_FUNC(); // just hoping that the python call doesn't hurt the respose times
 
 	if (GC.suppressCycling()) // cf. GvGame::updateSelectionList
 		return;
-
-	// Only rapid-cycle when not doing auto-play.
-	// Also note, cycleSelectionGroups currently causes a crash if the game is not initialised.
-	// (and this function is indirectly called during the set of up a new game - so we currently need that init check.)
-	PlayerTypes eActive = getActivePlayer();
+	/*	Only rapid-cycle when not doing auto-play. Also note,
+		cycleSelectionGroups currently causes a crash if the game is not initialised.
+		(and this function is indirectly called during the set of up a new game -
+		so we currently need that init check.) */
+	PlayerTypes const eActive = getActivePlayer();
 	if (isFinalInitialized() &&
 		eActive != NO_PLAYER && GET_PLAYER(eActive).isHuman() &&
 		BUGOption::isEnabled("MainInterface__RapidUnitCycling", false))
@@ -654,8 +654,7 @@ void CvGame::cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bD
 				return;
 
 			if (gDLL->getEngineIFace()->isCameraLocked())
-			{
-				// immediate cycling might violate the camera lock. :(
+			{	// immediate cycling might violate the camera lock. :(
 				gDLL->UI().setCycleSelectionCounter(1);
 			}
 			else cycleSelectionGroups(true);
@@ -667,9 +666,9 @@ void CvGame::cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bD
 			gDLL->UI().changeCycleSelectionCounter(iDelay);
 		else gDLL->UI().setCycleSelectionCounter(iDelay);
 	}
-} // K-Mod end
+}
 
-// Returns true if unit was cycled...  // advc: style changes
+// Returns true if unit was cycled...
 bool CvGame::cyclePlotUnits(CvPlot* pPlot, bool bForward, bool bAuto, int iCount) const
 {
 	FAssert(iCount >= -1);
@@ -877,17 +876,17 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 
 		MovementFlags eFlags = (MovementFlags)iFlags;
 		if (eMessage == GAMEMESSAGE_PUSH_MISSION)
-		{	// K-Mod. I've moved the BUTTONPOPUP_DECLAREWARMOVE stuff to here from selectionListMove
-			// so that it can catch left-click moves as well as right-click moves.
-			//
-			// Note: If MOVE_DECLARE_WAR is set, then we assume it was set by a BUTTONPOPUP_DECLAREWARMOVE
-			// which was triggered already by this move. In which case we shouldn't check for declare war
-			// this time. This is a kludge to prevent the popup from appearing twice.
-			// Also, when this happens we should clear the MOVE_DECLARE_WAR flag. Otherwise it may cause
-			// the pathfinder to fail in some cases.
-			//
-			// (I'd rather not have UI stuff like this in this function,
-			//  but this is the only place where I can catch left-click moves.)
+		{	/*	K-Mod. I've moved the BUTTONPOPUP_DECLAREWARMOVE stuff to here
+				from selectionListMove so that it can catch left-click moves
+				as well as right-click moves.
+				Note: If MOVE_DECLARE_WAR is set, then we assume it was set
+				by a BUTTONPOPUP_DECLAREWARMOVE which was triggered already
+				by this move. In which case we shouldn't check for declare war
+				this time. This is a kludge to prevent the popup from appearing twice.
+				Also, when this happens we should clear the MOVE_DECLARE_WAR flag.
+				Otherwise it may cause the pathfinder to fail in some cases.
+				(I'd rather not have UI stuff like this in this function,
+				but this is the only place where I can catch left-click moves.) */
 			if (iData2 == MISSION_MOVE_TO && !(eFlags & MOVE_DECLARE_WAR))
 			{
 				CvPlot* pPlot = GC.getMap().plot(iData3, iData4);
@@ -899,11 +898,11 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 					TeamTypes eRivalTeam = pSelectedUnit->getDeclareWarMove(pPlot);
 					if (eRivalTeam != NO_TEAM)
 					{	/* <advc.001> If an enemy unit is stacked with a neutral one,
-						then the player apparently wants to attack the enemy unit
-						(rather than declare war on the neutral party). However,
-						if the enemy unit is on a tile owned by a third party that
-						the player doesn't have OB or a vassal treaty with, then
-						only a DoW on the third party makes sense. */
+							then the player apparently wants to attack the enemy unit
+							(rather than declare war on the neutral party). However,
+							if the enemy unit is on a tile owned by a third party that
+							the player doesn't have OB or a vassal treaty with, then
+							only a DoW on the third party makes sense. */
 						if((pPlot->getTeam() != NO_TEAM &&
 							!GET_TEAM(pSelectedUnit->getTeam()).
 							isFriendlyTerritory(pPlot->getTeam())) ||
@@ -927,7 +926,8 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 			} // <advc.011b>
 			bool bModified = false;
 			if(iData2 == MISSION_BUILD)
-				bModified = GC.ctrlKey(); // </advc.001b> <advc.048>
+				bModified = GC.ctrlKey(); // </advc.001b>
+			// <advc.048>
 			if(iData2 == MISSION_MOVE_TO)
 				bModified = GC.altKey(); // </advc.048>
 			CvMessageControl::getInstance().sendPushMission(pHeadSelectedUnit->getID(),
@@ -2550,12 +2550,12 @@ bool CvGame::shouldCenterMinimap() const
 
 EndTurnButtonStates CvGame::getEndTurnState() const
 {
-	EndTurnButtonStates eNewState = END_TURN_GO;
-
 	/*if ((isNetworkMultiPlayer() &&
-		(isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && 1 == countNumHumanGameTurnActive() ||
-		(!isSimultaneousTeamTurns() && 1 == GET_TEAM(getActiveTeam()).countNumHumanGameTurnActive() && GET_TEAM(getActiveTeam()).getAliveCount() > 1))))*/ // BtS
-	// K-Mod. Don't use GET_TEAM in pitboss mode. (and note, I've fixed a typo in the parentheses.)
+		(isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && countNumHumanGameTurnActive() == 1 ||
+		(!isSimultaneousTeamTurns() && GET_TEAM(getActiveTeam()).countNumHumanGameTurnActive() == 1 &&
+		GET_TEAM(getActiveTeam()).getAliveCount() > 1))))*/ // BtS
+	/*	K-Mod. Don't use GET_TEAM in pitboss mode.
+		(and note, I've fixed a typo in the parentheses.) */
 	if (isNetworkMultiPlayer() && getActiveTeam() != NO_TEAM &&
 		((isMPOption(MPOPTION_SIMULTANEOUS_TURNS) &&
 		  countNumHumanGameTurnActive() == 1) ||
@@ -2564,11 +2564,9 @@ EndTurnButtonStates CvGame::getEndTurnState() const
 		  GET_TEAM(getActiveTeam()).getAliveCount() > 1)))
 	// K-Mod end
 	{
-		eNewState = END_TURN_OVER_HIGHLIGHT;
+		return END_TURN_OVER_HIGHLIGHT;
 	}
-	else eNewState = END_TURN_GO;
-
-	return eNewState;
+	return END_TURN_GO;
 }
 
 // advc.095:
