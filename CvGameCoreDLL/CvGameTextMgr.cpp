@@ -21191,28 +21191,28 @@ void CvGameTextMgr::getAirBombPlotHelp(CvPlot* pPlot, CvWString& strHelp)
 			// Formula matches dice roll in CvUnit::airBomb
 			int const iAttack = pBestSelectedUnit->airBombCurrRate();
 			int const iDefense = GC.getInfo(eImprov).getAirBombDefense();
-			scaled prSuccess = 1;
+			scaled rSuccessProb = 1;
 			if (iDefense > 0)
 			{
 				if (iAttack <= 0)
-					prSuccess = 0;
+					rSuccessProb = 0;
 				else
 				{	/*	Probability of iAttack-sided die rolling greater than
 						or equal to iDefense-sided die */
-					prSuccess = (iAttack > iDefense ?
+					rSuccessProb = (iAttack > iDefense ?
 							1 - scaled(iDefense - 1, 2 * iAttack) :
 							scaled(iAttack + 1, 2 * iDefense));
 				}
 			}
-			if (prSuccess > 0)
+			if (rSuccessProb > 0)
 			{
-				int iRounded = prSuccess.getPercent();
-				if (iRounded == 0) // Don't show uncertain outcome as certain
-					iRounded++;
-				if (iRounded == 100 && prSuccess < 1)
-					iRounded--;
+				int iPercent = rSuccessProb.getPercent();
+				if (iPercent == 0) // Don't show uncertain outcome as certain
+					iPercent++;
+				if (iPercent == 100 && rSuccessProb < 1)
+					iPercent--;
 				strHelp.append(gDLL->getText("TXT_KEY_AIR_BOMB_MODE_HELP_DESTR_IMPROV",
-						GC.getInfo(eImprov).getDescription(), iRounded));
+						GC.getInfo(eImprov).getDescription(), iPercent));
 				strHelp.append(NEWLINE);
 			}
 		}
