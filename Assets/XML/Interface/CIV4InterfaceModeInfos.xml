@@ -280,7 +280,9 @@
 			<bHighlightPlot>1</bHighlightPlot>
 			<bSelectType>0</bSelectType>
 			<bSelectAll>0</bSelectAll>
-			<Button>,Art/Interface/Buttons/Actions/Airbomb.dds,Art/Interface/Buttons/Actions_Builds_LeaderHeads_Specialists_Atlas.dds,5,6</Button>
+			<!-- advc.004c: Don't load from Actions_Builds_LeaderHeads_Specialists_Atlas,5,6;
+				 load the individual button that I've modified. -->
+			<Button>,Art/Interface/Buttons/Actions/Airbomb.dds</Button>
 		</InterfaceModeInfo>
 		<InterfaceModeInfo>
 			<Type>INTERFACEMODE_RANGE_ATTACK</Type>
