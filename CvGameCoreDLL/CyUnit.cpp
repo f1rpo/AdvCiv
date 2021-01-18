@@ -772,7 +772,11 @@ int CyUnit::airCombatDamage(CyUnit* pDefender)
 
 CyUnit* CyUnit::bestInterceptor(CyPlot* pPlot)
 {
-	return m_pUnit ? new CyUnit(m_pUnit->bestInterceptor(pPlot->getPlot())) : false;
+	//return m_pUnit ? new CyUnit(m_pUnit->bestInterceptor(pPlot->getPlot())) : false;
+	// <advc>
+	if (m_pUnit == NULL || pPlot == NULL || pPlot->getPlot() == NULL)
+		return NULL;
+	return new CyUnit(m_pUnit->bestInterceptor(*pPlot->getPlot())); // </advc>
 }
 
 bool CyUnit::isAutomated()

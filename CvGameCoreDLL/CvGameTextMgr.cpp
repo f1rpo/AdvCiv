@@ -1585,9 +1585,18 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 			eMode != INTERFACEMODE_PYTHON_PICK_PLOT && eMode != INTERFACEMODE_GO_TO)
 		{
 			iLineLimit--;
-			// <advc.004c> Will usually take up an extra line
+			// <advc.004c>
+			// Interception info
+			if (eMode == INTERFACEMODE_AIRBOMB ||
+				eMode == INTERFACEMODE_AIRSTRIKE ||
+				eMode == INTERFACEMODE_PARADROP)
+			{
+				iLineLimit -= 3;
+			}
+			// Airbomb effect
 			if (eMode == INTERFACEMODE_AIRBOMB)
-				iLineLimit--; // </advc.004c>
+				iLineLimit--;
+			// </advc.004c>
 		}
 	}
 	TeamTypes const eActiveTeam = kGame.getActiveTeam();
@@ -2719,6 +2728,56 @@ static float getCombatOddsSpecific(CvUnit* pAttacker, CvUnit* pDefender, int n_A
 }// getCombatOddsSpecific
 // ADVANCED COMBAT ODDS, 11/7/09, PieceOfMind: END
 
+// advc.004c:
+namespace
+{
+	CvUnit const* bestInterceptor(CvUnit const& kUnit, CvPlot const& kMissionPlot,
+		scaled& rOdds)
+	{
+		rOdds = 0;
+		int const iEvasionPercent = kUnit.evasionProbability();
+		if (iEvasionPercent >= 100)
+			return NULL;
+		scaled const rEvasionProb = per100(iEvasionPercent);	
+		CvUnit const* pInterceptor = kUnit.bestInterceptor(kMissionPlot, true);
+		if (pInterceptor != NULL)
+		{
+			rOdds = per100(pInterceptor->currInterceptionProbability()) *
+					(1 - rEvasionProb);
+		}
+		return pInterceptor;
+	}
+}
+
+// advc.004c
+void CvGameTextMgr::setInterceptPlotHelp(CvPlot const& kPlot, CvUnit const& kUnit,
+	CvWString& szHelp, bool bNewline)
+{
+	scaled rInterceptProb;
+	CvUnit const* pBestInterceptor = bestInterceptor(kUnit, kPlot, rInterceptProb);
+	if (rInterceptProb > 0 && pBestInterceptor != NULL)
+	{
+		CvWStringBuffer szBuffer;
+		setUnitHelp(szBuffer, pBestInterceptor, true, true, true);
+		int iPercent = std::max(1, rInterceptProb.getPercent());
+		// Don't show uncertain outcome as certain
+		if (iPercent == 100 && rInterceptProb < 1)
+			iPercent--;
+		FAssert(iPercent <= 100);
+		szHelp.append(gDLL->getText("TXT_KEY_AIR_MODE_INTERCEPT", iPercent,
+				szBuffer.getCString()));
+		if (gDLL->UI().getLengthSelectionList() > 1)
+		{	// Say who is getting intercepted if multiple selected
+			szBuffer.clear();
+			setUnitHelp(szBuffer, &kUnit, true, true, true, true);
+			szHelp.append(gDLL->getText("TXT_KEY_AIR_MODE_INTERCEPT_VERSUS",
+					szBuffer.getCString()));
+		}
+		if (bNewline)
+			szHelp.append(NEWLINE);
+	}
+}
+
 // Returns true if help was given...
 // K-Mod note: this function can change the center unit on the plot. (because of a change I made)
 // Also, I've made some unmarked structural changes to this function, to make it easier to read and to fix a few minor bugs.
@@ -2834,6 +2893,16 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		}
 
 	} // K-Mod end
+
+	// <advc.004c>
+	if (pAttacker->getDomainType() == DOMAIN_AIR)
+	{
+		if (!szString.isEmpty())
+			szString.append(NEWLINE);
+		CvWString szInterceptHelp;
+		setInterceptPlotHelp(*pPlot, *pAttacker, szInterceptHelp, false);
+		szString.append(szInterceptHelp);
+	} // <advc.004c>
 
 	if (pAttacker->getDomainType() != DOMAIN_AIR)
 	{
@@ -21060,19 +21129,30 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 			CvWString szTempBuffer;
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR NEWLINE, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
 					GC.getInfo(eInterfaceMode).getDescription());
-			switch (eInterfaceMode)
+			// <advc> Cut from getNukePlotHelp
+			CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
+			if (pMouseOverPlot != NULL && pHeadSelectedUnit != NULL) // </advc>
 			{
-			case INTERFACEMODE_REBASE:
-				getRebasePlotHelp(pMouseOverPlot, szTempBuffer);
-				break;
-
-			case INTERFACEMODE_NUKE:
-				getNukePlotHelp(pMouseOverPlot, szTempBuffer);
-				break;
-			// <advc.004c>
-			case INTERFACEMODE_AIRBOMB:
-				getAirBombPlotHelp(pMouseOverPlot, szTempBuffer);
-				break; // </advc.004c>
+				switch (eInterfaceMode)
+				{
+				case INTERFACEMODE_REBASE:
+					getRebasePlotHelp(*pMouseOverPlot, *pHeadSelectedUnit, szTempBuffer);
+					break;
+				case INTERFACEMODE_NUKE:
+					getNukePlotHelp(*pMouseOverPlot, *pHeadSelectedUnit, szTempBuffer);
+					break;
+				// <advc.004c>
+				case INTERFACEMODE_AIRBOMB:
+					getAirBombPlotHelp(*pMouseOverPlot, *pHeadSelectedUnit, szTempBuffer);
+					break;
+				case INTERFACEMODE_AIRSTRIKE:
+					getAirStrikePlotHelp(*pMouseOverPlot, *pHeadSelectedUnit, szTempBuffer);
+					break;
+				case INTERFACEMODE_PARADROP:
+					getParadropPlotHelp(*pMouseOverPlot, *pHeadSelectedUnit, szTempBuffer);
+					break;
+				// </advc.004c>
+				}
 			}
 			szTempBuffer += strHelp.getCString();
 			strHelp.assign(szTempBuffer);
@@ -21080,66 +21160,59 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 	}
 }
 
-void CvGameTextMgr::getRebasePlotHelp(CvPlot* pPlot, CvWString& strHelp)
+void CvGameTextMgr::getRebasePlotHelp(CvPlot const& kPlot,
+	CvUnit& kHeadSelectedUnit, CvWString& szHelp)
 {
-	if (pPlot == NULL)
-		return;
-	CvUnit const* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
-	if (pHeadSelectedUnit == NULL)
-		return;
-	CvCity const* pCity = pPlot->getPlotCity();
+	CvCity const* pCity = kPlot.getPlotCity();
 	if (pCity == NULL)
 		return;
 	//if (!pPlot->isFriendlyCity(*pHeadSelectedUnit, true))
-	if (!pHeadSelectedUnit->isRevealedPlotValid(*pPlot)) // advc
+	if (!kHeadSelectedUnit.isRevealedPlotValid(kPlot)) // advc
 		return;
-
 	TeamTypes const eActiveTeam = GC.getGame().getActiveTeam();
 	int const iUnits = pCity->getPlot().countNumAirUnits(eActiveTeam);
 	bool const bFull = (iUnits >= pCity->getAirUnitCapacity(eActiveTeam));
 	if (bFull)
-		strHelp += CvWString::format(SETCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"));
-	strHelp +=  NEWLINE + gDLL->getText("TXT_KEY_CITY_BAR_AIR_UNIT_CAPACITY",
+		szHelp += CvWString::format(SETCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"));
+	szHelp +=  NEWLINE + gDLL->getText("TXT_KEY_CITY_BAR_AIR_UNIT_CAPACITY",
 			iUnits, pCity->getAirUnitCapacity(eActiveTeam));
 	if (bFull)
-		strHelp += ENDCOLR;
-	strHelp += NEWLINE;
+		szHelp += ENDCOLR;
+	szHelp += NEWLINE;
 }
 
-void CvGameTextMgr::getNukePlotHelp(CvPlot* pPlot, CvWString& strHelp)
+void CvGameTextMgr::getNukePlotHelp(CvPlot const& kPlot,
+	CvUnit& kHeadSelectedUnit, CvWString& szHelp)
 {
-	if(pPlot == NULL)
-		return;
-
-	CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
-	if(pHeadSelectedUnit == NULL)
-		return;
-
-	for(int iI = 0; iI < MAX_TEAMS; iI++)
+	for (TeamIter<ALIVE> it; it.hasNext(); ++it)
 	{
-		TeamTypes eVictimTeam = (TeamTypes)iI;
-		if(pHeadSelectedUnit->isNukeVictim(pPlot, eVictimTeam) &&
-			!pHeadSelectedUnit->isEnemy(eVictimTeam))
+		TeamTypes const eVictimTeam = it->getID();
+		if (kHeadSelectedUnit.isNukeVictim(&kPlot, eVictimTeam) &&
+			!kHeadSelectedUnit.isEnemy(eVictimTeam))
 		{	// advc.130q: No newline
-			strHelp += gDLL->getText("TXT_KEY_CANT_NUKE_FRIENDS");
+			szHelp += gDLL->getText("TXT_KEY_CANT_NUKE_FRIENDS");
 			break;
 		}
 	}
-	strHelp += NEWLINE; // advc.130q
+	szHelp += NEWLINE; // advc.130q
 }
 
-/*	advc.004c: (Beginning based on getNukePlotHelp; the middle part is akin
-	to the MISSION_BOMBARD case in CvDLLWidgetData::parseActionHelp_Mission): */
-void CvGameTextMgr::getAirBombPlotHelp(CvPlot* pPlot, CvWString& strHelp)
+/*	advc.004c: (Beginning based on getNukePlotHelp; the defense damage part is akin
+	to the MISSION_BOMBARD case in CvDLLWidgetData::parseActionHelp_Mission.) */
+void CvGameTextMgr::getAirBombPlotHelp(CvPlot const& kPlot,
+	CvUnit& kHeadSelectedUnit, CvWString& szHelp)
 {
-	if(pPlot == NULL)
+	CvUnit const* pBestSelectedUnit = gDLL->UI().getSelectionList()->AI().
+			AI_bestUnitForMission(MISSION_AIRBOMB, &kPlot);
+	if (pBestSelectedUnit == NULL || !pBestSelectedUnit->canAirBombAt(
+		pBestSelectedUnit->plot(), kPlot.getX(), kPlot.getY()))
+	{
 		return;
-	CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
-	if(pHeadSelectedUnit == NULL)
-		return;
+	}
+	setInterceptPlotHelp(kPlot, *pBestSelectedUnit, szHelp);
 
 	TeamTypes const eActiveTeam = GC.getGame().getActiveTeam();
-	CvCity const* pBombardCity = pPlot->getPlotCity();
+	CvCity const* pBombardCity = kPlot.getPlotCity();
 	if (pBombardCity != NULL && pBombardCity->isRevealed(eActiveTeam))
 	{
 		int const iMaxDamage = (pBombardCity->isVisible(eActiveTeam) ?
@@ -21158,36 +21231,18 @@ void CvGameTextMgr::getAirBombPlotHelp(CvPlot* pPlot, CvWString& strHelp)
 		}
 		if (iDamage > 0)
 		{
-			strHelp.append(gDLL->getText("TXT_KEY_AIR_BOMB_MODE_HELP_CITY_DEFENSE",
+			szHelp.append(gDLL->getText("TXT_KEY_AIR_BOMB_MODE_HELP_CITY_DEFENSE",
 					pBombardCity->getNameKey(), iDamage));
 		}
-		else strHelp.append(gDLL->getText("TXT_KEY_AIR_BOMB_MODE_HELP_CITY_DEFENSE_NO_DAMAGE",
+		else szHelp.append(gDLL->getText("TXT_KEY_AIR_BOMB_MODE_HELP_CITY_DEFENSE_NO_DAMAGE",
 					pBombardCity->getNameKey()));
-		strHelp.append(NEWLINE);
+		szHelp.append(NEWLINE);
 	}
 	else
 	{
-		ImprovementTypes eImprov = pPlot->getRevealedImprovementType(eActiveTeam);
+		ImprovementTypes eImprov = kPlot.getRevealedImprovementType(eActiveTeam);
 		if (eImprov != NO_IMPROVEMENT)
 		{
-			CvUnit const* pBestSelectedUnit = NULL;
-			/*	Selection of best unit needs to be consistent with prioritization
-				in CvSelectionGroup::startMission */
-			int iMaxPriority = 0;
-			for (CLLNode<IDInfo> const* pNode = gDLL->UI().headSelectionListNode();
-				pNode != NULL; pNode = gDLL->UI().nextSelectionListNode(pNode))
-			{
-				CvUnit const& kSelectedUnit = *::getUnit(pNode->m_data);
-				int iPriority = 1;
-				if (kSelectedUnit.canMove())
-					iPriority += 1000;
-				iPriority += kSelectedUnit.airBombCurrRate();
-				if (iPriority > iMaxPriority)
-				{
-					iPriority = iMaxPriority;
-					pBestSelectedUnit = &kSelectedUnit;
-				}
-			}
 			// Formula matches dice roll in CvUnit::airBomb
 			int const iAttack = pBestSelectedUnit->airBombCurrRate();
 			int const iDefense = GC.getInfo(eImprov).getAirBombDefense();
@@ -21211,11 +21266,49 @@ void CvGameTextMgr::getAirBombPlotHelp(CvPlot* pPlot, CvWString& strHelp)
 					iPercent++;
 				if (iPercent == 100 && rSuccessProb < 1)
 					iPercent--;
-				strHelp.append(gDLL->getText("TXT_KEY_AIR_BOMB_MODE_HELP_DESTR_IMPROV",
+				szHelp.append(gDLL->getText("TXT_KEY_AIR_BOMB_MODE_HELP_DESTR_IMPROV",
 						GC.getInfo(eImprov).getDescription(), iPercent));
-				strHelp.append(NEWLINE);
+				szHelp.append(NEWLINE);
 			}
 		}
+	}
+}
+
+// advc.004c:
+void CvGameTextMgr::getAirStrikePlotHelp(CvPlot const& kPlot,
+	CvUnit& kHeadSelectedUnit, CvWString& szHelp)
+{
+	int iOddsDummy=-1;
+	bool const bMaxSurvival = GC.altKey(); // advc.048
+	// Matching the call in CvSelectionGroup::groupAttack
+	CvUnit const* pBestSelectedUnit = gDLL->UI().getSelectionList()->AI().
+			AI_getBestGroupAttacker(&kPlot,
+			false, iOddsDummy, false, false,
+			!bMaxSurvival, bMaxSurvival); // advc.048
+	if (pBestSelectedUnit != NULL && pBestSelectedUnit->canAirStrike(kPlot))
+		setInterceptPlotHelp(kPlot, *pBestSelectedUnit, szHelp);
+}
+
+// advc.004c:
+void CvGameTextMgr::getParadropPlotHelp(CvPlot const& kPlot,
+	CvUnit& kHeadSelectedUnit, CvWString& szHelp)
+{
+	CvUnit const* pBestSelectedUnit = NULL;
+	int iMaxEvasionProb = MIN_INT;
+	FOR_EACH_UNIT_IN(pUnit, *gDLL->UI().getSelectionList())
+	{
+		int iLoopProb = pUnit->evasionProbability();
+		if (iLoopProb > iMaxEvasionProb)
+		{
+			iMaxEvasionProb = iLoopProb;
+			pBestSelectedUnit = pUnit;
+		}
+	}
+	if (pBestSelectedUnit != NULL &&
+		pBestSelectedUnit->canParadropAt(
+		pBestSelectedUnit->plot(), kPlot.getX(), kPlot.getY()))
+	{
+		setInterceptPlotHelp(kPlot, *pBestSelectedUnit, szHelp);
 	}
 }
 

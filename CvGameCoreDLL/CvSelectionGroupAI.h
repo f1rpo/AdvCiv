@@ -42,6 +42,9 @@ public:
 			bool bConstCache = false) const; // advc.001n
 	int AI_sumStrength(const CvPlot* pAttackedPlot = NULL, DomainTypes eDomainType = NO_DOMAIN,
 			bool bCheckCanAttack = false) const;
+	// <advc.004c>
+	CvUnit* AI_bestUnitForMission(MissionTypes eMission,
+			CvPlot const* pMissionPlot = NULL); // </advc.004c>
 
 	void AI_queueGroupAttack(int iX, int iY);
 	inline void AI_cancelGroupAttack() { m_bGroupAttack = false; } // K-Mod (made inline)

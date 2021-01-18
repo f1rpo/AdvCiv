@@ -6274,11 +6274,27 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_AIR_BOMB_MODE_HELP_DESTR_IMPROV</Tag>
-		<English>Bomb [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: %d2%% Odds (if not Intercepted)</English>
-		<French>Bombarder [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: %d2%% probabilit&#233; (sans interception)</French>
-		<German>Bombardiere [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: %d2%% Chance (falls nicht abgefangen)</German>
-		<Italian>Bomba [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: %d2%% probabilità (se non intercettata)</Italian>
-		<Spanish>Bombear [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: %d2%% probabilidades (si no es interceptada)</Spanish>
+		<English>Bomb [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: [COLOR_POSITIVE_TEXT]%d2%%[COLOR_REVERT] Odds (if not Intercepted)</English>
+		<French>Bombarder [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: [COLOR_POSITIVE_TEXT]%d2%%[COLOR_REVERT] probabilit&#233; (sans interception)</French>
+		<German>Bombardiere [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: [COLOR_POSITIVE_TEXT]%d2%%[COLOR_REVERT] Chance (falls nicht abgefangen)</German>
+		<Italian>Bomba [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: [COLOR_POSITIVE_TEXT]%d2%%[COLOR_REVERT] probabilità (se non intercettata)</Italian>
+		<Spanish>Bombear [COLOR_HIGHLIGHT_TEXT]%s1_ImprovDesc[COLOR_REVERT]: [COLOR_POSITIVE_TEXT]%d2%%[COLOR_REVERT] probabilidades (si no es interceptada)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AIR_MODE_INTERCEPT</Tag>
+		<English>Best Visible [COLOR_HIGHLIGHT_TEXT]Interceptor[COLOR_REVERT] (%d1%% Odds):[NEWLINE][TAB]%s2_ShortUnitHelp</English>
+		<French>Meilleur [COLOR_HIGHLIGHT_TEXT]intercepteur[COLOR_REVERT] visibile (%d1%% chance):[NEWLINE][TAB]%s2_ShortUnitHelp</French>
+		<German>Höchste bekannte [COLOR_HIGHLIGHT_TEXT]Abfangchance[COLOR_REVERT] (%d1%%):[NEWLINE][TAB]%s2_ShortUnitHelp</German>
+		<Italian>Miglior [COLOR_HIGHLIGHT_TEXT]intercettatore[COLOR_REVERT] visibile (probabilità di %d1%%):[NEWLINE][TAB]%s2_ShortUnitHelp</Italian>
+		<Spanish>Mejor [COLOR_HIGHLIGHT_TEXT]interceptor[COLOR_REVERT] visible (probabilidades %d1%%):[NEWLINE][TAB]%s2_ShortUnitHelp</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AIR_MODE_INTERCEPT_VERSUS</Tag>
+		<English>[NEWLINE][TAB]vs. %s1_ShortUnitHelp</English>
+		<French>[NEWLINE][TAB]contre %s1_ShortUnitHelp</French>
+		<German>[NEWLINE][TAB]gegen %s1_ShortUnitHelp</German>
+		<Italian>[NEWLINE][TAB]contro %s1_ShortUnitHelp</Italian>
+		<Spanish>[NEWLINE][TAB]contra %s1_ShortUnitHelp</Spanish>
 	</TEXT>
 	<!-- advc.004c: Both from CIV4GameTextInfos.xml.
 		 I'm only replacing the percentage sign with the defense icon. -->

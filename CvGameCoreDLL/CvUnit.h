@@ -30,9 +30,9 @@ public:
 
 	void doTurn();
 	void doTurnPost(); // advc.029
-	void updateCombat(bool bQuick = false);
+	void updateCombat(bool bQuick = false, /* advc.004c: */ bool* pbIntercepted = NULL);
 	void updateAirCombat(bool bQuick = false);
-	void updateAirStrike(CvPlot* pPlot, bool bQuick, bool bFinish);
+	bool updateAirStrike(CvPlot& kPlot, bool bQuick, bool bFinish);
 
 	bool isActionRecommended(int iAction);
 	void updateFoundingBorder(bool bForceClear = false) const; // advc.004h
@@ -89,9 +89,9 @@ public:
 	bool isPlotValid(CvPlot const& kPlot) const;											// Exposed to Python (via CyPlot::isFriendlyCity)
 	bool isRevealedPlotValid(CvPlot const& kPlot) const; // </advc>
 	bool isInvasionMove(CvPlot const& kFrom, CvPlot const& kTo) const; // advc.162
-	void attack(CvPlot* pPlot, bool bQuick);
+	void attack(CvPlot* pPlot, bool bQuick, /* advc.004c: */ bool* pbIntercepted = NULL);
 	void attackForDamage(CvUnit *pDefender, int attackerDamageChange, int defenderDamageChange);
-	void fightInterceptor(const CvPlot* pPlot, bool bQuick);
+	void fightInterceptor(CvPlot const& kPlot, bool bQuick);
 	void move(CvPlot& kPlot, bool bShow, // advc: 1st param was CvPlot* (not const b/c of possible feature change)
 			bool bJump = false, bool bGroup = true); // advc.163
 	// K-Mod added bForceMove and bGroup
@@ -154,7 +154,9 @@ public:
 	bool canAirBomb(const CvPlot* pPlot) const;																// Exposed to Python
 	bool canAirBombAt(const CvPlot* pPlot, int iX, int iY) const;											// Exposed to Python
 	int airBombDefenseDamage(CvCity const& kCity) const; // advc
-	bool airBomb(int iX, int iY);
+	bool airBomb(int iX, int iY, /* advc.004c: */ bool* pbIntercepted = NULL);
+
+	bool canAirStrike(CvPlot const& kPlot) const; // (advc.004c: was protected)
 
 	CvCity* bombardTarget(CvPlot const& kPlot) const;														// Exposed to Python
 	bool canBombard(CvPlot const& kPlot) const;																// Exposed to Python
@@ -163,7 +165,7 @@ public:
 
 	bool canParadrop(const CvPlot* pPlot) const;															// Exposed to Python
 	bool canParadropAt(const CvPlot* pPlot, int iX, int iY) const;											// Exposed to Python
-	bool paradrop(int iX, int iY);
+	bool paradrop(int iX, int iY, /* advc.004c: */ IDInfo* pInterceptor = NULL);
 
 	bool canPillage(CvPlot const& kPlot) const;																// Exposed to Python
 	bool pillage();
@@ -470,7 +472,8 @@ public:
 	bool canAirDefend(CvPlot const* pPlot = NULL) const;													// Exposed to Python
 	int airCombatDamage(const CvUnit* pDefender) const;														// Exposed to Python
 	int rangeCombatDamage(const CvUnit* pDefender) const;													// Exposed to Python
-	CvUnit* bestInterceptor(const CvPlot* pPlot) const;														// Exposed to Python
+	CvUnit* bestInterceptor(CvPlot const& kPlot,															// Exposed to Python
+			bool bOdds = false) const; // advc.004c
 	CvUnit* bestSeaPillageInterceptor(CvUnit* pPillager, int iMinOdds) const;								// Exposed to Python
 
 	bool isAutomated() const;																				// Exposed to Python
@@ -1153,10 +1156,9 @@ protected:
 			int iAttackerFirepower, int iDefenderOdds, int iDefenderDamage,
 			CvUnit const* pSkipUnit = NULL);
 
-	bool interceptTest(const CvPlot* pPlot);
-	CvUnit* airStrikeTarget(const CvPlot* pPlot) const;
-	bool canAirStrike(const CvPlot* pPlot) const;
-	bool airStrike(CvPlot* pPlot);
+	bool interceptTest(CvPlot const& kPlot, /* advc.004c: */ IDInfo* pInterceptorID = NULL);
+	CvUnit* airStrikeTarget(CvPlot const& kPlot) const;
+	bool airStrike(CvPlot& kPlot, /* advc.004c: */ bool* pbIntercepted = NULL);
 
 	int planBattle(CvBattleDefinition& kBattle,
 			const std::vector<int>& combat_log) const; // K-Mod

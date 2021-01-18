@@ -12342,7 +12342,7 @@ bool CvUnitAI::AI_paradrop(int iRange)  // advc: some style changes
 			b/c we can't drop into an enemy city. */
 		iValue += AI_plotDefense(&p);
 		//iValue += pLoopPlot->defenseModifier(getTeam(), ignoreBuildingDefense());
-		CvUnit* pInterceptor = bestInterceptor(&p);
+		CvUnit* pInterceptor = bestInterceptor(p);
 		if (pInterceptor != NULL)
 		{
 			int iInterceptProb = (isSuicide() ? 100 : pInterceptor->currInterceptionProbability());
@@ -19467,7 +19467,7 @@ int CvUnitAI::AI_airStrikeValue(CvPlot const& kPlot, int iCurrentBest, bool& bBo
 	else if (!canAirDefend())
 	{
 		// assume that air defenders are strong.. and that they are willing to fight
-		CvUnit* pInterceptor = bestInterceptor(&kPlot);
+		CvUnit* pInterceptor = bestInterceptor(kPlot);
 		if (pInterceptor != NULL)
 		{
 			int iInterceptProb = pInterceptor->currInterceptionProbability();
@@ -19524,7 +19524,7 @@ bool CvUnitAI::AI_defendBaseAirStrike()
 			iValue /= 4;
 		}
 
-		CvUnit const* pInterceptor = bestInterceptor(&p);
+		CvUnit const* pInterceptor = bestInterceptor(p);
 		if (pInterceptor != NULL)
 		{
 			int iInterceptProb = (isSuicide() ? 100 :
@@ -19595,7 +19595,7 @@ bool CvUnitAI::AI_airBombPlots()
 				iValue /= 2;
 			else if (!canAirDefend()) // assume that air defenders are strong.. and that they are willing to fight
 			{
-				CvUnit const* pInterceptor = bestInterceptor(&p);
+				CvUnit const* pInterceptor = bestInterceptor(p);
 				if (pInterceptor != NULL)
 				{
 					int iInterceptProb = pInterceptor->currInterceptionProbability();

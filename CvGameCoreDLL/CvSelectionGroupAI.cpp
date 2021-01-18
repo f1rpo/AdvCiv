@@ -3,6 +3,9 @@
 #include "CvGameCoreDLL.h"
 #include "CvSelectionGroupAI.h"
 #include "CvUnitAI.h"
+// <advc.004c> for AI_bestUnitForMission
+#include "CvUnit.h"
+#include "CvCity.h" // </advc.004c>
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 #include "AgentIterator.h"
@@ -609,6 +612,124 @@ int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot,
 	}
 	return iSum;
 }
+
+// advc.004c: Auxiliary functions for AI_bestUnitForMission
+namespace
+{
+	scaled preserveUnitValue(CvUnit const& kUnit)
+	{	// Crude ...
+		return kUnit.getUnitInfo().getProductionCost() *
+				(1 + per100(6) * kUnit.getExperience());
+	}
+
+	scaled bombMissionPriority(CvUnit const& kUnit, int iDamage, int iRemainingDefense)
+	{
+		int iWasted = 0;
+		if (iDamage > 0)
+		{
+			iWasted = iDamage - iRemainingDefense;
+			iWasted = std::max(0, iWasted);
+		}
+		scaled rPriority = std::max(0, iDamage - iWasted) * 1000 - iWasted * 100;
+		rPriority -= preserveUnitValue(kUnit);
+		return rPriority;
+	}
+}
+
+/*	advc.004c: (Not const b/c it needs to return a non-const unit.
+	Ideally, there would be a const version returning a const unit,
+	but that would lead to a lot of duplicate code.) */
+CvUnit* CvSelectionGroupAI::AI_bestUnitForMission(MissionTypes eMission,
+	CvPlot const* pMissionPlot)
+{
+	CvPlot const& kAt = getPlot();
+	CvUnit* pBestUnit = NULL;
+	scaled rMaxPriority = scaled::MIN();
+	FOR_EACH_UNIT_VAR_IN(pUnit, *this)
+	{
+		if (!pUnit->canMove())
+			continue;
+		scaled rPriority;
+		switch(eMission)
+		{
+		case MISSION_PILLAGE:
+		{	// K-Mod code cut from startMission
+			/*	K-Mod. Let fast units carry out the pillage action first.
+				(This is based on the idea from BBAI, which had a buggy implementation.) */
+			if (!pUnit->canPillage(kAt))
+				continue;
+			rPriority = 3;
+			if (pUnit->bombardRate() > 0)
+				rPriority--;
+			if (pUnit->isMadeAttack())
+				rPriority++;
+			if (pUnit->isHurt() && !pUnit->hasMoved())
+				rPriority--;
+			// <advc.004c>
+			rPriority *= 10000;
+			rPriority -= preserveUnitValue(*pUnit).round();
+			// </advc.004c>
+			//iPriority = (3 + iPriority) * pUnit->movesLeft() / 3;
+			// advc.004c: Add 3 upfront. Don't see what good the division would do.
+			rPriority *= pUnit->movesLeft();
+			break;
+		}
+		case MISSION_BOMBARD:
+		{
+			if (!pUnit->canBombard(kAt))
+				continue;
+			int iDamage = pUnit->damageToBombardTarget(kAt);
+			rPriority = bombMissionPriority(*pUnit,
+					iDamage, iDamage <= 0 ? 0 :
+					pUnit->bombardTarget(kAt)->
+					getDefenseModifier(pUnit->ignoreBuildingDefense()));
+			break;
+		}
+		case MISSION_AIRBOMB:
+		{
+			if (pMissionPlot->isCity())
+			{
+				if (!pUnit->canAirBomb(pMissionPlot))
+					continue;
+				CvCity const& kTargetCity = *pMissionPlot->getPlotCity();
+				int iDamage = pUnit->airBombDefenseDamage(kTargetCity);
+				rPriority = bombMissionPriority(*pUnit, iDamage,
+						iDamage <= 0 ? 0 : kTargetCity.getDefenseModifier(false));
+			}
+			else
+			{
+				rPriority = pUnit->airBombCurrRate();
+				rPriority *= 10000;
+				rPriority -= preserveUnitValue(*pUnit);
+			}
+			break;
+		}
+		case MISSION_PARADROP:
+		{	/*	The group can be split between two plots here.
+				Therefore don't check kAt. */
+			if (!pUnit->canParadropAt(pUnit->plot(),
+				pMissionPlot->getX(), pMissionPlot->getY()))
+			{
+				continue;
+			}
+			/*	I don't think it makes sense to maximize the evasion chance.
+				When moving a stack of paratroopers, getting just one through
+				isn't usually the goal. Want to send in the least valuable units
+				first to draw out interceptors. */
+			rPriority = -preserveUnitValue(*pUnit);
+			break;
+		}
+		default: FErrorMsg("Mission type not supported by bestUnitForMission");
+		}
+		if (rPriority > rMaxPriority)
+		{
+			rMaxPriority = rPriority;
+			pBestUnit = pUnit;
+		}
+	}
+	return pBestUnit;
+}
+
 
 void CvSelectionGroupAI::AI_queueGroupAttack(int iX, int iY)
 {

@@ -710,30 +710,19 @@ void CvUnit::doTurnPost()
 {
 	if(GC.getGame().getGameTurn() > m_iLastReconTurn)
 		setReconPlot(NULL);
-} // </advc.029>
-
-
-void CvUnit::updateAirStrike(CvPlot* pPlot, bool bQuick, bool bFinish)
+} /// advc.004c: Return type was void. Now returns false when intercepted.
+bool CvUnit::updateAirStrike(CvPlot& kPlot, bool bQuick, bool bFinish)
 {
 	if (!bFinish)
 	{
 		if (isFighting())
+			return true;
+		bool const bVisible = (bQuick ? false : isCombatVisible(NULL));
 		{
-			return;
+			bool bIntercepted=false; // advc.004c
+			if (!airStrike(kPlot, &bIntercepted))
+				return !bIntercepted; // advc.004c
 		}
-
-		bool bVisible = false;
-
-		if (!bQuick)
-		{
-			bVisible = isCombatVisible(NULL);
-		}
-
-		if (!airStrike(pPlot))
-		{
-			return;
-		}
-
 		if (bVisible)
 		{
 			CvAirMissionDefinition kAirMission;
@@ -742,34 +731,24 @@ void CvUnit::updateAirStrike(CvPlot* pPlot, bool bQuick, bool bFinish)
 			kAirMission.setUnit(BATTLE_UNIT_DEFENDER, NULL);
 			kAirMission.setDamage(BATTLE_UNIT_DEFENDER, 0);
 			kAirMission.setDamage(BATTLE_UNIT_ATTACKER, 0);
-			kAirMission.setPlot(pPlot);
+			kAirMission.setPlot(&kPlot);
 			setCombatTimer(GC.getInfo(MISSION_AIRSTRIKE).getTime());
 			GC.getGame().incrementTurnTimer(getCombatTimer());
 			kAirMission.setMissionTime(getCombatTimer() * gDLL->getSecsPerTurn());
-
-			if (pPlot->isActiveVisible(false))
-			{
+			if (kPlot.isActiveVisible(false))
 				gDLL->getEntityIFace()->AddMission(&kAirMission);
-			}
-
-			return;
+			return true;
 		}
 	}
-
 	CvUnit *pDefender = getCombatUnit();
 	if (pDefender != NULL)
-	{
 		pDefender->setCombatUnit(NULL);
-	}
 	setCombatUnit(NULL);
 	setAttackPlot(NULL, false);
-
 	getGroup()->clearMissionQueue();
-
 	if (isSuicide() && !isDead())
-	{
 		kill(true);
-	}
+	return true;
 }
 
 void CvUnit::resolveAirCombat(CvUnit* pInterceptor, CvPlot* pPlot, CvAirMissionDefinition& kBattle)
@@ -923,7 +902,7 @@ void CvUnit::updateAirCombat(bool bQuick)
 
 	if (bFinish)
 		pInterceptor = getCombatUnit();
-	else pInterceptor = bestInterceptor(pPlot);
+	else pInterceptor = bestInterceptor(*pPlot);
 
 	if (pInterceptor == NULL)
 	{
@@ -1281,13 +1260,11 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 }
 
 
-void CvUnit::updateCombat(bool bQuick)
+void CvUnit::updateCombat(bool bQuick, /* <advc.004c> */ bool* pbIntercepted)
 {
-	CvWString szBuffer;
-
+	if (pbIntercepted != NULL)
+		*pbIntercepted = false; // </advc.004c>
 	bool bFinish = false;
-	bool bVisible = false;
-
 	if (getCombatTimer() > 0)
 	{	/*  advc.006: Assertion
 			getCombatUnit() && ...
@@ -1296,10 +1273,9 @@ void CvUnit::updateCombat(bool bQuick)
 		FAssert(getCombatUnit() == NULL ||
 				getCombatUnit()->getAttackPlot() == NULL); // K-Mod
 		changeCombatTimer(-1);
-
 		if (getCombatTimer() > 0)
 			return;
-		else bFinish = true;
+		bFinish = true;
 	}
 
 	CvPlot* pPlot = getAttackPlot();
@@ -1308,7 +1284,12 @@ void CvUnit::updateCombat(bool bQuick)
 
 	if (getDomainType() == DOMAIN_AIR)
 	{
-		updateAirStrike(pPlot, bQuick, bFinish);
+		if (!updateAirStrike(*pPlot, bQuick, bFinish) &&
+			// <advc.004c>
+			pbIntercepted != NULL)
+		{
+			*pbIntercepted = true; // </advc.004c>
+		}
 		return;
 	}
 
@@ -1346,8 +1327,7 @@ void CvUnit::updateCombat(bool bQuick)
 	}
 
 	//check if quick combat
-	if (!bQuick)
-		bVisible = isCombatVisible(pDefender);
+	bool const bVisible = (bQuick ? false : isCombatVisible(pDefender));
 
 	//FAssertMsg((pPlot == pDefender->plot()), "There is not expected to be a defender or the defender's plot is expected to be pPlot (the attack plot)");
 
@@ -1608,8 +1588,8 @@ void CvUnit::updateCombat(bool bQuick)
 	}
 	else
 	{
-		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WITHDRAW", getNameKey(),
-				pDefender->getNameKey());
+		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WITHDRAW", getNameKey(),
+				pDefender->getNameKey()));
 		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer,
 				"AS2D_OUR_WITHDRAWL", MESSAGE_TYPE_INFO, NULL,
 				GC.getColorType("GREEN"), pPlot->getX(), pPlot->getY());
@@ -2468,7 +2448,7 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar,
 	{
 		if (bAttack)
 		{
-			if (!canAirStrike(&kPlot))
+			if (!canAirStrike(kPlot))
 				return false;
 		}
 	}
@@ -2704,19 +2684,19 @@ bool CvUnit::isInvasionMove(CvPlot const& kFrom, CvPlot const& kTo) const
 }
 
 
-void CvUnit::attack(CvPlot* pPlot, bool bQuick)
+void CvUnit::attack(CvPlot* pPlot, bool bQuick, /* advc.004c: */ bool* pbIntercepted)
 {
 	// Note: this assertion could fail in certain situations involving sea-patrol - Karadoc
 	FAssert(canMoveInto(*pPlot, true));
 	FAssert(getCombatTimer() == 0);
 	setAttackPlot(pPlot, false);
-	updateCombat(bQuick);
+	updateCombat(bQuick, pbIntercepted);
 }
 
-void CvUnit::fightInterceptor(const CvPlot* pPlot, bool bQuick)
+void CvUnit::fightInterceptor(CvPlot const& kPlot, bool bQuick) // advc: was CvPlot const*
 {
 	FAssert(getCombatTimer() == 0);
-	setAttackPlot(pPlot, true);
+	setAttackPlot(&kPlot, true);
 	updateAirCombat(bQuick);
 }
 
@@ -4103,22 +4083,24 @@ bool CvUnit::canParadropAt(const CvPlot* pPlot, int iX, int iY) const
 }
 
 
-bool CvUnit::paradrop(int iX, int iY)
+bool CvUnit::paradrop(int iX, int iY, /* <advc.004c> */ IDInfo* pInterceptor)
 {
+	if (pInterceptor != NULL)
+		*pInterceptor = IDInfo(); // </advc.004c>
 	if (!canParadropAt(plot(), iX, iY))
 		return false;
 
-	CvPlot* pPlot = GC.getMap().plot(iX, iY);
+	CvPlot const& kPlot = GC.getMap().getPlot(iX, iY);
 	changeMoves(GC.getMOVE_DENOMINATOR() / 2);
 	setMadeAttack(true);
-	setXY(pPlot->getX(), pPlot->getY(), /* K-Mod: */ true);
+	setXY(kPlot.getX(), kPlot.getY(), /* K-Mod: */ true);
 
 	//check if intercepted
-	if(interceptTest(pPlot))
+	if(interceptTest(kPlot, /* advc.004c: */ pInterceptor))
 		return true;
 
 	//play paradrop animation by itself
-	if (pPlot->isActiveVisible(false))
+	if (kPlot.isActiveVisible(false))
 	{
 		CvAirMissionDefinition kAirMission;
 		kAirMission.setMissionType(MISSION_PARADROP);
@@ -4126,8 +4108,9 @@ bool CvUnit::paradrop(int iX, int iY)
 		kAirMission.setUnit(BATTLE_UNIT_DEFENDER, NULL);
 		kAirMission.setDamage(BATTLE_UNIT_DEFENDER, 0);
 		kAirMission.setDamage(BATTLE_UNIT_ATTACKER, 0);
-		kAirMission.setPlot(pPlot);
-		kAirMission.setMissionTime(GC.getInfo((MissionTypes)MISSION_PARADROP).getTime() * gDLL->getSecsPerTurn());
+		kAirMission.setPlot(&kPlot);
+		kAirMission.setMissionTime(GC.getInfo(MISSION_PARADROP).getTime() *
+				gDLL->getSecsPerTurn());
 		gDLL->getEntityIFace()->AddMission(&kAirMission);
 	}
 
@@ -4228,8 +4211,10 @@ int CvUnit::airBombDefenseDamage(CvCity const& kCity) const
 }
 
 
-bool CvUnit::airBomb(int iX, int iY)
+bool CvUnit::airBomb(int iX, int iY, /* <advc.004c> */ bool* pbIntercepted)
 {
+	if (pbIntercepted != NULL)
+		*pbIntercepted = false; // </advc.004c>
 	if (!canAirBombAt(plot(), iX, iY))
 		return false;
 
@@ -4240,9 +4225,12 @@ bool CvUnit::airBomb(int iX, int iY)
 	if (!isEnemy(kPlot))
 		return false;
 
-	if (interceptTest(&kPlot))
+	if (interceptTest(kPlot))
+	{	// <advc.004c>
+		if (pbIntercepted != NULL)
+			*pbIntercepted = true; // </advc.004c>
 		return true;
-
+	}
 	CvWString szBuffer;
 
 	CvCity* pCity = kPlot.getPlotCity();
@@ -7687,8 +7675,13 @@ int CvUnit::rangeCombatDamage(const CvUnit* pDefender) const
 }
 
 
-CvUnit* CvUnit::bestInterceptor(const CvPlot* pPlot) const  // advc: some style changes
+CvUnit* CvUnit::bestInterceptor(CvPlot const& kPlot,
+	bool bOdds) const // advc.004c
 {
+	/*	advc.test: (Could do this through a plot range, or at least go through
+		selection groups before individual units.) */
+	PROFILE_FUNC();
+	TeamTypes const eOurTeam = getTeam(); // advc.004c
 	CvUnit* pBestUnit = NULL;
 	int iBestValue = 0;
 	for (PlayerIter<ALIVE,ENEMY_OF> it(getTeam()); it.hasNext(); ++it)
@@ -7697,16 +7690,17 @@ CvUnit* CvUnit::bestInterceptor(const CvPlot* pPlot) const  // advc: some style 
 		if (isInvisible(kEnemy.getTeam(), false, false))
 			continue;
 		FOR_EACH_UNIT_VAR(pLoopUnit, kEnemy)
-		{
+		{	// <advc.004c>
+			if (bOdds && !pLoopUnit->getPlot().isVisible(eOurTeam))
+				continue; // </advc.004c>
 			if (pLoopUnit->canAirDefend() &&
 				!pLoopUnit->isMadeInterception() &&
 				(pLoopUnit->getDomainType() != DOMAIN_AIR || !pLoopUnit->hasMoved()) &&
 				(pLoopUnit->getDomainType() != DOMAIN_AIR ||
 				pLoopUnit->getGroup()->getActivityType() == ACTIVITY_INTERCEPT) &&
-				plotDistance(pLoopUnit->plot(), pPlot) <= pLoopUnit->airRange())
+				plotDistance(pLoopUnit->plot(), &kPlot) <= pLoopUnit->airRange())
 			{
 				int iValue = pLoopUnit->currInterceptionProbability();
-
 				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;
@@ -10572,17 +10566,21 @@ void CvUnit::flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength,
 }
 
 // Returns true if we were intercepted...
-bool CvUnit::interceptTest(const CvPlot* pPlot)
+bool CvUnit::interceptTest(CvPlot const& kPlot, /* <advc.004c> */ IDInfo* pInterceptorID)
 {
+	if (pInterceptorID != NULL)
+		*pInterceptorID = IDInfo(); // </advc.004c>
 	if (GC.getGame().getSorenRandNum(100, "Evasion Rand") >= evasionProbability())
 	{
-		CvUnit* pInterceptor = bestInterceptor(pPlot);
+		CvUnit const* pInterceptor = bestInterceptor(kPlot);
 		if (pInterceptor != NULL)
 		{
 			if (GC.getGame().getSorenRandNum(100, "Intercept Rand (Air)") <
 				pInterceptor->currInterceptionProbability())
-			{
-				fightInterceptor(pPlot, false);
+			{	// <advc.004c>
+				if (pInterceptorID != NULL)
+					*pInterceptorID = pInterceptor->getIDInfo(); // </advc.004c>
+				fightInterceptor(kPlot, false);
 				return true;
 			}
 		}
@@ -10591,9 +10589,9 @@ bool CvUnit::interceptTest(const CvPlot* pPlot)
 }
 
 
-CvUnit* CvUnit::airStrikeTarget(const CvPlot* pPlot) const
+CvUnit* CvUnit::airStrikeTarget(CvPlot const& kPlot) const // advc: was CvPlot const*
 {
-	CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, getOwner(), this, true);
+	CvUnit* pDefender = kPlot.getBestDefender(NO_PLAYER, getOwner(), this, true);
 	if (pDefender != NULL && !pDefender->isDead())
 	{
 		if (pDefender->canDefend())
@@ -10603,37 +10601,42 @@ CvUnit* CvUnit::airStrikeTarget(const CvPlot* pPlot) const
 }
 
 
-bool CvUnit::canAirStrike(const CvPlot* pPlot) const
+bool CvUnit::canAirStrike(CvPlot const& kPlot) const // advc: was CvPlot const*
 {
 	if (getDomainType() != DOMAIN_AIR)
 		return false;
 	if (!canAirAttack())
 		return false;
-	if (atPlot(pPlot))
+	if (at(kPlot))
 		return false;
-	if (!pPlot->isVisible(getTeam()))
+	if (!kPlot.isVisible(getTeam()))
 		return false;
-	if (plotDistance(getX(), getY(), pPlot->getX(), pPlot->getY()) > airRange())
+	if (plotDistance(plot(), &kPlot) > airRange())
 		return false;
-	if (airStrikeTarget(pPlot) == NULL)
+	if (airStrikeTarget(kPlot) == NULL)
 		return false;
 	return true;
 }
 
 
-bool CvUnit::airStrike(CvPlot* pPlot)
+bool CvUnit::airStrike(CvPlot& kPlot, /* <advc.004c> */ bool* pbIntercepted)
 {
-	if (!canAirStrike(pPlot))
+	if (pbIntercepted != NULL)
+		*pbIntercepted = false; // </advc.004c>
+	if (!canAirStrike(kPlot))
 		return false;
 
-	if (interceptTest(pPlot))
+	if (interceptTest(kPlot))
+	{	// <advc.004c>
+		if (pbIntercepted != NULL)
+			*pbIntercepted = true; // </advc.004c>
 		return false;
-
-	CvUnit* pDefender = airStrikeTarget(pPlot);
+	}
+	CvUnit* pDefender = airStrikeTarget(kPlot);
 	FAssert(pDefender != NULL);
 	FAssert(pDefender->canDefend());
 
-	setReconPlot(pPlot);
+	setReconPlot(&kPlot);
 	setMadeAttack(true);
 	changeMoves(GC.getMOVE_DENOMINATOR());
 
@@ -10645,7 +10648,7 @@ bool CvUnit::airStrike(CvPlot* pPlot)
 			pDefender->getNameKey(), getNameKey(),
 			// advc.004g:
 			((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints()));
-	gDLL->UI().addMessage(pDefender->getOwner(), false, -1, szBuffer, *pPlot,
+	gDLL->UI().addMessage(pDefender->getOwner(), false, -1, szBuffer, kPlot,
 			"AS2D_AIR_ATTACK", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"));
 
 	szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR", getNameKey(), pDefender->getNameKey(),
@@ -10653,9 +10656,9 @@ bool CvUnit::airStrike(CvPlot* pPlot)
 			((iUnitDamage - pDefender->getDamage()) * 100) / pDefender->maxHitPoints());
 	gDLL->UI().addMessage(getOwner(), true, -1, szBuffer, "AS2D_AIR_ATTACKED",
 			MESSAGE_TYPE_INFO, pDefender->getButton(), GC.getColorType("GREEN"),
-			pPlot->getX(), pPlot->getY());
+			kPlot.getX(), kPlot.getY());
 
-	collateralCombat(pPlot, pDefender);
+	collateralCombat(&kPlot, pDefender);
 	pDefender->setDamage(iUnitDamage, getOwner());
 
 	return true;
@@ -10700,7 +10703,7 @@ bool CvUnit::canRangeStrikeAt(const CvPlot* pPlot, int iX, int iY) const
 	if (plotDistance(pPlot, pTargetPlot) > airRange())
 		return false;
 
-	CvUnit* pDefender = airStrikeTarget(pTargetPlot);
+	CvUnit* pDefender = airStrikeTarget(*pTargetPlot);
 	if (pDefender == NULL)
 		return false;
 
@@ -10731,7 +10734,7 @@ bool CvUnit::rangeStrike(int iX, int iY)
 		return false;
 	} // UNOFFICIAL_PATCH: END
 
-	CvUnit* pDefender = airStrikeTarget(pPlot);
+	CvUnit* pDefender = airStrikeTarget(*pPlot);
 
 	FAssert(pDefender != NULL);
 	FAssert(pDefender->canDefend());

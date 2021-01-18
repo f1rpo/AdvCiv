@@ -56,7 +56,9 @@ public:
 			bool bIndicator = false); // advc.007
 	void setPlotListHelp(CvWStringBuffer &szString, CvPlot const& kPlot, bool bOneLine, bool bShort,
 			bool bIndicator = false); // advc.061
-	bool setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
+	// <advc.004c>
+	void setInterceptPlotHelp(CvPlot const& kPlot, CvUnit const& kUnit,
+			CvWString& szHelp, bool bNewline = true); // </advc.004c>	bool setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
 	// <advc.089>
 	void setCannotAttackHelp(CvWStringBuffer& szHelp, CvUnit const& kAttacker,
 			CvUnit const& kDefender); // </advc.089>
@@ -265,9 +267,12 @@ public:
 	DllExport void getGlobeLayerName(GlobeLayerTypes eType, int iOption, CvWString& strName);
 
 	DllExport void getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* pFlagPlot, bool bAlt, CvWStringBuffer& strHelp);
-	void getRebasePlotHelp(CvPlot* pPlot, CvWString& strHelp);
-	void getNukePlotHelp(CvPlot* pPlot, CvWString& strHelp);
-	void getAirBombPlotHelp(CvPlot* pPlot, CvWString& strHelp); // advc.004c
+	void getRebasePlotHelp(CvPlot const& kPlot, CvUnit& kHeadSelectedUnit, CvWString& szHelp);
+	void getNukePlotHelp(CvPlot const& kPlot, CvUnit& kHeadSelectedUnit, CvWString& szHelp);
+	// <advc.004c>
+	void getAirBombPlotHelp(CvPlot const& kPlot, CvUnit& kHeadSelectedUnit, CvWString& szHelp);
+	void getAirStrikePlotHelp(CvPlot const& kPlot, CvUnit& kHeadSelectedUnit, CvWString& szHelp);
+	void getParadropPlotHelp(CvPlot const& kPlot, CvUnit& kHeadSelectedUnit, CvWString& szHelp); // </advc.004c>
 	DllExport void getInterfaceCenterText(CvWString& strText);
 	DllExport void getTurnTimerText(CvWString& strText);
 	DllExport void getFontSymbols(std::vector< std::vector<wchar> >& aacSymbols, std::vector<int>& aiMaxNumRows);
