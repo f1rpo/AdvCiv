@@ -1,5 +1,3 @@
-// gameAI.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvGameAI.h"
 #include "CoreAI.h"

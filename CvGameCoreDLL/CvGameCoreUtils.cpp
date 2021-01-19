@@ -283,10 +283,11 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 	iDefenderStrength = pDefender->currCombatStr(pDefender->plot(), pAttacker);
 	iDefenderFirepower = pDefender->currFirepower(pDefender->plot(), pAttacker);
 
-	FAssert((iAttackerStrength + iDefenderStrength) > 0);
-	FAssert((iAttackerFirepower + iDefenderFirepower) > 0);
+	FAssert(iAttackerStrength + iDefenderStrength > 0);
+	FAssert(iAttackerFirepower + iDefenderFirepower > 0);
 
-	iDefenderOdds = ((GC.getCOMBAT_DIE_SIDES() * iDefenderStrength) / (iAttackerStrength + iDefenderStrength));
+	iDefenderOdds = (GC.getCOMBAT_DIE_SIDES() * iDefenderStrength) /
+			(iAttackerStrength + iDefenderStrength);
 
 	if (iDefenderOdds == 0)
 	{
@@ -946,7 +947,7 @@ void shuffleArray(int* piShuffle, int iNum, CvRandom& rand)
 }
 
 // advc.enum: Caller needs to set the vector size
-void shuffleVector(std::vector<int>& aiIndices, CvRandom& rand)
+void shuffleVector(vector<int>& aiIndices, CvRandom& rand)
 {
 	std11::iota(aiIndices.begin(), aiIndices.end(), 0);
 	int const iSize = (int)aiIndices.size();

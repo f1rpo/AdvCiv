@@ -6031,7 +6031,7 @@ bool CvUnit::build(BuildTypes eBuild)
 
 bool CvUnit::canPromote(PromotionTypes ePromotion, int iLeaderUnitId) const
 {
-	if (iLeaderUnitId >= 0)
+	if (iLeaderUnitId /* advc (was >=0): */ != FFreeList::INVALID_INDEX)
 	{
 		if (iLeaderUnitId == getID())
 			return false;
@@ -6074,7 +6074,7 @@ void CvUnit::promote(PromotionTypes ePromotion, int iLeaderUnitId)
 	bool bSound = true;
 	bool const bSelected = IsSelected();
 	// </advc.002l>
-	if (iLeaderUnitId >= 0)
+	if (iLeaderUnitId /* advc (was >=0): */ != FFreeList::INVALID_INDEX)
 	{
 		CvUnit* pWarlord = GET_PLAYER(getOwner()).getUnit(iLeaderUnitId);
 		if (pWarlord != NULL)
@@ -6313,7 +6313,8 @@ int CvUnit::upgradeXPChange(UnitTypes eUnit) const
 }
 
 
-bool CvUnit::upgradeAvailable(UnitTypes eFromUnit, UnitClassTypes eToUnitClass, int iCount) const  // advc: style changes
+bool CvUnit::upgradeAvailable(UnitTypes eFromUnit, UnitClassTypes eToUnitClass,
+	int iCount) const
 {
 	if (iCount > GC.getNumUnitClassInfos())
 		return false;
@@ -7874,7 +7875,7 @@ int CvUnit::currInterceptionProbability() const
 {
 	if (getDomainType() != DOMAIN_AIR)
 		return maxInterceptionProbability();
-	return ((maxInterceptionProbability() * currHitPoints()) / maxHitPoints());
+	return (maxInterceptionProbability() * currHitPoints()) / maxHitPoints();
 }
 
 

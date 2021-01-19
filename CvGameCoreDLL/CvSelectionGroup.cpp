@@ -2629,7 +2629,7 @@ RouteTypes CvSelectionGroup::getBestBuildRoute(CvPlot const& kPlot,
 
 // Returns true if attack was made...
 bool CvSelectionGroup::groupAttack(int iX, int iY, MovementFlags eFlags,
-	bool& bFailedAlreadyFighting,
+	bool& bFailedAlreadyFighting, // advc (note): out-parameter
 	bool bMaxSurvival) // advc.048
 {
 	PROFILE_FUNC();
@@ -2640,8 +2640,8 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, MovementFlags eFlags,
 
 	// K-Mod. Rather than clearing the existing path data; use a temporary pathfinder.
 	//GroupPathFinder finalPath;
-	GroupPathFinder& finalPath = getClearPathFinder(); // advc.opt
-	finalPath.setGroup(*this, eFlags & ~MOVE_DECLARE_WAR);
+	GroupPathFinder& kFinalPath = getClearPathFinder(); // advc.opt
+	kFinalPath.setGroup(*this, eFlags & ~MOVE_DECLARE_WAR);
 	/*if (eFlags & MOVE_THROUGH_ENEMY) {
 		if (generatePath(plot(), pDestPlot, eFlags))
 			pDestPlot = getPathFirstPlot();
@@ -2649,8 +2649,8 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, MovementFlags eFlags,
 	// K-Mod
 	if (eFlags & (MOVE_THROUGH_ENEMY | MOVE_ATTACK_STACK) && !(eFlags & MOVE_DIRECT_ATTACK))
 	{
-		if (finalPath.generatePath(*pDestPlot))
-			pDestPlot = &finalPath.getPathFirstPlot();
+		if (kFinalPath.generatePath(*pDestPlot))
+			pDestPlot = &kFinalPath.getPathFirstPlot();
 	} // K-Mod end
 
 	if (getNumUnits() <= 0)
@@ -2661,8 +2661,8 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, MovementFlags eFlags,
 	//if ((eFlags & MOVE_DIRECT_ATTACK) || (getDomainType() == DOMAIN_AIR) || (eFlags & MOVE_THROUGH_ENEMY) || (generatePath(plot(), pDestPlot, eFlags) && (getPathFirstPlot() == pDestPlot)))
 	// K-Mod.
 	if (eFlags & (MOVE_THROUGH_ENEMY | MOVE_ATTACK_STACK | MOVE_DIRECT_ATTACK) ||
-		getDomainType() == DOMAIN_AIR || (finalPath.generatePath(*pDestPlot) &&
-		&finalPath.getPathFirstPlot() == pDestPlot)) // K-Mod end
+		getDomainType() == DOMAIN_AIR || (kFinalPath.generatePath(*pDestPlot) &&
+		&kFinalPath.getPathFirstPlot() == pDestPlot)) // K-Mod end
 	{
 		int iAttackOdds;
 		CvUnit* pBestAttackUnit = AI().AI_getBestGroupAttacker(pDestPlot, true, iAttackOdds);
@@ -2740,7 +2740,7 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, MovementFlags eFlags,
 			if (bFailedAlreadyFighting || !bStack)
 			{
 				if (!isHuman() && getNumUnits() > 1 &&
-					// K-Mod: if this is AI stack, follow through with the attack to the end
+					// K-Mod: AI stack: follow through with the attack to the end
 					!(eFlags & MOVE_SINGLE_ATTACK))
 				{	//AI_queueGroupAttack(iX, iY);
 					AI().AI_queueGroupAttack(pDestPlot->getX(), pDestPlot->getY()); // K-Mod
@@ -2863,7 +2863,7 @@ bool CvSelectionGroup::groupPathTo(int iX, int iY, MovementFlags eFlags)
 {
 	//GroupPathFinder finalPath; // K-Mod
 	// advc.opt: Avoid allocating new memory
-	GroupPathFinder& finalPath = getClearPathFinder();
+	GroupPathFinder& kFinalPath = getClearPathFinder();
 	CvPlot const* pOriginPlot = plot(); // K-Mod
 
 	if (at(iX, iY))
@@ -2895,11 +2895,11 @@ bool CvSelectionGroup::groupPathTo(int iX, int iY, MovementFlags eFlags)
 			the move will fail here rather than splitting the group inside groupMove.
 			Also, I've changed it to use a different pathfinder,
 			to avoid clearing the path data - and to avoid OOS errors. */
-		finalPath.setGroup(*this, eFlags & ~MOVE_DECLARE_WAR);
-		if (!finalPath.generatePath(kDestPlot))
+		kFinalPath.setGroup(*this, eFlags & ~MOVE_DECLARE_WAR);
+		if (!kFinalPath.generatePath(kDestPlot))
 			return false;
 
-		pPathPlot = &finalPath.getPathFirstPlot();
+		pPathPlot = &kFinalPath.getPathFirstPlot();
 		// K-Mod end
 		if (groupAmphibMove(*pPathPlot, eFlags))
 			return false;
@@ -2928,11 +2928,11 @@ bool CvSelectionGroup::groupPathTo(int iX, int iY, MovementFlags eFlags)
 		/*	If the step we just took will make us change our path to something longer,
 			then cancel the move. This prevents units from wasting all their moves by
 			trying to walk around enemy units. */
-		FAssert(finalPath.isPathComplete());
-		std::pair<int, int> old_moves = std::make_pair(
-				finalPath.getPathTurns(), -finalPath.getFinalMoves());
-		if (!finalPath.generatePath(kDestPlot) ||
-			std::make_pair(finalPath.getPathTurns(), -finalPath.getFinalMoves()) > old_moves)
+		FAssert(kFinalPath.isPathComplete());
+		std::pair<int,int> iiOldMoves = std::make_pair(
+				kFinalPath.getPathTurns(), -kFinalPath.getFinalMoves());
+		if (!kFinalPath.generatePath(kDestPlot) || std::make_pair(
+			kFinalPath.getPathTurns(), -kFinalPath.getFinalMoves()) > iiOldMoves)
 		{
 			clearMissionQueue();
 		}
@@ -2940,7 +2940,7 @@ bool CvSelectionGroup::groupPathTo(int iX, int iY, MovementFlags eFlags)
 			it's probably because we've lost vision of a unit that was blocking the path.
 			Apply the MOVE_ASSUME_VISIBLE flag, so that we remember
 			to go the long way around. */
-		else if (&finalPath.getPathFirstPlot() == pOriginPlot)
+		else if (&kFinalPath.getPathFirstPlot() == pOriginPlot)
 			headMissionQueueNode()->m_data.eFlags |= MOVE_ASSUME_VISIBLE;
 	}
 	// K-Mod end

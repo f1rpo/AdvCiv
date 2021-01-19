@@ -242,8 +242,10 @@ public:
 	bool canBuild(CvPlot const& pPlot, BuildTypes eBuild, bool bTestVisible = false) const;					// Exposed to Python
 	bool build(BuildTypes eBuild);
 
-	bool canPromote(PromotionTypes ePromotion, int iLeaderUnitId) const;									// Exposed to Python
-	void promote(PromotionTypes ePromotion, int iLeaderUnitId);												// Exposed to Python
+	bool canPromote(PromotionTypes ePromotion,																// Exposed to Python
+			int iLeaderUnitId /* advc: */ = FFreeList::INVALID_INDEX) const;
+	void promote(PromotionTypes ePromotion,																	// Exposed to Python
+			int iLeaderUnitId /* advc: */ = FFreeList::INVALID_INDEX);
 	int promotionHeal(PromotionTypes ePromotion = NO_PROMOTION) const; // advc
 
 	int canLead(const CvPlot* pPlot, int iUnitId) const;

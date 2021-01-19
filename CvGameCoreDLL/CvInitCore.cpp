@@ -1,5 +1,3 @@
-// game.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvInitCore.h"
 #include "CvPlayer.h"

@@ -1,5 +1,3 @@
-// unitAI.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
@@ -530,27 +528,23 @@ void CvUnitAI::AI_promote()
 	if (!isPromotionReady())
 		return; // can't get any normal promotions. (see CvUnit::canPromote)
 	// K-Mod end
-
 	int iBestValue = 0;
 	PromotionTypes eBestPromotion = NO_PROMOTION;
-
-	for (int iI = 0; iI < GC.getNumPromotionInfos(); iI++)
+	FOR_EACH_ENUM(Promotion)
 	{
-		if (canPromote((PromotionTypes)iI, -1))
+		if (canPromote(eLoopPromotion))
 		{
-			int iValue = AI_promotionValue((PromotionTypes)iI);
-
+			int iValue = AI_promotionValue(eLoopPromotion);
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;
-				eBestPromotion = ((PromotionTypes)iI);
+				eBestPromotion = eLoopPromotion;
 			}
 		}
 	}
-
 	if (eBestPromotion != NO_PROMOTION)
 	{
-		promote(eBestPromotion, -1);
+		promote(eBestPromotion);
 		AI_promote();
 	}
 }
@@ -585,28 +579,18 @@ int CvUnitAI::AI_groupFirstVal() /* advc: */ const
 
 	case UNITAI_ATTACK:
 		if (collateralDamage() > 0)
-		{
 			return 15; // was 17
-		}
 		if (withdrawalProbability() > 0)
-		{
 			return 14; // was 15
-		}
 		return 13;
 
 	case UNITAI_ATTACK_CITY:
 		if (bombardRate() > 0)
-		{
 			return 19;
-		}
 		if (collateralDamage() > 0)
-		{
 			return 18;
-		}
 		if (withdrawalProbability() > 0)
-		{
 			return 17; // was 16
-		}
 		return 16; // was 14
 
 	case UNITAI_COLLATERAL:
@@ -709,7 +693,7 @@ int CvUnitAI::AI_groupFirstVal() /* advc: */ const
 
 int CvUnitAI::AI_groupSecondVal() /* advc: */ const
 {
-	return ((getDomainType() == DOMAIN_AIR) ? airBaseCombatStr() : baseCombatStr());
+	return (getDomainType() == DOMAIN_AIR ? airBaseCombatStr() : baseCombatStr());
 }
 
 /*	Returns attack odds out of 100 (the higher, the better...)
@@ -739,9 +723,9 @@ int CvUnitAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const
 		return std::max(1, std::min(iOdds, 99));
 	}
 
-	int iOurStrength = ((getDomainType() == DOMAIN_AIR) ?
+	int iOurStrength = (getDomainType() == DOMAIN_AIR ?
 			airCurrCombatStr(NULL) : currCombatStr(NULL, NULL));
-	int iOurFirepower = ((getDomainType() == DOMAIN_AIR) ?
+	int iOurFirepower = (getDomainType() == DOMAIN_AIR ?
 			iOurStrength : currFirepower(NULL, NULL));
 
 	if (iOurStrength == 0)
@@ -758,7 +742,7 @@ int CvUnitAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const
 	if (iBaseOdds == 0)
 		return 1;
 
-	int iStrengthFactor = ((iOurFirepower + iTheirFirepower + 1) / 2);
+	int iStrengthFactor = (iOurFirepower + iTheirFirepower + 1) / 2;
 	int iDamageToUs = std::max(1, (GC.getCOMBAT_DAMAGE() *
 			(iTheirFirepower + iStrengthFactor)) /
 			(iOurFirepower + iStrengthFactor));
@@ -12320,10 +12304,13 @@ bool CvUnitAI::AI_paradrop(int iRange)
 		/*if (NO_BONUS != p.getBonusType())
 			iValue += GET_PLAYER(eTargetPlayer).AI_bonusVal(p.getBonusType()) - 10;*/ // BtS
 		/*	UNOFFICIAL_PATCH, Bugfix, 08/01/08, jdog5000: START
-			Bonus values for bonuses the AI has are less than 10 for non-strategic resources... since this is
-			in the AI territory they probably have it */
-		if (NO_BONUS != p.getNonObsoleteBonusType(getTeam()))
-			iValue += std::max(1,GET_PLAYER(eTargetPlayer).AI_bonusVal(p.getBonusType(), 0) - 10);
+			Bonus values for bonuses the AI has are less than 10 for non-strategic resources.
+			Since this is in the AI territory they probably have it. */
+		if (p.getNonObsoleteBonusType(getTeam()) != NO_BONUS)
+		{
+			iValue += std::max(1,GET_PLAYER(eTargetPlayer).AI_bonusVal(
+					p.getBonusType(), 0) - 10);
+		}
 		// UNOFFICIAL_PATCH: END
 		FOR_EACH_ADJ_PLOT(p)
 		{

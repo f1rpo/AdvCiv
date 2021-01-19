@@ -2513,6 +2513,373 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 	}
 }
 
+// advc.004c:
+namespace
+{
+	CvUnit const* bestInterceptor(CvUnit const& kUnit, CvPlot const& kMissionPlot,
+		scaled& rOdds)
+	{
+		rOdds = 0;
+		int const iEvasionPercent = kUnit.evasionProbability();
+		if (iEvasionPercent >= 100)
+			return NULL;
+		scaled const rEvasionProb = per100(iEvasionPercent);	
+		CvUnit const* pInterceptor = kUnit.bestInterceptor(kMissionPlot, true);
+		if (pInterceptor != NULL)
+		{
+			rOdds = per100(pInterceptor->currInterceptionProbability()) *
+					(1 - rEvasionProb);
+		}
+		return pInterceptor;
+	}
+}
+
+// advc.004c
+void CvGameTextMgr::setInterceptPlotHelp(CvPlot const& kPlot, CvUnit const& kUnit,
+	CvWString& szHelp, bool bNewline)
+{
+	scaled rInterceptProb;
+	CvUnit const* pBestInterceptor = bestInterceptor(kUnit, kPlot, rInterceptProb);
+	if (rInterceptProb > 0 && pBestInterceptor != NULL)
+	{
+		CvWStringBuffer szBuffer;
+		setUnitHelp(szBuffer, pBestInterceptor, true, true, true);
+		int iPercent = std::max(1, rInterceptProb.getPercent());
+		// Don't show uncertain outcome as certain
+		if (iPercent == 100 && rInterceptProb < 1)
+			iPercent--;
+		FAssert(iPercent <= 100);
+		szHelp.append(gDLL->getText("TXT_KEY_AIR_MODE_INTERCEPT", iPercent,
+				szBuffer.getCString()));
+		if (gDLL->UI().getLengthSelectionList() > 1)
+		{	// Say who is getting intercepted if multiple selected
+			szBuffer.clear();
+			setUnitHelp(szBuffer, &kUnit, true, true, true, true);
+			szHelp.append(gDLL->getText("TXT_KEY_AIR_MODE_INTERCEPT_VERSUS",
+					szBuffer.getCString()));
+		}
+		if (bNewline)
+			szHelp.append(NEWLINE);
+	}
+}
+
+/*	Returns true if help was given...
+	K-Mod note: this function can change the center unit on the plot.
+	(because of a change I made)
+	Also, I've made some unmarked structural changes to this function
+	to make it easier to read and to fix a few minor bugs. */
+bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
+{
+	PROFILE_FUNC();
+	bool const ACO_enabled = BUGOption::isEnabled("ACO__Enabled", false);
+	bool const bShift = GC.shiftKey();
+	bool const bForceHostile = GC.altKey();
+	// advc.048:
+	int iLengthSelectionList = gDLL->UI().getLengthSelectionList();
+	if (iLengthSelectionList <= 0)
+		return false;
+	// advc.048:
+	CvSelectionGroupAI const& kSelectionList = gDLL->UI().getSelectionList()->AI();
+	bool bValid = false;
+	switch (kSelectionList.getDomainType())
+	{
+	case DOMAIN_SEA:
+		bValid = pPlot->isWater();
+		break;
+	case DOMAIN_AIR:
+		bValid = true;
+		break;
+	case DOMAIN_LAND:
+		bValid = !pPlot->isWater();
+		break;
+	case DOMAIN_IMMOBILE:
+		break;
+	default:
+		FAssert(false);
+	}
+	if (!bValid)
+		return false;
+
+	bool const bMaxSurvival = bForceHostile; // advc.048
+	int iOddsDummy=-1;
+	CvUnit* pAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOddsDummy,
+			false, false, !bMaxSurvival, bMaxSurvival); // advc.048
+	if (pAttacker == NULL)
+	{
+		pAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOddsDummy,
+				true, // bypass checks for moves and war etc.
+				false, !bMaxSurvival, bMaxSurvival); // advc.048
+	}
+	if (pAttacker == NULL)
+		return false;
+
+	CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, pAttacker->getOwner(),
+			pAttacker, !bForceHostile);
+	// <advc.089>
+	if (pDefender == NULL)
+	{
+		pDefender = pPlot->getBestDefender(NO_PLAYER, pAttacker->getOwner(), pAttacker,
+				!bForceHostile, false, false, false);
+		if (pDefender != NULL)
+			setCannotAttackHelp(szString, *pAttacker, *pDefender);
+		return false;
+	} // </advc.089>
+	if (pDefender == NULL || !pDefender->canDefend(pPlot) || !pAttacker->canAttack(*pDefender))
+		return false;
+
+	// <advc.048>
+	bool bBestOddsHelp = false;
+	if(!bMaxSurvival && GC.getDefineINT("GROUP_ATTACK_BEST_ODDS_HELP") > 0)
+	{
+		CvUnit* pBestOddsAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOddsDummy,
+				false, false, false, true);
+		if(pBestOddsAttacker == NULL)
+		{
+			pBestOddsAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOddsDummy,
+					true, false, false, true);
+		}
+		if(pBestOddsAttacker != pAttacker)
+			bBestOddsHelp = true;
+	}
+	if(!ACO_enabled && bBestOddsHelp)
+	{
+		szString.append(gDLL->getText("TXT_KEY_GROUP_ATTACK_BEST_ODDS_HELP"));
+		szString.append(NEWLINE);
+	} // </advc.048>
+
+	/*	K-Mod. If the plot's center unit isn't one of our own units,
+		then use this defender as the plot's center unit.
+		With this, the map will accurately show who we're up against. */
+	if (gDLL->UI().getSelectionPlot() != pPlot)
+	{
+		if (pDefender->getOwner() == GC.getGame().getActivePlayer() ||
+			// I don't think this is possible... but it's pretty cheap to check.
+			pPlot->getCenterUnit() == NULL ||
+			pPlot->getCenterUnit()->getOwner() != GC.getGame().getActivePlayer())
+		{
+			pPlot->setCenterUnit(pDefender);
+		}
+
+	} // K-Mod end
+	// <advc.004c>
+	if (pAttacker->getDomainType() == DOMAIN_AIR)
+	{
+		if (!szString.isEmpty())
+			szString.append(NEWLINE);
+		CvWString szInterceptHelp;
+		setInterceptPlotHelp(*pPlot, *pAttacker, szInterceptHelp, false);
+		szString.append(szInterceptHelp);
+	} // <advc.004c>
+	int iACOView = 0;
+	if (ACO_enabled)
+	{
+		iACOView = (GC.shiftKey() ? 2 : 1);
+		if (BUGOption::isEnabled("ACO__SwapViews", false))
+			iACOView = 3 - iACOView; //swaps 1 and 2.
+	}
+	if (pAttacker->getDomainType() != DOMAIN_AIR)
+	{
+		int const iCombatOdds = getCombatOdds(pAttacker, pDefender);
+		bool bVictoryOddsAppended = false; // advc.048
+		if (pAttacker->combatLimit() >= GC.getMAX_HIT_POINTS())
+		{
+			if (!ACO_enabled || BUGOption::isEnabled("ACO__ForceOriginalOdds", false))
+			{
+				CvWString szTempBuffer;
+				if (iCombatOdds > 999)
+					szTempBuffer = L"&gt; 99.9";
+				else if (iCombatOdds < 1)
+					szTempBuffer = L"&lt; 0.1";
+				else szTempBuffer.Format(L"%.1f", iCombatOdds / 10.0f);
+				szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_ODDS",
+						szTempBuffer.GetCString()));
+				bVictoryOddsAppended = true; // advc.048
+				if (ACO_enabled)
+					szString.append(NEWLINE);
+			}
+		}
+
+		int iWithdrawal = 0;
+		if (pAttacker->combatLimit() < GC.getMAX_HIT_POINTS())
+			iWithdrawal += 100 * iCombatOdds;
+		iWithdrawal += std::min(100, pAttacker->withdrawalProbability()) *
+				(1000 - iCombatOdds);
+		if (iWithdrawal > 0 || pAttacker->combatLimit() < GC.getMAX_HIT_POINTS())
+		{
+			if (!ACO_enabled || BUGOption::isEnabled("ACO__ForceOriginalOdds", false))
+			{
+				CvWString szTempBuffer;
+				if (iWithdrawal > 99900)
+					szTempBuffer = L"&gt; 99.9";
+				else if (iWithdrawal < 100)
+					szTempBuffer = L"&lt; 0.1";
+				else szTempBuffer.Format(L"%.1f", iWithdrawal / 1000.0f);
+				if(bVictoryOddsAppended) // advc.048
+					szString.append(NEWLINE);
+				szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_ODDS_RETREAT", szTempBuffer.GetCString()));
+				if (ACO_enabled)
+					szString.append(NEWLINE);
+			}
+		}
+
+		//szTempBuffer.Format(L"AI odds: %d%%", iOdds);
+		//szString += NEWLINE + szTempBuffer;
+
+		// ADVANCED COMBAT ODDS v2.0, 3/11/09, PieceOfMind: START
+		if (ACO_enabled)
+		{	// advc: Moved into subroutine
+			setACOPlotHelp(szString, pPlot, pAttacker, pDefender, iACOView,
+					bBestOddsHelp); // advc.048
+		}
+	}
+	if (ACO_enabled)
+	{	// advc: Moved into subroutine
+		setACOModifiersPlotHelp(szString, pPlot, pAttacker, pDefender, iACOView);
+	}
+	else
+	{	// <advc.048>
+		if(iLengthSelectionList > 1)
+		{
+			if (!szString.isEmpty())
+				szString.append(NEWLINE);
+			setUnitHelp(szString, pAttacker, true, true, true);
+		} // </advc.048>
+		CvWString szOffenseOdds;
+		szOffenseOdds.Format(L"%.2f", pAttacker->getDomainType() == DOMAIN_AIR ?
+				pAttacker->airCurrCombatStrFloat(pDefender) :
+				pAttacker->currCombatStrFloat(NULL, NULL));
+		CvWString szDefenseOdds;
+		szDefenseOdds.Format(L"%.2f", pDefender->currCombatStrFloat(pPlot, pAttacker));
+		szString.append(NEWLINE);
+		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_ODDS_VS",
+				szOffenseOdds.GetCString(), szDefenseOdds.GetCString()));
+
+		szString.append(L' ');//XXX
+		szString.append(gDLL->getText("TXT_KEY_COLOR_POSITIVE"));
+		szString.append(L' ');//XXX
+		int iModifier = pAttacker->getExtraCombatPercent();
+		if (iModifier != 0)
+		{
+			szString.append(NEWLINE);
+			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_EXTRA_STRENGTH", iModifier));
+		}
+		/*	advc: Same code as in setACOModifiersPlotHelp; use subroutine instead.
+			(There is still some redundant code below that
+			PieceOfMind had apparently copy-pasted.) */
+		appendPositiveModifiers(szString, pAttacker, pDefender, pPlot, false);
+
+		if (!pDefender->immuneToFirstStrikes() && pAttacker->maxFirstStrikes() > 0)
+		{
+			if (pAttacker->firstStrikes() == pAttacker->maxFirstStrikes())
+			{
+				if (pAttacker->firstStrikes() == 1)
+				{
+					szString.append(NEWLINE);
+					szString.append(gDLL->getText("TXT_KEY_UNIT_ONE_FIRST_STRIKE"));
+				}
+				else
+				{
+					szString.append(NEWLINE);
+					szString.append(gDLL->getText("TXT_KEY_UNIT_NUM_FIRST_STRIKES",
+							pAttacker->firstStrikes()));
+				}
+			}
+			else
+			{
+				szString.append(NEWLINE);
+				szString.append(gDLL->getText("TXT_KEY_UNIT_FIRST_STRIKE_CHANCES",
+						pAttacker->firstStrikes(), pAttacker->maxFirstStrikes()));
+			}
+		}
+		// advc.048: Commented out
+		/*if (pAttacker->isHurt()) {
+			szString.append(NEWLINE);
+			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_HP", pAttacker->currHitPoints(), pAttacker->maxHitPoints()));
+		}*/
+		szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+		szString.append(L' ');//XXX
+		szString.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
+		szString.append(L' ');//XXX
+		// advc: Same code as in setACOModifiersPlotHelp; use subroutine instead.
+		appendNegativeModifiers(szString, pAttacker, pDefender, pPlot);
+		if (!pAttacker->immuneToFirstStrikes() && pDefender->maxFirstStrikes() > 0)
+		{
+			if (pDefender->firstStrikes() == pDefender->maxFirstStrikes())
+			{
+				if (pDefender->firstStrikes() == 1)
+				{
+					szString.append(NEWLINE);
+					szString.append(gDLL->getText("TXT_KEY_UNIT_ONE_FIRST_STRIKE"));
+				}
+				else
+				{
+					szString.append(NEWLINE);
+					szString.append(gDLL->getText("TXT_KEY_UNIT_NUM_FIRST_STRIKES",
+							pDefender->firstStrikes()));
+				}
+			}
+			else
+			{
+				szString.append(NEWLINE);
+				szString.append(gDLL->getText("TXT_KEY_UNIT_FIRST_STRIKE_CHANCES",
+						pDefender->firstStrikes(), pDefender->maxFirstStrikes()));
+			}
+		}
+		// <advc.048>
+		szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+		szString.append(NEWLINE);
+		szString.append(gDLL->getText("TXT_KEY_MISC_VS"));
+		szString.append(L' ');
+		setUnitHelp(szString, pDefender, true, true, true);
+		// Commented out: </advc.048>
+		/*if (pDefender->isHurt()) {
+			szString.append(NEWLINE);
+			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_HP", pDefender->currHitPoints(), pDefender->maxHitPoints()));
+		}*/
+	}
+
+	szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+
+	//if ((gDLL->getChtLvl() > 0))
+	// BBAI: Only display this info in debug mode so game can be played with cheat code entered
+	if (GC.getGame().isDebugMode() &&
+		bShift) // advc.007
+	{
+		CvWString szTempBuffer;
+		szTempBuffer.Format(L"\nStack Compare Value = %d",
+				kSelectionList.AI_compareStacks(pPlot,
+				false, true)); // advc.001n
+		szString.append(szTempBuffer);
+
+		if (pPlot->getPlotCity() != NULL)
+		{
+			szTempBuffer.Format(L"\nBombard turns = %d",
+					kSelectionList.getBombardTurns(pPlot->getPlotCity()));
+			szString.append(szTempBuffer);
+		}
+
+		const CvPlayerAI& kPlayer = GET_PLAYER(GC.getGame().getActivePlayer());
+		int iOurStrengthDefense = kPlayer.AI_localDefenceStrength(
+				pPlot, kPlayer.getTeam(), DOMAIN_LAND, 1, true, true, true);
+		int iOurStrengthOffense = kPlayer.AI_localAttackStrength(
+				pPlot, kPlayer.getTeam(), DOMAIN_LAND, 1, false, true, false);
+		szTempBuffer.Format(L"\nPlot Strength(Ours)= d%d, o%d",
+				iOurStrengthDefense, iOurStrengthOffense);
+		szString.append(szTempBuffer);
+		int iEnemyStrengthDefense = kPlayer.AI_localDefenceStrength(
+				pPlot, NO_TEAM, DOMAIN_LAND, 1, true, true, true);
+		int iEnemyStrengthOffense = kPlayer.AI_localAttackStrength(
+				pPlot, NO_TEAM, DOMAIN_LAND, 1, false, true, false);
+		szTempBuffer.Format(L"\nPlot Strength(Enemy)= d%d, o%d",
+				iEnemyStrengthDefense, iEnemyStrengthOffense);
+		szString.append(szTempBuffer);
+	}
+
+	szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+
+	return true;
+}
+
 /*	ADVANCED COMBAT ODDS v1.1, 11/7/09, PieceOfMind: START
 	Calculates the probability of a particular combat outcome
 	Returns a float value (between 0 and 1)
@@ -2733,374 +3100,6 @@ float getCombatOddsSpecific(CvUnit const* pAttacker, CvUnit const* pDefender, in
 	return answer;
 }// getCombatOddsSpecific
 } // ADVANCED COMBAT ODDS, 11/7/09, PieceOfMind: END
-
-// advc.004c:
-namespace
-{
-	CvUnit const* bestInterceptor(CvUnit const& kUnit, CvPlot const& kMissionPlot,
-		scaled& rOdds)
-	{
-		rOdds = 0;
-		int const iEvasionPercent = kUnit.evasionProbability();
-		if (iEvasionPercent >= 100)
-			return NULL;
-		scaled const rEvasionProb = per100(iEvasionPercent);	
-		CvUnit const* pInterceptor = kUnit.bestInterceptor(kMissionPlot, true);
-		if (pInterceptor != NULL)
-		{
-			rOdds = per100(pInterceptor->currInterceptionProbability()) *
-					(1 - rEvasionProb);
-		}
-		return pInterceptor;
-	}
-}
-
-// advc.004c
-void CvGameTextMgr::setInterceptPlotHelp(CvPlot const& kPlot, CvUnit const& kUnit,
-	CvWString& szHelp, bool bNewline)
-{
-	scaled rInterceptProb;
-	CvUnit const* pBestInterceptor = bestInterceptor(kUnit, kPlot, rInterceptProb);
-	if (rInterceptProb > 0 && pBestInterceptor != NULL)
-	{
-		CvWStringBuffer szBuffer;
-		setUnitHelp(szBuffer, pBestInterceptor, true, true, true);
-		int iPercent = std::max(1, rInterceptProb.getPercent());
-		// Don't show uncertain outcome as certain
-		if (iPercent == 100 && rInterceptProb < 1)
-			iPercent--;
-		FAssert(iPercent <= 100);
-		szHelp.append(gDLL->getText("TXT_KEY_AIR_MODE_INTERCEPT", iPercent,
-				szBuffer.getCString()));
-		if (gDLL->UI().getLengthSelectionList() > 1)
-		{	// Say who is getting intercepted if multiple selected
-			szBuffer.clear();
-			setUnitHelp(szBuffer, &kUnit, true, true, true, true);
-			szHelp.append(gDLL->getText("TXT_KEY_AIR_MODE_INTERCEPT_VERSUS",
-					szBuffer.getCString()));
-		}
-		if (bNewline)
-			szHelp.append(NEWLINE);
-	}
-}
-
-/*	Returns true if help was given...
-	K-Mod note: this function can change the center unit on the plot.
-	(because of a change I made)
-	Also, I've made some unmarked structural changes to this function
-	to make it easier to read and to fix a few minor bugs. */
-bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
-{
-	PROFILE_FUNC();
-	bool const ACO_enabled = BUGOption::isEnabled("ACO__Enabled", false);
-	bool const bShift = GC.shiftKey();
-	bool const bForceHostile = GC.altKey();
-	int iACOView = 0;
-	if (ACO_enabled)
-	{
-		iACOView = (GC.shiftKey() ? 2 : 1);
-		if (BUGOption::isEnabled("ACO__SwapViews", false))
-			iACOView = 3 - iACOView; //swaps 1 and 2.
-	}
-	// advc.048:
-	int iLengthSelectionList = gDLL->UI().getLengthSelectionList();
-	if (iLengthSelectionList <= 0)
-		return false;
-	// advc.048:
-	CvSelectionGroupAI const& kSelectionList = gDLL->UI().getSelectionList()->AI();
-	bool bValid = false;
-	switch (kSelectionList.getDomainType())
-	{
-	case DOMAIN_SEA:
-		bValid = pPlot->isWater();
-		break;
-	case DOMAIN_AIR:
-		bValid = true;
-		break;
-	case DOMAIN_LAND:
-		bValid = !pPlot->isWater();
-		break;
-	case DOMAIN_IMMOBILE:
-		break;
-	default:
-		FAssert(false);
-	}
-	if (!bValid)
-		return false;
-
-	bool const bMaxSurvival = bForceHostile; // advc.048
-	int iOddsDummy=-1;
-	CvUnit* pAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOddsDummy,
-			false, false, !bMaxSurvival, bMaxSurvival); // advc.048
-	if (pAttacker == NULL)
-	{
-		pAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOddsDummy,
-				true, // bypass checks for moves and war etc.
-				false, !bMaxSurvival, bMaxSurvival); // advc.048
-	}
-	if (pAttacker == NULL)
-		return false;
-
-	CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, pAttacker->getOwner(),
-			pAttacker, !bForceHostile);
-	// <advc.089>
-	if (pDefender == NULL)
-	{
-		pDefender = pPlot->getBestDefender(NO_PLAYER, pAttacker->getOwner(), pAttacker,
-				!bForceHostile, false, false, false);
-		if (pDefender != NULL)
-			setCannotAttackHelp(szString, *pAttacker, *pDefender);
-		return false;
-	} // </advc.089>
-	if (pDefender == NULL || !pDefender->canDefend(pPlot) || !pAttacker->canAttack(*pDefender))
-		return false;
-
-	// <advc.048>
-	bool bBestOddsHelp = false;
-	if(!bMaxSurvival && GC.getDefineINT("GROUP_ATTACK_BEST_ODDS_HELP") > 0)
-	{
-		CvUnit* pBestOddsAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOddsDummy,
-				false, false, false, true);
-		if(pBestOddsAttacker == NULL)
-		{
-			pBestOddsAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOddsDummy,
-					true, false, false, true);
-		}
-		if(pBestOddsAttacker != pAttacker)
-			bBestOddsHelp = true;
-	}
-	if(!ACO_enabled && bBestOddsHelp)
-	{
-		szString.append(gDLL->getText("TXT_KEY_GROUP_ATTACK_BEST_ODDS_HELP"));
-		szString.append(NEWLINE);
-	} // </advc.048>
-
-	/*	K-Mod. If the plot's center unit isn't one of our own units,
-		then use this defender as the plot's center unit.
-		With this, the map will accurately show who we're up against. */
-	if (gDLL->UI().getSelectionPlot() != pPlot)
-	{
-		if (pDefender->getOwner() == GC.getGame().getActivePlayer() ||
-			// I don't think this is possible... but it's pretty cheap to check.
-			pPlot->getCenterUnit() == NULL ||
-			pPlot->getCenterUnit()->getOwner() != GC.getGame().getActivePlayer())
-		{
-			pPlot->setCenterUnit(pDefender);
-		}
-
-	} // K-Mod end
-	// <advc.004c>
-	if (pAttacker->getDomainType() == DOMAIN_AIR)
-	{
-		if (!szString.isEmpty())
-			szString.append(NEWLINE);
-		CvWString szInterceptHelp;
-		setInterceptPlotHelp(*pPlot, *pAttacker, szInterceptHelp, false);
-		szString.append(szInterceptHelp);
-	} // <advc.004c>
-
-	if (pAttacker->getDomainType() != DOMAIN_AIR)
-	{
-		int const iCombatOdds = getCombatOdds(pAttacker, pDefender);
-		bool bVictoryOddsAppended = false; // advc.048
-		if (pAttacker->combatLimit() >= GC.getMAX_HIT_POINTS())
-		{
-			if (!ACO_enabled || BUGOption::isEnabled("ACO__ForceOriginalOdds", false))
-			{
-				CvWString szTempBuffer;
-				if (iCombatOdds > 999)
-					szTempBuffer = L"&gt; 99.9";
-				else if (iCombatOdds < 1)
-					szTempBuffer = L"&lt; 0.1";
-				else szTempBuffer.Format(L"%.1f", iCombatOdds / 10.0f);
-				szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_ODDS",
-						szTempBuffer.GetCString()));
-				bVictoryOddsAppended = true; // advc.048
-				if (ACO_enabled)
-					szString.append(NEWLINE);
-			}
-		}
-
-		int iWithdrawal = 0;
-		if (pAttacker->combatLimit() < GC.getMAX_HIT_POINTS())
-			iWithdrawal += 100 * iCombatOdds;
-		iWithdrawal += std::min(100, pAttacker->withdrawalProbability()) *
-				(1000 - iCombatOdds);
-		if (iWithdrawal > 0 || pAttacker->combatLimit() < GC.getMAX_HIT_POINTS())
-		{
-			if (!ACO_enabled || BUGOption::isEnabled("ACO__ForceOriginalOdds", false))
-			{
-				CvWString szTempBuffer;
-				if (iWithdrawal > 99900)
-					szTempBuffer = L"&gt; 99.9";
-				else if (iWithdrawal < 100)
-					szTempBuffer = L"&lt; 0.1";
-				else szTempBuffer.Format(L"%.1f", iWithdrawal / 1000.0f);
-				if(bVictoryOddsAppended) // advc.048
-					szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_ODDS_RETREAT", szTempBuffer.GetCString()));
-				if (ACO_enabled)
-					szString.append(NEWLINE);
-			}
-		}
-
-		//szTempBuffer.Format(L"AI odds: %d%%", iOdds);
-		//szString += NEWLINE + szTempBuffer;
-
-		// ADVANCED COMBAT ODDS v2.0, 3/11/09, PieceOfMind: START
-		if (ACO_enabled)
-		{	// advc: Moved into subroutine
-			setACOPlotHelp(szString, pPlot, pAttacker, pDefender, iACOView,
-					bBestOddsHelp); // advc.048
-		}
-	}
-	if (ACO_enabled)
-	{	// advc: Moved into subroutine
-		setACOModifiersPlotHelp(szString, pPlot, pAttacker, pDefender, iACOView);
-	}
-	else
-	{	// <advc.048>
-		if(iLengthSelectionList > 1)
-		{
-			if (!szString.isEmpty())
-				szString.append(NEWLINE);
-			setUnitHelp(szString, pAttacker, true, true, true);
-		} // </advc.048>
-		CvWString szOffenseOdds;
-		szOffenseOdds.Format(L"%.2f", pAttacker->getDomainType() == DOMAIN_AIR ?
-				pAttacker->airCurrCombatStrFloat(pDefender) :
-				pAttacker->currCombatStrFloat(NULL, NULL));
-		CvWString szDefenseOdds;
-		szDefenseOdds.Format(L"%.2f", pDefender->currCombatStrFloat(pPlot, pAttacker));
-		szString.append(NEWLINE);
-		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_ODDS_VS",
-				szOffenseOdds.GetCString(), szDefenseOdds.GetCString()));
-
-		szString.append(L' ');//XXX
-		szString.append(gDLL->getText("TXT_KEY_COLOR_POSITIVE"));
-		szString.append(L' ');//XXX
-		int iModifier = pAttacker->getExtraCombatPercent();
-		if (iModifier != 0)
-		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_EXTRA_STRENGTH", iModifier));
-		}
-		/*	advc: Same code as in setACOModifiersPlotHelp; use subroutine instead.
-			(There is still some redundant code below that
-			PieceOfMind had apparently copy-pasted.) */
-		appendPositiveModifiers(szString, pAttacker, pDefender, pPlot, false);
-
-		if (!pDefender->immuneToFirstStrikes() && pAttacker->maxFirstStrikes() > 0)
-		{
-			if (pAttacker->firstStrikes() == pAttacker->maxFirstStrikes())
-			{
-				if (pAttacker->firstStrikes() == 1)
-				{
-					szString.append(NEWLINE);
-					szString.append(gDLL->getText("TXT_KEY_UNIT_ONE_FIRST_STRIKE"));
-				}
-				else
-				{
-					szString.append(NEWLINE);
-					szString.append(gDLL->getText("TXT_KEY_UNIT_NUM_FIRST_STRIKES",
-							pAttacker->firstStrikes()));
-				}
-			}
-			else
-			{
-				szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_UNIT_FIRST_STRIKE_CHANCES",
-						pAttacker->firstStrikes(), pAttacker->maxFirstStrikes()));
-			}
-		}
-		// advc.048: Commented out
-		/*if (pAttacker->isHurt()) {
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_HP", pAttacker->currHitPoints(), pAttacker->maxHitPoints()));
-		}*/
-		szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
-		szString.append(L' ');//XXX
-		szString.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
-		szString.append(L' ');//XXX
-		// advc: Same code as in setACOModifiersPlotHelp; use subroutine instead.
-		appendNegativeModifiers(szString, pAttacker, pDefender, pPlot);
-		if (!pAttacker->immuneToFirstStrikes() && pDefender->maxFirstStrikes() > 0)
-		{
-			if (pDefender->firstStrikes() == pDefender->maxFirstStrikes())
-			{
-				if (pDefender->firstStrikes() == 1)
-				{
-					szString.append(NEWLINE);
-					szString.append(gDLL->getText("TXT_KEY_UNIT_ONE_FIRST_STRIKE"));
-				}
-				else
-				{
-					szString.append(NEWLINE);
-					szString.append(gDLL->getText("TXT_KEY_UNIT_NUM_FIRST_STRIKES",
-							pDefender->firstStrikes()));
-				}
-			}
-			else
-			{
-				szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_UNIT_FIRST_STRIKE_CHANCES",
-						pDefender->firstStrikes(), pDefender->maxFirstStrikes()));
-			}
-		}
-		// <advc.048>
-		szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
-		szString.append(NEWLINE);
-		szString.append(gDLL->getText("TXT_KEY_MISC_VS"));
-		szString.append(L' ');
-		setUnitHelp(szString, pDefender, true, true, true);
-		// Commented out: </advc.048>
-		/*if (pDefender->isHurt()) {
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_HP", pDefender->currHitPoints(), pDefender->maxHitPoints()));
-		}*/
-	}
-
-	szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
-
-	//if ((gDLL->getChtLvl() > 0))
-	// BBAI: Only display this info in debug mode so game can be played with cheat code entered
-	if (GC.getGame().isDebugMode() &&
-		bShift) // advc.007
-	{
-		CvWString szTempBuffer;
-		szTempBuffer.Format(L"\nStack Compare Value = %d",
-				kSelectionList.AI_compareStacks(pPlot,
-				false, true)); // advc.001n
-		szString.append(szTempBuffer);
-
-		if (pPlot->getPlotCity() != NULL)
-		{
-			szTempBuffer.Format(L"\nBombard turns = %d",
-					kSelectionList.getBombardTurns(pPlot->getPlotCity()));
-			szString.append(szTempBuffer);
-		}
-
-		const CvPlayerAI& kPlayer = GET_PLAYER(GC.getGame().getActivePlayer());
-		int iOurStrengthDefense = kPlayer.AI_localDefenceStrength(
-				pPlot, kPlayer.getTeam(), DOMAIN_LAND, 1, true, true, true);
-		int iOurStrengthOffense = kPlayer.AI_localAttackStrength(
-				pPlot, kPlayer.getTeam(), DOMAIN_LAND, 1, false, true, false);
-		szTempBuffer.Format(L"\nPlot Strength(Ours)= d%d, o%d",
-				iOurStrengthDefense, iOurStrengthOffense);
-		szString.append(szTempBuffer);
-		int iEnemyStrengthDefense = kPlayer.AI_localDefenceStrength(
-				pPlot, NO_TEAM, DOMAIN_LAND, 1, true, true, true);
-		int iEnemyStrengthOffense = kPlayer.AI_localAttackStrength(
-				pPlot, NO_TEAM, DOMAIN_LAND, 1, false, true, false);
-		szTempBuffer.Format(L"\nPlot Strength(Enemy)= d%d, o%d",
-				iEnemyStrengthDefense, iEnemyStrengthOffense);
-		szString.append(szTempBuffer);
-	}
-
-	szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
-
-	return true;
-}
 
 // advc: Cut from setCombatPlotHelp
 void CvGameTextMgr::setACOPlotHelp(CvWStringBuffer &szString,
