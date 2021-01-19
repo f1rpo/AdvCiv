@@ -12338,14 +12338,17 @@ bool CvUnitAI::AI_paradrop(int iRange)
 		}
 		if (iValue <= 0)
 			continue;
+		//iValue += pLoopPlot->defenseModifier(getTeam(), ignoreBuildingDefense());
 		/*  advc.012: Whether our unit ignores building defense shouldn't matter
 			b/c we can't drop into an enemy city. */
 		iValue += AI_plotDefense(&p);
-		//iValue += pLoopPlot->defenseModifier(getTeam(), ignoreBuildingDefense());
-		CvUnit* pInterceptor = bestInterceptor(p);
+		CvUnit* pInterceptor = bestInterceptor(p,
+				// advc.128: Don't always cheat with visibility (only 90% of the time)
+				m_iSearchRangeRandPercent > 10);
 		if (pInterceptor != NULL)
 		{
-			int iInterceptProb = (isSuicide() ? 100 : pInterceptor->currInterceptionProbability());
+			int iInterceptProb = (isSuicide() ? 100 :
+					pInterceptor->currInterceptionProbability());
 			iInterceptProb *= std::max(0, 100 - evasionProbability());
 			iInterceptProb /= 100;
 			iValue *= std::max(0, 100 - iInterceptProb / 2);
@@ -19467,7 +19470,9 @@ int CvUnitAI::AI_airStrikeValue(CvPlot const& kPlot, int iCurrentBest, bool& bBo
 	else if (!canAirDefend())
 	{
 		// assume that air defenders are strong.. and that they are willing to fight
-		CvUnit* pInterceptor = bestInterceptor(kPlot);
+		CvUnit* pInterceptor = bestInterceptor(kPlot,
+				// advc.128: Don't always cheat with visibility (only 67% of the time)
+				m_iSearchRangeRandPercent > 33);
 		if (pInterceptor != NULL)
 		{
 			int iInterceptProb = pInterceptor->currInterceptionProbability();
@@ -19524,7 +19529,8 @@ bool CvUnitAI::AI_defendBaseAirStrike()
 			iValue /= 4;
 		}
 
-		CvUnit const* pInterceptor = bestInterceptor(p);
+		CvUnit const* pInterceptor = bestInterceptor(p,
+				true); // advc.128: Don't need to cheat with visibility here I think
 		if (pInterceptor != NULL)
 		{
 			int iInterceptProb = (isSuicide() ? 100 :
@@ -19595,7 +19601,9 @@ bool CvUnitAI::AI_airBombPlots()
 				iValue /= 2;
 			else if (!canAirDefend()) // assume that air defenders are strong.. and that they are willing to fight
 			{
-				CvUnit const* pInterceptor = bestInterceptor(p);
+				CvUnit const* pInterceptor = bestInterceptor(p,
+						// advc.128: Don't always cheat with visibility (only 67% of the time)
+						m_iSearchRangeRandPercent > 33);
 				if (pInterceptor != NULL)
 				{
 					int iInterceptProb = pInterceptor->currInterceptionProbability();
