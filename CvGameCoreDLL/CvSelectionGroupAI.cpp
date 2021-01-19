@@ -1,5 +1,3 @@
-// selectionGroupAI.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvSelectionGroupAI.h"
 #include "CvUnitAI.h"
@@ -361,7 +359,7 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if (kLoopUnit.isDead())
-			continue; // advc
+			continue;
 
 		bool bCanAttack = false;
 		if (kLoopUnit.getDomainType() == DOMAIN_AIR)
@@ -549,7 +547,7 @@ int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAtta
 }
 
 /*  K-Mod. I've removed bCheckMove, and changed bCheckCanAttack to include checks
-	for moves, and for hasAlreadyAttacked / blitz */ // advc: style changes
+	for moves, and for hasAlreadyAttacked / blitz */
 /*  advc.159: No longer simply a sum of combat strength values; see the comment
 	above CvPlayerAI::AI_localDefenceStrength. */
 int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot,

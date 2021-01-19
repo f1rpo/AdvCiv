@@ -6807,7 +6807,7 @@ CvCityAI* CvCityAI::AI_getRouteToCity() const // advc.003u: return type was CvCi
 }
 
 
-void CvCityAI::AI_updateRouteToCity()  // advc: some style changes
+void CvCityAI::AI_updateRouteToCity()
 {
 	PROFILE_FUNC(); // advc.opt
 
@@ -6945,7 +6945,7 @@ void CvCityAI::AI_setEmphasize(EmphasizeTypes eIndex, bool bNewValue)
 }*/
 
 
-int CvCityAI::AI_totalBestBuildValue(CvArea const& kArea) const // advc: style changes; const
+int CvCityAI::AI_totalBestBuildValue(CvArea const& kArea) /* advc:  */ const
 {
 	int iTotalValue = 0;
 	for (CityPlotIter it(*this, false); it.hasNext(); ++it)
@@ -7905,7 +7905,7 @@ BuildTypes CvCityAI::AI_getBestBuild(CityPlotTypes ePlot) const // advc.enum: Ci
 }
 
 
-int CvCityAI::AI_countBestBuilds(CvArea const& kArea) const  // advc: style changes
+int CvCityAI::AI_countBestBuilds(CvArea const& kArea) const
 {
 	int iCount = 0;
 	for (CityPlotIter it(*this, false); it.hasNext(); ++it)
@@ -8888,7 +8888,7 @@ bool CvCityAI::AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseCha
 	if (bMissionary)
 	{
 		for (int iReligion = 0; iReligion < GC.getNumReligionInfos(); iReligion++)
-		{	// advc: Some style changes in this block
+		{
 			ReligionTypes eReligion = (ReligionTypes)iReligion;
 			if (!isHasReligion(eReligion))
 				continue;
@@ -8943,7 +8943,7 @@ bool CvCityAI::AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseCha
 	if (bExecutive)
 	{
 		for (int iCorporation = 0; iCorporation < GC.getNumCorporationInfos(); iCorporation++)
-		{	// advc: some style changes in this block
+		{
 			CorporationTypes eCorporation = (CorporationTypes)iCorporation;
 			if (!isActiveCorporation(eCorporation))
 				continue;
@@ -11937,7 +11937,7 @@ int CvCityAI::AI_getCityImportance(bool bEconomy, bool bMilitary)
 }
 
 
-void CvCityAI::AI_stealPlots()  // advc: some style changes
+void CvCityAI::AI_stealPlots()
 {
 	PROFILE_FUNC();
 
@@ -12259,7 +12259,7 @@ int CvCityAI::AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bInc
 // BBAI. K-Mod: I've rearranged some stuff and fixed some bugs.
 // advc (tbd.): Some overlap with CvPlayerAI::AI_isUnimprovedBonus -- merge?
 int CvCityAI::AI_countNumImprovableBonuses(bool bIncludeNeutral, TechTypes eExtraTech, bool bLand,
-	bool bWater) const  // advc: const; style changes
+	bool bWater) /* advc: */ const
 {
 	int iCount = 0;
 	for (CityPlotIter it(*this, false); it.hasNext(); ++it)
@@ -12335,7 +12335,7 @@ int CvCityAI::AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
 }
 
 
-int CvCityAI::AI_calculatePlayerCloseness(int iMaxDistance, // advc: some style changes
+int CvCityAI::AI_calculatePlayerCloseness(int iMaxDistance,
 	PlayerTypes ePlayer, bool bConstCache) const // advc.001n
 {
 	PROFILE_FUNC();
@@ -12725,7 +12725,7 @@ void CvCityAI::AI_changeWorkersHave(int iChange)
 }
 
 
-void CvCityAI::AI_updateWorkersHaveAndNeeded()  // advc: some style changes
+void CvCityAI::AI_updateWorkersHaveAndNeeded()
 {
 	PROFILE_FUNC();
 

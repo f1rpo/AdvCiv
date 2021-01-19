@@ -340,7 +340,7 @@ void CvGame::updateColoredPlots()
 			FOR_EACH_UNIT(pLoopUnit, kMember)
 			{
 				if (!pLoopUnit->isBlockading())
-					continue; // advc
+					continue;
 				/*  <advc.033> Replacing code that was (mostly) equivalent
 					to CvUnit::updatePlunder */
 				std::vector<CvPlot*> apRange;
@@ -999,7 +999,7 @@ void CvGame::selectedCitiesGameNetMessage(int eMessage, int iData2, int iData3, 
 }
 
 
-bool CvGame::canHandleAction(int iAction, CvPlot* pPlot, bool bTestVisible, bool bUseCache) const  // advc: style changes
+bool CvGame::canHandleAction(int iAction, CvPlot* pPlot, bool bTestVisible, bool bUseCache) const
 {
 	PROFILE_FUNC();
 
@@ -1876,7 +1876,7 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 		{
 			ProcessTypes eLoopProcess = (ProcessTypes)iI;
 			if (!pCity->canMaintain(eLoopProcess))
-				continue; // advc
+				continue;
 			szBuffer = GC.getInfo(eLoopProcess).getDescription();
 			aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_MAINTAIN, eLoopProcess,
 					pPlot->getX(), pPlot->getY(), szBuffer));

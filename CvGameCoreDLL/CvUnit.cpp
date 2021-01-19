@@ -303,7 +303,7 @@ void CvUnit::finalizeInit() // advc.003u: Body cut from init
 		{
 			CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
 			if(!kObs.isAlive())
-				continue; // advc
+				continue;
 
 			CvWString szBuffer;
 			if (GET_TEAM(getTeam()).isHasMet(kObs.getTeam()) ||
@@ -705,12 +705,14 @@ void CvUnit::doTurn()
 	else setMoves(0);
 }
 
-// <advc.029>
+// advc.029:
 void CvUnit::doTurnPost()
 {
 	if(GC.getGame().getGameTurn() > m_iLastReconTurn)
 		setReconPlot(NULL);
-} /// advc.004c: Return type was void. Now returns false when intercepted.
+}
+
+// advc.004c: Return type was void. Now returns false when intercepted.
 bool CvUnit::updateAirStrike(CvPlot& kPlot, bool bQuick, bool bFinish)
 {
 	if (!bFinish)
@@ -4725,7 +4727,7 @@ void CvUnit::updatePlunder(int iChange, bool bUpdatePlotGroups)
 				!GET_TEAM(getTeam()).isVassal(t.getID())) // </advc.033>
 			{
 				if(iChange == -1 && pLoopPlot->getBlockadedCount(t.getID()) <= 0)
-					continue; // advc
+					continue;
 				bool bOldTradeNet = false;
 				if(!abChanged[iTeam])
 					bOldTradeNet = pLoopPlot->isTradeNetwork(t.getID());
@@ -6234,7 +6236,7 @@ int CvUnit::canGiveExperience(CvPlot const* pPlot) const
 	return iUnits;
 }
 
-bool CvUnit::giveExperience()  // advc: some style changes
+bool CvUnit::giveExperience()
 {
 	CvPlot* pPlot = plot();
 	if(pPlot == NULL)
@@ -8349,7 +8351,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				pUnitNode = oldUnits.next(pUnitNode);
 				if (pLoopUnit == NULL)
-					continue; // advc
+					continue;
 				/*  advc.001, advc.300: Otherwise, a Barbarian city can land
 					on top of an animal and trap it. */
 				if(pLoopUnit->isAnimal())

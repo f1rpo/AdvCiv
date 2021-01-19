@@ -1,5 +1,3 @@
-// playerAI.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvPlayerAI.h"
 #include "CitySiteEvaluator.h"
@@ -569,7 +567,7 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 			}
 
 			if (!bValid)
-				continue; // advc
+				continue;
 
 			bool bKilled = false;
 			if (!bNoDisband)
@@ -2342,7 +2340,7 @@ int CvPlayerAI::AI_commerceWeight(CommerceTypes eCommerce, CvCityAI const* pCity
 	Some I'm going to cache some of the values and update them at the start of each turn.
 	Currently this function caches culture weight for each city,
 	and espionage weight for the player. */
-void CvPlayerAI::AI_updateCommerceWeights()  // advc: minor style changes
+void CvPlayerAI::AI_updateCommerceWeights()
 {
 	PROFILE_FUNC();
 	// <advc.003m>
@@ -4832,7 +4830,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	FOR_EACH_ENUM(Build)
 	{
 		if (GC.getInfo(eLoopBuild).getTechPrereq() != eTech)
-			continue; // advc
+			continue;
 
 		ImprovementTypes const eBuildImprovement = GC.getInfo(eLoopBuild).getImprovement();
 		ImprovementTypes eFinalImprovement = CvImprovementInfo::finalUpgrade(eBuildImprovement);
@@ -4949,7 +4947,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 					iNumBonuses = iNumBonuses / 2; // </advc.131>
 				//iNumBonuses += std::max(0, (iCityTarget - iCityCount)*(kFinalImprovement.isWater() ? 2 : 3)/8); // future expansion
 				if (iNumBonuses <= 0 || (!bRevealed && kBonusInfo.getTechReveal() != eTech))
-					continue; // advc
+					continue;
 				int iBonusValue = 0;
 
 				TechTypes eConnectTech = kBonusInfo.getTechCityTrade();
@@ -5296,7 +5294,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	{
 		CvProcessInfo const& kLoopProcess = GC.getInfo(eLoopProcess);
 		if (kLoopProcess.getTechPrereq() != eTech)
-			continue; // advc
+			continue;
 
 		iValue += 28;
 
@@ -9185,7 +9183,7 @@ namespace
 	This is used when considering proposals from the human player made in the
 	diplomacy window as well as a couple of other places. */
 bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
-	// advc: Renamed, turned into references (b/c caller ensures non-NULL). Also some other style changes in the body.
+	// advc: Renamed, turned into references (b/c caller ensures non-NULL).
 	CLinkList<TradeData> const& kTheyGive, CLinkList<TradeData> const& kWeGive,
 	int iChange, /* advc.133: */ int iDealAge,
 	bool bHypothetical) // advc.130o
@@ -10874,7 +10872,7 @@ void CvPlayerAI::AI_foldDeals(CvDeal& d1, CvDeal& d2) const
 
 int CvPlayerAI::AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const
 {
-	FAssert(ePlayer != getID()); // advc: Some style changes in this function
+	FAssert(ePlayer != getID());
 	/*if (isHuman() || (GET_PLAYER(ePlayer).getTeam() == getTeam()))
 		iMaxGoldPerTurn = (calculateGoldRate() + (getGold() / GC.getPEACE_TREATY_LENGTH()));*/
 	// <advc.036>
@@ -12498,7 +12496,7 @@ AttitudeTypes CvPlayerAI::AI_cityTradeAttitudeThresh(CvCity const& kCity,
 /*  advc (comment): This player pays for the embargo and ePlayer stops trading
 	with eTradeTeam. */
 int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer,
-	bool bWarTrade) const // advc.104o  // advc: style changes
+	bool bWarTrade) const // advc.104o
 {
 	FAssert(ePlayer != getID());
 	FAssert(TEAMID(ePlayer) != getTeam());
@@ -12625,8 +12623,9 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 	return GET_TEAM(getTeam()).AI_roundTradeVal(iValue); // advc.104k
 }
 
-// advc (comment): This CvPlayer is supposed to stop trading with eTradeTeam at the request of ePlayer
-DenialTypes CvPlayerAI::AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes ePlayer) const // advc: style changes
+/*	advc (comment): This CvPlayer is supposed to stop trading
+	with eTradeTeam at the request of ePlayer */
+DenialTypes CvPlayerAI::AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes ePlayer) const
 {
 	FAssert(ePlayer != getID());
 	FAssert(TEAMID(ePlayer) != getTeam());
@@ -12814,8 +12813,9 @@ int CvPlayerAI::AI_religionTradeVal(ReligionTypes eReligion, PlayerTypes ePlayer
 	return GET_TEAM(getTeam()).AI_roundTradeVal(iValue); // advc.104k
 }
 
-// advc (comment): This CvPlayer is supposed to adopt eReligion at the request of ePlayer
-DenialTypes CvPlayerAI::AI_religionTrade(ReligionTypes eReligion, PlayerTypes ePlayer) const  // advc: style changes
+/*	advc (comment): This CvPlayer is supposed to adopt eReligion
+	at the request of ePlayer */
+DenialTypes CvPlayerAI::AI_religionTrade(ReligionTypes eReligion, PlayerTypes ePlayer) const
 {
 	if (isHuman())
 		return NO_DENIAL;
@@ -12898,8 +12898,9 @@ uint CvPlayerAI::AI_unitImpassables(UnitTypes eUnit) const
 	return uiFlags; // </advc.057>
 }
 
-// K-Mod note: currently, unit promotions are considered in CvCityAI::AI_bestUnitAI rather than here.
-int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const* pArea) const  // advc: some style changes
+/*	K-Mod note: currently, unit promotions are considered in
+	CvCityAI::AI_bestUnitAI rather than here. */
+int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const* pArea) const
 {
 	//PROFILE_FUNC(); // advc.003o
 
@@ -13898,7 +13899,7 @@ int CvPlayerAI::AI_totalWaterAreaUnitAIs(CvArea const& kArea,
 		FOR_EACH_CITY(pLoopCity, kOwner)
 		{
 			if (pLoopCity->waterArea() != &kArea)
-				continue; // advc
+				continue;
 
 			for(size_t j = 0; j < aeUnitAI.size(); j++) // advc.081
 			{
@@ -14499,7 +14500,7 @@ int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot const& kPlot, bool bTestCan
 		FOR_EACH_UNITAI_IN(pUnit, *pAdj)
 		{
 			if (pUnit->getOwner() != getID())
-				continue; // advc
+				continue;
 			//if (pLoopUnit->getDomainType() == ((pPlot->isWater()) ? DOMAIN_SEA : DOMAIN_LAND))
 			// advc.030: Replacing the above
 			if(kPlotArea.canBeEntered(kFromArea, pUnit))
@@ -14562,7 +14563,7 @@ bool CvPlayerAI::AI_isTargetForMissionaries(PlayerTypes eTarget, ReligionTypes e
 } // </advc.171>
 
 
-int CvPlayerAI::AI_missionaryValue(ReligionTypes eReligion, CvArea const* pArea   // advc: some style changes; params switched
+int CvPlayerAI::AI_missionaryValue(ReligionTypes eReligion, CvArea const* pArea // advc: params switched
 	/*  advc.171: Param unused.
 		Tbd.: Add a function AI_missionaryTargetValue(PlayerTypes eTarget)
 		to replace AI_isTargetForMissionaries and the overlapping
@@ -16017,7 +16018,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 								// don't count buildings that can be constructed normally
 								kLoopBuilding.getProductionCost() >= 0)
 							{
-								continue; // advc
+								continue;
 							}
 							bool bHasPrereq = true;
 							if (canDoCivics(eCivic))
@@ -16388,7 +16389,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		FOR_EACH_ENUM2(VoteSource, eVS)
 		{
 			if (!kGame.isDiploVote(eVS))
-				continue; // advc
+				continue;
 			if (kGame.getVoteSourceReligion(eVS) == eBestReligion && isLoyalMember(eVS))
 			{
 				int iTempValue = getTotalPopulation() * iBestReligionCities /
@@ -16582,7 +16583,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	FOR_EACH_ENUM(Hurry)
 	{
 		if (!kCivic.isHurry(eLoopHurry))
-			continue; // advc
+			continue;
 		/*int iTempValue = 0;
 		if (GC.getInfo(eLoopHurry).getGoldPerProduction() > 0)
 			iTempValue += (((AI_avoidScience()) ? 50 : 25) * iCities) / GC.getInfo(eLoopHurry).getGoldPerProduction();
@@ -16637,7 +16638,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	FOR_EACH_ENUM(Specialist)
 	{
 		if (!kCivic.isSpecialistValid(eLoopSpecialist))
-			continue; // advc
+			continue;
 		// K-Mod todo: the current code sucks. Fix it.
 		int iTempValue = iCities * (AI_atVictoryStage(AI_VICTORY_CULTURE3) ? 10 : 1) + 6;
 		iValue += iTempValue / 3; // advc.131: Was /2. (And yes, it's terrible.)
@@ -17969,7 +17970,7 @@ int CvPlayerAI::AI_calculateGoldenAgeValue(bool bConsiderRevolution) const
 }
 
 
-void CvPlayerAI::AI_doCounter()  // advc: style changes
+void CvPlayerAI::AI_doCounter()
 {	// <advc.003n>
 	if(isBarbarian())
 		return; // </advc.003n>
@@ -18584,7 +18585,7 @@ void CvPlayerAI::AI_doCommerce()
 						}
 					}
 					if (cityModifiers.empty())
-						continue; // advc
+						continue;
 					// Get the average of the lowest 3 cities.
 					int iSampleSize = std::min(3, (int)cityModifiers.size());
 					std::partial_sort(cityModifiers.begin(), cityModifiers.begin()+iSampleSize,
@@ -18867,7 +18868,7 @@ void CvPlayerAI::AI_doCivics()
 				in the loop below */
 			CivicTypes eOtherCivic = aeBestCivic.get(eLoopCivicOption);
 			if (eOtherCivic == eNewCivic)
-				continue; // advc
+				continue;
 			aeBestCivic.set(eLoopCivicOption, eNewCivic); // advc.001r
 			int iTestAnarchy = getCivicAnarchyLength(aeBestCivic);
 			aeBestCivic.set(eLoopCivicOption, eOtherCivic); // advc.001r
@@ -18922,7 +18923,7 @@ void CvPlayerAI::AI_doCivics()
 				{
 					CvCivicInfo const& kCivic = GC.getInfo(eCivic);
 					if(kCivic.getTechPrereq() != eResearch || canDoCivics(eCivic))
-						continue; // advc
+						continue;
 					CivicTypes eOtherCivic = aeBestCivic.get(kCivic.getCivicOptionType());
 					// temporary switch just to test the anarchy length
 					aeBestCivic.set(kCivic.getCivicOptionType(), eCivic);
@@ -19576,9 +19577,10 @@ void CvPlayerAI::AI_doDiplo()
 											eWarTarget == eMasterTeam || !::atWar(getTeam(), eWarTarget) ||
 											::atWar(eMasterTeam, eWarTarget))
 										{
-											continue; // advc
+											continue;
 										}
-										if (GET_TEAM(eMasterTeam).AI_declareWarTrade(eWarTarget, getTeam(), false) != NO_DENIAL)
+										if (GET_TEAM(eMasterTeam).AI_declareWarTrade(
+											eWarTarget, getTeam(), false) != NO_DENIAL)
 										{
 											bAccepted = false;
 											break;
@@ -22357,7 +22359,7 @@ EventTypes CvPlayerAI::AI_chooseEvent(int iTriggeredId) const
 	return eBestEvent;
 }
 
-void CvPlayerAI::AI_doSplit(/* advc.104r: */ bool bForce)  // advc: some style changes
+void CvPlayerAI::AI_doSplit(/* advc.104r: */ bool bForce)
 {
 	if (!canSplitEmpire())
 		return;
@@ -22551,7 +22553,7 @@ void CvPlayerAI::AI_roundTradeValBounds(int& iTradeVal, bool bPreferRoundingUp,
 
 // BETTER_BTS_AI_MOD, Victory Strategy AI, 04/25/10, jdog5000: START
 // heavily edited by K-Mod and bbai
-int CvPlayerAI::AI_calculateCultureVictoryStage(  // advc: a few style changes
+int CvPlayerAI::AI_calculateCultureVictoryStage(
 	int iCountdownThresh) const // advc.115
 {
 	PROFILE_FUNC();
@@ -24199,7 +24201,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 			UnitTypes eUnit = kCiv.uniqueUnitAt(i);
 			CvUnitInfo const& kUnit = GC.getInfo(eUnit);
 			if (kUnit.getCombat() <= 0)
-				continue; // advc
+				continue;
 			UnitClassTypes eLoopUnitClass = kUnit.getUnitClassType();
 			/*  (advc: A little crazy to have all this code just for counting
 				unique units for Dagger - which UWAI bypasses anyway -,
@@ -24491,7 +24493,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 		{
 			CvVictoryInfo& kVictory = GC.getInfo((VictoryTypes)iVictory);
 			if (!kGame.isVictoryValid((VictoryTypes)iVictory))
-				continue; // advc
+				continue;
 
 			//iTotalVictories++;
 			if (kVictory.isDiploVote())
@@ -25435,10 +25437,10 @@ RouteTypes CvPlayerAI::AI_bestAdvancedStartRoute(CvPlot* pPlot, int* piYieldValu
 		int iValue = 0;
 		int iCost = getAdvancedStartRouteCost(eLoopRoute, true, pPlot);
 		if (iCost < 0)
-			continue; // advc
+			continue;
 		iValue += GC.getInfo(eLoopRoute).getValue();
 		if (iValue <= 0)
-			continue; // advc
+			continue;
 		int iYieldValue = 0;
 		if (ePlotImprov != NO_IMPROVEMENT)
 		{
@@ -25461,7 +25463,7 @@ RouteTypes CvPlayerAI::AI_bestAdvancedStartRoute(CvPlot* pPlot, int* piYieldValu
 	return eBestRoute;
 }
 
-UnitTypes CvPlayerAI::AI_bestAdvancedStartUnitAI(CvPlot const& kPlot, // advc: CvPlot const&; style changes to reduce indentation.
+UnitTypes CvPlayerAI::AI_bestAdvancedStartUnitAI(CvPlot const& kPlot, // advc: CvPlot const&
 	UnitAITypes eUnitAI) const
 {
 	FAssertMsg(eUnitAI != NO_UNITAI, "UnitAI is not assigned a valid value");
@@ -25554,7 +25556,7 @@ UnitTypes CvPlayerAI::AI_bestAdvancedStartUnitAI(CvPlot const& kPlot, // advc: C
 	return eBestUnit;
 }
 
-CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()  // advc: style changes
+CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()
 {	// Not quite what Kek-Mod does, but would have the same result:
 	// <kekm.35> "Don't exchange team members starting location."
 	/*CvPlot* pCurrentStart = getStartingPlot();
@@ -25645,7 +25647,7 @@ CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()  // advc: style changes
 }
 
 
-bool CvPlayerAI::AI_advancedStartPlaceExploreUnits(bool bLand)  // advc: some style changes
+bool CvPlayerAI::AI_advancedStartPlaceExploreUnits(bool bLand)
 {
 	CvPlot* pBestExplorePlot = NULL;
 	int iBestExploreValue = 0;
@@ -25775,14 +25777,14 @@ bool CvPlayerAI::AI_advancedStartPlaceCity(CvPlot* pPlot)
 			CityPlotTypes const ePlot = it.currID();
 			int iValue = pCity->AI_getBestBuildValue(ePlot);
 			if (iValue <= iBestValue)
-				continue; // advc
+				continue;
 			BuildTypes eBuild = pCity->AI_getBestBuild(ePlot);
 			if (eBuild == NO_BUILD)
-				continue; // advc
+				continue;
 			ImprovementTypes eImprovement = (ImprovementTypes)
 					GC.getInfo(eBuild).getImprovement();
 			if (eImprovement == NO_IMPROVEMENT)
-				continue; // advc
+				continue;
 			CvPlot* pLoopPlot = &(*it);
 			if (pLoopPlot != NULL && pLoopPlot->isImproved())
 			{
@@ -25997,7 +25999,7 @@ void CvPlayerAI::AI_advancedStartRouteTerritory()
 		{
 			CvPlot& p = *it;
 			if (p.getOwner() != getID())
-				continue; // advc
+				continue;
 			if (p.isConnectedToCapital() || p.isCity())
 			{
 				int iValue = 1000;
@@ -26102,7 +26104,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 		{
 			CvPlot& kLoopPlot = GC.getMap().getPlotByIndex(i);
 			if (!kLoopPlot.isRevealed(getTeam()))
-				continue; // advc
+				continue;
 
 			if (kLoopPlot.getBonusType(getTeam()) != NO_BONUS)
 				AI_advancedStartRevealRadius(&kLoopPlot, CITY_PLOTS_RADIUS);
@@ -26294,7 +26296,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 		FOR_EACH_CITY(pLoopCity, *this)
 		{
 			if (iPass > 0 && !pLoopCity->isArea(getStartingPlot()->getArea()))
-				continue; // advc
+				continue;
 
 			CvPlot const& kCityPlot = pLoopCity->getPlot();
 			//Token defender
@@ -26333,7 +26335,7 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 }
 
 
-void CvPlayerAI::AI_recalculateFoundValues(int iX, int iY, int iInnerRadius, int iOuterRadius) const  // advc: some style changes
+void CvPlayerAI::AI_recalculateFoundValues(int iX, int iY, int iInnerRadius, int iOuterRadius) const
 {
 	for (SquareIter it(iX, iY, iOuterRadius, false); it.hasNext(); ++it)
 	{
@@ -26430,7 +26432,7 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 		int iBestFoundValue = 0;
 		CvPlot const* pBestFoundPlot = NULL;
 
-		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)  // advc: some style changes
+		for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 		{
 			CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
 			if (!kPlot.isRevealed(getTeam()))
@@ -26873,12 +26875,12 @@ void CvPlayerAI::AI_doEnemyUnitData()
 		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
 		int iAdjacentAttackers = -1;
 		if (!kPlot.isVisible(getTeam()))
-			continue; // advc
+			continue;
 		FOR_EACH_UNIT_IN(pLoopUnit, kPlot)
 		{
 			CvUnit const& kUnit = *pLoopUnit;
 			if (!kUnit.canFight())
-				continue; // advc
+				continue;
 
 			int iUnitValue = 1;
 			//if (atWar(getTeam(), pLoopUnit->getTeam()))
@@ -26946,7 +26948,7 @@ void CvPlayerAI::AI_doEnemyUnitData()
 	FOR_EACH_ENUM(Unit)
 	{
 		if (aiUnitCounts[eLoopUnit] <= 0)
-			continue; // advc
+			continue;
 
 		TechTypes eTech = (TechTypes)GC.getInfo(eLoopUnit).getPrereqAndTech();
 		int iEraDiff = (eTech == NO_TECH) ? 4 :

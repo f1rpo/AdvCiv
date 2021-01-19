@@ -969,7 +969,7 @@ void CvGame::initFreeState()
 				}
 			}
 			if (!bValid)
-				continue; // advc
+				continue;
 			// <advc.126> Later-era free tech only for later-era starts.
 			if(GC.getInfo(eLoopTech).getEra() > getStartEra())
 				continue; // </advc.126>
@@ -1901,7 +1901,7 @@ void CvGame::normalizeRemoveBadFeatures()
 			{
 				CvPlot& p = *itPlot;
 				if (!p.isFeature())
-					continue; // advc
+					continue;
 				if (GC.getInfo(p.getFeatureType()).getYieldChange(YIELD_FOOD) <= 0 &&
 					GC.getInfo(p.getFeatureType()).getYieldChange(YIELD_PRODUCTION) <= 0)
 				{
@@ -2259,7 +2259,7 @@ void CvGame::normalizeAddGoodTerrain()
 		{
 			CvPlot& kPlot = *itPlot;
 			if (kPlot.isWater() || kPlot.isHills() || kPlot.getBonusType() != NO_BONUS)
-				continue; // advc
+				continue;
 
 			bool bChanged = false;
 			if (kPlot.calculateNatureYield(YIELD_FOOD, kPlayer.getTeam()) <
@@ -3987,7 +3987,7 @@ void CvGame::replaceCorporation(CorporationTypes eCorporation1, CorporationTypes
 
 
 int CvGame::calculateReligionPercent(ReligionTypes eReligion,
-	bool bIgnoreOtherReligions) const // advc.115b: Param added  // advc: style changes
+	bool bIgnoreOtherReligions) const // advc.115b: Param added
 {
 	if (getTotalPopulation() == 0)
 		return 0;
@@ -6822,7 +6822,7 @@ void CvGame::doGlobalWarming()
 			// advc.055: Arg was 3. The higher the value, the greater the preference for cold terrain.
 			CvPlot* pPlot = getRandGWPlot(2);
 			if (pPlot == NULL)
-				continue; // advc
+				continue;
 			// <advc.055>
 			FeatureTypes const eFeature = pPlot->getFeatureType();
 			TerrainTypes const eTerrain = pPlot->getTerrainType();
@@ -7005,7 +7005,7 @@ CvPlot* CvGame::getRandGWPlot(int iPool)
 } // K-Mod end
 
 
-void CvGame::doHolyCity()  // advc: many style changes
+void CvGame::doHolyCity()
 {
 	if (GC.getPythonCaller()->doHolyCity())
 		return;
@@ -7256,7 +7256,7 @@ void CvGame::doDiploVote()
 }
 
 
-void CvGame::createBarbarianCities()  // advc some style changes
+void CvGame::createBarbarianCities()
 {
 	if (getMaxCityElimination() > 0)
 		return;
@@ -7361,7 +7361,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 	{
 		CvPlot& kPlot = m.getPlotByIndex(iI);
 		if (kPlot.isWater() || kPlot.isVisibleToCivTeam())
-			continue; // advc
+			continue;
 		// <advc.300>
 		CvArea& a = kPlot.getArea();
 		int const iAreaSz = a.getNumTiles();
@@ -7591,7 +7591,7 @@ void CvGame::createBarbarianUnits()
 }
 
 
-void CvGame::createAnimals()  // advc: style changes
+void CvGame::createAnimals()
 {
 	if (GC.getInfo(getCurrentEra()).isNoAnimals() ||
 		isOption(GAMEOPTION_NO_ANIMALS)) // advc.309
@@ -8111,7 +8111,7 @@ void CvGame::updateMoves()
 	{
 		CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)aiShuffle[iI]);
 		if (!kPlayer.isAlive() || !kPlayer.isTurnActive())
-			continue; // advc
+			continue;
 
 		if (!kPlayer.isAutoMoves())
 		{
@@ -8183,7 +8183,7 @@ void CvGame::updateTimers()
 }
 
 
-void CvGame::updateTurnTimer()  // advc: style changes
+void CvGame::updateTurnTimer()
 {
 	if (!isMPOption(MPOPTION_TURN_TIMER)) // Are we using a turn timer?
 		return;
@@ -10144,7 +10144,7 @@ void CvGame::doUpdateCacheOnTurn()
 	FOR_EACH_ENUM(Victory)
 	{
 		if (!isVictoryValid(eLoopVictory))
-			continue; // advc
+			continue;
 
 		CvVictoryInfo const& kVictoryInfo = GC.getInfo(eLoopVictory);
 		if (kVictoryInfo.getCityCulture() > 0)
@@ -10179,7 +10179,7 @@ VoteSelectionData* CvGame::addVoteSelection(VoteSourceTypes eVoteSource)
 		if (!GC.getInfo(eLoopVote).isVoteSourceType(eVoteSource) ||
 			!isChooseElection(eLoopVote))
 		{
-			continue; // advc
+			continue;
 		}
 		VoteSelectionSubData kData;
 		kData.eVote = eLoopVote;
@@ -10328,13 +10328,13 @@ VoteTriggeredData* CvGame::addVoteTriggered(VoteSourceTypes eVoteSource, const V
 	{
 		CvPlayerAI& kVoter = *it;
 		if (!kVoter.isVotingMember(eVoteSource))
-			continue; // advc
+			continue;
 
 		if (!kVoter.isHuman())
 		{
 			castVote(kVoter.getID(), pData->getID(),
 					kVoter.AI_diploVote(kOptionData, eVoteSource, false));
-			continue; // advc
+			continue;
 		}
 		// <kekm.25> (advc: simplified)
 		if (isTeamVote(kOptionData.eVote))

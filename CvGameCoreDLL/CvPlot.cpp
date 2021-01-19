@@ -1090,7 +1090,7 @@ bool CvPlot::isWithinTeamCityRadius(TeamTypes eTeam, PlayerTypes eIgnorePlayer) 
 	{
 		CvPlayer const& kMember = GET_PLAYER((PlayerTypes)i);
 		if (!kMember.isAlive() || kMember.getTeam() != eTeam)
-			continue; // advc
+			continue;
 
 		if (eIgnorePlayer == NO_PLAYER || kMember.getID() != eIgnorePlayer)
 		{
@@ -1782,7 +1782,7 @@ bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude,
 
 
 bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, bool bPotential,
-	BuildTypes eBuild, bool bAnyBuild) const // kekm.9  advc: some style changes
+	BuildTypes eBuild, bool bAnyBuild) const // kekm.9
 {
 	/*  K-Mod, 21/dec/10, karadoc
 		changed to check for NO_IMPROVEMENT rather than just assume the input is an actual improvement */
@@ -2510,7 +2510,7 @@ PlayerTypes CvPlot::calculateCulturalOwner(/* advc.099c: */ bool bIgnoreCultureR
 			if (bOwnExclusiveRadius && iBestCulture == 0 && abCityRadius.get(ePlayer))
 				iBestCulture = -1;
 			if (iCulture <= iBestCulture) // </advc.035>
-				continue; // advc
+				continue;
 			if (/* advc.099c: */ bIgnoreCultureRange ||
 				isWithinCultureRange(ePlayer))
 			{
@@ -3697,7 +3697,7 @@ bool CvPlot::isShowCitySymbols() const
 }
 
 
-void CvPlot::updateShowCitySymbols()  // advc: style changes
+void CvPlot::updateShowCitySymbols()
 {
 	bool bNewShowCitySymbols = false;
 	for (CityPlotIter it(*this); it.hasNext(); ++it)
@@ -3974,7 +3974,7 @@ void CvPlot::setSecondOwner(PlayerTypes eNewValue)
 } // </advc.035>
 
 
-void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGraphics)  // advc: some style changes
+void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGraphics)
 {
 	bool bRecalculateAreas = false; // advc.030
 	static TerrainTypes const eLAND_TERRAIN = (TerrainTypes)GC.getDefineINT("LAND_TERRAIN"); // advc.opt
@@ -4531,7 +4531,7 @@ void CvPlot::setRouteType(RouteTypes eNewValue, bool bUpdatePlotGroups)
 }
 
 
-void CvPlot::updateCityRoute(bool bUpdatePlotGroup)  // advc: some style changes
+void CvPlot::updateCityRoute(bool bUpdatePlotGroup)
 {
 	if (!isCity())
 		return;
@@ -4561,7 +4561,7 @@ CvCityAI* CvPlot::AI_getPlotCity() const
 } // </advc.003u>
 
 
-void CvPlot::setPlotCity(CvCity* pNewValue)  // advc: style changes
+void CvPlot::setPlotCity(CvCity* pNewValue)
 {
 	if(getPlotCity() == pNewValue)
 		return;
@@ -5093,7 +5093,7 @@ void CvPlot::updateYield()
 	{
 		char iNewYield = calculateYield(eYield);
 		if (getYield(eYield) == iNewYield)
-			continue; // advc
+			continue;
 
 		int iOldYield = getYield(eYield);
 		m_aiYield.set(eYield, iNewYield);
@@ -5190,7 +5190,8 @@ int CvPlot::calculateTeamCulturePercent(TeamTypes eIndex) const
 }
 
 
-void CvPlot::setCulture(PlayerTypes eIndex, int iNewValue, bool bUpdate, bool bUpdatePlotGroups)  // advc: style changes
+void CvPlot::setCulture(PlayerTypes eIndex, int iNewValue, bool bUpdate,
+	bool bUpdatePlotGroups)
 {
 	PROFILE_FUNC();
 
@@ -6505,7 +6506,7 @@ void CvPlot::setScriptData(const char* szNewValue)
 	m_szScriptData = _strdup(szNewValue);
 }
 
-void CvPlot::doFeature()  // advc: some style changes
+void CvPlot::doFeature()
 {
 	PROFILE_FUNC();
 
@@ -6695,14 +6696,14 @@ int CvPlot::areaID() const
 }
 
 
-void CvPlot::processArea(CvArea& kArea, int iChange)  // advc: style changes
+void CvPlot::processArea(CvArea& kArea, int iChange)
 {
 	// XXX not updating getBestFoundValue() or getAreaAIType()...
 
 	if (iChange == 0)
 	{
 		FAssert(iChange != 0);
-		return; // advc
+		return;
 	}
 
 	kArea.changeNumTiles(iChange);

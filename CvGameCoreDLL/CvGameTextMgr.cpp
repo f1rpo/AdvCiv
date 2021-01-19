@@ -274,7 +274,7 @@ void CvGameTextMgr::setOOSSeeds(CvWString& szString, PlayerTypes ePlayer)
 	}
 }
 
-void CvGameTextMgr::setNetStats(CvWString& szString, PlayerTypes ePlayer)  // advc: Some style changes
+void CvGameTextMgr::setNetStats(CvWString& szString, PlayerTypes ePlayer)
 {
 	if(ePlayer == GC.getGame().getActivePlayer()
 			// advc.004v: Moved up
@@ -6772,7 +6772,7 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 		}
 	}
 }
-// BULL - Leaderhead Relations - start  // advc: minor style changes
+// BULL - Leaderhead Relations - start
 /*  Shows the peace/war/enemy/pact status between eThisTeam and all rivals known to the active player.
 	Relations for the active player are shown first. */
 void CvGameTextMgr::getAllRelationsString(CvWStringBuffer& szString, TeamTypes eThisTeam)
@@ -12547,7 +12547,8 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 
 void CvGameTextMgr::buildBuildingRequiresString(CvWStringBuffer& szBuffer, BuildingTypes eBuilding, bool bCivilopediaText, bool bTechChooserText, const CvCity* pCity)
 {
-	// K-mod note. I've made a couple of style adjustments throughout this function to make it easier for me to read & maintain.
+	/*	K-mod note. I've made a couple of style adjustments throughout this function
+		to make it easier for me to read & maintain. */
 
 	CvBuildingInfo& kBuilding = GC.getInfo(eBuilding);
 
@@ -17544,7 +17545,7 @@ bool CvGameTextMgr::setBuildingSavedMaintenanceHelp(CvWStringBuffer &szBuffer, c
 } // BUG - Building Saved Maintenance - end
 
 
-void CvGameTextMgr::setProductionHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)  // advc: style changes
+void CvGameTextMgr::setProductionHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 {
 	bool bProcess = kCity.isProductionProcess();
 	// advc.064b: To be displayed at the end; iPastOverflow also moved.
@@ -18114,7 +18115,7 @@ void CvGameTextMgr::buildHintsList(CvWStringBuffer& szBuffer)
 }
 
 void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCity,
-	CommerceTypes eCommerce) // advc: style changes
+	CommerceTypes eCommerce)
 {
 	// BUG - Building Additional Commerce - start
 	bool bBuildingAdditionalCommerce = (BUGOption::isEnabled("MiscHover__BuildingAdditionalCommerce", false)
@@ -18366,7 +18367,7 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCi
 	// BUG - Building Additional Commerce - end
 }
 
-void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity const& kCity, YieldTypes eYield)  // advc: style changes
+void CvGameTextMgr::setYieldHelp(CvWStringBuffer &szBuffer, CvCity const& kCity, YieldTypes eYield)
 {
 	if(eYield == NO_YIELD)
 		return;
@@ -18560,7 +18561,7 @@ void CvGameTextMgr::setVassalRevoltHelp(CvWStringBuffer& szBuffer, TeamTypes eMa
 	}
 }
 
-void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)  // advc: Some style changes
+void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 {
 	if(NO_PLAYER == kCity.getOwner())
 		return;
@@ -18990,7 +18991,7 @@ void CvGameTextMgr::buildCityBillboardCityNameString( CvWStringBuffer& szBuffer,
 	}
 }
 
-void CvGameTextMgr::buildCityBillboardProductionString(CvWStringBuffer& szBuffer, CvCity* pCity)  // advc: style changes
+void CvGameTextMgr::buildCityBillboardProductionString(CvWStringBuffer& szBuffer, CvCity* pCity)
 {
 	if (pCity->getOrderQueueLength() <= 0)
 	{
@@ -20628,7 +20629,7 @@ void CvGameTextMgr::buildForeignTradeString(CvWStringBuffer& szBuffer, PlayerTyp
 				iForeignYield, iForeignRoutes));
 	} // </advc.086>
 } // BULL - Finance Advisor - end
-// BULL - Trade Hover - start  // advc: style changes, _MOD_FRACTRADE removed
+// BULL - Trade Hover - start  // advc: _MOD_FRACTRADE removed
 void CvGameTextMgr::buildTradeString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer,
 	PlayerTypes eWithPlayer, bool bDomestic, bool bForeign, bool bHeading)
 {
@@ -20743,7 +20744,7 @@ void CvGameTextMgr::buildTradeString(CvWStringBuffer& szBuffer, PlayerTypes ePla
 	szBuffer.append(gDLL->getText("TXT_KEY_BUG_COMMERCE_FROM_ROUTES", iTotalYield, iTotalRoutes));
 	// </advc.086>
 } // BULL - Trade Hover - end
-// BULL - Leaderhead Relations - start  // advc: style changes
+// BULL - Leaderhead Relations - start
 // Displays the relations between two leaders only. This is used by the F4:GLANCE and F5:SIT-REP tabs.
 void CvGameTextMgr::parseLeaderHeadRelationsHelp(CvWStringBuffer &szBuffer,
 	PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer)
@@ -21032,7 +21033,7 @@ void CvGameTextMgr::getGlobeLayerName(GlobeLayerTypes eType, int iOption, CvWStr
 }
 
 void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* pFlagPlot,
-	bool bAlt, CvWStringBuffer& strHelp)  // advc: some style changes
+	bool bAlt, CvWStringBuffer& strHelp)
 {
 	TeamTypes const eActiveTeam = GC.getGame().getActiveTeam();
 	CvDLLInterfaceIFaceBase& kUI = gDLL->UI();
@@ -21058,7 +21059,8 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 		if (strHelp.isEmpty() && pMouseOverPlot != NULL)
 		{
 			if (pMouseOverPlot == kUI.getGotoPlot() ||
-				(bAlt && //gDLL->getChtLvl() == 0)) // K-Mod. (Alt does something else in cheat mode)
+				// K-Mod. (Alt does something else in cheat mode)
+				(bAlt && //gDLL->getChtLvl() == 0))
 				!GC.getGame().isDebugMode())) // advc.135c
 			{
 				if (pMouseOverPlot->isActiveVisible(true))
@@ -21331,14 +21333,14 @@ void CvGameTextMgr::getInterfaceCenterText(CvWString& strText)
 void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 {
 	strText.clear();
-	CvGame const& g = GC.getGame(); // advc
+	CvGame const& kGame = GC.getGame();
 	if (gDLL->UI().getShowInterface() == INTERFACE_SHOW ||
 		gDLL->UI().getShowInterface() == INTERFACE_ADVANCED_START)
 	{
-		if (g.isMPOption(MPOPTION_TURN_TIMER))
+		if (kGame.isMPOption(MPOPTION_TURN_TIMER))
 		{
 			// Get number of turn slices remaining until end-of-turn
-			int iTurnSlicesRemaining = g.getTurnSlicesRemaining();
+			int iTurnSlicesRemaining = kGame.getTurnSlicesRemaining();
 
 			if (iTurnSlicesRemaining > 0)
 			{
@@ -21364,11 +21366,11 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 				}
 			}
 		}
-		if (g.getGameState() == GAMESTATE_ON)
+		if (kGame.getGameState() == GAMESTATE_ON)
 		{	// <advc.700> Top priority for Auto Play timer
-			if(g.isOption(GAMEOPTION_RISE_FALL))
+			if(kGame.isOption(GAMEOPTION_RISE_FALL))
 			{
-				int autoPlayCountdown = g.getRiseFall().getAutoPlayCountdown();
+				int autoPlayCountdown = kGame.getRiseFall().getAutoPlayCountdown();
 				if(autoPlayCountdown > 0)
 				{
 					strText = gDLL->getText("TXT_KEY_RF_INTERLUDE_COUNTDOWN",
@@ -21379,7 +21381,7 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 			int iMinVictoryTurns = MAX_INT;
 			for (int i = 0; i < GC.getNumVictoryInfos(); ++i)
 			{
-				TeamTypes eActiveTeam = g.getActiveTeam();
+				TeamTypes eActiveTeam = kGame.getActiveTeam();
 				if (NO_TEAM != eActiveTeam)
 				{
 					int iCountdown = GET_TEAM(eActiveTeam).getVictoryCountdown((VictoryTypes)i);
@@ -21390,16 +21392,17 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 				}
 			}
 
-			if (g.isOption(GAMEOPTION_ADVANCED_START) && !g.isOption(GAMEOPTION_ALWAYS_WAR) &&
-				g.getElapsedGameTurns() <= GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH)
+			if (kGame.isOption(GAMEOPTION_ADVANCED_START) &&
+				!kGame.isOption(GAMEOPTION_ALWAYS_WAR) &&
+				kGame.getElapsedGameTurns() <= GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH)
 				/*  advc.250b: No need to (constantly) remind human of
 					"universal" peace when the AI civs have big headstarts. */
-				&& !g.isOption(GAMEOPTION_SPAH))
+				&& !kGame.isOption(GAMEOPTION_SPAH))
 			{
 				if(!strText.empty())
 					strText += L" -- ";
 				strText += gDLL->getText("TXT_KEY_MISC_ADVANCED_START_PEACE_REMAINING",
-						GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH) - g.getElapsedGameTurns());
+						GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH) - kGame.getElapsedGameTurns());
 			}
 			else if (iMinVictoryTurns < MAX_INT)
 			{
@@ -21408,17 +21411,18 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 				strText += gDLL->getText("TXT_KEY_MISC_TURNS_LEFT_TO_VICTORY", iMinVictoryTurns);
 			} /* <advc> Merged these two conditions so that more else-if
 				clauses can be added below */
-			else if (g.getMaxTurns() > 0 && (g.getElapsedGameTurns() >= g.getMaxTurns() -
+			else if (kGame.getMaxTurns() > 0 && (kGame.getElapsedGameTurns() >= kGame.getMaxTurns() -
 				30 // advc.004: was 100
-				&& g.getElapsedGameTurns() < g.getMaxTurns())) // </advc>
+				&& kGame.getElapsedGameTurns() < kGame.getMaxTurns())) // </advc>
 			{
 				if(!strText.empty())
 					strText += L" -- ";
-				strText += gDLL->getText("TXT_KEY_MISC_TURNS_LEFT", g.getMaxTurns() - g.getElapsedGameTurns());
+				strText += gDLL->getText("TXT_KEY_MISC_TURNS_LEFT",
+						kGame.getMaxTurns() - kGame.getElapsedGameTurns());
 			} // <advc.700> The other countdowns take precedence
-			else if(g.isOption(GAMEOPTION_RISE_FALL))
+			else if(kGame.isOption(GAMEOPTION_RISE_FALL))
 			{
-				std::pair<int,int> rfCountdown = g.getRiseFall().
+				std::pair<int,int> rfCountdown = kGame.getRiseFall().
 						getChapterCountdown();
 				/*  Only show it toward the end of a chapter. A permanent countdown
 					would have to be placed elsewhere b/c the font is too large and

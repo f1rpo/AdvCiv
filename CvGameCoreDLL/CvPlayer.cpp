@@ -186,11 +186,11 @@ void CvPlayer::initInGame(PlayerTypes eID)
 		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
 			if (i == getID())
-				continue; // advc
+				continue;
 
 			pEvent = GET_PLAYER((PlayerTypes)i).getEventOccured(eLoopEvent);
 			if (pEvent == NULL)
-				continue; // advc
+				continue;
 
 			CvEventTriggerInfo& kTrigger = GC.getInfo(pEvent->m_eTrigger);
 			if (kTrigger.isGlobal())
@@ -646,7 +646,7 @@ void CvPlayer::changePersonalityType()
 }
 
 // Reset state of event logic, unit prices.
-void CvPlayer::resetCivTypeEffects(/* advc.003q: */ bool bInit)  // advc: style changes
+void CvPlayer::resetCivTypeEffects(/* advc.003q: */ bool bInit)
 {
 	CvCivilization const& kCiv = getCivilization(); // advc.003w
 	if (/* <advc.003q> */ bInit /* </advc.003q> */ || !isAlive())
@@ -738,7 +738,7 @@ void CvPlayer::setIsHuman(bool bNewValue, /* advc.127c: */ bool bUpdateAI)
 // CHANGE_PLAYER: END
 // CHANGE_PLAYER, 05/09/09, jdog5000: START
 // for changing the civilization of this player
-void CvPlayer::changeCiv(CivilizationTypes eNewCiv)  // advc: style changes
+void CvPlayer::changeCiv(CivilizationTypes eNewCiv)
 {
 	CivilizationTypes eOldCiv = getCivilizationType();
 	if (eOldCiv == eNewCiv)
@@ -1189,7 +1189,7 @@ public:
 // Returns the id of the best area, or -1 if it doesn't matter:
 //int CvPlayer::findStartingArea() const
 // kekm.35: "Returns a vector of all starting areas sorted by their value (instead of one best starting area)."
-std::vector<std::pair<int,int> > CvPlayer::findStartingAreas(  // advc: style changes
+std::vector<std::pair<int,int> > CvPlayer::findStartingAreas(
 	bool* pbFoundByMapScript) const // advc.027
 {
 	PROFILE_FUNC();
@@ -1391,8 +1391,8 @@ CvCity* CvPlayer::initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGrou
 	return pCity;
 }
 
-
-void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool bUpdatePlotGroups,  // advc: style changes; comments (there was only one before)
+// (advc: Some comments added)
+void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool bUpdatePlotGroups,
 	bool bPeaceDeal) // advc.ctr
 {
 	CvPlot& kCityPlot = *pOldCity->plot();
@@ -3575,7 +3575,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		{
 			CvPlayerAI& kAttacked = GET_PLAYER((PlayerTypes)iI);
 			if(!kAttacked.isAlive() || kAttacked.getTeam() != (TeamTypes)iData1)
-				continue; // advc
+				continue;
 			// advc.130j:
 			kAttacked.AI_rememberEvent(getID(), MEMORY_HIRED_WAR_ALLY);
 		}
@@ -4293,7 +4293,7 @@ void CvPlayer::killAllDeals()
 }
 
 
-void CvPlayer::findNewCapital()  // advc style changes
+void CvPlayer::findNewCapital()
 {
 	BuildingTypes const eCapitalBuilding = getCivilization().getBuilding((BuildingClassTypes)
 			GC.getDefineINT("CAPITAL_BUILDINGCLASS"));
@@ -4629,7 +4629,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 			{
 				CvPlot& kLoopPlot = *it;
 				if (kLoopPlot.isRevealed(getTeam()))
-					continue; // advc
+					continue;
 				int iValue = 1 + kGame.getSorenRandNum(10000, "Goody Map");
 				iValue *= it.currPlotDist();
 				if (iValue > iBestValue)
@@ -4841,7 +4841,7 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit, /* advc.314: */ GoodyTypes 
 	for (int i = 0; i < iAttempts; i++)
 	{
 		if (GC.getInfo(getHandicapType()).getNumGoodies() <= 0)
-			continue; // advc
+			continue;
 		GoodyTypes eGoody = (GoodyTypes)GC.getInfo(getHandicapType()).
 				getGoodies(GC.getGame().getSorenRandNum(
 				GC.getInfo(getHandicapType()).getNumGoodies(), "Goodies"));
@@ -4881,7 +4881,7 @@ bool CvPlayer::canFound(int iX, int iY, bool bTestVisible) const
 }
 
 
-void CvPlayer::found(int iX, int iY)  // advc: some style changes
+void CvPlayer::found(int iX, int iY)
 {
 	if (!canFound(iX, iY))
 		return;
@@ -5418,7 +5418,7 @@ int CvPlayer::getProductionModifier(UnitTypes eUnit) const
 	FOR_EACH_ENUM(Trait)
 	{
 		if (!hasTrait(eLoopTrait))
-			continue; // advc
+			continue;
 		iMultiplier += GC.getInfo(eUnit).getProductionTraits(eLoopTrait);
 		if (GC.getInfo(eUnit).getSpecialUnitType() != NO_SPECIALUNIT)
 		{
@@ -5437,7 +5437,7 @@ int CvPlayer::getProductionModifier(BuildingTypes eBuilding) const
 	FOR_EACH_ENUM(Trait)
 	{
 		if (!hasTrait(eLoopTrait))
-			continue; // advc
+			continue;
 		iMultiplier += kBuilding.getProductionTraits(eLoopTrait);
 		if (GC.getInfo(eBuilding).getSpecialBuildingType() != NO_SPECIALBUILDING)
 		{
@@ -5692,7 +5692,7 @@ RouteTypes CvPlayer::getBestRoute(CvPlot const* pPlot,
 	{
 		RouteTypes const eLoopRoute = GC.getInfo(eLoopBuild).getRoute();
 		if (eLoopRoute == NO_ROUTE)
-			continue; // advc
+			continue;
 		// K-Mod: I've swapped the order of the if statments, because the value check is much faster. (faster trumps convention)
 		int iValue = GC.getInfo(eLoopRoute).getValue();
 		if (iValue > iBestValue)
@@ -6409,7 +6409,7 @@ int CvPlayer::getResearchTurnsLeft(TechTypes eTech, bool bOverflow) const
 	return iTurnsLeft; // advc.004x: -1 now means infinitely many turns
 }
 
-int CvPlayer::getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) const  // advc: style changes
+int CvPlayer::getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) const
 {
 	// <advc>
 	if (GET_TEAM(getTeam()).isHasTech(eTech))
@@ -6774,7 +6774,7 @@ int CvPlayer::countHolyCities() const
 }
 
 
-void CvPlayer::foundReligion(ReligionTypes eReligion, ReligionTypes eSlotReligion, bool bAward)  // advc: some style changes
+void CvPlayer::foundReligion(ReligionTypes eReligion, ReligionTypes eSlotReligion, bool bAward)
 {
 	if (eReligion == NO_RELIGION)
 		return;
@@ -8520,7 +8520,7 @@ uint CvPlayer::getTotalTimePlayed() const
 }
 
 
-void CvPlayer::setAlive(bool bNewValue)  // advc: some style changes
+void CvPlayer::setAlive(bool bNewValue)
 {
 	if(isAlive() == bNewValue)
 		return;
@@ -10589,7 +10589,7 @@ bool CvPlayer::pushResearch(TechTypes eTech, bool bClear, /* advc.004x: */ bool 
 		TechTypes ePreReq = (TechTypes)GC.getInfo(eTech).getPrereqOrTechs(i);
 
 		if (ePreReq == NO_TECH)
-			continue; // advc
+			continue;
 
 		bOrPrereqFound = true;
 
@@ -10916,8 +10916,8 @@ void CvPlayer::expireMessages()
 	bool bFoundExpired = false;
 	while(it != m_listGameMessages.end())
 	{
-		CvTalkingHeadMessage& message = *it;
-		if (GC.getGame().getGameTurn() >= message.getExpireTurn(
+		CvTalkingHeadMessage& kMessage = *it;
+		if (GC.getGame().getGameTurn() >= kMessage.getExpireTurn(
 			isHuman() || isHumanDisabled())) // advc.700
 		{
 			it = m_listGameMessages.erase(it);
@@ -11384,7 +11384,7 @@ void CvPlayer::doResearch()
 	}
 }
 
-void CvPlayer::doEspionagePoints()  // advc: some style changes
+void CvPlayer::doEspionagePoints()
 {
 	if (getCommerceRate(COMMERCE_ESPIONAGE) <= 0)
 		return;
@@ -16951,7 +16951,7 @@ bool CvPlayer::splitEmpire(int iArea)
 }
 
 
-bool CvPlayer::splitEmpire(CvArea& kArea) // advc: was iAreaId; and some other style changes
+bool CvPlayer::splitEmpire(CvArea& kArea) // advc: was iAreaId
 {
 	if (!canSplitEmpire() || !canSplitArea(kArea))
 		return false;
@@ -18067,7 +18067,7 @@ UnitTypes CvPlayer::getTechFreeUnit(TechTypes eTech) const
 	return eUnit;
 }
 
-// BULL - Trade Hover:  // advc: style changes, _MOD_FRACTRADE removed
+// BULL - Trade Hover:  // advc: _MOD_FRACTRADE removed
 /*  Adds the yield and count for each trade route with eWithPlayer to the
 	int references (out parameters). */
 void CvPlayer::calculateTradeTotals(YieldTypes eYield,
@@ -19333,7 +19333,7 @@ void CvPlayer::getReligionLayerColors(ReligionTypes eSelectedReligion,
 			for (CityPlotIter it(*pLoopCity); it.hasNext(); ++it)
 			{
 				if (!it->isRevealed(getTeam(), true))
-					continue; // advc
+					continue;
 				int iIndex = GC.getMap().plotNum(*it);
 				if (fAlpha > aColors[iIndex].a)
 				{

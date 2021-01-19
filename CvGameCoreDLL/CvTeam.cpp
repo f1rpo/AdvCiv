@@ -238,7 +238,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	{
 		CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
 		if (!kObs.isAlive())
-			continue; // advc
+			continue;
 		if (kObs.getTeam() != getID() && kObs.getTeam() != eTeam)
 		{
 			if ((isHasMet(kObs.getTeam()) && GET_TEAM(eTeam).isHasMet(kObs.getTeam())) ||
@@ -661,7 +661,7 @@ void CvTeam::shareItems(TeamTypes eTeam)
 	// kekm.26: Replacing the above
 	setEspionagePointsEver(GET_TEAM(eTeam).getEspionagePointsEver() + getEspionagePointsEver());
 
-	for(int i = 0; i < MAX_PLAYERS; i++)  // advc: style changes
+	for(int i = 0; i < MAX_PLAYERS; i++)
 	{
 		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 		if(!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() != eTeam)
@@ -1621,7 +1621,7 @@ void CvTeam::signDefensivePact(TeamTypes eTeam, /* advc.032: */ bool bProlong)
 }
 
 
-bool CvTeam::canSignDefensivePact(TeamTypes eTeam) const  // advc: const, style changes
+bool CvTeam::canSignDefensivePact(TeamTypes eTeam) /* advc: */ const
 {
 	for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
@@ -2363,7 +2363,7 @@ void CvTeam::changeAliveCount(int iChange)
 		for (int iTeam = 0; iTeam < MAX_TEAMS; iTeam++)
 		{
 			if (iTeam == getID())
-				continue; // advc
+				continue;
 
 			CvTeamAI& kLoopTeam = GET_TEAM((TeamTypes)iTeam);
 			// free vassals
@@ -3267,7 +3267,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 	if (isVassal(eMaster))
 	{
 		m_bCapitulated = bCapitulated;
-		FOR_EACH_DEAL_VAR(pLoopDeal) // advc: some style changes in this loop
+		FOR_EACH_DEAL_VAR(pLoopDeal)
 		{	// <advc.034>
 			if (pLoopDeal->isDisengage() && pLoopDeal->isBetween(eMaster, getID()))
 				pLoopDeal->kill();
@@ -3541,7 +3541,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 }
 
 
-void CvTeam::assignVassal(TeamTypes eVassal, bool bSurrender) const  // advc: style changes
+void CvTeam::assignVassal(TeamTypes eVassal, bool bSurrender) const
 {
 	GET_TEAM(eVassal).setVassal(getID(), true, bSurrender);
 	CLinkList<TradeData> ourList;
@@ -3716,7 +3716,7 @@ void CvTeam::finalizeProjectArtTypes()
 }
 
 
-void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)  // advc: style changes
+void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)
 {
 	if(iChange == 0)
 		return;
@@ -4167,7 +4167,7 @@ bool CvTeam::hasSpaceshipArrived() const
 } // K-Mod end
 
 
-bool CvTeam::isParent(TeamTypes eChildTeam) const  // advc: style changes
+bool CvTeam::isParent(TeamTypes eChildTeam) const
 {
 	if (!GET_TEAM(eChildTeam).isVassal(getID()))
 		return false;
@@ -4288,7 +4288,7 @@ void CvTeam::announceTechToPlayers(TechTypes eIndex, /* advc.156: */ PlayerTypes
 	}
 }
 
-void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,  // advc: some style changes
+void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,
 	bool bFirst, bool bAnnounce, /* advc.121: */ bool bEndOfTurn)
 {
 	PROFILE_FUNC();
@@ -4504,7 +4504,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,  /
 					else szBuffer = gDLL->getText("TXT_KEY_MISC_UNKNOWN_FIRST_TO_TECH",
 							kTech.getTextKeyWide());
 					gDLL->UI().addMessage(kObs.getID(), false, -1, szBuffer,
-							(bMajor ? "AS2D_FIRSTTOTECH" : 0),
+							(bMajor ? "AS2D_FIRSTTOTECH" : NULL),
 							(bMajor ? MESSAGE_TYPE_MAJOR_EVENT :
 							MESSAGE_TYPE_MINOR_EVENT), NULL, GC.getColorType("HIGHLIGHT_TEXT"),
 							// advc.127b:
@@ -4554,7 +4554,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,  /
 					eRevealedTeam != BARBARIAN_TEAM &&
 					!GET_TEAM(eRevealedTeam).isVassal(getID())) // </advc.004r>
 				{
-					continue; // advc
+					continue;
 				}
 				CvCity const* pCity = kMap.findCity(kLoopPlot.getX(), kLoopPlot.getY(), NO_PLAYER,
 						// advc.004r: Pass ID as eObserver (last param) instead of city owner
@@ -5350,7 +5350,7 @@ int CvTeam::getCapitalY(TeamTypes eObserver, bool bDebug) const
 	return pCapital->getY();
 } // </advc.127b>
 
-void CvTeam::processTech(TechTypes eTech, int iChange, // advc: style changes
+void CvTeam::processTech(TechTypes eTech, int iChange,
 	bool bEndOfTurn) // advc.121
 {
 	PROFILE_FUNC();
@@ -5484,7 +5484,7 @@ void CvTeam::processTech(TechTypes eTech, int iChange, // advc: style changes
 	FOR_EACH_ENUM(Build)
 	{
 		if (GC.getInfo(eLoopBuild).getTechPrereq() != eTech)
-			continue; // advc
+			continue;
 		if (GC.getInfo(eLoopBuild).getRoute() != NO_ROUTE)
 		{
 			for (int i = 0; i < GC.getMap().numPlots(); i++)

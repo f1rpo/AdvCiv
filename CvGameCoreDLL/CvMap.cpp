@@ -370,12 +370,15 @@ void CvMap::updateIrrigated()
 		updateIrrigated(getPlotByIndex(i));
 }
 
-// K-Mod. This function is called when the unit selection is changed, or when a selected unit is promoted. (Or when UnitInfo_DIRTY_BIT is set.)
-// The purpose is to update which unit is displayed in the center of each plot.
-
-// The original implementation simply updated every plot on the map. This is a bad idea because it scales badly for big maps, and the update function on each plot can be expensive.
-// The new functionality attempts to only update plots that are in movement range of the selected group; with a very generous approximation for what might be in range.
-void CvMap::updateCenterUnit()  // advc: some style changes
+/*	K-Mod. This function is called when the unit selection is changed
+	or when a selected unit is promoted. (Or when UnitInfo_DIRTY_BIT is set.)
+	The purpose is to update which unit is displayed in the center of each plot.
+	The original implementation simply updated every plot on the map. This is
+	a bad idea because it scales badly for big maps, and the update function
+	on each plot can be expensive. The new functionality attempts to only
+	update plots that are in movement range of the selected group;
+	with a very generous approximation for what might be in range. */
+void CvMap::updateCenterUnit()
 {
 	/*for (int iI = 0; iI < numPlots(); iI++)
 		getPlotByIndex(iI).updateCenterUnit();*/ // BtS
@@ -444,8 +447,7 @@ void CvMap::updateMinOriginalStartDist(CvArea const& kArea)
 	{
 		CvPlot* pStartingPlot = GET_PLAYER((PlayerTypes)iI).getStartingPlot();
 		if (pStartingPlot == NULL || !pStartingPlot->isArea(kArea))
-			continue; // advc
-
+			continue;
 		for (int iJ = 0; iJ < numPlots(); iJ++)
 		{
 			CvPlot& kPlot = getPlotByIndex(iJ);
@@ -605,8 +607,9 @@ bool CvMap::isValidRandPlot(CvPlot const& kPlot, RandPlotFlags eFlags,
 }
 
 
-CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  // advc: style changes, const pSkipCity
-		bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith, DirectionTypes eDirection, CvCity const* pSkipCity,
+CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,
+		bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith,
+		DirectionTypes eDirection, CvCity const* pSkipCity, // advc: const city
 		TeamTypes eObserver) const // advc.004r
 {
 	PROFILE_FUNC();
@@ -653,7 +656,7 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  //
 }
 
 
-CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner,  // advc: some style changes
+CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner,
 		bool bReadyToSelect, bool bWorkers) const
 {
 	int iBestValue = MAX_INT;
@@ -996,7 +999,7 @@ int CvMap::getIndexAfterLastArea() const
 }
 
 
-int CvMap::getNumLandAreas() const  // advc: style changes
+int CvMap::getNumLandAreas() const
 {
 	int iNumLandAreas = 0;
 	FOR_EACH_AREA(pLoopArea)

@@ -2073,7 +2073,7 @@ int CvCity::getProductionNeeded(ProjectTypes eProject) const
 } */
 
 
-int CvCity::getProductionTurnsLeft() const  // advc: some style changes
+int CvCity::getProductionTurnsLeft() const
 {
 	CLLNode<OrderData>* pOrderNode = headOrderQueueNode();
 	if (pOrderNode != NULL)
@@ -3018,7 +3018,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 		FOR_EACH_ENUM(Bonus)
 		{
 			if (!hasBonus(eLoopBonus))
-				continue; // advc
+				continue;
 
 			if (kBuilding.getBonusHealthChanges(eLoopBonus) > 0)
 			{
@@ -3157,7 +3157,7 @@ void CvCity::processProcess(ProcessTypes eProcess, int iChange)
 }
 
 
-void CvCity::processSpecialist(SpecialistTypes eSpecialist, int iChange)  // advc: style changes
+void CvCity::processSpecialist(SpecialistTypes eSpecialist, int iChange)
 {
 	CvSpecialistInfo const& kSpecialist = GC.getInfo(eSpecialist);
 	UnitClassTypes eGPClass = (UnitClassTypes)kSpecialist.getGreatPeopleUnitClass();
@@ -6828,7 +6828,7 @@ int CvCity::getAdditionalBaseYieldRateByBuilding(YieldTypes eYield, BuildingType
 		{
 			CvCity* pCity = getTradeCity(iI);
 			if (pCity == NULL)
-				continue; // advc
+				continue;
 			int iTradeProfit = getBaseTradeProfit(pCity);
 			int iTradeModifier = totalTradeModifier(pCity);
 			int iTradeYield = ((iTradeProfit * iTradeModifier) / iTradeProfitDivisor) *
@@ -9124,7 +9124,7 @@ void CvCity::setHasReligion(ReligionTypes eReligion, bool bNewValue, bool bAnnou
 				{
 					CvPlayer const& kObs = *it;
 					if (!isRevealed(kObs.getTeam()))
-						continue; // advc
+						continue;
 					// <advc.106e>
 					if ((iOwnerEra < iEraThresh && (bAnnounceStateReligionSpread ||
 						kOwner.getStateReligion() != eReligion)) ||
@@ -9325,7 +9325,7 @@ void CvCity::processVoteSource(VoteSourceTypes eVoteSource, bool bActive) // adv
 }
 
 
-void CvCity::setHasCorporation(CorporationTypes eCorp, bool bNewValue, bool bAnnounce, bool bArrows)  // advc: style changes
+void CvCity::setHasCorporation(CorporationTypes eCorp, bool bNewValue, bool bAnnounce, bool bArrows)
 {
 	if (isHasCorporation(eCorp) == bNewValue)
 		return;
@@ -10451,7 +10451,7 @@ void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer,  // advc: 
 }
 
 
-bool CvCity::doCheckProduction()  // advc: some style changes
+bool CvCity::doCheckProduction()
 {
 	CvPlayerAI& kOwner = GET_PLAYER(getOwner());
 	CvCivilization const& kCiv = getCivilization();
@@ -10653,7 +10653,7 @@ void CvCity::doDecay()
 	FOR_EACH_ENUM(Building)
 	{
 		if (getProductionBuilding() == eLoopBuilding)
-			continue; // advc
+			continue;
 
 		if (getBuildingProduction(eLoopBuilding) > 0)
 		{
@@ -10677,7 +10677,7 @@ void CvCity::doDecay()
 	FOR_EACH_ENUM(Unit)
 	{
 		if (getProductionUnit() == eLoopUnit)
-			continue; // advc
+			continue;
 		{
 			if (getUnitProduction(eLoopUnit) > 0)
 			{
@@ -10724,7 +10724,7 @@ void CvCity::doReligion()
 	FOR_EACH_ENUM(Religion)
 	{
 		if (!GC.getGame().isReligionFounded(eLoopReligion))
-			continue; // advc
+			continue;
 
 		if (isHasReligion(eLoopReligion))
 		{
@@ -10776,7 +10776,7 @@ void CvCity::doReligion()
 			FOR_EACH_CITY(pLoopCity, *it)
 			{
 				if (!pLoopCity->isConnectedTo(this))
-					continue; // advc
+					continue;
 
 				int iSpread = pLoopCity->getReligionInfluence(eLoopReligion);
 				iSpread *= GC.getInfo(eLoopReligion).getSpreadFactor();
@@ -11774,7 +11774,7 @@ void CvCity::getCityBillboardSizeIconColors(NiColorA& kDotColor, NiColorA& kText
 }
 
 
-const TCHAR* CvCity::getCityBillboardProductionIcon() const  // advc: some style changes
+const TCHAR* CvCity::getCityBillboardProductionIcon() const
 {
 	if (!canBeSelected() || !isProduction())
 	{
@@ -11871,7 +11871,7 @@ bool CvCity::isStarCity() const
 }
 
 
-int CvCity::getTriggerValue(EventTriggerTypes eTrigger) const  // advc: some style changes
+int CvCity::getTriggerValue(EventTriggerTypes eTrigger) const
 {
 	if (!GC.getPythonCaller()->canTriggerEvent(*this, eTrigger))
 		return MIN_INT;
@@ -12116,10 +12116,10 @@ void CvCity::applyEvent(EventTypes eEvent,
 					CityPlotTypes const ePlot = (CityPlotTypes)
 							((eLoopCityPlot + iRandOffset) % NUM_CITY_PLOTS);
 					if (ePlot == CITY_HOME_PLOT)
-						continue; // advc
+						continue;
 					CvPlot* pPlot = getCityIndexPlot(ePlot);
 					if (pPlot == NULL || pPlot->getOwner() != getOwner())
-						continue; // advc
+						continue;
 					if (pPlot->isImproved() &&
 						!GC.getInfo(pPlot->getImprovementType()).isPermanent())
 					{
@@ -12659,7 +12659,7 @@ void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_LIBERATED", getNameKey(),
 			GET_PLAYER(getOwner()).getNameKey(),
 			GET_PLAYER(ePlayer).getCivilizationAdjectiveKey());
-	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)  // advc: style changes
+	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 	{
 		CvPlayer const& kObs = *it;
 		// advc.071: Meet before the announcement (with indicator at city coordinates)

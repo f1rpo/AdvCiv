@@ -659,7 +659,7 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonus)
 			int const iAreaLimit = std::min(2, 3 * pBestArea->getNumTiles()) +
 					pBestArea->getNumTiles() / 25; // </advc.129>
 
-			// Place the bonuses: (advc: some style changes from here on)
+			// Place the bonuses:
 
 			int* aiShuffledIndices = shuffle(kMap.numPlots(), kGame.getMapRand());
 			for (int iI = 0; iI < kMap.numPlots() &&
@@ -742,7 +742,7 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonus)
 	{
 		CvPlot& p = GC.getMap().getPlotByIndex(aiShuffledIndices[i]);
 		if (!canPlaceBonusAt(eBonus, p.getX(), p.getY(), bIgnoreLatitude))
-			continue; // advc
+			continue;
 
 		p.setBonusType(eBonus);
 		iBonusCount--;

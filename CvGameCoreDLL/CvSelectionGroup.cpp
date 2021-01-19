@@ -2610,7 +2610,7 @@ RouteTypes CvSelectionGroup::getBestBuildRoute(CvPlot const& kPlot,
 		{
 			RouteTypes const eRoute = GC.getInfo(eLoopBuild).getRoute();
 			if (eRoute == NO_ROUTE)
-				continue; // advc
+				continue;
 			if (pUnit->canBuild(kPlot, eLoopBuild))
 			{
 				int iValue = GC.getInfo(eRoute).getValue();
@@ -3009,7 +3009,7 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 	{
 		FAssertMsg(pUnit->at(kPlot), "pLoopUnit is expected to be at pPlot");
 		if(!pUnit->canBuild(kPlot, eBuild))
-			continue; // advc
+			continue;
 		bContinue = true;
 		if (pUnit->build(eBuild))
 		{
