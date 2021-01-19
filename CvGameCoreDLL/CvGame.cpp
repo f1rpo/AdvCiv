@@ -6179,6 +6179,15 @@ void CvGame::setReligionSlotTaken(ReligionTypes eReligion, bool bTaken)
 {
 	FAssertMsg(eReligion >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eReligion < GC.getNumReligionInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	// <advc.096> Update the tech-religion icons now shown on the tech tree
+	if (bTaken && !isReligionSlotTaken)
+	{	/*	advc.001: This might be a minor bugfix -- tech-religion icons have
+			always been used on the main interface. */
+		gDLL->getInterfaceIFace()->setDirty(ResearchButtons_DIRTY_BIT, true);
+		/*	Disabled this again - don't use tech-religion icons there.
+			Not worth having to redraw the whole tech tree. */
+		//gDLL->getInterfaceIFace()->setDirty(Tech_Screen_DIRTY_BIT, true);
+	} // </advc.096>
 	m_abReligionSlotTaken[eReligion] = bTaken;
 }
 

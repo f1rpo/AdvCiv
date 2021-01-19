@@ -3272,7 +3272,7 @@ void CvDLLWidgetData::parseTechTreeHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 {
 	TechTypes eTech = (TechTypes)widgetDataStruct.m_iData1;
 	GAMETEXT.setTechHelp(szBuffer, eTech, false,
-			// advc.004: bPlayerContext:
+			// advc.096: bPlayerContext
 			!GET_TEAM(GC.getGame().getActiveTeam()).isHasTech(eTech),
 			false, false);
 }
