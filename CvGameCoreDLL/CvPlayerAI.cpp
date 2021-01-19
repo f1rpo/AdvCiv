@@ -7550,7 +7550,7 @@ int CvPlayerAI::AI_getWarAttitude(PlayerTypes ePlayer, /* advc.sha: */ int iPart
 	int iAttitude = 0;
 
 	if (!GET_TEAM(getTeam()).isAtWar(TEAMID(ePlayer)))
-		return 0; // advc
+		return 0;
 	// advc.130g: Was hardcoded as iAttitude-=3; no functional change.
 	iAttitude += GC.getDefineINT(CvGlobals::AT_WAR_ATTITUDE_CHANGE);
 
@@ -18032,7 +18032,7 @@ void CvPlayerAI::AI_doCounter()
 		int iBonusTrade = AI_getBonusTradeCounter(ePlayer);
 		if (rBonusVal <= iBonusTrade / (fixp(1.2) * iAttitudeDiv))
 		{
-			/*  BtS decreases the BonusTradeCounter by 1 + civ.getNumCities() / 4,
+			/*  BtS decreases the BonusTradeCounter by 1 + kPlayer.getNumCities() / 4,
 				but let's just do exponential decay instead. */
 			AI_setBonusTradeCounter(ePlayer, (int)(
 					decayFactor * AI_getBonusTradeCounter(ePlayer)));

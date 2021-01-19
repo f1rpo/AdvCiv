@@ -3097,7 +3097,7 @@ float getCombatOddsSpecific(CvUnit const* pAttacker, CvUnit const* pDefender, in
 		FErrorMsg("unexpected value in getCombatOddsSpecific");
 	}
 
-	answer = answer / (AttFSC+DefFSC + 1); // dividing by (t+w+1) as is necessary
+	answer /= (AttFSC+DefFSC + 1); // dividing by (t+w+1) as is necessary
 	return answer;
 }// getCombatOddsSpecific
 } // ADVANCED COMBAT ODDS, 11/7/09, PieceOfMind: END
@@ -9112,16 +9112,16 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 		szTempBuffer.Format( SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_TECH_TEXT"),
 				GC.getInfo(eTech).getDescription());
 		szBuffer.append(szTempBuffer);
-	} // <advc>
-	PlayerTypes eActivePlayer = kGame.getActivePlayer();
-	TeamTypes eActiveTeam = (eActivePlayer == NO_PLAYER ? NO_TEAM : TEAMID(eActivePlayer));
-	// </advc>
+	}
+
+	PlayerTypes const eActivePlayer = kGame.getActivePlayer();
+	TeamTypes const eActiveTeam = (eActivePlayer == NO_PLAYER ?
+			NO_TEAM : TEAMID(eActivePlayer));
+
 	FAssert(eActivePlayer != NO_PLAYER || !bPlayerContext);
 
 	if (bTreeInfo && NO_TECH != eFromTech)
-	{
 		buildTechTreeString(szBuffer, eTech, bPlayerContext, eFromTech);
-	}
 
 	//	Obsolete Buildings
 	FOR_EACH_ENUM(BuildingClass)
@@ -9332,7 +9332,7 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 			if (bPlayerContext && GET_PLAYER(eActivePlayer).
 				isProductionMaxedBuildingClass(eLoopBuildingClass))
 			{
-				continue; // advc
+				continue;
 			}
 			BuildingTypes eLoopBuilding = (eActivePlayer != NO_PLAYER ?
 					kGame.getActiveCivilization()->getBuilding(eLoopBuildingClass) :
@@ -9479,10 +9479,10 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 		}
 	}
 
-	if (eActivePlayer != NO_PLAYER
+	if (eActivePlayer != NO_PLAYER &&
 		/*  advc.004: Don't show this when inspecting foreign research on the
 			scoreboard, nor in Civilopedia. */
-		&& bPlayerContext)
+		bPlayerContext)
 	{
 		if (GET_PLAYER(eActivePlayer).canResearch(eTech))
 		{	// advc.004a: Commented out
@@ -16619,13 +16619,15 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 	if (kPlayer.isHuman()) 
 		return; // K-Mod
 
-	CvGame const& g = GC.getGame();
+	CvGame const& kGame = GC.getGame();
 	CvWString szTempBuffer;
 	CvWStringBuffer szBreakdown; // advc.sha
-	// advc.sha:
-	bool bSHowHiddenAttitude = (GC.getDefineBOOL("SHOW_HIDDEN_ATTITUDE") || g.isDebugMode());
+	// <advc.sha>
+	bool bSHowHiddenAttitude = (GC.getDefineBOOL("SHOW_HIDDEN_ATTITUDE") ||
+			kGame.isDebugMode()); // </advc.sha>
 	// <advc.004q>
-	bool bObscurePersonality = (g.isOption(GAMEOPTION_RANDOM_PERSONALITIES) && !g.isDebugMode());
+	bool bObscurePersonality = (kGame.isOption(GAMEOPTION_RANDOM_PERSONALITIES) &&
+			!kGame.isDebugMode());
 	// ATTITUDE_TOWARDS moved to the end of this function // </advc.004q>
 	// (K-Mod note: vassal information has been moved from here to a new function)
 
@@ -16814,7 +16816,7 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 			{
 				iAttitudeChange = kPlayer.AI_getRankDifferenceAttitude(eTargetPlayer);
 				CvWString szRankText = gDLL->getText(
-						g.getPlayerRank(ePlayer) < g.getPlayerRank(eTargetPlayer) ?
+						kGame.getPlayerRank(ePlayer) < kGame.getPlayerRank(eTargetPlayer) ?
 						"TXT_KEY_MISC_ATTITUDE_BETTER_RANK" :
 						"TXT_KEY_MISC_ATTITUDE_WORSE_RANK", iAttitudeChange);
 				if(iAttitudeChange > 0 && iPass == 0)
@@ -16903,7 +16905,7 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 	// <advc.004q>
 	int iTotalCached = kPlayer.AI_getAttitudeVal(eTargetPlayer, false);
 	if (!bConstCache && bSHowHiddenAttitude && !bObscurePersonality &&
-		iTotal != iTotalCached && !g.isNetworkMultiPlayer() &&
+		iTotal != iTotalCached && !kGame.isNetworkMultiPlayer() &&
 		// advc.130u: bForced=false is ignored among teammates
 		kPlayer.getTeam() != TEAMID(eTargetPlayer))
 	{

@@ -1551,7 +1551,7 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 			}
 
 			CvString szButton = GC.getInfo(eTech).getButton();
-			CvGame const& kGame = GC.getGame(); // advc
+			CvGame const& kGame = GC.getGame();
 			FOR_EACH_ENUM2(Religion, eReligion)
 			{
 				if (GC.getInfo(eReligion).getTechPrereq() == eTech &&
