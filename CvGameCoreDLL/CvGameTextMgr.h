@@ -58,7 +58,15 @@ public:
 			bool bIndicator = false); // advc.061
 	// <advc.004c>
 	void setInterceptPlotHelp(CvPlot const& kPlot, CvUnit const& kUnit,
-			CvWString& szHelp, bool bNewline = true); // </advc.004c>	bool setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
+			CvWString& szHelp, bool bNewline = true); // </advc.004c>
+	bool setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
+	// <advc>
+	void setACOPlotHelp(CvWStringBuffer &szString, CvPlot const* pPlot,
+			CvUnit const* pAttacker, CvUnit const* pDefender, int iView,
+			bool bBestOddsHelp);
+	void setACOModifiersPlotHelp(CvWStringBuffer &szString, CvPlot const* pPlot,
+			CvUnit const* pAttacker, CvUnit const* pDefender, int iView);
+	// </advc>
 	// <advc.089>
 	void setCannotAttackHelp(CvWStringBuffer& szHelp, CvUnit const& kAttacker,
 			CvUnit const& kDefender); // </advc.089>
