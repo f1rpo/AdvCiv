@@ -7568,8 +7568,8 @@ int CvPlayerAI::AI_getWarAttitude(PlayerTypes ePlayer, /* advc.sha: */ int iPart
 		iAttitude += range(iAttitudeChange, -iLimit, iLimit);
 	}
 	// <advc.sha> Bring it down to 0 at most
-	if (iPartialSum > MIN_INT && iPartialSum + iAttitude >= 0)
-		iAttitude -= iPartialSum + iAttitude + 1; // </advc.sha>
+	if (iPartialSum > MIN_INT && iPartialSum + iAttitude > 0)
+		iAttitude = -iPartialSum; // </advc.sha>
 	return iAttitude;
 }
 
