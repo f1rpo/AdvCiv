@@ -2750,7 +2750,8 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 				pAttacker->currCombatStrFloat(NULL, NULL));
 		CvWString szDefenseOdds;
 		szDefenseOdds.Format(L"%.2f", pDefender->currCombatStrFloat(pPlot, pAttacker));
-		szString.append(NEWLINE);
+		if (!szString.isEmpty()) // advc.001: for right click hover with air unit
+			szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_ODDS_VS",
 				szOffenseOdds.GetCString(), szDefenseOdds.GetCString()));
 
@@ -4366,7 +4367,7 @@ void CvGameTextMgr::setACOModifiersPlotHelp(CvWStringBuffer &szString,
 	CvPlot const* pPlot, CvUnit const* pAttacker, CvUnit const* pDefender,
 	int iView)
 {
-	if (!szString.isEmpty()) // advc.001: For air units
+	if (!szString.isEmpty()) // advc.001: for right click hover with air unit
 		szString.append(NEWLINE);
 	CvWString szTempBuffer;
 	CvWString szTempBuffer2;
