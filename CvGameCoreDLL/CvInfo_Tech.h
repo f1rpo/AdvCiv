@@ -16,8 +16,8 @@ public: // advc: All the const functions are exposed to Python except those adde
 	inline int getAIWeight() const { return m_iAIWeight; }
 	inline int getAITradeModifier() const { return m_iAITradeModifier; }
 	inline int getResearchCost() const { return m_iResearchCost; }
-	int getAdvancedStartCost() const;
-	int getAdvancedStartCostIncrease() const;
+	int getAdvancedStartCost() const { return m_iAdvancedStartCost; }
+	int getAdvancedStartCostIncrease() const { return m_iAdvancedStartCostIncrease; }
 	inline EraTypes getEra() const { return (EraTypes)m_iEra; }
 	inline int getTradeRoutes() const { return m_iTradeRoutes; }
 	inline int getFeatureProductionModifier() const { return m_iFeatureProductionModifier; }
@@ -29,8 +29,8 @@ public: // advc: All the const functions are exposed to Python except those adde
 	inline int getAssetValue() const { return m_iAssetValue; }
 	inline int getPowerValue() const { return m_iPowerValue; }
 
-	int getGridX() const;
-	int getGridY() const;
+	int getGridX() const { return m_iGridX; }
+	int getGridY() const { return m_iGridY; }
 
 	inline bool isRepeat() const { return m_bRepeat; }
 	inline bool isTrade() const { return m_bTrade; }
@@ -60,10 +60,22 @@ public: // advc: All the const functions are exposed to Python except those adde
 
 	int getDomainExtraMoves(int i) const;
 	int getFlavorValue(int i) const;
-	int getPrereqOrTechs(int i) const;
-	inline bool isAnyPrereqOrTech() const { return (m_piPrereqOrTechs != NULL); } // advc.003t
-	int getPrereqAndTechs(int i) const;
-	inline bool isAnyPrereqAndTech() const { return (m_piPrereqAndTechs != NULL); } // advc.003t
+	// <advc.003t>
+	inline int getNumOrTechPrereqs() const { return (int)m_aePrereqOrTechs.size(); }
+	inline int getNumAndTechPrereqs() const { return (int)m_aePrereqAndTechs.size(); }
+	TechTypes getPrereqOrTechs(int i) const
+	{
+		FAssertBounds(0, getNumOrTechPrereqs(), i);
+		return m_aePrereqOrTechs[i];
+	}
+	TechTypes getPrereqAndTechs(int i) const
+	{
+		FAssertBounds(0, getNumAndTechPrereqs(), i);
+		return m_aePrereqAndTechs[i];
+	}
+	int py_getPrereqOrTechs(int i) const;
+	int py_getPrereqAndTechs(int i) const;
+	// </advc.003t>
 	// K-Mod, exposed to Python
 	int getSpecialistExtraCommerce(int i) const;
 	int* getSpecialistExtraCommerceArray() const;
@@ -127,8 +139,8 @@ protected:
 	int* m_piDomainExtraMoves;
 	int* m_piFlavorValue;
 
-	int* m_piPrereqOrTechs;
-	int* m_piPrereqAndTechs;
+	std::vector<TechTypes> m_aePrereqOrTechs; // advc.003t: was int*
+	std::vector<TechTypes> m_aePrereqAndTechs; // advc.003t: was int*
 
 	int* m_piSpecialistExtraCommerce; // K-Mod
 	bool* m_pbCommerceFlexible;

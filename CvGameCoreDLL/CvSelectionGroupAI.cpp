@@ -648,7 +648,7 @@ CvUnit* CvSelectionGroupAI::AI_bestUnitForMission(MissionTypes eMission,
 		if (!pUnit->canMove())
 			continue;
 		scaled rPriority;
-		switch(eMission)
+		switch (eMission)
 		{
 		case MISSION_PILLAGE:
 		{	// K-Mod code cut from startMission

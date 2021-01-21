@@ -325,13 +325,19 @@ public: // All the const functions are exposed to Python except those added by m
 	// advc.inl: inlined these three
 	inline int getMovementCost() const { return m_iMovementCost; }
 	inline int getFlatMovementCost() const { return m_iFlatMovementCost; }
-	inline int getPrereqBonus() const { return m_iPrereqBonus; }
+	inline BonusTypes getPrereqBonus() const { return m_ePrereqBonus; }
 
 	int getYieldChange(int i) const;
 	int getTechMovementChange(int i) const;
-	int getPrereqOrBonus(int i) const;
-	inline bool isAnyPrereqOrBonus() const { return (m_piPrereqOrBonuses != NULL); } // advc.003t
-
+	// <advc.003t>
+	inline int getNumPrereqOrBonuses() const { return m_aePrereqOrBonuses.size(); }
+	BonusTypes getPrereqOrBonus(int i) const
+	{
+		FAssertBounds(0, getNumPrereqOrBonuses(), i);
+		return m_aePrereqOrBonuses[i];
+	}
+	int py_getPrereqOrBonus(int i) const;
+	// </advc.003t>
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:
@@ -341,11 +347,11 @@ protected:
 	int m_iValue;
 	int m_iMovementCost;
 	int m_iFlatMovementCost;
-	int m_iPrereqBonus;
+	BonusTypes m_ePrereqBonus;
 
 	int* m_piYieldChange;
 	int* m_piTechMovementChange;
-	int* m_piPrereqOrBonuses;
+	std::vector<BonusTypes> m_aePrereqOrBonuses; // advc.003t: was int*
 };
 
 class CvImprovementBonusInfo;

@@ -92,8 +92,9 @@ void CyInfoPythonInterface1()
 
 		.def("getDomainExtraMoves", &CvTechInfo::getDomainExtraMoves, "int (int i)")
 		.def("getFlavorValue", &CvTechInfo::getFlavorValue, "int (int i)")
-		.def("getPrereqOrTechs", &CvTechInfo::getPrereqOrTechs, "int (int i)")
-		.def("getPrereqAndTechs", &CvTechInfo::getPrereqAndTechs, "int (int i)")
+		// advc.003t: py_...
+		.def("getPrereqOrTechs", &CvTechInfo::py_getPrereqOrTechs, "int (int i)")
+		.def("getPrereqAndTechs", &CvTechInfo::py_getPrereqAndTechs, "int (int i)")
 
 		.def("getSpecialistExtraCommerce", &CvTechInfo::getSpecialistExtraCommerce, "int (int i)") // K-Mod
 		.def("isCommerceFlexible", &CvTechInfo::isCommerceFlexible, "bool (int i)")
@@ -311,9 +312,9 @@ void CyInfoPythonInterface1()
 		.def("getUnitPadTime", &CvUnitInfo::getUnitPadTime, "float ()")
 
 		// Arrays
-
-		.def("getPrereqAndTechs", &CvUnitInfo::getPrereqAndTechs, "int (int i)")
-		.def("getPrereqOrBonuses", &CvUnitInfo::getPrereqOrBonuses, "int (int i)")
+		// advc.003t: py_...
+		.def("getPrereqAndTechs", &CvUnitInfo::py_getPrereqAndTechs, "int (int i)")
+		.def("getPrereqOrBonuses", &CvUnitInfo::py_getPrereqOrBonuses, "int (int i)")
 		// <advc.905b>
 		.def("getSpeedBonuses", &CvUnitInfo::getSpeedBonuses, "int (int i)")
 		.def("getExtraMoves", &CvUnitInfo::getExtraMoves, "int (int i)")
@@ -602,8 +603,9 @@ void CyInfoPythonInterface1()
 		.def("getUnitCombatFreeExperience", &CvBuildingInfo::getUnitCombatFreeExperience, "int (int i)")
 		.def("getDomainFreeExperience", &CvBuildingInfo::getDomainFreeExperience, "int (int i)")
 		.def("getDomainProductionModifier", &CvBuildingInfo::getDomainProductionModifier, "int (int i)")
-		.def("getPrereqAndTechs", &CvBuildingInfo::getPrereqAndTechs, "int (int i)")
-		.def("getPrereqOrBonuses", &CvBuildingInfo::getPrereqOrBonuses, "int (int i)")
+		// advc.003t: py_...
+		.def("getPrereqAndTechs", &CvBuildingInfo::py_getPrereqAndTechs, "int (int i)")
+		.def("getPrereqOrBonuses", &CvBuildingInfo::py_getPrereqOrBonuses, "int (int i)")
 		.def("getProductionTraits", &CvBuildingInfo::getProductionTraits, "int (int i)")
 		.def("getHappinessTraits", &CvBuildingInfo::getHappinessTraits, "int (int i)")
 		.def("getBuildingHappinessChanges", &CvBuildingInfo::getBuildingHappinessChanges, "int (int i)")

@@ -993,7 +993,7 @@ protected:
 	int* m_aiShrineBuilding;
 	int* m_aiShrineReligion;
 	int m_iNumCultureVictoryCities;
-	int m_eCultureVictoryCultureLevel;
+	CultureLevelTypes m_eCultureVictoryCultureLevel;
 
 	StartPointsAsHandicap* m_pSpah; // advc.250b
 	RiseFall* m_pRiseFall; // advc.700

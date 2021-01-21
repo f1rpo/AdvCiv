@@ -145,7 +145,7 @@ public:
 // BULL - Trade Denial - end
 	// <advc.004w>
 	void setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus,
-			bool bCivilopediaText, PlayerTypes eTradePlayer, bool bDiplo, CvCity* pCity);
+			bool bCivilopediaText, PlayerTypes eTradePlayer, bool bDiplo, CvCity const* pCity);
 	// </advc.004w>
 	void setReligionHelp(CvWStringBuffer &szBuffer, ReligionTypes eReligion, bool bCivilopedia = false);
 	void setReligionHelpCity(CvWStringBuffer &szBuffer, ReligionTypes eReligion, CvCity *pCity, bool bCityScreen = false, bool bForceReligion = false, bool bForceState = false, bool bNoStateReligion = false);

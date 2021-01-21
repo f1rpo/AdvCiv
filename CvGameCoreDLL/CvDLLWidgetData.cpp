@@ -2449,21 +2449,18 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			CvWStringBuffer szBonusList;
 			bool bValid = false;
 			bool bFirst = true;
-			for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+			for (int i = 0; i < GC.getInfo(eCorporation).getNumPrereqBonuses(); i++)
 			{
-				BonusTypes eBonus = (BonusTypes)GC.getInfo(eCorporation).
-						getPrereqBonus(i);
-				if (NO_BONUS == eBonus)
-					continue;
-					if (!bFirst)
-						szBonusList.append(L", ");
-					else bFirst = false;
-					szBonusList.append(GC.getInfo(eBonus).getDescription());
-					if (pMissionCity->hasBonus(eBonus))
-					{
-						bValid = true;
-						break;
-					}
+				BonusTypes const eBonus = GC.getInfo(eCorporation).getPrereqBonus(i);
+				if (!bFirst)
+					szBonusList.append(L", ");
+				else bFirst = false;
+				szBonusList.append(GC.getInfo(eBonus).getDescription());
+				if (pMissionCity->hasBonus(eBonus))
+				{
+					bValid = true;
+					break;
+				}
 			}
 			if (!bValid)
 			{
@@ -2512,7 +2509,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			if (!kSelectedUnit.canDiscover(&kMissionPlot))
 				continue;
 			TechTypes const eTech = kSelectedUnit.getDiscoveryTech();
-			int const iResearchLeft = GET_TEAM(kSelectedUnit.getTeam()).getResearchLeft(eTech);
+			int const iResearchLeft = GET_TEAM(kSelectedUnit.getTeam()).
+					getResearchLeft(eTech);
 			if (kSelectedUnit.getDiscoverResearch(eTech) >= iResearchLeft)
 			{
 				szBuffer.append(NEWLINE);
@@ -2831,7 +2829,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			}
 			if (eRoute != NO_ROUTE)
 			{
-				BonusTypes eRoutePrereq = (BonusTypes)GC.getInfo(eRoute).getPrereqBonus();
+				BonusTypes const eRoutePrereq = GC.getInfo(eRoute).getPrereqBonus();
 				if (eRoutePrereq != NO_BONUS)
 				{
 					if (!kMissionPlot.isAdjacentPlotGroupConnectedBonus(
@@ -2844,26 +2842,24 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 				}
 				bool bFoundValid = true;
 				std::vector<BonusTypes> aeOrBonuses;
-				for (int i = 0; i < GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); ++i)
+				for (int i = 0; i < GC.getInfo(eRoute).getNumPrereqOrBonuses(); ++i)
 				{
-					BonusTypes eRoutePrereqOr = (BonusTypes)
-							GC.getInfo(eRoute).getPrereqOrBonus(i);
-					if (NO_BONUS != eRoutePrereqOr)
+					BonusTypes const eRoutePrereqOr = GC.getInfo(eRoute).
+							getPrereqOrBonus(i);
+					aeOrBonuses.push_back(eRoutePrereqOr);
+					bFoundValid = false;
+					if (kMissionPlot.isAdjacentPlotGroupConnectedBonus(
+						kUnitOwner.getID(), eRoutePrereqOr))
 					{
-						aeOrBonuses.push_back(eRoutePrereqOr);
-						bFoundValid = false;
-						if (kMissionPlot.isAdjacentPlotGroupConnectedBonus(
-								kUnitOwner.getID(), eRoutePrereqOr))
-						{
-							bFoundValid = true;
-							break;
-						}
+						bFoundValid = true;
+						break;
 					}
 				}
 				if (!bFoundValid)
 				{
 					bool bFirst = true;
-					for (std::vector<BonusTypes>::iterator it = aeOrBonuses.begin(); it != aeOrBonuses.end(); ++it)
+					for (std::vector<BonusTypes>::iterator it = aeOrBonuses.begin();
+						it != aeOrBonuses.end(); ++it)
 					{
 						szFirstBuffer = NEWLINE +
 								gDLL->getText("TXT_KEY_BUILDING_REQUIRES_LIST");

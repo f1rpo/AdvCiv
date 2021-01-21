@@ -3814,38 +3814,32 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 			}
 			// Check "or" prereqs
 			bool bMissingPrereq = false;
-			for (int p = 0; p < GC.getNUM_OR_TECH_PREREQS(); ++p)
+			for (int i = 0; i < kTech.getNumOrTechPrereqs(); i++)
 			{
-				TechTypes ePrereq = (TechTypes)kTech.getPrereqOrTechs(p);
-				if (ePrereq != NO_TECH)
+				TechTypes ePrereq = kTech.getPrereqOrTechs(i);
+				if (kTeam.isHasTech(ePrereq) ||
+					std::find_if(techs.begin(), tech_search_end,
+					PairSecondEq<int, TechTypes>(ePrereq)) != tech_search_end)
 				{
-					if (kTeam.isHasTech(ePrereq) ||
-						std::find_if(techs.begin(), tech_search_end,
-						PairSecondEq<int, TechTypes>(ePrereq)) != tech_search_end)
-					{
-						bMissingPrereq = false; // we have a prereq
-						break;
-					}
-					// A prereq exists, and we don't have it.
-					bMissingPrereq = true;
+					bMissingPrereq = false; // we have a prereq
+					break;
 				}
+				// A prereq exists, and we don't have it.
+				bMissingPrereq = true;
 			}
 			if (bMissingPrereq)
 				continue; // We don't have any of the "or" prereqs
 
 			// Check "and" prereqs
-			for (int p = 0; p < GC.getNUM_AND_TECH_PREREQS(eTech); ++p)
+			for (int i = 0; i < kTech.getNumAndTechPrereqs(); i++)
 			{
-				TechTypes ePrereq = (TechTypes)kTech.getPrereqAndTechs(p);
-				if (ePrereq != NO_TECH)
+				TechTypes ePrereq = kTech.getPrereqAndTechs(i);
+				if (!GET_TEAM(getTeam()).isHasTech(ePrereq) &&
+					std::find_if(techs.begin(), tech_search_end,
+					PairSecondEq<int, TechTypes>(ePrereq)) == tech_search_end)
 				{
-					if (!GET_TEAM(getTeam()).isHasTech(ePrereq) &&
-						std::find_if(techs.begin(), tech_search_end,
-						PairSecondEq<int, TechTypes>(ePrereq)) == tech_search_end)
-					{
-						bMissingPrereq = true;
-						break;
-					}
+					bMissingPrereq = true;
+					break;
 				}
 			}
 			if (bMissingPrereq)
@@ -4111,13 +4105,13 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 			while (!techs_to_check.empty() && (int)techs_in_path.size() <= iMaxPathLength)
 			{
 				bool bMissingPrereq = false;
-
 				// AndTech prereqs:
-				for (int p = 0; p < GC.getNUM_AND_TECH_PREREQS(techs_to_check.front()) &&
-					!bMissingPrereq; ++p)
+				for (int iPrereq = 0;
+					iPrereq < GC.getInfo(techs_to_check.front()).getNumAndTechPrereqs() &&
+					!bMissingPrereq; iPrereq++)
 				{
-					TechTypes ePrereq = (TechTypes)GC.getInfo(
-							techs_to_check.front()).getPrereqAndTechs(p);
+					TechTypes const ePrereq = GC.getInfo(techs_to_check.front()).
+							getPrereqAndTechs(iPrereq);
 					if (!kTeam.isHasTech(ePrereq) &&
 						techs_in_path.find(ePrereq) == techs_in_path.end())
 					{
@@ -4151,27 +4145,24 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 				// OrTechs:
 				int iBestOrIndex = -1;
 				int iBestOrValue = -1;
-				for (int p = 0; p < GC.getNUM_OR_TECH_PREREQS(); ++p)
+				for (int iPrereq = 0;
+					iPrereq < GC.getInfo(techs_to_check.front()).getNumOrTechPrereqs();
+					iPrereq++)
 				{
-					TechTypes ePrereq = (TechTypes)GC.getInfo(
-							techs_to_check.front()).getPrereqOrTechs(p);
-					if (ePrereq == NO_TECH)
-						continue;
-
+					TechTypes const ePrereq = GC.getInfo(techs_to_check.front()).
+							getPrereqOrTechs(iPrereq);
 					if (!kTeam.isHasTech(ePrereq) &&
-							techs_in_path.find(ePrereq) == techs_in_path.end())
+						techs_in_path.find(ePrereq) == techs_in_path.end())
 					{
 						bMissingPrereq = true;
 						// find the tech.
 						for (int j = 0; j < techs_to_depth[end_depth]; ++j)
 						{
-							if (techs[j].second == ePrereq)
+							if (techs[j].second == ePrereq &&
+								techs[j].first > iBestOrValue)
 							{
-								if (techs[j].first > iBestOrValue)
-								{
-									iBestOrIndex = j;
-									iBestOrValue = techs[j].first;
-								}
+								iBestOrIndex = j;
+								iBestOrValue = techs[j].first;
 							}
 						}
 					}
@@ -4326,7 +4317,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 				{
 					FAssert(canResearch(eLoopTech) ||
 							// advc.126: See comment above about Earth1000AD
-							GC.getGame().isScenario() && !GC.getInitCore().getWBMapNoPlayers())
+							GC.getGame().isScenario() && !GC.getInitCore().getWBMapNoPlayers());
 					m_aeBestTechs.push_back(eLoopTech);
 				}
 			}
@@ -5060,29 +5051,26 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			bool bMaybeMissing = false; // if we don't know if we have the bonus or not
 			bool bDefinitelyMissing = false; // if we can see the bonuses, and we know we don't have any.
 
-			for (int i = 0; i < GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); i++)
+			for (int i = 0; i < GC.getInfo(eRoute).getNumPrereqOrBonuses(); i++)
 			{
-				BonusTypes ePrereqBonus = (BonusTypes)GC.getInfo(eRoute).getPrereqOrBonus(i);
-				if (ePrereqBonus != NO_BONUS)
+				BonusTypes const ePrereqBonus = GC.getInfo(eRoute).getPrereqOrBonus(i);
+				if (hasBonus(ePrereqBonus))
 				{
-					if (hasBonus(ePrereqBonus))
+					bDefinitelyMissing = false;
+					bMaybeMissing = false;
+					break;
+				}
+				else
+				{
+					if (kTeam.isBonusRevealed(ePrereqBonus) &&
+						AI_countOwnedBonuses(ePrereqBonus) == 0)
 					{
-						bDefinitelyMissing = false;
-						bMaybeMissing = false;
-						break;
+						bDefinitelyMissing = true;
 					}
-					else
-					{
-						if (kTeam.isBonusRevealed(ePrereqBonus) &&
-							AI_countOwnedBonuses(ePrereqBonus) == 0)
-						{
-							bDefinitelyMissing = true;
-						}
-						else bMaybeMissing = true;
-					}
+					else bMaybeMissing = true;
 				}
 			}
-			BonusTypes ePrereqBonus = (BonusTypes)GC.getInfo(eRoute).getPrereqBonus();
+			BonusTypes ePrereqBonus = GC.getInfo(eRoute).getPrereqBonus();
 			if (ePrereqBonus != NO_BONUS && !hasBonus(ePrereqBonus))
 			{
 				if ((kTeam.isHasTech(GC.getInfo(ePrereqBonus).getTechReveal()) ||
@@ -5432,16 +5420,18 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 						iMissingTechs += (!kTeam.isHasTech(eHQTech) ? 1 : 0);
 
-						for (int i = 0; i < GC.getNUM_BUILDING_AND_TECH_PREREQS(); i++)
+						for (int i = 0; i < kHQBuilding.getNumPrereqAndTechs(); i++)
 						{
-							iMissingTechs += (!kTeam.isHasTech(kHQBuilding.getPrereqAndTechs(i)) ? 1 : 0);
+							if (!kTeam.isHasTech(kHQBuilding.getPrereqAndTechs(i)))
+								iMissingTechs++;
 						}
 
 						SpecialBuildingTypes eSpecial = kHQBuilding.getSpecialBuildingType();
-						iMissingTechs += ((eSpecial != NO_SPECIALBUILDING &&
-								!kTeam.isHasTech(GC.getInfo(eSpecial).getTechPrereq()))
-								? 1 : 0);
-
+						if (eSpecial != NO_SPECIALBUILDING &&
+							!kTeam.isHasTech(GC.getInfo(eSpecial).getTechPrereq()))
+						{
+							iMissingTechs++;
+						}
 						FAssert(iMissingTechs > 0);
 					}
 				}
@@ -6663,13 +6653,12 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			int iMissingTechs = 0;
 			if (!kTeam.isHasTech((TechTypes)kLoopUnit.getPrereqAndTech()))
 				iMissingTechs++;
-
-			for (int iI = 0; iI < GC.getNUM_UNIT_AND_TECH_PREREQS(eLoopUnit); iI++)
+			for (int j = 0; j < kLoopUnit.getNumPrereqAndTechs(); j++)
 			{
-				if (!kTeam.isHasTech(kLoopUnit.getPrereqAndTechs(iI)))
+				if (!kTeam.isHasTech(kLoopUnit.getPrereqAndTechs(j)))
 				{
 					iMissingTechs++;
-					if (!canResearch(kLoopUnit.getPrereqAndTechs(iI)))
+					if (!canResearch(kLoopUnit.getPrereqAndTechs(j)))
 						iMissingTechs++;
 				}
 			}
@@ -6683,33 +6672,30 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 		// k146: if the 'maybe missing' resource is revealed by eTech
 		bool bWillReveal = false;
 
-		for (int iI = 0; iI < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eLoopUnit); ++iI)
+		for (int j = 0; j < kLoopUnit.getNumPrereqOrBonuses(); j++)
 		{
-			BonusTypes ePrereqBonus = kLoopUnit.getPrereqOrBonuses(iI);
-			if (ePrereqBonus != NO_BONUS)
+			BonusTypes ePrereqBonus = kLoopUnit.getPrereqOrBonuses(j);
+			if (hasBonus(ePrereqBonus))
 			{
-				if (hasBonus(ePrereqBonus))
+				bDefinitelyMissing = false;
+				bMaybeMissing = false;
+				break;
+			}
+			else
+			{
+				if ((kTeam.isHasTech(GC.getInfo(ePrereqBonus).getTechReveal()) ||
+					kTeam.isForceRevealedBonus(ePrereqBonus)) &&
+					AI_countOwnedBonuses(ePrereqBonus) == 0)
 				{
-					bDefinitelyMissing = false;
-					bMaybeMissing = false;
-					break;
+					bDefinitelyMissing = true;
 				}
 				else
 				{
-					if ((kTeam.isHasTech(GC.getInfo(ePrereqBonus).getTechReveal()) ||
-						kTeam.isForceRevealedBonus(ePrereqBonus)) &&
-						AI_countOwnedBonuses(ePrereqBonus) == 0)
-					{
-						bDefinitelyMissing = true;
-					}
-					else
-					{
-						bMaybeMissing = true;
-						// <k146>
-						bDefinitelyMissing = false;
-						if (GC.getInfo(ePrereqBonus).getTechReveal() == eTech)
-							bWillReveal = true; // </k146>
-					}
+					bMaybeMissing = true;
+					// <k146>
+					bDefinitelyMissing = false;
+					if (GC.getInfo(ePrereqBonus).getTechReveal() == eTech)
+						bWillReveal = true; // </k146>
 				}
 			}
 		}
@@ -11204,24 +11190,21 @@ int CvPlayerAI::AI_baseBonusUnitVal(BonusTypes eBonus, UnitTypes eUnit,
 		int iOrBonuses = 0;
 		int iOrBonusesWeHave = 0; // excluding eBonus itself.
 		bool bOrBonus = false; // is eBonus one of the OrBonuses for this unit.
-		for(int iJ = 0; iJ < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); iJ++)
+		for(int i = 0; i < kUnit.getNumPrereqOrBonuses(); i++)
 		{
-			BonusTypes ePrereqBonus = kUnit.getPrereqOrBonuses(iJ);
-			if(ePrereqBonus != NO_BONUS)
-			{
-				iOrBonuses++;
-				// advc.036: Uncommented. Should be fine now.
-				iOrBonusesWeHave += (ePrereqBonus != eBonus &&
-						getNumAvailableBonuses(ePrereqBonus) > 0) ? 1 : 0;
-				/*	@*#!  It occurs to me that using state-dependent stuff such as
-					NumAvailableBonuses here could result in OOS errors.
-					This is because the code here can be trigged by local UI events,
-					and then the value could be cached... It's very frustrating -
-					because including the effect from iOrBonusesWeHave was going to be
-					a big improvement. The only way I can think of working around this
-					is to add a 'bConstCache' argument to this function... */
-				bOrBonus = bOrBonus || ePrereqBonus == eBonus;
-			}
+			iOrBonuses++;
+			BonusTypes const ePrereqBonus = kUnit.getPrereqOrBonuses(i);
+			// advc.036: Uncommented. Should be fine now.
+			iOrBonusesWeHave += (ePrereqBonus != eBonus &&
+					getNumAvailableBonuses(ePrereqBonus) > 0) ? 1 : 0;
+			/*	@*#!  It occurs to me that using state-dependent stuff such as
+				NumAvailableBonuses here could result in OOS errors.
+				This is because the code here can be trigged by local UI events,
+				and then the value could be cached... It's very frustrating -
+				because including the effect from iOrBonusesWeHave was going to be
+				a big improvement. The only way I can think of working around this
+				is to add a 'bConstCache' argument to this function... */
+			bOrBonus = bOrBonus || ePrereqBonus == eBonus;
 		}
 		if(bOrBonus)
 		{	// 1: 1, 2: 2/3, 3: 1/2, ...
@@ -11317,9 +11300,9 @@ int CvPlayerAI::AI_baseBonusBuildingVal(BonusTypes eBonus, BuildingTypes eBuildi
 	if(kBuilding.getPrereqAndBonus() == eBonus)
 		iValue += 25; // advc.036: was 30
 
-	for(int iJ = 0; iJ < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); iJ++)
+	for(int i = 0; i < kBuilding.getNumPrereqOrBonuses(); i++)
 	{
-		if (kBuilding.getPrereqOrBonuses(iJ) == eBonus)
+		if (kBuilding.getPrereqOrBonuses(i) == eBonus)
 			iValue += 15; // advc.036: was 20
 	}
 	iValue += kBuilding.getBonusProductionModifier(eBonus) / 10;
@@ -11354,13 +11337,10 @@ int CvPlayerAI::AI_baseBonusBuildingVal(BonusTypes eBonus, BuildingTypes eBuildi
 	if(!kOurTeam.isHasTech(kBuilding.getPrereqAndTech()))
 		bHasTechForBuilding = false;
 	for(int iPrereqIndex = 0; bHasTechForBuilding && iPrereqIndex <
-		GC.getNUM_BUILDING_AND_TECH_PREREQS(); iPrereqIndex++)
+		kBuilding.getNumPrereqAndTechs(); iPrereqIndex++)
 	{
-		if (kBuilding.getPrereqAndTechs(iPrereqIndex) != NO_TECH)
-		{
-			if (!kOurTeam.isHasTech(kBuilding.getPrereqAndTechs(iPrereqIndex)))
-				bHasTechForBuilding = false;
-		}
+		if (!kOurTeam.isHasTech(kBuilding.getPrereqAndTechs(iPrereqIndex)))
+			bHasTechForBuilding = false;
 	}
 
 	bool const bStateReligion = (NO_RELIGION != kBuilding.getStateReligion());
@@ -11451,7 +11431,7 @@ int CvPlayerAI::AI_baseBonusRouteVal(BonusTypes eBonus, RouteTypes eRoute,
 	int iValue = 0;
 	if(GC.getInfo(eRoute).getPrereqBonus() == eBonus)
 		iValue += 80;
-	for(int i = 0; i < GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); i++)
+	for(int i = 0; i < GC.getInfo(eRoute).getNumPrereqOrBonuses(); i++)
 	{
 		if(GC.getInfo(eRoute).getPrereqOrBonus(i) == eBonus)
 			iValue += 40;
@@ -11479,44 +11459,43 @@ int CvPlayerAI::AI_baseBonusRouteVal(BonusTypes eBonus, RouteTypes eRoute,
 
 int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) const
 {
-	int iValue = 0;
 	int const iCities = getNumCities() + getNumCities() / 6 + 1;
-
+	int iValue = 0;
 	FOR_EACH_ENUM2(Corporation, eCorp)
 	{
 		int iCorps = getHasCorporationCount(eCorp);
-		if (iCorps > 0)
-		{	/*  <advc.036> Human could spread the corp rapidly. I also want to push
-				the price for humans a bit in order to stop the AI from offering 1-ofs
-				as soon as a player founds a corporation. */
-			if(bTrade && isHuman())
-				iCorps = std::min(getNumCities(), 1 + ROUND_DIVIDE(iCorps * 4, 3));
-			// </advc.036>
-			iCorps += getNumCities() / 6 + 1;
-			CvCorporationInfo& kCorp = GC.getInfo(eCorp);
-			for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
-			{
-				if (eBonus == kCorp.getPrereqBonus(i))
-				{
-					iValue += (50 * kCorp.getYieldProduced(YIELD_FOOD) * iCorps) / iCities;
-					iValue += (50 * kCorp.getYieldProduced(YIELD_PRODUCTION) * iCorps) / iCities;
-					iValue += (30 * kCorp.getYieldProduced(YIELD_COMMERCE) * iCorps) / iCities;
+		if (iCorps <= 0)
+			continue;
+		/*  <advc.036> Human could spread the corp rapidly. I also want to push
+			the price for humans a bit in order to stop the AI from offering 1-ofs
+			as soon as a player founds a corporation. */
+		if(bTrade && isHuman())
+			iCorps = std::min(getNumCities(), 1 + ROUND_DIVIDE(iCorps * 4, 3));
+		// </advc.036>
+		iCorps += getNumCities() / 6 + 1;
+		CvCorporationInfo const& kCorp = GC.getInfo(eCorp);
+		for (int i = 0; i < kCorp.getNumPrereqBonuses(); i++)
+		{
+			if (eBonus != kCorp.getPrereqBonus(i))
+				continue;
 
-					iValue += (30 * kCorp.getCommerceProduced(COMMERCE_GOLD) * iCorps) / iCities;
-					iValue += (30 * kCorp.getCommerceProduced(COMMERCE_RESEARCH) * iCorps) / iCities;
-					//iValue += (12 * kCorp.getCommerceProduced(COMMERCE_CULTURE) * iCorps) / iCities;
-					// K-Mod, I'd love to calculate this stuff properly, but because of the way trade currently operates...
-					iValue += (20 * kCorp.getCommerceProduced(COMMERCE_CULTURE) * iCorps) / iCities;
-					iValue += (20 * kCorp.getCommerceProduced(COMMERCE_ESPIONAGE) * iCorps) / iCities;
+			iValue += (50 * kCorp.getYieldProduced(YIELD_FOOD) * iCorps) / iCities;
+			iValue += (50 * kCorp.getYieldProduced(YIELD_PRODUCTION) * iCorps) / iCities;
+			iValue += (30 * kCorp.getYieldProduced(YIELD_COMMERCE) * iCorps) / iCities;
 
-					//Disabled since you can't found/spread a corp unless there is already a bonus,
-					//and that bonus will provide the entirety of the bonusProduced benefit.
-					/*if (NO_BONUS != kCorp.getBonusProduced()) {
-						if (getNumAvailableBonuses((BonusTypes)kCorp.getBonusProduced()) == 0)
-							iBonusValue += (1000 * iCorpCount * AI_baseBonusVal((BonusTypes)kCorp.getBonusProduced())) / (10 * iCities);
-					}*/
-				}
-			}
+			iValue += (30 * kCorp.getCommerceProduced(COMMERCE_GOLD) * iCorps) / iCities;
+			iValue += (30 * kCorp.getCommerceProduced(COMMERCE_RESEARCH) * iCorps) / iCities;
+			//iValue += (12 * kCorp.getCommerceProduced(COMMERCE_CULTURE) * iCorps) / iCities;
+			// K-Mod, I'd love to calculate this stuff properly, but because of the way trade currently operates...
+			iValue += (20 * kCorp.getCommerceProduced(COMMERCE_CULTURE) * iCorps) / iCities;
+			iValue += (20 * kCorp.getCommerceProduced(COMMERCE_ESPIONAGE) * iCorps) / iCities;
+
+			//Disabled since you can't found/spread a corp unless there is already a bonus,
+			//and that bonus will provide the entirety of the bonusProduced benefit.
+			/*if (NO_BONUS != kCorp.getBonusProduced()) {
+				if (getNumAvailableBonuses((BonusTypes)kCorp.getBonusProduced()) == 0)
+					iBonusValue += (1000 * iCorpCount * AI_baseBonusVal((BonusTypes)kCorp.getBonusProduced())) / (10 * iCities);
+			}*/
 		}
 	}
 
@@ -11770,7 +11749,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 			bStrategic = true;
 			bCrucialStrategic = true; // advc.036
 		}
-		for (int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); i++)
+		for (int i = 0; i < GC.getInfo(eUnit).getNumPrereqOrBonuses(); i++)
 		{
 			if (GC.getInfo(eUnit).getPrereqOrBonuses(i) == eBonus)
 			{
@@ -11796,7 +11775,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 			{
 				if (GC.getInfo(eLoopBuilding).getPrereqAndBonus() == eBonus)
 					bStrategic = true;
-				for (int i = 0; i < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(eLoopBuilding); i++)
+				for (int i = 0; i < GC.getInfo(eLoopBuilding).getNumPrereqOrBonuses(); i++)
 				{
 					if (GC.getInfo(eLoopBuilding).getPrereqOrBonuses(i) == eBonus)
 						bStrategic = true;
@@ -11818,14 +11797,20 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 		if (GC.getInfo(eBonus).getHappiness() > 0)
 		{	// advc.036: Treat Ivory as non-crucial
 			bCrucialStrategic = false;
-			if (eAttitude <= GC.getInfo(getPersonalityType()).getHappinessBonusRefuseAttitudeThreshold())
+			if (eAttitude <= GC.getInfo(getPersonalityType()).
+				getHappinessBonusRefuseAttitudeThreshold())
+			{
 				return DENIAL_ATTITUDE;
+			}
 		}
 		if (GC.getInfo(eBonus).getHealth() > 0)
 		{
 			bCrucialStrategic = false; // advc.036
-			if (eAttitude <= GC.getInfo(getPersonalityType()).getHealthBonusRefuseAttitudeThreshold())
+			if (eAttitude <= GC.getInfo(getPersonalityType()).
+				getHealthBonusRefuseAttitudeThreshold())
+			{
 				return DENIAL_ATTITUDE;
+			}
 		}
 	} // <advc.036>
 	int iAvailUs = getNumAvailableBonuses(eBonus);
@@ -14834,20 +14819,17 @@ int CvPlayerAI::AI_corporationValue(CorporationTypes eCorporation, CvCityAI cons
 	int iMaintenance = 0;
 
 	int iBonuses = 0;
-	for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+	for (int i = 0; i < kCorp.getNumPrereqBonuses(); i++)
 	{
-		BonusTypes eBonus = (BonusTypes)kCorp.getPrereqBonus(i);
-		if (NO_BONUS != eBonus)
+		BonusTypes eBonus = kCorp.getPrereqBonus(i);
+		if (pCity == NULL)
+			iBonuses += AI_countOwnedBonuses(eBonus);
+		else iBonuses += pCity->getNumBonuses(eBonus);
+		// maybe use getNumAvailableBonuses ?
+		if (!kTeam.isHasTech(GC.getInfo(eBonus).getTechReveal()) &&
+			!kTeam.isForceRevealedBonus(eBonus))
 		{
-			if (pCity == NULL)
-				iBonuses += AI_countOwnedBonuses(eBonus);
-			else iBonuses += pCity->getNumBonuses(eBonus);
-			// maybe use getNumAvailableBonuses ?
-			if (!kTeam.isHasTech(GC.getInfo(eBonus).getTechReveal()) &&
-				!kTeam.isForceRevealedBonus(eBonus))
-			{
-				iBonuses++; // expect that we'll get one of each unrevealed resource
-			}
+			iBonuses++; // expect that we'll get one of each unrevealed resource
 		}
 	}
 	if (!GC.getGame().isCorporationFounded(eCorporation))
@@ -14916,7 +14898,7 @@ int CvPlayerAI::AI_corporationValue(CorporationTypes eCorporation, CvCityAI cons
 	iValue -= iTempValue;
 
 	// bonus produced by the corp
-	BonusTypes eBonusProduced = (BonusTypes)kCorp.getBonusProduced();
+	BonusTypes eBonusProduced = kCorp.getBonusProduced();
 	if (eBonusProduced != NO_BONUS)
 	{
 		//int iBonuses = getNumAvailableBonuses((BonusTypes)kCorp.getBonusProduced());
@@ -16030,10 +16012,11 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 									the civic that will block the corp.) */
 									bHasPrereq = (kTeam.isHasTech(kLoopBuilding.getPrereqAndTech()) ||
 											canResearch(kLoopBuilding.getPrereqAndTech()));
-									for (int i = 0; bHasPrereq && i < GC.getNUM_BUILDING_AND_TECH_PREREQS(); i++)
+									for (int i = 0; i < kLoopBuilding.getNumPrereqAndTechs() &&
+										bHasPrereq; i++)
 									{
 										bHasPrereq = (kTeam.isHasTech(kLoopBuilding.getPrereqAndTechs(i)) ||
-											canResearch(kLoopBuilding.getPrereqAndTechs(i)));
+												canResearch(kLoopBuilding.getPrereqAndTechs(i)));
 									}
 								}
 
@@ -16047,7 +16030,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 									{
 										CvTeam const& kRival = *it;
 										bHasPrereq = kRival.isHasTech(kLoopBuilding.getPrereqAndTech());
-										for (int i = 0; i < GC.getNUM_BUILDING_AND_TECH_PREREQS() &&
+										for (int i = 0; i < kLoopBuilding.getNumPrereqAndTechs() &&
 											bHasPrereq; i++)
 										{
 											bHasPrereq = kRival.isHasTech(kLoopBuilding.getPrereqAndTechs(i));
@@ -16090,15 +16073,13 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 						(bPlayerHQ ? 2 : 3);
 			}
 
-			for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+			for (int i = 0; i < kCorpInfo.getNumPrereqBonuses(); i++)
 			{
-				BonusTypes eBonus = (BonusTypes)kCorpInfo.getPrereqBonus(i);
-				if (NO_BONUS != eBonus)
-				{	// expect that we'll get at least one of each unrevealed bonus.
-					iBonuses +=	(kTeam.isBonusRevealed(eBonus) ?
-							AI_countOwnedBonuses(eBonus) : 1);
-					// maybe use getNumAvailableBonuses ?
-				}
+				BonusTypes eBonus = kCorpInfo.getPrereqBonus(i);
+				// expect that we'll get at least one of each unrevealed bonus.
+				iBonuses +=	(kTeam.isBonusRevealed(eBonus) ?
+						AI_countOwnedBonuses(eBonus) : 1);
+				// maybe use getNumAvailableBonuses ?
 			}
 			iBonuses += bPlayerHQ ? 1 : 0;
 
@@ -16161,10 +16142,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 
 				// loss of corp resource
 				if (kCorpInfo.getBonusProduced() != NO_BONUS)
-				{
-					iCorpValue -= AI_bonusVal((BonusTypes)
-							kCorpInfo.getBonusProduced(), 1, false) / 4;
-				}
+					iCorpValue -= AI_bonusVal(kCorpInfo.getBonusProduced(), 1, false) / 4;
 			}
 
 			// loss of maintenance cost (money saved)
@@ -24254,7 +24232,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 								bNeedsAndBonus = true;
 						}
 
-						for (int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); j++)
+						for (int j = 0; j < kUnit.getNumPrereqOrBonuses(); j++)
 						{
 							if (kUnit.getPrereqOrBonuses(j) == eLoopBonus)
 							{
@@ -27686,15 +27664,11 @@ bool CvPlayerAI::AI_haveResourcesToTrain(UnitTypes eUnit) const
 		if (!hasBonus(ePrereqAndBonus) && AI_countOwnedBonuses(ePrereqAndBonus) == 0)
 			return false;
 	}
-
 	// "or" bonuses
 	bool bMissingBonus = false;
-	for (int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); ++i)
+	for (int i = 0; i < kUnit.getNumPrereqOrBonuses(); i++)
 	{
 		BonusTypes ePrereqOrBonus = kUnit.getPrereqOrBonuses(i);
-		if (ePrereqOrBonus == NO_BONUS)
-			continue;
-
 		if (hasBonus(ePrereqOrBonus) || AI_countOwnedBonuses(ePrereqOrBonus) > 0)
 		{
 			bMissingBonus = false;
@@ -27702,7 +27676,6 @@ bool CvPlayerAI::AI_haveResourcesToTrain(UnitTypes eUnit) const
 		}
 		bMissingBonus = true;
 	}
-
 	return !bMissingBonus;
 }
 

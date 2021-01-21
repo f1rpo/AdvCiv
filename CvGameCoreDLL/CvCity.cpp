@@ -1473,10 +1473,9 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 		if (eFoundCorp != NO_CORPORATION)
 		{
 			bool bValidBonus = false;
-			for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); i++)
+			for (int i = 0; i < GC.getInfo(eFoundCorp).getNumPrereqBonuses(); i++)
 			{
-				BonusTypes ePrereqBonus = (BonusTypes)GC.getInfo(eFoundCorp).getPrereqBonus(i);
-				if (ePrereqBonus != NO_BONUS && hasBonus(ePrereqBonus))
+				if (hasBonus(GC.getInfo(eFoundCorp).getPrereqBonus(i)))
 				{
 					bValidBonus = true;
 					break;
@@ -1493,15 +1492,11 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 		{
 			bool bPrereqBonus = false;
 			bool bValidBonus = false;
-			for (int i = 0; i < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); i++)
+			for (int i = 0; i < kBuilding.getNumPrereqOrBonuses(); i++)
 			{
-				BonusTypes ePrereqBonus = kBuilding.getPrereqOrBonuses(i);
-				if (ePrereqBonus != NO_BONUS)
-				{
-					bPrereqBonus = true;
-					if(hasBonus(ePrereqBonus))
-						bValidBonus = true;
-				}
+				bPrereqBonus = true;
+				if(hasBonus(kBuilding.getPrereqOrBonuses(i)))
+					bValidBonus = true;
 			}
 			if(bPrereqBonus && !bValidBonus)
 				return false;
@@ -3104,7 +3099,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 		//changeBaseGreatPeopleRate(kBuilding.getGreatPeopleRateChange() * iChange);
 		if (kBuilding.getGreatPeopleUnitClass() != NO_UNITCLASS)
 		{
-			UnitTypes eGreatPeopleUnit = getCivilization().getUnit((UnitClassTypes)
+			UnitTypes eGreatPeopleUnit = getCivilization().getUnit(
 					kBuilding.getGreatPeopleUnitClass());
 			if (eGreatPeopleUnit != NO_UNIT)
 			{
@@ -4850,11 +4845,9 @@ int CvCity::calculateCorporationMaintenanceTimes100(CorporationTypes eCorporatio
 	}
 
 	int iNumBonuses = 0;
-	for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+	for (int i = 0; i < GC.getInfo(eCorporation).getNumPrereqBonuses(); i++)
 	{
-		BonusTypes eBonus = (BonusTypes)GC.getInfo(eCorporation).getPrereqBonus(i);
-		if (eBonus != NO_BONUS)
-			iNumBonuses += getNumBonuses(eBonus);
+		iNumBonuses += getNumBonuses(GC.getInfo(eCorporation).getPrereqBonus(i));
 	}
 
 	int iBonusMaintenance = GC.getInfo(eCorporation).getMaintenance() * iNumBonuses;
@@ -7605,15 +7598,16 @@ void CvCity::setCorporationYield(YieldTypes eIndex, int iNewValue)
 }
 
 
-int CvCity::getCorporationYieldByCorporation(YieldTypes eIndex, CorporationTypes eCorporation) const
+int CvCity::getCorporationYieldByCorporation(YieldTypes eIndex,
+	CorporationTypes eCorporation) const
 {
 	int iYield = 0;
 	if (isActiveCorporation(eCorporation) && !isDisorder())
 	{
-		for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+		for (int i = 0; i < GC.getInfo(eCorporation).getNumPrereqBonuses(); i++)
 		{
-			BonusTypes eBonus = (BonusTypes)GC.getInfo(eCorporation).getPrereqBonus(i);
-			if (eBonus != NO_BONUS && getNumBonuses(eBonus) > 0)
+			BonusTypes const eBonus = GC.getInfo(eCorporation).getPrereqBonus(i);
+			if (getNumBonuses(eBonus) > 0)
 			{
 				iYield += (GC.getInfo(eCorporation).getYieldProduced(eIndex) *
 						getNumBonuses(eBonus) * GC.getInfo(GC.getMap().getWorldSize()).
@@ -7624,15 +7618,16 @@ int CvCity::getCorporationYieldByCorporation(YieldTypes eIndex, CorporationTypes
 	return (iYield + 99) / 100;
 }
 
-int CvCity::getCorporationCommerceByCorporation(CommerceTypes eIndex, CorporationTypes eCorporation) const
+int CvCity::getCorporationCommerceByCorporation(CommerceTypes eIndex,
+	CorporationTypes eCorporation) const
 {
 	int iCommerce = 0;
 	if (isActiveCorporation(eCorporation) && !isDisorder())
 	{
-		for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+		for (int i = 0; i < GC.getInfo(eCorporation).getNumPrereqBonuses(); i++)
 		{
-			BonusTypes eBonus = (BonusTypes)GC.getInfo(eCorporation).getPrereqBonus(i);
-			if (eBonus != NO_BONUS && getNumBonuses(eBonus) > 0)
+			BonusTypes const eBonus = GC.getInfo(eCorporation).getPrereqBonus(i);
+			if (getNumBonuses(eBonus) > 0)
 			{
 				iCommerce += (GC.getInfo(eCorporation).getCommerceProduced(eIndex) *
 						getNumBonuses(eBonus) * GC.getInfo(GC.getMap().getWorldSize()).
@@ -7705,7 +7700,7 @@ void CvCity::updateCorporationBonus(/* advc.064d: */ bool bVerifyProduction)
 	{
 		FOR_EACH_ENUM(Corporation)
 		{
-			BonusTypes eBonusProduced = (BonusTypes)GC.getInfo(eLoopCorporation).getBonusProduced();
+			BonusTypes eBonusProduced = GC.getInfo(eLoopCorporation).getBonusProduced();
 			if (eBonusProduced == NO_BONUS ||
 				kTeam.isBonusObsolete(eBonusProduced) ||
 				!kTeam.isHasTech(GC.getInfo(eBonusProduced).getTechCityTrade()))
@@ -7715,15 +7710,12 @@ void CvCity::updateCorporationBonus(/* advc.064d: */ bool bVerifyProduction)
 			if (isHasCorporation(eLoopCorporation) &&
 				GET_PLAYER(getOwner()).isActiveCorporation(eLoopCorporation))
 			{
-				for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); i++)
+				for (int i = 0; i < GC.getInfo(eLoopCorporation).getNumPrereqBonuses(); i++)
 				{
-					BonusTypes eBonusConsumed = (BonusTypes)
-							GC.getInfo(eLoopCorporation).getPrereqBonus(i);
-					if (eBonusConsumed != NO_BONUS)
-					{
-						aiExtraCorpProducedBonuses.add(eBonusProduced,
-								aiLastCorpProducedBonuses.get(eBonusConsumed));
-					}
+					BonusTypes eBonusConsumed = GC.getInfo(eLoopCorporation).
+							getPrereqBonus(i);
+					aiExtraCorpProducedBonuses.add(eBonusProduced,
+							aiLastCorpProducedBonuses.get(eBonusConsumed));
 				}
 			}
 		}
@@ -8336,17 +8328,12 @@ bool CvCity::isCorporationBonus(BonusTypes eBonus) const
 	{
 		if (!GET_PLAYER(getOwner()).isActiveCorporation(eLoopCorporation))
 			continue;
-
-		for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+		for (int i = 0; i < GC.getInfo(eLoopCorporation).getNumPrereqBonuses(); i++)
 		{
-			BonusTypes ePrereq = (BonusTypes)GC.getInfo(eLoopCorporation).getPrereqBonus(i);
-			if (ePrereq != NO_BONUS)
+			if (GC.getInfo(eLoopCorporation).getPrereqBonus(i) == eBonus &&
+				isHasCorporation(eLoopCorporation))
 			{
-				if (GC.getInfo(eLoopCorporation).getPrereqBonus(i) == eBonus &&
-					isHasCorporation(eLoopCorporation))
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 	}
@@ -8363,10 +8350,9 @@ bool CvCity::isActiveCorporation(CorporationTypes eCorporation) const
 	if (!GET_PLAYER(getOwner()).isActiveCorporation(eCorporation))
 		return false;
 
-	for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+	for (int i = 0; i < GC.getInfo(eCorporation).getNumPrereqBonuses(); i++)
 	{
-		BonusTypes eBonus = (BonusTypes)GC.getInfo(eCorporation).getPrereqBonus(i);
-		if (eBonus != NO_BONUS && getNumBonuses(eBonus) > 0)
+		if (getNumBonuses(GC.getInfo(eCorporation).getPrereqBonus(i)) > 0)
 			return true;
 	}
 
@@ -9384,18 +9370,14 @@ void CvCity::setHasCorporation(CorporationTypes eCorp, bool bNewValue, bool bAnn
 
 					CvWString szBonusList;
 					bool bFirst = true;
-					for (int iJ = 0; iJ < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++iJ)
+					for (int i = 0; i < kCorp.getNumPrereqBonuses(); i++)
 					{
-						BonusTypes eBonus = (BonusTypes)kCorp.getPrereqBonus(iJ);
-						if (eBonus != NO_BONUS)
-						{
-							CvWString szTemp;
-							szTemp.Format(L"%s", GC.getInfo(eBonus).getDescription());
-							setListHelp(szBonusList, L"", szTemp, L", ", bFirst);
-							bFirst = false;
-						}
+						BonusTypes eBonus = kCorp.getPrereqBonus(i);
+						CvWString szTemp;
+						szTemp.Format(L"%s", GC.getInfo(eBonus).getDescription());
+						setListHelp(szBonusList, L"", szTemp, L", ", bFirst);
+						bFirst = false;
 					}
-
 					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CORPORATION_SPREAD_BONUS",
 							kCorp.getTextKeyWide(), szBonusString.getCString(),
 							getNameKey(), szBonusList.GetCString());

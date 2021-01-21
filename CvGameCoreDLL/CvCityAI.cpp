@@ -4391,7 +4391,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			// K-Mod... here's some code like the specialist value function. Kind of long, but much better.
 			{
 				int iTempValue = 100 * kBuilding.getGreatPeopleRateChange() * 2 * 4; // everything seems to be x4 around here
-				UnitClassTypes eGPClass = (UnitClassTypes)kBuilding.getGreatPeopleUnitClass();
+				UnitClassTypes eGPClass = kBuilding.getGreatPeopleUnitClass();
 				// <advc.020>
 				if(iTempValue > 0 && eGPClass != NO_UNITCLASS)
 				{
@@ -6097,9 +6097,10 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 							iTemp = -100;
 						}
 						else
+						{
 							iTemp = std::max(-100, (kOwner.AI_getAttitudeWeight(j) - 125) /
 									3); // advc.650: was 2
-
+						}
 						// tech prereqs.  reduce the value for each missing prereq
 						if (!kLoopTeam.isHasTech(kLoopUnit.getPrereqAndTech()))
 						{
@@ -6108,10 +6109,10 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 								iTemp /= 3;
 						}
 
-						for (int k = 0; k < GC.getNUM_UNIT_AND_TECH_PREREQS(eLoopUnit); k++)
+						for (int k = 0; k < kLoopUnit.getNumPrereqAndTechs(); k++)
 						{
-							TechTypes ePrereqTech = kLoopUnit.getPrereqAndTechs(k);
-							if (ePrereqTech != NO_TECH && !kLoopTeam.isHasTech(ePrereqTech))
+							TechTypes const ePrereqTech = kLoopUnit.getPrereqAndTechs(k);
+							if (!kLoopTeam.isHasTech(ePrereqTech))
 							{
 								iTemp /= 2;
 								if (!kLoopPlayer.canResearch(ePrereqTech))
@@ -6136,18 +6137,23 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 			}
 			if (iNukeValue > 0)
 			{
-				// ok. At this point, the scale of iNukeValue is roughly a percentage of the number of different nuke units which would be helpful to us... kind of.
-				// It's very likely to be to be less than 100. In a situation where nukes would be very helpful, I estimate that iNukeValue would currently be around 30.
-
-				// I'm just going to do a very rough job or rescaling it to be more like the other project value.
-				// But first, I want to make a few more situational adjustments to the value.
+				/*	ok. At this point, the scale of iNukeValue is roughly a percentage
+					of the number of different nuke units which would be helpful to us...
+					kind of. It's very likely to be to be less than 100. In a situation
+					where nukes would be very helpful, I estimate that iNukeValue
+					would currently be around 30.
+					I'm just going to do a very rough job or rescaling it to be
+					more like the other project value. But first, I want to make
+					a few more situational adjustments to the value. */
 				iNukeValue *= (2 + //kTeam.getAnyWarPlanCount(true));
 						// advc.105:
 						(GET_PLAYER(getOwner()).AI_isFocusWar(area()) ? 1 : 0));
 				iNukeValue /= 2;
 
-				//
-				iNukeValue *= 10 + (getYieldRate(YIELD_PRODUCTION) * 5 + getYieldRate(YIELD_COMMERCE) * 3)/2; // cf. iTargetValue in the SDI section.
+				// cf. iTargetValue in the SDI section.
+				iNukeValue *= 10 +
+						(getYieldRate(YIELD_PRODUCTION) * 5 +
+						getYieldRate(YIELD_COMMERCE) * 3) / 2;
 				iNukeValue /= 25;
 				iValue += iNukeValue;
 			}
@@ -6155,29 +6161,41 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 	}
 
 	// Space victory
-	// How am I meant to gauge the value of a direct step towards victory? It just doesn't conform to the usual metrics...
-	// this is going to be very arbitrary...  -- and it will be based on the original BtS code!
+	/*	How am I meant to gauge the value of a direct step towards victory?
+		It just doesn't conform to the usual metrics...
+		this is going to be very arbitrary...
+		-- and it will be based on the original BtS code! */
 	int iSpaceValue = 0;
 
 	// a project which enables other projects... We're talking about the Apolo Program
-	for (int iI = 0; iI < GC.getNumProjectInfos(); iI++)
+	FOR_EACH_ENUM(Project)
 	{
-		iSpaceValue += (std::max(0, (GC.getInfo((ProjectTypes)iI).getProjectsNeeded(eProject) - GET_TEAM(getTeam()).getProjectCount(eProject))) * 8); // was *10
+		iSpaceValue += 8 * std::max(0, // was *10
+				GC.getInfo(eLoopProject).getProjectsNeeded(eProject)
+				- GET_TEAM(getTeam()).getProjectCount(eProject)); 
 	}
 	if (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE1))
-		iSpaceValue = 3*iSpaceValue/2; // a boost to compound with the other boosts lower down.
-
-	// projects which are required components for victory. (ie. components of the spaceship)
-	for (int iI = 0; iI < GC.getNumVictoryInfos(); iI++)
 	{
-		if (GC.getGame().isVictoryValid((VictoryTypes)iI) && kProject.getVictoryThreshold(iI) > 0)
+		// a boost to compound with the other boosts lower down.
+		iSpaceValue = (3 * iSpaceValue) / 2;
+	}
+	/*	projects which are required components for victory.
+		(ie. components of the spaceship) */
+	FOR_EACH_ENUM(Victory)
+	{
+		if (GC.getGame().isVictoryValid(eLoopVictory) &&
+			kProject.getVictoryThreshold(eLoopVictory) > 0)
 		{
 			/* iSpaceValue += 20;
-			iSpaceValue += std::max(0, kProject.getVictoryThreshold(iI) - GET_TEAM(getTeam()).getProjectCount(eProject)) * 20; */
+			iSpaceValue += std::max(0, kProject.getVictoryThreshold(eLoopVictory) - GET_TEAM(getTeam()).getProjectCount(eProject)) * 20; */
 			iSpaceValue += 15;
-			iSpaceValue += std::max(0, kProject.getVictoryMinThreshold(iI) - GET_TEAM(getTeam()).getProjectCount(eProject)) * (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4) ? 60 : 30);
+			iSpaceValue += std::max(0,
+					kProject.getVictoryMinThreshold(eLoopVictory)
+					- GET_TEAM(getTeam()).getProjectCount(eProject)) *
+					(kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4) ? 60 : 30);
 			iSpaceValue += kProject.getSuccessRate();
-			iSpaceValue += kProject.getVictoryDelayPercent() / (4 * kProject.getVictoryThreshold(iI));
+			iSpaceValue += kProject.getVictoryDelayPercent() /
+					(4 * kProject.getVictoryThreshold(eLoopVictory));
 			//
 		}
 	}
@@ -6209,33 +6227,29 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 
 ProcessTypes CvCityAI::AI_bestProcess(CommerceTypes eCommerceType) const
 {
-	int iBestValue = 0;
 	ProcessTypes eBestProcess = NO_PROCESS;
-
-	for (int iI = 0; iI < GC.getNumProcessInfos(); iI++)
+	int iBestValue = 0;
+	FOR_EACH_ENUM(Process)
 	{
-		if (canMaintain((ProcessTypes)iI))
+		if (canMaintain(eLoopProcess))
 		{
-			int iValue = AI_processValue((ProcessTypes)iI, eCommerceType);
-
+			int iValue = AI_processValue(eLoopProcess, eCommerceType);
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;
-				eBestProcess = ((ProcessTypes)iI);
+				eBestProcess = eLoopProcess;
 			}
 		}
 	}
-
 	return eBestProcess;
 }
 
-// K-Mod. I've rearranged / rewritten most of this function.
-// units of ~4x commerce
+/*	K-Mod. I've rearranged / rewritten most of this function.
+	units of ~4x commerce */
 int CvCityAI::AI_processValue(ProcessTypes eProcess, CommerceTypes eCommerceType) const
 {
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwner());
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	bool bValid = (eCommerceType == NO_COMMERCE);
-
 	int iValue = 0;
 
 	/* if (GC.getInfo(eProcess).getProductionToCommerceModifier(COMMERCE_GOLD) && GET_PLAYER(getOwner()).AI_isFinancialTrouble())
@@ -6250,20 +6264,20 @@ int CvCityAI::AI_processValue(ProcessTypes eProcess, CommerceTypes eCommerceType
 	}
 
 	int iAdjustFactor = 0;
-	for (CommerceTypes i = (CommerceTypes)0; i < NUM_COMMERCE_TYPES; i = (CommerceTypes)(i+1))
+	FOR_EACH_ENUM(Commerce)
 	{
-		iAdjustFactor += kOwner.getCommercePercent(i) * kOwner.AI_averageCommerceMultiplier(i);
+		iAdjustFactor += kOwner.getCommercePercent(eLoopCommerce) *
+				kOwner.AI_averageCommerceMultiplier(eLoopCommerce);
 	}
 	iAdjustFactor /= 100;
 
-	for (CommerceTypes i = (CommerceTypes)0; i < NUM_COMMERCE_TYPES; i = (CommerceTypes)(i+1))
+	FOR_EACH_ENUM(Commerce)
 	{
-		int iTempValue = GC.getInfo(eProcess).getProductionToCommerceModifier(i);
-
+		int iTempValue = GC.getInfo(eProcess).
+				getProductionToCommerceModifier(eLoopCommerce);
 		if (iTempValue == 0)
 			continue;
-
-		if (i == eCommerceType && iTempValue > 0)
+		if (eLoopCommerce == eCommerceType && iTempValue > 0)
 		{
 			bValid = true;
 			iTempValue *= 2;
@@ -6272,22 +6286,32 @@ int CvCityAI::AI_processValue(ProcessTypes eProcess, CommerceTypes eCommerceType
 		// K-Mod. Calculate the quantity of commerce produced.
 		iTempValue *= getYieldRate(YIELD_PRODUCTION);
 		//iTempValue /= 100; // keep this factor of 100 for now.
-		// Culture is local, the other commerce types are non-local.
-		// We don't want the non-local commerceWeights in this function, because maintaining a process is just a short-term arrangement.
-		iTempValue *= kOwner.AI_commerceWeight(i, i == COMMERCE_CULTURE ? this : 0);
+		/*	Culture is local, the other commerce types are non-local.
+			We don't want the non-local commerceWeights in this function
+			because maintaining a process is just a short-term arrangement. */
+		iTempValue *= kOwner.AI_commerceWeight(eLoopCommerce,
+				eLoopCommerce == COMMERCE_CULTURE ? this : 0);
 		iTempValue /= 100;
 		// K-Mod end
 
-		/* iTempValue *= GET_PLAYER(getOwner()).AI_averageCommerceExchange(i);
+		/* iTempValue *= GET_PLAYER(getOwner()).AI_averageCommerceExchange(eLoopCommerce);
 		iTempValue /= 60; */
-		// K-Mod. Amplify the value of commerce processes with low average multipliers, so that we can run higher percentages in commerce types with high average multipliers.
-		if (kOwner.isCommerceFlexible(i) && kOwner.getCommercePercent(i) > 0)
+		/*	K-Mod. Amplify the value of commerce processes with
+			low average multipliers so that we can run higher percentages
+			in commerce types with high average multipliers. */
+		if (kOwner.isCommerceFlexible(eLoopCommerce) &&
+			kOwner.getCommercePercent(eLoopCommerce) > 0)
 		{
-			/* iTempValue *= 100 + kOwner.getCommercePercent(i) * (iAdjustFactor - 100) / 100;
-			iTempValue /= std::max(100, 100 + kOwner.getCommercePercent(i) * (kOwner.AI_averageCommerceMultiplier(i) - 100) / 100); */
+			/*iTempValue *= 100 + kOwner.getCommercePercent(eLoopCommerce) * (iAdjustFactor - 100) / 100;
+			iTempValue /= std::max(100, 100 + kOwner.getCommercePercent(eLoopCommerce) *
+					(kOwner.AI_averageCommerceMultiplier(eLoopCommerce) - 100) / 100);*/
 			// (that wasn't a strong enough effect)
-			iTempValue *= iAdjustFactor * std::max(100, 200 - 2*kOwner.getCommercePercent(i)) / 100;
-			iTempValue /= std::max(100, kOwner.AI_averageCommerceMultiplier(i) + iAdjustFactor * std::max(0, 100 - kOwner.getCommercePercent(i)) / 100);
+			iTempValue *= iAdjustFactor * std::max(100,
+					200 - 2*kOwner.getCommercePercent(eLoopCommerce)) / 100;
+			iTempValue /= std::max(100,
+					kOwner.AI_averageCommerceMultiplier(eLoopCommerce) +
+					iAdjustFactor * std::max(0,
+					100 - kOwner.getCommercePercent(eLoopCommerce)) / 100);
 		}
 		// K-Mod end
 
@@ -6295,7 +6319,7 @@ int CvCityAI::AI_processValue(ProcessTypes eProcess, CommerceTypes eCommerceType
 	}
 
 	// note, currently iValue has units of 100x commerce. We want to return 4x commerce.
-	return (bValid ? iValue/25 : 0);
+	return (bValid ? iValue / 25 : 0);
 }
 
 

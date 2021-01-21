@@ -5884,7 +5884,7 @@ bool CvGame::canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestV
 	if(getCivTeamsEverAlive() < kBuilding.getNumTeamsPrereq())
 		return false;
 	{
-		VictoryTypes ePrereqVict = (VictoryTypes)kBuilding.getVictoryPrereq();
+		VictoryTypes ePrereqVict = kBuilding.getVictoryPrereq();
 		if(ePrereqVict != NO_VICTORY && !isVictoryValid(ePrereqVict))
 			return false;
 	}
@@ -7166,9 +7166,8 @@ void CvGame::doHeadquarters()
 	if (getElapsedGameTurns() < 5)
 		return;
 
-	for (int iI = 0; iI < GC.getNumCorporationInfos(); iI++)
+	FOR_EACH_ENUM2(Corporation, eCorp)
 	{
-		CorporationTypes eCorp = (CorporationTypes)iI;
 		CvCorporationInfo& kCorp = GC.getInfo(eCorp);
 		if (isCorporationFounded(eCorp))
 			continue;
@@ -7187,11 +7186,10 @@ void CvGame::doHeadquarters()
 					continue;
 				if (kTeam.getNumCities() <= 0)
 					continue;
-
 				bool bHasBonus = false;
-				for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+				for (int i = 0; i < kCorp.getNumPrereqBonuses(); i++)
 				{
-					if (kCorp.getPrereqBonus(i) != NO_BONUS && kTeam.hasBonus((BonusTypes)kCorp.getPrereqBonus(i)))
+					if (kTeam.hasBonus(kCorp.getPrereqBonus(i)))
 					{
 						bHasBonus = true;
 						break;
@@ -7199,7 +7197,6 @@ void CvGame::doHeadquarters()
 				}
 				if (!bHasBonus)
 					continue;
-
 				int iValue = getSorenRandNum(10, "Found Corporation (Team)");
 				for (int iK = 0; iK < GC.getNumCorporationInfos(); iK++)
 				{
@@ -7226,9 +7223,9 @@ void CvGame::doHeadquarters()
 				continue;
 
 			bool bHasBonus = false;
-			for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+			for (int i = 0; i < kCorp.getNumPrereqBonuses(); i++)
 			{
-				if (kCorp.getPrereqBonus(i) != NO_BONUS && kMember.hasBonus((BonusTypes)kCorp.getPrereqBonus(i)))
+				if (kMember.hasBonus(kCorp.getPrereqBonus(i)))
 				{
 					bHasBonus = true;
 					break;
@@ -7240,9 +7237,9 @@ void CvGame::doHeadquarters()
 			int iValue = getSorenRandNum(10, "Found Corporation (Player)");
 			if (!kMember.isHuman())
 				iValue += 10;
-			for (int iK = 0; iK < GC.getNumCorporationInfos(); iK++)
+			FOR_EACH_ENUM(Corporation)
 			{
-				int iCorporationCount = kMember.getHasCorporationCount((CorporationTypes)iK);
+				int iCorporationCount = kMember.getHasCorporationCount(eLoopCorporation);
 				if (iCorporationCount > 0)
 					iValue += iCorporationCount * 20;
 			}
@@ -8011,12 +8008,10 @@ UnitTypes CvGame::randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a)
 			continue; // </advc.301>
 		bool bFound = false;
 		bool bRequires = false;
-		for (int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit) &&
+		for (int j = 0; j < kUnit.getNumPrereqOrBonuses() &&
 			!bFound; j++) // advc.301
 		{
-			BonusTypes eOrBonus = kUnit.getPrereqOrBonuses(j);
-			if(eOrBonus == NO_BONUS)
-				continue;
+			BonusTypes const eOrBonus = kUnit.getPrereqOrBonuses(j);
 			CvBonusInfo const& kOrBonus = GC.getInfo(eOrBonus);
 			// <advc.301>
 			std::vector<TechTypes> aeOrBonusTechs(2, NO_TECH);
@@ -9309,7 +9304,7 @@ void CvGame::read(FDataStreamBase* pStream)
 	pStream->Read(GC.getNumBuildingInfos(), m_aiShrineBuilding);
 	pStream->Read(GC.getNumBuildingInfos(), m_aiShrineReligion);
 	pStream->Read(&m_iNumCultureVictoryCities);
-	pStream->Read(&m_eCultureVictoryCultureLevel);
+	pStream->Read((int*)&m_eCultureVictoryCultureLevel);
 	// <advc.052>
 	if(uiFlag >= 3)
 		pStream->Read(&m_bScenario); // </advc.052>
@@ -9825,7 +9820,8 @@ void CvGame::changeHumanPlayer(PlayerTypes eNewHuman)
 } // BETTER_BTS_AI_MOD: END
 
 
-bool CvGame::isCompetingCorporation(CorporationTypes eCorporation1, CorporationTypes eCorporation2) const
+bool CvGame::isCompetingCorporation(
+	CorporationTypes eCorporation1, CorporationTypes eCorporation2) const
 {
 	// K-Mod
 	if (eCorporation1 == eCorporation2)
@@ -9834,19 +9830,15 @@ bool CvGame::isCompetingCorporation(CorporationTypes eCorporation1, CorporationT
 
 	bool bShareResources = false;
 
-	for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES() && !bShareResources; ++i)
+	for (int i = 0; i < GC.getInfo(eCorporation1).getNumPrereqBonuses() &&
+		!bShareResources; i++)
 	{
-		if (GC.getInfo(eCorporation1).getPrereqBonus(i) != NO_BONUS)
+		for (int j = 0; j < GC.getInfo(eCorporation2).getNumPrereqBonuses(); j++)
 		{
-			for (int j = 0; j < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++j)
+			if (GC.getInfo(eCorporation1).getPrereqBonus(i) ==
+				GC.getInfo(eCorporation2).getPrereqBonus(j))
 			{
-				if (GC.getInfo(eCorporation2).getPrereqBonus(j) != NO_BONUS)
-				{
-					if (GC.getInfo(eCorporation1).getPrereqBonus(i) == GC.getInfo(eCorporation2).getPrereqBonus(j))
-					{
-						return true;
-					}
-				}
+				return true;
 			}
 		}
 	}
@@ -9856,14 +9848,12 @@ bool CvGame::isCompetingCorporation(CorporationTypes eCorporation1, CorporationT
 
 int CvGame::getPlotExtraYield(int iX, int iY, YieldTypes eYield) const
 {
-	for (std::vector<PlotExtraYield>::const_iterator it = m_aPlotExtraYields.begin(); it != m_aPlotExtraYields.end(); ++it)
+	for (std::vector<PlotExtraYield>::const_iterator it = m_aPlotExtraYields.begin();
+		it != m_aPlotExtraYields.end(); ++it)
 	{
 		if (it->m_iX == iX && it->m_iY == iY)
-		{
 			return it->m_aeExtraYield[eYield];
-		}
 	}
-
 	return 0;
 }
 
@@ -9900,7 +9890,8 @@ void CvGame::setPlotExtraYield(int iX, int iY, YieldTypes eYield, int iExtraYiel
 
 void CvGame::removePlotExtraYield(int iX, int iY)
 {
-	for (std::vector<PlotExtraYield>::iterator it = m_aPlotExtraYields.begin(); it != m_aPlotExtraYields.end(); ++it)
+	for (std::vector<PlotExtraYield>::iterator it = m_aPlotExtraYields.begin();
+		it != m_aPlotExtraYields.end(); ++it)
 	{
 		if (it->m_iX == iX && it->m_iY == iY)
 		{
@@ -9908,7 +9899,6 @@ void CvGame::removePlotExtraYield(int iX, int iY)
 			break;
 		}
 	}
-
 	CvPlot* pPlot = GC.getMap().plot(iX, iY);
 	if (pPlot != NULL)
 		pPlot->updateYield();
@@ -9916,22 +9906,22 @@ void CvGame::removePlotExtraYield(int iX, int iY)
 
 int CvGame::getPlotExtraCost(int iX, int iY) const
 {
-	for (std::vector<PlotExtraCost>::const_iterator it = m_aPlotExtraCosts.begin(); it != m_aPlotExtraCosts.end(); ++it)
+	for (std::vector<PlotExtraCost>::const_iterator it = m_aPlotExtraCosts.begin();
+		it != m_aPlotExtraCosts.end(); ++it)
 	{
 		if (it->m_iX == iX && it->m_iY == iY)
 		{
 			return it->m_iCost;
 		}
 	}
-
 	return 0;
 }
 
 void CvGame::changePlotExtraCost(int iX, int iY, int iCost)
 {
 	bool bFound = false;
-
-	for (std::vector<PlotExtraCost>::iterator it = m_aPlotExtraCosts.begin(); it != m_aPlotExtraCosts.end(); ++it)
+	for (std::vector<PlotExtraCost>::iterator it = m_aPlotExtraCosts.begin();
+		it != m_aPlotExtraCosts.end(); ++it)
 	{
 		if (it->m_iX == iX && it->m_iY == iY)
 		{
@@ -9940,7 +9930,6 @@ void CvGame::changePlotExtraCost(int iX, int iY, int iCost)
 			break;
 		}
 	}
-
 	if (!bFound)
 	{
 		PlotExtraCost kExtraCost;
@@ -9953,7 +9942,8 @@ void CvGame::changePlotExtraCost(int iX, int iY, int iCost)
 
 void CvGame::removePlotExtraCost(int iX, int iY)
 {
-	for (std::vector<PlotExtraCost>::iterator it = m_aPlotExtraCosts.begin(); it != m_aPlotExtraCosts.end(); ++it)
+	for (std::vector<PlotExtraCost>::iterator it = m_aPlotExtraCosts.begin();
+		it != m_aPlotExtraCosts.end(); ++it)
 	{
 		if (it->m_iX == iX && it->m_iY == iY)
 		{
@@ -9965,18 +9955,15 @@ void CvGame::removePlotExtraCost(int iX, int iY)
 
 ReligionTypes CvGame::getVoteSourceReligion(VoteSourceTypes eVoteSource) const
 {
-	stdext::hash_map<VoteSourceTypes, ReligionTypes>::const_iterator it;
-
+	stdext::hash_map<VoteSourceTypes,ReligionTypes>::const_iterator it;
 	it = m_mapVoteSourceReligions.find(eVoteSource);
 	if (it == m_mapVoteSourceReligions.end())
-	{
 		return NO_RELIGION;
-	}
-
 	return it->second;
 }
 
-void CvGame::setVoteSourceReligion(VoteSourceTypes eVoteSource, ReligionTypes eReligion, bool bAnnounce)
+void CvGame::setVoteSourceReligion(VoteSourceTypes eVoteSource,
+	ReligionTypes eReligion, bool bAnnounce)
 {
 	m_mapVoteSourceReligions[eVoteSource] = eReligion;
 
@@ -10010,73 +9997,75 @@ void CvGame::setVoteSourceReligion(VoteSourceTypes eVoteSource, ReligionTypes eR
 int CvGame::getShrineBuildingCount(ReligionTypes eReligion)
 {
 	int	iShrineBuildingCount = 0;
-
 	if (eReligion == NO_RELIGION)
 		iShrineBuildingCount = m_iShrineBuildingCount;
-	else for (int iI = 0; iI < m_iShrineBuildingCount; iI++)
-		if (m_aiShrineReligion[iI] == eReligion)
-			iShrineBuildingCount++;
-
+	else
+	{
+		for (int i = 0; i < m_iShrineBuildingCount; i++)
+		{
+			if (m_aiShrineReligion[i] == eReligion)
+				iShrineBuildingCount++;
+		}
+	}
 	return iShrineBuildingCount;
 }
 
 BuildingTypes CvGame::getShrineBuilding(int eIndex, ReligionTypes eReligion)
 {
-	FAssertMsg(eIndex >= 0 && eIndex < m_iShrineBuildingCount, "invalid index to CvGame::getShrineBuilding");
-
+	FAssert(eIndex >= 0 && eIndex < m_iShrineBuildingCount);
 	BuildingTypes eBuilding = NO_BUILDING;
-
 	if (eIndex >= 0 && eIndex < m_iShrineBuildingCount)
 	{
 		if (eReligion == NO_RELIGION)
 			eBuilding = (BuildingTypes) m_aiShrineBuilding[eIndex];
-		else for (int iI = 0, iReligiousBuilding = 0; iI < m_iShrineBuildingCount; iI++)
-			if (m_aiShrineReligion[iI] == eReligion)
+		else
+		{
+			for (int iI = 0, iReligiousBuilding = 0; iI < m_iShrineBuildingCount; iI++)
 			{
-				if (iReligiousBuilding == eIndex)
+				if (m_aiShrineReligion[iI] == eReligion)
 				{
-					// found it
-					eBuilding = (BuildingTypes) m_aiShrineBuilding[iI];
-					break;
+					if (iReligiousBuilding == eIndex) // found it
+					{
+						eBuilding = (BuildingTypes) m_aiShrineBuilding[iI];
+						break;
+					}
+					iReligiousBuilding++;
 				}
-
-				iReligiousBuilding++;
 			}
+		}
 	}
-
 	return eBuilding;
 }
 
-void CvGame::changeShrineBuilding(BuildingTypes eBuilding, ReligionTypes eReligion, bool bRemove)
+void CvGame::changeShrineBuilding(BuildingTypes eBuilding,
+	ReligionTypes eReligion, bool bRemove)
 {
-	FAssertMsg(eBuilding >= 0 && eBuilding < GC.getNumBuildingInfos(), "invalid index to CvGame::changeShrineBuilding");
-	FAssertMsg(bRemove || m_iShrineBuildingCount < GC.getNumBuildingInfos(), "trying to add too many buildings to CvGame::changeShrineBuilding");
-
+	FAssert(eBuilding >= 0 && eBuilding < GC.getNumBuildingInfos());
+	FAssert(bRemove || m_iShrineBuildingCount < GC.getNumBuildingInfos());
 	if (bRemove)
 	{
 		bool bFound = false;
-
-		for (int iI = 0; iI < m_iShrineBuildingCount; iI++)
+		for (int i = 0; i < m_iShrineBuildingCount; i++)
 		{
 			if (!bFound)
 			{
-				// note, eReligion is not important if we removing, since each building is always one religion
-				if (m_aiShrineBuilding[iI] == eBuilding)
+				/*	note, eReligion is not important if we are removing,
+					since each building is always one religion */
+				if (m_aiShrineBuilding[i] == eBuilding)
 					bFound = true;
 			}
-
 			if (bFound)
 			{
-				int iToMove = iI + 1;
+				int iToMove = i + 1;
 				if (iToMove < m_iShrineBuildingCount)
 				{
-					m_aiShrineBuilding[iI] = m_aiShrineBuilding[iToMove];
-					m_aiShrineReligion[iI] = m_aiShrineReligion[iToMove];
+					m_aiShrineBuilding[i] = m_aiShrineBuilding[iToMove];
+					m_aiShrineReligion[i] = m_aiShrineReligion[iToMove];
 				}
 				else
 				{
-					m_aiShrineBuilding[iI] = (int) NO_BUILDING;
-					m_aiShrineReligion[iI] = (int) NO_RELIGION;
+					m_aiShrineBuilding[i] = NO_BUILDING;
+					m_aiShrineReligion[i] = NO_RELIGION;
 				}
 			}
 
@@ -10108,10 +10097,7 @@ int CvGame::culturalVictoryNumCultureCities() /* advc: */ const
 CultureLevelTypes CvGame::culturalVictoryCultureLevel() /* advc: */  const
 {
 	if (m_iNumCultureVictoryCities > 0)
-	{
-		return (CultureLevelTypes)m_eCultureVictoryCultureLevel;
-	}
-
+		return m_eCultureVictoryCultureLevel;
 	return NO_CULTURELEVEL;
 }
 
@@ -10162,7 +10148,8 @@ void CvGame::doUpdateCacheOnTurn()
 			if (iNumCultureCities > m_iNumCultureVictoryCities)
 			{
 				m_iNumCultureVictoryCities = iNumCultureCities;
-				m_eCultureVictoryCultureLevel = kVictoryInfo.getCityCulture();
+				m_eCultureVictoryCultureLevel = (CultureLevelTypes)
+						kVictoryInfo.getCityCulture();
 			}
 		}
 	}

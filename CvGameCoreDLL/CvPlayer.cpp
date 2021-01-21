@@ -999,41 +999,25 @@ void CvPlayer::addFreeUnitAI(UnitAITypes eUnitAI, int iCount)
 	for (int i = 0; i < kCiv.getNumUnits(); i++)
 	{
 		UnitTypes eLoopUnit = kCiv.unitAt(i);
-		if (canTrain(eLoopUnit))
+		if (GC.getInfo(eLoopUnit).getPrereqAndBonus() == NO_BONUS &&
+			// (advc: Replacing a loop)
+			GC.getInfo(eLoopUnit).getNumPrereqOrBonuses() <= 0 &&
+			canTrain(eLoopUnit) && // advc.opt: Moved down
+			// advc.307: Machine Gun not useful enough against Barbarians
+			(eUnitAI != UNITAI_CITY_DEFENSE || !GC.getInfo(eLoopUnit).isOnlyDefensive()))
 		{
-			bool bValid = true;
-
-			if (GC.getInfo(eLoopUnit).getPrereqAndBonus() != NO_BONUS)
-				bValid = false;
-
-			for (int iJ = 0; iJ < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); iJ++)
+			int iValue = AI().AI_unitValue(eLoopUnit, eUnitAI, NULL);
+			// <advc.250e> No Archer for exploration
+			if (eUnitAI == UNITAI_EXPLORE)
+				iValue -= AI().AI_unitValue(eLoopUnit, UNITAI_CITY_DEFENSE, NULL);
+			// </advc.250e>
+			if (iValue > iBestValue)
 			{
-				if (GC.getInfo(eLoopUnit).getPrereqOrBonuses(iJ) != NO_BONUS)
-					bValid = false;
-			}
-
-			// <advc.307> Machine Gun not useful enough against Barbarians
-			if(eUnitAI == UNITAI_CITY_DEFENSE &&
-				GC.getInfo(eLoopUnit).isOnlyDefensive())
-			{
-				bValid = false;
-			} // </advc.307>
-			if (bValid)
-			{
-				int iValue = AI().AI_unitValue(eLoopUnit, eUnitAI, NULL);
-				// <advc.250e> No Archer for exploration
-				if(eUnitAI == UNITAI_EXPLORE)
-					iValue -= AI().AI_unitValue(eLoopUnit, UNITAI_CITY_DEFENSE, NULL);
-				// </advc.250e>
-				if (iValue > iBestValue)
-				{
-					eBestUnit = eLoopUnit;
-					iBestValue = iValue;
-				}
+				eBestUnit = eLoopUnit;
+				iBestValue = iValue;
 			}
 		}
 	}
-
 	if (eBestUnit != NO_UNIT)
 	{
 		for (int i = 0; i < iCount; i++)
@@ -5009,13 +4993,10 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 	if (!GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getInfo(eUnit).getPrereqAndTech()))
 		return false;
 
-	for (int i = 0; i < GC.getNUM_UNIT_AND_TECH_PREREQS(eUnit); i++)
+	for (int i = 0; i < GC.getInfo(eUnit).getNumPrereqAndTechs(); i++)
 	{
-		if (GC.getInfo(eUnit).getPrereqAndTechs(i) != NO_TECH &&
-			!GET_TEAM(getTeam()).isHasTech(GC.getInfo(eUnit).getPrereqAndTechs(i)))
-		{
+		if (!GET_TEAM(getTeam()).isHasTech(GC.getInfo(eUnit).getPrereqAndTechs(i)))
 			return false;
-		}
 	}
 
 	if (GC.getInfo(eUnit).getStateReligion() != NO_RELIGION)
@@ -5077,7 +5058,7 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
 		if (!kOurTeam.isHasTech(kBuilding.getPrereqAndTech()))
 			return false;
 
-		for (int i = 0; i < GC.getNUM_BUILDING_AND_TECH_PREREQS(); i++)
+		for (int i = 0; i < kBuilding.getNumPrereqAndTechs(); i++)
 		{
 			if (!kOurTeam.isHasTech(kBuilding.getPrereqAndTechs(i)))
 				return false;
@@ -5100,12 +5081,11 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
 			return false;
 	}
 	{
-		VictoryTypes ePrereqVictory = (VictoryTypes)kBuilding.getVictoryPrereq();
+		VictoryTypes ePrereqVictory = kBuilding.getVictoryPrereq();
 		if (ePrereqVictory != NO_VICTORY)
 		{
 			if (isMinorCiv() || isBarbarian())
 				return false;
-
 			if (kOurTeam.getVictoryCountdown(ePrereqVictory) >= 0)
 				return false;
 		}
@@ -6119,15 +6099,11 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech,  // <advc.910>
 
 	int iPossiblePaths = 0;
 	int iUnknownPaths = 0;
-	for (int i = 0; i < GC.getNUM_OR_TECH_PREREQS(); i++)
+	for (int i = 0; i < GC.getInfo(eTech).getNumOrTechPrereqs(); i++)
 	{
-		TechTypes eOrTech = (TechTypes)GC.getInfo(eTech).getPrereqOrTechs(i); // advc
-		if (eOrTech != NO_TECH)
-		{
-			if (!GET_TEAM(getTeam()).isHasTech(eOrTech))
-				iUnknownPaths++;
-			iPossiblePaths++;
-		}
+		if (!GET_TEAM(getTeam()).isHasTech(GC.getInfo(eTech).getPrereqOrTechs(i)))
+			iUnknownPaths++;
+		iPossiblePaths++;
 	}
 	FAssert(iPossiblePaths >= iUnknownPaths);
 	if(iPossiblePaths > iUnknownPaths)
@@ -6317,24 +6293,20 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade,
 
 	bool bFoundPossible = false;
 	bool bFoundValid = false;
-	for (int i = 0; i < GC.getNUM_OR_TECH_PREREQS(eTech); i++)
+	for (int i = 0; i < GC.getInfo(eTech).getNumOrTechPrereqs(); i++)
 	{
-		TechTypes ePrereq = (TechTypes)GC.getInfo(eTech).getPrereqOrTechs(i);
+		TechTypes const ePrereq = GC.getInfo(eTech).getPrereqOrTechs(i);
 		FAssert(ePrereq != eTech); // advc
-		if (ePrereq != NO_TECH)
+		bFoundPossible = true;
+		if (GET_TEAM(getTeam()).isHasTech(ePrereq) &&
+			// advc.126: Don't check recursively (for execution speed concerns)
+			(bCouldResearchAgain || canResearch(ePrereq, false, true, true)))
 		{
-			bFoundPossible = true;
-
-			if (GET_TEAM(getTeam()).isHasTech(ePrereq) &&
-				// advc.126: Don't check recursively (for execution speed concerns)
-				(bCouldResearchAgain || canResearch(ePrereq, false, true, true)))
+			if (!bTrade || GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING) ||
+				!GET_TEAM(getTeam()).isNoTradeTech(ePrereq))
 			{
-				if (!bTrade || GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING) ||
-					!GET_TEAM(getTeam()).isNoTradeTech(ePrereq))
-				{
-					bFoundValid = true;
-					break;
-				}
+				bFoundValid = true;
+				break;
 			}
 		}
 	}
@@ -6342,22 +6314,19 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade,
 	if (bFoundPossible && !bFoundValid)
 		return false;
 
-	for (int i = 0; i < GC.getNUM_AND_TECH_PREREQS(eTech); i++)
+	for (int i = 0; i < GC.getInfo(eTech).getNumAndTechPrereqs(); i++)
 	{
-		TechTypes ePrereq = (TechTypes)GC.getInfo(eTech).getPrereqAndTechs(i);
-		if (ePrereq != NO_TECH)
+		TechTypes const ePrereq = GC.getInfo(eTech).getPrereqAndTechs(i);
+		if (!GET_TEAM(getTeam()).isHasTech(ePrereq) ||
+			// advc.126:
+			(bCouldResearchAgain && !canResearch(ePrereq, false, true, true)))
 		{
-			if (!GET_TEAM(getTeam()).isHasTech(ePrereq) ||
-				// advc.126:
-				(bCouldResearchAgain && !canResearch(ePrereq, false, true, true)))
-			{
-				return false;
-			}
-			if (bTrade && !GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING) &&
-				GET_TEAM(getTeam()).isNoTradeTech(ePrereq))
-			{
-				return false;
-			}
+			return false;
+		}
+		if (bTrade && !GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING) &&
+			GET_TEAM(getTeam()).isNoTradeTech(ePrereq))
+		{
+			return false;
 		}
 	}
 
@@ -6889,13 +6858,10 @@ void CvPlayer::foundCorporation(CorporationTypes eCorporation)
 			continue;
 
 		int iValue = 10 + pLoopCity->getPopulation();
-		for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+		for (int i = 0; i < GC.getInfo(eCorporation).getNumPrereqBonuses(); ++i)
 		{
-			if (kCorp.getPrereqBonus(i) != NO_BONUS)
-			{
-				iValue += 10 * pLoopCity->getNumBonuses((BonusTypes)
-						GC.getInfo(eCorporation).getPrereqBonus(i));
-			}
+			iValue += 10 * pLoopCity->getNumBonuses(
+					GC.getInfo(eCorporation).getPrereqBonus(i));
 		}
 		iValue += GC.getGame().getSorenRandNum(GC.getDefineINT("FOUND_CORPORATION_CITY_RAND"),
 				"Found Corporation");
@@ -10477,36 +10443,26 @@ int CvPlayer::findPathLength(TechTypes eTech, bool bCost) const
 	}
 
 	//	Cycle through the and paths and add up their tech lengths
-	for (int i = 0; i < GC.getNUM_AND_TECH_PREREQS(eTech); i++)
+	for (int i = 0; i < GC.getInfo(eTech).getNumAndTechPrereqs(); i++)
 	{
-		TechTypes ePreReq = (TechTypes)GC.getInfo(eTech).getPrereqAndTechs(i);
-		if (ePreReq != NO_TECH)
-		{
-			iPathLength += findPathLength(ePreReq, bCost);
-		}
+		iPathLength += findPathLength(
+				GC.getInfo(eTech).getPrereqAndTechs(i), bCost);
 	}
 
 	TechTypes eShortestOr = NO_TECH;
 	iShortestPath = MAX_INT;
 	//	Find the shortest OR tech
-	for (int i = 0; i < GC.getNUM_OR_TECH_PREREQS(); i++)
+	for (int i = 0; i < GC.getInfo(eTech).getNumOrTechPrereqs(); i++)
 	{
-		//	Grab the tech
-		TechTypes ePreReq = (TechTypes)GC.getInfo(eTech).getPrereqOrTechs(i);
-
-		//	If this is a valid tech
-		if (ePreReq != NO_TECH)
+		TechTypes const ePreReq = GC.getInfo(eTech).getPrereqOrTechs(i);
+		//	Recursively find the path length (takes into account all ANDs)
+		// k146 (note): This will double-count any shared AND-prepreqs.
+		iNumSteps = findPathLength(ePreReq, bCost);
+		//	If the prereq is a valid tech and its the current shortest, mark it as such
+		if (iNumSteps < iShortestPath)
 		{
-			//	Recursively find the path length (takes into account all ANDs)
-			// k146 (note): This will double-count any shared AND-prepreqs.
-			iNumSteps = findPathLength(ePreReq, bCost);
-
-			//	If the prereq is a valid tech and its the current shortest, mark it as such
-			if (iNumSteps < iShortestPath)
-			{
-				eShortestOr = ePreReq;
-				iShortestPath = iNumSteps;
-			}
+			eShortestOr = ePreReq;
+			iShortestPath = iNumSteps;
 		}
 	}
 
@@ -10569,14 +10525,10 @@ bool CvPlayer::pushResearch(TechTypes eTech, bool bClear, /* advc.004x: */ bool 
 		clearResearchQueue();
 
 	// Add in all the pre-reqs for the and techs...
-	for (int i = 0; i < GC.getNUM_AND_TECH_PREREQS(eTech); i++)
+	for (int i = 0; i < GC.getInfo(eTech).getNumAndTechPrereqs(); i++)
 	{
-		TechTypes ePreReq = (TechTypes)GC.getInfo(eTech).getPrereqAndTechs(i);
-		if (ePreReq != NO_TECH)
-		{
-			if (!pushResearch(ePreReq))
-				return false;
-		}
+		if (!pushResearch(GC.getInfo(eTech).getPrereqAndTechs(i)))
+			return false;
 	}
 
 	// Will return the shortest path of all the or techs. Tie breaker goes to the first one...
@@ -10584,15 +10536,10 @@ bool CvPlayer::pushResearch(TechTypes eTech, bool bClear, /* advc.004x: */ bool 
 	int iShortestPath = MAX_INT;
 	bool bOrPrereqFound = false;
 	// Cycle through all the OR techs
-	for (int i = 0; i < GC.getNUM_OR_TECH_PREREQS(eTech); i++)
+	for (int i = 0; i < GC.getInfo(eTech).getNumOrTechPrereqs(); i++)
 	{
-		TechTypes ePreReq = (TechTypes)GC.getInfo(eTech).getPrereqOrTechs(i);
-
-		if (ePreReq == NO_TECH)
-			continue;
-
+		TechTypes const ePreReq = GC.getInfo(eTech).getPrereqOrTechs(i);
 		bOrPrereqFound = true;
-
 		/*	If the pre-req exists, and we have it, it is the shortest path,
 			get out, we're done */
 		if (GET_TEAM(getTeam()).isHasTech(ePreReq))
@@ -10600,12 +10547,10 @@ bool CvPlayer::pushResearch(TechTypes eTech, bool bClear, /* advc.004x: */ bool 
 			eShortestOr = ePreReq;
 			break;
 		}
-
 		if (canEverResearch(ePreReq))
 		{
 			// Find the length of the path to this pre-req
 			int iNumSteps = findPathLength(ePreReq);
-
 			/*	If this pre-req is a valid tech, and it's the shortest current path,
 				set it as such */
 			if (iNumSteps < iShortestPath)
@@ -13442,18 +13387,17 @@ int CvPlayer::getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const
 		// Search through all techs to see if any of the currently owned ones requires this tech
 		FOR_EACH_ENUM(Tech)
 		{
-			if (GET_TEAM(getTeam()).isHasTech(eLoopTech))
+			if (!GET_TEAM(getTeam()).isHasTech(eLoopTech))
+				continue;
+			for (int i = 0; i < GC.getInfo(eLoopTech).getNumOrTechPrereqs(); i++)
 			{
-				for (int iPrereqLoop = 0; iPrereqLoop < GC.getNUM_OR_TECH_PREREQS(); iPrereqLoop++)
-				{
-					if (GC.getInfo(eLoopTech).getPrereqOrTechs(iPrereqLoop) == eTech)
-						return -1;
-				}
-				for (int iPrereqLoop = 0; iPrereqLoop < GC.getNUM_AND_TECH_PREREQS(); iPrereqLoop++)
-				{
-					if (GC.getInfo(eLoopTech).getPrereqAndTechs(iPrereqLoop) == eTech)
-						return -1;
-				}
+				if (GC.getInfo(eLoopTech).getPrereqOrTechs(i) == eTech)
+					return -1;
+			}
+			for (int i = 0; i < GC.getInfo(eLoopTech).getNumAndTechPrereqs(); i++)
+			{
+				if (GC.getInfo(eLoopTech).getPrereqAndTechs(i) == eTech)
+					return -1;
 			}
 		}
 
@@ -13463,8 +13407,7 @@ int CvPlayer::getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const
 		{
 			if (pLoopUnit->getUnitInfo().getPrereqAndTech() == eTech)
 				return -1;
-
-			for (int i = 0; i < GC.getNUM_UNIT_AND_TECH_PREREQS(); i++)
+			for (int i = 0; i < pLoopUnit->getUnitInfo().getNumPrereqAndTechs(); i++)
 			{
 				if (pLoopUnit->getUnitInfo().getPrereqAndTechs(i) == eTech)
 					return -1;
@@ -13479,10 +13422,10 @@ int CvPlayer::getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const
 				{
 					if (GC.getInfo(eLoopBuilding).getPrereqAndTech() == eTech)
 						return -1;
-
-					for (int iI = 0; iI < GC.getNUM_BUILDING_AND_TECH_PREREQS(); iI++)
+					for (int i = 0; i < GC.getInfo(eLoopBuilding).
+						getNumPrereqAndTechs(); i++)
 					{
-						if (GC.getInfo(eLoopBuilding).getPrereqAndTechs(iI) == eTech)
+						if (GC.getInfo(eLoopBuilding).getPrereqAndTechs(i) == eTech)
 							return -1;
 					}
 				}

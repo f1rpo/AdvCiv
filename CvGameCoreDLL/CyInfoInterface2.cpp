@@ -251,7 +251,8 @@ void CyInfoPythonInterface2()
 
 		.def("getYieldChange", &CvRouteInfo::getYieldChange, "int (int i)")
 		.def("getTechMovementChange", &CvRouteInfo::getTechMovementChange, "int (int i)")
-		.def("getPrereqOrBonus", &CvRouteInfo::getPrereqOrBonus, "int (int i)")
+		// advc.003t: py_...
+		.def("getPrereqOrBonus", &CvRouteInfo::py_getPrereqOrBonus, "int (int i)")
 		;
 
 	python::class_<CvImprovementBonusInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvImprovementBonusInfo")

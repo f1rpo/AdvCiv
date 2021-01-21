@@ -200,7 +200,7 @@ public:
 	bool canSpreadCorporation(const CvPlot* pPlot, CorporationTypes eCorporation,							// Exposed to Python
 			bool bTestVisible = false) const;
 	bool spreadCorporation(CorporationTypes eCorporation);
-	int spreadCorporationCost(CorporationTypes eCorporation, CvCity* pCity) const;
+	int spreadCorporationCost(CorporationTypes eCorporation, CvCity const* pCity) const;
 
 	bool canJoin(const CvPlot* pPlot, SpecialistTypes eSpecialist) const;									// Exposed to Python
 	bool join(SpecialistTypes eSpecialist);

@@ -1,4 +1,4 @@
-// globals.cpp  // advc: Rearranged a lot of things in this file
+// advc: Rearranged a lot of things in this file
 #include "CvGameCoreDLL.h"
 #include "CvGlobals.h"
 #include "FVariableSystem.h"
@@ -865,53 +865,6 @@ void CvGlobals::updateCameraStartDistance(bool bReset)
 int CvGlobals::getMAX_CIV_PLAYERS()
 {
 	return MAX_CIV_PLAYERS;
-}
-// <advc.003t> Variants that take a parameter. The return value is still only an upper bound.
-int CvGlobals::getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit) const
-{
-	return (getInfo(eUnit).isAnyPrereqOrBonus() ?
-			getNUM_UNIT_PREREQ_OR_BONUSES() : 0);
-}
-
-int CvGlobals::getNUM_UNIT_AND_TECH_PREREQS(UnitTypes eUnit) const
-{
-	return (getInfo(eUnit).isAnyPrereqAndTech() ?
-			getNUM_UNIT_AND_TECH_PREREQS() : 0);
-}
-
-int CvGlobals::getNUM_BUILDING_PREREQ_OR_BONUSES(BuildingTypes eBuilding) const
-{
-	return (getInfo(eBuilding).isAnyPrereqOrBonus() ?
-			getNUM_BUILDING_PREREQ_OR_BONUSES() : 0);
-}
-
-int CvGlobals::getNUM_BUILDING_AND_TECH_PREREQS(BuildingTypes eBuilding) const
-{
-	return (getInfo(eBuilding).isAnyPrereqAndTech() ?
-			getNUM_BUILDING_AND_TECH_PREREQS() : 0);
-}
-
-int CvGlobals::getNUM_AND_TECH_PREREQS(TechTypes eTech) const
-{
-	return (getInfo(eTech).isAnyPrereqAndTech() ?
-			getNUM_AND_TECH_PREREQS() : 0);
-}
-
-int CvGlobals::getNUM_OR_TECH_PREREQS(TechTypes eTech) const
-{
-	return (getInfo(eTech).isAnyPrereqOrTech() ?
-			getNUM_OR_TECH_PREREQS() : 0);
-}
-
-int CvGlobals::getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute) const
-{
-	return (getInfo(eRoute).isAnyPrereqOrBonus() ?
-			getNUM_ROUTE_PREREQ_OR_BONUSES() : 0);
-}
-// </advc.003t>
-int CvGlobals::getNUM_CORPORATION_PREREQ_BONUSES() const
-{
-	return getDefineINT(NUM_CORPORATION_PREREQ_BONUSES);
 }
 
 int CvGlobals::getUSE_FINISH_TEXT_CALLBACK()

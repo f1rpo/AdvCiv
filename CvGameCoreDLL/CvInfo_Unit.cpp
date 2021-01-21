@@ -51,36 +51,36 @@ m_iHillsAttackModifier(0),
 m_iHillsDefenseModifier(0),
 m_iBombRate(0),
 m_iBombardRate(0),
-m_iSpecialCargo(0),
-m_iDomainCargo(0),
+m_eSpecialCargo(/* advc (was 0): */ NO_SPECIALUNIT),
+m_eDomainCargo(/* advc (was 0): */ NO_DOMAIN),
 m_iCargoSpace(0),
 m_iConscriptionValue(0),
 m_iCultureGarrisonValue(0),
 m_iExtraCost(0),
 m_iAssetValue(0),
 m_iPowerValue(0),
-m_iUnitClassType(NO_UNITCLASS),
-m_iSpecialUnitType(NO_SPECIALUNIT),
-m_iUnitCaptureClassType(NO_UNITCLASS),
-m_iUnitCombatType(NO_UNITCOMBAT),
-m_iDomainType(NO_DOMAIN),
-m_iDefaultUnitAIType(NO_UNITAI),
-m_iInvisibleType(NO_INVISIBLE),
-m_iAdvisorType(NO_ADVISOR),
-m_iHolyCity(NO_RELIGION),
-m_iReligionType(NO_RELIGION),
-m_iStateReligion(NO_RELIGION),
-m_iPrereqReligion(NO_RELIGION),
-m_iPrereqCorporation(NO_CORPORATION),
-m_iPrereqBuilding(NO_BUILDING),
-m_iPrereqAndTech(NO_TECH),
-m_iPrereqAndBonus(NO_BONUS),
+m_eUnitClassType(NO_UNITCLASS),
+m_eSpecialUnitType(NO_SPECIALUNIT),
+m_eUnitCaptureClassType(NO_UNITCLASS),
+m_eUnitCombatType(NO_UNITCOMBAT),
+m_eDomainType(NO_DOMAIN),
+m_eDefaultUnitAIType(NO_UNITAI),
+m_eInvisibleType(NO_INVISIBLE),
+m_eAdvisorType(NO_ADVISOR),
+m_eHolyCity(NO_RELIGION),
+m_eReligionType(NO_RELIGION),
+m_eStateReligion(NO_RELIGION),
+m_ePrereqReligion(NO_RELIGION),
+m_ePrereqCorporation(NO_CORPORATION),
+m_ePrereqBuilding(NO_BUILDING),
+m_ePrereqAndTech(NO_TECH),
+m_ePrereqAndBonus(NO_BONUS),
 m_iGroupSize(0),
 m_iGroupDefinitions(0),
 m_iUnitMeleeWaveSize(0),
 m_iUnitRangedWaveSize(0),
 m_iNumUnitNames(0),
-m_iCommandType(NO_COMMAND),
+m_eCommandType(NO_COMMAND),
 // <kmodx>
 m_iLeaderExperience(0),
 m_iLeaderPromotion(NO_PROMOTION),
@@ -145,8 +145,6 @@ m_pbBuildings(NULL),
 //m_pbForceBuildings(NULL), // advc.003t
 m_pbTerrainImpassable(NULL),
 m_pbFeatureImpassable(NULL),
-m_piPrereqAndTechs(NULL),
-m_piPrereqOrBonuses(NULL),
 m_piProductionTraits(NULL),
 m_piFlavorValue(NULL),
 m_piTerrainAttackModifier(NULL),
@@ -167,9 +165,7 @@ m_paszEarlyArtDefineTags(NULL),
 m_paszLateArtDefineTags(NULL),
 m_paszMiddleArtDefineTags(NULL),
 m_paszUnitNames(NULL)
-{
-	m_piSpeedBonuses[0] = m_piSpeedBonuses[1] = NULL; // advc.905b
-}
+{}
 
 
 CvUnitInfo::~CvUnitInfo()
@@ -192,12 +188,6 @@ CvUnitInfo::~CvUnitInfo()
 	//SAFE_DELETE_ARRAY(m_pbForceBuildings); // advc.003t
 	SAFE_DELETE_ARRAY(m_pbTerrainImpassable);
 	SAFE_DELETE_ARRAY(m_pbFeatureImpassable);
-	SAFE_DELETE_ARRAY(m_piPrereqAndTechs);
-	SAFE_DELETE_ARRAY(m_piPrereqOrBonuses);
-	// <advc.905b>
-	SAFE_DELETE_ARRAY(m_piSpeedBonuses[0]);
-	SAFE_DELETE_ARRAY(m_piSpeedBonuses[1]);
-	// </advc.905b>
 	SAFE_DELETE_ARRAY(m_piProductionTraits);
 	SAFE_DELETE_ARRAY(m_piFlavorValue);
 	SAFE_DELETE_ARRAY(m_piTerrainAttackModifier);
@@ -239,10 +229,7 @@ bool CvUnitInfo::isTechRequired(TechTypes eTech) const
 {
 	if (getPrereqAndTech() == eTech)
 		return true;
-	// <advc.003t>
-	if (!isAnyPrereqAndTech())
-		return false; // </advc.003t>
-	for (int i = 0; i < GC.getNUM_UNIT_AND_TECH_PREREQS(); i++)
+	for (int i = 0; i < getNumPrereqAndTechs(); i++)
 	{
 		if (getPrereqAndTechs(i) == eTech)
 			return true;
@@ -302,38 +289,27 @@ float CvUnitInfo::getUnitPadTime() const
 
 CommandTypes CvUnitInfo::getCommandType() const
 {
-	return (CommandTypes)m_iCommandType;
+	return m_eCommandType;
 }
 
 void CvUnitInfo::setCommandType(CommandTypes eNewType)
 {
-	m_iCommandType = (CommandTypes)eNewType;
+	m_eCommandType = eNewType;
 }
-
-
-TechTypes CvUnitInfo::getPrereqAndTechs(int i) const
+// <advc.003t> Calls from Python aren't going to respect the bounds
+int CvUnitInfo::py_getPrereqAndTechs(int i) const
 {
-	FAssertBounds(0, GC.getNUM_UNIT_AND_TECH_PREREQS(), i);
-	return m_piPrereqAndTechs ? (TechTypes)m_piPrereqAndTechs[i] : NO_TECH; // advc.003t
+	if (i < 0 || i >= getNumPrereqAndTechs())
+		return NO_TECH;
+	return m_aePrereqAndTechs[i];
 }
 
-BonusTypes CvUnitInfo::getPrereqOrBonuses(int i) const
+int CvUnitInfo::py_getPrereqOrBonuses(int i) const
 {
-	FAssertBounds(0, GC.getNUM_UNIT_PREREQ_OR_BONUSES(), i);
-	return m_piPrereqOrBonuses ? (BonusTypes)m_piPrereqOrBonuses[i] : NO_BONUS; // advc.003t
-}
-// <advc.905b>
-BonusTypes CvUnitInfo::getSpeedBonuses(int i) const {
-
-	FAssertBounds(0, GC.getNUM_UNIT_SPEED_BONUSES(), i);
-	return m_piSpeedBonuses[0] ? (BonusTypes)m_piSpeedBonuses[0][i] : NO_BONUS;
-}
-
-int CvUnitInfo::getExtraMoves(int i) const {
-
-	FAssertBounds(0, GC.getNUM_UNIT_SPEED_BONUSES(), i);
-	return m_piSpeedBonuses[1] ? m_piSpeedBonuses[1][i] : 0;
-} // </advc.905b>
+	if (i < 0 || i >= getNumPrereqOrBonuses())
+		return NO_BONUS;
+	return m_aePrereqOrBonuses[i];
+} // </advc.003t>
 
 int CvUnitInfo::getProductionTraits(int i) const
 {
@@ -787,44 +763,44 @@ void CvUnitInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iHillsDefenseModifier);
 	stream->Read(&m_iBombRate);
 	stream->Read(&m_iBombardRate);
-	stream->Read(&m_iSpecialCargo);
-	stream->Read(&m_iDomainCargo);
+	stream->Read((int*)&m_eSpecialCargo);
+	stream->Read((int*)&m_eDomainCargo);
 	stream->Read(&m_iCargoSpace);
 	stream->Read(&m_iConscriptionValue);
 	stream->Read(&m_iCultureGarrisonValue);
 	stream->Read(&m_iExtraCost);
 	stream->Read(&m_iAssetValue);
 	stream->Read(&m_iPowerValue);
-	stream->Read(&m_iUnitClassType);
-	stream->Read(&m_iSpecialUnitType);
-	stream->Read(&m_iUnitCaptureClassType);
-	stream->Read(&m_iUnitCombatType);
-	stream->Read(&m_iDomainType);
-	stream->Read(&m_iDefaultUnitAIType);
-	stream->Read(&m_iInvisibleType);
+	stream->Read((int*)&m_eUnitClassType);
+	stream->Read((int*)&m_eSpecialUnitType);
+	stream->Read((int*)&m_eUnitCaptureClassType);
+	stream->Read((int*)&m_eUnitCombatType);
+	stream->Read((int*)&m_eDomainType);
+	stream->Read((int*)&m_eDefaultUnitAIType);
+	stream->Read((int*)&m_eInvisibleType);
 	int iNumInvisibleTypes;
 	stream->Read(&iNumInvisibleTypes);
 	for(int i = 0; i < iNumInvisibleTypes; i++)
 	{
 		int iSeeInvisibleType;
 		stream->Read(&iSeeInvisibleType);
-		m_aiSeeInvisibleTypes.push_back(iSeeInvisibleType);
+		m_aeSeeInvisibleTypes.push_back((InvisibleTypes)iSeeInvisibleType);
 	}
-	stream->Read(&m_iAdvisorType);
-	stream->Read(&m_iHolyCity);
-	stream->Read(&m_iReligionType);
-	stream->Read(&m_iStateReligion);
-	stream->Read(&m_iPrereqReligion);
-	stream->Read(&m_iPrereqCorporation);
-	stream->Read(&m_iPrereqBuilding);
-	stream->Read(&m_iPrereqAndTech);
-	stream->Read(&m_iPrereqAndBonus);
+	stream->Read((int*)&m_eAdvisorType);
+	stream->Read((int*)&m_eHolyCity);
+	stream->Read((int*)&m_eReligionType);
+	stream->Read((int*)&m_eStateReligion);
+	stream->Read((int*)&m_ePrereqReligion);
+	stream->Read((int*)&m_ePrereqCorporation);
+	stream->Read((int*)&m_ePrereqBuilding);
+	stream->Read((int*)&m_ePrereqAndTech);
+	stream->Read((int*)&m_ePrereqAndBonus);
 	stream->Read(&m_iGroupSize);
 	stream->Read(&m_iGroupDefinitions);
 	stream->Read(&m_iUnitMeleeWaveSize);
 	stream->Read(&m_iUnitRangedWaveSize);
 	stream->Read(&m_iNumUnitNames);
-	stream->Read(&m_iCommandType);
+	stream->Read((int*)&m_eCommandType);
 	stream->Read(&m_bAnimal);
 	stream->Read(&m_bFoodProduction);
 	stream->Read(&m_bNoBadGoodies);
@@ -873,24 +849,49 @@ void CvUnitInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_bNoRevealMap);
 	stream->Read(&m_fUnitMaxSpeed);
 	stream->Read(&m_fUnitPadTime);
-	SAFE_DELETE_ARRAY(m_piPrereqAndTechs);
-	m_piPrereqAndTechs = new int[GC.getNUM_UNIT_AND_TECH_PREREQS()];
-	stream->Read(GC.getNUM_UNIT_AND_TECH_PREREQS(), m_piPrereqAndTechs);
-	SAFE_DELETE_ARRAY(m_piPrereqOrBonuses);
-	m_piPrereqOrBonuses = new int[GC.getNUM_UNIT_PREREQ_OR_BONUSES()];
-	stream->Read(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piPrereqOrBonuses);
-	// <advc.905b>
-	SAFE_DELETE_ARRAY(m_piSpeedBonuses[0]);
-	SAFE_DELETE_ARRAY(m_piSpeedBonuses[1]);
-	m_piSpeedBonuses[0] = new int[GC.getNUM_UNIT_PREREQ_OR_BONUSES()];
-	m_piSpeedBonuses[1] = new int[GC.getNUM_UNIT_PREREQ_OR_BONUSES()];
-	if(uiFlag >= 3) {
-		stream->Read(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piSpeedBonuses[0]);
-		stream->Read(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piSpeedBonuses[1]);
+	// <advc.003t> (Pretty sure I'll never need this - not sure why I'm writing it.)
+	int iPrereqAndTechs;
+	if (uiFlag >= 1)
+		stream->Read(&iPrereqAndTechs);
+	else iPrereqAndTechs = GC.getDefineINT(CvGlobals::NUM_UNIT_AND_TECH_PREREQS);
+	if (iPrereqAndTechs > 0)
+	{
+		m_aePrereqAndTechs.resize(iPrereqAndTechs);
+		stream->Read(iPrereqAndTechs, (int*)&m_aePrereqAndTechs[0]);
 	}
-	else for(int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); i++) {
-		m_piSpeedBonuses[0][i] = -1;
-		m_piSpeedBonuses[1][i] = 0;
+	int iPrereqOrBonuses;
+	if (uiFlag >= 1)
+		stream->Read(&iPrereqOrBonuses);
+	else iPrereqOrBonuses = GC.getDefineINT(CvGlobals::NUM_UNIT_PREREQ_OR_BONUSES);
+	if (iPrereqOrBonuses > 0)
+	{
+		m_aePrereqOrBonuses.resize(iPrereqOrBonuses);
+		stream->Read(iPrereqOrBonuses, (int*)&m_aePrereqOrBonuses[0]);
+	} // </advc.003t>  <advc.905b>
+	if (uiFlag >= 4)
+	{
+		int iSpeedBonuses;
+		stream->Read(&iSpeedBonuses);
+		for (int i = 0; i < iSpeedBonuses; i++)
+		{
+			int iFirst, iSecond;
+			stream->Read(&iFirst);
+			stream->Read(&iSecond);
+			m_aeiSpeedBonuses.push_back(std::make_pair((BonusTypes)iFirst, iSecond));
+		}
+	}
+	else if (uiFlag >= 3)
+	{
+		int const iSize = GC.getDefineINT(CvGlobals::NUM_UNIT_PREREQ_OR_BONUSES);
+		std::vector<BonusTypes> aeBonuses(iSize, NO_BONUS);
+		std::vector<int> aiMoves(iSize, 0);
+		stream->Read(iSize, (int*)&aeBonuses[0]);
+		stream->Read(iSize, &aiMoves[0]);
+		for (int i = 0; i < iSize; i++)
+		{
+			if (aeBonuses[i] != NO_BONUS && aiMoves[i] != 0)
+				m_aeiSpeedBonuses.push_back(std::make_pair(aeBonuses[i], aiMoves[i]));
+		}
 	} // </advc.905b>
 	SAFE_DELETE_ARRAY(m_piProductionTraits);
 	m_piProductionTraits = new int[GC.getNumTraitInfos()];
@@ -1019,7 +1020,9 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 	uint uiFlag;
 	//uiFlag = 1; // K-Mod
 	//uiFlag = 2; // advc.315
-	uiFlag = 3; // advc.905b
+	//uiFlag = 3; // advc.905b
+	//uiFlag = 4; // advc.905b
+	uiFlag = 5; // advc.003t
 	stream->Write(uiFlag);
 
 	stream->Write(m_iAIWeight);
@@ -1064,39 +1067,39 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iHillsDefenseModifier);
 	stream->Write(m_iBombRate);
 	stream->Write(m_iBombardRate);
-	stream->Write(m_iSpecialCargo);
-	stream->Write(m_iDomainCargo);
+	stream->Write(m_eSpecialCargo);
+	stream->Write(m_eDomainCargo);
 	stream->Write(m_iCargoSpace);
 	stream->Write(m_iConscriptionValue);
 	stream->Write(m_iCultureGarrisonValue);
 	stream->Write(m_iExtraCost);
 	stream->Write(m_iAssetValue);
 	stream->Write(m_iPowerValue);
-	stream->Write(m_iUnitClassType);
-	stream->Write(m_iSpecialUnitType);
-	stream->Write(m_iUnitCaptureClassType);
-	stream->Write(m_iUnitCombatType);
-	stream->Write(m_iDomainType);
-	stream->Write(m_iDefaultUnitAIType);
-	stream->Write(m_iInvisibleType);
-	stream->Write((int)m_aiSeeInvisibleTypes.size());
-	for(int i = 0; i < (int)m_aiSeeInvisibleTypes.size(); i++)
-		stream->Write(m_aiSeeInvisibleTypes[i]);
-	stream->Write(m_iAdvisorType);
-	stream->Write(m_iHolyCity);
-	stream->Write(m_iReligionType);
-	stream->Write(m_iStateReligion);
-	stream->Write(m_iPrereqReligion);
-	stream->Write(m_iPrereqCorporation);
-	stream->Write(m_iPrereqBuilding);
-	stream->Write(m_iPrereqAndTech);
-	stream->Write(m_iPrereqAndBonus);
+	stream->Write(m_eUnitClassType);
+	stream->Write(m_eSpecialUnitType);
+	stream->Write(m_eUnitCaptureClassType);
+	stream->Write(m_eUnitCombatType);
+	stream->Write(m_eDomainType);
+	stream->Write(m_eDefaultUnitAIType);
+	stream->Write(m_eInvisibleType);
+	stream->Write((int)m_aeSeeInvisibleTypes.size());
+	for(size_t i = 0; i < m_aeSeeInvisibleTypes.size(); i++)
+		stream->Write(m_aeSeeInvisibleTypes[i]);
+	stream->Write(m_eAdvisorType);
+	stream->Write(m_eHolyCity);
+	stream->Write(m_eReligionType);
+	stream->Write(m_eStateReligion);
+	stream->Write(m_ePrereqReligion);
+	stream->Write(m_ePrereqCorporation);
+	stream->Write(m_ePrereqBuilding);
+	stream->Write(m_ePrereqAndTech);
+	stream->Write(m_ePrereqAndBonus);
 	stream->Write(m_iGroupSize);
 	stream->Write(m_iGroupDefinitions);
 	stream->Write(m_iUnitMeleeWaveSize);
 	stream->Write(m_iUnitRangedWaveSize);
 	stream->Write(m_iNumUnitNames);
-	stream->Write(m_iCommandType);
+	stream->Write(m_eCommandType);
 	stream->Write(m_bAnimal);
 	stream->Write(m_bFoodProduction);
 	stream->Write(m_bNoBadGoodies);
@@ -1139,12 +1142,25 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 	stream->Write(m_bNoRevealMap);
 	stream->Write(m_fUnitMaxSpeed);
 	stream->Write(m_fUnitPadTime);
-	stream->Write(GC.getNUM_UNIT_AND_TECH_PREREQS(), m_piPrereqAndTechs);
-	stream->Write(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piPrereqOrBonuses);
-	// <advc.905b>
-	stream->Write(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piSpeedBonuses[0]);
-	stream->Write(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piSpeedBonuses[1]);
-	// </advc.905b>
+	// <advc.003t>
+	{
+		int iPrereqAndTechs = getNumPrereqAndTechs();
+		stream->Write(iPrereqAndTechs);
+		if (iPrereqAndTechs > 0)
+			stream->Write(iPrereqAndTechs, (int*)&m_aePrereqAndTechs[0]);
+	}
+	{
+		int iPrereqOrBonuses = getNumPrereqOrBonuses();
+		stream->Write(iPrereqOrBonuses);
+		if (iPrereqOrBonuses > 0)
+			stream->Write(iPrereqOrBonuses, (int*)&m_aePrereqOrBonuses[0]);
+	} // </advc.003t>  <advc.905b>
+	stream->Write(getNumSpeedBonuses());
+	for (int i = 0; i < getNumSpeedBonuses(); i++)
+	{
+		stream->Write(m_aeiSpeedBonuses[i].first);
+		stream->Write(m_aeiSpeedBonuses[i].second);
+	} // </advc.905b>
 	stream->Write(GC.getNumTraitInfos(), m_piProductionTraits);
 	stream->Write(GC.getNumFlavorTypes(), m_piFlavorValue);
 	stream->Write(GC.getNumTerrainInfos(), m_piTerrainAttackModifier);
@@ -1194,26 +1210,27 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvHotkeyInfo::read(pXML))
 		return false;
 
-	pXML->SetInfoIDFromChildXmlVal(m_iUnitClassType, "Class");
-	pXML->SetInfoIDFromChildXmlVal(m_iSpecialUnitType, "Special");
-	pXML->SetInfoIDFromChildXmlVal(m_iUnitCaptureClassType, "Capture");
-	pXML->SetInfoIDFromChildXmlVal(m_iUnitCombatType, "Combat");
-	pXML->SetInfoIDFromChildXmlVal(m_iDomainType, "Domain");
-	pXML->SetInfoIDFromChildXmlVal(m_iDefaultUnitAIType, "DefaultUnitAI");
-	pXML->SetInfoIDFromChildXmlVal(m_iInvisibleType, "Invisible");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eUnitClassType, "Class");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eSpecialUnitType, "Special");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eUnitCaptureClassType, "Capture");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eUnitCombatType, "Combat");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eDomainType, "Domain");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eDefaultUnitAIType, "DefaultUnitAI");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eInvisibleType, "Invisible");
 	{
 		CvString szTextVal;
 		pXML->GetChildXmlValByName(szTextVal, "SeeInvisible");
-		std::vector<CvString> tokens;
-		szTextVal.getTokens(",", tokens);
-		for(int i = 0; i < (int)tokens.size(); i++)
+		std::vector<CvString> aszTokens;
+		szTextVal.getTokens(",", aszTokens);
+		for(size_t i = 0; i < aszTokens.size(); i++)
 		{
-			int iInvisibleType = pXML->FindInInfoClass(tokens[i]);
-			if(iInvisibleType != NO_INVISIBLE)
-				m_aiSeeInvisibleTypes.push_back(iInvisibleType);
+			InvisibleTypes eInvisibleType = (InvisibleTypes)
+					pXML->FindInInfoClass(aszTokens[i]);
+			if(eInvisibleType != NO_INVISIBLE)
+				m_aeSeeInvisibleTypes.push_back(eInvisibleType);
 		}
 	}
-	pXML->SetInfoIDFromChildXmlVal(m_iAdvisorType, "Advisor");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eAdvisorType, "Advisor");
 
 	pXML->GetChildXmlValByName(&m_bAnimal, "bAnimal");
 	pXML->GetChildXmlValByName(&m_bFoodProduction, "bFood");
@@ -1297,101 +1314,86 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	pXML->SetVariableListTagPair(&m_pbBuildings, "Buildings", GC.getNumBuildingInfos());
 	//pXML->SetVariableListTagPair(&m_pbForceBuildings, "ForceBuildings", GC.getNumBuildingInfos()); // advc.003t
 
-	pXML->SetInfoIDFromChildXmlVal(m_iHolyCity, "HolyCity");
-	pXML->SetInfoIDFromChildXmlVal(m_iReligionType, "ReligionType");
-	pXML->SetInfoIDFromChildXmlVal(m_iStateReligion, "StateReligion");
-	pXML->SetInfoIDFromChildXmlVal(m_iPrereqReligion, "PrereqReligion");
-	pXML->SetInfoIDFromChildXmlVal(m_iPrereqCorporation, "PrereqCorporation");
-	pXML->SetInfoIDFromChildXmlVal(m_iPrereqBuilding, "PrereqBuilding");
-	pXML->SetInfoIDFromChildXmlVal(m_iPrereqAndTech, "PrereqTech");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eHolyCity, "HolyCity");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eReligionType, "ReligionType");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eStateReligion, "StateReligion");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_ePrereqReligion, "PrereqReligion");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_ePrereqCorporation, "PrereqCorporation");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_ePrereqBuilding, "PrereqBuilding");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_ePrereqAndTech, "PrereqTech");
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"TechTypes"))
 	{
 		if (pXML->SkipToNextVal())
 		{
-			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
-			FAssertMsg(GC.getNUM_UNIT_AND_TECH_PREREQS() > 0 , "Allocating zero or less memory in SetGlobalUnitInfo");
-			pXML->InitList(&m_piPrereqAndTechs, GC.getNUM_UNIT_AND_TECH_PREREQS(), -1);
-			bool bAnyReq = false; // advc.003t
+			int const iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			if (iNumSibs > 0)
 			{
 				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
-				{
-					FAssertMsg(iNumSibs <= GC.getNUM_UNIT_AND_TECH_PREREQS(), "There are more siblings than memory allocated for them in SetGlobalUnitInfo");
+				{	// advc.003t: The DLL can handle any number, but Python maybe not.
+					FAssert(iNumSibs <= GC.getDefineINT(CvGlobals::NUM_UNIT_AND_TECH_PREREQS));
 					for (int j = 0; j < iNumSibs; j++)
-					{
-						m_piPrereqAndTechs[j] = pXML->FindInInfoClass(szTextVal);
-						// <advc.003t>
-						if (m_piPrereqAndTechs[j] != NO_TECH)
-							bAnyReq = true; // </advc.003t>
+					{	// <advc.003t>
+						TechTypes eTech = (TechTypes)pXML->FindInInfoClass(szTextVal);
+						if (eTech != NO_TECH)
+							m_aePrereqAndTechs.push_back(eTech); // </advc.003t>
 						if (!pXML->GetNextXmlVal(szTextVal))
 							break;
 					}
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 				}
-			} // <advc.003t>
-			if (!bAnyReq)
-				SAFE_DELETE_ARRAY(m_piPrereqAndTechs); // </advc.003t>
+			}
 		}
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
 
-	pXML->SetInfoIDFromChildXmlVal(m_iPrereqAndBonus, "BonusType");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_ePrereqAndBonus, "BonusType");
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "PrereqBonuses"))
 	{
 		if (pXML->SkipToNextVal())
 		{
-			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
-			FAssertMsg(GC.getNUM_UNIT_PREREQ_OR_BONUSES() > 0, "Allocating zero or less memory in SetGlobalUnitInfo");
-			pXML->InitList(&m_piPrereqOrBonuses, GC.getNUM_UNIT_PREREQ_OR_BONUSES(), -1);
-			bool bAnyReq = false; // advc.003t
+			int const iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			if (iNumSibs > 0)
 			{
 				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
-					FAssertMsg(iNumSibs <= GC.getNUM_UNIT_PREREQ_OR_BONUSES() , "There are more siblings than memory allocated for them in SetGlobalUnitInfo");
+					FAssert(iNumSibs <= GC.getDefineINT(CvGlobals::NUM_UNIT_PREREQ_OR_BONUSES));
 					for (int j = 0; j < iNumSibs; j++)
-					{
-						m_piPrereqOrBonuses[j] = pXML->FindInInfoClass(szTextVal);
-						// <advc.003t>
-						if (m_piPrereqOrBonuses[j] != NO_BONUS)
-							bAnyReq = true; // </advc.003t>
+					{	// <advc.003t>
+						BonusTypes eBonus = (BonusTypes)pXML->FindInInfoClass(szTextVal);
+						if (eBonus != NO_BONUS)
+							m_aePrereqOrBonuses.push_back(eBonus); // </advc.003t>
 						if (!pXML->GetNextXmlVal(szTextVal))
 							break;
 					}
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 				}
-			} // <advc.003t>
-			if (!bAnyReq)
-				SAFE_DELETE_ARRAY(m_piPrereqOrBonuses); // </advc.003t>
+			}
 		}
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
-	} /* <advc.905b> Could implement this like e.g. BonusHappinessChanges, but that
-		 would mean storing one int for every (unit type, bonus type) pair. Instead,
-		 do sth. similar to the code for PrereqOrBonuses above. */
-	if(gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "SpeedBonuses"))
+	}
+	// <advc.905b>
+	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "SpeedBonuses"))
 	{
-		if(pXML->SkipToNextVal()) {
-			pXML->InitList(&m_piSpeedBonuses[0], GC.getNUM_UNIT_PREREQ_OR_BONUSES(), -1);
-			pXML->InitList(&m_piSpeedBonuses[1], GC.getNUM_UNIT_PREREQ_OR_BONUSES(), 0);
-			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
-			if(iNumSibs > 0 && gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
+		if(pXML->SkipToNextVal())
+		{
+			int const iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			if (iNumSibs > 0 && gDLL->getXMLIFace()->SetToChild(pXML->GetXML()))
 			{
-				FAssert(iNumSibs <= GC.getNUM_UNIT_PREREQ_OR_BONUSES());
-				for(int j = 0; j < iNumSibs; j++)
+				for (int j = 0; j < iNumSibs; j++)
 				{
 					CvString szTextVal;
 					pXML->GetChildXmlValByName(szTextVal, "BonusType");
-					int iBonus = pXML->FindInInfoClass(szTextVal);
-					if(iBonus > -1)
+					BonusTypes eBonus = (BonusTypes)pXML->FindInInfoClass(szTextVal);
+					if (eBonus != NO_BONUS)
 					{
-						m_piSpeedBonuses[0][j] = iBonus;
 						int iExtraMoves = 0;
 						pXML->GetChildXmlValByName(&iExtraMoves, "iExtraMoves");
-						m_piSpeedBonuses[1][j] = iExtraMoves;
+						if (iExtraMoves != 0)
+							m_aeiSpeedBonuses.push_back(std::make_pair(eBonus, iExtraMoves));
 					}
 					if(!gDLL->getXMLIFace()->NextSibling(pXML->GetXML()))
 						break;
@@ -1472,8 +1474,8 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iBombRate, "iBombRate");
 	pXML->GetChildXmlValByName(&m_iBombardRate, "iBombardRate");
 
-	pXML->SetInfoIDFromChildXmlVal(m_iSpecialCargo, "SpecialCargo");
-	pXML->SetInfoIDFromChildXmlVal(m_iDomainCargo, "DomainCargo");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eSpecialCargo, "SpecialCargo");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eDomainCargo, "DomainCargo");
 
 	pXML->GetChildXmlValByName(&m_iCargoSpace, "iCargo");
 	pXML->GetChildXmlValByName(&m_iConscriptionValue, "iConscription");

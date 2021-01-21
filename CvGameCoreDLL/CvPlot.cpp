@@ -1865,20 +1865,22 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 	bool bBuildable = false;
 	if (eBuild == NO_BUILD && !bAnyBuild)
 	{
-		for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
+		FOR_EACH_ENUM(Yield)
 		{
-			if (calculateNatureYield(((YieldTypes)iI), eTeam) <
-					GC.getInfo(eImprovement).getPrereqNatureYield(iI))
+			if (calculateNatureYield(eLoopYield, eTeam) <
+				GC.getInfo(eImprovement).getPrereqNatureYield(eLoopYield))
+			{
 				return false;
+			}
 		}
 	}
 	else if (eBuild != NO_BUILD)
 	{
-		for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
+		FOR_EACH_ENUM(Yield)
 		{
-			if (calculateNatureYield(((YieldTypes)iI), eTeam, !isFeature() ||
+			if (calculateNatureYield(eLoopYield, eTeam, !isFeature() ||
 				GC.getInfo(eBuild).isFeatureRemove(getFeatureType())) <
-				GC.getInfo(eImprovement).getPrereqNatureYield(iI))
+				GC.getInfo(eImprovement).getPrereqNatureYield(eLoopYield))
 			{
 				return false;
 			}
@@ -1951,10 +1953,8 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 		{
 			if (GC.getInfo(getImprovementType()).isPermanent())
 				return false;
-
 			if (getImprovementType() == eImprovement)
 				return false;
-
 			ImprovementTypes eFinalImprovementType = CvImprovementInfo::
 					finalUpgrade(getImprovementType());
 			if (eFinalImprovementType != NO_IMPROVEMENT)
@@ -1963,7 +1963,6 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 					return false;
 			}
 		}
-
 		if (!bTestVisible)
 		{
 			if (GET_PLAYER(ePlayer).getTeam() != getTeam())
@@ -1988,32 +1987,27 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 			if (GC.getInfo(getRouteType()).getValue() >= GC.getInfo(eRoute).getValue())
 				return false;
 		}
-
 		if (!bTestVisible)
 		{
 			if (GC.getInfo(eRoute).getPrereqBonus() != NO_BONUS)
 			{
-				if (!isAdjacentPlotGroupConnectedBonus(ePlayer, ((BonusTypes)(GC.getInfo(eRoute).getPrereqBonus()))))
+				if (!isAdjacentPlotGroupConnectedBonus(ePlayer,
+					GC.getInfo(eRoute).getPrereqBonus()))
 				{
 					return false;
 				}
 			}
-
 			bool bFoundValid = true;
-			for (int i = 0; i < GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); ++i)
+			for (int i = 0; i < GC.getInfo(eRoute).getNumPrereqOrBonuses(); i++)
 			{
-				if (NO_BONUS != GC.getInfo(eRoute).getPrereqOrBonus(i))
+				bFoundValid = false;
+				if (isAdjacentPlotGroupConnectedBonus(ePlayer,
+					GC.getInfo(eRoute).getPrereqOrBonus(i)))
 				{
-					bFoundValid = false;
-
-					if (isAdjacentPlotGroupConnectedBonus(ePlayer, ((BonusTypes)(GC.getInfo(eRoute).getPrereqOrBonus(i)))))
-					{
-						bFoundValid = true;
-						break;
-					}
+					bFoundValid = true;
+					break;
 				}
 			}
-
 			if (!bFoundValid)
 				return false;
 		}
@@ -7797,11 +7791,10 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 
 	bool bRequiresBonus = false;
 	bool bNeedsBonus = true;
-	for (int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(eUnit); i++)
+	for (int i = 0; i < kUnit.getNumPrereqOrBonuses(); i++)
 	{
-		BonusTypes ePrereqOrBonus = kUnit.getPrereqOrBonuses(i); // advc
-		if(ePrereqOrBonus != NO_BONUS &&
-			ePrereqOrBonus != eAssumeAvailable) // advc.001u
+		BonusTypes const ePrereqOrBonus = kUnit.getPrereqOrBonuses(i);
+		if (ePrereqOrBonus != eAssumeAvailable) // advc.001u
 		{
 			bRequiresBonus = true;
 			if (bCity)
@@ -7812,13 +7805,10 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 					break;
 				}
 			}
-			else
+			else if (isPlotGroupConnectedBonus(getOwner(), ePrereqOrBonus))
 			{
-				if (isPlotGroupConnectedBonus(getOwner(), ePrereqOrBonus))
-				{
-					bNeedsBonus = false;
-					break;
-				}
+				bNeedsBonus = false;
+				break;
 			}
 		}
 	}

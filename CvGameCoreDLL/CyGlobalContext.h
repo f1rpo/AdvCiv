@@ -274,14 +274,14 @@ public:
 	int getMIN_WATER_SIZE_FOR_OCEAN() const { return kGlobals.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN); }
 	int getMAX_CITY_DEFENSE_DAMAGE() const { return kGlobals.getMAX_CITY_DEFENSE_DAMAGE(); }
 
-	int getNUM_UNIT_AND_TECH_PREREQS() const { return kGlobals.getNUM_UNIT_AND_TECH_PREREQS(); }
-	int getNUM_UNIT_PREREQ_OR_BONUSES() const { return kGlobals.getNUM_UNIT_PREREQ_OR_BONUSES(); }
-	int getNUM_BUILDING_AND_TECH_PREREQS() const { return kGlobals.getNUM_BUILDING_AND_TECH_PREREQS(); }
-	int getNUM_BUILDING_PREREQ_OR_BONUSES() const { return kGlobals.getNUM_BUILDING_PREREQ_OR_BONUSES(); }	
-	int getNUM_AND_TECH_PREREQS() const { return kGlobals.getNUM_AND_TECH_PREREQS(); }
-	int getNUM_OR_TECH_PREREQS() const { return kGlobals.getNUM_OR_TECH_PREREQS(); }
-	int getNUM_ROUTE_PREREQ_OR_BONUSES() const { return kGlobals.getNUM_ROUTE_PREREQ_OR_BONUSES(); }
-	int getNUM_CORPORATION_PREREQ_BONUSES() const { return kGlobals.getNUM_CORPORATION_PREREQ_BONUSES(); }
+	int getNUM_UNIT_AND_TECH_PREREQS() const { return kGlobals.getDefineINT(CvGlobals::NUM_UNIT_AND_TECH_PREREQS); }
+	int getNUM_UNIT_PREREQ_OR_BONUSES() const { return kGlobals.getDefineINT(CvGlobals::NUM_UNIT_PREREQ_OR_BONUSES); }
+	int getNUM_BUILDING_AND_TECH_PREREQS() const { return kGlobals.getDefineINT(CvGlobals::NUM_BUILDING_AND_TECH_PREREQS); }
+	int getNUM_BUILDING_PREREQ_OR_BONUSES() const { return kGlobals.getDefineINT(CvGlobals::NUM_BUILDING_PREREQ_OR_BONUSES); }	
+	int getNUM_AND_TECH_PREREQS() const { return kGlobals.getDefineINT(CvGlobals::NUM_AND_TECH_PREREQS); }
+	int getNUM_OR_TECH_PREREQS() const { return kGlobals.getDefineINT(CvGlobals::NUM_OR_TECH_PREREQS); }
+	int getNUM_ROUTE_PREREQ_OR_BONUSES() const { return kGlobals.getDefineINT(CvGlobals::NUM_ROUTE_PREREQ_OR_BONUSES); }
+	int getNUM_CORPORATION_PREREQ_BONUSES() const { return kGlobals.getDefineINT(CvGlobals::NUM_CORPORATION_PREREQ_BONUSES); }
 	// advc.003t: Removed the other (unused) accessors for cached GlobalDefines
 
 	float getCAMERA_MIN_YAW() const { return kGlobals.getCAMERA_MIN_YAW(); }

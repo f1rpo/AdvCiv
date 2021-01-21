@@ -602,52 +602,16 @@ public:
 	}
 	void setWATER_TERRAIN(bool bShallow, int iValue);
 	// </advc.opt>
-	// The getNUM...PREREQ... functions are all exposed to Python
-	inline int getNUM_UNIT_PREREQ_OR_BONUSES() const
-	{
-		return getDefineINT(NUM_UNIT_PREREQ_OR_BONUSES);
-	}
-	int getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit) const; // advc.003t
-	// <advc.905b>
-	inline int getNUM_UNIT_SPEED_BONUSES() const
-	{
-		return getNUM_UNIT_PREREQ_OR_BONUSES();
-	}
-	inline int getNUM_UNIT_SPEED_BONUSES(UnitTypes eUnit) const
-	{
-		return getNUM_UNIT_PREREQ_OR_BONUSES(eUnit);
-	} // </advc.905b>
-	inline int getNUM_UNIT_AND_TECH_PREREQS() const
-	{
-		return getDefineINT(NUM_UNIT_AND_TECH_PREREQS);
-	}
-	int getNUM_UNIT_AND_TECH_PREREQS(UnitTypes eUnit) const; // advc.003t
-	inline int getNUM_BUILDING_PREREQ_OR_BONUSES() const
-	{
-		return getDefineINT(NUM_BUILDING_PREREQ_OR_BONUSES);
-	}
-	int getNUM_BUILDING_PREREQ_OR_BONUSES(BuildingTypes eBuilding) const; // advc.003t
-	inline int getNUM_BUILDING_AND_TECH_PREREQS() const
-	{
-		return getDefineINT(NUM_BUILDING_AND_TECH_PREREQS);
-	}
-	int getNUM_BUILDING_AND_TECH_PREREQS(BuildingTypes eBuilding) const; // advc.003t
-	inline int getNUM_AND_TECH_PREREQS() const
-	{
-		return getDefineINT(NUM_AND_TECH_PREREQS);
-	}
-	int getNUM_AND_TECH_PREREQS(TechTypes) const; // advc.003t
-	inline int getNUM_OR_TECH_PREREQS() const
-	{
-		return getDefineINT(NUM_OR_TECH_PREREQS);
-	}
-	int getNUM_OR_TECH_PREREQS(TechTypes) const; // advc.003t
-	inline int getNUM_ROUTE_PREREQ_OR_BONUSES() const
-	{
-		return getDefineINT(NUM_ROUTE_PREREQ_OR_BONUSES);
-	}
-	int getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute) const; // advc.003t
-	int getNUM_CORPORATION_PREREQ_BONUSES() const; // (advc: A param like above doesn't help b/c all corps require resources)
+	/*	advc.003t: Still exposed to Python, but, in the DLL, CvInfo functions,
+		e.g. CvTechInfo::getNumOrTechPrereqs, should be used instead. */
+	/*int getNUM_UNIT_PREREQ_OR_BONUSES() const;
+	int getNUM_UNIT_AND_TECH_PREREQS() const;
+	int getNUM_BUILDING_PREREQ_OR_BONUSES() const;
+	int getNUM_BUILDING_AND_TECH_PREREQS() const;
+	int getNUM_AND_TECH_PREREQS() const;
+	int getNUM_OR_TECH_PREREQS() const;
+	int getNUM_ROUTE_PREREQ_OR_BONUSES() const;
+	int getNUM_CORPORATION_PREREQ_BONUSES() const;*/
 	inline float getPOWER_CORRECTION() const { return m_fPOWER_CORRECTION; } // advc.104
 	// advc: All inlined and constified
 	DllExport inline float getCAMERA_MIN_YAW() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MIN_YAW(); }

@@ -922,8 +922,8 @@ void CvSelectionGroup::startMission()
 					Since post-combat code clears the mission queue (and this sets
 					activity to ACTIVITY_AWAKE) and also deals with unit selection
 					for the active player, we can just skip rest of the function here." */
-                if (headMissionQueueNode() == NULL || pUnit->isAttacking())
-                    return; // </kekm.37>
+				if (headMissionQueueNode() == NULL || pUnit->isAttacking())
+					return; // </kekm.37>
 			}
 			break;
 		}

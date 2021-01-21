@@ -5282,8 +5282,7 @@ bool CvUnit::canSpreadCorporation(const CvPlot* pPlot, CorporationTypes eCorpora
 	if (m_pUnitInfo->getCorporationSpreads(eCorporation) <= 0)
 		return false;
 
-	CvCity* pCity = pPlot->getPlotCity();
-
+	CvCity const* pCity = pPlot->getPlotCity();
 	if (pCity == NULL)
 		return false;
 	if (pCity->isHasCorporation(eCorporation))
@@ -5308,16 +5307,12 @@ bool CvUnit::canSpreadCorporation(const CvPlot* pPlot, CorporationTypes eCorpora
 			}
 		}
 		bool bValid = false;
-		for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+		for (int i = 0; i < GC.getInfo(eCorporation).getNumPrereqBonuses(); ++i)
 		{
-			BonusTypes eBonus = (BonusTypes)GC.getInfo(eCorporation).getPrereqBonus(i);
-			if (NO_BONUS != eBonus)
+			if (pCity->hasBonus(GC.getInfo(eCorporation).getPrereqBonus(i)))
 			{
-				if (pCity->hasBonus(eBonus))
-				{
-					bValid = true;
-					break;
-				}
+				bValid = true;
+				break;
 			}
 		}
 		if (!bValid)
@@ -5328,31 +5323,28 @@ bool CvUnit::canSpreadCorporation(const CvPlot* pPlot, CorporationTypes eCorpora
 	return true;
 }
 
-int CvUnit::spreadCorporationCost(CorporationTypes eCorporation, CvCity* pCity) const
+int CvUnit::spreadCorporationCost(CorporationTypes eCorporation, CvCity const* pCity) const
 {
-	int iCost = std::max(0, GC.getInfo(eCorporation).getSpreadCost() * (100 + GET_PLAYER(getOwner()).calculateInflationRate()));
+	int iCost = std::max(0, GC.getInfo(eCorporation).getSpreadCost() *
+			(100 + GET_PLAYER(getOwner()).calculateInflationRate()));
 	iCost /= 100;
 	if (pCity == NULL)
 		return iCost; // advc
 
-	if (getTeam() != pCity->getTeam() && !GET_TEAM(pCity->getTeam()).isVassal(getTeam()))
+	if (getTeam() != pCity->getTeam() &&
+		!GET_TEAM(pCity->getTeam()).isVassal(getTeam()))
 	{
 		static int const iCORPORATION_FOREIGN_SPREAD_COST_PERCENT = GC.getDefineINT("CORPORATION_FOREIGN_SPREAD_COST_PERCENT"); // advc.opt
 		iCost *= iCORPORATION_FOREIGN_SPREAD_COST_PERCENT;
 		iCost /= 100;
 	}
-	for (int iCorp = 0; iCorp < GC.getNumCorporationInfos(); ++iCorp)
+	FOR_EACH_ENUM2(Corporation, eLoopCorp)
 	{
-		if (iCorp != eCorporation)
+		if (eLoopCorp != eCorporation && pCity->isActiveCorporation(eLoopCorp) &&
+			GC.getGame().isCompetingCorporation(eCorporation, eLoopCorp))
 		{
-			if (pCity->isActiveCorporation((CorporationTypes)iCorp))
-			{
-				if (GC.getGame().isCompetingCorporation(eCorporation, (CorporationTypes)iCorp))
-				{
-					iCost *= 100 + GC.getInfo((CorporationTypes)iCorp).getSpreadFactor();
-					iCost /= 100;
-				}
-			}
+			iCost *= 100 + GC.getInfo(eLoopCorp).getSpreadFactor();
+			iCost /= 100;
 		}
 	}
 	return iCost;
@@ -6643,16 +6635,12 @@ int CvUnit::baseMoves() const
 	// <advc.905b>
 	int iR = m_pUnitInfo->getMoves() + getExtraMoves() +
 			GET_TEAM(getTeam()).getExtraMoves(getDomainType());
-	int const iSpeedBonuses = GC.getNUM_UNIT_SPEED_BONUSES(getUnitType());
-	for(int i = 0; i < iSpeedBonuses; i++)
+	for(int i = 0; i < m_pUnitInfo->getNumSpeedBonuses(); i++)
 	{
-		if(m_pUnitInfo->getSpeedBonuses(i) >= 0)
+		if (GET_PLAYER(getOwner()).isSpeedBonusAvailable(
+			m_pUnitInfo->getSpeedBonuses(i), getPlot()))
 		{
-			if (GET_PLAYER(getOwner()).isSpeedBonusAvailable(
-				m_pUnitInfo->getSpeedBonuses(i), getPlot()))
-			{
-				iR += m_pUnitInfo->getExtraMoves(i);
-			}
+			iR += m_pUnitInfo->getExtraMoves(i);
 		}
 	}
 	return iR; // </advc.905b>
