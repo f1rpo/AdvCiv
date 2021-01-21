@@ -15340,8 +15340,8 @@ void CvGameTextMgr::setCorporationHelpCity(CvWStringBuffer &szBuffer, Corporatio
 			bHandled = true;
 		}
 	}
-
-	bHandled = false;
+	// advc.001: Looks wrong. The result from above would never be read.
+	//bHandled = false;
 	for (int i = 0; i < NUM_COMMERCE_TYPES; ++i)
 	{
 		int iCommerce = 0;
