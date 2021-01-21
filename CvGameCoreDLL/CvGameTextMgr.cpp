@@ -15242,7 +15242,8 @@ void CvGameTextMgr::setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTyp
 	}
 }
 
-void CvGameTextMgr::setCorporationHelpCity(CvWStringBuffer &szBuffer, CorporationTypes eCorporation, CvCity *pCity, bool bCityScreen, bool bForceCorporation)
+void CvGameTextMgr::setCorporationHelpCity(CvWStringBuffer &szBuffer,
+	CorporationTypes eCorporation, CvCity *pCity, bool bCityScreen, bool bForceCorporation)
 {
 	if (pCity == NULL)
 		return;
@@ -15279,33 +15280,33 @@ void CvGameTextMgr::setCorporationHelpCity(CvWStringBuffer &szBuffer, Corporatio
 
 	bool const bActive = (pCity->isActiveCorporation(eCorporation) ||
 			(bForceCorporation && iNumResources > 0));
-
-	bool bHandled = false;
-
-	FOR_EACH_ENUM(Yield)
 	{
-		int iYieldRate = 0;
-		if (bActive)
+		bool bHandled = false;
+		FOR_EACH_ENUM(Yield)
 		{
-			iYieldRate += (iNumResources *
-					kCorporation.getYieldProduced(eLoopYield) *
-					GC.getInfo(GC.getMap().getWorldSize()).
-					getCorporationMaintenancePercent()) / 100;
-		}
-		if (iYieldRate != 0)
-		{
-			if (bHandled)
-				szBuffer.append(L", ");
-			CvWString szTempBuffer;
-			szTempBuffer.Format(L"%s%d%c", iYieldRate > 0 ? "+" : "",
-					(iYieldRate + 99) / 100,
-					GC.getInfo(eLoopYield).getChar());
-			szBuffer.append(szTempBuffer);
-			bHandled = true;
+			int iYieldRate = 0;
+			if (bActive)
+			{
+				iYieldRate += (iNumResources *
+						kCorporation.getYieldProduced(eLoopYield) *
+						GC.getInfo(GC.getMap().getWorldSize()).
+						getCorporationMaintenancePercent()) / 100;
+			}
+			if (iYieldRate != 0)
+			{
+				if (bHandled)
+					szBuffer.append(L", ");
+				CvWString szTempBuffer;
+				szTempBuffer.Format(L"%s%d%c", iYieldRate > 0 ? "+" : "",
+						(iYieldRate + 99) / 100,
+						GC.getInfo(eLoopYield).getChar());
+				szBuffer.append(szTempBuffer);
+				bHandled = true;
+			}
 		}
 	}
-	// advc.001: Looks wrong. The result from above would never be read.
-	//bHandled = false;
+
+	bool bHandled = false;
 	FOR_EACH_ENUM(Commerce)
 	{
 		int iCommerceRate = 0;
