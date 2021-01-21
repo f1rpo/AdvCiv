@@ -2724,7 +2724,7 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, MovementFlags eFlags,
 						getDomainType() == DOMAIN_AIR, &bIntercepted);
 				// K-Mod end
 				// <advc.004c> Treat air combat like stack attack unless intercepted
-				if (!bStack && isHuman() && !bIntercepted &&
+				if (!bStack && isHuman() && getDomainType() == DOMAIN_AIR && !bIntercepted &&
 					/*	(Works when playing w/o quick combat. Perhaps superfluous now
 						that I've implemented the bIntercepted param for quick combat.) */
 					!pBestAttackUnit->isInAirCombat())
