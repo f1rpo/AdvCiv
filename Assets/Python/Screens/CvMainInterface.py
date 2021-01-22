@@ -2553,7 +2553,12 @@ class CvMainInterface:
 					iCount = 0
 
 					actions = CyInterface().getActionsToShow()
+					# advc.004: Hide the Skip button while asleep, but keep the hotkey available? Maybe better not ...
+					#bWaiting = pHeadSelectedUnit.isWaiting()
 					for i in actions:
+						# <advc.004> See above
+						#if bWaiting and gc.getActionInfo(i).getHotKey() == "KB_SPACE":
+						#	continue # </advc.004>
 						screen.appendMultiListButton( "BottomButtonContainer", gc.getActionInfo(i).getButton(), 0, WidgetTypes.WIDGET_ACTION, i, -1, False )
 						screen.show( "BottomButtonContainer" )
 				
