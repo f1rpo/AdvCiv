@@ -1781,7 +1781,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 			if (headMissionQueueNode() != NULL)
 				activateHeadMission();
 			// <advc.xxx>
-			else if (getOwner() == kGame.getActivePlayer() &&
+			/*else if (getOwner() == kGame.getActivePlayer() &&
 				(missionData.eMissionType == MISSION_BUILD ||
 				missionData.eMissionType == MISSION_MOVE_TO ||
 				missionData.eMissionType == MISSION_PILLAGE ||
@@ -1815,7 +1815,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 					for (size_t i = 1; i < apCanMove.size(); i++)
 						apCanMove[i]->joinGroup(pNewGroup);
 				}
-			} // </advc.xxx>
+			}*/ // </advc.xxx>
 		} // K-Mod end
 	}
 	else

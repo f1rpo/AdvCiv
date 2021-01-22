@@ -407,7 +407,7 @@ void CvGame::updateSelectionList()
 		pHeadSelectedUnit = kUI.getHeadSelectedUnit();
 		if (pHeadSelectedUnit != NULL)
 		{
-			if (!pHeadSelectedUnit->getGroup()->readyToSelect())
+			if (!pHeadSelectedUnit->getGroup()->readyToSelect(/* advc.xxx: */ true))
 				kUI.clearSelectionList();
 		}
 	}
@@ -609,6 +609,12 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 		FAssert(pNextSelectionGroup->getOwner() == getActivePlayer());
 		FAssert(pNextSelectionGroup->getHeadUnit() != NULL); // K-Mod
 		gDLL->UI().selectUnit(pNextSelectionGroup->getHeadUnit(), bClear);
+		// <advc.xxx>
+		FOR_EACH_UNIT_VAR_IN(pUnit, *pNextSelectionGroup)
+		{
+			if (!pUnit->canMove())
+				gDLL->UI().removeFromSelectionList(pUnit);
+		} // </advc.xxx>
 	}
 	// K-Mod
 	else if (pCycleUnit != NULL)
@@ -625,7 +631,8 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 	} // K-Mod end
 
 	if (pCycleUnit != gDLL->UI().getHeadSelectedUnit() ||
-		(pCycleUnit != NULL && pCycleUnit->getGroup()->readyToSelect()))
+		(pCycleUnit != NULL && pCycleUnit->getGroup()->readyToSelect(
+		true))) // advc.xxx: was false
 	{
 		gDLL->UI().lookAtSelectionPlot();
 	}
@@ -731,7 +738,7 @@ bool CvGame::cyclePlotUnits(CvPlot* pPlot, bool bForward, bool bAuto, int iCount
 		{
 			if (bAuto)
 			{
-				if (pLoopUnit->getGroup()->readyToSelect())
+				if (pLoopUnit->getGroup()->readyToSelect(/* advc.xxx: */ true))
 				{
 					gDLL->UI().selectUnit(pLoopUnit, true);
 					return true;
@@ -2386,33 +2393,43 @@ bool CvGame::isSoundtrackOverride(CvString& strSoundtrack) const
 void CvGame::initSelection() const
 {
 	bool bSelected = false;
-	CvPlayer const& kActivePlayer = GET_PLAYER(getActivePlayer());
-	FOR_EACH_UNIT_VAR(pLoopUnit, kActivePlayer)
+	CvPlayer& kActivePlayer = GET_PLAYER(getActivePlayer());
+	// <advc.xxx> Replacing two non-nested loops
+	enum PassTypes
 	{
-		if (pLoopUnit->getGroup()->readyToSelect())
-		{
-			if (pLoopUnit->canFight())
-			{
-				selectUnit(pLoopUnit, true);
-				bSelected = true;
-				break;
-			}
-		}
-	}
-
-	if (!bSelected)
+		FIGHT_AND_ALL_READY,
+		ALL_READY,
+		// These two passes are new
+		FIGHT_AND_ANY_READY,
+		ANY_READY,
+		NUM_PASSES
+	};
+	for (int iPass = 0; iPass < NUM_PASSES &&
+		!bSelected; iPass++)
 	{
+		PassTypes ePass = (PassTypes)iPass;
 		FOR_EACH_UNIT_VAR(pLoopUnit, kActivePlayer)
 		{
-			if (pLoopUnit->getGroup()->readyToSelect())
+			if ((ePass == FIGHT_AND_ALL_READY || ePass == FIGHT_AND_ANY_READY) &&
+				!pLoopUnit->canFight())
 			{
-				selectUnit(pLoopUnit, true);
-				bSelected = true;
-				break;
+				continue;
 			}
+			if ((ePass == FIGHT_AND_ALL_READY || ePass == ALL_READY) &&
+				!pLoopUnit->getGroup()->readyToSelect())
+			{
+				continue;
+			}
+			if ((ePass == FIGHT_AND_ANY_READY || ePass == ANY_READY) &&
+				!pLoopUnit->getGroup()->readyToSelect(true))
+			{
+				continue;
+			}
+			selectUnit(pLoopUnit, true);
+			bSelected = true;
+			break;
 		}
-	}
-
+	} // </advc.xxx>
 	if (!bSelected)
 	{
 		FOR_EACH_UNIT_VAR(pLoopUnit, kActivePlayer)

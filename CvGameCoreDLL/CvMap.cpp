@@ -671,18 +671,23 @@ CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner, 
 
 		FOR_EACH_GROUP_VAR(pLoopSelectionGroup, kLoopPlayer)
 		{
-			if (!bReadyToSelect || pLoopSelectionGroup->readyToSelect())
+			bool const bAIControl = pLoopSelectionGroup->AI_isControlled(); // advc.xxx
+			if (bReadyToSelect && !pLoopSelectionGroup->readyToSelect(
+				!bAIControl)) // advc.xxx: was false
 			{
-				if (!bWorkers || pLoopSelectionGroup->hasWorker())
-				{
-					int iValue = plotDistance(iX, iY, pLoopSelectionGroup->getX(), pLoopSelectionGroup->getY());
-
-					if (iValue < iBestValue)
-					{
-						iBestValue = iValue;
-						pBestSelectionGroup = pLoopSelectionGroup;
-					}
-				}
+				continue;
+			}
+			if (bWorkers && !pLoopSelectionGroup->hasWorker())
+				continue;
+			int iValue = plotDistance(iX, iY,
+					pLoopSelectionGroup->getX(), pLoopSelectionGroup->getY());
+			// <advc.xxx>
+			if (!bAIControl && pLoopSelectionGroup->readyToSelect())
+				iValue *= 100; // </advc.xxx>
+			if (iValue < iBestValue)
+			{
+				iBestValue = iValue;
+				pBestSelectionGroup = pLoopSelectionGroup;
 			}
 		}
 	}
