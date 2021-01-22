@@ -2243,20 +2243,17 @@ CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 	bool bWorkers, bool* pbWrap)
 {
 	FAssert(GC.getGame().getActivePlayer() == getID() && isHuman());
+	/* if (pbWrap != NULL)
+		*pbWrap = false;*/
+	// <K-Mod>
+	bool bDummy=false;
+	// this means we can just use bWrap directly and it will update *pbWrap if need be.
+	bool& bWrap = (pbWrap != NULL ? *pbWrap : bDummy); // <K-Mod>
+	bWrap = false;
 	// <advc.004h>
 	if(pUnit->canFound())
 		pUnit->updateFoundingBorder(true); // </advc.004h>
-	// K-Mod
-	bool bDummy;
-	// this means we can just use bWrap directly and it will update *pbWrap if need be.
-	bool& bWrap = pbWrap ? *pbWrap : bDummy;
-	std::set<int>& cycled_groups = GC.getGame().getActivePlayerCycledGroups();
-	// K-Mod end
-
-	/* if (pbWrap != NULL)
-		*pbWrap = false;*/
-	bWrap = false;
-
+	std::set<int>& kCycledGroups = GC.getGame().getActivePlayerCycledGroups(); // K-Mod
 	CLLNode<int>* pSelectionGroupNode = headGroupCycleNode();
 	if (pUnit != NULL)
 	{
@@ -2266,7 +2263,7 @@ CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 			{
 				// <K-Mod>
 				if (isTurnActive())
-					cycled_groups.insert(pSelectionGroupNode->m_data); // </K-Mod>
+					kCycledGroups.insert(pSelectionGroupNode->m_data); // </K-Mod>
 				if (bForward)
 					pSelectionGroupNode = nextGroupCycleNode(pSelectionGroupNode);
 				else pSelectionGroupNode = previousGroupCycleNode(pSelectionGroupNode);
@@ -2275,15 +2272,12 @@ CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 			pSelectionGroupNode = nextGroupCycleNode(pSelectionGroupNode);
 		}
 	}
-
 	if (pSelectionGroupNode == NULL)
 	{
 		if (bForward)
 			pSelectionGroupNode = headGroupCycleNode();
 		else pSelectionGroupNode = tailGroupCycleNode();
-
-		/* if (pbWrap != NULL)
-			*pbWrap = true;*/ // disabled by K-Mod
+		// if (pbWrap != NULL) *pbWrap = true; // disabled by K-Mod
 	}
 
 	if(pSelectionGroupNode == NULL)
@@ -2295,26 +2289,22 @@ CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 		CvSelectionGroup* pLoopSelectionGroup = getSelectionGroup(
 				pSelectionGroupNode->m_data);
 		if (pLoopSelectionGroup->readyToSelect() &&
-			cycled_groups.count(pSelectionGroupNode->m_data) == 0) // K-Mod
+			kCycledGroups.count(pSelectionGroupNode->m_data) == 0) // K-Mod
 		{
 			if (!bWorkers || pLoopSelectionGroup->hasWorker())
 			{
-				/*if (pUnit && pLoopSelectionGroup == pUnit->getGroup()) {
-					if (pbWrap != NULL)
-						*pbWrap = true;
-				}*/
+				/*if (pUnit && pLoopSelectionGroup == pUnit->getGroup())
+					if (pbWrap != NULL) *pbWrap = true;*/
 				return pLoopSelectionGroup;
 			}
 		}
-
 		if (bForward)
 		{
 			pSelectionGroupNode = nextGroupCycleNode(pSelectionGroupNode);
 			if (pSelectionGroupNode == NULL)
 			{
 				pSelectionGroupNode = headGroupCycleNode();
-				/* if (pbWrap != NULL)
-					*pbWrap = true;*/
+				// if (pbWrap != NULL) *pbWrap = true;
 			}
 		}
 		else
@@ -2323,11 +2313,9 @@ CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 			if (pSelectionGroupNode == NULL)
 			{
 				pSelectionGroupNode = tailGroupCycleNode();
-				/* if (pbWrap != NULL)
-					*pbWrap = true;*/
+				// if (pbWrap != NULL) *pbWrap = true;
 			}
 		}
-
 		if (pSelectionGroupNode == pFirstSelectionGroupNode)
 		{
 			// break;
@@ -2336,10 +2324,9 @@ CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 				break;
 			else
 			{
-				cycled_groups.clear();
+				kCycledGroups.clear();
 				bWrap = true;
-			}
-			// K-Mod end
+			} // K-Mod end
 		}
 	} //
 

@@ -17245,14 +17245,14 @@ bool CvUnitAI::AI_irrigateTerritory()  // advc: refactored
 
 		int iBestTempBuildValue = MAX_INT;
 		BuildTypes eBestTempBuild = NO_BUILD;
-		for (int iJ = 0; iJ < static_cast<int>(irrigationCarryingBuilds.size()); iJ++)
+		for (size_t iJ = 0; iJ < irrigationCarryingBuilds.size(); iJ++)
 		{
 			const BuildTypes eBuild = irrigationCarryingBuilds[iJ];
 			if (!canBuild(kLoopPlot, eBuild))
 				continue;
 			/*  <advc.121> Was 10000/(...getTime()+1). Same problem as in
 				AI_improveBonus (see there). */
-			const int iValue = GC.getInfo(eBuild).getTime();
+			int iValue = GC.getInfo(eBuild).getTime();
 			// XXX feature production???
 			if (iValue < iBestTempBuildValue)
 			{
@@ -17269,8 +17269,10 @@ bool CvUnitAI::AI_irrigateTerritory()  // advc: refactored
 			CvFeatureInfo const& kFeatureInfo = GC.getInfo(kLoopPlot.getFeatureType());
 			// K-Mod:
 			if ((iGwEventTally >= 0 && kFeatureInfo.getWarmingDefense() > 0) ||
-					(bLeaveForests && kFeatureInfo.getYieldChange(YIELD_PRODUCTION) > 0))
+				(bLeaveForests && kFeatureInfo.getYieldChange(YIELD_PRODUCTION) > 0))
+			{
 				continue;
+			}
 		}
 
 		if (kLoopPlot.isVisibleEnemyUnit(this) ||
@@ -17493,7 +17495,6 @@ bool CvUnitAI::AI_improveBonus( // K-Mod. (all that junk wasn't being used anywa
 		ImprovementTypes eImprovement = kPlot.getImprovementType();
 		CvCityAI const* pWorkingCity = kPlot.AI_getWorkingCity();
 		BuildTypes eBestTempBuild = NO_BUILD;
-
 		if (eImprovement != NO_IMPROVEMENT &&
 			((kOwner.isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
 			eImprovement != GC.getRUINS_IMPROVEMENT()) ||

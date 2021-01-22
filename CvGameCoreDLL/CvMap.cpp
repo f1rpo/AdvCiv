@@ -657,7 +657,7 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,
 
 
 CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner,
-		bool bReadyToSelect, bool bWorkers) const
+	bool bReadyToSelect, bool bWorkers) const
 {
 	int iBestValue = MAX_INT;
 	CvSelectionGroup* pBestSelectionGroup = NULL;
@@ -674,18 +674,16 @@ CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner,
 
 		FOR_EACH_GROUP_VAR(pLoopSelectionGroup, kLoopPlayer)
 		{
-			if (!bReadyToSelect || pLoopSelectionGroup->readyToSelect())
+			if (bReadyToSelect && !pLoopSelectionGroup->readyToSelect(false))
+				continue;
+			if (bWorkers && !pLoopSelectionGroup->hasWorker())
+				continue;
+			int iValue = plotDistance(iX, iY,
+					pLoopSelectionGroup->getX(), pLoopSelectionGroup->getY());
+			if (iValue < iBestValue)
 			{
-				if (!bWorkers || pLoopSelectionGroup->hasWorker())
-				{
-					int iValue = plotDistance(iX, iY, pLoopSelectionGroup->getX(), pLoopSelectionGroup->getY());
-
-					if (iValue < iBestValue)
-					{
-						iBestValue = iValue;
-						pBestSelectionGroup = pLoopSelectionGroup;
-					}
-				}
+				iBestValue = iValue;
+				pBestSelectionGroup = pLoopSelectionGroup;
 			}
 		}
 	}

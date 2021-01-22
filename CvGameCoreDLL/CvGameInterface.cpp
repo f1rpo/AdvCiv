@@ -391,7 +391,7 @@ void CvGame::updateSelectionList()
 	{
 		return;
 	}
-	CvDLLInterfaceIFaceBase& kUI = gDLL->UI(); // advc
+	CvDLLInterfaceIFaceBase& kUI = gDLL->UI();
 	CvUnit* pHeadSelectedUnit = kUI.getHeadSelectedUnit();
 	if (pHeadSelectedUnit == NULL || !pHeadSelectedUnit->getGroup()->readyToSelect(true))
 	{
@@ -405,16 +405,16 @@ void CvGame::updateSelectionList()
 			}
 		}
 		pHeadSelectedUnit = kUI.getHeadSelectedUnit();
-		if (pHeadSelectedUnit != NULL)
+		if (pHeadSelectedUnit != NULL &&
+			!pHeadSelectedUnit->getGroup()->readyToSelect())
 		{
-			if (!pHeadSelectedUnit->getGroup()->readyToSelect())
-				kUI.clearSelectionList();
+			kUI.clearSelectionList();
 		}
 	}
 }
 
 
-void CvGame::updateTestEndTurn()  // advc: nested else branches replaced w/ return statements
+void CvGame::updateTestEndTurn()
 {
 	if (!GET_PLAYER(getActivePlayer()).isTurnActive())
 		return;
@@ -586,8 +586,9 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 		if (bWrap)
 		{
 			//if (GET_PLAYER(getActivePlayer()).hasAutoUnit())
-			// K-Mod. I've weakend this condition so that the group cycle order can be refreshed by automoves.
-			// (Maybe I should create & use "sendCycleRefresh" instead.)
+			/*	K-Mod. I've weakend this condition so that the group cycle order
+				can be refreshed by automoves.
+				(Maybe I should create & use "sendCycleRefresh" instead.) */
 			if (pNextSelectionGroup || GET_PLAYER(getActivePlayer()).hasAutoUnit())
 			// K-Mod end
 			{
@@ -2386,33 +2387,36 @@ bool CvGame::isSoundtrackOverride(CvString& strSoundtrack) const
 void CvGame::initSelection() const
 {
 	bool bSelected = false;
-	CvPlayer const& kActivePlayer = GET_PLAYER(getActivePlayer());
-	FOR_EACH_UNIT_VAR(pLoopUnit, kActivePlayer)
+	CvPlayer& kActivePlayer = GET_PLAYER(getActivePlayer());
+	/*	<advc> Replacing two non-nested loops
+		(I had meant to add two passes, then changed my mind.) */
+	enum PassTypes
 	{
-		if (pLoopUnit->getGroup()->readyToSelect())
-		{
-			if (pLoopUnit->canFight())
-			{
-				selectUnit(pLoopUnit, true);
-				bSelected = true;
-				break;
-			}
-		}
-	}
-
-	if (!bSelected)
+		FIGHT_AND_ALL_READY,
+		ALL_READY,
+		NUM_PASSES
+	};
+	for (int iPass = 0; iPass < NUM_PASSES &&
+		!bSelected; iPass++)
 	{
+		PassTypes const ePass = (PassTypes)iPass;
 		FOR_EACH_UNIT_VAR(pLoopUnit, kActivePlayer)
 		{
-			if (pLoopUnit->getGroup()->readyToSelect())
+			if (ePass == FIGHT_AND_ALL_READY &&
+				!pLoopUnit->canFight())
 			{
-				selectUnit(pLoopUnit, true);
-				bSelected = true;
-				break;
+				continue;
 			}
+			if ((ePass == FIGHT_AND_ALL_READY || ePass == ALL_READY) &&
+				!pLoopUnit->getGroup()->readyToSelect())
+			{
+				continue;
+			}
+			selectUnit(pLoopUnit, true);
+			bSelected = true;
+			break;
 		}
-	}
-
+	} // </advc>
 	if (!bSelected)
 	{
 		FOR_EACH_UNIT_VAR(pLoopUnit, kActivePlayer)
