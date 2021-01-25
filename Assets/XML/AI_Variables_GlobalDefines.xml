@@ -260,7 +260,7 @@
 	<!-- Better BTS AI / K-Mod variables to allow easy AI tweaking -->
 	<!-- by jdog5000 / karadoc -->
 	<!-- -->
-	<Define>
+	<Define> <!-- redefine -->
 		<!-- War success value of capturing a city.  BBAI default: 25, BTS 10 -->
 		<DefineName>WAR_SUCCESS_CITY_CAPTURING</DefineName>
 		<iDefineIntVal>25</iDefineIntVal>

@@ -1,31 +1,33 @@
 <?xml version="1.0"?>
 <!-- Sid Meier's Civilization 4 -->
 <!-- Copyright Firaxis Games 2005 -->
-<!-- This file contains only the GlobalDefines that K-Mod has introduced
-	 or overwritten, and some related settings for change advc.002m. -->
+<!-- advc: This file contains only the GlobalDefines that K-Mod has introduced
+	 or overwritten, and some related settings for change advc.002m.
+	 I've marked the overwritten ones with a "redefine" comment. -->
 <Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
 
-	<Define>
+	<Define> <!-- redefine -->
 		<DefineName>INITIAL_GOLD_PER_UNIT</DefineName>
 		<iDefineIntVal>100</iDefineIntVal> <!-- this is now percent cost, so I've changed it from 1 to 100 -->
 	</Define>
-	<Define>
+	<!-- (Unchanged by K-Mod; just for reference.)
+	<!--Define>
 		<DefineName>BASE_REVOLT_OCCUPATION_TURNS</DefineName>
-		<iDefineIntVal>2</iDefineIntVal> <!-- same as original value -->
-	</Define>
-	<Define>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define-->
+	<Define> <!-- redefine -->
 		<DefineName>REVOLT_TEST_PROB</DefineName>
 		<iDefineIntVal>15</iDefineIntVal>
 	</Define> <!-- increased from 10 -->
-	<Define>
+	<Define> <!-- redefine -->
 		<DefineName>NUM_WARNING_REVOLTS</DefineName>
 		<iDefineIntVal>2</iDefineIntVal>
 	</Define> <!-- increased from 1 -->
-	<Define>
+	<Define> <!-- redefine -->
 		<DefineName>EVENT_MESSAGE_STAGGER_TIME</DefineName>
 		<iDefineIntVal>2</iDefineIntVal> <!-- decreased from 3 -->
 	</Define>
-	<Define>
+	<Define> <!-- redefine -->
 		<DefineName>BARBARIAN_FREE_TECH_PERCENT</DefineName>
 		<iDefineIntVal>4</iDefineIntVal> <!-- increased from 3, to compensate for other changes -->
 	</Define>
@@ -81,7 +83,7 @@
 		<iDefineIntVal>-2</iDefineIntVal>
 	</Define>-->
 	<!-- warming prob is out of 1000, not pecent. -->
-	<Define>
+	<Define> <!-- redefine -->
 		<DefineName>GLOBAL_WARMING_PROB</DefineName>
 		<iDefineIntVal>20</iDefineIntVal>
 	</Define>
@@ -172,7 +174,7 @@
 		<DefineName>RELIGION_INFLUENCE_RANDOM_WEIGHT</DefineName>
 		<iDefineIntVal>80</iDefineIntVal>
 	</Define>
-	<Define>
+	<Define> <!-- redefine -->
 		<DefineName>WARLORD_EXTRA_EXPERIENCE_PER_UNIT_PERCENT</DefineName>
 		<iDefineIntVal>10</iDefineIntVal> <!-- increased from 0 -->
 	</Define>

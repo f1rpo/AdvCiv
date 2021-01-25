@@ -39,6 +39,10 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 		sprintf(szMessage, "LoadXML call failed for %s.\nCurrent XML file is: %s", szXMLFileName, GC.getCurrentXMLFile().GetCString());
 		errorMessage(szMessage, XML_LOAD_ERROR);
 	}
+	/*	advc: Switch that will cause a failed assertion for each global define
+		that gets read multiple times, i.e. that the mod overwrites. Could be helpful
+		for merging a mod into AdvCiv. */
+	#define CHECK_FOR_OVERWRITES 0
 
 	if (bLoaded)
 	{
@@ -75,7 +79,11 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 									{
 										// if the node type of the current tag is a float then
 										if (strcmp(szNodeType,"float")==0)
-										{
+										{	// <advc>
+											#if CHECK_FOR_OVERWRITES
+												float fDummy;
+												FAssertMsg(!GC.getDefinesVarSystem()->GetValue(szName, fDummy), szName);
+											#endif // </advc>
 											// get the float value for the define
 											float fVal;
 											GetXmlVal(fVal);
@@ -83,7 +91,11 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 										}
 										// else if the node type of the current tag is an int then
 										else if (strcmp(szNodeType,"int")==0)
-										{
+										{	// <advc>
+											#if CHECK_FOR_OVERWRITES
+												int iDummy;
+												FAssertMsg(!GC.getDefinesVarSystem()->GetValue(szName, iDummy), szName);
+											#endif // </advc>
 											// get the int value for the define
 											int iVal;
 											GetXmlVal(iVal);
@@ -91,7 +103,11 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 										}
 										// else if the node type of the current tag is a boolean then
 										else if (strcmp(szNodeType,"boolean")==0)
-										{
+										{	// <advc>
+											#if CHECK_FOR_OVERWRITES
+												bool bDummy;
+												FAssertMsg(!GC.getDefinesVarSystem()->GetValue(szName, bDummy), szName);
+											#endif // </advc>
 											// get the boolean value for the define
 											bool bVal;
 											GetXmlVal(bVal);
@@ -99,7 +115,12 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 										}
 										// otherwise we will assume it is a string/text value
 										else
-										{
+										{	// <advc>
+											#if CHECK_FOR_OVERWRITES
+												char szBuffer[256];
+												char* szDummy = szBuffer;
+												FAssertMsg(!GC.getDefinesVarSystem()->GetValue(szName, szDummy), szName);
+											#endif // </advc>
 											char szVal[256];
 											// get the string/text value for the define
 											GetXmlVal(szVal);
