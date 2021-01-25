@@ -3,17 +3,18 @@
 // teamAI.h
 
 #ifndef CIV4_TEAM_AI_H
-#define CIV4_TEAM_AI_H
+#define CIV4_TEAM_AI_H // advc.003u (caveat): This guard gets referenced in CvTeam.h
 
 #include "CvTeam.h"
 #include "UWAI.h" // advc.104
 #include "AIStrengthMemoryMap.h" // advc.158
 #include "AIStrategies.h" // advc.enum
 
-/*  <advc.003u> Overwrite definition in CvTeam.h (should perhaps instead define a
-	new macro "TEAMAI" - a lot of call locations to change though ...) */
-#undef GET_TEAM
-#define GET_TEAM(x) CvTeamAI::AI_getTeam(x) // </advc.003u>
+// <advc.003u> Let the more powerful macros take precedence
+#if !defined(CIV4_GAME_PLAY_H) && !defined(COREAI_H)
+	#undef GET_TEAM
+	#define GET_TEAM(x) CvTeamAI::AI_getTeam(x)
+#endif // </advc.003u>
 
 class CvTeamAI : public CvTeam
 {

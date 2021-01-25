@@ -1,11 +1,15 @@
 #pragma once
 
-// team.h
-
 #ifndef CIV4_TEAM_H
 #define CIV4_TEAM_H
 
 class CvArea;
+
+// <advc.003u> Let the more powerful macros take precedence
+#if !defined(CIV4_GAME_PLAY_H) && !defined(COREAI_H) && !defined(CIV4_TEAM_AI_H)
+	#undef GET_TEAM // </advc.003u>
+	#define GET_TEAM(x) CvTeam::getTeam(x)
+#endif
 
 class CvTeam /* advc.003e: */ : private boost::noncopyable
 {
