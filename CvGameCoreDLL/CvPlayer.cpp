@@ -2288,7 +2288,7 @@ CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 	{
 		CvSelectionGroup* pLoopSelectionGroup = getSelectionGroup(
 				pSelectionGroupNode->m_data);
-		if (pLoopSelectionGroup->readyToSelect() &&
+		if (pLoopSelectionGroup->readyToSelect(/* advc.153: */ true) &&
 			kCycledGroups.count(pSelectionGroupNode->m_data) == 0) // K-Mod
 		{
 			if (!bWorkers || pLoopSelectionGroup->hasWorker())

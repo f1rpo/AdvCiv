@@ -1667,6 +1667,43 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 			// start the next mission
 			if (headMissionQueueNode() != NULL)
 				activateHeadMission();
+			// <advc.153>
+			else if (getOwner() == kGame.getActivePlayer() &&
+				(missionData.eMissionType == MISSION_BUILD ||
+				// Too annoying?
+				//missionData.eMissionType == MISSION_MOVE_TO ||
+				missionData.eMissionType == MISSION_PILLAGE ||
+				missionData.eMissionType == MISSION_BOMBARD ||
+				missionData.eMissionType == MISSION_AIRBOMB) &&
+				canAnyMove() && !canAllMove())
+			{
+				if (IsSelected())
+				{
+					CvUnit* pSelectedUnit = NULL;
+					int iSelIndex = 0;
+					while ((pSelectedUnit = gDLL->UI().getSelectionUnit(iSelIndex++)) != NULL)
+					{
+						if (!pSelectedUnit->canMove())
+						{
+							gDLL->UI().removeFromSelectionList(pSelectedUnit);
+							iSelIndex--;
+						}
+					}
+				}
+				else if (!GET_PLAYER(kGame.getActivePlayer()).isEndTurn())
+				{	// Split group. Based on K-Mod code in startMission.
+					std::vector<CvUnit*> apCanMove;
+					FOR_EACH_UNIT_VAR_IN(pUnit, *this)
+					{
+						if (pUnit->canMove())
+							apCanMove.push_back(pUnit);
+					}
+					apCanMove[0]->joinGroup(NULL);
+					CvSelectionGroup* pNewGroup = apCanMove[0]->getGroup();
+					for (size_t i = 1; i < apCanMove.size(); i++)
+						apCanMove[i]->joinGroup(pNewGroup);
+				}
+			} // </advc.153>
 		} // K-Mod end
 	}
 	else
@@ -2761,10 +2798,20 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 	CvPlot const& kFrom = getPlot(); // advc.139
 
 	// K-Mod. Some variables to help us regroup appropriately if not everyone can move.
-	CvSelectionGroup* pStaticGroup = 0;
+	CvSelectionGroup* pBehindGroup = NULL;
+	CvSelectionGroup* pBehindGroupCannotMove = NULL; // advc.153
 	UnitAITypes eHeadAI = getHeadUnitAIType();
+	// <advc.153>
+	bool const bAIControl = AI_isControlled();
+	/*	True forces the join-pBehindGroup branch in the loop below to be taken.
+		Caveat: A player option for this will probably work in multiplayer, but
+		a BUG option won't unless a parameter is added to CvNetPushMission and
+		passed along through a bunch of function calls. */
+	bool const bGroupAdvance = (!bCombat || bAIControl);
+	// </advc.153>
 
-	// Move the combat unit first, so that no-capture units don't get unneccarily left behind.
+	/*	Move the combat unit first, so that no-capture units
+		don't get unnecessarily left behind. */
 	if (pCombatUnit != NULL)
 		pCombatUnit->move(*pPlot, true);
 	// K-Mod end
@@ -2779,18 +2826,21 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 		K-Mod 1.45 has rewritten this function, which may fix the problem (and some others too),
 		but then I'd also have to merge the K-Mod fix for the Gunship city capture bug ... */
 	for (int iStage = 0; iStage < 2; iStage++)
-	{
+	{	// <advc.153>
+		if (!bGroupAdvance && iStage >= 1)
+			break; // </advc.153>
 		FOR_EACH_UNIT_VAR_IN(pUnit, *this)
 		{
 			//if ((pUnit->canMove() && ((bCombat && (!pUnit->isNoCapture() || !pPlot->isEnemyCity(*pUnit))) ? pUnit->canMoveOrAttackInto(pPlot) : pUnit->canMoveInto(pPlot))) || pUnit == pCombatUnit)
 			// K-Mod
 			if (pUnit == pCombatUnit)
-				continue; // this unit is moved before the loop.
+				continue; // this unit is moved before the loop
 			// <advc.001>
 			if (pUnit->isNoCityCapture() == (iStage == 0))
 				continue; // </advc.001>
-			if (pUnit->canMove() &&
-				/*  advc.001: This condition was removed in K-Mod 1.44, but is needed
+			if (/* advc.153: */ bGroupAdvance &&
+				pUnit->canMove() &&
+				/*  advc.001: This condition was removed in K-Mod 1.44 but is needed
 					b/c canMoveOrAttackInto doesn't cover it (perhaps it should). */
 				!(pUnit->isNoCityCapture() && pUnit->isEnemyCity(*pPlot)) &&
 				(bCombat ? pUnit->canMoveOrAttackInto(*pPlot) : pUnit->canMoveInto(*pPlot)))
@@ -2807,17 +2857,29 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 					(Note: it is important that units left behind are not in the original group.
 					The later code assumes that the original group has moved,
 					and if it hasn't, there will be an infinite loop.) */
-				if (pStaticGroup != NULL && (isHuman() ||
-					pStaticGroup->getHeadUnitAIType() == eHeadAI))
+				if (pBehindGroup != NULL &&
+					(bGroupAdvance || bAIControl || pUnit->canMove()) && // advc.153
+					(!bAIControl || pBehindGroup->getHeadUnitAIType() == eHeadAI))
 				{
-					pUnit->joinGroup(pStaticGroup, true);
+					pUnit->joinGroup(pBehindGroup, true);
+				}  // <advc.153>
+				else if (!bGroupAdvance &&
+					pBehindGroupCannotMove != NULL && !bAIControl && !pUnit->canMove())
+				{
+					pUnit->joinGroup(pBehindGroupCannotMove, true);
 				}
+				else if (!bGroupAdvance &&
+					pBehindGroupCannotMove == NULL && !bAIControl && !pUnit->canMove())
+				{
+					pUnit->joinGroup(NULL, true);
+					pBehindGroupCannotMove = pUnit->getGroup();
+				} // </advc.153>
 				else
 				{
 					pUnit->joinGroup(NULL, true);
-					pStaticGroup = pUnit->getGroup();
+					pBehindGroup = pUnit->getGroup();
 				}
-				//
+				// K-Mod end
 			}
 			/*	K-Mod. If the unit is no longer in the original group;
 				then display it's movement animation now.

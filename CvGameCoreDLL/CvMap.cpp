@@ -674,12 +674,20 @@ CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner,
 
 		FOR_EACH_GROUP_VAR(pLoopSelectionGroup, kLoopPlayer)
 		{
-			if (bReadyToSelect && !pLoopSelectionGroup->readyToSelect(false))
+			bool const bAIControl = pLoopSelectionGroup->AI_isControlled(); // advc.153
+			if (bReadyToSelect && !pLoopSelectionGroup->readyToSelect(
+				!bAIControl)) // advc.153: was false
+			{
 				continue;
+			}
 			if (bWorkers && !pLoopSelectionGroup->hasWorker())
 				continue;
 			int iValue = plotDistance(iX, iY,
 					pLoopSelectionGroup->getX(), pLoopSelectionGroup->getY());
+			/*	<advc.153> Select groups where only some units are ready last
+				(unless plotDistance is 0) */
+			if (!bAIControl && pLoopSelectionGroup->readyToSelect())
+				iValue *= 100; // </advc.153>
 			if (iValue < iBestValue)
 			{
 				iBestValue = iValue;

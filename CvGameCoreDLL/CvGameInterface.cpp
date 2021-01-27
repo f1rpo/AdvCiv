@@ -406,7 +406,7 @@ void CvGame::updateSelectionList()
 		}
 		pHeadSelectedUnit = kUI.getHeadSelectedUnit();
 		if (pHeadSelectedUnit != NULL &&
-			!pHeadSelectedUnit->getGroup()->readyToSelect())
+			!pHeadSelectedUnit->getGroup()->readyToSelect(/* advc.153: */ true))
 		{
 			kUI.clearSelectionList();
 		}
@@ -610,6 +610,16 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 		FAssert(pNextSelectionGroup->getOwner() == getActivePlayer());
 		FAssert(pNextSelectionGroup->getHeadUnit() != NULL); // K-Mod
 		gDLL->UI().selectUnit(pNextSelectionGroup->getHeadUnit(), bClear);
+		/*	<advc.153> Could deselect units without moves here, but then
+			the player can't just press skip without splitting up the group.
+			Perhaps skip could somehow receive special treatment in this case ...
+			So long as that's not implemented, it's better to let the player use
+			the Go To (All) button if he or she does want to split the group. */
+		/*FOR_EACH_UNIT_VAR_IN(pUnit, *pNextSelectionGroup)
+		{
+			if (!pUnit->canMove())
+				gDLL->UI().removeFromSelectionList(pUnit);
+		}*/ // </advc.153>
 	}
 	// K-Mod
 	else if (pCycleUnit != NULL)
@@ -626,7 +636,8 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 	} // K-Mod end
 
 	if (pCycleUnit != gDLL->UI().getHeadSelectedUnit() ||
-		(pCycleUnit != NULL && pCycleUnit->getGroup()->readyToSelect()))
+		(pCycleUnit != NULL && pCycleUnit->getGroup()->readyToSelect(
+		true))) // advc.153: was false
 	{
 		gDLL->UI().lookAtSelectionPlot();
 	}
@@ -732,7 +743,7 @@ bool CvGame::cyclePlotUnits(CvPlot* pPlot, bool bForward, bool bAuto, int iCount
 		{
 			if (bAuto)
 			{
-				if (pLoopUnit->getGroup()->readyToSelect())
+				if (pLoopUnit->getGroup()->readyToSelect(/* advc.153: */ true))
 				{
 					gDLL->UI().selectUnit(pLoopUnit, true);
 					return true;
@@ -2388,12 +2399,14 @@ void CvGame::initSelection() const
 {
 	bool bSelected = false;
 	CvPlayer& kActivePlayer = GET_PLAYER(getActivePlayer());
-	/*	<advc> Replacing two non-nested loops
-		(I had meant to add two passes, then changed my mind.) */
+	// <advc.153> Replacing two non-nested loops
 	enum PassTypes
 	{
 		FIGHT_AND_ALL_READY,
 		ALL_READY,
+		// New passes:
+		FIGHT_AND_ANY_READY,
+		ANY_READY,
 		NUM_PASSES
 	};
 	for (int iPass = 0; iPass < NUM_PASSES &&
@@ -2402,7 +2415,7 @@ void CvGame::initSelection() const
 		PassTypes const ePass = (PassTypes)iPass;
 		FOR_EACH_UNIT_VAR(pLoopUnit, kActivePlayer)
 		{
-			if (ePass == FIGHT_AND_ALL_READY &&
+			if ((ePass == FIGHT_AND_ALL_READY || ePass == FIGHT_AND_ANY_READY) &&
 				!pLoopUnit->canFight())
 			{
 				continue;
@@ -2412,11 +2425,16 @@ void CvGame::initSelection() const
 			{
 				continue;
 			}
+			if ((ePass == FIGHT_AND_ANY_READY || ePass == ANY_READY) &&
+				!pLoopUnit->getGroup()->readyToSelect(true))
+			{
+				continue;
+			}
 			selectUnit(pLoopUnit, true);
 			bSelected = true;
 			break;
 		}
-	} // </advc>
+	} // </advc.153>
 	if (!bSelected)
 	{
 		FOR_EACH_UNIT_VAR(pLoopUnit, kActivePlayer)
