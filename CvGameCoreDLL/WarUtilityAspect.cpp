@@ -3382,7 +3382,7 @@ void FairPlay::evaluate() {
 	double uMinus = 0;
 	/*  All bets off by turn 100, but, already by turn 50, the cost may
 		no longer be prohibitive. */
-	int iTargetTurn = 100;
+	int iTargetTurn = 100 + game.getStartTurn();
 	// Allow earlier aggression on crowded maps
 	iTargetTurn = ::round(iTargetTurn *
 			((1 + 1.5 * (game.getRecommendedPlayers() /
@@ -3395,11 +3395,11 @@ void FairPlay::evaluate() {
 		uMinus = std::pow(iTurnsRemaining / 2.0, 1.28);
 		if(gameEra > startEra) {
 			log("The game era has surpassed the start era");
-			uMinus *= 2/3.;
+			uMinus *= 3/3.;
 		}
 		if(they->getCurrentEra() > startEra) {
 			log("Their era has surpassed the start era");
-			uMinus *= 2/3.;
+			uMinus *= 3/4.;
 		}
 		scaled scoreRatio(game.getPlayerScore(weId), game.getPlayerScore(theyId));
 		log("Score ratio: %s", scoreRatio.str(100).c_str());
