@@ -923,6 +923,22 @@
 		<Spanish>Muestra el icono [ICON_AIRPORT] sobre las barras de ciudad que tengan un aeropuerto.</Spanish>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOPCITYICONS_TEXT</Tag>
+		<English>Top Cities</English>
+		<French>Top Cities</French>
+		<German>Beste Städte</German>
+		<Italian>Top Cities</Italian>
+		<Spanish>Top Cities</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOPCITYICONS_HOVER</Tag>
+		<English>When checked, an icon is shown above the billboards of your most effective cities.[NEWLINE][TAB][ICON_PRODUCTION] - Highest production rate[NEWLINE][TAB][ICON_GOLD] - Highest gold rate[NEWLINE][TAB][ICON_RESEARCH] - Highest research rate[NEWLINE][TAB][ICON_ESPIONAGE] - Highest espionage rate[NEWLINE][TAB][ICON_GREATGENERAL] - Highest amount of free experience (XP); free XP that[NEWLINE][TAB][TAB]does not apply to all military units is counted half[NEWLINE][TAB][TAB](e.g. Barracks count as 1.5).[NEWLINE]The yield and commerce icons are not shown when the rate of the best city is less than 10. Similarly, [ICON_GREATGENERAL] is not shown when the highest free XP counted is less than 2.</English>
+		<French>When checked, an icon is shown above the billboards of your most effective cities.[NEWLINE][TAB][ICON_PRODUCTION] - Highest production rate[NEWLINE][TAB][ICON_GOLD] - Highest gold rate[NEWLINE][TAB][ICON_RESEARCH] - Highest research rate[NEWLINE][TAB][ICON_ESPIONAGE] - Highest espionage rate[NEWLINE][TAB][ICON_GREATGENERAL] - Highest amount of free experience (XP); free XP that does not apply to all military units is counted half (e.g. Barracks count as 1.5).[NEWLINE]The yield and commerce icons are not shown when the rate of the best city is less than 10. Similarly, [ICON_GREATGENERAL] is not shown when the highest free XP counted is less than 2.</French>
+		<German>Zeigt ein Symbol über den Namen ihrer leistungsstärksten Städte an.[NEWLINE][TAB][ICON_PRODUCTION] - Höchste Produktionsrate[NEWLINE][TAB][ICON_GOLD] - Höchste Goldrate[NEWLINE][TAB][ICON_RESEARCH] - Höchste Forschungsrate[NEWLINE][TAB][ICON_ESPIONAGE] - Höchste Spionagerate[NEWLINE][TAB][ICON_GREATGENERAL] - Höchste Zusatzerfahrungspunkte; halb gezählt, wenn[NEWLINE][TAB][TAB]die Punkte nicht allen Militäreinheiten zukommen[NEWLINE][TAB][TAB](Kaserne zählt z.B. als 1.5).[NEWLINE]Die Ertrags- und Wirtschafts-Symbole werden nur dann angezeigt, wenn die Rate der besten Stadt wenigstens 10 beträgt. Das [ICON_GREATGENERAL]-Symbol erfordert wenigstens 2 Zusatzerfahrungspunkte.</German>
+		<Italian>When checked, an icon is shown above the billboards of your most effective cities.[NEWLINE][TAB][ICON_PRODUCTION] - Highest production rate[NEWLINE][TAB][ICON_GOLD] - Highest gold rate[NEWLINE][TAB][ICON_RESEARCH] - Highest research rate[NEWLINE][TAB][ICON_ESPIONAGE] - Highest espionage rate[NEWLINE][TAB][ICON_GREATGENERAL] - Highest amount of free experience (XP); free XP that does not apply to all military units is counted half (e.g. Barracks count as 1.5).[NEWLINE]The yield and commerce icons are not shown when the rate of the best city is less than 10. Similarly, [ICON_GREATGENERAL] is not shown when the highest free XP counted is less than 2.</Italian>
+		<Spanish>When checked, an icon is shown above the billboards of your most effective cities.[NEWLINE][TAB][ICON_PRODUCTION] - Highest production rate[NEWLINE][TAB][ICON_GOLD] - Highest gold rate[NEWLINE][TAB][ICON_RESEARCH] - Highest research rate[NEWLINE][TAB][ICON_ESPIONAGE] - Highest espionage rate[NEWLINE][TAB][ICON_GREATGENERAL] - Highest amount of free experience (XP); free XP that does not apply to all military units is counted half (e.g. Barracks count as 1.5).[NEWLINE]The yield and commerce icons are not shown when the rate of the best city is less than 10. Similarly, [ICON_GREATGENERAL] is not shown when the highest free XP counted is less than 2.</Spanish>
+	</TEXT>
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOPPRODUCTIONICON_TEXT</Tag>
 		<English>Top Production</English>
 		<French>Top Production</French>
@@ -996,12 +1012,12 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TOPXPICON_HOVER</Tag>
-		<English>When checked, the [ICON_GREATGENERAL] icon is shown above the billboard of your city with the highest amount of free experience. Experience that doesn't apply to all military units is counted half in this context.</English>
-		<French>When checked, the [ICON_GREATGENERAL] icon is shown above the billboard of your city with the highest amount of free experience. Experience that doesn't apply to all military units is counted half in this context.</French>
-		<German>Zeigt das [ICON_GREATGENERAL]-Symbol über dem Namen Ihrer Stadt mit den höchsten Zusatzerfahrungspunkten an. Erfahrungspunkte, die nicht allen Militäreinheiten zukommen, zählen dabei nur halb.</German>
-		<Italian>When checked, the [ICON_GREATGENERAL] icon is shown above the billboard of your city with the highest amount of free experience. Experience that doesn't apply to all military units is counted half in this context.</Italian>
-		<Spanish>When checked, the [ICON_GREATGENERAL] icon is shown above the billboard of your city with the highest amount of free experience. Experience that doesn't apply to all military units is counted half in this context.</Spanish>
-	</TEXT>
+		<English>When checked, the [ICON_GREATGENERAL] icon is shown above the billboard of your city with the highest amount of free experience (XP). XP that doesn't apply to all military units is counted half in this context. The icon is not shown when the XP counted this way is less than 2.</English>
+		<French>When checked, the [ICON_GREATGENERAL] icon is shown above the billboard of your city with the highest amount of free experience (XP). XP that doesn't apply to all military units is counted half in this context. The icon is not shown when the XP counted this way is less than 2.</French>
+		<German>Zeigt das [ICON_GREATGENERAL]-Symbol über dem Namen Ihrer Stadt mit den höchsten Zusatzerfahrungspunkten an. Erfahrungspunkte, die nicht allen Militäreinheiten zukommen, zählen dabei nur halb, und wenn die gezählten Punkte kleiner als 2 sind, wird das Symbol nicht angezeigt.</German>
+		<Italian>When checked, the [ICON_GREATGENERAL] icon is shown above the billboard of your city with the highest amount of free experience (XP). XP that doesn't apply to all military units is counted half in this context. The icon is not shown when the XP counted this way is less than 2.</Italian>
+		<Spanish>When checked, the [ICON_GREATGENERAL] icon is shown above the billboard of your city with the highest amount of free experience (XP). XP that doesn't apply to all military units is counted half in this context. The icon is not shown when the XP counted this way is less than 2.</Spanish>
+	</TEXT-->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NEXTGPICON_TEXT</Tag>
 		<English>Next GP</English>
@@ -1018,7 +1034,7 @@
 		<Italian>When checked, the [ICON_GREATPEOPLE] icon is shown above the billboard of the city where your next Great Person will be born if the current [ICON_GREATPEOPLE] rates remain unchanged.</Italian>
 		<Spanish>When checked, the [ICON_GREATPEOPLE] icon is shown above the billboard of the city where your next Great Person will be born if the current [ICON_GREATPEOPLE] rates remain unchanged.</Spanish>
 	</TEXT>
-	<TEXT>
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NOUNHAPPYICON_TEXT</Tag>
 		<English>No Unhappiness</English>
 		<French>No Unhappiness</French>
@@ -1049,7 +1065,7 @@
 		<German>Zeigt das [ICON_HEALTHY]-Symbol über den Namen von Städten an, deren Bevölkerung keine [ICON_UNHEALTHY]-Punkte generiert.</German>
 		<Italian>When checked, the [ICON_HEALTHY] icon is shown above the billboard of cities that are immune to [ICON_UNHEALTHY] from population.</Italian>
 		<Spanish>When checked, the [ICON_HEALTHY] icon is shown above the billboard of cities that are immune to [ICON_UNHEALTHY] from population.</Spanish>
-	</TEXT>
+	</TEXT-->
 
 	<!-- advc.095: -->
 	<TEXT>

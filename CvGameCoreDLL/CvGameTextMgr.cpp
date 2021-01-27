@@ -18668,7 +18668,8 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 		// <advc.002f> Replacement
 		if (GET_PLAYER(pCity->getOwner()).getNumCities() > 1)
 		{
-			if (BUGOption::isEnabled("MainInterface__TopProductionIcon", false) &&
+			bool const bTopIcons = BUGOption::isEnabled("MainInterface__TopCityIcons", false);
+			if ((bTopIcons || BUGOption::isEnabled("MainInterface__TopProductionIcon", false)) &&
 				pCity->getYieldRate(YIELD_PRODUCTION) >= 10 &&
 				pCity->findYieldRateRank(YIELD_PRODUCTION) == 1)
 			{
@@ -18690,7 +18691,7 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 				if (!bValid)
 					continue;
 				szOptionId += "Icon";
-				if (BUGOption::isEnabled(szOptionId.c_str(), false) &&
+				if ((bTopIcons || BUGOption::isEnabled(szOptionId.c_str(), false)) &&
 					pCity->getCommerceRate(eLoopCommerce) >= 10 &&
 					pCity->findCommerceRateRank(eLoopCommerce) == 1)
 				{
@@ -18698,7 +18699,7 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 							GC.getInfo(eLoopCommerce).getChar()));
 				}
 			}
-			if (BUGOption::isEnabled("MainInterface__TopXPIcon", false))
+			if (bTopIcons || BUGOption::isEnabled("MainInterface__TopXPIcon", false))
 			{
 				CvCity const* pMaxXPCity = NULL;
 				int iMaxXP = 0;
@@ -18711,7 +18712,7 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 						iMaxXP = iXP;
 					}
 				}
-				if (iMaxXP > 0 && pMaxXPCity == pCity)
+				if (iMaxXP >= 2 && pMaxXPCity == pCity)
 				{
 					szBuffer.append(CvWString::format(L"%c",
 							gDLL->getSymbolID(GREAT_GENERAL_CHAR)));

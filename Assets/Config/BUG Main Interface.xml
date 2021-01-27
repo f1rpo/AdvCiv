@@ -255,7 +255,9 @@
 					type="boolean" default="False" dirtyBit="CityInfo"/>
 			<option id="AirportIcon" key="Airport Icon" 
 					type="boolean" default="True" dirtyBit="CityInfo"/>
-			<option id="TopProductionIcon" key="Top Production Icon" 
+			<option id="TopCityIcons" key="Top City Icons" 
+					type="boolean" default="False" dirtyBit="CityInfo"/>
+			<!--option id="TopProductionIcon" key="Top Production Icon" 
 					type="boolean" default="False" dirtyBit="CityInfo"/>
 			<option id="TopGoldIcon" key="Top Gold Icon" 
 					type="boolean" default="False" dirtyBit="CityInfo"/>
@@ -264,13 +266,13 @@
 			<option id="TopEspionageIcon" key="Top Espionage Icon" 
 					type="boolean" default="False" dirtyBit="CityInfo"/>
 			<option id="TopXPIcon" key="Top XP Icon" 
-					type="boolean" default="False" dirtyBit="CityInfo"/>
+					type="boolean" default="False" dirtyBit="CityInfo"/-->
 			<option id="NextGPIcon" key="Next GP Icon" 
 					type="boolean" default="False" dirtyBit="CityInfo"/>
-			<option id="NoUnhappyIcon" key="No Unhappy Icon" 
+			<!--option id="NoUnhappyIcon" key="No Unhappy Icon" 
 					type="boolean" default="False" dirtyBit="CityInfo"/>
 			<option id="NoBadHealthIcon" key="No Bad Health Icon" 
-					type="boolean" default="False" dirtyBit="CityInfo"/>
+					type="boolean" default="False" dirtyBit="CityInfo"/-->
 
 			<!-- advc.095 (should perhaps be in 'BULL City Bar.xml' instead) -->
 			<option id="WideCityBars" key="Wide City Bars" 
