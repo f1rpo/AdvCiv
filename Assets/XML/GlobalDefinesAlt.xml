@@ -10,7 +10,7 @@
 		<DefineName>INITIAL_GOLD_PER_UNIT</DefineName>
 		<iDefineIntVal>100</iDefineIntVal> <!-- this is now percent cost, so I've changed it from 1 to 100 -->
 	</Define>
-	<!-- (Unchanged by K-Mod; just for reference.)
+	<!-- (Unchanged by K-Mod; just for reference.) -->
 	<!--Define>
 		<DefineName>BASE_REVOLT_OCCUPATION_TURNS</DefineName>
 		<iDefineIntVal>2</iDefineIntVal>
