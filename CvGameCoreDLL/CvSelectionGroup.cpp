@@ -2981,21 +2981,19 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild, /* advc.011b: */ bool bFini
 	ImprovementTypes eImprovement = (ImprovementTypes)GC.getInfo(eBuild).getImprovement();
 	if (eImprovement != NO_IMPROVEMENT) {
 		if (AI_isControlled()) {
-			if (GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION)) {
-				if ((pPlot->getImprovementType() != NO_IMPROVEMENT) && (pPlot->getImprovementType() != GC.getRUINS_IMPROVEMENT())) {
+			if (GET_PLAYER(getOwner()).isAutomationSafe(*pPlot)) {
 					BonusTypes eBonus = (BonusTypes)pPlot->getNonObsoleteBonusType(GET_PLAYER(getOwner()).getTeam());
 					if ((eBonus == NO_BONUS) || !GC.getInfo(eImprovement).isImprovementBonusTrade(eBonus)) {
 						if (GC.getInfo(eImprovement).getImprovementPillage() != NO_IMPROVEMENT)
 							return false;
-	}}}}}*/ // BtS
+	}}}}*/ // BtS
 	/*  K-Mod. Leave old improvements should mean _all_ improvements,
 		not 'unless it will connect a resource'.
 		Note. The only time this bit of code might matter is if the automated unit has orders queued.
 		Ideally, the AI should never issue orders which violate the leave old improvements rule. */
 	CvPlot const& kPlot = getPlot();
-	if (isAutomated() && GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
+	if (isAutomated() && GET_PLAYER(getOwner()).isAutomationSafe(kPlot) &&
 		GC.getInfo(eBuild).getImprovement() != NO_IMPROVEMENT &&
-		kPlot.isImproved() && kPlot.getImprovementType() != GC.getRUINS_IMPROVEMENT() &&
 		// <advc.121> Forts on unworkable tiles are OK despite SAFE_AUTOMATION.
 		(!GC.getInfo(GC.getInfo(eBuild).getImprovement()).isActsAsCity() ||
 		kPlot.getWorkingCity() == NULL)) // </advc.121>

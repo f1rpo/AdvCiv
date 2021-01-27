@@ -961,6 +961,8 @@ public:
 	DllExport bool isOption(PlayerOptionTypes eOption) const;														// Exposed to Python
 	DllExport void setOption(PlayerOptionTypes eOption, bool bNewValue);											// Exposed to Python
 
+	bool isAutomationSafe(CvPlot const& kPlot) const; // advc
+
 	bool isLoyalMember(VoteSourceTypes eVoteSource) const { return m_abLoyalMember.get(eVoteSource); }				// Exposed to Python
 	void setLoyalMember(VoteSourceTypes eVoteSource, bool bNewValue);												// Exposed to Python
 

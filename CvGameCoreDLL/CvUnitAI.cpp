@@ -828,13 +828,10 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 			CityPlotTypes ePlot = it.currID();
 			if (&kPlot == pIgnorePlot || /*!AI_plotValid(kPlot)*/kPlot.isWater()) // advc.opt
 				continue;
-
-			if (!kPlot.isImproved() ||
-				!GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION) ||
-				kPlot.getImprovementType() == GC.getRUINS_IMPROVEMENT())
-			{
-				int iValue = kCity.AI_getBestBuildValue(ePlot);
-				if (iValue <= iBestValue)
+			if (GET_PLAYER(getOwner()).isAutomationSafe(kPlot))
+				continue;
+			int iValue = kCity.AI_getBestBuildValue(ePlot);
+			if (iValue <= iBestValue)
 					continue;
 
 				BuildTypes eBuild = kCity.AI_getBestBuild(ePlot);
@@ -16963,11 +16960,8 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, // adv
 			continue;
 		if (!canBuild(p, pCity->AI_getBestBuild(ePlot)))
 			continue;
-		if (GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
-			p.isImproved() && p.getImprovementType() != GC.getRUINS_IMPROVEMENT())
-		{
+		if (GET_PLAYER(getOwner()).isAutomationSafe(p))
 			continue;
-		}
 
 		int iPathTurns;
 		if (generatePath(p, NO_MOVEMENT_FLAGS, true, &iPathTurns))
@@ -17204,18 +17198,15 @@ bool CvUnitAI::AI_irrigateTerritory()  // advc: refactored
 	} // </OPT1>
 
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
-	bool const bSafeAuto = kOwner.isOption(PLAYEROPTION_SAFE_AUTOMATION);
-	bool const bLeaveForests = kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS);
 	int const iGwEventTally = GC.getGame().getGwEventTally();
-	ImprovementTypes const eRuins = GC.getRUINS_IMPROVEMENT();
-	CvMap const& m = GC.getMap();
 
 	CvPlot const* pBestPlot = NULL;
 	BuildTypes eBestBuild = NO_BUILD;
 	int iBestValue = 0;
-	for (int iI = 0; iI < m.numPlots(); iI++)
+	CvMap const& kMap = GC.getMap();
+	for (int iI = 0; iI < kMap.numPlots(); iI++)
 	{
-		CvPlot const& kLoopPlot = m.getPlotByIndex(iI);
+		CvPlot const& kLoopPlot = kMap.getPlotByIndex(iI);
 		if (!kLoopPlot.isArea(getArea()))
 			continue;
 
@@ -17228,7 +17219,7 @@ bool CvUnitAI::AI_irrigateTerritory()  // advc: refactored
 		ImprovementTypes const eCurrentImprov = kLoopPlot.getImprovementType();
 		if (eCurrentImprov != NO_IMPROVEMENT)
 		{
-			if (bSafeAuto && eCurrentImprov != eRuins)
+			if (kOwner.isAutomationSafe(kLoopPlot))
 				continue;
 			if (GC.getInfo(eCurrentImprov).isCarriesIrrigation())
 				continue;
@@ -17269,7 +17260,8 @@ bool CvUnitAI::AI_irrigateTerritory()  // advc: refactored
 			CvFeatureInfo const& kFeatureInfo = GC.getInfo(kLoopPlot.getFeatureType());
 			// K-Mod:
 			if ((iGwEventTally >= 0 && kFeatureInfo.getWarmingDefense() > 0) ||
-				(bLeaveForests && kFeatureInfo.getYieldChange(YIELD_PRODUCTION) > 0))
+				(kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS) &&
+				kFeatureInfo.getYieldChange(YIELD_PRODUCTION) > 0))
 			{
 				continue;
 			}

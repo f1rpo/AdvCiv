@@ -9761,6 +9761,18 @@ void CvPlayer::setOption(PlayerOptionTypes eOption, bool bNewValue)
 	} // </advc.004z>
 }
 
+/*	advc: This was being checked in multiple places.
+	(I haven't tagged the call locations with comments.)
+	advc.121 (note): Forts are allowed outside of city radii despite safe automation.
+	But this only matters in one call location currently (CvSelectionGroup::groupBuild).
+	Most call locations don't check a particular build, and I don't want to slow
+	isAutomationSafe down with an optional parameter. */
+bool CvPlayer::isAutomationSafe(CvPlot const& kPlot) const
+{
+	return (isOption(PLAYEROPTION_SAFE_AUTOMATION) && kPlot.isImproved() &&
+			kPlot.getImprovementType() != GC.getRUINS_IMPROVEMENT());
+}
+
 
 bool CvPlayer::isPlayable() const
 {

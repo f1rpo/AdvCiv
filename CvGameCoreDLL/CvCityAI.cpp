@@ -6972,18 +6972,10 @@ void CvCityAI::AI_setEmphasize(EmphasizeTypes eIndex, bool bNewValue)
 int CvCityAI::AI_totalBestBuildValue(CvArea const& kArea) /* advc:  */ const
 {
 	int iTotalValue = 0;
-	for (CityPlotIter it(*this, false); it.hasNext(); ++it)
+	for (CityPlotIter itPlot(*this, false); itPlot.hasNext(); ++itPlot)
 	{
-		CvPlot const& kPlot = *it;
-		if (!kPlot.isArea(kArea))
-			continue;
-
-		if (!kPlot.isImproved() ||
-			!GET_PLAYER(getOwner()).isOption(PLAYEROPTION_SAFE_AUTOMATION) ||
-			kPlot.getImprovementType() == GC.getRUINS_IMPROVEMENT())
-		{
-			iTotalValue += AI_getBestBuildValue(it.currID());
-		}
+		if (itPlot->isArea(kArea) && !GET_PLAYER(getOwner()).isAutomationSafe(*itPlot))
+			iTotalValue += AI_getBestBuildValue(itPlot.currID());
 	}
 	return iTotalValue;
 }
