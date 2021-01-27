@@ -103,7 +103,7 @@ public:
 		GroupPathNode const& kParentNode) const
 	{
 		return cost(kFrom, kTo, *m_pGroup, m_eFlags,
-				kParentNode.getMoves(), kParentNode.m_iKnownCost != 0);
+				kParentNode.getMoves(), kParentNode.m_iKnownCost == 0);
 	}
 	inline int heuristicCost(CvPlot const& kFrom, CvPlot const& kTo) const
 	{

@@ -419,7 +419,7 @@ bool KmodPathFinderLegacy::ProcessNode()
 					kMap.getPlot(parent_node->m_iX, parent_node->m_iY),
 					kMap.getPlot(child_node->m_iX, child_node->m_iY),
 					*settings.pGroup, settings.eFlags,
-					parent_node->m_iData1, parent_node->m_iKnownCost != 0); // </advc.pf>
+					parent_node->m_iData1, parent_node->m_iKnownCost == 0); // </advc.pf>
 
 			FAssert(iNewCost > 0);
 
