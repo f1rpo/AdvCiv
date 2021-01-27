@@ -4547,17 +4547,19 @@ bool CvUnit::pillage()
 			{	// K-Mod. C version of the original python code (CvGameUtils.doPillageGold)
 				int const iPillageBase = GC.getInfo(kPlot.getImprovementType()).
 						getPillageGold();
-				iPillageGold += GC.getGame().getSorenRandNum(iPillageBase,
-						"Pillage Gold 1");
-				/*	<advc.004> Add 1, and subtract 1 from the upper bound of the 2nd roll.
-					To guarantee that at least 1 gold is pillaged -
-					so that a message gets shown. */
-				if (iPillageBase > 0)
+				if (iPillageBase > 0) // advc
+				{
+					iPillageGold += GC.getGame().getSorenRandNum(iPillageBase,
+							"Pillage Gold 1");
+					/*	<advc.004> Add 1, and subtract 1 from the upper bound of the 2nd roll.
+						To guarantee that at least 1 gold is pillaged -
+						so that a message gets shown. */
 					iPillageGold++;
-				iPillageGold += GC.getGame().getSorenRandNum(iPillageBase - 1, // </advc.004>
-						"Pillage Gold 2");
-				iPillageGold += (getPillageChange() * iPillageGold) / 100;
-				// K-Mod end
+					iPillageGold += GC.getGame().getSorenRandNum(
+							iPillageBase - 1, /* </advc.004> */ "Pillage Gold 2");
+					iPillageGold += (getPillageChange() * iPillageGold) / 100;
+					// K-Mod end
+				}
 			}
 			if (iPillageGold > 0)
 			{
