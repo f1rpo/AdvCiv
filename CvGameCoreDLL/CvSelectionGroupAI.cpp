@@ -3,7 +3,7 @@
 #include "CvUnitAI.h"
 // <advc.004c> for AI_bestUnitForMission
 #include "CvUnit.h"
-#include "CvCity.h" // </advc.004c>
+#include "CvCityAI.h" // </advc.004c>
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 #include "AgentIterator.h"
@@ -611,26 +611,13 @@ int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot,
 	return iSum;
 }
 
-// advc.004c: Auxiliary functions for AI_bestUnitForMission
+// advc.004c: Auxiliary function for AI_bestUnitForMission
 namespace
 {
-	scaled preserveUnitValue(CvUnit const& kUnit)
+	scaled overallUnitValue(CvUnit const& kUnit)
 	{	// Crude ...
 		return kUnit.getUnitInfo().getProductionCost() *
 				(1 + per100(6) * kUnit.getExperience());
-	}
-
-	scaled bombMissionPriority(CvUnit const& kUnit, int iDamage, int iRemainingDefense)
-	{
-		int iWasted = 0;
-		if (iDamage > 0)
-		{
-			iWasted = iDamage - iRemainingDefense;
-			iWasted = std::max(0, iWasted);
-		}
-		scaled rPriority = std::max(0, iDamage - iWasted) * 1000 - iWasted * 100;
-		rPriority -= preserveUnitValue(kUnit);
-		return rPriority;
 	}
 }
 
@@ -640,10 +627,60 @@ namespace
 CvUnit* CvSelectionGroupAI::AI_bestUnitForMission(MissionTypes eMission,
 	CvPlot const* pMissionPlot)
 {
+	PROFILE_FUNC(); // advc.test: To be profiled (but probably fine)
 	CvPlot const& kAt = getPlot();
+	bool bEasyCityCapture = false;
+	CvCity const* pTargetCity = (pMissionPlot == NULL ? NULL :
+			pMissionPlot->getPlotCity());
+	int iDefenders = -1;
+	if (eMission == MISSION_BOMBARD)
+	{
+		FOR_EACH_UNIT_IN(pUnit, *this)
+		{
+			pTargetCity = pUnit->bombardTarget(kAt);
+			if (pTargetCity != NULL)
+				break;
+		}
+		if (pTargetCity != NULL)
+		{
+			pMissionPlot = pTargetCity->plot();
+			iDefenders = pMissionPlot->plotCount(
+					PUF_canDefendEnemy, getOwner(), false);
+			if (!isHuman())
+			{	// Visibility cheat, but saves time.
+				bEasyCityCapture = pTargetCity->AI().AI_isEvacuating();
+			}
+			else
+			{
+				FAssertMsg(iDefenders > 0, "AI bombards undefended city");
+				int iAttackers = 0;
+				FOR_EACH_UNIT_IN(pUnit, kAt)
+				{
+					if (!pUnit->canBombard(kAt) &&
+						pUnit->canMoveOrAttackInto(*pMissionPlot))
+					{
+						iAttackers++;
+						if (iAttackers >= 2 * iDefenders)
+							break;
+					}
+				}
+				if (iAttackers >= iDefenders)
+				{
+					scaled rStackCmp = per100(AI_compareStacks(pMissionPlot, true, true));
+					if (rStackCmp > fixp(1.5) &&
+						/*	NB: If iAtt==iDef, odds needs to be very favorable
+							for an immediate conquest. */
+						scaled(iAttackers, std::max(iDefenders, 1)) * rStackCmp > fixp(2.5))
+					{	// (Assuming that the city gets bombarded to 0)
+						bEasyCityCapture = true;
+					}
+				}
+			}
+		}
+	}
 	CvUnit* pBestUnit = NULL;
 	scaled rMaxPriority = scaled::MIN();
-	FOR_EACH_UNIT_VAR_IN(pUnit, *this)
+	FOR_EACH_UNITAI_VAR_IN(pUnit, *this)
 	{
 		if (!pUnit->canMove())
 			continue;
@@ -665,7 +702,7 @@ CvUnit* CvSelectionGroupAI::AI_bestUnitForMission(MissionTypes eMission,
 				rPriority--;
 			// <advc.004c>
 			rPriority *= 10000;
-			rPriority -= preserveUnitValue(*pUnit).round();
+			rPriority -= overallUnitValue(*pUnit).round();
 			// </advc.004c>
 			//iPriority = (3 + iPriority) * pUnit->movesLeft() / 3;
 			// advc.004c: Add 3 upfront. Don't see what good the division would do.
@@ -676,11 +713,29 @@ CvUnit* CvSelectionGroupAI::AI_bestUnitForMission(MissionTypes eMission,
 		{
 			if (!pUnit->canBombard(kAt))
 				continue;
-			int iDamage = pUnit->damageToBombardTarget(kAt);
-			rPriority = bombMissionPriority(*pUnit,
-					iDamage, iDamage <= 0 ? 0 :
-					pUnit->bombardTarget(kAt)->
-					getDefenseModifier(pUnit->ignoreBuildingDefense()));
+			/*	Some baseline to avoid precision problem when getting
+				too close to 0 through divisions and multiplications */
+			rPriority = 1000;
+			if (bEasyCityCapture)
+				rPriority *= per100(pUnit->currHitPoints());
+			int const iBombard = pUnit->damageToBombardTarget(kAt);
+			// bIgnoreBuilding=false b/c iBombard already reflects that
+			int const iCurrDefense = pTargetCity->getDefenseModifier(false);
+			int const iWaste = std::max(0, iBombard - iCurrDefense);
+			if (isHuman())
+			{	// Derive human intent from promotions
+				scaled rDeltaBombard = (pUnit->getExtraBombardRate() - iWaste) -
+						(pUnit->getExtraCollateralDamage() +
+						pUnit->getExtraCityAttackPercent()) / 5;
+				rPriority *= 1 + scaled::clamp(5 * rDeltaBombard, -90, 100) / 100;
+			}
+			rPriority *= std::max(1, 15 + iBombard - iWaste);
+			scaled rOdds = per100(pUnit->AI_attackOdds(pMissionPlot, false));
+			rPriority *= (1 - rOdds);
+			rPriority /= 1 + per100(pUnit->collateralDamage());
+			rPriority /= 15 + std::min(iDefenders, pUnit->collateralDamageMaxUnits());
+			/*	(CollateralDamageLimit gets ignored by all AI code so far,
+				so I'm not going to bother with it here either.) */
 			break;
 		}
 		case MISSION_AIRBOMB:
@@ -689,16 +744,21 @@ CvUnit* CvSelectionGroupAI::AI_bestUnitForMission(MissionTypes eMission,
 			{
 				if (!pUnit->canAirBomb(pMissionPlot))
 					continue;
-				CvCity const& kTargetCity = *pMissionPlot->getPlotCity();
-				int iDamage = pUnit->airBombDefenseDamage(kTargetCity);
-				rPriority = bombMissionPriority(*pUnit, iDamage,
-						iDamage <= 0 ? 0 : kTargetCity.getDefenseModifier(false));
+				int iWasted = 0;
+				int const iDamage = pUnit->airBombDefenseDamage(*pTargetCity);
+				if (iDamage > 0)
+				{
+					iWasted = iDamage - pTargetCity->getDefenseModifier(false);
+					iWasted = std::max(0, iWasted);
+				}
+				rPriority = std::max(0, iDamage - iWasted) * 1000 - iWasted * 100;
+				rPriority -= overallUnitValue(*pUnit);
 			}
 			else
 			{
 				rPriority = pUnit->airBombCurrRate();
 				rPriority *= 10000;
-				rPriority -= preserveUnitValue(*pUnit);
+				rPriority -= overallUnitValue(*pUnit);
 			}
 			break;
 		}
@@ -714,7 +774,7 @@ CvUnit* CvSelectionGroupAI::AI_bestUnitForMission(MissionTypes eMission,
 				When moving a stack of paratroopers, getting just one through
 				isn't usually the goal. Want to send in the least valuable units
 				first to draw out interceptors. */
-			rPriority = -preserveUnitValue(*pUnit);
+			rPriority = -overallUnitValue(*pUnit);
 			break;
 		}
 		default: FErrorMsg("Mission type not supported by bestUnitForMission");
