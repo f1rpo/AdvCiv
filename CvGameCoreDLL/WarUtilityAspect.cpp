@@ -3374,11 +3374,10 @@ void FairPlay::evaluate() {
 	/*  Actually, never mind checking for starting tech. Don't want early rushes
 		on low difficulty either. */
 	EraTypes const startEra = game.getStartEra();
-	int const trainMod = speed.getTrainPercent() * GC.getInfo(startEra).getTrainPercent();
-	if(trainMod <= 0) {
-		FAssert(trainMod > 0);
-		return;
-	}
+	double const trainMod = (speed.getTrainPercent() *
+			GC.getInfo(startEra).getTrainPercent()) / (100.0 * 100.0);
+	FAssert(trainMod > 0);
+
 	double uMinus = 0;
 	/*  All bets off by turn 100, but, already by turn 50, the cost may
 		no longer be prohibitive. */
@@ -3387,7 +3386,7 @@ void FairPlay::evaluate() {
 	iTargetTurn = ::round(iTargetTurn *
 			((1 + 1.5 * (game.getRecommendedPlayers() /
 			(double)game.getCivPlayersEverAlive())) / 2.5));
-	int iElapsed = ::round(game.getElapsedGameTurns() / (trainMod / 10000.0));
+	int iElapsed = ::round(game.getElapsedGameTurns() / trainMod);
 	int iTurnsRemaining = iTargetTurn - iElapsed - GC.getInfo(startEra).getStartPercent();
 	if(iTurnsRemaining > 0)
 	{
@@ -3395,7 +3394,7 @@ void FairPlay::evaluate() {
 		uMinus = std::pow(iTurnsRemaining / 2.0, 1.28);
 		if(gameEra > startEra) {
 			log("The game era has surpassed the start era");
-			uMinus *= 3/3.;
+			uMinus *= 3/4.;
 		}
 		if(they->getCurrentEra() > startEra) {
 			log("Their era has surpassed the start era");
