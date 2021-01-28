@@ -4676,7 +4676,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 				CvUnitInfo const& kUnit = GC.getInfo(eUnit);
 				if(kUnit.getDomainType() != DOMAIN_LAND)
 					continue;
-				if(kUnit.getPrereqOrBonuses(0) == NO_BONUS &&
+				if(kUnit.getNumPrereqOrBonuses() <= 0 &&
 					kUnit.getPrereqAndBonus() == NO_BONUS &&
 					kUnit.getCombat() > 0 &&
 					(kUnit.getPrereqAndTech() == NO_TECH ||
