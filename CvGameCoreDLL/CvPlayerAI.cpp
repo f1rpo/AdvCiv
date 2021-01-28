@@ -20398,7 +20398,7 @@ void CvPlayerAI::AI_proposeWarTrade(PlayerTypes eHireling)
 				int iAcquireVal = kHireling.AI_cityTradeVal(*pCity, kHireling.getID());
 				if (iAcquireVal <= 0) // Hireling insisting on liberation
 					continue;
-				int iFitness = iKeepVal - iAcquireVal;
+				int iFitness = iAcquireVal - iKeepVal;
 				FErrorMsg("Just for testing the condition below; hasn't been true in tests so far."); // advc.test
 				if (iFitness > iBestFitness && (iKeepVal <= 0 ||
 					scaled(iAcquireVal, iKeepVal) - 1 > per100(iWSRating)))
