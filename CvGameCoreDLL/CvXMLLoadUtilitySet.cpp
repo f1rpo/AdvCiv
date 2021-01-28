@@ -17,6 +17,11 @@
 // advc.003j: unused
 //#define INIT_XML_GLOBAL_LOAD(xmlInfoPath, infoArray, numInfos)  SetGlobalClassInfo(infoArray, xmlInfoPath, numInfos);
 
+/*	advc: Switch that will cause a failed assertion for each global define that
+	gets read multiple times, i.e. that the mod overwrites. Could be helpful
+	for merging a mod into AdvCiv. */
+#define CHECK_FOR_REDEFINES 0
+
 // read the global defines from a specific file
 bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObject* cache)
 {
@@ -39,10 +44,6 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 		sprintf(szMessage, "LoadXML call failed for %s.\nCurrent XML file is: %s", szXMLFileName, GC.getCurrentXMLFile().GetCString());
 		errorMessage(szMessage, XML_LOAD_ERROR);
 	}
-	/*	advc: Switch that will cause a failed assertion for each global define
-		that gets read multiple times, i.e. that the mod overwrites. Could be helpful
-		for merging a mod into AdvCiv. */
-	#define CHECK_FOR_OVERWRITES 0
 
 	if (bLoaded)
 	{
@@ -80,7 +81,7 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 										// if the node type of the current tag is a float then
 										if (strcmp(szNodeType,"float")==0)
 										{	// <advc>
-											#if CHECK_FOR_OVERWRITES
+											#if CHECK_FOR_REDEFINES
 												float fDummy;
 												FAssertMsg(!GC.getDefinesVarSystem()->GetValue(szName, fDummy), szName);
 											#endif // </advc>
@@ -92,7 +93,7 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 										// else if the node type of the current tag is an int then
 										else if (strcmp(szNodeType,"int")==0)
 										{	// <advc>
-											#if CHECK_FOR_OVERWRITES
+											#if CHECK_FOR_REDEFINES
 												int iDummy;
 												FAssertMsg(!GC.getDefinesVarSystem()->GetValue(szName, iDummy), szName);
 											#endif // </advc>
@@ -104,7 +105,7 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 										// else if the node type of the current tag is a boolean then
 										else if (strcmp(szNodeType,"boolean")==0)
 										{	// <advc>
-											#if CHECK_FOR_OVERWRITES
+											#if CHECK_FOR_REDEFINES
 												bool bDummy;
 												FAssertMsg(!GC.getDefinesVarSystem()->GetValue(szName, bDummy), szName);
 											#endif // </advc>
@@ -116,7 +117,7 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 										// otherwise we will assume it is a string/text value
 										else
 										{	// <advc>
-											#if CHECK_FOR_OVERWRITES
+											#if CHECK_FOR_REDEFINES
 												char szBuffer[256];
 												char* szDummy = szBuffer;
 												FAssertMsg(!GC.getDefinesVarSystem()->GetValue(szName, szDummy), szName);
@@ -165,6 +166,8 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 	return true;
 }
 
+#undef CHECK_FOR_REDEFINES // advc
+
 // Load GlobalDefines from XML
 bool CvXMLLoadUtility::SetGlobalDefines()
 {
@@ -174,9 +177,10 @@ bool CvXMLLoadUtility::SetGlobalDefines()
 	// use disk cache if possible.
 	// if no cache or cache is older than xml file, use xml file like normal, else read from cache
 	//
-
-	CvCacheObject* cache = gDLL->createGlobalDefinesCacheObject("GlobalDefines.dat");	// cache file name
-
+	CvCacheObject* cache = NULL;
+	#if ENABLE_XML_FILE_CACHE
+	cache = gDLL->createGlobalDefinesCacheObject("GlobalDefines.dat");	// cache file name
+	#endif
 	if (!ReadGlobalDefines("xml\\GlobalDefines.xml", cache))
 		return false;
 
@@ -218,8 +222,9 @@ bool CvXMLLoadUtility::SetGlobalDefines()
 				return false;
 		}
 	}
+	#if ENABLE_XML_FILE_CACHE
 	gDLL->destroyCache(cache);
-
+	#endif
 	GC.cacheGlobals();
 	return true;
 }
@@ -459,7 +464,6 @@ bool CvXMLLoadUtility::LoadGlobalText()
 {
 	#if ENABLE_XML_FILE_CACHE
 	CvCacheObject* cache = gDLL->createGlobalTextCacheObject("GlobalText.dat");	// cache file name
-	// advc: Handle successful read upfront
 	if (gDLL->cacheRead(cache))
 	{
 		logMsg("Read GlobalText from cache");
@@ -477,12 +481,20 @@ bool CvXMLLoadUtility::LoadGlobalText()
 
 	gDLL->enumerateFiles(aszFiles, "xml\\text\\*.xml");
 
-	// K-Mod. Text files from mods may not have the same set of language as the base game.
-	// When such a mismatch occurs, we cannot simply rely on "getCurrentLanguage()" to give us the correct text from the mod file. We should instead check the xml tags.
-	// So, before we start loading text, we need to extract the current name of our language tag. This isn't as easy as I'd like. Here's what I'm going to do:
-	// CIV4GameText_Misc1.xml contains the text for the language options dropdown menu in the settings screen; so I'm going to assume that particular text file is
-	// well formed, and I'm going to use it to determine the current language name. (Note: I'd like to use the names from TXT_KEY_LANGUAGE_#, but that text isn't easy to access.)
-	// label text for the currently selected language -- that should correspond to the xml label used for that language.
+	/*	K-Mod. Text files from mods may not have the same set of languages
+		as the base game. When such a mismatch occurs, we cannot simply rely
+		on "getCurrentLanguage()" to give us the correct text from the mod file.
+		We should instead check the xml tags. So, before we start loading text,
+		we need to extract the current name of our language tag.
+		This isn't as easy as I'd like. Here's what I'm going to do:
+		CIV4GameText_Misc1.xml contains the text for the language options
+		dropdown menu in the settings screen; so I'm going to assume
+		that particular text file is well formed, and I'm going to use it
+		to determine the current language name.
+		(Note: I'd like to use the names from TXT_KEY_LANGUAGE_#,
+		but that text isn't easy to access.) */
+	/*	label text for the currently selected language --
+		that should correspond to the xml label used for that language. */
 	std::string langauge_name;
 	if (LoadCivXml(m_pFXml, "xml\\text\\CIV4GameText_Misc1.xml"))
 	{
@@ -503,7 +515,9 @@ bool CvXMLLoadUtility::LoadGlobalText()
 					break;
 				if (i == iLanguage)
 				{
-					char buffer[1024]; // no way to determine max tag name size. .. This is really bad; but what can I do about it?
+					/*	no way to determine max tag name size.
+						This is really bad; but what can I do about it? */
+					char buffer[1024];
 					if (gDLL->getXMLIFace()->GetLastLocatedNodeTagName(m_pFXml, buffer))
 					{
 						buffer[1023] = 0; // just in case the buffer isn't even terminated!
@@ -511,15 +525,17 @@ bool CvXMLLoadUtility::LoadGlobalText()
 					}
 				}
 			}
-			// this is stupid...
-			// the number of languages is a static private variable which can only be set by a non-static function.
+			/*	this is stupid... the number of languages is a static private variable
+				which can only be set by a non-static function. */
 			CvGameText dummy;
 			dummy.setNumLanguages(i);
 		}
 	}
 
-	// Remove duplicate files. (Both will be loaded from the mod folder anyway, so this will save us some time.)
-	// However, we must not disturb the order of the list, because it is important that the modded files overrule the unmodded files.
+	/*	Remove duplicate files. (Both will be loaded from the mod folder anyway,
+		so this will save us some time.)
+		However, we must not disturb the order of the list, because it is
+		important that the modded files overrule the unmodded files. */
 	for(std::vector<CvString>::iterator it = aszFiles.begin(); it != aszFiles.end(); ++it)
 	{
 		std::vector<CvString>::iterator jt = it+1;
@@ -545,7 +561,8 @@ bool CvXMLLoadUtility::LoadGlobalText()
 		if (!bLoaded)
 		{
 			char	szMessage[1024];
-			sprintf(szMessage, "LoadXML call failed for %s.\nCurrent XML file is: %s", it->c_str(), GC.getCurrentXMLFile().GetCString());
+			sprintf(szMessage, "LoadXML call failed for %s.\nCurrent XML file is: %s",
+					it->c_str(), GC.getCurrentXMLFile().GetCString());
 			errorMessage(szMessage, XML_LOAD_ERROR);
 		}
 		if (bLoaded)

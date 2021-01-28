@@ -82,9 +82,9 @@ public:
 	{
 		return getPlotUnits(pPlot, NULL, iIndex); // advc
 	}
-	DllExport void getPlotUnits(const CvPlot *pPlot, std::vector<CvUnit*>& plotUnits) const
+	DllExport void getPlotUnits(const CvPlot *pPlot, std::vector<CvUnit*>& kPlotUnits) const
 	{
-		getPlotUnits(pPlot, &plotUnits, -1); // advc
+		getPlotUnits(pPlot, &kPlotUnits, -1); // advc
 	}
 
 	DllExport void cycleCities(bool bForward = true, bool bAdd = false) const;																				// Exposed to Python

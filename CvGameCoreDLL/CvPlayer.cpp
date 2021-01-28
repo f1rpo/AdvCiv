@@ -3664,7 +3664,7 @@ bool CvPlayer::canReceiveTradeCity() const
 }
 
 
-bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial) const  // advc: Refactoring changes; assertions added.
+bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial) const  // advc: assertions added.
 {
 	PROFILE_FUNC(); // advc: To keep an eye on items that aren't profiled separately
 

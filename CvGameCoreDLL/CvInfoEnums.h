@@ -237,7 +237,7 @@ static inline T operator-(T minuend, T subtrahend)
 
 /*  These don't have a dedicated CvInfo class, and the macros for generating
 	getter functions can't deal with that. (typedef would make it impossible
-	to forward declare them in CvGlobals.h.) */
+	to forward-declare them in CvGlobals.h.) */
 #define CvHintInfo CvInfoBase
 #define CvConceptInfo CvInfoBase
 #define CvNewConceptInfo CvInfoBase
@@ -253,7 +253,7 @@ static inline T operator-(T minuend, T subtrahend)
 #define CvCalendarInfo CvInfoBase
 #define CvUnitAIInfo CvInfoBase
 #define CvDenialInfo CvInfoBase
-// This one just has an irregular, exported name
+// This one just has an irregular, exported name.
 #define CvThroneRoomCameraInfo CvThroneRoomCamera
 
 // Macros for generating enum definitions and getEnumLength functions (CvEnums, CvGlobals) ...

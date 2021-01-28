@@ -4321,11 +4321,11 @@ bool CvUnit::airBomb(int iX, int iY, /* <advc.004c> */ bool* pbIntercepted)
 }
 
 
-CvCity* CvUnit::bombardTarget(CvPlot const& kPlot) const
+CvCity* CvUnit::bombardTarget(CvPlot const& kFrom) const
 {
 	CvCity* pBestCity = NULL;
 	int iBestValue = MAX_INT;
-	FOR_EACH_ADJ_PLOT(kPlot)
+	FOR_EACH_ADJ_PLOT(kFrom)
 	{
 		CvCity* pLoopCity = pAdj->getPlotCity();
 		if (pLoopCity == NULL || !pLoopCity->isBombardable(this))
@@ -4335,7 +4335,7 @@ CvCity* CvUnit::bombardTarget(CvPlot const& kPlot) const
 		/*	advc (note): Was added in BtS. Not sure if it's correct - or necessary.
 			iValue is non-negative. We're computing an argmin. CvCity::isBombardable
 			already checks isEnemy - but only for this unit's current plot. */
-		if (isEnemy(pLoopCity->getTeam(), kPlot))
+		if (isEnemy(pLoopCity->getTeam(), kFrom))
 			iValue *= 128;
 		if (iValue < iBestValue)
 		{
@@ -4347,7 +4347,7 @@ CvCity* CvUnit::bombardTarget(CvPlot const& kPlot) const
 }
 
 
-bool CvUnit::canBombard(CvPlot const& kPlot) const
+bool CvUnit::canBombard(CvPlot const& kFrom) const
 {
 	if (bombardRate() <= 0)
 		return false;
@@ -4358,16 +4358,16 @@ bool CvUnit::canBombard(CvPlot const& kPlot) const
 	if (isCargo())
 		return false;
 
-	if (bombardTarget(kPlot) == NULL)
+	if (bombardTarget(kFrom) == NULL)
 		return false;
 
 	return true;
 }
 
 // Moved out of CvUnit::bombard (note: may exceed the target's defensive modifier)
-int CvUnit::damageToBombardTarget(CvPlot const& kPlot) const
+int CvUnit::damageToBombardTarget(CvPlot const& kFrom) const
 {
-	CvCity const* pBombardCity = bombardTarget(kPlot);
+	CvCity const* pBombardCity = bombardTarget(kFrom);
 	if (pBombardCity == NULL)
 		return 0;
 	// <advc.004c>

@@ -6286,7 +6286,8 @@ void CvPlot::updateFlagSymbol()
 	//create and/or update unit's flag
 	if (ePlayer != NO_PLAYER)
 	{
-		if (m_pFlagSymbol == NULL || gDLL->getFlagEntityIFace()->getPlayer(m_pFlagSymbol) != ePlayer)
+		if (m_pFlagSymbol == NULL ||
+			gDLL->getFlagEntityIFace()->getPlayer(m_pFlagSymbol) != ePlayer)
 		{
 			if (m_pFlagSymbol != NULL)
 				gDLL->getFlagEntityIFace()->destroy(m_pFlagSymbol);

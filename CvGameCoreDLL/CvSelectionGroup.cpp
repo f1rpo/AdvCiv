@@ -1239,8 +1239,7 @@ void CvSelectionGroup::startMission()
 			{
 				GC.getGame().cycleSelectionGroups_delayed(kOwner.
 						isOption(PLAYEROPTION_QUICK_MOVES) ? 1 : 2, true);
-			}
-			// K-Mod end
+			} // K-Mod end
 		}
 	}
 }
@@ -2929,8 +2928,9 @@ bool CvSelectionGroup::groupPathTo(int iX, int iY, MovementFlags eFlags)
 	CvPlot const* pOriginPlot = plot(); // K-Mod
 
 	if (at(iX, iY))
-		return false; // XXX is this necessary?
-
+	{	// XXX is this necessary? - advc: Yes, for route-to and move-to-unit missions.
+		return false;
+	}
 	FAssert(!isBusy());
 	FAssert(getOwner() != NO_PLAYER);
 	FAssert(headMissionQueueNode() != NULL);
@@ -3291,9 +3291,9 @@ bool CvSelectionGroup::readyToMove(bool bAny) /* advc: */ const
 	//return (((bAny) ? canAnyMove() : canAllMove()) && (headMissionQueueNode() == NULL) && (getActivityType() == ACTIVITY_AWAKE) && !isBusy() && !isCargoBusy());
 	// K-Mod:
 	return (bAny ? canAnyMove() : canAllMove()) &&
-		(isForceUpdate() ||
-		(headMissionQueueNode() == NULL && getActivityType() ==  ACTIVITY_AWAKE)) &&
-		!isBusy() && !isCargoBusy();
+			(isForceUpdate() ||
+			(headMissionQueueNode() == NULL && getActivityType() ==  ACTIVITY_AWAKE)) &&
+			!isBusy() && !isCargoBusy();
 }
 
 

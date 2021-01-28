@@ -477,18 +477,18 @@ int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
 	return iOdds;
 }
 
-// K-Mod:
+// K-Mod: (advc - Where do we move this? Should be a static member, not global.)
 int estimateCollateralWeight(CvPlot const* pPlot, TeamTypes eAttackTeam,
 	TeamTypes eDefenceTeam)
 {
 	int iBaseCollateral = GC.getDefineINT(CvGlobals::COLLATERAL_COMBAT_DAMAGE); // normally 10
+	if (pPlot == NULL)
+		return iBaseCollateral * 110;
 
 	/*	Collateral damage does not depend on any kind of strength bonus -
 		so when a unit takes collateral damage, their bonuses are effectively wasted.
 		Therefore, I'm going to inflate the value of collateral damage based
 		on a rough estimate of the defenders bonuses. */
-	if (pPlot == NULL)
-		return iBaseCollateral * 110; // advc
 
 	TeamTypes ePlotBonusTeam = eDefenceTeam;
 	if (ePlotBonusTeam == NO_TEAM)

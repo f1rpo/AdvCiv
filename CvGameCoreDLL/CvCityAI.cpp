@@ -7517,8 +7517,11 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 				{
 					if (kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS))
 						bValid = false;
-					else if (healthRate() < 0 && GC.getInfo(kPlot.getFeatureType()).getHealthPercent() > 0)
+					else if (healthRate() < 0 &&
+						GC.getInfo(kPlot.getFeatureType()).getHealthPercent() > 0)
+					{
 						bValid = false;
+					}
 					else if (kOwner.getFeatureHappiness(kPlot.getFeatureType()) > 0)
 						bValid = false;
 				}

@@ -158,9 +158,9 @@ public:
 
 	bool canAirStrike(CvPlot const& kPlot) const; // (advc.004c: was protected)
 
-	CvCity* bombardTarget(CvPlot const& kPlot) const;														// Exposed to Python
-	bool canBombard(CvPlot const& kPlot) const;																// Exposed to Python
-	int damageToBombardTarget(CvPlot const& kPlot) const; // advc
+	CvCity* bombardTarget(CvPlot const& kFrom) const;														// Exposed to Python
+	bool canBombard(CvPlot const& kFrom) const;																// Exposed to Python
+	int damageToBombardTarget(CvPlot const& kFrom) const; // advc
 	bool bombard();
 
 	bool canParadrop(const CvPlot* pPlot) const;															// Exposed to Python

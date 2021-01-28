@@ -822,7 +822,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 	for (int iPass = 0; iPass < 2; iPass++)
 	{
 		// K-Mod: only workable tiles
-		for (WorkablePlotIter it(kCity); it.hasNext(); ++it)  // advc: continue statements
+		for (WorkablePlotIter it(kCity); it.hasNext(); ++it)
 		{
 			CvPlot& kPlot = *it;
 			CityPlotTypes ePlot = it.currID();
@@ -832,54 +832,51 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 				continue;
 			int iValue = kCity.AI_getBestBuildValue(ePlot);
 			if (iValue <= iBestValue)
-					continue;
-
-				BuildTypes eBuild = kCity.AI_getBestBuild(ePlot);
-				if (eBuild == NO_BUILD || /* K-Mod: */ !canBuild(kPlot, eBuild))
-					continue;
-
-				if (iPass == 0)
-				{
-					iBestValue = iValue;
-					pBestPlot = &kPlot;
-					eBestBuild = eBuild;
-					continue;
-				}
-				//if (canBuild(pLoopPlot, eBuild))
-				if (kPlot.isVisibleEnemyUnit(this))
-					continue;
-				/*int iPathTurns;
-				if (generatePath(pLoopPlot, 0, true, &iPathTurns)) {
-					// XXX take advantage of range (warning... this could lead to some units doing nothing...)
-					int iMaxWorkers = 1;
-					if (getPathLastNode()->m_iData1 == 0)
-						iPathTurns++;
-					else if (iPathTurns <= 1)
-						iMaxWorkers = AI_calculatePlotWorkersNeeded(pLoopPlot, eBuild);
-					if (pUnit != NULL) {
-						if (pUnit->getPlot().isCity() && iPathTurns == 1 && getPathLastNode()->m_iData1 > 0)
-						iMaxWorkers += 10;
-					} }*/ // BtS
-				// K-Mod. basically the same thing, but using pathFinder.
-				if (!pathFinder.generatePath(kPlot))
-					continue;
-				int iPathTurns = pathFinder.getPathTurns() + (pathFinder.getFinalMoves() == 0 ? 1 : 0);
-				int iMaxWorkers = (iPathTurns > 1 ? 1 : AI_calculatePlotWorkersNeeded(kPlot, eBuild));
-				if (pUnit != NULL && pUnit->getPlot().isCity() && iPathTurns == 1)
+				continue;
+			BuildTypes eBuild = kCity.AI_getBestBuild(ePlot);
+			if (eBuild == NO_BUILD || /* K-Mod: */ !canBuild(kPlot, eBuild))
+				continue;
+			if (iPass == 0)
+			{
+				iBestValue = iValue;
+				pBestPlot = &kPlot;
+				eBestBuild = eBuild;
+				continue;
+			}
+			//if (canBuild(pLoopPlot, eBuild))
+			if (kPlot.isVisibleEnemyUnit(this))
+				continue;
+			/*int iPathTurns;
+			if (generatePath(pLoopPlot, 0, true, &iPathTurns)) {
+				// XXX take advantage of range (warning... this could lead to some units doing nothing...)
+				int iMaxWorkers = 1;
+				if (getPathLastNode()->m_iData1 == 0)
+					iPathTurns++;
+				else if (iPathTurns <= 1)
+					iMaxWorkers = AI_calculatePlotWorkersNeeded(pLoopPlot, eBuild);
+				if (pUnit != NULL) {
+					if (pUnit->getPlot().isCity() && iPathTurns == 1 && getPathLastNode()->m_iData1 > 0)
 					iMaxWorkers += 10;
-				// K-Mod end
-				if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(kPlot, MISSIONAI_BUILD, getGroup(),
-					/* <advc.opt> */ 0, iMaxWorkers /* </advc.opt> */) < iMaxWorkers)
-				{
-					//XXX this could be improved greatly by
-					//looking at the real build time and other factors
-					//when deciding whether to stack.
-					iValue /= iPathTurns;
+				} }*/ // BtS
+			// K-Mod. basically the same thing, but using pathFinder.
+			if (!pathFinder.generatePath(kPlot))
+				continue;
+			int iPathTurns = pathFinder.getPathTurns() + (pathFinder.getFinalMoves() == 0 ? 1 : 0);
+			int iMaxWorkers = (iPathTurns > 1 ? 1 : AI_calculatePlotWorkersNeeded(kPlot, eBuild));
+			if (pUnit != NULL && pUnit->getPlot().isCity() && iPathTurns == 1)
+				iMaxWorkers += 10;
+			// K-Mod end
+			if (GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(kPlot, MISSIONAI_BUILD, getGroup(),
+				/* <advc.opt> */ 0, iMaxWorkers /* </advc.opt> */) < iMaxWorkers)
+			{
+				//XXX this could be improved greatly by
+				//looking at the real build time and other factors
+				//when deciding whether to stack.
+				iValue /= iPathTurns;
 
-					iBestValue = iValue;
-					pBestPlot = &kPlot;
-					eBestBuild = eBuild;
-				}
+				iBestValue = iValue;
+				pBestPlot = &kPlot;
+				eBestBuild = eBuild;
 			}
 		}
 		if (iPass > 0 || eBestBuild == NO_BUILD)
@@ -3754,12 +3751,12 @@ void CvUnitAI::AI_collateralMove()
 		FAssert(iTally > 0);
 		FAssert(collateralDamageMaxUnits() > 0);
 
-		int iDangerModifier = 100;
+		//int iDangerModifier = 100;
 		do
 		{
 			int iMinOdds = 80 / (3 + iTally);
-			iMinOdds *= 100;
-			iMinOdds /= iDangerModifier;
+			/*iMinOdds *= 100;
+			iMinOdds /= iDangerModifier;*/ // advc: was always 100 ...
 			if (AI_anyAttack(1, iMinOdds, NO_MOVEMENT_FLAGS, std::min(
 				2*collateralDamageMaxUnits(), collateralDamageMaxUnits() + iTally - 1)))
 			{
