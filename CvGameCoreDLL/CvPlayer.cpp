@@ -9085,6 +9085,7 @@ HandicapTypes CvPlayer::getHandicapType() const
 	{
 		return GC.getGame().getAIHandicap();
 	} // </advc.127>
+	// advc (note, little known fact): The EXE sets the Barbarian handicap to Warchief
 	return GC.getInitCore().getHandicap(getID());
 }
 

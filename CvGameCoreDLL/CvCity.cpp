@@ -11590,15 +11590,19 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible,
 				kBuilding.get(CvBuildingInfo::RaiseDefense) > 0); // advc.004c
 		if (!bAllVisible && !bWonder && !bDefense)
 		{
-			bool visibleYieldChange = false;
-			int* seaPlotYieldChanges = kBuilding.getSeaPlotYieldChangeArray();
-			int* riverPlotYieldChanges = kBuilding.getRiverPlotYieldChangeArray();
+			bool bVisibleYieldChange = false;
+			int* aiSeaPlotYieldChanges = kBuilding.getSeaPlotYieldChangeArray();
+			int* aiRiverPlotYieldChanges = kBuilding.getRiverPlotYieldChangeArray();
 			FOR_EACH_ENUM(Yield)
 			{
-				if(seaPlotYieldChanges[eLoopYield] + riverPlotYieldChanges[eLoopYield] != 0)
-					visibleYieldChange = true;
+				if(aiRiverPlotYieldChanges[eLoopYield] != 0 ||
+					aiSeaPlotYieldChanges[eLoopYield] != 0)
+				{
+					bVisibleYieldChange = true;
+					break;
+				}
 			}
-			if(!visibleYieldChange)
+			if(!bVisibleYieldChange)
 				continue;
 		} // </advc.045>
 		kVisible.push_back(eBuilding);
@@ -11639,14 +11643,14 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible,
 	}
 }
 
-// <advc.045>
+// advc.045:
 bool CvCity::isAllBuildingsVisible(TeamTypes eTeam, bool bDebug) const
 {
 	if (bDebug && GC.getGame().isDebugMode())
 		return true;
 	return (getPlot().isInvestigate(eTeam) ||
 			getPlot().plotCheck(NULL, -1, -1, NO_PLAYER, eTeam) > 0 != NULL);
-} // </advc.045>
+}
 
 // (advc: natGetDeterministicRandom deleted; should use 'hash' in CvGameCoreUtils instead.)
 

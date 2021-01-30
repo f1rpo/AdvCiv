@@ -853,8 +853,9 @@ void CvGame::setPlayerColors()
 // advc.127:
 void CvGame::initGameHandicap()
 {
-	// K-Mod: Adjust the game handicap level to be the average of all the human player's handicap.
-	// (Note: in the original bts rules, it would always set to Noble if the humans had different handicaps)
+	/*	K-Mod: Adjust the game handicap level to be the average
+		of all the human player's handicap. (Note: in the original bts rules,
+		it would always set to Noble if the humans had different handicaps) */
 	// advc: Moved from setInitialItems b/c that function isn't called in scenarios
 	if (isGameMultiPlayer())
 	{
@@ -867,9 +868,8 @@ void CvGame::initGameHandicap()
 		{
 			/*  advc.250a: Relies on no strange new handicaps being placed
 				between Settler and Deity. Same in CvTeam::getHandicapType. */
-				setHandicapType((HandicapTypes)
-				::round // kekm.22
-				(iSum / (10.0 * iDiv)));
+				setHandicapType((HandicapTypes) /* kekm.22: */ ROUND_DIVIDE(
+						iSum, 10 * iDiv));
 		}
 		FAssertMsg(iDiv > 0, "All-AI game. Not necessarily wrong, but unexpected.");
 	} // K-Mod end
