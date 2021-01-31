@@ -18,6 +18,9 @@ void CyGamePythonInterface()
 		.def("cycleCities", &CyGame::cycleCities, "void (bool bForward, bool bAdd)")
 		.def("cycleSelectionGroups", &CyGame::cycleSelectionGroups, "void (bool bClear, bool bForward, bool bWorkers)")
 		.def("cyclePlotUnits", &CyGame::cyclePlotUnits, "bool (CyPlot* pPlot, bool bForward, bool bAuto, int iCount)")
+		// <advc.154>
+		.def("getNextUnitInCycle", &CyGame::getNextUnitInCycle, python::return_value_policy<python::reference_existing_object>(),
+				"CyUnit* (bool bForward, bool bWorkers)") // </advc.154>
 
 		.def("selectionListMove", &CyGame::selectionListMove, "void (CyPlot* pPlot, bool bAlt, bool bShift, bool bCtrl)")
 		.def("selectionListGameNetMessage", &CyGame::selectionListGameNetMessage, "void (int eMessage, int iData2, int iData3, int iData4, int iFlags, bool bAlt, bool bShift)")

@@ -28,6 +28,14 @@ bool CyGame::cyclePlotUnits(CyPlot* pPlot, bool bForward, bool bAuto, int iCount
 {
 	return m_kGame.cyclePlotUnits(pPlot->getPlot(), bForward, bAuto, iCount);
 }
+// advc.154:
+CyUnit* CyGame::getNextUnitInCycle(bool bForward, bool bWorkers)
+{
+	CvUnit* pUnit = GC.getGame().getCycleButtonUnit(bForward, bWorkers);
+	if (pUnit == NULL)
+		return NULL;
+	return new CyUnit(pUnit);
+}
 
 void CyGame::selectionListMove(CyPlot* pPlot, bool bAlt, bool bShift, bool bCtrl)
 {

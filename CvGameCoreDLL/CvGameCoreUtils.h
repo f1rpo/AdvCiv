@@ -260,6 +260,14 @@ DllExport bool isCardinalDirection(DirectionTypes eDirection);															// 
 DirectionTypes estimateDirection(int iDX, int iDY);																// Exposed to Python
 DllExport DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot* pToPlot);
 
+// advc: Moved from CvXMLLoadUtility
+namespace hotkeyDescr
+{
+	CvWString keyStringFromKBCode(TCHAR const* szDescr);
+	CvWString hotKeyFromDescription(TCHAR const* szDescr,
+			bool bShift = false, bool bAlt = false, bool bCtrl = false);
+}
+
 bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);										// Exposed to Python
 //isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam); // advc: Use CvTeamAI::AI_mayAttack instead
 

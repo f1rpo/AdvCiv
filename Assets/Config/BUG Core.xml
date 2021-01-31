@@ -117,9 +117,6 @@
 	<shortcut module="InputUtil" function="toggleShowFriendlyMoves" keys="Shift M"/>
 	<!-- advc.135c -->
 	<shortcut module="InputUtil" function="toggleDebugMode" keys="Ctrl Z"/>
-	<!-- advc.088: If the key combination is changed here, it'll also have to
-		 be changed in CvGlobals::suppressCycling. -->
-	<shortcut module="InputUtil" function="unselectAll" keys="Alt Shift U"/>
 	<!-- advc.savem -->
 	<shortcut module="savemap" function="savemap" keys="Alt Shift M"/>
 </mod>

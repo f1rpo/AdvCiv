@@ -87,10 +87,19 @@ public:
 		getPlotUnits(pPlot, &kPlotUnits, -1); // advc
 	}
 
-	DllExport void cycleCities(bool bForward = true, bool bAdd = false) const;																				// Exposed to Python
-	void cycleSelectionGroups(bool bClear, bool bForward = true, bool bWorkers = false);								// Exposed to Python
-	void cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bDelayOnly = false); // K-Mod
-	DllExport bool cyclePlotUnits(CvPlot* pPlot, bool bForward = true, bool bAuto = false, int iCount = -1) const;		// Exposed to Python
+	DllExport void cycleCities(bool bForward = true, bool bAdd = false) const;											// Exposed to Python
+	// <advc.154>
+	CvSelectionGroup* getNextGroupInCycle(bool bForward, bool bWorkers,
+			bool& bWrap, CvUnit*& pCycleUnit) const;
+	CvUnit* getCycleButtonUnit(bool bForward, bool bWorkers) const;  // Exposed to Python
+	// </advc.154>
+	void cycleSelectionGroups(bool bClear,																				// Exposed to Python
+			bool bForward = true, bool bWorkers = false);
+	// K-Mod:
+	void cycleSelectionGroups_delayed(int iDelay,
+			bool bIncremental, bool bDelayOnly = false);
+	DllExport bool cyclePlotUnits(CvPlot* pPlot,																		// Exposed to Python
+			bool bForward = true, bool bAuto = false, int iCount = -1) const;
 	DllExport bool selectCity(CvCity* pSelectCity, bool bCtrl, bool bAlt, bool bShift) const;
 
 	DllExport void selectionListMove(CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl) const;												// Exposed to Python

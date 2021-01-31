@@ -27,6 +27,7 @@ public:
 	void cycleCities(bool bForward, bool bAdd);
 	void cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers);
 	bool cyclePlotUnits(CyPlot* pPlot, bool bForward, bool bAuto, int iCount);
+	CyUnit* getNextUnitInCycle(bool bForward, bool bWorkers); // advc.154
 
 	void selectionListMove(CyPlot* pPlot, bool bAlt, bool bShift, bool bCtrl);
 	void selectionListGameNetMessage(int eMessage, int iData2, int iData3, int iData4, int iFlags, bool bAlt, bool bShift);

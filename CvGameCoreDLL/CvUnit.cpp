@@ -2985,7 +2985,7 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 	switch (eAutomate)
 	{
 	case AUTOMATE_BUILD:
-		if (AI_getUnitAIType() != UNITAI_WORKER && AI_getUnitAIType() != UNITAI_WORKER_SEA)
+		if (!isWorker())
 			return false;
 		break;
 
@@ -11795,3 +11795,9 @@ int CvUnit::LFBgetDefenderCombatOdds(const CvUnit* pAttacker) const
 	return LFBgetCombatOdds(iDefenderLowFS, iDefenderHighFS, iAttackerLowFS, iAttackerHighFS, iNeededRoundsDefender, iNeededRoundsAttacker, iDefenderOdds);
 }
 // BETTER_BTS_AI_MOD: END
+
+// advc.154: for UI purposes
+bool CvUnit::isWorker() const
+{
+	return (AI_getUnitAIType() == UNITAI_WORKER || AI_getUnitAIType() == UNITAI_WORKER_SEA);
+}

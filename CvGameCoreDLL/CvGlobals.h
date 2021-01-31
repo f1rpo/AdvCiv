@@ -655,8 +655,15 @@ public:
 	inline bool ctrlKey() const { return (GetKeyState(VK_CONTROL) & 0x8000); }
 	inline bool shiftKey() const { return (GetKeyState(VK_SHIFT) & 0x8000); }
 	// hold X to temporarily suppress automatic unit cycling.
-	inline bool suppressCycling() const { return (GetKeyState('X') & 0x8000) ||
-			((GetKeyState('U') & 0x8000) && shiftKey() && altKey()); } // advc.088
+	bool suppressCycling() const
+	{
+		return (GetKeyState('X') & 0x8000) ||
+			/*	advc.088: Needs to be consistent with GC.getInfo(CONTROL_UNSELECT_ALL).
+				getHotKeyVal(), isAltDown() etc. Could check those here, but not in-line.
+				Not quite sure if performance matters here. If it doesn't, then key X
+				should perhaps also be a ControlInfo. */
+			((GetKeyState('U') & 0x8000) && shiftKey() && altKey());
+	}
 	// K-Mod end
 
 	DllExport int getMAX_CIV_PLAYERS(); // advc: Shouldn't be used in the DLL

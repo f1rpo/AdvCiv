@@ -251,6 +251,7 @@ public:
 	std::wstring getHotKeyDescription() const;
 	void setHotKeyDescription(const wchar* szHotKeyDescKey, const wchar* szHotKeyAltDescKey,
 			const wchar* szHotKeyString);
+	std::wstring getHotKeyShortDesc() const; // advc.154
 
 protected:
 	int m_iActionInfoIndex;

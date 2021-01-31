@@ -6583,4 +6583,60 @@
 		<Spanish>evitando crecimiento</Spanish>
 	</TEXT>
 
+	<!-- advc.154 (Colors match action button help.
+		 Hotkey descr. is already fully formated.) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_CYCLE_UNIT</Tag>
+		<English>[COLOR_HIGHLIGHT_TEXT]Select Next Unit[COLOR_REVERT] %s1_HotKeyDescr: [COLOR_UNIT_TEXT]%s2_UnitDescr[COLOR_REVERT]</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]Sélectionner la prochaine unité[COLOR_REVERT] %s1_HotKeyDescr: [COLOR_UNIT_TEXT]%s2_UnitDescr[COLOR_REVERT]</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]Zur nächsten Einheit[COLOR_REVERT] %s1_HotKeyDescr: [COLOR_UNIT_TEXT]%s2_UnitDescr[COLOR_REVERT]</German>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]Seleziona la prossima unità[COLOR_REVERT] %s1_HotKeyDescr: [COLOR_UNIT_TEXT]%s2_UnitDescr[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_HIGHLIGHT_TEXT]Seleccionar la proxima unidad[COLOR_REVERT] %s1_HotKeyDescr: [COLOR_UNIT_TEXT]%s2_UnitDescr[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<!-- Could be a Workboat, usually a Worker. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_CYCLE_WORKER</Tag>
+		<English>[COLOR_HIGHLIGHT_TEXT]Select Next %s1_UnitDescr[COLOR_REVERT] %s2_HotKeyDescr</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]Sélectionner le prochain %s1_UnitDescr[COLOR_REVERT] %s2_HotKeyDescr</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]Zum nächsten %s1_UnitDescr[COLOR_REVERT] %s2_HotKeyDescr</German>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]Seleziona [NUM1:il prossimo:la prossima:i prossimi:le prossime] %s1_UnitDescr[COLOR_REVERT] %s2_HotKeyDescr</Italian>
+		<Spanish>[COLOR_HIGHLIGHT_TEXT]Seleccionar el proximo %s1_UnitDescr[COLOR_REVERT] %s2_HotKeyDescr</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_CYCLE_UNIT_GROUP</Tag>
+		<English>[COLOR_HIGHLIGHT_TEXT]Select Next Group[COLOR_REVERT] %s1_HotKeyDescr: [COLOR_UNIT_TEXT]%s2_UnitDescr[COLOR_REVERT], %d3 units</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]Sélectionner le prochain groupe[COLOR_REVERT] %s1_HotKeyDescr: [COLOR_UNIT_TEXT]%s2_UnitDescr[COLOR_REVERT], %d3 unitès</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]Zur nächsten Gruppe[COLOR_REVERT] %s1_HotKeyDescr: [COLOR_UNIT_TEXT]%s2_UnitDescr[COLOR_REVERT], %d3 Einheiten</German>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]Seleziona il prossimo gruppo[COLOR_REVERT] %s1_HotKeyDescr: [COLOR_UNIT_TEXT]%s2_UnitDescr[COLOR_REVERT], %d3 unità</Italian>
+		<Spanish>[COLOR_HIGHLIGHT_TEXT]Seleccionar el próximo grupo[COLOR_REVERT] %s1_HotKeyDescr: [COLOR_UNIT_TEXT]%s2_UnitDescr[COLOR_REVERT], %d3 unidades</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_CYCLE_WORKER_GROUP</Tag>
+		<English>[COLOR_HIGHLIGHT_TEXT]Select Next %s1_UnitDescr Group[COLOR_REVERT] %s2_HotKeyDescr: %d3 units</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]Sélectionner le prochain groupe des %s1_UnitDescr[COLOR_REVERT] %s2_HotKeyDescr: %d3 unités</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]Zur nächsten %s1_UnitDescr-Gruppe[COLOR_REVERT] %s2_HotKeyDescr: %d3 Einheiten</German>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]Seleziona il prossimo gruppo di %s1_UnitDescr[COLOR_REVERT] %s2_HotKeyDescr: %d3 unit&#224;</Italian>
+		<Spanish>[COLOR_HIGHLIGHT_TEXT]Seleccionar el proximo grupo de %s1_UnitDescr[COLOR_REVERT] %s2_HotKeyDescr: %d3 unidades</Spanish>
+	</TEXT>
+	<!-- (Also for advc.088). Note that these two aren't intended for use in
+		 CvHotKeyInfo::getHotKeyDescription. I use custom code for displaying
+		 the unselect button hover text. -->
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_UNSELECT_ALL_HELP</Tag>
+		<English>[COLOR_HIGHLIGHT_TEXT]Unselect all Units[COLOR_REVERT] %s1_HotKeyDescr</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]Désélectionner toutes les unités[COLOR_REVERT] %s1_HotKeyDescr</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]Einheiten-Auswahl aufheben[COLOR_REVERT] %s1_HotKeyDescr</German>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]Deseleziona tutte le unità[COLOR_REVERT] %s1_HotKeyDescr</Italian>
+		<Spanish>[COLOR_HIGHLIGHT_TEXT]Deseleccionar todas las unidades[COLOR_REVERT] %s1_HotKeyDescr</Spanish>
+	</TEXT>
+	<!-- advc.088: (unused) -->
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_UNSELECT_ALL</Tag>
+		<English>Unselect all Units</English>
+		<French>Unselect all Units</French>
+		<German>Einheiten-Auswahl aufheben</German>
+		<Italian>Unselect all Units</Italian>
+		<Spanish>Unselect all Units</Spanish>
+	</TEXT>
+
 </Civ4GameText>

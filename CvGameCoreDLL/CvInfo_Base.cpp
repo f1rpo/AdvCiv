@@ -222,7 +222,8 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bCtrlDownAlt, "bCtrlDownAlt", false);
 	pXML->GetChildXmlValByName(&m_iOrderPriority, "iOrderPriority", 5);
 
-	setHotKeyDescription(getTextKeyWide(), NULL, pXML->HotKeyFromDescription(
+	setHotKeyDescription(getTextKeyWide(), NULL,
+			hotkeyDescr::hotKeyFromDescription(
 			getHotKey(), m_bShiftDown, m_bAltDown, m_bCtrlDown));
 
 	return true;
@@ -367,11 +368,19 @@ std::wstring CvHotkeyInfo::getHotKeyDescription() const
 	return szTemptext;
 }
 
-void CvHotkeyInfo::setHotKeyDescription(const wchar* szHotKeyDescKey, const wchar* szHotKeyAltDescKey, const wchar* szHotKeyString)
+void CvHotkeyInfo::setHotKeyDescription(const wchar* szHotKeyDescKey,
+	const wchar* szHotKeyAltDescKey, const wchar* szHotKeyString)
 {
 	m_szHotKeyDescriptionKey = szHotKeyDescKey;
 	m_szHotKeyAltDescriptionKey = szHotKeyAltDescKey;
 	m_szHotKeyString = szHotKeyString;
+}
+
+// advc.154:
+std::wstring CvHotkeyInfo::getHotKeyShortDesc() const
+{
+	return hotkeyDescr::hotKeyFromDescription(
+			getHotKey(), isShiftDown(), isAltDown(), isCtrlDown());
 }
 
 // <advc.tag>

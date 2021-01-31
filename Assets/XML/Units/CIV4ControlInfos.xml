@@ -2,8 +2,9 @@
 <!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by Soren Johnson (Firaxis Games) -->
 <!-- Sid Meier's Civilization 4 -->
 <!-- Copyright Firaxis Games 2005 -->
-<!-- -->
-<!-- Control Infos -->
+
+<!-- advc: Copied from BtS. I've left it in the Units folder, note, however,
+	 that controls are global and very much not tied to units. -->
 <Civ4ControlInfos xmlns="x-schema:CIV4UnitSchema.xml">
 	<!--Changes must be reflected in CvEnums.h-->
 	<ControlInfos>
@@ -945,6 +946,26 @@
 			<HotKey>KB_F1</HotKey>
 			<bAltDown>1</bAltDown>
 			<bShiftDown>0</bShiftDown>
+			<bCtrlDown>0</bCtrlDown>
+			<iHotKeyPriority>0</iHotKeyPriority>
+			<HotKeyAlt/>
+			<bAltDownAlt>0</bAltDownAlt>
+			<bShiftDownAlt>0</bShiftDownAlt>
+			<bCtrlDownAlt>0</bCtrlDownAlt>
+			<iHotKeyPriorityAlt>0</iHotKeyPriorityAlt>
+		</ControlInfo>
+		<!-- advc.088:
+			 If the HotKey is changed here, it'll also have to be changed in
+			 CvGlobals::suppressCycling.
+			 The 1st text key is unused, the 2nd displayed
+			 only individually by CvGameTextMgr::setUnselectUnitHelp. -->
+		<ControlInfo>
+			<Type>CONTROL_UNSELECT_ALL</Type>
+			<Description>TXT_KEY_ACTION_UNSELECT_ALL</Description>
+			<Help>TXT_KEY_ACTION_UNSELECT_ALL_HELP</Help>
+			<HotKey>KB_U</HotKey>
+			<bAltDown>1</bAltDown>
+			<bShiftDown>1</bShiftDown>
 			<bCtrlDown>0</bCtrlDown>
 			<iHotKeyPriority>0</iHotKeyPriority>
 			<HotKeyAlt/>

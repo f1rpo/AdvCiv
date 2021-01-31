@@ -54,6 +54,9 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 			return;
 		}
 	} // </advc.085>
+	/*	advc: (Note - Better not to assume that this is valid, widgets might perhaps
+		get triggered while returning to main memory or sth. like that.) */
+	PlayerTypes const eActivePlayer = GC.getGame().getActivePlayer();
 	switch (widgetDataStruct.m_eWidgetType)
 	{
 	case WIDGET_PLOT_LIST:
@@ -672,6 +675,17 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 	case WIDGET_FOOD_MOD_HELP:
 		parseFoodModHelp(widgetDataStruct, szBuffer);
 		break; // BULL - Food Rate Hover - end
+	// <advc.154>
+	case WIDGET_CYCLE_UNIT:
+		if (eActivePlayer != NO_PLAYER)
+		{
+			CvUnit const* pUnit = GET_PLAYER(eActivePlayer).
+					getUnit(widgetDataStruct.m_iData2);
+			if (pUnit == NULL)
+				GAMETEXT.setUnselectUnitHelp(szBuffer);
+			else GAMETEXT.setCycleUnitHelp(szBuffer, widgetDataStruct.m_iData1, *pUnit);
+		}
+		break; // </advc.154>
 	// <advc.085>
 	case WIDGET_EXPAND_SCORES:
 		break; // Handled below (not the only widget that expands the scoreboard)
@@ -997,62 +1011,13 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 		}
 		break;
 	} // </advc.ctr>
-	case WIDGET_CHOOSE_EVENT:
-	case WIDGET_ZOOM_CITY:
-	case WIDGET_HELP_TECH_PREPREQ:
-	case WIDGET_HELP_OBSOLETE:
-	case WIDGET_HELP_OBSOLETE_BONUS:
-	case WIDGET_HELP_OBSOLETE_SPECIAL:
-	case WIDGET_HELP_MOVE_BONUS:
-	case WIDGET_HELP_FREE_UNIT:
-	case WIDGET_HELP_FEATURE_PRODUCTION:
-	case WIDGET_HELP_WORKER_RATE:
-	case WIDGET_HELP_TRADE_ROUTES:
-	case WIDGET_HELP_HEALTH_RATE:
-	case WIDGET_HELP_HAPPINESS_RATE:
-	case WIDGET_HELP_FREE_TECH:
-	case WIDGET_HELP_LOS_BONUS:
-	case WIDGET_HELP_MAP_CENTER:
-	case WIDGET_HELP_MAP_REVEAL:
-	case WIDGET_HELP_MAP_TRADE:
-	case WIDGET_HELP_TECH_TRADE:
-	case WIDGET_HELP_GOLD_TRADE:
-	case WIDGET_HELP_OPEN_BORDERS:
-	case WIDGET_HELP_DEFENSIVE_PACT:
-	case WIDGET_HELP_PERMANENT_ALLIANCE:
-	case WIDGET_HELP_VASSAL_STATE:
-	case WIDGET_HELP_BUILD_BRIDGE:
-	case WIDGET_HELP_IRRIGATION:
-	case WIDGET_HELP_IGNORE_IRRIGATION:
-	case WIDGET_HELP_WATER_WORK:
-	case WIDGET_HELP_IMPROVEMENT:
-	case WIDGET_HELP_DOMAIN_EXTRA_MOVES:
-	case WIDGET_HELP_ADJUST:
-	case WIDGET_HELP_TERRAIN_TRADE:
-	case WIDGET_HELP_SPECIAL_BUILDING:
-	case WIDGET_HELP_YIELD_CHANGE:
-	case WIDGET_HELP_BONUS_REVEAL:
-	case WIDGET_HELP_CIVIC_REVEAL:
-	case WIDGET_HELP_PROCESS_INFO:
-	case WIDGET_HELP_FINANCE_NUM_UNITS:
-	case WIDGET_HELP_FINANCE_UNIT_COST:
-	case WIDGET_HELP_FINANCE_AWAY_SUPPLY:
-	case WIDGET_HELP_FINANCE_CITY_MAINT:
-	case WIDGET_HELP_FINANCE_CIVIC_UPKEEP:
-	case WIDGET_HELP_FINANCE_FOREIGN_INCOME:
-	case WIDGET_HELP_FINANCE_INFLATED_COSTS:
-	case WIDGET_HELP_FINANCE_GROSS_INCOME:
-	case WIDGET_HELP_FINANCE_NET_GOLD:
-	case WIDGET_HELP_FINANCE_GOLD_RESERVE:
-	case WIDGET_HELP_RELIGION_CITY:
-	case WIDGET_HELP_CORPORATION_CITY:
-	case WIDGET_HELP_PROMOTION:
-	case WIDGET_LEADERHEAD:
-	case WIDGET_LEADER_LINE:
-	case WIDGET_CLOSE_SCREEN:
-	case WIDGET_SCORE_BREAKDOWN:
-		//	Nothing on clicked
+	// <advc.154>
+	case WIDGET_CYCLE_UNIT:
+	{
+		GC.getGame().doControl(iData2 == -1 ? CONTROL_UNSELECT_ALL :
+				(iData1 == 1 ? CONTROL_CYCLEWORKER : CONTROL_CYCLEUNIT_ALT));
 		break;
+	} // </advc.154>
 	}
 
 	return bHandled;
@@ -1155,6 +1120,23 @@ bool CvDLLWidgetData::executeAltAction(CvWidgetDataStruct &widgetDataStruct)
 		if (gDLL->UI().isCityScreenUp())
 			return executeAction(widgetDataStruct);
 		break; // </advc.ctr>
+	// <advc.154>
+	case WIDGET_CYCLE_UNIT:
+	{
+		if (iData2 == -1)
+		{
+			GC.getGame().doControl(CONTROL_UNSELECT_ALL);
+			break;
+		}
+		// Focus on the unit?
+		/*CvPlayer const& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
+		CvUnit const* pUnit = kActivePlayer.getUnit(iData2);
+		if (pUnit != NULL)
+			gDLL->getEngineIFace()->cameraLookAt(pUnit->getPlot().getPoint());*/
+		// Maybe better: cycle backwards
+		GC.getGame().doControl(CONTROL_LASTUNIT);
+		break;
+	} // </advc.154>
 	default:
 		bHandled = false;
 		break;

@@ -163,8 +163,8 @@ public:
 	void SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
 			int iInfoBaseLength, int iDefaultListVal = -1);
 
-	static CvWString HotKeyFromDescription(TCHAR const* pszHotKey,  // advc: static
-			bool bShift = false, bool bAlt = false, bool bCtrl = false);
+	// (advc: HotKeyFromDescription, KeyStringFromKBCode moved to CvGameCoreUtils)
+
 	bool SetAndLoadVar(int** ppiVar, int iDefault=0);
 	bool SetStringList(CvString** ppszStringArray, int* piSize);
 	int GetHotKeyInt(const TCHAR* pszHotKeyVal);
@@ -222,7 +222,6 @@ private:
 	//void SetGameText(const char* szTextGroup, const char* szTagName);
 	void SetGameText(const char* szTextGroup, const char* szTagName, const std::string& language_name); // K-Mod
 
-	static CvWString KeyStringFromKBCode(TCHAR const* pszHotKey); // advc: static
 	/*	<advc.006g> (The BtS code sometimes said "XML Error", sometimes "XML Load Error"
 		not sure if that's meanigful, but I'm going to preserve it.)*/
 	enum XMLErrorTypes

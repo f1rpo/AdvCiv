@@ -654,12 +654,12 @@
 
 	<!-- 002b: This option column gets a bit too wide with the larger fonts.
 		 Also, "Action button" is clearer than "Build/Action Icon".
-		 I didn't change the Romanic translations. -->
+		 I didn't change the FIS translations. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__BUILDICONSIZE_TEXT</Tag>
 		<English>Action Button Size</English>
 		<French>Action Button Size</French>
-		<German>Größe der Schaltflächen</German>
+		<German>Schaltflächen-Größe</German>
 		<Italian>Dimensione Icona Costruisci/Azione</Italian>
 		<Spanish>Tamaño de Iconos de acción/construcción</Spanish>
 	</TEXT>
@@ -694,6 +694,32 @@
 		<German>Lässt den automatischen Einheitenwechsel ohne Verzögerung passieren.</German>
 		<Italian>Quando è selezionato, la selezione automatica tra le unità è istantanea anzichè con ritardo.</Italian>
 		<Spanish>Activada, la selección de unidades automática ocurre instantáneamente más que con un retardo.</Spanish>
+	</TEXT>
+
+	<!-- advc.154: -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__UNITCYCLINGBUTTONS_TEXT</Tag>
+		<English>Next-Unit Button</English>
+		<French>Next-Unit Button</French>
+		<German>Nächste Einheit</German>
+		<Italian>Next-Unit Button</Italian>
+		<Spanish>Next-Unit Button</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__UNITCYCLINGBUTTONS_LIST</Tag>
+		<English>Two Buttons|Enabled|Disabled</English>
+		<French>Two Buttons|Enabled|Disabled</French>
+		<German>Zwei Buttons|Zeige Button|Kein Button</German>
+		<Italian>Two Buttons|Enabled|Disabled</Italian>
+		<Spanish>Two Buttons|Enabled|Disabled</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__UNITCYCLINGBUTTONS_HOVER</Tag>
+		<English>Whether to show unit cycling buttons (to the left of the big flag).[NEWLINE][COLOR_HIGHLIGHT_TEXT]Two Buttons[COLOR_REVERT]: Shows a button for unit cycling and, if any worker units need orders, a separate button for worker cycling. If the next unit in the whole cycle (workers and non-workers) is a worker, then only a single button is shown.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Enabled[COLOR_REVERT]: Enables only the regular unit cycling button; no separate button for worker cycling.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Disabled[COLOR_REVERT]: No unit cycling buttons are shown.[NEWLINE][NEWLINE]Right-clicking either of the unit cycling buttons jumps backwards in the unit cycle. Even if the buttons are disabled, one can always use the (BtS) hotkeys [COLOR_HIGHLIGHT_TEXT]W[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]NUM5[COLOR_REVERT] or [COLOR_HIGHLIGHT_TEXT]Enter[COLOR_REVERT] for unit cycling, [COLOR_HIGHLIGHT_TEXT]/[COLOR_REVERT] for worker cycling and [COLOR_HIGHLIGHT_TEXT]\[COLOR_REVERT] for cycling backwards.</English>
+		<French>Whether to show unit cycling buttons (to the left of the big flag).[NEWLINE][COLOR_HIGHLIGHT_TEXT]Two Buttons[COLOR_REVERT]: Shows a button for unit cycling and, if any worker units need orders, a separate button for worker cycling. If the next unit in the whole cycle (workers and non-workers) is a worker, then only a single button is shown.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Enabled[COLOR_REVERT]: Enables only the regular unit cycling button; no separate button for worker cycling.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Disabled[COLOR_REVERT]: No unit cycling buttons are shown.[NEWLINE][NEWLINE]Right-clicking either of the unit cycling buttons jumps backwards in the unit cycle. Even if the buttons are disabled, one can always use the (BtS) hotkeys [COLOR_HIGHLIGHT_TEXT]W[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]NUM5[COLOR_REVERT] or [COLOR_HIGHLIGHT_TEXT]Enter[COLOR_REVERT] for unit cycling, [COLOR_HIGHLIGHT_TEXT]/[COLOR_REVERT] for worker cycling and [COLOR_HIGHLIGHT_TEXT]\[COLOR_REVERT] for cycling backwards.</French>
+		<German>Schaltflächen (Buttons) zum Wechseln der ausgewählten Einheit.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Zwei Buttons[COLOR_REVERT]: Ein Button für den regulären Einheitenwechsel und, falls Arbeiter ([COLOR_UNIT_TEXT]Bautrupps[COLOR_REVERT] oder [COLOR_UNIT_TEXT]Arbeitsboote[COLOR_REVERT]) Befehle benötigen, ein weiterer Button zum Arbeiterwechsel. Wenn die nächste Einheit jedenfalls ein Arbeiter ist, wird nur ein einzelner Button angezeigt.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Button zeigen[COLOR_REVERT]: Zeigt den Einheitenwechsel-Button an, aber nicht den Arbeiterwechsel-Button.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Kein Button[COLOR_REVERT]: Keiner der beiden Buttons wird angezeigt.[NEWLINE][NEWLINE]Ein Rechtsklick auf einen der Buttons wechselt zur zuletzt ausgewählten Einheit. Die BtS Tastaturkürzel funktionieren unabhängig von den Buttons: [COLOR_HIGHLIGHT_TEXT]W[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]NUM5[COLOR_REVERT] oder [COLOR_HIGHLIGHT_TEXT]Enter[COLOR_REVERT] für den Einheitenwechsel, [COLOR_HIGHLIGHT_TEXT]#[COLOR_REVERT] für den Arbeiterwechsel und [COLOR_HIGHLIGHT_TEXT]^[COLOR_REVERT] um zur vorhergehenden Einheit zu wechseln.</German>
+		<Italian>Whether to show unit cycling buttons (to the left of the big flag).[NEWLINE][COLOR_HIGHLIGHT_TEXT]Two Buttons[COLOR_REVERT]: Shows a button for unit cycling and, if any worker units need orders, a separate button for worker cycling. If the next unit in the whole cycle (workers and non-workers) is a worker, then only a single button is shown.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Enabled[COLOR_REVERT]: Enables only the regular unit cycling button; no separate button for worker cycling.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Disabled[COLOR_REVERT]: No unit cycling buttons are shown.[NEWLINE][NEWLINE]Right-clicking either of the unit cycling buttons jumps backwards in the unit cycle. Even if the buttons are disabled, one can always use the (BtS) hotkeys [COLOR_HIGHLIGHT_TEXT]W[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]NUM5[COLOR_REVERT] or [COLOR_HIGHLIGHT_TEXT]Enter[COLOR_REVERT] for unit cycling, [COLOR_HIGHLIGHT_TEXT]/[COLOR_REVERT] for worker cycling and [COLOR_HIGHLIGHT_TEXT]\[COLOR_REVERT] for cycling backwards.</Italian>
+		<Spanish>Whether to show unit cycling buttons (to the left of the big flag).[NEWLINE][COLOR_HIGHLIGHT_TEXT]Two Buttons[COLOR_REVERT]: Shows a button for unit cycling and, if any worker units need orders, a separate button for worker cycling. If the next unit in the whole cycle (workers and non-workers) is a worker, then only a single button is shown.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Enabled[COLOR_REVERT]: Enables only the regular unit cycling button; no separate button for worker cycling.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Disabled[COLOR_REVERT]: No unit cycling buttons are shown.[NEWLINE][NEWLINE]Right-clicking either of the unit cycling buttons jumps backwards in the unit cycle. Even if the buttons are disabled, one can always use the (BtS) hotkeys [COLOR_HIGHLIGHT_TEXT]W[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]NUM5[COLOR_REVERT] or [COLOR_HIGHLIGHT_TEXT]Enter[COLOR_REVERT] for unit cycling, [COLOR_HIGHLIGHT_TEXT]/[COLOR_REVERT] for worker cycling and [COLOR_HIGHLIGHT_TEXT]\[COLOR_REVERT] for cycling backwards.</Spanish>
 	</TEXT>
 
 	<!-- 002m: -->

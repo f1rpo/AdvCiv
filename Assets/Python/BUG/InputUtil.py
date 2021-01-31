@@ -218,7 +218,7 @@ class ShortcutHandler(BugConfig.HandlerWithArgs):
 			BugUtil.info("InputUtil - ignoring <%s> %s, requires dll version %s", element.tag, keys, self.resolveDll(element, dll))
 
 
-# advc: I've added three keyboard shortcuts and need to put the handlers somewhere. Don't want to create a new BUG module just for this. Tbd.: It might be nicer to do this through Civ4ControlInfos.xml and the DLL.
+# advc: I've added three keyboard shortcuts and need to put the handlers somewhere. Don't want to create a new BUG module just for this. Tbd.: Nicer to do this through Civ4ControlInfos.xml and the DLL. As I've already done it with CONTROL_UNSELECT_ALL (advc.088).
 
 # <advc.102>
 gc = BugUtil.gc
@@ -239,9 +239,6 @@ def toggleDebugMode(argsList=None):
 	# The built-in shortcut (also Ctrl+Z) works iff ChtLvl>0. Let CvGame::toggleDebugMode decide whether ChtLvl should matter.
 	if getChtLvl() <= 0:
 		gc.getGame().toggleDebugMode()
-# advc.088:
-def unselectAll(argsList=None):
-	CyInterface().clearSelectionList()
 # advc.004m: Called by BugOptions when dirty. Defining this handler directly in CvScreensInterface.py leads to problems when reloading scripts, specifically in ChangeHandler.handle (BugOptions.py).
 def updateDefaultCamDistance(option, value):
 	import CvScreensInterface

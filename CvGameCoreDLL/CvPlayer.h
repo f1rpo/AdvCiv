@@ -97,8 +97,11 @@ public:
 			DirectionTypes eFacingDirection = DIRECTION_SOUTH);
 	void disbandUnit(bool bAnnounce);																				// Exposed to Python
 	void killUnits();																								// Exposed to Python
-
-	CvSelectionGroup* cycleSelectionGroups(CvUnit* pUnit, bool bForward, bool bWorkers, bool* pbWrap);
+	// <advc.154>
+	CvSelectionGroup* getNextGroupInCycle(CvUnit* pUnit, bool bForward,
+			bool bWorkers, bool* pbWrap) const; // </advc.154>
+	CvSelectionGroup* cycleSelectionGroups(CvUnit* pUnit, bool bForward,
+			bool bWorkers, bool* pbWrap);
 
 	bool hasTrait(TraitTypes eTrait) const { return GC.getInfo(getLeaderType()).hasTrait(eTrait); }					// Exposed to Python
 	// BETTER_BTS_AI_MOD, 12/30/08, jdog5000: START

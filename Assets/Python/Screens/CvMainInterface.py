@@ -124,6 +124,7 @@ NUM_SELECTION_BUTTONS = SELECTION_BUTTON_ROWS * SELECTION_BUTTON_COLUMNS
 g_iNumBuildingWidgets = MAX_DISPLAYABLE_BUILDINGS
 g_iNumTradeRouteWidgets = MAX_DISPLAYABLE_TRADE_ROUTES
 
+iBottomButtonContainerOffsetY = 113 # advc.154
 # END OF TURN BUTTON POSITIONS
 ######################
 iEndOfTurnButtonSize = 32
@@ -686,7 +687,7 @@ class CvMainInterface:
 		# Globeview buttons
 		self.createGlobeviewButtons( )
 
-		screen.addMultiListControlGFC( "BottomButtonContainer", u"", iMultiListXL, yResolution - 113, xResolution - (iMultiListXL+iMultiListXR), 100, 4, 48, 48, TableStyles.TABLE_STYLE_STANDARD )		
+		screen.addMultiListControlGFC( "BottomButtonContainer", u"", iMultiListXL, yResolution - iBottomButtonContainerOffsetY, xResolution - (iMultiListXL+iMultiListXR), 100, 4, 48, 48, TableStyles.TABLE_STYLE_STANDARD )		
 		screen.hide( "BottomButtonContainer" )
 
 		# *********************************************************************************
@@ -2296,12 +2297,21 @@ class CvMainInterface:
 		screen.hide( "AutomateProduction" )
 		screen.hide( "AutomateCitizens" )
 
-		if (not CyEngine().isGlobeviewUp() and pHeadSelectedCity):
-		
+		# <advc.154>
+		self.hideUnitCyclingButtons(screen)
+		# Moved up:
+		bHeadSelectionChanged = (g_pSelectedUnit != pHeadSelectedUnit)
+		g_pSelectedUnit = pHeadSelectedUnit
+		# </advc.154>
+
+		if not CyEngine().isGlobeviewUp() and pHeadSelectedCity:
+
 			self.setMinimapButtonVisibility(True)
 
-			if ((pHeadSelectedCity.getOwner() == gc.getGame().getActivePlayer()) or gc.getGame().isDebugMode()):
-			
+			if pHeadSelectedCity.getOwner() == gc.getGame().getActivePlayer() or gc.getGame().isDebugMode():
+				# advc.154: Moved up a bit (needed at all?)
+				g_pSelectedUnit = 0
+
 				iBtnX = xResolution - 284
 				iBtnY = yResolution - 177
 				iBtnW = 64
@@ -2407,7 +2417,6 @@ class CvMainInterface:
 				screen.setStyle( szButtonID, szStyle )
 				screen.hide( szButtonID )
 				
-				g_pSelectedUnit = 0
 				screen.setState( "AutomateCitizens", pHeadSelectedCity.isCitizensAutomated() )
 				screen.setState( "AutomateProduction", pHeadSelectedCity.isProductionAutomated() )
 				
@@ -2540,16 +2549,13 @@ class CvMainInterface:
 
 				screen.selectMultiList( "BottomButtonContainer", CyInterface().getCityTabSelectionRow() )
 							
-		elif (not CyEngine().isGlobeviewUp() and pHeadSelectedUnit and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY):
+		elif (not CyEngine().isGlobeviewUp() and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY):
+			if pHeadSelectedUnit: # advc.154: Moved out of the condition above
+				self.setMinimapButtonVisibility(True)
+			if CyInterface().getInterfaceMode() == InterfaceModeTypes.INTERFACEMODE_SELECTION:
+				# advc.154: pHeadSelectedUnit moved from above. (Handling of g_pSelectedUnit moved up.)
+				if pHeadSelectedUnit and pHeadSelectedUnit.getOwner() == gc.getGame().getActivePlayer() and bHeadSelectionChanged:
 
-			self.setMinimapButtonVisibility(True)
-
-			if (CyInterface().getInterfaceMode() == InterfaceModeTypes.INTERFACEMODE_SELECTION):
-			
-				if ( pHeadSelectedUnit.getOwner() == gc.getGame().getActivePlayer() and g_pSelectedUnit != pHeadSelectedUnit ):
-				
-					g_pSelectedUnit = pHeadSelectedUnit
-					
 					iCount = 0
 
 					actions = CyInterface().getActionsToShow()
@@ -2583,13 +2589,68 @@ class CvMainInterface:
 						screen.show( "BottomButtonContainer" )
 						
 						iCount = iCount + 1
-
+				# <advc.154>
+				pUnit = None
+				if bHeadSelectionChanged:
+					pUnit = pHeadSelectedUnit
+				self.updateUnitCyclingButtons(screen, pUnit) # </advc.154>
 		elif (CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY):
-		
 			self.setMinimapButtonVisibility(True)
 
 		return 0
-		
+	# <advc.154>
+	def hideUnitCyclingButtons(self, kScreen):
+		self.hideUnitCycleButtonGFC("UnitCycle", kScreen)
+		self.hideUnitCycleButtonGFC("WorkerCycle", kScreen)
+		self.hideUnitCycleButtonGFC("Unselect", kScreen)
+
+	def updateUnitCyclingButtons(self, kScreen, pHeadSelectedUnit):
+
+		if MainOpt.isUnitCyclingButtonsDisabled():
+			return
+
+		iUnitCycleButtonMargin = 2 # Thicker margins look bad on low resolutions
+		iUnitCycleButtonSize = 32
+		iUnitCycleButtonX = kScreen.getXResolution() - iMultiListXR - iUnitCycleButtonMargin
+		iUnitCycleButtonY = kScreen.getYResolution() - iBottomButtonContainerOffsetY + iUnitCycleButtonMargin
+		pNextUnit = gc.getGame().getNextUnitInCycle(True, False)
+		if pNextUnit:
+			if pNextUnit.hasMoved():
+				szOverlay = "OVERLAY_HASMOVED"
+			else:
+				szOverlay = "OVERLAY_MOVE"
+			self.showUnitCycleButtonGFC("UnitCycle", kScreen, pNextUnit, iUnitCycleButtonX, iUnitCycleButtonY, iUnitCycleButtonSize, False, False, ArtFileMgr.getInterfaceArtInfo(szOverlay).getPath())
+			iUnitCycleButtonY += iUnitCycleButtonSize + 2 * iUnitCycleButtonMargin
+			if not MainOpt.isSingleUnitCyclingButton() and not pNextUnit.isWorker():
+				pNextWorker = gc.getGame().getNextUnitInCycle(True, True)
+				if pNextWorker and pNextWorker.getID() != pNextUnit.getID():
+					if pNextWorker.hasMoved():
+						szOverlay = "OVERLAY_HASMOVED"
+					else:
+						szOverlay = "OVERLAY_MOVE"
+					self.showUnitCycleButtonGFC("WorkerCycle", kScreen, pNextWorker, iUnitCycleButtonX, iUnitCycleButtonY, iUnitCycleButtonSize, True, False, ArtFileMgr.getInterfaceArtInfo(szOverlay).getPath())
+		# If selected unit is not expecting orders, show unselect button (advc.088).
+		elif pHeadSelectedUnit and (pHeadSelectedUnit.isWaiting() or not pHeadSelectedUnit.canMove()):
+			if pHeadSelectedUnit.canMove():
+				szOverlay = "OVERLAY_FORTIFY"
+			else:
+				szOverlay = "OVERLAY_NOMOVE"
+			self.showUnitCycleButtonGFC("Unselect", kScreen, pHeadSelectedUnit, iUnitCycleButtonX, iUnitCycleButtonY, iUnitCycleButtonSize, False, True, ArtFileMgr.getInterfaceArtInfo(szOverlay).getPath())
+
+	def showUnitCycleButtonGFC(self, szName, kScreen, kUnit, iX, iY, iSize, bWorkers, bUnselect, szOverlayPath):
+
+		iWidgetData2 = -1
+		if not bUnselect:
+			iWidgetData2 = kUnit.getID()
+		kScreen.setButtonGFC(szName + "Button", "", gc.getPlayer(kUnit.getOwner()).getUnitButton(kUnit.getUnitType()), iX, iY, iSize, iSize, WidgetTypes.WIDGET_CYCLE_UNIT, bWorkers, iWidgetData2, ButtonStyles.BUTTON_STYLE_IMAGE)
+		kScreen.addDDSGFCAt(szName + "Overlay", szName + "Button", szOverlayPath, 0, 0, 12, 12, WidgetTypes.WIDGET_CYCLE_UNIT, bWorkers, iWidgetData2, False)
+		kScreen.show(szName + "Button")
+		kScreen.show(szName + "Overlay")
+
+	def hideUnitCycleButtonGFC(self, szName, kScreen):
+		kScreen.hide(szName + "Button")
+		kScreen.hide(szName + "Overlay") # </advc.154>
+
 	# Will update the research buttons
 	def updateResearchButtons( self ):
 	

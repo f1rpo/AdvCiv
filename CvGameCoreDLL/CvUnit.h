@@ -1022,6 +1022,7 @@ public:
 	bool LFBisBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker, int* pBestDefenderRank) const;
 	int LFBgetDefenderCombatOdds(const CvUnit* pAttacker) const;
 	// Lead From Behind: END
+	bool isWorker() const; // advc.154  (Exposed to Python)
 
 	// <advc.003u>
 	// virtual for FFreeListTrashArray

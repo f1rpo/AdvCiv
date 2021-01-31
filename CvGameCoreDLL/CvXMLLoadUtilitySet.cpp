@@ -900,7 +900,7 @@ namespace // advc: To get rid of some duplicate code in SetGlobalActionInfo
 	{
 		kInfo.setHotKeyDescription(kInfo.getTextKeyWide(),
 				GC.getInfo(eMissionCommand).getTextKeyWide(),
-				CvXMLLoadUtility::HotKeyFromDescription(kInfo.getHotKey(),
+				hotkeyDescr::hotKeyFromDescription(kInfo.getHotKey(),
 				kInfo.isShiftDown(), kInfo.isAltDown(), kInfo.isCtrlDown()));
 	}
 }

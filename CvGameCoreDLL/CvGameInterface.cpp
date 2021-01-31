@@ -20,8 +20,10 @@
 
 /*  advc: This file was, reportedly, added by patch 3.17:
 	forums.civfanatics.com/threads/sdk-using-microsoft-visual-c-2005-express-edition.196283/page-7#post-6942578
+	The near name clash with CyGameInterface.cpp is coincidental.
 	Functions previously implemented in CvGame.cpp were moved here.
-	I guess the idea is to separate the UI code from the game rules. */
+	I guess the idea is to separate the UI code from the game rules, and simply to
+	make the translation units smaller. */
 
 /*	<advc.007b> The functions in this header arguably shouldn't use any of the
 	synchronized RNGs that are part of CvGame. */
@@ -571,38 +573,78 @@ void CvGame::cycleCities(bool bForward, bool bAdd) const
 	}
 }
 
-// advc.003i: const removed so that updateTestEndTurn can be called
-void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
+// advc.154: Extracted the const part out of cycleSelectionGroups
+CvSelectionGroup* CvGame::getNextGroupInCycle(bool bForward, bool bWorkers,
+	bool& bWrap, CvUnit*& pCycleUnit) const // out-params
 {
-	CvSelectionGroup* pNextSelectionGroup=NULL;
-	CvUnit* pCycleUnit = gDLL->UI().getHeadSelectedUnit();
+	bWrap = false;
+	pCycleUnit = gDLL->UI().getHeadSelectedUnit();
+	CvSelectionGroup* pGroup=NULL;
 	if (pCycleUnit != NULL)
 	{
 		if (pCycleUnit->getOwner() != getActivePlayer())
 			pCycleUnit = NULL;
-		bool bWrap=false;
-		pNextSelectionGroup = GET_PLAYER(getActivePlayer()).cycleSelectionGroups(
+		pGroup = GET_PLAYER(getActivePlayer()).getNextGroupInCycle(
 				pCycleUnit, bForward, bWorkers, &bWrap);
-		if (bWrap)
-		{
-			//if (GET_PLAYER(getActivePlayer()).hasAutoUnit())
-			/*	K-Mod. I've weakend this condition so that the group cycle order
-				can be refreshed by automoves.
-				(Maybe I should create & use "sendCycleRefresh" instead.) */
-			if (pNextSelectionGroup || GET_PLAYER(getActivePlayer()).hasAutoUnit())
-			// K-Mod end
-			{
-				CvMessageControl::getInstance().sendAutoMoves();
-			}
-		}
 	}
 	else
 	{
 		CvPlot* pPlot = gDLL->UI().getLookAtPlot();
-		pNextSelectionGroup = GC.getMap().findSelectionGroup(
+		pGroup = GC.getMap().findSelectionGroup(
 				pPlot != NULL ? pPlot->getX() : 0,
 				pPlot != NULL ? pPlot->getY() : 0,
 				getActivePlayer(), true, bWorkers);
+	}
+	return pGroup;
+}
+
+/*	advc.154: Python wrapper for the above - but who knows, the DLL too
+	might want to be able to tell what the cycle button is showing. */
+CvUnit* CvGame::getCycleButtonUnit(bool bForward, bool bWorkers) const
+{
+	bool bDummy=false;
+	CvUnit* pDummy=NULL;
+	CvSelectionGroup* pNextGroup = GC.getGame().getNextGroupInCycle(
+			bForward, bWorkers, bDummy, pDummy);
+	if (pNextGroup == NULL || pNextGroup->getNumUnits() <= 0)
+		return NULL;
+	for (int iPass = 0; iPass < (bWorkers ? 1 : 2); iPass++)
+	{
+		FOR_EACH_UNIT_VAR_IN(pUnit, *pNextGroup)
+		{
+			if (!pUnit->IsSelected() && pUnit->canMove() &&
+				/*	!bWorkers doesn't exclude all-worker groups, so we can only
+					_prefer_ selecting a non-worker. */
+				(iPass == 1 || bWorkers == pUnit->isWorker()))
+			{
+				return pUnit;
+			}
+		}
+	}
+	return NULL;
+}
+
+void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
+{
+	bool bWrap=false;
+	CvUnit* pCycleUnit=NULL;
+	// advc.154: Moved into a const function
+	CvSelectionGroup* pNextSelectionGroup = getNextGroupInCycle(
+			bForward, bWorkers, bWrap, pCycleUnit);
+	if (gDLL->UI().getHeadSelectedUnit() != NULL)
+	{
+		GET_PLAYER(getActivePlayer()).cycleSelectionGroups(
+				pCycleUnit, bForward, bWorkers, &bWrap);
+	}
+	if (bWrap)
+	{	/*	K-Mod: I've weakend this condition so that the group cycle order
+			can be refreshed by automoves.
+			(Maybe I should create & use "sendCycleRefresh" instead.) */
+		if (pNextSelectionGroup ||
+			GET_PLAYER(getActivePlayer()).hasAutoUnit())
+		{
+			CvMessageControl::getInstance().sendAutoMoves();
+		}
 	}
 
 	if (pNextSelectionGroup != NULL)
@@ -1306,6 +1348,14 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 			return true;
 		}
 		break;
+	// <advc.088>
+	case CONTROL_UNSELECT_ALL:
+		if (gDLL->UI().getInterfaceMode() == INTERFACEMODE_SELECTION &&
+			!gDLL->UI().isCityScreenUp() && gDLL->UI().getHeadSelectedUnit() != NULL)
+		{
+			return true;
+		}
+		break; // </advc.088>
 
 	default:
 		FErrorMsg("eControl did not match any valid options");
@@ -1715,7 +1765,12 @@ void CvGame::doControl(ControlTypes eControl)
 		if (pInfo != NULL)
 			kUI.addPopup(pInfo);
 		break;
-	}
+	}  // <advc.088>
+	case CONTROL_UNSELECT_ALL:
+	{
+		kUI.clearSelectionList();
+		break;
+	} // </advc.088>
 	default: FErrorMsg("Unknown control type");
 	}
 }

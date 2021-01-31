@@ -20843,6 +20843,43 @@ void CvGameTextMgr::setFoodHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 		setBuildingAdditionalYieldHelp(szBuffer, kCity, YIELD_FOOD, DOUBLE_SEPARATOR);
 	} // BULL - Building Additional Food - end
 } // BULL - Food Rate Hover - end
+// advc.154:
+void CvGameTextMgr::setCycleUnitHelp(CvWStringBuffer &szBuffer,
+	bool bWorkers, CvUnit const& kUnit)
+{
+	CvWString szHotKey(GC.getInfo(bWorkers ?
+			CONTROL_CYCLEWORKER : CONTROL_CYCLEUNIT_ALT).
+			getHotKeyShortDesc());
+	int const iGroupUnits = kUnit.getGroup()->getNumUnits();
+	bool const bSingular = (iGroupUnits == 1);
+	if (!bWorkers && bSingular)
+	{
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_CYCLE_UNIT",
+				szHotKey.c_str(), kUnit.getNameKey()));
+	}
+	else if (bWorkers && bSingular)
+	{
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_CYCLE_WORKER",
+				kUnit.getNameKey(), szHotKey.c_str()));
+	}
+	else if (!bWorkers)
+	{
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_CYCLE_UNIT_GROUP",
+				szHotKey.c_str(), kUnit.getNameKey(), iGroupUnits));
+	}
+	else
+	{
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_CYCLE_WORKER_GROUP",
+				kUnit.getNameKey(), szHotKey.c_str(), iGroupUnits));
+	}
+}
+
+// advc.154:
+void CvGameTextMgr::setUnselectUnitHelp(CvWStringBuffer &szBuffer)
+{
+	CvWString szHotKey(GC.getInfo(CONTROL_UNSELECT_ALL).getHotKeyShortDesc());
+	szBuffer.append(gDLL->getText("TXT_KEY_ACTION_UNSELECT_ALL_HELP", szHotKey.c_str()));
+}
 
 void CvGameTextMgr::getGlobeLayerName(GlobeLayerTypes eType, int iOption, CvWString& strName)
 {

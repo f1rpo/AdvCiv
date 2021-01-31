@@ -199,6 +199,16 @@
 				<choice id="Large" get="isBuildIconSizeLarge"/>
 			</list>
 
+			<!-- advc.154: -->
+			<list   id="UnitCyclingButtons" key="Unit Cycling Buttons" 
+					type="int" default="1" listType="string" 
+					values="Workers|Units|None"
+					get="getUnitCyclingButtons" dirtyBit="SelectionButtons">
+				<choice id="Workers" get="isBothUnitCyclingButtons"/>
+				<choice id="Units" get="isSingleUnitCyclingButton"/>
+				<choice id="None" get="isUnitCyclingButtonsDisabled"/>
+			</list>
+
 			<!-- advc.002m: (Note: the DLL relies on this order of the choices) -->
 			<list   id="NukeMissionTime" key="Nuke Mission Time" 
 					type="int" default="0" listType="string" 

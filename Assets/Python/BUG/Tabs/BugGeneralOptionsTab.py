@@ -23,19 +23,17 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		
 		self.createGreatPersonGeneralPanel(screen, left)
 		self.addSpacer(screen, left, "GeneralL1")
-		# advc.004: Extra spacer; for now, there is enough space to align left, center and right in the middle
-		self.addSpacer(screen, left, "GeneralL2")
 		self.createTechSplashPanel(screen, left)
 		#self.createLeaderheadPanel(screen, left)
 
 		#self.createAutoSavePanel(screen, center)
 		self.createInfoPanePanel(screen, center)
-		self.addSpacer(screen, center, "GeneralC1")
+		# advc: Don't have space for this spacer anymore
+		#self.addSpacer(screen, center, "GeneralC1")
 		self.createActionsPanel(screen, center) # advc.004: Restored
 		
 		self.createSlidersPanel(screen, right) # advc.120c
-		# advc.070: To align Misc with Actions
-		#self.addSpacer(screen, right, "GeneralR1")
+		self.addSpacer(screen, right, "GeneralR1")
 		self.createMiscellaneousPanel(screen, right)
 #		if Buffy.isEnabled():
 #			self.addSpacer(screen, right, "General5")
@@ -78,11 +76,13 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, panel, "MainInterface__SimpleSelection")
 		self.addCheckbox(screen, panel, "MainInterface__RapidUnitCycling")
 		# </advc.004>
+		# advc.154:
+		self.addTextDropdown(screen, panel, panel, "MainInterface__UnitCyclingButtons", True)
 		# advc.004k:
 		self.addCheckbox(screen, panel, "MainInterface__SeaPatrol")
 		# advc.002m:
 		self.addTextDropdown(screen, panel, panel, "MainInterface__NukeMissionTime", True)
-		
+
 	def createTechSplashPanel(self, screen, panel):
 		self.addLabel(screen, panel, "TechWindow", "Tech Splash Screen:")
 		self.addTextDropdown(screen, panel, panel, "TechWindow__ViewType", True)

@@ -425,6 +425,7 @@ void CyEnumsPythonInterface()
 		.value("WIDGET_GOLDEN_AGE", WIDGET_GOLDEN_AGE)
 		.value("WIDGET_ANARCHY", WIDGET_ANARCHY) // </advc.085>
 		.value("WIDGET_CITY_TRADE", WIDGET_CITY_TRADE) // advc.ctr
+		.value("WIDGET_CYCLE_UNIT", WIDGET_CYCLE_UNIT) // advc.154
 		.value("NUM_WIDGET_TYPES", NUM_WIDGET_TYPES)
 		;
 

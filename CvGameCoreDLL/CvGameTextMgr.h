@@ -276,6 +276,9 @@ public:
 	// BULL - Leaderhead Relations - end
 	// BULL - Food Rate Hover:
 	void setFoodHelp(CvWStringBuffer &szBuffer, CvCity const& kCity);
+	// <advc.154>
+	void setCycleUnitHelp(CvWStringBuffer &szBuffer, bool bWorkers, CvUnit const& kUnit);
+	void setUnselectUnitHelp(CvWStringBuffer &szBuffer); // </advc.154>
 	DllExport void getGlobeLayerName(GlobeLayerTypes eType, int iOption, CvWString& strName);
 
 	DllExport void getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* pFlagPlot, bool bAlt, CvWStringBuffer& strHelp);

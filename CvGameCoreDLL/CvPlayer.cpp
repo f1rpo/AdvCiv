@@ -2237,31 +2237,27 @@ void CvPlayer::killUnits()
 }
 
 
-// XXX should pUnit be a CvSelectionGroup???
-// Returns the next unit in the cycle...
-CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
-	bool bWorkers, bool* pbWrap)
+// advc.154: Cut from cycleSelectionGroups except for the non-const parts
+CvSelectionGroup* CvPlayer::getNextGroupInCycle(CvUnit* pUnit, bool bForward,
+	bool bWorkers, bool* pbWrap) const
 {
 	FAssert(GC.getGame().getActivePlayer() == getID() && isHuman());
 	/* if (pbWrap != NULL)
 		*pbWrap = false;*/
 	// <K-Mod>
-	bool bDummy=false;
+	bool bDummy = false;
 	// this means we can just use bWrap directly and it will update *pbWrap if need be.
 	bool& bWrap = (pbWrap != NULL ? *pbWrap : bDummy); // <K-Mod>
 	bWrap = false;
-	// <advc.004h>
-	if(pUnit->canFound())
-		pUnit->updateFoundingBorder(true); // </advc.004h>
-	std::set<int>& kCycledGroups = GC.getGame().getActivePlayerCycledGroups(); // K-Mod
+	// advc.154: Copy the set
+	std::set<int> kCycledGroups = GC.getGame().getActivePlayerCycledGroups(); // K-Mod
 	CLLNode<int>* pSelectionGroupNode = headGroupCycleNode();
 	if (pUnit != NULL)
 	{
 		while (pSelectionGroupNode != NULL)
 		{
 			if (getSelectionGroup(pSelectionGroupNode->m_data) == pUnit->getGroup())
-			{
-				// <K-Mod>
+			{	// <K-Mod>
 				if (isTurnActive())
 					kCycledGroups.insert(pSelectionGroupNode->m_data); // </K-Mod>
 				if (bForward)
@@ -2289,7 +2285,7 @@ CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 		CvSelectionGroup* pLoopSelectionGroup = getSelectionGroup(
 				pSelectionGroupNode->m_data);
 		if (pLoopSelectionGroup->readyToSelect(/* advc.153: */ true) &&
-			kCycledGroups.count(pSelectionGroupNode->m_data) == 0) // K-Mod
+			kCycledGroups.count(pSelectionGroupNode->m_data) <= 0) // K-Mod
 		{
 			if (!bWorkers || pLoopSelectionGroup->hasWorker())
 			{
@@ -2322,15 +2318,47 @@ CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 			// K-Mod
 			if (bWrap)
 				break;
-			else
-			{
-				kCycledGroups.clear();
-				bWrap = true;
-			} // K-Mod end
+			bWrap = true;
+			// K-Mod end
 		}
-	} //
-
+	}
 	return NULL;
+}
+
+// XXX should pUnit be a CvSelectionGroup???
+// Returns the next unit in the cycle...
+CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
+	bool bWorkers, bool* pbWrap)
+{
+	FAssert(GC.getGame().getActivePlayer() == getID() && isHuman());
+	if (pbWrap != NULL)
+		*pbWrap = false;
+	// <advc.004h>
+	if(pUnit->canFound())
+		pUnit->updateFoundingBorder(true); // </advc.004h>
+	// <K-Mod>
+	std::set<int>& kCycledGroups = GC.getGame().getActivePlayerCycledGroups();
+	if (pUnit != NULL && isTurnActive())
+	{
+		CLLNode<int>* pSelectionGroupNode = headGroupCycleNode();
+		while (pSelectionGroupNode != NULL)
+		{
+			if (getSelectionGroup(pSelectionGroupNode->m_data) == pUnit->getGroup())
+			{
+				kCycledGroups.insert(pSelectionGroupNode->m_data);
+				if (bForward)
+					pSelectionGroupNode = nextGroupCycleNode(pSelectionGroupNode);
+				else pSelectionGroupNode = previousGroupCycleNode(pSelectionGroupNode);
+				break;
+			}
+			pSelectionGroupNode = nextGroupCycleNode(pSelectionGroupNode);
+		}
+	}
+	// advc.154: Moved into new const function
+	CvSelectionGroup* pGroup = getNextGroupInCycle(pUnit, bForward, bWorkers, pbWrap);
+	if (pbWrap != NULL && pbWrap)
+		kCycledGroups.clear(); // </K-Mod>
+	return pGroup;
 }
 
 // AI_AUTO_PLAY_MOD, 07/09/08, jdog5000:

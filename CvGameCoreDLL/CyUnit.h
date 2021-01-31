@@ -392,6 +392,7 @@ public:
 
 	int /*UnitAITypes*/ getUnitAIType();
 	void setUnitAIType(int /*UnitAITypes*/ iNewValue);
+	bool isWorker(); // advc.154
 
 	const CvArtInfoUnit* getArtInfo(int i, EraTypes eEra) const;
 	std::string getButton() const;

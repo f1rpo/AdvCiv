@@ -1642,6 +1642,12 @@ void CyUnit::setUnitAIType(int /*UnitAITypes*/ iNewValue)
 	}
 }
 
+// advc.154:
+bool CyUnit::isWorker()
+{
+	return m_pUnit ? m_pUnit->isWorker() : false;
+}
+
 bool CyUnit::IsSelected()
 {
 	return m_pUnit ? m_pUnit->IsSelected() : false;
