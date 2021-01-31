@@ -55,7 +55,7 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 		}
 	} // </advc.085>
 	/*	advc: (Note - Better not to assume that this is valid, widgets might perhaps
-		get triggered while returning to main memory or sth. like that.) */
+		get triggered while returning to main menu or sth. like that.) */
 	PlayerTypes const eActivePlayer = GC.getGame().getActivePlayer();
 	switch (widgetDataStruct.m_eWidgetType)
 	{
@@ -1129,7 +1129,8 @@ bool CvDLLWidgetData::executeAltAction(CvWidgetDataStruct &widgetDataStruct)
 		if (pUnit != NULL)
 			gDLL->getEngineIFace()->cameraLookAt(pUnit->getPlot().getPoint());*/
 		// Maybe better: cycle backwards
-		GC.getGame().doControl(CONTROL_LASTUNIT);
+		if (iData1 == 0) // (but not on the worker button)
+			GC.getGame().doControl(CONTROL_LASTUNIT);
 		break;
 	} // </advc.154>
 	default:

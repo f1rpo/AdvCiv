@@ -9,6 +9,8 @@
 //
 // Python interface for free enums
 //
+/*	advc.enum (note): Unfortunately, these .value calls can't easily be generated
+	through macros. The string arguments are the main obstacle. */
 
 void CyEnumsPythonInterface()
 {

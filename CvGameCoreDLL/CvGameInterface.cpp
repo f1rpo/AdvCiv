@@ -608,14 +608,17 @@ CvUnit* CvGame::getCycleButtonUnit(bool bForward, bool bWorkers) const
 			bForward, bWorkers, bDummy, pDummy);
 	if (pNextGroup == NULL || pNextGroup->getNumUnits() <= 0)
 		return NULL;
-	for (int iPass = 0; iPass < (bWorkers ? 1 : 2); iPass++)
+	for (int iPass = 0; iPass < (/*bWorkers ? 1 :*/ 2); iPass++)
 	{
 		FOR_EACH_UNIT_VAR_IN(pUnit, *pNextGroup)
 		{
 			if (!pUnit->IsSelected() && pUnit->canMove() &&
 				/*	!bWorkers doesn't exclude all-worker groups, so we can only
 					_prefer_ selecting a non-worker. */
-				(iPass == 1 || bWorkers == pUnit->isWorker()))
+					/*	Actually, let's always prefer to select a worker. Don't want
+						to show different icons on the two buttons if they refer
+						to the same group. */
+				(iPass == 1 || /*bWorkers == */pUnit->isWorker()))
 			{
 				return pUnit;
 			}

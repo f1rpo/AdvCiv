@@ -124,7 +124,7 @@ NUM_SELECTION_BUTTONS = SELECTION_BUTTON_ROWS * SELECTION_BUTTON_COLUMNS
 g_iNumBuildingWidgets = MAX_DISPLAYABLE_BUILDINGS
 g_iNumTradeRouteWidgets = MAX_DISPLAYABLE_TRADE_ROUTES
 
-iBottomButtonContainerOffsetY = 113 # advc.154
+iBottomButtonContainerOffsetY = 113 # advc
 # END OF TURN BUTTON POSITIONS
 ######################
 iEndOfTurnButtonSize = 32

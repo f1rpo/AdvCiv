@@ -260,7 +260,7 @@ DllExport bool isCardinalDirection(DirectionTypes eDirection);															// 
 DirectionTypes estimateDirection(int iDX, int iDY);																// Exposed to Python
 DllExport DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot* pToPlot);
 
-// advc: Moved from CvXMLLoadUtility
+// advc: Moved from CvXMLLoadUtility. (CvHotKeyInfo might be an even better place?)
 namespace hotkeyDescr
 {
 	CvWString keyStringFromKBCode(TCHAR const* szDescr);
