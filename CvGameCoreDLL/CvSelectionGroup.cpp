@@ -2532,14 +2532,25 @@ int CvSelectionGroup::countNumUnitAIType(UnitAITypes eUnitAI) const
 }
 
 
-bool CvSelectionGroup::hasWorker()
+bool CvSelectionGroup::hasWorker() const
 {
 	return (countNumUnitAIType(UNITAI_WORKER) > 0 ||
-		countNumUnitAIType(UNITAI_WORKER_SEA) > 0);
+			countNumUnitAIType(UNITAI_WORKER_SEA) > 0);
+}
+
+// advc.153: Essentially replacing the above, which remains exposed to Python.
+bool CvSelectionGroup::hasWorkerWithMoves() const
+{
+	FOR_EACH_UNIT_IN(pUnit, *this)
+	{
+		if (pUnit->isWorker() && pUnit->canMove())
+			return true;
+	}
+	return false;
 }
 
 
-bool CvSelectionGroup::IsSelected()
+bool CvSelectionGroup::IsSelected() const
 {
 	FOR_EACH_UNIT_IN(pUnit, *this)
 	{

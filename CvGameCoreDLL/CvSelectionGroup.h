@@ -140,8 +140,9 @@ public:
 	bool alwaysInvisible() const;																																							// Exposed to Python
 	bool isInvisible(TeamTypes eTeam) const;																								// Exposed to Python
 	int countNumUnitAIType(UnitAITypes eUnitAI) const;																												// Exposed to Python
-	bool hasWorker();																																										// Exposed to Python
-	bool IsSelected();
+	bool hasWorker() const;																														// Exposed to Python
+	bool hasWorkerWithMoves() const; // advc.153
+	bool IsSelected() const;
 	DllExport void NotifyEntity(MissionTypes eMission);
 	void airCircle(bool bStart);
 	void setBlockading(bool bStart);

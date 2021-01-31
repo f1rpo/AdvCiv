@@ -680,8 +680,12 @@ CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner,
 			{
 				continue;
 			}
-			if (bWorkers && !pLoopSelectionGroup->hasWorker())
+			if (bWorkers &&
+				// advc.153: with moves
+				!pLoopSelectionGroup->hasWorkerWithMoves())
+			{
 				continue;
+			}
 			int iValue = plotDistance(iX, iY,
 					pLoopSelectionGroup->getX(), pLoopSelectionGroup->getY());
 			/*	<advc.153> Select groups where only some units are ready last
