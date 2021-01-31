@@ -27700,7 +27700,7 @@ UnitTypes CvPlayerAI::AI_getBestAttackUnit() const
 	return eBestUnit;
 }
 
-// <advc.033> Are we willing to attack/pillage them with hidden-nationality units
+// advc.033: Are we willing to attack/pillage them with hidden-nationality units
 bool CvPlayerAI::AI_isPiracyTarget(PlayerTypes eTarget) const
 {
 	if(eTarget == NO_PLAYER)
@@ -27725,7 +27725,38 @@ bool CvPlayerAI::AI_isPiracyTarget(PlayerTypes eTarget) const
 	}
 	return (AI_getAttitude(eTarget) <= GC.getInfo(getPersonalityType()).
 			getDeclareWarThemRefuseAttitudeThreshold());
-} // </advc.033>
+}
+
+// advc.124:
+bool CvPlayerAI::AI_isUnitNeedingOpenBorders(TeamTypes eTarget) const
+{
+	PROFILE_FUNC(); // advc.test: To be profiled
+	FOR_EACH_GROUP(pGroup, *this)
+	{
+		CvPlot const* pPlot = pGroup->plot();
+		if (pPlot == NULL || !pPlot->isRevealed(getTeam()))
+			continue;
+		/*	Unlikely to be adjacent to foreign border, or at least
+			unlikely to be of interest to caller. Save time. */
+		if (pPlot->isCity() && pPlot->getOwner() == getID())
+			continue;
+		FOR_EACH_ADJ_PLOT(*pPlot)
+		{
+			if (pAdj->getTeam() == eTarget &&
+				/*	Even if a ship doesn't currently have cargo, assume that it'll
+					be able to unload onto foreign land eventually. */
+				(!pAdj->isWater() || pGroup->getHeadUnit()->getDomainType() == DOMAIN_SEA))
+			{
+				FOR_EACH_UNIT_IN(pUnit, *pGroup)
+				{
+					if (!pUnit->isRivalTerritory() && !pUnit->isAlwaysHostile())
+						return true;
+				}
+			}
+		}
+	}
+	return false;
+}
 
 // <advc.130h> <advc.130r>
 bool CvPlayerAI::AI_atWarWithPartner(TeamTypes eOtherTeam, bool bCheckPartnerAttacked) const

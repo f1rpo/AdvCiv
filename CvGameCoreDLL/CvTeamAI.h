@@ -354,7 +354,8 @@ protected:
 	int AI_declareWarTradeValLegacy(TeamTypes eWarTeam, TeamTypes eTeam) const;
 	int AI_getOpenBordersAttitudeDivisor() const; // advc.130i
 	scaled AI_getOpenBordersCounterIncrement(TeamTypes eOther) const; // advc.130z
-	bool isAnyLandRevealed(TeamTypes eOwner) const; // advc.124
+	bool AI_isTerritoryAccessible(TeamTypes eOwner) const; // advc.124
+	bool AI_isTerritoryAccessible(CvPlot const& kPlot) const; // advc.124
 	bool AI_isPursuingCircumnavigation() const; // advc.136a
 	TeamTypes AI_diploVoteCounterCandidate(VoteSourceTypes eVS) const; // advc.115b
 

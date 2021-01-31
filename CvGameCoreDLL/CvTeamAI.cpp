@@ -1,5 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvTeamAI.h"
+#include "CvPlayerAI.h"
 #include "CoreAI.h"
 #include "CvCityAI.h"
 #include "TeamPathFinder.h"
@@ -3893,14 +3894,19 @@ DenialTypes CvTeamAI::AI_openBordersTrade(TeamTypes eWithTeam) const
 			return DENIAL_ATTITUDE;
 		if (iOurAttitude > iAttitudeThresh + 1)
 			continue;
-		{
+		{	/*	Attitude not where it needs to be, and no shared war
+				(with accessible territory) either to make up for it. */
 			if (iOurAttitude == iAttitudeThresh &&
-				(!AI_shareWar(eWithTeam) || !isAnyLandRevealed(eWithTeam)))
+				(!AI_shareWar(eWithTeam) || !AI_isTerritoryAccessible(eWithTeam)))
 			{
 				return DENIAL_ATTITUDE;
 			}
-			if (iOurAttitude == iAttitudeThresh + 1 && !isAnyLandRevealed(eWithTeam))
+			// Attitude just where it needs to be, but no territorial access.
+			if (iOurAttitude == iAttitudeThresh + 1 &&
+				!AI_isTerritoryAccessible(eWithTeam))
+			{
 				return DENIAL_NO_GAIN;
+			}
 		} // </advc.124>
 	}
 
@@ -3908,22 +3914,63 @@ DenialTypes CvTeamAI::AI_openBordersTrade(TeamTypes eWithTeam) const
 }
 
 // advc.124:
-bool CvTeamAI::isAnyLandRevealed(TeamTypes eOwner) const
+bool CvTeamAI::AI_isTerritoryAccessible(TeamTypes eOwner) const
 {
+	PROFILE_FUNC(); // advc.test: To be profiled
+	bool bLandFound = false;
 	// Check cities first in order to save time
-	for (MemberIter it(eOwner); it.hasNext(); ++it)
+	for (MemberIter itOwnerMember(eOwner); itOwnerMember.hasNext(); ++itOwnerMember)
 	{
-		FOR_EACH_CITY(pCity, *it)
+		FOR_EACH_CITY(pCity, *itOwnerMember)
 		{
 			if (pCity->isRevealed(getID()))
-				return true;
+			{
+				bLandFound = true;
+				if (AI_isTerritoryAccessible(pCity->getPlot()))
+					return true;
+			}
 		}
 	}
 	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
 		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
 		if (kPlot.getTeam() == eOwner && kPlot.isRevealed(getID()) && !kPlot.isWater())
+		{
+			bLandFound = true;
+			if (AI_isTerritoryAccessible(kPlot))
+				return true;
+		}
+	}
+	if (bLandFound)
+	{
+		/*	No trade connection. With the BtS unit roster, that already implies that
+			units can't reach foreign shores, but let's not rely on that. */
+		for (MemberIter itOurMember(getID()); itOurMember.hasNext(); ++itOurMember)
+		{
+			if (itOurMember->AI_isUnitNeedingOpenBorders(eOwner))
+				return true;
+		}
+	}
+	return false;
+}
+
+// advc.124: Helper function for the above
+bool CvTeamAI::AI_isTerritoryAccessible(CvPlot const& kPlot) const
+{
+	FAssert(kPlot.isOwned() && kPlot.getTeam() != getID());
+	/*	If it's in another area, then we need to be able
+		to trade across water. */
+	for (MemberIter itOurMember(getID()); itOurMember.hasNext(); ++itOurMember)
+	{
+		PlayerTypes const eOurMember = itOurMember->getID();
+		if (kPlot.getArea().getCitiesPerPlayer(eOurMember) > 0)
 			return true;
+		if (itOurMember->getCapital() != NULL &&
+			kPlot.getPlotGroup(eOurMember) ==
+			itOurMember->getCapital()->getPlot().getPlotGroup(eOurMember))
+		{
+			return true;
+		}
 	}
 	return false;
 }
