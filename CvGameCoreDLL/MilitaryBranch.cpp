@@ -167,8 +167,11 @@ bool MilitaryBranch::canKnowTypicalUnit(PlayerTypes pov) const {
 
 	if(pov == NO_PLAYER || pov == ownerId || typicalUnitType == NO_UNIT)
 		return true;
-	if(NO_TECH != getTypicalUnit()->getPrereqAndTech())
+	if(getTypicalUnit()->getPrereqAndTech() != NO_TECH)
 		return true; // Warrior
+	/*	(Wouldn't be difficult to let CvTeamAI keep track of units ever encountered
+		through a EnumMap<UnitClassTypes,bool> that gets updated by CvUnit::setXY -
+		tbd. maybe.) */
 	if(GET_PLAYER(ownerId).getUnitClassCount(getTypicalUnit()->getUnitClassType()) > 0)
 		return true; // The unit's in the wild
 	if(GET_PLAYER(pov).canSeeTech(ownerId))

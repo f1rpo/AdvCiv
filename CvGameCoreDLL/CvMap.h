@@ -306,7 +306,8 @@ public: // advc: made several functions const
 			bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM,
 			DirectionTypes eDirection = NO_DIRECTION, CvCity const* pSkipCity = NULL, TeamTypes eObserver = NO_TEAM) const;
 	// </advc.004r>
-	CvSelectionGroup* findSelectionGroup(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, bool bReadyToSelect = false, bool bWorkers = false) const;				// Exposed to Python
+	CvSelectionGroup* findSelectionGroup(int iX, int iY, PlayerTypes eOwner = NO_PLAYER,					// Exposed to Python
+			bool bReadyToSelect = false, bool bWorkers = false) const;
 
 	CvArea* findBiggestArea(bool bWater);																						// Exposed to Python
 

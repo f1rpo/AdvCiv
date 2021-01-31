@@ -137,9 +137,9 @@ public:
 	// BETTER_BTS_AI_MOD: END
 
 	void unloadAll();
-	bool alwaysInvisible() const;																																							// Exposed to Python
+	bool alwaysInvisible() const;																											// Exposed to Python
 	bool isInvisible(TeamTypes eTeam) const;																								// Exposed to Python
-	int countNumUnitAIType(UnitAITypes eUnitAI) const;																												// Exposed to Python
+	int countNumUnitAIType(UnitAITypes eUnitAI) const;																						// Exposed to Python
 	bool hasWorker() const;																														// Exposed to Python
 	bool hasWorkerWithMoves() const; // advc.153
 	bool IsSelected() const;
@@ -149,11 +149,11 @@ public:
 
 	int getX() const;
 	int getY() const;
-	bool at(int iX, int iY) const																																								// Exposed to Python
+	bool at(int iX, int iY) const																											// Exposed to Python
 	{
 		return(getX() == iX && getY() == iY);
 	}
-	bool atPlot(CvPlot const* pPlot) const																																				// Exposed to Python
+	bool atPlot(CvPlot const* pPlot) const																									// Exposed to Python
 	{
 		return (plot() == pPlot);
 	}  // advc.inl: (also in-lined the above)
@@ -161,10 +161,10 @@ public:
 	{
 		return atPlot(&kPlot);
 	}
-	DllExport CvPlot* plot() const;																																								// Exposed to Python
+	DllExport CvPlot* plot() const;																											// Exposed to Python
 	inline CvPlot& getPlot() const { return *plot(); } // advc
 	//int getArea() const; // advc: removed
-	CvArea* area() const;																																													// Exposed to Python
+	CvArea* area() const;																													// Exposed to Python
 	DomainTypes getDomainType() const;
 
 	RouteTypes getBestBuildRoute(CvPlot const& kPlot, BuildTypes* peBestBuild = NULL) const;	// Exposed to Python
@@ -182,7 +182,7 @@ public:
 	bool isAmphibPlot(CvPlot const* pPlot) const;																																		// Exposed to Python
 	bool groupAmphibMove(CvPlot const& kPlot, MovementFlags eFlags);
 
-	DllExport bool readyToSelect(bool bAny = false);																										// Exposed to Python
+	DllExport bool readyToSelect(bool bAny = false);																							// Exposed to Python
 	bool readyToMove(bool bAny = false) const; // Exposed to Python
 	bool readyToAuto() const; // Exposed to Python
 	// K-Mod.

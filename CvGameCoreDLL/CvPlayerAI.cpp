@@ -13326,14 +13326,18 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 				}
 				iValue += iBombardValue;
 			}
-		}*/
-		// K-Mod. Bombard rate and collateral damage are both very powerful, but they have diminishing returns wrt the number of such units.
-		// Units with these traits tend to also have a 'combat limit' of less than 100%. It is bad to have an army with a high proportion of
-		// combat-limited units, but it is fine to have some. So as an ad hoc mechanism for evaluating the tradeoff between collateral damage
-		// & bombard vs. combat limit, I'm going to estimate the number of combat limited attack units we already have and use this to adjust
-		// the value of this unit. - The value of bombard is particularly inflated, to make sure at least _some_ siege units are built.
-		// Note: The original bts bombard evaluation has been deleted.
-		// The commented code above is K-Mod code from before the more recent changes; kept for comparison.
+		}*/ // ^K-Mod code from before the more recent changes; kept for comparison.
+		/*	K-Mod. Bombard rate and collateral damage are both very powerful,
+			but they have diminishing returns wrt the number of such units.
+			Units with these traits tend to also have a 'combat limit' of
+			less than 100%. It is bad to have an army with a high proportion of
+			combat-limited units, but it is fine to have some. So as an
+			ad hoc mechanism for evaluating the tradeoff between collateral damage
+			and bombard vs. combat limit, I'm going to estimate the number of
+			combat-limited attack units we already have and use this to adjust
+			the value of this unit. - The value of bombard is particularly inflated,
+			to make sure at least _some_ siege units are built.
+			Note: The original bts bombard evaluation has been deleted. */
 		int iSiegeValue = 0;
 		iSiegeValue += iCombatValue * u.getCollateralDamage() * (4+u.getCollateralDamageMaxUnits()) / 600;
 		if (u.getBombardRate() > 0 && !AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ))
@@ -13355,10 +13359,14 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 			// count the number of existing combat-limited units.
 			int iLimitedUnits = 0;
 
-			// Unfortunately, when counting units like this we can't distiguish between attack unit and collateral defensive units.
-			// Most of the time, unitai_collateral units will be combat limited, and so we should subtract them from out limited unit tally.
-			// But in some situations there are collateral damage units without combat limits (eg. Cho-Ko-Nu). When such units are in use,
-			// we should not assume all unitai_collateral are limited. -- This whole business is an ugly kludge... I hope it works.
+			/*	Unfortunately, when counting units like this we can't distiguish
+				between attack unit and collateral defensive units. Most of the time,
+				unitai_collateral units will be combat limited, and so we should
+				subtract them from out limited unit tally. But in some situations
+				there are collateral damage units without combat limits
+				(eg. Cho-Ko-Nu). When such units are in use, we should not assume
+				that all unitai_collateral are limited.
+				This whole business is an ugly kludge... I hope it works. */
 			int iNoLimitCollateral = 0;
 
 			CvCivilization const& kCiv = getCivilization(); // advc.003w 
@@ -13368,7 +13376,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 				UnitClassTypes eUnitClass = kCiv.unitClassAt(i);
 				const CvUnitInfo& kLoopInfo = GC.getInfo(eLoopUnit);
 
-				if (kLoopInfo.getDomainType() == DOMAIN_LAND && kLoopInfo.getCombat() > 0 &&
+				if (kLoopInfo.getDomainType() == DOMAIN_LAND &&
+					kLoopInfo.getCombat() > 0 &&
 					!kLoopInfo.isMostlyDefensive()) // advc.315
 				{
 					if (kLoopInfo.getCombatLimit() < 100)
@@ -13378,15 +13387,20 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 				}
 			}
 
-			iLimitedUnits -= range(AI_totalUnitAIs(UNITAI_COLLATERAL) - iNoLimitCollateral / 2, 0, iLimitedUnits);
+			iLimitedUnits -= range(
+					AI_totalUnitAIs(UNITAI_COLLATERAL) - iNoLimitCollateral / 2,
+					0, iLimitedUnits);
 			FAssert(iLimitedUnits >= 0);
 			// floor value just to avoid division by zero
-			int iAttackUnits = std::max(1, AI_totalUnitAIs(UNITAI_ATTACK) + AI_totalUnitAIs(UNITAI_ATTACK_CITY));
+			int iAttackUnits = std::max(1, AI_totalUnitAIs(UNITAI_ATTACK) +
+					AI_totalUnitAIs(UNITAI_ATTACK_CITY));
+			/*	this is not strictly guaranteed, but I expect it to
+				always be true under normal playing conditions. */
 			/*  advc.006: +1 added and replaced iLimitedUnits with iAttackUnits
 				in the 2nd clause b/c this assert kept failing for a capitulated
 				Renaissance civ w/o access to Horses (not sure if that's what's
 				causing the failed assertion). */
-			FAssert(iAttackUnits+1 >= iLimitedUnits || iAttackUnits <= 3); // this is not strictly guaranteed, but I expect it to always be true under normal playing conditions.
+			FAssert(iAttackUnits+1 >= iLimitedUnits || iAttackUnits <= 3);
 
 			iValue *= std::max(1, iAttackUnits - iLimitedUnits);
 			iValue /= iAttackUnits;
@@ -13438,7 +13452,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 			FOR_EACH_ENUM(UnitClass)
 			{
 				iValue += iCombatValue * u.getFlankingStrikeUnitClass(eLoopUnitClass) *
-						AI_getUnitClassWeight(eLoopUnitClass) / 20000; // (this is pretty small)
+						// (this is pretty small)
+						AI_getUnitClassWeight(eLoopUnitClass) / 20000;
 			}
 		}
 		// K-Mod end
@@ -13498,7 +13513,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 		{
 			iTempValue = u.getInterceptionProbability();
 
-			iTempValue *= (25 + std::min(175, GET_TEAM(getTeam()).AI_getRivalAirPower()));
+			iTempValue *= 25 + std::min(175, GET_TEAM(getTeam()).AI_getRivalAirPower());
 			iTempValue /= 100;
 
 			iValue += iTempValue;
@@ -13507,8 +13522,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 		break;
 
 	case UNITAI_CITY_DEFENSE:
-		iValue += ((iCombatValue * 2) / 3);
-		iValue += ((iCombatValue * u.getCityDefenseModifier()) / 75);
+		iValue += (iCombatValue * 2) / 3;
+		iValue += (iCombatValue * u.getCityDefenseModifier()) / 75;
 		// K-Mod. Value for collateral immunity
 		FOR_EACH_ENUM(UnitCombat)
 		{
@@ -13664,7 +13679,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 				for (TeamTypes i = (TeamTypes)0; i < MAX_CIV_TEAMS; i = (TeamTypes)(i+1))
 				{
 					const CvTeam& kLoopTeam = GET_TEAM(i);
-					if (kLoopTeam.isAlive() && kTeam.isHasMet(i) && (!bWar || kTeam.AI_getWarPlan(i) != NO_WARPLAN))
+					if (kLoopTeam.isAlive() && kTeam.isHasMet(i) &&
+						(!bWar || kTeam.AI_getWarPlan(i) != NO_WARPLAN))
 					{
 						int iPower = kLoopTeam.getPower(false);
 						iPowerTally += iPower;
@@ -13674,7 +13690,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 				if (iInterceptTally > 0)
 				{
 					FAssert(iPowerTally > 0);
-					iTempValue -= iTempValue * (iInterceptTally / iPowerTally) * (100 - u.getEvasionProbability()) / 10000;
+					iTempValue -= iTempValue * (iInterceptTally / iPowerTally) *
+							(100 - u.getEvasionProbability()) / 10000;
 				}
 			}
 			iValue += iTempValue;
@@ -13827,14 +13844,12 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 			{
 				FOR_EACH_ENUM(Promotion)
 				{
-					if (u.getFreePromotions(eLoopPromotion))
+					if (u.getFreePromotions(eLoopPromotion) &&
+						GC.getInfo(eLoopPromotion).isAmphib())
 					{
-						if (GC.getInfo(eLoopPromotion).isAmphib())
-						{
-							iValue *= 133;
-							iValue /= 100;
-							break;
-						}
+						iValue *= 133;
+						iValue /= 100;
+						break;
 					}
 				}
 			}
@@ -26840,6 +26855,8 @@ int CvPlayerAI::AI_getUnitCombatWeight(UnitCombatTypes eUnitCombat) const
 
 void CvPlayerAI::AI_doEnemyUnitData()
 {
+	PROFILE_FUNC(); // advc.test: To be profiled
+
 	std::vector<int> aiUnitCounts(GC.getNumUnitInfos(), 0);
 	std::vector<int> aiDomainSums(NUM_DOMAIN_TYPES, 0);
 
@@ -27758,7 +27775,7 @@ bool CvPlayerAI::AI_isUnitNeedingOpenBorders(TeamTypes eTarget) const
 	return false;
 }
 
-// <advc.130h> <advc.130r>
+// <advc.130h> advc.130r:
 bool CvPlayerAI::AI_atWarWithPartner(TeamTypes eOtherTeam, bool bCheckPartnerAttacked) const
 {
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
@@ -27776,7 +27793,7 @@ bool CvPlayerAI::AI_atWarWithPartner(TeamTypes eOtherTeam, bool bCheckPartnerAtt
 		}
 	}
 	return false;
-} // </advc.130r>
+}
 
 /*  Not a CvTeamAI function b/c I want to call atWarWithPartner, which I'd rather
 	keep at CvPlayerAI. */
@@ -27877,7 +27894,7 @@ bool CvPlayerAI::AI_canBeExpectedToTrain(UnitTypes eUnit) const
 	int iMinAreaSz = std::max(0, u.getMinAreaSize());
 	/*  Should be able to train at least two units in ten turns (i.e. one in five);
 		otherwise, the unit probably won't be trained at all, or just 1 or 2. */
-	int iTargetProduction = ::round(getProductionNeeded(eUnit) / 5.0);
+	int iTargetProduction = ROUND_DIVIDE(getProductionNeeded(eUnit), 5);
 	int iPartialSum = 0;
 	FOR_EACH_CITY(c, *this)
 	{

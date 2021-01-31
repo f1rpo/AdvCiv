@@ -155,12 +155,12 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 		break;
 
 	case WIDGET_CITY_TAB:
-		{
-			CvWString szTemp;
-			szTemp.Format(L"%s", GC.getInfo((CityTabTypes)widgetDataStruct.m_iData1).getDescription());
-			szBuffer.assign(szTemp);
-		}
+	{
+		CvWString szTemp;
+		szTemp.Format(L"%s", GC.getInfo((CityTabTypes)widgetDataStruct.m_iData1).getDescription());
+		szBuffer.assign(szTemp);
 		break;
+	}
 
 	case WIDGET_CONTACT_CIV:
 		parseContactCivHelp(widgetDataStruct, szBuffer);
@@ -750,13 +750,8 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 
 	case WIDGET_CITY_SCROLL:
 		if (iData1 > 0)
-		{
 			GC.getGame().doControl(CONTROL_NEXTCITY);
-		}
-		else
-		{
-			GC.getGame().doControl(CONTROL_PREVCITY);
-		}
+		else GC.getGame().doControl(CONTROL_PREVCITY);
 		break;
 
 	case WIDGET_LIBERATE_CITY:
@@ -997,8 +992,8 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataStruct)
 	case WIDGET_CITY_TRADE:
 	{
 		CvCity* pCity = NULL;
-		PlayerTypes foo;
-		parseCityTradeHelp(widgetDataStruct, pCity, foo);
+		PlayerTypes eDummy;
+		parseCityTradeHelp(widgetDataStruct, pCity, eDummy);
 		// Can't move the camera while Foreign Advisor is up
 		//gDLL->UI().lookAt(pCity->getPlot().getPoint(), CAMERALOOKAT_NORMAL);
 		// Better than nothing: open city screen (while Foreign Advisor remains open too)

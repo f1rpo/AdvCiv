@@ -573,8 +573,10 @@ void CvCityAI::AI_chooseProduction()
 	{
 		pWaterSettlerArea = GC.getMap().findBiggestArea(true);
 		if(pWaterSettlerArea != NULL && // advc.001: What if there is no water at all?
-				kPlayer.AI_totalWaterAreaUnitAIs(*pWaterSettlerArea, UNITAI_SETTLER_SEA) == 0)
+			kPlayer.AI_totalWaterAreaUnitAIs(*pWaterSettlerArea, UNITAI_SETTLER_SEA) == 0)
+		{
 			pWaterSettlerArea = NULL;
+		}
 	}
 	int iNumWaterAreaCitySites = (pWaterSettlerArea == NULL) ? 0 :
 			kPlayer.AI_getNumAdjacentAreaCitySites(iWaterAreaBestFoundValue,

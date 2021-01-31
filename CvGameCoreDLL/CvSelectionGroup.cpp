@@ -3303,7 +3303,7 @@ bool CvSelectionGroup::readyToMove(bool bAny) /* advc: */ const
 	// K-Mod:
 	return (bAny ? canAnyMove() : canAllMove()) &&
 			(isForceUpdate() ||
-			(headMissionQueueNode() == NULL && getActivityType() ==  ACTIVITY_AWAKE)) &&
+			(headMissionQueueNode() == NULL && getActivityType() == ACTIVITY_AWAKE)) &&
 			!isBusy() && !isCargoBusy();
 }
 

@@ -1251,11 +1251,8 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 		break;
 
 	case CONTROL_FORCEENDTURN:
-		if (!gDLL->UI().isFocused() &&
-			!gDLL->UI().isInAdvancedStart())
-		{
+		if (!gDLL->UI().isFocused() && !gDLL->UI().isInAdvancedStart())
 			return true;
-		}
 		break;
 
 
@@ -1306,11 +1303,8 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 		return true;
 
 	case CONTROL_CENTERONSELECTION:
-		if (gDLL->UI().getLookAtPlot() !=
-			gDLL->UI().getSelectionPlot())
-		{
+		if (gDLL->UI().getLookAtPlot() != gDLL->UI().getSelectionPlot())
 			return true;
-		}
 		break;
 
 	case CONTROL_LOAD_GAME:
@@ -1383,9 +1377,7 @@ void CvGame::doControl(ControlTypes eControl)
 
 	case CONTROL_SELECTYUNITTYPE:
 		if (pHeadSelectedUnit != NULL)
-		{
 			kUI.selectGroup(pHeadSelectedUnit, false, true, false);
-		}
 		break;
 
 	case CONTROL_SELECTYUNITALL:

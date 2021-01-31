@@ -2952,15 +2952,15 @@ bool CvUnit::jumpToNearestValidPlot(/* K-Mod: */ bool bGroup, bool bForceMove)
 		// K-Mod. If a unit is bumped, we should clear their mission queue
 		if(!atPlot(pBestPlot))
 		{
-			CvSelectionGroup* gr = getGroup(); // advc
-			//gr->splitGroup(1); // advc.163: Safer to split? Hopefully no need.
-			gr->clearMissionQueue();
+			CvSelectionGroup* pGroup = getGroup();
+			//pGroup->splitGroup(1); // advc.163: Safer to split? Hopefully no need.
+			pGroup->clearMissionQueue();
 			// K-Mod end
 			// <advc.163>
 			if(!isHuman())
-				gr->AI().AI_cancelGroupAttack(); // Maybe not needed, but doesn't hurt.
-			gr->setAutomateType(NO_AUTOMATE);
-			gr->setActivityType(ACTIVITY_AWAKE); // </advc.163>
+				pGroup->AI().AI_cancelGroupAttack(); // Maybe not needed, but doesn't hurt.
+			pGroup->setAutomateType(NO_AUTOMATE);
+			pGroup->setActivityType(ACTIVITY_AWAKE); // </advc.163>
 		}
 		//setXY(pBestPlot->getX(), pBestPlot->getY(), bGroup);
 		move(*pBestPlot, true, true, bGroup); // advc.163
@@ -2988,17 +2988,14 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 		if (!isWorker())
 			return false;
 		break;
-
 	case AUTOMATE_NETWORK:
 		if (AI_getUnitAIType() != UNITAI_WORKER || !canBuildRoute())
 			return false;
 		break;
-
 	case AUTOMATE_CITY:
 		if (AI_getUnitAIType() != UNITAI_WORKER)
 			return false;
 		break;
-
 	case AUTOMATE_EXPLORE:
 		/*if ((!canFight() && (getDomainType() != DOMAIN_SEA)) || (getDomainType() == DOMAIN_AIR) || (getDomainType() == DOMAIN_IMMOBILE))
 			return false;
@@ -3015,16 +3012,13 @@ bool CvUnit::canAutomate(AutomateTypes eAutomate) const
 			return true;
 		}
 		break;
-
 	case AUTOMATE_RELIGION:
 		if (AI_getUnitAIType() != UNITAI_MISSIONARY)
 			return false;
 		break;
-
 	default:
 		FAssert(false);
 	}
-
 	return true;
 }
 
