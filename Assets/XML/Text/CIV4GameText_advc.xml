@@ -5374,6 +5374,7 @@
 		<Italian>[NEWLINE][ICON_BULLET]Condurrà a[SPACE]</Italian>
 		<Spanish>[NEWLINE][ICON_BULLET]Llevará a[SPACE]</Spanish>
 	</TEXT>
+	<!-- Moved from the BULL game text file -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_SPEEDS_UP</Tag>
 		<English>[NEWLINE][ICON_BULLET]Speeds up[SPACE]</English>
@@ -5382,7 +5383,6 @@
 		<Italian>[NEWLINE][ICON_BULLET]Accelera:[SPACE]</Italian>
 		<Spanish>[NEWLINE][ICON_BULLET]Acelera:[SPACE]</Spanish>
 	</TEXT>
-	<!-- (better no COLOR_POSITIVE_TEXT) -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_SPEED_UP_BY_PERCENT</Tag>
 		<English>[SPACE]by %d1%%</English>
@@ -5390,6 +5390,42 @@
 		<German>[SPACE]um %d1%%</German>
 		<Italian>[SPACE]di %d1%%</Italian>
 		<Spanish>[SPACE]en %d1%%</Spanish>
+	</TEXT>
+	<!-- Gotta put red color somewhere, but don't want it to be too alarming.
+		 Coloring just the percentage seems best. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_CAN_BE_SPED_UP_BY_PERCENT</Tag>
+		<English>[SPACE]by [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT]</English>
+		<French>[SPACE]de [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT]</French>
+		<German>[SPACE]um [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT]</German>
+		<Italian>[SPACE]di [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT]</Italian>
+		<Spanish>[SPACE]en [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_CAN_BE_SPED_UP_BY_PERCENT_EACH</Tag>
+		<English>[SPACE]by [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT] each</English>
+		<French>[SPACE]de [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT] chacune</French>
+		<German>[SPACE]um jeweils [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT]</German>
+		<Italian>[SPACE]di [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT] ciascuna</Italian>
+		<Spanish>[SPACE]en [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT] cada una</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_CAN_BE_SPED_UP_BY_ANOTHER_PERCENT</Tag>
+		<English>[SPACE]by another [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT]</English>
+		<French>[SPACE]de [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT] de plus</French>
+		<German>[SPACE]um weitere [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT]</German>
+		<Italian>[SPACE]di un altro [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT]</Italian>
+		<Spanish>[SPACE]en un [COLOR_WARNING_TEXT]%d1%%[COLOR_REVERT] más</Spanish>
+	</TEXT>
+	<!-- Replacing TXT_KEY_MISC_SPED_UP_BY, which I've deleted from the
+		 BULL game text file. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_CAN_BE_SPED_UP_BY</Tag>
+		<English>[NEWLINE][ICON_BULLET]Can be sped up through[SPACE]</English>
+		<French>[NEWLINE][ICON_BULLET]Peut être accéléré via[SPACE]</French>
+		<German>[NEWLINE][ICON_BULLET]Beschleunigung möglich durch[SPACE]</German>
+		<Italian>[NEWLINE][ICON_BULLET]Può essere accelerato con[SPACE]</Italian>
+		<Spanish>[NEWLINE][ICON_BULLET]Puede acelerarse mediante[SPACE]</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_RESEARCH_MODIFIER</Tag>
@@ -5436,6 +5472,25 @@
 		<German>durch technologisches Neuland</German>
 		<Italian>from breaking new ground</Italian>
 		<Spanish>from breaking new ground</Spanish>
+	</TEXT>
+	<!-- advc.004x: From CIV4GameTextInfos.xml. Leading bullet remove;
+		 will place that depending on context in the DLL. -->
+	<TEXT>
+		<Tag>TXT_KEY_TECH_NUM_TURNS</Tag>
+		<English>[COLOR_HIGHLIGHT_TEXT]%d1_Num Turns[COLOR_REVERT]</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]%d1_Num tours[COLOR_REVERT]</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]%d1_Num Runden[COLOR_REVERT]</German>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]%d1_Num [NUM1:turno:turni][COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_HIGHLIGHT_TEXT]%d1_Num [NUM1:turno:turnos][COLOR_REVERT]</Spanish>
+	</TEXT>
+	<!-- From Civ4GameText_BTS.xml. Bullet removed. -->
+	<TEXT>
+		<Tag>TXT_KEY_TECH_ERA_ADVANCE</Tag>
+		<English>Advances to the [COLOR_HIGHLIGHT_TEXT]%s1_era[COLOR_REVERT] Era</English>
+		<French>Avance &#224; l'&#233;poque : [COLOR_HIGHLIGHT_TEXT]%s1_era[COLOR_REVERT]</French>
+		<German>Fortschritt zum Zeitalter [COLOR_HIGHLIGHT_TEXT]%s1_era[COLOR_REVERT]</German>
+		<Italian>Avanza all'era [COLOR_HIGHLIGHT_TEXT]%s1_era[COLOR_REVERT]</Italian>
+		<Spanish>Avanza a la era [NUM1:del:de la:de los:de las] [COLOR_HIGHLIGHT_TEXT]%s1_era[COLOR_REVERT]</Spanish>
 	</TEXT>
 
 	<!-- kekm.7 (advc): From CIV4GameText_BTS.xml. Was "Cannot Nuke Friendly

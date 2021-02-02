@@ -283,22 +283,7 @@
 <!-- BULL - Leaderhead Relations - end -->
 
 <!-- Tech Hover -->
-	<TEXT>
-		<Tag>TXT_KEY_MISC_SPEEDS_UP</Tag>
-		<English>[NEWLINE][ICON_BULLET]Speeds up[SPACE]</English>
-		<French>[NEWLINE][ICON_BULLET]Accélère[SPACE]</French>
-		<German>[NEWLINE][ICON_BULLET]Beschleunigt[SPACE]</German>
-		<Italian>[NEWLINE][ICON_BULLET]Accelera[SPACE]</Italian>
-		<Spanish>[NEWLINE][ICON_BULLET]Acelera[SPACE]</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MISC_SPED_UP_BY</Tag>
-		<English>[NEWLINE][ICON_BULLET]Sped up by[SPACE]</English>
-		<French>[NEWLINE][ICON_BULLET]Accélérée par[SPACE]</French>
-		<German>[NEWLINE][ICON_BULLET]Beschleunigt durch[SPACE]</German>
-		<Italian>[NEWLINE][ICON_BULLET]Accelerato da[SPACE]</Italian>
-		<Spanish>[NEWLINE][ICON_BULLET]Acelerado por[SPACE]</Spanish>
-	</TEXT>
+<!-- advc.910: Handled by Civ4GameText_advc.xml  -->
 
 <!-- Actual Effects -->
 	<TEXT>

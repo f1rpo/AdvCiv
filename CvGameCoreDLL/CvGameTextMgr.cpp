@@ -9427,16 +9427,18 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 	{
 		bFirst = buildPromotionString(szBuffer, eTech, eLoopPromotion, bFirst, true, bPlayerContext);
 	}
-
-	if (bTreeInfo && NO_TECH == eFromTech)
-	{
-		buildSingleLineTechTreeString(szBuffer, eTech, bPlayerContext);
-	}
-
+	/*	advc.910: Moved above SingleLineTechTreeString - so that the custom help text
+		(unused in BtS/AdvCiv btw) can't end up in the middle of cost-related info. */
 	if (!CvWString(GC.getInfo(eTech).getHelp()).empty())
 	{
-		szBuffer.append(CvWString::format(L"%s%s", NEWLINE, GC.getInfo(eTech).getHelp()).c_str());
+		szBuffer.append(CvWString::format(L"%s%s", NEWLINE,
+				GC.getInfo(eTech).getHelp()).c_str());
 	}
+
+	if (bTreeInfo && eFromTech == NO_TECH)
+		buildSingleLineTechTreeString(szBuffer, eTech, bPlayerContext);
+
+	bool const bDiplo = gDLL->isDiplomacy(); // advc.004x
 
 	if (!bCivilopediaText)
 	{
@@ -9457,17 +9459,24 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 		else
 		{
 			szBuffer.append(NEWLINE);
-			// <advc.004x>
+			// <advc.004x> (based on BtS code)
 			bool bShowTurns = GET_PLAYER(eActivePlayer).isResearch();
 			int iTurnsLeft = (bShowTurns ? GET_PLAYER(eActivePlayer).
-					getResearchTurnsLeft(eTech, GC.ctrlKey() || !GC.shiftKey()) : -1);
+					/*	Note: bTreeInfo is _false_ when hovering on the tech tree.
+						The Shift check is for queuing up techs; don't know what
+						the Ctrl check is for. */
+					getResearchTurnsLeft(eTech, !bTreeInfo &&
+					(GC.ctrlKey() || !GC.shiftKey())) : -1);
 			if (iTurnsLeft < 0)
 				bShowTurns = false;
-			if(bShowTurns)
+			if (bDiplo) // To set the cost apart from trade denial text
+				szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(BULLET_CHAR)));
+			if (bShowTurns)
 			{
 				szBuffer.append(gDLL->getText("TXT_KEY_TECH_NUM_TURNS", iTurnsLeft));
-				szBuffer.append(L' '); // advc.004x: Append this separately
-			} // </advc.004x>
+				szBuffer.append(L' '); // Append this separately
+			}
+			// </advc.004x>
 			szTempBuffer.Format(L"%s%d/%d %c%s",
 					bShowTurns ? L"(" : L"", // advc.004x
 					GET_TEAM(eActiveTeam).getResearchProgress(eTech),
@@ -9476,7 +9485,7 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 					bShowTurns ? L")" : L""); // advc.004x
 			szBuffer.append(szTempBuffer);
 			// <advc.910>
-			if(bShowTurns && bPlayerContext)
+			if (!bDiplo && bShowTurns && bPlayerContext)
 				setResearchModifierHelp(szBuffer, eTech); // </advc.910>
 		}
 	}
@@ -9500,7 +9509,15 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 			if (GET_PLAYER(eActivePlayer).getCurrentEra() < GC.getInfo(eTech).getEra())
 			{
 				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_TECH_ERA_ADVANCE", GC.getInfo((EraTypes)GC.getInfo(eTech).getEra()).getTextKeyWide()));
+				/*	<advc.004x> Moved out of the text key. The era advance comes more down to
+					the overall game state than to the specific eTech. Shouldn't be a
+					bulleted item. (But place a bullet all the same during diplo in order
+					to set it apart from the denial text.) */
+				if (bDiplo)
+					szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(BULLET_CHAR)));
+				// </advc.004x>
+				szBuffer.append(gDLL->getText("TXT_KEY_TECH_ERA_ADVANCE",
+						GC.getInfo(GC.getInfo(eTech).getEra()).getTextKeyWide()));
 			}
 		}
 	}
@@ -15970,12 +15987,35 @@ void CvGameTextMgr::buildSingleLineTechTreeString(CvWStringBuffer &szBuffer,
 	TechTypes eTech, bool bPlayerContext)
 {
 	FAssert(eTech != NO_TECH);
-	/*  Separate containers for techs that eTech
-		- will immediately enable,
-		- those that have an additional requirement which is yet unmet and
-		- (not listed by BtS) those that are merely sped up (OR req. already met).
+	/*  Separate containers for
+		- techs that eTech will immediately enable,
+		- techs that have an additional requirement which is yet unmet
+		and - not listed by BtS -
+		- techs that are merely sped up by eTech (OR req. already met),
+		- techs that would speed up eTech if we had them (but we don't).
 		Put the tech cost in the first component b/c I want to sort by that. */
-	std::vector<std::pair<int,TechTypes> > aieImmediate, aieLater, aieSpeedsUp;
+	std::vector<std::pair<int,TechTypes> > aieImmediate, aieLater,
+			aieSpeedsUp, aieMissingSpeedUps;
+	int iORReqsSatisfied = 0;
+	if (bPlayerContext)
+	{
+		PlayerTypes const eActivePlayer = GC.getGame().getActivePlayer();
+		if (!GET_TEAM(eActivePlayer).isHasTech(eTech) &&
+			GET_PLAYER(eActivePlayer).canResearch(eTech))
+		{
+			for(int i = 0; i < GC.getInfo(eTech).getNumOrTechPrereqs(); i++)
+			{
+				TechTypes eORReq = GC.getInfo(eTech).getPrereqOrTechs(i);
+				if (GET_TEAM(eActivePlayer).isHasTech(eORReq))
+					iORReqsSatisfied++;
+				else
+				{
+					aieMissingSpeedUps.push_back(std::make_pair(
+							GC.getInfo(eORReq).getResearchCost(), eORReq));
+				}
+			}
+		}
+	}
 	FOR_EACH_ENUM2(Tech, eLeadsTo)
 	{
 		bool bCanAlreadyResearch = false;
@@ -16053,6 +16093,7 @@ void CvGameTextMgr::buildSingleLineTechTreeString(CvWStringBuffer &szBuffer,
 	std::sort(aieImmediate.begin(), aieImmediate.end());
 	std::sort(aieLater.begin(), aieLater.end());
 	std::sort(aieSpeedsUp.begin(), aieSpeedsUp.end());
+	std::sort(aieMissingSpeedUps.begin(), aieMissingSpeedUps.end());
 	CvWString szTempBuffer;
 	bool bFirst = true;
 	for(size_t i = 0; i < aieImmediate.size(); i++)
@@ -16099,6 +16140,26 @@ void CvGameTextMgr::buildSingleLineTechTreeString(CvWStringBuffer &szBuffer,
 	if(!aieSpeedsUp.empty())
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_SPEED_UP_BY_PERCENT",
+				iSpeedUpPercent));
+	}
+	bFirst = true;
+	for(size_t i = 0; i < aieMissingSpeedUps.size(); i++)
+	{
+		TechTypes eORReq = aieMissingSpeedUps[i].second;
+		szTempBuffer.Format(SETCOLR L"<link=literal>%s</link>" ENDCOLR,
+				TEXT_COLOR("COLOR_TECH_TEXT"),
+				GC.getInfo(eORReq).getDescription());
+		setListHelp(szBuffer, gDLL->getText("TXT_KEY_MISC_CAN_BE_SPED_UP_BY").c_str(),
+				szTempBuffer, L", ", bFirst);
+		bFirst = false;
+	}
+	if(!aieMissingSpeedUps.empty())
+	{
+		szBuffer.append(gDLL->getText(aieMissingSpeedUps.size() > 1 ? 
+				"TXT_KEY_MISC_CAN_BE_SPED_UP_BY_PERCENT_EACH" :
+				(iORReqsSatisfied > 1 ?
+				"TXT_KEY_MISC_CAN_BE_SPED_UP_BY_ANOTHER_PERCENT" :
+				"TXT_KEY_MISC_CAN_BE_SPED_UP_BY_PERCENT"),
 				iSpeedUpPercent));
 	}
 }
