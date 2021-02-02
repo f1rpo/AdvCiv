@@ -602,6 +602,11 @@ CvSelectionGroup* CvGame::getNextGroupInCycle(bool bForward, bool bWorkers,
 	might want to be able to tell what the cycle button is showing. */
 CvUnit* CvGame::getCycleButtonUnit(bool bForward, bool bWorkers) const
 {
+	if (getActivePlayer() == NO_PLAYER ||
+		!GET_PLAYER(getActivePlayer()).isHuman()) // AI Auto Play
+	{
+		return NULL;
+	}
 	bool bDummy=false;
 	CvUnit* pDummy=NULL;
 	CvSelectionGroup* pNextGroup = GC.getGame().getNextGroupInCycle(
