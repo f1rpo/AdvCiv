@@ -86,14 +86,16 @@ static inline T operator-(T minuend, T subtrahend)
 	for (TypeName##Types eLoop##TypeName = (TypeName##Types)(getEnumLength(((TypeName##Types)0)) - 1); \
 			eLoop##TypeName >= 0; \
 			eLoop##TypeName = (TypeName##Types)(eLoop##TypeName - 1))
-/*	For accessing an info object in a loop over an info enum. Tentative and unused.
-	Will make more sense if I add getInfoUnsafe functions that don't assert array bounds
-	to the MAKE_INFO_ACCESSORS... macros (tbd.?). Then SET_LOOP_INFO could avoid the
-	bounds checks (which are unnecessary in a FOR_EACH_ENUM loop) and getInfoUnsafe
-	would probably get inlined in Ob1-debug builds, meaning that one could
-	no longer accidentally step into the getter while debugging. */
+/*	To be used only in the body of a FOR_EACH_ENUM loop. Don't need to assert
+	array bounds then. Not really feasible though to replace all the
+	CvGlobals::getInfo calls, so ... */
+/*#define LOOP_INFO(TypeName) \
+	GC.getLoopInfo(eLoop##TypeName)
 #define SET_LOOP_INFO(TypeName) \
-	Cv##TypeName##Info const& kLoop##TypeName = GC.getInfo(eLoop##TypeName)
+	Cv##TypeName##Info const& kLoop##TypeName = LOOP_INFO(TypeName)
+// To go with FOR_EACH_ENUM2
+#define SET_LOOP_INFO2(TypeName, kVar) \
+	Cv##TypeName##Info const& kVar = LOOP_INFO(TypeName)*/
 
 // Type lists ...
 
@@ -324,6 +326,11 @@ namespace info_enum_detail
 		FAssertBounds(0, getNum##Name##Infos(), e##Name); \
 		return *m_pa##Name##Info[e##Name]; \
 	} \
+	/* (See SET_LOOP_INFO) */ \
+	/*inline Cv##Name##Info& getLoopInfo(Name##Types e##Name) const*/ \
+	/*{*/ \
+	/*	return *m_pa##Name##Info[e##Name];*/ \
+	/*}*/ \
 	/* Deprecated: */ \
 	inline Cv##Name##Info& get##Name##Info(Name##Types e##Name) const \
 	{ \
@@ -345,6 +352,11 @@ namespace info_enum_detail
 		FAssertBounds(0, NUM_ENUM_TYPES(INFIX), e##Name); \
 		return *m_pa##Name##Info[e##Name]; \
 	} \
+	/* (See SET_LOOP_INFO) */ \
+	/*inline Cv##Name##Info& getLoopInfo(Name##Types e##Name) const*/ \
+	/*{*/ \
+	/*	return *m_pa##Name##Info[e##Name];*/ \
+	/*}*/ \
 	/* Deprecated: */ \
 	inline Cv##Name##Info& get##Name##Info(Name##Types e##Name) const \
 	{ \

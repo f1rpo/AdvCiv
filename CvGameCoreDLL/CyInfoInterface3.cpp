@@ -136,7 +136,7 @@ void CyInfoPythonInterface3()
 
 		// Arrays
 
-		.def("getProductionToCommerceModifier", &CvProcessInfo::getProductionToCommerceModifier, "int (int i)")
+		.def("getProductionToCommerceModifier", &CvProcessInfo::py_getProductionToCommerceModifier, "int (int i)")
 		;
 
 	python::class_<CvVoteInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvVoteInfo")

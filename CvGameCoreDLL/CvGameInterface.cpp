@@ -615,9 +615,9 @@ CvUnit* CvGame::getCycleButtonUnit(bool bForward, bool bWorkers) const
 			if (!pUnit->IsSelected() && pUnit->canMove() &&
 				/*	!bWorkers doesn't exclude all-worker groups, so we can only
 					_prefer_ selecting a non-worker. */
-					/*	Actually, let's always prefer to select a worker. Don't want
-						to show different icons on the two buttons if they refer
-						to the same group. */
+				/*	Actually, let's always prefer to select a worker. Don't want
+					to show different icons on the two buttons if they refer
+					to the same group. */
 				(iPass == 1 || /*bWorkers == */pUnit->isWorker()))
 			{
 				return pUnit;

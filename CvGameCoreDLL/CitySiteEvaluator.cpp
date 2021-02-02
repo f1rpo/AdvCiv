@@ -48,20 +48,20 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 			if (!kPlayer.hasTrait(eLoopTrait))
 				continue;
 
-			CvTraitInfo const& kTrait = GC.getInfo(eLoopTrait);
-			if (kTrait.getCommerceChange(COMMERCE_CULTURE) > 0)
+			CvTraitInfo const& kLoopTrait = GC.getInfo(eLoopTrait);
+			if (kLoopTrait.getCommerceChange(COMMERCE_CULTURE) > 0)
 			{
 				m_bEasyCulture = true;
 				if (pPersonality != NULL && pPersonality->getBasePeaceWeight() <= 5)
 					m_bAmbitious = true;
 			}
-			if (kTrait.getExtraYieldThreshold(YIELD_COMMERCE) > 0)
+			if (kLoopTrait.getExtraYieldThreshold(YIELD_COMMERCE) > 0)
 				m_bFinancial = true;
-			if (kTrait.isAnyFreePromotion()) // advc.003t
+			if (kLoopTrait.isAnyFreePromotion()) // advc.003t
 			{
 				FOR_EACH_ENUM(Promotion)
 				{
-					if (kTrait.isFreePromotion(eLoopPromotion))
+					if (kLoopTrait.isFreePromotion(eLoopPromotion))
 					{
 						// aggressive, protective... it doesn't really matter to me.
 						if (pPersonality != NULL && pPersonality->getBasePeaceWeight() >= 5)
@@ -115,9 +115,9 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 		{
 			FOR_EACH_ENUM(Process)
 			{
-				CvProcessInfo const& kProcess = GC.getInfo(eLoopProcess);
-				if (GET_TEAM(kPlayer.getTeam()).isHasTech((TechTypes)kProcess.getTechPrereq()) &&
-					kProcess.getProductionToCommerceModifier(COMMERCE_CULTURE) > 0)
+				CvProcessInfo const& kLoopProcess = GC.getInfo(eLoopProcess);
+				if (GET_TEAM(kPlayer.getTeam()).isHasTech(kLoopProcess.getTechPrereq()) &&
+					kLoopProcess.getProductionToCommerceModifier(COMMERCE_CULTURE) > 0)
 				{
 					m_bEasyCulture = true;
 					break;
@@ -1256,8 +1256,8 @@ bool AIFoundValue::isRemovableFeature(CvPlot const& p, bool& bPersistent,
 	bPersistent = true;
 	FOR_EACH_ENUM(Build)
 	{
-		CvBuildInfo const& kBuild = GC.getInfo(eLoopBuild);
-		if (!kBuild.isFeatureRemove(eFeature))
+		CvBuildInfo const& kLoopBuild = GC.getBuildInfo (eLoopBuild);
+		if (!kLoopBuild.isFeatureRemove(eFeature))
 			continue;
 
 		bPersistent = false;
@@ -1279,8 +1279,8 @@ bool AIFoundValue::isRemovableFeature(CvPlot const& p, bool& bPersistent,
 				iFeatureProduction /= 3; // Can already chop it
 		}
 		// CurrentResearch should be good enough
-		TechTypes eTech1 = kBuild.getTechPrereq();
-		TechTypes eTech2 = kBuild.getFeatureTech(eFeature);
+		TechTypes eTech1 = kLoopBuild.getTechPrereq();
+		TechTypes eTech2 = kLoopBuild.getFeatureTech(eFeature);
 		// </advc.031>
 		if (kTeam.isHasTech(eTech1) &&
 			kTeam.isHasTech(eTech2)) // advc.001: This check was missing
@@ -1331,12 +1331,12 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 	FeatureTypes const eFeature = p.getFeatureType();
 	FOR_EACH_ENUM(Build)
 	{
-		CvBuildInfo const& kBuild = GC.getInfo(eLoopBuild);
-		ImprovementTypes eImprovement = kBuild.getImprovement();
+		CvBuildInfo const& kLoopBuild = GC.getInfo(eLoopBuild);
+		ImprovementTypes eImprovement = kLoopBuild.getImprovement();
 		if (eImprovement == NO_IMPROVEMENT)
 			continue;
 		CvImprovementInfo const& kImprovement = GC.getInfo(eImprovement);
-		TechTypes const eBuildPrereq = kBuild.getTechPrereq();
+		TechTypes const eBuildPrereq = kLoopBuild.getTechPrereq();
 		if (!kImprovement.isImprovementBonusMakesValid(eBonus) ||
 			!kImprovement.isImprovementBonusTrade(eBonus) ||
 			!isNearTech(eBuildPrereq))
@@ -1344,7 +1344,7 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 			continue;
 		}
 		TechTypes const eFeaturePrereq = (eFeature == NO_FEATURE ? NO_TECH :
-				kBuild.getFeatureTech(eFeature));
+				kLoopBuild.getFeatureTech(eFeature));
 		if (!isNearTech(eFeaturePrereq))
 			continue;
 		bCanTradeSoon = true;
@@ -1357,7 +1357,7 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 		else if (bCanTrade) // Prefer currently available build - regardless of yield
 			continue;
 		int iYieldValue = 0;
-		bool bRemove = (eFeature != NO_FEATURE && kBuild.isFeatureRemove(eFeature));
+		bool bRemove = (eFeature != NO_FEATURE && kLoopBuild.isFeatureRemove(eFeature));
 		FOR_EACH_ENUM(Yield) // Make sure we're not picking Fort over a yield improvement
 		{
 			iYieldValue += kImprovement.getYieldChange(eLoopYield) +
@@ -1556,9 +1556,9 @@ int AIFoundValue::removableFeatureYieldVal(FeatureTypes eFeature,
 	bool bRemovableFeature, bool bBonus) const
 {
 	int iR = 0;
+	CvFeatureInfo const& kFeature = GC.getInfo(eFeature);
 	FOR_EACH_ENUM(Yield)
 	{
-		CvFeatureInfo const& kFeature = GC.getInfo(eFeature);
 		if (bRemovableFeature)
 			iR += 10 * kFeature.getYieldChange(eLoopYield);
 		else if (kFeature.getYieldChange(eLoopYield) < 0)
@@ -1612,7 +1612,7 @@ scaled AIFoundValue::estimateImprovementProduction(CvPlot const& p,
 		// Not a perfectly safe way to check if we can build the improvement - but fast.
 		if (kPlayer.getImprovementCount(eLoopImprovement) <= 0)
 			continue;
-		CvImprovementInfo& kLoopImprovement = GC.getInfo(eLoopImprovement);
+		CvImprovementInfo const& kLoopImprovement = GC.getInfo(eLoopImprovement);
 		int iYieldChange = kLoopImprovement.getYieldChange(YIELD_PRODUCTION) +
 				kTeam.getImprovementYieldChange(eLoopImprovement, YIELD_PRODUCTION);
 		// Will be less inclined to build improvement if it hurts other yields

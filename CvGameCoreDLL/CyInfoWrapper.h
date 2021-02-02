@@ -10,9 +10,12 @@
 	member function. It defines an in-line wrapper with private accessibility.
 	A pointer to the wrapper needs to be inserted into the proper .def call in
 	CyInfoInterface[1-4].cpp. That's just a matter of prepending 'py_' to the existing
-	call argument. Additionally, the CvInfo class needs to declare the (global)
-	CyInfoPythonInterface[1-4] function that contains the def call as a friend, e.g.:
-		friend void CyInfoPythonInterface1();
+	call argument.
+
+	Additionally, the CvInfo class needs to declare the global
+	CyInfoPythonInterface[1-4] function that contains the def call as a friend.
+	^Actually, let's just insert that into the macro; redundant declarations do no harm.
+
 	For convenience, there are macros that take fewer parameters:
 	iPY_WRAP: Takes the name of an XML tag and prepends "get" to generate the
 			function name. Return type is 'int'.
@@ -20,6 +23,10 @@
 
 #define PY_WRAP(ReturnType, fnName, enumName) \
 	private: \
+		friend void CyInfoPythonInterface1(); \
+		friend void CyInfoPythonInterface2(); \
+		friend void CyInfoPythonInterface3(); \
+		friend void CyInfoPythonInterface4(); \
 		ReturnType py_##fnName(int i) const \
 		{ \
 			return fnName((enumName##Types)i); \

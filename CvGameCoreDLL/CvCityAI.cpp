@@ -6261,9 +6261,7 @@ int CvCityAI::AI_processValue(ProcessTypes eProcess, CommerceTypes eCommerceType
 
 	// pop borders
 	if (getCultureLevel() <= 1)
-	{
 		iValue += GC.getInfo(eProcess).getProductionToCommerceModifier(COMMERCE_CULTURE);
-	}
 
 	int iAdjustFactor = 0;
 	FOR_EACH_ENUM(Commerce)
@@ -8045,7 +8043,7 @@ void CvCityAI::AI_updateBestBuild()
 		// K-Mod, make some adjustments to our yield weights based on our new bestbuild
 		// [really we want (isWorking || was good plot), but that's harder and more expensive...]
 		if (m_aeBestBuild[ePlot] == eLastBestBuildType)
-			continue; // advc
+			continue;
 
 		if (isWorkingPlot(ePlot)) // [or was 'good plot' with previous build]
 		{
@@ -9811,44 +9809,48 @@ int CvCityAI::AI_yieldValue(int* piYields, int* piCommerceYields, bool bRemove,
 	int iCommerceValue = 0;
 	ProcessTypes eProcess = getProductionProcess();
 
-	for (int iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
+	FOR_EACH_ENUM2(Commerce, eCommerce)
 	{
-		int iCommerceTimes100 = iCommerceYieldTimes100 * kOwner.getCommercePercent((CommerceTypes)iI) / 100;
+		int iCommerceTimes100 = iCommerceYieldTimes100 *
+				kOwner.getCommercePercent(eCommerce) / 100;
 		if (piCommerceYields != NULL)
-		{
-			iCommerceTimes100 += piCommerceYields[iI] * 100;
-		}
+			iCommerceTimes100 += piCommerceYields[eCommerce] * 100;
 
-		iCommerceTimes100 *= getTotalCommerceRateModifier((CommerceTypes)iI);
+		iCommerceTimes100 *= getTotalCommerceRateModifier(eCommerce);
 		iCommerceTimes100 /= 100;
 
 		//FAssert(iCommerceTimes100 >= 0);
 
 		if (eProcess != NO_PROCESS)
-			iCommerceTimes100 += GC.getInfo(getProductionProcess()).getProductionToCommerceModifier(iI) * iProductionTimes100 / 100;
-
+		{
+			iCommerceTimes100 += (GC.getInfo(getProductionProcess()).
+					getProductionToCommerceModifier(eCommerce) * iProductionTimes100) / 100;
+		}
 		if (iCommerceTimes100 != 0)
 		{
-			int iCommerceWeight = kOwner.AI_commerceWeight((CommerceTypes)iI, this); // (Should we still use this with bWorkerOptimization?)
-			if (AI_isEmphasizeCommerce((CommerceTypes)iI))
-			{
+			// (Should we still use this with bWorkerOptimization?)
+			int iCommerceWeight = kOwner.AI_commerceWeight(eCommerce, this);
+			if (AI_isEmphasizeCommerce(eCommerce))
 				iCommerceWeight *= 2;
-			}
-			if (!bWorkerOptimization && iI == COMMERCE_CULTURE && getCultureLevel() <= (CultureLevelTypes)1)
+			if (!bWorkerOptimization && eCommerce == COMMERCE_CULTURE &&
+				getCultureLevel() <= (CultureLevelTypes)1)
 			{
 				// bring on the artists
-				if (getCommerceRateTimes100(COMMERCE_CULTURE) - (bRemove ? iCommerceTimes100 : 0) < 100)
+				if (getCommerceRateTimes100(COMMERCE_CULTURE)
+					- (bRemove ? iCommerceTimes100 : 0) < 100)
 				{
 					iCommerceValue += 20 * (iCommerceTimes100 > 0 ? 1 : -1);
 				}
 				iCommerceWeight = std::max(iCommerceWeight, 200);
 			}
 
-			//iCommerceValue += iCommerceWeight * iCommerceTimes100 * iBaseCommerceValue * GET_PLAYER(getOwner()).AI_averageCommerceExchange((CommerceTypes)iI) / 1000000;
-			iCommerceValue += iCommerceWeight * iCommerceTimes100 * iBaseCommerceValue / 10000; // K-Mod. (averageCommerceExchange should be part of commerceWeight if we want it, and we probably don't want it anyway.)
+			iCommerceValue += iCommerceWeight * iCommerceTimes100 * iBaseCommerceValue
+					//* GET_PLAYER(getOwner()).AI_averageCommerceExchange((CommerceTypes)iI) / 1000000;
+					/*	K-Mod. (averageCommerceExchange should be part of commerceWeight
+						if we want it, and we probably don't want it anyway.) */
+					/ 10000;
 		}
 	}
-	//
 
 	// Production
 	int iProductionValue = 0;
@@ -9889,7 +9891,6 @@ int CvCityAI::AI_yieldValue(int* piYields, int* piCommerceYields, bool bRemove,
 			iProductionValue /= 2;
 		}
 	}
-	//
 
 	int iSlaveryValue = 0;
 

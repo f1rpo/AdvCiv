@@ -410,7 +410,7 @@ void CvPlot::doImprovement()
 
 void CvPlot::updateCulture(bool bBumpUnits, bool bUpdatePlotGroups)
 {
-	PROFILE_FUNC(); // advc
+	PROFILE_FUNC(); // advc (There's a plot group update when the owner changes)
 
 	if(isCity())
 		return;
@@ -1890,7 +1890,7 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 	{
 		FOR_EACH_ENUM(Build)
 		{
-			CvBuildInfo& kLoopBuild = GC.getInfo(eLoopBuild);
+			CvBuildInfo const& kLoopBuild = GC.getInfo(eLoopBuild);
 			if (kLoopBuild.getImprovement() == eImprovement)
 			{
 				bBuildable = true;
@@ -3740,7 +3740,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 	PROFILE_FUNC();
 
 	if(getOwner() == eNewValue)
-		return; // advc
+		return;
 	PlayerTypes eOldOwner = getOwner(); // advc.ctr
 	GC.getGame().addReplayMessage(REPLAY_MESSAGE_PLOT_OWNER_CHANGE, eNewValue, (char*)NULL, getX(), getY());
 
@@ -6594,7 +6594,7 @@ void CvPlot::doCulture()
 	updateCulture(true, true);
 }
 
-// <advc.099b>
+// advc.099b:
 void CvPlot::doCultureDecay()
 {
 	PROFILE_FUNC();
@@ -6659,9 +6659,9 @@ void CvPlot::doCultureDecay()
 		iCulture -= (iCulture * iDecayPerMill) / 1000;
 		setCulture(civId, iCulture, false, false);
 	}
-} // </advc.099b>
+}
 
-/*  <advc.099b>
+/*	advc.099b:
 	 0: city tile belonging to ePlayer
 	-1: Not in the exclusive radius of ePlayer. I.e. not in the radius of any
 		ePlayer city or also in the radius of another player's city.
@@ -6687,7 +6687,7 @@ int CvPlot::exclusiveRadius(PlayerTypes ePlayer) const
 		else return -1;
 	}
 	return r;
-} // </advc.099b>
+}
 
 /*	advc: Replacing the old getArea function. Not public b/c CvAreas shouldn't be
 	routinely passed and accessed by id. */

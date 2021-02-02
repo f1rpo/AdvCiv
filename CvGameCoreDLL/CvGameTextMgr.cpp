@@ -9442,13 +9442,15 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 	{
 		if (eActivePlayer == NO_PLAYER)
 		{
-			szTempBuffer.Format(L"\n%d%c", GC.getInfo(eTech).getResearchCost(),
+			szTempBuffer.Format(L"\n%d%c",
+					GC.getInfo(eTech).getResearchCost(),
 					GC.getInfo(COMMERCE_RESEARCH).getChar());
 			szBuffer.append(szTempBuffer);
 		}
 		else if (GET_TEAM(eActiveTeam).isHasTech(eTech))
 		{
-			szTempBuffer.Format(L"\n%d%c", GET_TEAM(eActiveTeam).getResearchCost(eTech),
+			szTempBuffer.Format(L"\n%d%c",
+					GET_TEAM(eActiveTeam).getResearchCost(eTech),
 					GC.getInfo(COMMERCE_RESEARCH).getChar());
 			szBuffer.append(szTempBuffer);
 		}
@@ -13357,12 +13359,15 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 void CvGameTextMgr::setProcessHelp(CvWStringBuffer &szBuffer, ProcessTypes eProcess)
 {
 	szBuffer.append(GC.getInfo(eProcess).getDescription());
-	for (int iI = 0; iI < NUM_COMMERCE_TYPES; ++iI)
+	FOR_EACH_ENUM(Commerce)
 	{
-		if (GC.getInfo(eProcess).getProductionToCommerceModifier(iI) != 0)
+		if (GC.getInfo(eProcess).getProductionToCommerceModifier(eLoopCommerce) != 0)
 		{
 			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_PROCESS_CONVERTS", GC.getInfo(eProcess).getProductionToCommerceModifier(iI), GC.getInfo(YIELD_PRODUCTION).getChar(), GC.getInfo((CommerceTypes) iI).getChar()));
+			szBuffer.append(gDLL->getText("TXT_KEY_PROCESS_CONVERTS",
+					GC.getInfo(eProcess).getProductionToCommerceModifier(eLoopCommerce),
+					GC.getInfo(YIELD_PRODUCTION).getChar(),
+					GC.getInfo(eLoopCommerce).getChar()));
 		}
 	}
 }

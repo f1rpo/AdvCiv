@@ -737,8 +737,8 @@ bool CvCity::canBeSelected() const  // advc: refactored
 
 	FOR_EACH_ENUM(EspionageMission)
 	{
-		CvEspionageMissionInfo const& kMission = GC.getInfo(eLoopEspionageMission);
-		if(kMission.isPassive() && kMission.isInvestigateCity() &&
+		if (GC.getInfo(eLoopEspionageMission).isPassive() &&
+			GC.getInfo(eLoopEspionageMission).isInvestigateCity() &&
 			GET_PLAYER(kGame.getActivePlayer()).canDoEspionageMission(
 			eLoopEspionageMission, getOwner(), plot()))
 		{
@@ -3655,7 +3655,8 @@ int CvCity::totalFreeSpecialists() const
 		{
 			FOR_EACH_ENUM(Improvement)
 			{
-				int iNumSpecialistsPerImprovement = getImprovementFreeSpecialists(eLoopImprovement);
+				int iNumSpecialistsPerImprovement = getImprovementFreeSpecialists(
+						eLoopImprovement);
 				if (iNumSpecialistsPerImprovement > 0)
 				{
 					iCount += iNumSpecialistsPerImprovement *
@@ -6750,9 +6751,8 @@ int CvCity::getAdditionalBaseYieldRateByBuilding(YieldTypes eYield, BuildingType
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
 	// <advc.179> Some overlap with code in CvGameTextMgr::buildBuildingReligionYieldString
 	CvCivilization const& kCiv = getCivilization();
-	FOR_EACH_ENUM(VoteSource)
+	FOR_EACH_ENUM2(VoteSource, eVS)
 	{
-		VoteSourceTypes const eVS = eLoopVoteSource;
 		if (eVS != kBuilding.getVoteSourceType())
 			continue;
 		CvVoteSourceInfo& kVS = GC.getInfo(eVS);

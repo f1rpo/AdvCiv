@@ -5321,7 +5321,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		FOR_EACH_ENUM(Process)
 		{
 			CvProcessInfo const& kLoopProcess = GC.getInfo(eLoopProcess);
-			if (kTeam.isHasTech((TechTypes)kLoopProcess.getTechPrereq()))
+			if (kTeam.isHasTech(kLoopProcess.getTechPrereq()))
 			{
 				bHaveGoodProcess = (kLoopProcess.getProductionToCommerceModifier(COMMERCE_GOLD) +
 						kLoopProcess.getProductionToCommerceModifier(COMMERCE_RESEARCH) > 0);
@@ -12893,7 +12893,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 
 	FAssert(eUnit != NO_UNIT);
 	FAssert(eUnitAI != NO_UNITAI);
-	CvUnitInfo const& u = GC.getInfo(eUnit); // advc
+	CvUnitInfo const& u = GC.getInfo(eUnit);
 	if (u.getDomainType() != AI_unitAIDomainType(eUnitAI))
 	{
 		if (eUnitAI != UNITAI_ICBM)//XXX
@@ -26855,7 +26855,7 @@ int CvPlayerAI::AI_getUnitCombatWeight(UnitCombatTypes eUnitCombat) const
 
 void CvPlayerAI::AI_doEnemyUnitData()
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC(); // advc: Entirely harmless so far wrt. performance
 
 	std::vector<int> aiUnitCounts(GC.getNumUnitInfos(), 0);
 	std::vector<int> aiDomainSums(NUM_DOMAIN_TYPES, 0);
@@ -27747,7 +27747,7 @@ bool CvPlayerAI::AI_isPiracyTarget(PlayerTypes eTarget) const
 // advc.124:
 bool CvPlayerAI::AI_isUnitNeedingOpenBorders(TeamTypes eTarget) const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC(); // Hardly has gotten called in profiler tests so far
 	FOR_EACH_GROUP(pGroup, *this)
 	{
 		CvPlot const* pPlot = pGroup->plot();

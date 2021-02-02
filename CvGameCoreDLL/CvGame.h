@@ -952,7 +952,8 @@ protected:
 	int* m_aiSecretaryGeneralTimer;
 	int* m_aiVoteTimer;
 	int* m_aiDiploVote;
-
+	/*	advc (note): Used to be used for ICBM, unused since BtS.
+		SpecialBuildingValid is still used for Bomb Shelters. */
 	bool* m_pabSpecialUnitValid;
 	bool* m_pabSpecialBuildingValid;
 	bool* m_abReligionSlotTaken;

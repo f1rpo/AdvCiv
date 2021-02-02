@@ -2716,7 +2716,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			}
 			if (kMissionPlot.isFeature())
 			{
-				if (GC.getInfo(eBuild).isFeatureRemove(kMissionPlot.getFeatureType())) {
+				if (GC.getInfo(eBuild).isFeatureRemove(kMissionPlot.getFeatureType()))
+				{
 					iYield -= GC.getInfo(kMissionPlot.getFeatureType()).
 							getYieldChange(eYield);
 				}
@@ -3230,7 +3231,7 @@ void CvDLLWidgetData::parseResearchHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 	TechTypes eTech = (TechTypes)widgetDataStruct.m_iData1;
 	if (eTech == NO_TECH)
 	{
-		TechTypes eCurrentResearch = GET_PLAYER(GC.getGame().getActivePlayer()).getCurrentResearch(); //advc
+		TechTypes eCurrentResearch = GET_PLAYER(GC.getGame().getActivePlayer()).getCurrentResearch();
 		if (eCurrentResearch != NO_TECH)
 		{
 			szBuffer.assign(gDLL->getText("TXT_KEY_MISC_CHANGE_RESEARCH"));

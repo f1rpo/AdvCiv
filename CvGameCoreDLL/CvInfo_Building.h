@@ -252,7 +252,6 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 	const TCHAR* getMovieDefineTag() const;
 
 	// Array access:
-	friend void CyInfoPythonInterface1(); // advc.003x
 
 	int getYieldChange(YieldTypes eYield) const;
 	iPY_WRAP(YieldChange, Yield)

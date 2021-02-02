@@ -7665,8 +7665,8 @@ int CvUnit::rangeCombatDamage(const CvUnit* pDefender) const
 CvUnit* CvUnit::bestInterceptor(CvPlot const& kPlot,
 	bool bOdds) const // advc.004c
 {
-	/*	advc.test: (Could do this through a plot range, or at least go through
-		selection groups before individual units.) */
+	/*	advc: (Could do this through a plot range, or at least go through
+		selection groups before individual units. But seems to be a nonissue.) */
 	PROFILE_FUNC();
 	TeamTypes const eOurTeam = getTeam(); // advc.004c
 	CvUnit* pBestUnit = NULL;

@@ -1908,7 +1908,7 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam,
 	bool bIgnoreDiscount, // advc.550a
 	bool bPeaceDeal) const // advc.140h
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC(); // advc.550: Still seems completely harmless wrt. performance
 	FAssert(eFromTeam != getID());
 
 	CvTechInfo const& kTech = GC.getInfo(eTech);
@@ -3916,7 +3916,7 @@ DenialTypes CvTeamAI::AI_openBordersTrade(TeamTypes eWithTeam) const
 // advc.124:
 bool CvTeamAI::AI_isTerritoryAccessible(TeamTypes eOwner) const
 {
-	PROFILE_FUNC(); // advc.test: To be profiled
+	PROFILE_FUNC(); // Hardly has gotten called in profiler tests so far
 	bool bLandFound = false;
 	// Check cities first in order to save time
 	for (MemberIter itOwnerMember(eOwner); itOwnerMember.hasNext(); ++itOwnerMember)

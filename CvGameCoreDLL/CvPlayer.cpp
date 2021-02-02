@@ -5245,12 +5245,7 @@ bool CvPlayer::canCreate(ProjectTypes eProject, bool bContinue, bool bTestVisibl
 
 bool CvPlayer::canMaintain(ProcessTypes eProcess, bool bContinue) const
 {
-	if (!GET_TEAM(getTeam()).isHasTech((TechTypes)
-		GC.getInfo(eProcess).getTechPrereq()))
-	{
-		return false;
-	}
-	return true;
+	return GET_TEAM(getTeam()).isHasTech(GC.getInfo(eProcess).getTechPrereq());
 }
 
 
