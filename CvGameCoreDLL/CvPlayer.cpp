@@ -10386,6 +10386,9 @@ void CvPlayer::updateGroupCycle(CvSelectionGroup const& kGroup)  // advc: const 
 	if (pBestSelectionGroupNode)
 		m_groupCycle.insertBefore(kUnit.getGroupID(), pBestSelectionGroupNode);
 	else m_groupCycle.insertAtEnd(kUnit.getGroupID());
+	// <advc.154>
+	if (isHuman() && GC.getGame().getActivePlayer() == getID())
+		gDLL->UI().setDirty(SelectionButtons_DIRTY_BIT, true); // </advc.154>
 }
 
 
