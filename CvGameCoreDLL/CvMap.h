@@ -560,7 +560,7 @@ protected:
 	EnumMap<BonusTypes,int> m_aiNumBonusOnLand;
 	// </advc.enum>
 	CvPlot* m_pMapPlots;
-	std::map<Shelf::Id,Shelf*> shelves; // advc.300
+	std::map<Shelf::Id,Shelf*> m_shelves; // advc.300
 	FFreeListTrashArray<CvArea> m_areas;
 	std::vector<byte> m_replayTexture; // advc.106n
 	MinimapSettings m_minimapSettings; // advc.002a

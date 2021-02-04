@@ -10375,15 +10375,15 @@ void CvPlayer::updateGroupCycle(CvSelectionGroup const& kGroup)  // advc: const 
 		}
 		else pSelectionGroupNode = nextGroupCycleNode(pSelectionGroupNode);
 	}
-	if (pPreviousGroup)
+	if (pPreviousGroup != NULL)
 	{
-		FAssert(pPreviousGroup->isCycleGroup() && pPreviousGroup->canAllMove());
+		FAssert(pPreviousGroup->isCycleGroup() && pPreviousGroup->/*canAllMove*/canAnyMove()); // advc.153
 		int iCost = pPreviousGroup->groupCycleDistance(kGroup) + 3; // cost for being at the end of the list.
 		if (iCost < iBestCost)
-			pBestSelectionGroupNode = 0;
+			pBestSelectionGroupNode = NULL;
 	}
 
-	if (pBestSelectionGroupNode)
+	if (pBestSelectionGroupNode != NULL)
 		m_groupCycle.insertBefore(kUnit.getGroupID(), pBestSelectionGroupNode);
 	else m_groupCycle.insertAtEnd(kUnit.getGroupID());
 	// <advc.154>

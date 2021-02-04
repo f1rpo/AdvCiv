@@ -491,7 +491,7 @@ bool CvSelectionGroup::doDelayedDeath()
 		pUnit->doDelayedDeath();
 	}
 
-	if (getNumUnits() == 0)
+	if (getNumUnits() <= 0)
 	{
 		kill();
 		return true;
@@ -726,7 +726,7 @@ CvPlot* CvSelectionGroup::lastMissionPlot() const
 bool CvSelectionGroup::canStartMission(
 	MissionTypes eMission, // advc: was int
 	int iData1, int iData2,
-	CvPlot const* pPlot, bool bTestVisible, bool bUseCache)
+	CvPlot const* pPlot, bool bTestVisible, bool bUseCache) /* advc: */ const
 {
 	if (bUseCache)
 	{
@@ -1987,7 +1987,7 @@ bool CvSelectionGroup::isHuman() const
 
 bool CvSelectionGroup::isBusy() const
 {
-	if (getNumUnits() == 0)
+	if (getNumUnits() <= 0)
 		return false;
 
 	if (getMissionTimer() > 0)
@@ -3339,8 +3339,7 @@ bool CvSelectionGroup::readyForMission() const
 	{
 		if (canAnyMove())
 			bCheckMoves = false;
-		else
-			return false;
+		else return false;
 	}
 
 	return (canDoMission(kData.eMissionType, kData.iData1, kData.iData2, plot(),

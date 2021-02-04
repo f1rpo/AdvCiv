@@ -6677,7 +6677,7 @@ void CvCity::updateCultureLevel(bool bUpdatePlotGroups)
 	setCultureLevel(eCultureLevel, bUpdatePlotGroups);
 }
 
-// <advc.130f> Cut from updateCultureLevel
+// advc.130f: Cut from updateCultureLevel
 CultureLevelTypes CvCity::calculateCultureLevel(PlayerTypes ePlayer) const
 {
 	int const iCultureTimes100 = getCultureTimes100(ePlayer);
@@ -6688,9 +6688,9 @@ CultureLevelTypes CvCity::calculateCultureLevel(PlayerTypes ePlayer) const
 			return eLoopLevel;
 	}
 	return (CultureLevelTypes)0;
-} // advc.130f>
+}
 
-// <advc.042> Mostly cut and pasted from CvDLLWidgetData::parseCultureHelp
+// advc.042: Mostly cut and pasted from CvDLLWidgetData::parseCultureHelp
 int CvCity::getCultureTurnsLeft() const
 {
 	int iCultureRateTimes100 = getCommerceRateTimes100(COMMERCE_CULTURE);
@@ -6703,7 +6703,7 @@ int CvCity::getCultureTurnsLeft() const
 	int r = (iCultureLeftTimes100  + iCultureRateTimes100 - 1) / iCultureRateTimes100;
 	FAssert(r != 0);
 	return r;
-} // </advc.042>
+}
 
 
 void CvCity::changeSeaPlotYield(YieldTypes eIndex, int iChange)

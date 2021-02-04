@@ -1308,7 +1308,12 @@ void CvInitCore::setTeam(PlayerTypes eID, TeamTypes eTeam)
 }
 
 void CvInitCore::setHandicap(PlayerTypes eID, HandicapTypes eHandicap)
-{
+{	/*	advc: This can happen when an unknown handicap type string was read
+		from CivilizationIV.ini. Maybe that can only happen when AdvCiv itself
+		has used and then disused a custom handicap type -- which won't happen.
+		However, if another mod can cause this problem too, then it'll be
+		important to handle it gracefully ... */
+	FAssert(eHandicap != NO_HANDICAP);
 	m_aeHandicap.set(eID, eHandicap);
 }
 

@@ -1218,7 +1218,7 @@ void CvMap::read(FDataStreamBase* pStream)
 	} // </advc.106n>
 }
 
-// save object to a stream
+
 void CvMap::write(FDataStreamBase* pStream)
 {
 	REPRO_TEST_BEGIN_WRITE("Map");
@@ -1266,8 +1266,7 @@ void CvMap::rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitud
 	kInitCore.setSeaLevel(eSeaLevel);
 	kInitCore.setCustomMapOptions(iNumCustomMapOptions, aeCustomMapOptions);
 
-	// Init map
-	init(&initData);
+	init(&initData); // Init map
 }
 
 // advc.opt:
@@ -1460,7 +1459,8 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart)
 void CvMap::getShelves(CvArea const& kArea, std::vector<Shelf*>& r) const
 {
 	int iArea = kArea.getID();
-	for(std::map<Shelf::Id,Shelf*>::const_iterator it = shelves.begin(); it != shelves.end(); ++it)
+	for(std::map<Shelf::Id,Shelf*>::const_iterator it = m_shelves.begin();
+		it != m_shelves.end(); ++it)
 	{
 		if(it->first.first == iArea)
 			r.push_back(it->second);
@@ -1470,10 +1470,12 @@ void CvMap::getShelves(CvArea const& kArea, std::vector<Shelf*>& r) const
 
 void CvMap::computeShelves()
 {
-	for(std::map<Shelf::Id,Shelf*>::iterator it = shelves.begin();it != shelves.end(); ++it)
+	for(std::map<Shelf::Id,Shelf*>::iterator it = m_shelves.begin();
+		it != m_shelves.end(); ++it)
+	{
 		SAFE_DELETE(it->second);
-	shelves.clear();
-
+	}
+	m_shelves.clear();
 	for(int i = 0; i < numPlots(); i++)
 	{
 		CvPlot& p = getPlotByIndex(i);
@@ -1489,12 +1491,12 @@ void CvMap::computeShelves()
 		for(std::set<int>::iterator it = adjLands.begin(); it != adjLands.end(); ++it)
 		{
 			Shelf::Id shelfID(*it, p.getArea().getID());
-			std::map<Shelf::Id,Shelf*>::iterator shelfPos = shelves.find(shelfID);
+			std::map<Shelf::Id,Shelf*>::iterator shelfPos = m_shelves.find(shelfID);
 			Shelf* pShelf;
-			if(shelfPos == shelves.end())
+			if(shelfPos == m_shelves.end())
 			{
 				pShelf = new Shelf();
-				shelves.insert(std::make_pair(shelfID, pShelf));
+				m_shelves.insert(std::make_pair(shelfID, pShelf));
 			}
 			else pShelf = shelfPos->second;
 			pShelf->add(&p);

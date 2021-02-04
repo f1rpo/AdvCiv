@@ -66,7 +66,7 @@ public:
 
 	bool canStartMission(MissionTypes eMission, int iData1, int iData2,									// Exposed to Python
 			CvPlot const* pPlot = NULL, bool bTestVisible = false,
-			bool bUseCache = false);
+			bool bUseCache = false) const;
 	void startMission();
 	//void continueMission(int iSteps = 0);
 	// K-Mod: Split continueMission into two functions to remove the recursion.

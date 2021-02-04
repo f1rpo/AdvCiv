@@ -6176,7 +6176,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			int iMilitaryValue = 0;
 			int iUtilityValue = 0;
 			// (note, we already checked that this tech is required for the unit.)
-			for (UnitAITypes eAI = (UnitAITypes)0; eAI < NUM_UNITAI_TYPES; eAI = (UnitAITypes)(eAI+1))
+			FOR_EACH_ENUM2(UnitAI, eAI)
 			{
 				int iWeight = 0;
 				if (eAI == kLoopUnit.getDefaultUnitAIType())
