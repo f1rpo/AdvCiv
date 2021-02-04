@@ -9584,9 +9584,13 @@ bool CvPlayer::setCommercePercent(CommerceTypes eCommerce, int iNewValue, bool b
 	updateCommerce();
 	/*	K-Mod. For human players, update commerce weight immediately
 		so that they can see effects on working plots, etc. */
-	if (isHuman() && isTurnActive())
+	if (isHuman() && isTurnActive() &&
+		/*	advc.001: Don't do this before the game is fully initialized,
+			in particular not before CvGame::initGameHandicap. */
+		getNumCities() > 0)
+	{
 		AI().AI_updateCommerceWeights();
-	// K-Mod end
+	} // K-Mod end
 	AI_makeAssignWorkDirty();
 	/*if (getTeam() == GC.getGame().getActiveTeam()) {
 		gDLL->UI().setDirty(GameData_DIRTY_BIT, true);
