@@ -10357,7 +10357,8 @@ void CvPlayer::updateGroupCycle(CvSelectionGroup const& kGroup)  // advc: const 
 		// if we find our group in the list, remove it.
 		if (&kNextGroup == &kGroup)
 			pSelectionGroupNode = deleteGroupCycleNode(pSelectionGroupNode);
-		else if (kNextGroup.isCycleGroup() && kNextGroup.canAllMove())
+		else if (kNextGroup.isCycleGroup() && //kNextGroup.canAllMove()
+			kNextGroup.canAnyMove()) // advc.153
 		{
 			//int iCost = pPreviousGroup->groupCycleDistance(pGroup) + pGroup->groupCycleDistance(pNextGroup) - pPreviousGroup->groupCycleDistance(pNextGroup);
 			int iCost = kGroup.groupCycleDistance(kNextGroup) +
@@ -10412,7 +10413,8 @@ void CvPlayer::refreshGroupCycleList()
 	{
 		CvSelectionGroup* pLoopGroup = getSelectionGroup(pNode->m_data);
 		CvUnit* pLoopHead = pLoopGroup->getHeadUnit();
-		if (pLoopHead && pLoopGroup->isCycleGroup() && pLoopGroup->canAllMove() &&
+		if (pLoopHead && pLoopGroup->isCycleGroup() && //pLoopGroup->canAllMove()
+			pLoopGroup->canAnyMove() && // advc.153
 			(pLoopHead->hasMoved() ||
 			(pLoopHead->isCargo() && pLoopHead->getTransportUnit()->hasMoved())))
 		{

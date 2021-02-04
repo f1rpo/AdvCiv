@@ -194,7 +194,7 @@ void CvSelectionGroup::doTurn()
 		return;
 	} // </advc>
 
-	bool bCouldAllMove = canAllMove(); // K-Mod
+	bool const bCouldAnyMove = canAnyMove(); // advc.153: was AllMove in K-Mod
 	CvUnit* pHeadUnit = getHeadUnit(); // advc
 	/*	K-Mod. Wake spies when they reach max fortify turns in foreign territory.
 		I'm only checking the head unit.
@@ -312,7 +312,7 @@ void CvSelectionGroup::doTurn()
 		}
 	}
 	// K-Mod
-	if (!bCouldAllMove && isCycleGroup())
+	if (!bCouldAnyMove && isCycleGroup())
 		GET_PLAYER(getOwner()).updateGroupCycle(*this);
 	// K-Mod end
 
