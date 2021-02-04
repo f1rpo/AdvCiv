@@ -4089,19 +4089,26 @@ void CvTeamAI::AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateTradeMemory)
 		return;
 	if (bUpdateTradeMemory && m_eWorstEnemy != NO_TEAM)
 	{
+		bool bUpdateWorstEnemyAgain = false;
 		for (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO> it(getID()); it.hasNext(); ++it)
 		{
-			TeamTypes eOther = it->getID();
+			TeamTypes const eOther = it->getID();
 			if(eOther == m_eWorstEnemy) // The old enemy can't have traded with itself
 				continue;
 			int iOldGrantVal = AI_getEnemyPeacetimeGrantValue(eOther);
 			int iOldTradeVal = AI_getEnemyPeacetimeTradeValue(eOther);
+			if (iOldGrantVal == 0 && iOldTradeVal == 0)
+				continue;
+			// Relations with tentative new worst enemy may improve here
+			bUpdateWorstEnemyAgain = (eOther == eBestTeam);
 			AI_setEnemyPeacetimeGrantValue(eOther, (2 * iOldGrantVal) / 3);
 			AI_setEnemyPeacetimeTradeValue(eOther, (2 * iOldTradeVal) / 3);
 		}
-		// The above loop may have improved relations with eBestTeam
-		AI_updateWorstEnemy(false);
-		return;
+		if (bUpdateWorstEnemyAgain)
+		{
+			AI_updateWorstEnemy(false);
+			return;
+		}
 	}
 	m_eWorstEnemy = eBestTeam;
 	/*  Changing EnemyPeacetime values updates the attitude cache, but that's
