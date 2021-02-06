@@ -2314,8 +2314,10 @@ def canTriggerTheVedicAryans(argsList):
 		return false
 			
 #   At least one civ on the board must know Polytheism.
+
 	bFoundValid = false
-	iTech = CvUtil.findInfoTypeNum(gc.getTechInfo, gc.getNumTechInfos(), 'TECH_POLYTHEISM')
+	# advc.311 (from BUFFY 3.19.003): Replace Polytheism with Priesthood
+	iTech = CvUtil.findInfoTypeNum(gc.getTechInfo, gc.getNumTechInfos(), 'TECH_PRIESTHOOD')
 	for iPlayer in range(gc.getMAX_CIV_PLAYERS()):			
 		loopPlayer = gc.getPlayer(iPlayer)
 		if loopPlayer.isAlive():
