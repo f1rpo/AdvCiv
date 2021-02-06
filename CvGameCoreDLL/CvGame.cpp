@@ -1330,8 +1330,14 @@ void CvGame::applyStartingLocHandicaps(
 		(BtS had not taken StartingLoc handicaps into account in team games.) */
 	std::vector<CvTeam*> apTeamsByHandicap;
 	std::vector<std::pair<CvTeam*,int> > aStartingLocPercentPerTeam;
+	// I don't think my approach can work when the teams don't have a uniform size
+	int iTeamSize = 0;
 	for (TeamIter<CIV_ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
 	{
+		if (iTeamSize == 0)
+			iTeamSize = itTeam->getNumMembers();
+		else if (iTeamSize != itTeam->getNumMembers())
+			return;
 		int iStartingLocPercent = 0;
 		MemberIter itMember(itTeam->getID());
 		for (; itMember.hasNext(); ++itMember)
