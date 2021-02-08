@@ -128,6 +128,7 @@ iBottomButtonContainerOffsetY = 113 # advc
 # END OF TURN BUTTON POSITIONS
 ######################
 iEndOfTurnButtonSize = 32
+# advc.002b (note): Also used for HORIZONTAL_MARGIN of CivicsScreen
 iEndOfTurnPosX = 296 # distance from right
 iEndOfTurnPosY = 147 # distance from bottom
 
