@@ -69,7 +69,6 @@ public:
 		accepting vassalId puts us (the would-be master) into a war. */
 	DenialTypes acceptVassal(TeamTypes vassalId) const;
 	bool isLandTarget(TeamTypes theyId) const;
-	bool isPushover(TeamTypes theyId) const;
 
 	/*  The remaining functions are only to be called while doWar
 		is being evaluated. */

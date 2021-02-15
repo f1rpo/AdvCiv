@@ -333,7 +333,7 @@ void UWAI::Team::alignAreaAI(bool isNaval) {
 					targetCity->getOwner()) > a.getCitiesPerPlayer(
 					member.getID()))) {
 				WarPlanTypes wp = GET_TEAM(agentId).AI_getWarPlan(targetCity->getTeam());
-				if(!isPushover(targetCity->getTeam()) ||
+				if(!GET_TEAM(agentId).AI_isPushover(targetCity->getTeam()) ||
 						(wp != WARPLAN_TOTAL && wp != WARPLAN_PREPARING_TOTAL)) {
 					// Make sure there isn't an easily reachable target in the capital area
 					TeamPathFinder<TeamPath::LAND> pf(GET_TEAM(agentId),
@@ -1225,7 +1225,7 @@ void UWAI::Team::scheme() {
 		if(!canSchemeAgainst(targetId, false))
 			continue;
 		report->log("Scheming against %s", report->teamName(targetId));
-		bool shortWork = isPushover(targetId);
+		bool shortWork = agent.AI_isPushover(targetId);
 		if(shortWork)
 			report->log("Target assumed to be short work");
 		bool skipTotal = (agent.AI_isAnyWarPlan() || shortWork);
@@ -1908,17 +1908,6 @@ bool UWAI::Team::isLandTarget(TeamTypes theyId) const {
 	return false;
 }
 
-bool UWAI::Team::isPushover(TeamTypes theyId) const {
-
-	CvTeam const& they = GET_TEAM(theyId);
-	CvTeam const& agent = GET_TEAM(agentId);
-	int theirCities = they.getNumCities();
-	int agentCities = agent.getNumCities();
-	return ((theirCities <= 1 && agentCities >= 3) ||
-			4 * theirCities < agentCities) &&
-			10 * they.getPower(true) < 4 * agent.getPower(false);
-}
-
 void UWAI::Team::startReport() {
 
 	bool doReport = isReportTurn();
@@ -2416,8 +2405,8 @@ double UWAI::Civ::militaryPower(CvUnitInfo const& u, double baseValue) const {
 	//if(u.isSuicide()) r *= 1.33; // all missiles
 
 	/*  Combat odds don't increase linearly with strength. Use a power law
-		with a power between 1.5 and 2 (configured in XML; 1.7 for now). */
-	r = pow(r, (double)GC.getPOWER_CORRECTION());
+		with a power between 1.5 and 2 (configured in XML). */
+	r = pow(r, GC.getDefineINT(CvGlobals::POWER_CORRECTION) / 100.0);
 	return r;
 }
 

@@ -2971,6 +2971,17 @@ int CvTeamAI::AI_getEnemyPowerPercent(bool bConsiderOthers) const
 	// K-Mod end
 }
 
+// advc.105, advc.104:
+bool CvTeamAI::AI_isPushover(TeamTypes ePotentialEnemy) const
+{
+	CvTeam const& kPotentialEnemy = GET_TEAM(ePotentialEnemy);
+	int iTheirCities = kPotentialEnemy.getNumCities();
+	int iOurCities = getNumCities();
+	return (((iTheirCities <= 1 && iOurCities >= 3) ||
+			4 * iTheirCities < iOurCities) &&
+			10 * kPotentialEnemy.getPower(true) < 4 * getPower(false));
+}
+
 // K-Mod
 int CvTeamAI::AI_getAirPower() const
 {

@@ -130,8 +130,8 @@ public:
 	bool AI_anyMemberAtVictoryStage3() const;
 
 	int AI_getWarSuccessRating() const; // K-Mod
-
 	int AI_getEnemyPowerPercent(bool bConsiderOthers = false) const;
+	bool AI_isPushover(TeamTypes ePotentialEnemy) const; // advc.105
 	int AI_getAirPower() const; // K-Mod
 	int AI_getRivalAirPower() const;
 	// K-Mod. (refuse peace when we need war for conquest victory.)

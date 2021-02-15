@@ -2288,14 +2288,14 @@ int Effort::preEvaluate() {
 		for(PlyrSetIter it = weCont.begin(); it != weCont.end(); ++it) {
 			if(we->AI_hasSharedPrimaryArea(*it))
 				allWarsLongDist = false;
-			if(!agent.uwai().isPushover(TEAMID(*it)))
+			if(!agent.AI_isPushover(TEAMID(*it)))
 				allPushOver = false;
 		}
 		PlyrSet const& weDecl = m->getWarsDeclaredBy(weId);
 		for(PlyrSetIter it = weDecl.begin(); it != weDecl.end(); ++it) {
 			if(we->AI_hasSharedPrimaryArea(*it))
 				allWarsLongDist = false;
-			if(!agent.uwai().isPushover(TEAMID(*it)))
+			if(!agent.AI_isPushover(TEAMID(*it)))
 				allPushOver = false;
 		}
 		if(allPushOver) {
@@ -3002,7 +3002,7 @@ void Distraction::evaluate() {
 	int numPotentialWars = 0;
 	for(TeamIter<FREE_MAJOR_CIV,POTENTIAL_ENEMY_OF> it(TEAMID(theyId)); it.hasNext(); ++it) {
 		TeamTypes tId = it->getID();
-		if(!agent.isHasMet(tId) || agent.uwai().isPushover(tId) ||
+		if(!agent.isHasMet(tId) || agent.AI_isPushover(tId) ||
 				(!agent.uwai().canReach(tId) &&
 				!GET_TEAM(tId).uwai().canReach(agentId)))
 			continue;
@@ -3282,7 +3282,7 @@ void FairPlay::evaluate() {
 			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR) < -2 ||
 			they->AI_atVictoryStage3() ||
 			// Then our attack dooms them regardless of other war parties
-			(agent.uwai().isPushover(TEAMID(theyId)) &&
+			(agent.AI_isPushover(TEAMID(theyId)) &&
 			(!they->isHuman() || they->getCurrentEra() > 0)) ||
 			/*  If they can't win anymore, we shouldn't hold back. Don't want to
 				leave all the loot to others. A human with such poor war success
@@ -3628,7 +3628,7 @@ void TacticalSituation::evalEngagement() {
 	} // (end of  profile scope)
 	// Don't count entangled units on missions
 	ourMissions = std::max(0, ourMissions - entangled);
-	if(ourMissions > 0 && agent.uwai().isPushover(TEAMID(theyId))) {
+	if(ourMissions > 0 && agent.AI_isPushover(TEAMID(theyId))) {
 		/*  If the target is weak, even a small fraction of our military en route
 			could have a big impact once it arrives. */
 		ourMissions *= 3;

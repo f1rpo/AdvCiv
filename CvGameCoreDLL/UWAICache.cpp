@@ -552,7 +552,7 @@ void UWAICache::updateWarUtilityIgnDistraction(TeamTypes targetId) {
 	// Just limited war and naval based on AI_isLandTarget is good enough here
 	if(wp == NO_WARPLAN) {
 		wp = WARPLAN_PREPARING_LIMITED;
-		if(!agent.uwai().isPushover(targetId))
+		if(!agent.AI_isPushover(targetId))
 			prepTime = 5;
 	}
 	warUtilityIgnDistraction.set(targetId, eval.evaluate(

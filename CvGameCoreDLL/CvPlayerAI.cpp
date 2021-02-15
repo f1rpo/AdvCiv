@@ -14477,12 +14477,41 @@ bool CvPlayerAI::AI_isFocusWar(CvArea const* pArea) const
 		return false;
 	if(pArea == NULL)
 		pArea = getCapital()->area();
-	/*  Chosen wars (ongoing or in preparation) are always worth focusing on;
+	if (AI_isDoStrategy(AI_STRATEGY_ALERT2))
+		return true;
+	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
+	/*  Chosen wars (ongoing or in preparation) are generally worth focusing on;
 		others only when on the defensive. (In CvTeamAI::AI_calculateAreaAIType,
 		bTargets and bDeclaredTargets are computed in a similar way .) */
-	return (GET_TEAM(getTeam()).AI_isAnyChosenWar() ||
-			pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE ||
-			AI_isDoStrategy(AI_STRATEGY_ALERT2));
+	if (!kOurTeam.AI_isAnyChosenWar() &&
+		pArea->getAreaAIType(getTeam()) != AREAAI_DEFENSIVE)
+	{
+		return false;
+	}
+	// Much weaker targets aren't worth focusing on (except maybe when there are multiple)
+	bool bFirst = true;
+	for (TeamIter<CIV_ALIVE,KNOWN_POTENTIAL_ENEMY_OF> itTeam(getTeam());
+		itTeam.hasNext(); ++itTeam)
+	{
+		if (kOurTeam.AI_getWarPlan(itTeam->getID()) != NO_WARPLAN)
+		{
+			if (!kOurTeam.AI_isPushover(itTeam->getID()))
+				return true;
+			CvCity const* pEnemyCapital = NULL;
+			for (MemberIter itMember(itTeam->getID());
+				pEnemyCapital == NULL && itMember.hasNext(); ++itMember)
+			{
+				pEnemyCapital = itMember->getCapital();
+			}
+			if (pEnemyCapital != NULL && pEnemyCapital->isArea(*pArea))
+			{
+				if (!bFirst) // Multiple wars
+					return true;
+				bFirst = true;
+			}
+		}
+	}
+	return false;
 }
 
 int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot const& kPlot, bool bTestCanMove) const

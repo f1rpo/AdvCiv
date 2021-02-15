@@ -211,11 +211,11 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		navalArmament = params.isNaval();
 	/*  Assume that war against a single small enemy doesn't increase the
 		build-up intensity. Otherwise, the AI will tend to leave 1 or 2 cities
-		alive. Would be cleaner to assume a shorter time horizon, but that's a
-		can of worms. */
+		alive. Consistent with CvPlayerAI::AI_isFocusWar.
+		Would be cleaner to assume a shorter time horizon, but that's a can of worms. */
 	if(singleWarEnemy != NO_TEAM && !navalArmament && iTotalWars <= 0 &&
 			iWarPlans <= 1 && !civ.AI_isDoStrategy(AI_STRATEGY_ALERT1 | AI_STRATEGY_ALERT2) &&
-			t.uwai().isPushover(singleWarEnemy)) {
+			t.AI_isPushover(singleWarEnemy)) {
 		intensity = NORMAL;
 		fictionalScenario = true; // Don't check AreAI either
 	}
@@ -264,7 +264,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 				report.log("Using estimated intensity for forecast");
 				if(intensity <= NORMAL && GET_TEAM(civ.getTeam()).
 						isAtWar(TEAMID(weId)) && !GET_TEAM(civ.getTeam()).
-						uwai().isPushover(TEAMID(weId))) {
+						AI_isPushover(TEAMID(weId))) {
 					// Have to expect that human will increase build-up as necessary
 					intensity = INCREASED;
 					report.log("Increased intensity for human at war with us");
