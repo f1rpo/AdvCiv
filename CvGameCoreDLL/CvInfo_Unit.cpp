@@ -310,6 +310,20 @@ int CvUnitInfo::py_getPrereqOrBonuses(int i) const
 		return NO_BONUS;
 	return m_aePrereqOrBonuses[i];
 } // </advc.003t>
+// <advc.905b>
+int CvUnitInfo::py_getSpeedBonuses(int i) const
+{
+	if (i < 0 || i >= getNumSpeedBonuses())
+		return NO_BONUS;
+	return m_aeiSpeedBonuses[i].first;
+}
+
+int CvUnitInfo::py_getExtraMoves(int i) const
+{
+	if (i < 0 || i >= getNumSpeedBonuses())
+		return 0;
+	return m_aeiSpeedBonuses[i].second;
+} // </advc.905>
 
 int CvUnitInfo::getProductionTraits(int i) const
 {

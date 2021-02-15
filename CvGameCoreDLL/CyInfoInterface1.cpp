@@ -316,8 +316,8 @@ void CyInfoPythonInterface1()
 		.def("getPrereqAndTechs", &CvUnitInfo::py_getPrereqAndTechs, "int (int i)")
 		.def("getPrereqOrBonuses", &CvUnitInfo::py_getPrereqOrBonuses, "int (int i)")
 		// <advc.905b>
-		.def("getSpeedBonuses", &CvUnitInfo::getSpeedBonuses, "int (int i)")
-		.def("getExtraMoves", &CvUnitInfo::getExtraMoves, "int (int i)")
+		.def("getSpeedBonuses", &CvUnitInfo::py_getSpeedBonuses, "int (int i)")
+		.def("getExtraMoves", &CvUnitInfo::py_getExtraMoves, "int (int i)")
 		// </advc.905b>
 		.def("getProductionTraits", &CvUnitInfo::getProductionTraits, "int (int i)")
 		.def("getFlavorValue", &CvUnitInfo::getFlavorValue, "int (int i)")

@@ -245,7 +245,10 @@ public: /*  All const functions are exposed to Python except some related to art
 	{
 		FAssertBounds(0, getNumSpeedBonuses(), i);
 		return m_aeiSpeedBonuses[i].second;
-	} // </advc.905b>
+	}
+	int py_getSpeedBonuses(int i) const;
+	int py_getExtraMoves(int i) const;
+	// </advc.905b>
 	int getProductionTraits(int i) const;
 	int getFlavorValue(int i) const;
 	int getTerrainAttackModifier(int i) const;
