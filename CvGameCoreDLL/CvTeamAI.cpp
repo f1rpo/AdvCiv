@@ -411,14 +411,14 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea const& kArea, bool bPreparin
 			bRecentAttack = true;
 		}
 
-		if (kTarget.countNumCitiesByArea(kArea) > 0
+		if (kTarget.countNumCitiesByArea(kArea) > 0 &&
 				//|| GET_TEAM((TeamTypes)iI).countNumUnitsByArea(kArea) > 4)
 			/*  advc.104s: Replacing the above. Setting AreaAI to ASSAULT won't stop
 				the AI from fighting any landed units. Need to focus on cities.
 				isLandTarget makes sure that there are reachable cities. Still check
 				city count for efficiency (there can be a lot of land areas to
 				calculate AI types for). */
-			&& AI_isLandTarget(eTarget))
+			AI_isLandTarget(eTarget))
 		{
 			bTargets = true;
 			if (AI_isChosenWar(eTarget))
@@ -556,12 +556,12 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea const& kArea, bool bPreparin
 
 	if (bTargets)
 	{
-		if (iAreaCities > (getNumMembers() * 3))
+		if (iAreaCities > getNumMembers() * 3)
 		{
 			if (GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI) ||
 				GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR) ||
-				(countPowerByArea(kArea) >
-				((AI_countEnemyPowerByArea(kArea) * 3) / 2)))
+				(countPowerByArea(kArea) * 2 >
+				AI_countEnemyPowerByArea(kArea) * 3))
 			{
 				return AREAAI_MASSING;
 			}
@@ -3001,9 +3001,10 @@ int CvTeamAI::AI_getAirPower() const
 	return iTotalPower;
 }
 
-// Sum up air power of enemies plus average of other civs we've met
-// K-Mod: I've rewritten this BBAI function to loop over unit classes rather than unit types.
-// This is because a loop over unit types will double-count if there are two units in the same class.
+/*	Sum up air power of enemies plus average of other civs we've met
+	K-Mod: I've rewritten this BBAI function to loop over unit classes
+	rather than unit types. This is because a loop over unit types will double-count
+	if there are two units in the same class. */
 int CvTeamAI::AI_getRivalAirPower() const
 {
 	std::vector<UnitTypes> aeAirUnitTypes; // advc.opt: Compute these upfront
@@ -3014,8 +3015,10 @@ int CvTeamAI::AI_getRivalAirPower() const
 		if (eLoopUnit == NO_UNIT)
 			continue;
 		if (GC.getInfo(eLoopUnit).getDomainType() == DOMAIN_AIR &&
-				GC.getInfo(eLoopUnit).getAirCombat() > 0)
+			GC.getInfo(eLoopUnit).getAirCombat() > 0)
+		{
 			aeAirUnitTypes.push_back(eLoopUnit); // advc.opt
+		}
 	}
 
 	// Count enemy air units, not just those visible to us
@@ -5497,7 +5500,7 @@ void CvTeamAI::AI_doCounter()
 	}
 }
 
-// BETTER_BTS_AI_MOD, War Strategy AI, 03/26/10, jdog5000: START
+// BETTER_BTS_AI_MOD, War Strategy AI, 03/26/10, jdog5000:
 // Block AI from declaring war on a distant vassal if it shares an area with the master
 /*  advc.104j (comment): Since a war plan against a master implies a war plan
 	against its vassal, I don't think this function is relevant anymore. */
@@ -5525,7 +5528,7 @@ bool CvTeamAI::AI_isOkayVassalTarget(TeamTypes eTeam) const
 
 	return true;
 	// K-Mod end
-} // BETTER_BTS_AI_MOD: END
+}
 
 // advc: Cut from doWar; only relevant if UWAI disabled.
 void CvTeamAI::AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier,

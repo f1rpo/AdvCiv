@@ -65,6 +65,10 @@
 	Gets in the way of deriving base classes from boost::noncopyable. */
 #pragma warning(disable: 511)
 
+/*	"assignment within conditional expression"
+	A little annoying, but rarely so; perhaps worth having. */
+//#pragma warning(disable: 706)
+
 /*	"local variable is initialized but not referenced"
 	Helpful, but still want to be able to define variables
 	temporarily just for inspecting them in the debugger. */

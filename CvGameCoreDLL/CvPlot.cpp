@@ -4298,17 +4298,18 @@ void CvPlot::resetFeatureModel()
 
 BonusTypes CvPlot::getBonusType(TeamTypes eTeam) const
 {
-	BonusTypes r = (BonusTypes)m_eBonusType; // advc
-	if (eTeam != NO_TEAM && r != NO_BONUS)
+	BonusTypes eR = (BonusTypes)m_eBonusType;
+	if (eTeam != NO_TEAM && eR != NO_BONUS)
 	{
-		if (!GET_TEAM(eTeam).isBonusRevealed(r)) // K-Mod: moved into helper function
+		if (!GET_TEAM(eTeam).isBonusRevealed(eR)) // K-Mod: moved into helper function
 			return NO_BONUS;
 	}
-	return r;
+	return eR;
 }
 
 
-BonusTypes CvPlot::getNonObsoleteBonusType(TeamTypes eTeam, bool bCheckConnected) const // K-Mod added bCheckConnected
+BonusTypes CvPlot::getNonObsoleteBonusType(TeamTypes eTeam,
+	bool bCheckConnected) const // K-Mod
 {
 	FAssert(eTeam != NO_TEAM);
 	FAssert(GET_TEAM(eTeam).isAlive()); // K-Mod
@@ -4322,16 +4323,19 @@ BonusTypes CvPlot::getNonObsoleteBonusType(TeamTypes eTeam, bool bCheckConnected
 	// K-Mod
 	if (bCheckConnected)
 	{
-		// note: this checks whether the bonus is connected for the owner of the plot, from the point of view of eTeam.
+		/*	note: this checks whether the bonus is connected for the owner of the plot,
+			from the point of view of eTeam. */
 		TeamTypes ePlotTeam = getTeam();
 		if (ePlotTeam == NO_TEAM ||
 			!GET_TEAM(ePlotTeam).isHasTech(GC.getInfo(eBonus).getTechCityTrade()))
 		{
 			return NO_BONUS;
 		}
-		// note: this function is used inside CvPlot::updatePlotGroupBonuses, which is called during CvPlot::setImprovementType
-		// between when the improvement is changed and the revealed improvement type is updated...
-		// therefore when eTeam == ePlotTeam, we use the real improvement, not the revealed one.
+		/*	note: this function is used inside CvPlot::updatePlotGroupBonuses,
+			which is called during CvPlot::setImprovementType between when
+			the improvement is changed and the revealed improvement type is updated...
+			therefore when eTeam == ePlotTeam, we use the real improvement,
+			not the revealed one. */
 		ImprovementTypes eImprovement = (eTeam == NO_TEAM || eTeam == ePlotTeam ?
 				getImprovementType() : getRevealedImprovementType(eTeam));
 
@@ -4348,7 +4352,7 @@ BonusTypes CvPlot::getNonObsoleteBonusType(TeamTypes eTeam, bool bCheckConnected
 void CvPlot::setBonusType(BonusTypes eNewValue)
 {
 	if(getBonusType() == eNewValue)
-		return; // advc
+		return;
 
 	if (getBonusType() != NO_BONUS)
 	{

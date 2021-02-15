@@ -7245,8 +7245,8 @@ void CvPlayerAI::AI_updateAttitude(PlayerTypes ePlayer, /* advc.130e: */ bool bU
 	// </advc.sha>
 	/*  advc.130c: Disable rank bonus for civs in the bottom half of the leaderboard.
 		Caveat in case this code fragment is re-activated: ranks start at 0. */
-	/*if ((GC.getGame().getPlayerRank(getID()) >= (GC.getGame().getCivPlayersEverAlive() / 2)) &&
-		  (GC.getGame().getPlayerRank(ePlayer) >= (GC.getGame().getCivPlayersEverAlive() / 2)))
+	/*if ((GC.getGame().getPlayerRank(getID()) * 2 >= GC.getGame().getCivPlayersEverAlive()) &&
+		  (GC.getGame().getPlayerRank(ePlayer) * 2 >= GC.getGame().getCivPlayersEverAlive()))
 		iAttitude++;*/
 	iAttitude += AI_getCloseBordersAttitude(ePlayer);
 	iAttitude += AI_getPeaceAttitude(ePlayer);
@@ -8121,7 +8121,7 @@ int CvPlayerAI::AI_getTeamSizeAttitude(PlayerTypes ePlayer) const
 			GET_TEAM(getTeam()).getNumMembers()));
 }
 
-// <advc.130c>
+// advc.130c:
 int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const
 {
 	// Cached separately to avoid updating the whole cache w/e scores change
@@ -8173,7 +8173,7 @@ int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const
 	if(iResult < 0 && AI_atVictoryStage3() && !GET_PLAYER(ePlayer).AI_atVictoryStage4())
 		return 0;
 	return iResult;
-} // </advc.130c>
+}
 
 int CvPlayerAI::AI_getLostWarAttitude(PlayerTypes ePlayer) const
 {
@@ -8212,7 +8212,7 @@ int CvPlayerAI::AI_knownRankDifference(PlayerTypes eOther) const
 			iDelta++;
 	}
 	return iDelta;
-} // </advc.130c>
+}
 
 // advc: Refactored (superficially; should really be in a separate class etc.)
 PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData,
@@ -14737,128 +14737,129 @@ int CvPlayerAI::AI_missionaryValue(ReligionTypes eReligion, CvArea const* pArea 
 	// BETTER_BTS_AI_MOD: END
 }
 
-// K-Mod note: the original BtS code for this was totally inconsistent with the calculation in AI_missionaryValue
-// -- which is bad news since the results are compared directly.
-// I've rewritten most of this function so that it is more sane and more comparable to the missionary value.
-// The original code is deleted.
-// Currently, the return value has units of roughly (and somewhat arbitrarily) 1000 * commerce per turn.
+/*	K-Mod note: the original BtS code for this was totally inconsistent
+	with the calculation in AI_missionaryValue -- which is bad news
+	since the results are compared directly.
+	I've rewritten most of this function so that it is more sane and
+	more comparable to the missionary value. The original code is deleted.
+	Currently, the return value has units of roughly (and somewhat arbitrarily)
+	1000 * commerce per turn. */
 int CvPlayerAI::AI_executiveValue(CorporationTypes eCorporation, CvArea const* pArea, // advc: switched these two params
 	PlayerTypes* peBestPlayer, bool bSpreadOnly) const
 {
 	PROFILE_FUNC();
-	CvGame& kGame = GC.getGame();
-	CvCorporationInfo& kCorp = GC.getInfo(eCorporation);
-
+	CvGame const& kGame = GC.getGame();
 	int iSpreadExternalValue = 0;
 	int iExistingExecs = 0;
-	if (pArea != NULL)
+	/*	bSpreadOnly means that we are not calculating the value of producing a new exec.
+		Just the value of spreading. */
+	if (pArea != NULL && !bSpreadOnly)
 	{
-		iExistingExecs += bSpreadOnly ? 0 : std::max(0, countCorporationSpreadUnits(pArea, eCorporation, true) - 1);
-		// K-Mod note, -1 just so that we can build a spare, perhaps to airlift to another area. ("-1" execs is ok.)
-		// bSpreadOnly means that we are not calculating the value of building a new exec. Just the value of spreading.
+		/*	K-Mod note: -1 just so that we can build a spare,
+			perhaps to airlift to another area. ("-1" execs is ok.) */
+		iExistingExecs += std::max(0, countCorporationSpreadUnits(pArea, eCorporation, true) - 1);
 	}
-
+	CvCorporationInfo const& kCorporation = GC.getInfo(eCorporation);
 	if (GET_TEAM(getTeam()).hasHeadquarters(eCorporation))
 	{
 		int iHqValue = 0;
-		CvCity* kHqCity = kGame.getHeadquarters(eCorporation);
-		for (CommerceTypes i = (CommerceTypes)0; i < NUM_COMMERCE_TYPES; i=(CommerceTypes)(i+1))
+		CvCity const& kHqCity = *kGame.getHeadquarters(eCorporation);
+		FOR_EACH_ENUM(Commerce)
 		{
-			if (kCorp.getHeadquarterCommerce(i))
-				iHqValue += kCorp.getHeadquarterCommerce(i) * kHqCity->getTotalCommerceRateModifier(i) * AI_commerceWeight(i)/100;
+			if (kCorporation.getHeadquarterCommerce(eLoopCommerce))
+			{
+				iHqValue += (kCorporation.getHeadquarterCommerce(eLoopCommerce) *
+						kHqCity.getTotalCommerceRateModifier(eLoopCommerce) *
+						AI_commerceWeight(eLoopCommerce)) / 100;
+			}
 		}
-
 		iSpreadExternalValue += iHqValue;
 	}
 
 	int iBestPlayer = NO_PLAYER;
 	int iBestValue = 0;
-	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
+	for (PlayerIter<MAJOR_CIV> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		const CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-		int iNumCities = pArea ? pArea->getCitiesPerPlayer((PlayerTypes)iPlayer) : kLoopPlayer.getNumCities();
-		if (kLoopPlayer.isAlive() && iNumCities > 0)
+		CvPlayerAI const& kLoopPlayer = *itPlayer;
+		int const iCities = (pArea == NULL ? kLoopPlayer.getNumCities() :
+				pArea->getCitiesPerPlayer(kLoopPlayer.getID()));
+		if (iCities <= 0 || kLoopPlayer.isNoCorporations())
+			continue;	
+		if (kLoopPlayer.getID() != getID() && kLoopPlayer.isNoForeignCorporations())
+			continue;
+		if (!GET_TEAM(getTeam()).canPeacefullyEnter(kLoopPlayer.getTeam()))
+			continue;
+		int iAttitudeWeight;
+		if (kLoopPlayer.getTeam() == getTeam())
+			iAttitudeWeight = 100;
+		else if (GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam()))
+			iAttitudeWeight = 50;
+		else
 		{
-			if (GET_TEAM(getTeam()).canPeacefullyEnter(kLoopPlayer.getTeam()))
-			{
-				if (!kLoopPlayer.isNoCorporations() && (iPlayer == getID() || !kLoopPlayer.isNoForeignCorporations()))
-				{
-					int iAttitudeWeight;
+			iAttitudeWeight = AI_getAttitudeWeight(kLoopPlayer.getID())
+					/*	note: this is to discourage automated human units
+						from spreading to the AI, not AI to human. */
+					-(isHuman() ? 100 : 75);
+		}
+		// a rough check to save us some time.
+		if (iAttitudeWeight <= 0 && iSpreadExternalValue <= 0)
+			continue;
 
-					if (kLoopPlayer.getTeam() == getTeam())
-						iAttitudeWeight = 100;
-					else if (GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam()))
-						iAttitudeWeight = 50;
-					else
-						iAttitudeWeight = AI_getAttitudeWeight((PlayerTypes)iPlayer) - (isHuman() ? 100 : 75);
-					// note: this is to discourage automated human units from spreading to the AI, not AI to human.
+		int iCitiesHave = kLoopPlayer.countCorporations(eCorporation, pArea);
+		if (iCitiesHave + iExistingExecs >= iCities)
+				continue;
 
-					// a rough check to save us some time.
-					if (iAttitudeWeight <= 0 && iSpreadExternalValue <= 0)
-						continue;
-
-					int iCitiesHave = kLoopPlayer.countCorporations(eCorporation, pArea);
-
-					if (iCitiesHave + iExistingExecs >= iNumCities)
-						continue;
-
-					int iCorpValue = kLoopPlayer.AI_corporationValue(eCorporation);
-					int iValue = iSpreadExternalValue;
-					iValue += (iCorpValue * iAttitudeWeight)/100;
-					if (iValue > 0 && iCorpValue > 0 && iCitiesHave == 0 && iExistingExecs == 0)
-					{
-						// if the player will spread the corp themselves, then that's good for us.
-						if (iAttitudeWeight >= 50)
-						{
-							// estimate spread to 2/3 of total cities.
-							iValue *= (2*kLoopPlayer.getNumCities()+1)/3;
-						}
-						else
-						{
-							// estimate spread to 1/4 of total cities, rounded up.
-							iValue *= (kLoopPlayer.getNumCities()+3)/4;
-						}
-					}
-					if (iValue > iBestValue)
-					{
-						for (int iCorp = 0; iCorp < GC.getNumCorporationInfos(); iCorp++)
-						{
-							if (kGame.isCorporationFounded((CorporationTypes)iCorp) && kGame.isCompetingCorporation(eCorporation, (CorporationTypes)iCorp))
-							{
-								int iExtra = kLoopPlayer.countCorporations((CorporationTypes)iCorp, pArea);
-
-								if (iExtra > 0 && iCorpValue > kLoopPlayer.AI_corporationValue((CorporationTypes)iCorp)*4/3) // (ideally, hq should be considered too)
-									iExtra /= 2;
-
-								iCitiesHave += iExtra;
-							}
-						}
-
-						if (iCitiesHave + iExistingExecs >= iNumCities)
-							continue;
-
-						iBestValue = iValue;
-						iBestPlayer = iPlayer;
-					}
-				}
+		int iCorpValue = kLoopPlayer.AI_corporationValue(eCorporation);
+		int iValue = iSpreadExternalValue + (iCorpValue * iAttitudeWeight) / 100;
+		if (iValue > 0 && iCorpValue > 0 && iCitiesHave == 0 && iExistingExecs == 0)
+		{
+			// if the player will spread the corp themselves, then that's good for us.
+			if (iAttitudeWeight >= 50)
+			{	// estimate spread to 2/3 of total cities.
+				iValue *= (2*kLoopPlayer.getNumCities() + 1) / 3;
+			}
+			else
+			{	// estimate spread to 1/4 of total cities, rounded up.
+				iValue *= (kLoopPlayer.getNumCities() + 3) / 4;
 			}
 		}
+		if (iValue <= iBestValue)
+			continue;
+		FOR_EACH_ENUM2(Corporation, eLoopCorp)
+		{
+			if (kGame.isCorporationFounded(eLoopCorp) &&
+				kGame.isCompetingCorporation(eCorporation, eLoopCorp))
+			{
+				int iExtra = kLoopPlayer.countCorporations(eLoopCorp, pArea);
+				if (iExtra > 0 && // (ideally, hq should be considered too)
+					iCorpValue * 3 > kLoopPlayer.AI_corporationValue(eLoopCorp) * 4)
+				{
+					iExtra /= 2;
+				}
+				iCitiesHave += iExtra;
+			}
+		}
+		if (iCitiesHave + iExistingExecs >= iCities)
+			continue;
+		iBestValue = iValue;
+		iBestPlayer = kLoopPlayer.getID();
 	}
-
 	if (peBestPlayer != NULL)
 		*peBestPlayer = (PlayerTypes)iBestPlayer;
-
-	// I'm putting in a fudge-factor of 10 just to bring the value up to scale with AI_missionaryValue.
-	// This isn't something that i'm happy about, but it's easier than rewriting AI_missionaryValue.
+	/*	I'm putting in a fudge-factor of 10 just to bring the value
+		up to scale with AI_missionaryValue. This isn't something that i'm happy about,
+		but it's easier than rewriting AI_missionaryValue. */
 	return 10 * iBestValue;
 }
 
-// This function has been completely rewritten for K-Mod. The original code has been deleted. (it was junk)
-// Returns approximately 100 x gpt value of the corporation, for one city.
-int CvPlayerAI::AI_corporationValue(CorporationTypes eCorporation, CvCityAI const* pCity) const // advc.003u: param was const CvCity*
+/*	This function has been completely rewritten for K-Mod.
+	The original code has been deleted. (it was junk)
+	Returns approximately 100 x gpt value of the corporation, for one city. */
+int CvPlayerAI::AI_corporationValue(CorporationTypes eCorporation,
+	CvCityAI const* pCity) const // advc.003u: was CvCity
 {
-	const CvTeamAI& kTeam = GET_TEAM(getTeam());
-	CvCorporationInfo& kCorp = GC.getInfo(eCorporation);
+	CvTeamAI const& kTeam = GET_TEAM(getTeam());
+	CvCorporationInfo const& kCorp = GC.getInfo(eCorporation);
 	int iValue = 0;
 	int iMaintenance = 0;
 
@@ -14953,7 +14954,7 @@ int CvPlayerAI::AI_corporationValue(CorporationTypes eCorporation, CvCityAI cons
 		if (!kTeam.isHasTech(GC.getInfo(eBonusProduced).getTechReveal()))
 			iBonuses++;
 		iValue += AI_baseBonusVal(eBonusProduced) * 25 /
-				(1 + 2 * iBonuses * (iBonuses+3));
+				(1 + 2 * iBonuses * (iBonuses + 3));
 	}
 
 	return iValue;
@@ -16737,48 +16738,48 @@ int CvPlayerAI::AI_GPModifierCivicVal(std::vector<int>& kBaseRates, int iModifie
 
 ReligionTypes CvPlayerAI::AI_bestReligion() const
 {
-	int iBestValue = 0;
 	ReligionTypes eBestReligion = NO_RELIGION;
-	ReligionTypes eFavorite = (ReligionTypes)GC.getInfo(getLeaderType()).getFavoriteReligion();
-	for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
+	int iBestValue = 0;
+	ReligionTypes const eFavorite = (ReligionTypes)GC.getInfo(getLeaderType()).
+			getFavoriteReligion();
+	FOR_EACH_ENUM(Religion)
 	{
-		if (canDoReligion((ReligionTypes)iI))
+		if (canDoReligion(eLoopReligion))
 		{
-			int iValue = AI_religionValue((ReligionTypes)iI);
+			int iValue = AI_religionValue(eLoopReligion);
 
-			/*if (getStateReligion() == ((ReligionTypes)iI)) {
+			/*if (getStateReligion() == eLoopReligion) {
 				iValue *= 4;
 				iValue /= 3;
 			}*/ // BtS
 			// K-Mod
-			if (iI == getStateReligion() && getReligionAnarchyLength() > 0)
+			if (eLoopReligion == getStateReligion() && getReligionAnarchyLength() > 0)
 			{
 				if (AI_isFirstTech(getCurrentResearch()) ||
-						//GET_TEAM(getTeam()).getAnyWarPlanCount(true))
-						AI_isFocusWar()) // advc.105
+					//GET_TEAM(getTeam()).getAnyWarPlanCount(true))
+					AI_isFocusWar()) // advc.105
+				{
 					iValue = iValue*3/2;
+				}
 				else iValue = iValue*4/3;
 			}
 			// K-Mod end
 
-			if (eFavorite == iI)
+			if (eLoopReligion == eFavorite)
 			{
 				iValue *= 5;
 				iValue /= 4;
 			}
-
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;
-				eBestReligion = ((ReligionTypes)iI);
+				eBestReligion = eLoopReligion;
 			}
 		}
 	}
 
-	if ((NO_RELIGION == eBestReligion) || AI_isDoStrategy(AI_STRATEGY_MISSIONARY))
-	{
+	if (eBestReligion == NO_RELIGION || AI_isDoStrategy(AI_STRATEGY_MISSIONARY))
 		return eBestReligion;
-	}
 
 	/* int iBestCount = getHasReligionCount(eBestReligion);
 	int iSpreadPercent = (iBestCount * 100) / std::max(1, getNumCities());
@@ -16791,13 +16792,16 @@ ReligionTypes CvPlayerAI::AI_bestReligion() const
 		return NO_RELIGION;
 	} */ // disabled by K-Mod
 	// K-Mod. Don't instantly convert to the first religion avaiable, unless it is your own religion.
-	int iSpread = getHasReligionCount(eBestReligion) * 100 / std::min(GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities()*3/2+1, getNumCities()+1);
-	if (getStateReligion() == NO_RELIGION && iSpread < 29 - AI_getFlavorValue(FLAVOR_RELIGION)
-		&& (GC.getGame().getHolyCity(eBestReligion) == NULL || GC.getGame().getHolyCity(eBestReligion)->getTeam() != getTeam()))
+	int iSpread = getHasReligionCount(eBestReligion) * 100 /
+			std::min(getNumCities() + 1,
+			(GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities() * 3) /2 + 1);
+	if (getStateReligion() == NO_RELIGION &&
+		iSpread < 29 - AI_getFlavorValue(FLAVOR_RELIGION) &&
+		(GC.getGame().getHolyCity(eBestReligion) == NULL ||
+		GC.getGame().getHolyCity(eBestReligion)->getTeam() != getTeam()))
 	{
 		return NO_RELIGION;
-	}
-	// K-Mod end
+	} // K-Mod end
 
 	return eBestReligion;
 }
@@ -19670,7 +19674,7 @@ void CvPlayerAI::AI_doDiplo()
 				!kPlayer.AI_atVictoryStage3() && // </advc.130z>
 				canPossiblyTradeItem(ePlayer, TRADE_TECHNOLOGIES)) // advc.opt
 			{
-				if (GET_TEAM(ePlayer).getAssets() < kOurTeam.getAssets() / 2)
+				if (GET_TEAM(ePlayer).getAssets() * 2 < kOurTeam.getAssets())
 				{
 					if (AI_getAttitude(ePlayer) > GC.getInfo(
 						/*  advc.001: (Doesn't really matter b/c NoGiveHelpAttitudeThreshold
@@ -20524,8 +20528,10 @@ void CvPlayerAI::AI_proposeWarTrade(PlayerTypes eHireling)
 bool CvPlayerAI::AI_proposeEmbargo(PlayerTypes eHuman)
 {
 	if(AI_getContactTimer(eHuman, CONTACT_STOP_TRADING) > 0 ||
-			AI_getAttitude(eHuman) <= ATTITUDE_FURIOUS) // advc.130f
+		AI_getAttitude(eHuman) <= ATTITUDE_FURIOUS) // advc.130f
+	{
 		return false;
+	}
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
 	TeamTypes eBestTeam = kOurTeam.AI_getWorstEnemy();
 	if(eBestTeam == NO_TEAM || !GET_TEAM(eHuman).isHasMet(eBestTeam) ||
@@ -22804,15 +22810,18 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(
 				iDemoninator += 70 * AI_atVictoryStage(AI_VICTORY_SPACE2);
 				iDemoninator += 80 * AI_atVictoryStage(AI_VICTORY_SPACE3);
 				iDemoninator += 50 * AI_atVictoryStage(AI_VICTORY_SPACE4);
-				iDemoninator += AI_cultureVictoryTechValue(getCurrentResearch()) > 100 ? 80 : 0;
-				iDemoninator += AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS)? 80 : 0;
+				if (AI_cultureVictoryTechValue(getCurrentResearch()) > 100)
+					iDemoninator += 80;
+				if (AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS))
+					iDemoninator += 80;
 				//if (GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0)
 				if(AI_isFocusWar()) // advc.105
 				{
 					iDemoninator += 50;
 					iDemoninator += 200 * AI_atVictoryStage(AI_VICTORY_MILITARY4);
 					int iWarSuccessRating = GET_TEAM(getTeam()).AI_getWarSuccessRating();
-					iDemoninator += iWarSuccessRating < 0 ? 10 - 2*iWarSuccessRating : 0;
+					if (iWarSuccessRating < 0)
+						iDemoninator += 10 - 2*iWarSuccessRating;
 				}
 				// and a little bit of personal variation.
 				iDemoninator += 50 - GC.getInfo(getPersonalityType()).getCultureVictoryWeight();

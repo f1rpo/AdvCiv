@@ -948,11 +948,11 @@ __forceinline CvGlobals& CvGlobals::getInstance()
 {
 	return gGlobals;
 }
-// <advc>
+// advc:
 __forceinline CvGlobals const& CvGlobals::getConstInstance()
 {
 	return gGlobals;
-} // </advc>
+}
 
 /*  <advc.enum> These aren't member functions because they need to overload the
 	SET_ENUM_LENGTH_STATIC functions defined in CvEnums.h. I'd rather not make

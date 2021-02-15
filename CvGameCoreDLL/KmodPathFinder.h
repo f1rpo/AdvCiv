@@ -202,8 +202,9 @@ public:
 	}
 };
 
-/*	The class parameter should be derived from StepMetricBase. Policy-based design,
-	in part, to avoid the overhead of dynamic dispatch. */
+/*	The first parameter should be derived from StepMetricBase,
+	the second from PathNodeBase. Policy-based design, in part,
+	to avoid the overhead of dynamic dispatch. */
 template<class StepMetric, class Node = PathNode>
 class KmodPathFinder
 {
@@ -211,7 +212,8 @@ protected:
 
 	/*	Replaces
 		typedef std::vector<Node*> OpenList;
-		with a wrapper class that sets the correct PathNodeState. */
+		Apart from encapsulating the STL container, this class is responsible
+		for keeping PathNodeState data up to date. */
 	class OpenList
 	{
 	public:
@@ -238,15 +240,14 @@ protected:
 		{
 			m_nodes.reserve(iCapacity);
 		}
-		// Does not change the state of the nodes
-		inline void clear()
+		inline void clear() // Does not change the state of any nodes
 		{
 			/*	This erases every element. So does resize(0).
 				The only way to avoid this, I think, would be to use a raw array
 				instead of a vector. */
 			m_nodes.clear();
 		}
-		// These function do change the state of the nodes (hence the names)
+		// These functions do change the state of nodes (hence the names) ...
 		inline void open(Node& kNode)
 		{
 			m_nodes.push_back(&kNode);

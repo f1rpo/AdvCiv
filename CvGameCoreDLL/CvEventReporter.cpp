@@ -18,23 +18,19 @@ void CvEventReporter::resetStatistics()
 	m_kStatistics.reset();
 }
 
-// <advc.003y> Just pass the call along
+// advc.003y: Just pass the call along
 void CvEventReporter::initPythonCallbackGuards()
 {
 	m_kPythonEventMgr.initCallbackGuards();
-} // </advc.003y>
+}
 
-//
 // Returns true if the event is consumed by Python
-//
 bool CvEventReporter::mouseEvent(int evt, int iCursorX, int iCursorY, bool bInterfaceConsumed)
 {
 	return m_kPythonEventMgr.reportMouseEvent(evt, iCursorX, iCursorY, bInterfaceConsumed);
 }
 
-//
 // Returns true if the event is consumed by Python
-//
 bool CvEventReporter::kbdEvent(int evt, int key, int iCursorX, int iCursorY)
 {
 	return m_kPythonEventMgr.reportKbdEvent(evt, key, iCursorX, iCursorY);
@@ -48,8 +44,8 @@ void CvEventReporter::genericEvent(const char* szEventName, void *pyArgs)
 
 void CvEventReporter::newGame()
 {
-	// This will only be called if statistics are being reported!
-	// Called at the launch of a game (new or loaded)
+	/*	This will only be called if statistics are being reported!
+		Called at the launch of a game (new or loaded) */
 
 	// Report initial stats for the game
 	m_kStatistics.setMapName(CvString(GC.getInitCore().getMapScriptName()).GetCString());
@@ -58,8 +54,8 @@ void CvEventReporter::newGame()
 
 void CvEventReporter::newPlayer(PlayerTypes ePlayer)
 {
-	// This will only be called if statistics are being reported!
-	// Called at the launch of a game (new or loaded)
+	/*	This will only be called if statistics are being reported!
+		Called at the launch of a game (new or loaded) */
 
 	// Report initial stats for this player
 	m_kStatistics.setLeader(ePlayer, GET_PLAYER(ePlayer).getLeaderType());
@@ -392,12 +388,13 @@ void CvEventReporter::playerGoldTrade(PlayerTypes eFromPlayer, PlayerTypes eToPl
 {
 	m_kPythonEventMgr.reportPlayerGoldTrade(eFromPlayer, eToPlayer, iAmount);
 }
-/*	<advc.make> To get rid of the K-Mod friend declaration in the header.
+
+/*	advc.make: To get rid of the K-Mod friend declaration in the header.
 	Not const because CvStatistics performs lazy initialization of player records. */
 CvPlayerRecord const* CvEventReporter::getPlayerRecord(PlayerTypes ePlayer)
 {
 	return m_kStatistics.getPlayerRecord(ePlayer);
-} // </advc.make>
+}
 
 void CvEventReporter::chat(CvWString szString)
 {
@@ -417,9 +414,7 @@ void CvEventReporter::victory(TeamTypes eWinner, VictoryTypes eVictory)
 			m_kStatistics.setTimePlayed((PlayerTypes)i, GET_PLAYER((PlayerTypes)i).getTotalTimePlayed());
 		}
 	}
-
-	// automatically report MP stats on victory
-	gDLL->reportStatistics();
+	gDLL->reportStatistics(); // automatically report MP stats on victory
 }
 
 void CvEventReporter::vassalState(TeamTypes eMaster, TeamTypes eVassal, bool bVassal)
@@ -435,9 +430,8 @@ void CvEventReporter::preSave()
 	bool bAutoSave = m_bPreAutoSave;
 	bool bQuickSave = m_bPreQuickSave;
 	m_bPreAutoSave = m_bPreQuickSave = false;
-	CvGame const& g = GC.getGame();
-	FAssertMsg(bAutoSave || !g.isInBetweenTurns() || g.isNetworkMultiPlayer(),
-			"Quicksave in between turns?");
+	FAssertMsg(bAutoSave || !GC.getGame().isInBetweenTurns() ||
+			GC.getGame().isNetworkMultiPlayer(), "Quicksave in between turns?");
 	char const* szDefineName = "";
 	CvWString szMsgTag;
 	if(bAutoSave)
@@ -458,7 +452,7 @@ void CvEventReporter::preSave()
 	int iLength = GC.getDefineINT(szDefineName);
 	if(iLength <= 0)
 		return;
-	PlayerTypes eActivePlayer = g.getActivePlayer();
+	PlayerTypes eActivePlayer = GC.getGame().getActivePlayer();
 	if(eActivePlayer == NO_PLAYER)
 	{
 		FAssert(eActivePlayer != NO_PLAYER);
@@ -514,33 +508,32 @@ void CvEventReporter::getPlayerStatistics(PlayerTypes ePlayer, std::vector<CvSta
 		aStats.push_back(new CvStatInt("citiesrazed", pRecord->getNumCitiesRazed()));
 		aStats.push_back(new CvStatInt("goldenages", pRecord->getNumGoldenAges()));
 
-
-		// Units by type
 		CvString strKey;
-		for (int j = 0; j < GC.getNumUnitInfos(); ++j)
+		FOR_EACH_ENUM(Unit)
 		{
-			strKey.format("unit_%d_built", j);
-			aStats.push_back(new CvStatInt(strKey, pRecord->getNumUnitsBuilt(j)));
-
-			strKey.format("unit_%d_killed", j);
-			aStats.push_back(new CvStatInt(strKey, pRecord->getNumUnitsKilled(j)));
-
-			strKey.format("unit_%d_lost", j);
-			aStats.push_back(new CvStatInt(strKey, pRecord->getNumUnitsWasKilled(j)));
+			strKey.format("unit_%d_built", eLoopUnit);
+			aStats.push_back(new CvStatInt(strKey,
+					pRecord->getNumUnitsBuilt(eLoopUnit)));
+			strKey.format("unit_%d_killed", eLoopUnit);
+			aStats.push_back(new CvStatInt(strKey,
+					pRecord->getNumUnitsKilled(eLoopUnit)));
+			strKey.format("unit_%d_lost", eLoopUnit);
+			aStats.push_back(new CvStatInt(strKey,
+					pRecord->getNumUnitsWasKilled(eLoopUnit)));
 		}
 
-		// Buildings by type
-		for (int j = 0; j < GC.getNumBuildingInfos(); ++j)
+		FOR_EACH_ENUM(Building)
 		{
-			strKey.format("building_%d_built", j);
-			aStats.push_back(new CvStatInt(strKey, pRecord->getNumBuildingsBuilt((BuildingTypes)j)));
+			strKey.format("building_%d_built", eLoopBuilding);
+			aStats.push_back(new CvStatInt(strKey,
+					pRecord->getNumBuildingsBuilt(eLoopBuilding)));
 		}
 
-		// Religions by type
-		for (int j = 0; j < GC.getNumReligionInfos(); ++j)
+		FOR_EACH_ENUM(Religion)
 		{
-			strKey.format("religion_%d_founded", j);
-			aStats.push_back(new CvStatInt(strKey, pRecord->getReligionFounded((ReligionTypes)j)));
+			strKey.format("religion_%d_founded", eLoopReligion);
+			aStats.push_back(new CvStatInt(strKey,
+					pRecord->getReligionFounded(eLoopReligion)));
 		}
 	}
 }

@@ -244,8 +244,8 @@ protected:
 	// difference between current yields and yields after plot improvement reaches final upgrade.
 	bool AI_finalImprovementYieldDifference(CvPlot const& kPlot, int* piYields) const;
 	// time-weighted yields for improvements which have upgrades
-	bool AI_timeWeightedImprovementYields(CvPlot const* pPlot, ImprovementTypes eImprovement,
-			int iTimeScale, std::vector<scaled>& weighted_yields) const;
+	bool AI_timeWeightedImprovementYields(CvPlot const& kPlot, ImprovementTypes eImprovement,
+			int iTimeScale, EnumMap<YieldTypes,scaled>& weightedYields) const;
 	// value for working a plot in addition to its yields
 	int AI_specialPlotImprovementValue(CvPlot* pPlot) const;
 	int AI_growthValuePerFood() const;

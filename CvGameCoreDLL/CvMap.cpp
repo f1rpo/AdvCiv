@@ -1125,7 +1125,7 @@ void CvMap::updateIrrigated(CvPlot& kPlot)
 }
 
 
-// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START  // advc: unnecessary NULL checks removed
+// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START
 void CvMap::invalidateActivePlayerSafeRangeCache()
 {
 	PROFILE_FUNC();

@@ -4035,6 +4035,7 @@ int CvGame::goldenAgeLength() const
 	return iLength;
 }
 
+
 int CvGame::victoryDelay(VictoryTypes eVictory) const
 {
 	FAssert(eVictory >= 0 && eVictory < GC.getNumVictoryInfos());
@@ -4046,7 +4047,6 @@ int CvGame::victoryDelay(VictoryTypes eVictory) const
 
 	return iLength;
 }
-
 
 
 int CvGame::getImprovementUpgradeTime(ImprovementTypes eImprovement) const
@@ -6833,7 +6833,8 @@ void CvGame::doGlobalWarming()
 		if (getSorenRandNum(iLeftOdds, "Global Warming") < GC.getDefineINT("GLOBAL_WARMING_PROB"))
 		{
 			//CvPlot* pPlot = GC.getMap().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
-			// Global warming is no longer completely random. getRandGWPlot will get a weighted random plot for us to strike
+			/*	Global warming is no longer completely random.
+				getRandGWPlot will get a weighted random plot for us to strike. */
 			// advc.055: Arg was 3. The higher the value, the greater the preference for cold terrain.
 			CvPlot* pPlot = getRandGWPlot(2);
 			if (pPlot == NULL)
@@ -8222,7 +8223,7 @@ void CvGame::testAlive()
 		GET_PLAYER((PlayerTypes)iI).verifyAlive();
 }
 
-bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScore) const  // advc: simplified this function a bit
+bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScore) const
 {
 	FAssertEnumBounds(eVictory);
 	FAssertBounds(0, MAX_CIV_TEAMS, eTeam);
@@ -8242,53 +8243,41 @@ bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScor
 
 		if (getMaxTurns() == 0 || getElapsedGameTurns() < getMaxTurns())
 			return false;
-
-		for (int i = 0; i < MAX_CIV_TEAMS; i++)
-		{
-			if (GET_TEAM((TeamTypes)i).isAlive() && i != eTeam &&
-				getTeamScore((TeamTypes)i) >= getTeamScore(eTeam))
-			{
-				return false;
-			}
-		}
 	}
 	if (kVictory.isTargetScore())
 	{
 		if (getTargetScore() == 0 || getTeamScore(eTeam) < getTargetScore())
 			return false;
-
-		for (int i = 0; i < MAX_CIV_TEAMS; i++)
+	}
+	if (kVictory.isEndScore() || kVictory.isTargetScore())
+	{
+		int const iTestScore = getTeamScore(eTeam);
+		for (TeamIter<CIV_ALIVE,NOT_SAME_TEAM_AS> itOther(eTeam);
+			itOther.hasNext(); ++itOther)
 		{
-			if (GET_TEAM((TeamTypes)i).isAlive() && i != eTeam &&
-				getTeamScore((TeamTypes)i) >= getTeamScore(eTeam))
-			{
+			if (getTeamScore(itOther->getID()) >= iTestScore)
 				return false;
-			}
 		}
-
 	}
 	CvTeam const& kTeam = GET_TEAM(eTeam);
 	if (kVictory.isConquest())
 	{
 		if (kTeam.getNumCities() <= 0)
 			return false;
-		for (int i = 0; i < MAX_CIV_TEAMS; i++)
+		for (TeamIter<CIV_ALIVE,NOT_SAME_TEAM_AS> itOther(eTeam);
+			itOther.hasNext(); ++itOther)
 		{
-			CvTeam const& kLoopTeam = GET_TEAM((TeamTypes)i);
-			if (kLoopTeam.isAlive() && kLoopTeam.getID() != eTeam &&
-				!kLoopTeam.isVassal(eTeam) && kLoopTeam.getNumCities() > 0)
-			{
+			if (!itOther->isVassal(eTeam) && itOther->getNumCities() > 0)
 				return false;
-			}
 		}
 	}
 	if (kVictory.isDiploVote())
 	{
 		bool bFound = false;
-		for (int i = 0; i < GC.getNumVoteInfos(); i++)
+		FOR_EACH_ENUM(Vote)
 		{
-			if (GC.getInfo((VoteTypes)i).isVictory() &&
-				getVoteOutcome((VoteTypes)i) == eTeam)
+			if (GC.getInfo(eLoopVote).isVictory() &&
+				getVoteOutcome(eLoopVote) == eTeam)
 			{
 				bFound = true;
 				break;
@@ -8319,9 +8308,8 @@ bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScor
 			return false;
 
 		bool bFound = false;
-		for (int i = 0; i < GC.getNumReligionInfos(); i++)
+		FOR_EACH_ENUM(Religion)
 		{
-			ReligionTypes eLoopReligion = (ReligionTypes)i;
 			if (kTeam.hasHolyCity(eLoopReligion) &&
 				calculateReligionPercent(eLoopReligion) >=
 				kVictory.getReligionPercent())
@@ -8337,14 +8325,11 @@ bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScor
 		kVictory.getNumCultureCities() > 0)
 	{
 		int iCount = 0;
-		for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+		for (MemberIter itMember(eTeam); itMember.hasNext(); ++itMember)
 		{
-			CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
-			if (!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() != eTeam)
-				continue;
-			FOR_EACH_CITY(pLoopCity, kLoopPlayer)
+			FOR_EACH_CITY(pCity, *itMember)
 			{
-				if (pLoopCity->getCultureLevel() >= kVictory.getCityCulture())
+				if (pCity->getCultureLevel() >= kVictory.getCityCulture())
 					iCount++;
 			}
 		}
@@ -8353,16 +8338,13 @@ bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScor
 	}
 	if (kVictory.getTotalCultureRatio() > 0)
 	{
-		int iThreshold = (kTeam.countTotalCulture() * 100) /
+		int const iThreshold = (kTeam.countTotalCulture() * 100) /
 				kVictory.getTotalCultureRatio();
-		for (int i = 0; i < MAX_CIV_TEAMS; i++)
+		for (TeamIter<CIV_ALIVE,NOT_SAME_TEAM_AS> itOther(eTeam);
+			itOther.hasNext(); ++itOther)
 		{
-			CvTeam const& kLoopTeam = GET_TEAM((TeamTypes)i);
-			if (kLoopTeam.isAlive() && kLoopTeam.getID() != eTeam &&
-				kLoopTeam.countTotalCulture() > iThreshold)
-			{
+			if (itOther->countTotalCulture() > iThreshold)
 				return false;
-			}
 		}
 	}
 	FOR_EACH_ENUM(BuildingClass)
@@ -8404,11 +8386,9 @@ void CvGame::testVictory()
 		return; // </advc.003y>
 
 	std::vector<std::pair<TeamTypes,VictoryTypes> > aeeWinners; // advc: was vector<vector<int> >
-	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
+	for (TeamIter<MAJOR_CIV> itTeam; itTeam.hasNext(); ++itTeam)
 	{
-		CvTeam& kTeam = GET_TEAM((TeamTypes)iI);
-		if (!kTeam.isAlive() || kTeam.isMinorCiv())
-			continue;
+		CvTeam& kTeam = *itTeam;
 		FOR_EACH_ENUM2(Victory, eVictory)
 		{
 			if (testVictory(eVictory, kTeam.getID(), &bEndScore))

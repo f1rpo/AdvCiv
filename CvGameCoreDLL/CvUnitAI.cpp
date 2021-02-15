@@ -719,7 +719,6 @@ int CvUnitAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const
 		// Combat odds are out of 1000 - we need odds out of 100
 		int iOdds = (getCombatOdds(this, pDefender) + 5) / 10;
 		iOdds += GET_PLAYER(getOwner()).AI_getAttackOddsChange();
-
 		return std::max(1, std::min(iOdds, 99));
 	}
 
@@ -782,7 +781,7 @@ int CvUnitAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const
 		iTheirStrength *= (1 + iRoundsDiff);
 	else iOurStrength *= (1 - iRoundsDiff);
 
-	int iOdds = (((iOurStrength * 100) / (iOurStrength + iTheirStrength)));
+	int iOdds = (iOurStrength * 100) / (iOurStrength + iTheirStrength);
 	iOdds += ((100 - iOdds) * withdrawalProbability()) / 100;
 	iOdds += GET_PLAYER(getOwner()).AI_getAttackOddsChange();
 	/*  BETTER_BTS_AI_MOD, Unit AI, 10/30/09, Mongoose & jdog5000
@@ -1231,10 +1230,10 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 void CvUnitAI::LFBgetBetterAttacker(CvUnitAI** ppAttacker, // advc.003u: param was CvUnit**
 	CvPlot const* pPlot, bool bPotentialEnemy, int& iAIAttackOdds, int& iAttackerValue)
 {
-	CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, getOwner(), this,
+	CvUnit const* pDefender = pPlot->getBestDefender(NO_PLAYER, getOwner(), this,
 			!bPotentialEnemy, bPotentialEnemy);
 
-	int iOdds;
+	int iOdds=0;
 	int iValue = LFBgetAttackerRank(pDefender, iOdds);
 
 	/*	Combat odds are out of 1000, but the AI routines need odds out of 100,
@@ -14691,45 +14690,40 @@ bool CvUnitAI::AI_seaBombardRange(int iMaxRange)
 		}
 	} // BETTER_BTS_AI_MOD: END
 
-	if (pBestPlot != NULL && pBestBombardPlot != NULL)
+	if (pBestPlot == NULL || pBestBombardPlot == NULL)
+		return false;
+	if (!atPlot(pBestBombardPlot))
 	{
-		if (atPlot(pBestBombardPlot))
-		{
-			// if we are at the plot from which to bombard, and we have a unit that can bombard this turn, do it
-			if (bBombardUnitCanBombardNow && getGroup()->canBombard(*pBestBombardPlot))
-			{
-				getGroup()->pushMission(MISSION_BOMBARD,
-						-1, -1, NO_MOVEMENT_FLAGS, false, false,
-						MISSIONAI_BLOCKADE, pBestBombardPlot);
-
-				// if city bombarded enough, wake up any units that were waiting to bombard this city
-				CvCity* pBombardCity = bombardTarget(*pBestBombardPlot); // is NULL if city cannot be bombarded any more
-				if (pBombardCity == NULL || pBombardCity->getDefenseDamage() <
-					((GC.getMAX_CITY_DEFENSE_DAMAGE()*5)/6))
-				{
-					GET_PLAYER(getOwner()).AI_wakePlotTargetMissionAIs(*pBestBombardPlot,
-							MISSIONAI_BLOCKADE, getGroup());
-				}
-			}
-			// otherwise, skip until next turn, when we will surely bombard
-			else if (canPlunder(*pBestBombardPlot))
-			{
-				getGroup()->pushMission(MISSION_PLUNDER, -1, -1, NO_MOVEMENT_FLAGS,
-						false, false, MISSIONAI_BLOCKADE, pBestBombardPlot);
-			}
-			else getGroup()->pushMission(MISSION_SKIP);
-
-			return true;
-		}
-		else
-		{
-			pushGroupMoveTo(*pBestPlot, NO_MOVEMENT_FLAGS, false, false,
-					MISSIONAI_BLOCKADE, pBestBombardPlot);
-			return true;
-		}
+		pushGroupMoveTo(*pBestPlot, NO_MOVEMENT_FLAGS, false, false,
+				MISSIONAI_BLOCKADE, pBestBombardPlot);
+		return true;
 	}
-
-	return false;
+	if (bBombardUnitCanBombardNow && // we have a unit that can bombard this turn
+		// we are at the plot from which to bombard
+		getGroup()->canBombard(*pBestBombardPlot))
+	{
+		getGroup()->pushMission(MISSION_BOMBARD,
+				-1, -1, NO_MOVEMENT_FLAGS, false, false,
+				MISSIONAI_BLOCKADE, pBestBombardPlot);
+		// if city not bombarded enough, wake up any units waiting to bombard this city.
+		CvCity* pBombardCity = bombardTarget(*pBestBombardPlot);
+		if (pBombardCity == NULL || // city cannot be bombarded further
+			pBombardCity->getDefenseDamage() * 6 < GC.getMAX_CITY_DEFENSE_DAMAGE() * 5)
+		{
+			GET_PLAYER(getOwner()).AI_wakePlotTargetMissionAIs(
+					*pBestBombardPlot, MISSIONAI_BLOCKADE, getGroup());
+		}
+		return true;
+	}
+	// (next turn we will surely bombard)
+	if (canPlunder(*pBestBombardPlot))
+	{
+		getGroup()->pushMission(MISSION_PLUNDER, -1, -1, NO_MOVEMENT_FLAGS,
+				false, false, MISSIONAI_BLOCKADE, pBestBombardPlot);
+		return true;
+	}
+	getGroup()->pushMission(MISSION_SKIP);
+	return true;
 }
 
 

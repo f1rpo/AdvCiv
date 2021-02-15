@@ -11,7 +11,7 @@ BOOL pathDestValid(int iToX, int iToY, void const* pointer, FAStar* finder)
 {	// <advc.pf>
 	return GroupStepMetric::isValidDest(GC.getMap().getPlot(iToX, iToY),
 			*reinterpret_cast<CvSelectionGroup const*>(pointer),
-			(MovementFlags)gDLL->getFAStarIFace()->GetInfo(finder));
+			(MovementFlags)gDLL->getFAStarIFace()->GetInfo(finder)); // </advc.pf>
 }
 
 

@@ -1054,9 +1054,9 @@ void CvUnit::updateAirCombat(bool bQuick)
 	}
 }
 
-//#define LOG_COMBAT_OUTCOMES // K-Mod -- this makes the game log the odds and outcomes of every battle, to help verify the accuracy of the odds calculation.
-
-// K-Mod. I've edited this function so that it handles the battle planning internally rather than feeding details back to the caller.
+/*	K-Mod -- this makes the game log the odds and outcomes of every battle,
+	to help verify the accuracy of the odds calculation. */
+//#define LOG_COMBAT_OUTCOMESfunction so that it handles the battle planning internally rather than feeding details back to the caller.
 void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 {
 	#ifdef LOG_COMBAT_OUTCOMES
@@ -1074,7 +1074,9 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 		kBattle.setDamage(BATTLE_UNIT_ATTACKER, BATTLE_TIME_BEGIN, getDamage());
 		kBattle.setDamage(BATTLE_UNIT_DEFENDER, BATTLE_TIME_BEGIN, pDefender->getDamage());
 	}
-	std::vector<int> combat_log; // positive number for attacker hitting the defender, negative numbers for defender hitting the attacker.
+	/*	positive number for attacker hitting the defender,
+		negative numbers for defender hitting the attacker. */
+	std::vector<int> combat_log;
 	// K-Mod end
 
 	CombatDetails cdAttackerDetails;
@@ -1118,10 +1120,8 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 					combat_log.push_back(0); // K-Mod
 					break;
 				}
-
 				changeDamage(iAttackerDamage, pDefender->getOwner());
 				combat_log.push_back(-iAttackerDamage); // K-Mod
-
 				/* if (pDefender->getCombatFirstStrikes() > 0 && pDefender->isRanged()) {
 					kBattle.addFirstStrikes(BATTLE_UNIT_DEFENDER, 1);
 					kBattle.addDamage(BATTLE_UNIT_ATTACKER, BATTLE_TIME_RANGED, iAttackerDamage);
@@ -1130,9 +1130,7 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 				if (pDefender->getCombatFirstStrikes() > 0)
 					kBattle.addFirstStrikes(BATTLE_UNIT_DEFENDER, 1);
 				// K-Mod end
-
 				cdAttackerDetails.iCurrHitPoints = currHitPoints();
-
 				if (isHuman() || pDefender->isHuman())
 				{
 					CyArgsList pyArgs;
@@ -1174,9 +1172,7 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 				if (getCombatFirstStrikes() > 0)
 					kBattle.addFirstStrikes(BATTLE_UNIT_ATTACKER, 1);
 				// K-Mod end
-
-				cdDefenderDetails.iCurrHitPoints=pDefender->currHitPoints();
-
+				cdDefenderDetails.iCurrHitPoints = pDefender->currHitPoints();
 				if (isHuman() || pDefender->isHuman())
 				{
 					CyArgsList pyArgs;
@@ -1302,8 +1298,8 @@ void CvUnit::updateCombat(bool bQuick, /* <advc.004c> */ bool* pbIntercepted)
 	{
 		FAssert(!isFighting());
 		if (getPlot().isFighting() || pPlot->isFighting())
-		{
-			// K-Mod. we need to wait for our turn to attack - so don't bother looking for a defender yet.
+		{	/*	K-Mod. we need to wait for our turn to attack -
+				so don't bother looking for a defender yet. */
 			return;
 		}
 		pDefender = pPlot->getBestDefender(NO_PLAYER, getOwner(), this, true);
@@ -1356,7 +1352,7 @@ void CvUnit::updateCombat(bool bQuick, /* <advc.004c> */ bool* pbIntercepted)
 			setCombatUnit(pDefender, true);
 			pDefender->setCombatUnit(this, false);
 
-			// K-Mod (to prevent weirdness from simultanious attacks)
+			// K-Mod (to prevent weirdness from simultaneous attacks)
 			pDefender->setAttackPlot(NULL, false);
 			pDefender->getGroup()->clearMissionQueue();
 
@@ -1464,7 +1460,8 @@ void CvUnit::updateCombat(bool bQuick, /* <advc.004c> */ bool* pbIntercepted)
 		if (isBarbarian())
 			GET_PLAYER(pDefender->getOwner()).changeWinsVsBarbs(1);
 
-		if (!m_pUnitInfo->isHiddenNationality() && !pDefender->getUnitInfo().isHiddenNationality())
+		if (!m_pUnitInfo->isHiddenNationality() &&
+			!pDefender->getUnitInfo().isHiddenNationality())
 		{
 			GET_TEAM(getTeam()).changeWarWeariness(pDefender->getTeam(), *pPlot,
 					GC.getDefineINT("WW_UNIT_KILLED_ATTACKING"));
@@ -1590,18 +1587,19 @@ void CvUnit::updateCombat(bool bQuick, /* <advc.004c> */ bool* pbIntercepted)
 	}
 	else
 	{
-		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WITHDRAW", getNameKey(),
-				pDefender->getNameKey()));
+		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WITHDRAW",
+				getNameKey(), pDefender->getNameKey()));
 		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer,
 				"AS2D_OUR_WITHDRAWL", MESSAGE_TYPE_INFO, NULL,
 				GC.getColorType("GREEN"), pPlot->getX(), pPlot->getY());
-		szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_UNIT_WITHDRAW", getNameKey(),
-				pDefender->getNameKey());
+		szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_UNIT_WITHDRAW",
+				getNameKey(), pDefender->getNameKey());
 		gDLL->UI().addMessage(pDefender->getOwner(), true, -1, szBuffer,
 				"AS2D_THEIR_WITHDRAWL", MESSAGE_TYPE_INFO, NULL,
 				GC.getColorType("RED"), pPlot->getX(), pPlot->getY());
 
-		changeMoves(std::max(GC.getMOVE_DENOMINATOR(), pPlot->movementCost(*this, getPlot())));
+		changeMoves(std::max(GC.getMOVE_DENOMINATOR(),
+				pPlot->movementCost(*this, getPlot())));
 		checkRemoveSelectionAfterAttack();
 
 		getGroup()->clearMissionQueue();
@@ -4710,26 +4708,27 @@ void CvUnit::updatePlunder(int iChange, bool bUpdatePlotGroups)
 	std::vector<CvPlot*> apRange;
 	blockadeRange(apRange, iChange == -1 ? 2 : 0, iChange >= 0);
 	// To avoid updating plot groups unnecessarily
-	bool abChanged[MAX_TEAMS] = { false };
+	EnumMap<TeamTypes,bool> abChanged;
 	for(size_t i = 0; i < apRange.size(); i++)
 	{
-		CvPlot* pLoopPlot = apRange[i]; // </advc.033>
-		for(int iTeam = 0; iTeam < MAX_TEAMS; iTeam++)
+		CvPlot* pLoopPlot = apRange[i]; 
+		// Not our vassals, master
+		for (TeamIter<ALIVE,KNOWN_POTENTIAL_ENEMY_OF> it(getTeam());
+			it.hasNext(); ++it) // </advc.033>
 		{
-			CvTeam const& t = GET_TEAM((TeamTypes)iTeam);
-			//if (isEnemy(t.getID()))
-			// <advc.033> Replacing the above
-			if(t.isAlive() && isEnemy(t.getID()) && !t.isVassal(getTeam()) &&
-				!GET_TEAM(getTeam()).isVassal(t.getID())) // </advc.033>
+			CvTeam const& t = *it;
+			if (!isEnemy(t.getID()))
+				continue;
+			if(iChange == -1 && pLoopPlot->getBlockadedCount(t.getID()) <= 0)
+				continue;
+			bool bOldTradeNet = false;
+			if(!abChanged.get(t.getID()))
+				bOldTradeNet = pLoopPlot->isTradeNetwork(t.getID());
+			pLoopPlot->changeBlockadedCount(t.getID(), iChange);
+			if(!abChanged.get(t.getID()))
 			{
-				if(iChange == -1 && pLoopPlot->getBlockadedCount(t.getID()) <= 0)
-					continue;
-				bool bOldTradeNet = false;
-				if(!abChanged[iTeam])
-					bOldTradeNet = pLoopPlot->isTradeNetwork(t.getID());
-				pLoopPlot->changeBlockadedCount(t.getID(), iChange);
-				if(!abChanged[iTeam])
-					abChanged[iTeam] = (bOldTradeNet != pLoopPlot->isTradeNetwork(t.getID()));
+				abChanged.set(t.getID(),
+						bOldTradeNet != pLoopPlot->isTradeNetwork(t.getID()));
 			}
 		}
 	}
@@ -4738,22 +4737,23 @@ void CvUnit::updatePlunder(int iChange, bool bUpdatePlotGroups)
 		if (bUpdatePlotGroups)
 			GC.getGame().updatePlotGroups();
 	}*/
-	// <advc.033> Replacing the above
-	CvGame& kGame = GC.getGame();
+	// <advc.033>
 	// Update colors -- unless we're about to unit-cycle
 	if(isHuman() && ((iChange == -1 && gDLL->UI().getHeadSelectedUnit() == this) ||
 		GC.suppressCycling()))
 	{
-		kGame.updateColoredPlots();
+		GC.getGame().updateColoredPlots();
 	}
 	gDLL->UI().setDirty(BlockadedPlots_DIRTY_BIT, true);
 	if(bUpdatePlotGroups)
 	{
-		for(int i = 0; i < MAX_PLAYERS; i++)
+		FOR_EACH_ENUM(Team)
 		{
-			CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)i);
-			if(kPlayer.isAlive() && abChanged[kPlayer.getTeam()])
-				kPlayer.updatePlotGroups();
+			if (abChanged.get(eLoopTeam))
+			{
+				for (MemberIter itMember(eLoopTeam); itMember.hasNext(); ++itMember)
+					itMember->updatePlotGroups();
+			}
 		}
 	} // </advc.033>
 }
@@ -10378,9 +10378,11 @@ void CvUnit::collateralCombat(CvPlot const* pPlot, CvUnit const* pSkipUnit)
 
 	int iCollateralStrength = (getDomainType() == DOMAIN_AIR ?
 			airBaseCombatStr() : baseCombatStr()) * collateralDamage() / 100;
-	if (iCollateralStrength == 0 && getExtraCollateralDamage() == 0)
+	if (iCollateralStrength <= 0 &&
+		getExtraCollateralDamage() <= 0) // UNOFFICIAL_PATCH
+	{
 		return;
-
+	}
 	FOR_EACH_UNIT_IN(pLoopUnit, *pPlot)
 	{
 		if (pLoopUnit != pSkipUnit && isEnemy(pLoopUnit->getTeam(), *pPlot) &&
@@ -10413,27 +10415,27 @@ void CvUnit::collateralCombat(CvPlot const* pPlot, CvUnit const* pSkipUnit)
 		{
 			int iTheirStrength = kTargetUnit.baseCombatStr();
 			int iStrengthFactor = ((iCollateralStrength + iTheirStrength + 1) / 2);
+			/*	advc (note): This makes the damage proportional to (3*r + 1) / (3 + r)
+				where r is the ratio of the attacker's to the defender's base combat str.
+				This ratio is used again a few lines below in the iMaxDamage formula. */
 			int iCollateralDamage = (GC.getDefineINT(CvGlobals::COLLATERAL_COMBAT_DAMAGE) *
 					(iCollateralStrength + iStrengthFactor)) /
 					(iTheirStrength + iStrengthFactor);
 			iCollateralDamage *= 100 + getExtraCollateralDamage();
 			iCollateralDamage *= std::max(0, 100 - kTargetUnit.getCollateralDamageProtection());
 			iCollateralDamage /= 100;
-
 			if (pCity != NULL)
 			{
 				iCollateralDamage *= 100 + pCity->getAirModifier();
 				iCollateralDamage /= 100;
 			}
-
 			iCollateralDamage = std::max(0, iCollateralDamage/100);
-
 			int iMaxDamage = std::min(collateralDamageLimit(),
-					(collateralDamageLimit() * (iCollateralStrength + iStrengthFactor)) /
+					(collateralDamageLimit() *
+					(iCollateralStrength + iStrengthFactor)) /
 					(iTheirStrength + iStrengthFactor));
 			int iUnitDamage = std::max(kTargetUnit.getDamage(),
 					std::min(kTargetUnit.getDamage() + iCollateralDamage, iMaxDamage));
-
 			if (kTargetUnit.getDamage() != iUnitDamage)
 			{
 				kTargetUnit.setDamage(iUnitDamage, getOwner());
@@ -11097,13 +11099,17 @@ bool CvUnit::isEnemy(CvPlot const& kPlot) const
 	return (ePlotTeam != NO_TEAM && isEnemy(ePlotTeam, kPlot));
 }
 
+
 bool CvUnit::isSuicide() const
 {
 	return (m_pUnitInfo->isSuicide() || getKamikazePercent() != 0);
 }
 
-void CvUnit::getDefenderCombatValues(CvUnit& kDefender, const CvPlot* pPlot, int iOurStrength, int iOurFirepower,
-	int& iTheirOdds, int& iTheirStrength, int& iOurDamage, int& iTheirDamage, CombatDetails* pTheirDetails) const
+
+void CvUnit::getDefenderCombatValues(CvUnit const& kDefender, CvPlot const* pPlot,
+	int iOurStrength, int iOurFirepower,
+	int& iTheirOdds, int& iTheirStrength, int& iOurDamage, int& iTheirDamage,
+	CombatDetails* pTheirDetails) const
 {
 	iTheirStrength = kDefender.currCombatStr(pPlot, this, pTheirDetails);
 	int iTheirFirepower = kDefender.currFirepower(pPlot, this);
@@ -11134,13 +11140,14 @@ void CvUnit::getDefenderCombatValues(CvUnit& kDefender, const CvPlot* pPlot, int
 		}
 	}
 
-	int iStrengthFactor = ((iOurFirepower + iTheirFirepower + 1) / 2);
+	int iStrengthFactor = (iOurFirepower + iTheirFirepower + 1) / 2;
 
 	iOurDamage = std::max(1, ((GC.getCOMBAT_DAMAGE() * (iTheirFirepower + iStrengthFactor)) /
 			(iOurFirepower + iStrengthFactor)));
 	iTheirDamage = std::max(1, ((GC.getCOMBAT_DAMAGE() * (iOurFirepower + iStrengthFactor)) /
 			(iTheirFirepower + iStrengthFactor)));
 }
+
 
 int CvUnit::getTriggerValue(EventTriggerTypes eTrigger, const CvPlot* pPlot, bool bCheckPlot) const
 {
@@ -11191,6 +11198,7 @@ int CvUnit::getTriggerValue(EventTriggerTypes eTrigger, const CvPlot* pPlot, boo
 	return iValue;
 }
 
+
 bool CvUnit::canApplyEvent(EventTypes eEvent) const
 {
 	CvEventInfo& kEvent = GC.getInfo(eEvent);
@@ -11218,6 +11226,7 @@ bool CvUnit::canApplyEvent(EventTypes eEvent) const
 
 	return true;
 }
+
 
 void CvUnit::applyEvent(EventTypes eEvent)
 {
@@ -11253,11 +11262,13 @@ void CvUnit::applyEvent(EventTypes eEvent)
 		kill(false);
 }
 
+
 const CvArtInfoUnit* CvUnit::getArtInfo(int i, EraTypes eEra) const
 {
 	return m_pUnitInfo->getArtInfo(i, eEra, (UnitArtStyleTypes)
 			GC.getInfo(getCivilizationType()).getUnitArtStyleType());
 }
+
 
 const TCHAR* CvUnit::getButton() const
 {
@@ -11267,50 +11278,60 @@ const TCHAR* CvUnit::getButton() const
 	return m_pUnitInfo->getButton();
 }
 
+
 int CvUnit::getGroupSize() const
 {
 	return m_pUnitInfo->getGroupSize();
 }
+
 
 int CvUnit::getGroupDefinitions() const
 {
 	return m_pUnitInfo->getGroupDefinitions();
 }
 
+
 int CvUnit::getUnitGroupRequired(int i) const
 {
 	return m_pUnitInfo->getUnitGroupRequired(i);
 }
+
 
 bool CvUnit::isRenderAlways() const
 {
 	return m_pUnitInfo->isRenderAlways();
 }
 
+
 float CvUnit::getAnimationMaxSpeed() const
 {
 	return m_pUnitInfo->getUnitMaxSpeed();
 }
+
 
 float CvUnit::getAnimationPadTime() const
 {
 	return m_pUnitInfo->getUnitPadTime();
 }
 
+
 const char* CvUnit::getFormationType() const
 {
 	return m_pUnitInfo->getFormationType();
 }
+
 
 bool CvUnit::isMechUnit() const
 {
 	return m_pUnitInfo->isMechUnit();
 }
 
+
 bool CvUnit::isRenderBelowWater() const
 {
 	return m_pUnitInfo->isRenderBelowWater();
 }
+
 
 int CvUnit::getRenderPriority(UnitSubEntityTypes eUnitSubEntity, int iMeshGroupType, int UNIT_MAX_SUB_TYPES) const
 {
@@ -11352,17 +11373,17 @@ bool CvUnit::isCombatVisible(const CvUnit* pDefender) const
 	bool bVisible = false;
 	if (!m_pUnitInfo->isQuickCombat())
 	{
-		if (NULL == pDefender || !pDefender->getUnitInfo().isQuickCombat())
+		if (pDefender == NULL || !pDefender->getUnitInfo().isQuickCombat())
 		{
 			if (isHuman())
 			{
 				if (!GET_PLAYER(getOwner()).isOption(PLAYEROPTION_QUICK_ATTACK))
 					bVisible = true;
 			}
-			else if (NULL != pDefender && pDefender->isHuman())
+			else if (pDefender != NULL && pDefender->isHuman())
 			{
-				if (!GET_PLAYER(pDefender->getOwner()).isOption(PLAYEROPTION_QUICK_DEFENSE)
-					&& !gDLL->getEngineIFace()->isGlobeviewUp()) // advc.102
+				if (!GET_PLAYER(pDefender->getOwner()).isOption(PLAYEROPTION_QUICK_DEFENSE) &&
+					!gDLL->getEngineIFace()->isGlobeviewUp()) // advc.102
 				{
 					bVisible = true;
 				}
@@ -11384,18 +11405,17 @@ bool CvUnit::shouldShowEnemyGlow(TeamTypes eForTeam) const
 		return false;
 
 	CvPlot* pPlot = plot();
-
 	if (pPlot == NULL)
 		return false;
 
 	TeamTypes ePlotTeam = pPlot->getTeam();
-
 	if (ePlotTeam != eForTeam)
 		return false;
 	if (!isEnemy(ePlotTeam))
 		return false;
 	return true;
 }
+
 
 bool CvUnit::shouldShowFoundBorders() const
 {
@@ -11412,24 +11432,28 @@ void CvUnit::cheat(bool bCtrl, bool bAlt, bool bShift)
 	}
 }
 
+
 float CvUnit::getHealthBarModifier() const
 {
-	return (GC.getDefineFLOAT("HEALTH_BAR_WIDTH") / (GC.getGame().getBestLandUnitCombat() * 2));
+	return (GC.getDefineFLOAT("HEALTH_BAR_WIDTH") /
+			(GC.getGame().getBestLandUnitCombat() * 2));
 }
+
 
 void CvUnit::getLayerAnimationPaths(std::vector<AnimationPathTypes>& aAnimationPaths) const
 {
-	for (int i=0; i < GC.getNumPromotionInfos(); ++i)
+	FOR_EACH_ENUM(Promotion)
 	{
-		PromotionTypes ePromotion = (PromotionTypes) i;
-		if (isHasPromotion(ePromotion))
+		if (isHasPromotion(eLoopPromotion))
 		{
-			AnimationPathTypes eAnimationPath = (AnimationPathTypes) GC.getInfo(ePromotion).getLayerAnimationPath();
+			AnimationPathTypes eAnimationPath = (AnimationPathTypes)
+					GC.getInfo(eLoopPromotion).getLayerAnimationPath();
 			if(eAnimationPath != ANIMATIONPATH_NONE)
 				aAnimationPaths.push_back(eAnimationPath);
 		}
 	}
 }
+
 
 int CvUnit::getSelectionSoundScript() const
 {
@@ -11440,21 +11464,23 @@ int CvUnit::getSelectionSoundScript() const
 	return iScriptId;
 }
 
-// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000: START
-// Original isBetterDefenderThan call (without the extra parameter) - now just a pass-through
+/*	BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000: START
+	Original isBetterDefenderThan call (without the extra parameter) -
+	now just a pass-through */
 bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker) const
 {
 	return isBetterDefenderThan(pDefender, pAttacker, NULL);
 }
 
-// Modified version of best defender code (minus the initial boolean tests,
-// which we still check in the original method)
-bool CvUnit::LFBisBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker, int* pBestDefenderRank) const
+/*	Modified version of best defender code (minus the initial boolean tests,
+	which we still check in the original method) */
+bool CvUnit::LFBisBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker,
+	int* pBestDefenderRank) const
 {
-	// We adjust ranking based on ratio of our adjusted strength compared to twice that of attacker
-	// Effect is if we're over twice as strong as attacker, we increase our ranking
-	// (more likely to be picked as defender) - otherwise, we reduce our ranking (less likely)
-
+	/*	We adjust ranking based on ratio of our adjusted strength compared to
+		twice that of attacker. Effect is if we're over twice as strong as attacker,
+		we increase our ranking (more likely to be picked as defender) -
+		otherwise, we reduce our ranking (less likely) */
 	// Get our adjusted rankings based on combat odds
 	int iOurRanking = LFBgetDefenderRank(pAttacker);
 	int iTheirRanking = -1;
@@ -11462,16 +11488,14 @@ bool CvUnit::LFBisBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAtt
 		iTheirRanking = *pBestDefenderRank;
 	if (iTheirRanking == -1)
 		iTheirRanking = pDefender->LFBgetDefenderRank(pAttacker);
-
-	// In case of equal value, fall back on unit cycle order
-	// (K-Mod. _reversed_ unit cycle order, so that inexperienced units defend first.)
+	/*	In case of equal value, fall back on unit cycle order
+		(K-Mod. _reversed_ unit cycle order, so that inexperienced units defend first.) */
 	if (iOurRanking == iTheirRanking)
 	{
 		if (isBeforeUnitCycle(*pDefender))
 			iTheirRanking++;
 		else iTheirRanking--;
 	}
-
 	// Retain the basic rank (before value adjustment) for the best defender
 	if (pBestDefenderRank)
 	{
@@ -11484,7 +11508,7 @@ bool CvUnit::LFBisBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAtt
 // Get the (adjusted) odds of attacker winning to use in deciding best attacker
 int CvUnit::LFBgetAttackerRank(const CvUnit* pDefender, int& iUnadjustedRank) const
 {
-	if (pDefender)
+	if (pDefender != NULL)
 	{
 		int iDefOdds = pDefender->LFBgetDefenderOdds(this);
 		iUnadjustedRank = 1000 - iDefOdds;
@@ -11497,7 +11521,6 @@ int CvUnit::LFBgetAttackerRank(const CvUnit* pDefender, int& iUnadjustedRank) co
 		// No defender ... just use strength, but try to make it a number out of 1000
 		iUnadjustedRank = currCombatStr(NULL, NULL) / 5;
 	}
-
 	return LFBgetValueAdjustedOdds(iUnadjustedRank, false);
 }
 
@@ -11508,7 +11531,6 @@ int CvUnit::LFBgetDefenderRank(const CvUnit* pAttacker) const
 	// Don't adjust odds for value if attacker is limited in their damage (i.e: no risk of death)
 	if (pAttacker != NULL && maxHitPoints() <= pAttacker->combatLimit())
 		iRank = LFBgetValueAdjustedOdds(iRank, true);
-
 	return iRank;
 }
 
@@ -11519,7 +11541,7 @@ int CvUnit::LFBgetDefenderOdds(const CvUnit* pAttacker) const
 	bool bUseAttacker = false;
 	int iAttStrength = 0;
 	if (pAttacker != NULL)
-		iAttStrength = pAttacker->currCombatStr(NULL, NULL);
+		iAttStrength = pAttacker->currCombatStr();
 	if (iAttStrength > 0)
 		bUseAttacker = true;
 
@@ -11542,14 +11564,14 @@ int CvUnit::LFBgetDefenderOdds(const CvUnit* pAttacker) const
 			int iFirstStrikes = 0;
 
 			if (!pAttacker->immuneToFirstStrikes())
-				iFirstStrikes += (firstStrikes() * 2) + chanceFirstStrikes();
+				iFirstStrikes += firstStrikes() * 2 + chanceFirstStrikes();
 			if (!immuneToFirstStrikes())
-				iFirstStrikes -= ((pAttacker->firstStrikes() * 2) + pAttacker->chanceFirstStrikes());
+				iFirstStrikes -= pAttacker->firstStrikes() * 2 + pAttacker->chanceFirstStrikes();
 
 			if (iFirstStrikes != 0)
 			{
 				// With COMBAT_DAMAGE=20, this makes each first strike worth 8% (and each chance worth 4%)
-				iDefense *= ((iFirstStrikes * GC.getCOMBAT_DAMAGE() / 5) + 100);
+				iDefense *= (iFirstStrikes * GC.getCOMBAT_DAMAGE()) / 5 + 100;
 				iDefense /= 100;
 			}
 
@@ -11557,28 +11579,25 @@ int CvUnit::LFBgetDefenderOdds(const CvUnit* pAttacker) const
 			iDefense = (iDefense * 1000) / (iDefense + iAttStrength);
 		}
 	}
-
-	if (hasCargo())
-	{
-		// This part is taken directly from the standard method
-		// Reduces value if a unit is carrying other units
-		/* (disabled by K-Mod)
+	/*	This part is taken directly from the standard method
+		Reduces value if a unit is carrying other units */
+	/*if (hasCargo()) {
 		int iAssetValue = std::max(1, m_pUnitInfo->getAssetValue());
 		int iCargoAssetValue = 0;
 		std::vector<CvUnit*> aCargoUnits;
 		getCargoUnits(aCargoUnits);
 		for (uint i = 0; i < aCargoUnits.size(); ++i)
 			iCargoAssetValue += aCargoUnits[i]->getUnitInfo().getAssetValue();
-		iDefense = iDefense * iAssetValue / std::max(1, iAssetValue + iCargoAssetValue); */
-
-		// K-Mod. The above code does not achieve the goal, which is to protect cargo-carrying ships from being killed first.
-		// The problem with the code is that when the odds of winning are very small, the artificial reduction is also very small;
-		// on the other hand, when the odds of winning are very great, the artificial reduction is huge. This is the opposite of what we want!
-		// We want to let the boats fight if they are going to win anyway, but give them protection if they would lose.
-
-		// I've added my own version of the value adjustment to LFBgetValueAdjustedOdds.
-	}
-
+		iDefense = iDefense * iAssetValue / std::max(1, iAssetValue + iCargoAssetValue);
+	}*/
+	/*	K-Mod. The above code does not achieve the goal, which is to
+		protect cargo-carrying ships from being killed first.
+		The problem with the code is that when the odds of winning are very small,
+		the artificial reduction is also very small; on the other hand,
+		when the odds of winning are very great, the artificial reduction is huge.
+		This is the opposite of what we want! We want to let the boats fight
+		if they are going to win anyway, but give them protection if they would lose.
+		I've added my own version of the value adjustment to LFBgetValueAdjustedOdds. */
 	return iDefense;
 }
 
@@ -11673,34 +11692,34 @@ int CvUnit::LFBgetRelativeValueRating() const
 			iValueRating += GC.getDefineINT(CvGlobals::LFB_BASEDONHEALER);
 	}
 	return iValueRating;
-}
+} // BETTER_BTS_AI_MOD: END
 
-// K-Mod. unit value adjustment based on how many defensive promotions are active on this plot.
-// (The purpose of this is to encourage experienced units to fight when their promotions are especially suited to the plot they are defending.)
+/*	K-Mod: unit value adjustment based on how many defensive promotions are active on this plot.
+	(The purpose of this is to encourage experienced units to fight when their promotions
+	are especially suited to the plot they are defending.) */
 int CvUnit::LFGgetDefensiveValueAdjustment() const
 {
 	int iValue = 0;
 
-	for (int iI = 0; iI < GC.getNumPromotionInfos(); ++iI)
+	FOR_EACH_ENUM2(Promotion, ePromo)
 	{
-		if (!isHasPromotion((PromotionTypes)iI))
+		if (!isHasPromotion(ePromo))
 			continue;
-
-		CvPromotionInfo &kPromotion = GC.getInfo((PromotionTypes)iI);
+		CvPromotionInfo const& kPromo = GC.getInfo(ePromo);
 		bool bDefensive = false;
-
 		// Cities and hills
-		if ((kPromotion.getCityDefensePercent() > 0 && getPlot().isCity()) ||
-			(kPromotion.getHillsDefensePercent() > 0 && getPlot().isHills()))
+		if ((kPromo.getCityDefensePercent() > 0 && getPlot().isCity()) ||
+			(kPromo.getHillsDefensePercent() > 0 && getPlot().isHills()))
 		{
 			bDefensive = true;
 		}
 		// Features
 		if (!bDefensive)
 		{
-			for (int iJ = 0; iJ < GC.getNumFeatureInfos(); ++iJ)
+			FOR_EACH_ENUM(Feature)
 			{
-				if (kPromotion.getFeatureDefensePercent(iJ) > 0 && getPlot().getFeatureType() == iJ)
+				if (kPromo.getFeatureDefensePercent(eLoopFeature) > 0 &&
+					getPlot().getFeatureType() == eLoopFeature)
 				{
 					bDefensive = true;
 					break;
@@ -11710,20 +11729,18 @@ int CvUnit::LFGgetDefensiveValueAdjustment() const
 		// Terrain
 		if (!bDefensive)
 		{
-			for (int iJ = 0; iJ < GC.getNumTerrainInfos(); ++iJ)
+			FOR_EACH_ENUM(Terrain)
 			{
-				if (kPromotion.getTerrainDefensePercent(iJ) > 0 && getPlot().getTerrainType() == iJ)
+				if (kPromo.getTerrainDefensePercent(eLoopTerrain) > 0 &&
+					getPlot().getTerrainType() == eLoopTerrain)
 				{
 					bDefensive = true;
 					break;
 				}
 			}
 		}
-
 		if (bDefensive)
-		{
 			iValue += GC.getDefineINT(CvGlobals::LFB_DEFENSIVEADJUSTMENT);
-		}
 	}
 
 	return iValue;

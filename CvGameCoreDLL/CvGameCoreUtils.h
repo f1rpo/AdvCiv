@@ -1,7 +1,5 @@
 #pragma once
 
-// utils.h
-
 #ifndef CIV4_GAMECORE_UTILS_H
 #define CIV4_GAMECORE_UTILS_H
 
