@@ -6385,7 +6385,7 @@ int CvPlayer::getResearchTurnsLeft(TechTypes eTech, bool bOverflow) const
 {
 	int iTurnsLeft = getResearchTurnsLeftTimes100(eTech, bOverflow);
 	if(iTurnsLeft >= 0) // advc.004x
-		iTurnsLeft = (iTurnsLeft + 99) / 100; // round up
+		iTurnsLeft = intdiv::uceil(iTurnsLeft, 100);
 	//return std::max(1, iTurnsLeft);
 	return iTurnsLeft; // advc.004x: -1 now means infinitely many turns
 }

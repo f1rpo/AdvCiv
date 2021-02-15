@@ -3923,7 +3923,7 @@ int CvCity::getHurryCost(bool bExtra, int iProductionLeft, int iHurryModifier, i
 	if(iProductionLeft <= 0)
 		return 0;
 	// </advc.064b>
-	int iProduction = (iProductionLeft * iHurryModifier + 99) / 100; // round up
+	int iProduction = intdiv::uceil(iProductionLeft * iHurryModifier, 100);
 
 	if (bExtra)
 	{
@@ -3931,12 +3931,8 @@ int CvCity::getHurryCost(bool bExtra, int iProductionLeft, int iHurryModifier, i
 			/*  advc.064c (comment): Passing 0 here instead of iModifier would
 				only apply generic modifiers */
 				iModifier);
-		if (iExtraProduction > 0)
-		{
-			int iAdjustedProd = iProduction * iProduction;
-			// round up
-			iProduction = (iAdjustedProd + (iExtraProduction - 1)) / iExtraProduction;
-		}
+		if (iExtraProduction > 0) // adjust production
+			iProduction = intdiv::uceil(SQR(iProduction), iExtraProduction);
 	}
 
 	return std::max(0, iProduction);
@@ -10869,7 +10865,7 @@ void CvCity::doGreatPeople()
 		// <advc> Should only happen in old savegames (due to a bug in AdvCiv 0.97)
 		bool const bOverflow = (iTotalGreatPeopleUnitProgress > CvRandom::getRange());
 		if (bOverflow)
-			iTotalGreatPeopleUnitProgress = scaled(iTotalGreatPeopleUnitProgress, 100).ceil(); // </advc>
+			iTotalGreatPeopleUnitProgress = per100(iTotalGreatPeopleUnitProgress).ceil(); // </advc>
 
 		int iGreatPeopleUnitRand = GC.getGame().getSorenRandNum(
 				iTotalGreatPeopleUnitProgress, "Great Person");
@@ -10881,7 +10877,7 @@ void CvCity::doGreatPeople()
 			int iLoopProgress = getGreatPeopleUnitProgress(eLoopGP);
 			// <advc> (see above)
 			if (bOverflow)
-				iLoopProgress = scaled(iLoopProgress, 100).ceil(); // </advc>
+				iLoopProgress = per100(iLoopProgress).ceil(); // </advc>
 			if (iGreatPeopleUnitRand < iLoopProgress)
 			{
 				eGreatPeopleUnit = eLoopGP;

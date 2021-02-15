@@ -243,16 +243,16 @@
 		<!-- When computing per-civ power values (which play an important role
 			 in decisions on war and peace), the power value of each individual
 			 unit is raised to the power of (i.e. exponentiated by)
-			 POWER_CORRECTION. For example, if POWER_CORRECTION is 2, per-unit
-			 power values are squared. POWER_CORRECTION = 1 is the BtS behavior;
+			 POWER_CORRECTION. For example, if POWER_CORRECTION is 200%, per-unit
+			 power values are squared. POWER_CORRECTION = 100% is the BtS behavior;
 			 power values then typically equal unit strength, e.g. two Warriors
 			 are as good as one Spearman. When squaring, one Spearman is as
 			 good as four Warriors. (That seems too much.) Recommended:
-			 1.66; one Spearman then corresponds to 3.15 Warriors. -->
+			 166%; one Spearman then corresponds to 3.15 Warriors. -->
 		<!-- advc.159: A fraction (3/4) of this value is also used for some
 			 tactical decisions outside the UWAI component. -->
         <DefineName>POWER_CORRECTION</DefineName>
-        <fDefineFloatVal>1.66</fDefineFloatVal>
+		<iDefineIntVal>166</iDefineIntVal>
     </Define>
 	<!-- [/advc.104] -->
 

@@ -4329,29 +4329,20 @@ void CvTeamAI::AI_reportSharedWarSuccess(int iIntensity, TeamTypes eWarAlly,
 	/*  War success against us as a measure of how distressed we are, i.e. how
 		much we need the assistance from agentId. Counts all our enemies,
 		not just enemyId. */
-	double distress = 0;
-	double const maxDistress = GC.getWAR_SUCCESS_CITY_CAPTURING() / 5.0;
-	if(getNumCities() > 0)
+	scaled rDistress;
+	scaled const rMaxDistress(GC.getWAR_SUCCESS_CITY_CAPTURING(), 5);
+	if (getNumCities() > 0)
 	{
-		if(bIgnoreDistress) // Not "ignored", I guess, but computed differently
-			// The divisor is half the number of cities, rounded up
-			distress = maxDistress / ((int)(getNumCities() / 2.0 + 0.5));
+		if (bIgnoreDistress) // Not "ignored", I guess, but computed differently.
+			rDistress = rMaxDistress / scaled(getNumCities(), 2).ceil();
 		else
 		{
-			// advc.test: To assert that eEnemy is among our enemies
-			//std::set<TeamTypes> ourEnemies;
-			for(int i = 0; i < MAX_CIV_TEAMS; i++)
+			for (TeamIter<MAJOR_CIV,ENEMY_OF> itEnemy(getID());
+				itEnemy.hasNext(); ++itEnemy)
 			{
-				CvTeamAI const& kLoopEnemy = GET_TEAM((TeamTypes)i);
-				if(kLoopEnemy.isAlive() && !kLoopEnemy.isMinorCiv() &&
-					isAtWar(kLoopEnemy.getID()))
-				{
-					//ourEnemies.insert(kLoopEnemy.getID()); // advc.test
-					distress += kLoopEnemy.AI_getWarSuccess(getID());
-				}
+				rDistress += itEnemy->AI_getWarSuccess(getID());
 			}
-			//FAssert(ourEnemies.count(eEnemy) > 0 || eEnemy == BARBARIAN_TEAM || GET_TEAM(eEnemy).isMinorCiv()); // advc.test
-			distress /= getNumCities();
+			rDistress /= getNumCities();
 		}
 	}
 	/*  Don't give distress too much weight. It's mostly there to discount
@@ -4360,16 +4351,17 @@ void CvTeamAI::AI_reportSharedWarSuccess(int iIntensity, TeamTypes eWarAlly,
 		war success as taking the city itself, the highest possible distress is
 		2 * WAR_SUCCESS_CITY_CAPTURING * NumCities. If our distress is just 10%
 		of that, the distress multiplier already takes its maximal value. */
-	distress = std::min(distress, maxDistress);
+	rDistress = std::min(rDistress, rMaxDistress);
 	int iOldValue = AI_getSharedWarSuccess(eWarAlly);
 	// Asymptote at 5000
-	double brakeFactor = std::max(0.0, 1 - iOldValue / 5000.0);
-	int iNewValue = ::round(iOldValue + brakeFactor *
-			100.0 * distress * iIntensity / // Times 100 for accuracy
+	scaled rBrakeFactor = scaled::max(0, 1 - scaled(iOldValue, 5000));
+	int const iPrecision = 100; // Precision of what we'll store (in an int)
+	int iNewValue = iOldValue +
+			((rBrakeFactor * iPrecision * rDistress * iIntensity) /
 			/*  Use number of cities as an indicator of how capable the war ally is
 				militarily - how difficult was this war success to accomplish, or
 				how big a sacrifice was the loss. */
-			std::max(1, GET_TEAM(eWarAlly).getNumCities()));
+			std::max(1, GET_TEAM(eWarAlly).getNumCities())).round();
 	FAssert(iNewValue >= iOldValue);
 	AI_setSharedWarSuccess(eWarAlly, iNewValue);
 }
@@ -4415,11 +4407,11 @@ void CvTeamAI::AI_changeEnemyPeacetimeTradeValue(TeamTypes eIndex, int iChange)
 }
 
 // <advc.130p>, advc.130m To keep the rate consistent between TeamAI and PlayerAI
-double CvTeamAI::AI_getDiploDecay() const
+scaled CvTeamAI::AI_getDiploDecay() const
 {
 	/*  On Normal speed, this decay rate halves a value in about 50 turns:
 		0.9865^50 = 0.507 */
-	return 1.45 / GC.getInfo(GC.getGame().getGameSpeedType()).
+	return fixp(1.45) / GC.getInfo(GC.getGame().getGameSpeedType()).
 			getGoldenAgePercent();
 }
 
@@ -5451,14 +5443,14 @@ void CvTeamAI::AI_doCounter()
 		{
 			AI_changeAtPeaceCounter(eOther, AI_getAtPeaceCounter(eOther) == 0 ?
 					1 : AI_randomCounterChange());
-		}  // <advc>
+		} 
 		if(!isHasMet(eOther) || isBarbarian() || GET_TEAM(eOther).isBarbarian())
-			continue; // </advc>
+			continue;
 		AI_changeHasMetCounter(eOther, 1);
 		// <advc>
 		if (isMinorCiv() || GET_TEAM(eOther).isMinorCiv())
 			continue; // </advc>
-		double decay = AI_getDiploDecay(); // advc.130k
+		scaled const rDecayFactor = 1 - AI_getDiploDecay(); // advc.130k
 		// <advc.130i>
 		if(isOpenBorders(eOther))
 		{
@@ -5466,31 +5458,42 @@ void CvTeamAI::AI_doCounter()
 			int iMax = 2 * AI_getOpenBordersAttitudeDivisor() + 10;
 			AI_changeOpenBordersCounter(eOther, AI_randomCounterChange(iMax, rProb));
 		} // </advc.130i>  <advc.130k>
-		else AI_setOpenBordersCounter(eOther, (int)(
-				(1 - decay) * AI_getOpenBordersCounter(eOther))); // </advc.130k>
+		else
+		{
+			AI_setOpenBordersCounter(eOther,
+					(AI_getOpenBordersCounter(eOther) * rDecayFactor).floor());
+		} // </advc.130k>
 		if(isDefensivePact(eOther))
 			AI_changeDefensivePactCounter(eOther, AI_randomCounterChange());
 		// <advc.130k>
-		else AI_setDefensivePactCounter(eOther, (int)(
-				(1 - decay) * AI_getDefensivePactCounter(eOther))); // </advc.130k>
+		else
+		{
+			AI_setDefensivePactCounter(eOther,
+					(AI_getDefensivePactCounter(eOther) * rDecayFactor).floor());
+		} // </advc.130k>
 		if(AI_shareWar(eOther))
 			AI_changeShareWarCounter(eOther, AI_randomCounterChange()); // </advc.130k>
 		// <advc.130m> Decay by 1 with 10% probability
 		else if(AI_getShareWarCounter(eOther) > 0 &&
-				::bernoulliSuccess(0.1, "advc.130m"))
+			fixp(0.1).bernoulliSuccess(GC.getGame().getSRand(), "share war decay"))
+		{
 			AI_changeShareWarCounter(eOther, -1);
-		AI_setSharedWarSuccess(eOther, (int)
-				((1 - decay) * AI_getSharedWarSuccess(eOther))); // </advc.130m>
-		// <advc.130p>
-		AI_changeEnemyPeacetimeGrantValue(eOther, -(int)std::ceil(
-				decay * AI_getEnemyPeacetimeGrantValue(eOther)));
-		AI_changeEnemyPeacetimeTradeValue(eOther, -(int)std::ceil(
-				decay * AI_getEnemyPeacetimeTradeValue(eOther)));
+		}
+		AI_setSharedWarSuccess(eOther,
+				(AI_getSharedWarSuccess(eOther) * rDecayFactor).floor());
+		// </advc.130m>  <advc.130p>
+		AI_setEnemyPeacetimeGrantValue(eOther,
+				(AI_getEnemyPeacetimeGrantValue(eOther) * rDecayFactor).floor());
+		AI_setEnemyPeacetimeTradeValue(eOther,
+				(AI_getEnemyPeacetimeTradeValue(eOther) * rDecayFactor).floor());
 		// </advc.130p>
-		// <advc.130r> Double decay rate for war success
-		int iWSOld = AI_getWarSuccess(eOther);
-		int iWSNew = std::max(0, iWSOld - (int)std::ceil(2 * decay * iWSOld));
-		AI_setWarSuccess(eOther, iWSNew); // </advc.130r>
+		// <advc.130r>
+		{	// Double decay rate for war success
+			int iWSOld = AI_getWarSuccess(eOther);
+			int iWSNew = (iWSOld * std::max(fixp(0.5),
+					1 - 2 * AI_getDiploDecay())).floor();
+			AI_setWarSuccess(eOther, iWSNew);
+		} // </advc.130r>
 	}
 }
 

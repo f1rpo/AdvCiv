@@ -545,7 +545,8 @@ public:
 		DO(LFB_ENABLE) DO(LFB_BASEDONGENERAL) DO(LFB_BASEDONEXPERIENCE) \
 		DO(LFB_BASEDONLIMITED) DO(LFB_BASEDONHEALER) DO(LFB_DEFENSIVEADJUSTMENT) \
 		DO(LFB_USESLIDINGSCALE) DO(LFB_ADJUSTNUMERATOR) DO(LFB_ADJUSTDENOMINATOR) \
-		DO(LFB_USECOMBATODDS) /* BETTER_BTS_AI_MOD: END */
+		DO(LFB_USECOMBATODDS) /* BETTER_BTS_AI_MOD: END */ \
+		DO(POWER_CORRECTION) /* advc.104 */
 	#define MAKE_ENUMERATOR(VAR) VAR,
 	enum GlobalDefines
 	{
@@ -612,7 +613,6 @@ public:
 	int getNUM_OR_TECH_PREREQS() const;
 	int getNUM_ROUTE_PREREQ_OR_BONUSES() const;
 	int getNUM_CORPORATION_PREREQ_BONUSES() const;*/
-	inline float getPOWER_CORRECTION() const { return m_fPOWER_CORRECTION; } // advc.104
 	// advc: All inlined and constified
 	DllExport inline float getCAMERA_MIN_YAW() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MIN_YAW(); }
 	inline float getCAMERA_MIN_YAW() const { return m_fCAMERA_MIN_YAW; }
@@ -907,7 +907,6 @@ protected:
 	ImprovementTypes m_eRUINS_IMPROVEMENT;
 	SpecialistTypes m_eDEFAULT_SPECIALIST;
 	TerrainTypes m_aeWATER_TERRAIN[2]; // </advc.opt>
-	float m_fPOWER_CORRECTION; // advc.104
 
 	float m_fCAMERA_MIN_YAW;
 	float m_fCAMERA_MAX_YAW;

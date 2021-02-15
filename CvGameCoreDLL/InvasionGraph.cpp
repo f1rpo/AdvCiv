@@ -19,7 +19,7 @@ using std::string;
 
 namespace {
 	inline double powerCorrect(double multiplier) {
-		 return std::pow(multiplier, (double)GC.getPOWER_CORRECTION());
+		 return std::pow(multiplier, GC.getDefineINT(CvGlobals::POWER_CORRECTION) / 100.0);
 	}
 }
 

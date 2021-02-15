@@ -1099,18 +1099,19 @@ int CvUnitAI::AI_currEffectiveStr(CvPlot const* pPlot, CvUnit const* pOther,
 		evaluating imminent stack-on-stack combat. When we already know that
 		a stack of stronger units is facing a larger stack of weaker units
 		we need to assume a high chance of having to fight multiple enemies in a row. */
-	static double exponent = std::max(1.0, 0.75 * GC.getPOWER_CORRECTION());
-	static double const normalizationFactor = (exponent < 1.05 ? 1 :
+	static scaled const rExponent = scaled::max(1,
+			fixp(3/4.) * per100(GC.getDefineINT(CvGlobals::POWER_CORRECTION)));
+	static scaled const rNormalizationFactor = (rExponent < fixp(1.05) ? 1 :
 			// Pretty arbitrary; only need to weigh rounding errors against the danger of overflow.
-			25000 / std::pow(10000.0, exponent));
+			25000 / scaled(10000).pow(rExponent));
 	/*  Make the AI overestimate weak units a little bit on the low and medium difficulty settings.
 		(Not static b/c difficulty can change through load/ new game.) */
-	double exponentAdjusted = exponent - GC.getInfo(
-			GC.getGame().getHandicapType()).getFreeWinsVsBarbs() / 25.0;
-	int r = std::min(25000, // Guard against overflow problems for caller
-			::round(std::pow((double)iCombatStrengthPercent, exponentAdjusted) *
-			normalizationFactor));
-	return std::max(1, r); // Don't round down to 0
+	scaled rExponentAdjusted = rExponent - scaled(std::max(0,
+			50 - GC.getInfo(GC.getGame().getHandicapType()).getDifficulty()), 250);
+	int iR = std::min(25000, // Guard against overflow problems for caller
+			(scaled(iCombatStrengthPercent).pow(rExponentAdjusted) *
+			rNormalizationFactor).round());
+	return std::max(1, iR); // Don't round down to 0
 }
 
 

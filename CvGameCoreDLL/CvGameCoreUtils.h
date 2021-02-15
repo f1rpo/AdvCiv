@@ -23,10 +23,18 @@ class FAStar;
 inline int ROUND_DIVIDE(int a, int b)
 {
 	//return (a+((a/b>0)?1:-1)*(b/2)) / b;
-	// <advc.001> ^That'll round 2/3 to 0
+	// <advc.001> The above would round 2/3 to 0
 	int iSign = ((a ^ b) >= 0 ? 1 : -1);
 	return (a + iSign * b / 2) / b;
 	// </advc.001>
+}
+
+namespace intdiv
+{
+	inline int uceil(int a, int b)
+	{
+		return 1 + (a - 1) / b;
+	}
 }
 
 /*	advc.opt: MSVC produces branches for std::max and std::min.

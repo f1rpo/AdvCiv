@@ -9947,10 +9947,10 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const& kThe
 	}
 	if (bMayAddGold)
 	{
-		int iGoldData = ((iTheyReceive - iWeReceive) * 100 +
-				// bTheyGenerous: round up or down
-				(bTheyGenerous ? (iGoldValuePercent - 1) : 0)) /
-				iGoldValuePercent;
+		int iGoldData = (iTheyReceive - iWeReceive) * 100;
+		if (bTheyGenerous)
+			iGoldData = intdiv::uceil(iGoldData, iGoldValuePercent);
+		else iGoldData /= iGoldValuePercent;
 		// if(kPlayer.AI_maxGoldTrade(getID()) >= iGoldData)
 		// <advc.026>
 		int iMaxGold = ((isHuman() && bTheyGenerous) ?
@@ -10291,10 +10291,10 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const& kThe
 	{
 		if (bMayAddGold)
 		{
-			int iGoldData = ((iTheyReceive - iWeReceive) * 100 +
-					// bGenerous: round up or down
-					(bTheyGenerous ? (iGoldValuePercent - 1) : 0)) /
-					iGoldValuePercent;
+			int iGoldData = (iTheyReceive - iWeReceive) * 100;
+			if (bTheyGenerous)
+				iGoldData = intdiv::uceil(iGoldData, iGoldValuePercent);
+			else iGoldData /= iGoldValuePercent;
 			//int iMaxGold = kPlayer.AI_maxGoldTrade(getID());
 			// <advc.026> (same procedure as in the initial gold check)
 			int iMaxGold = ((bTheyGenerous && isHuman()) ?
@@ -17999,8 +17999,8 @@ void CvPlayerAI::AI_doCounter()
 
 	CvGame& kGame = GC.getGame();
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
-	CvLeaderHeadInfo& kPersonality = GC.getInfo(getPersonalityType());
-	double decayFactor = 1 - GET_TEAM(getTeam()).AI_getDiploDecay(); // advc.130k
+	CvLeaderHeadInfo const& kPersonality = GC.getInfo(getPersonalityType());
+	scaled rDecayFactor = 1 - GET_TEAM(getTeam()).AI_getDiploDecay(); // advc.130k
 	// <advc.130k>
 	for (PlayerIter<MAJOR_CIV,KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 	{
@@ -18016,8 +18016,8 @@ void CvPlayerAI::AI_doCounter()
 		}
 		else
 		{
-			AI_setSameReligionCounter(ePlayer, (int)
-					(decayFactor * AI_getSameReligionCounter(ePlayer)));
+			AI_setSameReligionCounter(ePlayer,
+					(AI_getSameReligionCounter(ePlayer) * rDecayFactor).floor());
 		}
 		if (getStateReligion() != NO_RELIGION &&
 			kPlayer.getStateReligion() != NO_RELIGION &&
@@ -18029,20 +18029,23 @@ void CvPlayerAI::AI_doCounter()
 		{
 			AI_changeDifferentReligionCounter(ePlayer, kOurTeam.AI_randomCounterChange());
 		}
-		else AI_setDifferentReligionCounter(ePlayer, (int)(
-				decayFactor * AI_getDifferentReligionCounter(ePlayer)));
+		else AI_setDifferentReligionCounter(ePlayer,
+				(AI_getDifferentReligionCounter(ePlayer) * rDecayFactor).floor());
 		if (kPersonality.getFavoriteCivic() != NO_CIVIC)
 		{
 			CivicTypes eFavCivic = (CivicTypes)kPersonality.getFavoriteCivic();
-			if(isCivic(eFavCivic) && kPlayer.isCivic(eFavCivic))
+			if (isCivic(eFavCivic) && kPlayer.isCivic(eFavCivic))
 				AI_changeFavoriteCivicCounter(ePlayer, kOurTeam.AI_randomCounterChange());
-			else AI_setFavoriteCivicCounter(ePlayer, (int)(
-				decayFactor * AI_getFavoriteCivicCounter(ePlayer)));
+			else
+			{
+				AI_setFavoriteCivicCounter(ePlayer,
+						(AI_getFavoriteCivicCounter(ePlayer) * rDecayFactor).floor());
+			}
 		} // <advc.130p>
-		AI_setPeacetimeGrantValue(ePlayer, (int)(
-				decayFactor * AI_getPeacetimeGrantValue(ePlayer)));
-		AI_setPeacetimeTradeValue(ePlayer, (int)(
-				decayFactor * AI_getPeacetimeTradeValue(ePlayer)));
+		AI_setPeacetimeGrantValue(ePlayer,
+				(AI_getPeacetimeGrantValue(ePlayer) * rDecayFactor).floor());
+		AI_setPeacetimeTradeValue(ePlayer,
+				(AI_getPeacetimeTradeValue(ePlayer) * rDecayFactor).floor());
 		// </advc.130p>
 		// <advc.149>
 		int iAttitudeDiv = kPersonality.getBonusTradeAttitudeDivisor();
@@ -18056,8 +18059,8 @@ void CvPlayerAI::AI_doCounter()
 		{
 			/*  BtS decreases the BonusTradeCounter by 1 + kPlayer.getNumCities() / 4,
 				but let's just do exponential decay instead. */
-			AI_setBonusTradeCounter(ePlayer, (int)(
-					decayFactor * AI_getBonusTradeCounter(ePlayer)));
+			AI_setBonusTradeCounter(ePlayer,
+					(AI_getBonusTradeCounter(ePlayer) * rDecayFactor).floor());
 		}
 		else
 		{
@@ -18073,8 +18076,8 @@ void CvPlayerAI::AI_doCounter()
 				scaled rExportable;
 				FOR_EACH_ENUM(Bonus)
 				{
-					int iAvail = kPlayer.getNumAvailableBonuses(eLoopBonus)
-							+ kPlayer.getBonusExport(eLoopBonus);
+					int iAvail = kPlayer.getNumAvailableBonuses(eLoopBonus) +
+							kPlayer.getBonusExport(eLoopBonus);
 					if (iAvail > 1)
 						rExportable += std::min(iAvail - 1, 3);
 				} /* Mean of capBonuses and a multiple of exportable, but
@@ -18090,10 +18093,11 @@ void CvPlayerAI::AI_doCounter()
 					kPersonality.getBonusTradeAttitudeChangeLimit()).round(),
 					rIncr / 2)); // Halved b/c it's a binomial distrib w/ 2 trials
 			// <advc.036>
-			int iOldGoldTraded = AI_getGoldTradedTo(ePlayer);
-			int iNewGoldTraded = (int)(decayFactor * iOldGoldTraded);
-			AI_changeGoldTradedTo(ePlayer, iNewGoldTraded - iOldGoldTraded);
-			// </advc.036>
+			{
+				int iOldGoldTraded = AI_getGoldTradedTo(ePlayer);
+				int iNewGoldTraded = (rDecayFactor * iOldGoldTraded).floor();
+				AI_changeGoldTradedTo(ePlayer, iNewGoldTraded - iOldGoldTraded);
+			} // </advc.036>
 		} // </advc.149> </advc.130k>
 	}
 
@@ -24035,7 +24039,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 				// Memory of them declaring on us and our friends
 				int iWarMemory = AI_getMemoryCount((PlayerTypes)iI, MEMORY_DECLARED_WAR);
 				iWarMemory += (AI_getMemoryCount((PlayerTypes)iI, MEMORY_DECLARED_WAR_ON_FRIEND) + 1)/2;
-				iWarMemory = (int)ceil(iWarMemory / 2.5); // advc.130j
+				iWarMemory = (iWarMemory / fixp(2.5)).ceil(); // advc.130j
 				if (iWarMemory > 0)
 				{
 					//they are a snake

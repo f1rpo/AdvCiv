@@ -67,7 +67,6 @@ m_fCAMERA_MAX_TURN_OFFSET(0), m_fCAMERA_MIN_DISTANCE(0),
 m_fCAMERA_UPPER_PITCH(0), m_fCAMERA_LOWER_PITCH(0),
 m_fFIELD_OF_VIEW(0), m_fSHADOW_SCALE(0),
 m_fUNIT_MULTISELECT_DISTANCE(0),
-m_fPOWER_CORRECTION(0), // advc.104
 // <advc> Safer to initialize these
 m_pArtFileMgr(NULL),
 m_paszEntityEventTypes(NULL),
@@ -736,8 +735,6 @@ void CvGlobals::cacheGlobalFloats(
 	m_fCAMERA_LOWER_PITCH = getDefineFLOAT("CAMERA_LOWER_PITCH");
 	m_fSHADOW_SCALE = getDefineFLOAT("SHADOW_SCALE");
 	m_fUNIT_MULTISELECT_DISTANCE = getDefineFLOAT("UNIT_MULTISELECT_DISTANCE");
-
-	m_fPOWER_CORRECTION = getDefineFLOAT("POWER_CORRECTION"); // advc.104
 }
 
 void CvGlobals::cacheGlobals()

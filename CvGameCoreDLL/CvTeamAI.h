@@ -181,7 +181,7 @@ public:
 			bool bPeaceDeal = false) const;
 	// 0 or less if eEnemy isn't an enemy at all
 	int AI_enmityValue(TeamTypes eEnemy) const;
-	double AI_getDiploDecay() const;
+	scaled AI_getDiploDecay() const;
 	scaled AI_recentlyMetMultiplier(TeamTypes eOther) const;
 	// </advc.130p>
 	// advc.130k: Public b/c CvPlayerAI needs it too
