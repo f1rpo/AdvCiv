@@ -3684,6 +3684,31 @@
 			<Plural>0</Plural>
 		</Spanish>
 	</TEXT>
+	<!-- advc.005: Removed regnal number I (all languages) -->
+	<TEXT>
+		<Tag>TXT_KEY_LEADER_JUSTINIAN</Tag>
+		<English>Justinian</English>
+		<French>
+			<Text>Justinien Ier</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Justinian</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Giustiniano</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Justiniano</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
 	<!-- advc.005: was Asoka -->
 	<TEXT>
 		<Tag>TXT_KEY_LEADER_ASOKA</Tag>
