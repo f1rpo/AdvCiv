@@ -15,7 +15,7 @@ namespace combat_odds
 {
 class Combatant;
 void initCombatants(CvUnit const& kAttacker, CvUnit const& kDefender,
-		Combatant& att, Combatant& def);
+		Combatant& att, Combatant& def, bool bHideFreeWins);
 class Combatant // Replacing local iAttacker..., iDefender... variables
 {
 public:

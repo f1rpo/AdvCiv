@@ -2893,47 +2893,17 @@ float getCombatOddsSpecific(CvUnit const* pAttacker, CvUnit const* pDefender,
 {
 	// <advc> Replacing redundant code
 	combat_odds::Combatant att, def;
-	combat_odds::initCombatants(*pAttacker, *pDefender, att, def);
+	combat_odds::initCombatants(*pAttacker, *pDefender, att, def,
+			// advc.001: Seems to have gone missing when ACO was added to BUG
+			BUGOption::isEnabled("ACO__IgnoreBarbFreeWins", false));
 	float const P_A = att.odds() / (float)GC.getCOMBAT_DIE_SIDES();
 	float const P_D = def.odds() / (float)GC.getCOMBAT_DIE_SIDES();
-	int iAttackerOdds = att.odds();
-	int iDefenderOdds = def.odds();
 	int const AttFSnet = att.lowFS() - def.lowFS();
 	int const AttFSC = att.FSChances();
 	int const DefFSC = def.FSChances();
-	/*	(Variables N_A, N_D replaced with def.hitsToWin(), att.hitsToWin()
-		- in that order. Let's hope that this is correct.) */ // </advc>
-
-	/*  advc.001: Replacing the check below. The BUG authors must've missed this
-		one when they integrated ACO into BUG. */
-	if(!BUGOption::isEnabled("ACO__IgnoreBarbFreeWins", false))
-	{
-		if (pDefender->isBarbarian())
-		{
-			//defender is barbarian
-			if (!GET_PLAYER(pAttacker->getOwner()).isBarbarian() &&
-				GET_PLAYER(pAttacker->getOwner()).getWinsVsBarbs() <
-				GET_PLAYER(pAttacker->getOwner()).getFreeWinsVsBarbs())
-			{
-				//attacker is not barb and attacker player has free wins left
-				//I have assumed in the following code only one of the units (attacker and defender) can be a barbarian
-				iDefenderOdds = std::min((10 * GC.getCOMBAT_DIE_SIDES()) / 100, iDefenderOdds);
-				iAttackerOdds = std::max((90 * GC.getCOMBAT_DIE_SIDES()) / 100, iAttackerOdds);
-			}
-		}
-		else if (pAttacker->isBarbarian())
-		{
-			//attacker is barbarian
-			if (!GET_PLAYER(pDefender->getOwner()).isBarbarian() &&
-				GET_PLAYER(pDefender->getOwner()).getWinsVsBarbs() <
-				GET_PLAYER(pDefender->getOwner()).getFreeWinsVsBarbs())
-			{
-				//defender is not barbarian and defender has free wins left and attacker is barbarian
-				iAttackerOdds = std::min((10 * GC.getCOMBAT_DIE_SIDES()) / 100, iAttackerOdds);
-				iDefenderOdds = std::max((90 * GC.getCOMBAT_DIE_SIDES()) / 100, iDefenderOdds);
-			}
-		}
-	}
+	/*	(Variables N_A, N_D replaced with def.hitsToWin(), att.hitsToWin() 
+		- in that order. iNeededRoundsAttacker was essentially the same as N_D,
+		also replaced by att.hitsToWin(). */ // </advc>
 
 	//int iRetreatOdds = std::max((pAttacker->withdrawalProbability()),100);
 	float const fRetreatOdds = std::min(pAttacker->withdrawalProbability(), 100) / 100.0f ;
@@ -3134,37 +3104,26 @@ void CvGameTextMgr::setACOPlotHelp(CvWStringBuffer &szString,
 	/*	<advc> Get rid of some duplicate code, and make sure that it's consistent
 		with change advc.001l. */
 	combat_odds::Combatant att, def;
-	combat_odds::initCombatants(*pAttacker, *pDefender, att, def);
-	int iAttackerOdds = att.odds();
-	int iDefenderOdds = def.odds(); // </advc>
+	bool const bHideFreeWins = BUGOption::isEnabled("ACO__IgnoreBarbFreeWins", false);
+	combat_odds::initCombatants(*pAttacker, *pDefender, att, def, bHideFreeWins); // </advc>
 
 	/** Many thanks to DanF5771 for some of these calculations! **/
 	int const iDefenderHitLimit = std::max(0,
 			pDefender->maxHitPoints() - pAttacker->combatLimit());
 
 	// Barbarian related code
-	/*  advc.001: The section below deals with FreeWins, so it should
-		only be executed if !IgnoreBarbFreeWins. The condition was
-		checking the opposite. */
-	if (!BUGOption::isEnabled("ACO__IgnoreBarbFreeWins", false) &&
-		!GC.getGame().isOption(GAMEOPTION_SPAH)) // advc.250b
-		//Are we not going to ignore barb free wins?  If not, skip this section...
+	//Are we not going to ignore barb free wins? If not, skip this section...
+	/*	advc.001: Uh-huh. If we ignore/ hide the free wins,
+		then no special treatment is needed here. */
+	if (!bHideFreeWins)
 	{
 		CvPlayer const& kAttackerOwner = GET_PLAYER(pAttacker->getOwner());
 		if (pDefender->isBarbarian())
 		{
-			//defender is barbarian
 			if (!kAttackerOwner.isBarbarian() &&
 				kAttackerOwner.getWinsVsBarbs() <
 				kAttackerOwner.getFreeWinsVsBarbs())
 			{
-				/*	attacker is not barb and attacker player has free wins left
-					I have assumed in the following code only one of the units
-					(attacker and defender) can be a barbarian */
-				iDefenderOdds = std::min(iDefenderOdds,
-						(10 * GC.getCOMBAT_DIE_SIDES()) / 100);
-				iAttackerOdds = std::max(iAttackerOdds,
-						(90 * GC.getCOMBAT_DIE_SIDES()) / 100);
 				szTempBuffer.Format(SETCOLR L"%d\n" ENDCOLR,
 						TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
 						kAttackerOwner.getFreeWinsVsBarbs()
@@ -3175,21 +3134,13 @@ void CvGameTextMgr::setACOPlotHelp(CvWStringBuffer &szString,
 		}
 		else
 		{
-			//defender is not barbarian
 			if (pAttacker->isBarbarian())
 			{
 				CvPlayer const& kDefenderOwner = GET_PLAYER(pDefender->getOwner());
-				//attacker is barbarian
 				if (!kDefenderOwner.isBarbarian() &&
 					kDefenderOwner.getWinsVsBarbs() <
 					kDefenderOwner.getFreeWinsVsBarbs())
 				{
-					/*	defender is not barbarian and
-						defender has free wins left and attacker is barbarian */
-					iAttackerOdds = std::min(iAttackerOdds,
-							(10 * GC.getCOMBAT_DIE_SIDES()) / 100);
-					iDefenderOdds = std::max(iDefenderOdds,
-							(90 * GC.getCOMBAT_DIE_SIDES()) / 100);
 					szTempBuffer.Format(SETCOLR L"%d\n" ENDCOLR,
 							TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
 							kDefenderOwner.getFreeWinsVsBarbs()
@@ -3636,7 +3587,7 @@ void CvGameTextMgr::setACOPlotHelp(CvWStringBuffer &szString,
 	}
 	szString.append(")");
 
-	if (iDefenderOdds == 0)
+	if (def.odds() == 0)
 	{
 		szString.append(gDLL->getText("TXT_ACO_GuaranteedNoDefenderHit"));
 		DefenderKillOdds = 0.0f;
@@ -3689,7 +3640,7 @@ void CvGameTextMgr::setACOPlotHelp(CvWStringBuffer &szString,
 	szString.append("  (");
 	szString.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
 	szTempBuffer.Format(L"%.1f",
-			(iDefenderOdds != 0 ? E_HP_Def_Defeat /
+			(def.odds() != 0 ? E_HP_Def_Defeat /
 			(RetreatOdds + DefenderKillOdds) : 0.0));
 	szString.append(szTempBuffer.GetCString());
 	szString.append(gDLL->getText("TXT_ACO_HP"));
@@ -4274,7 +4225,7 @@ void CvGameTextMgr::setACOPlotHelp(CvWStringBuffer &szString,
 		// advc.048: Closing parenthesis added
 		szTempBuffer.Format(L")" SETCOLR L" %.1f%%" ENDCOLR,
 				TEXT_COLOR("COLOR_POSITIVE_TEXT"),
-				iAttackerOdds * 100.0f / GC.getCOMBAT_DIE_SIDES());
+				att.odds() * 100.0f / GC.getCOMBAT_DIE_SIDES());
 		szString.append(szTempBuffer.GetCString());
 	}
 	/*  advc.048: The else branch of this conditional contained the XP range code,

@@ -1,6 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CombatOdds.h"
 #include "CvUnit.h"
+#include "CvPlayer.h" // for free wins vs. Barbarians
 
 // advc: Cut from CvGameCoreUtils.cpp
 
@@ -38,7 +39,7 @@ namespace
 	Probably shouldn't have concerned myself with that ...) */
 template<bool bFORCE_INIT>
 int setupCombatantsImpl(CvUnit const& kAttacker, CvUnit const& kDefender,
-	Combatant& att, Combatant& def)
+	Combatant& att, Combatant& def, bool bHideFreeWins = true)
 {
 	// Needs to match CvUnit::getDefenderCombatValues, getCombatFirstStrikes.
 	{
@@ -47,6 +48,33 @@ int setupCombatantsImpl(CvUnit const& kAttacker, CvUnit const& kDefender,
 		FAssert(att.strength() > 0 || def.strength() > 0);
 		def.setOdds((GC.getCOMBAT_DIE_SIDES() * def.strength()) /
 				(att.strength() + def.strength()));
+		if (!bHideFreeWins)
+		{	// Cut from ACO's getCombatOddsSpecific
+			if (kDefender.isBarbarian())
+			{
+				if (!kAttacker.isBarbarian() &&
+					GET_PLAYER(kAttacker.getOwner()).getWinsVsBarbs() <
+					GET_PLAYER(kAttacker.getOwner()).getFreeWinsVsBarbs())
+				{
+					def.setOdds(std::min(def.odds(),
+							(10 * GC.getCOMBAT_DIE_SIDES()) / 100));
+					att.setOdds(std::max(att.odds(),
+							(90 * GC.getCOMBAT_DIE_SIDES()) / 100));
+				}
+			}
+			else if (kAttacker.isBarbarian())
+			{
+				if (!kDefender.isBarbarian() &&
+					GET_PLAYER(kDefender.getOwner()).getWinsVsBarbs() <
+					GET_PLAYER(kDefender.getOwner()).getFreeWinsVsBarbs())
+				{
+					att.setOdds(std::min(att.odds(),
+							(10 * GC.getCOMBAT_DIE_SIDES()) / 100));
+					def.setOdds(std::max(def.odds(),
+							(90 * GC.getCOMBAT_DIE_SIDES()) / 100));
+				}
+			}
+		}
 	}
 	att.setOdds(GC.getCOMBAT_DIE_SIDES() - def.odds());
 	if (!bFORCE_INIT)
@@ -593,9 +621,9 @@ int estimateCombatOdds(CvUnit const& kAttacker, CvUnit const& kDefender, int iSa
 
 // Unlike setupCombatants, this is guaranteed to initialize the combatants.
 void combat_odds::initCombatants(CvUnit const& kAttacker, CvUnit const& kDefender,
-	Combatant& att, Combatant& def)
+	Combatant& att, Combatant& def, bool bHideFreeWins)
 {
-	setupCombatantsImpl<true>(kAttacker, kDefender, att, def);
+	setupCombatantsImpl<true>(kAttacker, kDefender, att, def, bHideFreeWins);
 }
 
 /*	advc: Replacement I wrote for CvUnit::LFBgetDefenderCombatOdds, which used to be
