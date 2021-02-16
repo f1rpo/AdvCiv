@@ -289,9 +289,8 @@ bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);										// Exposed to Python
 /*	advc.003w: Moved some two dozen functions to CvInfo classes;
 	mostly functions dealing with building and unit class limitations.
 	Removed isTechRequiredForProject. */
+// advc: getCombatOdds, LFBgetCombatOdds moved to CombatOdds
 
-__int64 getBinomialCoefficient(int iN, int iK);
-int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender);				// Exposed to Python
 int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTypes eDefenceTeam = NO_TEAM); // K-Mod
 
 /*	advc (note): Still used in the DLL by CvPlayer::buildTradeTable, but mostly deprecated.
@@ -368,8 +367,5 @@ void getActivityTypeString(CvWString& szString, ActivityTypes eActivityType);
 void getMissionTypeString(CvWString& szString, MissionTypes eMissionType);
 void getMissionAIString(CvWString& szString, MissionAITypes eMissionAI);
 void getUnitAIString(CvWString& szString, UnitAITypes eUnitAI);
-
-// Lead From Behind by UncutDragon
-int LFBgetCombatOdds(int iAttackerLowFS, int iAttackerHighFS, int iDefenderLowFS, int iDefenderHighFS, int iNeededRoundsAttacker, int iNeededRoundsDefender, int iAttackerOdds);
 
 #endif

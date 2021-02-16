@@ -778,6 +778,7 @@ public:
 	int getCitiesLost() const { return m_iCitiesLost; }																// Exposed to Python
 	void changeCitiesLost(int iChange);
 
+	int getFreeWinsVsBarbs() const; // advc
 	int getWinsVsBarbs() const;																						// Exposed to Python
 	void changeWinsVsBarbs(int iChange);
 

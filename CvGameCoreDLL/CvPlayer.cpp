@@ -8295,6 +8295,18 @@ void CvPlayer::changeCitiesLost(int iChange)
 	m_iCitiesLost = (m_iCitiesLost + iChange);
 }
 
+// advc:
+int CvPlayer::getFreeWinsVsBarbs() const
+{
+	if (GC.getGame().isOption(GAMEOPTION_SPAH) || // advc.250b
+		GC.getGame().isOption(GAMEOPTION_RISE_FALL)) // advc.700
+	{
+		return 0;
+	}
+	// Cut from CvUnit::getDefenderCombatValues
+	return GC.getInfo(getHandicapType()).getFreeWinsVsBarbs();
+}
+
 
 int CvPlayer::getWinsVsBarbs() const
 {

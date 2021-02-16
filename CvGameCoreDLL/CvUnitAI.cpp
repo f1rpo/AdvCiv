@@ -1,5 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvUnitAI.h"
+#include "CombatOdds.h"
 #include "CvSelectionGroupAI.h"
 #include "GroupPathFinder.h"
 #include "FAStarNode.h"
@@ -717,15 +718,15 @@ int CvUnitAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const
 		GC.getDefineBOOL(CvGlobals::LFB_USECOMBATODDS))
 	{
 		// Combat odds are out of 1000 - we need odds out of 100
-		int iOdds = (getCombatOdds(this, pDefender) + 5) / 10;
+		int iOdds = (calculateCombatOdds(*this, *pDefender) + 5) / 10;
 		iOdds += GET_PLAYER(getOwner()).AI_getAttackOddsChange();
 		return std::max(1, std::min(iOdds, 99));
 	}
 
 	int iOurStrength = (getDomainType() == DOMAIN_AIR ?
-			airCurrCombatStr(NULL) : currCombatStr(NULL, NULL));
+			airCurrCombatStr(NULL) : currCombatStr());
 	int iOurFirepower = (getDomainType() == DOMAIN_AIR ?
-			iOurStrength : currFirepower(NULL, NULL));
+			iOurStrength : currFirepower());
 
 	if (iOurStrength == 0)
 		return 1;
@@ -748,11 +749,7 @@ int CvUnitAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const
 	int iDamageToThem = std::max(1, (GC.getCOMBAT_DAMAGE() *
 			(iOurFirepower + iStrengthFactor)) /
 			(iTheirFirepower + iStrengthFactor));
-	/*	advc: If this function gets used for air units, then airCombatLimit
-		should probably be used. */
-	FAssert(getDomainType() != DOMAIN_AIR);
 	int iHitLimitThem = pDefender->maxHitPoints() - combatLimit();
-
 	int iNeededRoundsUs = (std::max(0, pDefender->currHitPoints() - iHitLimitThem) +
 			iDamageToThem - 1) / iDamageToThem;
 	int iNeededRoundsThem = (std::max(0, currHitPoints()) + iDamageToUs - 1) / iDamageToUs;

@@ -9625,7 +9625,7 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer,
 			GET_PLAYER(ePlayer).AI_dealVal(getID(), kWeGive,
 			false, 1, false, false, bCountLiberation)).round();
 	//kTheyAlsoGive.clear(); kWeAlsoGive.clear(); // advc: Moved into CvPlayer::AI_counterProposeExternal
-	/*  advc.001l: Moved into balanceDeal; should be called on whichever side
+	/*  advc.001: Moved into balanceDeal; should be called on whichever side
 		receives gold. (Though, in AdvCiv, it doesn't currently make a difference.) */
 	//int iGoldValuePercent = AI_goldTradeValuePercent();
 	// K-Mod. Refuse all war-time offers unless it's part of a peace deal

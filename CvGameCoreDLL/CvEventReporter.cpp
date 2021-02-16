@@ -2,6 +2,7 @@
 #include "CvEventReporter.h"
 #include "CvGame.h"
 #include "CvPlayer.h"
+#include "CvDLLPythonIFaceBase.h" // advc
 
 //
 // static, singleton accessor
@@ -119,6 +120,18 @@ void CvEventReporter::firstContact(TeamTypes eTeamID1, TeamTypes eTeamID2)
 void CvEventReporter::combatResult(CvUnit* pWinner, CvUnit* pLoser)
 {
 	m_kPythonEventMgr.reportCombatResult(pWinner, pLoser);
+}
+
+// advc: Cut from CvUnit::resolveCombat
+void CvEventReporter::combatLogHit(CombatDetails const& kAttackerDetails,
+	CombatDetails const& kDefenderDetails, int iDamage, bool bAttackerTakesHit)
+{
+	CyArgsList pyArgs;
+	pyArgs.add(gDLL->getPythonIFace()->makePythonObject(&kAttackerDetails));
+	pyArgs.add(gDLL->getPythonIFace()->makePythonObject(&kDefenderDetails));
+	pyArgs.add(bAttackerTakesHit ? 1 : 0);
+	pyArgs.add(iDamage);
+	genericEvent("combatLogHit", pyArgs.makeFunctionArgs());
 }
 
 void CvEventReporter::improvementBuilt(int iImprovementType, int iX, int iY)

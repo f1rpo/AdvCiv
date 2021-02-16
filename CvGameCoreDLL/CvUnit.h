@@ -423,7 +423,7 @@ public:
 	{
 		return ((maxCombatStr(pPlot, pAttacker, pCombatDetails) * currHitPoints()) / maxHitPoints());
 	}
-	int currFirepower(const CvPlot* pPlot, const CvUnit* pAttacker) const									// Exposed to Python
+	int currFirepower(const CvPlot* pPlot = NULL, const CvUnit* pAttacker = NULL) const						// Exposed to Python
 	{
 		return ((maxCombatStr(pPlot, pAttacker) + currCombatStr(pPlot, pAttacker) + 1) / 2);
 	}
@@ -432,6 +432,10 @@ public:
 			int iCurrentHP = -1) const; // advc.139
 	DllExport float maxCombatStrFloat(const CvPlot* pPlot, const CvUnit* pAttacker) const;					// Exposed to Python
 	DllExport float currCombatStrFloat(const CvPlot* pPlot, const CvUnit* pAttacker) const;					// Exposed to Python
+	// advc: was protected
+	void getDefenderCombatValues(CvUnit const& kDefender, const CvPlot* pPlot,
+			int iOurStrength, int iOurFirepower, int& iTheirOdds, int& iTheirStrength,
+			int& iOurDamage, int& iTheirDamage, CombatDetails* pTheirDetails = NULL) const;
 
 	DllExport inline bool canFight() const																	// Exposed to Python
 	{
@@ -1008,6 +1012,8 @@ public:
 	DllExport void getLayerAnimationPaths(std::vector<AnimationPathTypes>& aAnimationPaths) const;
 	DllExport int getSelectionSoundScript() const;
 
+	bool isWorker() const; // advc.154  (Exposed to Python)
+
 	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker,
 	// Lead From Behind (UncutDragon, edited for K-Mod): START
 			int* pBestDefenderRank,
@@ -1020,9 +1026,8 @@ public:
 	int LFBgetRelativeValueRating() const;
 	int LFGgetDefensiveValueAdjustment() const; // K-Mod
 	bool LFBisBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker, int* pBestDefenderRank) const;
-	int LFBgetDefenderCombatOdds(const CvUnit* pAttacker) const;
+	// (advc: LFBgetDefenderCombatOdds deleted, use 1000 minus calculateCombatOdds instead.)
 	// Lead From Behind: END
-	bool isWorker() const; // advc.154  (Exposed to Python)
 
 	// <advc.003u>
 	// virtual for FFreeListTrashArray
@@ -1170,9 +1175,6 @@ protected:
 	bool verifyRoundsValid(const CvBattleDefinition & battleDefinition) const;
 	void increaseBattleRounds(CvBattleDefinition & battleDefinition) const;
 	int computeWaveSize(bool bRangedRound, int iAttackerMax, int iDefenderMax) const;
-	void getDefenderCombatValues(CvUnit& kDefender, const CvPlot* pPlot, int iOurStrength,
-			int iOurFirepower, int& iTheirOdds, int& iTheirStrength, int& iOurDamage,
-			int& iTheirDamage, CombatDetails* pTheirDetails = NULL) const;
 	bool isCombatVisible(const CvUnit* pDefender) const;
 	//void resolveCombat(CvUnit* pDefender, CvPlot* pPlot, CvBattleDefinition& kBattle);
 	void resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible); // K-Mod

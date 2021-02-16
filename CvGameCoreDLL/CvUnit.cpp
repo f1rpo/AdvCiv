@@ -1,6 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvUnit.h"
 #include "CvUnitAI.h"
+#include "CombatOdds.h"
 #include "CvSelectionGroupAI.h"
 #include "CoreAI.h"
 #include "CvCityAI.h"
@@ -1056,12 +1057,17 @@ void CvUnit::updateAirCombat(bool bQuick)
 
 /*	K-Mod -- this makes the game log the odds and outcomes of every battle,
 	to help verify the accuracy of the odds calculation. */
-//#define LOG_COMBAT_OUTCOMESfunction so that it handles the battle planning internally rather than feeding details back to the caller.
+//#define LOG_COMBAT_OUTCOMES
+
+/*	K-Mod. I've edited this function so that it handles the battle planning internally
+	rather than feeding details back to the caller. */
+/*	advc (note): Much of CombatOdds.cpp is based on this function and may have to
+	be changed if the combat resolution rules are changed. */
 void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 {
 	#ifdef LOG_COMBAT_OUTCOMES
-		int iLoggedOdds = getCombatOdds(this, pDefender);
-		iLoggedOdds += (1000 - iLoggedOdds)*withdrawalProbability()/100;
+		int iLoggedOdds = calculateCombatOdds(*this, *pDefender);
+		iLoggedOdds += (1000 - iLoggedOdds) * withdrawalProbability() / 100;
 	#endif
 
 	// K-Mod. Initialize battle info.
@@ -1083,7 +1089,7 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 	CombatDetails cdDefenderDetails;
 
 	int iAttackerStrength = currCombatStr(NULL, NULL, &cdAttackerDetails);
-	int iAttackerFirepower = currFirepower(NULL, NULL);
+	int iAttackerFirepower = currFirepower();
 
 	int iDefenderStrength=0, iAttackerDamage=0, iDefenderDamage=0, iDefenderOdds=0;
 	getDefenderCombatValues(*pDefender, pPlot, iAttackerStrength, iAttackerFirepower,
@@ -1093,11 +1099,10 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 
 	if (isHuman() || pDefender->isHuman())
 	{
-		//Added ST
 		CyArgsList pyArgsCD;
 		pyArgsCD.add(gDLL->getPythonIFace()->makePythonObject(&cdAttackerDetails));
 		pyArgsCD.add(gDLL->getPythonIFace()->makePythonObject(&cdDefenderDetails));
-		pyArgsCD.add(getCombatOdds(this, pDefender));
+		pyArgsCD.add(calculateCombatOdds(*this, *pDefender));
 		CvEventReporter::getInstance().genericEvent("combatLogCalc", pyArgsCD.makeFunctionArgs());
 	}
 
@@ -1132,13 +1137,9 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 				// K-Mod end
 				cdAttackerDetails.iCurrHitPoints = currHitPoints();
 				if (isHuman() || pDefender->isHuman())
-				{
-					CyArgsList pyArgs;
-					pyArgs.add(gDLL->getPythonIFace()->makePythonObject(&cdAttackerDetails));
-					pyArgs.add(gDLL->getPythonIFace()->makePythonObject(&cdDefenderDetails));
-					pyArgs.add(1);
-					pyArgs.add(iAttackerDamage);
-					CvEventReporter::getInstance().genericEvent("combatLogHit", pyArgs.makeFunctionArgs());
+				{	// advc: Moved into new function
+					CvEventReporter::getInstance().combatLogHit(
+							cdAttackerDetails, cdDefenderDetails, iAttackerDamage, true);
 				}
 			}
 			// K-Mod. Track the free-strike misses, to use for choreographing the battle animation.
@@ -1149,24 +1150,30 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 		else
 		{
 			if (pDefender->getCombatFirstStrikes() == 0)
-			{
-				if (std::min(GC.getMAX_HIT_POINTS(),
-					pDefender->getDamage() + iDefenderDamage) > combatLimit())
+			{	// <advc.001l>
+				int iDamage = iDefenderDamage;
+				//if (std::min(GC.getMAX_HIT_POINTS(), pDefender->getDamage() + iDefenderDamage) > combatLimit())
+				/*	The above lets combat continue when the limit is
+					reached exactly. This means, if the attacker lands another hit,
+					it'll deal 0 damage (weird). Also inconsistent w/ caclulateCombatOdds. */
+				// Minus one b/c reaching MAX_HIT_POINTS mustn't be treated as a withdrawal
+				bool const bLimitReached = (std::min(GC.getMAX_HIT_POINTS() - 1, 
+						pDefender->getDamage() + iDamage) >= combatLimit());
+				if (bLimitReached)
 				{
+					iDamage = combatLimit() - pDefender->getDamage();
+					/*	Don't break right after the XP change; want to log the hit -
+						now that it's guaranteed to be a proper hit (positive damage). */
+					// </advc.001l>
 					changeExperience(GC.getDefineINT(CvGlobals::EXPERIENCE_FROM_WITHDRAWL),
 							pDefender->maxXPValue(), true, pPlot->getOwner() == getOwner(),
 							!pDefender->isBarbarian());
-					combat_log.push_back(combatLimit() - pDefender->getDamage()); // K-Mod
-					pDefender->setDamage(combatLimit(), getOwner());
-					break;
 				}
-
-				pDefender->changeDamage(iDefenderDamage, getOwner());
-				combat_log.push_back(iDefenderDamage); // K-Mod
-
+				pDefender->changeDamage(iDamage, getOwner());
+				combat_log.push_back(iDamage); // K-Mod
 				/* if (getCombatFirstStrikes() > 0 && isRanged()) {
 					kBattle.addFirstStrikes(BATTLE_UNIT_ATTACKER, 1);
-					kBattle.addDamage(BATTLE_UNIT_DEFENDER, BATTLE_TIME_RANGED, iDefenderDamage);
+					kBattle.addDamage(BATTLE_UNIT_DEFENDER, BATTLE_TIME_RANGED, iDamage);
 				} */
 				// K-Mod
 				if (getCombatFirstStrikes() > 0)
@@ -1174,14 +1181,13 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 				// K-Mod end
 				cdDefenderDetails.iCurrHitPoints = pDefender->currHitPoints();
 				if (isHuman() || pDefender->isHuman())
-				{
-					CyArgsList pyArgs;
-					pyArgs.add(gDLL->getPythonIFace()->makePythonObject(&cdAttackerDetails));
-					pyArgs.add(gDLL->getPythonIFace()->makePythonObject(&cdDefenderDetails));
-					pyArgs.add(0);
-					pyArgs.add(iDefenderDamage);
-					CvEventReporter::getInstance().genericEvent("combatLogHit", pyArgs.makeFunctionArgs());
+				{	// advc: Moved into new function
+					CvEventReporter::getInstance().combatLogHit(
+							cdAttackerDetails, cdDefenderDetails, iDamage, false);
 				}
+				// <advc.001l>
+				if (bLimitReached)
+					break; // </advc.001l>
 			}
 			// K-Mod
 			else if (bVisible && !combat_log.empty())
@@ -7727,7 +7733,7 @@ CvUnit* CvUnit::bestSeaPillageInterceptor(CvUnit* pPillager, int iMinOdds) const
 					// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000:
 					&iBestUnitRank))
 				{
-					if (getCombatOdds(pPillager, pLoopUnit) < iMinOdds)
+					if (calculateCombatOdds(*pPillager, *pLoopUnit) < iMinOdds)
 						pBestUnit = pLoopUnit;
 				}
 			}
@@ -11118,25 +11124,20 @@ void CvUnit::getDefenderCombatValues(CvUnit const& kDefender, CvPlot const* pPlo
 	FAssert(iOurFirepower + iTheirFirepower > 0);
 
 	iTheirOdds = (GC.getCOMBAT_DIE_SIDES() * iTheirStrength) / (iOurStrength + iTheirStrength);
-	// <advc.250b>
-	if(!GC.getGame().isOption(GAMEOPTION_SPAH) && !GC.getGame().isOption(GAMEOPTION_RISE_FALL))
-	{	// </advc.250b>
-		if (kDefender.isBarbarian())
+	if (kDefender.isBarbarian())
+	{
+		if (GET_PLAYER(getOwner()).getWinsVsBarbs() <
+			GET_PLAYER(getOwner()).getFreeWinsVsBarbs())
 		{
-			if (GET_PLAYER(getOwner()).getWinsVsBarbs() < GC.getInfo(GET_PLAYER(getOwner()).
-				getHandicapType()).getFreeWinsVsBarbs())
-			{
-				iTheirOdds = std::min((10 * GC.getCOMBAT_DIE_SIDES()) / 100, iTheirOdds);
-			}
+			iTheirOdds = std::min((10 * GC.getCOMBAT_DIE_SIDES()) / 100, iTheirOdds);
 		}
-		if (isBarbarian())
+	}
+	if (isBarbarian())
+	{
+		if (GET_PLAYER(kDefender.getOwner()).getWinsVsBarbs() <
+			GET_PLAYER(kDefender.getOwner()).getFreeWinsVsBarbs())
 		{
-			if (GET_PLAYER(kDefender.getOwner()).getWinsVsBarbs() <
-				GC.getInfo(GET_PLAYER(kDefender.getOwner()).getHandicapType()).
-				getFreeWinsVsBarbs())
-			{
-				iTheirOdds =  std::max((90 * GC.getCOMBAT_DIE_SIDES()) / 100, iTheirOdds);
-			}
+			iTheirOdds =  std::max((90 * GC.getCOMBAT_DIE_SIDES()) / 100, iTheirOdds);
 		}
 	}
 
@@ -11464,6 +11465,12 @@ int CvUnit::getSelectionSoundScript() const
 	return iScriptId;
 }
 
+// advc.154: for UI purposes
+bool CvUnit::isWorker() const
+{
+	return (AI_getUnitAIType() == UNITAI_WORKER || AI_getUnitAIType() == UNITAI_WORKER_SEA);
+}
+
 /*	BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000: START
 	Original isBetterDefenderThan call (without the extra parameter) -
 	now just a pass-through */
@@ -11550,7 +11557,8 @@ int CvUnit::LFBgetDefenderOdds(const CvUnit* pAttacker) const
 	if (bUseAttacker && GC.getDefineBOOL(CvGlobals::LFB_USECOMBATODDS))
 	{
 		// We start with straight combat odds
-		iDefense = LFBgetDefenderCombatOdds(pAttacker);
+		// advc: Replacing call to deleted (and redundant) LFBgetDefenderCombatOdds
+		iDefense = 1000 - calculateCombatOdds(*pAttacker, *this);
 	}
 	else
 	{
@@ -11744,71 +11752,4 @@ int CvUnit::LFGgetDefensiveValueAdjustment() const
 	}
 
 	return iValue;
-}
-// K-Mod end
-
-int CvUnit::LFBgetDefenderCombatOdds(const CvUnit* pAttacker) const
-{
-	int iAttackerStrength;
-	int iAttackerFirepower;
-	int iDefenderStrength;
-	int iDefenderFirepower;
-	int iDefenderOdds;
-	int iStrengthFactor;
-	int iDamageToAttacker;
-	int iDamageToDefender;
-	int iNeededRoundsAttacker;
-	int iNeededRoundsDefender;
-	int iAttackerLowFS;
-	int iAttackerHighFS;
-	int iDefenderLowFS;
-	int iDefenderHighFS;
-	int iDefenderHitLimit;
-
-	iAttackerStrength = pAttacker->currCombatStr(NULL, NULL);
-	iAttackerFirepower = pAttacker->currFirepower(NULL, NULL);
-
-	iDefenderStrength = currCombatStr(plot(), pAttacker);
-	iDefenderFirepower = currFirepower(plot(), pAttacker);
-
-	FAssert((iAttackerStrength + iDefenderStrength) > 0);
-	FAssert((iAttackerFirepower + iDefenderFirepower) > 0);
-
-	iDefenderOdds = ((GC.getCOMBAT_DIE_SIDES() * iDefenderStrength) / (iAttackerStrength + iDefenderStrength));
-	iStrengthFactor = ((iAttackerFirepower + iDefenderFirepower + 1) / 2);
-
-	// calculate damage done in one round
-	//////
-
-	iDamageToAttacker = std::max(1,((GC.getCOMBAT_DAMAGE() * (iDefenderFirepower + iStrengthFactor)) / (iAttackerFirepower + iStrengthFactor)));
-	iDamageToDefender = std::max(1,((GC.getCOMBAT_DAMAGE() * (iAttackerFirepower + iStrengthFactor)) / (iDefenderFirepower + iStrengthFactor)));
-
-	// calculate needed rounds.
-	// Needed rounds = round_up(health/damage)
-	//////
-
-	iDefenderHitLimit = maxHitPoints() - pAttacker->combatLimit();
-
-	iNeededRoundsAttacker = (std::max(0, currHitPoints() - iDefenderHitLimit) + iDamageToDefender - 1) / iDamageToDefender;
-	iNeededRoundsDefender = (pAttacker->currHitPoints() + iDamageToAttacker - 1) / iDamageToAttacker;
-
-	// calculate possible first strikes distribution.
-	// We can't use the getCombatFirstStrikes() function (only one result,
-	// no distribution), so we need to mimic it.
-	//////
-
-	iAttackerLowFS = (immuneToFirstStrikes()) ? 0 : pAttacker->firstStrikes();
-	iAttackerHighFS = (immuneToFirstStrikes()) ? 0 : (pAttacker->firstStrikes() + pAttacker->chanceFirstStrikes());
-
-	iDefenderLowFS = (pAttacker->immuneToFirstStrikes()) ? 0 : firstStrikes();
-	iDefenderHighFS = (pAttacker->immuneToFirstStrikes()) ? 0 : (firstStrikes() + chanceFirstStrikes());
-
-	return LFBgetCombatOdds(iDefenderLowFS, iDefenderHighFS, iAttackerLowFS, iAttackerHighFS, iNeededRoundsDefender, iNeededRoundsAttacker, iDefenderOdds);
-}
-// BETTER_BTS_AI_MOD: END
-
-// advc.154: for UI purposes
-bool CvUnit::isWorker() const
-{
-	return (AI_getUnitAIType() == UNITAI_WORKER || AI_getUnitAIType() == UNITAI_WORKER_SEA);
 }
