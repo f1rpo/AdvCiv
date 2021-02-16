@@ -2,8 +2,9 @@
 #include "CombatOdds.h"
 #include "CvUnit.h"
 #include "CvPlayer.h" // for free wins vs. Barbarians
+#include "CvBugOptions.h"
 
-// advc: Cut from CvGameCoreUtils.cpp
+// advc: Mostly cut from CvGameCoreUtils.cpp. Also one ACO function from CvGameTextMgr.
 
 using std::vector;
 using namespace combat_odds; // advc
@@ -161,7 +162,177 @@ int iBinomial(int iN, int iK)
 {
 	return static_cast<int>(getBinomialCoefficient(iN, iK));
 }
+} // end of unnamed namespace (tbc.)
 
+/*	ADVANCED COMBAT ODDS v1.1, 11/7/09, PieceOfMind:
+	Calculates the probability of a particular combat outcome
+	Returns a float value (between 0 and 1)
+	Written by PieceOfMind
+	advc: Cut from CvGameTextMgr.cpp */
+float combat_odds::getCombatOddsSpecific(
+	CvUnit const& kAttacker, CvUnit const& kDefender,
+	int iHitsByDef, int iHitsByAtt) // advc: Renamed from "n_A", "n_D"
+{
+	// <advc> Replacing redundant ACO code
+	Combatant att, def;
+	initCombatants(kAttacker, kDefender, att, def,
+			// advc.001: Seems to have gone missing when ACO was added to BUG
+			BUGOption::isEnabled("ACO__IgnoreBarbFreeWins", false));
+	float const P_A = att.odds() / (float)GC.getCOMBAT_DIE_SIDES();
+	float const P_D = def.odds() / (float)GC.getCOMBAT_DIE_SIDES();
+	int const AttFSnet = att.lowFS() - def.lowFS();
+	int const AttFSC = att.FSChances();
+	int const DefFSC = def.FSChances();
+	/*	(Variables N_A, N_D replaced with def.hitsToWin(), att.hitsToWin() 
+		- in that order. iNeededRoundsAttacker was essentially the same as N_D,
+		also replaced by att.hitsToWin(). */ // </advc>
+
+	//int iRetreatOdds = std::max((pAttacker->withdrawalProbability()),100);
+	float const fRetreatOdds = std::min(kAttacker.withdrawalProbability(), 100) / 100.0f ;
+
+	float answer = 0;
+	// (1) Defender dies or is taken to combat limit
+	if (iHitsByDef < def.hitsToWin() && iHitsByAtt == att.hitsToWin())
+	{
+		float sum1 = 0.0f;
+		for (int i = (-AttFSnet - AttFSC < 1 ? 1 : -AttFSnet-AttFSC); i <= DefFSC - AttFSnet; i++)
+		{
+			for (int j = 0; j <= i; j++)
+			{
+				if (iHitsByDef >= j)
+				{
+					sum1 += fBinomial(i, j) * std::pow(P_A, (float)i - j) *
+							fBinomial(att.hitsToWin() - 1 + iHitsByDef - j,
+							att.hitsToWin() - 1);
+				}
+			}
+		}
+		sum1 *= std::pow(P_D, (float)iHitsByDef) * std::pow(P_A, (float)att.hitsToWin());
+		answer += sum1;
+
+		float sum2 = 0.0f;
+
+		for (int i = (AttFSnet - DefFSC > 0 ? AttFSnet - DefFSC : 0); i <= AttFSnet + AttFSC; i++)
+		{
+			for (int j = 0; j <= i; j++)
+			{
+				if (att.hitsToWin() > j)
+				{
+					sum2 = sum2 + fBinomial(
+							iHitsByDef + att.hitsToWin() - j - 1, iHitsByDef) *
+							fBinomial(i, j) *
+							std::pow(P_A, (float)att.hitsToWin()) *
+							std::pow(P_D, (float)iHitsByDef + i - j);
+				}
+				else if (iHitsByDef == 0)
+				{
+					sum2 = sum2 + fBinomial(i, j) *
+							std::pow(P_A, (float)j) * std::pow(P_D,(float)i - j);
+				}
+				else sum2 = sum2 + 0.0f;
+			}
+		}
+		answer += sum2;
+	}
+	// (2) Attacker dies!
+	else if (iHitsByAtt < att.hitsToWin() && iHitsByDef == def.hitsToWin())
+	{
+		float sum1 = 0;
+		for (int i = (-AttFSnet - AttFSC < 1 ? 1 : -AttFSnet - AttFSC); i <= DefFSC - AttFSnet; i++)
+		{
+			for (int j = 0; j <= i; j++)
+			{
+				if (def.hitsToWin() > j)
+				{
+					sum1 += fBinomial(
+							iHitsByAtt + def.hitsToWin() - j - 1, iHitsByAtt) *
+							fBinomial(i, j) *
+							std::pow(P_D, (float)def.hitsToWin()) *
+							std::pow(P_A, (float)iHitsByAtt + i - j);
+				}
+				else
+				{
+					if (iHitsByAtt == 0)
+					{
+						sum1 += fBinomial(i, j) *
+								std::pow(P_D, (float)j) * std::pow(P_A,(float)i - j);
+					}//if (inside if) else sum += 0
+				}
+			}
+		}
+		answer += sum1;
+		float sum2 = 0.0f;
+		for (int i = (0 < AttFSnet - DefFSC ? AttFSnet - DefFSC : 0); i <= AttFSnet + AttFSC; i++)
+		{
+			for (int j = 0; j <= i; j++)
+			{
+				if (iHitsByAtt >= j)
+				{
+					sum2 += fBinomial(i, j) *
+							std::pow(P_D, (float)i - j) *
+							fBinomial(
+							def.hitsToWin() - 1 + iHitsByAtt - j, def.hitsToWin() - 1);
+				}
+			}
+		}
+		sum2 *= std::pow(P_A, (float)iHitsByAtt) * std::pow(P_D, (float)def.hitsToWin());
+		answer += sum2;
+		answer = answer * (1.0f - fRetreatOdds);
+	}
+	// (3) Attacker retreats!
+	else if (iHitsByDef == def.hitsToWin() - 1 && iHitsByAtt < att.hitsToWin())
+	{
+		float sum1 = 0.0f;
+		for (int i = (AttFSnet+AttFSC > - 1 ? 1 : -AttFSnet - AttFSC); i <= DefFSC - AttFSnet; i++)
+		{
+			for (int j = 0; j <= i; j++)
+			{
+				if (def.hitsToWin() > j)
+				{
+					sum1 += fBinomial(
+							iHitsByAtt + def.hitsToWin() - j - 1, iHitsByAtt) *
+							fBinomial(i, j) *
+							std::pow(P_D, (float)def.hitsToWin()) *
+							std::pow(P_A, (float)iHitsByAtt + i - j);
+				}
+				else
+				{
+					if (iHitsByAtt == 0)
+					{
+						sum1 += fBinomial(i, j) *
+								std::pow(P_D, (float)j) * std::pow(P_A, (float)i - j);
+					}//if (inside if) else sum += 0
+				}
+			}
+		}
+		answer += sum1;
+
+		float sum2 = 0.0f;
+		for (int i = (0 < AttFSnet - DefFSC?AttFSnet - DefFSC : 0); i <= AttFSnet + AttFSC; i++)
+		{
+			for (int j = 0; j <= i; j++)
+			{
+				if (iHitsByAtt >= j)
+				{
+					sum2 += fBinomial(i, j) *
+							std::pow(P_D, (float)i - j) *
+							fBinomial(
+							def.hitsToWin() - 1 + iHitsByAtt - j, def.hitsToWin() - 1);
+				}
+			}
+		}
+		sum2 *= std::pow(P_A, (float)iHitsByAtt) * std::pow(P_D, (float)def.hitsToWin());
+		answer += sum2;
+		answer = answer * fRetreatOdds;
+	}
+	else FErrorMsg("unexpected value in getCombatOddsSpecific");
+
+	answer /= (AttFSC + DefFSC + 1); // dividing by (t+w+1) as is necessary
+	return answer;
+}
+
+namespace
+{
 // Lead From Behind by UncutDragon (start)
 typedef vector<int> LFBoddsAttOdds;
 typedef vector<LFBoddsAttOdds> LFBoddsDefRounds;

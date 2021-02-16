@@ -70,6 +70,9 @@ private:
 	int m_iStrength;
 	int m_iDamagePerRound;
 };
+// From CvGameTextMgr.cpp (ACO helper function)
+float getCombatOddsSpecific(CvUnit const& kAttacker, CvUnit const& kDefender,
+		int iHitsByDef, int iHitsByAtt);
 } // </advc>
 
 __int64 getBinomialCoefficient(int iN, int iK);

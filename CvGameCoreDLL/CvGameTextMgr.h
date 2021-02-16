@@ -60,12 +60,12 @@ public:
 	void setInterceptPlotHelp(CvPlot const& kPlot, CvUnit const& kUnit,
 			CvWString& szHelp, bool bNewline = true); // </advc.004c>
 	bool setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
-	// <advc>
-	void setACOPlotHelp(CvWStringBuffer &szString, CvPlot const* pPlot,
-			CvUnit const* pAttacker, CvUnit const* pDefender, int iView,
+	// <advc> Note: These are now implemented in ACOText.cpp
+	void setACOPlotHelp(CvWStringBuffer &szString, CvPlot const& kPlot,
+			CvUnit const& kAttacker, CvUnit const& kDefender, int iView,
 			bool bBestOddsHelp);
-	void setACOModifiersPlotHelp(CvWStringBuffer &szString, CvPlot const* pPlot,
-			CvUnit const* pAttacker, CvUnit const* pDefender, int iView);
+	void setACOModifiersPlotHelp(CvWStringBuffer &szString, CvPlot const& kPlot,
+			CvUnit const& kAttacker, CvUnit const& kDefender, int iView);
 	// </advc>
 	// <advc.089>
 	void setCannotAttackHelp(CvWStringBuffer& szHelp, CvUnit const& kAttacker,

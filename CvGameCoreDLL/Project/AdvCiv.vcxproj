@@ -35,6 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\ACOText.cpp" />
     <ClCompile Include="..\AdvCiv4lerts.cpp" />
     <ClCompile Include="..\AgentIterator.cpp" />
     <ClCompile Include="..\AgentIteratorTest.cpp" />
