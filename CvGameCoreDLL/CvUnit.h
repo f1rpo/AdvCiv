@@ -1157,7 +1157,10 @@ protected:
 	// </advc.enum>
 
 	PlayerTypes getCombatOwner_bulk(TeamTypes eForTeam, CvPlot const& kPlot) const; // advc
-
+	// <advc.111>
+	bool pillageImprovement();
+	bool pillageRoute();
+	// </advc.111>
 	bool canAdvance(const CvPlot* pPlot, int iThreshold) const;
 	void collateralCombat(const CvPlot* pPlot, CvUnit const* pSkipUnit = NULL);
 	void flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength,

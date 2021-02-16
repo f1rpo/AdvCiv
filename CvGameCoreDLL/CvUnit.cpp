@@ -4504,9 +4504,6 @@ bool CvUnit::canPillage(CvPlot const& kPlot) const
 
 bool CvUnit::pillage()
 {
-	ImprovementTypes eTempImprovement = NO_IMPROVEMENT;
-	RouteTypes eTempRoute = NO_ROUTE;
-
 	CvPlot& kPlot = getPlot();
 	if (!canPillage(kPlot))
 		return false;
@@ -4535,60 +4532,21 @@ bool CvUnit::pillage()
 			return false;
 		}
 	}
-	if (kPlot.getImprovementType() != NO_IMPROVEMENT)
+	ImprovementTypes const eOldImprovement = kPlot.getImprovementType();
+	RouteTypes const eOldRoute = kPlot.getRouteType();
+	// <advc.111>
+	bool bPillaged = false;
+	if (kPlot.getTeam() == getTeam())
 	{
-		eTempImprovement = kPlot.getImprovementType();
-		if (kPlot.getTeam() != getTeam())
-		{
-			int iPillageGold = 0;
-			if (!GC.getPythonCaller()->doPillageGold(*this, kPlot, iPillageGold))
-			{	// K-Mod. C version of the original python code (CvGameUtils.doPillageGold)
-				int const iPillageBase = GC.getInfo(kPlot.getImprovementType()).
-						getPillageGold();
-				if (iPillageBase > 0) // advc
-				{
-					iPillageGold += GC.getGame().getSorenRandNum(iPillageBase,
-							"Pillage Gold 1");
-					/*	<advc.004> Add 1, and subtract 1 from the upper bound of the 2nd roll.
-						To guarantee that at least 1 gold is pillaged -
-						so that a message gets shown. */
-					iPillageGold++;
-					iPillageGold += GC.getGame().getSorenRandNum(
-							iPillageBase - 1, /* </advc.004> */ "Pillage Gold 2");
-					iPillageGold += (getPillageChange() * iPillageGold) / 100;
-					// K-Mod end
-				}
-			}
-			if (iPillageGold > 0)
-			{
-				GET_PLAYER(getOwner()).changeGold(iPillageGold);
-				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_IMP",
-						iPillageGold, GC.getInfo(kPlot.getImprovementType()).getTextKeyWide());
-				gDLL->UI().addMessage(getOwner(), true, -1, szBuffer,
-						"AS2D_PILLAGE", MESSAGE_TYPE_INFO, getButton(),
-						GC.getColorType("GREEN"), kPlot.getX(), kPlot.getY());
-				if (kPlot.isOwned())
-				{
-					szBuffer = gDLL->getText("TXT_KEY_MISC_IMP_DESTROYED",
-							GC.getInfo(kPlot.getImprovementType()).getTextKeyWide(),
-							getNameKey(), getVisualCivAdjective(kPlot.getTeam()));
-					gDLL->UI().addMessage(kPlot.getOwner(), /* advc.106j: */ true,
-							-1, szBuffer, kPlot, "AS2D_PILLAGED",
-							MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"));
-				}
-			}
-		}
-		kPlot.setImprovementType(GC.getInfo(kPlot.getImprovementType()).
-				getImprovementPillage());
+		if ((bPillaged = pillageRoute()) == false) // (works around warning c4706)
+			bPillaged = pillageImprovement();
 	}
-	else if (kPlot.isRoute())
+	else
 	{
-		eTempRoute = kPlot.getRouteType();
-		kPlot.setRouteType(NO_ROUTE, true); // XXX downgrade rail???
-	}
-
+		if ((bPillaged = pillageImprovement()) == false)
+			bPillaged = pillageRoute();
+	} // </advc.111>
 	changeMoves(GC.getMOVE_DENOMINATOR());
-
 	if (kPlot.isActiveVisible(false))
 	{
 		// Pillage entity mission
@@ -4600,10 +4558,70 @@ bool CvUnit::pillage()
 		kDefiniton.setUnit(BATTLE_UNIT_DEFENDER, NULL);
 		gDLL->getEntityIFace()->AddMission(&kDefiniton);
 	}
+	/*	advc.111: (Could just compare old with current, but that wouldn't catch
+		improvements that replace themselves upon being pillaged.) */
+	if (bPillaged)
+		CvEventReporter::getInstance().unitPillage(this, eOldImprovement, eOldRoute, getOwner());
+	return true;
+}
 
-	if (eTempImprovement != NO_IMPROVEMENT || eTempRoute != NO_ROUTE)
-		CvEventReporter::getInstance().unitPillage(this, eTempImprovement, eTempRoute, getOwner());
+// adv.111: Cut from pillage()
+bool CvUnit::pillageImprovement()
+{
+	CvPlot& kPlot = getPlot();
+	if (kPlot.getImprovementType() == NO_IMPROVEMENT)
+		return false;
+	if (kPlot.getTeam() != getTeam())
+	{
+		int iPillageGold = 0;
+		if (!GC.getPythonCaller()->doPillageGold(*this, kPlot, iPillageGold))
+		{	// K-Mod. C version of the original python code (CvGameUtils.doPillageGold)
+			int const iPillageBase = GC.getInfo(kPlot.getImprovementType()).
+					getPillageGold();
+			if (iPillageBase > 0) // advc
+			{
+				iPillageGold += GC.getGame().getSorenRandNum(iPillageBase,
+						"Pillage Gold 1");
+				/*	<advc.004> Add 1, and subtract 1 from the upper bound of the 2nd roll.
+					To guarantee that at least 1 gold is pillaged -
+					so that a message gets shown. */
+				iPillageGold++;
+				iPillageGold += GC.getGame().getSorenRandNum(
+						iPillageBase - 1, /* </advc.004> */ "Pillage Gold 2");
+				iPillageGold += (getPillageChange() * iPillageGold) / 100;
+				// K-Mod end
+			}
+		}
+		if (iPillageGold > 0)
+		{
+			GET_PLAYER(getOwner()).changeGold(iPillageGold);
+			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_IMP",
+					iPillageGold, GC.getInfo(kPlot.getImprovementType()).getTextKeyWide());
+			gDLL->UI().addMessage(getOwner(), true, -1, szBuffer,
+					"AS2D_PILLAGE", MESSAGE_TYPE_INFO, getButton(),
+					GC.getColorType("GREEN"), kPlot.getX(), kPlot.getY());
+			if (kPlot.isOwned())
+			{
+				szBuffer = gDLL->getText("TXT_KEY_MISC_IMP_DESTROYED",
+						GC.getInfo(kPlot.getImprovementType()).getTextKeyWide(),
+						getNameKey(), getVisualCivAdjective(kPlot.getTeam()));
+				gDLL->UI().addMessage(kPlot.getOwner(), /* advc.106j: */ true,
+						-1, szBuffer, kPlot, "AS2D_PILLAGED",
+						MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"));
+			}
+		}
+	}
+	kPlot.setImprovementType(GC.getInfo(kPlot.getImprovementType()).
+			getImprovementPillage());
+	return true;
+}
 
+// adv.111: Cut from pillage()
+bool CvUnit::pillageRoute()
+{
+	if (!getPlot().isRoute())
+		return false;
+	getPlot().setRouteType(NO_ROUTE, true); // XXX downgrade rail???
 	return true;
 }
 

@@ -14879,6 +14879,28 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 	}
 }
 
+// advc.111: Cut from CvDLLWidgetData::parseActionHelp
+bool CvGameTextMgr::setPillageHelp(CvWStringBuffer &szBuffer, ImprovementTypes eImprovement)
+{
+	if (eImprovement == NO_IMPROVEMENT)
+		return false;
+	szBuffer.append(NEWLINE);
+	szBuffer.append(gDLL->getText("TXT_KEY_ACTION_DESTROY_IMP",
+			GC.getInfo(eImprovement).getTextKeyWide()));
+	return true;
+}
+
+// advc.111: Cut from CvDLLWidgetData::parseActionHelp
+bool CvGameTextMgr::setPillageHelp(CvWStringBuffer &szBuffer, RouteTypes eRoute)
+{
+	if (eRoute == NO_ROUTE)
+		return false;
+	szBuffer.append(NEWLINE);
+	szBuffer.append(gDLL->getText("TXT_KEY_ACTION_DESTROY_IMP",
+			GC.getInfo(eRoute).getTextKeyWide()));
+	return true;
+}
+
 
 void CvGameTextMgr::setReligionHelp(CvWStringBuffer &szBuffer, ReligionTypes eReligion, bool bCivilopedia)
 {

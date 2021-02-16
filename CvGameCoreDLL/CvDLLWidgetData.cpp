@@ -2195,20 +2195,17 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		break;
 	}
 	case MISSION_PILLAGE:
-	{
-		if (kMissionPlot.isImproved())
+	{	// <advc.111> Matching a change in CvUnit::pillage
+		if (kMissionPlot.getTeam() == kUnitTeam.getID())
 		{
-			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_DESTROY_IMP",
-					GC.getInfo(kMissionPlot.getImprovementType()).
-					getTextKeyWide()));
+			if (!GAMETEXT.setPillageHelp(szBuffer, kMissionPlot.getRouteType()))
+				GAMETEXT.setPillageHelp(szBuffer, kMissionPlot.getImprovementType());
 		}
-		else if (kMissionPlot.isRoute())
+		else
 		{
-			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_DESTROY_IMP",
-					GC.getInfo(kMissionPlot.getRouteType()).getTextKeyWide()));
-		}
+			if (!GAMETEXT.setPillageHelp(szBuffer, kMissionPlot.getImprovementType()))
+				GAMETEXT.setPillageHelp(szBuffer, kMissionPlot.getRouteType());
+		} // </advc.111>
 		break;
 	}
 	case MISSION_PLUNDER:

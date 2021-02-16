@@ -146,7 +146,9 @@ public:
 	// <advc.004w>
 	void setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus,
 			bool bCivilopediaText, PlayerTypes eTradePlayer, bool bDiplo, CvCity const* pCity);
-	// </advc.004w>
+	// </advc.004w>  <advc.111>
+	bool setPillageHelp(CvWStringBuffer &szBuffer, ImprovementTypes eImprovement);
+	bool setPillageHelp(CvWStringBuffer &szBuffer, RouteTypes eRoute); // </advc.111>
 	void setReligionHelp(CvWStringBuffer &szBuffer, ReligionTypes eReligion, bool bCivilopedia = false);
 	void setReligionHelpCity(CvWStringBuffer &szBuffer, ReligionTypes eReligion, CvCity *pCity, bool bCityScreen = false, bool bForceReligion = false, bool bForceState = false, bool bNoStateReligion = false);
 	void setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTypes eCorporation, bool bCivilopedia = false);
