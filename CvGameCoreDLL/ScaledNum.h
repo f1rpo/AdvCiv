@@ -7,7 +7,7 @@
 
 #include "FixedPointPowTables.h" // Large lookup table, but ScaledNum.h gets precompiled.
 #include "TypeChoice.h"
-/*	Other non-BtS dependencies: ROUND_DIVIDE, round and intHash in CvGameCoreUtils.h.
+/*	Other non-BtS dependencies: intdiv::round, round, intHash, all in CvGameCoreUtils.h.
 	(Tbd.: Move those global functions here.)
 	For inclusion in PCH, one may have to define NOMINMAX before including windows.h;
 	see CvGameCoreDLL.h.
@@ -660,7 +660,7 @@ private:
 		{
 			int i = multiplicand;
 			i *= multiplier;
-			i = ROUND_DIVIDE(i, divisor);
+			i = intdiv::round(i, divisor);
 			i /= divisor;
 			return static_cast<ReturnType>(i);
 		} // In all remaining cases, mulDiv rounds too.

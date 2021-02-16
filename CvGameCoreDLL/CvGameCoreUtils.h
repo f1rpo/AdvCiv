@@ -16,22 +16,28 @@ class FAStar;
 
 #define SQR(x) ((x)*(x))
 
-// K-Mod: Created the following function for rounded integer division
-// advc: Moved from CvGlobals.h and static specifier removed
-inline int ROUND_DIVIDE(int a, int b)
-{
-	//return (a+((a/b>0)?1:-1)*(b/2)) / b;
-	// <advc.001> The above would round 2/3 to 0
-	int iSign = ((a ^ b) >= 0 ? 1 : -1);
-	return (a + iSign * b / 2) / b;
-	// </advc.001>
-}
-
+/*	(advc: Can also use ScaledNum. Maybe these functions read a bit better in
+	code that doesn't use fractions much. The "u" versions -- only for
+	nonnegative numbers -- are also a bit more efficient than ScaledNum.) */
 namespace intdiv
 {
-	inline int uceil(int a, int b)
+	// Replacing K-Mod's (incorrectly implemented) ROUND_DIVIDE (CvGlobals.h)
+	inline int round(int iDividend, int iDivisor)
 	{
-		return 1 + (a - 1) / b;
+		int iSign = ((iDividend ^ iDivisor) >= 0 ? 1 : -1);
+		return (iDividend + iSign * iDivisor / 2) / iDivisor;
+	}
+
+	inline int uround(int iDividend, int iDivisor)
+	{
+		FAssert((iDividend ^ iDivisor) >= 0); // Both negative is OK
+		return (iDividend + iDivisor / 2) / iDivisor;
+	}
+
+	inline int uceil(int iDividend, int iDivisor)
+	{
+		FAssert(iDividend >= 0 && iDivisor > 0);
+		return 1 + (iDividend - 1) / iDivisor;
 	}
 }
 

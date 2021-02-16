@@ -868,7 +868,7 @@ void CvGame::initGameHandicap()
 		{
 			/*  advc.250a: Relies on no strange new handicaps being placed
 				between Settler and Deity. Same in CvTeam::getHandicapType. */
-				setHandicapType((HandicapTypes) /* kekm.22: */ ROUND_DIVIDE(
+				setHandicapType((HandicapTypes) /* kekm.22: */ intdiv::round(
 						iSum, 10 * iDiv));
 		}
 		FAssertMsg(iDiv > 0, "All-AI game. Not necessarily wrong, but unexpected.");
@@ -886,7 +886,7 @@ void CvGame::initGameHandicap()
 		}
 	}
 	if(iDiv > 0) // Leaves it at STANDARD_HANDICAP in all-human games
-		m_eAIHandicap = (HandicapTypes)ROUND_DIVIDE(iHandicapSum, iDiv);
+		m_eAIHandicap = (HandicapTypes)intdiv::uround(iHandicapSum, iDiv);
 }
 
 
@@ -1346,7 +1346,7 @@ void CvGame::applyStartingLocHandicaps(
 					getStartingLocationPercent();
 		}
 		aStartingLocPercentPerTeam.push_back(std::make_pair(
-				&*itTeam, ROUND_DIVIDE(iStartingLocPercent, itMember.nextIndex())));
+				&*itTeam, intdiv::round(iStartingLocPercent, itMember.nextIndex())));
 	}
 	sortByStartingLocHandicap(aStartingLocPercentPerTeam, apTeamsByHandicap);
 	for (size_t i = 0; i < apTeamsByHandicap.size(); i++)
@@ -1681,7 +1681,7 @@ int CvGame::getTeamClosenessScore(  // advc: params used to be arrays
 		else
 		{
 			// The avg distance between team edges is the team score
-			iTeamScore = ROUND_DIVIDE(iTeamTotalDist, iNumEdges);
+			iTeamScore = intdiv::uround(iTeamTotalDist, iNumEdges);
 		}
 		iScore += iTeamScore;
 	}
@@ -3161,7 +3161,7 @@ void CvGame::updateGwPercentAnger()
 
 			static int const iGLOBAL_WARMING_BASE_ANGER_PERCENT = GC.getDefineINT("GLOBAL_WARMING_BASE_ANGER_PERCENT"); // advc.opt
 			iAngerPercent = iGLOBAL_WARMING_BASE_ANGER_PERCENT * iGwSeverityRating * iResponsibilityFactor;
-			iAngerPercent = ROUND_DIVIDE(iAngerPercent, 10000);// div, 100 * 100
+			iAngerPercent = intdiv::round(iAngerPercent, 100 * 100);
 		}
 		kPlayer.setGwPercentAnger(iAngerPercent);
 	}
@@ -4104,7 +4104,7 @@ EraTypes CvGame::getCurrentEra() const
 	if (iCount > 0)
 	{
 		//return (EraTypes)(iEra / iCount);
-		return (EraTypes)ROUND_DIVIDE(iEra, iCount); // kekm.17
+		return (EraTypes)intdiv::uround(iEra, iCount); // kekm.17
 	}
 	FAssert(iCount > 0); // advc
 	return NO_ERA;
@@ -4836,7 +4836,7 @@ int CvGame::getGlobalWarmingChances() const
 	int iIndexPerChance = GC.getDefineINT("GLOBAL_WARMING_INDEX_PER_CHANCE");
 	iIndexPerChance*=GC.getInfo(getGameSpeedType()).getVictoryDelayPercent();
 	iIndexPerChance/=100;
-	return ROUND_DIVIDE(getGlobalWarmingIndex(), std::max(1, iIndexPerChance));
+	return intdiv::round(getGlobalWarmingIndex(), std::max(1, iIndexPerChance));
 }
 
 int CvGame::getGwEventTally() const

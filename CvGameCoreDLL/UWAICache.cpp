@@ -1419,7 +1419,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 		/*	Search from target to source. TeamStepMetric is symmetrical in that regard.
 			Doing it backwards allows intermediate results to be reused. */
 		if(pf->landFinder().generatePath(targetCity.getPlot(), *p)) {
-			pwd = ROUND_DIVIDE(pf->landFinder().getPathCost(),
+			pwd = intdiv::uround(pf->landFinder().getPathCost(),
 					GC.getMOVE_DENOMINATOR());
 			if(pwd == 0) // Make sure 0 is reserved for own cities
 				pwd = 1;
@@ -1461,7 +1461,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 						d = pf->shallowWaterFinder().getPathCost();
 				}
 				if(d > 0) {
-					d = seaPenalty + ROUND_DIVIDE(d,
+					d = seaPenalty + intdiv::uround(d,
 							GC.getMOVE_DENOMINATOR() * cacheOwner.uwai().shipSpeed());
 					if(pwd < 0 || d < pwd) {
 						pwd = d;

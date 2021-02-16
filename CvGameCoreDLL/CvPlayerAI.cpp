@@ -1033,7 +1033,7 @@ void CvPlayerAI::AI_updateFoundValues(bool bStarting)  // advc: refactored
 				// Unless it doesn't have fresh water
 				kLoopPlot.isFreshWater())
 			{
-				iValue = toShort(iValue + ROUND_DIVIDE(iValue, 20));
+				iValue = toShort(iValue + intdiv::round(iValue, 20));
 			} // </advc.108>
 		}
 		kLoopPlot.setFoundValue(getID(), iValue);
@@ -2898,7 +2898,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity const& kCity, bool bRandomize,
 		if (pUWAICity != NULL && pUWAICity->canReach())
 		{
 			if (iPathTurns >= 0)
-				iPathTurns = ROUND_DIVIDE(iPathTurns + pUWAICity->getDistance(), 2);
+				iPathTurns = intdiv::round(iPathTurns + pUWAICity->getDistance(), 2);
 			else iPathTurns = pUWAICity->getDistance();
 		}
 	}*/
@@ -2936,7 +2936,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity const& kCity, bool bRandomize,
 			adding maxStepDistance isn't a good idea, but, in terms of giving
 			iPathDist its proper weight, the BtS formula was closer to the mark. */
 		if (iPathTurns >= 0)
-			iValue += ROUND_DIVIDE(4 * std::max(0, 30 - iPathTurns), 3);
+			iValue += intdiv::uround(4 * std::max(0, 30 - iPathTurns), 3);
 	}
 	else
 	{
@@ -2974,7 +2974,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity const& kCity, bool bRandomize,
 	}
 	// Now handled upfront
 	/*if (kCity.isAutoRaze(getID()))
-		iValue = ROUND_DIVIDE(iValue + 2, 3);*/ // K-Mod
+		iValue = intdiv::round(iValue + 2, 3);*/ // K-Mod
 	// </advc.104d>
 	return iValue;
 }
@@ -2999,7 +2999,7 @@ int CvPlayerAI::AI_cityWonderVal(CvCity const& c) const
 				still not have the religion. Or if they do, we can use these
 				cities to build missionaries to convert foreign cities. */
 			if(getStateReligion() == eLoopReligion)
-				iReligionCities += ROUND_DIVIDE(2 * getNumCities(), 5);
+				iReligionCities += intdiv::uround(2 * getNumCities(), 5);
 			/* K-Mod comment: "the -4 at the end is mostly there to offset the
 				'wonder' value that will be added later. I don't want to double count
 				the value of the shrine, and the religion [the holy city?]
@@ -11480,7 +11480,7 @@ int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus, /* advc.036: */ bool b
 			the price for humans a bit in order to stop the AI from offering 1-ofs
 			as soon as a player founds a corporation. */
 		if(bTrade && isHuman())
-			iCorps = std::min(getNumCities(), 1 + ROUND_DIVIDE(iCorps * 4, 3));
+			iCorps = std::min(getNumCities(), 1 + intdiv::uround(iCorps * 4, 3));
 		// </advc.036>
 		iCorps += getNumCities() / 6 + 1;
 		CvCorporationInfo const& kCorp = GC.getInfo(eCorp);
@@ -11513,7 +11513,7 @@ int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus, /* advc.036: */ bool b
 	iValue /= 10;	//match AI_baseBonusVal
 	return iValue;*/
 	// advc.036: To increase accuracy
-	return ROUND_DIVIDE(iValue, 1000);
+	return intdiv::round(iValue, 1000);
 }
 
 // advc.036:
@@ -15877,10 +15877,12 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		if (isCivic(eCivic)) // Fudge factor
 		{
 			iGwAnger *= 100;
-			iGwAnger /= 100 - 2*kCivic.getUnhealthyPopulationModifier()/3;
-			// Note, this fudge factor is actually pretty good at estimating what the GwAnger would have been.
+			/*	Note, this fudge factor is actually pretty good at
+				estimating what the GwAnger would have been. */
+			iGwAnger /= 100 - 2 * kCivic.getUnhealthyPopulationModifier() / 3;
 		}
-		int const iHappy = iS*ROUND_DIVIDE(-kCivic.getUnhealthyPopulationModifier()*iGwAnger*2,300);
+		int const iHappy = iS * intdiv::round(
+				-kCivic.getUnhealthyPopulationModifier() * iGwAnger * 2, 300);
 		// <advc.001> Shouldn't call AI_getHappinessWeight with iHappy=0
 		int iCleanValue = 0;
 		if(iHappy != 0) // </advc.001>
@@ -16290,7 +16292,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	}
 	if (kCivic.getWarWearinessModifier() != 0) // K-Mod. (original code deleted)
 	{
-		iValue += (12 * iCities * iS * AI_getHappinessWeight(iS*ROUND_DIVIDE(
+		iValue += (12 * iCities * iS * AI_getHappinessWeight(
+				iS * intdiv::round(
 				getWarWearinessPercentAnger() * -getWarWearinessModifier(),
 				GC.getPERCENT_ANGER_DIVISOR()), 1, true)) / 100;
 	}
@@ -17847,7 +17850,7 @@ bool CvPlayerAI::AI_processTradeValue(CLinkList<TradeData> const& kItems,
 {
 	/*  advc.550a: Ignore discounts when it comes to fair-trade diplo bonuses?
 		Hard to decide, apply half the discount for now. */
-	int iValue = ROUND_DIVIDE(
+	int iValue = intdiv::round(
 			AI_dealVal(eFromPlayer, kItems, true, 1, true, true,
 			true, bAIRequest, true) + // advc.ctr
 			AI_dealVal(eFromPlayer, kItems, true, 1, false, true,
@@ -23362,7 +23365,7 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 	if(isHuman()) // Perhaps not inclined, but very capable.
 		iValue += 100;
 	else iValue += GC.getInfo(getPersonalityType()).getDiplomacyVictoryWeight();
-	iValue = ROUND_DIVIDE(iValue * 2, 3); // Victory weight too high
+	iValue = intdiv::round(iValue * 2, 3); // Victory weight too high
 	int iVoteTarget=MIN_INT;
 	int iVotesToGo = GET_TEAM(getTeam()).AI_votesToGoForVictory(&iVoteTarget);
 	if(iVoteTarget == -1)
@@ -27515,7 +27518,7 @@ int CvPlayerAI::AI_getHappinessWeight(int iHappy, int iExtraPop, bool bPercent) 
 		iCityHappy -= std::max(0, pLoopCity->getCommerceHappiness());
 		int iHappyNow = iCityHappy;
 		int iHappyThen = iCityHappy +
-			(bPercent ? ROUND_DIVIDE(pLoopCity->getPopulation()*iHappy, 100) : iHappy);
+			(bPercent ? intdiv::round(pLoopCity->getPopulation()*iHappy, 100) : iHappy);
 		//Integration
 		int iTempValue = (((100 * iHappyThen - 10 * iHappyThen * iHappyThen)) - (100 * iHappyNow - 10 * iHappyNow * iHappyNow));
 		if (iHappy > 0)
@@ -27946,7 +27949,7 @@ bool CvPlayerAI::AI_canBeExpectedToTrain(UnitTypes eUnit) const
 	int iMinAreaSz = std::max(0, u.getMinAreaSize());
 	/*  Should be able to train at least two units in ten turns (i.e. one in five);
 		otherwise, the unit probably won't be trained at all, or just 1 or 2. */
-	int iTargetProduction = ROUND_DIVIDE(getProductionNeeded(eUnit), 5);
+	int iTargetProduction = intdiv::round(getProductionNeeded(eUnit), 5);
 	int iPartialSum = 0;
 	FOR_EACH_CITY(c, *this)
 	{

@@ -3517,7 +3517,7 @@ void TacticalSituation::evalEngagement() {
 		ourTotal += groupSize;
 		// Assume units in cities to be less engaged
 		if(gr->getPlot().isCity())
-			groupSize = ROUND_DIVIDE(groupSize, 2);
+			groupSize = intdiv::uround(groupSize, 2);
 		int iRange = 1; // (avoid shadowing ::range())
 		CvPlot const& groupPlot = gr->getPlot();
 		PlayerTypes const plotOwner = groupPlot.getOwner();
@@ -3619,7 +3619,7 @@ void TacticalSituation::evalEngagement() {
 			pairs of units. */
 		theirUnits = std::min(theirUnits, ourUnits);
 		if(p.isCity()) {
-			theirUnits = ROUND_DIVIDE(theirUnits, 2);
+			theirUnits = intdiv::uround(theirUnits, 2);
 			theirDamaged = 0; // Covered by theirEvac
 		}
 		entangled += theirUnits;

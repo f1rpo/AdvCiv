@@ -361,7 +361,7 @@ int LFBlookupCombatOdds(LFBoddsFirstStrike* pOdds, int iFSIndex, int iFirstStrik
 		int iMaxOdds = LFBlookupCombatOdds(pAttOdds, iMaxOddsIndex, iFirstStrikes,
 				iNeededRoundsAttacker, iNeededRoundsDefender, iMaxOddsValue);
 		// Do a simple weighted average on the two odds
-		iOdds += ROUND_DIVIDE( // K-Mod: rounded rather than truncated
+		iOdds += intdiv::uround( // K-Mod: rounded rather than truncated
 				(iAttackerOdds - iMinOddsValue) * (iMaxOdds - iOdds),
 				LFB_ODDS_INTERVAL_SIZE);
 	}
@@ -427,7 +427,7 @@ int LFBcalculateCombatOdds(Combatant const& att, Combatant const& def)
 		(since all are equally possible) */
 	iOdds /= (att.FSChances() + 1) * (def.FSChances() + 1);
 	// Now that we have the final odds, we can remove the extra accuracy
-	iOdds = ROUND_DIVIDE(iOdds, LFB_ODDS_EXTRA_ACCURACY);
+	iOdds = intdiv::uround(iOdds, LFB_ODDS_EXTRA_ACCURACY);
 	// If we flipped the perspective in the computation/lookup, need to flip it back now.
 	if (bFlip)
 		iOdds = 1000 - iOdds;
@@ -546,7 +546,7 @@ int calculateCombatOddsLegacy(Combatant const& att, Combatant const& def)
 		}
 	}
 	// Weigh the total to the number of possible combinations of first strikes events
-	return ROUND_DIVIDE(iOdds, (att.FSChances() + 1) * (def.FSChances() + 1));
+	return intdiv::uround(iOdds, (att.FSChances() + 1) * (def.FSChances() + 1));
 }
 
 // advc.test:
@@ -614,7 +614,7 @@ int estimateCombatOdds(CvUnit const& kAttacker, CvUnit const& kDefender, int iSa
 		if (simulateCombat(kAttacker, kDefender))
 			iWins++;
 	}
-	return ROUND_DIVIDE(iWins * 1000, iSamples);
+	return intdiv::uround(iWins * 1000, iSamples);
 }
 #endif // MONTE_CARLO_ODDS_TEST
 } // (end of unnamed namespace)

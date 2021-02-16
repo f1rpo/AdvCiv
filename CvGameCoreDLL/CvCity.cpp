@@ -3695,8 +3695,7 @@ int CvCity::unhealthyPopulation(bool bNoAngry, int iExtra) const
 	return std::max(0, getPopulation() + iExtra - (bNoAngry ? angryPopulation(iExtra) : 0));*/ // BtS
 	int iUnhealth = getPopulation() + iExtra - (bNoAngry ? angryPopulation(iExtra) : 0);
 	iUnhealth *= std::max(0, 100 + getUnhealthyPopulationModifier());
-	iUnhealth = ROUND_DIVIDE(iUnhealth, 100);
-	return std::max(0, iUnhealth);
+	return intdiv::uround(std::max(0, iUnhealth), 100);
 	// K-Mod end
 }
 
@@ -4042,7 +4041,7 @@ int CvCity::cultureStrength(PlayerTypes ePlayer,
 				((rTimeFactor + 1) / 2) * rOwnerTechPercent);
 		// Decrease resolution - to avoid frequent changes in revolt chance
 		int const iGrain = 10;
-		int iTechPercentQuantized = ROUND_DIVIDE(rTechPercent.getPercent(), iGrain);
+		int iTechPercentQuantized = intdiv::uround(rTechPercent.getPercent(), iGrain);
 		if (iTechPercentQuantized > 0)
 		{
 			rEraFactor = iTechPercentQuantized * scaled(GC.getNumEraInfos() - 1, iGrain);
@@ -4222,7 +4221,8 @@ int CvCity::cultureGarrison(PlayerTypes ePlayer) const
 	}
 	/*if (atWar(GET_PLAYER(ePlayer).getTeam(), getTeam()))
 		iGarrison *= 2;*/ // advc.023: commented out
-	return ROUND_DIVIDE(iGarrison, 100); // advc.101: iGarrison now has times-100 precision
+	// advc.101: iGarrison now has times-100 precision
+	return intdiv::uround(iGarrison, 100);
 }
 
 // advc.099c:
@@ -4741,7 +4741,7 @@ int CvCity::getSavedMaintenanceTimes100ByBuilding(BuildingTypes eBuilding) const
 	{
 		int iNewMaintenance = calculateBaseMaintenanceTimes100() *
 				std::max(0, getMaintenanceModifier() + iModifier + 100) / 100;
-		return ROUND_DIVIDE((getMaintenanceTimes100() - iNewMaintenance) *
+		return intdiv::round((getMaintenanceTimes100() - iNewMaintenance) *
 				(100 + GET_PLAYER(getOwner()).calculateInflationRate()), 100); // K-Mod
 	}
 	return 0;
@@ -5683,7 +5683,7 @@ int CvCity::getAdditionalHealthByBuilding(BuildingTypes eBuilding, int& iGood, i
 	if (kBuilding.getUnhealthyPopulationModifier() + getUnhealthyPopulationModifier() < -100)
 		iEffectiveModifier = std::min(0, -100 - getUnhealthyPopulationModifier());
 	else iEffectiveModifier = std::max(-100, kBuilding.getUnhealthyPopulationModifier());
-	iBad += ROUND_DIVIDE(getPopulation() * iEffectiveModifier, 100);
+	iBad += intdiv::round(getPopulation() * iEffectiveModifier, 100);
 	// K-Mod end
 	return iGood - iBad - iStarting;
 }

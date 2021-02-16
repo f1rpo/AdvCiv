@@ -8521,7 +8521,8 @@ void CvCityAI::AI_doHurry(bool bForce)
 				iHappyDiff = iHurryPopulation - GC.getDefineINT(CvGlobals::HURRY_POP_ANGER);
 				if (iHurryAngerLength > 0 && getHurryAngerTimer() > 1)
 				{
-					iHappyDiff -= ROUND_DIVIDE((kOwner.AI_getFlavorValue(FLAVOR_GROWTH) > 0 ? 4 : 3) *
+					iHappyDiff -= intdiv::uround(
+							(kOwner.AI_getFlavorValue(FLAVOR_GROWTH) > 0 ? 4 : 3) *
 							getHurryAngerTimer(), iHurryAngerLength);
 				}
 			}
@@ -9638,7 +9639,7 @@ int CvCityAI::AI_citizenSacrificeCost(int iCitLoss, int iHappyLevel, int iNewAng
 
 	FAssert((int)job_scores.size() >= iCitLoss);
 	std::partial_sort(job_scores.begin(), job_scores.begin()+iCitLoss, job_scores.end());
-	int iAverageScore = ROUND_DIVIDE(iTotalScore, job_scores.size());
+	int iAverageScore = intdiv::round(iTotalScore, job_scores.size());
 
 	int iWastedFood = -healthRate();
 	int iTotalFood = getYieldRate(YIELD_FOOD) - iWastedFood;

@@ -17142,11 +17142,13 @@ void CvGameTextMgr::buildFinanceUnitCostString(CvWStringBuffer& szBuffer, Player
 
 	// K-Mod include inflation
 	int const iInflFactor = 100 + kPlayer.calculateInflationRate();
-	iCost = ROUND_DIVIDE(iCost * iInflFactor, 100);
-	iUnitCost = ROUND_DIVIDE(iUnitCost * iInflFactor, 100);
-	iMilitaryCost = ROUND_DIVIDE(iMilitaryCost * iInflFactor, 100);
-	iHandicap = ROUND_DIVIDE(iHandicap * iInflFactor, 100);
-	// K-Mod end
+	{
+		using namespace intdiv;
+		iCost = round(iCost * iInflFactor, 100);
+		iUnitCost = round(iUnitCost * iInflFactor, 100);
+		iMilitaryCost = round(iMilitaryCost * iInflFactor, 100);
+		iHandicap = round(iHandicap * iInflFactor, 100);
+	}	// K-Mod end
 	CvWString szTmp; // advc.086
 	szTmp.append(NEWLINE);
 	szTmp.append(gDLL->getText("TXT_KEY_FINANCE_ADVISOR_UNIT_COST",
@@ -17176,20 +17178,19 @@ void CvGameTextMgr::buildFinanceUnitCostString(CvWStringBuffer& szBuffer, Player
 
 void CvGameTextMgr::buildFinanceAwaySupplyString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer)
 {
-	if (NO_PLAYER == ePlayer)
+	if (ePlayer == NO_PLAYER)
 		return;
-	CvPlayer& player = GET_PLAYER(ePlayer);
+	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
 
 	int iPaidUnits = 0;
 	int iBaseCost = 0;
-	int iCost = player.calculateUnitSupply(iPaidUnits, iBaseCost);
+	int iCost = kPlayer.calculateUnitSupply(iPaidUnits, iBaseCost);
 	int iHandicap = iCost - iBaseCost;
-
 	// K-Mod include inflation
-	int const inflFactor = 100+player.calculateInflationRate();
-	iCost = ROUND_DIVIDE(iCost*inflFactor, 100);
-	iBaseCost = ROUND_DIVIDE(iBaseCost*inflFactor, 100);
-	iHandicap = ROUND_DIVIDE(iHandicap*inflFactor, 100);
+	int const iInflFactor = 100 + kPlayer.calculateInflationRate();
+	iCost = intdiv::round(iCost * iInflFactor, 100);
+	iBaseCost = intdiv::round(iBaseCost * iInflFactor, 100);
+	iHandicap = intdiv::round(iHandicap * iInflFactor, 100);
 	// K-Mod end
 
 	CvWString szHandicap;
@@ -17203,7 +17204,7 @@ void CvGameTextMgr::buildFinanceAwaySupplyString(CvWStringBuffer& szBuffer, Play
 	szTmp.append(gDLL->getText("TXT_KEY_FINANCE_ADVISOR_SUPPLY_COST",
 			//iPaidUnits, GC.getDefineINT("INITIAL_FREE_OUTSIDE_UNITS"),
 			// K-Mod:
-			player.getNumOutsideUnits(), player.getNumOutsideUnits() - iPaidUnits,
+			kPlayer.getNumOutsideUnits(), kPlayer.getNumOutsideUnits() - iPaidUnits,
 			iBaseCost, szHandicap.GetCString(), iCost));
 	// <advc.086>
 	if(szBuffer.isEmpty())
@@ -17279,7 +17280,8 @@ void CvGameTextMgr::buildFinanceCivicUpkeepString(CvWStringBuffer& szBuffer, Pla
 		{
 			CvWString szTemp;
 			szTemp.Format(L"%d%c: %s",
-					ROUND_DIVIDE(kPlayer.getSingleCivicUpkeep(eCivic) * iInflFactor, 100), // K-Mod
+					// K-Mod:
+					intdiv::round(kPlayer.getSingleCivicUpkeep(eCivic) * iInflFactor, 100),
 					GC.getInfo(COMMERCE_GOLD).getChar(), GC.getInfo(eCivic).getDescription());
 			szCivicOptionCosts += NEWLINE + szTemp;
 		}
@@ -17289,7 +17291,7 @@ void CvGameTextMgr::buildFinanceCivicUpkeepString(CvWStringBuffer& szBuffer, Pla
 	szTmp.append(gDLL->getText("TXT_KEY_FINANCE_ADVISOR_CIVIC_UPKEEP_COST",
 			szCivicOptionCosts.GetCString(),
 			//player.getCivicUpkeep()));
-			ROUND_DIVIDE(kPlayer.getCivicUpkeep() * iInflFactor, 100))); // K-Mod
+			intdiv::round(kPlayer.getCivicUpkeep() * iInflFactor, 100))); // K-Mod
 	// <advc.086>
 	if(szBuffer.isEmpty())
 		szBuffer.assign(szTmp.substr(2, szTmp.length()));
@@ -18926,7 +18928,7 @@ void CvGameTextMgr::setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer)
 	int iPopScore = 0;
 	if (iMaxPop > 0)
 	{
-		iPopScore = ROUND_DIVIDE( // advc.003y: round
+		iPopScore = intdiv::round( // advc.003y: round
 				GC.getDefineINT("SCORE_POPULATION_FACTOR") * iPop, iMaxPop);
 	}
 	int iLand = kPlayer.getLandScore();
@@ -18934,7 +18936,7 @@ void CvGameTextMgr::setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer)
 	int iLandScore = 0;
 	if (iMaxLand > 0)
 	{
-		iLandScore = ROUND_DIVIDE( // advc.003y
+		iLandScore = intdiv::round( // advc.003y
 				GC.getDefineINT("SCORE_LAND_FACTOR") * iLand, iMaxLand);
 	}
 	int iTech = kPlayer.getTechScore();
@@ -18942,7 +18944,7 @@ void CvGameTextMgr::setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer)
 	int iTechScore = 0;
 	if (iMaxTech > 0) // BETTER_BTS_AI_MOD, Bugfix, 02/24/10, jdog5000
 	{
-		iTechScore = ROUND_DIVIDE( // advc.003y
+		iTechScore = intdiv::round( // advc.003y
 				GC.getDefineINT("SCORE_TECH_FACTOR") * iTech, iMaxTech);
 	}
 	int iWonders = kPlayer.getWondersScore();
@@ -18950,7 +18952,7 @@ void CvGameTextMgr::setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer)
 	int iWondersScore = 0;
 	if (iMaxWonders > 0) // BETTER_BTS_AI_MOD, Bugfix, 02/24/10, jdog5000
 	{
-		iWondersScore = ROUND_DIVIDE( // advc.003y
+		iWondersScore = intdiv::round( // advc.003y
 				GC.getDefineINT("SCORE_WONDER_FACTOR") * iWonders, iMaxWonders);
 	}
 	int iTotalScore = iPopScore + iLandScore + iTechScore + iWondersScore;

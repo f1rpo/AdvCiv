@@ -13673,7 +13673,7 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, MovementFlags eFlags
 	int const iSearchRange = (bFollow ? 1 : AI_searchRange(iRange));
 	// <advc.128> Within this range, the AI is able see to units on hidden tiles.
 	int const iSearchRangeRand = std::max(1,
-			ROUND_DIVIDE(iSearchRange * m_iSearchRangeRandPercent, 100)); // </advc.128>
+			intdiv::round(iSearchRange * m_iSearchRangeRandPercent, 100)); // </advc.128>
 	bool const bDeclareWar = (eFlags & MOVE_DECLARE_WAR);
 	CvPlot* pBestPlot = NULL;
 	int iBestOdds = iOddsThreshold - 1; // advc
@@ -21294,7 +21294,7 @@ int CvUnitAI::AI_opportuneOdds(int iActualOdds, CvUnit const& kDefender) const
 	{
 		int iDilution = GC.getDefineINT(CvGlobals::LFB_BASEDONEXPERIENCE) +
 				GC.getDefineINT(CvGlobals::LFB_BASEDONHEALER) +
-				ROUND_DIVIDE(10 * GC.getDefineINT(CvGlobals::LFB_BASEDONEXPERIENCE) *
+				intdiv::round(10 * GC.getDefineINT(CvGlobals::LFB_BASEDONEXPERIENCE) *
 				(GC.getGame().getCurrentEra() - GC.getGame().getStartEra() + 1),
 				std::max(1, GC.getNumEraInfos() - GC.getGame().getStartEra()));
 		int iOurValue = LFBgetRelativeValueRating() + iDilution;

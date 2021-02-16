@@ -158,7 +158,7 @@ public: // All the const functions are exposed to Python except those added by m
 			in such a case. normalizeEraNum is really only for era differences. */
 		FAssertEnumBounds((EraTypes)iEra);
 		/*	[Kek-Mod doesn't count the BtS Future era here:
-			ROUND_DIVIDE(eEra * 6, GC.getNumEraInfos() - 1)] */
+			intdiv::uround(eEra * 6, GC.getNumEraInfos() - 1)] */
 		return scaled(iEra * 7, GC.getNumEraInfos());
 	}
 	// </advc.erai>

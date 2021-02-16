@@ -833,7 +833,7 @@ void CvMapGenerator::addGoodies()
 
 			CvArea const& kArea = kPlot.getArea();
 			if (goodiesPerArea[kArea.getID()] < // advc.opt: was kArea.getNumImprovements(eImprov)
-				ROUND_DIVIDE(kArea.getNumTiles(), iTilesPerGoody))
+				intdiv::uround(kArea.getNumTiles(), iTilesPerGoody))
 			{
 				if (canPlaceGoodyAt(eGoody, kPlot.getX(), kPlot.getY()))
 				{

@@ -1207,7 +1207,7 @@ std::vector<std::pair<int,int> > CvPlayer::findStartingAreas(
 				pLoopArea->getNumRiverEdges() +*/
 				coastRiverStartingAreaScore(*pLoopArea) + // Replacing the above
 				// New: factor in bonus resources
-				ROUND_DIVIDE(pLoopArea->getNumTotalBonuses() * 3, 2) +
+				intdiv::uround(pLoopArea->getNumTotalBonuses() * 3, 2) +
 				pLoopArea->getNumTiles() / 2; // Halved
 		// </advc.027>
 		int iValue = iTileValue / iNumPlayersOnArea;
@@ -7071,12 +7071,12 @@ int CvPlayer::greatPeopleThreshold(bool bMilitary) const
 	iThreshold *= GC.getInfo(kGame.getStartEra()).getGreatPeoplePercent();
 	iThreshold /= 100;
 	// <advc.251>
-	iThreshold = ::roundToMultiple(0.01 * iThreshold * GC.getInfo(
-			getHandicapType()).getGPThresholdPercent(),
+	iThreshold = (per100(1) * iThreshold * GC.getInfo(
+			getHandicapType()).getGPThresholdPercent()).roundToMultiple(
 			isHuman() ? 5 : 1);
 	if (!isHuman() && !isBarbarian())
 	{
-		iThreshold = ROUND_DIVIDE(iThreshold * GC.getInfo(
+		iThreshold = intdiv::round(iThreshold * GC.getInfo(
 				kGame.getHandicapType()).getAIGPThresholdPercent(), 100);
 	} // </advc.251>
 
@@ -19415,7 +19415,7 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors,
 					iExtra += (aieOwners[i].first * iColorsPerPlot) / iTotalCulture;
 				else if (iPass == 1) // Round to nearest
 				{
-					iExtra += ROUND_DIVIDE(aieOwners[i].first * iColorsPerPlot,
+					iExtra += intdiv::round(aieOwners[i].first * iColorsPerPlot,
 							iTotalCulture);
 				} // Respect size limit
 				iExtra = std::min(iExtra, iColorsPerPlot - (int)
