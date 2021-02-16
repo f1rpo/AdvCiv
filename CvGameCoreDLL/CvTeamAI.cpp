@@ -3033,8 +3033,12 @@ int CvTeamAI::AI_getRivalAirPower() const
 		TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(getID());
 		for (; it.hasNext(); ++it)
 		{
-			CvTeam const& kRival = *it;
+			CvTeamAI const& kRival = *it;
+			// <advc.131>
+			if (kRival.AI_isAvoidWar(getID()))
+				continue; // </advc.131>
 			int iUnitPower = kUnit.getPowerValue() *
+					// advc (note): This is cheating
 					kRival.getUnitClassCount(eUnitClass);
 			iRivalAirPower += iUnitPower;
 			if (AI_getWarPlan(kRival.getID()) != NO_WARPLAN)
