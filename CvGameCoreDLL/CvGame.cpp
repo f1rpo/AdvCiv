@@ -6826,6 +6826,7 @@ void CvGame::doGlobalWarming()
 	static bool const bPROTECT_FEATURE_ON_NON_DRY_TERRAIN = GC.getDefineBOOL("PROTECT_FEATURE_ON_NON_DRY_TERRAIN");
 
 	// Global Warming
+	bool bSoundPlayed = false; // advc.002l
 	for (int i = 0; i < iGlobalWarmingRolls; i++)
 	{
 		// note, warming prob out of 1000, not percent.
@@ -6933,7 +6934,9 @@ void CvGame::doGlobalWarming()
 						CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY",
 								pCity->getNameKey());
 						gDLL->UI().addMessage(pCity->getOwner(), false, -1, szBuffer, *pPlot,
+								bSoundPlayed ? NULL : // advc.002l
 								"AS2D_SQUISH", MESSAGE_TYPE_INFO, NULL, GC.getColorType("RED"));
+						bSoundPlayed = true; // advc.002l: Once is enough
 					}
 				}
 				changeGwEventTally(1);
