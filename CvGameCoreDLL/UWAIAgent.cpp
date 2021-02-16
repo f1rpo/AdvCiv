@@ -2406,7 +2406,7 @@ double UWAI::Civ::militaryPower(CvUnitInfo const& u, double baseValue) const {
 
 	/*  Combat odds don't increase linearly with strength. Use a power law
 		with a power between 1.5 and 2 (configured in XML). */
-	r = pow(r, GC.getDefineINT(CvGlobals::POWER_CORRECTION) / 100.0);
+	r = std::pow(r, GC.getDefineINT(CvGlobals::POWER_CORRECTION) / 100.0);
 	return r;
 }
 

@@ -22,7 +22,7 @@ MilitaryBranch::MilitaryBranch(PlayerTypes ownerId) : ownerId(ownerId) {
 
 MilitaryBranch::MilitaryBranch(MilitaryBranch const& other) :
 		ownerId(other.ownerId), typicalUnitType(other.typicalUnitType),
-		typicalUnitPower(other.typicalUnitPower), pow(other.pow),
+		typicalUnitPower(other.typicalUnitPower), std::pow(other.pow),
 		number(other.number), bombard(other.bombard), soften(other.soften) {}
 
 void MilitaryBranch::write(FDataStreamBase* stream) {

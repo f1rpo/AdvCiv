@@ -11614,16 +11614,16 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible,
 	int iTotalVisibleBuildings;
 	if (::stricmp(GC.getDefineSTRING("GAME_CITY_SIZE_METHOD"), "METHOD_EXPONENTIAL") == 0)
 	{
-		int iCityScaleMod =  ((int)(pow((float)getPopulation(),
-				GC.getDefineFLOAT("GAME_CITY_SIZE_EXP_MODIFIER")))) * 2;
-		iTotalVisibleBuildings = (10 + iCityScaleMod);
+		int iCityScaleMod = (int)(std::pow((float)getPopulation(),
+				GC.getDefineFLOAT("GAME_CITY_SIZE_EXP_MODIFIER")) * 2);
+		iTotalVisibleBuildings = 10 + iCityScaleMod;
 	}
 	else
 	{
 		float fLo = GC.getDefineFLOAT("GAME_CITY_SIZE_LINMAP_AT_0");
 		float fHi = GC.getDefineFLOAT("GAME_CITY_SIZE_LINMAP_AT_50");
-		float fCurSize = (float)getPopulation();
-		iTotalVisibleBuildings = int(((fHi - fLo) / 50.0f) * fCurSize + fLo);
+		float fCurSize = getPopulation();
+		iTotalVisibleBuildings = (int)(((fHi - fLo) / 50.0f) * fCurSize + fLo);
 	}
 	float fMaxUniquePercent = GC.getDefineFLOAT("GAME_CITY_SIZE_MAX_PERCENT_UNIQUE");
 	int iMaxNumUniques = (int)(fMaxUniquePercent * iTotalVisibleBuildings);
