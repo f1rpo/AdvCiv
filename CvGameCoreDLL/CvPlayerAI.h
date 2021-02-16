@@ -878,7 +878,8 @@ protected:
 	int AI_countDangerousUnits(CvPlot const& kAttackerPlot, CvPlot const& kDefenderPlot,
 			bool bTestMoves, int iLimit = MAX_INT,
 			PlayerTypes eAttackPlayer = NO_PLAYER) const; // </advc>
-	int AI_knownRankDifference(PlayerTypes eOther) const; // advc.130c
+	// advc.130c:
+	int AI_knownRankDifference(PlayerTypes eOther, scaled& rOutrankingBothRatio) const;
 	// advc.042: Relies on caller to reset GC.getBorderFinder()
 	bool AI_isUnimprovedBonus(CvPlot const& p, CvPlot* pFromPlot, bool bCheckPath) const;
 	void AI_updateCityAttitude(CvPlot const& kCityPlot); // advc.130w

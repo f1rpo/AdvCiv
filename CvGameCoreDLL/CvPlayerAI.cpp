@@ -8127,14 +8127,17 @@ int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const
 	// Cached separately to avoid updating the whole cache w/e scores change
 	if(m_abTheyFarAhead[ePlayer])
 		return 0; // No hate if they're way ahead
+	/*	Portion of known major civs that rank better than both us and ePlayer.
+		E.g. 3/5 when us and ePlayer are last among 5 known major civs. */
+	scaled rOutrankBothRatio;
 	// Don't count ranks of unknown civs
-	int iRankDifference = AI_knownRankDifference(ePlayer);
+	int iRankDifference = AI_knownRankDifference(ePlayer, rOutrankBothRatio);
 	CvLeaderHeadInfo const& kPers = GC.getInfo(getPersonalityType());
 	CvGame const& kGame = GC.getGame();
-	/*  This was "+ 1" in BtS, which is arguably a bug.
-		Continue using CivPlayersEverAlive although iRankDifference is now based
-		only on known civs. */
-	int iMaxRankDifference = kGame.getCivPlayersEverAlive() - 1;
+	// Don't count minor civs, defeated civs for rank differences.
+	int const iMajorCivsAlive = PlayerIter<MAJOR_CIV>::count();
+	// This was "+ 1" in BtS, which was arguably a bug.
+	int const iMaxRankDifference = iMajorCivsAlive - 1;
 	int iBase = 0;
 	scaled rMultiplier;
 	// If we're ranked worse than they are:
@@ -8147,6 +8150,8 @@ int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const
 				(2 * iRankDifference - fixp(0.35) * iMaxRankDifference).abs() /
 				iMaxRankDifference;
 		rMultiplier.increaseTo(0);
+		// Don't hate them much when both struggling to keep up
+		rMultiplier *= fixp(5/4.) - rOutrankBothRatio;
 	}
 	/*  If we're ranked better, as in BtS, the modifier is proportional
 		to the relative rank difference. */
@@ -8187,7 +8192,8 @@ int CvPlayerAI::AI_getLostWarAttitude(PlayerTypes ePlayer) const
 } // END: Show Hidden Attitude Mod </advc.sha>
 
 // advc.130c:
-int CvPlayerAI::AI_knownRankDifference(PlayerTypes eOther) const
+int CvPlayerAI::AI_knownRankDifference(PlayerTypes eOther,
+	scaled& rOutrankingBothRatio) const // out-param
 {
 	CvGame const& kGame = GC.getGame();
 	int iOurRank = kGame.getPlayerRank(getID());
@@ -8198,19 +8204,23 @@ int CvPlayerAI::AI_knownRankDifference(PlayerTypes eOther) const
 		iDelta = -1;
 	if(iDelta > 1)
 		iDelta = 1;
-	for (PlayerIter<MAJOR_CIV,KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
+	int iOutrankBoth = 0;
+	PlayerIter<MAJOR_CIV,KNOWN_TO> itThird(getTeam());
+	for (; itThird.hasNext(); ++itThird)
 	{
-		CvPlayer const& kThirdCiv = *it;
 		/*  This would deny eOther info about civs that we have met and they haven't --
 			not crucial I think. */
 		/*if(!GET_TEAM(eOther).isHasMet(TEAMID(kThirdCiv.getID())))
 			continue;*/
-		int iThirdRank = kGame.getPlayerRank(kThirdCiv.getID());
+		int iThirdRank = kGame.getPlayerRank(itThird->getID());
 		if(iDelta < 0 && iThirdRank > iOurRank && iThirdRank < iTheirRank)
 			iDelta--;
 		else if(iDelta > 0 && iThirdRank < iOurRank && iThirdRank > iTheirRank)
 			iDelta++;
+		if (iThirdRank < iOurRank && iThirdRank < iTheirRank)
+			iOutrankBoth++;
 	}
+	rOutrankingBothRatio = scaled(iOutrankBoth, itThird.nextIndex());
 	return iDelta;
 }
 
