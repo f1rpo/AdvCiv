@@ -223,10 +223,10 @@ bool GroupStepMetric::isValidDest(CvPlot const& kPlot, CvSelectionGroup const& k
 	Symmetry breaking and PATH_STRAIGHT_WEIGHT can add up to a total of 6 per step.
 	STEP_WEIGHT 7 still isn't always enough to trump that,
 	so I'm adding 1 more later on for human units.
-	Don't want to scale everything up too much, i.e. not too close to 1000.
+	Don't want to scale everything up too much, i.e. not too close to 1024.
 	(Though I guess one could just increase PATH_MOVEMENT_WEIGHT as well, e.g. to 2048.) */
 
-//#define PATH_MOVEMENT_WEIGHT    (1000) // advc: moved to the header (for inline function)
+//#define PATH_MOVEMENT_WEIGHT    (1024) // advc: moved to the header (for inline function)
 // advc.pf: Was 20 in K-Mod, 100 in BtS.
 #define PATH_RIVER_WEIGHT         (32) // river crossing penalty
 // advc.pf: Was 200 in K-Mod, 100 in BtS.

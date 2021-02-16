@@ -40,7 +40,7 @@ public:
 };
 
 class CvSelectionGroup;
-#define PATH_MOVEMENT_WEIGHT (1000)
+#define PATH_MOVEMENT_WEIGHT (1024) // advc.opt: was 1000
 
 class GroupStepMetric : public StepMetricBase<GroupPathNode>
 {
