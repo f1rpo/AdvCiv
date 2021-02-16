@@ -5708,12 +5708,11 @@ RouteTypes CvPlayer::getBestRoute(CvPlot const* pPlot,
 
 int CvPlayer::getImprovementUpgradeRate() const
 {
-	int iRate = 1; // XXX
-
+	//int iRate = 1; // XXX
+	int iRate = 100; // advc.912f: Times-100 precision
 	iRate *= std::max(0, getImprovementUpgradeRateModifier() + 100);
 	iRate /= 100;
-
-	return iRate;
+	return std::max(0, iRate); // advc.912f: Negative rate is still not supported
 }
 
 

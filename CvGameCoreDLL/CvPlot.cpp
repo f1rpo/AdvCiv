@@ -402,8 +402,11 @@ void CvPlot::doImprovement()
 			aren't correctly implemented, and I'm not going to fix that. */
 		//if (isBeingWorked() || GC.getInfo(eImprovementUpdrade).isOutsideBorders())
 		changeUpgradeProgress(kOwner.getImprovementUpgradeRate());
-		if (getUpgradeProgress() >= GC.getGame().getImprovementUpgradeTime(getImprovementType()))
+		if (getUpgradeProgress() >= GC.getGame().
+			getImprovementUpgradeTime(getImprovementType()) * 100)
+		{
 			setImprovementType(eImprovementUpdrade);
+		}
 	}
 }
 
@@ -3419,25 +3422,20 @@ void CvPlot::changeImprovementDuration(int iChange)
 
 int CvPlot::getUpgradeTimeLeft(ImprovementTypes eImprovement, PlayerTypes ePlayer) const
 {
-	int iUpgradeLeft = GC.getGame().getImprovementUpgradeTime(eImprovement) -
-			(getImprovementType() == eImprovement ? getUpgradeProgress() : 0);
-	if (ePlayer == NO_PLAYER)
-		return iUpgradeLeft;
-
-	int iUpgradeRate = GET_PLAYER(ePlayer).getImprovementUpgradeRate();
-	if (iUpgradeRate == 0)
-		return iUpgradeLeft;
-
-	int iTurnsLeft = (iUpgradeLeft / iUpgradeRate);
-	if (iTurnsLeft * iUpgradeRate < iUpgradeLeft)
-		iTurnsLeft++;
+	int iUpgradeLeft = GC.getGame().getImprovementUpgradeTime(eImprovement)
+			* 100 // advc.912f
+			- (getImprovementType() == eImprovement ? getUpgradeProgress() : 0);
+	// <advc.912f>
+	int iUpgradeRate = (ePlayer == NO_PLAYER ? 100 :
+			GET_PLAYER(ePlayer).getImprovementUpgradeRate());
+	int iTurnsLeft = scaled(iUpgradeLeft, iUpgradeRate).ceil(); // </advc.912f>
 	return std::max(1, iTurnsLeft);
 }
 
 
 void CvPlot::setUpgradeProgress(int iNewValue)
 {
-	m_iUpgradeProgress = toShort(iNewValue);
+	m_iUpgradeProgress = iNewValue;
 	FAssert(getUpgradeProgress() >= 0);
 }
 
@@ -6860,7 +6858,15 @@ void CvPlot::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iFeatureVariety);
 	pStream->Read(&m_iOwnershipDuration);
 	pStream->Read(&m_iImprovementDuration);
-	pStream->Read(&m_iUpgradeProgress);
+	// <advc.912f>
+	if (uiFlag < 9)
+	{
+		short iUpgradeProgress;
+		pStream->Read(&iUpgradeProgress);
+		m_iUpgradeProgress = iUpgradeProgress;
+		m_iUpgradeProgress *= 100;
+	} // </advc.912f>
+	else pStream->Read(&m_iUpgradeProgress);
 	pStream->Read(&m_iForceUnownedTimer);
 	// <advc.opt>
 	if (uiFlag < 5)
@@ -7079,7 +7085,8 @@ void CvPlot::write(FDataStreamBase* pStream)
 	//uiFlag = 5; // advc.opt, advc.011, advc.enum: some int or short members turned into short or char
 	//uiFlag = 6; // advc.opt: m_eTeam
 	//uiFlag = 7; // advc.opt: m_bImpassable
-	uiFlag = 8; // advc.opt: m_bAnyIsthmus
+	//uiFlag = 8; // advc.opt: m_bAnyIsthmus
+	uiFlag = 9; // advc.912f
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE(CvString::format("Plot pt1(%d,%d)", getX(), getY()).GetCString());
 	pStream->Write(m_iX);

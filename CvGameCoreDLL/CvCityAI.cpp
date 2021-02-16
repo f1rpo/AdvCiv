@@ -7621,15 +7621,30 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 		iTimeScale = std::max(iTimeScale, 20);
 		// Other adjustments?
 
-		// Adjustments to match calculation in CvPlot::doImprovementUpgrade.
+		/*	Adjustments to match calculation in CvPlot::doImprovementUpgrade
+			advc.001 (comment): No, in CvGame::getImprovementUpgradeTime. */
 		iTimeScale *= GC.getInfo(GC.getGame().getGameSpeedType()).getImprovementPercent();
 		iTimeScale /= 100;
 		iTimeScale *= GC.getInfo(GC.getGame().getStartEra()).getImprovementPercent();
 		iTimeScale /= 100;
-	iTimeScale = iTimeScale / kOwner.getImprovementUpgradeRate();
-
-	std::vector<scaled> weighted_final_yields(NUM_YIELD_TYPES);
-	std::vector<scaled> weighted_yield_diffs(NUM_YIELD_TYPES);
+		{
+			int iUpgrRate = kOwner.getImprovementUpgradeRate();
+			// <advc.912f>
+			if (iUpgrRate == 0)
+				iTimeScale = 0;
+			else
+			{	/*	<advc.001> This fraction was flipped. Pretty sure that this was wrong.
+					The ImprovementPercentModifiers apply to the time needed for an upgrade,
+					whereas the upgrade rate applies to the time spent working the tile
+					(CvPlot::doImprovement). A higher upgrade rate means that we should be
+					more interested in delayed rewards, which is what a high
+					iTimeScale value does. Note that the upgrade rate factors into the
+					evaluation at no other point, so let's address it here (correctly). */
+				iTimeScale *= iUpgrRate;
+				iTimeScale /= 100; // </advc.001>
+				// </advc.912f>
+			}
+		}
 
 		/*	Getting the time-weighted yields for the new and old improvements;
 			then use them to calculate the final yield and yield difference. */
@@ -7817,9 +7832,10 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 
 		if (GC.getInfo(kPlot.getImprovementType()).getImprovementUpgrade() != NO_IMPROVEMENT)
 		{
-			rValue -= scaled(GC.getInfo(kPlot.getImprovementType()).
-					getUpgradeTime() * 8 * (kPlot.getUpgradeProgress()),
-					std::max(1, GC.getGame().getImprovementUpgradeTime(kPlot.getImprovementType())));
+			rValue -= scaled(8 * kPlot.getUpgradeProgress() *
+					GC.getInfo(kPlot.getImprovementType()).getUpgradeTime(),
+					100 * std::max(1,
+					GC.getGame().getImprovementUpgradeTime(kPlot.getImprovementType())));
 		}
 		if (eNonObsoleteBonus == NO_BONUS)
 		{
@@ -7835,7 +7851,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 				}
 			}
 		}
-		if (kOwner.isOption(PLAYEROPTION_SAFE_AUTOMATION))
+		if (kOwner.isOption(PLAYEROPTION_SAFE_AUTOMATION) /* advc.001: */ && rValue.isPositive())
 			rValue /= 4; // Greatly prefer builds which are legal.
 	}
 	// K-Mod. Feature value. (moved from the 'no improvement' block above.)
@@ -10665,13 +10681,12 @@ bool CvCityAI::AI_finalImprovementYieldDifference(/* advc: */ CvPlot const& kPlo
 	(More precisely, the weight drops exponentially w.r.t. the number of turns,
 	decreasing by a factor of `e` for each `time_scale` turns.) */
 bool CvCityAI::AI_timeWeightedImprovementYields(CvPlot const& kPlot, ImprovementTypes eImprovement,
-	int iTimeScale,
+	int iTimeScale, // advc.912f (note): 0 now means infinity
 	EnumMap<YieldTypes,scaled>& weightedYields) const // advc: was vector<float>&
 {
 	PROFILE_FUNC();
 
-	FAssert(pPlot != NULL);
-	FAssert(iTimeScale > 0);
+	FAssert(iTimeScale >= 0); // advc.912f: was >0
 
 	/*	This is an experimental function, designed to be 'the right way'
 		to evaluate improvements which upgrade over time,
@@ -10687,13 +10702,24 @@ bool CvCityAI::AI_timeWeightedImprovementYields(CvPlot const& kPlot, Improvement
 		citedImprovements.insert(eImprovement).second)
 	{
 		CvImprovementInfo const& kImprovement = GC.getInfo(eImprovement);
-
-		// piecewise integration
-		// each piece is exp(-t0/T) - exp(-t1/T)  [advc: The comment had said 't1' instead of '-t1']
-		scaled const rValueFactor = scaled(iTotalTurns, -iTimeScale).exp() -
-				(kImprovement.getImprovementUpgrade() == NO_IMPROVEMENT ? 0 :
-				scaled(iTotalTurns + kImprovement.getUpgradeTime(), -iTimeScale).exp());
-
+		/*	<advc.912f> If upgrades will never happen, use factor 1 for the current improv
+			and skip the rest. */
+		scaled rValueFactor;
+		if (iTimeScale == 0)
+		{
+			if (iTotalTurns == 0)
+				rValueFactor = 1;
+			else break;
+		}
+		else // </advc.912f>
+		{
+			// piecewise integration
+			// each piece is exp(-t0/T) - exp(-t1/T)
+			// [advc: Comment had said 't1' instead of '-t1'; but I think the code is right.]
+			rValueFactor = scaled(iTotalTurns, -iTimeScale).exp() -
+					(kImprovement.getImprovementUpgrade() == NO_IMPROVEMENT ? 0 :
+					scaled(iTotalTurns + kImprovement.getUpgradeTime(), -iTimeScale).exp());
+		}
 		FOR_EACH_ENUM(Yield)
 		{
 			int iYieldDiff = kPlot.calculateImprovementYieldChange(eImprovement, eLoopYield, getOwner());
@@ -10709,7 +10735,7 @@ bool CvCityAI::AI_timeWeightedImprovementYields(CvPlot const& kPlot, Improvement
 		eImprovement = kImprovement.getImprovementUpgrade();
 	}
 
-	if (eImprovement != NO_IMPROVEMENT)
+	if (eImprovement != NO_IMPROVEMENT /* advc.912f: */ && iTimeScale > 0)
 	{
 		/*	If we didn't reach final improvement;
 			normalise the yield values based on what we've got so far. */

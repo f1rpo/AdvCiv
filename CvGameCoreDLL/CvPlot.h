@@ -185,9 +185,10 @@ public:
 	{
 		return m_iActivePlayerSafeRangeCache;
 	}
-	inline void setActivePlayerSafeRangeCache(int range) const
+	inline void setActivePlayerSafeRangeCache(int iRange) const
 	{
-		m_iActivePlayerSafeRangeCache = range;
+		// advc.opt: char (Probably OK to do nothing here if indeed iRange > MAX_CHAR.)
+		m_iActivePlayerSafeRangeCache = toChar(iRange);
 	}
 	inline bool getBorderDangerCache(TeamTypes eTeam) const
 	{
@@ -333,7 +334,10 @@ public:
 	void setImprovementDuration(int iNewValue);														// Exposed to Python
 	void changeImprovementDuration(int iChange);													// Exposed to Python
 
-	int getUpgradeProgress() const { return m_iUpgradeProgress; } // advc.inl						// Exposed to Python
+	int getUpgradeProgress() const																	// Exposed to Python
+	{	// advc.912f (note): Now times 100, divisions at call locations not commented.
+		return m_iUpgradeProgress; // advc.inl
+	}
 	int getUpgradeTimeLeft(ImprovementTypes eImprovement, PlayerTypes ePlayer) const;				// Exposed to Python
 	void setUpgradeProgress(int iNewValue);															// Exposed to Python
 	void changeUpgradeProgress(int iChange);														// Exposed to Python
@@ -785,11 +789,9 @@ protected:
 	// advc (note): Should keep the data members in an order that optimizes the memory layout
 	short m_iX;
 	short m_iY;
-	int m_iTotalCulture; // advc.opt
 	short m_iFeatureVariety;
 	short m_iOwnershipDuration;
 	short m_iImprovementDuration;
-	short m_iUpgradeProgress;
 	short m_iForceUnownedTimer;
 	short m_iTurnsBuildsInterrupted; // advc.011
 	short m_iReconCount;
@@ -797,8 +799,15 @@ protected:
 	short m_iRiverID; // advc.opt: Was int. Only used during map gen.
 	/*	advc (note): Only Boreal, Highlands and Rainforest use this value
 		(during map gen). Could probably save 4 byte here by placing this
-		and m_iRiverID in unions with e.g. m_iReconCount, m_iUpgradeProgress. */
+		and m_iRiverID in unions with e.g. m_iReconCount, m_iForceUnownedTimer. */
 	short m_iMinOriginalStartDist;
+
+	// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000:
+	//bool m_bActivePlayerNoDangerCache;
+	// K-Mod (the bbai implementation was flawed):
+	// advc.opt: char. It's also unused now, but since there would be padding here anyway ...
+	mutable char m_iActivePlayerSafeRangeCache;
+
 	char m_iLatitude; // advc.tsl
 	// advc.opt: These two were short int
 	char m_iCityRadiusCount;
@@ -827,7 +836,12 @@ protected:
 	char /*CardinalDirectionTypes*/ m_eRiverNSDirection;
 	char /*CardinalDirectionTypes*/ m_eRiverWEDirection;
 	char /*PlayerTypes*/ m_eSecondOwner; // advc.035
+
 	char m_iAdjPlots; // advc.opt
+	// advc.912f: Was short - which would overflow too easily at times-100 precision.
+	int m_iUpgradeProgress;
+	int m_iTotalCulture; // advc.opt
+
 	CvPlot** m_paAdjList; // advc.opt (a vector would take up 16 byte)
 	// <advc> m_pArea is enough - except while loading a savegame.
 	union
@@ -841,12 +855,9 @@ protected:
 
 	wchar const* m_szMostRecentCityName; // advc.005c (wstring takes up 28 byte!)
 	char const* m_szScriptData; // advc: const
-	// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START
-	//bool m_bActivePlayerNoDangerCache;
-	mutable int m_iActivePlayerSafeRangeCache; // K-Mod (the bbai implementation was flawed)
 	// <advc.enum>
+	// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000:
 	mutable EnumMap<TeamTypes,bool> m_abBorderDangerCache;
-	// BETTER_BTS_AI_MOD: END  // advc: 2x mutable
 
 	EnumMap<YieldTypes,char> m_aiYield;
 	EnumMap<PlayerTypes,int> m_aiCulture;
