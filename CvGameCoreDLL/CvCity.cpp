@@ -4731,7 +4731,8 @@ void CvCity::changeGovernmentCenterCount(int iChange)
 }
 
 // BUG - Building Saved Maintenance:
-/*  Returns the total additional gold from saved maintenance times 100 that adding one of the given buildings will provide.
+/*  Returns the total additional gold from saved maintenance times 100
+	that adding one of the given buildings will provide.
 	Doesn't check if the building can be constructed in this city. */
 int CvCity::getSavedMaintenanceTimes100ByBuilding(BuildingTypes eBuilding) const
 {

@@ -3125,8 +3125,7 @@ void CvGame::updateTradeRoutes()
 		it->updateTradeRoutes();
 }
 
-/*  K-Mod
-	calculate unhappiness due to the state of global warming */
+// K-Mod: calculate unhappiness due to the state of global warming
 void CvGame::updateGwPercentAnger()
 {
 	int iGlobalPollution;
@@ -3142,18 +3141,18 @@ void CvGame::updateGwPercentAnger()
 		iGlobalDefence = calculateGwLandDefence(NO_PLAYER);
 	} // advc: Ensure initialization
 	else iGlobalPollution = iGwSeverityRating = iGlobalDefence = -1;
-	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	for (PlayerIter<MAJOR_CIV> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)iI);
 		int iAngerPercent = 0;
-		if (iGwIndex > 0 && kPlayer.isAlive() && !kPlayer.isMinorCiv())
+		if (iGwIndex > 0)
 		{
 			// player unhappiness = base rate * severity rating * responsibility factor
 
-			int iLocalDefence = calculateGwLandDefence((PlayerTypes)iI);
-			int iResponsibilityFactor =	100*(kPlayer.calculatePollution() - iLocalDefence);
+			int iLocalDefence = calculateGwLandDefence(itPlayer->getID());
+			int iResponsibilityFactor =	100*(itPlayer->calculatePollution() - iLocalDefence);
 
-			iResponsibilityFactor /= std::max(1, calculateGwSustainabilityThreshold((PlayerTypes)iI));
+			iResponsibilityFactor /= std::max(1,
+					calculateGwSustainabilityThreshold(itPlayer->getID()));
 			iResponsibilityFactor *= calculateGwSustainabilityThreshold();
 			iResponsibilityFactor /= std::max(1, iGlobalPollution - iGlobalDefence);
 			// amplify the affects of responsibility
@@ -3163,11 +3162,11 @@ void CvGame::updateGwPercentAnger()
 			iAngerPercent = iGLOBAL_WARMING_BASE_ANGER_PERCENT * iGwSeverityRating * iResponsibilityFactor;
 			iAngerPercent = intdiv::round(iAngerPercent, 100 * 100);
 		}
-		kPlayer.setGwPercentAnger(iAngerPercent);
+		itPlayer->setGwPercentAnger(iAngerPercent);
 	}
-} // K-Mod end
+}
 
-/*  <advc.106l> Wrapper that reports the event. Everyone should call this
+/*  advc.106l: Wrapper that reports the event. Everyone should call this
 	instead of calling the CvEngine function directly. */
 void CvGame::autoSave(bool bInitial)
 {
@@ -3181,7 +3180,7 @@ void CvGame::autoSave(bool bInitial)
 	if(bInitial && BUGOption::isEnabled("AutoSave__CreateStartSave", false))
 		GC.getPythonCaller()->call("gameStartSave", PYCivModule);
 	// BULL - AutoSave - end
-} // </advc.106l>
+}
 
 void CvGame::testExtendedGame()
 {
@@ -4829,13 +4828,16 @@ void CvGame::changeGlobalWarmingIndex(int iChange)
 
 int CvGame::getGlobalWarmingChances() const
 {
-	// Note: this is the number of chances global warming has to strike in the current turn
-	// as you can see, I've scaled it by the number of turns in the game. The probability per chance is also scaled like this.
-	// I estimate that the global warming index will actually be roughly proportional to the number of turns in the game
-	// so by scaling the chances, and the probability per chance, I hope to get roughly the same number of actually events per game
+	/*	Note: this is the number of chances global warming has to strike
+		in the current turn. As you can see, I've scaled it by the game length.
+		The probability per chance is also scaled like this. I estimate that
+		the global warming index will actually be roughly proportional to the
+		number of turns in the game, so, by scaling the chances, and the
+		probability per chance, I hope to get roughly the same number of
+		actual events per game. */
 	int iIndexPerChance = GC.getDefineINT("GLOBAL_WARMING_INDEX_PER_CHANCE");
-	iIndexPerChance*=GC.getInfo(getGameSpeedType()).getVictoryDelayPercent();
-	iIndexPerChance/=100;
+	iIndexPerChance *= GC.getInfo(getGameSpeedType()).getVictoryDelayPercent();
+	iIndexPerChance /= 100;
 	return intdiv::round(getGlobalWarmingIndex(), std::max(1, iIndexPerChance));
 }
 
