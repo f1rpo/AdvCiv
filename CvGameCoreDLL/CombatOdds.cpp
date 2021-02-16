@@ -606,119 +606,9 @@ int LFBcalculateCombatOdds(Combatant const& att, Combatant const& def)
 }
 // Lead From Behind by UncutDragon (end)
 
-/*	advc: Cut from getCombatOdds (probably to be deleted -
-	I don't think the LFB changes need to be optional) */
-int calculateCombatOddsLegacy(Combatant const& att, Combatant const& def)
-{
-	int iOdds = 0;
-	int const iMaxRounds = att.hitsToWin() + def.hitsToWin() - 1;
-	/*	For every possible first strike event, calculate the odds of combat.
-		Then, add these to the total, weighted by the chance of that first
-		strike event occurring */
-	// advc.opt>
-	float const fAttHitProb = att.odds() / (float)GC.getCOMBAT_DIE_SIDES();
-	float const fDefHitProb = 1 - fAttHitProb; // </advc.opt>
-	for (int iI1 = att.lowFS(); iI1 < att.highFS() + 1; iI1++)
-	{
-		for (int iI2 = def.lowFS(); iI2 < def.highFS() + 1; iI2++)
-		{
-			// for every possible combination of fs results, calculate the chance
-			if (iI1 >= iI2)
-			{
-				// Attacker gets more or equal first strikes than defender
-				int const iAttFS = iI1 - iI2;
-				/*	For every possible first strike getting hit, calculate both
-					the chance of that event happening, as well as the rest of
-					the chance assuming the event has happened. Multiply these
-					together to get the total chance (Bayes rule).
-					iI3 counts the number of successful first strikes */
-				for (int iI3 = 0; iI3 < iAttFS + 1; iI3++)
-				{
-					// event: iI3 first strikes hit the defender
-					/*	calculate chance of iI3 first strikes hitting: fOddsEvent
-						f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
-						this needs to be in floating point math */
-					float fOddsEvent = fBinomial(iAttFS, iI3) *
-							std::pow(fAttHitProb, iI3) *
-							std::pow(fDefHitProb, iAttFS - iI3);
-					// calculate chance assuming iI3 first strike hits: fOddsAfterEvent
-					float fOddsAfterEvent = 0;
-					if (iI3 >= att.hitsToWin())
-						fOddsAfterEvent = 1;
-					else
-					{
-						/*	odds for _at_least_ (iNeededRoundsAttacker - iI3)
-							(the remaining hits the attacker needs to make) out of
-							(iMaxRounds - iI3) (the left over rounds) is the sum of
-							each _exact_ draw */
-						for (int iI4 = att.hitsToWin() - iI3;
-							iI4 < iMaxRounds - iI3 + 1; iI4++)
-						{
-							/*	odds of exactly iI4 out of (iMaxRounds - iI3) draws.
-								f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
-								this needs to be in floating point math */
-							fOddsAfterEvent +=
-									fBinomial((iMaxRounds - iI3), iI4) *
-									std::pow(fAttHitProb, iI4) *
-									std::pow(fDefHitProb, (iMaxRounds - iI3) - iI4);
-						}
-					}
-					/*	Multiply these together, round them properly, and add
-						the result to the total iOdds */
-					iOdds += (int)(1000 * fOddsEvent * fOddsAfterEvent + 0.5f);
-				}
-			}
-			else // (iI1 < iI2)
-			{
-				// Attacker gets fewer first strikes than defender
-				int const iDefFS = iI2 - iI1;
-
-				/*	For every possible first strike getting hit, calculate both
-					the chance of that event happening, as well as the rest of
-					the chance assuming the event has happened. Multiply these
-					together to get the total chance (Bayes rule).
-					iI3 counts the number of successful first strikes */
-				for (int iI3 = 0; iI3 < iDefFS + 1; iI3++)
-				{
-					// event: iI3 first strikes hit the defender
-					/*	First of all, check if the attacker is still alive.
-						Otherwise, no further calculations need to occur */
-					if (iI3 < def.hitsToWin())
-					{
-						/*	calculate chance of iI3 first strikes hitting: fOddsEvent
-							f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
-							this needs to be in floating point math */
-						float fOddsEvent = fBinomial(iDefFS, iI3) *
-								std::pow(fDefHitProb, iI3) *
-								std::pow(fAttHitProb, iDefFS - iI3);
-						// calculate chance assuming iI3 first strike hits: fOddsAfterEvent
-						float fOddsAfterEvent = 0;
-						/*	odds for _at_least_ att.hitsToWin()
-							(the remaining hits the attacker needs to make) out of
-							(iMaxRounds - iI3) (the left over rounds)
-							is the sum of each _exact_ draw */
-						for (int iI4 = att.hitsToWin(); iI4 < iMaxRounds - iI3 + 1; iI4++)
-						{
-							/*	odds of exactly iI4 out of (iMaxRounds - iI3) draws.
-								f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
-								this needs to be in floating point math */
-							fOddsAfterEvent +=
-									fBinomial(iMaxRounds - iI3, iI4) *
-									std::pow(fAttHitProb, iI4) *
-									std::pow(fDefHitProb, iMaxRounds - iI3 - iI4);
-						}
-
-						/*	Multiply these together, round them properly
-							and add the result to the total iOdds */
-						iOdds += (int)(1000 * fOddsEvent * fOddsAfterEvent + 0.5f);
-					}
-				}
-			}
-		}
-	}
-	// Weigh the total to the number of possible combinations of first strikes events
-	return intdiv::uround(iOdds, (att.FSChances() + 1) * (def.FSChances() + 1));
-}
+/*	advc: Cut from getCombatOdds, deleted on 17 Feb 2021 because
+	obsoleted by LFB code. */
+//int calculateCombatOddsLegacy(Combatant const& att, Combatant const& def) { ... }
 
 // advc.test:
 #if MONTE_CARLO_ODDS_TEST
@@ -797,26 +687,6 @@ void combat_odds::initCombatants(CvUnit const& kAttacker, CvUnit const& kDefende
 	setupCombatantsImpl<true>(kAttacker, kDefender, att, def, bHideFreeWins);
 }
 
-/*	advc: Replacement I wrote for CvUnit::LFBgetDefenderCombatOdds, which used to be
-	called from CvUnit::LFBgetDefenderOdds. Computes the victory odds of the defender.
-	But it turns out that we can just use 1000 minus calculateCombatOdds insetad.
-	The results can differ by 1 point, but I'm not sure which is more correct, and
-	defender odds aren't even shown by the UI. */
-/*int LFBcalculateDefenderCombatOdds(CvUnit const& kDefender, CvUnit const& kAttacker) {
-	Combatant att, def;
-	int iOdds = setupCombatants(kAttacker, kDefender, att, def);
-	// Here's where we invert stuff
-	if (iOdds >= 0)
-		iOdds = 1000 - iOdds;
-	else iOdds = LFBcalculateCombatOdds(def, att);
-	#ifdef FASSERT_ENABLE
-		int iAltOdds = 1000 - calculateCombatOdds(kAttacker, kDefender);
-		FAssert(abs(iOdds - iAltOdds) <=
-				(iOdds == 0 || iAltOdds == 0 || iOdds == 1000 || iAltOdds==1000 ? 0 : 1));
-	#endif
-	return iOdds;
-}*/
-
 /*	Calculates combat odds, given two units
 	Returns value from 0-1000
 	Written by DeepO (advc: gutted) */
@@ -828,27 +698,25 @@ int calculateCombatOdds(CvUnit const& kAttacker, CvUnit const& kDefender)
 	// Odds for trivial cases get computed during setup
 	int iOdds = setupCombatants(kAttacker, kDefender, att, def);
 	if (iOdds < 0)
-	{
-		// UncutDragon
-		if (GC.getDefineBOOL(CvGlobals::LFB_ENABLE))
-			iOdds = LFBcalculateCombatOdds(att, def);
-		// /UncutDragon
-		// advc: Move this into a subroutine too
-		else iOdds = calculateCombatOddsLegacy(att, def);
+	{	/*	advc: Always enable the LFB odds calculation - so that I can
+			throw out the old code, which is largely the same anyway. */
+		//if (GC.getDefineBOOL(CvGlobals::LFB_ENABLE))
+		iOdds = LFBcalculateCombatOdds(att, def);
+		//else iOdds = calculateCombatOddsLegacy(att, def);
 	}
 	#if MONTE_CARLO_ODDS_TEST // advc.test
 	int iEstimate=0; // To allow inspection in debugger
 	FAssert(abs(iOdds - (iEstimate = estimateCombatOdds(kAttacker, kDefender, 500000))) <= 2 ||
 			// On fail, run calculation again, just so that we can immediately step into it.
 			(setupCombatants(kAttacker, kDefender, att, def) < 0 &&
-			(GC.getDefineBOOL(CvGlobals::LFB_ENABLE) ?
-			LFBcalculateCombatOdds(att, def) :
-			calculateCombatOddsLegacy(att, def)) < 0)); // Not going to be true
+			(/*GC.getDefineBOOL(CvGlobals::LFB_ENABLE) ?*/
+			LFBcalculateCombatOdds(att, def)/* :
+			calculateCombatOddsLegacy(att, def)*/) < 0)); // Not going to be true
 	// While we're at it: also verify that the BtS and LFB calculations are consistent
-	int iOtherMethod=0;
+	/*int iOtherMethod=0;
 	FAssert(abs(iOdds - (iOtherMethod = (GC.getDefineBOOL(CvGlobals::LFB_ENABLE) ?
 			calculateCombatOddsLegacy(att, def) :
-			LFBcalculateCombatOdds(att, def)))) <= 2);
+			LFBcalculateCombatOdds(att, def)))) <= 2);*/
 	#endif
 	return iOdds;
 }
