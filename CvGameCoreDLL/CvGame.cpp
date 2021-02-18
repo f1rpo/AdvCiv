@@ -5340,7 +5340,8 @@ void CvGame::toggleDebugMode()
 	GC.getMap().updateVisibility();
 	GC.getMap().updateSymbols();
 	GC.getMap().updateMinimapColor();
-	GC.getMap().setFlagsDirty(); // K-Mod
+	// advc.001w: Let updateVisibility handle it
+	//GC.getMap().setFlagsDirty(); // K-Mod
 	updateColoredPlots(); // K-Mod
 
 	gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);

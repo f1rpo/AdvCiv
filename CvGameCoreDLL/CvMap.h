@@ -270,9 +270,8 @@ public: // advc: made several functions const
 
 	void doTurn();
 
-	void setFlagsDirty(); // K-Mod
 	DllExport void updateFlagSymbols();
-
+	//void setFlagsDirty(); // K-Mod (advc.001w: Obsolete, deleted.)
 	DllExport void updateFog();
 	void updateVisibility();																// Exposed to Python
 	DllExport void updateSymbolVisibility();

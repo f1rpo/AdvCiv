@@ -287,7 +287,6 @@ void CvMap::setAllPlotTypes(PlotTypes ePlotType)
 	//printToConsole(CvString::format("[Jason] setAllPlotTypes: %f\n", endTime - startTime).c_str());
 }
 
-
 // XXX generalize these funcs? (macro?)
 void CvMap::doTurn()
 {
@@ -296,13 +295,6 @@ void CvMap::doTurn()
 		getPlotByIndex(iI).doTurn();
 }
 
-// K-Mod
-void CvMap::setFlagsDirty()
-{
-	for(int i = 0; i < numPlots(); i++) // advc
-		plotByIndex(i)->setFlagDirty(true);
-}
-// K-Mod end
 
 void CvMap::updateFlagSymbols()
 {
