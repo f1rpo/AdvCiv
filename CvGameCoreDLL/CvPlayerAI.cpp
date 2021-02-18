@@ -14483,9 +14483,11 @@ bool CvPlayerAI::AI_isLandWar(CvArea const& kArea) const
 	checks. */
 bool CvPlayerAI::AI_isFocusWar(CvArea const* pArea) const
 {
-	if(!hasCapital())
+	if (isBarbarian())
+		return true;
+	if (!hasCapital())
 		return false;
-	if(pArea == NULL)
+	if (pArea == NULL)
 		pArea = getCapital()->area();
 	if (AI_isDoStrategy(AI_STRATEGY_ALERT2))
 		return true;
