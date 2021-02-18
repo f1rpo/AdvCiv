@@ -3,9 +3,15 @@
 #ifndef K_MOD_PATH_FINDER_LEGACY_H
 #define K_MOD_PATH_FINDER_LEGACY_H
 
-/*	advc.tmp: I'll remove this header once I'm done with my changes to KmodPathFinder.
-	It's the old (AdvCiv 0.98) version of the code. For verifying the correctness of
-	the restructured AdvCiv 0.99 version. */
+/*	<advc.test> This is the old (AdvCiv 0.98) version of KmodPathFinder.
+	For verifying the correctness of the current, restructured version. */
+#ifdef FASSERT_ENABLE
+	#define VERIFY_PATHF 0
+#else
+	#define VERIFY_PATHF 0
+#endif
+
+#ifdef VERIFY_PATHF // </advc.test>
 
 #include "FAStarNode.h"
 
@@ -95,5 +101,7 @@ protected:
 	static int admissible_base_weight;
 	static int admissible_scaled_weight;
 };
+
+#endif // advc.test (VERIFY_PATHF)
 
 #endif

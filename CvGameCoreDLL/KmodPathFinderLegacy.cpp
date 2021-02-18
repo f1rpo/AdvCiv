@@ -1,12 +1,15 @@
 #include "CvGameCoreDLL.h"
 #include "KmodPathFinderLegacy.h"
+
+// advc.test: See comment in header
+#ifdef VERIFY_PATHF
+
 #include "GroupPathFinder.h" // for the step metric
 #include "CvSelectionGroupAI.h"
 #include "CvUnit.h"
 #include "CoreAI.h"
 #include "CvInfo_Terrain.h"
 
-// advc.tmp: See comment in header
 
 int KmodPathFinderLegacy::admissible_base_weight = 1;
 int KmodPathFinderLegacy::admissible_scaled_weight = 1;
@@ -531,3 +534,5 @@ void KmodPathFinderLegacy::ForwardPropagate(FAStarNode* head, int cost_delta)
 		}
 	}
 }
+
+#endif // advc.test (VERIFY_PATHF)

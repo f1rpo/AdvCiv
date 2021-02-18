@@ -720,10 +720,10 @@ template bool GroupStepMetric::updatePathData<FAStarNode>(FAStarNode&, FAStarNod
 
 void GroupPathFinder::setGroup(CvSelectionGroup const& kGroup,
 	MovementFlags eFlags, int iMaxPath, int iHeuristicWeight)
-{	// <advc.tmp>
-	#ifdef FASSERT_ENABLE
-	leg.SetSettings(&kGroup,eFlags,iMaxPath,iHeuristicWeight);
-	#endif //</advc.tmp>
+{	// <advc.test>
+	#ifdef VERIFY_PATHF
+	kLegacyPathf.SetSettings(&kGroup, eFlags, iMaxPath, iHeuristicWeight);
+	#endif //</advc.test>
 	CvSelectionGroup const* pOldGroup = m_stepMetric.getGroup();
 	if (pOldGroup != &kGroup)
 		resetNodes();
@@ -775,11 +775,10 @@ void GroupPathFinder::invalidateGroup(CvSelectionGroup const& kGroup)
 		PROFILE("GroupPathFinder::invalidateGroup - resetNodes");
 		resetNodes();
 		m_stepMetric = GroupStepMetric();
-		// <advc.tmp>
-		#ifdef FASSERT_ENABLE
-		leg.Reset();//advc.tmp
-		leg.SetSettings(NULL,NO_MOVEMENT_FLAGS,-1,-1);
-		#endif // </advc.tmp>
+		// <advc.test>
+		#ifdef VERIFY_PATHF
+		kLegacyPathf.SetSettings(NULL, NO_MOVEMENT_FLAGS, -1, -1);
+		#endif // </advc.test>
 	}
 }
 
@@ -789,15 +788,6 @@ bool GroupPathFinder::generatePath(CvPlot const& kTo)
 	FAssertMsg(m_stepMetric.getGroup() != NULL, "Must call SetSettings before GeneratePath");
 	return generatePath(m_stepMetric.getGroup()->getPlot(), kTo);
 }
-//<advc.tmp>
-#ifdef FASSERT_ENABLE
-bool GroupPathFinder::generatePath(CvPlot const& kFrom, CvPlot const& kTo)
-{
-	bool r=KmodPathFinder<GroupStepMetric,GroupPathNode>::generatePath(kFrom, kTo);FAssert(r==
-		leg.GeneratePath(kFrom.getX(), kFrom.getY(),kTo.getX(),kTo.getY()));
-		return r;
-}
-#endif //</advc.tmp>
 
 
 CvPlot& GroupPathFinder::getPathEndTurnPlot() const
@@ -809,11 +799,23 @@ CvPlot& GroupPathFinder::getPathEndTurnPlot() const
 		pNode = pNode->m_pParent;
 	}
 	FAssert(pNode != NULL);
-	#ifndef FASSERT_ENABLE // advc.tmp
+	#ifndef VERIFY_PATHF // advc.test
 	return pNode->getPlot();
-	// <advc.tmp>
+	// <advc.test>
 	#else
-	CvPlot& r=pNode->getPlot(); FAssert(&r ==leg.GetPathEndTurnPlot());return r;
-	#endif // </advc.tmp>
+	CvPlot& kEndTurnPlot = pNode->getPlot();
+	FAssert(&kEndTurnPlot == kLegacyPathf.GetPathEndTurnPlot());
+	return kEndTurnPlot;
+	#endif // </advc.test>
 }
 
+// <advc.test>
+#ifdef VERIFY_PATHF
+bool GroupPathFinder::generatePath(CvPlot const& kFrom, CvPlot const& kTo)
+{
+	bool bSuccess = KmodPathFinder<GroupStepMetric,GroupPathNode>::generatePath(kFrom, kTo);
+	FAssert(bSuccess == kLegacyPathf.GeneratePath(
+			kFrom.getX(), kFrom.getY(), kTo.getX(), kTo.getY()));
+	return bSuccess;
+}
+#endif // </advc.test>

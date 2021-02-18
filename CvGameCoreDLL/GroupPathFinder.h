@@ -5,10 +5,7 @@
 
 #include "KmodPathFinder.h"
 #include "CvMap.h" // for inlining heuristicStepCost
-// <advc.tmp>
-#ifdef FASSERT_ENABLE
-#include "KmodPathFinderLegacy.h"
-#endif // </advc.tmp>
+#include "KmodPathFinderLegacy.h" // advc.test
 
 /*	advc.pf: New header for classes implementing an A* pathfinder for
 	selection groups of units. Mostly pre-AdvCiv code, just organized differently. */
@@ -138,24 +135,12 @@ public:
 			MovementFlags eFlags = NO_MOVEMENT_FLAGS,
 			int iMaxPath = -1, int iHeuristicWeight = -1);
 	bool generatePath(CvPlot const& kTo);
-	#ifndef FASSERT_ENABLE // advc.tmp
+	#ifndef VERIFY_PATHF // advc.test
 	// Unhide 2-argument version
 	using KmodPathFinder<GroupStepMetric,GroupPathNode>::generatePath;
-	inline int getPathTurns() const
-	{
-		return getPathLength();
-	}
+	inline int getPathTurns() const { return getPathLength(); }
 	__forceinline void reset() { resetNodes(); }
-	// <advc.tmp>
-	#else
-	bool generatePath(CvPlot const& kFrom, CvPlot const& kTo);
-	int getPathTurns() const
-	{
-		int r= getPathLength(); FAssert(r==leg.GetPathTurns()); return r;
-	}
-	inline void reset() { resetNodes(); leg.Reset(); }
-	CvPlot& getPathFirstPlot() const { CvPlot& r= KmodPathFinder<GroupStepMetric, GroupPathNode>::getPathFirstPlot(); FAssert(&r ==leg.GetPathFirstPlot()); return r;}
-	#endif // </advc.tmp>
+	#endif // advc.test
 	CvPlot& getPathEndTurnPlot() const;
 	int getFinalMoves() const
 	{
@@ -173,15 +158,31 @@ public:
 		FAssert(m_pEndNode != NULL);
 		return m_pEndNode;
 	}
-	// <advc.tmp>
-	#ifdef FASSERT_ENABLE
+	// <advc.test>
+	#ifdef VERIFY_PATHF
+	bool generatePath(CvPlot const& kFrom, CvPlot const& kTo);
+	int getPathTurns() const
+	{
+		int iTurns = getPathLength();
+		FAssert(iTurns == kLegacyPathf.GetPathTurns());
+		return iTurns;
+	}
+	inline void reset() { resetNodes(); kLegacyPathf.Reset(); }
+	CvPlot& getPathFirstPlot() const
+	{
+		CvPlot& kPlot = KmodPathFinder<GroupStepMetric, GroupPathNode>::getPathFirstPlot();
+		FAssert(&kPlot == kLegacyPathf.GetPathFirstPlot());
+		return kPlot;
+	}
 	static void initHeuristicWeights(int iMinMovementCost, int iMinFlatMovementCost)
 	{
 		KmodPathFinderLegacy::InitHeuristicWeights();
-		KmodPathFinder<GroupStepMetric,GroupPathNode>::initHeuristicWeights(iMinMovementCost, iMinFlatMovementCost);
+		KmodPathFinder<GroupStepMetric,GroupPathNode>::initHeuristicWeights(
+				iMinMovementCost, iMinFlatMovementCost);
 	}
-private: KmodPathFinderLegacy leg;
-	#endif // <advc.tmp>
+private:
+	KmodPathFinderLegacy kLegacyPathf;
+	#endif // <advc.test>
 };
 
 #endif
