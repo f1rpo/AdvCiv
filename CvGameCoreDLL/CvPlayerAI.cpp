@@ -638,7 +638,8 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 	FOR_EACH_UNITAI_VAR(pLoopUnit, *this)
 		pLoopUnit->AI_promote(); // </advc.mnai>
 
-	// UF bugfix: AI_doSplit moved here per alexman's suggestion
+	/*	UNOFFICIAL_PATCH, 06/16/09, jdog5000 (bugfix):
+		AI_doSplit moved here per alexman's suggestion */
 	AI_doSplit();
 	/*	K-Mod note: the reason for moving it here is that player turn ordering
 		can get messed up if a new player is created, recycling an old player number,
@@ -9438,9 +9439,9 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 			if (bSameTeam)
 				iThreshold *= 5; // </advc.155>
 			else if (!bVassal) // advc.130v
-			{
+			{	// BETTER_BTS_AI_MOD (06/12/10, jdog5000, Diplomacy AI): START
 				if (GET_TEAM(ePlayer).AI_isLandTarget(getTeam()))
-					iThreshold *= 3;
+					iThreshold *= 3; // BETTER_BTS_AI_MOD: END
 				iThreshold *= (GET_TEAM(ePlayer).getPower(false) + 100);
 				iThreshold /= (kOurTeam.getPower(false) + 100);
 			} // <advc.144>

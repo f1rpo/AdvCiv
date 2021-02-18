@@ -1030,14 +1030,14 @@ bool CvTeam::canDeclareWar(TeamTypes eTeam) const
 	return true;
 }
 
-// bbai (advc: refactored)
+// BETTER_BTS_AI_MOD, 01/16/10, jdog5000, War Strategy AI:
 bool CvTeam::canEventuallyDeclareWar(TeamTypes eTeam) const
 {
 	return (eTeam != getID() && isAlive() && GET_TEAM(eTeam).isAlive() &&
 			!isAtWar(eTeam) && isHasMet(eTeam) && canChangeWarPeace(eTeam, true) &&
 			!GC.getGame().isOption(GAMEOPTION_ALWAYS_PEACE) &&
 			GC.getPythonCaller()->canDeclareWar(getID(), eTeam));
-} // bbai end
+}
 
 // K-Mod note: I've shuffled things around a bit in this function.  // advc: refactored
 void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan,
@@ -1053,7 +1053,7 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 			TEAMID(eSponsor) != eTarget)); // </advc.100>
 	if (isAtWar(eTarget))
 		return;
-	if (gTeamLogLevel >= 1) logBBAI("  Team %d (%S) declares war on team %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTarget);
+	if (gTeamLogLevel >= 1) logBBAI("  Team %d (%S) declares war on team %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTarget); // BETTER_BTS_AI_MOD (10/02/09, jdog5000): AI logging
 	CvTeam& kTarget = GET_TEAM(eTarget);
 	std::vector<CvPlayer*> kMembers; // advc: of either team
 	for (MemberIter it(getID()); it.hasNext(); ++it)
@@ -1082,11 +1082,10 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 	// <advc.162>
 	if(GC.getDefineBOOL(CvGlobals::ENABLE_162))
 		m_abJustDeclaredWar.set(eTarget, true); // </advc.162>
-
-	// Plot danger cache (bbai)
+	// BETTER_BTS_AI_MOD (08/21/09, jdog5000, Efficiency): START
 	GC.getMap().invalidateBorderDangerCache(eTarget);
 	GC.getMap().invalidateBorderDangerCache(getID());
-
+	// BETTER_BTS_AI_MOD: END
 	for (size_t i = 0; i < kMembers.size(); i++)
 		kMembers[i]->updatePlunder(1, false);
 

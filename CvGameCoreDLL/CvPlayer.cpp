@@ -3234,7 +3234,7 @@ int CvPlayer::upgradeAllXPChange(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) co
 } // </advc.080>
 
 int CvPlayer::countReligionSpreadUnits(CvArea const* pArea,
-	ReligionTypes eReligion, bool bIncludeTraining) const
+	ReligionTypes eReligion, /* BBAI: */ bool bIncludeTraining) const
 {
 	PROFILE_FUNC();
 
@@ -3247,8 +3247,7 @@ int CvPlayer::countReligionSpreadUnits(CvArea const* pArea,
 				iCount++;
 		}
 	}
-
-	// bbai
+	// BETTER_BTS_AI_MOD (11/14/09, jdog5000): START
 	if (bIncludeTraining)
 	{
 		FOR_EACH_CITY(pLoopCity, *this)
@@ -3260,13 +3259,13 @@ int CvPlayer::countReligionSpreadUnits(CvArea const* pArea,
 					iCount++;
 			}
 		}
-	} // bbai end
+	} // BETTER_BTS_AI_MOD: END
 
 	return iCount;
 }
 
 int CvPlayer::countCorporationSpreadUnits(CvArea const* pArea,
-	CorporationTypes eCorporation, bool bIncludeTraining) const
+	CorporationTypes eCorporation, /* BBAI: */ bool bIncludeTraining) const
 {
 	PROFILE_FUNC();
 
@@ -3280,8 +3279,7 @@ int CvPlayer::countCorporationSpreadUnits(CvArea const* pArea,
 				iCount++;
 		}
 	}
-
-	// bbai
+	// BETTER_BTS_AI_MOD (11/14/09, jdog5000): START
 	if (bIncludeTraining)
 	{
 		FOR_EACH_CITY(pLoopCity, *this)
@@ -3296,7 +3294,7 @@ int CvPlayer::countCorporationSpreadUnits(CvArea const* pArea,
 				}
 			}
 		}
-	} // bbai end
+	} // BETTER_BTS_AI_MOD: END
 
 	return iCount;
 }
@@ -8900,7 +8898,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 
 /*	K-Mod. The body of this function use to be part of setTurnActive.
 	I've moved it here just to improve the readability of that function.
-	(This logging is from bbai.) */
+	(Based on BETTER_BTS_AI_MOD, 10/26/09, jdog5000 - AI logging.) */
 void CvPlayer::onTurnLogging() const
 {
 	if (gPlayerLogLevel > 0)

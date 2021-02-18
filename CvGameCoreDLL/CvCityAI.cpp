@@ -12145,10 +12145,11 @@ int CvCityAI::AI_yieldMultiplier(YieldTypes eYield) const
 
 	return iMultiplier;
 }
-//this should be called before doing governor stuff.
-//This is the function which replaces emphasis
-//Could stand for a Commerce Variety to be added
-//especially now that there is Espionage
+
+/*	This should be called before doing governor stuff.
+	This is the function which replaces emphasis.
+	Could stand for a Commerce Variety to be added,
+	especially now that there is Espionage. */
 void CvCityAI::AI_updateSpecialYieldMultiplier()
 {
 	PROFILE_FUNC();
@@ -12205,77 +12206,71 @@ void CvCityAI::AI_updateSpecialYieldMultiplier()
 		return; // advc
 	// non-human production value increase
 
-	CvPlayerAI& kPlayer = GET_PLAYER(getOwner());
-	AreaAITypes eAreaAIType = getArea().getAreaAIType(getTeam());
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	AreaAITypes const eAreaAIType = getArea().getAreaAIType(getTeam());
 
 	// K-Mod. special strategy / personality adjustments
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_PRODUCTION))
+	if (kOwner.AI_isDoStrategy(AI_STRATEGY_PRODUCTION))
 	{
 		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] += 20;
 		m_aiSpecialYieldMultiplier[YIELD_COMMERCE] -= 20;
 	}
-	else if (findBaseYieldRateRank(YIELD_PRODUCTION) <= kPlayer.getNumCities()/3 &&
+	else if (findBaseYieldRateRank(YIELD_PRODUCTION) <= kOwner.getNumCities()/3 &&
 		findBaseYieldRateRank(YIELD_PRODUCTION) < findBaseYieldRateRank(YIELD_COMMERCE))
 	{
 		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] += 10;
 		m_aiSpecialYieldMultiplier[YIELD_COMMERCE] -= 10;
 	}
 
-	if (kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE1 | AI_VICTORY_SPACE1))
-	{
+	if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE1 | AI_VICTORY_SPACE1))
 		m_aiSpecialYieldMultiplier[YIELD_COMMERCE] += 5;
-	}
 
-	if (kPlayer.AI_getFlavorValue(FLAVOR_PRODUCTION) > 0)
+	if (kOwner.AI_getFlavorValue(FLAVOR_PRODUCTION) > 0)
 	{
 		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] += 5 +
-				2 * kPlayer.AI_getFlavorValue(FLAVOR_PRODUCTION);
+				2 * kOwner.AI_getFlavorValue(FLAVOR_PRODUCTION);
 	}
-	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS))
+	if (kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS))
 	{
 		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] -= 10;
 		m_aiSpecialYieldMultiplier[YIELD_COMMERCE] += 20;
 	}  // advc.001: was AI_isDoVictoryStrategy
-	else if (kPlayer.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS)) // doesn't stack with ec focus.
+	else if (kOwner.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS)) // doesn't stack with ec focus.
 	{
 		m_aiSpecialYieldMultiplier[YIELD_COMMERCE] += 20;
 	} // K-Mod end
 
-	if ((kPlayer.AI_isDoStrategy(AI_STRATEGY_DAGGER) && getPopulation() >= 4) ||
+	if ((kOwner.AI_isDoStrategy(AI_STRATEGY_DAGGER) && getPopulation() >= 4) ||
 		(eAreaAIType == AREAAI_OFFENSIVE) || (eAreaAIType == AREAAI_DEFENSIVE) ||
 		(eAreaAIType == AREAAI_MASSING) || (eAreaAIType == AREAAI_ASSAULT))
 	{
 		/*m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] += 10;
-		if (!kPlayer.AI_isFinancialTrouble())
+		if (!kOwner.AI_isFinancialTrouble())
 			m_aiSpecialYieldMultiplier[YIELD_COMMERCE] -= 40;*/ // BtS
 		// K-Mod. Don't sacrifice lots of commerce unless we're on the defensive, or this is 'total war'.
 		// advc.018: Removed crush from the isDoStrategy call
-		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] += kPlayer.
+		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] += kOwner.
 				AI_isDoStrategy(AI_STRATEGY_DAGGER | AI_STRATEGY_TURTLE) ? 20 : 10;
-		if (eAreaAIType != AREAAI_NEUTRAL && !kPlayer.AI_isFinancialTrouble() &&
-			!kPlayer.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS | AI_STRATEGY_GET_BETTER_UNITS))
+		if (eAreaAIType != AREAAI_NEUTRAL && !kOwner.AI_isFinancialTrouble() &&
+			!kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS | AI_STRATEGY_GET_BETTER_UNITS))
 		{
-			const CvTeamAI& kTeam = GET_TEAM(kPlayer.getTeam());
-			bool bSeriousWar = eAreaAIType == AREAAI_DEFENSIVE || kPlayer.isBarbarian();
-			for (TeamTypes i = (TeamTypes)0; !bSeriousWar && i < MAX_CIV_TEAMS; i=(TeamTypes)(i+1))
+			bool bSeriousWar = (eAreaAIType == AREAAI_DEFENSIVE || kOwner.isBarbarian());
+			for (TeamIter<CIV_ALIVE,KNOWN_POTENTIAL_ENEMY_OF> itEnemy(getTeam());
+				!bSeriousWar && itEnemy.hasNext(); ++itEnemy)
 			{
-				if (GET_TEAM(i).isAlive())
-				{
-					WarPlanTypes ePlan = kTeam.AI_getWarPlan(i);
-					FAssert(ePlan == NO_WARPLAN || (kTeam.isHasMet(i) && GET_TEAM(i).isAlive()));
-					bSeriousWar = ePlan == WARPLAN_PREPARING_TOTAL || ePlan == WARPLAN_TOTAL;
-				}
+				WarPlanTypes eWarPlan = GET_TEAM(getTeam()).AI_getWarPlan(itEnemy->getID());
+				bSeriousWar = (eWarPlan == WARPLAN_PREPARING_TOTAL || eWarPlan == WARPLAN_TOTAL);
 			}
-			m_aiSpecialYieldMultiplier[YIELD_COMMERCE] -= bSeriousWar ? 35 : 10;
+			m_aiSpecialYieldMultiplier[YIELD_COMMERCE] -= (bSeriousWar ? 35 : 10);
 		} // K-Mod end
 	}
 
-	//int iIncome = 1 + kPlayer.getCommerceRate(COMMERCE_GOLD) + kPlayer.getCommerceRate(COMMERCE_RESEARCH) + std::max(0, kPlayer.getGoldPerTurn());
-	int iIncome = 1 + kPlayer.AI_getAvailableIncome(); // K-Mod
-	int iExpenses = 1 + kPlayer.calculateInflatedCosts() +
-			//-std::min(0, kPlayer.getGoldPerTurn());
+	//int iIncome = 1 + kOwner.getCommerceRate(COMMERCE_GOLD) + kOwner.getCommerceRate(COMMERCE_RESEARCH) + std::max(0, kOwner.getGoldPerTurn());
+	int iIncome = 1 + kOwner.AI_getAvailableIncome(); // K-Mod
+	int iExpenses = 1 + kOwner.calculateInflatedCosts() +
+			//-std::min(0, kOwner.getGoldPerTurn());
 			// K-Mod (just to be consistent with similar calculations)
-			std::max(0, -kPlayer.getGoldPerTurn()); 
+			std::max(0, -kOwner.getGoldPerTurn()); 
 	FAssert(iIncome > 0);
 
 	int iRatio = (100 * iExpenses) / iIncome;

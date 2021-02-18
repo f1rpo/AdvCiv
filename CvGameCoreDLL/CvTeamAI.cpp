@@ -2337,9 +2337,9 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 				return DENIAL_PEACE_NOT_POSSIBLE_US;
 		}
 	} // K-Mod end
-
+	// BETTER_BTS_AI_MOD (12/07/09,  jdog5000, Diplomacy);
 	if (isHuman() && kMasterTeam.isHuman())
-		return NO_DENIAL;
+		return NO_DENIAL; // BETTER_BTS_AI_MOD: END
 	// <advc.112>
 	if(AI_anyMemberAtVictoryStage3())
 		return DENIAL_VICTORY;
@@ -2552,10 +2552,11 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 		// </advc.112>
 	}
 	else if (/* advc.112: */ !bColony &&
+		// BETTER_BTS_AI_MOD (06/12/10, jdog5000): START
 		!kMasterTeam.AI_isLandTarget(getID()))
 	{
 		rMasterPower /= 2;
-	}
+	} // BETTER_BTS_AI_MOD: END
 	// K-Mod. (condition moved here from lower down; for efficiency.)
 	// <advc.112> Special treatment of vassal-master power ratio if colony
 	if ((!bColony && 3 * rVassalPower > 2 * rMasterPower) ||
@@ -2662,7 +2663,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 	if(!bColony) // advc.112
 	{
 		// if (iVassalPower > iAveragePower || 3 * iVassalPower > 2 * iMasterPower)
-		// advc.112: Changed coefficients from 5/4 to 1/0.76
+		// advc.112: Changed coefficients from 5/4 (BBAI, K-Mod) to 1/0.76
 		if (rVassalPower > fixp(0.76) * rAveragePower || // K-Mod. (second condition already checked)
 			// <advc.112> Median condition; randomization when breaking free
 			(!bWar && rVassalPower > fixp(0.76) * rMedianPow))
@@ -5602,10 +5603,9 @@ bool CvTeamAI::AI_isPursuingCircumnavigation() const
 	return false;
 }
 
-// Make war decisions, mainly for starting or switching war plans.
-//
-// This function has been tweaked throughout by BBAI and K-Mod, some changes marked others not.
-// (K-Mod has made several structural changes.)
+/*	Make war decisions, mainly for starting or switching war plans.
+	This function has been tweaked throughout by BBAI and K-Mod,
+	some changes marked, others not. (K-Mod has made several structural changes.) */
 void CvTeamAI::AI_doWar()
 {
 	PROFILE_FUNC();

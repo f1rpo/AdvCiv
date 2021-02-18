@@ -2305,7 +2305,10 @@ void CvUnitAI::AI_attackMove()
 			{
 				// Defend colonies in new world
 				//if (AI_guardCity(true, true, 3))
-				if (getGroup()->getNumUnits() == 1 ? AI_guardCityMinDefender(true) : AI_guardCity(true, true, 3)) // K-Mod
+				// <K-Mod>
+				if (getGroup()->getNumUnits() == 1 ?
+					AI_guardCityMinDefender(true) :
+					AI_guardCity(true, true, 3)) // </K-Mod>
 				{
 					return;
 				}
@@ -12643,11 +12646,10 @@ bool CvUnitAI::AI_safety()
 			//iValue += p.defenseModifier(getTeam(), false);
 			iValue += AI_plotDefense(&p); // advc.012
 			// K-Mod
-			iValue += (bEnemyTerritory ? !isEnemy(p) :
-					p.getTeam() == getTeam()) ? 30 : 0;
-			iValue += p.isValidRoute(this, /* advc.001i: */ false)
-					? 25 : 0;
-			// K-Mod end
+			if (bEnemyTerritory ? !isEnemy(p) : (p.getTeam() == getTeam()))
+				iValue += 30;
+			if (p.isValidRoute(this, /* advc.001i: */ false))
+				iValue += 25; // K-Mod end
 			if (at(p))
 				iValue += 50;
 			else iValue += GC.getGame().getSorenRandNum(50, "AI Safety");
@@ -12663,8 +12665,7 @@ bool CvUnitAI::AI_safety()
 			if (bIgnoreDanger)
 				break; // no suitable plot, even when ignoring danger
 			else bIgnoreDanger = true; // try harder next time
-		}
-		// K-Mod end
+		} // K-Mod end
 	} while (pBestPlot == NULL);
 
 	if (pBestPlot != NULL)

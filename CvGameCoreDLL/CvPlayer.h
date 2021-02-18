@@ -202,12 +202,10 @@ public:
 	// advc.080:
 	int upgradeAllXPChange(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) const;
 
-	// note: bbai added bIncludeTraining to the following two functions
-	int countReligionSpreadUnits(CvArea const* pArea,																// Exposed to Python
-			ReligionTypes eReligion, bool bIncludeTraining = false) const;
-	int countCorporationSpreadUnits(CvArea const* pArea,															// Exposed to Python
-			CorporationTypes eCorporation, bool bIncludeTraining = false) const;
-
+	int countReligionSpreadUnits(CvArea const* pArea, ReligionTypes eReligion,										// Exposed to Python
+			bool bIncludeTraining = false) const; // BBAI
+	int countCorporationSpreadUnits(CvArea const* pArea, CorporationTypes eCorporation,								// Exposed to Python
+			bool bIncludeTraining = false) const; // BBAI
 	int countNumCoastalCities() const;																				// Exposed to Python
 	int countNumCoastalCitiesByArea(CvArea const& kArea) const;														// Exposed to Python
 	int countTotalCulture() const;																					// Exposed to Python
