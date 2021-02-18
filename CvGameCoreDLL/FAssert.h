@@ -3,12 +3,15 @@
 #ifndef FASSERT_H
 #define FASSERT_H
 
-// Only compile in FAssert's if FASSERT_ENABLE is defined.  By default, however, let's key off of
-// _DEBUG.  Sometimes, however, it's useful to enable asserts in release builds, and you can do that
-// simply by changing the following lines to define FASSERT_ENABLE or using project settings to override
 #ifdef _DEBUG
-#define FASSERT_ENABLE
+	#define FASSERT_ENABLE
+	// <advc> Just a little convenience for debugging
+	#define debugbreak(expr) if (expr) __debugbreak();
+#else
+	#define debugbreak(expr)
+	// </advc>
 #endif
+
 #ifdef FASSERT_ENABLE
 /*  advc.make: Inlining functions with assertions could be a bad choice. Let's
 	at least not force-inline. */
