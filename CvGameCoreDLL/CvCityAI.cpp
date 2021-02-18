@@ -7621,8 +7621,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 		iTimeScale = std::max(iTimeScale, 20);
 		// Other adjustments?
 
-		/*	Adjustments to match calculation in CvPlot::doImprovementUpgrade
-			advc.001 (comment): No, in CvGame::getImprovementUpgradeTime. */
+		// Adjustments to match calculation in CvPlot::doImprovement
 		iTimeScale *= GC.getInfo(GC.getGame().getGameSpeedType()).getImprovementPercent();
 		iTimeScale /= 100;
 		iTimeScale *= GC.getInfo(GC.getGame().getStartEra()).getImprovementPercent();
@@ -7635,11 +7634,10 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 			else
 			{	/*	<advc.001> This fraction was flipped. Pretty sure that this was wrong.
 					The ImprovementPercentModifiers apply to the time needed for an upgrade,
-					whereas the upgrade rate applies to the time spent working the tile
-					(CvPlot::doImprovement). A higher upgrade rate means that we should be
-					more interested in delayed rewards, which is what a high
-					iTimeScale value does. Note that the upgrade rate factors into the
-					evaluation at no other point, so let's address it here (correctly). */
+					whereas the upgrade rate applies to the time spent working the tile.
+					A higher upgrade rate means that we should be more interested in
+					delayed rewards, which is what a high iTimeScale value does. Note that
+					the upgrade rate factors into the evaluation at no other point. */
 				iTimeScale *= iUpgrRate;
 				iTimeScale /= 100; // </advc.001>
 				// </advc.912f>

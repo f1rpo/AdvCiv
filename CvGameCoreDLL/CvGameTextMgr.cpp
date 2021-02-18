@@ -3512,9 +3512,20 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 			if (kPlot.getUpgradeProgress() > 0 || kPlot.isBeingWorked())
 			{
 				int iTurns = kPlot.getUpgradeTimeLeft(ePlotImprovement, eRevealedOwner);
+				// <advc.912f>
+				bool bStagnant = (iTurns < 0);
+				if (bStagnant)
+				{
+					iTurns *= -1;
+					szString.append(CvWString::format(SETCOLR,
+							TEXT_COLOR("COLOR_LIGHT_GREY")));
+				} // </advc.912f>
 				szString.append(gDLL->getText("TXT_KEY_PLOT_IMP_UPGRADE", iTurns,
 						GC.getInfo(GC.getInfo(ePlotImprovement).getImprovementUpgrade()).
 						getTextKeyWide()));
+				// <advc.912f>
+				if (bStagnant)
+					szString.append(ENDCOLR); // </advc.912f>
 			}
 			else
 			{

@@ -3419,7 +3419,7 @@ void CvPlot::changeImprovementDuration(int iChange)
 	setImprovementDuration(getImprovementDuration() + iChange);
 }
 
-
+// advc.912f: Now returns negative value when player's upgrade rate is 0
 int CvPlot::getUpgradeTimeLeft(ImprovementTypes eImprovement, PlayerTypes ePlayer) const
 {
 	int iUpgradeLeft = GC.getGame().getImprovementUpgradeTime(eImprovement)
@@ -3428,8 +3428,9 @@ int CvPlot::getUpgradeTimeLeft(ImprovementTypes eImprovement, PlayerTypes ePlaye
 	// <advc.912f>
 	int iUpgradeRate = (ePlayer == NO_PLAYER ? 100 :
 			GET_PLAYER(ePlayer).getImprovementUpgradeRate());
-	int iTurnsLeft = scaled(iUpgradeLeft, iUpgradeRate).ceil(); // </advc.912f>
-	return std::max(1, iTurnsLeft);
+	int iTurnsLeft = scaled(iUpgradeLeft, iUpgradeRate > 0 ? iUpgradeRate : -100).ceil();
+	return (iTurnsLeft == 0 ? 1 : iTurnsLeft);
+	// </advc.912f>
 }
 
 

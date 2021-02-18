@@ -2978,11 +2978,22 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			ImprovementTypes eUpgr = kImprov.getImprovementUpgrade();
 			if (eUpgr != NO_IMPROVEMENT)
 			{
+				szBuffer.append(NEWLINE);
 				int iTurns = kMissionPlot.getUpgradeTimeLeft(eImprovement,
 						kUnitOwner.getID());
-				szBuffer.append(NEWLINE);
+				// <advc.912f>
+				bool bStagnant = (iTurns < 0);
+				if (bStagnant)
+				{
+					iTurns *= -1;
+					szBuffer.append(CvWString::format(SETCOLR,
+							TEXT_COLOR("COLOR_LIGHT_GREY")));
+				} // </advc.912f>
 				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_BECOMES_IMP",
 						GC.getInfo(eUpgr).getTextKeyWide(), iTurns));
+				// <advc.912f>
+				if (bStagnant)
+					szBuffer.append(ENDCOLR); // </advc.912f>
 			}
 		}
 		if (eRoute != NO_ROUTE)
