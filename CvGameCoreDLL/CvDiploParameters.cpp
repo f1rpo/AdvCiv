@@ -97,16 +97,12 @@ SET_DIPLO_COMMENT_ARGS
 void CvDiploParameters::setDiploComment(DiploCommentTypes eCommentType, int arg1, int arg2, int arg3)
 SET_DIPLO_COMMENT_ARGS
 
-void CvDiploParameters::setDiploComment(DiploCommentTypes eCommentType, const std::vector<FVariable>* args)
+void CvDiploParameters::setDiploComment(DiploCommentTypes eCommentType,
+	std::vector<FVariable> const* pArgs)
 {
 	m_eCommentType = eCommentType;
-	if (args)
-		m_diploCommentArgs = *args;
-}
-
-DiploCommentTypes CvDiploParameters::getDiploComment() const
-{
-	return m_eCommentType;
+	if (pArgs != NULL)
+		m_diploCommentArgs = *pArgs;
 }
 
 void CvDiploParameters::setOurOfferList(CLinkList<TradeData> const& kOurOffer)
@@ -216,13 +212,12 @@ const wchar* CvDiploParameters::getChatText() const
 	return m_szChatText;
 }
 
-
 void CvDiploParameters::read(FDataStreamBase& stream)
 {
-	int iType;
-	uint uiFlag=0;
+	uint uiFlag;
 	stream.Read(&uiFlag);
 
+	int iType;
 	stream.Read(&iType);
 	m_eWhoTalkingTo = (PlayerTypes)iType;
 	stream.Read(&iType);

@@ -48,8 +48,8 @@ public:
 		return *this;
 	}
 	void CopyFrom(const FVariable& varSrc);
-	void Read(FDataStreamBase *);
-	void Write(FDataStreamBase *) const;
+	void Read(FDataStreamBase* pStream);
+	void Write(FDataStreamBase* pSTream) const;
 
 	/*	<advc> Not nice, but gets rid of even more clutter in FVariableSystem.
 		If we want e.g.
@@ -150,7 +150,14 @@ public:
 		char*		m_szValue;
 		wchar*		m_wszValue;
 	}; // advc.003k: Memory layout mustn't change, i.e. m_eType needs to come last.
-	eVariableType	m_eType;		// The type of data contained in this variable/*	Creates a system in which variables can be added/removed/queried/modified at runtime.
+	eVariableType	m_eType;		// The type of data contained in this variable
+};
+BOOST_STATIC_ASSERT(sizeof(FVariable) == 24); // advc.003k
+// (Looks like the union takes up 16 byte - weird; plus 4 byte of padding after m_eType.)
+
+typedef stdext::hash_map<std::string, FVariable*> FVariableHash;
+
+/*	Creates a system in which variables can be added/removed/queried/modified at runtime.
 	This should be used when the application is managing variable data obtained
 	from/exposed to an external source. For example, if variables are read from an XML file,
 	and the variable names are not known beforehand, this system can manage them. */
@@ -168,14 +175,14 @@ public:
 		Returns true if the variable value was retrieved,
 		false otherwise (value will be unchanged from input). */
 	bool GetValue(char const* szVariable, float& fValue) const;
-	bool GetValue(char const* szVariable, double& dValue) const;
-	template<typename T> // advc
+	bool GetValue(char const* szVariable, double& dValue) const; // (unused)
+	template<typename T> // advc (used only for T=int, T=char const*)
 	bool GetValue(char const* szVariable, T& tValue) const;
 	/*	Gets a pointer to the variable object that contains the given variable.
 		szVariable: The name of the variable to obtain.
 		Returns a pointer to the requested FVariable, or
 		NULL if the variable does not exist. */
-	FVariable const* GetVariable(char const* szVariable) const;
+	FVariable const* GetVariable(char const* szVariable) const; // (unused)
 
 	/*	Variable additions/modifiers. If a variable does not exist, it will be added.
 		Creates (or modifies) a variable with the given name and sets it value.
@@ -184,11 +191,13 @@ public:
 	template<typename T> // advc
 	void SetValue(char const* szVariable, T tValue);
 
+	// advc (note): The rest of the functions are unused ...
+
 	/*	Removes a variable from the system.
 		szVariable: The name of the variable to remove.
 		Returns true if the variable was removed,
 		false otherwise (probably does not exist). */
-	bool RemValue(char const* szVariable); // Variable removal
+	bool RemValue(char const* szVariable);
 
 	// Iteration
 	/*	Gets the name of the "first" variable in the system.

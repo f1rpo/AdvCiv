@@ -19,17 +19,16 @@ inline FVariable::~FVariable()
 
 inline void FVariable::CopyFrom(FVariable const& varSrc)
 {
-	if (varSrc.m_eType == FVARTYPE_STRING && varSrc.m_szValue)
+	if (varSrc.m_eType == FVARTYPE_STRING && varSrc.m_szValue != 0)
 	{
 		// copy string to new allocation
-		m_szValue = new char[strlen(varSrc.m_szValue)+1];
+		m_szValue = new char[strlen(varSrc.m_szValue) + 1];
 		strcpy(m_szValue, varSrc.m_szValue);
 	}
-	else
-	if (varSrc.m_eType == FVARTYPE_WSTRING && varSrc.m_wszValue)
+	else if (varSrc.m_eType == FVARTYPE_WSTRING && varSrc.m_wszValue != 0)
 	{
 		// copy string to new allocation
-		m_wszValue = new wchar[wcslen(varSrc.m_wszValue)+1];
+		m_wszValue = new wchar[wcslen(varSrc.m_wszValue) + 1];
 		wcscpy(m_wszValue, varSrc.m_wszValue);
 	}
 	else
@@ -37,7 +36,6 @@ inline void FVariable::CopyFrom(FVariable const& varSrc)
 		// this should copy the contents of the union
 		memcpy((void*)&m_dValue, (void*)&varSrc.m_dValue, sizeof(m_dValue));
 	}
-
 	m_eType = varSrc.m_eType;
 }
 
@@ -45,9 +43,9 @@ inline void FVariable::CopyFrom(FVariable const& varSrc)
 inline void FVariable::Read(FDataStreamBase* pStream)
 {
 	pStream->Read((int*)&m_eType);
-	if (m_eType==FVARTYPE_STRING)
+	if (m_eType == FVARTYPE_STRING)
 		m_szValue = pStream->ReadString();
-	else if (m_eType==FVARTYPE_WSTRING)
+	else if (m_eType == FVARTYPE_WSTRING)
 		m_wszValue = pStream->ReadWideString();
 	// read the maximum size of the union
 	else pStream->Read(sizeof(m_dValue), (byte*)&m_dValue);
@@ -57,9 +55,9 @@ inline void FVariable::Read(FDataStreamBase* pStream)
 inline void FVariable::Write(FDataStreamBase *pStream) const
 {
 	pStream->Write(m_eType);
-	if (m_eType==FVARTYPE_STRING)
+	if (m_eType == FVARTYPE_STRING)
 		pStream->WriteString(m_szValue);
-	else if (m_eType==FVARTYPE_WSTRING)
+	else if (m_eType == FVARTYPE_WSTRING)
 		pStream->WriteString(m_wszValue);
 	// write the maximum size of the union
 	else pStream->Write(sizeof(m_dValue), (byte*)&m_dValue);
@@ -180,18 +178,16 @@ inline bool FVariableSystem::GetValue(char const* szVariable, float& fValue) con
 		break;
 	case FVARTYPE_STRING:
 	{
-		char const* szValue;
-		if (!GetValue(szVariable, szValue))
-			return false;
-		fValue = (float)atof(szValue);
+		/*char const* szValue;
+		if (!GetValue(szVariable, szValue)) return false;*/
+		fValue = (float)atof(/* advc.opt: */ kVariable.m_szValue);
 		break;
 	}
 	case FVARTYPE_WSTRING:
 	{
-		wchar const* szValue;
-		if (!GetValue(szVariable, szValue))
-			return false;
-		fValue = (float)_wtof(szValue);
+		/*wchar const* szValue;
+		if (!GetValue(szVariable, szValue)) return false;*/
+		fValue = (float)_wtof(/* advc.opt: */ kVariable.m_wszValue);
 		break;
 	}
 	default: FAssert(false);
@@ -217,18 +213,16 @@ inline bool FVariableSystem::GetValue(char const* szVariable, double& dValue) co
 		break;
 	case FVARTYPE_STRING:
 	{
-		char const* szValue;
-		if (!GetValue(szVariable, szValue))
-			return false;
-		dValue = atof(szValue);
+		/*char const* szValue;
+		if (!GetValue(szVariable, szValue)) return false;*/
+		dValue = atof(/* advc.opt: */ kVariable.m_szValue);
 		break;
 	}
 	case FVARTYPE_WSTRING:
 	{
-		wchar const* szValue;
-		if (!GetValue(szVariable, szValue))
-			return false;
-		dValue = _wtof(szValue);
+		/*wchar const* szValue;
+		if (!GetValue(szVariable, szValue)) return false;*/
+		dValue = _wtof(/* advc.opt: */ kVariable.m_wszValue);
 		break;
 	}
 	default: FAssert(false);
