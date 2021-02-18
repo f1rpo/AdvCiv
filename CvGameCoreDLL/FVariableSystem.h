@@ -136,7 +136,6 @@ public:
 		FAssert(m_eType == FVARTYPE_WSTRING);
 	} // </advc>
 
-	eVariableType	m_eType;		// The type of data contained in this variable
 	union
 	{
 		bool		m_bValue;
@@ -150,12 +149,8 @@ public:
 		double		m_dValue;
 		char*		m_szValue;
 		wchar*		m_wszValue;
-	};
-};
-
-typedef stdext::hash_map<std::string, FVariable*> FVariableHash;
-
-/*	Creates a system in which variables can be added/removed/queried/modified at runtime.
+	}; // advc.003k: Memory layout mustn't change, i.e. m_eType needs to come last.
+	eVariableType	m_eType;		// The type of data contained in this variable/*	Creates a system in which variables can be added/removed/queried/modified at runtime.
 	This should be used when the application is managing variable data obtained
 	from/exposed to an external source. For example, if variables are read from an XML file,
 	and the variable names are not known beforehand, this system can manage them. */
