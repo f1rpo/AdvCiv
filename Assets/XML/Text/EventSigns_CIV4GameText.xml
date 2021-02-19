@@ -7,15 +7,12 @@
   - Non-English ranslations may be inaccurate as they came from guesses and babelfish.
   -->
 <Civ4GameText xmlns="http://www.firaxis.com">
+
 	<TEXT>
 		<Tag>TXT_KEY_SIGN_FORMAT_OVERVIEW</Tag>
 		<!-- s1: Food string, s2: Prod string, s3: Comm string, s4: Descriptive string -->
 		<!-- Note there will be some extra spaces added between these strings -->
 		<English>%s1%s2%s3 (%s4)</English>
-		<French>%s1%s2%s3 (%s4)</French>
-		<German>%s1%s2%s3 (%s4)</German>
-		<Italian>%s1%s2%s3 (%s4)</Italian>
-		<Spanish>%s1%s2%s3 (%s4)</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_SIGN_FORMAT_FOOD</Tag>
@@ -178,4 +175,5 @@
 		<Italian>volcanic ash</Italian>
 		<Spanish>cenizas volcánicas</Spanish>
 	</TEXT>
+
 </Civ4GameText>

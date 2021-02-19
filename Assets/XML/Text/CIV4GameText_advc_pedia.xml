@@ -3,9 +3,38 @@
 <!-- advc.008: Since the Civilopedia changes are so wordy (not the
      changes, but the copied text), I've moved them out of
      CIV4GameText_advc.xml, where the rest of the Advanced Civ game text
-	 is located. -->
+	 is located.
+	 Starting with the two text keys changed by K-Mod
+	 (one of them commented out, already in K-Mod) cut from
+	 Civ4GameText_K-Mod.xml. The comments above those keys
+	 are also from K-Mod. -->
 
 <Civ4GameText>
+
+	<!-- The original text incorrectly stated that liberies were required
+		 for the Heroic Epic. (These 'strategy' hints are just a damn nightmare.
+		 They don't give any hints or information that isn't already stated in
+		 automatically generated description; and they are often wrong
+		 because they aren't auto-updated...) -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_LIBRARY_STRATEGY</Tag>
+		<English>[COLOR_BUILDING_TEXT]Libraries[COLOR_REVERT] boost your cities' research and provide culture. They are required to build [COLOR_BUILDING_TEXT]Universities[COLOR_REVERT], the [COLOR_BUILDING_TEXT]Great Library[COLOR_REVERT] wonder, and the [COLOR_BUILDING_TEXT]National Epic[COLOR_REVERT] national wonder.</English>
+		<French>Les [COLOR_BUILDING_TEXT]biblioth&#232;ques[COLOR_REVERT] am&#233;liorent la recherche et produisent de la culture. Elles sont n&#233;cessaires pour construire des [COLOR_BUILDING_TEXT]universit&#233;s[COLOR_REVERT], la [COLOR_BUILDING_TEXT]Grande biblioth&#232;que[COLOR_REVERT], et l'[COLOR_BUILDING_TEXT]Epop&#233;e nationale[COLOR_REVERT].</French>
+		<German>[COLOR_BUILDING_TEXT]Bibliotheken[COLOR_REVERT] erh&#246;hen den kulturellen Wert einer Stadt und beschleunigen die Forschung sp&#252;rbar. Dar&#252;ber hinaus sind sie die Voraussetzung f&#252;r den Bau von [COLOR_BUILDING_TEXT]Universit&#228;ten[COLOR_REVERT], eines Weltwunders ([COLOR_BUILDING_TEXT]Gro&#223;e Bibliothek[COLOR_REVERT]) und der Nationalen Wunder [COLOR_BUILDING_TEXT]Nationalepos[COLOR_REVERT].</German>
+		<Italian>Le [COLOR_BUILDING_TEXT]biblioteche[COLOR_REVERT] aumentano la ricerca e la cultura delle citt&#224;. Sono necessarie per la realizzazione di [COLOR_BUILDING_TEXT]universit&#224;[COLOR_REVERT], della Meraviglia [COLOR_BUILDING_TEXT]Grande Biblioteca[COLOR_REVERT] e delle Meraviglia Nazionali [COLOR_BUILDING_TEXT]Poema Patriottico[COLOR_REVERT].</Italian>
+		<Spanish>Las [COLOR_BUILDING_TEXT]Bibliotecas[COLOR_REVERT] impulsan la investigaci&#243;n de las ciudades y proporcionan cultura. Son necesarias para construir [COLOR_BUILDING_TEXT]Universidades[COLOR_REVERT], la maravilla de la [COLOR_BUILDING_TEXT]Gran Biblioteca[COLOR_REVERT] y las maravilla nacionales de la [COLOR_BUILDING_TEXT]Epopeya nacional[COLOR_REVERT].</Spanish>
+	</TEXT>
+	<!-- Replacement 'strategy' text for Celtic Dun replacing the
+		 guerilla promotion with an experience boost for melee units.
+		 (not currently used)
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_CELTIC_DUN_STRATEGY</Tag>
+		<English>[COLOR_BUILDING_TEXT]Duns[COLOR_REVERT], the Celtic replacements for [COLOR_BUILDING_TEXT]Walls[COLOR_REVERT], increase a city's defenses against pre-gunpowder units and gives an experience bonus to all melee units built in the city.</English>
+		<French>L'[COLOR_BUILDING_TEXT]oppida[COLOR_REVERT], version celte des [COLOR_BUILDING_TEXT]murailles[COLOR_REVERT], augmente la d&#233;fense des villes contre les unit&#233;s datant d'avant l'invention de la poudre &#224; canon. Il fournit aussi un bonus d'expérience à toutes les unités de mêlée construits dans la ville.</French>
+		<German>Die keltischen [COLOR_BUILDING_TEXT]Duns[COLOR_REVERT] ersetzen die [COLOR_BUILDING_TEXT]Mauern[COLOR_REVERT]. Sie verbessern den Verteidigungswert einer Stadt gegen Einheiten ohne Schusswaffen und geben eine Erfahrung Bonus auf Nahkampf-Einheiten in der Stadt gebaut.</German>
+		<Italian>Il [COLOR_BUILDING_TEXT]dun[COLOR_REVERT], l'equivalente celtico delle [COLOR_BUILDING_TEXT]mura[COLOR_REVERT], potenzia le difese della citt&#224; contro le unit&#224; precedenti alla polvere da sparo e dare un bonus esperienza per le unità da mischia costruite in città.</Italian>
+		<Spanish>Los [COLOR_BUILDING_TEXT]Duns[COLOR_REVERT], los equivalentes celtas de las [COLOR_BUILDING_TEXT]Murallas[COLOR_REVERT], aumentan las defensas de una ciudad contra unidades anteriores a las armas de p&#243;lvora y dar una bonificación de experiencia a las unidades de cuerpo a cuerpo construido en la ciudad.</Spanish>
+	</TEXT> -->
 
 	<!-- advc.008a: Removed "Only" because this is going to be shown for
 		 wonders like Stonehenge that become unavailable surprisingly early

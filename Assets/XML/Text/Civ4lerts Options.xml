@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<!--Civ4lerts
-	Options Game Text
-
+<!--Civ4lerts Options Game Text
 	Copyright (c) 2009 The BUG Mod. -->
 <!-- (advc.210: Help text for optional alerts added by AdvCiv is not here but
 	 in Civ4GameText_advc.xml.) -->
@@ -154,18 +152,12 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__CITYPENDINGPOSITIVE_TEXT</Tag>
 		<English>Also Positive Pending</English>
-		<French>Also Positive Pending</French>
 		<German>Auch positive bevorst. Änderungen</German>
-		<Italian>Also Positive Pending</Italian>
-		<Spanish>Also Positive Pending</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__CITYPENDINGPOSITIVE_HOVER</Tag>
 		<English>Trigger the [COLOR_HIGHLIGHT_TEXT]Pending[COLOR_REVERT] alerts for [COLOR_HIGHLIGHT_TEXT]Growth[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]Happiness[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Health[COLOR_REVERT] also when a positive change is pending. Normally, those alerts cover only negative pending changes (e.g. population loss).</English>
-		<French>Trigger the [COLOR_HIGHLIGHT_TEXT]Pending[COLOR_REVERT] alerts for [COLOR_HIGHLIGHT_TEXT]Growth[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]Happiness[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Health[COLOR_REVERT] also when a positive change is pending. Normally, those alerts cover only negative pending changes (e.g. population loss).</French>
 		<German>Zeigt [COLOR_HIGHLIGHT_TEXT]Nächste[COLOR_REVERT]-[COLOR_HIGHLIGHT_TEXT]Runde[COLOR_REVERT]-Meldungen bzgl. [COLOR_HIGHLIGHT_TEXT]Wachstum[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]Zufriedenheit[COLOR_REVERT] und [COLOR_HIGHLIGHT_TEXT]Gesundheit[COLOR_REVERT] auch dann an, wenn eine positive Veränderung bevorsteht (z.B. Bevölkerungszuwachs). Ansonsten werden bevorstehende Veränderungen nur dann gemeldet, wenn sie negativ sind.</German>
-		<Italian>Trigger the [COLOR_HIGHLIGHT_TEXT]Pending[COLOR_REVERT] alerts for [COLOR_HIGHLIGHT_TEXT]Growth[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]Happiness[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Health[COLOR_REVERT] also when a positive change is pending. Normally, those alerts cover only negative pending changes (e.g. population loss).</Italian>
-		<Spanish>Trigger the [COLOR_HIGHLIGHT_TEXT]Pending[COLOR_REVERT] alerts for [COLOR_HIGHLIGHT_TEXT]Growth[COLOR_REVERT], [COLOR_HIGHLIGHT_TEXT]Happiness[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Health[COLOR_REVERT] also when a positive change is pending. Normally, those alerts cover only negative pending changes (e.g. population loss).</Spanish>
 	</TEXT>
 	
 	<!-- advc.210b: Now unused -->
@@ -370,18 +362,11 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__ONFIRSTCONTACT_TEXT</Tag>
 		<English>[SPACE]</English>
-		<French>[SPACE]</French>
-		<German>[SPACE]</German>
-		<Italian>[SPACE]</Italian>
-		<Spanish>[SPACE]</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__ONFIRSTCONTACT_HOVER</Tag>
 		<English>On the first meeting with a rival:[NEWLINE][COLOR_HIGHLIGHT_TEXT]Message[COLOR_REVERT] - Show an on-screen message that indicates where the rival was encountered.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Diplo Popup[COLOR_REVERT] - Allow the rival to introduce him-/herself (as in BtS).[NEWLINE][COLOR_HIGHLIGHT_TEXT]Both[COLOR_REVERT] - Show the on-screen message and let the rival contact you.</English>
-		<French>On the first meeting with a rival:[NEWLINE][COLOR_HIGHLIGHT_TEXT]Message[COLOR_REVERT] - Show an on-screen message that indicates where the rival was encountered.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Diplo Popup[COLOR_REVERT] - Allow the rival to introduce him-/herself (as in BtS).[NEWLINE][COLOR_HIGHLIGHT_TEXT]Both[COLOR_REVERT] - Show the on-screen message and let the rival contact you.</French>
 		<German>Bei der ersten Begegnung mit einem Gegner:[NEWLINE][COLOR_HIGHLIGHT_TEXT]Meldung[COLOR_REVERT] - Nachricht auf dem Hauptbildschirm, die auch anzeigt, wo die Begegnung stattgefunden hat.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Kontakt[COLOR_REVERT] - Der Gegner kontaktiert Sie und stellt sich vor (wie in BtS).[NEWLINE][COLOR_HIGHLIGHT_TEXT]Beides[COLOR_REVERT] - Anzeige auf dem Hauptbildschirm und Kontaktaufnahme.</German>
-		<Italian>On the first meeting with a rival:[NEWLINE][COLOR_HIGHLIGHT_TEXT]Message[COLOR_REVERT] - Show an on-screen message that indicates where the rival was encountered.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Diplo Popup[COLOR_REVERT] - Allow the rival to introduce him-/herself (as in BtS).[NEWLINE][COLOR_HIGHLIGHT_TEXT]Both[COLOR_REVERT] - Show the on-screen message and let the rival contact you.</Italian>
-		<Spanish>On the first meeting with a rival:[NEWLINE][COLOR_HIGHLIGHT_TEXT]Message[COLOR_REVERT] - Show an on-screen message that indicates where the rival was encountered.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Diplo Popup[COLOR_REVERT] - Allow the rival to introduce him-/herself (as in BtS).[NEWLINE][COLOR_HIGHLIGHT_TEXT]Both[COLOR_REVERT] - Show the on-screen message and let the rival contact you.</Spanish>
 	</TEXT>
 
 </Civ4GameText>

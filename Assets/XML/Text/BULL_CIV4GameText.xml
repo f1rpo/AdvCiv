@@ -11,7 +11,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BAR_CTRL_BASE_VALUES</Tag>
 		<English>[NEWLINE]Hold &lt;CTRL&gt; to see base values.</English>
-		<French>[NEWLINE]Hold &lt;CTRL&gt; to see base values.</French>
 		<German>[NEWLINE][BOLD]&lt;STRG&gt;[\BOLD] drücken, um die Basiswerte zu sehen</German>
 		<Italian>[NEWLINE]Tieni premuto &lt;CTRL&gt; per visualizzare i valori base.</Italian>
 		<Spanish>[NEWLINE]Pulsa &lt;CTRL&gt; para ver los valores base.</Spanish>
@@ -126,10 +125,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_FINANCIAL_ADVISOR_SPECIALIST_GOLD</Tag>
 		<English>%d1[ICON_GOLD]: %s3 (%d2)</English>
-		<French>%d1[ICON_GOLD]: %s3 (%d2)</French>
-		<German>%d1[ICON_GOLD]: %s3 (%d2)</German>
-		<Italian>%d1[ICON_GOLD]: %s3 (%d2)</Italian>
-		<Spanish>%d1[ICON_GOLD]: %s3 (%d2)</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_FINANCIAL_ADVISOR_SPECIALIST_TOTAL_GOLD</Tag>
@@ -144,7 +139,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_YEAR_BUILT</Tag>
 		<English>Built in %s1_year</English>
-		<French>Built in %s1_year</French>
 		<German>Errichtet im Jahr %s1_year</German>
 		<Italian>Built in %s1_year</Italian>
 		<Spanish>Construido en %s1_year</Spanish>
@@ -152,17 +146,13 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_DOUBLE_COMMERCE_NEXT_YEAR</Tag>
 		<English>[ICON_BULLET]Double %s1_commerce_type next year</English>
-		<French>[ICON_BULLET]Double %s1_commerce_type next year</French>
 		<German>[ICON_BULLET]Doppelte %s1_commerce_type im nächsten Jahr</German>
-		<Italian>[ICON_BULLET]Double %s1_commerce_type next year</Italian>
 		<Spanish>[ICON_BULLET]Duplica %s1_commerce_type el año próximo</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_DOUBLE_COMMERCE_YEARS</Tag>
 		<English>[ICON_BULLET]Double %s1_commerce_type in %d2 years</English>
-		<French>[ICON_BULLET]Double %s1_commerce_type in %d2 years</French>
 		<German>[ICON_BULLET]Doppelte %s1_commerce_type für %d2 Jahre</German>
-		<Italian>[ICON_BULLET]Double %s1_commerce_type in %d2 years</Italian>
 		<Spanish>[ICON_BULLET]Duplica %s1_commerce_type en %d2 años</Spanish>
 	</TEXT>
 
@@ -170,7 +160,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PRODUCTION_DECAY</Tag>
 		<English>[COLOR_NEGATIVE_TEXT]Will lose %d1[ICON_PRODUCTION] this turn[COLOR_REVERT]</English>
-		<French>[COLOR_NEGATIVE_TEXT]Will lose %d1[ICON_PRODUCTION] this turn[COLOR_REVERT]</French>
 		<German>[COLOR_NEGATIVE_TEXT]%d1[ICON_PRODUCTION] gehen in dieser Runde verloren[COLOR_REVERT]</German>
 		<Italian>[COLOR_NEGATIVE_TEXT]Perderà %d1[ICON_PRODUCTION] questo turno[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_NEGATIVE_TEXT]Perderá %d1[ICON_PRODUCTION] este turno[COLOR_REVERT]</Spanish>
@@ -178,7 +167,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PRODUCTION_DECAY_PRODUCING</Tag>
 		<English>[COLOR_WARNING_TEXT]Will lose %d1[ICON_PRODUCTION] if not produced this turn[COLOR_REVERT]</English>
-		<French>[COLOR_WARNING_TEXT]Will lose %d1[ICON_PRODUCTION] if not produced this turn[COLOR_REVERT]</French>
 		<German>[COLOR_WARNING_TEXT]%d1[ICON_PRODUCTION] gehen verloren, falls nicht in dieser Runde produziert wird[COLOR_REVERT]</German>
 		<Italian>[COLOR_WARNING_TEXT]Perderà %d1[ICON_PRODUCTION] se non viene prodotto questo turno [COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_WARNING_TEXT]Perderá %d1[ICON_PRODUCTION] si no se activa este turno[COLOR_REVERT]</Spanish>
@@ -186,7 +174,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PRODUCTION_DECAY_TURNS</Tag>
 		<English>[COLOR_NEGATIVE_TEXT]Will lose %d1[ICON_PRODUCTION] in %d2 [NUM2:turn:turns][COLOR_REVERT]</English>
-		<French>[COLOR_NEGATIVE_TEXT]Will lose %d1[ICON_PRODUCTION] in %d2 [NUM2:turn:turns][COLOR_REVERT]</French>
 		<German>[COLOR_NEGATIVE_TEXT]%d1[ICON_PRODUCTION] gehen in %d2 [NUM2:Runde:Runden] verloren[COLOR_REVERT]</German>
 		<Italian>[COLOR_NEGATIVE_TEXT]Perderà %d1[ICON_PRODUCTION] in %d2 [NUM2:turno:turni][COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_NEGATIVE_TEXT]Perderá %d1[ICON_PRODUCTION] en %d2 [NUM2:turno:turnos][COLOR_REVERT]</Spanish>
@@ -194,7 +181,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PRODUCTION_DECAY_TURNS_PRODUCING</Tag>
 		<English>[COLOR_WARNING_TEXT]Will lose %d1[ICON_PRODUCTION] if not produced for %d2 [NUM2:turn:turns][COLOR_REVERT]</English>
-		<French>[COLOR_WARNING_TEXT]Will lose %d1[ICON_PRODUCTION] if not produced for %d2 [NUM2:turn:turns][COLOR_REVERT]</French>
 		<German>[COLOR_WARNING_TEXT]%d1[ICON_PRODUCTION] gehen verloren, falls für %d2 [NUM2:Runde:Runden] nicht produziert wird[COLOR_REVERT]</German>
 		<Italian>[COLOR_WARNING_TEXT]Perderà  %d1[ICON_PRODUCTION] se non viene prodotto per %d2 [NUM2:turno:turni][COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_WARNING_TEXT]Perderá %d1[ICON_PRODUCTION] si no se activa durante %d2 [NUM2:turn:turns][COLOR_REVERT]</Spanish>
@@ -289,7 +275,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_ACTUAL_EFFECTS</Tag>
 		<English>Net Effect</English>
-		<French>Net Effect</French>
 		<German>Effektiv</German>
 		<Italian>Effettivo</Italian>
 		<Spanish>Efecto neto</Spanish>
@@ -548,7 +533,6 @@
 	<!--TEXT>
 		<Tag>TXT_KEY_BUG_TOTAL_TRADE_YIELD</Tag>
 		<English>[NEWLINE]Total Yield: %s1[ICON_COMMERCE]</English>
-		<French>[NEWLINE]Total Yield: %s1[ICON_COMMERCE]</French>
 		<German>[NEWLINE]Gesamteinkommen: %s1[ICON_COMMERCE]</German>
 		<Italian>[NEWLINE]Total Yield: %s1[ICON_COMMERCE]</Italian>
 		<Spanish>[NEWLINE]Beneficio total: %s1[ICON_COMMERCE]</Spanish>
@@ -556,7 +540,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_TOTAL_TRADE_ROUTES</Tag>
 		<English>[NEWLINE]Number of Routes: %d1</English>
-		<French>[NEWLINE]Number of Routes: %d1</French>
 		<German>[NEWLINE]Anzahl der Handelsverbindungen: %d1</German>
 		<Italian>[NEWLINE]Number of Routes: %d1</Italian>
 		<Spanish>[NEWLINE]Número de rutas: %d1</Spanish>
@@ -564,7 +547,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_AVERAGE_TRADE_YIELD</Tag>
 		<English>[NEWLINE]Average Yield: %s1[ICON_COMMERCE]</English>
-		<French>[NEWLINE]Average Yield: %s1[ICON_COMMERCE]</French>
 		<German>[NEWLINE]Durchschnittliches Einkommen: %s1[ICON_COMMERCE]</German>
 		<Italian>[NEWLINE]Average Yield: %s1[ICON_COMMERCE]</Italian>
 		<Spanish>[NEWLINE]Beneficio medio: %s1[ICON_COMMERCE]</Spanish>
@@ -583,7 +565,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_CANNOT_TRADE_DEAD</Tag>
 		<English>[NEWLINE][ICON_BULLET]They have been defeated</English>
-		<French>[NEWLINE][ICON_BULLET]They are dead</French>
 		<German>[NEWLINE][ICON_BULLET]besiegt</German>
 		<Italian>[NEWLINE][ICON_BULLET]Scomparsi</Italian>
 		<Spanish>[NEWLINE][ICON_BULLET]Han sido eliminados</Spanish>
@@ -592,7 +573,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_CANNOT_TRADE_NETWORK_NOT_CONNECTED</Tag>
 		<English>[NEWLINE][ICON_BULLET]No trade connection between the capitals</English>
-		<French>[NEWLINE][ICON_BULLET]Your Trade Networks are not connected</French>
 		<German>[NEWLINE][ICON_BULLET]Keine Handelsverbindung zwischen den Hauptstädten</German>
 		<Italian>[NEWLINE][ICON_BULLET]Le vostre reti commerciali non sono collegate</Italian>
 		<Spanish>[NEWLINE][ICON_BULLET]No hay conexión de rutas comerciales</Spanish>
@@ -600,7 +580,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_CANNOT_TRADE_CLOSED_BORDERS</Tag>
 		<English>[NEWLINE][ICON_BULLET]No [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] agreement</English>
-		<French>[NEWLINE][ICON_BULLET]You have not signed an Open Borders agreement</French>
 		<German>[NEWLINE][ICON_BULLET]Kein Abkommen über [COLOR_HIGHLIGHT_TEXT]Offene Grenzen[COLOR_REVERT]</German>
 		<Italian>[NEWLINE][ICON_BULLET]Non avete siglato un Accordo di Libero Scambio</Italian>
 		<Spanish>[NEWLINE][ICON_BULLET]No se ha firmado un acuerdo de apertura de fronteras</Spanish>
@@ -608,7 +587,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_CANNOT_TRADE_FOREIGN_YOU</Tag>
 		<English>[NEWLINE][ICON_BULLET]Your Civics don't allow Foreign Trade</English>
-		<French>[NEWLINE][ICON_BULLET]Your Civics don't allow Foreign Trade</French>
 		<German>[NEWLINE][ICON_BULLET]Eure Staatsform erlaubt keinen Außenhandel</German>
 		<Italian>[NEWLINE][ICON_BULLET]La tua Forma di Governo non consente il Commercio Estero</Italian>
 		<Spanish>[NEWLINE][ICON_BULLET]Tus principios no permiten el comercio con el extranjero</Spanish>
@@ -616,7 +594,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_CANNOT_TRADE_FOREIGN_THEM</Tag>
 		<English>[NEWLINE][ICON_BULLET]Their Civics don't allow Foreign Trade</English>
-		<French>[NEWLINE][ICON_BULLET]Their Civics don't allow Foreign Trade</French>
 		<German>[NEWLINE][ICON_BULLET]Gegnerische Staatsform erlaubt keinen Außenhandel</German>
 		<Italian>[NEWLINE][ICON_BULLET]La loro Forma di Governo non consente il Commercio Estero</Italian>
 		<Spanish>[NEWLINE][ICON_BULLET]Sus principios no permiten el comercio con el extranjero</Spanish>
@@ -643,10 +620,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_MISC_PROMOTIONS</Tag>
 		<English>%d1[ICON_STAR]</English>
-		<French>%d1[ICON_STAR]</French>
-		<German>%d1[ICON_STAR]</German>
-		<Italian>%d1[ICON_STAR]</Italian>
-		<Spanish>%d1[ICON_STAR]</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_CITY_FREE_EXPERIENCE</Tag>
@@ -709,7 +682,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_MISC_CITY_HAS_CONSCRIPTED</Tag>
 		<English>[COLOR_NEGATIVE_TEXT]City cannot draft another unit this turn[COLOR_REVERT]</English>
-		<French>[COLOR_NEGATIVE_TEXT]City cannot draft another unit this turn[COLOR_REVERT]</French>
 		<German>[COLOR_NEGATIVE_TEXT]Die Stadt kann in dieser Runde keine weitere Einheit rekrutieren[COLOR_REVERT]</German>
 		<Italian>[COLOR_NEGATIVE_TEXT]City cannot draft another unit this turn[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_NEGATIVE_TEXT]No se puede reclutar otra unidad este turno[COLOR_REVERT]</Spanish>
@@ -717,7 +689,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_MISC_CONSCRIPT_UNITS_LEFT</Tag>
 		<English>You can draft %d1 [NUM1:unit:units] this turn</English>
-		<French>You can draft %d1 [NUM1:unit:units] this turn</French>
 		<German>Ihr könnt in dieser Runde noch %d1 [NUM1:Einheit:Einheiten] rekrutieren</German>
 		<Italian>You can draft %d1 [NUM1:unit:units] this turn</Italian>
 		<Spanish>Puedes reclutar %d1 [NUM1:unidad:unidades] este turno</Spanish>
@@ -725,7 +696,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_MISC_NO_CONSCRIPT_UNITS_LEFT</Tag>
 		<English>[COLOR_NEGATIVE_TEXT]You cannot draft any more units this turn[COLOR_REVERT]</English>
-		<French>[COLOR_NEGATIVE_TEXT]You cannot draft any more units this turn[COLOR_REVERT]</French>
 		<German>[COLOR_NEGATIVE_TEXT]Ihr könnt in dieser Runde keine weitere Einheit rekrutieren[COLOR_REVERT]</German>
 		<Italian>[COLOR_NEGATIVE_TEXT]You cannot draft any more units this turn[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_NEGATIVE_TEXT]No puedes reclutar más unidades este turno[COLOR_REVERT]</Spanish>
@@ -755,7 +725,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_SAME_UNITS_TYPE</Tag>
 		<English>[SPACE](&lt;ALT&gt; for All Units of the active unit's type)</English>
-		<French>[SPACE](&lt;ALT&gt; for All Units of the active unit's type)</French>
 		<German>[SPACE](&lt;ALT&gt; für alle Einheiten des aktiven Einheitentyps)</German>
 		<Italian>[SPACE](&lt;ALT&gt; per tutte le Unità del tipo dell'Unità attiva)</Italian>
 		<Spanish>[SPACE](&lt;ALT&gt; para todas las unidades del mismo tipo que la unidad activa)</Spanish>
@@ -776,7 +745,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_CHEATERS_NEVER_PROSPER</Tag>
 		<English>[COLOR_NEGATIVE_TEXT]You have already chosen your free tech(s)[COLOR_REVERT]</English>
-		<French>[COLOR_NEGATIVE_TEXT]You have already chosen your free tech(s)[COLOR_REVERT]</French>
 		<German>[COLOR_NEGATIVE_TEXT]Freie Technologie(n) schon gewählt[COLOR_REVERT]</German>
 		<Italian>[COLOR_NEGATIVE_TEXT]You have already chosen your free tech(s)[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_NEGATIVE_TEXT]Ya has escogido tu(s) tecnología(s) gratuita(s)[COLOR_REVERT]</Spanish>
@@ -786,50 +754,48 @@
 	<TEXT>
 		<Tag>TXT_KEY_MOD_FRACTRADE</Tag>
 		<English>Fractional Trade Routes</English>
-		<French>Fractional Trade Routes</French>
 		<German>Gestückelte Handelsverbindungen</German>
 		<Italian>Fractional Trade Routes</Italian>
 		<Spanish>Rutas de Comercio Fraccionadas</Spanish>
 	</TEXT>
-	<TEXT>
+	<!-- advc.004l: Likely won't need this -->
+	<!--TEXT>
 		<Tag>TXT_KEY_MOD_SENTRY</Tag>
 		<English>New Sentry Actions</English>
-		<French>New Sentry Actions</French>
 		<German>Neue Wach-Befehle</German>
 		<Italian>New Sentry Actions</Italian>
 		<Spanish>Nuevas Acciones de Vigilancia</Spanish>
-	</TEXT>
+	</TEXT-->
 	<TEXT>
 		<Tag>TXT_KEY_MOD_GOVWORKERS</Tag>
 		<English>City Governors Build Workers</English>
-		<French>City Governors Build Workers</French>
 		<German>Stadtverwalter: Bautrupp aufstellen</German>
 		<Italian>City Governors Build Workers</Italian>
 		<Spanish>Gobernadores de Ciudad Construyen trabajadores</Spanish>
 	</TEXT>
-	<TEXT>
+	<!-- advc.127: Won't need an option for this -->
+	<!--TEXT>
 		<Tag>TXT_KEY_MOD_AIAUTOPLAY</Tag>
 		<English>AI AutoPlay</English>
 		<French>AI AutoPlay</French>
 		<German>Selbstablaufende Partie</German>
 		<Italian>AI AutoPlay</Italian>
 		<Spanish>AI AutoPlay</Spanish>
-	</TEXT>
+	</TEXT-->
 	<TEXT>
 		<Tag>TXT_KEY_MOD_GWARM</Tag>
 		<English>Global Warming</English>
-		<French>Global Warming</French>
 		<German>Globale Erwärmung</German>
 		<Italian>Global Warming</Italian>
 		<Spanish>Calentamiento Global</Spanish>
 	</TEXT>
-	<TEXT>
+	<!-- advc.sha: Won't need this -->
+	<!--TEXT>
 		<Tag>TXT_KEY_MOD_SHAM_SPOILER</Tag>
 		<English>Show Hidden Attitudes [spoiler]</English>
-		<French>Show Hidden Attitudes [spoiler]</French>
 		<German>Verborgene Modifikatoren anzeigen [Spoiler]</German>
 		<Italian>Show Hidden Attitudes [spoiler]</Italian>
 		<Spanish>Mostrar Actitudes Ocultas [espoiler]</Spanish>
-	</TEXT>
+	</TEXT-->
 
 </Civ4GameText>

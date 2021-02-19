@@ -10,10 +10,7 @@
 <TEXT>
 	<Tag>TXT_KEY_HINT_70</Tag>
 	<English>(AdvCiv) The behavior of your capitulated vassals reflects on you. If they raze cities or trade with a pariah, your rivals will hold you responsible.</English>
-	<French>(AdvCiv) The behavior of your capitulated vassals reflects on you. If they raze cities or trade with a pariah, your rivals will hold you responsible.</French>
 	<German>(AdvCiv) Sie sind für das Verhalten Ihrer kapitulierten Vasallen verantwortlich. Wenn diese Städte vernichten oder mit unbeliebten Zivilisationen tauschen, fällt das auf Sie zurück.</German>
-	<Italian>(AdvCiv) The behavior of your capitulated vassals reflects on you. If they raze cities or trade with a pariah, your rivals will hold you responsible.</Italian>
-	<Spanish>(AdvCiv) The behavior of your capitulated vassals reflects on you. If they raze cities or trade with a pariah, your rivals will hold you responsible.</Spanish>
 </TEXT>
 
 <!-- "Rival civilizations led by computer opponents now pose a more significant
@@ -22,10 +19,7 @@
 <TEXT>
 	<Tag>TXT_KEY_HINT_71</Tag>
 	<English>(AdvCiv) Don't worry about rivals that dislike your capitulated vassals - this can't sway them to declare war on you. However, vassals that came to you peacefully are a different story!</English>
-	<French>(AdvCiv) Don't worry about rivals that dislike your capitulated vassals - this can't sway them to declare war on you. However, vassals that came to you peacefully are a different story!</French>
 	<German>(AdvCiv) Keine Sorge, wenn Ihre kapitulierten Vasallen bei Gegnern unbeliebt sind - das kann für eine Kriegserklärung nicht ausschlaggebend sein. Das gilt aber nicht für  Vasallen, die sich Ihnen friedlich angeschlossen haben!</German>
-	<Italian>(AdvCiv) Don't worry about rivals that dislike your capitulated vassals - this can't sway them to declare war on you. However, vassals that came to you peacefully are a different story!</Italian>
-	<Spanish>(AdvCiv) Don't worry about rivals that dislike your capitulated vassals - this can't sway them to declare war on you. However, vassals that came to you peacefully are a different story!</Spanish>
 </TEXT>
 
 <!-- advc.008c: In BtS, this was a lengthy explanation about how to found a
@@ -35,10 +29,7 @@
 <TEXT>
 	<Tag>TXT_KEY_HINT_73</Tag>
 	<English>(AdvCiv) When your Caravels discover an unclaimed continent, consider sending an Explorer: At that point of the game, Tribal Villages can yield substantial amounts of gold and other goodies.</English>
-	<French>(AdvCiv) When your Caravels discover an unclaimed continent, consider sending an Explorer: At that point of the game, Tribal Villages can yield substantial amounts of gold and other goodies.</French>
 	<German>(AdvCiv) Wenn Ihre Karavellen einen unerforschten Kontinent entdecken, kann es sich lohnen, mit einem Kundschafter nach Stammesdörfern zu suchen. So spät im Spiel können diese beträchtliche Goldsummen und andere Goodies ergeben.</German>
-	<Italian>(AdvCiv) When your Caravels discover an unclaimed continent, consider sending an Explorer: At that point of the game, Tribal Villages can yield substantial amounts of gold and other goodies.</Italian>
-	<Spanish>(AdvCiv) When your Caravels discover an unclaimed continent, consider sending an Explorer: At that point of the game, Tribal Villages can yield substantial amounts of gold and other goodies.</Spanish>
 </TEXT>
 
 <!-- "If you find a valuable resource that is too far away for you to use,
@@ -48,10 +39,7 @@
 <TEXT>
 	<Tag>TXT_KEY_HINT_16</Tag>
 	<English>(AdvCiv) There is no military reason for clearing the vegetation around your cities: When you attack invading units on a tile within your borders, they receive no defensive bonus from forest or jungle.</English>
-	<French>(AdvCiv) There is no military reason for clearing the vegetation around your cities: When you attack invading units on a tile within your borders, they receive no defensive bonus from forest or jungle.</French>
 	<German>(AdvCiv) Ist gibt keinen militärischen Grund, Wälder in Stadtnähe zu roden: Wenn Sie Invasoren auf einem Feld innerhalb Ihrer Grenzen angreifen, erhalten diese keinen Verteidungbonus für Wald oder Dschungel. </German>
-	<Italian>(AdvCiv) There is no military reason for clearing the vegetation around your cities: When you attack invading units on a tile within your borders, they receive no defensive bonus from forest or jungle.</Italian>
-	<Spanish>(AdvCiv) There is no military reason for clearing the vegetation around your cities: When you attack invading units on a tile within your borders, they receive no defensive bonus from forest or jungle.</Spanish>
 </TEXT>
 
 <!-- "Intercontinental trade routes now yield more gold than normal trade
@@ -59,10 +47,7 @@
 <TEXT>
 	<Tag>TXT_KEY_HINT_56</Tag>
 	<English>(UWAI) Some leaders are known not to wage war against civs they're pleased with (+4 relations); however, don't depend on it if the target is a large civ that looks like very easy pickings.</English>
-	<French>(UWAI) Some leaders are known not to wage war against civs they're pleased with (+4 relations); however, don't depend on it if the target is a large civ that looks like very easy pickings.</French>
 	<German>(UWAI) Von manchen Herrschern ist bekannt, dass sie keinen Krieg anfangen solange sie "erfreut" sind. Verlassen Sie sich darauf aber nicht, wenn die Beute groß ist und der zu erwartende Widerstand gering.</German>
-	<Italian>(UWAI) Some leaders are known not to wage war against civs they're pleased with (+4 relations); however, don't depend on it if the target is a large civ that looks like very easy pickings.</Italian>
-	<Spanish>(UWAI) Some leaders are known not to wage war against civs they're pleased with (+4 relations); however, don't depend on it if the target is a large civ that looks like very easy pickings.</Spanish>
 </TEXT>
 
 <!-- "Oil-based navies are a huge step up from coal-powered ironclads. If you
@@ -70,10 +55,7 @@
 <TEXT>
 	<Tag>TXT_KEY_HINT_31</Tag>
 	<English>(UWAI) When a civilization refuses to join a war on grounds of "having enough on their hands," this can mean that they're already preparing a different war. But it's also possible that they're only preoccupied with peaceful development.</English>
-	<French>(UWAI) When a civilization refuses to join a war on grounds of "having enough on their hands," this can mean that they're already preparing a different war. But it's possible also that they're only preoccupied with peaceful development.</French>
 	<German>(UWAI) Wenn eine Zivilisation einen gemeinsamen Krieg ablehnt und auf "genug andere Sorgen" verweist, dann kann es sein, dass schon ein anderer Krieg geplant ist. Es ist aber auch möglich, dass man bloß mit friedlichen Projekten beschäftigt ist.</German>
-	<Italian>(UWAI) When a civilization refuses to join a war on grounds of "having enough on their hands," this can mean that they're already preparing a different war. But it's also possible that they're only preoccupied with peaceful development.</Italian>
-	<Spanish>(UWAI) When a civilization refuses to join a war on grounds of "having enough on their hands," this can mean that they're already preparing a different war. But it's also possible that they're only preoccupied with peaceful development.</Spanish>
 </TEXT>
 
 <!-- "If you find a valuable resource that is too far away for you to use, it
@@ -82,10 +64,7 @@
 <TEXT>
 	<Tag>TXT_KEY_HINT_16</Tag>
 	<English>(UWAI) If you believe that a rival is planning war against you, it may still be possible to dissuade them by amending relations, improving your military or proposing a war against a third party.</English>
-	<French>(UWAI) If you believe that a rival is planning war against you, it may still be possible to dissuade them by amending relations, improving your military or proposing a war against a third party.</French>
 	<German>(UWAI) Wenn Sie befürchten, dass ein Gegner Kriegsvorbereitungen trifft, kann es noch möglich sein, ihn umzustimmen: Verbessern Sie die Beziehungen, rüsten Sie ihr Heer auf oder schlagen Sie einen Krieg gegen eine dritte Partei vor.</German>
-	<Italian>(UWAI) If you believe that a rival is planning war against you, it may still be possible to dissuade them by amending relations, improving your military or proposing a war against a third party.</Italian>
-	<Spanish>(UWAI) If you believe that a rival is planning war against you, it may still be possible to dissuade them by amending relations, improving your military or proposing a war against a third party.</Spanish>
 </TEXT>
 
 <!-- "Short on gold? Send your spies to steal from your neighbors!" That'll
@@ -95,10 +74,7 @@
 <TEXT>
 	<Tag>TXT_KEY_HINT_64</Tag>
 	<English>(AdvCiv) If you attack a civilization after receiving their tribute, everyone will be deaf to your demands and pleas for a long time. Once a civilization no longer remembers how "you made an arrogant demand," they're fair game to attack.</English>
-	<French>(AdvCiv) If you attack a civilization after receiving their tribute, everyone will be deaf to your demands and pleas for a long time. Once a civilization no longer remembers how "you made an arrogant demand," they're fair game to attack.</French>
 	<German>(AdvCiv) Wenn Sie eine Zivilisation angreifen, von der Sie Tribut erhalten haben, wird für lange Zeit niemand mehr auf Ihre Forderungen und Bitten eingehen. Dies gilt nur, wenn Sie angreifen, so lange sich die Zivilisation an Ihre Tributforderung erinnert.</German>
-	<Italian>(AdvCiv) If you attack a civilization after receiving their tribute, everyone will be deaf to your demands and pleas for a long time. Once a civilization no longer remembers how "you made an arrogant demand," they're fair game to attack.</Italian>
-	<Spanish>(AdvCiv) If you attack a civilization after receiving their tribute, everyone will be deaf to your demands and pleas for a long time. Once a civilization no longer remembers how "you made an arrogant demand," they're fair game to attack.</Spanish>
 </TEXT>
 
 <!-- "Don't neglect your navy! Especially in the late game. Controlling the
@@ -118,10 +94,7 @@
 <TEXT>
 	<Tag>TXT_KEY_HINT_50</Tag>
 	<English>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war on behalf of a third party.)</English>
-	<French>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war on behalf of a third party.)</French>
 	<German>(UWAI) Wenn ein Kriegsgegner Friedensgespräche ablehnt, dann weil Sie ihm nicht genug anbieten können. (Oder weil Sie den Krieg auf Bitten eines Partners begonnen haben.)</German>
-	<Italian>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war on behalf of a third party.)</Italian>
-	<Spanish>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war on behalf of a third party.)</Spanish>
 </TEXT>
 
 <!-- Minor improvements to the wording (En, Ger) -->
@@ -138,10 +111,7 @@
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_1</Tag>
 	<English>Use [Alt + M] to set a reminder for yourself.</English>
-	<French>Use [Alt + M] to set a reminder for yourself.</French>
 	<German>Per [Alt + M] können Sie einen Wecker programmieren, der Ihnen nach einer bestimmten Zahl von Zügen eine Nachricht anzeigt.</German>
-	<Italian>Use [Alt + M] to set a reminder for yourself.</Italian>
-	<Spanish>Use [Alt + M] to set a reminder for yourself.</Spanish>
 </TEXT>
 
 <!-- "Press the forward and back buttons on your mouse to cycle through units
@@ -149,11 +119,8 @@
 	 convenient either. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_45</Tag>
-	<English>When the screen says "Initializing" for several seconds while loading a saved game, it might help to briefly minimize the game by pressing [ALT + TAB] twice.</English>
-	<French>When the screen says "Initializing" for several seconds while loading a saved game, it might help to briefly minimize the game by pressing [ALT + TAB] twice.</French>
-	<German>Wenn beim Laden eines Spielstands für längere Zeit "Wird initialisiert" angezeigt wird, kann es helfen, das Spiel per [ALT + TAB] für einen Augenblick zu minimieren.</German>
-	<Italian>When the screen says "Initializing" for several seconds while loading a saved game, it might help to briefly minimize the game by pressing [ALT + TAB] twice.</Italian>
-	<Spanish>When the screen says "Initializing" for several seconds while loading a saved game, it might help to briefly minimize the game by pressing [ALT + TAB] twice.</Spanish>
+	<English>When the screen says "Initializing" for several seconds while loading a saved game in full-screen mode, it might help to briefly minimize the game by pressing [ALT + TAB] twice.</English>
+	<German>Wenn beim Laden eines Spielstands im Vollbildmodus für längere Zeit "Wird initialisiert" angezeigt wird, kann es helfen, das Spiel per [ALT + TAB] für einen Augenblick zu minimieren.</German>
 </TEXT>
 
 <!-- Said that the screenshot gets saved in Civ4\Screenshots, which is no
@@ -173,20 +140,14 @@
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_14</Tag>
 	<English>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</English>
-	<French>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</French>
 	<German>Wenn Sie Cheats aktiviert haben (Codewort "chipotle"), können Sie per [Shift + Ctrl + X] der KI vorübergehend die Kontrolle über Ihre Zivilisation übertragen.</German>
-	<Italian>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</Italian>
-	<Spanish>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</Spanish>
 </TEXT>
 
 <!-- advc.102: I've extended this hint a bit. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_15</Tag>
 	<English>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</English>
-	<French>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</French>
 	<German>Per [Ctrl + O] können Sie auch während gegnerischer Züge auf das Optionsmenü zugreifen. Falls gegnerische Züge einmal kein Ende nehmen wollen, können Sie so direkt auf Schnellen Kampf schalten oder gegnerische Züge ausblenden.</German>
-	<Italian>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</Italian>
-	<Spanish>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</Spanish>
 </TEXT>
 
 
@@ -195,155 +156,106 @@
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_1</Tag>
 	<English>(AdvCiv) Don't worry about leaving snow and desert tiles unattended: Barbarians can't appear there.</English>
-	<French>(AdvCiv) Don't worry about leaving snow and desert tiles unattended: Barbarians can't appear there.</French>
 	<German>(AdvCiv) Lassen Sie Schnee- und Wüstenfelder ruhig unbeobachtet; Barbaren können dort nicht erscheinen.</German>
-	<Italian>(AdvCiv) Don't worry about leaving snow and desert tiles unattended: Barbarians can't appear there.</Italian>
-	<Spanish>(AdvCiv) Don't worry about leaving snow and desert tiles unattended: Barbarians can't appear there.</Spanish>
 </TEXT>
 
 <!-- advc.310 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_2</Tag>
 	<English>(AdvCiv) The trade route ability of the [COLOR_BUILDING_TEXT]Great Wall[COLOR_REVERT] should make it worth considering even in games without Barbarians. It does not have this ability, though, in games with Raging Barbarians.</English>
-	<French>(AdvCiv) The trade route ability of the [COLOR_BUILDING_TEXT]Great Wall[COLOR_REVERT] should make it worth considering even in games without Barbarians. It does not have this ability, though, in games with Raging Barbarians.</French>
 	<German>(AdvCiv) Durch ihre Handelsrouten-Fähigkeit ist die Große (Chinesische) Mauer auch in Spielen ohne Barbaren erwägenswert. Bei Einstellung "Wütende Barbaren" hat die Mauer diese Fähigkeit allerdings nicht.</German>
-	<Italian>(AdvCiv) The trade route ability of the [COLOR_BUILDING_TEXT]Great Wall[COLOR_REVERT] should make it worth considering even in games without Barbarians. It does not have this ability, though, in games with Raging Barbarians.</Italian>
-	<Spanish>(AdvCiv) The trade route ability of the [COLOR_BUILDING_TEXT]Great Wall[COLOR_REVERT] should make it worth considering even in games without Barbarians. It does not have this ability, though, in games with Raging Barbarians.</Spanish>
 </TEXT>
 
 <!-- advc.306 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_3</Tag>
 	<English>(AdvCiv) Barbarian land units can appear aboard galleys in the fog of war. Don't assume that your cities are safe unless you've also secured your coasts!</English>
-	<French>(AdvCiv) Barbarian land units can appear aboard galleys in the fog of war. Don't assume that your cities are safe unless you've also secured your coasts!</French>
 	<German>(AdvCiv) Landeinheiten der Barbaren können auf Galeeren im Nebel des Krieges erscheinen. Solange Sie Ihre Küsten nicht gesichert haben, können Ihre Städte in Gefahr sein.</German>
-	<Italian>(AdvCiv) Barbarian land units can appear aboard galleys in the fog of war. Don't assume that your cities are safe unless you've also secured your coasts!</Italian>
-	<Spanish>(AdvCiv) Barbarian land units can appear aboard galleys in the fog of war. Don't assume that your cities are safe unless you've also secured your coasts!</Spanish>
 </TEXT>
 
 <!-- advc.312 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_4</Tag>
 	<English>(AdvCiv) By fighting Barbarians, your units can gain experience and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] points. However, little experience and no points are earned if your units outclass theirs, and units at level 4 or higher have nothing to learn from Barbarians.</English>
-	<French>(AdvCiv) By fighting Barbarians, your units can gain experience and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] points. However, little experience and no points are earned if your units outclass theirs, and units at level 4 or higher have nothing to learn from Barbarians.</French>
 	<German>(AdvCiv) Im Kampf gegen Barbaren können Ihre Einheiten Erfahrung und Generalspunkte sammeln. Wenn Ihre Einheiten aber weit überlegen sind, sammeln sie keine Punkte und wenig Erfahrung, und Einheiten ab Stufe 4 können von Barbaren gar nichts weiter lernen.</German>
-	<Italian>(AdvCiv) By fighting Barbarians, your units can gain experience and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] points. However, little experience and no points are earned if your units outclass theirs, and units at level 4 or higher have nothing to learn from Barbarians.</Italian>
-	<Spanish>(AdvCiv) By fighting Barbarians, your units can gain experience and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] points. However, little experience and no points are earned if your units outclass theirs, and units at level 4 or higher have nothing to learn from Barbarians..</Spanish>
 </TEXT>
 
 <!-- advc.130m -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_5</Tag>
 	<English>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it is not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</English>
-	<French>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it is not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the relations bonus fades over time.</French>
 	<German>(AdvCiv) Für einen andauernden Diplomatiebonus durch gemeinsame militärische Aktivitäten reicht es nicht, formal gemeinsam im Krieg zu sein. Sie müssen auch wirklich Einheiten in den Kampf schicken, und selbst dann schwindet der Diplomatiebonus im Laufe der Zeit.</German>
-	<Italian>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it is not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</Italian>
-	<Spanish>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it is not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</Spanish>
 </TEXT>
 
 <!-- advc.sha -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_6</Tag>
 	<English>A first impression is indeed a lasting one. Some relations modifiers are locked in at the beginning of the game and cannot be changed.</English>
-	<French>A first impression is indeed a lasting one. Some relations modifiers are locked in at the beginning of the game and cannot be changed.</French>
 	<German>Der erste Eindruck zählt. Manche Diplomatiemodifikatoren werden bei Spielbeginn unabänderlich festgelegt.</German>
-	<Italian>A first impression is indeed a lasting one. Some relations modifiers are locked in at the beginning of the game and cannot be changed.</Italian>
-	<Spanish>A first impression is indeed a lasting one. Some relations modifiers are locked in at the beginning of the game and cannot be changed.</Spanish>
 </TEXT>
 
-<!-- advc.130j -->
+<!-- advc.130j (hints not used anymore, no longer true) start -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_7</Tag>
 	<English>(AdvCiv) A civilization that distrusts you will be more impressed by a gesture of goodwill than one that already likes you. So long as you haven't burned down half their cities, reconciliation is achievable.</English>
-	<French>(AdvCiv) A civilization that distrusts you will be more impressed by a gesture of goodwill than one that already likes you. So long as you haven't burned down half their cities, reconciliation is achievable.</French>
 	<German>(AdvCiv) Gegner, die Ihnen abgeneigt sind, lassen sich von einer freundlichen Geste mehr beeindrucken als jene, bei denen Sie ohnehin beliebt sind. So lange Sie nicht eine halbe Zivilisation in Schutt und Asche gelegt haben, besteht Aussicht auf Aussöhnung.</German>
-	<Italian>(AdvCiv) A civilization that distrusts you will be more impressed by a gesture of goodwill than one that already likes you. So long as you haven't burned down half their cities, reconciliation is achievable.</Italian>
-	<Spanish>(AdvCiv) A civilization that distrusts you will be more impressed by a gesture of goodwill than one that already likes you. So long as you haven't burned down half their cities, reconciliation is achievable.</Spanish>
 </TEXT>
-
-<!-- advc.130j -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_8</Tag>
 	<English>(AdvCiv) Trust is slowly gained and quickly lost. If you snub a friendly civilization, expect relations to take a hit.</English>
-	<French>(AdvCiv) Trust is slowly gained and quickly lost. If you snub a friendly civilization, expect relations to take a hit.</French>
 	<German>(AdvCiv) Vertrauen aufzubauen dauert lange, aber es geht schnell verloren. Wenn Sie eine freundliche Zivilisation brüskieren, müssen Sie damit rechnen, dass sich die Beziehungen deutlich eintrüben.</German>
-	<Italian>(AdvCiv) Trust is slowly gained and quickly lost. If you snub a friendly civilization, expect relations to take a hit.</Italian>
-	<Spanish>(AdvCiv) Trust is slowly gained and quickly lost. If you snub a friendly civilization, expect relations to take a hit.</Spanish>
 </TEXT>
+<!-- advc.130j: end -->
 
 <!-- advc.130w -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_9</Tag>
 	<English>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world and have the world thank you for it.</English>
-	<French>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world and have the world thank you for it.</French>
 	<German>(AdvCiv) Wenn sich Gegner über Ihren Expansionsdrang beklagen, kann es helfen, einige Ihrer Städte als Kolonie zu befreien; allerdings kann auch diese als Vasallenstaat Ihrer Beliebtheit schaden. Letztlich ist es zu viel verlangt, von der Welt geliebt zu werden, während Sie die Welt erobern.</German>
-	<Italian>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world and have the world thank you for it.</Italian>
-	<Spanish>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world and have the world thank you for it.</Spanish>
 </TEXT>
 
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_10</Tag>
 	<English>(K-Mod) Don't panic if the city screen shows a positive revolt probability: Cities don't flip to a new owner until the third revolt.</English>
-	<French>(K-Mod) Don't panic if the city screen shows a positive revolt probability: Cities don't flip to a new owner until the third revolt.</French>
 	<German>(K-Mod) Eine positive Wahrscheinlichkeit für eine Revolte ist noch kein Grund zur Panik: Eine Stadt läuft erst bei der dritten Revolte zum Gegner über.</German>
-	<Italian>(K-Mod) Don't panic if the city screen shows a positive revolt probability: Cities don't flip to a new owner until the third revolt.</Italian>
-	<Spanish>(K-Mod) Don't panic if the city screen shows a positive revolt probability: Cities don't flip to a new owner until the third revolt.</Spanish>
 </TEXT>
 
 <!-- advc.026, advc.134a -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_11</Tag>
 	<English>(K-Mod) If a rival proposes a trade, it could be a one-time offer - don't negotiate without considering the initial proposal. You can consult the advisor screens before you decide.</English>
-	<French>(K-Mod) If a rival proposes a trade, it could be a one-time offer - don't negotiate without considering the initial proposal. You can consult the advisor screens before you decide.</French>
 	<German>(K-Mod) Wenn ein Gegner einen Handel vorschlägt, kann es sich um ein einmaliges Angebot handeln. Machen Sie nicht blindlings einen Gegenvorschlag. Die Beraterbildschirme können bei Ihrer Entscheidung helfen.</German>
-	<Italian>(K-Mod) If a rival proposes a trade, it could be a one-time offer - don't negotiate without considering the initial proposal. You can consult the advisor screens before you decide.</Italian>
-	<Spanish>(K-Mod) If a rival proposes a trade, it could be a one-time offer - don't negotiate without considering the initial proposal. You can consult the advisor screens before you decide..</Spanish>
 </TEXT>
 
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_12</Tag>
 	<English>(K-Mod) Don't risk your fishermen getting pillaged and blockaded by Barbarians. Barbarian ships aren't an even match for yours - just a single galley may be enough to fend them off.</English>
-	<French>(K-Mod) Don't risk your fishermen getting pillaged and blockaded by Barbarians. Barbarian ships aren't an even match for yours - just a single galley may be enough to fend them off.</French>
 	<German>(K-Mod) Setzen Sie Ihre Fischer nicht dem Risiko aus, von Barbaren geplündert und blockiert zu werden. Die Barbarenschiffe sind Ihren Schiffen nicht ganz ebenbürtig, so dass häufig schon eine einzelne Galeere reicht, um die Barbaren abzuwehren.</German>
-	<Italian>(K-Mod) Don't risk your fishermen getting pillaged and blockaded by Barbarians. Barbarian ships aren't an even match for yours - just a single galley may be enough to fend them off.</Italian>
-	<Spanish>(K-Mod) Don't risk your fishermen getting pillaged and blockaded by Barbarians. Barbarian ships aren't an even match for yours - just a single galley may be enough to fend them off.</Spanish>
 </TEXT>
 
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_13</Tag>
 	<English>(K-Mod) Press "Let's stop this fighting" to let your war opponent propose conditions for peace. The peace treaty isn't automatically signed; you can still reject their offer.</English>
-	<French>(K-Mod) Press "Let's stop this fighting" to let your war opponent propose conditions for peace. The peace treaty isn't automatically signed; you can still reject their offer.</French>
 	<German>(K-Mod) Wählen Sie "Lasst uns dieses sinnlose Kämpfen beenden", um den Gegner einen Friedensvertrag vorschlagen zu lassen. Der Vertrag kommt nicht automatisch zustande; Sie können die Bedingungen noch ablehnen.</German>
-	<Italian>(K-Mod) Press "Let's stop this fighting" to let your war opponent propose conditions for peace. The peace treaty isn't automatically signed; you can still reject their offer.</Italian>
-	<Spanish>(K-Mod) Press "Let's stop this fighting" to let your war opponent propose conditions for peace. The peace treaty isn't automatically signed; you can still reject their offer.</Spanish>
 </TEXT>
 
 <!-- advc.099 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_14</Tag>
 	<English>(AdvCiv) You may have to keep a sizable portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</English>
-	<French>(AdvCiv) You may have to keep a sizable portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</French>
 	<German>(AdvCiv) In eroberten Städten können große Truppenkontingente notwendig sein, um Revolten zu verhindern bis Ihr Kulturwert sich erhöht. Überlegen Sie sich vorher gut, ob die eroberten Städte das wert sind.</German>
-	<Italian>(AdvCiv) You may have to keep a sizable portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</Italian>
-	<Spanish>(AdvCiv) You may have to keep a sizable portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</Spanish>
 </TEXT>
 
 <!-- advc.124 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_15</Tag>
 	<English>(AdvCiv) You can't have trade routes with cities that you haven't located on the map. Be sure to regularly scout for new foreign cities in order to get the full trade benefits from your [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] agreements.</English>
-	<French>(AdvCiv) You can't have trade routes with cities that you haven't located on the map. Be sure to regularly scout for new foreign cities in order to get the full trade benefits from your [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] agreements.</French>
 	<German>(AdvCiv) Sie können nur mit Städten Handel treiben, deren Lage Sie kennen. Daher lohnt es sich, regelmäßig nach neugegründeten Städten Ausschau zu halten.</German>
-	<Italian>(AdvCiv) You can't have trade routes with cities that you haven't located on the map. Be sure to regularly scout for new foreign cities in order to get the full trade benefits from your [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] agreements.</Italian>
-	<Spanish>(AdvCiv) You can't have trade routes with cities that you haven't located on the map. Be sure to regularly scout for new foreign cities in order to get the full trade benefits from your [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] agreements.</Spanish>
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_32</Tag>
 	<English>(AdvCiv) Normally, a colonial city or fort is required in order to integrate an island into your trade network. However, tiles that are workable by a mainland city only require a road.</English>
-	<French>(AdvCiv) Normally, a colonial city or fort is required in order to integrate an island into your trade network. However, tiles that are workable by a mainland city only require a road.</French>
 	<German>(AdvCiv) Um eine Insel in Ihr Handelsnetzwerk einzubinden, benötigen Sie dort normalerweise eine Stadt oder eine Festung. Falls die Insel aber für die Bürger einer Ihrer Städte auf dem Festland erreichbar ist, genügt eine Straße.</German>
-	<Italian>(AdvCiv) Normally, a colonial city or fort is required in order to integrate an island into your trade network. However, tiles that are workable by a mainland city only require a road.</Italian>
-	<Spanish>(AdvCiv) Normally, a colonial city or fort is required in order to integrate an island into your trade network. However, tiles that are workable by a mainland city only require a road.</Spanish>
 </TEXT>
 
 <TEXT>
@@ -359,85 +271,58 @@
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_17</Tag>
 	<English>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain," have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</English>
-	<French>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain," have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</French>
 	<German>(AdvCiv) Geduld, wenn eine Zivilisation sagt, dass sie von [COLOR_HIGHLIGHT_TEXT]Offenen Grenzen[COLOR_REVERT] "nichts hätte". Sobald die gegnerischen Kundschafter Ihr Gebiet erreichen, werden sie Ihre Grenzen betreten wollen. Wer Sie genug mag, vereinbart Offene Grenzen aber auch ohne Ihre Grenzen erreicht zu haben.</German>
-	<Italian>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain," have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</Italian>
-	<Spanish>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain," have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</Spanish>
 </TEXT>
 
 <!-- advc.099 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_18</Tag>
 	<English>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture," it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</English>
-	<French>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture," it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</French>
 	<German>(AdvCiv) Wenn eine eroberte Stadt darüber klagt, "von einer fremden Kultur beherrscht" zu werden, hilft es nichts, die verbleibenden Städte des Vorbesitzers zu erobern. Sie können nur Ihren Kulturwert in den Städten erhöhen, oder sich mit der Unzufriedenheit arrangieren.</German>
-	<Italian>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture," it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</Italian>
-	<Spanish>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture," it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</Spanish>
 </TEXT>
 
 <!-- advc.108 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_19</Tag>
 	<English>(AdvCiv) Don't count on discovering initially hidden resources like iron or horses near your capital. They're no more likely to appear there than anywhere else.</English>
-	<French>(AdvCiv) Don't count on discovering initially hidden resources like iron or horses near your capital. They're no more likely to appear there than anywhere else.</French>
 	<German>(AdvCiv) Rechnen Sie nicht damit, anfangs versteckte Ressourcen nahe Ihrer Hauptstadt zu entdecken. Sie kommen dort nicht häufiger vor als anderswo.</German>
-	<Italian>(AdvCiv) Don't count on discovering initially hidden resources like iron or horses near your capital. They're no more likely to appear there than anywhere else.</Italian>
-	<Spanish>(AdvCiv) Don't count on discovering initially hidden resources like iron or horses near your capital. They're no more likely to appear there than anywhere else.</Spanish>
 </TEXT>
 
 <!-- advc.102  (advc.076: Quick Moves is a graphics option now) -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_20</Tag>
 	<English>(AdvCiv) The "Show Friendly Moves" option no longer shows Worker moves, but it's still advisable to enable the "Quick Moves" graphics option in addition.</English>
-	<French>(AdvCiv) The "Show Friendly Moves" option no longer shows Worker moves, but it's still advisable to enable the "Quick Moves" graphics option in addition.</French>
 	<German>(AdvCiv) Die Option "Freundliche Bewegungen zeigen" lässt die Bewegungen von Bautrupps und Missionaren aus; trotzdem ist es ratsam zusätzlich die Grafikoption "Schnelle Bewegungen" zu aktivieren.</German>
-	<Italian>(AdvCiv) The "Show Friendly Moves" option no longer shows Worker moves, but it's still advisable to enable the "Quick Moves" graphics option in addition.</Italian>
-	<Spanish>(AdvCiv) The "Show Friendly Moves" option no longer shows Worker moves, but it's still advisable to enable the "Quick Moves" graphics option in addition.</Spanish>
 </TEXT>
 
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_21</Tag>
 	<English>Press [ALT + D] to change the name of your leader and civilization.</English>
-	<French>Press [ALT + D] to change the name of your leader and civilization.</French>
 	<German>Per [ALT + D] können Sie den Namen Ihres Herrschers und Ihrer Zivilisation ändern.</German>
-	<Italian>Press [ALT + D] to change the name of your leader and civilization.</Italian>
-	<Spanish>Press [ALT + D] to change the name of your leader and civilization.</Spanish>
 </TEXT>
 
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_22</Tag>
 	<English>You can view all the loading screen hints in the [COLOR_HIGHLIGHT_TEXT]Hints[COLOR_REVERT] section of the Civilopedia.</English>
-	<French>You can view all the loading screen hints in the [COLOR_HIGHLIGHT_TEXT]Hints[COLOR_REVERT] section of the Civilopedia.</French>
 	<German>Alle Ladebildschirm-Hinweise stehen auch im Civilopädie-Abschnitt "Hinweise".</German>
-	<Italian>You can view all the loading screen hints in the [COLOR_HIGHLIGHT_TEXT]Hints[COLOR_REVERT] section of the Civilopedia.</Italian>
-	<Spanish>You can view all the loading screen hints in the [COLOR_HIGHLIGHT_TEXT]Hints[COLOR_REVERT] section of the Civilopedia.</Spanish>
 </TEXT>
 
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_23</Tag>
 	<English>To review your leader traits, move the cursor over your flag at the bottom of the main interface.</English>
-	<French>To review your leader traits, move the cursor over your flag at the bottom of the main interface.</French>
 	<German>Sie können im Hauptbildschirm jederzeit die persönlichen Fähigkeiten Ihres Staatsoberhaupts einsehen, indem Sie den Mauszeiger über Ihre Flagge am unteren Bildschirmrand bewegen.</German>
-	<Italian>To review your leader traits, move the cursor over your flag at the bottom of the main interface.</Italian>
-	<Spanish>To review your leader traits, move the cursor over your flag at the bottom of the main interface.</Spanish>
 </TEXT>
 
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_24</Tag>
 	<English>(UWAI) While your AI opponents try to avoid two-front wars, they still give consideration to starting more than one war at a time. Don't feel too safe when an opponent seems distracted!</English>
-	<French>(UWAI) While your AI opponents try to avoid two-front wars, they still give consideration to starting more than one war at a time. Don't feel too safe when an opponent seems distracted!</French>
 	<German>(UWAI) Ihre KI-Gegner meiden zwar Zweifrontenkriege, aber nicht in jedem Fall. Fühlen Sie sich nicht zu sicher, wenn ein Gegner abgelenkt zu sein scheint!</German>
-	<Italian>(UWAI) While your AI opponents try to avoid two-front wars, they still give consideration to starting more than one war at a time. Don't feel too safe when an opponent seems distracted!</Italian>
-	<Spanish>(UWAI) While your AI opponents try to avoid two-front wars, they still give consideration to starting more than one war at a time. Don't feel too safe when an opponent seems distracted!</Spanish>
 </TEXT>
 
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_25</Tag>
 	<English>Press [ALT + X] to show the city radius ("big fat cross") around the cursor. You can mark a future city site by left-clicking; right-click removes a mark.</English>
-	<French>Press [ALT + X] to show the city radius ("big fat cross") around the cursor. You can mark a future city site by left-clicking; right-click removes a mark.</French>
 	<German>Drücken Sie [ALT + X], so erscheint der Stadtradius um den Mauszeiger. Per Linksklick können Sie dann den Standort einer geplanten Stadt markieren; Rechtklick entfernt die Markierung wieder.</German>
-	<Italian>Press [ALT + X] to show the city radius ("big fat cross") around the cursor. You can mark a future city site by left-clicking; right-click removes a mark.</Italian>
-	<Spanish>Press [ALT + X] to show the city radius ("big fat cross") around the cursor. You can mark a future city site by left-clicking; right-click removes a mark.</Spanish>
 </TEXT>
 
 <!-- Romance languages mostly Google Translate -->
@@ -454,50 +339,35 @@
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_27</Tag>
 	<English>(AdvCiv) When asked to make a trade offer for a resource, the AI will try to offer gold per turn if your income is negative, and a resource otherwise. Adjust your gold slider in order to get the offer you want.</English>
-	<French>(AdvCiv) When asked to make a trade offer for a resource, the AI will try to offer gold per turn if your income is negative, and a resource otherwise. Adjust your gold slider in order to get the offer you want.</French>
 	<German>(AdvCiv) Wenn Sie einen KI-Gegner nach einem Angebot für eine Ressource fragen, schlägt er Gold pro Zug vor, falls Ihr Einkommen negativ ist, und ansonsten eine andere Ressource. Durch Ihren Goldregler können Sie also die Art des Angebots steuern.</German>
-	<Italian>(AdvCiv) When asked to make a trade offer for a resource, the AI will try to offer gold per turn if your income is negative, and a resource otherwise. Adjust your gold slider in order to get the offer you want.</Italian>
-	<Spanish>(AdvCiv) When asked to make a trade offer for a resource, the AI will try to offer gold per turn if your income is negative, and a resource otherwise. Adjust your gold slider in order to get the offer you want.</Spanish>
 </TEXT>
 
 <!-- advc.115a, advc.115c -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_28</Tag>
 	<English>(AdvCiv) Scouts can help stave off Barbarians in the early game. While unable to attack non-Animal units, Scouts now have a defensive bonus against all Barbarians.</English>
-	<French>(AdvCiv) Scouts can help stave off Barbarians in the early game. While unable to attack non-Animal units, Scouts now have a defensive bonus against all Barbarians.</French>
 	<German>(AdvCiv) Späher können im frühen Spiel dabei helfen, Barbaren abzuwehren. Sie dürfen zwar nur Tiere angreifen, erhalten aber gegen alle Barbaren einen Verteidigungsbonus.</German>
-	<Italian>(AdvCiv) Scouts can help stave off Barbarians in the early game. While unable to attack non-Animal units, Scouts now have a defensive bonus against all Barbarians.</Italian>
-	<Spanish>(AdvCiv) Scouts can help stave off Barbarians in the early game. While unable to attack non-Animal units, Scouts now have a defensive bonus against all Barbarians.</Spanish>
 </TEXT>
 
 <!-- advc.008c: (related to advc.004z) -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_29</Tag>
 	<English>If you zoom out into Globe View, the Unit Layer will indicate unit stack sizes through color: The larger the stack in a tile, the more opaque the tile color.</English>
-	<French>If you zoom out into Globe View, the Unit Layer will indicate unit stack sizes through color: The larger the stack in a tile, the more opaque the tile color.</French>
 	<German>Wenn Sie zur Weltansicht herauszoomen und die Einheitenanzeige aktivieren, können Sie aus der Farbe eines Feldes ablesen, wie viele Einheiten sich dort befinden: Je mehr Einheiten, desto tiefer der Farbton.</German>
-	<Italian>If you zoom out into Globe View, the Unit Layer will indicate unit stack sizes through color: The larger the stack in a tile, the more opaque the tile color.</Italian>
-	<Spanish>If you zoom out into Globe View, the Unit Layer will indicate unit stack sizes through color: The larger the stack in a tile, the more opaque the tile color.</Spanish>
 </TEXT>
 
 <!-- advc.008c: (related to advc.127b) -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_30</Tag>
 	<English>Most announcements can be located on the map by opening the Event Log [Ctrl+Tab] and clicking on the announcement text.</English>
-	<French>Most announcements can be located on the map by opening the Event Log [Ctrl+Tab] and clicking on the announcement text.</French>
 	<German>Die meisten Nachrichten lassen sich durch das Ereignis-Log [Strg+Tab] auf der Karte verorten. Klicken Sie auf den Text einer Nachricht, um zum Ort des Geschehens zu springen.</German>
-	<Italian>Most announcements can be located on the map by opening the Event Log [Ctrl+Tab] and clicking on the announcement text.</Italian>
-	<Spanish>Most announcements can be located on the map by opening the Event Log [Ctrl+Tab] and clicking on the announcement text.</Spanish>
 </TEXT>
 
 <!-- advc.124 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_31</Tag>
 	<English>(AdvCiv) When a war disrupts your maritime trade connections, a naval blockade can override this: tiles blockaded by your ships block enemy trade and enable friendly trade.</English>
-	<French>(AdvCiv) When a war disrupts your maritime trade connections, a naval blockade can override this: tiles blockaded by your ships block enemy trade and enable friendly trade.</French>
 	<German>(AdvCiv) Wenn ein Krieg Ihre maritimen Handelswege unterbricht, kann eine Blockade Ihrerseits ein Gegenmittel sein: Die blockierten Felder erlauben freundlichen Handel und stoppen feindlichen Handel.</German>
-	<Italian>(AdvCiv) When a war disrupts your maritime trade connections, a naval blockade can override this: tiles blockaded by your ships block enemy trade and enable friendly trade.</Italian>
-	<Spanish>(AdvCiv) When a war disrupts your maritime trade connections, a naval blockade can override this: tiles blockaded by your ships block enemy trade and enable friendly trade.</Spanish>
 </TEXT>
 
 <!-- advc.008c: Was "Snacks are good in moderation" - the joke got old.
@@ -506,10 +376,7 @@
 <TEXT>
 	<Tag>TXT_KEY_HINT_35</Tag>
 	<English>In the city screen, a right-click on a production button opens the Civilopedia. The Civilopedia can also be accessed via right-click from the tech-chooser and the civics screen.</English>
-	<French>In the city screen, a right-click on a production button opens the Civilopedia. The Civilopedia can also be accessed via right-click from the tech-chooser and the civics screen.</French>
 	<German>Ein Rechtsklick auf eine Einheiten- oder Gebäude-Schaltfläche im Stadtbildschirm öffnet die Zivilopädie. Auch von der Technologieauswahl und dem Staatsform-Bildschirm aus ist die Zivilopädie per Rechtsklick erreichbar.</German>
-	<Italian>In the city screen, a right-click on a production button opens the Civilopedia. The Civilopedia can also be accessed via right-click from the tech-chooser and the civics screen.</Italian>
-	<Spanish>In the city screen, a right-click on a production button opens the Civilopedia. The Civilopedia can also be accessed via right-click from the tech-chooser and the civics screen.</Spanish>
 </TEXT>
 
 <!-- advc.008c: Let's not be so dramatic about enemy spies -->
@@ -907,10 +774,7 @@
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_47</Tag>
 	<English>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</English>
-	<French>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</French>
 	<German>Durch Ab- und Wiedereinschalten der Hintergrundmusik (zweimal [Strg + M]) lässt sich das aktuelle Musikstück überspringen.</German>
-	<Italian>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</Italian>
-	<Spanish>A quick way to skip a music track is to disable and then re-enable music by pressing [Ctrl + M] twice.</Spanish>
 </TEXT>
 
 <!-- advc.004m: This said that group orders can be given if a group is
@@ -941,20 +805,14 @@
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_33</Tag>
 	<English>(AdvCiv) When any member of your team is researching the same technology as you are, you both receive a 10% penalty on your research rates. Still, when a particular technology is urgently needed by the team, it can make sense to research that technology together.</English>
-	<French>(AdvCiv) When any member of your team is researching the same technology as you are, you both receive a 10% penalty on your research rates. Still, when a particular technology is urgently needed by the team, it can make sense to research that technology together.</French>
 	<German>(AdvCiv) Ihre Forschungsrate wird um 10% reduziert, wenn eines Ihrer Team-Mitglieder an der gleichen Technologie forscht wie Sie. Wenn das Team eine bestimmte Technologie dringend benötigt, kann es sich trotzdem lohnen, gemeinsam an einer Technologie zu forschen.</German>
-	<Italian>(AdvCiv) When any member of your team is researching the same technology as you are, you both receive a 10% penalty on your research rates. Still, when a particular technology is urgently needed by the team, it can make sense to research that technology together.</Italian>
-	<Spanish>(AdvCiv) When any member of your team is researching the same technology as you are, you both receive a 10% penalty on your research rates. Still, when a particular technology is urgently needed by the team, it can make sense to research that technology together.</Spanish>
 </TEXT>
 
 <!-- advc.099f -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_34</Tag>
 	<English>(AdvCiv) To see the culture percentages of unowned tiles, hold down [Shift] or enable "Always Show Tile Culture" on the "Map" tab of the BUG menu.</English>
-	<French>(AdvCiv) To see the culture percentages of unowned tiles, hold down [Shift] or enable "Always Show Tile Culture" on the "Map" tab of the BUG menu.</French>
 	<German>(AdvCiv) Die Kulturanteile auf neutralen Feldern lassen sich mit der Umschalttaste einblenden, oder über die Option "Kultur stets anzeigen" auf dem Reiter "Karte" im BUG-Menü.</German>
-	<Italian>(AdvCiv) To see the culture percentages of unowned tiles, hold down [Shift] or enable "Always Show Tile Culture" on the "Map" tab of the BUG menu.</Italian>
-	<Spanish>(AdvCiv) To see the culture percentages of unowned tiles, hold down [Shift] or enable "Always Show Tile Culture" on the "Map" tab of the BUG menu.</Spanish>
 </TEXT>
 
 <!-- The right-click behavior is pretty obscure, and therefore perhaps worth
@@ -962,10 +820,7 @@
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_35</Tag>
 	<English>When more than one of your cities is able to work a tile, the game assigns that tile to the closest city. You can override this by opening the screen of another city and left-clicking the tile. Right-click the tile to undo the assignment.</English>
-	<French>When more than one of your cities is able to work a tile, the game assigns that tile to the closest city. You can override this by opening the screen of another city and left-clicking the tile. Right-click the tile to undo the assignment.</French>
 	<German>Wenn mehrere Ihrer Städte dasselbe Geländefeld bearbeiten können, wird das Feld automatisch der nächstgelegenen Stadt zugewiesen. Um das Feld manuell einer anderen Stadt zuzuweisen, öffnen Sie den Bildschirm dieser Stadt und klicken Sie dort auf das Feld. Mit einem Rechtsklick können Sie die Zuweisung wieder zurücknehmen.</German>
-	<Italian>When more than one of your cities is able to work a tile, the game assigns that tile to the closest city. You can override this by opening the screen of another city and left-clicking the tile. Right-click the tile to undo the assignment.</Italian>
-	<Spanish>When more than one of your cities is able to work a tile, the game assigns that tile to the closest city. You can override this by opening the screen of another city and left-clicking the tile. Right-click the tile to undo the assignment.</Spanish>
 </TEXT>
 
 <!-- advc.008c: Thought it'd be nice to mention the small K-Mod change to
@@ -983,30 +838,21 @@
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_36</Tag>
 	<English>(K-Mod) Your vassals will join you in preparing for war if you inform them of your war plans through "Let's discuss something else." You can also tell them to abandon their preparations.</English>
-	<French>(K-Mod) Your vassals will join you in preparing for war if you inform them of your war plans through "Let's discuss something else." You can also tell them to abandon their preparations.</French>
 	<German>(K-Mod) Wenn Sie Ihre Vasallenstaaten über einen geplanten Krieg in Kenntnis setzen, werden diese verstärkt Militäreinheiten produzieren. Sie finden diese Option unter "Reden wir über etwas anderes".</German>
-	<Italian>(K-Mod) Your vassals will join you in preparing for war if you inform them of your war plans through "Let's discuss something else." You can also tell them to abandon their preparations.</Italian>
-	<Spanish>(K-Mod) Your vassals will join you in preparing for war if you inform them of your war plans through "Let's discuss something else." You can also tell them to abandon their preparations.</Spanish>
 </TEXT>
 
 <!-- advc.106i -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_37</Tag>
 	<English>Replays created by the AdvCiv mod can be viewed with any BtS installation; the mod isn't required.</English>
-	<French>Replays created by the AdvCiv mod can be viewed with any BtS installation; the mod isn't required.</French>
 	<German>Wiederholungen von AdvCiv-Partien lassen sich von jeder BtS-Installation abspielen; der Mod wird nicht benötigt.</German>
-	<Italian>Replays created by the AdvCiv mod can be viewed with any BtS installation; the mod isn't required.</Italian>
-	<Spanish>Replays created by the AdvCiv mod can be viewed with any BtS installation; the mod isn't required.</Spanish>
 </TEXT>
 
 <!-- advc.164 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_38</Tag>
 	<English>(AdvCiv) Ships can reach the [COLOR_HIGHLIGHT_TEXT]Blitz[COLOR_REVERT] promotion via [COLOR_HIGHLIGHT_TEXT]Drill I[COLOR_REVERT]. This gives them one extra attack per turn, which can make a great difference when a group of enemy transports has almost reached your shore.</English>
-	<French>(AdvCiv) Ships can reach the [COLOR_HIGHLIGHT_TEXT]Blitz[COLOR_REVERT] promotion via [COLOR_HIGHLIGHT_TEXT]Drill I[COLOR_REVERT]. This gives them one extra attack per turn, which can make a great difference when a group of enemy transports has almost reached your shore.</French>
 	<German>(AdvCiv) Schiffe mit [COLOR_HIGHLIGHT_TEXT]Drill I[COLOR_REVERT] können die Beförderung [COLOR_HIGHLIGHT_TEXT]Blitzkrieg[COLOR_REVERT] erhalten - und damit einen zusätzlichen Angriff pro Runde. Dies kann entscheidend sein, wenn ein Verband feindlicher Transportschiffe auf Ihre Küste zusteuert.</German>
-	<Italian>(AdvCiv) Ships can reach the [COLOR_HIGHLIGHT_TEXT]Blitz[COLOR_REVERT] promotion via [COLOR_HIGHLIGHT_TEXT]Drill I[COLOR_REVERT]. This gives them one extra attack per turn, which can make a great difference when a group of enemy transports has almost reached your shore.</Italian>
-	<Spanish>(AdvCiv) Ships can reach the [COLOR_HIGHLIGHT_TEXT]Blitz[COLOR_REVERT] promotion via [COLOR_HIGHLIGHT_TEXT]Drill I[COLOR_REVERT]. This gives them one extra attack per turn, which can make a great difference when a group of enemy transports has almost reached your shore.</Spanish>
 </TEXT>
 
 <!-- Based on a BUG hint (but it describes BtS behavior); kept their FR and ES
@@ -1027,103 +873,70 @@
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_39</Tag>
 	<English>(AdvCiv) Your AI rivals will not consider proposals for a trade embargo so long as you have trades with the target of the embargo. In contrast, you can always tell your vassals to stop trading with any target.</English>
-	<French>(AdvCiv) Your AI rivals will not consider proposals for a trade embargo so long as you have trades with the target of the embargo. In contrast, you can always tell your vassals to stop trading with any target.</French>
 	<German>(AdvCiv) Ihre KI-Gegner lassem sich nicht von einem Handelsembargo überzeugen, solange Sie selbst mit dem Ziel des Embargos Handel treiben. Ihre Vasallen können Sie allerdings jederzeit anweisen, den Handel mit einem Gegner einzustellen.</German>
-	<Italian>(AdvCiv) Your AI rivals will not consider proposals for a trade embargo so long as you have trades with the target of the embargo. In contrast, you can always tell your vassals to stop trading with any target.</Italian>
-	<Spanish>(AdvCiv) Your AI rivals will not consider proposals for a trade embargo so long as you have trades with the target of the embargo. In contrast, you can always tell your vassals to stop trading with any target.</Spanish>
 </TEXT>
 
 <!-- advc.059 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_40</Tag>
 	<English>(AdvCiv) To see which tiles affect the health of a city, click the city's name on the main map and then hover over the surrounding tiles.</English>
-	<French>(AdvCiv) To see which tiles affect the health of a city, click the city's name on the main map and then hover over the surrounding tiles.</French>
 	<German>(AdvCiv) Um zu sehen, welche Felder die Gesundheit einer Stadt beeinflussen, klicken Sie auf den Stadtnamen und bewegen Sie dann den Mauszeiger über die Felder in der Umgebung.</German>
-	<Italian>(AdvCiv) To see which tiles affect the health of a city, click the city's name on the main map and then hover over the surrounding tiles.</Italian>
-	<Spanish>(AdvCiv) To see which tiles affect the health of a city, click the city's name on the main map and then hover over the surrounding tiles.</Spanish>
 </TEXT>
 
 <!-- advc.savem -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_41</Tag>
 	<English>(Savemap) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</English>
-	<French>(Savemap) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</French>
 	<German>(Savemap) Mit [Shift + Alt + M] können Sie im laufenden Spiel die Weltkarte als Python-Skript exportieren, z.B. um mit anderen Spieloptionen von vorne anzufangen.</German>
-	<Italian>(Savemap) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</Italian>
-	<Spanish>(Savemap) Press [Shift + Alt + M] to save the map you're playing on as a Python script, e.g. to start over with different game options.</Spanish>
 </TEXT>
 
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_42</Tag>
 	<English>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</English>
-	<French>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</French>
 	<German>(AdvCiv) Solange sich feindliche Einheiten in der Nähe einer Stadt befinden, kann sie in der Regel nicht an eine Drittpartei abgetreten werden - oder allenfalls durch Befreiung.</German>
-	<Italian>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</Italian>
-	<Spanish>(AdvCiv) A city threatened by hostile units normally can't be ceded to a third party except through liberation.</Spanish>
 </TEXT>
 
 <!-- advc.ctr -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_43</Tag>
 	<English>(AdvCiv) If you found a city only for the purpose of trading it to an AI neighbor, be warned that the AI may reject the city if it is very badly situated: "We don't want to trade this."</English>
-	<French>(AdvCiv) If you found a city only for the purpose of trading it to an AI neighbor, be warned that the AI may reject the city if it is very badly situated: "We don't want to trade this."</French>
 	<German>(AdvCiv) Wenn Sie eine Stadt gründen, nur um sie an einen KI-Nachbarn zu vertauschen, beachten Sie, dass die KI sehr ungünstig platzierte Städte nicht annimmt: "Wir haben leider kein Interesse."</German>
-	<Italian>(AdvCiv) If you found a city only for the purpose of trading it to an AI neighbor, be warned that the AI may reject the city if it is very badly situated: "We don't want to trade this."</Italian>
-	<Spanish>(AdvCiv) If you found a city only for the purpose of trading it to an AI neighbor, be warned that the AI may reject the city if it is very badly situated: "We don't want to trade this."</Spanish>
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_44</Tag>
 	<English>(AdvCiv) Ceding a city can appease a powerful AI neighbor and results in a peace treaty. However, the AI may refuse to accept an insignificant city if it is unwilling to sign a peace treaty: "We have our reasons."</English>
-	<French>(AdvCiv) Ceding a city can appease a powerful AI neighbor and results in a peace treaty. However, the AI may refuse to accept an insignificant city if it is unwilling to sign a peace treaty: "We have our reasons."</French>
 	<German>(AdvCiv) Die Abtretung einer Stadt kann einen gefährlichen KI-Nachbarn besänftigen und geht mit einem Friedensvertrag einher. Eine unbedeutende Stadt könnte die KI allerdings ablehnen - um einen Friedensvertrag zu vermeiden: "Wir haben unsere Gründe."</German>
-	<Italian>(AdvCiv) Ceding a city can appease a powerful AI neighbor and results in a peace treaty. However, the AI may refuse to accept an insignificant city if it is unwilling to sign a peace treaty: "We have our reasons."</Italian>
-	<Spanish>(AdvCiv) Ceding a city can appease a powerful AI neighbor and results in a peace treaty. However, the AI may refuse to accept an insignificant city if it is unwilling to sign a peace treaty: "We have our reasons."</Spanish>
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_45</Tag>
 	<English>(AdvCiv) Spread enough culture to a city with a well-disposed owner, and you might be able to trade for the city; the owner might even liberate it without compensation.</English>
-	<French>(AdvCiv) Spread enough culture to a city with a well-disposed owner, and you might be able to trade for the city; the owner might even liberate it without compensation.</French>
 	<German>(AdvCiv) Eine Stadt durch kulturellen Einfluss zum Überlaufen zu bringen, ist schwierig. Ein Tauschhandel erfordert einen deutlich geringeren Kulturanteil, hängt allerdings vom Wohlwollen des Besitzers ab.</German>
-	<Italian>(AdvCiv) Spread enough culture to a city with a well-disposed owner, and you might be able to trade for the city; the owner might even liberate it without compensation.</Italian>
-	<Spanish>(AdvCiv) Spread enough culture to a city with a well-disposed owner, and you might be able to trade for the city; the owner might even liberate it without compensation.</Spanish>
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_46</Tag>
 	<English>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</English>
-	<French>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</French>
 	<German>(AdvCiv) Solange ein Krieg andauert, können eroberte Städte nur durch Befreiung an Drittparteien abgetreten werden; Handel mit eroberten Städten ist erst nach Friedensschluss zulässig.</German>
-	<Italian>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</Italian>
-	<Spanish>(AdvCiv) Conquered cities can only be liberated - not traded - to third parties until the current and previous owner have made peace.</Spanish>
 </TEXT>
 
 <!-- Little known fact -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_47</Tag>
 	<English>Consider producing settlers and workers in cities with angry or unhealthy citizens. So long as food gets converted into production, angry citizens don't consume food and unhealthiness from population isn't counted.</English>
-	<French>Consider producing settlers and workers in cities with angry or unhealthy citizens. So long as food gets converted into production, angry citizens don't consume food and unhealthiness from population isn't counted.</French>
 	<German>Erwägen Sie, Siedler und Bautrupps in Städten mit wütenden oder kranken Bürgern zu produzieren. Solange Nahrung in Produktion umgewandelt wird, zählen wütende Bürger nicht zum Nahrungsverbrauch und Überbevölkerung trägt nicht zum Krankheitswert bei.</German>
-	<Italian>Consider producing settlers and workers in cities with angry or unhealthy citizens. So long as food gets converted into production, angry citizens don't consume food and unhealthiness from population isn't counted.</Italian>
-	<Spanish>Consider producing settlers and workers in cities with angry or unhealthy citizens. So long as food gets converted into production, angry citizens don't consume food and unhealthiness from population isn't counted.</Spanish>
 </TEXT>
 
 <!-- advc.004m: -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_48</Tag>
 	<English>(AdvCiv) The audio mix is affected by the camera distance. If e.g. the music volume is too low at your preferred camera distance, consider changing the default camera distance on the "Map" tab of the BUG menu.</English>
-	<French>(AdvCiv) The audio mix is affected by the camera distance. If e.g. the music volume is too low at your preferred camera distance, consider changing the default camera distance on the "Map" tab of the BUG menu.</French>
 	<German>(AdvCiv) Die Tonmischung hängt vom Kameraabstand ab. Falls z.B. die Musik nicht laut genug ist, kann es helfen, im BUG-Menü den Standard-Kameraabstand zu ändern (unter dem Reiter "Karte").</German>
-	<Italian>(AdvCiv) The audio mix is affected by the camera distance. If e.g. the music volume is too low at your preferred camera distance, consider changing the default camera distance on the "Map" tab of the BUG menu.</Italian>
-	<Spanish>(AdvCiv) The audio mix is affected by the camera distance. If e.g. the music volume is too low at your preferred camera distance, consider changing the default camera distance on the "Map" tab of the BUG menu.</Spanish>
 </TEXT>
 
 <!-- advc.002f -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_49</Tag>
 	<English>(AdvCiv) When a city is set to [COLOR_HIGHLIGHT_TEXT]Avoid Growth[COLOR_REVERT], a warning icon is (optionally) shown above the city bar on the main map. On a related note, make sure that citizen automation is enabled if you want the governor maximize production and commerce while avoiding growth.</English>
-	<French>(AdvCiv) When a city is set to [COLOR_HIGHLIGHT_TEXT]Avoid Growth[COLOR_REVERT], a warning icon is (optionally) shown above the city bar on the main map. On a related note, make sure that citizen automation is enabled if you want the governor maximize production and commerce while avoiding growth.</French>
 	<German>(AdvCiv) Wenn in einer Stadt [COLOR_HIGHLIGHT_TEXT]Wachstum vermeiden[COLOR_REVERT] aktiviert ist, erscheint (optional) zur Erinnerung ein Symbol über dem Stadtnamen auf der Hauptkarte. Übrigens: Wenn der KI-Gouverneur beim Vermeiden von Wachstum andere Erträge maximieren soll, muss auch die Bürgerautomatisierung aktiv sein.</German>
-	<Italian>(AdvCiv) When a city is set to [COLOR_HIGHLIGHT_TEXT]Avoid Growth[COLOR_REVERT], a warning icon is (optionally) shown above the city bar on the main map. On a related note, make sure that citizen automation is enabled if you want the governor maximize production and commerce while avoiding growth.</Italian>
-	<Spanish>(AdvCiv) When a city is set to [COLOR_HIGHLIGHT_TEXT]Avoid Growth[COLOR_REVERT], a warning icon is (optionally) shown above the city bar on the main map. On a related note, make sure that citizen automation is enabled if you want the governor maximize production and commerce while avoiding growth.</Spanish>
 </TEXT>
 
 </Civ4GameText>

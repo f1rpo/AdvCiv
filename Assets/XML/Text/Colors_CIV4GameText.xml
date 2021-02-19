@@ -4,7 +4,10 @@
 
 	Copyright (c) 2008 The BUG Mod.
 -->
+<!-- advc (note): These are all new text keys;
+	 BtS didn't have keys for individual colors. -->
 <Civ4GameText xmlns="http://www.firaxis.com">
+
 	<TEXT>
 		<Tag>TXT_KEY_COLOR_RED</Tag>
 		<English>Red</English>
@@ -153,4 +156,5 @@
 		<Italian>Nero</Italian>
 		<Spanish>Negro</Spanish>
 	</TEXT>
+
 </Civ4GameText>
