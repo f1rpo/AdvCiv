@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by lcollins (Firaxis Games) -->
-<!-- Sid Meier's Civilization 4 -->
-<!-- Copyright Firaxis Games 2005 -->
-<!-- -->
-<!-- Game Text - New -->
-<!-- *ActualQuotes* by Willowmound, ver. 4.20 (Beyond the Sword) -->
-<!-- Leader-specific diplomacy text based on actual quotes, complete or paraphrased. Some other minor changes. -->
+<!-- advc.005f: See comment in Civ4ActualQuotesText.xml.
+	 This file contains text for leaders introduced by the BtS expansion. -->
 <Civ4GameText xmlns="http://www.firaxis.com">
 	<TEXT>
 		<Tag>AI_DIPLO_FIRST_CONTACT_LEADER_LINCOLN_1</Tag>
