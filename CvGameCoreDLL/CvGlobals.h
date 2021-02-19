@@ -933,8 +933,9 @@ protected:
 private:
 	// <advc.opt>
 	void cacheGlobalInts(char const* szChangedDefine = NULL, int iNewValue = 0);
-	void cacheGlobalFloats(/* advc.004m: */ bool bAllowRecursion = true);
-	// </advc.opt>
+	void cacheGlobalFloats(/* advc.004m: */ bool bAllowRecursion = true); // </advc.opt>
+	// advc.006:
+	void handleUnknownTypeString(char const* szType, bool bHideAssert, bool bFromPython) const;
 	//void addToInfosVectors(void* infoVector); // advc.enum (no longer used)
 };
 

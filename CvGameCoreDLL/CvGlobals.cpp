@@ -909,23 +909,8 @@ int CvGlobals::getTypesEnum(const char* szType,
 	TypesMap::const_iterator it = m_typesMap.find(szType);
 	if (it != m_typesMap.end())
 		return it->second;
-	/*FAssertMsg(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0, CvString::format("type %s not found", szType).c_str());
-	return -1;*/
-	/*  advc.006: Replacing the above with code from getInfoTypeForString, which
-		now calls this function. */
-	//if(!bHideAssert)
-	if (!bHideAssert && /* K-Mod: */ !(strcmp(szType, "")==0 || strcmp(szType, "NONE")==0))
-	{
-		CvString szError;
-		if (!bFromPython) // advc.006 (inspired by rheinig's mod)
-		{
-			char const* szCurrentXMLFile = getCurrentXMLFile().GetCString();
-			szError.Format("type %s not found, Current XML file is: %s", szType, szCurrentXMLFile);
-			gDLL->logMsg("xml.log", szError);
-		}
-		else szError.Format("type %s not found", szType); // advc.006
-		FErrorMsg(szError.c_str());
-	}
+	// advc.006: Error handling moved into subroutine
+	handleUnknownTypeString(szType, bHideAssert, bFromPython);
 	return -1;
 }
 
@@ -956,10 +941,9 @@ int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert,
 	InfosMap::const_iterator it = m_infosMap.find(szType);
 	if (it != m_infosMap.end())
 		return it->second;
-	/*  advc.006: Fall back on getTypesEnum. (Needed for advc.003x - though I don't
-		quite understand why it worked before I split up CvInfos.h.)
-		Assertion code moved there. */
-	return getTypesEnum(szType, bHideAssert, bFromPython);
+	// advc.006: Error handling moved into subroutine
+	handleUnknownTypeString(szType, bHideAssert, bFromPython);
+	return -1;
 }
 
 void CvGlobals::setInfoTypeFromString(const char* szType, int idx)
@@ -977,6 +961,25 @@ void CvGlobals::infoTypeFromStringReset()
 {
 	FErrorMsg("Just to see if and when CvGlobals::infoTypeFromStringReset is ever called"); // advc.test
 	m_infosMap.clear();
+}
+
+/*	advc.006: Based on code cut from getInfoTypeForString --
+	also want this for non-info enum types. */
+void CvGlobals::handleUnknownTypeString(char const* szType,
+	bool bHideAssert, bool bFromPython) const
+{
+	if (!bHideAssert && /* K-Mod: */ !(strcmp(szType, "") == 0 || strcmp(szType, "NONE") == 0))
+	{
+		CvString szError;
+		if (!bFromPython) // advc.006 (inspired by rheinig's mod)
+		{
+			char const* szCurrentXMLFile = getCurrentXMLFile().GetCString();
+			szError.Format("type %s not found, Current XML file is: %s", szType, szCurrentXMLFile);
+			gDLL->logMsg("xml.log", szError);
+		}
+		else szError.Format("type %s not found", szType); // advc.006
+		FErrorMsg(szError.c_str());
+	}
 }
 
 // non-inline versions ...  <advc.inl>

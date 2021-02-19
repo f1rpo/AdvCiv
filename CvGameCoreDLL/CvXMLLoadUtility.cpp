@@ -264,27 +264,40 @@ bool CvXMLLoadUtility::SkipToNextVal()
 	return true;
 }
 
-/*  Looks for pszVal in pszList and returns the location of the match or
-	-1 if no match is found. */
-int CvXMLLoadUtility::FindInInfoClass(const TCHAR* pszVal, bool hideAssert)
+/*	advc: Looks up szType in the global list of info enum types.
+	Misleading comments deleted. Just think of this as a wrapper for
+	CvGlobals::getInfoTypeForString with additional error output.) */
+int CvXMLLoadUtility::FindInInfoClass(const TCHAR* szType, bool hideAssert)
 {
-	int idx = GC.getInfoTypeForString(pszVal, hideAssert);
-	// if we found a match in the list we will return the value of the loop counter
-	// which will hold the location of the match in the list
-	if (idx != -1)
-		return idx;
+	int iR = GC.getInfoTypeForString(szType, hideAssert);
+	if (iR >= 0)
+		return iR;
+	if (!hideAssert)
+		handleUnknownTypeString(szType); // advc: Moved into subroutine
+	return iR;
+}
 
-	if(!hideAssert)
+/*	advc: Info enum, global type or even a non-enum id associated with a
+	CvInfo object. To simplify SetVariableListTagPair. */
+int CvXMLLoadUtility::getGlobalEnumFromString(TCHAR const* szType)
+{
+	int iR = GC.getTypesEnum(szType, true);
+	if (iR < 0)
+		iR = GC.getInfoTypeForString(szType, true);
+	if (iR < 0)
+		handleUnknownTypeString(szType);
+	return iR;
+}
+
+// advc: Cut from FindInInfoClass
+void CvXMLLoadUtility::handleUnknownTypeString(TCHAR const* szType)
+{
+	if (_tcscmp(szType, "NONE") != 0 && _tcscmp(szType, "") != 0)
 	{
-		if (_tcscmp(pszVal,"NONE")!=0 && _tcscmp(pszVal,"")!=0)
-		{
-			char errorMsg[1024];
-			sprintf(errorMsg, "Tag: %s in Info class was incorrect \n Current XML file is: %s", pszVal, GC.getCurrentXMLFile().GetCString());
-			errorMessage(errorMsg);
-		}
+		char errorMsg[1024];
+		sprintf(errorMsg, "Tag: %s in Info class was incorrect \n Current XML file is: %s", szType, GC.getCurrentXMLFile().GetCString());
+		errorMessage(errorMsg);
 	}
-
-	return idx;
 }
 
 /*  Loads an XML file into the FXml variable. The szFilename parameter has the

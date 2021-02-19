@@ -293,7 +293,7 @@ bool CvCivilizationInfo::read(CvXMLLoadUtility* pXML)
 
 	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag");
 
-	pXML->SetInfoIDFromChildXmlVal(m_iArtStyleType, "ArtStyleType");
+	pXML->SetGlobalTypeFromChildXmlVal(m_iArtStyleType, "ArtStyleType");
 	{
 		CvString szTextVal;
 		pXML->GetChildXmlValByName(szTextVal, "UnitArtStyleType",

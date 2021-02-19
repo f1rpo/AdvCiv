@@ -77,8 +77,13 @@ public:
 				if szName isn't found */
 			bool bMandatory = true,
 			bool bDefault = false);
-	void SetInfoIDFromChildXmlVal(int& r, TCHAR const* szName); // advc.xmldefault
-	int GetChildTypeIndex(); // advc.xmldefault
+	// <advc.xmldefault>
+	void SetInfoIDFromChildXmlVal(int& iR, TCHAR const* szName)
+	{
+		SetGlobalTypeFromChildXmlVal(iR, szName, true);
+	}
+	void SetGlobalTypeFromChildXmlVal(int& iR, TCHAR const* szName, bool bInfoType = false);
+	int GetChildTypeIndex(); // </advc.xmldefault>
 	/*  advc.006b: Unused for now. Can use this to disable the assertions added to
 		GetChildXmlValByName temporarily, e.g. while loading a special CvInfo element
 		that lacks tags which, normally, are mandatory. */
@@ -127,7 +132,7 @@ public:
 	void SetFeatureStruct(int** ppiFeatureTech, int** ppiFeatureTime, int** ppiFeatureProduction, bool** ppbFeatureRemove);
 	void SetImprovementBonuses(CvImprovementBonusInfo** ppImprovementBonus);
 
-	static int FindInInfoClass(const TCHAR* pszVal, bool hideAssert = false);
+	static int FindInInfoClass(const TCHAR* szType, bool hideAssert = false);
 
 	#ifdef _USRDLL
 	template <class T>
@@ -145,23 +150,18 @@ public:
 	void InitPointerFloatList(float*** pppfList, int iSizeX);
 
 	// allocate and initialize a list from a tag pair in the xml
-	// advc.003x: Unused param iInfoBaseSize removed from these four
+	// advc.003x: Unused param iInfoBaseSize removed
 	template<typename T> // advc: Replaced three functions with a template (inspired by rheinig's mod)
 	void SetVariableListTagPair(T** pptList, const TCHAR* szRootTagName,
 			int iInfoBaseLength, T tDefaultListVal = 0);
 	void SetVariableListTagPair(CvString** ppszList, const TCHAR* szRootTagName,
 			int iInfoBaseLength, CvString szDefaultListVal = "");
-
-	/*void SetVariableListTagPair(int **ppiList, const TCHAR* szRootTagName,
-			CvString* m_paszTagList, int iTagListLength, int iDefaultListVal = 0);
-	void SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
-			CvString* m_paszTagList, int iTagListLength, int iDefaultListVal = -1);
-	void SetVariableListTagPair(bool **ppbList, const TCHAR* szRootTagName,
-			CvString* m_paszTagList, int iTagListLength, bool bDefaultListVal = false);
-	void SetVariableListTagPair(CvString **ppszList, const TCHAR* szRootTagName,
-			CvString* m_paszTagList, int iTagListLength, CvString szDefaultListVal = "");*/ // advc: unused
 	void SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
 			int iInfoBaseLength, int iDefaultListVal = -1);
+	/*	advc (19 Feb 2021): Deleted four versions (a fifth - AudioScripts - deleted
+		much earlier) that took a param CvString* m_paszTagList.
+		Those functions were for global non-info types. Now the versions above
+		can handle any global types (through getGlobalEnumFromString). */
 
 	// (advc: HotKeyFromDescription, KeyStringFromKBCode moved to CvGameCoreUtils)
 
@@ -191,6 +191,8 @@ private:
 
 	void SetGlobalStringArray(CvString** ppszString, char* szTagName, int* iNumVals, bool bUseEnum = false);
 	void SetDiplomacyCommentTypes(CvString** ppszString, int* iNumVals);
+	static int getGlobalEnumFromString(TCHAR const* szType); // advc
+	static void handleUnknownTypeString(TCHAR const* szType); // advc
 	//void MakeMaskFromString(unsigned int *puiMask, char* szMask); // advc.003j (unused)
 	//void SetGlobalUnitScales(float& fLargeScale, float& fSmallScale, char const* szTagName); // advc.003j (unused)
 

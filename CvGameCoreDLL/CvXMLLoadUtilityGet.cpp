@@ -771,12 +771,16 @@ bool CvXMLLoadUtility::GetChildXmlValByName(bool* r, TCHAR const* szName,
 }
 
 // <advc.xmldefault>
-void CvXMLLoadUtility::SetInfoIDFromChildXmlVal(int& r, TCHAR const* szName)
+void CvXMLLoadUtility::SetGlobalTypeFromChildXmlVal(int& iR, TCHAR const* szName,
+	bool bInfoType)
 {
 	CvString szTextVal;
-	GetChildXmlValByName(szTextVal, szName, r == 0 ? NULL : "");
+	GetChildXmlValByName(szTextVal, szName, iR == 0 ? NULL : "");
 	if (!szTextVal.IsEmpty())
-		r = FindInInfoClass(szTextVal);
+	{
+		iR = (bInfoType ? FindInInfoClass(szTextVal) :
+				getGlobalEnumFromString(szTextVal));
+	}
 }
 
 // (based on code by rheinig)
