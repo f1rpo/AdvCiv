@@ -3506,7 +3506,7 @@ bool CvUnit::canHeal(const CvPlot* pPlot) const
 	//if (isWaiting())
 	if (getGroup()->getActivityType() == ACTIVITY_HEAL) // K-Mod
 		return false;
-
+	// UNOFFICIAL_PATCH, 06/30/10, LunarMongoose: FeatureDamageFix
 	if (healTurns(pPlot) == MAX_INT)
 		return false;
 
@@ -3616,24 +3616,13 @@ int CvUnit::healTurns(CvPlot const* pAt) const
 {
 	if (!isHurt())
 		return 0;
-
 	int iHeal = healRate(true, true, pAt);
-	CvPlot const& kPlot = (pAt == NULL ? getPlot() : *pAt); // advc
 	// UNOFFICIAL_PATCH, Bugfix (FeatureDamageFix), 06/02/10, LunarMongoose: START
-	FeatureTypes eFeature = kPlot.getFeatureType();
+	FeatureTypes eFeature = (pAt == NULL ? getPlot() : *pAt).getFeatureType();
 	if (eFeature != NO_FEATURE)
 		iHeal -= GC.getInfo(eFeature).getTurnDamage();
 	// UNOFFICIAL_PATCH: END
-
-	if (iHeal > 0)
-	{
-		/*iTurns = (getDamage() / iHeal);
-		if ((getDamage() % iHeal) != 0)
-			iTurns++;
-		return iTurns; */
-		return (getDamage() + iHeal-1) / iHeal; // K-Mod (same, but faster)
-	}
-	return MAX_INT;
+	return (iHeal > 0 ? intdiv::uceil(getDamage(), iHeal) : MAX_INT); // K-Mod/advc
 }
 
 

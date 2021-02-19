@@ -4,7 +4,7 @@
 
 class FVariable;
 
-class CvDiploParameters
+class CvDiploParameters /* advc.003k: */ : private boost::noncopyable
 {
 public:
 	DllExport CvDiploParameters(PlayerTypes ePlayer);

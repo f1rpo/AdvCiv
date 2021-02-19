@@ -223,7 +223,7 @@ private:
 	void SetGameText(const char* szTextGroup, const char* szTagName, const std::string& language_name); // K-Mod
 
 	/*	<advc.006g> (The BtS code sometimes said "XML Error", sometimes "XML Load Error"
-		not sure if that's meanigful, but I'm going to preserve it.)*/
+		not sure if that's meaningful, but I'm going to preserve it.)*/
 	enum XMLErrorTypes
 	{
 		GENERAL_XML_ERROR,

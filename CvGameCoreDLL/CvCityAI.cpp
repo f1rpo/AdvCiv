@@ -8966,8 +8966,9 @@ bool CvCityAI::AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseCha
 				iRoll *= (kPlayer.getStateReligion() == eReligion) ? 170 : 65;
 				iRoll /= 100;
 			}
+			// BETTER_BTS_AI_MOD (03/08/10, jdog5000, Victory Strategy AI): START
 			if (kPlayer.AI_atVictoryStage(AI_VICTORY_CULTURE2))
-				iRoll += 25;
+				iRoll += 25; // BETTER_BTS_AI_MOD: END
 			else if (!kTeam.hasHolyCity(eReligion) && !(kPlayer.getStateReligion() == eReligion))
 			{
 				iRoll /= 2;

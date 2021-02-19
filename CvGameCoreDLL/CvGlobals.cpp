@@ -902,10 +902,6 @@ bool CvGlobals::isDLLProfilerEnabled() const
 }
 
 
-//
-// Global Types Hash Map
-//
-
 int CvGlobals::getTypesEnum(const char* szType,
 	bool bHideAssert, bool bFromPython) const // advc.006
 {
@@ -940,17 +936,17 @@ void CvGlobals::setTypesEnum(const char* szType, int iEnum)
 	m_typesMap[szType] = iEnum;
 }
 
-// <advc.003c>
+// advc.003c:
 bool CvGlobals::isCachingDone() const
 {
 	return m_aiGlobalDefinesCache != NULL;
-} // </advc.003c>
+}
 
-// <advc.106i>
+// advc.106i:
 void CvGlobals::setHoFScreenUp(bool b)
 {
 	m_bHoFScreenUp = b;
-} // </advc.106i>
+}
 
 
 int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert,
@@ -971,8 +967,8 @@ void CvGlobals::setInfoTypeFromString(const char* szType, int idx)
 	FAssertMsg(szType != NULL, "null info type string");
 #ifdef _DEBUG
 	InfosMap::const_iterator it = m_infosMap.find(szType);
-	int iExisting = (it!=m_infosMap.end()) ? it->second : -1;
-	FAssertMsg(iExisting==-1 || iExisting==idx || strcmp(szType, "ERROR")==0, CvString::format("xml info type entry %s already exists", szType).c_str());
+	int iExisting = (it != m_infosMap.end()) ? it->second : -1;
+	FAssertMsg(iExisting == -1 || iExisting == idx || strcmp(szType, "ERROR") == 0, CvString::format("xml info type entry %s already exists", szType).c_str());
 #endif
 	m_infosMap[szType] = idx;
 }

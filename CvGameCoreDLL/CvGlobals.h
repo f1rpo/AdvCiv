@@ -329,11 +329,10 @@ public:
 	}
 #pragma endregion InfoAccessors
 	// </advc.enum>
-	//
-	// Global Types
-	// All type strings are upper case and are kept in this hash map for fast lookup
-	// The other functions are kept for convenience when enumerating, but most are not used
-	//
+
+	/*	Global Types
+		All type strings are upper case and are kept in this hash map for fast lookup
+		The other functions are kept for convenience when enumerating, but most are not used. */
 	DllExport int getTypesEnum(const char* szType) const // use this when searching for a type
 	// <advc.006> Add two params
 	{ return getTypesEnum(szType, false); }

@@ -17,7 +17,7 @@
 // advc.003j: unused
 //#define INIT_XML_GLOBAL_LOAD(xmlInfoPath, infoArray, numInfos)  SetGlobalClassInfo(infoArray, xmlInfoPath, numInfos);
 
-/*	advc: Switch that will cause a failed assertion for each global define that
+/*	advc.test: Switch that will cause a failed assertion for each global define that
 	gets read multiple times, i.e. that the mod overwrites. Could be helpful
 	for merging a mod into AdvCiv. */
 #define CHECK_FOR_REDEFINES 0
@@ -80,11 +80,11 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 									{
 										// if the node type of the current tag is a float then
 										if (strcmp(szNodeType,"float")==0)
-										{	// <advc>
+										{	// <advc.test>
 											#if CHECK_FOR_REDEFINES
 												float fDummy;
 												FAssertMsg(!GC.getDefinesVarSystem()->GetValue(szName, fDummy), szName);
-											#endif // </advc>
+											#endif // </advc.test>
 											// get the float value for the define
 											float fVal;
 											GetXmlVal(fVal);
@@ -92,11 +92,11 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 										}
 										// else if the node type of the current tag is an int then
 										else if (strcmp(szNodeType,"int")==0)
-										{	// <advc>
+										{	// <advc.test>
 											#if CHECK_FOR_REDEFINES
 												int iDummy;
 												FAssertMsg(!GC.getDefinesVarSystem()->GetValue(szName, iDummy), szName);
-											#endif // </advc>
+											#endif // </advc.test>
 											// get the int value for the define
 											int iVal;
 											GetXmlVal(iVal);
@@ -104,11 +104,11 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 										}
 										// else if the node type of the current tag is a boolean then
 										else if (strcmp(szNodeType,"boolean")==0)
-										{	// <advc>
+										{	// <advc.test>
 											#if CHECK_FOR_REDEFINES
 												bool bDummy;
 												FAssertMsg(!GC.getDefinesVarSystem()->GetValue(szName, bDummy), szName);
-											#endif // </advc>
+											#endif // </advc.test>
 											// get the boolean value for the define
 											bool bVal;
 											GetXmlVal(bVal);
@@ -116,12 +116,12 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 										}
 										// otherwise we will assume it is a string/text value
 										else
-										{	// <advc>
+										{	// <advc.test>
 											#if CHECK_FOR_REDEFINES
 												char szBuffer[256];
 												char* szDummy = szBuffer;
 												FAssertMsg(!GC.getDefinesVarSystem()->GetValue(szName, szDummy), szName);
-											#endif // </advc>
+											#endif // </advc.test>
 											char szVal[256];
 											// get the string/text value for the define
 											GetXmlVal(szVal);
@@ -166,7 +166,7 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 	return true;
 }
 
-#undef CHECK_FOR_REDEFINES // advc
+#undef CHECK_FOR_REDEFINES // advc.test
 
 // Load GlobalDefines from XML
 bool CvXMLLoadUtility::SetGlobalDefines()
@@ -393,22 +393,42 @@ bool CvXMLLoadUtility::SetGlobalTypes()
 
 	if (bLoaded)
 	{
-		SetGlobalStringArray(&GC.getAnimationOperatorTypes(), "Civ4Types/AnimationOperatorTypes/AnimationOperatorType", &GC.getNumAnimationOperatorTypes());
+		SetGlobalStringArray(&GC.getAnimationOperatorTypes(),
+				"Civ4Types/AnimationOperatorTypes/AnimationOperatorType",
+				&GC.getNumAnimationOperatorTypes());
 		int iEnumVal = NUM_FUNC_TYPES;
-		SetGlobalStringArray(&GC.getFunctionTypes(), "Civ4Types/FunctionTypes/FunctionType", &iEnumVal, true);
-		SetGlobalStringArray(&GC.getFlavorTypes(), "Civ4Types/FlavorTypes/FlavorType", &GC.getNumFlavorTypes());
-		SetGlobalStringArray(&GC.getArtStyleTypes(), "Civ4Types/ArtStyleTypes/ArtStyleType", &GC.getNumArtStyleTypes());
+		SetGlobalStringArray(&GC.getFunctionTypes(),
+				"Civ4Types/FunctionTypes/FunctionType",
+				&iEnumVal, true);
+		SetGlobalStringArray(&GC.getFlavorTypes(),
+				"Civ4Types/FlavorTypes/FlavorType",
+				&GC.getNumFlavorTypes());
+		SetGlobalStringArray(&GC.getArtStyleTypes(),
+				"Civ4Types/ArtStyleTypes/ArtStyleType",
+				&GC.getNumArtStyleTypes());
 		iEnumVal = NUM_CITYSIZE_TYPES; // advc
-		SetGlobalStringArray(&GC.getCitySizeTypes(), "Civ4Types/CitySizeTypes/CitySizeType", &iEnumVal, true);
+		SetGlobalStringArray(&GC.getCitySizeTypes(),
+				"Civ4Types/CitySizeTypes/CitySizeType",
+				&iEnumVal, true);
 		iEnumVal = NUM_CONTACT_TYPES;
-		SetGlobalStringArray(&GC.getContactTypes(), "Civ4Types/ContactTypes/ContactType", &iEnumVal, true);
+		SetGlobalStringArray(&GC.getContactTypes(),
+				"Civ4Types/ContactTypes/ContactType",
+				&iEnumVal, true);
 		iEnumVal = NUM_DIPLOMACYPOWER_TYPES;
-		SetGlobalStringArray(&GC.getDiplomacyPowerTypes(), "Civ4Types/DiplomacyPowerTypes/DiplomacyPowerType", &iEnumVal, true);
+		SetGlobalStringArray(&GC.getDiplomacyPowerTypes(),
+				"Civ4Types/DiplomacyPowerTypes/DiplomacyPowerType",
+				&iEnumVal, true);
 		iEnumVal = NUM_AUTOMATE_TYPES;
-		SetGlobalStringArray(&GC.getAutomateTypes(), "Civ4Types/AutomateTypes/AutomateType", &iEnumVal, true);
+		SetGlobalStringArray(&GC.getAutomateTypes(),
+				"Civ4Types/AutomateTypes/AutomateType",
+				&iEnumVal, true);
 		iEnumVal = NUM_DIRECTION_TYPES;
-		SetGlobalStringArray(&GC.getDirectionTypes(), "Civ4Types/DirectionTypes/DirectionType", &iEnumVal, true);
-		SetGlobalStringArray(&GC.getFootstepAudioTypes(), "Civ4Types/FootstepAudioTypes/FootstepAudioType", &GC.getNumFootstepAudioTypes());
+		SetGlobalStringArray(&GC.getDirectionTypes(),
+				"Civ4Types/DirectionTypes/DirectionType",
+				&iEnumVal, true);
+		SetGlobalStringArray(&GC.getFootstepAudioTypes(),
+				"Civ4Types/FootstepAudioTypes/FootstepAudioType",
+				&GC.getNumFootstepAudioTypes());
 
 		gDLL->getXMLIFace()->SetToParent(m_pFXml);
 		gDLL->getXMLIFace()->SetToParent(m_pFXml);

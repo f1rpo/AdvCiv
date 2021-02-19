@@ -259,9 +259,7 @@ bool CvXMLLoadUtility::SkipToNextVal()
 		// if we cannot set the current xml node to it's next sibling then we will break out of the for loop
 		// otherwise we will continue looping
 		if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
-		{
-			return false;	// couldn't find any non-comment nodes
-		}
+			return false; // couldn't find any non-comment nodes
 	}
 	return true;
 }
