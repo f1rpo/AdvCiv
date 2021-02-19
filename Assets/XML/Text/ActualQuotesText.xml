@@ -38,15 +38,16 @@
 		<Spanish>&#161;El poderoso [OUR_EMPIRE] ya ha soportado bastante vuestras traiciones y enga&#241;os! &#161;Lo vais a pagar! (&#161;[OUR_NAME] os declara la guerra!)</Spanish>
 	</TEXT>
 	<!-- advc.005h: Kind of based on #6 ("numberless minions").
-		 And I've kept the FIS translations from #6. -->
-	<TEXT>
+		 And I've kept the FIS translations from #6.
+		 ... On second thought, let's not add this. -->
+	<!--TEXT>
 		<Tag>AI_DIPLO_DECLARE_WAR_11</Tag>
 		<English>Boo! My innumerable hosts are marching toward [CT_CIV_SHORT]. ([OUR_NAME] declares war!)</English>
 		<French>Bient&#244;t, mes innombrables guerriers vous extermineront jusqu'au dernier ! ([OUR_NAME] vous d&#233;clare la guerre !)</French>
 		<German>Buh! Meine zahllosen Heere sind auf dem Weg nach [CT_CIV_SHORT]. ([OUR_NAME] erkl&#228;rt Euch den Krieg!)</German>
 		<Italian>I miei innumerevoli seguaci vi stermineranno rapidamente! ([OUR_NAME] dichiara guerra!)</Italian>
 		<Spanish>&#161;Pronto mis incontables seguidores os destruir&#225;n a todos! (&#161;[OUR_NAME] os declara la guerra!)</Spanish>
-	</TEXT>
+	</TEXT-->
 	<TEXT>
 		<Tag>AI_DIPLO_FIRST_CONTACT_LEADER_FRANKLIN_ROOSEVELT_1</Tag>
 		<English>Greetings! I am [OUR_NAME] of the [OUR_EMPIRE]. Be sincere; be brief; be seated. I hope our peoples can live together in peace.</English>
