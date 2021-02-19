@@ -16,9 +16,9 @@
 ## along with Civilization IV Alerts mod; if not, write to the Free
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA
+## advc (note): The license is in the BUG Doc folder.
 
 __version__ = "$Revision: 1.2 $"
-# $Source: /usr/local/cvsroot/Civ4lerts/src/main/python/Civ4lerts.py,v $
 
 ## Civ4lerts
 ## This class extends the built in event manager and overrides various
