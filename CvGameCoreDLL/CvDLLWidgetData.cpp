@@ -1750,7 +1750,8 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 	szBuffer.assign(gDLL->getText("TXT_KEY_MISC_HURRY_PROD", kCity.getProductionNameKey()));
 
 	HurryTypes eHurry = (HurryTypes)widgetDataStruct.m_iData1;
-	int const iHurryGold = kCity.hurryGold(eHurry);
+	// advc.001: canHurry check in order to avoid (inconsequential) overflow
+	int const iHurryGold = (kCity.canHurry(eHurry, true) ? kCity.hurryGold(eHurry) : 0);
 	if (iHurryGold > 0)
 	{
 		szBuffer.append(NEWLINE);

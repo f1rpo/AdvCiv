@@ -2214,21 +2214,22 @@ int CvCity::getProductionTurnsLeft(int iProductionNeeded, int iProduction, int i
 	return std::max(1, iTurnsLeft);
 }
 
-// <advc.004x>
+// advc.004x:
 int CvCity::sanitizeProductionTurns(int iTurns, OrderTypes eOrder, int iData, bool bAssert) const
 {
 	if(iTurns < MAX_INT)
 		return iTurns;
 	FAssert(!bAssert);
-	int r = 1;
+	int iR = 1;
 	switch(eOrder)
 	{
-	case ORDER_TRAIN: return r + getProductionNeeded((UnitTypes)iData);
-	case ORDER_CONSTRUCT: return r + getProductionNeeded((BuildingTypes)iData);
-	case ORDER_CREATE: return r + getProductionNeeded((ProjectTypes)iData);
+	case ORDER_TRAIN: return iR + getProductionNeeded((UnitTypes)iData);
+	case ORDER_CONSTRUCT: return iR + getProductionNeeded((BuildingTypes)iData);
+	case ORDER_CREATE: return iR + getProductionNeeded((ProjectTypes)iData);
+	case ORDER_MAINTAIN: return getProductionNeeded(); // (mustn't add 1 to that)
+	default: return iR + getProductionNeeded();
 	}
-	return r + getProductionNeeded();
-} // </advc.004x>
+}} // </advc.004x>
 
 
 void CvCity::setProduction(int iNewValue)
