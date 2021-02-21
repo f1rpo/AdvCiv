@@ -306,8 +306,10 @@ DllExport void setTradeItem(TradeData* pItem, TradeableItems eItemType = TRADE_I
 /*	advc: Unused. Thought about moving these to CvGameTextMgr,
 	but that'll lead to more header inclusions. */
 //void setListHelp(wchar* szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst);
-void setListHelp(CvWString& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst);
-void setListHelp(CvWStringBuffer& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst);
+void setListHelp(CvWString& szBuffer, wchar const* szStart, wchar const* szItem,
+		wchar const* szSeparator, bool& bFirst); // advc: bool&
+void setListHelp(CvWStringBuffer& szBuffer, wchar const* szStart, wchar const* szItem,
+		wchar const* szSeparator, bool& bFirst); // advc: bool&
 
 // PlotUnitFunc's...  (advc: Parameters iData1, iData2 renamed)
 bool PUF_isGroupHead(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);

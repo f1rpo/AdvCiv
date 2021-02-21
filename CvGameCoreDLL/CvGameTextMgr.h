@@ -1,17 +1,7 @@
 #pragma once
-
-//  $Header:
-//------------------------------------------------------------------------------------------------
-//
-//  FILE:    CvGameTextMgr.h
-//
 //  AUTHOR:  Jesse Smith  --  10/2004
-//
 //  PURPOSE: Group of functions to manage CIV Game Text
-//
-//------------------------------------------------------------------------------------------------
 //  Copyright (c) 2004 Firaxis Games, Inc. All rights reserved.
-//------------------------------------------------------------------------------------------------
 #ifndef CIV4_GAME_TEXT_MGR_H
 #define CIV4_GAME_TEXT_MGR_H
 
@@ -20,15 +10,12 @@ class CvDeal;
 class CvPopupInfo;
 class CvPlayer;
 
-//
-// Class:		CvGameTextMgr
-// Purpose:		Manages Game Text...
+
 class CvGameTextMgr
 {
 	friend class CvGlobals;
 public:
-	// singleton accessor
-	DllExport static CvGameTextMgr& GetInstance();
+	DllExport static CvGameTextMgr& GetInstance(); // singleton accessor
 
 	CvGameTextMgr();
 	virtual ~CvGameTextMgr();
@@ -251,7 +238,8 @@ public:
 	//void getDealString(...); // advc: Merged into the above
 	void getActiveDealsString(CvWStringBuffer& szString, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer,
 			bool bExcludeDual = false); // advc.087
-	void getOtherRelationsString(CvWStringBuffer& szString, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);
+	// advc.004: Merged into BULL's CvGameTextMgr::getOtherRelationsString
+	//void getOtherRelationsString(CvWStringBuffer& szString, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);
 
 	void buildFinanceInflationString(CvWStringBuffer& szDetails, PlayerTypes ePlayer);
 	void buildFinanceUnitCostString(CvWStringBuffer& szDetails, PlayerTypes ePlayer);

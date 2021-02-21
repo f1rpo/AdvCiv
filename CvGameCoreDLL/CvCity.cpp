@@ -9375,7 +9375,6 @@ void CvCity::setHasCorporation(CorporationTypes eCorp, bool bNewValue, bool bAnn
 						CvWString szTemp;
 						szTemp.Format(L"%s", GC.getInfo(eBonus).getDescription());
 						setListHelp(szBonusList, L"", szTemp, L", ", bFirst);
-						bFirst = false;
 					}
 					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CORPORATION_SPREAD_BONUS",
 							kCorp.getTextKeyWide(), szBonusString.getCString(),

@@ -452,23 +452,25 @@ void setTradeItem(TradeData* pItem, TradeableItems eItemType, int iData)
 }
 
 
-void setListHelp(CvWString& szBuffer, const wchar* szStart, const wchar* szItem,
-	const wchar* szSeparator, bool bFirst)
+void setListHelp(CvWString& szBuffer, wchar const* szStart, wchar const* szItem,
+	wchar const* szSeparator, bool& bFirst) // advc: bool&
 {
 	if (bFirst)
 		szBuffer += szStart;
 	else szBuffer += szSeparator;
 	szBuffer += szItem;
+	bFirst = false; // advc: And deleted this line from every call location
 }
 
 
-void setListHelp(CvWStringBuffer& szBuffer, const wchar* szStart, const wchar* szItem,
-	const wchar* szSeparator, bool bFirst)
+void setListHelp(CvWStringBuffer& szBuffer, wchar const* szStart, wchar const* szItem,
+	wchar const* szSeparator, bool& bFirst) // advc: bool&
 {
 	if (bFirst)
 		szBuffer.append(szStart);
 	else szBuffer.append(szSeparator);
 	szBuffer.append(szItem);
+	bFirst = false; // advc: And deleted this line from every call location
 }
 
 

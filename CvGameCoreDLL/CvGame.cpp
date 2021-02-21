@@ -7065,7 +7065,6 @@ void CvGame::doGlobalWarming()
 				for (size_t j = 0; j < aszGWEffects.size(); j++)
 				{
 					setListHelp(szBuffer, L" (", aszGWEffects[j].c_str(), L", ", bFirst);
-					bFirst = false;
 				}
 				if (!bFirst)
 					szBuffer.append(L")");

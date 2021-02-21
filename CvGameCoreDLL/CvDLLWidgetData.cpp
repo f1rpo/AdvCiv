@@ -1796,7 +1796,6 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 							(bIncludeCurrent || iOverflowProduction <= 0 ? L"" : L"+"),
 							iOverflowProduction, GC.getInfo(YIELD_PRODUCTION).getChar());
 					setListHelp(szOverflowBuffer, NULL, szTempBuffer, L", ", bFirst);
-					bFirst = false;
 				}
 				if (iOverflowGold > 0)
 				{
@@ -1804,7 +1803,6 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 							(bIncludeCurrent ? L"" : L"+"),
 							iOverflowGold, GC.getInfo(COMMERCE_GOLD).getChar());
 					setListHelp(szOverflowBuffer, NULL, szTempBuffer, L", ", bFirst);
-					//bFirst = false;
 				}
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_MISC_HURRY_OVERFLOW",
@@ -1840,7 +1838,6 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 				CvWString szTempBuffer(NEWLINE + gDLL->getText("TXT_KEY_REQUIRES"));
 				setListHelp(szBuffer, szTempBuffer, GC.getInfo(eLoopCivic).getDescription(),
 						gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
-				bFirst = false;
 			}
 			if (!bFirst)
 				szBuffer.append(ENDCOLR);
@@ -1923,7 +1920,6 @@ void CvDLLWidgetData::parseConscriptHelp(CvWidgetDataStruct &widgetDataStruct, C
 				CvWString szTempBuffer(NEWLINE + gDLL->getText("TXT_KEY_REQUIRES"));
 				setListHelp(szBuffer, szTempBuffer, GC.getInfo(eLoopCivic).getDescription(),
 						gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
-				bFirst = false;
 			}
 		}
 		if (!bFirst)
@@ -2769,13 +2765,15 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 						if (kMissionPlot.getTeam() != NO_TEAM)
 						{
 							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_NEEDS_OUT_RIVAL_CULTURE_BORDER"));
+							szBuffer.append(gDLL->getText(
+									"TXT_KEY_ACTION_NEEDS_OUT_RIVAL_CULTURE_BORDER"));
 						}
 					}
 					else
 					{
 						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_ACTION_NEEDS_CULTURE_BORDER"));
+						szBuffer.append(gDLL->getText(
+								"TXT_KEY_ACTION_NEEDS_CULTURE_BORDER"));
 					}
 				}
 				if (eBonus == NO_BONUS || !kImprov.isImprovementBonusTrade(eBonus))
@@ -2848,7 +2846,6 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 								GC.getInfo(*it).getDescription());
 						setListHelp(szBuffer, szFirstBuffer.GetCString(),
 								szTempBuffer, gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
-						bFirst = false;
 					}
 				}
 			}
@@ -2932,7 +2929,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			}
 			else
 			{
-				int iLast = 0;
+				bool bFirst = true;
 				FOR_EACH_ENUM2(Bonus, eRandBonus)
 				{
 					if (kUnitTeam.isHasTech(GC.getInfo(eRandBonus).getTechReveal()))
@@ -2944,9 +2941,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 							szFirstBuffer.Format(L"%s%s", NEWLINE,
 									gDLL->getText("TXT_KEY_ACTION_CHANCE_DISCOVER").c_str());
 							szTempBuffer.Format(L"%c", GC.getInfo(eRandBonus).getChar());
-							setListHelp(szBuffer, szFirstBuffer, szTempBuffer, L", ",
-									kImprov.getImprovementBonusDiscoverRand(eRandBonus) != iLast);
-							iLast = kImprov.getImprovementBonusDiscoverRand(eRandBonus);
+							setListHelp(szBuffer, szFirstBuffer, szTempBuffer, L", ", bFirst);
 						}
 					}
 				}
@@ -2959,9 +2954,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 			}
 			if (eRoute == NO_ROUTE)
 			{
-				for (int iI = 0; iI < GC.getNumRouteInfos(); iI++)
+				FOR_EACH_ENUM(Route)
 				{
-					RouteTypes eLoopRoute = (RouteTypes)iI;
 					if (kMissionPlot.getRouteType() != eLoopRoute)
 					{
 						GAMETEXT.setYieldChangeHelp(szBuffer,
@@ -3174,7 +3168,6 @@ void CvDLLWidgetData::parseDisabledCitizenHelp(CvWidgetDataStruct &widgetDataStr
 				setListHelp(szBuffer, szTempBuffer, GC.getInfo(
 						eLoopBuilding).getDescription(),
 						gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
-				bFirst = false;
 			}
 		}
 	}
@@ -3399,46 +3392,49 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 		// Show which civs this player is at war with
 		CvWStringBuffer szWarWithString;
 		CvWStringBuffer szWorstEnemyString;
-		bool bFirst = true;
-		bool bFirst2 = true;
-		// advc: Variables renamed to ...Loop... in order to avoid shadowing
-		for (int iLoopTeam = 0; iLoopTeam < MAX_CIV_TEAMS; iLoopTeam++)
+		bool bFirstWar = true;
+		bool bFirstWorstEnemy = true;
+		for (TeamIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(eTeam);
+			itOther.hasNext(); ++itOther)
 		{
-			CvTeamAI& kLoopTeam = GET_TEAM((TeamTypes)iLoopTeam);
-			if (!kLoopTeam.isAlive() || kLoopTeam.isMinorCiv() || iLoopTeam == eTeam)
-					// K-Mod. show "at war" for the active player if appropriate
-					//|| iLoopTeam == TEAMID(ePlayer))
-				continue;
-			if (!kActiveTeam.isHasMet(kLoopTeam.getID()) &&
-					!GC.getGame().isDebugMode()) // advc.007
-				continue;
-			if (::atWar((TeamTypes)iLoopTeam, eTeam))
+			// K-Mod. show "at war" for the active player if appropriate
+			//if (itOther->getID() == eActiveTeam) continue;
+
+			if (!kActiveTeam.isHasMet(itOther->getID()) &&
+				!GC.getGame().isDebugMode()) // advc.007
 			{
-				setListHelp(szWarWithString, L"", kLoopTeam.getName().GetCString(), L", ", bFirst);
-				bFirst = false;
+				continue;
 			}
-			//if (kTeam.AI_getWorstEnemy() == GET_PLAYER(ePlayer).getTeam())
-			if (!kLoopTeam.isHuman() && kLoopTeam.AI_getWorstEnemy() == eTeam) // K-Mod
+			if (itOther->isAtWar(eTeam))
 			{
-				setListHelp(szWorstEnemyString, L"", kLoopTeam.getName().GetCString(), L", ", bFirst2);
-				bFirst2 = false;
+				setListHelp(szWarWithString, L"",
+						itOther->getName().GetCString(), L", ", bFirstWar);
+			}
+			if (!itOther->isHuman() && // K-Mod
+				itOther->AI_getWorstEnemy() == eTeam)
+			{
+				setListHelp(szWorstEnemyString, L"",
+						itOther->getName().GetCString(), L", ", bFirstWorstEnemy);
 			}
 		}
 		if (!szWarWithString.isEmpty()) // advc.004: List wars before worst enemies
 		{
 			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText(L"TXT_KEY_AT_WAR_WITH", szWarWithString.getCString()));
+			szBuffer.append(gDLL->getText(L"TXT_KEY_AT_WAR_WITH",
+					szWarWithString.getCString()));
 		}
 		if (!szWorstEnemyString.isEmpty())
 		{
 			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText(L"TXT_KEY_WORST_ENEMY_OF", szWorstEnemyString.getCString()));
+			szBuffer.append(gDLL->getText(L"TXT_KEY_WORST_ENEMY_OF",
+					szWorstEnemyString.getCString()));
 		}
 		// <advc.004v> Moved here from above
-		bool bShowCtrlTrade = (!((GC.altKey() || GC.ctrlKey())
-				)//&& gDLL->getChtLvl() > 0) // advc.135c
-				&& !kPlayer.isHuman() && bWillTalk
-				&& ePlayer != eActivePlayer); // advc.085
+		bool bShowCtrlTrade = (
+				(!GC.altKey() && !GC.ctrlKey()) &&
+				//gDLL->getChtLvl() > 0 && // advc.135c
+				!kPlayer.isHuman() && bWillTalk &&
+				ePlayer != eActivePlayer); // advc.085
 		if (bShowCtrlTrade)
 		{
 			szBuffer.append(NEWLINE);
@@ -3460,7 +3456,8 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_MISC_CANNOT_DECLARE_WAR"));
 			}
-			// K-Mod. The BBAI war plan control currently is not implemented for multiplayer, and it is only relevant for team games.
+			/*	K-Mod. The BBAI war plan control currently is
+				not implemented for multiplayer, and it is only relevant for team games. */
 			if (!GC.getGame().isGameMultiPlayer() && kActiveTeam.getAliveCount() > 1)
 			{
 				szBuffer.append(NEWLINE);
@@ -3468,7 +3465,6 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 			}
 		}
 	}
-
 	if (kPlayer.isHuman() /* advc.085: */ && eActivePlayer != ePlayer)
 	{
 		szBuffer.append(NEWLINE);
@@ -3477,11 +3473,12 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 }
 
 // K-Mod. The cheat mode text associated with parseContactCivHelp.
-void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
+void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStruct,
+	CvWStringBuffer &szBuffer)
 {
-	PlayerTypes const ePlayer = (PlayerTypes) widgetDataStruct.m_iData1;
+	PlayerTypes const ePlayer = (PlayerTypes)widgetDataStruct.m_iData1;
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
-	TeamTypes const eTeam = (TeamTypes) kPlayer.getTeam();
+	TeamTypes const eTeam = kPlayer.getTeam();
 	CvTeamAI const& kTeam = GET_TEAM(eTeam);
 	PlayerTypes const eActivePlayer = GC.getGame().getActivePlayer();
 

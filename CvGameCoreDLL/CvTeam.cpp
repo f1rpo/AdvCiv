@@ -2325,7 +2325,6 @@ CvWString CvTeam::getName() const
 	for (MemberIter it (getID()); it.hasNext(); ++it)
 	{
 		setListHelp(szBuffer, L"", it->getName(), L"/", bFirst);
-		bFirst = false;
 	}
 	return szBuffer;
 }
@@ -2338,7 +2337,6 @@ CvWString CvTeam::getReplayName() const
 	for (MemberIter it (getID()); it.hasNext(); ++it)
 	{
 		setListHelp(szBuffer, L"", it->getReplayName(), L"/", bFirst);
-		bFirst = false;
 	}
 	return szBuffer;
 } 
