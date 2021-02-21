@@ -238,8 +238,7 @@ public:
 	//void getDealString(...); // advc: Merged into the above
 	void getActiveDealsString(CvWStringBuffer& szString, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer,
 			bool bExcludeDual = false); // advc.087
-	// advc.004: Merged into BULL's CvGameTextMgr::getOtherRelationsString
-	//void getOtherRelationsString(CvWStringBuffer& szString, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);
+	void getOtherRelationsString(CvWStringBuffer& szString, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);
 
 	void buildFinanceInflationString(CvWStringBuffer& szDetails, PlayerTypes ePlayer);
 	void buildFinanceUnitCostString(CvWStringBuffer& szDetails, PlayerTypes ePlayer);
