@@ -6834,116 +6834,115 @@ void CvGame::doGlobalWarming()
 	{
 		// note, warming prob out of 1000, not percent.
 		int iLeftOdds = 10 * GC.getInfo(getGameSpeedType()).getVictoryDelayPercent();
-		if (getSorenRandNum(iLeftOdds, "Global Warming") < GC.getDefineINT("GLOBAL_WARMING_PROB"))
+		if (getSorenRandNum(iLeftOdds, "Global Warming") >= GC.getDefineINT("GLOBAL_WARMING_PROB"))
+			continue;
+		//CvPlot* pPlot = GC.getMap().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
+		/*	Global warming is no longer completely random.
+			getRandGWPlot will get a weighted random plot for us to strike. */
+		// advc.055: Arg was 3. The higher the value, the greater the preference for cold terrain.
+		CvPlot* pPlot = getRandGWPlot(2);
+		if (pPlot == NULL)
+			continue;
+		// <advc.055>
+		FeatureTypes const eFeature = pPlot->getFeatureType();
+		TerrainTypes const eTerrain = pPlot->getTerrainType();
+		bool bProtectFeature = false;
+		CvFeatureInfo const* pProtectedFeature = NULL;
+		if (pPlot->isImproved() && eFeature != NO_FEATURE)
 		{
-			//CvPlot* pPlot = GC.getMap().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
-			/*	Global warming is no longer completely random.
-				getRandGWPlot will get a weighted random plot for us to strike. */
-			// advc.055: Arg was 3. The higher the value, the greater the preference for cold terrain.
-			CvPlot* pPlot = getRandGWPlot(2);
-			if (pPlot == NULL)
-				continue;
-			// <advc.055>
-			FeatureTypes const eFeature = pPlot->getFeatureType();
-			TerrainTypes const eTerrain = pPlot->getTerrainType();
-			bool bProtectFeature = false;
-			CvFeatureInfo const* pProtectedFeature = NULL;
-			if (pPlot->isImproved() && eFeature != NO_FEATURE)
+			if (::bernoulliSuccess(GC.getInfo(pPlot->getImprovementType()).
+				get(CvImprovementInfo::GWFeatureProtection) / 100.0))
 			{
-				if (::bernoulliSuccess(GC.getInfo(pPlot->getImprovementType()).
-					get(CvImprovementInfo::GWFeatureProtection) / 100.0))
-				{
-					bProtectFeature = true;
-					pProtectedFeature = &GC.getInfo(eFeature);
-				}
-			} // </advc.055>
-			bool bChanged = false;
-			// rewritten terrain changing code:
-			// 1) Melt frozen terrain
-			if (eFeature == eColdFeature /* advc.055: */ && !bProtectFeature)
-			{
-				pPlot->setFeatureType(NO_FEATURE);
-				bChanged = true;
+				bProtectFeature = true;
+				pProtectedFeature = &GC.getInfo(eFeature);
 			}
-			else if (eTerrain == eFrozenTerrain &&
-				(!bProtectFeature || pProtectedFeature->isTerrain(eColdTerrain))) // advc.055
-			{
-				pPlot->setTerrainType(eColdTerrain);
-				bChanged = true;
-			}
-			else if (eTerrain == eColdTerrain &&
-				(!bProtectFeature || pProtectedFeature->isTerrain(eTemperateTerrain))) // advc.055
-			{
-				pPlot->setTerrainType(eTemperateTerrain);
-				bChanged = true;
-			}
-			// 2) Forest -> Jungle
-			// advc.055: Commented out
-			/*else if (eFeature == eTemperateFeature) {
-			pPlot->setFeatureType(eWarmFeature);
+		} // </advc.055>
+		bool bChanged = false;
+		// rewritten terrain changing code:
+		// 1) Melt frozen terrain
+		if (eFeature == eColdFeature /* advc.055: */ && !bProtectFeature)
+		{
+			pPlot->setFeatureType(NO_FEATURE);
 			bChanged = true;
-			}*/
-			// 3) Remove other features
-			else if (eFeature != NO_FEATURE && eFeature != eFalloutFeature &&
-				/* <advc.055> */ !bProtectFeature &&
-				(!bPROTECT_FEATURE_ON_NON_DRY_TERRAIN ||
-				(eFeature != eTemperateFeature && eFeature != eWarmFeature) ||
-				eTerrain == eDryTerrain)) // </advc.055>
+		}
+		else if (eTerrain == eFrozenTerrain &&
+			(!bProtectFeature || pProtectedFeature->isTerrain(eColdTerrain))) // advc.055
+		{
+			pPlot->setTerrainType(eColdTerrain);
+			bChanged = true;
+		}
+		else if (eTerrain == eColdTerrain &&
+			(!bProtectFeature || pProtectedFeature->isTerrain(eTemperateTerrain))) // advc.055
+		{
+			pPlot->setTerrainType(eTemperateTerrain);
+			bChanged = true;
+		}
+		// 2) Forest -> Jungle
+		// advc.055: Commented out
+		/*else if (eFeature == eTemperateFeature) {
+		pPlot->setFeatureType(eWarmFeature);
+		bChanged = true;
+		}*/
+		// 3) Remove other features
+		else if (eFeature != NO_FEATURE && eFeature != eFalloutFeature &&
+			/* <advc.055> */ !bProtectFeature &&
+			(!bPROTECT_FEATURE_ON_NON_DRY_TERRAIN ||
+			(eFeature != eTemperateFeature && eFeature != eWarmFeature) ||
+			eTerrain == eDryTerrain)) // </advc.055>
+		{
+			pPlot->setFeatureType(NO_FEATURE);
+			bChanged = true;
+		}
+		// 4) Dry the terrain
+		else if (eTerrain == eTemperateTerrain &&
+			(!bProtectFeature || pProtectedFeature->isTerrain(eDryTerrain))) // advc.055
+		{
+			pPlot->setTerrainType(eDryTerrain);
+			bChanged = true;
+		}
+		else if (eTerrain == eDryTerrain &&
+			(!bProtectFeature || pProtectedFeature->isTerrain(eBarrenTerrain))) // advc.055
+		{
+			pPlot->setTerrainType(eBarrenTerrain);
+			bChanged = true;
+		}
+		/* 5) Sink coastal desert (disabled)
+		else if (eTerrain == eBarrenTerrain) {
+			if (isOption(GAMEOPTION_RISING_SEAS)) {
+				if (pPlot->isCoastalLand()) {
+					if (!pPlot->isHills() && !pPlot->isPeak()) {
+						pPlot->forceBumpUnits();
+						pPlot->setPlotType(PLOT_OCEAN);
+						bChanged = true;
+		} } } }*/
+		if (bChanged)
+		{
+			// only destroy the improvement if the new terrain cannot support it
+			if (!pPlot->canHaveImprovement(pPlot->getImprovementType()),
+				NO_BUILD, false) // kekm.9
+			{
+				pPlot->setImprovementType(NO_IMPROVEMENT);
+			}  // <advc.055>
+			if (!pPlot->canHaveFeature(eFeature, true))
 			{
 				pPlot->setFeatureType(NO_FEATURE);
-				bChanged = true;
-			}
-			// 4) Dry the terrain
-			else if (eTerrain == eTemperateTerrain &&
-				(!bProtectFeature || pProtectedFeature->isTerrain(eDryTerrain))) // advc.055
+				FAssert(!bProtectFeature);
+			} // </advc.055>
+			CvCity* pCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY(),
+					NO_PLAYER, NO_TEAM, false);
+			if (pCity != NULL)
 			{
-				pPlot->setTerrainType(eDryTerrain);
-				bChanged = true;
-			}
-			else if (eTerrain == eDryTerrain &&
-				(!bProtectFeature || pProtectedFeature->isTerrain(eBarrenTerrain))) // advc.055
-			{
-				pPlot->setTerrainType(eBarrenTerrain);
-				bChanged = true;
-			}
-			/* 5) Sink coastal desert (disabled)
-			else if (eTerrain == eBarrenTerrain) {
-				if (isOption(GAMEOPTION_RISING_SEAS)) {
-					if (pPlot->isCoastalLand()) {
-						if (!pPlot->isHills() && !pPlot->isPeak()) {
-							pPlot->forceBumpUnits();
-							pPlot->setPlotType(PLOT_OCEAN);
-							bChanged = true;
-			} } } }*/
-			if (bChanged)
-			{
-				// only destroy the improvement if the new terrain cannot support it
-				if (!pPlot->canHaveImprovement(pPlot->getImprovementType()),
-					NO_BUILD, false) // kekm.9
+				if (pPlot->isVisible(pCity->getTeam()))
 				{
-					pPlot->setImprovementType(NO_IMPROVEMENT);
-				}  // <advc.055>
-				if (!pPlot->canHaveFeature(eFeature, true))
-				{
-					pPlot->setFeatureType(NO_FEATURE);
-					FAssert(!bProtectFeature);
-				} // </advc.055>
-				CvCity* pCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY(),
-						NO_PLAYER, NO_TEAM, false);
-				if (pCity != NULL)
-				{
-					if (pPlot->isVisible(pCity->getTeam()))
-					{
-						CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY",
-								pCity->getNameKey());
-						gDLL->UI().addMessage(pCity->getOwner(), false, -1, szBuffer, *pPlot,
-								bSoundPlayed ? NULL : // advc.002l
-								"AS2D_SQUISH", MESSAGE_TYPE_INFO, NULL, GC.getColorType("RED"));
-						bSoundPlayed = true; // advc.002l: Once is enough
-					}
+					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY",
+							pCity->getNameKey());
+					gDLL->UI().addMessage(pCity->getOwner(), false, -1, szBuffer, *pPlot,
+							bSoundPlayed ? NULL : // advc.002l
+							"AS2D_SQUISH", MESSAGE_TYPE_INFO, NULL, GC.getColorType("RED"));
+					bSoundPlayed = true; // advc.002l: Once is enough
 				}
-				changeGwEventTally(1);
 			}
+			changeGwEventTally(1);
 		}
 	}
 	updateGwPercentAnger();

@@ -2224,15 +2224,10 @@ void CvCityAI::AI_chooseProduction()
 					kGame.getSorenRandNum(3, "AI train boat instead") == 0)
 				{
 					if (AI_chooseUnit(UNITAI_MISSILE_CARRIER_SEA, 50))
-					{
 						return;
-					}
 				}
-
 				if (AI_chooseUnit(UNITAI_ICBM))
-				{
 					return;
-				}
 			}
 		}
 	}
@@ -2342,9 +2337,7 @@ void CvCityAI::AI_chooseProduction()
 			if (kPlayer.AI_totalUnitAIs(UNITAI_ASSAULT_SEA) < (kPlayer.getNumCities() - iNumCapitalAreaCities)/3)
 			{
 				if (AI_chooseUnit(UNITAI_ASSAULT_SEA))
-				{
 					return;
-				}
 			}
 
 			if (kPlayer.AI_calculateUnitAIViability(UNITAI_SETTLER_SEA, DOMAIN_SEA) < 61)
@@ -2353,9 +2346,7 @@ void CvCityAI::AI_chooseProduction()
 				if (kPlayer.AI_totalUnitAIs(UNITAI_SETTLER_SEA) > kPlayer.AI_getNumAIUnits(UNITAI_RESERVE_SEA))
 				{
 					if (AI_chooseUnit(UNITAI_RESERVE_SEA))
-					{
 						return;
-					}
 				}
 			}
 		}

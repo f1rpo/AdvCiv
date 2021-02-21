@@ -452,15 +452,8 @@ void setTradeItem(TradeData* pItem, TradeableItems eItemType, int iData)
 }
 
 
-void setListHelp(wchar* szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst)
-{
-	if (bFirst)
-		wcscat(szBuffer, szStart);
-	else wcscat(szBuffer, szSeparator);
-	wcscat(szBuffer, szItem);
-}
-
-void setListHelp(CvWString& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst)
+void setListHelp(CvWString& szBuffer, const wchar* szStart, const wchar* szItem,
+	const wchar* szSeparator, bool bFirst)
 {
 	if (bFirst)
 		szBuffer += szStart;
@@ -468,13 +461,16 @@ void setListHelp(CvWString& szBuffer, const wchar* szStart, const wchar* szItem,
 	szBuffer += szItem;
 }
 
-void setListHelp(CvWStringBuffer& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst)
+
+void setListHelp(CvWStringBuffer& szBuffer, const wchar* szStart, const wchar* szItem,
+	const wchar* szSeparator, bool bFirst)
 {
 	if (bFirst)
 		szBuffer.append(szStart);
 	else szBuffer.append(szSeparator);
 	szBuffer.append(szItem);
 }
+
 
 bool PUF_isGroupHead(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {

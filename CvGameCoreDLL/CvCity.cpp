@@ -2160,7 +2160,8 @@ int CvCity::getProductionTurnsLeft(int iProductionNeeded, int iProduction,
 			int iFeatureProduction = 0;
 			int iCurrentProductionDifference = getCurrentProductionDifference(false,
 					true, false, false, false, &iFeatureProduction);
-			int iRawOverflow = getProduction() + iCurrentProductionDifference - getProductionNeeded();
+			int iRawOverflow = getProduction() + iCurrentProductionDifference
+					- getProductionNeeded();
 			int iOverflow = computeOverflow(iRawOverflow, getProductionModifier(),
 					eCurrentOrder);
 			/*  This ignores that some production modifiers are applied to overflow,
@@ -2229,7 +2230,7 @@ int CvCity::sanitizeProductionTurns(int iTurns, OrderTypes eOrder, int iData, bo
 	case ORDER_MAINTAIN: return getProductionNeeded(); // (mustn't add 1 to that)
 	default: return iR + getProductionNeeded();
 	}
-}} // </advc.004x>
+}
 
 
 void CvCity::setProduction(int iNewValue)

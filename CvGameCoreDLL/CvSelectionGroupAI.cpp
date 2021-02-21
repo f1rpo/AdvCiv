@@ -350,7 +350,7 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 	int iBestOdds = 0;
 	CvUnitAI* pBestUnit = NULL;
 	CLLNode<IDInfo> const* pUnitNode = headUnitNode();
-	bool bHuman = (pUnitNode == NULL ? true :
+	bool const bHuman = (pUnitNode == NULL ? true :
 			GET_PLAYER(::getUnit(pUnitNode->m_data)->getOwner()).isHuman());
 	FAssert(!bMaxSurvival || bHuman); // advc.048
 	while (pUnitNode != NULL)
@@ -392,7 +392,6 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 			int iOdds = kLoopUnit.AI_attackOdds(pPlot, bPotentialEnemy);
 			int iValue = iOdds;
 			FAssert(iValue > 0);
-
 			if (kLoopUnit.collateralDamage() > 0 && /* advc.048: */ !bMaxSurvival)
 			{
 				int iPossibleTargets = std::min(
@@ -627,7 +626,7 @@ namespace
 CvUnit* CvSelectionGroupAI::AI_bestUnitForMission(MissionTypes eMission,
 	CvPlot const* pMissionPlot)
 {
-	PROFILE_FUNC(); // advc.test: To be profiled (but probably fine)
+	PROFILE_FUNC(); // advc (neither frequently called nor expensive)
 	CvPlot const& kAt = getPlot();
 	bool bEasyCityCapture = false;
 	CvCity const* pTargetCity = (pMissionPlot == NULL ? NULL :

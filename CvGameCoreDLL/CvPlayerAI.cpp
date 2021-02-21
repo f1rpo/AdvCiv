@@ -13353,9 +13353,9 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 		iSiegeValue += iCombatValue * u.getCollateralDamage() * (4+u.getCollateralDamageMaxUnits()) / 600;
 		if (u.getBombardRate() > 0 && !AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ))
 		{
-			int iBombardValue = (u.getBombardRate()+3) * 6;
+			int iBombardValue = (u.getBombardRate() + 3) * 6;
 			// Decrease the bombard value if we own every city in the area, or if we are fighting an overseas war
-			if (pArea &&
+			if (pArea != NULL &&
 				(pArea->getNumCities() == pArea->getCitiesPerPlayer(getID()) ||
 				(pArea->getAreaAIType(getTeam()) != AREAAI_NEUTRAL && !AI_isLandWar(*pArea))) &&
 				AI_calculateTotalBombard(DOMAIN_SEA) > 0)
@@ -13411,7 +13411,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 				in the 2nd clause b/c this assert kept failing for a capitulated
 				Renaissance civ w/o access to Horses (not sure if that's what's
 				causing the failed assertion). */
-			FAssert(iAttackUnits+1 >= iLimitedUnits || iAttackUnits <= 3);
+			FAssert(iAttackUnits + 1 >= iLimitedUnits || iAttackUnits <= 3);
 
 			iValue *= std::max(1, iAttackUnits - iLimitedUnits);
 			iValue /= iAttackUnits;
@@ -13443,7 +13443,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 
 	case UNITAI_RESERVE:
 		iValue += iCombatValue;
-		// iValue -= ((iCombatValue * u.getCollateralDamage()) / 200); // disabled by K-Mod (collateral damage is never 'bad')
+		// disabled by K-Mod (collateral damage is never 'bad')
+		// iValue -= ((iCombatValue * u.getCollateralDamage()) / 200);
 		FOR_EACH_ENUM(UnitCombat)
 		{
 			/*int iCombatModifier = u.getUnitCombatModifier(eLoopUnitCombat);
@@ -13618,8 +13619,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 				break;
 			}
 		}
-		// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/08/10, jdog5000: (was AI_isDoStrategy)
-		if (AI_atVictoryStage(AI_VICTORY_CULTURE2))
+		// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/08/10, jdog5000:
+		if (AI_atVictoryStage(AI_VICTORY_CULTURE2)) // (was AI_isDoStrategy)
 		{
 			iTempValue = 0;
 			FOR_EACH_ENUM(Religion)
@@ -13683,19 +13684,19 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 				iTempValue = iTempValue * std::min(8, u.getAirRange()) / 10;
 			// estimate the expected loss from being shot down.
 			{
-				bool bWar = pArea && pArea->getAreaAIType(getTeam()) != AREAAI_NEUTRAL;
-				const CvTeamAI& kTeam = GET_TEAM(getTeam());
+				bool const bWar = (pArea != NULL &&
+						pArea->getAreaAIType(getTeam()) != AREAAI_NEUTRAL);
 				int iInterceptTally = 0;
 				int iPowerTally = 0;
-				for (TeamTypes i = (TeamTypes)0; i < MAX_CIV_TEAMS; i = (TeamTypes)(i+1))
+				for (TeamIter<CIV_ALIVE,KNOWN_TO> itTeam(getTeam());
+					itTeam.hasNext(); ++itTeam)
 				{
-					const CvTeam& kLoopTeam = GET_TEAM(i);
-					if (kLoopTeam.isAlive() && kTeam.isHasMet(i) &&
-						(!bWar || kTeam.AI_getWarPlan(i) != NO_WARPLAN))
+					if (!bWar ||
+						GET_TEAM(getTeam()).AI_getWarPlan(itTeam->getID()) != NO_WARPLAN)
 					{
-						int iPower = kLoopTeam.getPower(false);
+						int iPower = itTeam->getPower(false);
 						iPowerTally += iPower;
-						iInterceptTally += kLoopTeam.getNukeInterception() * iPower;
+						iInterceptTally += itTeam->getNukeInterception() * iPower;
 					}
 				}
 				if (iInterceptTally > 0)
@@ -13815,7 +13816,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 		iValue += iCombatValue;
 		iValue += (u.getCollateralDamage() * iCombatValue) / 100;
 		iValue += 4 * u.getBombRate();
-		iValue += (iCombatValue * (100 + 2 * u.getCollateralDamage()) * u.getAirRange()) / 100;
+		iValue += (iCombatValue * (100 + 2 * u.getCollateralDamage()) *
+				u.getAirRange()) / 100;
 		break;
 
 	case UNITAI_DEFENSE_AIR:
@@ -13873,18 +13875,19 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea const*
 
 int CvPlayerAI::AI_totalUnitAIs(UnitAITypes eUnitAI) const
 {
-	return (AI_getNumTrainAIUnits(eUnitAI) + AI_getNumAIUnits(eUnitAI));
+	return AI_getNumTrainAIUnits(eUnitAI) + AI_getNumAIUnits(eUnitAI);
 }
 
 
 int CvPlayerAI::AI_totalAreaUnitAIs(CvArea const& kArea, UnitAITypes eUnitAI) const
 {
-	return (kArea.getNumTrainAIUnits(getID(), eUnitAI) + kArea.getNumAIUnits(getID(), eUnitAI));
+	return kArea.getNumTrainAIUnits(getID(), eUnitAI) +
+			kArea.getNumAIUnits(getID(), eUnitAI);
 }
 
-
+// <advc.081> ^Now only a wrapper
 int CvPlayerAI::AI_totalWaterAreaUnitAIs(CvArea const& kArea, UnitAITypes eUnitAI) const
-{	// <advc.081> ^Now only a wrapper
+{
 	std::vector<UnitAITypes> aeUnitAI(1);
 	aeUnitAI[0] = eUnitAI;
 	return AI_totalWaterAreaUnitAIs(kArea, aeUnitAI);
@@ -13892,26 +13895,24 @@ int CvPlayerAI::AI_totalWaterAreaUnitAIs(CvArea const& kArea, UnitAITypes eUnitA
 
 // Checks multiple types at once
 int CvPlayerAI::AI_totalWaterAreaUnitAIs(CvArea const& kArea,
-		std::vector<UnitAITypes> const& aeUnitAI) const
+	std::vector<UnitAITypes> const& aeUnitAI) const
 {
 	PROFILE_FUNC(); // advc
 
 	int iCount = 0;
 	for(size_t i = 0; i < aeUnitAI.size(); i++)
-		iCount += AI_totalAreaUnitAIs(kArea, aeUnitAI[i]); // </advc.081>
-
+		iCount += AI_totalAreaUnitAIs(kArea, aeUnitAI[i]);
+	// </advc.081>
 	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 	{
 		CvPlayer const& kOwner = *it;
 		// <advc.opt> No need to go through cities that our ships can't enter
 		if (!GET_TEAM(getTeam()).canPeacefullyEnter(kOwner.getTeam()))
 			continue; // </advc.opt>
-
 		FOR_EACH_CITY(pLoopCity, kOwner)
 		{
 			if (pLoopCity->waterArea() != &kArea)
 				continue;
-
 			for(size_t j = 0; j < aeUnitAI.size(); j++) // advc.081
 			{
 				iCount += pLoopCity->getPlot().plotCount(PUF_isUnitAIType,
@@ -13936,26 +13937,27 @@ int CvPlayerAI::AI_countCargoSpace(UnitAITypes eUnitAI) const
 	return iCount;
 }
 
-/*  advc.opt: Now cached. advc.017b adds another call to AI_neededExplorers,
+/*  <advc.opt> Now cached. advc.017b adds another call to AI_neededExplorers,
 	and it gets called by several UnitAI members too. Probably no noticeable
 	difference in performance, but who knows. */
 int CvPlayerAI::AI_neededExplorers(CvArea const& kArea) const
-{	// <advc.opt> Body moved into AI_neededExplorers_bulk
-	std::map<int,int>::const_iterator r = m_neededExplorersByArea.find(kArea.getID());
-	if(r == m_neededExplorersByArea.end())
+{	// Body moved into AI_neededExplorers_bulk
+	std::map<int,int>::const_iterator itNeeded = m_neededExplorersByArea.find(
+			kArea.getID());
+	if (itNeeded == m_neededExplorersByArea.end())
 		return 0; // Small area w/o cached value; no problem.
-	return r->second;
+	return itNeeded->second;
 }
 
 
 void CvPlayerAI::AI_updateNeededExplorers()
 {
 	m_neededExplorersByArea.clear();
-	FOR_EACH_AREA(a)
+	FOR_EACH_AREA(pArea)
 	{
 		// That threshold should also be OK for land areas
-		if(a->getNumTiles() > GC.getDefineINT(CvGlobals::LAKE_MAX_AREA_SIZE))
-			m_neededExplorersByArea[a->getID()] = AI_neededExplorers_bulk(*a);
+		if(pArea->getNumTiles() > GC.getDefineINT(CvGlobals::LAKE_MAX_AREA_SIZE))
+			m_neededExplorersByArea[pArea->getID()] = AI_neededExplorers_bulk(*pArea);
 		// Nothing stored for small areas; AI_neededExplorers will return 0.
 	}
 }
@@ -13966,9 +13968,7 @@ int CvPlayerAI::AI_neededExplorers_bulk(CvArea const& kArea) const
 	// <advc.305> Be sure not to build Work Boats for exploration
 	if(isBarbarian())
 		return 0; // </advc.305>
-
 	int iNeeded = 0;
-
 	if (kArea.isWater())
 	{
 		iNeeded = std::min(iNeeded + kArea.getNumUnrevealedTiles(getTeam()) / 400,
@@ -13985,35 +13985,27 @@ int CvPlayerAI::AI_neededExplorers_bulk(CvArea const& kArea) const
 				std::min(3, (getNumCities() / 3) + 2));
 	}
 
-	if (iNeeded <= 0)
+	if (iNeeded <= 0 &&
+		GC.getGame().countCivTeamsAlive() - 1 >
+		GET_TEAM(getTeam()).getHasMetCivCount(true))
 	{
-		if (GC.getGame().countCivTeamsAlive() - 1 >
-			GET_TEAM(getTeam()).getHasMetCivCount(true))
+		if (kArea.isWater())
 		{
-			if (kArea.isWater())
+			if (GC.getMap().findBiggestArea(true) == &kArea)
+				iNeeded++;
+		}
+		else if (hasCapital() && getCapital()->isArea(kArea))
+		{	// advc.040: Don't need to meet minor civs
+			for (PlayerIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(getTeam());
+				itOther.hasNext(); ++itOther)
 			{
-				if (GC.getMap().findBiggestArea(true) == &kArea)
-					iNeeded++;
-			}
-			else
-			{
-				if (hasCapital() && getCapital()->isArea(kArea))
+				if (!GET_TEAM(getTeam()).isHasMet(itOther->getTeam()) &&
+					//kArea.getCitiesPerPlayer(itOther->getID()) > 0
+					// advc.040: Cheat a little less
+					itOther->hasCapital() && itOther->getCapital()->isArea(kArea))
 				{
-					for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; iPlayer++)
-					{
-						CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-						if (!kPlayer.isAlive() || kPlayer.getTeam() == getTeam())
-							continue;
-
-						if (!GET_TEAM(getTeam()).isHasMet(kPlayer.getTeam()))
-						{
-							if (kArea.getCitiesPerPlayer(kPlayer.getID()) > 0)
-							{
-								iNeeded++;
-								break;
-							}
-						}
-					}
+					iNeeded++;
+					break;
 				}
 			}
 		}
@@ -14031,7 +14023,8 @@ bool CvPlayerAI::AI_isExcessSeaExplorers(CvArea const& kWaterArea, int iChange) 
 }
 
 // Note: only tested for eRole=UNITAI_EXPLORE_SEA
-bool CvPlayerAI::AI_isOutdatedUnit(UnitTypes eUnit, UnitAITypes eRole, CvArea const* pArea) const
+bool CvPlayerAI::AI_isOutdatedUnit(UnitTypes eUnit, UnitAITypes eRole,
+	CvArea const* pArea) const
 {
 	int iValue = AI_unitValue(eUnit, eRole, pArea);
 	UnitClassTypes eUnitClass = GC.getInfo(eUnit).getUnitClassType();
@@ -14040,9 +14033,10 @@ bool CvPlayerAI::AI_isOutdatedUnit(UnitTypes eUnit, UnitAITypes eRole, CvArea co
 	{
 		UnitClassTypes eLoopUnitClass = kCiv.unitClassAt(i);
 		if(eLoopUnitClass == eUnitClass ||
-				getUnitClassCount(eLoopUnitClass) <= 0) // Avoid slow canTrain checks
+			getUnitClassCount(eLoopUnitClass) <= 0) // Avoid slow canTrain checks
+		{
 			continue;
-
+		}
 		UnitTypes eLoopUnit = kCiv.unitAt(i);
 		int iLoopValue = AI_unitValue(eLoopUnit, eRole, pArea);
 		if(75 * iLoopValue > 100 * iValue)
@@ -14113,7 +14107,8 @@ int CvPlayerAI::AI_countOwnedBonuses(BonusTypes eBonus) const
 	/*	advc (comment from Kek-Mod): "This era seems like nonsense meant to
 		prevent counting all bonuses when the map is fully revealed."
 		(I guess it's mainly relevant for tech evaluation in Advanced Start.) */
-	bool const bAdvancedStart = (getAdvancedStartPoints() >= 0 && getCurrentEra() < 3);
+	bool const bAdvancedStart = (getAdvancedStartPoints() >= 0 &&
+			getCurrentEra() < 3);
 
 	int iCount = 0;
 
@@ -14202,7 +14197,7 @@ int CvPlayerAI::AI_neededWorkers(CvArea const& kArea) const
 		return 0;*/
 	if(iCount < 5 * getNumCities()) // advc.113
 	{
-		// K-Mod. Some additional workers if for 'growth' flavour AIs who are still growing...
+		// K-Mod. Some additional workers for 'growth' flavour AIs who are still growing...
 		if (/*  advc.113: Growth is about tall cities. Factor Growth flavor into
 				the number of Workers per existing city, and add Workers for
 				future cities regardless of flavor. */
@@ -14269,7 +14264,6 @@ int CvPlayerAI::AI_neededMissionaries(CvArea const& kArea, ReligionTypes eReligi
 		iCount /= 8;
 
 		iCount = std::max(0, iCount);
-
 		if (AI_isPrimaryArea(kArea))
 			iCount++;
 	}
@@ -14292,13 +14286,18 @@ int CvPlayerAI::AI_neededExecutives(CvArea const& kArea, CorporationTypes eCorpo
 	return iCount;
 }
 
-// K-Mod. This function is used to replace the old (broken) "unit cost percentage" calculation used by the AI
+/*	K-Mod. This function is used to replace the old (broken)
+	"unit cost percentage" calculation used by the AI */
 int CvPlayerAI::AI_unitCostPerMil() const
 {
-	// original "cost percentage" = calculateUnitCost() * 100 / std::max(1, calculatePreInflatedCosts());
-	// If iUnitCostPercentage is calculated as above, decreasing maintenance will actually decrease the max units.
-	// If a builds a courthouse or switches to state property, it would then think it needs to get rid of units!
-	// It makes no sense, and civs with a surplus of cash still won't want to build units. So lets try it another way...
+	/*	original "cost percentage"
+		= calculateUnitCost() * 100 / std::max(1, calculatePreInflatedCosts());*/
+	/*	If iUnitCostPercentage is calculated as above,
+		decreasing maintenance will actually decrease the max units.
+		If a builds a courthouse or switches to state property,
+		it would then think it needs to get rid of units!
+		It makes no sense, and civs with a surplus of cash
+		still won't want to build units. So lets try it another way... */
 	int iUnitCost = calculateUnitCost() * std::max(0, calculateInflationRate() + 100) / 100;
 	if (iUnitCost <= getNumCities()/2) // cf with the final line
 		return 0;
@@ -14307,13 +14306,17 @@ int CvPlayerAI::AI_unitCostPerMil() const
 
 	int iFunds = iTotalRaw * AI_averageCommerceMultiplier(COMMERCE_GOLD) / 100;
 	iFunds += getGoldPerTurn() - calculateInflatedCosts();
-	iFunds += getCommerceRate(COMMERCE_GOLD) - iTotalRaw * AI_averageCommerceMultiplier(COMMERCE_GOLD) * getCommercePercent(COMMERCE_GOLD) / 10000;
-	return std::max(0, iUnitCost-getNumCities()/2) * 1000 / std::max(1, iFunds); // # cities is there to offset early-game distortion.
+	iFunds += getCommerceRate(COMMERCE_GOLD) - iTotalRaw *
+			AI_averageCommerceMultiplier(COMMERCE_GOLD) *
+			getCommercePercent(COMMERCE_GOLD) / 10000;
+	// # cities is there to offset early-game distortion.
+	return std::max(0, iUnitCost-getNumCities()/2) * 1000 / std::max(1, iFunds);
 }
 
-// This function gives an approximate / recommended maximum on our unit spending. Note though that it isn't a hard cap.
-// we might go as high has 20 point above the "maximum"; and of course, the maximum might later go down.
-// So this should only be used as a guide.
+/*	This function gives an approximate / recommended maximum on our unit spending.
+	Note though that it isn't a hard cap. we might go as high has 20 point above
+	the "maximum"; and of course, the maximum might later go down.
+	So this should only be regarded as a guide. */
 int CvPlayerAI::AI_maxUnitCostPerMil(CvArea const* pArea, int iBuildProb) const
 {
 	if (isBarbarian())
@@ -14325,8 +14328,8 @@ int CvPlayerAI::AI_maxUnitCostPerMil(CvArea const* pArea, int iBuildProb) const
 	if (!kTeam.AI_isWarPossible()) // advc.001j
 		return 20; // ??
 
-	if (iBuildProb < 0)
-		iBuildProb = GC.getInfo(getPersonalityType()).getBuildUnitProb() + 6; // a rough estimate.
+	if (iBuildProb < 0) // a rough estimate:
+		iBuildProb = GC.getInfo(getPersonalityType()).getBuildUnitProb() + 6;
 
 	bool bTotalWar = (kTeam.AI_getNumWarPlans(WARPLAN_TOTAL) > 0);
 	// <advc.104s>
@@ -14346,9 +14349,11 @@ int CvPlayerAI::AI_maxUnitCostPerMil(CvArea const* pArea, int iBuildProb) const
 
 	if (!bTotalWar)
 	{
-		iMaxUnitSpending += AI_isDoStrategy(AI_STRATEGY_ALERT1) ? 15 + iBuildProb / 3 : 0;
-		iMaxUnitSpending += AI_isDoStrategy(AI_STRATEGY_ALERT2) ? 15 + iBuildProb / 3 : 0;
-		// note. the boost from alert1 + alert2 matches the boost from total war. (see below).
+		if (AI_isDoStrategy(AI_STRATEGY_ALERT1))
+			iMaxUnitSpending += 15 + iBuildProb / 3;
+		if (AI_isDoStrategy(AI_STRATEGY_ALERT2))
+			iMaxUnitSpending += 15 + iBuildProb / 3;
+		// note. alert1 + alert2 matches the boost from total war. (see below).
 	}
 
 	if (AI_isDoStrategy(AI_STRATEGY_FINAL_WAR))
@@ -14389,7 +14394,8 @@ int CvPlayerAI::AI_maxUnitCostPerMil(CvArea const* pArea, int iBuildProb) const
 			case AREAAI_NEUTRAL:
 				// think of 'dagger' as being prep for total war.
 				FAssert(!bTotalWar);
-				iMaxUnitSpending += AI_isDoStrategy(AI_STRATEGY_DAGGER) ? 20 + iBuildProb*2/3 : 0;
+				if (AI_isDoStrategy(AI_STRATEGY_DAGGER))
+					iMaxUnitSpending += 20 + (iBuildProb * 2) / 3;
 				break;
 			default:
 				FAssert(false);
@@ -14402,7 +14408,8 @@ int CvPlayerAI::AI_maxUnitCostPerMil(CvArea const* pArea, int iBuildProb) const
 			else if(!bTotalWar) // advc.105: AI_isFocusWar doesn't guarantee this
 			{
 				//FAssert(!bTotalWar);
-				iMaxUnitSpending += AI_isDoStrategy(AI_STRATEGY_DAGGER) ? 20 + iBuildProb*2/3 : 0;
+				if (AI_isDoStrategy(AI_STRATEGY_DAGGER))
+					iMaxUnitSpending += 20 + (iBuildProb * 2) / 3;
 			}
 		}
 	}
@@ -14415,8 +14422,9 @@ int CvPlayerAI::AI_maxUnitCostPerMil(CvArea const* pArea, int iBuildProb) const
 	return iMaxUnitSpending;
 }
 
-// When nukes are enabled, this function returns a percentage factor of how keen this player is to build nukes.
-// The starting value is around 100, which corresponds to quite a low tendency to build nukes.
+/*	When nukes are enabled, this function returns a percentage factor
+	of how keen this player is to build nukes. The starting value is around 100,
+	which corresponds to quite a low tendency to build nukes. */
 int CvPlayerAI::AI_nukeWeight() const
 {
 	//PROFILE_FUNC(); // advc.003o
@@ -14431,7 +14439,9 @@ int CvPlayerAI::AI_nukeWeight() const
 	int iNukeWeight = 100;
 
 	// Increase the weight based on how many nukes the world has made & used so far.
-	int iHistory = 2*GC.getGame().getNukesExploded() + GC.getGame().countTotalNukeUnits() - GC.getInfo(getPersonalityType()).getBasePeaceWeight();
+	int iHistory = 2 * GC.getGame().getNukesExploded() +
+			GC.getGame().countTotalNukeUnits()
+			- GC.getInfo(getPersonalityType()).getBasePeaceWeight();
 	iHistory *= 35; // 5% for each nuke, 10% for each exploded
 	iHistory /= std::max(1,
 			//GC.getInfo(GC.getMap().getWorldSize()).getDefaultPlayers()
@@ -14445,23 +14455,27 @@ int CvPlayerAI::AI_nukeWeight() const
 
 	iNukeWeight += iHistory;
 
-	// increase the weight if we were the team who enabled nukes. (look for projects only. buildings can get stuffed.)
-	for (ProjectTypes i = (ProjectTypes)0; i < GC.getNumProjectInfos(); i = (ProjectTypes)(i+1))
+	/*	increase the weight if we were the team who enabled nukes.
+		(look for projects only. buildings can get stuffed.) */
+	FOR_EACH_ENUM(Project)
 	{
-		if (GC.getInfo(i).isAllowsNukes() && kTeam.getProjectCount(i) > 0)
+		if (GC.getInfo(eLoopProject).isAllowsNukes() &&
+			kTeam.getProjectCount(eLoopProject) > 0)
 		{
-			iNukeWeight += std::max(0, 150 - iHistory/2);
+			iNukeWeight += std::max(0, 150 - iHistory / 2);
 			break;
 		}
 	}
-	// increase the weight for total war, or for the home-stretch to victory, or for losing wars.
+	/*	increase the weight for total war, or for the home-stretch to victory,
+		or for losing wars. */
 	if (kTeam.AI_anyMemberAtVictoryStage4())
 		iNukeWeight = iNukeWeight*3/2;
 	else if (kTeam.AI_getNumWarPlans(WARPLAN_TOTAL) > 0 ||
-			kTeam.AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0 || // advc.650
-			kTeam.AI_getWarSuccessRating() < -20)
-		iNukeWeight = iNukeWeight*4/3;
-
+		kTeam.AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0 || // advc.650
+		kTeam.AI_getWarSuccessRating() < -20)
+	{
+		iNukeWeight = (iNukeWeight * 4) / 3;
+	}
 	return iNukeWeight;
 }
 
