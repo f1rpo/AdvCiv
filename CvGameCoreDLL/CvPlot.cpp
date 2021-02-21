@@ -6571,7 +6571,10 @@ void CvPlot::doFeature()
 				{
 					setFeatureType(eLoopFeature);
 					CvCity* pCity = GC.getMap().findCity(getX(), getY(), getOwner(), NO_TEAM, false);
-					if (pCity != NULL && /* K-Mod: */ isVisible(TEAMID(pCity->getOwner())))
+					if (pCity != NULL &&
+						/*	advc.106: K-Mod had added an isVisible check,
+							but features aren't affected by fog of war. */
+						isRevealed(TEAMID(pCity->getOwner())))
 					{
 						// Tell the owner of this city.
 						CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_FEATURE_GROWN_NEAR_CITY",
