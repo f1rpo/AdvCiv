@@ -5183,6 +5183,7 @@ void CvGameTextMgr::getAllRelationsString(CvWStringBuffer& szString, TeamTypes e
 	getActiveTeamRelationsString(szString, eThisTeam);
 	getOtherRelationsString(szString, eThisTeam, NO_TEAM, GC.getGame().getActiveTeam());
 }
+
 // Shows the peace/war/enemy/pact status between eThisTeam and the active player.
 void CvGameTextMgr::getActiveTeamRelationsString(CvWStringBuffer& szString, TeamTypes eThisTeam)
 {
@@ -5220,6 +5221,7 @@ void CvGameTextMgr::getOtherRelationsString(CvWStringBuffer& szString,
 		return;
 	getOtherRelationsString(szString, TEAMID(eThisPlayer), TEAMID(eOtherPlayer), NO_TEAM);
 }
+
 /*  Shows the peace/war/enemy/pact status between eThisPlayer and all rivals known to the active player.
 	If eOtherTeam is not NO_TEAM, only relations between it and eThisTeam are shown.
 	If eSkipTeam is not NO_TEAM, relations involving it are not shown. */
@@ -5234,28 +5236,23 @@ void CvGameTextMgr::getOtherRelationsString(CvWStringBuffer& szString,
 		return;
 	CvWString szWar, szPeace, szEnemy, szPact;
 	bool bFirstWar = true, bFirstPeace = true, bFirstEnemy = true, bFirstPact = true;
-	for(int i = 0; i < MAX_CIV_TEAMS; i++)
+	for (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO> itThird(eThisTeam);
+		itThird.hasNext(); ++itThird)
 	{
-		CvTeamAI const& kLoopTeam = GET_TEAM((TeamTypes)i);
-		if (!kLoopTeam.isAlive() || kLoopTeam.isMinorCiv() || i == eThisTeam ||
-			// K-Mod. (show "at war" even for the civ selected.)  (advc: And war-related info like DP also)
-			i == eSkipTeam /*|| (eOtherTeam != NO_TEAM && i != eOtherTeam)*/)
-		{
+		/*	K-Mod. (show "at war" even for the civ selected.)
+			(advc: And war-related info like DP also) */
+		if (itThird->getID() == eSkipTeam) //|| (eOtherTeam != NO_TEAM && itThird->getID() != eOtherTeam)
 			continue;
-		}
-		if(!kLoopTeam.isHasMet(eThisTeam) ||
-			!kLoopTeam.isHasMet(GC.getGame().getActiveTeam()))
-		{
+		if (!itThird->isHasMet(GC.getGame().getActiveTeam()))
 			continue;
-		}
-		if(::atWar(kLoopTeam.getID(), eThisTeam))
-			setListHelp(szWar, L"", kLoopTeam.getName().GetCString(), L", ", bFirstWar);
-		else if(kLoopTeam.isForcePeace(eThisTeam))
-			setListHelp(szPeace, L"", kLoopTeam.getName().GetCString(), L", ", bFirstPeace);
-		if(!kLoopTeam.isHuman() && kLoopTeam.AI_getWorstEnemy() == eThisTeam)
-			setListHelp(szEnemy, L"", kLoopTeam.getName().GetCString(), L", ", bFirstEnemy);
-		if(kLoopTeam.isDefensivePact(eThisTeam))
-			setListHelp(szPact, L"", kLoopTeam.getName().GetCString(), L", ", bFirstPact);
+		if (itThird->isAtWar(eThisTeam))
+			setListHelp(szWar, L"", itThird->getName().GetCString(), L", ", bFirstWar);
+		else if (itThird->isForcePeace(eThisTeam))
+			setListHelp(szPeace, L"", itThird->getName().GetCString(), L", ", bFirstPeace);
+		if (!itThird->isHuman() && itThird->AI_getWorstEnemy() == eThisTeam)
+			setListHelp(szEnemy, L"", itThird->getName().GetCString(), L", ", bFirstEnemy);
+		if (itThird->isDefensivePact(eThisTeam))
+			setListHelp(szPact, L"", itThird->getName().GetCString(), L", ", bFirstPact);
 	}
 	if(!szWar.empty())
 	{
@@ -5281,7 +5278,8 @@ void CvGameTextMgr::getOtherRelationsString(CvWStringBuffer& szString,
 	}
 } // BULL - Leaderhead Relations - end
 
-void CvGameTextMgr::setCityPlotYieldValueString(CvWStringBuffer &szString, CvCityAI* pCity, // advc.003u: Param was CvCity*; this function is for AI debugging.
+void CvGameTextMgr::setCityPlotYieldValueString(CvWStringBuffer &szString,
+	CvCityAI* pCity, // advc.003u: Was CvCity*; this function is for AI debugging.
 	int iPlotIndex, bool bIgnoreFood, int iGrowthValue) 
 {
 	PROFILE_FUNC();
@@ -5301,7 +5299,8 @@ void CvGameTextMgr::setCityPlotYieldValueString(CvWStringBuffer &szString, CvCit
 	else setYieldValueString(szString, 0, /*bActive*/ false, /*bMakeWhitespace*/ true);
 }
 
-void CvGameTextMgr::setYieldValueString(CvWStringBuffer &szString, int iValue, bool bActive, bool bMakeWhitespace)
+void CvGameTextMgr::setYieldValueString(CvWStringBuffer &szString,
+	int iValue, bool bActive, bool bMakeWhitespace)
 {
 	PROFILE_FUNC();
 
@@ -5562,17 +5561,20 @@ void CvGameTextMgr::parseTraits(CvWStringBuffer &szHelpString, TraitTypes eTrait
 		{
 			if (kTrait.getMaxGlobalBuildingProductionModifier() != 0)
 			{
-				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_WORLD_WONDER_PRODUCTION_MODIFIER",
+				szHelpString.append(
+						gDLL->getText("TXT_KEY_TRAIT_WORLD_WONDER_PRODUCTION_MODIFIER",
 						kTrait.getMaxGlobalBuildingProductionModifier()));
 			}
 			if (kTrait.getMaxTeamBuildingProductionModifier() != 0)
 			{
-				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_TEAM_WONDER_PRODUCTION_MODIFIER",
+				szHelpString.append(
+						gDLL->getText("TXT_KEY_TRAIT_TEAM_WONDER_PRODUCTION_MODIFIER",
 						kTrait.getMaxTeamBuildingProductionModifier()));
 			}
 			if (kTrait.getMaxPlayerBuildingProductionModifier() != 0)
 			{
-				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_NATIONAL_WONDER_PRODUCTION_MODIFIER",
+				szHelpString.append(
+						gDLL->getText("TXT_KEY_TRAIT_NATIONAL_WONDER_PRODUCTION_MODIFIER",
 						kTrait.getMaxPlayerBuildingProductionModifier()));
 			}
 		}
@@ -5805,7 +5807,8 @@ void CvGameTextMgr::parseLeaderTraits(CvWStringBuffer &szHelpString, LeaderHeadT
 }
 
 // parseLeaderTraits - SimpleCivPicker
-void CvGameTextMgr::parseLeaderShortTraits(CvWStringBuffer &szHelpString, LeaderHeadTypes eLeader)
+void CvGameTextMgr::parseLeaderShortTraits(CvWStringBuffer &szHelpString,
+	LeaderHeadTypes eLeader)
 {
 	PROFILE_FUNC();
 
@@ -5850,7 +5853,8 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 		szInfoText.append(szBuffer);
 
 		// Free Techs
-		szBuffer.Format(NEWLINE SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"),
+		szBuffer.Format(NEWLINE SETCOLR L"%s" ENDCOLR,
+				TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"),
 				gDLL->getText("TXT_KEY_FREE_TECHS").GetCString());
 		szInfoText.append(szBuffer);
 
@@ -5890,7 +5894,8 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 	// Unique Units
 	bool bFound = false;
 	FOR_EACH_ENUM(UnitClass)
-	{	// advc: These were switched, but perhaps on purpose. So I switch them again when they're used.
+	{	/*	advc: These were switched, but perhaps on purpose.
+			So I switch them again when they're used. */
 		UnitTypes eUniqueUnit = GC.getInfo(eCivilization).
 				getCivilizationUnits(eLoopUnitClass);
 		UnitTypes eDefaultUnit = GC.getInfo(eLoopUnitClass).getDefaultUnit();
@@ -5935,14 +5940,16 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 	{	// advc: These two variables were switched
 		BuildingTypes eUniqueBuilding = GC.getInfo(eCivilization).
 				getCivilizationBuildings(eLoopBuildingClass);
-		BuildingTypes eDefaultBuilding = GC.getInfo(eLoopBuildingClass).getDefaultBuilding();
+		BuildingTypes eDefaultBuilding = GC.getInfo(eLoopBuildingClass).
+				getDefaultBuilding();
 		if (/*eDefaultBuilding != NO_BUILDING &&*/ // advc.004: Include UB w/o a default building
 			eUniqueBuilding != NO_BUILDING && eDefaultBuilding != eUniqueBuilding)
 		{	// advc: Moved into new function
 			appendUniqueDesc(szInfoText, bFound, bDawnOfMan, bLinks,
 					GC.getInfo(eUniqueBuilding).getDescription(),
-					// advc.004:
-					eDefaultBuilding == NO_BUILDING ? NULL : GC.getInfo(eDefaultBuilding).getDescription());
+					// <advc.004>
+					eDefaultBuilding == NO_BUILDING ? NULL :
+					GC.getInfo(eDefaultBuilding).getDescription()); // </advc.004>
 			bFound = true;
 		}
 	}
@@ -5969,7 +5976,8 @@ void CvGameTextMgr::appendUniqueDesc(CvWStringBuffer& szBuffer, bool bSeparator,
 		szBuffer.append(szTmp);
 		if (szDefaultDesc != NULL)
 		{
-			szTmp.Format(!bLinks ? L" - (%s)" : L" - (<link=literal>%s</link>)", szDefaultDesc);
+			szTmp.Format(!bLinks ? L" - (%s)" : L" - (<link=literal>%s</link>)",
+					szDefaultDesc);
 			szBuffer.append(szTmp);
 		}
 	}
@@ -5986,7 +5994,8 @@ void CvGameTextMgr::appendUniqueDesc(CvWStringBuffer& szBuffer, bool bSeparator,
 }
 
 
-void CvGameTextMgr::parseSpecialistHelp(CvWStringBuffer &szHelpString, SpecialistTypes eSpecialist, CvCity* pCity, bool bCivilopediaText)
+void CvGameTextMgr::parseSpecialistHelp(CvWStringBuffer &szHelpString,
+	SpecialistTypes eSpecialist, CvCity* pCity, bool bCivilopediaText)
 {
 	PROFILE_FUNC();
 
@@ -6020,7 +6029,8 @@ void CvGameTextMgr::parseSpecialistHelp(CvWStringBuffer &szHelpString, Specialis
 			{
 				if (GC.getGame().getActivePlayer() == NO_PLAYER)
 				{
-					aiCommerces[eLoopCommerce] = kSpecialist.getCommerceChange(eLoopCommerce);
+					aiCommerces[eLoopCommerce] = kSpecialist.getCommerceChange(
+							eLoopCommerce);
 				}
 				else
 				{
@@ -6062,7 +6072,8 @@ void CvGameTextMgr::parseSpecialistHelp(CvWStringBuffer &szHelpString, Specialis
 
 		// BUG - Specialist Actual Effects - start
 		if (pCity != NULL &&
-			(GC.altKey() || BUGOption::isEnabled("MiscHover__SpecialistActualEffects", false)) &&
+			(GC.altKey() ||
+			BUGOption::isEnabled("MiscHover__SpecialistActualEffects", false)) &&
 			(pCity->getOwner() == GC.getGame().getActivePlayer() ||
 			//gDLL->getChtLvl() > 0))
 			GC.getGame().isDebugMode())) // advc.135c
@@ -6085,16 +6096,19 @@ void CvGameTextMgr::parseSpecialistHelp(CvWStringBuffer &szHelpString, Specialis
 				int aiCommerces[NUM_COMMERCE_TYPES];
 				FOR_EACH_ENUM(Commerce)
 				{
-					aiCommerces[eLoopCommerce] = pCity->getAdditionalCommerceTimes100BySpecialist(
+					aiCommerces[eLoopCommerce] = pCity->
+							getAdditionalCommerceTimes100BySpecialist(
 							eLoopCommerce, eSpecialist);
 				}
 				bStarted = setResumableCommerceTimes100ChangeHelp(szHelpString, szStart,
 						L": ", L"", aiCommerces, false, bStarted);
 			}
 			// Great People
-			int iGreatPeopleRate = pCity->getAdditionalGreatPeopleRateBySpecialist(eSpecialist);
+			int iGreatPeopleRate = pCity->
+					getAdditionalGreatPeopleRateBySpecialist(eSpecialist);
 			bStarted = setResumableValueChangeHelp(szHelpString, szStart, L": ", L"",
-					iGreatPeopleRate, gDLL->getSymbolID(GREAT_PEOPLE_CHAR), false, false, bStarted);
+					iGreatPeopleRate, gDLL->getSymbolID(
+					GREAT_PEOPLE_CHAR), false, false, bStarted);
 
 			if (bStarted)
 				szHelpString.append(L")" ENDCOLR);
@@ -6108,59 +6122,54 @@ void CvGameTextMgr::parseSpecialistHelp(CvWStringBuffer &szHelpString, Specialis
 	}
 }
 
-void CvGameTextMgr::parseFreeSpecialistHelp(CvWStringBuffer &szHelpString, const CvCity& kCity)
+void CvGameTextMgr::parseFreeSpecialistHelp(CvWStringBuffer &szHelpString,
+	CvCity const& kCity)
 {
 	PROFILE_FUNC();
 
-	for (int iLoopSpecialist = 0; iLoopSpecialist < GC.getNumSpecialistInfos(); iLoopSpecialist++)
+	FOR_EACH_ENUM2(Specialist, eSpecialist)
 	{
-		SpecialistTypes eSpecialist = (SpecialistTypes)iLoopSpecialist;
 		int iNumSpecialists = kCity.getFreeSpecialistCount(eSpecialist);
 
 		if (iNumSpecialists > 0)
 		{
-			int aiYields[NUM_YIELD_TYPES];
-			int aiCommerces[NUM_COMMERCE_TYPES];
-
 			szHelpString.append(NEWLINE);
-			szHelpString.append(CvWString::format(L"%s (%d): ", GC.getInfo(eSpecialist).getDescription(), iNumSpecialists));
-
-			for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
+			szHelpString.append(CvWString::format(L"%s (%d): ",
+					GC.getInfo(eSpecialist).getDescription(), iNumSpecialists));
+			int aiYields[NUM_YIELD_TYPES];
+			FOR_EACH_ENUM(Yield)
 			{
-				aiYields[iI] = iNumSpecialists * GET_PLAYER(kCity.getOwner()).specialistYield(eSpecialist, ((YieldTypes)iI));
+				aiYields[eLoopYield] = iNumSpecialists * GET_PLAYER(kCity.getOwner()).
+						specialistYield(eSpecialist, eLoopYield);
 			}
-
 			CvWStringBuffer szYield;
 			setYieldChangeHelp(szYield, L"", L"", L"", aiYields, false, false);
 			szHelpString.append(szYield);
-
-			for (int iI = 0; iI < NUM_COMMERCE_TYPES; ++iI)
+			int aiCommerces[NUM_COMMERCE_TYPES];
+			FOR_EACH_ENUM(Commerce)
 			{
-				aiCommerces[iI] = iNumSpecialists * GET_PLAYER(kCity.getOwner()).specialistCommerce(eSpecialist, ((CommerceTypes)iI));
+				aiCommerces[eLoopCommerce] = iNumSpecialists * GET_PLAYER(kCity.getOwner()).
+						specialistCommerce(eSpecialist, eLoopCommerce);
 			}
-
 			CvWStringBuffer szCommerceString;
 			setCommerceChangeHelp(szCommerceString, L"", L"", L"", aiCommerces, false, false);
 			if (!szYield.isEmpty() && !szCommerceString.isEmpty())
-			{
 				szHelpString.append(L", ");
-			}
 			szHelpString.append(szCommerceString);
-
 			if (GC.getInfo(eSpecialist).getExperience() > 0)
-			{
-				if (!szYield.isEmpty() || !szCommerceString.isEmpty()) // kmodx: was !szYield.isEmpty()
-				{
+			{	// kmodx: was !szYield.isEmpty()
+				if (!szYield.isEmpty() || !szCommerceString.isEmpty())
 					szHelpString.append(L", ");
-				}
-				szHelpString.append(gDLL->getText("TXT_KEY_SPECIALIST_EXPERIENCE_SHORT", iNumSpecialists * GC.getInfo(eSpecialist).getExperience()));
+				szHelpString.append(gDLL->getText("TXT_KEY_SPECIALIST_EXPERIENCE_SHORT",
+						iNumSpecialists * GC.getInfo(eSpecialist).getExperience()));
 			}
 		}
 	}
 }
 
 
-void CvGameTextMgr::parsePromotionHelp(CvWStringBuffer &szBuffer, PromotionTypes ePromo, const wchar* pcNewline)
+void CvGameTextMgr::parsePromotionHelp(CvWStringBuffer &szBuffer,
+	PromotionTypes ePromo, const wchar* pcNewline)
 {
 	PROFILE_FUNC();
 
@@ -16316,7 +16325,8 @@ void CvGameTextMgr::parseLeaderHeadHelp(CvWStringBuffer &szBuffer, PlayerTypes e
 	if (!kThisTeam.isHasMet(eOtherTeam))
 		return;
 	getVassalInfoString(szBuffer, eThisPlayer); // K-Mod
-	// disabled by K-Mod. (The player should not be told exactly how many espionage points everyone has.)
+	/*	disabled by K-Mod. (The player should not be told
+		exactly how many espionage points everyone has.) */
 	//getEspionageString(szBuffer, eThisPlayer, eOtherPlayer);
 	if (eOtherPlayer != eThisPlayer)
 	{
@@ -16324,7 +16334,8 @@ void CvGameTextMgr::parseLeaderHeadHelp(CvWStringBuffer &szBuffer, PlayerTypes e
 		getActiveDealsString(szBuffer, eThisPlayer, eOtherPlayer);
 	}
 	getWarWearinessString(szBuffer, eThisPlayer, eOtherPlayer);
-	// K-Mod. Allow the "other relations string" to display even if eOtherPlayer == eThisPlayer. It's useful info.
+	/*	K-Mod. Allow the "other relations string" to display
+		even if eOtherPlayer == eThisPlayer. It's useful info. */
 	getOtherRelationsString(szBuffer, eThisPlayer, eOtherPlayer);
 }
 
