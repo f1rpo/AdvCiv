@@ -461,7 +461,8 @@ public:
 	{
 		return (getImprovementType() != NO_IMPROVEMENT);
 	} // </advc>
-	void setImprovementType(ImprovementTypes eNewValue);											// Exposed to Python
+	void setImprovementType(ImprovementTypes eNewValue,												// Exposed to Python
+			bool bUpdateInFoW = false); // advc.055
 	// advc.inl
 	inline RouteTypes getRouteType() const															// Exposed to Python
 	{

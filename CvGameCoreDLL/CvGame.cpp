@@ -6761,6 +6761,23 @@ void CvGame::doDeals()
 	// K-Mod end
 }
 
+// advc.055: For doGlobalWarming (needs to have external linkage)
+namespace
+{
+	struct PreGWPlot
+	{
+		PreGWPlot(CvPlot const* pPlot, // No reference b/c need copy-ctor
+			TerrainTypes eTerrain, FeatureTypes eFeature, ImprovementTypes eImprovement)
+		:	pPlot(pPlot),
+			eTerrain(eTerrain), eFeature(eFeature), eImprovement(eImprovement)
+		{}
+		CvPlot const* pPlot;
+		TerrainTypes eTerrain;
+		FeatureTypes eFeature;
+		ImprovementTypes eImprovement;
+	};
+}
+
 /*  K-Mod, 5/dec/10, karadoc
 	complete rewrite of global warming, using some features from 'GWMod' by M.A. */
 void CvGame::doGlobalWarming()
@@ -6828,7 +6845,8 @@ void CvGame::doGlobalWarming()
 	// advc.055:
 	static bool const bPROTECT_FEATURE_ON_NON_DRY_TERRAIN = GC.getDefineBOOL("PROTECT_FEATURE_ON_NON_DRY_TERRAIN");
 
-	// Global Warming
+	// advc.055:
+	std::vector<PreGWPlot> aChangedPlots;
 	bool bSoundPlayed = false; // advc.002l
 	for (int i = 0; i < iGlobalWarmingRolls; i++)
 	{
@@ -6844,14 +6862,18 @@ void CvGame::doGlobalWarming()
 		if (pPlot == NULL)
 			continue;
 		// <advc.055>
-		FeatureTypes const eFeature = pPlot->getFeatureType();
 		TerrainTypes const eTerrain = pPlot->getTerrainType();
+		FeatureTypes const eFeature = pPlot->getFeatureType();
+		ImprovementTypes const eImprov = pPlot->getImprovementType();
+		// Just for the announcements
+		PreGWPlot preGWPlot(pPlot, eTerrain, eFeature, eImprov);
 		bool bProtectFeature = false;
 		CvFeatureInfo const* pProtectedFeature = NULL;
-		if (pPlot->isImproved() && eFeature != NO_FEATURE)
+		if (eImprov != NO_IMPROVEMENT && eFeature != NO_FEATURE)
 		{
-			if (::bernoulliSuccess(GC.getInfo(pPlot->getImprovementType()).
-				get(CvImprovementInfo::GWFeatureProtection) / 100.0))
+			if (per100(GC.getInfo(eImprov).get(
+				CvImprovementInfo::GWFeatureProtection)).bernoulliSuccess(
+				getSRand(), "GWFeatureProtection"))
 			{
 				bProtectFeature = true;
 				pProtectedFeature = &GC.getInfo(eFeature);
@@ -6918,30 +6940,19 @@ void CvGame::doGlobalWarming()
 		if (bChanged)
 		{
 			// only destroy the improvement if the new terrain cannot support it
-			if (!pPlot->canHaveImprovement(pPlot->getImprovementType()),
+			if (!pPlot->canHaveImprovement(eImprov),
 				NO_BUILD, false) // kekm.9
 			{
-				pPlot->setImprovementType(NO_IMPROVEMENT);
+				pPlot->setImprovementType(NO_IMPROVEMENT, /* advc.055: */ true);
 			}  // <advc.055>
 			if (!pPlot->canHaveFeature(eFeature, true))
 			{
 				pPlot->setFeatureType(NO_FEATURE);
 				FAssert(!bProtectFeature);
-			} // </advc.055>
-			CvCity* pCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY(),
-					NO_PLAYER, NO_TEAM, false);
-			if (pCity != NULL)
-			{
-				if (pPlot->isVisible(pCity->getTeam()))
-				{
-					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY",
-							pCity->getNameKey());
-					gDLL->UI().addMessage(pCity->getOwner(), false, -1, szBuffer, *pPlot,
-							bSoundPlayed ? NULL : // advc.002l
-							"AS2D_SQUISH", MESSAGE_TYPE_INFO, NULL, GC.getColorType("RED"));
-					bSoundPlayed = true; // advc.002l: Once is enough
-				}
 			}
+			aChangedPlots.push_back(preGWPlot);
+			// Do the announcements in a separate loop
+			// </advc.055>
 			changeGwEventTally(1);
 		}
 	}
@@ -6951,6 +6962,150 @@ void CvGame::doGlobalWarming()
 		changeGlobalWarmingIndex(-getGlobalWarmingIndex() *
 				GC.getDefineINT("GLOBAL_WARMING_RESTORATION_RATE", 0)/100);
 	}
+	// <advc.055>
+	/*	advc.706 (note): These will be shortlived INFO-type messages,
+		no need to store those at AI players.  */
+	for (PlayerIter<HUMAN> itPlayer; itPlayer.hasNext(); ++itPlayer)
+	{
+		std::vector<std::pair<CvCity const*,PreGWPlot> >
+				aAffectedTeamCities, aAffectedRivalCities;
+		int iMelted = 0;
+		for (size_t i = 0; i < aChangedPlots.size(); i++)
+		{
+			CvPlot const& kPlot = *aChangedPlots[i].pPlot;
+			if (!kPlot.isRevealed(itPlayer->getTeam()))
+				continue;
+			CvCity const* pCity = GC.getMap().findCity(kPlot.getX(), kPlot.getY(),
+					NO_PLAYER, NO_TEAM, false); // (as in K-Mod)
+			{
+				bool bNearCity = (pCity != NULL &&
+						(kPlot.getRevealedOwner(itPlayer->getTeam()) != NO_PLAYER ||
+						plotDistance(&kPlot, pCity->plot()) <= CITY_PLOTS_RADIUS + 1));
+				if (!bNearCity && aChangedPlots[i].eFeature == eColdFeature &&
+					//aChangedPlots[i].eTerrain == GC.getWATER_TERRAIN(false)
+					// Better for maps that might have Antarctica as a landmass
+					kPlot.isWater())
+				{
+					iMelted++;
+					continue;
+				}
+			}
+			if (pCity == NULL) // Can't describe the affected tile w/o a city
+			{
+				FAssert(itPlayer->getNumCities() == 0);
+				continue;
+			}
+			(pCity->getTeam() == itPlayer->getTeam() ?
+					aAffectedTeamCities : aAffectedRivalCities).push_back(
+					std::make_pair(pCity, aChangedPlots[i]));
+		}
+		int const iMaxRivalCityAnnouncements = 1;
+		for (int iPass = 0; iPass < 2; iPass++)
+		{
+			bool const bTeamCities = (iPass == 0);
+			std::vector<std::pair<CvCity const*,PreGWPlot> >&
+					kAffectedCities = (bTeamCities ?
+					aAffectedTeamCities : aAffectedRivalCities);
+			if (!bTeamCities && kAffectedCities.size() > iMaxRivalCityAnnouncements)
+				continue;
+			for (size_t i = 0; i < kAffectedCities.size(); i++)
+			{
+				CvPlot const& kPlot = *kAffectedCities[i].second.pPlot;
+				CvCity const& kCity = *kAffectedCities[i].first;
+				TerrainTypes const eOldTerrain = kAffectedCities[i].second.eTerrain;
+				FeatureTypes const eOldFeature = kAffectedCities[i].second.eFeature;
+				ImprovementTypes const eOldImprov = kAffectedCities[i].second.eImprovement;
+				CvWString szBuffer = gDLL->getText(
+						bTeamCities ?
+						"TXT_KEY_MISC_GLOBAL_WARMING_NEAR_YOUR_CITY" :
+						"TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY",
+						kCity.getNameKey());
+				std::vector<CvWString> aszGWEffects;
+				if (eOldTerrain != kPlot.getTerrainType())
+				{
+					aszGWEffects.push_back(gDLL->getText(
+							"TXT_KEY_GW_TERRAIN_OR_FEATURE_CHANGED",
+							GC.getInfo(eOldTerrain).getDescription(),
+							GC.getInfo(kPlot.getTerrainType()).getDescription()));
+				}
+				FeatureTypes const eNewFeature = kPlot.getFeatureType();
+				if (eOldFeature != eNewFeature)
+				{
+					if (eOldFeature != NO_FEATURE && eNewFeature != NO_FEATURE)
+					{
+						aszGWEffects.push_back(gDLL->getText(
+								"TXT_KEY_GW_TERRAIN_OR_FEATURE_CHANGED",
+								GC.getInfo(eOldFeature).getDescription(),
+								GC.getInfo(eNewFeature).getDescription()));
+					}
+					else if (eNewFeature == NO_FEATURE)
+					{
+						aszGWEffects.push_back(gDLL->getText(
+								"TXT_KEY_GW_DESTROYED",
+								GC.getInfo(eOldFeature).getDescription()));
+					}
+					else // Can't currently happen
+					{
+						aszGWEffects.push_back(gDLL->getText(
+								"TXT_KEY_GW_CREATED",
+								GC.getInfo(eNewFeature).getDescription()));
+					}
+				}
+				/*	Fog of war is currently not a concern because improvements
+					only get destroyed when the new terrain type (not subject to
+					fog of war) mandates it. */
+				ImprovementTypes const eNewImprov = kPlot.getImprovementType();
+				if (eOldImprov != eNewImprov && eNewImprov == NO_IMPROVEMENT)
+				{
+					aszGWEffects.push_back(gDLL->getText(
+							"TXT_KEY_GW_DESTROYED",
+							GC.getInfo(eOldImprov).getDescription()));
+				}
+				bool bFirst = true;
+				for (size_t j = 0; j < aszGWEffects.size(); j++)
+				{
+					setListHelp(szBuffer, L" (", aszGWEffects[j].c_str(), L", ", bFirst);
+					bFirst = false;
+				}
+				if (!bFirst)
+					szBuffer.append(L")");
+				bool bPlaySound = (!bSoundPlayed && // advc.002l
+						bTeamCities);
+				gDLL->UI().addMessage(itPlayer->getID(),
+						false, -1, szBuffer, kPlot, // (as in K-Mod)
+						bPlaySound ? NULL : // advc.002l
+						"AS2D_SQUISH");
+				bSoundPlayed = bPlaySound; // advc.002l: Once is enough			
+			}
+		}
+		// Too many events near rival cities to announce them separately
+		if (aAffectedRivalCities.size() > iMaxRivalCityAnnouncements)
+		{
+			CvWString szBuffer = gDLL->getText(
+					"TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITIES");
+			bool bFirst = true;
+			for (size_t i = 0; i < aAffectedRivalCities.size(); i++)
+			{
+				setListHelp(szBuffer, L" ", aAffectedRivalCities[i].first->getName(),
+						L", ", bFirst);
+				bFirst = false;
+			}
+			if (!bFirst)
+				szBuffer.append(L".");
+			gDLL->UI().addMessage(itPlayer->getID(), false, -1, szBuffer);
+		}
+		if (iMelted > 0)
+		{
+			CvWString szBuffer = gDLL->getText(
+					"TXT_KEY_GW_MELTED",
+					GC.getInfo(eColdFeature).getDescription(),
+					iMelted,
+					/*	It might be shallow water - but probably isn't,
+						and calling it deep gets across that it's far away. */
+					GC.getInfo(GC.getWATER_TERRAIN(false)).getDescription());
+			gDLL->UI().addMessage(itPlayer->getID(), false, -1, szBuffer);
+		}
+	} // </advc.055>
 }
 
 // Choose the best plot for global warming to strike from a set of iPool random plots

@@ -4380,7 +4380,8 @@ void CvPlot::setBonusType(BonusTypes eNewValue)
 }
 
 
-void CvPlot::setImprovementType(ImprovementTypes eNewValue)
+void CvPlot::setImprovementType(ImprovementTypes eNewValue,
+	bool bUpdateInFoW) // advc.055
 {
 	ImprovementTypes const eOldImprovement = getImprovementType();
 	if(getImprovementType() == eNewValue)
@@ -4412,7 +4413,10 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue)
 	for (TeamIter<ALIVE> it; it.hasNext(); ++it)
 	{
 		TeamTypes const eTeam = it->getID();
-		if (isVisible(eTeam))
+		// <advc>
+		if (!isRevealed(eTeam))
+			continue; // </advc>
+		if (isVisible(eTeam) || /* advc.055: */ bUpdateInFoW)
 			setRevealedImprovementType(eTeam, getImprovementType());
 		/*	<advc.183> Can't keep destroyed forts secret now that air movement is
 			based on the revealed improvement type (cf. CvUnit::canMoveInto). */

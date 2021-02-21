@@ -6044,6 +6044,65 @@
 		<Italian>[ICON_BULLET]%d%% di possibilità di proteggere le caratteristiche del terreno dal riscaldamento globale</Italian>
 		<Spanish>[ICON_BULLET]%d%% de probabilidad de proteger los accidentes del terreno del calentamiento global</Spanish>
 	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GW_TERRAIN_OR_FEATURE_CHANGED</Tag>
+		<English>%s1 to %s2</English>
+		<French>%s1 à %s2</French>
+		<German>%s1 zu %s2</German>
+		<Italian>%s1 a %s2</Italian>
+		<Spanish>%s1 en %s2</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_MISC_DESTROYED_CITY (Civ4GameTextInfos.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_GW_DESTROYED</Tag>
+		<English>%s1 destroyed</English>
+		<French>%s1 d&#233;truit</French>
+		<German>%s1 zerstört</German>
+		<Italian>%s1 distrutto</Italian>
+		<Spanish>%s1 destruido</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GW_CREATED</Tag>
+		<English>%s1 created</English>
+		<French>créé: %s1</French>
+		<German>%s1 entstanden</German>
+		<Italian>creato: %s1</Italian>
+		<Spanish>creado: %s1</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GW_MELTED</Tag>
+		<English>%s1 has melted in %d2 %s3 [NUM2:tile:tiles]</English>
+		<French>%s1 a fondu dans %s3 [NUM2:case:cases] de %d2</French>
+		<German>%s1 ist geschmolzen auf %d2 %s3-[NUM2:Feld:Feldern]</German>
+		<Italian>%s1 si è sciolto in %d2 [NUM2:casella:caselle] di %s3</Italian>
+		<Spanish>%s1 se ha derretido en %d2 [NUM2:casilla:casillas] de %s3</Spanish>
+	</TEXT>
+	<!-- From Civ4GameTextInfos.xml. Remove exclamation marks.
+		 Shorten German translation. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITY</Tag>
+		<English>Global Warming strikes near %s1_CityName</English>
+		<French>R&#233;chauffement plan&#233;taire pr&#232;s de %s1_CityName</French>
+		<German>Nahe %s1_CityName zeigen sich Folgen der Erderw&#228;rmung</German>
+		<Italian>Gli effetti del riscaldamento globale colpiscono %s1_CityName</Italian>
+		<Spanish>El calentamiento global causa efecto cerca de %s1_CityName</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_GLOBAL_WARMING_NEAR_YOUR_CITY</Tag>
+		<English>[COLOR_WARNING_TEXT]Global Warming[COLOR_REVERT] strikes near %s1_CityName!</English>
+		<French>[COLOR_WARNING_TEXT]Alerte ![COLOR_REVERT] R&#233;chauffement plan&#233;taire pr&#232;s de %s1_CityName !</French>
+		<German>Folgen der [COLOR_WARNING_TEXT]Erderw&#228;rmung[COLOR_REVERT] zeigen sich nahe %s1_CityName!</German>
+		<Italian>Gli effetti del [COLOR_WARNING_TEXT]riscaldamento[COLOR_REVERT] globale colpiscono %s1_CityName!</Italian>
+		<Spanish>El [COLOR_WARNING_TEXT]calentamiento[COLOR_REVERT] global causa efecto cerca de %s1_CityName</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_GLOBAL_WARMING_NEAR_CITIES</Tag>
+		<English>Global Warming strikes near</English>
+		<French>R&#233;chauffement plan&#233;taire pr&#232;s de</French>
+		<German>Folgen der Erderw&#228;rmung zeigen sich nahe</German>
+		<Italian>Gli effetti del riscaldamento globale colpiscono vicino a</Italian>
+		<Spanish>El calentamiento global causa efecto cerca de</Spanish>
+	</TEXT>
 
 	<!-- advc.901: Replacing TXT_KEY_MISC_FEATURES 
 		 (CIV4GameTextInfos_Objects.xml) -->
