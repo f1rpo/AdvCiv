@@ -179,8 +179,8 @@ public:
 	/*	(advc.pf: BBAI path distance functions moved to CvTeamAI.
 		calculatePathDistanceToPlot first turned into CvMap::calculateTeamPathDistance,
 		then deleted on 21 Oct 2020 and replaced with TeamPathFinder.) */
-	// BETTER_BTS_AI_MOD, Efficiency, 08/21/09, jdog5000: START
-	// Plot danger cache (rewritten for K-Mod to fix bugs and improvement performance)
+	/*	BETTER_BTS_AI_MOD, Efficiency, 08/21/09, jdog5000: START
+		Plot danger cache (rewritten for K-Mod to fix bugs and improvement performance) */
 	inline int getActivePlayerSafeRangeCache() const
 	{
 		return m_iActivePlayerSafeRangeCache;

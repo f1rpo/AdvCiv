@@ -6538,8 +6538,11 @@ void CvPlot::doFeature()
 		{
 			if (!canHaveFeature(eLoopFeature))
 				continue;
-			if (getBonusType() != NO_BONUS && !GC.getInfo(getBonusType()).isFeature(eLoopFeature))
+			if (getBonusType() != NO_BONUS &&
+				!GC.getInfo(getBonusType()).isFeature(eLoopFeature))
+			{
 				continue;
+			}
 			int iProbability = 0;
 			FOR_EACH_ORTH_ADJ_PLOT(*this)
 			{

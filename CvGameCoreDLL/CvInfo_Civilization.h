@@ -196,8 +196,8 @@ public: // advc: All the const functions are exposed to Python except those adde
 	int getPermanentAllianceRefuseAttitudeThreshold() const { return m_iPermanentAllianceRefuseAttitudeThreshold; }
 	int getVassalRefuseAttitudeThreshold() const { return m_iVassalRefuseAttitudeThreshold; }
 	int getVassalPowerModifier() const { return m_iVassalPowerModifier; }
-	int getFavoriteCivic() const { return m_iFavoriteCivic; }
-	int getFavoriteReligion() const { return m_iFavoriteReligion; }
+	CivicTypes getFavoriteCivic() const { return m_eFavoriteCivic; }
+	ReligionTypes getFavoriteReligion() const { return m_eFavoriteReligion; }
 	int getFreedomAppreciation() const { return m_iFreedomAppreciation; }
 	int getLoveOfPeace() const { return m_iLoveOfPeace; } // advc.104
 
@@ -315,8 +315,8 @@ protected:
 	int m_iVassalPowerModifier;
 	int m_iFreedomAppreciation;
 	int m_iLoveOfPeace; // advc.104
-	int m_iFavoriteCivic;
-	int m_iFavoriteReligion;
+	CivicTypes m_eFavoriteCivic;
+	ReligionTypes m_eFavoriteReligion;
 
 	CvString m_szArtDefineTag;
 

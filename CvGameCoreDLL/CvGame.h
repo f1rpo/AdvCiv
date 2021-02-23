@@ -621,7 +621,7 @@ public:
 	bool isReligionSlotTaken(ReligionTypes eReligion) const; // Exposed to Python
 	void setReligionSlotTaken(ReligionTypes eReligion, bool bTaken);
 
-	CvCity* getHolyCity(ReligionTypes eIndex);																	// Exposed to Python
+	CvCity* getHolyCity(ReligionTypes eIndex) const;									// Exposed to Python
 	void setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce);	// Exposed to Python
 
 	int getCorporationGameTurnFounded(CorporationTypes eIndex) const; // Exposed to Python

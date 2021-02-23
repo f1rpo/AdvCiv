@@ -473,7 +473,9 @@ void CvCity::doTurn()
 	doGrowth();
 	doCulture();
 	//doPlotCulture(false, kOwner.getID(), getCommerceRate(COMMERCE_CULTURE));
-	doPlotCultureTimes100(false, kOwner.getID(), getCommerceRateTimes100(COMMERCE_CULTURE), true); // K-Mod
+	// <K-Mod>
+	doPlotCultureTimes100(false, kOwner.getID(),
+			getCommerceRateTimes100(COMMERCE_CULTURE), true); // </K-Mod>
 	doProduction(!bForceProduction);
 	doDecay();
 	doReligion();
@@ -504,10 +506,14 @@ void CvCity::doTurn()
 				if(m_bMostRecentUnit)
 					eMostRecentUnit = (UnitTypes)m_iMostRecentOrder;
 				else if(m_iMostRecentOrder >= GC.getNumBuildingInfos())
-					eMostRecentProject = (ProjectTypes)(m_iMostRecentOrder - GC.getNumBuildingInfos());
+				{
+					eMostRecentProject = (ProjectTypes)
+							(m_iMostRecentOrder - GC.getNumBuildingInfos());
+				}
 				else eMostRecentBuilding = (BuildingTypes)m_iMostRecentOrder;
 			}
-			chooseProduction(eMostRecentUnit, eMostRecentBuilding, eMostRecentProject, m_iMostRecentOrder >= 0);
+			chooseProduction(eMostRecentUnit, eMostRecentBuilding,
+					eMostRecentProject, m_iMostRecentOrder >= 0);
 		}
 	} // </advc.004x>
 	if (getCultureUpdateTimer() > 0)
@@ -541,9 +547,11 @@ void CvCity::doTurn()
 	if (isOccupation() || (angryPopulation() > 0) || (healthRate() < 0))
 		setWeLoveTheKingDay(false);
 	else if (getPopulation() >= GC.getDefineINT("WE_LOVE_THE_KING_POPULATION_MIN_POPULATION") &&
-			GC.getGame().getSorenRandNum(GC.getDefineINT(
-			"WE_LOVE_THE_KING_RAND"), "Do We Love The King?") < getPopulation())
+		GC.getGame().getSorenRandNum(GC.getDefineINT(
+		"WE_LOVE_THE_KING_RAND"), "Do We Love The King?") < getPopulation())
+	{
 		setWeLoveTheKingDay(true);
+	}
 	else setWeLoveTheKingDay(false);
 
 	CvEventReporter::getInstance().cityDoTurn(this, kOwner.getID());
@@ -10648,7 +10656,8 @@ void CvCity::doDecay()
 					int iProduction = getBuildingProduction(eLoopBuilding);
 					int const iDecayPercent = GC.getDefineINT("BUILDING_PRODUCTION_DECAY_PERCENT");
 					setBuildingProduction(eLoopBuilding, iProduction -
-							(iProduction * (100 - iDecayPercent) + iGameSpeedPercent - 1) / iGameSpeedPercent);
+							(iProduction * (100 - iDecayPercent) + iGameSpeedPercent - 1) /
+							iGameSpeedPercent);
 				}
 			}
 		}
@@ -10672,7 +10681,8 @@ void CvCity::doDecay()
 						int iProduction = getUnitProduction(eLoopUnit);
 						int const iDecayPercent = GC.getDefineINT("UNIT_PRODUCTION_DECAY_PERCENT");
 						setUnitProduction(eLoopUnit, iProduction -
-								(iProduction * (100 - iDecayPercent) + iGameSpeedPercent - 1) / iGameSpeedPercent);
+								(iProduction * (100 - iDecayPercent) + iGameSpeedPercent - 1) /
+								iGameSpeedPercent);
 					}
 				}
 			}
@@ -10688,14 +10698,16 @@ void CvCity::doReligion()
 		return;
 
 	// gives some of the top religions a shot at spreading to the city.
-	int iChances = 1 + (getCultureLevel() >= 4 ? 1 : 0) + (getPopulation() + 3) / 8 - getReligionCount();
+	int iChances = 1 + (getCultureLevel() >= 4 ? 1 : 0) +
+			(getPopulation() + 3) / 8 - getReligionCount();
 	// (breakpoints at pop = 5, 13, 21, ...)
 
 	if (iChances <= 0)
 		return;
 
 	std::vector<std::pair<int, ReligionTypes> > religion_grips;
-	ReligionTypes eWeakestReligion = NO_RELIGION; // weakest religion already in the city
+	// weakest religion already in the city
+	ReligionTypes eWeakestReligion = NO_RELIGION;
 	int iWeakestGrip = MAX_INT;
 	static int const iRandomWeight = GC.getDefineINT("RELIGION_INFLUENCE_RANDOM_WEIGHT"); // advc.opt: 3x static
 	static int const iDivisorBase = GC.getDefineINT("RELIGION_SPREAD_DIVISOR_BASE");
@@ -10723,10 +10735,12 @@ void CvCity::doReligion()
 		else if (!GET_PLAYER(getOwner()).isNoNonStateReligionSpread() ||
 			GET_PLAYER(getOwner()).getStateReligion() == eLoopReligion)
 		{
-			// if we don't have the religion, and the religion is allowed to spread here, add it to the list.
+			/*	if we don't have the religion, and the religion
+				is allowed to spread here, add it to the list. */
 			int iGrip = getReligionGrip(eLoopReligion);
 			// only half the weight for self-spread
-			iGrip += GC.getGame().getSorenRandNum(iRandomWeight / 2, "Religion influence");
+			iGrip += GC.getGame().getSorenRandNum(iRandomWeight / 2,
+					"Religion influence");
 			religion_grips.push_back(std::make_pair(iGrip, eLoopReligion));
 		}
 	}
@@ -10763,9 +10777,11 @@ void CvCity::doReligion()
 				if (iSpread > 0)
 				{
 					//iSpread /= std::max(1, (((GC.getDefineINT("RELIGION_SPREAD_DISTANCE_DIVISOR") * plotDistance(getX(), getY(), pLoopCity->getX(), pLoopCity->getY())) / GC.getMap().maxPlotDistance()) - 5));
-					/*	K-Mod. The original formula basically divided the spread by the percent of max distance.
+					/*	K-Mod. The original formula basically divided the spread
+						by the percent of max distance.
 						(RELIGION_SPREAD_DISTANCE_DIVISOR == 100)
-						In my view, this produced too much spread at short distance, and too little at long. */
+						In my view, this produced too much spread at short distance
+						and too little at long. */
 					int iDivisor = std::max(1, iDivisorBase);
 					iDivisor *= 100 + 100 * iDistanceFactor *
 							plotDistance(getX(), getY(), pLoopCity->getX(), pLoopCity->getY()) /
@@ -10788,14 +10804,11 @@ void CvCity::doReligion()
 		iRandThreshold /= GC.getInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent();
 
 		// K-Mod. Give a bonus for the first few cities.
-		/* {
-			int iReligionCities = GC.getGame().countReligionLevels(eLoopReligion);
-			if (iReligionCities < 3)
-			{
-				iRandThreshold *= 2 + iReligionCities;
-				iRandThreshold /= 1 + iReligionCities;
-			}
-		} */ //
+		/*int iReligionCities = GC.getGame().countReligionLevels(eLoopReligion);
+		if (iReligionCities < 3) {
+			iRandThreshold *= 2 + iReligionCities;
+			iRandThreshold /= 1 + iReligionCities;
+		}*/ //
 
 		if (GC.getGame().getSorenRandNum(
 			GC.getDefineINT("RELIGION_SPREAD_RAND"), "Religion Spread") < iRandThreshold)

@@ -430,10 +430,10 @@ public:
 
 	ReligionTypes AI_bestReligion() const;
 	int AI_religionValue(ReligionTypes eReligion) const;
-
+	// K-Mod: moved to CvUnitAI
 	//EspionageMissionTypes AI_bestPlotEspionage(CvPlot* pSpyPlot, PlayerTypes& eTargetPlayer, CvPlot*& pPlot, int& iData) const;
-	// K-Mod has moved AI_bestPlotEspionage to CvUnitAI::
-	int AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes eMission, CvPlot* pPlot, int iData) const;
+	int AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes eMission,
+			CvPlot const& kPlot, int iData) const;
 	bool AI_isMaliciousEspionageTarget(PlayerTypes eTarget) const; // K-Mod
 
 	int AI_getPeaceWeight() const;
@@ -812,10 +812,15 @@ protected:
 	void AI_setPeacetimeTradeValue(PlayerTypes eIndex, int iVal);
 	void AI_setPeacetimeGrantValue(PlayerTypes eIndex, int iVal);
 	// </advc.130p>
-	/*	advc.130x: Mode 0: same religion, 1: different religion,
-		2: favorite civic. Returns the absolute value of the limit for the
-		time-based religion/civics relations modifier. */
-	int AI_ideologyDiploLimit(PlayerTypes eOther, int iMode) const;
+	// <advc.130x>
+	enum IdeologyDiploEffect
+	{
+		SAME_RELIGION,
+		DIFFERENT_RELIGION,
+		SAME_CIVIC
+	};
+	int AI_ideologyDiploLimit(PlayerTypes eOther, IdeologyDiploEffect eMode) const;
+	// </advc.130x>
 	// advc.130r: Are they at war with a partner of ours?
 	bool AI_atWarWithPartner(TeamTypes eOtherTeam,
 			/*  advc.130h: If CheckPartnerAttacked==true, then only partners with

@@ -5879,7 +5879,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 }
 
 
-bool CvTeam::hasShrine(ReligionTypes eReligion)
+bool CvTeam::hasShrine(ReligionTypes eReligion) const
 {
 	bool bHasShrine = false;
 

@@ -185,8 +185,8 @@ void UWAI::applyPersonalityWeight() {
 		FAssert(iMembers == -1 || iMembers == paiPersonalityVector->size());
 		iMembers = (int)paiPersonalityVector->size();
 		if(iWeight == 0) { // Clear fav. civic and religion
-			kLeader.m_iFavoriteCivic = NO_CIVIC;
-			kLeader.m_iFavoriteReligion = NO_RELIGION;
+			kLeader.m_eFavoriteCivic = NO_CIVIC;
+			kLeader.m_eFavoriteReligion = NO_RELIGION;
 		}
 	}
 	for(int j = 0; j < iMembers; j++) {

@@ -20548,7 +20548,7 @@ EspionageMissionTypes CvUnitAI::AI_bestPlotEspionage(int& iData) const
 				continue; // we can't do the mission, and cost is not the limiting factor.
 			}
 			int iValue = kOwner.AI_espionageVal(
-					eTargetPlayer, eMission, &kSpyPlot, iTestData);
+					eTargetPlayer, eMission, kSpyPlot, iTestData);
 			iValue *= 80 + GC.getGame().getSorenRandNum(60,
 					// <advc.007> Don't pollute the MPLog
 					bFirst ? "AI best espionage mission" : NULL);

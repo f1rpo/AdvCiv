@@ -479,7 +479,7 @@ public:
 	void setTurnActive(bool bNewValue, bool bTurn = true);
 	bool isTurnActive() const;
 
-	bool hasShrine(ReligionTypes eReligion);
+	bool hasShrine(ReligionTypes eReligion) const;
 
 	DllExport void getCompletedSpaceshipProjects(std::map<ProjectTypes, int>& mapProjects) const;
 	DllExport int getProjectPartNumber(ProjectTypes projectType, bool bAssert) const;

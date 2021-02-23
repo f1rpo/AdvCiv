@@ -6321,14 +6321,14 @@ void CvGame::setVoteChosen(int iSelection, int iVoteId)
 }
 
 
-CvCity* CvGame::getHolyCity(ReligionTypes eIndex)
+CvCity* CvGame::getHolyCity(ReligionTypes eIndex) const
 {
 	FAssertBounds(0, GC.getNumReligionInfos(), eIndex); // K-Mod
 	return getCity(m_paHolyCity[eIndex]);
 }
 
-
-void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce)  // advc: refactored (note: almost the same as setHeadquarters)
+// advc (note): Almost the same as setHeadquarters
+void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce)
 {
 	FAssertBounds(0, GC.getNumReligionInfos(), eIndex);
 
@@ -6393,8 +6393,8 @@ CvCity* CvGame::getHeadquarters(CorporationTypes eIndex) const
 	return getCity(m_paHeadquarters[eIndex]);
 }
 
-
-void CvGame::setHeadquarters(CorporationTypes eIndex, CvCity* pNewValue, bool bAnnounce)  // advc: refactored (note: almost the same as setHolyCity)
+// advc (note): Almost the same as setHolyCity
+void CvGame::setHeadquarters(CorporationTypes eIndex, CvCity* pNewValue, bool bAnnounce)
 {
 	FAssertBounds(0, GC.getNumCorporationInfos(), eIndex);
 

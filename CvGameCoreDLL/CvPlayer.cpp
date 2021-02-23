@@ -3550,8 +3550,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		AI().AI_changeMemoryCount(ePlayer, MEMORY_ACCEPTED_CIVIC, 1);
 		CivicMap aeNewCivics;
 		GET_PLAYER(ePlayer).getCivics(aeNewCivics);
-		CivicTypes eFavCivic = (CivicTypes)
-				GC.getInfo(getPersonalityType()).getFavoriteCivic();
+		CivicTypes eFavCivic = GC.getInfo(getPersonalityType()).getFavoriteCivic();
 		aeNewCivics.set(GC.getInfo(eFavCivic).getCivicOptionType(), eFavCivic);
 		GET_PLAYER(ePlayer).revolution(aeNewCivics, true);
 		break;

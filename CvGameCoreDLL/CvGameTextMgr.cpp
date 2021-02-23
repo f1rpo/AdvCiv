@@ -6690,7 +6690,7 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 		FOR_EACH_ENUM(Specialist)
 		{
 			if (!kCivic.isSpecialistValid(eLoopSpecialist))
-				continue; // advc
+				continue;
 			szFirstBuffer.Format(L"%s%s", NEWLINE,
 					gDLL->getText("TXT_KEY_CIVIC_UNLIMTED").c_str());
 			CvWString szSpecialist;
@@ -18892,62 +18892,71 @@ void CvGameTextMgr::getTradeScreenIcons(std::vector< std::pair<CvString, CvWidge
 
 }
 
-void CvGameTextMgr::getTradeScreenHeader(CvWString& szHeader, PlayerTypes ePlayer, PlayerTypes eOtherPlayer, bool bAttitude)
+void CvGameTextMgr::getTradeScreenHeader(CvWString& szHeader, PlayerTypes ePlayer,
+	PlayerTypes eOtherPlayer, bool bAttitude)
 {
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
-	szHeader.Format(L"%s - %s", CvWString(kPlayer.getName()).GetCString(), CvWString(kPlayer.getCivilizationDescription()).GetCString());
+	szHeader.Format(L"%s - %s", CvWString(kPlayer.getName()).GetCString(),
+			CvWString(kPlayer.getCivilizationDescription()).GetCString());
 	if (bAttitude)
 	{
-		szHeader += CvWString::format(L" (%s)", GC.getInfo(kPlayer.AI_getAttitude(eOtherPlayer)).getDescription());
+		szHeader += CvWString::format(L" (%s)", GC.getInfo(
+				kPlayer.AI_getAttitude(eOtherPlayer)).getDescription());
 	}
 }
 // BULL - Finance Advisor - start
-void CvGameTextMgr::buildFinanceSpecialistGoldString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer) {
-
+void CvGameTextMgr::buildFinanceSpecialistGoldString(CvWStringBuffer& szBuffer,
+	PlayerTypes ePlayer)
+{
 	if(ePlayer == NO_PLAYER)
 		return;
 	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
-	int* iCounts = new int[GC.getNumSpecialistInfos()]();
-	FOR_EACH_CITY(pCity, kPlayer) {
-		if(!pCity->isDisorder()) {
-			for(int i = 0; i < GC.getNumSpecialistInfos(); i++) {
-				SpecialistTypes eSpecialist = (SpecialistTypes)i;
-				iCounts[i] += pCity->getSpecialistCount(eSpecialist) +
-						pCity->getFreeSpecialistCount(eSpecialist);
+	EnumMap<SpecialistTypes,int> aiSpecialistCounts;
+	FOR_EACH_CITY(pCity, kPlayer)
+	{
+		if (!pCity->isDisorder())
+		{
+			FOR_EACH_ENUM(Specialist)
+			{
+				aiSpecialistCounts.add(eLoopSpecialist,
+						pCity->getSpecialistCount(eLoopSpecialist) +
+						pCity->getFreeSpecialistCount(eLoopSpecialist));
 			}
 		}
 	}
 	//bool bFirst = true; // advc.086
 	int iTotal = 0;
-	for(int i = 0; i < GC.getNumSpecialistInfos(); i++)
+	FOR_EACH_ENUM(Specialist)
 	{
-		SpecialistTypes eSpecialist = (SpecialistTypes)i;
-		int iGold = iCounts[i] * kPlayer.specialistCommerce(eSpecialist, COMMERCE_GOLD);
-		if(iGold != 0) {
+		int iGold = aiSpecialistCounts.get(eLoopSpecialist) *
+				kPlayer.specialistCommerce(eLoopSpecialist, COMMERCE_GOLD);
+		if (iGold != 0)
+		{
 			/*if(bFirst) {
 				szBuffer.append(NEWLINE);
 				bFirst = false;
 			}*/
 			szBuffer.append(gDLL->getText("TXT_KEY_BUG_FINANCIAL_ADVISOR_SPECIALIST_GOLD",
-					iGold, iCounts[i], GC.getInfo(eSpecialist).getDescription()));
+					iGold, aiSpecialistCounts.get(eLoopSpecialist),
+					GC.getInfo(eLoopSpecialist).getDescription()));
 			szBuffer.append(NEWLINE); // advc.086
 			iTotal += iGold;
 		}
 	}
-	szBuffer.append(gDLL->getText("TXT_KEY_BUG_FINANCIAL_ADVISOR_SPECIALIST_TOTAL_GOLD", iTotal));
-	SAFE_DELETE_ARRAY(iCounts);
+	szBuffer.append(gDLL->getText(
+			"TXT_KEY_BUG_FINANCIAL_ADVISOR_SPECIALIST_TOTAL_GOLD", iTotal));
 }
 
 void CvGameTextMgr::buildDomesticTradeString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer)
 {
 	//buildTradeString(szBuffer, ePlayer, NO_PLAYER, true, false, false);
-	// <advc.086> Replacing the above
+	// <advc.086>
 	if(ePlayer == NO_PLAYER)
 		return;
-	int foo1 = 0, foo2 = 0;
+	int iDummy1 = 0, iDummy2 = 0;
 	int iDomesticRoutes = 0, iDomesticYield = 0;
 	GET_PLAYER(ePlayer).calculateTradeTotals(YIELD_COMMERCE, iDomesticYield, iDomesticRoutes,
-			foo1, foo2, NO_PLAYER);
+			iDummy1, iDummy2, NO_PLAYER);
 	if(iDomesticRoutes > 1)
 	{
 		szBuffer.assign(gDLL->getText("TXT_KEY_BUG_FINANCIAL_ADVISOR_DOMESTIC_TRADE",
@@ -18958,13 +18967,13 @@ void CvGameTextMgr::buildDomesticTradeString(CvWStringBuffer& szBuffer, PlayerTy
 void CvGameTextMgr::buildForeignTradeString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer)
 {
 	//buildTradeString(szBuffer, ePlayer, NO_PLAYER, false, true, false);
-	// <advc.086> Replacing the above
+	// <advc.086>
 	if(ePlayer == NO_PLAYER)
 		return;
-	int foo1 = 0, foo2 = 0;
+	int iDummy1 = 0, iDummy2 = 0;
 	int iForeignRoutes = 0, iForeignYield = 0;
-	GET_PLAYER(ePlayer).calculateTradeTotals(YIELD_COMMERCE, foo1, foo2, iForeignYield,
-			iForeignRoutes, NO_PLAYER);
+	GET_PLAYER(ePlayer).calculateTradeTotals(YIELD_COMMERCE, iDummy1, iDummy2,
+			iForeignYield, iForeignRoutes, NO_PLAYER);
 	if(iForeignRoutes > 1)
 	{
 		szBuffer.assign(gDLL->getText("TXT_KEY_BUG_FINANCIAL_ADVISOR_FOREIGN_TRADE",
@@ -20559,18 +20568,17 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 	}
 }
 
-/*  <advc.004w> Based on code cut from setUnitHelp and setBasicUnitHelp (and deleted from
+/*  advc.004w: Based on code cut from setUnitHelp and setBasicUnitHelp (and deleted from
 	setBuildingHelpActual). Units and buildings have the same production speed bonuses. */
 void CvGameTextMgr::setProductionSpeedHelp(CvWStringBuffer& szBuffer,
-	/*  Making a concrete base class for CvUnitInfo and CvBuildingInfo would be
+	/*  Making a base class for CvUnitInfo and CvBuildingInfo would be
 		possible but an unreasonable effort */
 	OrderTypes eInfoType, CvInfoBase const* pInfo,
 	CvCity* pCity, bool bCivilopediaText)
 {
 	FAssert(eInfoType == ORDER_TRAIN || eInfoType == ORDER_CONSTRUCT);
-	for(int i = 0; i < GC.getNumBonusInfos(); i++)
+	FOR_EACH_ENUM2(Bonus, eBonus)
 	{
-		BonusTypes eBonus = (BonusTypes)i;
 		int iProductionModifier = 0;
 		if(eInfoType == ORDER_TRAIN)
 		{
@@ -20618,14 +20626,11 @@ void CvGameTextMgr::setProductionSpeedHelp(CvWStringBuffer& szBuffer,
 	PlayerTypes eActivePlayer = GC.getGame().getActivePlayer();
 	if(!bCivilopediaText && eActivePlayer == NO_PLAYER)
 		return;
-	for(int i = 0; i < GC.getNumTraitInfos(); i++)
+	FOR_EACH_ENUM2(Trait, eTrait)
 	{
-		TraitTypes eTrait = (TraitTypes)i;
 		if(!bCivilopediaText)
 		{
-			CvLeaderHeadInfo const& lh = GC.getInfo(
-					GET_PLAYER(eActivePlayer).getLeaderType());
-			if(!lh.hasTrait(eTrait))
+			if(!GC.getInfo(GET_PLAYER(eActivePlayer).getLeaderType()).hasTrait(eTrait))
 				continue;
 		}
 		int iProductionModifier = 0;
@@ -20660,7 +20665,7 @@ void CvGameTextMgr::setProductionSpeedHelp(CvWStringBuffer& szBuffer,
 			szBuffer.append(NEWLINE);
 			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(BULLET_CHAR)));
 		}
-		wchar const* szTrait = GC.getInfo((TraitTypes)i).getTextKeyWide();
+		wchar const* szTrait = GC.getInfo(eTrait).getTextKeyWide();
 		if(iProductionModifier == 100)
 		{
 			szBuffer.append(gDLL->getText(bCivilopediaText ?
