@@ -327,8 +327,11 @@ private:
 	// <advc.004w>
 	void setProductionSpeedHelp(CvWStringBuffer& szString, OrderTypes eInfoType,
 			CvInfoBase const* pInfo, CvCity* pCity, bool bCivilopediaText);
-	// </advc.004w>
-	// <advc.135c>
+	// </advc.004w>  <advc.001>
+	void setSpecialistLink(CvWString& szBuffer, SpecialistTypes eSpecialist,
+			bool bPlural = false);
+	void setCorporationLink(CvWString& szBuffer, CorporationTypes eCorp);
+	// </advc.001>  <advc.135c>
 	void setPlotHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
 	void setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot const& kPlot);
 	void setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot const& kPlot);

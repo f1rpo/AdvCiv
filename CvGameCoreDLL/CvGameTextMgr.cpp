@@ -6694,13 +6694,9 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 			szFirstBuffer.Format(L"%s%s", NEWLINE,
 					gDLL->getText("TXT_KEY_CIVIC_UNLIMTED").c_str());
 			CvWString szSpecialist;
-			//szSpecialist.Format(L"<link=literal>%s</link>",
-			/*	<advc.001> Link explicitly to the specialist type so that SPECIALIST_SPY
-				gets used and not UNIT_SPY. */
-			szSpecialist.Format(L"<link=%s>%s</link>",
-					CvWString(GC.getInfo(eLoopSpecialist).getType()).c_str(),
-					// </advc.001>
-					GC.getInfo(eLoopSpecialist).getDescription());
+			/*szSpecialist.Format(L"<link=literal>%s</link>",
+					GC.getSpecialistInfo(eLoopSpecialist).getDescription());*/
+			setSpecialistLink(szSpecialist, eLoopSpecialist, true); // advc.001
 			setListHelp(szHelpText, szFirstBuffer, szSpecialist, L", ", bFirst);
 		}
 	}
@@ -9824,12 +9820,19 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 	// <advc.179>
 	if(!bCivilopediaText && ePlayer != NO_PLAYER)
 		buildBuildingReligionYieldString(szBuffer, kBuilding); // </advc.179>
-	if (kBuilding.getFoundsCorporation() != NO_CORPORATION &&
-		!bInBuildingList) // advc.004w
 	{
-		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_FOUNDS_CORPORATION",
-				GC.getInfo(kBuilding.getFoundsCorporation()).getTextKeyWide()));
+		CorporationTypes eFoundsCorp = kBuilding.getFoundsCorporation();
+		if (eFoundsCorp != NO_CORPORATION &&
+			!bInBuildingList) // advc.004w
+		{
+			szBuffer.append(NEWLINE);
+			// <advc.001>
+			CvWString szCorpLink;
+			setCorporationLink(szCorpLink, eFoundsCorp); // </advc.001>
+			szBuffer.append(gDLL->getText("TXT_KEY_FOUNDS_CORPORATION",
+					//GC.getInfo(eFoundsCorp).getTextKeyWide()
+					szCorpLink.c_str())); // advc.001
+		}
 	}
 	{
 		CorporationTypes const eGlobalCommerceCorp = kBuilding.getGlobalCorporationCommerce();
@@ -10444,9 +10447,12 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 	if (kBuilding.isAnySpecialistYieldChange())
 	{
 		FOR_EACH_ENUM(Specialist)
-		{
+		{	// <advc.001>
+			CvWString szSpecialistLink;
+			setSpecialistLink(szSpecialistLink, eLoopSpecialist, true); // </advc.001>
 			szFirstBuffer = gDLL->getText("TXT_KEY_BUILDING_FROM_IN_ALL_CITIES",
-					GC.getInfo(eLoopSpecialist).getTextKeyWide());
+					//GC.getInfo(eLoopSpecialist).getTextKeyWide()
+					szSpecialistLink.c_str()); // advc.001
 			setYieldChangeHelp(szBuffer, L"", L"", szFirstBuffer,
 					kBuilding.getSpecialistYieldChangeArray(eLoopSpecialist));
 		}
@@ -10478,27 +10484,36 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 	{
 		if (kBuilding.getSpecialistCount(eLoopSpecialist) > 0)
 		{
-			if (kBuilding.getSpecialistCount(eLoopSpecialist) == 1)
+			bool const bSingular = (kBuilding.getSpecialistCount(eLoopSpecialist) == 1);
+			// <advc.001>
+			CvWString szSpecialistLink;
+			setSpecialistLink(szSpecialistLink, eLoopSpecialist, bSingular); // </advc.001>
+			szBuffer.append(NEWLINE);
+			if (bSingular)
 			{
-				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_TURN_CITIZEN_INTO",
-						GC.getInfo(eLoopSpecialist).getTextKeyWide()));
+						//GC.getInfo(eLoopSpecialist).getTextKeyWide()
+						szSpecialistLink.c_str())); // advc.001
 			}
 			else
 			{
-				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_TURN_CITIZENS_INTO",
 						kBuilding.getSpecialistCount(eLoopSpecialist),
-						GC.getInfo(eLoopSpecialist).getTextKeyWide()));
+						//GC.getInfo(eLoopSpecialist).getTextKeyWide()
+						szSpecialistLink.c_str())); // advc.001
 			}
 		}
 
 		if (kBuilding.getFreeSpecialistCount(eLoopSpecialist) > 0)
 		{
 			szBuffer.append(NEWLINE);
+			// <advc.001>
+			CvWString szSpecialistLink;
+			setSpecialistLink(szSpecialistLink, eLoopSpecialist); // </advc.001>
 			szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_FREE_SPECIALIST",
 					kBuilding.getFreeSpecialistCount(eLoopSpecialist),
-					GC.getInfo(eLoopSpecialist).getTextKeyWide()));
+					//GC.getInfo(eLoopSpecialist).getTextKeyWide()
+					szSpecialistLink.c_str())); // advc.001
 		}
 	}
 	{
@@ -13701,11 +13716,12 @@ void CvGameTextMgr::setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTyp
 		}
 		if (bCompeting)
 		{
-			CvWString szTemp = CvWString::format(L"<link=literal>%s</link>",
-					kLoopCorp.getDescription());
+			CvWString szTemp;
+			//szTemp = CvWString::format(L"<link=literal>%s</link>", kLoopCorp.getDescription());
+			setCorporationLink(szTemp, eLoopCorp); // advc.001
 			setListHelp(szBuffer,
 					gDLL->getText("TXT_KEY_CORPORATION_COMPETES").c_str(),
-					szTemp.GetCString(), L", ", bFirst);
+					szTemp.c_str(), L", ", bFirst);
 		}
 	}
 }
@@ -20683,4 +20699,25 @@ void CvGameTextMgr::setProductionSpeedHelp(CvWStringBuffer& szBuffer,
 			szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
 		}
 	}
-} // </advc.004w>
+}
+
+/*	advc.001: Need to link explicitly to the specialist type so that SPECIALIST_SPY
+	gets used and not UNIT_SPY. */
+void CvGameTextMgr::setSpecialistLink(CvWString& szBuffer, SpecialistTypes eSpecialist,
+	bool bPlural)
+{
+	CvWString szSpecialistType = GC.getInfo(eSpecialist).getType();
+	wchar const* szSpecialistDescr = GC.getInfo(eSpecialist).getDescription();
+	szBuffer.append(CvWString::format(L"<link=%s>%s</link>",
+				(!bPlural ? szSpecialistType :
+				gDLL->getText("TXT_KEY_SPECIALIST_PLURAL", szSpecialistType.c_str())).
+				c_str(), szSpecialistDescr));
+}
+
+// advc.001: Link to corporation, not to building of the same name.
+void CvGameTextMgr::setCorporationLink(CvWString& szBuffer, CorporationTypes eCorp)
+{
+	CvWString szCorpType = GC.getInfo(eCorp).getType();
+	szBuffer.append(CvWString::format(L"<link=%s>%s</link>",
+			szCorpType.c_str(), GC.getInfo(eCorp).getDescription()));
+}
