@@ -2252,7 +2252,7 @@ int CvPlayerAI::AI_yieldWeight(YieldTypes eYield,
 
 
 int CvPlayerAI::AI_commerceWeight(CommerceTypes eCommerce,
-	CvCityAI const* pCity) const // advc.003u: CvCitýAI
+	CvCityAI const* pCity) const // advc.003u: CvCityAI
 {
 	PROFILE_FUNC();
 	int iWeight;
@@ -26807,8 +26807,8 @@ bool CvPlayerAI::AI_deduceCitySite(CvCity const& kCity) const
 	if the foreign civ has "no foreign trade".
 	(it ignores that effect for our civ, but checks it for the foreign civ -
 	the reasoning is basically that the other player's civics are out of our control.) */
-int CvPlayerAI::AI_countPotentialForeignTradeCities(bool bCheckConnected, bool bCheckForeignTradePolicy,
-	CvArea const* pIgnoreArea) const
+int CvPlayerAI::AI_countPotentialForeignTradeCities(bool bCheckConnected,
+	bool bCheckForeignTradePolicy, CvArea const* pIgnoreArea) const
 {
 	CvCity const* pCapital = getCapital();
 	if (pCapital == NULL)
