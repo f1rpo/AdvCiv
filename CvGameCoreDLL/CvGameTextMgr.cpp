@@ -13690,7 +13690,7 @@ void CvGameTextMgr::setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTyp
 		{
 			for (int j = 0; j < kCorporation.getNumPrereqBonuses(); ++j)
 			{
-				if (kLoopCorp.getPrereqBonus(j) == kCorporation.getPrereqBonus(i))
+				if (kLoopCorp.getPrereqBonus(i) == kCorporation.getPrereqBonus(j))
 				{
 					bCompeting = true;
 					break;
