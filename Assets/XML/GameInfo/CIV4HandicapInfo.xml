@@ -1172,7 +1172,7 @@
 			<iBuildTimePercent>120</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>130</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>130</iGPThresholdPercent>
-			<iCultureLevelPercent>150</iCultureLevelPercent>
+			<iCultureLevelPercent>140</iCultureLevelPercent>
 			<!-- advc.251: was 130 -->
 			<iResearchPercent>150</iResearchPercent>
 			<iTrainPercent>130</iTrainPercent>
