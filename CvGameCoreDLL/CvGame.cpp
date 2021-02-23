@@ -6894,16 +6894,16 @@ void CvGame::doGlobalWarming()
 			bChanged = true;
 		}
 		else if (eTerrain == eColdTerrain &&
-			(!bProtectFeature || pProtectedFeature->isTerrain(eTemperateTerrain))) // advc.055
+			(!bProtectFeature || pProtectedFeature->isTerrain(eDryTerrain))) // advc.055
 		{
-			pPlot->setTerrainType(eTemperateTerrain);
+			pPlot->setTerrainType(eDryTerrain); // advc.055: was eTemperateTerrain
 			bChanged = true;
 		}
 		// 2) Forest -> Jungle
 		// advc.055: Commented out
 		/*else if (eFeature == eTemperateFeature) {
-		pPlot->setFeatureType(eWarmFeature);
-		bChanged = true;
+			pPlot->setFeatureType(eWarmFeature);
+			bChanged = true;
 		}*/
 		// 3) Remove other features
 		else if (eFeature != NO_FEATURE && eFeature != eFalloutFeature &&
