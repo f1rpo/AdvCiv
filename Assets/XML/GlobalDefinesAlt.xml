@@ -92,9 +92,10 @@
 		<DefineName>GLOBAL_WARMING_RESISTANCE</DefineName>
 		<iDefineIntVal>9</iDefineIntVal>
 	</Define>
+	<!-- advc.055: was 500 in K-Mod -->
 	<Define>
 		<DefineName>GLOBAL_WARMING_INDEX_PER_CHANCE</DefineName>
-		<iDefineIntVal>500</iDefineIntVal>
+		<iDefineIntVal>300</iDefineIntVal>
 	</Define>
 	<!-- global warming index above the threshold is decreased by a percentage given by the restoration rate -->
 	<Define>
