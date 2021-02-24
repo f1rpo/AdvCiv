@@ -6344,7 +6344,8 @@
 			<iAirModifier>0</iAirModifier>
 			<iAirUnitCapacity>0</iAirUnitCapacity>
 			<iNukeModifier>0</iNukeModifier>
-			<iNukeExplosionRand>2000</iNukeExplosionRand>
+			<!-- advc: Was 2000. 1/1429 is ca. 0.7 permille. -->
+			<iNukeExplosionRand>1429</iNukeExplosionRand>
 			<iFreeSpecialist>0</iFreeSpecialist>
 			<iAreaFreeSpecialist>0</iAreaFreeSpecialist>
 			<iGlobalFreeSpecialist>0</iGlobalFreeSpecialist>

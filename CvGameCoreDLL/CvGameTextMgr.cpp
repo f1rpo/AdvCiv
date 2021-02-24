@@ -10130,13 +10130,21 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_NUKE_DAMAGE_MOD",
 				kBuilding.getNukeModifier()));
 	}
-
-	if (kBuilding.getNukeExplosionRand() != 0)
 	{
-		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_NUKE_EXPLOSION_CHANCE"));
+		int const iMeltdownRand = kBuilding.getNukeExplosionRand();
+		if (iMeltdownRand > 0 &&
+			// <advc.652> Don't show chance when building not operated
+			(pCity == NULL || pCity->getNumBuilding(eBuilding) <= 0 ||
+			(pCity->isMeltdownBuilding(eBuilding) &&
+			!pCity->isMeltdownBuildingSuperseded(eBuilding))))
+		{
+			szBuffer.append(NEWLINE);
+			float fPermilleChance = 1000.f / kBuilding.getNukeExplosionRand();
+			szTempBuffer.Format(L"%.2g", fPermilleChance); // </advc.652>
+			szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_NUKE_EXPLOSION_CHANCE",
+					szTempBuffer.c_str())); // advc.652
+		}
 	}
-
 	if (kBuilding.getFreeSpecialist() != 0)
 	{
 		szBuffer.append(NEWLINE);

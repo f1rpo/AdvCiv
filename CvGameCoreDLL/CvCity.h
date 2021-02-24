@@ -1131,6 +1131,9 @@ public:
 	}
 	void setNumFreeBuilding(BuildingTypes eIndex, int iNewValue);
 
+	bool isMeltdownBuilding(BuildingTypes eBuilding) const; // advc.652
+	bool isMeltdownBuildingSuperseded(BuildingTypes eBuilding) const; // advc.652
+
 	bool isHasReligion(ReligionTypes eIndex) const																	// Exposed to Python
 	{
 		return m_abHasReligion.get(eIndex);

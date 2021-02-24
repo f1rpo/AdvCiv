@@ -6627,4 +6627,15 @@
 		<Spanish>[ICON_BULLET]Incorpora %s1_corporation</Spanish>
 	</TEXT>
 
+	<!-- advc.652: From Civ4GameTextInfos.xml. Say how high the chance
+		 is exactly (instead of "small"). -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_NUKE_EXPLOSION_CHANCE</Tag>
+		<English>[ICON_BULLET]Chance of Nuclear Meltdown: %s1 permille per turn</English>
+		<French>[ICON_BULLET]Chances de r&#233;action nucl&#233;aire : %s1 permille par tour</French>
+		<German>[ICON_BULLET]Kernschmelze möglich (Chance %s1 Tausendstel pro Runde)</German>
+		<Italian>[ICON_BULLET]Probabilit&#224; di disastro nucleare: %s1 permille per turno</Italian>
+		<Spanish>[ICON_BULLET]Peque&#241;a probabilidad de accidente nuclear: %s1 permille por turno</Spanish>
+	</TEXT>
+
 </Civ4GameText>

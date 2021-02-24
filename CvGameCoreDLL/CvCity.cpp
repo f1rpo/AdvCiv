@@ -10924,73 +10924,17 @@ void CvCity::doMeltdown()
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eDangerBuilding = kCiv.buildingAt(i);
-		CvBuildingInfo const& kDangerBuilding = GC.getInfo(eDangerBuilding);
-		// <kekm.5> (advc: Restructured the Kek-Mod code the code a bit)
-		int const iOddsDivisor = kDangerBuilding.getNukeExplosionRand();
-		if (iOddsDivisor <= 0)
-			continue; // Save some time
-		if (getNumActiveBuilding(eDangerBuilding) == 0) // was getNumBuilding
+		if (!isMeltdownBuilding(eDangerBuilding))
 			continue;
-		if (isAreaCleanPower() ||
-			(!kDangerBuilding.isPower() && kDangerBuilding.getPowerBonus() == NO_BONUS) ||
-			(kDangerBuilding.getPowerBonus() != NO_BONUS &&
-			!hasBonus(kDangerBuilding.getPowerBonus())))
-		{
-			continue;
-		} // </kekm.5>
 		// advc.opt: Roll the dice before checking for a safe power source.
+		int const iOddsDivisor = GC.getInfo(eDangerBuilding).getNukeExplosionRand();
 		// advc.652: Adjust to game speed
 		scaled rNukePr = 1 / (iOddsDivisor * GC.getGame().gameSpeedMultiplier());
-		if (!rNukePr.bernoulliSuccess(GC.getGame().getSRand(), "Meltdown"))
-			continue;
-		// <kekm.5>
-		bool bUnused = false;
-		// Check for hydroplant (or any modded plant with less severe drawbacks)
-		for (int j = 0; j < kCiv.getNumBuildings(); j++)
+		if (!rNukePr.bernoulliSuccess(GC.getGame().getSRand(), "Meltdown") ||
+			isMeltdownBuildingSuperseded(eDangerBuilding)) // kekm5
 		{
-			BuildingTypes eSafeBuilding = kCiv.buildingAt(j);
-			if (eDangerBuilding == eSafeBuilding ||
-				getNumActiveBuilding(eSafeBuilding) <= 0)
-			{
-				continue;
-			}
-			CvBuildingInfo const& kSafeBuilding = GC.getInfo(eSafeBuilding);
-			if(!kSafeBuilding.isPower() &&
-				(kSafeBuilding.getPowerBonus() == NO_BONUS ||
-				!hasBonus(kSafeBuilding.getPowerBonus())))
-			{
-				continue;
-			}
-			if (kDangerBuilding.isDirtyPower() && !kSafeBuilding.isDirtyPower())
-			{
-				bUnused = true;
-				break;
-			}
-			if (kDangerBuilding.isDirtyPower() != kSafeBuilding.isDirtyPower())
-				continue;
-			if (kSafeBuilding.getNukeExplosionRand() == 0)
-			{
-				bUnused = true;
-				break;
-			}
-			if (kDangerBuilding.getNukeExplosionRand() > kSafeBuilding.getNukeExplosionRand())
-			{
-				continue;
-			}
-			if (kDangerBuilding.getNukeExplosionRand() < kSafeBuilding.getNukeExplosionRand())
-			{
-				bUnused = true;
-				break;
-			}
-			if (eDangerBuilding < eSafeBuilding)
-			{
-				bUnused = true;
-				break;
-			}
+			continue;
 		}
-		if (bUnused)
-			continue; // </kekm.5>
-
 		if (getNumRealBuilding(eDangerBuilding) > 0)
 			setNumRealBuilding(eDangerBuilding, 0);
 		getPlot().nukeExplosion(1, /* K-Mod: */ 0, false);
@@ -11018,6 +10962,69 @@ void CvCity::doMeltdown()
 	// <advc.106> Replay msg - or maybe not. Doesn't really affect the cause of the game.
 	/*GC.getGame().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwner(), szBuffer,
 			getX(), getY(), GET_PLAYER(getOwner()).getPlayerTextColor());*/ // </advc.106>
+}
+
+// advc.652: Kek-Mod code moved into subroutine
+bool CvCity::isMeltdownBuilding(BuildingTypes eBuilding) const
+{
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	// <kekm.5>
+	if (kBuilding.getNukeExplosionRand() <= 0)
+		return false;
+	if (getNumActiveBuilding(eBuilding) <= 0) // getNumBuilding in Kek-Mod
+		return false;
+	if (isAreaCleanPower() ||
+		(!kBuilding.isPower() && kBuilding.getPowerBonus() == NO_BONUS) ||
+		(kBuilding.getPowerBonus() != NO_BONUS &&
+		!hasBonus(kBuilding.getPowerBonus())))
+	{
+		return false;
+	} // </kekm.5>
+	return true;
+}
+
+/*	advc.652: Kek-Mod code moved into subroutine. Caller should ensure that
+	eDangerBuilding can cause a meltdown when assuming that no other power source
+	exists in this city. */
+bool CvCity::isMeltdownBuildingSuperseded(BuildingTypes eDangerBuilding) const
+{
+	CvBuildingInfo const& kDangerBuilding = GC.getInfo(eDangerBuilding);
+	CvCivilization const& kCiv = getCivilization();
+	// <kekm.5>
+	// Check for hydroplant (or any modded plant with less severe drawbacks)
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
+	{
+		BuildingTypes eSafeBuilding = kCiv.buildingAt(i);
+		if (eDangerBuilding == eSafeBuilding ||
+			getNumActiveBuilding(eSafeBuilding) <= 0)
+		{
+			continue;
+		}
+		CvBuildingInfo const& kSafeBuilding = GC.getInfo(eSafeBuilding);
+		if(!kSafeBuilding.isPower() &&
+			(kSafeBuilding.getPowerBonus() == NO_BONUS ||
+			!hasBonus(kSafeBuilding.getPowerBonus())))
+		{
+			continue;
+		}
+		if (kDangerBuilding.isDirtyPower() && !kSafeBuilding.isDirtyPower())
+			return true;
+
+		if (kDangerBuilding.isDirtyPower() != kSafeBuilding.isDirtyPower())
+			continue;
+		if (kSafeBuilding.getNukeExplosionRand() == 0)
+			return true;
+		if (kDangerBuilding.getNukeExplosionRand() >
+			kSafeBuilding.getNukeExplosionRand())
+		{
+			continue;
+		}
+		if (kDangerBuilding.getNukeExplosionRand() < kSafeBuilding.getNukeExplosionRand())
+			return true;
+		if (eDangerBuilding < eSafeBuilding)
+			return true;
+	}
+	return false;
 }
 
 
