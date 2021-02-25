@@ -13563,7 +13563,8 @@ void CvGameTextMgr::setReligionHelpCity(CvWStringBuffer &szBuffer, ReligionTypes
 	}
 }
 
-void CvGameTextMgr::setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTypes eCorporation, bool bCivilopedia)
+void CvGameTextMgr::setCorporationHelp(CvWStringBuffer &szBuffer,
+	CorporationTypes eCorporation, bool bCivilopedia)
 {
 	if (eCorporation == NO_CORPORATION)
 		return;
@@ -13577,10 +13578,10 @@ void CvGameTextMgr::setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTyp
 	}
 
 	CvWString szTempBuffer;
-	for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
+	FOR_EACH_ENUM(Yield)
 	{
 		int iYieldProduced = GC.getInfo(eCorporation).
-				getYieldProduced((YieldTypes)iI);
+				getYieldProduced(eLoopYield);
 		if (NO_PLAYER != GC.getGame().getActivePlayer())
 		{
 			iYieldProduced *= GC.getInfo(GC.getMap().getWorldSize()).
@@ -13591,23 +13592,20 @@ void CvGameTextMgr::setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTyp
 		if (iYieldProduced != 0)
 		{
 			if (!szTempBuffer.empty())
-			{
 				szTempBuffer += L", ";
-			}
-
 			if (iYieldProduced % 100 == 0)
 			{
 				szTempBuffer += CvWString::format(L"%s%d%c",
 					iYieldProduced > 0 ? L"+" : L"",
 					iYieldProduced / 100,
-					GC.getInfo((YieldTypes)iI).getChar());
+					GC.getInfo(eLoopYield).getChar());
 			}
 			else
 			{
 				szTempBuffer += CvWString::format(L"%s%.2f%c",
 					iYieldProduced > 0 ? L"+" : L"",
 					0.01f * abs(iYieldProduced),
-					GC.getInfo((YieldTypes)iI).getChar());
+					GC.getInfo(eLoopYield).getChar());
 			}
 		}
 	}
@@ -13620,10 +13618,10 @@ void CvGameTextMgr::setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTyp
 	}
 
 	szTempBuffer.clear();
-	for (int iI = 0; iI < NUM_COMMERCE_TYPES; ++iI)
+	FOR_EACH_ENUM(Commerce)
 	{
 		int iCommerceProduced = GC.getInfo(eCorporation).
-				getCommerceProduced((CommerceTypes)iI);
+				getCommerceProduced(eLoopCommerce);
 		if (GC.getGame().getActivePlayer() != NO_PLAYER)
 		{
 			iCommerceProduced *= GC.getInfo(GC.getMap().getWorldSize()).
@@ -13640,35 +13638,34 @@ void CvGameTextMgr::setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTyp
 				szTempBuffer += CvWString::format(L"%s%d%c",
 					iCommerceProduced > 0 ? L"+" : L"",
 					iCommerceProduced / 100,
-					GC.getInfo((CommerceTypes)iI).getChar());
+					GC.getInfo(eLoopCommerce).getChar());
 			}
 			else
 			{
 				szTempBuffer += CvWString::format(L"%s%.2f%c",
 					iCommerceProduced > 0 ? L"+" : L"",
 					0.01f * abs(iCommerceProduced),
-					GC.getInfo((CommerceTypes)iI).getChar());
+					GC.getInfo(eLoopCommerce).getChar());
 			}
 
 		}
 	}
-
 	if (!szTempBuffer.empty())
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_CORPORATION_ALL_CITIES", szTempBuffer.GetCString()));
+		szBuffer.append(gDLL->getText("TXT_KEY_CORPORATION_ALL_CITIES",
+				szTempBuffer.GetCString()));
 	}
-
 	if (!bCivilopedia)
 	{
 		if (kCorporation.getTechPrereq() != NO_TECH)
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_CORPORATION_FOUNDED_FIRST",
-					GC.getInfo((TechTypes)kCorporation.getTechPrereq()).getTextKeyWide()));
+					GC.getInfo((TechTypes)kCorporation.getTechPrereq()).
+					getTextKeyWide()));
 		}
 	}
-
 	szBuffer.append(NEWLINE);
 	szBuffer.append(gDLL->getText("TXT_KEY_CORPORATION_BONUS_REQUIRED"));
 	bool bFirst = true;
