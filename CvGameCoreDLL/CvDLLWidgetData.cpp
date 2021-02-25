@@ -2367,9 +2367,14 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 				}
 			}
 		}
-
-		szBuffer.append(NEWLINE);
-		GAMETEXT.setReligionHelpCity(szBuffer, eReligion, pMissionCity, false, true);
+		CvWStringBuffer szReligionHelp; // advc.001
+		GAMETEXT.setReligionHelpCity(szReligionHelp, eReligion, pMissionCity, false, true);
+		// <advc.001> Don't display empty line
+		if (!szReligionHelp.isEmpty())
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(szReligionHelp);
+		} // </advc.001>
 		break;
 	}
 	case MISSION_SPREAD_CORPORATION:

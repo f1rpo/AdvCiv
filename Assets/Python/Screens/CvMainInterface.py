@@ -4364,43 +4364,43 @@ class CvMainInterface:
 						#yCoord = 42 # Origional Civ4 Code
 						
 						bEnable = True
-							
-						if (pHeadSelectedCity.isHolyCityByType(i)):
-							szTempBuffer = u"%c" %(gc.getReligionInfo(i).getHolyCityChar())
+						# <advc> Commented out all code that only adds to szBuffer - b/c that string is never used. (Already unused in Vanilla Civ 4.)
+						#if (pHeadSelectedCity.isHolyCityByType(i)):
+						#	szTempBuffer = u"%c" %(gc.getReligionInfo(i).getHolyCityChar())
 							# < 47 Religions Mod Start >
 							# This is now done below since the Holy City Overlay has to be added
 							# after the Religion Icon and can not be shown before its added
 							#szName = "ReligionHolyCityDDS" + str(i)
 							#screen.show( szName )
 							# < 47 Religions Mod Start >
-						else:
-							szTempBuffer = u"%c" %(gc.getReligionInfo(i).getChar())
-						szBuffer = szBuffer + szTempBuffer
+						#else:
+						#	szTempBuffer = u"%c" %(gc.getReligionInfo(i).getChar())
+						#szBuffer = szBuffer + szTempBuffer
 	
-						j = 0
-						for j in range(CommerceTypes.NUM_COMMERCE_TYPES):
-							iCommerce = pHeadSelectedCity.getReligionCommerceByReligion(j, i)
+						#j = 0
+						#for j in range(CommerceTypes.NUM_COMMERCE_TYPES):
+						#	iCommerce = pHeadSelectedCity.getReligionCommerceByReligion(j, i)
 	
-							if (iCommerce != 0):
-								if ( iCommerce > 0 ):
-									szTempBuffer = u",%s%d%c" %("+", iCommerce, gc.getCommerceInfo(j).getChar() )
-									szBuffer = szBuffer + szTempBuffer
-								else:
-									szTempBuffer = u",%s%d%c" %( "", iCommerce, gc.getCommerceInfo(j).getChar() )
-									szBuffer = szBuffer + szTempBuffer
+						#	if (iCommerce != 0):
+						#		if ( iCommerce > 0 ):
+						#			szTempBuffer = u",%s%d%c" %("+", iCommerce, gc.getCommerceInfo(j).getChar() )
+						#			szBuffer = szBuffer + szTempBuffer
+						#		else:
+						#			szTempBuffer = u",%s%d%c" %( "", iCommerce, gc.getCommerceInfo(j).getChar() )
+						#			szBuffer = szBuffer + szTempBuffer
 	
-						iHappiness = pHeadSelectedCity.getReligionHappiness(i)
+						#iHappiness = pHeadSelectedCity.getReligionHappiness(i)
 	
-						if (iHappiness != 0):
-							if ( iHappiness > 0 ):
-								szTempBuffer = u",+%d%c" %(iHappiness, CyGame().getSymbolID(FontSymbols.HAPPY_CHAR) )
-								szBuffer = szBuffer + szTempBuffer
-							else:
-								szTempBuffer = u",+%d%c" %(-(iHappiness), CyGame().getSymbolID(FontSymbols.UNHAPPY_CHAR) )
-								szBuffer = szBuffer + szTempBuffer
+						#if (iHappiness != 0):
+						#	if ( iHappiness > 0 ):
+						#		szTempBuffer = u",+%d%c" %(iHappiness, CyGame().getSymbolID(FontSymbols.HAPPY_CHAR) )
+						#		szBuffer = szBuffer + szTempBuffer
+						#	else:
+						#		szTempBuffer = u",+%d%c" %(-(iHappiness), CyGame().getSymbolID(FontSymbols.UNHAPPY_CHAR) )
+						#		szBuffer = szBuffer + szTempBuffer
 	
-						szBuffer = szBuffer + " "
-							
+						#szBuffer = szBuffer + " "
+						# </advc> (end of unused szBuffer code)
 						szButton = gc.getReligionInfo(i).getButton()
 	
 						szName = "ReligionDDS" + str(i)
@@ -4422,38 +4422,39 @@ class CvMainInterface:
 						bEnable = True
 							
 						if (pHeadSelectedCity.isHasReligion(i)):
+							# <advc> SzBuffer code commented out (see advc comment above)
 							if (pHeadSelectedCity.isHolyCityByType(i)):
-								szTempBuffer = u"%c" %(gc.getReligionInfo(i).getHolyCityChar())
+								#szTempBuffer = u"%c" %(gc.getReligionInfo(i).getHolyCityChar())
 								szName = "ReligionHolyCityDDS" + str(i)
 								screen.show( szName )
-							else:
-								szTempBuffer = u"%c" %(gc.getReligionInfo(i).getChar())
-							szBuffer = szBuffer + szTempBuffer
+							#else:
+							#	szTempBuffer = u"%c" %(gc.getReligionInfo(i).getChar())
+							#szBuffer = szBuffer + szTempBuffer
 	
-							j = 0
-							for j in range(CommerceTypes.NUM_COMMERCE_TYPES):
-								iCommerce = pHeadSelectedCity.getReligionCommerceByReligion(j, i)
+							#j = 0
+							#for j in range(CommerceTypes.NUM_COMMERCE_TYPES):
+							#	iCommerce = pHeadSelectedCity.getReligionCommerceByReligion(j, i)
 	
-								if (iCommerce != 0):
-									if ( iCommerce > 0 ):
-										szTempBuffer = u",%s%d%c" %("+", iCommerce, gc.getCommerceInfo(j).getChar() )
-										szBuffer = szBuffer + szTempBuffer
-									else:
-										szTempBuffer = u",%s%d%c" %( "", iCommerce, gc.getCommerceInfo(j).getChar() )
-										szBuffer = szBuffer + szTempBuffer
+							#	if (iCommerce != 0):
+							#		if ( iCommerce > 0 ):
+							#			szTempBuffer = u",%s%d%c" %("+", iCommerce, gc.getCommerceInfo(j).getChar() )
+							#			szBuffer = szBuffer + szTempBuffer
+							#		else:
+							#			szTempBuffer = u",%s%d%c" %( "", iCommerce, gc.getCommerceInfo(j).getChar() )
+							#			szBuffer = szBuffer + szTempBuffer
 	
-							iHappiness = pHeadSelectedCity.getReligionHappiness(i)
+							#iHappiness = pHeadSelectedCity.getReligionHappiness(i)
 	
-							if (iHappiness != 0):
-								if ( iHappiness > 0 ):
-									szTempBuffer = u",+%d%c" %(iHappiness, CyGame().getSymbolID(FontSymbols.HAPPY_CHAR) )
-									szBuffer = szBuffer + szTempBuffer
-								else:
-									szTempBuffer = u",+%d%c" %(-(iHappiness), CyGame().getSymbolID(FontSymbols.UNHAPPY_CHAR) )
-									szBuffer = szBuffer + szTempBuffer
+							#if (iHappiness != 0):
+							#	if ( iHappiness > 0 ):
+							#		szTempBuffer = u",+%d%c" %(iHappiness, CyGame().getSymbolID(FontSymbols.HAPPY_CHAR) )
+							#		szBuffer = szBuffer + szTempBuffer
+							#	else:
+							#		szTempBuffer = u",+%d%c" %(-(iHappiness), CyGame().getSymbolID(FontSymbols.UNHAPPY_CHAR) )
+							#		szBuffer = szBuffer + szTempBuffer
 	
-							szBuffer = szBuffer + " "
-							
+							#szBuffer = szBuffer + " "
+							# </advc> (end of unused szBuffer code)
 							szButton = gc.getReligionInfo(i).getButton()
 						
 						else:
@@ -4541,41 +4542,41 @@ class CvMainInterface:
 						#yCoord = 66 # Origional Civ4 Code
 						
 						bEnable = True
-							
-						if (pHeadSelectedCity.isHeadquartersByType(i)):
-							szTempBuffer = u"%c" %(gc.getCorporationInfo(i).getHeadquarterChar())
+						# <advc> SzBuffer code commented out (see advc comment above)
+						#if (pHeadSelectedCity.isHeadquartersByType(i)):
+						#	szTempBuffer = u"%c" %(gc.getCorporationInfo(i).getHeadquarterChar())
 							#szName = "CorporationHeadquarterDDS" + str(i)
 							#screen.show( szName )
-						else:
-							szTempBuffer = u"%c" %(gc.getCorporationInfo(i).getChar())
-						szBuffer = szBuffer + szTempBuffer
+						#else:
+						#	szTempBuffer = u"%c" %(gc.getCorporationInfo(i).getChar())
+						#szBuffer = szBuffer + szTempBuffer
 	
-						j = 0
-						for j in range(YieldTypes.NUM_YIELD_TYPES):
-							iYield = pHeadSelectedCity.getCorporationYieldByCorporation(j, i)
+						#j = 0
+						#for j in range(YieldTypes.NUM_YIELD_TYPES):
+						#	iYield = pHeadSelectedCity.getCorporationYieldByCorporation(j, i)
 	
-							if (iYield != 0):
-								if ( iYield > 0 ):
-									szTempBuffer = u",%s%d%c" %("+", iYield, gc.getYieldInfo(j).getChar() )
-									szBuffer = szBuffer + szTempBuffer
-								else:
-									szTempBuffer = u",%s%d%c" %( "", iYield, gc.getYieldInfo(j).getChar() )
-									szBuffer = szBuffer + szTempBuffer
+						#	if (iYield != 0):
+						#		if ( iYield > 0 ):
+						#			szTempBuffer = u",%s%d%c" %("+", iYield, gc.getYieldInfo(j).getChar() )
+						#			szBuffer = szBuffer + szTempBuffer
+						#		else:
+						#			szTempBuffer = u",%s%d%c" %( "", iYield, gc.getYieldInfo(j).getChar() )
+						#			szBuffer = szBuffer + szTempBuffer
 							
-						j = 0
-						for j in range(CommerceTypes.NUM_COMMERCE_TYPES):
-							iCommerce = pHeadSelectedCity.getCorporationCommerceByCorporation(j, i)
+						#j = 0
+						#for j in range(CommerceTypes.NUM_COMMERCE_TYPES):
+						#	iCommerce = pHeadSelectedCity.getCorporationCommerceByCorporation(j, i)
 	
-							if (iCommerce != 0):
-								if ( iCommerce > 0 ):
-									szTempBuffer = u",%s%d%c" %("+", iCommerce, gc.getCommerceInfo(j).getChar() )
-									szBuffer = szBuffer + szTempBuffer
-								else:
-									szTempBuffer = u",%s%d%c" %( "", iCommerce, gc.getCommerceInfo(j).getChar() )
-									szBuffer = szBuffer + szTempBuffer
+						#	if (iCommerce != 0):
+						#		if ( iCommerce > 0 ):
+						#			szTempBuffer = u",%s%d%c" %("+", iCommerce, gc.getCommerceInfo(j).getChar() )
+						#			szBuffer = szBuffer + szTempBuffer
+						#		else:
+						#			szTempBuffer = u",%s%d%c" %( "", iCommerce, gc.getCommerceInfo(j).getChar() )
+						#			szBuffer = szBuffer + szTempBuffer
 	
-						szBuffer += " "
-							
+						#szBuffer += " "
+						# </advc> (end of unused szBuffer code)
 						szButton = gc.getCorporationInfo(i).getButton()
 	
 						szName = "CorporationDDS" + str(i)
@@ -4597,38 +4598,39 @@ class CvMainInterface:
 						bEnable = True
 							
 						if (pHeadSelectedCity.isHasCorporation(i)):
+							# <advc> SzBuffer code commented out (see advc comment above)
 							if (pHeadSelectedCity.isHeadquartersByType(i)):
-								szTempBuffer = u"%c" %(gc.getCorporationInfo(i).getHeadquarterChar())
+							#	szTempBuffer = u"%c" %(gc.getCorporationInfo(i).getHeadquarterChar())
 								szName = "CorporationHeadquarterDDS" + str(i)
 								screen.show( szName )
-							else:
-								szTempBuffer = u"%c" %(gc.getCorporationInfo(i).getChar())
-							szBuffer = szBuffer + szTempBuffer
+							#else:
+							#	szTempBuffer = u"%c" %(gc.getCorporationInfo(i).getChar())
+							#szBuffer = szBuffer + szTempBuffer
 	
-							for j in range(YieldTypes.NUM_YIELD_TYPES):
-								iYield = pHeadSelectedCity.getCorporationYieldByCorporation(j, i)
+							#for j in range(YieldTypes.NUM_YIELD_TYPES):
+							#	iYield = pHeadSelectedCity.getCorporationYieldByCorporation(j, i)
 	
-								if (iYield != 0):
-									if ( iYield > 0 ):
-										szTempBuffer = u",%s%d%c" %("+", iYield, gc.getYieldInfo(j).getChar() )
-										szBuffer = szBuffer + szTempBuffer
-									else:
-										szTempBuffer = u",%s%d%c" %( "", iYield, gc.getYieldInfo(j).getChar() )
-										szBuffer = szBuffer + szTempBuffer
+							#	if (iYield != 0):
+							#		if ( iYield > 0 ):
+							#			szTempBuffer = u",%s%d%c" %("+", iYield, gc.getYieldInfo(j).getChar() )
+							#			szBuffer = szBuffer + szTempBuffer
+							#		else:
+							#			szTempBuffer = u",%s%d%c" %( "", iYield, gc.getYieldInfo(j).getChar() )
+							#			szBuffer = szBuffer + szTempBuffer
 							
-							for j in range(CommerceTypes.NUM_COMMERCE_TYPES):
-								iCommerce = pHeadSelectedCity.getCorporationCommerceByCorporation(j, i)
+							#for j in range(CommerceTypes.NUM_COMMERCE_TYPES):
+							#	iCommerce = pHeadSelectedCity.getCorporationCommerceByCorporation(j, i)
 	
-								if (iCommerce != 0):
-									if ( iCommerce > 0 ):
-										szTempBuffer = u",%s%d%c" %("+", iCommerce, gc.getCommerceInfo(j).getChar() )
-										szBuffer = szBuffer + szTempBuffer
-									else:
-										szTempBuffer = u",%s%d%c" %( "", iCommerce, gc.getCommerceInfo(j).getChar() )
-										szBuffer = szBuffer + szTempBuffer
+							#	if (iCommerce != 0):
+							#		if ( iCommerce > 0 ):
+							#			szTempBuffer = u",%s%d%c" %("+", iCommerce, gc.getCommerceInfo(j).getChar() )
+							#			szBuffer = szBuffer + szTempBuffer
+							#		else:
+							#			szTempBuffer = u",%s%d%c" %( "", iCommerce, gc.getCommerceInfo(j).getChar() )
+							#			szBuffer = szBuffer + szTempBuffer
 	
-							szBuffer += " "
-							
+							#szBuffer += " "
+							# </advc> (end of unused szBuffer code)
 							szButton = gc.getCorporationInfo(i).getButton()
 						
 						else:

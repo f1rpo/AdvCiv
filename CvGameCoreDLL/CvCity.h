@@ -816,7 +816,7 @@ public:
 		return m_aiReligionCommerce.get(eCommerce);
 	}
 	int getReligionCommerceByReligion(CommerceTypes eCommerce,													// Exposed to Python
-			ReligionTypes eReligion) const;
+			ReligionTypes eReligion, bool bForce = false) const; //advc
 	void updateReligionCommerce(CommerceTypes eCommerce);
 	void updateReligionCommerce();
 

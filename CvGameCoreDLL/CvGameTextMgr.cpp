@@ -13401,29 +13401,59 @@ void CvGameTextMgr::setReligionHelp(CvWStringBuffer &szBuffer, ReligionTypes eRe
 	if (eReligion == NO_RELIGION)
 		return;
 
-	CvReligionInfo const& religion = GC.getInfo(eReligion);
-
+	CvReligionInfo const& kReligion = GC.getInfo(eReligion);
 	if (!bCivilopedia)
 	{
 		szBuffer.append(CvWString::format(SETCOLR L"%s" ENDCOLR,
-				TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), religion.getDescription()));
+				TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), kReligion.getDescription()));
 	}
 
-	setCommerceChangeHelp(szBuffer, gDLL->getText("TXT_KEY_RELIGION_HOLY_CITY").c_str(),
-			L": ", L"", religion.getHolyCityCommerceArray());
+	/*setCommerceChangeHelp(szBuffer, gDLL->getText("TXT_KEY_RELIGION_HOLY_CITY").c_str(),
+			L": ", L"", kReligion.getHolyCityCommerceArray());
 	setCommerceChangeHelp(szBuffer, gDLL->getText("TXT_KEY_RELIGION_ALL_CITIES").c_str(),
-			L": ", L"", religion.getStateReligionCommerceArray());
+			L": ", L"", kReligion.getStateReligionCommerceArray());*/
+	// <advc.172>
+	FOR_EACH_ENUM(Commerce)
+	{
+		int iBaseRate = kReligion.getStateReligionCommerce(eLoopCommerce);
+		int iHolyCityRate = iBaseRate + kReligion.getHolyCityCommerce(eLoopCommerce);
+		if (iBaseRate == 0 && iHolyCityRate == 0)
+			continue;
+		szBuffer.append(NEWLINE);
+		szBuffer.append(CvWString::format(L"%c ", gDLL->getSymbolID(BULLET_CHAR)));
+		bool bParentheses = false;
+		if (iBaseRate != 0)
+		{
+			szBuffer.append(CvWString::format(L"%d%c", iBaseRate,
+					GC.getInfo(eLoopCommerce).getChar()));
+			if (iHolyCityRate != iBaseRate)
+				bParentheses = true;
+		}
+		if (iHolyCityRate != iBaseRate)
+		{
+			if (bParentheses)
+				szBuffer.append(L" (");
+			szBuffer.append(CvWString::format(L"%d%c ", iHolyCityRate,
+					GC.getInfo(eLoopCommerce).getChar()));
+			szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_IN_HOLY_CITY"));
+			if (bParentheses)
+				szBuffer.append(L")");
+		}
+		szBuffer.append(NEWLINE);
+		szBuffer.append(L"    ");
+		szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_NOT_CUMULATIVE"));
+	} // </advc.172>
 
 	if (!bCivilopedia)
 	{
-		if (religion.getTechPrereq() != NO_TECH)
+		if (kReligion.getTechPrereq() != NO_TECH)
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_FOUNDED_FIRST",
-					GC.getInfo((TechTypes)religion.getTechPrereq()).getTextKeyWide()));
+					GC.getInfo((TechTypes)kReligion.getTechPrereq()).getTextKeyWide()));
 		}
 	}
-	UnitClassTypes eFreeUnitClass = (UnitClassTypes)religion.getFreeUnitClass(); // advc
+	UnitClassTypes eFreeUnitClass = (UnitClassTypes)kReligion.getFreeUnitClass(); // advc
 	if (eFreeUnitClass != NO_UNITCLASS)
 	{
 		UnitTypes eFreeUnit = (GC.getGame().getActivePlayer() != NO_PLAYER ?
@@ -13431,13 +13461,14 @@ void CvGameTextMgr::setReligionHelp(CvWStringBuffer &szBuffer, ReligionTypes eRe
 				GC.getInfo(eFreeUnitClass).getDefaultUnit());
 		if (eFreeUnit != NO_UNIT)
 		{
-			if (religion.getNumFreeUnits() > 1)
+			if (kReligion.getNumFreeUnits() > 1)
 			{
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_FOUNDER_RECEIVES_NUM",
-						GC.getInfo(eFreeUnit).getTextKeyWide(), religion.getNumFreeUnits()));
+						GC.getInfo(eFreeUnit).getTextKeyWide(),
+						kReligion.getNumFreeUnits()));
 			}
-			else if (religion.getNumFreeUnits() > 0)
+			else if (kReligion.getNumFreeUnits() > 0)
 			{
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_FOUNDER_RECEIVES",
@@ -13447,15 +13478,23 @@ void CvGameTextMgr::setReligionHelp(CvWStringBuffer &szBuffer, ReligionTypes eRe
 	}
 }
 
-void CvGameTextMgr::setReligionHelpCity(CvWStringBuffer &szBuffer, ReligionTypes eReligion, CvCity *pCity, bool bCityScreen, bool bForceReligion, bool bForceState, bool bNoStateReligion)
+void CvGameTextMgr::setReligionHelpCity(CvWStringBuffer &szBuffer, ReligionTypes eReligion,
+	CvCity* pCity, bool bCityScreen, bool bForceReligion, bool bForceState, bool bNoStateReligion)
 {
 	if(pCity == NULL)
 		return;
-
 	CvWString szTempBuffer;
 
-	ReligionTypes eStateReligion = (bNoStateReligion ? NO_RELIGION : GET_PLAYER(pCity->getOwner()).getStateReligion());
-
+	ReligionTypes eStateReligion = NO_RELIGION;
+	if (!bNoStateReligion)
+		eStateReligion = GET_PLAYER(pCity->getOwner()).getStateReligion();
+	// <advc.172> bForceState can now also mean that eReligion must be treated as non-state
+	if (bForceState)
+	{
+		if (eStateReligion == eReligion)
+			eStateReligion = NO_RELIGION;
+		else eStateReligion = eReligion;
+	} // </advc.172>
 	if (bCityScreen)
 	{
 		szBuffer.append(CvWString::format(SETCOLR L"%s" ENDCOLR,
@@ -13463,15 +13502,17 @@ void CvGameTextMgr::setReligionHelpCity(CvWStringBuffer &szBuffer, ReligionTypes
 				GC.getInfo(eReligion).getDescription()));
 		szBuffer.append(NEWLINE);
 
-		if (!(GC.getGame().isReligionFounded(eReligion)) && !GC.getGame().isOption(GAMEOPTION_PICK_RELIGION))
+		if (!GC.getGame().isReligionFounded(eReligion) &&
+			!GC.getGame().isOption(GAMEOPTION_PICK_RELIGION))
 		{
 			if (GC.getInfo(eReligion).getTechPrereq() != NO_TECH)
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_FOUNDED_FIRST", GC.getInfo((TechTypes)(GC.getInfo(eReligion).getTechPrereq())).getTextKeyWide()));
+				szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_FOUNDED_FIRST",
+						GC.getInfo((TechTypes)GC.getInfo(eReligion).getTechPrereq()).
+						getTextKeyWide()));
 			}
 		}
 	}
-
 	// K-Mod
 	if (GC.getGame().isReligionFounded(eReligion) && pCity && //gDLL->getChtLvl() > 0
 		GC.getGame().isDebugMode() && // advc.135c
@@ -13479,86 +13520,116 @@ void CvGameTextMgr::setReligionHelpCity(CvWStringBuffer &szBuffer, ReligionTypes
 	{
 		szBuffer.append(CvWString::format(L"grip: %d", pCity->getReligionGrip(eReligion)));
 		szBuffer.append(NEWLINE);
-	}
-	// K-Mod end
+	} // K-Mod end
 
 	if (!bForceReligion && !pCity->isHasReligion(eReligion))
 		return;
 
-	bool bHandled = false;
-	if (eStateReligion == eReligion || eStateReligion == NO_RELIGION || bForceState)
+	bool bFirst = true;
+	//if (eStateReligion == eReligion || eStateReligion == NO_RELIGION || bForceState)
+	// <advc.172>
+	/*	Don't show commerce on Religion Advisor - not helpful anymore for choosing
+		a state religion b/c the commerce isn't affected by the state religion. */
+	if (bCityScreen || bForceReligion)
 	{
-		for (int i = 0; i < NUM_COMMERCE_TYPES; i++)
+		std::vector<ReligionTypes> aeReligions;
+		/*	(On the Religion Advisor, the order doesn't matter, but an
+			inconsistent order between calls leads to undercounting.) */
+		if (eStateReligion != NO_RELIGION && bCityScreen)
+			aeReligions.push_back(eStateReligion);
+		FOR_EACH_ENUM(Religion)
 		{
-			int iCommerce = GC.getInfo(eReligion).getStateReligionCommerce((CommerceTypes)i);
-
-			if (pCity->isHolyCity(eReligion))
+			if (aeReligions.empty() || eLoopReligion != aeReligions[0])
+				aeReligions.push_back(eLoopReligion);
+		}
+		FOR_EACH_ENUM(Commerce)
+		{
+			ReligionTypes eMaxReligion = NO_RELIGION;
+			int iMaxRate = 0;
+			for (size_t i = 0; i < aeReligions.size(); i++)
 			{
-				iCommerce += GC.getInfo(eReligion).getHolyCityCommerce((CommerceTypes)i);
+				int iRate = pCity->getReligionCommerceByReligion(
+						eLoopCommerce, aeReligions[i]);
+				if (iRate > iMaxRate)
+				{
+					iMaxRate = iRate;
+					eMaxReligion = aeReligions[i];
+				}
 			}
-
-			if (iCommerce != 0)
-			{
-				if (bHandled)
-					szBuffer.append(L", ");
-
-				szTempBuffer.Format(L"%s%d%c", iCommerce > 0 ? "+" : "",
-						iCommerce, GC.getInfo((CommerceTypes)i).getChar());
-				szBuffer.append(szTempBuffer);
-				bHandled = true;
+			if (eReligion == eMaxReligion ||
+				(eMaxReligion == NO_RELIGION && bForceReligion))
+			{	// </advc.172>
+				// <advc> Replacing redundant BtS code
+				int iRate = pCity->getReligionCommerceByReligion(
+						eLoopCommerce, eReligion, bForceReligion); // </advc>
+				if (iRate != 0)
+				{
+					if (!bFirst)
+						szBuffer.append(L", ");
+					bFirst = false;
+					szTempBuffer.Format(L"%s%d%c", iRate > 0 ? "+" : "",
+							iRate, GC.getInfo(eLoopCommerce).getChar());
+					szBuffer.append(szTempBuffer);
+				}
 			}
 		}
 	}
-
-	if (eStateReligion == eReligion || bForceState)
+	if (eStateReligion == eReligion/* || bForceState*/)
 	{
-		int iHappiness = (pCity->getStateReligionHappiness(eReligion) + GET_PLAYER(pCity->getOwner()).getStateReligionHappiness());
-
+		int iHappiness = (pCity->getStateReligionHappiness(eReligion) +
+				GET_PLAYER(pCity->getOwner()).getStateReligionHappiness());
 		if (iHappiness != 0)
 		{
-			if (bHandled)
+			if (!bFirst)
 				szBuffer.append(L", ");
+			bFirst = false;
 			szTempBuffer.Format(L"%d%c",
-					// UNOFFICIAL_PATCH, Bugfix, 08/28/09, jdog5000: Use absolute value with unhappy face
-					abs(iHappiness), ((iHappiness > 0) ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR)));
+					/*	UNOFFICIAL_PATCH (Bugfix, 08/28/09, jdog5000): start
+						Use absolute value with unhappy face */
+					abs(iHappiness), (iHappiness > 0 ?
+					gDLL->getSymbolID(HAPPY_CHAR) :
+					gDLL->getSymbolID(UNHAPPY_CHAR))); // UNOFFICIAL_PATCH: end
 			szBuffer.append(szTempBuffer);
-			bHandled = true;
 		}
-
-		int iProductionModifier = GET_PLAYER(pCity->getOwner()).getStateReligionBuildingProductionModifier();
+		int iProductionModifier = GET_PLAYER(pCity->getOwner()).
+				getStateReligionBuildingProductionModifier();
 		if (iProductionModifier != 0)
 		{
-			if (bHandled)
+			if (!bFirst)
 				szBuffer.append(L", ");
-			szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_BUILDING_PROD_MOD", iProductionModifier));
-			bHandled = true;
+			bFirst = false;
+			szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_BUILDING_PROD_MOD",
+					iProductionModifier));
 		}
-
-		iProductionModifier = GET_PLAYER(pCity->getOwner()).getStateReligionUnitProductionModifier();
+		iProductionModifier = GET_PLAYER(pCity->getOwner()).
+				getStateReligionUnitProductionModifier();
 		if (iProductionModifier != 0)
 		{
-			if (bHandled)
+			if (!bFirst)
 				szBuffer.append(L", ");
-			szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_UNIT_PROD_MOD", iProductionModifier));
-			bHandled = true;
+			bFirst = false;
+			szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_UNIT_PROD_MOD",
+					iProductionModifier));
 		}
-
-		int iFreeExperience = GET_PLAYER(pCity->getOwner()).getStateReligionFreeExperience();
+		int iFreeExperience = GET_PLAYER(pCity->getOwner()).
+				getStateReligionFreeExperience();
 		if (iFreeExperience != 0)
 		{
-			if (bHandled)
+			if (!bFirst)
 				szBuffer.append(L", ");
-			szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_FREE_XP", iFreeExperience));
-			bHandled = true;
+			bFirst = false;
+			szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_FREE_XP",
+					iFreeExperience));
 		}
-
-		int iGreatPeopleRateModifier = GET_PLAYER(pCity->getOwner()).getStateReligionGreatPeopleRateModifier();
+		int iGreatPeopleRateModifier = GET_PLAYER(pCity->getOwner()).
+				getStateReligionGreatPeopleRateModifier();
 		if (iGreatPeopleRateModifier != 0)
 		{
-			if (bHandled)
+			if (!bFirst)
 				szBuffer.append(L", ");
-			szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_BIRTH_RATE_MOD", iGreatPeopleRateModifier));
-			bHandled = true;
+			//bFirst = false;
+			szBuffer.append(gDLL->getText("TXT_KEY_RELIGION_BIRTH_RATE_MOD",
+					iGreatPeopleRateModifier));
 		}
 	}
 }

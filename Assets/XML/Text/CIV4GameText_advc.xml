@@ -6638,4 +6638,23 @@
 		<Spanish>[ICON_BULLET]Peque&#241;a probabilidad de accidente nuclear: %s1 permille por turno</Spanish>
 	</TEXT>
 
+	<!-- advc.172: Based on TXT_KEY_RELIGION_HOLY_CITY
+		 (Civ4GameTextInfos.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_RELIGION_IN_HOLY_CITY</Tag>
+		<English>in Holy City</English>
+		<French>dans la ville sainte</French>
+		<German>in heiliger Stadt</German>
+		<Italian>nella citt&#224; santa</Italian>
+		<Spanish>en la ciudad santa</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RELIGION_NOT_CUMULATIVE</Tag>
+		<English>not cumulative with other [ICON_RELIGION]</English>
+		<French>pas cumulable avec d'autres [ICON_RELIGION]</French>
+		<German>nicht kumulativ mit anderen [ICON_RELIGION]</German>
+		<Italian>non cumulativo con altre [ICON_RELIGION]</Italian>
+		<Spanish>no se acumula con otras [ICON_RELIGION]</Spanish>
+	</TEXT>
+
 </Civ4GameText>

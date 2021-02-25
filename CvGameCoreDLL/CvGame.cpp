@@ -535,6 +535,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_iCivTeamsEverAlive = 0;
 	// </advc.opt>
 	m_uiInitialTime = 0;
+	m_uiSaveFlag = 0; // advc
 
 	m_bScoreDirty = false;
 	m_bCircumnavigated = false;
@@ -9193,7 +9194,9 @@ void CvGame::read(FDataStreamBase* pStream)
 
 	uint uiFlag=0;
 	pStream->Read(&uiFlag);
-
+	/*	advc: So that onAllGameDataRead can perform some final updates
+		based on the save version */
+	m_uiSaveFlag = uiFlag;
 	if (uiFlag < 1)
 	{
 		int iEndTurnMessagesSent;
@@ -9469,7 +9472,8 @@ void CvGame::write(FDataStreamBase* pStream)
 	//uiFlag = 4; // advc.opt: Players and teams ever alive
 	//uiFlag = 5; // advc.004m
 	//uiFlag = 6; // advc.106h
-	uiFlag = 7; // advc.027b
+	//uiFlag = 7; // advc.027b
+	uiFlag = 8; // advc.172
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE("Game pt1");
 	pStream->Write(m_iElapsedGameTurns);
@@ -9711,6 +9715,15 @@ void CvGame::onAllGameDataRead()
 			it->AI_updateAttitude();
 	}
 	m_iAIAutoPlay = 0; // </advc.127>
+	// <advc.172>
+	if (m_uiSaveFlag < 8)
+	{
+		for (PlayerIter<ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
+		{
+			FOR_EACH_CITY_VAR(pCity, *itPlayer)
+				pCity->updateReligionCommerce();
+		}
+	} // </advc.172>
 }
 
 /*	advc: Called once the EXE signals that graphics have been initialized

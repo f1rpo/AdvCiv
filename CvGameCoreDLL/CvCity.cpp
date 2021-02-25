@@ -7560,13 +7560,14 @@ int CvCity::getAdditionalBaseCommerceRateBySpecialistImpl(CommerceTypes eCommerc
 // BUG - Specialist Additional Commerce - end
 
 int CvCity::getReligionCommerceByReligion(CommerceTypes eCommerce,
-	ReligionTypes eReligion) const
+	ReligionTypes eReligion, /* advc: */ bool bForce) const
 {
 	int iCommerceRate = 0;
-	if (GET_PLAYER(getOwner()).getStateReligion() == eReligion ||
-		GET_PLAYER(getOwner()).getStateReligion() == NO_RELIGION)
+	// advc.172: Commented out
+	/*if (GET_PLAYER(getOwner()).getStateReligion() == eReligion ||
+		GET_PLAYER(getOwner()).getStateReligion() == NO_RELIGION)*/
 	{
-		if (isHasReligion(eReligion))
+		if (isHasReligion(eReligion) /* advc: */ || bForce)
 		{
 			iCommerceRate += GC.getInfo(eReligion).getStateReligionCommerce(eCommerce);
 			if (isHolyCity(eReligion))
@@ -7581,8 +7582,10 @@ void CvCity::updateReligionCommerce(CommerceTypes eCommerce)
 {
 	int iNewReligionCommerce = 0;
 	FOR_EACH_ENUM(Religion)
-		iNewReligionCommerce += getReligionCommerceByReligion(eCommerce, eLoopReligion);
-
+	{	// advc.172: No longer cumulative; use max.
+		iNewReligionCommerce = std::max(iNewReligionCommerce,
+				getReligionCommerceByReligion(eCommerce, eLoopReligion));
+	}
 	if (getReligionCommerce(eCommerce) != iNewReligionCommerce)
 	{
 		m_aiReligionCommerce.set(eCommerce, iNewReligionCommerce);

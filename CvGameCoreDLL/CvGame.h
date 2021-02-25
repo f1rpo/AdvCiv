@@ -899,6 +899,7 @@ protected:
 	int m_iUnitUpdateAttempts; // advc.001y
 	int m_iScreenWidth, m_iScreenHeight; // advc.061
 	unsigned int m_uiInitialTime;
+	unsigned int m_uiSaveFlag; // advc
 
 	bool m_bScoreDirty;
 	bool m_bCircumnavigated;
