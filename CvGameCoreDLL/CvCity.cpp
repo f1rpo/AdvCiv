@@ -2936,8 +2936,9 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 		if (kBuilding.getFreePromotion() != NO_PROMOTION)
 		{
 			changeFreePromotionCount(kBuilding.getFreePromotion(), iChange);
-		}// <advc.912d>
-		if(kGame.isOption(GAMEOPTION_NO_SLAVERY) && kOwner.isHuman() &&
+		}
+		// <advc.912d>
+		if (kGame.isOption(GAMEOPTION_NO_SLAVERY) && kOwner.isHuman() &&
 			kBuilding.getHurryAngerModifier() < 0)
 		{
 			changePopRushCount(iChange);
@@ -8829,16 +8830,16 @@ void CvCity::alterWorkingPlot(CityPlotTypes ePlot) // advc.enum: CityPlotTypes
 	if (ePlot == CITY_HOME_PLOT)
 	{
 		setCitizensAutomated(true);
-		return; // advc
+		return;
 	}
 	CvPlot* pPlot = getCityIndexPlot(ePlot);
 	if (pPlot == NULL)
-		return; // advc
+		return;
 	if (!canWork(*pPlot))
 	{
 		if (pPlot->getOwner() == getOwner())
 			pPlot->setWorkingCityOverride(this);
-		return; // advc
+		return;
 	}
 
 	setCitizensAutomated(false);

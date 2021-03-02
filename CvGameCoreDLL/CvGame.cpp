@@ -6832,17 +6832,17 @@ void CvGame::doGlobalWarming()
 	// Apply the effects of GW
 
 	// advc.opt: Can't hurt to make these static
-	static TerrainTypes const eWarmingTerrain = ((TerrainTypes)(GC.getDefineINT("GLOBAL_WARMING_TERRAIN")));
-	static TerrainTypes const eFrozenTerrain = ((TerrainTypes)(GC.getDefineINT("FROZEN_TERRAIN")));
-	static TerrainTypes const eColdTerrain = ((TerrainTypes)(GC.getDefineINT("COLD_TERRAIN")));
-	static TerrainTypes const eTemperateTerrain = ((TerrainTypes)(GC.getDefineINT("TEMPERATE_TERRAIN")));
-	static TerrainTypes const eDryTerrain = ((TerrainTypes)(GC.getDefineINT("DRY_TERRAIN")));
-	static TerrainTypes const eBarrenTerrain = ((TerrainTypes)(GC.getDefineINT("BARREN_TERRAIN")));
+	static TerrainTypes const eWarmingTerrain = (TerrainTypes)GC.getDefineINT("GLOBAL_WARMING_TERRAIN");
+	static TerrainTypes const eFrozenTerrain = (TerrainTypes)GC.getDefineINT("FROZEN_TERRAIN");
+	static TerrainTypes const eColdTerrain = (TerrainTypes)GC.getDefineINT("COLD_TERRAIN");
+	static TerrainTypes const eTemperateTerrain = (TerrainTypes)GC.getDefineINT("TEMPERATE_TERRAIN");
+	static TerrainTypes const eDryTerrain = (TerrainTypes)GC.getDefineINT("DRY_TERRAIN");
+	static TerrainTypes const eBarrenTerrain = (TerrainTypes)GC.getDefineINT("BARREN_TERRAIN");
 
-	static FeatureTypes const eColdFeature = ((FeatureTypes)(GC.getDefineINT("COLD_FEATURE")));
-	static FeatureTypes const eTemperateFeature = ((FeatureTypes)(GC.getDefineINT("TEMPERATE_FEATURE")));
-	static FeatureTypes const eWarmFeature = ((FeatureTypes)(GC.getDefineINT("WARM_FEATURE")));
-	static FeatureTypes const eFalloutFeature = ((FeatureTypes)(GC.getDefineINT("NUKE_FEATURE")));
+	static FeatureTypes const eColdFeature = (FeatureTypes)GC.getDefineINT("COLD_FEATURE");
+	static FeatureTypes const eTemperateFeature = (FeatureTypes)GC.getDefineINT("TEMPERATE_FEATURE");
+	static FeatureTypes const eWarmFeature = (FeatureTypes)GC.getDefineINT("WARM_FEATURE");
+	static FeatureTypes const eFalloutFeature = (FeatureTypes)GC.getDefineINT("NUKE_FEATURE");
 	// advc.055:
 	static bool const bPROTECT_FEATURE_ON_NON_DRY_TERRAIN = GC.getDefineBOOL("PROTECT_FEATURE_ON_NON_DRY_TERRAIN");
 
@@ -7117,13 +7117,15 @@ CvPlot* CvGame::getRandGWPlot(int iPool)
 	static const TerrainTypes eDryTerrain = (TerrainTypes)GC.getDefineINT("DRY_TERRAIN");
 	static const FeatureTypes eColdFeature = (FeatureTypes)GC.getDefineINT("COLD_FEATURE");
 
-	// Currently we just choose the coldest tile; but I may include other tests in future versions
+	/*	Currently we just choose the coldest tile;
+		but I may include other tests in future versions. */
 	CvPlot* pBestPlot = NULL;
 	TerrainTypes eTerrain = NO_TERRAIN;
 	int iBestScore = -1; // higher score means better target plot
 	for (int i = 0; i < iPool; i++)
 	{
-		// I want to be able to select a water tile with ice on it; so I can't just exclude water completely...
+		/*	I want to be able to select a water tile with ice on it;
+			so I can't just exclude water completely... */
 		//CvPlot* pTestPlot = GC.getMap().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
 		/*  advc (comment): Should arguably just create a new flag RANDPLOT_GLOBAL_WARMING
 			and let syncRandPlot handle the randomized selection. */ 
@@ -7133,7 +7135,9 @@ CvPlot* CvGame::getRandGWPlot(int iPool)
 		for (int j = 0; j < 25; j++)
 		{
 			pTestPlot = GC.getMap().syncRandPlot(RANDPLOT_NOT_CITY,
-					NULL, -1, 20); // advc: iTimeout was 100 - don't need to draw that many cities to conclude that sth. is wrong.
+					/*	advc: iTimeout was 100 - don't need to draw that many cities
+						to conclude that sth. is wrong. */
+					NULL, -1, 20);
 			if (pTestPlot == NULL)
 			{
 				FAssert(pTestPlot != NULL); // advc
@@ -7154,11 +7158,12 @@ CvPlot* CvGame::getRandGWPlot(int iPool)
 			}
 			// not a suitable plot, try again.
 		}
-
-		if (pTestPlot == NULL/* || j == 100*/) // advc: Unnecessary as I'm resetting pTestPlot in the outer loop
+		// advc: 2nd test unnecessary as I'm resetting pTestPlot in the outer loop
+		if (pTestPlot == NULL/* || j == 100*/)
 			continue;
 
-		// if only I could do this with a switch...  [advc: one cannot b/c the case labels need to be constant expressions]
+		/*	if only I could do this with a switch...
+			[advc: one cannot b/c the case labels need to be constant expressions] */
 		int iTestScore = 0;
 		if (eTerrain == eFrozenTerrain)
 			iTestScore = 4;

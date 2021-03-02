@@ -596,9 +596,9 @@ class CvReligionScreen:
 	# advc: Cut from drawCityInfo because it's the same for the BtS and BUG screen
 	def cityHelp(self, lReligions, kCity, eHoverReligion):
 		sHelp = ""
+		bFirst = True
 		# <advc.172> Adjust to changed semantics of getReligionHelpCity (specifically the bForceState parameter)
 		eCurrStateReligion = gc.getPlayer(self.iActivePlayer).getStateReligion()
-		bFirst = True
 		for eReligion in lReligions:
 			sLoopHelp = CyGameTextMgr().getReligionHelpCity(eReligion, kCity, False, False, eHoverReligion != -1 and (eReligion == eHoverReligion) != (eReligion == eCurrStateReligion), eHoverReligion == -1)
 			# </advc.172>
