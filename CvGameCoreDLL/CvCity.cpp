@@ -11337,6 +11337,38 @@ void CvCity::read(FDataStreamBase* pStream)
 			}
 		}
 	} // </advc.310>
+	// <advc.911a>
+	if (uiFlag < 10)
+	{
+		SpecialistTypes eSpy = (SpecialistTypes)GC.getInfoTypeForString(
+				"SPECIALIST_SPY");
+		if (eSpy != NO_SPECIALIST)
+		{
+			std::vector<std::pair<BuildingClassTypes,int> > aeiSpyChanges;
+			aeiSpyChanges.push_back(std::make_pair((BuildingClassTypes)
+					GC.getInfoTypeForString("BUILDINGCLASS_COURTHOUSE"),
+					1));
+			aeiSpyChanges.push_back(std::make_pair((BuildingClassTypes)
+					GC.getInfoTypeForString("BUILDINGCLASS_JAIL"),
+					-1));
+			for (size_t i = 0; i < aeiSpyChanges.size(); i++)
+			{
+				BuildingClassTypes const eClass = aeiSpyChanges[i].first;
+				if (eClass == NO_BUILDINGCLASS || getNumBuilding(eClass) <= 0)
+					continue;
+				FOR_EACH_ENUM(Building)
+				{
+					if (GC.getInfo(eLoopBuilding).getBuildingClassType() == eClass &&
+						!GET_TEAM(getTeam()).isObsoleteBuilding(eLoopBuilding))
+					{
+						changeMaxSpecialistCount(eSpy, getNumBuilding(eLoopBuilding) *
+								aeiSpyChanges[i].second);
+					}
+
+				}
+			}
+		}
+	} // </advc.911a>
 }
 
 void CvCity::write(FDataStreamBase* pStream)
@@ -11352,7 +11384,8 @@ void CvCity::write(FDataStreamBase* pStream)
 	//uiFlag = 6; // advc.103
 	//uiFlag = 7; // advc.003u: m_bChooseProductionDirty
 	//uiFlag = 8; // advc.310
-	uiFlag = 9; // advc.912d (adjust food kept)
+	//uiFlag = 9; // advc.912d (adjust food kept)
+	uiFlag = 10; // advc.911a
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iID);
