@@ -6925,9 +6925,27 @@ void CvGame::doGlobalWarming()
 		}
 		else if (eTerrain == eDryTerrain &&
 			(!bProtectFeature || pProtectedFeature->isTerrain(eBarrenTerrain))) // advc.055
-		{
-			pPlot->setTerrainType(eBarrenTerrain);
-			bChanged = true;
+		{	// <advc.055> Don't desertify (very) cold dry terrain
+			int iColdScore = 0;
+			FOR_EACH_ADJ_PLOT(*pPlot)
+			{
+				int iLoopColdScore = 0;
+				if (pAdj->getTerrainType() == eFrozenTerrain ||
+					pAdj->getFeatureType() == eColdFeature)
+				{
+					iLoopColdScore += 2;
+				}
+				else if (pAdj->getTerrainType() == eColdTerrain)
+					iLoopColdScore++;
+				if (plotDistance(pPlot, pAdj) <= 1)
+					iLoopColdScore *= 2;
+				iColdScore += iLoopColdScore;
+			}
+			if (iColdScore < 3) // </advc.055>
+			{
+				pPlot->setTerrainType(eBarrenTerrain);
+				bChanged = true;
+			}
 		}
 		/* 5) Sink coastal desert (disabled)
 		else if (eTerrain == eBarrenTerrain) {
