@@ -473,6 +473,8 @@
 		<element type="iGlobalHurryModifier"/>
 		<element type="iExperience"/>
 		<element type="iGlobalExperience"/>
+		<!-- advc.912d (note): The DLL increases this by a factor of
+			 1.2 when playing with the "No Slavery" option -->
 		<element type="iFoodKept"/>
 		<element type="iAirlift"/>
 		<element type="iAirModifier"/>

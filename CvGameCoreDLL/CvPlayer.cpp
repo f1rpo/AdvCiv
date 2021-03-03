@@ -10006,6 +10006,22 @@ void CvPlayer::changeHurryCount(HurryTypes eHurry, int iChange)
 	}
 }
 
+// advc.912d:
+int CvPlayer::getFoodKept(BuildingTypes eBuilding) const
+{
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	int iFoodKept = kBuilding.getFoodKept();
+	if (GC.getGame().isOption(GAMEOPTION_NO_SLAVERY) &&
+		/*	Toggling this on and off during AI Auto Play
+			could lead to inconsistent data at CvCity */
+		(isHuman() || isHumanDisabled()))
+	{
+		iFoodKept *= 5;
+		iFoodKept /= 4;
+	}
+	return iFoodKept;
+}
+
 
 void CvPlayer::changeSpecialBuildingNotRequiredCount(SpecialBuildingTypes eSpecial, int iChange)
 {
@@ -12674,7 +12690,8 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 			{
 				pCity->setNumRealBuilding(eBuilding, pCity->getNumRealBuilding(eBuilding)+1);
 				changeAdvancedStartPoints(-iCost);
-				if (GC.getInfo(eBuilding).getFoodKept() != 0)
+				//if (GC.getInfo(eBuilding).getFoodKept() != 0)
+				if (getFoodKept(eBuilding) != 0) // advc.912d
 				{
 					pCity->setFoodKept((pCity->getFood() *
 							pCity->getMaxFoodKeptPercent()) / 100);
@@ -12685,7 +12702,8 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 		{
 			pCity->setNumRealBuilding(eBuilding, pCity->getNumRealBuilding(eBuilding) - 1);
 			changeAdvancedStartPoints(iCost);
-			if (GC.getInfo(eBuilding).getFoodKept() != 0)
+			//if (GC.getInfo(eBuilding).getFoodKept() != 0)
+			if (getFoodKept(eBuilding) != 0) // advc.912d
 			{
 				pCity->setFoodKept((pCity->getFood() *
 						pCity->getMaxFoodKeptPercent()) / 100);

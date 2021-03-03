@@ -3695,6 +3695,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 	bool const bCanPopRush = /*kOwner.*/canPopRush(); // advc.912d
 	bool const bWarPlan = kOwner.AI_isFocusWar(area()); // advc.105
 			//GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0; // K-Mod
+	int const iFoodKept = kOwner.getFoodKept(eBuilding); // advc.912d
 
 	bool bForeignTrade = false;
 	{
@@ -4299,7 +4300,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			iValue += (kBuilding.getGlobalFreeExperience() * iNumCities * ((iHasMetCount > 0) ? 6 : 3));
 
 			/*if (bCanPopRush)
-				iValue += kBuilding.getFoodKept() / 2;*/ // BtS
+				iValue += iFoodKept / 2;*/ // BtS
 			// (moved to where the rest of foodKept is valued)
 
 			/*iValue += kBuilding.getAirlift() * (getPopulation()*3 + 10);
@@ -4839,12 +4840,13 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 		if (iPass > 0)
 		{
 			// K-Mod, I've moved this from inside the yield types loop; and I've increased the value to compensate.
-			if (iFoodDifference > 0 && kBuilding.getFoodKept() != 0)
+			if (iFoodDifference > 0 && iFoodKept != 0)
 			{
-				//iValue += kBuilding.getFoodKept() / 2;
-				iValue += std::max(0, 2*(std::max(4, AI_getTargetPopulation()) - getPopulation())+(bCanPopRush ?3 :1)) * kBuilding.getFoodKept() / 4;
-			}
-			// K-Mod end
+				//iValue += iFoodKept / 2;
+				iValue += (std::max(0,
+						2 * (std::max(4, AI_getTargetPopulation()) - getPopulation()) +
+						(bCanPopRush ? 3 : 1)) * iFoodKept) / 4;
+			} // K-Mod end
 
 			FOR_EACH_ENUM(Yield)
 			{
@@ -4907,9 +4909,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				}
 
 				/*if (iFoodDifference > 0)
-				{
-					iValue += kBuilding.getFoodKept() / 2;
-				}*/ // BtS
+					iValue += iFoodKept / 2;*/ // BtS
 				// (We're inside a yield types loop. This would be triple counted here!)
 
 				if (kBuilding.getSeaPlotYieldChange(eLoopYield) > 0)
@@ -4969,8 +4969,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			if (iFocusFlags & BUILDINGFOCUS_FOOD)
 			{
 
-				iValue += kBuilding.getFoodKept();
-
+				iValue += iFoodKept;
 				if (kBuilding.getSeaPlotYieldChange(YIELD_FOOD) > 0)
 				{
 					int iTempValue = kBuilding.getSeaPlotYieldChange(YIELD_FOOD) *
@@ -12215,7 +12214,9 @@ void CvCityAI::AI_updateSpecialYieldMultiplier()
 			m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] += 50;
 			m_aiSpecialYieldMultiplier[YIELD_COMMERCE] -= 25;
 		}
-		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] += std::max(-25, GC.getInfo(eProductionBuilding).getFoodKept());
+		m_aiSpecialYieldMultiplier[YIELD_PRODUCTION] += std::max(-25,
+				//GC.getInfo(eProductionBuilding).getFoodKept()
+				GET_PLAYER(getOwner()).getFoodKept(eProductionBuilding)); // advc.912d
 
 		/*if ((GC.getInfo(eProductionBuilding).getCommerceChange(COMMERCE_CULTURE) > 0)
 			|| (GC.getInfo(eProductionBuilding).getObsoleteSafeCommerceChange(COMMERCE_CULTURE) > 0)) {

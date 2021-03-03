@@ -1035,6 +1035,7 @@ public:
 	bool canPopRush() const { return (m_iPopRushHurryCount > 0); }
 	bool canGoldRush() const { return (m_iGoldRushHurryCount > 0); } // advc.064b
 	void changeHurryCount(HurryTypes eHurry, int iChange);
+	int getFoodKept(BuildingTypes eBuilding) const; // advc.912d
 
 	int getSpecialBuildingNotRequiredCount(SpecialBuildingTypes eSpecial) const										// Exposed to Python
 	{

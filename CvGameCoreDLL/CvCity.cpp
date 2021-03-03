@@ -2942,11 +2942,12 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 			kBuilding.getHurryAngerModifier() < 0)
 		{
 			changePopRushCount(iChange);
-		} // </advc.912d>
+		}
+		changeMaxFoodKeptPercent(//kBuilding.getFoodKept() * iChange
+				kOwner.getFoodKept(eBuilding) * iChange); // </advc.912d>	
 		changeEspionageDefenseModifier(kBuilding.getEspionageDefenseModifier() * iChange);
 		changeGreatPeopleRateModifier(kBuilding.getGreatPeopleRateModifier() * iChange);
 		changeFreeExperience(kBuilding.getFreeExperience() * iChange);
-		changeMaxFoodKeptPercent(kBuilding.getFoodKept() * iChange);
 		changeMaxAirlift(kBuilding.getAirlift() * iChange);
 		changeAirModifier(kBuilding.getAirModifier() * iChange);
 		changeAirUnitCapacity(kBuilding.getAirUnitCapacity() * iChange);
@@ -11293,7 +11294,9 @@ void CvCity::read(FDataStreamBase* pStream)
 				(BuildingClassTypes)iBuildingClass, iChange));
 	} // <advc.912d>
 	if(uiFlag >= 4)
-		pStream->Read(&m_iPopRushHurryCount); // </advc.912d>
+		pStream->Read(&m_iPopRushHurryCount);
+	if (uiFlag < 9 && isHuman() && GC.getGame().isOption(GAMEOPTION_NO_SLAVERY))
+		m_iFoodKept = (m_iFoodKept * 5) / 4; // </advc.912d>
 	// <advc.004x>
 	if(uiFlag >= 2)
 	{
@@ -11348,7 +11351,8 @@ void CvCity::write(FDataStreamBase* pStream)
 	//uiFlag = 5; // advc.106k
 	//uiFlag = 6; // advc.103
 	//uiFlag = 7; // advc.003u: m_bChooseProductionDirty
-	uiFlag = 8; // advc.310
+	//uiFlag = 8; // advc.310
+	uiFlag = 9; // advc.912d (adjust food kept)
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iID);

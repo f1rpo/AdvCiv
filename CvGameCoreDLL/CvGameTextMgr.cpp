@@ -10095,14 +10095,16 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_FREE_XP_ALL_CITIES",
 				kBuilding.getGlobalFreeExperience()));
 	}
-
-	if (kBuilding.getFoodKept() > 0)
 	{
-		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_STORES_FOOD",
-				kBuilding.getFoodKept()));
+		int iFoodKept = (pPlayer == NULL ?
+				kBuilding.getFoodKept() :
+				pPlayer->getFoodKept(eBuilding)); // advc.912d
+		if (iFoodKept != 0)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_STORES_FOOD", iFoodKept));
+		}
 	}
-
 	if (kBuilding.getAirlift() > 0)
 	{
 		szBuffer.append(NEWLINE);

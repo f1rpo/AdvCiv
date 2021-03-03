@@ -2120,9 +2120,9 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_NO_SLAVERY_HELP</Tag>
-		<English>Human players cannot change their civics to Slavery. Only the Aztec Sacrificial Altar allows humans to sacrifice population.</English>
+		<English>Human players cannot change their civics to Slavery. Only the Aztec Sacrificial Altar allows humans to sacrifice population. Human Granaries store 50%% food. (They normally store only 40%% in AdvCiv.)</English>
 		<French>Les acteurs humains ne peuvent pas changer leur doctrine en esclavage. Seul l'autel sacrificiel aztèque permet aux humains de sacrifier la population.</French>
-		<German>Menschliche Spieler können nicht die Sklaverei als Staatsform wählen. Nur der aztekischer Opferaltar erlaubt menschlichen Spielern das Opfern ihrer Bevölkerung.</German>
+		<German>Menschliche Spieler können nicht die Sklaverei als Staatsform wählen. Nur der aztekischer Opferaltar erlaubt menschlichen Spielern das Opfern ihrer Bevölkerung. Kornspeicher menschlicher Spieler speichern 50%% Nahrung (anstatt der 40%%, die sie in AdvCiv ansonsten speichern).</German>
 		<Italian>I giocatori umani non possono cambiare la loro forma di governo in schiavismo. Solo l'altare sacrificale azteco permette agli umani di sacrificare la popolazione.</Italian>
 		<Spanish>Los jugadores humanos no pueden cambiar sus principios a la esclavitud. Sólo el altar de sacrificios azteca permite a los humanos sacrificar a la población.</Spanish>
 	</TEXT>
