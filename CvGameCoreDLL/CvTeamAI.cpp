@@ -3036,7 +3036,7 @@ int CvTeamAI::AI_getRivalAirPower() const
 		{
 			CvTeamAI const& kRival = *it;
 			// <advc.131>
-			if (kRival.AI_isAvoidWar(getID()))
+			if (!isBarbarian() && kRival.AI_isAvoidWar(getID()))
 				continue; // </advc.131>
 			int iUnitPower = kUnit.getPowerValue() *
 					// advc (note): This is cheating
