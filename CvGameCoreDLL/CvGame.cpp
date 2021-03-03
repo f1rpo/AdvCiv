@@ -10297,8 +10297,19 @@ int CvGame::getCultureThreshold(CultureLevelTypes eLevel) const
 		iThreshold *= GC.getInfo(getStartEra()).getCulturePercent();
 		iThreshold /= 100; // </advc.126>
 		// <advc.251>
+		int iMultiple = 1;
+		if (iThreshold > 100000)
+			iMultiple = 10000;
+		else if (iThreshold > 50000)
+			iMultiple = 5000;
+		else if (iThreshold > 10000)
+			iMultiple = 1000;
+		else if (iThreshold > 1000)
+			iMultiple = 100;
+		else if (iThreshold > 100)
+			iMultiple = 10;
 		iThreshold *= GC.getInfo(getHandicapType()).getCultureLevelPercent();
-		iThreshold /= 100;
+		iThreshold = per100(iThreshold).roundToMultiple(iMultiple);
 		iThreshold = std::max(iThreshold, iExempt);
 	} // </advc.251>
 	return iThreshold;
