@@ -144,6 +144,7 @@
 				</SpeedThreshold>
 			</SpeedThresholds>
 		</CultureLevelInfo>
+		<!-- advc.251: Quick was 25k, Normal 50k, Epic 75k, Marathon 150k.-->
 		<CultureLevelInfo>
 			<Type>CULTURELEVEL_LEGENDARY</Type>
 			<Description>TXT_KEY_CULTURELEVEL_LEGENDARY</Description>
@@ -151,19 +152,19 @@
 			<SpeedThresholds>
 				<SpeedThreshold>
 					<GameSpeedType>GAMESPEED_MARATHON</GameSpeedType>
-					<iThreshold>150000</iThreshold>
+					<iThreshold>135000</iThreshold>
 				</SpeedThreshold>
 				<SpeedThreshold>
 					<GameSpeedType>GAMESPEED_EPIC</GameSpeedType>
-					<iThreshold>75000</iThreshold>
+					<iThreshold>67500</iThreshold>
 				</SpeedThreshold>
 				<SpeedThreshold>
 					<GameSpeedType>GAMESPEED_NORMAL</GameSpeedType>
-					<iThreshold>50000</iThreshold>
+					<iThreshold>45000</iThreshold>
 				</SpeedThreshold>
 				<SpeedThreshold>
 					<GameSpeedType>GAMESPEED_QUICK</GameSpeedType>
-					<iThreshold>25000</iThreshold>
+					<iThreshold>30000</iThreshold>
 				</SpeedThreshold>
 			</SpeedThresholds>
 		</CultureLevelInfo>

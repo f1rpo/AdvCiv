@@ -703,7 +703,7 @@
 			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>100</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>100</iGPThresholdPercent>
-			<iCultureLevelPercent>110</iCultureLevelPercent>
+			<iCultureLevelPercent>106</iCultureLevelPercent>
 			<!-- advc.251 (end) -->
 			<iResearchPercent>115</iResearchPercent>
 			<!-- advc.251 (start) -->
@@ -856,7 +856,7 @@
 			<iBuildTimePercent>110</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>110</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>110</iGPThresholdPercent>
-			<iCultureLevelPercent>120</iCultureLevelPercent>
+			<iCultureLevelPercent>112</iCultureLevelPercent>
 			<iResearchPercent>125</iResearchPercent>
 			<iTrainPercent>110</iTrainPercent>
 			<iConstructPercent>105</iConstructPercent>
@@ -1011,7 +1011,7 @@
 			<iBuildTimePercent>115</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>120</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>120</iGPThresholdPercent>
-			<iCultureLevelPercent>130</iCultureLevelPercent>
+			<iCultureLevelPercent>118</iCultureLevelPercent>
 			<!-- was 125 -->
 			<iResearchPercent>135</iResearchPercent>
 			<iTrainPercent>120</iTrainPercent>
@@ -1172,7 +1172,7 @@
 			<iBuildTimePercent>120</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>130</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>130</iGPThresholdPercent>
-			<iCultureLevelPercent>140</iCultureLevelPercent>
+			<iCultureLevelPercent>129</iCultureLevelPercent>
 			<!-- advc.251: was 130 -->
 			<iResearchPercent>150</iResearchPercent>
 			<iTrainPercent>130</iTrainPercent>
