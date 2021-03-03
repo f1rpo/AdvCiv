@@ -19269,7 +19269,7 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption,
 			szBuffer.clear();
 			// <advc.004z>
 			if(eLoopBonus == NO_BONUS)
-				GAMETEXT.setImprovementHelp(szBuffer, kPlot.getImprovementType());
+				GAMETEXT.setImprovementHelp(szBuffer, eImpr);
 			else // </advc.004z>
 			{
 				//GAMETEXT.setBonusHelp(szBuffer, eCurType, false);
