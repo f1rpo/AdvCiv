@@ -5361,6 +5361,14 @@ void CvGame::toggleDebugMode()
 	else gDLL->getEngineIFace()->PopFogOfWar();
 
 	gDLL->getEngineIFace()->setFogOfWarFromStack();
+	// <advc.045>
+	// (Seems to add a noticeable delay; not worth it I think.)
+	/*for (PlayerIter<ALIVE,NOT_SAME_TEAM_AS> itPlayer(getActiveTeam());
+		itPlayer.hasNext(); ++itPlayer)
+	{
+		FOR_EACH_CITY_VAR(pCity, *itPlayer)
+			pCity->setLayoutDirty(true);
+	}*/ // </advc.045>
 }
 
 void CvGame::updateDebugModeCache()

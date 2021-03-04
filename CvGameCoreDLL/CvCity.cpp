@@ -11716,7 +11716,7 @@ bool CvCity::isAllBuildingsVisible(TeamTypes eTeam, bool bDebug) const
 {
 	if (bDebug && GC.getGame().isDebugMode())
 		return true;
-	return (getPlot().isInvestigate(eTeam) ||
+	return (getTeam() == eTeam || getPlot().isInvestigate(eTeam) ||
 			getPlot().plotCheck(NULL, -1, -1, NO_PLAYER, eTeam) > 0 != NULL);
 }
 
