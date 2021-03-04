@@ -7993,6 +7993,25 @@ int CvPlot::get3DAudioScriptFootstepIndex(int iFootstepTag) const
 
 float CvPlot::getAqueductSourceWeight() const
 {
+	PROFILE_FUNC(); // advc.test: Let's see how often the EXE calls this
+	// <advc.002p> Imperfect workaround for a missing same-area check in the EXE
+	for (CityPlotIter itPlot(*this, false); itPlot.hasNext(); ++itPlot)
+	{	/*	Sources adjacent to a city are OK (and need to be skipped here
+			because an adjacent Peak could belong to a different area
+			- because of change advc.030) */
+		if (itPlot.currID() <= NUM_INNER_PLOTS)
+			continue;
+		if (itPlot->isCity() && !itPlot->isArea(getArea()))
+		{
+			static BuildingClassTypes const eAqueduct = (BuildingClassTypes)
+					GC.getInfoTypeForString("BUILDINGCLASS_AQUEDUCT", true);
+			if (eAqueduct != NO_BUILDINGCLASS &&
+				itPlot->getPlotCity()->getNumBuilding(eAqueduct) > 0)
+			{
+				return -1;
+			}
+		}
+	} // </advc.002p>
 	float fWeight = 0.0f;
 	if (isLake() || isPeak() ||
 		(isFeature() && GC.getInfo(getFeatureType()).isAddsFreshWater()))
