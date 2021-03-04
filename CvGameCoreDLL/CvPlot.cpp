@@ -6548,13 +6548,12 @@ void CvPlot::doFeature()
 			{
 				if (pAdj->getFeatureType() != eLoopFeature)
 					continue;
-				if (!pAdj->isImproved())
-					iProbability += GC.getInfo(eLoopFeature).getGrowthProbability();
-				else
+				if (pAdj->isImproved())
 				{
 					iProbability += GC.getInfo(pAdj->getImprovementType()).
 							getFeatureGrowthProbability();
 				}
+				else iProbability += GC.getInfo(eLoopFeature).getGrowthProbability();
 			}
 			static int const iFEATURE_GROWTH_MODIFIER = GC.getDefineINT("FEATURE_GROWTH_MODIFIER");
 			iProbability *= std::max(0, iFEATURE_GROWTH_MODIFIER + 100);
@@ -6600,9 +6599,9 @@ void CvPlot::doFeature()
 void CvPlot::doCulture()
 {
 	// <advc> Moved the bulk of the code into a new CvCity member function
-	CvCity* c = getPlotCity();
-	if(c != NULL)
-		c->doRevolt(); // </advc>
+	CvCity* pPlotCity = getPlotCity();
+	if(pPlotCity != NULL)
+		pPlotCity->doRevolt(); // </advc>
 	doCultureDecay(); // advc.099b
 	updateCulture(true, true);
 }
@@ -6638,7 +6637,7 @@ void CvPlot::doCultureDecay()
 				PlayerTypes const eCityOwner = p.getOwner();
 				if(eCityOwner != NO_PLAYER && eCityOwner != BARBARIAN_PLAYER)
 				{
-					iMinDist = std::min(iMinDist, ::plotDistance(&p, this));
+					iMinDist = std::min(iMinDist, plotDistance(&p, this));
 					iMaxRadiusCulture = std::max(iMaxRadiusCulture, getCulture(eCityOwner));
 					abInRadius[eCityOwner] = true;
 					bInAnyRadius = true;
@@ -6646,35 +6645,34 @@ void CvPlot::doCultureDecay()
 			}
 		}
 	}
-	for(int i = 0; i < MAX_PLAYERS; i++)
+	FOR_EACH_ENUM(Player)
 	{
-		PlayerTypes civId = (PlayerTypes)i;
-		int iCulture = getCulture(civId);
+		int iCulture = getCulture(eLoopPlayer);
 		if(iCulture <= 0)
 			continue;
 		int iDecayPerMill = iBaseDecayPerMill;
-		if(bInAnyRadius && !abInRadius[i] && iCulture >
-			((100.0 - iCulturePercentThresh) /
-			iCulturePercentThresh) * iMaxRadiusCulture)
+		if(bInAnyRadius && !abInRadius[eLoopPlayer] &&
+			iCulture >
+			scaled(100 - iCulturePercentThresh, iCulturePercentThresh) * iMaxRadiusCulture)
 		{
-			double exclDecay = 0;
+			scaled rExclDecay;
 			if(iMinDist <= 2)
-				exclDecay += iExclDecay;
+				rExclDecay += iExclDecay;
 			if(iMinDist <= 1)
-				exclDecay += iExclDecay;
+				rExclDecay += iExclDecay;
 			if(iCulture < iMaxRadiusCulture)
 			{
 				// Gradually throttle decay when approaching the threshold
-				exclDecay *= iCulture / (double)iMaxRadiusCulture;
+				rExclDecay.mulDiv(iCulture, iMaxRadiusCulture);
 			}
-			iDecayPerMill += ::round(exclDecay);
+			iDecayPerMill += rExclDecay.round();
 		}
 		iCulture -= (iCulture * iDecayPerMill) / 1000;
-		setCulture(civId, iCulture, false, false);
+		setCulture(eLoopPlayer, iCulture, false, false);
 	}
 }
 
-/*	advc.099b:
+/*	advc.099b: Return value:
 	 0: city tile belonging to ePlayer
 	-1: Not in the exclusive radius of ePlayer. I.e. not in the radius of any
 		ePlayer city or also in the radius of another player's city.
@@ -6689,17 +6687,17 @@ int CvPlot::exclusiveRadius(PlayerTypes ePlayer) const
 			return 0;
 		return -1;
 	}
-	int r = -1;
+	int iRadius = -1;
 	for (CityPlotIter it(*this); it.hasNext(); ++it)
 	{
 		CvPlot const& p = *it;
 		if(!p.isCity())
 			continue;
 		if(p.getOwner() == ePlayer)
-			r = ::plotDistance(&p, this);
+			iRadius = plotDistance(&p, this);
 		else return -1;
 	}
-	return r;
+	return iRadius;
 }
 
 /*	advc: Replacing the old getArea function. Not public b/c CvAreas shouldn't be
@@ -7083,8 +7081,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 	m_units.Read(pStream);
 }
 
-// write object to a stream
-// used during save
+// write object to a stream. used during save.
 void CvPlot::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
@@ -7782,7 +7779,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 	}
 
 	if (bTestVisible)
-		return true; // advc
+		return true;
 
 	if (kUnit.getHolyCity() != NO_RELIGION)
 	{
@@ -7794,7 +7791,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 	{
 		if (!bCity)
 			return false;
-		BuildingTypes ePrereqBuilding = kUnit.getPrereqBuilding(); // advc
+		BuildingTypes ePrereqBuilding = kUnit.getPrereqBuilding();
 		if (pCity->getNumBuilding(ePrereqBuilding) == 0)
 		{
 			SpecialBuildingTypes eSpecialBuilding = GC.getInfo(ePrereqBuilding).getSpecialBuildingType();
@@ -7805,7 +7802,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 			}
 		}
 	}
-	BonusTypes ePrereqAndBonus = kUnit.getPrereqAndBonus(); // advc
+	BonusTypes ePrereqAndBonus = kUnit.getPrereqAndBonus();
 	if(ePrereqAndBonus != NO_BONUS &&
 		ePrereqAndBonus != eAssumeAvailable) // advc.001u
 	{
@@ -7855,7 +7852,8 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 	return true;
 }
 
-// advc: Replacing CvCity::isValidBuildingLocation. Body cut from there (incl. the comment).
+/*	advc: Replacing CvCity::isValidBuildingLocation.
+	Body cut from there (incl. the comment). */
 bool CvPlot::canConstruct(BuildingTypes eBuilding) const
 {
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
@@ -7948,10 +7946,10 @@ int CvPlot::countHostileUnits(PlayerTypes ePlayer, bool bPlayer, bool bTeam,
 
 bool CvPlot::isEspionageCounterSpy(TeamTypes eTeam) const
 {
-	CvCity* pCity = getPlotCity();
-	if (NULL != pCity && pCity->getTeam() == eTeam)
+	CvCity const* pPlotCity = getPlotCity();
+	if (pPlotCity != NULL && pPlotCity->getTeam() == eTeam)
 	{
-		if (pCity->getEspionageDefenseModifier() > 0)
+		if (pPlotCity->getEspionageDefenseModifier() > 0)
 			return true;
 	}
 	// advc.opt: was plotCount... > 0
@@ -8010,8 +8008,8 @@ float CvPlot::getAqueductSourceWeight() const
 
 bool CvPlot::shouldDisplayBridge(CvPlot* pToPlot, PlayerTypes ePlayer) const
 {
-	TeamTypes eObservingTeam = GET_PLAYER(ePlayer).getTeam();
-	TeamTypes eOurTeam = getRevealedTeam(eObservingTeam, true);
+	TeamTypes const eObservingTeam = TEAMID(ePlayer);
+	TeamTypes const eOurTeam = getRevealedTeam(eObservingTeam, true);
 	TeamTypes eOtherTeam = NO_TEAM;
 	if (pToPlot != NULL)
 		eOtherTeam = pToPlot->getRevealedTeam(eObservingTeam, true);

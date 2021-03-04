@@ -6499,11 +6499,11 @@ void CvCity::setLayoutDirty(bool bNewValue)
 	m_bLayoutDirty = bNewValue;
 }
 
-// <advc.inl>
+// advc.inl:
 PlayerTypes CvCity::getOwnerExternal() const
 {
 	return getOwner();
-} // </advc.inl>
+}
 
 
 void CvCity::setPreviousOwner(PlayerTypes eNewValue)
@@ -8873,7 +8873,7 @@ void CvCity::setNumRealBuilding(BuildingTypes eBuilding, int iNewValue,
 }
 
 
-void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, bool bFirst,  // advc. refactoring
+void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, bool bFirst,
 	PlayerTypes eOriginalOwner, int iOriginalTime, /* advc.001x: */ bool bEndOfTurn)
 {
 
