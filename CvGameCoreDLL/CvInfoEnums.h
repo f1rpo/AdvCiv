@@ -263,16 +263,15 @@ static inline T operator-(T minuend, T subtrahend)
 #define NUM_ENUM_TYPES(INFIX) NUM_##INFIX##_TYPES
 #define NO_ENUM_TYPE(SUFFIX) NO_##SUFFIX = -1
 
-// (See SET_NONXML_ENUM_LENGTH in EnumMap.h about the bAllowFOR_EACH parameter)
 #define SET_ENUM_LENGTH_STATIC(Name, INFIX) \
-	__forceinline Name##Types getEnumLength(Name##Types, bool bAllowFOR_EACH = true) \
+	__forceinline Name##Types getEnumLength(Name##Types) \
 	{ \
 		return NUM_ENUM_TYPES(INFIX); \
 	}
 /*  This gets used in CvGlobals.h. (I wanted to do it in MAKE_INFO_ENUM, which is
 	used in CvEnums.h, but that lead to a circular dependency.) */
 #define SET_ENUM_LENGTH(Name, PREFIX) \
-	__forceinline Name##Types getEnumLength(Name##Types, bool bAllowFOR_EACH = true) \
+	__forceinline Name##Types getEnumLength(Name##Types) \
 	{ \
 		return static_cast<Name##Types>(gGlobals.getNum##Name##Infos()); \
 	}

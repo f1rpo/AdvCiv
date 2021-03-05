@@ -27,10 +27,7 @@ enum PlayerTypes
 	BARBARIAN_PLAYER = MAX_CIV_PLAYERS,
 	MAX_PLAYERS
 };
-__forceinline PlayerTypes getEnumLength(PlayerTypes, bool bAllowFOR_EACH = true)
-{
-	return MAX_PLAYERS;
-}
+
 enum TeamTypes
 {
 	NO_TEAM = -1,
@@ -38,10 +35,6 @@ enum TeamTypes
 	MAX_CIV_TEAMS = BARBARIAN_TEAM,
 	MAX_TEAMS
 };
-__forceinline TeamTypes getEnumLength(TeamTypes, bool bAllowFOR_EACH = true)
-{
-	return MAX_TEAMS;
-}
 
 // This generates most of the enums with associated XML data
 DO_FOR_EACH_DYN_INFO_TYPE(MAKE_INFO_ENUM)

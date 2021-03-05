@@ -575,7 +575,7 @@ protected:
 };
 
 // advc.enum: (for EnumMap)
-__forceinline PlotNumTypes getEnumLength(PlotNumTypes, bool bAllowForEach = true)
+__forceinline PlotNumTypes getEnumLength(PlotNumTypes)
 {
 	return GC.getMap().numPlots();
 }
