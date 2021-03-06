@@ -2336,7 +2336,7 @@ CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 	if (pbWrap != NULL)
 		*pbWrap = false;
 	// <advc.004h>
-	if(pUnit->canFound())
+	if(pUnit != NULL && pUnit->canFound())
 		pUnit->updateFoundingBorder(true); // </advc.004h>
 	// <K-Mod>
 	std::set<int>& kCycledGroups = GC.getGame().getActivePlayerCycledGroups();
