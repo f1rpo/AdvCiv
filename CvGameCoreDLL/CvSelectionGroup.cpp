@@ -1667,7 +1667,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 			if (headMissionQueueNode() != NULL)
 				activateHeadMission();
 			// <advc.153>
-			else if (getOwner() == kGame.getActivePlayer() &&
+			else if (!AI_isControlled() &&
 				(missionData.eMissionType == MISSION_BUILD ||
 				// Too annoying?
 				//missionData.eMissionType == MISSION_MOVE_TO ||
