@@ -3322,9 +3322,7 @@ bool CvSelectionGroup::readyToAuto() /* advc: */ const
 	executing a particular mission - including an optional movement points check.
 	CvSelectionGroup::readyForMission, which basically just calls canDoMission
 	for the current mission, as direct replacement for the canAllMove condition.
-	(canStartMission now calls canDoMission.)
-	(K-Mod note: I'd make this function const, but it would conflict with some dllexport functions)
-	^advc: I guess canAllMove was the problem; fixed. */
+	(canStartMission now calls canDoMission.) */
 bool CvSelectionGroup::readyForMission() const
 {
 	if (headMissionQueueNode() == NULL)
@@ -3350,7 +3348,7 @@ bool CvSelectionGroup::readyForMission() const
 
 
 bool CvSelectionGroup::canDoMission(MissionTypes eMission, int iData1, int iData2,
-	CvPlot const* pPlot, bool bTestVisible, bool bCheckMoves) const // advc: const CvPlot*
+	CvPlot const* pPlot, bool bTestVisible, bool bCheckMoves) const
 {
 	if (pPlot == NULL)
 		pPlot = plot();
@@ -3921,14 +3919,13 @@ bool CvSelectionGroup::generatePath(CvPlot const& kFrom, CvPlot const& kTo,
 		pathFinder().Reset();*/
 	kPathFinder.setGroup(*this, eFlags, iMaxPath);
 	bool bSuccess = kPathFinder.generatePath(kFrom, kTo);
-	/* test. (K-Mod)
-	if (!bUseTempFinder && bSuccess != gDLL->getFAStarIFace()->GeneratePath(&GC.getPathFinder(), pFromPlot->getX(), pFromPlot->getY(), pToPlot->getX(), pToPlot->getY(), false, eFlags, bReuse)) {
+	/*if (!bUseTempFinder && bSuccess != gDLL->getFAStarIFace()->GeneratePath(&GC.getPathFinder(), pFromPlot->getX(), pFromPlot->getY(), pToPlot->getX(), pToPlot->getY(), false, eFlags, bReuse)) {
 		pNode = gDLL->getFAStarIFace()->GetLastNode(&GC.getPathFinder());
 		if (bSuccess || iMaxPath < 0 || !pNode || pNode->m_iData2 <= iMaxPath) {
 			//::MessageBoxA(NULL,"pathfind mismatch","CvGameCore",MB_OK);
 			FAssert(false);
 		}
-	}*/
+	}*/ // test (K-Mod)
 
 	if (piPathTurns != NULL)
 	{

@@ -1214,8 +1214,7 @@ int CvPlayerAI::AI_movementPriority(
 		}
 		return iPriority;
 	}
-	/* old code
-	if (pHeadUnit->canFight()) {
+	/*if (pHeadUnit->canFight()) {
 		if (pHeadUnit->withdrawalProbability() > 20)
 			return 9;
 		if (pHeadUnit->withdrawalProbability() > 0)
@@ -1239,7 +1238,7 @@ int CvPlayerAI::AI_movementPriority(
 		else if (iCurrCombat > (iBestCombat * 1) / 5)
 			return 15;
 		else return 16;
-	}*/
+	}*/ // BtS
 	return 200;
 }
 
@@ -1260,8 +1259,9 @@ void CvPlayerAI::AI_unitUpdate()
 
 			if (pLoopSelectionGroup->AI_isForceSeparate())
 			{
-				// do not split groups that are in the midst of attacking
-				if (pLoopSelectionGroup->isForceUpdate() || !pLoopSelectionGroup->AI_isGroupAttack())
+				if (pLoopSelectionGroup->isForceUpdate() ||
+					// do not split groups that are in the midst of attacking
+					!pLoopSelectionGroup->AI_isGroupAttack())
 				{
 					pLoopSelectionGroup->AI_separate();	// pointers could become invalid...
 				}
@@ -1322,7 +1322,8 @@ void CvPlayerAI::AI_unitUpdate()
 				pCurrUnitNode = headGroupCycleNode();
 				while (pCurrUnitNode != NULL)
 				{
-					CvSelectionGroupAI* pLoopSelectionGroup = AI_getSelectionGroup(pCurrUnitNode->m_data);
+					CvSelectionGroupAI* pLoopSelectionGroup = AI_getSelectionGroup(
+							pCurrUnitNode->m_data);
 					int iPriority = AI_movementPriority(*pLoopSelectionGroup);
 					groupList.push_back(std::make_pair(iPriority, pCurrUnitNode->m_data));
 
@@ -1333,12 +1334,19 @@ void CvPlayerAI::AI_unitUpdate()
 				std::sort(groupList.begin(), groupList.end());
 				for (size_t i = 0; i < groupList.size(); i++)
 				{
-					CvSelectionGroupAI* pLoopSelectionGroup = AI_getSelectionGroup(groupList[i].second);
-					// I think it's probably a good idea to activate automissions here, so that the move priority is respected even for commands issued on the previous turn.
-					// (This will allow reserve units to guard workers that have already moved, rather than trying to guard workers who are about to move to a different plot.)
-					if (pLoopSelectionGroup && !pLoopSelectionGroup->autoMission())
+					CvSelectionGroupAI* pLoopSelectionGroup = AI_getSelectionGroup(
+							groupList[i].second);
+					/*	I think it's probably a good idea to activate automissions here,
+						so that the move priority is respected even for commands
+						issued on the previous turn. (This will allow reserve units to
+						guard workers that have already moved, rather than trying to
+						guard workers who are about to move to a different plot.) */
+					if (pLoopSelectionGroup != NULL &&
+						!pLoopSelectionGroup->autoMission())
 					{
-						if (pLoopSelectionGroup->isBusy() || pLoopSelectionGroup->isCargoBusy() || pLoopSelectionGroup->AI_update())
+						if (pLoopSelectionGroup->isBusy() ||
+							pLoopSelectionGroup->isCargoBusy() ||
+							pLoopSelectionGroup->AI_update())
 						{
 							bRepeat = false;
 							break;
@@ -1346,14 +1354,19 @@ void CvPlayerAI::AI_unitUpdate()
 					}
 				}
 
-				// one last trick that might save us a bit of time...
-				// if the number of selection groups has increased, then lets try to take care of the new groups right away.
-				// (there might be a faster way to look for the new groups, but I don't know it.)
+				/*	one last trick that might save us a bit of time...
+					if the number of selection groups has increased,
+					then lets try to take care of the new groups right away.
+					(there might be a faster way to look for the new groups,
+					but I don't know it.) */
 				bRepeat = bRepeat && m_groupCycle.getLength() > (int)groupList.size();
-				// the repeat will do a stack of redundant checks,
-				// but I still expect it to be much faster than waiting for the next turnslice.
-				// Note: I use m_groupCycle rather than getNumSelectionGroups just in case there is a bug which causes the two to be out of sync.
-				// (otherwise, if getNumSelectionGroups is bigger, it could cause an infinite loop.)
+				/*	the repeat will do a stack of redundant checks,
+					but I still expect it to be much faster
+					than waiting for the next turnslice.
+					Note: I use m_groupCycle rather than getNumSelectionGroups
+					just in case there is a bug which causes the two to be out of sync.
+					(otherwise, if getNumSelectionGroups is bigger,
+					it could cause an infinite loop.) */
 			} while (bRepeat);
 			// K-Mod end
 		}

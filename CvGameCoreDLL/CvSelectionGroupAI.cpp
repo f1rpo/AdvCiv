@@ -125,8 +125,10 @@ bool CvSelectionGroupAI::AI_update()
 
 	// K-Mod. (replacing the original "isForceUpdate" stuff.)
 	if (isForceUpdate())
-		AI_cancelGroupAttack(); // note: we haven't toggled the update flag, nor woken the group from sleep.
-	// K-Mod end
+	{
+		// note: we haven't toggled the update flag, nor woken the group from sleep.
+		AI_cancelGroupAttack();
+	} // K-Mod end
 
 	//FAssert(!(GET_PLAYER(getOwner()).isAutoMoves())); // (no longer true in K-Mod)
 
@@ -141,7 +143,8 @@ bool CvSelectionGroupAI::AI_update()
 	//while ((m_bGroupAttack && !bFailedAlreadyFighting) || readyToMove())
 	while ((AI_isGroupAttack() && !isBusy()) || readyToMove()) // K-Mod
 	{
-		setForceUpdate(false); // K-Mod. Force update just means we should get into this loop at least once.
+		// K-Mod. Force update just means we should get into this loop at least once.
+		setForceUpdate(false);
 		iAttempts++;
 		/*  <advc.001y> Moved out of the block below so I can see what the loop does
 			before it terminates. Debugger stops in CvSelectionGroup::pushMission and
@@ -163,7 +166,8 @@ bool CvSelectionGroupAI::AI_update()
 		if (AI_isGroupAttack())
 		{
 			AI_cancelGroupAttack();
-			groupAttack(m_iGroupAttackX, m_iGroupAttackY, MOVE_DIRECT_ATTACK, bFailedAlreadyFighting);
+			groupAttack(m_iGroupAttackX, m_iGroupAttackY,
+					MOVE_DIRECT_ATTACK, bFailedAlreadyFighting);
 		}
 		// else pick AI action
 		else
@@ -187,7 +191,8 @@ bool CvSelectionGroupAI::AI_update()
 			break;
 		}
 
-		// if no longer group attacking, and force separate is true, then bail, decide what to do after group is split up
+		/*	if no longer group attacking, and force separate is true,
+			then bail, decide what to do after group is split up */
 		// (UnitAI of head unit may have changed)
 		if (!AI_isGroupAttack() && AI_isForceSeparate())
 		{
@@ -277,9 +282,11 @@ int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy)
 	FAssert(getOwner() != NO_PLAYER);
 	//if (pPlot->getBestDefender(NO_PLAYER, getOwner(), NULL, !bPotentialEnemy, bPotentialEnemy) == NULL)
 	// BETTER_BTS_AI_MOD, Efficiency, Lead From Behind (UncutDragon), 02/21/10, jdog5000:
-	if (!pPlot->hasDefender(false, NO_PLAYER, getOwner(), NULL, !bPotentialEnemy, bPotentialEnemy))
+	if (!pPlot->hasDefender(false, NO_PLAYER, getOwner(),
+		NULL, !bPotentialEnemy, bPotentialEnemy))
+	{
 		return 100;
-
+	}
 	int iOdds=-1; // (advc: Was 0. Shouldn't matter.)
 	CvUnit* pAttacker = AI_getBestGroupAttacker(pPlot, bPotentialEnemy, iOdds);
 	if (pAttacker == NULL)
@@ -463,8 +470,11 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
 			else
 			{
 				bCanAttack = pLoopUnit->canAttack();
-				if (bCanAttack && bNoBlitz && pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack())
+				if (bCanAttack && bNoBlitz && pLoopUnit->isBlitz() &&
+					pLoopUnit->isMadeAttack())
+				{
 					bCanAttack = false;
+				}
 			}
 			if (bCanAttack)
 			{
@@ -477,7 +487,8 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
 						   production cost; changed to >= 0. */
 						FAssert(iValue >= 0);
 
-						// we want to pick the last unit of highest value, so pick the last unit with a good value
+						/*	we want to pick the last unit of highest value,
+							so pick the last unit with a good value */
 						//if (iValue >= iBestValue)
 						// advc.048: As in AI_getBestGroupAttacker
 						if (iValue > iBestValue || (!bHuman && iValue == iBestValue))
@@ -502,7 +513,8 @@ int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAtta
 	FAssert(pPlot != NULL);
 
 	DomainTypes eDomainType = getDomainType();
-	// if not aircraft, then choose based on the plot, not the head unit (mainly for transport carried units)
+	/*	if not aircraft, then choose based on the plot,
+		not the head unit (mainly for transport carried units) */
 	if (eDomainType != DOMAIN_AIR)
 	{
 		if (pPlot->isWater())
@@ -797,7 +809,8 @@ void CvSelectionGroupAI::AI_queueGroupAttack(int iX, int iY)
 }
 
 
-bool CvSelectionGroupAI::AI_isDeclareWar(CvPlot const& kPlot) const // advc: const; param no longer optional.
+bool CvSelectionGroupAI::AI_isDeclareWar(
+	CvPlot const& kPlot) const // advc: param no longer optional
 {
 	FAssert(getHeadUnit() != NULL);
 

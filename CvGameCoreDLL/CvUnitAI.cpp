@@ -64,7 +64,7 @@ bool CvUnitAI::AI_update()
 	if (GC.getPythonCaller()->AI_update(*this))
 		return false;
 	// <advc.128>
-	m_iSearchRangeRandPercent = GC.getGame().getSorenRandNum(101, "advc.128",
+	m_iSearchRangeRandPercent = GC.getGame().getSorenRandNum(101, "SearchRangeRand",
 			getX() * 1000 + getY(), getID()); // </advc.128>
 	if (getDomainType() == DOMAIN_LAND)
 	{
@@ -430,7 +430,6 @@ bool CvUnitAI::AI_follow(bool bFirst)
 			return true;
 		}
 	}
-	//
 
 	if (isEnemy(getPlot()))
 	{

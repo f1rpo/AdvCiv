@@ -5923,7 +5923,7 @@ int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& i
 
 
 int CvPlayer::calculateUnitCost(
-		int iExtraPop, int iExtraUnits) const // advc.004b
+	int iExtraPop, int iExtraUnits) const // advc.004b
 {
 	if(isAnarchy())
 		return 0;
