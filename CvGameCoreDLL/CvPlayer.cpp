@@ -19563,7 +19563,7 @@ double CvPlayer::estimateYieldRate(YieldTypes eYield, int iSamples) const
 	CvGame const& kGame = GC.getGame();
 	int const iGameTurn = kGame.getGameTurn();
 	int const iTurnsPlayed = iGameTurn - kGame.getStartTurn();
-	iSamples = std::min(iSamples, iTurnsPlayed - 1);
+	iSamples = std::max(0, std::min(iSamples, iTurnsPlayed - 1));
 	std::vector<double> adSamples; // double for ::dMedian
 	adSamples.reserve(iSamples);
 	/* When anarchy lasts several turns, the sample may not contain a single
