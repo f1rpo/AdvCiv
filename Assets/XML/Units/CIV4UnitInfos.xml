@@ -16716,7 +16716,9 @@
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
 			<bMilitaryHappiness>0</bMilitaryHappiness>
+			<!-- K-Mod: was 1 -->
 			<bMilitarySupport>0</bMilitarySupport>
+			<!-- K-Mod: was 1 -->
 			<bMilitaryProduction>0</bMilitaryProduction>
 			<bPillage>0</bPillage>
 			<bSpy>0</bSpy>
