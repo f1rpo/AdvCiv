@@ -1076,14 +1076,17 @@ int CvUnitAI::AI_currEffectiveStr(CvPlot const* pPlot, CvUnit const* pOther,
 	{
 		int iPossibleTargets = collateralDamageMaxUnits();
 		if (bCheckCanAttack && pPlot != NULL && pPlot->isVisible(getTeam()))
-			iPossibleTargets = std::min(iPossibleTargets, pPlot->getNumVisibleEnemyDefenders(this) - 1);
+		{
+			iPossibleTargets = std::min(iPossibleTargets,
+					pPlot->getNumVisibleEnemyDefenders(this) - 1);
+		}
 		// If !bCheckCanAttack, then lets not assume kPlot won't get more units on it.
 		// advc: But let's put some cap on the number of targets
 		else iPossibleTargets = std::min(10, iPossibleTargets);
 		if (iPossibleTargets > 0)
 		{
-			// collateral damage is not trivial to calculate. This estimate is pretty rough.
-			// (Note: collateralDamage() and iBaseCollateral both include factors of 100.)
+			/*	collateral damage is not trivial to calculate. This estimate is pretty rough.
+				(Note: collateralDamage() and iBaseCollateral both include factors of 100.) */
 			iCombatStrengthPercent += baseCombatStr() * iBaseCollateral *
 					collateralDamage() * iPossibleTargets / 10000;
 		}
@@ -13056,11 +13059,12 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	int iOurOffence = -1; // We calculate this for the first city only.
 	CvUnit* pBestTransport = NULL;
-	// iLoadTurns < 0 implies we should look for a transport; otherwise, it is the number of turns to reach the transport.
-	// Also, we only consider using transports if we aren't in enemy territory.
-	int iLoadTurns = isEnemy(getPlot()) ? MAX_INT : -1;
+	/*	iLoadTurns < 0 implies we should look for a transport;
+		otherwise, it is the number of turns to reach the transport.
+		Also, we only consider using transports if we aren't in enemy territory. */
+	int iLoadTurns = (isEnemy(getPlot()) ? MAX_INT : -1);
 	//GroupPathFinder transportPath;
-	GroupPathFinder& transportPath = CvSelectionGroup::getClearPathFinder(); // advc.opt
+	GroupPathFinder& kTransportPath = CvSelectionGroup::getClearPathFinder(); // advc.opt
 	// K-Mod end
 
 	CvCity* pTargetCity =  // advc.300:
@@ -13085,7 +13089,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 			{
 				// K-Mod. Look for either a direct land path, or a sea transport path.
 				int iPathTurns = MAX_INT;
-				bool bLandPath = generatePath(pLoopCity->getPlot(), eFlags, true,
+				bool const bLandPath = generatePath(pLoopCity->getPlot(), eFlags, true,
 						&iPathTurns, iMaxPathTurns);
 				if (pLoopCity->isCoastal() && (pBestTransport != NULL || iLoadTurns < 0))
 				{
@@ -13125,14 +13129,14 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 					int iMaxTransportTurns = std::min(iMaxPathTurns, iPathTurns) - iLoadTurns;
 					if (pBestTransport != NULL && iMaxTransportTurns > 0)
 					{
-						transportPath.setGroup(*pBestTransport->getGroup(),
+						kTransportPath.setGroup(*pBestTransport->getGroup(),
 								eFlags & MOVE_DECLARE_WAR, iMaxTransportTurns,
 								GC.getMOVE_DENOMINATOR());
-						if (transportPath.generatePath(pLoopCity->getPlot()))
+						if (kTransportPath.generatePath(pLoopCity->getPlot()))
 						{
 							// faster by boat
-							FAssert(transportPath.getPathTurns() + iLoadTurns <= iPathTurns);
-							iPathTurns = transportPath.getPathTurns() + iLoadTurns;
+							FAssert(kTransportPath.getPathTurns() + iLoadTurns <= iPathTurns);
+							iPathTurns = kTransportPath.getPathTurns() + iLoadTurns;
 						}
 					}
 				}
@@ -13167,7 +13171,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 				}
 				if (iOurOffence == -1)
 				{
-					/*  note: with bCheckCanAttack == false, AI_sumStrength should be
+					/*  note: with bCheckCanAttack=false, AI_sumStrength should be
 						roughly the same regardless of which city we are targeting.
 						... except if lots of our units have a hills-attack promotion
 						or something like that. */
@@ -13188,8 +13192,9 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 							GC.getDefineINT(CvGlobals::HILLS_EXTRA_DEFENSE) : 0);
 					iValue *= std::max(25, 125 - iMod);
 					iValue /= 25; // the denominator is arbitrary, and unimportant.
-					/*  note: the value reduction from high defences which are bombardable should not
-						be more than the value reduction from simply having higher iPathTurns. */
+					/*  note: the value reduction from high defences
+						which are bombardable should not be more than
+						the value reduction from simply having higher iPathTurns. */
 				}
 				// prefer cities which are close to the main target.
 				if (pLoopCity == pTargetCity)
@@ -13222,8 +13227,9 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 						int iCap = 100 + 100 * (6 - iPathTurns) / 5;
 						iValue *= std::min(iCap, 100 * iOurOffence / std::max(1, iEnemyDefence));
 						iValue /= 100;
-						// an additional bonus if we're already adjacent
-						// (we can afford to be generous with this bonus, because the enemy has no time to bring in reinforcements)
+						/*	an additional bonus if we're already adjacent
+							(we can afford to be generous with this bonus,
+							because the enemy has no time to bring in reinforcements) */
 						if (iPathTurns <= 1)
 						{
 							iValue *= std::min(300, 150 * iOurOffence / std::max(1, iEnemyDefence));
@@ -13231,31 +13237,41 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 						}
 					}
 				}
-				// Reduce the value if we can see, or remember, that the city is well defended.
-				// Note. This adjustment can be more heavy handed because it is harder to feign strong defence than weak defence.
+				/*	Reduce the value if we can see, or remember,
+					that the city is well defended.
+					Note. This adjustment can be more heavy-handed
+					because it is harder to feign strong defence than weak defence. */
 				iEnemyDefence = kOurTeam.AI_strengthMemory().get(pLoopCity->getPlot());
 				if (iEnemyDefence > iTotalOffence)
 				{
-					// a more sensitive adjustment than usual (w/ modifier on the denominator), so as not to be too deterred before bombarding.
+					/*	a more sensitive adjustment than usual
+						(w/ modifier on the denominator),
+						so as not to be too deterred before bombarding. */
 					iEnemyDefence *= 130;
 					iEnemyDefence /= 130 + (bombardRate() > 0 ? pLoopCity->getDefenseModifier(false) : 0);
 					WarPlanTypes eWarPlan = kOurTeam.AI_getWarPlan(pLoopCity->getTeam());
-					// If we aren't fully committed to the war, then focus on taking easy cities - but try not to be completely predictable.
+					/*	If we aren't fully committed to the war, then focus on
+						taking easy cities - but try not to be completely predictable. */
 					bool bCherryPick = (eWarPlan == WARPLAN_LIMITED ||
 							eWarPlan == WARPLAN_PREPARING_LIMITED ||
 							eWarPlan == WARPLAN_DOGPILE);
-					bCherryPick = bCherryPick && (AI_unitBirthmarkHash(GC.getGame().getElapsedGameTurns()/4) % 4);
+					bCherryPick = bCherryPick && (AI_unitBirthmarkHash(
+							GC.getGame().getElapsedGameTurns() / 4) % 4 != 0);
 
-					int iBase = bCherryPick ? 100 : 110;
-					if (100 * iEnemyDefence > iBase * iTotalOffence) // an uneven comparison, just in case we can get some air support or other help somehow.
+					int iBase = (bCherryPick ? 100 : 110);
+					/*	an uneven comparison, just in case we can get
+						some air support or other help somehow. */
+					if (100 * iEnemyDefence > iBase * iTotalOffence)
 					{
 						iValue *= bCherryPick ?
-								std::max(20, (3 * iBase * iTotalOffence - iEnemyDefence) / (2*iEnemyDefence)) :
+								std::max(20, (3 * iBase * iTotalOffence - iEnemyDefence) /
+								(2 * iEnemyDefence)) :
 								std::max(33, iBase * iTotalOffence / iEnemyDefence);
 						iValue /= 100;
 					}
 				}
-				// A const-random component, so that the AI doesn't always go for the same city.
+				/*	A const-random component, so that the AI
+					doesn't always go for the same city. */
 				iValue *= 80 + AI_unitPlotHash(pLoopCity->plot()) % 41;
 				iValue /= 100;
 				iValue *= 1000;
@@ -13278,8 +13294,8 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 					pBestCity = pLoopCity;
 				}
 			} // end if revealed.
-			// K-Mod. If no city in the area is revealed,
-			// then assume the AI is able to deduce the position of the closest city.
+			/*	K-Mod. If no city in the area is revealed,
+				then assume the AI is able to deduce the position of the closest city. */
 			else if (iBestValue == 0 && !pLoopCity->isBarbarian() && (pBestCity == NULL ||
 				stepDistance(getX(), getY(), pBestCity->getX(), pBestCity->getY()) >
 				stepDistance(getX(), getY(), pLoopCity->getX(), pLoopCity->getY())))
@@ -14166,7 +14182,7 @@ bool CvUnitAI::AI_stackVsStack(int iSearchRange, int iAttackThreshold, int iRisk
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 
 	//int iOurDefence = kOwner.AI_localDefenceStrength(plot(), getTeam());
-	int const iOurDefence = AI_getGroup()->AI_sumStrength(0); // not counting defensive bonuses
+	int const iOurDefence = AI_getGroup()->AI_sumStrength(NULL); // not counting defensive bonuses
 
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = 0;

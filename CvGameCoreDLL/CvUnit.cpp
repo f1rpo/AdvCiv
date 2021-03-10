@@ -7230,13 +7230,13 @@ int CvUnit::currEffectiveStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 	CombatDetails* pCombatDetails,
 	int iCurrentHP) const // advc.139
 {
-	int currStr = currCombatStr(pPlot, pAttacker, pCombatDetails);
+	int iCurrStr = currCombatStr(pPlot, pAttacker, pCombatDetails);
 
-	currStr *= (maxHitPoints() + /* advc.139: */ (iCurrentHP > 0 ? iCurrentHP :
+	iCurrStr *= (maxHitPoints() + /* advc.139: */ (iCurrentHP > 0 ? iCurrentHP :
 			currHitPoints()));
-	currStr /= (2 * maxHitPoints());
+	iCurrStr /= (2 * maxHitPoints());
 
-	return currStr;
+	return iCurrStr;
 }
 
 float CvUnit::maxCombatStrFloat(const CvPlot* pPlot, const CvUnit* pAttacker) const
