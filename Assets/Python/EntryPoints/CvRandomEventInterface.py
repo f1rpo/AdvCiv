@@ -3436,7 +3436,7 @@ def getHelpWarChariots1(argsList):
 	iEvent = argsList[0]
 	kTriggeredData = argsList[1]
 		
-	iNumUnits = worldSizeTarget()
+	iNumUnits = worldSizeTarget() + 1
 	szHelp = localText.getText("TXT_KEY_EVENT_WAR_CHARIOTS_HELP_1", (iNumUnits, ))
 
 	return szHelp
@@ -3445,7 +3445,7 @@ def canTriggerWarChariotsDone(argsList):
 	kTriggeredData = argsList[0]
 	trigger = gc.getEventTriggerInfo(kTriggeredData.eTrigger)
 	player = gc.getPlayer(kTriggeredData.ePlayer)
-	iNumUnits = worldSizeTarget()
+	iNumUnits = worldSizeTarget() + 1
 	iUnitClassType = CvUtil.findInfoTypeNum(gc.getUnitClassInfo, gc.getNumUnitClassInfos(), 'UNITCLASS_CHARIOT')
 	if player.getUnitClassCount(iUnitClassType) < iNumUnits:
 		return false
