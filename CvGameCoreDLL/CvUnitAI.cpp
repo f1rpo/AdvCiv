@@ -13609,8 +13609,8 @@ bool CvUnitAI::AI_cityAttack(int iRange, int iOddsThreshold,
 			if ((bFollow ? canMoveOrAttackInto(p, bDeclareWar) :
 				generatePath(p, eFlags, true, &iPathTurns, iRange)))
 			{
-				int iValue = AI_isAnyEnemyDefender(p) ? 100 :
-						AI_getGroup()->AI_getWeightedOdds(&p, true);
+				int iValue = (!AI_isAnyEnemyDefender(p) ? 100 :
+						AI_getGroup()->AI_getWeightedOdds(&p, true));
 				if (iValue >= iOddsThreshold)
 				{
 					if (iValue > iBestValue)
