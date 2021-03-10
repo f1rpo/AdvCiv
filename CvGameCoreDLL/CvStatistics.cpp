@@ -177,22 +177,22 @@ int CvPlayerRecord::getNumUnitsWasKilled(int iUnitType) const
 
 void CvPlayerRecord::buildingBuilt(BuildingTypes eBuilding)
 {
-	++m_piNumBuildingsBuilt[(int)eBuilding];
+	++m_piNumBuildingsBuilt[eBuilding];
 }
 
 int CvPlayerRecord::getNumBuildingsBuilt(BuildingTypes eBuilding) const
 {
-	return m_piNumBuildingsBuilt[(int)eBuilding];
+	return m_piNumBuildingsBuilt[eBuilding];
 }
 
 void CvPlayerRecord::religionFounded(ReligionTypes eReligion)
 {
-	m_pbReligionFounded[(int)eReligion] = true;
+	m_pbReligionFounded[eReligion] = true;
 }
 
 bool CvPlayerRecord::getReligionFounded(ReligionTypes eReligion) const
 {
-	return m_pbReligionFounded[(int)eReligion];
+	return m_pbReligionFounded[eReligion];
 }
 
 void CvPlayerRecord::setPlayerID(int iID)
@@ -380,11 +380,11 @@ void CvStatistics::setVictory(TeamTypes eWinner, VictoryTypes eVictory)
 }
 void CvStatistics::setTimePlayed(PlayerTypes ePlayer, int iTime)
 {
-	getPlayerRecord((int)ePlayer)->setTimePlayed(iTime);
+	getPlayerRecord(ePlayer)->setTimePlayed(iTime);
 }
 void CvStatistics::setLeader(PlayerTypes ePlayer, LeaderHeadTypes eLeader)
 {
-	getPlayerRecord((int)ePlayer)->setLeader(eLeader);
+	getPlayerRecord(ePlayer)->setLeader(eLeader);
 }
 
 //

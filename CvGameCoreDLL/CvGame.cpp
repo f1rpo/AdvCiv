@@ -4113,10 +4113,10 @@ EraTypes CvGame::getCurrentEra() const
 // advc:
 EraTypes CvGame::getHighestEra() const
 {
-	EraTypes r = NO_ERA;
+	EraTypes eMax = NO_ERA;
 	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
-		r = (EraTypes)std::max<int>(r, it->getCurrentEra());
-	return r;
+		eMax = std::max(eMax, it->getCurrentEra());
+	return eMax;
 }
 
 // advc.groundbr: Normalize tech costs when groundbreaking penalties are enabled
