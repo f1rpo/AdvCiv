@@ -1593,14 +1593,17 @@ void CvUnit::updateCombat(bool bQuick, /* <advc.004c> */ bool* pbIntercepted)
 	}
 	else
 	{
+		bool const bSea = (getDomainType() == DOMAIN_SEA); // advc.002l
 		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WITHDRAW",
 				getNameKey(), pDefender->getNameKey()));
 		gDLL->UI().addMessage(getOwner(), true, -1, szBuffer,
+				bSea ? "AS2D_OUR_SEA_WITHDRAWL" : // advc.002l
 				"AS2D_OUR_WITHDRAWL", MESSAGE_TYPE_INFO, NULL,
 				GC.getColorType("GREEN"), pPlot->getX(), pPlot->getY());
 		szBuffer = gDLL->getText("TXT_KEY_MISC_ENEMY_UNIT_WITHDRAW",
 				getNameKey(), pDefender->getNameKey());
 		gDLL->UI().addMessage(pDefender->getOwner(), true, -1, szBuffer,
+				bSea ? "AS2D_THEIR_SEA_WITHDRAWL" : // advc.002l
 				"AS2D_THEIR_WITHDRAWL", MESSAGE_TYPE_INFO, NULL,
 				GC.getColorType("RED"), pPlot->getX(), pPlot->getY());
 

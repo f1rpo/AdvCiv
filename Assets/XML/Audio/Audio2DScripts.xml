@@ -13,7 +13,9 @@
 	 the EXE from playing the screen-up sound. (There seems to be no "NONE"
 	 sound id for disabling an audio script properly.) Added a copy of
 	 AS2D_IF_SCREEN_UP named "AS2D_IF_BUTTONPOPUP_UP" with normal volume
-	 so that the DLL can play the screen-up sound. -->
+	 so that the DLL can play the screen-up sound.
+	 advc.002l (from Dawn of Civilization): SEA_WITHDRAWL scripts.
+	 (But I use SND_OCEAN_END2 at a higher volume instead of SND_OCEAN_END1.) -->
 <Script2DSounds xmlns="x-schema:AudioScriptSchema.xml">
 	<Script2DSound>
 		<ScriptID>AS2D_ERROR</ScriptID>
@@ -10808,6 +10810,52 @@
 		<SoundType>GAME_INTERFACE</SoundType>
 		<iMinVolume>80</iMinVolume>
 		<iMaxVolume>80</iMaxVolume>
+		<iPitchChangeDown>0</iPitchChangeDown>
+		<iPitchChangeUp>0</iPitchChangeUp>
+		<iMinLeftPan>-1</iMinLeftPan>
+		<iMaxLeftPan>-1</iMaxLeftPan>
+		<iMinRightPan>-1</iMinRightPan>
+		<iMaxRightPan>-1</iMaxRightPan>
+		<bLooping>0</bLooping>
+		<iMinTimeDelay>0</iMinTimeDelay>
+		<iMaxTimeDelay>0</iMaxTimeDelay>
+		<bTaperForSoundtracks>0</bTaperForSoundtracks>
+		<iLengthOfSound>0</iLengthOfSound>
+		<fMinDryLevel>1.0</fMinDryLevel>
+		<fMaxDryLevel>1.0</fMaxDryLevel>
+		<fMinWetLevel>0.0</fMinWetLevel>
+		<fMaxWetLevel>0.0</fMaxWetLevel>
+		<iNotPlayPercent>0</iNotPlayPercent>
+	</Script2DSound>
+	<Script2DSound>
+		<ScriptID>AS2D_OUR_SEA_WITHDRAWL</ScriptID>
+		<SoundID>SND_OCEAN_END2</SoundID>
+		<SoundType>GAME_INTERFACE</SoundType>
+		<iMinVolume>100</iMinVolume>
+		<iMaxVolume>100</iMaxVolume>
+		<iPitchChangeDown>0</iPitchChangeDown>
+		<iPitchChangeUp>0</iPitchChangeUp>
+		<iMinLeftPan>-1</iMinLeftPan>
+		<iMaxLeftPan>-1</iMaxLeftPan>
+		<iMinRightPan>-1</iMinRightPan>
+		<iMaxRightPan>-1</iMaxRightPan>
+		<bLooping>0</bLooping>
+		<iMinTimeDelay>0</iMinTimeDelay>
+		<iMaxTimeDelay>0</iMaxTimeDelay>
+		<bTaperForSoundtracks>0</bTaperForSoundtracks>
+		<iLengthOfSound>0</iLengthOfSound>
+		<fMinDryLevel>1.0</fMinDryLevel>
+		<fMaxDryLevel>1.0</fMaxDryLevel>
+		<fMinWetLevel>0.0</fMinWetLevel>
+		<fMaxWetLevel>0.0</fMaxWetLevel>
+		<iNotPlayPercent>0</iNotPlayPercent>
+	</Script2DSound>
+	<Script2DSound>
+		<ScriptID>AS2D_THEIR_SEA_WITHDRAWL</ScriptID>
+		<SoundID>SND_OCEAN_END2</SoundID>
+		<SoundType>GAME_INTERFACE</SoundType>
+		<iMinVolume>100</iMinVolume>
+		<iMaxVolume>100</iMaxVolume>
 		<iPitchChangeDown>0</iPitchChangeDown>
 		<iPitchChangeUp>0</iPitchChangeUp>
 		<iMinLeftPan>-1</iMinLeftPan>
