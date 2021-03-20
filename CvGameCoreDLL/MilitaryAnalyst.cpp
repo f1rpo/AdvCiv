@@ -275,7 +275,7 @@ void MilitaryAnalyst::simulateNuclearWar() {
 		double enemyNukes = enemy.uwai().getCache().
 				getPowerValues()[NUCLEAR]->num();
 		if(ourNukes + enemyNukes < 0.5)
-			return;
+			continue;
 		// The AI is (much) more willing to fire nukes in total war than in limited war
 		WarPlanTypes ourWarplan = agent.AI_getWarPlan(enemy.getTeam());
 		WarPlanTypes civWarplan = GET_TEAM(enemy.getTeam()).AI_getWarPlan(agent.getID());
