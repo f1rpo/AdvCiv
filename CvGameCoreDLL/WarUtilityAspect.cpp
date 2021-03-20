@@ -738,10 +738,10 @@ double GreedForAssets::medianDistFromOurConquests(PlayerTypes civId) {
 		if(!c.canReachByLand()) // Don't worry about naval attacks
 			d += 100;
 		if(d < 0)
-			d = MAX_INT; // -1 means unreachable
+			d = 1000; // -1 means unreachable
 		distances.push_back(d);
 	}
-	double r = MAX_INT;
+	double r = 1000;
 	if(!distances.empty())
 		r = ::dMedian(distances);
 	return r;
@@ -3648,7 +3648,7 @@ void TacticalSituation::evalEngagement() {
 		initiativeFactor = 0.5;
 	double uPlus = (4.0 * (initiativeFactor * theirExposed -
 			(1 - initiativeFactor) * ourExposed) + ourMissions) /
-			ourTotal;
+			std::max(1, ourTotal);
 	// getNumUnits is an information cheat, but it's all quite fuzzy anyway.
 	uPlus += (2.0 * entangled) / std::max(1, ourTotal + they->getNumUnits());
 	if(we->getTotalPopulation() > 0)
