@@ -1,5 +1,3 @@
-// advc.104: New class; see UWAIReport.h for description.
-
 #include "CvGameCoreDLL.h"
 #include "UWAIReport.h"
 #include "CvGamePlay.h"
@@ -8,18 +6,21 @@
 using std::ostringstream;
 using std::string;
 
-UWAIReport::UWAIReport(bool silent) { // default : false
 
+UWAIReport::UWAIReport(bool bSilent)
+{
 	/*  The log could be used to cheat in multiplayer. It's OK if MessageLog
 		is enabled; the game will warn the other player about that. */
 	if (GC.getGame().isNetworkMultiPlayer() && !GC.isLogging())
-		silent = true;
-	setSilent(silent);
+		bSilent = true;
+	setSilent(bSilent);
 }
 
-UWAIReport::~UWAIReport() {
 
-	if(!report.IsEmpty()) {
+UWAIReport::~UWAIReport()
+{
+	if (!m_report.IsEmpty())
+	{
 		log("_This logfile is formatted in Textile. Paste its content "
 			"into the web converter on "
 			"http://borgar.github.io/textile-js/#text_preview"
@@ -30,118 +31,123 @@ UWAIReport::~UWAIReport() {
 	deleteBuffer();
 }
 
-void UWAIReport::log(char const* fmt, ...) {
 
-	if(muted > 0)
+void UWAIReport::log(char const* fmt, ...)
+{
+	if (m_iMuted > 0)
 		return;
 	va_list args;
 	va_start(args, fmt);
-	report += CvString::formatv(fmt, args);
+	m_report += CvString::formatv(fmt, args);
 	va_end(args);
-	report += CvString::format("\n");
+	m_report += CvString::format("\n");
 	writeToFile();
 }
 
-void UWAIReport::writeToFile() {
 
-	if(muted > 0)
+void UWAIReport::writeToFile()
+{
+	if (m_iMuted > 0)
 		return;
 	CvGame const& g = GC.getGame();
 	ostringstream logFileName;
-	//if(g.isNetworkMultiPlayer()) // For OOS debugging on a single PC
-		//logFileName << (int)g.getActivePlayer() << "_";
+	/*if(g.isNetworkMultiPlayer()) // For OOS debugging on a single PC
+		logFileName << (int)g.getActivePlayer() << "_";*/
 	logFileName << "uwai" << g.getGameTurn() << ".log";
-	gDLL->logMsg(logFileName.str().c_str(), report, false, false);
-	report.clear();
+	gDLL->logMsg(logFileName.str().c_str(), m_report, false, false);
+	m_report.clear();
 }
 
-void UWAIReport::deleteBuffer() {
 
-	for(size_t i = 0; i < stringBuffer.size(); i++)
-		delete stringBuffer[i];
+void UWAIReport::deleteBuffer()
+{
+	for (size_t i = 0; i < m_aStringBuffer.size(); i++)
+		delete m_aStringBuffer[i];
 }
 
-char const* UWAIReport::leaderName(PlayerTypes civId, int charLimit) {
 
-	if(muted > 0)
-		return "";// default: 8
-	CvLeaderHeadInfo& leader = GC.getInfo(
-			GET_PLAYER(civId).getLeaderType());
-	return narrow(leader.getDescription(), charLimit);
-}
-
-char const* UWAIReport::unitName(CvInfoBase const& unitInfo, int charLimit) {
-
-	if(muted > 0)
+char const* UWAIReport::leaderName(PlayerTypes ePlayer, int iCharLimit)
+{
+	if (m_iMuted > 0)
 		return "";
-	return narrow(unitInfo.getDescription(), charLimit);
+	return narrow(GC.getInfo(GET_PLAYER(ePlayer).getLeaderType()).getDescription(),
+			iCharLimit);
 }
 
-char const* UWAIReport::cityName(CvCity const& c, int charLimit) {
 
-	if(muted > 0)
+char const* UWAIReport::unitName(UnitTypes eUnit, int iCharLimit)
+{
+	if (m_iMuted > 0)
 		return "";
-	return narrow(c.getName(), charLimit);
+	return narrow(GC.getInfo(eUnit).getDescription(), iCharLimit);
 }
 
-char const* UWAIReport::narrow(const wchar* ws, int charLimit) {
 
+char const* UWAIReport::cityName(CvCity const& kCity, int iCharLimit)
+{
+	if (m_iMuted > 0)
+		return "";
+	return narrow(kCity.getName(), iCharLimit);
+}
+
+
+char const* UWAIReport::narrow(wchar const* ws, int iCharLimit)
+{
+	// This is probably a bit more complicated than it needs to be ...
 	CvString cvs(ws);
-	/*	I'm sure the narrowing procedure is needlessly complicated,
-		but I can't sort it out.
-		Upd.: Should arguably return a CvString - which can be constructed from a
-		CvWString. */
-	string s = cvs.substr(0, charLimit);
+	string s = cvs.substr(0, iCharLimit);
 	/*	Trailing (or leading for that matter) spaces in names of units, leaders
 		etc. mess up the Textile formatting. Such spaces don't normally occur,
 		but char limit can leave a space at the end. */
-	while(s[s.length() - 1] == ' ')
+	while (s[s.length() - 1] == ' ')
 		s = s.substr(0, s.length() - 1);
-	char const* cstr = s.c_str();
-	string* toBeDeleted = new string(cstr);
-	stringBuffer.push_back(toBeDeleted);
-	return toBeDeleted->c_str();
+	CvString* pNewString = new CvString(s.c_str());
+	m_aStringBuffer.push_back(pNewString);
+	return pNewString->c_str();
 }
 
-char const* UWAIReport::masterName(TeamTypes masterId, int charLimit) {
-															// default: 8
-	if(muted > 0)
+
+char const* UWAIReport::masterName(TeamTypes eMaster, int iCharLimit)
+{
+	if (m_iMuted > 0)
 		return "";
-	CvTeam& mt = GET_TEAM(masterId);
-	if(mt.getNumMembers() > 1)
-		return teamName(masterId);
-	return leaderName(mt.getLeaderID());
+	CvTeam const& kMaster = GET_TEAM(eMaster);
+	if (kMaster.getNumMembers() > 1)
+		return teamName(eMaster);
+	return leaderName(kMaster.getLeaderID());
 }
 
-char const* UWAIReport::teamName(TeamTypes teamId) {
 
-	if(muted > 0)
+char const* UWAIReport::teamName(TeamTypes eTeam)
+{
+	if (m_iMuted > 0)
 		return "";
 	ostringstream ss;
 	/*  Textile turns this into a tooltip showing the team leader's name.
-		Strangely, the tooltip only results from T1(...), T2(...), ...
-		not from Team1(...), ... */
-	ss << "T" << (int)teamId << "(" <<
-			leaderName(GET_TEAM(teamId).getLeaderID()) << ")";
+		I guess 'T' followed by a number has that effect. OK ... */
+	ss << "T" << (int)eTeam << "(" <<
+			leaderName(GET_TEAM(eTeam).getLeaderID()) << ")";
 	string s = ss.str();
-	char const* cstr = s.c_str();
-	string* toBeDeleted = new string(cstr);
-	stringBuffer.push_back(toBeDeleted);
-	return toBeDeleted->c_str();
+	CvString* pNewString = new CvString(s.c_str());
+	m_aStringBuffer.push_back(pNewString);
+	return pNewString->c_str();
 }
 
-char const* UWAIReport::techName(TechTypes techId, int charLimit) {
 
-	if(muted > 0)
+char const* UWAIReport::techName(TechTypes eTech, int iCharLimit)
+{
+	if (m_iMuted > 0)
 		return "";
-	return narrow(GC.getInfo(techId).getDescription(), charLimit);
+	return narrow(GC.getInfo(eTech).getDescription(), iCharLimit);
 }
 
-char const* UWAIReport::warPlanName(WarPlanTypes wp) const {
 
-	if(muted > 0)
+char const* UWAIReport::warPlanName(WarPlanTypes eWarPlan) const
+{
+	if (m_iMuted > 0)
 		return "";
-	switch(wp) {
+	switch (eWarPlan)
+	{
 	case NO_WARPLAN: return "none";
 	case WARPLAN_ATTACKED_RECENT: return "attacked recent";
 	case WARPLAN_ATTACKED: return "attacked";
@@ -154,36 +160,23 @@ char const* UWAIReport::warPlanName(WarPlanTypes wp) const {
 	}
 }
 
-char const* UWAIReport::prefix(int level) {
 
-	if(muted > 0)
-		return "";
-	string r = "";
-	for(int i = 0; i < level; i++)
-		r += ">";
-	if(!r.empty())
-		r += " ";
-	char const* cstr = r.c_str();
-	string* toBeDeleted = new string(cstr);
-	stringBuffer.push_back(toBeDeleted);
-	return toBeDeleted->c_str();
-}
-
-void UWAIReport::setMute(bool b) {
-
-	if(silent)
+void UWAIReport::setMute(bool b)
+{
+	if (m_bSilent)
 		return;
 	/*  This way, a subroutine can mute and unmute the report w/o checking
 		if the report has already been muted. */
 	if(b)
-		muted++;
-	else muted--;
+		m_iMuted++;
+	else m_iMuted--;
 }
 
-void UWAIReport::setSilent(bool b) {
 
-	silent = b;
-	if(silent)
-		muted = 1;
-	else muted = 0;
+void UWAIReport::setSilent(bool b)
+{
+	m_bSilent = b;
+	if (m_bSilent)
+		m_iMuted = 1;
+	else m_iMuted = 0;
 }

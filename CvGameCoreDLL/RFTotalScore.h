@@ -5,7 +5,7 @@
 
 #include "RFChapter.h"
 
-/*  <advc.700>: New class. Computes and stores the total awarded Rise score. */
+// advc.700: New class. Computes and stores the total awarded Rise score.
 class RFTotalScore {
 
 public:
@@ -28,7 +28,5 @@ private:
 		fromInitialRank, initialRank, initialRivals, fromRemainingTime,
 		remainingTimePercent, fromDifficulty, difficultyPercent;
 };
-
-// </advc.700>
 
 #endif

@@ -1,5 +1,3 @@
-// <advc.700> New class; see header file for description.
-
 #include "CvGameCoreDLL.h"
 #include "RiseFall.h"
 #include "CvInfo_GameOption.h"
@@ -17,6 +15,7 @@ using std::wstringstream;
 using std::vector;
 using std::wstring;
 using std::pair; using std::make_pair;
+using namespace fmath; // Single-player only, so this is fine.
 
 
 RiseFall::RiseFall() {
@@ -1386,7 +1385,7 @@ int RiseFall::pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
 			break;
 		case TRADE_WAR:
 			itemVal = humanTeam.AI_declareWarTradeVal((TeamTypes)data, aiTeamId);
-			if(getUWAI.isEnabled()) // advc.104
+			if(getUWAI().isEnabled()) // advc.104
 				replVal = GET_TEAM(humanTeamId).uwai().tradeValJointWar(
 						(TeamTypes)data, aiTeam.getID());
 			break;
@@ -1499,5 +1498,3 @@ void RiseFall::showError(CvWString errorMsg) {
 	gDLL->UI().addMessage(GC.getGame().getActivePlayer(), true, 1, errorMsg,
 			NULL, MESSAGE_TYPE_MAJOR_EVENT, NULL, GC.getColorType("RED"));
 }
-
-// </advc.700>

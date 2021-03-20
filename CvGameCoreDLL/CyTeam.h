@@ -232,6 +232,8 @@ public:
 	int AI_getWarSuccess(int /*TeamTypes*/ eIndex) const;
 	// advc.152:
 	int /*DenialTypes*/ AI_declareWarTrade(int /*TeamTypes*/ eWarTeam, int /*TeamTypes*/ eTeam) const;
+	// advc.038: Returns int b/c I'm not sure if float would cause problems
+	int AI_estimateYieldRate(int iPlayer, int iYield) const;
 
 protected:
 

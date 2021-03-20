@@ -26,7 +26,7 @@ enum AIStrategy // advc.enum: To avoid mixup with victory strategies (was #defin
 	AI_STRATEGY_FASTMOVERS          =	(1 << 9),
 	AI_STRATEGY_LAND_BLITZ			=	(1 << 10),
 	AI_STRATEGY_AIR_BLITZ			=	(1 << 11),
-	AI_STRATEGY_OWABWNW				=	(1 << 12),
+	AI_STRATEGY_OWABWNW				=	(1 << 12),	// "Our words are backed with nuclear weapons"
 // Domestic strategies
 	AI_STRATEGY_PRODUCTION          =	(1 << 13),
 	AI_STRATEGY_MISSIONARY          =	(1 << 14),

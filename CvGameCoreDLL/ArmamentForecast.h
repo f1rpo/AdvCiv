@@ -11,64 +11,67 @@ class UWAIReport;
 class CvArea;
 
 
-/* advc.104: New class. Predicts the military build-up of a civ. Part of
-   the military analysis.
-   The computation happens in the constructor.
-   NB: The aim is not to predict how many units a civ will _own_ on
-   a future turn, but how many units will be _trained_, i.e. ignoring losses.
-   Losses are handled when resolving the InvasionGraph.
-   Disregards financial trouble since unit cost is rarely a limiting factor for
-   AI armament. */
-class ArmamentForecast {
-
+/*	advc.104: New class. Part of the UWAI military analysis.
+	Predicts the military build-up of a given player.
+	(I.e. it predicts, in broad strokes, the decisions made by
+	CvCityAI::AI_chooseProduction.)
+	The computation happens in the constructor.
+	NB: The aim is not to predict how many units the player will _own_ on
+	a future turn - but how many units will be _trained_, i.e. ignoring losses.
+	Losses are predicted when resolving the InvasionGraph.
+	Disregards financial trouble since unit cost is rarely a limiting factor
+	for AI armament. */
+class ArmamentForecast
+{
 public:
-	/* 'm' belongs to the civ making the forecast ("we"), 'civId' is the civ whose
-		armament is being predicted. (Not const b/c ArmamentForecast may add to
-		the UWAIReport.)
-	   'military': Present military of civId; power values are increased
-				   by this class.
-	   'peaceScenario': True iff peace is assumed beetween us and our target.
-	   'partyAddedRecently': True iff this is the first forecast after adding
-		any war parties. Needed in order to decide if a DoW on civId is recent
-		(more build-up assumed then). */
-	ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
-			std::vector<MilitaryBranch*>& military, int timeHorizon,
-			double productionPortion, // Remaining after assumed losses of cities
-			UWAICache::City const* target, bool peaceScenario,
-			bool partyAddedRecently, bool allPartiesKnown, bool noUpgrading);
-	double getProductionInvested() const;
+	/*	kMA is making a forecast about ePlayer. The predicated power increase
+		is written to kMilitary.
+		bPeaceScenario: Assume peace between the agent and target of kMA.
+		bPartyAddedRecently: Use this to indicate that this is the first forecast
+		after adding any war parties to kMA. Need to figure out if a DoW on ePlayer
+		is recent (recently attacked players train more military).
+		The pTargetCity from ePlayer's UWAICache is used for figuring out whether
+		ePlayer is in a naval war. */
+	ArmamentForecast(PlayerTypes ePlayer,
+			MilitaryAnalyst const& kMA,
+			std::vector<MilitaryBranch*>& kMilitary, int iTimeHorizon,
+			bool bPeaceScenario, bool bNoUpgrading,
+			bool bPartyAddedRecently, bool bAllPartiesKnown,
+			UWAICache::City const* pTargetCity = NULL,
+			scaled rProductionPortion = 1); // Remaining after assumed losses of cities
+	scaled getProductionInvested() const { return m_rProductionInvested; }
 
 private:
-	// Can t1 reach t2 or vice versa. Not dependent on civId or m.weId.
-	bool canReachEither(TeamTypes t1, TeamTypes t2) const;
-	PlayerTypes civId;
-	MilitaryAnalyst const& m;
-	UWAI::Civ const& uwai;
-	UWAIReport& report;
-	std::vector<MilitaryBranch*>& military;
-	int timeHorizon;
-	double productionInvested;
+	PlayerTypes m_ePlayer;
+	MilitaryAnalyst const& m_kMA;
+	PlayerTypes m_eAnalyst;
+	UWAIReport& m_kReport;
+	std::vector<MilitaryBranch*>& m_kMilitary;
+	int m_iTimeHorizon;
+	scaled m_rProductionInvested;
 
-	enum Intensity {
+	enum Intensity
+	{
 		DECREASED = -1,
 		NORMAL = 0,
 		INCREASED,
 		FULL,
 	};
-	static char const* strIntensity(Intensity in);
-	// Both directly increase the power values in 'military'
-	 void predictArmament(int turnsBuildUp, double perTurnProduction,
-			/* additionalProduction: Currently, that unit upgrades converted
+	static char const* strIntensity(Intensity eIntensity); // for report
+	/*	Can eFirst reach eSecond or vice versa. Based on the two teams'
+		UWAICache, i.e. a cheat. */
+	bool canReachEither(TeamTypes eFirst, TeamTypes eSecond) const;
+	// Both directly increase the power values in m_kMilitary
+	void predictArmament(int iTurnsBuildUp, scaled rPerTurnProduction,
+			/* rAdditionalProduction: Currently, that's unit upgrades converted
 			   into production. */
-			double additionalProduction, Intensity intensity, bool defensive,
-			bool navalArmament);
-	 double productionFromUpgrades();
-	/* The Area AI differentiates between continents, the forecast doesn't
-	   (perhaps should in the future).
-	   Only considers the Area AI for the continent where the capital is --
-	   which is what this function returns.
-	   'civId': The civ whose Area AI is returned. Default: m.ourId(). */
-	AreaAITypes getAreaAI(PlayerTypes civId = NO_PLAYER) const;
+			scaled rAdditionalProduction, Intensity eIntensity, bool bDefensive,
+			bool bNavalArmament);
+	scaled productionFromUpgrades();
+	/*	The Area AI differentiates between continents, the forecast doesn't
+		(perhaps it should ...). Only considers the Area AI for the home area --
+		which is what this function returns. */
+	AreaAITypes getAreaAI(PlayerTypes ePlayer) const;
 };
 
 #endif

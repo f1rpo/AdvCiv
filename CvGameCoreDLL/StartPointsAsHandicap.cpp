@@ -163,7 +163,7 @@ bool StartPointsAsHandicap::assignPoints() {
 	report += CvString::format("Unequal distribution");
 	int weakestPercent = pointsEntered % 100;
 	int strongest = pointsEntered / 100;
-	int weakest = ::round(weakestPercent * strongest / 100.0);
+	int weakest = intdiv::uround(weakestPercent * strongest, 100);
 	report += CvString::format("Points strongest, weakest: (%d, %d)\n",
 			strongest, weakest);
 	int nAI = nCivs - nHuman;
@@ -171,8 +171,8 @@ bool StartPointsAsHandicap::assignPoints() {
 	/*  Rule 1: If there is a "middle" AI, that AI receives the mean of
 		the weakest and strongest. */
 	if(nAI % 2 != 0)
-		civs[middleAIIndex]->setStartPoints_configured(::round(
-				(strongest + weakest) / 2.0));
+		civs[middleAIIndex]->setStartPoints_configured(
+				intdiv::uround(strongest + weakest, 2));
 	if(nAI <= 3) {
 		// Rule 2: Strongest civ as entered
 		civs[nCivs - 1]->setStartPoints_configured(strongest);
@@ -185,13 +185,13 @@ bool StartPointsAsHandicap::assignPoints() {
 		equal points and let points increase linearly from pair to pair,
 		starting at 'weakest' and ending with 'strongest'. */
 	int nPairs = nAI / 2;
-	double step = (strongest - weakest) / (nPairs - 1.0);
-	double pts = weakest;
+	scaled step(strongest - weakest, nPairs - 1);
+	scaled pts = weakest;
 	for(int i = nHuman; i < nCivs; i += 2) {
 		// Middle element not paired; already set by Rule 1.
 		if(nAI % 2 != 0 && i == middleAIIndex)
 			i++;
-		civs[i]->setStartPoints_configured(::round(pts));
+		civs[i]->setStartPoints_configured(pts.round());
 		if(nAI % 2 != 0 && i + 1 == middleAIIndex)
 			i++;
 		civs[i + 1]->setStartPoints_configured(
@@ -250,7 +250,7 @@ void StartPointsAsHandicap::bounce(int i, int j) {
 		if(pursuerIpts < iPts)
 			break;
 	}
-	int deltaMaxNeg = ::round((iPts - pursuerIpts) / 2.0);
+	int deltaMaxNeg = intdiv::round(iPts - pursuerIpts, 2);
 	int jPts = civs[j]->startPoints_configured();
 	int pursuedByJpts = 0;
 	int pursuedByJ;
@@ -259,7 +259,7 @@ void StartPointsAsHandicap::bounce(int i, int j) {
 		if(pursuedByJpts > jPts)
 			break;
 	}
-	int deltaMaxPos = ::round((pursuedByJpts - jPts) / 2.0);
+	int deltaMaxPos = intdiv::round(pursuedByJpts - jPts, 2);
 	// To ensure that randomization leaves the sum of all points unchanged
 	int deltaMax = deltaMaxNeg < deltaMaxPos ? deltaMaxNeg : deltaMaxPos;
 	report += CvString::format("Bouncing apart civ ids %d (%d points) and %d"

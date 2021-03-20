@@ -53,7 +53,9 @@ public:
 
 	int AI_countFinancialTrouble() const; // addvc.003j (comment): unused
 	int AI_countMilitaryWeight(CvArea const* pArea = NULL) const;
-
+	// <advc.104>, advc.038, advc.132:
+	scaled AI_estimateYieldRate(PlayerTypes ePlayer, YieldTypes eYield, // (exposed to Python)
+			 int iSamples = 5) const; // </advc.104>
 	int AI_estimateTotalYieldRate(YieldTypes eYield) const; // K-Mod
 	bool AI_deduceCitySite(CvCity const& kCity) const; // K-Mod
 	// <advc.erai>
@@ -145,12 +147,11 @@ public:
 	void AI_getWarThresholds(int &iMaxWarThreshold, int &iLimitedWarThreshold, int &iDogpileWarThreshold) const;
 	int AI_getTotalWarOddsTimes100() const;
 	// bbai end
-	/*  <advc.115b>
-		advc.104: NO_VOTESOURCE if none built yet, AP if AP built but not UN;
-		otherwise UN */
+	// <advc.115b> <advc.104>
 	VoteSourceTypes AI_getLatestVictoryVoteSource() const;
+	int AI_countVSNonMembers(VoteSourceTypes eVS) const; // </advc.104>
 	bool AI_isAnyCloseToReligiousVictory() const;
-	int AI_votesToGoForVictory(int* piVoteTarget = NULL, bool bForceUN = false) const;
+	int AI_votesToGoForVictory(int* piVoteTarget = NULL, bool bForceSecular = false) const;
 	// </advc.115b>
 
 	int AI_makePeaceTradeVal(TeamTypes ePeaceTeam, TeamTypes eTeam) const;
@@ -278,6 +279,7 @@ public:
 	// <advc.104>
 	inline UWAI::Team& uwai() { return *m_pUWAI; }
 	inline UWAI::Team const& uwai() const { return *m_pUWAI; }
+	int AI_refuseToTalkWarThreshold() const;
 	// These 9 were protected </advc.104>
 	int AI_maxWarRand() const;
 	int AI_maxWarNearbyPowerRatio() const;

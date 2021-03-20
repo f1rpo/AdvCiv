@@ -10,7 +10,10 @@ class CvPopup;
 class CvDiplomacyResponse;
 class CvWString;
 
-// <advc.700>: Main class for the Rise & Fall mod component
+/*	advc.700: Main class for the Rise & Fall mod component.
+	(The coding style of the R&F classes is inconsistent with the rest
+	of the codebase. The R&F code isn't really subject to change, so I'm
+	not going to overhault it.) */
 class RiseFall {
 
 public:
@@ -108,7 +111,5 @@ private:
 	bool retryingCivSelection;
 	CvWString* originalName;
 };
-
-// </advc.700>
 
 #endif

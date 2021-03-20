@@ -3,14 +3,14 @@
 #ifndef MILITARY_BRANCH_H
 #define MILITARY_BRANCH_H
 
-
-/*  advc.104: New class hierarchy. Breaking military power values down into
+/*	advc.104: New class hierarchy. Breaking military power values down into
 	branches such as Army and Fleet helps the AI analyze its military prospects. */
 
 
-/* Containers of military branches should be laid out in this order.
-   Can then access a specific branch using these enumerators. */
-enum MilitaryBranchTypes {
+/*	Containers of military branches should be laid out in this order.
+	Can then access a specific branch using these enumerators. */
+enum MilitaryBranchTypes
+{
 	HOME_GUARD = 0,
 	ARMY,
 	FLEET,
@@ -20,82 +20,88 @@ enum MilitaryBranchTypes {
 	NUM_BRANCHES
 };
 
-class MilitaryBranch {
-
+class MilitaryBranch
+{
 public:
-	MilitaryBranch(PlayerTypes ownerId);
-	MilitaryBranch(MilitaryBranch const& other);
+	// Factory; caller will own the instance.
+	static MilitaryBranch* create(MilitaryBranchTypes eBranch, PlayerTypes eOwner);
+	MilitaryBranch(PlayerTypes eOwner);
+	virtual ~MilitaryBranch() {}
 	// Can't do this in the constructor b/c virtual functions need to be called
 	virtual void updateTypicalUnit();
-	/* Debug output. Derived classes override the (polymorphic) enumId function. */
-	  friend std::ostream& operator<<(std::ostream& os, const MilitaryBranch& mb);
-	  virtual char const* str() const;
-	  virtual MilitaryBranchTypes enumId() const;
-	  // Debug string from enum type
-	  static char const* str(MilitaryBranchTypes mb);
-	/* NULL when no suitable unit can be trained.
-	   Replaces CvPlayer::getTypicalUnitValue.
-	   The value is computed by updateTypicalUnit; this is just a getter. */
-	CvUnitInfo const* getTypicalUnit() const;
-	UnitTypes getTypicalUnitType() const;
-	/*  pov: The player from whose point of view the typical power/ cost is
-		estimated. If NO_PLAYER or equal to ownerId, the true value is returend. */
-	  double getTypicalUnitPower(PlayerTypes pov = NO_PLAYER) const;
-	  double getTypicalUnitCost(PlayerTypes pov = NO_PLAYER) const;
+
+	// Debug output. Derived classes override the (polymorphic) getID function.
+	friend std::ostream& operator<<(std::ostream& os, MilitaryBranch const& kBranch);
+	virtual char const* str() const;
+	virtual MilitaryBranchTypes getID() const;
+	// Debug string from enum type
+	static char const* str(MilitaryBranchTypes eBranch);
+
+	// Replacing CvPlayer::getTypicalUnitValue
+	inline UnitTypes getTypicalUnit(TeamTypes eOberserver = NO_TEAM) const
+	{
+		return m_eTypicalUnit;
+	}
+	scaled getTypicalPower(TeamTypes eOberserver = NO_TEAM) const;
+	scaled getTypicalCost(TeamTypes eOberserver = NO_TEAM) const;
 	// Total military power of units in this branch
-	inline double power() const { return pow; }
-	void changePower(double delta) { pow += delta; }
-	/* True iff 'u' belongs in this milit. branch (at all). The template
-	   implementation is based on unitPower. */
-	bool canEmploy(CvUnitInfo const& u) const;
-	/* Called when a unit is created or destroyed. For tracking the total power
-	   of trained units. */
-	void updatePower(CvUnitInfo const& u, bool add);
-	int num() const { return number; }
+	inline scaled power() const { return m_rTotalPower; }
+	void changePower(scaled rChange) { m_rTotalPower += rChange; }
+	/*	True iff eUnit belongs in this branch (at all).
+		The template implementation is based on unitPower. */
+	bool canEmploy(UnitTypes eUnit) const;
+	/*	To be called when a unit is created or destroyed. For tracking the
+		total power of trained units. */
+	void reportUnit(UnitTypes eUnit, int iChange);
+	int numUnits() const { return m_iUnits; }
 	/*  Whether a unit can be trained in this branch that is able to bombard city defenses.
-		To be computed in updateTypicalUnit; false by default. */
-	bool canBombard() const { return bombard; }
-	/*  Whether a unit can be trained in this branch that deals collateral damage.
-		To be computed in updateTypicalUnit; false by default. */
-	bool canSoftenCityDefenders() const { return soften; }
+		(To be computed in updateTypicalUnit.) */
+	bool canBombard() const { return m_bCanBombard; }
+	/*  Whether a unit can be trained in this branch that deals collateral damage
+		(or has some other way of softening defenders).
+		(To be computed in updateTypicalUnit.) */
+	bool canSoftenCityDefenders() const { return m_bCanSoften; }
 	/*  Not virtual; all persistent data should be at the base class.
 		The copy constructors also assume this. */
-	void write(FDataStreamBase* stream);
-	void read(FDataStreamBase* stream);
+	void write(FDataStreamBase* pStream) const;
+	void read(FDataStreamBase* pStream);
 
 protected:
-	/*  Used for selecting a typical unit. The military power of 'u' when used
-		within the implementing branch. Should return a negative value if 'u'
-		doesn't fit the branch at all. isValidDomain and positive combatStrength
-		are ensured by the caller though.
-		May want to call the generic UWAI::Civ::militaryPower. */
-	virtual double unitPower(CvUnitInfo const& u, bool modify = false) const=0;
-	virtual double unitUtility(CvUnitInfo const& u, double pow) const;
-	bool isValidDomain(CvUnitInfo const& u) const;
-	// Can a unit of this branch have domain 'd'?
-	virtual bool isValidDomain(DomainTypes d) const;
-	bool canKnowTypicalUnit(PlayerTypes pov) const;
-	double estimateProductionCost(CvUnitInfo const& u);
+	// Caveat: This class relies on its implicitly declared copy ctor
+	PlayerTypes m_eOwner;
+	UnitTypes m_eTypicalUnit;
+	scaled m_rTypicalPower;
+	scaled m_rTotalPower;
+	int m_iUnits;
+	bool m_bCanBombard;
+	bool m_bCanSoften;
+
+	/*	Used for selecting a typical unit. The military power of eUnit when employed
+		within this branch. Should return -1 if eUnit doesn't fit the branch at all.
+		A valid domain and positive combat strength need to be ensured by the caller. */
+	virtual scaled unitPower(UnitTypes eUnit, bool bModify) const=0;
+	/*	Helper function for the unitPower function above.
+		If a non-negative rBasePower is given, then that value replaces
+		the iPower value defined for eUnit in XML. */
+	scaled unitPower(UnitTypes eUnit, scaled rBasePower = -1) const;
+	virtual scaled unitUtility(UnitTypes eUnit, scaled rPower) const;
+	// Can any unit in this branch have eDomain?
+	virtual bool isValidDomain(DomainTypes eDomain) const;
+	// Is eUnit's domain valid for this branch? (Wrapper function.)
+	bool isValidDomain(UnitTypes eUnit) const;
+	bool canKnowTypicalUnit(TeamTypes eObserver) const;
+	scaled estimateProductionCost(UnitTypes eUnit);
 	/*	Vague expectation of how many extra instances will have been produced
 		when halfway through with the military buildup that this class helps predict.
-		(Could get the era from ownerId, but don't want to include CvPlayer.h.) */
-	inline double estimateExtraInstances(scaled eraFactor) const {
-		return 1.75 + 1.25 * eraFactor.getDouble();
+		(Could get the era from m_eOwner, but don't want to include CvPlayer.h.) */
+	inline scaled estimateExtraInstances(scaled eraFactor) const
+	{
+		return fixp(1.75) + fixp(1.25) * eraFactor;
 	}
-
-	PlayerTypes ownerId;
-	UnitTypes typicalUnitType;
-	double typicalUnitPower;
-	double pow;
-	int number;
-	bool bombard;
-	bool soften;
 
 private:
 	std::ostream& out(std::ostream& os) const;
-	static char const* debugStrings[];
-	// Use copy-constructor instead
-	MilitaryBranch& operator=(MilitaryBranch const& other);
+	static char const* m_aszDebugStrings[];
 
 public: // Concrete classes nested
 	class Army; class HomeGuard; class Fleet; class Logistics;
@@ -103,105 +109,110 @@ public: // Concrete classes nested
 };
 
 
-/* Includes air force. Could, at a later point, create a separate branch for
-   air units, but I don't think the distinction is crucial for the AI.
-   Does not include units guarding cities (HomeGuard), i.e. the Army
-   can be fully deployed in an invasion.
-   That said, since HomeGuard can't track units trained, Army also tracks
-   guard units. Will have to call setUnitsTrained to eventually subtract
-   the guard portion.
-   "Artillery" may still become a branch. Currently, the military analysis
-   assumes that the City AI balances Siege and non-Siege units.
-   A separate branch would be helpful for WarUtilityAspect::TacticalSituation. */
-class MilitaryBranch::Army : public MilitaryBranch {
+/*	Includes air and siege units.
+	Does not include units guarding cities (HomeGuard), i.e. the Army
+	can be fully deployed in an invasion.
+	That said, since HomeGuard can't track units trained, Army also tracks
+	guard units. HomeGuard::initTotals will determine how those units are
+	split between defensive and offensive duties. setTotals can be used to
+	tell the army branch how many non-guard units there are. */
+class MilitaryBranch::Army : public MilitaryBranch
+{
 public:
-	Army(PlayerTypes ownerId) : MilitaryBranch(ownerId) {}
-	Army(MilitaryBranch const& other) : MilitaryBranch(other) {}
-	void setUnitsTrained(int number, double pow);
-	void updateTypicalUnit();
-	MilitaryBranchTypes enumId() const;
+	Army(PlayerTypes eOwner) : MilitaryBranch(eOwner) {}
+	Army(MilitaryBranch const& kBase) : MilitaryBranch(kBase) {}
+	void setTotals(int iUnits, scaled rTotalPower);
+	void updateTypicalUnit(); // override
+	MilitaryBranchTypes getID() const; // override
 protected:
-	virtual double unitPower(CvUnitInfo const& u, bool modify = false) const;
-	virtual bool isValidDomain(DomainTypes d) const;
+	scaled unitPower(UnitTypes eUnit, bool bModify) const; // override
+	bool isValidDomain(DomainTypes eDomain) const; // override
 private:
-	bool canTrainSiege() const;
-	bool canTrainCollateral() const;
+	void updateCanBombard();
+	void updateCanSoften();
 };
 
-/*  City garrisons, including Fighters for air defense. The AI assumes that the
+/*	City garrisons and defensive aircraft. The AI assumes that the
 	HomeGuard is not available for invading other civs.
-	HomeGuard is not to be used for tracking actual units built. Instead, use
-	initUnitsTrained to have HomeGuard compute the current number of guard units
-	and their power based on the number and power of all non-naval units. */
-class MilitaryBranch::HomeGuard : public MilitaryBranch {
+	HomeGuard mustn't be used for tracking trained units. Instead, use
+	initTotals to have HomeGuard compute the current number of guard units
+	and their power based on the number and power of all non-naval units
+	(which is tracked by the Army branch). */
+class MilitaryBranch::HomeGuard : public MilitaryBranch
+{
 public:
-	HomeGuard(PlayerTypes ownerId) : MilitaryBranch(ownerId) {}
-	HomeGuard(MilitaryBranch const& other) : MilitaryBranch(other) {}
+	HomeGuard(PlayerTypes eOwner) : MilitaryBranch(eOwner) {}
+	HomeGuard(MilitaryBranch const& kBase) : MilitaryBranch(kBase) {}
 	// Returns the portion of guard units in the non-naval force
-	double initUnitsTrained(int numNonNavalUnits, double powNonNavalUnits);
-	MilitaryBranchTypes enumId() const;
+	scaled initTotals(int iNonNavalUnits, scaled rNonNavalPower);
+	MilitaryBranchTypes getID() const; // override
 protected:
-	double unitPower(CvUnitInfo const& u, bool modify = false) const;
-	bool isValidDomain(DomainTypes d) const;
+	scaled unitPower(UnitTypes eUnit, bool bModify) const; // override
+	bool isValidDomain(DomainTypes eDomain) const; // override
 };
 
-// Any ships with combat strength, including cargo ships.
-class MilitaryBranch::Fleet : public MilitaryBranch {
+// Any ships with combat strength, including transports.
+class MilitaryBranch::Fleet : public MilitaryBranch
+{
 public:
-	Fleet(PlayerTypes ownerId) : MilitaryBranch(ownerId) {}
-	Fleet(MilitaryBranch const& other) : MilitaryBranch(other) {}
-	void updateTypicalUnit();
-	MilitaryBranchTypes enumId() const;
+	Fleet(PlayerTypes eOwner) : MilitaryBranch(eOwner) {}
+	Fleet(MilitaryBranch const& kBase) : MilitaryBranch(kBase) {}
+	void updateTypicalUnit(); // override
+	MilitaryBranchTypes getID() const; // override
 protected:
-	double unitPower(CvUnitInfo const& u, bool modify = false) const;
-	bool isValidDomain(DomainTypes d) const;
+	scaled unitPower(UnitTypes eUnit, bool bModify) const; // override
+	bool isValidDomain(DomainTypes eDomain) const; // override
 };
 
-/*  Ships for transporting Army units. In theory, transports in other domains
+/*	Ships for transporting Army units. In theory, transports in other domains
 	could work similarly, hence the generic name of the class. Ships transporting
-	air units are also included in Logicstics (since Army units can be land- or
-	air-based). More sophisticated code would count air and land cargo separately,
-	i.e. through a separate AirLogistics branch.
-	'Power' actually refers to cargo capacity in this class. Cargo units are also
+	air units are also included in Logistics (since Army units can be land- or
+	air-based).
+	"Power" refers to cargo capacity in this class. Cargo units are also
 	covered by Fleet, but, in that context, their combat strength is counted. */
-class MilitaryBranch::Logistics : public MilitaryBranch {
+class MilitaryBranch::Logistics : public MilitaryBranch
+{
 public:
-	Logistics(PlayerTypes ownerId) : MilitaryBranch(ownerId) {}
-	Logistics(MilitaryBranch const& other): MilitaryBranch(other) {}
-	MilitaryBranchTypes enumId() const;
+	Logistics(PlayerTypes eOwner) : MilitaryBranch(eOwner) {}
+	Logistics(MilitaryBranch const& kBase) : MilitaryBranch(kBase) {}
+	MilitaryBranchTypes getID() const; // override
 protected:
 	// Cargo capacity
-	double unitPower(CvUnitInfo const& u, bool modify = false) const;
-	/* Mix of capacity, power and strength. The pow parameter is actually
-	   cargo capacity. */
-	double unitUtility(CvUnitInfo const& u, double pow) const;
+	scaled unitPower(UnitTypes eUnit, bool bModify) const; // override
+	// A mix of capacity and strength
+	scaled unitUtility(UnitTypes eUnit, scaled rCargo) const; // override
 };
 
-/*  Fast early attackers. Don't have to be mounted (e.g. Impi), but most are.
-	Tanks aren't Cavalry; I think fast units lose their special role in the
+/*	Fast early attackers. Don't have to be mounted (e.g. Impi), but most are.
+	Tanks aren't Cavalry b/c fast units mostly lose their special role in the
 	later eras b/c of railroads and b/c all units classes become motorized
-	eventually.
-	Cavalry is included in Army. */
-class MilitaryBranch::Cavalry : public MilitaryBranch {
+	eventually. This branch really isn't pulling its weight, but might become
+	more useful in the future. (Should perhaps still remove it; it adds a lot
+	of complexity to the InvasionGraph class.)
+	All Cavalry is also included in Army. */
+class MilitaryBranch::Cavalry : public MilitaryBranch
+{
 public:
-	Cavalry(PlayerTypes ownerId) : MilitaryBranch(ownerId) {}
-	Cavalry(MilitaryBranch const& other): MilitaryBranch(other) {}
-	MilitaryBranchTypes enumId() const;
+	Cavalry(PlayerTypes eOwner) : MilitaryBranch(eOwner) {}
+	Cavalry(MilitaryBranch const& kBase) : MilitaryBranch(kBase) {}
+	MilitaryBranchTypes getID() const; // override
 protected:
-	double unitPower(CvUnitInfo const& u, bool modify = false) const;
-	bool isValidDomain(DomainTypes d) const;
+	scaled unitPower(UnitTypes eUnit, bool bModify) const; // override
+	bool isValidDomain(DomainTypes eDomain) const; // override
 };
 
-/* The usefulness of nukes for winning wars is covered by Army.
-   This branch is about the strategic element that is unique to nukes. */
-class MilitaryBranch::NuclearArsenal : public MilitaryBranch {
+/*	The usefulness of nukes for winning wars is covered by Army.
+	This branch is about the strategic (city-wrecking) element that is
+	unique to nukes. */
+class MilitaryBranch::NuclearArsenal : public MilitaryBranch
+{
 public:
-	NuclearArsenal(PlayerTypes ownerId): MilitaryBranch(ownerId) {}
-	NuclearArsenal(MilitaryBranch const& other): MilitaryBranch(other) {}
-	MilitaryBranchTypes enumId() const;
+	NuclearArsenal(PlayerTypes eOwner): MilitaryBranch(eOwner) {}
+	NuclearArsenal(MilitaryBranch const& kBase) : MilitaryBranch(kBase) {}
+	MilitaryBranchTypes getID() const; // override
 	void updateTypicalUnit(); // override
 protected:
-	double unitPower(CvUnitInfo const& u, bool modify = false) const;
+	scaled unitPower(UnitTypes eUnit, bool bModify) const; // override
 };
 
 #endif

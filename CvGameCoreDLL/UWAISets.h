@@ -12,7 +12,7 @@
 	CitySet kMyReference = kAnalyst.lostCities(ePlayer);
 	However, this would also prevent vectors of sets from being initialized
 	through vector::resize. */
-typedef std::set<int> CitySet;
+typedef std::set<PlotNumTypes> CitySet;
 typedef CitySet::const_iterator CitySetIter;
 // "Plyr" - make them all four letter prefixes
 typedef std::set<PlayerTypes> PlyrSet;

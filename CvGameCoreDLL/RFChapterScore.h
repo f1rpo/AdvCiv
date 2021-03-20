@@ -5,7 +5,7 @@
 
 class RFChapter;
 
-/*  <advc.700>: New class. Computes and stores the score awarded for a
+/*  advc.700: New class. Computes and stores the score awarded for a
 	RFChapter. */
 class RFChapterScore {
 
@@ -36,7 +36,5 @@ private:
 	int initialCivScores[MAX_CIV_PLAYERS];
 	RFChapter const* chapter;
 };
-
-// </advc.700>
 
 #endif

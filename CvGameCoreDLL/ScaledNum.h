@@ -7,8 +7,8 @@
 
 #include "FixedPointPowTables.h" // Large lookup table, but ScaledNum.h gets precompiled.
 #include "TypeChoice.h"
-/*	Other non-BtS dependencies: intdiv::round, round, intHash, all in CvGameCoreUtils.h.
-	(Tbd.: Move those global functions here.)
+/*	Other non-BtS dependencies: intdiv::round, fmath::round, intHash, all in CvGameCoreUtils.h.
+	(Tbd.: Move those functions here?)
 	For inclusion in PCH, one may have to define NOMINMAX before including windows.h;
 	see CvGameCoreDLL.h.
 	May want to define __forceinline as __inline if FASSERT_ENABLE is defined;
@@ -245,7 +245,10 @@ public:
 	//__forceinline int getInt() const { return round(); }
 	// Cast operator - again, better to be explicit.
 	//__forceinline operator int() const { return getInt(); }
-	int round() const; // (expect this to get inlined for unsigned IntType)
+	int round() const; // Expect this to get inlined for unsigned IntType
+	/*	Only for signed IntType. Non-branching, expect this to get inlined always,
+		but only works on non-negative numbers. */
+	int uround() const;
 	__forceinline int floor() const
 	{
 		return static_cast<int>(m_i / SCALE);
@@ -380,6 +383,9 @@ public:
 
 	__forceinline bool isPositive() const { return (m_i > 0); }
 	__forceinline bool isNegative() const { return (bSIGNED && m_i < 0); }
+	/*	Typically, the 0 sign doesn't matter, so this function wouldn't be
+		as efficient as it could be in most cases. */
+	//__forceinline char getSign() const { return (isPositive() ? 1 : (isNegative() ? -1 : 0)); }
 
 	__forceinline void flipSign() { *this = -(*this); }
 	__forceinline void flipFraction() { *this = 1 / *this; }
@@ -809,7 +815,7 @@ private:
 	static __forceinline ScaledNum fromDouble(double d)
 	{
 		ScaledNum r;
-		r.m_i = safeCast(::round(d * SCALE));
+		r.m_i = safeCast(fmath::round(d * SCALE));
 		return r;
 	}
 	private:
@@ -873,6 +879,16 @@ int ScaledNum_T::round() const
 	}
 	FAssert(m_i <= static_cast<IntType>(INTMAX - SCALE / 2u));
 	return (m_i + SCALE / 2u) / SCALE;
+}
+
+template<ScaledNum_PARAMS>
+int ScaledNum_T::uround() const
+{
+	BOOST_STATIC_ASSERT(bSIGNED);
+	if (INTMAX < SCALE)
+		FAssert(false);
+	FAssert(m_i <= static_cast<IntType>(INTMAX - SCALE / 2));
+	return (m_i + SCALE / 2) / SCALE;
 }
 
 template<ScaledNum_PARAMS>

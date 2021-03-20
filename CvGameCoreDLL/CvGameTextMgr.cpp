@@ -1569,12 +1569,12 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 			iFontSize = ::range(GC.getDefineINT("FONT_SIZE_FACTOR", 13), 7, 19);
 	}
 	// (The code below was written for iFontSize=14, so that's fontFactor=1.)
-	double fontFactor = 14.0 / iFontSize;
+	double dFontFactor = 14.0 / iFontSize;
 	// </advc.002b>
 	CvGame const& kGame = GC.getGame();
 	int iScreenHeight = kGame.getScreenHeight();
 	int iLineLimit = (iScreenHeight == 0 ? 25 :
-			::round(32 * fontFactor * kGame.getScreenHeight() / 1000.0 - 5));
+			fmath::round(32 * dFontFactor * kGame.getScreenHeight() / 1000.0 - 5));
 	/*  When hovering over an indicator bubble (unit layer), only info about units
 		in kPlot is shown. This means more space. Same when hovering over a flag
 		(bShort). */
@@ -2966,23 +2966,23 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 			{
 				CvCity const& kCity = *kPlot.getPlotCity();
 				bool const bActiveOwned = (kCity.getOwner() == eActivePlayer);
-				double prRevolt = kCity.revoltProbability();
+				scaled rRevoltProb = kCity.revoltProbability();
 				// <advc.023>
-				double const prDecrement = kCity.probabilityOccupationDecrement();
-				prRevolt *= 1 - prDecrement; // </advc.023>
+				scaled const rDecrementProb = kCity.probabilityOccupationDecrement();
+				rRevoltProb *= 1 - rDecrementProb; // </advc.023>
 				PlayerTypes const eCulturalOwner = (bActiveOwned ? kCity.calculateCulturalOwner() : NO_PLAYER);
 				int const iGarrisonStr = (bActiveOwned ? kCity.cultureGarrison(eCulturalOwner) : -1);
 				int const iCultureStr = (bActiveOwned ? kCity.cultureStrength(eCulturalOwner) : -1);
-				if(prRevolt > 0)
+				if (rRevoltProb > 0)
 				{
 					/*  CvCity::revoltProbability rounds probabilities that are too
 						small to display to 0, but that doesn't take into account
 						prDecrement, so prRevolt here can still be less than
 						1 permille -- though not much less, so this isn't going to
 						overstate the probability much: */
-					prRevolt = std::max(0.001, prRevolt);
+					float fRevoltProb = std::max(0.001f, rRevoltProb.getFloat());
 					wchar floatBuffer[1024];
-					swprintf(floatBuffer, L"%.1f", (float)(100 * prRevolt));
+					swprintf(floatBuffer, L"%.1f", 100 * fRevoltProb);
 					szString.append(gDLL->getText("TXT_KEY_MISC_CHANCE_OF_REVOLT",
 							floatBuffer));
 					if (bActiveOwned)
@@ -3009,15 +3009,15 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 					}
 					szString.append(NEWLINE);
 				} // <advc.023>
-				if (prDecrement > 0)
+				if (rDecrementProb > 0)
 				{
 					wchar floatBuffer[1024];
-					swprintf(floatBuffer, L"%.1f", (float)(100 * prDecrement));
+					swprintf(floatBuffer, L"%.1f", 100 * rDecrementProb.getFloat());
 					szString.append(gDLL->getText("TXT_KEY_OCCUPATION_DECREASE_CHANCE",
 							floatBuffer));
 					szString.append(NEWLINE);
 				} // </advc.023>
-				else if (prRevolt <= 0 && bActiveOwned && iGarrisonStr > 0 &&
+				else if (rRevoltProb <= 0 && bActiveOwned && iGarrisonStr > 0 &&
 					eCulturalOwner != kCity.getOwner() && iGarrisonStr >= iCultureStr)
 				{
 					// Show it only when a local unit is selected? Eh ...
@@ -3964,7 +3964,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 					/*  advc.001n: Only relevant for the K-Mod war AI, and I'm not totally sure that
 						CvTeamAI::AI_startWarVal is safe for networked games
 						(despite the bConstCache param that I've added). */
-						if(!getUWAI.isEnabled())
+						if(!getUWAI().isEnabled())
 						{
 							if(GET_TEAM(kPlayer.getTeam()).isHasMet(kLoopPlayer.getTeam()) &&
 									GET_TEAM(kPlayer.getTeam()).AI_getAttitude(kLoopPlayer.getTeam()) != ATTITUDE_FRIENDLY)
@@ -4176,8 +4176,8 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 			tmp=a.getNumRiverEdges();szTempBuffer.Format(L"\n(RiverEdges: %d)", tmp); szString.append(szTempBuffer);
 			tmp=GET_PLAYER(activePl).coastRiverStartingAreaScore(a);total+=tmp;szTempBuffer.Format(L"\nCoastRiverScore: %d", tmp); szString.append(szTempBuffer);
 			tmp=a.getNumTiles()/2;total+=tmp;szTempBuffer.Format(L"\nTiles*0.5: %d", tmp); szString.append(szTempBuffer);
-			tmp=::round(a.getNumTotalBonuses() * 1.5);total+=tmp;szTempBuffer.Format(L"\nBonuses*1.5: %d", tmp); szString.append(szTempBuffer);
-			tmp=100*::round(std::min(NUM_CITY_PLOTS + 1, a.getNumTiles() + 1)/ (NUM_CITY_PLOTS + 1.0));total+=tmp;szTempBuffer.Format(L"\nTilePercent: %d", tmp); szString.append(szTempBuffer);
+			tmp=fmath::round(a.getNumTotalBonuses() * 1.5);total+=tmp;szTempBuffer.Format(L"\nBonuses*1.5: %d", tmp); szString.append(szTempBuffer);
+			tmp=100*fmath::round(std::min(NUM_CITY_PLOTS + 1, a.getNumTiles() + 1)/ (NUM_CITY_PLOTS + 1.0));total+=tmp;szTempBuffer.Format(L"\nTilePercent: %d", tmp); szString.append(szTempBuffer);
 			szTempBuffer.Format(L"\nAreaScore: %d", total); szString.append(szTempBuffer);
 		}
 	} // </advc.027>
@@ -7396,7 +7396,7 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 		// K-Mod end
 				// <advc.912b>
 				: CvWString::format(L"\n%c%+d%c %s", gDLL->getSymbolID(BULLET_CHAR),
-				::round(0.01 * iGoldPerMilitaryUnit), // </advc.912b>
+				fmath::round(0.01 * iGoldPerMilitaryUnit), // </advc.912b>
 				GC.getInfo(COMMERCE_GOLD).getChar(),
 				gDLL->getText("TXT_KEY_CIVIC_MILITARY_SUPPORT_COSTS").GetCString()));
 		// <advc.912b>
@@ -11728,7 +11728,7 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 				iCost *= GC.getDefineINT("PROJECT_PRODUCTION_PERCENT");
 				iCost /= 100;
 				// To match CvPlayer::getProductionNeeded
-				iCost = ::roundToMultiple(iCost, iBaseCost > 500 ? 50 : 5);
+				iCost = fmath::roundToMultiple(iCost, iBaseCost > 500 ? 50 : 5);
 				// </advc.251>
 			}
 			szTempBuffer.Format(L"\n%d%c", iCost,

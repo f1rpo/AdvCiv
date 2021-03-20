@@ -1,11 +1,11 @@
-// <advc.700> New class; see header file for description.
-
 #include "CvGameCoreDLL.h"
 #include "RFChapterScore.h"
 #include "RiseFall.h"
 #include "RFChapter.h"
 #include "CvGamePlay.h"
 #include "CvPlayerAI.h"
+
+using namespace fmath;
 
 
 RFChapterScore::RFChapterScore() {
@@ -280,5 +280,3 @@ int RFChapterScore::getScoreFromRemainingTime() const {
 
 	return fromRemainingTime;
 }
-
-// </advc.700>

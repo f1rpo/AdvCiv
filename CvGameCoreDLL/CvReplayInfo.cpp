@@ -350,7 +350,7 @@ void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer)
 		if(eOption == GAMEOPTION_ADVANCED_START || eOption == GAMEOPTION_SPAH ||
 				!g.isOption(eOption) ||
 				// advc.104:
-				(eOption == GAMEOPTION_AGGRESSIVE_AI && getUWAI.isEnabled()))
+				(eOption == GAMEOPTION_AGGRESSIVE_AI && getUWAI().isEnabled()))
 			continue;
 		iOptions++;
 		szSettings += GC.getInfo(eOption).getDescription();

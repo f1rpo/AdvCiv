@@ -229,5 +229,7 @@ void CyTeamPythonInterface()
 		.def("AI_getWarSuccess", &CyTeam::AI_getWarSuccess, "int (TeamTypes)")
 		// advc.152:
 		.def("AI_declareWarTrade", &CyTeam::AI_declareWarTrade, "DenialTypes (TeamTypes eWarTeam,TeamTypes eTeam)")
+		// advc.038:
+		.def("AI_estimateYieldRate", &CyTeam::AI_estimateYieldRate, "int (int/*PlayerTypes*/,int/*YieldTypes*/)")
 		;
 }

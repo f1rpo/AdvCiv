@@ -142,6 +142,7 @@ public:
 	int getSymbolID(int iSymbol);																	// Exposed to Python
 
 	int getProductionPerPopulation(HurryTypes eHurry) const; // Exposed to Python
+	int getHurryAngerLength() const; // advc
 
 	int getAdjustedPopulationPercent(VictoryTypes eVictory) const;								// Exposed to Python
 	int getAdjustedLandPercent(VictoryTypes eVictory) const;											// Exposed to Python
@@ -259,7 +260,7 @@ public:
 
 	int getEstimateEndTurn() const;																// Exposed to Python
 	void setEstimateEndTurn(int iNewValue);												// Exposed to Python
-	double gameTurnProgress(int iDelay = 0) const; // advc
+	scaled gameTurnProgress(int iDelay = 0) const; // advc
 
 	DllExport int getTurnSlice() const { return m_iTurnSlice; } // advc.inl							// Exposed to Python
 	int getMinutesPlayed() const;																	// Exposed to Python
@@ -770,7 +771,10 @@ public:
 	void changePlotExtraCost(int iX, int iY, int iCost);   // exposed to Python
 	void removePlotExtraCost(int iX, int iY);
 
-	ReligionTypes getVoteSourceReligion(VoteSourceTypes eVoteSource) const;	 	// Exposed to Python
+	ReligionTypes getVoteSourceReligion(VoteSourceTypes eVoteSource) const	 	// Exposed to Python
+	{
+		return m_aeVoteSourceReligion.get(eVoteSource); // advc
+	}
 	void setVoteSourceReligion(VoteSourceTypes eVoteSource, ReligionTypes eReligion, bool bAnnounce = false);		// Exposed to Python
 
 	bool isEventActive(EventTriggerTypes eTrigger) const;		// exposed to Python
@@ -992,7 +996,8 @@ protected:
 
 	std::vector<PlotExtraYield> m_aPlotExtraYields;
 	std::vector<PlotExtraCost> m_aPlotExtraCosts;
-	stdext::hash_map<VoteSourceTypes, ReligionTypes> m_mapVoteSourceReligions;
+	// advc: Replacing a hash_map
+	EnumMap<VoteSourceTypes,ReligionTypes> m_aeVoteSourceReligion;
 	std::vector<EventTriggerTypes> m_aeInactiveTriggers;
 
 	/*  K-Mod. This is used to track which groups have been cycled through in the current turn.
@@ -1043,11 +1048,12 @@ protected:
 	void createBarbarianCity(bool bNoCivCities, int iProbModifierPercent = 100);
 	int numBarbariansToCreate(int iTilesPerUnit, int iTiles, int iUnowned,
 			int iUnitsPresent, int iBarbarianCities = 0);
-	int createBarbarianUnits(int n, CvArea& a, Shelf* shelf, bool bCargoAllowed = false,
-			bool bOnlyCargo = false);
-	CvPlot* randomBarbarianPlot(CvArea const& a, Shelf const* pShelf);
-	bool killBarbarian(int iUnitsPresent, int iTiles, int iPop, CvArea& a, Shelf* pShelf);
-	UnitTypes randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a);
+	int createBarbarianUnits(int iUnitsToCreate, CvArea& kArea, Shelf* pShelf = NULL,
+			bool bCargoAllowed = false, bool bOnlyCargo = false);
+	CvPlot* randomBarbarianPlot(CvArea const& kArea, Shelf const* pShelf = NULL);
+	bool killBarbarian(int iUnitsPresent, int iTiles, int iPop,
+			CvArea& kArea, Shelf* pShelf = NULL);
+	UnitTypes randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& kArea);
 	scaled barbarianPeakLandRatio() const;
 	// </advc.300>
 

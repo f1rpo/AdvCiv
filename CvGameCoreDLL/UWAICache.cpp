@@ -1,5 +1,3 @@
-// advc.104: New class; see UWAICache.h for description.
-
 #include "CvGameCoreDLL.h"
 #include "UWAICache.h"
 #include "UWAIAgent.h"
@@ -15,238 +13,312 @@
 #include "CvInfo_Building.h"
 #include "CvInfo_Terrain.h"
 
-using std::vector;
-using std::string;
-using std::sort;
 
-// Called only once per session (when starting or loading the first game)
-UWAICache::UWAICache() : ownerId(NO_PLAYER), nNonNavyUnits(-1),
-		goldPerProduction(-1), totalAssets(-1), bHasAggressiveTrait(false),
-		bHasProtectiveTrait(false), canScrub(false), trainDeepSeaCargo(false),
-		trainAnyCargo(false), focusOnPeacefulVictory(false) {}
+UWAICache::UWAICache()
+:	m_eOwner(NO_PLAYER), m_iNonNavalUnits(-1),
+	m_rGoldPerProduction(-1), m_rTotalAssets(-1),
+	m_bOffensiveTrait(false), m_bDefensiveTrait(false), m_bCanScrub(false),
+	m_bHaveDeepSeaTransports(false), m_bHaveAnyTransports(false),
+	m_bFocusOnPeacefulVictory(false)
+{}
 
-// Called only on exit (to Desktop)
-UWAICache::~UWAICache() {}
 
-// Called when starting a new game (not when loading)
-void UWAICache::init(PlayerTypes ownerId) {
+UWAICache::~UWAICache()
+{
+	// Don't call clear; most destructors get called automatically.
+	deleteUWAICities();
+	deleteMilitaryBranches();
+}
 
-	this->ownerId = ownerId;
+
+void UWAICache::init(PlayerTypes eOwner)
+{
+	m_eOwner = eOwner;
 	clear();
 	updateTraits();
-	// The order of the vector needs to match the enums in MilitaryBranch::Type
-	militaryPower.push_back(new MilitaryBranch::HomeGuard(ownerId));
-	militaryPower.push_back(new MilitaryBranch::Army(ownerId));
-	militaryPower.push_back(new MilitaryBranch::Fleet(ownerId));
-	militaryPower.push_back(new MilitaryBranch::Logistics(ownerId));
-	militaryPower.push_back(new MilitaryBranch::Cavalry(ownerId));
-	militaryPower.push_back(new MilitaryBranch::NuclearArsenal(ownerId));
+	createMilitaryBranches();
 }
 
-void UWAICache::uninit() {
 
+void UWAICache::uninit() 
+{
+	// Clearing the EnumMaps will free memory (could benefit performance)
 	clear();
 }
 
-void UWAICache::clear(bool beforeUpdate) {
 
-	for(size_t i = 0; i < v.size(); i++)
-		delete v[i];
-	v.clear();
-	cityMap.clear();
-
-	nReachableCities.reset();
-	targetMissionCounts.reset();
-	threatRatings.reset();
-	vassalTechScores.reset();
-	vassalResourceScores.reset();
-	adjacentLand.reset();
-	relativeNavyPow.reset();
-	wwAnger.reset();
-
-	nReachableCities.set(ownerId, GET_PLAYER(ownerId).getNumCities());
-	totalAssets = 0;
-	goldPerProduction = 0;
-	canScrub = false;
-	trainDeepSeaCargo = trainAnyCargo = false;
-	focusOnPeacefulVictory = false;
-
-	lostTilesAtWar.reset(); // advc.035
-	warUtilityIgnDistraction.reset();
-
-	if(!beforeUpdate) {
-		nNonNavyUnits = 0;
-		for(size_t i = 0; i < militaryPower.size(); i++)
-			SAFE_DELETE(militaryPower[i]);
-		militaryPower.clear();
-		pastWarScores.reset();
-		sponsorshipsAgainst.reset();
-		sponsorsAgainst.reset();
-		hireAgainst.reset();
-	}
-}
-
-// Called when saving
-void UWAICache::write(FDataStreamBase* stream) {
-
-	PROFILE_FUNC();
-	int savegameVersion;
-	//savegameVersion = 1;
-	//savegameVersion = 2; // advc.035
-	//savegameVersion = 3; // hireAgainst added
-	//savegameVersion = 4; // granularity of pastWarScore increased
-	/*  I hadn't thought of a version number in the initial release. Need
-		to fold it into ownerId now to avoid breaking compatibility. */
-	//savegameVersion = 5; // focusOnPeacefulVictory added
-	//savegameVersion = 6; // advc.enum: Store as float
-	savegameVersion = 7; // advc: remove latestTurnReachableBySea
-	stream->Write(ownerId + 100 * savegameVersion);
-	int n = (int)v.size();
-	stream->Write(n);
-	for(int i = 0; i < n; i++)
-		v[i]->write(stream);
-
-	nReachableCities.Write(stream);
-	targetMissionCounts.Write(stream);
-	threatRatings.Write(stream, false, true);
-	vassalTechScores.Write(stream);
-	vassalResourceScores.Write(stream);
-	adjacentLand.Write(stream);
-	relativeNavyPow.Write(stream, false, true);
-	wwAnger.Write(stream, false, true);
-	lostTilesAtWar.Write(stream); // advc.035
-	pastWarScores.Write(stream);
-	sponsorshipsAgainst.Write(stream);
-	sponsorsAgainst.Write(stream);
-	warUtilityIgnDistraction.Write(stream);
-	hireAgainst.Write(stream);
-
-	stream->Write(bHasAggressiveTrait);
-	stream->Write(bHasProtectiveTrait);
-	stream->Write(canScrub);
-	stream->Write(trainDeepSeaCargo);
-	stream->Write(trainAnyCargo);
-	stream->Write(focusOnPeacefulVictory);
-	stream->Write(readyToCapitulate.size());
-	for(std::set<TeamTypes>::const_iterator it = readyToCapitulate.begin();
-			it != readyToCapitulate.end(); ++it)
-		stream->Write(*it);
-	for(size_t i = 0; i < militaryPower.size(); i++)
-		militaryPower[i]->write(stream);
-	stream->Write(nNonNavyUnits);
-	stream->Write(totalAssets);
-	stream->Write(goldPerProduction);
-}
-
-// Called when loading
-void UWAICache::read(FDataStreamBase* stream) {
-
-	int tmp;
-	stream->Read(&tmp);
-	int savegameVersion = tmp / 100;
-	ownerId = (PlayerTypes)(tmp % 100);
-	// Important to set onwerId first b/c clear uses it
-	clear();
-	int n=0;
-	stream->Read(&n);
-	for(int i = 0; i < n; i++) {
-		v.push_back(new City);
-		v[i]->read(stream);
-		cityMap.insert(std::make_pair(v[i]->id(), v[i]));
-	}
-	/*  These used to be arrays with no value for the Barbarians.
-		(The Barbarian value remains unused.) */
-	nReachableCities.Read(stream);
-	targetMissionCounts.Read(stream);
-	threatRatings.ReadFloat(stream, savegameVersion < 6);
-	vassalTechScores.Read(stream);
-	vassalResourceScores.Read(stream);
-	adjacentLand.Read(stream);
-	if(savegameVersion >= 1)
-		relativeNavyPow.ReadFloat(stream, savegameVersion < 6);
-	wwAnger.ReadFloat(stream, savegameVersion < 6);
-	// <advc.035>
-	if(savegameVersion >= 2)
-		lostTilesAtWar.Read(stream); // </advc.035>
-	pastWarScores.Read(stream);
-	if(savegameVersion < 4) {
-		for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
-			pastWarScores.multiply(it->getID(), 100);
-	}
-	sponsorshipsAgainst.Read(stream);
-	sponsorsAgainst.Read(stream);
-	warUtilityIgnDistraction.Read(stream);
-	if(savegameVersion >= 3)
-		hireAgainst.Read(stream);
-
-	stream->Read(&bHasAggressiveTrait);
-	stream->Read(&bHasProtectiveTrait);
-	stream->Read(&canScrub);
-	stream->Read(&trainDeepSeaCargo);
-	stream->Read(&trainAnyCargo);
-	if(savegameVersion >= 5)
-		stream->Read(&focusOnPeacefulVictory);
+void UWAICache::createMilitaryBranches()
+{
+	for (int i = 0; i < NUM_BRANCHES; i++)
 	{
-		int sz=0;
-		stream->Read(&sz);
-		for(int i = 0; i < sz; i++) {
-			int masterId;
-			stream->Read(&masterId);
-			FAssert(masterId >= 0 && masterId < MAX_CIV_TEAMS); // Sanity check
-			readyToCapitulate.insert((TeamTypes)masterId);
+		m_militaryPower.push_back(MilitaryBranch::create(
+				(MilitaryBranchTypes)i, m_eOwner));
+	}
+}
+
+
+void UWAICache::deleteMilitaryBranches()
+{
+	for (size_t i = 0; i < m_militaryPower.size(); i++)
+		SAFE_DELETE(m_militaryPower[i]);
+	m_militaryPower.clear();
+}
+
+
+void UWAICache::deleteUWAICities()
+{
+	for (size_t i = 0; i < m_cityList.size(); i++)
+		delete m_cityList[i];
+	m_cityList.clear();
+}
+
+
+void UWAICache::clear(bool bBeforeUpdate)
+{
+	deleteUWAICities();
+	m_cityMap.clear();
+	/*	Tbd.: Can some of these reset calls be avoided before an update?
+		They're going to deallocate memory, which might be slow. */
+	m_aiReachableCities.reset();
+	m_aiReachableCities.set(m_eOwner, GET_PLAYER(m_eOwner).getNumCities());
+	m_aiTargetMissions.reset();
+	m_arThreatRating.reset();
+	m_aiVassalTechScore.reset();
+	m_aiVassalResourceScore.reset();
+	m_aiAdjLandPlots.reset();
+	m_arRelativeNavyPow.reset();
+	m_arWarAnger.reset();
+	
+	m_rTotalAssets = 0;
+	m_rGoldPerProduction = 0;
+	m_bCanScrub = false;
+	m_bHaveDeepSeaTransports = false;
+	m_bHaveAnyTransports = false;
+	m_bFocusOnPeacefulVictory = false;
+
+	m_aiPlotsLostAtWar.reset(); // advc.035
+	m_aiWarUtilityIgnoringDistraction.reset();
+
+	if (!bBeforeUpdate)
+	{	// These are updated are various times, not by the regular update function.
+		m_iNonNavalUnits = 0;
+		deleteMilitaryBranches();
+		m_aiPastWarScore.reset();
+		m_aiBounty.reset();
+		m_aeSponsorPerTarget.reset();
+		m_abCanBeHiredAgainst.reset();
+	}
+}
+
+
+void UWAICache::write(FDataStreamBase* pStream) const
+{
+	PROFILE_FUNC();
+	int iSaveVersion;
+	//iSaveVersion = 1;
+	//iSaveVersion = 2; // advc.035
+	//iSaveVersion = 3; // hireAgainst added
+	//iSaveVersion = 4; // granularity of pastWarScore increased
+	//iSaveVersion = 5; // focusOnPeacefulVictory added
+	//iSaveVersion = 6; // advc.enum: Store as float
+	//iSaveVersion = 7; // remove latestTurnReachableBySea
+	iSaveVersion = 8; // advc.fract: Store as scaled (not float)
+	/*	I hadn't thought of a version number in the initial release. Need
+		to fold it into ownerId now to avoid breaking compatibility. */
+	pStream->Write(m_eOwner + 100 * iSaveVersion);
+	pStream->Write(numCities());
+	for (int i = 0; i < numCities(); i++)
+		m_cityList[i]->write(pStream);
+	m_aiReachableCities.Write(pStream);
+	m_aiTargetMissions.Write(pStream);
+	m_arThreatRating.WriteRecursive(pStream);
+	m_aiVassalTechScore.Write(pStream);
+	m_aiVassalResourceScore.Write(pStream);
+	m_aiAdjLandPlots.Write(pStream);
+	m_arRelativeNavyPow.WriteRecursive(pStream);
+	m_arWarAnger.WriteRecursive(pStream);
+	m_aiPlotsLostAtWar.Write(pStream); // advc.035
+	m_aiPastWarScore.Write(pStream);
+	m_aiBounty.Write(pStream);
+	m_aeSponsorPerTarget.Write(pStream);
+	m_aiWarUtilityIgnoringDistraction.Write(pStream);
+	m_abCanBeHiredAgainst.Write(pStream);
+
+	pStream->Write(m_bOffensiveTrait);
+	pStream->Write(m_bDefensiveTrait);
+	pStream->Write(m_bCanScrub);
+	pStream->Write(m_bHaveDeepSeaTransports);
+	pStream->Write(m_bHaveAnyTransports);
+	pStream->Write(m_bFocusOnPeacefulVictory);
+	pStream->Write(m_readyToCapitulateTo.size());
+	for(std::set<TeamTypes>::const_iterator it = m_readyToCapitulateTo.begin();
+		it != m_readyToCapitulateTo.end(); ++it)
+	{
+		pStream->Write(*it);
+	}
+	for(size_t i = 0; i < m_militaryPower.size(); i++)
+		m_militaryPower[i]->write(pStream);
+	pStream->Write(m_iNonNavalUnits);
+	m_rTotalAssets.write(pStream);
+	m_rGoldPerProduction.write(pStream);
+}
+
+
+void UWAICache::read(FDataStreamBase* pStream)
+{
+	int iSaveVersion=-1;
+	{
+		int iTmp;
+		pStream->Read(&iTmp);
+		iSaveVersion = iTmp / 100;
+		m_eOwner = (PlayerTypes)(iTmp % 100);
+	}
+	// Important to set owner first b/c clear uses it
+	clear();
+	{
+		int iCities = 0;
+		pStream->Read(&iCities);
+		for (int i = 0; i < iCities; i++)
+		{
+			m_cityList.push_back(new City);
+			m_cityList[i]->read(pStream);
+			m_cityMap.insert(std::make_pair(m_cityList[i]->getID(), m_cityList[i]));
 		}
 	}
-	if(savegameVersion < 7) {
-		int sz=0;
-		stream->Read(&sz);
-		for(int i = 0; i < sz; i++) {
-			int key, firstVal, secondVal;
-			stream->Read(&key);
-			stream->Read(&firstVal);
-			stream->Read(&secondVal);
+	m_aiReachableCities.Read(pStream);
+	m_aiTargetMissions.Read(pStream);
+	if (iSaveVersion < 8)
+	{
+		CivPlayerMap<float> afThreatRating;
+		afThreatRating.ReadFloat(pStream, iSaveVersion < 6);
+		FOR_EACH_ENUM(CivPlayer)
+		{
+			m_arThreatRating.set(eLoopCivPlayer, scaled::fromDouble(
+					afThreatRating.get(eLoopCivPlayer)));
+		}
+	}
+	else m_arThreatRating.ReadRecursive(pStream);
+	m_aiVassalTechScore.Read(pStream);
+	m_aiVassalResourceScore.Read(pStream);
+	m_aiAdjLandPlots.Read(pStream);
+	if (iSaveVersion >= 1)
+	{
+		if (iSaveVersion < 8)
+		{
+			CivPlayerMap<float> afRelativeNavyPow;
+			afRelativeNavyPow.ReadFloat(pStream, iSaveVersion < 6);
+			FOR_EACH_ENUM(CivPlayer)
+			{
+				m_arRelativeNavyPow.set(eLoopCivPlayer, scaled::fromDouble(
+						afRelativeNavyPow.get(eLoopCivPlayer)));
+			}
+		}
+		else m_arRelativeNavyPow.ReadRecursive(pStream);
+	}
+	if (iSaveVersion < 8)
+	{
+		CivPlayerMap<float> afWarAnger;
+		afWarAnger.ReadFloat(pStream, iSaveVersion < 6);
+		FOR_EACH_ENUM(CivPlayer)
+		{
+			m_arWarAnger.set(eLoopCivPlayer, scaled::fromDouble(
+					afWarAnger.get(eLoopCivPlayer)));
+		}
+	}
+	else m_arWarAnger.ReadRecursive(pStream);
+	// <advc.035>
+	if (iSaveVersion >= 2)
+		m_aiPlotsLostAtWar.Read(pStream); // </advc.035>
+	m_aiPastWarScore.Read(pStream);
+	if (iSaveVersion < 4)
+	{
+		for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
+			m_aiPastWarScore.multiply(it->getID(), 100);
+	}
+	m_aiBounty.Read(pStream);
+	m_aeSponsorPerTarget.Read(pStream);
+	m_aiWarUtilityIgnoringDistraction.Read(pStream);
+	if (iSaveVersion >= 3)
+		m_abCanBeHiredAgainst.Read(pStream);
+
+	pStream->Read(&m_bOffensiveTrait);
+	pStream->Read(&m_bDefensiveTrait);
+	pStream->Read(&m_bCanScrub);
+	pStream->Read(&m_bHaveDeepSeaTransports);
+	pStream->Read(&m_bHaveAnyTransports);
+	if (iSaveVersion >= 5)
+		pStream->Read(&m_bFocusOnPeacefulVictory);
+	{
+		int iSize;
+		pStream->Read(&iSize);
+		for (int i = 0; i < iSize; i++)
+		{
+			TeamTypes eMaster;
+			pStream->Read((int*)&eMaster);
+			FAssertEnumBounds(eMaster);
+			m_readyToCapitulateTo.insert(eMaster);
+		}
+	}
+	if (iSaveVersion < 7)
+	{
+		int iSize;
+		pStream->Read(&iSize);
+		for (int i = 0; i < iSize; i++)
+		{
+			int iKey, iFirstVal, iSecondVal;
+			pStream->Read(&iKey);
+			pStream->Read(&iFirstVal);
+			pStream->Read(&iSecondVal);
 			// No longer used; just discard the data.
-			//latestTurnReachableBySea[key] = std::make_pair(firstVal, secondVal);
+			//latestTurnReachableBySea[iKey] = std::make_pair(iFirstVal, iSecondVal);
 		}
 	}
-	militaryPower.push_back(new MilitaryBranch::HomeGuard(ownerId));
-	militaryPower.push_back(new MilitaryBranch::Army(ownerId));
-	militaryPower.push_back(new MilitaryBranch::Fleet(ownerId));
-	militaryPower.push_back(new MilitaryBranch::Logistics(ownerId));
-	militaryPower.push_back(new MilitaryBranch::Cavalry(ownerId));
-	militaryPower.push_back(new MilitaryBranch::NuclearArsenal(ownerId));
-	for(size_t i = 0; i < militaryPower.size(); i++)
-		militaryPower[i]->read(stream);
-	stream->Read(&nNonNavyUnits);
-	stream->Read(&totalAssets);
-	stream->Read(&goldPerProduction);
-	if(savegameVersion < 1)
+	createMilitaryBranches();
+	for (size_t i = 0; i < m_militaryPower.size(); i++)
+		m_militaryPower[i]->read(pStream);
+	pStream->Read(&m_iNonNavalUnits);
+	if (iSaveVersion < 8)
+	{
+		double dTotalAssets;
+		pStream->Read(&dTotalAssets);
+		double dGoldPerProduction;
+		pStream->Read(&dGoldPerProduction);
+		m_rTotalAssets = scaled::fromDouble(dTotalAssets);
+		m_rGoldPerProduction = scaled::fromDouble(dGoldPerProduction);
+	}
+	else
+	{
+		m_rTotalAssets.read(pStream);
+		m_rGoldPerProduction.read(pStream);
+	}
+	if (iSaveVersion < 1)
 		updateRelativeNavyPower();
 }
 
-/*  Called each turn. Some data are also updated throughout the turn, e.g. through
+/*	Called each turn. Some data are also updated throughout the turn, e.g. through
 	reportUnitCreated. */
-void UWAICache::update() {
-
+void UWAICache::update()
+{
 	PROFILE_FUNC();
 	clear(true);
-	focusOnPeacefulVictory = calculateFocusOnPeacefulVictory();
+	m_bFocusOnPeacefulVictory = calculateFocusOnPeacefulVictory();
 	// Needs to be done before updating cities
-	updateTrainCargo();
-	TeamPathFinders* pf = NULL;
-	if (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO>::count(TEAMID(ownerId)) > 0) {
-		// Will have to reset these after each team; but allocate memory only once.
-		pf = createTeamPathFinders();
+	updateTransports();
+	TeamPathFinders* pPathFinders = NULL;
+	if (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO>::count(TEAMID(m_eOwner)) > 0)
+	{	// Will have to reset these after each team; but allocate memory only once.
+		pPathFinders = createTeamPathFinders();
 	}
-	for(TeamIter<MAJOR_CIV,KNOWN_TO> it(TEAMID(ownerId)); it.hasNext(); ++it)
-		updateCities(it->getID(), pf);
-	if(pf != NULL)
-		deleteTeamPathFinders(*pf);
+	for (TeamIter<MAJOR_CIV,KNOWN_TO> it(TEAMID(m_eOwner)); it.hasNext(); ++it)
+		updateCities(it->getID(), pPathFinders);
+	if (pPathFinders != NULL)
+		deleteTeamPathFinders(*pPathFinders);
 	sortCitiesByAttackPriority();
 	updateTotalAssetScore();
 	updateTargetMissionCounts();
 	updateTypicalUnits();
-	bool const playerHistAvailable = (GC.getGame().getElapsedGameTurns() > 0);
-	if(playerHistAvailable) // Can't do yield estimates on the first turn
+	bool const bPlayerHistAvailable = (GC.getGame().getElapsedGameTurns() > 0);
+	if (bPlayerHistAvailable) // Can't do yield estimates on the first turn
 		updateThreatRatings();
 	updateVassalScores();
 	updateAdjacentLand();
@@ -256,596 +328,702 @@ void UWAICache::update() {
 	updateWarAnger();
 	updateCanScrub();
 
-	// Any values used by war evaluation need to be updated before this!
-	if(playerHistAvailable) { /* Apart from the yield estimation problem, the
-			other civs' caches aren't up to date, which can cause problems
-			in scenarios. */
+	/*	(Apart from the yield estimation problem, the other players' caches
+		wouldn't be up to date, which can cause problems in scenarios.) */
+	if (bPlayerHistAvailable)
+	{	// Any values used by war evaluation need to be updated before this!
 		updateWarUtility();
 	}
 }
+
 
 TeamPathFinders* UWAICache::createTeamPathFinders() const
 {
 	/*	Would be nice to make one instance of each TeamPathFinder class a member of
 		CvTeam rather than creating temporary instances. However - see the comment in
 		KmodPathFinder::resetNodes. */
-	CvTeam const& cacheTeam = GET_TEAM(ownerId);
+	CvTeam const& kCacheTeam = GET_TEAM(m_eOwner);
 	using namespace TeamPath;
 	return new TeamPathFinders(
-			*new TeamPathFinder<LAND>(cacheTeam),
-			*new TeamPathFinder<ANY_WATER>(cacheTeam),
-			*new TeamPathFinder<SHALLOW_WATER>(cacheTeam));
+			*new TeamPathFinder<LAND>(kCacheTeam),
+			*new TeamPathFinder<ANY_WATER>(kCacheTeam),
+			*new TeamPathFinder<SHALLOW_WATER>(kCacheTeam));
 }
 
-void UWAICache::deleteTeamPathFinders(TeamPathFinders& pf) {
 
-	delete &pf.landFinder();
-	delete &pf.anyWaterFinder();
-	delete &pf.shallowWaterFinder();
-	delete &pf;
+void UWAICache::deleteTeamPathFinders(TeamPathFinders& kPathFinders)
+{
+	delete &kPathFinders.landFinder();
+	delete &kPathFinders.anyWaterFinder();
+	delete &kPathFinders.shallowWaterFinder();
+	delete &kPathFinders;
 }
 
-void UWAICache::resetTeamPathFinders(TeamPathFinders& pf, TeamTypes warTargetId) const {
 
-	int seaLimit = getUWAI.maxSeaDist() * GET_PLAYER(ownerId).uwai().shipSpeed();
-	int landLimit = getUWAI.maxLandDist();
-	CvTeam const* warTarget = &GET_TEAM(warTargetId);
-	pf.landFinder().reset(warTarget, landLimit);
-	pf.anyWaterFinder().reset(warTarget, seaLimit);
-	pf.shallowWaterFinder().reset(warTarget, seaLimit);
+void UWAICache::resetTeamPathFinders(TeamPathFinders& kPathFinders,
+	TeamTypes eWarTarget) const
+{
+	int const iSeaLimit = getUWAI().maxSeaDist() * shipSpeed();
+	int const iLandLimit = getUWAI().maxLandDist();
+	CvTeam const* pWarTarget = &GET_TEAM(eWarTarget);
+	kPathFinders.landFinder().reset(pWarTarget, iLandLimit);
+	kPathFinders.anyWaterFinder().reset(pWarTarget, iSeaLimit);
+	kPathFinders.shallowWaterFinder().reset(pWarTarget, iSeaLimit);
 }
 
-void UWAICache::updateCities(TeamTypes teamId, TeamPathFinders* pf) {
 
+void UWAICache::updateCities(TeamTypes eTeam, TeamPathFinders* pPathFinders)
+{
 	PROFILE_FUNC();
-	CvTeamAI const& cacheTeam = GET_TEAM(ownerId);
-	bool const isHuman = GET_PLAYER(ownerId).isHuman();
-	if(teamId == cacheTeam.getID())
-		pf = NULL;
-	else resetTeamPathFinders(*pf, teamId);
-	for (MemberIter it(teamId); it.hasNext(); ++it)
+	CvTeamAI const& kCacheTeam = GET_TEAM(m_eOwner);
+	bool const bHuman = GET_PLAYER(m_eOwner).isHuman();
+	if (eTeam == kCacheTeam.getID())
+		pPathFinders = NULL;
+	else resetTeamPathFinders(*pPathFinders, eTeam);
+	for (MemberIter it(eTeam); it.hasNext(); ++it)
 	{
-		CvPlayerAI& civ = *it;
-		FOR_EACH_CITY_VAR(c, civ) {
-			// c.isRevealed() impedes the AI too much
-			if(teamId == cacheTeam.getID() ||
-					// Assume that human can locate all cities of known civs
-					isHuman || cacheTeam.AI_deduceCitySite(*c))
-				add(*new City(ownerId, *c, pf));
+		CvPlayerAI const& kMember = *it;
+		FOR_EACH_CITY_VAR(pCity, kMember)
+		{
+			// pCity.isRevealed() impedes the AI too much
+			if (eTeam == kCacheTeam.getID() ||
+				// Assume that human can locate all cities of known civs
+				bHuman || kCacheTeam.AI_deduceCitySite(*pCity))
+			{
+				add(*new City(m_eOwner, *pCity, pPathFinders));
+			}
 		}
 	}
 }
 
-void UWAICache::add(City& c)
+
+void UWAICache::add(City& kCacheCity)
 {
-	v.push_back(&c);
-	cityMap.insert(std::make_pair(c.id(), &c));
-	PlayerTypes cityOwnerId = c.city().getOwner();
-	if(TEAMID(cityOwnerId) != TEAMID(ownerId) && c.canReach())
-		nReachableCities.add(cityOwnerId, 1);
+	m_cityList.push_back(&kCacheCity);
+	m_cityMap.insert(std::make_pair(kCacheCity.getID(), &kCacheCity));
+	PlayerTypes eCityOwner = kCacheCity.city().getOwner();
+	if (TEAMID(eCityOwner) != TEAMID(m_eOwner) && kCacheCity.canReach())
+		m_aiReachableCities.add(eCityOwner, 1);
 }
 
 /*	Only for updates triggered by unit movement of other players.
 	Caller is assumed to check visibility and civ status
 	(the cache only covers major civs). */
-void UWAICache::add(CvCity& c) {
-
-	TeamPathFinders* pf = NULL;
-	if(c.getTeam() != TEAMID(ownerId)) {
-		pf = createTeamPathFinders();
-		resetTeamPathFinders(*pf, c.getTeam());
+void UWAICache::add(CvCity& kCity)
+{
+	TeamPathFinders* pPathFinders = NULL;
+	if (kCity.getTeam() != TEAMID(m_eOwner))
+	{
+		pPathFinders = createTeamPathFinders();
+		resetTeamPathFinders(*pPathFinders, kCity.getTeam());
 	}
-	add(*new City(ownerId, c, pf));
-	if(pf != NULL)
-		deleteTeamPathFinders(*pf);
+	add(*new City(m_eOwner, kCity, pPathFinders));
+	if (pPathFinders != NULL)
+		deleteTeamPathFinders(*pPathFinders);
 }
 
-void UWAICache::remove(CvCity const& c) {
 
-	City* fromCache = NULL;
-	std::map<int,City*>::iterator mapPos = cityMap.find(c.plotNum());
-	if(mapPos != cityMap.end())
-		fromCache = mapPos->second;
-	if(fromCache == NULL) // OK, caller doesn't need to ensure this.
+void UWAICache::remove(CvCity const& kCity)
+{
+	City* pCacheCity = NULL;
+	std::map<PlotNumTypes,City*>::iterator posMap = m_cityMap.find(kCity.plotNum());
+	if (posMap != m_cityMap.end())
+		pCacheCity = posMap->second;
+	if (pCacheCity == NULL) // OK, caller doesn't need to rule this out.
 		return;
-	PlayerTypes oldCityOwnerId = fromCache->city().getOwner();
-	if(TEAMID(oldCityOwnerId) != TEAMID(ownerId) && fromCache->canReach())
-		nReachableCities.add(oldCityOwnerId, -1);
-	cityMap.erase(mapPos);
-	std::vector<City*>::iterator vectorPos = std::find(
-			v.begin(), v.end(), fromCache);
-	if(vectorPos == v.end()) {
-		FAssert(vectorPos != v.end());
+	PlayerTypes eOldCityOwner = pCacheCity->city().getOwner();
+	if (TEAMID(eOldCityOwner) != TEAMID(m_eOwner) && pCacheCity->canReach())
+		m_aiReachableCities.add(eOldCityOwner, -1);
+	m_cityMap.erase(posMap);
+	std::vector<City*>::iterator posVector = std::find(
+			m_cityList.begin(), m_cityList.end(), pCacheCity);
+	if (posVector == m_cityList.end())
+	{
+		FAssert(posVector != m_cityList.end());
 		return;
 	}
-	delete *vectorPos;
-	v.erase(vectorPos);
+	delete *posVector;
+	m_cityList.erase(posVector);
 }
 
-void UWAICache::updateTotalAssetScore() {
 
+void UWAICache::updateTotalAssetScore()
+{
 	// For Palace; it's counted as a national wonder below, but it's worth another 5.
-	totalAssets = 5;
-	for(int i = size() - 1; i >= 0; i--) {
-		City const& c = cityAt(i);
-		if(!c.isOwnTeamCity())
+	m_rTotalAssets = 5;
+	for (int i = numCities() - 1; i >= 0; i--)
+	{
+		City const& kCacheCity = cityAt(i);
+		if (!kCacheCity.isOwnTeamCity())
 			break; // Sorted so that cities of owner's team are at the end
-		CvCity& cvc = c.city();
-		if(cvc.getOwner() == ownerId)
-			/*  National wonders aren't included in the per-city asset score b/c
-				they shouldn't count for rival cities. */
-			totalAssets += c.getAssetScore() + cvc.getNumNationalWonders() * 4;
+		CvCity& kCity = kCacheCity.city();
+		if (kCity.getOwner() == m_eOwner)
+		{
+			m_rTotalAssets += kCacheCity.getAssetScore() +
+					/*	National wonders aren't included in the per-city asset score
+						b/c they shouldn't count for rival cities. */
+					kCity.getNumNationalWonders() * 4;
+		}
 	}
 }
 
-void UWAICache::updateGoldPerProduction() {
 
-	goldPerProduction = std::max(goldPerProdBuildings(), goldPerProdSites());
-	goldPerProduction *= GET_PLAYER(ownerId).uwai().amortizationMultiplier();
-	goldPerProduction = std::max(goldPerProdVictory(), goldPerProduction);
+void UWAICache::updateGoldPerProduction()
+{
+	/*	Akin in purpose to CvPlayerAI::AI_yieldWeight - which, however,
+		isn't much more than a stub. */
+	m_rGoldPerProduction = std::max(goldPerProdBuildings(), goldPerProdSites());
+	m_rGoldPerProduction *= GET_PLAYER(m_eOwner).uwai().amortizationMultiplier();
+	m_rGoldPerProduction.increaseTo(goldPerProdVictory());
+	/*	Currently, this ratio is currently pretty much 1. Just so that any changes
+		to AI_yieldWeight or Civ4YieldInfos.xml take effect here. */
+	m_rGoldPerProduction *= scaled(GET_PLAYER(m_eOwner).
+			AI_yieldWeight(YIELD_PRODUCTION), 225);
 }
 
-double const UWAICache::goldPerProdUpperLimit = 4.5;
-double UWAICache::goldPerProdBuildings() {
+namespace
+{
+	scaled const rGoldPerProductionCap = fixp(4.5);
+}
 
+scaled UWAICache::goldPerProdBuildings()
+{
 	PROFILE_FUNC();
-	vector<double> buildingCounts; // excluding wonders
-	vector<double> wonderCounts;
-	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	EraTypes ownerEra = owner.getCurrentEra();
-	ReligionTypes ownerReligion = owner.getStateReligion();
-	FOR_EACH_CITY(cp, owner) {
-		CvCity const& c = *cp;
-		int buildings = 0, wonders = 0;
-		FOR_EACH_ENUM(Building) {
-			CvBuildingInfo& b = GC.getInfo(eLoopBuilding);
-			if(c.canConstruct(eLoopBuilding) && !b.isCapital() && // exclude Palace
-					c.getProductionBuilding() != eLoopBuilding &&
-					// Wonder in construction elsewhere:
-					owner.getBuildingClassMaking(b.getBuildingClassType()) == 0) {
-				if(b.getReligionType() != NO_RELIGION) {
-					// No Monasteries when they're about to go obsolete
-					TechTypes obsTech = b.getObsoleteTech();
-					if(obsTech != NO_TECH && GC.getInfo(obsTech).getEra() <=
-							ownerEra)
+	std::vector<scaled> arWonderCounts;
+	std::vector<scaled> arNonWonderCounts;
+	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);
+	int const iOwnerEra = kOwner.getCurrentEra();
+	ReligionTypes const eOwnerReligion = kOwner.getStateReligion();
+	FOR_EACH_CITY(pCity, kOwner)
+	{
+		/*	Tbd.? CvCiytAI::AI_buildingValue has a cache, so it might be possible
+			to do a calculation here based on that, CvCity::getProductionNeeded
+			and CvPlayerAI::AI_targetAmortizationTurns. */
+		int iWonders = 0;
+		int iNonWonders = 0;
+		FOR_EACH_ENUM2(Building, eBuilding)
+		{
+			CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+			if (pCity->canConstruct(eBuilding) &&
+				!kBuilding.isCapital() && // exclude Palace
+				// War preparations probably won't cause the city to switch
+				pCity->getProductionBuilding() != eBuilding)
+			{
+				{	// Soon obsolete
+					TechTypes eObsTech = kBuilding.getObsoleteTech();
+					if (eObsTech != NO_TECH &&
+						GC.getInfo(eObsTech).getEra() <= iOwnerEra)
+					{
 						continue;
-					// If state religion, count only buildings of that religion.
-					if(ownerReligion != NO_RELIGION && b.getReligionType() != ownerReligion)
-						continue;
+					}
 				}
-				if(b.isLimited())
-					wonders++;
-				else buildings++;
+				if (kBuilding.getReligionType() != NO_RELIGION)
+				{
+					// If in a state religion, count only buildings of that religion.
+					if (eOwnerReligion != NO_RELIGION &&
+						kBuilding.getReligionType() != eOwnerReligion)
+					{
+						continue;
+					}
+				}
+				if (kBuilding.isLimited())
+					iWonders++;
+				else iNonWonders++;
 			}
 		}
-		buildingCounts.push_back(buildings);
-		wonderCounts.push_back(wonders);
+		arNonWonderCounts.push_back(iNonWonders);
+		arWonderCounts.push_back(iWonders);
 	}
-	if(buildingCounts.empty()) // No city founded yet
+	if (arNonWonderCounts.empty()) // No city founded yet
 		return 2;
 	// Cities about to be founded; will soon need buildings.
-	for(int i = 0; i < ::round(0.6 * std::min(owner.AI_getNumAIUnits(UNITAI_SETTLE),
-			owner.AI_getNumCitySites())); i++)
-		buildingCounts.push_back(stats::max(buildingCounts));
-	int era = owner.getCurrentEra();
-	CvLeaderHeadInfo const& lh = GC.getInfo(owner.getPersonalityType());
-	double missing = ::dMedian(buildingCounts) + std::max(0.0, ::dMedian(wonderCounts) -
-			/*  Assume one useless (small or great) wonder per era, but two for
-				Classical and none for Future. */
-			(std::min(5, era) + (era > 0 ? 1 : 0))) *
-			((lh.getWonderConstructRand() + 20) / 50); // wcr=30 is typical
-	// Assume 6 buildings made available per era
-	int maxBuildings = (era + 1) * 6;
-	double missingRatio = missing / maxBuildings;
-	missingRatio *= (100 - lh.getBuildUnitProb()) / 75.0; // bup=25 is typical
-	missingRatio = std::min(missingRatio, 1.0);
-	double r = std::max(1.0, goldPerProdUpperLimit * missingRatio);
+	int iFutureCities = (fixp(0.6) * std::min(
+			kOwner.AI_getNumAIUnits(UNITAI_SETTLE),
+			kOwner.AI_getNumCitySites())).round();
+	scaled const rMaxNonWonderCount = stats::max(arNonWonderCounts);
+	for (int i = 0; i < iFutureCities; i++)
+		arNonWonderCounts.push_back(rMaxNonWonderCount);
+	CvLeaderHeadInfo const& kOwnerPersonality = GC.getInfo(
+			kOwner.getPersonalityType());
+	scaled rMedianDesiredBuildings = stats::median(arNonWonderCounts) +
+			scaled::max(0, stats::median(arWonderCounts) -
+			/*	Assume one useless (small or great) wonder per era, but two for
+				Classical. (Should work well enough with custom eras as well;
+				not adding a bAgeOfWonders flag to CvEraInfo via advc.erai.) */
+			(std::min(5, iOwnerEra) + (iOwnerEra > 0 ? 1 : 0))) *
+			// WCR=30 is typical
+			scaled(kOwnerPersonality.getWonderConstructRand() + 20, 50);
+	// Assume 6 desirable buildings (incl. wonders) made available per era
+	int const iMaxDesiredBuildings = (iOwnerEra + 1) * 6;
+	scaled r = rMedianDesiredBuildings / iMaxDesiredBuildings;
+	// The more units, the fewer buildings. (BUP=25 is typical.)
+	r *= scaled(100 - kOwnerPersonality.getBuildUnitProb(), 75);
+	r.decreaseTo(1);
+	r *= rGoldPerProductionCap;
+	r.increaseTo(1);
 	return r;
 }
-double UWAICache::goldPerProdSites() {
 
+
+scaled UWAICache::goldPerProdSites()
+{
 	PROFILE_FUNC();
-	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	std::vector<int> foundVals;
-	for(int i = 0; i < owner.AI_getNumCitySites(); i++) {
-		CvPlot* site = owner.AI_getCitySite(i);
-		if(site != NULL)
-			foundVals.push_back(site->getFoundValue(owner.getID()));
+	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);
+	std::vector<int> aiFoundVals;
+	for (int i = 0; i < kOwner.AI_getNumCitySites(); i++)
+	{
+		aiFoundVals.push_back(kOwner.AI_getCitySite(i).getFoundValue(kOwner.getID()));
 	}
-	std::sort(foundVals.begin(), foundVals.end(), std::greater<int>());
-	int const sitesMax = 5;
-	double weights[sitesMax] = { 1, 0.8, 0.6, 0.4, 0.2 };
-	double sites = 0;
-	int const settlers = owner.AI_getNumAIUnits(UNITAI_SETTLE);
-	for(int i = settlers; i < std::min(sitesMax, (int)foundVals.size()); i++) {
-		/*  Once the settlers have been used, the found value of more remote sites
-			may increase a bit (see shapeWeight in AI_foundValue_bulk) */
-		sites += foundVals[i] * (weights[i] + settlers / 10.0) / 2500;
+	std::sort(aiFoundVals.begin(), aiFoundVals.end(), std::greater<int>());
+	scaled arSiteWeights[] = { 1, fixp(0.8), fixp(0.6), fixp(0.4), fixp(0.2) };
+	int const iSitesMax = ARRAY_LENGTH(arSiteWeights);
+	scaled rSiteScore;
+	int const iSettlers = kOwner.AI_getNumAIUnits(UNITAI_SETTLE);
+	for (int i = iSettlers; i < std::min(iSitesMax, (int)aiFoundVals.size()); i++)
+	{
+		/*	Once the settlers have been used, the found value of more remote sites
+			may increase a bit
+			(see rShapeWeight in AIFoundValue::adjustToCivSurroundings) */
+		rSiteScore += (aiFoundVals[i] * (arSiteWeights[i] + iSettlers) / 10) / 2500;
 	}
-	/*  Don't want to count faraway barb cities. Reference value set after
+	/*	Don't want to count faraway Barbarian cities. Reference value set after
 		looking at some sample targetCityValues; let's hope these generalize. */
-	double const refVal = 50;
-	FOR_EACH_CITY(c, GET_PLAYER(BARBARIAN_PLAYER)) {
-		if(GET_TEAM(owner.getTeam()).AI_deduceCitySite(*c)) {
-			int const targetVal = owner.AI_targetCityValue(*c, false, true);
-			if (targetVal > 0)
-				sites += std::pow(std::min((double)targetVal, refVal) / refVal, 3.0);
+	int const iRefVal = 50;
+	FOR_EACH_CITY(pBarbCity, GET_PLAYER(BARBARIAN_PLAYER))
+	{
+		if (GET_TEAM(kOwner.getTeam()).AI_deduceCitySite(*pBarbCity))
+		{
+			int const iTargetVal = kOwner.AI_targetCityValue(*pBarbCity, false, true);
+			if (iTargetVal > 0)
+				rSiteScore += scaled(std::min(iTargetVal, iRefVal), iRefVal).pow(3);
 		}
 	}
-	CvGameAI const& g = GC.AI_getGame();
-	int gameEra = g.getCurrentEra();
-	/*  Rage makes it more worthwhile to focus on early expansion (at least for
-		the AI), regardless of whether the additional cities are new or conquered
-		from the barbs. */
-	if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) &&
-			(g.AI_getCurrEraFactor() < fixp(1.5) || gameEra == g.getStartEra()))
-		sites *= 1.25;
-	double cities = std::max(1, owner.getNumCities());
+	CvGameAI const& kGame = GC.AI_getGame();
+	int const iGameEra = kGame.getCurrentEra();
+	/*	Rage option makes it more worthwhile to focus on early expansion (at least
+		for the AI), regardless of whether the additional cities are new or
+		conquered from the Barbarians. */
+	if (kGame.isOption(GAMEOPTION_RAGING_BARBARIANS) &&
+		(kGame.AI_getCurrEraFactor() < fixp(1.5) || iGameEra == kGame.getStartEra()))
+	{
+		rSiteScore *= fixp(1.25);
+	}
+	int const iCities = std::max(1, kOwner.getNumCities());
 	// Shouldn't expect to claim all sites with few cities
-	sites = std::min(sites, cities);
-	double r = std::min(goldPerProdUpperLimit, goldPerProdUpperLimit * sites / cities);
+	rSiteScore.decreaseTo(iCities);
+	scaled r = std::min(rGoldPerProductionCap,
+			rGoldPerProductionCap * rSiteScore / iCities);
 	return r;
 }
 
-double UWAICache::goldPerProdVictory() {
 
-	CvTeamAI const& ourTeam = GET_TEAM(ownerId);
-	int ourVictLevel = 0;
-	if(ourTeam.AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE3 | AI_VICTORY_SPACE3))
-		ourVictLevel = 3;
-	else if(ourTeam.AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE4))
-		ourVictLevel = 4;
-	if(ourVictLevel < 3) {
-		if(ourTeam.AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE2 | AI_VICTORY_SPACE2))
+scaled UWAICache::goldPerProdVictory()
+{
+	CvTeamAI const& kOwnerTeam = GET_TEAM(m_eOwner);
+	int iOwnerVictoryStage = 0;
+	if (kOwnerTeam.AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE3 | AI_VICTORY_SPACE3))
+		iOwnerVictoryStage = 3;
+	else if(kOwnerTeam.AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE4))
+		iOwnerVictoryStage = 4;
+	if (iOwnerVictoryStage < 3)
+	{
+		if (kOwnerTeam.AI_anyMemberAtVictoryStage(AI_VICTORY_CULTURE2 | AI_VICTORY_SPACE2))
 			return 1;
-		return 0.5;
+		return fixp(0.5);
 	}
-	double r = ourVictLevel + 1;
-	for (TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(TEAMID(ownerId)); it.hasNext(); ++it) {
-		CvTeamAI const& rival = *it;
-		int theirVictLevel = 0;
-		if(rival.AI_anyMemberAtVictoryStage3())
-			theirVictLevel = 3;
-		else if(rival.AI_anyMemberAtVictoryStage4())
-			theirVictLevel = 4;
-		if(theirVictLevel >= ourVictLevel)
+	scaled r = iOwnerVictoryStage + 1;
+	for (TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itRival(kOwnerTeam.getID());
+		itRival.hasNext(); ++itRival)
+	{
+		int iRivalVictoryStage = 0;
+		if (itRival->AI_anyMemberAtVictoryStage3())
+			iRivalVictoryStage = 3;
+		else if (itRival->AI_anyMemberAtVictoryStage4())
+			iRivalVictoryStage = 4;
+		if (iRivalVictoryStage >= iOwnerVictoryStage)
 			r--;
-		if(theirVictLevel > ourVictLevel)
+		if (iRivalVictoryStage > iOwnerVictoryStage)
 			r--;
 	}
 	return r;
 }
 
-void UWAICache::updateWarUtility() {
 
+void UWAICache::updateWarUtility()
+{
 	PROFILE_FUNC();
-	if(!getUWAI.isUpdated())
+	if(!getUWAI().isReady())
 		return;
-	CvTeamAI const& ownerTeam = GET_TEAM(ownerId);
-	/*  Not nice. War utility is computed per team, and the computation is
-		somewhat costly. Want to do this only once per team, but don't have a
-		class for AI values cached per team, and I don't want to create one
-		just for this. Hence do it only for the leader. */
-	if(ownerId != ownerTeam.getLeaderID())
+	CvTeamAI const& kOwnerTeam = GET_TEAM(m_eOwner);
+	if (m_eOwner != kOwnerTeam.getLeaderID())
 		return;
-
-	for(TeamIter<FREE_MAJOR_CIV> it; it.hasNext(); ++it) {
-		TeamTypes targetId = it->getID();
-		if(ownerTeam.uwai().isPotentialWarEnemy(targetId))
-			updateWarUtilityIgnDistraction(targetId);
+	for (TeamIter<FREE_MAJOR_CIV> itTarget; itTarget.hasNext(); ++itTarget)
+	{
+		if (kOwnerTeam.uwai().isWarEvalNeeded(itTarget->getID()))
+			updateWarUtilityIgnDistraction(itTarget->getID());
 	}
 }
 
-void UWAICache::updateWarUtilityIgnDistraction(TeamTypes targetId) {
 
-	CvTeamAI& agent = GET_TEAM(TEAMID(ownerId));
-	if (agent.isAVassal()) { // Not needed for vassals
-		warUtilityIgnDistraction.set(targetId, 0);
+void UWAICache::updateWarUtilityIgnDistraction(TeamTypes eTarget)
+{
+	CvTeamAI const& kOwnerTeam = GET_TEAM(m_eOwner);
+	FAssert(m_eOwner == kOwnerTeam.getLeaderID());
+	if (kOwnerTeam.isAVassal()) // Not needed for vassals
+	{
+		m_aiWarUtilityIgnoringDistraction.set(eTarget, 0);
 		return;
 	}
 	UWAIReport report(true); // silent
-	// Ignoring Distraction cost
-	WarEvalParameters params(agent.getID(), targetId, report, true);
+	WarEvalParameters params(kOwnerTeam.getID(), eTarget, report,
+			true); // Ignore distraction cost
 	WarEvaluator eval(params);
-	WarPlanTypes wp = agent.AI_getWarPlan(targetId);
-	int prepTime = 0;
+	WarPlanTypes eWP = kOwnerTeam.AI_getWarPlan(eTarget);
+	int iPrepTime = 0;
 	// Just limited war and naval based on AI_isLandTarget is good enough here
-	if(wp == NO_WARPLAN) {
-		wp = WARPLAN_PREPARING_LIMITED;
-		if(!agent.AI_isPushover(targetId))
-			prepTime = 5;
+	if (eWP == NO_WARPLAN)
+	{
+		eWP = WARPLAN_PREPARING_LIMITED;
+		if (!kOwnerTeam.AI_isPushover(eTarget))
+			iPrepTime = 5;
 	}
-	warUtilityIgnDistraction.set(targetId, eval.evaluate(
-			wp, !agent.AI_isLandTarget(targetId), prepTime));
+	m_aiWarUtilityIgnoringDistraction.set(eTarget, eval.evaluate(
+			eWP, !kOwnerTeam.AI_isLandTarget(eTarget), iPrepTime));
 }
 
-void UWAICache::updateWarAnger() {
 
-	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	if(owner.isAnarchy())
+void UWAICache::updateWarAnger()
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);
+	if (kOwner.isAnarchy())
 		return;
-	double totalWWAnger = 0;
-	FOR_EACH_CITY(cp, owner) {
-		CvCity const& c = *cp;
-		if(c.isDisorder())
+	/*	Would be interesting to know the hypothetical anger from war weariness,
+		i.e. assuming that war breaks out. Currently, we only consider anger
+		from ongoing wars. */
+	scaled rAngerScore;
+	FOR_EACH_CITY(pCity, kOwner)
+	{
+		if (pCity->isDisorder())
 			continue;
-		/*  Disregard happiness from culture rate unless we need culture
+		/*	Disregard happiness from culture rate unless we need culture
 			regardless of happiness */
-		double angry = c.angryPopulation(0,
-				!owner.AI_atVictoryStage(AI_VICTORY_CULTURE3) &&
-				!owner.AI_atVictoryStage(AI_VICTORY_CULTURE4));
-		totalWWAnger += std::min(angry, c.getWarWearinessPercentAnger()
-				* c.getPopulation() / (double)GC.getPERCENT_ANGER_DIVISOR());
+		int iAngry = pCity->angryPopulation(0,
+				!kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3) &&
+				!kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE4));
+		rAngerScore += scaled::min(iAngry, scaled(
+				pCity->getWarWearinessPercentAnger() * pCity->getPopulation(),
+				GC.getPERCENT_ANGER_DIVISOR()));
 	}
-	if(totalWWAnger < 0.01)
+	if (rAngerScore <= 0)
 		return;
-	// Who causes the wwAnger?
-	double wwContribs[MAX_CIV_TEAMS];
-	double totalWeight = 0;
-	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
-		/*  Never mind all the modifiers in CvPlayer::updateWarWearinessPercentAnger;
+	// Who causes the anger?
+	CivTeamMap<int> aiAngerContrib;
+	for (TeamIter<MAJOR_CIV,ENEMY_OF> itEnemy(kOwner.getTeam());
+		itEnemy.hasNext(); ++itEnemy)
+	{
+		/*	Never mind all the modifiers in CvPlayer::updateWarWearinessPercentAnger;
 			they apply equally to each contribution. */
-		double contrib = GET_TEAM(ownerId).getWarWeariness((TeamTypes)i, true);
-		wwContribs[i] = contrib;
-		totalWeight += contrib;
+		int iContrib = GET_TEAM(kOwner.getTeam()).
+				getWarWeariness(itEnemy->getID(), true);
+		aiAngerContrib.set(itEnemy->getID(), iContrib);
 	}
-	for(PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it) {
-		PlayerTypes civId = it->getID();
-		if(totalWeight == 0)
-			wwAnger.set(civId, 0);
-		else wwAnger.set(civId, (float)(
-				totalWWAnger * (wwContribs[TEAMID(civId)] / totalWeight) /
-				GET_TEAM(civId).getNumMembers())); // Turn per-team into per-civ
-	}
-}
-
-void UWAICache::updateCanScrub() {
-
-	FeatureTypes fallout = NO_FEATURE;
-	FOR_EACH_ENUM(Feature) {
-		if(GC.getInfo(eLoopFeature).getHealthPercent() <= -50) {
-			fallout = eLoopFeature;
-			break;
-		}
-	}
-	if(fallout == NO_FEATURE) {
-		FErrorMsg("Fallout feature not found; should have -50 health");
+	int const iTotalAngerContribs = aiAngerContrib.getTotal();
+	if (iTotalAngerContribs <= 0)
 		return;
+	for (PlayerIter<CIV_ALIVE,ENEMY_OF> itEnemy(kOwner.getTeam());
+		itEnemy.hasNext(); ++itEnemy)
+	{
+		m_arWarAnger.set(itEnemy->getID(), rAngerScore *
+				// Turn per-team into per-civ
+				scaled(aiAngerContrib.get(itEnemy->getTeam()), iTotalAngerContribs) /
+				GET_TEAM(kOwner.getTeam()).getNumMembers());
 	}
-	FOR_EACH_ENUM(Build) {
-		TechTypes featTech = GC.getInfo(eLoopBuild).getFeatureTech(fallout);
-		if(featTech != NO_TECH && GET_TEAM(ownerId).isHasTech(featTech)) {
-			canScrub = true;
+}
+
+
+void UWAICache::updateCanScrub()
+{
+	static FeatureTypes eFallout = NO_FEATURE; // why not cache it
+	if (eFallout == NO_FEATURE)
+	{
+		FOR_EACH_ENUM(Feature)
+		{
+			if (GC.getInfo(eLoopFeature).getHealthPercent() <= -50)
+			{
+				eFallout = eLoopFeature;
+				break;
+			}
+		}
+	}
+	FOR_EACH_ENUM(Build)
+	{
+		TechTypes eFeatureTech = GC.getInfo(eLoopBuild).getFeatureTech(eFallout);
+		if (eFeatureTech != NO_TECH && GET_TEAM(m_eOwner).isHasTech(eFeatureTech))
+		{
+			m_bCanScrub = true;
 			break;
 		}
 	}
 }
 
-void UWAICache::updateTrainCargo() {
 
+void UWAICache::updateTransports()
+{
 	PROFILE_FUNC();
-	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	CvCivilization const& ownerCiv = owner.getCivilization();
-	for(int i = 0; i < ownerCiv.getNumUnits(); i++) {
-		UnitTypes ut = ownerCiv.unitAt(i);
-		CvUnitInfo& info = GC.getInfo(ut);
-		if(info.getUnitAIType(UNITAI_ASSAULT_SEA) && owner.canTrain(ut)) {
-			trainAnyCargo = true;
-			/*  A check for GC.getWATER_TERRAIN(false) would be better for
-				future modding. However, counting impassable terrain types is
-				used everywhere else as well. */
-			if(!owner.AI_isAnyImpassable(ut))
-				trainDeepSeaCargo = true;
+	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);
+	CvCivilization const& kOwnerCiv = kOwner.getCivilization();
+	for (int i = 0; i < kOwnerCiv.getNumUnits(); i++)
+	{
+		UnitTypes const eUnit = kOwnerCiv.unitAt(i);
+		CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+		if (kUnit.getUnitAIType(UNITAI_ASSAULT_SEA) && kOwner.canTrain(eUnit))
+		{
+			m_bHaveAnyTransports = true;
+			if (!kOwner.AI_isAnyImpassable(eUnit))
+				m_bHaveDeepSeaTransports = true;
 		}
 	}
 }
 
-bool UWAICache::calculateFocusOnPeacefulVictory() {
 
-	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	if(owner.AI_atVictoryStage(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE4))
+bool UWAICache::calculateFocusOnPeacefulVictory()
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);
+	if (kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE4 | AI_VICTORY_SPACE4))
 		return true;
-	if(owner.AI_atVictoryStage4() || // (Diplo doesn't count as peaceful)
-			(!owner.AI_atVictoryStage(AI_VICTORY_CULTURE3) &&
-			!owner.AI_atVictoryStage(AI_VICTORY_SPACE3)))
+	if (kOwner.AI_atVictoryStage4() || // (Diplo doesn't count as peaceful)
+		(!kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3) &&
+		!kOwner.AI_atVictoryStage(AI_VICTORY_SPACE3)))
+	{
 		return false;
-	bool const bHuman = owner.isHuman();
+	}
+	bool const bHuman = kOwner.isHuman();
 	// Space3 or Culture3 -- but is there a rival at stage 4?
-	for(PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(TEAMID(ownerId)); it.hasNext(); ++it) {
-		CvPlayerAI const& rival = *it;
-		if(!rival.AI_atVictoryStage(AI_VICTORY_CULTURE4) &&
-				!rival.AI_atVictoryStage(AI_VICTORY_SPACE4))
+	for (PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itRival(kOwner.getTeam());
+		itRival.hasNext(); ++itRival)
+	{
+		if (!itRival->AI_atVictoryStage(AI_VICTORY_CULTURE4) &&
+			!itRival->AI_atVictoryStage(AI_VICTORY_SPACE4))
+		{
 			continue;
+		}
 		// Could we possibly(!) stop them? Would we want to?
-		if(!bHuman && owner.AI_getAttitude(rival.getID()) >= ATTITUDE_FRIENDLY)
+		if (!bHuman && kOwner.AI_getAttitude(itRival->getID()) >= ATTITUDE_FRIENDLY)
 			continue;
-		CvTeamAI const& rivalTeam = GET_TEAM(rival.getTeam());
-		if(rivalTeam.AI_getWarSuccessRating() < 0)
+		CvTeamAI const& kRivalTeam = GET_TEAM(itRival->getTeam());
+		if (kRivalTeam.AI_getWarSuccessRating() < 0)
 			return false;
-		if(GET_TEAM(owner.getTeam()).getPower(true) * (bHuman ? 5 : 4) >
-				GET_TEAM(rival.getTeam()).getPower(false) * 3)
+		if (GET_TEAM(kOwner.getTeam()).getPower(true) * (bHuman ? 5 : 4) >
+			kRivalTeam.getPower(false) * 3)
+		{
 			return false;
+		}
 	}
 	return true;
 }
 
-void UWAICache::setCanBeHiredAgainst(TeamTypes tId, bool b) {
 
-	leaderCache().hireAgainst.set(tId, b);
+int UWAICache::shipSpeed() const
+{
+	MilitaryBranch const* pLogistics = getPowerValues()[LOGISTICS];
+	if (pLogistics != NULL)
+	{
+		UnitTypes eTypicalTransport = pLogistics->getTypicalUnit();
+		if (eTypicalTransport != NO_UNIT)
+			return GC.getInfo(eTypicalTransport).getMoves();
+	}
+	// Fallback (needed?)
+	return ::range(GET_PLAYER(m_eOwner).getCurrentEra() + 1, 3, 5);
 }
 
-void UWAICache::updateCanBeHiredAgainst(TeamTypes tId, int u, int thresh) {
 
-	// Part of the update happens in UWAI::Team::doWar
-	double pr = -1;
-	if(!hireAgainst.get(tId))
-		pr = std::min(0.58, (u - 1.5 * thresh) / 100.0);
-	else pr = 1 - (thresh - u) / 100.0;
-	hireAgainst.set(tId, ::bernoulliSuccess(pr, "advc.104 (can hire)"));
+void UWAICache::setCanBeHiredAgainst(TeamTypes eTeam, bool b)
+{
+	leaderCache().m_abCanBeHiredAgainst.set(eTeam, b);
 }
 
-UWAICache const& UWAICache::leaderCache() const {
 
-	if(ownerId == GET_TEAM(ownerId).getLeaderID())
+void UWAICache::updateCanBeHiredAgainst(TeamTypes eTeam,
+	int iWarUtility, int iUtilityThresh)
+{
+	// (Part of the update happens in UWAI::Team::doWar)
+	scaled rProb = -1;
+	if (!m_abCanBeHiredAgainst.get(eTeam))
+		rProb = std::min(fixp(0.58), (iWarUtility - fixp(1.5) * iUtilityThresh) / 100);
+	else rProb = scaled(1 - (iUtilityThresh - iWarUtility), 100);
+	m_abCanBeHiredAgainst.set(eTeam, rProb.bernoulliSuccess(
+			GC.getGame().getSRand(), "UWAI: can hire roll"));
+}
+
+
+UWAICache const& UWAICache::leaderCache() const
+{
+	if (m_eOwner == GET_TEAM(m_eOwner).getLeaderID())
 		return *this;
-	return GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).uwai().getCache();
+	return GET_PLAYER(GET_TEAM(m_eOwner).getLeaderID()).uwai().getCache();
 }
 
-UWAICache& UWAICache::leaderCache() {
-
-	if(ownerId == GET_TEAM(ownerId).getLeaderID())
+UWAICache& UWAICache::leaderCache()
+{
+	if (m_eOwner == GET_TEAM(m_eOwner).getLeaderID())
 		return *this;
-	return GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).uwai().getCache();
+	return GET_PLAYER(GET_TEAM(m_eOwner).getLeaderID()).uwai().getCache();
 }
 
-void UWAICache::sortCitiesByOwnerAndDistance() {
 
-	FErrorMsg("function no longer used");
-	sort(v.begin(), v.end(), City::byOwnerAndDistance);
-}
-
-void UWAICache::sortCitiesByOwnerAndTargetValue() {
-
-	FErrorMsg("function no longer used");
-	sort(v.begin(), v.end(), City::byOwnerAndTargetValue);
-}
-
-void UWAICache::sortCitiesByDistance() {
-
-	FErrorMsg("function no longer used");
-	sort(v.begin(), v.end(), City::byDistance);
-}
-
-void UWAICache::sortCitiesByTargetValue() {
-
-	FErrorMsg("function no longer used");
-	sort(v.begin(), v.end(), City::byTargetValue);
-}
-
-void UWAICache::sortCitiesByAttackPriority() {
-
+void UWAICache::sortCitiesByAttackPriority()
+{
 	PROFILE_FUNC();
-	//sort(v.begin(), v.end(), City::byAttackPriority);
-	/*  Selection sort b/c I want to factor in city areas. An invading army tends
+	/*	Selection sort b/c I want to factor in city areas. An invading army tends
 		to stay in one area until all cities there are conquered. */
-	for(int i = 0; i < ((int)v.size()) - 1; i++) {
+	for (int i = 0; i < numCities() - 1; i++)
+	{
 		CvCity* pPrevCity = NULL;
-		if(i > 0)
-			pPrevCity = &v[i - 1]->city();
-		CvArea const* pPrevArea = (pPrevCity == NULL ? NULL :& pPrevCity->getArea());
-		double maxPriority = -100;
-		int iMax = -1;
-		for(size_t j = i; j < v.size(); j++) {
-			double priority = v[j]->attackPriority();
-			if(i > 0 && pPrevArea != NULL && pPrevArea != v[j]->city().area() &&
-					priority > 0)
-				priority /= 2;
-			if(priority > maxPriority) {
-				iMax = j;
-				maxPriority = priority;
+		if (i > 0)
+			pPrevCity = &m_cityList[i - 1]->city();
+		CvArea const* pPrevArea = (pPrevCity == NULL ? NULL : &pPrevCity->getArea());
+		scaled rMaxPriority = -100;
+		int iArgMax = -1;
+		for (int j = i; j < numCities(); j++)
+		{
+			scaled rPriority = m_cityList[j]->attackPriority();
+			if (i > 0 && pPrevArea != NULL && !m_cityList[j]->city().isArea(*pPrevArea) &&
+				rPriority.isPositive())
+			{
+				rPriority /= 2;
+			}
+			if (rPriority > rMaxPriority)
+			{
+				iArgMax = j;
+				rMaxPriority = rPriority;
 			}
 		}
-		if(iMax >= 0)
-			std::swap(v[i], v[iMax]);
+		if (iArgMax >= 0)
+			std::swap(m_cityList[i], m_cityList[iArgMax]);
 	}
 }
 
-CvCity& UWAICache::cvCityById(int plotIndex)
+
+CvCity& UWAICache::cvCityById(PlotNumTypes ePlot)
 {
-	return *GC.getMap().getPlotByIndex(plotIndex).getPlotCity();
+	return *GC.getMap().getPlotByIndex(ePlot).getPlotCity();
 }
 
-int UWAICache::size() const {
 
-	return (int)v.size();
-}
-
-void UWAICache::updateTraits() {
-
-	bHasAggressiveTrait = false;
-	bHasProtectiveTrait = false;
-	FOR_EACH_ENUM(Trait) {
-		if(!GET_PLAYER(ownerId).hasTrait(eLoopTrait) ||
-				!GC.getInfo(eLoopTrait).isAnyFreePromotion())
+void UWAICache::updateTraits()
+{
+	m_bOffensiveTrait = false;
+	m_bDefensiveTrait = false;
+	FOR_EACH_ENUM(Trait)
+	{
+		if (!GET_PLAYER(m_eOwner).hasTrait(eLoopTrait) ||
+			!GC.getInfo(eLoopTrait).isAnyFreePromotion())
+		{
 			continue;
-		FOR_EACH_ENUM(Promotion) {
+		}
+		FOR_EACH_ENUM(Promotion)
+		{
 			if (!GC.getInfo(eLoopTrait).isFreePromotion(eLoopPromotion))
 				continue;
-			if(GC.getInfo(eLoopPromotion).getCombatPercent() > 0)
-				bHasAggressiveTrait = true;
-			else if(GC.getInfo(eLoopPromotion).getCityDefensePercent() > 0)
-				bHasProtectiveTrait = true;
+			if (GC.getInfo(eLoopPromotion).getCombatPercent() > 0)
+				m_bOffensiveTrait = true;
+			else if (GC.getInfo(eLoopPromotion).getCityDefensePercent() > 0)
+				m_bDefensiveTrait = true;
 		}
 	}
 }
 
-void UWAICache::updateTargetMissionCounts() {
 
-	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+void UWAICache::updateTargetMissionCounts()
+{
+	/*	Doesn't hurt to count missions to non-rival territory
+		(though it's a waste of time I guess ...) */
+	for (PlayerIter<MAJOR_CIV,KNOWN_TO> it(TEAMID(m_eOwner)); it.hasNext(); ++it)
 		updateTargetMissionCount(it->getID());
 }
 
-void UWAICache::updateThreatRatings() {
 
-	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
-		threatRatings.set(it->getID(), (float)calculateThreatRating(it->getID()));
+void UWAICache::updateThreatRatings()
+{
+	for (PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(TEAMID(m_eOwner));
+		it.hasNext(); ++it)
+	{
+		m_arThreatRating.set(it->getID(), calculateThreatRating(it->getID()));
+	}
 }
 
-void UWAICache::updateVassalScores() {
 
-	for(PlayerIter<MAJOR_CIV,KNOWN_TO> it(TEAMID(ownerId)); it.hasNext(); ++it)
+void UWAICache::updateVassalScores()
+{
+	for(PlayerIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(TEAMID(m_eOwner));
+		it.hasNext(); ++it)
+	{
 		updateVassalScore(it->getID());
-}
-
-void UWAICache::updateAdjacentLand() {
-
-	CvMap& m = GC.getMap();
-	for(int i = 0; i < m.numPlots(); i++) {
-		CvPlot const& p = m.getPlotByIndex(i);
-		if(p.isWater())
-			continue;
-		PlayerTypes o = p.getOwner();
-		if(o == NO_PLAYER || !GET_PLAYER(o).isAlive() || o == BARBARIAN_PLAYER ||
-				TEAMID(o) == TEAMID(ownerId) || GET_PLAYER(o).isMinorCiv())
-			continue;
-		if(p.isAdjacentPlayer(ownerId, true))
-			adjacentLand.add(o, 1);
 	}
 }
-// advc.035:
-void UWAICache::updateLostTilesAtWar() {
 
-	//PROFILE_FUNC();
-	if(!GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
-		return;
-	CvTeam const& ownerTeam = GET_TEAM(ownerId);
-	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it) {
-		TeamTypes tId = it->getID();
-		std::vector<CvPlot*> flipped;
-		::contestedPlots(flipped, ownerTeam.getID(), tId);
-		int lost = 0;
-		for(size_t j = 0; j < flipped.size(); j++) {
-			TeamTypes plotTeamId = flipped[j]->getTeam(); // current tile owner
-			// Count the tiles that ownerTeam loses when at war with tId
-			if(plotTeamId == (ownerTeam.isAtWar(tId) ? tId : ownerTeam.getID()))
-				lost++;
+
+void UWAICache::updateAdjacentLand()
+{
+	PROFILE_FUNC();
+	CvMap const& kMap = GC.getMap();
+	for (int i = 0; i < kMap.numPlots(); i++)
+	{
+		CvPlot const& kPlot = kMap.getPlotByIndex(i);
+		if (kPlot.isWater())
+			continue;
+		PlayerTypes const ePlotOwner = kPlot.getOwner();
+		if (ePlotOwner == NO_PLAYER || !GET_PLAYER(ePlotOwner).isAlive() ||
+			!GET_PLAYER(ePlotOwner).isMajorCiv() ||
+			TEAMID(ePlotOwner) == TEAMID(m_eOwner))
+		{
+			continue;
 		}
-		lostTilesAtWar.set(tId, lost);
+		if (kPlot.isAdjacentPlayer(m_eOwner, true))
+			m_aiAdjLandPlots.add(ePlotOwner, 1);
 	}
 }
 
-void UWAICache::updateRelativeNavyPower() {
+// advc.035:
+void UWAICache::updateLostTilesAtWar()
+{
+	//PROFILE_FUNC();
+	if (!GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
+		return;
+	CvTeam const& kOwnerTeam = GET_TEAM(m_eOwner);
+	for (TeamIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(kOwnerTeam.getID());
+		itOther.hasNext(); ++itOther)
+	{
+		std::vector<CvPlot*> apFlipped;
+		::contestedPlots(apFlipped, kOwnerTeam.getID(), itOther->getID());
+		int iLost = 0;
+		for (size_t j = 0; j < apFlipped.size(); j++)
+		{
+			TeamTypes ePlotTeam = apFlipped[j]->getTeam(); // current tile owner
+			// Count the tiles that kOwnerTeam loses when at war with itOther
+			if (ePlotTeam == (kOwnerTeam.isAtWar(itOther->getID()) ?
+				itOther->getID() : kOwnerTeam.getID()))
+			{
+				iLost++;
+			}
+		}
+		m_aiPlotsLostAtWar.set(itOther->getID(), iLost);
+	}
+}
 
+
+void UWAICache::updateRelativeNavyPower()
+{
 	/*PROFILE_FUNC();
 	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
-		PlayerTypes civId = it->getID();*/
-		/*  Tbd.:
+		PlayerTypes const ePlayer = it->getID();*/
+		/*	Tbd.:
 			Exact result: (their navy power) /
 						  (their total power from navy, army, home guard)
 
 			Intelligence ratio (100%: assume we know all their positions;
 			0: we know nothing, in particular if
-			!GET_TEAM(civId).isHasMet(TEAMID(ownerId))).
+			!GET_TEAM(ePlayer).isHasMet(TEAMID(m_eOwner))).
 
 			-100%
 			+100% * #(their cities visible to us) / #(their cities)
@@ -870,510 +1048,524 @@ void UWAICache::updateRelativeNavyPower() {
 	// CvTeamAI::AI_getRivalAirPower also cheats with per-branch power values
 }
 
-/* Copied and adapted from CvPlayerAI::AI_enemyTargetMissions.
-   Needed target missions per civ, not per team. */
-void UWAICache::updateTargetMissionCount(PlayerTypes civId) {
-
-	int r = 0;
-	CvPlayerAI& owner = GET_PLAYER(ownerId);
-	FOR_EACH_GROUPAI(selGroup, owner) {
-		if(selGroup->getNumUnits() <= 0) // Can be empty
+/*	Based on CvPlayerAI::AI_enemyTargetMissions.
+	(Need target missions per player, not per team.) */
+void UWAICache::updateTargetMissionCount(PlayerTypes ePlayer)
+{
+	int iMissions = 0;
+	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);
+	FOR_EACH_GROUPAI(pGroup, kOwner)
+	{
+		if (pGroup->getNumUnits() <= 0) // Can be empty
 			continue;
-		CvPlot* missionPlot = selGroup->AI_getMissionAIPlot();
-		/* Should work for human civs too. They don't (typically?)
-		   have missions, so we only count actual "boots on the ground". */
-		if(missionPlot == NULL)
-			missionPlot = selGroup->plot();
-		FAssert(missionPlot != NULL);
-		if(missionPlot->isOwned() && missionPlot->getOwner() == civId) {
-			r += selGroup->getNumUnits();
-			r += selGroup->getCargo();
+		CvPlot const* pMissionPlot = pGroup->AI_getMissionAIPlot();
+		/*	Humans don't (typically?) have missions, but at least we can
+			count the boots on the ground. */
+		if (pMissionPlot == NULL)
+			pMissionPlot = pGroup->plot();
+		if (pMissionPlot->getOwner() == ePlayer)
+		{
+			iMissions += pGroup->getNumUnits();
+			iMissions += pGroup->getCargo();
 		}
 	}
-	targetMissionCounts.set(civId, r);
+	m_aiTargetMissions.set(ePlayer, iMissions);
 }
 
-double UWAICache::calculateThreatRating(PlayerTypes civId) const {
 
+scaled UWAICache::calculateThreatRating(PlayerTypes eRival) const
+{
 	// Can't reliably estimate yield rates in the early game
-	if(GC.getGame().getCurrentEra() <= GC.getGame().getStartEra())
+	if (GC.getGame().getCurrentEra() <= GC.getGame().getStartEra())
 		return 0;
-	CvCity* cc = GET_PLAYER(ownerId).getCapitalCity();
-	City* c = NULL;
-	if(cc != NULL)
-		c = GET_PLAYER(civId).uwai().getCache().lookupCity(cc->plotNum());
-	if(c != NULL && !c->canReach())
+	/*	Check rival's cache to see if cache owner's capital is reachable
+		for rival (mild cheat) */
+	CvCity const* pCapital = GET_PLAYER(m_eOwner).getCapital();
+	City const* pCacheCapital = NULL;
+	if (pCapital != NULL)
+	{
+		pCacheCapital = GET_PLAYER(eRival).uwai().getCache().lookupCity(
+				pCapital->plotNum());
+	}
+	if (pCacheCapital != NULL && !pCacheCapital->canReach())
 		return 0;
-	double r = 0;
-	r += teamThreat(TEAMID(civId));
-	return r;
+	return teamThreat(TEAMID(eRival));
 }
 
-double UWAICache::teamThreat(TeamTypes tId) const {
 
-	CvTeamAI const& t = GET_TEAM(tId);
-	TeamTypes ownerTeam = TEAMID(ownerId);
-	AttitudeTypes towardsOwner = (t.isHuman() ? ATTITUDE_CAUTIOUS : t.AI_getAttitude(ownerTeam));
-	if(t.isAVassal() || towardsOwner >= ATTITUDE_FRIENDLY ||
-			// Don't worry about long-term threat if they're already close to victory
-			t.AI_anyMemberAtVictoryStage3())
+scaled UWAICache::teamThreat(TeamTypes eRival) const
+{
+	// A bit of overlap with the paranoia calculation in CvPlayerAI
+	CvTeamAI const& kRival = GET_TEAM(eRival);
+	TeamTypes eOwnerTeam = TEAMID(m_eOwner);
+	AttitudeTypes const eTowardOwner = (kRival.isHuman() ? ATTITUDE_CAUTIOUS :
+			kRival.AI_getAttitude(eOwnerTeam));
+	if (kRival.isAVassal() || eTowardOwner >= ATTITUDE_FRIENDLY ||
+		// Don't worry about long-term threat if they're already close to victory
+		kRival.AI_anyMemberAtVictoryStage3())
+	{
 		return 0;
-	double theirPow = longTermPower(tId);
-	double ourPow = longTermPower(GET_TEAM(ownerTeam).getMasterTeam(), true);
-	if(t.isHuman())
-		ourPow *= GET_PLAYER(ownerId).uwai().confidenceAgainstHuman();
-	double powFactor = ::dRange(theirPow / ourPow - 0.75, 0.0, 1.0);
-	/*  If presently at war, attitude is likely to improve in the medium-term.
+	}
+	scaled rRivalPow = longTermPower(eRival);
+	scaled rOwnerPow = longTermPower(GET_TEAM(eOwnerTeam).getMasterTeam(), true);
+	if (kRival.isHuman())
+		rOwnerPow *= GET_PLAYER(m_eOwner).uwai().confidenceAgainstHuman();
+	rOwnerPow.increaseTo(scaled::epsilon());
+	scaled rPowFactor = rRivalPow / rOwnerPow - fixp(0.75);
+	rPowFactor.clamp(0, 1);
+	/*	(If presently at war, attitude is likely to improve in the medium term.
 		That said, the present war suggests a clash of interests that may persist
-		in the long run. Assume that these factors cancel out, and don't adjust
-		attitude. */
-	double diploFactor = (ATTITUDE_FRIENDLY - towardsOwner) * 0.25;
-	FAssert(diploFactor > 0);
-	if(t.AI_anyMemberAtVictoryStage(AI_VICTORY_CONQUEST2))
-		diploFactor += 0.15;
-	else if(t.AI_anyMemberAtVictoryStage(AI_VICTORY_DIPLOMACY2))
-		diploFactor += 0.1;
+		in the long run. Assume that these factors cancel out, and
+		don't adjust attitude.) */
+	scaled rDiploFactor = (ATTITUDE_FRIENDLY - eTowardOwner, 4);
+	FAssert(rDiploFactor.isPositive());
+	if (kRival.AI_anyMemberAtVictoryStage(AI_VICTORY_CONQUEST2))
+		rDiploFactor += fixp(0.15);
+	else if (kRival.AI_anyMemberAtVictoryStage(AI_VICTORY_DIPLOMACY2))
+		rDiploFactor += fixp(0.1);
 	// Nuclear deterrent
-	if(GET_PLAYER(ownerId).getNumNukeUnits() > 0)
-		diploFactor -= 0.2;
-	diploFactor = ::dRange(diploFactor, 0.0, 1.0);
+	if (GET_PLAYER(m_eOwner).getNumNukeUnits() > 0)
+		rDiploFactor -= fixp(0.2);
+	rDiploFactor.clamp(0, 1);
 	// Less likely to attack us if there are many targets to choose from
-	double altTargetsDivisor = TeamIter<FREE_MAJOR_CIV>::count();
-	return diploFactor * powFactor / std::max(0.35, altTargetsDivisor / 5);
+	scaled rAltTargetsDivisor = TeamIter<FREE_MAJOR_CIV>::count();
+	return rDiploFactor * rPowFactor / std::max(fixp(0.35), rAltTargetsDivisor / 5);
 }
 
-double UWAICache::longTermPower(TeamTypes tId, bool defensive) const {
 
-	double r = 0.001;
-	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
-		CvPlayerAI const& civ = *it;
-		TeamTypes mId = civ.getMasterTeam();
-		if(mId != tId && (!defensive || !GET_TEAM(mId).isDefensivePact(tId)))
+scaled UWAICache::longTermPower(TeamTypes eTeam, bool bDefensive) const
+{
+	CvTeamAI const& kOwnerTeam = GET_TEAM(m_eOwner);
+	scaled r;
+	for (PlayerIter<MAJOR_CIV> itAlly; itAlly.hasNext(); ++itAlly)
+	{
+		CvPlayerAI const& kAlly = *itAlly;
+		PlayerTypes const eAlly = kAlly.getID();
+		TeamTypes const eAllyMaster = kAlly.getMasterTeam();
+		if (eAllyMaster != eTeam &&
+			(!bDefensive || !GET_TEAM(eAllyMaster).isDefensivePact(eTeam)))
+		{
 			continue;
-		UWAI::Civ const& uwai = civ.uwai();
-		MilitaryBranch& army = *uwai.getCache().getPowerValues()[ARMY];
-		double typicalUnitProd = army.getTypicalUnitCost();
-		if(typicalUnitProd <= 0)
+		}
+		UWAI::Player const& kAllyUWAI = kAlly.uwai();
+		MilitaryBranch const& kArmy = *kAllyUWAI.getCache().getPowerValues()[ARMY];
+		scaled const rTypicalUnitCost = kArmy.getTypicalCost();
+		if (rTypicalUnitCost <= 0)
 			continue;
-		/*  Long-term power mostly depends on production capacity and willingness
+		/*	Long-term power mostly depends on production capacity and willingness
 			to produce units. That said, 50~100 turns are also enough to
 			translate food yield into additional production and commerce
 			into better units. */
-		r += (civ.estimateYieldRate(YIELD_PRODUCTION) +
-				0.35 * civ.estimateYieldRate(YIELD_FOOD) +
-				0.25 * civ.estimateYieldRate(YIELD_COMMERCE)) *
-				(uwai.buildUnitProb() + 0.15) * army.getTypicalUnitPower() /
-				typicalUnitProd;
+		r += (kOwnerTeam.AI_estimateYieldRate(eAlly, YIELD_PRODUCTION) +
+				fixp(0.35) * kOwnerTeam.AI_estimateYieldRate(eAlly, YIELD_FOOD) +
+				fixp(0.25) * kOwnerTeam.AI_estimateYieldRate(eAlly, YIELD_COMMERCE)) *
+				(kAllyUWAI.buildUnitProb() + fixp(0.15)) *
+				kArmy.getTypicalPower() / rTypicalUnitCost;
 	}
 	return r;
 }
 
-void UWAICache::updateVassalScore(PlayerTypes civId) {
 
-	int techScore = 0;
-	FOR_EACH_ENUM(Tech) {
-		if(GET_PLAYER(civId).canTradeItem(ownerId, TradeData(
-				TRADE_TECHNOLOGIES, eLoopTech), false))
-			techScore += GET_TEAM(ownerId).AI_techTradeVal(eLoopTech, TEAMID(civId), true);
+void UWAICache::updateVassalScore(PlayerTypes eRival)
+{
+	int iTechScore = 0;
+	FOR_EACH_ENUM(Tech)
+	{
+		if (GET_PLAYER(eRival).canTradeItem(m_eOwner, TradeData(
+			TRADE_TECHNOLOGIES, eLoopTech), false))
+		{
+			iTechScore += GET_TEAM(m_eOwner).AI_techTradeVal(
+					eLoopTech, TEAMID(eRival), true);
+		}
 	}
-	vassalTechScores.set(civId, techScore);
-	int nMasterResources = 0;
-	int nTribute = 0;
-	FOR_EACH_ENUM(Bonus) {
-		if(GET_TEAM(ownerId).isBonusObsolete(eLoopBonus))
+	m_aiVassalTechScore.set(eRival, iTechScore);
+	int iMasterBonuses = 0;
+	int iTributes = 0;
+	FOR_EACH_ENUM(Bonus)
+	{
+		if (GET_TEAM(m_eOwner).isBonusObsolete(eLoopBonus))
 			continue;
-		TechTypes revealTech = GC.getInfo(eLoopBonus).getTechReveal();
-		bool availableToMaster = false;
-		if(GET_TEAM(ownerId).isHasTech(revealTech)) {
-			if(GET_PLAYER(ownerId).getNumAvailableBonuses(eLoopBonus) > 0) {
-				nMasterResources++;
-				availableToMaster = true;
+		TechTypes const eRevealTech = GC.getInfo(eLoopBonus).getTechReveal();
+		if (GET_TEAM(m_eOwner).isHasTech(eRevealTech))
+		{
+			if (GET_PLAYER(m_eOwner).getNumAvailableBonuses(eLoopBonus) > 0)
+			{
+				iMasterBonuses++;
+				continue;
 			}
 		}
-		/*  Don't mind if we can't use it yet (TechCityTrade), but we can't know
-			that they have it if we can't see it. If we can see it, but they can't,
-			we might know, or not (if the plot is unrevealed). */
-		if(!GET_TEAM(ownerId).isHasTech(revealTech)
-				|| !GET_TEAM(civId).isHasTech(revealTech))
-			continue;
-		if(GET_PLAYER(civId).getNumAvailableBonuses(eLoopBonus) && !availableToMaster)
-			nTribute++;
+		/*	Don't mind if we can't use it yet (TechCityTrade), but we can't know
+			that they have it if we can't see it. */
+		else continue;
+		if (GET_TEAM(eRival).isHasTech(eRevealTech) &&
+			// Can't trade obsolete resource
+			!GET_TEAM(eRival).isBonusObsolete(eLoopBonus) &&
+			GET_PLAYER(eRival).getNumAvailableBonuses(eLoopBonus) > 0)
+		{
+			iTributes++;
+		}	
 	}
-	vassalResourceScores.set(civId, ::round((25.0 * nTribute) /
-			std::max(4, nMasterResources)));
+	m_aiVassalResourceScore.set(eRival,
+			scaled(25 * iTributes, std::max(4, iMasterBonuses)).round());
 }
 
 // Called once all CvCity objects have been loaded 
-void UWAICache::cacheCitiesAfterRead() {
-
-	for(int i = 0; i < size(); i++) {
+void UWAICache::cacheCitiesAfterRead()
+{
+	for (int i = 0; i < numCities(); i++)
 		cityAt(i).cacheCvCity();
+}
+
+
+void UWAICache::reportUnitCreated(UnitTypes eUnit)
+{
+	reportUnit(eUnit, 1);
+}
+
+
+void UWAICache::reportUnitDestroyed(UnitTypes eUnit)
+{
+	reportUnit(eUnit, -1);
+}
+
+
+void UWAICache::reportUnit(UnitTypes eUnit, int iChange)
+{
+	/*	i=1: skip HOME_GUARD. Potential guard units are counted as Army and
+		split later through the HomeGuard constructor. */
+	for (size_t i = 1; i < m_militaryPower.size(); i++)
+		m_militaryPower[i]->reportUnit(eUnit, iChange);
+	CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+	if (kUnit.getDomainType() != DOMAIN_SEA && kUnit.isMilitaryProduction() &&
+		kUnit.getDefaultUnitAIType() != UNITAI_EXPLORE) // exclude Recon
+	{
+		m_iNonNavalUnits += iChange;
 	}
 }
 
-void UWAICache::reportUnitCreated(CvUnitInfo const& u) {
 
-	updateMilitaryPower(u, true);
-}
-
-void UWAICache::reportUnitDestroyed(CvUnitInfo const& u) {
-
-	updateMilitaryPower(u, false);
-}
-
-void UWAICache::reportWarEnding(TeamTypes enemyId,
-		CLinkList<TradeData> const* weReceive, CLinkList<TradeData> const* wePay) {
-
+void UWAICache::reportWarEnding(TeamTypes eEnemy,
+	CLinkList<TradeData> const* pWeReceive,
+	CLinkList<TradeData> const* pWeGive)
+{
 	// Forget sponsorship once a war ends
-	sponsorshipsAgainst.set(enemyId, 0);
-	sponsorsAgainst.set(enemyId, NO_PLAYER);
+	m_aiBounty.set(eEnemy, 0);
+	m_aeSponsorPerTarget.set(eEnemy, NO_PLAYER);
 	// Evaluate reparations
 	bool bForceSuccess = false;
 	bool bForceFailure = false;
 	bool bForceNoFailure = false;
 	bool bForceNoSuccess = false;
-	if(weReceive != NULL) {
+	if (pWeReceive != NULL)
+	{
 		int iTechs = 0;
 		int iCities = 0;
 		// Ignore gold for simplicity (although a large sum could of course be relevant)
-		FOR_EACH_TRADE_ITEM(*weReceive) {
-			if(pItem->m_eItemType == TRADE_TECHNOLOGIES)
+		FOR_EACH_TRADE_ITEM(*pWeReceive)
+		{
+			if (pItem->m_eItemType == TRADE_TECHNOLOGIES)
 				iTechs++;
-			else if(pItem->m_eItemType == TRADE_CITIES)
+			else if (pItem->m_eItemType == TRADE_CITIES)
 				iCities++;
 		}
 		if(iTechs + iCities > 0)
 			bForceNoFailure = true;
 		if(iTechs >= 2 || iCities > 0)
 			bForceSuccess = true;
-	} else if(wePay != NULL) {
+	}
+	else if (pWeGive != NULL)
+	{
 		int iTechs = 0;
 		int iCities = 0;
-		FOR_EACH_TRADE_ITEM(*wePay) {
-			if(pItem->m_eItemType == TRADE_TECHNOLOGIES)
+		FOR_EACH_TRADE_ITEM(*pWeGive)
+		{
+			if (pItem->m_eItemType == TRADE_TECHNOLOGIES)
 				iTechs++;
-			else if(pItem->m_eItemType == TRADE_CITIES)
+			else if (pItem->m_eItemType == TRADE_CITIES)
 				iCities++;
 		}
-		if(iTechs + iCities > 0)
+		if (iTechs + iCities > 0)
 			bForceNoSuccess = true;
-		if(iTechs >= 2 || iCities > 0)
+		if (iTechs >= 2 || iCities > 0)
 			bForceFailure = true;
 	}
 	// Evaluate war success
-	int iOurSuccess = GET_TEAM(ownerId).AI_getWarSuccess(enemyId);
-	int iTheirSuccess = GET_TEAM(enemyId).AI_getWarSuccess(TEAMID(ownerId));
-	if(iOurSuccess + iTheirSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING() &&
-			!bForceFailure && !bForceSuccess)
+	int iOurSuccess = GET_TEAM(m_eOwner).AI_getWarSuccess(eEnemy);
+	int iTheirSuccess = GET_TEAM(eEnemy).AI_getWarSuccess(TEAMID(m_eOwner));
+	if (iOurSuccess + iTheirSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING() &&
+		!bForceFailure && !bForceSuccess)
+	{
 		return;
+	}
 	// Use our era as the baseline for what is significant war success
-	double ourTechEra = GET_PLAYER(ownerId).AI_getCurrEraFactor().getDouble();
-	double successRatio = iOurSuccess / (double)std::max(1, iTheirSuccess);
-	double successThresh = GC.getWAR_SUCCESS_CITY_CAPTURING() * ourTechEra * 0.7;
-	if(	  (successRatio > 1 && iOurSuccess < successThresh) ||
-		  (successRatio < 1 && iTheirSuccess < successThresh))
-		successRatio = 1;
+	scaled const rOurTechEra = GET_PLAYER(m_eOwner).AI_getCurrEraFactor();
+	scaled const rSuccessThresh = GC.getWAR_SUCCESS_CITY_CAPTURING() *
+			rOurTechEra * fixp(0.7);
+	scaled rSuccessRatio(iOurSuccess, std::max(1, iTheirSuccess));
+	if ((rSuccessRatio > 1 && iOurSuccess < rSuccessThresh) ||
+		(rSuccessRatio < 1 && iTheirSuccess < rSuccessThresh))
+	{
+		rSuccessRatio = 1;
+	}
 	// Be less critical about our performance if we fought a human
-	if(GET_TEAM(enemyId).isHuman())
-		successRatio *= 1.33;
-	if(GET_PLAYER(ownerId).isHuman())
-		successRatio /= 1.33;
-	bool bChosenWar = GET_TEAM(ownerId).AI_isChosenWar(enemyId);
-	int iDuration = GET_TEAM(ownerId).AI_getAtWarCounter(enemyId);
-	double durationFactor = 0.365 * std::sqrt((double)std::max(1, iDuration));
-	/*  Don't be easily emboldened by winning a defensive war. Past war score is
-		intended to discourage war more than encourage it. */
-	if((((successRatio > 1.3 && bChosenWar) || successRatio > 1.5) &&
-			!bForceNoSuccess) || bForceSuccess)
-		pastWarScores.add(enemyId, ::round(100 / durationFactor));
+	if (GET_TEAM(eEnemy).isHuman())
+		rSuccessRatio *= fixp(4/3.);
+	if (GET_PLAYER(m_eOwner).isHuman())
+		rSuccessRatio /= fixp(4/3.);
+	bool const bChosenWar = GET_TEAM(m_eOwner).AI_isChosenWar(eEnemy);
+	int const iDuration = GET_TEAM(m_eOwner).AI_getAtWarCounter(eEnemy);
+	scaled const rDurationFactor = fixp(0.365) * scaled(std::max(1, iDuration)).sqrt();
+	/*	Don't be easily emboldened by winning a defensive war. Past war score
+		is intended to discourage war more than to encourage it. */
+	if ((((rSuccessRatio > fixp(1.3) && bChosenWar) || rSuccessRatio > fixp(1.5)) &&
+		!bForceNoSuccess) || bForceSuccess)
+	{
+		m_aiPastWarScore.add(eEnemy, (100 / rDurationFactor).round());
+	}
 	// Equal war success not good enough if we started it
-	else if(((bChosenWar || successRatio < 0.7) &&
-			!bForceNoFailure) || bForceFailure)
-		pastWarScores.add(enemyId, -::round(100 * durationFactor));
+	else if (((bChosenWar || rSuccessRatio < fixp(0.7)) &&
+		!bForceNoFailure) || bForceFailure)
+	{
+		m_aiPastWarScore.add(eEnemy, -(100 * rDurationFactor).round());
+	}
 }
 
 /*	Note: City ownership changes result in the creation of a new city.
 	It's important that the cache keep up with ownership changes
-	so that the AI is aware of conquests made throughout a human turn.*/
-void UWAICache::reportCityCreated(CvCity& c) {
-
-	if(!GET_PLAYER(c.getOwner()).isMajorCiv())
+	so that the AI is aware of conquests made throughout a human turn. */
+void UWAICache::reportCityCreated(CvCity& kCity)
+{
+	if (!GET_PLAYER(kCity.getOwner()).isMajorCiv())
 		return;
 	/*	If c was conquered from the cache owner and the cache owner is about to die,
 		then trying to add the city to the cache will lead to problems. */
-	if(GET_PLAYER(ownerId).getNumCities() <= 0)
+	if (GET_PLAYER(m_eOwner).getNumCities() <= 0)
 		return;
-	if(c.getTeam() == TEAMID(ownerId) ||
-			GET_TEAM(ownerId).AI_deduceCitySite(c)) {
-		add(c);
+	if (kCity.getTeam() == TEAMID(m_eOwner) ||
+		GET_TEAM(m_eOwner).AI_deduceCitySite(kCity))
+	{
+		add(kCity);
 		sortCitiesByAttackPriority();
 	}
 }
 
-void UWAICache::reportSponsoredWar(CLinkList<TradeData> const& sponsorship,
-		PlayerTypes sponsorId, TeamTypes targetId) {
 
-	if(targetId == NO_TEAM || sponsorId == NO_PLAYER) {
+void UWAICache::reportSponsoredWar(CLinkList<TradeData> const& kWeReceive,
+	PlayerTypes eSponsor, TeamTypes eTarget)
+{
+	if (eTarget == NO_TEAM || eSponsor == NO_PLAYER)
+	{
 		FAssert(false);
 		return;
 	}
-	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	sponsorshipsAgainst.set(targetId, ::round(owner.uwai().
-			/*  Need to remember the utility. The deal value may not seem much
+	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);
+	m_aiBounty.set(eTarget, (kOwner.uwai().
+			/*	Need to remember the utility. The deal value may not seem much
 				10 turns from now if our economy grows.
-				Should perhaps cap dealVal at AI_declareWarTradeVal. As it is now,
-				paying the AI more than it demands makes it a bit more reluctant
-				to end the war. */
-			tradeValToUtility(owner.AI_dealVal(sponsorId, sponsorship))));
-	if(sponsorshipsAgainst.get(targetId) > 0)
-		sponsorsAgainst.set(targetId, sponsorId);
-	else {
-		sponsorshipsAgainst.set(targetId, 0);
-		sponsorsAgainst.set(targetId, NO_PLAYER);
+				Should perhaps cap the deal val at AI_declareWarTradeVal.
+				As it is now, paying more than the AI demands makes it a bit
+				more reluctant to end the war. */
+			tradeValToUtility(kOwner.AI_dealVal(eSponsor, kWeReceive))).round());
+	if (m_aiBounty.get(eTarget) > 0)
+		m_aeSponsorPerTarget.set(eTarget, eSponsor);
+	else
+	{
+		m_aiBounty.set(eTarget, 0);
+		m_aeSponsorPerTarget.set(eTarget, NO_PLAYER);
 	}
 }
 
-bool UWAICache::isReadyToCapitulate(TeamTypes masterId) const {
 
-	FAssert(GET_TEAM(masterId).isHuman());
-	if(GET_TEAM(ownerId).getLeaderID() == ownerId)
-		return readyToCapitulate.count(masterId) > 0;
-	/*  Not nice; if I add a few more team-related items, I should really put
-		them in a separate class. */
-	return leaderCache().isReadyToCapitulate(masterId);
+bool UWAICache::isReadyToCapitulate(TeamTypes eMaster) const
+{
+	FAssert(GET_TEAM(eMaster).isHuman());
+	if (GET_TEAM(m_eOwner).getLeaderID() == m_eOwner)
+		return (m_readyToCapitulateTo.count(eMaster) > 0);
+	return leaderCache().isReadyToCapitulate(eMaster);
 }
 
-void UWAICache::setReadyToCapitulate(TeamTypes masterId, bool b) {
 
-	FAssert(GET_TEAM(masterId).isHuman());
-	if(b == isReadyToCapitulate(masterId))
+void UWAICache::setReadyToCapitulate(TeamTypes eMaster, bool b)
+{
+	FAssert(GET_TEAM(eMaster).isHuman());
+	if (b == isReadyToCapitulate(eMaster))
 		return;
-	if(GET_TEAM(ownerId).getLeaderID() == ownerId) {
-		if(b)
-			readyToCapitulate.insert(masterId);
-		else readyToCapitulate.erase(masterId);
+	if (GET_TEAM(m_eOwner).getLeaderID() == m_eOwner)
+	{
+		if (b)
+			m_readyToCapitulateTo.insert(eMaster);
+		else m_readyToCapitulateTo.erase(eMaster);
 	}
-	else GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).uwai().getCache().
-			setReadyToCapitulate(masterId, b);
+	else
+	{
+		GET_PLAYER(GET_TEAM(m_eOwner).getLeaderID()).uwai().getCache().
+				setReadyToCapitulate(eMaster, b);
+	}
 }
 
-void UWAICache::addTeam(PlayerTypes otherLeaderId) {
 
+void UWAICache::addTeam(PlayerTypes eOtherLeader)
+{
 	// Get the team-related data from the other team's leader
-	UWAICache& other = GET_PLAYER(otherLeaderId).uwai().getCache();
-	// Fairly unimportant data
-	for(TeamIter<MAJOR_CIV> it; it.hasNext(); ++it) {
-		TeamTypes tId = it->getID();
-		pastWarScores.add(tId, other.pastWarScores.get(tId));
-		if(other.sponsorsAgainst.get(tId) != NO_PLAYER) {
-			if(sponsorsAgainst.get(tId) == NO_PLAYER ||
-					sponsorshipsAgainst.get(tId) < other.sponsorshipsAgainst.get(tId)) {
-				sponsorsAgainst.set(tId, other.sponsorsAgainst.get(tId));
-				sponsorshipsAgainst.set(tId, other.sponsorshipsAgainst.get(tId));
+	UWAICache& kOther = GET_PLAYER(eOtherLeader).uwai().getCache();
+	// Fairly unimportant data ...
+	for (TeamIter<MAJOR_CIV> itTeam; itTeam.hasNext(); ++itTeam)
+	{
+		TeamTypes const eTeam = itTeam->getID();
+		m_aiPastWarScore.add(eTeam, kOther.m_aiPastWarScore.get(eTeam));
+		if (kOther.m_aeSponsorPerTarget.get(eTeam) != NO_PLAYER)
+		{
+			if (m_aeSponsorPerTarget.get(eTeam) == NO_PLAYER ||
+				m_aiBounty.get(eTeam) < kOther.m_aiBounty.get(eTeam))
+			{
+				m_aeSponsorPerTarget.set(eTeam, kOther.m_aeSponsorPerTarget.get(eTeam));
+				m_aiBounty.set(eTeam, kOther.m_aiBounty.get(eTeam));
 			}
 		}
 	}
 }
 
-void UWAICache::onTeamLeaderChanged(PlayerTypes formerLeaderId) {
 
-	if(formerLeaderId == NO_PLAYER)
+void UWAICache::onTeamLeaderChanged(PlayerTypes eFormerLeader)
+{
+	if (eFormerLeader == NO_PLAYER)
 		return;
-	PlayerTypes leaderId =  GET_TEAM(ownerId).getLeaderID();
-	if(leaderId == NO_PLAYER || formerLeaderId == leaderId)
+	PlayerTypes const eLeader = GET_TEAM(m_eOwner).getLeaderID();
+	if (eLeader == NO_PLAYER || eFormerLeader == eLeader)
 		return;
-	for(TeamIter<MAJOR_CIV> it; it.hasNext(); ++it) {
-		TeamTypes tId = it->getID();
-		if(GET_TEAM(tId).isHuman()) {
-			GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).uwai().getCache().
-					setReadyToCapitulate(tId, GET_PLAYER(formerLeaderId).
-					uwai().getCache().readyToCapitulate.count(tId) > 0);
+	for (TeamIter<MAJOR_CIV> itTeam; itTeam.hasNext(); ++itTeam)
+	{
+		TeamTypes const eTeam = itTeam->getID();
+		if (GET_TEAM(eTeam).isHuman())
+		{
+			GET_PLAYER(GET_TEAM(m_eOwner).getLeaderID()).uwai().getCache().
+					setReadyToCapitulate(eTeam, GET_PLAYER(eFormerLeader).
+					uwai().getCache().m_readyToCapitulateTo.count(eTeam) > 0);
 		}
-		GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).uwai().getCache().
-				warUtilityIgnDistraction.set(tId, GET_PLAYER(formerLeaderId).
-				uwai().getCache().warUtilityIgnDistraction.get(tId));
+		GET_PLAYER(GET_TEAM(m_eOwner).getLeaderID()).uwai().getCache().
+				m_aiWarUtilityIgnoringDistraction.set(eTeam, GET_PLAYER(eFormerLeader).
+				uwai().getCache().m_aiWarUtilityIgnoringDistraction.get(eTeam));
+	}
+	/*	(CanBeHired and ReadyToCapitulate will get updated soon enough.
+		Start out as false for the new leader.) */
+}
+
+
+void UWAICache::updateTypicalUnits()
+{
+	for (size_t i = 0; i < m_militaryPower.size(); i++)
+		m_militaryPower[i]->updateTypicalUnit();
+}
+
+
+UWAICache::City::City(PlayerTypes eCacheOwner, CvCity& kCity,
+	TeamPathFinders* pPathFinders)
+{
+	m_pCity = &kCity;
+	m_ePlot = kCity.plotNum();
+	updateDistance(pPathFinders, eCacheOwner);
+	updateAssetScore(eCacheOwner);
+	if (!canReach() || TEAMID(eCacheOwner) == kCity.getTeam())
+		m_iTargetValue = -1;
+	else
+	{
+		m_iTargetValue = GET_PLAYER(eCacheOwner).AI_targetCityValue(kCity,
+				/*	Important that this UWAICity is fully initialized b/c
+					we're passing it to AI_targetCityValue */
+				false, true, this);
 	}
 }
 
-void UWAICache::updateTypicalUnits() {
 
-	for(size_t i = 0; i < militaryPower.size(); i++)
-		militaryPower[i]->updateTypicalUnit();
+void UWAICache::City::cacheCvCity()
+{
+	m_pCity = NULL;
+	CvPlot* pCityPlot = GC.getMap().plotByIndex(m_ePlot);
+	if (pCityPlot != NULL)
+		m_pCity = pCityPlot->getPlotCity();
+	FAssert(m_pCity != NULL); // Must never be NULL past this point
 }
 
-void UWAICache::updateMilitaryPower(CvUnitInfo const& u, bool add) {
 
-	/*  i=1: skip HOME_GUARD. Potential guard units are counted as Army and
-		split later through the HomeGuard constructor. */
-	for(size_t i = 1; i < militaryPower.size(); i++)
-		militaryPower[i]->updatePower(u, add);
-	if(u.getDomainType() != DOMAIN_SEA && u.isMilitaryProduction() &&
-			// Exclude Recon
-			u.getDefaultUnitAIType() != UNITAI_EXPLORE)
-		nNonNavyUnits += (add ? 1 : -1);
-}
-
-UWAICache::City::City(PlayerTypes cacheOwnerId, CvCity& c, TeamPathFinders* pf) {
-
-	// Use plot index as city id (the pointer 'c' isn't serializable)
-	cvCity = &c;
-	plotIndex = c.plotNum();
-	updateDistance(c, pf, cacheOwnerId);
-	updateAssetScore(cacheOwnerId);
-	if(!canReach() || TEAMID(cacheOwnerId) == c.getTeam())
-		targetValue = -1;
-	/*	Important that UWAICity is fully initialized b/c we're passing it to
-		AI_targetCityValue */
-	else targetValue = GET_PLAYER(cacheOwnerId).AI_targetCityValue(
-			c, false, true, this);
-	
-}
-
-void UWAICache::City::cacheCvCity() {
-
-	cvCity = NULL;
-	CvPlot* cityPlot = GC.getMap().plotByIndex(plotIndex);
-	if(cityPlot != NULL)
-		cvCity = cityPlot->getPlotCity();
-	FAssert(cvCity != NULL); // Must never be NULL past this point
-}
-
-void UWAICache::City::write(FDataStreamBase* stream) {
-
-	int savegameVersion;
-	//savegameVersion = 1; // canDeduce
-	//savegameVersion = 2; // take out can canDeduce again
-	//savegameVersion = 3; // reachBySea removed
-	savegameVersion = 4; // capitalArea added
-	stream->Write(plotIndex);
-	stream->Write(assetScore);
-	/*  I hadn't thought of a version number in the initial release.
-		Fold it into 'distance' to avoid breaking compatibility. */
-	FAssertMsg(distance >= -1 && distance < 10000, "-2 is OK if loaded from an "
-			"old savegame version");
-	distance = ::range(distance, -1, 9999);
+void UWAICache::City::write(FDataStreamBase* pStream) const
+{
+	int iSaveVersion;
+	//iSaveVersion = 1; // canDeduce
+	//iSaveVersion = 2; // take out can canDeduce again
+	//iSaveVersion = 3; // reachBySea removed
+	iSaveVersion = 4; // capitalArea added
+	pStream->Write(m_ePlot);
+	pStream->Write(m_iAssetScore);
+	/*	I hadn't thought of a version number in the initial release.
+		Fold it into m_iDistance to avoid breaking compatibility. */
+	FAssertMsg(m_iDistance >= -1 && m_iDistance < 10000,
+			"-2 is OK if loaded from an old savegame version");
+	int iDistance = ::range(m_iDistance, -1, 9999);
 	// Add 1 b/c distance can be -1
-	stream->Write(distance + 1 + 10000 * savegameVersion);
-	stream->Write(targetValue);
-	stream->Write(reachByLand);
-	stream->Write(capitalArea);
+	pStream->Write(iDistance + 1 + 10000 * iSaveVersion);
+	pStream->Write(m_iTargetValue);
+	pStream->Write(m_bReachByLand);
+	pStream->Write(m_bCapitalArea);
 }
 
-void UWAICache::City::read(FDataStreamBase* stream) {
 
-	stream->Read(&plotIndex);
-	stream->Read(&assetScore);
-	int tmp;
-	stream->Read(&tmp);
-	int savegameVersion = tmp / 10000;
-	distance = (tmp % 10000) - 1;
-	stream->Read(&targetValue);
-	stream->Read(&reachByLand);
-	if(savegameVersion >= 4)
-		stream->Read(&capitalArea);
-	else capitalArea = reachByLand;
-	if(savegameVersion < 3) {
-		bool reachBySea; // discard
-		stream->Read(&reachBySea);
+void UWAICache::City::read(FDataStreamBase* pStream)
+{
+	pStream->Read((int*)&m_ePlot);
+	pStream->Read(&m_iAssetScore);
+	int iSaveVersion=-1;
+	{
+		int iTmp;
+		pStream->Read(&iTmp);
+		iSaveVersion = iTmp / 10000;
+		m_iDistance = (iTmp % 10000) - 1;
 	}
-	if(savegameVersion == 1) {
-		bool canDeduce; // discard
-		stream->Read(&canDeduce);
+	pStream->Read(&m_iTargetValue);
+	pStream->Read(&m_bReachByLand);
+	if (iSaveVersion >= 4)
+		pStream->Read(&m_bCapitalArea);
+	else m_bCapitalArea = m_bReachByLand;
+	if (iSaveVersion < 3)
+	{
+		bool bReachBySea; // discard
+		pStream->Read(&bReachBySea);
+	}
+	if (iSaveVersion == 1)
+	{
+		bool bCanDeduce; // discard
+		pStream->Read(&bCanDeduce);
 	}
 }
 
-bool UWAICache::City::byOwnerAndDistance(City* one, City* two) {
 
-	int cmp = byOwner(one, two);
-	if(cmp < 0)
-		return true;
-	if(cmp > 0)
-		return false;
-	if(!two->canReach())
-		return true;
-	if(!one->canReach())
-		return false;
-	int dist1 = one->getDistance(),
-		dist2 = two->getDistance();
-	return dist1 < dist2;
-}
-
-bool UWAICache::City::byDistance(City* one, City* two) {
-
-	int dist1 = one->getDistance(),
-		dist2 = two->getDistance();
-	if(dist1 < 0 && dist2 >= 0)
-		return false;
-	if(dist2 < 0 && dist1 >= 0)
-		return true;
-	return dist1 < dist2;
-}
-
-bool UWAICache::City::byOwnerAndTargetValue(City* one, City* two) {
-
-	int cmp = byOwner(one, two);
-	if(cmp < 0)
-		return true;
-	if(cmp > 0)
-		return false;
-	int v1 = one->getTargetValue(),
-		v2 = two->getTargetValue();
-	return v1 > v2;
-}
-
-bool UWAICache::City::byTargetValue(City* one, City* two) {
-
-	int v1 = one->getTargetValue(),
-		v2 = two->getTargetValue();
-	return v1 > v2;
-}
-
-bool UWAICache::City::byAttackPriority(City* one, City* two) {
-
-	double v1 = one->attackPriority(),
-		   v2 = two->attackPriority();
-	return v1 > v2;
-}
-double UWAICache::City::attackPriority() const {
-
-	if(distance < 0)
+scaled UWAICache::City::attackPriority() const
+{
+	if (m_iDistance < 0)
 		return -1;
-	else if(isOwnTeamCity())
+	else if (isOwnTeamCity())
 		return -2; // updateTotalAssetScore relies on own cities having minimal priority
-	/*  targetValue is something like 10 to 100, distance 1 to 20 perhaps.
+	/*	targetValue is something like 10 to 100, distance 1 to 20 perhaps.
 		Add 1000 b/c negative values should be reserved for error conditions. */
-	return std::max(0.0, 1000 + getTargetValue() -
-			std::min(100.0, 1.5 * std::pow((double)distance, 1.7)));
+	return scaled::max(0, 1000 + getTargetValue() -
+			scaled::min(100, fixp(1.5) * scaled(m_iDistance).pow(fixp(1.7))));
 }
 
-int UWAICache::City::byOwner(City* one, City* two) {
 
-	PlayerTypes owner1 = one->city().getOwner(),
-				owner2 = two->city().getOwner();
-	if(owner1 < owner2)
-		return -1;
-	if(owner2 < owner1)
-		return 1;
-	return 0;
-}
-
-void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* pf,
-		PlayerTypes cacheOwnerId) {
-
+void UWAICache::City::updateDistance(TeamPathFinders* pPathFinders,
+	PlayerTypes eCacheOwner)
+{
 	PROFILE_FUNC();
-	/*  For each city of the agent (cacheOwner), compute a path to the target city
+	CvCity const& kTargetCity = city();
+	/*	For each city of the cache owner, compute a path to the target city
 		assuming that war is declared. Derive from that length an estimated travel
 		duration based on the typical speed of units and time for loading and
-		unloading (seaPenalty).
-		Set 'distance' to a weighted average of the pairwise travel durations.
-		The average gives the nearest cities of the agent the greatest weight.
-		Some cities of the agent are also skipped, both for performance reasons
-		(the pathfinding is computationally expensive) and b/c I want distance to
-		reflect typical deployment distances, and insignificant cities don't
-		deploy units.
-
-		NB: targetCity and this City refer to the same city (but targetCity has
-		type CvCity*).
+		unloading (iSeaPenalty).
+		Set m_iDistance to a weighted average of the pairwise travel durations.
+		The average gives the cache owner's cities nearest to the target city
+		the greatest weight. Some cities of the cache owner are skipped, both
+		for performance reasons (the pathfinding is computationally expensive)
+		and b/c I want m_iDistance to reflect typical deployment distances,
+		and insignificant cities don't produce (many) units.
 
 		Landlocked civs (0 coastal cities) are treated as unreachable by sea.
 		It's not that hard to compute mixed paths to such civs, but CvUnitAI
@@ -1381,133 +1573,169 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 
 		Unreachable targets are indicated by a distance of -1. */
 
-	if(pf == NULL) { // City of our team
-		distance = 0;
-		CvPlayerAI const& cityOwner = GET_PLAYER(targetCity.getOwner());
-		CvArea const& cityArea = targetCity.getArea();
-		reachByLand = cityOwner.AI_isPrimaryArea(cityArea);
-		capitalArea = (&cityArea == (cityOwner.getCapital() == NULL ?
-				NULL : cityOwner.getCapital()->area()));
+	if (pPathFinders == NULL) // City of cache owner's team
+	{
+		m_iDistance = 0;
+		CvPlayerAI const& kTargetPlayer = GET_PLAYER(kTargetCity.getOwner());
+		CvArea const& kTargetArea = kTargetCity.getArea();
+		m_bReachByLand = kTargetPlayer.AI_isPrimaryArea(kTargetArea);
+		m_bCapitalArea = (kTargetPlayer.hasCapital() &&
+				kTargetPlayer.getCapital()->isArea(kTargetArea));
 		return;
 	}
-	CvPlayerAI const& cacheOwner = GET_PLAYER(cacheOwnerId);
-	distance = -1;
-	reachByLand = false;
-	capitalArea = false;
-	bool reachBySea = false;
-	bool human = cacheOwner.isHuman();
-	EraTypes const era = cacheOwner.getCurrentEra();
-	bool trainDeepSeaCargo = cacheOwner.uwai().getCache().
-			canTrainDeepSeaCargo();
-	bool trainAnyCargo = cacheOwner.uwai().getCache().
-			canTrainAnyCargo();
-	int const seaPenalty = (human ? 2 : 4);
-	vector<int> pairwDurations;
-	/*  If we find no land path and no sea path from a city c to the target,
+	CvPlayerAI const& kCacheOwner = GET_PLAYER(eCacheOwner);
+	m_iDistance = -1;
+	m_bReachByLand = false;
+	m_bCapitalArea = false;
+	bool bReachBySea = false;
+	bool const bHuman = kCacheOwner.isHuman();
+	int const iEra = kCacheOwner.getCurrentEra();
+	bool const bDeepSeaTransports = kCacheOwner.uwai().getCache().canTrainDeepSeaCargo();
+	bool const bAnyTransports = kCacheOwner.uwai().getCache().canTrainAnyCargo();
+	int const iSeaPenalty = (bHuman ? 2 : 4);
+	std::vector<int> aiPairwDurations;
+	/*	If we find no land path and no sea path from a city c to the target,
 		but at least one other city that does have a path to the target, then there
 		is most likely also some mixed path from c to the target. */
-	double mixedPath = 0;
-	CvCity* capital = cacheOwner.getCapital();
-	FOR_EACH_CITY(c, cacheOwner) {
+	int iMixedPaths = 0;
+	CvCity const* pCapital = kCacheOwner.getCapital();
+	FOR_EACH_CITY(pCity, kCacheOwner)
+	{
 		// Skip small and isolated cities
-		if(!c->isCapital() && (c->getArea().getCitiesPerPlayer(cacheOwnerId) <= 1 ||
-				c->getPopulation() * 3 < capital->getPopulation() ||
-				c->getYieldRate(YIELD_PRODUCTION) < 5 + era))
-			continue;
-		CvPlot* p = c->plot();
-		int pwd = -1; // pairwise (travel) duration
+		if (!pCity->isCapital())
+		{
+			if (pCity->getArea().getCitiesPerPlayer(eCacheOwner) <= 1 ||
+				pCity->getPopulation() * 3 < pCapital->getPopulation() ||
+				pCity->getYieldRate(YIELD_PRODUCTION) < 5 + iEra)
+			{
+				continue;
+			}
+		}
+		CvPlot const& kStart = pCity->getPlot();
+		int iPairwDuration = MAX_INT; // pairwise travel duration
 		/*	Search from target to source. TeamStepMetric is symmetrical in that regard.
 			Doing it backwards allows intermediate results to be reused. */
-		if(pf->landFinder().generatePath(targetCity.getPlot(), *p)) {
-			pwd = intdiv::uround(pf->landFinder().getPathCost(),
+		if (pPathFinders->landFinder().generatePath(kTargetCity.getPlot(), kStart))
+		{
+			iPairwDuration = intdiv::uround(pPathFinders->landFinder().getPathCost(),
 					GC.getMOVE_DENOMINATOR());
-			if(pwd == 0) // Make sure 0 is reserved for own cities
-				pwd = 1;
-			if(cacheOwner.AI_isPrimaryArea(c->getArea()))
-				reachByLand = true;
-			if(c->isCapital())
-				capitalArea = true;
+			if (iPairwDuration == 0) // Make sure 0 is reserved for own cities
+				iPairwDuration = 1;
+			if (kCacheOwner.AI_isPrimaryArea(pCity->getArea()))
+				m_bReachByLand = true;
+			if (pCity->isCapital())
+				m_bCapitalArea = true;
 		}
-		if(trainAnyCargo &&
-				// This ignores cities that can access the ocean only through a canal
-				p->isCoastalLand(-1)) {
-			bool valid = true;
-			/*	We're unlikely to be able to pass through a canal near the target;
-				not losing much here. */
-			if(!targetCity.isCoastal(-1)) {
+		if (bAnyTransports &&
+			// This ignores cities that can access the ocean only through a canal
+			kStart.isCoastalLand(-1) &&
+			// Don't bother with a naval path if it's at best a couple turns faster
+			iPairwDuration > iSeaPenalty + 2)
+		{
+			CvPlot const* pTransportDest = kTargetCity.plot();
+			if (!kTargetCity.isCoastal(-1))
+			{
+				/*	(Might still be able to reach the target city directly through
+					a canal and a lake -- have only checked whether it's at a
+					non-lake water area. A friendly canal near the target is
+					quite unlikely however, so I'm not going to check.) */
+				pTransportDest = NULL;
 				// Can reach cities that are one off the coast
-				CvPlot const* newDest = NULL;
-				int shortestStepDist = MAX_INT;
-				FOR_EACH_ADJ_PLOT(targetCity.getPlot()) {
-					if(pAdj->isCoastalLand(-1)) {
-						int d = ::stepDistance(p, pAdj);
-						if(d < shortestStepDist) {
-							newDest = pAdj;
-							shortestStepDist = d;
+				int iShortestStepDist = MAX_INT;
+				FOR_EACH_ADJ_PLOT(kTargetCity.getPlot())
+				{
+					if (pAdj->isCoastalLand(-1))
+					{
+						int iStepDist = stepDistance(&kStart, pAdj);
+						if (iStepDist < iShortestStepDist)
+						{
+							pTransportDest = pAdj;
+							iShortestStepDist = iStepDist;
 						}
 					}
 				}
-				if(newDest == NULL)
-					valid = false;
 			}
-			if(valid) {
-				int d = -1;
-				if(trainDeepSeaCargo) {
-					if(pf->anyWaterFinder().generatePath(targetCity.getPlot(), *p))
-						d = pf->anyWaterFinder().getPathCost();
+			if (pTransportDest != NULL)
+			{
+				int iPathLength = -1;
+				if (bDeepSeaTransports)
+				{
+					if (pPathFinders->anyWaterFinder().generatePath(
+						kTargetCity.getPlot(), *pTransportDest))
+					{
+						iPathLength = pPathFinders->anyWaterFinder().getPathCost();
+					}
 				}
-				else {
-					if(pf->shallowWaterFinder().generatePath(targetCity.getPlot(), *p))
-						d = pf->shallowWaterFinder().getPathCost();
+				else
+				{
+					if (pPathFinders->shallowWaterFinder().generatePath(
+						kTargetCity.getPlot(), *pTransportDest))
+					{
+						iPathLength = pPathFinders->shallowWaterFinder().getPathCost();
+					}
 				}
-				if(d > 0) {
-					d = seaPenalty + intdiv::uround(d,
-							GC.getMOVE_DENOMINATOR() * cacheOwner.uwai().shipSpeed());
-					if(pwd < 0 || d < pwd) {
-						pwd = d;
-						reachBySea = true;
+				if (iPathLength > 0)
+				{
+					int iPathTurns = iSeaPenalty +
+							intdiv::uceil(iPathLength,
+							GC.getMOVE_DENOMINATOR() *
+							kCacheOwner.uwai().getCache().shipSpeed());
+					if (iPathTurns < iPairwDuration)
+					{
+						iPairwDuration = iPathTurns;
+						bReachBySea = true;
 					}
 				}
 			}
 		}
-		if(pwd >= 0) {
-			pairwDurations.push_back(pwd);
+		if (iPairwDuration < MAX_INT)
+		{
+			aiPairwDurations.push_back(iPairwDuration);
 			// Extra weight for our capital
-			if(c == capital)
-				pairwDurations.push_back(pwd);
+			if (pCity == pCapital)
+				aiPairwDurations.push_back(iPairwDuration);
 		}
-		/*  No path from c, but we assume that there is a path from c to every other
-			city of ours. If we find a path for some other city, c is assumed to
-			have a mixed path. */
-		else mixedPath++;
+		/*	No path from pCity to the target, but we assume that there is a path
+			from pCity to every other city of the cache owner; so, if we find a path
+			from some other city of the cache owner to the target, then we'll assume
+			that there is a mixed path (involving land and sea movement) from pCity
+			to the target. */
+		else iMixedPaths++;
 	}
-	if((!reachByLand && !reachBySea) || pairwDurations.empty())
-		return; // May leave distance at -1
-	FAssert(cacheOwner.getNumCities() > mixedPath);
-	sort(pairwDurations.begin(), pairwDurations.end());
-	FAssert(pairwDurations[0] >= 0);
-	double sumOfWeights = 0;
-	double weightedSum = 0;
-	// Allow distances to increase at most by 10 per rank
-	int cap = pairwDurations[0] + 10;
-	for(size_t i = 0; i < pairwDurations.size(); i++) {
-		double w = 2.0 / (3 * (i + 1) - 1);
-		sumOfWeights += w;
-		int d = std::min(pairwDurations[i], cap);
-		cap = d + 10;
-		weightedSum += d * w;
+	if ((!m_bReachByLand && !bReachBySea) || aiPairwDurations.empty())
+		return; // This may leave m_iDistance at -1
+	FAssert(kCacheOwner.getNumCities() > iMixedPaths);
+	std::sort(aiPairwDurations.begin(), aiPairwDurations.end());
+	FAssert(aiPairwDurations[0] >= 0);
+	scaled rWeightedSum;
+	{
+		scaled rSumOfWeights;
+		int iCap = aiPairwDurations[0];
+		for (size_t i = 0; i < aiPairwDurations.size(); i++)
+		{
+			scaled rWeight(2, 3 * ((int)i + 1) - 1);
+			rSumOfWeights += rWeight;
+			int iPairwDuration = std::min(aiPairwDurations[i], iCap);
+			// Allow distances to increase by at most 10 turns per iteration
+			iCap = iPairwDuration + 10;
+			rWeightedSum += iPairwDuration * rWeight;
+		}
+		rWeightedSum /= rSumOfWeights; // Normalization
 	}
-	weightedSum /= sumOfWeights; // Normalization
-	/*  Hard to estimate the mixed paths. Their lengths certainly depend on
-		the lengths of the other paths. */
-	distance = std::min((getUWAI.maxLandDist() + getUWAI.maxSeaDist()) / 2,
-			::round(weightedSum + (4 * mixedPath) / (pairwDurations.size() + mixedPath)));
+	/*	Hard to estimate the mixed paths. Their lengths certainly depend on
+		the lengths of the other paths ... */
+	m_iDistance = std::min(
+			scaled(getUWAI().maxLandDist() + getUWAI().maxSeaDist(), 2),
+			(rWeightedSum +
+			scaled(4 * iMixedPaths, iMixedPaths + (int)aiPairwDurations.size())
+			)).round();
 }
 
-void UWAICache::City::updateAssetScore(PlayerTypes cacheOwnerId) {
 
-	/*  Scale: Same as CvPlayerAI::AI_cityWonderVal, i.e. approx. 50% GPT.
+void UWAICache::City::updateAssetScore(PlayerTypes eCacheOwner)
+{
+	/*	Scale: Same as CvPlayerAI::AI_cityWonderVal, i.e. approx. 50% GPT.
 		Would rather use 100% GPT, but war evaluation can't easily be
 		adjusted to that. */
-	assetScore = (GET_PLAYER(cacheOwnerId).AI_assetVal(city().AI(), true) / 2).round();
+	m_iAssetScore = (GET_PLAYER(eCacheOwner).AI_assetVal(city().AI(), true) / 2).round();
 }

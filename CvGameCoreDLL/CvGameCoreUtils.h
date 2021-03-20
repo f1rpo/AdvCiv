@@ -17,8 +17,7 @@ class FAStar;
 #define SQR(x) ((x)*(x))
 
 /*	(advc: Can also use ScaledNum. Maybe these functions read a bit better in
-	code that doesn't use fractions much. The "u" versions -- only for
-	nonnegative numbers -- are also a bit more efficient than ScaledNum.) */
+	code that doesn't use fractions much.) */
 namespace intdiv
 {
 	// Replacing K-Mod's (incorrectly implemented) ROUND_DIVIDE (CvGlobals.h)
@@ -28,6 +27,7 @@ namespace intdiv
 		return (iDividend + iSign * iDivisor / 2) / iDivisor;
 	}
 
+	// The "u" functions are only for nonnegative numbers ...
 	inline int uround(int iDividend, int iDivisor)
 	{
 		FAssert((iDividend ^ iDivisor) >= 0); // Both negative is OK
@@ -58,7 +58,6 @@ namespace branchless
 	}
 }
 // <advc.003g>
-// This is a better approach than the fmath stuff below
 namespace stats // Seems too generic, but what else to name it?
 {
 	template<typename T>
@@ -111,28 +110,36 @@ namespace stats // Seems too generic, but what else to name it?
 		}
 		return r;
 	}
-}
-//namespace fmath // (For the time being, these functions are used too frequently for a namespace.)
-//{
-	inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
-	int roundToMultiple(double d, int iMultiple);
-	bool bernoulliSuccess(double pr, // 0 <= pr <= 1
-			char const* pszLog = "", bool bAsync = false,
-			int iData1 = MIN_INT, int iData2 = MIN_INT);
-	inline double dMedian(std::vector<double>& distribution, bool bSorted = false)
+	template<typename T> // (see e.g. Wikipedia)
+	T percentileRank(std::vector<T>& kDistribution, T tScore, bool bSorted = false)
 	{
-		return stats::median(distribution, bSorted);
-	}
-	// see e.g. Wikipedia: "percentile rank"
-	double percentileRank(std::vector<double>& distribution, double score,
-			bool bSorted = false, // Is the distribution sorted (ascending)?
-			bool bScorePartOfDistribution = true); /* Is 'score' to be considered as
-			an element of the distribution? If yes, the percentile rank is going to be
-			positive. Either way, the caller shouldn't include 'score' in the distribution. */
+		if (!bSorted)
+			std::sort(kDistribution.begin(), kDistribution.end());
+		int iLesserScores = 0;
+		int iSz = (int)kDistribution.size();
+		for (int i = 0; i < iSz; i++)
+		{
+			if (kDistribution[i] < tScore)
+				iLesserScores++;
+			else break;
+		}
+		T tDiv = iSz;
+		return iLesserScores / tDiv;
+	} 
+}
 
-	/*  Hash based on the components of x. Plot index of capital factored in for
-		increased range if ePlayer given. (ePlayer is ignored if it has no capital.) */
-	int intHash(std::vector<int> const& x, PlayerTypes ePlayer = NO_PLAYER);
+/*  Hash based on the components of x. Plot index of capital factored in for
+	increased range if ePlayer given. (ePlayer is ignored if it has no capital.) */
+int intHash(std::vector<int> const& x, PlayerTypes ePlayer = NO_PLAYER);
+
+namespace fmath
+{
+	inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
+	inline int roundToMultiple(double d, int iMultiple)
+	{
+		int r = (int)(d + 0.5 * iMultiple);
+		return r - r % iMultiple;
+	}
 	/*	See intHash about the parameters.
 		Result between 0 and 1. Returns float b/c CvRandom uses float (not double).
 		(Similar but more narrow: CvUnitAI::AI_unitBirthmarkHash, AI_unitPlotHash) */
@@ -153,17 +160,17 @@ namespace stats // Seems too generic, but what else to name it?
 		v.push_back(x);
 		return hash(v, ePlayer);
 	}
-//} // </advc.003g>
+} // </advc.003g>
 
 void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2); // advc.035
-// <advc.130h>
+// advc.130h:
 template<typename T> void removeDuplicates(std::vector<T>& v)
 {
 	std::set<T> aeTmp(v.begin(), v.end());
 	v.assign(aeTmp.begin(), aeTmp.end());
-} // </advc.130h>
+}
 
-// <advc>
+// advc:
 namespace std11
 {
 // Erik: "Back-ported" from C++11
@@ -176,7 +183,7 @@ void iota(ForwardIt first, ForwardIt last, T value)
 		value++;
 	}
 }
-}; // </advc>
+};
 
 /*	advc: For arrays initialized through brace-enclosed list.
 	The array must not be empty. Corresponds to std::size in C++17

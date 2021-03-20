@@ -1051,8 +1051,8 @@ void CyGame::addPlayer(int eNewPlayer, int eLeader, int eCiv)
 	m_kGame.addPlayer((PlayerTypes)eNewPlayer, (LeaderHeadTypes)eLeader, (CivilizationTypes)eCiv);
 	/*  <advc.104r> Only relevant for mod-mods (e.g. Barbarian Civ, PlatyBuilder).
 		Colonial vassals are handled by CvPlayer::splitEmpire instead. */
-	if(getUWAI.isEnabled())
-		getUWAI.processNewCivInGame((PlayerTypes)eNewPlayer); // </advc.104r>
+	if(getUWAI().isEnabled())
+		getUWAI().processNewPlayerInGame((PlayerTypes)eNewPlayer); // </advc.104r>
 }
 
 // BETTER_BTS_AI_MOD, Debug, 8/1/08, jdog5000: START
@@ -1128,7 +1128,7 @@ void CyGame::saveGame(std::string szFileName)
 // advc.104:
 bool CyGame::useKModAI()
 {
-	return !getUWAI.isEnabled();
+	return !getUWAI().isEnabled();
 }
 // advc.300:
 int CyGame::getBarbarianStartTurn()

@@ -693,7 +693,7 @@ int CyCity::cultureGarrison(int /*PlayerTypes*/ ePlayer)
 // <advc.ctr>
 float CyCity::revoltProbability()
 {
-	return m_pCity ? static_cast<float>(m_pCity->revoltProbability()) : -1;
+	return m_pCity ? m_pCity->revoltProbability().getFloat() : -1;
 }
 
 bool CyCity::canCultureFlip()

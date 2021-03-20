@@ -35,7 +35,7 @@ public:
   void read(FDataStreamBase* pStream);
   void write(FDataStreamBase* pStream);
 
-  inline UWAI& uwai() { return m_uwai; } // advc.104
+  __forceinline UWAI& uwai() { return m_uwai; } // advc.104
 
 protected:
 

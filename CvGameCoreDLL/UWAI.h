@@ -5,56 +5,48 @@
 
 class FDataStreamBase;
 
-/*  AI functionality for decisions on war and peace. Main class of the
-	Utility-Based War AI mod component (UWAI).
+/*  advc.104: AI functionality for decisions on war and peace.
+	Main class of the Utility-Based War AI component (UWAI).
 	Instead of making lots of additions to CvTeamAI and CvPlayerAI, I've put the
-	new functions in classes UWAI::Team and UWAI::Civ, which are
-	defined in UWAIAgent.h. (I use the term "civ" instead of "player" when
-	Barbarians are excluded. The actual CvCivilization class added by advc.003w
-	isn't used much in the UWAI code.) The outer class UWAI shared by
-	Team and Civ is for overarching stuff that would otherwise fit into CvGameAI or
+	new functions in classes UWAI::Team and UWAI::Player, which are
+	defined in UWAIAgent.h. The outer class UWAI shared by Team and Player is
+	for overarching stuff that would otherwise fit into CvGameAI or
 	CvGameCoreUtils. An instance is accessible through the macro "getUWAI".
 
-	The main method for war planning is UWAI::Team::doWar. */
+	The main function for war planning is UWAI::Team::doWar. */
 
-#define getUWAI GC.AI_getGame().uwai()
+// The parentheses are unnecessary, but I think it's more intuitive this way.
+#define getUWAI() GC.AI_getGame().uwai()
 
-class UWAI /* advc.003e: */ : private boost::noncopyable {
-
+class UWAI : private boost::noncopyable
+{
 public:
-
-	// Inner classes; defined in UWAIAgent.h.
-	class Civ;
+	// Nested classes; defined in UWAIAgent.h.
+	class Player;
 	class Team;
 
 	UWAI();
 	void invalidateUICache();
-	// When a colony is created
-	void initNewCivInGame(PlayerTypes newCivId);
-	// When the colony has received a capital and tech
-	void processNewCivInGame(PlayerTypes newCivId);
+	// When a colonial vassal is created
+	void initNewPlayerInGame(PlayerTypes eNewPlayer);
+	// When the colonial vassal has received a capital and tech
+	void processNewPlayerInGame(PlayerTypes eNewPlayer);
 	/*  true if UWAI fully enabled, making all decisions, otherwise false.
-		If inBackground is set, then true if UWAI is running only in the background,
-		but false if UWAI fully enabled or fully disabled. */
-	bool isEnabled(bool inBackground = false) const; // Exposed to Python via CyGame::useKModAI
-	void setUseKModAI(bool b);
+		If bInBackground is set, then true if UWAI is running only in the background
+		(through an XML switch), but false if UWAI fully enabled or fully disabled. */
+	bool isEnabled(bool bInBackground = false) const; // Exposed to Python via CyGame::useKModAI
+	void setUseLegacyAI(bool b);
 	void setInBackground(bool b);
-	void read(FDataStreamBase* stream);
-	void write(FDataStreamBase* stream);
-	int maxLandDist() const;
+	void read(FDataStreamBase* pStream);
+	void write(FDataStreamBase* pStream) const;
+	int maxLandDist() const { return maxSeaDist() - 1; }
 	int maxSeaDist() const;
-	bool isUpdated() const;
+	bool isReady() const;
 
-	static int const preparationTimeLimited = 8;
-	static int const preparationTimeLimitedNaval = 10;
-	static int const preparationTimeTotal = 15;
-	static int const preparationTimeTotalNaval = 20;
-	// Modifier for any AI payments for peace
-	static int const reparationsAIPercent = 50;
-	/*  Modifier for human payments for peace, i.e what the AI asks a human to pay
-		(no modifier for brokering, i.e. 100%) */
-	static int const reparationsHumanPercent = 75;
-	static int const dwtUtilityThresh = -35;
+	int preparationTimeLimited() const { return 8; }
+	int preparationTimeLimitedNaval() const { return 10; }
+	int preparationTimeTotal() const { return 15; }
+	int preparationTimeTotalNaval() const { return 20; }
 
 	void doXML();
 	#define DO_FOR_EACH_WAR_UTILITY_ASPECT(DO)\
@@ -85,24 +77,27 @@ public:
 		DO(BELLICOSITY) \
 		DO(TACTICAL_SITUATION) \
 		DO(LOVE_OF_PEACE)
-	enum AspectTypes {
+	enum AspectTypes
+	{
 		DO_FOR_EACH_WAR_UTILITY_ASPECT(MAKE_ENUMERATOR)
 		NUM_ASPECTS
 	};
-	double aspectWeight(AspectTypes eAspect) const {
+	scaled aspectWeight(AspectTypes eAspect) const
+	{
 		FAssertBounds(0, NUM_ASPECTS, eAspect);
-		return xmlWeights[eAspect] / 100.0;
+		return per100(m_aiXmlWeights[eAspect]);
 	}
-	char const* aspectName(AspectTypes eAspect) const {
+	char const* aspectName(AspectTypes eAspect) const
+	{
 		FAssertBounds(0, NUM_ASPECTS, eAspect);
-		return aszAspectNames[eAspect];
+		return m_aszAspectNames[eAspect];
 	}
 
 private:
-	std::vector<int> xmlWeights;
-	std::vector<char const*> aszAspectNames;
-	bool enabled; // true iff K-Mod AI disabled through Game Options
-	bool inBackgr; // status of the XML flag
+	std::vector<int> m_aiXmlWeights;
+	std::vector<char const*> m_aszAspectNames;
+	bool m_bEnabled; // false iff Legacy AI enabled through game option
+	bool m_bInBackground; // status of background switch in XML
 
 	void applyPersonalityWeight();
 };

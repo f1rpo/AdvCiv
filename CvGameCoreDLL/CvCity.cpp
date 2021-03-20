@@ -615,16 +615,17 @@ void CvCity::doRevolt()
 {
 	PROFILE_FUNC();
 	// <advc.023>
-	double prDecr = probabilityOccupationDecrement();
-	if(::bernoulliSuccess(prDecr, "advc.023"))
 	{
-		changeOccupationTimer(-1);
-		return;
-	} // </advc.023>
-	// <advc.099c>
+		scaled rDecrementProb = probabilityOccupationDecrement();
+		if (rDecrementProb.bernoulliSuccess(GC.getGame().getSRand(), "occupation decrement"))
+		{
+			changeOccupationTimer(-1);
+			return;
+		}
+	} // </advc.023>  <advc.099c>
 	PlayerTypes eCulturalOwner = getPlot().calculateCulturalOwner();
 	PlayerTypes eOwnerIgnRange = eCulturalOwner;
-	if(GC.getDefineBOOL(CvGlobals::REVOLTS_IGNORE_CULTURE_RANGE))
+	if (GC.getDefineBOOL(CvGlobals::REVOLTS_IGNORE_CULTURE_RANGE))
 		eOwnerIgnRange = getPlot().calculateCulturalOwner(true);
 	// If not within culture range, can revolt but not flip
 	bool bCanFlip = (eOwnerIgnRange == eCulturalOwner);
@@ -632,13 +633,15 @@ void CvCity::doRevolt()
 	// </advc.099c>
 	/*  <advc.101> To avoid duplicate code in CvDLLWidgetData::parseNationalityHelp,
 		compute the revolt probability in a separate function. */
-	double prRevolt = revoltProbability();
-	if(!::bernoulliSuccess(prRevolt, "advc.101"))
-		return; // </advc.101>
-	damageGarrison(eCulturalOwner); // advc: Code moved into subroutine
-	if(bCanFlip /* advc.099 */ && canCultureFlip(eCulturalOwner))
 	{
-		if(GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) &&
+		scaled rRevoltProb = revoltProbability();
+		if (!rRevoltProb.bernoulliSuccess(GC.getGame().getSRand(), "CvCity::doRevolt"))
+			return;
+	} // </advc.101>
+	damageGarrison(eCulturalOwner); // advc: Code moved into subroutine
+	if (bCanFlip /* advc.099 */ && canCultureFlip(eCulturalOwner))
+	{
+		if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) &&
 			GET_PLAYER(eCulturalOwner).isHuman())
 		{
 			kill(true);
@@ -667,7 +670,7 @@ void CvCity::doRevolt()
 			getNumRevolts(eCulturalOwner); // </advc.023>
 	// K-Mod end
 	changeNumRevolts(eCulturalOwner, 1);
-	if(!isOccupation()) // advc.023: Don't prolong revolt
+	if (!isOccupation()) // advc.023: Don't prolong revolt
 		changeOccupationTimer(iTurnsOccupation);
 	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_REVOLT_IN_CITY",
 			GET_PLAYER(eCulturalOwner).getCivilizationAdjective(),
@@ -675,7 +678,7 @@ void CvCity::doRevolt()
 	// <advc.023>
 	/*  Population loss if pCity should flip, but can't. We know at this point
 		that the current revolt doesn't flip the city; but can it ever flip? */
-	if((!bCanFlip || !canCultureFlip(eCulturalOwner, false)) &&
+	if ((!bCanFlip || !canCultureFlip(eCulturalOwner, false)) &&
 		getNumRevolts(eCulturalOwner) > GC.getDefineINT(CvGlobals::NUM_WARNING_REVOLTS) &&
 		getPopulation() > 1)
 	{
@@ -3457,31 +3460,32 @@ int CvCity::getCulturePercentAnger() const
 // <advc.104>
 int CvCity::getReligionPercentAnger() const
 {
-	double r = 0;
+	scaled r = 0;
 	for (PlayerIter<CIV_ALIVE,ENEMY_OF> it(getTeam()); it.hasNext(); ++it)
 	{
 		r += getReligionPercentAnger(it->getID());
 	}
-	return ::round(r);
+	return r.round();
 }
 
 
-double CvCity::getReligionPercentAnger(PlayerTypes ePlayer) const
+scaled CvCity::getReligionPercentAnger(PlayerTypes ePlayer) const
 {
 	// Replacing BtS code; fewer rounding artifacts.
-	CvGame const& g = GC.getGame();
-	if(g.getNumCities() == 0 || getReligionCount() == 0)
+	CvGame const& kGame = GC.getGame();
+	if (kGame.getNumCities() == 0 || getReligionCount() == 0)
 		return 0;
 	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
 	ReligionTypes eReligion = kPlayer.getStateReligion();
-	if(eReligion == NO_RELIGION || !isHasReligion(eReligion))
+	if (eReligion == NO_RELIGION || !isHasReligion(eReligion))
 		return 0;
-	double sameFaithCityRatio = kPlayer.getHasReligionCount(eReligion) / (double)g.getNumCities();
-	// normally 800
-	static int const iRELIGION_PERCENT_ANGER = GC.getDefineINT("RELIGION_PERCENT_ANGER"); // advc.opt
-	double angerFactor = iRELIGION_PERCENT_ANGER / (double)getReligionCount();
-	return sameFaithCityRatio * angerFactor;
+	scaled rSameReligionCityRatio(kPlayer.getHasReligionCount(eReligion),
+			kGame.getNumCities());
+	static int const iRELIGION_PERCENT_ANGER = GC.getDefineINT("RELIGION_PERCENT_ANGER", 800); // advc.opt
+	scaled rAngerFactor(iRELIGION_PERCENT_ANGER, getReligionCount());
+	return rSameReligionCityRatio * rAngerFactor;
 } // </advc.104>
+
 
 int CvCity::getHurryPercentAnger(int iExtra) const
 {
@@ -3995,12 +3999,9 @@ int CvCity::hurryProduction(HurryTypes eHurry) const
 
 int CvCity::flatHurryAngerLength() const
 {
-	int iAnger = GC.getDefineINT(CvGlobals::HURRY_ANGER_DIVISOR);
-	iAnger *= GC.getInfo(GC.getGame().getGameSpeedType()).getHurryConscriptAngerPercent();
-	iAnger /= 100;
+	int iAnger = GC.getGame().getHurryAngerLength();
 	iAnger *= std::max(0, 100 + getHurryAngerModifier());
 	iAnger /= 100;
-
 	return std::max(1, iAnger);
 }
 
@@ -4009,7 +4010,7 @@ int CvCity::hurryAngerLength(HurryTypes eHurry) const
 {
 	if (GC.getInfo(eHurry).isAnger())
 		return flatHurryAngerLength();
-	else return 0;
+	return 0;
 }
 
 
@@ -4305,8 +4306,9 @@ void CvCity::setID(int iID)
 	m_iID = iID;
 }
 
-// advc.104: getID is unique for a given player. plotNum is a globally unique id.
-int CvCity::plotNum() const
+/*	advc.104: getID is unique for a given player.
+	plotNum can serve as a globally unique id. */
+PlotNumTypes CvCity::plotNum() const
 {
 	return GC.getMap().plotNum(m_iX, m_iY);
 }
@@ -7851,24 +7853,24 @@ PlayerTypes CvCity::findHighestCulture() const
 	return eBestPlayer;
 }
 
-/*  advc.101:
+/*	advc.101:
 	Doesn't check if city will flip. Doesn't take into account that the revolt test
 	is skipped when decreasing the occupation timer.
 	Difference from getRevoltTestProbability: that function only returns the
 	probability of the first revolt test, not the second one based on
 	culture garrison.
-	If IgnoreWar is set, a probability is returned even if the city can't revolt
+	If bIgnoreWar is set, a probability is returned even if the city can't revolt
 	(i.e. when it's already in occupation and at war with the cultural owner).
-	If IgnoreGarrison is set, culture garrison strength is treated as 0.
-	If IgnoreOccupation is set, the probability is computed assuming that the city
+	If bIgnoreGarrison is set, culture garrison strength is treated as 0.
+	If bIgnoreOccupation is set, the probability is computed assuming that the city
 	isn't in occupation. */
-double CvCity::revoltProbability(bool bIgnoreWar,
+scaled CvCity::revoltProbability(bool bIgnoreWar,
 	bool bIgnoreGarrison, bool bIgnoreOccupation) const // advc.023
 {
 	PlayerTypes eCulturalOwner = calculateCulturalOwner(); // advc.099c
 	CvGame const& kGame = GC.getGame();
 	static bool const bBARBS_REVOLT = GC.getDefineBOOL("BARBS_REVOLT");
-	if(eCulturalOwner == NO_PLAYER || TEAMID(eCulturalOwner) == getTeam() ||
+	if (eCulturalOwner == NO_PLAYER || TEAMID(eCulturalOwner) == getTeam() ||
 		// <advc.099c> Barbarian revolts
 		(eCulturalOwner == BARBARIAN_PLAYER && !bBARBS_REVOLT) ||
 		(GET_PLAYER(getOwner()).getCurrentEra() <= 0 &&
@@ -7879,8 +7881,8 @@ double CvCity::revoltProbability(bool bIgnoreWar,
 		return 0;
 	}
 	// <advc.023>
-	double occupationFactor = 1;
-	if(isOccupation() && !bIgnoreOccupation)
+	scaled rOccupationFactor = 1;
+	if (isOccupation() && !bIgnoreOccupation)
 	{
 		if(!bIgnoreWar && !isBarbarian() && !GET_TEAM(getTeam()).isMinorCiv() &&
 			GET_PLAYER(eCulturalOwner).isAlive() &&
@@ -7888,7 +7890,7 @@ double CvCity::revoltProbability(bool bIgnoreWar,
 		{
 			return 0;
 		}
-		occupationFactor = 0.5;
+		rOccupationFactor = fixp(0.5);
 	} // </advc.023>
 	int iCityStrength = cultureStrength(eCulturalOwner);
 	int iGarrison =
@@ -7899,18 +7901,18 @@ double CvCity::revoltProbability(bool bIgnoreWar,
 	/*  About the two revolt tests: I guess the first one checks if the city tries
 		to revolt, and the second if the garrison can stop the revolt.
 		Restored the BtS formula for the second test. */
-	double r = std::max(0.0, (1.0 - (iGarrison / (double)iCityStrength))) *
-			getRevoltTestProbability() * occupationFactor;
+	scaled r = scaled::max(0, (1 - scaled(iGarrison, iCityStrength))) *
+			getRevoltTestProbability() * rOccupationFactor;
 	// Don't use probabilities that are too small to be displayed
-	if(r < 0.001)
+	if (r.getPermille() < 1)
 		return 0;
-	if(r > 0.999)
+	if (r.getPermille() > 999)
 		return 1;
 	return r;
 }
 
 // advc.023:
-double CvCity::probabilityOccupationDecrement() const
+scaled CvCity::probabilityOccupationDecrement() const
 {
 	if(!isOccupation())
 		return 0;
@@ -7921,14 +7923,14 @@ double CvCity::probabilityOccupationDecrement() const
 		if(eCulturalOwner != NO_PLAYER && GET_TEAM(eCulturalOwner).isAtWar(getTeam()))
 			return 0;
 	}
-	double r = 0;
-	double prRevolt = revoltProbability(true, false, true);
-	if (prRevolt < 1)
-		r = std::pow(1 - prRevolt, GC.getDefineINT(CvGlobals::OCCUPATION_COUNTDOWN_EXPONENT));
+	scaled r = 0;
+	scaled rRevoltProb = revoltProbability(true, false, true);
+	if (rRevoltProb < 1)
+		r = (1 - rRevoltProb).pow(GC.getDefineINT(CvGlobals::OCCUPATION_COUNTDOWN_EXPONENT));
 	// Don't use probabilities that are too small to be displayed
-	if(r < 0.001)
+	if (rRevoltProb.getPermille() < 1)
 		return 0;
-	if(r > 0.999)
+	if (rRevoltProb.getPermille() > 999)
 		return 1;
 	return r;
 }
@@ -8042,7 +8044,7 @@ void CvCity::changeNumRevolts(PlayerTypes ePlayer, int iChange)
 }
 
 
-double CvCity::getRevoltTestProbability() const // advc.101: Return type was int; tbd.: change it to scaled.
+scaled CvCity::getRevoltTestProbability() const // advc.101: Return type was int
 {
 	// <advc.101>
 	CvGame const& kGame = GC.getGame();
@@ -8055,7 +8057,7 @@ double CvCity::getRevoltTestProbability() const // advc.101: Return type was int
 	scaled r = rREVOLT_TEST_PROB * per100(100 - getRevoltProtection());
 	r /= rSpeedFactor;
 	r.decreaseTo(1); // advc.101: Upper bound used to be handled by the caller
-	return r.getDouble();
+	return r;
 }
 
 // advc.101: Cut from getRevoltTestProbability
@@ -9232,7 +9234,7 @@ int CvCity::getReligionGrip(ReligionTypes eReligion) const
 	{
 		int iTempScore = iRELIGION_INFLUENCE_POPULATION_WEIGHT * getPopulation();
 		// <advc.099c> Try to satisfy foreign pop
-		if(revoltProbability(true, false, true) > 0)
+		if (revoltProbability(true, false, true) > 0)
 		{
 			PlayerTypes cultOwner = calculateCulturalOwner();
 			if(GET_PLAYER(cultOwner).getStateReligion() == eReligion)
@@ -12984,9 +12986,15 @@ int CvCity::calculateDistanceMaintenanceTimes100(CvPlot const& kCityPlot,
 	for (pLoopCity = GET_PLAYER(getOwner()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwner()).nextCity(&iLoop))
 		iTempMaintenance = 100 * (GC.getDefineINT("MAX_DISTANCE_CITY_MAINTENANCE") *
 				plotDistance(getX(), getY(), pLoopCity->getX(), pLoopCity->getY()));*/ // BtS
-	// K-Mod, 17/dec/10
-	// Moved the search for maintenance distance to a separate function and improved the efficiency
-	int iTempMaintenance = 100 * GC.getDefineINT(CvGlobals::MAX_DISTANCE_CITY_MAINTENANCE) *
+	// <K-Mod> 17/dec/10 - improved efficiency
+	int iTempMaintenance = 100 *
+			/*	advc (note): MAX_DISTANCE_CITY_MAINTENANCE is named a bit misleadingly.
+				It's simply a (multiplicative) factor. The ratio of maintenance distance to
+				maxTypicalDistance can be regarded as another factor, normally between 0 and 1.
+				Insofar, MAX_DISTANCE_CITY_MAINTENANCE is the maximal result of multiplying
+				those two factors. */
+			GC.getDefineINT(CvGlobals::MAX_DISTANCE_CITY_MAINTENANCE) *	
+			// K-Mod: Moved the search for maintenance distance to a separate function
 			calculateMaintenanceDistance(&kCityPlot, eOwner);
 	// unaltered bts code
 	{
@@ -13009,7 +13017,7 @@ int CvCity::calculateDistanceMaintenanceTimes100(CvPlot const& kCityPlot,
 			iBestCapitalMaintenance = std::min(iBestCapitalMaintenance, iTempMaintenance);
 	}
 	iTempMaintenance = std::min(iWorstCityMaintenance, iBestCapitalMaintenance);*/ // BtS
-	// K-Mod end
+	// </K-Mod>
 	FAssert(iTempMaintenance >= 0);
 	return iTempMaintenance;
 }
@@ -13018,22 +13026,19 @@ int CvCity::calculateDistanceMaintenanceTimes100(CvPlot const& kCityPlot,
 // advc.004b, advc.104: Parameters added
 int CvCity::calculateMaintenanceDistance(CvPlot const* pCityPlot, PlayerTypes eOwner)
 {
-	int x = pCityPlot->getX(), y = pCityPlot->getY();
-
-	int iLongest = 0;
+	int iLongestDist = 0;
 	int iShortestGovernment = MAX_INT;
 	FOR_EACH_CITY(pLoopCity, GET_PLAYER(eOwner))
 	{
-		int d = plotDistance(x, y, pLoopCity->getX(), pLoopCity->getY());
-		iLongest = std::max(iLongest, d);
+		int iDist = plotDistance(pCityPlot, pLoopCity->plot());
+		iLongestDist = std::max(iLongestDist, iDist);
 		if(pLoopCity->isGovernmentCenter())
-			iShortestGovernment = std::min(iShortestGovernment, d);
+			iShortestGovernment = std::min(iShortestGovernment, iDist);
 	}
+	int iR = std::min(iLongestDist, iShortestGovernment);
 	// <advc.140> Upper bound added
-	int r = std::min(iLongest, iShortestGovernment);
 	int iCap = GC.getMap().maxMaintenanceDistance();
-	return std::min(r, iCap);
-	// </advc.140>
+	return std::min(iR, iCap); // </advc.140>
 }
 
 // advc.004b, advc.104: Parameters added
