@@ -3643,8 +3643,7 @@ void TacticalSituation::evalEngagement() {
 		turn, it's still the beginning of the turn, so we can probably save
 		our units. */
 	double initiativeFactor = 0.25; // Low if they have the initiative
-	if(gDLL->isDiplomacy() || // I.e. we're negotiating with a human
-			we->isHuman() || they->isHuman())
+	if(we->isHuman() || they->isHuman())
 		initiativeFactor = 0.5;
 	double uPlus = (4.0 * (initiativeFactor * theirExposed -
 			(1 - initiativeFactor) * ourExposed) + ourMissions) /
