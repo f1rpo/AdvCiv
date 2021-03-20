@@ -99,6 +99,7 @@ public:
 
 	// get the sum of all elements // advc.fract: return type was int
 	T getTotal() const;
+	int getSupportSz() const; // advc.fract: Since the above is no longer usable for bool
 
 	// Check if there is non-default contents.
 	// isAllocated() test for a null pointer while hasContent() will loop the array to test each index for default value.
@@ -679,6 +680,24 @@ T EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::getTotal() const
 		tReturnVal = tReturnVal + get(eIndex);
 	}
 	return tReturnVal;
+}
+
+/*	advc.fract: Replacing getTotal for bool; might also have other uses.
+	The support of a vector is the set of nonzero elements.
+	This function returns the cardinality of that set. */
+template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
+int EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::getSupportSz() const
+{
+	if (!bINLINE && !isAllocated())
+		return (DEFAULT == 0 ? 0 : getLength());
+	int iReturnVal = 0;
+	const int iLength = getLength();
+	for (IndexType eIndex = First(); eIndex < iLength; ++eIndex)
+	{
+		if (get(eIndex) != 0)
+			iReturnVal++;
+	}
+	return iReturnVal;
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
