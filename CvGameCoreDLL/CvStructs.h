@@ -45,14 +45,12 @@ struct IDInfo
 	{
 		return (eOwner == info.eOwner && iID == info.iID);
 	}
-
 	// K-Mod
 	bool operator!= (const IDInfo& info) const { return !(*this==info); }
 	bool operator< (const IDInfo& a) const
 	{
 		return eOwner < a.eOwner || (eOwner == a.eOwner && iID < a.iID);
-	}
-	// K-Mod end
+	} // K-Mod end
 
 	void reset()
 	{
@@ -457,11 +455,13 @@ struct CvWidgetDataStruct
 
 struct DllExport CvPlotIndicatorData
 {
-	CvPlotIndicatorData() : m_eVisibility(PLOT_INDICATOR_VISIBLE_ALWAYS), m_bFlashing(false), m_pUnit(NULL), m_bTestEnemyVisibility(false), m_bVisibleOnlyIfSelected(false), m_bPersistentRotation(false)
-	{
-	}
-	CvString m_strIcon;
-	CvString m_strLabel;
+	CvPlotIndicatorData()
+	:	m_eVisibility(PLOT_INDICATOR_VISIBLE_ALWAYS), m_bFlashing(false), m_pUnit(NULL),
+		m_bTestEnemyVisibility(false), m_bVisibleOnlyIfSelected(false),
+		m_bPersistentRotation(false)
+	{}
+	CvString m_szIcon;
+	CvString m_szLabel;
 	NiColor m_kColor;
 	CvWString m_strHelpText;
 	PlotIndicatorVisibilityFlags m_eVisibility;
@@ -475,7 +475,10 @@ struct DllExport CvPlotIndicatorData
 
 struct DllExport CvGlobeLayerData
 {
-	CvGlobeLayerData(GlobeLayerTypes eType) : m_eType(eType), m_bGlobeViewRequired(true), m_bShouldCitiesZoom(false), m_iNumOptions(0) { }
+	CvGlobeLayerData(GlobeLayerTypes eType)
+	:	m_eType(eType), m_bGlobeViewRequired(true), m_bShouldCitiesZoom(false),
+		m_iNumOptions(0)
+	{}
 	GlobeLayerTypes m_eType;
 	CvString m_strName;
 	CvString m_strButtonHelpTag;
@@ -487,7 +490,9 @@ struct DllExport CvGlobeLayerData
 
 struct DllExport CvFlyoutMenuData
 {
-	CvFlyoutMenuData(FlyoutTypes eType, int iId, int iX, int iY, const wchar* strTitle) : m_eFlyout(eType), m_iID(iId), m_iX(iX), m_iY(iY), m_strTitle(strTitle) { }
+	CvFlyoutMenuData(FlyoutTypes eType, int iId, int iX, int iY, wchar const* szTitle)
+	:	m_eFlyout(eType), m_iID(iId), m_iX(iX), m_iY(iY), m_strTitle(szTitle)
+	{}
 	FlyoutTypes m_eFlyout;
 	int m_iID;
 	int m_iX;
@@ -497,37 +502,45 @@ struct DllExport CvFlyoutMenuData
 
 struct CvStatBase
 {
-	CvStatBase(const char* strKey) : m_strKey(strKey) { }
-	virtual ~CvStatBase() { }
+	CvStatBase(const char* szKey) : m_strKey(szKey) {}
+	virtual ~CvStatBase() {}
 	CvString m_strKey;
 };
 
 struct CvStatInt : public CvStatBase
 {
-	CvStatInt(const char* strKey, int iValue) : CvStatBase(strKey), m_iValue(iValue) { }
+	CvStatInt(char const* szKey, int iValue)
+	:	CvStatBase(szKey), m_iValue(iValue)
+	{}
 	int m_iValue;
 };
 
 struct CvStatString : public CvStatBase
 {
-	CvStatString(const char* strKey, const char* strValue) : CvStatBase(strKey), m_strValue(strValue) { }
+	CvStatString(char const* szKey, const char* szValue)
+	:	CvStatBase(szKey), m_strValue(szValue)
+	{}
 	CvString m_strValue;
 };
 
 struct CvStatFloat : public CvStatBase
 {
-	CvStatFloat(const char* strKey, float fValue) : CvStatBase(strKey), m_fValue(fValue) { }
+	CvStatFloat(char const* szKey, float fValue)
+	:	CvStatBase(szKey), m_fValue(fValue)
+	{}
 	float m_fValue;
 };
 
 struct DllExport CvWBData
 {
-	CvWBData(int iId, const wchar* strHelp, const char* strButton) : m_iId(iId), m_strHelp(strHelp), m_strButton(strButton) { }
+	CvWBData(int iId, wchar const* szHelp, char const* szButton)
+	:	m_iId(iId), m_strHelp(szHelp), m_strButton(szButton)
+	{}
 	int m_iId;
 	CvWString m_strHelp;
 	CvString m_strButton;
 };
-// <advc.071>
+// advc.071:
 struct FirstContactData
 {
 	FirstContactData(CvPlot const* pAt1, CvPlot const* pAt2 = NULL,
@@ -535,8 +548,8 @@ struct FirstContactData
 	FirstContactData() : u1(), u2(), x1(-1), x2(-1), y1(-1), y2(-1) {}
 	IDInfo u1, u2;
 	int x1, y1, x2, y2;
-}; // </advc.071>
-// <advc.072>
+};
+// advc.072:
 struct DealItemData
 {
 	DealItemData() : eGivePlayer(NO_PLAYER), eReceivePlayer(NO_PLAYER),
@@ -548,6 +561,6 @@ struct DealItemData
 	PlayerTypes eGivePlayer, eReceivePlayer;
 	TradeableItems eItemType;
 	int iData, iDeal;
-}; // </advc.072>
+};
 
 #endif	// CVSTRUCTS_H

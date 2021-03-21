@@ -16,9 +16,9 @@
 ## along with Civilization IV Alerts mod; if not, write to the Free
 ## Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 ## 02110-1301 USA
+## advc (note): The license is in the BUG Doc folder.
 
 __version__ = "$Revision: 1.2 $"
-# $Source: /usr/local/cvsroot/Civ4lerts/src/main/python/Civ4lerts.py,v $
 
 ## Civ4lerts
 ## This class extends the built in event manager and overrides various
@@ -108,7 +108,7 @@ class Civ4lerts:
 		cityEvent.add(CityHappiness(eventManager))
 		cityEvent.add(CanHurryPopulation(eventManager))
 		cityEvent.add(CanHurryGold(eventManager))
-		
+		# advc (note): This thing triggers once all units have received orders. Pretty weird.
 		cityEvent = EndTurnReadyCityAlertManager(eventManager)
 		cityEvent.add(CityPendingGrowth(eventManager))
 		
@@ -357,7 +357,9 @@ class AbstractCityTestAlert(AbstractCityAlert):
 		elif (self._isShowPendingAlert(passes)):
 			# See if city will switch next turn
 			willPass = self._willPassTest(city)
-			if passed != willPass and willPass: # avdc.106d: 'and willPass' added
+			#if passed != willPass:
+			# advc.106d:
+			if passed != willPass and (willPass or Civ4lertsOpt.isShowPendingPositive()):
 				message, icon = self._getPendingAlertMessageIcon(city, willPass)
 		# advc.106d: suppress check added
 		if message and not self._suppressMessage(city):
@@ -420,13 +422,12 @@ class CityPendingGrowth(AbstractCityAlert):
 	def checkCity(self, cityId, city, iPlayer, player):
 		if (Civ4lertsOpt.isShowCityPendingGrowthAlert()):
 			if (CityUtil.willGrowThisTurn(city)):
-				#message = localText.getText(
-				#		"TXT_KEY_CIV4LERTS_ON_CITY_PENDING_GROWTH",
-				#		(city.getName(), city.getPopulation() + 1))
-				#icon = "Art/Interface/Symbols/Food/food05.dds"
-				#addMessageAtCity(iPlayer, message, icon, city)
-				# advc.106d: Don't show pending growth
-				pass
+				if Civ4lertsOpt.isShowPendingPositive(): # advc.106d
+					message = localText.getText(
+							"TXT_KEY_CIV4LERTS_ON_CITY_PENDING_GROWTH",
+							(city.getName(), city.getPopulation() + 1))
+					icon = "Art/Interface/Symbols/Food/food05.dds"
+					addMessageAtCity(iPlayer, message, icon, city)
 			elif (CityUtil.willShrinkThisTurn(city)):
 				message = localText.getText(
 						"TXT_KEY_CIV4LERTS_ON_CITY_PENDING_SHRINKAGE",
@@ -627,7 +628,7 @@ class CityOccupation(AbstractCityTestAlert):
 		return city.isOccupation() and city.getOccupationTimer() > 1
 	
 	def _isShowAlert(self, passes):
-		return False #Civ4lertsOpt.isShowCityOccupationAlert() # advc-106d: Disabled
+		return False #Civ4lertsOpt.isShowCityOccupationAlert() # advc.106d: Disabled
 	
 	def _getAlertMessageIcon(self, city, passes):
 		if (passes):

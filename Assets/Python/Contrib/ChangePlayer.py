@@ -58,8 +58,11 @@ class ChangePlayer :
 	def onKbdEvent(self, argsList ):
 		'keypress handler'
 		eventType,key,mx,my,px,py = argsList
-		# advc.127c: Check cheat level. Check modifier keys upfront. Alt mustn't be pressed. Tbd.: Would be better to do this through a shortcut element in one of the BUG config files (see e.g. 'BUG Core.xml').
-		if getChtLvl() > 0 and eventType == 6 and self.customEM.bShift and self.customEM.bCtrl and not self.customEM.bAlt:
+		# <advc.001>
+		if not self.customEM.isCheatsEnabled():
+			return # </advc.001>
+		# advc.127c: Check modifier keys upfront. Alt mustn't be pressed. Tbd.: Would be better to do this through a shortcut element in one of the BUG config files (see e.g. 'BUG Core.xml').
+		if eventType == 6 and self.customEM.bShift and self.customEM.bCtrl and not self.customEM.bAlt:
 			theKey=int(key)
 			if theKey == int(InputTypes.KB_P):
 				changeCivPopup()

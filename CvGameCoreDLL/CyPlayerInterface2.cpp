@@ -1,6 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CyPlayer.h"
-#include "CvPlayer.h" // advc.enum: for PollutionTypes
+#include "CvPlayer.h" // advc.enum: for PollutionFlags
 #include "CySelectionGroup.h"
 #include "CyArea.h"
 
@@ -73,6 +73,7 @@ void CyPlayerPythonInterface2(python::class_<CyPlayer>& x)
 
 	/*	K-Mod, 5/jan/11: pollution flags (advc.enum: Moved from CyEnumsInterface
 		b/c it's no longer a global type within the DLL) */
+	// (advc.enum: Keep the name "Types" in Python although it's now "Flags" in the DLL)
 	python::enum_<int>("PollutionTypes")
 		.value("POLLUTION_POPULATION", CvPlayer::POLLUTION_POPULATION)
 		.value("POLLUTION_BUILDINGS", CvPlayer::POLLUTION_BUILDINGS)

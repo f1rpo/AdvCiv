@@ -24,8 +24,8 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		report(m.evaluationParameters().getReport()),
 		military(military), timeHorizon(timeHorizon) {
 
-	bool const bLogAI = false; // Clogs up the log too much
-	if(!bLogAI && !GET_PLAYER(civId).isHuman())
+#define bLOG_AI false // Clogs up the log too much
+	if(!bLOG_AI && !GET_PLAYER(civId).isHuman())
 	  report.setMute(true);
 	report.log("Armament forecast for *%s*",
 			report.leaderName(civId));
@@ -53,27 +53,25 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	if(prodFromUpgrades > 0.01)
 		report.log("Production from upgrades: %d", ::round(prodFromUpgrades));
 
-	CvPlayerAI& civ = GET_PLAYER(civId);
-	TeamTypes tId = TEAMID(civId);
-	CvTeamAI& t = GET_TEAM(tId);
-	PlayerTypes weId = m.ourId();
-	// Expect caller to make sure of this
-	FAssert(targetCity == NULL || targetCity->city() != NULL);
+	CvPlayerAI const& civ = GET_PLAYER(civId);
+	TeamTypes const tId = TEAMID(civId);
+	CvTeamAI const& t = GET_TEAM(tId);
+	PlayerTypes const weId = m.ourId();
 	Intensity intensity = NORMAL;
 	if(civ.AI_isDoStrategy(AI_STRATEGY_ALERT1))
 		intensity = INCREASED;
 	bool navalArmament = false;
 	if(targetCity != NULL) {
-		if(!targetCity->canReachByLand() ||
+		if(!targetCity->canReachByLandFromCapital() ||
 				targetCity->getDistance() > getUWAI.maxLandDist())
 			navalArmament = true;
-		report.log("Target city: %s%s", report.cityName(*targetCity->city()),
+		report.log("Target city: %s%s", report.cityName(targetCity->city()),
 				(navalArmament ? " (naval target)": ""));
 	}
 	/*  Much of this function could be written more concisely based on the
 		interface of MilitaryAnalyst; currently relies mostly on WarEvalParamters. */
-	TeamTypes targetTeamId = params.targetId();
-	TeamTypes master = GET_PLAYER(civId).getMasterTeam();
+	TeamTypes const targetTeamId = params.targetId();
+	TeamTypes const master = GET_PLAYER(civId).getMasterTeam();
 	int iTotalWars = 0, iWars = 0;
 	// Whether simulation assumes peace between civId and any other civ
 	bool peaceAssumed = false;
@@ -213,11 +211,11 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		navalArmament = params.isNaval();
 	/*  Assume that war against a single small enemy doesn't increase the
 		build-up intensity. Otherwise, the AI will tend to leave 1 or 2 cities
-		alive. Would be cleaner to assume a shorter time horizon, but that's a
-		can of worms. */
+		alive. Consistent with CvPlayerAI::AI_isFocusWar.
+		Would be cleaner to assume a shorter time horizon, but that's a can of worms. */
 	if(singleWarEnemy != NO_TEAM && !navalArmament && iTotalWars <= 0 &&
 			iWarPlans <= 1 && !civ.AI_isDoStrategy(AI_STRATEGY_ALERT1 | AI_STRATEGY_ALERT2) &&
-			t.uwai().isPushover(singleWarEnemy)) {
+			t.AI_isPushover(singleWarEnemy)) {
 		intensity = NORMAL;
 		fictionalScenario = true; // Don't check AreAI either
 	}
@@ -266,7 +264,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 				report.log("Using estimated intensity for forecast");
 				if(intensity <= NORMAL && GET_TEAM(civ.getTeam()).
 						isAtWar(TEAMID(weId)) && !GET_TEAM(civ.getTeam()).
-						uwai().isPushover(TEAMID(weId))) {
+						AI_isPushover(TEAMID(weId))) {
 					// Have to expect that human will increase build-up as necessary
 					intensity = INCREASED;
 					report.log("Increased intensity for human at war with us");
@@ -292,8 +290,9 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		predictArmament(timeHorizon, productionEstimate, prodFromUpgrades,
 				intensity, defensive, navalArmament);
 	}
-	if(!bLogAI && !GET_PLAYER(civId).isHuman())
+	if(!bLOG_AI && !GET_PLAYER(civId).isHuman())
 		report.setMute(false); // advc.test
+#undef bLOG_AI
 }
 
 double ArmamentForecast::getProductionInvested() const {
@@ -327,7 +326,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 
 	// Armament portion of the total production; based on intensity
 	double armamentPortion = uwai.buildUnitProb();
-	scaled const civEra = civ.getCurrentEra();
+	scaled const civEra = civ.AI_getCurrEraFactor();
 	{	/*	Don't know if there are really especially few distractions in era 1.
 			Could be - still few buildings available and early expansion is over.
 			Anyway, buildUnitProb (unadjusted) has been working well for getting some
@@ -413,12 +412,12 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 					navy; otherwise, the AI may assume that a naval assault is
 					hopeless. */
 				double mult = (::dRange(2 - military[LOGISTICS]->power() /
-						(typicalCargo * civ.getCurrentEra()), 1, 1.5) + 1) / 2;
+						(typicalCargo * civ.AI_getCurrEraFactor().getDouble()), 1, 1.5) + 1) / 2;
 				branchPortions[LOGISTICS] *= mult;
 				double typicalFleetPow = military[FLEET]->getTypicalUnitPower(m.ourId());
 				if(typicalFleetPow > 0.1) {
 					mult = (::dRange(2 - military[FLEET]->power() /
-							(typicalFleetPow * civ.getCurrentEra()), 1, 1.5) + 1) / 2;
+							(typicalFleetPow * civ.AI_getCurrEraFactor().getDouble()), 1, 1.5) + 1) / 2;
 					branchPortions[FLEET] *= mult;
 				}
 			}

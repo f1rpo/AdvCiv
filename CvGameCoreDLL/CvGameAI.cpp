@@ -1,11 +1,15 @@
-// gameAI.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvGameAI.h"
 #include "CoreAI.h"
 #include "CvCityAI.h"
 #include "UWAIAgent.h"
 #include "CvInfo_GameOption.h"
+#include "CvInfo_Building.h" // advc.erai
+
+// <advc.007b>
+#undef CVGAME_INSTANCE_FOR_RNG
+#define CVGAME_INSTANCE_FOR_RNG (*this) // </advc.007b>
+
 
 
 CvGameAI::CvGameAI()
@@ -27,9 +31,8 @@ void CvGameAI::AI_init()
 	AI_sortOutUWAIOptions(false); // advc.104
 }
 
-// <advc.104u>
-/*  Parts of the AI don't seem to get properly initialized in scenarios. Not
-	sure if this has always been the case, if it has to do with K-Mod changes to
+/*	advc.104u: Parts of the AI don't seem to get properly initialized in scenarios.
+	Not sure if this has always been the case, if it has to do with K-Mod changes to
 	the turn order (team turns vs. player turns) or is a problem I introduced.
 	Amendment: */
 void CvGameAI::AI_initScenario()
@@ -94,7 +97,10 @@ void CvGameAI::AI_reset(/* advc (as in CvGame): */ bool bConstructor)
 	AI_uninit();
 	m_iPad = 0;
 	if (!bConstructor)
+	{
 		AI_updateExclusiveRadiusWeight(); // advc.099b
+		AI_updateVoteSourceEras(); // advc.erai
+	}
 }
 
 
@@ -148,6 +154,60 @@ int CvGameAI::AI_turnsPercent(int iTurns, int iPercent)
 	return std::max(1, iTurns);
 }
 
+// <advc.erai> (based on CvGame::getCurrentEra)
+scaled CvGameAI::AI_getCurrEraFactor() const
+{
+	scaled r;
+	PlayerIter<CIV_ALIVE> it;
+	for (; it.hasNext(); ++it)
+		r += it->AI_getCurrEraFactor();
+	int const iCount = it.nextIndex();
+	if (iCount > 0)
+		return r / iCount;
+	FAssert(iCount > 0);
+	return -1;
+}
+
+
+EraTypes CvGameAI::AI_getVoteSourceEra(VoteSourceTypes eVS) const
+{
+	if (eVS == NO_VOTESOURCE) // By default, return the latest vote source.
+	{
+		EraTypes eLatestVSEra = NO_ERA;
+		FOR_EACH_ENUM(VoteSource)
+		{
+			eLatestVSEra = std::max(eLatestVSEra,
+					AI_getVoteSourceEra(eLoopVoteSource)); // recursion
+		}
+		return eLatestVSEra;
+	}
+	return m_aeVoteSourceEras.get(eVS);
+}
+
+// (Purely based on XML data; not serialized.)
+void CvGameAI::AI_updateVoteSourceEras()
+{
+	m_aeVoteSourceEras.reset();
+	FOR_EACH_ENUM(Building)
+	{
+		CvBuildingInfo const& kLoopBuilding = GC.getInfo(eLoopBuilding);
+		VoteSourceTypes eVS = kLoopBuilding.getVoteSourceType();
+		if (eVS == NO_VOTESOURCE)
+			continue;
+		EraTypes eMaxEra = NO_ERA;
+		FOR_EACH_ENUM(Tech)
+		{
+			EraTypes const eLoopEra = GC.getInfo(eLoopTech).getEra();
+			if (eLoopEra > eMaxEra)
+			{
+				if (kLoopBuilding.isTechRequired(eLoopTech))
+					eMaxEra = eLoopEra;
+			}
+		}
+		m_aeVoteSourceEras.set(eVS, eMaxEra);
+	}
+} // </advc.erai>
+
 
 /*	advc.099b: Between 0 and 1. Expresses AI confidence about winning culturally
 	contested tiles that are within the working radius of its cities exclusively.
@@ -164,7 +224,7 @@ scaled CvGameAI::AI_exclusiveRadiusWeight(int iDist) const
 	return m_arExclusiveRadiusWeight[iDist];
 }
 
-// advc.00b:
+// advc.009b:
  void CvGameAI::AI_updateExclusiveRadiusWeight()
  {
 	FAssert(m_arExclusiveRadiusWeight.size() == 3);
@@ -205,7 +265,7 @@ void CvGameAI::write(FDataStreamBase* pStream)
 {
 	CvGame::write(pStream);
 
-	uint uiFlag=0;
+	uint uiFlag = 0;
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iPad);

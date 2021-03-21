@@ -56,7 +56,15 @@ bool CyPlayer::startingPlotWithinRange(CyPlot *pPlot, int /*PlayerTypes*/ ePlaye
 
 CyPlot* CyPlayer::findStartingPlot(bool bRandomize)
 {
-	return m_pPlayer ? new CyPlot(m_pPlayer->findStartingPlot(bRandomize)) : NULL;
+	if (m_pPlayer == NULL)
+		return NULL;
+	//return new CyPlot(m_pPlayer->findStartingPlot(true));
+	// <advc.027> bRandomize param no longer exists
+	/*	This is intended for the WB scenario parser, but will also work
+		if a map script uses the bRandomize param. */
+	if (bRandomize)
+		m_pPlayer->setRandomWBStart(true);
+	return new CyPlot(m_pPlayer->findStartingPlot()); // </advc.027>
 }
 
 CyCity* CyPlayer::initCity(int x, int y)
@@ -561,7 +569,7 @@ int CyPlayer::calculateResearchModifier(int /*TechTypes*/ eTech)
 int CyPlayer::calculatePollution(int iPollution) const
 {
 	return m_pPlayer ? m_pPlayer->calculatePollution(
-			(CvPlayer::PollutionTypes)iPollution) : -1; // advc.enum
+			(CvPlayer::PollutionFlags)iPollution) : -1; // advc.enum
 }
 
 int CyPlayer::getGwPercentAnger() const
@@ -786,6 +794,13 @@ void CyPlayer::setStartingPlot(CyPlot* pPlot, bool bUpdateStartDist)
 
 	m_pPlayer->setStartingPlot(NULL != pPlot ? pPlot->getPlot() : NULL, bUpdateStartDist);
 }
+// advc.027:
+void CyPlayer::forceRandomWBStart()
+{
+	if (m_pPlayer == NULL)
+		return;
+	m_pPlayer->setRandomWBStart(true);
+}
 
 int CyPlayer::getTotalPopulation()
 {
@@ -797,7 +812,7 @@ int CyPlayer::getAveragePopulation()
 	return m_pPlayer ? m_pPlayer->getAveragePopulation() : -1;
 }
 
-long CyPlayer::getRealPopulation()
+int CyPlayer::getRealPopulation() // advc: Return type was long
 {
 	return m_pPlayer ? m_pPlayer->getRealPopulation() : -1;
 }
@@ -2238,37 +2253,37 @@ void CyPlayer::AI_setExtraGoldTarget(int iNewValue)
 
 int CyPlayer::getScoreHistory(int iTurn) const
 {
-	return (NULL != m_pPlayer ? m_pPlayer->getScoreHistory(iTurn) : 0);
+	return (NULL != m_pPlayer ? m_pPlayer->getHistorySafe(PLAYER_HISTORY_SCORE, iTurn) : -1);
 }
 
 int CyPlayer::getEconomyHistory(int iTurn) const
 {
-	return (NULL != m_pPlayer ? m_pPlayer->getEconomyHistory(iTurn) : 0);
+	return (NULL != m_pPlayer ? m_pPlayer->getHistorySafe(PLAYER_HISTORY_ECONOMY, iTurn) : -1);
 }
 
 int CyPlayer::getIndustryHistory(int iTurn) const
 {
-	return (NULL != m_pPlayer ? m_pPlayer->getIndustryHistory(iTurn) : 0);
+	return (NULL != m_pPlayer ? m_pPlayer->getHistorySafe(PLAYER_HISTORY_INDUSTRY, iTurn) : -1);
 }
 
 int CyPlayer::getAgricultureHistory(int iTurn) const
 {
-	return (NULL != m_pPlayer ? m_pPlayer->getAgricultureHistory(iTurn) : 0);
+	return (NULL != m_pPlayer ? m_pPlayer->getHistorySafe(PLAYER_HISTORY_AGRICULTURE, iTurn) : -1);
 }
 
 int CyPlayer::getPowerHistory(int iTurn) const
 {
-	return (NULL != m_pPlayer ? m_pPlayer->getPowerHistory(iTurn) : 0);
+	return (NULL != m_pPlayer ? m_pPlayer->getHistorySafe(PLAYER_HISTORY_POWER, iTurn) : -1);
 }
 
 int CyPlayer::getCultureHistory(int iTurn) const
 {
-	return (NULL != m_pPlayer ? m_pPlayer->getCultureHistory(iTurn) : 0);
+	return (NULL != m_pPlayer ? m_pPlayer->getHistorySafe(PLAYER_HISTORY_CULTURE, iTurn) : -1);
 }
 
 int CyPlayer::getEspionageHistory(int iTurn) const
 {
-	return (NULL != m_pPlayer ? m_pPlayer->getEspionageHistory(iTurn) : 0);
+	return (NULL != m_pPlayer ? m_pPlayer->getHistorySafe(PLAYER_HISTORY_ESPIONAGE, iTurn) : -1);
 }
 
 std::string CyPlayer::getScriptData() const

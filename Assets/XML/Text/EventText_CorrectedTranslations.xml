@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!-- advc: This came with the BUG mod. It was a full copy of
+	 Civ4GameText_Events_BTS.xml (including the file name) just for some
+	 corrections in translations. I'm only keeping those few changed texts.
+	 In-line comments added that describe the changes. -->
+
+<Civ4GameText xmlns="http://www.firaxis.com">
+	<!-- Copy-paste error in Italian -->
+	<TEXT>
+		<Tag>TXT_KEY_EVENTTRIGGER_MOTOR_OIL</Tag>
+		<English>%s1_civ_adjective chemists have developed an advanced refinement process for motor oil.</English>
+		<French>Des chimistes %s1:3_civ_adjective ont d&#233;velopp&#233; un proc&#233;d&#233; de raffinage am&#233;lior&#233; pour l'huile de moteur.</French>
+		<German>%s1:3_civ_adjective Chemiker haben ein verbessertes Raffinierungsverfahren f&#252;r Motor&#246;l entwickelt.</German>
+		<Italian>I chimici %s1_civ_adjective hanno sviluppato un processo avanzato per la raffinazione dell'olio motore.</Italian>
+		<Spanish>Los qu&#237;micos %s1:3_civ_adjective han desarrollado un proceso de refinado avanzado para el aceite de motores.</Spanish>
+	</TEXT>
+	<!-- Excess brackets in German, Italian -->
+	<TEXT>
+		<Tag>TXT_KEY_EVENT_THE_VANDALS_HELP_1</Tag>
+		<English>[ICON_BULLET]A dangerous number of barbarian [COLOR_UNIT_TEXT]Swordsman[COLOR_REVERT] units have spawned near our border.</English>
+		<French>[ICON_BULLET]Un nombre important de [COLOR_UNIT_TEXT]Spadassins[COLOR_REVERT] barbares est apparu de notre fronti&#232;re.</French>
+		<German>[ICON_BULLET]Eine gef&#228;hrliche Anzahl von barbarischen [COLOR_UNIT_TEXT]Schwertk&#228;mpfern[COLOR_REVERT] ist an unserer Grenze aufgetaucht.</German>
+		<Italian>[ICON_BULLET]Ai nostri confini c'&#232; un pericoloso numero di [COLOR_UNIT_TEXT]Spadaccini[COLOR_REVERT] barbari.</Italian>
+		<Spanish>[ICON_BULLET]Un peligroso n&#250;mero de unidades b&#225;rbaras de [COLOR_UNIT_TEXT]Soldados con espada[COLOR_REVERT] ha aparecido cerca de nuestra frontera.</Spanish>
+	</TEXT>
+	<!-- Excess bracket in Italian -->
+	<TEXT>
+		<Tag>TXT_KEY_EVENT_THE_GOTHS_HELP_1</Tag>
+		<English>[ICON_BULLET]A dangerous number of barbarian [COLOR_UNIT_TEXT]Axeman[COLOR_REVERT] units have spawned near our border.</English>
+		<French>[ICON_BULLET]Un nombre important de [COLOR_UNIT_TEXT]Soldats avec Hache[COLOR_REVERT] barbares est apparu de notre fronti&#232;re.</French>
+		<German>[ICON_BULLET]Eine gef&#228;hrliche Anzahl von barbarischen [COLOR_UNIT_TEXT]Axtk&#228;mpfern[COLOR_REVERT] ist an unserer Grenze aufgetaucht.</German>
+		<Italian>[ICON_BULLET]Ai nostri confini c'&#232; un pericoloso numero di [COLOR_UNIT_TEXT]Guerrieri con ascia[COLOR_REVERT] barbari.</Italian>
+		<Spanish>[ICON_BULLET]Un peligroso n&#250;mero de unidades b&#225;rbaras de [COLOR_UNIT_TEXT]Soldados con hacha[COLOR_REVERT] ha aparecido cerca de nuestra frontera.</Spanish>
+	</TEXT>
+	<!-- Excess bracket in Italian -->
+	<TEXT>
+		<Tag>TXT_KEY_EVENT_THE_PHILISTINES_HELP_1</Tag>
+		<English>[ICON_BULLET]A dangerous number of barbarian [COLOR_UNIT_TEXT]Spearman[COLOR_REVERT] units have spawned near our border.</English>
+		<French>[ICON_BULLET]Un nombre important de [COLOR_UNIT_TEXT]Lanciers[COLOR_REVERT] barbares est apparu de notre fronti&#232;re.</French>
+		<German>[ICON_BULLET]Eine gef&#228;hrliche Anzahl von barbarischen [COLOR_UNIT_TEXT]Speerk&#228;mpfern[COLOR_REVERT] ist an unserer Grenze aufgetaucht.</German>
+		<Italian>[ICON_BULLET]Ai nostri confini c'&#232; un pericoloso numero di [COLOR_UNIT_TEXT]Lancieri[COLOR_REVERT] barbari.</Italian>
+		<Spanish>[ICON_BULLET]Un peligroso n&#250;mero de unidades b&#225;rbaras de [COLOR_UNIT_TEXT]Lanceros[COLOR_REVERT] ha aparecido cerca de nuestra frontera.</Spanish>
+	</TEXT>
+	<!-- Excess bracket in Italian -->
+	<TEXT>
+		<Tag>TXT_KEY_EVENT_THE_VEDIC_ARYANS_HELP_1</Tag>
+		<English>[ICON_BULLET]A dangerous number of barbarian [COLOR_UNIT_TEXT]Archer[COLOR_REVERT] units have spawned near our border.</English>
+		<French>[ICON_BULLET]Un nombre important d'[COLOR_UNIT_TEXT]Archers[COLOR_REVERT] barbares est apparu de notre fronti&#232;re.</French>
+		<German>[ICON_BULLET]Eine gef&#228;hrliche Anzahl von barbarischen [COLOR_UNIT_TEXT]Bogensch&#252;tzen[COLOR_REVERT] ist an unserer Grenze aufgetaucht.</German>
+		<Italian>[ICON_BULLET]Ai nostri confini c'&#232; un pericoloso numero di [COLOR_UNIT_TEXT]Arcieri[COLOR_REVERT] barbari.</Italian>
+		<Spanish>[ICON_BULLET]Un peligroso n&#250;mero de unidades b&#225;rbaras de [COLOR_UNIT_TEXT]Arqueros[COLOR_REVERT] ha aparecido cerca de nuestra frontera.</Spanish>
+	</TEXT>
+	<!-- Bad grammar in Spanish -->
+	<TEXT>
+		<Tag>TXT_KEY_EVENTTRIGGER_CIV_GAME</Tag>
+		<English>The %s1_civ_adjective game designers have developed a new game of Civilization.</English>
+		<French>Les developpeurs de jeux videos %s1_civ_adjective game ont cree un nouvelle version de Civilization.</French>
+		<German>Von %s1:2_civ_adjective Entwicklern wird ein neuartiges Computerspiel namens 'Civilization' pr&#228;sentiert.</German>
+		<Italian>Progettisti di videogiochi %s1_civ_adjective hanno sviluppato un nuovo gioco chiamato Civilization.</Italian>
+		<Spanish>Los dise&#241;adores de juegos %s1:3_civ_adjective han desarrollado un nuevo juego de Civilization.</Spanish>
+	</TEXT>
+	<!-- Bad grammar in Spanish -->
+	<TEXT>
+		<Tag>TXT_KEY_EVENTTRIGGER_HEALING_PLANT</Tag>
+		<English>%s1_civ_adjective herbalists have discovered a plant that might result in better illness treatment.</English>
+		<French>Les botanistes %s1_civ_adjective ont decouvert une plante qui pourrait ameliorer le traitement de certaines maladies.</French>
+		<German>Von %s1:2_civ_adjective Naturheilkundigen wird die besondere Wirksamkeit einer Pflanze f&#252;r die Behandlung von Krankheiten entdeckt.</German>
+		<Italian>Erboristi %s1_civ_adjective hanno scoperto una pianta che potrebbe risultare utile nella cura di alcune malattie.</Italian>
+		<Spanish>Boticarios %s1:3_civ_adjective han descubierto una planta que puede servir para un mejor tratamiento de enfermedades.</Spanish>
+	</TEXT>
+	<!-- Bad grammar in Spanish -->
+	<TEXT>
+		<Tag>TXT_KEY_EVENTTRIGGER_GREAT_BEAST</Tag>
+		<English>%s1_civ_adjective hunters have discovered a great beast lurking near one of their camps.</English>
+		<French>Les chasseurs %s1_civ_adjective ont decouvert une enorme bete rodant pres d'un de leurs camps.</French>
+		<German>Von %s1:2_civ_adjective J&#228;gern gibt es Berichte &#252;ber ein riesiges Tier, das sich in der N&#228;he eines Lagers gezeigt haben soll.</German>
+		<Italian>Cacciatori %s1_civ_adjective hanno avvistato un grande animale appostato nei dintorni di un loro accampamento.</Italian>
+		<Spanish>Cazadores %s1:3_civ_adjective han descubierto una gran bestia acechando uno de sus campamentos.</Spanish>
+	</TEXT>
+	<!-- Bad grammar in Spanish -->
+	<TEXT>
+		<Tag>TXT_KEY_EVENTTRIGGER_BETTER_COAL</Tag>
+		<English>%s1_civ_adjective scientists have developed better ways of processing coal fuel.</English>
+		<French>Les scientifiques %s1_civ_adjective ont developpe une methode amelioree d'exploitation du charbon.</French>
+		<German>Die %s1:2_civ_adjective Wissenschaftler entwickeln ein verbessertes Verfahren zur Energiegewinnung aus Kohle.</German>
+		<Italian>Scienziati %s1_civ_adjective hanno sviluppato metodi migliori per la lavorazione del combustibile derivante dal carbone.</Italian>
+		<Spanish>Cient&#237;ficos %s1:3_civ_adjective han descubierto mejores maneras de procesar carb&#243;n.</Spanish>
+	</TEXT>
+	<!-- "Amun-Re" in Italian -->
+	<TEXT>
+		<Tag>TXT_KEY_EVENTTRIGGER_DISSIDENT_PRIEST</Tag>
+		<English>A priest from %s2_city is doubting the supreme power of Amun-Re.</English>
+		<French>Un pretre de %s2_city a mis en doute le pouvoir supreme d'Amon-re.</French>
+		<German>Ein Hohepriester der Stadt %s2_city zweifelt an der Macht des Fruchtbarkeitsgottes.</German>
+		<Italian>Un sacerdote di %s2_city dubita del potere supremo di Amon-Ra.</Italian>
+		<Spanish>Un sacerdote de %s2_city duda del poder supremo de Amun-Re.</Spanish>
+	</TEXT>
+	<!-- "Amun-Re" in Italian -->
+	<TEXT>
+		<Tag>TXT_KEY_EVENT_DISSIDENT_PRIEST</Tag>
+		<English>A dissident priest from %s2_city is doubting the supreme power of Amun-Re in an unprecedented outbreak of heresy.</English>
+		<French>Un pretre dissident de %s2_city, a mis en doute la puissance supreme d'Amon-Re, ouvrant la voie a une nouvelle heresie.</French>
+		<German>Ein kritischer Priester der Stadt %s2_city zweifelt in beispielloser Ketzerei an der Macht des Fruchtbarkeitsgottes.</German>
+		<Italian>Un sacerdote dissidente di %s2_city sta dubitando del potere supremo di Amon-Ra, creando una diffusione di eresie senza precedenti.</Italian>
+		<Spanish>En un brote de herejia sin precedentes, un sacerdote disidente de %s2_city duda del poder supremo de Amun-Re.</Spanish>
+	</TEXT>
+	<!-- "Amun-Re" in Italian -->
+	<TEXT>
+		<Tag>TXT_KEY_EVENT_DISSIDENT_PRIEST_1</Tag>
+		<English>That is disgusting and preposterous. The heresy must be dealt with in the name of Amun-Re, even if the locals won't support it.</English>
+		<French>C'est inadmissible et deprave. Cette heresie doit etre contrecarre au nom d'Amon-Re, meme si les autochtones ne l'approuvent pas.</French>
+		<German>Beendet im Namen des Fruchtbarkeitsgottes diese widerliche Ketzerei, notfalls mit Gewalt gegen die Bev&#246;lkerung.</German>
+		<Italian>Tutto ci&#242; &#232; disgustoso e assurdo. Dovremo occuparci di questa eresia nel nome di Amon-Ra, anche se non avremo l'appoggio delle popolazioni locali.</Italian>
+		<Spanish>Eso es lamentable y absurdo. La herejia debe ser tratada con el nombre de Amun-Re, incluso si la poblaci&#243;n local no lo apoya.</Spanish>
+	</TEXT>
+	<!-- Bad grammar in Spanish -->
+	<TEXT>
+		<Tag>TXT_KEY_EVENTTRIGGER_ROGUE_STATION</Tag>
+		<English>A rogue radio station in the %s1_civ_adjective city of %s2_city is broadcasting propaganda against the ruling party.</English>
+		<French>Une radio pirate dans la ville %s1_civ_adjective de %s2_city diffuse de la propagande anti-gouvernementale.</French>
+		<German>Im %s1:2_civ_adjective Reich verbreitet ein Piratensender ausgehend von der Stadt %s2_city Propaganda gegen die Regierung.</German>
+		<Italian>Una stazione radio dissidente nella citt&#224; %s1_civ_adjective di %s2_city sta diffondendo propaganda contro il partito al potere</Italian>
+		<Spanish>Una emisora pirata en la ciudad %s1:2_civ_adjective de %s2_city est&#225; emitiendo propaganda contra el partido gobernante.</Spanish>
+	</TEXT>
+	<!-- Bad grammar in Spanish -->
+	<TEXT>
+		<Tag>TXT_KEY_EVENTTRIGGER_ANTIMONARCHISTS</Tag>
+		<English>%s1_civ_adjective antimonarchists are protesting, saying that the religious institutions don't have enough power compared to the King.</English>
+		<French>Des anti-monarchistes %s1_civ_adjective manifestent car ils trouvent que les institutions religieuses ne sont pas assez puissantes comparees au roi.</French>
+		<German>Im %s1:2_civ_adjective Reich protestieren gl&#228;ubige Menschen gegen die Ohnmacht religi&#246;ser Institutionen im Vergleich zur Allmacht des K&#246;nigshauses.</German>
+		<Italian>Gli antimonarchici %s1_civ_adjective stanno protestando, dicono che le istituzioni religiose non hanno abbastanza poteri rispetto al re.</Italian>
+		<Spanish>Antimon&#225;rquicos %s1:3_civ_adjective estan protestando, diciendo que las instituciones religiosas apenas tienen poder frente al Rey.</Spanish>
+	</TEXT>
+
+</Civ4GameText>

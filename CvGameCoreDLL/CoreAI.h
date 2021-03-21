@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef CIV4_AI_H
-#define CIV4_AI_H
+#ifndef COREAI_H
+#define COREAI_H // Caveat: This guard gets referenced in other headers too
 
 // advc.make: Wrapper header to reduce the number of include directives
 
@@ -10,8 +10,8 @@
 #include "CvTeamAI.h"
 #include "CvPlayerAI.h"
 
-// <advc.003u>
-#undef GET_TEAM // Overwrite definition in CvGamePlay.h
+// <advc.003u> Overwrite the definitions in CvGamePlay.h and CvTeamAI.h
+#undef GET_TEAM
 #define GET_TEAM(x) CoreAI::getTeam(x)
 
 namespace CoreAI

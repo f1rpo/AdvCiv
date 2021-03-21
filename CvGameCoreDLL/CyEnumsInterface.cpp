@@ -9,6 +9,8 @@
 //
 // Python interface for free enums
 //
+/*	advc.enum (note): Unfortunately, these .value calls can't easily be generated
+	through macros. The string arguments are the main obstacle. */
 
 void CyEnumsPythonInterface()
 {
@@ -425,6 +427,7 @@ void CyEnumsPythonInterface()
 		.value("WIDGET_GOLDEN_AGE", WIDGET_GOLDEN_AGE)
 		.value("WIDGET_ANARCHY", WIDGET_ANARCHY) // </advc.085>
 		.value("WIDGET_CITY_TRADE", WIDGET_CITY_TRADE) // advc.ctr
+		.value("WIDGET_CYCLE_UNIT", WIDGET_CYCLE_UNIT) // advc.154
 		.value("NUM_WIDGET_TYPES", NUM_WIDGET_TYPES)
 		;
 
@@ -1339,9 +1342,6 @@ void CyEnumsPythonInterface()
 		.value("TRADE_RELIGION", TRADE_RELIGION)
 		.value("NUM_TRADEABLE_HEADINGS", NUM_TRADEABLE_HEADINGS)
 		.value("NUM_TRADEABLE_ITEMS", NUM_TRADEABLE_ITEMS)
-		/*  advc.034: After NUM_TRADEABLE_ITEMS because it's not supposed to be
-			included in iterations over TradeableItems */
-		.value("TRADE_DISENGAGE", TRADE_DISENGAGE)
 		;
 
 	python::enum_<DiploEventTypes>("DiploEventTypes")

@@ -37,6 +37,10 @@
 		<DefineName>LFB_ADJUSTDENOMINATOR</DefineName>
 		<iDefineIntVal>6</iDefineIntVal>
 	</Define>
+	<!-- advc.003g: Disabling this option should ensure that no floating-point
+		 math gets used in synchronized odds calculations. That said, AdvCiv
+		 still uses floating-point math in plenty of AI code, so disabling
+		 LFB combat odds is unlikely to help against OOS errors. -->
 	<Define>
 		<DefineName>LFB_USECOMBATODDS</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>

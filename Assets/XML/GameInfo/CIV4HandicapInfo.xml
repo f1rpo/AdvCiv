@@ -28,7 +28,8 @@
 			<!-- was 60 -->
 			<iResearchPercent>72</iResearchPercent>
 			<iTrainPercent>80</iTrainPercent>
-			<iConstructPercent>80</iConstructPercent>
+			<!-- was 80 (let's steer beginners away a bit from just playing SimCity) -->
+			<iConstructPercent>85</iConstructPercent>
 			<iCreatePercent>70</iCreatePercent>
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>45</iDistanceMaintenancePercent>
@@ -84,7 +85,7 @@
 			<!-- was 6x 160 -->
 			<iAITrainPercent>125</iAITrainPercent>
 			<iAIWorldTrainPercent>125</iAIWorldTrainPercent>
-			<iAIConstructPercent>125</iAIConstructPercent>
+			<iAIConstructPercent>120</iAIConstructPercent>
 			<iAIWorldConstructPercent>125</iAIWorldConstructPercent>
 			<iAICreatePercent>110</iAICreatePercent>
 			<iAIWorldCreatePercent>125</iAIWorldCreatePercent>
@@ -253,7 +254,7 @@
 			<!-- was 6x 130 -->
 			<iAITrainPercent>120</iAITrainPercent>
 			<iAIWorldTrainPercent>120</iAIWorldTrainPercent>
-			<iAIConstructPercent>120</iAIConstructPercent>
+			<iAIConstructPercent>115</iAIConstructPercent>
 			<iAIWorldConstructPercent>120</iAIWorldConstructPercent>
 			<iAICreatePercent>105</iAICreatePercent>
 			<iAIWorldCreatePercent>120</iAIWorldCreatePercent>
@@ -398,7 +399,7 @@
 			<iAIResearchPercent>100</iAIResearchPercent>
 			<iAITrainPercent>110</iAITrainPercent>
 			<iAIWorldTrainPercent>110</iAIWorldTrainPercent>
-			<iAIConstructPercent>110</iAIConstructPercent>
+			<iAIConstructPercent>105</iAIConstructPercent>
 			<iAIWorldConstructPercent>110</iAIWorldConstructPercent>
 			<iAICreatePercent>100</iAICreatePercent>
 			<iAIWorldCreatePercent>110</iAIWorldCreatePercent>
@@ -702,7 +703,7 @@
 			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>100</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>100</iGPThresholdPercent>
-			<iCultureLevelPercent>110</iCultureLevelPercent>
+			<iCultureLevelPercent>106</iCultureLevelPercent>
 			<!-- advc.251 (end) -->
 			<iResearchPercent>115</iResearchPercent>
 			<!-- advc.251 (start) -->
@@ -855,10 +856,10 @@
 			<iBuildTimePercent>110</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>110</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>110</iGPThresholdPercent>
-			<iCultureLevelPercent>120</iCultureLevelPercent>
+			<iCultureLevelPercent>112</iCultureLevelPercent>
 			<iResearchPercent>125</iResearchPercent>
 			<iTrainPercent>110</iTrainPercent>
-			<iConstructPercent>110</iConstructPercent>
+			<iConstructPercent>105</iConstructPercent>
 			<iCreatePercent>100</iCreatePercent>
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>95</iDistanceMaintenancePercent>
@@ -917,7 +918,7 @@
 			<!-- was 100 -->
 			<iAIWorldTrainPercent>95</iAIWorldTrainPercent>
 			<!-- was 85 -->
-			<iAIConstructPercent>95</iAIConstructPercent>
+			<iAIConstructPercent>90</iAIConstructPercent>
 			<!-- was 100 -->
 			<iAIWorldConstructPercent>95</iAIWorldConstructPercent>
 			<iAICreatePercent>85</iAICreatePercent>
@@ -1010,11 +1011,11 @@
 			<iBuildTimePercent>115</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>120</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>120</iGPThresholdPercent>
-			<iCultureLevelPercent>130</iCultureLevelPercent>
+			<iCultureLevelPercent>118</iCultureLevelPercent>
 			<!-- was 125 -->
 			<iResearchPercent>135</iResearchPercent>
 			<iTrainPercent>120</iTrainPercent>
-			<iConstructPercent>120</iConstructPercent>
+			<iConstructPercent>110</iConstructPercent>
 			<iCreatePercent>110</iCreatePercent>
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>100</iDistanceMaintenancePercent>
@@ -1074,12 +1075,10 @@
 			<iAITrainPercent>90</iAITrainPercent>
 			<!-- was 100 -->
 			<iAIWorldTrainPercent>90</iAIWorldTrainPercent>
-			<!-- was 80 -->
-			<iAIConstructPercent>90</iAIConstructPercent>
+			<iAIConstructPercent>80</iAIConstructPercent>
 			<!-- was 100 -->
 			<iAIWorldConstructPercent>90</iAIWorldConstructPercent>
-			<!-- was 80 -->
-			<iAICreatePercent>85</iAICreatePercent>
+			<iAICreatePercent>80</iAICreatePercent>
 			<!-- was 100 -->
 			<iAIWorldCreatePercent>90</iAIWorldCreatePercent>
 			<!-- advc.251 (end) -->
@@ -1173,11 +1172,11 @@
 			<iBuildTimePercent>120</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>130</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>130</iGPThresholdPercent>
-			<iCultureLevelPercent>150</iCultureLevelPercent>
+			<iCultureLevelPercent>129</iCultureLevelPercent>
 			<!-- advc.251: was 130 -->
 			<iResearchPercent>150</iResearchPercent>
 			<iTrainPercent>130</iTrainPercent>
-			<iConstructPercent>130</iConstructPercent>
+			<iConstructPercent>115</iConstructPercent>
 			<iCreatePercent>120</iCreatePercent>
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>100</iDistanceMaintenancePercent>
@@ -1236,7 +1235,7 @@
 			<!-- was 100-->
 			<iAIWorldTrainPercent>85</iAIWorldTrainPercent>
 			<!-- was 60 -->
-			<iAIConstructPercent>85</iAIConstructPercent>
+			<iAIConstructPercent>75</iAIConstructPercent>
 			<!-- was 100 -->
 			<iAIWorldConstructPercent>85</iAIWorldConstructPercent>
 			<!-- was 60 -->

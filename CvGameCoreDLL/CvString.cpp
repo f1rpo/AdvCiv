@@ -114,8 +114,7 @@ void CvString::getTokens(const CvString& delimiters, std::vector<CvString>& toke
 bool CvString::formatv(std::string & out, const char * fmt, va_list args)
 {
 	char buf[2048];
-	char * pbuf = buf;
-	int len = 0;
+	char* pbuf = buf;
 	int attempts = 0;
 	bool success = false;
 	const int kMaxAttempts = 40;
@@ -123,7 +122,7 @@ bool CvString::formatv(std::string & out, const char * fmt, va_list args)
 	do
 	{
 		int maxlen = 2047+2048*attempts;
-		len = _vsnprintf(pbuf,maxlen,fmt,args);
+		int len = _vsnprintf(pbuf,maxlen,fmt,args);
 		attempts++;
 		success = (len>=0 && len<=maxlen);
 		if (!success)
@@ -156,7 +155,6 @@ bool CvWString::formatv(std::wstring & out, const wchar * fmt, va_list args)
 {
 	wchar buf[2048];
 	wchar * pbuf = buf;
-	int len = 0;
 	int attempts = 0;
 	bool success = false;
 	const int kMaxAttempts = 40;
@@ -164,7 +162,7 @@ bool CvWString::formatv(std::wstring & out, const wchar * fmt, va_list args)
 	do
 	{
 		int maxlen = 2047+2048*attempts;
-		len = _vsnwprintf(pbuf,maxlen,fmt,args);
+		int len = _vsnwprintf(pbuf,maxlen,fmt,args);
 		attempts++;
 		success = (len>=0 && len<=maxlen);
 		if (!success)

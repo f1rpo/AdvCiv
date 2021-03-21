@@ -1620,8 +1620,9 @@ class CvWBDesc:
 				continue # </advc.056>
 			# Random Start Location
 			if (pPlayer.getLeaderType() != -1 and pWBPlayer.bRandomStartLocation != "false"):
-				pPlayer.setStartingPlot(pPlayer.findStartingPlot(true), True)
-
+				#pPlayer.setStartingPlot(pPlayer.findStartingPlot(True), True)
+				# advc.027: Let the DLL find a starting plot later; but make sure that the DLL won't simply assign one of the plots marked with "StartingPlot".
+				pPlayer.forceRandomWBStart()
 			else:
 
 				# Player's starting plot

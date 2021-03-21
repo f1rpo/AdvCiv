@@ -3,6 +3,9 @@
 #ifndef CIV4_PLAYER_H
 #define CIV4_PLAYER_H
 
+#include "PlayerHistory.h" // advc.004s: Replacing the typedef below
+//typedef stdext::hash_map<int,int> CvTurnScoreMap;
+
 class CvTalkingHeadMessage;
 class CvDiploParameters;
 class CvPopupInfo;
@@ -23,7 +26,6 @@ class CvCivilization; // advc.003w
 typedef std::list<CvTalkingHeadMessage> CvMessageQueue;
 typedef std::list<CvPopupInfo*> CvPopupQueue;
 typedef std::list<CvDiploParameters*> CvDiploQueue;
-typedef stdext::hash_map<int,int> CvTurnScoreMap;
 typedef stdext::hash_map<EventTypes,EventTriggeredData> CvEventMap;
 typedef std::vector<std::pair<UnitCombatTypes,PromotionTypes> > UnitCombatPromotionArray;
 typedef std::vector<std::pair<UnitClassTypes,PromotionTypes> > UnitClassPromotionArray;
@@ -76,7 +78,7 @@ public:
 			bool* pbFoundByMapScript = NULL) const; // advc.027
 	// advc.027: New auxiliary function (public only for Debug mode info)
 	int coastRiverStartingAreaScore(CvArea const& a) const;
-	CvPlot* findStartingPlot(bool bRandomize = false,																// Exposed to Python
+	CvPlot* findStartingPlot(																						// Exposed to Python
 			bool* pbPlotFoundByMapScript = NULL, bool* pbAreaFoundByMapScript = NULL); // advc.027
 
 	CvPlotGroup* initPlotGroup(CvPlot* pPlot);
@@ -95,8 +97,11 @@ public:
 			DirectionTypes eFacingDirection = DIRECTION_SOUTH);
 	void disbandUnit(bool bAnnounce);																				// Exposed to Python
 	void killUnits();																								// Exposed to Python
-
-	CvSelectionGroup* cycleSelectionGroups(CvUnit* pUnit, bool bForward, bool bWorkers, bool* pbWrap);
+	// <advc.154>
+	CvSelectionGroup* getNextGroupInCycle(CvUnit* pUnit, bool bForward,
+			bool bWorkers, bool* pbWrap) const; // </advc.154>
+	CvSelectionGroup* cycleSelectionGroups(CvUnit* pUnit, bool bForward,
+			bool bWorkers, bool* pbWrap);
 
 	bool hasTrait(TraitTypes eTrait) const { return GC.getInfo(getLeaderType()).hasTrait(eTrait); }					// Exposed to Python
 	// BETTER_BTS_AI_MOD, 12/30/08, jdog5000: START
@@ -197,12 +202,10 @@ public:
 	// advc.080:
 	int upgradeAllXPChange(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) const;
 
-	// note: bbai added bIncludeTraining to the following two functions
-	int countReligionSpreadUnits(CvArea const* pArea,																// Exposed to Python
-			ReligionTypes eReligion, bool bIncludeTraining = false) const;
-	int countCorporationSpreadUnits(CvArea const* pArea,															// Exposed to Python
-			CorporationTypes eCorporation, bool bIncludeTraining = false) const;
-
+	int countReligionSpreadUnits(CvArea const* pArea, ReligionTypes eReligion,										// Exposed to Python
+			bool bIncludeTraining = false) const; // BBAI
+	int countCorporationSpreadUnits(CvArea const* pArea, CorporationTypes eCorporation,								// Exposed to Python
+			bool bIncludeTraining = false) const; // BBAI
 	int countNumCoastalCities() const;																				// Exposed to Python
 	int countNumCoastalCitiesByArea(CvArea const& kArea) const;														// Exposed to Python
 	int countTotalCulture() const;																					// Exposed to Python
@@ -305,13 +308,13 @@ public:
 	/*	K-Mod, 18/dec/10: global warming pollution flags
 		advc.enum: Moved from CvDefines, turned into an enum.
 		(Overloaded bitwise operators at end of file) */
-	enum PollutionTypes // Exposed to Python
+	enum PollutionFlags // Exposed to Python
 	{
 		POLLUTION_POPULATION = (1 << 0), POLLUTION_BUILDINGS = (1 << 1),
 		POLLUTION_BONUSES = (1 << 2), POLLUTION_POWER = (1 << 3),
 		POLLUTION_ALL = (1 << 4) - 1
 	};
-	int calculatePollution(PollutionTypes ePollution = POLLUTION_ALL) const; // K-Mod, Exposed to Python
+	int calculatePollution(PollutionFlags ePollution = POLLUTION_ALL) const; // K-Mod, Exposed to Python
 	int getGwPercentAnger() const { return m_iGwPercentAnger; } // K-Mod, Exposed to Python
 	void setGwPercentAnger(int iNewValue); // K-Mod
 
@@ -409,14 +412,18 @@ public:
 	int specialistYield(SpecialistTypes eSpecialist, YieldTypes eYield) const;										// Exposed to Python
 	int specialistCommerce(SpecialistTypes eSpecialist, CommerceTypes eCommerce) const;								// Exposed to Python
 
-	// advc.027: Inline (called a lot by StartingPositionIteration)
+	// advc.027: Inline (called frequently by StartingPositionIteration)
 	inline CvPlot* getStartingPlot() const { return m_pStartingPlot; }												// Exposed to Python
-	void setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist);													// Exposed to Python
+	// advc: No update by default. Non-Python calls should never have to use that param.
+	void setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist = false);											// Exposed to Python
+	// <advc.027>
+	void setRandomWBStart(bool b) { m_bRandomWBStart = b; } // (exposed to Python as forceRandomWBStart)
+	bool isRandomWBStart() const { return m_bRandomWBStart; } // </advc.027>
 
 	int getTotalPopulation() const { return m_iTotalPopulation; }													// Exposed to Python
 	int getAveragePopulation() const;																				// Exposed to Python
 	void changeTotalPopulation(int iChange);
-	long getRealPopulation() const;																					// Exposed to Python
+	int getRealPopulation() const;																					// Exposed to Python
 	int getReligionPopulation(ReligionTypes eReligion) const;
 
 	int getTotalLand() const { return m_iTotalLand; }																// Exposed to Python
@@ -759,16 +766,17 @@ public:
 	int getCapitalX(TeamTypes eObserver, bool bDebug = false) const;
 	int getCapitalY(TeamTypes eObserver, bool bDebug = false) const;
 	int getCapitalX(PlayerTypes eObserver, bool bDebug = false) const;
-	int getCapitalY(PlayerTypes eObserver, bool bDebug = false) const;
-	// </advc.127b>  <advc>
+	int getCapitalY(PlayerTypes eObserver, bool bDebug = false) const; // </advc.127b>
+	// advc:
 	inline bool hasCapital() const
 	{
 		return (m_iCapitalCityID != FFreeList::INVALID_INDEX);
-	} // </advc>
+	}
 
 	int getCitiesLost() const { return m_iCitiesLost; }																// Exposed to Python
 	void changeCitiesLost(int iChange);
 
+	int getFreeWinsVsBarbs() const; // advc
 	int getWinsVsBarbs() const;																						// Exposed to Python
 	void changeWinsVsBarbs(int iChange);
 
@@ -857,8 +865,8 @@ public:
 	}
 	LeaderHeadTypes getPersonalityType() const { return m_ePersonalityType; }										// Exposed to Python
 	void setPersonalityType(LeaderHeadTypes eNewValue);																// Exposed to Python
-	// advc.opt: Inlined
-	inline DllExport EraTypes getCurrentEra() const { return m_eCurrentEra; }										// Exposed to Python
+
+	inline DllExport EraTypes getCurrentEra() const { return m_eCurrentEra; } // advc.inl							// Exposed to Python
 	void setCurrentEra(EraTypes eNewValue);
 
 	ReligionTypes getLastStateReligion() const { return m_eLastStateReligion; }
@@ -955,6 +963,8 @@ public:
 	DllExport bool isOption(PlayerOptionTypes eOption) const;														// Exposed to Python
 	DllExport void setOption(PlayerOptionTypes eOption, bool bNewValue);											// Exposed to Python
 
+	bool isAutomationSafe(CvPlot const& kPlot) const; // advc
+
 	bool isLoyalMember(VoteSourceTypes eVoteSource) const { return m_abLoyalMember.get(eVoteSource); }				// Exposed to Python
 	void setLoyalMember(VoteSourceTypes eVoteSource, bool bNewValue);												// Exposed to Python
 
@@ -1025,6 +1035,7 @@ public:
 	bool canPopRush() const { return (m_iPopRushHurryCount > 0); }
 	bool canGoldRush() const { return (m_iGoldRushHurryCount > 0); } // advc.064b
 	void changeHurryCount(HurryTypes eHurry, int iChange);
+	int getFoodKept(BuildingTypes eBuilding) const; // advc.912d
 
 	int getSpecialBuildingNotRequiredCount(SpecialBuildingTypes eSpecial) const										// Exposed to Python
 	{
@@ -1153,7 +1164,7 @@ public:
 	inline int getNumPlotGroups() const { return m_plotGroups.getCount(); }
 	inline CvPlotGroup* getPlotGroup(int iID) const
 	{
-		return (CvPlotGroup*)m_plotGroups.getAt(iID);
+		return m_plotGroups.getAt(iID);
 	}
 	CvPlotGroup* addPlotGroup() { return m_plotGroups.add(); }
 	inline void deletePlotGroup(int iID)
@@ -1271,25 +1282,19 @@ public:
 	DllExport void showSpaceShip();
 	DllExport void clearSpaceShipPopups();
 	void doChangeCivicsPopup(CivicTypes eCivic); // advc.004x
-
-	int getScoreHistory(int iTurn) const;																			// Exposed to Python
-	void updateScoreHistory(int iTurn, int iBestScore);
-
-	int getEconomyHistory(int iTurn) const;																			// Exposed to Python
-	void updateEconomyHistory(int iTurn, int iBestEconomy);
-	int getIndustryHistory(int iTurn) const;																		// Exposed to Python
-	void updateIndustryHistory(int iTurn, int iBestIndustry);
-	int getAgricultureHistory(int iTurn) const;																		// Exposed to Python
-	void updateAgricultureHistory(int iTurn, int iBestAgriculture);
-	int getPowerHistory(int iTurn) const;																			// Exposed to Python
-	void updatePowerHistory(int iTurn, int iBestPower);
-	int getCultureHistory(int iTurn) const;																			// Exposed to Python
-	void updateCultureHistory(int iTurn, int iBestCulture);
-	int getEspionageHistory(int iTurn) const;																		// Exposed to Python
-	void updateEspionageHistory(int iTurn, int iBestEspionage);
-	// advc.004s:
-	void updateHistoryMovingAvg(CvTurnScoreMap& kHistory, int iGameTurn, int iNewSample);
-	const CvPlayerRecord* getPlayerRecord() const; // K-Mod
+	// <advc.004s> Replacing implementation based on stdext::hash_map
+	inline int getHistory(PlayerHistoryTypes eHistory, int iTurn) const
+	{
+		FAssertEnumBounds(eHistory);
+		return m_playerHistory[eHistory].get(iTurn);
+	}
+	inline int getHistorySafe(PlayerHistoryTypes eHistory, int iTurn) const	// Exposed to Python (as e.g. getScoreHistory)
+	{
+		FAssertEnumBounds(eHistory);
+		return m_playerHistory[eHistory].getSafe(iTurn);
+	}
+	void updateHistory(PlayerHistoryTypes eHistory, int iTurn); // </advc.004s>
+	CvPlayerRecord const* getPlayerRecord() const; // K-Mod
 
 	// Script data needs to be a narrow string for pickling in Python
 	std::string getScriptData() const;																				// Exposed to Python
@@ -1355,8 +1360,8 @@ public:
 	bool canHaveTradeRoutesWith(PlayerTypes ePlayer) const;
 
 	void forcePeace(PlayerTypes ePlayer);																			// Exposed to Python
-	// advc.032: True iff a treaty was found and its turnsToCancel reset
-	bool resetPeaceTreaty(PlayerTypes ePlayer);
+	// advc.032: True iff a deal of eDealType was found and its turnsToCancel reset
+	bool resetDualDeal(PlayerTypes ePlayer, TradeableItems eDealType);
 	bool canSpiesEnterBorders(PlayerTypes ePlayer) const;
 	int getNewCityProductionValue() const;
 
@@ -1377,14 +1382,16 @@ public:
 	void setScoreboardExpanded(bool b);
 	bool isScoreboardExpanded() const;
 	// </advc.085>
-	DllExport void buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourList) const;
+	DllExport void buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& kOurInventory) const;
 	DllExport bool getHeadingTradeString(PlayerTypes eOtherPlayer, TradeableItems eItem,
 			CvWString& szString, CvString& szIcon) const;
 	DllExport bool getItemTradeString(PlayerTypes eRecipient, bool bOffer, bool bShowingCurrent,
 			TradeData const& zTradeData, CvWString& szString, CvString& szIcon) const;
-	DllExport void updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourInventory,
-			CLinkList<TradeData> const& ourOffer, CLinkList<TradeData> const& theirOffer) const;
-	void markTradeOffers(CLinkList<TradeData>& ourInventory, CLinkList<TradeData> const& ourOffer) const; // K-Mod
+	DllExport void updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& kOurInventory,
+			CLinkList<TradeData> const& kOurOffer, CLinkList<TradeData> const& kTheirOffer) const;
+	// <K-Mod>
+	void markTradeOffers(CLinkList<TradeData>& kOurInventory,
+			CLinkList<TradeData>& kOurOffer) const; // </K-Mod>
 	DllExport int getIntroMusicScriptId(PlayerTypes eForPlayer) const;
 	DllExport int getMusicScriptId(PlayerTypes eForPlayer) const;
 	DllExport void getGlobeLayerColors(GlobeLayerTypes eGlobeLayerType, int iOption,
@@ -1393,6 +1400,8 @@ public:
 	DllExport void cheat(bool bCtrl, bool bAlt, bool bShift);
 	DllExport const CvArtInfoUnit* getUnitArtInfo(UnitTypes eUnit, int iMeshGroup = 0) const;
 	DllExport bool hasSpaceshipArrived() const;
+	void announceGameNameChange(CvWString szOldName, CvWString szNewName); // advc.135c
+	bool showGoodyOnResourceLayer() const; // advc.004z
 	// <advc.003u>
 	__forceinline CvPlayerAI& AI()
 	{	//return *static_cast<CvPlayerAI*>(const_cast<CvPlayer*>(this));
@@ -1532,6 +1541,7 @@ protected:  // <advc.210>
 	// AI_AUTO_PLAY_MOD: END
 	bool m_bSavingReplay; // advc.106i
 	bool m_bScoreboardExpanded; // advc.085
+	bool m_bRandomWBStart; // advc.027
 
 	LeaderHeadTypes m_ePersonalityType;
 	EraTypes m_eCurrentEra;
@@ -1626,13 +1636,8 @@ protected:  // <advc.210>
 
 	CivicTypes m_eReminderPending; // advc.004x
 	CvWString** m_aszBonusHelp; // advc.003p  (not serialized)
-	CvTurnScoreMap m_mapScoreHistory;
-	CvTurnScoreMap m_mapEconomyHistory;
-	CvTurnScoreMap m_mapIndustryHistory;
-	CvTurnScoreMap m_mapAgricultureHistory;
-	CvTurnScoreMap m_mapPowerHistory;
-	CvTurnScoreMap m_mapCultureHistory;
-	CvTurnScoreMap m_mapEspionageHistory;
+	// advc.004s: Replacing seven separate maps
+	PlayerHistory m_playerHistory[NUM_PLAYER_HISTORY_TYPES];
 
 	void uninit();
 	void initContainers();
@@ -1658,7 +1663,6 @@ protected:  // <advc.210>
 	void addGoodyMsg(CvWString s, CvPlot const& p, TCHAR const* sound);
 	void promoteFreeUnit(CvUnit& u, scaled pr);
 	// </advc.314>
-	static int adjustAdvStartPtsToSpeed(int iPoints); // advc.250c
 	bool canSeeIntel(PlayerTypes ePlayer, bool bDemographics,
 			bool bCheckPoints = true) const; // advc.085
 	// advc.120f:
@@ -1793,6 +1797,6 @@ CvUnit* getUnitExternal(IDInfo unit); // exported through .def file
 // </advc.opt>
 
 // advc.enum: For calculatePollution. (Needs to be outside the class definition.)
-OVERLOAD_BITWISE_OPERATORS(CvPlayer::PollutionTypes)
+OVERLOAD_BITWISE_OPERATORS(CvPlayer::PollutionFlags)
 
 #endif

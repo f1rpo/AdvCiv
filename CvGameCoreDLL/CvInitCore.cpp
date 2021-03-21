@@ -1,5 +1,3 @@
-// game.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvInitCore.h"
 #include "CvPlayer.h"
@@ -978,6 +976,20 @@ void CvInitCore::setForceControl(ForceControlTypes eIndex, bool bOption)
 
 void CvInitCore::setActivePlayer(PlayerTypes eActivePlayer)
 {
+	/*	<advc.004s>, advc.001: Player switching skips the player history updates.
+		In BtS, this merely results in a discontinuity in the graphs, but the new
+		PlayerHistory class doesn't tolerate this at all. */
+	if (m_eActivePlayer != NO_PLAYER)
+	{
+		CvPlayer& kPrevActivePlayer = GET_PLAYER(m_eActivePlayer);
+		if (kPrevActivePlayer.isAlive())
+		{
+			FOR_EACH_ENUM(PlayerHistory)
+			{
+				kPrevActivePlayer.updateHistory(eLoopPlayerHistory, getGameTurn());
+			}
+		}
+	} // </advc.004s>
 	m_eActivePlayer = eActivePlayer;
 	if (m_eActivePlayer != NO_PLAYER)
 	{
@@ -1296,7 +1308,12 @@ void CvInitCore::setTeam(PlayerTypes eID, TeamTypes eTeam)
 }
 
 void CvInitCore::setHandicap(PlayerTypes eID, HandicapTypes eHandicap)
-{
+{	/*	advc: This can happen when an unknown handicap type string was read
+		from CivilizationIV.ini. Maybe that can only happen when AdvCiv itself
+		has used and then disused a custom handicap type -- which won't happen.
+		However, if another mod can cause this problem too, then it'll be
+		important to handle it gracefully ... */
+	FAssert(eHandicap != NO_HANDICAP);
 	m_aeHandicap.set(eID, eHandicap);
 }
 
@@ -1412,6 +1429,13 @@ void CvInitCore::setXMLCheck(PlayerTypes eID, CvString const& szXMLCheck)
 	Easier to track external calls in the debugger this way. */
 void CvInitCore::setGameName(CvWString const& szGameName)
 {
+	/*	<advc.135c> Changing the game name can be a step to enable debug tools.
+		Make sure that the other players are aware. */
+	if (getMultiplayer() && !m_szGameName.empty() && m_szGameName != szGameName &&
+		getActivePlayer() != NO_PLAYER)
+	{
+		GET_PLAYER(getActivePlayer()).announceGameNameChange(m_szGameName, szGameName);
+	} // </advc.135c>
 	m_szGameName = szGameName;
 }
 
@@ -1486,18 +1510,11 @@ void CvInitCore::externalRNGCall(int iUpper, CvRandom const* pRandom)
 
 	if (iUpper != 10000)
 		return;
-
-	/*	When a player i is set to "Random", m_aeCiv[i], m_aeLeader[i]
-		remain at -1 (NO_...) until the dice have been rolled.
-		So, there's no need to count the RNG calls; we just need to
-		find the first player who doesn't already have a civ, and,
-		if all have a civ, then the first player without a leader. */
 	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
 		if (GET_PLAYER((PlayerTypes)i).isEverAlive())
 			return; // We're already past the civ and leader assignment at game start
 	}
-
 	std::vector<PlayerTypes> aeSlotPlayer;
 	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
 	{
@@ -1509,6 +1526,11 @@ void CvInitCore::externalRNGCall(int iUpper, CvRandom const* pRandom)
 			aeSlotPlayer.push_back(ePlayer);
 		}
 	}
+	/*	When a player i is set to "Random", m_aeCiv[i], m_aeLeader[i]
+		remain at -1 (NO_...) until the dice have been rolled.
+		So, there's no need to count the RNG calls; we just need to
+		find the first player who doesn't already have a civ, and,
+		if all have a civ, then the first player without a leader. */
 	for (size_t i = 0; i < aeSlotPlayer.size(); i++)
 	{
 		if (getCiv(aeSlotPlayer[i]) == NO_CIVILIZATION)
@@ -1894,10 +1916,11 @@ void CvInitCore::read(FDataStreamBase* pStream)
 void CvInitCore::write(FDataStreamBase* pStream)
 {
 	REPRO_TEST_BEGIN_WRITE("InitCore");
-	uint uiFlag = 1;
-	uiFlag = 2; // advc.912d
-	uiFlag = 3; // advc: m_bPangaea
-	uiFlag = 4; // advc.enum: m_abOptions as byte map
+	uint uiFlag;
+	//uiFlag = 1; // BtS
+	//uiFlag = 2; // advc.912d
+	//uiFlag = 3; // advc: m_bPangaea
+	//uiFlag = 4; // advc.enum: m_abOptions as byte map
 	uiFlag = 5; // advc.190c
 
 	pStream->Write(uiFlag);

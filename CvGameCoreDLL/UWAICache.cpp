@@ -8,6 +8,7 @@
 #include "WarEvalParameters.h"
 #include "WarEvaluator.h"
 #include "CoreAI.h"
+#include "TeamPathFinder.h"
 #include "CvSelectionGroupAI.h"
 #include "CityPlotIterator.h"
 #include "CvArea.h"
@@ -74,7 +75,6 @@ void UWAICache::clear(bool beforeUpdate) {
 	warUtilityIgnDistraction.reset();
 
 	if(!beforeUpdate) {
-		latestTurnReachableBySea.clear();
 		nNonNavyUnits = 0;
 		for(size_t i = 0; i < militaryPower.size(); i++)
 			SAFE_DELETE(militaryPower[i]);
@@ -90,14 +90,16 @@ void UWAICache::clear(bool beforeUpdate) {
 void UWAICache::write(FDataStreamBase* stream) {
 
 	PROFILE_FUNC();
-	int savegameVersion = 1;
-	savegameVersion = 2; // advc.035
-	savegameVersion = 3; // hireAgainst added
-	savegameVersion = 4; // granularity of pastWarScore increased
+	int savegameVersion;
+	//savegameVersion = 1;
+	//savegameVersion = 2; // advc.035
+	//savegameVersion = 3; // hireAgainst added
+	//savegameVersion = 4; // granularity of pastWarScore increased
 	/*  I hadn't thought of a version number in the initial release. Need
 		to fold it into ownerId now to avoid breaking compatibility. */
-	savegameVersion = 5; // focusOnPeacefulVictory added
-	savegameVersion = 6; // advc.enum: Store as float
+	//savegameVersion = 5; // focusOnPeacefulVictory added
+	//savegameVersion = 6; // advc.enum: Store as float
+	savegameVersion = 7; // advc: remove latestTurnReachableBySea
 	stream->Write(ownerId + 100 * savegameVersion);
 	int n = (int)v.size();
 	stream->Write(n);
@@ -127,15 +129,8 @@ void UWAICache::write(FDataStreamBase* stream) {
 	stream->Write(focusOnPeacefulVictory);
 	stream->Write(readyToCapitulate.size());
 	for(std::set<TeamTypes>::const_iterator it = readyToCapitulate.begin();
-			it != readyToCapitulate.end(); it++)
+			it != readyToCapitulate.end(); ++it)
 		stream->Write(*it);
-	stream->Write(latestTurnReachableBySea.size());
-	for(std::map<int,std::pair<int,int> >::iterator it = latestTurnReachableBySea.
-			begin(); it != latestTurnReachableBySea.end(); it++) {
-		stream->Write(it->first);
-		stream->Write(it->second.first);
-		stream->Write(it->second.second);
-	}
 	for(size_t i = 0; i < militaryPower.size(); i++)
 		militaryPower[i]->write(stream);
 	stream->Write(nNonNavyUnits);
@@ -155,7 +150,7 @@ void UWAICache::read(FDataStreamBase* stream) {
 	int n=0;
 	stream->Read(&n);
 	for(int i = 0; i < n; i++) {
-		v.push_back(new City(ownerId));
+		v.push_back(new City);
 		v[i]->read(stream);
 		cityMap.insert(std::make_pair(v[i]->id(), v[i]));
 	}
@@ -191,21 +186,27 @@ void UWAICache::read(FDataStreamBase* stream) {
 	stream->Read(&trainAnyCargo);
 	if(savegameVersion >= 5)
 		stream->Read(&focusOnPeacefulVictory);
-	int sz=0;
-	stream->Read(&sz);
-	for(int i = 0; i < sz; i++) {
-		int masterId;
-		stream->Read(&masterId);
-		FAssert(masterId >= 0 && masterId < MAX_CIV_TEAMS); // Sanity check
-		readyToCapitulate.insert((TeamTypes)masterId);
+	{
+		int sz=0;
+		stream->Read(&sz);
+		for(int i = 0; i < sz; i++) {
+			int masterId;
+			stream->Read(&masterId);
+			FAssert(masterId >= 0 && masterId < MAX_CIV_TEAMS); // Sanity check
+			readyToCapitulate.insert((TeamTypes)masterId);
+		}
 	}
-	stream->Read(&sz);
-	for(int i = 0; i < sz; i++) {
-		int key, firstVal, secondVal;
-		stream->Read(&key);
-		stream->Read(&firstVal);
-		stream->Read(&secondVal);
-		latestTurnReachableBySea[key] = std::make_pair(firstVal, secondVal);
+	if(savegameVersion < 7) {
+		int sz=0;
+		stream->Read(&sz);
+		for(int i = 0; i < sz; i++) {
+			int key, firstVal, secondVal;
+			stream->Read(&key);
+			stream->Read(&firstVal);
+			stream->Read(&secondVal);
+			// No longer used; just discard the data.
+			//latestTurnReachableBySea[key] = std::make_pair(firstVal, secondVal);
+		}
 	}
 	militaryPower.push_back(new MilitaryBranch::HomeGuard(ownerId));
 	militaryPower.push_back(new MilitaryBranch::Army(ownerId));
@@ -231,17 +232,22 @@ void UWAICache::update() {
 	focusOnPeacefulVictory = calculateFocusOnPeacefulVictory();
 	// Needs to be done before updating cities
 	updateTrainCargo();
-	for(PlayerIter<MAJOR_CIV,KNOWN_TO> it(TEAMID(ownerId)); it.hasNext(); ++it)
-		updateCities(it->getID());
+	TeamPathFinders* pf = NULL;
+	if (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO>::count(TEAMID(ownerId)) > 0) {
+		// Will have to reset these after each team; but allocate memory only once.
+		pf = createTeamPathFinders();
+	}
+	for(TeamIter<MAJOR_CIV,KNOWN_TO> it(TEAMID(ownerId)); it.hasNext(); ++it)
+		updateCities(it->getID(), pf);
+	if(pf != NULL)
+		deleteTeamPathFinders(*pf);
 	sortCitiesByAttackPriority();
 	updateTotalAssetScore();
-	/*  Disable latestTurnReachable fallback
-		(The update is actually cheap, but I'm not sure about the very numerous
-		getDistance calls.) */
-	//updateLatestTurnReachableBySea();
 	updateTargetMissionCounts();
 	updateTypicalUnits();
-	updateThreatRatings();
+	bool const playerHistAvailable = (GC.getGame().getElapsedGameTurns() > 0);
+	if(playerHistAvailable) // Can't do yield estimates on the first turn
+		updateThreatRatings();
 	updateVassalScores();
 	updateAdjacentLand();
 	updateLostTilesAtWar(); // advc.035
@@ -251,27 +257,109 @@ void UWAICache::update() {
 	updateCanScrub();
 
 	// Any values used by war evaluation need to be updated before this!
-	if(GC.getGame().getElapsedGameTurns() > 0) { /* On turn 0, the
+	if(playerHistAvailable) { /* Apart from the yield estimation problem, the
 			other civs' caches aren't up to date, which can cause problems
 			in scenarios. */
 		updateWarUtility();
 	}
 }
 
-void UWAICache::updateCities(PlayerTypes civId) {
+TeamPathFinders* UWAICache::createTeamPathFinders() const
+{
+	/*	Would be nice to make one instance of each TeamPathFinder class a member of
+		CvTeam rather than creating temporary instances. However - see the comment in
+		KmodPathFinder::resetNodes. */
+	CvTeam const& cacheTeam = GET_TEAM(ownerId);
+	using namespace TeamPath;
+	return new TeamPathFinders(
+			*new TeamPathFinder<LAND>(cacheTeam),
+			*new TeamPathFinder<ANY_WATER>(cacheTeam),
+			*new TeamPathFinder<SHALLOW_WATER>(cacheTeam));
+}
+
+void UWAICache::deleteTeamPathFinders(TeamPathFinders& pf) {
+
+	delete &pf.landFinder();
+	delete &pf.anyWaterFinder();
+	delete &pf.shallowWaterFinder();
+	delete &pf;
+}
+
+void UWAICache::resetTeamPathFinders(TeamPathFinders& pf, TeamTypes warTargetId) const {
+
+	int seaLimit = getUWAI.maxSeaDist() * GET_PLAYER(ownerId).uwai().shipSpeed();
+	int landLimit = getUWAI.maxLandDist();
+	CvTeam const* warTarget = &GET_TEAM(warTargetId);
+	pf.landFinder().reset(warTarget, landLimit);
+	pf.anyWaterFinder().reset(warTarget, seaLimit);
+	pf.shallowWaterFinder().reset(warTarget, seaLimit);
+}
+
+void UWAICache::updateCities(TeamTypes teamId, TeamPathFinders* pf) {
 
 	PROFILE_FUNC();
-	CvPlayerAI& civ = GET_PLAYER(civId);
-	FOR_EACH_CITY(c, civ) {
-		// c.isRevealed() impedes the AI too much
-		if(civId == ownerId || GET_TEAM(ownerId).AI_deduceCitySite(c)) {
-			City* cacheCity = new City(ownerId, *c);
-			v.push_back(cacheCity);
-			cityMap.insert(std::make_pair(cacheCity->id(), cacheCity));
-			if(civId != ownerId && cacheCity->canReach())
-				nReachableCities.add(civId, 1);
+	CvTeamAI const& cacheTeam = GET_TEAM(ownerId);
+	bool const isHuman = GET_PLAYER(ownerId).isHuman();
+	if(teamId == cacheTeam.getID())
+		pf = NULL;
+	else resetTeamPathFinders(*pf, teamId);
+	for (MemberIter it(teamId); it.hasNext(); ++it)
+	{
+		CvPlayerAI& civ = *it;
+		FOR_EACH_CITY_VAR(c, civ) {
+			// c.isRevealed() impedes the AI too much
+			if(teamId == cacheTeam.getID() ||
+					// Assume that human can locate all cities of known civs
+					isHuman || cacheTeam.AI_deduceCitySite(*c))
+				add(*new City(ownerId, *c, pf));
 		}
 	}
+}
+
+void UWAICache::add(City& c)
+{
+	v.push_back(&c);
+	cityMap.insert(std::make_pair(c.id(), &c));
+	PlayerTypes cityOwnerId = c.city().getOwner();
+	if(TEAMID(cityOwnerId) != TEAMID(ownerId) && c.canReach())
+		nReachableCities.add(cityOwnerId, 1);
+}
+
+/*	Only for updates triggered by unit movement of other players.
+	Caller is assumed to check visibility and civ status
+	(the cache only covers major civs). */
+void UWAICache::add(CvCity& c) {
+
+	TeamPathFinders* pf = NULL;
+	if(c.getTeam() != TEAMID(ownerId)) {
+		pf = createTeamPathFinders();
+		resetTeamPathFinders(*pf, c.getTeam());
+	}
+	add(*new City(ownerId, c, pf));
+	if(pf != NULL)
+		deleteTeamPathFinders(*pf);
+}
+
+void UWAICache::remove(CvCity const& c) {
+
+	City* fromCache = NULL;
+	std::map<int,City*>::iterator mapPos = cityMap.find(c.plotNum());
+	if(mapPos != cityMap.end())
+		fromCache = mapPos->second;
+	if(fromCache == NULL) // OK, caller doesn't need to ensure this.
+		return;
+	PlayerTypes oldCityOwnerId = fromCache->city().getOwner();
+	if(TEAMID(oldCityOwnerId) != TEAMID(ownerId) && fromCache->canReach())
+		nReachableCities.add(oldCityOwnerId, -1);
+	cityMap.erase(mapPos);
+	std::vector<City*>::iterator vectorPos = std::find(
+			v.begin(), v.end(), fromCache);
+	if(vectorPos == v.end()) {
+		FAssert(vectorPos != v.end());
+		return;
+	}
+	delete *vectorPos;
+	v.erase(vectorPos);
 }
 
 void UWAICache::updateTotalAssetScore() {
@@ -279,17 +367,14 @@ void UWAICache::updateTotalAssetScore() {
 	// For Palace; it's counted as a national wonder below, but it's worth another 5.
 	totalAssets = 5;
 	for(int i = size() - 1; i >= 0; i--) {
-		City const& c = *getCity(i);
-		if(!c.isOwnCity())
-			break; // Sorted so that owner's cities are at the end
-		CvCity* cp = c.city();
-		if(cp != NULL && cp->getOwner() == ownerId)
+		City const& c = cityAt(i);
+		if(!c.isOwnTeamCity())
+			break; // Sorted so that cities of owner's team are at the end
+		CvCity& cvc = c.city();
+		if(cvc.getOwner() == ownerId)
 			/*  National wonders aren't included in the per-city asset score b/c
 				they shouldn't count for rival cities. */
-			totalAssets += c.getAssetScore() + cp->getNumNationalWonders() * 4;
-		/*  Cached cities have just been updated, so ownership info can't be
-			out of date. */
-		else FAssert(false);
+			totalAssets += c.getAssetScore() + cvc.getNumNationalWonders() * 4;
 	}
 }
 
@@ -381,19 +466,19 @@ double UWAICache::goldPerProdSites() {
 		looking at some sample targetCityValues; let's hope these generalize. */
 	double const refVal = 50;
 	FOR_EACH_CITY(c, GET_PLAYER(BARBARIAN_PLAYER)) {
-		if(GET_TEAM(owner.getTeam()).AI_deduceCitySite(c)) {
-			int const targetVal = owner.AI_targetCityValue(c, false, true);
+		if(GET_TEAM(owner.getTeam()).AI_deduceCitySite(*c)) {
+			int const targetVal = owner.AI_targetCityValue(*c, false, true);
 			if (targetVal > 0)
 				sites += std::pow(std::min((double)targetVal, refVal) / refVal, 3.0);
 		}
 	}
-	CvGame& g = GC.getGame();
+	CvGameAI const& g = GC.AI_getGame();
 	int gameEra = g.getCurrentEra();
 	/*  Rage makes it more worthwhile to focus on early expansion (at least for
 		the AI), regardless of whether the additional cities are new or conquered
 		from the barbs. */
 	if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) &&
-			(gameEra < 2 || gameEra == g.getStartEra()))
+			(g.AI_getCurrEraFactor() < fixp(1.5) || gameEra == g.getStartEra()))
 		sites *= 1.25;
 	double cities = std::max(1, owner.getNumCities());
 	// Shouldn't expect to claim all sites with few cities
@@ -467,7 +552,7 @@ void UWAICache::updateWarUtilityIgnDistraction(TeamTypes targetId) {
 	// Just limited war and naval based on AI_isLandTarget is good enough here
 	if(wp == NO_WARPLAN) {
 		wp = WARPLAN_PREPARING_LIMITED;
-		if(!agent.uwai().isPushover(targetId))
+		if(!agent.AI_isPushover(targetId))
 			prepTime = 5;
 	}
 	warUtilityIgnDistraction.set(targetId, eval.evaluate(
@@ -605,25 +690,12 @@ UWAICache const& UWAICache::leaderCache() const {
 		return *this;
 	return GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).uwai().getCache();
 }
+
 UWAICache& UWAICache::leaderCache() {
 
 	if(ownerId == GET_TEAM(ownerId).getLeaderID())
 		return *this;
 	return GET_PLAYER(GET_TEAM(ownerId).getLeaderID()).uwai().getCache();
-}
-
-UWAICache::City* UWAICache::lookupCity(int plotIndex) const {
-
-	std::map<int,City*>::const_iterator pos = cityMap.find(plotIndex);
-	// Verify that the city still exists
-	if(pos == cityMap.end() || pos->second->city() == NULL)
-		return NULL;
-	return pos->second;
-}
-
-UWAICache::City* UWAICache::lookupCity(CvCity const& cvCity) const {
-
-	return lookupCity(cvCity.plotNum());
 }
 
 void UWAICache::sortCitiesByOwnerAndDistance() {
@@ -659,50 +731,33 @@ void UWAICache::sortCitiesByAttackPriority() {
 	for(int i = 0; i < ((int)v.size()) - 1; i++) {
 		CvCity* pPrevCity = NULL;
 		if(i > 0)
-			pPrevCity = v[i - 1]->city();
+			pPrevCity = &v[i - 1]->city();
 		CvArea const* pPrevArea = (pPrevCity == NULL ? NULL :& pPrevCity->getArea());
 		double maxPriority = -100;
 		int iMax = -1;
 		for(size_t j = i; j < v.size(); j++) {
-			CvCity const* pCity = v[j]->city();
-			CvArea const* pArea = (pCity == NULL ? NULL : pCity->area());
-			double priority = (pCity == NULL ? -100 : v[j]->attackPriority());
-			if(i > 0 && pPrevArea != NULL && pPrevArea != pArea && priority > 0)
+			double priority = v[j]->attackPriority();
+			if(i > 0 && pPrevArea != NULL && pPrevArea != v[j]->city().area() &&
+					priority > 0)
 				priority /= 2;
 			if(priority > maxPriority) {
 				iMax = j;
 				maxPriority = priority;
 			}
 		}
-		if(iMax >= 0) {
-			City* tmp = v[i];
-			v[i] = v[iMax];
-			v[iMax] = tmp;
-		}
+		if(iMax >= 0)
+			std::swap(v[i], v[iMax]);
 	}
+}
+
+CvCity& UWAICache::cvCityById(int plotIndex)
+{
+	return *GC.getMap().getPlotByIndex(plotIndex).getPlotCity();
 }
 
 int UWAICache::size() const {
 
 	return (int)v.size();
-}
-
-void UWAICache::updateLatestTurnReachableBySea() {
-
-	PROFILE_FUNC();
-	/*  LatestTurnReachable is a fallback for City::reachable and City::distance.
-		Not really necessary anymore b/c City::measureDistance is more reliable
-		now than it used to be, but still nice to have for dealing with temporary
-		changes in city population or yield rate. (measureDistance may skip small
-		and low-production cities.) */
-	for(size_t i = 0; i < v.size(); i++) {
-		City const& c = *v[i];
-		// No pair means not reachable (by sea)
-		if(!c.canCurrentlyReachBySea())
-			continue;
-		latestTurnReachableBySea[c.id()] = std::make_pair(GC.getGame().
-				getGameTurn(), c.getDistance());
-	}
 }
 
 void UWAICache::updateTraits() {
@@ -757,7 +812,7 @@ void UWAICache::updateAdjacentLand() {
 			adjacentLand.add(o, 1);
 	}
 }
-// <advc.035>
+// advc.035:
 void UWAICache::updateLostTilesAtWar() {
 
 	//PROFILE_FUNC();
@@ -777,7 +832,7 @@ void UWAICache::updateLostTilesAtWar() {
 		}
 		lostTilesAtWar.set(tId, lost);
 	}
-} // </advc.035>
+}
 
 void UWAICache::updateRelativeNavyPower() {
 
@@ -846,7 +901,7 @@ double UWAICache::calculateThreatRating(PlayerTypes civId) const {
 	CvCity* cc = GET_PLAYER(ownerId).getCapitalCity();
 	City* c = NULL;
 	if(cc != NULL)
-		c = GET_PLAYER(civId).uwai().getCache().lookupCity(*cc);
+		c = GET_PLAYER(civId).uwai().getCache().lookupCity(cc->plotNum());
 	if(c != NULL && !c->canReach())
 		return 0;
 	double r = 0;
@@ -948,6 +1003,14 @@ void UWAICache::updateVassalScore(PlayerTypes civId) {
 			std::max(4, nMasterResources)));
 }
 
+// Called once all CvCity objects have been loaded 
+void UWAICache::cacheCitiesAfterRead() {
+
+	for(int i = 0; i < size(); i++) {
+		cityAt(i).cacheCvCity();
+	}
+}
+
 void UWAICache::reportUnitCreated(CvUnitInfo const& u) {
 
 	updateMilitaryPower(u, true);
@@ -969,17 +1032,14 @@ void UWAICache::reportWarEnding(TeamTypes enemyId,
 	bool bForceFailure = false;
 	bool bForceNoFailure = false;
 	bool bForceNoSuccess = false;
-	CLLNode<TradeData> const* node = NULL;
-	TradeableItems ti;
 	if(weReceive != NULL) {
 		int iTechs = 0;
 		int iCities = 0;
 		// Ignore gold for simplicity (although a large sum could of course be relevant)
-		for(node = weReceive->head(); node != NULL; node = weReceive->next(node)) {
-			ti = node->m_data.m_eItemType;
-			if(ti == TRADE_TECHNOLOGIES)
+		FOR_EACH_TRADE_ITEM(*weReceive) {
+			if(pItem->m_eItemType == TRADE_TECHNOLOGIES)
 				iTechs++;
-			else if(ti == TRADE_CITIES)
+			else if(pItem->m_eItemType == TRADE_CITIES)
 				iCities++;
 		}
 		if(iTechs + iCities > 0)
@@ -989,11 +1049,10 @@ void UWAICache::reportWarEnding(TeamTypes enemyId,
 	} else if(wePay != NULL) {
 		int iTechs = 0;
 		int iCities = 0;
-		for(node = wePay->head(); node != NULL; node = wePay->next(node)) {
-			ti = node->m_data.m_eItemType;
-			if(ti == TRADE_TECHNOLOGIES)
+		FOR_EACH_TRADE_ITEM(*wePay) {
+			if(pItem->m_eItemType == TRADE_TECHNOLOGIES)
 				iTechs++;
-			else if(ti == TRADE_CITIES)
+			else if(pItem->m_eItemType == TRADE_CITIES)
 				iCities++;
 		}
 		if(iTechs + iCities > 0)
@@ -1008,9 +1067,9 @@ void UWAICache::reportWarEnding(TeamTypes enemyId,
 			!bForceFailure && !bForceSuccess)
 		return;
 	// Use our era as the baseline for what is significant war success
-	int iOurTechEra = GET_PLAYER(ownerId).getCurrentEra();
+	double ourTechEra = GET_PLAYER(ownerId).AI_getCurrEraFactor().getDouble();
 	double successRatio = iOurSuccess / (double)std::max(1, iTheirSuccess);
-	double successThresh = GC.getWAR_SUCCESS_CITY_CAPTURING() * iOurTechEra * 0.7;
+	double successThresh = GC.getWAR_SUCCESS_CITY_CAPTURING() * ourTechEra * 0.7;
 	if(	  (successRatio > 1 && iOurSuccess < successThresh) ||
 		  (successRatio < 1 && iTheirSuccess < successThresh))
 		successRatio = 1;
@@ -1033,48 +1092,22 @@ void UWAICache::reportWarEnding(TeamTypes enemyId,
 		pastWarScores.add(enemyId, -::round(100 * durationFactor));
 }
 
-void UWAICache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
+/*	Note: City ownership changes result in the creation of a new city.
+	It's important that the cache keep up with ownership changes
+	so that the AI is aware of conquests made throughout a human turn.*/
+void UWAICache::reportCityCreated(CvCity& c) {
 
-	if(!GET_TEAM(ownerId).AI_deduceCitySite(c) || c->getOwner() == BARBARIAN_PLAYER)
+	if(!GET_PLAYER(c.getOwner()).isMajorCiv())
 		return;
-	/*  I didn't think I'd need to update the city cache during turns, so this
-		is awkward to write ...
-		Necessary though b/c the AI needs to stay up to date with human conquests. */
-	int vIndex = -1;
-	if(GET_PLAYER(oldOwnerId).isMajorCiv()) {
-		City* fromCache = NULL;
-		std::map<int,City*>::iterator pos = cityMap.find(c->plotNum());
-		if(pos != cityMap.end())
-			fromCache = pos->second;
-		if(fromCache != NULL) {
-			if(fromCache->canReach())
-				nReachableCities.add(oldOwnerId, -1);
-			cityMap.erase(pos);
-			for(vIndex = 0; vIndex < (int)v.size(); vIndex++) {
-				if(v[vIndex]->id() == fromCache->id()) {
-					delete v[vIndex];
-					v[vIndex] = NULL;
-					break;
-				}
-			}
-		}
+	/*	If c was conquered from the cache owner and the cache owner is about to die,
+		then trying to add the city to the cache will lead to problems. */
+	if(GET_PLAYER(ownerId).getNumCities() <= 0)
+		return;
+	if(c.getTeam() == TEAMID(ownerId) ||
+			GET_TEAM(ownerId).AI_deduceCitySite(c)) {
+		add(c);
+		sortCitiesByAttackPriority();
 	}
-	/*	The insertion can't be conditional. If v[vIndex] has been deleted above,
-		then some city has to be inserted there. Allowing NULL entries would make
-		matters slower and more complicated elsewhere. */
-	//if(GET_PLAYER(c->getOwner()).isMajorCiv())
-	City* toCache = new City(ownerId, *c);
-	if(vIndex < 0 || vIndex >= (int)v.size()) {
-		v.push_back(toCache);
-		// (c could also have become revealed through map trade)
-		//FAssertMsg(oldOwnerId == BARBARIAN_PLAYER);
-	}
-	else v[vIndex] = toCache;
-	cityMap.insert(std::make_pair(toCache->id(), toCache));
-	if(toCache->canReach())
-		nReachableCities.add(c->getOwner(), 1);
-
-	sortCitiesByAttackPriority();
 }
 
 void UWAICache::reportSponsoredWar(CLinkList<TradeData> const& sponsorship,
@@ -1180,105 +1213,38 @@ void UWAICache::updateMilitaryPower(CvUnitInfo const& u, bool add) {
 		nNonNavyUnits += (add ? 1 : -1);
 }
 
-UWAICache::City::City(PlayerTypes cacheOwnerId, CvCity const& c)
-		: cacheOwnerId(cacheOwnerId) {
+UWAICache::City::City(PlayerTypes cacheOwnerId, CvCity& c, TeamPathFinders* pf) {
 
-	canDeduce = GET_TEAM(cacheOwnerId).AI_deduceCitySite(&c);
 	// Use plot index as city id (the pointer 'c' isn't serializable)
+	cvCity = &c;
 	plotIndex = c.plotNum();
-	updateDistance(c);
-	// AI_targetCityValue doesn't account for reachability (probably should)
-	if(!canReach() || cacheOwnerId == c.getOwner())
+	updateDistance(c, pf, cacheOwnerId);
+	updateAssetScore(cacheOwnerId);
+	if(!canReach() || TEAMID(cacheOwnerId) == c.getTeam())
 		targetValue = -1;
+	/*	Important that UWAICity is fully initialized b/c we're passing it to
+		AI_targetCityValue */
 	else targetValue = GET_PLAYER(cacheOwnerId).AI_targetCityValue(
-			city(), false, true);
-	updateAssetScore();
+			c, false, true, this);
+	
 }
 
-UWAICache::City::City(PlayerTypes cacheOwnerId)
-		: cacheOwnerId(cacheOwnerId) {
+void UWAICache::City::cacheCvCity() {
 
-	plotIndex = assetScore = distance = targetValue = -1;
-	reachByLand = reachBySea = canDeduce = false;
-}
-
-CvCity* UWAICache::City::city() const {
-
+	cvCity = NULL;
 	CvPlot* cityPlot = GC.getMap().plotByIndex(plotIndex);
-	if(cityPlot == NULL)
-		return NULL;
-	return cityPlot->getPlotCity();
-}
-
-int UWAICache::City::id() const {
-
-	return plotIndex;
-}
-
-int UWAICache::City::getAssetScore() const {
-
-	return assetScore;
-}
-
-bool UWAICache::City::canReach() const {
-
-	CvCity* const cp = city();
-	if(cp == NULL ||
-			// A bit slow:
-			// !GET_TEAM(cacheOwnerId).AI_deduceCitySite(city())
-			/*  Check isRevealed first b/c I'm only updating canDeduce
-				once per turn */
-			(!cp->isRevealed(TEAMID(cacheOwnerId)) &&
-			!canDeduce))
-		return false;
-	if(distance >= 0)
-		return true;
-	return false; // Disable latestTurnReachable fallback
-
-	// Should perhaps pass outer object in constructor instead
-	/*std::map<int,std::pair<int,int> > const& ltr = GET_PLAYER(cacheOwnerId).
-			uwai().getCache().latestTurnReachableBySea;
-	std::map<int,std::pair<int,int> >::const_iterator pos = ltr.find(plotIndex);
-	if(pos == ltr.end())
-		return false;
-	int turnsUnreachable = GC.getGame().gameTurn() - pos->second.first;
-	return (turnsUnreachable < 10);*/
-	/*  If this isn't enough time for naval stacks to reach their target,
-		consider adding a stackEnRoute flag to City that is updated in
-		updateTargetMissionCount. Not sure if AI_getMissionAIPlot points directly
-		to cities though. Could check adjacent tiles as well I guess. */
-}
-
-int UWAICache::City::getDistance(bool forceCurrentVal) const {
-
-	/*if(distance < 0 && !forceCurrentVal && !reachByLand) { // latestTurnReachable is only for reachability via sea
-		std::map<int,std::pair<int,int> > const& ltr = GET_PLAYER(cacheOwnerId).
-			uwai().getCache().latestTurnReachableBySea;
-		std::map<int,std::pair<int,int> >::const_iterator pos = ltr.find(plotIndex);
-		if(pos != ltr.end())
-			return pos->second.second;
-	}*/  // Disable latestTurnReachable fallback
-	return distance;
-}
-
-int UWAICache::City::getTargetValue() const {
-
-	return targetValue;
-}
-
-bool UWAICache::City::canReachByLand() const {
-
-	return reachByLand;
-}
-
-bool UWAICache::City::canCurrentlyReachBySea() const {
-
-	return reachBySea;
+	if(cityPlot != NULL)
+		cvCity = cityPlot->getPlotCity();
+	FAssert(cvCity != NULL); // Must never be NULL past this point
 }
 
 void UWAICache::City::write(FDataStreamBase* stream) {
 
-	int savegameVersion = 1;
+	int savegameVersion;
+	//savegameVersion = 1; // canDeduce
+	//savegameVersion = 2; // take out can canDeduce again
+	//savegameVersion = 3; // reachBySea removed
+	savegameVersion = 4; // capitalArea added
 	stream->Write(plotIndex);
 	stream->Write(assetScore);
 	/*  I hadn't thought of a version number in the initial release.
@@ -1290,8 +1256,7 @@ void UWAICache::City::write(FDataStreamBase* stream) {
 	stream->Write(distance + 1 + 10000 * savegameVersion);
 	stream->Write(targetValue);
 	stream->Write(reachByLand);
-	stream->Write(reachBySea);
-	stream->Write(canDeduce);
+	stream->Write(capitalArea);
 }
 
 void UWAICache::City::read(FDataStreamBase* stream) {
@@ -1304,28 +1269,17 @@ void UWAICache::City::read(FDataStreamBase* stream) {
 	distance = (tmp % 10000) - 1;
 	stream->Read(&targetValue);
 	stream->Read(&reachByLand);
-	stream->Read(&reachBySea);
-	if(savegameVersion >= 1)
-		stream->Read(&canDeduce);
-	else {
-		/*  Can't call GET_TEAM(cacheOwnerId).AI_deduceCitySite(city()) here b/c
-			City::city() calls CvPlot::getPlotCity, which requires the city owner
-			(CvPlayer object) to be initialized. At this point, only the civs
-			up to cacheOwnerId are initialized.
-			canDeduce gets set properly on the next UWAICache::update. */
-		CvPlot* cityPlot = GC.getMap().plotByIndex(plotIndex);
-		if(cityPlot == NULL)
-			canDeduce = false;
-		else canDeduce = cityPlot->isRevealed(TEAMID(cacheOwnerId));
+	if(savegameVersion >= 4)
+		stream->Read(&capitalArea);
+	else capitalArea = reachByLand;
+	if(savegameVersion < 3) {
+		bool reachBySea; // discard
+		stream->Read(&reachBySea);
 	}
-}
-
-CvCity* UWAICache::City::cityById(int id) {
-
-	CvPlot* p = GC.getMap().plotByIndex(id);
-	if(p == NULL)
-		return NULL;
-	return p->getPlotCity();
+	if(savegameVersion == 1) {
+		bool canDeduce; // discard
+		stream->Read(&canDeduce);
+	}
 }
 
 bool UWAICache::City::byOwnerAndDistance(City* one, City* two) {
@@ -1384,7 +1338,7 @@ double UWAICache::City::attackPriority() const {
 
 	if(distance < 0)
 		return -1;
-	if(isOwnCity())
+	else if(isOwnTeamCity())
 		return -2; // updateTotalAssetScore relies on own cities having minimal priority
 	/*  targetValue is something like 10 to 100, distance 1 to 20 perhaps.
 		Add 1000 b/c negative values should be reserved for error conditions. */
@@ -1394,8 +1348,8 @@ double UWAICache::City::attackPriority() const {
 
 int UWAICache::City::byOwner(City* one, City* two) {
 
-	PlayerTypes owner1 = one->cityOwner(),
-				owner2 = two->cityOwner();
+	PlayerTypes owner1 = one->city().getOwner(),
+				owner2 = two->city().getOwner();
 	if(owner1 < owner2)
 		return -1;
 	if(owner2 < owner1)
@@ -1403,20 +1357,8 @@ int UWAICache::City::byOwner(City* one, City* two) {
 	return 0;
 }
 
-PlayerTypes UWAICache::City::cityOwner() const {
-
-	if(city() == NULL)
-		return NO_PLAYER;
-	return city()->getOwner();
-}
-
-bool UWAICache::City::isOwnCity() const {
-
-	// Check distance==0 first b/c that's faster
-	return (distance == 0 && cityOwner() == cacheOwnerId);
-}
-
-void UWAICache::City::updateDistance(CvCity const& targetCity) {
+void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* pf,
+		PlayerTypes cacheOwnerId) {
 
 	PROFILE_FUNC();
 	/*  For each city of the agent (cacheOwner), compute a path to the target city
@@ -1428,9 +1370,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 		Some cities of the agent are also skipped, both for performance reasons
 		(the pathfinding is computationally expensive) and b/c I want distance to
 		reflect typical deployment distances, and insignificant cities don't
-		deploy units. Can fall back on latestTurnReachableBySea when an important
-		coastal city becomes unproductive b/c of unrest or e.g. poisoned water;
-		don't need to deal with these things here.
+		deploy units.
 
 		NB: targetCity and this City refer to the same city (but targetCity has
 		type CvCity*).
@@ -1441,24 +1381,22 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 
 		Unreachable targets are indicated by a distance of -1. */
 
-	CvPlayerAI& cacheOwner = GET_PLAYER(cacheOwnerId);
-
-	// Our own cities have 0 distance from themselves
-	if(targetCity.getOwner() == cacheOwnerId) {
+	if(pf == NULL) { // City of our team
 		distance = 0;
-		reachByLand = true;
-		reachBySea = true;
+		CvPlayerAI const& cityOwner = GET_PLAYER(targetCity.getOwner());
+		CvArea const& cityArea = targetCity.getArea();
+		reachByLand = cityOwner.AI_isPrimaryArea(cityArea);
+		capitalArea = (&cityArea == (cityOwner.getCapital() == NULL ?
+				NULL : cityOwner.getCapital()->area()));
 		return;
 	}
-	int const maxDist = getUWAI.maxSeaDist();
+	CvPlayerAI const& cacheOwner = GET_PLAYER(cacheOwnerId);
 	distance = -1;
 	reachByLand = false;
-	reachBySea = false;
+	capitalArea = false;
+	bool reachBySea = false;
 	bool human = cacheOwner.isHuman();
 	EraTypes const era = cacheOwner.getCurrentEra();
-	// Assume that humans can always locate cities
-	if(!human && !cacheOwner.AI_deduceCitySite(&targetCity))
-		return;
 	bool trainDeepSeaCargo = cacheOwner.uwai().getCache().
 			canTrainDeepSeaCargo();
 	bool trainAnyCargo = cacheOwner.uwai().getCache().
@@ -1473,43 +1411,69 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 	FOR_EACH_CITY(c, cacheOwner) {
 		// Skip small and isolated cities
 		if(!c->isCapital() && (c->getArea().getCitiesPerPlayer(cacheOwnerId) <= 1 ||
-				c->getPopulation() < capital->getPopulation() / 3 ||
+				c->getPopulation() * 3 < capital->getPopulation() ||
 				c->getYieldRate(YIELD_PRODUCTION) < 5 + era))
 			continue;
 		CvPlot* p = c->plot();
-		int pwd = -1; // pairwise (travel) duration
-		int d = -1; // set by measureDistance
-		if(measureDistance(cacheOwnerId, DOMAIN_LAND, *p, targetCity.getPlot(), &d)) {
-			double speed = estimateMovementSpeed(cacheOwnerId, DOMAIN_LAND, d);
-			// Will practically always have to move through some foreign tiles
-			d = std::min(d, 2) + ::round((d - std::min(d, 2)) / speed);
-			if(d == 0) // Make sure 0 is reserved for own cities
-				d = 1;
-			pwd = d;
-			/*  reachByLand refers to our (AI) capital. This is to ensure that the
-				AI can still detect the need for a naval assault when it has a
-				colony near the target civ. */
-			if(c->at(cacheOwner.getCapital()->plot()))
+		int pwd = MAX_INT; // pairwise (travel) duration
+		/*	Search from target to source. TeamStepMetric is symmetrical in that regard.
+			Doing it backwards allows intermediate results to be reused. */
+		if(pf->landFinder().generatePath(targetCity.getPlot(), *p)) {
+			pwd = intdiv::uround(pf->landFinder().getPathCost(),
+					GC.getMOVE_DENOMINATOR());
+			if(pwd == 0) // Make sure 0 is reserved for own cities
+				pwd = 1;
+			if(cacheOwner.AI_isPrimaryArea(c->getArea()))
 				reachByLand = true;
+			if(c->isCapital())
+				capitalArea = true;
 		}
-		if(trainAnyCargo) {
-			DomainTypes dom = DOMAIN_SEA;
-			if(!trainDeepSeaCargo)
-				dom = DOMAIN_IMMOBILE; // Encode non-ocean as IMMOBILE
-			if(measureDistance(cacheOwnerId, dom, *p, targetCity.getPlot(), &d)) {
-				FAssert(d >= 0);
-				d = (int)std::ceil(d / estimateMovementSpeed(cacheOwnerId, DOMAIN_SEA, d)) +
-						seaPenalty;
-				if(pwd < 0 || d < pwd) {
-					pwd = d;
-					reachBySea = true;
+		if(trainAnyCargo &&
+				// This ignores cities that can access the ocean only through a canal
+				p->isCoastalLand(-1) &&
+				// Don't bother with a naval path if it's at best a couple turns faster
+				pwd > seaPenalty + 2) {
+			CvPlot const* transportDest = targetCity.plot();
+			/*	We're unlikely to be able to pass through a canal near the target;
+				not losing much here. */
+			if(!targetCity.isCoastal(-1)) {
+				// Can reach cities that are one off the coast
+				CvPlot const* transportDest = NULL;
+				int shortestStepDist = MAX_INT;
+				FOR_EACH_ADJ_PLOT(targetCity.getPlot()) {
+					if(pAdj->isCoastalLand(-1)) {
+						int d = ::stepDistance(p, pAdj);
+						if(d < shortestStepDist) {
+							transportDest = pAdj;
+							shortestStepDist = d;
+						}
+					}
+				}
+			}
+			if(transportDest != NULL) {
+				int d = -1;
+				if(trainDeepSeaCargo) {
+					if(pf->anyWaterFinder().generatePath(*transportDest, *p))
+						d = pf->anyWaterFinder().getPathCost();
+				}
+				else {
+					if(pf->shallowWaterFinder().generatePath(*transportDest, *p))
+						d = pf->shallowWaterFinder().getPathCost();
+				}
+				if(d > 0) {
+					d = seaPenalty + intdiv::uround(d,
+							GC.getMOVE_DENOMINATOR() * cacheOwner.uwai().shipSpeed());
+					if(d < pwd) {
+						pwd = d;
+						reachBySea = true;
+					}
 				}
 			}
 		}
-		if(pwd >= 0) {
+		if(pwd < MAX_INT) {
 			pairwDurations.push_back(pwd);
 			// Extra weight for our capital
-			if(c->isCapital())
+			if(c == capital)
 				pairwDurations.push_back(pwd);
 		}
 		/*  No path from c, but we assume that there is a path from c to every other
@@ -1524,130 +1488,26 @@ void UWAICache::City::updateDistance(CvCity const& targetCity) {
 	FAssert(pairwDurations[0] >= 0);
 	double sumOfWeights = 0;
 	double weightedSum = 0;
-	// Allow distances to increase at most by 10 per rank
-	int cap = pairwDurations[0] + 10;
+	int cap = pairwDurations[0];
 	for(size_t i = 0; i < pairwDurations.size(); i++) {
 		double w = 2.0 / (3 * (i + 1) - 1);
 		sumOfWeights += w;
 		int d = std::min(pairwDurations[i], cap);
+		// Allow distances to increase at most by 10 per rank
 		cap = d + 10;
 		weightedSum += d * w;
 	}
 	weightedSum /= sumOfWeights; // Normalization
 	/*  Hard to estimate the mixed paths. Their lengths certainly depend on
 		the lengths of the other paths. */
-	distance = std::min(maxDist, ::round(weightedSum + 2 * mixedPath));
-	// The portion of mixed paths doesn't seem helpful after all; tends to be high
-	//* std::max(1.0, 0.75 + mixedPath / ((double)pairwDistances.size() + mixedPath)));
+	distance = std::min((getUWAI.maxLandDist() + getUWAI.maxSeaDist()) / 2,
+			::round(weightedSum + (4 * mixedPath) / (pairwDurations.size() + mixedPath)));
 }
 
+void UWAICache::City::updateAssetScore(PlayerTypes cacheOwnerId) {
 
-double UWAICache::City::estimateMovementSpeed(PlayerTypes civId,
-		DomainTypes dom, int dist) {
-
-	CvPlayerAI const& civ = GET_PLAYER(civId);
-	if(dom != DOMAIN_LAND)
-		return civ.uwai().shipSpeed();
-	EraTypes const era = civ.getCurrentEra();
-	EraTypes const gameEra = GC.getGame().getCurrentEra();
-	double r = 1;
-	if(era >= 6) // Future era; to account for very high mobility in endgame
-		r++;
-	/*  Difficult to account for routes; c could be a border city, but the
-		route could still lead through friendly territory and the owner
-		of that territory may or may not have Engineering or Railroad. */
-		// 4 is Industrial era
-	if((era >= 4 && gameEra >= 4) || era >= 5)
-		r *= 4.5; // Railroads are faster than this, but don't expect them everywhere.
-	/*  Some roads in Classical era; the longer the path, the higher the
-		chance of it traversing unpaved ground. */
-	else if(era >= 1) {
-		r *= ::dRange((20.0 + 6 * gameEra) / (dist + 10), 1.0, 2.0);
-		if(GET_TEAM(civId).uwai().isFastRoads())
-			r *= 1.4;
-	}
-	return r;
-}
-
-// <advc.104b>
-bool UWAICache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
-		CvPlot const& start, CvPlot const& dest, int* r) {
-
-	PROFILE_FUNC();
-	/*  Caveat: dom can be IMMOBILE, which means Galley. Should compare dom
-		only with DOMAIN_LAND in this function, not DOMAIN_SEA. */
-	if(dom == DOMAIN_LAND && !start.sameArea(dest))
-		return false;
-	// Can't plot mixed-domain paths
-	if(dom != DOMAIN_LAND && !start.isCoastalLand(-1))
-		return false;
-	int maxDist = (dom == DOMAIN_LAND ? getUWAI.maxLandDist() :
-			getUWAI.maxSeaDist());
-	// AI needs to be able to target even very remote rivals eventually
-	if(GET_PLAYER(civId).getCurrentEra() >= 4)
-		maxDist = (4 * maxDist) / 3;
-	/*  stepDistance sanity check to avoid costly distance measurement
-		(::teamStepValid_advc now performs the same check through ::stepHeuristic,
-		but still need stepDistance here for the speed estimate.) */
-	int stepDist = ::stepDistance(&start, &dest);
-	double speedEstimate = estimateMovementSpeed(civId, dom, stepDist);
-	if(stepDist / speedEstimate > maxDist)
-		return false;
-	CvPlot const* newDest = &dest;
-	if(dom != DOMAIN_LAND && !dest.isCoastalLand(-1)) {
-		/*  A naval assault drops the units off on a tile adjacent to the city;
-			try to find an adjacent coastal tile. */
-		int x = dest.getX();
-		int y = dest.getY();
-		newDest = NULL;
-		int shortestStepDist = MAX_INT;
-		FOR_EACH_ENUM(Direction) {
-			CvPlot* adj = ::plotDirection(x, y, eLoopDirection);
-			if(adj != NULL && adj->isCoastalLand(-1)) {
-				int d = ::stepDistance(&start, adj);
-				if(d < shortestStepDist) {
-					newDest = adj;
-					shortestStepDist = d;
-				}
-			}
-		}
-		if(newDest == NULL)
-			return false;
-	}
-	if(dom != DOMAIN_LAND) {
-		// The transports move onto a water tile adjacent to the coastal tile
-		int destx = newDest->getX();
-		int desty = newDest->getY();
-		int shortestStepDist = MAX_INT;
-		FOR_EACH_ENUM(Direction) {
-			CvPlot* adj = ::plotDirection(destx, desty, eLoopDirection);
-			if(adj != NULL && adj->isWater()) {
-				int d = ::stepDistance(&start, adj);
-				if(d < shortestStepDist) {
-					newDest = adj;
-					shortestStepDist = d;
-				}
-			}
-		}
-	}
-	/*  This covers pack ice too (due to change 030). The PathDistance below
-		won't take detours around ice into account though. */
-	if(dom != DOMAIN_LAND && !start.isAdjacentToArea(newDest->getArea()))
-		return false;
-	// The original dest is guaranteed to be owned
-	*r = GC.getMap().calculateTeamPathDistance(start.getTeam(), start, *newDest,
-			/*  Path distance counts each step as 1 move; upper bound needs to
-				account for faster movement. */
-			(int)::ceil(maxDist * speedEstimate), dest.getTeam(), dom);
-	return (*r >= 0);
-} // </advc.104b>
-
-void UWAICache::City::updateAssetScore() {
-
-	if(city() != NULL) {
-		/*  Scale: Same as CvPlayerAI::AI_cityWonderVal, i.e. approx. 50% GPT.
-			Would rather use 100% GPT, but war evaluation can't easily be
-			adjusted to that. */
-		assetScore = (GET_PLAYER(cacheOwnerId).AI_assetVal(city()->AI(), true) / 2).round();
-	}
+	/*  Scale: Same as CvPlayerAI::AI_cityWonderVal, i.e. approx. 50% GPT.
+		Would rather use 100% GPT, but war evaluation can't easily be
+		adjusted to that. */
+	assetScore = (GET_PLAYER(cacheOwnerId).AI_assetVal(city().AI(), true) / 2).round();
 }

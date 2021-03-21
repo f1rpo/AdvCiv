@@ -168,9 +168,8 @@ class AIAutoPlay :
 		# Can't use isHuman as isHuman has been deactivated by automation
 		if( self.refortify and iPlayer == game.getActivePlayer() and game.getAIAutoPlay() == 1 ) :
 			doRefortify( game.getActivePlayer() )
-		# <advc.127> This only works if there's a human in slot 0; commented out.
-		# Replacement below.
 		#if (iPlayer == gc.getBARBARIAN_PLAYER() and game.getAIAutoPlay() == 1):
+		# <advc.127> ^That only works if there's a human in slot 0.
 		turnsLeft = game.getAIAutoPlay()
 		if turnsLeft > 1:
 			return
@@ -192,8 +191,8 @@ class AIAutoPlay :
 				preceding = y
 				break
 		if preceding > disabledHuman:
-			# This wrap-around check doesn't work correctly in network games; I guess b/c multiple players execute it.
-			if not game.isNetworkMultiPlayer():
+			# This wrap-around check doesn't work correctly with simultaneous turns; I guess b/c multiple players execute it.
+			if not game.isMPOption(MultiplayerOptionTypes.MPOPTION_SIMULTANEOUS_TURNS):
 				turnsLeftTarget = 1
 		if turnsLeft <= turnsLeftTarget and iPlayer == preceding:
 			# </advc.127>
@@ -248,6 +247,9 @@ class AIAutoPlay :
 	def onKbdEvent( self, argsList ) :
 		'keypress handler'
 		eventType,key,mx,my,px,py = argsList
+		# <advc.001>
+		if not self.customEM.isCheatsEnabled():
+			return # </advc.001>
 		# Get it?  Shift ... control ... to the AI
 		if eventType != 6 or not self.customEM.bShift or not self.customEM.bCtrl:
 			return # advc
@@ -265,12 +267,12 @@ class AIAutoPlay :
 				if theKey == int(InputTypes.KB_B):
 					self.bBenchmark = True # </advc>
 				self.toAIChooser()
-
-		if theKey == int(InputTypes.KB_M):
+		# advc.127: Disable this feature
+		#if theKey == int(InputTypes.KB_M):
 			# Toggle auto moves
-			if self.LOG_DEBUG:
-				CyInterface().addImmediateMessage("Moving your units...","")
-			game.setAIAutoPlay(1)
+		#	if self.LOG_DEBUG:
+		#		CyInterface().addImmediateMessage("Moving your units...","")
+		#	game.setAIAutoPlay(1)
 		if theKey == int(InputTypes.KB_O):
 			doRefortify( game.getActivePlayer() )
 

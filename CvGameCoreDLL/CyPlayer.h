@@ -200,9 +200,10 @@ public:
 
 	CyPlot* getStartingPlot();
 	void setStartingPlot(CyPlot* pPlot, bool bUpdateStartDist);
+	void forceRandomWBStart(); // advc.027
 	int getTotalPopulation();
 	int getAveragePopulation();
-	long getRealPopulation();
+	int getRealPopulation();
 
 	int getTotalLand();
 	int getTotalLandScored();

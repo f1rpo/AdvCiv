@@ -46,7 +46,8 @@ CyPlot* CySelectionGroup::lastMissionPlot()
 
 bool CySelectionGroup::canStartMission(int iMission, int iData1, int iData2, CyPlot* pPlot, bool bTestVisible)
 {
-	return m_pSelectionGroup ? m_pSelectionGroup->canStartMission(iMission, iData1, iData2, pPlot->getPlot(), bTestVisible) : false;
+	return m_pSelectionGroup ? m_pSelectionGroup->canStartMission((MissionTypes)iMission,
+			iData1, iData2, pPlot->getPlot(), bTestVisible) : false;
 }
 
 bool CySelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode)
@@ -116,7 +117,7 @@ bool CySelectionGroup::canEnterArea(int /*TeamTypes*/ eTeam, CyArea* pArea, bool
 
 bool CySelectionGroup::canMoveInto(CyPlot* pPlot, bool bAttack)
 {
-	return m_pSelectionGroup ? m_pSelectionGroup->canMoveInto(pPlot->getPlot(), bAttack) : false;
+	return m_pSelectionGroup ? m_pSelectionGroup->canMoveInto(*pPlot->getPlot(), bAttack) : false;
 }
 
 bool CySelectionGroup::canMoveOrAttackInto(CyPlot* pPlot, bool bDeclareWar)
@@ -269,9 +270,13 @@ CyPlot* CySelectionGroup::getPathEndTurnPlot()
 bool CySelectionGroup::generatePath(CyPlot* pFromPlot, CyPlot* pToPlot, int iFlags,
 	bool bReuse, int* piPathTurns)
 {
-	if (m_pSelectionGroup == NULL)
+	if (m_pSelectionGroup == NULL ||
+		pFromPlot->getPlot() == NULL || pToPlot->getPlot() == NULL)
+	{
 		return false;
-	return m_pSelectionGroup->generatePath(pFromPlot->getPlot(), pToPlot->getPlot(),
+	}
+	return m_pSelectionGroup->generatePath(
+			*pFromPlot->getPlot(), *pToPlot->getPlot(),
 			(MovementFlags)iFlags, bReuse, piPathTurns);
 }
 
@@ -301,9 +306,14 @@ CyUnit* CySelectionGroup::getHeadUnit()
 	return m_pSelectionGroup ? new CyUnit(m_pSelectionGroup->getHeadUnit()) : NULL;
 }
 
-CyUnit* CySelectionGroup::getUnitAt(int index)
+CyUnit* CySelectionGroup::getUnitAt(int iIndex)
 {
-	return m_pSelectionGroup ? new CyUnit(m_pSelectionGroup->getUnitAt(index)) : NULL;
+	if (m_pSelectionGroup == NULL)
+		return NULL;
+	// <advc> Moved from CvSelectionGroup. Foolproofing should be handled here.
+	if (iIndex < 0 || m_pSelectionGroup->getNumUnits() <= iIndex)
+		return NULL; // </advc>
+	return new CyUnit(m_pSelectionGroup->getUnitAt(iIndex));
 }
 
 int CySelectionGroup::getMissionType(int iNode)

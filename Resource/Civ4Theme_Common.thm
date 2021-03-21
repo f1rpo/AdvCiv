@@ -22,7 +22,7 @@ For information regarding GFC Commercial License Agreements go to:
 /* advc.002b: Copied from BtS/Resource/Themes/Civ4. Changed the tga
    paths based on ancestral's tutorial in order to avoid copies of all
    the UI graphics. Prefixed each path with "../../../../Resource/".
-   This file is special in so far that it loads all the generic icons
+   This file is special insofar as it loads all the generic icons
    (subfolder "Icons").
    
    The font-size changes are in here too; see next comment. */

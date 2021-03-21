@@ -64,8 +64,9 @@ protected:
 	UWAI::Team const& agentAI;
 	int u;
 	UWAIReport& report;
-	CvGame const& game;
+	CvGameAI const& game;
 	EraTypes const gameEra;
+	scaled const gameEraAIFactor;
 	CvGameSpeedInfo const& speed;
 
 	/*  Subclasses must not access these members until evaluate(m) has been called.
@@ -212,7 +213,7 @@ private:
 	double progressRatingDiplomacy();
 	void addConquestsByPartner(std::map<int,double>& r, AttitudeTypes attThresh,
 			double weight);
-	double votesToGo;
+	int votesToGo;
 	bool enoughVotes;
 };
 

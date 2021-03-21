@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <!--
-	Strategy Overlay
-	Options Game Text
-
+	Strategy Overlay Options Game Text
 	Copyright (c) 2009 The BUG Mod.
 -->
 <Civ4GameText xmlns="http://www.firaxis.com">
+
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__ENABLED_TEXT</Tag>
 		<English>Enabled</English>
@@ -18,7 +17,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__ENABLED_HOVER</Tag>
 		<English>When checked, the shortcut keys and features of the dot map overlay are enabled. Once enabled, you can use Ctrl+X to hide or unhide the overlay.</English>
-		<French>When checked, the shortcut keys and features of the Strategy Layer are activated.</French>
 		<German>Aktiviert die Tastenkombinationen und Funtionen des Strategie-Overlays. Sofern aktiviert, lässt sich das Overlay durch Drücken von Strg+X aus- und einblenden.</German>
 		<Italian>Quando è selezionato, vengono attivate le scorciatoie da tastiera e le funzionalità del Livello Strategico.</Italian>
 		<Spanish>Si se activa, las características y atajos del mapa estratégico pueden ser usados.</Spanish>
@@ -28,7 +26,6 @@
 	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__SHOWDOTMAP_TEXT</Tag>
 		<English>Show Dot Map</English>
-		<French>Show Dot Map</French>
 		<German>Overlay-Karte anzeigen</German>
 		<Italian>Mostra la Mappa di posizionamento</Italian>
 		<Spanish>Mostrar Mapa de Puntos</Spanish>
@@ -36,7 +33,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__SHOWDOTMAP_HOVER</Tag>
 		<English>When checked, the city-planning dot map layer is shown overlaying the terrain.</English>
-		<French>When checked, the city-planning dot map layer is shown overlaying the terrain.</French>
 		<German>Lässt die Overlay-Karte zur Planung von Stadtgründungen das Gelände überlagern</German>
 		<Italian>Quando è selezionato, il livello di pianificazione delle Città detto "Mappa di posizionamento" viene mostrato come sovrapposto al terreno.</Italian>
 		<Spanish>Muestra los puntos de ciudad planeada en el mapa normal.</Spanish>
@@ -45,7 +41,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__DOTMAPDRAWDOTS_TEXT</Tag>
 		<English>Draw City Dots</English>
-		<French>Draw City Dots</French>
 		<German>Städte markieren</German>
 		<Italian>Disegna le icone per le Citt&#224;</Italian>
 		<Spanish>Dibujar Centro</Spanish>
@@ -55,7 +50,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__DOTMAPDRAWDOTS_HOVER</Tag>
 		<English>When checked, a transparent dot is drawn on tiles that you mark as future city sites (Alt+X). Otherwise, only the city radius around those sites is drawn.</English>
-		<French>When checked, an icon is drawn in the center of the borders of planned cities.</French>
 		<German>Zeigt einen Punkt auf Feldern an, die Sie mit Alt+X als Gründungsorte für Städte markiert haben. Ohne diese Option werden nur die zukünftigen Stadtradien angezeigt.</German>
 		<Italian>Quando è selezionato, viene disegnata un'icona al centro delle aree di posizionamento delle città.</Italian>
 		<Spanish>Se muestra un punto en el centro de los bordes de las ciudades planeadas.</Spanish>
@@ -64,7 +58,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__DOTMAPDOTICON_TEXT</Tag>
 		<English>City Dot Icon</English>
-		<French>City Dot Icon</French>
 		<German>Stadt-Punkte</German>
 		<Italian>Icona delle Citt&#224;</Italian>
 		<Spanish>Icono Ciudad</Spanish>
@@ -74,26 +67,23 @@
 	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__DOTMAPDOTICON_HOVER</Tag>
 		<English>The index number of the icon to be placed in the center of the borders of planned cities.</English>
-		<French>The index number of the icon to be placed in the center of the borders of planned cities.</French>
 		<German>Die Indexnummer des Symbols, das im Zentrum der Grenzen von geplanten Städten angezeigt werden soll</German>
 		<Italian>Indica il numero d'indice dell'icona che deve essere posizionata al centro delle aree di posizionamento delle città.</Italian>
 		<Spanish>Número del icono a colocar en el centro de los bordes de las ciudades planeadas.</Spanish>
 	</TEXT-->
 	
-	<!-- advc.004: was "Brightness" -->
+	<!-- advc.004: Was "Brightness"; "Transparenz" in German -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__DOTMAPBRIGHTNESS_TEXT</Tag>
 		<English>Opacity</English>
-		<French>Brightness</French>
-		<German>Transparenz</German>
+		<German>Opazität</German>
 		<Italian>Trasparenza</Italian>
 		<Spanish>Brillo</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__DOTMAPBRIGHTNESS_HOVER</Tag>
 		<English>Sets the opacity of the overlay.</English>
-		<French>Determines the brightness of planned cities.</French>
-		<German>Regelt die Transparenz (Alpha-Wert) des Overlays.</German>
+		<German>Regelt die Deckstärke (Alpha-Wert) des Overlays.</German>
 		<Italian>Determina la trasparenza delle Città posizionate.</Italian>
 		<Spanish>Brillo con que se muestran las ciudades planeadas.</Spanish>
 	</TEXT>
@@ -102,8 +92,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__DOTMAPHIGHLIGHTBRIGHTNESS_TEXT</Tag>
 		<English>Cursor Opacity</English>
-		<French>Highlight Brightness</French>
-		<German>Cursor-Transp.</German>
+		<German>Cursor-Opazität.</German>
 		<Italian>Trasparenza di selezione</Italian>
 		<Spanish>Brillo Actual</Spanish>
 	</TEXT>
@@ -111,8 +100,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_STRATEGYOVERLAY__DOTMAPHIGHLIGHTBRIGHTNESS_HOVER</Tag>
 		<English>Sets the opacity of the city cross shown at the cursor position when placing a city marker through Alt+X.</English>
-		<French>Determines the brightness of the highlighted city being placed.</French>
-		<German>Regelt die Transparenz des Stadt-Kreuzes, das beim Platzieren einer Stadtmarkierung (Alt+X) an der Cursor-Position eingeblendet wird.</German>
+		<German>Regelt die Deckstärke (Alpha-Wert) des Stadt-Kreuzes, das beim Platzieren einer Stadtmarkierung (Alt+X) an der Cursor-Position eingeblendet wird.</German>
 		<Italian>Determina la trasparenza della Città selezionata che viene posizionata.</Italian>
 		<Spanish>Determina el brillo de la ciudad siendo colocada.</Spanish>
 	</TEXT>

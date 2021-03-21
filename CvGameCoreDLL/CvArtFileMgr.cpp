@@ -53,28 +53,27 @@ class Cv##name##ArtInfoItem : public CvArtFileMgr::ArtInfoItem \
 { \
 	void init() { ARTFILEMGR.m_map##name##ArtInfos = new CvArtFileMgr::ArtInfo##name##MapType; } \
 	void deInit(); \
-	void buildMap() { BUILD_INFO_MAP(*ARTFILEMGR.m_map##name##ArtInfos, ARTFILEMGR.get##name##ArtInfo, ARTFILEMGR.getNum##name##ArtInfos()); } \
+	void buildMap() \
+	{ \
+		BUILD_INFO_MAP(*ARTFILEMGR.m_map##name##ArtInfos, ARTFILEMGR.get##name##ArtInfo, ARTFILEMGR.getNum##name##ArtInfos()); \
+	} \
 }; \
 \
 static Cv##name##ArtInfoItem* g##name##ArtInfoItem; \
 \
-CvArtInfo##name##* CvArtFileMgr::get##name##ArtInfo( const char *szArtDefineTag ) const \
+CvArtInfo##name* CvArtFileMgr::get##name##ArtInfo(char const* szArtDefineTag) const \
 { \
 	FAssertMsg(szArtDefineTag, "NULL string on art info lookup?"); \
-	ArtInfo##name##MapType::const_iterator it = m_map##name##ArtInfos->find( szArtDefineTag );\
-	if ( it == m_map##name##ArtInfos->end() ) \
+	ArtInfo##name##MapType::const_iterator it = m_map##name##ArtInfos->find(szArtDefineTag);\
+	if (it == m_map##name##ArtInfos->end()) \
 	{\
 		char szErrorMsg[256]; \
-		sprintf(szErrorMsg, "get##name##ArtInfo: %s was not found", szArtDefineTag); \
-		FErrorMsg(szErrorMsg ); \
-		if ( 0 == strcmp(szArtDefineTag, "ERROR") ) \
-		{ \
+		/* advc.001: Need to stringize for the error msg */ \
+		sprintf(szErrorMsg, "get" #name "ArtInfo: %s was not found", szArtDefineTag); \
+		FErrorMsg(szErrorMsg); \
+		if (strcmp(szArtDefineTag, "ERROR") == 0) \
 			return NULL; \
-		} \
-		else \
-		{ \
-			return get##name##ArtInfo( "ERROR" ); \
-		} \
+		return get##name##ArtInfo("ERROR"); \
 	} \
 	return it->second; \
 } \
@@ -87,15 +86,15 @@ TCHAR const* CvArtFileMgr::get##name##ArtPath(char const* szArtDefineTag) const 
 void Cv##name##ArtInfoItem::deInit() \
 { \
 	SAFE_DELETE(ARTFILEMGR.m_map##name##ArtInfos); \
-	for (uint i = 0; i < ARTFILEMGR.m_pa##name##ArtInfo.size(); ++i) \
+	for (uint i = 0; i < ARTFILEMGR.m_pa##name##ArtInfo.size(); i++) \
 	{ \
 		SAFE_DELETE(ARTFILEMGR.m_pa##name##ArtInfo[i]); \
 	} \
 	ARTFILEMGR.m_pa##name##ArtInfo.clear(); \
 } \
-CvArtInfo##name##& CvArtFileMgr::get##name##ArtInfo(int i) { return *(m_pa##name##ArtInfo[i]); }
+CvArtInfo##name& CvArtFileMgr::get##name##ArtInfo(int i) { return *(m_pa##name##ArtInfo[i]); }
 
-#define ART_INFO_INST(name) g##name##ArtInfoItem = new  Cv##name##ArtInfoItem();
+#define ART_INFO_INST(name) g##name##ArtInfoItem = new Cv##name##ArtInfoItem();
 
 
 // Macros the declaration of the art file info maps
@@ -123,7 +122,7 @@ static CvArtFileMgr* gs_ArtFileMgr = NULL;
 
 CvArtFileMgr& CvArtFileMgr::GetInstance()
 {
-	if ( gs_ArtFileMgr == NULL )
+	if (gs_ArtFileMgr == NULL)
 	{
 		gs_ArtFileMgr = new CvArtFileMgr();
 

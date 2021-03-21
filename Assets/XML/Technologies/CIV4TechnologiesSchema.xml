@@ -123,6 +123,9 @@
 		<element type="bRepeat"/>
 		<element type="bTrade"/>
 		<element type="bDisable"/>
+		<!-- advc.314 (note): If bAllGoodyTechs=1 is set in Civ4EraInfos.xml,
+			 then goody huts can grant progress to all techs of an era and
+			 bGoodyTech merely says whether a goody hut can complete a tech. -->
 		<element type="bGoodyTech"/>
 		<element type="bExtraWaterSeeFrom"/>
 		<element type="bMapCentering"/>

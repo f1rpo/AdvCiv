@@ -45,7 +45,8 @@ public:
 	void AI_setBirthmark(int iNewValue);
 	inline UnitAITypes AI_getUnitAIType() const { return m_eUnitAIType; } // advc.inl: inline (now that it's no longer virtual)			// Exposed to Python
 	void AI_setUnitAIType(UnitAITypes eNewValue);
-	CvSelectionGroupAI* AI_getGroup() const; // advc.003u
+	CvSelectionGroupAI const* AI_getGroup() const; // advc.003u
+	CvSelectionGroupAI* AI_getGroup(); // advc.003u
 
 	// <advc.159>
 	int AI_currEffectiveStr(CvPlot const* pPlot = NULL, CvUnit const* pOther = NULL,
@@ -159,7 +160,7 @@ protected:
 	bool AI_guardBonus(int iMinValue = 0);
 	bool AI_guardYield(); // advc.300
 	bool AI_barbAmphibiousCapture(); // advc.306
-	int AI_getPlotDefendersNeeded(CvPlot const& kPlot, int iExtra);
+	int AI_getPlotDefendersNeeded(CvPlot const& kPlot, int iExtra /* advc: */ = 0);
 	bool AI_guardFort(bool bSearch = true);
 	bool AI_guardCitySite();
 	bool AI_guardSpy(int iRandomPercent);
@@ -170,7 +171,7 @@ protected:
 	bool AI_heal(int iDamagePercent = 0, int iMaxPath = MAX_INT);
 	// advc.299:
 	bool AI_singleUnitHeal(int iMaxTurnsExposed = 1, int iMaxTurnsOutsideCity = 3);
-	bool AI_isThreatenedFromLand() const; // advc.139
+	ProbabilityTypes AI_isThreatenedFromLand() const; // advc.139
 	bool AI_afterAttack();
 	bool AI_goldenAge();
 	bool AI_spreadReligion();
@@ -236,7 +237,7 @@ protected:
 			int iMaxAreaCities = MAX_INT); // advc.082
 	bool AI_assaultSeaReinforce(bool bAttackBarbs = false); // BBAI
 	// <K-Mod>
-	bool AI_transportGoTo(CvPlot const* pEndTurnPlot, CvPlot const* pTargetPlot,
+	bool AI_transportGoTo(CvPlot const& kEndTurnPlot, CvPlot const& kTargetPlot,
 			MovementFlags eFlags, MissionAITypes eMissionAI); // </K-Mod>
 
 	bool AI_settlerSeaTransport();

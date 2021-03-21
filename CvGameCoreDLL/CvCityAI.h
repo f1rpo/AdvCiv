@@ -87,14 +87,14 @@ public:
 
 	// advc: Moved from CvCity b/c it's part of the AI
 	int AI_culturePressureFactor() const; // K-Mod
-	int AI_getEmphasizeAvoidGrowthCount() const;
-	bool AI_isEmphasizeAvoidGrowth() const;
+	int AI_getEmphasizeAvoidGrowthCount() const { return m_iEmphasizeAvoidGrowthCount; }
+	bool AI_isEmphasizeAvoidGrowth() const { return (AI_getEmphasizeAvoidGrowthCount() > 0); }
 
-	int AI_getEmphasizeGreatPeopleCount() const;
-	bool AI_isEmphasizeGreatPeople() const;
+	int AI_getEmphasizeGreatPeopleCount() const { return m_iEmphasizeGreatPeopleCount; }
+	bool AI_isEmphasizeGreatPeople() const { return (AI_getEmphasizeGreatPeopleCount() > 0); }
 
-	bool AI_isAssignWorkDirty() const;
-	void AI_setAssignWorkDirty(bool bNewValue);
+	bool AI_isAssignWorkDirty() const { return m_bAssignWorkDirty; }
+	void AI_setAssignWorkDirty(bool bNewValue) { m_bAssignWorkDirty = bNewValue; }
 
 	//bool AI_isChooseProductionDirty() const; // advc.003u: Moved to CvCity
 	//void AI_setChooseProductionDirty(bool bNewValue);
@@ -156,7 +156,7 @@ public:
 	// advc.003j: Both unused
 	/*bool AI_isFrontlineCity() const; // K-Mod
 	int AI_calculateMilitaryOutput() const;*/ // K-Mod
-	int AI_cityThreat(/*bool bDangerPercent = false*/) const; // advc: param was (always) unused
+	int AI_cityThreat(/*bool bDangerPercent = false*/) const; // advc: param was (and has always been) unused
 
 	int AI_getWorkersHave() const;
 	int AI_getWorkersNeeded() const;
@@ -244,8 +244,8 @@ protected:
 	// difference between current yields and yields after plot improvement reaches final upgrade.
 	bool AI_finalImprovementYieldDifference(CvPlot const& kPlot, int* piYields) const;
 	// time-weighted yields for improvements which have upgrades
-	bool AI_timeWeightedImprovementYields(CvPlot const* pPlot, ImprovementTypes eImprovement,
-			int iTimeScale, std::vector<scaled>& weighted_yields) const;
+	bool AI_timeWeightedImprovementYields(CvPlot const& kPlot, ImprovementTypes eImprovement,
+			int iTimeScale, EnumMap<YieldTypes,scaled>& weightedYields) const;
 	// value for working a plot in addition to its yields
 	int AI_specialPlotImprovementValue(CvPlot* pPlot) const;
 	int AI_growthValuePerFood() const;

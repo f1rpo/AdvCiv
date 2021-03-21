@@ -25,7 +25,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_BETTERESPIONAGE__SHOWCALCULATEDINFORMATION_TEXT</Tag>
 		<English>Show Calculated Information</English>
-		<French>Show Calculated Information</French>
 		<German>Errechnete Informationen</German>
 		<Italian>Mostra Informazioni Calcolate</Italian>
 		<Spanish>Mostrar Información Calculada</Spanish>
@@ -33,7 +32,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_BETTERESPIONAGE__SHOWCALCULATEDINFORMATION_HOVER</Tag>
 		<English>When checked, shows calculated espionage information.</English>
-		<French>When checked, shows calculated espionage information.</French>
 		<German>Zeigt errechnete Spionage-Informationen an</German>
 		<Italian>Quando selezionato, mostra le informazioni di spionaggio calcolate.</Italian>
 		<Spanish>Muestra la información de espionaje calculada.</Spanish>

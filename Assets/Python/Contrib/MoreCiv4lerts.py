@@ -7,6 +7,7 @@ import PyHelpers
 import BugCore
 import PlayerUtil
 import TradeUtil
+import CityUtil # advc
 
 # BUG - Mac Support - start
 import BugUtil
@@ -265,7 +266,8 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 				lCity = PyPlayer(loopPlayer).getCityList()
 				for loopCity in range(len(lCity)):
 					city = gc.getPlayer(loopPlayer).getCity(loopCity)
-					if (city.getFoodTurnsLeft() == 1 and not city.isFoodProduction()) and not city.AI_isEmphasize(5):
+					#if (city.getFoodTurnsLeft() == 1 and not city.isFoodProduction()) and not city.AI_isEmphasize(5):
+					if CityUtil.willGrowThisTurn(city): # advc
 						popGrowthCount = popGrowthCount + 1
 					if (BeginTurn and self.getCheckForCityBorderExpansion()):
 						if (city.getCultureLevel() != gc.getNumCultureLevelInfos() - 1):

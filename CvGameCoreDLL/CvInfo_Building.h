@@ -112,21 +112,21 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 
 	inline BuildingClassTypes getBuildingClassType() const
 	{
-		return (BuildingClassTypes)m_iBuildingClassType;
+		return m_eBuildingClassType;
 	}
-	int getVictoryPrereq() const { return m_iVictoryPrereq; }
-	EraTypes getFreeStartEra() const { return (EraTypes)m_iFreeStartEra; }
-	EraTypes getMaxStartEra() const { return (EraTypes)m_iMaxStartEra; }
-	TechTypes getObsoleteTech() const { return (TechTypes)m_iObsoleteTech; }
-	TechTypes getPrereqAndTech() const { return (TechTypes)m_iPrereqAndTech; }
+	VictoryTypes getVictoryPrereq() const { return m_eVictoryPrereq; }
+	EraTypes getFreeStartEra() const { return m_eFreeStartEra; }
+	EraTypes getMaxStartEra() const { return m_eMaxStartEra; }
+	TechTypes getObsoleteTech() const { return m_eObsoleteTech; }
+	TechTypes getPrereqAndTech() const { return m_ePrereqAndTech; }
 	bool isTechRequired(TechTypes eTech) const; // advc.003w: Replacing global isTechRequiredForBuilding
-	BonusTypes getNoBonus() const { return (BonusTypes)m_iNoBonus; }
-	BonusTypes getPowerBonus() const { return (BonusTypes)m_iPowerBonus; }
-	BonusTypes getFreeBonus() const { return (BonusTypes)m_iFreeBonus; }
+	BonusTypes getNoBonus() const { return m_eNoBonus; }
+	BonusTypes getPowerBonus() const { return m_ePowerBonus; }
+	BonusTypes getFreeBonus() const { return m_eFreeBonus; }
 	int getNumFreeBonuses() const { return m_iNumFreeBonuses; }
-	BuildingClassTypes getFreeBuildingClass() const { return (BuildingClassTypes)m_iFreeBuildingClass; }
-	PromotionTypes getFreePromotion() const { return (PromotionTypes)m_iFreePromotion; }
-	CivicOptionTypes getCivicOption() const { return (CivicOptionTypes)m_iCivicOption; }
+	BuildingClassTypes getFreeBuildingClass() const { return m_eFreeBuildingClass; }
+	PromotionTypes getFreePromotion() const { return m_eFreePromotion; }
+	CivicOptionTypes getCivicOption() const { return m_eCivicOption; }
 	int getAIWeight() const { return m_iAIWeight; }
 	int getProductionCost() const { return m_iProductionCost; }
 	int getHurryCostModifier() const { return m_iHurryCostModifier; }
@@ -174,31 +174,31 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 	int getPowerValue() const { return m_iPowerValue; }
 	SpecialBuildingTypes getSpecialBuildingType() const
 	{
-		return (SpecialBuildingTypes)m_iSpecialBuildingType;
+		return m_eSpecialBuildingType;
 	}
-	AdvisorTypes getAdvisorType() const { return (AdvisorTypes)m_iAdvisorType; }
-	ReligionTypes getHolyCity() const { return (ReligionTypes)m_iHolyCity; }
-	ReligionTypes getReligionType() const { return (ReligionTypes)m_iReligionType; }
-	ReligionTypes getStateReligion() const { return (ReligionTypes)m_iStateReligion; }
-	ReligionTypes getPrereqReligion() const { return (ReligionTypes)m_iPrereqReligion; }
+	AdvisorTypes getAdvisorType() const { return m_eAdvisorType; }
+	ReligionTypes getHolyCity() const { return m_eHolyCity; }
+	ReligionTypes getReligionType() const { return m_eReligionType; }
+	ReligionTypes getStateReligion() const { return m_eStateReligion; }
+	ReligionTypes getPrereqReligion() const { return m_ePrereqReligion; }
 	CorporationTypes getPrereqCorporation() const
 	{
-		return (CorporationTypes)m_iPrereqCorporation;
+		return m_ePrereqCorporation;
 	}
 	CorporationTypes getFoundsCorporation() const
 	{
-		return (CorporationTypes)m_iFoundsCorporation;
+		return m_eFoundsCorporation;
 	}
 	ReligionTypes getGlobalReligionCommerce() const
 	{
-		return (ReligionTypes)m_iGlobalReligionCommerce;
+		return m_eGlobalReligionCommerce;
 	}
 	CorporationTypes getGlobalCorporationCommerce() const
 	{
-		return (CorporationTypes)m_iGlobalCorporationCommerce;
+		return m_eGlobalCorporationCommerce;
 	}
-	BonusTypes getPrereqAndBonus() const { return (BonusTypes)m_iPrereqAndBonus; }
-	int getGreatPeopleUnitClass() const { return m_iGreatPeopleUnitClass; }
+	BonusTypes getPrereqAndBonus() const { return m_ePrereqAndBonus; }
+	UnitClassTypes getGreatPeopleUnitClass() const { return m_eGreatPeopleUnitClass; }
 	int getGreatPeopleRateChange() const { return m_iGreatPeopleRateChange; }
 	int getConquestProbability() const { return m_iConquestProbability; }
 	int getMaintenanceModifier() const { return m_iMaintenanceModifier; }
@@ -215,9 +215,9 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 	int getBombardDefenseModifier() const { return m_iBombardDefenseModifier; }
 	int getAllCityDefenseModifier() const { return m_iAllCityDefenseModifier; }
 	int getEspionageDefenseModifier() const { return m_iEspionageDefenseModifier; }
-	MissionTypes getMissionType() const { return (MissionTypes)m_iMissionType; }
+	MissionTypes getMissionType() const { return m_eMissionType; }
 	void setMissionType(MissionTypes eNewType);
-	VoteSourceTypes getVoteSourceType() const { return (VoteSourceTypes)m_iVoteSourceType; }
+	VoteSourceTypes getVoteSourceType() const { return m_eVoteSourceType; }
 
 	float getVisibilityPriority() const;
 
@@ -252,7 +252,6 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 	const TCHAR* getMovieDefineTag() const;
 
 	// Array access:
-	friend void CyInfoPythonInterface1(); // advc.003x
 
 	int getYieldChange(YieldTypes eYield) const;
 	iPY_WRAP(YieldChange, Yield)
@@ -313,10 +312,22 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 	int getUnitCombatFreeExperience(int i) const;
 	int getDomainFreeExperience(int i) const;
 	int getDomainProductionModifier(int i) const;
-	TechTypes getPrereqAndTechs(int i) const;
-	inline bool isAnyPrereqAndTech() const { return (m_piPrereqAndTechs != NULL); } // advc.003t
-	BonusTypes getPrereqOrBonuses(int i) const;
-	inline bool isAnyPrereqOrBonus() const { return (m_piPrereqOrBonuses != NULL); } // advc.003t
+	// <advc.003t>
+	inline int getNumPrereqAndTechs() const { return m_aePrereqAndTechs.size(); }
+	inline int getNumPrereqOrBonuses() const { return m_aePrereqOrBonuses.size(); }
+	TechTypes getPrereqAndTechs(int i) const
+	{
+		FAssertBounds(0, getNumPrereqAndTechs(), i);
+		return m_aePrereqAndTechs[i];
+	}
+	BonusTypes getPrereqOrBonuses(int i) const
+	{
+		FAssertBounds(0, getNumPrereqOrBonuses(), i);
+		return m_aePrereqOrBonuses[i];
+	}
+	int py_getPrereqAndTechs(int i) const;
+	int py_getPrereqOrBonuses(int i) const;
+	// </advc.003t>
 	int getProductionTraits(int i) const;
 	int getHappinessTraits(int i) const;
 	int getBuildingHappinessChanges(int i) const;
@@ -379,19 +390,19 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 	// </advc.310>
 
 protected:
-	int m_iBuildingClassType;
-	int m_iVictoryPrereq;
-	int m_iFreeStartEra;
-	int m_iMaxStartEra;
-	int m_iObsoleteTech;
-	int m_iPrereqAndTech;
-	int m_iNoBonus;
-	int m_iPowerBonus;
-	int m_iFreeBonus;
+	BuildingClassTypes m_eBuildingClassType;
+	VictoryTypes m_eVictoryPrereq;
+	EraTypes m_eFreeStartEra;
+	EraTypes m_eMaxStartEra;
+	TechTypes m_eObsoleteTech;
+	TechTypes m_ePrereqAndTech;
+	BonusTypes m_eNoBonus;
+	BonusTypes m_ePowerBonus;
+	BonusTypes m_eFreeBonus;
 	int m_iNumFreeBonuses;
-	int m_iFreeBuildingClass;
-	int m_iFreePromotion;
-	int m_iCivicOption;
+	BuildingClassTypes m_eFreeBuildingClass;
+	PromotionTypes m_eFreePromotion;
+	CivicOptionTypes m_eCivicOption;
 	int m_iAIWeight;
 	int m_iProductionCost;
 	int m_iHurryCostModifier;
@@ -437,18 +448,18 @@ protected:
 	int m_iForeignTradeRouteModifier;
 	int m_iAssetValue;
 	int m_iPowerValue;
-	int m_iSpecialBuildingType;
-	int m_iAdvisorType;
-	int m_iHolyCity;
-	int m_iReligionType;
-	int m_iStateReligion;
-	int m_iPrereqReligion;
-	int m_iPrereqCorporation;
-	int m_iFoundsCorporation;
-	int m_iGlobalReligionCommerce;
-	int m_iGlobalCorporationCommerce;
-	int m_iPrereqAndBonus;
-	int m_iGreatPeopleUnitClass;
+	SpecialBuildingTypes m_eSpecialBuildingType;
+	AdvisorTypes m_eAdvisorType;
+	ReligionTypes m_eHolyCity;
+	ReligionTypes m_eReligionType;
+	ReligionTypes m_eStateReligion;
+	ReligionTypes m_ePrereqReligion;
+	CorporationTypes m_ePrereqCorporation;
+	CorporationTypes m_eFoundsCorporation;
+	ReligionTypes m_eGlobalReligionCommerce;
+	CorporationTypes m_eGlobalCorporationCommerce;
+	BonusTypes m_ePrereqAndBonus;
+	UnitClassTypes m_eGreatPeopleUnitClass;
 	int m_iGreatPeopleRateChange;
 	int m_iConquestProbability;
 	int m_iMaintenanceModifier;
@@ -465,8 +476,8 @@ protected:
 	int m_iBombardDefenseModifier;
 	int m_iAllCityDefenseModifier;
 	int m_iEspionageDefenseModifier;
-	int m_iMissionType;
-	int m_iVoteSourceType;
+	MissionTypes m_eMissionType;
+	VoteSourceTypes m_eVoteSourceType;
 
 	float m_fVisibilityPriority;
 
@@ -497,8 +508,8 @@ protected:
 	CvString m_szArtDefineTag;
 	CvString m_szMovieDefineTag;
 
-	int* m_piPrereqAndTechs;
-	int* m_piPrereqOrBonuses;
+	std::vector<TechTypes> m_aePrereqAndTechs; // advc.003t: was int*
+	std::vector<BonusTypes> m_aePrereqOrBonuses; // advc.003t: was int*
 	int* m_piProductionTraits;
 	int* m_piHappinessTraits;
 	int* m_piSeaPlotYieldChange;

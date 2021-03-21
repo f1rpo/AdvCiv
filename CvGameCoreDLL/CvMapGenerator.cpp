@@ -56,11 +56,8 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY,  // refa
 	if (!bCheckRange)
 		return true; // </advc.129>
 
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(p)
 	{
-		CvPlot const* pAdj = plotDirection(p.getX(), p.getY(), eLoopDirection);
-		if (pAdj == NULL)
-			continue;
 		BonusTypes eLoopBonus = pAdj->getBonusType();
 		if (eLoopBonus != NO_BONUS && eLoopBonus != eBonus)
 			return false;
@@ -92,10 +89,9 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY,  // refa
 
 	// <advc.129> Prevent more than one adjacent copy regardless of range.
 	int iFound = 0;
-	FOR_EACH_ENUM(Direction)
+	FOR_EACH_ADJ_PLOT(p)
 	{
-		CvPlot const* pAdj = plotDirection(p.getX(), p.getY(), eLoopDirection);
-		if (pAdj == NULL || !pAdj->isArea(kArea))
+		if (!pAdj->isArea(kArea))
 			continue;
 		if (pAdj->getBonusType() == eBonus)
 		{
@@ -107,11 +103,8 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY,  // refa
 				won't be placed at all. (They're only placed around one central
 				tile, which also gets the resource.) Better to change the placement
 				pattern then (addUniqueBonusType). */
-			/*FOR_EACH_ENUM2(Direction, eDir2) {
-				CvPlot const* pAdjAdj = plotDirection(pAdj->getX(), pAdj->getY(), eDir2);
-				if (pAdjAdj == NULL || !pAdjAdj->isArea(kArea))
-					continue;
-				if(pAdjAdj->getBonusType() == eBonus)
+			/*FOR_EACH_ADJ_PLOT2(pAdjAdj, *pAdj) {
+				if(pAdjAdj->isArea(kArea) && pAdjAdj->getBonusType() == eBonus)
 					return false;
 			}*/
 		}
@@ -666,7 +659,7 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonus)
 			int const iAreaLimit = std::min(2, 3 * pBestArea->getNumTiles()) +
 					pBestArea->getNumTiles() / 25; // </advc.129>
 
-			// Place the bonuses: (advc: some style changes from here on)
+			// Place the bonuses:
 
 			int* aiShuffledIndices = shuffle(kMap.numPlots(), kGame.getMapRand());
 			for (int iI = 0; iI < kMap.numPlots() &&
@@ -749,7 +742,7 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonus)
 	{
 		CvPlot& p = GC.getMap().getPlotByIndex(aiShuffledIndices[i]);
 		if (!canPlaceBonusAt(eBonus, p.getX(), p.getY(), bIgnoreLatitude))
-			continue; // advc
+			continue;
 
 		p.setBonusType(eBonus);
 		iBonusCount--;
@@ -808,7 +801,7 @@ int CvMapGenerator::placeGroup(BonusTypes eBonus, CvPlot const& kCenter,
 }
 
 
-void CvMapGenerator::addGoodies()  // advc: some style changes
+void CvMapGenerator::addGoodies()
 {
 	PROFILE_FUNC();
 
@@ -840,7 +833,7 @@ void CvMapGenerator::addGoodies()  // advc: some style changes
 
 			CvArea const& kArea = kPlot.getArea();
 			if (goodiesPerArea[kArea.getID()] < // advc.opt: was kArea.getNumImprovements(eImprov)
-				ROUND_DIVIDE(kArea.getNumTiles(), iTilesPerGoody))
+				intdiv::uround(kArea.getNumTiles(), iTilesPerGoody))
 			{
 				if (canPlaceGoodyAt(eGoody, kPlot.getX(), kPlot.getY()))
 				{
@@ -989,9 +982,9 @@ int CvMapGenerator::getRiverValueAtPlot(CvPlot const& kPlot) const // advc: cons
 
 	/*iSum += (NUM_PLOT_TYPES - kPlot.getPlotType()) * 20;
 	FOR_EACH_ENUM(Direction) {
-		CvPlot* pAdjacentPlot = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
-		if (pAdjacentPlot != NULL)
-			iSum += (NUM_PLOT_TYPES - pAdjacentPlot->getPlotType());
+		CvPlot* pAdj = plotDirection(kPlot.getX(), kPlot.getY(), eLoopDirection);
+		if (pAdj != NULL)
+			iSum += (NUM_PLOT_TYPES - pAdj->getPlotType());
 		else iSum += (NUM_PLOT_TYPES * 10);
 	}*/
 	/*	<advc.129> kPlot is the plot at whose southeastern corner the river will arrive.

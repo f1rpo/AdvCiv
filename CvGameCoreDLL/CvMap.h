@@ -18,17 +18,21 @@ class CvSelectionGroup;
 
 struct CvMapInitData // holds initialization info
 {
-	int m_iGridW; // in game plots
-	int m_iGridH; // in game plots
+	int m_iGridW; // in-game plots
+	int m_iGridH; // in-game plots
 	int m_iTopLatitude;
 	int m_iBottomLatitude;
 
 	bool m_bWrapX;
 	bool m_bWrapY;
 
-	CvMapInitData(int iGridW=0, int iGridH=0, int iTopLatitude=90, int iBottomLatitude=-90, bool bWrapX=false, bool bWrapY=false) :
-		m_iGridH(iGridH),m_iGridW(iGridW),m_iTopLatitude(iTopLatitude),m_iBottomLatitude(iBottomLatitude),m_bWrapY(bWrapY),m_bWrapX(bWrapX)
-	{ }
+	CvMapInitData(int iGridW = 0, int iGridH = 0,
+		int iTopLatitude = 90, int iBottomLatitude = -90,
+		bool bWrapX = false, bool bWrapY = false)
+	:	m_iGridH(iGridH), m_iGridW(iGridW),
+		m_iTopLatitude(iTopLatitude), m_iBottomLatitude(iBottomLatitude),
+		m_bWrapY(bWrapY), m_bWrapX(bWrapX)
+	{}
 };
 
 class CvMap /* advc.003e: */ : private boost::noncopyable
@@ -93,7 +97,7 @@ public:
 	// Returns the distance between plots according to the pattern above...
 	int stepDistance(int iX1, int iY1, int iX2, int iY2) const
 	{	// std::opt: Was std::max. inline keyword removed; cf. plotDistance.
-		return max(xDistance(iX1, iX2), yDistance(iY1, iY2));
+		return branchless::max(xDistance(iX1, iX2), yDistance(iY1, iY2));
 	}
 
 	// K-Mod, plot-to-plot alias for convenience:
@@ -109,7 +113,7 @@ public:
 		if(eDirection == NO_DIRECTION)
 			return plotValidXY(iX, iY);
 		// advc.opt: Don't check for INVALID_PLOT_COORD
-		else return plotValidXY(
+		return plotValidXY(
 				iX + GC.getPlotDirectionX()[eDirection],
 				iY + GC.getPlotDirectionY()[eDirection]);
 	}
@@ -136,12 +140,9 @@ public:
 
 	inline DirectionTypes directionXY(int iDX, int iDY) const
 	{
-		if (abs(iDX) > DIRECTION_RADIUS || abs(iDY) > DIRECTION_RADIUS)
-		{
-			// advc.test: (apparently not needed - remove it for next release)
-			FErrorMsg("Just to see if the DIRECTION_RADIUS<abs branch is needed");
-			return NO_DIRECTION;
-		}
+		/*if (abs(iDX) > DIRECTION_RADIUS || abs(iDY) > DIRECTION_RADIUS)
+			return NO_DIRECTION;*/ // advc.opt: Apparently can't happen, so:
+		FAssert(!(abs(iDX) > DIRECTION_RADIUS || abs(iDY) > DIRECTION_RADIUS));
 		return GC.getXYDirection(iDX + DIRECTION_RADIUS, iDY + DIRECTION_RADIUS);
 	}
 
@@ -194,14 +195,12 @@ public:
 	{
 		return (stepDistance(&kFirstPlot, &kSecondPlot) <= 1);
 	}
-	/*	advc (for advc.030, advc.027): Cut from teamStepValid in CvGameCoreUtils.
-		Not getting inlined - which is OK (I've benchmarked it with forceinline). */
-	bool isSeparatedByIsthmus(CvPlot const& kFrom, CvPlot const& kTo) const
+	// advc.opt: Check cache at CvPlot before doing the computation
+	inline bool isSeparatedByIsthmus(CvPlot const& kFrom, CvPlot const& kTo) const
 	{
-		return (kFrom.isWater() && kTo.isWater() &&
-			// Safe wrt. map edges b/c we know (assume) that kFrom and kTo are adjacent
-			!getPlot(kFrom.getX(), kTo.getY()).isWater() &&
-			!getPlot(kTo.getX(), kFrom.getY()).isWater());
+		if (!kFrom.isAnyIsthmus())
+			return false;
+		return isSeparatedByIsthmus_bulk(kFrom, kTo);
 	}
 
 private: // Auxiliary functions
@@ -223,7 +222,7 @@ private: // Auxiliary functions
 			return iDiff;
 		if (iDiff > iRange / 2)
 			return iDiff - iRange;
-		else if (iDiff < -(iRange / 2))
+		if (iDiff < -(iRange / 2))
 			return iDiff + iRange;
 		return iDiff;
 	}
@@ -234,11 +233,19 @@ private: // Auxiliary functions
 			return iCoord;
 		if (iCoord < 0)
 			return (iRange + (iCoord % iRange));
-		else if (iCoord >= iRange)
+		if (iCoord >= iRange)
 			return (iCoord % iRange);
 		return iCoord;
 	}
 	// (end of functions moved from CvGameCoreUtils.h) </advc.make>
+	// advc (for advc.030, advc.027): Cut from teamStepValid in CvGameCoreUtils
+	bool isSeparatedByIsthmus_bulk(CvPlot const& kFrom, CvPlot const& kTo) const
+	{
+		return (kFrom.isWater() && kTo.isWater() &&
+			// Safe wrt. map edges b/c we know (assume) that kFrom and kTo are adjacent
+			!getPlot(kFrom.getX(), kTo.getY()).isWater() &&
+			!getPlot(kTo.getX(), kFrom.getY()).isWater());
+	}
 
 	friend class CyMap;
 public:
@@ -263,9 +270,8 @@ public: // advc: made several functions const
 
 	void doTurn();
 
-	void setFlagsDirty(); // K-Mod
 	DllExport void updateFlagSymbols();
-
+	//void setFlagsDirty(); // K-Mod (advc.001w: Obsolete, deleted.)
 	DllExport void updateFog();
 	void updateVisibility();																// Exposed to Python
 	DllExport void updateSymbolVisibility();
@@ -299,7 +305,8 @@ public: // advc: made several functions const
 			bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM,
 			DirectionTypes eDirection = NO_DIRECTION, CvCity const* pSkipCity = NULL, TeamTypes eObserver = NO_TEAM) const;
 	// </advc.004r>
-	CvSelectionGroup* findSelectionGroup(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, bool bReadyToSelect = false, bool bWorkers = false) const;				// Exposed to Python
+	CvSelectionGroup* findSelectionGroup(int iX, int iY, PlayerTypes eOwner = NO_PLAYER,					// Exposed to Python
+			bool bReadyToSelect = false, bool bWorkers = false) const;
 
 	CvArea* findBiggestArea(bool bWater);																						// Exposed to Python
 
@@ -312,12 +319,13 @@ public: // advc: made several functions const
 		return (iX >= 0 && iX < getGridWidth() && iY >= 0 && iY < getGridHeight());
 	}
 	int numPlotsExternal() const; // advc.inl: Exported through .def file							// Exposed to Python
-	inline int numPlots() const // advc.inl: Renamed from numPlotsINLINE
+	inline PlotNumTypes numPlots() const // advc.inl: Renamed from numPlotsINLINE
 	{
-		return getGridWidth() * getGridHeight();
+		return m_ePlots;//getGridWidth() * getGridHeight(); // advc.opt
 	}
 	/*	advc.inl: Merged with plotNumINLINE (plotNum wasn't called externally).
-		advc.enum: return type changed from int. */
+		advc.enum: return type changed from int.
+		Tbd(?).: Cache this at CvPlot (and possibly CvCity)? */
 	inline PlotNumTypes plotNum(int iX, int iY) const 												// Exposed to Python
 	{
 		return (PlotNumTypes)(iY * getGridWidth() + iX);
@@ -363,8 +371,9 @@ public: // advc: made several functions const
 		return m_iGridHeight;
 	}
 
-	int getLandPlots() const;																					// Exposed to Python
+	int getLandPlots() const { return m_iLandPlots; } // advc.inl										// Exposed to Python
 	void changeLandPlots(int iChange);
+	int getWaterPlots() const { return numPlots() - getLandPlots(); } // advc
 
 	int getOwnedPlots() const { return m_iOwnedPlots; }														// Exposed to Python
 	void changeOwnedPlots(int iChange);
@@ -478,18 +487,13 @@ public: // advc: made several functions const
 		return m_areas.nextIter(pIterIdx); // advc.opt
 	}
 
-	void recalculateAreas();																		// Exposed to Python
+	void recalculateAreas(bool bUpdateIsthmuses = true);												// Exposed to Python
 	// <advc.300>
 	void computeShelves();
 	void getShelves(CvArea const& kArea, std::vector<Shelf*>& r) const;
 	// </advc.300>
 	void resetPathDistance();																		// Exposed to Python
 	int calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) const;					// Exposed to Python
-	// advc.104b: (based on BBAI's CvPlot::calculatePathDistanceToPlot)
-	int calculateTeamPathDistance(TeamTypes eTeam,
-			CvPlot const& kFrom, CvPlot const& kTo, int iMaxPath = -1,
-			TeamTypes eTargetTeam = BARBARIAN_TEAM,
-			DomainTypes eDomain = DOMAIN_LAND) const;
 	void updateIrrigated(CvPlot& kPlot); // advc.pf
 
 	// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START
@@ -508,11 +512,40 @@ public: // advc: made several functions const
 			int iNumCustomMapOptions, CustomMapOptionTypes* eCustomMapOptions);
 	void updateReplayTexture(); // advc.106n
 	byte const* getReplayTexture() const; // advc.106n
+	/*	<advc.002a> Set through BUG options, but I worry that accessing those
+		while redrawing the minimap plot for plot would be too slow.
+		Let BUG cache the settings here whenever they change. */
+	class MinimapSettings : private boost::noncopyable
+	{
+	public:
+		MinimapSettings()
+		:	m_bShowUnits(false),
+			/*	Replacing STANDARD_MINIMAP_ALPHA in CvPlot.cpp,
+				which was 0.6f. */
+			m_fLandAlpha(0.75f),
+			m_fWaterAlpha(m_fLandAlpha)
+		{}
+		// All exposed to Python via CyMap
+		void setShowUnits(bool b) { m_bShowUnits = b; }
+		void setWaterAlpha(float f) { m_fWaterAlpha = f; }
+		void setLandAlpha(float f) { m_fLandAlpha = f; }
+		bool isShowUnits() const { return m_bShowUnits; }
+		float getWaterAlpha() const { return m_fWaterAlpha; }
+		float getLandAlpha() const { return m_fLandAlpha; }
+	private:
+		bool m_bShowUnits;
+		float m_fWaterAlpha;
+		float m_fLandAlpha;
+	};
+	MinimapSettings& getMinimapSettings() { return m_minimapSettings; }
+	MinimapSettings const& getMinimapSettings() const { return m_minimapSettings; }
+	// </advc.002a>
 
 protected:
 
 	int m_iGridWidth;
 	int m_iGridHeight;
+	PlotNumTypes m_ePlots; // advc.opt
 	int m_iLandPlots;
 	int m_iOwnedPlots;
 	int m_iTopLatitude;
@@ -526,9 +559,10 @@ protected:
 	EnumMap<BonusTypes,int> m_aiNumBonusOnLand;
 	// </advc.enum>
 	CvPlot* m_pMapPlots;
-	std::map<Shelf::Id,Shelf*> shelves; // advc.300
+	std::map<Shelf::Id,Shelf*> m_shelves; // advc.300
 	FFreeListTrashArray<CvArea> m_areas;
 	std::vector<byte> m_replayTexture; // advc.106n
+	MinimapSettings m_minimapSettings; // advc.002a
 
 	void calculateAreas();
 	// <advc.030>
@@ -537,12 +571,13 @@ protected:
 	void calculateAreas_DFS(CvPlot const& p);
 	void updateLakes();
 	// </advc.030>
+	void updatePlotNum(); // advc.opt
 };
 
 // advc.enum: (for EnumMap)
-__forceinline PlotNumTypes getEnumLength(PlotNumTypes, bool bAllowForEach = true)
+__forceinline PlotNumTypes getEnumLength(PlotNumTypes)
 {
-	return (PlotNumTypes)GC.getMap().numPlots();
+	return GC.getMap().numPlots();
 }
 
 /* <advc.make> Global wrappers for distance functions. The int versions are

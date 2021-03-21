@@ -57,13 +57,17 @@
 #pragma warning(disable: 800)
 
 /*	"assignment operator could not be generated"
-	Don't want to have to write private assignment operators for every class
-	with reference members. */
+	Don't want to be forced to make every class with reference members
+	explicitly noncopyable. */
 #pragma warning(disable: 512)
 
 /*	"copy constructor could not be generated"
 	Gets in the way of deriving base classes from boost::noncopyable. */
 #pragma warning(disable: 511)
+
+/*	"assignment within conditional expression"
+	A little annoying, but rarely so; perhaps worth having. */
+//#pragma warning(disable: 706)
 
 /*	"local variable is initialized but not referenced"
 	Helpful, but still want to be able to define variables
@@ -71,5 +75,15 @@
 #ifdef _DEBUG
 	#pragma warning(disable: 189)
 #endif
+
+
+/*	The 'suppress' warning specifier was introduced in MSVC05. I guess this is the
+	best that we can do:
+	^Nope, in header files, this crashes fastdep.exe. Will have to spell it out. */
+/*#define PRAGMA_SUPPRESS_START(iWarningType) \
+	__pragma(warning(push)) \
+	__pragma(warning(disable: iWarningType))
+#define PRAGMA_SUPPRESS_END \
+	__pragma(warning(pop))*/
 
 #endif

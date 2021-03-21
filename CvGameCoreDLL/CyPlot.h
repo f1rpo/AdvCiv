@@ -16,6 +16,7 @@ class CyPlot
 public:
 	CyPlot();
 	DllExport CyPlot(CvPlot*);			// Call from C++
+	CyPlot(CvPlot const*); // advc.003y
 	CyPlot(CvPlot const&); // advc.003y
 	CvPlot* getPlot() { return m_pPlot; }	// Call from C++
 	void setPlot(CvPlot* p) { m_pPlot=p; }	// Call from C++
@@ -95,7 +96,8 @@ public:
 	bool isRevealedGoody(int /*TeamTypes*/ eTeam);
 
 	bool isCity();
-	bool isFriendlyCity(CyUnit* pUnit, bool bCheckImprovement);
+	// advc: CvPlot no longer has such a function
+	//bool isFriendlyCity(CyUnit* pUnit, bool bCheckImprovement);
 	bool isEnemyCity(CyUnit* pUnit);
 	bool isOccupation();
 	bool isBeingWorked();

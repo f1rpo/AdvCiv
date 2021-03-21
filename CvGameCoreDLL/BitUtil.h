@@ -5,8 +5,7 @@
 
 /*  advc.enum: Helper functions for bitwise operations. Copied from the
 	"We the People" mod (all code by Nightinggale), which keeps these functions
-	directly in CvGameCoreDLL.h.
-	Removed the static keyword (all functions were static). */
+	directly in CvGameCoreDLL.h. */
 
 namespace BitUtil // advc: Don't want these in the global namespace (for now)
 {
@@ -67,7 +66,7 @@ namespace BitUtil // advc: Don't want these in the global namespace (for now)
 #endif
 };
 
-// advc.enum (not from WtP): Macro for (somehwat) type-safe bitmasks
+// advc.enum (not from WtP): Macro for (somewhat) type-safe bitmasks
 #define OVERLOAD_BITWISE_OPERATORS(EnumType) \
 	__forceinline EnumType operator|(EnumType eLeft, EnumType eRight) \
 	{ \

@@ -164,7 +164,7 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 		aePlayerIndices.set(kLoopPlayer.getID(), eNewIndex);
 		if (kLoopPlayer.getID() == kGame.getActivePlayer())
 			m_eActivePlayer = eNewIndex;
-		eNewIndex++;
+		++eNewIndex;
 		PlayerInfo playerInfo;
 		playerInfo.m_eLeader = kLoopPlayer.getLeaderType();
 		playerInfo.m_eColor = GC.getInfo(kLoopPlayer.getPlayerColor()).getColorTypePrimary();
@@ -173,10 +173,15 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 		for (int iTurn = m_iInitialTurn; iTurn <= m_iFinalTurn; iTurn++)
 		{
 			TurnData score;
-			score.m_iScore = kLoopPlayer.getScoreHistory(iTurn);
-			score.m_iAgriculture = kLoopPlayer.getAgricultureHistory(iTurn);
-			score.m_iIndustry = kLoopPlayer.getIndustryHistory(iTurn);
-			score.m_iEconomy = kLoopPlayer.getEconomyHistory(iTurn);
+			// advc.004s: max(0,) b/c unavailable data is represented as -1
+			score.m_iScore = std::max(0, kLoopPlayer.getHistorySafe(
+					PLAYER_HISTORY_SCORE, iTurn));
+			score.m_iAgriculture = std::max(0, kLoopPlayer.getHistorySafe(
+					PLAYER_HISTORY_AGRICULTURE, iTurn));
+			score.m_iIndustry = std::max(0, kLoopPlayer.getHistorySafe(
+					PLAYER_HISTORY_INDUSTRY, iTurn));
+			score.m_iEconomy = std::max(0, kLoopPlayer.getHistorySafe(
+					PLAYER_HISTORY_ECONOMY, iTurn));
 
 			playerInfo.m_listScore.push_back(score);
 		}
@@ -503,13 +508,12 @@ void CvReplayInfo::addReplayMessage(CvReplayMessage* pMessage)
 
 void CvReplayInfo::clearReplayMessageMap()
 {
-	for (ReplayMessageList::const_iterator itList = m_listReplayMessages.begin(); itList != m_listReplayMessages.end(); itList++)
+	for (ReplayMessageList::const_iterator itList = m_listReplayMessages.begin();
+		itList != m_listReplayMessages.end(); ++itList)
 	{
-		const CvReplayMessage* pMessage = *itList;
+		CvReplayMessage const* pMessage = *itList;
 		if (pMessage != NULL)
-		{
 			delete pMessage;
-		}
 	}
 	m_listReplayMessages.clear();
 }
@@ -746,7 +750,7 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 		if(!checkBounds(m_eClimate, 0, GC.getNumClimateInfos() - 1)) return false; // advc.106i
 		stream.Read(&iType);
 		 // <advc.106i> For compatibility with advc.707
-		if(iVersion != 5 && iVersion >= 6) // ==5 handled at the end of this function
+		if(iVersion >= 6)
 		{
 			m->iFinalScore = iType;
 			m_eSeaLevel = NO_SEALEVEL; // unused

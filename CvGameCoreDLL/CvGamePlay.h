@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef CIV4_GAME_PLAY_H
-#define CIV4_GAME_PLAY_H
+#define CIV4_GAME_PLAY_H // Caveat: This guard gets referenced in other headers too
 
 /*  advc.make: Wrapper header to reduce the number of include statements and
 	a place for the team accessor macros. (However, the one that returns a CvTeamAI
@@ -13,13 +13,10 @@
 #include "CvPlayer.h"
 #include "AgentIterator.h" // advc.agent
 #include "CvCivilization.h" // advc.003w
-/*  Not: CvCity.h - not much use without CvCityList, which, in turn, includes
-	CvCityAI.h. Same problem with CvUnit.h, CvSelectionGroup.h.
-	To amend this, the constructor and destructor calls would have to be moved out of
-	FFreeListTrashArray. */
 
 // <advc.003u>
-#ifndef GET_TEAM // Prefer the definition in CoreAI.h
+#ifndef COREAI_H // Overwrite CvTeam(AI).h, but yield to CoreAI.h.
+#undef GET_TEAM
 #define GET_TEAM(x) CvGamePlay::getTeam(x)
 #endif
 #define TEAMID(x) GET_PLAYER(x).getTeam()

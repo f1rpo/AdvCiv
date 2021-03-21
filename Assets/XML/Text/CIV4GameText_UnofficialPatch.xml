@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by XMLSPY 2004 Professional Ed. Release 2, Installed Multi + SMP for 3 users (Firaxis Games) -->
-<!-- Sid Meier's Civilization 4 -->
-<!-- Copyright Firaxis Games 2005 -->
-<!-- -->
-<!-- Game Text - New -->
+
 <Civ4GameText xmlns="http://www.firaxis.com">
+
 	<TEXT>
 		<Tag>TXT_KEY_TERRAIN_TURN_DAMAGE</Tag>
 		<English>[NEWLINE][ICON_BULLET]%D1%% damage/turn</English>
@@ -39,4 +36,5 @@
 		<Italian>[COLOR_WARNING_TEXT]Richiede [LINK=literal]%s1_Name[\LINK] (%d2_NumTotal totali)[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_WARNING_TEXT]Requiere [LINK=literal]%s1_Name[\LINK] (%d2_NumTotal en total)[COLOR_REVERT]</Spanish>
 	</TEXT>
+
 </Civ4GameText>

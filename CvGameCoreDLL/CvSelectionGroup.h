@@ -3,7 +3,7 @@
 #ifndef CIV4_SELECTION_GROUP_H
 #define CIV4_SELECTION_GROUP_H
 
-class KmodPathFinder;
+class GroupPathFinder;
 class CvMap;
 class CvPlot;
 class CvArea;
@@ -15,16 +15,17 @@ class CvSelectionGroup /* advc.003k: */ : private boost::noncopyable
 {
 public:
 	// <advc.pf>
-	static inline KmodPathFinder& pathFinder()
+	static inline GroupPathFinder& pathFinder()
 	{
 		return *m_pPathFinder;
 	}
+	static GroupPathFinder& getClearPathFinder(); // advc.opt
 	static void initPathFinder();
 	static void uninitPathFinder(); // </advc.pf>
 	/*	(disabled by K-mod. Use pathFinder().Reset instead. was exposed to Python.
 		note: the K-Mod finder doesn't need resetting in all the same places.)
 		advc: I'm not going to expose it to Python again, but, in the DLL, it's helpful
-		as a (static) wrapper for avoiding inclusion of the KmodPathFinder header. */
+		as a (static) wrapper for avoiding inclusion of the GroupPathFinder header. */
 	static void resetPath();
 
 	CvSelectionGroup();
@@ -34,6 +35,7 @@ public:
 	DllExport void uninit();
 	DllExport void reset(int iID = 0, PlayerTypes eOwner = NO_PLAYER, bool bConstructorCall = false);
 	void kill();
+	void invalidateGroupPaths(); // advc.pf
 
 	void doTurn();
 	void doTurnPost(); // advc.004l
@@ -55,9 +57,16 @@ public:
 	//DllExport void autoMission();
 	bool autoMission(); // K-Mod. (No 'DllExport'? Are you serious!?)
 	void updateMission();
-	DllExport CvPlot* lastMissionPlot();																																					// Exposed to Python
+	DllExport CvPlot* lastMissionPlot()																	// Exposed to Python
+	{	// <advc>
+		CvSelectionGroup const& kThis = *this;
+		return kThis.lastMissionPlot();
+	}
+	CvPlot* lastMissionPlot() const; // </advc>
 
-	bool canStartMission(int iMission, int iData1, int iData2, CvPlot const* pPlot = NULL, bool bTestVisible = false, bool bUseCache = false);		// Exposed to Python
+	bool canStartMission(MissionTypes eMission, int iData1, int iData2,									// Exposed to Python
+			CvPlot const* pPlot = NULL, bool bTestVisible = false,
+			bool bUseCache = false) const;
 	void startMission();
 	//void continueMission(int iSteps = 0);
 	// K-Mod: Split continueMission into two functions to remove the recursion.
@@ -99,11 +108,16 @@ public:
 	bool canCargoAllMove() const; // K-Mod (moved from CvUnit)
 	bool hasMoved() const; // Exposed to Python
 	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false) const;									// Exposed to Python
-	bool canEnterArea(TeamTypes eTeam, CvArea const& kArea, bool bIgnoreRightOfPassage = false) const;									// Exposed to Python
-	DllExport bool canMoveInto(CvPlot* pPlot, bool bAttack = false);																		// Exposed to Python
-	DllExport bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar = false) {					 // Exposed to Python
+	bool canEnterArea(TeamTypes eTeam, CvArea const& kArea, bool bIgnoreRightOfPassage = false) const;					// Exposed to Python
+	DllExport bool canMoveInto(CvPlot* pPlot, bool bAttack = false)														// Exposed to Python
+	{	// <advc>
+		return canMoveInto(*pPlot, bAttack);
+	}
+	bool canMoveInto(CvPlot const& kPlot, bool bAttack = false) const; // </advc>
+	DllExport bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar = false)											// Exposed to Python
+	{
 		return canMoveOrAttackInto(*pPlot, bDeclareWar, false);
-	} // K-Mod. (hack to avoid breaking the DllExport)			advc: 2x const, CvPlot&
+	} // K-Mod. (avoid breaking the DllExport)			advc: 2x const, CvPlot&
 	bool canMoveOrAttackInto(CvPlot const& kPlot, bool bDeclareWar = false, bool bCheckMoves = false, bool bAssumeVisible = true) const;
 	bool canMoveThrough(CvPlot const& kPlot, bool bDeclareWar = false, bool bAssumeVisible = true) const; // Exposed to Python, K-Mod added bDeclareWar and bAssumeVisible; advc: CvPlot const&
 	bool canFight() const;																																										// Exposed to Python
@@ -123,22 +137,23 @@ public:
 	// BETTER_BTS_AI_MOD: END
 
 	void unloadAll();
-	bool alwaysInvisible() const;																																							// Exposed to Python
+	bool alwaysInvisible() const;																											// Exposed to Python
 	bool isInvisible(TeamTypes eTeam) const;																								// Exposed to Python
-	int countNumUnitAIType(UnitAITypes eUnitAI) const;																												// Exposed to Python
-	bool hasWorker();																																										// Exposed to Python
-	bool IsSelected();
+	int countNumUnitAIType(UnitAITypes eUnitAI) const;																						// Exposed to Python
+	bool hasWorker() const;																														// Exposed to Python
+	bool hasWorkerWithMoves() const; // advc.153
+	bool IsSelected() const;
 	DllExport void NotifyEntity(MissionTypes eMission);
 	void airCircle(bool bStart);
 	void setBlockading(bool bStart);
 
 	int getX() const;
 	int getY() const;
-	bool at(int iX, int iY) const																																								// Exposed to Python
+	bool at(int iX, int iY) const																											// Exposed to Python
 	{
 		return(getX() == iX && getY() == iY);
 	}
-	bool atPlot(CvPlot const* pPlot) const																																				// Exposed to Python
+	bool atPlot(CvPlot const* pPlot) const																									// Exposed to Python
 	{
 		return (plot() == pPlot);
 	}  // advc.inl: (also in-lined the above)
@@ -146,10 +161,10 @@ public:
 	{
 		return atPlot(&kPlot);
 	}
-	DllExport CvPlot* plot() const;																																								// Exposed to Python
+	DllExport CvPlot* plot() const;																											// Exposed to Python
 	inline CvPlot& getPlot() const { return *plot(); } // advc
 	//int getArea() const; // advc: removed
-	CvArea* area() const;																																													// Exposed to Python
+	CvArea* area() const;																													// Exposed to Python
 	DomainTypes getDomainType() const;
 
 	RouteTypes getBestBuildRoute(CvPlot const& kPlot, BuildTypes* peBestBuild = NULL) const;	// Exposed to Python
@@ -164,20 +179,21 @@ public:
 
 	void setTransportUnit(CvUnit* pTransportUnit, CvSelectionGroup** pOtherGroup = NULL); // bbai added pOtherGroup
 
-	bool isAmphibPlot(const CvPlot* pPlot) const;																																		// Exposed to Python
+	bool isAmphibPlot(CvPlot const* pPlot) const;																																		// Exposed to Python
 	bool groupAmphibMove(CvPlot const& kPlot, MovementFlags eFlags);
 
-	DllExport bool readyToSelect(bool bAny = false);																										// Exposed to Python
+	DllExport bool readyToSelect(bool bAny = false);																							// Exposed to Python
 	bool readyToMove(bool bAny = false) const; // Exposed to Python
 	bool readyToAuto() const; // Exposed to Python
 	// K-Mod.
 	bool readyForMission() const;
-	bool canDoMission(int iMission, int iData1, int iData2, CvPlot const* pPlot,
+	bool canDoMission(MissionTypes eMission, int iData1, int iData2, CvPlot const* pPlot,
 			bool bTestVisible, bool bCheckMoves) /* advc.002i: */ const;
 	// K-Mod end
 
 	inline int getID() const { return m_iID; } // advc.inl																																// Exposed to Python
 	void setID(int iID);
+	IDInfo getIDInfo() const { return IDInfo(getOwner(), getID()); } // advc
 
 	int getMissionTimer() const;
 	void setMissionTimer(int iNewValue);
@@ -201,12 +217,13 @@ public:
 	void setAutomateType(AutomateTypes eNewValue);																											// Exposed to Python
 
 	// FAStarNode* getPathLastNode() const; // disabled by K-Mod. Use pathFinder() instead.
-	CvPlot* getPathFirstPlot() const;																																		// Exposed to Python
-	CvPlot* getPathEndTurnPlot() const;																																	// Exposed to Python
-	bool generatePath(const CvPlot* pFromPlot, const CvPlot* pToPlot,								// Exposed to Python
+	CvPlot& getPathFirstPlot() const;																																		// Exposed to Python
+	CvPlot& getPathEndTurnPlot() const;																																	// Exposed to Python
+	bool generatePath(CvPlot const& kFrom, CvPlot const& kTo,										// Exposed to Python
 			MovementFlags eFlags = NO_MOVEMENT_FLAGS,
 			bool bReuse = false, int* piPathTurns = NULL,
-			int iMaxPath = -1) const; // K-Mod
+			int iMaxPath = -1, // K-Mod
+			bool bUseTempFinder = false) const; // advc.128
 
 	DllExport void clearUnits();
 	DllExport bool addUnit(CvUnit* pUnit, bool bMinimalChange);
@@ -216,20 +233,37 @@ public:
 	void regroupSeparatedUnits(); // K-Mod
 
 	DllExport CLLNode<IDInfo>* deleteUnitNode(CLLNode<IDInfo>* pNode);
-	DllExport inline CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode) const
-	{
-		return m_units.next(pNode); // advc.inl
-	} // <advc.003s> Safer in 'for' loops
+	// <advc.003s>
+	// Exported through .def file ...
+	CLLNode<IDInfo>* nextUnitNodeExternal(CLLNode<IDInfo>* pNode) const;
+	CLLNode<IDInfo>* headUnitNodeExternal() const;
+	CvUnit* getHeadUnitExternal() const;
+	// Safer to use const/ non-const pairs of functions
 	inline CLLNode<IDInfo> const* nextUnitNode(CLLNode<IDInfo> const* pNode) const
 	{
 		return m_units.next(pNode);
-	} // </advc.003s>
-	DllExport int getNumUnits() const;																												// Exposed to Python
-	DllExport int getUnitIndex(CvUnit* pUnit, int maxIndex = -1) const;
-	DllExport inline CLLNode<IDInfo>* headUnitNode() const { return m_units.head(); } // advc.inl
-	DllExport CvUnit* getHeadUnit() const;
-	CvUnit* getUnitAt(int index) const;
-	UnitAITypes getHeadUnitAIType() const; // advc.003u: was getHeadUnitAI
+	} 
+	inline CLLNode<IDInfo>* nextUnitNode(CLLNode<IDInfo>* pNode)
+	{
+		return m_units.next(pNode);
+	}
+	inline CLLNode<IDInfo> const* headUnitNode() const
+	{
+		return m_units.head();
+	}
+	inline CLLNode<IDInfo>* headUnitNode()
+	{
+		return m_units.head();
+	}
+	CvUnit const* getHeadUnit() const;
+	CvUnit* getHeadUnit();
+	// </advc.003s>
+	DllExport inline int getNumUnits() const														// Exposed to Python
+	{
+		return m_units.getLength();
+	}
+	DllExport int getUnitIndex(CvUnit* pUnit, int iMaxIndex = -1) const;
+	UnitAITypes getHeadUnitAIType() const; // advc.003u: renamed from "getHeadUnitAI"
 	PlayerTypes getHeadOwner() const;
 	TeamTypes getHeadTeam() const;
 
@@ -271,11 +305,17 @@ public:
 protected:
 	// K-Mod! I'd rather this not be static, but I can't do that here.
 	//public: static KmodPathFinder path_finder; protected:
-	/*	advc.pf: So, was it supposed to be a non-static member?
-		We can do that, but that would require some refactoring at this point.
-		Making it a pointer at least allows us to delay initialization
+	/*	advc.pf: We can make it a non-static member of CvSelectionGroup::Data,
+		and that would indeed make the code much cleaner, but would also
+		preclude the sharing of path data between groups in the future
+		and would make it difficult to reuse path data when looping over
+		units that may or may not belong to the same group (e.g. CvPlot::m_units).
+		Just make it a static pointer so that we can at least delay initialization
 		until the map has been initialized. */
-	static KmodPathFinder* m_pPathFinder;
+	static GroupPathFinder* m_pPathFinder;
+	/*	advc.opt: When we want to avoid resetting the path finder above,
+		and also want to avoid allocating memory. */
+	static GroupPathFinder* m_pAltPathFinder;
 
 	// WARNING: adding to this class will cause the civ4 exe to crash
 
@@ -285,14 +325,14 @@ protected:
 		The game also crashes if I add int[30] to CvSelectionGroupAI. */
 
 	/*	... I see that BBAI ignored the warning. They added some stuff below.
-		(advc: That was the BBAI StrandedCache, removed by K-Mod.)
+		[advc: That was the BBAI StrandedCache, removed by K-Mod.]
 		Removing the BBAI bools from below does not change the size 80.
 		Neither does removing the BBAI virtual functions.
 		but adding another int increases the size to 84. Which is a shame,
 		because I really want to add one more int...
 		Although a single int doesn't cause a startup crash,
 		I'd rather not risk instability. */
-	/*	advc.003k: I have a workaround for this. See nested class 'Data' below.
+	/*	advc.003k: See nested class 'Data' below for a workaround.
 		(Not right here b/c it's safer to keep the members in their original order.) */
 
 	int m_iID;
@@ -325,9 +365,12 @@ protected:
 	void handleBoarded();
 	bool canDisembark() const;
 	void resetBoarded();
-	void getLandCargoGroups(std::vector<CvSelectionGroup*>& r);
+	void getLandCargoGroups(std::vector<CvSelectionGroup*>& kResult);
 	// </advc.075>
 	bool sentryAlert(/* advc.004l: */ bool bUpdateKnownEnemies = false);
+	// <advc> Was public. Should only be used by Python
+	CvUnit* getUnitAt(int iIndex) const;
+	friend class CySelectionGroup; // </advc>
 
 private: // advc.003u: (See comments in the private section of CvPlayer.h)
 	//virtual void AI_initExternal();

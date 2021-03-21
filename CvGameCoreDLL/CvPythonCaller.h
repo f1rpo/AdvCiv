@@ -50,7 +50,7 @@ public:
 			bool bAlt, bool bShift, bool bCtrl) const;
 	bool cannotSelectionListNetOverride(GameMessageTypes eMessage, int aiData[3],
 			int iFlags, bool bAlt, bool bShift) const;
-	bool cannotHandleActionOverride(CvPlot const& kPlot, int iAction, bool bTestVisible) const;
+	bool cannotHandleActionOverride(CvPlot* pPlot, int iAction, bool bTestVisible) const;
 	bool cannotDoControlOverride(ControlTypes eControl) const;
 	void sendEmailReminder(CvString szEmailAddress) const;
 

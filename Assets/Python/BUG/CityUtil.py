@@ -22,7 +22,16 @@ def willGrowThisTurn(city):
 	
 	Emphasize No Growth must be off for the city, and its food rate plus storage must reach the growth threshold.
 	"""
-	return not city.AI_isEmphasize(5) and city.getFood() + city.foodDifference(True) >= city.growthThreshold()
+	if city.getFood() + city.foodDifference(True) < city.growthThreshold():
+		return False
+	return not avoidingGrowth(city) # advc: Don't hardcode emphasize id 5
+
+# advc:
+def avoidingGrowth(city):
+	for i in range(gc.getNumEmphasizeInfos()):
+		if gc.getEmphasizeInfo(i).isAvoidGrowth() and city.AI_isEmphasize(i):
+			return True
+	return False
 
 def willShrinkThisTurn(city):
 	"""

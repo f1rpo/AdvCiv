@@ -412,7 +412,21 @@ class CvTechChooser:
 
 			if bTechIcon:
 				szTechButtonID = sPanelWidget + "TechButtonID" + str(i)
-				screen.addDDSGFCAt( szTechButtonID, szTechRecord, gc.getTechInfo(i).getButton(), iX + 6, iY + 6, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_TECH_TREE, i, -1, False )
+				szButton = gc.getTechInfo(i).getButton()
+				# <advc.096> Show religion tech button - consistent with CvMainInterface.updateResearchButtons and CvDLLButtonPopup::launchChooseTechPopup.
+				# Don't do this after all, I think. Difficult to make out. See also CvGame::setReligionSlotTaken.
+				#iReligions = 0
+				#for j in range(gc.getNumReligionInfos()):
+				#	if gc.getReligionInfo(j).getTechPrereq() == i and not gc.getGame().isReligionSlotTaken(j):
+				#		iReligions += 1
+				#		if gc.getGame().isOption(GameOptionTypes.GAMEOPTION_PICK_RELIGION):
+				#			szTechReligionButton = gc.getReligionInfo(j).getGenericTechButton()
+				#		else:
+				#			szTechReligionButton = gc.getReligionInfo(j).getTechButton()
+				#if iReligions == 1:
+				#	szButton = szTechReligionButton
+				# </advc.096>
+				screen.addDDSGFCAt( szTechButtonID, szTechRecord, szButton, iX + 6, iY + 6, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_TECH_TREE, i, -1, False )
 
 			if bTechDetails:
 				self.addIconsToTechPanel(screen, i, X_START, iX, iY, szTechRecord)

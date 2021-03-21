@@ -3,6 +3,7 @@
 #include "CvGameCoreDLL.h"
 #include "StartingPositionIteration.h"
 #include "CvPlayerAI.h"
+#include "CvTeamAI.h"
 #include "CvGamePlay.h"
 #include "CitySiteEvaluator.h"
 #include "CvMap.h"
@@ -28,10 +29,11 @@ bool StartingPositionIteration::isDebug()
 
 
 StartingPositionIteration::StartingPositionIteration() :
-	m_bRestrictedAreas(false), m_bNormalizationTargetReady(false),
+	m_bRestrictedAreas(false), m_bScenario(false), m_bNormalizationTargetReady(false),
 	m_pEval(NULL), m_pYieldValues(NULL), m_pYieldsPerArea(NULL),
 	m_pPathDists(NULL), m_pPotentialSites(NULL)
 {
+	m_bScenario = GC.getInitCore().getWBMapScript();
 	if (!GC.getDefineBOOL("ENABLE_STARTING_POSITION_ITERATION"))
 		return;
 	CvMap const& kMap = GC.getMap();
@@ -57,40 +59,73 @@ StartingPositionIteration::StartingPositionIteration() :
 		if (!it->isHuman())
 			apCivPlayers.push_back(&*it);
 	}
-	FAssert(!GC.getGame().isTeamGame());
-	// In non-team games, Pangaea shouldn't need custom code for starting sites.
-	bool const bIgnoreScript = GC.getInitCore().isPangaea();
-	size_t i = 0;
-	for (; i < apCivPlayers.size(); i++)
+	/*	For large team games (a matter of player count and average team size),
+		I think the BtS algorithm will work better (i.e. less bad). */
+	if (GC.getGame().isTeamGame() &&
+		SQR((int)apCivPlayers.size()) > 36 * TeamIter<CIV_ALIVE>::count())
 	{
-		CvPlayer& kPlayer = *apCivPlayers[i];
-		if (kPlayer.getStartingPlot() != NULL)
-		{
-			/*	Meaning that, if a map script sets all starting sites in
-				assignStartingPlots but still allows the default implementation,
-				then starting position iteration is allowed but can't change
-				the start areas. (for PerfectMongoose) */
-			m_bRestrictedAreas = true;
-			continue;
-		}
-		gDLL->callUpdater();
-		bool bSiteFoundByScript=false;
-		bool bRestrictedAreas=false;
-		CvPlot* pSite = kPlayer.findStartingPlot(false,
-				&bSiteFoundByScript, &bRestrictedAreas);
-		if (pSite == NULL || (bSiteFoundByScript && !bIgnoreScript))
-			break;
-		if (bRestrictedAreas)
-			m_bRestrictedAreas = true;
-		/*	Would rather not store sites at players until the end of our computations,
-			but then findStartingPlot will return the same site over and over. */
-		kPlayer.setStartingPlot(pSite, false);
-	}
-	if (i != apCivPlayers.size()) // Revert any changes and bail
-	{
-		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
-			it->setStartingPlot(NULL, false);
 		return;
+	}
+	/*	Pangaea overrides assignStartingPlots, but has relevant custom behavior
+		only for team games (inland starts are prohibited then). */
+	bool const bIgnoreScript = (GC.getInitCore().isPangaea() && !GC.getGame().isTeamGame());
+	{
+		bool bAllStartsFixed = m_bScenario;
+		size_t i = 0;
+		for (; i < apCivPlayers.size(); i++)
+		{
+			CvPlayer& kPlayer = *apCivPlayers[i];
+			if (kPlayer.getStartingPlot() != NULL)
+			{
+				if (m_bScenario)
+				{
+					/*	Respect the per-plot StartingPlot flags in scenarios.
+						But there can be fewer such plots than players. We'll
+						deal with any players that don't have a starting site yet. */
+					m_abFixedStart.set(kPlayer.getID(), true);
+					continue;
+				}
+				/*	Meaning that, if a map script sets all starting sites in
+					assignStartingPlots but still allows the default implementation,
+					then starting position iteration is allowed but can't change
+					the start areas. (for PerfectMongoose) */
+				m_bRestrictedAreas = true;
+				continue;
+			}
+			else bAllStartsFixed = false;
+			gDLL->callUpdater();
+			bool bSiteFoundByScript=false;
+			bool bRestrictedAreas=false;
+			CvPlot* pSite = kPlayer.findStartingPlot(
+					&bSiteFoundByScript, &bRestrictedAreas);
+			if (pSite == NULL || (bSiteFoundByScript && !bIgnoreScript))
+				break;
+			if (bRestrictedAreas)
+				m_bRestrictedAreas = true;
+			/*	Would rather not store sites at players until the end of our computations,
+				but then findStartingPlot will return the same site over and over. */
+			kPlayer.setStartingPlot(pSite);
+		}
+		if (bAllStartsFixed)
+			return;
+		/*	<advc.test> For getting an evaluation of a particular starting position
+			(for particular RNG seeds set in CivilizationIV.ini). */
+		/*int aiiForcedInitialPosition[][2] =
+		{
+			{22, 36}, {19, 13}, {29, 12}, {29, 23},
+			{19, 29}, {32, 39}, {51, 11}, {55, 19},
+		};
+		for (int j = 0; j < ARRAY_LENGTH(aiiForcedInitialPosition); j++)
+		{
+			GET_PLAYER((PlayerTypes)j).setStartingPlot(&kMap.getPlot(
+					aiiForcedInitialPosition[j][0], aiiForcedInitialPosition[j][1]), false);
+		}*/ // </advc.test>
+		if (i != apCivPlayers.size()) // Revert any changes and bail
+		{
+			for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+				it->setStartingPlot(NULL);
+			return;
+		}
 	} // Past this point, we'll have set sensible starting plots; won't revert anymore.
 
 	// Precomputations (too costly to repeat in each iteration) ...
@@ -166,6 +201,19 @@ StartingPositionIteration::StartingPositionIteration() :
 	m_pPotentialSites = &potentialSiteGen;
 
 	doIterations(potentialSiteGen); // May modify the potential sites
+
+	m_sitesPerTeam.resize(MAX_CIV_TEAMS);
+	if (GC.getGame().isTeamGame())
+		assignSitesToTeams();
+	else
+	{
+		for (size_t i = 0; i < apCivPlayers.size(); i++)
+		{
+			m_sitesPerTeam[apCivPlayers[i]->getTeam()].push_back(
+					apCivPlayers[i]->getID());
+		}
+	}
+
 	delete pPathDists;
 	m_pPathDists = NULL;
 }
@@ -220,7 +268,7 @@ CitySiteEvaluator* StartingPositionIteration::createSiteEvaluator(bool bNormaliz
 
 StartingPositionIteration::PotentialSites::PotentialSites(
 	CitySiteEvaluator const& kEval, bool bRestrictedAreas) :
-	m_kEval(kEval), m_pVicinityPenaltiesPerPlot(NULL)
+	m_kEval(kEval)
 {
 	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
@@ -261,12 +309,12 @@ StartingPositionIteration::PotentialSites::PotentialSites(
 
 	// "Clearing the neighborhood"
 
-	m_pVicinityPenaltiesPerPlot = new EnumMap<PlotNumTypes,scaled>();
+	EnumMap<PlotNumTypes,scaled> arVicinityPenaltiesPerPlot;
 	for (map<PlotNumTypes,short>::const_iterator itSite = m_foundValuesPerSite.begin();
 		itSite != m_foundValuesPerSite.end(); ++itSite)
 	{
 		CvPlot const& p = kMap.getPlotByIndex(itSite->first);
-		recordSite(p, itSite->second, true);
+		recordSite(p, itSite->second, true, arVicinityPenaltiesPerPlot);
 	}
 	while (numSites() > iPlayers * 8u)
 	{
@@ -280,7 +328,7 @@ StartingPositionIteration::PotentialSites::PotentialSites(
 			it != m_foundValuesPerSite.end(); ++it)
 		{
 			scaled rVal = it->second * std::max(fixp(0.3),
-					1 - m_pVicinityPenaltiesPerPlot->get(it->first));
+					1 - arVicinityPenaltiesPerPlot.get(it->first));
 			if (rVal < rMinVal)
 			{
 				rMinVal = rVal;
@@ -290,11 +338,8 @@ StartingPositionIteration::PotentialSites::PotentialSites(
 		CvPlot const& kMinPlot = kMap.getPlotByIndex(minPos->first);
 		short iMinFoundVal = minPos->second;
 		m_foundValuesPerSite.erase(minPos);
-		recordSite(kMinPlot, iMinFoundVal, false);
+		recordSite(kMinPlot, iMinFoundVal, false, arVicinityPenaltiesPerPlot);
 	}
-	/*	Pointer member b/c I want to free the memory here; only the ctor and
-		its subroutines use it. */
-	SAFE_DELETE(m_pVicinityPenaltiesPerPlot);
 }
 
 
@@ -326,7 +371,8 @@ scaled StartingPositionIteration::PotentialSites::computeMinFoundValue()
 /*	(Could get the found value from m_foundValuesPerSite, but the callers
 	happen to have it at hand.) */
 void StartingPositionIteration::PotentialSites::recordSite(
-	CvPlot const& kPlot, short iFoundValue, bool bAdd)
+	CvPlot const& kPlot, short iFoundValue, bool bAdd,
+	EnumMap<PlotNumTypes,scaled>& kVicinityPenaltiesPerPlot)
 {
 	CvMap const& kMap = GC.getMap();
 
@@ -338,9 +384,9 @@ void StartingPositionIteration::PotentialSites::recordSite(
 		map<PlotNumTypes,short>::const_iterator pos = m_foundValuesPerSite.find(eLoopPlot);
 		if (pos != m_foundValuesPerSite.end() && pos->second < iFoundValue)
 		{
-			m_pVicinityPenaltiesPerPlot->add(eLoopPlot, iSign *
+			kVicinityPenaltiesPerPlot.add(eLoopPlot, iSign *
 					scaled(1, 4 << it.currPlotDist()));
-			FAssert(!m_pVicinityPenaltiesPerPlot->get(eLoopPlot).isNegative());
+			FAssert(!kVicinityPenaltiesPerPlot.get(eLoopPlot).isNegative());
 		}
 	}
 
@@ -351,9 +397,7 @@ void StartingPositionIteration::PotentialSites::recordSite(
 		return;
 	for (size_t i = 0; i < aClosestPlayers.size(); i++)
 	{
-		map<PlayerTypes,VoronoiCell*>::iterator pos = m_sitesClosestToCurrSite.
-				find(aClosestPlayers[i]);
-		VoronoiCell& kCell = *pos->second;
+		VoronoiCell& kCell = *m_sitesClosestToCurrSite.find(aClosestPlayers[i])->second;
 		PlotNumTypes ePlotNum = kMap.plotNum(kPlot);
 		if (bAdd)
 			kCell.insert(ePlotNum);
@@ -514,7 +558,7 @@ void StartingPositionIteration::PotentialSites::getCurrFoundValues(
 
 
 StartingPositionIteration::DistanceTable::DistanceTable(
-	vector<CvPlot const*>& kapSources, vector<CvPlot const*>& kapDestinations)
+	vector<CvPlot const*>& kSources, vector<CvPlot const*>& kDestinations)
 {
 	scaled rStartEraFactor = 1;
 	if (GC.getNumEraInfos() > 1)
@@ -527,25 +571,25 @@ StartingPositionIteration::DistanceTable::DistanceTable(
 
 	CvMap const& kMap = GC.getMap();
 	m_sourceIDs.resize(kMap.numPlots(), NOT_A_SOURCE);
-	for (size_t i = 0; i < kapSources.size(); i++)
+	for (size_t i = 0; i < kSources.size(); i++)
 	{
-		m_sourceIDs[kMap.plotNum(*kapSources[i])] = (SourceID)i;
+		m_sourceIDs[kMap.plotNum(*kSources[i])] = (SourceID)i;
 	}
 	// Need (fast) 2-way conversion for destination ids and plot numbers
 	m_destinationIDs.resize(kMap.numPlots(), NOT_A_DESTINATION);
-	m_destinationIDToPlotNum.resize(kapDestinations.size(), NO_PLOT_NUM);
-	for (size_t i = 0; i < kapDestinations.size(); i++)
+	m_destinationIDToPlotNum.resize(kDestinations.size(), NO_PLOT_NUM);
+	for (size_t i = 0; i < kDestinations.size(); i++)
 	{
 		DestinationID eDst = (DestinationID)i;
-		PlotNumTypes ePlotNum = kMap.plotNum(*kapDestinations[i]);
+		PlotNumTypes ePlotNum = kMap.plotNum(*kDestinations[i]);
 		m_destinationIDs[ePlotNum] = eDst;
 		m_destinationIDToPlotNum[eDst] = ePlotNum;
 	}
-	m_distances.resize(kapSources.size(),
-			vector<short>(kapDestinations.size(), MAX_SHORT));
-	for (size_t i = 0; i < kapSources.size(); i++)
+	m_distances.resize(kSources.size(),
+			vector<short>(kDestinations.size(), MAX_SHORT));
+	for (size_t i = 0; i < kSources.size(); i++)
 	{
-		CvPlot const& kSource = *kapSources[i];
+		CvPlot const& kSource = *kSources[i];
 		computeDistances(kSource);
 		/*	Destinations can be (potential) city sites or workable tiles.
 			Water destinations are never city sites. To work a water tile,
@@ -553,9 +597,9 @@ StartingPositionIteration::DistanceTable::DistanceTable(
 			computeDistance are far too high. (computeDistances can't sort
 			this out b/c it doesn't distinguish between moving a settler
 			into/ through a plot and working a plot.) */
-		for (size_t i = 0; i < kapDestinations.size(); i++)
+		for (size_t j = 0; j < kDestinations.size(); j++)
 		{
-			CvPlot const& kWaterDest = *kapDestinations[i];
+			CvPlot const& kWaterDest = *kDestinations[j];
 			if (!kWaterDest.isWater())
 				continue;
 			/*	Use the distance of the land destination closest to kSource
@@ -678,17 +722,12 @@ void StartingPositionIteration::DistanceTable::computeDistances(CvPlot const& kS
 				continue;
 			abReached[iAt] = true;
 		}
-		FOR_EACH_ENUM(Direction)
+		FOR_EACH_ADJ_PLOT(kAt)
 		{
-			CvPlot const* pAdj = kMap.plotDirection(
-					kAt.getX(), kAt.getY(), eLoopDirection);
-			if (pAdj == NULL ||
-				/*	Note: even if not yet reached, it may already be in q;
-					that's what the abReached[iAt] check above is for. */
-				abReached[kMap.plotNum(*pAdj)])
-			{
+			/*	Note: even if not yet reached, it may already be in q;
+				that's what the abReached[iAt] check above is for. */
+			if (abReached[kMap.plotNum(*pAdj)])
 				continue;
-			}
 			short iDistance = stepDist(kAt, *pAdj, bSourceCoastal);
 			if (iDistance < MAX_SHORT)
 				q.push(Node(*pAdj, v.getDistance() + iDistance));
@@ -754,7 +793,7 @@ void StartingPositionIteration::Step::take()
 	for (size_t i = 0; i < m_moves.size(); i++)
 	{
 		GET_PLAYER(m_moves[i].first).setStartingPlot(
-				m_moves[i].second, false);
+				m_moves[i].second);
 	}
 }
 
@@ -764,7 +803,7 @@ void StartingPositionIteration::Step::takeBack()
 	for (size_t i = 0; i < m_originalPosition.size(); i++)
 	{
 		GET_PLAYER(m_originalPosition[i].first).setStartingPlot(
-				m_originalPosition[i].second, false);
+				m_originalPosition[i].second);
 	}
 }
 
@@ -1040,11 +1079,13 @@ void StartingPositionIteration::computeStartValues(
 		if (pos != m_pYieldsPerArea->end())
 			rAreaYields = pos->second;
 		int iSameAreaRivals = 0;
-		for (PlayerIter<CIV_ALIVE,NOT_SAME_TEAM_AS> itRival(itPlayer->getTeam());
-			itRival.hasNext(); ++itRival)
+		for (PlayerIter<CIV_ALIVE> itRival; itRival.hasNext(); ++itRival)
 		{
-			if (kStartPlot.sameArea(*itRival->getStartingPlot()))
+			if (&*itRival != &*itPlayer &&
+				kStartPlot.sameArea(*itRival->getStartingPlot()))
+			{
 				iSameAreaRivals++;
+			}
 		}
 		rAreaYields /= 1 + iSameAreaRivals;
 		areaYieldsPerPlayer.set(itPlayer->getID(), rAreaYields);
@@ -1100,7 +1141,7 @@ void StartingPositionIteration::computeStartValues(
 	{
 		scaled rFoundValue = kFoundValues.get(itPlayer->getID());
 		// Anticipate normalization
-		if (rFoundValue < rMedianFoundValue)
+		if (!m_bScenario && rFoundValue < rMedianFoundValue)
 		{
 			rFoundValue = std::min((rMedianFoundValue + rFoundValue) / 2,
 					rFoundValue + rMedianFoundValue / 10);
@@ -1147,9 +1188,10 @@ void StartingPositionIteration::computeStartValues(
 		int iWarTargets = 0;
 		int iSameAreaTradeTargets = 0;
 		int iDifferentAreaTradeTargets = 0;
-		for (PlayerIter<CIV_ALIVE,NOT_SAME_TEAM_AS> itRival(itPlayer->getTeam());
-			itRival.hasNext(); ++itRival)
+		for (PlayerIter<CIV_ALIVE> itRival; itRival.hasNext(); ++itRival)
 		{
+			if (&*itRival == &*itPlayer)
+				continue;
 			CvPlot const& kRivalStartPlot = *itRival->getStartingPlot();
 			short const iDist = m_pPathDists->d(kStartPlot, kRivalStartPlot);
 			if (kStartPlot.sameArea(kRivalStartPlot))
@@ -1264,7 +1306,9 @@ void StartingPositionIteration::computeStartValues(
 		scaled rFromFoundVal = rFoundValue * rFoundWeight;
 		if (bLog)
 		{
-			out << "Site #" << (int)itPlayer->getID() << "(" << CvString(itPlayer->getName()).c_str() << ")" << "\n";
+			out << "Site #" << (int)itPlayer->getID() << ": " <<
+					CvString(itPlayer->getName()).c_str() << ", (" <<
+					kStartPlot.getX() << "," << kStartPlot.getY() << ")\n";
 			out << "From found value: " << rFromFoundVal.str(1);
 			if (rFoundWeight.getPercent() != 100)
 				out << " (weight " << rFoundWeight.str(100) << ")";
@@ -1296,7 +1340,10 @@ void StartingPositionIteration::computeStartValues(
 
 /*	Returns a "typical" distance factor and stores per-player (i.e. per starting site)
 	distances in the out parameter. Distance factors account for the path distances
-	between the current starting sites. They're on the scale of DistanceTable::d. */
+	between the current starting sites. They're on the scale of DistanceTable::d.
+	"Rivals" refers to any pair of different civ players here, even if they're
+	on the same team. (Sites will probably get swapped around later, so same-team
+	relationships aren't reliable at this point.) */
 scaled StartingPositionIteration::computeRivalDistFactors(
 	EnumMap<PlayerTypes,scaled>& kResult, bool bSameArea) const
 {
@@ -1305,9 +1352,10 @@ scaled StartingPositionIteration::computeRivalDistFactors(
 	{
 		vector<short> aiRivalDists;
 		CvPlot const& kStartPlot = *itPlayer->getStartingPlot();
-		for (PlayerIter<CIV_ALIVE,NOT_SAME_TEAM_AS> itRival(itPlayer->getTeam());
-			itRival.hasNext(); ++itRival)
+		for (PlayerIter<CIV_ALIVE> itRival; itRival.hasNext(); ++itRival)
 		{
+			if (&*itPlayer == &*itRival)
+				continue;
 			if (!bSameArea || kStartPlot.sameArea(*itRival->getStartingPlot()))
 			{
 				aiRivalDists.push_back(m_pPathDists->d(
@@ -1470,21 +1518,23 @@ void StartingPositionIteration::currAltSites(PlayerTypes eCurrSitePlayer,
 		return;
 	CvPlot const& kCurrSite = *GET_PLAYER(eCurrSitePlayer).getStartingPlot();
 	short iCurrClosestPathDist = MAX_SHORT;
-	for (PlayerIter<CIV_ALIVE,NOT_SAME_TEAM_AS> it(TEAMID(eCurrSitePlayer));
-		it.hasNext(); ++it)
+	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
-		iCurrClosestPathDist = std::min(iCurrClosestPathDist,
-				m_pPathDists->d(kCurrSite, *it->getStartingPlot()));
+		if (it->getID() != eCurrSitePlayer)
+		{
+			iCurrClosestPathDist = std::min(iCurrClosestPathDist,
+					m_pPathDists->d(kCurrSite, *it->getStartingPlot()));
+		}
 	}
 	vector<pair<short,PlotNumTypes> > altSitesByDist;
 	CvMap const& kMap = GC.getMap();
 	std::vector<CvPlot const*> apRivalSites;
 	if (eTakenSite != NO_PLOT_NUM)
 		apRivalSites.push_back(&kMap.getPlotByIndex(eTakenSite));
-	for (PlayerIter<CIV_ALIVE,NOT_SAME_TEAM_AS> itRival(TEAMID(eCurrSitePlayer));
-		itRival.hasNext(); ++itRival)
+	for (PlayerIter<CIV_ALIVE> itRival; itRival.hasNext(); ++itRival)
 	{
-		apRivalSites.push_back(itRival->getStartingPlot());
+		if (itRival->getID() != eCurrSitePlayer)
+			apRivalSites.push_back(itRival->getStartingPlot());
 	}
 	for (VoronoiCell::const_iterator itSite = pCell->begin(); itSite != pCell->end();
 		++itSite)
@@ -1541,9 +1591,10 @@ void StartingPositionIteration::currAltSites(PlayerTypes eCurrSitePlayer,
 		AreaSiteMap otherAreaSites;
 		/*	Going through rival Voronoi cells ensures that the sites aren't
 			remote sites in the strict sense nor sites in our pCell. */
-		for (PlayerIter<CIV_ALIVE,NOT_SAME_TEAM_AS> itRival(TEAMID(eCurrSitePlayer));
-			itRival.hasNext(); ++itRival)
+		for (PlayerIter<CIV_ALIVE> itRival; itRival.hasNext(); ++itRival)
 		{
+			if (itRival->getID() == eCurrSitePlayer)
+				continue;
 			VoronoiCell const* pRivalCell = m_pPotentialSites->getCell(itRival->getID());
 			if (pRivalCell == NULL)
 				continue;
@@ -1590,10 +1641,10 @@ void StartingPositionIteration::currAltSites(PlayerTypes eCurrSitePlayer,
 					continue;
 				CvPlot const& kSite = kMap.getPlotByIndex(*itSite);
 				vector<short> aDists;
-				for (PlayerIter<CIV_ALIVE,NOT_SAME_TEAM_AS> it(TEAMID(eCurrSitePlayer));
-					it.hasNext(); ++it)
+				for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 				{
-					aDists.push_back(m_pPathDists->d(*it->getStartingPlot(), kSite));
+					if (it->getID() != eCurrSitePlayer)
+						aDists.push_back(m_pPathDists->d(*it->getStartingPlot(), kSite));
 				}
 				scaled rDistFactor = weightedDistance(aDists);
 				if (rDistFactor > rBestDist)
@@ -1741,17 +1792,23 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 	/*	Iterate until we return due to getting stuck in a (local) optimum
 		or until we run out of time */
 	int iStepsConsidered = 0;
-	/*	The effort is pretty much proportional to tiles times civs,
+	/*	On watery maps, SPI may have to consider a higher number of
+		long-distance moves, but a higher land ratio seems to result
+		in greater computational effort overall. */
+	int const iPlots = (5 * kMap.getLandPlots() + 2 * kMap.getWaterPlots()) / 3;
+	/*	The effort is pretty much proportional to plots times civs,
 		but everything takes longer on large maps, so players ought to
 		have more patience. Hence the exponent. */
 	int iMaxSteps = (1000000 /
-			scaled(kMap.numPlots() * PlayerIter<CIV_ALIVE>::count()).
-			pow(fixp(2/3.))).round();
+			scaled(iPlots * PlayerIter<CIV_ALIVE>::count()).
+			pow(fixp(0.61))).round();
 	while (iStepsConsidered < iMaxSteps)
 	{
 		vector<pair<scaled,PlayerTypes> > currSitesByOutlierVal;
 		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		{
+			if (m_abFixedStart.get(it->getID()))
+				continue;
 			// Focus on negative outliers while the avg. error is high
 			scaled rNegativeOutlierExtraWeight = fixp(1.15) * 
 					(m_currSolutionAttribs.m_rAvgError - fixp(0.1));
@@ -1768,11 +1825,13 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 					that is already overcrowded. Or better to do this more explicitly?
 					Can't easily check for crowdedness here though ... */
 				/*int iAreaPlayers = 1;
-				for (PlayerIter<CIV_ALIVE,NOT_SAME_TEAM_AS> itRival(it->getTeam());
-					itRival.hasNext(); ++itRival)
+				for (PlayerIter<CIV_ALIVE> itRival; itRival.hasNext(); ++itRival)
 				{
-					if (itRival->getStartingPlot()->sameArea(*it->getStartingPlot()))
+					if (&*itRival != &*it &&
+						itRival->getStartingPlot()->sameArea(*it->getStartingPlot()))
+					{
 						iAreaPlayers++;
+					}
 				}
 				rOutlierVal += rOutlierVal * (m_currSolutionAttribs.m_rAvgError - fixp(0.1)) *
 						scaled(iAreaPlayers).sqrt();*/
@@ -1807,7 +1866,8 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 				vector<pair<short,PlayerTypes> > otherCurrSitesByDist;
 				for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 				{
-					if (itPlayer->getID() != eCurrSitePlayer)
+					if (itPlayer->getID() != eCurrSitePlayer &&
+						!m_abFixedStart.get(itPlayer->getID()))
 					{
 						short d = std::min<short>(
 								m_pPathDists->d(*itPlayer->getStartingPlot(), kAltSite),
@@ -1875,11 +1935,213 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 		}
 		return; // No step taken; apparently we're done.
 		next_iteration: // To allow breaking out of the inner loops
+		gDLL->callUpdater();
 		kPotentialSites.updateCurrSites(true); // Also ensures that we never return to a site
 	}
 	#ifdef SPI_LOG
 		gDLL->logMsg("StartingPos.log", "Terminated b/c of time limit", false, false);
 	#endif
+}
+
+
+void StartingPositionIteration::assignSitesToTeams()
+{
+	vector<std::pair<int,TeamTypes> > aieTeamsBySize;
+	for (TeamIter<CIV_ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
+		aieTeamsBySize.push_back(make_pair(itTeam->getNumMembers(), itTeam->getID()));
+	if (aieTeamsBySize.empty())
+	{
+		FAssert(false);
+		return;
+	}
+	/*	Start with the large teams; small teams will be at a disadvantage in any case,
+		and that's probably what the player who sets up the game intends.
+		Stable sort just so that ties aren't broken arbitrarily; not important though
+		b/c CvGame will swap the team starts around later. */
+	std::stable_sort(aieTeamsBySize.rbegin(), aieTeamsBySize.rend());
+	std::set<PlayerTypes> aeAvailableSites; // Identify sites by players
+	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
+		aeAvailableSites.insert(itPlayer->getID());
+	#ifdef SPI_LOG
+		std::ostringstream out;
+	#endif
+	int iLoopTeamIndex = 0;
+	while (!aeAvailableSites.empty())
+	{
+		TeamTypes eCurrTeam = aieTeamsBySize[iLoopTeamIndex].second;
+		typedef std::set<PlayerTypes>::iterator AvailSitesIter;
+		AvailSitesIter itCurrSite = aeAvailableSites.end();
+		int iMaxSiteVal = MIN_INT;
+		for (AvailSitesIter itSite = aeAvailableSites.begin();
+			itSite != aeAvailableSites.end(); ++itSite)
+		{
+			int iVal = teamValue(*itSite, eCurrTeam);
+			if (iVal > iMaxSiteVal || (iVal == iMaxSiteVal &&
+				(itCurrSite == aeAvailableSites.end() ||
+				/*	One last tiebreaker that I haven't been able to fit into teamValue:
+					assign bad starting sites first */
+				m_currSolutionAttribs.m_startValues.get(*itSite) <
+				m_currSolutionAttribs.m_startValues.get(*itCurrSite))))
+			{
+				iMaxSiteVal = iVal;
+				itCurrSite = itSite;
+			}
+		}
+		#ifdef SPI_LOG
+			out << "Assigning site (" << GET_PLAYER(*itCurrSite).getStartingPlot()->getX()
+					<< "," << GET_PLAYER(*itCurrSite).getStartingPlot()->getY()
+					<< ") to team " << (int)eCurrTeam << "\n";
+		#endif
+		m_sitesPerTeam[eCurrTeam].push_back(*itCurrSite);
+		aeAvailableSites.erase(itCurrSite);
+		// Round robin placing two members of one team at a time
+		int const iLoopTeamSites = m_sitesPerTeam[eCurrTeam].size();
+		if (GET_TEAM(eCurrTeam).getNumMembers() <= iLoopTeamSites ||
+			iLoopTeamSites % 2 == 0)
+		{
+			iLoopTeamIndex++;
+			iLoopTeamIndex %= aieTeamsBySize.size();
+		}
+	}
+	#ifdef SPI_LOG
+		gDLL->logMsg("StartingPos.log", out.str().c_str(), false, false);
+	#endif
+}
+
+/*	Both agents are placeholders that will get swapped around later.
+	The only relevant data about them are m_sitesPerTeam. */
+int StartingPositionIteration::teamValue(PlayerTypes eSitePlayer, TeamTypes eForTeam) const
+{
+	CvPlot const& kSite = *GET_PLAYER(eSitePlayer).getStartingPlot();
+	int const iAreaSites = kSite.getArea().getNumStartingPlots();
+	EnumMap<TeamTypes,int> aiAreaSitesPerTeam;
+	int iTeamsInArea = 0;
+	vector<scaled> arFriendlyCloseness;
+	vector<scaled> arRivalCloseness;
+	int iAreaTakenSites = 0;
+	for (size_t i = 0; i < m_sitesPerTeam.size(); i++)
+	{
+		TeamTypes eLoopTeam = (TeamTypes)i;
+		for (size_t j = 0; j < m_sitesPerTeam[i].size(); j++)
+		{
+			if (!GET_PLAYER(m_sitesPerTeam[i][j]).getStartingPlot()->
+				isArea(kSite.getArea()))
+			{
+				continue;
+			}
+			if (aiAreaSitesPerTeam.get(eLoopTeam) == 0)
+				iTeamsInArea++;
+			aiAreaSitesPerTeam.add(eLoopTeam, 1);
+			iAreaTakenSites++;
+			bool const bFriendly = (eLoopTeam == eForTeam);
+			if (!bFriendly &&
+				/*	Ignore closeness to sites of rivals that have already
+					placed all there members */
+				m_sitesPerTeam[i].size() == GET_TEAM(eLoopTeam).getNumMembers())
+			{
+				continue;
+			}
+			int const iOtherAreaSites = m_sitesPerTeam[eLoopTeam].size();
+			for (int k = 0; k < iOtherAreaSites; k++)
+			{
+				CvPlot const& kOtherSite = *GET_PLAYER(
+						m_sitesPerTeam[eLoopTeam][k]).getStartingPlot();
+				FAssert(&kOtherSite != &kSite);
+				short iCloseness = m_pPathDists->getLongDist() -
+						m_pPathDists->d(kSite, kOtherSite);
+				if (iCloseness > 0)
+				{
+					(bFriendly ? arFriendlyCloseness : arRivalCloseness).
+							push_back(iCloseness);
+				}
+			}
+		}
+	}
+	int iVicinityFactor = 0;
+	if (!arFriendlyCloseness.empty())
+	{
+		iVicinityFactor = ((stats::min(arFriendlyCloseness) +
+				stats::mean(arFriendlyCloseness)) / 2).round();
+	}
+	/*	When placing the first site of a team in an area,
+		try to keep a distance from rival sites in case that
+		those rivals will add more members to the area.
+		When there are no rival sites either, try to maximize
+		the distance from the unassigned sites, if any.*/
+	else
+	{
+		vector<scaled> arUnassignedCloseness;
+		vector<scaled> const* parCloseness = NULL;
+		if (arRivalCloseness.empty())
+		{
+			for (PlayerIter<CIV_ALIVE> itOther; itOther.hasNext(); ++itOther)
+			{
+				if (itOther->getID() != eSitePlayer)
+				{
+					short iCloseness = m_pPathDists->getLongDist() -
+							m_pPathDists->d(kSite, *itOther->getStartingPlot());
+					if (iCloseness > 0)
+						arUnassignedCloseness.push_back(iCloseness);
+				}
+			}
+			if (!arUnassignedCloseness.empty())
+				parCloseness = &arUnassignedCloseness;
+		}
+		else parCloseness = &arRivalCloseness;
+		if (parCloseness != NULL)
+		{
+			iVicinityFactor = -((stats::min(*parCloseness) +
+					stats::mean(*parCloseness)) / 2).round();
+		}
+	}
+	int const iRemainingAreaSites = iAreaSites - iAreaTakenSites;
+	// Top priority: Area with the highest number of remaining sites;
+	int const iRemainingSiteWeight = 100000;
+	int iValue = iRemainingSiteWeight * iRemainingAreaSites;
+	// Stick close to sites already assigned to teammates
+	iValue += iVicinityFactor;
+	/*	Total area sites as tiebreaker; especially when a team has
+		no assigned sites yet (0 vicinity factor everywhere). */
+	iValue += iAreaSites;
+	/*	When taking the final site in the area, try to avoid letting
+		some team outnumber another. */
+	if (iRemainingAreaSites == 1 && iAreaTakenSites > 0)
+	{
+		// Pretend that eForTeam is already placed in the area
+		iAreaTakenSites++;
+		if (aiAreaSitesPerTeam.get(eForTeam) <= 0)
+			iTeamsInArea++;
+		scaled rMeanAreaSitesPerTeam(iAreaTakenSites, iTeamsInArea);
+		scaled rSquareError;
+		for (TeamIter<CIV_ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
+		{
+			int iLoopSites = aiAreaSitesPerTeam.get(itTeam->getID());
+			if (itTeam->getID() == eForTeam)
+				iLoopSites++;
+			if (iLoopSites <= 0)
+				continue;
+			rSquareError += SQR((iLoopSites - rMeanAreaSitesPerTeam).abs());
+		}
+		// Greater impact than vicinity
+		iValue -= 3 * (rSquareError / iTeamsInArea).getPermille();
+	}
+	/*	If there's at least one friendly area site (and more than one remains
+		to be assigned), treat the area as if it had one additional free site.
+		To avoid scattering teams too much across multiple areas. */
+	else if (aiAreaSitesPerTeam.get(eForTeam) > 0)
+		iValue += iRemainingSiteWeight;
+	return iValue;
+}
+
+
+CvPlot* StartingPositionIteration::getTeamSite(TeamTypes eTeam, int iMember) const
+{
+	FAssert(eTeam >= 0 && iMember >= 0);
+	if (eTeam >= (int)m_sitesPerTeam.size())
+		return NULL;
+	if (iMember >= (int)m_sitesPerTeam[eTeam].size())
+		return NULL;
+	return GET_PLAYER(m_sitesPerTeam[eTeam][iMember]).getStartingPlot();
 }
 
 
@@ -1965,7 +2227,7 @@ bool NormalizationTarget::isReached(CvPlot const& kStartSite,
 	if (bNearlyReached)
 	{
 		/*	(Not sure if rTolerance really has a big impact in general.
-			I did in some of my tests.) */
+			It did in some of my tests.) */
 		switch(GC.getGame().getStartingPlotNormalizationLevel())
 		{
 		case CvGame::NORMALIZE_HIGH: rTolerance += 2;

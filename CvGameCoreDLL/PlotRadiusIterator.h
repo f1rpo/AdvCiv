@@ -19,6 +19,8 @@
 	(That's also what the BtS code did.)
 	There are derived classes at the end of this file that hide the template parameter.
 	For the special case of iterating over a city radius, see CityPlotIterator.h.
+	If iRadius is known to be 1 at compile time, then one of the macros in
+	PlotAdjListTraversal.h should be preferred; they're faster.
 
 	The order of traversal corresponds to a North-East-South-West (clockwise) spiral.
 	NULL plots are skipped, but CvUnitAI::AI_plotValid isn't checked - should only be

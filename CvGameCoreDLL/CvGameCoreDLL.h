@@ -74,12 +74,13 @@ typedef wchar_t				wchar;
 #define MIN_UNSIGNED_SHORT					(0x0000)
 #define MAX_UNSIGNED_INT					(0xffffffff)
 #define MIN_UNSIGNED_INT					(0x00000000)
+/*	advc: These are unused. FLT_MAX and FLT_MIN are used in a few places,
+	so let's keep using those exclusively. */
+/*__forceinline DWORD FtoDW( float f ) { return *(DWORD*)&f; }
+__forceinline float DWtoF( dword n ) { return *(float*)&n; }
+__forceinline float MaxFloat() { return DWtoF(0x7f7fffff); }*/
 
 // (advc.make: Some macros moved into new header Trigonometry.h)
-
-__forceinline DWORD FtoDW( float f ) { return *(DWORD*)&f; }
-__forceinline float DWtoF( dword n ) { return *(float*)&n; }
-__forceinline float MaxFloat() { return DWtoF(0x7f7fffff); }
 
 // <advc.003s> For generating variable names. (The layer of indirection is necessary.)
 #define CONCATVARNAME_IMPL(prefix, lineNum) prefix##lineNum
@@ -143,7 +144,7 @@ BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 #ifdef _DEBUG
 	/*	<advc.wine> Wrap a macro around OutputDebugString that prints to both the VS console
 		(as before through WinBase.h) and to a regular console e.g. for Wine. */
-	// Caveat: szMsg has to be 0-terminated -- no fixed-size char buffers!
+	// Caveat: szMsg has to be zero-terminated -- no fixed-size char buffers!
 	#define printToConsole(szMsg) \
 		OutputDebugString(szMsg); \
 		printf("OutputDebugString: %s", szMsg);

@@ -29,7 +29,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 	capitulationsAcceptedPerTeam.resize(MAX_CIV_TEAMS);
 	report.log("Military analysis from the pov of %s", report.leaderName(weId));
 	CvTeamAI& agent = GET_TEAM(weId);
-	PlyrSet currentlyAtWar; // 'atWar' is already a name of a global-context function
+	PlyrSet currentlyAtWar; // 'atWar' is already a name of a global function
 	PlyrSet ourFutureOpponents;
 	PlyrSet ourSide;
 	PlyrSet theirSide;
@@ -79,9 +79,9 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 	if((!peaceScenario && !warEvalParams.isConsideringPeace()) || noWarVsExtra) {
 		// Store war-scenario DoW for getWarsDeclaredOn/By
 		for(PlyrSetIter it1 = declaringWar.begin();
-				it1 != declaringWar.end(); it1++) {
+				it1 != declaringWar.end(); ++it1) {
 			for(PlyrSetIter it2 = theirSide.begin();
-					it2 != theirSide.end(); it2++) {
+					it2 != theirSide.end(); ++it2) {
 				if(!GET_TEAM(*it1).isAtWar(TEAMID(*it2))) {
 					playerResult(*it1).setDoWBy(*it2);
 					playerResult(*it2).setDoWOn(*it1);
@@ -106,9 +106,9 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 			FAssert(isect.empty());
 		}
 		#endif
-		for(PlyrSetIter it = theirDPAllies.begin(); it != theirDPAllies.end(); it++)
+		for(PlyrSetIter it = theirDPAllies.begin(); it != theirDPAllies.end(); ++it)
 			playerResult(*it).setDoWBy(declaringWar.begin(), declaringWar.end());
-		for(PlyrSetIter it = declaringWar.begin(); it != declaringWar.end(); it++)
+		for(PlyrSetIter it = declaringWar.begin(); it != declaringWar.end(); ++it)
 			playerResult(*it).setDoWOn(theirDPAllies.begin(), theirDPAllies.end());
 	}
 	// Wars continued
@@ -148,13 +148,17 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 		FAssert(!agent.isAtWar(theyId) || !GET_TEAM(theyId).isAVassal()); /*
 				Master isn't included in the removed war opponents
 				(theirSide) then. */
-		if(noWarVsExtra) { // diff = theirSide - theyAndTheirVassals
+		if(noWarVsExtra) { // diff = theirSide minus theyAndTheirVassals
 			PlyrSet diff;
 			std::set_difference(theirSide.begin(), theirSide.end(),
 					theyAndTheirVassals.begin(), theyAndTheirVassals.end(),
 					std::inserter(diff, diff.begin()));
 			ig->removeWar(declaringWar, diff);
 		}
+		/*	Capitulation: Not fully implemented; misses the wars that we need
+			to declare on the enemies of theyId. */
+		else if(warEvalParams.getCapitulationTeam() == theyId)
+			ig->removeWar(declaringWar, currentlyAtWar);
 		else ig->removeWar(declaringWar, theirSide);
 	}
 	int timeHorizon = 25;
@@ -271,7 +275,7 @@ void MilitaryAnalyst::simulateNuclearWar() {
 		double enemyNukes = enemy.uwai().getCache().
 				getPowerValues()[NUCLEAR]->num();
 		if(ourNukes + enemyNukes < 0.5)
-			return;
+			continue;
 		// The AI is (much) more willing to fire nukes in total war than in limited war
 		WarPlanTypes ourWarplan = agent.AI_getWarPlan(enemy.getTeam());
 		WarPlanTypes civWarplan = GET_TEAM(enemy.getTeam()).AI_getWarPlan(agent.getID());
@@ -360,20 +364,20 @@ void MilitaryAnalyst::prepareResults() {
 	// Predict scores as current game score modified based on gained/ lost population
 	CvGame& g = GC.getGame();
 	UWAICache const& ourCache = GET_PLAYER(weId).uwai().getCache();
-	for(PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) {
-		PlayerTypes civId = it->getID();
+	for(PlayerIter<MAJOR_CIV> itCiv; itCiv.hasNext(); ++itCiv) {
+		PlayerTypes const civId = itCiv->getID();
 		double popIncr = 0;
 		CitySet const& conq = conqueredCities(civId);
-		for(CitySetIter it = conq.begin(); it != conq.end(); it++) {
+		for(CitySetIter it = conq.begin(); it != conq.end(); ++it) {
 			UWAICache::City* c = ourCache.lookupCity(*it);
 			if(c == NULL) continue;
-			popIncr += c->city()->getPopulation();
+			popIncr += c->city().getPopulation();
 		}
 		CitySet const& lost = lostCities(civId);
-		for(CitySetIter it = lost.begin(); it != lost.end(); it++) {
+		for(CitySetIter it = lost.begin(); it != lost.end(); ++it) {
 			UWAICache::City* c = ourCache.lookupCity(*it);
 			if(c == NULL) continue;
-			popIncr -= c->city()->getPopulation();
+			popIncr -= c->city().getPopulation();
 		}
 		popIncr /= std::max(1, GET_PLAYER(civId).getTotalPopulation());
 		if(popIncr > 0.01) {
@@ -488,10 +492,9 @@ void MilitaryAnalyst::logCities(PlayerTypes civId, bool conquests) {
 	if(cities.empty())
 		return;
 	report.log("Cities %s:", conquests ? "conquered" : "lost");
-	for(CitySetIter it = cities.begin(); it != cities.end(); it++) {
-		CvCity* c = UWAICache::City::cityById(*it);
-		if(c != NULL)
-			report.log("%s", report.cityName(*c));
+	for(CitySetIter it = cities.begin(); it != cities.end(); ++it) {
+		CvCity& c = UWAICache::cvCityById(*it);
+		report.log("%s", report.cityName(c));
 	}
 }
 
@@ -510,7 +513,7 @@ void MilitaryAnalyst::logCapitulations(PlayerTypes civId) {
 	if(caps.empty())
 		return;
 	report.log("Capitulation accepted from:");
-	for(TeamSetIter it = caps.begin(); it != caps.end(); it++) {
+	for(TeamSetIter it = caps.begin(); it != caps.end(); ++it) {
 		// The team name (e.g. Team1) would not be helpful
 		for(MemberIter memberIt(*it); memberIt.hasNext(); ++memberIt)
 			report.log("%s", report.leaderName(memberIt->getID()));
@@ -526,20 +529,20 @@ void MilitaryAnalyst::logDoW(PlayerTypes civId) {
 	if(!DoWBy.empty()) {
 		report.log("Wars declared by %s:",
 				report.leaderName(civId));
-		for(PlyrSetIter it = DoWBy.begin(); it != DoWBy.end(); it++)
+		for(PlyrSetIter it = DoWBy.begin(); it != DoWBy.end(); ++it)
 			report.log("%s", report.leaderName(*it));
 	}
 	PlyrSet const& DoWOn = result->getDoWOn();
 	if(!DoWOn.empty()) {
 		report.log("Wars declared on %s:",
 				report.leaderName(civId));
-		for(PlyrSetIter it = DoWOn.begin(); it != DoWOn.end(); it++)
+		for(PlyrSetIter it = DoWOn.begin(); it != DoWOn.end(); ++it)
 			report.log("%s", report.leaderName(*it));
 	}
 	PlyrSet const& warsCont = result->getWarsContinued();
 	if(!warsCont.empty()) {
 		report.log("Wars continued:");
-		for(PlyrSetIter it = warsCont.begin(); it != warsCont.end(); it++)
+		for(PlyrSetIter it = warsCont.begin(); it != warsCont.end(); ++it)
 			report.log("%s", report.leaderName(*it));
 	}
 }

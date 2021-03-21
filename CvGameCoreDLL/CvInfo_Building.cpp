@@ -6,19 +6,19 @@
 #include "CvDLLXMLIFaceBase.h"
 
 CvBuildingInfo::CvBuildingInfo() :
-m_iBuildingClassType(NO_BUILDINGCLASS),
-m_iVictoryPrereq(NO_VICTORY),
-m_iFreeStartEra(NO_ERA),
-m_iMaxStartEra(NO_ERA),
-m_iObsoleteTech(NO_TECH),
-m_iPrereqAndTech(NO_TECH),
-m_iNoBonus(NO_BONUS),
-m_iPowerBonus(NO_BONUS),
-m_iFreeBonus(NO_BONUS),
+m_eBuildingClassType(NO_BUILDINGCLASS),
+m_eVictoryPrereq(NO_VICTORY),
+m_eFreeStartEra(NO_ERA),
+m_eMaxStartEra(NO_ERA),
+m_eObsoleteTech(NO_TECH),
+m_ePrereqAndTech(NO_TECH),
+m_eNoBonus(NO_BONUS),
+m_ePowerBonus(NO_BONUS),
+m_eFreeBonus(NO_BONUS),
 m_iNumFreeBonuses(0),
-m_iFreeBuildingClass(NO_BUILDINGCLASS),
-m_iFreePromotion(NO_PROMOTION),
-m_iCivicOption(NO_CIVICOPTION),
+m_eFreeBuildingClass(NO_BUILDINGCLASS),
+m_eFreePromotion(NO_PROMOTION),
+m_eCivicOption(NO_CIVICOPTION),
 m_iAIWeight(0),
 m_iProductionCost(0),
 m_iHurryCostModifier(0),
@@ -64,18 +64,18 @@ m_iTradeRouteModifier(0),
 m_iForeignTradeRouteModifier(0),
 m_iAssetValue(0),
 m_iPowerValue(0),
-m_iSpecialBuildingType(NO_SPECIALBUILDING),
-m_iAdvisorType(NO_ADVISOR),
-m_iHolyCity(NO_RELIGION),
-m_iReligionType(NO_RELIGION),
-m_iStateReligion(NO_RELIGION),
-m_iPrereqReligion(NO_RELIGION),
-m_iPrereqCorporation(NO_CORPORATION),
-m_iFoundsCorporation(NO_CORPORATION),
-m_iGlobalReligionCommerce(0),
-m_iGlobalCorporationCommerce(0),
-m_iPrereqAndBonus(NO_BONUS),
-m_iGreatPeopleUnitClass(NO_UNITCLASS),
+m_eSpecialBuildingType(NO_SPECIALBUILDING),
+m_eAdvisorType(NO_ADVISOR),
+m_eHolyCity(NO_RELIGION),
+m_eReligionType(NO_RELIGION),
+m_eStateReligion(NO_RELIGION),
+m_ePrereqReligion(NO_RELIGION),
+m_ePrereqCorporation(NO_CORPORATION),
+m_eFoundsCorporation(NO_CORPORATION),
+m_eGlobalReligionCommerce(/* advc (was 0): */ NO_RELIGION),
+m_eGlobalCorporationCommerce(/* advc (was 0): */ NO_CORPORATION),
+m_ePrereqAndBonus(NO_BONUS),
+m_eGreatPeopleUnitClass(NO_UNITCLASS),
 m_iGreatPeopleRateChange(0),
 m_iConquestProbability(0),
 m_iMaintenanceModifier(0),
@@ -92,8 +92,8 @@ m_iDefenseModifier(0),
 m_iBombardDefenseModifier(0),
 m_iAllCityDefenseModifier(0),
 m_iEspionageDefenseModifier(0),
-m_iMissionType(NO_MISSION),
-m_iVoteSourceType(NO_VOTESOURCE),
+m_eMissionType(NO_MISSION),
+m_eVoteSourceType(NO_VOTESOURCE),
 m_fVisibilityPriority(0.0f),
 m_bTeamShare(false),
 m_bWater(false),
@@ -118,8 +118,6 @@ m_bPrereqReligion(false),
 m_bCenterInCity(false),
 m_bStateReligion(false),
 m_bAllowsNukes(false),
-m_piPrereqAndTechs(NULL),
-m_piPrereqOrBonuses(NULL),
 m_piProductionTraits(NULL),
 m_piHappinessTraits(NULL),
 m_piSeaPlotYieldChange(NULL),
@@ -164,8 +162,6 @@ m_bAnyBonusYieldModifier(false)
 
 CvBuildingInfo::~CvBuildingInfo()
 {
-	SAFE_DELETE_ARRAY(m_piPrereqAndTechs);
-	SAFE_DELETE_ARRAY(m_piPrereqOrBonuses);
 	SAFE_DELETE_ARRAY(m_piProductionTraits);
 	SAFE_DELETE_ARRAY(m_piHappinessTraits);
 	SAFE_DELETE_ARRAY(m_piSeaPlotYieldChange);
@@ -226,17 +222,14 @@ bool CvBuildingInfo::isTechRequired(TechTypes eTech) const
 {
 	if (getPrereqAndTech() == eTech)
 		return true;
-
-	for (int i = 0; i < GC.getNUM_BUILDING_AND_TECH_PREREQS(); i++)
+	for (int i = 0; i < getNumPrereqAndTechs(); i++)
 	{
 		if (getPrereqAndTechs(i) == eTech)
 			return true;
 	}
-
 	SpecialBuildingTypes eSpecial = getSpecialBuildingType();
 	if (eSpecial != NO_SPECIALBUILDING && GC.getInfo(eSpecial).getTechPrereq() == eTech)
 		return true;
-
 	return false;
 }
 
@@ -256,7 +249,7 @@ int CvBuildingInfo::getAreaTradeRoutes() const
 
 void CvBuildingInfo::setMissionType(MissionTypes eNewType)
 {
-	m_iMissionType = eNewType;
+	m_eMissionType = eNewType;
 }
 
 float CvBuildingInfo::getVisibilityPriority() const
@@ -454,18 +447,20 @@ int CvBuildingInfo::getDomainProductionModifier(int i) const
 	FAssertBounds(0, NUM_DOMAIN_TYPES, i);
 	return m_piDomainProductionModifier ? m_piDomainProductionModifier[i] : 0; // advc.003t
 }
-
-TechTypes CvBuildingInfo::getPrereqAndTechs(int i) const
+// <advc.003t> Calls from Python aren't going to respect the bounds
+int CvBuildingInfo::py_getPrereqAndTechs(int i) const
 {
-	FAssertBounds(0, GC.getNUM_BUILDING_AND_TECH_PREREQS(), i);
-	return m_piPrereqAndTechs ? (TechTypes)m_piPrereqAndTechs[i] : NO_TECH; // advc.003t
+	if (i < 0 || i >= getNumPrereqAndTechs())
+		return NO_TECH;
+	return m_aePrereqAndTechs[i];
 }
 
-BonusTypes CvBuildingInfo::getPrereqOrBonuses(int i) const
+int CvBuildingInfo::py_getPrereqOrBonuses(int i) const
 {
-	FAssertBounds(0, GC.getNUM_BUILDING_PREREQ_OR_BONUSES(), i);
-	return m_piPrereqOrBonuses ? (BonusTypes)m_piPrereqOrBonuses[i] : NO_BONUS; // advc.003t
-}
+	if (i < 0 || i >= getNumPrereqOrBonuses())
+		return NO_BONUS;
+	return m_aePrereqOrBonuses[i];
+} // </advc.003t>
 
 int CvBuildingInfo::getProductionTraits(int i) const
 {
@@ -551,12 +546,11 @@ int* CvBuildingInfo::getBonusYieldModifierArray(int i) const
 
 const TCHAR* CvBuildingInfo::getButton() const
 {
-	const CvArtInfoBuilding * pBuildingArtInfo;
+	CvArtInfoBuilding const* pBuildingArtInfo;
 	pBuildingArtInfo = getArtInfo();
-	if (pBuildingArtInfo != NULL)
-		return pBuildingArtInfo->getButton();
-
-	return NULL;
+	if (pBuildingArtInfo == NULL)
+		return NULL;
+	return pBuildingArtInfo->getButton();
 }
 
 const CvArtInfoBuilding* CvBuildingInfo::getArtInfo() const
@@ -566,21 +560,19 @@ const CvArtInfoBuilding* CvBuildingInfo::getArtInfo() const
 
 const CvArtInfoMovie* CvBuildingInfo::getMovieInfo() const
 {
-	const TCHAR* pcTag = getMovieDefineTag();
+	TCHAR const* pcTag = getMovieDefineTag();
 	if (pcTag != NULL && _tcscmp(pcTag, "NONE") != 0)
 		return ARTFILEMGR.getMovieArtInfo(pcTag);
-	
 	return NULL;
 }
 
 const TCHAR* CvBuildingInfo::getMovie() const
 {
-	const CvArtInfoMovie* pArt;
+	CvArtInfoMovie const* pArt;
 	pArt = getMovieInfo();
-	if (pArt != NULL)
-		return pArt->getPath();
-
-	return NULL;
+	if (pArt == NULL)
+		return NULL;
+	return pArt->getPath();
 }
 // advc.008e:
 bool CvBuildingInfo::nameNeedsArticle() const
@@ -600,19 +592,19 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 	uint uiFlag=0;
 	stream->Read(&uiFlag);
 
-	stream->Read(&m_iBuildingClassType);
-	stream->Read(&m_iVictoryPrereq);
-	stream->Read(&m_iFreeStartEra);
-	stream->Read(&m_iMaxStartEra);
-	stream->Read(&m_iObsoleteTech);
-	stream->Read(&m_iPrereqAndTech);
-	stream->Read(&m_iNoBonus);
-	stream->Read(&m_iPowerBonus);
-	stream->Read(&m_iFreeBonus);
-	stream->Read(&m_iNumFreeBonuses);
-	stream->Read(&m_iFreeBuildingClass);
-	stream->Read(&m_iFreePromotion);
-	stream->Read(&m_iCivicOption);
+	stream->Read((int*)&m_eBuildingClassType);
+	stream->Read((int*)&m_eVictoryPrereq);
+	stream->Read((int*)&m_eFreeStartEra);
+	stream->Read((int*)&m_eMaxStartEra);
+	stream->Read((int*)&m_eObsoleteTech);
+	stream->Read((int*)&m_ePrereqAndTech);
+	stream->Read((int*)&m_eNoBonus);
+	stream->Read((int*)&m_ePowerBonus);
+	stream->Read((int*)&m_eFreeBonus);
+	stream->Read((int*)&m_iNumFreeBonuses);
+	stream->Read((int*)&m_eFreeBuildingClass);
+	stream->Read((int*)&m_eFreePromotion);
+	stream->Read((int*)&m_eCivicOption);
 	stream->Read(&m_iAIWeight);
 	stream->Read(&m_iProductionCost);
 	stream->Read(&m_iHurryCostModifier);
@@ -658,18 +650,18 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iForeignTradeRouteModifier);
 	stream->Read(&m_iAssetValue);
 	stream->Read(&m_iPowerValue);
-	stream->Read(&m_iSpecialBuildingType);
-	stream->Read(&m_iAdvisorType);
-	stream->Read(&m_iHolyCity);
-	stream->Read(&m_iReligionType);
-	stream->Read(&m_iStateReligion);
-	stream->Read(&m_iPrereqReligion);
-	stream->Read(&m_iPrereqCorporation);
-	stream->Read(&m_iFoundsCorporation);
-	stream->Read(&m_iGlobalReligionCommerce);
-	stream->Read(&m_iGlobalCorporationCommerce);
-	stream->Read(&m_iPrereqAndBonus);
-	stream->Read(&m_iGreatPeopleUnitClass);
+	stream->Read((int*)&m_eSpecialBuildingType);
+	stream->Read((int*)&m_eAdvisorType);
+	stream->Read((int*)&m_eHolyCity);
+	stream->Read((int*)&m_eReligionType);
+	stream->Read((int*)&m_eStateReligion);
+	stream->Read((int*)&m_ePrereqReligion);
+	stream->Read((int*)&m_ePrereqCorporation);
+	stream->Read((int*)&m_eFoundsCorporation);
+	stream->Read((int*)&m_eGlobalReligionCommerce);
+	stream->Read((int*)&m_eGlobalCorporationCommerce);
+	stream->Read((int*)&m_ePrereqAndBonus);
+	stream->Read((int*)&m_eGreatPeopleUnitClass);
 	stream->Read(&m_iGreatPeopleRateChange);
 	stream->Read(&m_iConquestProbability);
 	stream->Read(&m_iMaintenanceModifier);
@@ -686,8 +678,8 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iBombardDefenseModifier);
 	stream->Read(&m_iAllCityDefenseModifier);
 	stream->Read(&m_iEspionageDefenseModifier);
-	stream->Read(&m_iMissionType);
-	stream->Read(&m_iVoteSourceType);
+	stream->Read((int*)&m_eMissionType);
+	stream->Read((int*)&m_eVoteSourceType);
 	stream->Read(&m_fVisibilityPriority);
 	stream->Read(&m_bTeamShare);
 	stream->Read(&m_bWater);
@@ -715,12 +707,25 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 	stream->ReadString(m_szConstructSound);
 	stream->ReadString(m_szArtDefineTag);
 	stream->ReadString(m_szMovieDefineTag);
-	SAFE_DELETE_ARRAY(m_piPrereqAndTechs);
-	m_piPrereqAndTechs = new int[GC.getNUM_BUILDING_AND_TECH_PREREQS()];
-	stream->Read(GC.getNUM_BUILDING_AND_TECH_PREREQS(), m_piPrereqAndTechs);
-	SAFE_DELETE_ARRAY(m_piPrereqOrBonuses);
-	m_piPrereqOrBonuses = new int[GC.getNUM_BUILDING_PREREQ_OR_BONUSES()];
-	stream->Read(GC.getNUM_BUILDING_PREREQ_OR_BONUSES(), m_piPrereqOrBonuses);
+	// <advc.003t>
+	int iPrereqAndTechs;
+	if (uiFlag >= 1)
+		stream->Read(&iPrereqAndTechs);
+	else iPrereqAndTechs = GC.getDefineINT(CvGlobals::NUM_BUILDING_AND_TECH_PREREQS);
+	if (iPrereqAndTechs > 0)
+	{
+		m_aePrereqAndTechs.resize(iPrereqAndTechs);
+		stream->Read(iPrereqAndTechs, (int*)&m_aePrereqAndTechs[0]);
+	}
+	int iPrereqOrBonuses;
+	if (uiFlag >= 1)
+		stream->Read(&iPrereqOrBonuses);
+	else iPrereqOrBonuses = GC.getDefineINT(CvGlobals::NUM_BUILDING_PREREQ_OR_BONUSES);
+	if (iPrereqOrBonuses > 0)
+	{
+		m_aePrereqOrBonuses.resize(iPrereqOrBonuses);
+		stream->Read(iPrereqOrBonuses, (int*)&m_aePrereqOrBonuses[0]);
+	} // </advc.003t>
 	SAFE_DELETE_ARRAY(m_piProductionTraits);
 	m_piProductionTraits = new int[GC.getNumTraitInfos()];
 	stream->Read(GC.getNumTraitInfos(), m_piProductionTraits);
@@ -876,22 +881,24 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 void CvBuildingInfo::write(FDataStreamBase* stream)
 {
 	CvHotkeyInfo::write(stream);
-	uint uiFlag=0;
+	uint uiFlag;
+	//uiFlag = 0;
+	uiFlag = 1; // advc.003t
 	stream->Write(uiFlag);
 
-	stream->Write(m_iBuildingClassType);
-	stream->Write(m_iVictoryPrereq);
-	stream->Write(m_iFreeStartEra);
-	stream->Write(m_iMaxStartEra);
-	stream->Write(m_iObsoleteTech);
-	stream->Write(m_iPrereqAndTech);
-	stream->Write(m_iNoBonus);
-	stream->Write(m_iPowerBonus);
-	stream->Write(m_iFreeBonus);
+	stream->Write(m_eBuildingClassType);
+	stream->Write(m_eVictoryPrereq);
+	stream->Write(m_eFreeStartEra);
+	stream->Write(m_eMaxStartEra);
+	stream->Write(m_eObsoleteTech);
+	stream->Write(m_ePrereqAndTech);
+	stream->Write(m_eNoBonus);
+	stream->Write(m_ePowerBonus);
+	stream->Write(m_eFreeBonus);
 	stream->Write(m_iNumFreeBonuses);
-	stream->Write(m_iFreeBuildingClass);
-	stream->Write(m_iFreePromotion);
-	stream->Write(m_iCivicOption);
+	stream->Write(m_eFreeBuildingClass);
+	stream->Write(m_eFreePromotion);
+	stream->Write(m_eCivicOption);
 	stream->Write(m_iAIWeight);
 	stream->Write(m_iProductionCost);
 	stream->Write(m_iHurryCostModifier);
@@ -937,18 +944,18 @@ void CvBuildingInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iForeignTradeRouteModifier);
 	stream->Write(m_iAssetValue);
 	stream->Write(m_iPowerValue);
-	stream->Write(m_iSpecialBuildingType);
-	stream->Write(m_iAdvisorType);
-	stream->Write(m_iHolyCity);
-	stream->Write(m_iReligionType);
-	stream->Write(m_iStateReligion);
-	stream->Write(m_iPrereqReligion);
-	stream->Write(m_iPrereqCorporation);
-	stream->Write(m_iFoundsCorporation);
-	stream->Write(m_iGlobalReligionCommerce);
-	stream->Write(m_iGlobalCorporationCommerce);
-	stream->Write(m_iPrereqAndBonus);
-	stream->Write(m_iGreatPeopleUnitClass);
+	stream->Write(m_eSpecialBuildingType);
+	stream->Write(m_eAdvisorType);
+	stream->Write(m_eHolyCity);
+	stream->Write(m_eReligionType);
+	stream->Write(m_eStateReligion);
+	stream->Write(m_ePrereqReligion);
+	stream->Write(m_ePrereqCorporation);
+	stream->Write(m_eFoundsCorporation);
+	stream->Write(m_eGlobalReligionCommerce);
+	stream->Write(m_eGlobalCorporationCommerce);
+	stream->Write(m_ePrereqAndBonus);
+	stream->Write(m_eGreatPeopleUnitClass);
 	stream->Write(m_iGreatPeopleRateChange);
 	stream->Write(m_iConquestProbability);
 	stream->Write(m_iMaintenanceModifier);
@@ -965,8 +972,8 @@ void CvBuildingInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iBombardDefenseModifier);
 	stream->Write(m_iAllCityDefenseModifier);
 	stream->Write(m_iEspionageDefenseModifier);
-	stream->Write(m_iMissionType);
-	stream->Write(m_iVoteSourceType);
+	stream->Write(m_eMissionType);
+	stream->Write(m_eVoteSourceType);
 
 	stream->Write(m_fVisibilityPriority);
 
@@ -996,8 +1003,19 @@ void CvBuildingInfo::write(FDataStreamBase* stream)
 	stream->WriteString(m_szConstructSound);
 	stream->WriteString(m_szArtDefineTag);
 	stream->WriteString(m_szMovieDefineTag);
-	stream->Write(GC.getNUM_BUILDING_AND_TECH_PREREQS(), m_piPrereqAndTechs);
-	stream->Write(GC.getNUM_BUILDING_PREREQ_OR_BONUSES(), m_piPrereqOrBonuses);
+	// <advc.003t>
+	{
+		int iPrereqAndTechs = getNumPrereqAndTechs();
+		stream->Write(iPrereqAndTechs);
+		if (iPrereqAndTechs > 0)
+			stream->Write(iPrereqAndTechs, (int*)&m_aePrereqAndTechs[0]);
+	}
+	{
+		int iPrereqOrBonuses = getNumPrereqOrBonuses();
+		stream->Write(iPrereqOrBonuses);
+		if (iPrereqOrBonuses > 0)
+			stream->Write(iPrereqOrBonuses, (int*)&m_aePrereqOrBonuses[0]);
+	} // </advc.003t>
 	stream->Write(GC.getNumTraitInfos(), m_piProductionTraits);
 	stream->Write(GC.getNumTraitInfos(), m_piHappinessTraits);
 	stream->Write(NUM_YIELD_TYPES, m_piSeaPlotYieldChange);
@@ -1044,85 +1062,75 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvHotkeyInfo::read(pXML))
 		return false;
 
-	pXML->SetInfoIDFromChildXmlVal(m_iBuildingClassType, "BuildingClass");
-	pXML->SetInfoIDFromChildXmlVal(m_iSpecialBuildingType, "SpecialBuildingType");
-	pXML->SetInfoIDFromChildXmlVal(m_iAdvisorType, "Advisor");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eBuildingClassType, "BuildingClass");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eSpecialBuildingType, "SpecialBuildingType");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eAdvisorType, "Advisor");
 	pXML->GetChildXmlValByName(m_szArtDefineTag, "ArtDefineTag");
 	pXML->GetChildXmlValByName(m_szMovieDefineTag, "MovieDefineTag");
-	pXML->SetInfoIDFromChildXmlVal(m_iHolyCity, "HolyCity");
-	pXML->SetInfoIDFromChildXmlVal(m_iReligionType, "ReligionType");
-	pXML->SetInfoIDFromChildXmlVal(m_iStateReligion, "StateReligion");
-	pXML->SetInfoIDFromChildXmlVal(m_iPrereqReligion, "PrereqReligion");
-	pXML->SetInfoIDFromChildXmlVal(m_iPrereqCorporation, "PrereqCorporation");
-	pXML->SetInfoIDFromChildXmlVal(m_iFoundsCorporation, "FoundsCorporation");
-	pXML->SetInfoIDFromChildXmlVal(m_iGlobalReligionCommerce, "GlobalReligionCommerce");
-	pXML->SetInfoIDFromChildXmlVal(m_iGlobalCorporationCommerce, "GlobalCorporationCommerce");
-	pXML->SetInfoIDFromChildXmlVal(m_iVictoryPrereq, "VictoryPrereq");
-	pXML->SetInfoIDFromChildXmlVal(m_iFreeStartEra, "FreeStartEra");
-	pXML->SetInfoIDFromChildXmlVal(m_iMaxStartEra, "MaxStartEra");
-	pXML->SetInfoIDFromChildXmlVal(m_iObsoleteTech, "ObsoleteTech");
-	pXML->SetInfoIDFromChildXmlVal(m_iPrereqAndTech, "PrereqTech");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eHolyCity, "HolyCity");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eReligionType, "ReligionType");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eStateReligion, "StateReligion");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_ePrereqReligion, "PrereqReligion");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_ePrereqCorporation, "PrereqCorporation");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eFoundsCorporation, "FoundsCorporation");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eGlobalReligionCommerce, "GlobalReligionCommerce");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eGlobalCorporationCommerce, "GlobalCorporationCommerce");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eVictoryPrereq, "VictoryPrereq");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eFreeStartEra, "FreeStartEra");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eMaxStartEra, "MaxStartEra");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eObsoleteTech, "ObsoleteTech");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_ePrereqAndTech, "PrereqTech");
 
-	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"TechTypes"))
+	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "TechTypes"))
 	{
 		if (pXML->SkipToNextVal())
 		{
-			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
-			pXML->InitList(&m_piPrereqAndTechs, GC.getNUM_BUILDING_AND_TECH_PREREQS(), -1);
-			bool bAnyReq = false; // advc.003t
+			int const iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			if (iNumSibs > 0)
 			{
 				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
-				{
-					FAssertMsg(iNumSibs <= GC.getNUM_BUILDING_AND_TECH_PREREQS(), "For loop iterator is greater than array size");
+				{	// advc.003t: The DLL can handle any number, but Python maybe not.
+					FAssert(iNumSibs <= GC.getDefineINT(CvGlobals::NUM_BUILDING_AND_TECH_PREREQS));
 					for (int j = 0; j < iNumSibs; j++)
-					{
-						m_piPrereqAndTechs[j] = pXML->FindInInfoClass(szTextVal);
-						// <advc.003t>
-						if (m_piPrereqAndTechs[j] != NO_TECH)
-							bAnyReq = true; // </advc.003t>
+					{	// advc.003t>
+						TechTypes eTech = (TechTypes)pXML->FindInInfoClass(szTextVal);
+						if (eTech != NO_TECH)
+							m_aePrereqAndTechs.push_back(eTech); // </advc.003t>
 						if (!pXML->GetNextXmlVal(szTextVal))
 							break;
 					}
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 				}
-			} // <advc.003t>
-			if (!bAnyReq)
-				SAFE_DELETE_ARRAY(m_piPrereqAndTechs); // </advc.003t>
+			}
 		}
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
 
-	pXML->SetInfoIDFromChildXmlVal(m_iPrereqAndBonus, "Bonus");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_ePrereqAndBonus, "Bonus");
 
-	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"PrereqBonuses"))
+	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "PrereqBonuses"))
 	{
 		if (pXML->SkipToNextVal())
 		{
-			int iNumChildren = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
-			pXML->InitList(&m_piPrereqOrBonuses, GC.getNUM_BUILDING_PREREQ_OR_BONUSES(), -1);
-			bool bAnyReq = false; // advc.003t
+			int const iNumChildren = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			if (iNumChildren > 0)
 			{
 				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
-					FAssertMsg(iNumChildren <= GC.getNUM_BUILDING_PREREQ_OR_BONUSES(), "For loop iterator is greater than array size");
+					FAssert(iNumChildren <= GC.getDefineINT(CvGlobals::NUM_BUILDING_PREREQ_OR_BONUSES));
 					for (int j = 0; j < iNumChildren; j++)
-					{
-						m_piPrereqOrBonuses[j] = pXML->FindInInfoClass(szTextVal);
-						// <advc.003t>
-						if (m_piPrereqOrBonuses[j] != NO_BONUS)
-							bAnyReq = true; // </advc.003t>
+					{	// <advc.003t>
+						BonusTypes eBonus = (BonusTypes)pXML->FindInInfoClass(szTextVal);
+						if (eBonus != NO_BONUS)
+							m_aePrereqOrBonuses.push_back(eBonus); // </advc.003t>
 						if (!pXML->GetNextXmlVal(szTextVal))
 							break;
 					}
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 				}
-			} // <advc.003t>
-			if (!bAnyReq)
-				SAFE_DELETE_ARRAY(m_piPrereqOrBonuses); // </advc.003t>
+			}
 		}
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
@@ -1130,17 +1138,17 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	pXML->SetVariableListTagPair(&m_piProductionTraits, "ProductionTraits", GC.getNumTraitInfos());
 	pXML->SetVariableListTagPair(&m_piHappinessTraits, "HappinessTraits", GC.getNumTraitInfos());
 
-	pXML->SetInfoIDFromChildXmlVal(m_iNoBonus, "NoBonus");
-	pXML->SetInfoIDFromChildXmlVal(m_iPowerBonus, "PowerBonus");
-	pXML->SetInfoIDFromChildXmlVal(m_iFreeBonus, "FreeBonus");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eNoBonus, "NoBonus");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_ePowerBonus, "PowerBonus");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eFreeBonus, "FreeBonus");
 
 	pXML->GetChildXmlValByName(&m_iNumFreeBonuses, "iNumFreeBonuses");
 
-	pXML->SetInfoIDFromChildXmlVal(m_iFreeBuildingClass, "FreeBuilding");
-	pXML->SetInfoIDFromChildXmlVal(m_iFreePromotion, "FreePromotion");
-	pXML->SetInfoIDFromChildXmlVal(m_iCivicOption, "CivicOption");
-	pXML->SetInfoIDFromChildXmlVal(m_iGreatPeopleUnitClass, "GreatPeopleUnitClass");
-	pXML->SetInfoIDFromChildXmlVal(m_iVoteSourceType, "DiploVoteType");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eFreeBuildingClass, "FreeBuilding");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eFreePromotion, "FreePromotion");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eCivicOption, "CivicOption");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eGreatPeopleUnitClass, "GreatPeopleUnitClass");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eVoteSourceType, "DiploVoteType");
 
 	pXML->GetChildXmlValByName(&m_iGreatPeopleRateChange, "iGreatPeopleRateChange");
 	pXML->GetChildXmlValByName(&m_bTeamShare, "bTeamShare");

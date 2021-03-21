@@ -85,6 +85,14 @@ public:
 	void updateFog();
 	void updateMinimapColor();
 	void updateMinOriginalStartDist(CyArea* pArea);
+	// <advc.002a>
+	void setMinimapShowUnits(bool b);
+	void setMinimapWaterAlpha(float f);
+	void setMinimapLandAlpha(float f);
+	bool isMinimapShowUnits();
+	float getMinimapWaterAlpha();
+	float getMinimapLandAlpha();
+	// </advc.002a>
 
 	// PYTHON HELPER FUNCTIONS
 	//int getNumPlayerOwnedPlots(int /*PlayerTypes*/ iPlayer);

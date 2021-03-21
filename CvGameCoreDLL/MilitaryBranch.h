@@ -79,8 +79,8 @@ protected:
 	/*	Vague expectation of how many extra instances will have been produced
 		when halfway through with the military buildup that this class helps predict.
 		(Could get the era from ownerId, but don't want to include CvPlayer.h.) */
-	inline double estimateExtraInstances(EraTypes era) const {
-		return 1.75 + 1.25 * era;
+	inline double estimateExtraInstances(scaled eraFactor) const {
+		return 1.75 + 1.25 * eraFactor.getDouble();
 	}
 
 	PlayerTypes ownerId;

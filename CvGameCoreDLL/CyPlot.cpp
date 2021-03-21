@@ -7,6 +7,7 @@
 #include "CyArea.h"
 #include "CvPlot.h"
 #include "CvArea.h" // advc: for CvArea::getID
+#include "CvUnit.h" // advc: for city/fort-related functions moved to CvUnit
 
 CyPlot::CyPlot(CvPlot* pPlot) : m_pPlot(pPlot) {}
 // advc.003y: (see CyCity.cpp)
@@ -206,7 +207,9 @@ int CyPlot::getUnitPower(int /* PlayerTypes */ eOwner)
 
 int CyPlot::movementCost(CyUnit* pUnit, CyPlot* pFromPlot)
 {
-	return m_pPlot ? m_pPlot->movementCost(pUnit->getUnit(), pFromPlot->getPlot()) : -1;
+	return m_pPlot &&
+		pUnit && pUnit->getUnit() && pFromPlot && pFromPlot->getPlot() ? // advc
+		m_pPlot->movementCost(*pUnit->getUnit(), *pFromPlot->getPlot()) : -1;
 }
 
 int CyPlot::defenseModifier(int iDefendTeam, bool bIgnoreBuilding, bool bHelp)
@@ -330,14 +333,10 @@ bool CyPlot::isCity()
 	return m_pPlot ? m_pPlot->isCity() : false;
 }
 
-bool CyPlot::isFriendlyCity(CyUnit* pUnit, bool bCheckImprovement)
-{
-	return m_pPlot ? m_pPlot->isFriendlyCity(*(pUnit->getUnit()), bCheckImprovement) : false;
-}
-
 bool CyPlot::isEnemyCity(CyUnit* pUnit)
 {
-	return m_pPlot ? m_pPlot->isEnemyCity(*(pUnit->getUnit())) : false;
+	return m_pPlot /* advc: */ && pUnit && pUnit->getUnit() ?
+			pUnit->getUnit()->isEnemyCity(*m_pPlot) : false;
 }
 
 bool CyPlot::isOccupation()
@@ -433,12 +432,14 @@ bool CyPlot::isTradeNetworkConnected(CyPlot* pPlot, int /*TeamTypes*/ eTeam)
 
 bool CyPlot::isValidDomainForLocation(CyUnit* pUnit) const
 {
-	return (m_pPlot && pUnit && pUnit->getUnit()) ? m_pPlot->isValidDomainForLocation(*(pUnit->getUnit())) : false;
+	return (m_pPlot && pUnit && pUnit->getUnit()) ?
+			pUnit->getUnit()->isValidDomain(*m_pPlot) : false;
 }
 
 bool CyPlot::isValidDomainForAction(CyUnit* pUnit) const
 {
-	return (m_pPlot && pUnit && pUnit->getUnit()) ? m_pPlot->isValidDomainForAction(*(pUnit->getUnit())) : false;
+	return (m_pPlot && pUnit && pUnit->getUnit()) ?
+			pUnit->getUnit()->isValidDomain(m_pPlot->isWater()) : false;
 }
 
 bool CyPlot::isImpassable()

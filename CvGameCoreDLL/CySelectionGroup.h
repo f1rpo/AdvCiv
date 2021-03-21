@@ -85,7 +85,7 @@ public:
 	int getMissionData2(int iNode);
 	MissionData* getMissionFromQueue(int iIndex);
 	CyUnit* getHeadUnit();
-	CyUnit* getUnitAt(int index);
+	CyUnit* getUnitAt(int iIndex);
 
 protected:
 	CvSelectionGroup* m_pSelectionGroup;

@@ -43,7 +43,9 @@ class Tester :
 	def onKbdEvent(self, argsList ):
 		'keypress handler'
 		eventType,key,mx,my,px,py = argsList
-
+		# <advc.001>
+		if not self.customEM.isCheatsEnabled():
+			return # </advc.001>
 		if ( eventType == 6 ):
 			theKey=int(key)
 				

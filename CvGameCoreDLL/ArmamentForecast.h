@@ -14,8 +14,8 @@ class CvArea;
 /* advc.104: New class. Predicts the military build-up of a civ. Part of
    the military analysis.
    The computation happens in the constructor.
-   NB: The aim is not to predict how many units a civ will possess on
-   a future turn, but how many units will be built, i.e. ignoring losses.
+   NB: The aim is not to predict how many units a civ will _own_ on
+   a future turn, but how many units will be _trained_, i.e. ignoring losses.
    Losses are handled when resolving the InvasionGraph.
    Disregards financial trouble since unit cost is rarely a limiting factor for
    AI armament. */

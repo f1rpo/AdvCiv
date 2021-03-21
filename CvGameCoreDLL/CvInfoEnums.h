@@ -86,9 +86,16 @@ static inline T operator-(T minuend, T subtrahend)
 	for (TypeName##Types eLoop##TypeName = (TypeName##Types)(getEnumLength(((TypeName##Types)0)) - 1); \
 			eLoop##TypeName >= 0; \
 			eLoop##TypeName = (TypeName##Types)(eLoop##TypeName - 1))
-// For accessing an info object in a loop over an info enum (tentative and unused)
-#define _kLoop_(TypeName) \
-	Cv##TypeName##Info const& kLoop##TypeName = GC.getInfo(eLoop##TypeName)
+/*	To be used only in the body of a FOR_EACH_ENUM loop. Don't need to assert
+	array bounds then. Not really feasible though to replace all the
+	CvGlobals::getInfo calls, so ... */
+/*#define LOOP_INFO(TypeName) \
+	GC.getLoopInfo(eLoop##TypeName)
+#define SET_LOOP_INFO(TypeName) \
+	Cv##TypeName##Info const& kLoop##TypeName = LOOP_INFO(TypeName)
+// To go with FOR_EACH_ENUM2
+#define SET_LOOP_INFO2(TypeName, kVar) \
+	Cv##TypeName##Info const& kVar = LOOP_INFO(TypeName)*/
 
 // Type lists ...
 
@@ -232,7 +239,7 @@ static inline T operator-(T minuend, T subtrahend)
 
 /*  These don't have a dedicated CvInfo class, and the macros for generating
 	getter functions can't deal with that. (typedef would make it impossible
-	to forward declare them in CvGlobals.h.) */
+	to forward-declare them in CvGlobals.h.) */
 #define CvHintInfo CvInfoBase
 #define CvConceptInfo CvInfoBase
 #define CvNewConceptInfo CvInfoBase
@@ -248,7 +255,7 @@ static inline T operator-(T minuend, T subtrahend)
 #define CvCalendarInfo CvInfoBase
 #define CvUnitAIInfo CvInfoBase
 #define CvDenialInfo CvInfoBase
-// This one just has an irregular, exported name
+// This one just has an irregular, exported name.
 #define CvThroneRoomCameraInfo CvThroneRoomCamera
 
 // Macros for generating enum definitions and getEnumLength functions (CvEnums, CvGlobals) ...
@@ -256,16 +263,15 @@ static inline T operator-(T minuend, T subtrahend)
 #define NUM_ENUM_TYPES(INFIX) NUM_##INFIX##_TYPES
 #define NO_ENUM_TYPE(SUFFIX) NO_##SUFFIX = -1
 
-// (See SET_NONXML_ENUM_LENGTH in EnumMap.h about the bAllowFOR_EACH parameter)
 #define SET_ENUM_LENGTH_STATIC(Name, INFIX) \
-	__forceinline Name##Types getEnumLength(Name##Types, bool bAllowFOR_EACH = true) \
+	__forceinline Name##Types getEnumLength(Name##Types) \
 	{ \
 		return NUM_ENUM_TYPES(INFIX); \
 	}
 /*  This gets used in CvGlobals.h. (I wanted to do it in MAKE_INFO_ENUM, which is
 	used in CvEnums.h, but that lead to a circular dependency.) */
 #define SET_ENUM_LENGTH(Name, PREFIX) \
-	__forceinline Name##Types getEnumLength(Name##Types, bool bAllowFOR_EACH = true) \
+	__forceinline Name##Types getEnumLength(Name##Types) \
 	{ \
 		return static_cast<Name##Types>(gGlobals.getNum##Name##Infos()); \
 	}
@@ -319,6 +325,11 @@ namespace info_enum_detail
 		FAssertBounds(0, getNum##Name##Infos(), e##Name); \
 		return *m_pa##Name##Info[e##Name]; \
 	} \
+	/* (See SET_LOOP_INFO) */ \
+	/*inline Cv##Name##Info& getLoopInfo(Name##Types e##Name) const*/ \
+	/*{*/ \
+	/*	return *m_pa##Name##Info[e##Name];*/ \
+	/*}*/ \
 	/* Deprecated: */ \
 	inline Cv##Name##Info& get##Name##Info(Name##Types e##Name) const \
 	{ \
@@ -340,6 +351,11 @@ namespace info_enum_detail
 		FAssertBounds(0, NUM_ENUM_TYPES(INFIX), e##Name); \
 		return *m_pa##Name##Info[e##Name]; \
 	} \
+	/* (See SET_LOOP_INFO) */ \
+	/*inline Cv##Name##Info& getLoopInfo(Name##Types e##Name) const*/ \
+	/*{*/ \
+	/*	return *m_pa##Name##Info[e##Name];*/ \
+	/*}*/ \
 	/* Deprecated: */ \
 	inline Cv##Name##Info& get##Name##Info(Name##Types e##Name) const \
 	{ \

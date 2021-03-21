@@ -59,8 +59,7 @@ void UWAI::write(FDataStreamBase* stream) {
 
 int UWAI::maxLandDist() const {
 
-	// Faster speed of ships now covered by estimateMovementSpeed
-	return maxSeaDist(); //- 2;
+	return maxSeaDist() - 1;
 }
 
 int UWAI::maxSeaDist() const {
@@ -69,7 +68,7 @@ int UWAI::maxSeaDist() const {
 	int r = 15;
 	// That's true for Large and Huge maps
 	if(m.getGridWidth() > 100 || m.getGridHeight() > 100)
-		r = 18;
+		r += 3;
 	if(!m.isWrapX() && !m.isWrapY())
 		r = (r * 6) / 5;
 	return r;
@@ -92,14 +91,14 @@ void UWAI::doXML() {
 	char const* const aszAspectTagNames[] = {
 		DO_FOR_EACH_WAR_UTILITY_ASPECT(MAKE_TAG_NAME)
 	};
-	FAssert(sizeof(aszAspectTagNames) / sizeof(char*) == NUM_ASPECTS);
+	FAssert(ARRAY_LENGTH(aszAspectTagNames) == NUM_ASPECTS);
 	for (int i = 0; i < NUM_ASPECTS; i++)
 		xmlWeights.push_back(GC.getDefineINT(aszAspectTagNames[i]));
 
 	char const* const aszAspectReportNames[] = {
 		DO_FOR_EACH_WAR_UTILITY_ASPECT(MAKE_REPORT_NAME)
 	};
-	FAssert(sizeof(aszAspectReportNames) / sizeof(char*) == NUM_ASPECTS);
+	FAssert(ARRAY_LENGTH(aszAspectReportNames) == NUM_ASPECTS);
 	for (int i = 0; i < NUM_ASPECTS; i++)
 		aszAspectNames.push_back(aszAspectReportNames[i]);
 
@@ -163,7 +162,7 @@ void UWAI::applyPersonalityWeight() {
 			&kLeader.m_iPermanentAllianceRefuseAttitudeThreshold, &kLeader.m_iVassalRefuseAttitudeThreshold,
 			&kLeader.m_iVassalPowerModifier, &kLeader.m_iFreedomAppreciation,
 		};
-		int const iPrimitiveMembers = sizeof(aiPrimitiveMembers) / sizeof(int);
+		int const iPrimitiveMembers = ARRAY_LENGTH(aiPrimitiveMembers);
 		std::vector<int*>* paiPersonalityVector = new std::vector<int*>(
 				aiPrimitiveMembers, aiPrimitiveMembers + iPrimitiveMembers);
 		FOR_EACH_ENUM(Flavor)
@@ -186,8 +185,8 @@ void UWAI::applyPersonalityWeight() {
 		FAssert(iMembers == -1 || iMembers == paiPersonalityVector->size());
 		iMembers = (int)paiPersonalityVector->size();
 		if(iWeight == 0) { // Clear fav. civic and religion
-			kLeader.m_iFavoriteCivic = NO_CIVIC;
-			kLeader.m_iFavoriteReligion = NO_RELIGION;
+			kLeader.m_eFavoriteCivic = NO_CIVIC;
+			kLeader.m_eFavoriteReligion = NO_RELIGION;
 		}
 	}
 	for(int j = 0; j < iMembers; j++) {

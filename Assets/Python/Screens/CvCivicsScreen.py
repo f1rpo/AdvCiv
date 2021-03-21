@@ -29,7 +29,16 @@ class CvCivicsScreen:
 		self.BACKGROUND_ID = "CivicsBackground"
 		self.HELP_HEADER_NAME = "CivicsScreenHeaderName"
 
-		self.HEADINGS_WIDTH = 199
+		self.H_SCREEN = 768
+		# advc.002b: Original horizontal constants moved into interfaceScreen
+		# <advc.002b>
+		# This corresponds to iEndOfTurnPosX in CvMainInterface. Want to leave room for the scoreboard.
+		self.HORIZONTAL_MARGIN = 300
+		# Almost the same value as HEADINGS_WIDTH (199) used to be; now only used for the panels that list the civics.
+		# Looks better to keep those in panels that fit snugly.
+		self.CIVIC_LIST_PANEL_WIDTH = 200
+		# </advc.002b>
+
 		self.HEADINGS_TOP = 70
 		self.HEADINGS_SPACING = 5
 		self.HEADINGS_BOTTOM = 280
@@ -39,19 +48,12 @@ class CvCivicsScreen:
 		self.BUTTON_SIZE = 24
 		self.BIG_BUTTON_SIZE = 64
 		self.BOTTOM_LINE_TOP = 630
-		self.BOTTOM_LINE_WIDTH = 1014
 		self.BOTTOM_LINE_HEIGHT = 60
 
-		self.X_EXIT = 994
 		self.Y_EXIT = 726
-
-		self.X_CANCEL = 552
 		self.Y_CANCEL = 726
 
-		self.X_SCREEN = 500
 		self.Y_SCREEN = 396
-		self.W_SCREEN = 1024
-		self.H_SCREEN = 768
 		self.Z_SCREEN = -6.1
 		self.Y_TITLE = 8		
 		self.Z_TEXT = self.Z_SCREEN - 0.2
@@ -92,12 +94,28 @@ class CvCivicsScreen:
 			return
 		screen.setRenderInterfaceOnly(True);
 		screen.showScreen( PopupStates.POPUPSTATE_IMMEDIATE, False)
+
+		# <advc.002b> Moved from __init__
+		self.W_SCREEN = screen.getXResolution() - 2 * self.HORIZONTAL_MARGIN # was 1024
+		if self.W_SCREEN < 1024:
+			self.HORIZONTAL_MARGIN -= (1024 - self.W_SCREEN) / 2
+			self.W_SCREEN = 1024
+		self.BOTTOM_LINE_WIDTH = self.W_SCREEN - 10
+		self.X_EXIT = self.W_SCREEN - 30
+		# Was shifted to the right by 40. Let's place it in the dead center.
+		self.X_CANCEL = self.W_SCREEN / 2
+		# Used for title, revolution help, maintenance. Was shifted to the left by 12.
+		self.X_SCREEN = self.W_SCREEN / 2
+		self.HEADINGS_WIDTH = (self.W_SCREEN - self.HEADINGS_SPACING) / gc.getNumCivicOptionInfos() - self.HEADINGS_SPACING
+		# </advc.002b>
 	
 		# Set the background and exit button, and show the screen
-		screen.setDimensions(screen.centerX(0), screen.centerY(0), self.W_SCREEN, self.H_SCREEN)
+		# advc.002b: First param was screen.centerX(0)
+		screen.setDimensions(self.HORIZONTAL_MARGIN, screen.centerY(0), self.W_SCREEN, self.H_SCREEN)
+		# advc.002b (note): The background image has 2:1 dimensions, so the increased W_SCREEN value makes it less distorted than in BtS. (Except maybe on very high resolutions.)
 		screen.addDDSGFC(self.BACKGROUND_ID, ArtFileMgr.getInterfaceArtInfo("MAINMENU_SLIDESHOW_LOAD").getPath(), 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-		screen.addPanel( "TechTopPanel", u"", u"", True, False, 0, 0, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_TOPBAR )
-		screen.addPanel( "TechBottomPanel", u"", u"", True, False, 0, 713, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_BOTTOMBAR )
+		screen.addPanel( "CivicsTopPanel", u"", u"", True, False, 0, 0, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_TOPBAR )
+		screen.addPanel( "CivicsBottomPanel", u"", u"", True, False, 0, 713, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_BOTTOMBAR )
 		screen.showWindowBackground(False)
 		screen.setText(self.CANCEL_NAME, "Background", u"<font=4>" + localText.getText("TXT_KEY_SCREEN_CANCEL", ()).upper() + u"</font>", CvUtil.FONT_CENTER_JUSTIFY, self.X_CANCEL, self.Y_CANCEL, self.Z_TEXT, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, 1, 0)
 
@@ -156,11 +174,17 @@ class CvCivicsScreen:
 
 		for i in range(gc.getNumCivicOptionInfos()):
 		
-			fX = self.HEADINGS_SPACING  + (self.HEADINGS_WIDTH + self.HEADINGS_SPACING) * i
+			#fX = self.HEADINGS_SPACING + (self.HEADINGS_WIDTH + self.HEADINGS_SPACING) * i
+			# <advc.002b>
+			iDeltaWidths = self.HEADINGS_WIDTH - self.CIVIC_LIST_PANEL_WIDTH
+			fX = iDeltaWidths / 2 + self.HEADINGS_SPACING + (self.CIVIC_LIST_PANEL_WIDTH + self.HEADINGS_SPACING + iDeltaWidths) * i # </advc.002b>
 			fY = self.HEADINGS_TOP
+			
 			szAreaID = self.AREA_NAME + str(i)
 			screen = self.getScreen()
-			screen.addPanel(szAreaID, "", "", True, True, fX, fY, self.HEADINGS_WIDTH, self.HEADINGS_BOTTOM - self.HEADINGS_TOP, PanelStyles.PANEL_STYLE_MAIN)
+			# advc.002b: CIVIC_LIST_PANEL_WIDTH instead of HEADINGS_WIDTH
+			screen.addPanel(szAreaID, "", "", True, True, fX, fY, self.CIVIC_LIST_PANEL_WIDTH, self.HEADINGS_BOTTOM - self.HEADINGS_TOP, PanelStyles.PANEL_STYLE_MAIN)
+
 			screen.setLabel("", "Background",  u"<font=3>" + gc.getCivicOptionInfo(i).getDescription().upper() + u"</font>", CvUtil.FONT_CENTER_JUSTIFY, fX + self.HEADINGS_WIDTH/2, self.HEADINGS_TOP + self.TEXT_MARGIN, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 			fY += self.TEXT_MARGIN
@@ -168,11 +192,12 @@ class CvCivicsScreen:
 			for j in range(gc.getNumCivicInfos()):
 				if (gc.getCivicInfo(j).getCivicOptionType() == i):										
 					fY += 2 * self.TEXT_MARGIN
+
 					screen.addCheckBoxGFC(self.getCivicsButtonName(j), gc.getCivicInfo(j).getButton(), ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SQUARE").getPath(), fX + self.BUTTON_SIZE/2, fY, self.BUTTON_SIZE, self.BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_LABEL)
+
 					screen.setText(self.getCivicsTextName(j), "", gc.getCivicInfo(j).getDescription(), CvUtil.FONT_LEFT_JUSTIFY, fX + self.BUTTON_SIZE + self.TEXT_MARGIN, fY, 0, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 			self.drawCivicOptionButtons(i)
-					
 							
 	def highlight(self, iCivic):
 		iCivicOption = gc.getCivicInfo(iCivic).getCivicOptionType()

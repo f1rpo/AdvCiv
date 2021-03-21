@@ -259,34 +259,45 @@ bool CvXMLLoadUtility::SkipToNextVal()
 		// if we cannot set the current xml node to it's next sibling then we will break out of the for loop
 		// otherwise we will continue looping
 		if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
-		{
-			return false;	// couldn't find any non-comment nodes
-		}
+			return false; // couldn't find any non-comment nodes
 	}
 	return true;
 }
 
-/*  Looks for pszVal in pszList and returns the location of the match or
-	-1 if no match is found. */
-int CvXMLLoadUtility::FindInInfoClass(const TCHAR* pszVal, bool hideAssert)
+/*	advc: Looks up szType in the global list of info enum types.
+	Misleading comments deleted. Just think of this as a wrapper for
+	CvGlobals::getInfoTypeForString with additional error output.) */
+int CvXMLLoadUtility::FindInInfoClass(const TCHAR* szType, bool hideAssert)
 {
-	int idx = GC.getInfoTypeForString(pszVal, hideAssert);
-	// if we found a match in the list we will return the value of the loop counter
-	// which will hold the location of the match in the list
-	if (idx != -1)
-		return idx;
+	int iR = GC.getInfoTypeForString(szType, hideAssert);
+	if (iR >= 0)
+		return iR;
+	if (!hideAssert)
+		handleUnknownTypeString(szType); // advc: Moved into subroutine
+	return iR;
+}
 
-	if(!hideAssert)
+/*	advc: Info enum, global type or even a non-enum id associated with a
+	CvInfo object. To simplify SetVariableListTagPair. */
+int CvXMLLoadUtility::getGlobalEnumFromString(TCHAR const* szType)
+{
+	int iR = GC.getTypesEnum(szType, true);
+	if (iR < 0)
+		iR = GC.getInfoTypeForString(szType, true);
+	if (iR < 0)
+		handleUnknownTypeString(szType);
+	return iR;
+}
+
+// advc: Cut from FindInInfoClass
+void CvXMLLoadUtility::handleUnknownTypeString(TCHAR const* szType)
+{
+	if (_tcscmp(szType, "NONE") != 0 && _tcscmp(szType, "") != 0)
 	{
-		if (_tcscmp(pszVal,"NONE")!=0 && _tcscmp(pszVal,"")!=0)
-		{
-			char errorMsg[1024];
-			sprintf(errorMsg, "Tag: %s in Info class was incorrect \n Current XML file is: %s", pszVal, GC.getCurrentXMLFile().GetCString());
-			errorMessage(errorMsg);
-		}
+		char errorMsg[1024];
+		sprintf(errorMsg, "Tag: %s in Info class was incorrect \n Current XML file is: %s", szType, GC.getCurrentXMLFile().GetCString());
+		errorMessage(errorMsg);
 	}
-
-	return idx;
 }
 
 /*  Loads an XML file into the FXml variable. The szFilename parameter has the
@@ -318,33 +329,6 @@ bool CvXMLLoadUtility::LoadCivXml(FXml* pFXml, const TCHAR* szFilename)
 	return true; // success
 }
 
-// see KeyStringFromKBCode
-// advc: Renamed from "CreateHotKeyFromDescription"; nothing is "created" here.
-CvWString CvXMLLoadUtility::HotKeyFromDescription(const TCHAR* pszHotKey, bool bShift, bool bAlt, bool bCtrl)
-{
-	// Delete <COLOR:140,255,40,255>Shift+Delete</COLOR>
-	CvWString szHotKey;
-	if (pszHotKey && strcmp(pszHotKey,"") != 0)
-	{
-		szHotKey += L" <color=140,255,40,255>";
-		szHotKey += L"&lt;";
-
-		if (bShift)
-			szHotKey += gDLL->getText("TXT_KEY_SHIFT");
-
-		if (bAlt)
-			szHotKey += gDLL->getText("TXT_KEY_ALT");
-
-		if (bCtrl)
-			szHotKey += gDLL->getText("TXT_KEY_CTRL");
-
-		szHotKey = szHotKey + KeyStringFromKBCode(pszHotKey);
-		szHotKey += L">";
-		szHotKey += L"</color>";
-	}
-	return szHotKey;
-}
-
 /*	Sets the number of strings in a list, initializes the string to the correct length,
 	and fills it from the current XML file. Assumes that the current node is
 	the parent node of the string list children. */
@@ -368,141 +352,6 @@ bool CvXMLLoadUtility::SetStringList(CvString** ppszStringArray, int* piSize)
 		}
 	}
 	return true;
-}
-
-// KB code to string; e.g. KB_DELETE -> "Delete"
-// advc: Renamed from "CreateKeyStringFromKBCode"
-CvWString CvXMLLoadUtility::KeyStringFromKBCode(const TCHAR* pszHotKey)
-{
-	PROFILE("CreateKeyStringFromKBCode");
-
-	struct CvKeyBoardMapping
-	{
-		TCHAR szDefineString[25];
-		CvWString szKeyString;
-	};
-
-	// TODO - this should be a stl map instead of looping strcmp
-	const int iNumKeyBoardMappings=108;
-	const CvKeyBoardMapping asCvKeyBoardMapping[iNumKeyBoardMappings] =
-	{
-		{"KB_ESCAPE", gDLL->getText("TXT_KEY_KEYBOARD_ESCAPE")},
-		{"KB_0","0"},
-		{"KB_1","1"},
-		{"KB_2","2"},
-		{"KB_3","3"},
-		{"KB_4","4"},
-		{"KB_5","5"},
-		{"KB_6","6"},
-		{"KB_7","7"},
-		{"KB_8","8"},
-		{"KB_9","9"},
-		{"KB_MINUS","-"},	    /* - on main keyboard */
-		{"KB_A","A"},
-		{"KB_B","B"},
-		{"KB_C","C"},
-		{"KB_D","D"},
-		{"KB_E","E"},
-		{"KB_F","F"},
-		{"KB_G","G"},
-		{"KB_H","H"},
-		{"KB_I","I"},
-		{"KB_J","J"},
-		{"KB_K","K"},
-		{"KB_L","L"},
-		{"KB_M","M"},
-		{"KB_N","N"},
-		{"KB_O","O"},
-		{"KB_P","P"},
-		{"KB_Q","Q"},
-		{"KB_R","R"},
-		{"KB_S","S"},
-		{"KB_T","T"},
-		{"KB_U","U"},
-		{"KB_V","V"},
-		{"KB_W","W"},
-		{"KB_X","X"},
-		{"KB_Y","Y"},
-		{"KB_Z","Z"},
-		{"KB_EQUALS","="},
-		{"KB_BACKSPACE",gDLL->getText("TXT_KEY_KEYBOARD_BACKSPACE")},
-		{"KB_TAB","TAB"},
-		{"KB_LBRACKET","["},
-		{"KB_RBRACKET","]"},
-		{"KB_RETURN",gDLL->getText("TXT_KEY_KEYBOARD_ENTER")},		/* Enter on main keyboard */
-		{"KB_LCONTROL",gDLL->getText("TXT_KEY_KEYBOARD_LEFT_CONTROL_KEY")},
-		{"KB_SEMICOLON",";"},
-		{"KB_APOSTROPHE","'"},
-		{"KB_GRAVE","`"},		/* accent grave */
-		{"KB_LSHIFT",gDLL->getText("TXT_KEY_KEYBOARD_LEFT_SHIFT_KEY")},
-		{"KB_BACKSLASH","\\"},
-		{"KB_COMMA",","},
-		{"KB_PERIOD","."},
-		{"KB_SLASH","/"},
-		{"KB_RSHIFT",gDLL->getText("TXT_KEY_KEYBOARD_RIGHT_SHIFT_KEY")},
-		{"KB_NUMPADSTAR",gDLL->getText("TXT_KEY_KEYBOARD_NUM_PAD_STAR")},
-		{"KB_LALT",gDLL->getText("TXT_KEY_KEYBOARD_LEFT_ALT_KEY")},
-		{"KB_SPACE",gDLL->getText("TXT_KEY_KEYBOARD_SPACE_KEY")},
-		{"KB_CAPSLOCK",gDLL->getText("TXT_KEY_KEYBOARD_CAPS_LOCK")},
-		{"KB_F1","F1"},
-		{"KB_F2","F2"},
-		{"KB_F3","F3"},
-		{"KB_F4","F4"},
-		{"KB_F5","F5"},
-		{"KB_F6","F6"},
-		{"KB_F7","F7"},
-		{"KB_F8","F8"},
-		{"KB_F9","F9"},
-		{"KB_F10","F10"},
-		{"KB_NUMLOCK",gDLL->getText("TXT_KEY_KEYBOARD_NUM_LOCK")},
-		{"KB_SCROLL",gDLL->getText("TXT_KEY_KEYBOARD_SCROLL_KEY")},
-		{"KB_NUMPAD7",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 7)},
-		{"KB_NUMPAD8",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 8)},
-		{"KB_NUMPAD9",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 9)},
-		{"KB_NUMPADMINUS",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_MINUS")},
-		{"KB_NUMPAD4",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 4)},
-		{"KB_NUMPAD5",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 5)},
-		{"KB_NUMPAD6",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 6)},
-		{"KB_NUMPADPLUS",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_PLUS")},
-		{"KB_NUMPAD1",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 1)},
-		{"KB_NUMPAD2",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 2)},
-		{"KB_NUMPAD3",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 3)},
-		{"KB_NUMPAD0",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 0)},
-		{"KB_NUMPADPERIOD",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_PERIOD")},
-		{"KB_F11","F11"},
-		{"KB_F12","F12"},
-		{"KB_NUMPADEQUALS",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_EQUALS")},
-		{"KB_AT","@"},
-		{"KB_UNDERLINE","_"},
-		{"KB_COLON",":"},
-		{"KB_NUMPADENTER",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_ENTER_KEY")},
-		{"KB_RCONTROL",gDLL->getText("TXT_KEY_KEYBOARD_RIGHT_CONTROL_KEY")},
-		{"KB_VOLUMEDOWN",gDLL->getText("TXT_KEY_KEYBOARD_VOLUME_DOWN")},
-		{"KB_VOLUMEUP",gDLL->getText("TXT_KEY_KEYBOARD_VOLUME_UP")},
-		{"KB_NUMPADCOMMA",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_COMMA")},
-		{"KB_NUMPADSLASH",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_SLASH")},
-		{"KB_SYSRQ",gDLL->getText("TXT_KEY_KEYBOARD_SYSRQ")},
-		{"KB_RALT",gDLL->getText("TXT_KEY_KEYBOARD_RIGHT_ALT_KEY")},
-		{"KB_PAUSE",gDLL->getText("TXT_KEY_KEYBOARD_PAUSE_KEY")},
-		{"KB_HOME",gDLL->getText("TXT_KEY_KEYBOARD_HOME_KEY")},
-		{"KB_UP",gDLL->getText("TXT_KEY_KEYBOARD_UP_ARROW")},
-		{"KB_PGUP",gDLL->getText("TXT_KEY_KEYBOARD_PAGE_UP")},
-		{"KB_LEFT",gDLL->getText("TXT_KEY_KEYBOARD_LEFT_ARROW")},
-		{"KB_RIGHT",gDLL->getText("TXT_KEY_KEYBOARD_RIGHT_ARROW")},
-		{"KB_END",gDLL->getText("TXT_KEY_KEYBOARD_END_KEY")},
-		{"KB_DOWN",gDLL->getText("TXT_KEY_KEYBOARD_DOWN_ARROW")},
-		{"KB_PGDN",gDLL->getText("TXT_KEY_KEYBOARD_PAGE_DOWN")},
-		{"KB_INSERT",gDLL->getText("TXT_KEY_KEYBOARD_INSERT_KEY")},
-		{"KB_DELETE",gDLL->getText("TXT_KEY_KEYBOARD_DELETE_KEY")},
-	};
-
-	for (int i = 0; i < iNumKeyBoardMappings; i++)
-	{
-		if (strcmp(asCvKeyBoardMapping[i].szDefineString, pszHotKey) == 0)
-			return asCvKeyBoardMapping[i].szKeyString;
-	}
-
-	return "";
 }
 
 // call the progress updater fxn if it exists

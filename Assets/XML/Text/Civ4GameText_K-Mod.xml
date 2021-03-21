@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- edited by karadoc, using an ordinary text editor -->
-<!-- Sid Meier's Civilization 4 -->
-<!-- Copyright Firaxis Games 2005 -->
-<!-- -->
-<!-- Game Text Infos -->
+
+<!-- advc.008: Pedia texts (very few) moved to CIV4GameText_advc_pedia.xml -->
 <Civ4GameText xmlns="http://www.firaxis.com">
 
 	<!-- The word "obsolete", used to describe bonuses after they are made obsolete. -->
@@ -99,7 +96,11 @@
 		<Italian>[NEWLINE]%d3[ICON_GOLD]: Costo per %d1 unit&#224; militari (supporto gratuito per %d2)</Italian>
 		<Spanish>[NEWLINE]%d3 [ICON_GOLD]: coste unitario de %d1 [NUM1:unidad militar:unidades militares] (abastecimiento gratis para %d2)</Spanish>
 	</TEXT>
-	<!-- unit support costs use to be gold per unit, now they are 1/100 gold per unit - so the text needs to be changed to be more flexible. I've removed the bullet, the number, and the icon. Those will now be in the dll. -->
+	<!-- unit support costs use to be gold per unit
+		 now they are 1/100 gold per unit -
+		 so the text needs to be changed to be more flexible.
+		 I've removed the bullet, the number, and the icon.
+		 Those will now be in the dll. -->
 	<TEXT>
 		<Tag>TXT_KEY_CIVIC_SUPPORT_COSTS</Tag>
 		<English>Support Cost per Unit</English>
@@ -116,7 +117,9 @@
 		<Italian>Costo di supporto per le unit&#224; militari</Italian>
 		<Spanish>de coste de abastecimiento por cada unidad militar</Spanish>
 	</TEXT>
-	<!-- similarly with war weariness, I've removed the number from the end so that I can change the way it is used in the DLL.-->
+	<!-- similarly with war weariness,
+		I've removed the number from the end
+		so that I can change the way it is used in the DLL. -->
 	<TEXT>
 		<Tag>TXT_KEY_WAR_WEAR_HELP</Tag>
 		<English>War Weariness</English>
@@ -159,27 +162,8 @@
 		<Italian>Contatta il giocatore [COLOR_HIGHLIGHT_TEXT]%s1_PlyrName della civilt&#224; %s2:2_CivName[COLOR_REVERT]</Italian>
 		<Spanish>Contactar con [COLOR_HIGHLIGHT_TEXT]%s1_PlyrName del %s2_CivName[COLOR_REVERT]</Spanish>
 	</TEXT>
-	<!-- The original text incorrectly stated that liberies were required for the Heroic Epic.
-	(These 'strategy' hints are just a damn nightmare. They don't give any hints or information that isn't already stated in automatically generated description; and they are often wrong, because they aren't auto-updated...)-->
-	<TEXT>
-		<Tag>TXT_KEY_BUILDING_LIBRARY_STRATEGY</Tag>
-		<English>[COLOR_BUILDING_TEXT]Libraries[COLOR_REVERT] boost your cities' research and provide culture. They are required to build [COLOR_BUILDING_TEXT]Universities[COLOR_REVERT], the [COLOR_BUILDING_TEXT]Great Library[COLOR_REVERT] wonder, and the [COLOR_BUILDING_TEXT]National Epic[COLOR_REVERT] national wonder.</English>
-		<French>Les [COLOR_BUILDING_TEXT]biblioth&#232;ques[COLOR_REVERT] am&#233;liorent la recherche et produisent de la culture. Elles sont n&#233;cessaires pour construire des [COLOR_BUILDING_TEXT]universit&#233;s[COLOR_REVERT], la [COLOR_BUILDING_TEXT]Grande biblioth&#232;que[COLOR_REVERT], et l'[COLOR_BUILDING_TEXT]Epop&#233;e nationale[COLOR_REVERT].</French>
-		<German>[COLOR_BUILDING_TEXT]Bibliotheken[COLOR_REVERT] erh&#246;hen den kulturellen Wert einer Stadt und beschleunigen die Forschung sp&#252;rbar. Dar&#252;ber hinaus sind sie die Voraussetzung f&#252;r den Bau von [COLOR_BUILDING_TEXT]Universit&#228;ten[COLOR_REVERT], eines Weltwunders ([COLOR_BUILDING_TEXT]Gro&#223;e Bibliothek[COLOR_REVERT]) und der Nationalen Wunder [COLOR_BUILDING_TEXT]Nationalepos[COLOR_REVERT].</German>
-		<Italian>Le [COLOR_BUILDING_TEXT]biblioteche[COLOR_REVERT] aumentano la ricerca e la cultura delle citt&#224;. Sono necessarie per la realizzazione di [COLOR_BUILDING_TEXT]universit&#224;[COLOR_REVERT], della Meraviglia [COLOR_BUILDING_TEXT]Grande Biblioteca[COLOR_REVERT] e delle Meraviglia Nazionali [COLOR_BUILDING_TEXT]Poema Patriottico[COLOR_REVERT].</Italian>
-		<Spanish>Las [COLOR_BUILDING_TEXT]Bibliotecas[COLOR_REVERT] impulsan la investigaci&#243;n de las ciudades y proporcionan cultura. Son necesarias para construir [COLOR_BUILDING_TEXT]Universidades[COLOR_REVERT], la maravilla de la [COLOR_BUILDING_TEXT]Gran Biblioteca[COLOR_REVERT] y las maravilla nacionales de la [COLOR_BUILDING_TEXT]Epopeya nacional[COLOR_REVERT].</Spanish>
-	</TEXT>
-	<!-- Replacement 'strategy' text for Celtic Dun replacing the guerilla promotion with an experience boost for melee units. (not currently used)
-	<TEXT>
-		<Tag>TXT_KEY_BUILDING_CELTIC_DUN_STRATEGY</Tag>
-		<English>[COLOR_BUILDING_TEXT]Duns[COLOR_REVERT], the Celtic replacements for [COLOR_BUILDING_TEXT]Walls[COLOR_REVERT], increase a city's defenses against pre-gunpowder units and gives an experience bonus to all melee units built in the city.</English>
-		<French>L'[COLOR_BUILDING_TEXT]oppida[COLOR_REVERT], version celte des [COLOR_BUILDING_TEXT]murailles[COLOR_REVERT], augmente la d&#233;fense des villes contre les unit&#233;s datant d'avant l'invention de la poudre &#224; canon. Il fournit aussi un bonus d'expérience à toutes les unités de mêlée construits dans la ville.</French>
-		<German>Die keltischen [COLOR_BUILDING_TEXT]Duns[COLOR_REVERT] ersetzen die [COLOR_BUILDING_TEXT]Mauern[COLOR_REVERT]. Sie verbessern den Verteidigungswert einer Stadt gegen Einheiten ohne Schusswaffen und geben eine Erfahrung Bonus auf Nahkampf-Einheiten in der Stadt gebaut.</German>
-		<Italian>Il [COLOR_BUILDING_TEXT]dun[COLOR_REVERT], l'equivalente celtico delle [COLOR_BUILDING_TEXT]mura[COLOR_REVERT], potenzia le difese della citt&#224; contro le unit&#224; precedenti alla polvere da sparo e dare un bonus esperienza per le unità da mischia costruite in città.</Italian>
-		<Spanish>Los [COLOR_BUILDING_TEXT]Duns[COLOR_REVERT], los equivalentes celtas de las [COLOR_BUILDING_TEXT]Murallas[COLOR_REVERT], aumentan las defensas de una ciudad contra unidades anteriores a las armas de p&#243;lvora y dar una bonificación de experiencia a las unidades de cuerpo a cuerpo construido en la ciudad.</Spanish>
-	</TEXT> -->
 
-
+	<!-- advc (note): I'd try "ignores fortification defense" instead -->
 	<!-- "-X% strength to opposing city defenders"?
 	<TEXT>
 		<Tag>TXT_KEY_PROMOTION_CITY_ATTACK_TEXT</Tag>
@@ -189,30 +173,9 @@
 		<Italian>[ICON_BULLET]%D1_Bonus%% di attacco verso le citt&#224;</Italian>
 		<Spanish>[ICON_BULLET]%D1_Bonus%% al atacar ciudades</Spanish>
 	</TEXT> -->
-	<!-- <TEXT>
-		<Tag>TXT_KEY_UNIT_ROME_PRAETORIAN</Tag>
-		<English>Legion</English>
-		<French>
-			<Text>L&#233;gion</Text>
-			<Gender>Female</Gender>
-			<Plural>0</Plural>
-		</French>
-		<German>
-			<Text>Legion</Text>
-			<Gender>Female</Gender>
-			<Plural>0</Plural>
-		</German>
-		<Italian>
-			<Text>Legione:Legioni</Text>
-			<Gender>Female</Gender>
-			<Plural>0:1</Plural>
-		</Italian>
-		<Spanish>
-			<Text>Legi&#243;n:Legiones</Text>
-			<Gender>Female</Gender>
-			<Plural>0:1</Plural>
-		</Spanish>
-	</TEXT>-->
+
+	<!-- advc (note): This renames the Financial Advisor to
+		 "Economics Advisor" -->
 	<TEXT>
 		<Tag>TXT_KEY_FINANCIAL_ADVISOR_TITLE</Tag>
 		<English>Economics Advisor</English>
@@ -468,7 +431,8 @@
 		<Spanish>[ICON_BULLET]%d1_Num por %s2_FeatName</Spanish>
 	</TEXT>
 
-		<!-- strangely enough, google translate returns the english phrase "save the planet" for French and German. -->
+	<!-- strangely enough, google translate returns the english phrase
+		 "save the planet" for French and German. -->
 	<TEXT>
 		<Tag>TXT_KEY_ANGER_GLOBAL_WARMING</Tag>
 		<English>+%d1_Change[ICON_UNHAPPY]: "Save the planet!"</English>
@@ -485,11 +449,10 @@
 		<Italian>+%d1_Change[ICON_UNHAPPY]: "Salvare il pianeta!"</Italian>
 		<Spanish>+%d1_Change[ICON_UNHAPPY]: "Salvar el planeta!"</Spanish>
 	</TEXT>-->
-	<!-- TODO: get translations for the following keys. -->
+
 	<TEXT>
 		<Tag>TXT_KEY_MISC_GLOBAL_WARMING_ACTIVE</Tag>
 		<English>Worldwide pollution has reached the sustainability threshold.</English>
-		<French>Worldwide pollution has reached the sustainability threshold.</French>
 		<German>Weltweite Umweltverschmutzung hat den Nachhaltigkeitsgrenzwert überschritten.</German>
 		<Italian>L'inquinamento mondiale ha raggiunto il limite di sostenibilità.</Italian>
 		<Spanish>La polución mundial ha alcanzado el límite de sostenibilidad.</Spanish>
@@ -497,7 +460,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_POPUP_ENVIRONMENTAL_ADVISOR</Tag>
 		<English>Our scientists have theorized that if worldwide pollution output continues to increase, we may be faced with irreversible climate change. See the Economics Advisor for further information.</English>
-		<French>Our scientists have theorized that if worldwide pollution output continues to increase, we may be faced with irreversible climate change. See the Economics Advisor for further information.</French>
 		<German>Unsere Wissenschaftler haben errechnet, dass falls die weltweite Umweltverschmutzung weiter ansteigt, wir möglicherweise mit unumkehrbarem Klimawandel rechnen müssen. Mehr Informationen im Wirtschaftsbericht.</German>
 		<Italian>I nostri scenziati hanno teorizzato che se l'inquinamento mondiale continua a crescere, dovremmo fronteggiare cambiamenti climatici irreversibili. Consulta il Consigliere Finanziario per maggiori informazioni.</Italian>
 		<Spanish>Nuestros científicos han teorizado que si la producción de polución mundial continua aumentando, debemos enfrentarnos a un cambio climático irreversible. Mira el Consejero Económico para información adicional.</Spanish>
@@ -626,4 +588,5 @@
 		<English>%s1.</English>
 		<!-- same for all languages -->
 	</TEXT>
+
 </Civ4GameText>

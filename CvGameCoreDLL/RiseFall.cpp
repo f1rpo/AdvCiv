@@ -167,7 +167,7 @@ void RiseFall::write(FDataStreamBase* pStream) {
 	pStream->Write(interludeCountdown);
 	pStream->Write((int)offLimits.size());
 	for(std::set<TeamTypes>::const_iterator it = offLimits.begin();
-			it != offLimits.end(); it++)
+			it != offLimits.end(); ++it)
 		pStream->Write(*it);
 	pStream->Write((int)chapters.size());
 	for(size_t i = 0; i < chapters.size(); i++)
@@ -591,7 +591,7 @@ void RiseFall::showQuests() {
 	CvPlayer& p = GET_PLAYER(GC.getGame().getActivePlayer());
 	CvMessageQueue const& archive = p.getGameMessages();
 	for(std::list<CvTalkingHeadMessage>::const_iterator it = archive.begin();
-			it != archive.end(); it++) {
+			it != archive.end(); ++it) {
 		// CvPlayer::expireEvent should ensure that only ongoing quests are listed
 		if(it->getMessageType() == MESSAGE_TYPE_QUEST) {
 			gDLL->UI().addMessage(p.getID(), true, -1, gDLL->getText("TXT_KEY_GOT_QUESTS"),
@@ -1320,10 +1320,9 @@ bool RiseFall::isSquareDeal(CLinkList<TradeData> const& humanReceives,
 bool RiseFall::isNeededWarTrade(CLinkList<TradeData> const& humanReceives) const {
 
 	CvPlayerAI const& human = GET_PLAYER(GC.getGame().getActivePlayer());
-	for(CLLNode<TradeData> const* node = humanReceives.head();
-			node != NULL; node = humanReceives.next(node)) {
-		if(node->m_data.m_eItemType == TRADE_WAR) {
-			TeamTypes targetId = (TeamTypes)node->m_data.m_iData;
+	FOR_EACH_TRADE_ITEM(humanReceives) {
+		if(pItem->m_eItemType == TRADE_WAR) {
+			TeamTypes targetId = (TeamTypes)pItem->m_iData;
 			if(targetId == NO_TEAM) {
 				FAssert(targetId != NO_TEAM);
 				return false;
@@ -1343,15 +1342,14 @@ bool RiseFall::allSquare(CLinkList<TradeData> const& list, PlayerTypes from,
 	bool allVassal = true;
 	bool allDual = true;
 	bool allLiberation = true;
-	for(CLLNode<TradeData> const* node = list.head();
-			node != NULL; node = list.next(node)) {
-		TradeableItems item = node->m_data.m_eItemType;
+	FOR_EACH_TRADE_ITEM(list) {
+		TradeableItems item = pItem->m_eItemType;
 		if(!CvDeal::isDual(item))
 			allDual = false;
 		if(item != TRADE_SURRENDER && item != TRADE_VASSAL)
 			allVassal = false;
 		if(item == TRADE_CITIES) {
-			CvCity const* c = GET_PLAYER(from).getCity(node->m_data.m_iData);
+			CvCity const* c = GET_PLAYER(from).getCity(pItem->m_iData);
 			if(c == NULL || c->getLiberationPlayer() != to)
 				allLiberation = false;
 		}
@@ -1375,15 +1373,14 @@ int RiseFall::pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
 	CvTeamAI const& humanTeam = GET_TEAM(humanTeamId);
 	CvPlayerAI const& humanCiv = GET_PLAYER(humanCivId);
 	// Loop based on CvPlayerAI::AI_dealVal
-	for(CLLNode<TradeData> const* node = humanReceives.head(); node != NULL;
-			node = humanReceives.next(node)) {
+	FOR_EACH_TRADE_ITEM(humanReceives) {
 		int itemVal = 0;
 		/*  What the AI thinks that the item should be worth to the human civ.
 			In most cases, there is no code for this, and then replVal has to
 			be set based on itemVal (what the AI normally demands for the item). */
 		int replVal = -1;
-		int data = node->m_data.m_iData;
-		switch(node->m_data.m_eItemType) {
+		int data = pItem->m_iData;
+		switch(pItem->m_eItemType) {
 		case TRADE_PEACE:
 			itemVal = humanTeam.AI_makePeaceTradeVal((TeamTypes)data, aiTeamId);
 			break;
@@ -1405,7 +1402,7 @@ int RiseFall::pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
 		}
 		/*  Don't hinder low-value trades (e.g. a little payment for switching
 			to a religion that is already the majority religion) */
-		if(itemVal <= (GC.getGame().getCurrentEra() + 1) * 100)
+		if(itemVal <= (GC.AI_getGame().AI_getCurrEraFactor() + 1) * 100)
 			continue;
 		if(replVal < 0)
 			replVal = ::round(itemVal / 1.5);
