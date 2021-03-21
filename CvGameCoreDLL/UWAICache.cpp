@@ -1453,11 +1453,11 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 			if(transportDest != NULL) {
 				int d = -1;
 				if(trainDeepSeaCargo) {
-					if(pf->anyWaterFinder().generatePath(targetCity.getPlot(), *transportDest))
+					if(pf->anyWaterFinder().generatePath(*transportDest, *p))
 						d = pf->anyWaterFinder().getPathCost();
 				}
 				else {
-					if(pf->shallowWaterFinder().generatePath(targetCity.getPlot(), *transportDest))
+					if(pf->shallowWaterFinder().generatePath(*transportDest, *p))
 						d = pf->shallowWaterFinder().getPathCost();
 				}
 				if(d > 0) {
