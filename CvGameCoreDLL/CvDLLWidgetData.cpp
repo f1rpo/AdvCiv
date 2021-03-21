@@ -4568,47 +4568,34 @@ void CvDLLWidgetData::parseEmphasizeHelp(CvWidgetDataStruct &widgetDataStruct, C
 }
 
 
-void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
+void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct,
+	CvWStringBuffer &szBuffer)
 {
 	szBuffer.clear();
 	CvGame& kGame = GC.getGame();
-	PlayerTypes eWhoFrom = NO_PLAYER;
+	PlayerTypes eWhoFrom = kGame.getActivePlayer();
 	PlayerTypes eWhoTo = NO_PLAYER;
-	if (widgetDataStruct.m_bOption)
-	{
-		if (gDLL->isDiplomacy())
-			eWhoFrom = (PlayerTypes)gDLL->getDiplomacyPlayer();
-		else if (gDLL->isMPDiplomacyScreenUp())
-			eWhoFrom = (PlayerTypes)gDLL->getMPDiplomacyPlayer();
-		eWhoTo = kGame.getActivePlayer();
-	}
-	else
-	{
-		eWhoFrom = kGame.getActivePlayer();
-		if (gDLL->isDiplomacy())
-			eWhoTo = (PlayerTypes)gDLL->getDiplomacyPlayer();
-		else if (gDLL->isMPDiplomacyScreenUp())
-			eWhoTo = (PlayerTypes)gDLL->getMPDiplomacyPlayer();
-	}
-
+	if (gDLL->isDiplomacy())
+		eWhoTo = (PlayerTypes)gDLL->getDiplomacyPlayer();
+	else if (gDLL->isMPDiplomacyScreenUp())
+		eWhoTo = (PlayerTypes)gDLL->getMPDiplomacyPlayer();
+	// <advc> Simplified
 	if (eWhoFrom == NO_PLAYER || eWhoTo == NO_PLAYER)
-		return; // advc
-
-	PlayerTypes eWhoDenies = eWhoFrom;
-	TradeableItems eItemType = (TradeableItems)widgetDataStruct.m_iData1;
+		return;
+	bool const bToActivePlayer = widgetDataStruct.m_bOption;
+	if (bToActivePlayer)
+		std::swap(eWhoTo, eWhoFrom); // </advc>
+	TradeableItems const eItemType = (TradeableItems)widgetDataStruct.m_iData1;
 	switch (eItemType)
 	{
 	case TRADE_TECHNOLOGIES:
 		GAMETEXT.setTechHelp(szBuffer, (TechTypes)widgetDataStruct.m_iData2);
-		eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : eWhoTo);
 		break;
 	case TRADE_RESOURCES:
 		GAMETEXT.setBonusHelp(szBuffer, (BonusTypes)widgetDataStruct.m_iData2);
-		eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : eWhoTo);
 		break;
 	case TRADE_CITIES:
 		szBuffer.assign(gDLL->getText("TXT_KEY_TRADE_CITIES"));
-		eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : eWhoTo);
 		break;
 	case TRADE_PEACE:
 		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_MAKE_PEACE",
@@ -4647,11 +4634,9 @@ void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWSt
 	// BETTER_BTS_AI_MOD, Diplomacy, 12/07/09, jdog5000: START
 	case TRADE_SURRENDER:
 		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_CAPITULATE"));
-		eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : NO_PLAYER);
 		break;
 	case TRADE_VASSAL:
 		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_VASSAL"));
-		eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : NO_PLAYER);
 		break;
 	// BETTER_BTS_AI_MOD: END
 	case TRADE_OPEN_BORDERS:
@@ -4707,7 +4692,25 @@ void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWSt
 	WarEvaluator::disableCache(); // advc.104l
 	if (eDenial == NO_DENIAL)
 		return;
-
+	// <advc> Moved out of the switch block above
+	PlayerTypes eWhoDenies = eWhoFrom;
+	if (!bToActivePlayer)
+	{
+		switch (eItemType)
+		{
+		case TRADE_TECHNOLOGIES:
+		case TRADE_RESOURCES:
+		case TRADE_CITIES:
+			eWhoDenies = eWhoTo;
+			break;
+		// BETTER_BTS_AI_MOD, Diplomacy, 12/07/09, jdog5000: START
+		case TRADE_SURRENDER:
+		case TRADE_VASSAL:
+			eWhoDenies = NO_PLAYER;
+			break;
+		// BETTER_BTS_AI_MOD: END
+		}
+	} // </advc>
 	// BETTER_BTS_AI_MOD, Diplomacy, 12/07/09, jdog5000: START
 	if (eWhoDenies == NO_PLAYER)
 	{

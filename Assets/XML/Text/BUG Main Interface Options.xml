@@ -685,8 +685,8 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TRIBALVILLAGEICONS_HOVER</Tag>
-		<English>When checked, the Resource Display highlights Tribal Villages in addition to resources. However, Tribal Villages are never highlighted by the Resource Display if [COLOR_HIGHLIGHT_TEXT]Unit Action Recommendations[COLOR_REVERT] (Ctrl + O) are enabled. (Because that setting also highlights Tribal Villages.)</English>
-		<German>Markiert zusätzlich zu Ressourcen auch Stammesdörfer, wenn die Ressourcenanzeige aktiv ist. Ausnahme: Die Ressourcenanzeige markiert keine Stammesdörfer, wenn [COLOR_HIGHLIGHT_TEXT]Einheitenempfehlungen[COLOR_REVERT] (Strg + O) eingeschaltet ist, da diese Option ebenfalls Stammesdörfer hervorhebt.</German>
+		<English>When checked, the Resource Display highlights Tribal Villages in addition to resources. Note: The [COLOR_HIGHLIGHT_TEXT]Unit Action Recommendations[COLOR_REVERT] option (Ctrl + O) also highlights Tribal Villages, but only when a nearby combat unit is selected.</English>
+		<German>Markiert zusätzlich zu Ressourcen auch Stammesdörfer, wenn die Ressourcenanzeige aktiv ist. Bemerkung: Die Option [COLOR_HIGHLIGHT_TEXT]Einheitenempfehlungen[COLOR_REVERT] (Strg + O) hebt ebenfalls Stammesdörfer hervor, jedoch nur wenn eine Kampfeinheit in der Nähe ausgewählt ist.</German>
 	</TEXT>
 	
 	<!-- advc.004h -->

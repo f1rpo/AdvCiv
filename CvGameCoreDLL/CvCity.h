@@ -302,8 +302,8 @@ public:
 	int getNumActiveWorldWonders(/* advc: */ int iStopCountAt = MAX_INT,
 			PlayerTypes eOwner = NO_PLAYER) const; // advc.104d: Hypothetical owner
 
-	int getReligionCount() const { return m_abHasReligion.getTotal(); } // advc.opt								// Exposed to Python
-	int getCorporationCount() const { return m_abHasCorporation.getTotal(); } // advc.opt						// Exposed to Python
+	int getReligionCount() const { return m_abHasReligion.getSupportSz(); } // advc.opt							// Exposed to Python
+	int getCorporationCount() const { return m_abHasCorporation.getSupportSz(); } // advc.opt					// Exposed to Python
 	static CvCity* fromIDInfo(IDInfo id); // advc
 	// <advc.inl>
 	DllExport inline int getID() const { return m_iID; }														// Exposed to Python

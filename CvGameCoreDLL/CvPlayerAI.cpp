@@ -15244,6 +15244,7 @@ int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eD
 
 	FAssert(bMoveToTarget || !bCheckMoves); // it doesn't make much sense to check moves if the defenders are meant to stay put.
 	FAssert(eDomainType != DOMAIN_AIR && eDomainType != DOMAIN_IMMOBILE); // advc: Air combat strength isn't counted
+	int iDefenders = 0; // advc.159
 	for (SquareIter it(*pDefencePlot, iRange); it.hasNext(); ++it)
 	{
 		CvPlot const& p = *it;
@@ -15295,6 +15296,7 @@ int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eD
 						bMoveToTarget ? pDefencePlot : &p, // </advc.159>
 						NULL, false, 0, false, iHP, bAssumePromo); // advc.139
 				iPlotTotal += iUnitStr;
+				iDefenders++; // advc.159
 			}
 		}
 		/*	since we're here, we might as well update our memory.
@@ -15310,8 +15312,10 @@ int CvPlayerAI::AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eD
 		}
 		iTotal += iPlotTotal;
 	}
-
-	return iTotal;
+	//return iTotal;
+	// <advc.159> Large defensive stacks are difficult to assail
+	iDefenders = std::min(iDefenders, 13);
+	return (iTotal * (75 + (iDefenders - 1))) / 75; // </advc.159>
 }
 
 /*	Total attack strength of units that can move iRange steps to reach pAttackPlot

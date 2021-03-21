@@ -19205,8 +19205,9 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption,
 
 // advc.004z:
 bool CvPlayer::showGoodyOnResourceLayer() const
-{
-	return (isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS) &&
+{	/*	Let's let the player decide whether they want to show hut indicators
+		alongside action recommendations */
+	return (/*isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS) &&*/
 			BUGOption::isEnabled("MainInterface__TribalVillageIcons", true));
 }
 

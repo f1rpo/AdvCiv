@@ -3733,22 +3733,32 @@ int CvTeamAI::AI_declareWarTradeVal(TeamTypes eTarget, TeamTypes eSponsor) const
 {
 	// <advc.104o>
 	PROFILE_FUNC();
-	int r = -1;
+	int iTradeVal = -1;
 	if(getUWAI.isEnabled())
 	{
-		r = GET_TEAM(eSponsor).uwai().declareWarTradeVal(
+		iTradeVal = GET_TEAM(eSponsor).uwai().declareWarTradeVal(
 				// eWarTeam can be a (voluntary) vassal
 				GET_TEAM(eTarget).getMasterTeam(), getID());
 	}
-	else r = AI_declareWarTradeValLegacy(eTarget, eSponsor);
-	// Don't charge much less than for an embargo
-	CvPlayerAI const& kAllyLeader = GET_PLAYER(GET_TEAM(eSponsor).getLeaderID());
-	if(kAllyLeader.canStopTradingWithTeam(eTarget))
+	else iTradeVal = AI_declareWarTradeValLegacy(eTarget, eSponsor);
+
+	/*	Don't charge much less than for an embargo. An embargo (weirdly)
+		would only compel one player to stop trading with the (whole) target team,
+		so we need to sum up the embargo trade values of the members of this team. */
+	int iEmbargoTradeVal = 0;
+	for (MemberIter itMember(getID()); itMember.hasNext(); ++itMember)
 	{
-		r = std::max(r, ::round(0.83 * GET_PLAYER(getLeaderID()).AI_stopTradingTradeVal(
-				eTarget, kAllyLeader.getID(), true)));
-	} // </advc.104o>
-	return AI_roundTradeVal(r); // advc.104k
+		if (itMember->canStopTradingWithTeam(eTarget))
+		{
+			/*	AI_declareWarTradeVal gets called on the hireling, whereas
+				AI_stopTradingTradeVal gets called on the sponsor. */
+			iEmbargoTradeVal += GET_PLAYER(GET_TEAM(eSponsor).getLeaderID()).
+					AI_stopTradingTradeVal(eTarget, itMember->getID(), true);
+		}
+	}
+	iTradeVal = std::max(iTradeVal, (fixp(0.83) * iEmbargoTradeVal).round());
+	// </advc.104o>
+	return AI_roundTradeVal(iTradeVal); // advc.104k
 }
 
 
