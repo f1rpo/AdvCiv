@@ -26,7 +26,8 @@ public:
 	// advc.036:
 	void killSilent(bool bKillTeam = true, bool bUpdateAttitude = true,
 			PlayerTypes eCancelPlayer = NO_PLAYER); // advc.130p
-	void addTrades(CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList, bool bCheckAllowed);
+	void addTradeItems(CLinkList<TradeData>& kFirstList, CLinkList<TradeData>& kSecondList,
+			bool bCheckAllowed);
 
 	void doTurn();
 	void verify();
@@ -34,6 +35,8 @@ public:
 	bool isPeaceDeal() const;
 	// advc.130p: BtS function; now unused.
 	//bool isPeaceDealBetweenOthers(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList) const;
+	// advc: Made public; could be useful elsewhere.
+	static bool isVassalTrade(CLinkList<TradeData> const& kList);
 	bool isVassalDeal() const;
 	DllExport static bool isVassalTributeDeal(const CLinkList<TradeData>* pList);
 	/*  advc: The above checks if pList contains only TRADE_RESSOURCE items;
@@ -47,32 +50,39 @@ public:
 	int getInitialGameTurn() const;
 	void setInitialGameTurn(int iNewValue);
 	int getAge() const; // advc.133
-	// <advc.inl>
-	DllExport inline PlayerTypes getFirstPlayer() const {
-		return m_eFirstPlayer; }
-	inline CLinkList<TradeData> const* getFirstTrades() const {
-		return &(m_firstTrades); }
-	DllExport inline CLLNode<TradeData>* headFirstTradesNode() const {
-		return m_firstTrades.head(); }
-	DllExport inline CLLNode<TradeData>* nextFirstTradesNode(CLLNode<TradeData>* pNode) const {
-		return m_firstTrades.next(pNode); }
-	DllExport inline PlayerTypes getSecondPlayer() const {
-		return m_eSecondPlayer; }
-	inline CLinkList<TradeData> const* getSecondTrades() const {
-		return &(m_secondTrades); }
-	DllExport inline CLLNode<TradeData>* headSecondTradesNode() const {
-		return m_secondTrades.head(); }
-	DllExport inline CLLNode<TradeData>* nextSecondTradesNode(CLLNode<TradeData>* pNode) const {
-		return m_secondTrades.next(pNode); }
+	// <advc.003s>
+	/*	These two are exported via the .def file. Internally, one should use
+		FOR_EACH_TRADE_ITEM(getFirstList()) instead, or just getFirstList. */
+	CLLNode<TradeData>* headFirstTradesNodeExternal() const;
+	CLLNode<TradeData>* nextFirstTradesNodeExternal(CLLNode<TradeData>* pNode) const;
+	/*	These two are exported via the .def file. Internally, one should use
+		use FOR_EACH_TRADE_ITEM(getSecondList()) instead, or just getSecondList. */
+	CLLNode<TradeData>* headSecondTradesNodeExternal() const;
+	CLLNode<TradeData>* nextSecondTradesNodeExternal(CLLNode<TradeData>* pNode) const;
+	// </advc.003s>  <advc.inl>
+	DllExport inline PlayerTypes getFirstPlayer() const
+	{
+		return m_eFirstPlayer;
+	}
+	// advc: Renamed from "getFirstTrades"
+	inline CLinkList<TradeData> const& getFirstList() const
+	{
+		return m_firstList;
+	}
+	DllExport inline PlayerTypes CvDeal::getSecondPlayer() const
+	{
+		return m_eSecondPlayer;
+	}
+	// advc: Renamed from "getSecondTrades"
+	inline CLinkList<TradeData> const& getSecondList() const
+	{
+		return m_secondList;
+	}
 	// </advc.inl>
 	// <advc> More convenient interface for iteration
 	/*  Want to make all the CLLNodes const - should generally not modify deal lists
 		while traversing them. (Though this means that CLLNode::m_data also can't be
 		changed; make that mutable?) */
-	inline CLLNode<TradeData> const* nextFirstTradesNode(CLLNode<TradeData> const* pNode) const {
-		return m_firstTrades.next(pNode); }
-	inline CLLNode<TradeData> const* nextSecondTradesNode(CLLNode<TradeData> const* pNode) const {
-		return m_secondTrades.next(pNode); }
 	bool isBetween(PlayerTypes ePlayer, PlayerTypes eOtherPlayer) const;
 	bool isBetween(TeamTypes eTeam, TeamTypes eOtherTeam) const;
 	bool isBetween(PlayerTypes ePlayer, TeamTypes eTeam) const;
@@ -80,29 +90,25 @@ public:
 	bool involves(TeamTypes eTeam) const;
 	PlayerTypes getOtherPlayer(PlayerTypes ePlayer) const;
 	// Caller has to ensure that ePlayer/ eTeam is involved in the trade!
-	CLinkList<TradeData> const& getGivesList(PlayerTypes ePlayer) const;
-	CLinkList<TradeData> const& getGivesList(TeamTypes eTeam) const;
-	CLLNode<TradeData> const* headGivesNode(PlayerTypes ePlayer) const;
-	CLLNode<TradeData> const* nextGivesNode(CLLNode<TradeData> const* pNode, PlayerTypes ePlayer) const;
-	CLLNode<TradeData> const* headGivesNode(TeamTypes eTeam) const;
-	CLLNode<TradeData> const* nextGivesNode(CLLNode<TradeData> const* pNode, TeamTypes eTeam) const;
-	CLinkList<TradeData> const& getReceivesList(PlayerTypes ePlayer) const;
-	CLinkList<TradeData> const& getReceivesList(TeamTypes eTeam) const;
-	CLLNode<TradeData> const* headReceivesNode(PlayerTypes ePlayer) const;
-	CLLNode<TradeData> const* nextReceivesNode(CLLNode<TradeData> const* pNode, PlayerTypes ePlayer) const;
-	CLLNode<TradeData> const* headReceivesNode(TeamTypes eTeam) const;
-	CLLNode<TradeData> const* nextReceivesNode(CLLNode<TradeData> const* pNode, TeamTypes eTeam) const;
-	CLLNode<TradeData> const* headTradesNode() const;
-	CLLNode<TradeData> const* nextTradesNode(CLLNode<TradeData> const* pNode) const;
+	CLinkList<TradeData> const& getGivesList(PlayerTypes eGivingPlayer) const;
+	CLinkList<TradeData> const& getGivesList(TeamTypes eGivingTeam) const;
+	CLinkList<TradeData> const& getReceivesList(PlayerTypes eReceivingPlayer) const;
+	CLinkList<TradeData> const& getReceivesList(TeamTypes eReceivingTeam) const;
 	// </advc>
-
-	void clearFirstTrades(); // advc.003j (comment): unused
-	void insertAtEndFirstTrades(TradeData trade); // advc (comment): Currently only used internally
-	int getLengthFirstTrades() const;
-
-	void clearSecondTrades(); // advc.003j (comment): unused
-	void insertAtEndSecondTrades(TradeData trade); // advc (comment): Currently only used internally
-	int getLengthSecondTrades() const;
+	// <advc.003j> Unused, let's keep it that way.
+	//void clearFirstTrades();
+	//void clearSecondTrades(); // </advc.003j>
+	// <advc.inl>
+	int getLengthFirst() const { return m_firstList.getLength(); }
+	int getLengthSecond() const { return m_secondList.getLength(); }
+	void insertAtEndFirst(TradeData item) // (currently only used internally)
+	{
+		m_firstList.insertAtEnd(item);
+	}
+	void insertAtEndSecond(TradeData item) // (currently only used internally)
+	{
+		m_secondList.insertAtEnd(item);
+	} // </advc.inl>
 
 	DllExport bool isCancelable(PlayerTypes eByPlayer = NO_PLAYER, CvWString* pszReason = NULL)
 	// <advc> Need a const version
@@ -136,14 +142,22 @@ public:
 	void write(FDataStreamBase* pStream);
 
 protected:
+	// <advc> Python may modify - not the lists themselves - but the items
+	friend class CyDeal;
+	CLinkList<TradeData>& getFirstListVar()
+	{
+		return m_firstList;
+	}
+	CLinkList<TradeData>& getSecondListVar()
+	{
+		return m_secondList;
+	} // </advc>
+
 	bool startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
 			bool bPeace); // advc.ctr
 	void endTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bTeam,
 			bool bUpdateAttitude = true, // advc.036
 			PlayerTypes eCancelPlayer = NO_PLAYER); // advc.130p
-	// <advc.130p>
-	static void addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
-			TradeableItems eItemType); // </advc.130p>
 	void startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam, bool bDual);
 	void endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam);
 	void announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, // advc
@@ -153,16 +167,14 @@ protected:
 	// advc: was public
 	bool isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReason = NULL) const;
 
-	static bool isVassalTrade(CLinkList<TradeData> const& kList);
-
 	int m_iID;
 	int m_iInitialGameTurn;
 
 	PlayerTypes m_eFirstPlayer;
 	PlayerTypes m_eSecondPlayer;
 
-	CLinkList<TradeData> m_firstTrades;
-	CLinkList<TradeData> m_secondTrades;
+	CLinkList<TradeData> m_firstList;
+	CLinkList<TradeData> m_secondList;
 };
 
 #endif

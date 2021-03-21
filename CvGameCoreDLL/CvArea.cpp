@@ -90,9 +90,9 @@ int CvArea::calculateTotalBestNatureYield() const
 {
 	int iCount = 0;
 	CvMap const& kMap = GC.getMap();
-	for (int iI = 0; iI < kMap.numPlots(); iI++)
+	for (int i = 0; i < kMap.numPlots(); i++)
 	{
-		CvPlot const& kPlot = kMap.getPlotByIndex(iI);
+		CvPlot const& kPlot = kMap.getPlotByIndex(i);
 		if (kPlot.isArea(*this))
 			iCount += kPlot.calculateTotalBestNatureYield(NO_TEAM);
 	}
@@ -664,9 +664,9 @@ void CvArea::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
 	REPRO_TEST_BEGIN_WRITE(CvString::format("Area(%d)", getID()));
-	uint uiFlag=0;
-	uiFlag = 1; // advc.030
-	uiFlag = 2; // advc: Remove m_aiAnimalsPerPlayer, advc.enum: write m_aaiYieldRateModifier as short
+	uint uiFlag;
+	//uiFlag = 1; // advc.030
+	//uiFlag = 2; // advc: Remove m_aiAnimalsPerPlayer, advc.enum: write m_aaiYieldRateModifier as short
 	uiFlag = 3; // advc.opt: Remove m_aiImprovements
 	pStream->Write(uiFlag);
 

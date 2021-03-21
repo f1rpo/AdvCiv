@@ -78,5 +78,13 @@ void CyMapPythonInterface()
 		.def("updateFog", &CyMap::updateFog, "void ()")
 		.def("updateMinimapColor", &CyMap::updateMinimapColor, "void ()")
 		.def("updateMinOriginalStartDist", &CyMap::updateMinOriginalStartDist, "void (CyArea* pArea)")
+		// <advc.002a>
+		.def("setMinimapShowUnits", &CyMap::setMinimapShowUnits, "void (bool)")
+		.def("setMinimapWaterAlpha", &CyMap::setMinimapWaterAlpha, "void (float)")
+		.def("setMinimapLandAlpha", &CyMap::setMinimapLandAlpha, "void (float)")
+		.def("isMinimapShowUnits", &CyMap::isMinimapShowUnits, "bool ()")
+		.def("getMinimapWaterAlpha", &CyMap::getMinimapWaterAlpha, "float ()")
+		.def("getMinimapLandAlpha", &CyMap::getMinimapLandAlpha, "float ()")
+		// </advc.002a>
 		;
 }

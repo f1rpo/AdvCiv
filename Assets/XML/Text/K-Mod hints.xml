@@ -84,35 +84,27 @@
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_8</Tag>
 	<English>(K-Mod) In the city screen, hold down the [ALT] key and point to a building or specialist to see its net effect.</English>
-	<French>(K-Mod) In the city screen, hold down the [ALT] key and point to a building or specialist to see its net effect.</French>
 	<German>(K-Mod) Halten Sie im Stadtbildschirm [Alt] gedrückt und zeigen Sie auf ein Gebäude oder einen Spezialisten, um seinen Netto-Effekt zu sehen.</German>
-	<Italian>(K-Mod) In the city screen, hold down the [ALT] key and point to a building or specialist to see its net effect.</Italian>
 	<Spanish>(K-Mod) Mantén la tecla [ALT] presionada y apunta a un edificio o especialista para ver el efecto si estuviera en la ciudad actual.</Spanish>
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_9</Tag>
 	<English>(K-Mod) As religions grow older, they become slightly less likely to spread.</English>
-	<French>(K-Mod) As religions grow older, they become slightly less likely to spread.</French>
 	<German>(K-Mod) Ältere Religionen verbreiten sich ein kleines bisschen langsamer.</German>
-	<Italian>(K-Mod) As religions grow older, they become slightly less likely to spread.</Italian>
 	<Spanish>(K-Mod) Cuando las religiones envejecen, se vuelven un poco menos probable de propagarse.</Spanish>
 </TEXT>
 <!-- advc.008c: German text was a bit misleading -->
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_10</Tag>
 	<English>If a foreign leader is Pleased with you, they will not mind being asked for a small gift.</English>
-	<French>If a foreign leader is Pleased with you, they will not mind being asked for a small gift.</French>
 	<German>Zufriedene Anführer anderer Zivilisationen kann man ruhig gelegentlich um ein kleines Geschenk bitten.</German>
-	<Italian>If a foreign leader is Pleased with you, they will not mind being asked for a small gift.</Italian>
 	<Spanish>Si un leader extranjero está Amable contigo, no se opondrán a ser preguntados por un pequeño regalo.</Spanish>
 </TEXT>
 <!-- advc.008c: More info about the XP loss when upgrading -->
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_11</Tag>
 	<English>A unit led by a [COLOR_HIGHLIGHT_TEXT]Great Warlord[COLOR_REVERT] can be upgraded for free and never loses experience points. (Upgrades normally cap experience points at 10.)</English>
-	<French>Units led by a warlord can be upgraded for free, and they do not lose their experience points.</French>
 	<German>Von Kriegsherren angeführte Einheiten können umsonst modernisiert werden und verlieren dabei auch keine Erfahrungspunkte. (Normalerweise behält eine modernisierte Einheit höchstens 10 Erfahrungspunkte.)</German>
-	<Italian>Units led by a warlord can be upgraded for free, and they do not lose their experience points.</Italian>
 	<Spanish>Las unidades lideradas por un caudillo pueden ser modernizadas gratis, y no perderán sus putnos de experiencia.</Spanish>
 </TEXT>
 <!-- advc.008c: Protecting wounded units is an important point (and
@@ -120,17 +112,12 @@
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_12</Tag>
 	<English>(K-Mod) When a stack of units is attacked, the unit with the best chance of winning will usually defend first - but rookie units will attempt to protect wounded veterans and medics.</English>
-	<French>(K-Mod) When a stack of units is attacked, the unit with the best chance of winning will usually defend first - but rookie units will attempt to protect wounded veterans and medics.</French>
 	<German>(K-Mod) Wenn ein Einheitenstapel angegriffen wird, verteidigt normalerweise die Einheit mit der besten Siegeschance zuerst - aber grüne Einheiten versuchen verwundete Veteranen und Sanitäter zu beschützen.</German>
-	<Italian>(K-Mod) When a stack of units is attacked, the unit with the best chance of winning will usually defend first - but rookie units will attempt to protect wounded veterans and medics.</Italian>
-	<Spanish>(K-Mod) Cuando una pila de unidades es atacada, la unidad con mejor oprtunidad de ganar será normalmente la que defienda primero - pero las unidades novatas intentarán proteger veteranos experimentados y médicos.</Spanish>
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_13</Tag>
 	<English>(K-Mod) In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</English>
-	<French>(K-Mod) In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</French>
 	<German>(K-Mod) In der Bauauftragsliste einer Stadt können [Strg] und [Umschalt] benutzt werden, um Einträge hoch und runter zu bewegen, und [Alt] um Einträge endlos bauen zu lassen.</German>
-	<Italian>(K-Mod) In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</Italian>
 	<Spanish>(K-Mod) En la cola de construcción, usa [CTRL] y [MAYÚS] para mover objetos arriba y abajo; y [ALT] para alternar si los objetos deben repetirse o no.</Spanish>
 </TEXT>
 <!-- replacement text for the inaccurate barbarian tip (changed english and german only)-->
@@ -159,37 +146,26 @@
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_6</Tag>
 	<English>(K-Mod) Double-click a tile to wake all units up. For city tiles, this only works if you double-click the units' flag.</English>
-	<French>(K-Mod) Double-click a tile to wake all units up. For city tiles, this only works if you double-click the units' flag.</French>
 	<German>(K-Mod) Ein Doppelklick auf ein Geländefeld weckt alle Einheiten dort auf. Bei Stadtfeldern funktioniert dies nur, wenn Sie auf die Flagge der Einheiten klicken.</German>
-	<Italian>(K-Mod) Double-click a tile to wake all units up. For city tiles, this only works if you double-click the units' flag.</Italian>
 	<Spanish>(K-Mod) Doble click en una pila de unidades las despertará a todas.</Spanish>
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_14</Tag>
 	<English>(K-Mod) Hold the [X] key when issuing a command to temporarily suppress automatic unit cycling.</English>
-	<French>(K-Mod) Hold the [X] key when issuing a command to temporarily suppress automatic unit cycling.</French>
 	<German>(K-Mod) Halten Sie [X] gedrückt, um den automatischen Einheitenwechsel zu unterdrücken.</German>
-	<Italian>(K-Mod) Hold the [X] key when issuing a command to temporarily suppress automatic unit cycling.</Italian>
 	<Spanish>(K-Mod) Mantener la tecla [X] presionada cuando das una órden para suprimir temporalmente el ciclo de unidades.</Spanish>
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_15</Tag>
 	<English>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</English>
-	<French>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</French>
 	<German>(K-Mod) Die Handelsraten und Spinonagegewichtungen können durch einen Rechtsklick auf die Plus- oder Minusknöpfe schnell maximiert beziehungsweise minimiert werden.</German>
-	<Italian>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Italian>
-	<Spanish>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Spanish>
 </TEXT>
 
-<!-- k146: I've changed the wording a little and added the German translation.
-	 -->
+<!-- k146: I've changed the wording a little and added the German translation. -->
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_16</Tag>
 	<English>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</English>
-	<French>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</French>
 	<German>Halten Sie beim Wecken einer Einheit [ALT] gedrückt, so werden weltweit alle Ihre Einheiten dieses Typs geweckt.</German>
-	<Italian>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</Italian>
-	<Spanish>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</Spanish>
 </TEXT>
 
 </Civ4GameText>

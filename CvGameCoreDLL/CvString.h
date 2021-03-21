@@ -13,6 +13,8 @@
 // Mustafa Thamer
 // Firaxis Games, copyright 2005
 //
+/*	advc (note): There's a revised version of this class by lesslol in the MNAI-U mod;
+	could be more efficient. */
 
 // wide string
 class CvWString : public std::wstring

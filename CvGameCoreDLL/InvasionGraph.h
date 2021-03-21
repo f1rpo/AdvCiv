@@ -146,9 +146,6 @@ friend class Node;
 		 Node* primaryTarget;
 		 PlyrSet targetedBy;
 
-		 static double powerCorrect(double multiplier) {
-			 return std::pow(multiplier, (double)GC.getPOWER_CORRECTION());
-		 }
 		// Remaining production capacity after losses
 		double productionPortion() const;
 
@@ -163,7 +160,7 @@ friend class Node;
 		 double clashDistance(Node const& other) const;
 		 bool isSneakAttack(Node const& other, bool bClash) const;
 		 bool isContinuedWar(Node const& other) const;
-		 bool canReachByLand(int cityId) const;
+		 bool canReachByLand(int cityId, bool fromCapital) const;
 		 CvArea const* clashArea(PlayerTypes otherId) const;
 
 		 std::vector<UWAICache::City const*> conquests;

@@ -1095,6 +1095,8 @@
 		<element type="DiplomacyInfo" maxOccurs="*"/>
 	</ElementType>
 	<ElementType name="bNoGoodies" content="textOnly" dt:type="boolean"/>
+	<!-- advc.314 -->
+	<ElementType name="bAllGoodyTechs" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bNoAnimals" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bNoBarbUnits" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bNoBarbCities" content="textOnly" dt:type="boolean"/>
@@ -1120,11 +1122,25 @@
 	<ElementType name="AudioUnitVictoryScript" content="textOnly"/>
 	<ElementType name="AudioUnitDefeatScript" content="textOnly"/>
 	<ElementType name="iAdvancedStartPoints" content="textOnly" dt:type="int"/>
+	<!-- advc.erai: start -->
+	<ElementType name="iAIEraFactor" content="textOnly" dt:type="int"/>
+	<ElementType name="bAIAgeOfExploration" content="textOnly" dt:type="boolean"/>
+	<ElementType name="bAIAgeOfPestilence" content="textOnly" dt:type="boolean"/>
+	<ElementType name="bAIAgeOfPollution" content="textOnly" dt:type="boolean"/>
+	<ElementType name="bAIAgeOfFertility" content="textOnly" dt:type="boolean"/>
+	<ElementType name="bAIAgeOfGuns" content="textOnly" dt:type="boolean"/>
+	<ElementType name="bAIAtomicAge" content="textOnly" dt:type="boolean"/>
+	<!-- advc.erai: end -->
 	<ElementType name="EraInfo" content="eltOnly">
 		<element type="Type"/>
 		<element type="Description"/>
 		<element type="Strategy"/>
 		<element type="bNoGoodies"/>
+		<!-- advc.314: Set to 0 by default in the DLL. If set to 1, then
+			 goody huts can provide progress toward techs from this era
+			 and the bGoodyTech flags in Civ4TechInfos.xml only determine
+			 which techs can be completed through a goody hut. -->
+		<element type="bAllGoodyTechs" minOccurs="0"/>
 		<element type="bNoAnimals"/>
 		<element type="bNoBarbUnits"/>
 		<element type="bNoBarbCities"/>
@@ -1154,6 +1170,40 @@
 		<element type="iCulturePercent"/>
 		<element type="iAnarchyPercent"/>
 		<element type="iEventChancePerTurn"/>
+		<!-- advc.erai: start -->
+		<!-- The DLL sets this to the era id (earliest era: 0) times 100
+			 by default. AI code generally assumes that the era factor is
+			 between 0 and 600, 0 meaning very early game and 600 meaning
+			 endgame. Mod-mods with more or fewer than 7 eras should use
+			 iAIEraFactor to map the available eras to that range.
+			 Don't use negative values. -->
+		<element type="iAIEraFactor" minOccurs="0"/>
+		<!-- These flags should be set for at most one era respectively.
+			 The AI uses them for some high-level planning. Not all of them
+			 play an important role at this point. -->
+		<!-- Should be 1 for the era during which oceangoing ships become
+			 available. In a mod-mod without such ships it might make sense,
+			 instead, to set the flag for an era that removes some other
+			 fundamental obstacle to unit movement (say, dromedaries in
+			 a desert-themed mod). -->
+		<element type="bAIAgeOfExploration" minOccurs="0"/>
+		<!-- Should be 1 for the era during which health tends to become a
+			 limiting factor for city growth. In BtS, that's the Medieval era -
+			 because of population growth ("pestilence" is just a colorful
+			 way of describing that era). -->
+		<element type="bAIAgeOfPestilence" minOccurs="0"/>
+		<!-- Should be 1 for the era during which health tends to become the
+			 predominant limiting factor for city growth. -->
+		<element type="bAIAgeOfPollution" minOccurs="0"/>
+		<!-- Should be 1 for the era during which tile improvements granting
+			 +2 food become widely available. -->
+		<element type="bAIAgeOfFertility" minOccurs="0"/>
+		<!-- Should be 1 for the era during which land units become available
+			 that ignore city defense or bombard cities very effectively . -->
+		<element type="bAIAgeOfGuns" minOccurs="0"/>
+		<!-- Should be 1 for the era during which nukes become available. -->
+		<element type="bAIAtomicAge" minOccurs="0"/>
+		<!-- advc.erai: end -->
 		<element type="iSoundtrackSpace"/>
 		<element type="bFirstSoundtrackFirst"/>
 		<element type="EraInfoSoundtracks"/>

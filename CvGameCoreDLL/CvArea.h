@@ -7,7 +7,7 @@ class CvCity;
 class CvPlot;
 
 
-class CvArea
+class CvArea /* advc.003e: */ : boost::noncopyable
 {
 public:
 

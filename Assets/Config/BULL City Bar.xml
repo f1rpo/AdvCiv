@@ -16,7 +16,7 @@
 	<options id="CityBar" file="BUG City Bar.ini">
 		
 		<section id="Bar">
-			<!-- advc.002f: Now in 'UG Main Interface.xml' -->
+			<!-- advc.002f: Now in 'BUG Main Interface.xml' -->
 			<!--option id="AirportIcons" key="Airport Icons" 
 					type="boolean" default="False"/-->	
 			<option id="StarvationTurns" key="Starvation Turns" 

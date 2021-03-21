@@ -1,4 +1,4 @@
-// globals.cpp  // advc: Rearranged a lot of things in this file
+// advc: Rearranged a lot of things in this file
 #include "CvGameCoreDLL.h"
 #include "CvGlobals.h"
 #include "FVariableSystem.h"
@@ -68,6 +68,7 @@ m_fCAMERA_UPPER_PITCH(0), m_fCAMERA_LOWER_PITCH(0),
 m_fFIELD_OF_VIEW(0), m_fSHADOW_SCALE(0),
 m_fUNIT_MULTISELECT_DISTANCE(0),
 // <advc> Safer to initialize these
+m_pArtFileMgr(NULL),
 m_paszEntityEventTypes(NULL),
 m_paszAnimationOperatorTypes(NULL),
 m_paszFunctionTypes(NULL),
@@ -85,6 +86,9 @@ m_iNumAnimationOperatorTypes(0),
 m_iNumFlavorTypes(0),
 m_iNumArtStyleTypes(0),
 m_iNumFootstepAudioTypes(0),
+m_iActiveLandscapeID(0),
+m_iNumPlayableCivilizationInfos(0),
+m_iNumAIPlayableCivilizationInfos(0),
 // </advc>  <advc.opt>
 m_iEventMessageTime(-1),
 m_eRUINS_IMPROVEMENT(NO_IMPROVEMENT),
@@ -213,7 +217,10 @@ void CvGlobals::init() // allocate
 	FAssertMsg(gDLL != NULL, "Civ app needs to set gDLL");
 
 	m_VarSystem = new FVariableSystem();
-	m_asyncRand = new CvRandom();
+	//m_asyncRand = new CvRandom();
+	// <advc.007b>
+	m_asyncRand = new CvRandomExtended();
+	m_asyncRand->setLogFileName("ASyncRand.log"); // </advc.007b>
 	m_initCore = new CvInitCore();
 	m_loadedInitCore = new CvInitCore();
 	m_iniInitCore = new CvInitCore();
@@ -643,7 +650,7 @@ void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 	const char* const aszGlobalDefinesTagNames[] = {
 		DO_FOR_EACH_GLOBAL_DEFINE(MAKE_STRING)
 	};
-	FAssert(sizeof(aszGlobalDefinesTagNames) / sizeof(char*) == NUM_GLOBAL_DEFINES);
+	FAssert(ARRAY_LENGTH(aszGlobalDefinesTagNames) == NUM_GLOBAL_DEFINES);
 
 	if (szChangedDefine != NULL) // Cache update
 	{
@@ -728,8 +735,6 @@ void CvGlobals::cacheGlobalFloats(
 	m_fCAMERA_LOWER_PITCH = getDefineFLOAT("CAMERA_LOWER_PITCH");
 	m_fSHADOW_SCALE = getDefineFLOAT("SHADOW_SCALE");
 	m_fUNIT_MULTISELECT_DISTANCE = getDefineFLOAT("UNIT_MULTISELECT_DISTANCE");
-
-	m_fPOWER_CORRECTION = getDefineFLOAT("POWER_CORRECTION"); // advc.104
 }
 
 void CvGlobals::cacheGlobals()
@@ -858,53 +863,6 @@ int CvGlobals::getMAX_CIV_PLAYERS()
 {
 	return MAX_CIV_PLAYERS;
 }
-// <advc.003t> Variants that take a parameter. The return value is still only an upper bound.
-int CvGlobals::getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit) const
-{
-	return (getInfo(eUnit).isAnyPrereqOrBonus() ?
-			getNUM_UNIT_PREREQ_OR_BONUSES() : 0);
-}
-
-int CvGlobals::getNUM_UNIT_AND_TECH_PREREQS(UnitTypes eUnit) const
-{
-	return (getInfo(eUnit).isAnyPrereqAndTech() ?
-			getNUM_UNIT_AND_TECH_PREREQS() : 0);
-}
-
-int CvGlobals::getNUM_BUILDING_PREREQ_OR_BONUSES(BuildingTypes eBuilding) const
-{
-	return (getInfo(eBuilding).isAnyPrereqOrBonus() ?
-			getNUM_BUILDING_PREREQ_OR_BONUSES() : 0);
-}
-
-int CvGlobals::getNUM_BUILDING_AND_TECH_PREREQS(BuildingTypes eBuilding) const
-{
-	return (getInfo(eBuilding).isAnyPrereqAndTech() ?
-			getNUM_BUILDING_AND_TECH_PREREQS() : 0);
-}
-
-int CvGlobals::getNUM_AND_TECH_PREREQS(TechTypes eTech) const
-{
-	return (getInfo(eTech).isAnyPrereqAndTech() ?
-			getNUM_AND_TECH_PREREQS() : 0);
-}
-
-int CvGlobals::getNUM_OR_TECH_PREREQS(TechTypes eTech) const
-{
-	return (getInfo(eTech).isAnyPrereqOrTech() ?
-			getNUM_OR_TECH_PREREQS() : 0);
-}
-
-int CvGlobals::getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute) const
-{
-	return (getInfo(eRoute).isAnyPrereqOrBonus() ?
-			getNUM_ROUTE_PREREQ_OR_BONUSES() : 0);
-}
-// </advc.003t>
-int CvGlobals::getNUM_CORPORATION_PREREQ_BONUSES() const
-{
-	return getDefineINT(NUM_CORPORATION_PREREQ_BONUSES);
-}
 
 int CvGlobals::getUSE_FINISH_TEXT_CALLBACK()
 {
@@ -944,10 +902,6 @@ bool CvGlobals::isDLLProfilerEnabled() const
 }
 
 
-//
-// Global Types Hash Map
-//
-
 int CvGlobals::getTypesEnum(const char* szType,
 	bool bHideAssert, bool bFromPython) const // advc.006
 {
@@ -955,12 +909,66 @@ int CvGlobals::getTypesEnum(const char* szType,
 	TypesMap::const_iterator it = m_typesMap.find(szType);
 	if (it != m_typesMap.end())
 		return it->second;
-	/*FAssertMsg(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0, CvString::format("type %s not found", szType).c_str());
-	return -1;*/
-	/*  advc.006: Replacing the above with code from getInfoTypeForString, which
-		now calls this function. */
-	//if(!bHideAssert)
-	if (!bHideAssert && /* K-Mod: */ !(strcmp(szType, "")==0 || strcmp(szType, "NONE")==0))
+	// advc.006: Error handling moved into subroutine
+	handleUnknownTypeString(szType, bHideAssert, bFromPython);
+	return -1;
+}
+
+void CvGlobals::setTypesEnum(const char* szType, int iEnum)
+{
+	FAssertMsg(szType, "null type string");
+	FAssertMsg(m_typesMap.find(szType)==m_typesMap.end(), "types entry already exists");
+	m_typesMap[szType] = iEnum;
+}
+
+// advc.003c:
+bool CvGlobals::isCachingDone() const
+{
+	return m_aiGlobalDefinesCache != NULL;
+}
+
+// advc.106i:
+void CvGlobals::setHoFScreenUp(bool b)
+{
+	m_bHoFScreenUp = b;
+}
+
+
+int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert,
+	bool bFromPython) const // advc.006
+{
+	FAssertMsg(szType != NULL, "null info type string");
+	InfosMap::const_iterator it = m_infosMap.find(szType);
+	if (it != m_infosMap.end())
+		return it->second;
+	// advc.006: Error handling moved into subroutine
+	handleUnknownTypeString(szType, bHideAssert, bFromPython);
+	return -1;
+}
+
+void CvGlobals::setInfoTypeFromString(const char* szType, int idx)
+{
+	FAssertMsg(szType != NULL, "null info type string");
+#ifdef _DEBUG
+	InfosMap::const_iterator it = m_infosMap.find(szType);
+	int iExisting = (it != m_infosMap.end()) ? it->second : -1;
+	FAssertMsg(iExisting == -1 || iExisting == idx || strcmp(szType, "ERROR") == 0, CvString::format("xml info type entry %s already exists", szType).c_str());
+#endif
+	m_infosMap[szType] = idx;
+}
+
+void CvGlobals::infoTypeFromStringReset()
+{
+	FErrorMsg("Just to see if and when CvGlobals::infoTypeFromStringReset is ever called"); // advc.test
+	m_infosMap.clear();
+}
+
+/*	advc.006: Based on code cut from getInfoTypeForString --
+	also want this for non-info enum types. */
+void CvGlobals::handleUnknownTypeString(char const* szType,
+	bool bHideAssert, bool bFromPython) const
+{
+	if (!bHideAssert && /* K-Mod: */ !(strcmp(szType, "") == 0 || strcmp(szType, "NONE") == 0))
 	{
 		CvString szError;
 		if (!bFromPython) // advc.006 (inspired by rheinig's mod)
@@ -972,57 +980,6 @@ int CvGlobals::getTypesEnum(const char* szType,
 		else szError.Format("type %s not found", szType); // advc.006
 		FErrorMsg(szError.c_str());
 	}
-	return -1;
-}
-
-void CvGlobals::setTypesEnum(const char* szType, int iEnum)
-{
-	FAssertMsg(szType, "null type string");
-	FAssertMsg(m_typesMap.find(szType)==m_typesMap.end(), "types entry already exists");
-	m_typesMap[szType] = iEnum;
-}
-
-// <advc.003c>
-bool CvGlobals::isCachingDone() const
-{
-	return m_aiGlobalDefinesCache != NULL;
-} // </advc.003c>
-
-// <advc.106i>
-void CvGlobals::setHoFScreenUp(bool b)
-{
-	m_bHoFScreenUp = b;
-} // </advc.106i>
-
-
-int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert,
-	bool bFromPython) const // advc.006
-{
-	FAssertMsg(szType != NULL, "null info type string");
-	InfosMap::const_iterator it = m_infosMap.find(szType);
-	if (it != m_infosMap.end())
-		return it->second;
-	/*  advc.006: Fall back on getTypesEnum. (Needed for advc.003x - though I don't
-		quite understand why it worked before I split up CvInfos.h.)
-		Assertion code moved there. */
-	return getTypesEnum(szType, bHideAssert, bFromPython);
-}
-
-void CvGlobals::setInfoTypeFromString(const char* szType, int idx)
-{
-	FAssertMsg(szType != NULL, "null info type string");
-#ifdef _DEBUG
-	InfosMap::const_iterator it = m_infosMap.find(szType);
-	int iExisting = (it!=m_infosMap.end()) ? it->second : -1;
-	FAssertMsg(iExisting==-1 || iExisting==idx || strcmp(szType, "ERROR")==0, CvString::format("xml info type entry %s already exists", szType).c_str());
-#endif
-	m_infosMap[szType] = idx;
-}
-
-void CvGlobals::infoTypeFromStringReset()
-{
-	FErrorMsg("Just to see if and when CvGlobals::infoTypeFromStringReset is ever called"); // advc.test
-	m_infosMap.clear();
 }
 
 // non-inline versions ...  <advc.inl>
@@ -1313,9 +1270,9 @@ int CvGlobals::getNUM_LEADERANIM_TYPES() const
 	return NUM_LEADERANIM_TYPES;
 }
 
+// advc (note): The EXE calls this (only?) when the display language is changed
 void CvGlobals::infosReset()
 {
-	FErrorMsg("Just to see if and when CvGlobals::infosReset is ever called"); // advc.test
 	// <advc.enum> Replacing a loop through m_aInfoVectors (now deleted)
 	for (size_t i = 0; i < m_paWorldInfo.size(); i++)
 		m_paWorldInfo[i]->reset();

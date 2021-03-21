@@ -19,13 +19,17 @@ public:
 	CvProcessInfo();
 	~CvProcessInfo();
 
-	int getTechPrereq() const; // Exposed to Python
-	int getProductionToCommerceModifier(int i) const; // Exposed to Python
+	TechTypes getTechPrereq() const // Exposed to Python
+	{
+		return m_eTechPrereq;
+	}
+	int getProductionToCommerceModifier(CommerceTypes eCommerce) const; // Exposed to Python
+	iPY_WRAP(ProductionToCommerceModifier, Commerce);
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:
-	int m_iTechPrereq;
-	int* m_paiProductionToCommerceModifier;
+	TechTypes m_eTechPrereq;
+	int* m_aiProductionToCommerceModifier;
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

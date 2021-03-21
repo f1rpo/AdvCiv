@@ -16,9 +16,11 @@ CvDLLLogger::CvDLLLogger(bool bEnabled, bool bRandEnabled)
 
 // Cut from CvRandom::getInt
 void CvDLLLogger::logRandomNumber(const TCHAR* szMsg, unsigned short usNum,
-		unsigned long ulSeed, int iData1, int iData2)
+	unsigned long ulSeed, int iData1, int iData2,
+	CvString const* pszFileName) // advc.007b
 {
-	if (!isEnabledRand() || szMsg == NULL)
+	FAssert(isEnabledRand()); // Caller should handle this, for performance reasons.
+	if (szMsg == NULL)
 		return;
 	int const iTurnSlice = GC.getGame().getTurnSlice();
 	if (iTurnSlice <= 0)
@@ -26,7 +28,7 @@ void CvDLLLogger::logRandomNumber(const TCHAR* szMsg, unsigned short usNum,
 	TCHAR szOut[1024];
 	// <advc.007>
 	CvString szData;
-	if (iData1 < MIN_INT)
+	if (iData1 > MIN_INT)
 	{
 		if(iData2 == MIN_INT)
 			szData.Format(" (%d)", iData1);
@@ -41,6 +43,10 @@ void CvDLLLogger::logRandomNumber(const TCHAR* szMsg, unsigned short usNum,
 	// The second and last %s are new
 	std::sprintf(szOut, "Rand = %ul / %hu (%s%s) on %s%d\n", ulSeed, usNum,
 			szMsg, szData.c_str(), bNetworkMP ? "" : "t", iOn);
+	// <advc.007b>
+	if (pszFileName != NULL)
+		gDLL->logMsg(pszFileName->c_str(), szOut, false, false);
+	else // </advc.007b>
 	if (GC.getDefineBOOL(CvGlobals::PER_PLAYER_MESSAGE_CONTROL_LOG) && bNetworkMP)
 	{
 		CvString logName = CvString::format("MPLog%d.log",

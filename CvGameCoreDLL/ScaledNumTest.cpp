@@ -134,7 +134,7 @@ void TestScaledNum()
 	//rEnum *= 3; // ! Failed runtime assertion due to MAXINT==0
 
 	// Ensure that even extremely high scale factors don't overflow on mulDiv
-	uscaled rAlmostSqrtOfTwo = scaled(2).sqrt() - fixp(0.001);
+	uscaled rAlmostSqrtOfTwo = scaled(2).sqrt() - scaled::epsilon();
 	ScaledNum<MAX_INT,uint> r1 = rAlmostSqrtOfTwo;
 	ScaledNum<MAX_INT - 1,uint> r2 = rAlmostSqrtOfTwo;
 	FAssert(r2.MAX() == 2);
@@ -411,7 +411,7 @@ void TestScaledNum()
 		}
 	}
 
-	// Syntax test
+	// Syntax test (How easy is it to convert floating-point calculations to ScaledNum?)
 	/*	Based on some calculations in InvasionGraph::step. Out of context,
 		the excerpts used here and their names are nonsensical. */
 	scaled rOtherDist = 2;

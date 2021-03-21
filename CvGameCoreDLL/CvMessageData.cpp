@@ -815,10 +815,10 @@ CvNetPushMission::CvNetPushMission() :
 {}
 
 CvNetPushMission::CvNetPushMission(PlayerTypes ePlayer, int iUnitID,
-		MissionTypes eMission, int iData1, int iData2, MovementFlags eFlags,
-		bool bShift,
-		bool bModified) : // advc.011b
-	CvMessageData(GAMEMESSAGE_PUSH_MISSION), m_ePlayer(ePlayer), m_iUnitID(iUnitID),
+	MissionTypes eMission, int iData1, int iData2, MovementFlags eFlags,
+	bool bShift,
+	bool bModified) // advc.011b
+:	CvMessageData(GAMEMESSAGE_PUSH_MISSION), m_ePlayer(ePlayer), m_iUnitID(iUnitID),
 	m_eMission(eMission), m_iData1(iData1), m_iData2(iData2), m_eFlags(eFlags),
 	m_bShift(bShift),
 	m_bModified(bModified) // advc.011b

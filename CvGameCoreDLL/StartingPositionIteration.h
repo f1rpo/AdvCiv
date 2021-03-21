@@ -17,6 +17,7 @@ class StartingPositionIteration
 	class Step;
 	struct SolutionAttributes
 	{
+		SolutionAttributes() : m_eWorstOutlier(NO_PLAYER) {}
 		scaled m_rStartPosVal; // Optimization goal
 		// For heuristic search
 		EnumMap<PlayerTypes,scaled> m_startValues;
@@ -35,10 +36,13 @@ public:
 	~StartingPositionIteration();
 	// To be (safe-)deleted by caller!
 	NormalizationTarget* createNormalizationTarget() const;
+	CvPlot* getTeamSite(TeamTypes eTeam, int iMember) const;
 	static bool isDebug();
 
 private:
 	bool m_bRestrictedAreas;
+	bool m_bScenario;
+	EnumMap<PlayerTypes,bool> m_abFixedStart;
 	CitySiteEvaluator* m_pEval;
 	EnumMap<PlotNumTypes,scaled> const* m_pYieldValues;
 	std::map<CvArea const*,scaled> const* m_pYieldsPerArea;
@@ -47,6 +51,7 @@ private:
 	SolutionAttributes m_currSolutionAttribs;
 	scaled m_rMedianLandYieldVal;
 	bool m_bNormalizationTargetReady;
+	std::vector<std::vector<PlayerTypes> > m_sitesPerTeam;
 
 	CitySiteEvaluator* createSiteEvaluator(bool bNormalize = false) const;
 	void evaluateCurrPosition(SolutionAttributes& kResult, bool bLog = false) const;
@@ -66,6 +71,8 @@ private:
 			SolutionAttributes& kNewSolution, bool bStepTaken) const;
 	bool considerStep(Step& kStep, SolutionAttributes& kCurrSolutionAttribs) const;
 	void doIterations(PotentialSites& kPotentialSites);
+	void assignSitesToTeams();
+	int teamValue(PlayerTypes eSitePlayer, TeamTypes eForTeam) const;
 
 	static scaled weightedDistance(std::vector<short>& kDistances);
 
@@ -89,12 +96,12 @@ private:
 		CitySiteEvaluator const& m_kEval;
 		std::map<PlotNumTypes,short> m_foundValuesPerSite;
 		std::map<PlayerTypes,VoronoiCell*> m_sitesClosestToCurrSite;
-		EnumMap<PlotNumTypes,scaled>* m_pVicinityPenaltiesPerPlot;
 		EnumMap<PlayerTypes,short> m_foundValuesPerCurrSite;
 		std::vector<std::pair<int,PlotNumTypes> > m_remoteSitesByAreaSize;
 
 		scaled computeMinFoundValue();
-		void recordSite(CvPlot const& kPlot, short iFoundValue, bool bAdd);
+		void recordSite(CvPlot const& kPlot, short iFoundValue, bool bAdd,
+				EnumMap<PlotNumTypes,scaled>& kVicinityPenaltiesPerPlot);
 		void closestPlayers(CvPlot const& kPlot, std::vector<PlayerTypes>& kResult) const;
 		int fewestPotentialSites() const;
 	};

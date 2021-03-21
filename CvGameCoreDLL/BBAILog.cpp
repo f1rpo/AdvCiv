@@ -26,7 +26,7 @@ void logBBAI(TCHAR* format, ... )
 #endif
 }
 
-// <advc.133>
+// advc.133:
 void logBBAICancel(CvDeal const& d, PlayerTypes eCancelPlayer, wchar const* szReason)
 {
 	CvWStringBuffer szTmpBuffer;
@@ -36,4 +36,4 @@ void logBBAICancel(CvDeal const& d, PlayerTypes eCancelPlayer, wchar const* szRe
 			szReason, szTmpBuffer.getCString());
 	// Leave it to logBBAI to narrow the string
 	logBBAI("%S", szBuffer.GetCString());
-} // </advc.133>
+}

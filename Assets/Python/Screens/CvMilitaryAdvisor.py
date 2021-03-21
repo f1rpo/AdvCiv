@@ -14,7 +14,7 @@ PyInfo = PyHelpers.PyInfo
 gc = CyGlobalContext()
 ArtFileMgr = CyArtFileMgr()
 localText = CyTranslator()
-
+ 
 class CvMilitaryAdvisor:
 	"Military Advisor"
 

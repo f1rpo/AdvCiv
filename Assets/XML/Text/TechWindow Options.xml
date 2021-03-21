@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <!--
-	Tech Window
-	Options Game Text
-
+	Tech Window Options Game Text
 	Copyright (c) 2009 The BUG Mod.
 -->
 <Civ4GameText xmlns="http://www.firaxis.com">
@@ -18,10 +16,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_TECHWINDOW__VIEWTYPE_TEXT</Tag>
 		<English>Tech</English>
-		<French>Tech</French>
-		<German>Tech</German>
-		<Italian>Tech</Italian>
-		<Spanish>Tech</Spanish>
 	</TEXT>
 	
 	<!-- advc.004: "Adds more detailed information" is just not true as far as
@@ -29,7 +23,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_TECHWINDOW__VIEWTYPE_HOVER</Tag>
 		<English>The layout of the popup ("splash screen") shown after discovering a new technology. The [COLOR_HIGHLIGHT_TEXT]Extended[COLOR_REVERT] layout spreads the information across five panes instead of two. [COLOR_HIGHLIGHT_TEXT]Wide[COLOR_REVERT] is the same as Extended, but in a larger (wider) window.</English>
-		<French>Determines the view to display when you discover a technology.[NEWLINE][ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Original[COLOR_REVERT] - Default minimal Civ4 view.[NEWLINE][ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Detailed[COLOR_REVERT] - Adds more detailed information.[NEWLINE][ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Wide[COLOR_REVERT] - Wider version of the Detailed view.</French>
 		<German>Das Layout des Popups, das nach Erforschung einer Technologie angezeigt wird. Das [COLOR_HIGHLIGHT_TEXT]ausführliche[COLOR_REVERT] Layout verteilt die Informationen auf fünf Bereiche (anstatt zwei). [COLOR_HIGHLIGHT_TEXT]Verbreitert[COLOR_REVERT] ist eine breitere Version des ausführlichen Layouts.</German>
 		<Italian>Determina quale visualizzazione mostrare quando viene scoperta una nuova Tecnologia:[NEWLINE][ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Originale[COLOR_REVERT] - visualizzazione minima standard di Civ4;[NEWLINE][ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Dettagliata[COLOR_REVERT] - aggiunge informazioni più dettagliate;[NEWLINE][ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Ampia[COLOR_REVERT] - versione estesa della visualizzazione dettagliata.</Italian>
 		<Spanish>Determina la vista a mostrar cuando descubres una tecnología.[NEWLINE][ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Original[COLOR_REVERT] - Vista por defecto.[NEWLINE][ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Detallada[COLOR_REVERT] - Información detallada.[NEWLINE][ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Wide[COLOR_REVERT] - Versión mas ancha de la vista detallada.</Spanish>
@@ -40,7 +33,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_TECHWINDOW__VIEWTYPE_LIST</Tag>
 		<English>Original|Extended|Wide</English>
-		<French>Original|Detailed|Wide</French>
 		<German>Standard|Ausführlich|Verbreitert</German>
 		<Italian>Originale|Dettagliata|Ampia</Italian>
 		<Spanish>Original|Detallada|Ancha</Spanish>
@@ -49,7 +41,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_TECHWINDOW__CIVILOPEDIATEXT_TEXT</Tag>
 		<English>Show Civilopedia Text</English>
-		<French>Show Civilopedia Text</French>
 		<German>Civilopedia-Text anzeigen</German>
 		<Italian>Mostra il testo della Civilopedia</Italian>
 		<Spanish>Mostrar texto de Civilopedia</Spanish>
@@ -59,7 +50,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_TECHWINDOW__CIVILOPEDIATEXT_HOVER</Tag>
 		<English>When checked, the historical background text from Civilopedia is displayed after the tech quote.</English>
-		<French>When checked, includes the Civilopedia text after the quote for the discovered technology.</French>
 		<German>Zeigt im Technologie-Popup (nach dem einleitenden Zitat) den Zivilopädie-Text über die historischen Hintergründe an.</German>
 		<Italian>Quando è selezionato, include il testo della Civilopedia dopo la citazione per la tecnologia scoperta.</Italian>
 		<Spanish>Si se activa, se muestra el texto de Civilopedia después de la cita para la tecnología descubierta.</Spanish>
@@ -83,4 +73,5 @@
 		<Italian>Mostra la schermata astronave dopo ogni parte completata (come in BtS). Se non spuntata, la schermata astronave viene mostrata solo se pronta per il lancio.</Italian>
 		<Spanish>Muestra la pantalla de la nave espacial después de cada pieza terminada (como en BtS). Si no está seleccionada, la pantalla de la nave espacial sólo se muestra cuando lista para iniciarse.</Spanish>
 	</TEXT>
+
 </Civ4GameText>

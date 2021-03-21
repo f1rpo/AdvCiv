@@ -1568,9 +1568,14 @@ class CvInfoScreen:
 
 				#iNumActivePlayers += 1 # advc.077: Replaced below
 				pCurrPlayer = gc.getPlayer(iPlayerLoop)
-				# <advc.077> Exclude civs that aren't rivals of the active player
-				if iPlayerLoop != self.iActivePlayer and gc.getTeam(pCurrPlayer.getTeam()).getMasterTeam() == self.pActiveTeam.getMasterTeam():
-					continue
+				# <advc.077> Exclude players that aren't rivals of the active player
+				if iPlayerLoop != self.iActivePlayer:
+					pCurrTeam = gc.getTeam(pCurrPlayer.getTeam())
+					if pCurrTeam.getID() == self.iActiveTeam:
+						continue
+					# If the active player is a vassal, then it'll probably want to break free. Therefore treat its master and other vassals of that master like rivals.
+					if not self.pActiveTeam.isAVassal() and pCurrTeam.getMasterTeam() == self.pActiveTeam.getMasterTeam():
+						continue
 				# </advc.077>
 				
 				#iValue = pCurrPlayer.calculateTotalCommerce()

@@ -48,7 +48,8 @@ public:
 	// Set to true automatically when a sponsor is set
 	void setImmediateDoW(bool b);
 	bool isImmediateDoW() const;
-	// NO_TEAM unless we're considering to capitulate
+	/*	Team we're considering to capitulate to (would-be master);
+		NO_TEAM if we're not considering to capitulate. */
 	TeamTypes getCapitulationTeam() const;
 	// For WarEvaluator cache
 	int id() const;

@@ -15,7 +15,7 @@ class CvUnitInfo;
 class CvCivilization : private boost::noncopyable
 {
 public:
-	CvCivilization(CvCivilizationInfo const& kInfo);
+	explicit CvCivilization(CvCivilizationInfo const& kInfo);
 	inline int getNumBuildings() const
 	{
 		return m_buildings.size();

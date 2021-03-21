@@ -4,7 +4,9 @@ PROJECT_CFLAGS = /WX /W4
 # Allow inline expansion of functions with an inline keyword even for debug builds
 PROJECT_Debug_CFLAGS = /Ob1
 # Should _not_ be set when inspecting disassembly as it will disable __forceinline
-#PROJECT_DebugOpt_CFLAGS = /DFASSERT_ENABLE
+#PROJECT_DebugOpt_CFLAGS = /DFASSERT_ENABLE /Oy-
+# Can use global optimizations along with debug symbols; it's just slow to compile.
+#PROJECT_DebugOpt_CFLAGS = /GL
 # DLL-internal profiler: /DUSE_INTERNAL_PROFILER
 # Time Stamp Counter profiler: /DUSE_TSC_PROFILER
 # External profiler, e.g. Very Sleepy: No profile flags needed; profile builds always use Z7.

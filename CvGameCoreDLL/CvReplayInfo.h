@@ -7,9 +7,10 @@ class CvReplayMessage;
 
 class CvReplayInfo
 {
+	CvReplayInfo& operator=(CvReplayInfo const&); // advc.003k (private)
 public:
-	DllExport CvReplayInfo();
 	CvReplayInfo(CvReplayInfo const&); // advc.003k
+	DllExport CvReplayInfo();
 	virtual ~CvReplayInfo();
 
 	void createInfo(PlayerTypes ePlayer);

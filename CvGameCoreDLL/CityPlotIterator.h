@@ -161,7 +161,7 @@ private:
 					break;
 				}
 			}
-			m_ePos++;
+			++m_ePos;
 		}
 	}
 

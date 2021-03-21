@@ -83,7 +83,8 @@ bool CvAutomateInfo::read(CvXMLLoadUtility* pXML)
 		return false;
 
 	pXML->SetInfoIDFromChildXmlVal(m_iCommand, "Command");
-	pXML->SetInfoIDFromChildXmlVal(m_iAutomate, "Automate");
+	// (advc: Info class not yet loaded)
+	pXML->SetGlobalTypeFromChildXmlVal(m_iAutomate, "Automate");
 
 	pXML->GetChildXmlValByName(&m_bConfirmCommand, "bConfirmCommand", /* advc.006b: */ false);
 	pXML->GetChildXmlValByName(&m_bVisible, "bVisible");

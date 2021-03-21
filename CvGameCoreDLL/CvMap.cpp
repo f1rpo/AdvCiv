@@ -18,9 +18,10 @@
 #include "CvPlotGroup.h"
 #include "CvFractal.h"
 #include "CvMapGenerator.h"
-#include "KmodPathFinder.h"
-#include "FAStarNode.h"
+#include "GroupPathFinder.h"
 #include "FAStarFunc.h"
+#include "FAStarNode.h"
+#include "CvInfo_Terrain.h" // advc.pf (for pathfinder initialization)
 #include "CvInfo_GameOption.h"
 #include "CvReplayInfo.h" // advc.106n
 #include "CvDLLIniParserIFaceBase.h"
@@ -65,6 +66,9 @@ void CvMap::init(CvMapInitData* pInitInfo)
 			getPlot(iX, iY).init(iX, iY);
 		}
 	}
+	// <advc.opt>
+	FOR_EACH_ENUM(PlotNum)
+		getPlotByIndex(eLoopPlotNum).initAdjList(); // </advc.opt>
 	calculateAreas();
 	gDLL->logMemState("CvMap after init plots");
 }
@@ -91,7 +95,7 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 			GC.getInfo(GC.getInitCore().getWorldSize()).getGridHeight() : 0;
 
 	// allow grid size override
-	if (pInitInfo)
+	if (pInitInfo != NULL)
 	{
 		m_iGridWidth	= pInitInfo->m_iGridW;
 		m_iGridHeight	= pInitInfo->m_iGridH;
@@ -113,6 +117,7 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 			m_iGridHeight *= GC.getLandscapePlotsPerCellY();
 		}
 	}
+	updatePlotNum(); // advc.opt
 
 	m_iLandPlots = 0;
 	m_iOwnedPlots = 0;
@@ -157,22 +162,61 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 	m_areas.removeAll();
 }
 
-// Initializes all data that is not serialized but needs to be initialized after loading.
+// Initializes all data that is not serialized but needs to be initialized after loading
 void CvMap::setup()
 {
 	PROFILE_FUNC();
 
-	CvSelectionGroup::initPathFinder(); // advc.pf
-	KmodPathFinder::InitHeuristicWeights(); // K-Mod
-
 	CvDLLFAStarIFaceBase& kAStar = *gDLL->getFAStarIFace(); // advc
-	kAStar.Initialize(&GC.getPathFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), pathDestValid, pathHeuristic, pathCost, pathValid, pathAdd, NULL, NULL);
-	kAStar.Initialize(&GC.getInterfacePathFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), pathDestValid, pathHeuristic, pathCost, pathValid, pathAdd, NULL, NULL);
-	kAStar.Initialize(&GC.getStepFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), stepDestValid, stepHeuristic, stepCost, stepValid, stepAdd, NULL, NULL);
-	kAStar.Initialize(&GC.getRouteFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), NULL, NULL, NULL, routeValid, NULL, NULL, NULL);
-	kAStar.Initialize(&GC.getBorderFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), NULL, NULL, NULL, borderValid, NULL, NULL, NULL);
-	kAStar.Initialize(&GC.getAreaFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), NULL, NULL, NULL, areaValid, NULL, joinArea, NULL);
-	kAStar.Initialize(&GC.getPlotGroupFinder(), getGridWidth(), getGridHeight(), isWrapX(), isWrapY(), NULL, NULL, NULL, plotGroupValid, NULL, countPlotGroup, NULL);
+	kAStar.Initialize(&GC.getPathFinder(),
+			getGridWidth(),	getGridHeight(),isWrapX(),	isWrapY(),
+			pathDestValid,	pathHeuristic,	pathCost,	pathValid,
+			pathAdd,		NULL,			NULL);
+	kAStar.Initialize(&GC.getInterfacePathFinder(),
+			getGridWidth(),	getGridHeight(),isWrapX(),	isWrapY(),
+			pathDestValid,	pathHeuristic,	pathCost,	pathValid,
+			pathAdd,		NULL,			NULL);
+	kAStar.Initialize(&GC.getStepFinder(),
+			getGridWidth(),	getGridHeight(),isWrapX(),	isWrapY(),
+			stepDestValid,	stepHeuristic,	stepCost,	stepValid,
+			stepAdd,		NULL,			NULL);
+	kAStar.Initialize(&GC.getRouteFinder(),
+			getGridWidth(), getGridHeight(), isWrapX(), isWrapY(),
+			NULL,			NULL,			NULL,		routeValid,
+			NULL,			NULL,			NULL);
+	kAStar.Initialize(&GC.getBorderFinder(),
+			getGridWidth(), getGridHeight(), isWrapX(), isWrapY(),
+			NULL,			NULL,			NULL,		borderValid,
+			NULL,			NULL,			NULL);
+	kAStar.Initialize(&GC.getAreaFinder(),
+			getGridWidth(), getGridHeight(), isWrapX(), isWrapY(),
+			NULL,			NULL,			NULL,		areaValid,
+			NULL,			joinArea,		NULL);
+	kAStar.Initialize(&GC.getPlotGroupFinder(),
+			getGridWidth(), getGridHeight(), isWrapX(), isWrapY(),
+			NULL,			NULL,			NULL,		plotGroupValid,
+			NULL,			countPlotGroup,	NULL);
+	// advc (note): IrrigatedFinder gets instantiated in updateIrrigated
+	// <advc.pf>
+	CvSelectionGroup::initPathFinder();
+	// Moved this computation out of KmodPathFinder.h to avoid a header inclusion
+	int iMinMovementCost = MAX_INT;
+	int iMinFlatMovementCost = MAX_INT;
+	FOR_EACH_ENUM(Route)
+	{
+		CvRouteInfo const& kLoopRoute = GC.getInfo(eLoopRoute);
+		int iCost = kLoopRoute.getMovementCost();
+		FOR_EACH_ENUM(Tech)
+		{
+			if (kLoopRoute.getTechMovementChange(eLoopTech) < 0)
+				iCost += kLoopRoute.getTechMovementChange(eLoopTech);
+		}
+		iMinMovementCost = std::min(iMinMovementCost, iCost);
+		iMinFlatMovementCost = std::min(iMinFlatMovementCost,
+				kLoopRoute.getFlatMovementCost());
+	}
+	GroupPathFinder::initHeuristicWeights(
+			iMinMovementCost, iMinFlatMovementCost); // </advc.pf>
 }
 
 
@@ -243,7 +287,6 @@ void CvMap::setAllPlotTypes(PlotTypes ePlotType)
 	//printToConsole(CvString::format("[Jason] setAllPlotTypes: %f\n", endTime - startTime).c_str());
 }
 
-
 // XXX generalize these funcs? (macro?)
 void CvMap::doTurn()
 {
@@ -252,13 +295,6 @@ void CvMap::doTurn()
 		getPlotByIndex(iI).doTurn();
 }
 
-// K-Mod
-void CvMap::setFlagsDirty()
-{
-	for(int i = 0; i < numPlots(); i++) // advc
-		plotByIndex(i)->setFlagDirty(true);
-}
-// K-Mod end
 
 void CvMap::updateFlagSymbols()
 {
@@ -326,22 +362,25 @@ void CvMap::updateIrrigated()
 		updateIrrigated(getPlotByIndex(i));
 }
 
-// K-Mod. This function is called when the unit selection is changed, or when a selected unit is promoted. (Or when UnitInfo_DIRTY_BIT is set.)
-// The purpose is to update which unit is displayed in the center of each plot.
-
-// The original implementation simply updated every plot on the map. This is a bad idea because it scales badly for big maps, and the update function on each plot can be expensive.
-// The new functionality attempts to only update plots that are in movement range of the selected group; with a very generous approximation for what might be in range.
-void CvMap::updateCenterUnit()  // advc: some style changes
+/*	K-Mod. This function is called when the unit selection is changed
+	or when a selected unit is promoted. (Or when UnitInfo_DIRTY_BIT is set.)
+	The purpose is to update which unit is displayed in the center of each plot.
+	The original implementation simply updated every plot on the map. This is
+	a bad idea because it scales badly for big maps, and the update function
+	on each plot can be expensive. The new functionality attempts to only
+	update plots that are in movement range of the selected group;
+	with a very generous approximation for what might be in range. */
+void CvMap::updateCenterUnit()
 {
 	/*for (int iI = 0; iI < numPlots(); iI++)
 		getPlotByIndex(iI).updateCenterUnit();*/ // BtS
 	PROFILE_FUNC();
 	int iRange = -1;
 
-	for (CLLNode<IDInfo> const* pSelectionNode = gDLL->UI().headSelectionListNode();
-		pSelectionNode != NULL; pSelectionNode = gDLL->UI().nextSelectionListNode(pSelectionNode))
+	for (CLLNode<IDInfo> const* pNode = gDLL->UI().headSelectionListNode();
+		pNode != NULL; pNode = gDLL->UI().nextSelectionListNode(pNode))
 	{
-		CvUnit const& kLoopUnit = *::getUnit(pSelectionNode->m_data);
+		CvUnit const& kLoopUnit = *::getUnit(pNode->m_data);
 		//if (kLoopUnit.getDomainType() == DOMAIN_AIR)
 		if (kLoopUnit.airRange() > 0) // advc.rstr
 			iRange = std::max(iRange, kLoopUnit.airRange());
@@ -349,7 +388,7 @@ void CvMap::updateCenterUnit()  // advc: some style changes
 		if (eLoopDomain == DOMAIN_LAND || eLoopDomain == DOMAIN_SEA) // advc.rstr
 		{
 			int iStepCost = (eLoopDomain == DOMAIN_LAND ?
-					KmodPathFinder::MinimumStepCost(kLoopUnit.baseMoves()) :
+					GroupPathFinder::minimumStepCost(kLoopUnit.baseMoves()) :
 					GC.getMOVE_DENOMINATOR());
 			int iMoveRange = kLoopUnit.maxMoves() / iStepCost +
 					(kLoopUnit.canParadrop(kLoopUnit.plot()) ?
@@ -400,8 +439,7 @@ void CvMap::updateMinOriginalStartDist(CvArea const& kArea)
 	{
 		CvPlot* pStartingPlot = GET_PLAYER((PlayerTypes)iI).getStartingPlot();
 		if (pStartingPlot == NULL || !pStartingPlot->isArea(kArea))
-			continue; // advc
-
+			continue;
 		for (int iJ = 0; iJ < numPlots(); iJ++)
 		{
 			CvPlot& kPlot = getPlotByIndex(iJ);
@@ -561,8 +599,9 @@ bool CvMap::isValidRandPlot(CvPlot const& kPlot, RandPlotFlags eFlags,
 }
 
 
-CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  // advc: style changes, const pSkipCity
-		bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith, DirectionTypes eDirection, CvCity const* pSkipCity,
+CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,
+		bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith,
+		DirectionTypes eDirection, CvCity const* pSkipCity, // advc: const city
 		TeamTypes eObserver) const // advc.004r
 {
 	PROFILE_FUNC();
@@ -582,7 +621,7 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  //
 		if (eTeam != NO_TEAM && kLoopPlayer.getTeam() != eTeam)
 			continue;
 
-		FOR_EACH_CITY_VAR(pLoopCity, kLoopPlayer) // advc: Body refactored
+		FOR_EACH_CITY_VAR(pLoopCity, kLoopPlayer)
 		{	// <advc.004r>
 			if(eObserver != NO_TEAM && !pLoopCity->isRevealed(eObserver))
 				continue; // </advc.004r>
@@ -609,8 +648,8 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,  //
 }
 
 
-CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner,  // advc: some style changes
-		bool bReadyToSelect, bool bWorkers) const
+CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner,
+	bool bReadyToSelect, bool bWorkers) const
 {
 	int iBestValue = MAX_INT;
 	CvSelectionGroup* pBestSelectionGroup = NULL;
@@ -627,18 +666,28 @@ CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner, 
 
 		FOR_EACH_GROUP_VAR(pLoopSelectionGroup, kLoopPlayer)
 		{
-			if (!bReadyToSelect || pLoopSelectionGroup->readyToSelect())
+			bool const bAIControl = pLoopSelectionGroup->AI_isControlled(); // advc.153
+			if (bReadyToSelect && !pLoopSelectionGroup->readyToSelect(
+				!bAIControl)) // advc.153: was false
 			{
-				if (!bWorkers || pLoopSelectionGroup->hasWorker())
-				{
-					int iValue = plotDistance(iX, iY, pLoopSelectionGroup->getX(), pLoopSelectionGroup->getY());
-
-					if (iValue < iBestValue)
-					{
-						iBestValue = iValue;
-						pBestSelectionGroup = pLoopSelectionGroup;
-					}
-				}
+				continue;
+			}
+			if (bWorkers &&
+				// advc.153: with moves
+				!pLoopSelectionGroup->hasWorkerWithMoves())
+			{
+				continue;
+			}
+			int iValue = plotDistance(iX, iY,
+					pLoopSelectionGroup->getX(), pLoopSelectionGroup->getY());
+			/*	<advc.153> Select groups where only some units are ready last
+				(unless plotDistance is 0) */
+			if (!bAIControl && pLoopSelectionGroup->readyToSelect())
+				iValue *= 100; // </advc.153>
+			if (iValue < iBestValue)
+			{
+				iBestValue = iValue;
+				pBestSelectionGroup = pLoopSelectionGroup;
 			}
 		}
 	}
@@ -822,12 +871,6 @@ int CvMap::getGridHeightExternal() const // advc.inl
 }
 
 
-int CvMap::getLandPlots() const
-{
-	return m_iLandPlots;
-}
-
-
 void CvMap::changeLandPlots(int iChange)
 {
 	m_iLandPlots = (m_iLandPlots + iChange);
@@ -958,7 +1001,7 @@ int CvMap::getIndexAfterLastArea() const
 }
 
 
-int CvMap::getNumLandAreas() const  // advc: style changes
+int CvMap::getNumLandAreas() const
 {
 	int iNumLandAreas = 0;
 	FOR_EACH_AREA(pLoopArea)
@@ -982,12 +1025,17 @@ void CvMap::deleteArea(int iID)
 }
 
 
-void CvMap::recalculateAreas()
+void CvMap::recalculateAreas(/* advc.opt: */bool bUpdateIsthmuses)
 {
 	PROFILE_FUNC();
-
-	for (int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).setArea(NULL);
+	// <advc.opt>
+	if (bUpdateIsthmuses)
+	{
+		for (int i = 0; i < numPlots(); i++)
+			getPlotByIndex(i).updateAnyIsthmus();
+	} // </advc.opt>
+	for (int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).setArea(NULL);
 	m_areas.removeAll();
 	calculateAreas();
 }
@@ -1003,7 +1051,6 @@ int CvMap::calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) con
 {
 	if(pSource == NULL || pDest == NULL)
 		return -1;
-
 	if (gDLL->getFAStarIFace()->GeneratePath(&GC.getStepFinder(),
 		pSource->getX(), pSource->getY(), pDest->getX(), pDest->getY(), false, 0, true))
 	{
@@ -1011,60 +1058,11 @@ int CvMap::calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) con
 		if (pNode != NULL)
 			return pNode->m_iData1;
 	}
-
 	return -1; // no passable path exists
 }
 
-/*  advc.104: Based on the unused BBAI function CvPlot::calculatePathDistanceToPlot.
-	I don't think it had ever been tested either b/c it didn't work at all until I
-	changed the GetLastNode call at the end. */
-int CvMap::calculateTeamPathDistance(TeamTypes eTeam,
-	CvPlot const& kFrom, CvPlot const& kTo,
-	int iMaxPath, TeamTypes eTargetTeam, DomainTypes eDomain) const // advc.104b
-{
-	PROFILE_FUNC(); // advc: The time is mostly spent in teamStepValid_advc
-	FAssert(eTeam != NO_TEAM);
-	FAssert(eTargetTeam != NO_TEAM);
-	/*  advc.104b: Commented out. Want to be able to measure paths between
-		coastal cities of different continents. (And shouldn't return "false"
-		at any rate.) */
-	/*if (pTargetPlot->area() != area())
-		return false;*/
-	FAssert(eDomain != NO_DOMAIN);
-
-	/*	Imitate instatiation of irrigated finder, pIrrigatedFinder.
-		Can't mimic step finder initialization because it requires creation from the EXE. */
-	/*  <advc.104b> vector type changed to int[]; dom, eTargetTeam (instead of
-		NO_TEAM), iMaxPath and target coordinates added. */
-	int aStepData[] = {
-		eTeam, eTargetTeam, eDomain, kTo.getX(), kTo.getY(), iMaxPath
-	}; // </advc.104b>
-	FAStar* pStepFinder = gDLL->getFAStarIFace()->create();
-	gDLL->getFAStarIFace()->Initialize(pStepFinder,
-			GC.getMap().getGridWidth(),
-			GC.getMap().getGridHeight(),
-			GC.getMap().isWrapX(),
-			GC.getMap().isWrapY(),
-			// advc.104b: Plugging in _advc functions
-			stepDestValid_advc, stepHeuristic, stepCost, teamStepValid_advc, stepAdd,
-			NULL, NULL);
-	gDLL->getFAStarIFace()->SetData(pStepFinder, aStepData);
-
-	int iPathDistance = -1;
-	gDLL->getFAStarIFace()->GeneratePath(pStepFinder, kFrom.getX(), kFrom.getY(),
-			kTo.getX(), kTo.getY(), false, 0, true);
-	// advc.104b, advc.001: was &GC.getStepFinder() instead of pStepFinder
-	FAStarNode* pNode = gDLL->getFAStarIFace()->GetLastNode(pStepFinder);
-	if (pNode != NULL)
-		iPathDistance = pNode->m_iData1;
-
-	gDLL->getFAStarIFace()->destroy(pStepFinder);
-
-	return iPathDistance;
-}
-
 /*	advc.pf: Cut from CvPlot::updateIrrigated
-	so that all the non-unit pathfinding stuff is in one place */
+	so that all the non-unit FAStar stuff is in one place */
 void CvMap::updateIrrigated(CvPlot& kPlot)
 {
 	PROFILE_FUNC();
@@ -1078,13 +1076,8 @@ void CvMap::updateIrrigated(CvPlot& kPlot)
 		if (!kPlot.isPotentialIrrigation())
 		{
 			kPlot.setIrrigated(false);
-			FOR_EACH_ENUM(Direction)
+			FOR_EACH_ADJ_PLOT(kPlot)
 			{
-				CvPlot const* pAdj = plotDirection(kPlot.getX(), kPlot.getY(),
-						eLoopDirection);
-				if (pAdj == NULL)
-					continue;
-
 				bool bFoundFreshWater = false;
 				gDLL->getFAStarIFace()->Initialize(pIrrigatedFinder,
 						getGridWidth(), getGridHeight(),
@@ -1124,7 +1117,7 @@ void CvMap::updateIrrigated(CvPlot& kPlot)
 }
 
 
-// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START  // advc: unnecessary NULL checks removed
+// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START
 void CvMap::invalidateActivePlayerSafeRangeCache()
 {
 	PROFILE_FUNC();
@@ -1154,6 +1147,10 @@ void CvMap::read(FDataStreamBase* pStream)
 
 	pStream->Read(&m_iGridWidth);
 	pStream->Read(&m_iGridHeight);
+	// <advc.opt>
+	if (uiFlag >= 3)
+		pStream->Read((int*)&m_ePlots);
+	else updatePlotNum(); // </advc.opt>
 	pStream->Read(&m_iLandPlots);
 	pStream->Read(&m_iOwnedPlots);
 	pStream->Read(&m_iTopLatitude);
@@ -1163,7 +1160,7 @@ void CvMap::read(FDataStreamBase* pStream)
 	pStream->Read(&iRiver);
 	if (iRiver < MIN_SHORT || iRiver > MAX_SHORT)
 		m_iNextRiverID = -1;
-	m_iNextRiverID = static_cast<short>(iRiver);
+	else m_iNextRiverID = static_cast<short>(iRiver);
 	// </advc.opt>
 	pStream->Read(&m_bWrapX);
 	pStream->Read(&m_bWrapY);
@@ -1174,8 +1171,16 @@ void CvMap::read(FDataStreamBase* pStream)
 	if (numPlots() > 0)
 	{
 		m_pMapPlots = new CvPlot[numPlots()];
-		for (int iI = 0; iI < numPlots(); iI++)
-			m_pMapPlots[iI].read(pStream);
+		for (int i = 0; i < numPlots(); i++)
+			m_pMapPlots[i].read(pStream);
+		// <advc.opt>
+		for (int i = 0; i < numPlots(); i++)
+			m_pMapPlots[i].initAdjList();
+		if (uiFlag < 2)
+		{
+			for (int i = 0; i < numPlots(); i++)
+				m_pMapPlots[i].updateAnyIsthmus();
+		} // </advc.opt>
 	}
 
 	ReadStreamableFFreeListTrashArray(m_areas, pStream);
@@ -1205,16 +1210,19 @@ void CvMap::read(FDataStreamBase* pStream)
 	} // </advc.106n>
 }
 
-// save object to a stream
+
 void CvMap::write(FDataStreamBase* pStream)
 {
 	REPRO_TEST_BEGIN_WRITE("Map");
-	uint uiFlag=0;
-	uiFlag = 1; // advc.106n
+	uint uiFlag;
+	//uiFlag = 1; // advc.106n
+	//uiFlag = 2; // advc.opt: CvPlot::m_bAnyIsthmus
+	uiFlag = 3; // advc.opt: m_ePlots
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iGridWidth);
 	pStream->Write(m_iGridHeight);
+	pStream->Write(m_ePlots);
 	pStream->Write(m_iLandPlots);
 	pStream->Write(m_iOwnedPlots);
 	pStream->Write(m_iTopLatitude);
@@ -1250,8 +1258,13 @@ void CvMap::rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitud
 	kInitCore.setSeaLevel(eSeaLevel);
 	kInitCore.setCustomMapOptions(iNumCustomMapOptions, aeCustomMapOptions);
 
-	// Init map
-	init(&initData);
+	init(&initData); // Init map
+}
+
+// advc.opt:
+void CvMap::updatePlotNum()
+{
+	m_ePlots = (PlotNumTypes)(getGridWidth() * getGridHeight());
 }
 
 // <advc.106n>
@@ -1339,6 +1352,7 @@ void CvMap::calculateAreas_030()
 	}
 }
 
+
 void CvMap::updateLakes()
 {
 	// CvArea::getNumTiles no longer sufficient for identifying lakes
@@ -1352,6 +1366,7 @@ void CvMap::updateLakes()
 	}
 	computeShelves(); // advc.300
 }
+
 
 void CvMap::calculateReprAreas()
 {
@@ -1370,11 +1385,8 @@ void CvMap::calculateReprAreas()
 			CvPlot& p = getPlotByIndex(i);
 			int const x = p.getX();
 			int const y = p.getY();
-			for(int j = 0; j < NUM_DIRECTION_TYPES; j++)
+			FOR_EACH_ADJ_PLOT_VAR2(pAdjacent, p)
 			{
-				CvPlot* pAdjacent = plotDirection(x, y, (DirectionTypes)j);
-				if(pAdjacent == NULL)
-					continue;
 				CvPlot& q = *pAdjacent;
 				// Only orthogonal adjacency for water tiles
 				if(p.isWater() && x != q.getX() && y != q.getY())
@@ -1417,13 +1429,8 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart)
 	{
 		CvPlot const& p = *stack.top();
 		stack.pop();
-		int const x = p.getX();
-		int const y = p.getY();
-		for(int i = 0; i < NUM_DIRECTION_TYPES; i++)
+		FOR_EACH_ADJ_PLOT_VAR2(pAdjacent, p)
 		{
-			CvPlot* pAdjacent = plotDirection(x, y, (DirectionTypes)i);
-			if(pAdjacent == NULL)
-				continue;
 			CvPlot& q = *pAdjacent;
 			if(q.area() == NULL && p.isWater() == q.isWater() &&
 				!isSeparatedByIsthmus(p, q) &&
@@ -1444,7 +1451,8 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart)
 void CvMap::getShelves(CvArea const& kArea, std::vector<Shelf*>& r) const
 {
 	int iArea = kArea.getID();
-	for(std::map<Shelf::Id,Shelf*>::const_iterator it = shelves.begin(); it != shelves.end(); it++)
+	for(std::map<Shelf::Id,Shelf*>::const_iterator it = m_shelves.begin();
+		it != m_shelves.end(); ++it)
 	{
 		if(it->first.first == iArea)
 			r.push_back(it->second);
@@ -1454,32 +1462,36 @@ void CvMap::getShelves(CvArea const& kArea, std::vector<Shelf*>& r) const
 
 void CvMap::computeShelves()
 {
-	for(std::map<Shelf::Id,Shelf*>::iterator it = shelves.begin();it != shelves.end(); it++)
+	for(std::map<Shelf::Id,Shelf*>::iterator it = m_shelves.begin();
+		it != m_shelves.end(); ++it)
+	{
 		SAFE_DELETE(it->second);
-	shelves.clear();
-
+	}
+	m_shelves.clear();
 	for(int i = 0; i < numPlots(); i++)
 	{
 		CvPlot& p = getPlotByIndex(i);
-		// For each passable marine water plot
 		if(!p.isWater() || p.isLake() || p.isImpassable() || !p.isHabitable())
 			continue;
 		// Add plot to shelves of all adjacent land areas
 		std::set<int> adjLands;
-		p.getAdjacentLandAreaIds(adjLands);
-		for(std::set<int>::iterator it = adjLands.begin(); it != adjLands.end(); it++)
+		FOR_EACH_ADJ_PLOT(p)
+		{
+			if(!pAdj->isWater())
+				adjLands.insert(pAdj->getArea().getID());
+		}
+		for(std::set<int>::iterator it = adjLands.begin(); it != adjLands.end(); ++it)
 		{
 			Shelf::Id shelfID(*it, p.getArea().getID());
-			std::map<Shelf::Id,Shelf*>::iterator shelfPos = shelves.find(shelfID);
+			std::map<Shelf::Id,Shelf*>::iterator shelfPos = m_shelves.find(shelfID);
 			Shelf* pShelf;
-			if(shelfPos == shelves.end())
+			if(shelfPos == m_shelves.end())
 			{
 				pShelf = new Shelf();
-				shelves.insert(std::make_pair(shelfID, pShelf));
+				m_shelves.insert(std::make_pair(shelfID, pShelf));
 			}
 			else pShelf = shelfPos->second;
 			pShelf->add(&p);
 		}
 	}
-}
-// </advc.300>
+} // </advc.300>

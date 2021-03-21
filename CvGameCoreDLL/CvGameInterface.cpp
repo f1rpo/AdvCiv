@@ -4,7 +4,7 @@
 #include "CvCityAI.h"
 #include "CvUnitAI.h"
 #include "CvSelectionGroup.h"
-#include "KmodPathFinder.h"
+#include "GroupPathFinder.h"
 #include "FAStarNode.h"
 #include "PlotRange.h"
 #include "CvInfo_City.h"
@@ -20,15 +20,24 @@
 
 /*  advc: This file was, reportedly, added by patch 3.17:
 	forums.civfanatics.com/threads/sdk-using-microsoft-visual-c-2005-express-edition.196283/page-7#post-6942578
+	The near name clash with CyGameInterface.cpp is coincidental.
 	Functions previously implemented in CvGame.cpp were moved here.
-	I guess the idea is to separate the UI code from the game rules. */
+	I guess the idea is to separate the UI code from the game rules, and simply to
+	make the translation units smaller. */
+
+/*	<advc.007b> The functions in this header arguably shouldn't use any of the
+	synchronized RNGs that are part of CvGame. */
+#undef CVGAME_INSTANCE_FOR_RNG
+#define CVGAME_INSTANCE_FOR_RNG NULL // </advc.007b>
 
 void CvGame::updateColoredPlots()
 {
 	PROFILE_FUNC();
-
-	CvDLLEngineIFaceBase& kEngine = *gDLL->getEngineIFace(); // advc
-	CvDLLInterfaceIFaceBase& kUI = gDLL->UI(); // advc
+	// <advc.004z> Too early; player options haven't been set yet.
+	if (getTurnSlice() <= 0)
+		return; // </advc.004z>
+	CvDLLEngineIFaceBase& kEngine = *gDLL->getEngineIFace();
+	CvDLLInterfaceIFaceBase& kUI = gDLL->UI();
 
 	kEngine.clearColoredPlots(PLOT_LANDSCAPE_LAYER_BASE);
 	kEngine.clearAreaBorderPlots(AREA_BORDER_LAYER_CITY_RADIUS);
@@ -47,7 +56,6 @@ void CvGame::updateColoredPlots()
 		pHeadSelectedUnit->updateFoundingBorder();
 	// </advc.004h>
 
-	// advc: (also removed unnecessary NULL checks after m.plotByIndex calls)
 	CvMap const& kMap = GC.getMap();
 	int const iPlots = kMap.numPlots();
 	// BETTER_BTS_AI_MOD, Debug, 06/25/09, jdog5000: START
@@ -162,19 +170,21 @@ void CvGame::updateColoredPlots()
 		}
 		else
 		{
-			for (CLLNode<IDInfo> const* pSelectedCityNode = kUI.headSelectedCitiesNode();
-				pSelectedCityNode != NULL; pSelectedCityNode = kUI.nextSelectedCitiesNode(pSelectedCityNode))
+			for (CLLNode<IDInfo> const* pNode = kUI.headSelectedCitiesNode();
+				pNode != NULL; pNode = kUI.nextSelectedCitiesNode(pNode))
 			{
-				CvCity const* pSelectedCity = ::getCity(pSelectedCityNode->m_data);
-				if (pSelectedCity != NULL)
+				CvCity const* pSelectedCity = ::getCity(pNode->m_data);
+				if (pSelectedCity == NULL)
 				{
-					CvPlot* pRallyPlot = pSelectedCity->getRallyPlot();
-					if (pRallyPlot != NULL)
-					{
-						kEngine.addColoredPlot(pRallyPlot->getX(), pRallyPlot->getY(),
-								GC.getInfo(GC.getColorType("YELLOW")).getColor(),
-								PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
-					}
+					FAssertMsg(pSelectedCity != NULL, "Can this happen?");
+					continue;
+				}
+				CvPlot* pRallyPlot = pSelectedCity->getRallyPlot();
+				if (pRallyPlot != NULL)
+				{
+					kEngine.addColoredPlot(pRallyPlot->getX(), pRallyPlot->getY(),
+							GC.getInfo(GC.getColorType("YELLOW")).getColor(),
+							PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 				}
 			}
 		} // <advc>
@@ -211,10 +221,10 @@ void CvGame::updateColoredPlots()
 	if (pHeadSelectedUnit->airRange() > 0)
 	{
 		int iMaxAirRange = 0;
-		for (CLLNode<IDInfo> const* pSelectedUnitNode = kUI.headSelectionListNode();
-			pSelectedUnitNode != NULL; pSelectedUnitNode = kUI.nextSelectionListNode(pSelectedUnitNode))
+		for (CLLNode<IDInfo> const* pNode = kUI.headSelectionListNode();
+			pNode != NULL; pNode = kUI.nextSelectionListNode(pNode))
 		{
-			CvUnit const* pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			CvUnit const* pSelectedUnit = ::getUnit(pNode->m_data);
 			if (pSelectedUnit != NULL)
 				iMaxAirRange = std::max(iMaxAirRange, pSelectedUnit->airRange());
 		}
@@ -278,16 +288,16 @@ void CvGame::updateColoredPlots()
 			the original code has been deleted, because it was quite bulky. */
 
 		// city sites
-		const CvPlayerAI& kActivePlayer = GET_PLAYER(getActivePlayer());
-		KmodPathFinder site_path;
-		site_path.SetSettings(pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
+		CvPlayerAI const& kActivePlayer = GET_PLAYER(getActivePlayer());
+		GroupPathFinder sitePath;
+		sitePath.setGroup(*pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
 				7, GC.getMOVE_DENOMINATOR());
 		if (pHeadSelectedUnit->canFound()) // advc.004h: was isFound
 		{
 			for (int i = 0; i < kActivePlayer.AI_getNumCitySites(); i++)
 			{
 				CvPlot* pSite = kActivePlayer.AI_getCitySite(i);
-				if (pSite != NULL && site_path.GeneratePath(pSite))
+				if (pSite != NULL && sitePath.generatePath(*pSite))
 				{
 					kEngine.addColoredPlot(pSite->getX(), pSite->getY(),
 							GC.getInfo(GC.getColorType("HIGHLIGHT_TEXT")).getColor(),
@@ -305,7 +315,7 @@ void CvGame::updateColoredPlots()
 				iRange++;
 			else iRange--; // </advc.004z>
 			// just a smaller range.
-			site_path.SetSettings(pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
+			sitePath.setGroup(*pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
 					iRange, GC.getMOVE_DENOMINATOR());
 			for (SquareIter it(*pHeadSelectedUnit, iRange); it.hasNext(); ++it)
 			{
@@ -313,7 +323,7 @@ void CvGame::updateColoredPlots()
 				if (kLoopPlot.isVisible(pHeadSelectedUnit->getTeam()) &&
 					kLoopPlot.isRevealedGoody(pHeadSelectedUnit->getTeam()))
 				{
-					if (site_path.GeneratePath(&kLoopPlot))
+					if (sitePath.generatePath(kLoopPlot))
 					{
 						kEngine.addColoredPlot(kLoopPlot.getX(), kLoopPlot.getY(),
 								GC.getInfo(GC.getColorType("HIGHLIGHT_TEXT")).getColor(),
@@ -332,7 +342,7 @@ void CvGame::updateColoredPlots()
 			FOR_EACH_UNIT(pLoopUnit, kMember)
 			{
 				if (!pLoopUnit->isBlockading())
-					continue; // advc
+					continue;
 				/*  <advc.033> Replacing code that was (mostly) equivalent
 					to CvUnit::updatePlunder */
 				std::vector<CvPlot*> apRange;
@@ -383,7 +393,7 @@ void CvGame::updateSelectionList()
 	{
 		return;
 	}
-	CvDLLInterfaceIFaceBase& kUI = gDLL->UI(); // advc
+	CvDLLInterfaceIFaceBase& kUI = gDLL->UI();
 	CvUnit* pHeadSelectedUnit = kUI.getHeadSelectedUnit();
 	if (pHeadSelectedUnit == NULL || !pHeadSelectedUnit->getGroup()->readyToSelect(true))
 	{
@@ -397,16 +407,16 @@ void CvGame::updateSelectionList()
 			}
 		}
 		pHeadSelectedUnit = kUI.getHeadSelectedUnit();
-		if (pHeadSelectedUnit != NULL)
+		if (pHeadSelectedUnit != NULL &&
+			!pHeadSelectedUnit->getGroup()->readyToSelect(/* advc.153: */ true))
 		{
-			if (!pHeadSelectedUnit->getGroup()->readyToSelect())
-				kUI.clearSelectionList();
+			kUI.clearSelectionList();
 		}
 	}
 }
 
 
-void CvGame::updateTestEndTurn()  // advc: nested else branches replaced w/ return statements
+void CvGame::updateTestEndTurn()
 {
 	if (!GET_PLAYER(getActivePlayer()).isTurnActive())
 		return;
@@ -471,7 +481,8 @@ void CvGame::updateTestEndTurn()  // advc: nested else branches replaced w/ retu
 }
 
 // advc: Merge of two BtS functions that had largely the same body
-CvUnit* CvGame::getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUnits, int iIndex) const
+CvUnit* CvGame::getPlotUnits(CvPlot const* pPlot,
+	std::vector<CvUnit*>* pPlotUnits, int iIndex) const
 {
 	PROFILE_FUNC();
 
@@ -488,33 +499,27 @@ CvUnit* CvGame::getPlotUnits(CvPlot const* pPlot, std::vector<CvUnit*>* pPlotUni
 	TeamTypes eActiveTeam = getActiveTeam();
 	for (int iPass = 0; iPass < 2; iPass++)
 	{
-		for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
-			pUnitNode = pPlot->nextUnitNode(pUnitNode))
+		FOR_EACH_UNIT_VAR_IN(pUnit, *pPlot)
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			if ((pLoopUnit->getOwner() == eActivePlayer) != (iPass == 0))
+			if ((pUnit->getOwner() == eActivePlayer) != (iPass == 0))
 				continue;
-			if (pLoopUnit->isInvisible(eActiveTeam, true) || pLoopUnit->isCargo())
+			if (pUnit->isInvisible(eActiveTeam, true) || pUnit->isCargo())
 				continue;
 
 			if (iCount == iIndex)
-				return pLoopUnit;
+				return pUnit;
 
 			iCount++;
 			if (pPlotUnits != NULL)
-				pPlotUnits->push_back(pLoopUnit);
+				pPlotUnits->push_back(pUnit);
 			//if (pLoopUnit1->getTeam() == activeTeam || isDebugMode()) {
-			if (!pLoopUnit->hasCargo())
+			if (!pUnit->hasCargo())
 				continue;
-
-			for (CLLNode<IDInfo> const* pCargoUnitNode = pPlot->headUnitNode(); pCargoUnitNode != NULL;
-				pCargoUnitNode = pPlot->nextUnitNode(pCargoUnitNode))
+			FOR_EACH_UNIT_VAR_IN(pCargoUnit, *pPlot)
 			{
-				CvUnit* pCargoUnit = ::getUnit(pCargoUnitNode->m_data);
 				if (pCargoUnit->isInvisible(eActiveTeam, true))
 					continue;
-
-				if (pCargoUnit->getTransportUnit() == pLoopUnit)
+				if (pCargoUnit->getTransportUnit() == pUnit)
 				{
 					if (iCount == iIndex)
 						return pCargoUnit;
@@ -568,37 +573,86 @@ void CvGame::cycleCities(bool bForward, bool bAdd) const
 	}
 }
 
-// advc.003i: const removed so that updateTestEndTurn can be called
-void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
+// advc.154: Extracted the const part out of cycleSelectionGroups
+CvSelectionGroup* CvGame::getNextGroupInCycle(bool bForward, bool bWorkers,
+	bool& bWrap, CvUnit*& pCycleUnit) const // out-params
 {
-	CvSelectionGroup* pNextSelectionGroup=NULL;
-	CvUnit* pCycleUnit = gDLL->UI().getHeadSelectedUnit();
+	bWrap = false;
+	pCycleUnit = gDLL->UI().getHeadSelectedUnit();
+	CvSelectionGroup* pGroup=NULL;
 	if (pCycleUnit != NULL)
 	{
 		if (pCycleUnit->getOwner() != getActivePlayer())
 			pCycleUnit = NULL;
-		bool bWrap=false;
-		pNextSelectionGroup = GET_PLAYER(getActivePlayer()).cycleSelectionGroups(
+		pGroup = GET_PLAYER(getActivePlayer()).getNextGroupInCycle(
 				pCycleUnit, bForward, bWorkers, &bWrap);
-		if (bWrap)
-		{
-			//if (GET_PLAYER(getActivePlayer()).hasAutoUnit())
-			// K-Mod. I've weakend this condition so that the group cycle order can be refreshed by automoves.
-			// (Maybe I should create & use "sendCycleRefresh" instead.)
-			if (pNextSelectionGroup || GET_PLAYER(getActivePlayer()).hasAutoUnit())
-			// K-Mod end
-			{
-				CvMessageControl::getInstance().sendAutoMoves();
-			}
-		}
 	}
 	else
 	{
 		CvPlot* pPlot = gDLL->UI().getLookAtPlot();
-		pNextSelectionGroup = GC.getMap().findSelectionGroup(
+		pGroup = GC.getMap().findSelectionGroup(
 				pPlot != NULL ? pPlot->getX() : 0,
 				pPlot != NULL ? pPlot->getY() : 0,
 				getActivePlayer(), true, bWorkers);
+	}
+	return pGroup;
+}
+
+/*	advc.154: Python wrapper for the above - but who knows, the DLL too
+	might want to be able to tell what the cycle button is showing. */
+CvUnit* CvGame::getCycleButtonUnit(bool bForward, bool bWorkers) const
+{
+	if (getActivePlayer() == NO_PLAYER ||
+		!GET_PLAYER(getActivePlayer()).isHuman()) // AI Auto Play
+	{
+		return NULL;
+	}
+	bool bDummy=false;
+	CvUnit* pDummy=NULL;
+	CvSelectionGroup* pNextGroup = GC.getGame().getNextGroupInCycle(
+			bForward, bWorkers, bDummy, pDummy);
+	if (pNextGroup == NULL || pNextGroup->getNumUnits() <= 0)
+		return NULL;
+	for (int iPass = 0; iPass < (/*bWorkers ? 1 :*/ 2); iPass++)
+	{
+		FOR_EACH_UNIT_VAR_IN(pUnit, *pNextGroup)
+		{
+			if (!pUnit->IsSelected() && pUnit->canMove() &&
+				/*	!bWorkers doesn't exclude all-worker groups, so we can only
+					_prefer_ selecting a non-worker. */
+				/*	Actually, let's always prefer to select a worker. Don't want
+					to show different icons on the two buttons if they refer
+					to the same group. */
+				(iPass == 1 || /*bWorkers == */pUnit->isWorker()))
+			{
+				return pUnit;
+			}
+		}
+	}
+	return NULL;
+}
+
+void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
+{
+	bool bWrap=false;
+	CvUnit* pCycleUnit=NULL;
+	// advc.154: Moved into a const function
+	CvSelectionGroup* pNextSelectionGroup = getNextGroupInCycle(
+			bForward, bWorkers, bWrap, pCycleUnit);
+	if (gDLL->UI().getHeadSelectedUnit() != NULL)
+	{
+		GET_PLAYER(getActivePlayer()).cycleSelectionGroups(
+				pCycleUnit, bForward, bWorkers, &bWrap);
+	}
+	if (bWrap)
+	{	/*	K-Mod: I've weakend this condition so that the group cycle order
+			can be refreshed by automoves.
+			(Maybe I should create & use "sendCycleRefresh" instead.) */
+		if (pNextSelectionGroup ||
+			GET_PLAYER(getActivePlayer()).hasAutoUnit())
+		{
+			CvMessageControl::getInstance().sendAutoMoves();
+		}
 	}
 
 	if (pNextSelectionGroup != NULL)
@@ -606,6 +660,16 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 		FAssert(pNextSelectionGroup->getOwner() == getActivePlayer());
 		FAssert(pNextSelectionGroup->getHeadUnit() != NULL); // K-Mod
 		gDLL->UI().selectUnit(pNextSelectionGroup->getHeadUnit(), bClear);
+		/*	<advc.153> Could deselect units without moves here, but then
+			the player can't just press skip without splitting up the group.
+			Perhaps skip could somehow receive special treatment in this case ...
+			So long as that's not implemented, it's better to let the player use
+			the Go To (All) button if he or she does want to split the group. */
+		/*FOR_EACH_UNIT_VAR_IN(pUnit, *pNextSelectionGroup)
+		{
+			if (!pUnit->canMove())
+				gDLL->UI().removeFromSelectionList(pUnit);
+		}*/ // </advc.153>
 	}
 	// K-Mod
 	else if (pCycleUnit != NULL)
@@ -617,29 +681,30 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 		{
 			CvPlayer const& kOwner = GET_PLAYER(pCycleUnit->getOwner());
 			FOR_EACH_UNIT_VAR(u, kOwner)
-				gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(), false);
+				gDLL->getEntityIFace()->showPromotionGlow(u->getEntity(), false);
 		} // </advc.002e>
 	} // K-Mod end
 
 	if (pCycleUnit != gDLL->UI().getHeadSelectedUnit() ||
-		(pCycleUnit != NULL && pCycleUnit->getGroup()->readyToSelect()))
+		(pCycleUnit != NULL && pCycleUnit->getGroup()->readyToSelect(
+		true))) // advc.153: was false
 	{
 		gDLL->UI().lookAtSelectionPlot();
 	}
 }
 
-// K-Mod
+// K-Mod:
 void CvGame::cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bDelayOnly)
 {
-	PROFILE_FUNC(); // I'm just hoping that the python call doesn't hurt the respose times
+	PROFILE_FUNC(); // just hoping that the python call doesn't hurt the respose times
 
 	if (GC.suppressCycling()) // cf. GvGame::updateSelectionList
 		return;
-
-	// Only rapid-cycle when not doing auto-play.
-	// Also note, cycleSelectionGroups currently causes a crash if the game is not initialised.
-	// (and this function is indirectly called during the set of up a new game - so we currently need that init check.)
-	PlayerTypes eActive = getActivePlayer();
+	/*	Only rapid-cycle when not doing auto-play. Also note,
+		cycleSelectionGroups currently causes a crash if the game is not initialised.
+		(and this function is indirectly called during the set of up a new game -
+		so we currently need that init check.) */
+	PlayerTypes const eActive = getActivePlayer();
 	if (isFinalInitialized() &&
 		eActive != NO_PLAYER && GET_PLAYER(eActive).isHuman() &&
 		BUGOption::isEnabled("MainInterface__RapidUnitCycling", false))
@@ -651,8 +716,7 @@ void CvGame::cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bD
 				return;
 
 			if (gDLL->getEngineIFace()->isCameraLocked())
-			{
-				// immediate cycling might violate the camera lock. :(
+			{	// immediate cycling might violate the camera lock. :(
 				gDLL->UI().setCycleSelectionCounter(1);
 			}
 			else cycleSelectionGroups(true);
@@ -664,9 +728,9 @@ void CvGame::cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bD
 			gDLL->UI().changeCycleSelectionCounter(iDelay);
 		else gDLL->UI().setCycleSelectionCounter(iDelay);
 	}
-} // K-Mod end
+}
 
-// Returns true if unit was cycled...  // advc: style changes
+// Returns true if unit was cycled...
 bool CvGame::cyclePlotUnits(CvPlot* pPlot, bool bForward, bool bAuto, int iCount) const
 {
 	FAssert(iCount >= -1);
@@ -729,7 +793,7 @@ bool CvGame::cyclePlotUnits(CvPlot* pPlot, bool bForward, bool bAuto, int iCount
 		{
 			if (bAuto)
 			{
-				if (pLoopUnit->getGroup()->readyToSelect())
+				if (pLoopUnit->getGroup()->readyToSelect(/* advc.153: */ true))
 				{
 					gDLL->UI().selectUnit(pLoopUnit, true);
 					return true;
@@ -874,17 +938,17 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 
 		MovementFlags eFlags = (MovementFlags)iFlags;
 		if (eMessage == GAMEMESSAGE_PUSH_MISSION)
-		{	// K-Mod. I've moved the BUTTONPOPUP_DECLAREWARMOVE stuff to here from selectionListMove
-			// so that it can catch left-click moves as well as right-click moves.
-			//
-			// Note: If MOVE_DECLARE_WAR is set, then we assume it was set by a BUTTONPOPUP_DECLAREWARMOVE
-			// which was triggered already by this move. In which case we shouldn't check for declare war
-			// this time. This is a kludge to prevent the popup from appearing twice.
-			// Also, when this happens we should clear the MOVE_DECLARE_WAR flag. Otherwise it may cause
-			// the pathfinder to fail in some cases.
-			//
-			// (I'd rather not have UI stuff like this in this function,
-			//  but this is the only place where I can catch left-click moves.)
+		{	/*	K-Mod. I've moved the BUTTONPOPUP_DECLAREWARMOVE stuff to here
+				from selectionListMove so that it can catch left-click moves
+				as well as right-click moves.
+				Note: If MOVE_DECLARE_WAR is set, then we assume it was set
+				by a BUTTONPOPUP_DECLAREWARMOVE which was triggered already
+				by this move. In which case we shouldn't check for declare war
+				this time. This is a kludge to prevent the popup from appearing twice.
+				Also, when this happens we should clear the MOVE_DECLARE_WAR flag.
+				Otherwise it may cause the pathfinder to fail in some cases.
+				(I'd rather not have UI stuff like this in this function,
+				but this is the only place where I can catch left-click moves.) */
 			if (iData2 == MISSION_MOVE_TO && !(eFlags & MOVE_DECLARE_WAR))
 			{
 				CvPlot* pPlot = GC.getMap().plot(iData3, iData4);
@@ -896,11 +960,11 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 					TeamTypes eRivalTeam = pSelectedUnit->getDeclareWarMove(pPlot);
 					if (eRivalTeam != NO_TEAM)
 					{	/* <advc.001> If an enemy unit is stacked with a neutral one,
-						then the player apparently wants to attack the enemy unit
-						(rather than declare war on the neutral party). However,
-						if the enemy unit is on a tile owned by a third party that
-						the player doesn't have OB or a vassal treaty with, then
-						only a DoW on the third party makes sense. */
+							then the player apparently wants to attack the enemy unit
+							(rather than declare war on the neutral party). However,
+							if the enemy unit is on a tile owned by a third party that
+							the player doesn't have OB or a vassal treaty with, then
+							only a DoW on the third party makes sense. */
 						if((pPlot->getTeam() != NO_TEAM &&
 							!GET_TEAM(pSelectedUnit->getTeam()).
 							isFriendlyTerritory(pPlot->getTeam())) ||
@@ -924,7 +988,8 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 			} // <advc.011b>
 			bool bModified = false;
 			if(iData2 == MISSION_BUILD)
-				bModified = GC.ctrlKey(); // </advc.001b> <advc.048>
+				bModified = GC.ctrlKey(); // </advc.001b>
+			// <advc.048>
 			if(iData2 == MISSION_MOVE_TO)
 				bModified = GC.altKey(); // </advc.048>
 			CvMessageControl::getInstance().sendPushMission(pHeadSelectedUnit->getID(),
@@ -996,13 +1061,13 @@ void CvGame::selectedCitiesGameNetMessage(int eMessage, int iData2, int iData3, 
 }
 
 
-bool CvGame::canHandleAction(int iAction, CvPlot* pPlot, bool bTestVisible, bool bUseCache) const  // advc: style changes
+bool CvGame::canHandleAction(int iAction, CvPlot* pPlot, bool bTestVisible, bool bUseCache) const
 {
 	PROFILE_FUNC();
 
 	bool const bShift = GC.shiftKey();
 
-	if (GC.getPythonCaller()->cannotHandleActionOverride(*pPlot, iAction, bTestVisible))
+	if (GC.getPythonCaller()->cannotHandleActionOverride(pPlot, iAction, bTestVisible))
 		return false;
 
 	CvActionInfo const& kAction = GC.getActionInfo(iAction);
@@ -1042,7 +1107,7 @@ bool CvGame::canHandleAction(int iAction, CvPlot* pPlot, bool bTestVisible, bool
 			}
 		}
 		else pMissionPlot = pSelectedInterfaceList->plot();
-		if (pSelectedInterfaceList->canStartMission(kAction.getMissionType(),
+		if (pSelectedInterfaceList->canStartMission((MissionTypes)kAction.getMissionType(),
 			kAction.getMissionData(), -1, pMissionPlot, bTestVisible, bUseCache))
 		{
 			return true;
@@ -1194,11 +1259,8 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 		break;
 
 	case CONTROL_FORCEENDTURN:
-		if (!gDLL->UI().isFocused() &&
-			!gDLL->UI().isInAdvancedStart())
-		{
+		if (!gDLL->UI().isFocused() && !gDLL->UI().isInAdvancedStart())
 			return true;
-		}
 		break;
 
 
@@ -1249,11 +1311,8 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 		return true;
 
 	case CONTROL_CENTERONSELECTION:
-		if (gDLL->UI().getLookAtPlot() !=
-			gDLL->UI().getSelectionPlot())
-		{
+		if (gDLL->UI().getLookAtPlot() != gDLL->UI().getSelectionPlot())
 			return true;
-		}
 		break;
 
 	case CONTROL_LOAD_GAME:
@@ -1291,6 +1350,14 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 			return true;
 		}
 		break;
+	// <advc.088>
+	case CONTROL_UNSELECT_ALL:
+		if (gDLL->UI().getInterfaceMode() == INTERFACEMODE_SELECTION &&
+			!gDLL->UI().isCityScreenUp() && gDLL->UI().getHeadSelectedUnit() != NULL)
+		{
+			return true;
+		}
+		break; // </advc.088>
 
 	default:
 		FErrorMsg("eControl did not match any valid options");
@@ -1318,9 +1385,7 @@ void CvGame::doControl(ControlTypes eControl)
 
 	case CONTROL_SELECTYUNITTYPE:
 		if (pHeadSelectedUnit != NULL)
-		{
 			kUI.selectGroup(pHeadSelectedUnit, false, true, false);
-		}
 		break;
 
 	case CONTROL_SELECTYUNITALL:
@@ -1345,9 +1410,11 @@ void CvGame::doControl(ControlTypes eControl)
 				// disabled by K-Mod
 				//if (!isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || getTurnSlice() - kUnit.getLastMoveTurn() > GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES")) {
 				if (kUnit.getOwner() == getActivePlayer() && kUnit.isHurt() &&
-						// advc.001z: Can't select units of different domains
-						kUnit.getDomainType() == pHeadSelectedUnit->getDomainType())
+					// advc.001z: Can't select units of different domains
+					kUnit.getDomainType() == pHeadSelectedUnit->getDomainType())
+				{
 					toBeSelected.push_back(&kUnit);
+				}
 			}
 			if (!toBeSelected.empty()) // advc.001z
 			{
@@ -1698,7 +1765,12 @@ void CvGame::doControl(ControlTypes eControl)
 		if (pInfo != NULL)
 			kUI.addPopup(pInfo);
 		break;
-	}
+	}  // <advc.088>
+	case CONTROL_UNSELECT_ALL:
+	{
+		kUI.clearSelectionList();
+		break;
+	} // </advc.088>
 	default: FErrorMsg("Unknown control type");
 	}
 }
@@ -1735,13 +1807,13 @@ void CvGame::enterWorldBuilder()
 {
 	FAssert(canDoControl(CONTROL_WORLD_BUILDER));
 	if (GC.getInitCore().getAdminPassword().empty())
-	{	// <advc.315c>
+	{	// <advc.135c>
 		/*  In multiplayer, setWorldBuilder apparently checks ChtLvl>0 and setChtLvl
 			doesn't work. Need to make the EXE believe that we're in singleplayer. */
 		m_bFeignSP = true;
-		gDLL->setChtLvl(1); // </advc.315c>
-		gDLL->UI().setWorldBuilder(!(gDLL->GetWorldBuilderMode()));
-		m_bFeignSP = false; // advc.315c
+		gDLL->setChtLvl(1); // </advc.135c>
+		gDLL->UI().setWorldBuilder(!gDLL->GetWorldBuilderMode());
+		m_bFeignSP = false; // advc.135c
 	}
 	else
 	{
@@ -1811,18 +1883,16 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 	bool bSleepUnit = false;
 	bool bWakeUnit = false;
 
-	for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
-		pUnitNode = pPlot->nextUnitNode(pUnitNode))
+	FOR_EACH_UNIT_IN(pUnit, *pPlot)
 	{
-		CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		if (pLoopUnit->getOwner() != getActivePlayer())
+		if (pUnit->getOwner() != getActivePlayer())
 			continue;
 		bUnits = true;
-		if (pLoopUnit->canFortify(pPlot))
+		if (pUnit->canFortify(pPlot))
 			bFortifyUnit = true;
-		else if (pLoopUnit->canSleep(pPlot))
+		else if (pUnit->canSleep(pPlot))
 			bSleepUnit = true;
-		else if (pLoopUnit->isWaiting())
+		else if (pUnit->isWaiting())
 			bWakeUnit = true;
 	}
 
@@ -1873,7 +1943,7 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 		{
 			ProcessTypes eLoopProcess = (ProcessTypes)iI;
 			if (!pCity->canMaintain(eLoopProcess))
-				continue; // advc
+				continue;
 			szBuffer = GC.getInfo(eLoopProcess).getDescription();
 			aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_MAINTAIN, eLoopProcess,
 					pPlot->getX(), pPlot->getY(), szBuffer));
@@ -2054,33 +2124,33 @@ void CvGame::applyFlyoutMenu(const CvFlyoutMenuData& kItem)
 		break;
 
 	case FLYOUT_WAKE_ALL:
-		for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
-			pUnitNode = pPlot->nextUnitNode(pUnitNode))
+	{
+		FOR_EACH_UNIT_IN(pUnit, *pPlot)
 		{
-			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			if (pLoopUnit->isGroupHead() &&
-			pLoopUnit->getOwner() == getActivePlayer()) // K-Mod
+			if (pUnit->isGroupHead() &&
+				pUnit->getOwner() == getActivePlayer()) // K-Mod
 			{
-				CvMessageControl::getInstance().sendDoCommand(pLoopUnit->getID(),
+				CvMessageControl::getInstance().sendDoCommand(pUnit->getID(),
 						COMMAND_WAKE, -1, -1, false);
 			}
 		}
 		break;
-
+	}
 	case FLYOUR_FORTIFY_ALL:
 	case FLYOUR_SLEEP_ALL:
-		for (CLLNode<IDInfo> const* pUnitNode = pPlot->headUnitNode(); pUnitNode != NULL;
-			pUnitNode = pPlot->nextUnitNode(pUnitNode))
+	{
+		FOR_EACH_UNIT_IN(pUnit, *pPlot)
 		{
-			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			if (pLoopUnit->isGroupHead() && pLoopUnit->getOwner() == getActivePlayer()) // K-Mod
+			if (pUnit->isGroupHead() &&
+				pUnit->getOwner() == getActivePlayer()) // K-Mod
 			{
-				CvMessageControl::getInstance().sendPushMission(pLoopUnit->getID(),
-						pLoopUnit->isFortifyable() ? MISSION_FORTIFY : MISSION_SLEEP,
+				CvMessageControl::getInstance().sendPushMission(pUnit->getID(),
+						pUnit->isFortifyable() ? MISSION_FORTIFY : MISSION_SLEEP,
 						-1, -1, NO_MOVEMENT_FLAGS, false, /* advc.011b: */ GC.ctrlKey());
 			}
 		}
 		break;
+	}
 	}
 }
 
@@ -2383,33 +2453,43 @@ bool CvGame::isSoundtrackOverride(CvString& strSoundtrack) const
 void CvGame::initSelection() const
 {
 	bool bSelected = false;
-	CvPlayer const& kActivePlayer = GET_PLAYER(getActivePlayer());
-	FOR_EACH_UNIT_VAR(pLoopUnit, kActivePlayer)
+	CvPlayer& kActivePlayer = GET_PLAYER(getActivePlayer());
+	// <advc.153> Replacing two non-nested loops
+	enum PassTypes
 	{
-		if (pLoopUnit->getGroup()->readyToSelect())
-		{
-			if (pLoopUnit->canFight())
-			{
-				selectUnit(pLoopUnit, true);
-				bSelected = true;
-				break;
-			}
-		}
-	}
-
-	if (!bSelected)
+		FIGHT_AND_ALL_READY,
+		ALL_READY,
+		// New passes:
+		FIGHT_AND_ANY_READY,
+		ANY_READY,
+		NUM_PASSES
+	};
+	for (int iPass = 0; iPass < NUM_PASSES &&
+		!bSelected; iPass++)
 	{
+		PassTypes const ePass = (PassTypes)iPass;
 		FOR_EACH_UNIT_VAR(pLoopUnit, kActivePlayer)
 		{
-			if (pLoopUnit->getGroup()->readyToSelect())
+			if ((ePass == FIGHT_AND_ALL_READY || ePass == FIGHT_AND_ANY_READY) &&
+				!pLoopUnit->canFight())
 			{
-				selectUnit(pLoopUnit, true);
-				bSelected = true;
-				break;
+				continue;
 			}
+			if ((ePass == FIGHT_AND_ALL_READY || ePass == ALL_READY) &&
+				!pLoopUnit->getGroup()->readyToSelect())
+			{
+				continue;
+			}
+			if ((ePass == FIGHT_AND_ANY_READY || ePass == ANY_READY) &&
+				!pLoopUnit->getGroup()->readyToSelect(true))
+			{
+				continue;
+			}
+			selectUnit(pLoopUnit, true);
+			bSelected = true;
+			break;
 		}
-	}
-
+	} // </advc.153>
 	if (!bSelected)
 	{
 		FOR_EACH_UNIT_VAR(pLoopUnit, kActivePlayer)
@@ -2443,7 +2523,7 @@ bool CvGame::shouldDisplayEndTurn() const
 
 bool CvGame::shouldDisplayWaitingOthers() const
 {	// <advc.706>
-	if(CvPlot::isAllFog())
+	if (!GET_PLAYER(getActivePlayer()).isHuman())
 		return false; // </advc.706>
 	if (!gDLL->UI().isCitySelection())
 	{
@@ -2547,12 +2627,12 @@ bool CvGame::shouldCenterMinimap() const
 
 EndTurnButtonStates CvGame::getEndTurnState() const
 {
-	EndTurnButtonStates eNewState = END_TURN_GO;
-
 	/*if ((isNetworkMultiPlayer() &&
-		(isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && 1 == countNumHumanGameTurnActive() ||
-		(!isSimultaneousTeamTurns() && 1 == GET_TEAM(getActiveTeam()).countNumHumanGameTurnActive() && GET_TEAM(getActiveTeam()).getAliveCount() > 1))))*/ // BtS
-	// K-Mod. Don't use GET_TEAM in pitboss mode. (and note, I've fixed a typo in the parentheses.)
+		(isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && countNumHumanGameTurnActive() == 1 ||
+		(!isSimultaneousTeamTurns() && GET_TEAM(getActiveTeam()).countNumHumanGameTurnActive() == 1 &&
+		GET_TEAM(getActiveTeam()).getAliveCount() > 1))))*/ // BtS
+	/*	K-Mod. Don't use GET_TEAM in pitboss mode.
+		(and note, I've fixed a typo in the parentheses.) */
 	if (isNetworkMultiPlayer() && getActiveTeam() != NO_TEAM &&
 		((isMPOption(MPOPTION_SIMULTANEOUS_TURNS) &&
 		  countNumHumanGameTurnActive() == 1) ||
@@ -2561,11 +2641,65 @@ EndTurnButtonStates CvGame::getEndTurnState() const
 		  GET_TEAM(getActiveTeam()).getAliveCount() > 1)))
 	// K-Mod end
 	{
-		eNewState = END_TURN_OVER_HIGHLIGHT;
+		return END_TURN_OVER_HIGHLIGHT;
 	}
-	else eNewState = END_TURN_GO;
+	return END_TURN_GO;
+}
 
-	return eNewState;
+// advc.095:
+void CvGame::setCityBarWidth(bool bWide)
+{
+	// The three art define tags that we have wider graphics for
+	TCHAR const* aszCityBarTags[] =
+	{
+		"INTERFACE_CITY_BAR_MODEL",
+		"INTERFACE_CITY_BAR_REGULAR_GLOW",
+		"INTERFACE_CITY_BAR_CAPITAL_GLOW"
+	};
+	int const iCityBarTags = ARRAY_LENGTH(aszCityBarTags);
+	CvArtInfoInterface* apCityBarArtInfos[iCityBarTags];
+	for (int i = 0; i < iCityBarTags; i++)
+	{
+		apCityBarArtInfos[i] = ARTFILEMGR.getInterfaceArtInfo(aszCityBarTags[i]);
+		if (apCityBarArtInfos[i] == NULL)
+			return; // Art file manager not ready (or tags missing in XML)
+	}
+	CvString const szPattern(bWide ? "CityBar" : "WideCityBar");
+	CvString const szPatternLC(bWide ? "citybar" : "widecitybar");
+	CvString const szReplacement(!bWide ? "CityBar" : "WideCityBar");
+	CvString const szReplacementLC(!bWide ? "citybar" : "widecitybar");
+	for (int i = 0; i < iCityBarTags; i++)
+	{
+		CvString szPath(apCityBarArtInfos[i]->getPath());
+		size_t iPos = szPath.rfind(szPattern);
+		if (iPos != CvString::npos &&
+			// Don't replace a CityBar directory name
+			iPos < szPath.length() - 1 && szPath.at(iPos + 1) != '/')
+		{
+			szPath.replace(iPos, szPattern.length(), szReplacement);
+		}
+		else
+		{
+			// Try lower case (though AdvCiv uses mixed case)
+			iPos = szPath.rfind(szPatternLC);
+			if (iPos != CvString::npos &&
+				iPos < szPath.length() - 1 && szPath.at(iPos + 1) != '/')
+			{
+				szPath.replace(iPos, szPatternLC.length(), szReplacementLC);
+			}
+			else
+			{
+				FAssert(i == 0);
+				return; // Apparently the width is already according to bWidth
+			}
+		}
+		apCityBarArtInfos[i]->setPath(szPath);
+	}
+	for (PlayerIter<ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
+	{
+		FOR_EACH_CITY_VAR(pCity, *itPlayer)
+			pCity->reloadEntity();
+	}
 }
 
 void CvGame::handleCityScreenPlotPicked(CvCity* pCity, CvPlot* pPlot,
@@ -2578,22 +2712,27 @@ void CvGame::handleCityScreenPlotPicked(CvCity* pCity, CvPlot* pPlot,
 	}
 	int iIndex = pCity->getCityPlotIndex(*pPlot);
 	if (pPlot->getOwner() == getActivePlayer() &&
-		pCity->getOwner() == getActivePlayer() && iIndex != -1)
+		pCity->getOwner() == getActivePlayer() && iIndex != NO_CITYPLOT)
 	{
 		CvMessageControl::getInstance().sendDoTask(pCity->getID(),
 				TASK_CHANGE_WORKING_PLOT, iIndex, -1, false, bAlt, bShift, bCtrl);
 	}
-	else if (GC.getDefineINT("CITY_SCREEN_CLICK_WILL_EXIT"))
+	else //if (GC.getDefineINT("CITY_SCREEN_CLICK_WILL_EXIT"))
+	if (BUGOption::isEnabled("CityScreen__ClickMapToExit", false)) // advc.004t
 		gDLL->UI().clearSelectedCities();
 }
 
 void CvGame::handleCityScreenPlotDoublePicked(CvCity* pCity, CvPlot* pPlot,
 	bool bAlt, bool bShift, bool bCtrl) const
-{	// advc.004t: Commented out
-	/*if (pCity != NULL) {
-		if (pCity->plot() == pPlot)
-			gDLL->UI().clearSelectedCities();
-	}*/
+{
+	if (pCity != NULL && pCity->plot() == pPlot)
+	{
+		/*	<advc.004t> Exit upon double click outside the radius, not upon
+			double click on the city center. */
+		/*gDLL->UI().clearSelectedCities()*/;
+	}
+	else if (pPlot != NULL && pCity->getCityPlotIndex(*pPlot) == NO_CITYPLOT)
+		gDLL->UI().clearSelectedCities(); // </advc.004t>
 }
 
 void CvGame::handleCityScreenPlotRightPicked(CvCity* pCity, CvPlot* pPlot,

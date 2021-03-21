@@ -2,7 +2,6 @@
 <!--
 	Not Just Another Game Clock
 	Options Game Text
-
 	Copyright (c) 2009 The BUG Mod.
 -->
 <Civ4GameText xmlns="http://www.firaxis.com">
@@ -85,10 +84,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWGAMEERA_HOVER</Tag>
 		<English>When checked, the average era of all civilizations in the game is displayed (game era) instead of the era of your civilization. The game era is relevant for some AI behaviors, but not normally known to the human players until they've met all other civilizations, so this option could be considered cheating.</English>
-		<French>When checked, the average era of all civilizations in the game is displayed (game era) instead of the era of your civilization. The game era is relevant for some AI behaviors, but not normally known to the human players until they've met all other civilizations, so this option could be considered cheating.</French>
 		<German>Zeigt statt Ihrem Zeitalter das Durchschnittszeitalter aller Zivilisationen an (Spielzeitalter). Das Spielzeitalter beeinflusst das Verhalten der KI-Spieler, ist den menschlichen Spielern aber gewöhnlich erst dann bekannt, wenn sie mit allen Zivilisationen in Kontakt stehen; daher könnte man diese Option als regelwidrig ansehen.</German>
-		<Italian>When checked, the average era of all civilizations in the game is displayed (game era) instead of the era of your civilization. The game era is relevant for some AI behaviors, but not normally known to the human players until they've met all other civilizations, so this option could be considered cheating.</Italian>
-		<Spanish>When checked, the average era of all civilizations in the game is displayed (game era) instead of the era of your civilization. The game era is relevant for some AI behaviors, but not normally known to the human players until they've met all other civilizations, so this option could be considered cheating.</Spanish>
 	</TEXT>
 	
 	<!-- advc.067: was "Use Era-Related Colors" -->
@@ -400,10 +396,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_NJAGC__ALTERNATETEXT_HOVER</Tag>
 		<English>When checked, NJAGC alternates between the settings in the left column and those on the right. The two dropdown menus determine for how many seconds each view is shown.</English>
-		<French>When checked, NJAGC alternates between the settings in the left column and those on the right. The two dropdown menus determine for how many seconds each view is shown.</French>
 		<German>Lässt die Zeitanzeige zwischen den Einstellungen in der linken Spalte und jenen in der rechten Spalte wechseln. Die beiden Aufklappmenüs steuern die jeweilige Anzeigedauer.</German>
-		<Italian>When checked, NJAGC alternates between the settings in the left column and those on the right. The two dropdown menus determine for how many seconds each view is shown.</Italian>
-		<Spanish>When checked, NJAGC alternates between the settings in the left column and those on the right. The two dropdown menus determine for how many seconds each view is shown.</Spanish>
 	</TEXT>
 	
 	<!-- advc.067: unused -->
@@ -424,19 +417,13 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_NJAGC__ALTTIMING_HOVER</Tag>
 		<English>The duration in seconds for which the settings on the right are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</English>
-		<French>The duration in seconds for which the settings on the right are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</French>
 		<German>Die Anzeigedauer (Sekunden) für die Einstellungen in der rechten Spalte, falls [COLOR_HIGHLIGHT_TEXT]Abwechselnde Anzeige[COLOR_REVERT] aktiviert ist.</German>
-		<Italian>The duration in seconds for which the settings on the right are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</Italian>
-		<Spanish>The duration in seconds for which the settings on the right are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</Spanish>
 	</TEXT>
 	<!-- advc.067: New key; same text as above (almost) -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_NJAGC__PRIMARYTIMING_HOVER</Tag>
 		<English>The duration in seconds for which the settings on the left are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</English>
-		<French>The duration in seconds for which the settings on the left are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</French>
 		<German>Die Anzeigedauer (Sekunden) für die Einstellungen in der linken Spalte, falls [COLOR_HIGHLIGHT_TEXT]Abwechselnde Anzeige[COLOR_REVERT] aktiviert ist.</German>
-		<Italian>The duration in seconds for which the settings on the left are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</Italian>
-		<Spanish>The duration in seconds for which the settings on the left are used if [COLOR_HIGHLIGHT_TEXT]Alternate View[COLOR_REVERT] is enabled.</Spanish>
 	</TEXT>
 	
 	<!-- advc.067: Now unused -->

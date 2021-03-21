@@ -5,13 +5,14 @@
 #include "WarEvaluator.h"
 #include "UWAIReport.h"
 #include "WarEvalParameters.h"
+#include "MilitaryBranch.h"
 #include "CvInfo_GameOption.h"
 #include "CvInfo_Building.h" // Just for vote-related info
 //#include "CvInfo_Unit.h" // for UWAI::Civ::militaryPower (now in PCH)
 #include "CoreAI.h"
 #include "CvCityAI.h"
 #include "CvDiploParameters.h"
-#include "CvMap.h"
+#include "TeamPathFinder.h"
 #include "CvArea.h"
 #include "RiseFall.h" // advc.705
 
@@ -332,14 +333,12 @@ void UWAI::Team::alignAreaAI(bool isNaval) {
 					targetCity->getOwner()) > a.getCitiesPerPlayer(
 					member.getID()))) {
 				WarPlanTypes wp = GET_TEAM(agentId).AI_getWarPlan(targetCity->getTeam());
-				if(!isPushover(targetCity->getTeam()) ||
+				if(!GET_TEAM(agentId).AI_isPushover(targetCity->getTeam()) ||
 						(wp != WARPLAN_TOTAL && wp != WARPLAN_PREPARING_TOTAL)) {
 					// Make sure there isn't an easily reachable target in the capital area
-					int d=-1;
-					UWAICache::City::measureDistance(member.getID(), DOMAIN_LAND,
-							*capital->plot(), *targetCity->plot(), &d);
-					if(::round(d / UWAICache::City::estimateMovementSpeed(
-							member.getID(), DOMAIN_LAND, d)) <= 8)
+					TeamPathFinder<TeamPath::LAND> pf(GET_TEAM(agentId),
+							&GET_TEAM(targetCity->getTeam()), 8);
+					if(pf.generatePath(capital->getPlot(), targetCity->getPlot()))
 						bAlign = false;
 				}
 			}
@@ -354,8 +353,8 @@ void UWAI::Team::alignAreaAI(bool isNaval) {
 				bAlign = false;
 			else {
 				UWAICache::City* c = member.uwai().getCache().
-						lookupCity(*targetCity);
-				if(c == NULL || !c->canReachByLand())
+						lookupCity(targetCity->plotNum());
+				if(c == NULL || !c->canReachByLandFromCapital())
 					bAlign = false;
 			}
 		}
@@ -368,7 +367,7 @@ void UWAI::Team::alignAreaAI(bool isNaval) {
 					areasNotToAlign.begin(), areasNotToAlign.end(),
 					std::inserter(diff, diff.begin()));
 	CvMap& m = GC.getMap();
-	for(std::set<int>::const_iterator it = diff.begin(); it != diff.end(); it++) {
+	for(std::set<int>::const_iterator it = diff.begin(); it != diff.end(); ++it) {
 		CvArea& a = *m.getArea(*it);
 		AreaAITypes oldAAI = a.getAreaAIType(agentId);
 		AreaAITypes newAAI = oldAAI;
@@ -674,27 +673,53 @@ bool UWAI::Team::considerPeace(TeamTypes targetId, int u) {
 bool UWAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUtility,
 		int masterReluctancePeace) {
 
-	int const uThresh = -75;
-	if(ourWarUtility > -uThresh) {
-		report->log("No capitulation b/c war utility not low enough (%d>%d)",
-				ourWarUtility, uThresh);
-		return true;
+	{	int const uThresh = -75;
+		if(ourWarUtility * 4 > uThresh) {
+			report->log("Don't compute capitulation utility b/c probably not low enough (%d>%d)",
+					ourWarUtility, uThresh / 4);
+			return true;
+		}
+		if(ourWarUtility > uThresh) {
+			int capUtility = ourWarUtility;
+			if(GET_TEAM(agentId).getNumWars(true, true) > 1) {
+				/*	Looks like war utility is low, but not low enough. Perhaps
+					this is b/c we haven't yet accounted for the protection that
+					the master grants us from third parties.
+					NB: Ideally, considerCapitulation should not rely on ourWarUtility
+					at all when there are multiple (free) war enemies, but that's
+					now difficult to change at the call site. */
+				report->log("Computing war utility of capitulation (%d>%d)",
+						ourWarUtility, uThresh);
+				WarEvalParameters params(agentId, masterId, *report, false, NO_PLAYER,
+							masterId);
+				WarEvaluator eval(params);
+				capUtility = eval.evaluate(GET_TEAM(agentId).AI_getWarPlan(masterId));
+			}
+			if(capUtility > uThresh) {
+				report->log("No capitulation b/c utility not low enough (%d>%d)",
+						capUtility, uThresh);
+				return true;
+			}
+		}
 	}
 	/*  Low reluctance to peace can just mean that there isn't much left for
 		them to conquer; doesn't have to mean that they'll soon offer peace.
 		Probability test to ensure that we eventually capitulate even if
 		master's reluctance remains low. */
-	double prSkip = 1 - (masterReluctancePeace * 0.015 + 0.25);
+	double prSkip = 1 - (masterReluctancePeace * 0.015 + 0.3);
 	int ourCities = GET_TEAM(agentId).getNumCities();
+	prSkip = ::dRange(prSkip, 0.0,
+			// Reduce maximal waiting time in the late game
+			0.87 - 0.04 * GET_TEAM(masterId).AI_getCurrEraFactor().getDouble());
 	// If few cities remain, we can't afford to wait
-	if(ourCities <= 2) prSkip -= 0.2;
-	if(ourCities <= 1) prSkip -= 0.1;
-	prSkip = ::dRange(prSkip, 0.0, 0.87);
+	if(ourCities <= 2)
+		prSkip -= 0.2;
+	if(ourCities <= 1)
+		prSkip -= 0.1;
 	report->log("%d percent probability to delay capitulation based on master's "
 			"reluctance to peace (%d)", ::round(100 * prSkip), masterReluctancePeace);
 	if(::bernoulliSuccess(prSkip, "advc.104 (cap)")) {
-		if(prSkip < 1)
-			report->log("No capitulation this turn");
+		report->log("No capitulation this turn");
 		return true;
 	}
 	if(prSkip > 0)
@@ -710,7 +735,7 @@ bool UWAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUtility,
 	}
 	bool human = GET_TEAM(masterId).isHuman();
 	/*  Make master accept if it's not sure about continuing the war. Note that
-		due to change 130v, gaining a vassal can't really hurt the master. */
+		due to change advc.130v, gaining a vassal can't really hurt the master. */
 	bool checkAccept = !human && masterReluctancePeace >= 15;
 	if(!checkAccept && !human)
 		report->log("Master accepts capitulation b/c of low reluctance to peace (%d)",
@@ -1095,7 +1120,7 @@ int UWAI::Team::uJointWar(TeamTypes targetId, TeamTypes allyId) const {
 		just a few, but enough to tip the scales. Highly unlikely in the first half
 		of the game. */
 	if(!GET_TEAM(allyId).uwai().isLandTarget(targetId) &&
-			GET_TEAM(allyId).getCurrentEra() < 3)
+			GET_TEAM(allyId).getCurrentEra() < CvEraInfo::AI_getAgeOfExploration())
 		return std::min(0, r);
 	return r;
 }
@@ -1200,7 +1225,7 @@ void UWAI::Team::scheme() {
 		if(!canSchemeAgainst(targetId, false))
 			continue;
 		report->log("Scheming against %s", report->teamName(targetId));
-		bool shortWork = isPushover(targetId);
+		bool shortWork = agent.AI_isPushover(targetId);
 		if(shortWork)
 			report->log("Target assumed to be short work");
 		bool skipTotal = (agent.AI_isAnyWarPlan() || shortWork);
@@ -1479,12 +1504,12 @@ DenialTypes UWAI::Team::makePeaceTrade(TeamTypes enemyId, TeamTypes brokerId) co
 		if(ourReluct < 55)
 			bNoDenial = true;
 		else {
-			CvGame const& g = GC.getGame();
+			CvGameAI const& g = GC.AI_getGame();
 			scaled scoreRatio(g.getTeamScore(agentId),
 					g.getTeamScore(g.getRankTeam(0)));
-			int const gameEra = g.getCurrentEra();
+			scaled const gameEra = g.AI_getCurrEraFactor();
 			if(gameEra > 0 &&
-					scoreRatio < (scaled(gameEra - 1, gameEra) + fixp(2/3.)) / 2) {
+					scoreRatio < ((gameEra - 1) / gameEra + fixp(2/3.)) / 2) {
 				// We're not doing well in score; the broker might be doing much better.
 				if(ourReluct < 70)
 					bNoDenial = true;
@@ -1532,7 +1557,8 @@ int UWAI::Team::makePeaceTradeVal(TeamTypes enemyId, TeamTypes brokerId) const {
 	FAssert(warDuration > 0);
 	/*  warDuration could be as small as 1 I think. Then the mark-up is
 		+175% in the Ancient era. None for a Renaissance war after 15 turns. */
-	double timeModifier = std::max(0.75, (5.5 - agent.getCurrentEra() / 2.0) /
+	double timeModifier = std::max(0.75,
+			(5.5 - agent.AI_getCurrEraFactor().getDouble() / 2) /
 			std::sqrt(warDuration + 1.0));
 	r = r * attitudeModifier * timeModifier;
 	return agent.AI_roundTradeVal(::round(r));
@@ -1862,15 +1888,14 @@ bool UWAI::Team::isLandTarget(TeamTypes theyId) const {
 		if(!cache.canTrainDeepSeaCargo())
 			distLimit = MAX_INT;
 		for(int j = 0; j < cache.size(); j++) {
-			UWAICache::City* c = cache.getCity(j);
-			if(c == NULL || c->city()->getTeam() != theyId ||
-					!GET_TEAM(agentId).AI_deduceCitySite(c->city()))
+			UWAICache::City& c = cache.cityAt(j);
+			if(c.city().getTeam() != theyId)
 				continue;
-			if(c->city()->isCoastal())
+			if(c.city().isCoastal())
 				hasCoastalCity = true;
-			if(c->canReachByLand()) {
+			if(c.canReachByLand()) {
 				canReachAnyByLand = true;
-				if(c->getDistance() <= distLimit)
+				if(c.getDistance() <= distLimit)
 					return true;
 			}
 		}
@@ -1881,17 +1906,6 @@ bool UWAI::Team::isLandTarget(TeamTypes theyId) const {
 	if(!hasCoastalCity && canReachAnyByLand)
 		return true;
 	return false;
-}
-
-bool UWAI::Team::isPushover(TeamTypes theyId) const {
-
-	CvTeam const& they = GET_TEAM(theyId);
-	CvTeam const& agent = GET_TEAM(agentId);
-	int theirCities = they.getNumCities();
-	int agentCities = agent.getNumCities();
-	return ((theirCities <= 1 && agentCities >= 3) ||
-			4 * theirCities < agentCities) &&
-			10 * they.getPower(true) < 4 * agent.getPower(false);
 }
 
 void UWAI::Team::startReport() {
@@ -1986,7 +2000,7 @@ double UWAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {
 		in order to reach fixedBound. Neither side should feel confident if there
 		isn't much action. */
 	float progressFactor = std::max(3.0f,
-			11 - GET_TEAM(agentId).getCurrentEra() * 1.5f);
+			11 - GET_TEAM(agentId).AI_getCurrEraFactor().getFloat() * 1.5f);
 	float totalBasedBound = (100 - (progressFactor *
 			(ourSuccess + theirSuccess)) / timeAtWar) / 100;
 	float r = successRatio;
@@ -2105,7 +2119,7 @@ bool UWAI::Civ::amendTensions(PlayerTypes humanId) const {
 	FAssert(GET_TEAM(weId).getLeaderID() == weId);
 	CvPlayerAI& we = GET_PLAYER(weId);
 	// Lower contact probabilities in later eras
-	int era = we.getCurrentEra();
+	double const era = we.AI_getCurrEraFactor().getDouble();
 	CvLeaderHeadInfo const& lh = GC.getInfo(we.getPersonalityType());
 	if(we.AI_getAttitude(humanId) <= lh.getDemandTributeAttitudeThreshold()) {
 		FOR_EACH_ENUM(AIDemand) {
@@ -2391,8 +2405,8 @@ double UWAI::Civ::militaryPower(CvUnitInfo const& u, double baseValue) const {
 	//if(u.isSuicide()) r *= 1.33; // all missiles
 
 	/*  Combat odds don't increase linearly with strength. Use a power law
-		with a power between 1.5 and 2 (configured in XML; 1.7 for now). */
-	r = pow(r, (double)GC.getPOWER_CORRECTION());
+		with a power between 1.5 and 2 (configured in XML). */
+	r = std::pow(r, GC.getDefineINT(CvGlobals::POWER_CORRECTION) / 100.0);
 	return r;
 }
 
@@ -2413,20 +2427,26 @@ double UWAI::Civ::buildUnitProb() const {
 	return GC.getInfo(we.getPersonalityType()).getBuildUnitProb() / 100.0;
 }
 
-double UWAI::Civ::shipSpeed() const {
+int UWAI::Civ::shipSpeed() const {
 
-	// Tbd.: Use the actual speed of our typical LOGISTICS unit
-	return ::dRange(GET_PLAYER(weId).getCurrentEra() + 1.0, 3.0, 5.0);
+	MilitaryBranch const* logistics = getCache().getPowerValues()[LOGISTICS];
+	if(logistics != NULL) {
+		CvUnitInfo const* typicalTransport = logistics->getTypicalUnit();
+		if(typicalTransport != NULL)
+			return typicalTransport->getMoves();
+	}
+	// Fallback (needed?)
+	return ::range(GET_PLAYER(weId).getCurrentEra() + 1, 3, 5);
 }
 
 double UWAI::Civ::humanBuildUnitProb() const {
 
-	CvPlayer& human = GET_PLAYER(weId);
+	CvPlayerAI const& human = GET_PLAYER(weId);
 	double r = 0.25; // 30 is about average, Gandhi 15
 	if(human.getCurrentEra() == 0)
 		r += 0.1;
 	if(GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS) &&
-			human.getCurrentEra() <= 2)
+			human.AI_getCurrEraFactor() <= 2)
 		r += 0.05;
 	return r;
 }
@@ -2442,8 +2462,8 @@ double UWAI::Civ::estimateBuildUpRate(PlayerTypes civId, int period) const {
 		return 0;
 	int turnNumber = g.getGameTurn();
 	CvPlayerAI& civ = GET_PLAYER(civId);
-	int pastPow = std::max(1, civ.getPowerHistory(turnNumber - 1 - period));
-	double delta = civ.getPowerHistory(turnNumber - 1) - pastPow;
+	int pastPow = std::max(1, civ.getHistory(PLAYER_HISTORY_POWER, turnNumber - 1 - period));
+	double delta = civ.getHistory(PLAYER_HISTORY_POWER, turnNumber - 1) - pastPow;
 	return std::max(0.0, delta / pastPow);
 }
 
@@ -2573,9 +2593,21 @@ double UWAI::Civ::confidenceAgainstHuman() const {
 int UWAI::Civ::vengefulness() const {
 
 	CvPlayerAI const& we = GET_PLAYER(weId);
-	// AI assumes that humans are calculating, not vengeful
-	if(we.isHuman())
-		return 0;
+	/*	AI assumes that humans are mostly calculating.
+		But player feedback has shown that most humans are at least
+		a little bit vengeful, casual players a bit more so.
+		On the bottom line, this is relevant mainly for the reparations
+		that the AI is willing to pay. */
+	if(we.isHuman()) {
+		if(GC.getGame().isOption(GAMEOPTION_RISE_FALL)) // Difficulty not so telling in R&F
+			return 1;
+		int const diffic = GC.getInfo(we.getHandicapType()).getDifficulty();
+		if(diffic >= 50)
+			return 1;
+		if(diffic > 20)
+			return 2;
+		return 3;
+	}
 	/*  RefuseToTalkWarThreshold loses its original meaning because UWAI
 		doesn't sulk. It fits pretty well for carrying a grudge. Sitting Bull
 		has the highest value (12) and De Gaulle the lowest (5).

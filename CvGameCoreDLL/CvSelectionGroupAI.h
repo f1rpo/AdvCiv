@@ -35,10 +35,16 @@ public:
 	CvUnitAI* AI_getBestGroupAttacker(const CvPlot* pPlot, bool bPotentialEnemy,
 			int& iUnitOdds, bool bForce = false, bool bNoBlitz = false,
 			bool bSacrifice = false, bool bMaxSurvival = false) const; // advc.048
-	CvUnitAI* AI_getBestGroupSacrifice(const CvPlot* pPlot, bool bPotentialEnemy, bool bForce = false, bool bNoBlitz = false) const;
+	CvUnitAI* AI_getBestGroupSacrifice(const CvPlot* pPlot, bool bPotentialEnemy,
+			bool bForce = false, bool bNoBlitz = false) const;
 	// K-Mod has removed bCheckCanMove param from these two and bPotentialEnemy from AI_compareStacks
-	int AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAttack = false) const;
-	int AI_sumStrength(const CvPlot* pAttackedPlot = NULL, DomainTypes eDomainType = NO_DOMAIN, bool bCheckCanAttack = false) const;
+	int AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAttack = false,
+			bool bConstCache = false) const; // advc.001n
+	int AI_sumStrength(const CvPlot* pAttackedPlot = NULL, DomainTypes eDomainType = NO_DOMAIN,
+			bool bCheckCanAttack = false) const;
+	// <advc.004c>
+	CvUnit* AI_bestUnitForMission(MissionTypes eMission,
+			CvPlot const* pMissionPlot = NULL); // </advc.004c>
 
 	void AI_queueGroupAttack(int iX, int iY);
 	inline void AI_cancelGroupAttack() { m_bGroupAttack = false; } // K-Mod (made inline)
@@ -63,7 +69,9 @@ public:
 	// advc.003u: These two had returned CvUnit*
 	CvUnitAI* AI_ejectBestDefender(CvPlot* pTargetPlot);
 	CvUnitAI* AI_getMissionAIUnit() const;
-	CvUnitAI* AI_getHeadUnit() const; // advc.003u: Counterpart to CvSelectionGroup::getHeadUnit
+	// <advc.003u> Counterparts to CvSelectionGroup::getHeadUnit
+	CvUnitAI const* AI_getHeadUnit() const;
+	CvUnitAI* AI_getHeadUnit(); // </advc.003u>
 
 	bool AI_isFull();
 

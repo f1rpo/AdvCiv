@@ -250,6 +250,7 @@
 	<ElementType name="FeatureTerrainBooleans" content="eltOnly">
 		<element type="FeatureTerrainBoolean" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
+	<!-- advc (note): Unused, the DLL doesn't even load it. -->
 	<ElementType name="bUseLSystem" content="textOnly" dt:type="boolean"/>
 	<ElementType name="BonusInfo" content="eltOnly">
 		<element type="Type"/>

@@ -28,3 +28,13 @@ EXPORTS
 ?getPlayerColor@CvPlayer@@QBE?AW4PlayerColorTypes@@XZ=?getPlayerColorExternal@CvPlayer@@QBE?AW4PlayerColorTypes@@XZ
 ?get@CvRandom@@QAEGGPBD@Z=?getExternal@CvRandom@@QAEGGPBD@Z
 ?setLeader@CvInitCore@@QAEXW4PlayerTypes@@W4LeaderHeadTypes@@@Z=?setLeaderExternal@CvInitCore@@QAEXW4PlayerTypes@@W4LeaderHeadTypes@@@Z
+?isCity@CvPlot@@QBE_N_NW4TeamTypes@@@Z=?isCityExternal@CvPlot@@QBE_N_NW4TeamTypes@@@Z
+?headFirstTradesNode@CvDeal@@QBEPAV?$CLLNode@UTradeData@@@@XZ=?headFirstTradesNodeExternal@CvDeal@@QBEPAV?$CLLNode@UTradeData@@@@XZ
+?headSecondTradesNode@CvDeal@@QBEPAV?$CLLNode@UTradeData@@@@XZ=?headSecondTradesNodeExternal@CvDeal@@QBEPAV?$CLLNode@UTradeData@@@@XZ
+?nextFirstTradesNode@CvDeal@@QBEPAV?$CLLNode@UTradeData@@@@PAV2@@Z=?nextFirstTradesNodeExternal@CvDeal@@QBEPAV?$CLLNode@UTradeData@@@@PAV2@@Z
+?nextSecondTradesNode@CvDeal@@QBEPAV?$CLLNode@UTradeData@@@@PAV2@@Z=?nextSecondTradesNodeExternal@CvDeal@@QBEPAV?$CLLNode@UTradeData@@@@PAV2@@Z
+?getGroup@CvUnit@@QBEPAVCvSelectionGroup@@XZ=?getGroupExternal@CvUnit@@QBEPAVCvSelectionGroup@@XZ
+?nextUnitNode@CvSelectionGroup@@QBEPAV?$CLLNode@UIDInfo@@@@PAV2@@Z=?nextUnitNodeExternal@CvSelectionGroup@@QBEPAV?$CLLNode@UIDInfo@@@@PAV2@@Z
+?headUnitNode@CvSelectionGroup@@QBEPAV?$CLLNode@UIDInfo@@@@XZ=?headUnitNodeExternal@CvSelectionGroup@@QBEPAV?$CLLNode@UIDInfo@@@@XZ
+?getHeadUnit@CvSelectionGroup@@QBEPAVCvUnit@@XZ=?getHeadUnitExternal@CvSelectionGroup@@QBEPAVCvUnit@@XZ
+?nextUnitNode@CvPlot@@QBEPAV?$CLLNode@UIDInfo@@@@PAV2@@Z=?nextUnitNodeExternal@CvPlot@@QBEPAV?$CLLNode@UIDInfo@@@@PAV2@@Z

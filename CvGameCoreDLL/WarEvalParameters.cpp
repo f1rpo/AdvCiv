@@ -16,6 +16,7 @@ WarEvalParameters::WarEvalParameters(TeamTypes agentId,
 	report(report), ignoreDistraction(ignoreDistraction)
 {
 	consideringPeace = GET_TEAM(_agentId).isAtWar(_targetId);
+	FAssert(capitulationTeam == NO_TEAM || consideringPeace);
 	if(sponsor != NO_PLAYER)
 		immediateDoW = true;
 	// To be set by WarEvaluator:

@@ -1,5 +1,3 @@
-// plotGroup.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvPlotGroup.h"
 #include "CvPlayer.h"
@@ -24,7 +22,6 @@ CvPlotGroup::~CvPlotGroup()
 void CvPlotGroup::init(int iID, PlayerTypes eOwner, CvPlot* pPlot)
 {
 	reset(iID, eOwner);
-
 	addPlot(pPlot);
 }
 
@@ -39,10 +36,8 @@ void CvPlotGroup::uninit()
 void CvPlotGroup::reset(int iID, PlayerTypes eOwner, bool bConstructorCall)
 {
 	uninit();
-
 	m_iID = iID;
 	m_eOwner = eOwner;
-
 	if (!bConstructorCall)
 		m_aiNumBonuses.reset();
 }
@@ -76,22 +71,23 @@ void CvPlotGroup::removePlot(CvPlot* pPlot, /* advc.064d: */ bool bVerifyProduct
 
 void CvPlotGroup::recalculatePlots(/* advc.064d: */ bool bVerifyProduction)
 {
-	PROFILE_FUNC(); // advc: The bulk of the time is spent by FAStar, specifically plotGroupValid (CvGameCoreUtils).
-
-	XYCoords xy;
 	PlayerTypes eOwner = getOwner();
-
-	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
-	if (pPlotNode != NULL)
 	{
-		CvPlot const& kPlot = GC.getMap().getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
-
-		int iCount = 0;
-		gDLL->getFAStarIFace()->SetData(&GC.getPlotGroupFinder(), &iCount);
-		gDLL->getFAStarIFace()->GeneratePath(&GC.getPlotGroupFinder(), kPlot.getX(), kPlot.getY(),
-				-1, -1, false, eOwner);
-		if (iCount == getLengthPlots())
-			return;
+		CLLNode<XYCoords>* pPlotNode = headPlotsNode();
+		if (pPlotNode != NULL)
+		{	/*	advc: This takes up the bulk of the time. Try it w/o this check?
+				Derive a replacement from KmodPathFinder? (A function for exploring
+				all plots reachable from the source would have to be added.) */
+			PROFILE("CvPlotGroup::recalculatePlots PlotGroupFinder");
+			CvPlot const& kPlot = GC.getMap().getPlot(
+					pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+			int iCount = 0;
+			gDLL->getFAStarIFace()->SetData(&GC.getPlotGroupFinder(), &iCount);
+			gDLL->getFAStarIFace()->GeneratePath(&GC.getPlotGroupFinder(),
+					kPlot.getX(), kPlot.getY(), -1, -1, false, eOwner);
+			if (iCount == getLengthPlots())
+				return;
+		}
 	}
 	/*  <advc.064d> To deal with nested recalculatePlots calls. Mustn't
 		verifyCityProduction so long as any recalculation is ongoing. */
@@ -102,38 +98,37 @@ void CvPlotGroup::recalculatePlots(/* advc.064d: */ bool bVerifyProduction)
 		root recalc call, so ... might be inadequate. */
 	std::vector<CvCity*> apOldCities; // </advc.064d>
 	{
-		PROFILE("CvPlotGroup::recalculatePlots update");
-
 		CLinkList<XYCoords> oldPlotGroup;
-
-		pPlotNode = headPlotsNode();
-		while (pPlotNode != NULL)
 		{
-			PROFILE("CvPlotGroup::recalculatePlots update 1");
-
-			CvPlot& kPlot = GC.getMap().getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
-			// <advc.064d>
-			CvCity* pPlotCity = kPlot.getPlotCity();
-			if (pPlotCity != NULL)
-				apOldCities.push_back(pPlotCity);
-			// </advc.064d>
-
-			xy.iX = kPlot.getX();
-			xy.iY = kPlot.getY();
-
-			oldPlotGroup.insertAtEnd(xy);
-			kPlot.setPlotGroup(eOwner, NULL);
-			pPlotNode = deletePlotsNode(pPlotNode); // will delete this PlotGroup...
+			PROFILE("CvPlotGroup::recalculatePlots - update 1");
+			XYCoords xy;
+			CLLNode<XYCoords>* pPlotNode = headPlotsNode();
+			while (pPlotNode != NULL)
+			{
+				CvPlot& kPlot = GC.getMap().getPlot(
+						pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+				// <advc.064d>
+				CvCity* pPlotCity = kPlot.getPlotCity();
+				if (pPlotCity != NULL)
+					apOldCities.push_back(pPlotCity);
+				// </advc.064d>
+				xy.iX = kPlot.getX();
+				xy.iY = kPlot.getY();
+				oldPlotGroup.insertAtEnd(xy);
+				kPlot.setPlotGroup(eOwner, NULL);
+				pPlotNode = deletePlotsNode(pPlotNode); // will delete this PlotGroup...
+			}
 		}
-
-		pPlotNode = oldPlotGroup.head();
-		while (pPlotNode != NULL)
 		{
-			PROFILE("CvPlotGroup::recalculatePlots update 2");
-
-			CvPlot& kPlot = GC.getMap().getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
-			kPlot.updatePlotGroup(eOwner, true);
-			pPlotNode = oldPlotGroup.deleteNode(pPlotNode);
+			PROFILE("CvPlotGroup::recalculatePlots - update 2");
+			CLLNode<XYCoords>* pPlotNode = oldPlotGroup.head();
+			while (pPlotNode != NULL)
+			{
+				CvPlot& kPlot = GC.getMap().getPlot(
+						pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+				kPlot.updatePlotGroup(eOwner, true);
+				pPlotNode = oldPlotGroup.deleteNode(pPlotNode);
+			}
 		}
 	}
 	// <advc.064d>
@@ -141,15 +136,10 @@ void CvPlotGroup::recalculatePlots(/* advc.064d: */ bool bVerifyProduction)
 	FAssert(m_iRecalculating >= 0);
 	if (m_iRecalculating == 0 && bVerifyProduction)
 	{
+		PROFILE("CvPlotGroup::recalculatePlots - verifyProduction");
 		for (size_t i = 0; i < apOldCities.size(); i++)
 			apOldCities[i]->verifyProduction();
 	} // </advc.064d>
-}
-
-
-void CvPlotGroup::setID(int iID)
-{
-	m_iID = iID;
 }
 
 
@@ -161,28 +151,34 @@ void CvPlotGroup::changeNumBonuses(BonusTypes eBonus, int iChange)
 	//iOldNumBonuses = getNumBonuses(eBonus);
 	m_aiNumBonuses.add(eBonus, iChange);
 
-	//FAssert(m_paiNumBonuses.get(eBonus) >= 0); // XXX
-	// K-Mod note, m_paiNumBonuses[eBonus] is often temporarily negative while plot groups are being updated.
-	// It's an unfortunate side effect of the way the update is implemented. ... and so this assert is invalid.
-	// (This isn't my fault. I haven't changed it. It has always been like this.)
-
-	CLLNode<XYCoords>* pPlotNode = headPlotsNode();
-	while (pPlotNode != NULL)
+	//FAssert(m_aiNumBonuses.get(eBonus) >= 0); // XXX
+	/*	K-Mod note, m_aiNumBonuses[eBonus] is often temporarily negative
+		while plot groups are being updated.
+		It's an unfortunate side effect of the way the update is implemented. ...
+		and so this assert is invalid.
+		(This isn't my fault. I haven't changed it. It has always been like this.) */
 	{
-		CvCity* pCity = GC.getMap().getPlot(pPlotNode->m_data.iX, pPlotNode->m_data.iY).getPlotCity();
-		if (pCity != NULL)
+		// advc: Maintain a list of the group owner's cities (CLinkList<CvCity*> m_ownerCities)?
+		PROFILE("CvPlotGroup::changeNumBonuses - cities");
+		CLLNode<XYCoords>* pPlotNode = headPlotsNode();
+		while (pPlotNode != NULL)
 		{
-			if (pCity->getOwner() == getOwner())
-				pCity->changeNumBonuses(eBonus, iChange);
+			CvCity* pCity = GC.getMap().getPlot(
+					pPlotNode->m_data.iX, pPlotNode->m_data.iY).getPlotCity();
+			if (pCity != NULL)
+			{
+				if (pCity->getOwner() == getOwner())
+					pCity->changeNumBonuses(eBonus, iChange);
+			}
+			pPlotNode = nextPlotsNode(pPlotNode);
 		}
-		pPlotNode = nextPlotsNode(pPlotNode);
 	}
 }
 
 // advc.064d:
 void CvPlotGroup::verifyCityProduction()
 {
-	PROFILE_FUNC(); // About 1 permille of the runtime
+	PROFILE_FUNC();
 	if (m_iRecalculating > 0)
 		return;
 	CvMap const& kMap = GC.getMap();
@@ -193,12 +189,6 @@ void CvPlotGroup::verifyCityProduction()
 		if (pCity != NULL && pCity->getOwner() == getOwner())
 			pCity->verifyProduction();
 	}
-}
-
-
-void CvPlotGroup::insertAtEndPlots(XYCoords xy)
-{
-	m_plots.insertAtEnd(xy);
 }
 
 

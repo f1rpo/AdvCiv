@@ -1,9 +1,8 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameCoreUtils.h"
-#include "CvGamePlay.h"
+#include "CoreAI.h"
 #include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
-#include "CvTeamAI.h"
 #include "CityPlotIterator.h"
 #include "BBAILog.h" // advc.007
 #include "CvInfo_GameOption.h"
@@ -205,6 +204,170 @@ DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot* pToPlot)
 			m.dyWrap(pToPlot->getY() - pFromPlot->getY()));
 }
 
+/*	advc: Cut from CvXMLLoadUtility.cpp, renamed
+	from "CreateHotKeyFromDescription"; nothing is "created" here. */
+CvWString hotkeyDescr::hotKeyFromDescription(TCHAR const* szDescr,
+	bool bShift, bool bAlt, bool bCtrl)
+{
+	// Example: "Delete <COLOR:140,255,40,255>Shift+Delete</COLOR>"
+	CvWString szHotKey;
+	if (szDescr != NULL && strcmp(szDescr, "") != 0)
+	{
+		szHotKey += L" <color=140,255,40,255>";
+		szHotKey += L"&lt;";
+
+		if (bShift)
+			szHotKey += gDLL->getText("TXT_KEY_SHIFT");
+
+		if (bAlt)
+			szHotKey += gDLL->getText("TXT_KEY_ALT");
+
+		if (bCtrl)
+			szHotKey += gDLL->getText("TXT_KEY_CTRL");
+
+		szHotKey += keyStringFromKBCode(szDescr);
+		szHotKey += L">";
+		szHotKey += L"</color>";
+	}
+	return szHotKey;
+}
+
+// KB code to string; e.g. KB_DELETE -> "Delete"
+// advc: Cut from CvXMLLoadUtility.cpp, renamed from "CreateKeyStringFromKBCode".
+CvWString hotkeyDescr::keyStringFromKBCode(TCHAR const* szDescr)
+{
+	PROFILE_FUNC();
+
+	struct CvKeyBoardMapping
+	{
+		TCHAR szDefineString[25];
+		CvWString szKeyString;
+	};
+
+	// TODO - this should be a stl map instead of looping strcmp
+	const int iNumKeyBoardMappings=108;
+	const CvKeyBoardMapping asCvKeyBoardMapping[iNumKeyBoardMappings] =
+	{
+		{"KB_ESCAPE", gDLL->getText("TXT_KEY_KEYBOARD_ESCAPE")},
+		{"KB_0","0"},
+		{"KB_1","1"},
+		{"KB_2","2"},
+		{"KB_3","3"},
+		{"KB_4","4"},
+		{"KB_5","5"},
+		{"KB_6","6"},
+		{"KB_7","7"},
+		{"KB_8","8"},
+		{"KB_9","9"},
+		{"KB_MINUS","-"},	    /* - on main keyboard */
+		{"KB_A","A"},
+		{"KB_B","B"},
+		{"KB_C","C"},
+		{"KB_D","D"},
+		{"KB_E","E"},
+		{"KB_F","F"},
+		{"KB_G","G"},
+		{"KB_H","H"},
+		{"KB_I","I"},
+		{"KB_J","J"},
+		{"KB_K","K"},
+		{"KB_L","L"},
+		{"KB_M","M"},
+		{"KB_N","N"},
+		{"KB_O","O"},
+		{"KB_P","P"},
+		{"KB_Q","Q"},
+		{"KB_R","R"},
+		{"KB_S","S"},
+		{"KB_T","T"},
+		{"KB_U","U"},
+		{"KB_V","V"},
+		{"KB_W","W"},
+		{"KB_X","X"},
+		{"KB_Y","Y"},
+		{"KB_Z","Z"},
+		{"KB_EQUALS","="},
+		{"KB_BACKSPACE",gDLL->getText("TXT_KEY_KEYBOARD_BACKSPACE")},
+		{"KB_TAB","TAB"},
+		{"KB_LBRACKET","["},
+		{"KB_RBRACKET","]"},
+		{"KB_RETURN",gDLL->getText("TXT_KEY_KEYBOARD_ENTER")},		/* Enter on main keyboard */
+		{"KB_LCONTROL",gDLL->getText("TXT_KEY_KEYBOARD_LEFT_CONTROL_KEY")},
+		{"KB_SEMICOLON",";"},
+		{"KB_APOSTROPHE","'"},
+		{"KB_GRAVE","`"},		/* accent grave */
+		{"KB_LSHIFT",gDLL->getText("TXT_KEY_KEYBOARD_LEFT_SHIFT_KEY")},
+		{"KB_BACKSLASH","\\"},
+		{"KB_COMMA",","},
+		{"KB_PERIOD","."},
+		{"KB_SLASH","/"},
+		{"KB_RSHIFT",gDLL->getText("TXT_KEY_KEYBOARD_RIGHT_SHIFT_KEY")},
+		{"KB_NUMPADSTAR",gDLL->getText("TXT_KEY_KEYBOARD_NUM_PAD_STAR")},
+		{"KB_LALT",gDLL->getText("TXT_KEY_KEYBOARD_LEFT_ALT_KEY")},
+		{"KB_SPACE",gDLL->getText("TXT_KEY_KEYBOARD_SPACE_KEY")},
+		{"KB_CAPSLOCK",gDLL->getText("TXT_KEY_KEYBOARD_CAPS_LOCK")},
+		{"KB_F1","F1"},
+		{"KB_F2","F2"},
+		{"KB_F3","F3"},
+		{"KB_F4","F4"},
+		{"KB_F5","F5"},
+		{"KB_F6","F6"},
+		{"KB_F7","F7"},
+		{"KB_F8","F8"},
+		{"KB_F9","F9"},
+		{"KB_F10","F10"},
+		{"KB_NUMLOCK",gDLL->getText("TXT_KEY_KEYBOARD_NUM_LOCK")},
+		{"KB_SCROLL",gDLL->getText("TXT_KEY_KEYBOARD_SCROLL_KEY")},
+		{"KB_NUMPAD7",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 7)},
+		{"KB_NUMPAD8",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 8)},
+		{"KB_NUMPAD9",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 9)},
+		{"KB_NUMPADMINUS",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_MINUS")},
+		{"KB_NUMPAD4",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 4)},
+		{"KB_NUMPAD5",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 5)},
+		{"KB_NUMPAD6",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 6)},
+		{"KB_NUMPADPLUS",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_PLUS")},
+		{"KB_NUMPAD1",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 1)},
+		{"KB_NUMPAD2",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 2)},
+		{"KB_NUMPAD3",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 3)},
+		{"KB_NUMPAD0",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_NUMBER", 0)},
+		{"KB_NUMPADPERIOD",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_PERIOD")},
+		{"KB_F11","F11"},
+		{"KB_F12","F12"},
+		{"KB_NUMPADEQUALS",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_EQUALS")},
+		{"KB_AT","@"},
+		{"KB_UNDERLINE","_"},
+		{"KB_COLON",":"},
+		{"KB_NUMPADENTER",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_ENTER_KEY")},
+		{"KB_RCONTROL",gDLL->getText("TXT_KEY_KEYBOARD_RIGHT_CONTROL_KEY")},
+		{"KB_VOLUMEDOWN",gDLL->getText("TXT_KEY_KEYBOARD_VOLUME_DOWN")},
+		{"KB_VOLUMEUP",gDLL->getText("TXT_KEY_KEYBOARD_VOLUME_UP")},
+		{"KB_NUMPADCOMMA",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_COMMA")},
+		{"KB_NUMPADSLASH",gDLL->getText("TXT_KEY_KEYBOARD_NUMPAD_SLASH")},
+		{"KB_SYSRQ",gDLL->getText("TXT_KEY_KEYBOARD_SYSRQ")},
+		{"KB_RALT",gDLL->getText("TXT_KEY_KEYBOARD_RIGHT_ALT_KEY")},
+		{"KB_PAUSE",gDLL->getText("TXT_KEY_KEYBOARD_PAUSE_KEY")},
+		{"KB_HOME",gDLL->getText("TXT_KEY_KEYBOARD_HOME_KEY")},
+		{"KB_UP",gDLL->getText("TXT_KEY_KEYBOARD_UP_ARROW")},
+		{"KB_PGUP",gDLL->getText("TXT_KEY_KEYBOARD_PAGE_UP")},
+		{"KB_LEFT",gDLL->getText("TXT_KEY_KEYBOARD_LEFT_ARROW")},
+		{"KB_RIGHT",gDLL->getText("TXT_KEY_KEYBOARD_RIGHT_ARROW")},
+		{"KB_END",gDLL->getText("TXT_KEY_KEYBOARD_END_KEY")},
+		{"KB_DOWN",gDLL->getText("TXT_KEY_KEYBOARD_DOWN_ARROW")},
+		{"KB_PGDN",gDLL->getText("TXT_KEY_KEYBOARD_PAGE_DOWN")},
+		{"KB_INSERT",gDLL->getText("TXT_KEY_KEYBOARD_INSERT_KEY")},
+		{"KB_DELETE",gDLL->getText("TXT_KEY_KEYBOARD_DELETE_KEY")},
+	};
+
+	for (int i = 0; i < iNumKeyBoardMappings; i++)
+	{
+		if (strcmp(asCvKeyBoardMapping[i].szDefineString, szDescr) == 0)
+			return asCvKeyBoardMapping[i].szKeyString;
+	}
+
+	return "";
+}
+
+
 bool atWar(TeamTypes eTeamA, TeamTypes eTeamB)
 {
 	return (eTeamA != NO_TEAM && eTeamB != NO_TEAM && GET_TEAM(eTeamA).isAtWar(eTeamB));
@@ -219,276 +382,18 @@ bool atWar(TeamTypes eTeamA, TeamTypes eTeamB)
 	return GET_TEAM(eOurTeam).AI_mayAttack(eTheirTeam);
 }*/
 
-// FUNCTION: getBinomialCoefficient
-// Needed for getCombatOdds
-// Returns int value, being the possible number of combinations
-// of k draws out of a population of n
-// Written by DeepO
-// Modified by Jason Winokur to keep the intermediate factorials small
-__int64 getBinomialCoefficient(int iN, int iK)
-{
-	__int64 iTemp = 1;
-	//take advantage of symmetry in combination, eg. 15C12 = 15C3
-	iK = std::min(iK, iN - iK);
-
-	//eg. 15C3 = (15 * 14 * 13) / (1 * 2 * 3) = 15 / 1 * 14 / 2 * 13 / 3 = 455
-	for(int i=1;i<=iK;i++)
-		iTemp = (iTemp * (iN - i + 1)) / i;
-
-	// Make sure iTemp fits in an integer (and thus doesn't overflow)
-	FAssert(iTemp < MAX_INT);
-
-	return iTemp;
-}
-
-// FUNCTION: getCombatOdds
-// Calculates combat odds, given two units
-// Returns value from 0-1000
-// Written by DeepO
-int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender)
-{
-	float fOddsEvent;
-	float fOddsAfterEvent;
-	int iAttackerStrength;
-	int iAttackerFirepower;
-	int iDefenderStrength;
-	int iDefenderFirepower;
-	int iDefenderOdds;
-	int iAttackerOdds;
-	int iStrengthFactor;
-	int iDamageToAttacker;
-	int iDamageToDefender;
-	int iNeededRoundsAttacker;
-	int iNeededRoundsDefender;
-	int iMaxRounds;
-	int iAttackerLowFS;
-	int iAttackerHighFS;
-	int iDefenderLowFS;
-	int iDefenderHighFS;
-	int iFirstStrikes;
-	int iDefenderHitLimit;
-	int iI;
-	int iJ;
-	int iI3;
-	int iI4;
-	int iOdds = 0;
-
-	// setup battle, calculate strengths and odds
-	//////
-
-	//Added ST
-	iAttackerStrength = pAttacker->currCombatStr(NULL, NULL);
-	iAttackerFirepower = pAttacker->currFirepower(NULL, NULL);
-
-	iDefenderStrength = pDefender->currCombatStr(pDefender->plot(), pAttacker);
-	iDefenderFirepower = pDefender->currFirepower(pDefender->plot(), pAttacker);
-
-	FAssert((iAttackerStrength + iDefenderStrength) > 0);
-	FAssert((iAttackerFirepower + iDefenderFirepower) > 0);
-
-	iDefenderOdds = ((GC.getCOMBAT_DIE_SIDES() * iDefenderStrength) / (iAttackerStrength + iDefenderStrength));
-
-	if (iDefenderOdds == 0)
-	{
-		return 1000;
-	}
-
-	iAttackerOdds = GC.getCOMBAT_DIE_SIDES() - iDefenderOdds;
-
-	if (iAttackerOdds == 0)
-	{
-		return 0;
-	}
-
-	iStrengthFactor = ((iAttackerFirepower + iDefenderFirepower + 1) / 2);
-
-	// calculate damage done in one round
-	//////
-
-	iDamageToAttacker = std::max(1,((GC.getCOMBAT_DAMAGE() * (iDefenderFirepower + iStrengthFactor)) / (iAttackerFirepower + iStrengthFactor)));
-	iDamageToDefender = std::max(1,((GC.getCOMBAT_DAMAGE() * (iAttackerFirepower + iStrengthFactor)) / (iDefenderFirepower + iStrengthFactor)));
-
-	// calculate needed rounds.
-	// Needed rounds = round_up(health/damage)
-	//////
-
-	iDefenderHitLimit = pDefender->maxHitPoints() - pAttacker->combatLimit();
-
-	iNeededRoundsAttacker = (std::max(0, pDefender->currHitPoints() - iDefenderHitLimit) + iDamageToDefender - 1) / iDamageToDefender;
-	iNeededRoundsDefender = (pAttacker->currHitPoints() + iDamageToAttacker - 1) / iDamageToAttacker;
-	iMaxRounds = iNeededRoundsAttacker + iNeededRoundsDefender - 1;
-
-	// calculate possible first strikes distribution.
-	// We can't use the getCombatFirstStrikes() function (only one result,
-	// no distribution), so we need to mimic it.
-	//////
-
-	iAttackerLowFS = (pDefender->immuneToFirstStrikes()) ? 0 : pAttacker->firstStrikes();
-	iAttackerHighFS = (pDefender->immuneToFirstStrikes()) ? 0 : (pAttacker->firstStrikes() + pAttacker->chanceFirstStrikes());
-
-	iDefenderLowFS = (pAttacker->immuneToFirstStrikes()) ? 0 : pDefender->firstStrikes();
-	iDefenderHighFS = (pAttacker->immuneToFirstStrikes()) ? 0 : (pDefender->firstStrikes() + pDefender->chanceFirstStrikes());
-
-	// UncutDragon
-	if (GC.getDefineBOOL(CvGlobals::LFB_ENABLE))
-		return LFBgetCombatOdds(iAttackerLowFS, iAttackerHighFS, iDefenderLowFS, iDefenderHighFS, iNeededRoundsAttacker, iNeededRoundsDefender, iAttackerOdds);
-	// /UncutDragon
-
-	// For every possible first strike event, calculate the odds of combat.
-	// Then, add these to the total, weighted to the chance of that first
-	// strike event occurring
-	//////
-
-	for (iI = iAttackerLowFS; iI < iAttackerHighFS + 1; iI++)
-	{
-		for (iJ = iDefenderLowFS; iJ < iDefenderHighFS + 1; iJ++)
-		{
-			// for every possible combination of fs results, calculate the chance
-
-			if (iI >= iJ)
-			{
-				// Attacker gets more or equal first strikes than defender
-
-				iFirstStrikes = iI - iJ;
-
-				// For every possible first strike getting hit, calculate both
-				// the chance of that event happening, as well as the rest of
-				// the chance assuming the event has happened. Multiply these
-				// together to get the total chance (Bayes rule).
-				// iI3 counts the number of successful first strikes
-				//////
-
-				for (iI3 = 0; iI3 < (iFirstStrikes + 1); iI3++)
-				{
-					// event: iI3 first strikes hit the defender
-
-					// calculate chance of iI3 first strikes hitting: fOddsEvent
-					// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
-					// this needs to be in floating point math
-					//////
-
-					fOddsEvent = ((float)getBinomialCoefficient(iFirstStrikes, iI3)) * pow((((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES()), iI3) * pow((1.0f - (((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES())), (iFirstStrikes - iI3));
-
-					// calculate chance assuming iI3 first strike hits: fOddsAfterEvent
-					//////
-
-					if (iI3 >= iNeededRoundsAttacker)
-					{
-						fOddsAfterEvent = 1;
-					}
-					else
-					{
-						fOddsAfterEvent = 0;
-
-						// odds for _at_least_ (iNeededRoundsAttacker - iI3) (the remaining hits
-						// the attacker needs to make) out of (iMaxRounds - iI3) (the left over
-						// rounds) is the sum of each _exact_ draw
-						//////
-
-						for (iI4 = (iNeededRoundsAttacker - iI3); iI4 < (iMaxRounds - iI3 + 1); iI4++)
-						{
-							// odds of exactly iI4 out of (iMaxRounds - iI3) draws.
-							// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
-							// this needs to be in floating point math
-							//////
-
-							fOddsAfterEvent += ((float)getBinomialCoefficient((iMaxRounds - iI3), iI4)) * pow((((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES()), iI4) * pow((1.0f - (((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES())), ((iMaxRounds - iI3) - iI4));
-						}
-					}
-
-					// Multiply these together, round them properly, and add
-					// the result to the total iOdds
-					//////
-
-					iOdds += ((int)(1000.0 * (fOddsEvent*fOddsAfterEvent + 0.0005)));
-				}
-			}
-			else // (iI < iJ)
-			{
-				// Attacker gets less first strikes than defender
-
-				iFirstStrikes = iJ - iI;
-
-				// For every possible first strike getting hit, calculate both
-				// the chance of that event happening, as well as the rest of
-				// the chance assuming the event has happened. Multiply these
-				// together to get the total chance (Bayes rule).
-				// iI3 counts the number of successful first strikes
-				//////
-
-				for (iI3 = 0; iI3 < (iFirstStrikes + 1); iI3++)
-				{
-					// event: iI3 first strikes hit the defender
-
-					// First of all, check if the attacker is still alive.
-					// Otherwise, no further calculations need to occur
-					/////
-
-					if (iI3 < iNeededRoundsDefender)
-					{
-						// calculate chance of iI3 first strikes hitting: fOddsEvent
-						// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
-						// this needs to be in floating point math
-						//////
-
-						fOddsEvent = ((float)getBinomialCoefficient(iFirstStrikes, iI3)) * pow((((float)iDefenderOdds) / GC.getCOMBAT_DIE_SIDES()), iI3) * pow((1.0f - (((float)iDefenderOdds) / GC.getCOMBAT_DIE_SIDES())), (iFirstStrikes - iI3));
-
-						// calculate chance assuming iI3 first strike hits: fOddsAfterEvent
-						//////
-
-						fOddsAfterEvent = 0;
-
-						// odds for _at_least_ iNeededRoundsAttacker (the remaining hits
-						// the attacker needs to make) out of (iMaxRounds - iI3) (the left over
-						// rounds) is the sum of each _exact_ draw
-						//////
-
-						for (iI4 = iNeededRoundsAttacker; iI4 < (iMaxRounds - iI3 + 1); iI4++)
-						{
-
-							// odds of exactly iI4 out of (iMaxRounds - iI3) draws.
-							// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
-							// this needs to be in floating point math
-							//////
-
-							fOddsAfterEvent += ((float)getBinomialCoefficient((iMaxRounds - iI3), iI4)) * pow((((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES()), iI4) * pow((1.0f - (((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES())), ((iMaxRounds - iI3) - iI4));
-						}
-
-						// Multiply these together, round them properly, and add
-						// the result to the total iOdds
-						//////
-
-						iOdds += ((int)(1000.0 * (fOddsEvent*fOddsAfterEvent + 0.0005)));
-					}
-				}
-			}
-		}
-	}
-
-	// Weigh the total to the number of possible combinations of first strikes events
-	// note: the integer math breaks down when #FS > 656 (with a die size of 1000)
-	//////
-
-	iOdds /= (((pDefender->immuneToFirstStrikes()) ? 0 : pAttacker->chanceFirstStrikes()) + 1) * (((pAttacker->immuneToFirstStrikes()) ? 0 : pDefender->chanceFirstStrikes()) + 1);
-
-	// finished!
-	//////
-
-	return iOdds;
-}
-
-// K-Mod:
+// K-Mod: (advc - Where do we move this? Should be a static member, not global.)
 int estimateCollateralWeight(CvPlot const* pPlot, TeamTypes eAttackTeam,
 	TeamTypes eDefenceTeam)
 {
 	int iBaseCollateral = GC.getDefineINT(CvGlobals::COLLATERAL_COMBAT_DAMAGE); // normally 10
+	if (pPlot == NULL)
+		return iBaseCollateral * 110;
 
 	/*	Collateral damage does not depend on any kind of strength bonus -
 		so when a unit takes collateral damage, their bonuses are effectively wasted.
 		Therefore, I'm going to inflate the value of collateral damage based
 		on a rough estimate of the defenders bonuses. */
-	if (pPlot == NULL)
-		return iBaseCollateral * 110; // advc
 
 	TeamTypes ePlotBonusTeam = eDefenceTeam;
 	if (ePlotBonusTeam == NO_TEAM)
@@ -502,15 +407,13 @@ int estimateCollateralWeight(CvPlot const* pPlot, TeamTypes eAttackTeam,
 	int iResistanceSum = 0;
 	int iUnits = 0;
 
-	for (CLLNode<IDInfo> const* pNode = pPlot->headUnitNode(); pNode != NULL;
-		pNode = pPlot->nextUnitNode(pNode))
+	FOR_EACH_UNIT_IN(pUnit, *pPlot)
 	{
-		CvUnit const& kLoopUnit = *::getUnit(pNode->m_data);
-		if (!kLoopUnit.canDefend(pPlot))
+		if (!pUnit->canDefend(pPlot))
 			continue;
-		if (eDefenceTeam != NO_TEAM && kLoopUnit.getTeam() != eDefenceTeam)
+		if (eDefenceTeam != NO_TEAM && pUnit->getTeam() != eDefenceTeam)
 			continue;
-		if (eAttackTeam != NO_TEAM && kLoopUnit.getTeam() == eAttackTeam)
+		if (eAttackTeam != NO_TEAM && pUnit->getTeam() == eAttackTeam)
 			continue;
 
 		iUnits++;
@@ -523,12 +426,12 @@ int estimateCollateralWeight(CvPlot const* pPlot, TeamTypes eAttackTeam,
 			Whichever way we do the estimate, cho-ku-nu is going to mess it up anyway.
 			(Unless I change the game mechanics.) */
 		if ( // advc.001: Animals have no unit combat type (K146 also fixes this)
-			kLoopUnit.getUnitCombatType() != NO_UNITCOMBAT &&
-			kLoopUnit.getUnitInfo().getUnitCombatCollateralImmune(kLoopUnit.getUnitCombatType()))
+			pUnit->getUnitCombatType() != NO_UNITCOMBAT &&
+			pUnit->getUnitInfo().getUnitCombatCollateralImmune(pUnit->getUnitCombatType()))
 		{
 			iResistanceSum += 100;
 		}
-		else iResistanceSum += kLoopUnit.getCollateralDamageProtection();
+		else iResistanceSum += pUnit->getCollateralDamageProtection();
 	}
 	if (iUnits > 0)
 	{
@@ -549,277 +452,325 @@ void setTradeItem(TradeData* pItem, TradeableItems eItemType, int iData)
 }
 
 
-void setListHelp(wchar* szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst)
-{
-	if (bFirst)
-		wcscat(szBuffer, szStart);
-	else wcscat(szBuffer, szSeparator);
-	wcscat(szBuffer, szItem);
-}
-
-void setListHelp(CvWString& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst)
+void setListHelp(CvWString& szBuffer, wchar const* szStart, wchar const* szItem,
+	wchar const* szSeparator, bool& bFirst) // advc: bool&
 {
 	if (bFirst)
 		szBuffer += szStart;
 	else szBuffer += szSeparator;
 	szBuffer += szItem;
+	bFirst = false; // advc: And deleted this line from every call location
 }
 
-void setListHelp(CvWStringBuffer& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst)
+
+void setListHelp(CvWStringBuffer& szBuffer, wchar const* szStart, wchar const* szItem,
+	wchar const* szSeparator, bool& bFirst) // advc: bool&
 {
 	if (bFirst)
 		szBuffer.append(szStart);
 	else szBuffer.append(szSeparator);
 	szBuffer.append(szItem);
+	bFirst = false; // advc: And deleted this line from every call location
 }
 
-bool PUF_isGroupHead(const CvUnit* pUnit, int iData1, int iData2)
+
+bool PUF_isGroupHead(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
-	return (pUnit->isGroupHead());
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
+	return pUnit->isGroupHead();
 }
 
-bool PUF_isPlayer(const CvUnit* pUnit, int iData1, int iData2)
-{
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	// <advc.061>
-	TeamTypes eForTeam = (TeamTypes)iData2;
-	PlayerTypes eOwner = (PlayerTypes)iData1;
-	if(eForTeam == NO_TEAM || eOwner == NO_PLAYER || eForTeam == TEAMID(eOwner))
-	{
-		// </advc.061>
-		return (pUnit->getOwner() == iData1);
-	} // <advc.061>
-	return (pUnit->getOwner() == iData1 && !pUnit->isInvisible(eForTeam, false) &&
-			!pUnit->getUnitInfo().isHiddenNationality()); // </advc.061>
+bool PUF_isPlayer(CvUnit const* pUnit, int iOwner, int iForTeam)
+{	// advc.061: rewritten
+	TeamTypes eForTeam = (TeamTypes)iForTeam;
+	PlayerTypes eOwner = (PlayerTypes)iOwner;
+	FAssertEnumBounds(eOwner);
+	if(eForTeam == NO_TEAM || eForTeam == TEAMID(eOwner))
+		return (pUnit->getOwner() == eOwner);
+	FAssertEnumBounds(eForTeam);
+	return (pUnit->getOwner() == eOwner && !pUnit->isInvisible(eForTeam, false) &&
+			!pUnit->getUnitInfo().isHiddenNationality());
 }
 
-bool PUF_isTeam(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isTeam(CvUnit const* pUnit, int iTeam, int iDummy)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (pUnit->getTeam() == iData1);
+	FAssert(iDummy == -1);
+	TeamTypes eTeam = (TeamTypes)iTeam;
+	FAssertEnumBounds(eTeam);
+	return (pUnit->getTeam() == eTeam);
 }
 
-bool PUF_isCombatTeam(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isCombatTeam(CvUnit const* pUnit, int iTeam, int iForTeam)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
-
-	return (TEAMID(pUnit->getCombatOwner((TeamTypes)iData2, pUnit->getPlot())) ==
-			iData1 && !pUnit->isInvisible((TeamTypes)iData2, false, false));
+	TeamTypes eTeam = (TeamTypes)iTeam;
+	FAssertEnumBounds(eTeam);
+	TeamTypes eForTeam = (TeamTypes)iForTeam;
+	FAssertEnumBounds(eForTeam);
+	return (TEAMID(pUnit->getCombatOwner(eForTeam, pUnit->getPlot())) ==
+			eTeam && !pUnit->isInvisible(eForTeam, false, false));
 }
 
-bool PUF_isOtherPlayer(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isOtherPlayer(CvUnit const* pUnit, int iPlayer, int iDummy)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (pUnit->getOwner() != iData1);
+	FAssert(iDummy == -1);
+	PlayerTypes ePlayer = (PlayerTypes)iPlayer;
+	FAssertEnumBounds(ePlayer);
+	return (pUnit->getOwner() != ePlayer);
 }
 
-bool PUF_isOtherTeam(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isOtherTeam(CvUnit const* pUnit, int iPlayer, int iDummy)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	TeamTypes eTeam = GET_PLAYER((PlayerTypes)iData1).getTeam();
+	FAssert(iDummy == -1);
+	PlayerTypes ePlayer = (PlayerTypes)iPlayer;
+	FAssertEnumBounds(ePlayer);
+	TeamTypes eTeam = TEAMID(ePlayer);
 	if (pUnit->canCoexistWithEnemyUnit(eTeam))
-	{
 		return false;
-	}
-
 	return (pUnit->getTeam() != eTeam);
 }
 
-bool PUF_isEnemy(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_canDefend(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
-
-	TeamTypes eOtherTeam = TEAMID((PlayerTypes)iData1);
-	TeamTypes eOurTeam = TEAMID(pUnit->getCombatOwner(eOtherTeam));
-	if (pUnit->canCoexistWithEnemyUnit(eOtherTeam))
-		return false;
-	return (iData2 ? eOtherTeam != eOurTeam : GET_TEAM(eOtherTeam).isAtWar(eOurTeam));
-}
-// advc.ctr:
-bool PUF_isEnemyCityAttacker(const CvUnit* pUnit, int iData1, int iData2)
-{
-	if(iData2 >= 0)
-	{
-		CvTeam const& kAssumePeace = GET_TEAM((TeamTypes)iData2);
-		if(GET_TEAM(pUnit->getTeam()).getMasterTeam() == kAssumePeace.getMasterTeam())
-			return false;
-	}
-	CvUnitInfo& u = pUnit->getUnitInfo();
-	if(u.getCargoSpace() <= 0 || u.getSpecialCargo() != NO_SPECIALUNIT)
-	{
-		if(u.getDomainType() != DOMAIN_LAND)
-			return false;
-		if(u.isOnlyDefensive() || u.getCombat() <= 0)
-			return false;
-	}
-	return PUF_isEnemy(pUnit, iData1, false);
-}
-
-bool PUF_isVisible(const CvUnit* pUnit, int iData1, int iData2)
-{
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return !pUnit->isInvisible(TEAMID((PlayerTypes)iData1), false);
-}
-
-bool PUF_isVisibleDebug(const CvUnit* pUnit, int iData1, int iData2)
-{
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return !(pUnit->isInvisible(GET_PLAYER((PlayerTypes)iData1).getTeam(), true));
-}
-
-bool PUF_canSiege(const CvUnit* pUnit, int iData1, int iData2)
-{
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return pUnit->canSiege(TEAMID((PlayerTypes)iData1));
-}
-
-bool PUF_isPotentialEnemy(const CvUnit* pUnit, int iData1, int iData2)
-{
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
-	// advc: Switched the Our/Other variable names. iData1 is the team whose war plans matter.
-	TeamTypes eOurTeam = TEAMID((PlayerTypes)iData1);
-	TeamTypes eOtherTeam = TEAMID(pUnit->getCombatOwner(eOurTeam));
-	if (pUnit->canCoexistWithEnemyUnit(eOurTeam))
-		return false;
-	return (iData2 ? eOurTeam != eOtherTeam : GET_TEAM(eOurTeam).AI_mayAttack(eOtherTeam));
-}
-
-bool PUF_canDeclareWar(const CvUnit* pUnit, int iData1, int iData2)
-{
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
-
-	TeamTypes eOtherTeam = TEAMID((PlayerTypes)iData1);
-	TeamTypes eOurTeam = TEAMID(pUnit->getCombatOwner(eOtherTeam));
-	if (pUnit->canCoexistWithEnemyUnit(eOtherTeam))
-		return false;
-
-	return (iData2 ? false : GET_TEAM(eOtherTeam).canDeclareWar(eOurTeam));
-}
-
-bool PUF_canDefend(const CvUnit* pUnit, int iData1, int iData2)
-{
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->canDefend();
 }
 
-bool PUF_cannotDefend(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_cannotDefend(const CvUnit* pUnit, int iDummy1, int iDummy2)
 {
-	return !(pUnit->canDefend());
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
+	return !pUnit->canDefend();
 }
 
-bool PUF_canDefendGroupHead(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_canDefendGroupHead(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
-	return (PUF_canDefend(pUnit, iData1, iData2) && PUF_isGroupHead(pUnit, iData1, iData2));
+	return (PUF_canDefend(pUnit, iDummy1, iDummy2) &&
+			PUF_isGroupHead(pUnit, iDummy1, iDummy2));
 }
 
-bool PUF_canDefendEnemy(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_canDefendPotentialEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	FAssertMsg(iData2 != -1, "Invalid data argument, should be >= 0");
-	return (PUF_canDefend(pUnit, iData1, iData2) && PUF_isEnemy(pUnit, iData1, iData2));
+	return (PUF_canDefend(pUnit) && PUF_isPotentialEnemy(pUnit, iPlayer, iAlwaysHostile));
 }
 
-bool PUF_canDefendPotentialEnemy(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_canDefendEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (PUF_canDefend(pUnit, iData1, iData2) && PUF_isPotentialEnemy(pUnit, iData1, iData2));
+	return (PUF_canDefend(pUnit) && PUF_isEnemy(pUnit, iPlayer, iAlwaysHostile));
 }
 
-bool PUF_canAirAttack(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isPotentialEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile)
 {
+	PlayerTypes ePlayer = (PlayerTypes)iPlayer;
+	FAssertEnumBounds(ePlayer);
+	FAssertBOOL(iAlwaysHostile);
+	bool bAlwaysHostile = iAlwaysHostile;
+	// advc: Switched the Our/Other variable names. It's iPlayer whose war plans matter.
+	TeamTypes eOurTeam = TEAMID(ePlayer);
+	TeamTypes eOtherTeam = TEAMID(pUnit->getCombatOwner(eOurTeam));
+	if (pUnit->canCoexistWithEnemyUnit(eOurTeam))
+		return false;
+	return (bAlwaysHostile ? eOurTeam != eOtherTeam :
+			GET_TEAM(eOurTeam).AI_mayAttack(eOtherTeam));
+}
+
+bool PUF_isEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile)
+{
+	PlayerTypes ePlayer = (PlayerTypes)iPlayer;
+	FAssertEnumBounds(ePlayer);
+	FAssertBOOL(iAlwaysHostile);
+	bool bAlwaysHostile = iAlwaysHostile;
+	// advc: Switched the Our/Other variable names
+	TeamTypes eOurTeam = TEAMID(ePlayer);
+	TeamTypes eOtherTeam = TEAMID(pUnit->getCombatOwner(eOurTeam));
+	if (pUnit->canCoexistWithEnemyUnit(eOurTeam))
+		return false;
+	return (bAlwaysHostile ? eOurTeam != eOtherTeam :
+			GET_TEAM(eOurTeam).isAtWar(eOtherTeam));
+}
+
+bool PUF_canDeclareWar(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile)
+{
+	PlayerTypes ePlayer = (PlayerTypes)iPlayer;
+	FAssertEnumBounds(ePlayer);
+	FAssertBOOL(iAlwaysHostile);
+	bool bAlwaysHostile = iAlwaysHostile;
+	/*	advc: Switched the Our/Other variable names. This function says whether
+		iPlayer can declare war on the combat owner of pUnit. */
+	TeamTypes eOurTeam = TEAMID(ePlayer);
+	TeamTypes eOtherTeam = TEAMID(pUnit->getCombatOwner(eOurTeam));
+	if (pUnit->canCoexistWithEnemyUnit(eOurTeam))
+		return false;
+	return (bAlwaysHostile ? false : GET_TEAM(eOurTeam).canDeclareWar(eOtherTeam));
+}
+// advc.ctr:
+bool PUF_isEnemyCityAttacker(CvUnit const* pUnit, int iPlayer, int iAssumePeaceTeam)
+{
+	TeamTypes eAssumePeaceTeam = (TeamTypes)iAssumePeaceTeam;
+	if (eAssumePeaceTeam != NO_TEAM)
+	{
+		FAssertEnumBounds(eAssumePeaceTeam);
+		if (GET_TEAM(pUnit->getTeam()).getMasterTeam() == GET_TEAM(eAssumePeaceTeam).getMasterTeam())
+			return false;
+	}
+	CvUnitInfo& u = pUnit->getUnitInfo();
+	if (u.getCargoSpace() <= 0 || u.getSpecialCargo() != NO_SPECIALUNIT)
+	{
+		if (u.getDomainType() != DOMAIN_LAND)
+			return false;
+		if (u.isOnlyDefensive() || u.getCombat() <= 0)
+			return false;
+	}
+	return PUF_isEnemy(pUnit, iPlayer, false);
+}
+
+bool PUF_isVisible(CvUnit const* pUnit, int iPlayer, int iDummy)
+{
+	FAssert(iDummy == -1);
+	PlayerTypes ePlayer = (PlayerTypes)iPlayer;
+	FAssertEnumBounds(ePlayer);
+	return !pUnit->isInvisible(TEAMID(ePlayer), false);
+}
+
+bool PUF_isVisibleDebug(CvUnit const* pUnit, int iPlayer, int iDummy)
+{
+	FAssert(iDummy == -1);
+	PlayerTypes ePlayer = (PlayerTypes)iPlayer;
+	FAssertEnumBounds(ePlayer);
+	return !pUnit->isInvisible(TEAMID(ePlayer), true);
+}
+// advc.298:
+bool PUF_isLethal(CvUnit const* pUnit, int iDummy1, int iDummy2)
+{
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
+	return (pUnit->canAttack() && pUnit->combatLimit() >= 100);
+}
+
+bool PUF_canSiege(CvUnit const* pUnit, int iTargetPlayer, int iDummy)
+{
+	FAssert(iDummy == -1);
+	PlayerTypes eTargetPlayer = (PlayerTypes)iTargetPlayer;
+	FAssertEnumBounds(eTargetPlayer);
+	return pUnit->canSiege(TEAMID(eTargetPlayer));
+}
+
+bool PUF_canAirAttack(CvUnit const* pUnit, int iDummy1, int iDummy2)
+{
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->canAirAttack();
 }
 
-bool PUF_canAirDefend(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_canAirDefend(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->canAirDefend();
 }
-
-bool PUF_isFighting(const CvUnit* pUnit, int iData1, int iData2)
+// K-Mod:
+bool PUF_isAirIntercept(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
+	return (pUnit->getDomainType() == DOMAIN_AIR &&
+			pUnit->getGroup()->getActivityType() == ACTIVITY_INTERCEPT);
+}
+
+bool PUF_isFighting(CvUnit const* pUnit, int iDummy1, int iDummy2)
+{
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->isFighting();
 }
 
-bool PUF_isAnimal( const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isAnimal(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->isAnimal();
 }
 
-bool PUF_isMilitaryHappiness(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isMilitaryHappiness(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->isMilitaryHappiness();
 }
 
-bool PUF_isInvestigate(const CvUnit* pUnit, int iData1, int iData2)
-{	// <advc.103>
+bool PUF_isInvestigate(CvUnit const* pUnit, int iDummy1, int iDummy2)
+{
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
+	// <advc.103>
 	if(pUnit->hasMoved())
 		return false; // </advc.103>
 	return pUnit->isInvestigate();
 }
 
-bool PUF_isCounterSpy(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isCounterSpy(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->isCounterSpy();
 }
 
-bool PUF_isSpy(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isSpy(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->isSpy();
 }
 
-bool PUF_isDomainType(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isDomainType(CvUnit const* pUnit, int iDomain, int iDummy)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (pUnit->getDomainType() == iData1);
+	FAssert(iDummy == -1);
+	DomainTypes eDomain = (DomainTypes)iDomain;
+	FAssertEnumBounds(eDomain);
+	return (pUnit->getDomainType() == eDomain);
 }
 
-bool PUF_isUnitType(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isUnitType(CvUnit const* pUnit, int iUnit, int iDummy)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (pUnit->getUnitType() == iData1);
+	FAssert(iDummy == -1);
+	UnitTypes eUnit = (UnitTypes)iUnit;
+	FAssertEnumBounds(eUnit);
+	return (pUnit->getUnitType() == eUnit);
 }
 
-bool PUF_isUnitAIType(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isUnitAIType(CvUnit const* pUnit, int iUnitAI, int iDummy)
 {
-	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (pUnit->AI_getUnitAIType() == iData1);
+	FAssert(iDummy == -1);
+	UnitAITypes eUnitAI = (UnitAITypes)iUnitAI;
+	FAssertEnumBounds(eUnitAI);
+	return (pUnit->AI_getUnitAIType() == eUnitAI);
+}
+// K-Mod:
+bool PUF_isMissionAIType(CvUnit const* pUnit, int iMissionAI, int iDummy)
+{
+	FAssert(iDummy == -1);
+	MissionAITypes eMissionAI = (MissionAITypes)iMissionAI;
+	FAssertEnumBounds(eMissionAI);
+	return (pUnit->AI().AI_getGroup()->AI_getMissionAIType() == eMissionAI);
 }
 
-bool PUF_isCityAIType(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isCityAIType(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->AI().AI_isCityAIType();
 }
 
-bool PUF_isNotCityAIType(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isNotCityAIType(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
-	return !(PUF_isCityAIType(pUnit, iData1, iData2));
+	return !PUF_isCityAIType(pUnit);
 }
 // advc.003j (comment): unused
-bool PUF_isSelected(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isSelected(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	return pUnit->IsSelected();
 }
 
-bool PUF_makeInfoBarDirty(CvUnit* pUnit, int iData1, int iData2)
+/*bool PUF_isNoMission(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
-	pUnit->setInfoBarDirty(true);
-	return true;
-}
-
-/*bool PUF_isNoMission(const CvUnit* pUnit, int iData1, int iData2)
-{
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
 	//return (pUnit->getGroup()->getActivityType() != ACTIVITY_MISSION); // BtS
 	return (pUnit->getGroup()->AI_getMissionAIType() == NO_MISSIONAI); // K-Mod
 }*/
-/*  <advc.113b> The above won't do for counting the workers available to a city:
+/*  advc.113b: The above won't do for counting the workers available to a city:
 	Doesn't count retreated workers and does count workers in cargo. */
 /*  Replacement: Count pUnit if its mission plot has the given city as its
 	working city. If pUnit has no mission, then it's counted if its current plot
 	has the given city as its working city. */
-bool PUF_isMissionPlotWorkingCity(const CvUnit* pUnit, int iCity, int iCityOwner)
+bool PUF_isMissionPlotWorkingCity(CvUnit const* pUnit, int iCity, int iCityOwner)
 {
 	CvCity* pCity = GET_PLAYER((PlayerTypes)iCityOwner).getCity(iCity);
 	if(pCity == NULL || pUnit->isCargo())
@@ -828,38 +779,32 @@ bool PUF_isMissionPlotWorkingCity(const CvUnit* pUnit, int iCity, int iCityOwner
 	if(pMissionPlot == NULL)
 		pMissionPlot = pUnit->plot();
 	return (pMissionPlot->getWorkingCity() == pCity);
-} // </advc.113b>
+}
 
-bool PUF_isFiniteRange(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isFiniteRange(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
-	return ((pUnit->getDomainType() != DOMAIN_AIR) || (pUnit->getUnitInfo().getAirRange() > 0));
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
+	return (pUnit->getDomainType() != DOMAIN_AIR || pUnit->getUnitInfo().getAirRange() > 0);
 }
 // BETTER_BTS_AI_MOD, General AI, 01/15/09, jdog5000: START
-bool PUF_isAvailableUnitAITypeGroupie(const CvUnit* pUnit, int iData1, int iData2)
-{
-	return ((PUF_isUnitAITypeGroupie(pUnit,iData1,iData2)) && !(pUnit->isCargo()));
+bool PUF_isAvailableUnitAITypeGroupie(CvUnit const* pUnit, int iUnitAI, int iDummy)
+{	// (advc: Removed unnecessary helper function)
+	return (PUF_isUnitAIType(pUnit->getGroup()->getHeadUnit(), iUnitAI) &&
+			!pUnit->isCargo());
 }
 
-bool PUF_isUnitAITypeGroupie(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_isFiniteRangeAndNotJustProduced(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
-	CvUnit* pGroupHead = pUnit->getGroup()->getHeadUnit();
-	return (PUF_isUnitAIType(pGroupHead,iData1,iData2));
-}
-
-bool PUF_isFiniteRangeAndNotJustProduced(const CvUnit* pUnit, int iData1, int iData2)
-{
-	return (PUF_isFiniteRange(pUnit,iData1,iData2) && ((GC.getGame().getGameTurn() - pUnit->getGameTurnCreated()) > 1));
+	return (PUF_isFiniteRange(pUnit) &&
+			GC.getGame().getGameTurn() - pUnit->getGameTurnCreated() > 1);
 } // BETTER_BTS_AI_MOD: END
-// <K-Mod>
-bool PUF_isMissionAIType(const CvUnit* pUnit, int iData1, int iData2)
-{
-	return pUnit->AI().AI_getGroup()->AI_getMissionAIType() == iData1;
-}
 
-bool PUF_isAirIntercept(const CvUnit* pUnit, int iData1, int iData2)
+bool PUF_makeInfoBarDirty(CvUnit* pUnit, int iDummy1, int iDummy2)
 {
-	return pUnit->getDomainType() == DOMAIN_AIR && pUnit->getGroup()->getActivityType() == ACTIVITY_INTERCEPT;
-} // </K-Mod>
+	FAssert(iDummy1 == -1 && iDummy2 == -1);
+	pUnit->setInfoBarDirty(true);
+	return true;
+}
 
 // advc.003j (comment): Unused
 int baseYieldToSymbol(int iNumYieldTypes, int iYieldStack)
@@ -904,7 +849,7 @@ void shuffleArray(int* piShuffle, int iNum, CvRandom& rand)
 }
 
 // advc.enum: Caller needs to set the vector size
-void shuffleVector(std::vector<int>& aiIndices, CvRandom& rand)
+void shuffleVector(vector<int>& aiIndices, CvRandom& rand)
 {
 	std11::iota(aiIndices.begin(), aiIndices.end(), 0);
 	int const iSize = (int)aiIndices.size();
@@ -1208,320 +1153,3 @@ void getUnitAIString(CvWString& szString, UnitAITypes eUnitAI)
 	default: szString = CvWString::format(L"unknown(%d)", eUnitAI); break;
 	}
 }
-
-// Lead From Behind by UncutDragon
-typedef vector<int> LFBoddsAttOdds;
-typedef vector<LFBoddsAttOdds> LFBoddsDefRounds;
-typedef vector<LFBoddsDefRounds> LFBoddsAttRounds;
-typedef vector<LFBoddsAttRounds> LFBoddsFirstStrike;
-int LFBlookupCombatOdds(int iFirstStrikes, int iNeededRoundsAttacker, int iNeededRoundsDefender, int iAttackerOdds);
-int LFBlookupCombatOdds(LFBoddsFirstStrike* pOdds, int iFSIndex, int iFirstStrikes, int iNeededRoundsAttacker, int iNeededRoundsDefender, int iAttackerOdds);
-int LFBlookupCombatOdds(LFBoddsAttOdds* pOdds, int iOddsIndex, int iFirstStrikes, int iNeededRoundsAttacker, int iNeededRoundsDefender, int iAttackerOdds);
-int LFBcalculateCombatOdds(int iFirstStrikes, int iNeededRoundsAttacker, int iNeededRoundsDefender, int iAttackerOdds);
-
-const int LFB_ODDS_INTERVAL_SIZE = 16;
-const int LFB_ODDS_EXTRA_ACCURACY = 32;
-LFBoddsFirstStrike pOddsCacheFSPos;
-LFBoddsFirstStrike pOddsCacheFSNeg;
-
-// gets the combat odds using precomputed attacker/defender values instead of unit pointers
-int LFBgetCombatOdds(int iAttackerLowFS,	int iAttackerHighFS, int iDefenderLowFS, int iDefenderHighFS, int iNeededRoundsAttacker, int iNeededRoundsDefender, int iAttackerOdds)
-{
-	int iDefenderOdds;
-	bool bFlip = false;
-	int iFirstStrikes;
-	int iI;
-	int iJ;
-	int iOdds = 0;
-
-	// Essentially, this means we're attacking with a seige engine and the defender is already at or below the max combat limit
-	// We're not allowed to attack regardless, since we can't do any damage - just return 100%
-	if (iNeededRoundsAttacker == 0)
-		return 1000;
-	// Because the best defender code calls us from the defender's perspective, we also need to check 'defender' rounds zero
-	if (iNeededRoundsDefender == 0)
-		return 0;
-
-	// If attacker has better than even chance to hit, we just flip it and calculate defender's chance to win
-	// This reduces how much we cache considerably (by half just from the fact we're only dealing with half the odds
-	// - but additionally, iNeededRounds'Defender' is guaranteed to stay low - at most 5 with standard settings).
-	iDefenderOdds = GC.getCOMBAT_DIE_SIDES() - iAttackerOdds;
-	if (iAttackerOdds > iDefenderOdds)
-		bFlip = true;
-
-	// This is basically the two outside loops at the end of the standard getCombatOdds
-	// We just call our cache lookup in the middle (flipped if necessary) instead of the actual computation
-	for (iI = iAttackerLowFS; iI < iAttackerHighFS + 1; iI++)
-	{
-		for (iJ = iDefenderLowFS; iJ < iDefenderHighFS + 1; iJ++)
-		{
-			iFirstStrikes = iI - iJ;
-			if (bFlip)
-				iOdds += LFBlookupCombatOdds(-iFirstStrikes, iNeededRoundsDefender, iNeededRoundsAttacker, iDefenderOdds);
-			else
-				iOdds += LFBlookupCombatOdds(iFirstStrikes, iNeededRoundsAttacker, iNeededRoundsDefender, iAttackerOdds);
-		}
-	}
-
-	// Odds are a straight average of all the FS combinations (since all are equally possible)
-	iOdds /= ((iAttackerHighFS - iAttackerLowFS + 1) * (iDefenderHighFS - iDefenderLowFS + 1));
-
-	// Now that we have the final odds, we can remove the extra accuracy, rounding off
-	iOdds = (iOdds + (LFB_ODDS_EXTRA_ACCURACY/2)) / LFB_ODDS_EXTRA_ACCURACY;
-
-	// If we flipped the perspective in the computation/lookup, need to flip it back now
-	if (bFlip)
-		iOdds = 1000 - iOdds;
-
-	return iOdds;
-}
-
-// lookup the combat odds in the cache for a specific sub-result
-int LFBlookupCombatOdds(int iFirstStrikes, int iNeededRoundsAttacker, int iNeededRoundsDefender, int iAttackerOdds)
-{
-	int iOdds = 0;
-
-	// We actually maintain two caches - one for positive first strikes (plus zero), and one for negative
-	// This just makes the indices (and growing the array as needed) easy
-	if (iFirstStrikes < 0)
-		iOdds = LFBlookupCombatOdds(&pOddsCacheFSNeg, (-iFirstStrikes)-1, iFirstStrikes, iNeededRoundsAttacker, iNeededRoundsDefender, iAttackerOdds);
-	else
-		iOdds = LFBlookupCombatOdds(&pOddsCacheFSPos, iFirstStrikes, iFirstStrikes, iNeededRoundsAttacker, iNeededRoundsDefender, iAttackerOdds);
-
-	return iOdds;
-}
-
-int LFBlookupCombatOdds(LFBoddsFirstStrike* pOdds, int iFSIndex, int iFirstStrikes, int iNeededRoundsAttacker, int iNeededRoundsDefender, int iAttackerOdds)
-{
-	// Grow the arrays as needed
-	// First dimension is the first strikes
-	int iInsert = iFSIndex - (int)(*pOdds).size() + 1;
-	if (iInsert > 0)
-	{
-		LFBoddsAttRounds pAdd;
-		(*pOdds).insert((*pOdds).end(), iInsert, pAdd);
-	}
-
-	// Second dimension is the attacker rounds (starting at 1)
-	LFBoddsAttRounds* pAttRounds = &((*pOdds)[iFSIndex]);
-	iInsert = iNeededRoundsAttacker - (int)(*pAttRounds).size();
-	if (iInsert > 0)
-	{
-		LFBoddsDefRounds pAdd;
-		(*pAttRounds).insert((*pAttRounds).end(), iInsert, pAdd);
-	}
-
-	// Third dimension is the defender rounds (starting at 1)
-	LFBoddsDefRounds* pDefRounds = &((*pAttRounds)[iNeededRoundsAttacker-1]);
-	iInsert = iNeededRoundsDefender - (int)(*pDefRounds).size();
-	if (iInsert > 0)
-	{
-		LFBoddsAttOdds pAdd;
-		(*pDefRounds).insert((*pDefRounds).end(), iInsert, pAdd);
-	}
-
-	// Fourth (last) dimension is the odds index (odds/16)
-	LFBoddsAttOdds* pAttOdds = &((*pDefRounds)[iNeededRoundsDefender-1]);
-
-	// Round down to the nearest interval
-	int iMinOddsIndex = iAttackerOdds / LFB_ODDS_INTERVAL_SIZE;
-	int iMinOddsValue = iMinOddsIndex * LFB_ODDS_INTERVAL_SIZE;
-
-	// Lookup the odds for the rounded down value
-	int iOdds = LFBlookupCombatOdds(pAttOdds, iMinOddsIndex, iFirstStrikes, iNeededRoundsAttacker, iNeededRoundsDefender, iMinOddsValue);
-
-	// If we happened to hit an interval exactly, we're done
-	if (iMinOddsValue < iAttackerOdds)
-	{
-		// 'Round up' to the nearest interval - we don't actually need to compute it, we know
-		// it's one more than the rounded down interval
-		int iMaxOddsIndex = iMinOddsIndex+1;
-		int iMaxOddsValue = iMinOddsValue+LFB_ODDS_INTERVAL_SIZE;
-
-		// Lookup the odds for the rounded up value
-		int iMaxOdds = LFBlookupCombatOdds(pAttOdds, iMaxOddsIndex, iFirstStrikes, iNeededRoundsAttacker, iNeededRoundsDefender, iMaxOddsValue);
-
-		// Do a simple weighted average on the two odds
-		//iOdds += (((iAttackerOdds - iMinOddsValue) * (iMaxOdds - iOdds)) / LFB_ODDS_INTERVAL_SIZE);
-		iOdds += ((iAttackerOdds - iMinOddsValue) * (iMaxOdds - iOdds) + LFB_ODDS_INTERVAL_SIZE/2) / LFB_ODDS_INTERVAL_SIZE; // K-Mod. (rounded rather than truncated)
-	}
-
-	return iOdds;
-}
-
-int LFBlookupCombatOdds(LFBoddsAttOdds* pOdds, int iOddsIndex, int iFirstStrikes, int iNeededRoundsAttacker, int iNeededRoundsDefender, int iAttackerOdds)
-{
-	int iNotComputed = -1;
-
-	// Index 0 -> AttackerOdds 0 -> no chance to win
-	if (iOddsIndex == 0)
-		return 0;
-
-	// We don't store all possible indices, just what we need/use
-	// So use position 0 to keep track of what index we start with
-	int iFirstIndex = iOddsIndex;
-	if ((*pOdds).size() == 0)
-		(*pOdds).push_back(iFirstIndex);
-	else
-		iFirstIndex = (*pOdds)[0];
-
-	int iRealIndex = iOddsIndex - iFirstIndex + 1;
-
-	// Index is before the start of our array
-	int iInsert = -iRealIndex+1;
-	if (iInsert > 0)
-	{
-		(*pOdds).insert((*pOdds).begin()+1, iInsert, iNotComputed);
-		iFirstIndex -= iInsert;
-		iRealIndex = 1;
-		(*pOdds)[0] = iFirstIndex;
-	}
-
-	// Index is past the end of our array
-	iInsert = iRealIndex - (int)(*pOdds).size() + 1;
-	if (iInsert > 0)
-		(*pOdds).insert((*pOdds).end(), iInsert, iNotComputed);
-
-	// Retrieve the odds from the array
-	int iOdds = (*pOdds)[iRealIndex];
-
-	// Odds aren't cached yet - need to actually calculate them
-	if (iOdds == iNotComputed)
-	{
-		iOdds = LFBcalculateCombatOdds(iFirstStrikes, iNeededRoundsAttacker, iNeededRoundsDefender, iAttackerOdds);
-		(*pOdds)[iRealIndex] = iOdds;
-	}
-
-	return iOdds;
-}
-
-// Perform the actual odds calculation (basically identical to the default algorithm, except that we retain a little more accuracy)
-int LFBcalculateCombatOdds(int iFirstStrikes, int iNeededRoundsAttacker, int iNeededRoundsDefender, int iAttackerOdds)
-{
-	float fOddsEvent;
-	float fOddsAfterEvent;
-	int iMaxRounds = iNeededRoundsAttacker + iNeededRoundsDefender - 1;
-	int iOdds = 0;
-	int iI3;
-	int iI4;
-
-	// This part is basically the inside of the outer two loops at the end of the standard getCombatOdds
-	if (iFirstStrikes > 0)
-	{
-		// Attacker gets more or equal first strikes than defender
-
-		// For every possible first strike getting hit, calculate both
-		// the chance of that event happening, as well as the rest of
-		// the chance assuming the event has happened. Multiply these
-		// together to get the total chance (Bayes rule).
-		// iI3 counts the number of successful first strikes
-		//////
-
-		for (iI3 = 0; iI3 < (iFirstStrikes + 1); iI3++)
-		{
-			// event: iI3 first strikes hit the defender
-
-			// calculate chance of iI3 first strikes hitting: fOddsEvent
-			// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
-			// this needs to be in floating point math
-			//////
-
-			fOddsEvent = ((float)getBinomialCoefficient(iFirstStrikes, iI3)) * std::pow((((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES()), iI3) * std::pow((1.0f - (((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES())), (iFirstStrikes - iI3));
-
-			// calculate chance assuming iI3 first strike hits: fOddsAfterEvent
-			//////
-
-			if (iI3 >= iNeededRoundsAttacker)
-			{
-				fOddsAfterEvent = 1;
-			}
-			else
-			{
-				fOddsAfterEvent = 0;
-
-				// odds for _at_least_ (iNeededRoundsAttacker - iI3) (the remaining hits
-				// the attacker needs to make) out of (iMaxRounds - iI3) (the left over
-				// rounds) is the sum of each _exact_ draw
-				//////
-
-				for (iI4 = (iNeededRoundsAttacker - iI3); iI4 < (iMaxRounds - iI3 + 1); iI4++)
-				{
-					// odds of exactly iI4 out of (iMaxRounds - iI3) draws.
-					// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
-					// this needs to be in floating point math
-					//////
-
-					fOddsAfterEvent += ((float)getBinomialCoefficient((iMaxRounds - iI3), iI4)) * std::pow((((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES()), iI4) * std::pow((1.0f - (((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES())), ((iMaxRounds - iI3) - iI4));
-				}
-			}
-
-			// Multiply these together, round them properly, and add
-			// the result to the total iOdds
-			//////
-
-			iOdds += ((int)((1000.0 * fOddsEvent * fOddsAfterEvent * (float)LFB_ODDS_EXTRA_ACCURACY) + 0.5));
-		}
-	}
-	else // (iI < iJ)
-	{
-		// Attacker gets less first strikes than defender
-		int iDefenderOdds = GC.getCOMBAT_DIE_SIDES() - iAttackerOdds;
-		iFirstStrikes *= -1;
-
-		// For every possible first strike getting hit, calculate both
-		// the chance of that event happening, as well as the rest of
-		// the chance assuming the event has happened. Multiply these
-		// together to get the total chance (Bayes rule).
-		// iI3 counts the number of successful first strikes
-		//////
-
-		for (iI3 = 0; iI3 < (iFirstStrikes + 1); iI3++)
-		{
-			// event: iI3 first strikes hit the defender
-
-			// First of all, check if the attacker is still alive.
-			// Otherwise, no further calculations need to occur
-			/////
-
-			if (iI3 < iNeededRoundsDefender)
-			{
-				// calculate chance of iI3 first strikes hitting: fOddsEvent
-				// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
-				// this needs to be in floating point math
-				//////
-
-				fOddsEvent = ((float)getBinomialCoefficient(iFirstStrikes, iI3)) * std::pow((((float)iDefenderOdds) / GC.getCOMBAT_DIE_SIDES()), iI3) * std::pow((1.0f - (((float)iDefenderOdds) / GC.getCOMBAT_DIE_SIDES())), (iFirstStrikes - iI3));
-
-				// calculate chance assuming iI3 first strike hits: fOddsAfterEvent
-				//////
-
-				fOddsAfterEvent = 0;
-
-				// odds for _at_least_ iNeededRoundsAttacker (the remaining hits
-				// the attacker needs to make) out of (iMaxRounds - iI3) (the left over
-				// rounds) is the sum of each _exact_ draw
-				//////
-
-				for (iI4 = iNeededRoundsAttacker; iI4 < (iMaxRounds - iI3 + 1); iI4++)
-				{
-
-					// odds of exactly iI4 out of (iMaxRounds - iI3) draws.
-					// f(k;n,p)=C(n,k)*(p^k)*((1-p)^(n-k))
-					// this needs to be in floating point math
-					//////
-
-					fOddsAfterEvent += ((float)getBinomialCoefficient((iMaxRounds - iI3), iI4)) * std::pow((((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES()), iI4) * std::pow((1.0f - (((float)iAttackerOdds) / GC.getCOMBAT_DIE_SIDES())), ((iMaxRounds - iI3) - iI4));
-				}
-
-				// Multiply these together, round them properly, and add
-				// the result to the total iOdds
-				//////
-
-				iOdds += ((int)((1000.0 * fOddsEvent * fOddsAfterEvent * (float)LFB_ODDS_EXTRA_ACCURACY)+0.5));
-			}
-		}
-	}
-
-	return iOdds;
-}
-// lfb end

@@ -7,24 +7,20 @@
 
 
 CvProcessInfo::CvProcessInfo() :
-m_iTechPrereq(NO_TECH),
-m_paiProductionToCommerceModifier(NULL)
+m_eTechPrereq(NO_TECH),
+m_aiProductionToCommerceModifier(NULL)
 {}
 
 CvProcessInfo::~CvProcessInfo()
 {
-	SAFE_DELETE_ARRAY(m_paiProductionToCommerceModifier);
+	SAFE_DELETE_ARRAY(m_aiProductionToCommerceModifier);
 }
 
-int CvProcessInfo::getTechPrereq() const
+int CvProcessInfo::getProductionToCommerceModifier(CommerceTypes eCommerce) const
 {
-	return m_iTechPrereq;
-}
-
-int CvProcessInfo::getProductionToCommerceModifier(int i) const
-{
-	FAssertBounds(0, NUM_COMMERCE_TYPES, i);
-	return m_paiProductionToCommerceModifier ? m_paiProductionToCommerceModifier[i] : 0; // advc.003t
+	FAssertEnumBounds(eCommerce);
+	return (m_aiProductionToCommerceModifier == NULL ? 0 : // advc.003t
+			m_aiProductionToCommerceModifier[eCommerce]);
 }
 
 bool CvProcessInfo::read(CvXMLLoadUtility* pXML)
@@ -32,14 +28,14 @@ bool CvProcessInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	pXML->SetInfoIDFromChildXmlVal(m_iTechPrereq, "TechPrereq");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eTechPrereq, "TechPrereq");
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"ProductionToCommerceModifiers"))
 	{
-		pXML->SetCommerce(&m_paiProductionToCommerceModifier);
+		pXML->SetCommerce(&m_aiProductionToCommerceModifier);
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
-	else pXML->InitList(&m_paiProductionToCommerceModifier, NUM_COMMERCE_TYPES);
+	else pXML->InitList(&m_aiProductionToCommerceModifier, NUM_COMMERCE_TYPES);
 
 	return true;
 }

@@ -325,13 +325,19 @@ public: // All the const functions are exposed to Python except those added by m
 	// advc.inl: inlined these three
 	inline int getMovementCost() const { return m_iMovementCost; }
 	inline int getFlatMovementCost() const { return m_iFlatMovementCost; }
-	inline int getPrereqBonus() const { return m_iPrereqBonus; }
+	inline BonusTypes getPrereqBonus() const { return m_ePrereqBonus; }
 
 	int getYieldChange(int i) const;
 	int getTechMovementChange(int i) const;
-	int getPrereqOrBonus(int i) const;
-	inline bool isAnyPrereqOrBonus() const { return (m_piPrereqOrBonuses != NULL); } // advc.003t
-
+	// <advc.003t>
+	inline int getNumPrereqOrBonuses() const { return m_aePrereqOrBonuses.size(); }
+	BonusTypes getPrereqOrBonus(int i) const
+	{
+		FAssertBounds(0, getNumPrereqOrBonuses(), i);
+		return m_aePrereqOrBonuses[i];
+	}
+	int py_getPrereqOrBonus(int i) const;
+	// </advc.003t>
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:
@@ -341,11 +347,11 @@ protected:
 	int m_iValue;
 	int m_iMovementCost;
 	int m_iFlatMovementCost;
-	int m_iPrereqBonus;
+	BonusTypes m_ePrereqBonus;
 
 	int* m_piYieldChange;
 	int* m_piTechMovementChange;
-	int* m_piPrereqOrBonuses;
+	std::vector<BonusTypes> m_aePrereqOrBonuses; // advc.003t: was int*
 };
 
 class CvImprovementBonusInfo;
@@ -412,18 +418,21 @@ public: /*  All the const functions are exposed to Python except those dealing w
 
 	int getWorldSoundscapeScriptId() const;
 
-	// Array access:
+	// Array access: (advc.inl: whole-array getters constified, inlined)
 
 	int getPrereqNatureYield(int i) const;
-	int* getPrereqNatureYieldArray();
+	int const* getPrereqNatureYieldArray() const { return m_piPrereqNatureYield; }
 	int getYieldChange(int i) const;
-	int* getYieldChangeArray();
+	int const* getYieldChangeArray() const { return m_piYieldChange; }
 	int getRiverSideYieldChange(int i) const;
-	int* getRiverSideYieldChangeArray();
+	int const* getRiverSideYieldChangeArray() const { return m_piRiverSideYieldChange; }
 	int getHillsYieldChange(int i) const;
-	int* getHillsYieldChangeArray();
+	int const* getHillsYieldChangeArray() const { return m_piHillsYieldChange; }
 	int getIrrigatedYieldChange(int i) const;
-	int* getIrrigatedYieldChangeArray(); // For Moose - CvWidgetData XXX
+	int const* getIrrigatedYieldChangeArray() const // For Moose - CvWidgetData XXX
+	{
+		return m_piIrrigatedChange;
+	}
 
 	bool getTerrainMakesValid(int i) const;
 	inline bool isAnyTerrainMakesValid() const { return (m_pbTerrainMakesValid != NULL); } // advc.003t
@@ -431,10 +440,10 @@ public: /*  All the const functions are exposed to Python except those dealing w
 	inline bool isAnyFeatureMakesValid() const { return (m_pbFeatureMakesValid != NULL); } // advc.003t
 
 	int getTechYieldChanges(int i, int j) const;
-	int* getTechYieldChangesArray(int i) /* advc: */ const;
+	int const* getTechYieldChangesArray(int i) const;
+
 	int getRouteYieldChanges(int i, int j) const;
-	// For Moose - CvWidgetData XXX
-	int* getRouteYieldChangesArray(int i) /* advc: */ const;
+	int const* getRouteYieldChangesArray(int i) const; // For Moose - CvWidgetData XXX
 
 	int getImprovementBonusYield(int iBonus, int iYield) const;
 	bool isImprovementBonusMakesValid(int i) const;

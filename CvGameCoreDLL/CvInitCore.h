@@ -4,7 +4,7 @@
 #define CIV4_INITCORE_H
 
 
-class CvInitCore
+class CvInitCore /* advc.003e */ : boost::noncopyable
 {
 public:
 
@@ -79,7 +79,7 @@ public:
 	DllExport void setMapScriptName(const CvWString& szMapScriptName);
 	DllExport bool getWBMapScript() const;
 	bool isPangaea() const { return m_bPangaea; } // advc
-
+	// advc (note): This appears to say whether a scenario uses random players
 	bool getWBMapNoPlayers() const { return m_bWBMapNoPlayers; }
 	void setWBMapNoPlayers(bool bValue) { m_bWBMapNoPlayers = bValue; }
 

@@ -92,6 +92,12 @@
 					get="isHideEspSlider" dirtyBit="PercentButtons, GameData, Espionage_Advisor">
 				<change module="CvCustomizableDomesticAdvisor" function="forcePositionCalc"/>
 			</option>
+
+			<!-- advc.004p: -->
+			<option id="TotalCultureRate" key="Total Culture Rate" 
+					type="boolean" default="False" 
+					get="isShowTotalCultureRate" dirtyBit="GameData">
+			</option>
 			
 			<!-- City Cycle Arrows by SimCutie -->
 			<option id="CityArrows" key="City Cycle Arrows" 
@@ -132,6 +138,28 @@
 				<choice id="Custom"/>
 			</list>
 
+			<!-- advc.002a: -->
+			<list   id="MinimapWaterColor" key="Minimap Water Color" 
+					type="int" default="1" listType="string" 
+					values="Maximal|Medium|Zero"
+					get="getMinimapWaterColor">
+				<change module="MinimapOptions" function="updateMinimapWaterColor"/>
+				<choice id="Maximal"/>
+				<choice id="Medium"/>
+				<choice id="Zero"/>
+			</list>
+			<option id="UnitsOnMinimap" key="Units On Minimap" 
+					type="boolean" default="False"
+					get="isUnitsOnMinimap">
+				<change module="MinimapOptions" function="updateUnitsOnMinimap"/>
+			</option>
+
+			<!-- advc.savem: -->
+			<option id="EnableSavemap" key="Enable Savemap" 
+					type="boolean" default="True"
+					get="isSavemapEnabled">
+			</option>
+
 			<!-- Movement Points -->
 			<option id="UnitMovementPointsFraction" key="Unit Movement Points Fraction" 
 					type="boolean" default="True" 
@@ -169,6 +197,25 @@
 				<choice id="Small" get="isBuildIconSizeSmall"/>
 				<choice id="Medium" get="isBuildIconSizeMedium"/>
 				<choice id="Large" get="isBuildIconSizeLarge"/>
+			</list>
+
+			<!-- advc.154: -->
+			<list   id="UnitCyclingButtons" key="Unit Cycling Buttons" 
+					type="int" default="1" listType="string" 
+					values="Workers|Units|None"
+					get="getUnitCyclingButtons" dirtyBit="SelectionButtons">
+				<choice id="Workers" get="isBothUnitCyclingButtons"/>
+				<choice id="Units" get="isSingleUnitCyclingButton"/>
+				<choice id="None" get="isUnitCyclingButtonsDisabled"/>
+			</list>
+
+			<!-- advc.002m: (Note: the DLL relies on this order of the choices) -->
+			<list   id="NukeMissionTime" key="Nuke Mission Time" 
+					type="int" default="0" listType="string" 
+					values="Full Length|Shortened|None">
+				<choice id="Full"/>
+				<choice id="Short"/>
+				<choice id="None"/>
 			</list>
 
 			<!-- Rapid unit cycling, by karadoc -->
@@ -210,11 +257,38 @@
 				<choice id="Adjacent"/>
 				<choice id="CityCross"/>
 			</list>
-			<!-- advc.002f -->
+
+			<!-- advc.002f: -->
+			<option id="AvoidGrowthIcon" key="Avoid Growth Icon" 
+					type="boolean" default="True" dirtyBit="CityInfo"/>
 			<option id="CityNetworkIcon" key="City Network Icon" 
 					type="boolean" default="False" dirtyBit="CityInfo"/>
 			<option id="AirportIcon" key="Airport Icon" 
 					type="boolean" default="True" dirtyBit="CityInfo"/>
+			<option id="TopCityIcons" key="Top City Icons" 
+					type="boolean" default="False" dirtyBit="CityInfo"/>
+			<!--option id="TopProductionIcon" key="Top Production Icon" 
+					type="boolean" default="False" dirtyBit="CityInfo"/>
+			<option id="TopGoldIcon" key="Top Gold Icon" 
+					type="boolean" default="False" dirtyBit="CityInfo"/>
+			<option id="TopResearchIcon" key="Top Research Icon" 
+					type="boolean" default="False" dirtyBit="CityInfo"/>
+			<option id="TopEspionageIcon" key="Top Espionage Icon" 
+					type="boolean" default="False" dirtyBit="CityInfo"/>
+			<option id="TopXPIcon" key="Top XP Icon" 
+					type="boolean" default="False" dirtyBit="CityInfo"/-->
+			<option id="NextGPIcon" key="Next GP Icon" 
+					type="boolean" default="False" dirtyBit="CityInfo"/>
+			<!--option id="NoUnhappyIcon" key="No Unhappy Icon" 
+					type="boolean" default="False" dirtyBit="CityInfo"/>
+			<option id="NoBadHealthIcon" key="No Bad Health Icon" 
+					type="boolean" default="False" dirtyBit="CityInfo"/-->
+
+			<!-- advc.095 (should perhaps be in 'BULL City Bar.xml' instead) -->
+			<option id="WideCityBars" key="Wide City Bars" 
+					type="boolean" default="False">
+				<change module="InputUtil" function="updateCityBarWidth"/>
+			</option>
 		</section>
 	</options>
 	

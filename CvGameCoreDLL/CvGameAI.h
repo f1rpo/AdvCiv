@@ -25,6 +25,11 @@ public:
   int AI_combatValue(UnitTypes eUnit) const;
 
   int AI_turnsPercent(int iTurns, int iPercent);
+  // <advc.erai>
+  scaled AI_getCurrEraFactor() const;
+  inline int AI_getCurrEra() const { return AI_getCurrEraFactor().round(); }
+  EraTypes AI_getVoteSourceEra(VoteSourceTypes eVS = NO_VOTESOURCE) const;
+  // </advc.erai>
   scaled AI_exclusiveRadiusWeight(int iDist = -1) const; // advc.099b
 
   void read(FDataStreamBase* pStream);
@@ -36,11 +41,14 @@ protected:
 
   int m_iPad;
   // <advc.104>
+  UWAI m_uwai;
   void AI_sortOutUWAIOptions(bool bFromSaveGame);
-  UWAI m_uwai; // </advc.104>
+  // </advc.104>
+  EnumMap<VoteSourceTypes,EraTypes> m_aeVoteSourceEras; // advc.erai
   std::vector<scaled> m_arExclusiveRadiusWeight; // advc.099b
 
   void AI_updateExclusiveRadiusWeight(); // advc.009b
+  void AI_updateVoteSourceEras(); // advc.erai
 };
 
 #endif

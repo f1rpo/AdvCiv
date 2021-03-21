@@ -531,18 +531,8 @@ class CvReligionScreen:
 						sBldg = self.calculateBuilding(pLoopCity, iBldg)
 						screen.setTableText(self.TABLE_ID, self.COL_FIRST_BUILDING + i, iCity, sBldg, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
-				if (iLinkReligion == -1):
-					bFirst = True
-					sHelp = ""
-					for iI in range(len(lReligions)):
-						szTempBuffer = CyGameTextMgr().getReligionHelpCity(lReligions[iI], pLoopCity.GetCy(), False, False, False, True)
-						if (szTempBuffer):
-							if (not bFirst):
-								sHelp += u", "
-							sHelp += szTempBuffer
-							bFirst = False
-				else:
-					sHelp = CyGameTextMgr().getReligionHelpCity(iLinkReligion, pLoopCity.GetCy(), False, False, True, False)
+				# advc: Moved into subroutine
+				sHelp = self.cityHelp(lReligions, pLoopCity.GetCy(), iLinkReligion)
 
 				screen.setTableText(self.TABLE_ID, self.COL_EFFECTS, iCity, sHelp, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
@@ -574,18 +564,8 @@ class CvReligionScreen:
 							szCityName += u"%c" %(gc.getReligionInfo(lReligions[iI]).getChar())
 
 				szCityName += pLoopCity.getName()[0:17] + "  "
-
-				if (iLinkReligion == -1):
-					bFirst = True
-					for iI in range(len(lReligions)):
-						szTempBuffer = CyGameTextMgr().getReligionHelpCity(lReligions[iI], pLoopCity.GetCy(), False, False, False, True)
-						if (szTempBuffer):
-							if (not bFirst):
-								szCityName += u", "
-							szCityName += szTempBuffer
-							bFirst = False
-				else:
-					szCityName += CyGameTextMgr().getReligionHelpCity(iLinkReligion, pLoopCity.GetCy(), False, False, True, False)
+				# advc: Moved into subroutine
+				szCityName += self.cityHelp(lReligions, pLoopCity.GetCy(), iLinkReligion)
 
 				if bFirstColumn:
 					szLeftCities += u"<font=3>" + szCityName + u"</font>\n"
@@ -612,6 +592,22 @@ class CvReligionScreen:
 
 		# Turns of Anarchy Text...
 		screen.setLabel(self.RELIGION_ANARCHY_WIDGET, "Background", u"<font=3>" + szAnarchyTime + u"</font>", CvUtil.FONT_LEFT_JUSTIFY, self.X_ANARCHY, self.Y_ANARCHY, self.Z_TEXT, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+
+	# advc: Cut from drawCityInfo because it's the same for the BtS and BUG screen
+	def cityHelp(self, lReligions, kCity, eHoverReligion):
+		sHelp = ""
+		bFirst = True
+		# <advc.172> Adjust to changed semantics of getReligionHelpCity (specifically the bForceState parameter)
+		eCurrStateReligion = gc.getPlayer(self.iActivePlayer).getStateReligion()
+		for eReligion in lReligions:
+			sLoopHelp = CyGameTextMgr().getReligionHelpCity(eReligion, kCity, False, False, eHoverReligion != -1 and (eReligion == eHoverReligion) != (eReligion == eCurrStateReligion), eHoverReligion == -1)
+			# </advc.172>
+			if sLoopHelp:
+				if not bFirst:
+					sHelp += u", "
+				bFirst = False
+				sHelp += sLoopHelp
+		return sHelp
 
 	def getReligionButtonName(self, iReligion):
 		szName = self.BUTTON_NAME + str(iReligion)

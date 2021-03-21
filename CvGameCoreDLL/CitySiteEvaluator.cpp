@@ -19,13 +19,16 @@ static int const iDEFAULT_BARB_DISCOURAGED_RANGE = 8; // advc.303
 
 // Body cut from K-Mod's CvPlayerAI::CvFoundSettings::CvFoundSettings
 CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRange,
-	bool bStartingLoc, /* advc.031e: */ bool bNormalize) :
-	m_kPlayer(kPlayer), m_iMinRivalRange(iMinRivalRange), m_bStartingLoc(bStartingLoc),
-	m_bNormalize(bNormalize), m_bAmbitious(false), m_bFinancial(false), m_bDefensive(false),
+	bool bStartingLoc, /* advc.031e: */ bool bNormalize)
+:	m_kPlayer(kPlayer), m_iMinRivalRange(iMinRivalRange), m_bStartingLoc(bStartingLoc),
+	m_bNormalize(bNormalize),
+	m_bScenario(false), m_bAmbitious(false), m_bFinancial(false), m_bDefensive(false),
 	m_bSeafaring(false), m_bExpansive(false), /* advc.007: */ m_bDebug(false),
 	m_bAdvancedStart(false), /* advc.027: */ m_bIgnoreStartingSurroundings(false),
 	m_iBarbDiscouragedRange(iDEFAULT_BARB_DISCOURAGED_RANGE) // advc.303
 {
+	m_bScenario = (bStartingLoc ? GC.getInitCore().getWBMapScript() : // advc.031f
+			GC.getGame().isScenario()); // advc
 	m_bAdvancedStart = (kPlayer.getAdvancedStartPoints() > 0);
 	m_bEasyCulture = (kPlayer.getNumCities() <= 0 || // advc.108: from MNAI (was =bStartingLoc)
 			m_bAdvancedStart); // advc.031
@@ -45,20 +48,20 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 			if (!kPlayer.hasTrait(eLoopTrait))
 				continue;
 
-			CvTraitInfo const& kTrait = GC.getInfo(eLoopTrait);
-			if (kTrait.getCommerceChange(COMMERCE_CULTURE) > 0)
+			CvTraitInfo const& kLoopTrait = GC.getInfo(eLoopTrait);
+			if (kLoopTrait.getCommerceChange(COMMERCE_CULTURE) > 0)
 			{
 				m_bEasyCulture = true;
 				if (pPersonality != NULL && pPersonality->getBasePeaceWeight() <= 5)
 					m_bAmbitious = true;
 			}
-			if (kTrait.getExtraYieldThreshold(YIELD_COMMERCE) > 0)
+			if (kLoopTrait.getExtraYieldThreshold(YIELD_COMMERCE) > 0)
 				m_bFinancial = true;
-			if (kTrait.isAnyFreePromotion()) // advc.003t
+			if (kLoopTrait.isAnyFreePromotion()) // advc.003t
 			{
 				FOR_EACH_ENUM(Promotion)
 				{
-					if (kTrait.isFreePromotion(eLoopPromotion))
+					if (kLoopTrait.isFreePromotion(eLoopPromotion))
 					{
 						// aggressive, protective... it doesn't really matter to me.
 						if (pPersonality != NULL && pPersonality->getBasePeaceWeight() >= 5)
@@ -112,9 +115,9 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 		{
 			FOR_EACH_ENUM(Process)
 			{
-				CvProcessInfo const& kProcess = GC.getInfo(eLoopProcess);
-				if (GET_TEAM(kPlayer.getTeam()).isHasTech((TechTypes)kProcess.getTechPrereq()) &&
-					kProcess.getProductionToCommerceModifier(COMMERCE_CULTURE) > 0)
+				CvProcessInfo const& kLoopProcess = GC.getInfo(eLoopProcess);
+				if (GET_TEAM(kPlayer.getTeam()).isHasTech(kLoopProcess.getTechPrereq()) &&
+					kLoopProcess.getProductionToCommerceModifier(COMMERCE_CULTURE) > 0)
 				{
 					m_bEasyCulture = true;
 					break;
@@ -156,7 +159,7 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 		int iCitiesTarget = std::max(1,
 				GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities());
 		m_iClaimThreshold = 100 +
-				100 * kPlayer.getCurrentEra() / std::max(1, GC.getNumEraInfos() - 1);
+				(100 * kPlayer.getCurrentEra()) / std::max(1, GC.getNumEraInfos() - 1);
 		m_iClaimThreshold += 80 * std::max(0,
 				iCitiesTarget - kPlayer.getNumCities()) / iCitiesTarget;
 
@@ -317,12 +320,8 @@ void CitySiteEvaluator::log(CvPlot const& kPlot)
 	{
 		CvPlot const* pBestAdjSite = NULL;
 		int iBest = 0;
-		FOR_EACH_ENUM(Direction)
+		FOR_EACH_ADJ_PLOT(kPlot)
 		{
-			CvPlot const* pAdj = plotDirection(kPlot.getX(), kPlot.getY(),
-					eLoopDirection);
-			if (pAdj == NULL)
-				continue;
 			int iValue = evaluate(*pAdj);
 			if (iValue > iBest)
 			{
@@ -360,6 +359,7 @@ AIFoundValue::AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettin
 
 	bBarbarian = kPlayer.isBarbarian();
 	eEra = kPlayer.getCurrentEra();
+	rAIEraFactor = kPlayer.AI_getCurrEraFactor();
 	bCoastal = kPlot.isCoastalLand(-1);
 	iAreaCities = kArea.getCitiesPerPlayer(ePlayer);
 	pCapital = kPlayer.AI_getCapital();
@@ -689,7 +689,7 @@ short AIFoundValue::evaluate()
 	iValue += evaluateDefense();
 	IFLOG logBBAI("=%d in total before modifiers", iValue);
 
-	if (!kSet.isStartingLoc())
+	if (!kSet.isStartingLoc() /* advc.031f: */ || kSet.isScenario())
 	{
 		/*  <advc.031> Moved down to the other modifiers. But don't adjust the
 			non-yield resource value -- don't need food for a trade connection. */
@@ -751,7 +751,7 @@ short AIFoundValue::evaluate()
 
 	iValue = adjustToBadTiles(iValue, iBadTiles /* advc.031: */ + (4 * iTakenTiles) / 10
 			-(bBarbarian ? 2 : (4 + iGreenTiles + iSpecialFoodPlus)) // advc.303
-			/ (kSet.isStartingLoc() ? 2 : 1)); // advc.108
+			/ (kSet.isStartingLoc() && !kSet.isScenario() ? 2 : 1)); // advc.108, advc.031f
 	iValue = adjustToBadHealth(iValue, iHealth);
 	// <advc.031>
 	if (kSet.isNormalizing())
@@ -792,7 +792,7 @@ bool AIFoundValue::isSiteValid() const
 	}
 	if (kSet.isStartingLoc())
 	{
-		if (kPlot.isGoody() /* advc.027: */ && kGame.isScenario())
+		if (kPlot.isGoody() /* advc.027: */ && kSet.isScenario())
 		{
 			IFLOG logBBAI("Can't start on goody hut");
 			return false;
@@ -1001,7 +1001,7 @@ int AIFoundValue::countBadTiles(/* advc.031: */ int& iInnerRadius,
 			{
 				iBadLoop++;
 				// <advc.108> Ocean can't be "normalized" away later on
-				if (kSet.isStartingLoc())
+				if (kSet.isStartingLoc() /* adv.031f: */ && !kSet.isScenario())
 					iBadLoop++; // </advc.108>
 			}
 			if(!bCoastal)
@@ -1189,7 +1189,7 @@ bool AIFoundValue::isUsablePlot(CityPlotTypes ePlot, int& iTakenTiles, bool& bCi
 				better wait for borders to expand. */
 			return false;
 		}
-		if (pOtherCity != NULL && (kTeam.AI_deduceCitySite(pOtherCity) ||
+		if (pOtherCity != NULL && (kTeam.AI_deduceCitySite(*pOtherCity) ||
 			/*  At the start of the game, a single revealed tile should
 				be enough to locate the city. */
 			iCities == 0))
@@ -1256,8 +1256,8 @@ bool AIFoundValue::isRemovableFeature(CvPlot const& p, bool& bPersistent,
 	bPersistent = true;
 	FOR_EACH_ENUM(Build)
 	{
-		CvBuildInfo const& kBuild = GC.getInfo(eLoopBuild);
-		if (!kBuild.isFeatureRemove(eFeature))
+		CvBuildInfo const& kLoopBuild = GC.getBuildInfo (eLoopBuild);
+		if (!kLoopBuild.isFeatureRemove(eFeature))
 			continue;
 
 		bPersistent = false;
@@ -1279,8 +1279,8 @@ bool AIFoundValue::isRemovableFeature(CvPlot const& p, bool& bPersistent,
 				iFeatureProduction /= 3; // Can already chop it
 		}
 		// CurrentResearch should be good enough
-		TechTypes eTech1 = kBuild.getTechPrereq();
-		TechTypes eTech2 = kBuild.getFeatureTech(eFeature);
+		TechTypes eTech1 = kLoopBuild.getTechPrereq();
+		TechTypes eTech2 = kLoopBuild.getFeatureTech(eFeature);
 		// </advc.031>
 		if (kTeam.isHasTech(eTech1) &&
 			kTeam.isHasTech(eTech2)) // advc.001: This check was missing
@@ -1331,12 +1331,12 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 	FeatureTypes const eFeature = p.getFeatureType();
 	FOR_EACH_ENUM(Build)
 	{
-		CvBuildInfo const& kBuild = GC.getInfo(eLoopBuild);
-		ImprovementTypes eImprovement = kBuild.getImprovement();
+		CvBuildInfo const& kLoopBuild = GC.getInfo(eLoopBuild);
+		ImprovementTypes eImprovement = kLoopBuild.getImprovement();
 		if (eImprovement == NO_IMPROVEMENT)
 			continue;
 		CvImprovementInfo const& kImprovement = GC.getInfo(eImprovement);
-		TechTypes const eBuildPrereq = kBuild.getTechPrereq();
+		TechTypes const eBuildPrereq = kLoopBuild.getTechPrereq();
 		if (!kImprovement.isImprovementBonusMakesValid(eBonus) ||
 			!kImprovement.isImprovementBonusTrade(eBonus) ||
 			!isNearTech(eBuildPrereq))
@@ -1344,7 +1344,7 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 			continue;
 		}
 		TechTypes const eFeaturePrereq = (eFeature == NO_FEATURE ? NO_TECH :
-				kBuild.getFeatureTech(eFeature));
+				kLoopBuild.getFeatureTech(eFeature));
 		if (!isNearTech(eFeaturePrereq))
 			continue;
 		bCanTradeSoon = true;
@@ -1357,7 +1357,7 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 		else if (bCanTrade) // Prefer currently available build - regardless of yield
 			continue;
 		int iYieldValue = 0;
-		bool bRemove = (eFeature != NO_FEATURE && kBuild.isFeatureRemove(eFeature));
+		bool bRemove = (eFeature != NO_FEATURE && kLoopBuild.isFeatureRemove(eFeature));
 		FOR_EACH_ENUM(Yield) // Make sure we're not picking Fort over a yield improvement
 		{
 			iYieldValue += kImprovement.getYieldChange(eLoopYield) +
@@ -1556,9 +1556,9 @@ int AIFoundValue::removableFeatureYieldVal(FeatureTypes eFeature,
 	bool bRemovableFeature, bool bBonus) const
 {
 	int iR = 0;
+	CvFeatureInfo const& kFeature = GC.getInfo(eFeature);
 	FOR_EACH_ENUM(Yield)
 	{
-		CvFeatureInfo const& kFeature = GC.getInfo(eFeature);
 		if (bRemovableFeature)
 			iR += 10 * kFeature.getYieldChange(eLoopYield);
 		else if (kFeature.getYieldChange(eLoopYield) < 0)
@@ -1612,7 +1612,7 @@ scaled AIFoundValue::estimateImprovementProduction(CvPlot const& p,
 		// Not a perfectly safe way to check if we can build the improvement - but fast.
 		if (kPlayer.getImprovementCount(eLoopImprovement) <= 0)
 			continue;
-		CvImprovementInfo& kLoopImprovement = GC.getInfo(eLoopImprovement);
+		CvImprovementInfo const& kLoopImprovement = GC.getInfo(eLoopImprovement);
 		int iYieldChange = kLoopImprovement.getYieldChange(YIELD_PRODUCTION) +
 				kTeam.getImprovementYieldChange(eLoopImprovement, YIELD_PRODUCTION);
 		// Will be less inclined to build improvement if it hurts other yields
@@ -1662,7 +1662,8 @@ int AIFoundValue::evaluateYield(int const* aiYield, CvPlot const* p,
 	/*  <advc.108> For moving the starting Settler and for more
 		early-game commerce in general */
 	if(iCities <= 1 && eEra <= 0)
-		aiWeight[YIELD_COMMERCE] += 5; // </advc.108>  <advc.303>
+		aiWeight[YIELD_COMMERCE] += 5; // </advc.108>
+	// <advc.303>
 	if (bBarbarian)
 	{
 		aiWeight[YIELD_FOOD] -= 4;
@@ -1688,9 +1689,9 @@ int AIFoundValue::evaluateYield(int const* aiYield, CvPlot const* p,
 			r += 8 * (aiYield[YIELD_COMMERCE] + aiYield[YIELD_PRODUCTION]);
 		}
 		else r /= 3;
-		if (kSet.isStartingLoc())
+		if (kSet.isStartingLoc() && !bCoastal)
 		{
-			r += bCoastal ? 0 : -75; // advc.031: was -400 in BtS, -120 in K-Mod
+			r -= 75; // advc.031: was -400 in BtS, -120 in K-Mod
 			/*	(K-Mod comment: "I'm pretty much forbidding starting 1 tile
 				inland non-coastal with more than a few non-lake water tiles.) */
 		}
@@ -1927,9 +1928,9 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus,
 	{	/*  <advc.031> Why halve the value of water bonuses? Perhaps because
 			they're costly to improve. But that's only true in the early game.
 			Because they tend to be common? AI_bonusVal takes care of that. */
-		if (p.isWater()/*) {//r /= 2;*/ && eEra < 3)
+		if (p.isWater()/*) {//r /= 2;*/ && eEra < CvEraInfo::AI_getAgeOfExploration())
 		{
-			int iWaterPenalty = (3 - eEra) * 16;
+			int iWaterPenalty = (CvEraInfo::AI_getAgeOfExploration() - eEra) * 16;
 			r -= iWaterPenalty;
 			r.increaseTo(0);
 			IFLOG logBBAI("Penalty for water resource: %d", iWaterPenalty);
@@ -2101,6 +2102,13 @@ int AIFoundValue::evaluateSpecialYields(int const* aiSpecialYield,
 			/*  advc.108: For moving the starting Settler. Though a commercial
 				resource at the second city is also valuable, so: */
 			iCities <= 1 && eEra <= 0 ? fixp(0.48) : fixp(0.32)};
+	// <advc.031f> When there will be no normalization
+	if (kSet.isStartingLoc() && kSet.isScenario())
+	{
+		arWeight[YIELD_FOOD] *= 2;
+		arWeight[YIELD_PRODUCTION] *= fixp(1.7);
+		arWeight[YIELD_COMMERCE] *= fixp(1.4);
+	} // </advc.031f>
 	scaled const rDiv = iSpecialYieldTiles;
 	scaled rFromSpecial;
 	FOR_EACH_ENUM(Yield)
@@ -2131,11 +2139,11 @@ int AIFoundValue::evaluateSpecialYields(int const* aiSpecialYield,
 	/*	Starting sites are exempt from adjustToFood. Mostly don't want them
 		to be exempt from the special food adjustment. */
 	else rFoodModifier = (rFoodModifier + fixp(0.5)) / fixp(1.5);
-	int r = (rFromSpecial * rFoodModifier).round();
-	IFLOG logBBAI("+%d from special yields %dF%dP%dC (food surplus modifier: %d percent)", r,
+	int iResult = (rFromSpecial * rFoodModifier).round();
+	IFLOG logBBAI("+%d from special yields %dF%dP%dC (food surplus modifier: %d percent)", iResult,
 			aiSpecialYield[YIELD_FOOD], aiSpecialYield[YIELD_PRODUCTION], aiSpecialYield[YIELD_COMMERCE],
 			rFoodModifier.getPercent());
-	return r;
+	return iResult;
 	// </advc.031>
 }
 
@@ -2156,7 +2164,7 @@ int AIFoundValue::adjustToFood(int iValue, int iSpecialFoodPlus, int iSpecialFoo
 	int iGreenTiles) const
 {
 	scaled rLowFoodModifier = 1;
-	if (eEra < 4)
+	if (eEra < CvEraInfo::AI_getAgeOfFertility())
 	{
 		int iSpecialSurplus = (iSpecialFoodPlus - iSpecialFoodMinus + 1) / 2; // ceil
 		rLowFoodModifier = (fixp(8.5) + iGreenTiles + iSpecialSurplus) / fixp(11.5);
@@ -2181,7 +2189,7 @@ int AIFoundValue::evaluateLongTermHealth(int& iHealthPercent) const
 	//iValue += (iHealth / 5);
 	/*  <advc.031> The above may have accounted for feature production; now
 		evaluated separately elsewhere. */
-	if (iHealthPercent > 0 || eEra > 1)
+	if (iHealthPercent > 0 || eEra >= CvEraInfo::AI_getAgeOfPestilence())
 		r += std::min(iHealthPercent, 350) / 6;
 	// Extra bonus for persistent health (as in BtS/ K-Mod): // </advc.031> 
 	r += iFreshWaterHealth * 30;
@@ -2197,7 +2205,10 @@ int AIFoundValue::evaluateFeatureProduction(int iProduction) const
 {
 	/*  Can't chop in the very early game (would be nicer to check for
 		feature removal tech and sufficient workers than to go by era) */
-	scaled r(iProduction * 3, (eEra == 0 ? 2 : eEra) + 2);
+	scaled r = iProduction * 3;
+	if (rAIEraFactor <= 0)
+		r /= 4;
+	else r /= rAIEraFactor + 2;
 	IFLOG if(r!=0) logBBAI("+%d from %d feature production", r, iProduction);
 	return r.round();
 }
@@ -2364,7 +2375,7 @@ int AIFoundValue::adjustToLandAreaBoundary(int iValue) const
 // Taking into account tiles beyond the city radius
 int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 {
-	int r = iValue;
+	int iR = iValue;
 	int iGreaterBadTile = 0;
 	int const iRange = 6; // K-Mod (was 5)
 	for (SquareIter it(kPlot, iRange); it.hasNext(); ++it)
@@ -2392,9 +2403,9 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 			iTempValue += p.isWater() ? -2 : 0;
 			if (iTempValue < 13)
 			{
-				// 3 points for unworkable plots (desert, ice, far-ocean)
-				// 2 points for bad plots (ocean, tundra)
-				// 1 point for fixable bad plots (jungle)
+				/*	3 points for unworkable plots (desert, ice, far-ocean)
+					2 points for bad plots (ocean, tundra)
+					1 point for fixable bad plots (jungle) */
 				iGreaterBadTile++;
 				if (p.calculateBestNatureYield(YIELD_FOOD, eTeam) < 2)
 				{
@@ -2404,15 +2415,15 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 				}
 			}
 			if (p.isWater() || p.isArea(kArea))
-				r += iTempValue;
+				iR += iTempValue;
 			else if (iTempValue >= 13)
 				iGreaterBadTile++; // add at least 1 badness point for other islands.
 			// K-Mod end
 		}
 	}
-	IFLOG logBBAI("+%d from surroundings", r - iValue);
+	IFLOG logBBAI("+%d from surroundings", iR - iValue);
 	if (kSet.isNormalizing())
-		return r; // advc
+		return iR;
 	/*iGreaterBadTile /= 2;
 	if (iGreaterBadTile > 12) {
 		r *= 11;
@@ -2420,12 +2431,12 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 	}*/ // BtS
 	// K-Mod. note: the range has been extended, and the 'bad' counting has been rescaled.
 	iGreaterBadTile /= 3;
-	int iGreaterRangePlots = 2*(iRange*iRange + iRange) + 1;
+	int iGreaterRangePlots = 2 * (SQR(iRange) + iRange) + 1;
 	int iGreaterRangeFactor = iGreaterRangePlots / 6; // advc
 	if (iGreaterBadTile > iGreaterRangeFactor)
 	{
-		r *= iGreaterRangeFactor;
-		r /= iGreaterBadTile;
+		iR *= iGreaterRangeFactor;
+		iR /= iGreaterBadTile;
 		IFLOG logBBAI("Times %d/%d for bad tiles in the greater range", iGreaterRangeFactor, iGreaterBadTile);
 	}
 
@@ -2436,7 +2447,7 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 	/*  advc: Unused BtS and K-Mod code dealing with WaterCount and
 		MinOriginalStartDist deleted */
 
-	int const iTempValue = r; // advc.031c
+	int const iTempValue = iR; // advc.031c
 	int iMinDistanceFactor = MAX_INT;
 	int const iMinRange = //startingPlotRange();
 			kGame.getStartingPlotRange(); // advc.opt (now cached)
@@ -2450,29 +2461,33 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 		iMinDistanceFactor = std::min(iClosenessFactor, iMinDistanceFactor);
 		if (iClosenessFactor < 1000)
 		{
-			/*r *= 2000 + iClosenessFactor;
-			r /= 3000;*/
-			// advc.031: If overflow is a concern ...
-			r = ::round(r * ((2000 + iClosenessFactor) / 3000.0));
+			iR *= 2000 + iClosenessFactor;
+			iR /= 3000;
 		}
 	}
 	if (iMinDistanceFactor > 1000)
 	{
 		//give a maximum boost of 25% for somewhat distant locations, don't go overboard.
 		iMinDistanceFactor = std::min(1500, iMinDistanceFactor);
-		r *= (1000 + iMinDistanceFactor);
-		r /= 2000;
+		iR *= (1000 + iMinDistanceFactor);
+		iR /= 2000;
 	}
 	else if (iMinDistanceFactor < 1000)
 	{
 		//this is too close so penalize again.
-		r *= iMinDistanceFactor;
-		r /= 1000;
-		r *= iMinDistanceFactor;
-		r /= 1000;
+		iR *= iMinDistanceFactor;
+		iR /= 1000;
+		/*iR *= iMinDistanceFactor;
+		iR /= 1000;*/
+		// <advc.031> Squaring the iMinDistanceFactor/1000 ratio is too drastic
 	}
-	IFLOG logBBAI("%d from distance to other players", r - iTempValue);
-	return r;
+	if (iMinDistanceFactor < 666)
+	{
+		iR *= iMinDistanceFactor;
+		iR /= 666;
+	} // </advc.031>
+	IFLOG logBBAI("%d from distance to other players", iR - iTempValue);
+	return iR;
 }
 
 /*	advc.027:  (Not sure how to name this function. It's supposed to encourage
@@ -2605,7 +2620,7 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 			if (pLoopCity->isArea(kArea))
 			{
 				// <advc.031> Don't cheat
-				if (!kSet.isAllSeeing() && !kTeam.AI_deduceCitySite(pLoopCity))
+				if (!kSet.isAllSeeing() && !kTeam.AI_deduceCitySite(*pLoopCity))
 					continue; // </advc.031>
 				int iDistance = plotDistance(iX, iY, pLoopCity->getX(), pLoopCity->getY());
 				if (kOther.getID() == ePlayer && (pOurNearestCity == NULL ||
@@ -2615,7 +2630,7 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 					pOurNearestCity = pLoopCity;
 				}
 				int iCultureRange = pLoopCity->getCultureLevel() + 3;
-				if (iDistance <= iCultureRange && kTeam.AI_deduceCitySite(pLoopCity))
+				if (iDistance <= iCultureRange && kTeam.AI_deduceCitySite(*pLoopCity))
 				{
 					// cf. culture distribution in CvCity::doPlotCultureTimes100
 					iProximity += 90*(iDistance-iCultureRange)*(iDistance-iCultureRange)/
@@ -2689,7 +2704,7 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 			if (kPlot.isHills())
 				rDiploFactor += 16;
 			// The importance of a few stolen tiles decreases over time
-			rDiploFactor += eEra * 13;
+			rDiploFactor += rAIEraFactor * 13;
 			rDiploFactor = fixp(1.6) * rDiploFactor / iStealPercent;
 			rDiploFactor.clamp(fixp(0.6), 1);
 			iValue = (iValue * rDiploFactor).round();
@@ -2794,7 +2809,8 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 		::plotDistance(&kPlot, pCapital->plot()) >= 10 ||
 		kArea.getNumTiles() >= NUM_CITY_PLOTS)
 	{
-		int iDistPenalty = 5100 - std::min<int>(4, eEra) * 775; // (was 8000 flat)
+		//int iDistPenalty = 8000;
+		int iDistPenalty = 5100 - (scaled::min(4, rAIEraFactor) * 775).round();
 		// </advc.031> (no functional change below)
 		iDistPenalty *= iDistance;
 		iDistPenalty /= GC.getMap().maxTypicalDistance(); // advc.140: was maxPlotDistance
@@ -2896,7 +2912,8 @@ int AIFoundValue::adjustToBadTiles(int iValue, int iBadTiles) const
 	{
 		/*	A scenario is more likely to mix some very good tiles with a lot of
 			bad ones. Better to be more conservative on regular maps. */
-		scaled const rExponent = (kGame.isScenario() ? fixp(1.385) : fixp(1.5));
+		scaled const rExponent = (kSet.isScenario() && !kSet.isStartingLoc() ?
+				fixp(1.385) : fixp(1.5));
 		r -= scaled(iBadTiles).pow(rExponent) * 100 *  // <advc.108>
 				(fixp(1/3.) + (kSet.isStartingLoc() ?
 				fixp(1/3.) : 0) + (iCities <= 0 ? fixp(1/3.) : 0)); // </advc.108>
@@ -2918,20 +2935,20 @@ int AIFoundValue::adjustToBadHealth(int iValue, int iGoodHealth) const
 			GC.getInfo(kPlayer.getHandicapType()).getHealthBonus();
 	if (iBadHealth >= -2) // I.e. can only grow to size 2
 	{
-		int iDiv = std::max(1, 3 - eEra + iBadHealth);
+		scaled rDiv = scaled::max(1, 3 - rAIEraFactor + iBadHealth);
 		int iMult = 1;
-		if (iDiv <= 1)
+		if (rDiv <= 1)
 		{
 			iMult = 2;
-			iDiv = 3;
-			if (kSet.isStartingLoc())
+			rDiv = 3;
+			if (kSet.isStartingLoc() && !kSet.isScenario())
 			{
 				iMult = 3;
-				iDiv = 4;
+				rDiv = 4;
 			}
 		}
-		iValue = (iMult * iValue) / iDiv;
-		IFLOG if (iDiv>1) logBBAI("Times %d/%d for bad health", iMult, iDiv);
+		iValue = ((iMult * iValue) / rDiv).round();
+		IFLOG if (rDiv.round()>1) logBBAI("Times %d/%d for bad health", iMult, rDiv.round());
 	}
 	return iValue;
 }
@@ -3010,6 +3027,8 @@ void CitySiteEvaluator::logSettings() const
 	// </advc.300>
 	if (isStartingLoc())
 		logBBAI("StartingLoc");
+	if (isScenario())
+		logBBAI("WBScenario");
 	// <advc.031e>
 	if (isNormalizing())
 		logBBAI("Normalizing"); // </advc.031e>
@@ -3255,17 +3274,17 @@ scaled AIFoundValue::evaluateWorkablePlot(CvPlot const& p) const
 				b/c their reward is greatly delayed and b/c they're not supposed to
 				steer starting positions much in any case. */
 			TechTypes eTech = GC.getInfo(eBonus).getTechImprove(p.isWater());
-			int iEraDiff = (eTech == NO_TECH ? 0 :
-					 GC.getInfo(eTech).getEra() - eEra);
-			if (iEraDiff >= 4)
+			scaled rEraDiff = CvEraInfo::normalizeEraNum(
+					(eTech == NO_TECH ? 0 : GC.getInfo(eTech).getEra() - eEra));
+			if (rEraDiff >= 4)
 			{	/*	Some special yield is counted for all resources; that should be
 					enough and more for late-game resources. */
 				rNonYieldBonusVal = 0;
 			}
-			else if (iEraDiff > 0)
+			else if (rEraDiff.isPositive())
 			{
 				rNonYieldBonusVal *= 2;
-				rNonYieldBonusVal /= (2 + SQR(iEraDiff));
+				rNonYieldBonusVal /= (2 + SQR(rEraDiff));
 			}
 		}
 		// Settling near low-yield resources (especially Snow Fur) is an inconvenience

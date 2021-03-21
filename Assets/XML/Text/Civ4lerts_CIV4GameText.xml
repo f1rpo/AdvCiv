@@ -18,10 +18,12 @@
   along with Civilization IV Alerts mod; if not, write to the Free
   Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   02110-1301 USA
+  advc (note): The license is in the BUG Doc folder.
   -->
 
 
 <Civ4GameText xmlns="http://www.firaxis.com">
+
 	<TEXT>
 		<Tag>TXT_KEY_CIV4LERTS_ON_REFUSES_TO_TALK</Tag>
 		<English>[COLOR_NEGATIVE_TEXT]%s1 refuses to talk.[COLOR_REVERT]</English>
@@ -44,7 +46,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_CIV4LERTS_ON_YOU_WORST_ENEMY</Tag>
 		<English>[COLOR_NEGATIVE_TEXT]You are the worst enemy of %s1.[COLOR_REVERT]</English>
-		<French>[COLOR_NEGATIVE_TEXT]You are the worst enemy of %s1.[COLOR_REVERT]</French>
 		<German>[COLOR_NEGATIVE_TEXT]Ihr seid der Erzfeind von %s1.[COLOR_REVERT]</German>
 		<Italian>[COLOR_NEGATIVE_TEXT]Sei il peggior nemico di %s1.[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_NEGATIVE_TEXT]Eres el peor enemigo de %s1.[COLOR_REVERT]</Spanish>
@@ -52,7 +53,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_CIV4LERTS_ON_WORST_ENEMY</Tag>
 		<English>[COLOR_YIELD_FOOD]%s2 is the worst enemy of %s1.[COLOR_REVERT]</English>
-		<French>[COLOR_YIELD_FOOD]%s2 is the worst enemy of %s1.[COLOR_REVERT]</French>
 		<German>[COLOR_YIELD_FOOD]%s2 ist der Erzfeind von %s1.[COLOR_REVERT]</German>
 		<Italian>[COLOR_YIELD_FOOD]%s2 è il peggior nemico di %s1.[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_YIELD_FOOD]%s2 es el peor enemigo de %s1.[COLOR_REVERT]</Spanish>
@@ -61,7 +61,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_CIV4LERTS_ON_SWITCH_WORST_ENEMY_FROM_YOU</Tag>
 		<English>[COLOR_YIELD_FOOD]%s2 is the new worst enemy of %s1 (was you).[COLOR_REVERT]</English>
-		<French>[COLOR_YIELD_FOOD]%s2 is the new worst enemy of %s1 (was you).[COLOR_REVERT]</French>
 		<German>[COLOR_YIELD_FOOD]%s2 ist der neue Erzfeind von %s1 (statt Euch).[COLOR_REVERT]</German>
 		<Italian>[COLOR_YIELD_FOOD]%s2 è il nuovo peggior nemico di %s1 (eri tu).[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_YIELD_FOOD]%s2 es el nuevo peor enemigo de %s1 (eras tú).[COLOR_REVERT]</Spanish>
@@ -69,7 +68,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_CIV4LERTS_ON_SWITCH_WORST_ENEMY_TO_YOU</Tag>
 		<English>[COLOR_NEGATIVE_TEXT]You are the new worst enemy of %s1 (was %s2).[COLOR_REVERT]</English>
-		<French>[COLOR_NEGATIVE_TEXT]You are the new worst enemy of %s1 (was %s2).[COLOR_REVERT]</French>
 		<German>[COLOR_NEGATIVE_TEXT]Ihr seid der neue Erzfeind von %s1 (statt %s2).[COLOR_REVERT]</German>
 		<Italian>[COLOR_NEGATIVE_TEXT]Sei il nuovo peggior nemico di %s1 (era %s2).[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_NEGATIVE_TEXT]Eres el nuevo peor enemigo de %s1 (era %s2).[COLOR_REVERT]</Spanish>
@@ -77,7 +75,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_CIV4LERTS_ON_SWITCH_WORST_ENEMY</Tag>
 		<English>[COLOR_YIELD_FOOD]%s2 is the new worst enemy of %s1 (was %s3).[COLOR_REVERT]</English>
-		<French>[COLOR_YIELD_FOOD]%s2 is the new worst enemy of %s1 (was %s3).[COLOR_REVERT]</French>
 		<German>[COLOR_YIELD_FOOD]%s2 ist der neue Erzfeind von %s1 (statt %s3).[COLOR_REVERT]</German>
 		<Italian>[COLOR_YIELD_FOOD]%s2 è il nuovo peggior nemico di %s1 (era %s3).[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_YIELD_FOOD]%s2 es el nuevo enemigo de %s1 (era %s3).[COLOR_REVERT]</Spanish>
@@ -86,7 +83,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_CIV4LERTS_ON_NO_WORST_ENEMY</Tag>
 		<English>[COLOR_POSITIVE_TEXT]%s2 is no longer the worst enemy of %s1.[COLOR_REVERT]</English>
-		<French>[COLOR_POSITIVE_TEXT]%s2 is no longer the worst enemy of %s1.[COLOR_REVERT]</French>
 		<German>[COLOR_POSITIVE_TEXT]%s2 ist nicht mehr der Erzfeind von %s1.[COLOR_REVERT]</German>
 		<Italian>[COLOR_POSITIVE_TEXT]%s2 non è più il peggior nemico di %s1.[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_POSITIVE_TEXT]%s2 ha dejado de ser el peor enemigo de %s1.[COLOR_REVERT]</Spanish>
@@ -94,7 +90,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_CIV4LERTS_ON_YOU_NO_WORST_ENEMY</Tag>
 		<English>[COLOR_POSITIVE_TEXT]You are no longer the worst enemy of %s1.[COLOR_REVERT]</English>
-		<French>[COLOR_POSITIVE_TEXT]You are no longer the worst enemy of %s1.[COLOR_REVERT]</French>
 		<German>[COLOR_POSITIVE_TEXT]Ihr seid nicht mehr der Erzfeind von %s1.[COLOR_REVERT]</German>
 		<Italian>[COLOR_POSITIVE_TEXT]Non sei più il peggior nemico di %s1.[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_POSITIVE_TEXT]Has dejado de ser el peor enemigo de %s1.[COLOR_REVERT]</Spanish>
@@ -247,7 +242,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_CIV4LERTS_ON_CITY_CAN_HURRY_POP_PLUS_GOLD</Tag>
 		<English>[COLOR_YIELD_FOOD]%s1 can hurry %s2 for %d3[ICON_ANGRYPOP] with %d4[ICON_PRODUCTION] overflow, %d6[ICON_GOLD] added to the treasury, and +1[ICON_UNHAPPY] for %d5 turns.[COLOR_REVERT]</English>
-		<French>[COLOR_YIELD_FOOD]%s1 can hurry %s2 for %d3[ICON_ANGRYPOP] with %d4[ICON_PRODUCTION] overflow, %d6[ICON_GOLD] added to the treasury, and +1[ICON_UNHAPPY] for %d5 turns.[COLOR_REVERT]</French>
 		<German>[COLOR_YIELD_FOOD]%s1 kann das Bauprojekt "%s2" unter Einsatz von %d3[ICON_ANGRYPOP] beschleunigen (Überschuss: %d4[ICON_PRODUCTION] + %d6[ICON_GOLD] für die Staatskasse), wobei für %d5 Runden +1[ICON_UNHAPPY] in der Stadt verursacht wird.[COLOR_REVERT]</German>
 		<Italian>[COLOR_YIELD_FOOD]%s1 può accelerare %s2 per %d3[ICON_ANGRYPOP] con un surplus di %d4[ICON_PRODUCTION], un aumento del tesoro di %d6[ICON_GOLD] e +1[ICON_UNHAPPY] per %d5 turni.[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_YIELD_FOOD]%s1 puede acelerar %s2 usando %d3[ICON_ANGRYPOP] con un excedente de %d4[ICON_PRODUCTION], %d6[ICON_GOLD] añadido al tesoro, y +1[ICON_UNHAPPY] durante %d5 turns.[COLOR_REVERT]</Spanish>
@@ -260,4 +254,5 @@
 		<Italian>[COLOR_YIELD_FOOD]%s1 può accelerare %s2 per %d3[ICON_GOLD].[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_YIELD_FOOD]%s1 puede acelerar %s2 usando %d3[ICON_GOLD].[COLOR_REVERT]</Spanish>
 	</TEXT>
+
 </Civ4GameText>

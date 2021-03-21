@@ -24,6 +24,7 @@ public:
 	scaled evaluateWorkablePlot(CvPlot const& kPlot) const; // advc.027
 	CvPlayerAI const& getPlayer() const { return m_kPlayer; }
 	bool isStartingLoc() const { return m_bStartingLoc; }
+	bool isScenario() const { return m_bScenario; }
 	bool isNormalizing() const { return m_bNormalize; } // advc.031e
 	int getMinRivalRange() const { return m_iMinRivalRange; }
 	// <advc.300>
@@ -43,7 +44,8 @@ public:
 	// (The comments below about the found settings are from K-Mod)
 	// culture required to pop the 2nd borders (as in BtS)
 	int getClaimThreshold() const { return m_iClaimThreshold; }
-	// doesn't need vision of a plot to know what's there [but doesn't reveal resources]
+	/*	doesn't need vision of a plot to know what's there
+		[But doesn't necessarily reveal resources; see AIFoundValue::getBonus.] */
 	bool isAllSeeing() const { return m_bAllSeeing; }
 	// some trait information that will influence where we settle ...
 	// easy for us to pop the culture to the 2nd border
@@ -65,6 +67,7 @@ public:
 private:
 	CvPlayerAI const& m_kPlayer;
 	bool m_bStartingLoc;
+	bool m_bScenario; // advc
 	bool m_bNormalize;
 	int m_iMinRivalRange;
 	int m_iBarbDiscouragedRange; // advc.300
@@ -108,6 +111,7 @@ private:
 	CvGame const& kGame;
 	bool bBarbarian;
 	EraTypes eEra;
+	scaled rAIEraFactor;
 	int iX, iY;
 	CvCityAI const* pCapital;
 	bool bCoastal;

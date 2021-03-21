@@ -115,17 +115,15 @@ CvUnit* Shelf::randomBarbarianTransport() const
 		if(plots[i] == NULL) continue; CvPlot const& plot = *plots[i];
 		if(plot.isVisibleToCivTeam())
 			continue;
-		for(CLLNode<IDInfo> const* pNode = plot.headUnitNode(); pNode != NULL;
-			pNode = plot.nextUnitNode(pNode))
+		FOR_EACH_UNIT_VAR_IN(pTransport, plot)
 		{
-			CvUnit& kUnit = *::getUnit(pNode->m_data);
-			if(kUnit.getOwner() != BARBARIAN_PLAYER)
+			if(pTransport->getOwner() != BARBARIAN_PLAYER)
 				break;
-			CvUnitInfo const& u = GC.getInfo(kUnit.getUnitType());
+			CvUnitInfo const& u = GC.getInfo(pTransport->getUnitType());
 			int iCargo = std::min(2, u.getCargoSpace()); // Load at most 2
-			iCargo -= std::max(0, kUnit.getCargo());
+			iCargo -= std::max(0, pTransport->getCargo());
 			if(iCargo > 0)
-				apValid.push_back(&kUnit);
+				apValid.push_back(pTransport);
 		}
 	}
 	if(apValid.empty())

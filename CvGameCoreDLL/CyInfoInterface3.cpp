@@ -136,7 +136,7 @@ void CyInfoPythonInterface3()
 
 		// Arrays
 
-		.def("getProductionToCommerceModifier", &CvProcessInfo::getProductionToCommerceModifier, "int (int i)")
+		.def("getProductionToCommerceModifier", &CvProcessInfo::py_getProductionToCommerceModifier, "int (int i)")
 		;
 
 	python::class_<CvVoteInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvVoteInfo")
@@ -231,8 +231,8 @@ void CyInfoPythonInterface3()
 		.def("getSound", &CvCorporationInfo::getSound, "string ()")
 
 		// Arrays
-
-		.def("getPrereqBonus", &CvCorporationInfo::getPrereqBonus, "int (int i)")
+		// advc.003t: py_...
+		.def("getPrereqBonus", &CvCorporationInfo::py_getPrereqBonus, "int (int i)")
 		.def("getHeadquarterCommerce", &CvCorporationInfo::getHeadquarterCommerce, "int (int i)")
 		.def("getCommerceProduced", &CvCorporationInfo::getCommerceProduced, "int (int i)")
 		.def("getYieldProduced", &CvCorporationInfo::getYieldProduced, "int (int i)")

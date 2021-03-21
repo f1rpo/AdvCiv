@@ -10,12 +10,12 @@ class CvArea;
 class CvUnitInfo;
 class CvSelectionGroup;
 class CvArtInfoUnit;
-class KmodPathFinder;
+class GroupPathFinder;
 class CvUnitAI; // advc.003u
 struct CombatDetails;
 
 // (advc.inl: Inlined many getters. Only getX, getY and getOwner were inlined in K-Mod/BtS.)
-class CvUnit : public CvDLLEntity
+class CvUnit : public CvDLLUnitEntity
 {
 public:
 	virtual ~CvUnit();
@@ -30,9 +30,9 @@ public:
 
 	void doTurn();
 	void doTurnPost(); // advc.029
-	void updateCombat(bool bQuick = false);
+	void updateCombat(bool bQuick = false, /* advc.004c: */ bool* pbIntercepted = NULL);
 	void updateAirCombat(bool bQuick = false);
-	void updateAirStrike(CvPlot* pPlot, bool bQuick, bool bFinish);
+	bool updateAirStrike(CvPlot& kPlot, bool bQuick, bool bFinish);
 
 	bool isActionRecommended(int iAction);
 	void updateFoundingBorder(bool bForceClear = false) const; // advc.004h
@@ -44,13 +44,18 @@ public:
 	void doCommand(CommandTypes eCommand, int iData1, int iData2);											// Exposed to Python
 
 	//FAStarNode* getPathLastNode() const; // disabled by K-Mod
-	CvPlot* getPathEndTurnPlot() const;																		// Exposed to Python
-	bool generatePath(const CvPlot* pToPlot, MovementFlags eFlags = NO_MOVEMENT_FLAGS,						// Exposed to Python
+	CvPlot& getPathEndTurnPlot() const;																		// Exposed to Python
+	bool generatePath(CvPlot const& kTo, MovementFlags eFlags = NO_MOVEMENT_FLAGS,							// Exposed to Python
 			bool bReuse = false,
 			int* piPathTurns = NULL,
 			int iMaxPath = -1, // K-Mod
 			bool bUseTempFinder = false) const; // advc.128
-	KmodPathFinder& getPathFinder() const; // K-Mod
+	GroupPathFinder& getPathFinder() const; // K-Mod
+	// <advc>
+	void pushGroupMoveTo(CvPlot const& kTo, MovementFlags eFlags = NO_MOVEMENT_FLAGS,
+			bool bAppend = false, bool bManual = false, MissionAITypes eMissionAI = NO_MISSIONAI,
+			CvPlot const* pMissionAIPlot = NULL, CvUnit const* pMissionAIUnit = NULL,
+			bool bModified = false); // </advc>
 
 	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false,								// Exposed to Python
 			CvArea const* pArea = NULL) const; // advc: canEnterArea merged into canEnterTerritory
@@ -63,10 +68,30 @@ public:
 			bool bDangerCheck = false) const; // advc.001k
 	// bool canMoveThrough(const CvPlot* pPlot, bool bDeclareWar = false) const; // disabled by K-Mod (was exposed to Python)
 	bool canEnterArea(CvArea const& kArea) const; // advc.030
+	// <advc>
+	bool isEnemyCity(CvPlot const& kPlot) const;											// Exposed to Python /via CyPlot)
+	// was CvPlot::isValidDomainForLocation
+	bool isValidDomain(CvPlot const& kPlot) const;											// Exposed to Python (via CyPlot)
+	bool isRevealedValidDomain(CvPlot const& kPlot) const;
+	// was CvPlot::isValidDomainForAction
+	bool isValidDomain(bool bWater) const													// Exposed to Python (via CyPlot)
+	{
+		switch (getDomainType())
+		{
+			case DOMAIN_SEA: return (bWater || canMoveAllTerrain());
+			case DOMAIN_AIR: return false;
+			case DOMAIN_LAND: // fall through
+			case DOMAIN_IMMOBILE: return (!bWater || canMoveAllTerrain());
+			default: FAssert(false); return false;
+		}
+	}
+	// Replacing CvPlot::isFriendlyCity
+	bool isPlotValid(CvPlot const& kPlot) const;											// Exposed to Python (via CyPlot::isFriendlyCity)
+	bool isRevealedPlotValid(CvPlot const& kPlot) const; // </advc>
 	bool isInvasionMove(CvPlot const& kFrom, CvPlot const& kTo) const; // advc.162
-	void attack(CvPlot* pPlot, bool bQuick);
+	void attack(CvPlot* pPlot, bool bQuick, /* advc.004c: */ bool* pbIntercepted = NULL);
 	void attackForDamage(CvUnit *pDefender, int attackerDamageChange, int defenderDamageChange);
-	void fightInterceptor(const CvPlot* pPlot, bool bQuick);
+	void fightInterceptor(CvPlot const& kPlot, bool bQuick);
 	void move(CvPlot& kPlot, bool bShow, // advc: 1st param was CvPlot* (not const b/c of possible feature change)
 			bool bJump = false, bool bGroup = true); // advc.163
 	// K-Mod added bForceMove and bGroup
@@ -128,15 +153,19 @@ public:
 
 	bool canAirBomb(const CvPlot* pPlot) const;																// Exposed to Python
 	bool canAirBombAt(const CvPlot* pPlot, int iX, int iY) const;											// Exposed to Python
-	bool airBomb(int iX, int iY);
+	int airBombDefenseDamage(CvCity const& kCity) const; // advc
+	bool airBomb(int iX, int iY, /* advc.004c: */ bool* pbIntercepted = NULL);
 
-	CvCity* bombardTarget(CvPlot const& kPlot) const;														// Exposed to Python
-	bool canBombard(CvPlot const& kPlot) const;																// Exposed to Python
+	bool canAirStrike(CvPlot const& kPlot) const; // (advc.004c: was protected)
+
+	CvCity* bombardTarget(CvPlot const& kFrom) const;														// Exposed to Python
+	bool canBombard(CvPlot const& kFrom) const;																// Exposed to Python
+	int damageToBombardTarget(CvPlot const& kFrom) const; // advc
 	bool bombard();
 
 	bool canParadrop(const CvPlot* pPlot) const;															// Exposed to Python
 	bool canParadropAt(const CvPlot* pPlot, int iX, int iY) const;											// Exposed to Python
-	bool paradrop(int iX, int iY);
+	bool paradrop(int iX, int iY, /* advc.004c: */ IDInfo* pInterceptor = NULL);
 
 	bool canPillage(CvPlot const& kPlot) const;																// Exposed to Python
 	bool pillage();
@@ -171,7 +200,7 @@ public:
 	bool canSpreadCorporation(const CvPlot* pPlot, CorporationTypes eCorporation,							// Exposed to Python
 			bool bTestVisible = false) const;
 	bool spreadCorporation(CorporationTypes eCorporation);
-	int spreadCorporationCost(CorporationTypes eCorporation, CvCity* pCity) const;
+	int spreadCorporationCost(CorporationTypes eCorporation, CvCity const* pCity) const;
 
 	bool canJoin(const CvPlot* pPlot, SpecialistTypes eSpecialist) const;									// Exposed to Python
 	bool join(SpecialistTypes eSpecialist);
@@ -213,8 +242,10 @@ public:
 	bool canBuild(CvPlot const& pPlot, BuildTypes eBuild, bool bTestVisible = false) const;					// Exposed to Python
 	bool build(BuildTypes eBuild);
 
-	bool canPromote(PromotionTypes ePromotion, int iLeaderUnitId) const;									// Exposed to Python
-	void promote(PromotionTypes ePromotion, int iLeaderUnitId);												// Exposed to Python
+	bool canPromote(PromotionTypes ePromotion,																// Exposed to Python
+			int iLeaderUnitId /* advc: */ = FFreeList::INVALID_INDEX) const;
+	void promote(PromotionTypes ePromotion,																	// Exposed to Python
+			int iLeaderUnitId /* advc: */ = FFreeList::INVALID_INDEX);
 	int promotionHeal(PromotionTypes ePromotion = NO_PROMOTION) const; // advc
 
 	int canLead(const CvPlot* pPlot, int iUnitId) const;
@@ -392,7 +423,7 @@ public:
 	{
 		return ((maxCombatStr(pPlot, pAttacker, pCombatDetails) * currHitPoints()) / maxHitPoints());
 	}
-	int currFirepower(const CvPlot* pPlot, const CvUnit* pAttacker) const									// Exposed to Python
+	int currFirepower(const CvPlot* pPlot = NULL, const CvUnit* pAttacker = NULL) const						// Exposed to Python
 	{
 		return ((maxCombatStr(pPlot, pAttacker) + currCombatStr(pPlot, pAttacker) + 1) / 2);
 	}
@@ -401,6 +432,10 @@ public:
 			int iCurrentHP = -1) const; // advc.139
 	DllExport float maxCombatStrFloat(const CvPlot* pPlot, const CvUnit* pAttacker) const;					// Exposed to Python
 	DllExport float currCombatStrFloat(const CvPlot* pPlot, const CvUnit* pAttacker) const;					// Exposed to Python
+	// advc: was protected
+	void getDefenderCombatValues(CvUnit const& kDefender, const CvPlot* pPlot,
+			int iOurStrength, int iOurFirepower, int& iTheirOdds, int& iTheirStrength,
+			int& iOurDamage, int& iTheirDamage, CombatDetails* pTheirDetails = NULL) const;
 
 	DllExport inline bool canFight() const																	// Exposed to Python
 	{
@@ -440,10 +475,11 @@ public:
 	{
 		return (airBaseCombatStr() > 0);
 	}
-	bool canAirDefend(const CvPlot* pPlot = NULL) const;													// Exposed to Python
+	bool canAirDefend(CvPlot const* pPlot = NULL) const;													// Exposed to Python
 	int airCombatDamage(const CvUnit* pDefender) const;														// Exposed to Python
 	int rangeCombatDamage(const CvUnit* pDefender) const;													// Exposed to Python
-	CvUnit* bestInterceptor(const CvPlot* pPlot) const;														// Exposed to Python
+	CvUnit* bestInterceptor(CvPlot const& kPlot,															// Exposed to Python
+			bool bOdds = false) const; // advc.004c
 	CvUnit* bestSeaPillageInterceptor(CvUnit* pPillager, int iMinOdds) const;								// Exposed to Python
 
 	bool isAutomated() const;																				// Exposed to Python
@@ -569,9 +605,14 @@ public:
 	void setID(int iID);
 
 	int getGroupID() const { return m_iGroupID; }															// Exposed to Python
-	bool isInGroup() const { return(getGroupID() != FFreeList::INVALID_INDEX); }							// Exposed to Python
+	// advc: I don't think a unit is ever supposed to not be in a group
+	//bool isInGroup() const; // Exposed to Python ( advc: still available to Python; see CyUnit.cpp.)
 	bool isGroupHead() const;																				// Exposed to Python
-	DllExport CvSelectionGroup* getGroup() const;															// Exposed to Python
+	CvSelectionGroup* getGroupExternal() const; // advc.003s: exported through .def file
+	// <advc.003s> Should make loops over units in a group less hazardous
+	CvSelectionGroup const* getGroup() const;
+	CvSelectionGroup* getGroup();																			// Exposed to Python
+	// </advc.003s>
 	bool isBeforeUnitCycle(CvUnit const& kOther) const; // advc: Moved from CvGameCoreUtils
 	bool canJoinGroup(const CvPlot* pPlot, CvSelectionGroup const* pSelectionGroup) const;
 	void joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected = false, bool bRejoin = true);
@@ -829,7 +870,8 @@ public:
 	void setCombatUnit(CvUnit* pUnit, bool bAttacking = false);
 	bool showSiegeTower(CvUnit* pDefender) const; // K-Mod
 
-	CvUnit* getTransportUnit() const;																		// Exposed to Python
+	CvUnit const* getTransportUnit() const;																	// Exposed to Python
+	CvUnit* getTransportUnit(); // advc
 	// advc.103f: Force-inlined for CvArea::canBeEntered
 	__forceinline bool isCargo() const																		// Exposed to Python
 	{	// advc.test: (Should perhaps simply turn m_transportUnit into a CvUnit pointer.)
@@ -970,6 +1012,8 @@ public:
 	DllExport void getLayerAnimationPaths(std::vector<AnimationPathTypes>& aAnimationPaths) const;
 	DllExport int getSelectionSoundScript() const;
 
+	bool isWorker() const; // advc.154  (Exposed to Python)
+
 	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker,
 	// Lead From Behind (UncutDragon, edited for K-Mod): START
 			int* pBestDefenderRank,
@@ -982,7 +1026,7 @@ public:
 	int LFBgetRelativeValueRating() const;
 	int LFGgetDefensiveValueAdjustment() const; // K-Mod
 	bool LFBisBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker, int* pBestDefenderRank) const;
-	int LFBgetDefenderCombatOdds(const CvUnit* pAttacker) const;
+	// (advc: LFBgetDefenderCombatOdds deleted, use 1000 minus calculateCombatOdds instead.)
 	// Lead From Behind: END
 
 	// <advc.003u>
@@ -1113,17 +1157,19 @@ protected:
 	// </advc.enum>
 
 	PlayerTypes getCombatOwner_bulk(TeamTypes eForTeam, CvPlot const& kPlot) const; // advc
-
+	// <advc.111>
+	bool pillageImprovement();
+	bool pillageRoute();
+	// </advc.111>
 	bool canAdvance(const CvPlot* pPlot, int iThreshold) const;
-	void collateralCombat(const CvPlot* pPlot, CvUnit* pSkipUnit = NULL);
+	void collateralCombat(const CvPlot* pPlot, CvUnit const* pSkipUnit = NULL);
 	void flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength,
 			int iAttackerFirepower, int iDefenderOdds, int iDefenderDamage,
-			CvUnit* pSkipUnit = NULL);
+			CvUnit const* pSkipUnit = NULL);
 
-	bool interceptTest(const CvPlot* pPlot);
-	CvUnit* airStrikeTarget(const CvPlot* pPlot) const;
-	bool canAirStrike(const CvPlot* pPlot) const;
-	bool airStrike(CvPlot* pPlot);
+	bool interceptTest(CvPlot const& kPlot, /* advc.004c: */ IDInfo* pInterceptorID = NULL);
+	CvUnit* airStrikeTarget(CvPlot const& kPlot) const;
+	bool airStrike(CvPlot& kPlot, /* advc.004c: */ bool* pbIntercepted = NULL);
 
 	int planBattle(CvBattleDefinition& kBattle,
 			const std::vector<int>& combat_log) const; // K-Mod
@@ -1132,9 +1178,6 @@ protected:
 	bool verifyRoundsValid(const CvBattleDefinition & battleDefinition) const;
 	void increaseBattleRounds(CvBattleDefinition & battleDefinition) const;
 	int computeWaveSize(bool bRangedRound, int iAttackerMax, int iDefenderMax) const;
-	void getDefenderCombatValues(CvUnit& kDefender, const CvPlot* pPlot, int iOurStrength,
-			int iOurFirepower, int& iTheirOdds, int& iTheirStrength, int& iOurDamage,
-			int& iTheirDamage, CombatDetails* pTheirDetails = NULL) const;
 	bool isCombatVisible(const CvUnit* pDefender) const;
 	//void resolveCombat(CvUnit* pDefender, CvPlot* pPlot, CvBattleDefinition& kBattle);
 	void resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible); // K-Mod
@@ -1194,6 +1237,11 @@ struct CombatDetails											// Exposed to Python
 	PlayerTypes eOwner;
 	PlayerTypes eVisualOwner;
 	std::wstring sUnitName;
+	// advc:
+	void setAllToNull()
+	{
+		memset(this, 0, sizeof(*this));
+	}
 };
 
 #endif

@@ -32,11 +32,12 @@
 		<DefineName>TECH_COST_FIRST_KNOWN_PREREQ_MODIFIER</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	<Define>
-		<!-- Research rate boost for knowing additional OR tech prereqs.  In vanilla BTS this is 20.  Default: 20 -->
+	<!-- Research rate boost for knowing additional OR tech prereqs.  In vanilla BTS this is 20.  Default: 20 -->
+	<!-- advc: Let's comment it out then. -->
+	<!--Define>
 		<DefineName>TECH_COST_KNOWN_PREREQ_MODIFIER</DefineName>
 		<iDefineIntVal>20</iDefineIntVal>
-	</Define>
+	</Define-->
 	<!-- BBAI has also introduced a tech cost modifier by era, which can be found in CIV4EraInfos.xml -->
 	<Define>
 		<!-- This variable allows the throttling of research rates, effectively changing the cost of all techs.

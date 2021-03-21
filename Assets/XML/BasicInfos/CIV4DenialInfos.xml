@@ -5,7 +5,10 @@
 
 <!-- advc.130v: Copied from BtS in order to add DENIAL_TRUE_ATTITUDE (when
 	 the true attitude of a vassal causes an attitude test to fail and the
-	 forced attitude would've passed) -->
+	 forced attitude would've passed).
+	 advc.112b (Not sure if the parser can handle in-line comments):
+	 DENIAL_NO_CURRENT_THREAT when the other player has too few threatening
+	 military units deployed. -->
 
 <!-- Basic Infos -->
 <Civ4DenialInfos xmlns="x-schema:CIV4BasicInfoSchema.xml">
@@ -129,6 +132,10 @@
 		<DenialInfo>
 			<Type>DENIAL_TRUE_ATTITUDE</Type>
 			<Description>TXT_KEY_DENIAL_TRUE_ATTITUDE</Description>
+		</DenialInfo>
+		<DenialInfo>
+			<Type>DENIAL_NO_CURRENT_THREAT</Type>
+			<Description>TXT_KEY_DENIAL_NO_CURRENT_THREAT</Description>
 		</DenialInfo>
 	</DenialInfos>
 </Civ4DenialInfos>

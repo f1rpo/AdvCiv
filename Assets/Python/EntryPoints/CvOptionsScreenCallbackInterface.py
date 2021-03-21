@@ -25,9 +25,9 @@ def getTabControl():
 def refresh():
 	getOptionsScreen().refreshScreen()
 	
-def restartPopup(bForceShowing = false):
+def restartPopup(bForceShowing = False):
 	
-	if (CyInterface().isInMainMenu() == false or bForceShowing == true):
+	if (CyInterface().isInMainMenu() == False or bForceShowing == True):
 		
 		# create popup
 		popup = PyPopup.PyPopup()
@@ -94,9 +94,9 @@ def handleGraphicOptionsClicked ( argsList ):
 	
 	UserProfile.setGraphicOption(iGraphicOption, bValue)
 	#if (iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_SINGLE_UNIT_GRAPHICS or iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_FULLSCREEN):
-	#	restartPopup(true)
+	#	restartPopup(True)
 	#if (iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_HIRES_TERRAIN):
-	#	restartPopup(false)
+	#	restartPopup(False)
 	# advc.076: Now handled by a subroutine
 	handleRestart(isImmediate(iGraphicOption))
 	return 1
@@ -108,7 +108,7 @@ def handleGraphicsLevelDropdownBoxInput ( argsList ):
 	UserProfile.setGraphicsLevel(iValue)
 	refresh()
 	
-	restartPopup(true)
+	restartPopup(True)
 	return 1
 	
 def handleRenderQualityDropdownBoxInput ( argsList ):
@@ -240,7 +240,7 @@ def handleSpeakerConfigDropdownInput ( argsList ):
 	szSpeakerConfigName = UserProfile.getSpeakerConfigFromList(iValue)
 	
 	UserProfile.setSpeakerConfig(szSpeakerConfigName)
-	restartPopup(true)
+	restartPopup(True)
 	
 	return 1
 	
@@ -285,7 +285,7 @@ def handleAudioReset ( argsList ):
 	
 	UserProfile.resetOptions(TabGroupTypes.TABGROUP_AUDIO)
 	refresh()
-	restartPopup(true)
+	restartPopup(True)
 	saveProfile()
 	
 	return 1
@@ -296,14 +296,14 @@ def handleBroadbandSelected ( argsList ):
 	"Handles bandwidth selection"
 	bSelected, szName = argsList
 	if (bSelected):
-		CyGame().setModem(false)
+		CyGame().setModem(False)
 	return 1
 	
 def handleModemSelected ( argsList ):
 	"Handles bandwidth selection"
 	bSelected, szName = argsList
 	if (bSelected):
-		CyGame().setModem(true)
+		CyGame().setModem(True)
 	return 1
 	
 ######################################## CLOCK OPTIONS ########################################
@@ -405,7 +405,7 @@ def handleDeleteProfileButtonInput ( argsList ):
 		popup.setBodyString(localText.getText("TXT_KEY_OPTIONS_DELETED_PROFILE", (szProfileName, )))
 		popup.launch()
 		
-		bSuccess = true
+		bSuccess = True
 		
 		if (szProfileName == UserProfile.getProfileName()):
 			

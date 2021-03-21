@@ -67,9 +67,9 @@ CyPlot* CyUnit::getPathEndTurnPlot()
 
 bool CyUnit::generatePath(CyPlot* pToPlot, int iFlags, bool bReuse, int* piPathTurns)
 {
-	if (m_pUnit == NULL)
+	if (m_pUnit == NULL || pToPlot->getPlot() == NULL)
 		return false;
-	return m_pUnit->generatePath(pToPlot->getPlot(), (MovementFlags)iFlags,
+	return m_pUnit->generatePath(*pToPlot->getPlot(), (MovementFlags)iFlags,
 			bReuse, piPathTurns);
 }
 
@@ -772,7 +772,11 @@ int CyUnit::airCombatDamage(CyUnit* pDefender)
 
 CyUnit* CyUnit::bestInterceptor(CyPlot* pPlot)
 {
-	return m_pUnit ? new CyUnit(m_pUnit->bestInterceptor(pPlot->getPlot())) : false;
+	//return m_pUnit ? new CyUnit(m_pUnit->bestInterceptor(pPlot->getPlot())) : false;
+	// <advc>
+	if (m_pUnit == NULL || pPlot == NULL || pPlot->getPlot() == NULL)
+		return NULL;
+	return new CyUnit(m_pUnit->bestInterceptor(*pPlot->getPlot())); // </advc>
 }
 
 bool CyUnit::isAutomated()
@@ -1063,7 +1067,8 @@ int CyUnit::getGroupID()
 
 bool CyUnit::isInGroup()
 {
-	return m_pUnit ? m_pUnit->isInGroup() : false;
+	// advc: Cut from CvUnit::isInGroup. I've removed that function.
+	return m_pUnit ? (m_pUnit->getGroupID() != FFreeList::INVALID_INDEX) : false;
 }
 
 bool CyUnit::isGroupHead()
@@ -1635,6 +1640,12 @@ void CyUnit::setUnitAIType(int /*UnitAITypes*/ iNewValue)
 	{
 		m_pUnit->AI().AI_setUnitAIType((UnitAITypes)iNewValue);
 	}
+}
+
+// advc.154:
+bool CyUnit::isWorker()
+{
+	return m_pUnit ? m_pUnit->isWorker() : false;
 }
 
 bool CyUnit::IsSelected()

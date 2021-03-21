@@ -2,8 +2,8 @@
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 #include "CvGameAI.h"
-#include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
+#include "CvUnitAI.h" // (for CvUnitAI -> CvUnit up-casts)
 
 /*  advc.003u: New file for dummy/ adapter implementations of AI_... functions
 	that shouldn't have been made virtual, but need to be preserved for the EXE.

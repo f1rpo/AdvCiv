@@ -238,7 +238,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	{
 		CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
 		if (!kObs.isAlive())
-			continue; // advc
+			continue;
 		if (kObs.getTeam() != getID() && kObs.getTeam() != eTeam)
 		{
 			if ((isHasMet(kObs.getTeam()) && GET_TEAM(eTeam).isHasMet(kObs.getTeam())) ||
@@ -478,17 +478,14 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			so we don't check for eTeam anymore. */
 		if (!pLoopDeal->isBetween(getID(), getID())) // advc: Replacing the K-Mod replacement
 			continue;
-
-		for (CLLNode<TradeData> const* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
-			pNode = pLoopDeal->nextTradesNode(pNode))
+		FOR_EACH_TRADE_ITEM(pLoopDeal->getFirstList())
 		{
-			if (pNode->m_data.m_eItemType == TRADE_OPEN_BORDERS ||
-				pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT ||
-				pNode->m_data.m_eItemType == TRADE_PEACE_TREATY ||
-				pNode->m_data.m_eItemType == TRADE_VASSAL ||
-				pNode->m_data.m_eItemType == TRADE_SURRENDER ||
+			TradeableItems eType = pItem->m_eItemType;
+			if (eType == TRADE_OPEN_BORDERS || eType == TRADE_DEFENSIVE_PACT ||
+				eType == TRADE_PEACE_TREATY || eType == TRADE_VASSAL ||
+				eType == TRADE_SURRENDER ||
 				// advc.034: Simplest to just cancel it
-				pNode->m_data.m_eItemType == TRADE_DISENGAGE)
+				eType == TRADE_DISENGAGE)
 			{
 				pLoopDeal->kill();
 				break;
@@ -664,7 +661,7 @@ void CvTeam::shareItems(TeamTypes eTeam)
 	// kekm.26: Replacing the above
 	setEspionagePointsEver(GET_TEAM(eTeam).getEspionagePointsEver() + getEspionagePointsEver());
 
-	for(int i = 0; i < MAX_PLAYERS; i++)  // advc: style changes
+	for(int i = 0; i < MAX_PLAYERS; i++)
 	{
 		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
 		if(!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() != eTeam)
@@ -1033,14 +1030,14 @@ bool CvTeam::canDeclareWar(TeamTypes eTeam) const
 	return true;
 }
 
-// bbai (advc: refactored)
+// BETTER_BTS_AI_MOD, 01/16/10, jdog5000, War Strategy AI:
 bool CvTeam::canEventuallyDeclareWar(TeamTypes eTeam) const
 {
 	return (eTeam != getID() && isAlive() && GET_TEAM(eTeam).isAlive() &&
 			!isAtWar(eTeam) && isHasMet(eTeam) && canChangeWarPeace(eTeam, true) &&
 			!GC.getGame().isOption(GAMEOPTION_ALWAYS_PEACE) &&
 			GC.getPythonCaller()->canDeclareWar(getID(), eTeam));
-} // bbai end
+}
 
 // K-Mod note: I've shuffled things around a bit in this function.  // advc: refactored
 void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan,
@@ -1056,7 +1053,7 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 			TEAMID(eSponsor) != eTarget)); // </advc.100>
 	if (isAtWar(eTarget))
 		return;
-	if (gTeamLogLevel >= 1) logBBAI("  Team %d (%S) declares war on team %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTarget);
+	if (gTeamLogLevel >= 1) logBBAI("  Team %d (%S) declares war on team %d", getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTarget); // BETTER_BTS_AI_MOD (10/02/09, jdog5000): AI logging
 	CvTeam& kTarget = GET_TEAM(eTarget);
 	std::vector<CvPlayer*> kMembers; // advc: of either team
 	for (MemberIter it(getID()); it.hasNext(); ++it)
@@ -1083,13 +1080,12 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 	setAtWar(eTarget, true);
 	kTarget.setAtWar(getID(), true);
 	// <advc.162>
-	if(GC.getDefineINT("ENABLE_162") > 0)
+	if(GC.getDefineBOOL(CvGlobals::ENABLE_162))
 		m_abJustDeclaredWar.set(eTarget, true); // </advc.162>
-
-	// Plot danger cache (bbai)
+	// BETTER_BTS_AI_MOD (08/21/09, jdog5000, Efficiency): START
 	GC.getMap().invalidateBorderDangerCache(eTarget);
 	GC.getMap().invalidateBorderDangerCache(getID());
-
+	// BETTER_BTS_AI_MOD: END
 	for (size_t i = 0; i < kMembers.size(); i++)
 		kMembers[i]->updatePlunder(1, false);
 
@@ -1436,11 +1432,10 @@ void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits,  // advc: refactored
 				szBuffer = gDLL->getText("TXT_KEY_MISC_PEACE_IN_EXCHANGE",
 						getName().GetCString(), kTarget.getName().GetCString()) + L" ";
 				std::vector<CvWString> aszTradeItems;
-				for (CLLNode<TradeData> const* pNode = pReparations->head(); pNode != NULL;
-					pNode = pReparations->next(pNode))
+				FOR_EACH_TRADE_ITEM(*pReparations)
 				{
 					CvWString const szItem(tradeItemString(
-							pNode->m_data.m_eItemType, pNode->m_data.m_iData, eTarget));
+							pItem->m_eItemType, pItem->m_iData, eTarget));
 					if (szItem.length() > 0)
 						aszTradeItems.push_back(szItem);
 				}
@@ -1526,7 +1521,7 @@ void CvTeam::meet(TeamTypes eTeam, bool bNewDiplo,
 	FirstContactData* pData) // advc.071: Just passing this along
 {
 	if (isHasMet(eTeam))
-		return; // advc
+		return;
 	CvTeam& kTeam = GET_TEAM(eTeam);
 	makeHasMet(eTeam, bNewDiplo, pData);
 	kTeam.makeHasMet(getID(), bNewDiplo, pData);
@@ -1545,6 +1540,24 @@ void CvTeam::meet(TeamTypes eTeam, bool bNewDiplo,
 	kTeam.AI().AI_updateAttitude(getID()); // </advc.001>
 }
 
+// advc.034: Sign a disengagement agreement (based on signOpenBorders)
+void CvTeam::signDisengage(TeamTypes otherId)
+{
+	CvTeam& other = GET_TEAM(otherId);
+	TradeData item(TRADE_DISENGAGE);
+	if (!GET_PLAYER(getLeaderID()).canTradeItem(other.getLeaderID(), item) ||
+		!GET_PLAYER(other.getLeaderID()).canTradeItem(getLeaderID(), item))
+	{
+		return;
+	}
+	CLinkList<TradeData> ourList;
+	CLinkList<TradeData> theirList;
+	ourList.insertAtEnd(item);
+	theirList.insertAtEnd(item);
+	GC.getGame().implementDeal(getLeaderID(), other.getLeaderID(), ourList, theirList);
+}
+
+
 // K-Mod:
 void CvTeam::signPeaceTreaty(TeamTypes eTeam, /* advc: */ bool bForce)
 {
@@ -1562,7 +1575,7 @@ void CvTeam::signPeaceTreaty(TeamTypes eTeam, /* advc: */ bool bForce)
 }
 
 
-void CvTeam::signOpenBorders(TeamTypes eTeam)
+void CvTeam::signOpenBorders(TeamTypes eTeam, /* advc.032: */ bool bProlong)
 {
 	FAssert(eTeam != NO_TEAM);
 	FAssert(eTeam != getID());
@@ -1570,56 +1583,44 @@ void CvTeam::signOpenBorders(TeamTypes eTeam)
 	if (!isAtWar(eTeam) && (getID() != eTeam))
 	{
 		TradeData item(TRADE_OPEN_BORDERS);
-		if (GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
-			GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item))
+		if ((bProlong && isOpenBorders(eTeam)) || // advc.032
+			(GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
+			GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item)))
 		{
 			CLinkList<TradeData> ourList;
 			CLinkList<TradeData> theirList;
 			ourList.insertAtEnd(item);
 			theirList.insertAtEnd(item);
-			GC.getGame().implementDeal(getLeaderID(), GET_TEAM(eTeam).getLeaderID(), ourList, theirList);
+			GC.getGame().implementDeal(getLeaderID(), GET_TEAM(eTeam).getLeaderID(),
+					ourList, theirList, /* advc.132: */ bProlong);
 		}
 	}
 }
 
-// <advc.034> Sign a disengagement agreement (based on signOpenBorders)
-void CvTeam::signDisengage(TeamTypes otherId)
-{
-	CvTeam& other = GET_TEAM(otherId);
-	TradeData item(TRADE_DISENGAGE);
-	if (!GET_PLAYER(getLeaderID()).canTradeItem(other.getLeaderID(), item) ||
-		!GET_PLAYER(other.getLeaderID()).canTradeItem(getLeaderID(), item))
-	{
-		return;
-	}
-	CLinkList<TradeData> ourList;
-	CLinkList<TradeData> theirList;
-	ourList.insertAtEnd(item);
-	theirList.insertAtEnd(item);
-	GC.getGame().implementDeal(getLeaderID(), other.getLeaderID(), ourList, theirList);
-} // </advc.034>
 
-
-void CvTeam::signDefensivePact(TeamTypes eTeam)  // advc: style changes
+void CvTeam::signDefensivePact(TeamTypes eTeam, /* advc.032: */ bool bProlong)
 {
 	FAssert(eTeam != getID());
 	if (isAtWar(eTeam))
 		return;
 
 	TradeData item(TRADE_DEFENSIVE_PACT);
-	if (GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
-		GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item))
+	if ((bProlong && isDefensivePact(eTeam)) || // advc.032
+		(GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
+		GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).canTradeItem(getLeaderID(), item)))
 	{
 		CLinkList<TradeData> ourList;
 		CLinkList<TradeData> theirList;
 		ourList.insertAtEnd(item);
 		theirList.insertAtEnd(item);
 
-		GC.getGame().implementDeal(getLeaderID(), GET_TEAM(eTeam).getLeaderID(), ourList, theirList);
+		GC.getGame().implementDeal(getLeaderID(), GET_TEAM(eTeam).getLeaderID(),
+				ourList, theirList, /* advc.132: */ bProlong);
 	}
 }
 
-bool CvTeam::canSignDefensivePact(TeamTypes eTeam) const  // advc: const, style changes
+
+bool CvTeam::canSignDefensivePact(TeamTypes eTeam) /* advc: */ const
 {
 	for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
@@ -2066,34 +2067,41 @@ int CvTeam::countEnemyDangerByArea(CvArea const& kArea, TeamTypes eEnemyTeam) co
 	return iCount;
 }
 
-// advc.112b:
+/*	advc.112b: (Akin to CvGame::getCurrentEra;
+	in part duplicated in CvTeamAI::AI_getCurrEraFactor) */
 EraTypes CvTeam::getCurrentEra() const
 {
-	double sum = 0;
+	scaled rSum;
 	MemberIter it(getID());
 	for (; it.hasNext(); ++it)
-		sum += it->getCurrentEra();
+		rSum += it->getCurrentEra();
 	int const iDiv = it.nextIndex();
-	FAssertMsg(iDiv > 0, "No team members alive");
-	return (EraTypes)::round(sum / iDiv);
+	if (iDiv <= 0)
+	{
+		FAssertMsg(iDiv > 0, "Shouldn't calculate era of dead team");
+		return NO_ERA;
+	}
+	return (EraTypes)(rSum / iDiv).round();
 }
 
-// K-Mod
+// K-Mod:
 int CvTeam::getTypicalUnitValue(UnitAITypes eUnitAI, DomainTypes eDomain) const
 {
 	int iMax = 0;
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 		iMax = std::max(iMax, it->getTypicalUnitValue(eUnitAI, eDomain));
 	return iMax;
-} // K-Mod end.
+}
 
 
-int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSizeModifiers) const // K-Mod: params added
+int CvTeam::getResearchCost(TechTypes eTech,
+	bool bGlobalModifiers, bool bTeamSizeModifiers) const // K-Mod: params added
 {
 	CvGame const& kGame = GC.getGame();
+	CvTechInfo const& kTech = GC.getInfo(eTech);
 
 	// advc.251: To reduce rounding errors (as there are quite a few modifiers to apply)
-	scaled rCost = GC.getInfo(eTech).getResearchCost();
+	scaled rCost = kTech.getResearchCost();
 	rCost *= per100(GC.getInfo(getHandicapType()).getResearchPercent());
 	// <advc.251>
 	if (!isHuman() && !isBarbarian())
@@ -2103,7 +2111,7 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 				getAIResearchPercent() + kGame.AIHandicapAdjustment());
 	}
 	// <advc.910> Moved from CvPlayer::calculateResearchModifier
-	EraTypes eTechEra = (EraTypes)GC.getInfo(eTech).getEra();
+	EraTypes const eTechEra = kTech.getEra();
 	scaled rModifier = 1 + per100(GC.getInfo(eTechEra).getTechCostModifier());
 	/*  This is a BBAI tech diffusion thing, but, since it applies always, I think
 		it's better to let it reduce the tech cost than to modify research rate. */
@@ -2143,7 +2151,8 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 			rModifier += per100(3);
 		} // </advc.308>
 		// <advc.550d>
-		if (kGame.isOption(GAMEOPTION_NO_TECH_TRADING) && eTechEra > 0 && eTechEra < 6)
+		if (kGame.isOption(GAMEOPTION_NO_TECH_TRADING) &&
+			eTechEra > 0 && !kTech.isRepeat())
 		{
 			static scaled const rTECH_COST_NOTRADE_MODIFIER = per100(
 					GC.getDefineINT("TECH_COST_NOTRADE_MODIFIER"));
@@ -2316,7 +2325,6 @@ CvWString CvTeam::getName() const
 	for (MemberIter it (getID()); it.hasNext(); ++it)
 	{
 		setListHelp(szBuffer, L"", it->getName(), L"/", bFirst);
-		bFirst = false;
 	}
 	return szBuffer;
 }
@@ -2329,7 +2337,6 @@ CvWString CvTeam::getReplayName() const
 	for (MemberIter it (getID()); it.hasNext(); ++it)
 	{
 		setListHelp(szBuffer, L"", it->getReplayName(), L"/", bFirst);
-		bFirst = false;
 	}
 	return szBuffer;
 } 
@@ -2353,7 +2360,7 @@ void CvTeam::changeAliveCount(int iChange)
 		for (int iTeam = 0; iTeam < MAX_TEAMS; iTeam++)
 		{
 			if (iTeam == getID())
-				continue; // advc
+				continue;
 
 			CvTeamAI& kLoopTeam = GET_TEAM((TeamTypes)iTeam);
 			// free vassals
@@ -2372,9 +2379,8 @@ void CvTeam::changeAliveCount(int iChange)
 			// </advc.003m>  <advc.opt> Also keep WarPlanCounts updated
 			kLoopTeam.AI_setWarPlanNoUpdate(getID(), NO_WARPLAN);
 			AI().AI_setWarPlanNoUpdate(kLoopTeam.getID(), NO_WARPLAN);
-			// </advc.opt>
 		}
-	}  // <advc.opt>
+	}
 	if (!isBarbarian() && m_iAliveCount - iChange <= 0 && m_iAliveCount > 0 && !bEverAlive)
 		GC.getGame().changeCivTeamsEverAlive(1); // </advc.opt>
 	// <advc.104> Can't do this in AI_init because alive status isn't yet set at that point
@@ -2972,12 +2978,12 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 	// </advc.035>
 }
 
-/*  <advc.162> "Just" meaning on the current turn. Don't want to rely on
+/*  advc.162: "Just" meaning on the current turn. Don't want to rely on
 	AI code (AI_getWarPlanStateCounter) for this. */
 bool CvTeam::hasJustDeclaredWar(TeamTypes eIndex) const
 {
 	return m_abJustDeclaredWar.get(eIndex);
-} // </advc.162>
+}
 
 
 void CvTeam::setPermanentWarPeace(TeamTypes eIndex, bool bNewValue)
@@ -3152,8 +3158,8 @@ int CvTeam::turnsOfForcedPeaceRemaining(TeamTypes eOther) const
 		TeamTypes eSecondMaster = GET_PLAYER(d->getSecondPlayer()).getMasterTeam();
 		if (((eFirstMaster == eOurMaster && eSecondMaster == eTheirMaster) ||
 			(eFirstMaster == eTheirMaster && eSecondMaster == eOurMaster)) &&
-			d->headFirstTradesNode() != NULL &&
-			d->headFirstTradesNode()->m_data.m_eItemType == TRADE_PEACE_TREATY)
+			d->getLengthFirst() > 0 &&
+			d->getFirstList().head()->m_data.m_eItemType == TRADE_PEACE_TREATY)
 		{
 			r = std::max(r, d->turnsToCancel());
 		}
@@ -3258,19 +3264,17 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 	if (isVassal(eMaster))
 	{
 		m_bCapitulated = bCapitulated;
-		FOR_EACH_DEAL_VAR(pLoopDeal) // advc: some style changes in this loop
+		FOR_EACH_DEAL_VAR(pLoopDeal)
 		{	// <advc.034>
 			if (pLoopDeal->isDisengage() && pLoopDeal->isBetween(eMaster, getID()))
 				pLoopDeal->kill();
 			// </advc.034>
 			if (!pLoopDeal->involves(getID()))
 				continue;
-
-			for (CLLNode<TradeData> const* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
-				pNode = pLoopDeal->nextTradesNode(pNode))
+			FOR_EACH_TRADE_ITEM(pLoopDeal->getFirstList())
 			{
-				if (pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT ||
-					pNode->m_data.m_eItemType == TRADE_PEACE_TREATY)
+				if (pItem->m_eItemType == TRADE_DEFENSIVE_PACT ||
+					pItem->m_eItemType == TRADE_PEACE_TREATY)
 				{
 					pLoopDeal->kill();
 					break;
@@ -3534,7 +3538,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 }
 
 
-void CvTeam::assignVassal(TeamTypes eVassal, bool bSurrender) const  // advc: style changes
+void CvTeam::assignVassal(TeamTypes eVassal, bool bSurrender) const
 {
 	GET_TEAM(eVassal).setVassal(getID(), true, bSurrender);
 	CLinkList<TradeData> ourList;
@@ -3557,12 +3561,10 @@ void CvTeam::freeVassal(TeamTypes eVassal) const
 	{
 		if (!pLoopDeal->isBetween(getID(), eVassal))
 			continue;
-
-		for (CLLNode<TradeData> const* pNode = pLoopDeal->headGivesNode(eVassal); pNode != NULL;
-			pNode = pLoopDeal->nextGivesNode(pNode, eVassal))
+		FOR_EACH_TRADE_ITEM(pLoopDeal->getGivesList(eVassal))
 		{
-			if (pNode->m_data.m_eItemType == TRADE_VASSAL ||
-				pNode->m_data.m_eItemType == TRADE_SURRENDER)
+			if (pItem->m_eItemType == TRADE_VASSAL ||
+				pItem->m_eItemType == TRADE_SURRENDER)
 			{
 				pLoopDeal->kill();
 				break;
@@ -3711,7 +3713,7 @@ void CvTeam::finalizeProjectArtTypes()
 }
 
 
-void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)  // advc: style changes
+void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)
 {
 	if(iChange == 0)
 		return;
@@ -3965,7 +3967,7 @@ int CvTeam::getTechCount(TechTypes eIndex)		 const
 	return m_aiTechCount.get(eIndex);
 }
 
-// BETTER_BTS_AI_MOD, General AI, 07/27/09, jdog5000: START
+// BETTER_BTS_AI_MOD, General AI, 07/27/09, jdog5000:
 int CvTeam::getBestKnownTechScorePercent() const
 {
 	int iOurTechScore = 0;
@@ -3978,7 +3980,7 @@ int CvTeam::getBestKnownTechScorePercent() const
 
 	FAssert(iBestKnownTechScore >= iOurTechScore /* advc: */ || isBarbarian());
 	return (100 * iOurTechScore) / std::max(iBestKnownTechScore, 1);
-} // BETTER_BTS_AI_MOD: END
+}
 
 
 void CvTeam::changeTerrainTradeCount(TerrainTypes eIndex, int iChange)
@@ -4162,7 +4164,7 @@ bool CvTeam::hasSpaceshipArrived() const
 } // K-Mod end
 
 
-bool CvTeam::isParent(TeamTypes eChildTeam) const  // advc: style changes
+bool CvTeam::isParent(TeamTypes eChildTeam) const
 {
 	if (!GET_TEAM(eChildTeam).isVassal(getID()))
 		return false;
@@ -4283,7 +4285,7 @@ void CvTeam::announceTechToPlayers(TechTypes eIndex, /* advc.156: */ PlayerTypes
 	}
 }
 
-void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,  // advc: some style changes
+void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,
 	bool bFirst, bool bAnnounce, /* advc.121: */ bool bEndOfTurn)
 {
 	PROFILE_FUNC();
@@ -4499,7 +4501,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,  /
 					else szBuffer = gDLL->getText("TXT_KEY_MISC_UNKNOWN_FIRST_TO_TECH",
 							kTech.getTextKeyWide());
 					gDLL->UI().addMessage(kObs.getID(), false, -1, szBuffer,
-							(bMajor ? "AS2D_FIRSTTOTECH" : 0),
+							(bMajor ? "AS2D_FIRSTTOTECH" : NULL),
 							(bMajor ? MESSAGE_TYPE_MAJOR_EVENT :
 							MESSAGE_TYPE_MINOR_EVENT), NULL, GC.getColorType("HIGHLIGHT_TEXT"),
 							// advc.127b:
@@ -4549,7 +4551,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,  /
 					eRevealedTeam != BARBARIAN_TEAM &&
 					!GET_TEAM(eRevealedTeam).isVassal(getID())) // </advc.004r>
 				{
-					continue; // advc
+					continue;
 				}
 				CvCity const* pCity = kMap.findCity(kLoopPlot.getX(), kLoopPlot.getY(), NO_PLAYER,
 						// advc.004r: Pass ID as eObserver (last param) instead of city owner
@@ -4685,28 +4687,30 @@ void CvTeam::changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes e
 	}
 }
 
-// K-Mod. In the original code, there seems to be a lot of confusion about what the exact conditions are for a bonus being connected.
-// There were heaps of bugs where CvImprovementInfo::isImprovementBonusTrade was mistakenly used as the sole condition for a bonus being connected or not.
-// I created this function to make the situation a bit more clear...
+/*	K-Mod: In the original code, there seems to be a lot of confusion
+	about what the exact conditions are for a bonus being connected.
+	There were heaps of bugs where CvImprovementInfo::isImprovementBonusTrade
+	was mistakenly used as the sole condition for a bonus being connected or not.
+	I created this function to make the situation a bit more clear... */
 bool CvTeam::doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const
 {
 	if (eImprovement == NO_IMPROVEMENT || eBonus == NO_BONUS)
 		return false;
 
-	const CvImprovementInfo& kImprovementInfo = GC.getInfo(eImprovement);
-	const CvBonusInfo& kBonusInfo = GC.getInfo(eBonus);
-
-	if (!isHasTech(kBonusInfo.getTechCityTrade()) ||
-		(kBonusInfo.getTechObsolete() != NO_TECH &&
-		isHasTech(kBonusInfo.getTechObsolete())))
+	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
+	if (!isHasTech(kBonus.getTechCityTrade()) ||
+		(kBonus.getTechObsolete() != NO_TECH &&
+		isHasTech(kBonus.getTechObsolete())))
 	{
 		return false;
 	}
-	return (kImprovementInfo.isImprovementBonusTrade(eBonus) || kImprovementInfo.isActsAsCity());
-} // K-Mod end
+	CvImprovementInfo const& kImprovement = GC.getInfo(eImprovement);
+	return (kImprovement.isImprovementBonusTrade(eBonus) ||
+			kImprovement.isActsAsCity());
+}
 
-
-bool CvTeam::isFriendlyTerritory(TeamTypes eTerritoryOwner) const // advc: Param renamed from eTeam in order to clarify its role
+// advc (note): Some overlap with canPeacefullyEnter
+bool CvTeam::isFriendlyTerritory(TeamTypes eTerritoryOwner) const
 {
 	if (eTerritoryOwner == NO_TEAM)
 		return false;
@@ -4721,6 +4725,58 @@ bool CvTeam::isFriendlyTerritory(TeamTypes eTerritoryOwner) const // advc: Param
 		return true;
 
 	return false;
+}
+
+/*	advc: Says whether kPlot is a land plot that sea units of this team can enter
+	-- or could enter if kPlot were adjacent to water (not checked).
+	Was previously handled by CvPlot::isCity(bool,TeamTypes). */
+bool CvTeam::isBase(CvPlot const& kPlot) const
+{
+	//if (!isFriendlyTerritory(kPlot.getTeam())
+	// advc.183: Lower the requirements for using foreign ports
+	if (!kPlot.isOwned() || !canPeacefullyEnter(kPlot.getTeam()))
+		return false;
+	ImprovementTypes eImprov = kPlot.getImprovementType();
+	if (eImprov != NO_IMPROVEMENT)
+		return GC.getInfo(eImprov).isActsAsCity();
+	return kPlot.isCity();
+}
+
+/*	advc: Like isBase, but checks the map knowledge of this team.
+	advc.pf (note): TeamPathFinder doesn't call this function (too slow);
+	may have to be adjusted if isRevealedBase is modified further. */
+bool CvTeam::isRevealedBase(CvPlot const& kPlot) const
+{
+	TeamTypes const eRevealedTeam = kPlot.getRevealedTeam(getID(), false);
+	if (eRevealedTeam == NO_TEAM || !canPeacefullyEnter(eRevealedTeam))
+		return false;
+	ImprovementTypes eRevealedImprov = kPlot.getRevealedImprovementType(getID());
+	if (eRevealedImprov != NO_IMPROVEMENT)
+		return GC.getInfo(eRevealedImprov).isActsAsCity();
+	return (kPlot.isCity() && kPlot.getPlotCity()->isRevealed(getID()));
+}
+
+/*	advc.183: Says whether kPlot is a city friendly to this team or providing
+	city-like defensive advantages to this team. No fog-of-war checks.
+	Was previously handled by CvPlot::isCity(bool,TeamTypes).
+	Needs to be consistent with CvPlot::defenseModifier. */
+bool CvTeam::isCityDefense(CvPlot const& kPlot) const
+{
+	/*	I'm assuming that calls happen in the context of imminent combat, and
+		then the units wouldn't be visible if the plot weren't visible as well.
+		This assertion fails, however, when center units are updated while
+		updating sight (in CvPlot). */
+	//FAssert(kPlot.isVisible(getID()));
+	if (kPlot.isOwned())
+	{
+		if (!isFriendlyTerritory(kPlot.getTeam()))
+			return false;
+		if (kPlot.isCity())
+			return true;
+	}
+	ImprovementTypes eImprov = kPlot.getImprovementType();
+	return (eImprov != NO_IMPROVEMENT && GC.getInfo(eImprov).isActsAsCity() &&
+			GC.getInfo(eImprov).getDefenseModifier() > 0); // idea by Erik
 }
 
 // advc.901:
@@ -5015,12 +5071,12 @@ void CvTeam::doWarWeariness()
 void CvTeam::doBarbarianResearch()
 {
 	FAssert(isBarbarian());
-	CvGame& g = GC.getGame();
-	int iElapsed = g.getElapsedGameTurns();
+	CvGame const& kGame = GC.getGame();
+	int iElapsed = kGame.getElapsedGameTurns();
 	/*  <kekm.28> "Give some starting research to barbarians in advanced start
 		depending on other players' tech status after advanced start. */
 	if (iElapsed == 1 && // This function isn't called on turn 0
-			g.isOption(GAMEOPTION_ADVANCED_START))
+		kGame.isOption(GAMEOPTION_ADVANCED_START))
 	{
 		FOR_EACH_ENUM(Tech)
 		{
@@ -5042,25 +5098,27 @@ void CvTeam::doBarbarianResearch()
 		}
 	} // </kekm.28>
 	// <advc.307>
-	bool bNoBarbCities = GC.getInfo(g.getCurrentEra()).isNoBarbCities();
-	bool bIgnorePrereqs = bNoBarbCities;
+	bool const bNoBarbCities = GC.getInfo(kGame.getCurrentEra()).isNoBarbCities();
+	bool const bIgnorePrereqs = bNoBarbCities;
 			/*  Barbs get all tech from earlier eras for free. Don't need
 				to catch up. */ //|| g.getStartEra() > 0;
 	// </advc.307>
 	/*  K-Mod. Delay the start of the barbarian research. (This is an
 		experimental change. It is currently compensated by an increase in
 		the barbarian tech rate.) */
-	if (iElapsed < GC.getInfo(g.getHandicapType()).
-			getBarbarianCreationTurnsElapsed() *
-			GC.getInfo(g.getGameSpeedType()).getBarbPercent() / 200)
+	if (iElapsed < GC.getInfo(kGame.getHandicapType()).
+		getBarbarianCreationTurnsElapsed() *
+		GC.getInfo(kGame.getGameSpeedType()).getBarbPercent() / 200)
+	{
 		return;
+	}
 
 	CvPlayerAI const& kBarbPlayer = GET_PLAYER(BARBARIAN_PLAYER);
 	FOR_EACH_ENUM(Tech)
 	{
 		if (!isHasTech(eLoopTech) && /* advc.307: */ (bIgnorePrereqs ||
-				// K-Mod. Make no progress on techs until prereqs are researched.
-				kBarbPlayer.canResearch(eLoopTech, false, true)))
+			// K-Mod. Make no progress on techs until prereqs are researched.
+			kBarbPlayer.canResearch(eLoopTech, false, true)))
 		{
 			int iCount = 0;
 			int iHasTech = 0; // advc.307
@@ -5289,7 +5347,7 @@ int CvTeam::getCapitalY(TeamTypes eObserver, bool bDebug) const
 	return pCapital->getY();
 } // </advc.127b>
 
-void CvTeam::processTech(TechTypes eTech, int iChange, // advc: style changes
+void CvTeam::processTech(TechTypes eTech, int iChange,
 	bool bEndOfTurn) // advc.121
 {
 	PROFILE_FUNC();
@@ -5423,7 +5481,7 @@ void CvTeam::processTech(TechTypes eTech, int iChange, // advc: style changes
 	FOR_EACH_ENUM(Build)
 	{
 		if (GC.getInfo(eLoopBuild).getTechPrereq() != eTech)
-			continue; // advc
+			continue;
 		if (GC.getInfo(eLoopBuild).getRoute() != NO_ROUTE)
 		{
 			for (int i = 0; i < GC.getMap().numPlots(); i++)
@@ -5457,11 +5515,9 @@ void CvTeam::cancelDefensivePacts()
 	{
 		if (!pLoopDeal->involves(getID()))
 			continue;
-
-		for (CLLNode<TradeData> const* pNode = pLoopDeal->headTradesNode(); pNode != NULL;
-			pNode = pLoopDeal->nextTradesNode(pNode))
+		FOR_EACH_TRADE_ITEM(pLoopDeal->getFirstList())
 		{
-			if (pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)
+			if (pItem->m_eItemType == TRADE_DEFENSIVE_PACT)
 			{
 				pLoopDeal->kill();
 				break;
@@ -5470,26 +5526,25 @@ void CvTeam::cancelDefensivePacts()
 	}
 }
 
-// <kekm.3> (actually an advc change)
+// kekm.3: (actually an advc change)
 void CvTeam::allowDefensivePactsToBeCanceled()
 {
 	FOR_EACH_DEAL_VAR(d)
 	{
-		if (!d->involves(getID()) || d->getFirstTrades()->getLength() <= 0)
+		if (!d->involves(getID()) || d->getLengthFirst() <= 0)
 			continue;
-		if(d->headFirstTradesNode()->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)
+		if(d->getFirstList().head()->m_data.m_eItemType == TRADE_DEFENSIVE_PACT)
 			d->setInitialGameTurn(-100);
 	}
-} // </kekm.3>
+}
 
 
 void CvTeam::read(FDataStreamBase* pStream)
 {
-	// Init data before load
-	reset();
+	reset(); // Init data before load
 
 	uint uiFlag=0;
-	pStream->Read(&uiFlag);	// flags for expansion
+	pStream->Read(&uiFlag);
 
 	pStream->Read(&m_iNumMembers);
 	pStream->Read(&m_iAliveCount);
@@ -5680,6 +5735,23 @@ void CvTeam::read(FDataStreamBase* pStream)
 		pStream->Read((int*)&eBonus);
 		m_aeRevealedBonuses.push_back(eBonus);
 	}
+	// <advc.183> Reveal any destroyed forts (so that aircraft can't rebase to them)
+	if (uiFlag < 13 && isAlive())
+	{
+		FOR_EACH_ENUM(PlotNum)
+		{
+			CvPlot& kPlot = GC.getMap().getPlotByIndex(eLoopPlotNum);
+			if (kPlot.isWater()) // to save time
+				continue;
+			ImprovementTypes eRevealedImprov = kPlot.getRevealedImprovementType(getID());
+			if (eRevealedImprov != NO_IMPROVEMENT &&
+				kPlot.getImprovementType() != eRevealedImprov &&
+				GC.getInfo(eRevealedImprov).isActsAsCity())
+			{
+				kPlot.setRevealedImprovementType(getID(), NO_IMPROVEMENT);
+			}
+		}
+	} // </advc.183>
 }
 
 // <advc.003m>  (for legacy savegames)
@@ -5697,18 +5769,20 @@ void CvTeam::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
 	REPRO_TEST_BEGIN_WRITE(CvString::format("Team(%d)", getID()));
-	uint uiFlag = 1;
-	uiFlag = 2; // advc.opt: m_eLeader added
-	uiFlag = 3; // advc.034
-	uiFlag = 4; // advc.162
-	uiFlag = 5; // advc.003m
-	uiFlag = 6; // advc.120g
-	uiFlag = 7; // advc.opt: m_bAnyVictoryCountdown
-	uiFlag = 8; // advc.opt: change in updateLeaderID
-	uiFlag = 9; // advc.opt: remove m_abVassal; advc.enum/ advc.034: write m_abDisengage[BARBARIAN_TEAM]
-	uiFlag = 10; // advc.101: m_iTechCount
-	uiFlag = 11; // advc.opt: fix m_aiVictoryCountdown bug
-	uiFlag = 12; // advc.091
+	uint uiFlag;
+	//uiFlag = 1; // K-Mod
+	//uiFlag = 2; // advc.opt: m_eLeader added
+	//uiFlag = 3; // advc.034
+	//uiFlag = 4; // advc.162
+	//uiFlag = 5; // advc.003m
+	//uiFlag = 6; // advc.120g
+	//uiFlag = 7; // advc.opt: m_bAnyVictoryCountdown
+	//uiFlag = 8; // advc.opt: change in updateLeaderID
+	//uiFlag = 9; // advc.opt: remove m_abVassal; advc.enum/ advc.034: write m_abDisengage[BARBARIAN_TEAM]
+	//uiFlag = 10; // advc.101: m_iTechCount
+	//uiFlag = 11; // advc.opt: fix m_aiVictoryCountdown bug
+	//uiFlag = 12; // advc.091
+	uiFlag = 13; // advc.183
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iNumMembers);
@@ -5805,7 +5879,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 }
 
 
-bool CvTeam::hasShrine(ReligionTypes eReligion)
+bool CvTeam::hasShrine(ReligionTypes eReligion) const
 {
 	bool bHasShrine = false;
 

@@ -182,7 +182,7 @@ public:
 	int getPopulation();
 	void setPopulation(int iNewValue);
 	void changePopulation(int iChange);
-	long getRealPopulation();
+	int getRealPopulation();
 
 	int getHighestPopulation();
 	void setHighestPopulation(int iNewValue);

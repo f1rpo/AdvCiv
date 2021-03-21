@@ -6,19 +6,19 @@
 /*  advc.agent: New file. Iterators over sequences of CvTeam or CvPlayer objects.
 	The concrete iterator classes are defined at the end of the file.
 	Caveat: Can't use agent iterators before CvAgents::gameStart has been called -
-	which currently happens in CvGame::initFreeState and allGameDataRead. */
+	which currently happens in CvGame::initDiplomacy and allGameDataRead. */
 
 #include "AgentPredicates.h"
 #include "CvAgents.h"
-/*	For bSYNCRAND_ORDER (Tbd.: Move m_sorenRand from CvGame to CvGlobals;
-	or let AgentIterator take a CvRandom parameter as in CityPlotIterator.h.) */
+/*	For bSYNCRAND_ORDER
+	(Tbd.: Let AgentIterator take a CvRandom parameter as in CityPlotIterator.h.) */
 #include "CvGame.h"
 
 class CvTeam;
 class CvPlayer;
 
 
-/*  Non-generic base class that allows all instantiations of AgentIterator
+/*  Base class that allows all instantiations of the AgentIterator template
 	to share static variables */
 class AgentIteratorBase
 {
@@ -60,7 +60,7 @@ protected:
 			(eSTATUS >= ALIVE && eSTATUS <= MAJOR_CIV && eRELATION == VASSAL_OF) ?
 			CvAgents::VASSAL_ALIVE :
 			CvAgents::NO_CACHE);
-	/*  Cache that is a super set of the required agents. Will have to filter out those
+	/*  Cache that is a superset of the required agents. Will have to filter out those
 		that don't match the predicates. */
 	static CvAgents::AgentSeqCache const eCACHE_SUPER = (
 			eRELATION == ANY_AGENT_RELATION ?
@@ -128,18 +128,18 @@ public:
 				it.generateNext();
 			return it.nextIndex();
 		}
-		int r = it.m_iCacheSize;
+		int iCount = it.m_iCacheSize;
 		if (bADD_BARBARIANS)
 		{
 			if (eRELATION == ANY_AGENT_RELATION || it.passFilters(*getBarbarianAgent()))
-				r++;
+				iCount++;
 		}
-		return r;
+		return iCount;
 	}
 
 protected:
-	AgentIterator(TeamTypes eTeam = NO_TEAM) : ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>(eTeam),
-		m_iSkipped(0)
+	AgentIterator(TeamTypes eTeam = NO_TEAM)
+	:	ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>(eTeam), m_iSkipped(0)
 	{
 		/*  ExplicitAgentIterator gets instantiated for all combinations of template parameters,
 			so these static assertions would fail in that class. In this derived class, they'll

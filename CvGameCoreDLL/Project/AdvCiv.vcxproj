@@ -35,12 +35,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\ACOText.cpp" />
     <ClCompile Include="..\AdvCiv4lerts.cpp" />
     <ClCompile Include="..\AgentIterator.cpp" />
     <ClCompile Include="..\AgentIteratorTest.cpp" />
+    <ClCompile Include="..\AIStrengthMemoryMap.cpp" />
     <ClCompile Include="..\ArmamentForecast.cpp" />
     <ClCompile Include="..\BBAILog.cpp" />
     <ClCompile Include="..\CitySiteEvaluator.cpp" />
+    <ClCompile Include="..\CombatOdds.cpp" />
     <ClCompile Include="..\CvAgents.cpp" />
     <ClCompile Include="..\CvArea.cpp" />
     <ClCompile Include="..\CvArtFileMgr.cpp" />
@@ -163,13 +166,15 @@
     <ClCompile Include="..\CyUnit.cpp" />
     <ClCompile Include="..\CyUnitInterface1.cpp" />
     <ClCompile Include="..\FAStarFunc.cpp" />
+    <ClCompile Include="..\GroupPathFinder.cpp" />
+    <ClCompile Include="..\KmodPathFinderLegacy.cpp" />
+    <ClCompile Include="..\PlayerHistory.cpp" />
     <ClCompile Include="..\ReproTest.cpp" />
     <ClCompile Include="..\EnumMapTest.cpp" />
     <ClCompile Include="..\FDialogTemplate.cpp" />
     <ClCompile Include="..\FFreeListTrashArray.cpp" />
     <ClCompile Include="..\FProfiler.cpp" />
     <ClCompile Include="..\InvasionGraph.cpp" />
-    <ClCompile Include="..\KmodPathFinder.cpp" />
     <ClCompile Include="..\FAssert.cpp" />
     <ClCompile Include="..\MilitaryAnalyst.cpp" />
     <ClCompile Include="..\MilitaryBranch.cpp" />
@@ -182,6 +187,7 @@
     <ClCompile Include="..\Shelf.cpp" />
     <ClCompile Include="..\StartingPositionIteration.cpp" />
     <ClCompile Include="..\StartPointsAsHandicap.cpp" />
+    <ClCompile Include="..\TeamPathFinder.cpp" />
     <ClCompile Include="..\TSCProfiler.cpp" />
     <ClCompile Include="..\UWAIAgent.cpp" />
     <ClCompile Include="..\UWAI.cpp" />
@@ -197,12 +203,14 @@
     <ClInclude Include="..\AgentIterator.h" />
     <ClInclude Include="..\AgentPredicates.h" />
     <ClInclude Include="..\AIStrategies.h" />
+    <ClInclude Include="..\AIStrengthMemoryMap.h" />
     <ClInclude Include="..\ArmamentForecast.h" />
     <ClInclude Include="..\BBAILog.h" />
     <ClInclude Include="..\BitUtil.h" />
     <ClInclude Include="..\BoostPythonPCH.h" />
     <ClInclude Include="..\CityPlotIterator.h" />
     <ClInclude Include="..\CitySiteEvaluator.h" />
+    <ClInclude Include="..\CombatOdds.h" />
     <ClInclude Include="..\CoreAI.h" />
     <ClInclude Include="..\CvAgents.h" />
     <ClInclude Include="..\CvArea.h" />
@@ -311,14 +319,19 @@
     <ClInclude Include="..\CyTeam.h" />
     <ClInclude Include="..\CyUnit.h" />
     <ClInclude Include="..\FAStarFunc.h" />
+    <ClInclude Include="..\FAStarNode.h" />
     <ClInclude Include="..\GameBryo.h" />
+    <ClInclude Include="..\GroupPathFinder.h" />
+    <ClInclude Include="..\KmodPathFinder.h" />
+    <ClInclude Include="..\KmodPathFinderLegacy.h" />
     <ClInclude Include="..\LinkedListTraversal.h" />
+    <ClInclude Include="..\PlayerHistory.h" />
+    <ClInclude Include="..\PlotAdjListTraversal.h" />
     <ClInclude Include="..\PragmaWarnings.h" />
     <ClInclude Include="..\ReproTest.h" />
     <ClInclude Include="..\EnumMap.h" />
     <ClInclude Include="..\EnumMap2D.h" />
     <ClInclude Include="..\FAssert.h" />
-    <ClInclude Include="..\FAStarNode.h" />
     <ClInclude Include="..\FDataStreamBase.h" />
     <ClInclude Include="..\FDialogTemplate.h" />
     <ClInclude Include="..\FFreeListTrashArray.h" />
@@ -328,7 +341,6 @@
     <ClInclude Include="..\FreeListTraversal.h" />
     <ClInclude Include="..\FVariableSystem.h" />
     <ClInclude Include="..\InvasionGraph.h" />
-    <ClInclude Include="..\KmodPathFinder.h" />
     <ClInclude Include="..\LinkedList.h" />
     <ClInclude Include="..\MilitaryAnalyst.h" />
     <ClInclude Include="..\MilitaryBranch.h" />
@@ -336,6 +348,7 @@
     <ClInclude Include="..\PlotRange.h" />
     <ClInclude Include="..\ScaledNum.h" />
     <ClInclude Include="..\StartingPositionIteration.h" />
+    <ClInclude Include="..\TeamPathFinder.h" />
     <ClInclude Include="..\Trigonometry.h" />
     <ClInclude Include="..\TSCProfiler.h" />
     <ClInclude Include="..\TypeChoice.h" />
@@ -457,13 +470,13 @@ nmake clean /NOLOGO</NMakeCleanCommandLine>
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeBuildCommandLine>
+bin\jom build /NOLOGO</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>set TARGET=Debug-opt
 nmake clean /NOLOGO
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeReBuildCommandLine>
+bin\jom build /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Debug-opt
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /DFASSERT_ENABLE /D_CODE_EDITOR</AdditionalOptions>
@@ -489,13 +502,13 @@ nmake clean /NOLOGO</NMakeCleanCommandLine>
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeBuildCommandLine>
+bin\jom build /NOLOGO</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>set TARGET=Assert
 nmake clean /NOLOGO
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeReBuildCommandLine>
+bin\jom build /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Assert
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DFASSERT_ENABLE /D_CODE_EDITOR /DUSE_DATA_DIR</AdditionalOptions>
@@ -506,13 +519,13 @@ nmake clean /NOLOGO</NMakeCleanCommandLine>
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeBuildCommandLine>
+bin\jom build /NOLOGO</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>set TARGET=Profile
 nmake clean /NOLOGO
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeReBuildCommandLine>
+bin\jom build /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Profile
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /D_CODE_EDITOR /DUSE_TSC_PROFILER /DUSE_INTERNAL_PROFILER</AdditionalOptions>
@@ -523,13 +536,13 @@ nmake clean /NOLOGO</NMakeCleanCommandLine>
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeBuildCommandLine>
+bin\jom build /NOLOGO</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>set TARGET=Debug
 nmake clean /NOLOGO
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeReBuildCommandLine>
+bin\jom build /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Debug
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /D_DEBUG /DUSE_DATA_DIR /D_CODE_EDITOR</AdditionalOptions>
@@ -540,13 +553,13 @@ nmake clean /NOLOGO</NMakeCleanCommandLine>
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeBuildCommandLine>
+bin\jom build /NOLOGO</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>set TARGET=Release
 nmake clean /NOLOGO
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeReBuildCommandLine>
+bin\jom build /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Release
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /D_CODE_EDITOR</AdditionalOptions>
@@ -557,13 +570,13 @@ nmake clean /NOLOGO</NMakeCleanCommandLine>
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeBuildCommandLine>
+bin\jom build /NOLOGO</NMakeBuildCommandLine>
     <NMakeReBuildCommandLine>set TARGET=Final_Release
 nmake clean /NOLOGO
 nmake source_list /NOLOGO
 nmake fastdep /NOLOGO
 nmake precompile /NOLOGO
-bin\jom build</NMakeReBuildCommandLine>
+bin\jom build /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Final_Release
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /D_CODE_EDITOR</AdditionalOptions>

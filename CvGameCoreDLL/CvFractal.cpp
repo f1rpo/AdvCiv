@@ -1,5 +1,3 @@
-// fractal.cpp
-
 #include "CvGameCoreDLL.h"
 #include "CvFractal.h"
 

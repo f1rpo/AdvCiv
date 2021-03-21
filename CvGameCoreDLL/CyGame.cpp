@@ -28,6 +28,14 @@ bool CyGame::cyclePlotUnits(CyPlot* pPlot, bool bForward, bool bAuto, int iCount
 {
 	return m_kGame.cyclePlotUnits(pPlot->getPlot(), bForward, bAuto, iCount);
 }
+// advc.154:
+CyUnit* CyGame::getNextUnitInCycle(bool bForward, bool bWorkers)
+{
+	CvUnit* pUnit = GC.getGame().getCycleButtonUnit(bForward, bWorkers);
+	if (pUnit == NULL)
+		return NULL;
+	return new CyUnit(pUnit);
+}
 
 void CyGame::selectionListMove(CyPlot* pPlot, bool bAlt, bool bShift, bool bCtrl)
 {
@@ -1104,8 +1112,13 @@ void CyGame::doControl(int iControl)
 {
 	m_kGame.doControl((ControlTypes) iControl);
 }
+// advc.095:
+void CyGame::setCityBarWidth(bool bWide)
+{
+	m_kGame.setCityBarWidth(bWide);
+}
 // BULL - AutoSave:
-void CyGame::saveGame(std::string szFileName) const
+void CyGame::saveGame(std::string szFileName)
 {
 	// <advc> The BULL code had instead cast szFileName to a CvString&
 	static CvString szTmp;

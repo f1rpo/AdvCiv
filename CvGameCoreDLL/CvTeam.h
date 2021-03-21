@@ -1,11 +1,15 @@
 #pragma once
 
-// team.h
-
 #ifndef CIV4_TEAM_H
 #define CIV4_TEAM_H
 
 class CvArea;
+
+// <advc.003u> Let the more powerful macros take precedence
+#if !defined(CIV4_GAME_PLAY_H) && !defined(COREAI_H) && !defined(CIV4_TEAM_AI_H)
+	#undef GET_TEAM // </advc.003u>
+	#define GET_TEAM(x) CvTeam::getTeam(x)
+#endif
 
 class CvTeam /* advc.003e: */ : private boost::noncopyable
 {
@@ -62,9 +66,9 @@ public:
 	void meet(TeamTypes eTeam, bool bNewDiplo,																			// Exposed to Python
 			FirstContactData* pData = NULL); // advc.071
 	void signPeaceTreaty(TeamTypes eTeam, bool bForce = false); // K-Mod (advc: bForce)
-	void signOpenBorders(TeamTypes eTeam);																				// Exposed to Python
+	void signOpenBorders(TeamTypes eTeam, /* advc.032: */ bool bProlong = false);																				// Exposed to Python
 	void signDisengage(TeamTypes otherId); // advc.034
-	void signDefensivePact(TeamTypes eTeam);																			// Exposed to Python
+	void signDefensivePact(TeamTypes eTeam, /* advc.032: */ bool bProlong = false);																			// Exposed to Python
 	bool canSignDefensivePact(TeamTypes eTeam) /* advc: */ const;
 
 	int getAssets() const;																															// Exposed to Python
@@ -385,7 +389,7 @@ public:
 	inline bool isRiverTrade() const																												// Exposed to Python
 	{
 		//return (getRiverTradeCount() > 0);
-		return true; // advc.124 (and inline)
+		return true; // advc.124
 	}
 	void changeRiverTradeCount(int iChange);
 
@@ -423,12 +427,24 @@ public:
 	void changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2, int iChange);		// Exposed to Python
 
 	bool doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const; // K-Mod
-	// <advc>
-	bool canPeacefullyEnter(TeamTypes eTerritoryOwner) const
+	// advc.opt:
+	inline bool canPeacefullyEnter(TeamTypes eTerritoryOwner) const
 	{
-		return (isOpenBorders(eTerritoryOwner) || isFriendlyTerritory(eTerritoryOwner));
-	} // </advc>
-	bool isFriendlyTerritory(TeamTypes eTerritoryOwner) const; // advc: param renamed
+		return (isOpenBorders(eTerritoryOwner) || //isFriendlyTerritory(eTerritoryOwner)
+				// (The above checks too much stuff that we don't need)
+				getID() == eTerritoryOwner || getTeam(eTerritoryOwner).isVassal(getID()));
+	}
+	bool isFriendlyTerritory(TeamTypes eTerritoryOwner) const;
+	// <advc> Same as isRevealedBase (but doesn't have to be)
+	inline bool isRevealedAirBase(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
+	inline bool isRevealedCityHeal(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
+	inline bool isRevealedCityTrade(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
+	bool isRevealedBase(CvPlot const& kPlot) const; 
+	// Same as isBase (but doesn't have to be)
+	inline bool isAirBase(CvPlot const& kPlot) const { return isBase(kPlot); }
+	inline bool isCityHeal(CvPlot const& kPlot) const { return isBase(kPlot); }
+	bool isBase(CvPlot const& kPlot) const;
+	bool isCityDefense(CvPlot const& kPlot) const; // </advc>
 	bool canAccessHappyHealth(CvPlot const& kPlot, int iHealthOrHappy) const; // advc.901
 
 	int getEspionageModifier(TeamTypes eTarget) const;								// Exposed to Python (though CyGameCoreUtils)
@@ -463,7 +479,7 @@ public:
 	void setTurnActive(bool bNewValue, bool bTurn = true);
 	bool isTurnActive() const;
 
-	bool hasShrine(ReligionTypes eReligion);
+	bool hasShrine(ReligionTypes eReligion) const;
 
 	DllExport void getCompletedSpaceshipProjects(std::map<ProjectTypes, int>& mapProjects) const;
 	DllExport int getProjectPartNumber(ProjectTypes projectType, bool bAssert) const;

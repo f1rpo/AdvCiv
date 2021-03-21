@@ -18,6 +18,7 @@ class CvUnit;
 class CvCity;
 class CvPlot;
 class CvSelectionGroup;
+struct CombatDetails; // advc
 
 class CvEventReporter
 {
@@ -55,6 +56,10 @@ public:
 
 	void firstContact(TeamTypes eTeamID1, TeamTypes eTeamID2);
 	void combatResult(CvUnit* pWinner, CvUnit* pLoser);
+	// advc:
+	void combatLogHit(CombatDetails const& kAttackerDetails,
+			CombatDetails const& kDefenderDetails,
+			int iDamage, bool bAttackerTakesHit);
 	void improvementBuilt(int iImprovementType, int iX, int iY);
 	void improvementDestroyed(int iImprovementType, int iPlayer, int iX, int iY);
 	void routeBuilt(int iRouteType, int iX, int iY);

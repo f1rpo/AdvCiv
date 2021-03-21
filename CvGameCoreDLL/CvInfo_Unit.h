@@ -125,8 +125,8 @@ public: /*  All const functions are exposed to Python except some related to art
 	int getHillsDefenseModifier() const { return m_iHillsDefenseModifier; }
 	int getBombRate() const { return m_iBombRate; }
 	int getBombardRate() const { return m_iBombardRate; }
-	SpecialUnitTypes getSpecialCargo() const { return (SpecialUnitTypes)m_iSpecialCargo; }
-	DomainTypes getDomainCargo() const { return (DomainTypes)m_iDomainCargo; }
+	SpecialUnitTypes getSpecialCargo() const { return m_eSpecialCargo; }
+	DomainTypes getDomainCargo() const { return m_eDomainCargo; }
 
 	int getCargoSpace() const { return m_iCargoSpace; }
 	int getConscriptionValue() const { return m_iConscriptionValue; }
@@ -135,30 +135,29 @@ public: /*  All const functions are exposed to Python except some related to art
 	int getAssetValue() const { return m_iAssetValue; }
 	int getPowerValue() const { return m_iPowerValue; }
 
-	inline UnitClassTypes getUnitClassType() const { return (UnitClassTypes)m_iUnitClassType; }
-	SpecialUnitTypes getSpecialUnitType() const { return (SpecialUnitTypes)m_iSpecialUnitType; }
-	UnitClassTypes getUnitCaptureClassType() const { return (UnitClassTypes)m_iUnitCaptureClassType; }
-	inline UnitCombatTypes getUnitCombatType() const { return (UnitCombatTypes)m_iUnitCombatType; }
-	// advc.inl: force-inlined for CvArea::canBeEntered
-	__forceinline DomainTypes getDomainType() const { return (DomainTypes)m_iDomainType; }
-	UnitAITypes getDefaultUnitAIType() const { return (UnitAITypes)m_iDefaultUnitAIType; }
-	inline InvisibleTypes getInvisibleType() const { return (InvisibleTypes)m_iInvisibleType; }
+	inline UnitClassTypes getUnitClassType() const { return m_eUnitClassType; }
+	SpecialUnitTypes getSpecialUnitType() const { return m_eSpecialUnitType; }
+	UnitClassTypes getUnitCaptureClassType() const { return m_eUnitCaptureClassType; }
+	inline UnitCombatTypes getUnitCombatType() const { return m_eUnitCombatType; }
+	__forceinline DomainTypes getDomainType() const { return m_eDomainType; }
+	UnitAITypes getDefaultUnitAIType() const { return m_eDefaultUnitAIType; }
+	inline InvisibleTypes getInvisibleType() const { return m_eInvisibleType; }
 	InvisibleTypes getSeeInvisibleType(int i) const
 	{
-		FAssertBounds(0, m_aiSeeInvisibleTypes.size(), i);
-		return (InvisibleTypes)m_aiSeeInvisibleTypes[i];
+		FAssertBounds(0, m_aeSeeInvisibleTypes.size(), i);
+		return m_aeSeeInvisibleTypes[i];
 	}
-	inline int getNumSeeInvisibleTypes() const { return (int)m_aiSeeInvisibleTypes.size(); }
-	AdvisorTypes getAdvisorType() const { return (AdvisorTypes)m_iAdvisorType; }
-	ReligionTypes getHolyCity() const { return (ReligionTypes)m_iHolyCity; }
-	ReligionTypes getReligionType() const { return (ReligionTypes)m_iReligionType; }
-	ReligionTypes getStateReligion() const { return (ReligionTypes)m_iStateReligion; }
-	ReligionTypes getPrereqReligion() const { return (ReligionTypes)m_iPrereqReligion; }
-	CorporationTypes getPrereqCorporation() const { return (CorporationTypes)m_iPrereqCorporation; }
-	BuildingTypes getPrereqBuilding() const { return (BuildingTypes)m_iPrereqBuilding; }
-	TechTypes getPrereqAndTech() const { return (TechTypes)m_iPrereqAndTech; }
+	inline int getNumSeeInvisibleTypes() const { return (int)m_aeSeeInvisibleTypes.size(); }
+	AdvisorTypes getAdvisorType() const { return m_eAdvisorType; }
+	ReligionTypes getHolyCity() const { return m_eHolyCity; }
+	ReligionTypes getReligionType() const { return m_eReligionType; }
+	ReligionTypes getStateReligion() const { return m_eStateReligion; }
+	ReligionTypes getPrereqReligion() const { return m_ePrereqReligion; }
+	CorporationTypes getPrereqCorporation() const { return m_ePrereqCorporation; }
+	BuildingTypes getPrereqBuilding() const { return m_ePrereqBuilding; }
+	TechTypes getPrereqAndTech() const { return m_ePrereqAndTech; }
 	bool isTechRequired(TechTypes eTech) const; // advc.003w: Replacing global isTechRequiredForUnit
-	BonusTypes getPrereqAndBonus() const { return (BonusTypes)m_iPrereqAndBonus; }
+	BonusTypes getPrereqAndBonus() const { return m_ePrereqAndBonus; }
 	int getGroupSize() const; // the initial number of individuals in the unit group
 	int getGroupDefinitions() const; // the number of UnitMeshGroups for this unit
 	int getMeleeWaveSize() const;
@@ -220,14 +219,35 @@ public: /*  All const functions are exposed to Python except some related to art
 	float getUnitPadTime() const;
 
 	// Array access:
-
-	TechTypes getPrereqAndTechs(int i) const;
-	inline bool isAnyPrereqAndTech() const { return (m_piPrereqAndTechs != NULL); } // advc.003t
-	BonusTypes getPrereqOrBonuses(int i) const;
-	inline bool isAnyPrereqOrBonus() const { return (m_piPrereqOrBonuses != NULL); } // advc.003t
-	// <advc.905b>
-	BonusTypes getSpeedBonuses(int i) const;
-	int getExtraMoves(int i) const;
+	// <advc.003t>
+	inline int getNumPrereqAndTechs() const { return m_aePrereqAndTechs.size(); }
+	inline int getNumPrereqOrBonuses() const { return m_aePrereqOrBonuses.size(); }
+	TechTypes getPrereqAndTechs(int i) const
+	{
+		FAssertBounds(0, getNumPrereqAndTechs(), i);
+		return m_aePrereqAndTechs[i];
+	}
+	BonusTypes getPrereqOrBonuses(int i) const
+	{
+		FAssertBounds(0, getNumPrereqOrBonuses(), i);
+		return m_aePrereqOrBonuses[i];
+	}
+	int py_getPrereqAndTechs(int i) const;
+	int py_getPrereqOrBonuses(int i) const;
+	// </advc.003t>  <advc.905b>
+	inline int getNumSpeedBonuses() const { return m_aeiSpeedBonuses.size(); }
+	BonusTypes getSpeedBonuses(int i) const
+	{
+		FAssertBounds(0, getNumSpeedBonuses(), i);
+		return m_aeiSpeedBonuses[i].first;
+	}
+	int getExtraMoves(int i) const
+	{
+		FAssertBounds(0, getNumSpeedBonuses(), i);
+		return m_aeiSpeedBonuses[i].second;
+	}
+	int py_getSpeedBonuses(int i) const;
+	int py_getExtraMoves(int i) const;
 	// </advc.905b>
 	int getProductionTraits(int i) const;
 	int getFlavorValue(int i) const;
@@ -370,37 +390,37 @@ protected:
 	int m_iHillsDefenseModifier;
 	int m_iBombRate;
 	int m_iBombardRate;
-	int m_iSpecialCargo;
+	SpecialUnitTypes m_eSpecialCargo;
 
-	int m_iDomainCargo;
+	DomainTypes m_eDomainCargo;
 	int m_iCargoSpace;
 	int m_iConscriptionValue;
 	int m_iCultureGarrisonValue;
 	int m_iExtraCost;
 	int m_iAssetValue;
 	int m_iPowerValue;
-	int m_iUnitClassType;
-	int m_iSpecialUnitType;
-	int m_iUnitCaptureClassType;
-	int m_iUnitCombatType;
-	int m_iDomainType;
-	int m_iDefaultUnitAIType;
-	int m_iInvisibleType;
-	int m_iAdvisorType;
-	int m_iHolyCity;
-	int m_iReligionType;
-	int m_iStateReligion;
-	int m_iPrereqReligion;
-	int m_iPrereqCorporation;
-	int m_iPrereqBuilding;
-	int m_iPrereqAndTech;
-	int m_iPrereqAndBonus;
+	UnitClassTypes m_eUnitClassType;
+	SpecialUnitTypes m_eSpecialUnitType;
+	UnitClassTypes m_eUnitCaptureClassType;
+	UnitCombatTypes m_eUnitCombatType;
+	DomainTypes m_eDomainType;
+	UnitAITypes m_eDefaultUnitAIType;
+	InvisibleTypes m_eInvisibleType;
+	AdvisorTypes m_eAdvisorType;
+	ReligionTypes m_eHolyCity;
+	ReligionTypes m_eReligionType;
+	ReligionTypes m_eStateReligion;
+	ReligionTypes m_ePrereqReligion;
+	CorporationTypes m_ePrereqCorporation;
+	BuildingTypes m_ePrereqBuilding;
+	TechTypes m_ePrereqAndTech;
+	BonusTypes m_ePrereqAndBonus;
 	int m_iGroupSize;
 	int m_iGroupDefinitions;
 	int m_iUnitMeleeWaveSize;
 	int m_iUnitRangedWaveSize;
 	int m_iNumUnitNames;
-	int m_iCommandType;
+	CommandTypes m_eCommandType;
 	int m_iLeaderExperience;
 
 	bool m_bAnimal;
@@ -448,9 +468,9 @@ protected:
 	float m_fUnitMaxSpeed;
 	float m_fUnitPadTime;
 
-	int* m_piPrereqAndTechs;
-	int* m_piPrereqOrBonuses;
-	int* m_piSpeedBonuses[2]; // advc.905b
+	std::vector<TechTypes> m_aePrereqAndTechs; // advc.003t: was int*
+	std::vector<BonusTypes> m_aePrereqOrBonuses; // advc.003t: was int*
+	std::vector<std::pair<BonusTypes,int> > m_aeiSpeedBonuses; // advc.905b
 	int* m_piProductionTraits;
 	int* m_piFlavorValue;
 	int* m_piTerrainAttackModifier;
@@ -494,7 +514,7 @@ protected:
 	CvString m_szFormationType;
 	CvString m_szArtDefineButton;
 
-	std::vector<int> m_aiSeeInvisibleTypes;
+	std::vector<InvisibleTypes> m_aeSeeInvisibleTypes;
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by XMLSPY 2004 Professional Ed. Release 2, Installed Multi + SMP for 3 users (Firaxis Games) -->
-<!-- Sid Meier's Civilization 4 -->
-<!-- Copyright Firaxis Games 2005 -->
-<!-- -->
-<!-- Game Text Diplomacy -->
-<!-- *ActualQuotes* by Willowmound, ver. 4.20 (Beyond the Sword) -->
-<!-- Leader-specific diplomacy text based on actual quotes, complete or paraphrased. Some other minor changes. -->
+<!-- advc.005f: See comment in Civ4ActualQuotesText.xml.
+	 This file contains text for Warlords leaders. -->
 <Civ4GameText xmlns="http://www.firaxis.com">
+
 	<TEXT>
 		<Tag>AI_DIPLO_FIRST_CONTACT_LEADER_AUGUSTUS_CAESAR_1</Tag>
 		<English>Well met, [CT_NAME]! I like treachery, but I cannot say anything good of traitors. Yes. Well, at least I'm honest.</English>
@@ -64,14 +60,6 @@
 		<Spanish>¡Saludos, [CT_NAME]! El pueblo [OUR_CIV_ADJ:1] siempre se congratula de encontrarse con civilizaciones vulnerables e indefensas.</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>AI_DIPLO_FIRST_CONTACT_LEADER_WANG_KON_1</Tag>
-		<English>Welcome, [CT_NAME], ruler of mighty [CT_CIV_SHORT]! Deal faithfully with [OUR_CIV_SHORT] and we will deal faithfully with you. Betray us and your life will be both short and full of excitement...</English>
-		<French>Bienvenue, [CT_NAME], seigneur des puissants [CT_CIV_SHORT] ! Sachez que si vous &#234;tes respectueux et loyaux envers [OUR_CIV_SHORT], nous vous t&#233;moignerons le m&#234;me respect et la m&#234;me loyaut&#233;. Trahissez-nous une seule fois, et votre vie sera non seulement tr&#232;s courte, mais &#233;galement tr&#233;pidante...</French>
-		<German>Willkommen, [CT_NAME], Staatsoberhaupt des mächtigen Volkes von [CT_CIV_SHORT]! Solange Ihr die Bürger von [OUR_CIV_SHORT] fair behandelt, werden wir Euch ebenfalls fair behandeln. Solltet Ihr uns jedoch hintergehen, wird Euer Dasein von sehr kurzer Dauer sein ...</German>
-		<Italian>Salve, [CT_NAME], potente sovrano [CT_CIV_ADJ]! Comportati lealmente con la nostra civiltà e noi ci comporteremo lealmente con la tua. Tradiscici e la tua vita sarà eccitante ma breve...</Italian>
-		<Spanish>Os damos la bienvenida, [CT_NAME], líder de la poderosa tierra de [CT_CIV_SHORT]. Portaos bien con [OUR_CIV_SHORT] y nos portaremos bien con vosotros. Traicionadnos y vuestra vida será corta y llena de emociones...</Spanish>
-	</TEXT>
-	<TEXT>
 		<Tag>AI_DIPLO_FIRST_CONTACT_LEADER_WINSTON_CHURCHILL_1</Tag>
 		<English>Good evening and welcome to [OUR_CIV_SHORT], [CT_NAME]. Let me give you this advice. In war: resolution. In defeat: defiance. In victory: magnanimity. In peace: goodwill. Play the game for more than you can afford to lose, [CT_NAME]. Only then will you learn the game.</English>
 		<French>Bienvenue, [CT_NAME] ! J'esp&#232;re que nos deux grandes nations sauront &#233;tablir une relation aussi solide qu'amicale. Toutefois, sachez que si vous nous attaquiez, je n'aurai rien d'autre &#224; vous offrir que du sang, de la souffrance, des larmes et de la sueur, si vous voyez ce que je veux dire...</French>
@@ -119,6 +107,7 @@
 		<Italian>Vattene, [CT_NAME]; non infastidirmi.</Italian>
 		<Spanish>Marchad, [CT_NAME]. Me importunáis.</Spanish>
 	</TEXT>
+	<!-- was "like they were" -->
 	<TEXT>
 		<Tag>AI_DIPLO_REFUSE_TO_TALK_LEADER_ BRENNUS _1</Tag>
 		<English>Your words twist as if they were serpents, [CT_NAME]. Begone!</English>
@@ -127,6 +116,7 @@
 		<Italian>Le tue parole sono viscide come serpenti, [CT_NAME]. Sparisci!</Italian>
 		<Spanish>Vuestras palabras se retuercen como si fueran serpientes, [CT_NAME]. ¡Fuera de aquí!</Spanish>
 	</TEXT>
+	<!-- article added before empire -->
 	<TEXT>
 		<Tag>AI_DIPLO_REFUSE_TO_TALK_LEADER_HANNIBAL_1</Tag>
 		<English>Go away. The [OUR_EMPIRE] has no time for your nonsense.</English>
@@ -143,22 +133,16 @@
 		<Italian>Non ho nulla a che spartire con bugiardi e traditori, [CT_NAME]! Vattene!</Italian>
 		<Spanish>¡No tendr&#233; piedad con los mentirosos y los villanos, [CT_NAME]! ¡Fuera de aquí!</Spanish>
 	</TEXT>
+	<!-- advc.005f: Make this #2, i.e. preserve "feed you to the walruses". -->
 	<TEXT>
-		<Tag>AI_DIPLO_REFUSE_TO_TALK_LEADER_MEHMED_1</Tag>
-		<English>You're wasting your time, [CT_NAME]. I'll not be swayed by your lying words.</English>
-		<French>Vous perdez votre temps, [CT_NAME]. Je ne me laisserai jamais influencer par vos path&#233;tiques mensonges.</French>
-		<German>Ihr verschwendet meine Zeit, [CT_NAME]! Ich werde mich nicht von Euren Lügen täuschen lassen!</German>
-		<Italian>Stai sprecando tempo, [CT_NAME]. Non mi farò influenzare dalle tue menzogne.</Italian>
-		<Spanish>Estáis perdiendo el tiempo, [CT_NAME]. No me engañarán vuestras insinceras palabras.</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>AI_DIPLO_REFUSE_TO_TALK_LEADER_RAGNAR_LODBROK_1</Tag>
+		<Tag>AI_DIPLO_REFUSE_TO_TALK_LEADER_RAGNAR_LODBROK_2</Tag>
 		<English>Come not on foot, yet not driving; not feasting, yet not fasting; not with anyone and yet not alone. Solve my riddle. Then we'll talk.</English>
 		<French>D&#233;guerpissez avant que je vous coupe en petits morceaux et que je vous donne &#224; manger aux morses !</French>
 		<German>Geht mir aus den Augen, bevor ich Euch in Stücke schneide und den Walen zum Fraß vorwerfe!</German>
 		<Italian>Sparisci prima che ti faccia tagliare a pezzettini e ti dia in pasto ai trichechi!</Italian>
 		<Spanish>Marchaos antes de que os descuartice y os eche de comer a las morsas.</Spanish>
 	</TEXT>
+	<!-- spelling -->
 	<TEXT>
 		<Tag>AI_DIPLO_REFUSE_TO_TALK_LEADER_RAMESSES_II_1</Tag>
 		<English>Hold your tongue lest I tear it out and feed it to the crocodiles!</English>
@@ -166,22 +150,6 @@
 		<German>Kein Wort, wenn Ihr nicht an die Krokodile verfüttert werden wollt!</German>
 		<Italian>Ti conviene tenere chiusa la bocca o ti strapperò la lingua e la darò in pasto ai coccodrilli!</Italian>
 		<Spanish>Sujetaos la lengua a menos que queráis que se la d&#233; de comer a los cocodrilos.</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>AI_DIPLO_REFUSE_TO_TALK_LEADER_SHAKA_1</Tag>
-		<English>Your words are but the grunts of a diseased pig, [CT_NAME]. I do not hear them.</English>
-		<French>Vos paroles sonnent &#224; mes oreilles tels d'horribles grognements d'un porc agonisant, [CT_NAME]. Je ne les &#233;couterai pas plus longtemps.</French>
-		<German>Ihr sprecht mit gespaltener Zunge, [CT_NAME], und ich will es nicht hören!</German>
-		<Italian>Le tue parole risuonano come i grugniti di un maiale morente, [CT_NAME]. Un rumore fastidioso che non voglio udire.</Italian>
-		<Spanish>Vuestras palabras no son más que gruñidos de un cerdo enfermo, [CT_NAME]. Como tales, no las escucho.</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>AI_DIPLO_REFUSE_TO_TALK_LEADER_WANG_KON_1</Tag>
-		<English>Your web of deceit will not ensnare [OUR_CIV_SHORT]. I've been lied to by far better men than you!</English>
-		<French>L'ampleur de votre perfide mesquinerie est trop ostentatoire pour tromper [OUR_CIV_NAME]. Des hommes bien plus brillants que vous ont essay&#233; de me duper par le pass&#233; !</French>
-		<German>Ihr werdet das Volk von [OUR_CIV_NAME] nicht einwickeln! Das haben schon ganz andere versucht - und versagt!</German>
-		<Italian>La tua ragnatela di menzogne non ci intrappolerà. Ho ascoltato menzogne più credibili da leader molto migliori di te!</Italian>
-		<Spanish>No enredar&#233;is al [OUR_CIV_NAME] en vuestra telaraña de engaños. ¡Me han mentido gobernantes mucho mejores que vos!</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>AI_DIPLO_REFUSE_TO_TALK_LEADER_WINSTON_CHURCHILL_1</Tag>
@@ -200,16 +168,8 @@
 		<Spanish>Tendr&#233;is paz, [CT_NAME]: ¡la paz de los muertos!</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>AI_DIPLO_NO_PEACE_LEADER_ BRENNUS _1</Tag>
-		<English>Peace? Don't make me laugh!</English>
-		<French>La paix ? Vous voulez rire, j'esp&#232;re !</French>
-		<German>Ihr wollt Frieden schließen? Macht Euch doch nicht lächerlich!</German>
-		<Italian>Pace? Ma non farmi ridere!</Italian>
-		<Spanish>¿Paz? ¡No me hagáis reír!</Spanish>
-	</TEXT>
-	<TEXT>
 		<Tag>AI_DIPLO_NO_PEACE_LEADER_HANNIBAL_1</Tag>
-		<English>I am not carrying on a war of extermination against [CT_CIV_SHORT]. I am contending for honour and empire! We can have no peace yet.</English>
+		<English>I am not carrying on a war of extermination against [CT_CIV_SHORT]. I am contending for honor and empire! We can have no peace yet.</English>
 		<French>Et pourquoi voudrais-je parler de paix avec vous, alors que [OUR_CIV_SHORT] est sur le point de rayer, de toute sa majestueuse puissance, votre piteuse civilisation de la surface de la Terre ?</French>
 		<German>Warum in aller Welt sollten wir Friedensverhandlungen führen, wenn der vernichtende Sieg des mächtigen Volkes von [OUR_CIV_SHORT] über Eure jämmerliche Zivilisation so kurz bevorsteht?</German>
 		<Italian>E perché mai dovrei discutere di pace quando l'impero [OUR_CIV_ADJ] è sul punto di cancellare la tua ridicola civiltà dalla faccia del pianeta?</Italian>
@@ -223,14 +183,7 @@
 		<Italian>No! Ti sei scavato la fossa e ora ci morirai!</Italian>
 		<Spanish>¡No! Os hab&#233;is hecho vuestra propia cama, ¡y morir&#233;is en ella!</Spanish>
 	</TEXT>
-	<TEXT>
-		<Tag>AI_DIPLO_NO_PEACE_LEADER_MEHMED_1</Tag>
-		<English>One cannot make peace with a jackal. Now go!</English>
-		<French>Il est impossible de faire la paix avec un chacal. Partez !</French>
-		<German>Mit einem Schakal kann man keinen Frieden schließen! Und jetzt verschwindet!</German>
-		<Italian>Non è possibile discutere di pace con uno sciacallo. Ora va'!</Italian>
-		<Spanish>No se pueden hacer las paces con un chacal. ¡Fuera de aquí ahora mismo!</Spanish>
-	</TEXT>
+	<!-- Replaces "peace is for the weak and dead, not mighty Vikings" -->
 	<TEXT>
 		<Tag>AI_DIPLO_NO_PEACE_LEADER_RAGNAR_LODBROK_1</Tag>
 		<English>My warriors are still hungry. No peace yet.</English>
@@ -256,14 +209,6 @@
 		<Spanish>Ni en broma. El poderoso pueblo [OUR_CIV_ADJ:1] no se molesta ni en hacer las paces con cuatreros bergantes como vosotros. </Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>AI_DIPLO_NO_PEACE_LEADER_WANG_KON_1</Tag>
-		<English>There shall be no peace until you are languishing in a [OUR_CIV_ADJ] prison, [CT_NAME]. Get out of here.</English>
-		<French>Aucune paix n'est possible avant que vous ne croupissiez au fin fond d'une ge&#244;le du puissant peuple des [OUR_CIV_ADJ], [CT_NAME]. Hors de ma vue !</French>
-		<German>Frieden wird erst dann herrschen, wenn Ihr nicht in einem [OUR_CIV_ADJ:2] Kerker verrottet, [CT_NAME]! Verschwindet!</German>
-		<Italian>Non ci sarà pace finché non sarete tutti rinchiusi in un gelido sotterraneo [OUR_CIV_ADJ], [CT_NAME]. Ora sparisci.</Italian>
-		<Spanish>No habrá paz hasta que os pudráis en una prisión [OUR_CIV_ADJ:2], [CT_NAME]. Salid de aquí.</Spanish>
-	</TEXT>
-	<TEXT>
 		<Tag>AI_DIPLO_NO_PEACE_LEADER_WINSTON_CHURCHILL_1</Tag>
 		<English>Victory at all costs, victory in spite of all terror, victory however long and hard the road may be; for without victory, there is no survival.</English>
 		<French>Le prestigieux peuple des [OUR_CIV_ADJ] est dispos&#233; &#224; n'accepter rien d'autre qu'une reddition sans condition, [CT_NAME].</French>
@@ -272,16 +217,8 @@
 		<Spanish>El pueblo [OUR_CIV_ADJ:1] no aceptará de vosotros más t&#233;rminos que una rendición incondicional, [CT_NAME]. </Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_ BRENNUS _1</Tag>
-		<English>We welcome our friend and ally, [CT_NAME]. </English>
-		<French>Bienvenue &#224; vous, [CT_NAME], notre valeureux ami et alli&#233;. </French>
-		<German>Ich grüße Euch in Freundschaft und Verbundenheit, [CT_NAME]. </German>
-		<Italian>Diamo il benvenuto al nostro amico e alleato, [CT_NAME]. </Italian>
-		<Spanish>Damos la bienvenida a [CT_NAME], de nuestra nación amiga y aliada. </Spanish>
-	</TEXT>
-	<TEXT>
 		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_HANNIBAL_1</Tag>
-		<English>I am honoured that you have come, [CT_NAME]. God has given no greater spur to victory than contempt of death. Together, we may one day rule the world.</English>
+		<English>I am honored that you have come, [CT_NAME]. God has given no greater spur to victory than contempt of death. Together, we may one day rule the world.</English>
 		<French>Vous &#234;tes donc venu, [CT_NAME] ? Formidable. Cela me fait toujours un immense plaisir de converser avec quelqu'un qui m'est presque &#233;gal.</French>
 		<German>Ihr stattet mir einen Besuch ab, [CT_NAME]? Wie nett! Es ist mir stets eine Freude, mich mit jemandem unterhalten zu können, der mir nahezu ebenbürtig ist.</German>
 		<Italian>Ah, eccoti qua, [CT_NAME]. Eccellente. Fa sempre piacere discutere con chi è quasi tuo pari.</Italian>
@@ -303,14 +240,7 @@
 		<Italian>Ah, [CT_NAME]. Sei venuto per arrenderti e unirti alla nostra gloriosa società collettivista?</Italian>
 		<Spanish>Ah, [CT_NAME]. Hab&#233;is venido a rendiros a nuestra gloriosa sociedad colectivizada, ¿no?</Spanish>
 	</TEXT>
-	<TEXT>
-		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_MEHMED_1</Tag>
-		<English>Welcome, [CT_NAME]. Let us eat figs and sip sherbet and discuss important things.</English>
-		<French>Bienvenue, [CT_NAME]. Mangeons donc quelques figues autour d'un bon verre de raki et conversons.</French>
-		<German>Willkommen, [CT_NAME]! Lasst uns ein paar Häppchen zu uns nehmen und wichtige Dinge besprechen.</German>
-		<Italian>Salve, [CT_NAME]. Mangiamo fichi e gustiamo un sorbetto mentre parliamo di cose importanti, ti va?</Italian>
-		<Spanish>Saludos, [CT_NAME]. Comamos brevas, paladeemos un sorbete y hablemos de cosas importantes.</Spanish>
-	</TEXT>
+	<!-- Replaces "of all decadent vulnerable civs, yours is a favorite" -->
 	<TEXT>
 		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_RAGNAR_LODBROK_1</Tag>
 		<English>Oh, my good friend, how nice to see you again. Let us feast, and drink much, and talk of our greatest deeds.</English>
@@ -336,14 +266,6 @@
 		<Spanish>Saludos, [CT_NAME]. ¿Cómo está esa civilización indefensa de la que venís?</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_WANG_KON_1</Tag>
-		<English>We are honoured by your visit, [CT_NAME]. Let us speak of many important things.</English>
-		<French>Votre visite nous honore au plus haut point, [CT_NAME]. Discutons donc de sujets importants.</French>
-		<German>Euer Besuch ehrt uns, [CT_NAME]! Wir haben viele wichtige Dinge zu besprechen.</German>
-		<Italian>Siamo onorati della tua visita, [CT_NAME]. Dobbiamo parlare di cose molto importanti.</Italian>
-		<Spanish>Nos honra vuestra visita, [CT_NAME]. Tenemos muchas cosas importantes de las que hablar.</Spanish>
-	</TEXT>
-	<TEXT>
 		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_ AUGUSTUS_CAESAR _1</Tag>
 		<English>Hasten slowly, [CT_NAME]; come into my palace! What may mighty [OUR_CIV_SHORT] do for you today?</English>
 		<French>Ave, [CT_NAME] ! Que nous vaut votre visite chez les puissants [OUR_CIV_SHORT] ? Rendons-nous donc au Colis&#233;e pour admirer le glorieux spectacle offert par des animaux sauvages d&#233;vorant des quelques esclaves ?</French>
@@ -351,8 +273,9 @@
 		<Italian>Salve, [CT_NAME]! Qual buon vento ti porta nella grandiosa capitale [OUR_CIV_ADJ] oggi? Perché non facciamo una capatina al Colosseo a vedere dei prigionieri mangiati vivi dalle fiere? </Italian>
 		<Spanish>¡Saludos, [CT_NAME]! ¿Qu&#233; os trae hoy a la poderosa tierra de [OUR_CIV_SHORT]? ¿Os apetece ir al Coliseo a ver cómo las fieras devoran a unos cuantos prisioneros? </Spanish>
 	</TEXT>
+	<!-- advc.005f: Make these #2, #3, i.e. preserve "tea and crumpets and let us divide the world". -->
 	<TEXT>
-		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_WINSTON_CHURCHILL_1</Tag>
+		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_WINSTON_CHURCHILL_2</Tag>
 		<English>[CT_NAME], good to see you again, old boy! Say, do you have enemies? Good. That means you've stood up for something, sometime in your life. Good!</English>
 		<French>Salutations, [CT_NAME] ! Et si on se r&#233;partissait le reste du monde autour d'une bonne tasse de th&#233; et de quelques biscuits.</French>
 		<German>Seid gegrüßt, [CT_NAME]! Nehmt etwas Tee und Gebäck und dann lasst uns erörtern, wie wir die Welt unter uns aufteilen wollen.</German>
@@ -360,7 +283,7 @@
 		<Spanish>¡Saludos, [CT_NAME]! Tomemos un t&#233; con pastitas y repartámonos el mundo.</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_WINSTON_CHURCHILL_2</Tag>
+		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_WINSTON_CHURCHILL_3</Tag>
 		<English>Study history, [CT_NAME], study history. In history lies all the secrets of statecraft. Now, what can I do for you?</English>
 		<French>Salutations, [CT_NAME] ! Et si on se r&#233;partissait le reste du monde autour d'une bonne tasse de th&#233; et de quelques biscuits.</French>
 		<German>Seid gegrüßt, [CT_NAME]! Nehmt etwas Tee und Gebäck und dann lasst uns erörtern, wie wir die Welt unter uns aufteilen wollen.</German>
@@ -370,14 +293,6 @@
 	<TEXT>
 		<Tag>AI_DIPLO_GREETINGS_ATT_FUR_LEADER_SHAKA_1</Tag>
 		<English>[CT_NAME]. I am the long-strided pursuer, son of Ndaba, who pursued the sun and the moon. Do not toy with me.</English>
-		<French>Videz votre sac, [CT_NAME], et d&#233;guerpissez !</French>
-		<German>Sagt, was Ihr zu sagen habt und dann geht mir aus den Augen, [CT_NAME]!</German>
-		<Italian>Di' quello che devi dire, [CT_NAME], e poi sparisci!</Italian>
-		<Spanish>Decid lo que tengáis que decir, [CT_NAME], y marchaos.</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>AI_DIPLO_GREETINGS_ATT_FUR_LEADER_ BRENNUS _1</Tag>
-		<English>Speak your piece, [CT_NAME], and then be gone!</English>
 		<French>Videz votre sac, [CT_NAME], et d&#233;guerpissez !</French>
 		<German>Sagt, was Ihr zu sagen habt und dann geht mir aus den Augen, [CT_NAME]!</German>
 		<Italian>Di' quello che devi dire, [CT_NAME], e poi sparisci!</Italian>
@@ -415,6 +330,7 @@
 		<Italian>Cosa DIAVOLO vuoi?</Italian>
 		<Spanish>¿Qu&#233; quer&#233;is?</Spanish>
 	</TEXT>
+	<!-- streamlined -->
 	<TEXT>
 		<Tag>AI_DIPLO_GREETINGS_ATT_FUR_LEADER_MEHMED_1</Tag>
 		<English>Speak quickly, [CT_NAME]. Your voice has a grating whine that is unpleasant to listen to.</English>
@@ -440,14 +356,6 @@
 		<Spanish>Hablad rápido y marchaos, canalla, antes de que pierda la compostura y os convierta en un escarabajo pelotero.</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>AI_DIPLO_GREETINGS_ATT_FUR_LEADER_WANG_KON_1</Tag>
-		<English>Speak quickly, [CT_NAME]. I have little time for your imbecilities. </English>
-		<French>Ecourtez au maximum votre oraison, [CT_NAME]. Mon temps r&#233;serv&#233; aux plus basses futilit&#233;s est tr&#232;s restreint.</French>
-		<German>Fasst Euch kurz, [CT_NAME]! Ich habe keine Zeit für dummes Geschwätz! </German>
-		<Italian>Parla, ma fa' in fretta, [CT_NAME]. Non ho tempo per le tue scemenze. </Italian>
-		<Spanish>Hablad rápido, [CT_NAME]. No tengo tiempo para vuestras estupideces. </Spanish>
-	</TEXT>
-	<TEXT>
 		<Tag>AI_DIPLO_GREETINGS_ATT_FUR_LEADER_WINSTON_CHURCHILL_1</Tag>
 		<English>I do not like you, [CT_NAME]. You have all the virtues I dislike and none of the vices I admire.</English>
 		<French>Je n'ai aucune envie d'&#233;changer des civilit&#233;s avec vous, [CT_NAME]. Qu'est-ce que vous voulez ?</French>
@@ -471,6 +379,7 @@
 		<Italian>L'amicizia andrebbe ripagata, non credi? Ma guarda che bel consiglio che ti ho appena dato!</Italian>
 		<Spanish>La amistad debe recompensarse, ¿no os parece? Os dar&#233; una idea.</Spanish>
 	</TEXT>
+	<!-- spelling -->
 	<TEXT>
 		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_WEAKER_ BRENNUS _1</Tag>
 		<English>Give till it hurts, [CT_NAME].</English>
@@ -479,6 +388,7 @@
 		<Italian>Darai finché non potrai più dare, [CT_NAME].</Italian>
 		<Spanish>Apoquinando que es gerundio, [CT_NAME].</Spanish>
 	</TEXT>
+	<!-- Swap with POWER_EQUAL -->
 	<TEXT>
 		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_WEAKER_HANNIBAL_1</Tag>
 		<English>Share the wealth, [CT_NAME].</English>
@@ -496,14 +406,6 @@
 		<Spanish>Es hora de que se haga una redistribución de la riqueza, [CT_NAME]. </Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_WEAKER_MEHMED_1</Tag>
-		<English>How about a small token of appreciation, [CT_NAME]? </English>
-		<French>Je ne saurais refuser un petit geste de votre part, [CT_NAME].</French>
-		<German>Wie wär's mit einem kleinen Zeichen der Ehrerbietung, [CT_NAME]? </German>
-		<Italian>Che ne dici di un piccolo segno di gratitudine, [CT_NAME]? </Italian>
-		<Spanish>¿Qu&#233; tal una pequeña muestra de aprecio, [CT_NAME]? </Spanish>
-	</TEXT>
-	<TEXT>
 		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_WEAKER_RAGNAR_LODBROK_1</Tag>
 		<English>Oh, how the little pigs would grunt if they knew the situation of the boar. I'm the boar, if you didn't know. The piglets are my sons. I'm getting old and poor, [CT_NAME] -- for the sake of my sons, help me out?</English>
 		<French>On prend g&#233;n&#233;ralement tout ce qu'on veut, [CT_NAME], mais au nom de nos bonnes relations, je vais vous laisser l'honneur de me le donner de bon coeur.</French>
@@ -519,14 +421,7 @@
 		<Italian>Un sovrano saggio è pronto a compiere dei sacrifici pur di ottenere la benevolenza degli dei. Puoi cominciare da me, [CT_NAME].</Italian>
 		<Spanish>Los monarcas sensatos saben cuándo hacer sacrificios para ganarse el favor de los dioses, [CT_NAME]. Podríais empezar conmigo.</Spanish>
 	</TEXT>
-	<TEXT>
-		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_WEAKER_SHAKA_1</Tag>
-		<English>Give me this, [CT_NAME] and perhaps our two nations can live in peace for a while longer.</English>
-		<French>Donnez-moi ce que je demande, [CT_NAME], et peut-&#234;tre nos deux nations pourront-elles cohabiter en paix quelques temps encore.</French>
-		<German>Gebt uns, was wir verlangen, [CT_NAME], dann besteht die Chance, dass unsere Zivilisationen noch eine Weile in Frieden miteinander leben!</German>
-		<Italian>Dammi questo, [CT_NAME], e forse le nostre due nazioni vivranno in pace per un altro po'.</Italian>
-		<Spanish>Dadme esto, [CT_NAME], y es posible que nuestras naciones puedan vivir en paz un poco más.</Spanish>
-	</TEXT>
+	<!-- omits "...at this time..." -->
 	<TEXT>
 		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_WEAKER_WANG_KON_1</Tag>
 		<English>We require some assistance, [CT_NAME]. Will you come to our aid?</English>
@@ -551,14 +446,7 @@
 		<Italian>Dacci subito ciò che ti chiediamo, [CT_NAME], e nessuno si farà male.</Italian>
 		<Spanish>Dadnos esto rápidamente y nadie saldrá herido, [CT_NAME].</Spanish>
 	</TEXT>
-	<TEXT>
-		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_EQUAL_ BRENNUS _1</Tag>
-		<English>I recommend that you give us what we want, [CT_NAME].</English>
-		<French>Un conseil, [CT_NAME], donnez-nous ce que nous demandons.</French>
-		<German>Ich rate Euch, unserer Forderung nachzukommen, [CT_NAME]!</German>
-		<Italian>Ti consiglio di darci ciò che vogliamo, [CT_NAME].</Italian>
-		<Spanish>Os recomiendo que nos deis lo que queremos, [CT_NAME].</Spanish>
-	</TEXT>
+	<!-- Swap with POWER_WEAKER -->
 	<TEXT>
 		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_EQUAL_HANNIBAL_1</Tag>
 		<English>Our continued protection comes at a price, [CT_NAME]. I recommend that you pay it.</English>
@@ -592,22 +480,6 @@
 		<Spanish>Os exijo que me deis este tributo.</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_EQUAL_SHAKA_1</Tag>
-		<English>Unlikely as it may seem, it appears that your puny civilization has something that we want. I suggest you hand it over quickly. </English>
-		<French>Aussi ahurissant que cela puisse para&#238;tre, il semblerait que votre ridicule petite civilisation dispose de quelque chose qui pourrait nous &#234;tre utile. Je vous sugg&#232;re de nous le d&#233;livrer au plus vite.</French>
-		<German>So unglaublich es auch klingen mag: Eure mickrige Zivilisation scheint tatsächlich etwas zu haben, was wir wollen. Ihr wärt gut beraten, es uns schnellstens zu überlassen! </German>
-		<Italian>Per quanto possa apparire improbabile, a quanto pare la tua insignificante civiltà possiede qualcosa che vogliamo. Ti consiglio di darcelo subito. </Italian>
-		<Spanish>Por extraño que suene, parece que vuestra civilización tiene algo que queremos. Os sugiero que nos lo deis rápidamente. </Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_EQUAL_WANG_KON_1</Tag>
-		<English>Care to give [OUR_CIV_SHORT] a small token of friendship, [CT_NAME]?</English>
-		<French>Souhaiteriez-vous offrir aux [OUR_CIV_SHORT] un petit gage de votre amiti&#233;, [CT_NAME] ?</French>
-		<German>Wie wär's mit einer kleinen Geste der Freundschaft für das Volk von [OUR_CIV_SHORT], [CT_NAME]?</German>
-		<Italian>Che ne diresti di dare all'impero [OUR_CIV_ADJ] un piccolo segno di amicizia, [CT_NAME]?</Italian>
-		<Spanish>¿Os importaría darle a [OUR_CIV_SHORT] una pequeña prenda de amistad, [CT_NAME]?</Spanish>
-	</TEXT>
-	<TEXT>
 		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_EQUAL_WINSTON_CHURCHILL_1</Tag>
 		<English>I am easily satisfied with the very best. But I'll settle for this. For now.</English>
 		<French>Donnez-nous ce que nous voulons, [CT_NAME], et vous gagnerez en &#233;change la gratitude &#233;ternelle des [OUR_CIV_SHORT]. C'est un march&#233; plus qu'&#233;quitable, n'est-il pas ?</French>
@@ -624,36 +496,12 @@
 		<Spanish>Esto es lo que queremos, [CT_NAME]. ¿Nos lo dais ahora o preferís que envíe a mis legiones a [CT_CIV_SHORT] a recogerlo?</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_ BRENNUS _1</Tag>
-		<English>Pay now or pay tenfold later, [CT_NAME].</English>
-		<French>Payez maintenant une fois, ou dix fois plus tard, c'est vous qui voyez, [CT_NAME].</French>
-		<German>Ich würde jetzt zahlen, denn später wird sich der Preis verzehnfachen, [CT_NAME]!</German>
-		<Italian>Paga ora, o dopo pagherai il decuplo, [CT_NAME].</Italian>
-		<Spanish>Pagad ahora o luego lo pagar&#233;is multiplicado por diez, [CT_NAME].</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_HANNIBAL_1</Tag>
-		<English>Give us what we want and perhaps we'll let your puny civilization survive for a while longer.</English>
-		<French>Donnez-nous ce que nous vous avons demand&#233; et peut-&#234;tre laisserons-nous votre m&#233;diocre civilisation survivre quelques temps encore.</French>
-		<German>Wenn Ihr uns gebt, was wir verlangen, werden wir Eure jämmerliche kleine Zivilisation vielleicht noch eine Weile verschonen</German>
-		<Italian>Dacci ciò che ti chiediamo e forse lasceremo sopravvivere ancora un po' la tua insignificante civiltà.</Italian>
-		<Spanish>Dadnos lo que queremos y puede que dejemos sobrevivir a vuestra insignificante civilización un poco más.</Spanish>
-	</TEXT>
-	<TEXT>
 		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_JOSEF_STALIN_1</Tag>
 		<English>Everyone imposes his own system as far as his army can reach. My army can reach very far, [CT_NAME]. Very far indeed. Consider that when considering this.</English>
 		<French>Si vous ne nous donnez pas ce que nous vous avons demand&#233;, vous risquez d'en subir les terribles cons&#233;quences.</French>
 		<German>Gebt uns, was wir verlangen oder tragt die Konsequenzen!</German>
 		<Italian>Dacci quello che vogliamo o preparati ad affrontare le conseguenze.</Italian>
 		<Spanish>Dadnos lo que queremos o ateneos a las consecuencias.</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MEHMED_1</Tag>
-		<English>If you want our continued friendship,[CT_NAME], you'll have to pay for it.</English>
-		<French>Pour le cas o&#249; vous seriez int&#233;ress&#233; par une amiti&#233; prolong&#233;e, [CT_NAME], il est pr&#233;f&#233;rable que vous en payiez le prix.</French>
-		<German>Wenn Euch an unserer Freundschaft gelegen ist, werdet Ihr sie Euch sicher auch etwas kosten lassen, [CT_NAME]!</German>
-		<Italian>Se desideri continuare a godere della nostra amicizia, [CT_NAME], dovrai pagare.</Italian>
-		<Spanish>Si quer&#233;is que nuestra amistad prosiga, [CT_NAME], tendr&#233;is que pagar por ella.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_RAGNAR_LODBROK_1</Tag>
@@ -671,14 +519,7 @@
 		<Italian>Dammelo immediatamente o dovrai affrontare la mia collera divina!</Italian>
 		<Spanish>¡Dádnoslo inmediatamente o afrontad mi cólera divina!</Spanish>
 	</TEXT>
-	<TEXT>
-		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_SHAKA_1</Tag>
-		<English>Hand this over, [CT_NAME], and I might let you continue to exist for a short while longer.</English>
-		<French>Donnez-nous ce tribut, [CT_NAME], et il est possible que je vous laisse vivre... quelques temps, en tout cas.</French>
-		<German>Her damit, [CT_NAME]! Dann werde ich Euch vielleicht noch eine Weile verschonen!</German>
-		<Italian>Dammelo, [CT_NAME], e potrei lasciarti continuare a esistere ancora un po'.</Italian>
-		<Spanish>Entregadnos esto, [CT_NAME] y puede que os deje perdurar un poco más.</Spanish>
-	</TEXT>
+	<!-- Replaces "time to pay it forward" -->
 	<TEXT>
 		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_WANG_KON_1</Tag>
 		<English>This is our demand, [CT_NAME].</English>
@@ -695,12 +536,5 @@
 		<Italian>Hai una cosa che ci serve, [CT_NAME]. Non è BELLO sapere di servire a qualcuno?</Italian>
 		<Spanish>Ten&#233;is algo que necesitamos, [CT_NAME]. ¿No es bonito sentirse necesario?</Spanish>
 	</TEXT>
-	<TEXT>
-		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MONTEZUMA_1_CORRECTED</Tag>
-		<English>Your weakness is contemptible, [CT_NAME]! Give us what we want or perish!</English>
-		<French>Votre faiblesse est m&#233;prisable, [CT_NAME] ! Donnez-nous ce que nous voulons ou ce sera la mort !</French>
-		<German>Ihr seid uns&#228;glich j&#228;mmerlich und schwach, [CT_NAME]! Gebt uns, was wir verlangen, oder sterbt!</German>
-		<Italian>La tua debolezza &#232; imbarazzante, [CT_NAME]! Dacci ci&#242; che vogliamo o morirai!</Italian>
-		<Spanish>&#161;Vuestra debilidad es despreciable, [CT_NAME]! &#161;Dadnos lo que queremos o pereced!</Spanish>
-	</TEXT>
+
 </Civ4GameText>

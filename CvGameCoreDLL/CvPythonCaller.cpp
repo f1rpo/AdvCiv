@@ -82,7 +82,7 @@ CvPythonCaller::CvPythonCaller() : m_python(*gDLL->getPythonIFace()), m_bLastCal
 	const char* const aszGlobalCallbackTagNames[] = {
 		DO_FOR_EACH_CALLBACK_DEFINE(MAKE_STRING)
 	};
-	FAssert(sizeof(aszGlobalCallbackTagNames) / sizeof(char*) == NUM_CALLBACK_DEFINES);
+	FAssert(ARRAY_LENGTH(aszGlobalCallbackTagNames) == NUM_CALLBACK_DEFINES);
 	m_abUseCallback = new bool[NUM_CALLBACK_DEFINES];
 	for (int i = 0; i < NUM_CALLBACK_DEFINES; i++)
 		m_abUseCallback[i] = GC.getDefineBOOL(aszGlobalCallbackTagNames[i]);
@@ -406,13 +406,13 @@ bool CvPythonCaller::cannotSelectionListNetOverride(GameMessageTypes eMessage,
 	return toBool(lResult);
 }
 
-bool CvPythonCaller::cannotHandleActionOverride(CvPlot const& kPlot, int iAction,
+bool CvPythonCaller::cannotHandleActionOverride(CvPlot* pPlot, int iAction,
 		bool bTestVisible) const
 {
 	if (!isUse(CANNOT_HANDLE_ACTION))
 		return false;
 	ARGSLIST(false);
-	CyPlot* pyPlot = new CyPlot(kPlot);
+	CyPlot* pyPlot = new CyPlot(pPlot);
 	argsList.add(m_python.makePythonObject(pyPlot));
 	argsList.add(iAction);
 	argsList.add(bTestVisible);

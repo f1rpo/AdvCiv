@@ -3,16 +3,18 @@
 // teamAI.h
 
 #ifndef CIV4_TEAM_AI_H
-#define CIV4_TEAM_AI_H
+#define CIV4_TEAM_AI_H // advc.003u (caveat): This guard gets referenced in CvTeam.h
 
 #include "CvTeam.h"
 #include "UWAI.h" // advc.104
+#include "AIStrengthMemoryMap.h" // advc.158
 #include "AIStrategies.h" // advc.enum
 
-/*  <advc.003u> Overwrite definition in CvTeam.h (should perhaps instead define a
-	new macro "TEAMAI" - a lot of call locations to change though ...) */
-#undef GET_TEAM
-#define GET_TEAM(x) CvTeamAI::AI_getTeam(x) // </advc.003u>
+// <advc.003u> Let the more powerful macros take precedence
+#if !defined(CIV4_GAME_PLAY_H) && !defined(COREAI_H)
+	#undef GET_TEAM
+	#define GET_TEAM(x) CvTeamAI::AI_getTeam(x)
+#endif // </advc.003u>
 
 class CvTeamAI : public CvTeam
 {
@@ -36,7 +38,6 @@ public:
 	explicit CvTeamAI(TeamTypes eID);
 	~CvTeamAI();
 	void AI_init();
-	void AI_initMemory(); // K-Mod. (needs game map to be initialized first)
 	void AI_uninit();
 	void AI_reset(bool bConstructor);
 
@@ -54,8 +55,11 @@ public:
 	int AI_countMilitaryWeight(CvArea const* pArea = NULL) const;
 
 	int AI_estimateTotalYieldRate(YieldTypes eYield) const; // K-Mod
-
-	bool AI_deduceCitySite(const CvCity* pCity) const; // K-Mod
+	bool AI_deduceCitySite(CvCity const& kCity) const; // K-Mod
+	// <advc.erai>
+	scaled AI_getCurrEraFactor() const;
+	inline int AI_getCurrEra() const { return AI_getCurrEraFactor().round(); }
+	// </advc.erai>
 
 	bool AI_isAnyCapitalAreaAlone() const;
 	bool AI_isPrimaryArea(CvArea const& kArea) const;
@@ -126,8 +130,8 @@ public:
 	bool AI_anyMemberAtVictoryStage3() const;
 
 	int AI_getWarSuccessRating() const; // K-Mod
-
 	int AI_getEnemyPowerPercent(bool bConsiderOthers = false) const;
+	bool AI_isPushover(TeamTypes ePotentialEnemy) const; // advc.105
 	int AI_getAirPower() const; // K-Mod
 	int AI_getRivalAirPower() const;
 	// K-Mod. (refuse peace when we need war for conquest victory.)
@@ -146,7 +150,7 @@ public:
 		otherwise UN */
 	VoteSourceTypes AI_getLatestVictoryVoteSource() const;
 	bool AI_isAnyCloseToReligiousVictory() const;
-	double AI_votesToGoForVictory(double* pVoteTarget = NULL, bool bForceUN = false) const;
+	int AI_votesToGoForVictory(int* piVoteTarget = NULL, bool bForceUN = false) const;
 	// </advc.115b>
 
 	int AI_makePeaceTradeVal(TeamTypes ePeaceTeam, TeamTypes eTeam) const;
@@ -177,11 +181,11 @@ public:
 			bool bPeaceDeal = false) const;
 	// 0 or less if eEnemy isn't an enemy at all
 	int AI_enmityValue(TeamTypes eEnemy) const;
-	double AI_getDiploDecay() const;
+	scaled AI_getDiploDecay() const;
 	scaled AI_recentlyMetMultiplier(TeamTypes eOther) const;
 	// </advc.130p>
 	// advc.130k: Public b/c CvPlayerAI needs it too
-	int AI_randomCounterChange(int iUpperCap = -1, double pr = 0.5) const;
+	int AI_randomCounterChange(int iUpperCap = -1, scaled rProb = scaled(1, 2)) const;
 	int AI_getWarPlanStateCounter(TeamTypes eIndex) const { return m_aiWarPlanStateCounter.get(eIndex); }
 	void AI_setWarPlanStateCounter(TeamTypes eIndex, int iNewValue);
 	void AI_changeWarPlanStateCounter(TeamTypes eIndex, int iChange);
@@ -255,7 +259,7 @@ public:
 	inline bool AI_isAnyWarPlan() const { return m_bAnyWarPlan; } // </advc.opt>
 	bool AI_isSneakAttackReady(TeamTypes eIndex /* K-Mod (any team): */ = NO_TEAM) const;
 	bool AI_isSneakAttackPreparing(TeamTypes eIndex /* advc: */= NO_TEAM) const;
-	void AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar = true);
+	void AI_setWarPlan(TeamTypes eTarget, WarPlanTypes eNewValue, bool bWar = true);
 	// <advc.opt>
 	bool AI_mayAttack(TeamTypes eDefender) const;
 	bool AI_mayAttack(CvPlot const& kPlot) const; // </advc.opt>
@@ -263,6 +267,8 @@ public:
 	bool AI_isMasterPlanningLandWar(CvArea const& kArea) const;
 	bool AI_isMasterPlanningSeaWar(CvArea const& kArea) const;
 	// BETTER_BTS_AI_MOD: END
+	// advc.158:
+	inline AIStrengthMemoryMap& AI_strengthMemory() const { return m_strengthMemory; }
 	// advc.104:
 	void AI_setWarPlanNoUpdate(TeamTypes eIndex, WarPlanTypes eNewValue);
 	int AI_teamCloseness(TeamTypes eIndex, int iMaxDistance = -1,
@@ -299,20 +305,7 @@ public:
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
 
-
-	// K-Mod. Strength Memory - a very basic and rough reminder-map of how strong the enemy presence is on each plot.
-	int AI_getStrengthMemory(int x, int y) const;
-	void AI_setStrengthMemory(int x, int y, int value);
-	// <advc.make> No longer inlined. To avoid including CvPlot.h.
-	int AI_getStrengthMemory(const CvPlot* pPlot) const;
-	void AI_setStrengthMemory(const CvPlot* pPlot, int value); // </advc.make>
-
 protected:
-	std::vector<int> m_aiStrengthMemory;
-	// exponentially dimishes memory, and clears obviously obsolete memory.
-	void AI_updateStrengthMemory();
-	// K-Mod end
-
 	TeamTypes m_eWorstEnemy;
 	std::map<ReligionTypes,int> m_religionKnownSince; // advc.130n
 	/*  <advc.enum> (Tbd.: Should be CivTeamMap so that Barbarians are excluded;
@@ -334,6 +327,7 @@ protected:
 	bool m_bAnyWarPlan; // advc.opt
 	bool m_bLonely; // advc.109
 
+	mutable AIStrengthMemoryMap m_strengthMemory; // advc.158
 	UWAI::Team* m_pUWAI; // advc.104
 
 	int AI_noTechTradeThreshold() const;
@@ -360,7 +354,8 @@ protected:
 	int AI_declareWarTradeValLegacy(TeamTypes eWarTeam, TeamTypes eTeam) const;
 	int AI_getOpenBordersAttitudeDivisor() const; // advc.130i
 	scaled AI_getOpenBordersCounterIncrement(TeamTypes eOther) const; // advc.130z
-	bool isAnyLandRevealed(TeamTypes eOwner) const; // advc.124
+	bool AI_isTerritoryAccessible(TeamTypes eOwner) const; // advc.124
+	bool AI_isTerritoryAccessible(CvPlot const& kPlot) const; // advc.124
 	bool AI_isPursuingCircumnavigation() const; // advc.136a
 	TeamTypes AI_diploVoteCounterCandidate(VoteSourceTypes eVS) const; // advc.115b
 

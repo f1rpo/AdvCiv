@@ -27,14 +27,14 @@ protected:
 // <advc.210a>
 class WarTradeAlert : public AdvCiv4lert {
 public:
-	WarTradeAlert(PlayerTypes eOwner);
+	WarTradeAlert(PlayerTypes eOwner) : AdvCiv4lert(eOwner) {}
 protected:
 	void check();
 private:
 	void msg(TeamTypes warTeamId, std::vector<TeamTypes> victims, bool bTrade) const;
 	void msg(TeamTypes warTeamId, bool bNowTooManyWars) const;
 	void msg(CvWString text, TeamTypes warTeamId) const;
-	bool willWar[MAX_CIV_TEAMS][MAX_CIV_TEAMS];
+	EnumMap2D<TeamTypes,TeamTypes,bool> willWar;
 	EnumMap<TeamTypes,bool> tooManyWars;
 }; // </advc.210a>
 
@@ -56,7 +56,7 @@ public:
 protected:
 	void check();
 private:
-	void getExportData(CLinkList<TradeData> const* list, PlayerTypes toId,
+	void getExportData(CLinkList<TradeData> const& list, PlayerTypes toId,
 			std::vector<int>& r) const;
 	void doMsg(PlayerTypes fromId, int data, int newQuantity,
 			int oldQuantity);

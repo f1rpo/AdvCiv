@@ -773,7 +773,7 @@
 		<Italian>Mostra informazioni extra nella barra della citt&#224;</Italian>
 		<Spanish>Mostrar informaci&#243;n adicional en la barra de la ciudad.</Spanish>
 	</TEXT-->
-	<!-- I'm disabling the annoying indicator icons. So, next version: -->
+	<!-- advc.002f: The annoying indicator icons are now handled by BUG. So, next version: -->
 	<TEXT>
 		<Tag>TXT_KEY_PLAYER_OPTION_DETAILED_CITY_INFO</Tag>
 		<English>Numbers on City Bar</English>
@@ -784,9 +784,9 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_PLAYER_OPTION_DETAILED_CITY_INFO_HELP</Tag>
-		<English>On the main map, the production bar of each city shows the number of remaining production turns, and the food bar the number of turns until growth. (The icons highlighting the cities with the highest research, gold and production rate are always disabled in AdvCiv.)</English>
+		<English>On the main map, the production bar of each city shows the number of remaining production turns, and the food bar the number of turns until growth. (For the icons highlighting the cities with the highest research, gold and production rate, use the [COLOR_HIGHLIGHT_TEXT]Top Cities[COLOR_REVERT] option on the "Map" tab of the BUG menu.)</English>
 		<French>Voir les informations d&#233;taill&#233;es de la barre des villes.</French>
-		<German>Auf der Hauptkarte wird in den Produktionsbalken ihrer Städte jeweils die Anzahl der Züge bis zur Fertigstellung angezeigt, und auf den Nahrungsbalken die Anzahl der Züge bis zum Bevölkerungszuwachs. (Die Markierungen für Städte mit der höchsten Forschungsrate, Goldrate und Produktionsrate sind in AdvCiv immer deaktiviert.)</German>
+		<German>Auf der Hauptkarte wird in den Produktionsbalken ihrer Städte jeweils die Anzahl der Züge bis zur Fertigstellung angezeigt, und auf den Nahrungsbalken die Anzahl der Züge bis zum Bevölkerungszuwachs. (Die Markierungen für Städte mit der höchsten Forschungsrate, Goldrate und Produktionsrate lassen sich über die Option [COLOR_HIGHLIGHT_TEXT]Beste Städte[COLOR_REVERT] unter dem Reiter "Karte" im BUG-Menü aktivieren.)</German>
 		<Italian>Mostra informazioni extra nella barra della citt&#224;</Italian>
 		<Spanish>Mostrar informaci&#243;n adicional en la barra de la ciudad.</Spanish>
 	</TEXT>

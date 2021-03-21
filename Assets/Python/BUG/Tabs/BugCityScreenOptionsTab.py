@@ -68,7 +68,9 @@ class BugCityScreenOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, left, "MiscHover__BuildingAdditionalProduction")
 		self.addCheckbox(screen, left, "MiscHover__BuildingAdditionalCommerce")
 		self.addCheckbox(screen, left, "MiscHover__BuildingSavedMaintenance")
-		self.addSpacer(screen, right, "CityScreen2a")
+		#self.addSpacer(screen, right, "CityScreen2a")
+		# advc.063 (instead of the spacer):
+		self.addCheckbox(screen, right, "MiscHover__SpecialistActualEffects")
 		self.addCheckbox(screen, right, "MiscHover__BuildingAdditionalHealth")
 		self.addCheckbox(screen, right, "MiscHover__BuildingAdditionalHappiness")
 		self.addCheckbox(screen, right, "MiscHover__BuildingAdditionalGreatPeople")
@@ -121,7 +123,8 @@ class BugCityScreenOptionsTab(BugOptionsTab.BugOptionsTab):
 		
 	def createMiscellaneousPanel(self, screen, panel):
 		self.addLabel(screen, panel, "Misc", "Miscellaneous:")
-		
+		# advc.004t: New option
+		self.addCheckbox(screen, panel, "CityScreen__ClickMapToExit")
 		# advc.004: Moved up
 		self.addTextDropdown(screen, panel, panel, "CityScreen__Specialists", True)
 		#self.addCheckbox(screen, panel, "MiscHover__RemoveSpecialist")

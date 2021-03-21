@@ -610,6 +610,13 @@ class BugEventManager(CvEventManager.CvEventManager):
 				civics.append(gc.getCivicInfo(eNewCivic).getDescription())
 		BugUtil.debug("Revolution for %s, %d turns: %s", gc.getPlayer(ePlayer).getName(), iAnarchyTurns, ", ".join(civics))
 
+	# advc.001: Moved this check out of the configure method. Now works via callback. configure only gets called once, namely the first time that a game is started or loaded. But multiple games can be started or loaded within the same session, so it's not enough to check isGameMultiPlayer only at one point.
+	def isCheatsEnabled(self):
+		# K-Mod, only enable these features if the cheat mode is enabled.
+		#return getChtLvl()
+		# advc.127: Replacing the above. ChtLvl is always 0 in multiplayer.
+		return (getChtLvl() or (CyGame().isGameMultiPlayer() and gc.getDefineINT("ENABLE_AUTOPLAY_MULTIPLAYER") > 0))
+
 
 EVENT_FUNCTION_MAP = {
 	"kbdEvent": BugEventManager._handleConsumableEvent,
@@ -651,13 +658,9 @@ def configure(logging=None, noLogEvents=None):
 	# K-Mod end
 
 	# --------- Better BTS AI (2/2) (moved by K-Mod) -------------
-	# K-Mod, only enable these features if the cheat mode is enabled.
-	#if getChtLvl():
-	# advc.127: Replacing the above. ChtLvl is always 0 in multiplayer.
-	if getChtLvl() or (CyGame().isGameMultiPlayer() and gc.getDefineINT("ENABLE_AUTOPLAY_MULTIPLAYER") > 0):
-		AIAutoPlay.AIAutoPlay(g_eventManager)
-		ChangePlayer.ChangePlayer(g_eventManager)
-		Tester.Tester(g_eventManager)
+	AIAutoPlay.AIAutoPlay(g_eventManager)
+	ChangePlayer.ChangePlayer(g_eventManager)
+	Tester.Tester(g_eventManager)
 
 	# advc.106c: Changed OnLoad handler
 	g_eventManager.addEventHandler("kbdEvent", g_eventManager.onKbdEvent)

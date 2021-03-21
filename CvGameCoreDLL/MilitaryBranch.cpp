@@ -67,7 +67,7 @@ void MilitaryBranch::updateTypicalUnit() {
 		CvUnitClassInfo const& uci = GC.getInfo(uct);
 		int nationalLimit = uci.getMaxPlayerInstances();
 		if(nationalLimit >= 0 && nationalLimit <
-				(GC.getGame().getCurrentEra() + 1) * 4)
+				(GC.AI_getGame().AI_getCurrEraFactor() + 1) * 4)
 			continue;
 		if(uci.getInstanceCostModifier() >= 20)
 			continue;
@@ -154,9 +154,9 @@ double MilitaryBranch::getTypicalUnitCost(PlayerTypes pov) const {
 
 	if(typicalUnitType == NO_UNIT)
 		return -1;
-	CvPlayer const& owner = GET_PLAYER(ownerId);
+	CvPlayerAI const& owner = GET_PLAYER(ownerId);
 	double r = owner.getProductionNeeded(typicalUnitType,
-			::round(estimateExtraInstances(owner.getCurrentEra())));
+			::round(estimateExtraInstances(owner.AI_getCurrEraFactor())));
 	if(canKnowTypicalUnit(pov))
 		return r;
 	// Underestimate cost
@@ -167,8 +167,11 @@ bool MilitaryBranch::canKnowTypicalUnit(PlayerTypes pov) const {
 
 	if(pov == NO_PLAYER || pov == ownerId || typicalUnitType == NO_UNIT)
 		return true;
-	if(NO_TECH != getTypicalUnit()->getPrereqAndTech())
+	if(getTypicalUnit()->getPrereqAndTech() != NO_TECH)
 		return true; // Warrior
+	/*	(Wouldn't be difficult to let CvTeamAI keep track of units ever encountered
+		through a EnumMap<UnitClassTypes,bool> that gets updated by CvUnit::setXY -
+		tbd. maybe.) */
 	if(GET_PLAYER(ownerId).getUnitClassCount(getTypicalUnit()->getUnitClassType()) > 0)
 		return true; // The unit's in the wild
 	if(GET_PLAYER(pov).canSeeTech(ownerId))
@@ -179,7 +182,7 @@ bool MilitaryBranch::canKnowTypicalUnit(PlayerTypes pov) const {
 double MilitaryBranch::estimateProductionCost(CvUnitInfo const& u) {
 
 	double r = u.getProductionCost();
-	CvPlayer const& owner = GET_PLAYER(ownerId);
+	CvPlayerAI const& owner = GET_PLAYER(ownerId);
 	UnitClassTypes const uct = u.getUnitClassType();
 	/*  CvPlayer::getProductionNeeded would be needlessly slow. Don't need all
 		those modifiers, and we need a projection for InstanceCostModifier anyway. */
@@ -187,7 +190,7 @@ double MilitaryBranch::estimateProductionCost(CvUnitInfo const& u) {
 	if(instanceCostMod > 0) {
 		r *= 1 + (instanceCostMod * 0.01 *
 					(owner.getUnitClassCount(uct) +
-					estimateExtraInstances(owner.getCurrentEra())));
+					estimateExtraInstances(owner.AI_getCurrEraFactor())));
 	}
 	return r;
 }
@@ -231,7 +234,7 @@ double MilitaryBranch::HomeGuard::initUnitsTrained(int numNonNavalUnits,
 		UNITAI_RESERVE,
 	};
 	number = 0;
-	for(int i = 0; i < sizeof(guardAITypes) / sizeof(UnitAITypes); i++)
+	for(int i = 0; i < ARRAY_LENGTH(guardAITypes); i++)
 		number += owner.AI_getNumAIUnits(guardAITypes[i]);
 	/* 1.5 per city might be more realistic, but humans tend to use especially
 	   weak units as garrisons. */

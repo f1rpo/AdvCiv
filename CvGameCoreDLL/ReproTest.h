@@ -35,7 +35,7 @@
 	#define INIT_STRUCT_PADDING_INL() \
 		memset(this, 0, sizeof(*this))
 	#define INIT_STRUCT_PADDING(StructName) \
-		StructName##() { INIT_STRUCT_PADDING_INL(); }
+		StructName() { INIT_STRUCT_PADDING_INL(); }
 #else
 	#define REPRO_TEST_REPORT(iBytes, aBytes)
 	#define REPRO_TEST_BEGIN_WRITE(szObjectID)

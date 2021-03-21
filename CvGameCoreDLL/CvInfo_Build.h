@@ -31,7 +31,6 @@ public: /*	All the const functions are exposed to Python. advc.inl: inlined most
 	int getFeatureProduction(FeatureTypes eFeature) const;
 	bool isFeatureRemove(FeatureTypes eFeature) const;
 
-	friend void CyInfoPythonInterface2(); // advc.003x
 	iPY_WRAP(FeatureTech, Feature)
 	iPY_WRAP(FeatureTime, Feature)
 	iPY_WRAP(FeatureProduction, Feature)

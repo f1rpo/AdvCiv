@@ -6,10 +6,9 @@
 #pragma warning(push)
 #pragma warning(disable: 68) // </advc>
 
-//
-// 'global' vars for Civ IV.  singleton class.
-// All globals and global types should be contained in this class
-//
+/*	'global' vars for Civ IV.  singleton class.
+	All globals and global types should be contained in this class. */
+
 #pragma region ForwardDeclarations
 class FProfiler;
 class CvDLLUtilityIFaceBase;
@@ -91,7 +90,7 @@ public:
 	DllExport CvInterface* getInterfacePtr();
 	DllExport int getMaxCivPlayers() const;
 	#ifdef _USRDLL // inlined for perf reasons, do not use outside of dll
-	// advc.inl: These three were defined in-line, but didn't have any inline keyword.
+	// advc.inl: forceinline just to be sure
 	__forceinline CvMap& getMap() const { return *m_map; } // was getMapINLINE
 	__forceinline CvGame& getGame() const // was getGameINLINE; advc.003u: return type was CvGameAI&
 	{	// Can't be helped; this function has to be inlined, and I won't include CvGameAI.h here.
@@ -330,11 +329,10 @@ public:
 	}
 #pragma endregion InfoAccessors
 	// </advc.enum>
-	//
-	// Global Types
-	// All type strings are upper case and are kept in this hash map for fast lookup
-	// The other functions are kept for convenience when enumerating, but most are not used
-	//
+
+	/*	Global Types
+		All type strings are upper case and are kept in this hash map for fast lookup
+		The other functions are kept for convenience when enumerating, but most are not used. */
 	DllExport int getTypesEnum(const char* szType) const // use this when searching for a type
 	// <advc.006> Add two params
 	{ return getTypesEnum(szType, false); }
@@ -435,7 +433,6 @@ public:
 		DO(OWN_EXCLUSIVE_RADIUS) /* advc.035 */ \
 		DO(ANNOUNCE_REPARATIONS) /* advc.039 */ \
 		DO(PER_PLAYER_MESSAGE_CONTROL_LOG) /* advc.007 */ \
-		DO(MINIMAP_WATER_MODE) /* advc.002a */ \
 		DO(DELAY_UNTIL_BUILD_DECAY) /* advc.011 */ \
 		DO(DISENGAGE_LENGTH) /* advc.034 */ \
 		DO(AT_WAR_ATTITUDE_CHANGE) /* advc.130g */ \
@@ -454,6 +451,10 @@ public:
 		DO(AI_GROUNDBREAKING_PENALTY_ENABLE) \
 		DO(HUMAN_GROUNDBREAKING_PENALTY_ENABLE) \
 		/* </advc.groundbr> */ \
+		DO(ENABLE_162) /* advc.162 */ \
+		/* <advc.ctr> */ \
+		DO(CITY_TRADE_CULTURE_THRESH) \
+		DO(NATIVE_CITY_CULTURE_THRESH) /* </advc.ctr> */ \
 		/* <advc.opt> */ \
 		DO(DIPLOMACY_VALUE_REMAINDER) \
 		DO(PEACE_TREATY_LENGTH) \
@@ -474,10 +475,6 @@ public:
 		DO(CITY_AIR_UNIT_CAPACITY) \
 		DO(COLLATERAL_COMBAT_DAMAGE) \
 		DO(TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER) \
-		/* <advc.ctr> */ \
-		DO(CITY_TRADE_CULTURE_THRESH) \
-		DO(NATIVE_CITY_CULTURE_THRESH) \
-		/* </advc.ctr> */ \
 		DO(AI_OFFER_EXTRA_GOLD_PERCENT) \
 		DO(RECON_VISIBILITY_RANGE) \
 		DO(UNIT_VISIBILITY_RANGE) \
@@ -547,7 +544,8 @@ public:
 		DO(LFB_ENABLE) DO(LFB_BASEDONGENERAL) DO(LFB_BASEDONEXPERIENCE) \
 		DO(LFB_BASEDONLIMITED) DO(LFB_BASEDONHEALER) DO(LFB_DEFENSIVEADJUSTMENT) \
 		DO(LFB_USESLIDINGSCALE) DO(LFB_ADJUSTNUMERATOR) DO(LFB_ADJUSTDENOMINATOR) \
-		DO(LFB_USECOMBATODDS) /* BETTER_BTS_AI_MOD: END */
+		DO(LFB_USECOMBATODDS) /* BETTER_BTS_AI_MOD: END */ \
+		DO(POWER_CORRECTION) /* advc.104 */
 	#define MAKE_ENUMERATOR(VAR) VAR,
 	enum GlobalDefines
 	{
@@ -604,53 +602,16 @@ public:
 	}
 	void setWATER_TERRAIN(bool bShallow, int iValue);
 	// </advc.opt>
-	// The getNUM...PREREQ... functions are all exposed to Python
-	inline int getNUM_UNIT_PREREQ_OR_BONUSES() const
-	{
-		return getDefineINT(NUM_UNIT_PREREQ_OR_BONUSES);
-	}
-	int getNUM_UNIT_PREREQ_OR_BONUSES(UnitTypes eUnit) const; // advc.003t
-	// <advc.905b>
-	inline int getNUM_UNIT_SPEED_BONUSES() const
-	{
-		return getNUM_UNIT_PREREQ_OR_BONUSES();
-	}
-	inline int getNUM_UNIT_SPEED_BONUSES(UnitTypes eUnit) const
-	{
-		return getNUM_UNIT_PREREQ_OR_BONUSES(eUnit);
-	} // </advc.905b>
-	inline int getNUM_UNIT_AND_TECH_PREREQS() const
-	{
-		return getDefineINT(NUM_UNIT_AND_TECH_PREREQS);
-	}
-	int getNUM_UNIT_AND_TECH_PREREQS(UnitTypes eUnit) const; // advc.003t
-	inline int getNUM_BUILDING_PREREQ_OR_BONUSES() const
-	{
-		return getDefineINT(NUM_BUILDING_PREREQ_OR_BONUSES);
-	}
-	int getNUM_BUILDING_PREREQ_OR_BONUSES(BuildingTypes eBuilding) const; // advc.003t
-	inline int getNUM_BUILDING_AND_TECH_PREREQS() const
-	{
-		return getDefineINT(NUM_BUILDING_AND_TECH_PREREQS);
-	}
-	int getNUM_BUILDING_AND_TECH_PREREQS(BuildingTypes eBuilding) const; // advc.003t
-	inline int getNUM_AND_TECH_PREREQS() const
-	{
-		return getDefineINT(NUM_AND_TECH_PREREQS);
-	}
-	int getNUM_AND_TECH_PREREQS(TechTypes) const; // advc.003t
-	inline int getNUM_OR_TECH_PREREQS() const
-	{
-		return getDefineINT(NUM_OR_TECH_PREREQS);
-	}
-	int getNUM_OR_TECH_PREREQS(TechTypes) const; // advc.003t
-	inline int getNUM_ROUTE_PREREQ_OR_BONUSES() const
-	{
-		return getDefineINT(NUM_ROUTE_PREREQ_OR_BONUSES);
-	}
-	int getNUM_ROUTE_PREREQ_OR_BONUSES(RouteTypes eRoute) const; // advc.003t
-	int getNUM_CORPORATION_PREREQ_BONUSES() const; // (advc: A param like above doesn't help b/c all corps require resources)
-	inline float getPOWER_CORRECTION() const { return m_fPOWER_CORRECTION; } // advc.104
+	/*	advc.003t: Still exposed to Python, but, in the DLL, CvInfo functions,
+		e.g. CvTechInfo::getNumOrTechPrereqs, should be used instead. */
+	/*int getNUM_UNIT_PREREQ_OR_BONUSES() const;
+	int getNUM_UNIT_AND_TECH_PREREQS() const;
+	int getNUM_BUILDING_PREREQ_OR_BONUSES() const;
+	int getNUM_BUILDING_AND_TECH_PREREQS() const;
+	int getNUM_AND_TECH_PREREQS() const;
+	int getNUM_OR_TECH_PREREQS() const;
+	int getNUM_ROUTE_PREREQ_OR_BONUSES() const;
+	int getNUM_CORPORATION_PREREQ_BONUSES() const;*/
 	// advc: All inlined and constified
 	DllExport inline float getCAMERA_MIN_YAW() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MIN_YAW(); }
 	inline float getCAMERA_MIN_YAW() const { return m_fCAMERA_MIN_YAW; }
@@ -693,8 +654,15 @@ public:
 	inline bool ctrlKey() const { return (GetKeyState(VK_CONTROL) & 0x8000); }
 	inline bool shiftKey() const { return (GetKeyState(VK_SHIFT) & 0x8000); }
 	// hold X to temporarily suppress automatic unit cycling.
-	inline bool suppressCycling() const { return (GetKeyState('X') & 0x8000) ||
-			((GetKeyState('U') & 0x8000) && shiftKey() && altKey()); } // advc.088
+	bool suppressCycling() const
+	{
+		return (GetKeyState('X') & 0x8000) ||
+			/*	advc.088: Needs to be consistent with GC.getInfo(CONTROL_UNSELECT_ALL).
+				getHotKeyVal(), isAltDown() etc. Could check those here, but not in-line.
+				Not quite sure if performance matters here. If it doesn't, then key X
+				should perhaps also be a ControlInfo. */
+			((GetKeyState('U') & 0x8000) && shiftKey() && altKey());
+	}
 	// K-Mod end
 
 	DllExport int getMAX_CIV_PLAYERS(); // advc: Shouldn't be used in the DLL
@@ -827,7 +795,7 @@ protected:
 
 	FMPIManager * m_pFMPMgr;
 
-	CvRandom* m_asyncRand;
+	CvRandomExtended* m_asyncRand; // advc.007b (was CvRandom)
 	CvPythonCaller* m_pPythonCaller; // advc.003y
 	CvDLLLogger* m_pLogger;
 	CvGameAI* m_game;
@@ -938,7 +906,6 @@ protected:
 	ImprovementTypes m_eRUINS_IMPROVEMENT;
 	SpecialistTypes m_eDEFAULT_SPECIALIST;
 	TerrainTypes m_aeWATER_TERRAIN[2]; // </advc.opt>
-	float m_fPOWER_CORRECTION; // advc.104
 
 	float m_fCAMERA_MIN_YAW;
 	float m_fCAMERA_MAX_YAW;
@@ -966,8 +933,9 @@ protected:
 private:
 	// <advc.opt>
 	void cacheGlobalInts(char const* szChangedDefine = NULL, int iNewValue = 0);
-	void cacheGlobalFloats(/* advc.004m: */ bool bAllowRecursion = true);
-	// </advc.opt>
+	void cacheGlobalFloats(/* advc.004m: */ bool bAllowRecursion = true); // </advc.opt>
+	// advc.006:
+	void handleUnknownTypeString(char const* szType, bool bHideAssert, bool bFromPython) const;
 	//void addToInfosVectors(void* infoVector); // advc.enum (no longer used)
 };
 
@@ -980,11 +948,11 @@ __forceinline CvGlobals& CvGlobals::getInstance()
 {
 	return gGlobals;
 }
-// <advc>
+// advc:
 __forceinline CvGlobals const& CvGlobals::getConstInstance()
 {
 	return gGlobals;
-} // </advc>
+}
 
 /*  <advc.enum> These aren't member functions because they need to overload the
 	SET_ENUM_LENGTH_STATIC functions defined in CvEnums.h. I'd rather not make

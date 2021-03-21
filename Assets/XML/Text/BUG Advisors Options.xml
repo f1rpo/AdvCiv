@@ -12,15 +12,13 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGFINANCEADVISOR_TEXT</Tag>
 		<English>BUG Finance Advisor</English>
-		<French>BUG Finance Advisor</French>
 		<German>BUG Finanzberater</German>
-		<Italian>Evoluto</Italian>
+		<Italian>BUG Finance Advisor</Italian>
 		<Spanish>Consejero Financiero BUG</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGFINANCEADVISOR_HOVER</Tag>
 		<English>When checked, uses the BUG Finance Advisor (requires restart).</English>
-		<French>When checked, uses the BUG Finance Advisor (requires restart).</French>
 		<German>Aktiviert den verbesserten Finanzberater der BUG Mod (erfordert Neustart)</German>
 		<Italian>Quando è selezionato, visualizza il Consigliere Economico del BUG mod (è richiesto un  perchè il cambiamento abbia effetto).</Italian>
 		<Spanish>Permite emplear el consejero financiero incluído en BUG (requiere reiniciar).</Spanish>
@@ -61,7 +59,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__EFAGLANCEATTITUDES_LIST</Tag>
 		<English>Numbers|Smilies|Both</English>
-		<French>Numbers|Smileys|Both</French>
 		<German>Zahlen|Smilies|Beides</German>
 		<Italian>Numeri|Icone|Entrambi</Italian>
 		<Spanish>Números|Iconos|Ambos</Spanish>
@@ -81,7 +78,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__EFAIMPROVEDINFO_TEXT</Tag>
 		<English>Enhanced Info Tab</English>
-		<French>Improved Info Tab</French>
 		<German>Erweiterter Info-Tab</German>
 		<Italian>Scheda Informazioni migliorata</Italian>
 		<Spanish>Información Mejorada</Spanish>
@@ -91,7 +87,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__EFAIMPROVEDINFO_HOVER</Tag>
 		<English>When checked, additional information about relations values and trade routes is shown on the "Info" tab of the Foreign Advisor screen.</English>
-		<French>When checked, uses improved Foreign Advisor 'Info' tab instead of default.</French>
 		<German>Zeigt auf dem Reiter "Info" zusätzliche Informationen über Beziehungswerte und Handelswege an.</German>
 		<Italian>Quando è selezionato, utilizza la versione migliorata della scheda Informazioni del Consigliere Estero al posto di quella standard.</Italian>
 		<Spanish>Si se activa, se muestra una versión mejorada de la pestaña 'Info' en el consejero de asuntos exteriores.</Spanish>
@@ -103,7 +98,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__DEALTURNSLEFT_TEXT</Tag>
 		<English>Deal Turns Left</English>
-		<French>Deal Turns Left</French>
 		<German>Vertragslaufzeiten</German>
 		<Italian>Turni di Accordo rimasti</Italian>
 		<Spanish>Turnos Restantes</Spanish>
@@ -131,10 +125,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__DEALTURNSLEFT_HOVER</Tag>
 		<English>Where to show the remaining number of turns until cancellation for deals that cannot currently be canceled.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Active Tab[COLOR_REVERT]: On the "Active" tab of the Foreign Advisor screen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Current Deals[COLOR_REVERT]: On the trade table when listing the current deals.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Both[COLOR_REVERT]: On the "Active" tab and the trade table.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Only Tooltip[COLOR_REVERT]: Show the turns to cancel only when hovering over a deal on the "Active" tab or the trade table.</English>
-		<French>Where to show the remaining number of turns until cancellation for deals that cannot currently be canceled.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Active Tab[COLOR_REVERT]: On the "Active" tab of the Foreign Advisor screen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Current Deals[COLOR_REVERT]: On the trade table when listing the current deals.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Both[COLOR_REVERT]: On the "Active" tab and the trade table.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Only Tooltip[COLOR_REVERT]: Show the turns to cancel only when hovering over a deal on the "Active" tab or the trade table.</French>
 		<German>Anzeige der verbleibenden Mindestlaufzeit von Vereinbarungen:[NEWLINE][COLOR_HIGHLIGHT_TEXT]Aktiv[COLOR_REVERT]: Auf dem "Aktiv"-Reiter des Auslandsberater-Bildschirms.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Verhandlungstisch[COLOR_REVERT]: Auf dem Verhandlungstisch in der Liste der bisherigen Vereinbarungen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Beides[COLOR_REVERT]: Sowohl im Auslandsberater als auch auf dem Verhandlungstisch.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Nur in Hilfetext[COLOR_REVERT]: Zeige die Mindestlaufzeit nur an, wenn der Mauszeiger über eine Vereinbarung bewegt wird (im Auslandsberater oder auf dem Verhandlungstisch).</German>
-		<Italian>Where to show the remaining number of turns until cancellation for deals that cannot currently be canceled.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Active Tab[COLOR_REVERT]: On the "Active" tab of the Foreign Advisor screen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Current Deals[COLOR_REVERT]: On the trade table when listing the current deals.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Both[COLOR_REVERT]: On the "Active" tab and the trade table.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Only Tooltip[COLOR_REVERT]: Show the turns to cancel only when hovering over a deal on the "Active" tab or the trade table.</Italian>
-		<Spanish>Where to show the remaining number of turns until cancellation for deals that cannot currently be canceled.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Active Tab[COLOR_REVERT]: On the "Active" tab of the Foreign Advisor screen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Current Deals[COLOR_REVERT]: On the trade table when listing the current deals.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Both[COLOR_REVERT]: On the "Active" tab and the trade table.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Only Tooltip[COLOR_REVERT]: Show the turns to cancel only when hovering over a deal on the "Active" tab or the trade table.</Spanish>
 	</TEXT>
 
 	<!-- advc.152 -->
@@ -182,7 +173,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGMA_TEXT</Tag>
 		<English>BUG Military Advisor</English>
-		<French>BUG Military Advisor</French>
 		<German>BUG-Militärberater</German>
 		<Italian>BUG Military Advisor</Italian>
 		<Spanish>Consejero Militar BUG</Spanish>
@@ -192,7 +182,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGMA_HOVER</Tag>
 		<English>Enables the BUG Military Advisor (restart required), which allows the unit list to be sorted and grouped, lists possible alliances and shows strategic resources available to rivals.</English>
-		<French>When checked, uses the BUG Military Advisor (requires restart).</French>
 		<German>Aktiviert den BUG-Militärberater (Neustart erforderlich) mit Sortierfunktionen für die Einheitenliste sowie Informationen über gegnerische strategische Ressourcen und mögliche Bündnisse.</German>
 		<Italian>Quando è selezionato, utilizza il Consigliere Militare del BUG Mod (è richiesto un  perchè il cambiamento abbia effetto).</Italian>
 		<Spanish>Permite emplear el consejero militar incluído en BUG (requiere reiniciar)</Spanish>
@@ -241,7 +230,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__SHOWTECHERA_TEXT</Tag>
 		<English>Show Eras</English>
-		<French>Show Era</French>
 		<German>Zeitalter anzeigen</German>
 		<Italian>Mostra Era</Italian>
 		<Spanish>Mostrar Era</Spanish>
@@ -251,7 +239,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__SHOWTECHERA_HOVER</Tag>
 		<English>When selected, the tech tree indicates the era of each technology through a colored shadow. (Hover over the shadow to see the era name. The colors are set on the "Time" tab.)</English>
-		<French>When selected, shows the technology's associated era.</French>
 		<German>Zeigt im Technologiebaum für jede Technologie durch einen farbigen Schatten das zugehörige Zeitalter an. (Bewegen Sie den Mauszeiger auf den Schatten, um den Namen des Zeitalters zu sehen. Das Farbschema lässt sich auf dem Reiter "Zeit" einstellen.)</German>
 		<Italian>Quando selezionato, Mostra l'era associata alla tecnologia.</Italian>
 		<Spanish>Permite mostrar la era asociada a una tecnología dada.</Spanish>
@@ -262,7 +249,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGRELIGIOUSTAB_TEXT</Tag>
 		<English>BUG Religion Advisor</English>
-		<French>BUG Religion Advisor</French>
 		<German>BUG-Religionsberater</German>
 		<Italian>Consigliere Religioso</Italian>
 		<Spanish>Consejero Religioso BUG</Spanish>
@@ -272,7 +258,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGRELIGIOUSTAB_HOVER</Tag>
 		<English>Enables the BUG Religion Advisor, which shows your cities in a sortable table and displays information about religious buildings.</English>
-		<French>When checked, displays extra information on the Religious tab.</French>
 		<German>Aktiviert den BUG-Religionsberater mit einer sortierbaren Städtetabelle und Informationen über alle religiösen Gebäude.</German>
 		<Italian>Quando è selezionato, mostra informazioni aggiuntive nella schermata del Consigliere Religioso.</Italian>
 		<Spanish>Si se activa, muestra información extra en la ventana de Religión.</Spanish>
@@ -282,7 +267,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__SHOWRELIGIONS_TEXT</Tag>
 		<English>Religions to show</English>
-		<French>Show Religions</French>
 		<German>Anzeige</German>
 		<Italian>Mostra Religioni</Italian>
 		<Spanish>Mostrar Religiones</Spanish>
@@ -290,7 +274,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__SHOWRELIGIONS_LIST</Tag>
 		<English>All|Founded|Own</English>
-		<French>All|Founded|Player's</French>
 		<German>Alle|Gegründete|Eigene</German>
 		<Italian>Tutte|Fondate|del Giocatore</Italian>
 		<Spanish>Todas|Fundadas|Jugador</Spanish>
@@ -300,7 +283,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__SHOWRELIGIONS_HOVER</Tag>
 		<English>Select which religions should be shown by the BUG Religion Advisor (if it's enabled).</English>
-		<French>Select which religions should be shown in the top area of the Religion Advisor.</French>
 		<German>Bestimmt, welche Religionen der BUG-Religionsberater (falls aktiviert) anzeigt.</German>
 		<Italian>Seleziona quali religioni devono essere mostrate nell'area superiore del Consigliere Religioso.</Italian>
 		<Spanish>Permite seleccionar qué religiones serán mostradas en la parte superior de la ventana del Consejero de Religión.</Spanish>
@@ -311,7 +293,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGVICTORIESTAB_TEXT</Tag>
 		<English>Victories tab</English>
-		<French>Victories tab</French>
 		<German>BUG Siegbedingungen</German>
 		<Italian>Scheda Vittorie</Italian>
 		<Spanish>Pestaña de Victorias</Spanish>
@@ -319,7 +300,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGVICTORIESTAB_HOVER</Tag>
 		<English>When checked, displays extra information on the Victories tab.</English>
-		<French>When checked, displays extra information on the Victories tab.</French>
 		<German>Zeigt zusätzliche Informationen auf der entsprechenden Seite des Sieg-Bildschirms an</German>
 		<Italian>Quando è selezionato, mostra informazioni aggiuntive nella Scheda delle Vittorie della Schermata Condizioni di Vittoria.</Italian>
 		<Spanish>Muestra información adicional en la pestaña de 'Victorias'.</Spanish>
@@ -327,7 +307,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGMEMBERSTAB_TEXT</Tag>
 		<English>Members tab</English>
-		<French>Members tab</French>
 		<German>BUG Mitglieder</German>
 		<Italian>Scheda Membri</Italian>
 		<Spanish>Pestaña de Miembros</Spanish>
@@ -335,7 +314,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGMEMBERSTAB_HOVER</Tag>
 		<English>When checked, displays extra information on the Members tab.</English>
-		<French>When checked, displays extra information on the Members tab.</French>
 		<German>Zeigt zusätzliche Informationen auf der entsprechenden Seite des Sieg-Bildschirms an</German>
 		<Italian>Quando è selezionato, mostra informazioni aggiuntive nella Scheda dei Membri della Schermata Condizioni di Vittoria.</Italian>
 		<Spanish>Muestra información adicional en la pestaña 'Miembros'.</Spanish>
@@ -347,24 +325,17 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__PARTIALSCOREGRAPHS_TEXT</Tag>
 		<English>Partial Score Graphs</English>
-		<French>Partial Score Graphs</French>
 		<German>Teilweise Punktzahlkurve</German>
-		<Italian>Partial Score Graphs</Italian>
-		<Spanish>Partial Score Graphs</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__PARTIALSCOREGRAPHS_HOVER</Tag>
 		<English>For players whose full score history has never been visible to you, display a score graph that only shows the player's game scores since the turn that you've first met. (This partial graph won't appear until you've known a player for at least 5 turns, and, in savegames from AdvCiv 0.97 and earlier, players are assumed to have just been met.)</English>
-		<French>For players whose full score history has never been visible to you, display a score graph that only shows the player's game scores since the turn that you've first met. (This partial graph won't appear until you've known a player for at least 5 turns, and, in savegames from AdvCiv 0.97 and earlier, players are assumed to have just been met.)</French>
 		<German>Zeigt für Spieler, deren Punktehistorie Ihnen unbekannt ist, die Punktestände seit Ihrer ersten Begegnung an. (Dieser Kurvenabschnitt wird aber erst angezeigt, wenn Sie einen Spieler seit wenigstens 5 Zügen kennen. In Spielständen, die vor AdvCiv 0.98 entstanden sind, wird angenommen, dass Sie alle Gegner gerade erst kennengelernt haben.)</German>
-		<Italian>For players whose full score history has never been visible to you, display a score graph that only shows the player's game scores since the turn that you've first met. (This partial graph won't appear until you've known a player for at least 5 turns, and, in savegames from AdvCiv 0.97 and earlier, players are assumed to have just been met.)</Italian>
-		<Spanish>For players whose full score history has never been visible to you, display a score graph that only shows the player's game scores since the turn that you've first met. (This partial graph won't appear until you've known a player for at least 5 turns, and, in savegames from AdvCiv 0.97 and earlier, players are assumed to have just been met.)</Spanish>
 	</TEXT>
 
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGGRAPHSLOGSCALE_TEXT</Tag>
 		<English>Graphs Log Scale</English>
-		<French>Graphs Log Scale</French>
 		<German>Log-Skala</German>
 		<Italian>Scala logaritmica</Italian>
 		<Spanish>Escala Logarítmica</Spanish>
@@ -374,7 +345,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGGRAPHSLOGSCALE_HOVER</Tag>
 		<English>When checked, graphs are displayed on a logarithmic scale (base 10).</English>
-		<French>When checked, displays graphs are displayed in Log(10) scale.</French>
 		<German>Zeigt die Kurven auf dem "Diagramme"-Reiter in einer logarithmischen Darstellung an (zur Basis 10).</German>
 		<Italian>Quando è selezionato, mostra i Grafici in scala logaritmica (su base 10).</Italian>
 		<Spanish>Muestra los gráficos en la escala Log(10).</Spanish>
@@ -384,7 +354,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGGRAPHSTAB_TEXT</Tag>
 		<English>BUG Graphs Tab</English>
-		<French>Graphs tab</French>
 		<German>BUG-Diagramme</German>
 		<Italian>Scheda Grafici</Italian>
 		<Spanish>Pestaña Gráfica</Spanish>
@@ -394,7 +363,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGGRAPHSTAB_HOVER</Tag>
 		<English>Enables the BUG Graphs tab, which can hide individual curves and show multiple graphs side by side. Curves can also be smoothened, however, note that the yield values recorded by AdvCiv are already the result of a moving average.</English>
-		<French>When checked, displays graphs in BUG format.</French>
 		<German>Aktiviert den BUG-Diagramme-Reiter, der es erlaubt, mehrere Graphen nebeneinader anzuzeigen und einzelne Kurven auszublenden. Die Kurven können auch geglättet dargestellt werden; beachten Sie bei den Ertragskurven aber, dass die zugrundeliegenden Daten in AdvCiv bereits als gleitende Mittelwerte berechnet werden.</German>
 		<Italian>Quando è selezionato, mostra la Scheda dei Grafici nel formato modificato del BUG Mod.</Italian>
 		<Spanish>Si se activa, las gráficas son mostradas en el formato BUG.</Spanish>
@@ -404,7 +372,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGINFOWONDERS_TEXT</Tag>
 		<English>BUG Wonders Tab</English>
-		<French>Wonders tab</French>
 		<German>BUG-Wunder-Tab</German>
 		<Italian>Scheda Meraviglie</Italian>
 		<Spanish>Maravillas</Spanish>
@@ -414,7 +381,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGINFOWONDERS_HOVER</Tag>
 		<English>Enables the BUG version of the "Wonders" tab, which displays the wonders in a sortable table.</English>
-		<French>When checked, displays the BUG version of the Wonders tab.</French>
 		<German>Die BUG-Version des Reiters "Wunder" zeigt die Wunder in einer sortierbaren Tabelle an.</German>
 		<Italian>Quando è selezionato, mostra la Scheda delle Meraviglie nel formato modificato del BUG Mod.</Italian>
 		<Spanish>Activa la versión BUG de la información de maravillas.</Spanish>
@@ -424,7 +390,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGINFOWONDERSPLAYERCOLOR_TEXT</Tag>
 		<English>Use Player Colors</English>
-		<French>Use Player Color</French>
 		<German>Spielerfarben</German>
 		<Italian>Usa Colore del Giocatore</Italian>
 		<Spanish>Color del Jugador</Spanish>
@@ -434,7 +399,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGINFOWONDERSPLAYERCOLOR_HOVER</Tag>
 		<English>When checked, the BUG Wonders tab displays the owner and location of each wonder in the owner's player color.</English>
-		<French>When checked, displays wonders on the BUG version of the Wonders tab using the owning player's color.</French>
 		<German>Verwendet auf dem BUG-Wunder-Tab Spielerfarben für die Wunderstandorte.</German>
 		<Italian>Quando selezionato, mostra le meraviglie nella versione BUG della tabella meraviglie usando il colore del giocatore che le possiede.</Italian>
 		<Spanish>Muestra las maravillas empleando el color del jugador que las ha construído.</Spanish>
@@ -444,7 +408,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGSTATSTAB_TEXT</Tag>
 		<English>Improvement Stats</English>
-		<French>Improvement Stats</French>
 		<German>Zus. Statistiken</German>
 		<Italian>Scheda Statistiche</Italian>
 		<Spanish>Estadísticas de mejoras</Spanish>
@@ -454,7 +417,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGSTATSTAB_HOVER</Tag>
 		<English>When checked, the "Statistics" tab shows how many improvements you currently own of each improvement type.</English>
-		<French>When checked, displays plot improvements on Stats tab.</French>
 		<German>Zeigt auf dem Reiter "Statistik" für jeden Typ von Geländeverbesserung an, wie viele Verbesserungen dieses Typs Sie derzeit besitzen.</German>
 		<Italian>Quando è selezionato, mostra la Scheda delle Statistiche nella versione migliorata del BUG Mod</Italian>
 		<Spanish>Muestra mejoras de casillas en la pestaña 'Estadísticas'.</Spanish>
@@ -464,7 +426,6 @@
 	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__NONZEROSTATSONLY_TEXT</Tag>
 		<English>Non-Zero Stats Only</English>
-		<French>Non-Zero Stats Only</French>
 		<German>Nur Nicht-Nullwerte</German>
 		<Italian>Solo statistiche maggiori di zero</Italian>
 		<Spanish>Solo estadísticas que no sean cero</Spanish>
@@ -472,7 +433,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__NONZEROSTATSONLY_HOVER</Tag>
 		<English>When checked, only non-zero entries are displayed in the Stats tab.</English>
-		<French>When checked, only non-zero entries are displayed in the Stats tab.</French>
 		<German>Wenn aktiviert, werden im Statistiken-Reiter nur von Null verschiedene Werte angezeigt.</German>
 		<Italian>Quando è selezionato, solo le statistiche maggiori di zero sono mostrate nella tabella Statistiche.</Italian>
 		<Spanish>Activada, sólo las entradas que no sean cero son mostradas en la pestaña 'Estadísticas'.</Spanish>

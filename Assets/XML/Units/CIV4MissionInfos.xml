@@ -282,7 +282,12 @@
 			<bTarget>0</bTarget>
 			<bBuild>0</bBuild>
 			<bSound>1</bSound>
-			<Button>,Art/Interface/Buttons/Actions/Airbomb.dds,Art/Interface/Buttons/Actions_Builds_LeaderHeads_Specialists_Atlas.dds,5,6</Button>
+			<!-- advc.004c: Not sure if this button is used for anything.
+				 As the action button, INTERFACEMODE_AIRBOMB
+				 (Civ4InterfaceModeInfos.xml) gets used. Still, to be
+				 consistent with that file, I'm removing the atlas path
+				 Actions_Builds_LeaderHeads_Specialists_Atlas.dds,5,6. -->
+			<Button>,Art/Interface/Buttons/Actions/Airbomb.dds</Button>
 		</MissionInfo>
 		<MissionInfo>
 			<Type>MISSION_RANGE_ATTACK</Type>

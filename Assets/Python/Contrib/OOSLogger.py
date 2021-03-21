@@ -237,8 +237,10 @@ def writeLog():
 					#pFile.write("Producing: %s\n" % pCity.getProductionName() )
 					#pFile.write("Turns remaining for production: %d\n" % pCity.getProductionTurnsLeft() )
 					pFile.write("%d happiness, %d unhappiness, %d health, %d unhealth, %d food\n" % (pCity.happyLevel(), pCity.unhappyLevel(0), pCity.goodHealth(), pCity.badHealth(False), pCity.getFood()) )
-					# advc.007:
-					pFile.write("Needed floating defenders: %d\n" % pCity.AI_neededFloatingDefenders())
+					# <advc.007>
+					if not pCity.isBarbarian():
+						pFile.write("Needed floating defenders: %d\n" % pCity.AI_neededFloatingDefenders())
+					# </ advc.007>
 					#pFile.write("%d Tiles Worked, %d Specialists, %d Great People\n" % (pCity.getWorkingPopulation(), pCity.getSpecialistPopulation(), pCity.getNumGreatPeople()) )
 					#pFile.write("City radius: %d\n" % pCity.getPlotRadius() )
 

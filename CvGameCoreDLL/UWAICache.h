@@ -6,6 +6,7 @@
 class UWAICache;
 class MilitaryBranch;
 class CvCity;
+class TeamPathFinders;
 class FDataStreamBase;
 
 /* advc.104: Cached data used by the war-and-peace AI. Each civ has its own
@@ -15,6 +16,30 @@ class FDataStreamBase;
    heuristic functions belong to this class. (Maybe it would be cleaner
    if the heuristics were moved to UWAI::Civ? Will have to split
    it up a bit more at some point b/c this class is getting too large.) */
+
+// Interface of UWAICache::City for use outside of the UWAI component
+class UWAICity {
+public:
+	inline int getAssetScore() const { return assetScore; }
+	inline bool canReach() const { return (distance >= 0); }
+	inline bool canReachByLand() const { return reachByLand; } // from a primary area
+	inline bool canReachByLandFromCapital() const { return capitalArea; }
+	/*	-1 if unreachable, 0 for cities of the cache owner's team
+		(and never for cities of other teams). */
+	inline int getDistance() const { return distance; }
+
+protected:
+	int distance;
+	int assetScore;
+	bool capitalArea;
+	bool reachByLand;
+
+	UWAICity()
+	:	distance(-1), assetScore(-1), reachByLand(false), capitalArea(false)
+	{}
+};
+
+
 class UWAICache {
 
 public:
@@ -55,15 +80,15 @@ public:
 	void sortCitiesByTargetValue();
 		public:
 	void sortCitiesByAttackPriority();
-	City* getCity(int index) const {
-		// Verify that the city still exists
-		if(v[index]->city() == NULL)
-			return NULL;
-		return v[index];
-	};
+	inline City& cityAt(int index) const { return *v[index]; };
 	// Use CvCity::plotNum for the plotIndex of a given CvCity
-	City* lookupCity(int plotIndex) const;
-	City* lookupCity(CvCity const& cvCity) const;
+	City* lookupCity(int plotIndex) const {
+		std::map<int,City*>::const_iterator pos = cityMap.find(plotIndex);
+		if(pos == cityMap.end())
+			return NULL;
+		return pos->second;
+	}
+	static CvCity& cvCityById(int plotIndex);
 	// Referring to cache owner
 	 /*	Any trait that gives free Combat I (or any other promotion that grants
 		an unconditional combat bonus). */
@@ -111,11 +136,16 @@ public:
 		the war weariness against civId. */
 	double angerFromWarWeariness(PlayerTypes civId) const { return wwAnger.get(civId); }
 	double goldValueOfProduction() const { return goldPerProduction; }
+	void cacheCitiesAfterRead();
 	void reportUnitCreated(CvUnitInfo const& u);
 	void reportUnitDestroyed(CvUnitInfo const& u);
 	void reportWarEnding(TeamTypes enemyId, CLinkList<TradeData> const* weReceive = NULL,
 			CLinkList<TradeData> const* wePay = NULL);
-	void reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId);
+	void reportCityCreated(CvCity& c);
+	void reportCityDestroyed(CvCity const& c)
+	{
+		remove(c); // No checks upfront; make sure we're not keeping any dangling pointer.
+	}
 	/*  Would prefer to pass a CvDeal object, but no suitable one is available
 		at the call location */
 	void reportSponsoredWar(CLinkList<TradeData> const& sponsorship,
@@ -133,8 +163,13 @@ public:
 private:
 	// beforeUpdated: Only clear data that is recomputed in 'update'
 	void clear(bool beforeUpdate = false);
-	void updateCities(PlayerTypes civId);
-	void updateLatestTurnReachableBySea();
+	void updateCities(TeamTypes teamId, TeamPathFinders* pf);
+	void add(CvCity& c);
+	void add(City& c);
+	void remove(CvCity const& c);
+	TeamPathFinders* createTeamPathFinders() const;
+	static void deleteTeamPathFinders(TeamPathFinders& pf);
+	void resetTeamPathFinders(TeamPathFinders& pf, TeamTypes warTarget) const;
 	void updateTraits();
 	void updateTargetMissionCounts();
 	void updateThreatRatings();
@@ -167,7 +202,6 @@ private:
 	std::vector<City*> v;
 	// I've tried stdext::hash_map for both of these. That was a little bit slower.
 	std::map<int,City*> cityMap;
-	std::map<int,std::pair<int,int> > latestTurnReachableBySea;
 	std::vector<MilitaryBranch*> militaryPower;
 
 	int nNonNavyUnits;
@@ -203,38 +237,21 @@ private:
 public:
 	/* Information to be cached about a CvCity and scoring functions useful
 	   for computing war utility. */
-	class City {
+	class City : public UWAICity {
 	public:
-		City(PlayerTypes cacheOwnerId, CvCity const& c);
-		City(PlayerTypes cacheOwnerId); // for reading from savegame
-		PlayerTypes cityOwner() const;
-		bool isOwnCity() const;
-		int getAssetScore() const;
-		bool canReach() const;
-		/*  -1 if unreachable
-			forceCurrentVal: Doesn't fall back on latestTurnReachable if not
-			currently reachable. */
-		int getDistance(bool forceCurrentVal = false) const;
-		int getTargetValue() const;
+		City(PlayerTypes cacheOwnerId, CvCity& c, TeamPathFinders* pf);
+		// for reading from savegame:
+		City() : cvCity(NULL), targetValue(-1), plotIndex(-1) {}
+		inline bool isOwnTeamCity() const { return (distance == 0); }
+		inline int getTargetValue() const { return targetValue; }
 		/* A mix of target value and distance. Target value alone would
 		   ignore opportunistic attacks. */
 		double attackPriority() const;
-		bool canReachByLand() const;
-		// Use canReachByLand instead for military analysis
-		bool canCurrentlyReachBySea() const;
-		/* CvCity doesn't have a proper ID. Use the plot number (index of
-		   the linearized map) as an ID. It's unique (b/c there is at most
-		   one city per plot), but not consecutive (most plots don't have a city). */
-		int id() const;
-		// NULL if the city no longer exists at the time of retrieval
-		CvCity* city() const;
+		inline CvCity& city() const { return *cvCity; }
+		inline int id() const { return plotIndex; }
+		void cacheCvCity();
 		void write(FDataStreamBase* stream);
 		void read(FDataStreamBase* stream);
-		static CvCity* cityById(int id);
-		// Wrapper for CvUnit::generatePath
-		static bool measureDistance(PlayerTypes civId, DomainTypes dom,
-				CvPlot const& start, CvPlot const& dest, int* r);
-		static double estimateMovementSpeed(PlayerTypes civId, DomainTypes dom, int dist);
 		/* For sorting cities. None of these are currently used, and I'm not
 			sure if they handle -1 distance/attackPriority/targetValue correctly. */
 		 /*	The ordering of owners is arbitrary, just ensures that each civ's cities
@@ -251,15 +268,13 @@ public:
 		/* Auxiliary function for sorting. -1 means one < two, +1 two < one and 0
 		   neither. */
 		static int byOwner(City* one, City* two);
-		void updateDistance(CvCity const& targetCity);
-		void updateAssetScore();
+		void updateDistance(CvCity const& targetCity, TeamPathFinders* pf,
+				PlayerTypes cacheOwnerId);
+		void updateAssetScore(PlayerTypes cacheOwnerId);
 
-		int distance, targetValue, assetScore;
-		bool reachByLand;
-		bool reachBySea;
-		bool canDeduce;
+		int targetValue;
 		int plotIndex;
-		PlayerTypes cacheOwnerId;
+		CvCity* cvCity; // Retrieving this based on plotIndex wastes too much time
 	};
 };
 

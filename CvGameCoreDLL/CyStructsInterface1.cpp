@@ -137,7 +137,7 @@ void CyStructsPythonInterface1()
 		.def_readwrite("bClaimed", &PBPlayerAdminData::bClaimed)
 		.def_readwrite("bTurnActive", &PBPlayerAdminData::bTurnActive)
 		;
-	//Added ST
+
 	python::class_<CombatDetails>("CombatDetails")
 		.def_readwrite("iExtraCombatPercent", &CombatDetails::iExtraCombatPercent)
 		.def_readwrite("iAnimalCombatModifierTA", &CombatDetails::iAnimalCombatModifierTA)

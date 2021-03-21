@@ -376,6 +376,7 @@ void CyUnitPythonInterface1(python::class_<CyUnit>& x)
 
 		.def("getUnitAIType", &CyUnit::getUnitAIType, "int UnitAIType () - returns the int value of the UnitAIType")
 		.def("setUnitAIType", &CyUnit::setUnitAIType, "void UnitAIType (int iUnitAIType) - sets the unit's UnitAIType")
+		.def("isWorker", &CyUnit::isWorker, "bool isWorker()") // advc.154
 
 		// Python Helper Functions
 		.def("centerCamera", &CyUnit::centerCamera, "void () - Centers the Camera on the unit")

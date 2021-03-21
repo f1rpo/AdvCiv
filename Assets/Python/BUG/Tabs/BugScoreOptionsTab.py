@@ -48,7 +48,7 @@ class BugScoreOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addFloatDropdown(screen, col3L, col3R, "Scores__PowerLowRatio", True, "LAYOUT_LEFT")
 		self.addColorDropdown(screen, col3L, col3R, "Scores__PowerLowColor", True, "LAYOUT_LEFT")
 		# advc.004: Horizontal space in the center
-		self.addSpacer(screen, empty2, "Scores_New_Columns", 10)
+		self.addSpacer(screen, empty2, "Scores_New_Columns", 8)
 		
 		self.addCheckbox(screen, col1, "Scores__Delta")
 		# advc.004: Now sub-option of the above

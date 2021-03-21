@@ -88,7 +88,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_RESET_FILTERS</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Reset Filters[COLOR_REVERT][NEWLINE]Show all units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Reset Filters[COLOR_REVERT][NEWLINE]Show all units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter zurücksetzen[COLOR_REVERT][NEWLINE]Zeige alle Einheiten an</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Annulla tutti i filtri[COLOR_REVERT][NEWLINE]Mostra tutte le Unit&#224;</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Limpiar filtros[COLOR_REVERT][NEWLINE]Mostrar todas las unidades</Spanish>
@@ -96,7 +95,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_RESET_FILTERS_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Reset Filters[COLOR_REVERT][NEWLINE]Show all units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Reset Filters[COLOR_REVERT][NEWLINE]Show all units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter zurücksetzen[COLOR_REVERT][NEWLINE]Zeige alle Einheiten an</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Annulla tutti i filtri[COLOR_REVERT][NEWLINE]Mostra tutte le Unit&#224;</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Limpiar filtros[COLOR_REVERT][NEWLINE]Mostrar todas las unidades</Spanish>
@@ -107,7 +105,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_CANMOVE</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Hide units that can move</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Hide units that can move</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Bewegung" aktivieren[COLOR_REVERT][NEWLINE]Einheiten ausblenden, die bewegt werden können.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul movimento[COLOR_REVERT][NEWLINE]Non mostrare le Unità che possono muoversi</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Movimiento[COLOR_REVERT][NEWLINE]Ocultar unidades que pueden moverse</Spanish>
@@ -115,7 +112,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_CANMOVE_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Show units that can move</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Show units that can move</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Bewegung" deaktivieren[COLOR_REVERT][NEWLINE]Einheiten einblenden, die bewegt werden können.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul movimento[COLOR_REVERT][NEWLINE]Mostra le Unità che possono muoversi</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Movimiento[COLOR_REVERT][NEWLINE]Mostrar unidades que pueden moverse</Spanish>
@@ -123,7 +119,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_CANMOVE</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Show only units that can move</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Show only units that can move</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Bewegung" aktivieren[COLOR_REVERT][NEWLINE]Nur Einheiten anzeigen, die bewegt werden können</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul movimento[COLOR_REVERT][NEWLINE]Mostra solo le Unità che possono muoversi</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Movimiento[COLOR_REVERT][NEWLINE]Mostrar solamente unidades que pueden moverse</Spanish>
@@ -131,7 +126,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_CANMOVE_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Show units that can and cannot move</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Show units that can and cannot move</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Bewegung" deaktivieren[COLOR_REVERT][NEWLINE]Einheiten anzeigen, die bewegt und nicht mehr bewegt werden können.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul movimento[COLOR_REVERT][NEWLINE]Mostra sia le Unità che possono muoversi che quelle che non possono</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Movimiento[COLOR_REVERT][NEWLINE]Mostrar unidades que pueden moverse y que no pueden moverse</Spanish>
@@ -140,7 +134,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_CANTMOVE</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Hide units that cannot move</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Hide units that cannot move</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Bewegung" aktivieren[COLOR_REVERT][NEWLINE]Einheiten ausblenden, die nicht mehr bewegt werden können.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul movimento[COLOR_REVERT][NEWLINE]Non mostrare le Unità che non possono muoversi</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Movimiento[COLOR_REVERT][NEWLINE]No mostrar unidades que no pueden moverse</Spanish>
@@ -148,7 +141,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_CANTMOVE_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Show units that cannot move</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Show units that cannot move</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Bewegung" deaktivieren[COLOR_REVERT][NEWLINE]Einheiten einblenden, die nicht mehr bewegt werden können.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul movimento[COLOR_REVERT][NEWLINE]Mostra le Unità che non possono muoversi</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Movimiento[COLOR_REVERT][NEWLINE]Mostrar unidades que no pueden moverse</Spanish>
@@ -156,7 +148,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_CANTMOVE</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Show only units that cannot move</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Show only units that cannot move</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Bewegung" aktivieren[COLOR_REVERT][NEWLINE]Nur Einheiten anzeigen, die nicht mehr bewegt werden können.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul movimento[COLOR_REVERT][NEWLINE]Mostra solo le Unità che non possono muoversi</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Movimiento[COLOR_REVERT][NEWLINE]Mostrar solamente unidades que no pueden moverse</Spanish>
@@ -164,7 +155,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_CANTMOVE_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Show units that can and cannot move</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Movement Filter[COLOR_REVERT][NEWLINE]Show units that can and cannot move</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Bewegung" deaktivieren[COLOR_REVERT][NEWLINE]Einheiten anzeigen, die bewegt und nicht mehr bewegt werden können.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul movimento[COLOR_REVERT][NEWLINE]Mostra sia le Unità che possono muoversi che quelle che non possono</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Movimiento[COLOR_REVERT][NEWLINE]Mostrar unidades que pueden moverse y que no pueden moverse</Spanish>
@@ -183,7 +173,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_WOUNDED_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Health Filter[COLOR_REVERT][NEWLINE]Show damaged units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Health Filter[COLOR_REVERT][NEWLINE]Show wounded units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Gesundheit" deaktivieren[COLOR_REVERT][NEWLINE]Beschädigte Einheiten einblenden.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla salute[COLOR_REVERT][NEWLINE]Mostra le Unità ferite</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Salud[COLOR_REVERT][NEWLINE]Mostrar unidades heridas</Spanish>
@@ -191,7 +180,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_WOUNDED</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Health Filter[COLOR_REVERT][NEWLINE]Show only damaged units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Health Filter[COLOR_REVERT][NEWLINE]Show only wounded units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Gesundheit" aktivieren[COLOR_REVERT][NEWLINE]Nur beschädigte Einheiten anzeigen.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla salute[COLOR_REVERT][NEWLINE]Mostra solo le Unità ferite</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Salud[COLOR_REVERT][NEWLINE]Mostrar solamente unidades heridas</Spanish>
@@ -199,7 +187,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_WOUNDED_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Health Filter[COLOR_REVERT][NEWLINE]Show damaged and healthy units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Health Filter[COLOR_REVERT][NEWLINE]Show wounded and healthy units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Gesundheit" deaktivieren[COLOR_REVERT][NEWLINE]Beschädigte und unbeschädigte Einheiten anzeigen.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla salute[COLOR_REVERT][NEWLINE]Mostra le Unità ferite e le Unità sane</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Salud[COLOR_REVERT][NEWLINE]Mostrar unidades heridas y sanas</Spanish>
@@ -216,7 +203,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_HEALTHY_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Health Filter[COLOR_REVERT][NEWLINE]Show units with full health</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Health Filter[COLOR_REVERT][NEWLINE]Show healthy units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Gesundheit" deaktivieren[COLOR_REVERT][NEWLINE]Unbeschädigte Einheiten einblenden</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla salute[COLOR_REVERT][NEWLINE]Mostra le Unità sane</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Salud[COLOR_REVERT][NEWLINE]Mostrar unidades sanas</Spanish>
@@ -224,7 +210,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_HEALTHY</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Health Filter[COLOR_REVERT][NEWLINE]Show only units with full health</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Health Filter[COLOR_REVERT][NEWLINE]Show only healthy units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Gesundheit" aktivieren[COLOR_REVERT][NEWLINE]Nur unbeschädigte Einheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla salute[COLOR_REVERT][NEWLINE]Mostra solo le Unità sane</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Salud[COLOR_REVERT][NEWLINE]Mostrar solamente unidades sanas</Spanish>
@@ -232,7 +217,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_HEALTHY_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Health Filter[COLOR_REVERT][NEWLINE]Show damaged and healthy units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Health Filter[COLOR_REVERT][NEWLINE]Show wounded and healthy units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Gesundheit" deaktivieren[COLOR_REVERT][NEWLINE]Beschädigte und unbeschädigte Einheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla salute[COLOR_REVERT][NEWLINE]Mostra le Unità ferite e le Unità sane</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Salud[COLOR_REVERT][NEWLINE]Mostrar unidades heridas y sanas</Spanish>
@@ -251,7 +235,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_AIR_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show air units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show air units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Einsatzgebiet" deaktivieren[COLOR_REVERT][NEWLINE]Lufteinheiten einblenden</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul dominio[COLOR_REVERT][NEWLINE]Mostra le Unità aeree</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Dominio[COLOR_REVERT][NEWLINE]Mostrar unidades aéreas</Spanish>
@@ -259,7 +242,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_AIR</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show only air units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show only air units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Einsatzgebiet" aktivieren[COLOR_REVERT][NEWLINE]Nur Lufteinheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul dominio[COLOR_REVERT][NEWLINE]Mostra solo le Unità aeree</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Dominio[COLOR_REVERT][NEWLINE]Mostrar solamente unidades aéreas</Spanish>
@@ -267,7 +249,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_AIR_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show land, naval and air units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show land, naval and air units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Einsatzgebiet" deaktivieren[COLOR_REVERT][NEWLINE]Land-, Marine- und Lufteinheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul dominio[COLOR_REVERT][NEWLINE]Mostra le Unità aeree, navali e terrestri</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Dominio[COLOR_REVERT][NEWLINE]Mostrar unidades terrestres, navales y aéreas</Spanish>
@@ -284,7 +265,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_SEA_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show naval units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show naval units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Einsatzgebiet" deaktivieren[COLOR_REVERT][NEWLINE]Marineeinheiten einblenden</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul dominio[COLOR_REVERT][NEWLINE]Mostra le Unità navali</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Dominio[COLOR_REVERT][NEWLINE]Mostrar unidades navales</Spanish>
@@ -292,7 +272,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_SEA</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show only naval units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show only naval units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Einsatzgebiet" aktivieren[COLOR_REVERT][NEWLINE]Nur Marineeinheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul dominio[COLOR_REVERT][NEWLINE]Mostra solo le Unità navali</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Dominio[COLOR_REVERT][NEWLINE]Mostrar solamente unidades navales</Spanish>
@@ -300,7 +279,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_SEA_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show land, naval and air units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show land, naval and air units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Einsatzgebiet" deaktivieren[COLOR_REVERT][NEWLINE]Land-, Marine- und Lufteinheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul dominio[COLOR_REVERT][NEWLINE]Mostra le Unità aeree, navali e terrestri</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Dominio[COLOR_REVERT][NEWLINE]]Mostrar unidades terrestres, navales y aéreas</Spanish>
@@ -317,7 +295,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_LAND_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show land units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show land units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Einsatzgebiet" deaktivieren[COLOR_REVERT][NEWLINE]Landeinheiten einblenden</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul dominio[COLOR_REVERT][NEWLINE]Mostra le Unità terrestri</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Dominio[COLOR_REVERT][NEWLINE]Mostrar unidades terrestres</Spanish>
@@ -325,7 +302,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_LAND</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show only land units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show only land units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Einsatzgebiet" aktivieren[COLOR_REVERT][NEWLINE]Nur Landeinheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul dominio[COLOR_REVERT][NEWLINE]Mostra solo le Unità terrestri</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Dominio[COLOR_REVERT][NEWLINE]Mostrar solamente unidades terrestres</Spanish>
@@ -333,7 +309,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_LAND_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show land, naval and air units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Domain Filter[COLOR_REVERT][NEWLINE]Show land, naval and air units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Einsatzgebiet" deaktivieren[COLOR_REVERT][NEWLINE]Land-, Marine- und Lufteinheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul dominio[COLOR_REVERT][NEWLINE]Mostra le Unità aeree, navali e terrestri</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Dominio[COLOR_REVERT][NEWLINE]Mostrar unidades terrestres, navales y aéreas</Spanish>
@@ -352,7 +327,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_DOM_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Military Filter[COLOR_REVERT][NEWLINE]Show civilian units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Military Filter[COLOR_REVERT][NEWLINE]Show civilian units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Militär" deaktivieren[COLOR_REVERT][NEWLINE]Zivile Einheiten einblenden</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul tipo[COLOR_REVERT][NEWLINE]Mostra le Unità civili</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Militar[COLOR_REVERT][NEWLINE]Mostrar unidades civiles</Spanish>
@@ -360,7 +334,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_DOM</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Military Filter[COLOR_REVERT][NEWLINE]Show only civilian units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Military Filter[COLOR_REVERT][NEWLINE]Show only civilian units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Militär" aktivieren[COLOR_REVERT][NEWLINE]Nur zivile Einheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul tipo[COLOR_REVERT][NEWLINE]Mostra solo le Unità civili</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Militar[COLOR_REVERT][NEWLINE]Mostrar solamente unidades civiles</Spanish>
@@ -368,7 +341,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_DOM_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Military Filter[COLOR_REVERT][NEWLINE]Show civilian and military units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Military Filter[COLOR_REVERT][NEWLINE]Show civilian and military units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Militär" deaktivieren[COLOR_REVERT][NEWLINE]Zivile und militärische Einheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul tipo[COLOR_REVERT][NEWLINE]Mostra le Unità civili e militari</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Militar[COLOR_REVERT][NEWLINE]Mostrar unidades civiles y militares</Spanish>
@@ -385,7 +357,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_MIL_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Military Filter[COLOR_REVERT][NEWLINE]Show military units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Military Filter[COLOR_REVERT][NEWLINE]Show military units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Militär" deaktivieren[COLOR_REVERT][NEWLINE]Militärische Einheiten einblenden</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul tipo[COLOR_REVERT][NEWLINE]Mostra le Unità militari</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Militar[COLOR_REVERT][NEWLINE]Mostrar unidades militares</Spanish>
@@ -393,7 +364,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_MIL</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Military Filter[COLOR_REVERT][NEWLINE]Show only military units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Military Filter[COLOR_REVERT][NEWLINE]Show only military units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Militär" aktivieren[COLOR_REVERT][NEWLINE]Nur militärische Einheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul tipo[COLOR_REVERT][NEWLINE]Mostra solo le Unità militari</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Militar[COLOR_REVERT][NEWLINE]Mostrar solamente unidades militares</Spanish>
@@ -401,7 +371,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_MIL_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Military Filter[COLOR_REVERT][NEWLINE]Show civilian and military units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Military Filter[COLOR_REVERT][NEWLINE]Show civilian and military units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Militär" deaktivieren[COLOR_REVERT][NEWLINE]Zivile und militärische Einheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sul tipo[COLOR_REVERT][NEWLINE]Mostra le Unità civili e militari</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Militar[COLOR_REVERT][NEWLINE]Mostrar unidades civiles y militares</Spanish>
@@ -420,7 +389,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_OWN_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show domestic units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show domestic units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Nationalität" deaktivieren[COLOR_REVERT][NEWLINE]Eigene Einheiten einblenden</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla nazionalità[COLOR_REVERT][NEWLINE]Mostra le proprie Unit&#224;</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Nacionalidad[COLOR_REVERT][NEWLINE]Mostrar unidades domésticas</Spanish>
@@ -428,7 +396,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_OWN</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show only domestic units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show only domestic units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Nationalität" aktivieren[COLOR_REVERT][NEWLINE]Nur eigene Einheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla nazionalità[COLOR_REVERT][NEWLINE]Mostra solo le proprie Unit&#224;</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Nacionalidad[COLOR_REVERT][NEWLINE]Mostrar solamente unidades domésticas</Spanish>
@@ -436,7 +403,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_OWN_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show foreign and domestic units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show foreign and domestic units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Nationalität" deaktivieren[COLOR_REVERT][NEWLINE]Eigene und gegnerische Einheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla nazionalità[COLOR_REVERT][NEWLINE]Mostra le proprie Unità e quelle altrui</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Nacionalidad[COLOR_REVERT][NEWLINE]Mostrar unidades domésticas y extranjeras</Spanish>
@@ -453,7 +419,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_FOREIGN_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show foreign units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show foreign units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Nationalität" deaktivieren[COLOR_REVERT][NEWLINE]Gegnerische Einheiten einblenden</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla nazionalità[COLOR_REVERT][NEWLINE]Mostra le Unità altrui</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Nacionalidad[COLOR_REVERT][NEWLINE]Mostrar unidades extranjeras</Spanish>
@@ -461,7 +426,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_FOREIGN</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show only foreign units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show only foreign units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Nationalität" aktivieren[COLOR_REVERT][NEWLINE]Nur gegnerische Einheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla nazionalità[COLOR_REVERT][NEWLINE]Mostra solo le Unità altrui</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Nacionalidad[COLOR_REVERT][NEWLINE]Mostrar solamente unidades extranjeras</Spanish>
@@ -469,7 +433,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_FILTER_BUG_FOREIGN_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show foreign and domestic units</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show foreign and domestic units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Nationalität" deaktivieren[COLOR_REVERT][NEWLINE]Eigene und gegnerische Einheiten anzeigen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla nazionalità[COLOR_REVERT][NEWLINE]Mostra le proprie Unità e quelle altrui</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Nacionalidad[COLOR_REVERT][NEWLINE]Mostrar unidades domésticas y extranjeras</Spanish>
@@ -485,7 +448,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_GRP_STANDARD</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Switch to Standard Mode[COLOR_REVERT][NEWLINE]Disable upgrade/ promotion mode</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Switch to Standard Mode[COLOR_REVERT][NEWLINE]View normal unit icons and issue orders</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Standardmodus aktivieren[COLOR_REVERT][NEWLINE]Deaktiviere Beförderungs-/ Modernisierungsmodus</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Passa alla Modalità Standard[COLOR_REVERT][NEWLINE]Visualizza tutte le icone di Unit&#224;</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar a Modo Estándar[COLOR_REVERT][NEWLINE]Mostrar iconos normales de unidades y dar órdenes</Spanish>
@@ -497,7 +459,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_GRP_STANDARD_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Standard Mode[COLOR_REVERT][NEWLINE]Click to toggle grouping (by type or by selection)</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Standard Mode[COLOR_REVERT][NEWLINE]Toggle how units are grouped: by unit type or selection group</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Standardmodus[COLOR_REVERT][NEWLINE]Klick wechselt zwischen Gruppierung nach Typ und nach Verband.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Modalità Standard[COLOR_REVERT][NEWLINE]Cambia il raggruppamento delle Unità: per tipo o per gruppo di selezione</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Modo Normal[COLOR_REVERT][NEWLINE]Permite cambiar cómo agrupar unidades: por tipo de unidad o por grupo de selección</Spanish>
@@ -535,7 +496,6 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_GRP_PROMO_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Promotion Mode[COLOR_REVERT][NEWLINE]Switch back to Standard Mode</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Promotion Mode[COLOR_REVERT][NEWLINE]Switch back to Standard Mode</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Beförderungsmodus deaktivieren[COLOR_REVERT][NEWLINE]Zum Standardmodus wechseln</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Modalità Promozione[COLOR_REVERT][NEWLINE]Torna alla Modalità Standard</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Modo Promoción[COLOR_REVERT][NEWLINE]Cambiar a Modo Estándar</Spanish>
@@ -551,9 +511,9 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_GRP_UPGRADE_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Upgrade Mode[COLOR_REVERT][NEWLINE]Switch back to Standard Mode</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Upgrade Mode[COLOR_REVERT][NEWLINE]Switch back to Standard Mode</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Modernisierungsmodus deaktivieren[COLOR_REVERT][NEWLINE]Zum Standardmodus wechseln</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT] Modalità Avanzamento[COLOR_REVERT][NEWLINE]Torna alla Modalità Standard</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Modo Actualización[COLOR_REVERT][NEWLINE]Cambiar a Modo Actualización</Spanish>
 	</TEXT>
+
 </Civ4GameText>

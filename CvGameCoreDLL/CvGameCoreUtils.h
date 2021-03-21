@@ -1,7 +1,5 @@
 #pragma once
 
-// utils.h
-
 #ifndef CIV4_GAMECORE_UTILS_H
 #define CIV4_GAMECORE_UTILS_H
 
@@ -18,31 +16,47 @@ class FAStar;
 
 #define SQR(x) ((x)*(x))
 
-// K-Mod: Created the following function for rounded integer division
-// advc: Moved from CvGlobals.h and static specifier removed
-inline int ROUND_DIVIDE(int a, int b)
+/*	(advc: Can also use ScaledNum. Maybe these functions read a bit better in
+	code that doesn't use fractions much. The "u" versions -- only for
+	nonnegative numbers -- are also a bit more efficient than ScaledNum.) */
+namespace intdiv
 {
-	//return (a+((a/b>0)?1:-1)*(b/2)) / b;
-	// <advc.001> ^That'll round 2/3 to 0
-	int iSign = ((a ^ b) >= 0 ? 1 : -1);
-	return (a + iSign * b / 2) / b;
-	// </advc.001>
+	// Replacing K-Mod's (incorrectly implemented) ROUND_DIVIDE (CvGlobals.h)
+	inline int round(int iDividend, int iDivisor)
+	{
+		int iSign = ((iDividend ^ iDivisor) >= 0 ? 1 : -1);
+		return (iDividend + iSign * iDivisor / 2) / iDivisor;
+	}
+
+	inline int uround(int iDividend, int iDivisor)
+	{
+		FAssert((iDividend ^ iDivisor) >= 0); // Both negative is OK
+		return (iDividend + iDivisor / 2) / iDivisor;
+	}
+
+	inline int uceil(int iDividend, int iDivisor)
+	{
+		FAssert(iDividend >= 0 && iDivisor > 0);
+		return 1 + (iDividend - 1) / iDivisor;
+	}
 }
 
-/*	<advc.opt> Non-branching implementations.
-	MSVC produces branches for std::max and std::min. There is a cmov instruction,
-	but 32-bit MSVC won't generate that. (There might be an intrinsic that we could
-	use though.)
-	Tbd.: Replace std::max, std::min calls with this? */
-inline int max(int x, int y)
+/*	advc.opt: MSVC produces branches for std::max and std::min.
+	There is a cmov instruction, but 32-bit MSVC won't generate that.
+	(There might be an intrinsic that we could use though.)
+	Tbd.: Replace more std::max, std::min calls with this? */
+namespace branchless
 {
-	return x ^ ((x ^ y) & -(x < y));
-}
+	inline int max(int x, int y)
+	{
+		return x ^ ((x ^ y) & -(x < y));
+	}
 
-inline int min(int x, int y)
-{
-	return y + ((x - y) & -(x < y));
-} // </advc.opt>
+	inline int min(int x, int y)
+	{
+		return y + ((x - y) & -(x < y));
+	}
+}
 // <advc.003g>
 // This is a better approach than the fmath stuff below
 namespace stats // Seems too generic, but what else to name it?
@@ -148,20 +162,27 @@ template<typename T> void removeDuplicates(std::vector<T>& v)
 	std::set<T> aeTmp(v.begin(), v.end());
 	v.assign(aeTmp.begin(), aeTmp.end());
 } // </advc.130h>
+
 // <advc>
-// Erik: "Back-ported" from C++11
 namespace std11
 {
+// Erik: "Back-ported" from C++11
 template<class ForwardIt, class T>
 void iota(ForwardIt first, ForwardIt last, T value)
 {
 	while (first != last)
 	{
 		*first++ = value;
-		++value;
+		value++;
 	}
 }
 }; // </advc>
+
+/*	advc: For arrays initialized through brace-enclosed list.
+	The array must not be empty. Corresponds to std::size in C++17
+	(but we don't have constexpr, so it has to be a macro). */
+#define ARRAY_LENGTH(aArray) (sizeof(aArray) / sizeof(aArray[0]))
+
 // advc.004w:
 void applyColorToString(CvWString& s, char const* szColor, bool bLink = false);
 void narrowUnsafe(CvWString const& szWideString, CvString& szNarowString); // advc
@@ -170,7 +191,7 @@ void narrowUnsafe(CvWString const& szWideString, CvString& szNarowString); // ad
 
 inline int range(int iNum, int iLow, int iHigh)
 {
-	FAssertMsg(iHigh >= iLow, "High should be higher than low");
+	FAssert(iHigh >= iLow);
 
 	if (iNum < iLow)
 		return iLow;
@@ -181,7 +202,7 @@ inline int range(int iNum, int iLow, int iHigh)
 
 inline float range(float fNum, float fLow, float fHigh)
 {
-	FAssertMsg(fHigh >= fLow, "High should be higher than low");
+	FAssert(fHigh >= fLow);
 
 	if (fNum < fLow)
 		return fLow;
@@ -190,8 +211,7 @@ inline float range(float fNum, float fLow, float fHigh)
 	else return fNum;
 }
 
-/*  <advc.003g> Don't want to work with float in places where memory usage isn't a
-	concern. */
+// advc.003g:
 inline double dRange(double d, double low, double high)
 {
 	if(d < low)
@@ -199,16 +219,15 @@ inline double dRange(double d, double low, double high)
 	if(d > high)
 		return high;
 	return d;
-} // </advc.003g>
+}
 
-// advc: Body cut from CvUnitAI::AI_sacrificeValue. (K-Mod had used long -> int.)
+// advc: Body cut from CvUnitAI::AI_sacrificeValue
 inline int longLongToInt(long long x)
 {
 	FAssert(x <= MAX_INT && x >= MIN_INT);
 	//return std::min((long)MAX_INT, iValue); // K-Mod
-	/*  Erik (BUG1): We cannot change the signature [of AI_sacrificeValue] due to
-		the virtual specifier so we have to truncate the final value to an int. */
-	/*	Igor: if iValue is greater than MAX_INT, std::min<long long> ensures that it is truncated to MAX_INT, which makes sense logically.
+	/*	Igor: if iValue is greater than MAX_INT, std::min<long long> ensures that
+		it is truncated to MAX_INT, which makes sense logically.
 		static_cast<int>(iValue) doesn't guarantee that and the resulting value is implementation-defined. */
 	//return static_cast<int>(std::min(static_cast<long long>(MAX_INT), x));
 	/*  advc: Can't use std::min as above here, probably b/c of a conflicting definition
@@ -253,6 +272,14 @@ DllExport bool isCardinalDirection(DirectionTypes eDirection);															// 
 DirectionTypes estimateDirection(int iDX, int iDY);																// Exposed to Python
 DllExport DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot* pToPlot);
 
+// advc: Moved from CvXMLLoadUtility. (CvHotKeyInfo might be an even better place?)
+namespace hotkeyDescr
+{
+	CvWString keyStringFromKBCode(TCHAR const* szDescr);
+	CvWString hotKeyFromDescription(TCHAR const* szDescr,
+			bool bShift = false, bool bAlt = false, bool bCtrl = false);
+}
+
 bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);										// Exposed to Python
 //isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam); // advc: Use CvTeamAI::AI_mayAttack instead
 
@@ -268,65 +295,69 @@ bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);										// Exposed to Python
 /*	advc.003w: Moved some two dozen functions to CvInfo classes;
 	mostly functions dealing with building and unit class limitations.
 	Removed isTechRequiredForProject. */
+// advc: getCombatOdds, LFBgetCombatOdds moved to CombatOdds
 
-__int64 getBinomialCoefficient(int iN, int iK);
-int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender);				// Exposed to Python
 int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTypes eDefenceTeam = NO_TEAM); // K-Mod
 
 /*	advc (note): Still used in the DLL by CvPlayer::buildTradeTable, but mostly deprecated.
 	Use the TradeData constructor instead. */
 DllExport void setTradeItem(TradeData* pItem, TradeableItems eItemType = TRADE_ITEM_NONE, int iData = 0);
 
-void setListHelp(wchar* szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst);
-void setListHelp(CvWString& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst);
-void setListHelp(CvWStringBuffer& szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst);
+/*	advc: Unused. Thought about moving these to CvGameTextMgr,
+	but that'll lead to more header inclusions. */
+//void setListHelp(wchar* szBuffer, const wchar* szStart, const wchar* szItem, const wchar* szSeparator, bool bFirst);
+void setListHelp(CvWString& szBuffer, wchar const* szStart, wchar const* szItem,
+		wchar const* szSeparator, bool& bFirst); // advc: bool&
+void setListHelp(CvWStringBuffer& szBuffer, wchar const* szStart, wchar const* szItem,
+		wchar const* szSeparator, bool& bFirst); // advc: bool&
 
-// PlotUnitFunc's...
-bool PUF_isGroupHead( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isPlayer( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isTeam( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isCombatTeam(const CvUnit* pUnit, int iData1, int iData2);
-bool PUF_isOtherPlayer( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isOtherTeam( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isEnemy( const CvUnit* pUnit, int iData1, int iData2 = -1);
+// PlotUnitFunc's...  (advc: Parameters iData1, iData2 renamed)
+bool PUF_isGroupHead(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isPlayer(CvUnit const* pUnit, int iOwner, int iForTeam = NO_TEAM);
+bool PUF_isTeam(CvUnit const* pUnit, int iTeam, int iDummy = -1);
+bool PUF_isCombatTeam(CvUnit const* pUnit, int iTeam, int iForTeam);
+bool PUF_isOtherPlayer(CvUnit const* pUnit, int iPlayer, int iDummy = -1);
+bool PUF_isOtherTeam(CvUnit const* pUnit, int iPlayer, int iDummy = -1);
+bool PUF_canDefend(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_cannotDefend(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_canDefendGroupHead(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_canDefendPotentialEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile = false);
+bool PUF_canDefendEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile = false);
+bool PUF_isPotentialEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile = false);
+bool PUF_isEnemy(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile = false);
+bool PUF_canDeclareWar(CvUnit const* pUnit, int iPlayer, BOOL iAlwaysHostile = false);
 // advc.ctr:
-bool PUF_isEnemyCityAttacker( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isVisible( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isVisibleDebug( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_canSiege( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isPotentialEnemy( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_canDeclareWar( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_canDefend( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_cannotDefend( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_canDefendGroupHead( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_canDefendEnemy( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_canDefendPotentialEnemy( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_canAirAttack( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_canAirDefend( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isFighting( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isAnimal( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isMilitaryHappiness( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isInvestigate( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isCounterSpy( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isSpy( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isUnitType( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isDomainType( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isUnitAIType( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isCityAIType( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isNotCityAIType( const CvUnit* pUnit, int iData1, int iData2 = -1);
-bool PUF_isSelected( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_makeInfoBarDirty(CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-//bool PUF_isNoMission(const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
+bool PUF_isEnemyCityAttacker(CvUnit const* pUnit, int iPlayer, int iAssumePeaceTeam = NO_TEAM);
+bool PUF_isVisible(CvUnit const* pUnit, int iPlayer, int iDummy = -1);
+bool PUF_isVisibleDebug(CvUnit const* pUnit, int iTargetPlayer, int iDummy = -1);
+bool PUF_isLethal(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1); // advc.298
+bool PUF_canSiege(CvUnit const* pUnit, int iTargetPlayer, int iDummy = -1);
+bool PUF_canAirAttack(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_canAirDefend(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isAirIntercept(CvUnit const* pUnit, int iDummy1, int iDummy2); // K-Mod
+bool PUF_isFighting(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isAnimal(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isMilitaryHappiness(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isInvestigate(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isCounterSpy(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isSpy(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isDomainType(CvUnit const* pUnit, int iDomain, int iDummy = -1);
+bool PUF_isUnitType(CvUnit const* pUnit, int iUnit, int iDummy = -1);
+bool PUF_isUnitAIType(CvUnit const* pUnit, int iUnitAI, int iDummy = -1);
+bool PUF_isMissionAIType(CvUnit const* pUnit, int iMissionAI, int iDummy = -1); // K-Mod
+bool PUF_isCityAIType(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isNotCityAIType(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+bool PUF_isSelected(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
+//bool PUF_isNoMission(const CvUnit* pUnit, int iDummy1 = -1, int iDummy2 = -1);
 // advc.113b:
-bool PUF_isMissionPlotWorkingCity(const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isFiniteRange(const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
+bool PUF_isMissionPlotWorkingCity(CvUnit const* pUnit, int iCity, int iOwner);
+bool PUF_isFiniteRange(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
 // bbai start
-bool PUF_isAvailableUnitAITypeGroupie(const CvUnit* pUnit, int iData1, int iData2);
-bool PUF_isUnitAITypeGroupie(const CvUnit* pUnit, int iData1, int iData2);
-bool PUF_isFiniteRangeAndNotJustProduced(const CvUnit* pUnit, int iData1, int iData2);
+bool PUF_isAvailableUnitAITypeGroupie(CvUnit const* pUnit, int iUnitAI, int iDummy);
+bool PUF_isFiniteRangeAndNotJustProduced(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);
 // bbai end
-bool PUF_isMissionAIType(const CvUnit* pUnit, int iData1, int iData2); // K-Mod
-bool PUF_isAirIntercept(const CvUnit* pUnit, int iData1, int iData2); // K-Mod
+
+bool PUF_makeInfoBarDirty(CvUnit* pUnit, int iDummy1 = -1, int iDummy2 = -1);
 
 // FAStarFunc... // advc.pf: Moved into new header FAStarFunc.h
 
@@ -346,8 +377,5 @@ void getActivityTypeString(CvWString& szString, ActivityTypes eActivityType);
 void getMissionTypeString(CvWString& szString, MissionTypes eMissionType);
 void getMissionAIString(CvWString& szString, MissionAITypes eMissionAI);
 void getUnitAIString(CvWString& szString, UnitAITypes eUnitAI);
-
-// Lead From Behind by UncutDragon
-int LFBgetCombatOdds(int iAttackerLowFS, int iAttackerHighFS, int iDefenderLowFS, int iDefenderHighFS, int iNeededRoundsAttacker, int iNeededRoundsDefender, int iAttackerOdds);
 
 #endif

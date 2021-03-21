@@ -25,7 +25,7 @@ namespace
 		return kTeam.getID();
 	}
 
-	// Helper functions that check eCACHE for performance
+	// Helper functions that check eCACHE to save time
 
 	template<class AgentType,AgentStatusPredicate eSTATUS,AgentRelationPredicate eRELATION,
 	CvAgents::AgentSeqCache eCACHE>

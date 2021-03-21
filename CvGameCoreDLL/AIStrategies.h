@@ -31,7 +31,7 @@ enum AIStrategy // advc.enum: To avoid mixup with victory strategies (was #defin
 	AI_STRATEGY_PRODUCTION          =	(1 << 13),
 	AI_STRATEGY_MISSIONARY          =	(1 << 14),
 	AI_STRATEGY_BIG_ESPIONAGE		=	(1 << 15),
-	// K-Mod - catch up in tech, at the expensive of military
+	// K-Mod - catch up in tech, at the expense of military
 	AI_STRATEGY_ECONOMY_FOCUS       =	(1 << 16),
 	// K-Mod - run high espionage slider to steal techs at a discount.
 	AI_STRATEGY_ESPIONAGE_ECONOMY   =	(1 << 17),
@@ -81,7 +81,7 @@ enum AIVictoryStage // advc: replacing preprocessor defines
 	AI_CITY_ROLE_SPECIALIST         =	(1 <<  8),	//
 	AI_CITY_ROLE_FISHING            =	(1 <<  9),	//
 	AI_CITY_ROLE_STAGING            =	(1 << 10),	//send troops here
-	AI_CITY_ROLE_LICHPIN            =	(1 << 11),	//this city must not fall
+	AI_CITY_ROLE_LINCHPIN            =	(1 << 11),	//this city must not fall
 };
 // <advc.enum>
 OVERLOAD_BITWISE_OPERATORS(AICityRole)*/

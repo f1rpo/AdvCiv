@@ -46,8 +46,6 @@ m_bWaterWork(false),
 m_bRiverTrade(false),
 m_piDomainExtraMoves(NULL),
 m_piFlavorValue(NULL),
-m_piPrereqOrTechs(NULL),
-m_piPrereqAndTechs(NULL),
 m_piSpecialistExtraCommerce(NULL), // K-Mod
 m_pbCommerceFlexible(NULL),
 m_pbTerrainTrade(NULL)
@@ -57,31 +55,9 @@ CvTechInfo::~CvTechInfo()
 {
 	SAFE_DELETE_ARRAY(m_piDomainExtraMoves);
 	SAFE_DELETE_ARRAY(m_piFlavorValue);
-	SAFE_DELETE_ARRAY(m_piPrereqOrTechs);
-	SAFE_DELETE_ARRAY(m_piPrereqAndTechs);
 	SAFE_DELETE_ARRAY(m_piSpecialistExtraCommerce); // K-Mod
 	SAFE_DELETE_ARRAY(m_pbCommerceFlexible);
 	SAFE_DELETE_ARRAY(m_pbTerrainTrade);
-}
-
-int CvTechInfo::getAdvancedStartCost() const
-{
-	return m_iAdvancedStartCost;
-}
-
-int CvTechInfo::getAdvancedStartCostIncrease() const
-{
-	return m_iAdvancedStartCostIncrease;
-}
-
-int CvTechInfo::getGridX() const
-{
-	return m_iGridX;
-}
-
-int CvTechInfo::getGridY() const
-{
-	return m_iGridY;
 }
 
 std::wstring CvTechInfo::getQuote()	const
@@ -110,16 +86,21 @@ int CvTechInfo::getFlavorValue(int i) const
 	FAssertBounds(0, GC.getNumFlavorTypes(), i);
 	return m_piFlavorValue ? m_piFlavorValue[i] : 0; // advc.003t
 }
+// <advc.003t> Calls from Python aren't going to respect the bounds
+int CvTechInfo::py_getPrereqOrTechs(int i) const
+{
+	if (i < 0 || i >= getNumOrTechPrereqs())
+		return NO_TECH;
+	return m_aePrereqOrTechs[i];
+}
 
-int CvTechInfo::getPrereqOrTechs(int i) const
+int CvTechInfo::py_getPrereqAndTechs(int i) const
 {
-	return m_piPrereqOrTechs ? m_piPrereqOrTechs[i] : NO_TECH; // advc.003t
-}
-	
-int CvTechInfo::getPrereqAndTechs(int i) const
-{
-	return m_piPrereqAndTechs ? m_piPrereqAndTechs[i] : NO_TECH; // advc.003t
-}
+	if (i < 0 || i >= getNumAndTechPrereqs())
+		return NO_TECH;
+	return m_aePrereqAndTechs[i];
+} // </advc.003t>
+
 // K-Mod
 int CvTechInfo::getSpecialistExtraCommerce(int i) const
 {
@@ -193,12 +174,25 @@ void CvTechInfo::read(FDataStreamBase* stream)
 	SAFE_DELETE_ARRAY(m_piFlavorValue);
 	m_piFlavorValue = new int[GC.getNumFlavorTypes()];
 	stream->Read(GC.getNumFlavorTypes(), m_piFlavorValue);
-	SAFE_DELETE_ARRAY(m_piPrereqOrTechs);
-	m_piPrereqOrTechs = new int[GC.getNUM_OR_TECH_PREREQS()];
-	stream->Read(GC.getNUM_OR_TECH_PREREQS(), m_piPrereqOrTechs);
-	SAFE_DELETE_ARRAY(m_piPrereqAndTechs);
-	m_piPrereqAndTechs = new int[GC.getNUM_AND_TECH_PREREQS()];
-	stream->Read(GC.getNUM_AND_TECH_PREREQS(), m_piPrereqAndTechs);
+	// <advc.003t>
+	int iOrTechPrereqs;
+	if (uiFlag >= 2)
+		stream->Read(&iOrTechPrereqs);
+	else iOrTechPrereqs = GC.getDefineINT(CvGlobals::NUM_OR_TECH_PREREQS);
+	if (iOrTechPrereqs > 0)
+	{
+		m_aePrereqOrTechs.resize(iOrTechPrereqs);
+		stream->Read(iOrTechPrereqs, (int*)&m_aePrereqOrTechs[0]);
+	}
+	int iAndTechPrereqs;
+	if (uiFlag >= 2)
+		stream->Read(&iAndTechPrereqs);
+	else iAndTechPrereqs = GC.getDefineINT(CvGlobals::NUM_AND_TECH_PREREQS);
+	if (iAndTechPrereqs > 0)
+	{
+		m_aePrereqAndTechs.resize(iAndTechPrereqs);
+		stream->Read(iAndTechPrereqs, (int*)&m_aePrereqAndTechs[0]);
+	} // </advc.003t>
 	// K-Mod
 	if (uiFlag >= 1)
 	{
@@ -220,7 +214,10 @@ void CvTechInfo::read(FDataStreamBase* stream)
 void CvTechInfo::write(FDataStreamBase* stream)
 {
 	CvInfoBase::write(stream);
-	uint uiFlag=1;
+	uint uiFlag;
+	//uiFlag = 0;
+	//uiFlag = 1; // K-Mod
+	uiFlag = 2; // advc.003t
 	stream->Write(uiFlag);
 
 	stream->Write(m_iAdvisorType);
@@ -262,9 +259,20 @@ void CvTechInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iGridY);
 	stream->Write(NUM_DOMAIN_TYPES, m_piDomainExtraMoves);
 	stream->Write(GC.getNumFlavorTypes(), m_piFlavorValue);
-	stream->Write(GC.getNUM_OR_TECH_PREREQS(), m_piPrereqOrTechs);
-	stream->Write(GC.getNUM_AND_TECH_PREREQS(), m_piPrereqAndTechs);
-	stream->Write(NUM_COMMERCE_TYPES, m_piSpecialistExtraCommerce); // K-Mod. uiFlag >= 1
+	// <advc.003t>
+	{
+		int iOrTechPrereqs = getNumOrTechPrereqs();
+		stream->Write(iOrTechPrereqs);
+		if (iOrTechPrereqs > 0)
+			stream->Write(iOrTechPrereqs, &m_aePrereqOrTechs[0]);
+	}
+	{
+		int iAndTechPrereqs = getNumAndTechPrereqs();
+		stream->Write(iAndTechPrereqs);
+		if (iAndTechPrereqs > 0)
+			stream->Write(iAndTechPrereqs, &m_aePrereqAndTechs[0]);
+	} // </advc.003t>
+	stream->Write(NUM_COMMERCE_TYPES, m_piSpecialistExtraCommerce); // K-Mod
 	stream->Write(NUM_COMMERCE_TYPES, m_pbCommerceFlexible);
 	stream->Write(GC.getNumTerrainInfos(), m_pbTerrainTrade);
 	stream->WriteString(m_szQuoteKey);
@@ -347,75 +355,55 @@ bool CvTechInfo::read(CvXMLLoadUtility* pXML)
 
 bool CvTechInfo::readPass2(CvXMLLoadUtility* pXML)
 {
-	CvString szTextVal;
-
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "OrPreReqs"))
 	{
 		if (pXML->SkipToNextVal())
 		{
-			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
-			FAssertMsg(GC.getNUM_OR_TECH_PREREQS() > 0, "Allocating zero or less memory in SetGlobalUnitInfo");
-			pXML->InitList(&m_piPrereqOrTechs, GC.getNUM_OR_TECH_PREREQS(), -1);
-			bool bAnyReq = false; // advc.003t
+			int const iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
-				{
-					FAssertMsg((iNumSibs <= GC.getNUM_OR_TECH_PREREQS()), "There are more siblings than memory allocated for them in SetGlobalUnitInfo");
-					for (int j = 0; j < iNumSibs; ++j)
-					{
-						m_piPrereqOrTechs[j] = GC.getInfoTypeForString(szTextVal);
-						// <advc.003t>
-						if (m_piPrereqOrTechs[j] != NO_TECH)
-							bAnyReq = true; // </advc.003t>
+				{	// advc.003t: The DLL can handle any number, but Python maybe not.
+					FAssert(iNumSibs <= GC.getDefineINT(CvGlobals::NUM_OR_TECH_PREREQS));
+					for (int j = 0; j < iNumSibs; j++)
+					{	// <advc.003t>
+						TechTypes eTech = (TechTypes)GC.getInfoTypeForString(szTextVal);
+						if (eTech != NO_TECH)
+							m_aePrereqOrTechs.push_back(eTech); // </advc.003t>
 						if (!pXML->GetNextXmlVal(szTextVal))
-						{
 							break;
-						}
 					}
-
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 				}
-			} // <advc.003t>
-			if (!bAnyReq)
-				SAFE_DELETE_ARRAY(m_piPrereqOrTechs); // </advc.003t>
+			}
 		}
-
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
-
+	// (same with OR/or -> AND/and)
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "AndPreReqs"))
 	{
 		if (pXML->SkipToNextVal())
 		{
 			int iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
-			FAssertMsg(GC.getNUM_AND_TECH_PREREQS() > 0, "Allocating zero or less memory in SetGlobalUnitInfo");
-			pXML->InitList(&m_piPrereqAndTechs, GC.getNUM_AND_TECH_PREREQS(), -1);
-			bool bAnyReq = false; // advc.003t
 			if (iNumSibs > 0)
 			{
+				CvString szTextVal;
 				if (pXML->GetChildXmlVal(szTextVal))
 				{
-					FAssertMsg((iNumSibs <= GC.getNUM_AND_TECH_PREREQS()), "There are more siblings than memory allocated for them in SetGlobalUnitInfo");
-					for (int j = 0; j < iNumSibs; ++j)
-					{
-						m_piPrereqAndTechs[j] = GC.getInfoTypeForString(szTextVal);
-						// <advc.003t>
-						if (m_piPrereqAndTechs[j] != NO_TECH)
-							bAnyReq = true; // </advc.003t>
+					FAssert(iNumSibs <= GC.getDefineINT(CvGlobals::NUM_AND_TECH_PREREQS));
+					for (int j = 0; j < iNumSibs; j++)
+					{	// <advc.003t>
+						TechTypes eTech = (TechTypes)GC.getInfoTypeForString(szTextVal);
+						if (eTech != NO_TECH)
+							m_aePrereqAndTechs.push_back(eTech); // </advc.003t>
 						if (!pXML->GetNextXmlVal(szTextVal))
-						{
 							break;
-						}
 					}
-
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 				}
-			} // <advc.003t>
-			if (!bAnyReq)
-				SAFE_DELETE_ARRAY(m_piPrereqAndTechs); // </advc.003t>
+			}
 		}
-
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
 

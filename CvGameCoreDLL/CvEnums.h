@@ -8,7 +8,7 @@
 // <advc.enum>
 #include "CvInfoEnums.h"
 
-/*	Player limits: Moved from CvDefines into the Enum types.
+/*	Player limits: Moved from CvDefines into the enum types.
 	(Can always turn MAX_CIV_PLAYERS back into a preprocessor define
 	if that helps in making the player limits more flexible.) */
 //#ifdef _USRDLL
@@ -25,13 +25,14 @@ enum PlayerTypes
 		Savegames are still incompatible. */
 	MAX_CIV_PLAYERS = 18,
 	BARBARIAN_PLAYER = MAX_CIV_PLAYERS,
-	MAX_PLAYERS = MAX_CIV_PLAYERS + 1
+	MAX_PLAYERS
 };
+
 enum TeamTypes
 {
 	NO_TEAM = -1,
-	MAX_CIV_TEAMS = MAX_CIV_PLAYERS,
-	BARBARIAN_TEAM = MAX_CIV_TEAMS,
+	BARBARIAN_TEAM = MAX_CIV_PLAYERS,
+	MAX_CIV_TEAMS = BARBARIAN_TEAM,
 	MAX_TEAMS
 };
 
@@ -68,7 +69,7 @@ enum FlavorTypes
 	FLAVOR_CULTURE,
 	FLAVOR_GROWTH,
 	// K-Mod end
-	/*  <advc.001> Added by BtS, missing in karadoc's list. Not a bug really, just
+	/*  advc.001: Added by BtS, missing in karadoc's list. Not a bug really, just
 		means that it was impossible to base AI code on FLAVOR_ESPIONAGE. */
 	FLAVOR_ESPIONAGE,
 };
@@ -471,6 +472,7 @@ ENUM_START(Widget, WIDGET)
 	WIDGET_GOLDEN_AGE,
 	WIDGET_ANARCHY, // </advc.085>
 	WIDGET_CITY_TRADE, // advc.ctr
+	WIDGET_CYCLE_UNIT, // advc.154
 ENUM_END(Widget, WIDGET)
 
 ENUM_START(ButtonPopup, BUTTONPOPUP)
@@ -746,6 +748,7 @@ ENUM_START(Denial, DENIAL)
 	DENIAL_PEACE_NOT_POSSIBLE_US,
 	DENIAL_PEACE_NOT_POSSIBLE_YOU,
 	DENIAL_TRUE_ATTITUDE, // advc.130v
+	DENIAL_NO_CURRENT_THREAT, // advc.112b
 ENUM_END(Denial, DENIAL)
 // <advc.104m>
 ENUM_START(AIDemand, AI_DEMAND)
@@ -834,6 +837,7 @@ ENUM_START(Automate, AUTOMATE)
 	AUTOMATE_CITY,
 	AUTOMATE_EXPLORE,
 	AUTOMATE_RELIGION,
+	// Any additions need to be reflected in GlobalTypes.xml
 ENUM_END(Automate, AUTOMATE)
 
 ENUM_START(Mission, MISSION)
@@ -887,7 +891,7 @@ ENUM_START(Mission, MISSION)
 	MISSION_MULTI_DESELECT,
 
 	MISSION_SENTRY_HEAL, // advc.004l
-	// Any additions need to be reflected in GlobalTypes.xml
+	// Any additions need to be reflected in Civ4MissionInfos.xml
 ENUM_END(Mission, MISSION)
 
 ENUM_START(MissionAI, MISSIONAI)
@@ -948,7 +952,7 @@ ENUM_START(Command, COMMAND)
 	COMMAND_UNLOAD,
 	COMMAND_UNLOAD_ALL,
 	COMMAND_HOTKEY,
-	// Any additions need to be reflected in GlobalTypes.xml
+	// Any additions need to be reflected in Civ4CommandInfos.xml
 ENUM_END(Command, COMMAND)
 
 ENUM_START(Control, CONTROL)
@@ -1015,6 +1019,8 @@ ENUM_START(Control, CONTROL)
 	CONTROL_SELECT_HEALTHY,
 	CONTROL_ESPIONAGE_SCREEN,
 	CONTROL_FREE_COLONY,
+	CONTROL_UNSELECT_ALL, // advc.154
+	// Any additions need to be reflected in XML\Units\Civ4ControlInfos.xml
 ENUM_END(Control, CONTROL)
 
 ENUM_START(WarPlan, WARPLAN)
@@ -1153,6 +1159,7 @@ ENUM_START(Contact, CONTACT)
 	CONTACT_TRADE_TECH,
 	CONTACT_TRADE_BONUS,
 	CONTACT_TRADE_MAP,
+	// Any additions need to be reflected in GlobalTypes.xml
 ENUM_END(Contact, CONTACT)
 
 ENUM_START(Memory, MEMORY)
@@ -1549,6 +1556,17 @@ ENUM_START(AnimationPath, ANIMATIONPATH)
 	ANIMATIONPATH_AIRPATROL,
 ENUM_END(AnimationPath, ANIMATIONPATH)
 
+// advc.004s: (Caveat: Reordering these breaks savegame compatibility)
+ENUM_START(PlayerHistory, PLAYER_HISTORY)
+	PLAYER_HISTORY_SCORE,
+	PLAYER_HISTORY_ECONOMY,
+	PLAYER_HISTORY_INDUSTRY,
+	PLAYER_HISTORY_AGRICULTURE,
+	PLAYER_HISTORY_POWER,
+	PLAYER_HISTORY_CULTURE,
+	PLAYER_HISTORY_ESPIONAGE,
+ENUM_END(PlayerHistory, PLAYER_HISTORY)
+
 
 enum CivilopediaWidgetShowTypes
 {
@@ -1670,8 +1688,7 @@ enum FontSymbols
 	MAP_CHAR,
 	OCCUPATION_CHAR,
 	POWER_CHAR,
-	/*  <advc.002f> From BULL. Only using AIRPORT_CHAR so far, but need all of them
-		in order to be compatible with BULL's GameFont.tga */
+	// <advc.002f> from BULL
 	CITIZEN_CHAR,
 	GREAT_GENERAL_CHAR,
 	AIRPORT_CHAR, // </advc.002f>
@@ -2265,7 +2282,11 @@ enum UnitSubEntityTypes
 };
 
 // <advc.enum>
-// CityPlotTypes enum - idea from "We the People"
+/*	CityPlotTypes enum - idea from "We the People".
+	Replacing preprocessor defines in CvDefines. Note that those defines have
+	been compiled into the EXE, so, to avoid inconsistencies, the values of
+	NUM_CITY_PLOTS, CITY_HOME_PLOT, CITY_PLOTS_RADIUS and CITY_PLOTS_DIAMETER
+	should never be changed. */
 ENUM_START(CityPlot, CITYPLOT)
 	CITY_HOME_PLOT = 0,
 	FIRST_ADJACENT_PLOT = 1,
@@ -2284,6 +2305,8 @@ ENUM_END(CityPlot, CITYPLOT)
 	DO(Yield,Commerce) \
 	DO(Direction,CardinalDirection) \
 	DO(Vote,VoteSource) \
+	DO(Vote,PlayerVote) \
+	DO(VoteSource,PlayerVote) \
 	DO(Religion,Corporation) \
 	DO(Civic,CivicOption) \
 	DO(Color,PlayerColor) \
@@ -2297,6 +2320,9 @@ ENUM_END(CityPlot, CITYPLOT)
 	DO(Unit,UnitAI) \
 	DO(SpecialUnit,Unit) \
 	DO(SpecialUnit,UnitClass) \
+	DO(UnitCombat,Unit) \
+	DO(UnitCombat,UnitClass) \
+	DO(UnitCombat,UnitAI) \
 	DO(BuildingClass,UnitClass) \
 	DO(Project,Building) \
 	DO(Project,BuildingClass) \
@@ -2316,7 +2342,7 @@ ENUM_END(CityPlot, CITYPLOT)
 /*  ^No definition - so that these comparisons result in a linker error.
 	The linker error will say in which function the offending call occurs.
 	A compiler error would also provide a line number, but the compiler
-	can't tell if a global function has any call locations. */
+	couldn't tell if a global function has any call locations. */
 
 #define FORBID_ENUM_COMPARISON_OPERATORS(EnumPrefix1, EnumPrefix2) \
 	FORBID_COMPARISON_OPERATORS(EnumPrefix1##Types, EnumPrefix2##Types) \
@@ -2328,6 +2354,10 @@ DO_FOR_EACH_FALSE_FRIEND(FORBID_ENUM_COMPARISON_OPERATORS);
 	enum-int comparisons isn't currently feasible. Perhaps if and when
 	the return types of functions like CvUnitInfo::getPrereqAndBonus
 	are changed to enum types. */
+/*	This doesn't work either:
+	#undef NULL
+	enum null_t { NULL };
+	Couldn't assign that to pointers. */
 /*#define FORBID_INT_EQUALITY_TEST(EnumPrefix, Dummy) \
 	bool operator==(EnumPrefix##Types, int); \
 	bool operator==(int, EnumPrefix##Types); \

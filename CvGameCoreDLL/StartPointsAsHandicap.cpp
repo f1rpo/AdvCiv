@@ -408,7 +408,7 @@ int StartPointsAsHandicap::MajorCiv::startPoints_actual() const {
 
 void StartPointsAsHandicap::MajorCiv::assignStartingPlot(CvPlot* plot) {
 
-	GET_PLAYER(civId).setStartingPlot(plot, true);
+	GET_PLAYER(civId).setStartingPlot(plot);
 }
 
 void StartPointsAsHandicap::MajorCiv::setDist(int dist) {

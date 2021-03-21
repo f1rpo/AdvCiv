@@ -16,7 +16,7 @@ public:
 	/* Instead of preceding each 'log' call with a check, the client object
 	   should (once) create a report in any case, but set it to be 'silent'.
 	   setMute has no effect on a silent report. */
-	UWAIReport(bool silent = false);
+	explicit UWAIReport(bool silent = false);
 	~UWAIReport();
 	// Only actually logs when not set to silent or mute
 	void log(char const* fmt, ...);

@@ -5,6 +5,7 @@
 #include "CvMap.h"
 #include "CvCity.h" // </advc.make>
 // <advc>
+#include "CombatOdds.h"
 #include "CvTeam.h" // (Would be nicer to expose getEspionageModifier through CyTeam)
 #include "CvPlayer.h" // for getCity, getUnit
 // For functions moved from CvGameCoreUtils to CvInfos
@@ -251,7 +252,7 @@ bool cyIsLimitedProject(int /*ProjectTypes*/ eProject)
 
 int cyGetCombatOdds(CyUnit* pAttacker, CyUnit* pDefender)
 {
-	return getCombatOdds(pAttacker->getUnit(), pDefender->getUnit());
+	return calculateCombatOdds(*pAttacker->getUnit(), *pDefender->getUnit());
 }
 
 int cyGetEspionageModifier(int iOurTeam, int iTargetTeam)
