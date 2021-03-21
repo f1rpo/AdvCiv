@@ -1415,7 +1415,7 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 				c->getYieldRate(YIELD_PRODUCTION) < 5 + era))
 			continue;
 		CvPlot* p = c->plot();
-		int pwd = -1; // pairwise (travel) duration
+		int pwd = MAX_INT; // pairwise (travel) duration
 		/*	Search from target to source. TeamStepMetric is symmetrical in that regard.
 			Doing it backwards allows intermediate results to be reused. */
 		if(pf->landFinder().generatePath(targetCity.getPlot(), *p)) {
@@ -1430,47 +1430,47 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 		}
 		if(trainAnyCargo &&
 				// This ignores cities that can access the ocean only through a canal
-				p->isCoastalLand(-1)) {
-			bool valid = true;
+				p->isCoastalLand(-1) &&
+				// Don't bother with a naval path if it's at best a couple turns faster
+				pwd > seaPenalty + 2) {
+			CvPlot const* transportDest = targetCity.plot();
 			/*	We're unlikely to be able to pass through a canal near the target;
 				not losing much here. */
 			if(!targetCity.isCoastal(-1)) {
 				// Can reach cities that are one off the coast
-				CvPlot const* newDest = NULL;
+				CvPlot const* transportDest = NULL;
 				int shortestStepDist = MAX_INT;
 				FOR_EACH_ADJ_PLOT(targetCity.getPlot()) {
 					if(pAdj->isCoastalLand(-1)) {
 						int d = ::stepDistance(p, pAdj);
 						if(d < shortestStepDist) {
-							newDest = pAdj;
+							transportDest = pAdj;
 							shortestStepDist = d;
 						}
 					}
 				}
-				if(newDest == NULL)
-					valid = false;
 			}
-			if(valid) {
+			if(transportDest != NULL) {
 				int d = -1;
 				if(trainDeepSeaCargo) {
-					if(pf->anyWaterFinder().generatePath(targetCity.getPlot(), *p))
+					if(pf->anyWaterFinder().generatePath(targetCity.getPlot(), *transportDest))
 						d = pf->anyWaterFinder().getPathCost();
 				}
 				else {
-					if(pf->shallowWaterFinder().generatePath(targetCity.getPlot(), *p))
+					if(pf->shallowWaterFinder().generatePath(targetCity.getPlot(), *transportDest))
 						d = pf->shallowWaterFinder().getPathCost();
 				}
 				if(d > 0) {
 					d = seaPenalty + intdiv::uround(d,
 							GC.getMOVE_DENOMINATOR() * cacheOwner.uwai().shipSpeed());
-					if(pwd < 0 || d < pwd) {
+					if(d < pwd) {
 						pwd = d;
 						reachBySea = true;
 					}
 				}
 			}
 		}
-		if(pwd >= 0) {
+		if(pwd < MAX_INT) {
 			pairwDurations.push_back(pwd);
 			// Extra weight for our capital
 			if(c == capital)
@@ -1488,12 +1488,12 @@ void UWAICache::City::updateDistance(CvCity const& targetCity, TeamPathFinders* 
 	FAssert(pairwDurations[0] >= 0);
 	double sumOfWeights = 0;
 	double weightedSum = 0;
-	// Allow distances to increase at most by 10 per rank
-	int cap = pairwDurations[0] + 10;
+	int cap = pairwDurations[0];
 	for(size_t i = 0; i < pairwDurations.size(); i++) {
 		double w = 2.0 / (3 * (i + 1) - 1);
 		sumOfWeights += w;
 		int d = std::min(pairwDurations[i], cap);
+		// Allow distances to increase at most by 10 per rank
 		cap = d + 10;
 		weightedSum += d * w;
 	}
