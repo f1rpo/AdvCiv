@@ -245,7 +245,7 @@ protected:
 	bool AI_finalImprovementYieldDifference(CvPlot const& kPlot, int* piYields) const;
 	// time-weighted yields for improvements which have upgrades
 	bool AI_timeWeightedImprovementYields(CvPlot const& kPlot, ImprovementTypes eImprovement,
-			int iTimeScale, EnumMap<YieldTypes,scaled>& weightedYields) const;
+			int iTimeScale, EnumMap<YieldTypes,scaled>& kWeightedYields) const;
 	// value for working a plot in addition to its yields
 	int AI_specialPlotImprovementValue(CvPlot* pPlot) const;
 	int AI_growthValuePerFood() const;

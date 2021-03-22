@@ -10707,7 +10707,7 @@ bool CvCityAI::AI_finalImprovementYieldDifference(/* advc: */ CvPlot const& kPlo
 	decreasing by a factor of `e` for each `time_scale` turns.) */
 bool CvCityAI::AI_timeWeightedImprovementYields(CvPlot const& kPlot, ImprovementTypes eImprovement,
 	int iTimeScale, // advc.912f (note): 0 now means infinity
-	EnumMap<YieldTypes,scaled>& weightedYields) const // advc: was vector<float>&
+	EnumMap<YieldTypes,scaled>& kWeightedYields) const // advc: was vector<float>&
 {
 	PROFILE_FUNC();
 
@@ -10719,7 +10719,7 @@ bool CvCityAI::AI_timeWeightedImprovementYields(CvPlot const& kPlot, Improvement
 		If it isn't too slow, I'll use it for lots of things. */
 	// weighted yield = integral from 0 to inf. of (yield(t) * e^(-t/scale)), w.r.t.  t
 
-	weightedYields.reset();
+	kWeightedYields.reset();
 	std::set<ImprovementTypes> citedImprovements;
 	int iTotalTurns = 0;
 
@@ -10753,7 +10753,7 @@ bool CvCityAI::AI_timeWeightedImprovementYields(CvPlot const& kPlot, Improvement
 			//if (kOwner.getExtraYieldThreshold(i) > 0)
 				// ;
 
-			weightedYields.add(eLoopYield, iYieldDiff * rValueFactor);
+			kWeightedYields.add(eLoopYield, iYieldDiff * rValueFactor);
 		}
 
 		iTotalTurns += kImprovement.getUpgradeTime();
@@ -10766,7 +10766,7 @@ bool CvCityAI::AI_timeWeightedImprovementYields(CvPlot const& kPlot, Improvement
 			normalise the yield values based on what we've got so far. */
 		FOR_EACH_ENUM(Yield)
 		{
-			weightedYields.set(eLoopYield, weightedYields.get(eLoopYield) /
+			kWeightedYields.set(eLoopYield, kWeightedYields.get(eLoopYield) /
 					(1 - scaled(iTotalTurns, -iTimeScale).exp()));
 		}
 	}

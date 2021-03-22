@@ -207,7 +207,7 @@ void CvMapGenerator::addRivers()  // advc: refactored
 	int const iRiverSourceRange = GC.getDefineINT("RIVER_SOURCE_MIN_RIVER_RANGE");
 	int const iSeaWaterRange = GC.getDefineINT("RIVER_SOURCE_MIN_SEAWATER_RANGE");
 	int const iPlotsPerRiverEdge =  GC.getDefineINT("PLOTS_PER_RIVER_EDGE");
-	// advc.129: Randomize the traversal order
+	// advc.129: Randomize the traversal
 	int* aiShuffledIndices = ::shuffle(GC.getMap().numPlots(), GC.getGame().getMapRand());
 	for (int iPass = 0; iPass < 4; iPass++)
 	{
@@ -233,12 +233,12 @@ void CvMapGenerator::addRivers()  // advc: refactored
 				break;
 			case 2:
 				bValid =  ((p.isHills() || p.isPeak()) &&
-					  p.getArea().getNumRiverEdges() < 1 +
-					  p.getArea().getNumTiles() / iPlotsPerRiverEdge);
+						p.getArea().getNumRiverEdges() <
+						1 + p.getArea().getNumTiles() / iPlotsPerRiverEdge);
 				break;
 			case 3:
-				bValid = (p.getArea().getNumRiverEdges() < 1 +
-						p.getArea().getNumTiles() / iPlotsPerRiverEdge);
+				bValid = (p.getArea().getNumRiverEdges() <
+						1 + p.getArea().getNumTiles() / iPlotsPerRiverEdge);
 				break;
 			default: FErrorMsg("Invalid iPass");
 			}
@@ -296,7 +296,7 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 		pRiverPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(),
 				CARDINALDIRECTION_NORTH);
 	}
-	else if (eLastCardinalDirection==CARDINALDIRECTION_EAST)
+	else if (eLastCardinalDirection == CARDINALDIRECTION_EAST)
 	{
 		pRiverPlot = plotCardinalDirection(pStartPlot->getX(), pStartPlot->getY(),
 				CARDINALDIRECTION_EAST);
@@ -312,7 +312,7 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 		pStartPlot->setRiverID(iThisRiverID);
 		pRiverPlot->setNOfRiver(true, eLastCardinalDirection);
 	}
-	else if (eLastCardinalDirection==CARDINALDIRECTION_SOUTH)
+	else if (eLastCardinalDirection == CARDINALDIRECTION_SOUTH)
 	{
 		pRiverPlot = plotCardinalDirection(pStartPlot->getX(), pStartPlot->getY(),
 			CARDINALDIRECTION_SOUTH);
@@ -328,7 +328,7 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 		pStartPlot->setRiverID(iThisRiverID);
 		pRiverPlot->setWOfRiver(true, eLastCardinalDirection);
 	}
-	else if (eLastCardinalDirection==CARDINALDIRECTION_WEST)
+	else if (eLastCardinalDirection == CARDINALDIRECTION_WEST)
 	{
 		pRiverPlot = pStartPlot;
 		if (pRiverPlot == NULL)
@@ -398,7 +398,7 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 //Although I veto'd its use since I like that you don't always
 //get fresh water starts.
 /*	advc (note): This function isn't unused though. It's a fallback
-	in case that no lake can be placed. Though I'm not sure if can
+	in case that no lake can be placed. Though I'm not sure if it can
 	succeed where CvGame::normalizeFindLakePlot fails. */
 // pFreshWaterPlot = the plot we want to give a fresh water river
 bool CvMapGenerator::addRiver(CvPlot* pFreshWaterPlot)

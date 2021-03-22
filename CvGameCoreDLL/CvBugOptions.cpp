@@ -1,8 +1,6 @@
-/**********************************************************************
-File:		CvBugOptions.cpp
-Author:		EmperorFool
-Created:	2009-01-21Copyright (c) 2009 The BUG Mod. All rights reserved.
-**********************************************************************/
+/*	Author:		EmperorFool
+	Created:	2009-01-21
+	Copyright (c) 2009 The BUG Mod. All rights reserved. */
 // This file has been edited for K-Mod
 
 #include "CvGameCoreDLL.h"

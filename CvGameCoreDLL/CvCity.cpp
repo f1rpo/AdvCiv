@@ -10713,8 +10713,8 @@ void CvCity::doReligion()
 		return;
 
 	// gives some of the top religions a shot at spreading to the city.
-	int iChances = 1 + (getCultureLevel() >= 4 ? 1 : 0) +
-			(getPopulation() + 3) / 8 - getReligionCount();
+	int iChances = 1 - getReligionCount() + (getCultureLevel() >= 4 ? 1 : 0) +
+			(getPopulation() + 3) / 8;
 	// (breakpoints at pop = 5, 13, 21, ...)
 
 	if (iChances <= 0)
