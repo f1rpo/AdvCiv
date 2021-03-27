@@ -2643,8 +2643,8 @@ bool CvUnit::isRevealedValidDomain(CvPlot const& kPlot) const
 
 /*	advc: Replacing CvPlot::isFriendlyCity
 	(which was always being called with bCheckImprovement=true).
-	Despite the name, isFriendlyCity had not required isFriendlyTerritory,
-	and neither does isPlotValid. */
+	Despite the name, isFriendlyCity had not required
+	CvTeam::isFriendlyTerritory, and neither does isPlotValid. */
 bool CvUnit::isPlotValid(CvPlot const& kPlot) const
 {
 	PROFILE_FUNC(); // (currently not called at all)
@@ -4055,7 +4055,7 @@ bool CvUnit::canParadropAt(const CvPlot* pPlot, int iX, int iY) const
 
 	CvPlot* pTargetPlot = GC.getMap().plot(iX, iY);
 
-	if (NULL == pTargetPlot || pTargetPlot == pPlot)
+	if (pTargetPlot == NULL || pTargetPlot == pPlot)
 		return false;
 	if (!pTargetPlot->isVisible(getTeam()))
 		return false;

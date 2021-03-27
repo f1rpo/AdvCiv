@@ -18537,7 +18537,7 @@ void CvPlayerAI::AI_doCommerce()
 
 	int iGoldTarget = AI_goldTarget();
 	/*  <advc.550f> Some extra gold for trade. Don't put this into AI_goldTarget
-		for performance reasons, and b/c AI_maxGoldForTrade shouldn't take this
+		for performance reasons, and b/c AI_maxGoldTrade shouldn't take this
 		extra budget into account. */
 	if(!AI_isFinancialTrouble() && !AI_atVictoryStage4())
 	{

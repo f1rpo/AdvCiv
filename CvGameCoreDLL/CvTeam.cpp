@@ -4782,7 +4782,7 @@ bool CvTeam::isRevealedBase(CvPlot const& kPlot) const
 bool CvTeam::isCityDefense(CvPlot const& kPlot) const
 {
 	/*	I'm assuming that calls happen in the context of imminent combat, and
-		then the units wouldn't be visible if the plot weren't visible as well.
+		then the combatants wouldn't be visible if the plot weren't visible as well.
 		This assertion fails, however, when center units are updated while
 		updating sight (in CvPlot). */
 	//FAssert(kPlot.isVisible(getID()));
