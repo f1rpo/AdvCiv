@@ -445,6 +445,10 @@ bool MilitaryBranch::Army::canTrainCollateral() const {
 		CvUnitInfo const& u = GC.getInfo(ut);
 		if(u.getCollateralDamage() > 0 &&
 				isValidDomain(u.getDomainType()) &&
+				/*	Usually it takes the AI a while to assemble a significant number
+					of coll.-dmg. units after discovering the respective tech, so
+					let's delay things a bit with this (cheap) extra check. */
+				owner.getUnitClassCountPlusMaking(kCiv.unitClass(ut)) > 1 &&
 				owner.AI_canBeExpectedToTrain(ut))
 			return true;
 	}
