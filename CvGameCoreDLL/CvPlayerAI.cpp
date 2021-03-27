@@ -27071,7 +27071,11 @@ void CvPlayerAI::AI_doEnemyUnitData()
 						iUnitValue += 15;
 				}
 			}
-			else if (kUnit.getOwner() != getID())
+			//else if (kUnit.getOwner() != getID())
+			// <advc.001> Don't count units that we'll never have to fight
+			else if (kUnit.getTeam() != getTeam() &&
+				// (Let vassals count their master's units; might want to break free.)
+				!GET_TEAM(kUnit.getTeam()).isVassal(getMasterTeam())) // </advc.001>
 			{
 				int iTmp = ((kUnit.canAttack() &&
 						// advc.315:
