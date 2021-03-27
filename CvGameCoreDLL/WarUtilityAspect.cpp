@@ -3580,7 +3580,7 @@ void Distraction::evaluate()
 						"against %s. Current utilities: %d/%d; Distraction cost: %d",
 						m_kReport.leaderName(eThey), iWarDuration,
 						m_kReport.teamName(eAltTarget), rWarUtilityVsThem.round(),
-						rWarUtilityVsAlt.uround(), rOpportunityCost.uround());
+						rWarUtilityVsAlt.round(), rOpportunityCost.uround());
 				rHighestOpportunityCost.increaseTo(rOpportunityCost);
 				rTotalOpportunityCost += rOpportunityCost;
 				iAltWars++;
