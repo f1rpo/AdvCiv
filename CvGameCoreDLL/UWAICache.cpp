@@ -403,9 +403,14 @@ double UWAICache::goldPerProdBuildings() {
 					c.getProductionBuilding() != eLoopBuilding &&
 					// Wonder in construction elsewhere:
 					owner.getBuildingClassMaking(b.getBuildingClassType()) == 0) {
-				if(b.getReligionType() != NO_RELIGION) {
-					// No Monasteries when they're about to go obsolete
+				{	// Soon obsolete
 					TechTypes obsTech = b.getObsoleteTech();
+					if (obsTech != NO_TECH &&
+							GC.getInfo(obsTech).getEra() <= ownerEra) {
+						continue;
+					}
+				}
+				if(b.getReligionType() != NO_RELIGION) {
 					if(obsTech != NO_TECH && GC.getInfo(obsTech).getEra() <=
 							ownerEra)
 						continue;
@@ -993,8 +998,10 @@ void UWAICache::updateVassalScore(PlayerTypes civId) {
 		/*  Don't mind if we can't use it yet (TechCityTrade), but we can't know
 			that they have it if we can't see it. If we can see it, but they can't,
 			we might know, or not (if the plot is unrevealed). */
-		if(!GET_TEAM(ownerId).isHasTech(revealTech)
-				|| !GET_TEAM(civId).isHasTech(revealTech))
+		if(!GET_TEAM(ownerId).isHasTech(revealTech) ||
+				!GET_TEAM(civId).isHasTech(revealTech) ||
+				// Can't trade obsolete resource
+				GET_TEAM(civId).isBonusObsolete(eLoopBonus))
 			continue;
 		if(GET_PLAYER(civId).getNumAvailableBonuses(eLoopBonus) && !availableToMaster)
 			nTribute++;
