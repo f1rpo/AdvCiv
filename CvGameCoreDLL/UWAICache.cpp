@@ -517,14 +517,12 @@ scaled UWAICache::goldPerProdBuildings()
 						continue;
 					}
 				}
-				if (kBuilding.getReligionType() != NO_RELIGION)
-				{
+				if (kBuilding.getReligionType() != NO_RELIGION &&
 					// If in a state religion, count only buildings of that religion.
-					if (eOwnerReligion != NO_RELIGION &&
-						kBuilding.getReligionType() != eOwnerReligion)
-					{
-						continue;
-					}
+					eOwnerReligion != NO_RELIGION &&
+					kBuilding.getReligionType() != eOwnerReligion)
+				{
+					continue;
 				}
 				if (kBuilding.isLimited())
 					iWonders++;

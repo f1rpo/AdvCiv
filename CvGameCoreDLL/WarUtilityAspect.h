@@ -164,8 +164,8 @@ public:
 	void evaluate();
 	UWAI::AspectTypes xmlID() const { return UWAI::GREED_FOR_ASSETS; }
 private:
-	scaled overextensionCost() const;
-	scaled defensibilityCost() const;
+	scaled overextensionMult() const;
+	scaled defensibilityMult() const;
 	scaled medianDistFromOurConquests(PlayerTypes ePlayer) const;
 	scaled threatToCities(PlayerTypes ePlayer, scaled rRemoteness) const;
 	scaled competitionMultiplier() const;

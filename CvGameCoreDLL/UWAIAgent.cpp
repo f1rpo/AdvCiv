@@ -724,7 +724,7 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU)
 	if (kAgentPlayer.AI_getContactTimer(kTargetPlayer.getID(), CONTACT_PEACE_TREATY) <= 0)
 	{
 		m_pReport->log("%s capitulation to %s", bHuman ? "Offering" : "Implementing",
-				m_pReport->leaderName(kTarget.getLeaderID()));
+				m_pReport->leaderName(kTargetPlayer.getID()));
 		if (!isInBackground())
 		{
 			kAgentPlayer.AI_offerCapitulation(kTargetPlayer.getID());

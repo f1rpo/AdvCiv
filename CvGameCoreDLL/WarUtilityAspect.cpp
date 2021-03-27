@@ -689,12 +689,12 @@ void GreedForAssets::evaluate()
 	scaled const rCompetitionMult = competitionMultiplier();
 	if (rCompetitionMult != 1)
 		log("Competition multiplier: %d percent", rCompetitionMult.getPercent());
-	scaled const rOverextensionCost = overextensionCost();
-	scaled const rDefensibilityCost = defensibilityCost();
+	scaled const rOverextensionMult = overextensionMult();
+	scaled const rDefensibilityMult = defensibilityMult();
 	log("Cost modifiers: %d percent for overextension, %d for defensibility",
-			rOverextensionCost.getPercent(), rDefensibilityCost.getPercent());
+			rOverextensionMult.getPercent(), rDefensibilityMult.getPercent());
 	rUtility *= rCompetitionMult * rTeamSzMult *
-			(1 - rOverextensionCost - rDefensibilityCost);
+			(1 - rOverextensionMult - rDefensibilityMult);
 	// Greed shouldn't motivate peaceful leaders too much
 	if (kWe.AI_getPeaceWeight() >= 7)
 	{
@@ -718,7 +718,7 @@ void GreedForAssets::evaluate()
 }
 
 
-scaled GreedForAssets::overextensionCost() const
+scaled GreedForAssets::overextensionMult() const
 {
 	/*	Number-of-city maintenance and increased civic upkeep from conquered cities
 		are difficult to predict; only partially covered by AssetScore.
@@ -742,7 +742,7 @@ scaled GreedForAssets::overextensionCost() const
 }
 
 
-scaled GreedForAssets::defensibilityCost() const
+scaled GreedForAssets::defensibilityMult() const
 {
 	// Check for hostile third parties
 	scaled const rRemoteness = medianDistFromOurConquests(eWe);
