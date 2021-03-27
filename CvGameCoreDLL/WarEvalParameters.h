@@ -6,6 +6,14 @@
 class WarUtilityAspect;
 class UWAIReport;
 
+/*	For WarEvalParameters::getID.
+	(Could go a bit higher with 32 bit, but e.g. 30 civs won't fit.) */
+#if MAX_CIV_PLAYERS < 20 && MAX_CIV_TEAMS < 20
+	typedef int WarEvalParamID;
+#else
+	typedef __int64 WarEvalParamID;
+#endif
+
 /* advc.104: New class. Parameters that enter into the computation of
    war utility. On the level of teams (not individual civs).
    These parameters need to be passed around a bit, ultimately to the

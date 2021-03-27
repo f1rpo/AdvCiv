@@ -124,11 +124,11 @@ TeamTypes WarEvalParameters::getCapitulationTeam() const {
 	return capitulationTeam;
 }
 
-int WarEvalParameters::id() const {
+WarEvalParamID WarEvalParameters::id() const {
 
-	/*  Some 500 mio. possible combinations; fits into a single int.
+	/*  Some 500 mio. possible combinations; fits into 32 bit.
 		Ensure uniqueness through a mixed-base positional system: */
-	long r = _targetId + 1; r *= 20;
+	WarEvalParamID r = _targetId + 1; r *= 20;
 	r += _agentId + 1; r *= 20;
 	r += consideringPeace; r *= 2;
 	r += ignoreDistraction; r *= 2;
@@ -138,9 +138,9 @@ int WarEvalParameters::id() const {
 	r += sponsor + 1; r *= 20;
 	r += capitulationTeam + 1; r *= 20;
 	r += immediateDoW;
-	/*  warAllies and extraTargets matter only in situations where the cache
-		should be disabled. (Also wouldn't fit into a single int, but long long
-		could be used instead.) */
+	/*  WarAllies and ExtraTargets matter only in situations where the cache
+		should be disabled. (Also wouldn't fit into a single int; would have
+		to use 64 bit regardless of MAX_CIV_PLAYERS.) */
 	FAssert(warAllies.empty() && extraTargets.empty());
 	return r;
 }
