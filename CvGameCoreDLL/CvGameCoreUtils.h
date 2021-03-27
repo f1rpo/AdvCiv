@@ -63,7 +63,7 @@ namespace stats // Seems too generic, but what else to name it?
 	template<typename T>
 	T median(std::vector<T>& kSamples, bool bSorted = false)
 	{
-		PROFILE("stats::median");
+		//PROFILE("stats::median"); // OK - Called often, but also quite fast.
 		FAssert(!kSamples.empty());
 		if (!bSorted)
 			std::sort(kSamples.begin(), kSamples.end());

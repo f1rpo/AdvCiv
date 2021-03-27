@@ -189,7 +189,7 @@ scaled MilitaryBranch::getTypicalCost(TeamTypes eObserver) const
 		return -1;
 	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);
 	scaled rCost = kOwner.getProductionNeeded(getTypicalUnit(),
-			estimateExtraInstances(kOwner.AI_getCurrEraFactor()).round());
+			estimateExtraInstances(kOwner.AI_getCurrEraFactor()).uround());
 	if (canKnowTypicalUnit(eObserver))
 		return rCost;
 	return rCost * fixp(0.85); // Underestimate cost

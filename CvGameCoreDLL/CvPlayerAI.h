@@ -327,8 +327,12 @@ public:
 	// </advc.017b>
 	// <advc.042> Moved from CvPlayer and iLookAhead param added
 	int AI_countUnimprovedBonuses(CvArea const& kArea, CvPlot* pFromPlot = NULL, int iLookAhead = 0) const;														// Exposed to Python
-	int AI_countOwnedBonuses(BonusTypes eBonus) const;																											// Exposed to Python
-	// </advc.042>
+	int AI_countOwnedBonuses(BonusTypes eBonus, // </advc.042>											// Exposed to Python
+			/* <advc.opt> */ int iMaxCount = MAX_INT) const;
+	bool AI_isAnyOwnedBonus(BonusTypes eBonus) const
+	{
+		return (AI_countOwnedBonuses(eBonus, 1) > 0);
+	} // </advc.opt>
 	int AI_neededWorkers(CvArea const& kArea) const;
 	int AI_neededMissionaries(CvArea const& kArea, ReligionTypes eReligion) const;
 	int AI_neededExecutives(CvArea const& kArea, CorporationTypes eCorporation) const;
@@ -548,8 +552,13 @@ public:
 	bool isCloseToReligiousVictory() const;
 	bool AI_isDoStrategy(AIStrategy eStrategy, /* advc.007: */ bool bDebug = false) const;
 	// <advc.erai>
-	scaled AI_getCurrEraFactor() const;
-	inline int AI_getCurrEra() const { return AI_getCurrEraFactor().round(); }
+	void AI_updateEraFactor();
+	/*	Call locations of this function and similar functions at CvTeamAI, CvGameAI
+		aren't tagged with "advc.erai" comments. Note: Should not replace all uses of
+		era numbers in AI code with these functions. For example, a mod with only
+		3 eras	won't necessarily have more techs per era than BtS. */
+	inline scaled AI_getCurrEraFactor() const { return m_rCurrEraFactor; }
+	inline int AI_getCurrEra() const { return AI_getCurrEraFactor().uround(); }
 	// </advc.erai>
 
 	void AI_updateGreatPersonWeights(); // K-Mod
@@ -706,6 +715,7 @@ protected:
 	int m_iReligionTimer;
 	int m_iExtraGoldTarget;
 	int m_iCityTargetTimer; // K-Mod
+	scaled m_rCurrEraFactor; // advc.erai
 	bool m_bDangerFromSubmarines; // advc.651
 	UWAI::Player* m_pUWAI; // advc.104
 

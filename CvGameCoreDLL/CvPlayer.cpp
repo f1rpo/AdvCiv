@@ -9152,6 +9152,7 @@ void CvPlayer::setCurrentEra(EraTypes eNewValue)
 
 	EraTypes eOldEra = m_eCurrentEra;
 	m_eCurrentEra = eNewValue;
+	AI().AI_updateEraFactor(); // advc.erai
 
 	if (GC.getGame().getActiveTeam() != NO_TEAM)
 	{
@@ -19222,6 +19223,7 @@ bool CvPlayer::showGoodyOnResourceLayer() const
 void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption,
 	std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const
 {
+	PROFILE_FUNC(); // advc.test: To be profiled
 	aColors.clear();
 	aIndicators.clear();
 
@@ -19255,12 +19257,14 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption,
 			}
 		} // <advc.004z>
 		ImprovementTypes eImpr = NO_IMPROVEMENT;
-		if(!bOfInterest && eOption == SHOW_ALL_RESOURCES &&
-			showGoodyOnResourceLayer())
+		if(!bOfInterest && eOption == SHOW_ALL_RESOURCES)
 		{
 			eImpr = kPlot.getRevealedImprovementType(getTeam());
-			bOfInterest = (eImpr != NO_IMPROVEMENT && GC.getInfo(eImpr).
-					isGoody());
+			if (eImpr != NO_IMPROVEMENT && GC.getInfo(eImpr).isGoody() &&
+				showGoodyOnResourceLayer()) // Make the Python call as late as possible
+			{
+				bOfInterest = true;
+			}
 		} // </advc.004z>
 		if (bOfInterest)
 		{

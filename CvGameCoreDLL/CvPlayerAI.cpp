@@ -4415,7 +4415,7 @@ void CvPlayerAI::AI_calculateOwnedBonuses(EnumMap<BonusClassTypes,int>& kBonusCl
 
 		if (getNumAvailableBonuses(eLoopBonus) > 0)
 			kBonusClassHave.add(eBonusClass, 1);
-		else if (AI_countOwnedBonuses(eLoopBonus) > 0)
+		else if (AI_isAnyOwnedBonus(eLoopBonus))
 			kBonusClassHave.add(eBonusClass, 1);
 	}
 }
@@ -5121,7 +5121,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 				else
 				{
 					if (kTeam.isBonusRevealed(ePrereqBonus) &&
-						AI_countOwnedBonuses(ePrereqBonus) == 0)
+						!AI_isAnyOwnedBonus(ePrereqBonus))
 					{
 						bDefinitelyMissing = true;
 					}
@@ -5133,7 +5133,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			{
 				if ((kTeam.isHasTech(GC.getInfo(ePrereqBonus).getTechReveal()) ||
 					kTeam.isForceRevealedBonus(ePrereqBonus)) &&
-					AI_countOwnedBonuses(ePrereqBonus) == 0)
+					!AI_isAnyOwnedBonus(ePrereqBonus))
 				{
 					bDefinitelyMissing = true;
 				}
@@ -5247,7 +5247,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			(kTeam.isHasTech(kLoopBonus.getTechReveal()) ||
 			kTeam.isForceRevealedBonus(eLoopBonus)))
 		{
-			int iOwned = AI_countOwnedBonuses(eLoopBonus);
+			int iOwned = AI_countOwnedBonuses(eLoopBonus, /* advc.opt: */ 2);
 			if (iOwned > 0)
 			{
 				int iEnableValue = 4;
@@ -6781,7 +6781,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			{
 				if ((kTeam.isHasTech(GC.getInfo(ePrereqBonus).getTechReveal()) ||
 					kTeam.isForceRevealedBonus(ePrereqBonus)) &&
-					AI_countOwnedBonuses(ePrereqBonus) == 0)
+					!AI_isAnyOwnedBonus(ePrereqBonus))
 				{
 					bDefinitelyMissing = true;
 				}
@@ -6800,7 +6800,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 		{
 			if ((kTeam.isHasTech(GC.getInfo(ePrereqBonus).getTechReveal()) ||
 				kTeam.isForceRevealedBonus(ePrereqBonus)) &&
-				AI_countOwnedBonuses(ePrereqBonus) == 0)
+				!AI_isAnyOwnedBonus(ePrereqBonus))
 			{
 				bDefinitelyMissing = true;
 			}
@@ -14243,45 +14243,58 @@ int CvPlayerAI::AI_countUnimprovedBonuses(CvArea const& kArea, CvPlot* pFromPlot
 }
 
 // advc.042: Cut from CvPlayer.cpp (w/o functional changes) b/c of the AI code at the end
-int CvPlayerAI::AI_countOwnedBonuses(BonusTypes eBonus) const
+int CvPlayerAI::AI_countOwnedBonuses(BonusTypes eBonus,
+	/* <advc.opt> */ int iMaxCount) const
 {
+	FAssert(iMaxCount > 0); // </advc.opt>
 	PROFILE_FUNC();
 
 	// K-Mod. Shortcut.
 	if (!GET_TEAM(getTeam()).isBonusRevealed(eBonus))
 		return 0;
 	// K-Mod end
-
-	/*	advc (comment from Kek-Mod): "This era seems like nonsense meant to
+	CvMap const& kMap = GC.getMap();
+	int iCount = 0;
+	/*	advc: Treat Adv. Start upfront - and don't double count city bonuses.
+		Comment from Kek-Mod: "This era seems like nonsense meant to
 		prevent counting all bonuses when the map is fully revealed."
 		(I guess it's mainly relevant for tech evaluation in Advanced Start.) */
-	bool const bAdvancedStart = (getAdvancedStartPoints() >= 0 &&
-			getCurrentEra() < 3);
-
-	int iCount = 0;
-
+	if (getAdvancedStartPoints() >= 0 && getCurrentEra() < 3)
+	{
+		for (int i = 0; i < kMap.numPlots(); i++)
+		{
+			CvPlot const& kPlot = kMap.getPlotByIndex(i);
+			if (kPlot.isRevealed(getTeam()) && kPlot.getBonusType(getTeam()) == eBonus)
+			{
+				iCount++;
+				// <advc.opt>
+				if (iCount >= iMaxCount)
+					return iMaxCount; // </advc.opt>
+			}
+		}
+		return iCount;
+	}
+	//count bonuses inside city radius or easily claimed
+	FOR_EACH_CITYAI(pCity, *this)
+	{
+		iCount += pCity->AI_countNumBonuses(eBonus, true,
+				pCity->getCommerceRate(COMMERCE_CULTURE) > 0, -1);
+		// <advc.opt>
+		if (iCount >= iMaxCount)
+			return iMaxCount; // </advc.opt>
+	}
 	//count bonuses outside city radius
-	CvMap const& kMap = GC.getMap();
 	for (int i = 0; i < kMap.numPlots(); i++)
 	{
 		CvPlot const& kPlot = kMap.getPlotByIndex(i);
-		if (kPlot.getOwner() == getID() && !kPlot.isCityRadius())
+		if (kPlot.getOwner() == getID() && !kPlot.isCityRadius() &&
+			kPlot.getBonusType(getTeam()) == eBonus)
 		{
-			if (kPlot.getBonusType(getTeam()) == eBonus)
-				iCount++;
+			iCount++;
+			// <advc.opt>
+			if (iCount >= iMaxCount)
+				return iMaxCount; // </advc.opt>
 		}
-		else if (bAdvancedStart && kPlot.isRevealed(getTeam()))
-		{
-			if (kPlot.getBonusType(getTeam()) == eBonus)
-				iCount++;
-		}
-	}
-
-	//count bonuses inside city radius or easily claimed
-	FOR_EACH_CITYAI(pLoopCity, *this)
-	{
-		iCount += pLoopCity->AI_countNumBonuses(
-				eBonus, true, pLoopCity->getCommerceRate(COMMERCE_CULTURE) > 0, -1);
 	}
 	return iCount;
 }
@@ -21726,6 +21739,7 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	if (uiFlag >= 6)
 		pStream->Read(&m_iCityTargetTimer);
 	else AI_setCityTargetTimer(0); // K-Mod end
+	AI_updateEraFactor(); // advc.erai (no need to serialize this)
 	// <advc.651>
 	if (uiFlag >= 16)
 		pStream->Read(&m_bDangerFromSubmarines); // </advc.651>
@@ -23899,14 +23913,10 @@ bool CvPlayerAI::AI_isDoStrategy(AIStrategy eStrategy, /* advc.007: */ bool bDeb
 	return (eStrategy & AI_getStrategyHash());
 }
 
-/*	advc.erai: (Not inlined b/c I don't want to include CvInfo_GameOption.h in the header.)
-	Call locations of this function and similar functions at CvTeamAI, CvGameAI
-	aren't tagged with "advc.erai" comments. Note: Should not replace all uses of
-	era numbers in AI code with these functions. For example, a mod with only 3 eras
-	won't necessarily have more techs per era than BtS. */
-scaled CvPlayerAI::AI_getCurrEraFactor() const
+// advc.erai: Cached for performance
+void CvPlayerAI::AI_updateEraFactor()
 {
-	return per100(GC.getEraInfo(getCurrentEra()).get(CvEraInfo::AIEraFactor));
+	m_rCurrEraFactor = per100(GC.getEraInfo(getCurrentEra()).get(CvEraInfo::AIEraFactor));
 }
 
 // K-Mod. Macros to help log changes in the AI strategy.
@@ -27872,7 +27882,7 @@ bool CvPlayerAI::AI_haveResourcesToTrain(UnitTypes eUnit) const
 	BonusTypes ePrereqAndBonus = kUnit.getPrereqAndBonus();
 	if (ePrereqAndBonus != NO_BONUS)
 	{
-		if (!hasBonus(ePrereqAndBonus) && AI_countOwnedBonuses(ePrereqAndBonus) == 0)
+		if (!hasBonus(ePrereqAndBonus) && !AI_isAnyOwnedBonus(ePrereqAndBonus))
 			return false;
 	}
 	// "or" bonuses
@@ -27880,7 +27890,7 @@ bool CvPlayerAI::AI_haveResourcesToTrain(UnitTypes eUnit) const
 	for (int i = 0; i < kUnit.getNumPrereqOrBonuses(); i++)
 	{
 		BonusTypes ePrereqOrBonus = kUnit.getPrereqOrBonuses(i);
-		if (hasBonus(ePrereqOrBonus) || AI_countOwnedBonuses(ePrereqOrBonus) > 0)
+		if (hasBonus(ePrereqOrBonus) || AI_isAnyOwnedBonus(ePrereqOrBonus))
 		{
 			bMissingBonus = false;
 			break;

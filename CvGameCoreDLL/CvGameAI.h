@@ -27,7 +27,7 @@ public:
   int AI_turnsPercent(int iTurns, int iPercent);
   // <advc.erai>
   scaled AI_getCurrEraFactor() const;
-  inline int AI_getCurrEra() const { return AI_getCurrEraFactor().round(); }
+  inline int AI_getCurrEra() const { return AI_getCurrEraFactor().uround(); }
   EraTypes AI_getVoteSourceEra(VoteSourceTypes eVS = NO_VOTESOURCE) const;
   // </advc.erai>
   scaled AI_exclusiveRadiusWeight(int iDist = -1) const; // advc.099b

@@ -17243,9 +17243,9 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 				if (!bValid)
 					continue;
 				szOptionId += "Icon";
-				if ((bTopIcons || BUGOption::isEnabled(szOptionId.c_str(), false)) &&
-					pCity->getCommerceRate(eLoopCommerce) >= 10 &&
-					pCity->findCommerceRateRank(eLoopCommerce) == 1)
+				if (pCity->getCommerceRate(eLoopCommerce) >= 10 &&
+					pCity->findCommerceRateRank(eLoopCommerce) == 1 &&
+					(bTopIcons || BUGOption::isEnabled(szOptionId.c_str(), false)))
 				{
 					szBuffer.append(CvWString::format(L"%c",
 							GC.getInfo(eLoopCommerce).getChar()));

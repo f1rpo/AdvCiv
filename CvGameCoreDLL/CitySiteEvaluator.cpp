@@ -1889,9 +1889,9 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus,
 		if (!bSurplus)
 		{
 			/*  Important for high-value strategic resources that get revealed
-				long before they can be traded, especially Oil.
-				CvPlayerAI::AI_countOwnedBonuses is too expensive I think,
-				but I'm copying a bit of code from there. */
+				long before they can be traded, especially Oil. Scanning the whole map
+				through CvPlayerAI::AI_countOwnedBonuses is too expensive I think,
+				but I'm copying the city bonus count from there. */
 			FOR_EACH_CITYAI(pCity, kPlayer)
 			{
 				if (pCity->AI_countNumBonuses(eBonus, true, true, -1) > 0)

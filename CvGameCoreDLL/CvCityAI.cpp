@@ -6193,7 +6193,7 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 						// resource prereq.
 						BonusTypes ePrereqBonus = kLoopUnit.getPrereqAndBonus();
 						if (ePrereqBonus != NO_BONUS && !kLoopPlayer.hasBonus(ePrereqBonus) &&
-							kLoopPlayer.AI_countOwnedBonuses(ePrereqBonus) == 0)
+							!kLoopPlayer.AI_isAnyOwnedBonus(ePrereqBonus))
 						{
 							iTemp /= 5;
 						}
