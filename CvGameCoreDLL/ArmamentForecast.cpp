@@ -448,8 +448,8 @@ void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduct
 			rBranchPortions[FLEET] = std::min(fixp(0.35),
 					fixp(0.08) + rCoastPortion / fixp(2.8));
 		}
-		scaled rTypicalCargo = m_kMilitary[LOGISTICS]->getTypicalPower(
-				m_kMA.getAgent());
+		TeamTypes const eAgentTeam = TEAMID(m_kMA.getAgentPlayer());
+		scaled rTypicalCargo = m_kMilitary[LOGISTICS]->getTypicalPower(eAgentTeam);
 		if (rTypicalCargo > 0 && m_kMilitary[LOGISTICS]->getTypicalUnit() != NO_UNIT)
 		{
 			rBranchPortions[LOGISTICS] = std::min(rBranchPortions[FLEET],
@@ -466,8 +466,7 @@ void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduct
 				rMultCargo.clamp(1, fixp(1.5));
 				rMultCargo = (rMultCargo + 1) / 2; // dilute
 				rBranchPortions[LOGISTICS] *= rMultCargo;
-				scaled rTypicalFleetPow = m_kMilitary[FLEET]->getTypicalPower(
-						m_kMA.getAgent());
+				scaled rTypicalFleetPow = m_kMilitary[FLEET]->getTypicalPower(eAgentTeam);
 				if (rTypicalFleetPow > 0)
 				{
 					scaled rMultFleet = 2 -
@@ -591,13 +590,14 @@ void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduct
 
 	// Increase military power
 	//m_kReport.log("\nbq."); // Textile block quote (takes up too much space)
+	TeamTypes const eAgentTeam = TEAMID(m_kMA.getAgentPlayer());
 	for (int i = 0; i < NUM_BRANCHES; i++)
 	{
 		MilitaryBranch& kBranch = *m_kMilitary[i];
-		scaled const rTypicalCost = kBranch.getTypicalCost(m_MA.getAgent());
+		scaled const rTypicalCost = kBranch.getTypicalCost(eAgentTeam);
 		if (rTypicalCost <= 0)
 			continue;
-		scaled const rTypicalPower = kBranch.getTypicalPower(m_MA.getAgent());
+		scaled const rTypicalPower = kBranch.getTypicalPower(eAgentTeam);
 		scaled rIncrease = rBranchPortions[i] * rTotalProductionForBuildUp *
 				rTypicalPower / rTypicalCost;
 		kBranch.changePower(rIncrease);

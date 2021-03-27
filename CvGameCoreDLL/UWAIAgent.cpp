@@ -210,10 +210,10 @@ namespace
 		:	iU(iU), eTarget(eTarget), iPrepTurns(iPrepTurns), bNaval(bNaval)
 		{}
 		inline bool operator<(PlanData const& kOther) { return iU < kOther.iU; }
-		int const iU;
-		TeamTypes const eTarget;
-		int const iPrepTurns;
-		bool const bNaval;
+		int iU;
+		TeamTypes eTarget;
+		int iPrepTurns;
+		bool bNaval;
 	};
 }
 
@@ -1342,10 +1342,10 @@ namespace
 		:	rDrive(rDrive), eTeam(eTeam), bTotal(bTotal), iU(iU)
 		{}
 		inline bool operator<(TargetData const& kOther) { return rDrive < kOther.rDrive; }
-		scaled const rDrive;
-		TeamTypes const eTeam;
-		bool const bTotal;
-		int comst iU;
+		scaled rDrive;
+		TeamTypes eTeam;
+		bool bTotal;
+		int iU;
 	};
 }
 

@@ -189,8 +189,6 @@ private:
 	bool doWePlanToDeclWar(PlayerTypes ePlayer) const;
 	void prepareResults();
 	void simulateNuclearWar();
-	// Known to be at war with anyone. If no observer, all wars are checked.
-	bool isKnownToBeAtWar(TeamTypes eTeam, TeamTypes eObserver = NO_TEAM) const;
 	/*  Also checks vassal agreements, including other vassals of
 		the same master. */
 	bool isDefactoDefensivePact(TeamTypes eFirst, TeamTypes eSecond) const;

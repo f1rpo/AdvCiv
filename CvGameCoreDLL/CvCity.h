@@ -311,7 +311,7 @@ public:
 	DllExport inline IDInfo getIDInfo() const { return IDInfo(getOwner(), getID()); }
 	// </advc.inl>
 	void setID(int iID);
-	inline int plotNum() const { return m_ePlot; } // advc.104
+	inline PlotNumTypes plotNum() const { return m_ePlot; } // advc.104
 
 	int getXExternal() const; // advc.inl: Exported through .def file											// Exposed to Python
 	inline int getX() const { return m_iX; } // advc.inl: Renamed from getX_INLINE

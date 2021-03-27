@@ -158,7 +158,7 @@ void MilitaryBranch::NuclearArsenal::updateTypicalUnit()
 		if (!kOwner.getCapitalCity()->canTrain(eUnit))
 			continue;
 		scaled const rPow = unitPower(eUnit, true);
-		if (rUnitPow <= 0)
+		if (rPow <= 0)
 			continue;
 		scaled rUtility = unitUtility(eUnit, rPow);
 		scaled rProductionCost = estimateProductionCost(eUnit);

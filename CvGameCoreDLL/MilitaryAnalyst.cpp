@@ -14,6 +14,35 @@ using std::ostringstream;
 CitySet MilitaryAnalyst::m_emptyCitySet;
 PlyrSet MilitaryAnalyst::m_emptyPlayerSet;
 
+namespace
+{
+	scaled nukeChanceToHit(TeamTypes eTeam)
+	{
+		scaled const rInterceptionProb = per100(std::max(
+				GET_TEAM(eTeam).getNukeInterception(),
+				// advc.143b:
+				GET_TEAM(GET_TEAM(eTeam).getMasterTeam()).getNukeInterception()));
+		scaled const rEvasionProb = fixp(0.5); // Fixme: Shouldn't hardcode this
+		// Percentage of Tactical Nukes
+		scaled rTactRatio = (GET_TEAM(eTeam).isHuman() ? fixp(0.5) : fixp(1/3.));
+		scaled rHitProb = 1 - (rInterceptionProb *
+				((1 - rTactRatio) + rTactRatio * (1 - rEvasionProb)));
+		rHitProb.clamp(0, 1);
+		return rHitProb;
+	}
+
+	// Known to be at war with anyone. If no observer, all wars are checked.
+	bool isKnownToBeAtWar(TeamTypes eTeam, TeamTypes eObserver)
+	{
+		for (TeamIter<MAJOR_CIV,ENEMY_OF> it(eTeam); it.hasNext(); ++it)
+		{
+			if (eObserver == NO_TEAM || GET_TEAM(eObserver).isHasMet(it->getID()))
+				return true;
+		}
+		return false;
+	}
+}
+
 
 MilitaryAnalyst::MilitaryAnalyst(PlayerTypes eAgentPlayer,
 	WarEvalParameters& kWarEvalParams, bool bPeaceScenario)
@@ -325,7 +354,7 @@ void MilitaryAnalyst::simulateNuclearWar()
 			rOurVassalMult /= 2;
 		scaled rEnemyVassalMult = 1;
 		if (kAgent.isAVassal())
-			rEnemyVassalMult = /= 2;
+			rEnemyVassalMult /= 2;
 		scaled rEnemyTargets;
 		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		{
@@ -363,35 +392,6 @@ void MilitaryAnalyst::simulateNuclearWar()
 			playerResult(eWe).addNukesFired(rFiredByUs);
 		if (rFiredOnUs > 0)
 			playerResult(kEnemy.getID()).addNukesFired(rFiredOnUs);
-	}
-}
-
-namespace
-{
-	scaled nukeChanceToHit(TeamTypes eTeam)
-	{
-		scaled const rInterceptionProb = per100(std::max(
-				GET_TEAM(eTeam).getNukeInterception(),
-				// advc.143b:
-				GET_TEAM(GET_TEAM(eTeam).getMasterTeam()).getNukeInterception()));
-		scaled const rEvasionProb = fixp(0.5); // Fixme: Shouldn't hardcode this
-		// Percentage of Tactical Nukes
-		scaled rTactRatio = (GET_TEAM(eTeam).isHuman() ? fixp(0.5) : fixp(1/3.));
-		scaled rHitProb = 1 - (rInterceptionProb *
-				((1 - rTactRatio) + rTactRatio * (1 - rEvasionProb)));
-		r.clamp(0, 1);
-		return rHitProb;
-	}
-
-
-	bool isKnownToBeAtWar(TeamTypes eTeam, TeamTypes eObserver) const
-	{
-		for (TeamIter<MAJOR_CIV,ENEMY_OF> it(eTeam); it.hasNext(); ++it)
-		{
-			if (eObserver == NO_TEAM || GET_TEAM(eObserver).isHasMet(it->getID()))
-				return true;
-		}
-		return false;
 	}
 }
 
