@@ -410,27 +410,8 @@ void TestScaledNum()
 			iDummy += (int)dCost;
 		}
 	}
-
-	// Syntax test (How easy is it to convert floating-point calculations to ScaledNum?)
-	/*	Based on some calculations in InvasionGraph::step. Out of context,
-		the excerpts used here and their names are nonsensical. */
-	scaled rOtherDist = 2;
-	scaled rMod = scaled::max(100 - 2 * rOtherDist, 50) / 100;
-	scaled rOtherPow = 1282;
-	rOtherPow *= rMod;
-	scaled rPow = 1417;
-	scaled rDist = 5;
-	rPow *= scaled::max(100 - fixp(1.55) * rDist.pow(fixp(1.15)), 50) / 100;
-	scaled rWeight, rOtherWeight;
-	rWeight = rOtherWeight = 1;
-	rOtherWeight *= (rOtherPow > 1000 ? fixp(1.5) : fixp(4/3.));
-	rWeight += fixp(.25);
-	rWeight.clamp(fixp(.5), 1);
-	rPow *= rWeight;
-	if(rOtherWeight <= per100(99))
-		rOtherPow *= rOtherWeight;
-	iDummy += (rPow * (rOtherPow / 2) + rWeight).round();
-
+	/*	This will always be false, but the compiler can't tell.
+		See comment near the definition of iDummy. */
 	if (iDummy == -7)
 	{
 		FAssert(false);
