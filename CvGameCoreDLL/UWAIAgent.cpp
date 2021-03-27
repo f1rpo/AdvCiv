@@ -1071,7 +1071,7 @@ int UWAI::Team::peaceThreshold(TeamTypes targetId) const {
 	if(!target.AI_isChosenWar(agentId))
 		r -= 5;
 	// This puts the term between -30 and 10
-	r += (1 - leaderUWAI().prideRating()) * 40 - 30;
+	r += (1 - leaderUWAI().prideRating(agent.AI_makePeaceRand())) * 40 - 30;
 	r += std::min(15.0, (agent.AI_getWarSuccess(targetId) +
 				2 * target.AI_getWarSuccess(agentId)) /
 				(0.5 * GC.getWAR_SUCCESS_CITY_CAPTURING()) +
@@ -2652,12 +2652,15 @@ double UWAI::Civ::diploWeight() const {
 	return 0.25;
 }
 
-double UWAI::Civ::prideRating() const {
+double UWAI::Civ::prideRating(int makePeaceRand) const {
 
 	// Fixme: Should be a Team function and call CvTeamAI::AI_makePeaceRand
 	CvPlayerAI const& we = GET_PLAYER(weId);
 	if(we.isHuman())
 		return 0;
-	CvLeaderHeadInfo& lh = GC.getInfo(we.getPersonalityType());
-	return ::dRange(lh.getMakePeaceRand() / 110.0 - 0.09, 0.0, 1.0);
+	if (makePeaceRand < 0) {
+		CvLeaderHeadInfo& lh = GC.getInfo(we.getPersonalityType());
+		makePeaceRand = lh.getMakePeaceRand();
+	}
+	return ::dRange(makePeaceRand / 110.0 - 0.09, 0.0, 1.0);
 }

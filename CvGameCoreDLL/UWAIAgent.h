@@ -232,9 +232,10 @@ public:
 	/*  Between 0.25 (Tokugawa) and 1.75 (Mansa Musa, Zara Yaqob). A measure
 		of how much a leader cares about being generally liked in the world. */
 	double diploWeight() const;
-	/*  Between 0 (Pacal and several others) and 1 (Sitting Bull). How much a
-		leader insists on reparations to end a war. Based on MakePeaceRand. */
-	double prideRating() const;
+	/*	Between 0 (Pacal and several others) and 1 (Sitting Bull). How much a
+		leader insists on reparations to end a war. Based on MakePeaceRand
+		(from our leader's personality unless another value is given by the caller). */
+	double prideRating(int makePeaceRand = -1) const;
 
 private:
 	// Probability assumed by the AI if this civ is human
