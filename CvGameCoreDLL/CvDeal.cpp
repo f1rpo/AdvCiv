@@ -271,7 +271,7 @@ void CvDeal::addTradeItems(
 			break;
 		}
 	}*/ // K-Mod end
-	bool const bReportUWAI = getUWAI.isEnabled();
+	bool const bReportUWAI = getUWAI().isEnabled();
 	// advc (fixme): This whole loop is mostly duplicated below
 	for (int iPass = 0; iPass < 2; iPass++) // advc: Replacing the K-Mod loop above
 	{

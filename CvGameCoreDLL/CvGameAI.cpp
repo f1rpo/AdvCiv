@@ -56,7 +56,7 @@ void CvGameAI::AI_initScenario()
 		it->uwai().turnPre();
 } // </advc.104u>
 
-/*  <advc.104> I'm repurposing the Aggressive AI option so that it disables UWAI
+/*  advc.104: I'm repurposing the Aggressive AI option so that it disables UWAI
 	in addition to the option's normal effect. A bit of a hack, but less invasive
 	than changing all the isOption(AGGRESSIVE_AI) checks. Don't want two separate
 	options because UWAI implies Aggressive AI. */
@@ -64,13 +64,13 @@ void CvGameAI::AI_sortOutUWAIOptions(bool bFromSaveGame)
 {
 	if(GC.getDefineINT("USE_KMOD_AI_NONAGGRESSIVE"))
 	{
-		m_uwai.setUseKModAI(true);
+		m_uwai.setUseLegacyAI(true);
 		setOption(GAMEOPTION_AGGRESSIVE_AI, false);
 		return;
 	}
 	if(GC.getDefineINT("DISABLE_UWAI"))
 	{
-		m_uwai.setUseKModAI(true);
+		m_uwai.setUseLegacyAI(true);
 		setOption(GAMEOPTION_AGGRESSIVE_AI, true);
 		return;
 	}
@@ -83,10 +83,10 @@ void CvGameAI::AI_sortOutUWAIOptions(bool bFromSaveGame)
 	}
 	// If still not returned: settings according to Custom Game screen
 	bool bUseKModAI = isOption(GAMEOPTION_AGGRESSIVE_AI);
-	m_uwai.setUseKModAI(bUseKModAI);
+	m_uwai.setUseLegacyAI(bUseKModAI);
 	if(!bUseKModAI)
 		setOption(GAMEOPTION_AGGRESSIVE_AI, true);
-} // </advc.104>
+}
 
 
 void CvGameAI::AI_uninit() {}

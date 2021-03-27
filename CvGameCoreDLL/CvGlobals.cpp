@@ -672,6 +672,7 @@ void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 	m_aiGlobalDefinesCache = new int[NUM_GLOBAL_DEFINES];
 	for (int i = 0; i < NUM_GLOBAL_DEFINES; i++)
 	{
+		int iLower = MIN_INT;
 		/*  Let's not throw away the default values from BBAI
 			(though they should of course not be needed) */
 		int iDefault = 0;
@@ -679,7 +680,10 @@ void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 		{
 		// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
 		// BBAI AI Variables
-		case WAR_SUCCESS_CITY_CAPTURING: iDefault = 25; break;
+		case WAR_SUCCESS_CITY_CAPTURING:
+			iDefault = 25;
+			iLower = 1; // advc: 0 will crash AI code
+			break;
 		case BBAI_ATTACK_CITY_STACK_RATIO: iDefault = 110; break;
 		case BBAI_SKIP_BOMBARD_BASE_STACK_RATIO: iDefault = 300; break;
 		case BBAI_SKIP_BOMBARD_MIN_STACK_RATIO: iDefault = 140; break;
@@ -701,7 +705,8 @@ void CvGlobals::cacheGlobalInts(char const* szChangedDefine, int iNewValue)
 		case COMBAT_DAMAGE: iDefault = -1; break;
 		// BETTER_BTS_AI_MOD: END
 		}
-		m_aiGlobalDefinesCache[i] = getDefineINT(aszGlobalDefinesTagNames[i], iDefault);
+		m_aiGlobalDefinesCache[i] = std::max(iLower,
+				getDefineINT(aszGlobalDefinesTagNames[i], iDefault));
 	}
 	m_iEventMessageTime = getDefineINT("EVENT_MESSAGE_TIME");
 } // </advc.opt>

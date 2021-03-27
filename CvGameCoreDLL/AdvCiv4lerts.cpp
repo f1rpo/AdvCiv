@@ -1,5 +1,3 @@
-// advc.210: New classes; see header file for description
-
 #include "CvGameCoreDLL.h"
 #include "AdvCiv4lerts.h"
 #include "CvInfo_Terrain.h"
@@ -11,405 +9,419 @@
 
 using std::set;
 using std::vector;
-using std::multiset;
 using std::inserter;
 using std::set_difference;
 
-AdvCiv4lert::AdvCiv4lert(PlayerTypes eOwner) : ownerId(eOwner)
+
+AdvCiv4lert::AdvCiv4lert(PlayerTypes eOwner) : m_eOwner(eOwner)
 {
-	isSilent = false;
-	/*  Set this to true in a subclass constructor in order to test or debug a
+	m_bSilent = false;
+	/*	Set this to true in a subclass constructor in order to test or debug a
 		particular alert through AI Auto Play */
-	isDebug = false;
+	m_bDebug = false;
 }
 
-void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, ColorTypes colorId) const
+
+void AdvCiv4lert::showMessage(CvWString szMsg, LPCSTR szIcon, int iX, int iY,
+	ColorTypes eColor) const
 {
-	if(isSilent)
+	if (m_bSilent)
 		return;
 	// <advc.127>
-	bool autoPlayJustEnded = GET_PLAYER(ownerId).isAutoPlayJustEnded();
-	CvGame& g = GC.getGame();
-	bool force = (isDebug && (GET_PLAYER(ownerId).isSpectator() ||
-			/*  When Auto Play has just ended, we're no longer in spectator mode,
+	bool bAutoPlayJustEnded = GET_PLAYER(m_eOwner).isAutoPlayJustEnded();
+	CvGame& kGame = GC.getGame();
+	bool bForce = (m_bDebug && (GET_PLAYER(m_eOwner).isSpectator() ||
+			/*	When Auto Play has just ended, we're no longer in spectator mode,
 				but the message should still be force-delivered. */
-			(autoPlayJustEnded && g.isDebugMode())));
-	if(!force && (GET_PLAYER(ownerId).isHumanDisabled() || autoPlayJustEnded))
+			(bAutoPlayJustEnded && kGame.isDebugMode())));
+	if (!bForce && (GET_PLAYER(m_eOwner).isHumanDisabled() || bAutoPlayJustEnded))
 		return; // </advc.127>
 	// <advc.706>
-	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().isBlockPopups())
+	if (kGame.isOption(GAMEOPTION_RISE_FALL) && kGame.getRiseFall().isBlockPopups())
 		return; // </advc.706>
-	bool arrows = (icon != NULL);
-	gDLL->UI().addMessage(ownerId, false, -1, s, NULL,
-			force && isDebug ? MESSAGE_TYPE_MAJOR_EVENT : MESSAGE_TYPE_INFO, // advc.127
-			icon, (ColorTypes)colorId, x, y, arrows, arrows);
+	bool bArrows = (szIcon != NULL);
+	gDLL->UI().addMessage(m_eOwner, false, -1, szMsg, NULL,
+			bForce && m_bDebug ? MESSAGE_TYPE_MAJOR_EVENT : MESSAGE_TYPE_INFO, // advc.127
+			szIcon, (ColorTypes)eColor, iX, iY, bArrows, bArrows);
 }
 
-void AdvCiv4lert::check(bool silent)
+
+void AdvCiv4lert::check(bool bSilent)
 {
-	if(ownerId == NO_PLAYER || (!isDebug && !GET_PLAYER(ownerId).isHuman()))
+	if (m_eOwner == NO_PLAYER || (!m_bDebug && !GET_PLAYER(m_eOwner).isHuman()))
 	{
-		/*  Normally no need to check during Auto Play. Wouldn't hurt, except
+		/*	Normally no need to check during Auto Play. Wouldn't hurt, except
 			that the checks aren't super fast. */
 		return;
 	}
-	if(silent)
-		isSilent = true;
+	if (m_bSilent)
+		m_bSilent = true;
 	check();
-	if(silent)
-		isSilent = false;
+	if (m_bSilent)
+		m_bSilent = false;
 }
 
 // <advc.210a>
 void WarTradeAlert::check()
 {
-	CvPlayer const& owner = GET_PLAYER(ownerId);
-	for(int i = 0; i < MAX_CIV_TEAMS; i++)
+	CvPlayer const& kOwner = GET_PLAYER(m_eOwner);
+	for (TeamIter<FREE_MAJOR_CIV,OTHER_KNOWN_TO> itHireling(kOwner.getTeam());
+		itHireling.hasNext(); ++itHireling)
 	{
-		CvTeamAI const& warTeam = GET_TEAM((TeamTypes)i);
-		bool valid = (warTeam.isAlive() && !warTeam.isAVassal() &&
-				!warTeam.isMinorCiv() && !warTeam.isHuman() &&
-				warTeam.getID() != owner.getTeam() &&
-				!warTeam.isAtWar(owner.getTeam()) &&
-				owner.canContact(warTeam.getLeaderID(), true));
-		std::vector<TeamTypes> willTradeMsgTeams;
-		std::vector<TeamTypes> noLongerTradeMsgTeams;
-		bool nowTooManyWars = false; // Only relevant when UWAI is disabled
-		for(int j = 0; j < MAX_CIV_TEAMS; j++)
+		CvTeamAI const& kHireling = *itHireling;
+		bool const bHirelingValid = (
+				!kHireling.isHuman() &&
+				!kHireling.isAtWar(kOwner.getTeam()) &&
+				kOwner.canContact(kHireling.getLeaderID(), true));
+		vector<TeamTypes> aeWillTradeMsgTeams;
+		vector<TeamTypes> aeNoLongerTradeMsgTeams;
+		bool bNowTooManyWars = false; // Only relevant when UWAI is disabled
+		for (TeamIter<FREE_MAJOR_CIV,OTHER_KNOWN_TO> itTarget(kOwner.getTeam());
+			itTarget.hasNext(); ++itTarget)
 		{
-			CvTeam const& victim = GET_TEAM((TeamTypes)j);
-			bool otherValid = (valid && victim.isAlive() && !victim.isAVassal() &&
-					!victim.isMinorCiv() && victim.getID() != owner.getTeam() &&
-					victim.getID() != warTeam.getID() &&
-					!warTeam.isAtWar(victim.getID()) &&
-					GET_TEAM(owner.getTeam()).isHasMet(victim.getID()) &&
-					// Can't suggest war trade otherwise
-					warTeam.isOpenBordersTrading());
-			DenialTypes tradeDenial = (otherValid ? warTeam.AI_declareWarTrade(
-					victim.getID(), owner.getTeam()) : NO_DENIAL);
-			bool willNowWar = (otherValid && tradeDenial == NO_DENIAL);
-			if (!getUWAI.isEnabled() && otherValid && !nowTooManyWars &&
-				tradeDenial == DENIAL_TOO_MANY_WARS && warTeam.getNumWars() <= 0)
+			CvTeam const& kTarget = *itTarget;
+			bool const bValid = (bHirelingValid &&
+					kTarget.getID() != kHireling.getID() &&
+					!kHireling.isAtWar(kTarget.getID()) &&
+					// Can't suggest war trades otherwise
+					kHireling.isOpenBordersTrading());
+			DenialTypes eTradeDenial = (bValid ? kHireling.AI_declareWarTrade(
+					kTarget.getID(), kOwner.getTeam()) : NO_DENIAL);
+			bool bWillNowWar = (bValid && eTradeDenial == NO_DENIAL);
+			if (!getUWAI().isEnabled() && bValid && !bNowTooManyWars &&
+				eTradeDenial == DENIAL_TOO_MANY_WARS && kHireling.getNumWars() <= 0)
 			{
-				nowTooManyWars = true;
+				bNowTooManyWars = true;
 			}
-			if(willNowWar == willWar.get(warTeam.getID(), victim.getID()))
+			if (bWillNowWar == m_willWar.get(kHireling.getID(), kTarget.getID()))
 				continue;
-			willWar.set(warTeam.getID(), victim.getID(), willNowWar);
-			if(willNowWar)
-				willTradeMsgTeams.push_back(victim.getID());
-			/*  Obviously can't hire warTeam if it has already declared war
-				or if victim has been eliminated. */
-			else if(victim.isAlive() && !warTeam.isAtWar(victim.getID()))
-				noLongerTradeMsgTeams.push_back(victim.getID());
+			m_willWar.set(kHireling.getID(), kTarget.getID(), bWillNowWar);
+			if (bWillNowWar)
+				aeWillTradeMsgTeams.push_back(kTarget.getID());
+			// Obviously can't hire anymore after war is declared
+			else if (!kHireling.isAtWar(kTarget.getID()))
+				aeNoLongerTradeMsgTeams.push_back(kTarget.getID());
 		}
-		msg(warTeam.getID(), willTradeMsgTeams, true);
-		if(GC.getDefineBOOL("ALERT_ON_NO_LONGER_WAR_TRADE"))
-			msg(warTeam.getID(), noLongerTradeMsgTeams, false);
-		if (!getUWAI.isEnabled() && nowTooManyWars != tooManyWars.get(warTeam.getID()) &&
+		showMessage(kHireling.getID(), aeWillTradeMsgTeams, true);
+		if (GC.getDefineBOOL("ALERT_ON_NO_LONGER_WAR_TRADE"))
+			showMessage(kHireling.getID(), aeNoLongerTradeMsgTeams, false);
+		if (!getUWAI().isEnabled() &&
+			bNowTooManyWars != m_tooManyWars.get(kHireling.getID()) &&
 			// Willingness to start a war implies not having "too much on their hands"
-			(willTradeMsgTeams.empty() || nowTooManyWars))
+			(aeWillTradeMsgTeams.empty() || bNowTooManyWars))
 		{
-			msg(warTeam.getID(), nowTooManyWars);
+			showMessage(kHireling.getID(), bNowTooManyWars);
 		}
-		tooManyWars.set(warTeam.getID(), nowTooManyWars);
+		m_tooManyWars.set(kHireling.getID(), bNowTooManyWars);
 	}
 }
 
-void WarTradeAlert::msg(TeamTypes warTeamId, std::vector<TeamTypes> victims,
+
+void WarTradeAlert::showMessage(TeamTypes eHireling, std::vector<TeamTypes> aeTargets,
 	bool bTrade) const
 {
-	if(victims.empty())
+	if (aeTargets.empty())
 		return;
-	CvTeam const& warTeam = GET_TEAM(warTeamId);
-	CvWString text = gDLL->getText((bTrade ? "TXT_KEY_CIV4LERTS_TRADE_WAR" :
-			"TXT_KEY_CIV4LERTS_NO_LONGER_TRADE_WAR"),
-			GET_PLAYER(warTeam.getLeaderID()).getName());
-	if(victims.size() > 1)
-		text += L":";
-	text += L" ";
-	for(size_t i = 0; i < victims.size(); i++)
+	CvTeam const& kHireling = GET_TEAM(eHireling);
+	CvWString szMsg = gDLL->getText(bTrade ?
+			"TXT_KEY_CIV4LERTS_TRADE_WAR" :
+			"TXT_KEY_CIV4LERTS_NO_LONGER_TRADE_WAR",
+			GET_PLAYER(kHireling.getLeaderID()).getName());
+	if (aeTargets.size() > 1)
+		szMsg += L":";
+	szMsg += L" ";
+	for (size_t i = 0; i < aeTargets.size(); i++)
 	{
-		text += GET_TEAM(victims[i]).getName();
-		if(i != victims.size() - 1)
-			text += L", ";
-		else text += L".";
+		szMsg += GET_TEAM(aeTargets[i]).getName();
+		if (i != aeTargets.size() - 1)
+			szMsg += L", ";
+		else szMsg += L".";
 	}
-	msg(text, warTeamId);
+	showMessage(szMsg, eHireling);
 }
 
 
-void WarTradeAlert::msg(TeamTypes warTeamId, bool bNowTooManyWars) const
+void WarTradeAlert::showMessage(TeamTypes eHireling, bool bNowTooManyWars) const
 {
-	CvTeam const& warTeam = GET_TEAM(warTeamId);
-	CvWString text = gDLL->getText((bNowTooManyWars ? "TXT_KEY_CIV4LERTS_TOO_MANY_WARS" :
-			"TXT_KEY_CIV4LERTS_NO_LONGER_TOO_MANY_WARS"),
-			warTeam.getName().GetCString());
-	msg(text, warTeamId);
+	CvWString szMsg = gDLL->getText(bNowTooManyWars ?
+			"TXT_KEY_CIV4LERTS_TOO_MANY_WARS" :
+			"TXT_KEY_CIV4LERTS_NO_LONGER_TOO_MANY_WARS",
+			GET_TEAM(eHireling).getName().GetCString());
+	showMessage(szMsg, eHireling);
 }
 
 
-void WarTradeAlert::msg(CvWString text, TeamTypes warTeamId) const
+void WarTradeAlert::showMessage(CvWString szMsg, TeamTypes eHireling) const
 {
-	AdvCiv4lert::msg(text, NULL,
+	AdvCiv4lert::showMessage(szMsg, NULL,
 			// <advc.127b>
-			GET_TEAM(warTeamId).getCapitalX(TEAMID(ownerId)),
-			GET_TEAM(warTeamId).getCapitalY(TEAMID(ownerId)), // </advc.127b>
+			GET_TEAM(eHireling).getCapitalX(TEAMID(m_eOwner)),
+			GET_TEAM(eHireling).getCapitalY(TEAMID(m_eOwner)), // </advc.127b>
 			GC.getColorType("WAR_TRADE_ALERT"));
 } // </advc.210a>
 
 // <advc.210b>
 RevoltAlert::RevoltAlert(PlayerTypes eOwner) : AdvCiv4lert(eOwner) {}
 
+
 void RevoltAlert::check()
 {
-	set<int> updatedRevolt;
-	set<int> updatedOccupation;
-	CvPlayer const& owner = GET_PLAYER(ownerId);
-	FOR_EACH_CITY(c, owner)
+	set<PlotNumTypes> updatedRevolt;
+	set<PlotNumTypes> updatedOccupation;
+	CvPlayer const& kOwner = GET_PLAYER(m_eOwner);
+	FOR_EACH_CITY(pCity, kOwner)
 	{
-		bool couldPreviouslyRevolt = revoltPossible.count(c->plotNum()) > 0;
-		bool wasOccupation = occupation.count(c->plotNum()) > 0;
-		double pr = c->revoltProbability();
-		if(pr > 0)
+		bool const bCouldPreviouslyRevolt = (m_revoltPossible.
+				count(pCity->plotNum()) > 0);
+		bool const bWasOccupation = (m_occupation.
+				count(pCity->plotNum()) > 0);
+		scaled rRevoltProb = pCity->revoltProbability();
+		if (rRevoltProb > 0)
 		{
-			updatedRevolt.insert(c->plotNum());
-			/*  Report only change in revolt chance OR change in occupation status;
+			updatedRevolt.insert(pCity->plotNum());
+			/*	Report only change in revolt chance OR change in occupation status;
 				the latter takes precedence. */
-			if(!couldPreviouslyRevolt && wasOccupation == c->isOccupation())
+			if (!bCouldPreviouslyRevolt && bWasOccupation == pCity->isOccupation())
 			{
 				wchar szTempBuffer[1024];
-				swprintf(szTempBuffer, L"%.1f", (float)(100 * pr));
-				msg(gDLL->getText("TXT_KEY_CIV4LERTS_REVOLT", c->getName().
-						GetCString(), szTempBuffer),
-						NULL // icon works, but is too distracting
-						,//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX(), c->getY());
-						// red text also too distracting
-						//(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+				swprintf(szTempBuffer, L"%.1f", 100 * rRevoltProb.getFloat());
+				showMessage(gDLL->getText("TXT_KEY_CIV4LERTS_REVOLT",
+						pCity->getName().c_str(), szTempBuffer),
+						//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
+						NULL, // Icon works - but is too distracting
+						pCity->getX(), pCity->getY());
+						// (red text also too distracting)
+						//GC.getColorType("WARNING_TEXT")
 			}
 		}
 		#if 0 // Disabled: Message when revolt chance becomes 0
-		else if(couldPreviouslyRevolt && wasOccupation == c->isOccupation() &&
-			/*  Don't report 0 revolt chance when in occupation b/c
+		else if (bCouldPreviouslyRevolt && bWasOccupation == pCity->isOccupation() &&
+			/*	Don't report 0 revolt chance when in occupation b/c
 				revolt chance will increase a bit when occupation ends. */
-			!c->isOccupation())
+			!pCity->isOccupation())
 		{
-			msg(gDLL->getText("TXT_KEY_CIV4LERTS_NO_LONGER_REVOLT", c->getName().
-						GetCString()), NULL
-						,//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX(), c->getY());
+			showMessage(gDLL->getText("TXT_KEY_CIV4LERTS_NO_LONGER_REVOLT",
+					pCity->getName().c_str(),
+					//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
+					NULL, pCity->getX(), pCity->getY());
 		}
 		#endif
-		if(c->isOccupation())
-			updatedOccupation.insert(c->plotNum());
-		/*  If there's no order queued, the city will come to the player's attention
+		if (pCity->isOccupation())
+			updatedOccupation.insert(pCity->plotNum());
+		/*	If there's no order queued, the city will come to the player's attention
 			anyway when it asks for orders. */
-		else if(wasOccupation && c->getNumOrdersQueued() > 0)
+		else if (bWasOccupation && pCity->getNumOrdersQueued() > 0)
 		{
-			msg(gDLL->getText("TXT_KEY_CIV4LERTS_CITY_PACIFIED_ADVC", c->getName().
-						GetCString()), NULL,
-						//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX(), c->getY());
-			/*  Pretend that revolt chance is 0 after occupation ends, so that
+			showMessage(gDLL->getText("TXT_KEY_CIV4LERTS_CITY_PACIFIED_ADVC",
+					pCity->getName().c_str(),
+					//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
+					NULL, pCity->getX(), pCity->getY()));
+			/*	Pretend that revolt chance is 0 after occupation ends, so that
 				a spearate alert is fired on the next turn if it's actually not 0. */
-			updatedRevolt.erase(c->plotNum());
+			updatedRevolt.erase(pCity->plotNum());
 		}
 	}
-	revoltPossible.clear();
-	revoltPossible.insert(updatedRevolt.begin(), updatedRevolt.end());
-	occupation.clear();
-	occupation.insert(updatedOccupation.begin(), updatedOccupation.end());
+	m_revoltPossible.clear();
+	m_revoltPossible.insert(updatedRevolt.begin(), updatedRevolt.end());
+	m_occupation.clear();
+	m_occupation.insert(updatedOccupation.begin(), updatedOccupation.end());
 } // </advc.210b>
 
 // <advc.210d>
 BonusThirdPartiesAlert::BonusThirdPartiesAlert(PlayerTypes eOwner) : AdvCiv4lert(eOwner)
 {
-	isDebug = false;
+	m_bDebug = false;
 }
+
 
 void BonusThirdPartiesAlert::check()
 {
-	multiset<int> updatedDeals[MAX_CIV_PLAYERS];
-	FOR_EACH_DEAL(d)
+	std::multiset<int> updatedDeals[MAX_CIV_PLAYERS];
+	FOR_EACH_DEAL(pDeal)
 	{
-		// This alert ignores trades of ownerId
-		if(d->getFirstPlayer() == ownerId || d->getSecondPlayer() == ownerId)
+		// This alert ignores trades of the alert owner
+		if (pDeal->getFirstPlayer() == m_eOwner || pDeal->getSecondPlayer() == m_eOwner)
 			continue;
-		vector<int> dealData;
-		getExportData(d->getFirstList(), d->getSecondPlayer(), dealData);
-		for(size_t i = 0; i < dealData.size(); i++)
-			updatedDeals[d->getFirstPlayer()].insert(dealData[i]);
-		dealData.clear();
-		getExportData(d->getSecondList(), d->getFirstPlayer(), dealData);
-		for(size_t i = 0; i < dealData.size(); i++)
-			updatedDeals[d->getSecondPlayer()].insert(dealData[i]);
+		vector<int> aiDealData;
+		getExportData(pDeal->getFirstList(), pDeal->getSecondPlayer(), aiDealData);
+		for(size_t i = 0; i < aiDealData.size(); i++)
+			updatedDeals[pDeal->getFirstPlayer()].insert(aiDealData[i]);
+		aiDealData.clear();
+		getExportData(pDeal->getSecondList(), pDeal->getFirstPlayer(), aiDealData);
+		for(size_t i = 0; i < aiDealData.size(); i++)
+			updatedDeals[pDeal->getSecondPlayer()].insert(aiDealData[i]);
 	}
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+	for (PlayerIter<MAJOR_CIV> itFrom; itFrom.hasNext(); ++itFrom)
 	{
-		if(i == ownerId)
+		PlayerTypes const eFrom = itFrom->getID();
+		if (eFrom == m_eOwner)
 			continue;
-		PlayerTypes fromId = (PlayerTypes)i;
-		if(!GET_PLAYER(fromId).isAlive())
-			continue;
-		vector<int> newDeals;
-		set_difference(updatedDeals[i].begin(), updatedDeals[i].end(),
-				exportDeals[i].begin(), exportDeals[i].end(),
-				inserter(newDeals, newDeals.begin()));
-		vector<int> missingDeals;
-		set_difference(exportDeals[i].begin(), exportDeals[i].end(),
-				updatedDeals[i].begin(), updatedDeals[i].end(),
-				inserter(missingDeals, missingDeals.begin()));
-		for(size_t j = 0; j < newDeals.size(); j++)
+		vector<int> aiNewDeals;
+		set_difference(updatedDeals[eFrom].begin(), updatedDeals[eFrom].end(),
+				m_exportDeals[eFrom].begin(), m_exportDeals[eFrom].end(),
+				inserter(aiNewDeals, aiNewDeals.begin()));
+		vector<int> aiMissingDeals;
+		set_difference(m_exportDeals[eFrom].begin(), m_exportDeals[eFrom].end(),
+				updatedDeals[eFrom].begin(), updatedDeals[eFrom].end(),
+				inserter(aiMissingDeals, aiMissingDeals.begin()));
+		for (size_t i = 0; i < aiNewDeals.size(); i++)
 		{
-			int newCount = updatedDeals[i].count(newDeals[j]);
-			int oldCount = exportDeals[i].count(newDeals[j]);
-			FAssert(newCount > oldCount);
-			doMsg(fromId, newDeals[j], newCount, oldCount);
+			int iNewCount = updatedDeals[eFrom].count(aiNewDeals[i]);
+			int iOldCount = m_exportDeals[eFrom].count(aiNewDeals[i]);
+			FAssert(iNewCount > iOldCount);
+			showMessage(eFrom, aiNewDeals[i], iNewCount, iOldCount);
 		}
-		for(size_t j = 0; j < missingDeals.size(); j++)
+		for (size_t i = 0; i < aiMissingDeals.size(); i++)
 		{
-			int newCount = updatedDeals[i].count(missingDeals[j]);
-			int oldCount = exportDeals[i].count(missingDeals[j]);
-			FAssert(newCount < oldCount);
-			doMsg(fromId, missingDeals[j], newCount, oldCount);
+			int iNewCount = updatedDeals[eFrom].count(aiMissingDeals[i]);
+			int iOldCount = m_exportDeals[eFrom].count(aiMissingDeals[i]);
+			FAssert(iNewCount < iOldCount);
+			showMessage(eFrom, aiMissingDeals[i], iNewCount, iOldCount);
 		}
-		exportDeals[i] = updatedDeals[i];
+		m_exportDeals[eFrom] = updatedDeals[eFrom];
 	}
 }
 
-void BonusThirdPartiesAlert::getExportData(CLinkList<TradeData> const& list,
-	PlayerTypes toId, std::vector<int>& r) const
+
+void BonusThirdPartiesAlert::getExportData(CLinkList<TradeData> const& kList,
+	PlayerTypes eTo, std::vector<int>& kResult) const
 {
-	FOR_EACH_TRADE_ITEM(list)
+	FOR_EACH_TRADE_ITEM(kList)
 	{
-		if(pItem->m_eItemType == TRADE_RESOURCES)
-			r.push_back(GC.getNumBonusInfos() * toId + pItem->m_iData);
+		if (pItem->m_eItemType == TRADE_RESOURCES)
+			kResult.push_back(GC.getNumBonusInfos() * eTo + pItem->m_iData);
 	}
 }
 
-void BonusThirdPartiesAlert::doMsg(PlayerTypes fromId, int data, int newQuantity, int oldQuantity)
+
+void BonusThirdPartiesAlert::showMessage(PlayerTypes eFrom, int iData,
+	int iNewQuantity, int iOldQuantity)
 {
-	BonusTypes bonusId = (BonusTypes)(data % GC.getNumBonusInfos());
-	PlayerTypes toId = (PlayerTypes)((data - bonusId) / GC.getNumBonusInfos());
-	CvPlayerAI const& from = GET_PLAYER(fromId);
-	CvPlayerAI const& to = GET_PLAYER(toId);
+	BonusTypes const eBonus = (BonusTypes)(iData % GC.getNumBonusInfos());
+	PlayerTypes const eTo = (PlayerTypes)((iData - eBonus) / GC.getNumBonusInfos());
+	CvPlayerAI const& kFrom = GET_PLAYER(eFrom);
+	CvPlayerAI const& kTo = GET_PLAYER(eTo);
 	// Don't report ended trade when the reason is obvious
-	if(!from.isAlive() || !to.isAlive() || GET_TEAM(from.getTeam()).isAtWar(to.getTeam()) ||
-		from.AI_getMemoryCount(toId, MEMORY_STOPPED_TRADING_RECENT) > 0 ||
-		to.AI_getMemoryCount(fromId, MEMORY_STOPPED_TRADING_RECENT) > 0)
+	if (!kFrom.isAlive() || !kTo.isAlive() ||
+		GET_TEAM(kFrom.getTeam()).isAtWar(kTo.getTeam()) ||
+		kFrom.AI_getMemoryCount(eTo, MEMORY_STOPPED_TRADING_RECENT) > 0 ||
+		kTo.AI_getMemoryCount(eFrom, MEMORY_STOPPED_TRADING_RECENT) > 0)
 	{
 		return;
 	}
 	// Don't report unseen trades
-	if(!GET_PLAYER(ownerId).isSpectator() && // advc.127
-		(!GET_TEAM(ownerId).isHasMet(from.getTeam()) ||
-		!GET_TEAM(ownerId).isHasMet(to.getTeam())))
+	if (!GET_PLAYER(m_eOwner).isSpectator() && // advc.127
+		(!GET_TEAM(m_eOwner).isHasMet(kFrom.getTeam()) ||
+		!GET_TEAM(m_eOwner).isHasMet(kTo.getTeam())))
 	{
 		return;
 	}
-	int bonusChar = GC.getInfo(bonusId).getChar();
-	CvWString msgStr;
-	CvWString quantityStr;
-	if(!isDebug || newQuantity == 0 || oldQuantity == 0)
-		quantityStr = gDLL->getText("TXT_KEY_CIV4LERTS_BONUS_ICON", bonusChar);
+	int const iBonusChar = GC.getInfo(eBonus).getChar();
+	CvWString szMsg;
+	CvWString szQuantity;
+	if (!m_bDebug || iNewQuantity == 0 || iOldQuantity == 0)
+		szQuantity = gDLL->getText("TXT_KEY_CIV4LERTS_BONUS_ICON", iBonusChar);
 	else
 	{
-		quantityStr = (newQuantity > oldQuantity ?
-				/*  The difference should practically always be 1; if it's more,
+		szQuantity = (iNewQuantity > iOldQuantity ?
+				/*	The difference should practically always be 1; if it's more,
 					it's still not incorrect to claim that one more resource is
 					being traded. */
-				gDLL->getText("TXT_KEY_CIV4LERTS_ONE_MORE", bonusChar) :
-				gDLL->getText("TXT_KEY_CIV4LERTS_ONE_FEWER", bonusChar));
+				gDLL->getText("TXT_KEY_CIV4LERTS_ONE_MORE", iBonusChar) :
+				gDLL->getText("TXT_KEY_CIV4LERTS_ONE_FEWER", iBonusChar));
 	}
-	if(isDebug)
+	if (m_bDebug)
 	{
-		msgStr = (newQuantity > 0 ?
+		szMsg = (iNewQuantity > 0 ?
 				gDLL->getText("TXT_KEY_CIV4LERTS_NOW_EXPORTING",
-				from.getNameKey(), quantityStr.GetCString(), to.getNameKey()) :
+				kFrom.getNameKey(), szQuantity.c_str(), kTo.getNameKey()) :
 				gDLL->getText("TXT_KEY_CIV4LERTS_NO_LONGER_EXPORTING",
-				from.getNameKey(), quantityStr.GetCString(), to.getNameKey()));
+				kFrom.getNameKey(), szQuantity.c_str(), kTo.getNameKey()));
 	}
 	else
 	{
-		if((newQuantity > 0) == (oldQuantity > 0))
+		if ((iNewQuantity > 0) == (iOldQuantity > 0))
 			return;
-		CvBonusInfo& bi = GC.getInfo(bonusId);
-		bool strategic = (bi.getHappiness() + bi.getHealth() <= 0);
-		if(!strategic) // Don't bother with buildings (only need to cover Ivory)
+		CvBonusInfo const& kBonus = GC.getInfo(eBonus);
+		bool bStrategic = (kBonus.getHappiness() + kBonus.getHealth() <= 0);
+		if (!bStrategic)
 		{
-			CvCivilization const& kCiv = to.getCivilization();
+			CvCivilization const& kCiv = kTo.getCivilization();
+			// Don't bother with buildings (only need to cover Ivory)
 			for (int i = 0; i < kCiv.getNumUnits(); i++)
 			{
-				UnitTypes ut = kCiv.unitAt(i);
-				CvUnitInfo const& ui = GC.getInfo(ut);
-				if(ui.getPrereqAndBonus() == bonusId)
+				UnitTypes const eUnit = kCiv.unitAt(i);
+				CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+				if (kUnit.getPrereqAndBonus() == eBonus)
 				{
 					// Only report Ivory while it's relevant
-					TechTypes tt = ui.getPrereqAndTech();
-					if(tt != NO_TECH && to.getCurrentEra() -
-							GC.getInfo(tt).getEra() < 2)
-						strategic = true;
+					TechTypes eTech = kUnit.getPrereqAndTech();
+					if (eTech != NO_TECH &&
+						kTo.getCurrentEra() - GC.getInfo(eTech).getEra() < 2)
+					{
+						bStrategic = true;
+						break;
+					}
 				}
 			}
 		}
-		if(strategic)
+		if (bStrategic)
 		{
-			msgStr = gDLL->getText(newQuantity > 0 ?
+			szMsg = gDLL->getText(iNewQuantity > 0 ?
 					"TXT_KEY_CIV4LERTS_EXPORTING_STRATEGIC" :
 					"TXT_KEY_CIV4LERTS_NOT_EXPORTING_STRATEGIC",
-					from.getNameKey(), to.getNameKey(), quantityStr.GetCString());
+					kFrom.getNameKey(), kTo.getNameKey(), szQuantity.c_str());
 		}
 		else
 		{
-			int imports = to.getNumTradeBonusImports(fromId);
-			FAssert(imports >= newQuantity);
-			if(newQuantity < imports)
+			int iImports = kTo.getNumTradeBonusImports(eFrom);
+			FAssert(iImports >= iNewQuantity);
+			if (iNewQuantity < iImports)
 				return;
-			msgStr = gDLL->getText((newQuantity > 0 ?
+			szMsg = gDLL->getText((iNewQuantity > 0 ?
 					"TXT_KEY_CIV4LERTS_EXPORTING_ANY" :
 					"TXT_KEY_CIV4LERTS_EXPORTING_NONE"),
-					from.getNameKey(), to.getNameKey(), quantityStr.GetCString());
+					kFrom.getNameKey(), kTo.getNameKey(), szQuantity.c_str());
 		}
 	}
-	msg(msgStr);
+	AdvCiv4lert::showMessage(szMsg);
 } // </advc.210d>
 
 // <advc.ctr>
 CityTradeAlert::CityTradeAlert(PlayerTypes eOwner) : AdvCiv4lert(eOwner) {}
 
+
 void CityTradeAlert::check()
 {
 	PROFILE_FUNC();
-	CvPlayer const& kAlertPlayer = GET_PLAYER(ownerId);
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+	CvPlayer const& kAlertPlayer = GET_PLAYER(m_eOwner);
+	for (PlayerIter<MAJOR_CIV,OTHER_KNOWN_TO> itPlayer(kAlertPlayer.getTeam());
+		itPlayer.hasNext(); ++itPlayer)
 	{
-		CvPlayerAI const& kPlayer = GET_PLAYER((PlayerTypes)i);
+		CvPlayerAI const& kPlayer = *itPlayer;
 		vector<int> willCedeNow;
 		vector<int> willBuyNow;
 		vector<int> canLiberateNow;
 		vector<CvCity const*> diffCede;
 		vector<CvCity const*> diffBuy;
 		vector<CvCity const*> diffLiberate;
-		if(kPlayer.isAlive() && !kPlayer.isMinorCiv() && 
-			kPlayer.getTeam() != kAlertPlayer.getTeam() &&
-			kAlertPlayer.canContact(kPlayer.getID(), true))
+		if (kAlertPlayer.canContact(kPlayer.getID(), true))
 		{
-			bool bWar = ::atWar(kAlertPlayer.getTeam(), kPlayer.getTeam());
-			/*  Don't report "will cede" when war enemy unwilling to pay for peace
+			bool const bWar = ::atWar(kAlertPlayer.getTeam(), kPlayer.getTeam());
+			/*	Don't report "will cede" when war enemy unwilling to pay for peace
 				(especially not cities that kPlayer has just conquered from kAlertPlayer) */
-			if(!bWar || !getUWAI.isEnabled() || GET_TEAM(kPlayer.getTeam()).
+			if (!bWar || !getUWAI().isEnabled() || GET_TEAM(kPlayer.getTeam()).
 				uwai().endWarVal(kAlertPlayer.getTeam()) > 0)
 			{
-				vector<int>& wasWilling = willCede[kPlayer.getID()];
+				vector<int>& kWasWilling = m_willCede[kPlayer.getID()];
 				FOR_EACH_CITY(pCity, kPlayer)
 				{
-					int iCity = pCity->getID();
+					int const iCity = pCity->getID();
 					TradeData item(TRADE_CITIES, iCity);
-					if(kPlayer.canTradeItem(kAlertPlayer.getID(), item, true))
+					if (kPlayer.canTradeItem(kAlertPlayer.getID(), item, true))
 					{
 						// When at war, check if they'd actually cede the city for peace.
-						if(bWar)
+						if (bWar)
 						{
 							CLinkList<TradeData> alertPlayerGives;
 							CLinkList<TradeData> alertPlayerReceives;
@@ -417,28 +429,33 @@ void CityTradeAlert::check()
 							alertPlayerGives.insertAtEnd(peaceTreaty);
 							alertPlayerReceives.insertAtEnd(peaceTreaty);
 							alertPlayerReceives.insertAtEnd(item);
-							if(!kPlayer.AI_considerHypotheticalOffer(kAlertPlayer.getID(),
+							if (!kPlayer.AI_considerHypotheticalOffer(
+								kAlertPlayer.getID(),
 								alertPlayerGives, alertPlayerReceives, 1))
 							{
 								continue;
 							}
 						}
 						willCedeNow.push_back(iCity);
-						if(std::find(wasWilling.begin(), wasWilling.end(), iCity) == wasWilling.end())
+						if (std::find(kWasWilling.begin(), kWasWilling.end(), iCity) ==
+							kWasWilling.end())
+						{
 							diffCede.push_back(pCity);
+						}
 					}
 				}
 			}
-			if(!bWar)
+			if (!bWar)
 			{
 				FOR_EACH_CITY(pCity, kAlertPlayer)
 				{
-					int iCity = pCity->getID();
-					if(kAlertPlayer.canTradeItem(kPlayer.getID(), TradeData(
+					int const iCity = pCity->getID();
+					if (kAlertPlayer.canTradeItem(kPlayer.getID(), TradeData(
 						TRADE_CITIES, iCity), true))
 					{
-						bool bLiberate = (pCity->getLiberationPlayer() == kPlayer.getID());
-						if(bLiberate)
+						bool const bLiberate = (pCity->getLiberationPlayer() ==
+								kPlayer.getID());
+						if (bLiberate)
 							canLiberateNow.push_back(iCity);
 						else willBuyNow.push_back(iCity);
 						if( // Don't report cities right after acquisition
@@ -449,22 +466,22 @@ void CityTradeAlert::check()
 							//^Try a different tack.
 							(!bLiberate || pCity->getPreviousOwner() != kPlayer.getID()))
 						{
-							vector<int>& was = (bLiberate ? canLiberate[kPlayer.getID()] :
-									willBuy[kPlayer.getID()]);
-							if(std::find(was.begin(), was.end(), iCity) == was.end())
+							vector<int>& kWas = (bLiberate ? m_canLiberate[kPlayer.getID()] :
+									m_willBuy[kPlayer.getID()]);
+							if (std::find(kWas.begin(), kWas.end(), iCity) == kWas.end())
 								(bLiberate ? diffLiberate : diffBuy).push_back(pCity);
 						}
 					}
 				}
 			}
-			willCede[kPlayer.getID()].clear();
-			willBuy[kPlayer.getID()].clear();
-			canLiberate[kPlayer.getID()].clear();
-			willCede[kPlayer.getID()].insert(willCede[kPlayer.getID()].begin(),
+			m_willCede[kPlayer.getID()].clear();
+			m_willBuy[kPlayer.getID()].clear();
+			m_canLiberate[kPlayer.getID()].clear();
+			m_willCede[kPlayer.getID()].insert(m_willCede[kPlayer.getID()].begin(),
 					willCedeNow.begin(), willCedeNow.end());
-			willBuy[kPlayer.getID()].insert(willBuy[kPlayer.getID()].begin(),
+			m_willBuy[kPlayer.getID()].insert(m_willBuy[kPlayer.getID()].begin(),
 					willBuyNow.begin(), willBuyNow.end());
-			canLiberate[kPlayer.getID()].insert(canLiberate[kPlayer.getID()].begin(),
+			m_canLiberate[kPlayer.getID()].insert(m_canLiberate[kPlayer.getID()].begin(),
 					canLiberateNow.begin(), canLiberateNow.end());
 		}
 		msgWilling(diffCede, kPlayer.getID(), true);
@@ -473,43 +490,49 @@ void CityTradeAlert::check()
 	}
 }
 
-void CityTradeAlert::msgWilling(std::vector<CvCity const*> const& cities, PlayerTypes ePlayer, bool bCede) const
+
+void CityTradeAlert::msgWilling(std::vector<CvCity const*> const& kCities,
+	PlayerTypes ePlayer, bool bCede) const
 {
-	if(cities.empty())
+	if (kCities.empty())
 		return;
 
 	CvWString szMsg(GET_PLAYER(ePlayer).getName());
 	szMsg.append(L" ");
 	szMsg.append(gDLL->getText(bCede ? "TXT_KEY_WILLING_TO_CEDE" : "TXT_KEY_WILLING_TO_TRADE_FOR"));
-	for(size_t j = 0; j < cities.size(); j++)
+	for (size_t i = 0; i < kCities.size(); i++)
 	{
-		if(j > 0)
+		if (i > 0)
 			szMsg.append(L",");
 		szMsg.append(L" ");
-		szMsg.append(cities[j]->getName());
+		szMsg.append(kCities[i]->getName());
 	}
-	msg(szMsg, NULL, cities.size() == 1 ? cities[0]->getX() : - 1,
-			cities.size() == 1 ? cities[0]->getY() : - 1,
+	showMessage(szMsg, NULL,
+			kCities.size() == 1 ? kCities[0]->getX() : - 1,
+			kCities.size() == 1 ? kCities[0]->getY() : - 1,
 			GC.getColorType("CITY_BLUE"));
 }
 
-void CityTradeAlert::msgLiberate(std::vector<CvCity const*> const& cities, PlayerTypes ePlayer) const
+
+void CityTradeAlert::msgLiberate(std::vector<CvCity const*> const& kCities,
+	PlayerTypes ePlayer) const
 {
-	if(cities.empty())
+	if (kCities.empty())
 		return;
 
 	CvWString szMsg;
-	for(size_t j = 0; j < cities.size(); j++)
+	for (size_t i = 0; i < kCities.size(); i++)
 	{
-		szMsg.append(cities[j]->getName());
-		if(j < cities.size() - 1)
+		szMsg.append(kCities[i]->getName());
+		if(i < kCities.size() - 1)
 			szMsg.append(L",");
 		szMsg.append(L" ");
 	}
 	CvWString szName(GET_PLAYER(ePlayer).getName());
-	szMsg.append(gDLL->getText("TXT_KEY_CAN_LIBERATE", szName.GetCString()));
-	msg(szMsg, NULL, cities.size() == 1 ? cities[0]->getX() : - 1,
-			cities.size() == 1 ? cities[0]->getY() : - 1,
+	szMsg.append(gDLL->getText("TXT_KEY_CAN_LIBERATE", szName.c_str()));
+	showMessage(szMsg, NULL,
+			kCities.size() == 1 ? kCities[0]->getX() : - 1,
+			kCities.size() == 1 ? kCities[0]->getY() : - 1,
 			GC.getColorType("CITY_BLUE"));
 }
 // </advc.ctr>

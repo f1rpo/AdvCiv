@@ -1,9 +1,7 @@
 //	FILE:	 CvMap.cpp
 //	AUTHOR:  Soren Johnson
 //	PURPOSE: Game map class
-//-----------------------------------------------------------------------------
 //	Copyright (c) 2004 Firaxis Games, Inc. All rights reserved.
-//-----------------------------------------------------------------------------
 
 
 #include "CvGameCoreDLL.h"
@@ -832,30 +830,23 @@ int CvMap::maxStepDistance() const
 			isWrapY() ? getGridHeight() / 2 : getGridHeight() - 1));
 }
 
-// advc.140:
-int CvMap::maxMaintenanceDistance() const
-{
-	return ::round(1 + maxTypicalDistance() * (10.0 /
-			GC.getDefineINT(CvGlobals::MAX_DISTANCE_CITY_MAINTENANCE)));
-}
-
 /*	advc.140: Not sure what distance this measures exactly; I'm using it as a
-	replacement (everyhwere) for maxPlotDistance with reduced impact of world wraps. */
+	replacement (everywhere) for maxPlotDistance, with reduced impact of world wraps. */
 int CvMap::maxTypicalDistance() const
 {
 	CvGame const& kGame = GC.getGame();
-	double civRatio = kGame.getRecommendedPlayers() / (double)kGame.getCivPlayersEverAlive();
+	scaled rCivRatio(kGame.getRecommendedPlayers(), kGame.getCivPlayersEverAlive());
 	// Already factored into getRecommendedPlayers, but I want to give it a little extra weight.
-	double seaLvlModifier = (100 - 2.5 * kGame.getSeaLevelChange()) / 100.0;
+	scaled rSeaLvlModifier = (100 - fixp(2.5) * kGame.getSeaLevelChange()) / 100;
 	int iWraps = -1; // 0 if cylindrical (1 wrap), -1 flat, +1 toroidical
 	if(isWrapX())
 		iWraps++;
 	if(isWrapY())
 		iWraps++;
 	CvWorldInfo const& kWorld = GC.getInfo(getWorldSize());
-	double r = std::sqrt(kWorld.getGridWidth() * kWorld.getGridHeight() * civRatio *
-			seaLvlModifier) * 3.5 - 5 * iWraps;
-	return std::max(1, ::round(r));
+	scaled r = (kWorld.getGridWidth() * kWorld.getGridHeight() * rCivRatio *
+			rSeaLvlModifier).sqrt() * fixp(3.5) - 5 * iWraps;
+	return std::max(1, r.round());
 }
 
 

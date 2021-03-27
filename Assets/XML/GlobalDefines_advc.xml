@@ -851,7 +851,7 @@
 
 	<!-- [advc.023] The per-turn probability of decrementing the occupation
 		 timer is computed as 1 minus the revolt probability raised to the
-		 power of UNREST_COUNTDOWN_EXPONENT.
+		 power of OCCUPATION_COUNTDOWN_EXPONENT.
 		 Recommended: 10, which results in a countdown probability of e.g.
 		 0.35 when revolt probability is 0.1.
 		 A value of 0 will decrement the timer with certainty.

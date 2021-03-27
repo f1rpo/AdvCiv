@@ -3794,7 +3794,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 					CvWStringBuffer szWarplan;
 					GAMETEXT.getWarplanString(szWarplan, eWarPlan);
 					// <advc.104>
-					if(getUWAI.isEnabled())
+					if(getUWAI().isEnabled())
 					{
 						szBuffer.append(CvWString::format(
 								SETCOLR L" %s (%d) with %s\n" ENDCOLR,
@@ -3878,7 +3878,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 							TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
 							szWarplan.getCString(),
 							// advc.104: Show war plan age instead of K-Mod's startWarVal
-							getUWAI.isEnabled() ? kTeam.AI_getWarPlanStateCounter(eLoopTeam) :
+							getUWAI().isEnabled() ? kTeam.AI_getWarPlanStateCounter(eLoopTeam) :
 							kTeam.AI_startWarVal(eLoopTeam, eWarPlan,
 							true), // advc.001n
 							kLoopTeam.getName().GetCString()));
@@ -3891,7 +3891,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 			szBuffer.append(NEWLINE);
 	}
 	// <advc.104> K-Mod/BBAI war percentages aren't helpful for testing UWAI
-	if(getUWAI.isEnabled())
+	if(getUWAI().isEnabled())
 		return; // </advc.104>
 
 	// calculate war percentages
@@ -4966,23 +4966,23 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 	// <advc.101>
 	std::vector<CvCity::GrievanceTypes> aGrievances;
 	// <advc.023>
-	double const prDecr = c.probabilityOccupationDecrement();
-	double const prDisplay = c.revoltProbability(true, false, true);
+	scaled const rDecrementProb = c.probabilityOccupationDecrement();
+	scaled const rProbToDisplay = c.revoltProbability(true, false, true);
 	int const iCultureStr = c.cultureStrength(eCulturalOwner, &aGrievances);
 	int const iGarrisonStr = c.cultureGarrison(eCulturalOwner);
-	double const truePr = c.revoltProbability() * (1 - prDecr);
-	if(prDisplay > 0)
+	scaled const rTrueProb = c.revoltProbability() * (1 - rDecrementProb);
+	if (rProbToDisplay > 0)
 	{
-		swprintf(szTempBuffer, (truePr == 0 ? L"%.0f" : L"%.1f"),
-				(float)(100 * truePr)); // </advc.023>
+		swprintf(szTempBuffer, (rTrueProb == 0 ? L"%.0f" : L"%.1f"),
+				100 * rTrueProb.getFloat()); // </advc.023>
 		// </advc.101>
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_CHANCE_OF_REVOLT", szTempBuffer));
 		// <advc.023> Probability after occupation
-		if(truePr != prDisplay)
+		if (rTrueProb != rProbToDisplay)
 		{
 			szBuffer.append(NEWLINE);
-			swprintf(szTempBuffer, L"%.1f", (float)(100 * prDisplay));
+			swprintf(szTempBuffer, L"%.1f", 100 * rProbToDisplay.getFloat());
 			if(eCulturalOwner == BARBARIAN_PLAYER || !GET_PLAYER(eCulturalOwner).isAlive())
 				szBuffer.append(gDLL->getText("TXT_KEY_NO_BARB_REVOLT_IN_OCCUPATION",
 						szTempBuffer));
@@ -5002,7 +5002,7 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 		szBuffer.append(gDLL->getText("TXT_KEY_GARRISON_STRENGTH_NEEDED",
 				iCultureStr - iGarrisonStr));
 	}
-	if(!c.isOccupation() && prDisplay <= 0 && eCulturalOwner != c.getOwner() &&
+	if(!c.isOccupation() && rProbToDisplay <= 0 && eCulturalOwner != c.getOwner() &&
 		iGarrisonStr >= iCultureStr)
 	{
 		szBuffer.append(NEWLINE);
@@ -5029,7 +5029,7 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 		// Warn about flipping
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_PRIOR_REVOLTS", c.getNumRevolts(eCulturalOwner)));
-		if (prDisplay > 0 && truePr > 0 && c.canCultureFlip(eCulturalOwner))
+		if (rProbToDisplay > 0 && rTrueProb > 0 && c.canCultureFlip(eCulturalOwner))
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_FLIP_WARNING"));
@@ -5045,12 +5045,14 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 					c.getOccupationTimer()));
 			szBuffer.append(NEWLINE);
 			// Tends to be a high-ish probability, no need for decimal places
-			int prDecrPercent = ::round(prDecr * 100);
+			int iDecrementPercent = rDecrementProb.getPercent();
 			// But don't claim it's 0% or 100% if it isn't quite
-			if(prDecr > 0) prDecrPercent = std::max(1, prDecrPercent);
-			if(prDecr < 1) prDecrPercent = std::min(99, prDecrPercent);
+			if (rDecrementProb > 0)
+				iDecrementPercent = std::max(1, iDecrementPercent);
+			if (rDecrementProb < 1)
+				iDecrementPercent = std::min(99, iDecrementPercent);
 			szBuffer.append(gDLL->getText("TXT_KEY_TIMER_DECREASE_CHANCE",
-					prDecrPercent));
+					iDecrementPercent));
 		}
 	} // </advc.023>
 }
@@ -6000,7 +6002,7 @@ void CvDLLWidgetData::parsePowerRatioHelp(CvWidgetDataStruct &widgetDataStruct, 
 	bool bThemVsYou = (BUGOption::getValue("Scores__PowerFormula", 0, false) == 0);
 	int iPow = std::max(1, kPlayer.getPower());
 	int iActivePow = std::max(1, kActivePlayer.getPower());
-	int iPowerRatioPercent = ::round(bThemVsYou ?
+	int iPowerRatioPercent = fmath::round(bThemVsYou ?
 			(100.0 * iPow) / iActivePow : (100.0 * iActivePow) / iPow);
 	CvWString szCompareTag("TXT_KEY_POWER_RATIO_");
 	if(iPowerRatioPercent < 100)

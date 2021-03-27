@@ -89,6 +89,7 @@ public:
 	__forceinline void reset(IndexType eIndex) { set(eIndex, (T)DEFAULT); }
 	void add(IndexType eIndex, T tValue);
 	void multiply(IndexType eIndex, T tMultiplier); // advc
+	void divide(IndexType eIndex, T tDivisor); // advc
 
 	// add bound checks. Ignore call if out of bound index
 	void safeSet(IndexType eIndex, T tValue);
@@ -128,7 +129,9 @@ public:
 	/*void ReadButOne(FDataStreamBase* pStream, bool bAsInt = false, bool bAsFloat = false,
 			bool bAsDouble = false);*/
 	void Write(FDataStreamBase* pStream, bool bAsInt = true, bool bAsFloat = false) const; // </advc>
-
+	// <advc.fract> Requires functions T::read(FDataStreamBase*), T::write(FDataStreamBase*)
+	void ReadRecursive(FDataStreamBase* pStream);
+	void WriteRecursive(FDataStreamBase* pStream) const; // </advc.fract>
 	////
 	//// End of functions
 	//// There is no need to keep reading this class declaration unless you are interested in the internal implementation
@@ -272,9 +275,13 @@ private:
 	template <int iSize>
 	void _Read(/* <advc> */ FDataStreamBase* pStream, bool bAsInt = true, bool bAsShort = false,
 			bool bAsFloat = false, bool bAsDouble = false/*, bool bSkipLast = false*/); // </advc>
-
 	template <int iSize>
 	void _Write(/* advc: */ FDataStreamBase* pStream, bool bAsInt = true, bool bAsFloat = false) const;
+	// <advc.fract>
+	template <int iSize>
+	void _ReadRecursive(FDataStreamBase* pStream); 
+	template <int iSize>
+	void _WriteRecursive(FDataStreamBase* pStream) const; // </advc.fract>
 
 	//
 	// The actual specialized impletation of the functions
@@ -624,6 +631,14 @@ inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 	set(eIndex, tMultiplier * get(eIndex));
 }
 
+// advc:
+template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
+inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+::divide(IndexType eIndex, T tDivisor)
+{
+	set(eIndex, get(eIndex) / tDivisor);
+}
+
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 // advc: was inline
@@ -875,6 +890,39 @@ inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 {
 	_Write<SIZE>(pStream, bAsInt, bAsFloat); // </advc>
 }
+// <advc.fract>
+template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
+inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+::ReadRecursive(FDataStreamBase* pStream)
+{
+	_ReadRecursive<SIZE>(pStream);
+}
+template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
+inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+::WriteRecursive(FDataStreamBase* pStream) const
+{
+	_WriteRecursive<SIZE>(pStream);
+}
+template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
+template<int SIZE2>
+void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+::_ReadRecursive(FDataStreamBase* pStream)
+{
+	for (IndexType eIndex = First(); eIndex < getLength(); ++eIndex)
+	{
+		T tTmp;
+		tTmp.read(pStream);
+		set(eIndex, *(T*)((void*)&tTmp));
+	}
+}
+template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
+template<int SIZE2>
+void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+::_WriteRecursive(FDataStreamBase* pStream) const
+{
+	for (IndexType eIndex = First(); eIndex < getLength(); ++eIndex)
+		get(eIndex).write(pStream);
+} // </advc.fract>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<int SIZE2>
@@ -1302,11 +1350,26 @@ class EnumMap : public EnumMapBase <IndexType, T, EnumMapGetDefault<T>::DEFAULT_
 template<class IndexType, class T, int DEFAULT = 0>
 class EnumMapInt : public EnumMapBase <int, T, DEFAULT, IndexType, IndexType> {};
 
-// <advc> (Will have to explicitly set DEFAULT=-1 when T is an enum type)
+// <advc>
+template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
+class SubEnumMap : public EnumMapBase <IndexType, T, DEFAULT, T_SUBSET, LengthType>
+{
+	/*	Adapters to allow indices of T_SUBSET. Can't define those in EnumMapBase
+		because IndexType and T_SUBSET can be (and usually are) the same there. */
+public:
+	__forceinline T get(T_SUBSET eSubIndex) const { return get(static_cast<IndexType>(eSubIndex)); }
+	__forceinline void set(T_SUBSET eSubIndex, T tValue) { set(static_cast<IndexType>(eSubIndex), tValue); }
+	__forceinline void add(T_SUBSET eSubIndex, T tValue) { add(static_cast<IndexType>(eSubIndex), tValue); }
+	// Unhide base class functions
+	using EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::get;
+	using EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::set;
+	using EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::add;
+};
+// (Will have to explicitly set DEFAULT=-1 when T is an enum type)
 template<class T, int DEFAULT = 0>
-class CivPlayerMap : public EnumMapBase <PlayerTypes, T, DEFAULT, CivPlayerTypes, CivPlayerTypes> {};
+class CivPlayerMap : public SubEnumMap <PlayerTypes, T, DEFAULT, CivPlayerTypes, CivPlayerTypes> {};
 template<class T, int DEFAULT = 0>
-class CivTeamMap : public EnumMapBase <TeamTypes, T, DEFAULT, CivTeamTypes, CivTeamTypes> {};
+class CivTeamMap : public SubEnumMap <TeamTypes, T, DEFAULT, CivTeamTypes, CivTeamTypes> {};
 // </advc>
 
 typedef EnumMap<CivicOptionTypes,CivicTypes> CivicMap; // advc: Needed rather frequently

@@ -1,5 +1,3 @@
-// advc.104 New class; see UWAI.h for description.
-
 #include "CvGameCoreDLL.h"
 #include "UWAI.h"
 #include "UWAIAgent.h"
@@ -7,112 +5,117 @@
 #include "CoreAI.h"
 #include "CvMap.h"
 
-using std::vector;
+UWAI::UWAI() : m_bEnabled(false), m_bInBackground(false) {}
 
-UWAI::UWAI() : enabled(false), inBackgr(false) {}
 
-void UWAI::invalidateUICache() {
-
+void UWAI::invalidateUICache()
+{
 	WarEvaluator::clearCache();
 }
 
-void UWAI::setUseKModAI(bool b) {
 
-	enabled = !b;
+void UWAI::setUseLegacyAI(bool b)
+{
+	m_bEnabled = !b;
 }
 
-void UWAI::setInBackground(bool b) {
 
-	inBackgr = b;
+void UWAI::setInBackground(bool b)
+{
+	m_bInBackground = b;
 }
 
-void UWAI::initNewCivInGame(PlayerTypes newCivId) {
 
+void UWAI::initNewPlayerInGame(PlayerTypes eNewPlayer)
+{
 	WarEvaluator::clearCache();
-	GET_TEAM(newCivId).uwai().init(TEAMID(newCivId));
-	GET_PLAYER(newCivId).uwai().init(newCivId);
+	GET_TEAM(eNewPlayer).uwai().init(TEAMID(eNewPlayer));
+	GET_PLAYER(eNewPlayer).uwai().init(eNewPlayer);
 }
 
-void UWAI::processNewCivInGame(PlayerTypes newCivId) {
 
-	GET_PLAYER(newCivId).uwai().getCache().updateTypicalUnits();
+void UWAI::processNewPlayerInGame(PlayerTypes eNewPlayer)
+{
+	GET_PLAYER(eNewPlayer).uwai().getCache().updateTypicalUnits();
 	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		it->uwai().turnPre();
 }
 
-bool UWAI::isEnabled(bool inBackground) const{
 
-	if(!enabled)
+bool UWAI::isEnabled(bool bInBackground) const
+{
+	if (!m_bEnabled)
 		return false;
-	return (inBackground == inBackgr);
+	return (bInBackground == m_bInBackground);
 }
 
-void UWAI::read(FDataStreamBase* stream) {
 
-	stream->Read(&enabled);
+void UWAI::read(FDataStreamBase* pStream)
+{
+	pStream->Read(&m_bEnabled);
 }
 
-void UWAI::write(FDataStreamBase* stream) {
 
-	stream->Write(enabled);
+void UWAI::write(FDataStreamBase* pStream) const
+{
+	pStream->Write(m_bEnabled);
 }
 
-int UWAI::maxLandDist() const {
 
-	return maxSeaDist() - 1;
-}
-
-int UWAI::maxSeaDist() const {
-
-	CvMap const& m = GC.getMap();
-	int r = 15;
+int UWAI::maxSeaDist() const
+{
+	CvMap const& kMap = GC.getMap();
+	int iR = 15;
 	// That's true for Large and Huge maps
-	if(m.getGridWidth() > 100 || m.getGridHeight() > 100)
-		r += 3;
-	if(!m.isWrapX() && !m.isWrapY())
-		r = (r * 6) / 5;
-	return r;
+	if (kMap.getGridWidth() > 100 || kMap.getGridHeight() > 100)
+		iR += 3;
+	if (!kMap.isWrapX() && !kMap.isWrapY())
+		iR = (iR * 6) / 5;
+	return iR;
 }
 
-bool UWAI::isUpdated() const {
 
+bool UWAI::isReady() const
+{
 	/*  In scenarios, CvTeamAI functions aren't properly called during the first
 		turn. Should skip war planning in the first two turns to make sure that
 		all AI data is properly initialized and updated. */
-	CvGame const& g = GC.getGame();
-	return (!g.isScenario() || g.getElapsedGameTurns() > 1);
+	return (!GC.getGame().isScenario() || GC.getGame().getElapsedGameTurns() > 1);
 }
+
 
 #define MAKE_TAG_NAME(VAR) "UWAI_WEIGHT_"#VAR,
 #define MAKE_REPORT_NAME(VAR) #VAR,
 
-void UWAI::doXML() {
-
+void UWAI::doXML()
+{
 	char const* const aszAspectTagNames[] = {
 		DO_FOR_EACH_WAR_UTILITY_ASPECT(MAKE_TAG_NAME)
 	};
 	FAssert(ARRAY_LENGTH(aszAspectTagNames) == NUM_ASPECTS);
 	for (int i = 0; i < NUM_ASPECTS; i++)
-		xmlWeights.push_back(GC.getDefineINT(aszAspectTagNames[i]));
+		m_aiXmlWeights.push_back(GC.getDefineINT(aszAspectTagNames[i]));
 
 	char const* const aszAspectReportNames[] = {
 		DO_FOR_EACH_WAR_UTILITY_ASPECT(MAKE_REPORT_NAME)
 	};
 	FAssert(ARRAY_LENGTH(aszAspectReportNames) == NUM_ASPECTS);
 	for (int i = 0; i < NUM_ASPECTS; i++)
-		aszAspectNames.push_back(aszAspectReportNames[i]);
+		m_aszAspectNames.push_back(aszAspectReportNames[i]);
 
 	applyPersonalityWeight();
 }
 
-void UWAI::applyPersonalityWeight() {
 
+void UWAI::applyPersonalityWeight()
+{
 	int const iWeight = GC.getDefineINT("UWAI_PERSONALITY_PERCENT");
-	if(iWeight == 100)
+	if (iWeight == 100)
 		return;
 	std::vector<std::vector<int*>*> personalityMatrix;
 	int iMembers = -1;
-	FOR_EACH_ENUM(LeaderHead) {
+	FOR_EACH_ENUM(LeaderHead)
+	{
 		if(eLoopLeaderHead == GET_PLAYER(BARBARIAN_PLAYER).getLeaderType())
 			continue;
 		CvLeaderHeadInfo& kLeader = GC.getInfo(eLoopLeaderHead);
@@ -184,21 +187,24 @@ void UWAI::applyPersonalityWeight() {
 		personalityMatrix.push_back(paiPersonalityVector);
 		FAssert(iMembers == -1 || iMembers == paiPersonalityVector->size());
 		iMembers = (int)paiPersonalityVector->size();
-		if(iWeight == 0) { // Clear fav. civic and religion
+		if (iWeight == 0) // Clear fav. civic and religion
+		{
 			kLeader.m_eFavoriteCivic = NO_CIVIC;
 			kLeader.m_eFavoriteReligion = NO_RELIGION;
 		}
 	}
-	for(int j = 0; j < iMembers; j++) {
-		std::vector<double> distrib;
+	for (int j = 0; j < iMembers; j++)
+	{
+		std::vector<scaled> arDistrib;
 		for(size_t i = 0; i < personalityMatrix.size(); i++)
-			distrib.push_back(*personalityMatrix[i]->at(j));
-		double medianValue = ::dMedian(distrib);
-		for(size_t i = 0; i < personalityMatrix.size(); i++) {
-			*personalityMatrix[i]->at(j) = ::round((medianValue * (100 - iWeight) +
-					(*personalityMatrix[i]->at(j)) * iWeight) / 100);
+			arDistrib.push_back(*personalityMatrix[i]->at(j));
+		scaled rMedianValue = stats::median(arDistrib);
+		for (size_t i = 0; i < personalityMatrix.size(); i++)
+		{
+			*personalityMatrix[i]->at(j) = ((rMedianValue * (100 - iWeight) +
+					(*personalityMatrix[i]->at(j)) * iWeight) / 100).round();
 		}
 	}
-	for(size_t i = 0; i < personalityMatrix.size(); i++)
+	for (size_t i = 0; i < personalityMatrix.size(); i++)
 		delete personalityMatrix[i];
 }

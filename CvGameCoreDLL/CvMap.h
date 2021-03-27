@@ -357,8 +357,12 @@ public: // advc: made several functions const
 
 	int maxPlotDistance() const;																								// Exposed to Python
 	int maxStepDistance() const;																								// Exposed to Python
-	int maxMaintenanceDistance() const; // advc.140
-	int maxTypicalDistance() const; // advc.140
+	// <advc.140>
+	int maxMaintenanceDistance() const
+	{
+		return (1 + intdiv::uround(maxTypicalDistance() * 10, 25));
+	}
+	int maxTypicalDistance() const; // </advc.140>
 
 	int getGridWidthExternal() const; // advc.inl: Exported through .def file							// Exposed to Python
 	inline int getGridWidth() const // advc.inl: Renamed from getGridWidthINLINE

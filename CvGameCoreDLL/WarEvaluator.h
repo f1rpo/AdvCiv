@@ -7,62 +7,61 @@ class WarEvalParameters;
 class WarUtilityAspect;
 class UWAIReport;
 
-/* advc.104: New class. Computes the utility of a war between two teams:
-   'agent' against 'target'. From the point of view of 'agent'. */
-class WarEvaluator {
-
+/*	advc.104: New class. Computes the utility of a war between an
+	"agent" team and a "target" team from the agent's point of view. */
+class WarEvaluator
+{
 public:
+	// The cache should only be used for UI purposes; see comments in implementation file.
+	WarEvaluator(WarEvalParameters& kWarEvalParams, bool bUseCache = false);
 
-	// The cache should only be used for UI purposes; see comments in the .cpp file
-	WarEvaluator(WarEvalParameters& warEvalParams, bool useCache = false);
-
-	/*  Can be called repeatedly for different war plan types (w/o constructing
-		a new object in between).
-		If wp=NO_WARPLAN, the current war plan is evaluated. Limited if none.
-		The default preparation time means that a preparation time matching
-		the war plan, the war plan age and other circumstances is chosen.
+	/*	Can be called repeatedly on the same instance for different
+		war plan types. If eWarPlan=NO_WARPLAN, then the current war plan
+		is evaluated, LIMITED_WAR if none.
+		Preparation time -1 lets WarEvaluator choose a preparation time matching
+		the war plan type, the war plan age and other factors.
 		(The base values are defined in UWAIAI.h.)
-		By using this evaluate function, the caller lets WarEvaluator decide whether
-		naval war is preferrable.
-		Stores in the WarEvalParamters object passed to the constructor which
-		war plan type and preparation time are assumed and whether it'll be a
-		naval war.
-		Use 0 for wars that have to be declared immediately (e.g. sponsored).
-		Caller may have to indicate switching of target -- not supposed to reset
-		time limit. */
-	int evaluate(WarPlanTypes wp = NO_WARPLAN, int preparationTime = -1);
-	int evaluate(WarPlanTypes wp, bool isNaval, int preparationTime);
-	int defaultPreparationTime(WarPlanTypes wp = NO_WARPLAN);
+		Use 0 prep time for wars that have to be declared immediately
+		(e.g. sponsored wars).
+		Returns the war utility value. 100 is very high, 0 is no gain and no pain,
+		-100 very small, but values can be (several times) higher or smaller than that.
+		Will store in the WarEvalParamters instance (passed to the constructor) which
+		war plan type and preparation time are assumed and whether it'll be a naval war. */
+	/*	The first evaluate function lets WarEvaluator decide whether naval war
+		is preferable. */
+	int evaluate(WarPlanTypes eWarPlan = NO_WARPLAN, int iPreparationTime = -1);
+	int evaluate(WarPlanTypes eWarPlan, bool bNaval, int iPreparationTime);
+	int defaultPreparationTime(WarPlanTypes eWarPlan = NO_WARPLAN);
 
 private:
-
 	void reportPreamble();
-	// Utility from pov of an individual team member
-	void evaluate(PlayerTypes weId, std::vector<WarUtilityAspect*>& aspects);
+	/*	Utility from pov of an individual agent member. Will evaluate the aspects
+		(which may modify the aspect instances). */
+	void evaluate(PlayerTypes eAgentPlayer, std::vector<WarUtilityAspect*>& kAspects);
 	/*  Creates the top-level war utility aspects: war gains and war costs;
 		the aspect objects create their sub-aspects themselves. */
-	void fillWithAspects(std::vector<WarUtilityAspect*>& v);
+	void fillWithAspects(std::vector<WarUtilityAspect*>& kAspects);
 
-	WarEvalParameters& params;
-	TeamTypes agentId, targetId;
-	CvTeamAI& target;
-	CvTeamAI& agent;
-	UWAIReport& report;
-	bool peaceScenario;
-	bool useCache;
+	// Caveat: The order of the reference members is important for the ctor
+	WarEvalParameters& m_kParams;
+	CvTeamAI& m_kTarget;
+	CvTeamAI& m_kAgent;
+	UWAIReport& m_kReport;
+	bool m_bPeaceScenario;
+	bool m_bUseCache;
 
 	bool atTotalWarWithTarget() const;
 	void gatherCivsAndTeams();
 
 	public:
-		/*  If (or while) enabled, all WarEvaluator objects use the cache, not just
-			those with useCache=true. See constructor in WarEvaluator.cpp for more info. */
+		/*  If (or while) enabled, all WarEvaluator instances use the cache, not just
+			those with useCache=true. */
 		static void enableCache();
 		static void disableCache();
-		static void clearCache(); // Invalidates the cache (which disableCache does not do)
+		static void clearCache(); // Invalidates the cache (disableCache does not do so)
 	private:
-		static bool checkCache;
-		static bool cacheCleared;
+		static bool m_bCheckCache;
+		static bool m_bCacheCleared;
 };
 
 #endif

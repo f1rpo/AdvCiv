@@ -3257,12 +3257,12 @@ char CvPlot::calculateLatitude() const
 	return abs(iLatitude + GC.getMap().getBottomLatitude()); */
 	// UNOFFICIAL_PATCH, Bugfix, 07/12/09, Temudjin & jdog5000: START
 	int iLatitude;
-	double fLatitude;
+	double dLatitude;
 	if (GC.getMap().isWrapX() || !(GC.getMap().isWrapY()))
-		fLatitude = ((getY() * 1.0) / (GC.getMap().getGridHeight()-1));
-	else fLatitude = ((getX() * 1.0) / (GC.getMap().getGridWidth()-1));
-	fLatitude = fLatitude * (GC.getMap().getTopLatitude() - GC.getMap().getBottomLatitude());
-	iLatitude = (int)(fLatitude + 0.5);
+		dLatitude = ((getY() * 1.0) / (GC.getMap().getGridHeight()-1));
+	else dLatitude = ((getX() * 1.0) / (GC.getMap().getGridWidth()-1));
+	dLatitude = dLatitude * (GC.getMap().getTopLatitude() - GC.getMap().getBottomLatitude());
+	iLatitude = (int)(dLatitude + 0.5);
 	return toChar(std::min(abs((iLatitude + GC.getMap().getBottomLatitude())), 90));
 	// UNOFFICIAL_PATCH: END
 }
@@ -3270,9 +3270,9 @@ char CvPlot::calculateLatitude() const
 
 int CvPlot::getFOWIndex() const
 {
-	CvMap const& m = GC.getMap(); // advc
-	return (((m.getGridHeight() - 1) - getY()) *
-			m.getGridWidth() * LANDSCAPE_FOW_RESOLUTION * LANDSCAPE_FOW_RESOLUTION) +
+	CvMap const& kMap = GC.getMap();
+	return (((kMap.getGridHeight() - 1) - getY()) *
+			kMap.getGridWidth() * LANDSCAPE_FOW_RESOLUTION * LANDSCAPE_FOW_RESOLUTION) +
 			(getX() * LANDSCAPE_FOW_RESOLUTION);
 }
 

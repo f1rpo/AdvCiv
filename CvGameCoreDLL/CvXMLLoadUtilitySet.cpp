@@ -747,7 +747,7 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	// <advc.fract>
 	void TestScaledNum();
 	TestScaledNum(); // </advc.fract>
-	getUWAI.doXML(); // advc.104x
+	getUWAI().doXML(); // advc.104x
 	GC.setXMLLoadUtility(this); // advc.003v
 
 	return true;

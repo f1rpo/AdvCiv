@@ -168,8 +168,8 @@ void CvUnit::finalizeInit() // advc.003u: Body cut from init
 			FAssert(iAlive > 0);
 			iAlive = 7;
 		}
-		int const iStep = std::max(1, ::round(14.0 / iAlive));
-		// This gives iRand an expected value of step
+		int const iStep = std::max(1, intdiv::uround(14, iAlive));
+		// This gives iRand an expected value of iStep
 		int iRand = kGame.getSorenRandNum(2 * iStep + 1, "advc.005b");
 		/*	The index of the most recently used name isn't available; instead,
 			take iStep times the number of previously used names in order to
@@ -232,7 +232,7 @@ void CvUnit::finalizeInit() // advc.003u: Body cut from init
 	);
 
 	// advc.104: To enable more differentiated tracking of power values
-	kOwner.uwai().getCache().reportUnitCreated(*m_pUnitInfo);
+	kOwner.uwai().getCache().reportUnitCreated(getUnitType());
 	if (m_pUnitInfo->isAnyFreePromotions()) // advc.003t
 	{
 		for (int i = 0; i < GC.getNumPromotionInfos(); i++)
@@ -551,7 +551,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 			/ (getDomainType() == DOMAIN_SEA ? 2 : 1))); // advc.104e
 
 	// advc.104: To enable more differentiated tracking of power values
-	kOwner.uwai().getCache().reportUnitDestroyed(*m_pUnitInfo);
+	kOwner.uwai().getCache().reportUnitDestroyed(getUnitType());
 
 	kOwner.AI_changeNumAIUnits(AI_getUnitAIType(), -1);
 

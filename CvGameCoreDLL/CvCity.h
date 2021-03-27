@@ -237,7 +237,7 @@ public:
 	/*  advc.104: Moved parts of getReligionPercentAnger() into a subroutine.
 		getReligionPercentAnger(PlayerTypes) doesn't check if the city owner is
 		at war with ePlayer; can be used for predicting anger caused by a DoW. */
-	double getReligionPercentAnger(PlayerTypes ePlayer) const;
+	scaled getReligionPercentAnger(PlayerTypes ePlayer) const;
 	int getHurryPercentAnger(int iExtra = 0) const;																// Exposed to Python
 	int getConscriptPercentAnger(int iExtra = 0) const;															// Exposed to Python
 	int getDefyResolutionPercentAnger(int iExtra = 0) const;
@@ -311,7 +311,7 @@ public:
 	DllExport inline IDInfo getIDInfo() const { return IDInfo(getOwner(), getID()); }
 	// </advc.inl>
 	void setID(int iID);
-	int plotNum() const; // advc.104
+	PlotNumTypes plotNum() const; // advc.104
 
 	int getXExternal() const; // advc.inl: Exported through .def file											// Exposed to Python
 	inline int getX() const { return m_iX; } // advc.inl: Renamed from getX_INLINE
@@ -870,10 +870,10 @@ public:
 	int countTotalCultureTimes100() const;																		// Exposed to Python
 	PlayerTypes findHighestCulture() const;																		// Exposed to Python
 	// advc.101:  (advc.ctr: exposed to Python)
-	double revoltProbability( // <advc.023>
+	scaled revoltProbability( // <advc.023>
 			bool bIgnoreWar = false, bool biIgnoreGarrison = false,
 			bool bIgnoreOccupation = false) const;
-	double probabilityOccupationDecrement() const; // </advc.023>
+	scaled probabilityOccupationDecrement() const; // </advc.023>
 	// K-Mod: (advc.ctr: exposed to Python)
 	bool canCultureFlip(PlayerTypes eToPlayer /* <advc.101> */ = NO_PLAYER,
 			bool bCheckPriorRevolts = true) const; // </advc.101>
@@ -890,7 +890,7 @@ public:
 	}
 	int getNumRevolts() const; // advc.099c
 	void changeNumRevolts(PlayerTypes ePlayer, int iChange);
-	double getRevoltTestProbability() const; // advc.101: Now between 0 and 1
+	scaled getRevoltTestProbability() const; // advc.101: between 0 and 1
 	int getRevoltProtection() const; // advc.101
 	void addRevoltFreeUnits(); // advc
 

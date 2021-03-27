@@ -296,10 +296,10 @@ void CvGame::updateColoredPlots()
 		{
 			for (int i = 0; i < kActivePlayer.AI_getNumCitySites(); i++)
 			{
-				CvPlot* pSite = kActivePlayer.AI_getCitySite(i);
-				if (pSite != NULL && sitePath.generatePath(*pSite))
+				CvPlot const& kSite = kActivePlayer.AI_getCitySite(i);
+				if (sitePath.generatePath(kSite))
 				{
-					kEngine.addColoredPlot(pSite->getX(), pSite->getY(),
+					kEngine.addColoredPlot(kSite.getX(), kSite.getY(),
 							GC.getInfo(GC.getColorType("HIGHLIGHT_TEXT")).getColor(),
 							PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 				}

@@ -1402,9 +1402,9 @@ void CvUnitAI::AI_settleMove()
 	int iAreaBestFoundValue = 0;
 	int iOtherBestFoundValue = 0;
 
-	for (int iI = 0; iI < kOwner.AI_getNumCitySites(); iI++)
+	for (int i = 0; i < kOwner.AI_getNumCitySites(); i++)
 	{
-		CvPlot& kSite = *kOwner.AI_getCitySite(iI);
+		CvPlot& kSite = kOwner.AI_getCitySite(i);
 		if ((kSite.isArea(getArea()) || canMoveAllTerrain()) &&
 			// UNOFFICIAL_PATCH: Only count city sites we can get to
 			generatePath(kSite, eMoveFlags, true))
@@ -1610,7 +1610,7 @@ bool CvUnitAI::AI_foundFirstCity()
 		int iBestFoundTurn = 0;
 		for (int iCitySite = 0; iCitySite < kOwner.AI_getNumCitySites(); iCitySite++)
 		{
-			CvPlot& kSite = *kOwner.AI_getCitySite(iCitySite);
+			CvPlot& kSite = kOwner.AI_getCitySite(iCitySite);
 			if(!AI_canEnterByLand(kSite.getArea()) && // advc.030 (replacing same-area check)
 				!canMoveAllTerrain())
 			{
@@ -5963,10 +5963,13 @@ void CvUnitAI::AI_barbAttackSeaMove()
 		Should also resolve an issue where Barbarian ships are indefinitely stuck
 		patrolling an unowned stretch surrounded by borders. (Patrolling Barbarians
 		never enter borders.) */
-	if((::bernoulliSuccess(0.2, "advc.306") ||
-		getGroup()->getMissionType(0) == MISSION_MOVE_TO) && AI_safety())
+	if ((getGroup()->getMissionType(0) == MISSION_MOVE_TO ||
+		fixp(0.2).bernoulliSuccess(GC.getGame().getSRand(), "Barb ship retreat")))
 	{
-		return;
+		if (AI_safety())
+		{
+			return;
+		}
 	} // </advc.306>
 	if (AI_patrol())
 	{
@@ -6171,7 +6174,7 @@ void CvUnitAI::AI_attackSeaMove()
 			int iBlockaders = kOwner.AI_getWaterDanger(getPlot(), 4);
 			//if (iAttackers > iBlockaders + 2)
 			// advc.114a: Replacing the above
-			if(2 * iAttackers >= 3 * iBlockaders && iBlockaders > 0)
+			if (2 * iAttackers >= 3 * iBlockaders && iBlockaders > 0)
 			{
 				if (iAttackers > GC.getGame().getSorenRandNum(2 * iBlockaders + 1, "AI - Break blockade"))
 				{	// BBAI TODO: Make odds scale by # of blockaders vs number of attackers
@@ -6182,13 +6185,13 @@ void CvUnitAI::AI_attackSeaMove()
 						of a future use. Also, blockading units can't usually heal;
 						not imperative to destroy them in one turn. In fact, damaging
 						them may be enough to drive them off. */
-					double attackerRatio = iAttackers / (double)iBlockaders;
-					int oddsThresh = 0;
-					if(attackerRatio < 5 && attackerRatio >= 3)
-						oddsThresh = 1;
-					if(attackerRatio < 3)
-						oddsThresh = ::round(std::pow(5 - attackerRatio, 2.8));
-					if(AI_anyAttack(1, oddsThresh))
+					scaled rAttackerRatio(iAttackers, iBlockaders);
+					scaled rOddsThresh;
+					if (rAttackerRatio < 5 && rAttackerRatio >= 3)
+						rOddsThresh = 1;
+					if (rAttackerRatio < 3)
+						rOddsThresh = (5 - rAttackerRatio).pow(fixp(2.8));
+					if (AI_anyAttack(1, rOddsThresh.round()))
 					//if (AI_anyAttack(1, 15)) // </advc.114a>
 					{
 						return;
@@ -8460,7 +8463,9 @@ void CvUnitAI::AI_defenseAirMove()
 		return;
 	}
 
-	if (!bTriedAirStrike && GC.getGame().getSorenRandNum(3, "AI_defenseAirMove airstrike2") <= (bOffensive ? 1 : 0) - (bDefensive ? 1 : 0))
+	if (!bTriedAirStrike
+		&& GC.getGame().getSorenRandNum(3, "AI_defenseAirMove airstrike2") <=
+		(bOffensive ? 1 : 0) - (bDefensive ? 1 : 0))
 	{
 		if (AI_airStrike())
 			return;
@@ -8469,7 +8474,7 @@ void CvUnitAI::AI_defenseAirMove()
 
 	// <advc.650>
 	if(GET_PLAYER(getOwner()).AI_isDangerFromSubmarines() && getPlot().isCoastalLand(-1) &&
-		::bernoulliSuccess(0.38, "advc.650"))
+		fixp(0.38).bernoulliSuccess(GC.getGame().getSRand(), "search for submarines"))
 	{
 		/*	Would be better to check for matching Invisible Types (modded aircraft
 			may not be able to see invisible units). Also, isCoastalLand is a bit
@@ -10764,11 +10769,11 @@ bool CvUnitAI::AI_guardCitySite()
 	int iBestValue = kOwner.AI_getMinFoundValue() - 1;
 	for (int i = 0; i < kOwner.AI_getNumCitySites(); i++)
 	{
-		CvPlot* pLoopPlot = kOwner.AI_getCitySite(i);
+		CvPlot& kLoopPlot = kOwner.AI_getCitySite(i);
 		//if (owner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_GUARD_CITY, getGroup()) == 0)
 		// <advc.300> Need to check the adjacent tiles too
 		bool bValid = true;
-		FOR_EACH_ADJ_PLOT(*pLoopPlot)
+		FOR_EACH_ADJ_PLOT(kLoopPlot)
 		{
 			if (AI_canEnterByLand(pAdj->getArea()) &&
 				kOwner.AI_isAnyPlotTargetMissionAI(*pAdj, MISSIONAI_GUARD_CITY, getGroup()))
@@ -10780,14 +10785,14 @@ bool CvUnitAI::AI_guardCitySite()
 		if (bValid) // </advc.300>
 		{
 			// K-Mod. I've switched the order of the following two if statements, for efficiency.
-			int iValue = pLoopPlot->getFoundValue(kOwner.getID());
+			int iValue = kLoopPlot.getFoundValue(kOwner.getID());
 			if (iValue > iBestValue)
 			{
-				if (generatePath(*pLoopPlot, NO_MOVEMENT_FLAGS, true, &iPathTurns))
+				if (generatePath(kLoopPlot, NO_MOVEMENT_FLAGS, true, &iPathTurns))
 				{
 					iBestValue = iValue;
 					pBestPlot = &getPathEndTurnPlot();
-					pBestGuardPlot = pLoopPlot;
+					pBestGuardPlot = &kLoopPlot;
 				}
 			}
 		}
@@ -12950,7 +12955,7 @@ bool CvUnitAI::AI_exploreRange(int iRange)
 			// <advc.031d>
 			for (int i = 0; i < kOwner.AI_getNumCitySites(); i++)
 			{
-				int iDist = kMap.plotDistance(kOwner.AI_getCitySite(i), &p);
+				int iDist = kMap.plotDistance(&kOwner.AI_getCitySite(i), &p);
 				iValue += 1600 * std::max(0, 4 - iDist);
 			} // </advc.031d>
 		}
@@ -14381,9 +14386,9 @@ bool CvUnitAI::AI_pirateBlockade()
 	bool bBestIsMove = false;
 	int const iTurnNumberSalt = GC.getGame().getGameTurn() % 7; // advc.opt
 	int iBestValue = 0;
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
-		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
+		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
 		// advc: Reduce indentation
 		if(!kPlot.isRevealed(getTeam()) || // advc.opt
 			!AI_plotValid(kPlot) ||
@@ -14391,7 +14396,7 @@ bool CvUnitAI::AI_pirateBlockade()
 			//GC.getGame().getSorenRandNum(4, "AI Pirate Blockade") != 0 ||
 			/*  advc.033: Replacing the above. Should make Privateers a bit
 				more stationary. */
-			::hash(iI + iTurnNumberSalt, getOwner()) > 0.25f ||
+			scaled::hash(i + iTurnNumberSalt, getOwner()) > fixp(0.25) ||
 			GET_PLAYER(getOwner()).AI_isAnyPlotTargetMissionAI(
 			kPlot, MISSIONAI_BLOCKADE, getGroup(), 3) ||
 			// advc.opt:
@@ -14474,10 +14479,10 @@ bool CvUnitAI::AI_pirateBlockade()
 					iCityValue *= (atWar(getTeam(), pPlotCity->getTeam()) ? 1 : 3);
 					if (GET_PLAYER(pPlotCity->getOwner()).isNoForeignTrade())
 						iCityValue /= 2;
-					iPopulationValue += ::round(iCityValue
+					iPopulationValue += intdiv::uround(iCityValue,
 							/*  advc.033: Normalize to keep the scale as it was
 								and avoid overflows */
-							/ (isBarbarian() ? 1.0 : 7.0));
+							isBarbarian() ? 1 : 7);
 				}
 			}
 		}
@@ -14963,7 +14968,7 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 			getInvisibleType() != NO_INVISIBLE); // advc.057b
 	for (int i = 0; i < GET_PLAYER(getOwner()).AI_getNumCitySites(); i++)
 	{
-		CvPlot& kSite = *GET_PLAYER(getOwner()).AI_getCitySite(i);
+		CvPlot& kSite = GET_PLAYER(getOwner()).AI_getCitySite(i);
 		if (AI_canEnterByLand(kSite.getArea()) || // advc.030 (replacing same-area check)
 			// BETTER_BTS_AI_MOD, Settler AI, 10/23/09, jdog5000:
 			canMoveAllTerrain())
@@ -15924,7 +15929,7 @@ bool CvUnitAI::AI_settlerSeaTransport()
 
 	for (int i = 0; i < GET_PLAYER(getOwner()).AI_getNumCitySites(); i++)
 	{
-		CvPlot& kCitySitePlot = *GET_PLAYER(getOwner()).AI_getCitySite(i);
+		CvPlot& kCitySitePlot = GET_PLAYER(getOwner()).AI_getCitySite(i);
 		if (!GET_PLAYER(getOwner()).AI_isAnyPlotTargetMissionAI(
 			kCitySitePlot, MISSIONAI_FOUND, getGroup()))
 		{
@@ -15964,7 +15969,7 @@ bool CvUnitAI::AI_settlerSeaTransport()
 		int iBestValue = 0;
 		for (int i = 0; i < GET_PLAYER(getOwner()).AI_getNumCitySites(); i++)
 		{
-			CvPlot& kCitySitePlot = *GET_PLAYER(getOwner()).AI_getCitySite(i);
+			CvPlot& kCitySitePlot = GET_PLAYER(getOwner()).AI_getCitySite(i);
 			if (!kCitySitePlot.isVisibleEnemyUnit(this) &&
 				!GET_PLAYER(getOwner()).AI_isAnyPlotTargetMissionAI(
 				kCitySitePlot, MISSIONAI_FOUND, getGroup(), 4))

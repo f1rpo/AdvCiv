@@ -9,51 +9,6 @@
 
 using std::vector; // advc
 
-// <advc.003g>
-int roundToMultiple(double d, int iMultiple)
-{
-	int r = (int)(d + 0.5 * iMultiple);
-	return r - r % iMultiple;
-}
-
-bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync, int iData1, int iData2)
-{
-	int iChancePerMyriad = round(pr * 10000.0);
-	// These two checks are just for better performance
-	if(iChancePerMyriad >= 10000)
-		return true;
-	if(iChancePerMyriad <= 0)
-		return false;
-	if(pszLog != NULL && strlen(pszLog) <= 0)
-		pszLog = "bs";
-	if(bAsync)
-		return (GC.getASyncRand().get(10000, pszLog) < iChancePerMyriad);
-	return GC.getGame().
-			getSorenRandNum(10000, pszLog, iData1, iData2) < iChancePerMyriad;
-}
-
-double percentileRank(vector<double>& distribution, double score,
-	bool bSorted, bool bScorePartOfDistribution)
-{
-	if(!bSorted)
-		std::sort(distribution.begin(), distribution.end());
-	int n = (int)distribution.size();
-	int iLEq = 0; // less or equal
-	for(int i = 0; i < n; i++)
-	{
-		if(distribution[i] <= score)
-			iLEq++;
-		else break;
-	}
-	if(bScorePartOfDistribution) 
-	{
-		iLEq++;
-		n++;
-	}
-	else if(n == 0)
-		return 1;
-	return iLEq / (double)n;
-} // </advc.003g>
 /*	advc: Akin to natGetDeterministicRandom (deleted from CvCity.cpp). For reference,
 	the implementation of that function was:
 	srand(7297 * iSeedX + 2909  * iSeedY);

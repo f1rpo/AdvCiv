@@ -1025,11 +1025,20 @@ int CyTeam::AI_getWarSuccess(int /*TeamTypes*/ eIndex) const
 	return m_pTeam ? m_pTeam->AI_getWarSuccess((TeamTypes)eIndex) : -1;
 }
 
-// <advc.152>
+// advc.152:
 int /*DenialTypes*/ CyTeam::AI_declareWarTrade(int /*TeamTypes*/ eWarTeam,
 		int /*TeamTypes*/ eTeam) const {
 
 	// Can't add AI_declareWarTrade to CvTeam
 	return m_pTeam ? GET_TEAM(m_pTeam->getID()).AI_declareWarTrade(
 			(TeamTypes)eWarTeam, (TeamTypes)eTeam) : -1;
-} // </advc.152>
+}
+
+// advc.038:
+int CyTeam::AI_estimateYieldRate(int iPlayer, int iYield) const
+{
+	if (m_pTeam == NULL)
+		return -1;
+	return m_pTeam->AI_estimateYieldRate((PlayerTypes)iPlayer,
+			(YieldTypes)iYield).round();
+}

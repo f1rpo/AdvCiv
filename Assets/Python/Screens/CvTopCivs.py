@@ -187,7 +187,7 @@ class CvTopCivs:
 				
 				if (szType == localText.getText("TXT_KEY_TOPCIVS_WEALTH", ())):
 					# <advc.038> Replacing the two lines below
-					gnp = gc.getPlayer(iPlayerLoop).estimateYieldRate(YieldTypes.YIELD_COMMERCE)
+					gnp = gc.getTeam(gc.getPlayer(iPlayerLoop).getTeam()).AI_estimateYieldRate(iPlayerLoop, YieldTypes.YIELD_COMMERCE)
 					self.aiTopCivsValues.append([gnp, iPlayerLoop])
 					# </advc.038>
 					#self.aiTopCivsValues.append([gc.getPlayer(iPlayerLoop).getGold(), iPlayerLoop])

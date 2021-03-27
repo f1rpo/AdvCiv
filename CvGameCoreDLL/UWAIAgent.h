@@ -11,94 +11,75 @@
 class FDataStreamBase;
 class UWAIReport;
 
-// This class handles war and peace at the level of CvTeams
-class UWAI::Team {
+// This class makes decisions about war and peace at the level of CvTeams
+class UWAI::Team
+{
 public:
 	Team();
 	~Team();
 	// See UWAICache.h about the call order during initialization
-	// (Tbd.: Make the UWAI classes non-reusable, i.e. initialize in the ctor.)
-	void init(TeamTypes agentId);
+	void init(TeamTypes eTeam);
+	void write(FDataStreamBase* pStream) const;
+	void read(FDataStreamBase* pStream);
+	void addTeam(PlayerTypes eOtherLeader); // When forming a Permanent Alliance
+	void reportWarEnding(TeamTypes eEnemy,
+			CLinkList<TradeData> const* pWeReceive = NULL,
+			CLinkList<TradeData> const* pWeGive = NULL);
 	void turnPre();
 	void doWar(); // replacement for CvTeamAI::doWar
-	void read(FDataStreamBase* stream);
-	void write(FDataStreamBase* stream);
 	// Replacing parts of CvTeamAI::AI_declareWarTrade
-	DenialTypes declareWarTrade(TeamTypes targetId, TeamTypes sponsorId) const;
-	/*  Replacing CvTeamAI::AI_declareWarTradeVal. However, that function is
-		called on the sponsor, whereas this one is called on the team that gets
-		payed for war (which is also the case for declareWarTrade and
-		CvTeamAI::AI_declareWarTrade). */
-	int declareWarTradeVal(TeamTypes targetId, TeamTypes sponsorId) const;
+	DenialTypes declareWarTrade(TeamTypes eTeam, TeamTypes eSponsor) const;
+	/*	Replacing CvTeamAI::AI_declareWarTradeVal. However, that function is
+		called on the sponsor, whereas this one is called on the hireling
+		(consistent with declareWarTrade). */
+	int declareWarTradeVal(TeamTypes eTarget, TeamTypes eSponsor) const;
 	// Replacing parts of CvTeamAI::AI_makePeaceTrade
-	DenialTypes makePeaceTrade(TeamTypes enemyId, TeamTypes brokerId) const;
-	/*  Replacing CvTeamAI::AI_makePeaceTradeVal. However, that function is
+	DenialTypes makePeaceTrade(TeamTypes eEnemy, TeamTypes eBroker) const;
+	/*	Replacing CvTeamAI::AI_makePeaceTradeVal. However, that function is
 		called on the broker, whereas this one is called on the team that gets
-		payed for peace (which is also the case for makePeaceTrade and
-		CvTeamAI::AI_makePeaceTrade). */
-	int makePeaceTradeVal(TeamTypes enemyId, TeamTypes brokerId) const;
-	/*  Replacing some calls to CvTeamAI::AI_endWarVal.
-		How much we value ending the war with enemyId. */
-	int endWarVal(TeamTypes enemyId) const;
-	/*  Utility of ending all our wars (through diplo vote).
+		payed for peace (consistent with makePeaceTrade). */
+	int makePeaceTradeVal(TeamTypes eEnemy, TeamTypes eBroker) const;
+	/*	Replacing some calls to CvTeamAI::AI_endWarVal.
+		How much we value ending the war with eEnemy. */
+	int endWarVal(TeamTypes eEnemy) const;
+	/*	Utility of ending all our wars (through diplo vote).
 		Positive if we want to end the war.
-		If vs is set, only wars with members of the VoteSource are considered. */
-	int uEndAllWars(VoteSourceTypes vs = NO_VOTESOURCE) const;
-	// Utility of ending the war against enemyId
-	int uEndWar(TeamTypes enemyId) const;
+		If eVS is set, only wars with members of that vote source are considered. */
+	int uEndAllWars(VoteSourceTypes eVS = NO_VOTESOURCE) const;
+	// Utility of ending the war against eEnemy
+	int uEndWar(TeamTypes eEnemy) const;
 	// Joint war through a diplo vote. We mustn't be at war yet.
-	int uJointWar(TeamTypes targetId, VoteSourceTypes vs) const;
-	/*  If ourTeam is at war with targetId, this computes and returns our
-		utility of convincing allyId to join the war against targetId
+	int uJointWar(TeamTypes eTarget, VoteSourceTypes eVS) const;
+	/*	If we're at war with eTarget, then compute and return our
+		utility of convincing eAlly to join the war against eTarget
 		(compared with a scenario where we continue the war by ourselves).
-		Otherwise, it's our utility of a joint war together with allyId
-		against targetId (compared with a scenario where neither
-		we nor allyId declare war on targetId). */
-	int uJointWar(TeamTypes targetId, TeamTypes allyId) const;
-	// How much we're willing to pay to allyId for declaring war on targetd
-	int tradeValJointWar(TeamTypes targetId, TeamTypes allyId) const;
-	/*  Based on war utility and the utility threshold for peace.
-		At least 0 unless nonNegative=false, in which case a negative
+		Otherwise, return our utility of a joint war together with eAlly
+		against eTarget (compared with a scenario where neither we
+		nor eAlly declare war on eTarget). */
+	int uJointWar(TeamTypes eTarget, TeamTypes eAlly) const;
+	// How much we're willing to pay to eAlly for declaring war on eTarget
+	int tradeValJointWar(TeamTypes eTarget, TeamTypes eAlly) const;
+	/*	Based on war utility and the utility threshold for peace.
+		At least 0 unless bNonNegative=false, in which case a negative
 		return value indicates a willingness for peace. */
-	int reluctanceToPeace(TeamTypes otherId, bool nonNegative = true) const;
-	/*  Trade value that we're willing to pay to any human civ for peace
-		if peace has a utility of u for us. */
-	double reparationsToHuman(double u) const;
-	void respondToRebuke(TeamTypes targetId, bool prepare);
-	/*  Taking over parts of CvTeamAI::AI_vassalTrade; only called when
-		accepting vassalId puts us (the would-be master) into a war. */
-	DenialTypes acceptVassal(TeamTypes vassalId) const;
-	bool isLandTarget(TeamTypes theyId) const;
-
-	/*  The remaining functions are only to be called while doWar
-		is being evaluated. */
-	// Known to be at war with anyone. If NO_TEAM, all wars are checked.
-	bool isKnownToBeAtWar(TeamTypes observer = NO_TEAM) const;
-	/*  Also checks vassal agreements, including other vassals of
-		the same master. */
-	bool hasDefactoDefensivePact(TeamTypes allyId) const;
-	/*  Whether this team can reach any city of 'targetId' with military units;
+	int reluctanceToPeace(TeamTypes eEnemy, bool bNonNegative = true) const;
+	/*	Trade value that we're willing to pay to any human player for peace
+		if peace has a utility of rUtility for us */
+	scaled reparationsToHuman(scaled rUtility) const;
+	// Replacing CvPlayerAI::AI_demandRebukedSneak (bPrepare=true) and AI_demandRebukedWar
+	void respondToRebuke(TeamTypes eTarget, bool bPrepare);
+	/*	Taking over parts of CvTeamAI::AI_vassalTrade; only called when
+		accepting eVassal will require us (the would-be master) to declare a war. */
+	DenialTypes acceptVassal(TeamTypes eVassal) const;
+	// Replacing CvTeamAI::AI_isLandTarget
+	bool isLandTarget(TeamTypes eTeam) const;
+	/*	Whether this team can reach any city of eTarget with military units;
 		based on cached info. */
-	bool canReach(TeamTypes targetId) const;
-	/* Confidence based on experience in the current war with targetId.
-		Between 0.5 (low confidence) and 1.5 (high confidence); negative
-		if not at war. */
-	double confidenceFromWarSuccess(TeamTypes targetId) const;
-	void reportWarEnding(TeamTypes enemyId, CLinkList<TradeData> const* weReceive = NULL,
-			CLinkList<TradeData> const* wePay = NULL);
-	int countNonMembers(VoteSourceTypes voteSource) const;
-	// Like canSchemeAgainst, but also true if currently at war (unless vassal).
-	bool isPotentialWarEnemy(TeamTypes tId) const;
-	bool isFastRoads() const;
-	UWAI::Civ const& leaderUWAI() const;
-	UWAI::Civ& leaderUWAI();
-	// When forming a Permanent Alliance
-	void addTeam(PlayerTypes otherLeaderId);
-	double utilityToTradeVal(double u) const;
-	/*  tradeVal should roughly correspond to gold per turn; converted into
-		war utility based on our current commerce rate. */
-	double tradeValToUtility(double tradeVal) const;
-	/*  Runs 'scheme' as if UWAI was running in the background and writes a
+	bool canReach(TeamTypes eTarget) const;
+	UWAI::Player const& leaderUWAI() const;
+	// E.g. never need to (directly) evaluate war against vassals
+	bool isWarEvalNeeded(TeamTypes eTeam) const;
+	/*	Runs 'scheme' as if UWAI was running in the background and writes a
 		report file regardless of the REPORT_INTERVAL set in XML.
 		Intended for debugging. Could insert a call like
 		GET_TEAM((TeamTypes)1).uwai().doWarReport()
@@ -107,143 +88,150 @@ public:
 	void doWarReport();
 
 private:
+	UWAI::Player& leaderUWAI(); // Only make the const version public
+	UWAICache& leaderCache();
+	UWAICache const& leaderCache() const;
 	void reset();
-	/*  Abandon wars in preparation, switch plans or targets and consider peace.
+	/*	Abandon wars in preparation, switch plans or targets and consider peace.
 		Returns false if scheming should be skipped this turn. */
 	bool reviewWarPlans();
-	/*  Review plan vs. targetId. Returns true if plan continues unchanged,
+	/*	Review plan vs. eTarget. Returns true if plan continues unchanged,
 		false if any change (abandoned, peace made, target changed). */
-	bool reviewPlan(TeamTypes targetId, int u, int prepTime);
-	void alignAreaAI(bool isNaval);
-	int peaceThreshold(TeamTypes targetId) const;
-	// All these return true if the war plan remains unchanged, false otherwise
-	 bool considerPeace(TeamTypes targetId, int u);
-	 bool considerCapitulation(TeamTypes masterId, int ourWarUtility,
-			int masterReluctancePeace);
-	 bool tryFindingMaster(TeamTypes enemyId);
-	 bool considerPlanTypeChange(TeamTypes targetId, int u);
-	 bool considerAbandonPreparations(TeamTypes targetId, int u, int timeRemaining);
-	 bool considerSwitchTarget(TeamTypes targetId, int u, int timeRemaining);
-	 bool considerConcludePreparations(TeamTypes targetId, int u, int timeRemaining);
+	bool reviewPlan(TeamTypes eTarget, int iU, int iPrepTurns);
+	// All these return true if the war plan remains unchanged, false otherwise.
+	bool considerPeace(TeamTypes eTarget, int iU);
+	bool considerCapitulation(TeamTypes eMaster, int iAgentWarUtility,
+			int iMasterReluctancePeace);
+	bool tryFindingMaster(TeamTypes eEnemy);
+	bool considerPlanTypeChange(TeamTypes eTarget, int iU);
+	bool considerAbandonPreparations(TeamTypes eTarget, int iU, int iTurnsRemaining);
+	bool considerSwitchTarget(TeamTypes eTarget, int iU, int iTurnsRemaining);
+	bool considerConcludePreparations(TeamTypes eTarget, int iU, int iTurnsRemaining);
+
 	void scheme(); // Consider new war plans
-	bool canSchemeAgainst(TeamTypes targetId, bool assumeNoWarPlan) const;
-	double limitedWarWeight() const;
+	bool canSchemeAgainst(TeamTypes eTarget, bool bAssumeNoWarPlan) const;
+	void alignAreaAI(bool bNaval);
+	int peaceThreshold(TeamTypes eTarget) const;
+	scaled limitedWarWeight() const;
+	
+	scaled utilityToTradeVal(scaled rUtility) const;
+	/*	tradeVal should roughly correspond to gold per turn; converted into
+		war utility based on our current commerce rate. */
+	scaled tradeValToUtility(scaled rTradeVal) const;
+
+	inline bool isInBackground() const { return m_bInBackground; }
 	void startReport();
 	void closeReport();
 	void setForceReport(bool b);
 	bool isReportTurn() const;
-	void showWarPrepStartedMsg(TeamTypes targetId);
-	void showWarPlanAbandonedMsg(TeamTypes targetId);
-	void showWarPlanMsg(TeamTypes targetId, char const* txtKey);
-	UWAICache& leaderCache();
-	UWAICache const& leaderCache() const;
-	/*  Not in UWAI::Civ b/c I want these to be private. They're
-		only auxiliary functions for their team-level counterparts, and should
-		not be used for any other computations.
-		Instead, I'm placing conversion functions in UWAI::Civ
-		that simply call the team versions. */
-	  double utilityToTradeVal(double u, PlayerTypes memberId) const;
-	  double tradeValToUtility(double tradeVal, PlayerTypes memberId) const;
+	void showWarPrepStartedMsg(TeamTypes eTarget);
+	void showWarPlanAbandonedMsg(TeamTypes eTarget);
+	void showWarPlanMsg(TeamTypes eTarget, char const* szKey);
 
-	TeamTypes agentId;
-	bool inBackgr;
-	bool bForceReport;
-	UWAIReport* report; // Only to be used in doWar and its subroutines
+	TeamTypes m_eAgent;
+	bool m_bInBackground; // Cache for UWAI::m_bInBackground
+	bool m_bForceReport;
+	UWAIReport* m_pReport; // Only to be used in doWar and its subroutines
 };
 
-// This class handles war and peace on the level of CvPlayers
-class UWAI::Civ {
-
+// This class makes decisions about war and peace on the level of CvPlayers
+class UWAI::Player
+{
 public:
-	Civ();
-	// See UWAICache.h about when init is called.
-	void init(PlayerTypes we);
+	Player();
+	// See UWAICache.h about the call order during initialization
+	void init(PlayerTypes ePlayer);
 	void uninit();
 	void turnPre();
-	// 'cache' handles all the persistent data, these two only relay the calls.
-	 void write(FDataStreamBase* stream);
-	 void read(FDataStreamBase* stream);
-	inline UWAICache const& getCache() const { return cache; }
-	inline UWAICache& getCache() { return cache; }
-	// Request and demands. BtS handles these in CvPlayerAI::AI_considerOffer.
-	bool considerDemand(PlayerTypes theyId, int tradeVal) const;
-	bool considerGiftRequest(PlayerTypes theyId, int tradeVal) const;
-	bool amendTensions(PlayerTypes humanId) const;
-	/*  Returns -1 if unwilling, 1 if willing and 0 to leave the decision to the
+	// m_cache handles all the persistent data, these two only relay the calls.
+	void write(FDataStreamBase* pStream) const;
+	void read(FDataStreamBase* pStream);
+	inline UWAICache const& getCache() const { return m_cache; }
+	inline UWAICache& getCache() { return m_cache; }
+	// Demands and pleas. Augment BtS code in CvPlayerAI::AI_considerOffer.
+	bool considerDemand(PlayerTypes eDemandPlayer, int iTradeVal) const;
+	bool considerPlea(PlayerTypes ePleaPlayer, int iTradeVal) const;
+	bool amendTensions(PlayerTypes eHuman);
+	/*	Returns -1 if unwilling, 1 if willing and 0 to leave the decision to the
 		BtS AI */
-	int willTalk(PlayerTypes theyId, int atWarCounter, bool useCache) const;
+	int willTalk(PlayerTypes eToPlayer, int iAtWarCounter, bool bUseCache) const;
 	// False if all assets of the human civ wouldn't nearly be enough
-	bool isPeaceDealPossible(PlayerTypes humanId) const;
-	/*  Can humanId trade assets to us with a total value of at least
-		targetTradeVal? */
-	bool canTradeAssets(int targetTradeVal, PlayerTypes humanId,
-			/*  If this is not NULL, it is used to return the trade value of
-				all assets that the human can trade, but only up to
-				targetTradeVal. */
-			int* r = NULL, bool ignoreCities = false) const;
-	double amortizationMultiplier() const;
-	bool isNearMilitaryVictory(int stage) const;
-	int getConquestStage() const;
-	int getDominationStage() const;
-	/*  This function isn't specific to a given civ. Should perhaps
-		be in a wrapper/ subclass of CvUnitInfo. Leaving it here for now.
-		At least it's easily accessible this way.
-		If a 'baseValue' is given, that value replaces the power value defined in Unit.xml. */
-	double militaryPower(CvUnitInfo const& u, double baseValue = -1) const;
-	// Can this civ hurry production somehow? (Slavery, Univ. Suffrage)
-	bool canHurry() const;
-	double buildUnitProb() const;
-	int shipSpeed() const;
-	/*  period: Build-up over how many turns? Will be adjusted to game speed
-		by this function! */
-	double estimateBuildUpRate(PlayerTypes civId, int period = 10) const;
-	double tradeValUtilityConversionRate() const;
-	double utilityToTradeVal(double u) const;
-	double tradeValToUtility(double tradeVal) const;
-	/*  Confidence based on experience from past wars with targetId.
+	bool isPeaceDealPossible(PlayerTypes eHuman) const;
+	/*	Can eHuman trade assets to us with a total value of at least
+		iTargetTradeVal? */
+	bool canTradeAssets(int iTargetTradeVal, PlayerTypes eHuman,
+			/*	If this is not NULL, then it is used to return the trade value of
+				all assets that the human can trade, but only up to targetTradeVal. */
+			int* piAvailableTradeVal = NULL, bool bIgnoreCities = false) const;
+	scaled utilityToTradeVal(scaled rUtility) const;
+	scaled tradeValToUtility(scaled rTradeVal) const;
+	scaled tradeValUtilityConversionRate() const;
+	scaled amortizationMultiplier() const;
+	scaled buildUnitProb() const;
+	/*	iTurns: Build-up over how many turns?
+		Will be adjusted to game speed by this function! */
+	scaled estimateBuildUpRate(PlayerTypes ePlayer, int iTurns = 10) const;
+	/*	Whether this player can reach any city of eTarget with military units;
+		based on cached info. */
+	bool canReach(PlayerTypes eTarget) const;
+
+	/*	Confidence based on experience in the current war with eTarget.
+		Between 0.5 (low confidence) and 1.5 (high confidence);
+		-1 if not at war. */
+	scaled confidenceFromWarSuccess(TeamTypes eTarget) const;
+	/*	Confidence based on experience from past wars with eTarget.
 		1 if none, otherwise between 0.5 and 1.5. */
-	double confidenceFromPastWars(TeamTypes targetId) const;
-  // Personality values that aren't cached. More in UWAICache.
-	/*  A measure of how paranoid our leader is, based on EspionageWeight and
+	scaled confidenceFromPastWars(TeamTypes eTarget) const;
+	// LeaderHead-derived personality values that aren't cached. More in UWAICache.
+	/*	A measure of how paranoid our leader is, based on EspionageWeight and
 		protective trait. EspionageWeight is between 50 (Gandhi) and 150 (Stalin).
 		Return value is between 0.5 and 1.8.
 		"Paranoia" would be a better name, but that already means sth. else
 		(related to the Alert AI strategy). */
-	double distrustRating() const;
-	/*  A measure of optimism (above 1) or pessimism (between 0 and 1) of our
-		leader about conducting war against 'vs'. (It's not clear if 'isTotal'
-		should matter.) */
-	double warConfidencePersonal(bool isNaval, bool isTotal, PlayerTypes vs) const;
-	/*  Confidence based on experience in the current war or past wars.
+	scaled distrustRating() const;
+	/*	A measure of optimism (above 1) or pessimism (between 0 and 1) of our
+		leader about conducting war against eTarget. (It's not clear
+		whether bTotal should matter.) */
+	scaled warConfidencePersonal(bool bNaval, bool bTotal, PlayerTypes eTarget) const;
+	/*	Confidence based on experience in the current war or past wars.
 		Between 0.5 (low confidence) and 1.5 (high confidence).
-		ignoreDefOnly: Don't count factors that only make us confident about
+		bIgnoreDefOnly: Don't count factors that only make us confident about
 		defending ourselves. */
-	double warConfidenceLearned(PlayerTypes targetId, bool ignoreDefOnly) const;
-	/*  How much our leader is (generally) willing to rely on war allies.
+	scaled warConfidenceLearned(PlayerTypes eTarget, bool bIgnoreDefOnly) const;
+	/*	How much our leader is (generally) willing to rely on war allies.
 		0 to 1 means that the leader is rather self-reliant, above means
 		he or she likes dogpile wars. */
-	double warConfidenceAllies() const;
-	double confidenceAgainstHuman() const;
-	// How willing our leader is to go after civs he really dislikes
+	scaled warConfidenceAllies() const;
+	scaled confidenceAgainstHuman() const
+	{
+		/*  Doesn't seem necessary so far; AI rather too reluctant to attack humans
+			due to human diplomacy, and other special treatment of humans; e.g.
+			can't get a capitulation from human.
+			(I've left an older implementation commented out in the .cpp file.) */
+		return 1;
+	}
+	/*	How willing our leader is to go after players that he or she really dislikes.
+		Between 0 (Gandhi) and 10 (Montezuma). */
 	int vengefulness() const;
-	/*  Willingness to come to the aid of partners. "Interventionism" might
+	/*	Willingness to come to the aid of partners. "Interventionism" might
 		also fit. Between 1.3 (Roosevelt) and 0.7 (Qin). */
-	double protectiveInstinct() const;
-	/*  Between 0.25 (Tokugawa) and 1.75 (Mansa Musa, Zara Yaqob). A measure
+	scaled protectiveInstinct() const;
+	/*	Between 0.25 (Tokugawa) and 1.75 (Mansa Musa, Zara Yaqob). A measure
 		of how much a leader cares about being generally liked in the world. */
-	double diploWeight() const;
+	scaled diploWeight() const;
 	/*	Between 0 (Pacal and several others) and 1 (Sitting Bull). How much a
 		leader insists on reparations to end a war. Based on MakePeaceRand
 		(from our leader's personality unless another value is given by the caller). */
-	double prideRating(int makePeaceRand = -1) const;
+	scaled prideRating(int iMakePeaceRand = -1) const;
 
 private:
-	// Probability assumed by the AI if this civ is human
-	double humanBuildUnitProb() const;
-	int willTalk(PlayerTypes theyId, int atWarCounter) const;
+	// Probability assumed by the AI if this player is human
+	scaled humanBuildUnitProb() const;
+	// (See public wrapper)
+	int willTalk(PlayerTypes eToPlayer, int iAtWarCounter) const;
 
-	PlayerTypes weId;
-	UWAICache cache;
+	PlayerTypes m_eAgent;
+	UWAICache m_cache;
 };
 
 /*	advc.test: Disables the checks for DP, the PA prereq. tech and the game option;

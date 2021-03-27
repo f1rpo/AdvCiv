@@ -106,8 +106,8 @@ public:
 
 	DomainTypes AI_unitAIDomainType(UnitAITypes eUnitAI) const;
 
-	int AI_yieldWeight(YieldTypes eYield, const CvCity* pCity = 0) const; // K-Mod added city argument
-	int AI_commerceWeight(CommerceTypes eCommerce, const CvCityAI* pCity = NULL) const;
+	int AI_yieldWeight(YieldTypes eYield, CvCity const* pCity = 0) const; // K-Mod added city argument
+	int AI_commerceWeight(CommerceTypes eCommerce, CvCityAI const* pCity = NULL) const;
 	void AI_updateCommerceWeights(); // K-Mod
 
 	// <advc.035>
@@ -605,13 +605,13 @@ public:
 	void AI_recalculateFoundValues(int iX, int iY, int iInnerRadius, int iOuterRadius) const;
 	void AI_updateCitySites(int iMinFoundValueThreshold = -1, int iMaxSites = 4); // advc: default values
 	void AI_invalidateCitySites(int iMinFoundValueThreshold);
-	int AI_getNumCitySites() const { return m_aiAICitySites.size(); } // advc.inl
+	int AI_getNumCitySites() const { return m_aeAICitySites.size(); } // advc.inl
 	bool AI_isPlotCitySite(CvPlot const& kPlot) const; // advc: Made plot param const
 	int AI_getNumAreaCitySites(CvArea const& kArea, int& iBestValue) const;
 	int AI_getNumAdjacentAreaCitySites(int& iBestValue, CvArea const& kWaterArea,
 			CvArea const* pExcludeArea = NULL) const;
 	int AI_getNumPrimaryAreaCitySites(int iMinimumValue = 0) const; // K-Mod
-	CvPlot* AI_getCitySite(int iIndex) const;
+	CvPlot& AI_getCitySite(int iIndex) const;
 	// advc.117, advc.121:
 	bool AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const;
 	bool AI_isAwfulSite(CvCity const& kCity, bool bConquest = false) const; // advc.ctr
@@ -656,8 +656,8 @@ public:
 	UnitTypes AI_getBestAttackUnit() const; // advc.079
 
 	// <advc.104>
-	inline UWAI::Civ& uwai() { return *m_pUWAI; }
-	inline UWAI::Civ const& uwai() const { return *m_pUWAI; } // </advc.104>
+	inline UWAI::Player& uwai() { return *m_pUWAI; }
+	inline UWAI::Player const& uwai() const { return *m_pUWAI; } // </advc.104>
 	// <advc.104h>
 	// Returns true if peace deal implemented (or offered to human)
 	bool AI_negotiatePeace(PlayerTypes eOther, int iTheirBenefit, int iOurBenefit);
@@ -690,7 +690,7 @@ public:
 			bool bLiberateForFree = false, int* piTradeVal = NULL) const;
 	scaled AI_totalYieldVal() const;
 	scaled AI_targetAmortizationTurns() const; // </advc.ctr>
-	double AI_amortizationMultiplier(int iDelay) const; // advc.104, advc.031
+	scaled AI_amortizationMultiplier(int iDelay) const; // advc.104, advc.031
 	// advc.104r: Made public and param added
 	void AI_doSplit(bool bForce = false);
 
@@ -707,7 +707,7 @@ protected:
 	int m_iExtraGoldTarget;
 	int m_iCityTargetTimer; // K-Mod
 	bool m_bDangerFromSubmarines; // advc.651
-	UWAI::Civ* m_pUWAI; // advc.104
+	UWAI::Player* m_pUWAI; // advc.104
 
 	/*mutable int m_iStrategyHash;
 	mutable int m_iStrategyHashCacheTurn;
@@ -773,7 +773,7 @@ protected:
 	int** m_aaiContactTimer;
 	int** m_aaiMemoryCount;
 
-	std::vector<int> m_aiAICitySites;
+	std::vector<PlotNumTypes> m_aeAICitySites;
 
 	bool m_bWasFinancialTrouble;
 	int m_iTurnLastProductionDirty;
@@ -908,6 +908,7 @@ protected:
 	//void AI_invalidateCloseBordersAttitude(); // disabled by K-Mod
 	bool AI_isCommercePlot(CvPlot* pPlot) const; // advc: Was public; deprecated.
 	// <advc>
+	scaled AI_estimateYieldRate(YieldTypes eYield) const; // advc
 	int AI_baseBonusUnitVal(BonusTypes eBonus, UnitTypes eUnit, CvCity const* pCapital,
 			CvCity const* pCoastalCity, bool bTrade) const;
 	int AI_baseBonusBuildingVal(BonusTypes eBonus, BuildingTypes eBuilding, int iCities,

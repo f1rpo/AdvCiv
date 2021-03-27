@@ -1,231 +1,315 @@
-// advc.104: New class hierarchy; see MilitaryBranch.h.
-
 #include "CvGameCoreDLL.h"
 #include "MilitaryBranch.h"
 #include "UWAIAgent.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
+#include "CoreAI.h"
 #include "CvCity.h"
-#include "CvCivilization.h"
 
 using std::ostream;
 using std::vector;
 
-MilitaryBranch::MilitaryBranch(PlayerTypes ownerId) : ownerId(ownerId) {
-
-	typicalUnitType = NO_UNIT;
-	typicalUnitPower = 0;
-	bombard = soften = false;
-	pow = 0;
-	number = 0;
+// static factory
+MilitaryBranch* MilitaryBranch::create(MilitaryBranchTypes eBranch, PlayerTypes eOwner)
+{
+	switch(eBranch)
+	{
+	case HOME_GUARD: return new MilitaryBranch::HomeGuard(eOwner);
+	case ARMY: return new MilitaryBranch::Army(eOwner);
+	case FLEET: return new MilitaryBranch::Fleet(eOwner);
+	case LOGISTICS: return new MilitaryBranch::Logistics(eOwner);
+	case CAVALRY: return new MilitaryBranch::Cavalry(eOwner);
+	case NUCLEAR: return new MilitaryBranch::NuclearArsenal(eOwner);
+	default: FErrorMsg("Unknown military branch type"); return NULL;
+	}
 }
 
-MilitaryBranch::MilitaryBranch(MilitaryBranch const& other) :
-		ownerId(other.ownerId), typicalUnitType(other.typicalUnitType),
-		typicalUnitPower(other.typicalUnitPower), pow(other.pow),
-		number(other.number), bombard(other.bombard), soften(other.soften) {}
 
-void MilitaryBranch::write(FDataStreamBase* stream) {
+MilitaryBranch::MilitaryBranch(PlayerTypes eOwner)
+:	m_eOwner(eOwner), m_eTypicalUnit(NO_UNIT), m_iUnits(0),
+	m_bCanBombard(false), m_bCanSoften(false)
+{}
 
-	stream->Write(typicalUnitType);
-	stream->Write(typicalUnitPower);
-	stream->Write(pow);
-	stream->Write(number);
-	stream->Write(bombard);
-	stream->Write(soften);
+
+void MilitaryBranch::write(FDataStreamBase* pStream) const
+{
+	int iSaveVersion;
+	//iSaveVersion = 0;
+	iSaveVersion = 1; // scaled instead of double
+	/*	I hadn't thought of a version number in the initial release. Need
+		to fold it into m_eTypicalUnit now to avoid breaking compatibility.
+		Add 1 b/c the typical unit can be -1. */
+	pStream->Write(m_eTypicalUnit + 1 + 1000 * iSaveVersion);
+	m_rTypicalPower.write(pStream);
+	m_rTotalPower.write(pStream);
+	pStream->Write(m_iUnits);
+	pStream->Write(m_bCanBombard);
+	pStream->Write(m_bCanSoften);
 }
 
-void MilitaryBranch::read(FDataStreamBase* stream) {
 
-	int tmp;
-	stream->Read(&tmp);
-	typicalUnitType = (UnitTypes)tmp;
-	stream->Read(&typicalUnitPower);
-	stream->Read(&pow);
-	stream->Read(&number);
-	stream->Read(&bombard);
-	stream->Read(&soften);
+void MilitaryBranch::read(FDataStreamBase* pStream)
+{
+	int iSaveVersion;
+	{
+		int iTmp;
+		pStream->Read(&iTmp);
+		iSaveVersion = iTmp / 1000;
+		if (iSaveVersion <= 0)
+			m_eTypicalUnit = (UnitTypes)iTmp;
+		else m_eTypicalUnit = (UnitTypes)((iTmp % 1000) - 1);
+	}
+	if (iSaveVersion < 1)
+	{
+		double dTypicalPower, dTotalPower;
+		pStream->Read(&dTypicalPower);
+		pStream->Read(&dTotalPower);
+		m_rTypicalPower = scaled::fromDouble(dTypicalPower);
+		m_rTotalPower = scaled::fromDouble(dTotalPower);
+	}
+	else
+	{
+		m_rTypicalPower.read(pStream);
+		m_rTotalPower.read(pStream);
+	}
+	pStream->Read(&m_iUnits);
+	pStream->Read(&m_bCanBombard);
+	pStream->Read(&m_bCanSoften);
 }
 
-void MilitaryBranch::updateTypicalUnit() {
 
+void MilitaryBranch::updateTypicalUnit()
+{
 	PROFILE_FUNC();
-	double val = 0;
-	double bestVal = 0;
-	CvPlayerAI& owner = GET_PLAYER(ownerId);
-	CvCivilization const& civ = owner.getCivilization();
-	for(int i = 0; i < civ.getNumUnits(); i++) {
-		UnitTypes const ut = civ.unitAt(i);
-		CvUnitInfo const& u = GC.getInfo(ut);
+
+	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);
+	scaled rBestValue;
+	CvCivilization const& kCiv = kOwner.getCivilization();
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
+	{
+		UnitTypes const eUnit = kCiv.unitAt(i);
+		CvUnitInfo const& kUnit = GC.getInfo(eUnit);
 		// Siege and air units count for power but aren't typical
-		if(u.getCombat() == 0 || u.getCombatLimit() < 100 || !isValidDomain(u) ||
-				u.getDomainType() == DOMAIN_AIR || u.getDomainType() == DOMAIN_IMMOBILE)
+		if (kUnit.getCombat() <= 0 || kUnit.getCombatLimit() < 100 ||
+			!isValidDomain(eUnit) || kUnit.getDomainType() == DOMAIN_AIR ||
+			kUnit.getDomainType() == DOMAIN_IMMOBILE)
+		{
 			continue;
-		UnitClassTypes const uct = CvCivilization::unitClass(ut);
-		/*  I may want to give some combat unit (e.g. War Elephant) a national limit
+		}
+		UnitClassTypes const eUnitClass = CvCivilization::unitClass(eUnit);
+		/*	I may want to give some combat unit (e.g. War Elephant) a national limit
 			or an instance cost modifier at some point */
-		CvUnitClassInfo const& uci = GC.getInfo(uct);
-		int nationalLimit = uci.getMaxPlayerInstances();
-		if(nationalLimit >= 0 && nationalLimit <
-				(GC.AI_getGame().AI_getCurrEraFactor() + 1) * 4)
+		CvUnitClassInfo const& kUnitClass = GC.getInfo(eUnitClass);
+		{
+			int iNationalLimit = kUnitClass.getMaxPlayerInstances();
+			if (iNationalLimit >= 0 &&
+				iNationalLimit < (GC.AI_getGame().AI_getCurrEraFactor() + 1) * 4)
+			{
+				continue;
+			}
+		}
+		if (kUnitClass.getInstanceCostModifier() >= 20)
 			continue;
-		if(uci.getInstanceCostModifier() >= 20)
-			continue;
-		/* Could call this for land units as well, but relying on the capital for
-		   those is faster, and perhaps more accurate as well. */
-		if(u.getDomainType() == DOMAIN_SEA) {
-			if(!GET_PLAYER(ownerId).AI_canBeExpectedToTrain(ut))
+		/*	Could call this for land units as well, but relying on the capital for
+			those is faster, and perhaps more accurate as well. */
+		if (kUnit.getDomainType() == DOMAIN_SEA)
+		{
+			if (!kOwner.AI_canBeExpectedToTrain(eUnit))
 				continue;
 		}
-		else {
-			if(!owner.hasCapital() ||
-					!owner.getCapital()->canTrain(ut, false, false, false, false,
-					true)) // Ignore air unit cap
+		else
+		{
+			if (!kOwner.hasCapital() ||
+				!kOwner.getCapital()->canTrain(eUnit, false, false, false, false,
+				true)) // Ignore air unit cap
+			{
 				continue;
+			}
 		}
-		/* Normally apply situational modifiers only in simulation steps;
-		   use them here only in order to determine the most suitable unit
-		   for a given job. */
-		double unitPow = unitPower(u, true);
-		if(unitPow < 0.01)
+		/*	Normally apply situational modifiers only in simulation steps;
+			use them here only in order to determine the most suitable unit
+			for a given job. */
+		scaled const rUnitPow = unitPower(eUnit, true);
+		if (rUnitPow <= 0)
 			continue;
-		double utility = unitUtility(u, unitPow);
-		double productionCost = estimateProductionCost(u);
-		if(productionCost <= 0)
+		scaled rUtility = unitUtility(eUnit, rUnitPow);
+		scaled rProductionCost = estimateProductionCost(eUnit);
+		if (rProductionCost <= 0)
 			continue;
-		val = utility / productionCost;
-		if(val > bestVal) {
-			bestVal = val;
-			typicalUnitPower = unitPower(u, false);
-			typicalUnitType = ut;
+		scaled rLoopValue = rUtility / rProductionCost;
+		if (rLoopValue > rBestValue)
+		{
+			rBestValue = rLoopValue;
+			m_rTypicalPower = unitPower(eUnit, false);
+			m_eTypicalUnit = eUnit;
 		}
 	}
 }
 
-void MilitaryBranch::NuclearArsenal::updateTypicalUnit() {
 
-	CvPlayerAI& owner = GET_PLAYER(ownerId);
-	if(!owner.hasCapital())
+void MilitaryBranch::NuclearArsenal::updateTypicalUnit()
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);
+	if (!kOwner.hasCapital())
 		return;
-	double bestVal = 0;
-	CvCivilization const& civ = owner.getCivilization();
-	for(int i = 0; i < civ.getNumUnits(); i++) {
-		UnitTypes ut = civ.unitAt(i);
-		if(!owner.getCapitalCity()->canTrain(ut))
+	scaled rBestValue;
+	CvCivilization const& kCiv = kOwner.getCivilization();
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
+	{
+		UnitTypes eUnit = kCiv.unitAt(i);
+		if (!kOwner.getCapitalCity()->canTrain(eUnit))
 			continue;
-		CvUnitInfo const& u = GC.getInfo(ut);
-		double unitPow = unitPower(u, true);
-		if(unitPow < 0.01)
+		scaled const rPow = unitPower(eUnit, true);
+		if (rUnitPow <= 0)
 			continue;
-		double utility = unitUtility(u, unitPow);
-		double productionCost = estimateProductionCost(u);
-		if(productionCost <= 0)
+		scaled rUtility = unitUtility(eUnit, rPow);
+		scaled rProductionCost = estimateProductionCost(eUnit);
+		if (rProductionCost <= 0)
 			continue;
-		double val = utility / productionCost;
-		if(val > bestVal) {
-			bestVal = val;
-			typicalUnitPower = unitPower(u, false);
-			typicalUnitType = ut;
+		scaled rLoopValue = rUtility / rProductionCost;
+		if (rLoopValue > rBestValue)
+		{
+			rBestValue = rLoopValue;
+			m_rTypicalPower = unitPower(eUnit, false);
+			m_eTypicalUnit = eUnit;
 		}
 	}
 }
 
-CvUnitInfo const* MilitaryBranch::getTypicalUnit() const {
 
-	if(typicalUnitType == NO_UNIT)
-		return NULL;
-	return &GC.getInfo(typicalUnitType);
+scaled MilitaryBranch::getTypicalPower(TeamTypes eObserver) const
+{
+	if (canKnowTypicalUnit(eObserver))
+		return m_rTypicalPower;
+	return m_rTypicalPower * fixp(0.8); // Underestimate power
 }
 
-UnitTypes MilitaryBranch::getTypicalUnitType() const {
 
-	return typicalUnitType;
-}
-
-double MilitaryBranch::getTypicalUnitPower(PlayerTypes pov) const {
-
-	if(canKnowTypicalUnit(pov))
-		return typicalUnitPower;
-	// Underestimate power
-	return typicalUnitPower * 0.8;
-}
-
-double MilitaryBranch::getTypicalUnitCost(PlayerTypes pov) const {
-
-	if(typicalUnitType == NO_UNIT)
+scaled MilitaryBranch::getTypicalCost(TeamTypes eObserver) const
+{
+	if (m_eTypicalUnit == NO_UNIT)
 		return -1;
-	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	double r = owner.getProductionNeeded(typicalUnitType,
-			::round(estimateExtraInstances(owner.AI_getCurrEraFactor())));
-	if(canKnowTypicalUnit(pov))
-		return r;
-	// Underestimate cost
-	return r * 0.85;
+	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);
+	scaled rCost = kOwner.getProductionNeeded(getTypicalUnit(),
+			estimateExtraInstances(kOwner.AI_getCurrEraFactor()).round());
+	if (canKnowTypicalUnit(eObserver))
+		return rCost;
+	return rCost * fixp(0.85); // Underestimate cost
 }
 
-bool MilitaryBranch::canKnowTypicalUnit(PlayerTypes pov) const {
 
-	if(pov == NO_PLAYER || pov == ownerId || typicalUnitType == NO_UNIT)
+bool MilitaryBranch::canKnowTypicalUnit(TeamTypes eObserver) const
+{
+	if (eObserver == NO_TEAM || TEAMID(m_eOwner) == eObserver ||
+		getTypicalUnit() == NO_UNIT)
+	{
 		return true;
-	if(getTypicalUnit()->getPrereqAndTech() != NO_TECH)
-		return true; // Warrior
-	/*	(Wouldn't be difficult to let CvTeamAI keep track of units ever encountered
-		through a EnumMap<UnitClassTypes,bool> that gets updated by CvUnit::setXY -
-		tbd. maybe.) */
-	if(GET_PLAYER(ownerId).getUnitClassCount(getTypicalUnit()->getUnitClassType()) > 0)
+	}
+	CvUnitInfo const& kTypicalUnit = GC.getInfo(getTypicalUnit());
+	if (kTypicalUnit.getPrereqAndTech() != NO_TECH) // Warrior
+		return true;
+	/*	Could keep track of seen units (per other player) in CvPlayerAI::
+		AI_doEnemyUnitData -- however, in theory, it should be possible to infer
+		completed units from changes in the power curve (maybe also techs
+		from changes in score), and letting the AI cheat here is actually to
+		the advantage of human players that want to deter the AI in the early game. */
+	if(GET_PLAYER(m_eOwner).getUnitClassCount(kTypicalUnit.getUnitClassType()) > 0)
 		return true; // The unit's in the wild
-	if(GET_PLAYER(pov).canSeeTech(ownerId))
-		return true; // Tech visible on Foreign Advisor
+	for (MemberIter itObs(eObserver); itObs.hasNext(); ++itObs)
+	{
+		if (itObs->canSeeTech(m_eOwner))
+			return true; // Tech visible on Foreign Advisor
+	}
 	return false;
 }
 
-double MilitaryBranch::estimateProductionCost(CvUnitInfo const& u) {
 
-	double r = u.getProductionCost();
-	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	UnitClassTypes const uct = u.getUnitClassType();
-	/*  CvPlayer::getProductionNeeded would be needlessly slow. Don't need all
+scaled MilitaryBranch::estimateProductionCost(UnitTypes eUnit)
+{
+	scaled rCost = GC.getInfo(eUnit).getProductionCost();
+	UnitClassTypes const eUnitClass = GC.getInfo(eUnit).getUnitClassType();
+	/*	CvPlayer::getProductionNeeded would be needlessly slow. Don't need all
 		those modifiers, and we need a projection for InstanceCostModifier anyway. */
-	int instanceCostMod = GC.getInfo(uct).getInstanceCostModifier();
-	if(instanceCostMod > 0) {
-		r *= 1 + (instanceCostMod * 0.01 *
-					(owner.getUnitClassCount(uct) +
-					estimateExtraInstances(owner.AI_getCurrEraFactor())));
+	int iInstanceCostMod = GC.getInfo(eUnitClass).getInstanceCostModifier();
+	if (iInstanceCostMod > 0)
+	{
+		rCost *= 1 + (per100(iInstanceCostMod) *
+				(GET_PLAYER(m_eOwner).getUnitClassCount(eUnitClass) +
+				estimateExtraInstances(GET_PLAYER(m_eOwner).AI_getCurrEraFactor())));
 	}
+	return rCost;
+}
+
+
+scaled MilitaryBranch::unitPower(UnitTypes eUnit, scaled rBasePower) const
+{
+	/*	Perhaps CvPlayerAI::AI_unitValue could be used here
+		(and in the derived classes). Would have to be tested, might be slow.
+		The main point would be future-proofing. */
+	CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+	scaled r = rBasePower;
+	if (r < 0)
+		r = kUnit.getPowerValue();
+	/*	A good start. Power values mostly equal combat strength; the
+		BtS developers have manually increased the value of first strikers
+		(usually +1 power), and considerably decreased the value of units
+		that can only defend.
+		Collateral damage and speed seem underappreciated. */
+	if (kUnit.getCollateralDamage() > 0 && kUnit.getDomainType() == DOMAIN_LAND ||
+		kUnit.getMoves() > 1)
+	{
+		r *= fixp(1.12);
+	}
+	// Sea units that can't bombard cities are overrated in Unit XML
+	if (kUnit.getDomainType() == DOMAIN_SEA && kUnit.getBombardRate() == 0)
+		r *= fixp(2/3.);
+
+	/*	The BtS power value for Tactical Nuke seems low (30, same as Tank),
+		but considering that the AI isn't good at using nukes tactically, and that
+		the strategic value is captured by the Risk WarUtilityAspect, it seems
+		just about right. */
+	//if(kUnit.isSuicide()) r *= fixp(4/3.); // all missiles
+
+	/*	Combat odds don't increase linearly with strength. Use a power law
+		with an exponent between 1.5 and 2 (configured in XML). */
+	r.exponentiate(per100(GC.getDefineINT(CvGlobals::POWER_CORRECTION)));
 	return r;
 }
 
-bool MilitaryBranch::canEmploy(CvUnitInfo const& u) const {
 
-	return u.getCombat() > 0 && isValidDomain(u) && unitPower(u) > 0;
+bool MilitaryBranch::canEmploy(UnitTypes eUnit) const
+{
+	return (GC.getInfo(eUnit).getCombat() > 0 && isValidDomain(eUnit) &&
+			unitPower(eUnit, false) > 0);
 }
 
-void MilitaryBranch::updatePower(CvUnitInfo const& u, bool add) {
 
-	int sign = 1;
-	if(!add)
-		sign = -1;
-	// Calling canEmploy may, unfortunately, call unitPower twice
-	if((u.getCombat() > 0 || u.getNukeRange() >= 0) && isValidDomain(u)) {
-		double powChange = unitPower(u);
-		if(powChange > 0) {
-			powChange *= sign;
-			pow += powChange;
-			number += sign;
+void MilitaryBranch::reportUnit(UnitTypes eUnit, int iChange)
+{
+	// (Calling canEmploy could cause unitPower to be called twice)
+	if ((GC.getInfo(eUnit).getCombat() > 0 || GC.getInfo(eUnit).getNukeRange() >= 0) &&
+		isValidDomain(eUnit))
+	{
+		scaled rPowChange = unitPower(eUnit, false);
+		if (rPowChange > 0)
+		{
+			rPowChange *= iChange;
+			m_rTotalPower += rPowChange;
+			m_iUnits += iChange;
 		}
 	}
 }
 
-bool MilitaryBranch::isValidDomain(DomainTypes d) const {
 
-	return true;
+bool MilitaryBranch::isValidDomain(DomainTypes eDomain) const
+{
+	return true; // default implementation
 }
 
-double MilitaryBranch::HomeGuard::initUnitsTrained(int numNonNavalUnits,
-		double powNonNavalUnits) {
 
+scaled MilitaryBranch::HomeGuard::initTotals(int iNonNavalUnits,
+	scaled rNonNavalPower)
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);
 	// Akin to list in CvUnitAI::AI_isCityAIType
-	CvPlayerAI const& owner = GET_PLAYER(ownerId);
 	UnitAITypes guardAITypes[] = {
 		UNITAI_CITY_DEFENSE,
 		UNITAI_CITY_COUNTER,
@@ -233,286 +317,308 @@ double MilitaryBranch::HomeGuard::initUnitsTrained(int numNonNavalUnits,
 		UNITAI_CITY_SPECIAL,
 		UNITAI_RESERVE,
 	};
-	number = 0;
-	for(int i = 0; i < ARRAY_LENGTH(guardAITypes); i++)
-		number += owner.AI_getNumAIUnits(guardAITypes[i]);
-	/* 1.5 per city might be more realistic, but humans tend to use especially
-	   weak units as garrisons. */
-	if(owner.isHuman())
-		number = owner.getNumCities();
-	/*	Units with aggressive AI types can be temporarily tied down defending cities.
-		So the count based on AI types isn't reliable. */
-	else number = scaled::max(number, fixp(10/7.) * owner.getNumCities()).round();
-	number = std::min(number, numNonNavalUnits);
-	double r = 0;
-	/* Splitting nonNavyPower up based on counted units tends to overestimate
-	   the power of garrisons because these tend to be cheaper units. On the
-	   other hand, the AI doesn't put every single non-garrison into its invasion
-	   stacks, so this may even out. */
-	if(numNonNavalUnits > 0)
-		r = number / (double)numNonNavalUnits;
-	FAssert(r <= 1);
-	pow = powNonNavalUnits * r;
-	return r;
+	/*	Humans tends to use few and weak garrisons. (However, when fearing an attack
+		by a much stronger AI civ, humans may also turtle ...) */
+	if (kOwner.isHuman())
+		m_iUnits = (fixp(4/3.) * kOwner.getNumCities()).round();
+	else
+	{
+		m_iUnits = 0;
+		for (int i = 0; i < ARRAY_LENGTH(guardAITypes); i++)
+			m_iUnits += kOwner.AI_getNumAIUnits(guardAITypes[i]);
+		/*	Units with aggressive AI types can be temporarily tied down
+			defending cities. So the count based on AI types isn't reliable. */
+		m_iUnits = scaled::max(m_iUnits, fixp(10/7.) * kOwner.getNumCities()).round();
+	}
+	m_iUnits = std::min(m_iUnits, iNonNavalUnits);
+	scaled rGuardPortion;
+	/*	Splitting rNonNavalPower up based on counted units tends to overestimate
+		the power of garrisons because these tend to be cheaper units. On the
+		other hand, the AI doesn't put every single non-garrison into its invasion
+		stacks, so this may even out. */
+	if (iNonNavalUnits > 0)
+		rGuardPortion = scaled(m_iUnits, iNonNavalUnits);
+	FAssert(rGuardPortion <= 1);
+	m_rTotalPower = rNonNavalPower * rGuardPortion;
+	return rGuardPortion;
 }
 
-bool MilitaryBranch::isValidDomain(CvUnitInfo const& u) const {
 
-	return isValidDomain(u.getDomainType());
+bool MilitaryBranch::isValidDomain(UnitTypes eUnit) const
+{
+	return isValidDomain(GC.getInfo(eUnit).getDomainType());
 }
 
-bool MilitaryBranch::HomeGuard::isValidDomain(DomainTypes d) const {
 
-	return d == DOMAIN_LAND || d == DOMAIN_AIR;
+bool MilitaryBranch::HomeGuard::isValidDomain(DomainTypes eDomain) const
+{
+	return (eDomain == DOMAIN_LAND || eDomain == DOMAIN_AIR);
 }
 
-bool MilitaryBranch::Army::isValidDomain(DomainTypes d) const {
 
-	return d == DOMAIN_LAND || d == DOMAIN_AIR || d == DOMAIN_IMMOBILE;
+bool MilitaryBranch::Army::isValidDomain(DomainTypes eDomain) const
+{
+	return (eDomain == DOMAIN_LAND || eDomain == DOMAIN_AIR || eDomain == DOMAIN_IMMOBILE);
 }
 
-bool MilitaryBranch::Fleet::isValidDomain(DomainTypes d) const {
 
-	return d == DOMAIN_SEA;
+bool MilitaryBranch::Fleet::isValidDomain(DomainTypes eDomain) const
+{
+	return (eDomain == DOMAIN_SEA);
 }
 
-bool MilitaryBranch::Cavalry::isValidDomain(DomainTypes d) const {
 
-	return d == DOMAIN_LAND;
+bool MilitaryBranch::Cavalry::isValidDomain(DomainTypes eDomain) const
+{
+	return (eDomain == DOMAIN_LAND);
 }
 
-double MilitaryBranch::HomeGuard::unitPower(CvUnitInfo const& u,
-		bool modify) const {
 
-	double r = u.getPowerValue();
-	if(modify) {
-		if(u.isNoDefensiveBonus())
-			r *= 0.66;
-		double defMod = 1 + u.getCityDefenseModifier() / 100.0;
+scaled MilitaryBranch::HomeGuard::unitPower(UnitTypes eUnit, bool bModify) const
+{
+	CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+	scaled rBasePow = kUnit.getPowerValue();
+	if (bModify)
+	{
+		if (kUnit.isNoDefensiveBonus())
+			rBasePow *= fixp(2/3.);
+		scaled rDefMod = 1 + per100(kUnit.getCityDefenseModifier());
 		// Prefer potential garrisons
-		FOR_EACH_ENUM(Promotion) {
-			CvPromotionInfo const& promo = GC.getInfo(eLoopPromotion);
-			if(promo.getCityDefensePercent() >= 20
-					&& promo.getUnitCombat(u.getUnitCombatType())) {
-				defMod += 0.1;
+		FOR_EACH_ENUM(Promotion)
+		{
+			CvPromotionInfo const& kPromo = GC.getInfo(eLoopPromotion);
+			if (kPromo.getCityDefensePercent() >= 20 &&
+				kPromo.getUnitCombat(kUnit.getUnitCombatType()))
+			{
+				rDefMod += fixp(0.1);
 				break;
 			}
 		}
-		r *= defMod;
+		rBasePow *= rDefMod;
 	}
-	return GET_PLAYER(ownerId).uwai().militaryPower(u, r);
+	return MilitaryBranch::unitPower(eUnit, rBasePow);
 }
 
-/* Utility equals power by default (template pattern). */
-double MilitaryBranch::unitUtility(CvUnitInfo const& u, double pow) const {
-
-	return pow;
+// Utility equals power by default
+scaled MilitaryBranch::unitUtility(UnitTypes, scaled rPower) const
+{
+	return rPower;
 }
 
-double MilitaryBranch::Logistics::unitUtility(CvUnitInfo const& u, double pow) const {
 
-	bool canEnterAllTerrain = true;
-	FOR_EACH_ENUM(Terrain) {
-		if(u.getTerrainImpassable(eLoopTerrain)) {
-			canEnterAllTerrain = false;
-			break;
-		}
-	}
-	/* Better to use GET_PLAYER(ownerId).AI_unitImpassableCount(UnitTypes) == 0?
-	   But how does one get a UnitTypes from CvUnitInfo again? */
-	/* Can't rely solely on cargo space: Galleys are most efficient in that
-	   regard, but the City AI doesn't build Galleys once it has Galleons.
-	   Could use pow instead of getCargoSpace, but that's a bit confusing. */
-	return u.getCargoSpace() + u.getCombat() + u.getMoves()
-			+ (canEnterAllTerrain ? 5 : 0);
+scaled MilitaryBranch::Logistics::unitUtility(UnitTypes eUnit, scaled rPower) const
+{
+	CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+	return kUnit.getCargoSpace() + kUnit.getCombat() + kUnit.getMoves() +
+			(GET_PLAYER(m_eOwner).AI_isAnyImpassable(eUnit) ? 0 : 5);
 }
 
-double MilitaryBranch::Army::unitPower(CvUnitInfo const& u, bool modify) const {
 
-	// (Include nukes in army)
-	/*if(u.getNukeRange() >= 0)
+scaled MilitaryBranch::Army::unitPower(UnitTypes eUnit, bool bModify) const
+{
+	CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+	// (Do include nukes in army)
+	/*if (kUnit.getNukeRange() >= 0)
 		return -1;*/
-	double r = u.getPowerValue();
-	if(modify) {
-		if(u.isMostlyDefensive()) // advc.315
+	scaled rBasePow = kUnit.getPowerValue();
+	if (bModify)
+	{
+		if (kUnit.isMostlyDefensive()) // advc.315
 			return -1;
 		// Prefer potential city raiders
-		FOR_EACH_ENUM(Promotion) {
-			CvPromotionInfo const& promo = GC.getInfo(eLoopPromotion);
-			if(promo.getCityAttackPercent() >= 20 && promo.getUnitCombat(u.getUnitCombatType())) {
-				r *= 1.1;
+		FOR_EACH_ENUM(Promotion)
+		{
+			CvPromotionInfo const& kPromo = GC.getInfo(eLoopPromotion);
+			if (kPromo.getCityAttackPercent() >= 20 &&
+				kPromo.getUnitCombat(kUnit.getUnitCombatType()))
+			{
+				rBasePow *= fixp(1.1);
 				break;
 			}
 		}
-		/* Military power is already biased towards aggression.
-		   No further adjustments needed. */
+		/*	Military power is already biased toward aggression.
+			No further adjustments needed. */
 	}
-	return GET_PLAYER(ownerId).uwai().militaryPower(u, r);
+	return MilitaryBranch::unitPower(eUnit, rBasePow);
 }
 
-double MilitaryBranch::Cavalry::unitPower(CvUnitInfo const& u, bool modify) const {
 
-	if(u.getMoves() <= 1 || u.getProductionCost() >= 150 ||
-			u.isMostlyDefensive()) // advc.315
+scaled MilitaryBranch::Cavalry::unitPower(UnitTypes eUnit, bool bModify) const
+{
+	CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+	if (kUnit.getMoves() <= 1 || kUnit.getProductionCost() >= 150 ||
+		kUnit.isMostlyDefensive()) // advc.315
+	{
 		return -1;
-	return GET_PLAYER(ownerId).uwai().militaryPower(u);
-}
-
-double MilitaryBranch::Fleet::unitPower(CvUnitInfo const& u, bool modify) const {
-
-	double r = GET_PLAYER(ownerId).uwai().militaryPower(u);
-	// Avoid selecting Ironclad as typical unit (can't reach enemy cities reliably)
-	if(modify) {
-		FOR_EACH_ENUM(Terrain) {
-			if(u.getTerrainImpassable(eLoopTerrain)) {
-				r /= 2;
-				break;
-			}
-		}
-		/*  Would like to use CvPlayerAI::AI_unitImpassableCount, but that
-			requires a UnitTypes argument. */
 	}
-	return r;
+	return MilitaryBranch::unitPower(eUnit);
 }
 
-double MilitaryBranch::Logistics::unitPower(CvUnitInfo const& u, bool modify) const {
 
-	if(u.getSpecialCargo() == NO_SPECIALUNIT)
-			/*  This would include carriers and subs in Logistics. But I think
-				only proper transport ships should count b/c aircraft can't
-				conquer cities. */
-			//|| u.getDomainCargo() == DOMAIN_AIR)
-		return u.getCargoSpace();
+scaled MilitaryBranch::Fleet::unitPower(UnitTypes eUnit, bool bModify) const
+{
+	scaled rPow = MilitaryBranch::unitPower(eUnit);
+	if (bModify && GET_PLAYER(m_eOwner).AI_isAnyImpassable(eUnit))
+		rPow /= 2;
+	return rPow;
+}
+
+
+scaled MilitaryBranch::Logistics::unitPower(UnitTypes eUnit, bool bModify) const
+{
+	if (GC.getInfo(eUnit).getSpecialCargo() == NO_SPECIALUNIT)
+		/*	This would include carriers and subs in Logistics. But I think
+			only proper transport ships should count b/c aircraft can't
+			conquer cities. */
+		//|| GC.getInfo(eUnit).getDomainCargo() == DOMAIN_AIR)
+	{
+		return GC.getInfo(eUnit).getCargoSpace();
+	}
 	return -1;
 }
 
-double MilitaryBranch::NuclearArsenal::unitPower(CvUnitInfo const& u, bool modify) const {
 
-	if(u.getNukeRange() < 0)
+scaled MilitaryBranch::NuclearArsenal::unitPower(UnitTypes eUnit, bool bModify) const
+{
+	CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+	if (kUnit.getNukeRange() < 0)
 		return -1; // I.e. disregard non-nuke units
-	double r = u.getPowerValue();
-	/*  'modify' should only be used for picking the typical unit. Make sure
+	scaled rBasePow = kUnit.getPowerValue();
+	/*	bModify should only be used for picking the typical unit. Make sure
 		that ICBM gets chosen over TN despite costing twice as much b/c the
 		AI tends to invest more in ICBM than TN. */
-	if(modify && u.getAirRange() == 0)
-		r *= 2.1;
-	return GET_PLAYER(ownerId).uwai().militaryPower(u, r);
+	if (bModify && kUnit.getAirRange() == 0)
+		rBasePow *= fixp(2.1);
+	return MilitaryBranch::unitPower(eUnit, rBasePow);
 }
 
-void MilitaryBranch::Army::setUnitsTrained(int number, double pow) {
 
-	this->number = number;
-	this->pow = pow;
+void MilitaryBranch::Army::setTotals(int iUnits, scaled rTotalPow)
+{
+	m_iUnits = iUnits;
+	m_rTotalPower = rTotalPow;
 }
 
-void MilitaryBranch::Army::updateTypicalUnit() {
 
+void MilitaryBranch::Army::updateTypicalUnit()
+{
 	MilitaryBranch::updateTypicalUnit();
-	bombard = canTrainSiege();
-	soften = canTrainCollateral();
+	updateCanBombard();
+	updateCanSoften();
 }
 
-void MilitaryBranch::Fleet::updateTypicalUnit() {
 
+void MilitaryBranch::Fleet::updateTypicalUnit()
+{
 	MilitaryBranch::updateTypicalUnit();
-	if(typicalUnitType != NO_UNIT)
-		bombard = getTypicalUnit()->getBombardRate() > 0;
+	if (getTypicalUnit() != NO_UNIT)
+		m_bCanBombard = (GC.getInfo(getTypicalUnit()).getBombardRate() > 0);
 }
 
-bool MilitaryBranch::Army::canTrainSiege() const {
 
-	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	CvCivilization const& civ = owner.getCivilization();
-	for(int i = 0; i < civ.getNumUnits(); i++) {
-		UnitTypes ut = civ.unitAt(i);
-		CvUnitInfo const& u = GC.getInfo(ut);
-		if(((u.getBombardRate() > 0 && u.getDomainType() == DOMAIN_LAND) ||
-				(u.getBombardRate() > 0 && u.getDomainType() == DOMAIN_AIR)) &&
-				owner.AI_canBeExpectedToTrain(ut))
-			return true;
+void MilitaryBranch::Army::updateCanBombard()
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);
+	CvCivilization const& kCiv = kOwner.getCivilization();
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
+	{
+		UnitTypes eUnit = kCiv.unitAt(i);
+		CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+		if (((kUnit.getBombardRate() > 0 && kUnit.getDomainType() == DOMAIN_LAND) ||
+			(kUnit.getBombardRate() > 0 && kUnit.getDomainType() == DOMAIN_AIR)) &&
+			kOwner.AI_canBeExpectedToTrain(eUnit))
+		{
+			m_bCanBombard = true;
+			return;
+		}
 	}
-	return false;
+	m_bCanBombard = false;
 }
 
-/* Perhaps need such a function for Cavalry as well (in case some mod ever gives
-   Cav coll. dmg. or a similar ability) */
-bool MilitaryBranch::Army::canTrainCollateral() const {
-
-	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	CvCivilization const& civ = owner.getCivilization();
-	for(int i = 0; i < civ.getNumUnits(); i++) {
-		UnitTypes ut = civ.unitAt(i);
-		CvUnitInfo const& u = GC.getInfo(ut);
-		if(u.getCollateralDamage() > 0 &&
-				isValidDomain(u.getDomainType()) &&
-				/*	Usually it takes the AI a while to assemble a significant number
-					of coll.-dmg. units after discovering the respective tech, so
-					let's delay things a bit with this (cheap) extra check. */
-				owner.getUnitClassCountPlusMaking(kCiv.unitClass(ut)) > 1 &&
-				owner.AI_canBeExpectedToTrain(ut))
-			return true;
+/*	(Perhaps need such a function for Cavalry as well
+	in case that a mod ever gives Cav coll. dmg. or a similar ability). */
+void MilitaryBranch::Army::updateCanSoften()
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);
+	CvCivilization const& kCiv = kOwner.getCivilization();
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
+	{
+		UnitTypes eUnit = kCiv.unitAt(i);
+		CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+		if (kUnit.getCollateralDamage() > 0 &&
+			isValidDomain(kUnit.getDomainType()) &&
+			/*	Usually it takes the AI a while to assemble a significant number
+				of coll.-dmg. units after discovering the respective tech, so
+				let's delay things a bit with this (cheap) extra check. */
+			kOwner.getUnitClassCountPlusMaking(kCiv.unitClass(eUnit)) > 1 &&
+			kOwner.AI_canBeExpectedToTrain(eUnit))
+		{
+			m_bCanSoften = true;
+			return;
+		}
 	}
-	return false;
+	m_bCanSoften = false;
 }
 
-ostream& operator<<(ostream& os, const MilitaryBranch& mb) {
 
-	return mb.out(os);
+ostream& operator<<(ostream& os, MilitaryBranch const& kBranch)
+{
+	return kBranch.out(os);
 }
 
-ostream& MilitaryBranch::out(ostream& os) const {
-
+ostream& MilitaryBranch::out(ostream& os) const
+{
 	return os << str();
 }
 
-char const* MilitaryBranch::str() const {
-
-	return debugStrings[enumId()];
-}
-
-char const* MilitaryBranch::debugStrings[] = {
+char const* MilitaryBranch::m_aszDebugStrings[] = {
 	"Guard", "Army", "Fleet", "Logistics", "Cavalry",
 	"Nuclear", "(unknown branch)"
 };
 
-MilitaryBranchTypes MilitaryBranch::enumId() const {
+char const* MilitaryBranch::str() const
+{
+	return m_aszDebugStrings[getID()];
+}
 
+MilitaryBranchTypes MilitaryBranch::getID() const
+{
 	return NUM_BRANCHES;
 }
 
-MilitaryBranchTypes MilitaryBranch::Army::enumId() const {
-
+MilitaryBranchTypes MilitaryBranch::Army::getID() const
+{
 	return ARMY;
 }
 
-MilitaryBranchTypes MilitaryBranch::HomeGuard::enumId() const {
-
+MilitaryBranchTypes MilitaryBranch::HomeGuard::getID() const
+{
 	return HOME_GUARD;
 }
 
-MilitaryBranchTypes MilitaryBranch::Fleet::enumId() const {
-
+MilitaryBranchTypes MilitaryBranch::Fleet::getID() const
+{
 	return FLEET;
 }
 
-MilitaryBranchTypes MilitaryBranch::Logistics::enumId() const {
-
+MilitaryBranchTypes MilitaryBranch::Logistics::getID() const
+{
 	return LOGISTICS;
 }
 
-MilitaryBranchTypes MilitaryBranch::Cavalry::enumId() const {
-
+MilitaryBranchTypes MilitaryBranch::Cavalry::getID() const
+{
 	return CAVALRY;
 }
 
-MilitaryBranchTypes MilitaryBranch::NuclearArsenal::enumId() const {
-
+MilitaryBranchTypes MilitaryBranch::NuclearArsenal::getID() const
+{
 	return NUCLEAR;
 }
 
-char const* MilitaryBranch::str(MilitaryBranchTypes mb) {
-
-	if(mb < 0)
-		mb = NUM_BRANCHES;
-	return debugStrings[mb];
+char const* MilitaryBranch::str(MilitaryBranchTypes eBranch)
+{
+	if (eBranch < 0 || eBranch > NUM_BRANCHES)
+		eBranch = NUM_BRANCHES;
+	return m_aszDebugStrings[eBranch];
 }

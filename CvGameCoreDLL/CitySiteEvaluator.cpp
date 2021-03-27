@@ -299,7 +299,7 @@ void CitySiteEvaluator::log(CvPlot const& kPlot)
 		int iBest = 0;
 		for (int i = 0; i < getPlayer().AI_getNumCitySites(); i++)
 		{
-			CvPlot const& kLoopPlot = *getPlayer().AI_getCitySite(i);
+			CvPlot const& kLoopPlot = getPlayer().AI_getCitySite(i);
 			if (&kLoopPlot == &kPlot)
 				continue;
 			int iValue = evaluate(kLoopPlot);
@@ -861,20 +861,19 @@ bool AIFoundValue::computeOverlap()
 	{
 		for (int iSite = 0; iSite < kPlayer.AI_getNumCitySites(); iSite++)
 		{
-			CvPlot const* pCitySitePlot = kPlayer.AI_getCitySite(iSite);
-			if (pCitySitePlot == &kPlot)
+			CvPlot const& kCitySitePlot = kPlayer.AI_getCitySite(iSite);
+			if (&kCitySitePlot == &kPlot)
 				continue;
-			FAssert(pCitySitePlot != NULL);
-			if (plotDistance(&kPlot, pCitySitePlot) <=
+			if (plotDistance(&kPlot, &kCitySitePlot) <=
 				GC.getDefineINT(CvGlobals::MIN_CITY_RANGE) &&
-				pCitySitePlot->sameArea(kPlot))
+				kCitySitePlot.sameArea(kPlot))
 			{
 				IFLOG logBBAI("Too close to one of the sites we've already chosen");
 				return false;
 			}
 			for (CityPlotIter it(kPlot); it.hasNext(); ++it)
 			{
-				if (plotDistance(&(*it), pCitySitePlot) <= CITY_PLOTS_RADIUS)
+				if (plotDistance(&(*it), &kCitySitePlot) <= CITY_PLOTS_RADIUS)
 				{
 					//Plot is inside the radius of a city site
 					aiCitySiteRadius[it.currID()] = iSite;
@@ -1168,7 +1167,7 @@ bool AIFoundValue::isUsablePlot(CityPlotTypes ePlot, int& iTakenTiles, bool& bCi
 	if (aiCitySiteRadius[ePlot] >= 0)
 	{
 		IFLOG logBBAI("%S reserved for higher-priority site at (%d,%d)", p->debugStr(),
-				kPlayer.AI_getCitySite(aiCitySiteRadius[ePlot])->getX(), kPlayer.AI_getCitySite(aiCitySiteRadius[ePlot])->getY());
+				kPlayer.AI_getCitySite(aiCitySiteRadius[ePlot]).getX(), kPlayer.AI_getCitySite(aiCitySiteRadius[ePlot]).getY());
 		return false;
 	}
 	bool bOtherInnerRing = false;
@@ -1788,14 +1787,13 @@ int AIFoundValue::foundOnResourceValue(int const* aiBonusImprovementYield) const
 int AIFoundValue::applyCultureModifier(CvPlot const& p, int iPlotValue, int iCultureModifier,
 	bool bShare) const
 {
-	int r = iPlotValue;
-	r *= iCultureModifier;
-	r /= 100;
+	scaled r = iPlotValue;
+	r *= per100(iCultureModifier);
 	// <advc.031>
 	if (bShare) // bSteal is already factored into iCultureModifier
-		r = ::round(r * 0.375);
+		r *= fixp(0.375);
 	// </advc.031>
-	return r;
+	return r.round();
 }
 
 // Note: aiBonusCount is only a partial count (resources evaluated up to this point)
@@ -1985,20 +1983,21 @@ void AIFoundValue::calculateSpecialYields(CvPlot const& p,
 	int const iEffectiveFood = aiNatureYield[YIELD_FOOD] + aiBuildingYield[YIELD_FOOD];
 	if (aiBonusImprovementYield == NULL) // K-Mod: non bonus related special food
 	{
-		int iSurplus = ::round( // advc.031
-				std::max(0, iEffectiveFood - GC.getFOOD_CONSUMPTION_PER_POPULATION())
-				* (iModifier / 100.0)); // advc.031
+		int iSurplus = (std::max(0,
+				iEffectiveFood - GC.getFOOD_CONSUMPTION_PER_POPULATION()) *
+				per100(iModifier)).uround(); // advc.031
 		iSpecialFoodPlus += iSurplus;
 		aiSpecialYield[YIELD_FOOD] += iSurplus; // advc.031: A little extra love for Flood Plains
 		return;
 	}
 	// advc.031: No need to recompute nature yield here
-	int iSpecialFood = ::round((aiNatureYield[YIELD_FOOD] +
-			aiBonusImprovementYield[YIELD_FOOD]) * /* advc.031: */ (iModifier / 100.0));
+	int iSpecialFood = 
+			((aiNatureYield[YIELD_FOOD] + aiBonusImprovementYield[YIELD_FOOD]) *
+			per100(iModifier)).round(); // advc.031
 	aiSpecialYield[YIELD_FOOD] += iSpecialFood;
 	int iFoodTemp = iSpecialFood - GC.getFOOD_CONSUMPTION_PER_POPULATION();
 	// advc.031:
-	iFoodTemp = ::round(iFoodTemp * iModifier / 100.0);
+	iFoodTemp = (iFoodTemp * per100(iModifier)).round();
 	iSpecialFoodPlus += std::max(0, iFoodTemp);
 	iSpecialFoodMinus -= std::min(0, iFoodTemp);
 	// <advc.031>
@@ -2016,10 +2015,10 @@ void AIFoundValue::calculateSpecialYields(CvPlot const& p,
 	/*  To avoid rounding all yields to 0, don't reduce production and commerce
 		to less than 1. */
 	iSpecialProd = std::max(std::min(1, iSpecialProd),
-			::round(iSpecialProd * iModifier / 100.0));
+			(iSpecialProd * per100(iModifier)).round());
 	aiSpecialYield[YIELD_PRODUCTION] += iSpecialProd;
 	iSpecialComm = std::max(std::min(1, iSpecialComm),
-			::round(iSpecialComm * iModifier / 100.0));
+			(iSpecialComm * per100(iModifier)).round());
 	aiSpecialYield[YIELD_COMMERCE] += iSpecialComm;
 	IFLOG if(bSpecial) logBBAI("Special yield: %dF%dP%dC (modifier: %d percent)",
 			iSpecialFood, iSpecialProd, iSpecialComm, iModifier);
@@ -2039,42 +2038,43 @@ void AIFoundValue::calculateBuildingYields(CvPlot const& p, int const* aiNatureY
 	}
 }
 
-// advc.031: Weighted sum
+/*	advc.031: Weighted sum. (Using floating-point math until such a time that a
+	logarithm function gets added to ScaledNum.) */
 int AIFoundValue::sumUpPlotValues(std::vector<int>& aiPlotValues) const
 {
 	std::sort(aiPlotValues.begin(), aiPlotValues.end(), std::greater<int>());
 	// CITY_HOME_PLOT should have 0 value here, others could have negative values.
 	FAssert(aiPlotValues[NUM_CITY_PLOTS - 1] <= 0);
-	double maxMultPercent = 153;
-	double minMultPercent = 47;
+	double dMaxMultPercent = 153;
+	double dMinMultPercent = 47;
 	if (iCities <= 0) // Capital will grow large
 	{
-		maxMultPercent -= 8;
-		minMultPercent += 8;
+		dMaxMultPercent -= 8;
+		dMinMultPercent += 8;
 	}
-	double const normalizMult = 1;
-	double const subtr = 29;
-	double const exp = std::log(maxMultPercent - minMultPercent) /
+	double const dNormalizMult = 1;
+	double const dSubtr = 29;
+	double const dExp = std::log(dMaxMultPercent - dMinMultPercent) /
 			std::log(NUM_CITY_PLOTS - 1.0);
-	int r = 0;
+	int iR = 0;
 	FOR_EACH_ENUM(CityPlot)
 	{
 		int iPlotValue = aiPlotValues[eLoopCityPlot];
 		if (iPlotValue > 0)
 		{
 			iPlotValue = std::max(iPlotValue / 3,
-					::round(std::max(0.0, iPlotValue - subtr) * 0.01 *
+					fmath::round(std::max(0.0, iPlotValue - dSubtr) * 0.01 *
 					// Linearly decreasing multiplier:
 					/*(maxMultPercent - i * ((maxMultPercent -
 					minMultPercent) / (NUM_CITY_PLOTS - 1))));*/
 					// Try power law instead:
-					normalizMult * (minMultPercent + std::pow((double)
-					std::abs(NUM_CITY_PLOTS - 1 - eLoopCityPlot), exp))));
+					dNormalizMult * (dMinMultPercent + std::pow((double)
+					std::abs(NUM_CITY_PLOTS - 1 - eLoopCityPlot), dExp))));
 		}
-		r += iPlotValue;
+		iR += iPlotValue;
 	}
-	IFLOG logBBAI("Weighted sum of plot values:\n+%d", r);
-	return r;
+	IFLOG logBBAI("Weighted sum of plot values:\n+%d", iR);
+	return iR;
 }
 
 /*	Note: aiSpecialYield includes aiNatureYield. Thus, nature yield is counted twice:
