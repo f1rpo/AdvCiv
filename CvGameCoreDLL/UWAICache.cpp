@@ -88,7 +88,7 @@ void UWAICache::clear(bool bBeforeUpdate)
 	m_aiAdjLandPlots.reset();
 	m_arRelativeNavyPow.reset();
 	m_arWarAnger.reset();
-	
+
 	m_rTotalAssets = 0;
 	m_rGoldPerProduction = 0;
 	m_bCanScrub = false;
@@ -100,7 +100,7 @@ void UWAICache::clear(bool bBeforeUpdate)
 	m_aiWarUtilityIgnoringDistraction.reset();
 
 	if (!bBeforeUpdate)
-	{	// These are updated are various times, not by the regular update function.
+	{	// These are updated at various times, not by the regular update function.
 		m_iNonNavalUnits = 0;
 		deleteMilitaryBranches();
 		m_aiPastWarScore.reset();
@@ -331,7 +331,7 @@ void UWAICache::update()
 	/*	(Apart from the yield estimation problem, the other players' caches
 		wouldn't be up to date, which can cause problems in scenarios.) */
 	if (bPlayerHistAvailable)
-	{	// Any values used by war evaluation need to be updated before this!
+	{	// Any cache data used by war evaluation needs to be updated before this!
 		updateWarUtility();
 	}
 }
@@ -477,8 +477,8 @@ void UWAICache::updateGoldPerProduction()
 	m_rGoldPerProduction.increaseTo(goldPerProdVictory());
 	/*	Currently, this ratio is currently pretty much 1. Just so that any changes
 		to AI_yieldWeight or Civ4YieldInfos.xml take effect here. */
-	m_rGoldPerProduction *= scaled(GET_PLAYER(m_eOwner).
-			AI_yieldWeight(YIELD_PRODUCTION), 225);
+	m_rGoldPerProduction.mulDiv(
+			GET_PLAYER(m_eOwner).AI_yieldWeight(YIELD_PRODUCTION), 225);
 }
 
 namespace
@@ -539,7 +539,7 @@ scaled UWAICache::goldPerProdBuildings()
 	// Cities about to be founded; will soon need buildings.
 	int iFutureCities = (fixp(0.6) * std::min(
 			kOwner.AI_getNumAIUnits(UNITAI_SETTLE),
-			kOwner.AI_getNumCitySites())).round();
+			kOwner.AI_getNumCitySites())).uround();
 	scaled const rMaxNonWonderCount = stats::max(arNonWonderCounts);
 	for (int i = 0; i < iFutureCities; i++)
 		arNonWonderCounts.push_back(rMaxNonWonderCount);
@@ -1203,7 +1203,7 @@ void UWAICache::updateVassalScore(PlayerTypes eRival)
 			GET_PLAYER(eRival).getNumAvailableBonuses(eLoopBonus) > 0)
 		{
 			iTributes++;
-		}	
+		}
 	}
 	m_aiVassalResourceScore.set(eRival,
 			scaled(25 * iTributes, std::max(4, iMasterBonuses)).round());
@@ -1320,13 +1320,13 @@ void UWAICache::reportWarEnding(TeamTypes eEnemy,
 	if ((((rSuccessRatio > fixp(1.3) && bChosenWar) || rSuccessRatio > fixp(1.5)) &&
 		!bForceNoSuccess) || bForceSuccess)
 	{
-		m_aiPastWarScore.add(eEnemy, (100 / rDurationFactor).round());
+		m_aiPastWarScore.add(eEnemy, (100 / rDurationFactor).uround());
 	}
 	// Equal war success not good enough if we started it
 	else if (((bChosenWar || rSuccessRatio < fixp(0.7)) &&
 		!bForceNoFailure) || bForceFailure)
 	{
-		m_aiPastWarScore.add(eEnemy, -(100 * rDurationFactor).round());
+		m_aiPastWarScore.add(eEnemy, -(100 * rDurationFactor).uround());
 	}
 }
 
@@ -1722,7 +1722,7 @@ void UWAICache::City::updateDistance(TeamPathFinders* pPathFinders,
 			scaled(getUWAI().maxLandDist() + getUWAI().maxSeaDist(), 2),
 			(rWeightedSum +
 			scaled(4 * iMixedPaths, iMixedPaths + (int)aiPairwDurations.size())
-			)).round();
+			)).uround();
 }
 
 

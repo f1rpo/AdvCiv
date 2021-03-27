@@ -7923,7 +7923,7 @@ scaled CvCity::probabilityOccupationDecrement() const
 		if(eCulturalOwner != NO_PLAYER && GET_TEAM(eCulturalOwner).isAtWar(getTeam()))
 			return 0;
 	}
-	scaled r = 0;
+	scaled r;
 	scaled rRevoltProb = revoltProbability(true, false, true);
 	if (rRevoltProb < 1)
 		r = (1 - rRevoltProb).pow(GC.getDefineINT(CvGlobals::OCCUPATION_COUNTDOWN_EXPONENT));

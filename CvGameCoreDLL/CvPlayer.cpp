@@ -4261,7 +4261,7 @@ void CvPlayer::stopTradingWithTeam(TeamTypes eTeam, /* advc.130f: */ bool bDiplo
 		return;
 	// </advc.130f>
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.003n: was MAX_PLAYERS
-	{  
+	{
 		CvPlayerAI& kTargetMember = GET_PLAYER((PlayerTypes)iI);
 		if (!kTargetMember.isAlive() || kTargetMember.getTeam() != eTeam)
 			continue;
@@ -18032,7 +18032,7 @@ int CvPlayer::getGrowthThreshold(int iPopulation) const
 	static int const iBASE_CITY_GROWTH_THRESHOLD = GC.getDefineINT("BASE_CITY_GROWTH_THRESHOLD");
 	static int const iCITY_GROWTH_MULTIPLIER = GC.getDefineINT("CITY_GROWTH_MULTIPLIER");
 	int iBaseThreshold = (iBASE_CITY_GROWTH_THRESHOLD * per100(
-			GC.getInfo(getHandicapType()).getBaseGrowthThresholdPercent())).round();
+			GC.getInfo(getHandicapType()).getBaseGrowthThresholdPercent())).uround();
 	int iThreshold = iBaseThreshold + // </advc.251>
 			(iPopulation * iCITY_GROWTH_MULTIPLIER);
 	// <advc.251>

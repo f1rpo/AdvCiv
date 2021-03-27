@@ -94,9 +94,9 @@ protected:
 	/*	Vague expectation of how many extra instances will have been produced
 		when halfway through with the military buildup that this class helps predict.
 		(Could get the era from m_eOwner, but don't want to include CvPlayer.h.) */
-	inline scaled estimateExtraInstances(scaled eraFactor) const
+	inline scaled estimateExtraInstances(scaled rEraFactor) const
 	{
-		return fixp(1.75) + fixp(1.25) * eraFactor;
+		return fixp(1.75) + fixp(1.25) * rEraFactor;
 	}
 
 private:

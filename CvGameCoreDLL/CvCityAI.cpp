@@ -5347,9 +5347,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					// K-Mod
 					int iExpectedSpread = kGame.countReligionLevels(eGlobalCommerceReligion);
 					iExpectedSpread += ((//GC.getNumEraInfos() - iOwnerEra +
-							// <advc.erai> Subsequent eras plus current era
-							(1 + CvEraInfo::normalizeEraNum(
-							GC.getNumEraInfos() - iOwnerEra - 1)) + // </advc.erai>
+							// <advc.erai> Current era plus subsequent eras
+							1 + CvEraInfo::normalizeEraNum(
+							GC.getNumEraInfos() - iOwnerEra - 1) + // </advc.erai>
 							(eStateReligion == eGlobalCommerceReligion ? 2 : 0)) *
 							//GC.getInfo(GC.getMap().getWorldSize()).getDefaultPlayers()
 							kGame.getRecommendedPlayers()).round(); // advc.137
@@ -13105,7 +13105,7 @@ void CvCityAI::AI_updateWorkersHaveAndNeeded()
 	m_iWorkersHave = iWorkersHave;
 }
 
-// advc.179::
+// advc.179:
 scaled CvCityAI::AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes eReligion,
 	std::vector<BuildingTypes> const& aeBuildings) const
 {

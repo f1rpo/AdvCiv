@@ -239,7 +239,7 @@ void BonusThirdPartiesAlert::check()
 	std::multiset<int> updatedDeals[MAX_CIV_PLAYERS];
 	FOR_EACH_DEAL(pDeal)
 	{
-		// This alert ignores trades of ownerId
+		// This alert ignores trades of the alert owner
 		if (pDeal->getFirstPlayer() == m_eOwner || pDeal->getSecondPlayer() == m_eOwner)
 			continue;
 		vector<int> aiDealData;

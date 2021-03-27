@@ -17,7 +17,7 @@ class FDataStreamBase;
 	team's leader changes - a bit messy, but a separate cache for team data
 	would come with some red tape.
 	Also handles the updating of cached values, i.e. some of UWAI's heuristics
-	are part of this class. (I think I'd prefer to move them elsewhere.) */
+	are part of this class. (I think I'd prefer to move them elsewhere ...) */
 
 // Interface of UWAICache::City for use outside of the UWAI component
 class UWAICity
@@ -51,23 +51,17 @@ public:
 
 	UWAICache();
 	~UWAICache();
-	/*	Call order during (de-)initialization for CvTeam(AI), CvPlayer(AI):
-		+	When Civ 4 is launched, constructors are called.
-		+	When Civ 4 is exited, destructors are called.
-		+	When starting a new game, init is called.
-		+	When returning to the main menu, reset is called.
+	/*	CvPlayer is a class that gets reset and reused when returning to the main menu
+		or loading a savegame (see a comment above the CvTeam constructor in CvTeam.h
+		for details), and UWAICache follows a similar pattern:
 		+	When saving a game, write is called.
-		+	When loading a saved game, read is called.
-		read, init and the constructor use reset to clear the data.
-		Reusing classes like this is error-prone, and I see no good reason for it,
-		but there's (probably) no changing it because the EXE is involved.
-		I'll do sth. slightly simpler with UWAICache (read/ write: as above):
-		+	The constructor sets the few POD members to a clean state at launch.
-		+	The destructor ensures that all memory is deallocated before exiting.
-		+	uninit frees memory when the owner is defeated (for performance).
+		+	When loading a saved game, read is called, which resets the data members.
+		+	The constructor sets the (few) POD members to a clean state upon launching Civ 4.
+		+	The destructor ensures that all memory is deallocated before exiting Civ 4.
+		+	uninit frees memory when the cache owner is defeated (for performance).
+		+	init resets the data (and does some other things) when a new game is started.
 		+	Nothing is done upon returning to the main menu.
-		+	The reset function is named "clear" and is also used before cache updates.
-		+	init calls clear (and does some other things) when a new game is started. */
+		+	The reset function is named "clear" and is also used before cache updates. */
 	void init(PlayerTypes eOwner);
 	void uninit();
 	void update();
@@ -140,7 +134,7 @@ public:
 	bool isFocusOnPeacefulVictory() const { return m_bFocusOnPeacefulVictory; }
 
 	/*	Power values per military branch. The caller must not modify
-		the MilitaryBranch data. Should work on copies instead. */
+		the MilitaryBranch data; should work on copies instead. */
 	inline std::vector<MilitaryBranch*> const& getPowerValues() const { return m_militaryPower; }
 	// Counts only combatants
 	int numNonNavalUnits() const { return m_iNonNavalUnits; }
@@ -171,7 +165,7 @@ public:
 	void addTeam(PlayerTypes eOtherLeader);
 	// Moves data that is stored only at the team leader
 	void onTeamLeaderChanged(PlayerTypes formerLeaderId);
-	/*  public b/c this needs to be done ahead of the normal update when a
+	/*	public b/c this needs to be done ahead of the normal update when a
 		colony is created (bootstrapping problem) */
 	void updateTypicalUnits();
 
@@ -219,7 +213,7 @@ private:
 
 	PlayerTypes m_eOwner;
 	std::vector<City*> m_cityList;
-	// I've tried stdext::hash_map for both of these. That was a little bit slower.
+	// I've tried stdext::hash_map; that was a little bit slower.
 	std::map<PlotNumTypes,City*> m_cityMap;
 	std::vector<MilitaryBranch*> m_militaryPower;
 
@@ -231,7 +225,7 @@ private:
 	bool m_bHaveDeepSeaTransports, m_bHaveAnyTransports;
 	bool m_bFocusOnPeacefulVictory;
 	std::set<TeamTypes> m_readyToCapitulateTo;
-  
+
 	CivPlayerMap<scaled> m_arWarAnger;
 	CivPlayerMap<int> m_aiReachableCities;
 	CivPlayerMap<int> m_aiTargetMissions;
@@ -251,18 +245,16 @@ private:
 	CivTeamMap<bool,true> m_abCanBeHiredAgainst; // Are we willing to be hired?
 
 public:
-	/* Information to be cached about a CvCity and scoring functions useful
-	   for computing war utility. */
-	class City : public UWAICity
+	class City : public UWAICity // Information to be cached about a CvCity
 	{
 	public:
 		City(PlayerTypes eCacheOwner, CvCity& kCity, TeamPathFinders* pPathFinders);
-		// for reading from savegame:
+		// for reading from a savegame:
 		City() : m_pCity(NULL), m_iTargetValue(-1), m_ePlot(NO_PLOT_NUM) {}
 		inline bool isOwnTeamCity() const { return (m_iDistance == 0); }
 		inline int getTargetValue() const { return m_iTargetValue; }
-		/* A mix of target value and distance. Target value alone would
-		   ignore opportunistic attacks. */
+		/*	A mix of target value and distance. Target value alone would
+			ignore opportunistic attacks. */
 		scaled attackPriority() const;
 		inline CvCity& city() const { return *m_pCity; }
 		inline PlotNumTypes getID() const { return m_ePlot; }

@@ -43,8 +43,8 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes eAgentPlayer,
 			If we are at war, our vassals are covered here as well. */
 		if (isKnownToBeAtWar(TEAMID(ePlayer), kAgent.getID()))
 			currentlyAtWar.insert(ePlayer);
-		TeamTypes eMaster = GET_PLAYER(ePlayer).getMasterTeam();
-		if (eMaster == GET_PLAYER(m_eWe).getMasterTeam())
+		TeamTypes eMaster = GET_TEAM(ePlayer).getMasterTeam();
+		if (eMaster == kAgent.getMasterTeam())
 			weAndOurVassals.insert(ePlayer);
 		if (eMaster == GET_TEAM(m_eTarget).getMasterTeam())
 			theyAndTheirVassals.insert(ePlayer);
@@ -282,13 +282,13 @@ void MilitaryAnalyst::simulateNuclearWar()
 	// Only simulates nukes fired by or on us
 	PlayerTypes const eWe = m_eWe; // abbreviate
 	CvPlayerAI const& kWe = GET_PLAYER(eWe);
-	if (isEliminated(kWe.getID()) || kWe.getNumCities() <= 0)
+	if (isEliminated(eWe) || kWe.getNumCities() <= 0)
 		return; // Who cares then
 	CvTeamAI const& kAgent = GET_TEAM(eWe);
 	UWAICache const& kOurCache = kWe.uwai().getCache();
 	/*	Counts the number of nukes. Assume no further build-up of nukes throughout
 		the military analysis. (They take long to build.) */
-	int iOurNukes = kOurCache.getPowerValues()[NUCLEAR]->numUnits();
+	int const iOurNukes = kOurCache.getPowerValues()[NUCLEAR]->numUnits();
 	scaled rOurTargets;
 	for (PlayerIter<MAJOR_CIV> itEnemy; itEnemy.hasNext(); ++itEnemy)
 	{
@@ -322,10 +322,10 @@ void MilitaryAnalyst::simulateNuclearWar()
 		// Assume that vassals are hit by fewer nukes, and fire fewer nukes.
 		scaled rOurVassalMult = 1;
 		if (kAgent.isAVassal())
-			rOurVassalMult = fixp(0.5);
+			rOurVassalMult /= 2;
 		scaled rEnemyVassalMult = 1;
 		if (kAgent.isAVassal())
-			rEnemyVassalMult = fixp(0.5);
+			rEnemyVassalMult = /= 2;
 		scaled rEnemyTargets;
 		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		{
@@ -345,9 +345,9 @@ void MilitaryAnalyst::simulateNuclearWar()
 					(kWe.AI_isDoStrategy(AI_STRATEGY_OWABWNW) ? fixp(1.1) : fixp(0.9)) /
 					rOurTargets;
 		}
-		rFiredByUs = std::min(rFiredByUs, fixp(1.5) * kEnemy.getNumCities());
-		scaled rHittingUs = rFiredOnUs * nukeInterceptionMultiplier(kAgent.getID());
-		scaled rHittingEnemy = rFiredByUs * nukeInterceptionMultiplier(kEnemy.getTeam());
+		rFiredByUs.decreaseTo(fixp(1.5) * kEnemy.getNumCities());
+		scaled rHittingUs = rFiredOnUs * nukeChanceToHit(kAgent.getID());
+		scaled rHittingEnemy = rFiredByUs * nukeChanceToHit(kEnemy.getTeam());
 		// Make sure not to allocate PlayerResult unnecessarily
 		if (rHittingUs > 0)
 		{
@@ -366,31 +366,33 @@ void MilitaryAnalyst::simulateNuclearWar()
 	}
 }
 
-
-scaled MilitaryAnalyst::nukeInterceptionMultiplier(TeamTypes eTeam)
+namespace
 {
-	int const iNukeInterception = std::max(GET_TEAM(eTeam).getNukeInterception(),
-			// advc.143b:
-			GET_TEAM(GET_TEAM(eTeam).getMasterTeam()).getNukeInterception());
-	scaled const rEvasionProb = fixp(0.5); // Fixme: Shouldn't hardcode this
-	// Percentage of Tactical Nukes
-	scaled rTactRatio = (GET_TEAM(eTeam).isHuman() ? fixp(0.5) : fixp(1/3.));
-	scaled r = 100 - (iNukeInterception *
-			((1 - rTactRatio) + rEvasionProb * rTactRatio));
-	r /= 100;
-	r.clamp(0, 1);
-	return r;
-}
-
-
-bool MilitaryAnalyst::isKnownToBeAtWar(TeamTypes eTeam, TeamTypes eObserver) const
-{
-	for (TeamIter<MAJOR_CIV,ENEMY_OF> it(eTeam); it.hasNext(); ++it)
+	scaled nukeChanceToHit(TeamTypes eTeam)
 	{
-		if (eObserver == NO_TEAM || GET_TEAM(eObserver).isHasMet(it->getID()))
-			return true;
+		scaled const rInterceptionProb = per100(std::max(
+				GET_TEAM(eTeam).getNukeInterception(),
+				// advc.143b:
+				GET_TEAM(GET_TEAM(eTeam).getMasterTeam()).getNukeInterception()));
+		scaled const rEvasionProb = fixp(0.5); // Fixme: Shouldn't hardcode this
+		// Percentage of Tactical Nukes
+		scaled rTactRatio = (GET_TEAM(eTeam).isHuman() ? fixp(0.5) : fixp(1/3.));
+		scaled rHitProb = 1 - (rInterceptionProb *
+				((1 - rTactRatio) + rTactRatio * (1 - rEvasionProb)));
+		r.clamp(0, 1);
+		return rHitProb;
 	}
-	return false;
+
+
+	bool isKnownToBeAtWar(TeamTypes eTeam, TeamTypes eObserver) const
+	{
+		for (TeamIter<MAJOR_CIV,ENEMY_OF> it(eTeam); it.hasNext(); ++it)
+		{
+			if (eObserver == NO_TEAM || GET_TEAM(eObserver).isHasMet(it->getID()))
+				return true;
+		}
+		return false;
+	}
 }
 
 
@@ -426,7 +428,7 @@ void MilitaryAnalyst::prepareResults()
 	for (PlayerIter<MAJOR_CIV> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
 		PlayerTypes const ePlayer = itPlayer->getID();
-		int iCurrTotalPop = GET_PLAYER(ePlayer).getTotalPopulation();
+		int const iCurrTotalPop = GET_PLAYER(ePlayer).getTotalPopulation();
 		if (iCurrTotalPop <= 0)
 			continue;
 		int iPopIncrease = 0;
@@ -541,7 +543,7 @@ void MilitaryAnalyst::logResults(PlayerTypes ePlayer)
 	if (m_kReport.isMute())
 		return;
 	// Not the best way to identify civs that weren't part of the simulation ...
-	if (militaryProduction(ePlayer).round() == 0)
+	if (militaryProduction(ePlayer).uround() == 0)
 		return;
 	m_kReport.log("Results about %s", m_kReport.leaderName(ePlayer));
 	m_kReport.log("\nbq.");
@@ -550,7 +552,7 @@ void MilitaryAnalyst::logResults(PlayerTypes ePlayer)
 	logCities(ePlayer, false);
 	logPower(ePlayer, false);
 	logPower(ePlayer, true);
-	m_kReport.log("Invested production: %d", militaryProduction(ePlayer).round());
+	m_kReport.log("Invested production: %d", militaryProduction(ePlayer).uround());
 	logDoW(ePlayer);
 	m_kReport.log("");
 }

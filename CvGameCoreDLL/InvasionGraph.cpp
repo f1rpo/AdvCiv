@@ -145,7 +145,7 @@ InvasionGraph::Node::Node(PlayerTypes ePlayer, InvasionGraph const& kOuter)
 	// Properly initialized in prepareForSimulation
 	m_iCacheIndex = -1;
 	m_bComponentDone = false;
-	
+
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
 	CvTeamAI const& kTeam = GET_TEAM(kPlayer.getTeam());
 	// Collect war opponents
@@ -568,10 +568,10 @@ void InvasionGraph::Node::predictArmament(int iTurns, bool bNoUpgrading)
 	// Target city assumed for the forecast (to decide on naval build-up)
 	UWAICache::City const* pTargetCity = targetCity();
 	WarEvalParameters const& kParams = m_kOuter.m_kMA.evaluationParams();
-	TeamTypes const eMasterTeam = GET_PLAYER(m_ePlayer).getMasterTeam();
+	TeamTypes const eMasterTeam = GET_TEAM(m_ePlayer).getMasterTeam();
 	/*	Simulated DoW is taken into account by targetCity, but a
 		(simulated) warplan isn't. */
-	if (eMasterTeam == GET_PLAYER(m_eAgent).getMasterTeam() ||
+	if (eMasterTeam == GET_TEAM(m_eAgent).getMasterTeam() ||
 		kParams.isWarAlly(eMasterTeam))
 	{
 		TeamTypes eTarget = kParams.getTarget();
@@ -632,9 +632,9 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 		computing the army portions. */
 	/*	Adjust the portion of the army that is assumed to be absent,
 		i.e. 1 minus portion */
-	rArmyPortionDefender = scaled::max(0, 1 - (1 - rArmyPortionDefender) *
+	rArmyPortionDefender *= scaled::max(0, 1 - (1 - rArmyPortionDefender) *
 			rConfAlliesAtt);
-	rArmyPortionAttacker = scaled::max(0, 1 - (1 - rArmyPortionAttacker) *
+	rArmyPortionAttacker *= scaled::max(0, 1 - (1 - rArmyPortionAttacker) *
 			rConfAlliesDef);
 	// No clash w/o mutual reachability
 	FAssert(!bClashOnly || (targetCity() != NULL && kDefender.targetCity() != NULL));
@@ -653,14 +653,12 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 			rArmyPortionAttacker.getPercent(), m_kReport.leaderName(m_ePlayer),
 			rArmyPortionDefender.getPercent(), m_kReport.leaderName(kDefender.m_ePlayer));
 	// Only log if portions are non-trivial
-	if (rArmyPortionDefender > 0 && rArmyPortionDefender < 1 &&
-		rConfAlliesAtt.getPercent() != 100)
+	if (rArmyPortionDefender != 0 && rArmyPortionDefender != 1 && rConfAlliesAtt != 1)
 	{
 		m_kReport.log("Confidence in allies of %s: %d percent",
 				m_kReport.leaderName(m_ePlayer), rConfAlliesAtt.getPercent());
 	}
-	if (rArmyPortionAttacker > 0 && rArmyPortionAttacker < 1 &&
-		rConfAlliesDef.getPercent() != 100)
+	if (rArmyPortionAttacker != 0 && rArmyPortionAttacker != 1 && rConfAlliesDef != 1)
 	{
 		m_kReport.log("Confidence in allies of %s: %d percent",
 				m_kReport.leaderName(kDefender.m_ePlayer), rConfAlliesDef.getPercent());
@@ -788,12 +786,12 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 		if ((rConfAttLearned < 0) != (rConfAtt < 1) &&
 			rConfAtt != 1 && rConfAttLearned != 0)
 		{
-			rConfAttLearned *= (1 + (1 - rConfAtt).abs());
+			rConfAttLearned *= 1 + (1 - rConfAtt).abs();
 		}
 		if ((rConfDefLearned < 0) != (rConfDef < 1) &&
 			rConfDef != 1 && rConfDefLearned != 0)
 		{
-			rConfDefLearned *= (1 + (1 - rConfDef).abs());
+			rConfDefLearned *= 1 + (1 - rConfDef).abs();
 		}
 		rConfAtt += rConfAttLearned;
 		rConfDef += rConfDefLearned;
@@ -806,14 +804,15 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 		/*	Only defender is assumed to bring cargo units into battle.
 			Fixme: [LOGISTICS]->power is the cargo capacity. The military power
 			is greater, but currently not tracked. */
-		scaled rFleetPow = (m_military[FLEET]->power() - m_military[LOGISTICS]->power()
-				- m_arLostPower[FLEET] + m_arLostPower[LOGISTICS]) * rConfAtt
+		scaled rFleetPow =
+				(m_military[FLEET]->power() - m_military[LOGISTICS]->power()
+				- m_arLostPower[FLEET] + m_arLostPower[LOGISTICS]) *
 				// Use attacker/ defender portion also for fleet
-				* rArmyPortionAttacker;
+				rConfAtt * rArmyPortionAttacker;
 		rFleetPow.increaseTo(0);
-		scaled rDefFleetPow = (kDefender.m_military[FLEET]->power()
-				- kDefender.m_arLostPower[FLEET]) * rConfDef
-				* rArmyPortionDefender;
+		scaled rDefFleetPow =
+				(kDefender.m_military[FLEET]->power() - kDefender.m_arLostPower[FLEET]) *
+				rConfDef * rArmyPortionDefender;
 		rDefFleetPow.increaseTo(0);
 		/*	Don't factor in distance; naval units tend to be fast;
 			would have to use a special metric b/c City::getDistance is
@@ -846,11 +845,10 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 	if (bCanBombardFromSea)
 		bCanBombard = true;
 	bool bCavalryAttack = (!bClashOnly && !bCanBombard && !bNaval && !bCanSoften &&
-		/*	Minor issue: a cavalry attack might be assumed when assessing priority
-			b/c then rDefArmyPow is 0, but for the actual simulation, no cavalry
-			attack would be assumed. This is inconsistent. */
-			rCavPow / (rArmyPow + scaled::epsilon()) > fixp(2/3.) &&
-			rCavPow > rDefArmyPow);
+		/*	Minor inconsistency: A cavalry attack might be assumed when assessing
+			priority b/c then rDefArmyPow is 0, but for the actual simulation,
+			no cavalry attack would be assumed. */
+			rCavPow > fixp(2/3.) * rArmyPow && rCavPow > rDefArmyPow);
 	if (!bClashOnly)
 	{
 		if (bCavalryAttack)
@@ -962,14 +960,14 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 	}
 	if (bCavalryAttack)
 	{
-		iDeployTurns = (fixp(0.6) * iDeployTurns).round();
+		iDeployTurns = (fixp(0.6) * iDeployTurns).uround();
 		rDeploymentDistAttacker *= fixp(0.75);
 	}
 	m_kReport.log("Deployment distances (%s/%s): %d/%d",
 				m_kReport.leaderName(m_ePlayer),
 				m_kReport.leaderName(kDefender.m_ePlayer),
-				rDeploymentDistAttacker.round(),
-				rDeploymentDistDefender.round());
+				rDeploymentDistAttacker.uround(),
+				rDeploymentDistDefender.uround());
 	if (!bClashOnly) // Duration has no bearing on clashes
 	{
 		m_kReport.log("Deployment duration: %d%s", iDeployTurns,
@@ -1019,7 +1017,7 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 			else if (kDefender.m_ePlayer == m_eAgent)
 				rFleetPowMult /= fixp(1.25);
 		}
-		bool bAttWin = (rFleetPow > 1 && rFleetPowMult * rFleetPow > rDefFleetPow);
+		bool const bAttWin = (rFleetPow > 1 && rFleetPowMult * rFleetPow > rDefFleetPow);
 		std::pair<scaled,scaled> rrLossesWL = clashLossesWinnerLoser(
 				rFleetPow, rDefFleetPow, false, true);
 		scaled rLossesAtt, rLossesDef;
@@ -1058,11 +1056,12 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 						rCargoSize.round());
 				if (rArmySize > 0)
 				{
-					scaled rLandingRatio = scaled::min(1, rCargoSize / rArmySize);
+					scaled rLandingRatio = rCargoSize / rArmySize;
+					rLandingRatio.decreaseTo(1);
 					rArmyPow *= rLandingRatio;
 					rCavPow *= rLandingRatio;
+					m_kReport.log("Power of landing party: %d", rArmyPow.uround());
 				}
-				m_kReport.log("Power of landing party: %d", rArmyPow.round());
 			}
 		}
 		else
@@ -1090,15 +1089,17 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 			return &kStep;
 		}
 		if (rLossesAtt > 0 || rLossesDef > 0)
+		{
 			m_kReport.log("Losses from sea battle (A/D): %d/%d",
-					rLossesAtt.round(), rLossesDef.round());
+					rLossesAtt.uround(), rLossesDef.uround());
+		}
 	}
 	// Subtract 2% per distance unit, but at most 50%
-	scaled rDefDeploymentMod = scaled::max(100 -
-			2 * rDeploymentDistDefender, 50) / 100;
+	scaled rDefDeploymentMod = scaled::max(
+			100 - 2 * rDeploymentDistDefender, 50) / 100;
 	rDefArmyPow *= rDefDeploymentMod;
-	rArmyPow *= scaled::max(100 -
-			fixp(1.55) * rDeploymentDistAttacker.pow(fixp(1.15)), 50) / 100;
+	rArmyPow *= scaled::max(
+			100 - fixp(1.55) * rDeploymentDistAttacker.pow(fixp(1.15)), 50) / 100;
 	// Units available in battle area
 	CvArea const* pBattleArea = NULL;
 	if (pCity != NULL)
@@ -1170,7 +1171,7 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 			/*	Even if the local army is too small to prevent the (temporary)
 				capture of a city, reinforcements will arrive before long. */
 			rAreaWeightDef.clamp(fixp(1/3.), 1);
-			if (rAreaWeightDef < 1)
+			if (rAreaWeightDef != 1)
 			{
 				m_kReport.log("Area weight defender: %d percent",
 						rAreaWeightDef.getPercent());
@@ -1193,11 +1194,11 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 	scaled rArmyModAttCorr = powerCorrect(1 + rArmyModAtt);
 	scaled rArmyModDefCorr = powerCorrect(1 + rArmyModDef);
 	// These bonuses are removed again (through division) when applying losses
-	scaled rArmyPowMod = rArmyPow * rArmyModAttCorr * rConfAtt;
-	scaled rDefArmyPowMod = rDefArmyPow * rArmyModDefCorr * rConfDef;
+	scaled rArmyPowModified = rArmyPow * rArmyModAttCorr * rConfAtt;
+	scaled rDefArmyPowModified = rDefArmyPow * rArmyModDefCorr * rConfDef;
 	// Two turns for the actual attack
 	kStep.setDuration(iHealTurns + iDeployTurns + (bSneakAttack ? 0 : 2));
-	//bool bDefenderOutnumbered = (fixp(1.5) * rDefArmyPowMod < rArmyPowMod);
+	//bool bDefenderOutnumbered = (fixp(1.5) * rDefArmyPowModified < rArmyPowModified);
 	/*	Don't do a second clash. Can reward the attacker for having fewer units.
 		Not unrealistic (a larger army can cause the defending army to dig in),
 		but can lead to erratic AI decisions since I'm only considering a
@@ -1205,11 +1206,11 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 	bool const bDefenderOutnumbered = true;
 	if (!bDefenderOutnumbered || bClashOnly)
 	{
-		bool const bAttWin = (rArmyPowMod > rDefArmyPowMod);
+		bool const bAttWin = (rArmyPowModified > rDefArmyPowModified);
 		m_kReport.log("Army clash with modified power (A/D): %d/%d",
-				rArmyPowMod.round(), rDefArmyPowMod.round());
+				rArmyPowModified.uround(), rDefArmyPowModified.uround());
 		std::pair<scaled,scaled> rrLossesWL = clashLossesWinnerLoser(
-				rArmyPowMod, rDefArmyPowMod, !bClashOnly, false);
+				rArmyPowModified, rDefArmyPowModified, !bClashOnly, false);
 		scaled rCavRatio, rDefCavRatio;
 		if (rArmyPow > 0)
 		{
@@ -1229,7 +1230,8 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 		}
 		scaled rLossesWinner = rrLossesWL.first;
 		scaled rLossesLoser = rrLossesWL.second;
-		scaled rTempLosses = clashLossesTemporary(rArmyPowMod, rDefArmyPowMod);
+		scaled rTempLosses = clashLossesTemporary(
+				rArmyPowModified, rDefArmyPowModified);
 		if (bAttWin)
 		{
 			// Have tempLosses take effect immediately (not necessary if bClashOnly)
@@ -1271,7 +1273,7 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 			{
 				m_kReport.log("Attack repelled by defending army; "
 						"losses (A/D): %d/%d",
-						rLossesLoser.round(), rLossesWinner.round());
+						rLossesLoser.uround(), rLossesWinner.uround());
 			}
 			return &kStep;
 		}
@@ -1286,7 +1288,7 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 	}
 	/*	Needs to be updated in any case in order to take into account potential
 		losses from clash. */
-	rArmyPowMod = rArmyPow * rArmyModAttCorr * rConfAtt;
+	rArmyPowModified = rArmyPow * rArmyModAttCorr * rConfAtt;
 	FAssert(iRemainingCitiesDef > 0);
 	/*	Assume that the defenders stationed in a city are 50% static city defenders
 		and 50% floating defenders that can move to reinforce a nearby city that is
@@ -1317,12 +1319,12 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 		rTypicalGarrisonPow = fixp(3.25); // That's a Warrior
 	}
 	// Fewer rallies if all spread thin
-	int iRallied = (rPowerPerGarrison / rTypicalGarrisonPow).round();
+	int iRallied = (rPowerPerGarrison / rTypicalGarrisonPow).uround();
 	// Upper bound for rallies based on importance of city
 	int iRallyBound = 0;
 	// Population above 75% of the average
-	if (pCity->getPopulation() > (fixp(0.75) *
-		GET_PLAYER(kDefender.m_ePlayer).getTotalPopulation()) /
+	if (pCity->getPopulation() >
+		(fixp(0.75) * GET_PLAYER(kDefender.m_ePlayer).getTotalPopulation()) /
 		std::max(1, iDefCities))
 	{
 		iRallyBound = 1;
@@ -1454,11 +1456,11 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 	m_kReport.log("City defender power: %d (%d from local garrisons, "
 			"%d from rallied garrisons, %d from retreated army"
 			" (%d percent), %d from defender advantage)",
-			rDefenderPow.round(), rLocalGarrisonPow.round(),
-			rRalliedGarrisonPow.round(), rDefendingArmyPow.round(),
-			rDefArmyPortion.getPercent(), rPowFromDefAdvantage.round());
-	m_kReport.log("Besieger power: %d", rArmyPowMod.round());
-	scaled rPowRatio = rArmyPowMod / scaled::max(1, rDefenderPow);
+			rDefenderPow.uround(), rLocalGarrisonPow.uround(),
+			rRalliedGarrisonPow.uround(), rDefendingArmyPow.uround(),
+			rDefArmyPortion.getPercent(), rPowFromDefAdvantage.uround());
+	m_kReport.log("Besieger power: %d", rArmyPowModified.uround());
+	scaled rPowRatio = rArmyPowModified / scaled::max(1, rDefenderPow);
 	scaled rThreat = rPowRatio;
 	m_kReport.log("Power ratio (A/D): %d percent", rPowRatio.getPercent());
 	/*	Attacks on important cities may result in greater distraction for
@@ -1466,7 +1468,6 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 		be equally distracting ... */
 	//if (bCityImportant) rThreat *= fixp(1.5);
 	kStep.setThreat(rThreat);
-	scaled rDeltaPow = rArmyPowMod - rDefenderPow;
 	/*	Add extra turns for coordinating city raiders and siege. Even with ships
 		or aircraft, it takes (the AI) some effort, and in the lategame
 		iDeployTurns should be small; hopefully, no special treatment needed. */
@@ -1478,7 +1479,7 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 	// Faster conquest when defenders outnumbered
 	kStep.setDuration(iBombTurns + kStep.getDuration());
 	FAssert(rArmyModAttCorr > 0 && rConfAtt > 0);
-	if (rDeltaPow > 0)
+	if (rArmyPowModified > rDefenderPow)
 	{
 		/*	Full losses for defender would be realistic, but doesn't capture the
 			uncertainty of success if threat is near 100%. Therefore: */
@@ -1493,7 +1494,8 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 		/*	These losses are a bit exaggerated I think, at least when threat is
 			near 1. Deliberate, in order to account for uncertainty. */
 		scaled const rAttLossRatio = fixp(0.55) / rThreat.pow(fixp(0.75));
-		scaled rLossesAttArmy = (rAttLossRatio * rArmyPowMod / rArmyModAttCorr) / rConfAtt;
+		scaled rLossesAttArmy = (rAttLossRatio * rArmyPowModified) /
+				(rArmyModAttCorr * rConfAtt);
 		/*	Assume less impact of softening when already some cities conquered
 			b/c AI tends to run out of/ low on siege units after a while.
 			Reduce losses to 12/18 (66%) for the first city, then 13/18 etc. */
@@ -1512,7 +1514,7 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 		kStep.reducePower(kDefender.m_ePlayer, HOME_GUARD, rGuardPowUnmodified *
 				fixp(0.75) * rThreat);
 		// Few losses for defending army
-		if (bDefenderOutnumbered && rArmyPowMod > rGarrisonPow)
+		if (bDefenderOutnumbered && rArmyPowModified > rGarrisonPow)
 		{
 			scaled rLossesDefArmy = rDefArmyPow * rDefArmyPortion * fixp(0.5) * rThreat;
 			kStep.reducePower(kDefender.m_ePlayer, ARMY, rLossesDefArmy);
@@ -1530,8 +1532,8 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 			taking a city) as this can lead to counterintuitive AI decisions.
 			Also, whether an attack happens in the simulation depends on the
 			time horizon; timing quirks mustn't have a major impact on the outcome. */
-		scaled rLossesAttArmy = ((fixp(0.2) * std::min(rArmyPowMod, rDefenderPow)) /
-				rArmyModAttCorr) / rConfAtt;
+		scaled rLossesAttArmy = (fixp(0.2) * std::min(rArmyPowModified, rDefenderPow)) /
+				(rArmyModAttCorr * rConfAtt);
 		kStep.reducePower(m_ePlayer, ARMY, rLossesAttArmy);
 		if (rArmyPow > 0)
 			kStep.reducePower(m_ePlayer, CAVALRY, rLossesAttArmy * rCavPow / rArmyPow);
@@ -1631,8 +1633,8 @@ void InvasionGraph::Node::applyStep(SimulationStep const& kStep)
 		{
 			m_kReport.log("Losses in branch %s: %d (%s), %d (%s)",
 					m_military[eBranch]->str(),
-					rLostPowerAtt.round(), m_kReport.leaderName(kAttacker.m_ePlayer),
-					rLostPowerDef.round(), m_kReport.leaderName(m_ePlayer));
+					rLostPowerAtt.uround(), m_kReport.leaderName(kAttacker.m_ePlayer),
+					rLostPowerDef.uround(), m_kReport.leaderName(m_ePlayer));
 			bReportedLosses = true;
 		}
 		m_arLostPower[eBranch] += rLostPowerDef;
@@ -1650,7 +1652,7 @@ void InvasionGraph::Node::applyStep(SimulationStep const& kStep)
 		m_rTempArmyLosses += rTempLosses;
 	if (rTempLosses >= fixp(0.5))
 	{
-		m_kReport.log("Temporary army losses (damaged): %d", rTempLosses.round());
+		m_kReport.log("Temporary army losses (damaged): %d", rTempLosses.uround());
 		bReportedLosses = true;
 	}
 	if (!bReportedLosses)
@@ -1663,8 +1665,8 @@ void InvasionGraph::Node::applyStep(SimulationStep const& kStep)
 		{
 			UWAICache::City const& kStepCity = *kStep.getCity();
 			addCityLoss(kStepCity);
-			int const iCurrActualCities = GET_PLAYER(m_ePlayer).getNumCities();
-			if (m_cityLosses.size() == iCurrActualCities)
+			int const iCurrentCities = GET_PLAYER(m_ePlayer).getNumCities();
+			if (m_cityLosses.size() == iCurrentCities)
 				setEliminated(true);
 			/*	Assume that own offensive stops upon losing a city to a third civ,
 				and whole army becomes available for defense.
@@ -1736,10 +1738,10 @@ void InvasionGraph::Node::applyStep(SimulationStep const& kStep)
 					/*	Need to conquer about half of the cities; some fewer
 						if there are a lot of them. */
 					scaled rCapitulationThresh = scaled(
-							iCurrActualCities - iConqueredByOther).pow(fixp(0.95)) *
+							iCurrentCities - iConqueredByOther).pow(fixp(0.95)) *
 							scaled::max(36,
 							55 + (bWar ? -10 : 0) + rPowModPercent) / 100;
-					if (iConqueredByAtt >= rCapitulationThresh.round())
+					if (iConqueredByAtt >= rCapitulationThresh.uround())
 					{
 						setCapitulated(TEAMID(kAttacker.m_ePlayer));
 						m_kReport.log("%s has *capitulated* to %s",

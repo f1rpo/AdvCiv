@@ -34,7 +34,7 @@ void MilitaryBranch::write(FDataStreamBase* pStream) const
 	int iSaveVersion;
 	//iSaveVersion = 0;
 	iSaveVersion = 1; // scaled instead of double
-	/*  I hadn't thought of a version number in the initial release. Need
+	/*	I hadn't thought of a version number in the initial release. Need
 		to fold it into m_eTypicalUnit now to avoid breaking compatibility.
 		Add 1 b/c the typical unit can be -1. */
 	pStream->Write(m_eTypicalUnit + 1 + 1000 * iSaveVersion);
@@ -95,7 +95,7 @@ void MilitaryBranch::updateTypicalUnit()
 			continue;
 		}
 		UnitClassTypes const eUnitClass = CvCivilization::unitClass(eUnit);
-		/*  I may want to give some combat unit (e.g. War Elephant) a national limit
+		/*	I may want to give some combat unit (e.g. War Elephant) a national limit
 			or an instance cost modifier at some point */
 		CvUnitClassInfo const& kUnitClass = GC.getInfo(eUnitClass);
 		{
@@ -157,10 +157,10 @@ void MilitaryBranch::NuclearArsenal::updateTypicalUnit()
 		UnitTypes eUnit = kCiv.unitAt(i);
 		if (!kOwner.getCapitalCity()->canTrain(eUnit))
 			continue;
-		scaled const rUnitPow = unitPower(eUnit, true);
+		scaled const rPow = unitPower(eUnit, true);
 		if (rUnitPow <= 0)
 			continue;
-		scaled rUtility = unitUtility(eUnit, rUnitPow);
+		scaled rUtility = unitUtility(eUnit, rPow);
 		scaled rProductionCost = estimateProductionCost(eUnit);
 		if (rProductionCost <= 0)
 			continue;
@@ -226,7 +226,7 @@ scaled MilitaryBranch::estimateProductionCost(UnitTypes eUnit)
 {
 	scaled rCost = GC.getInfo(eUnit).getProductionCost();
 	UnitClassTypes const eUnitClass = GC.getInfo(eUnit).getUnitClassType();
-	/*  CvPlayer::getProductionNeeded would be needlessly slow. Don't need all
+	/*	CvPlayer::getProductionNeeded would be needlessly slow. Don't need all
 		those modifiers, and we need a projection for InstanceCostModifier anyway. */
 	int iInstanceCostMod = GC.getInfo(eUnitClass).getInstanceCostModifier();
 	if (iInstanceCostMod > 0)
@@ -248,11 +248,11 @@ scaled MilitaryBranch::unitPower(UnitTypes eUnit, scaled rBasePower) const
 	scaled r = rBasePower;
 	if (r < 0)
 		r = kUnit.getPowerValue();
-	/* A good start. Power values mostly equal combat strength; the
-	   BtS developers have manually increased the value of first strikers
-	   (usually +1 power), and considerably decreased the value of units
-	   that can only defend.
-	   Collateral damage and speed seem underappreciated. */
+	/*	A good start. Power values mostly equal combat strength; the
+		BtS developers have manually increased the value of first strikers
+		(usually +1 power), and considerably decreased the value of units
+		that can only defend.
+		Collateral damage and speed seem underappreciated. */
 	if (kUnit.getCollateralDamage() > 0 && kUnit.getDomainType() == DOMAIN_LAND ||
 		kUnit.getMoves() > 1)
 	{
@@ -262,14 +262,14 @@ scaled MilitaryBranch::unitPower(UnitTypes eUnit, scaled rBasePower) const
 	if (kUnit.getDomainType() == DOMAIN_SEA && kUnit.getBombardRate() == 0)
 		r *= fixp(2/3.);
 
-	/*  The BtS power value for Tactical Nuke seems low (30, same as Tank),
+	/*	The BtS power value for Tactical Nuke seems low (30, same as Tank),
 		but considering that the AI isn't good at using nukes tactically, and that
-		the strategic value is captured by the NuclearDeterrent WarUtilityAspect,
-		it seems just about right. */
+		the strategic value is captured by the Risk WarUtilityAspect, it seems
+		just about right. */
 	//if(kUnit.isSuicide()) r *= fixp(4/3.); // all missiles
 
-	/*  Combat odds don't increase linearly with strength. Use a power law
-		with a power between 1.5 and 2 (configured in XML). */
+	/*	Combat odds don't increase linearly with strength. Use a power law
+		with an exponent between 1.5 and 2 (configured in XML). */
 	r.exponentiate(per100(GC.getDefineINT(CvGlobals::POWER_CORRECTION)));
 	return r;
 }
@@ -281,9 +281,10 @@ bool MilitaryBranch::canEmploy(UnitTypes eUnit) const
 			unitPower(eUnit, false) > 0);
 }
 
+
 void MilitaryBranch::reportUnit(UnitTypes eUnit, int iChange)
 {
-	// (Calling canEmploy might cause unitPower to be called twice)
+	// (Calling canEmploy could cause unitPower to be called twice)
 	if ((GC.getInfo(eUnit).getCombat() > 0 || GC.getInfo(eUnit).getNukeRange() >= 0) &&
 		isValidDomain(eUnit))
 	{
@@ -398,7 +399,7 @@ scaled MilitaryBranch::HomeGuard::unitPower(UnitTypes eUnit, bool bModify) const
 	return MilitaryBranch::unitPower(eUnit, rBasePow);
 }
 
-// Utility equals power by default (template pattern)
+// Utility equals power by default
 scaled MilitaryBranch::unitUtility(UnitTypes, scaled rPower) const
 {
 	return rPower;
@@ -435,8 +436,8 @@ scaled MilitaryBranch::Army::unitPower(UnitTypes eUnit, bool bModify) const
 				break;
 			}
 		}
-		/* Military power is already biased toward aggression.
-		   No further adjustments needed. */
+		/*	Military power is already biased toward aggression.
+			No further adjustments needed. */
 	}
 	return MilitaryBranch::unitPower(eUnit, rBasePow);
 }

@@ -16,14 +16,16 @@
 using std::vector;
 using std::set;
 
-
-int const iMaxReparationUtility = 25;
-int const iWarTradeUtilityThresh = -35;
-// AI payments for peace (with human or AI enemy)
-scaled const rReparationsModifierAI = fixp(0.5);
-/*  Modifier for human payments for peace, i.e what the AI asks a human to pay
-	(no modifier for brokering, i.e. 100%). */
-scaled const rReparationsModifierHuman = fixp(0.75);
+namespace
+{
+	int const iMaxReparationUtility = 25;
+	int const iWarTradeUtilityThresh = -35;
+	// AI payments for peace (with human or AI enemy)
+	scaled const rReparationsModifierAI = fixp(0.5);
+	/*  Modifier for human payments for peace, i.e what the AI asks a human to pay
+		(no modifier for brokering, i.e. 100%). */
+	scaled const rReparationsModifierHuman = fixp(0.75);
+}
 
 
 UWAI::Team::Team()
@@ -114,7 +116,7 @@ void UWAI::Team::doWar()
 			it.hasNext(); ++it)
 		{
 			TeamTypes const eTarget = it->getID();
-			WarPlanTypes eWP = kAgent.AI_getWarPlan(eTarget);
+			WarPlanTypes const eWP = kAgent.AI_getWarPlan(eTarget);
 			if (eWP == WARPLAN_ATTACKED_RECENT)
 				considerPlanTypeChange(eTarget, 0);
 			/*  Non-human vassals abandon human-instructed war prep. after 20 turns.
@@ -208,10 +210,10 @@ namespace
 		:	iU(iU), eTarget(eTarget), iPrepTurns(iPrepTurns), bNaval(bNaval)
 		{}
 		inline bool operator<(PlanData const& kOther) { return iU < kOther.iU; }
-		int iU;
-		TeamTypes eTarget;
-		int iPrepTurns;
-		bool bNaval;
+		int const iU;
+		TeamTypes const eTarget;
+		int const iPrepTurns;
+		bool const bNaval;
 	};
 }
 
@@ -242,7 +244,7 @@ bool UWAI::Team::reviewWarPlans()
 				continue;
 			if (kTarget.isHuman()) // considerCapitulation may set ReadyToCapitulate
 				leaderCache().setReadyToCapitulate(eTarget, false);
-			WarPlanTypes eWP = kAgent.AI_getWarPlan(eTarget);
+			WarPlanTypes const eWP = kAgent.AI_getWarPlan(eTarget);
 			if (eWP == NO_WARPLAN)
 			{
 				// As good a place as any to make sure of this
@@ -657,27 +659,27 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU)
 			{
 				iTradeVal = endWarVal(eTarget) - kTarget.uwai().endWarVal(kAgent.getID());
 				// A bit higher than the K-Mod discounts (advc.134a)
-				scaled rDiscountFactor = fixp(1.3);
+				scaled const rDiscountFactor = fixp(1.3);
 				if (iTradeVal < 0)
 				{
 					iDemandVal = -iTradeVal;
 					// Offer a square deal when it's close
 					if (iDemandVal < kTargetPlayer.uwai().utilityToTradeVal(fixp(4.25)))
 						iDemandVal = 0;
-					else iDemandVal = (iDemandVal / rDiscountFactor).round();
+					else iDemandVal = (iDemandVal / rDiscountFactor).uround();
 					m_pReport->log("Seeking reparations with a trade value of %d", iDemandVal);
 					iTradeVal = 0;
 				}
-				else iTradeVal = (iTradeVal * rDiscountFactor).round();
+				else iTradeVal = (iTradeVal * rDiscountFactor).uround();
 			}
 			else
 			{
 				// Base the reparations they demand on their economy
 				iTradeVal = (kTarget.uwai().utilityToTradeVal(
-						std::max(0, iTheirReluct))).round();
+						std::max(0, iTheirReluct))).uround();
 				/*  Reduce the trade value b/c the war isn't completely off the table;
 					could continue after 10 turns. */
-				iTradeVal = (iTradeVal * rReparationsModifierAI).round();
+				iTradeVal = (iTradeVal * rReparationsModifierAI).uround();
 			}
 			if (iTradeVal > 0 || iDemandVal == 0)
 			{
@@ -813,7 +815,7 @@ bool UWAI::Team::considerCapitulation(TeamTypes eMaster, int iAgentWarUtility,
 	}
 	if (bHumanMaster)
 	{
-		// Otherwise, AI_surrenderTrade can't return true for a human master.
+		// This allows AI_surrenderTrade to return true (for a human master)
 		leaderCache().setReadyToCapitulate(eMaster, true);
 	}
 	// Checks our willingness and that of the master
@@ -853,7 +855,6 @@ bool UWAI::Team::tryFindingMaster(TeamTypes eEnemy)
 		if (!kAgentPlayer.canContact(kMasterPlayer.getID(), true))
 			continue;
 		// Based on code in CvPlayerAI::AI_doDiplo
-		
 		TradeData item(TRADE_VASSAL);
 		/*  Test Denial separately b/c it can cause the master to evaluate war
 			against enemyId, which is costly. */
@@ -972,7 +973,7 @@ bool UWAI::Team::considerPlanTypeChange(TeamTypes eTarget, int iU)
 			rSwitchProb = (rLimitedWarWeight.isPositive() ?
 					rSwitchProb / rLimitedWarWeight : 1);
 		}
-		if (!rLimitedWarWeight.approxEquals(1, fixp(0.01)))
+		if (rLimitedWarWeight != 1)
 		{
 			m_pReport->log("Bias for/against limited war: %d percent",
 					rLimitedWarWeight.getPercent());
@@ -1282,7 +1283,7 @@ int UWAI::Team::tradeValJointWar(TeamTypes eTarget, TeamTypes eAlly) const
 		return 0;
 	}
 	// NB: declareWarTrade applies an additional threshold
-	return utilityToTradeVal(std::min(iU, -iWarTradeUtilityThresh)).round();
+	return utilityToTradeVal(std::min(iU, -iWarTradeUtilityThresh)).uround();
 }
 
 
@@ -1341,10 +1342,10 @@ namespace
 		:	rDrive(rDrive), eTeam(eTeam), bTotal(bTotal), iU(iU)
 		{}
 		inline bool operator<(TargetData const& kOther) { return rDrive < kOther.rDrive; }
-		scaled rDrive;
-		TeamTypes eTeam;
-		bool bTotal;
-		int iU;
+		scaled const rDrive;
+		TeamTypes const eTeam;
+		bool const bTotal;
+		int comst iU;
 	};
 }
 
@@ -1402,7 +1403,7 @@ void UWAI::Team::scheme()
 			bTotalNaval = params.isNaval();
 			iTotalPrepTime = params.getPreparationTime();
 		}
-		int iLimitedU = eval.evaluate(WARPLAN_PREPARING_LIMITED, bShortWork ? 0 : -1);
+		int const iLimitedU = eval.evaluate(WARPLAN_PREPARING_LIMITED, bShortWork ? 0 : -1);
 		bool const bLimitedNaval = params.isNaval();
 		int const iLimitedPrepTime = params.getPreparationTime();
 		bool bTotal = false;
@@ -1413,10 +1414,10 @@ void UWAI::Team::scheme()
 		if (iLimitedU > 0 && iTotalU > 0)
 		{
 			scaled const rLimitedWarWeight = limitedWarWeight();
-			if (!rLimitedWarWeight.approxEquals(1, fixp(0.01)))
+			if (rLimitedWarWeight != 1)
 			{
 				m_pReport->log("Bias for/against limited war: %d percent",
-						rLimitedWarWeight.round());
+						rLimitedWarWeight.uround());
 			}
 			int const iPadding = GC.getGame().getSorenRandNum(40,
 					"UWAI: total vs. limited war");
@@ -1569,7 +1570,7 @@ DenialTypes UWAI::Team::declareWarTrade(TeamTypes eTarget, TeamTypes eSponsor) c
 					}
 				}
 				iUtilityThresh = std::max(iUtilityThresh,
-						-(tradeValToUtility(iHumanTradeVal) +
+						- (tradeValToUtility(iHumanTradeVal) +
 						// Add 5 for gold that the human might be able to procure
 						((GET_TEAM(eSponsor).isGoldTrading() ||
 						kAgent.isGoldTrading() ||
@@ -1600,6 +1601,7 @@ DenialTypes UWAI::Team::declareWarTrade(TeamTypes eTarget, TeamTypes eSponsor) c
 	// "Too much on our hands" can mean anything
 	return DENIAL_TOO_MANY_WARS;
 }
+
 
 int UWAI::Team::declareWarTradeVal(TeamTypes eTarget, TeamTypes eSponsor) const
 {
@@ -1890,7 +1892,7 @@ int UWAI::Team::endWarVal(TeamTypes eEnemy) const
 			{
 				int iMaxHumanCanPay = -1;
 				kAI.uwai().leaderUWAI().canTradeAssets(
-						r.ceil(), kHuman.getLeaderID(),
+						r.round(), kHuman.getLeaderID(),
 						&iMaxHumanCanPay);
 				if (iMaxHumanCanPay < r)
 				{
@@ -2029,6 +2031,7 @@ scaled UWAI::Team::reparationsToHuman(scaled rUtility) const
 	}
 	return utilityToTradeVal(rUtility); // Trade value based on our economy
 }
+
 
 void UWAI::Team::respondToRebuke(TeamTypes eTarget, bool bPrepare)
 {
@@ -2591,10 +2594,10 @@ bool UWAI::Player::canTradeAssets(int iTargetTradeVal, PlayerTypes eHuman,
 				return true;
 		}
 	}
-	int iCityLimit = intdiv::uceil(kHuman.getNumCities(), 6);
-	int iCities = 0;
 	if (!bIgnoreCities)
 	{
+		int const iCityLimit = intdiv::uceil(kHuman.getNumCities(), 6);
+		int iCities = 0;
 		FOR_EACH_CITYAI(pCity, kHuman)
 		{
 			if (iCities >= iCityLimit)
@@ -2603,16 +2606,14 @@ bool UWAI::Player::canTradeAssets(int iTargetTradeVal, PlayerTypes eHuman,
 			if(kHuman.canTradeItem(
 				m_eAgent, TradeData(TRADE_CITIES, pCity->getID()), true))
 			{
-				if (iTotalTradeVal < iTargetTradeVal)
-					iCities++;
+				iCities++;
 				iTotalTradeVal += GET_PLAYER(m_eAgent).AI_cityTradeVal(*pCity);
 				if (iTotalTradeVal >= iTargetTradeVal)
 					return true;
 			}
 		}
 	}
-	if (iTotalTradeVal >= iTargetTradeVal)
-		return true;
+	FAssert(iTotalTradeVal < iTargetTradeVal);
 	if (piAvailableTradeVal != NULL)
 		*piAvailableTradeVal = iTotalTradeVal;
 	return false;
@@ -2730,7 +2731,7 @@ scaled UWAI::Player::confidenceFromWarSuccess(TeamTypes eTarget) const
 	int const iTargetSuccess = std::max(1, kTarget.AI_getWarSuccess(kAgent.getID()));
 	scaled rSuccessRatio = (iAgentSuccess, iTargetSuccess);
 	scaled const rFixedBound = fixp(0.5);
-	// Reaches fixedBound after 20 turns
+	// Reaches rFixedBound after 20 turns
 	scaled rTimeBasedBound = (100 - fixp(2.5) * iTurnsAtWar) / 100;
 	/*  Bound based on total war success: Becomes relevant once a war lasts long; e.g.
 		after 25 turns, in the Industrial era, will need a total war success of 250
@@ -2867,15 +2868,9 @@ scaled UWAI::Player::warConfidenceAllies() const
 	return r;
 }
 
-
-scaled UWAI::Player::confidenceAgainstHuman() const
-{
-	/*  Doesn't seem necessary so far; AI rather too reluctant to attack humans
-		due to human diplomacy, and other special treatment of humans; e.g.
-		can't get a capitulation from human. */
-	return 1;
-	/*  Older comment:
-		How hesitant should the AI be to engage humans?
+// (See comment in header)
+//scaled UWAI::Player::confidenceAgainstHuman() const {
+	/*  How hesitant should the AI be to engage humans?
 		This will have to be set based on experimentation. 90% is moderate
 		discouragement against wars vs. humans. Perhaps unneeded, perhaps needs to
 		be lower than 90%. Could set it based on the difficulty setting, however,
@@ -2885,7 +2880,7 @@ scaled UWAI::Player::confidenceAgainstHuman() const
 		The learning-which-civs-are-dangerous approach in warConfidenceLearned
 		is more elgant, but won't prevent an AI-on-human dogpile in the early game. */
 	//return (GET_PLAYER(m_eAgent).isHuman() ? 1 : fixp(0.9));
-}
+//}
 
 
 int UWAI::Player::vengefulness() const

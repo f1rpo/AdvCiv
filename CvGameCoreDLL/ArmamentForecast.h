@@ -27,9 +27,9 @@ public:
 	/*	kMA is making a forecast about ePlayer. The predicated power increase
 		is written to kMilitary.
 		bPeaceScenario: Assume peace between the agent and target of kMA.
-		bPartyAddedRecently: Use this to indicate that this is the first forecast
-		after adding any war parties to kMA. Need to figure out if a DoW on ePlayer
-		is recent (recently attacked players train more military).
+		bPartyAddedRecently: Indicates that this is the first forecast after adding
+		any war parties to kMA. Need to figure out if a DoW on ePlayer is recent
+		(recently attacked players train more military).
 		The pTargetCity from ePlayer's UWAICache is used for figuring out whether
 		ePlayer is in a naval war. */
 	ArmamentForecast(PlayerTypes ePlayer,

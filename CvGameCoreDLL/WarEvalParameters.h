@@ -7,7 +7,7 @@ class WarUtilityAspect;
 class UWAIReport;
 
 /*	For WarEvalParameters::getID.
-	(Could go a bit higher with 32 bit, but e.g. 31 civs won't fit.) */
+	(Could go a bit higher with 32 bit, but e.g. 30 civs won't fit.) */
 #if MAX_CIV_PLAYERS < 20 && MAX_CIV_TEAMS < 20
 	typedef int WarEvalParamID;
 #else
@@ -22,7 +22,7 @@ public:
 	WarEvalParameters(TeamTypes eTeam, TeamTypes eTarget, UWAIReport& kReport,
 			bool bIgnoreDistraction = false,
 			/*	Not clear if it should matter which player makes the deal.
-				Can't hurt to store that player id. Can always used its team id
+				Can't hurt to store that player id. Can always use its team id
 				later if appropriate. */
 			PlayerTypes eSponsor = NO_PLAYER,
 			TeamTypes eCapitulationTeam = NO_TEAM);

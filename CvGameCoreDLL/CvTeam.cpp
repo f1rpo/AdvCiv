@@ -2391,9 +2391,9 @@ void CvTeam::changeAliveCount(int iChange)
 	} // </advc.104>
 }
 
-/*	advc.104: I'm using this functions to let pick members for conducting
+/*	advc.104: I'm using this functions to pick members for conducting
 	war-related diplomacy -- instead of using the team leaders. bHuman causes
-	a human to be returned if this is a human team. Otherwise ignored. */
+	a human to be returned if this is a human team (otherwise ignored). */
 PlayerTypes CvTeam::getRandomMemberAlive(bool bHuman) const
 {
 	if (!isHuman())

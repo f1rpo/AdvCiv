@@ -282,7 +282,7 @@ scaled WarUtilityAspect::netLostRivalAssetScore(PlayerTypes eTo,
 scaled WarUtilityAspect::lossesFromBlockade(PlayerTypes eVictim, PlayerTypes eTo) const
 {
 	PROFILE_FUNC();
-	// Blockades can be painful for maritime empires
+	// Blockades can be painful for maritime empires ...
 	CvPlayerAI const& kVictim = GET_PLAYER(eVictim);
 	scaled rTotalEnemyFleetPow;
 	for (PlayerIter<MAJOR_CIV> itEnemy; itEnemy.hasNext(); ++itEnemy)
@@ -296,7 +296,7 @@ scaled WarUtilityAspect::lossesFromBlockade(PlayerTypes eVictim, PlayerTypes eTo
 		// Cheat; see UWAICache::updateRelativeNavyPower.
 		MilitaryBranch const& kEnemyFleet = *GET_PLAYER(eEnemy).uwai().getCache().
 				getPowerValues()[FLEET];
-		// (Privateers can't bombard, but can blockade regardless of war.)
+		// I don't think blockading at war happens much before Frigates
 		//if (!kEnemyFleet.canBombard()) // Let's cheat a little less (use eObserver arg)
 		UnitTypes const eTypicalEnemyWarShip = kEnemyFleet.getTypicalUnit(eOurTeam);
 		if (eTypicalEnemyWarShip == NO_UNIT ||
@@ -304,15 +304,17 @@ scaled WarUtilityAspect::lossesFromBlockade(PlayerTypes eVictim, PlayerTypes eTo
 		{
 			continue;
 		}
-		scaled rEnemyFleetPow = kEnemyFleet.power();
+		scaled rEnemyFleetPow = kEnemyFleet.power() +
+				militAnalyst().gainedPower(eEnemy, FLEET);
 		if (rEnemyFleetPow > 100) // Unlikely to send any ships otherwise
 			rTotalEnemyFleetPow += rEnemyFleetPow;
 	}
 	scaled rEnemyToVictimPowRatio = 2;
 	MilitaryBranch const& kVictimFleet = *kVictim.uwai().getCache().
 			getPowerValues()[FLEET];
-	scaled rVictimFleetPow = militAnalyst().gainedPower(eVictim, FLEET) +
-			kVictimFleet.power();
+	// Allies of the victim? I suppose they wouldn't necessarily defend its shores.
+	scaled rVictimFleetPow = kVictimFleet.power() +
+			militAnalyst().gainedPower(eVictim, FLEET);
 	if (rVictimFleetPow > 0)
 		rEnemyToVictimPowRatio = rTotalEnemyFleetPow / rVictimFleetPow;
 	if (rEnemyToVictimPowRatio < fixp(1.25)) // Enemies won't bring all their units
@@ -336,7 +338,8 @@ scaled WarUtilityAspect::lossesFromBlockade(PlayerTypes eVictim, PlayerTypes eTo
 	if (iCoastalCities <= 0)
 		return 0;
 	scaled rAvgCoastalPop(iCoastalPop, iCoastalCities);
-	scaled rAttackFactor = scaled::min(1, rEnemyToVictimPowRatio - 1);
+	scaled rAttackFactor = rEnemyToVictimPowRatio - 1;
+	rAttackFactor.clamp(0, 1);
 	scaled rPopFactor(iCoastalPop, iTotalPop);
 	// Small cities tend to work few coastal tiles (b/c land tiles are better)
 	scaled rVulnerabilityFactor = scaled::min(1, fixp(0.1) + rAvgCoastalPop / 25);
@@ -371,7 +374,7 @@ scaled WarUtilityAspect::lossesFromNukes(PlayerTypes eVictim, PlayerTypes eSourc
 	{
 		log("Lost score of %s for cities hit: %d; assets per city: %d; "
 				"cities hit: %.2f; ", m_kReport.leaderName(eVictim),
-				r.round(), rScorePerCity.round(), rHits.getFloat());
+				r.round(), rScorePerCity.uround(), rHits.getFloat());
 	}
 	return r;
 }
@@ -382,7 +385,7 @@ scaled WarUtilityAspect::lossesFromFlippedTiles(PlayerTypes eVictim,
 {
 	if (!GC.getDefineBOOL(CvGlobals::OWN_EXCLUSIVE_RADIUS))
 		return 0;
-	scaled r = 0;
+	scaled r;
 	int iVictimLostTiles = 0;
 	vector<TeamTypes> aeTo;
 	if (eTo == NO_PLAYER)
@@ -510,7 +513,7 @@ scaled WarUtilityAspect::partnerUtilFromTech() const
 		log("Tech trade bonus for human civs: %d", iHumanExtra);
 	// Use their commerce to determine potential for future tech trade
 	scaled rTheyToUsCommerceRatio = kOurTeam.AI_estimateYieldRate(eThey, YIELD_COMMERCE) /
-			kOurTeam.AI_estimateYieldRate(eWe, YIELD_COMMERCE);
+			(kOurTeam.AI_estimateYieldRate(eWe, YIELD_COMMERCE) + scaled::epsilon());
 	if (rTheyToUsCommerceRatio > 1)
 		rTheyToUsCommerceRatio.flipFraction();
 	scaled r = SQR(rTheyToUsCommerceRatio) * (20 + iHumanExtra);
@@ -645,7 +648,7 @@ scaled WarUtilityAspect::partnerUtilFromTrade() const
 		rTradeRouteProfit = iTradeRouteProfitCap;
 	}
 	else if (iTradeRouteProfitCap > 0)
-		log("Per-turn trade route profit: %d", rTradeRouteProfit.round());
+		log("Per-turn trade route profit: %d", rTradeRouteProfit.uround());
 	return kWeAI.tradeValToUtility(rGoldVal + rTradeRouteProfit * iDefaultTimeHorizon) *
 			kWeAI.amortizationMultiplier();
 }
@@ -722,7 +725,7 @@ scaled GreedForAssets::overextensionCost() const
 		Look at our current expenses: are we already overextended? */
 	// Don't mind paying 25% for city maintenance
 	scaled r = fixp(-0.25);
-	scaled rOurIncome = kOurTeam.AI_estimateYieldRate(eWe, YIELD_COMMERCE);
+	scaled const rOurIncome = kOurTeam.AI_estimateYieldRate(eWe, YIELD_COMMERCE);
 	if (rOurIncome > 0)
 	{
 		// Expenses excluding unit cost and supply
@@ -730,7 +733,7 @@ scaled GreedForAssets::overextensionCost() const
 				(kWe.getTotalMaintenance() + kWe.getCivicUpkeep(NULL, true));
 		r += rOurMaintenance / rOurIncome;
 		log("Rel. maint. = %d / %d = %d percent",
-				rOurMaintenance.round(), rOurIncome.round(),
+				rOurMaintenance.uround(), rOurIncome.uround(),
 				(rOurMaintenance / rOurIncome).getPercent());
 	}
 	// Can happen in later-era start if a civ immediately changes civics/ religion
@@ -812,7 +815,7 @@ scaled GreedForAssets::threatToCities(PlayerTypes ePlayer, scaled rRemoteness) c
 		return 0;
 	log("Dangerous civ near our conquests: %s (dist. ratio %d/%d)",
 			m_kReport.leaderName(kPlayer.getID()),
-			rPlayerDist.round(), rRemoteness.round());
+			rPlayerDist.uround(), rRemoteness.uround());
 	scaled rPowerRatio = scaled::max(0,
 			rPlayerPower / scaled::max(10, rOurPower) - fixp(0.1));
 	return SQR(rPowerRatio);
@@ -925,15 +928,15 @@ void GreedForVassals::evaluate()
 	scaled const rVassalToOurIncome = rVassalIncome * rTheirCityRatio / rOurIncome;
 	log("Rel. income of vassal %s = %d percent = cr * %d / %d",
 			m_kReport.leaderName(eThey), rVassalToOurIncome.getPercent(),
-			rVassalIncome.round(), rOurIncome.round());
+			rVassalIncome.uround(), rOurIncome.uround());
 	scaled rUtilityFromTechTrade = 100 * rVassalToOurIncome;
 	// Tech they already have
 	scaled const rTechScore = ourCache().vassalTechScore(eThey);
 	log("Vassal score from tech they have in advance of us: %d",
-			rTechScore.round());
+			rTechScore.uround());
 	rUtilityFromTechTrade += kWeAI.tradeValToUtility(rTechScore);
 	log("Utility from vassal tech and income (still to be reduced): %d",
-			rUtilityFromTechTrade.round());
+			rUtilityFromTechTrade.uround());
 	/*	If they're much more advanced than us, we won't be able to trade for
 		all their tech. */
 	rUtilityFromTechTrade.decreaseTo(100);
@@ -942,10 +945,10 @@ void GreedForVassals::evaluate()
 	scaled rUtility = (kOurTeam.isHuman() ? fixp(0.5) : fixp(0.35)) *
 			rUtilityFromTechTrade;
 	scaled rUtilityFromResources = ourCache().vassalResourceScore(eThey);
-	log("Resource score: %d", rUtilityFromResources.round());
+	log("Resource score: %d", rUtilityFromResources.uround());
 	// Expect just +1.5 commerce per each of their cities from trade routes
 	scaled rUtilityFromTR = fixp(1.5) * kThey.getNumCities() * rOurIncome;
-	log("Trade route score: %d", rUtilityFromTR.round());
+	log("Trade route score: %d", rUtilityFromTR.uround());
 	// These trades are pretty safe bets; treated as 75% probable
 	rUtility += fixp(0.75) * rTheirCityRatio * (rUtilityFromResources + rUtilityFromTR);
 	int iOurVassalPlayers = PlayerIter<ALIVE,VASSAL_OF>::count(eOurTeam);
@@ -985,7 +988,7 @@ void GreedForVassals::evaluate()
 	// Multiplier reflects coordination problems and lack of commitment
 	scaled rUtilityFromMilitary = 45 * rTheirCityRatio * rTheirPower /
 			scaled::max(rOurPower, 10);
-	log("Base utility from military: %d", rUtilityFromMilitary.round());
+	log("Base utility from military: %d", rUtilityFromMilitary.uround());
 	if (!bUsefulArea)
 	{
 		rUtilityFromMilitary /= 2;
@@ -1084,7 +1087,7 @@ void GreedForCash::evaluate()
 		}
 	}
 	log("Adding utility for future reparations");
-	m_iU += normalizeUtility(4).round(); // Only one team member will pay
+	m_iU += normalizeUtility(4).uround(); // Only one team member will pay
 }
 
 
@@ -1187,8 +1190,8 @@ scaled Loathing::lossRating() const
 	{
 		log("Their lost assets: %d; their present assets: %d;"
 				" our present assets: %d; asset ratio: %d percent",
-				rTheirLostAssets.round(), rTheirAssets.round(),
-				rOurAssets.round(), rTheirAssetsToOurs.getPercent());
+				rTheirLostAssets.uround(), rTheirAssets.uround(),
+				rOurAssets.uround(), rTheirAssetsToOurs.getPercent());
 	}
 	/*	This is mostly about their losses, and not ours, but we shouldn't be
 		satisfied to have weakened their army if ours fares far worse.
@@ -1424,9 +1427,9 @@ scaled MilitaryVictory::progressRatingDomination() const
 	if (rCitiesGained == 0)
 		return 0;
 	log("%d population-to-go for domination, %d cities",
-			rPopGained.round(), rCitiesToGo.round());
+			rPopGained.uround(), rCitiesToGo.round());
 	FAssert(rPopGained > 0);
-	log("%d pop gained, and %d cities", rPopGained.round(), rCitiesGained.round());
+	log("%d pop gained, and %d cities", rPopGained.uround(), rCitiesGained.uround());
 	// No use in population beyond the victory threshold
 	rPopGained.decreaseTo(iPopToGo);
 	/*	The to-go values can be negative (already past the threshold). In the case
@@ -1435,7 +1438,7 @@ scaled MilitaryVictory::progressRatingDomination() const
 		it's certain we've reached the pop threshold. */
 	if (iPopToGo < 0)
 	{
-		/*	If rCities to go is non-positive, then boths victory thresholds
+		/*	If rCitiesToGo is non-positive, then boths victory thresholds
 			should be met -- but somehow we haven't won.
 			Assume that we need a few more cities. */
 		int const iMinCitiesToGo = 4;
@@ -1559,7 +1562,7 @@ scaled MilitaryVictory::progressRatingDiplomacy() const
 		if (!bSecular && !kCacheCity.city().isHasReligion(eVSReligion))
 			rPop *= fixp(0.5); // Not 0 b/c religion can still be spread
 		log("Votes expected from %s: %d", m_kReport.cityName(kCacheCity.city()),
-				rPop.round());
+				rPop.uround());
 		rPopGained += rPop;
 	}
 	if (militAnalyst().getCapitulationsAccepted(eOurTeam).count(eTheirTeam) > 0)
@@ -1588,13 +1591,13 @@ scaled MilitaryVictory::progressRatingDiplomacy() const
 				rNewVassalVotes *= fixp(2/3.);
 		}
 		log("Votes expected from capitulated cities of %s: %d",
-				m_kReport.leaderName(eThey), rNewVassalVotes.round());
+				m_kReport.leaderName(eThey), rNewVassalVotes.uround());
 		rPopGained += rNewVassalVotes;
 	}
 	if (rPopGained >= fixp(0.5))
 	{
 		log("Total expected votes: %d, current votes-to-go: %d",
-				rPopGained.round(), m_iVotesToGo);
+				rPopGained.uround(), m_iVotesToGo);
 	}
 	FAssert(m_iVotesToGo > 0);
 	rPopGained.decreaseTo(m_iVotesToGo);
@@ -1686,7 +1689,7 @@ void Assistance::evaluate()
 	if (rTradeUtility > 0 || rOtherUtility > 0)
 	{
 		log("Utility for trade: %d, tech/military: %d, both weighted by saved assets",
-				rTradeUtility.round(), rOtherUtility.round());
+				rTradeUtility.uround(), rOtherUtility.uround());
 	}
 	scaled rUtility = rTradeUtility + rOtherUtility;
 	if (!kWe.isHuman() && towardThem() >= ATTITUDE_FRIENDLY)
@@ -1760,7 +1763,7 @@ void Reconquista::evaluate()
 		rUtility += rBaseReconqVal * rReconqMult;
 		log("Reconquering %s; base val %d, modifier %d percent",
 				m_kReport.cityName(kCity),
-				rBaseReconqVal.round(), rReconqMult.getPercent());
+				rBaseReconqVal.uround(), rReconqMult.getPercent());
 	}
 	m_iU += rUtility.round();
 }
@@ -1852,7 +1855,6 @@ void Fidelity::evaluate()
 	}
 	if (!bWarOngoing)
 		return;
-	
 	scaled rLeaderFactor = 1;
 	if (!kWe.isHuman())
 	{
@@ -1860,7 +1862,6 @@ void Fidelity::evaluate()
 			Not sure if I want him to act as a peacekeeper ... Let's try it. */
 		rLeaderFactor = per100(kOurPersonality.
 				getMemoryAttitudePercent(MEMORY_DECLARED_WAR_ON_FRIEND));
-		// That's normally negative
 		if (!rLeaderFactor.isNegative())
 			return;
 		rLeaderFactor = (-rLeaderFactor).sqrt();
@@ -1906,7 +1907,7 @@ void HiredHand::evaluate()
 			iDeniedHelpDiplo -= kWe.AI_getMemoryAttitude(
 					itSponsorMember->getID(), MEMORY_DENIED_JOIN_WAR);
 		}
-		if (iDeniedHelpDiplo > 0)
+		if (iDeniedHelpDiplo > 0) // (The above normally subtracts a negative value)
 		{
 			log("Utility reduced b/c of denied help");
 			rUtility /= scaled(iDeniedHelpDiplo).sqrt();
@@ -2174,7 +2175,8 @@ void PreEmptiveWar::evaluate()
 	if (rCurrThreat < fixp(0.15))
 		return;
 	// rCurrThreat includes their vassals, so include vassals here as well.
-	scaled rTheirCurrentCities, rTheirPredictedCities = 0;
+	scaled rTheirCurrentCities;
+	scaled rTheirPredictedCities;
 	for (PlayerIter<MAJOR_CIV> itTheirAlly; itTheirAlly.hasNext(); ++itTheirAlly)
 	{	// Them, a teammate or a vassal.
 		CvPlayer const& kTheirAlly = *itTheirAlly;
@@ -2249,8 +2251,8 @@ void PreEmptiveWar::evaluate()
 	log("Long-term threat rating for %s: %d percent", m_kReport.leaderName(eThey),
 			rCurrThreat.getPercent());
 	log("Our cities (now/predicted) and theirs: %d/%d, %d/%d",
-			rOurCurrentCities.round(), rOurPredictedCities.round(),
-			rTheirCurrentCities.round(), rTheirPredictedCities.round());
+			rOurCurrentCities.uround(), rOurPredictedCities.uround(),
+			rTheirCurrentCities.uround(), rTheirPredictedCities.uround());
 	log("Their gain in power: %d percent", rTheirEdge.getPercent());
 	// Shifts in power tend to affect the threat disproportionately
 	scaled rThreatChange = rTheirEdge.abs().sqrt();
@@ -2619,7 +2621,7 @@ scaled KingMaking::theirRelativeLoss() const
 		CvTeam const& kTheirAllyTeam = GET_TEAM(eTheirAlly);
 		scaled rVassalFactor = 1;
 		if (kTheirAllyTeam.isAVassal())
-			rVassalFactor *= fixp(0.5);
+			rVassalFactor /= 2;
 		if (kTheirAllyTeam.getMasterTeam() != eTheirTeam)
 		{
 			if (kCapitulationsAccepted.count(kTheirAllyTeam.getID()) > 0)
@@ -2684,7 +2686,7 @@ int Effort::preEvaluate()
 				(though it shouldn't); therefore not 0 cost. */
 			rUtility += 2;
 			log("All targets are short work; only %d for wartime economy",
-					rUtility.round());
+					rUtility.uround());
 		}
 		else
 		{
@@ -2694,7 +2696,7 @@ int Effort::preEvaluate()
 					((bAllWarsLongDist ? 8 : fixp(5.5)) +
 					// Workers not much of a concern later on
 					kWe.AI_getCurrEraFactor() / 2);
-			log("Cost for wartime economy and ravages: %d%s", rUtility.round(),
+			log("Cost for wartime economy and ravages: %d%s", rUtility.uround(),
 					(bAllWarsLongDist ? " (reduced b/c of distance)" : ""));
 		}
 	}
@@ -2797,8 +2799,8 @@ int Effort::preEvaluate()
 	log("Production value of lost units: %d, invested production: %d,"
 			" multiplier for future use of trained units: %d percent, "
 			"adjusted production value of build-up and losses: %d",
-			rOurLostProductionInUnits.round(), rInvested.round(),
-			rFutureUse.getPercent(), rOurLostProduction.round());
+			rOurLostProductionInUnits.uround(), rInvested.uround(),
+			rFutureUse.getPercent(), rOurLostProduction.uround());
 	scaled rSupplyCost; // Assume none if we're losing (i.e. on the defensive)
 	if (militAnalyst().lostCities(eWe).empty() && rOurLostUnits > 0)
 	{
@@ -2813,8 +2815,8 @@ int Effort::preEvaluate()
 			rSupplyCost /= 2;
 		}
 		log("Estimated gold for supply: %d (%d turns simulated, %d units lost)",
-				rSupplyCost.round(), militAnalyst().turnsSimulated(),
-				rOurLostUnits.round());
+				rSupplyCost.uround(), militAnalyst().turnsSimulated(),
+				rOurLostUnits.uround());
 		rSupplyCost *= kWeAI.amortizationMultiplier();
 	}
 	/*	If the war has been going on for a long time, increase rGoldPerProduction
@@ -2834,7 +2836,7 @@ int Effort::preEvaluate()
 				rGoldPerProduction.getFloat(), iDuration);
 	}
 	scaled rTradeVal = rSupplyCost + rGoldPerProduction * rOurLostProduction;
-	log("Trade value of build-up and war effort: %d", rTradeVal.round());
+	log("Trade value of build-up and war effort: %d", rTradeVal.uround());
 	rUtility += kWeAI.tradeValToUtility(rTradeVal);
 	/*	Nukes are included in army, and therefore already covered by the costs above.
 		But these don't take into account that nukes are always lost when used.
@@ -2850,7 +2852,7 @@ int Effort::preEvaluate()
 		scaled rNukeProduction = fixp(0.3) * rFired * kNukeBranch.getTypicalCost();
 		scaled rNukeCost = kWeAI.tradeValToUtility(rGoldPerProduction * rNukeProduction);
 		log("Extra cost for fired nukes: %d; lost prod: %d",
-				rNukeCost.round(), rNukeProduction.round());
+				rNukeCost.uround(), rNukeProduction.uround());
 		rUtility += rNukeCost;
 	}
 	return -std::min(200, rUtility.round());
@@ -2885,12 +2887,12 @@ int Risk::preEvaluate()
 			rRelativeVassalLoss = rLostVassalAssets /
 					(vassalCache.totalAssetScore() + scaled::epsilon());
 		}
-		scaled rVassalCost = 0; // (i.e. negative utility)
+		scaled rVassalCost; // (i.e. negative utility)
 		if (rRelativeVassalLoss > 0)
 		{
 			rVassalCost = rRelativeVassalLoss * 33;
 			log("Cost for losses of vassal %s: %d", m_kReport.leaderName(eVassal),
-					rVassalCost.round());
+					rVassalCost.uround());
 		}
 		if (!GET_TEAM(eVassal).isCapitulated())
 		{
@@ -2898,15 +2900,15 @@ int Risk::preEvaluate()
 					(militAnalyst().gainedPower(eVassal, ARMY) +
 					vassalCache.getPowerValues()[ARMY]->power()) /
 					(militAnalyst().gainedPower(eWe, ARMY) +
-					ourCache().getPowerValues()[ARMY]->power() + scaled::epsilon())
-					- fixp(0.9);
+					ourCache().getPowerValues()[ARMY]->power() + scaled::epsilon());
+			rRelativePow -= fixp(0.9);
 			if (rRelativePow > 0)
 			{
 				scaled rBreakAwayCost = scaled::min(20, rRelativePow.sqrt() * 40);
-				if (rBreakAwayCost > fixp(0.5))
+				if (rBreakAwayCost >= fixp(0.5))
 				{
 					log("Cost for %s breaking free: %d", m_kReport.leaderName(eVassal),
-							rBreakAwayCost.round());
+							rBreakAwayCost.uround());
 				}
 				rVassalCost += rBreakAwayCost;
 			}
@@ -2952,7 +2954,7 @@ void Risk::evaluate()
 				rAssetScore += (bCulture4 ? 15 : 8);
 			}
 		}
-		log("%s: %d lost assets%s", m_kReport.cityName(kCity), rAssetScore.round(),
+		log("%s: %d lost assets%s", m_kReport.cityName(kCity), rAssetScore.uround(),
 				(bCulture3 || bSpace4 ? " (important for victory)" : ""));
 		rLostAssets += rAssetScore;
 	}
@@ -2978,11 +2980,11 @@ void Risk::evaluate()
 	if (rUtility >= fixp(0.5))
 	{
 		if (rFromBlockade / rTotalAssets >= fixp(0.5))
-			log("From naval blockade: %d", (rFromBlockade / rTotalAssets).round());
+			log("From naval blockade: %d", (rFromBlockade / rTotalAssets).uround());
 		if (rFromNukes / rTotalAssets >= fixp(0.5))
-			log("From nukes: %d", (rFromNukes / rTotalAssets));
+			log("From nukes: %d", (rFromNukes / rTotalAssets).uround());
 		log("Cost for lost assets: %d (loss: %d, present: %d)",
-				rUtility.round(), rLostAssets.round(), rTotalAssets.round());
+				rUtility.round(), rLostAssets.uround(), rTotalAssets.uround());
 	}
 	if (militAnalyst().getCapitulationsAccepted(eTheirTeam).count(eOurTeam) > 0)
 	{	/*	Counting lost cities in addition to capitulation might make us too
@@ -3222,7 +3224,7 @@ void IllWill::evalRevenge()
 			/*scaled rMult(kOurTeam.AI_getWarSuccessRating(), -10);
 			rMult.clamp(3, fixp(6.5));*/ // Instead of the 5.5?
 			scaled rHopelessStalemateCost = (1 - kWe.uwai().prideRating()) * fixp(5.5);
-			log("Cost for hopeless stalemate: %d", rHopelessStalemateCost.round());
+			log("Cost for hopeless stalemate: %d", rHopelessStalemateCost.uround());
 			m_rCost += rHopelessStalemateCost;
 		}
 		return;
@@ -3318,7 +3320,7 @@ void IllWill::evalAngeredPartners()
 				aren't as dynamic, and it's sufficient for tech trading if some
 				team members get along. */
 			scaled(kOurTeam.getNumMembers()).sqrt();
-	log("Cost per -1 relations: %d", rCostPerPenalty.round());
+	log("Cost per -1 relations: %d", rCostPerPenalty.uround());
 	/*	costPerPenalty already adjusted to game progress, but want to dilute
 		the impact of leader personality in addition to that. diploWeight is
 		mostly about trading, and trading becomes less relevant in the latem_kGame. */
@@ -3419,7 +3421,7 @@ void Affection::evaluate()
 			if (iDelta > 0)
 				rVassalPenalty += scaled(iDelta, 10);
 		}
-		int const iVassalPenalty = rVassalPenalty.round();
+		int const iVassalPenalty = rVassalPenalty.uround();
 		if (iVassalPenalty > 0)
 		{
 			iNoWarPercent = std::max(iNoWarPercent / 2, iNoWarPercent - iVassalPenalty);
@@ -3550,7 +3552,7 @@ void Distraction::evaluate()
 				preparations against eAltTarget and eThey at the same time.) */
 				rDistractionCost += rWarUtilityVsAlt;
 				log("%d extra cost for distraction from war in preparation",
-						rWarUtilityVsAlt.round());
+						rWarUtilityVsAlt.uround());
 			}
 			// NB: Imminent war against eAltTarget is covered by UWAI::Team::considerPeace
 		}
@@ -3578,7 +3580,7 @@ void Distraction::evaluate()
 						"against %s. Current utilities: %d/%d; Distraction cost: %d",
 						m_kReport.leaderName(eThey), iWarDuration,
 						m_kReport.teamName(eAltTarget), rWarUtilityVsThem.round(),
-						rWarUtilityVsAlt.round(), rOpportunityCost.round());
+						rWarUtilityVsAlt.uround(), rOpportunityCost.uround());
 				rHighestOpportunityCost.increaseTo(rOpportunityCost);
 				rTotalOpportunityCost += rOpportunityCost;
 				iAltWars++;
@@ -3595,7 +3597,7 @@ void Distraction::evaluate()
 		if (rOverallOpportunityCost >= fixp(0.5))
 		{
 			log("Adjusted cost for all (%d) potential wars: %d", iAltWars,
-					rOverallOpportunityCost.round());
+					rOverallOpportunityCost.uround());
 			rDistractionCost += rOverallOpportunityCost;
 		}
 	}
@@ -3646,7 +3648,7 @@ void PublicOpposition::evaluate()
 	if (rWWAnger + rFaithAnger <= 0)
 		return;
 	log("Angry citizens from religion: %d, from ww: %d; total citizens: %d",
-			rFaithAnger.round(), rWWAnger.round(), iTotalPop);
+			rFaithAnger.uround(), rWWAnger.uround(), iTotalPop);
 	// Assume that more WW is coming, and especially if we take the fight to them.
 	WarPlanTypes const eWarPlan = kOurTeam.AI_getWarPlan(eTheirTeam);
 	bool bTotal = (eWarPlan == WARPLAN_PREPARING_TOTAL || eWarPlan == WARPLAN_TOTAL);
@@ -3908,8 +3910,8 @@ void FairPlay::evaluate()
 		}
 		if (rFromOtherEnemies >= fixp(0.5))
 		{
-			log("From other enemies: %d", rFromOtherEnemies.round());
-			m_iU -= rFromOtherEnemies.round();
+			log("From other enemies: %d", rFromOtherEnemies.uround());
+			m_iU -= rFromOtherEnemies.uround();
 		}
 	}
 	// The rest of this function deals with the early game
@@ -3950,8 +3952,8 @@ void FairPlay::evaluate()
 	// Allow earlier aggression on crowded maps
 	iTargetTurn = (iTargetTurn * ((1 + fixp(1.5) *
 			scaled(m_kGame.getRecommendedPlayers(), m_kGame.getCivPlayersEverAlive())) /
-			fixp(2.5))).round();
-	int const iElapsed = (m_kGame.getElapsedGameTurns() / rTrainMod).round();
+			fixp(2.5))).uround();
+	int const iElapsed = (m_kGame.getElapsedGameTurns() / rTrainMod).uround();
 	int iTurnsRemaining = iTargetTurn - iElapsed
 			- GC.getInfo(eStartEra).getStartPercent();
 	if (iTurnsRemaining > 0)
@@ -3984,7 +3986,7 @@ void FairPlay::evaluate()
 		rFromCityLoss = 100 * (1 - scaled(iCitiesTheyHave, iCitiesTheyFounded)).pow(fixp(0.85));
 	if (rFromCityLoss >= fixp(0.5))
 	{
-		log("From lost human cities: %d", rFromCityLoss.round());
+		log("From lost human cities: %d", rFromCityLoss.uround());
 		rFairnessCost += rFromCityLoss;
 	}
 	// If no cities gained nor lost, at least don't DoW in quick succession.
@@ -4056,7 +4058,7 @@ void Bellicosity::evaluate()
 	scaled rGloryRate = rOurMinusTheirLostPow / rCurrentAggrPow;
 	rGloryRate.decreaseTo(1);
 	log("Difference in lost power: %d; present aggressive power: %d; bellicosity: %d",
-			rOurMinusTheirLostPow.round(), rCurrentAggrPow.round(), iBellicosity);
+			rOurMinusTheirLostPow.uround(), rCurrentAggrPow.uround(), iBellicosity);
 	m_iU += (2 * iBellicosity * rGloryRate).round();
 }
 
@@ -4397,7 +4399,6 @@ void TacticalSituation::evalOperational()
 	}
 	if (rReadiness >= 1)
 		return;
-	rReadiness.decreaseTo(1);
 	int const iRemainingTime = m_kParams.getPreparationTime();
 	FAssert(iRemainingTime >= 0);
 	int iInitialPrepTime = 0;
@@ -4431,10 +4432,10 @@ void TacticalSituation::evalOperational()
 	log("Readiness %d percent (%d of %d attackers, %d of %d cargo, "
 			"%d of %d escort); %d of %d turns for preparation remain",
 			rReadiness.getPercent(), iAttackers, rTargetAttackers.round(),
-			rCargo.round(), rTargetCargo.round(), iEscort, rTargetEscort.round(),
+			rCargo.uround(), rTargetCargo.uround(), iEscort, rTargetEscort.uround(),
 			iRemainingTime, iInitialPrepTime);
 	int iUnreadinessCost = (100 * rPassedPortion.pow(fixp(1.5)) *
-			(1 - rReadiness.pow(fixp(3.7)))).round();
+			(1 - rReadiness.pow(fixp(3.7)))).uround();
 	if (iUnreadinessCost == 0)
 	{
 		log("Cost for lack of readiness vs. %s negligible",

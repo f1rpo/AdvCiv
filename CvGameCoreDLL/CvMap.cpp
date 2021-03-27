@@ -831,7 +831,7 @@ int CvMap::maxStepDistance() const
 }
 
 /*	advc.140: Not sure what distance this measures exactly; I'm using it as a
-	replacement (everywwere) for maxPlotDistance, with reduced impact of world wraps. */
+	replacement (everywhere) for maxPlotDistance, with reduced impact of world wraps. */
 int CvMap::maxTypicalDistance() const
 {
 	CvGame const& kGame = GC.getGame();

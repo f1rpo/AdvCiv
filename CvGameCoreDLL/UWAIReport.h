@@ -8,7 +8,7 @@
    Calls to 'log' have no effect when in silent or mute mode.
    However, DEBUG mode is not a prerequisite for logging output,
    meaning also that logging through this class isn't completely "free"
-   in terms of overhead.
+   in terms of overhead in release builds.
    Each 'log' call is written to the log file separately (flushed). */
 class UWAIReport
 {

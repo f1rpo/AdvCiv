@@ -1985,7 +1985,7 @@ void AIFoundValue::calculateSpecialYields(CvPlot const& p,
 	{
 		int iSurplus = (std::max(0,
 				iEffectiveFood - GC.getFOOD_CONSUMPTION_PER_POPULATION()) *
-				per100(iModifier)).round(); // advc.031
+				per100(iModifier)).uround(); // advc.031
 		iSpecialFoodPlus += iSurplus;
 		aiSpecialYield[YIELD_FOOD] += iSurplus; // advc.031: A little extra love for Flood Plains
 		return;

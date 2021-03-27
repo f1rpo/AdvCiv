@@ -268,7 +268,7 @@ void CvReplayInfo::addSettingsMsg()
 
 void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer) const
 {
-	CvGame const& g = GC.getGame();
+	CvGame const& kGame = GC.getGame();
 	bool bScenario = false;
 	// Strip away file ending of WB scenario
 	CvWString const szWBEnding = L".CivBeyondSwordWBSave";
@@ -315,16 +315,16 @@ void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer)
 	}
 	szSettings.append(NEWLINE);
 	// <advc.250b>
-	if(g.isOption(GAMEOPTION_ADVANCED_START) && !g.isOption(GAMEOPTION_SPAH))
+	if(kGame.isOption(GAMEOPTION_ADVANCED_START) && !kGame.isOption(GAMEOPTION_SPAH))
 	{
 		szSettings += gDLL->getText("TXT_KEY_ADVANCED_START_POINTS") + L" "
-				+ CvWString::format(L"%d", g.getNumAdvancedStartPoints()) + L"\n";
+				+ CvWString::format(L"%d", kGame.getNumAdvancedStartPoints()) + L"\n";
 	} // </advc.250b>
 	int iDisabled = 0;
 	for(int i = 0; i < GC.getNumVictoryInfos(); i++)
 	{
 		VictoryTypes eVictory = (VictoryTypes)i;
-		if(g.isVictoryValid(eVictory))
+		if(kGame.isVictoryValid(eVictory))
 			continue;
 		iDisabled++;
 		szSettings += GC.getInfo(eVictory).getDescription();
@@ -335,10 +335,10 @@ void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer)
 		szSettings = szSettings.substr(0, szSettings.length() - 2) + L" "; // Drop the final comma
 		szSettings += gDLL->getText("TXT_KEY_VICTORY_DISABLED") + L"\n";
 	} // <advc.250b>
-	if(g.isOption(GAMEOPTION_SPAH))
+	if(kGame.isOption(GAMEOPTION_SPAH))
 	{
 		// bTab=false b/c that's a bit too much indentation
-		std::wstring* pszPointDistrib = g.startPointsAsHandicap().forSettingsScreen(false);
+		std::wstring* pszPointDistrib = kGame.startPointsAsHandicap().forSettingsScreen(false);
 		if(pszPointDistrib != NULL)
 			szSettings += *pszPointDistrib;
 	} // </advc.250b>
@@ -348,10 +348,12 @@ void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer)
 		GameOptionTypes eOption = (GameOptionTypes)i;
 		// advc.250b:
 		if(eOption == GAMEOPTION_ADVANCED_START || eOption == GAMEOPTION_SPAH ||
-				!g.isOption(eOption) ||
-				// advc.104:
-				(eOption == GAMEOPTION_AGGRESSIVE_AI && getUWAI().isEnabled()))
+			!kGame.isOption(eOption) ||
+			// advc.104:
+			(eOption == GAMEOPTION_AGGRESSIVE_AI && getUWAI().isEnabled()))
+		{
 			continue;
+		}
 		iOptions++;
 		szSettings += GC.getInfo(eOption).getDescription();
 		szSettings += L", ";

@@ -53,18 +53,19 @@ ArmamentForecast::ArmamentForecast(PlayerTypes ePlayer, MilitaryAnalyst const& k
 	if (rProductionPortion != 1)
 	{
 		m_kReport.log("Production considering lost cities: %d",
-				rProductionEstimate.round());
+				rProductionEstimate.uround());
 	}
 	// Express upgrades in terms of differences in production costs
 	scaled rProductionFromUpgrades = 0;
 	if (!bNoUpgrading)
 		rProductionFromUpgrades = productionFromUpgrades();
 	if (rProductionFromUpgrades > 0)
-		m_kReport.log("Production from upgrades: %d", rProductionFromUpgrades.round());
+		m_kReport.log("Production from upgrades: %d", rProductionFromUpgrades.uround());
 
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
 	TeamTypes const eTeam = kPlayer.getTeam();
 	CvTeamAI const& kTeam = GET_TEAM(eTeam);
+	TeamTypes const eMaster = kTeam.getMasterTeam();
 	Intensity eIntensity = NORMAL;
 	if (kPlayer.AI_isDoStrategy(AI_STRATEGY_ALERT1))
 		eIntensity = INCREASED;
@@ -80,7 +81,6 @@ ArmamentForecast::ArmamentForecast(PlayerTypes ePlayer, MilitaryAnalyst const& k
 				(bNavalArmament ? " (naval target)": ""));
 	}
 	TeamTypes const eTargetTeam = kParams.getTarget();
-	TeamTypes const eMaster = GET_PLAYER(ePlayer).getMasterTeam();
 	int iTotalWars = 0, iWars = 0;
 	// Whether simulation assumes peace between ePlayer and any other player
 	bool bPeaceAssumed = false;
@@ -380,7 +380,7 @@ void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduct
 		behavior.
 		Doesn't matter much if I increase rPerTurnProduction or rArmamentPortion;
 		they're multiplied in the end. */
-	scaled rAtWarAdjustment = 0;
+	scaled rAtWarAdjustment;
 	WarEvalParameters const& kParams = m_kMA.evaluationParams();
 	if (kParams.isConsideringPeace())
 	{
@@ -449,7 +449,7 @@ void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduct
 					fixp(0.08) + rCoastPortion / fixp(2.8));
 		}
 		scaled rTypicalCargo = m_kMilitary[LOGISTICS]->getTypicalPower(
-				kParams.getAgent());
+				m_kMA.getAgent());
 		if (rTypicalCargo > 0 && m_kMilitary[LOGISTICS]->getTypicalUnit() != NO_UNIT)
 		{
 			rBranchPortions[LOGISTICS] = std::min(rBranchPortions[FLEET],
@@ -467,10 +467,11 @@ void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduct
 				rMultCargo = (rMultCargo + 1) / 2; // dilute
 				rBranchPortions[LOGISTICS] *= rMultCargo;
 				scaled rTypicalFleetPow = m_kMilitary[FLEET]->getTypicalPower(
-						kParams.getAgent());
+						m_kMA.getAgent());
 				if (rTypicalFleetPow > 0)
 				{
-					scaled rMultFleet = 2 - m_kMilitary[FLEET]->power() /
+					scaled rMultFleet = 2 -
+							m_kMilitary[FLEET]->power() /
 							(rTypicalFleetPow * kPlayer.AI_getCurrEraFactor());
 					rMultFleet.clamp(1, fixp(1.5));
 					rMultFleet = (rMultFleet + 1) / 2;
@@ -585,7 +586,7 @@ void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduct
 	scaled rTotalProductionForBuildUp = rAdditionalProduction;
 	rTotalProductionForBuildUp += iTurnsBuildUp * rArmamentPortion * rPerTurnProduction;
 	m_kReport.log("Total production for build-up: %d hammers",
-			rTotalProductionForBuildUp.round());
+			rTotalProductionForBuildUp.uround());
 	m_rProductionInvested = rTotalProductionForBuildUp;
 
 	// Increase military power
@@ -593,17 +594,17 @@ void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduct
 	for (int i = 0; i < NUM_BRANCHES; i++)
 	{
 		MilitaryBranch& kBranch = *m_kMilitary[i];
-		scaled const rTypicalCost = kBranch.getTypicalCost(kParams.getAgent());
+		scaled const rTypicalCost = kBranch.getTypicalCost(m_MA.getAgent());
 		if (rTypicalCost <= 0)
 			continue;
-		scaled const rTypicalPower = kBranch.getTypicalPower(kParams.getAgent());
+		scaled const rTypicalPower = kBranch.getTypicalPower(m_MA.getAgent());
 		scaled rIncrease = rBranchPortions[i] * rTotalProductionForBuildUp *
 				rTypicalPower / rTypicalCost;
 		kBranch.changePower(rIncrease);
-		if (rIncrease.round() > 0)
+		if (rIncrease.uround() > 0)
 		{
 			m_kReport.log("Predicted power increase in %s by %d",
-					kBranch.str(), rIncrease.round());
+					kBranch.str(), rIncrease.uround());
 		}
 	}
 	m_kReport.logNewline();
@@ -642,7 +643,7 @@ scaled ArmamentForecast::productionFromUpgrades()
 	CvPlayerAI const& kPlayer = GET_PLAYER(m_ePlayer);
 	scaled r = kPlayer.AI_getGoldToUpgradeAllUnits();
 	if (2 * r >= 1)
-		m_kReport.log("Total gold needed for upgrades: %d", r.round());
+		m_kReport.log("Total gold needed for upgrades: %d", r.uround());
 	/*	kPlayer may not have the funds to make all the upgrades in the medium term.
 		Think of a human player keeping stacks of Warriors around, or a vassal
 		receiving tech quickly from its master. Spend at most iIncomeTurns turns

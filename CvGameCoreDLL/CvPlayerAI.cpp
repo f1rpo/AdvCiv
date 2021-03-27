@@ -358,12 +358,12 @@ void CvPlayerAI::AI_updateCacheData()
 	FOR_EACH_CITYAI(c, *this)
 		rCityValues.push_back(AI_assetVal(*c, true));
 	int i = 0;
-	FOR_EACH_CITYAI_VAR(c, *this)
+	FOR_EACH_CITYAI_VAR(pCity, *this)
 	{
-		c->AI_setCityValPercent(
+		pCity->AI_setCityValPercent(
 				(1 - stats::percentileRank(
 				rCityValues, rCityValues[i] + scaled::epsilon())).getPercent());
-		c->AI_updateSafety();
+		pCity->AI_updateSafety();
 		i++;
 	} // </advc.139>
 }
@@ -2246,7 +2246,7 @@ int CvPlayerAI::AI_yieldWeight(YieldTypes eYield,
 		else // Gradually reduce weight of food in the second half of the game
 		{
 			iWeight -= (60 * scaled::max(0,
-					GC.getGame().gameTurnProgress() - fixp(0.5))).round();
+					GC.getGame().gameTurnProgress() - fixp(0.5))).uround();
 		} // </advc.110>
 		break;
 	case YIELD_PRODUCTION:
@@ -7673,7 +7673,7 @@ int CvPlayerAI::AI_getPeaceAttitude(PlayerTypes ePlayer) const
 	iMetAndAtPeace = std::min(iMetAndAtPeace,
 			GET_TEAM(getTeam()).AI_getHasMetCounter(TEAMID(ePlayer)));
 	iDivisor = (iDivisor * std::max(fixp(0.5),
-			1 - GC.getGame().gameTurnProgress())).round();
+			1 - GC.getGame().gameTurnProgress())).uround();
 	/*  Rounded down as in BtS; at least iDivisor turns need to pass before
 		diplo improves. */
 	int iAttitudeChange = iMetAndAtPeace / iDivisor;
@@ -20105,9 +20105,9 @@ void CvPlayerAI::AI_doDiplo()
 					int iRand = GC.getInfo(getPersonalityType()).getContactRand(CONTACT_TRADE_TECH);
 					int iTechPerc = kOurTeam.getBestKnownTechScorePercent();
 					if (iTechPerc < 90)
-					{	/* BBAI
-						iRand *= std::max(1, iTechPerc - 60);
-						iRand /= 30; */
+					{
+						/*iRand *= std::max(1, iTechPerc - 60);
+						iRand /= 30;*/ // BBAI
 						// K-Mod: not so extreme.
 						iRand = intdiv::uround(iRand * (10 + iTechPerc), 100);
 					}

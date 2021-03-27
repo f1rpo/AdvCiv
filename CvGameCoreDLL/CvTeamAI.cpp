@@ -5309,7 +5309,7 @@ int CvTeamAI::AI_techTradeKnownPercent() const
 	return r / std::max(1, it.nextIndex());
 }
 
-// advc.104: Teams should refuse to talk consistently
+// advc.104: Members of the same team should refuse to talk in unison
 int CvTeamAI::AI_refuseToTalkWarThreshold() const
 {
 	int iRTT = 0;

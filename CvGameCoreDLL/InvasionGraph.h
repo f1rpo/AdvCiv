@@ -24,7 +24,7 @@ class CvArea;
 	NB: This class does not _decide_ who targets whom. That happens in CvPlayerAI.
 	The invasion graph is a prediction on which the agent bases its decisions
 	on war and peace.
-	Fixme: This class does too much and has too many LoC. If everything triggered
+	Tbd.: This class does too much and has too many LoC. If everything triggered
 	by simulate(int) could be encapsulated in a new class (and file), that would
 	be best. Else, at least the step function should be moved into SimulationStep,
 	and SimulationStep into a new file. */
@@ -87,7 +87,7 @@ public:
 				scaled rArmyPortionAttacker = 1, bool bClashOnly = false) const;
 		void applyStep(SimulationStep const& kStep); // To be called on the defender
 		void setEliminated(bool b) { m_bEliminated = b; }
-		inline bool isEliminated() const { return m_bEliminated; }
+		bool isEliminated() const { return m_bEliminated; }
 		void resolveLosses();
 		/*	Simulates a clash of armies of two Nodes targeting each other.
 			This node clashes with its target. The parameters says which
@@ -95,7 +95,7 @@ public:
 		void clash(scaled rArmyPortion, scaled rTargetArmyPortion);
 		// For iterating over connected components
 		bool isComponentDone() const { return m_bComponentDone; }
-		
+
 		/*	The rest of the public functions are not to be used
 			until the simulation has finished ... */
 		// Lost power minus shifted power
@@ -182,7 +182,7 @@ public:
 		{
 			m_cityLosses.insert(kLostCity.getID());
 		}
-		// Vassals that break free are currently not modeled.
+		// (Vassals that break free are not modeled)
 		void setCapitulated(TeamTypes eMaster);
 		scaled clashDistance(Node const& kOther) const;
 		bool isSneakAttack(Node const& kOther, bool bClash) const;
@@ -190,7 +190,7 @@ public:
 		bool canReachByLand(PlotNumTypes eCityPlot, bool bFromCapital) const;
 		CvArea const* clashArea(PlayerTypes eEnemy) const;
 
-		/*	Should create a small class for this stuff. Related:
+		/*	Tbd.: Should create a small class for this stuff. Related:
 			Losses from city attack. */
 		static scaled const m_rClashPortion;
 		static std::pair<scaled,scaled> clashLossesWinnerLoser(

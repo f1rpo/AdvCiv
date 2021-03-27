@@ -20,20 +20,20 @@ class InvasionGraph;
 class MilitaryAnalyst
 {
 public:
-	/*	bPeaceScenario=false - simulate a "war" scenario:
+	/*	bPeaceScenario=false - "war" scenario:
 		War against the target is assumed to be declared immediately or,
 		depending on the war eval parameters, after some preparation time,
 		or war is continued (if already at war).
-		bPeaceScenario=true - simulate a "peace" scenario:
+		bPeaceScenario=true - "peace" scenario:
 		No war is declared or, if agent and target are at war, the war
 		is ended immediately. */
 	MilitaryAnalyst(PlayerTypes eAgentPlayer, WarEvalParameters& kWarEvalParams,
 			bool bPeaceScenario);
 	~MilitaryAnalyst();
-	inline WarEvalParameters& evaluationParams() { return m_kWarEvalParams; }
-	inline WarEvalParameters const& evaluationParams() const { return m_kWarEvalParams; }
-	inline PlayerTypes getAgentPlayer() const { return m_eWe; }
-	inline bool isPeaceScenario() const { return m_bPeaceScenario; }
+	WarEvalParameters& evaluationParams() { return m_kWarEvalParams; }
+	WarEvalParameters const& evaluationParams() const { return m_kWarEvalParams; }
+	__forceinline PlayerTypes getAgentPlayer() const { return m_eWe; }
+	bool isPeaceScenario() const { return m_bPeaceScenario; }
 
 	bool isOnOurSide(TeamTypes eTeam) const;
 	/*  The parameter only refers to proper defensive pacts;
@@ -189,7 +189,6 @@ private:
 	bool doWePlanToDeclWar(PlayerTypes ePlayer) const;
 	void prepareResults();
 	void simulateNuclearWar();
-	scaled nukeInterceptionMultiplier(TeamTypes eTeam);
 	// Known to be at war with anyone. If no observer, all wars are checked.
 	bool isKnownToBeAtWar(TeamTypes eTeam, TeamTypes eObserver = NO_TEAM) const;
 	/*  Also checks vassal agreements, including other vassals of

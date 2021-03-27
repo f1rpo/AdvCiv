@@ -1360,7 +1360,7 @@ public:
 	__forceinline T get(T_SUBSET eSubIndex) const { return get(static_cast<IndexType>(eSubIndex)); }
 	__forceinline void set(T_SUBSET eSubIndex, T tValue) { set(static_cast<IndexType>(eSubIndex), tValue); }
 	__forceinline void add(T_SUBSET eSubIndex, T tValue) { add(static_cast<IndexType>(eSubIndex), tValue); }
-	// Unhide base class function
+	// Unhide base class functions
 	using EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::get;
 	using EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::set;
 	using EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::add;

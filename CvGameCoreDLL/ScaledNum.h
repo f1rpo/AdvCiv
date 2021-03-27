@@ -884,10 +884,10 @@ int ScaledNum_T::round() const
 template<ScaledNum_PARAMS>
 int ScaledNum_T::uround() const
 {
-	BOOST_STATIC_ASSERT(bSIGNED);
+	BOOST_STATIC_ASSERT(bSIGNED); // Use round() instead
 	if (INTMAX < SCALE)
 		FAssert(false);
-	FAssert(m_i <= static_cast<IntType>(INTMAX - SCALE / 2));
+	FAssert(m_i >= 0 && m_i <= static_cast<IntType>(INTMAX - SCALE / 2));
 	return (m_i + SCALE / 2) / SCALE;
 }
 
