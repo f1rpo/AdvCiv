@@ -7169,7 +7169,8 @@ int CvPlayerAI::AI_refuseToTalkTurns(PlayerTypes ePlayer) const
 	FAssert(GET_TEAM(getTeam()).isAtWar(TEAMID(ePlayer)));
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
 	CvTeamAI const& kTheirTeam = GET_TEAM(ePlayer);
-	int r = GC.getInfo(getPersonalityType()).getRefuseToTalkWarThreshold() *
+	// advc.104: Use team average of RTT war thresh
+	int iR = kOurTeam.AI_refuseToTalkWarThreshold() *
 			(kOurTeam.AI_isChosenWar(kTheirTeam.getID()) ? 2 : 1);
 	int iOurSuccess = 1 + kOurTeam.AI_getWarSuccess(kTheirTeam.getID());
 	int iTheirSuccess = 1 + kTheirTeam.AI_getWarSuccess(getTeam());
@@ -7178,10 +7179,10 @@ int CvPlayerAI::AI_refuseToTalkTurns(PlayerTypes ePlayer) const
 	{
 		/*  Otherwise, killing a single stray unit can be enough to lower
 			the refuse duration to three turns (ratio 5:1). </advc.001> */
-		r *= 20 + (80 * iOurSuccess * 2) / iTheirSuccess;
-		r /= 100;
+		iR *= 20 + (80 * iOurSuccess * 2) / iTheirSuccess;
+		iR /= 100;
 	}
-	return r;
+	return iR;
 }
 
 

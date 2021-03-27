@@ -278,6 +278,7 @@ public:
 	// <advc.104>
 	inline UWAI::Team& uwai() { return *m_pUWAI; }
 	inline UWAI::Team const& uwai() const { return *m_pUWAI; }
+	int AI_refuseToTalkWarThreshold() const;
 	// These 9 were protected </advc.104>
 	int AI_maxWarRand() const;
 	int AI_maxWarNearbyPowerRatio() const;

@@ -5223,6 +5223,16 @@ int CvTeamAI::AI_noTechTradeThreshold() const
 	return r / std::max(1, it.nextIndex());
 }
 
+// advc.104: Members of the same team should refuse to talk in unison
+int CvTeamAI::AI_refuseToTalkWarThreshold() const
+{
+	int iRTT = 0;
+	MemberIter itMember(getID());
+	for (; itMember.hasNext(); ++itMember)
+		iRTT += GC.getInfo(itMember->getPersonalityType()).getRefuseToTalkWarThreshold();
+	return intdiv::round(iRTT, itMember.nextIndex());
+}
+
 
 int CvTeamAI::AI_techTradeKnownPercent() const
 {
