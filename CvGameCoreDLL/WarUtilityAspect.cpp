@@ -1358,11 +1358,11 @@ scaled MilitaryVictory::progressRatingConquest() const
 	return fixp(2/3.) * r;
 }
 
-namespace // Cache some static characteristics of victory conditions
+namespace
 {
 	VictoryTypes getDominationVictory()
 	{
-		static VictoryTypes eDomination = NO_VICTORY;
+		static VictoryTypes eDomination = NO_VICTORY; // cache it
 		if (eDomination == NO_VICTORY)
 		{
 			// (Same thing is done in CvPlayerAI::AI_calculateDominationVictoryStage.)
@@ -1380,10 +1380,8 @@ namespace // Cache some static characteristics of victory conditions
 
 	// Caller needs to guarantee that Domination victory exists (and is enabled etc.)
 	scaled getDominationTargetPopPortion()
-	{
-		static scaled const r = per100(
-				GC.getGame().getAdjustedPopulationPercent(getDominationVictory()));
-		return r;
+	{	// Not something we can cache in a static variable
+		return per100(GC.getGame().getAdjustedPopulationPercent(getDominationVictory()));
 	}
 }
 
@@ -2450,7 +2448,7 @@ bool KingMaking::anyVictory(PlayerTypes ePlayer, AIVictoryStage eFlags, int iSta
 		scaled const rRemainingWorldPopPortion(
 				std::max(0, kPlayer.getTotalPopulation() - iLostPop),
 				m_kGame.getTotalPopulation());
-		if (rRemainingWorldPopPortion < (iStage == 3 ? fixp(0.3) : fixp(0.35)))
+		if (rRemainingWorldPopPortion < (iStage == 3 ? fixp(1/3.) : fixp(0.4)))
 			bDiploValid = false;
 		VictoryTypes const eDomination = getDominationVictory();
 		if (eDomination != NO_VICTORY)
