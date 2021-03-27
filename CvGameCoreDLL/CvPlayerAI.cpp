@@ -2256,7 +2256,7 @@ int CvPlayerAI::AI_yieldWeight(YieldTypes eYield,
 		break;
 	case YIELD_COMMERCE:
 		if (AI_isFinancialTrouble())
-			iWeight *= 2;
+			iWeight = (5 * iWeight) / 3; // advc.110: Was *=2; seems too drastic.
 		break;
 	}
 	return iWeight;
