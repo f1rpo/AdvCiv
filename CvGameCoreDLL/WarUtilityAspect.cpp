@@ -726,6 +726,8 @@ double GreedForAssets::medianDistFromOurConquests(PlayerTypes civId) {
 
 	CvPlayerAI const& civ = GET_PLAYER(civId);
 	vector<double> distances;
+	CvArea const* capitalArea = (GET_PLAYER(civId).hasCapital() ?
+			GET_PLAYER(civId).getCapital()->area() : NULL);
 	for(size_t i = 0; i < weConquerFromThem.size(); i++) {
 		/*  Cheating a bit: We know where the capital of 'civ' is, but the
 			distance info is based on all of 'civ' cities. For a human,
@@ -740,6 +742,9 @@ double GreedForAssets::medianDistFromOurConquests(PlayerTypes civId) {
 		if(d < 0)
 			d = 1000; // -1 means unreachable
 		distances.push_back(d);
+		// Double weight for cities in capital area
+		if(c.city().area() == capitalArea)
+			distances.push_back(d);
 	}
 	double r = 1000;
 	if(!distances.empty())
@@ -919,7 +924,22 @@ void GreedForSpace::evaluate() {
 		return;
 	int ourCities = std::max(1, we->getNumCities());
 	int ourSites = std::min(ourCities, we->AI_getNumCitySites());
-	int theirSites = they->AI_getNumCitySites();
+	int theirSites = 0;
+	/*	Would be too brazen a cheat to ignore visibility here.
+		(And might encourage very early wars.) */
+	for(int i = 0; i < they->AI_getNumCitySites(); i++) {
+		CvPlot const& kSite = they->AI_getCitySite(i);
+		if(kSite.isRevealed(agentId))
+			theirSites++;
+		else {
+			FOR_EACH_ADJ_PLOT(kSite) {
+				if (pAdj->isRevealed(agentId)) {
+					theirSites++;
+					break;
+				}
+			}
+		}
+	}
 	// Expect to raze only when we have to
 	for(size_t i = 0; i < weConquerFromThem.size(); i++) {
 		City* c = ourCache->lookupCity(weConquerFromThem[i]);
@@ -945,6 +965,10 @@ void GreedForSpace::evaluate() {
 
 void GreedForCash::evaluate() {
 
+	if (m.isEliminated(theyId) ||
+			ourCache->numReachableCities(theyId) <= 0) {
+		return;
+	}
 	int theyLoseToUs = 0;
 	CitySet const& weConquer = m->conqueredCities(weId);
 	for(CitySetIter it = weConquer.begin(); it != weConquer.end(); ++it) {
@@ -959,7 +983,7 @@ void GreedForCash::evaluate() {
 	}
 	if(theyLoseToUs > weLoseToThem && !m->isEliminated(theyId)) {
 		log("Adding utility for future reparations");
-		u += 4;
+		u += ::round(normalizeUtility(4)); // Only one team member will pay
 	}
 }
 
@@ -1857,6 +1881,8 @@ void SuckingUp::evaluate() {
 	if(sharedWars == 0 || ourWars > sharedWars)
 		return;
 	// Between 2 (Ashoka) and 6 (DeGaulle)
+	int diplo = (game.isOption(GAMEOPTION_RANDOM_PERSONALITIES) ? 4 :
+			GC.getInfo(they->getPersonalityType()).getShareWarAttitudeChangeLimit());
 	int diplo = GC.getInfo(they->getPersonalityType()).
 			getShareWarAttitudeChangeLimit();
 	double uPlus = 1.6 * diplo; // Should sharedWars have an impact?
@@ -2807,14 +2833,16 @@ void IllWill::evalAngeredPartners() {
 			they->getTeam() == agentId)
 		return;
 	// 2 only for Gandhi; else 1
-	int penaltyPerDoW = ::round(GC.getInfo(they->getPersonalityType()).
-			getMemoryAttitudePercent(MEMORY_DECLARED_WAR_ON_FRIEND) / -100);
+	int penaltyPerDoW = (game.isOption(GAMEOPTION_RANDOM_PERSONALITIES) ? 1 :
+			-::round(0.01 * GC.getInfo(they->getPersonalityType()).
+			getMemoryAttitudePercent(MEMORY_DECLARED_WAR_ON_FRIEND)));
 	int penalties = 0;
 	PlyrSet const& weDecl = m->getWarsDeclaredBy(weId);
 	for(PlyrSetIter it = weDecl.begin(); it != weDecl.end(); ++it) {
 		if(GET_TEAM(*it).isAVassal() || they->getTeam() == TEAMID(*it))
 			continue;
-		if(they->AI_getAttitude(*it) >= ATTITUDE_PLEASED) {
+		//if(they->AI_getAttitude(*it) >= ATTITUDE_PLEASED)
+		if(they->AI_disapprovesOfDoW(agentId, TEAMID(*it))) { // advc.130h
 			log("-%d relations with %s for DoW on %s", penaltyPerDoW,
 					report.leaderName(theyId), report.leaderName(*it));
 			penalties += penaltyPerDoW;
@@ -3164,8 +3192,10 @@ void PublicOpposition::evaluate() {
 
 void Revolts::evaluate() {
 
-	/*  The war against theyId occupies our units, and rebels are taking advantage
-		in the primary areas of theyId */
+	/*	The war against eThey occupies our units while revolts break out
+		in the primary areas of eThey */
+	if (!m.isWar(weId, theyId) || agent.AI_isPushover(TEAMID(theyId)))
+		return;
 	double revoltLoss = 0;
 	int totalAssets = 0;
 	FOR_EACH_AREA(a) {
@@ -3176,8 +3206,8 @@ void Revolts::evaluate() {
 		bool willBeWar = m->isWar(weId, theyId) && !agent.isAtWar(TEAMID(theyId));
 		AreaAITypes aai = a->getAreaAIType(agentId);
 		// Training defenders is the CityAI's best remedy for revolts
-		if((!willBeWar && (aai == AREAAI_DEFENSIVE || aai == AREAAI_NEUTRAL ||
-				aai == NO_AREAAI)) || !m->isWar(weId, theyId))
+		if(!willBeWar && (aai == AREAAI_DEFENSIVE || aai == AREAAI_NEUTRAL ||
+				aai == NO_AREAAI))
 			continue;
 		FOR_EACH_CITY(c, *we) {
 			if(!c->isArea(*a))
@@ -3278,7 +3308,8 @@ void UlteriorMotives::evaluate() {
 
 void FairPlay::evaluate() {
 
-	if(GET_TEAM(theyId).isAVassal() ||
+	if(we->isHuman() || // Don't expect humans to pull punches
+			GET_TEAM(theyId).isAVassal() ||
 			m->getWarsDeclaredBy(weId).count(theyId) <= 0 ||
 			// No kid gloves if they've attacked us recently or repeatedly
 			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR) < -2 ||
