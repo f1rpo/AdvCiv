@@ -12,10 +12,10 @@ unsigned short CvRandom::getInt(unsigned short usNum, TCHAR const* szLog,
 {	// <advc.003t>
 	if (GC.getLogger().isEnabledRand() && szLog != NULL)
 		printToLog(szLog, usNum, iData1, iData2); // </advc.003t>
-	m_ulRandomSeed = (RANDOM_A * m_ulRandomSeed) + RANDOM_C;
+	m_uiRandomSeed = (RANDOM_A * m_uiRandomSeed) + RANDOM_C;
 	unsigned short r = (unsigned short)
-			((((m_ulRandomSeed >> RANDOM_SHIFT) & MAX_UNSIGNED_SHORT) *
-			((unsigned long)usNum)) / (MAX_UNSIGNED_SHORT + 1));
+			((((m_uiRandomSeed >> RANDOM_SHIFT) & MAX_UNSIGNED_SHORT) *
+			((unsigned int)usNum)) / (MAX_UNSIGNED_SHORT + 1));
 	return r;
 }
 
@@ -34,10 +34,10 @@ void CvRandom::init(unsigned long ulSeed)
 	reset(ulSeed);
 }
 
-// Initializes data members that are serialized.
-void CvRandom::reset(unsigned long ulSeed)
+// Initializes data members that are serialized
+void CvRandom::reset(unsigned int uiSeed)
 {
-	m_ulRandomSeed = ulSeed;
+	m_uiRandomSeed = uiSeed;
 }
 
 /*	advc.190c: Separate function for calls from the EXE. So that the DLL can figure out
@@ -49,28 +49,28 @@ unsigned short CvRandom::getExternal(unsigned short usNum, TCHAR const* szLog)
 }
 
 
-void CvRandom::reseed(unsigned long ulNewValue)
+void CvRandom::reseed(unsigned int uiNewValue)
 {
-	m_ulRandomSeed = ulNewValue;
+	m_uiRandomSeed = uiNewValue;
 }
 
 
-unsigned long CvRandom::getSeed()
+unsigned int CvRandom::getSeed()
 {
-	return m_ulRandomSeed;
+	return m_uiRandomSeed;
 }
 
 
 void CvRandom::read(FDataStreamBase* pStream)
 {
 	reset();
-	pStream->Read(&m_ulRandomSeed);
+	pStream->Read(&m_uiRandomSeed);
 }
 
 
 void CvRandom::write(FDataStreamBase* pStream)
 {
-	pStream->Write(m_ulRandomSeed);
+	pStream->Write(m_uiRandomSeed);
 }
 
 // <advc.007b>
@@ -79,21 +79,15 @@ void CvRandom::write(FDataStreamBase* pStream)
 void CvRandom::printToLog(TCHAR const* szMsg, unsigned short usNum,
 	int iData1, int iData2) // advc.001n
 {	// advc.003t:
-	GC.getLogger().logRandomNumber(szMsg, usNum, m_ulRandomSeed, iData1, iData2);
+	GC.getLogger().logRandomNumber(szMsg, usNum, m_uiRandomSeed, iData1, iData2);
 }
 
 
 void CvRandomExtended::printToLog(TCHAR const* szMsg, unsigned short usNum,
 	int iData1, int iData2) // advc.001n
 {
-	GC.getLogger().logRandomNumber(szMsg, usNum, m_ulRandomSeed, iData1, iData2,
+	GC.getLogger().logRandomNumber(szMsg, usNum, m_uiRandomSeed, iData1, iData2,
 			&m_szFileName);
-}
-
-// Initializes data members that are serialized.
-void CvRandomExtended::reset(unsigned long ulSeed)
-{
-	CvRandom::reset(ulSeed);
 }
 
 

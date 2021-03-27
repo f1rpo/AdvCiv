@@ -23825,7 +23825,7 @@ void CvPlayerAI::AI_updateVictoryStageHash()
 					even with other stage4 strategies already running. */
 				if (iVictoryStage > 3)
 				{
-					bStartedOtherLevel4 = true;
+					//bStartedOtherLevel4 = true; // advc.115b (no longer used below)
 					m_eVictoryStageHash |= AI_VICTORY_CULTURE4;
 				}
 			}
@@ -26813,7 +26813,7 @@ bool CvPlayerAI::AI_isAwfulSite(CvCity const& kCity, bool bConquest) const
 	int iThresh = 7;
 	if (bConquest && kCity.getPopulation() >= iEra + 4)
 		iThresh--;
-	return (rDecentPlots < 7);
+	return (rDecentPlots < iThresh);
 }
 
 // advc.104:

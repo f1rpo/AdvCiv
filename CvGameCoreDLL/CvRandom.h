@@ -10,7 +10,7 @@ public:
 	DllExport virtual ~CvRandom(); // advc (comment): Can't make this non-virtual b/c of DllExport
 
 	DllExport void init(unsigned long ulSeed);
-	virtual void reset(unsigned long ulSeed = 0); // advc.007b: virtual
+	void reset(unsigned int uiSeed = 0);
 	// for serialization
 	virtual void read(FDataStreamBase* pStream); // advc.007b: virtual
 	virtual void write(FDataStreamBase* pStream); // advc.007b: virtual
@@ -42,14 +42,14 @@ public:
 		return get(MAX_UNSIGNED_SHORT) / (float)MAX_UNSIGNED_SHORT;
 	}
 
-	void reseed(unsigned long ulNewValue);
-	unsigned long getSeed();
+	void reseed(unsigned int uiNewValue);
+	unsigned int getSeed();
 
 protected:
 	virtual void printToLog(TCHAR const* szMsg, unsigned short usNum, // advc.007b
 			int iData1, int iData2); // advc.001n
 
-	unsigned long m_ulRandomSeed;
+	unsigned int m_uiRandomSeed;
 	// advc.001n, advc.006:
 	unsigned short getInt(unsigned short usNum, TCHAR const* szMsg, int iData1, int iData2);
 };
@@ -67,12 +67,10 @@ public:
 		savegame compatibility unless the owning class increases the uiFlag constant
 		in its write function. */
 	void setLogFileName(CvString szName);
-	// The rest are overrides
-	void reset(unsigned long ulSeed = 0);
-	void read(FDataStreamBase* pStream);
-	void write(FDataStreamBase* pStream);
+	void read(FDataStreamBase* pStream); // override
+	void write(FDataStreamBase* pStream); // override
 protected:
-	// Override:
+	// override:
 	void printToLog(TCHAR const* szMsg, unsigned short usNum, int iData1, int iData2);
 	CvString m_szFileName;
 };

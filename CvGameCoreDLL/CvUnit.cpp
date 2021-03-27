@@ -6895,12 +6895,7 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 		pAttackedPlot = plot();
 
 	if (pCombatDetails != NULL)
-	{
-		pCombatDetails->setAllToNull(); // advc
-		pCombatDetails->eOwner = getOwner();
-		pCombatDetails->eVisualOwner = getVisualOwner();
-		pCombatDetails->sUnitName = getName().GetCString();
-	}
+		pCombatDetails->reset(getOwner(), getVisualOwner(), getName().c_str()); // advc
 
 	if (baseCombatStr() == 0)
 		return 0;

@@ -647,7 +647,7 @@ scaled WarUtilityAspect::partnerUtilFromTrade() const
 		log("Per-turn Trade route profit capped at %d", iTradeRouteProfitCap);
 		rTradeRouteProfit = iTradeRouteProfitCap;
 	}
-	else if (iTradeRouteProfitCap > 0)
+	else if (rTradeRouteProfit > 0)
 		log("Per-turn trade route profit: %d", rTradeRouteProfit.uround());
 	return kWeAI.tradeValToUtility(rGoldVal + rTradeRouteProfit * iDefaultTimeHorizon) *
 			kWeAI.amortizationMultiplier();

@@ -210,6 +210,28 @@ void CvTalkingHeadMessage::setTarget(ChatTargetTypes eType)
 int CvTalkingHeadMessage::getExpireTurn(/* advc.700: */ bool bHuman)
 {
 	int iExpireTurn = getTurn();
+	/*  <advc.700> Quicker expiration for AI. Note that messages are delivered to
+		the AI only with GAMEOPTION_RISE_FALL. */
+	if (!bHuman)
+	{
+		switch(m_eMessageType)
+		{
+		case MESSAGE_TYPE_INFO: iExpireTurn += 1; break;
+		case MESSAGE_TYPE_COMBAT_MESSAGE: iExpireTurn += 2; break;
+		case MESSAGE_TYPE_MINOR_EVENT: iExpireTurn += 10; break;
+		case MESSAGE_TYPE_QUEST:
+			iExpireTurn = GC.getGame().getGameTurn() + 1;
+			break;
+		case MESSAGE_TYPE_MAJOR_EVENT:
+		case MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY: // advc.106b
+			iExpireTurn += 50;
+			break;
+		default:
+			iExpireTurn = GC.getGame().getGameTurn() - 1;
+			break;
+		}
+		return iExpireTurn;
+	} // </advc.700>
 	switch (m_eMessageType)
 	{
 	case MESSAGE_TYPE_INFO:
@@ -243,28 +265,7 @@ int CvTalkingHeadMessage::getExpireTurn(/* advc.700: */ bool bHuman)
 		FAssert(false);
 		break;
 	}
-	/*  <advc.700> Quicker expiration for AI. Note that messages are delivered to
-		the AI only if GAMEOPTION_RISE_FALL. */
-	if(bHuman)
-		return iExpireTurn;
-	iExpireTurn = getTurn();
-	switch(m_eMessageType)
-	{
-	case MESSAGE_TYPE_INFO: iExpireTurn += 1; break;
-	case MESSAGE_TYPE_COMBAT_MESSAGE: iExpireTurn += 2; break;
-	case MESSAGE_TYPE_MINOR_EVENT: iExpireTurn += 10; break;
-	case MESSAGE_TYPE_QUEST:
-		iExpireTurn = GC.getGame().getGameTurn() + 1;
-		break;
-	case MESSAGE_TYPE_MAJOR_EVENT:
-	case MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY: // advc.106b
-		iExpireTurn += 50;
-		break;
-	default:
-		iExpireTurn = GC.getGame().getGameTurn() - 1;
-		break;
-	}
-	return iExpireTurn; // </advc.700>
+	return iExpireTurn;
 }
 
 bool CvTalkingHeadMessage::getShown() const

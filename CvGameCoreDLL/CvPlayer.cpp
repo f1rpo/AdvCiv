@@ -10498,16 +10498,13 @@ CLLNode<int>* CvPlayer::tailGroupCycleNode() const
 //	Finds the path length from this tech type to one you already know
 int CvPlayer::findPathLength(TechTypes eTech, bool bCost) const
 {
-	int iNumSteps = 0;
-	int iShortestPath = 0;
-	int iPathLength = 0;
 	if (GET_TEAM(getTeam()).isHasTech(eTech) || isResearchingTech(eTech))
 	{
 		//	We have this tech, no reason to add this to the pre-reqs
 		//	Base case return 0, we know it...
 		return 0;
 	}
-
+	int iPathLength = 0;
 	//	Cycle through the and paths and add up their tech lengths
 	for (int i = 0; i < GC.getInfo(eTech).getNumAndTechPrereqs(); i++)
 	{
@@ -10516,14 +10513,14 @@ int CvPlayer::findPathLength(TechTypes eTech, bool bCost) const
 	}
 
 	TechTypes eShortestOr = NO_TECH;
-	iShortestPath = MAX_INT;
+	int iShortestPath = MAX_INT;
 	//	Find the shortest OR tech
 	for (int i = 0; i < GC.getInfo(eTech).getNumOrTechPrereqs(); i++)
 	{
 		TechTypes const ePreReq = GC.getInfo(eTech).getPrereqOrTechs(i);
 		//	Recursively find the path length (takes into account all ANDs)
 		// k146 (note): This will double-count any shared AND-prepreqs.
-		iNumSteps = findPathLength(ePreReq, bCost);
+		int iNumSteps = findPathLength(ePreReq, bCost);
 		//	If the prereq is a valid tech and its the current shortest, mark it as such
 		if (iNumSteps < iShortestPath)
 		{

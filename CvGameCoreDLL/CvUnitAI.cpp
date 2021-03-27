@@ -15544,13 +15544,13 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 						int iValue = iAssaultsHere * 5;
 						iValue += iTargetCities * 10;
 						{
-							//bool bCanCargoAllUnload = true;
-							int iCannotUnload = 0; // advc.082
 							bool const bCity = p.isCity();
 							if (bCity ||
 								//p.getNumVisibleEnemyDefenders(this) > 0
 								p.isVisibleEnemyDefender(this)) // advc.opt
 							{
+								//bool bCanCargoAllUnload = true;
+								int iCannotUnload = 0; // advc.082
 								for (size_t i = 0; i < apGroupCargo.size(); ++i)
 								{
 									CvUnit const* pAttacker = apGroupCargo[i];

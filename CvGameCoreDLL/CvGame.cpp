@@ -1281,7 +1281,7 @@ namespace
 				/*	pStartPlot->getFoundValue(ePlayer) would be faster,
 					but CvPlot::setFoundValue may not have been called
 					(and then it returns 0). */
-				scaled r = GET_PLAYER(ePlayer).AI_foundValue(
+				r = GET_PLAYER(ePlayer).AI_foundValue(
 						pStartPlot->getX(), pStartPlot->getY(), -1,
 						false, true); // advc.027: bNormalize instead of bStartingLoc
 				FAssertMsg(r.isPositive(), "Starting site likely unplayable");
@@ -3554,7 +3554,7 @@ int CvGame::getAdjustedPopulationPercent(VictoryTypes eVictory) const
 		else if (iPopulation > iNextBestPopulation)
 			iNextBestPopulation = iPopulation;
 	}
-	return std::min(100, ((iNextBestPopulation * 100) / getTotalPopulation()) +
+	return std::min(100, (iNextBestPopulation * 100) / getTotalPopulation() +
 			GC.getInfo(eVictory).getPopulationPercentLead());
 }
 

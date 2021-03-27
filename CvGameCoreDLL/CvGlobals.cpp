@@ -629,17 +629,27 @@ void CvGlobals::setXMLLoadUtility(CvXMLLoadUtility* pXML)
 
 void CvGlobals::loadOptionalXMLInfo()
 {
+	#ifdef FASSERT_ENABLE
 	bool bSuccess = false;
 	if (m_pXMLLoadUtility != NULL)
-		bSuccess = m_pXMLLoadUtility->LoadOptionalGlobals();
+	{
+		bSuccess =
+	#endif
+			m_pXMLLoadUtility->LoadOptionalGlobals();
+	}
 	FAssertMsg(bSuccess, "Failed to load optional XML data");
 }
 
 void CvGlobals::loadThroneRoomInfo()
 {
+	#ifdef FASSERT_ENABLE
 	bool bSuccess = false;
 	if (m_pXMLLoadUtility != NULL)
-		bSuccess = m_pXMLLoadUtility->LoadThroneRoomInfo();
+	{
+		bSuccess =
+	#endif
+			m_pXMLLoadUtility->LoadThroneRoomInfo();
+	}
 	FAssertMsg(bSuccess, "Failed to load XML data for Throne Room");
 } // </advc.003v>
 // <advc.opt>

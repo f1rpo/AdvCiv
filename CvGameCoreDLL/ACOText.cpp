@@ -434,9 +434,9 @@ void CvGameTextMgr::setACOPlotHelp(CvWStringBuffer &szString,
 	float const prob2 = prob1 + 100.0f * RetreatOdds;//up to retreat odds
 
 	//float prob = 100.0f * (AttackerKillOdds+RetreatOdds + PullOutOdds); // advc: unused
-	int pixels_left = 199;// 1 less than 200 to account for right end bar
-	// 1% per pixel // subtracting one to account for left end bar
 	{
+		int pixels_left = 199;// 1 less than 200 to account for right end bar
+		// 1% per pixel // subtracting one to account for left end bar
 		int pixels = (2 * ((int)(prob1 + 0.5)))-1;
 		{
 			int fullBlocks = pixels / 10;

@@ -12,7 +12,7 @@ class CvDLLLogger : private boost::noncopyable
 public:
 	CvDLLLogger(bool bEnabled, bool bRandEnabled);
 	// Requires "RandLog" to be set in addition to "MessageLog"
-	void logRandomNumber(const TCHAR* szMsg, unsigned short usNum, unsigned long ulSeed,
+	void logRandomNumber(const TCHAR* szMsg, unsigned short usNum, unsigned int uiSeed,
 			int iData1, int iData2, /* advc.007b: */ CvString const* pszFileName = NULL);
 	void logTurnActive(PlayerTypes ePlayer);
 	void logCityBuilt(CvCity const& kCity);

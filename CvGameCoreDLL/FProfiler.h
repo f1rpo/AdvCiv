@@ -79,8 +79,8 @@ public:
 	CProfileScope(ProfileSample *pSample)
 	{
 		m_pSample = pSample;
-		bValid = false;
-		//if (!giProfilerDisabled)
+		/*bValid = false;
+		if (!giProfilerDisabled)*/
 		{
 			bValid = true;
 #ifdef USE_INTERNAL_PROFILER

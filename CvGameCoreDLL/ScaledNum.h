@@ -149,7 +149,7 @@ public:
 		that the conversion to SCALE happens at compile time, so that
 		floating-point math can be used for maximal accuracy. */
 	template<int iNUM, int iDEN>
-	static inline ScaledNum fromRational()
+	static __forceinline ScaledNum fromRational()
 	{
 		BOOST_STATIC_ASSERT(iDEN != 0);
 		BOOST_STATIC_ASSERT(bSIGNED || (iDEN > 0 && iNUM >= 0));

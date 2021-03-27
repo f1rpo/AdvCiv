@@ -227,7 +227,7 @@ int WarEvaluator::evaluate(WarPlanTypes eWarPlan, int iPreparationTime)
 	int iNavalU = MIN_INT;
 	if (!bSkipNaval)
 		iNavalU = evaluate(eWarPlan, true, iPreparationTime);
-	int iU = MIN_INT;
+	int iU=MIN_INT;
 	if (bExtraRun)
 	{
 		m_kReport.setMute(false);

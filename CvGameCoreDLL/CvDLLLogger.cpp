@@ -12,11 +12,11 @@
 // </advc.mapstat>
 
 CvDLLLogger::CvDLLLogger(bool bEnabled, bool bRandEnabled)
-	: m_bEnabled(bEnabled), m_bRandEnabled(bRandEnabled) {}
+:	m_bEnabled(bEnabled), m_bRandEnabled(bRandEnabled) {}
 
 // Cut from CvRandom::getInt
 void CvDLLLogger::logRandomNumber(const TCHAR* szMsg, unsigned short usNum,
-	unsigned long ulSeed, int iData1, int iData2,
+	unsigned int uiSeed, int iData1, int iData2,
 	CvString const* pszFileName) // advc.007b
 {
 	FAssert(isEnabledRand()); // Caller should handle this, for performance reasons.
@@ -41,7 +41,7 @@ void CvDLLLogger::logRandomNumber(const TCHAR* szMsg, unsigned short usNum,
 	if (!bNetworkMP)
 		iOn = GC.getGame().getGameTurn(); // (any more useful info to put here?)
 	// The second and last %s are new
-	std::sprintf(szOut, "Rand = %ul / %hu (%s%s) on %s%d\n", ulSeed, usNum,
+	std::sprintf(szOut, "Rand = %u / %hu (%s%s) on %s%d\n", uiSeed, usNum,
 			szMsg, szData.c_str(), bNetworkMP ? "" : "t", iOn);
 	// <advc.007b>
 	if (pszFileName != NULL)

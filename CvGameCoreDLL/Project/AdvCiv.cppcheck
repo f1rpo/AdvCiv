@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- To be loaded by the Cppcheck GUI for a static analysis of the
-	 CvGameCore source code. On 9 Oct 2020, I've addressed all reported
+	 CvGameCore source code. On 27 Mar 2021, I've addressed all reported
 	 issues that I feel should be addressed. For the few dozen that remain,
-	 it should be easy to tell that the code is working as intended. -->
+	 it should be easy to tell that the code is working as intended.
+	 In particular, the "shadowed local variable ...Anon..." warnings
+	 are spurious and "condition always true/false" warnings are guesswork;
+	 usually false positives. -->
 <project version="1">
     <builddir>AdvCiv-cppcheck-build-dir</builddir>
     <platform>win32W</platform>
