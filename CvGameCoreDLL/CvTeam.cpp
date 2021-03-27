@@ -2391,6 +2391,25 @@ void CvTeam::changeAliveCount(int iChange)
 	} // </advc.104>
 }
 
+/*	advc.104: I'm using this function to pick members for conducting
+	war-related diplomacy -- instead of using the team leaders. bHuman causes
+	a human to be returned if this is a human team (otherwise ignored). */
+PlayerTypes CvTeam::getRandomMemberAlive(bool bHuman) const
+{
+	if (!isHuman())
+		bHuman = false;
+	int iValid = (bHuman ? PlayerIter<HUMAN,MEMBER_OF>::count(getID()) :
+			getAliveCount());
+	int iIndex = GC.getGame().getSRandNum(iValid, "CvTeam::getRandomMemberAlive");
+	for (MemberIter itMember(getID()); itMember.hasNext(); ++itMember)
+	{
+		if ((!bHuman || itMember->isHuman()) && itMember.nextIndex() >= iIndex)
+			return itMember->getID();
+	}
+	FErrorMsg("Team not alive?");
+	return NO_PLAYER;
+}
+
 
 void CvTeam::changeEverAliveCount(int iChange)
 {

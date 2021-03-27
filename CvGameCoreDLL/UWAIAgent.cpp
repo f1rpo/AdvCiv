@@ -542,22 +542,22 @@ bool UWAI::Team::considerPeace(TeamTypes targetId, int u) {
 		report->log("Too early to consider peace");
 		return true;
 	}
-	CvPlayerAI& targetLeader = GET_PLAYER(target.getLeaderID());
-	CvPlayerAI& agentLeader = GET_PLAYER(agent.getLeaderID());
-	if(!agentLeader.canContact(targetLeader.getID(), true)) {
+	CvPlayerAI& targetPlayer = GET_PLAYER(target.getRandomMemberAlive(true));
+	CvPlayerAI& agentPlayer = GET_PLAYER(agent.getRandomMemberAlive(false));
+	if(!agentPlayer.canContact(targetPlayer.getID(), true)) {
 		report->log("Can't talk to %s about peace",
-				report->leaderName(targetLeader.getID()));
+				report->leaderName(targetPlayer.getID()));
 		return true; // Can't contact them for capitulation either
 	}
 	double prPeace = 0;
 	bool bOfferPeace = true;
 	int theirReluct = MIN_INT; // Costly, don't compute this sooner than necessary.
 	if(human) {
-		int contactDelay = agentLeader.AI_getContactTimer(target.getLeaderID(),
+		int contactDelay = agentPlayer.AI_getContactTimer(targetPlayer.getID(),
 				CONTACT_PEACE_TREATY);
 		int atWarCounter = agent.AI_getAtWarCounter(targetId);
 		if(contactDelay > 0 || agent.AI_getWarPlan(targetId) == WARPLAN_ATTACKED_RECENT ||
-				agentLeader.AI_refuseToTalkTurns(target.getLeaderID()) > atWarCounter) {
+				agentPlayer.AI_refuseToTalkTurns(targetPlayer.getID()) > atWarCounter) {
 			if(contactDelay > 0) {
 				report->log("No peace with human sought b/c of contact delay: %d",
 						contactDelay);
@@ -568,7 +568,7 @@ bool UWAI::Team::considerPeace(TeamTypes targetId, int u) {
 		}
 		else {
 			// 5 to 10%
-			prPeace = 1.0 / std::max(1, GC.getInfo(agentLeader.
+			prPeace = 1.0 / std::max(1, GC.getInfo(agentPlayer.
 					getPersonalityType()).getContactRand(CONTACT_PEACE_TREATY));
 			// Adjust probability based on whether peace looks like win-win or zero-sum
 			theirReluct = target.uwai().reluctanceToPeace(agentId, false);
@@ -612,7 +612,7 @@ bool UWAI::Team::considerPeace(TeamTypes targetId, int u) {
 				if(tradeVal < 0) {
 					demandVal = -tradeVal;
 					// Offer a square deal when it's close
-					if(demandVal < utilityToTradeVal(4.25, targetLeader.getID()))
+					if(demandVal < utilityToTradeVal(4.25, targetPlayer.getID()))
 						demandVal = 0;
 					else demandVal = ::round(demandVal / discountFactor);
 					report->log("Seeking reparations with a trade value of %d", demandVal);
@@ -632,7 +632,7 @@ bool UWAI::Team::considerPeace(TeamTypes targetId, int u) {
 				report->log("Trying to offer reparations with a trade value of %d", tradeVal);
 			bool r = true;
 			if(!inBackgr)
-				r = !agentLeader.AI_negotiatePeace(targetLeader.getID(), demandVal, tradeVal);
+				r = !agentPlayer.AI_negotiatePeace(targetPlayer.getID(), demandVal, tradeVal);
 			if(human) {
 				if(r)
 					report->log("Failed to find a peace offer");
@@ -659,11 +659,11 @@ bool UWAI::Team::considerPeace(TeamTypes targetId, int u) {
 		report->log("Empire split");
 		return false; // Leads to re-evaluation of war plans; may yet capitulate.
 	}
-	if(agentLeader.AI_getContactTimer(target.getLeaderID(), CONTACT_PEACE_TREATY) <= 0) {
+	if(agentPlayer.AI_getContactTimer(targetPlayer.getID(), CONTACT_PEACE_TREATY) <= 0) {
 		report->log("%s capitulation to %s", human ? "Offering" : "Implementing",
-				report->leaderName(target.getLeaderID()));
+				report->leaderName(targetPlayer.getID()));
 		if(!inBackgr) {
-			agentLeader.AI_offerCapitulation(target.getLeaderID());
+			agentPlayer.AI_offerCapitulation(targetPlayer.getID());
 			return false;
 		}
 	}
@@ -764,53 +764,53 @@ bool UWAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUtility,
 
 bool UWAI::Team::tryFindingMaster(TeamTypes enemyId) {
 
-	CvPlayerAI& ourLeader = GET_PLAYER(GET_TEAM(agentId).getLeaderID());
+	CvPlayerAI& agentPlayer = GET_PLAYER(GET_TEAM(agentId).getRandomMemberAlive(false));
 	for(TeamIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF,true> it(agentId); it.hasNext(); ++it) {
 		CvTeamAI& master = *it;
 		if(master.isAtWar(agentId) ||
 				// No point if they're already our ally
 				master.isAtWar(enemyId) ||
-				!ourLeader.canContact(master.getLeaderID(), true))
+				!agentPlayer.canContact(master.getLeaderID(), true))
 			continue;
 		// Based on code in CvPlayerAI::AI_doDiplo
-		CvPlayerAI& masterLeader = GET_PLAYER(master.getLeaderID());
+		CvPlayerAI& masterPlayer = GET_PLAYER(master.getRandomMemberAlive(true));
 		TradeData item(TRADE_VASSAL);
 		/*  Test Denial separately b/c it can cause the master to evaluate war
 			against enemyId, which is costly. */
-		if(!ourLeader.canTradeItem(masterLeader.getID(), item))
+		if(!agentPlayer.canTradeItem(masterPlayer.getID(), item))
 			continue;
 		// Don't nag them (especially not humans)
-		if(ourLeader.AI_getContactTimer(masterLeader.getID(),
+		if(agentPlayer.AI_getContactTimer(masterPlayer.getID(),
 				// Same contact memory for alliance and vassal agreement
 				CONTACT_PERMANENT_ALLIANCE) != 0) {
 			report->log("%s not asked for protection b/c recently contacted",
-					report->leaderName(masterLeader.getID()));
+					report->leaderName(masterPlayer.getID()));
 			continue;
 		}
 		// Checks both our and master's willingness
-		if(ourLeader.getTradeDenial(masterLeader.getID(), item) != NO_DENIAL)
+		if(agentPlayer.getTradeDenial(masterPlayer.getID(), item) != NO_DENIAL)
 			continue;
 		if(master.isHuman())
 			report->log("Asking human %s for vassal agreement",
-					report->leaderName(masterLeader.getID()));
+					report->leaderName(masterPlayer.getID()));
 		else report->log("Signing vassal agreement with %s",
 				report->teamName(master.getID()));
 		if(!inBackgr) {
 			CLinkList<TradeData> ourList, theirList;
 			ourList.insertAtEnd(item);
 			if(master.isHuman()) {
-				ourLeader.AI_changeContactTimer(masterLeader.getID(),
+				agentPlayer.AI_changeContactTimer(masterPlayer.getID(),
 						CONTACT_PERMANENT_ALLIANCE,
-						ourLeader.AI_getContactDelay(CONTACT_PERMANENT_ALLIANCE));
-				CvDiploParameters* pDiplo = new CvDiploParameters(ourLeader.getID());
+						agentPlayer.AI_getContactDelay(CONTACT_PERMANENT_ALLIANCE));
+				CvDiploParameters* pDiplo = new CvDiploParameters(agentPlayer.getID());
 				pDiplo->setDiploComment(GC.getAIDiploCommentType("OFFER_VASSAL"));
 				pDiplo->setAIContact(true);
 				pDiplo->setOurOfferList(theirList);
 				pDiplo->setTheirOfferList(ourList);
-				gDLL->beginDiplomacy(pDiplo, masterLeader.getID());
+				gDLL->beginDiplomacy(pDiplo, masterPlayer.getID());
 			}
-			else GC.getGame().implementDeal(ourLeader.getID(),
-					masterLeader.getID(), ourList, theirList);
+			else GC.getGame().implementDeal(agentPlayer.getID(),
+					masterPlayer.getID(), ourList, theirList);
 		}
 		return false;
 	}
@@ -1332,18 +1332,19 @@ void UWAI::Team::scheme() {
 		}
 		report->log("No preparations begun this turn");
 		if(GET_TEAM(targetId).isHuman() && targets[i].u <= 23) {
-			PlayerTypes theirLeaderId = GET_TEAM(targetId).getLeaderID();
-			if(GET_PLAYER(agent.getLeaderID()).canContact(theirLeaderId, true)) {
+			PlayerTypes targetPlayerId = GET_TEAM(targetId).getRandomMemberAlive(true);
+			CvPlayerAI& agentPlayer = GET_PLAYER(agent.getRandomMemberAlive(false));
+			if(agentPlayer.canContact(targetPlayerId, true)) {
 				report->log("Trying to amend tensions with human %s",
 						report->teamName(targetId));
 				if(!inBackgr) {
-					if(leaderUWAI().amendTensions(theirLeaderId))
+					if(agentPlayer.uwai().amendTensions(targetPlayerId))
 						report->log("Diplo message sent");
 					else report->log("No diplo message sent");
 				}
 			}
 			else report->log("Can't amend tension b/c can't contact %s",
-					report->leaderName(theirLeaderId));
+					report->leaderName(targetPlayerId));
 		}
 	}
 }

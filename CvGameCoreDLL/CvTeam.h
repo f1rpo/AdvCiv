@@ -150,6 +150,7 @@ public:
 	int getAliveCount() const { return m_iAliveCount; } // advc.155: Exposed to Python
 	inline bool isAlive() const { return (m_iAliveCount > 0); }																// Exposed to Python
 	void changeAliveCount(int iChange);
+	PlayerTypes getRandomMemberAlive(bool bHuman) const; // advc.104
 
 	inline int getEverAliveCount() const { return m_iEverAliveCount; }			
 	inline bool isEverAlive() const { return (getEverAliveCount() > 0); } // advc: return type was int												// Exposed to Python
