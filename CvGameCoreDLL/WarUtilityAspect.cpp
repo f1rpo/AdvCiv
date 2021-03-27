@@ -1358,24 +1358,42 @@ scaled MilitaryVictory::progressRatingConquest() const
 	return fixp(2/3.) * r;
 }
 
+namespace // Cache some static characteristics of victory conditions
+{
+	VictoryTypes getDominationVictory()
+	{
+		static VictoryTypes eDomination = NO_VICTORY;
+		if (eDomination == NO_VICTORY)
+		{
+			// (Same thing is done in CvPlayerAI::AI_calculateDominationVictoryStage.)
+			FOR_EACH_ENUM(Victory)
+			{
+				if (GC.getInfo(eLoopVictory).getLandPercent() > 0)
+				{
+					eDomination = eLoopVictory;
+					break;
+				}
+			}
+		}
+		return eDomination;
+	}
+
+	// Caller needs to guarantee that Domination victory exists (and is enabled etc.)
+	scaled getDominationTargetPopPortion()
+	{
+		static scaled const r = per100(
+				GC.getGame().getAdjustedPopulationPercent(getDominationVictory()));
+		return r;
+	}
+}
 
 scaled MilitaryVictory::progressRatingDomination() const
 {
-	VictoryTypes eDomination = NO_VICTORY;
-	// (Same thing is done in CvPlayerAI::AI_calculateDominationVictoryStage.)
-	FOR_EACH_ENUM(Victory)
-	{
-		if (GC.getInfo(eLoopVictory).getLandPercent() > 0)
-		{
-			eDomination = eLoopVictory;
-			break;
-		}
-	}
+	VictoryTypes const eDomination = getDominationVictory();
 	if (eDomination == NO_VICTORY || militAnalyst().conqueredCities(eWe).empty())
 		return 0;
-	int const iPopTarget = intdiv::uceil(
-			m_kGame.getAdjustedPopulationPercent(eDomination) *
-			m_kGame.getTotalPopulation(), 100);
+	int const iPopTarget = (getDominationTargetPopPortion() *
+			m_kGame.getTotalPopulation()).ceil();
 	int const iPopToGo = iPopTarget - kOurTeam.getTotalPopulation();
 	scaled const rOurLandPortion(kOurTeam.getTotalLand(), GC.getMap().getLandPlots());
 	scaled const rAdjustedLandForDomination = per100(
@@ -2432,22 +2450,16 @@ bool KingMaking::anyVictory(PlayerTypes ePlayer, AIVictoryStage eFlags, int iSta
 		scaled const rRemainingWorldPopPortion(
 				std::max(0, kPlayer.getTotalPopulation() - iLostPop),
 				m_kGame.getTotalPopulation());
-		/*	(Would be better to use CvGame::getAdjusted...Percent than
-			to hardcode the thresholds for thwarted Domination) */
-		if (iStage == 3)
+		if (rRemainingWorldPopPortion < (iStage == 3 ? fixp(0.3) : fixp(0.35)))
+			bDiploValid = false;
+		VictoryTypes const eDomination = getDominationVictory();
+		if (eDomination != NO_VICTORY)
 		{
-			if (rRemainingWorldPopPortion < fixp(0.35))
+			if (rRemainingWorldPopPortion <
+				getDominationTargetPopPortion() * (iStage == 3 ? fixp(0.8) : 1))
 			{
 				bDomValid = false;
-				if (rRemainingWorldPopPortion < fixp(0.3))
-					bDiploValid = false;
 			}
-		}
-		else if (rRemainingWorldPopPortion < fixp(0.45))
-		{
-			bDomValid = false;
-			if (rRemainingWorldPopPortion < fixp(0.35))
-				bDiploValid = false;
 		}
 	}
 	return (bCultValid || bSpaceValid || bDomValid || bDiploValid);
