@@ -311,7 +311,7 @@ public:
 	DllExport inline IDInfo getIDInfo() const { return IDInfo(getOwner(), getID()); }
 	// </advc.inl>
 	void setID(int iID);
-	PlotNumTypes plotNum() const; // advc.104
+	inline int plotNum() const { return m_ePlot; } // advc.104
 
 	int getXExternal() const; // advc.inl: Exported through .def file											// Exposed to Python
 	inline int getX() const { return m_iX; } // advc.inl: Renamed from getX_INLINE
@@ -1281,6 +1281,7 @@ protected:
 	int m_iID;
 	int m_iX;
 	int m_iY;
+	PlotNumTypes m_ePlot; // advc.104: Cached b/c frequently accessed by UWAI
 	int m_iRallyX;
 	int m_iRallyY;
 	int m_iGameTurnFounded;

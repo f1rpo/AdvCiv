@@ -4306,13 +4306,6 @@ void CvCity::setID(int iID)
 	m_iID = iID;
 }
 
-/*	advc.104: getID is unique for a given player.
-	plotNum can serve as a globally unique id. */
-PlotNumTypes CvCity::plotNum() const
-{
-	return GC.getMap().plotNum(m_iX, m_iY);
-}
-
 // <advc.inl>
 int CvCity::getXExternal() const
 {
@@ -4325,10 +4318,11 @@ int CvCity::getYExternal() const
 	return getY();
 } // </advc.inl>
 
-// advc.opt: Update cached CvPlot and CvArea pointer
+// advc.opt: Update cached CvPlot, CvArea pointer and plot index.
 void CvCity::updatePlot()
 {
 	m_pPlot = GC.getMap().plotSoren(getX(), getY());
+	m_ePlot = GC.getMap().plotNum(getX(), getY());
 	updateArea();
 }
 
