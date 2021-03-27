@@ -1242,14 +1242,25 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		defendingArmyPow = (targetCavPow + (targetArmyPow - targetCavPow) *
 				powerCorrect(1 + tileBonus + armyModDef)) * confDef *
 				defArmyPortion;
-	double defenderPow = localGarrisonPow + ralliedGarrisonPow
-			+ defendingArmyPow;
+	double garrisonPow = localGarrisonPow + ralliedGarrisonPow;
+	/*	The way that attacking and defending units get paired by the combat system
+		generally gives the defender an advantage. This adjustment rather underestimates
+		that factor I think. It wasn't in place at all until AdvCiv 1.0; don't want to
+		go overboard with it now. advc.159 adds similar code to
+		CvPlayerAI::AI_localDefenceStrength.*/
+	double powFromDefAdvantage = garrisonPow / 8;
+	// A stack of just garrisons is going to lack in (rock-paper-scissors) diversity
+	garrisonPow = std::min(garrisonPow, defendingArmyPow / 3);
+	if (canSoften)
+		powFromDefAdvantage /= 1.55;
+	garrisonPow += powFromDefAdvantage;
+	double defenderPow = garrisonPow + defendingArmyPow;
 	report.log("City defender power: %d (%d from local garrisons, "
 			   "%d from rallied garrisons, %d from retreated army"
-			   " (%d percent))",
+			   " (%d percent)), %d from defender advantage)"",
 			::round(defenderPow), ::round(localGarrisonPow),
 			::round(ralliedGarrisonPow), ::round(defendingArmyPow),
-			::round(100 * defArmyPortion));
+			::round(100 * defArmyPortion), ::round(powFromDefAdvantage));
 	report.log("Besieger power: %d", ::round(armyPowMod));
 	double powRatio = armyPowMod / std::max(1.0, defenderPow);
 	double threat = powRatio;
@@ -1303,8 +1314,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 			to account (at least a bit) for the possibility of losing the city. */
 		r.reducePower(defender.id, HOME_GUARD, guardPowUnmodified * 0.75 * threat);
 		// Few losses for defending army
-		if(defenderOutnumbered &&
-				armyPowMod > localGarrisonPow + ralliedGarrisonPow) {
+		if(defenderOutnumbered && armyPowMod > garrisonPow) {
 			double lossesDefArmy = targetArmyPow * defArmyPortion * 0.50 * threat;
 			r.reducePower(defender.id, ARMY, lossesDefArmy);
 			if(targetArmyPow > 0.5)
