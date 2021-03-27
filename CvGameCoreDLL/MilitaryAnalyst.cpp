@@ -267,7 +267,7 @@ bool MilitaryAnalyst::isOnTheirSide(TeamTypes eTeam, bool bDefensivePacts) const
 
 bool MilitaryAnalyst::doWePlanToDeclWar(PlayerTypes ePlayer) const
 {
-	CvTeamAI const& kAgent = GET_TEAM(ePlayer);
+	CvTeamAI const& kAgent = GET_TEAM(m_eWe);
 	TeamTypes const eTeam = TEAMID(ePlayer);
 	/*	Ongoing war preparations will be replaced by the war plan under
 		consideration if adopted; disregard those. */

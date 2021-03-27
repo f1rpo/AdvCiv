@@ -336,7 +336,7 @@ scaled MilitaryBranch::HomeGuard::initTotals(int iNonNavalUnits,
 		other hand, the AI doesn't put every single non-garrison into its invasion
 		stacks, so this may even out. */
 	if (iNonNavalUnits > 0)
-		rGuardPortion = m_iUnits / iNonNavalUnits;
+		rGuardPortion = scaled(m_iUnits, iNonNavalUnits);
 	FAssert(rGuardPortion <= 1);
 	m_rTotalPower = rNonNavalPower * rGuardPortion;
 	return rGuardPortion;
@@ -409,7 +409,7 @@ scaled MilitaryBranch::Logistics::unitUtility(UnitTypes eUnit, scaled rPower) co
 {
 	CvUnitInfo const& kUnit = GC.getInfo(eUnit);
 	return kUnit.getCargoSpace() + kUnit.getCombat() + kUnit.getMoves() +
-			(GET_PLAYER(m_eOwner).AI_isAnyImpassable(eUnit) ? 5 : 0);
+			(GET_PLAYER(m_eOwner).AI_isAnyImpassable(eUnit) ? 0 : 5);
 }
 
 

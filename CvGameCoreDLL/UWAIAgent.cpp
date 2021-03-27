@@ -1096,7 +1096,7 @@ bool UWAI::Team::considerSwitchTarget(TeamTypes eTarget, int iU,
 	int iPadding = 0;
 	if (std::min(iU, iBestUtility) < 20)
 		iPadding += 20 - std::min(iU, iBestUtility);
-	scaled rSwitchProb = fixp(0.75) * scaled(1 - (iU + iPadding), iBestUtility + iPadding);
+	scaled rSwitchProb = fixp(0.75) * (1 - scaled(iU + iPadding, iBestUtility + iPadding));
 	if (bQualms && !bAltQualms)
 		rSwitchProb += fixp(1.8);
 	m_pReport->log("Switching target for war preparations to %s (u=%d) with pr=%d percent",

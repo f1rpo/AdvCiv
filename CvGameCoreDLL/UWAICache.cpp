@@ -1117,7 +1117,7 @@ scaled UWAICache::teamThreat(TeamTypes eRival) const
 		That said, the present war suggests a clash of interests that may persist
 		in the long run. Assume that these factors cancel out, and
 		don't adjust attitude.) */
-	scaled rDiploFactor = (ATTITUDE_FRIENDLY - eTowardOwner, 4);
+	scaled rDiploFactor(ATTITUDE_FRIENDLY - eTowardOwner, 4);
 	FAssert(rDiploFactor.isPositive());
 	if (kRival.AI_anyMemberAtVictoryStage(AI_VICTORY_CONQUEST2))
 		rDiploFactor += fixp(0.15);
@@ -1660,19 +1660,13 @@ void UWAICache::City::updateDistance(TeamPathFinders* pPathFinders,
 				int iPathLength = -1;
 				if (bDeepSeaTransports)
 				{
-					if (pPathFinders->anyWaterFinder().generatePath(
-						kTargetCity.getPlot(), *pTransportDest))
-					{
+					if (pPathFinders->anyWaterFinder().generatePath(*pTransportDest, kStart))
 						iPathLength = pPathFinders->anyWaterFinder().getPathCost();
-					}
 				}
 				else
 				{
-					if (pPathFinders->shallowWaterFinder().generatePath(
-						kTargetCity.getPlot(), *pTransportDest))
-					{
+					if (pPathFinders->shallowWaterFinder().generatePath(*pTransportDest, kStart))
 						iPathLength = pPathFinders->shallowWaterFinder().getPathCost();
-					}
 				}
 				if (iPathLength > 0)
 				{
