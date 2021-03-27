@@ -729,7 +729,6 @@ protected:
 	mutable int m_iUpgradeUnitsCacheTurn;
 	mutable int m_iUpgradeUnitsCachedExpThreshold;
 	mutable int m_iUpgradeUnitsCachedGold;*/ // BtS
-
 	// K-Mod. The original caching method was just begging for OOS bugs.
 	AIStrategy m_eStrategyHash;
 	// BBAI variables (adjusted for K-Mod)

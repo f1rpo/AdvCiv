@@ -12372,8 +12372,9 @@ int CvCityAI::AI_specialYieldMultiplier(YieldTypes eYield) const
 }
 
 
-int CvCityAI::AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bIncludeNeutral,
-	int iOtherCultureThreshold, bool bLand, bool bWater) const  // advc: const; refactoring
+int CvCityAI::AI_countNumBonuses(BonusTypes eBonus,
+	bool bIncludeOurs, bool bIncludeNeutral, int iOtherCultureThreshold,
+	bool bLand, bool bWater) const
 {
 	FAssert(bLand || bWater); // advc
 	int iCount = 0;
@@ -12404,8 +12405,8 @@ int CvCityAI::AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bInc
 		else if (iOtherCultureThreshold > 0 && kPlot.isOwned() &&
 			kPlot.getOwner() != getOwner())
 		{
-			if ((kPlot.getCulture(kPlot.getOwner()) -
-				kPlot.getCulture(getOwner())) < iOtherCultureThreshold)
+			if (kPlot.getCulture(kPlot.getOwner()) - kPlot.getCulture(getOwner()) <
+				iOtherCultureThreshold)
 			{
 				iCount++;
 			}

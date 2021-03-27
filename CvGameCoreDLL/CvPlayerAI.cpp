@@ -4979,26 +4979,25 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 			FOR_EACH_ENUM(Bonus)
 			{
-				const CvBonusInfo& kBonusInfo = GC.getInfo(eLoopBonus);
-
+				CvBonusInfo const& kBonusInfo = GC.getInfo(eLoopBonus);
 				if (!kFinalImprovement.isImprovementBonusMakesValid(eLoopBonus) &&
 					!kFinalImprovement.isImprovementBonusTrade(eLoopBonus))
+				{
 					continue;
-
+				}
 				bool bRevealed = kTeam.isBonusRevealed(eLoopBonus);
-
-				int iNumBonuses = bRevealed
-						? AI_countOwnedBonuses(eLoopBonus) // actual count
-						: std::max(1, 2*getNumCities() / std::max(1, 3*iCityTarget)); // a guess
+				int iBonuses = (bRevealed ? AI_countOwnedBonuses(eLoopBonus) : // actual count
+						std::max(1, 2 * getNumCities() / std::max(1, 3 * iCityTarget))); // a guess
 				// <advc.131> Don't jump for fish when settled one off the coast
-				if(iNumBonuses > 0 && GC.getInfo(eBuildImprovement).
-					isWater() && iCoastalCities <= 0)
-					iNumBonuses = iNumBonuses / 2; // </advc.131>
-				//iNumBonuses += std::max(0, (iCityTarget - iCityCount)*(kFinalImprovement.isWater() ? 2 : 3)/8); // future expansion
-				if (iNumBonuses <= 0 || (!bRevealed && kBonusInfo.getTechReveal() != eTech))
+				if(iBonuses > 0 && GC.getInfo(eBuildImprovement).isWater() &&
+					iCoastalCities <= 0)
+				{
+					iBonuses /= 2;
+				} // </advc.131>
+				//iBonuses += std::max(0, (iCityTarget - iCityCount)*(kFinalImprovement.isWater() ? 2 : 3)/8); // future expansion
+				if (iBonuses <= 0 || (!bRevealed && kBonusInfo.getTechReveal() != eTech))
 					continue;
 				int iBonusValue = 0;
-
 				TechTypes eConnectTech = kBonusInfo.getTechCityTrade();
 				if((kTeam.isHasTech(eConnectTech) || eConnectTech == eTech) &&
 					!kTeam.isBonusObsolete(eLoopBonus) &&
@@ -5007,7 +5006,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 					// note: this is in addition to the getTechCityTrade evaluation lower in this function.
 					iBonusValue += AI_bonusVal(eLoopBonus, 1, true) * iCityCount;
 					if (bRevealed)
-						iBonusValue += (iNumBonuses-1) * iBonusValue / 10;
+						iBonusValue += (iBonuses - 1) * iBonusValue / 10;
 					else iBonusValue /= 2;
 				}
 				int iYieldValue = 0;
@@ -5034,7 +5033,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 						that owned resources are outside of city radii in the early game.
 						Also, make it times 3/4 or 2/3 (depending on bRevealed) instead of
 						2/3 or 1/2. I don't think unworkable resources are that common. */
-					iYieldValue *= (bRevealed ? 3 : 2) * iNumBonuses;
+					iYieldValue *= (bRevealed ? 3 : 2) * iBonuses;
 					iYieldValue /= (bRevealed ? 4 : 3);
 				}
 				if (kFinalImprovement.isWater())
@@ -5257,8 +5256,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 				iValue += iEnableValue;
 			}
-		}
-		// K-Mod end
+		} // K-Mod end
 	}
 
 	/* ------------------ Unit Value  ------------------ */

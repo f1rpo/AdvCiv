@@ -1171,7 +1171,7 @@ int CvCity::findYieldRateRank(YieldTypes eYield) const
 int CvCity::findCommerceRateRank(CommerceTypes eCommerce) const
 {
 	if (m_abCommerceRankValid.get(eCommerce))
-		return m_aiCommerceRank.get(eCommerce); // advc
+		return m_aiCommerceRank.get(eCommerce);
 	/*int iRate = getCommerceRateTimes100(eCommerce);
 	int iRank = 1;
 	FOR_EACH_CITY(pLoopCity, GET_PLAYER(getOwner()) {
