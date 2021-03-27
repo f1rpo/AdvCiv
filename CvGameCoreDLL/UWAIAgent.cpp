@@ -1370,10 +1370,21 @@ DenialTypes UWAI::Team::declareWarTrade(TeamTypes targetId,
 		int u = std::min(-1, eval.evaluate(WARPLAN_LIMITED));
 		if(u > utilityThresh) {
 			if(GET_TEAM(sponsorId).isHuman()) {
-				int humanTradeVal = -1;
-				leaderUWAI().canTradeAssets(::round(utilityToTradeVal(
-						utilityThresh)), sponsorLeaderId, &humanTradeVal);
 				// Don't return NO_DENIAL if human can't pay enough
+				int humanTradeVal = -1;
+				/*	Would be nice if sponsorId were a player, but that seems
+					difficult to change ... */
+				for (MemberIter sponsorMemberIt(sponsorId);
+						sponsorMemberIt.hasNext(); ++sponsorMemberIt) {
+					for (MemberIter agentMemberIt(agentId);
+							agentMemberIt.hasNext(); ++agentMemberIt) {
+						int memberTradeVal=-1;
+						agentMemberIt->uwai().canTradeAssets(
+								::round(utilityToTradeVal(utilityThresh)),
+								sponsorMemberIt->getID(), &memberTradeVal);
+						humanTradeVal = std::max(humanTradeVal, memberTradeVal);
+					}
+				}
 				utilityThresh = std::max(utilityThresh,
 						-::round(tradeValToUtility(humanTradeVal) +
 						// Add 5 for gold that the human might be able to procure
@@ -1573,13 +1584,26 @@ int UWAI::Team::endWarVal(TeamTypes enemyId) const {
 	CvTeamAI const& human = (agentHuman ? GET_TEAM(agentId) : GET_TEAM(enemyId));
 	CvTeamAI const& ai =  (agentHuman ? GET_TEAM(enemyId) : GET_TEAM(agentId));
 	int aiReluct = ai.uwai().reluctanceToPeace(human.getID(), false);
-	// If no payment is possible, human utility shouldn't matter.
-	if(aiReluct <= 0 &&
-			!GET_PLAYER(human.getLeaderID()).
-			canPossiblyTradeItem(ai.getLeaderID(), TRADE_GOLD) &&
-			!GET_PLAYER(human.getLeaderID()).
-			canPossiblyTradeItem(ai.getLeaderID(), TRADE_TECHNOLOGIES))
-		return 0;
+	if(aiReluct <= 0) {
+		// If no payment is possible, human utility shouldn't matter.
+		bool canTrade = false;
+		for (MemberIter humanMemberIt(human.getID());
+				humanMemberIt.hasNext(); ++humanMemberIt) {
+			for (MemberIter aiMemberIt(kAI.getID());
+					aiMemberIt.hasNext(); ++aiMemberIt) {
+				if (humanMemberIt->canPossiblyTradeItem(
+					aiMemberIt->getID(), TRADE_GOLD) ||
+					humanMemberIt->canPossiblyTradeItem(
+					aiMemberIt->getID(), TRADE_TECHNOLOGIES))
+				{
+					canTrade = true;
+					break;
+				}
+			}
+		}
+		if(!canTrade)
+			return 0;
+	}
 	// Really just utility given how peaceThreshold is computed for humans
 	int humanUtility = human.uwai().reluctanceToPeace(ai.getID(), false);
 	/*	Neither side pays if both want peace and the AI wants it
