@@ -5352,8 +5352,9 @@ void CvGame::toggleDebugMode()
 	GC.getMap().updateVisibility();
 	GC.getMap().updateSymbols();
 	GC.getMap().updateMinimapColor();
-	// advc.001w: Let updateVisibility handle it
-	//GC.getMap().setFlagsDirty(); // K-Mod
+	/*	advc.001w (note): updateVisibility does this more selectively
+		-- too selectively, unfortunately, in the special case of foreign spies. */
+	GC.getMap().setFlagsDirty(); // K-Mod
 	updateColoredPlots(); // K-Mod
 
 	gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);

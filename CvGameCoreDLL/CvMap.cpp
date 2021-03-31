@@ -309,6 +309,13 @@ void CvMap::updateFlagSymbols()
 	}
 }
 
+// K-Mod:
+void CvMap::setFlagsDirty()
+{
+	for (int i = 0; i < numPlots(); i++)
+		plotByIndex(i)->setFlagDirty(true);
+}
+
 
 void CvMap::updateFog()
 {
