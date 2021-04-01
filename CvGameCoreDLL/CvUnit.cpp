@@ -6832,7 +6832,7 @@ bool CvUnit::canCoexistWithEnemyUnit(TeamTypes eTeam) const
 {
 	if (NO_TEAM == eTeam)
 		return alwaysInvisible();
-	if(isInvisible(eTeam, false))
+	if (isInvisible(eTeam, false))
 		return true;
 	return false;
 }
@@ -9400,12 +9400,6 @@ bool CvUnit::isMadeAllAttacks() const
 } // </advc.164>
 
 
-bool CvUnit::isMadeInterception() const
-{
-	return m_bMadeInterception;
-}
-
-
 void CvUnit::setMadeInterception(bool bNewValue)
 {
 	m_bMadeInterception = bNewValue;
@@ -9483,10 +9477,6 @@ void CvUnit::setInfoBarDirty(bool bNewValue)
 	m_bInfoBarDirty = bNewValue;
 }
 
-bool CvUnit::isBlockading() const
-{
-	return m_bBlockading;
-}
 
 void CvUnit::setBlockading(bool bNewValue)
 {
@@ -9496,6 +9486,7 @@ void CvUnit::setBlockading(bool bNewValue)
 		updatePlunder(isBlockading() ? 1 : -1, true);
 	}
 }
+
 
 void CvUnit::collectBlockadeGold()
 {
@@ -9593,7 +9584,7 @@ PlayerTypes CvUnit::getCombatOwner_bulk(TeamTypes eForTeam, CvPlot const& kPlot)
 
 TeamTypes CvUnit::getTeam() const
 {
-	return GET_PLAYER(getOwner()).getTeam();
+	return TEAMID(getOwner());
 }
 
 
@@ -9609,16 +9600,6 @@ void CvUnit::setCapturingPlayer(PlayerTypes eNewValue)
 }
 
 
-UnitClassTypes CvUnit::getUnitClassType() const
-{
-	return m_pUnitInfo->getUnitClassType();
-}
-
-const UnitTypes CvUnit::getLeaderUnitType() const
-{
-	return m_eLeaderUnitType;
-}
-
 void CvUnit::setLeaderUnitType(UnitTypes leaderUnitType)
 {
 	if(m_eLeaderUnitType != leaderUnitType)
@@ -9627,6 +9608,7 @@ void CvUnit::setLeaderUnitType(UnitTypes leaderUnitType)
 		reloadEntity();
 	}
 }
+
 
 CvUnit* CvUnit::getCombatUnit() const
 {
@@ -9686,7 +9668,7 @@ void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 		gDLL->UI().setCombatFocus(true);
 }
 
-// K-Mod. Return true if the combat animation should include a siege tower
+// K-Mod: Return true if the combat animation should include a siege tower
 // (code copied from setCombatUnit, above)
 bool CvUnit::showSiegeTower(CvUnit* pDefender) const
 {
@@ -9695,8 +9677,7 @@ bool CvUnit::showSiegeTower(CvUnit* pDefender) const
 		pDefender->getPlot().getPlotCity() &&
 		pDefender->getPlot().getPlotCity()->getBuildingDefense() > 0 &&
 		cityAttackModifier() >= GC.getDefineINT("MIN_CITY_ATTACK_MODIFIER_FOR_SIEGE_TOWER");
-} // K-Mod end
-
+}
 
 CvUnit const* CvUnit::getTransportUnit() const
 {
@@ -9704,7 +9685,7 @@ CvUnit const* CvUnit::getTransportUnit() const
 }
 
 /*	advc: Const/ non-const versions of this function b/c changes to the transport unit
-	are likely to affect this unit */
+	are likely to affect *this unit */
 CvUnit* CvUnit::getTransportUnit()
 {
 	return getUnit(m_transportUnit);
@@ -9772,14 +9753,14 @@ const CvWString CvUnit::getName(uint uiForm) const
 	return szBuffer;
 }
 
-// <advc.106>
+// advc.106:
 CvWString const CvUnit::getReplayName() const
 {
 	if(m_szName.empty())
 		return m_pUnitInfo->getDescription();
 	return gDLL->getText("TXT_KEY_MISC_GP_NAME_REPLAY",
 			m_pUnitInfo->getDescription(), m_szName.GetCString());
-} // </advc.106>
+}
 
 
 const wchar* CvUnit::getNameKey() const

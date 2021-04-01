@@ -19311,62 +19311,62 @@ void CvPlayerAI::AI_doReligion()
 
 /*  advc.133: Partly cut from AI_doDiplo. The caller ensures that the deal can
 	be canceled; in particular, that it's a deal between this player and ePlayer. */
-CvPlayerAI::CancelCode CvPlayerAI::AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer)
+CvPlayerAI::CancelCode CvPlayerAI::AI_checkCancel(CvDeal const& kDeal, PlayerTypes ePlayer)
 {
 	PROFILE_FUNC(); // advc.opt
 
 	// K-Mod: getTradeDenial is not equipped to consider deal cancelation properly.
-	if(!AI_considerOffer(ePlayer,
-		d.getGivesList(ePlayer), d.getGivesList(getID()), -1, d.getAge()))
+	if (!AI_considerOffer(ePlayer,
+		kDeal.getGivesList(ePlayer), kDeal.getGivesList(getID()), -1, kDeal.getAge()))
 	{
-		if (gDealCancelLogLevel > 0) logBBAICancel(d, getID(), L"trade value");
+		if (gDealCancelLogLevel > 0) logBBAICancel(kDeal, getID(), L"trade value");
 		return RENEGOTIATE;
 	}
-	if(d.getGivesList(getID()).getLength() <= 0)
+	if (kDeal.getGivesList(getID()).getLength() <= 0)
 		return NO_CANCEL;
 	/*  @"not equipped"-comment above: Resource trades do need special treatment.
 		For duals (Open Borders, Def. Pact, Perm. Alliance), getTradeDenial
 		is all right. AI_considerOffer will not cancel these b/c the trade values
 		of dual trades are always considered fair.
 		Worst enmity is treated separately elsewhere. */
-	CLLNode<TradeData> const* pNode = d.getGivesList(getID()).head();
-	if(pNode != NULL && CvDeal::isDual(pNode->m_data.m_eItemType, true))
+	CLLNode<TradeData> const* pNode = kDeal.getGivesList(getID()).head();
+	if (pNode != NULL && CvDeal::isDual(pNode->m_data.m_eItemType, true))
 	{
 		DenialTypes eDenial = getTradeDenial(ePlayer, pNode->m_data);
-		if(eDenial != NO_DENIAL &&
+		if (eDenial != NO_DENIAL &&
 			// <kekm.3> Cancel DP immediately when war no longer shared
 			(((pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT &&
 			eDenial == DENIAL_JOKING)) || // </kekm.3>
-			fixp(0.2).bernoulliSuccess(GC.getGame().getSRand(), "advc.133")))
+			fixp(0.2).bernoulliSuccess(GC.getGame().getSRand(), "deal cancellation")))
 		{
-			if (gDealCancelLogLevel > 1) logBBAICancel(d, getID(), L"dual denial");
+			if (gDealCancelLogLevel > 1) logBBAICancel(kDeal, getID(), L"dual denial");
 			return DO_CANCEL;
 		}
 		else return NO_CANCEL;
 	}
 	/*  getTradeDenial will always return DENIAL_JOKING. Instead, call
 		AI_bonusTrade explicitly and tell it that this is about cancellation. */
-	FOR_EACH_TRADE_ITEM(d.getGivesList(getID()))
+	FOR_EACH_TRADE_ITEM(kDeal.getGivesList(getID()))
 	{
 		if(pItem->m_eItemType != TRADE_RESOURCES)
 			continue;
 		if(AI_bonusTrade((BonusTypes)
 			pItem->m_iData, ePlayer, 0) != NO_DENIAL)
 		{
-			if (gDealCancelLogLevel > 0) logBBAICancel(d, getID(), L"resource - denial");
+			if (gDealCancelLogLevel > 0) logBBAICancel(kDeal, getID(), L"resource - denial");
 			return DO_CANCEL;
 		}
 	}
 	/*	Need to check their DENIAL_JOKING in case they're giving us a resource that
 		we no longer need */
-	FOR_EACH_TRADE_ITEM(d.getGivesList(ePlayer))
+	FOR_EACH_TRADE_ITEM(kDeal.getGivesList(ePlayer))
 	{
 		if(pItem->m_eItemType != TRADE_RESOURCES)
 			continue;
 		if(GET_PLAYER(ePlayer).AI_bonusTrade((BonusTypes)
 			pItem->m_iData, getID(), 0) == DENIAL_JOKING)
 		{
-			if (gDealCancelLogLevel > 0) logBBAICancel(d, getID(), L"resource - joking");
+			if (gDealCancelLogLevel > 0) logBBAICancel(kDeal, getID(), L"resource - joking");
 			return DO_CANCEL;
 		}
 	}

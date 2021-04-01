@@ -816,7 +816,10 @@ public:
 	void setMadeAttack(bool bNewValue);																		// Exposed to Python
 	bool isMadeAllAttacks() const; // advc.164
 
-	bool isMadeInterception() const;																		// Exposed to Python
+	bool isMadeInterception() const																			// Exposed to Python
+	{
+		return m_bMadeInterception;
+	}
 	void setMadeInterception(bool bNewValue);																// Exposed to Python
 
 	bool isPromotionReadyExternal() const; // advc.002e: exported through .def file
@@ -833,7 +836,10 @@ public:
 	DllExport bool isInfoBarDirty() const;
 	DllExport void setInfoBarDirty(bool bNewValue);
 
-	bool isBlockading() const;
+	bool isBlockading() const
+	{
+		return m_bBlockading;
+	}
 	void setBlockading(bool bNewValue);
 	void collectBlockadeGold();
 
@@ -861,9 +867,15 @@ public:
 
 	DllExport inline const UnitTypes getUnitType() const { return m_eUnitType; }							// Exposed to Python
 	__forceinline CvUnitInfo& getUnitInfo() const { return *m_pUnitInfo; }
-	UnitClassTypes getUnitClassType() const;	// Exposed to Python
+	UnitClassTypes getUnitClassType() const	// Exposed to Python
+	{
+		return m_pUnitInfo->getUnitClassType();
+	}
 
-	DllExport const UnitTypes getLeaderUnitType() const;
+	DllExport const UnitTypes getLeaderUnitType() const
+	{
+		return m_eLeaderUnitType;
+	}
 	void setLeaderUnitType(UnitTypes leaderUnitType);
 
 	DllExport CvUnit* getCombatUnit() const;

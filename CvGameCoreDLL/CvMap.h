@@ -132,16 +132,17 @@ public:
 		// advc.opt: Don't check for INVALID_PLOT_COORD
 		return plotValidXY(iX + iDX, iY + iDY);
 	}
-	// K-Mod start
+	// K-Mod:
 	inline CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) const
 	{
 		return plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
-	} // K-Mod end
+	}
 
 	inline DirectionTypes directionXY(int iDX, int iDY) const
 	{
 		/*if (abs(iDX) > DIRECTION_RADIUS || abs(iDY) > DIRECTION_RADIUS)
-			return NO_DIRECTION;*/ // advc.opt: Apparently can't happen, so:
+			return NO_DIRECTION;*/ /* advc.opt: Apparently can't happen
+		(so long as directionXY is used only on adjacent plots), so: */
 		FAssert(!(abs(iDX) > DIRECTION_RADIUS || abs(iDY) > DIRECTION_RADIUS));
 		return GC.getXYDirection(iDX + DIRECTION_RADIUS, iDY + DIRECTION_RADIUS);
 	}

@@ -226,10 +226,10 @@ void CvMap::setupGraphical() // graphical only setup
 	CvPlot::setMaxVisibilityRangeCache(); // advc.003h
 	if (m_pMapPlots != NULL)
 	{
-		for (int iI = 0; iI < numPlots(); iI++)
+		for (int i = 0; i < numPlots(); i++)
 		{
 			gDLL->callUpdater(); // allow windows msgs to update
-			getPlotByIndex(iI).setupGraphical();
+			getPlotByIndex(i).setupGraphical();
 		}
 	}
 	// <advc.106n> For games starting in a later era
@@ -244,8 +244,8 @@ void CvMap::setupGraphical() // graphical only setup
 
 void CvMap::erasePlots()
 {
-	for (int iI = 0; iI < numPlots(); iI++)
-		plotByIndex(iI)->erase();
+	for (int i = 0; i < numPlots(); i++)
+		plotByIndex(i)->erase();
 	m_replayTexture.clear(); // advc.106n
 }
 
@@ -254,9 +254,9 @@ void CvMap::setRevealedPlots(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly)
 {
 	PROFILE_FUNC();
 
-	for (int iI = 0; iI < numPlots(); iI++)
+	for (int i = 0; i < numPlots(); i++)
 	{
-		getPlotByIndex(iI).setRevealed(eTeam, bNewValue, bTerrainOnly, NO_TEAM, false);
+		getPlotByIndex(i).setRevealed(eTeam, bNewValue, bTerrainOnly, NO_TEAM, false);
 	}
 
 	GC.getGame().updatePlotGroups();
@@ -289,8 +289,8 @@ void CvMap::setAllPlotTypes(PlotTypes ePlotType)
 void CvMap::doTurn()
 {
 	//PROFILE("CvMap::doTurn()"); // advc.003o
-	for(int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).doTurn();
+	for(int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).doTurn();
 }
 
 
@@ -298,9 +298,9 @@ void CvMap::updateFlagSymbols()
 {
 	PROFILE_FUNC();
 
-	for (int iI = 0; iI < numPlots(); iI++)
+	for (int i = 0; i < numPlots(); i++)
 	{
-		CvPlot& kPlot = getPlotByIndex(iI);
+		CvPlot& kPlot = getPlotByIndex(i);
 		if (kPlot.isFlagDirty())
 		{
 			kPlot.updateFlagSymbol();
@@ -319,43 +319,43 @@ void CvMap::setFlagsDirty()
 
 void CvMap::updateFog()
 {
-	for(int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).updateFog();
+	for(int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).updateFog();
 }
 
 
 void CvMap::updateVisibility()
 {
-	for (int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).updateVisibility();
+	for (int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).updateVisibility();
 }
 
 
 void CvMap::updateSymbolVisibility()
 {
-	for(int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).updateSymbolVisibility();
+	for(int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).updateSymbolVisibility();
 }
 
 
 void CvMap::updateSymbols()
 {
-	for(int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).updateSymbols();
+	for(int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).updateSymbols();
 }
 
 
 void CvMap::updateMinimapColor()
 {
-	for(int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).updateMinimapColor();
+	for(int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).updateMinimapColor();
 }
 
 
 void CvMap::updateSight(bool bIncrement)
 {
-	for (int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).updateSight(bIncrement, false);
+	for (int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).updateSight(bIncrement, false);
 
 	GC.getGame().updatePlotGroups();
 }
@@ -377,8 +377,8 @@ void CvMap::updateIrrigated()
 	with a very generous approximation for what might be in range. */
 void CvMap::updateCenterUnit()
 {
-	/*for (int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).updateCenterUnit();*/ // BtS
+	/*for (int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).updateCenterUnit();*/ // BtS
 	PROFILE_FUNC();
 	int iRange = -1;
 
@@ -424,8 +424,8 @@ void CvMap::updateCenterUnit()
 
 void CvMap::updateWorkingCity()
 {
-	for (int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).updateWorkingCity();
+	for (int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).updateWorkingCity();
 }
 
 
@@ -433,9 +433,9 @@ void CvMap::updateMinOriginalStartDist(CvArea const& kArea)
 {
 	PROFILE_FUNC();
 
-	for (int iI = 0; iI < numPlots(); iI++)
+	for (int i = 0; i < numPlots(); i++)
 	{
-		CvPlot& kPlot = getPlotByIndex(iI);
+		CvPlot& kPlot = getPlotByIndex(i);
 		if (kPlot.isArea(kArea))
 			kPlot.setMinOriginalStartDist(-1);
 	}
@@ -470,15 +470,15 @@ void CvMap::updateMinOriginalStartDist(CvArea const& kArea)
 
 void CvMap::updateYield()
 {
-	for (int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).updateYield();
+	for (int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).updateYield();
 }
 
 
 void CvMap::verifyUnitValidPlot()
 {
-	for (int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).verifyUnitValidPlot();
+	for (int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).verifyUnitValidPlot();
 }
 
 
@@ -1120,8 +1120,8 @@ void CvMap::invalidateActivePlayerSafeRangeCache()
 {
 	PROFILE_FUNC();
 
-	for (int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).setActivePlayerSafeRangeCache(-1);
+	for (int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).setActivePlayerSafeRangeCache(-1);
 }
 
 
@@ -1129,8 +1129,8 @@ void CvMap::invalidateBorderDangerCache(TeamTypes eTeam)
 {
 	PROFILE_FUNC();
 
-	for(int iI = 0; iI < numPlots(); iI++)
-		getPlotByIndex(iI).setBorderDangerCache(eTeam, false);
+	for(int i = 0; i < numPlots(); i++)
+		getPlotByIndex(i).setBorderDangerCache(eTeam, false);
 } // BETTER_BTS_AI_MOD: END
 
 // read object from a stream. used during load
@@ -1234,8 +1234,8 @@ void CvMap::write(FDataStreamBase* pStream)
 	m_aiNumBonus.Write(pStream);
 	m_aiNumBonusOnLand.Write(pStream);
 	REPRO_TEST_END_WRITE();
-	for (int iI = 0; iI < numPlots(); iI++)
-		m_pMapPlots[iI].write(pStream);
+	for (int i = 0; i < numPlots(); i++)
+		m_pMapPlots[i].write(pStream);
 
 	WriteStreamableFFreeListTrashArray(m_areas, pStream);
 	// <advc.106n>

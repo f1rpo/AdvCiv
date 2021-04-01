@@ -931,16 +931,20 @@ void CvGame::initFreeState()
 	applyOptionEffects(); // advc.310
 	FOR_EACH_ENUM(Tech)
 	{
+		// <advc.126> Later-era free tech only for later-era starts.
+		if(GC.getInfo(eLoopTech).getEra() > getStartEra())
+			continue; // </advc.126>
+		bool const bFreeToAll = (GC.getInfo(eLoopTech).getEra() < getStartEra()
+				// disabled by K-Mod. (moved & changed. See below)
+				/*|| GC.getInfo(getHandicapType()).isFreeTechs(eLoopTech)*/);
 		for (TeamIter<ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
 		{
 			CvTeam& kTeam = *itTeam;
 			bool bValid = false;
-			// disabled by K-Mod. (moved & changed. See below)
-			if (//(GC.getInfo(getHandicapType()).isFreeTechs(eLoopTech)) ||
+			if (bFreeToAll ||
 				(!kTeam.isHuman() && GC.getInfo(getHandicapType()).isAIFreeTechs(eLoopTech) &&
 				// advc.001: Barbarians receiving free AI tech might be a bug
-				!kTeam.isBarbarian() /* advc.250c: */ && !isOption(GAMEOPTION_ADVANCED_START)) ||
-				GC.getInfo(eLoopTech).getEra() < getStartEra())
+				!kTeam.isBarbarian() /* advc.250c: */ && !isOption(GAMEOPTION_ADVANCED_START)))
 			{
 				bValid = true;
 			}
@@ -950,17 +954,16 @@ void CvGame::initFreeState()
 				{
 					CvPlayer& kMember = *itMember;
 					/*  <advc.250b> <advc.250c> Always grant civ-specific tech,
-						but not tech from handicap if Advanced Start except to
+						but not tech from handicap if in Advanced Start except to
 						human civs that don't actually start Advanced (SPaH option). */
 					if (GC.getInfo(kMember.getCivilizationType()).isCivilizationFreeTechs(eLoopTech))
 					{
 						bValid = true;
 						break;
 					}
-					if (!bValid &&
-						// K-Mod (give techs based on player handicap, not game handicap.)
-						GC.getInfo(kMember.getHandicapType()).isFreeTechs(eLoopTech)
-						&& (!isOption(GAMEOPTION_ADVANCED_START) ||
+					// K-Mod: Give techs based on player handicap, not game handicap.
+					if (GC.getInfo(kMember.getHandicapType()).isFreeTechs(eLoopTech) &&
+						(!isOption(GAMEOPTION_ADVANCED_START) ||
 						(isOption(GAMEOPTION_SPAH) && kTeam.isHuman())))
 						// </advc.250b> </advc.250c>
 					{
@@ -969,25 +972,23 @@ void CvGame::initFreeState()
 					}
 				}
 			}
-			if (!bValid)
-				continue;
-			// <advc.126> Later-era free tech only for later-era starts.
-			if(GC.getInfo(eLoopTech).getEra() > getStartEra())
-				continue; // </advc.126>
-			// (advc.051: Don't take away techs granted by the scenario)
-			kTeam.setHasTech(eLoopTech, true, NO_PLAYER, false, false);
-			if (GC.getInfo(eLoopTech).isMapVisible())
-				GC.getMap().setRevealedPlots(kTeam.getID(), true, true);
+			if (bValid)
+			{
+				// (advc.051: Don't take away techs granted by the scenario)
+				kTeam.setHasTech(eLoopTech, true, NO_PLAYER, false, false);
+				if (GC.getInfo(eLoopTech).isMapVisible())
+					GC.getMap().setRevealedPlots(kTeam.getID(), true, true);
+			}
 		}
 	}  // <advc.051>
-	if(isScenario() && getStartEra() <= 0) // Set start era based on player era
+	if (isScenario() && getStartEra() <= 0) // Set start era based on player era
 	{
 		int iEraSum = 0;
 		PlayerIter<MAJOR_CIV> it;
 		for (; it.hasNext(); ++it)
 			iEraSum += it->getCurrentEra();
 		int iStartEra = iEraSum / std::max(it.nextIndex(), 1);
-		if(iStartEra > getStartEra())
+		if (iStartEra > getStartEra())
 			GC.getInitCore().setEra((EraTypes)iStartEra);
 	}
 	m_eInitialActivePlayer = getActivePlayer(); // advc.106h
