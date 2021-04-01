@@ -263,7 +263,8 @@ public:
 	scaled AI_prDenyHelp() const; // advc.144
 	int AI_tradeAcceptabilityThreshold(PlayerTypes eTrader) const; // K-Mod
 	int AI_maxGoldTrade(PlayerTypes ePlayer, /* advc.134a: */ bool bTeamTrade = false) const;
-	int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const;								// Exposed to Python
+	int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer,										// Exposed to Python
+			bool bCheckOverdraft = false) const; // advc.133
 	int AI_goldPerTurnTradeVal(int iGoldPerTurn) const;
 	int AI_bonusVal(BonusTypes eBonus, int iChange,
 			bool bAssumeEnabled = false, // K-Mod

@@ -275,6 +275,10 @@ public:
 	{
 		return mulDivRound(m_i, 1, SCALE * iMultiple) * iMultiple;
 	}
+	__forceinline int toMultipleFloor(int iMultiple) const
+	{
+		return (m_i / (SCALE * iMultiple)) * iMultiple;
+	}
 	__forceinline double getDouble() const
 	{
 		return m_i / static_cast<double>(SCALE);

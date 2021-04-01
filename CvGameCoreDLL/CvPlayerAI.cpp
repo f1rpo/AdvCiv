@@ -10976,13 +10976,13 @@ void CvPlayerAI::AI_foldDeals(CvDeal& d1, CvDeal& d2) const
 } // </advc.036>
 
 
-int CvPlayerAI::AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const
+int CvPlayerAI::AI_maxGoldPerTurnTrade(PlayerTypes ePlayer,
+	bool bCheckOverdraft) const // advc.133
 {
 	FAssert(ePlayer != getID());
-	/*if (isHuman() || (GET_PLAYER(ePlayer).getTeam() == getTeam()))
-		iMaxGoldPerTurn = (calculateGoldRate() + (getGold() / GC.getPEACE_TREATY_LENGTH()));*/
+	/*if (isHuman() || TEAMID(ePlayer) == getTeam())
+		iMaxGoldPerTurn = calculateGoldRate() + getGold() / GC.getPEACE_TREATY_LENGTH();*/ // BtS
 	// <advc.036>
-	// Replacing the above:
 	if(isHuman())
 		return std::max(0, calculateGoldRate());
 	// Don't pay gold to our capitulated vassal
@@ -10992,34 +10992,42 @@ int CvPlayerAI::AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const
 		part had no effect. The AI shouldn't make assumptions about human
 		finances anyway. Let human use the gold slider to communicate how much
 		gpt the AI can ask for in trade proposals. */
-	int iAvailableGold = (AI_getAvailableIncome() - getGoldPerTurn() -
-			calculateInflatedCosts()) / 3;
+	scaled rAvailable(
+			AI_getAvailableIncome() - getGoldPerTurn() - calculateInflatedCosts(), 3);
 	// Included in AvailableIncome, but don't want to divide it by 3.
-	iAvailableGold += getGoldPerTurn();
-	int iGoldRate = calculateGoldRate();
-	iAvailableGold = std::max(std::min(iGoldRate, iGoldRate / 3 +
-			(getGold() / GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH))), iAvailableGold);
-	// </advc.036>
-	//availableGold = calculateGoldRate(); // BtS behavior
-	// <advc.104w>
-	if(getUWAI().isEnabled() && GET_TEAM(ePlayer).isAtWar(getTeam()))
+	rAvailable += getGoldPerTurn();
+	scaled rGoldRate;
 	{
-		int r = std::max(0, iAvailableGold);
-		return r - (r % 5);
-	} // </advc.104w>
-	int iMaxGoldPerTurn = getTotalPopulation();
-	iMaxGoldPerTurn *= 4; // advc.036
-	iMaxGoldPerTurn *= GC.getInfo(getPersonalityType()).
-			getMaxGoldPerTurnTradePercent();
-	iMaxGoldPerTurn /= 100;
-	iMaxGoldPerTurn += std::min(0, getGoldPerTurnByPlayer(ePlayer));
+		rGoldRate = calculateGoldRate();
+		rGoldRate.decreaseTo(rGoldRate / 3 +
+				scaled(getGold(), GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH)));
+		rGoldRate.increaseTo(0);
+	}
+	rAvailable.increaseTo(rGoldRate);
+	// </advc.036>
+	//rAvailable = calculateGoldRate(); // BtS
+	// <advc.104w>
+	if (getUWAI().isEnabled() && GET_TEAM(ePlayer).isAtWar(getTeam()))
+		return rAvailable.toMultipleFloor(5); // </advc.104w>
+	scaled rMaxGoldPerTurn;
+	{
+		rMaxGoldPerTurn = getTotalPopulation();
+		rMaxGoldPerTurn *= 4; // advc.036
+		rMaxGoldPerTurn.mulDiv(GC.getInfo(getPersonalityType()).
+				getMaxGoldPerTurnTradePercent(), 100);
+		rMaxGoldPerTurn += std::min(0, getGoldPerTurnByPlayer(ePlayer));
+	}
 	// <advc.036>
-	iMaxGoldPerTurn = AI_adjustTradeGoldToDiplo(iMaxGoldPerTurn, ePlayer);
-	int r = ::range(iMaxGoldPerTurn, 0, std::max(0, iAvailableGold));
+	int iMax = AI_adjustTradeGoldToDiplo(rMaxGoldPerTurn.floor(), ePlayer);
+	int iAvailable = rAvailable.floor();
+	// <advc.133> Don't increase to 0 if we're interested in excess payments
+	if (bCheckOverdraft)
+		return std::min(iMax, iAvailable); // </advc.133>
+	int iR = ::range(iMax, 0, iAvailable);
 	// This will only be relevant in the late game
-	if(r > 10 * GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER))
-		AI_roundTradeVal(r);
-	return r; // </advc.036>
+	if (iR > 10 * GC.getDefineINT(CvGlobals::DIPLOMACY_VALUE_REMAINDER))
+		AI_roundTradeVal(iR);
+	return iR; // </advc.036>
 }
 
 
@@ -19371,10 +19379,8 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes eOther)
 	PROFILE_FUNC();
 	bool bContacted = false;
 	// <advc.133>
-	CLinkList<TradeData> humanReceived;
-	CLinkList<TradeData> humanGave;
-	int iHumanReceivedGold = 0;
-	int iHumanGaveGold = 0; // </advc.133>
+	std::vector<CvDeal*> aapDealsPerPlayer[MAX_CIV_PLAYERS];
+	std::vector<CvDeal*> apHumanDealsToCancel; // </advc.133>
 	FOR_EACH_DEAL_VAR(pLoopDeal)
 	{
 		if(!pLoopDeal->isBetween(getID(), eOther) || // advc: Ensure this upfront
@@ -19382,14 +19388,17 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes eOther)
 		{
 			continue;
 		}
-		// if ((GC.getGame().getGameTurn() - pLoopDeal->getInitialGameTurn()) >= (GC.getPEACE_TREATY_LENGTH() * 2)) // K-Mod disabled
+		// if (GC.getGame().getGameTurn() - pLoopDeal->getInitialGameTurn() >= GC.getPEACE_TREATY_LENGTH() * 2) // K-Mod disabled
 		// (original bts code deleted)
-		/*  advc: Cancellation checks moved into a subfunction
-			to reduce code duplication */
 		// <advc.133>
+		/*  Cancellation checks moved into a new function
+			to reduce code duplication */
 		CancelCode eCancel = AI_checkCancel(*pLoopDeal, eOther);
 		if(eCancel == NO_CANCEL)
+		{
+			aapDealsPerPlayer[eOther].push_back(pLoopDeal);
 			continue;
+		}
 		bool bRenegotiate = (eCancel == RENEGOTIATE &&
 				/*  Canceled AI-human deals bring up the trade table anyway
 					(except when a trade becomes invalid); this is about AI-AI trades. */
@@ -19398,42 +19407,17 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes eOther)
 				canContact(eOther, true)); // </advc.133>
 		if (GET_PLAYER(eOther).isHuman() && canContact(eOther, true))
 		{
-			bool bVassalDeal = pLoopDeal->isVassalDeal(); // K-Mod
-			FOR_EACH_TRADE_ITEM(pLoopDeal->getGivesList(getID()))
-			{
-				if (pItem->m_eItemType == TRADE_GOLD_PER_TURN)
-					iHumanReceivedGold += pItem->m_iData;
-				else humanReceived.insertAtEnd(*pItem);
-				/*  <advc.074> Remember the canceled resources to avoid
-					excluding them in CvPlayer::buildTradeTable. I've put
-					similar code in CvPlayer::read so that m_cancelingExport
-					is also set properly after loading a savegame. */
-				if (pItem->m_eItemType == TRADE_RESOURCES)
-				{
-					m_cancelingExport.insertAtEnd(std::make_pair(
-							eOther, (BonusTypes)pItem->m_iData));
-				} // </advc.074>
-			}
-			FOR_EACH_TRADE_ITEM(pLoopDeal->getGivesList(eOther))
-			{
-				if (pItem->m_eItemType == TRADE_GOLD_PER_TURN)
-					iHumanGaveGold += pItem->m_iData;
-				else humanGave.insertAtEnd(*pItem);
-				// <advc.074>
-				if (pItem->m_eItemType == TRADE_RESOURCES)
-				{
-					GET_PLAYER(eOther).m_cancelingExport.insertAtEnd(std::make_pair(
-							getID(), (BonusTypes)pItem->m_iData));
-				} // </advc.074>
-			}
+			apHumanDealsToCancel.push_back(pLoopDeal);
+			bool const bVassalDeal = pLoopDeal->isVassalDeal(); // K-Mod
 			// <advc.062>
 			DenialTypes eVassalCancelReason = (!bVassalDeal ? NO_DENIAL :
 					GET_TEAM(getTeam()).AI_surrenderTrade(TEAMID(eOther)));
 			// </advc.062>
-			pLoopDeal->kill(); // K-Mod. Kill the old deal first.
 			CvDiploParameters* pDiplo = new CvDiploParameters(getID());
 			if (bVassalDeal)
-			{	// <advc.062>
+			{
+				pLoopDeal->kill(); // K-Mod. Kill the old deal first
+				// <advc.062>
 				CvString szReason = "AI_DIPLOCOMMENT_NO_VASSAL";
 				switch(eVassalCancelReason)
 				{
@@ -19450,16 +19434,15 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes eOther)
 						szReason.c_str())); // advc.062
 				pDiplo->setAIContact(true);
 				gDLL->beginDiplomacy(pDiplo, eOther);
+				bContacted = true;
 			}
-			// advc.133: Don't contact human yet
+			// advc.133: Don't contact human (nor kill deal) yet
 			//pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_CANCEL_DEAL"));
 			// ...
-			bContacted = true;
 		}
-		// K-Mod.
 		else
 		{
-			pLoopDeal->kill(); // K-Mod end
+			pLoopDeal->kill(); // K-Mod
 			// <advc.133>
 			if(bRenegotiate)
 				bContacted = (AI_proposeResourceTrade(eOther) || bContacted); // </advc.133>
@@ -19468,7 +19451,81 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes eOther)
 		/*  K-Mod. I've rearranged stuff so that we can kill the deal
 			before a diplomacy window. */
 	}
-	// <advc.133> One diplo popup for all canceled non-vassal deals
+	// <advc.133>
+	// Enforce GPT limit
+	FOR_EACH_ENUM(CivPlayer)
+	{
+		if (aapDealsPerPlayer[eLoopCivPlayer].empty())
+			continue;
+		PlayerTypes eOther = (PlayerTypes)eLoopCivPlayer;
+		int iOverdraft = -AI_maxGoldPerTurnTrade(eOther, true);
+		if (iOverdraft <= 3)
+			continue;
+		// Sort deals by GPT
+		std::vector<std::pair</*GPT*/int,/*deal id*/int> > aiiDealsByGPT;
+		for (size_t i = 0; i < aapDealsPerPlayer[eLoopCivPlayer].size(); i++)
+		{
+			CvDeal& kDeal = *aapDealsPerPlayer[eLoopCivPlayer][i];
+			FOR_EACH_TRADE_ITEM(kDeal.getGivesList(getID()))
+			{
+				if (pItem->m_eItemType == TRADE_GOLD_PER_TURN)
+				{
+					aiiDealsByGPT.push_back(std::make_pair(
+							pItem->m_iData, kDeal.getID()));
+					break;
+				}
+			}
+		}
+		std::sort(aiiDealsByGPT.rbegin(), aiiDealsByGPT.rend());
+		for (size_t i = 0; i < aiiDealsByGPT.size(); i++)
+		{
+			CvDeal& kDeal = *GC.getGame().getDeal(aiiDealsByGPT[i].second);
+			iOverdraft -= aiiDealsByGPT[i].first;
+			if (gDealCancelLogLevel > 0) logBBAICancel(kDeal, getID(), L"GPT limit");
+			if (GET_PLAYER(eOther).isHuman() && canContact(eOther, true))
+				apHumanDealsToCancel.push_back(&kDeal);
+			else kDeal.kill();
+			if (iOverdraft <= 0)
+				break;
+		}
+	}
+	// One diplo popup for all canceled non-vassal deals
+	CLinkList<TradeData> humanReceived;
+	CLinkList<TradeData> humanGave;
+	int iHumanReceivedGold = 0;
+	int iHumanGaveGold = 0;
+	for (size_t i = 0; i < apHumanDealsToCancel.size(); i++)
+	{
+		CvDeal& kDeal = *apHumanDealsToCancel[i];
+		FOR_EACH_TRADE_ITEM(kDeal.getGivesList(getID()))
+		{
+			if (pItem->m_eItemType == TRADE_GOLD_PER_TURN)
+				iHumanReceivedGold += pItem->m_iData;
+			else humanReceived.insertAtEnd(*pItem);
+			/*	<advc.074> Remember the canceled resources to avoid
+				excluding them in CvPlayer::buildTradeTable. I've put
+				similar code in CvPlayer::read so that m_cancelingExport
+				is also set properly after loading a savegame. */
+			if (pItem->m_eItemType == TRADE_RESOURCES)
+			{
+				m_cancelingExport.insertAtEnd(std::make_pair(
+						eOther, (BonusTypes)pItem->m_iData));
+			} // </advc.074>
+		}
+		FOR_EACH_TRADE_ITEM(kDeal.getGivesList(eOther))
+		{
+			if (pItem->m_eItemType == TRADE_GOLD_PER_TURN)
+				iHumanGaveGold += pItem->m_iData;
+			else humanGave.insertAtEnd(*pItem);
+			// <advc.074>
+			if (pItem->m_eItemType == TRADE_RESOURCES)
+			{
+				GET_PLAYER(eOther).m_cancelingExport.insertAtEnd(std::make_pair(
+						getID(), (BonusTypes)pItem->m_iData));
+			} // </advc.074>
+		}
+		kDeal.kill();
+	}
 	if (humanReceived.getLength() +
 		humanGave.getLength() + iHumanReceivedGold + iHumanGaveGold > 0)
 	{
@@ -19488,6 +19545,7 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes eOther)
 		pDiplo->setOurOfferList(humanGave);
 		pDiplo->setTheirOfferList(humanReceived);
 		gDLL->beginDiplomacy(pDiplo, eOther);
+		bContacted = true;
 	} // </advc.133>
 	return bContacted;
 }
