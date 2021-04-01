@@ -2448,7 +2448,7 @@ bool KingMaking::anyVictory(PlayerTypes ePlayer, AIVictoryStage eFlags, int iSta
 		scaled const rRemainingWorldPopPortion(
 				std::max(0, kPlayer.getTotalPopulation() - iLostPop),
 				m_kGame.getTotalPopulation());
-		if (rRemainingWorldPopPortion < (iStage == 3 ? fixp(1/3.) : fixp(0.4)))
+		if (rRemainingWorldPopPortion < (iStage == 3 ? fixp(0.32) : fixp(0.375)))
 			bDiploValid = false;
 		VictoryTypes const eDomination = getDominationVictory();
 		if (eDomination != NO_VICTORY)
