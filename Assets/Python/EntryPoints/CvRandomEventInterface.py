@@ -2008,8 +2008,7 @@ def applyTheHuns1(argsList):
 	if 0 == len(listPlots):
 		return
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Hun event location")])
-	# advc.311:
-	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer)
+	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer) # advc.311
 	iUnitType = CvUtil.findInfoTypeNum(gc.getUnitInfo, gc.getNumUnitInfos(), 'UNIT_HORSE_ARCHER')
 	barbPlayer = gc.getPlayer(gc.getBARBARIAN_PLAYER())
 	for i in range(iNumUnits):
@@ -2039,8 +2038,7 @@ def applyTheVandals1(argsList):
 	if 0 == len(listPlots):
 		return
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Vandal event location")])
-	# advc.311:
-	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer)
+	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer) # advc.311
 	iUnitType = CvUtil.findInfoTypeNum(gc.getUnitInfo, gc.getNumUnitInfos(), 'UNIT_SWORDSMAN')
 	barbPlayer = gc.getPlayer(gc.getBARBARIAN_PLAYER())
 	for i in range(iNumUnits):
@@ -2070,8 +2068,7 @@ def applyTheGoths1(argsList):
 	if 0 == len(listPlots):
 		return
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Goth event location")])
-	# advc.311:
-	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer)
+	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer) # advc.311
 	iUnitType = CvUtil.findInfoTypeNum(gc.getUnitInfo, gc.getNumUnitInfos(), 'UNIT_AXEMAN')
 	barbPlayer = gc.getPlayer(gc.getBARBARIAN_PLAYER())
 	for i in range(iNumUnits):
@@ -2101,8 +2098,7 @@ def applyThePhilistines1(argsList):
 	if 0 == len(listPlots):
 		return
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Philistine event location")])
-	# advc.311:
-	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer)
+	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer) # advc.311
 	iUnitType = CvUtil.findInfoTypeNum(gc.getUnitInfo, gc.getNumUnitInfos(), 'UNIT_SPEARMAN')
 	barbPlayer = gc.getPlayer(gc.getBARBARIAN_PLAYER())
 	for i in range(iNumUnits):
@@ -2132,8 +2128,7 @@ def applyTheVedicAryans1(argsList):
 	if 0 == len(listPlots):
 		return
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Vedic Aryan event location")])
-	# advc.311:
-	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer
+	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer) # advc.311
 	iUnitType = CvUtil.findInfoTypeNum(gc.getUnitInfo, gc.getNumUnitInfos(), 'UNIT_ARCHER')
 	barbPlayer = gc.getPlayer(gc.getBARBARIAN_PLAYER())
 	for i in range(iNumUnits):
