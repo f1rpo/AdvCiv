@@ -1240,7 +1240,6 @@ void CvGameTextMgr::setACOModifiersPlotHelp(CvWStringBuffer &szString,
 			kAttacker.getDomainType() == DOMAIN_AIR ?
 			kAttacker.airCurrCombatStrFloat(&kDefender) :
 			kAttacker.currCombatStrFloat(NULL, NULL));
-
 	if (kAttacker.isHurt())
 	{
 		szTempBuffer.append(L" (");
@@ -1249,10 +1248,8 @@ void CvGameTextMgr::setACOModifiersPlotHelp(CvWStringBuffer &szString,
 				kAttacker.maxHitPoints()));
 		szTempBuffer.append(L")");
 	}
-
 	szTempBuffer2.Format(L"%.2f",
 			kDefender.currCombatStrFloat(&kPlot, &kAttacker));
-
 	if (kDefender.isHurt())
 	{
 		szTempBuffer2.append(L" (");
@@ -1261,7 +1258,6 @@ void CvGameTextMgr::setACOModifiersPlotHelp(CvWStringBuffer &szString,
 				kDefender.maxHitPoints()));
 		szTempBuffer2.append(L")");
 	}
-
 	szString.append(gDLL->getText("TXT_ACO_VS", szTempBuffer.GetCString(),
 			szTempBuffer2.GetCString()));
 	// advc.048: Moved attacker info above the modifier label
@@ -1270,7 +1266,6 @@ void CvGameTextMgr::setACOModifiersPlotHelp(CvWStringBuffer &szString,
 		szString.append(NEWLINE);
 		setUnitHelp(szString, &kAttacker, true, true);
 	}
-
 	if ((!kDefender.immuneToFirstStrikes() && kAttacker.maxFirstStrikes() > 0) ||
 		kAttacker.maxCombatStr(NULL,NULL) != kAttacker.baseCombatStr() * 100)
 	{
@@ -1279,49 +1274,18 @@ void CvGameTextMgr::setACOModifiersPlotHelp(CvWStringBuffer &szString,
 		if (BUGOption::isEnabled("ACO__ShowModifierLabels", false))
 			szString.append(gDLL->getText("TXT_ACO_AttackModifiers"));
 	}
-
-	szString.append(gDLL->getText("TXT_KEY_COLOR_POSITIVE"));
-	szString.append(L' ');
-	if (!kDefender.immuneToFirstStrikes() && kAttacker.maxFirstStrikes() > 0)
-	{
-		if (kAttacker.firstStrikes() == kAttacker.maxFirstStrikes())
-		{
-			if (kAttacker.firstStrikes() == 1)
-			{
-				szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_UNIT_ONE_FIRST_STRIKE"));
-			}
-			else
-			{
-				szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_UNIT_NUM_FIRST_STRIKES",
-						kAttacker.firstStrikes()));
-			}
-		}
-		else
-		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_UNIT_FIRST_STRIKE_CHANCES",
-					kAttacker.firstStrikes(), kAttacker.maxFirstStrikes()));
-		}
-	}
-	int iModifier = kAttacker.getExtraCombatPercent();
-	if (iModifier != 0)
-	{
-		szString.append(NEWLINE);
-		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_EXTRA_STRENGTH",
-				iModifier));
-	}
-	szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
-	szString.append(L' ');
-
+	// advc: Moved into new function (shared with non-ACO code)
+	appendFirstStrikes(szString, kAttacker, kDefender, false);
+	//int iModifier = kAttacker.getExtraCombatPercent();
+	/*	advc: (Generic modifiers of the attacker are the only ones that
+		affect the attacker's combat strength) */
+	appendCombatModifiers(szString, kPlot, kAttacker, kDefender, true, true, true);
 	// advc.048: Moved defender info above the modifier label
 	if (iView & BUGOption::getValue("ACO__ShowDefenderInfo", 3))
 	{
 		szString.append(NEWLINE);
 		setUnitHelp(szString, &kDefender, true, true);
 	}
-
 	if ((!kAttacker.immuneToFirstStrikes() && kDefender.maxFirstStrikes() > 0) ||
 		kDefender.maxCombatStr(&kPlot, &kAttacker) != kDefender.baseCombatStr() * 100)
 	{
@@ -1333,49 +1297,15 @@ void CvGameTextMgr::setACOModifiersPlotHelp(CvWStringBuffer &szString,
 
 	if (iView & BUGOption::getValue("ACO__ShowDefenseModifiers", 3))
 	{
-		/*	if defense modifiers are enabled - recommend leaving this on
-			unless Total defense Modifier is enabled */
-		szString.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
-		szString.append(L' ');
-		if (!kAttacker.immuneToFirstStrikes())
-		{
-			if (kDefender.maxFirstStrikes() > 0)
-			{
-				if (kDefender.firstStrikes() == kDefender.maxFirstStrikes())
-				{
-					if (kDefender.firstStrikes() == 1)
-					{
-						szString.append(NEWLINE);
-						szString.append(gDLL->getText("TXT_KEY_UNIT_ONE_FIRST_STRIKE"));
-					}
-					else
-					{
-						szString.append(NEWLINE);
-						szString.append(gDLL->getText("TXT_KEY_UNIT_NUM_FIRST_STRIKES",
-								kDefender.firstStrikes()));
-					}
-				}
-				else
-				{
-					szString.append(NEWLINE);
-					szString.append(gDLL->getText("TXT_KEY_UNIT_FIRST_STRIKE_CHANCES",
-							kDefender.firstStrikes(), kDefender.maxFirstStrikes()));
-				}
-			}
-		}
-		/*  advc: Some 100 LoC moved into a subroutine b/c they were
-			repeated in the !ACO_enabled branch. */
-		appendNegativeModifiers(szString, &kAttacker, &kDefender, &kPlot);
-		szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
-		szString.append(L' ');
-		szString.append(gDLL->getText("TXT_KEY_COLOR_POSITIVE"));
-		szString.append(L' ');//XXX
-		// advc: Another batch of repeated modifiers
-		appendPositiveModifiers(szString, &kAttacker, &kDefender, &kPlot, true);
+		appendFirstStrikes(szString, kDefender, kAttacker, true);
+		/*	<advc> Use the same functions for ACO and BtS combat modifiers.
+			(Replacing code that had been copy-pasted and slightly modified.) */
+		appendCombatModifiers(szString, kPlot, kAttacker, kDefender,
+				false, true);
+		appendCombatModifiers(szString, kPlot, kAttacker, kDefender,
+				true, true, false, true);
+		// </advc>
 	}
-
-	szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
-	szString.append(L' ');
 	if (iView & BUGOption::getValue("ACO__ShowTotalDefenseModifier", 2))
 	{
 		//szString.append(L' ');//XXX

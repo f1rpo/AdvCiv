@@ -318,10 +318,21 @@ private:
 	void setHealthChangeBuildActionHelp(CvWStringBuffer& szBuffer, int iChange,
 			int iChangePercent, int iIcon) const; // </advc.059>
 	// <advc>
-	void appendNegativeModifiers(CvWStringBuffer& szString, CvUnit const* pAttacker,
-			CvUnit const* pDefender, CvPlot const* pPlot);
-	void appendPositiveModifiers(CvWStringBuffer& szString, CvUnit const* pAttacker,
-			CvUnit const* pDefender, CvPlot const* pPlot, bool bNegative);
+	void appendCombatModifiers(CvWStringBuffer& szBuffer, CvPlot const& kPlot,
+			CvUnit const& kAttacker, CvUnit const& kDefender,
+			bool bAttackModifier, bool bACOEnabled,
+			bool bOnlyGeneric = false, bool bOnlyNonGeneric = false);
+	struct CombatModifierOutputParams
+	{
+		bool m_bAttackModifier;
+		bool m_bGenericModifier;
+		bool m_bACOEnabled;
+	};
+	void appendCombatModifier(CvWStringBuffer& szBuffer, int iModifier,
+			CombatModifierOutputParams const& kParams, char const* szTextKey,
+			wchar const* szTextArg = NULL);
+	void appendFirstStrikes(CvWStringBuffer& szBuffer,
+			CvUnit const& kFirstStriker, CvUnit const& kOther, bool bNegativeColor);
 	void setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
 	// </advc>
 	// <advc.004w>

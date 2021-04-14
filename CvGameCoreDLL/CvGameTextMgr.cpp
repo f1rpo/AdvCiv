@@ -20401,266 +20401,241 @@ void CvGameTextMgr::getCorporationDataForWB(bool bHeadquarters, std::vector<CvWB
 	}
 }
 
-// advc: Body cut and pasted from setCombatPlotHelp
-void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
-		CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot)
+// <advc> Based on BtS and ACO code originally in setCombatPlotHelp
+void CvGameTextMgr::appendCombatModifiers(CvWStringBuffer& szBuffer,
+	CvPlot const& kPlot, CvUnit const& kAttacker, CvUnit const& kDefender,
+	bool bAttackModifiers, bool bACOEnabled,
+	bool bOnlyGeneric, bool bOnlyNonGeneric)
 {
-	int iModifier = 0;
-	if (!pAttacker->isRiver() &&
-		// advc.opt: isRiverCrossing is no longer supposed to handle non-adjacent tiles
-		stepDistance(pAttacker->plot(), pPlot) == 1)
+	CombatModifierOutputParams params;
+	params.m_bACOEnabled = bACOEnabled;
+	params.m_bAttackModifier = bAttackModifiers;
+	params.m_bGenericModifier = true;
+	if (bAttackModifiers)
 	{
-		if (pAttacker->getPlot().isRiverCrossing(
-			directionXY(pAttacker->getPlot(), *pPlot)))
+		if (!bOnlyNonGeneric)
 		{
-			iModifier = GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER);
-			if (iModifier != 0)
-			{
-				szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_RIVER_MOD",
-						-iModifier));
-			}
+			appendCombatModifier(szBuffer,
+					kAttacker.getExtraCombatPercent(),
+					params, "TXT_KEY_COMBAT_PLOT_EXTRA_STRENGTH");
 		}
-	}
-	if (!pAttacker->isAmphib())
-	{
-		if (!pPlot->isWater() && pAttacker->getPlot().isWater())
+		if (bOnlyGeneric)
+			return;
+		params.m_bGenericModifier = false;
+		appendCombatModifier(szBuffer,
+				kAttacker.unitClassAttackModifier(kDefender.getUnitClassType()),
+				params, "TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
+				GC.getInfo(kDefender.getUnitClassType()).getTextKeyWide());
+		if (kDefender.getUnitCombatType() != NO_UNITCOMBAT)
 		{
-			iModifier = GC.getDefineINT(CvGlobals::AMPHIB_ATTACK_MODIFIER);
-			if (iModifier != 0)
-			{
-				szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_AMPHIB_MOD",
-						-iModifier));
-			}
+			appendCombatModifier(szBuffer,
+					kAttacker.unitCombatModifier(kDefender.getUnitCombatType()),
+					params, "TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
+					GC.getInfo(kDefender.getUnitCombatType()).getTextKeyWide());
 		}
-	}
-	iModifier = pDefender->getExtraCombatPercent();
-	if (iModifier != 0)
-	{
-		szString.append(NEWLINE);
-		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_EXTRA_STRENGTH",
-				iModifier));
-	}
-	iModifier = pDefender->unitClassDefenseModifier(pAttacker->getUnitClassType());
-	if (iModifier != 0)
-	{
-		szString.append(NEWLINE);
-		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
-				iModifier, GC.getInfo(pAttacker->getUnitClassType()).
-				getTextKeyWide()));
-	}
-	if (pAttacker->getUnitCombatType() != NO_UNITCOMBAT)
-	{
-		iModifier = pDefender->unitCombatModifier(pAttacker->getUnitCombatType());
-		if (iModifier != 0)
+		appendCombatModifier(szBuffer, kAttacker.domainModifier(
+				kDefender.getDomainType()),
+				params, "TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
+				GC.getInfo(kDefender.getDomainType()).getTextKeyWide());
+		if (GET_TEAM(kDefender.getTeam()).isCityDefense(kPlot)) // advc: was isCity
 		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
-					iModifier, GC.getInfo(pAttacker->getUnitCombatType()).
-					getTextKeyWide()));
+			appendCombatModifier(szBuffer,
+					kAttacker.cityAttackModifier(),
+					params, "TXT_KEY_COMBAT_PLOT_CITY_MOD");
 		}
-	}
-	iModifier = pDefender->domainModifier(pAttacker->getDomainType());
-	if (iModifier != 0)
-	{
-		szString.append(NEWLINE);
-		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
-				iModifier, GC.getInfo(pAttacker->getDomainType()).
-				getTextKeyWide()));
-	}
-	if (!pDefender->noDefensiveBonus())
-	{
-		// <advc.012> Show feature defense unless in a hostile tile
-		if(pAttacker == NULL)
+		if (kPlot.isHills())
 		{
-			iModifier = GET_TEAM(pDefender->getTeam()).
-					AI_plotDefense(*pPlot, true);
+			appendCombatModifier(szBuffer,
+					kAttacker.hillsAttackModifier(),
+					params, "TXT_KEY_COMBAT_PLOT_HILLS_MOD");
+		}
+		if (kPlot.isFeature())
+		{
+			appendCombatModifier(szBuffer,
+					kAttacker.featureAttackModifier(kPlot.getFeatureType()),
+					params, "TXT_KEY_COMBAT_PLOT_UNIT_MOD",
+					GC.getInfo(kPlot.getFeatureType()).getTextKeyWide());
 		}
 		else
 		{
-			iModifier = pPlot->defenseModifier(pDefender->getTeam(),
-					pAttacker->ignoreBuildingDefense(), pAttacker->getTeam());
-		} // </advc.012>
-		if (iModifier != 0)
-		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_TILE_MOD",
-					iModifier));
+			appendCombatModifier(szBuffer,
+					kAttacker.terrainAttackModifier(kPlot.getTerrainType()),
+					params, "TXT_KEY_COMBAT_PLOT_UNIT_MOD",
+					GC.getInfo(kPlot.getTerrainType()).getTextKeyWide());
 		}
-	}
-	iModifier = pDefender->fortifyModifier();
-	if (iModifier != 0)
-	{
-		szString.append(NEWLINE);
-		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_FORTIFY_MOD",
-				iModifier));
-	}
-	if (GET_TEAM(pDefender->getTeam()).isCityDefense(*pPlot)) // advc: was isCity
-	{
-		iModifier = pDefender->cityDefenseModifier();
-		if (iModifier != 0)
+		appendCombatModifier(szBuffer,
+				kAttacker.getKamikazePercent(),
+				params, "TXT_KEY_COMBAT_KAMIKAZE_MOD");
+		if (kDefender.isAnimal())
 		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_CITY_MOD",
-					iModifier));
+			int iModifier = kAttacker.getUnitInfo().getAnimalCombatModifier();
+			// advc.315c: Moved into the isBarbarian block below
+			//iModifier -= GC.getInfo(GC.getGame().getHandicapType()).getAnimalCombatModifier();
+			appendCombatModifier(szBuffer, iModifier,
+					params, "TXT_KEY_UNIT_ANIMAL_COMBAT_MOD");
 		}
-	}
-	if (pPlot->isHills())
-	{
-		iModifier = pDefender->hillsDefenseModifier();
-		if (iModifier != 0)
+		if (kDefender.isBarbarian())
 		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_HILLS_MOD",
-					iModifier));
+			appendCombatModifier(szBuffer,
+					kAttacker.getUnitInfo().getBarbarianCombatModifier(), // advc.315c
+					params, "TXT_KEY_UNIT_BARBARIAN_COMBAT_MOD");
+			// <advc.315c> Show modifier from difficulty separately from unit abilities
+			int iModifier = -GC.getInfo(
+					GET_PLAYER(kAttacker.getOwner()). // K-Mod
+					getHandicapType()).getBarbarianCombatModifier();
+			// Moved from the isAnimal block above
+			if (kDefender.isAnimal())
+			{
+				iModifier -= GC.getInfo(
+						GET_PLAYER(kAttacker.getOwner()). // K-Mod
+						getHandicapType()).getAnimalCombatModifier();
+			}
+			appendCombatModifier(szBuffer, iModifier,
+					params, "TXT_KEY_MISC_FROM_HANDICAP");
+			// </advc.315c>
 		}
-	}
-
-	if (pPlot->isFeature())
-	{
-		iModifier = pDefender->featureDefenseModifier(pPlot->getFeatureType());
-		if (iModifier != 0)
+		// As in BtS - display modifiers that are typically negative last (river, amphib)
+		if (!kAttacker.isRiver() &&
+			// advc.opt: isRiverCrossing is no longer supposed to handle non-adjacent tiles
+			stepDistance(kAttacker.plot(), &kPlot) == 1 &&
+			kAttacker.getPlot().isRiverCrossing(directionXY(kAttacker.getPlot(), kPlot)))
 		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_UNIT_MOD",
-					iModifier, GC.getInfo(pPlot->getFeatureType()).
-					getTextKeyWide()));
+			appendCombatModifier(szBuffer,
+					GC.getDefineINT(CvGlobals::RIVER_ATTACK_MODIFIER),
+					params, "TXT_KEY_COMBAT_PLOT_RIVER_MOD",
+					GC.getInfo(kPlot.getTerrainType()).getTextKeyWide());
 		}
+		if (!kAttacker.isAmphib() && !kPlot.isWater() && kAttacker.getPlot().isWater())
+		{
+			appendCombatModifier(szBuffer,
+					GC.getDefineINT(CvGlobals::AMPHIB_ATTACK_MODIFIER),
+					params, "TXT_KEY_COMBAT_PLOT_AMPHIB_MOD",
+					GC.getInfo(kPlot.getTerrainType()).getTextKeyWide());
+		}
+		return;
+	}
+	if (!bOnlyNonGeneric)
+	{
+		/*	(advc.001: appendCombatModifier will pick the proper color
+			for K-Mod's Disorganized promotion when ACO is enabled) */
+		appendCombatModifier(szBuffer,
+				kDefender.getExtraCombatPercent(),
+				params, "TXT_KEY_COMBAT_PLOT_EXTRA_STRENGTH");
+	}
+	if (bOnlyGeneric)
+		return;
+	params.m_bGenericModifier = false;
+	appendCombatModifier(szBuffer,
+			kDefender.unitClassDefenseModifier(kAttacker.getUnitClassType()),
+			params, "TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
+			GC.getInfo(kAttacker.getUnitClassType()).getTextKeyWide());
+	if (kAttacker.getUnitCombatType() != NO_UNITCOMBAT)
+	{
+		appendCombatModifier(szBuffer,
+				kDefender.unitCombatModifier(kAttacker.getUnitCombatType()),
+				params, "TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
+				GC.getInfo(kAttacker.getUnitCombatType()).getTextKeyWide());
+	}
+	appendCombatModifier(szBuffer,
+			kDefender.domainModifier(kAttacker.getDomainType()),
+			params, "TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
+			GC.getInfo(kAttacker.getDomainType()).getTextKeyWide());
+	if (!kDefender.noDefensiveBonus())
+	{
+		appendCombatModifier(szBuffer,
+				// <advc.012> Show feature defense unless in a hostile tile
+				kPlot.defenseModifier(kDefender.getTeam(),
+				kAttacker.ignoreBuildingDefense(), kAttacker.getTeam()),
+				// </advc.012>
+				params, "TXT_KEY_COMBAT_PLOT_TILE_MOD");
+	}
+	appendCombatModifier(szBuffer,
+			kDefender.fortifyModifier(),
+			params, "TXT_KEY_COMBAT_PLOT_FORTIFY_MOD");
+	if (GET_TEAM(kDefender.getTeam()).isCityDefense(kPlot)) // advc: was isCity
+	{
+		appendCombatModifier(szBuffer,
+				kDefender.cityDefenseModifier(),
+				params, "TXT_KEY_COMBAT_PLOT_CITY_MOD");
+	}
+	if (kPlot.isHills())
+	{
+		appendCombatModifier(szBuffer,
+				kDefender.hillsDefenseModifier(),
+				params, "TXT_KEY_COMBAT_PLOT_HILLS_MOD");
+	}
+	if (kPlot.isFeature())
+	{
+		appendCombatModifier(szBuffer,
+				kDefender.featureDefenseModifier(kPlot.getFeatureType()),
+				params, "TXT_KEY_COMBAT_PLOT_UNIT_MOD",
+				GC.getInfo(kPlot.getFeatureType()).getTextKeyWide());
 	}
 	else
 	{
-		iModifier = pDefender->terrainDefenseModifier(pPlot->getTerrainType());
-		if (iModifier != 0)
-		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_UNIT_MOD",
-					iModifier, GC.getInfo(pPlot->getTerrainType()).
-					getTextKeyWide()));
-		}
+		appendCombatModifier(szBuffer,
+				kDefender.terrainDefenseModifier(kPlot.getTerrainType()),
+				params, "TXT_KEY_COMBAT_PLOT_UNIT_MOD",
+				GC.getInfo(kPlot.getTerrainType()).getTextKeyWide());
 	}
 }
 
-// advc: Body cut and pasted from setCombatPlotHelp
-void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
-	CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot, bool bNegative)
+
+void CvGameTextMgr::appendCombatModifier(CvWStringBuffer& szBuffer,
+	int iModifier, CombatModifierOutputParams const& kParams,
+	char const* szTextKey, wchar const* szTextArg)
 {
-	int const iSign = (bNegative ? -1 : 1);
-	int iModifier = pAttacker->unitClassAttackModifier(pDefender->getUnitClassType());
-	if (iModifier != 0)
+	if (iModifier == 0)
+		return;
+	bool bNegativeColor = !kParams.m_bAttackModifier;
+	/*	Use green for modifiers that _favor_ the attacker, red for
+		modifiers that favor the defender. */
+	if (iModifier < 0)
+		bNegativeColor = !bNegativeColor;
+	if (kParams.m_bACOEnabled &&
+		kParams.m_bAttackModifier && !kParams.m_bGenericModifier)
 	{
-		szString.append(NEWLINE);
-		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
-				iSign * iModifier, GC.getInfo(pDefender->getUnitClassType()).
-				getTextKeyWide()));
+		/*	Non-generic modifiers of the attacker apply -with inverted sign-
+			to the defender, and ACO displays them that way too. */
+		iModifier *= -1;
 	}
-	if (pDefender->getUnitCombatType() != NO_UNITCOMBAT)
+	szBuffer.append(NEWLINE);
+	szBuffer.append(gDLL->getText(bNegativeColor ? "TXT_KEY_COLOR_NEGATIVE" :
+			"TXT_KEY_COLOR_POSITIVE"));
+	szBuffer.append(szTextArg == NULL ? gDLL->getText(szTextKey, iModifier) :
+			gDLL->getText(szTextKey, iModifier, szTextArg));
+	szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+}
+
+void CvGameTextMgr::appendFirstStrikes(CvWStringBuffer& szBuffer,
+	CvUnit const& kFirstStriker, CvUnit const& kOther, bool bNegativeColor)
+{
+	if (kOther.immuneToFirstStrikes() || kFirstStriker.maxFirstStrikes() <= 0)
+		return;
+	szBuffer.append(gDLL->getText(bNegativeColor ? "TXT_KEY_COLOR_NEGATIVE" :
+			"TXT_KEY_COLOR_POSITIVE"));
+	if (kFirstStriker.firstStrikes() == kFirstStriker.maxFirstStrikes())
 	{
-		iModifier = pAttacker->unitCombatModifier(pDefender->getUnitCombatType());
-		if (iModifier != 0)
+		if (kFirstStriker.firstStrikes() == 1)
 		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
-					iSign * iModifier, GC.getInfo(
-					pDefender->getUnitCombatType()).getTextKeyWide()));
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_UNIT_ONE_FIRST_STRIKE"));
 		}
-	}
-	iModifier = pAttacker->domainModifier(pDefender->getDomainType());
-	if (iModifier != 0)
-	{
-		szString.append(NEWLINE);
-		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
-				iSign * iModifier, GC.getInfo(pDefender->getDomainType()).
-				getTextKeyWide()));
-	}
-	if (GET_TEAM(pDefender->getTeam()).isCityDefense(*pPlot)) // advc: was isCity
-	{
-		iModifier = pAttacker->cityAttackModifier();
-		if (iModifier != 0)
+		else
 		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_CITY_MOD",
-					iSign * iModifier));
-		}
-	}
-	if (pPlot->isHills())
-	{
-		iModifier = pAttacker->hillsAttackModifier();
-		if (iModifier != 0)
-		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_HILLS_MOD",
-					iSign * iModifier));
-		}
-	}
-	if (pPlot->isFeature())
-	{
-		iModifier = pAttacker->featureAttackModifier(pPlot->getFeatureType());
-		if (iModifier != 0)
-		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_UNIT_MOD",
-					iSign * iModifier, GC.getInfo(pPlot->getFeatureType()).
-					getTextKeyWide()));
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_UNIT_NUM_FIRST_STRIKES",
+					kFirstStriker.firstStrikes()));
 		}
 	}
 	else
 	{
-		iModifier = pAttacker->terrainAttackModifier(pPlot->getTerrainType());
-		if (iModifier != 0)
-		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_UNIT_MOD",
-					iSign * iModifier, GC.getInfo(pPlot->getTerrainType()).
-					getTextKeyWide()));
-		}
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_FIRST_STRIKE_CHANCES",
+				kFirstStriker.firstStrikes(), kFirstStriker.maxFirstStrikes()));
 	}
-	iModifier = pAttacker->getKamikazePercent();
-	if (iModifier != 0)
-	{
-		szString.append(NEWLINE);
-		szString.append(gDLL->getText("TXT_KEY_COMBAT_KAMIKAZE_MOD",
-				iSign * iModifier));
-	}
-	if (pDefender->isAnimal())
-	{	// advc.315c: Moved into the isBarbarian block below
-		//iModifier = -GC.getInfo(GC.getGame().getHandicapType()).getAnimalCombatModifier();
-		iModifier += pAttacker->getUnitInfo().getAnimalCombatModifier();
-		if (iModifier != 0)
-		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_UNIT_ANIMAL_COMBAT_MOD",
-					iSign * iModifier));
-		}
-	}
-	if (pDefender->isBarbarian())
-	{	// advc.315c:
-		iModifier = -pAttacker->getUnitInfo().getBarbarianCombatModifier();
-		if (iModifier != 0)
-		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_UNIT_BARBARIAN_COMBAT_MOD",
-					iSign * iModifier));
-		}
-		// <advc.315c> Show modifier from difficulty separately from unit abilities
-		iModifier = -GC.getInfo(
-				GET_PLAYER(pAttacker->getOwner()). // K-Mod
-				getHandicapType()).getBarbarianCombatModifier();
-		// Moved from the isAnimal block above
-		if(pDefender->isAnimal())
-		{
-			iModifier += -GC.getInfo(
-					GET_PLAYER(pAttacker->getOwner()). // K-Mod
-					getHandicapType()).getAnimalCombatModifier();
-		}
-		if (iModifier != 0)
-		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_MISC_FROM_HANDICAP",
-					iSign * iModifier));
-		} // </advc.315c>
-	}
-}
+	szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+} // </advc>
 
 /*  advc.004w: Based on code cut from setUnitHelp and setBasicUnitHelp (and deleted from
 	setBuildingHelpActual). Units and buildings have the same production speed bonuses. */
