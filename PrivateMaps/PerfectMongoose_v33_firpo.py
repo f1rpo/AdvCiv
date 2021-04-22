@@ -1,6 +1,6 @@
 ##
 ## Latest changes to PerfectWorld in MongooseMod ported back to the latest
-## standalone version of the script - by firpo.
+## standalone version of the script - by firpo. Plus some bugfixes.
 ##
 ##############################################################################
 ##
@@ -286,6 +286,7 @@ class MapConstants:
 
 		#This variable can be used to turn off 'New world' logic and place starting positions
 		#anywhere in the world. For some mods, a new world doesn't make sense.
+		# firpo (comment): This gets overwritten when custom options are read. Apparently, AllowNewWorld stands for "allow there to be a New World", which really means that starts in the New World are disallowed!
 		self.AllowNewWorld = False
 
 		#Percent of land vs. water
@@ -3460,8 +3461,12 @@ class PangaeaBreaker:
 			print "No pangea detected on this map."
 		if meteorThrown:
 			print "The age of dinosaurs has come to a cataclysmic end."
-		if meteorCount == 15:
-			print "Maximum meteor count of %d has been reached. Pangaea may still exist." % meteorCount
+		#if meteorCount == 15:
+		if meteorCount == mc.maximumMeteorCount: # firpo (bugfix)
+			print "Maximum meteor count of %d has been reached." % meteorCount
+			# <firpo> Previously always said that "Pangaea may still exist"
+			if self.isPangea():
+				print "Pangaea still exists" # </firpo>
 
 
 	def isPangea(self):
@@ -4801,7 +4806,8 @@ class StartingPlotFinder:
 			#add bonuses due to player difficulty settings
 			self.addHandicapBonus()
 		except Exception, e:
-			errorPopUp("PerfectWorld's starting plot finder has failed due to a rarely occuring bug, and this map likely has unfair starting locations. You may wish to quit this game and generate a new map.")
+			# firpo: Removed "due to a rarely occurring bug" - could be any error, and not necessarily that rare. Added info about the exception. That said, for debugging, it may be better not to catch (and re-raise) the exception here because this obscures the specific origin.
+			errorPopUp("PerfectWorld's starting plot finder has failed; this map likely has unfair starting locations. You may wish to quit this game and generate a new map." + "\n\nAn exception of type " + e.__class__.__name__ + " occurred. Arguments:\n" + str(e.args))
 			raise Exception, e
 
 
@@ -5350,11 +5356,14 @@ class StartingPlotFinder:
 					hillsNeeded -= 1
 			if hillsNeeded > 0:
 				for plot in plotList:
-					if plot.getPlotType() != PlotTypes.PLOT_HILLS and plot.getArea() == CyMap().plot(x, y).getArea() and (bonusInfo == None or not bonusInfo.isRequiresFlatlands()):
-						plot.setPlotType(PlotTypes.PLOT_HILLS, True, True)
-						hillsNeeded -= 1
-						if requiresFlatlands:
-							plot.setFeatureType(FeatureTypes.NO_FEATURE, -1)
+					if plot.getPlotType() != PlotTypes.PLOT_HILLS and plot.getArea() == CyMap().plot(x, y).getArea():
+						#if bonusInfo == None or not bonusInfo.isRequiresFlatlands():
+						# firpo (bugfix): That function doesn't exist in the original BtS DLL. It might exist in MongooseMod, but, in the v3.2 standalone version, this was definitely a bug. Use isHills instead (like in the DLL).
+						if bonusInfo is None or bonusInfo.isHills():
+							plot.setPlotType(PlotTypes.PLOT_HILLS, True, True)
+							hillsNeeded -= 1
+							if requiresFlatlands:
+								plot.setFeatureType(FeatureTypes.NO_FEATURE, -1)
 		#ensure maximum number of bad features
 		badFeaturesToRemove = badFeaturesFound - mc.MaxBadFeaturesInFC
 		if badFeaturesToRemove > 0:
@@ -5588,6 +5597,7 @@ class StartingArea:
 			#Find biggest nearestStart and place a start there
 			distanceList.sort(lambda x, y:cmp(x.nearestStart, y.nearestStart))
 			distanceList.reverse()
+			# firpo (comment): This raises an exception when no suitable plot is found. Caught by SetStartingPlots.
 			distanceList[0].vacant = False
 		self.CalculateStartingPlotValues()
 		#Now place all starting positions
@@ -5597,7 +5607,9 @@ class StartingArea:
 				sPlot = CyMap().plot(self.plotList[m].x, self.plotList[m].y)
 				if sPlot.isWater():
 					raise ValueError, "Start plot is water!"
-				sPlot.setImprovementType(gc.getInfoTypeForString("NO_IMPROVEMENT"))
+				#sPlot.setImprovementType(gc.getInfoTypeForString("NO_IMPROVEMENT"))
+				# firpo (bugfix):
+				sPlot.setImprovementType(ImprovementTypes.NO_IMPROVEMENT)
 				playerID = self.playerList[n]
 				player = gc.getPlayer(playerID)
 				sPlot.setStartingPlot(True)
@@ -5889,7 +5901,9 @@ def generatePlotTypes():
 	mc.height = map.getGridHeight()
 	PRand.seed()
 	if mc.LandmassGenerator == 2:
-		mc.minimumMeteorSize = (1 + int(round(float(mc.hmWidth) / float(mc.width)))) * 3
+		#mc.minimumMeteorSize = (1 + int(round(float(mc.hmWidth) / float(mc.width)))) * 3
+		# firpo (bugfix): hmWidth is a constant (144). The meteor size should increase with the map size, not decrease.
+		mc.minimumMeteorSize = (1 + int(round(float(mc.width) / float(mc.hmWidth)))) * 3
 		em = e2
 		em.initialize(mc.hmWidth, mc.hmHeight, mc.WrapX, mc.WrapY)
 		em.PerformTectonics()
@@ -5903,7 +5917,8 @@ def generatePlotTypes():
 		if mc.ClimateSystem == 0:
 			em.initialize(mc.width,   mc.height,   mc.WrapX, mc.WrapY)
 		else:
-			mc.minimumMeteorSize = (1 + int(round(float(mc.hmWidth) / float(mc.width)))) * 3
+			# firpo (bugfix): See above
+			mc.minimumMeteorSize = (1 + int(round(float(mc.width) / float(mc.hmWidth)))) * 3
 			em.initialize(mc.hmWidth, mc.hmHeight, mc.WrapX, mc.WrapY)
 		em.GenerateElevationMap()
 		em.FillInLakes()
