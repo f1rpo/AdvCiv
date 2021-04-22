@@ -6244,7 +6244,7 @@ def makeChannel(x, y):
 	mmap = gc.getMap()
 	plot = mmap.plot(x, y)
 	cleanUpLake(x, y)
-	plot.setPlotType(PlotTypes.PLOT_OCEAN, True, True)
+	plot.setPlotType(PlotTypes.PLOT_OCEAN, False, False) # firpo (optimization): was True,True
 	plot.setRiverID(-1)
 	plot.setNOfRiver(False, CardinalDirectionTypes.NO_CARDINALDIRECTION)
 	plot.setWOfRiver(False, CardinalDirectionTypes.NO_CARDINALDIRECTION)
@@ -6343,6 +6343,7 @@ def addLakes():
 		for x in range(mc.width):
 			i = GetIndex(x, y)
 			makeHarbor(x, y, oceanMap)
+	mmap.recalculateAreas(); # firpo (optimization): No longer done in makeChannel
 
 
 def addFeatures():
