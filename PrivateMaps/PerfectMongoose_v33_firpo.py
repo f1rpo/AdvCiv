@@ -398,7 +398,9 @@ class MapConstants:
 		#they have the same ratio that is found in CvPlot::getFoundValue
 		self.FoodValue       = 16
 		self.ProductionValue = 16
-		self.CommerceValue   = 16
+		#self.CommerceValue   = 16
+		# firpo (bugfix?): v3.2 had used 10/40/20 (also weird); The MongooseMod changelog from 19 Jan 2013 says 16/16/8, and a comment elsewhere cites commerce being worth half as much as the other yields as the "standard rule for yield balance".
+		self.CommerceValue   = 8
 
 		#Coastal cities are important, how important is determined by this value.
 		self.CoastalCityValueBonus = 1.0
@@ -5869,10 +5871,10 @@ def isSeaLevelMap():
 
 
 def getTopLatitude():
-	return 90
+	return mc.topLatitude # firpo (bugfix?): was 90
 
 def getBottomLatitude():
-	return -90
+	return mc.bottomLatitude # firpo (bugfix?): was -90
 
 
 def getGridSize(argsList):
