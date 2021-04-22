@@ -543,7 +543,7 @@ class MapConstants:
 
 		#Height and Width of main climate and height maps. This does not
 		#reflect the resulting map size. Both dimensions( + 1 if wrapping in
-		#that dimension = False) must be evenly divisble by self.hmMaxGrain
+		#that dimension = False) must be evenly divisible by self.hmMaxGrain
 		self.hmWidth  = 144
 		self.hmHeight = 97
 
@@ -613,7 +613,7 @@ class MapConstants:
 		#1 = NORTH_SOUTH_SEPARATION and 2 = EAST_WEST_SEPARATION.
 		self.hmSeparation = 0
 
-		#Creates a water margin around the map edges. 
+		#Creates a water margin around the map edges.
 		self.northMargin = False
 		self.southMargin = False
 		self.eastMargin  = False
@@ -687,7 +687,7 @@ class MapConstants:
 		## Fuyu Settings
 		##############################################################################
 
-		#This variable adjusts the maximun number of identical bonuses to be placed in a
+		#This variable adjusts the maximum number of identical bonuses to be placed in a
 		#single group. People tend not to like all instances of a bonus type to be found within
 		#a single 3x3 area. When set to -1 (default), the maximum group size is between 3 and 6,
 		#based on WorldSize. When set to 0, the maximum group size is a random number between
@@ -937,7 +937,7 @@ class AreaMap:
 		seg = LineSegment(y, x, x, 1)
 		self.segStack.append(seg)
 		seg = LineSegment(y + 1, x, x, -1)
-		self.segStack.append(seg) 
+		self.segStack.append(seg)
 		while(len(self.segStack) > 0):
 			seg = self.segStack.pop()
 			self.scanAndFillLine(seg, areaID, bWater, matchFunction)
@@ -1012,7 +1012,7 @@ class AreaMap:
 				if not lineFound:
 					lineFound = True
 					xLeftExtreme = xRightExtreme #starting new line
-			elif lineFound: #found the right end of a line segment!				
+			elif lineFound: #found the right end of a line segment!
 				lineFound = False
 				#put same direction on stack
 				newSeg = LineSegment(seg.y + seg.dy, xLeftExtreme, xRightExtreme - 1, seg.dy)
@@ -1923,7 +1923,7 @@ class ElevationMap2(FloatMap):
 							self.plateMap[nn].plateID = i
 							plot = (xx, yy, i)
 							growthPlotList.append(plot)
-					break		
+					break
 		#Now cause the seeds to grow into plates
 		iterations = 0
 		while(len(growthPlotList) > 0):
@@ -1983,7 +1983,7 @@ class ElevationMap2(FloatMap):
 			if plateList[self.plateMap[i].plateID].isOnMapEdge and PRand.random() < mc.chanceForWaterEdgePlate:
 				preSmoothMap[i] = 0.0
 			elif plateList[self.plateMap[i].plateID].raiseOnly:
-				preSmoothMap[i] = (float(self.plateMap[i].plateID % steps) * mc.plateStagger) / 2.0 + 0.5			   
+				preSmoothMap[i] = (float(self.plateMap[i].plateID % steps) * mc.plateStagger) / 2.0 + 0.5
 			else:
 				preSmoothMap[i] = float(self.plateMap[i].plateID % steps) * mc.plateStagger
 		#Now smooth the plate height map and create the distance map at the same time
@@ -2636,7 +2636,7 @@ class ClimateMap2:
 				else:
 					cost = self.getRainCost(plot.x, plot.y, xx, yy, countRemaining / mc.monsoonUplift)
 				#Convert moisture into rain
-				#self.moistureMap[i] -= cost * moisturePerNeighbor (this line is unecessary actually, we are finished with moisture map for this plot) 
+				#self.moistureMap[i] -= cost * moisturePerNeighbor (this line is unecessary actually, we are finished with moisture map for this plot)
 				self.RainfallMap.data[i] += cost * moisturePerNeighbor * geostrophicFactor #geostrophicFactor is not involved with moisture, only to weigh against monsoons
 				#send remaining moisture to neighbor
 				ii = GetHmIndex(xx, yy)
@@ -3264,7 +3264,7 @@ class TerrainMap:
 		#create height difference map to allow for tuning
 		#I tried using a deviation from surrounding average altitude
 		#to determine hills and peaks but I didn't like the
-		#results. Therefore I an using lowest neighbor
+		#results. Therefore I am using lowest neighbor.
 		for y in range(mc.height):
 			for x in range(mc.width):
 				i = em.GetIndex(x, y)
@@ -3697,7 +3697,7 @@ class PangaeaBreaker:
 					indexMap.append(-1)
 		n = 0
 		for s in C:
-			#Check 4 nieghbors
+			#Check 4 neighbors
 			xx = s.x - gap
 			if xx < 0:
 				xx = em.width / (gap * gap)
@@ -5662,7 +5662,7 @@ class StartPlot:
 	def isCoast(self):
 		plot = CyMap().plot(self.x, self.y)
 		waterArea = plot.waterArea()
-		if waterArea.isNone() or waterArea.isLake(): 
+		if waterArea.isNone() or waterArea.isLake():
 			return False
 		return True
 
