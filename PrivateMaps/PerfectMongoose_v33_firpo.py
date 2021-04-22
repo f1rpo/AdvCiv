@@ -1,14 +1,23 @@
 ##
-## PerfectMongoose_v33_MM_Edition_v20.py
-##
-## This Version by LunarMongoose for MongooseMod 4.1
-## 20 Jan 2013
-##
-## Copyright (C) 2013 Kenny Welch
+## Latest changes to PerfectWorld in MongooseMod ported back to the latest
+## standalone version of the script - by firpo.
 ##
 ##############################################################################
 ##
 ## Based on:
+## PerfectMongoose_v320_MM_Edition.py
+## Copyright (C) 2011 Kenny Welch aka LunarMongoose
+##
+##############################################################################
+##
+## And on:
+##
+## PerfectMongoose_v33_MM_Edition_v20.py
+## for MongooseMod 4.1; 20 Jan 2013
+## Copyright (C) 2013 Kenny Welch
+##############################################################################
+##
+## And on:
 ##
 ## PerfectWorld_v2.06.py (for Civ4)
 ##
@@ -25,72 +34,6 @@
 ## Used with Permission
 ##
 
-
-##############################################################################
-## "MongooseMod Edition" Version History (LunarMongoose)
-##############################################################################
-##
-## ----------------
-## Map Version 3.3:
-## ----------------
-##
-## MM 4.1 (v2.0) - Placed Lush terrain using Jungle temperature to avoid interfering with
-## the rainfall-based Marsh. Placed Marsh terrain with the existing Marsh feature system,
-## and added the Swamp and Bog features using rainfall as well. Placed Rocky and Dunes
-## terrain, and the Outcrop and Reef features, using the slope / height data. Placed
-## Dry Lake terrain using the lowest-rainfall Desert. Placed Permafrost terrain as an
-## intermediate temperature zone between Tundra and Ice. Placed Bamboo and Savanna in
-## the Old World region only, regardless of the start location menu option setting.
-## Replaced hybrid Coral system with separate Shallow Coral and Deep Coral features.
-## Placed Sea terrain as an intermediate water depth between Coast and Ocean, with a
-## zone width that scales based on map size. Placed Tropical, Subtropical, Temperate,
-## and Polar water variants, and Sea Grass and Kelp features, using latitude settings.
-##
-## ------------------
-## Map Version 3.2.1:
-## ------------------
-##
-## MM 4.0.2 (v1.1a) - Changed Plains-Floodplains from always spawning to using a global percent
-## based on rainfall.
-##
-## MM 4.0.1 - No changes.
-##
-## ----------------
-## Map Version 3.2:
-## ----------------
-##
-## MM 4.0 (v1.1) - Placed Scrub and Oases based on rainfall level rather than randomly.
-## Placed Marsh in tiles with extremely high rainfall, using global percents in 3 categories
-## to make sure it doesn't consume too much Jungle, and that it shows up enough in
-## cooler regions. Placed Coral in Coast tiles when in the tropics, and in Ocean tiles
-## at half the normal density otherwise.
-##
-## ----------------
-## Map Version 3.1:
-## ----------------
-##
-## MM 3.6.1 - No changes.
-##
-## MM 3.6 (v1.0a) - Added Plains-Floodplains on all Plains tiles with rivers.
-##
-## ----------------
-## Map Version 3.0:
-## ----------------
-##
-## Never released as part of MongooseMod.
-##
-## ----------------
-## Map Version 2.6:
-## ----------------
-##
-## MM 3.5.2 - No changes.
-##
-## MM 3.5.1 - No changes.
-##
-## MM 3.5 (v1.0) - Added support for MongooseMod's custom WorldSizes and Peaks, and the
-## Mushroom, Burnt Forest, Marsh, Scrub, and Coral features. Blocked invalid resources
-## from being placed in Forests.
-##
 
 ##############################################################################
 ## Version History (LunarMongoose)
@@ -355,22 +298,19 @@ class MapConstants:
 		#Percentage of land squares high enough to be Peaks.
 		self.PeakPercent = 0.12
 
-		#Percentage of land squares cold enough to be Ice.
-		self.IcePercent        = 0.1
+		#Percentage of land squares cold enough to be Snow.
+		self.SnowPercent = 0.1
 
-		#Percentage of land squares cold enough to be Ice or Permafrost.
-		self.PermafrostPercent = 0.1 + self.IcePercent
+		#Percentage of land squares cold enough to be Snow or Tundra.
+		self.TundraPercent = 0.24 + self.SnowPercent
 
-		#Percentage of land squares cold enough to be Ice, Permafrost, or Tundra.
-		self.TundraPercent     = 0.24 + self.PermafrostPercent
-
-		#Of the squares too warm to be Ice, Permafrost, or Tundra, percentage dry enough to be Desert.
+		#Of the squares too warm to be Snow or Tundra, percentage dry enough to be Desert.
 		#(Use the first number to set the percent of TOTAL land area. I'm using 18%, while the
 		#Google Consensus for a Real Earth Desert Value seems to be 20%.)
 		self.DesertPercent = 0.18 / (1.0 - self.TundraPercent)
 
-		#Of the squares too warm to be Ice, Permafrost, or Tundra, percentage dry enough to be Desert or Plains.
-		#The remainder will be Grassland and Marsh. (This code auto-sets Plains and Grassland to be equal.)
+		#Of the squares too warm to be Snow or Tundra, percentage dry enough to be Desert or Plains.
+		#The remainder will be Grassland. (This code auto-sets Plains and Grassland to be equal.)
 		self.PlainsPercent = ((1.0 - self.DesertPercent) / 2.0) + self.DesertPercent
 
 		#Sets the threshold for Jungle rainfall by modifying plainsRainfall by this factor.
@@ -388,121 +328,11 @@ class MapConstants:
 		#Use a value between 0.0 and 1.0.
 		self.MaxTreeChance = 1.0
 
-		#################################################
-		## MongooseMod 4.1 BEGIN
-		#################################################
-
-		self.WATER = 0
-		self.LAND  = 1
-		self.HILLS = 2
-		self.PEAK  = 3
-
-		self.LUSH       = 0
-		self.GRASS      = 1
-		self.MARSH      = 2
-		self.PLAINS     = 3
-		self.ROCKY      = 4
-		self.DRY_LAKE   = 5
-		self.DESERT     = 6
-		self.DUNES      = 7
-		self.TUNDRA     = 8
-		self.PERMAFROST = 9
-		self.ICE        = 10
-		self.COAST      = 11
-		self.SEA        = 15
-		self.OCEAN      = 19
-
-		#Chance Lush will appear on Grassland tiles.
-		self.LushChance = 0.08
-
-		#Chance a Forest will spawn as Bamboo instead. A tile must be Lush, Grassland, or Tundra, have sufficient rainfall, not be on a hill,
-		#not be next to any water tiles, and be on one of the Old World landmasses (regardless of the map setting for starting locations).
-		self.BambooChance = 0.4
-
-		#Percentage of Lush and Grassland tiles warm enough to have Green Bamboo. The rest will spawn White Bamboo.
-		self.GreenBambooPercent = 0.5
-
-		#Percentage of Marsh tiles with enough rainfall to be Swamp.
-		self.SwampPercent = 0.5
-
-		#Percentage of Marsh tiles with enough rainfall to be Bog.
-		self.BogPercent = 0.5
-
-		#Percentage of Lush, Grassland, Plains, Tundra, and Permafrost tiles with enough slope (or height) to be Rocky.
-		self.RockyPercent = 0.06
-
-		#Chance Dry Lake terrain will appear. A tile must be Desert, not be on a hill, and not be next to any water tiles.
-		self.DryLakePercent = 0.06
-
-		#Percentage of flat Desert tiles with enough slope (or height) to be Dunes.
-		self.DunesPercent = 0.3
-
-		#Percentage of flat Plains, Desert, and Tundra/Permafrost/Ice tiles that are flat (or low) enough to be Outcrop.
-		self.OutcropPercent = 0.5
-		self.PlainsOutcropChance = 0.1
-		self.DesertOutcropChance = 0.06
-		self.PolarOutcropChance  = 0.2
-
-		#Latitudes that define the Tropical, Subtropical, Temperate, and Polar water temperature zones.
-		self.tropicalLatitude    = 12
-		self.subtropicalLatitude = 30
-		self.temperateLatitude   = 55
-
-		#Tile width of the Sea Zone on medium and large world sizes. Sea is an intermediate water depth that occurs between Coast and Ocean.
-		self.mediumSeaWidth = 2
-		self.largeSeaWidth  = 3
-
-		#The percent chance that Sea Grass will appear in a Coast tile in the tropical through subpolar latitudes.
-		self.SeaGrassChance = 0.03
-
-		#The percent chance that Kelp will appear in a Sea tile in the tropical through subpolar latitudes.
-		self.KelpChance = 0.04
-
-		#Percentage of Coast tiles with enough slope (or height) to be Reef.
-		self.ReefPercent = 0.5
-		self.ReefChance  = 0.08
-
-		#################################################
-		## MongooseMod 4.1 END
-		#################################################
-		## MongooseMod 3.5 BEGIN
-		#################################################
-
-		#Percentages of hot flat Grassland, cool flat Grassland, and Tundra squares wet enough to be Marsh.
-		#The first category replaces Jungle tiles, and the last category represents summer melting.
-		self.HotMarshPercent  = 0.12
-		self.MidMarshPercent  = self.HotMarshPercent * 1.5
-		self.ColdMarshPercent = self.MidMarshPercent
-
-		#Chance Mushrooms will appear. A tile must be either Lush, Grassland, or Tundra with Grassland rainfall,
-		#and not already have been given a Marsh.
-		self.MushroomChance = 0.04
-
-		#Chance a Forest will spawn as a Burnt Forest instead. A tile must meet all the normal Forest requirements
-		#(Lush/Grass/Plains/Tundra, sufficient rainfall), not be on a hill, and not be next to any water tiles.
-		self.BurntForestChance = 0.125
-
-		#Chance a Plains-Floodplains will appear. A tile must be Plains with a river next to it.
-		self.PlainsFloodplainsPercent = 0.5
-
-		#Chance an Oasis will appear. A tile must be Desert or Dunes, not be on a hill, not be near another Oasis,
-		#and be surrounded by Desert or Dunes on all sides. (Desert Lakes and Desert Peaks are allowed, but Coast is not.)
+		#Chance an Oasis will appear. A tile must be Desert, not be on a hill, not be near another Oasis,
+		#and be surrounded by Desert on all sides.
 		self.OasisPercent   = 0.5
 		self.OasisMinChance = 0.5
 		self.OasisMaxChance = 1.0
-
-		#Chance Scrub will appear. A tile must be Desert, not be on a hill, and not be next to any water tiles.
-		self.ScrubPercent   = 0.25
-		self.ScrubMinChance = 0.4
-		self.ScrubMaxChance = 0.85
-
-		#The percent chance that Coral will appear in a Coast tile in the tropical latitudes, and 2/5's the chance
-		#it will appear in a Sea tile in the temperate and subpolar latitudes.
-		self.CoralChance = 0.03
-
-		#################################################
-		## MongooseMod 3.5 END
-		#################################################
 
 		#This variable adjusts the amount of bonuses on the map. Values above 1.0 will add bonus bonuses.
 		#People often want lots of bonuses, and for those people, this variable is definately a bonus.
@@ -592,9 +422,6 @@ class MapConstants:
 		self.EmperorBonus   = 0
 		self.ImmortalBonus  = 0
 		self.DeityBonus     = 0
-		self.SunriseSwordfishBonus = 0
-		self.TwilightLlamaBonus    = 0
-		self.DarkMongooseBonus     = 0
 
 		#Decides whether to use the Python random generator or the one that is
 		#intended for use with civ maps. The Python random has much higher precision
@@ -623,6 +450,20 @@ class MapConstants:
 
 		self.width  = 0
 		self.height = 0
+
+		self.WATER = 0
+		self.LAND  = 1
+		self.HILLS = 2
+		self.PEAK  = 3
+
+		self.OCEAN  = 0
+		self.COAST  = 1
+		#self.MARSH  = 2
+		self.GRASS  = 3
+		self.PLAINS = 4
+		self.DESERT = 5
+		self.TUNDRA = 6
+		self.SNOW   = 7
 
 		self.minimumLandInChoke = 0.5
 
@@ -1088,7 +929,7 @@ class AreaMap:
 		#the game connects land squares diagonally across water, but
 		#water squares are not passable diagonally across land
 		self.segStack = list()
-		self.size   = 0
+		self.size = 0
 		self.totalX = 0
 		self.totalY = 0
 		bWater = matchFunction(x, y)
@@ -1164,7 +1005,7 @@ class AreaMap:
 			i = self.getIndex(xRightExtreme, seg.y + seg.dy)
 			if self.data[i] == 0 and bWater == matchFunction(xRightExtreme, seg.y + seg.dy):
 				self.data[i] = areaID
-				self.size   += 1
+				self.size += 1
 				#LM - set landmass position values
 				self.totalX += xRightExtreme
 				self.totalY += seg.y + seg.dy
@@ -1222,12 +1063,12 @@ class LineSegment:
 
 class Area:
 	def __init__(self, iD, size, avgX, avgY, water):
-		self.ID       = iD
-		self.size     = size
-		self.avgX     = avgX
-		self.avgY     = avgY
-		self.distance = 0.0
-		self.water    = water
+		self.ID			= iD
+		self.size		= size
+		self.avgX		= avgX
+		self.avgY		= avgY
+		self.distance	= 0.0
+		self.water		= water
 
 
 	def __str__(self):
@@ -1388,20 +1229,6 @@ class FloatMap:
 			return mc.STEMPERATE
 		else:
 			return mc.SPOLAR
-
-
-	def GetWaterZone(self, y):
-		if y < 0 or y >= self.height:
-			return 0
-		lat = abs(self.GetLatitudeForY(y))
-		if lat < mc.tropicalLatitude:
-			return 0
-		elif lat < mc.subtropicalLatitude:
-			return 1
-		elif lat < mc.temperateLatitude:
-			return 2
-		else:
-			return 3
 
 
 	def GetYFromZone(self, zone, bTop):
@@ -3527,7 +3354,7 @@ class TerrainMap:
 					cm.RainfallMap.data[i] = 0.0
 		#LM - Rewritten to use threshold values with Desert and Plains, and to exclude Peaks
 		#from the percent coverage calculations since their terrain types don't actually matter.
-		#(You could end up wasting most of your Ice tiles under polar mountain ranges and not
+		#(You could end up wasting most of your Snow tiles under polar mountain ranges and not
 		#have very many on the map, for example.)
 		landTiles   = []
 		landLength  = 0
@@ -3548,77 +3375,26 @@ class TerrainMap:
 					landLength += 1
 				'''
 
-		#################################################
-		## MongooseMod 4.1 BEGIN
-		#################################################
-
-		print "Cold"
-		iceTemp         = FindValueFromPercent(landTiles, landLength, mc.IcePercent,        False)
-		permafrostTemp  = FindValueFromPercent(landTiles, landLength, mc.PermafrostPercent, False)
-		self.tundraTemp = FindValueFromPercent(landTiles, landLength, mc.TundraPercent,     False)
-		'''
-		coastHeight     = FindValueFromPercent(waterTiles, waterLength, 0.2, True)
-		seaHeight       = FindValueFromPercent(waterTiles, waterLength, 0.7, True)
-		'''
+		snowTemp        = FindValueFromPercent(landTiles, landLength, mc.SnowPercent,	False)
+		self.tundraTemp = FindValueFromPercent(landTiles, landLength, mc.TundraPercent,	False)
 		warmTiles  = []
 		warmLength = 0
 		for y in range(mc.height):
-			waterOffset = em.GetWaterZone(y)
 			for x in range(mc.width):
 				i = GetIndex(x, y)
 				if self.pData[i] == mc.WATER:
-					found = False
 					for direction in range(1, 9):
 						xx, yy = GetNeighbor(x, y, direction)
 						ii = GetIndex(xx, yy)
 						if ii >= 0 and self.pData[ii] != mc.WATER:
-							self.tData[i] = mc.COAST + waterOffset
-							found = True
-							break
-					if not found and (gc.getMap().getWorldSize() >= 3):
-						if (gc.getMap().getWorldSize() <= 4):
-							for dy in range(-2, 3):
-								for dx in range(-2, 3):
-									ii = GetIndex(x + dx, y + dy)
-									if ii >= 0 and self.pData[ii] != mc.WATER:
-										self.tData[i] = mc.SEA + waterOffset
-										found = True
-										break
-						else:
-							if (gc.getMap().getWorldSize() <= 6):
-								iRange = mc.mediumSeaWidth + 1
-							else:
-								iRange = mc.largeSeaWidth  + 1
-							fRadius = float(iRange) * 1.1
-							for dy in range(-iRange, iRange + 1):
-								for dx in range(-iRange, iRange + 1):
-									if math.sqrt(pow(float(dx), 2) + pow(float(dy), 2)) <= fRadius:
-										ii = GetIndex(x + dx, y + dy)
-										if ii >= 0 and self.pData[ii] != mc.WATER:
-											self.tData[i] = mc.SEA + waterOffset
-											found = True
-											break
-					if not found:
-						self.tData[i] = mc.OCEAN + waterOffset
-				elif cm.TemperatureMap.data[i] < iceTemp:
-					self.tData[i] = mc.ICE
-				elif cm.TemperatureMap.data[i] < permafrostTemp:
-					self.tData[i] = mc.PERMAFROST
+							self.tData[i] = mc.COAST
+				elif cm.TemperatureMap.data[i] < snowTemp:
+					self.tData[i] = mc.SNOW
 				elif cm.TemperatureMap.data[i] < self.tundraTemp:
 					self.tData[i] = mc.TUNDRA
 				elif self.pData[i] != mc.PEAK:
 					warmTiles.append(cm.RainfallMap.data[i])
 					warmLength += 1
-				'''
-				if self.pData[i] == mc.WATER:
-					if em.data[i] >= coastHeight:
-						self.tData[i] = mc.COAST + waterOffset
-					elif em.data[i] >= seaHeight:
-						self.tData[i] = mc.SEA   + waterOffset
-					else:
-						self.tData[i] = mc.OCEAN + waterOffset
-				'''
-		print "Warm"
 		self.desertRainfall = FindValueFromPercent(warmTiles, warmLength, mc.DesertPercent, False)
 		self.plainsRainfall = FindValueFromPercent(warmTiles, warmLength, mc.PlainsPercent, False)
 		self.jungleRainfall = self.plainsRainfall * mc.JungleFactor
@@ -3642,144 +3418,7 @@ class TerrainMap:
 					jungleTiles.append(cm.TemperatureMap.data[i])
 					jungleLength += 1
 		self.jungleTemp = FindValueFromPercent(jungleTiles, jungleLength, mc.JunglePercent, True)
-		print "Lush"
-		for y in range(mc.height):
-			for x in range(mc.width):
-				i = GetIndex(x, y)
-				if self.tData[i] == mc.GRASS and cm.TemperatureMap.data[i] >= self.jungleTemp and PRand.random() < mc.LushChance:
-					self.tData[i] = mc.LUSH
-		print "Marsh"
-		hotMarshTiles   = []
-		hotMarshLength  = 0
-		midMarshTiles   = []
-		midMarshLength  = 0
-		coldMarshTiles  = []
-		coldMarshLength = 0
-		for y in range(mc.height):
-			for x in range(mc.width):
-				i = GetIndex(x, y)
-				if self.pData[i] == mc.LAND:
-					if self.tData[i] == mc.GRASS:
-						if cm.TemperatureMap.data[i] >= self.jungleTemp:
-							hotMarshTiles.append(cm.RainfallMap.data[i])
-							hotMarshLength += 1
-						else:
-							midMarshTiles.append(cm.RainfallMap.data[i])
-							midMarshLength += 1
-					elif self.tData[i] == mc.TUNDRA:
-						coldMarshTiles.append(cm.RainfallMap.data[i])
-						coldMarshLength += 1
-		hotMarshRainfall  = FindValueFromPercent(hotMarshTiles,  hotMarshLength,  mc.HotMarshPercent,  True)
-		midMarshRainfall  = FindValueFromPercent(midMarshTiles,  midMarshLength,  mc.MidMarshPercent,  True)
-		coldMarshRainfall = FindValueFromPercent(coldMarshTiles, coldMarshLength, mc.ColdMarshPercent, True)
-		for y in range(mc.height):
-			for x in range(mc.width):
-				i = GetIndex(x, y)
-				if self.pData[i] == mc.LAND:
-					if self.tData[i] == mc.GRASS:
-						if (cm.TemperatureMap.data[i] >= self.jungleTemp and cm.RainfallMap.data[i] >= hotMarshRainfall) or (cm.TemperatureMap.data[i] < self.jungleTemp and cm.RainfallMap.data[i] >= midMarshRainfall):
-							self.tData[i] = mc.MARSH
-					elif self.tData[i] == mc.TUNDRA:
-						if cm.RainfallMap.data[i] >= coldMarshRainfall:
-							self.tData[i] = mc.MARSH
-		print "Dry Lake"
-		desertTiles  = []
-		desertLength = 0
-		for y in range(mc.height):
-			for x in range(mc.width):
-				i = GetIndex(x, y)
-				if self.tData[i] == mc.DESERT and self.pData[i] == mc.LAND:
-					valid = True
-					for direction in range(1, 5):
-						xx, yy = GetNeighbor(x, y, direction)
-						ii = GetIndex(xx, yy)
-						if ii >= 0 and tm.pData[ii] == mc.WATER:
-							valid = False
-							break
-					if valid:
-						desertTiles.append(cm.RainfallMap.data[i])
-						desertLength += 1
-		dryLakeRainfall = FindValueFromPercent(desertTiles, desertLength, mc.DryLakePercent, False)
-		for y in range(mc.height):
-			for x in range(mc.width):
-				i = GetIndex(x, y)
-				if self.tData[i] == mc.DESERT and self.pData[i] == mc.LAND:
-					if cm.RainfallMap.data[i] < dryLakeRainfall:
-						valid = True
-						for direction in range(1, 5):
-							xx, yy = GetNeighbor(x, y, direction)
-							ii = GetIndex(xx, yy)
-							if ii >= 0 and tm.pData[ii] == mc.WATER:
-								valid = False
-								break
-						if valid:
-							self.tData[i] = mc.DRY_LAKE
-		print "Dunes"
-		desertTiles  = []
-		desertLength = 0
-		for y in range(mc.height):
-			for x in range(mc.width):
-				i = GetIndex(x, y)
-				if self.tData[i] == mc.DESERT and self.pData[i] == mc.LAND:
-					desertTiles.append(self.dData[i])
-					desertLength += 1
-		dunesHeight = FindValueFromPercent(desertTiles, desertLength, mc.DunesPercent, True)
-		for y in range(mc.height):
-			for x in range(mc.width):
-				i = GetIndex(x, y)
-				if self.tData[i] == mc.DESERT and self.pData[i] == mc.LAND:
-					if self.dData[i] >= dunesHeight:
-						self.tData[i] = mc.DUNES
-		print "Rocky"
-		flatTiles  = []
-		flatLength = 0
-		for y in range(mc.height):
-			for x in range(mc.width):
-				i = GetIndex(x, y)
-				if (self.tData[i] == mc.LUSH or self.tData[i] == mc.GRASS or self.tData[i] == mc.PLAINS or self.tData[i] == mc.TUNDRA or self.tData[i] == mc.PERMAFROST) and self.pData[i] == mc.LAND:
-					flatTiles.append(self.dData[i])
-					flatLength += 1
-		rockyHeight = FindValueFromPercent(flatTiles, flatLength, mc.RockyPercent, True)
-		for y in range(mc.height):
-			for x in range(mc.width):
-				i = GetIndex(x, y)
-				if (self.tData[i] == mc.LUSH or self.tData[i] == mc.GRASS or self.tData[i] == mc.PLAINS or self.tData[i] == mc.TUNDRA or self.tData[i] == mc.PERMAFROST) and self.pData[i] == mc.LAND:
-					if self.dData[i] >= rockyHeight:
-						self.tData[i] = mc.ROCKY
-		hillTiles  = []
-		hillLength = 0
-		for y in range(mc.height):
-			for x in range(mc.width):
-				i = GetIndex(x, y)
-				if (self.tData[i] == mc.LUSH or self.tData[i] == mc.GRASS or self.tData[i] == mc.PLAINS or self.tData[i] == mc.TUNDRA or self.tData[i] == mc.PERMAFROST) and self.pData[i] == mc.HILLS:
-					hillTiles.append(self.dData[i])
-					hillLength += 1
-		rockyHeight = FindValueFromPercent(hillTiles, hillLength, mc.RockyPercent, True)
-		for y in range(mc.height):
-			for x in range(mc.width):
-				i = GetIndex(x, y)
-				if (self.tData[i] == mc.LUSH or self.tData[i] == mc.GRASS or self.tData[i] == mc.PLAINS or self.tData[i] == mc.TUNDRA or self.tData[i] == mc.PERMAFROST) and self.pData[i] == mc.HILLS:
-					if self.dData[i] >= rockyHeight:
-						self.tData[i] = mc.ROCKY
-		peakTiles  = []
-		peakLength = 0
-		for y in range(mc.height):
-			for x in range(mc.width):
-				i = GetIndex(x, y)
-				if (self.tData[i] == mc.LUSH or self.tData[i] == mc.GRASS or self.tData[i] == mc.PLAINS or self.tData[i] == mc.TUNDRA or self.tData[i] == mc.PERMAFROST) and self.pData[i] == mc.PEAK:
-					peakTiles.append(self.dData[i])
-					peakLength += 1
-		rockyHeight = FindValueFromPercent(peakTiles, peakLength, mc.RockyPercent, True)
-		for y in range(mc.height):
-			for x in range(mc.width):
-				i = GetIndex(x, y)
-				if (self.tData[i] == mc.LUSH or self.tData[i] == mc.GRASS or self.tData[i] == mc.PLAINS or self.tData[i] == mc.TUNDRA or self.tData[i] == mc.PERMAFROST) and self.pData[i] == mc.PEAK:
-					if self.dData[i] >= rockyHeight:
-						self.tData[i] = mc.ROCKY
 
-		#################################################
-		## MongooseMod 4.1 END
-		#################################################
 
 tm = TerrainMap()
 
@@ -4164,9 +3803,7 @@ class CentralityScore:
 
 def isNonCoastWaterMatch(x, y):
 	i = GetIndex(x, y)
-	if tm.tData[i] >= mc.SEA   and tm.tData[i] <= mc.SEA   + 3:
-		return True
-	if tm.tData[i] >= mc.OCEAN and tm.tData[i] <= mc.OCEAN + 3:
+	if tm.tData[i] == mc.OCEAN:
 		return True
 	return False
 
@@ -4622,12 +4259,8 @@ class BonusPlacer:
 		bonusInfo = gc.getBonusInfo(bonus.eBonus)
 		plotListLength = len(plotIndexList)
 		lastI = 0
-		fFloodPlains  = gc.getInfoTypeForString("FEATURE_FLOOD_PLAINS")
-		fOasis        = gc.getInfoTypeForString("FEATURE_OASIS")
-		fKelp         = gc.getInfoTypeForString("FEATURE_KELP")
-		fShallowCoral = gc.getInfoTypeForString("FEATURE_SHALLOW_CORAL")
-		fDeepCoral    = gc.getInfoTypeForString("FEATURE_DEEP_CORAL")
-		fReef         = gc.getInfoTypeForString("FEATURE_REEF")
+		fFloodPlains = gc.getInfoTypeForString("FEATURE_FLOOD_PLAINS")
+		fOasis       = gc.getInfoTypeForString("FEATURE_OASIS")
 		for i in range(startAtIndex, startAtIndex + plotListLength):
 			index = 0
 			lastI = i
@@ -4639,7 +4272,7 @@ class BonusPlacer:
 			x = plot.getX()
 			y = plot.getY()
 			featureEnum = plot.getFeatureType()
-			requiredFeature = (featureEnum == fFloodPlains) or (featureEnum == fOasis) or (featureEnum == fKelp) or (featureEnum == fShallowCoral) or (featureEnum == fDeepCoral) or (featureEnum == fReef)
+			requiredFeature = (featureEnum == fFloodPlains or featureEnum == fOasis)
 			if ((ignoreClass and self.PlotCanHaveBonus(plot, bonus.eBonus, False, True)) or self.CanPlaceBonusAt(plot, bonus.eBonus, False, True)) and not requiredFeature:
 				#temporarily remove any feature
 				if featureEnum != FeatureTypes.NO_FEATURE:
@@ -4770,39 +4403,34 @@ class BonusPlacer:
 			return True
 		if plot.getBonusType(TeamTypes.NO_TEAM) != BonusTypes.NO_BONUS:
 			return False
-
-		#################################################
-		## MongooseMod 3.5 BEGIN
-		#################################################
-
+		if plot.isPeak():
+			return False
 		gc = CyGlobalContext()
 		bonusInfo = gc.getBonusInfo(eBonus)
-		if plot.getFeatureType() != FeatureTypes.NO_FEATURE:
-			if not bonusInfo.isFeature(plot.getFeatureType()) or  not bonusInfo.isFeatureTerrain(plot.getTerrainType()):
+		#Here is the change from canHaveBonus. Forest does not block bonus
+		featureForest  = gc.getInfoTypeForString("FEATURE_FOREST")
+		requiresForest = bonusInfo.isFeature(featureForest)
+		plotIsForest   = plot.getFeatureType() == featureForest
+		#To avoid silk and spices on snow/tundra
+		if plotIsForest and requiresForest:
+			if not bonusInfo.isFeatureTerrain(plot.getTerrainType()):
 				return False
-		elif plot.isPeak():
-			if not bonusInfo.isTerrain(plot.getTerrainType()) and not bonusInfo.isFeatureTerrain(plot.getTerrainType()):
-				return False
+		#now that bonuses that require forest are dealt with, count forest as no feature
 		else:
-			if not bonusInfo.isTerrain(plot.getTerrainType()):
-				return False
+			if plot.getFeatureType() != FeatureTypes.NO_FEATURE and not plotIsForest:
+				if not bonusInfo.isFeature(plot.getFeatureType()):
+					return False
+				if not bonusInfo.isFeatureTerrain(plot.getTerrainType()):
+					return False
+			else:
+				if not bonusInfo.isTerrain(plot.getTerrainType()):
+					return False
 		if plot.isFlatlands():
 			if not bonusInfo.isFlatlands():
 				return False
 		elif plot.isHills():
 			if not bonusInfo.isHills():
 				return False
-		elif plot.isPeak():
-			if not bonusInfo.isPeaks():
-				return False
-		if eBonus == gc.getInfoTypeForString("BONUS_WALRUS"):
-			if not plot.isCoastalLand():
-				return False
-
-		#################################################
-		## MongooseMod 3.5 END
-		#################################################
-
 		if bonusInfo.isNoRiverSide():
 			if plot.isRiverSide():
 				return False
@@ -5307,8 +4935,6 @@ class StartingPlotFinder:
 		plot = CyMap().plot(x, y)
 		sPlot = StartPlot(x, y, 0)
 		gc = CyGlobalContext()
-		fPlains      = gc.getInfoTypeForString("TERRAIN_PLAINS")
-		fFloodPlains = gc.getInfoTypeForString("FEATURE_FLOOD_PLAINS")
 		#LM - Store highest era allowed for any of these things.
 		if gc.getGame().getStartEra() < 5:
 			eraLimit = 6
@@ -5334,8 +4960,6 @@ class StartingPlotFinder:
 		production = plot.calculateBestNatureYield(YieldTypes.YIELD_PRODUCTION, TeamTypes.NO_TEAM)
 		commerce   = plot.calculateBestNatureYield(YieldTypes.YIELD_COMMERCE,   TeamTypes.NO_TEAM)
 		#LM - Handle Plains-Floodplains (since it's a special case).
-		if featureEnum == fFloodPlains and terrainEnum == fPlains:
-			food -= 2
 		#LM - Assume Lighthouse (since it's always one of the very first things a coastal city builds), and add in the VITAL extra food point from it.
 		#But remember it doesn't apply on Sea Ice!
 		if plot.isWater() and coastalCity and not plot.isImpassable():
@@ -5366,19 +4990,11 @@ class StartingPlotFinder:
 			if impEnum == ImprovementTypes.NO_IMPROVEMENT:
 				continue
 			impInfo = gc.getImprovementInfo(impEnum)
-			#LM - Add support for Towns and Mountain Villages, NOT JUST COTTAGES!!!
 			while impInfo.getImprovementUpgrade() != ImprovementTypes.NO_IMPROVEMENT:
 				impEnum = impInfo.getImprovementUpgrade()
 				impInfo = gc.getImprovementInfo(impEnum)
 
 			#some mods use improvements for other things, so if there's no tech requirement we still don't want it factored in.
-			#LM - Yeah, umm... WRONG! This is a disaster. It completely blocks feature removal builds (which the below code TRIES to use!)
-			#due to their empty main tech prereqs, as well as the Igloo and Snowman improvements.
-			#CODE ERASED.
-			#LM - Okay, I was wrong again. Blocking feature removal builds is FINE b/c they SUCK, and the below code was mainly trying to support
-			#the standard feature removal REQUIRED by most builds. Plus I block Igloo and Snowman further down anyway, so why not save some time.
-			#So yeah, umm... Oops. :)
-			#CODE RESTORED.
 			if buildInfo.getTechPrereq() == TechTypes.NO_TECH or gc.getTechInfo(buildInfo.getTechPrereq()).getEra() > eraLimit:
 				continue
 			#LM - I'm not even going to block water tile improvements for non-coastal cities, b/c even if a player both DOESN'T have, and will NEVER have,
@@ -5450,13 +5066,13 @@ class StartingPlotFinder:
 			impProduction = improvementList[i].production + production + bonusProduction
 			impCommerce   = improvementList[i].commerce   + commerce   + bonusCommerce
 			impValue = (impFood * mc.FoodValue) + (impProduction * mc.ProductionValue) + (impCommerce * mc.CommerceValue)
-			#LM - Encourage Lush, Mushrooms, Floodplains, Oases, Sea Grass, Kelp, and early food resources here to differentiate them from tile improvements that add food!
+			#LM - Encourage Floodplains, Oases and early food resources here to differentiate them from tile improvements that add food!
 			if food >= 3:
 				impValue *= 2
-			#LM - Encourage Forest/Savanna-Plains-Hills and early production resources here to differentiate them from tile improvements that add production!
+			#LM - Encourage Forest-Plains-Hills and early production resources here to differentiate them from tile improvements that add production!
 			if production >= 3:
 				impValue *= 2
-			#LM - Encourage Oases, Coral, and early commerce resources here to differentiate them from tile improvements that add commerce!
+			#LM - Encourage Oases and early commerce resources here to differentiate them from tile improvements that add commerce!
 			if commerce >= 3:
 				impValue *= 2
 			#LM - Discourage coastal water when dealing with a non-coastal city, BUT LEAVE LAKES ALONE!!!
@@ -5475,7 +5091,7 @@ class StartingPlotFinder:
 				impValue *= 3
 			elif impFood == gc.getFOOD_CONSUMPTION_PER_POPULATION():
 				impValue *= 2
-			#LM - "Commerce / 2" is my standard rule for yield balance, and it allows the code to rule out Igloo and Snowman while allowing everything else.
+			#LM - "Commerce / 2" is my standard rule for yield balance
 			elif impFood + impProduction + (impCommerce / 2) < 3:
 				impValue = 0
 			improvementList[i].value = impValue
@@ -5517,8 +5133,6 @@ class StartingPlotFinder:
 	def getCityPlotPotentialValueUncached(self, x, y, coastalCity):
 		plot = CyMap().plot(x, y)
 		gc = CyGlobalContext()
-		fMushrooms   = gc.getInfoTypeForString("FEATURE_MUSHROOMS")
-		fFloodPlains = gc.getInfoTypeForString("FEATURE_FLOOD_PLAINS")
 		if gc.getGame().getStartEra() < 5:
 			eraLimit = 6
 		else:
@@ -5565,26 +5179,6 @@ class StartingPlotFinder:
 		food       = max(food,       gc.getYieldInfo(YieldTypes.YIELD_FOOD).getMinCity())
 		production = max(production, gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getMinCity())
 		commerce   += gc.getYieldInfo(YieldTypes.YIELD_COMMERCE).getMinCity()
-		if featureEnum == fMushrooms:
-			food       += featureInfo.getYieldChange(YieldTypes.YIELD_FOOD)
-			production += featureInfo.getYieldChange(YieldTypes.YIELD_PRODUCTION)
-			commerce   += featureInfo.getYieldChange(YieldTypes.YIELD_COMMERCE)
-			if plot.isRiver():
-				food       -= terrainInfo.getRiverYieldChange(YieldTypes.YIELD_FOOD)
-				production -= terrainInfo.getRiverYieldChange(YieldTypes.YIELD_PRODUCTION)
-				commerce   -= terrainInfo.getRiverYieldChange(YieldTypes.YIELD_COMMERCE)
-				food       += featureInfo.getRiverYieldChange(YieldTypes.YIELD_FOOD)
-				production += featureInfo.getRiverYieldChange(YieldTypes.YIELD_PRODUCTION)
-				commerce   += featureInfo.getRiverYieldChange(YieldTypes.YIELD_COMMERCE)
-			if plot.isHills():
-				food       -= terrainInfo.getHillsYieldChange(YieldTypes.YIELD_FOOD)
-				production -= terrainInfo.getHillsYieldChange(YieldTypes.YIELD_PRODUCTION)
-				commerce   -= terrainInfo.getHillsYieldChange(YieldTypes.YIELD_COMMERCE)
-				food       += featureInfo.getHillsYieldChange(YieldTypes.YIELD_FOOD)
-				production += featureInfo.getHillsYieldChange(YieldTypes.YIELD_PRODUCTION)
-				commerce   += featureInfo.getHillsYieldChange(YieldTypes.YIELD_COMMERCE)
-		elif featureEnum == fFloodPlains:
-			food += 1
 		if bonusEnum != BonusTypes.NO_BONUS:
 			if bonusInfo.getTechReveal() == TechTypes.NO_TECH or gc.getTechInfo(bonusInfo.getTechReveal()).getEra() <= gc.getGame().getStartEra() + 1:
 				food       += bonusInfo.getYieldChange(YieldTypes.YIELD_FOOD)
@@ -5845,18 +5439,6 @@ class StartingPlotFinder:
 					if mc.DeityBonus > 0:
 						print "Human player at Deity Difficulty, adding %d resources" % mc.DeityBonus
 						self.boostCityPlotValue(startPlot.getX(), startPlot.getY(), mc.DeityBonus, sPlot.isCoast())
-				elif eHandicap == gc.getInfoTypeForString("HANDICAP_SUNRISE_SWORDFISH"):
-					if mc.SunriseSwordfishBonus > 0:
-						print "Human player at TwilightLlama Difficulty, adding %d resources" % mc.SunriseSwordfishBonus
-						self.boostCityPlotValue(startPlot.getX(), startPlot.getY(), mc.SunriseSwordfishBonus, sPlot.isCoast())
-				elif eHandicap == gc.getInfoTypeForString("HANDICAP_TWILIGHT_LLAMA"):
-					if mc.TwilightLlamaBonus > 0:
-						print "Human player at TwilightLlama Difficulty, adding %d resources" % mc.TwilightLlamaBonus
-						self.boostCityPlotValue(startPlot.getX(), startPlot.getY(), mc.TwilightLlamaBonus, sPlot.isCoast())
-				elif eHandicap == gc.getInfoTypeForString("HANDICAP_DARK_MONGOOSE"):
-					if mc.DarkMongooseBonus > 0:
-						print "Human player at DarkMongoose Difficulty, adding %d resources" % mc.DarkMongooseBonus
-						self.boostCityPlotValue(startPlot.getX(), startPlot.getY(), mc.DarkMongooseBonus,  sPlot.isCoast())
 
 
 class CityPlot:
@@ -5898,10 +5480,9 @@ class StartingArea:
 					#This is not the right place to apply it, though!
 					#CODE MOVED.
 
-					#LM - If the game starts well before mountain crossing is unlocked, prevent starting locations from being walled-off in small pockets.
-					if gc.getGame().getStartEra() < 3:
-						if sf.peakMap.getAreaByID(sf.peakMap.data[GetIndex(x, y)]).size < sf.iMinIslandSize:
-							value = 0
+					#LM - Prevent starting locations from being walled-off in small pockets.
+					if sf.peakMap.getAreaByID(sf.peakMap.data[GetIndex(x, y)]).size < sf.iMinIslandSize:
+						value = 0
 					#LM - Invalid locations are given a value of -1, which is blocked. Highly undesirable but technically valid locations are given a value of 0
 					#which is also blocked, with any landmass overflows now handled above. I've left the values separate anyway though, in case they're ever used.
 					if value > 0:
@@ -6121,7 +5702,7 @@ sf = StartingPlotFinder()
 ###############################################################################
 
 def getDescription():
-	return "Official Civ4 Port of Civ5's PerfectWorld 3, with new Perlin Noise landmass generator and new climate system. River, Lake, Feature and Resource placement remain unchanged from PerfectWorld 2, with updated Sea Ice placement. This version includes support for MongooseMod's custom WorldSizes, Peaks, Features and Resources, adds Flood Plains on Plains, and doesn't allow invalid resources to be placed in Forests. It also uses the DLL's starting plot evaluator, which runs much faster and includes a lot of BetterAI work by Fuyu and others."
+	return "Official Civ4 Port of Civ5's PerfectWorld 3, with new Perlin Noise landmass generator and new climate system. River, Lake, Feature and Resource placement remain unchanged from PerfectWorld 2, with updated Sea Ice placement. This version includes bugfixes and other enhancements from MongooseMod 4.2a. It also uses the DLL's starting plot evaluator, in order to take advantage of AI improvements in DLL mods."
 
 
 def getWrapX():
@@ -6289,9 +5870,7 @@ def getGridSize(argsList):
 		WorldSizeTypes.WORLDSIZE_SMALL:					(18, 12),
 		WorldSizeTypes.WORLDSIZE_STANDARD:				(24, 16),
 		WorldSizeTypes.WORLDSIZE_LARGE:					(30, 20),
-		WorldSizeTypes.WORLDSIZE_HUGE:					(36, 24),
-		WorldSizeTypes.WORLDSIZE_ENORMOUS_MONGOOSE:		(42, 28),
-		WorldSizeTypes.WORLDSIZE_PLANETARY_MONGOOSE:	(54, 36)
+		WorldSizeTypes.WORLDSIZE_HUGE:					(36, 24)
 	}
 	if (argsList[0] == -1): # (-1,) is passed to function on loads
 			return []
@@ -6344,7 +5923,7 @@ def generatePlotTypes():
 	'''
 	land   = 0.0
 	flat   = 0.0
-	ice    = 0.0
+	snow   = 0.0
 	tundra = 0.0
 	desert = 0.0
 	plains = 0.0
@@ -6354,8 +5933,8 @@ def generatePlotTypes():
 			land += 1.0
 			if tm.pData[i] != mc.PEAK:
 				flat += 1.0
-				if tm.tData[i]   == mc.ICE:
-					ice    += 1.0
+				if tm.tData[i]   == mc.SNOW:
+					snow   += 1.0
 				elif tm.tData[i] == mc.TUNDRA:
 					tundra += 1.0
 				elif tm.tData[i] == mc.DESERT:
@@ -6366,7 +5945,7 @@ def generatePlotTypes():
 					grass  += 1.0
 	print("Land   Percentage = ", str(land   / float(em.length)))
 	print("Land Count = ", str(land), "; Flat Count = ", str(flat))
-	print("Ice    Percentage = ", str(ice    / flat))
+	print("Snow   Percentage = ", str(snow   / flat))
 	print("Tundra Percentage = ", str(tundra / flat))
 	print("Desert Percentage = ", str(desert / flat))
 	print("Plains Percentage = ", str(plains / flat))
@@ -6393,50 +5972,29 @@ def generateTerrainTypes():
 	else:
 		em = e3
 	gc = CyGlobalContext()
-	iLush       = gc.getInfoTypeForString("TERRAIN_LUSH")
-	iGrass      = gc.getInfoTypeForString("TERRAIN_GRASS")
-	iMarsh      = gc.getInfoTypeForString("TERRAIN_MARSH")
-	iPlains     = gc.getInfoTypeForString("TERRAIN_PLAINS")
-	iRocky      = gc.getInfoTypeForString("TERRAIN_ROCKY")
-	iDryLake    = gc.getInfoTypeForString("TERRAIN_DRY_LAKE")
-	iDesert     = gc.getInfoTypeForString("TERRAIN_DESERT")
-	iDunes      = gc.getInfoTypeForString("TERRAIN_DUNES")
-	iTundra     = gc.getInfoTypeForString("TERRAIN_TUNDRA")
-	iPermafrost = gc.getInfoTypeForString("TERRAIN_PERMAFROST")
-	iIce        = gc.getInfoTypeForString("TERRAIN_ICE")
-	iCoast      = gc.getInfoTypeForString("TERRAIN_TROPICAL_COAST")
-	iSea        = gc.getInfoTypeForString("TERRAIN_TROPICAL_SEA")
-	iOcean      = gc.getInfoTypeForString("TERRAIN_TROPICAL_OCEAN")
+	iGrass  = gc.getInfoTypeForString("TERRAIN_GRASS")
+	iPlains = gc.getInfoTypeForString("TERRAIN_PLAINS")
+	iDesert = gc.getInfoTypeForString("TERRAIN_DESERT")
+	iTundra = gc.getInfoTypeForString("TERRAIN_TUNDRA")
+	iSnow   = gc.getInfoTypeForString("TERRAIN_SNOW")
+	iCoast  = gc.getInfoTypeForString("TERRAIN_COAST")
+	iOcean  = gc.getInfoTypeForString("TERRAIN_OCEAN")
 	terrainTypes = [0] * em.length
 	for i in range(em.length):
-		if tm.tData[i] >= mc.OCEAN   and tm.tData[i] <= mc.OCEAN + 3:
-			terrainTypes[i] = iOcean + (tm.tData[i] - mc.OCEAN)
-		elif tm.tData[i] >= mc.SEA   and tm.tData[i] <= mc.SEA   + 3:
-			terrainTypes[i] = iSea   + (tm.tData[i] - mc.SEA)
-		elif tm.tData[i] >= mc.COAST and tm.tData[i] <= mc.COAST + 3:
-			terrainTypes[i] = iCoast + (tm.tData[i] - mc.COAST)
+		if tm.tData[i] == mc.OCEAN:
+			terrainTypes[i] = iOcean
+		elif tm.tData[i] == mc.COAST:
+			terrainTypes[i] = iCoast
 		elif tm.tData[i] == mc.GRASS:
 			terrainTypes[i] = iGrass
 		elif tm.tData[i] == mc.PLAINS:
 			terrainTypes[i] = iPlains
 		elif tm.tData[i] == mc.TUNDRA:
 			terrainTypes[i] = iTundra
-		elif tm.tData[i] == mc.ICE:
-			terrainTypes[i] = iIce
+		elif tm.tData[i] == mc.SNOW:
+			terrainTypes[i] = iSnow
 		elif tm.tData[i] == mc.DESERT:
 			terrainTypes[i] = iDesert
-		elif tm.tData[i] == mc.PERMAFROST:
-			terrainTypes[i] = iPermafrost
-		elif tm.tData[i] == mc.ROCKY:
-			terrainTypes[i] = iRocky
-		elif tm.tData[i] == mc.MARSH:
-			terrainTypes[i] = iMarsh
-		elif tm.tData[i] == mc.DUNES:
-			terrainTypes[i] = iDunes
-		elif tm.tData[i] == mc.DRY_LAKE:
-			terrainTypes[i] = iDryLake
-		elif tm.tData[i] == mc.LUSH:
-			terrainTypes[i] = iLush
 	return terrainTypes
 
 
@@ -6755,10 +6313,6 @@ def addLakes():
 			makeHarbor(x, y, oceanMap)
 
 
-#################################################
-## MongooseMod 4.1 BEGIN
-#################################################
-
 def addFeatures():
 	print "========================"
 	print "Generating Feature Types"
@@ -6773,30 +6327,13 @@ def addFeatures():
 		cm = c3
 	else:
 		cm = c2
-	fMushrooms     = gc.getInfoTypeForString("FEATURE_MUSHROOMS")
-	fForest        = gc.getInfoTypeForString("FEATURE_FOREST")
-	fBamboo        = gc.getInfoTypeForString("FEATURE_BAMBOO")
-	fBurntForest   = gc.getInfoTypeForString("FEATURE_BURNT_FOREST")
-	fJungle        = gc.getInfoTypeForString("FEATURE_JUNGLE")
-	fSwamp         = gc.getInfoTypeForString("FEATURE_SWAMP")
-	fBog           = gc.getInfoTypeForString("FEATURE_BOG")
-	fSavanna       = gc.getInfoTypeForString("FEATURE_SAVANNA")
-	fFloodPlains   = gc.getInfoTypeForString("FEATURE_FLOOD_PLAINS")
-	fScrub         = gc.getInfoTypeForString("FEATURE_SCRUB")
-	fOasis         = gc.getInfoTypeForString("FEATURE_OASIS")
-	fPlainsOutcrop = gc.getInfoTypeForString("FEATURE_PLAINS_OUTCROP")
-	fDesertOutcrop = gc.getInfoTypeForString("FEATURE_DESERT_OUTCROP")
-	fPolarOutcrop  = gc.getInfoTypeForString("FEATURE_POLAR_OUTCROP")
-	fSeaGrass      = gc.getInfoTypeForString("FEATURE_SEA_GRASS")
-	fKelp          = gc.getInfoTypeForString("FEATURE_KELP")
-	fShallowCoral  = gc.getInfoTypeForString("FEATURE_SHALLOW_CORAL")
-	fDeepCoral     = gc.getInfoTypeForString("FEATURE_DEEP_CORAL")
-	fReef          = gc.getInfoTypeForString("FEATURE_REEF")
+	fForest      = gc.getInfoTypeForString("FEATURE_FOREST")
+	fJungle      = gc.getInfoTypeForString("FEATURE_JUNGLE")
+	fFloodPlains = gc.getInfoTypeForString("FEATURE_FLOOD_PLAINS")
+	fOasis       = gc.getInfoTypeForString("FEATURE_OASIS")
 	FORESTLEAFY     = 0
 	FORESTEVERGREEN = 1
 	FORESTSNOWY     = 2
-
-
 
 	print "Forest"
 	forestTiles  = []
@@ -6804,151 +6341,28 @@ def addFeatures():
 	for y in range(mc.height):
 		for x in range(mc.width):
 			i = GetIndex(x, y)
-			if (tm.tData[i] == mc.PLAINS or ((tm.tData[i] == mc.GRASS or tm.tData[i] == mc.LUSH) and (cm.RainfallMap.data[i] < tm.jungleRainfall or cm.TemperatureMap.data[i] < tm.jungleTemp))) and tm.pData[i] != mc.PEAK:
+			if (tm.tData[i] == mc.PLAINS or (tm.tData[i] == mc.GRASS and (cm.RainfallMap.data[i] < tm.jungleRainfall or cm.TemperatureMap.data[i] < tm.jungleTemp))) and tm.pData[i] != mc.PEAK:
 				forestTiles.append(cm.TemperatureMap.data[i])
 				forestLength += 1
 	deciduousTemp = FindValueFromPercent(forestTiles, forestLength, mc.DeciduousPercent, True)
-	print "Bamboo"
-	bambooTiles  = []
-	bambooLength = 0
-	for y in range(mc.height):
-		for x in range(mc.width):
-			i = GetIndex(x, y)
-			if (tm.tData[i] == mc.GRASS or tm.tData[i] == mc.TUNDRA or tm.tData[i] == mc.LUSH) and (cm.RainfallMap.data[i] < tm.jungleRainfall or cm.TemperatureMap.data[i] < tm.jungleTemp) and km.areaMap.data[i] != km.newWorldID and tm.pData[i] != mc.PEAK:
-				bambooTiles.append(cm.TemperatureMap.data[i])
-				bambooLength += 1
-	greenBambooTemp = FindValueFromPercent(bambooTiles, bambooLength, mc.GreenBambooPercent, True)
-	print "Swamp"
-	marshTiles  = []
-	marshLength = 0
-	for y in range(mc.height):
-		for x in range(mc.width):
-			i = GetIndex(x, y)
-			if tm.tData[i] == mc.MARSH and cm.TemperatureMap.data[i] >= tm.tundraTemp:
-				marshTiles.append(cm.RainfallMap.data[i])
-				marshLength += 1
-	swampRainfall = FindValueFromPercent(marshTiles, marshLength, mc.SwampPercent, True)
-	print "Bog"
-	marshTiles  = []
-	marshLength = 0
-	for y in range(mc.height):
-		for x in range(mc.width):
-			i = GetIndex(x, y)
-			if tm.tData[i] == mc.MARSH and cm.TemperatureMap.data[i] < tm.tundraTemp:
-				marshTiles.append(cm.RainfallMap.data[i])
-				marshLength += 1
-	bogRainfall = FindValueFromPercent(marshTiles, marshLength, mc.BogPercent, True)
-	print "Plains-Floodplains"
-	plainsTiles  = []
-	plainsLength = 0
-	for y in range(mc.height):
-		for x in range(mc.width):
-			i = GetIndex(x, y)
-			if mmap.plot(x, y).isRiver() and tm.tData[i] == mc.PLAINS and tm.pData[i] == mc.LAND:
-				plainsTiles.append(cm.RainfallMap.data[i])
-				plainsLength += 1
-	floodplainsRainfall = FindValueFromPercent(plainsTiles, plainsLength, mc.PlainsFloodplainsPercent, False)
-	print "Scrub"
-	desertTiles  = []
-	desertLength = 0
-	for y in range(mc.height):
-		for x in range(mc.width):
-			i = GetIndex(x, y)
-			if tm.tData[i] == mc.DESERT and tm.pData[i] == mc.LAND:
-				desertTiles.append(cm.RainfallMap.data[i])
-				desertLength += 1
-	scrubRainfall = FindValueFromPercent(desertTiles, desertLength, mc.ScrubPercent, False)
 	print "Oasis"
 	desertTiles  = []
 	desertLength = 0
 	for y in range(mc.height):
 		for x in range(mc.width):
 			i = GetIndex(x, y)
-			if (tm.tData[i] == mc.DESERT and tm.pData[i] == mc.LAND) or tm.tData[i] == mc.DUNES:
+			if tm.tData[i] == mc.DESERT:
 				valid = True
 				for direction in range(1, 5):
 					xx, yy = GetNeighbor(x, y, direction)
 					ii = GetIndex(xx, yy)
-					if ii >= 0 and (tm.tData[ii] != mc.DESERT and tm.tData[ii] != mc.DUNES):
+					if ii >= 0 and tm.tData[ii] != mc.DESERT:
 						valid = False
 						break
 				if valid:
 					desertTiles.append(cm.RainfallMap.data[i])
 					desertLength += 1
 	oasisRainfall = FindValueFromPercent(desertTiles, desertLength, mc.OasisPercent, False)
-	print "Plains Outcrop"
-	flatTiles  = []
-	flatLength = 0
-	for y in range(mc.height):
-		for x in range(mc.width):
-			i = GetIndex(x, y)
-			if tm.tData[i] == mc.PLAINS and tm.pData[i] == mc.LAND:
-				valid = True
-				for yy in range(y - 1, y + 2):
-					for xx in range(x - 1, x + 2):
-						ii = GetIndex(xx, yy)
-						if ii >= 0 and (tm.pData[ii] != mc.LAND and tm.pData[ii] != mc.HILLS):
-							valid = False
-							break
-					if not valid:
-						break
-				if valid:
-					flatTiles.append(tm.dData[i])
-					flatLength += 1
-	plainsOutcropHeight = FindValueFromPercent(flatTiles, flatLength, mc.OutcropPercent, False)
-	print "Desert Outcrop"
-	flatTiles  = []
-	flatLength = 0
-	for y in range(mc.height):
-		for x in range(mc.width):
-			i = GetIndex(x, y)
-			if (tm.tData[i] == mc.DESERT and tm.pData[i] == mc.LAND) or tm.tData[i] == mc.DUNES:
-				valid = True
-				for yy in range(y - 1, y + 2):
-					for xx in range(x - 1, x + 2):
-						ii = GetIndex(xx, yy)
-						if ii >= 0 and (tm.pData[ii] != mc.LAND and tm.pData[ii] != mc.HILLS):
-							valid = False
-							break
-					if not valid:
-						break
-				if valid:
-					flatTiles.append(tm.dData[i])
-					flatLength += 1
-	desertOutcropHeight = FindValueFromPercent(flatTiles, flatLength, mc.OutcropPercent, False)
-	print "Polar Outcrop"
-	flatTiles  = []
-	flatLength = 0
-	for y in range(mc.height):
-		for x in range(mc.width):
-			i = GetIndex(x, y)
-			if (tm.tData[i] == mc.TUNDRA or tm.tData[i] == mc.PERMAFROST or tm.tData[i] == mc.ICE) and tm.pData[i] == mc.LAND:
-				valid = True
-				for yy in range(y - 1, y + 2):
-					for xx in range(x - 1, x + 2):
-						ii = GetIndex(xx, yy)
-						if ii >= 0 and (tm.pData[ii] != mc.LAND and tm.pData[ii] != mc.HILLS):
-							valid = False
-							break
-					if not valid:
-						break
-				if valid:
-					flatTiles.append(tm.dData[i])
-					flatLength += 1
-	polarOutcropHeight = FindValueFromPercent(flatTiles, flatLength, mc.OutcropPercent, False)
-	print "Reef"
-	coastTiles  = []
-	coastLength = 0
-	for y in range(mc.height):
-		for x in range(mc.width):
-			i = GetIndex(x, y)
-			if tm.tData[i] >= mc.COAST and tm.tData[i] <= mc.COAST + 3 and mmap.plot(x, y).isPotentialCityWork() and em.IsBelowSeaLevel(x, y):
-				coastTiles.append(tm.dData[i])
-				coastLength += 1
-	reefHeight = FindValueFromPercent(coastTiles, coastLength, mc.ReefPercent, True)
-
-
-
 	createIce()
 	for y in range(mc.height):
 		lat = em.GetLatitudeForY(y)
@@ -6956,102 +6370,30 @@ def addFeatures():
 			set = False
 			i = GetIndex(x, y)
 			plot = mmap.plot(x, y)
-			#Polar Outcrop
-			if (tm.tData[i] == mc.TUNDRA or tm.tData[i] == mc.PERMAFROST or tm.tData[i] == mc.ICE) and tm.pData[i] == mc.LAND and tm.dData[i] < polarOutcropHeight and PRand.random() < mc.PolarOutcropChance:
-				valid = True
-				for yy in range(y - 1, y + 2):
-					for xx in range(x - 1, x + 2):
-						ii = GetIndex(xx, yy)
-						if ii >= 0 and (tm.pData[ii] != mc.LAND and tm.pData[ii] != mc.HILLS):
-							valid = False
-							break
-					if not valid:
-						break
-				if valid:
-					plot.setFeatureType(fPolarOutcrop, PRand.randint(0, 5))
-					set = True
-			#Plains-Floodplains, Plains Outcrop, Mushrooms, Jungle, Savanna, Burnt Forest, Bamboo, Forest
-			if not set and (tm.tData[i] == mc.LUSH or tm.tData[i] == mc.GRASS or tm.tData[i] == mc.PLAINS or tm.tData[i] == mc.TUNDRA) and tm.pData[i] != mc.PEAK:
-				if plot.isRiver() and tm.tData[i] == mc.PLAINS and tm.pData[i] == mc.LAND and cm.RainfallMap.data[i] < floodplainsRainfall:
-					plot.setFeatureType(fFloodPlains, 0)
-					set = True
-				if not set and tm.tData[i] == mc.PLAINS and tm.pData[i] == mc.LAND and tm.dData[i] < plainsOutcropHeight and PRand.random() < mc.PlainsOutcropChance:
-					valid = True
-					for yy in range(y - 1, y + 2):
-						for xx in range(x - 1, x + 2):
-							ii = GetIndex(xx, yy)
-							if ii >= 0 and (tm.pData[ii] != mc.LAND and tm.pData[ii] != mc.HILLS):
-								valid = False
-								break
-						if not valid:
-							break
-					if valid:
-						plot.setFeatureType(fPlainsOutcrop, PRand.randint(0, 5))
-						set = True
-				if not set and cm.RainfallMap.data[i] >= tm.plainsRainfall and PRand.random() < mc.MushroomChance:
-					plot.setFeatureType(fMushrooms, 0)
-					set = True
+			#Jungle, Forest
+			if (tm.tData[i] == mc.GRASS or tm.tData[i] == mc.PLAINS or tm.tData[i] == mc.TUNDRA) and tm.pData[i] != mc.PEAK:
 				if not set and cm.RainfallMap.data[i] >= tm.jungleRainfall and cm.TemperatureMap.data[i] >= tm.jungleTemp and PRand.random() < mc.MaxTreeChance:
 					plot.setFeatureType(fJungle, 0)
 					set = True
-				if not set and tm.tData[i] == mc.PLAINS and km.areaMap.data[i] != km.newWorldID and cm.RainfallMap.data[i] >= tm.plainsRainfall * PRand.random() and PRand.random() < mc.MaxTreeChance:
-					plot.setFeatureType(fSavanna, 0)
-					set = True
 				if not set and cm.RainfallMap.data[i] >= tm.jungleRainfall * PRand.random() and PRand.random() < mc.MaxTreeChance:
-					if PRand.random() < mc.BurntForestChance:
-						plot.setFeatureType(fBurntForest, 0)
-					elif tm.tData[i] != mc.PLAINS and km.areaMap.data[i] != km.newWorldID and PRand.random() < mc.BambooChance:
-						if cm.TemperatureMap.data[i] >= greenBambooTemp:
-							plot.setFeatureType(fBamboo, 0)
-						else:
-							plot.setFeatureType(fBamboo, 1)
-					elif tm.tData[i] == mc.TUNDRA:
+					if tm.tData[i] == mc.TUNDRA:
 						plot.setFeatureType(fForest, FORESTSNOWY)
 					elif cm.TemperatureMap.data[i] >= deciduousTemp:
 						plot.setFeatureType(fForest, FORESTLEAFY)
 					else:
 						plot.setFeatureType(fForest, FORESTEVERGREEN)
 					set = True
-			#Mushrooms
-			if not set and tm.tData[i] == mc.ROCKY and tm.pData[i] != mc.PEAK:
-				if cm.RainfallMap.data[i] >= tm.plainsRainfall and PRand.random() < mc.MushroomChance:
-					plot.setFeatureType(fMushrooms, 0)
-					set = True
-			#Swamp, Bog, Mushrooms
-			if not set and tm.tData[i] == mc.MARSH:
-				if cm.RainfallMap.data[i] >= tm.plainsRainfall and PRand.random() < mc.MushroomChance:
-					plot.setFeatureType(fMushrooms, 0)
-					set = True
-				elif   cm.TemperatureMap.data[i] >= tm.tundraTemp and cm.RainfallMap.data[i] >= swampRainfall:
-					plot.setFeatureType(fSwamp, 0)
-					set = True
-				elif cm.TemperatureMap.data[i] <  tm.tundraTemp and cm.RainfallMap.data[i] >= bogRainfall:
-					plot.setFeatureType(fBog, 0)
-					set = True
-			#Floodplains, Desert Outcrop, Oasis, Scrub
-			if not set and (tm.tData[i] == mc.DESERT or tm.tData[i] == mc.DUNES) and tm.pData[i] == mc.LAND:
+			#Floodplains, Oasis
+			if not set and tm.tData[i] == mc.DESERT and tm.pData[i] == mc.LAND:
 				if plot.isRiver():
 					plot.setFeatureType(fFloodPlains, 0)
 					set = True
-				if not set and tm.dData[i] < desertOutcropHeight and PRand.random() < mc.DesertOutcropChance:
-					valid = True
-					for yy in range(y - 1, y + 2):
-						for xx in range(x - 1, x + 2):
-							ii = GetIndex(xx, yy)
-							if ii >= 0 and (tm.pData[ii] != mc.LAND and tm.pData[ii] != mc.HILLS):
-								valid = False
-								break
-						if not valid:
-							break
-					if valid:
-						plot.setFeatureType(fDesertOutcrop, PRand.randint(0, 5))
-						set = True
 				if not set and cm.RainfallMap.data[i] >= oasisRainfall and PRand.random() < mc.OasisMinChance + (((mc.OasisMaxChance - mc.OasisMinChance) * (cm.RainfallMap.data[i] - oasisRainfall)) / (tm.desertRainfall - oasisRainfall)):
 					valid = True
 					for direction in range(1, 5):
 						xx, yy = GetNeighbor(x, y, direction)
 						ii = GetIndex(xx, yy)
-						if ii >= 0 and (tm.tData[ii] != mc.DESERT and tm.tData[ii] != mc.DUNES):
+						if ii >= 0 and tm.tData[ii] != mc.DESERT:
 							valid = False
 							break
 					if valid:
@@ -7066,41 +6408,12 @@ def addFeatures():
 					if valid:
 						plot.setFeatureType(fOasis, 0)
 						set = True
-				if not set and tm.tData[i] == mc.DESERT and cm.RainfallMap.data[i] >= scrubRainfall and PRand.random() < mc.ScrubMinChance + (((mc.ScrubMaxChance - mc.ScrubMinChance) * (cm.RainfallMap.data[i] - scrubRainfall)) / (tm.plainsRainfall - scrubRainfall)):
-					plot.setFeatureType(fScrub, 0)
-					set = True
-			#Shallow Coral, Sea Grass, Reef
-			if not set and tm.tData[i] >= mc.COAST and tm.tData[i] <= mc.COAST + 3 and plot.isPotentialCityWork():
-				if   abs(lat) < 40 and PRand.random() < mc.CoralChance and em.IsBelowSeaLevel(x, y):
-					plot.setFeatureType(fShallowCoral, 0)
-					set = True
-				elif abs(lat) < 80 and PRand.random() < mc.SeaGrassChance:
-					plot.setFeatureType(fSeaGrass, 0)
-					set = True
-				elif tm.dData[i] >= reefHeight and PRand.random() < mc.ReefChance and em.IsBelowSeaLevel(x, y):
-					plot.setFeatureType(fReef, 0)
-					set = True
-			#Ocean Coral, Kelp
-			if not set and ((tm.tData[i] >= mc.SEA and tm.tData[i] <= mc.SEA + 3) or (tm.tData[i] >= mc.OCEAN and tm.tData[i] <= mc.OCEAN + 3)) and plot.isPotentialCityWork():
-				if   (abs(lat) >= 40 and abs(lat) < 80) and PRand.random() < mc.CoralChance * 3 and em.IsBelowSeaLevel(x, y):
-					plot.setFeatureType(fDeepCoral, 0)
-					set = True
-				elif (abs(lat) >= 15 and abs(lat) < 45) and PRand.random() < mc.KelpChance  / 2.0:
-					plot.setFeatureType(fKelp, 0)
-					set = True
-				elif (abs(lat) >= 45 and abs(lat) < 80) and PRand.random() < mc.KelpChance:
-					plot.setFeatureType(fKelp, 0)
-					set = True
-
-#################################################
-## MongooseMod 4.1 END
-#################################################
 
 
 def createIce():
 	gc = CyGlobalContext()
 	mmap = gc.getMap()
-	featureSeaIce = gc.getInfoTypeForString("FEATURE_SEA_ICE")
+	featureIce = gc.getInfoTypeForString("FEATURE_ICE")
 	if mc.ClimateSystem == 0:
 		cm = c3
 		iceTemp = 0.25
@@ -7135,7 +6448,7 @@ def createIce():
 			i = GetIndex(x, y)
 			plot = mmap.plot(x, y)
 			if plot.isWater() and cm.TemperatureMap.data[i] < iceTemp and PRand.random() < iceChance:
-				plot.setFeatureType(featureSeaIce, 0)
+				plot.setFeatureType(featureIce, 0)
 		iceChance -= iceReduction
 	if mc.WrapY:
 		iceChance = 0.5
@@ -7146,7 +6459,7 @@ def createIce():
 			i = GetIndex(x, y)
 			plot = mmap.plot(x, y)
 			if plot.isWater() and cm.TemperatureMap.data[i] < iceTemp and PRand.random() < iceChance:
-				plot.setFeatureType(featureSeaIce, 0)
+				plot.setFeatureType(featureIce, 0)
 		iceChance -= iceReduction
 
 
