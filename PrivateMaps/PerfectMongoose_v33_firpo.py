@@ -2333,7 +2333,6 @@ class ClimateMap3:
 		incX   = 0
 		incY   = 0
 		geoIndex = 0
-		str = ""
 		for zone in range(6):
 			topY    = em.GetYFromZone(zone, True)
 			bottomY = em.GetYFromZone(zone, False)
@@ -3165,7 +3164,7 @@ def FindValueFromPercent(map, length, percent, greaterThan):
 	while not inTolerance:
 		iterations += 1
 		if(iterations > 500):
-			print "can't find value within tolerance, end value = "
+			print "can't find value within tolerance"
 			print "threshold = %f, thresholdChange = %f" % (threshold, thresholdChange)
 			break #close enough
 		matchCount = 0
@@ -3177,7 +3176,9 @@ def FindValueFromPercent(map, length, percent, greaterThan):
 				else:
 					if map[i] < threshold:
 						matchCount += 1
-		currentPercent = float(matchCount) / float(totalCount)
+		currentPercent = 0
+		if totalCount > 0: # firpo: Shouldn't be 0, but let's make sure.
+			currentPercent = float(matchCount) / float(totalCount)
 		if currentPercent < percent + tolerance and currentPercent > percent - tolerance:
 			inTolerance = True
 		elif greaterThan:
@@ -4718,10 +4719,11 @@ class StartingPlotFinder:
 				oldWorldValue += self.startingAreaList[i].rawValue
 			#Recalulate value per player of old world so we are starting more accurately
 			oldWorldValuePerPlayer = oldWorldValue / len(shuffledPlayers)
+			assert oldWorldValuePerPlayer > 0 # firpo
 			#Record the ideal number of players for each continent
 			for startingArea in self.startingAreaList:
 				#LM - Store fractional values for accurate scaling below.
-				startingArea.idealNumberOfPlayers = float(startingArea.rawValue) / float(oldWorldValuePerPlayer)
+				startingArea.idealNumberOfPlayers = float(startingArea.rawValue) / float(max(1, oldWorldValuePerPlayer))
 			#Now we want best first
 			self.startingAreaList.reverse()
 			print "number of starting areas is %(s)3d" % {"s":len(self.startingAreaList)}
@@ -6406,20 +6408,22 @@ def addFeatures():
 			#Jungle, Forest
 			if (tm.tData[i] == mc.GRASS or tm.tData[i] == mc.PLAINS or tm.tData[i] == mc.TUNDRA) and tm.pData[i] != mc.PEAK:
 				if not set and cm.RainfallMap.data[i] >= tm.jungleRainfall and cm.TemperatureMap.data[i] >= tm.jungleTemp and PRand.random() < mc.MaxTreeChance:
-					plot.setFeatureType(fJungle, 0)
-					set = True
+					if setFeature(plot, fJungle, 0):
+						set = True
 				if not set and cm.RainfallMap.data[i] >= tm.jungleRainfall * PRand.random() and PRand.random() < mc.MaxTreeChance:
 					if tm.tData[i] == mc.TUNDRA:
-						plot.setFeatureType(fForest, FORESTSNOWY)
+						if setFeature(plot, fForest, FORESTSNOWY):
+							set = True
 					elif cm.TemperatureMap.data[i] >= deciduousTemp:
-						plot.setFeatureType(fForest, FORESTLEAFY)
+						if setFeature(plot, fForest, FORESTLEAFY):
+							set = True
 					else:
-						plot.setFeatureType(fForest, FORESTEVERGREEN)
-					set = True
+						if setFeature(plot, fForest, FORESTEVERGREEN):
+							set = True
 			#Floodplains, Oasis
 			if not set and tm.tData[i] == mc.DESERT and tm.pData[i] == mc.LAND:
-				if plot.isRiver():
-					plot.setFeatureType(fFloodPlains, 0)
+				#if plot.isRiver(): # firpo: Let setFeature (i.e. the DLL) check this
+				if setFeature(plot, fFloodPlains, 0):
 					set = True
 				if not set and cm.RainfallMap.data[i] >= oasisRainfall and PRand.random() < mc.OasisMinChance + (((mc.OasisMaxChance - mc.OasisMinChance) * (cm.RainfallMap.data[i] - oasisRainfall)) / (tm.desertRainfall - oasisRainfall)):
 					valid = True
@@ -6440,8 +6444,17 @@ def addFeatures():
 							if not valid:
 								break
 					if valid:
-						plot.setFeatureType(fOasis, 0)
-						set = True
+						if setFeature(plot, fOasis, 0):
+							set = True
+
+
+# firpo: Make sure that the placement rules are consistent with the DLL.
+# setFeatureType calls above redirected here.
+def setFeature(plot, feature, variety):
+	if not plot.canHaveFeature(feature):
+		return False
+	plot.setFeatureType(feature, variety)
+	return True
 
 
 def createIce():
