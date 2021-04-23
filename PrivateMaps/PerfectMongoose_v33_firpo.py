@@ -201,7 +201,7 @@
 ## variable to turn off 'New world' placement.
 ##
 ## 1.08 - Removed the hemispheres logic and replaced it with a simulated meteor
-## shower to break up pangeas. Added a tuning variable to allow pangeas.
+## shower to break up pangaeas. Added a tuning variable to allow pangaeas.
 ##
 ## 1.07 - Placing lakes and harbors after river placement was not updating river
 ## crossings. Resetting rivers after lake placement should solve this. Fixed a
@@ -282,10 +282,10 @@ class MapConstants:
 		self.RiverGenerator    = 0
 
 		#If this variable is set to False, a shower of colossal meteors will attempt to
-		#break up any pangea-like continents. Setting this variable to True will allow
-		#pangeas to sometimes occur and should be greatly favored by any dinosaurs
+		#break up any pangaea-like continents. Setting this variable to True will allow
+		#pangaeas to sometimes occur and should be greatly favored by any dinosaurs
 		#that might be living on this planet at the time.
-		self.AllowPangeas  = False
+		self.AllowPangaeas  = False
 
 		#This variable can be used to turn off 'New world' logic and place starting positions
 		#anywhere in the world. For some mods, a new world doesn't make sense.
@@ -725,7 +725,7 @@ class MapConstants:
 		# River Generator
 		self.RiverGenerator    = mmap.getCustomMapOption(4)
 		# Pangaea Rules
-		self.AllowPangeas      = mmap.getCustomMapOption(5)
+		self.AllowPangaeas      = mmap.getCustomMapOption(5)
 		# Wrap Options
 		selectionID            = mmap.getCustomMapOption(6)
 		# New World Rules
@@ -802,11 +802,11 @@ class MapConstants:
 		else:
 			string = "PW2"
 		self.optionsString += "River Generator = " + string + "\n"
-		if self.AllowPangeas:
+		if self.AllowPangaeas:
 			string = "True"
 		else:
 			string = "False"
-		self.optionsString += "Allow Pangeas = " + string + "\n"
+		self.optionsString += "Allow Pangaeas = " + string + "\n"
 		if self.WrapX:
 			if not self.WrapY:
 				string = "Cylindrical"
@@ -3467,8 +3467,8 @@ class PangaeaBreaker:
 
 
 	def breakPangaeas(self):
-		if mc.AllowPangeas:
-			print "Pangeas are allowed on this map and will not be suppressed."
+		if mc.AllowPangaeas:
+			print "Pangaeas are allowed on this map and will not be suppressed."
 			return
 		gc = CyGlobalContext()
 		if gc.getMap().getWorldSize() < 3:
@@ -3480,13 +3480,13 @@ class PangaeaBreaker:
 			em = e3
 		self.areaMap = AreaMap(em.width, em.height, True, True)
 		meteorThrown   = False
-		pangeaDetected = False
+		pangaeaDetected = False
 		self.createDistanceMap()
 		self.areaMap.defineAreas(isHmWaterMatch)
 		meteorCount = 0
-		if not mc.AllowPangeas: #and gc.getMap().getWorldSize() >= 3: # firpo: I think we can throw a couple small ones
-			while self.isPangea() and meteorCount < mc.maximumMeteorCount:
-				pangeaDetected = True
+		if not mc.AllowPangaeas: #and gc.getMap().getWorldSize() >= 3: # firpo: I think we can throw a couple small ones
+			while self.isPangaea() and meteorCount < mc.maximumMeteorCount:
+				pangaeaDetected = True
 				x, y = self.getMeteorStrike()
 				print "A meteor has struck the Earth at %(x)d, %(y)d!!" % {"x":x,"y":y}
 				self.castMeteorUponTheEarth(x, y)
@@ -3494,19 +3494,19 @@ class PangaeaBreaker:
 				meteorCount += 1
 				self.createDistanceMap()
 				self.areaMap.defineAreas(isHmWaterMatch)
-		if not pangeaDetected:
-			print "No pangea detected on this map."
+		if not pangaeaDetected:
+			print "No pangaea detected on this map."
 		if meteorThrown:
 			print "The age of dinosaurs has come to a cataclysmic end."
 		#if meteorCount == 15:
 		if meteorCount == mc.maximumMeteorCount: # firpo (bugfix)
 			print "Maximum meteor count of %d has been reached." % meteorCount
 			# <firpo> Previously always said that "Pangaea may still exist"
-			if self.isPangea():
+			if self.isPangaea():
 				print "Pangaea still exists" # </firpo>
 
 
-	def isPangea(self):
+	def isPangaea(self):
 		continentList = list()
 		for a in self.areaMap.areaList:
 			if not a.water:
