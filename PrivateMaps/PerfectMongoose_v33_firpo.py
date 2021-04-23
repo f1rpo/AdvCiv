@@ -1,6 +1,9 @@
 ##
 ## Latest changes to PerfectWorld in MongooseMod ported back to the latest
-## standalone version of the script - by firpo. Plus some bugfixes.
+## standalone version of the script - by firpo. Plus some bugfixes, increased
+## attenuation of polar landmasses and reduced effect of meteors (meaning also
+## that Pangaea isn't broken up reliably - but, then, the original script had
+## yielded pretty much unplayable maps when breaking up a Pangaea by all means).
 ##
 ##############################################################################
 ##
@@ -376,6 +379,7 @@ class MapConstants:
 		#Too many meteors will simply destroy the Earth, and just
 		#in case the meteor shower can't break the pangaea, this will also
 		#prevent and endless loop.
+		# advc (note): Set in initInGameOptions now.
 		self.maximumMeteorCount = 15
 
 		#Minimum size for a meteor strike that attemps to break pangaeas.
@@ -517,6 +521,7 @@ class MapConstants:
 		# currently used to prevent large continents in the uninhabitable polar
 		# regions. East/west attenuation is set to zero, but modded maps may
 		# have need for them.
+		# firpo (note): Now set based on sea level in initInGameOptions
 		self.northAttenuationFactor = 0.0
 		self.northAttenuationRange  = 0.0 #percent of the map height.
 		self.southAttenuationFactor = 0.0
@@ -745,7 +750,24 @@ class MapConstants:
 		elif selectionID == 2:
 			self.WrapX = False
 			self.hmWidth += 1
-
+		# <firpo>
+		# Far fewer than 15. Now only a best effort.
+		self.maximumMeteorCount = 2 * (mmap.getWorldSize() - 1)
+		if self.SeaLevel == 1:
+			self.maximumMeteorCount += 1
+		if self.SeaLevel == 3:
+			self.maximumMeteorCount += 1
+		self.maximumMeteorCount = max(1, self.maximumMeteorCount)
+		self.northAttenuationRange  = 0.1
+		self.northAttenuationFactor = 0.28
+		# Avoid elongated Antarctica; likelier to occur when land ratio is high.
+		if self.SeaLevel == 1:
+			self.northAttenuationFactor -= 0.08
+		if self.SeaLevel == 3:
+			self.northAttenuationFactor -= 0.04
+		self.southAttenuationRange = self.northAttenuationRange
+		self.southAttenuationFactor = self.northAttenuationFactor
+		# </firpo>
 		self.optionsString = "Map Options:\n"
 		if self.SeaLevel == 0:
 			string = "Normal"
@@ -3462,7 +3484,7 @@ class PangaeaBreaker:
 		self.createDistanceMap()
 		self.areaMap.defineAreas(isHmWaterMatch)
 		meteorCount = 0
-		if not mc.AllowPangeas and gc.getMap().getWorldSize() >= 3:
+		if not mc.AllowPangeas: #and gc.getMap().getWorldSize() >= 3: # firpo: I think we can throw a couple small ones
 			while self.isPangea() and meteorCount < mc.maximumMeteorCount:
 				pangeaDetected = True
 				x, y = self.getMeteorStrike()
@@ -3607,7 +3629,9 @@ class PangaeaBreaker:
 			em = e2
 		else:
 			em = e3
-		radius = PRand.randint(mc.minimumMeteorSize, max(mc.minimumMeteorSize + 1, em.width / 16))
+		#radius = PRand.randint(mc.minimumMeteorSize, max(mc.minimumMeteorSize + 1, em.width / 16))
+		# firpo:
+		radius = PRand.randint(mc.minimumMeteorSize, max(mc.minimumMeteorSize + 1, 2 * mc.minimumMeteorSize))
 		circlePointList = self.getCirclePoints(x, y, radius)
 		circlePointList.sort(lambda n, m:cmp(n.y, m.y))
 		for n in range(0, len(circlePointList), 2):
@@ -3618,10 +3642,11 @@ class PangaeaBreaker:
 			else:
 				x2 = circlePointList[n].x
 				x1 = circlePointList[n + 1].x
-			self.drawCraterLine(x1, x2, cy)
+			# <firpo> params centerX, centerY added
+			self.drawCraterLine(x1, x2, cy, x, y)
 
 
-	def drawCraterLine(self, x1, x2, y):
+	def drawCraterLine(self, x1, x2, y, centerX, centerY): # </firpo>
 		if mc.LandmassGenerator == 2:
 			em = e2
 		else:
@@ -3630,7 +3655,9 @@ class PangaeaBreaker:
 			return
 		for x in range(x1, x2 + 1):
 			i = GetHmIndex(x, y)
-			em.data[i] = 0.0
+			#em.data[i] = 0.0
+			# firpo: 0 elevation leads to coastal peaks when using the lowest-neighbor slope option.
+			em.data[i] *= min(0.88, 0.37 + math.sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY)) / 7.0)
 
 
 	def getCirclePoints(self, xCenter, yCenter, radius):
@@ -3695,6 +3722,11 @@ class PangaeaBreaker:
 		C = self.createCentralityList(ID)
 		C.sort(lambda x, y:cmp(x.centrality, y.centrality))
 		C.reverse()
+		# <firpo> Kludge. I see meteors cast near the poles or twice in the same spot; ruling out water targets should help.
+		for i in range(len(C)):
+			centralPlot = CyMap().plot(C[i].x, C[i].y)
+			if not centralPlot is None and centralPlot.getX() >= 0 and centralPlot.getY() >= 0 and not centralPlot.isWater():
+				return C[i].x, C[i].y # </firpo>
 		return C[0].x, C[0].y
 
 
@@ -5919,9 +5951,7 @@ def generatePlotTypes():
 	mc.height = map.getGridHeight()
 	PRand.seed()
 	if mc.LandmassGenerator == 2:
-		#mc.minimumMeteorSize = (1 + int(round(float(mc.hmWidth) / float(mc.width)))) * 3
-		# firpo (bugfix): hmWidth is a constant (144). The meteor size should increase with the map size, not decrease.
-		mc.minimumMeteorSize = (1 + int(round(float(mc.width) / float(mc.hmWidth)))) * 3
+		mc.minimumMeteorSize = calculateMinMeteorSize()
 		em = e2
 		em.initialize(mc.hmWidth, mc.hmHeight, mc.WrapX, mc.WrapY)
 		em.PerformTectonics()
@@ -5935,12 +5965,12 @@ def generatePlotTypes():
 		if mc.ClimateSystem == 0:
 			em.initialize(mc.width,   mc.height,   mc.WrapX, mc.WrapY)
 		else:
-			# firpo (bugfix): See above
-			mc.minimumMeteorSize = (1 + int(round(float(mc.width) / float(mc.hmWidth)))) * 3
+			mc.minimumMeteorSize = calculateMinMeteorSize()
 			em.initialize(mc.hmWidth, mc.hmHeight, mc.WrapX, mc.WrapY)
 		em.GenerateElevationMap()
 		em.FillInLakes()
-	pb.breakPangaeas()
+	if mc.maximumMeteorCount > 0: # firpo
+		pb.breakPangaeas()
 	if mc.ClimateSystem == 0:
 		c3.GenerateTemperatureMap()
 		c3.GenerateRainfallMap()
@@ -5994,6 +6024,13 @@ def generatePlotTypes():
 		elif mapLoc == mc.LAND:
 			plotTypes[i] = PlotTypes.PLOT_LAND
 	return plotTypes
+
+# firpo: Replacing redundant (erroneous) code
+def calculateMinMeteorSize():
+	#return (1 + int(round(float(mc.hmWidth) / float(mc.width)))) * 3
+	# firpo (bugfix): hmWidth is a constant (144). The meteor size should increase with the map size, not decrease.
+	# Also move the coefficient into the numerator and decrease it.
+	return 1 + int(round((2.0 * mc.width) / float(mc.hmWidth)))
 
 
 def generateTerrainTypes():
