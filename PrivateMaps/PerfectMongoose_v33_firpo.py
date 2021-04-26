@@ -1924,6 +1924,7 @@ class ElevationMap2(FloatMap):
 						nn = GetHmIndex(xx, yy)
 						if nn != -1:
 							self.plateMap[nn].plateID = i
+							xx, yy = CoordsFromIndex(nn, self.width) # advc (bugfix?)
 							plot = (xx, yy, i)
 							growthPlotList.append(plot)
 					break
@@ -1954,6 +1955,7 @@ class ElevationMap2(FloatMap):
 						growthChance = mc.plateGrowthChanceX
 					if PRand.random() < growthChance:
 						self.plateMap[ii].plateID = plateID
+						xx, yy = CoordsFromIndex(ii, self.width) # advc (bugfix?)
 						newPlot = (xx, yy, plateID)
 						growthPlotList.append(newPlot)
 			#move plot to the end of the list if room left, otherwise
@@ -2425,10 +2427,12 @@ class ClimateMap3:
 			ii = em.GetIndex(x1, y1)
 			##neighbor must be on map and in same wind zone
 			if ii >= 0 and (em.GetZone(y1) == em.GetZone(y)):
+				x1, y1 = CoordsFromIndex(ii, em.width) # advc (bugfix?)
 				nList.append((x1, y1))
 			x2, y2 = GetNeighbor(x, y, dir2)
 			ii = em.GetIndex(x2, y2)
 			if ii >= 0:
+				x2, y2 = CoordsFromIndex(ii, em.width) # advc (bugfix?)
 				nList.append((x2, y2))
 		else:
 			#AIAndy Bugfix - climate hex evaluation
@@ -2436,6 +2440,7 @@ class ClimateMap3:
 				xx, yy = GetNeighbor(x, y, direction)
 				ii = em.GetIndex(xx, yy)
 				if ii >= 0 and pressureMap.data[i] <= pressureMap.data[ii]:
+					xx, yy = CoordsFromIndex(ii, em.width) # advc (bugfix?)
 					nList.append((xx, yy))
 		if len(nList) == 0 or (boolGeostrophic and len(nList) == 1):
 			cost = moistureMap.data[i]
@@ -2621,6 +2626,7 @@ class ClimateMap2:
 					xx, yy = GetNeighbor(plot.x, plot.y, direction)
 					ii = GetHmIndex(xx, yy)
 					if ii >= 0 and tempMap[i] <= tempMap[ii]:
+						xx, yy = CoordsFromIndex(ii, em.width) # advc (bugfix?)
 						nList.append((xx, yy))
 				#divide moisture by number of neighbors for distribution
 				if len(nList) == 0:
@@ -2824,6 +2830,12 @@ def GetIndex(x, y):
 	else:
 		yy = y
 	return yy * mc.width + xx
+
+# advc: To fix potential problems with GetNeighbor (q.v.)
+def CoordsFromIndex(i, width):
+	assert i >= 0
+	y = i / width
+	return i - y * width, y
 
 
 def GetHmIndex(x, y):
@@ -3076,7 +3088,7 @@ def GetOppositeDirection(direction):
 		opposite = mc.SW
 	return opposite
 
-
+# advc (note): Since this function does not apply world-wraps, the result should only be fed into one of the get-index functions, which do apply world-wraps. Where the PerfectMongoose code had used the coordinates for other purposes, I've added a call to the (new) CoordsFromIndex function - which maps the valid index to valid coordinates.
 def GetNeighbor(x, y, direction):
 	if direction == mc.L:
 		return x, y
@@ -3674,6 +3686,7 @@ class PangaeaBreaker:
 					neighborDistanceToLand = self.distanceMap[ii]
 					if neighborDistanceToLand > distanceToLand + 1:
 						self.distanceMap[ii] = distanceToLand + 1
+						xx, yy = CoordsFromIndex(ii, em.width) # advc (bugfix?)
 						processQueue.append((xx, yy))
 
 
@@ -4085,6 +4098,7 @@ class RiverMap:
 				xx, yy = GetNeighbor(x, y, direction)
 				ii = GetIndex(xx, yy)
 				if ii >= 0 and self.isLake(xx, yy) and onQueueMap[ii] == 0:
+					xx, yy = CoordsFromIndex(ii, mc.width) # advc (bugfix?)
 					lakeList.append((xx, yy, lakeSize))
 					onQueueMap[ii] = 1
 
@@ -6288,6 +6302,7 @@ def expandLake(x, y, riversIntoLake, oceanMap):
 					if oceanMap.areaList[n].ID == areaID:
 						if oceanMap.areaList[n].water:
 							return
+				xx, yy = CoordsFromIndex(ii, oceanMap.width) # advc (bugfix?)
 				if rm.riverMap[ii] != mc.L and not mmap.plot(xx, yy).isWater():
 					lakeNeighbors.append(LakePlot(xx, yy, em.data[ii]))
 		lakeSize -= 1
@@ -6416,6 +6431,7 @@ def addFeatures():
 					if valid:
 						for yy in range(y - 2, y + 3):
 							for xx in range(x - 2, x + 3):
+								xx, yy = CoordsFromIndex(ii, mc.width) # advc (bugfix?)
 								surPlot = mmap.plot(xx, yy)
 								if surPlot != 0 and surPlot.getFeatureType() == fOasis:
 									valid = False
