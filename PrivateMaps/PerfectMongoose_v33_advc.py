@@ -289,20 +289,21 @@ class MapConstants:
 
 		#This variable can be used to turn off 'New world' logic and place starting positions
 		#anywhere in the world. For some mods, a new world doesn't make sense.
-		# advc (comment): This gets overwritten when custom options are read. Apparently, AllowNewWorld stands for "allow there to be a New World", which really means that starts in the New World are disallowed!
-		self.AllowNewWorld = False
+		#self.AllowNewWorld = False
+		# advc: Renamed b/c, apparently, AllowNewWorld stands for "allow there to be a New World", which really means that starts in the New World are disallowed! Gets overwritten when custom options are read.
+		self.OldWorldStarts = False
 
 		#Percent of land vs. water
 		#LM - Exact Real Earth Value. Actual results vary depending on map size, meteors, and which landmass generator was used.
 		#self.landPercent = 0.2889
 		# advc: Low sea level should be close to the real ratio because that's how it works with the standard map scripts (e.g. Fractal). At Medium sea level, Fractal only yields about 21% land - but PM has more bad terrain.
-		self.landPercent = 0.23
+		self.landPercent = 0.235
 
 		#Percentage of land squares high enough to be Hills or Peaks.
-		self.HillPercent = 0.21 # advc: was 0.42
+		self.HillPercent = 0.22 # advc: was 0.42
 
 		#Percentage of land squares high enough to be Peaks.
-		self.PeakPercent = 0.045 # advc: was 0.12
+		self.PeakPercent = 0.048 # advc: was 0.12
 
 		#Percentage of land squares cold enough to be Snow.
 		self.SnowPercent = 0.1
@@ -352,10 +353,10 @@ class MapConstants:
 
 		#Chance an Oasis will appear. A tile must be Desert, not be on a hill, not be near another Oasis,
 		#and be surrounded by Desert on all sides.
-		# <advc> Was 0.5, 0.5, 1.0, but I'm relaxing the enclosure condition.
-		self.OasisPercent   = 0.16
-		self.OasisMinChance = 0.11
-		self.OasisMaxChance = 0.22 # </advc>
+		# <advc> Was 0.5, 0.5, 1.0, but I'm relaxing the enclosure condition. And I'm adding a minor map-size adjustment in initInGameOptions.
+		self.OasisPercent   = 0.15
+		self.OasisMinChance = 0.1
+		self.OasisMaxChance = 0.2 # </advc>
 
 		#This variable adjusts the amount of bonuses on the map. Values above 1.0 will add bonus bonuses.
 		#People often want lots of bonuses, and for those people, this variable is definately a bonus.
@@ -754,7 +755,7 @@ class MapConstants:
 		# Wrap Options
 		selectionID            = mmap.getCustomMapOption(6)
 		# New World Rules
-		self.AllowNewWorld     = mmap.getCustomMapOption(7)
+		self.OldWorldStarts    = mmap.getCustomMapOption(7)
 
 		if selectionID == 0:
 			self.eastWaterBand  = 0
@@ -797,6 +798,17 @@ class MapConstants:
 			self.northAttenuationFactor -= 0.04
 		self.southAttenuationRange = self.northAttenuationRange
 		self.southAttenuationFactor = self.northAttenuationFactor
+		# Slightly more oases on smaller maps - to make it less likely that the map won't have any.
+		oasisAdjust = (3 - mmap.getWorldSize()) / 100.0
+		# Some extra Jungle for the PM3 land generator b/c it tends to place less land near the equator.
+		if mc.LandmassGenerator != 2:
+			mc.JungleFactor -= 0.03
+			mc.JunglePercent += 0.03
+		else: # Bulkier deserts with the PW2 generator allow for more (too many) oases
+			oasisAdjust -= 0.03
+		self.OasisPercent += oasisAdjust
+		self.OasisMinChance += oasisAdjust
+		self.OasisMaxChance += 2 * oasisAdjust
 		# </advc>
 		self.optionsString = "Map Options:\n"
 		if self.SeaLevel == 0:
@@ -845,11 +857,13 @@ class MapConstants:
 		else:
 			string = "Flat"
 		self.optionsString += "World Wrap = " + string + "\n"
-		if self.AllowNewWorld:
+		if self.OldWorldStarts:
 			string = "True"
 		else:
 			string = "False"
-		self.optionsString += "Allow New World = " + string + "\n"
+		#self.optionsString += "Allow New World = " + string + "\n"
+		# advc:
+		self.optionsString += "Old World Starts = " + string + "\n"
 
 
 mc = MapConstants()
@@ -869,6 +883,7 @@ class PythonRandom:
 		#AIAndy - I disagree. Python randoms are deterministic so the only important thing is to seed from a synchronized source like MapRand.
 		if mc.UsePythonRandom:
 			if CyGame().isNetworkMultiPlayer():
+				# advc (note): Would be nice to use this branch also - automatically - when a nonzero seed is set in CivilizationIV.ini. As it is, the script will have to be changed manually (in addition to the .ini) when a fixed seed is desired.
 				#AIAndy - seed Python random with MapRand
 				gc = CyGlobalContext()
 				self.mapRand = gc.getGame().getMapRand()
@@ -1685,7 +1700,7 @@ class ElevationMap3(FloatMap):
 	def GenerateElevationMap(self):
 		# <advc> Increased in MapConstants.initialize for larger landmasses. But that makes it more difficult to prevent a pangaea, so:
 		twistMinFreq = mc.twistMinFreq
-		if mc.AllowNewWorld:
+		if mc.OldWorldStarts:
 			twistMinFreq *= 0.6 # </advc>
 		twistMinFreq = 128.0 / self.width * twistMinFreq #0.02  / 128
 		twistMaxFreq = 128.0 / self.width * mc.twistMaxFreq #0.12  / 128
@@ -2434,10 +2449,6 @@ class ClimateMap3:
 			x = sortedWinterMap[i][0]
 			y = sortedWinterMap[i][1]
 			self.DistributeRain(x, y, self.winterMap, rainfallWinterMap,      moistureMap, False)
-		#AIAndy Bugfix - geostrophic rain disabled
-		#LM - I disabled this in the original PW3 port due to it not working
-		#due to the other bugs with the PW3 climate system, then promptly
-		#forgot about it b/c I didn't understand how important it was. Sorry.
 		moistureMap.initialize(em.width, em.height, em.wrapX, em.wrapY)
 		for i in range(len(sortedGeoMap)):
 			x = sortedGeoMap[i][0]
@@ -3182,6 +3193,7 @@ def FindThresholdFromPercent(map, length, percent, greaterThan):
 ##This function is a general purpose value tuner. It finds a value that will be greater
 ##than or less than the desired percent of a whole map within a given tolerance. Map values
 ##should be between 0 and 1. To exclude parts of the map, set them to value 0.0
+# advc (comment): Is this function really needed? Seems that, apart from special treatment for 0s, FindThresholdFromPercent accomplishes the same thing (percentile calculation) more reliably. Not sure which is faster though.
 def FindValueFromPercent(map, length, percent, greaterThan):
 	if length == 0:
 		if greaterThan:
@@ -4749,8 +4761,7 @@ class StartingPlotFinder:
 			CyMap().recalculateAreas()
 			areas = CvMapGeneratorUtil.getAreas()
 			#get old/new world status
-			areaOldWorld = self.setupOldWorldAreaList()
-			print "len(areaOldWorld) = %d" % len(areaOldWorld)
+			isAreaOldWorld = self.setupOldWorldAreaList()
 			#LM - Set up a map that merges Coast-linked landmasses so we can allow island starts while still ensuring adequate expansion room.
 			regionMap = AreaMap(mc.width, mc.height, True, True)
 			regionMap.defineAreas(isDeepWaterMatch)
@@ -4761,34 +4772,34 @@ class StartingPlotFinder:
 
 			self.startingAreaList = list()
 			if mc.SeaLevel == 0:
-				if mc.AllowNewWorld:
+				if mc.OldWorldStarts:
 					iWorldSizeFactor = 3
 				else:
 					iWorldSizeFactor = 5
 			elif mc.SeaLevel == 1:
-				if mc.AllowNewWorld:
+				if mc.OldWorldStarts:
 					iWorldSizeFactor = 3.5
 				else:
 					iWorldSizeFactor = 6
 			elif mc.SeaLevel == 2:
-				if mc.AllowNewWorld:
+				if mc.OldWorldStarts:
 					iWorldSizeFactor = 2.5
 				else:
 					iWorldSizeFactor = 4
 			elif mc.SeaLevel == 3:
-				if mc.AllowNewWorld:
+				if mc.OldWorldStarts:
 					iWorldSizeFactor = 4
 				else:
 					iWorldSizeFactor = 7
 			else:
-				if mc.AllowNewWorld:
+				if mc.OldWorldStarts:
 					iWorldSizeFactor = 2
 				else:
 					iWorldSizeFactor = 3
 			self.iMinIslandSize = 5 + int(round(gc.getMap().getWorldSize() * iWorldSizeFactor))
 			iMinRegionSize = self.iMinIslandSize * 4
 			for i in range(len(areas)):
-				if areaOldWorld[i] and areas[i].getNumTiles() >= self.iMinIslandSize:
+				if isAreaOldWorld[i] and areas[i].getNumTiles() >= self.iMinIslandSize:
 					iRegionSize = 0
 					for pI in range(em.length):
 						plot = CyMap().plotByIndex(pI)
@@ -4797,6 +4808,10 @@ class StartingPlotFinder:
 							break
 					if iRegionSize >= iMinRegionSize:
 						startArea = StartingArea(areas[i].getID())
+						# <advc>
+						if mc.OldWorldStarts:
+							print "Appending area of size " + str(areas[i].getNumTiles()) + " to startingAreaList"
+						# </advc>
 						self.startingAreaList.append(startArea)
 
 			#Get the value of the whole old world
@@ -5640,7 +5655,7 @@ class StartingArea:
 		# <advc> Cull fewer tiles b/c start plots are getting placed too close to each other. If too few are culled, however, civs start in the middle of a continent too rarely.
 		newWorldSubtr = 0
 		# The more crowded the map, the fewer the tiles we can afford to rule out.
-		if mc.AllowNewWorld:
+		if mc.OldWorldStarts:
 			newWorldSubtr = 1
 		civs = max(1, gc.getGame().countCivPlayersEverAlive())
 		seaLevelAdj = 0.0 # tbd.
@@ -5732,7 +5747,7 @@ class StartingArea:
 		bSingleCiv = (len(self.playerList) == 1)
 		if bSingleCiv:
 			print("Only one civ to be placed; ignoring distances within area")
-		gameMap = CyMap()
+		mmap = CyMap()
 		# </advc>
 		#Fill distance table
 		for n in range(len(self.plotList)):
@@ -5741,10 +5756,10 @@ class StartingArea:
 			#self.rawValue += self.plotList[n].localValue
 			avgDistance = 0
 			for m in range(n, len(self.plotList)):
-				nPlot = gameMap.plot(self.plotList[n].x, self.plotList[n].y)
-				mPlot = gameMap.plot(self.plotList[m].x, self.plotList[m].y)
-				gameMap.resetPathDistance()
-				distance = gameMap.calculatePathDistance(nPlot, mPlot)
+				nPlot = mmap.plot(self.plotList[n].x, self.plotList[n].y)
+				mPlot = mmap.plot(self.plotList[m].x, self.plotList[m].y)
+				mmap.resetPathDistance()
+				distance = mmap.calculatePathDistance(nPlot, mPlot)
 				#If path fails try reversing it
 				self.distanceTable[n * len(self.plotList) + m] = distance
 				self.distanceTable[m * len(self.plotList) + n] = distance
@@ -5752,8 +5767,8 @@ class StartingArea:
 					avgDistance += distance
 			# <advc>
 			for m in range(len(assignedStartingPlots)):
-				nPlot = gameMap.plot(self.plotList[n].x, self.plotList[n].y)
-				mPlot = gameMap.plot(assignedStartingPlots[m].getX(), assignedStartingPlots[m].getY())
+				nPlot = mmap.plot(self.plotList[n].x, self.plotList[n].y)
+				mPlot = mmap.plot(assignedStartingPlots[m].getX(), assignedStartingPlots[m].getY())
 				distance = plotDistance(nPlot.getX(), nPlot.getY(), mPlot.getX(), mPlot.getY())
 				# Cap; don't need distance to be maximized, just large enough.
 				if distance >= 13:
@@ -5780,7 +5795,8 @@ class StartingArea:
 		self.FillDistanceTable() # Was previously already done in the constructor
 		# Sometimes begin by making the plot with the best localValue a starting plot
 		firstPlayerPlaced = False
-		if numPlayers == 1 or PRand.randint(0, 100) < (numPlayers - 2) * 20:
+		# Space tends to be too tight in the Old World; need to focus on maximizing distances. Coastal starts also make more sense when there is a New World to colonize.
+		if not mc.OldWorldStarts and (numPlayers == 1 or PRand.randint(0, 100) < (numPlayers - 2) * 20):
 			# Force an inland start from time to time
 			for i in range(min(7, len(self.plotList))):
 				if not self.plotList[i].isCoast() or PRand.randint(0, 100) < 15:
@@ -6619,11 +6635,10 @@ def addFeatures():
 						break
 				'''
 				if valid:
-					#desertTiles.append(cm.RainfallMap.data[i])
-					# advc: These rainfall values are very close to 0, and that seems to give FindValueFromPercent trouble sometimes. Scale them up
-					desertTiles.append((cm.RainfallMap.data[i] + 0.1) * 100)
+					desertTiles.append(cm.RainfallMap.data[i])
 					desertLength += 1
-	oasisRainfall = FindValueFromPercent(desertTiles, desertLength, mc.OasisPercent, False)
+	# advc: Was FindValueFromPercent, which has trouble with the distribution being almost uniform. (Meaning also that rainfall is actually a pretty meaningsless criterion for picking oases.)
+	oasisRainfall = FindThresholdFromPercent(desertTiles, desertLength, mc.OasisPercent, False)
 	createIce()
 	for y in range(mc.height):
 		lat = em.GetLatitudeForY(y)
@@ -6677,11 +6692,7 @@ def addFeatures():
 				#if plot.isRiver(): # advc: Let setFeature (i.e. the DLL) check this
 				if setFeature(plot, fFloodPlains, 0):
 					set = True
-				# <advc> Apply the same transformation as above (oasisRainfall)
-				rfVal = (cm.RainfallMap.data[i] + 0.1) * 100
-				desertRfVal = (tm.desertRainfall + 0.1) * 100
-				# </advc>
-				if not set and rfVal >= oasisRainfall and PRand.random() < mc.OasisMinChance + (((mc.OasisMaxChance - mc.OasisMinChance) * (rfVal - oasisRainfall)) / (desertRfVal - oasisRainfall)):
+				if not set and cm.RainfallMap.data[i] >= oasisRainfall and PRand.random() < mc.OasisMinChance + (((mc.OasisMaxChance - mc.OasisMinChance) * (cm.RainfallMap.data[i] - oasisRainfall)) / (tm.desertRainfall - oasisRainfall)):
 					valid = True
 					'''
 					for direction in range(1, 5):
