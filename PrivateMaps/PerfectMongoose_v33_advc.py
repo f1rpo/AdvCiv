@@ -776,13 +776,18 @@ class MapConstants:
 			self.WrapX = False
 			self.hmWidth += 1
 		# <advc>
-		# Far fewer than 15. Now only a best effort.
-		self.maximumMeteorCount = 2 * (mmap.getWorldSize() - 1)
+		# Far fewer than the 15 set initially
+		self.maximumMeteorCount = (3 * mmap.getWorldSize()) // 2 + 1
 		if self.SeaLevel == 1:
 			self.maximumMeteorCount += 1
 		if self.SeaLevel == 3:
 			self.maximumMeteorCount += 1
-		self.maximumMeteorCount = max(1, self.maximumMeteorCount)
+		# Caveat: Need to keep an eye on isHmWaterMatch when adjusting the min. meteor size
+		self.minimumMeteorSize = 1
+		if mmap.getWorldSize() > 1:
+			self.minimumMeteorSize += 1
+		if mmap.getWorldSize() > 4:
+			self.minimumMeteorSize += 1
 		self.northAttenuationRange  = 0.1
 		self.northAttenuationFactor = 0.3
 		# Avoid elongated Antarctica; likelier to occur when land ratio is high.
@@ -3293,7 +3298,9 @@ def isPeakWaterMatch(x, y):
 
 def isHmWaterMatch(x, y):
 	i = GetHmIndex(x, y)
-	if pb.distanceMap[i] > mc.minimumMeteorSize / 3:
+	#if pb.distanceMap[i] > mc.minimumMeteorSize / 3:
+	# advc: Adjusted to decreased min. meteor size
+	if pb.distanceMap[i] * 2 > mc.minimumMeteorSize:
 		return True
 	return False
 
@@ -3514,10 +3521,12 @@ class PangaeaBreaker:
 		if mc.AllowPangaeas:
 			print "Pangaeas are allowed on this map and will not be suppressed."
 			return
+		''' # advc: Should be OK now (will at most throw a couple of small ones)
 		gc = CyGlobalContext()
 		if gc.getMap().getWorldSize() < 3:
 			print "This map is too small for meteors to work properly, so they will not be used."
 			return
+		'''
 		if mc.LandmassGenerator == 2:
 			em = e2
 		else:
@@ -3528,7 +3537,7 @@ class PangaeaBreaker:
 		self.createDistanceMap()
 		self.areaMap.defineAreas(isHmWaterMatch)
 		meteorCount = 0
-		if not mc.AllowPangaeas: #and gc.getMap().getWorldSize() >= 3: # advc: I think we can throw a couple small ones
+		if not mc.AllowPangaeas: #and gc.getMap().getWorldSize() >= 3: # advc
 			while self.isPangaea() and meteorCount < mc.maximumMeteorCount:
 				pangaeaDetected = True
 				x, y = self.getMeteorStrike()
@@ -6123,7 +6132,7 @@ def generatePlotTypes():
 	mc.height = map.getGridHeight()
 	PRand.seed()
 	if mc.LandmassGenerator == 2:
-		mc.minimumMeteorSize = calculateMinMeteorSize()
+		scaleMinMeteorSize() # advc: Moved into new function
 		em = e2
 		em.initialize(mc.hmWidth, mc.hmHeight, mc.WrapX, mc.WrapY)
 		em.PerformTectonics()
@@ -6137,7 +6146,7 @@ def generatePlotTypes():
 		if mc.ClimateSystem == 0:
 			em.initialize(mc.width,   mc.height,   mc.WrapX, mc.WrapY)
 		else:
-			mc.minimumMeteorSize = calculateMinMeteorSize()
+			scaleMinMeteorSize() # advc: Moved into new function
 			em.initialize(mc.hmWidth, mc.hmHeight, mc.WrapX, mc.WrapY)
 		em.GenerateElevationMap()
 		em.FillInLakes()
@@ -6197,12 +6206,11 @@ def generatePlotTypes():
 			plotTypes[i] = PlotTypes.PLOT_LAND
 	return plotTypes
 
-# advc: Replacing redundant (erroneous) code
-def calculateMinMeteorSize():
+# advc: Cut out of generatePlotTypes
+def scaleMinMeteorSize():
 	#return (1 + int(round(float(mc.hmWidth) / float(mc.width)))) * 3
-	# advc (bugfix): hmWidth is a constant (144). The meteor size should increase with the map size, not decrease.
-	# Also move the coefficient into the numerator and decrease it.
-	return 1 + int(round((2.0 * mc.width) / float(mc.hmWidth)))
+	# advc: When using the PW 2 climate system, the PangaeaBreaker has to work with a map of dimensions hmWidth x hmHeight. Therefore, counterintuitively, the meteor size needs to be increased on small maps. That part is OK in the original code above. But we shouldn't discard the meteor size set previously.
+	mc.minimumMeteorSize = int(math.ceil((mc.minimumMeteorSize * mc.hmWidth) / float(mc.width)))
 
 
 def generateTerrainTypes():
