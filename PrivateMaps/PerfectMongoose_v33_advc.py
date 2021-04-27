@@ -547,12 +547,11 @@ class MapConstants:
 		# currently used to prevent large continents in the uninhabitable polar
 		# regions. East/west attenuation is set to zero, but modded maps may
 		# have need for them.
-		# advc (note): Now set based on sea level in initInGameOptions
+		# advc (note): Now set in initInGameOptions
 		self.northAttenuationFactor = 0.0
 		self.northAttenuationRange  = 0.0 #percent of the map height.
 		self.southAttenuationFactor = 0.0
 		self.southAttenuationRange  = 0.0
-
 		# east west attenuation may be desired for flat maps.
 		self.eastAttenuationFactor = 0.0
 		self.eastAttenuationRange  = 0.0 #percent of the map width.
@@ -798,7 +797,11 @@ class MapConstants:
 			self.northAttenuationFactor -= 0.04
 		self.southAttenuationRange = self.northAttenuationRange
 		self.southAttenuationFactor = self.northAttenuationFactor
-		# Slightly more oases on smaller maps - to make it less likely that the map won't have any.
+		if not self.WrapX:
+			self.eastAttenuationRange  = self.northAttenuationRange
+			self.westAttenuationRange  = self.northAttenuationRange
+			self.eastAttenuationFactor = self.northAttenuationFactor
+			self.westAttenuationFactor = self.northAttenuationFactor		# Slightly more oases on smaller maps - to make it less likely that the map won't have any.
 		oasisAdjust = (3 - mmap.getWorldSize()) / 100.0
 		# Some extra Jungle for the PM3 land generator b/c it tends to place less land near the equator.
 		if mc.LandmassGenerator != 2:
@@ -3331,11 +3334,17 @@ class TerrainMap:
 			em = e2
 		else:
 			em = e3
-		self.dData = []
+		#self.dData = []
+		# <advc> Separate values for hills and peaks
+		self.hillData = []
+		self.peakData = [] # </advc>
 		self.pData = []
 		self.tData = []
 		for i in range(em.length):
-			self.dData.append(0.0)
+			#self.dData.append(0.0)
+			# <advc>
+			self.hillData.append(0.0)
+			self.peakData.append(0.0) # </advc>
 			self.pData.append(mc.WATER)
 			self.tData.append(mc.OCEAN)
 
@@ -3344,48 +3353,88 @@ class TerrainMap:
 		print "-------------------"
 		print "Generating Plot Map"
 		print "-------------------"
+		deAttenuate = False # advc (only e3 uses attenuation)
 		if mc.LandmassGenerator == 2:
 			em = e2
 		else:
 			em = e3
-		#create height difference map to allow for tuning
-		#I tried using a deviation from surrounding average altitude
-		#to determine hills and peaks but I didn't like the
-		#results. Therefore I am using lowest neighbor.
+			deAttenuate = True # advc
 		for y in range(mc.height):
 			for x in range(mc.width):
 				i = em.GetIndex(x, y)
+				# <advc> Remove attenuation effect - b/c it should only affect the coastline, not elevation above sea.
+				elevData = em.data[i]
+				if deAttenuate:
+					if elevData > 0: # Then the attenuation factor can't be 0 either
+						elevData /= GetAttenuationFactor(em, x, y)
+				# </advc>
 				if mc.HillPeakStyle == 1:
-					self.dData[i] = em.data[i]
+					#self.dData[i] = elevData
+					# <advc>
+					self.hillData[i] = elevData
+					self.peakData[i] = elevData # </advc>
 				else:
-					myAlt = em.data[i]
+					#create height difference map to allow for tuning
+					#I tried using a deviation from surrounding average altitude
+					#to determine hills and peaks but I didn't like the
+					#results. Therefore I am using lowest neighbor.
+					myAlt = elevData
 					minAlt = 1.0
 					for direction in range(1, 9):
 						xx, yy = GetNeighbor(x, y, direction)
 						ii = em.GetIndex(xx, yy)
-						if ii >= 0 and em.data[ii] < minAlt:
+						if ii < 0:
+							continue
+						# <advc>
+						xx, yy = CoordsFromIndex(ii, em.width)
+						minElevData = em.data[ii]
+						if deAttenuate:
+							if minElevData > 0:
+								minElevData /= GetAttenuationFactor(em, xx, yy)
+						# </advc>
+						if minElevData < minAlt:
 							minAlt = em.data[ii]
-					self.dData[i] = myAlt - minAlt
-		NormalizeMap(self.dData, mc.width, mc.height)
-		landMap = []
+					#self.dData[i] = myAlt - minAlt
+					# <advc>
+					self.hillData[i] = myAlt - minAlt
+					# Give absolute height some more weight for peaks. It's OK if that causes them to clump a bit more on small and medium-size maps (whereas, for hills, more clumping is not OK); my main goal is to make coastal peaks less common. Of course the criteria for hills and peaks must remain similar, otherwise, peaks won't have surrounding foothills.
+					absAltWeight = 1.125
+					if CyMap().getWorldSize() > 3:
+						absAltWeight = 1
+					self.peakData[i] = absAltWeight * myAlt - minAlt # </advc>
+		#NormalizeMap(self.dData, mc.width, mc.height)
+		#landMap = []
+		#for i in range(em.length):
+		#	landMap.append(0.0)
+		# <advc>
+		NormalizeMap(self.hillData, mc.width, mc.height)
+		NormalizeMap(self.peakData, mc.width, mc.height) # </advc>
+		hillMap = []
+		peakMap = []
 		for i in range(em.length):
-			landMap.append(0.0)
+			hillMap.append(0.0)
+			peakMap.append(0.0) #</advc>
 		#zero out water tiles so percent is percent of land
 		for y in range(mc.height):
 			for x in range(mc.width):
 				i = em.GetIndex(x, y)
 				if not em.IsBelowSeaLevel(x, y):
-					landMap[i] = self.dData[i]
-		hillHeight = FindValueFromPercent(landMap, em.length, mc.HillPercent, True)
-		peakHeight = FindValueFromPercent(landMap, em.length, mc.PeakPercent, True)
+					#landMap[i] = self.dData[i]
+					# <advc>
+					hillMap[i] = self.hillData[i]
+					peakMap[i] = self.peakData[i] # </advc>
+		# advc: Was landMap in both lines
+		hillHeight = FindValueFromPercent(hillMap, em.length, mc.HillPercent, True)
+		peakHeight = FindValueFromPercent(peakMap, em.length, mc.PeakPercent, True)
 		for y in range(mc.height):
 			for x in range(mc.width):
 				i = em.GetIndex(x, y)
 				if em.data[i] < em.seaLevelThreshold:
 					self.pData[i] = mc.WATER
-				elif landMap[i] < hillHeight:
+				# advc: Was landMap in both elifs
+				elif hillMap[i] < hillHeight:
 					self.pData[i] = mc.LAND
-				elif landMap[i] < peakHeight:
+				elif peakMap[i] < peakHeight:
 					self.pData[i] = mc.HILLS
 				else:
 					self.pData[i] = mc.PEAK
