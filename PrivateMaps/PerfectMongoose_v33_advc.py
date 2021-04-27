@@ -3304,7 +3304,12 @@ def isDeepWaterMatch(x, y):
 	for direction in range(1, 9):
 		xx, yy = GetNeighbor(x, y, direction)
 		ii = GetIndex(xx, yy)
-		if ii >= 0 and not em.IsBelowSeaLevel(x, y):
+		#if ii >= 0 and not em.IsBelowSeaLevel(x, y):
+		# <advc> bugfix
+		if ii < 0:
+			continue
+		xx, yy = CoordsFromIndex(ii, mc.width)
+		if not em.IsBelowSeaLevel(xx, yy): # </advc>
 			return False
 	return True
 
@@ -6776,6 +6781,7 @@ def addFeatures():
 						ii = GetIndex(xx, yy)
 						if ii < 0:
 							continue
+						xx, yy = CoordsFromIndex(ii, mc.width) # advc (bugfix?)
 						surPlot = mmap.plot(xx, yy)
 						if surPlot.isWater() or surPlot.getFeatureType() == fOasis:
 							valid = False
