@@ -1724,7 +1724,12 @@ class ElevationMap3(FloatMap):
 			for x in range(self.width):
 				i = self.GetIndex(x, y)
 				attenuationFactor = GetAttenuationFactor(self, x, y)
-				self.data[i] = self.data[i] * attenuationFactor
+				self.data[i] *= attenuationFactor
+		# <advc> Moved into new method (like it was already done for ElevationMap2)
+		self.CalculateSeaLevel()
+
+
+	def CalculateSeaLevel(self):
 		land = mc.landPercent
 		if mc.SeaLevel == 1:
 			land *= mc.SeaLevelFactor1
@@ -1735,7 +1740,7 @@ class ElevationMap3(FloatMap):
 		elif mc.SeaLevel == 4:
 			land *= mc.SeaLevelFactor4
 		self.seaLevelThreshold = FindThresholdFromPercent(self.data, self.length, land, True)
-
+		# </advc>
 
 	def IsBelowSeaLevel(self, x, y):
 		i = self.GetIndex(x, y)
@@ -3607,6 +3612,7 @@ class PangaeaBreaker:
 				self.castMeteorUponTheEarth(x, y)
 				meteorThrown = True
 				meteorCount += 1
+				em.CalculateSeaLevel() # advc: Restore land ratio (inspired by C2C_World.py)
 				self.createDistanceMap()
 				self.areaMap.defineAreas(isHmWaterMatch)
 		if not pangaeaDetected:
