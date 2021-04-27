@@ -354,9 +354,9 @@ class MapConstants:
 		#Chance an Oasis will appear. A tile must be Desert, not be on a hill, not be near another Oasis,
 		#and be surrounded by Desert on all sides.
 		# <advc> Was 0.5, 0.5, 1.0, but I'm relaxing the enclosure condition. And I'm adding a minor map-size adjustment in initInGameOptions.
-		self.OasisPercent   = 0.15
-		self.OasisMinChance = 0.1
-		self.OasisMaxChance = 0.2 # </advc>
+		self.OasisPercent   = 0.16
+		self.OasisMinChance = 0.11
+		self.OasisMaxChance = 0.22 # </advc>
 
 		#This variable adjusts the amount of bonuses on the map. Values above 1.0 will add bonus bonuses.
 		#People often want lots of bonuses, and for those people, this variable is definately a bonus.
@@ -801,14 +801,15 @@ class MapConstants:
 			self.eastAttenuationRange  = self.northAttenuationRange
 			self.westAttenuationRange  = self.northAttenuationRange
 			self.eastAttenuationFactor = self.northAttenuationFactor
-			self.westAttenuationFactor = self.northAttenuationFactor		# Slightly more oases on smaller maps - to make it less likely that the map won't have any.
-		oasisAdjust = (3 - mmap.getWorldSize()) / 100.0
+			self.westAttenuationFactor = self.northAttenuationFactor
+		# Slightly more oases on smaller maps - to make it less likely that the map won't have any.
+		oasisAdjust = (3 - mmap.getWorldSize()) / 120.0
 		# Some extra Jungle for the PM3 land generator b/c it tends to place less land near the equator.
 		if mc.LandmassGenerator != 2:
 			mc.JungleFactor -= 0.03
 			mc.JunglePercent += 0.03
 		else: # Bulkier deserts with the PW2 generator allow for more (too many) oases
-			oasisAdjust -= 0.03
+			oasisAdjust -= 0.018
 		self.OasisPercent += oasisAdjust
 		self.OasisMinChance += oasisAdjust
 		self.OasisMaxChance += 2 * oasisAdjust
