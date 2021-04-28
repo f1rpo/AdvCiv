@@ -1144,6 +1144,14 @@ class Area:
 		self.distance	= 0.0
 		self.water		= water
 
+	# advc: (Based on what little info we have)
+	def startScore(self):
+		if mc.LandmassGenerator == 2:
+			em = e2
+		else:
+			em = e3
+		return self.size * max(0.18, 1 - 0.0135 * max(0, abs(mc.horseLatitude - abs(em.GetLatitudeForY(self.avgY))) - 10))
+
 
 	def __str__(self):
 		string = "{ID = %(i)4d, size = %(s)4d, water = %(w)1d}" % {'i':self.ID, 's':self.size, 'w':self.water}
@@ -4002,44 +4010,69 @@ class ContinentMap:
 		print "------------------------"
 		self.areaMap = AreaMap(mc.width, mc.height, True, True)
 		self.areaMap.defineAreas(isWaterMatch)
-		self.newWorldID = self.getNewWorldID()
+		#self.newWorldID = self.getNewWorldID()
+		# <advc> Moved into separate method so that the new world can be designated later
+		self.newWorldAreaID = 0
+		self.newWorldRegionID = 0
 
 
-	def getNewWorldID(self):
+	def designateNewWorld(self):
+		# Want the New World to be separated from the Old World by deep water.
+		self.regionMap = AreaMap(mc.width, mc.height, True, True)
+		self.regionMap.defineAreas(isDeepWaterMatch)
+		self.newWorldAreaID, self.newWorldRegionID = self._getNewWorldID() # </advc>
+
+
+	def _getNewWorldID(self):
 		if mc.LandmassGenerator == 2:
 			em = e2
 		else:
 			em = e3
-		nID = 0
 		continentList = list()
-		for a in self.areaMap.areaList:
+		# <advc> Try regionMap first
+		bRegionID = True
+		for a in self.regionMap.areaList: # </advc>
 			if not a.water:
 				continentList.append(a)
-		#If this was the only continent than we have a pangaea. Oh well.
-		if len(continentList) == 1:
-			return -1
-		totalLand = 0
+		if len(continentList) <= 1:
+			# <advc> Fall back on areaMap
+			continentList = list()
+			for a in self.areaMap.areaList:
+				if not a.water:
+					continentList.append(a)
+			if len(continentList) <= 1:
+				return 0, 0
+			bRegionID = False
+			print "Pangaea; will at best be able to designate an area separated by shallow water as the New World"
+			# </advc>
+		#totalLand = 0
+		#for c in continentList:
+		#	totalLand += c.size
+		# <advc> Could go through all plots (the map is pretty much finished), but I don't feel like writing yet another starting area heuristic. So I've written only a one-liner (Area.startScore) that takes into account the average latitude. That should already be much better than area size alone.
+		totalScore = 0
 		for c in continentList:
-			totalLand += c.size
+			totalScore += c.startScore() # </advc>
 		#sort all the continents by size, largest first
-		continentList.sort(lambda x, y:cmp(x.size, y.size))
+		#continentList.sort(lambda x, y:cmp(x.size, y.size))
+		continentList.sort(lambda x, y:cmp(x.startScore(), y.startScore())) # advc
 		continentList.reverse()
 		#now remove a percentage of the landmass to be considered 'Old World'
 		#biggest continent is automatically 'Old World'
-		oldWorldSize = continentList[0].size
+		#oldWorldSize = continentList[0].size
+		oldWorldScore = continentList[0].startScore() # advc
 		oldWorldAvgX = continentList[0].avgX
 		oldWorldAvgY = continentList[0].avgY
-		print("%d continents, largest one (%d tiles) added to Old World" % (len(continentList), oldWorldSize)) # advc
+		print("%d continents, best one (%d tiles, %d avg. y-coord., %d score) added to Old World" % (len(continentList), continentList[0].size, continentList[0].avgY, round(oldWorldScore*100))) # advc
 		del continentList[0]
-		# <advc> Only reserve the second largest continent if this still leaves enough room per civ in the Old World
-		reserveSecondBiggest = False
+		# <advc> Only reserve the second best continent if this still leaves enough room per civ in the Old World
+		reserveSecondBest = False
 		iCivs = CyGlobalContext().getGame().countCivPlayersEverAlive()
-		if float(totalLand - continentList[0].size) / float(iCivs) > 95:
-			reserveSecondBiggest = True # </advc>
+		if float(totalScore - continentList[0].startScore()) / float(iCivs) > 70:
+			reserveSecondBest = True # </advc>
 			#get the next largest continent and temporarily remove from list
 			#add it back later and is automatically 'New World'
 			mainNewWorld = continentList[0]
-			print("Second largest continent (%d tiles) reserved for New World" % (mainNewWorld.size)) # advc
+			print("Second best continent (%d tiles, %d avg. y-coord., %d score) reserved for New World" % (mainNewWorld.size, mainNewWorld.avgY, round(mainNewWorld.startScore()*100))) # advc
 			del continentList[0]
 		#LM - sort list by proximity
 		for c in continentList:
@@ -4054,6 +4087,7 @@ class ContinentMap:
 		# advc: Was 0.55. The true ratio (Africa+Eurasia)/(Africa+EurasiaAmerica+Oceania) is 62.5%. An even larger Old World plays better. Use randomness to make a realistic size possible but rather unlikely.
 		oldWorldTargetPercent = (60 + PRand.randint(0, 9)) / 100.0
 		skipped = 0 # advc
+		oldWorldPercent = 0 # advc
 		for n in range(len(continentList)):
 			# <advc> Small land masses are no use for the Old World b/c civs can't start there
 			if continentList[0].size < 50 and skipped * 2 < len(continentList):
@@ -4061,14 +4095,19 @@ class ContinentMap:
 				continentList.append(continentList[0])
 				del continentList[0]
 				continue # </advc>
-			oldWorldSize += continentList[0].size
+			#oldWorldSize += continentList[0].size
+			oldWorldScore += continentList[0].startScore() # advc
 			del continentList[0]
-			if float(oldWorldSize) / float(totalLand) > oldWorldTargetPercent:
+			#if float(oldWorldSize) / float(totalLand) > oldWorldTargetPercent:
+			# advc: Put this in a variable (for debug output)
+			oldWorldPercent = oldWorldScore / float(totalScore)
+			if oldWorldPercent > oldWorldTargetPercent:
 				break
+		print "oldWorldPercent=" + str(oldWorldPercent) # advc
 		#add back the mainNewWorld continent
 		if reserveSecondBest:
 			# <advc> A too small Old World is going to be unplayable; rather reserve no New World then (or just some islands).
-			if float(oldWorldSize) / float(iCivs) < 60:
+			if float(oldWorldScore) / float(iCivs) < 60:
 				print("Best New World continent added to Old World b/c tiles per civ in the Old World was only %d" % (oldWorldScore // iCivs))
 			else: # </advc>
 				continentList.append(mainNewWorld)
@@ -4079,9 +4118,18 @@ class ContinentMap:
 		#now change all the remaining continents to also have nID as their ID
 		for i in range(em.length):
 			for c in continentList:
-				if c.ID == self.areaMap.data[i]:
-					self.areaMap.data[i] = nID
-		return nID
+				# <advc>
+				if bRegionID:
+					if c.ID == self.regionMap.data[i]:
+						self.regionMap.data[i] = nID
+				else: # </advc>
+					if c.ID == self.areaMap.data[i]:
+						self.areaMap.data[i] = nID
+		#return nID
+		# <advc>
+		if bRegionID:
+			return 0, nID
+		return nID, 0 # </advc>
 
 
 km = ContinentMap()
@@ -5017,18 +5065,31 @@ class StartingPlotFinder:
 		else:
 			em = e3
 		gc = CyGlobalContext()
-		#get official areas and make corresponding lists that determines old
-		#world vs. new and also the pre-settled value.
+		#get official areas and make corresponding lists that determines
+		#old world vs. new and also the pre-settled value.
 		areas = CvMapGeneratorUtil.getAreas()
+		# <advc> Do this as late as possible (and don't do it when the Old World Starts option isn't used)
+		if mc.OldWorldStarts:
+			km.designateNewWorld() # </advc>
 		areaOldWorld = list()
 		for i in range(len(areas)):
+			# <advc>
+			if areas[i].isWater():
+				areaOldWorld.append(False)
+				continue
+			if not mc.OldWorldStarts:
+				areaOldWorld.append(True)
+				continue
+			# </advc>
 			for pI in range(em.length):
 				plot = CyMap().plotByIndex(pI)
 				if plot.getArea() == areas[i].getID():
-					if mc.AllowNewWorld and km.areaMap.data[pI] == km.newWorldID:
-						areaOldWorld.append(False) #new world True = old world False
-					else:
+					# advc: Check both area id and region id
+					if km.areaMap.data[pI] != km.newWorldAreaID and km.regionMap.data[pI] != km.newWorldRegionID:
 						areaOldWorld.append(True)
+						#print "Added to Old World: area of size " + str(km.areaMap.getAreaByID(km.areaMap.data[pI]).size) + " in region of size " + str(km.regionMap.getAreaByID(km.regionMap.data[pI]).size)
+					else:
+						areaOldWorld.append(False)
 					break
 		return areaOldWorld
 
