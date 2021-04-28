@@ -4066,13 +4066,14 @@ class ContinentMap:
 			if float(oldWorldSize) / float(totalLand) > oldWorldTargetPercent:
 				break
 		#add back the mainNewWorld continent
-		# advc: A too small Old World is going to be unplayable; rather reserve no New World then (or just some islands).
-		if reserveSecondBiggest and float(oldWorldSize) / float(iCivs) < 85:
-			continentList.append(mainNewWorld)
-			print("Largest New World continent added to Old World b/c tiles per civ in the Old World was only %d" % (oldWorldSize // iCivs))
+		if reserveSecondBest:
+			# <advc> A too small Old World is going to be unplayable; rather reserve no New World then (or just some islands).
+			if float(oldWorldSize) / float(iCivs) < 60:
+				print("Best New World continent added to Old World b/c tiles per civ in the Old World was only %d" % (oldWorldScore // iCivs))
+			else: # </advc>
+				continentList.append(mainNewWorld)
 		#what remains in the list will be considered 'New World'
-		#get ID for the next continent, we will use this ID for 'New World'
-		#designation
+		#get ID for the next continent, we will use this ID for 'New World' designation
 		nID = continentList[0].ID
 		del continentList[0] #delete to avoid unnecessary overwrite
 		#now change all the remaining continents to also have nID as their ID
