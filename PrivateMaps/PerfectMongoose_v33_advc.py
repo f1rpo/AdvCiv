@@ -2336,22 +2336,23 @@ class ClimateMap3:
 			em = e2
 		else:
 			em = e3
-		aboveSeaLevelMap    = FloatMap()
-		self.summerMap      = FloatMap()
-		self.winterMap      = FloatMap()
-		self.TemperatureMap = FloatMap()
-		aboveSeaLevelMap.initialize(em.width,    em.height, em.wrapX, em.wrapY)
-		self.summerMap.initialize(em.width,      em.height, em.wrapX, em.wrapY)
-		self.winterMap.initialize(em.width,      em.height, em.wrapX, em.wrapY)
-		self.TemperatureMap.initialize(em.width, em.height, em.wrapX, em.wrapY)
+		# advc: Make this map also available for GenerateRainfallMap
+		self.aboveSeaLevelMap = FloatMap()
+		self.summerMap        = FloatMap()
+		self.winterMap        = FloatMap()
+		self.TemperatureMap   = FloatMap()
+		self.aboveSeaLevelMap.initialize(em.width, em.height, em.wrapX, em.wrapY)
+		self.summerMap.initialize(em.width,        em.height, em.wrapX, em.wrapY)
+		self.winterMap.initialize(em.width,        em.height, em.wrapX, em.wrapY)
+		self.TemperatureMap.initialize(em.width,   em.height, em.wrapX, em.wrapY)
 		for y in range(em.height):
 			for x in range(em.width):
-				i = aboveSeaLevelMap.GetIndex(x, y)
+				i = self.aboveSeaLevelMap.GetIndex(x, y)
 				if em.IsBelowSeaLevel(x, y):
-					aboveSeaLevelMap.data[i] = 0.0
+					self.aboveSeaLevelMap.data[i] = 0.0
 				else:
-					aboveSeaLevelMap.data[i] = em.data[i] - em.seaLevelThreshold
-		aboveSeaLevelMap.Normalize()
+					self.aboveSeaLevelMap.data[i] = em.data[i] - em.seaLevelThreshold
+		self.aboveSeaLevelMap.Normalize()
 		# <advc>
 		waterTempMap = FloatMap()
 		waterTempMap.initialize(em.width, em.height, em.wrapX, em.wrapY)
@@ -2369,19 +2370,19 @@ class ClimateMap3:
 		# advc: Moved into new method
 		self.fillLatitudeMap(self.winterMap, waterTempMap, bottomTempLat, latRange)
 		# advc:
-		distToSeaMap = createDistanceMap(False)
+		self.distToSea = createDistanceMap(False)
 		for y in range(em.height):
 			for x in range(em.width):
 				i = self.TemperatureMap.GetIndex(x, y)
-				self.TemperatureMap.data[i] = (self.winterMap.data[i] + self.summerMap.data[i]) * (1.0 - aboveSeaLevelMap.data[i])
+				self.TemperatureMap.data[i] = (self.winterMap.data[i] + self.summerMap.data[i]) * (1.0 - self.aboveSeaLevelMap.data[i])
 				# <advc> Based on C2C_World.py
 				# 1.0 would correspond to the C2C formula. (However, C2C computes the latitude-based temperatures differently - I think).
 				maritimeWeight = 0.75
-				if distToSeaMap[i] > 0:
-					if distToSeaMap[i] <= 1 + CyMap().getWorldSize():
-						seaDistMult = (waterTempMap.data[i] - self.TemperatureMap.data[i]) / float(distToSeaMap[i])
+				if self.distToSea[i] > 0:
+					if self.distToSea[i] <= 1 + CyMap().getWorldSize():
+						seaDistMult = (waterTempMap.data[i] - self.TemperatureMap.data[i]) / float(self.distToSea[i])
 					else:
-						seaDistMult = (distToSeaMap[i] + em.width / 12.0) / ((13.0/12.0) * em.width)
+						seaDistMult = (self.distToSea[i] + em.width / 12.0) / ((13.0/12.0) * em.width)
 					self.TemperatureMap.data[i] *= 1 + maritimeWeight * seaDistMult
 				# </advc>
 		self.TemperatureMap.Normalize()
@@ -2519,8 +2520,12 @@ class ClimateMap3:
 		for y in range(em.height):
 			for x in range(em.width):
 				i = em.GetIndex(x, y)
-				self.RainfallMap.data[i] = rainfallSummerMap.data[i] + rainfallWinterMap.data[i] + (rainfallGeostrophicMap.data[i] * mc.geostrophicFactor)
-		self.RainfallMap.Normalize()
+				# <advc> (from C2C_World): Take into account distance to sea, but only with a sqrt. Also adopted code for an altitude factor, but that leads to fragmentation across all terrain types, in particular too few large deserts, so I've commented that out again.
+				if not em.IsBelowSeaLevel(x, y):
+					numerator = rainfallSummerMap.data[i] + rainfallWinterMap.data[i] + rainfallGeostrophicMap.data[i] * mc.geostrophicFactor
+					#numerator += 2 * self.aboveSeaLevelMap.data[i]
+					self.RainfallMap.data[i] = numerator / math.sqrt(self.distToSea[i])
+				# </advc>
 
 
 	def DistributeRain(self, x, y, pressureMap, RainfallMap, moistureMap, boolGeostrophic):
