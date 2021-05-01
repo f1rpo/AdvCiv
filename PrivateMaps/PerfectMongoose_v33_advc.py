@@ -787,9 +787,11 @@ class MapConstants:
 			self.maximumMeteorCount += 1
 		if self.SeaLevel == 3:
 			self.maximumMeteorCount += 1
-		# Caveat: Need to keep an eye on isHmWaterMatch when adjusting the min. meteor size
+		# Caveat: Need to keep an eye on isHmWaterMatch when adjusting the min. meteor size. Smaller meteors affect fewer plots but are also more likely to create peaks and hills through steep slopes.
 		self.minimumMeteorSize = 1
-		if mmap.getWorldSize() > 1:
+		if mmap.getWorldSize() > 0:
+			self.minimumMeteorSize += 1
+		if mmap.getWorldSize() > 2:
 			self.minimumMeteorSize += 1
 		if mmap.getWorldSize() > 4:
 			self.minimumMeteorSize += 1
