@@ -3464,6 +3464,13 @@ class TerrainMap:
 					#results. Therefore I am using lowest neighbor.
 					myAlt = elevData
 					minAlt = 1.0
+					# <advc> Let's see if we can use the avg. for something .... indeed doesn't look too useful.
+					#avgAlt = 0
+					#avgAltDiv = 0
+					# <advc> Try using the 2nd lowest neighbor as well
+					minAlt2 = 1.0
+					# And count the neighbors with greater altitude
+					numHigher = 0 # </advc>
 					for direction in range(1, 9):
 						xx, yy = GetNeighbor(x, y, direction)
 						ii = em.GetIndex(xx, yy)
@@ -3471,21 +3478,40 @@ class TerrainMap:
 							continue
 						# <advc>
 						xx, yy = CoordsFromIndex(ii, em.width)
-						minElevData = em.data[ii]
+						neighborElevData = em.data[ii]
 						if deAttenuate:
-							if minElevData > 0:
-								minElevData /= GetAttenuationFactor(em, xx, yy)
+							if neighborElevData > 0:
+								neighborElevData /= GetAttenuationFactor(em, xx, yy)
+						if neighborElevData < myAlt and em.IsBelowSeaLevel(xx, yy):
+							# Adjacent water: assume that half of the slope is submerged (and thus shouldn't contribute to the land plot type)
+							neighborElevData += (myAlt - neighborElevData) / 2
+						elif neighborElevData > myAlt:
+							numHigher += 1
+						#avgAlt += neighborElevData
+						#avgAltDiv += 1
 						# </advc>
-						if minElevData < minAlt:
-							minAlt = em.data[ii]
+						if neighborElevData < minAlt2:
+							if neighborElevData < minAlt:
+								minAlt2 = minAlt
+								minAlt = neighborElevData
+							else:
+								minAlt2 = neighborElevData
 					#self.dData[i] = myAlt - minAlt
 					# <advc>
-					self.hillData[i] = myAlt - minAlt
-					# Give absolute height some more weight for peaks. It's OK if that causes them to clump a bit more on small and medium-size maps (whereas, for hills, more clumping is not OK); my main goal is to make coastal peaks less common. Of course the criteria for hills and peaks must remain similar, otherwise, peaks won't have surrounding foothills.
-					absAltWeight = 1.125
-					if CyMap().getWorldSize() > 3:
-						absAltWeight = 1
-					self.peakData[i] = absAltWeight * myAlt - minAlt # </advc>
+					altDiff = myAlt - (minAlt * 3 + minAlt2 * 2) / 5
+					self.hillData[i] = altDiff * pow(0.95, numHigher)
+					# Give absolute height some more weight for peaks. It's OK if that causes them to clump a bit more on small and medium-size maps (whereas, for hills, more clumping is not OK); my main goal is to make coastal peaks less common.
+					# Actually, now that I've tweaked GeneratePlotMap, coastal peaks have become much less common and clumps of peaks more common. So I'm mostly going to disable the absolute altitude tweak again.
+					absAltWeight = 1.045
+					#if CyMap().getWorldSize() > 3:
+					#	absAltWeight = (1 + absAltWeight) / 2
+					self.peakData[i] = absAltWeight * altDiff
+					# Discourage long, uninterrupted chains
+					if numHigher >= 2:
+						self.peakData[i] *= 0.82
+					#if avgAltDiv > 0:
+					#	avgAlt /= avgAltDiv
+					# </advc>
 		#NormalizeMap(self.dData, mc.width, mc.height)
 		#landMap = []
 		#for i in range(em.length):
