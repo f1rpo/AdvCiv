@@ -3462,13 +3462,13 @@ class TerrainMap:
 					#I tried using a deviation from surrounding average altitude
 					#to determine hills and peaks but I didn't like the
 					#results. Therefore I am using lowest neighbor.
-					myAlt = elevData
-					minAlt = 1.0
 					# <advc> Let's see if we can use the avg. for something .... indeed doesn't look too useful.
 					#avgAlt = 0
 					#avgAltDiv = 0
-					# <advc> Try using the 2nd lowest neighbor as well
-					minAlt2 = 1.0
+					myAlt = elevData
+					# Considering the lowest orthogonal and the lowest diagonal neighbor seems to yield reasonable clustering. The overall minumum clusters too much, in particular results in blocks, enclosures, straight chains too often. (If enclosures still occur, one should perhaps simply convert peaks with a high number of adjacent lower-altitude peaks into snow hills.)
+					minAltOrth = 1.0
+					minAltDiag = 1.0
 					# And count the neighbors with greater altitude
 					numHigher = 0 # </advc>
 					for direction in range(1, 9):
@@ -3490,19 +3490,19 @@ class TerrainMap:
 						#avgAlt += neighborElevData
 						#avgAltDiv += 1
 						# </advc>
-						if neighborElevData < minAlt2:
-							if neighborElevData < minAlt:
-								minAlt2 = minAlt
-								minAlt = neighborElevData
-							else:
-								minAlt2 = neighborElevData
+						if direction % 2 == 0:
+							if neighborElevData < minAltOrth:
+								minAltOrth = neighborElevData
+						else:
+							if neighborElevData < minAltDiag:
+								minAltDiag = neighborElevData
 					#self.dData[i] = myAlt - minAlt
 					# <advc>
-					altDiff = myAlt - (minAlt * 3 + minAlt2 * 2) / 5
+					altDiff = myAlt - (minAltOrth * 3 + minAltDiag * 2) / 5
 					self.hillData[i] = altDiff * pow(0.95, numHigher)
 					# Give absolute height some more weight for peaks. It's OK if that causes them to clump a bit more on small and medium-size maps (whereas, for hills, more clumping is not OK); my main goal is to make coastal peaks less common.
-					# Actually, now that I've tweaked GeneratePlotMap, coastal peaks have become much less common and clumps of peaks more common. So I'm mostly going to disable the absolute altitude tweak again.
-					absAltWeight = 1.045
+					# Actually, now that I've tweaked GeneratePlotMap, coastal peaks have become much less common and clumps of peaks more common. So I'm going to dial the absolute altitude tweak down.
+					absAltWeight = 1.075
 					#if CyMap().getWorldSize() > 3:
 					#	absAltWeight = (1 + absAltWeight) / 2
 					self.peakData[i] = absAltWeight * altDiff
