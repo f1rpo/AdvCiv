@@ -318,10 +318,11 @@ class MapConstants:
 		# The original script uses Tundra and Snow also to represent high plateaus. I'm not allowing this in the tropics, and, outside the polar circles, I'm adding rainfall constraints. This means that the final terrain distribution will deviate from the target terrain-percent values.
 		self.snowPlateauMinLatitude = 67 # (polar circles)
 		self.snowHillMinLatitude = 24 # (tropics)
-		self.tundraMinLatitude = 24
+		#self.tundraMinLatitude = 24
+		# Better disable temperate Tundra. More weird than interesting.
+		self.tundraMinLatitude = 58
 		self.taigaMinLatitude = 58 # (taiga is forested Tundra in my mind)
-		# Even this very low target value all but rules out Tundra and Snow in the temperate zone. Somehow, the high-elevation plots are all very dry. (Maybe rain shadow is assumed?)
-		self.tundraSnowRainfallTarget = 0.05
+		self.tundraSnowRainfallTarget = 0.45
 		# </advc>
 
 		#Of the squares too warm to be Snow or Tundra, percentage dry enough to be Desert.
@@ -3607,6 +3608,7 @@ class TerrainMap:
 		landTiles   = []
 		landLength  = 0
 		polarTiles = [] # advc
+		landRf = [] # advc
 		for y in range(mc.height):
 			latitude = abs(em.GetLatitudeForY(y)) # advc
 			for x in range(mc.width):
@@ -3615,6 +3617,7 @@ class TerrainMap:
 					landTiles.append(cm.TemperatureMap.data[i])
 					landLength += 1
 					# <advc>
+					landRf.append(cm.RainfallMap.data[i])
 					if latitude >= mc.taigaMinLatitude:
 						polarTiles.append(cm.TemperatureMap.data[i])
 					# </advc>
@@ -3629,9 +3632,9 @@ class TerrainMap:
 		# <advc> Apply only the 'temperate' percentages to all land tiles
 		snowTemp = FindValueFromPercent(landTiles, landLength, mc.TemperateSnowPercent, False)
 		self.tundraTemp = FindValueFromPercent(landTiles, landLength, mc.TemperateTundraPercent, False)
-		tundraSnowRainfallThreshold = FindValueFromPercent(landTiles, landLength, mc.tundraSnowRainfallTarget, False)
 		flatSnowTemp = FindValueFromPercent(polarTiles, len(polarTiles), mc.SnowPercent, False)
 		taigaTemp = FindValueFromPercent(polarTiles, len(polarTiles), mc.TundraPercent, False)
+		tundraSnowRainfallThreshold = FindValueFromPercent(landRf, len(landRf), mc.tundraSnowRainfallTarget, False)
 		# </advc>
 		warmTiles  = []
 		warmLength = 0
@@ -3649,14 +3652,15 @@ class TerrainMap:
 							self.tData[i] = mc.COAST
 				# <advc>
 				elif latitude < mc.taigaMinLatitude:
-					# No snow near the equator, especially no flat snow, and non-polar snow mustn't be dry.
-					if tm.pData[i] == mc.HILLS and cm.TemperatureMap.data[i] < snowTemp and latitude >= mc.snowHillMinLatitude and cm.RainfallMap.data[i] >= tundraSnowRainfallThreshold:
-						self.tData[i] = mc.SNOW
-						bWarm = False
-					# No tundra near the equator, and non-polar tundra mustn't be dry.
-					elif cm.TemperatureMap.data[i] < self.tundraTemp and latitude >= mc.tundraMinLatitude and cm.RainfallMap.data[i] >= tundraSnowRainfallThreshold:
-						self.tData[i] = mc.TUNDRA
-						bWarm = False
+					if cm.RainfallMap.data[i] >= tundraSnowRainfallThreshold:
+						# No snow near the equator, especially no flat snow, and non-polar snow mustn't be dry.
+						if tm.pData[i] == mc.HILLS and latitude >= mc.snowHillMinLatitude and cm.TemperatureMap.data[i] < snowTemp:
+							self.tData[i] = mc.SNOW
+							bWarm = False
+						# No tundra near the equator, and non-polar tundra mustn't be dry.
+						elif latitude >= mc.tundraMinLatitude and cm.TemperatureMap.data[i] < self.tundraTemp:
+							self.tData[i] = mc.TUNDRA
+							bWarm = False
 				else:
 					# Very cold or topmost or bottommost row - those rows get shown with an icecap in Globe view (regardless of the true terrain).
 					if (latitude >= mc.snowPlateauMinLatitude and cm.TemperatureMap.data[i] < flatSnowTemp) or (latitude > 77 and (y == 0 or y == mc.height - 1)):
