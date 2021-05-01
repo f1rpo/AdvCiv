@@ -2339,41 +2339,62 @@ class ClimateMap3:
 				else:
 					aboveSeaLevelMap.data[i] = em.data[i] - em.seaLevelThreshold
 		aboveSeaLevelMap.Normalize()
+		# <advc>
+		waterTempMap = FloatMap()
+		waterTempMap.initialize(em.width, em.height, em.wrapX, em.wrapY)
+		# </advc>
 		zenith        = mc.tropicsLatitude
 		topTempLat    = mc.topLatitude + zenith
 		bottomTempLat = mc.bottomLatitude
 		latRange = topTempLat - bottomTempLat
-		for y in range(em.height):
-			lat = self.summerMap.GetLatitudeForY(y) #LM - moved these 2 lines out of x loop
-			latPercent = (lat - bottomTempLat) / latRange
-			for x in range(em.width):
-				i = self.summerMap.GetIndex(x, y)
-				temp = math.sin(latPercent * math.pi * 2.0 - math.pi * 0.5) * 0.5 + 0.5
-				if em.IsBelowSeaLevel(x, y):
-					temp = temp * mc.maxWaterTemp + mc.minWaterTemp
-				self.summerMap.data[i] = temp
-		self.summerMap.Smooth(int(math.floor(em.width / 8.0)))
-		self.summerMap.Normalize()
+		# advc: Moved into new method
+		self.fillLatitudeMap(self.summerMap, waterTempMap, bottomTempLat, latRange)
 		zenith        = mc.tropicsLatitude * -1
 		topTempLat    = mc.topLatitude
 		bottomTempLat = mc.bottomLatitude + zenith
 		latRange = topTempLat - bottomTempLat
-		for y in range(em.height):
-			lat = self.winterMap.GetLatitudeForY(y) #LM - moved these 2 out as well...
-			latPercent = (lat - bottomTempLat) / latRange
-			for x in range(em.width):
-				i = self.winterMap.GetIndex(x, y)
-				temp = math.sin(latPercent * math.pi * 2.0 - math.pi * 0.5) * 0.5 + 0.5
-				if em.IsBelowSeaLevel(x, y):
-					temp = temp * mc.maxWaterTemp + mc.minWaterTemp
-				self.winterMap.data[i] = temp
-		self.winterMap.Smooth(int(math.floor(em.width / 8.0)))
-		self.winterMap.Normalize()
+		# advc: Moved into new method
+		self.fillLatitudeMap(self.winterMap, waterTempMap, bottomTempLat, latRange)
+		# advc:
+		distToSeaMap = createDistanceMap(False)
 		for y in range(em.height):
 			for x in range(em.width):
 				i = self.TemperatureMap.GetIndex(x, y)
 				self.TemperatureMap.data[i] = (self.winterMap.data[i] + self.summerMap.data[i]) * (1.0 - aboveSeaLevelMap.data[i])
+				# <advc> Based on C2C_World.py
+				# 1.0 would correspond to the C2C formula. (However, C2C computes the latitude-based temperatures differently - I think).
+				maritimeWeight = 0.75
+				if distToSeaMap[i] > 0:
+					if distToSeaMap[i] <= 1 + CyMap().getWorldSize():
+						seaDistMult = (waterTempMap.data[i] - self.TemperatureMap.data[i]) / float(distToSeaMap[i])
+					else:
+						seaDistMult = (distToSeaMap[i] + em.width / 12.0) / ((13.0/12.0) * em.width)
+					self.TemperatureMap.data[i] *= 1 + maritimeWeight * seaDistMult
+				# </advc>
 		self.TemperatureMap.Normalize()
+
+
+	# advc: Cut from GenerateTemperatureMap
+	def fillLatitudeMap(self, tempMap, waterTempMap, bottomTempLat, latRange):
+		if mc.LandmassGenerator == 2:
+			em = e2
+		else:
+			em = e3
+		for y in range(em.height):
+			# advc.opt/ LM: Moved some stuff out of the inner loop
+			lat = tempMap.GetLatitudeForY(y)
+			latPercent = (lat - bottomTempLat) / latRange
+			latTemp = math.sin(latPercent * math.pi * 2.0 - math.pi * 0.5) * 0.5 + 0.5
+			waterTemp = latTemp * mc.maxWaterTemp + mc.minWaterTemp
+			for x in range(em.width):
+				i = tempMap.GetIndex(x, y)
+				waterTempMap.data[i] += waterTemp
+				if em.IsBelowSeaLevel(x, y):
+					tempMap.data[i] = waterTemp
+				else:
+					tempMap.data[i] = latTemp
+		tempMap.Smooth(int(math.floor(em.width / 8.0)))
+		tempMap.Normalize()
 
 
 	def GenerateRainfallMap(self):
@@ -3338,6 +3359,38 @@ def isHmWaterMatch(x, y):
 		return True
 	return False
 
+# advc: Cut from PangaeaBreaker.createDistanceMap, which creates a table with distances to the nearest land plot. This global function can also create a table with distances to the closest sea plot (bToLand=False).
+def createDistanceMap(bToLand):
+	if mc.LandmassGenerator == 2:
+		em = e2
+	else:
+		em = e3
+	distanceMap = array('i')
+	processQueue = []
+	for y in range(em.height):
+		for x in range(em.width):
+			# advc: Switched around if not bToLand
+			if em.IsBelowSeaLevel(x, y) == bToLand:
+				distanceMap.append(1000)
+			else:
+				distanceMap.append(0)
+				processQueue.append((x, y))
+	while len(processQueue) > 0:
+		x, y = processQueue[0]
+		i = GetHmIndex(x, y)
+		del processQueue[0]
+		dist = distanceMap[i]
+		for direction in range(1, 9):
+			xx, yy = GetNeighbor(x, y, direction)
+			ii = GetHmIndex(xx, yy)
+			if ii >= 0:
+				neighborDist = distanceMap[ii]
+				if neighborDist > dist + 1:
+					distanceMap[ii] = dist + 1
+					xx, yy = CoordsFromIndex(ii, em.width) # advc (bugfix?)
+					processQueue.append((xx, yy))
+	return distanceMap
+
 # advc: Need this in three places. The latitude check and plains as possible terrain are new.
 def canHaveJungle(rfData, jungleRf, tData, pData, lat, tempData = 1.0, jungleTemp = 0.0):
 	return (rfData >= jungleRf and (tData == mc.GRASS or tData == mc.PLAINS) and pData != mc.PEAK and abs(lat) * 2 <= mc.tropicsLatitude + mc.horseLatitude and tempData >= jungleTemp)
@@ -3824,33 +3877,8 @@ class PangaeaBreaker:
 
 
 	def createDistanceMap(self):
-		if mc.LandmassGenerator == 2:
-			em = e2
-		else:
-			em = e3
-		self.distanceMap = array('i')
-		processQueue = []
-		for y in range(em.height):
-			for x in range(em.width):
-				if em.IsBelowSeaLevel(x, y):
-					self.distanceMap.append(1000)
-				else:
-					self.distanceMap.append(0)
-					processQueue.append((x, y))
-		while len(processQueue) > 0:
-			x, y = processQueue[0]
-			i = GetHmIndex(x, y)
-			del processQueue[0]
-			distanceToLand = self.distanceMap[i]
-			for direction in range(1, 9):
-				xx, yy = GetNeighbor(x, y, direction)
-				ii = GetHmIndex(xx, yy)
-				if ii >= 0:
-					neighborDistanceToLand = self.distanceMap[ii]
-					if neighborDistanceToLand > distanceToLand + 1:
-						self.distanceMap[ii] = distanceToLand + 1
-						xx, yy = CoordsFromIndex(ii, em.width) # advc (bugfix?)
-						processQueue.append((xx, yy))
+		# advc: Moved into global function
+		self.distanceMap = createDistanceMap(True)
 
 
 	def getHighestCentrality(self, ID):
