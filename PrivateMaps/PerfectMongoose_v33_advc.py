@@ -715,9 +715,9 @@ class MapConstants:
 		##############################################################################
 
 		# Factors to modify mc.landPercent by if a Low or High Sea Level is chosen
-		self.SeaLevelFactor1 = 1.75
+		self.SeaLevelFactor1 = 1.25 # advc: was 1.75
 		self.SeaLevelFactor2 = 0.75
-		self.SeaLevelFactor3 = 2.5
+		self.SeaLevelFactor3 = 1.5 # advc: was 2.5
 		self.SeaLevelFactor4 = 0.5
 
 
