@@ -2489,8 +2489,9 @@ class ClimateMap3:
 							break
 					for x in range(xxStart, xxStop, incX):
 						i = em.GetIndex(x, y)
-						sortedGeoMap[geoIndex] = (x, y, geoMap.data[i])
-						geoIndex += 1
+						if i >= 0: # advc (bugfix from C2C_World)
+							sortedGeoMap[geoIndex] = (x, y, geoMap.data[i])
+							geoIndex += 1
 		moistureMap.initialize(em.width, em.height, em.wrapX, em.wrapY)
 		for i in range(len(sortedSummerMap)):
 			x = sortedSummerMap[i][0]
