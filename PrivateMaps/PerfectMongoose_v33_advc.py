@@ -352,14 +352,14 @@ class MapConstants:
 		#Note there will still be plenty of tiles without tree coverage even when this is at maximum.
 		#Use a value between 0.0 and 1.0.
 		# <advc> Was 1.0. For Forests, the chance is further multiplied by the new setting below.
-		self.MaxTreeChance = 0.86
-		self.ForestChance = 0.46 # </advc>
+		self.MaxTreeChance = 0.85
+		self.ForestChance = 0.44 # </advc>
 
 		#Chance an Oasis will appear. A tile must be Desert, not be on a hill, not be near another Oasis,
 		#and be surrounded by Desert on all sides.
 		# <advc> Was 0.5, 0.5, 1.0, but I'm relaxing the enclosure condition. And I'm adding a minor map-size adjustment in initInGameOptions.
-		self.OasisPercent   = 0.16
-		self.OasisMinChance = 0.11
+		self.OasisPercent   = 0.17
+		self.OasisMinChance = 0.12
 		self.OasisMaxChance = 0.22 # </advc>
 
 		#This variable adjusts the amount of bonuses on the map. Values above 1.0 will add bonus bonuses.
@@ -381,8 +381,9 @@ class MapConstants:
 
 		#Degrees latitude for the top and bottom of the map. This allows
 		#for more specific climate zones
-		self.topLatitude    = 90
-		self.bottomLatitude = -90
+		# advc: Was 90, -90. That results in one whole row for 90 and -90 each, which, with an equal-area projection, should take up at most one plot each.
+		self.topLatitude    = 85
+		self.bottomLatitude = -85
 
 		#Horse latitudes and polar fronts plus and minus in case you
 		#want some zones to be compressed or emphasized.
@@ -792,8 +793,9 @@ class MapConstants:
 			self.minimumMeteorSize += 1
 		if mmap.getWorldSize() > 4:
 			self.minimumMeteorSize += 1
-		self.northAttenuationRange  = 0.1
-		self.northAttenuationFactor = 0.3
+		self.northAttenuationRange  = 0.13
+		# Smaller value means more less land near the poles
+		self.northAttenuationFactor = 0.59
 		# Avoid elongated Antarctica; likelier to occur when land ratio is high.
 		if self.SeaLevel == 1:
 			self.northAttenuationFactor -= 0.08
@@ -812,8 +814,12 @@ class MapConstants:
 		if mc.LandmassGenerator != 2:
 			mc.JungleFactor -= 0.03
 			mc.JunglePercent += 0.03
-		else: # Bulkier deserts with the PW2 generator allow for more (too many) oases
-			oasisAdjust -= 0.018
+			oasisAdjust += 0.01
+			# Large deserts are too uncommon
+			mc.DesertPercent += 0.01
+		#else: # Bulkier deserts with the PW2 generator allow for more (too many?) oases
+		#	oasisAdjust -= 0.01
+		#	mc.DesertPercent -= 0.01
 		self.OasisPercent += oasisAdjust
 		self.OasisMinChance += oasisAdjust
 		self.OasisMaxChance += 2 * oasisAdjust
@@ -6934,6 +6940,10 @@ def createIce():
 	else:
 		cm = c2
 		iceTemp = 0.4
+	# advc: Adjust to top latitude
+	iceTemp = iceTemp * mc.topLatitude / 90
+	iceTemp *= 0.9 # advc: There's also a bit too much ice in general
+	'''
 	worldSize = gc.getMap().getWorldSize()
 	if worldSize == 0:
 		thickness = 3  #/ 8  = 0.375
@@ -6951,6 +6961,9 @@ def createIce():
 		thickness = 11 #/ 28 = 0.393
 	else:
 		thickness = 14 #/ 36 = 0.389
+	'''
+	# advc: Simpler, and doesn't need to be adjusted to getGridSize. Divisor 10.0 would be (pretty much) equivalent to the above, but I don't want it to be as thick as that.
+	thickness = int(round((mc.height / 12.5) * mc.topLatitude / 90))
 	if mc.WrapY:
 		iceChance    = 0.5
 		iceReduction = 0.3 / (thickness - 1)
