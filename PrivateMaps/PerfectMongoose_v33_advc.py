@@ -310,8 +310,8 @@ class MapConstants:
 		#Percentage of land squares cold enough to be Snow or Tundra.
 		#self.TundraPercent = 0.24 + self.SnowPercent
 		# <advc> Replacing the above
-		self.TemperateSnowPercent = 0.1
-		self.TemperateTundraPercent = 0.125 + self.TemperateSnowPercent
+		self.TemperateSnowPercent = 0.05
+		self.TemperateTundraPercent = 0.07 + self.TemperateSnowPercent
 		# These percentages now apply only to plots with the proper latitude
 		self.SnowPercent = 0.24
 		self.TundraPercent = 0.8
@@ -348,13 +348,17 @@ class MapConstants:
 		#Percentage of Plains and sub-Jungle Grassland squares warm enough to have Deciduous Forest.
 		#The remainder will have Evergreen Forest.
 		self.DeciduousPercent = 0.55 # advc: was 0.5
+		# advc: Tundra area assumed to be warm enough for tree growth
+		self.TreelinePercent = 0.67
 
 		#Chance Forest and Jungle will be placed when their temperature and rainfall conditions are met.
 		#Note there will still be plenty of tiles without tree coverage even when this is at maximum.
 		#Use a value between 0.0 and 1.0.
-		# <advc> Was 1.0. For Forests, the chance is further multiplied by the new setting below.
-		self.MaxTreeChance = 0.85
-		self.ForestChance = 0.44 # </advc>
+		# <advc> Was 1.0. For Forests, the chance is further multiplied by the new settings below.
+		self.MaxTreeChance = 0.75
+		self.TemperateForestChance = 0.46
+		self.BorealForestChance = 1.0
+		# </advc>
 
 		#Chance an Oasis will appear. A tile must be Desert, not be on a hill, not be near another Oasis,
 		#and be surrounded by Desert on all sides.
@@ -813,6 +817,8 @@ class MapConstants:
 			self.westAttenuationFactor = self.northAttenuationFactor
 		# Slightly more oases on smaller maps - to make it less likely that the map won't have any.
 		oasisAdjust = (3 - mmap.getWorldSize()) / 120.0
+		if self.ClimateSystem != 0: # High-altitude plots seem to be wetter with the PW2 climate system
+			self.tundraSnowRainfallTarget *= 1.4
 		# Some extra Jungle for the PM3 land generator b/c it tends to place less land near the equator.
 		if mc.LandmassGenerator != 2:
 			mc.JungleFactor -= 0.03
@@ -6832,13 +6838,22 @@ def addFeatures():
 	#print "Forest"
 	forestTiles  = []
 	forestLength = 0
+	coldTiles = [] # advc
 	for y in range(mc.height):
 		for x in range(mc.width):
 			i = GetIndex(x, y)
-			# advc: Use global function for not-jungle checks
-			if (tm.tData[i] == mc.GRASS or tm.tData[i] == mc.PLAINS) and tm.pData[i] != mc.PEAK and not canHaveJungle(cm.RainfallMap.data[i], tm.jungleRainfall, tm.tData[i], tm.pData[i], em.GetLatitudeForY(y), cm.TemperatureMap.data[i], tm.jungleTemp):
-				forestTiles.append(cm.TemperatureMap.data[i])
-				forestLength += 1
+			# <advc>
+			if tm.pData[i] == mc.WATER or tm.pData[i] == mc.PEAK:
+				continue
+			# Use global function for not-jungle checks
+			if tm.tData[i] == mc.GRASS or tm.tData[i] == mc.PLAINS:
+				if not canHaveJungle(cm.RainfallMap.data[i], tm.jungleRainfall, tm.tData[i], tm.pData[i], em.GetLatitudeForY(y), cm.TemperatureMap.data[i], tm.jungleTemp):
+					forestTiles.append(cm.TemperatureMap.data[i])
+					forestLength += 1
+			elif tm.tData[i] == mc.TUNDRA:
+				coldTiles.append(cm.TemperatureMap.data[i])
+	treeLineTemp = FindValueFromPercent(coldTiles, len(coldTiles), mc.TreelinePercent, True)
+	 # </advc>
 	deciduousTemp = FindValueFromPercent(forestTiles, forestLength, mc.DeciduousPercent, True)
 
 	#print "Oasis"
@@ -6900,16 +6915,24 @@ def addFeatures():
 					else: # </advc>
 						if setFeature(plot, fJungle, 0):
 							set = True
-				if not set and cm.RainfallMap.data[i] >= tm.jungleRainfall * PRand.random() and PRand.random() < mc.MaxTreeChance * mc.ForestChance: # advc: Multiplication by ForestChance added
+				# <advc>
+				if not set:
 					if tm.tData[i] == mc.TUNDRA:
-						if setFeature(plot, fForest, FORESTSNOWY):
-							set = True
-					elif cm.TemperatureMap.data[i] >= deciduousTemp:
-						if setFeature(plot, fForest, FORESTLEAFY):
-							set = True
+						if cm.TemperatureMap.data[i] < treeLineTemp:
+							continue
+						forestChance = mc.BorealForestChance
 					else:
-						if setFeature(plot, fForest, FORESTEVERGREEN):
-							set = True
+						forestChance = mc.TemperateForestChance # </advc>
+					if cm.RainfallMap.data[i] >= tm.jungleRainfall * PRand.random() and PRand.random() < mc.MaxTreeChance * forestChance: # advc: Multiplication by ForestChance added
+						if tm.tData[i] == mc.TUNDRA:
+							if setFeature(plot, fForest, FORESTSNOWY):
+								set = True
+						elif cm.TemperatureMap.data[i] >= deciduousTemp:
+							if setFeature(plot, fForest, FORESTLEAFY):
+								set = True
+						else:
+							if setFeature(plot, fForest, FORESTEVERGREEN):
+								set = True
 			#Floodplains, Oasis
 			if not set and tm.tData[i] == mc.DESERT and tm.pData[i] == mc.LAND:
 				#if plot.isRiver(): # advc: Let setFeature (i.e. the DLL) check this
