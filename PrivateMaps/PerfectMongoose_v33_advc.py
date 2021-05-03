@@ -267,7 +267,7 @@ class MapConstants:
 
 	def initialize(self):
 		#This variable sets how much land the map will have, and thus how large its oceans will be.
-		self.SeaLevel          = 2
+		self.SeaLevel          = 0
 
 		#This variable sets whether to use the new PW3 landmass generator or the old PW2 one.
 		self.LandmassGenerator = 0
@@ -296,11 +296,11 @@ class MapConstants:
 		#Percent of land vs. water
 		#LM - Exact Real Earth Value. Actual results vary depending on map size, meteors, and which landmass generator was used.
 		#self.landPercent = 0.2889
-		# advc: Low sea level should be close to the real ratio because that's how it works with the standard map scripts (e.g. Fractal). At Medium sea level, Fractal only yields about 21% land - but PM has more bad terrain.
-		self.landPercent = 0.235
+		# advc: Low sea level should be close to the real ratio because that's how it works with the standard map scripts (e.g. Fractal). At Medium sea level, Fractal only yields about 21% land - but PM has more bad, marginal and initially inaccessible terrain.
+		self.landPercent = 0.234
 
 		#Percentage of land squares high enough to be Hills or Peaks.
-		self.HillPercent = 0.22 # advc: was 0.42
+		self.HillPercent = 0.225 # advc: was 0.42
 
 		#Percentage of land squares high enough to be Peaks.
 		self.PeakPercent = 0.048 # advc: was 0.12
@@ -716,9 +716,9 @@ class MapConstants:
 		##############################################################################
 
 		# Factors to modify mc.landPercent by if a Low or High Sea Level is chosen
-		self.SeaLevelFactor1 = 1.25 # advc: was 1.75
-		self.SeaLevelFactor2 = 0.75
-		self.SeaLevelFactor3 = 1.5 # advc: was 2.5
+		self.SeaLevelFactor1 = 1.34 # advc: was 1.75
+		self.SeaLevelFactor2 = 0.745 # advc: was 0.75
+		self.SeaLevelFactor3 = 1.5 # advc: was 2.5 (but I'm removing choices 3 and 4 anyway)
 		self.SeaLevelFactor4 = 0.5
 
 
@@ -856,7 +856,8 @@ class MapConstants:
 		else:
 			string = "PW2"
 		self.optionsString += "Climate System = " + string + "\n"
-		if self.RiverGenerator == 0:
+		#if self.RiverGenerator == 0:
+		if self.RiverGenerator != 0: # advc
 			string = "Civ4"
 		else:
 			string = "PW2"
@@ -6871,7 +6872,7 @@ def addFeatures():
 			#Jungle, Forest
 			if (tm.tData[i] == mc.GRASS or tm.tData[i] == mc.PLAINS or tm.tData[i] == mc.TUNDRA) and tm.pData[i] != mc.PEAK:
 				# advc: Jungle checks moved into global function
-				if not set and canHaveJungle(cm.RainfallMap.data[i], tm.jungleRainfall, tm.tData[i], tm.pData[i], em.GetLatitudeForY(y), cm.TemperatureMap.data[i], tm.jungleTemp) and PRand.random() < mc.MaxTreeChance:
+				if not set and canHaveJungle(cm.RainfallMap.data[i], tm.jungleRainfall, tm.tData[i], tm.pData[i], lat, cm.TemperatureMap.data[i], tm.jungleTemp) and PRand.random() < mc.MaxTreeChance:
 					# <advc> Avoid placing jungle adjacent to desert
 					desertScore = 0
 					for dx in range(-1,2):
