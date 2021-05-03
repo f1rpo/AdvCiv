@@ -3484,7 +3484,6 @@ class TerrainMap:
 		else:
 			em = e3
 			deAttenuate = True # advc
-		self.landTiles = 0 # advc (for RiverMap)
 		for y in range(mc.height):
 			for x in range(mc.width):
 				i = em.GetIndex(x, y)
@@ -3583,10 +3582,8 @@ class TerrainMap:
 				i = em.GetIndex(x, y)
 				if em.data[i] < em.seaLevelThreshold:
 					self.pData[i] = mc.WATER
-					continue
-				self.landTiles += 1 # advc
-				# advc: Was landMap in both (el)ifs
-				if hillMap[i] < hillHeight:
+				# advc: Was landMap in both elifs
+				elif hillMap[i] < hillHeight:
 					self.pData[i] = mc.LAND
 				elif peakMap[i] < peakHeight:
 					self.pData[i] = mc.HILLS
@@ -4446,12 +4443,6 @@ class RiverMap:
 			riverThreshold = mc.RiverThreshold3
 		else:
 			riverThreshold = mc.RiverThreshold2
-		# <advc> The river generator tends to produce a larger proportion of river tiles when there is more land. Perhaps better to let the chips fall where they may than to try and counter this. The standard river generator also doesn't produce a fixed ratio of river tiles (more rivers when the landmasses are bulkier).
-		#if mc.RiverGenerator == 0:
-			# This formula is based purely on observation
-		#	riverThreshAdjust = math.pow(tm.landTiles, 0.25) / 5
-		#	riverThreshold *= riverThreshAdjust
-		# </advc>
 		riversPlaced = 0 # advc
 		for i in range(em.length):
 			if (self.drainageMap[i] >= riverThreshold):
