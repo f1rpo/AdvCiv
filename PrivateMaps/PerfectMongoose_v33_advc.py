@@ -1,9 +1,9 @@
 ##
-## Latest changes to PerfectWorld in MongooseMod ported back to the latest
-## standalone version of the script - by firpo. Plus all tweaks from
-## AdvCiv 0.99 (marked with "advc" comments) except those that disable
-## custom map options or defer to the (AdvCiv) DLL. Many of those tweaks are
-## aimed at a terrain distribution similar to Fractal and other standard scripts.
+## advc.021b: Latest changes to PerfectWorld in MongooseMod (v3.3) ported back
+## to the latest standalone version of the script (v3.2) and enhanced and
+## customized for the AdvCiv mod. The AdvCiv changes are marked with
+## "advc" comments, "advc.001" for bugfixes.
+## Version history up to v3.3 moved to the end of the file.
 ##
 ##############################################################################
 ##
@@ -35,213 +35,6 @@
 ##
 ## Copyright 2010 Rich Marinaccio aka Cephalo
 ## Used with Permission
-##
-
-
-##############################################################################
-## Version History (LunarMongoose)
-##############################################################################
-##
-## 3.3 - Added a menu option to use Vanilla Civ4's SDK river generator by default
-## instead of PerfectWorld 2's generator. Added a menu option to use absolute height
-## instead of lowest-neighbor slope for setting Hills and Peaks. Wrote a new proximity
-## calculation for determining which landmasses are added to the largest and
-## second-largest continents to form the Old World and New World regions. Set Oases to
-## only require Desert in all cardinal directions. Disabled meteors on Duel, Tiny, and
-## Small regardless of Pangaea setting, since they tend to wipe out most of the land
-## on the smaller map sizes (often leading to player spawning errors on Duel). Added a
-## menu option to use 5 different Sea Level values.
-##
-## 3.2.1 - Changed Jungle temperature requirement from an absolute value to a global
-## percent to avoid large amounts of Jungle on maps with a lot of land near the
-## equator, and to avoid small amounts of Jungle on maps without much land near the
-## equator. Increased minimum distance between Oases from 1 to 2 tiles.
-##
-## 3.2 - Added AIAndy's square grid evaluation, float division and geostrophic fixes,
-## his bonus placement and starting location speed enhancements, and his PythonRandom
-## multiplayer support. Added a menu option to continue using the old hex-grid-based
-## Perlin Noise code if desired, since the previous PW3 landmass shapes are different
-## and still fully viable. Merged in the remaining PW 2.0.8 functionality with a menu
-## option to select the PW2 landmass generator if desired. Changed the rainfall
-## thresholds from absolute values to global percents like the temperature thresholds,
-## set them to ignore Peaks, and merged the climate system constants back together.
-## Enforced the current map's x and y wrap settings in a number of places in the code,
-## which fixes some bugs with -1 data values near the edges and should get rivers
-## wrapping only when they're supposed to. Fixed natural harbor bug, and added shape
-## randomization to natural harbor creation on diagonals. Changed sea ice to vary with
-## map size instead of always being 4 tiles thick, and to require water temperature to
-## be near freezing so the bands have some limited shape to them. Switched to PW2's
-## oversized internal grid when using the PW3 LMG with the PW2 climate system so the
-## latter works correctly. Changed the +/- 10% tolerances on elevation, rainfall and
-## sea level thresholds to +/- 2%. Removed MeteorCompensationFactor since the system
-## does indeed work best without it. (My apologies Ceph; you were right!) Made a
-## number of additional code improvements.
-##
-## 3.1 - Fuyu's 2.0.6f bonus placement, starting location enhancement, minimum hill
-## enforcement and bad feature removal code were added, along with his control
-## variables. Reverted some more settings for use with vanilla that were still set for
-## my mod. Added allowance in getPlotPotentialValue() for clearing features with
-## negative food (ie Jungles), since it already accounted for cleared features with
-## tile improvements that require it (only useful in mods). Added StartEra checks to
-## verify the tech requirements are met for clearing features in both cases. Agreeing
-## with Cephalo, I left the starting location production resource food override
-## threshold at half the city plots being workable, rather than two-thirds. Changed
-## the TechCityTrade requirement for resource valuation and placement to TechReveal
-## since the former makes no sense: if a bonus is visible it enhances the tile, and if
-## it isn't visible it doesn't enhance the tile, regardless of whether it can be
-## harvested or traded with other cities. Added BonusMaxGroupSize option of -1 for
-## setting Fuyu's clump limit based on WorldSize, clarified the description of what
-## the 0 option there actually does, and fixed the random bounds. Added a minimum
-## value to the StartEra checks to include all Classical resources, improvements and
-## clearing abilities in the plot valuations. Changed allowWonderBonusChance to allow
-## any strategic resource (not just Stone or Marble), and the city sweetener to allow
-## non-strategic resources - both up through Classical (or later). Adjusted lake and
-## river values again, and added separate controls for them for the two climate
-## systems. Increased Desert slightly and Plains considerably in the PW2 system.
-## Synchronized the PM3/PW2 code substantially more to make future updates easier.
-## Scaled temperature from normal linearly down to zero in the top and bottom thirds
-## of the map in the PW3 climate system, to get Tundra and Snow in the higher and
-## lower latitudes as there should be. Lowered Tundra/Snow temperatures to compensate.
-## Increased PW3 Grassland level slightly.
-##
-## 3.0 - Initial release of LM's Civ4 Port of Civ5's PW3_v2, using PW_2.06 as base.
-## The PW2 HeightMap and ClimateMap have been replaced with their PW3 counterparts.
-## PW2's high-altitude randomization was removed since it was causing 80-100%
-## of land tiles to be Peaks regardless of settings. PW2's SmallMaps were removed
-## since the new Perlin Noise landmass generator does not require an oversized map
-## to avoid looking bad. The YToXRatio hex grid scale factor has been removed.
-## PW2 control variables that are now unused have been removed, and the necessary
-## PW3 ones have been added. Values have also been adjusted as needed or desired.
-## MeteorCompensationFactor was added to try and help preserve total land percent
-## when using Break Pangaeas. The Sea Level menu option has been enabled, and
-## mc.SeaLevelFactor was added to support it. The Use menu option has been added,
-## and a slightly-modified version of the PW2 ClimateMap was added back in, to
-## support having a choice between the PW2 and PW3 climate systems. PW3's north
-## and south attenuation were removed. PW2's code that forced Snow to be at higher
-## elevation than Tundra, Tundra to be higher than everything else, and Desert to
-## not be, well, something... was removed. Plains in the PW3 ClimateMap were
-## set to have a null rainfall window and a relatively large temperature window,
-## so that they form exclusively as a result of cold deserts; this helps create
-## Great Plains type areas. RiverThreshold's dependence on PlainsPercent (via
-## PlainsThreshold) was removed so that its value can be set reliably. Set Oases to
-## require Desert in all surrounding tiles with no Oases present.
-##
-
-##############################################################################
-## Version History (Cephalo)
-##############################################################################
-##
-## 3v2 - Shrank the map sizes except for huge. Added a better way to adjust river
-## lengths. Used the continent art styles in a more diverse way. Cleaned up the
-## mountain ranges a bit.
-##
-## 3v1 - initial release! 11/24/2010
-##
-## 2.06 - Fixed a few bugs from my minimum hill/maximum bad feature function.
-##
-## 2.05 - Made maps of standard size and below a bit smaller. Changed the way I
-## remove jungle to prevent excessive health problems. Tiles in FC on different
-## continents have zero value. Tiles on different continents will not be boosted
-## with resources or hills. Water tiles have zero value for non-coastal cities.
-## Water tiles will not be boosted with resources for non-coastal cities, land
-## tiles will be boosted instead. (lookout Sid's Sushi!)
-##
-## 2.04 - Changed many percent values to be a percent of land tiles rather than
-## total map tiles for easier, more predictable adjustment. Ensured a minimum
-## number of hills in a starting fat cross. Disabled the normalizeRemovePeaks
-## function a replaced it with a maximum peaks in FC function. Added bonus
-## resources to FC depending on player handicap. Added a value bonus for cities
-## placed on river sides.
-##
-## 2.03 - Fixed an initialization problem related to Blue Marble. Added some
-## enhanced error handling to help me track down some of the intermittant bugs
-## that still remain.
-##
-## 2.02 - Fixed some problems with monsoons that were creating strange artifacts
-## near the tropics. Added an exponential curve to heat loss due to altitude, so
-## that jungles can appear more readily without crawling to inappropriate
-## latitudes.
-##
-## 2.01 - Changed the way I handled a vanilla version difference. Added toroidal
-## and flat map options. Made tree amount more easily adjustable. Added a variable to
-## tune the level of resource bonuses. Changed the rules for fixing tundra/ice next
-## to desert. Added altitude noise to the plate map to improve island chains. Added
-## a variable to control heat loss due to high altitude. Implimented a new interleaved
-## bonus placement scheme so that bonuses are placed individually in random order,
-## rather than all of each bonus type at once. Brought back the meteor code from
-## PerfectWorld 1 and eliminated the east/west continent divide.
-##
-## 2.0 - Rebuilt the landmass and climate model using the FaireWeather.py for
-## Colonization map script engine. Improved the river system. Fixed some
-## old bugs.
-##
-## 1.13 - Fixed a bug where starting on a goody hut would crash the game.
-## Prevented start plots from being on mountain peaks. Changed an internal
-## distance calculation from a straight line to a path distance, improving
-## start locations somewhat. Created a new tuning variable called
-## DesertLowTemp. Since deserts in civ are intended to be hot deserts, this
-## variable will prevent deserts from appearing near the poles where the
-## desert texture clashes horribly with the tundra texture.
-##
-## 1.12 - Found a small bug in the bonus placer that gave bonuses a minimum
-## of zero, this is why duel size maps were having so much trouble.
-##
-## 1.11 - limited the features mixing with bonuses to forests only. This
-## eliminates certain undesireable effects like floodplains being erased by
-## or coinciding with oil or incense, or corn appearing in jungle.
-##
-## 1.10 - Wrapped all map constants into a class to avoid all those
-## variables being loaded up when PW is not used. Also this makes it a
-## little easier to change them programatically. Added two in-game options,
-## New World Rules and Pangaea Rules. Added a tuning variable that allows
-## bonuses with a tech requirement to co-exist with features, so that the
-## absence of those features does not give away their location.
-##
-## 1.09 - Fixed a starting placement bug introduced in 1.07. Added a tuning
-## variable to turn off 'New world' placement.
-##
-## 1.08 - Removed the hemispheres logic and replaced it with a simulated meteor
-## shower to break up pangaeas. Added a tuning variable to allow pangaeas.
-##
-## 1.07 - Placing lakes and harbors after river placement was not updating river
-## crossings. Resetting rivers after lake placement should solve this. Fixed a
-## small discrepancy between Python randint and mapRand to make them behave the
-## same way. Bonuses of the same bonus class, when forced to appear on the
-## same continent, were sometimes crowding each other off the map. This was
-## especially problematic on the smaller maps. I added some additional, less
-## restrictive, passes to ensure that every resource has at least one placement
-## unless the random factors decide that none should be placed. Starting plot
-## normalization now will place food if a different bonus can not be used due
-## to lack of food. Changed heightmap generation to more likely create a
-## new world.
-##
-## 1.06 - Overhauled starting positions and resource placement to better
-## suit the peculiarities of PerfectWorld
-##
-## 1.05 - Fixed the Mac bug and the multi-player bug.
-##
-## 1.04a - I had unfairly slandered getMapRand in my comments. I had stated
-## that the period was shortened unnecessarily, which is not the case.
-##
-## 1.04 - Added and option to use the superior Python random number generator
-## or the getMapRand that civ uses. Made the number of rivers generated tunable.
-## Fixed a bug that prevented floodplains on river corners. Made floodplains
-## in desert tunable.
-##
-## 1.03a - very minor change in hope of finding the source of a multi-player
-## glitch.
-##
-## 1.03 - Improved lake generation. Added tuning variables to control some
-## new features. Fixed some minor bugs involving the AreaMap filler
-## and fixed the issue with oasis appearing on lakes. Maps will now report
-## the random seed value that was used to create them, so they can be easily
-## re-created for debugging purposes.
-##
-## 1.02 - Fixed a bug that miscalculated the random placing of deserts. This
-## also necessitated a readjustment of the default settings.
-##
-## 1.01 - Added global tuning variables for easier customization. Fixed a few
-## bugs that caused deserts to get out of control.
 ##
 
 from CvPythonExtensions import *
@@ -2026,7 +1819,7 @@ class ElevationMap2(FloatMap):
 						nn = GetHmIndex(xx, yy)
 						if nn != -1:
 							self.plateMap[nn].plateID = i
-							xx, yy = CoordsFromIndex(nn, self.width) # advc (bugfix?)
+							xx, yy = CoordsFromIndex(nn, self.width) # advc.001
 							plot = (xx, yy, i)
 							growthPlotList.append(plot)
 					break
@@ -2057,7 +1850,7 @@ class ElevationMap2(FloatMap):
 						growthChance = mc.plateGrowthChanceX
 					if PRand.random() < growthChance:
 						self.plateMap[ii].plateID = plateID
-						xx, yy = CoordsFromIndex(ii, self.width) # advc (bugfix?)
+						xx, yy = CoordsFromIndex(ii, self.width) # advc.001
 						newPlot = (xx, yy, plateID)
 						growthPlotList.append(newPlot)
 			#move plot to the end of the list if room left, otherwise
@@ -2490,7 +2283,7 @@ class ClimateMap3:
 							break
 					for x in range(xxStart, xxStop, incX):
 						i = em.GetIndex(x, y)
-						if i >= 0: # advc (bugfix from C2C_World)
+						if i >= 0: # advc.001 (from C2C_World)
 							sortedGeoMap[geoIndex] = (x, y, geoMap.data[i])
 							geoIndex += 1
 		moistureMap.initialize(em.width, em.height, em.wrapX, em.wrapY)
@@ -2548,12 +2341,12 @@ class ClimateMap3:
 			ii = em.GetIndex(x1, y1)
 			##neighbor must be on map and in same wind zone
 			if ii >= 0 and (em.GetZone(y1) == em.GetZone(y)):
-				x1, y1 = CoordsFromIndex(ii, em.width) # advc (bugfix?)
+				x1, y1 = CoordsFromIndex(ii, em.width) # advc.001
 				nList.append((x1, y1))
 			x2, y2 = GetNeighbor(x, y, dir2)
 			ii = em.GetIndex(x2, y2)
 			if ii >= 0:
-				x2, y2 = CoordsFromIndex(ii, em.width) # advc (bugfix?)
+				x2, y2 = CoordsFromIndex(ii, em.width) # advc.001
 				nList.append((x2, y2))
 		else:
 			#AIAndy Bugfix - climate hex evaluation
@@ -2561,7 +2354,7 @@ class ClimateMap3:
 				xx, yy = GetNeighbor(x, y, direction)
 				ii = em.GetIndex(xx, yy)
 				if ii >= 0 and pressureMap.data[i] <= pressureMap.data[ii]:
-					xx, yy = CoordsFromIndex(ii, em.width) # advc (bugfix?)
+					xx, yy = CoordsFromIndex(ii, em.width) # advc.001
 					nList.append((xx, yy))
 		if len(nList) == 0 or (boolGeostrophic and len(nList) == 1):
 			cost = moistureMap.data[i]
@@ -2747,7 +2540,7 @@ class ClimateMap2:
 					xx, yy = GetNeighbor(plot.x, plot.y, direction)
 					ii = GetHmIndex(xx, yy)
 					if ii >= 0 and tempMap[i] <= tempMap[ii]:
-						xx, yy = CoordsFromIndex(ii, em.width) # advc (bugfix?)
+						xx, yy = CoordsFromIndex(ii, em.width) # advc.001
 						nList.append((xx, yy))
 				#divide moisture by number of neighbors for distribution
 				if len(nList) == 0:
@@ -3354,11 +3147,11 @@ def isDeepWaterMatch(x, y):
 		xx, yy = GetNeighbor(x, y, direction)
 		ii = GetIndex(xx, yy)
 		#if ii >= 0 and not em.IsBelowSeaLevel(x, y):
-		# <advc> bugfix
+		# <advc.001>
 		if ii < 0:
 			continue
 		xx, yy = CoordsFromIndex(ii, mc.width)
-		if not em.IsBelowSeaLevel(xx, yy): # </advc>
+		if not em.IsBelowSeaLevel(xx, yy): # </advc.001>
 			return False
 	return True
 
@@ -3407,7 +3200,7 @@ def createDistanceMap(bToLand):
 				neighborDist = distanceMap[ii]
 				if neighborDist > dist + 1:
 					distanceMap[ii] = dist + 1
-					xx, yy = CoordsFromIndex(ii, em.width) # advc (bugfix?)
+					xx, yy = CoordsFromIndex(ii, em.width) # advc.001
 					processQueue.append((xx, yy))
 	return distanceMap
 
@@ -3791,7 +3584,7 @@ class PangaeaBreaker:
 		if meteorThrown:
 			print "The age of dinosaurs has come to a cataclysmic end."
 		#if meteorCount == 15:
-		if meteorCount == mc.maximumMeteorCount: # advc (bugfix)
+		if meteorCount == mc.maximumMeteorCount: # advc.001
 			print "Maximum meteor count of %d has been reached." % meteorCount
 			# <advc> Previously always said that "Pangaea may still exist"
 			if self.isPangaea():
@@ -4487,7 +4280,7 @@ class RiverMap:
 				xx, yy = GetNeighbor(x, y, direction)
 				ii = GetIndex(xx, yy)
 				if ii >= 0 and self.isLake(xx, yy) and onQueueMap[ii] == 0:
-					xx, yy = CoordsFromIndex(ii, mc.width) # advc (bugfix?)
+					xx, yy = CoordsFromIndex(ii, mc.width) # advc.001
 					lakeList.append((xx, yy, lakeSize))
 					onQueueMap[ii] = 1
 
@@ -5784,7 +5577,7 @@ class StartingPlotFinder:
 				for plot in plotList:
 					if plot.getPlotType() != PlotTypes.PLOT_HILLS and plot.getArea() == CyMap().plot(x, y).getArea():
 						#if bonusInfo == None or not bonusInfo.isRequiresFlatlands():
-						# advc (bugfix): That function doesn't exist in the original BtS DLL. It might exist in MongooseMod, but, in the v3.2 standalone version, this was definitely a bug. Use isHills instead (like in the DLL).
+						# advc.001: That function doesn't exist in the original BtS DLL. It might exist in MongooseMod, but, in the v3.2 standalone version, this was definitely a bug. Use isHills instead (like in the DLL).
 						if bonusInfo is None or bonusInfo.isHills():
 							plot.setPlotType(PlotTypes.PLOT_HILLS, True, True)
 							hillsNeeded -= 1
@@ -6133,7 +5926,7 @@ class StartingArea:
 				if sPlot.isWater():
 					raise ValueError, "Start plot is water!"
 				#sPlot.setImprovementType(gc.getInfoTypeForString("NO_IMPROVEMENT"))
-				# advc (bugfix):
+				# advc.001:
 				sPlot.setImprovementType(ImprovementTypes.NO_IMPROVEMENT)
 				playerID = self.playerList[n]
 				player = gc.getPlayer(playerID)
@@ -6399,10 +6192,10 @@ def isSeaLevelMap():
 
 
 def getTopLatitude():
-	return mc.topLatitude # advc (bugfix?): was 90
+	return mc.topLatitude # advc.001: was 90
 
 def getBottomLatitude():
-	return mc.bottomLatitude # advc (bugfix?): was -90
+	return mc.bottomLatitude # advc.001: was -90
 
 ''' # advc: Use the defaults, which are smaller, combined with more arable land.
 def getGridSize(argsList):
@@ -6766,7 +6559,7 @@ def makeChannel(x, y):
 	mmap = gc.getMap()
 	plot = mmap.plot(x, y)
 	cleanUpLake(x, y)
-	plot.setPlotType(PlotTypes.PLOT_OCEAN, False, False) # advc (optimization): was True,True
+	plot.setPlotType(PlotTypes.PLOT_OCEAN, False, False) # advc.opt: was True,True
 	plot.setRiverID(-1)
 	plot.setNOfRiver(False, CardinalDirectionTypes.NO_CARDINALDIRECTION)
 	plot.setWOfRiver(False, CardinalDirectionTypes.NO_CARDINALDIRECTION)
@@ -6824,7 +6617,7 @@ def expandLake(x, y, riversIntoLake, oceanMap):
 					if oceanMap.areaList[n].ID == areaID:
 						if oceanMap.areaList[n].water:
 							return
-				xx, yy = CoordsFromIndex(ii, oceanMap.width) # advc (bugfix?)
+				xx, yy = CoordsFromIndex(ii, oceanMap.width) # advc.001
 				if rm.riverMap[ii] != mc.L and not mmap.plot(xx, yy).isWater():
 					lakeNeighbors.append(LakePlot(xx, yy, em.data[ii]))
 		lakeSize -= 1
@@ -6873,7 +6666,7 @@ def addLakes():
 		for x in range(mc.width):
 			i = GetIndex(x, y)
 			makeHarbor(x, y, oceanMap)
-	mmap.recalculateAreas(); # advc (optimization): No longer done in makeChannel
+	mmap.recalculateAreas(); # advc.opt: No longer done in makeChannel
 
 
 def addFeatures():
@@ -7087,3 +6880,210 @@ def assignStartingPlots():
 
 def beforeInit():
 	mc.initInGameOptions()
+
+
+##############################################################################
+## Version History (LunarMongoose)
+##############################################################################
+##
+## 3.3 - Added a menu option to use Vanilla Civ4's SDK river generator by default
+## instead of PerfectWorld 2's generator. Added a menu option to use absolute height
+## instead of lowest-neighbor slope for setting Hills and Peaks. Wrote a new proximity
+## calculation for determining which landmasses are added to the largest and
+## second-largest continents to form the Old World and New World regions. Set Oases to
+## only require Desert in all cardinal directions. Disabled meteors on Duel, Tiny, and
+## Small regardless of Pangaea setting, since they tend to wipe out most of the land
+## on the smaller map sizes (often leading to player spawning errors on Duel). Added a
+## menu option to use 5 different Sea Level values.
+##
+## 3.2.1 - Changed Jungle temperature requirement from an absolute value to a global
+## percent to avoid large amounts of Jungle on maps with a lot of land near the
+## equator, and to avoid small amounts of Jungle on maps without much land near the
+## equator. Increased minimum distance between Oases from 1 to 2 tiles.
+##
+## 3.2 - Added AIAndy's square grid evaluation, float division and geostrophic fixes,
+## his bonus placement and starting location speed enhancements, and his PythonRandom
+## multiplayer support. Added a menu option to continue using the old hex-grid-based
+## Perlin Noise code if desired, since the previous PW3 landmass shapes are different
+## and still fully viable. Merged in the remaining PW 2.0.8 functionality with a menu
+## option to select the PW2 landmass generator if desired. Changed the rainfall
+## thresholds from absolute values to global percents like the temperature thresholds,
+## set them to ignore Peaks, and merged the climate system constants back together.
+## Enforced the current map's x and y wrap settings in a number of places in the code,
+## which fixes some bugs with -1 data values near the edges and should get rivers
+## wrapping only when they're supposed to. Fixed natural harbor bug, and added shape
+## randomization to natural harbor creation on diagonals. Changed sea ice to vary with
+## map size instead of always being 4 tiles thick, and to require water temperature to
+## be near freezing so the bands have some limited shape to them. Switched to PW2's
+## oversized internal grid when using the PW3 LMG with the PW2 climate system so the
+## latter works correctly. Changed the +/- 10% tolerances on elevation, rainfall and
+## sea level thresholds to +/- 2%. Removed MeteorCompensationFactor since the system
+## does indeed work best without it. (My apologies Ceph; you were right!) Made a
+## number of additional code improvements.
+##
+## 3.1 - Fuyu's 2.0.6f bonus placement, starting location enhancement, minimum hill
+## enforcement and bad feature removal code were added, along with his control
+## variables. Reverted some more settings for use with vanilla that were still set for
+## my mod. Added allowance in getPlotPotentialValue() for clearing features with
+## negative food (ie Jungles), since it already accounted for cleared features with
+## tile improvements that require it (only useful in mods). Added StartEra checks to
+## verify the tech requirements are met for clearing features in both cases. Agreeing
+## with Cephalo, I left the starting location production resource food override
+## threshold at half the city plots being workable, rather than two-thirds. Changed
+## the TechCityTrade requirement for resource valuation and placement to TechReveal
+## since the former makes no sense: if a bonus is visible it enhances the tile, and if
+## it isn't visible it doesn't enhance the tile, regardless of whether it can be
+## harvested or traded with other cities. Added BonusMaxGroupSize option of -1 for
+## setting Fuyu's clump limit based on WorldSize, clarified the description of what
+## the 0 option there actually does, and fixed the random bounds. Added a minimum
+## value to the StartEra checks to include all Classical resources, improvements and
+## clearing abilities in the plot valuations. Changed allowWonderBonusChance to allow
+## any strategic resource (not just Stone or Marble), and the city sweetener to allow
+## non-strategic resources - both up through Classical (or later). Adjusted lake and
+## river values again, and added separate controls for them for the two climate
+## systems. Increased Desert slightly and Plains considerably in the PW2 system.
+## Synchronized the PM3/PW2 code substantially more to make future updates easier.
+## Scaled temperature from normal linearly down to zero in the top and bottom thirds
+## of the map in the PW3 climate system, to get Tundra and Snow in the higher and
+## lower latitudes as there should be. Lowered Tundra/Snow temperatures to compensate.
+## Increased PW3 Grassland level slightly.
+##
+## 3.0 - Initial release of LM's Civ4 Port of Civ5's PW3_v2, using PW_2.06 as base.
+## The PW2 HeightMap and ClimateMap have been replaced with their PW3 counterparts.
+## PW2's high-altitude randomization was removed since it was causing 80-100%
+## of land tiles to be Peaks regardless of settings. PW2's SmallMaps were removed
+## since the new Perlin Noise landmass generator does not require an oversized map
+## to avoid looking bad. The YToXRatio hex grid scale factor has been removed.
+## PW2 control variables that are now unused have been removed, and the necessary
+## PW3 ones have been added. Values have also been adjusted as needed or desired.
+## MeteorCompensationFactor was added to try and help preserve total land percent
+## when using Break Pangaeas. The Sea Level menu option has been enabled, and
+## mc.SeaLevelFactor was added to support it. The Use menu option has been added,
+## and a slightly-modified version of the PW2 ClimateMap was added back in, to
+## support having a choice between the PW2 and PW3 climate systems. PW3's north
+## and south attenuation were removed. PW2's code that forced Snow to be at higher
+## elevation than Tundra, Tundra to be higher than everything else, and Desert to
+## not be, well, something... was removed. Plains in the PW3 ClimateMap were
+## set to have a null rainfall window and a relatively large temperature window,
+## so that they form exclusively as a result of cold deserts; this helps create
+## Great Plains type areas. RiverThreshold's dependence on PlainsPercent (via
+## PlainsThreshold) was removed so that its value can be set reliably. Set Oases to
+## require Desert in all surrounding tiles with no Oases present.
+##
+
+##############################################################################
+## Version History (Cephalo)
+##############################################################################
+##
+## 3v2 - Shrank the map sizes except for huge. Added a better way to adjust river
+## lengths. Used the continent art styles in a more diverse way. Cleaned up the
+## mountain ranges a bit.
+##
+## 3v1 - initial release! 11/24/2010
+##
+## 2.06 - Fixed a few bugs from my minimum hill/maximum bad feature function.
+##
+## 2.05 - Made maps of standard size and below a bit smaller. Changed the way I
+## remove jungle to prevent excessive health problems. Tiles in FC on different
+## continents have zero value. Tiles on different continents will not be boosted
+## with resources or hills. Water tiles have zero value for non-coastal cities.
+## Water tiles will not be boosted with resources for non-coastal cities, land
+## tiles will be boosted instead. (lookout Sid's Sushi!)
+##
+## 2.04 - Changed many percent values to be a percent of land tiles rather than
+## total map tiles for easier, more predictable adjustment. Ensured a minimum
+## number of hills in a starting fat cross. Disabled the normalizeRemovePeaks
+## function a replaced it with a maximum peaks in FC function. Added bonus
+## resources to FC depending on player handicap. Added a value bonus for cities
+## placed on river sides.
+##
+## 2.03 - Fixed an initialization problem related to Blue Marble. Added some
+## enhanced error handling to help me track down some of the intermittant bugs
+## that still remain.
+##
+## 2.02 - Fixed some problems with monsoons that were creating strange artifacts
+## near the tropics. Added an exponential curve to heat loss due to altitude, so
+## that jungles can appear more readily without crawling to inappropriate
+## latitudes.
+##
+## 2.01 - Changed the way I handled a vanilla version difference. Added toroidal
+## and flat map options. Made tree amount more easily adjustable. Added a variable to
+## tune the level of resource bonuses. Changed the rules for fixing tundra/ice next
+## to desert. Added altitude noise to the plate map to improve island chains. Added
+## a variable to control heat loss due to high altitude. Implimented a new interleaved
+## bonus placement scheme so that bonuses are placed individually in random order,
+## rather than all of each bonus type at once. Brought back the meteor code from
+## PerfectWorld 1 and eliminated the east/west continent divide.
+##
+## 2.0 - Rebuilt the landmass and climate model using the FaireWeather.py for
+## Colonization map script engine. Improved the river system. Fixed some
+## old bugs.
+##
+## 1.13 - Fixed a bug where starting on a goody hut would crash the game.
+## Prevented start plots from being on mountain peaks. Changed an internal
+## distance calculation from a straight line to a path distance, improving
+## start locations somewhat. Created a new tuning variable called
+## DesertLowTemp. Since deserts in civ are intended to be hot deserts, this
+## variable will prevent deserts from appearing near the poles where the
+## desert texture clashes horribly with the tundra texture.
+##
+## 1.12 - Found a small bug in the bonus placer that gave bonuses a minimum
+## of zero, this is why duel size maps were having so much trouble.
+##
+## 1.11 - limited the features mixing with bonuses to forests only. This
+## eliminates certain undesireable effects like floodplains being erased by
+## or coinciding with oil or incense, or corn appearing in jungle.
+##
+## 1.10 - Wrapped all map constants into a class to avoid all those
+## variables being loaded up when PW is not used. Also this makes it a
+## little easier to change them programatically. Added two in-game options,
+## New World Rules and Pangaea Rules. Added a tuning variable that allows
+## bonuses with a tech requirement to co-exist with features, so that the
+## absence of those features does not give away their location.
+##
+## 1.09 - Fixed a starting placement bug introduced in 1.07. Added a tuning
+## variable to turn off 'New world' placement.
+##
+## 1.08 - Removed the hemispheres logic and replaced it with a simulated meteor
+## shower to break up pangaeas. Added a tuning variable to allow pangaeas.
+##
+## 1.07 - Placing lakes and harbors after river placement was not updating river
+## crossings. Resetting rivers after lake placement should solve this. Fixed a
+## small discrepancy between Python randint and mapRand to make them behave the
+## same way. Bonuses of the same bonus class, when forced to appear on the
+## same continent, were sometimes crowding each other off the map. This was
+## especially problematic on the smaller maps. I added some additional, less
+## restrictive, passes to ensure that every resource has at least one placement
+## unless the random factors decide that none should be placed. Starting plot
+## normalization now will place food if a different bonus can not be used due
+## to lack of food. Changed heightmap generation to more likely create a
+## new world.
+##
+## 1.06 - Overhauled starting positions and resource placement to better
+## suit the peculiarities of PerfectWorld
+##
+## 1.05 - Fixed the Mac bug and the multi-player bug.
+##
+## 1.04a - I had unfairly slandered getMapRand in my comments. I had stated
+## that the period was shortened unnecessarily, which is not the case.
+##
+## 1.04 - Added and option to use the superior Python random number generator
+## or the getMapRand that civ uses. Made the number of rivers generated tunable.
+## Fixed a bug that prevented floodplains on river corners. Made floodplains
+## in desert tunable.
+##
+## 1.03a - very minor change in hope of finding the source of a multi-player
+## glitch.
+##
+## 1.03 - Improved lake generation. Added tuning variables to control some
+## new features. Fixed some minor bugs involving the AreaMap filler
+## and fixed the issue with oasis appearing on lakes. Maps will now report
+## the random seed value that was used to create them, so they can be easily
+## re-created for debugging purposes.
+##
+## 1.02 - Fixed a bug that miscalculated the random placing of deserts. This
+## also necessitated a readjustment of the default settings.
+##
+## 1.01 - Added global tuning variables for easier customization. Fixed a few
+## bugs that caused deserts to get out of control.
+##
