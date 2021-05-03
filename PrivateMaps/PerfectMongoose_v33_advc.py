@@ -579,7 +579,8 @@ class MapConstants:
 
 		#This value is used to decide if enough water has accumulated to form a river.
 		#A lower value creates more rivers over the entire map.
-		self.RiverThreshold3 = 0.055 # advc: was 0.05
+		# advc: Was 0.05, but is now on a different scale. Also, I want the script to place only a few rivers and let the DLL do most of the work.
+		self.RiverThreshold3 = 0.95
 
 
 		##############################################################################
@@ -714,7 +715,7 @@ class MapConstants:
 
 		#This value is used to decide if enough water has accumulated to form a river.
 		#A lower value creates more rivers over the entire map.
-		self.RiverThreshold2 = 0.25
+		self.RiverThreshold2 = 0.33 # advc: Was 0.25; see RiverThreshold3.
 
 
 		##############################################################################
@@ -3483,6 +3484,7 @@ class TerrainMap:
 		else:
 			em = e3
 			deAttenuate = True # advc
+		self.landTiles = 0 # advc (for RiverMap)
 		for y in range(mc.height):
 			for x in range(mc.width):
 				i = em.GetIndex(x, y)
@@ -3581,8 +3583,10 @@ class TerrainMap:
 				i = em.GetIndex(x, y)
 				if em.data[i] < em.seaLevelThreshold:
 					self.pData[i] = mc.WATER
-				# advc: Was landMap in both elifs
-				elif hillMap[i] < hillHeight:
+					continue
+				self.landTiles += 1 # advc
+				# advc: Was landMap in both (el)ifs
+				if hillMap[i] < hillHeight:
 					self.pData[i] = mc.LAND
 				elif peakMap[i] < peakHeight:
 					self.pData[i] = mc.HILLS
@@ -4375,17 +4379,42 @@ class RiverMap:
 		#Create average rainfall map so that each intersection is an average
 		#of the rainfall from rm.rainMap
 		for y in range(mc.height):
+			# <advc> Kludge for making the extreme latitudes less riverine. Those river exacerbate the problem with (supposed) rainforests being highly productive tiles, and such rivers weren't as important to human habitation than rivers through temperate areas or through deserts.
+			latitudeMult = 1.0
+			absLat = abs(em.GetLatitudeForY(y))
+			vicinityToEquator = (mc.tropicsLatitude - absLat) / float(mc.tropicsLatitude)
+			if vicinityToEquator > 0:
+				latitudeMult = 1 - (5/6.) * math.sqrt(vicinityToEquator)
+			else:
+				intervalLength = 90 - mc.polarFrontLatitude
+				vicinityToPole = (intervalLength - abs(em.GetLatitudeForY(y))) / float(intervalLength)
+				if vicinityToPole > 0:
+					latitudeMult = 1 - (2/3.) * vicinityToPole
+			# (No penalty for plots _near_ the tropics or polar front - rivers starting there may well flow into less extreme latitudes.)
+			# </advc>
 			for x in range(mc.width):
 				i = GetIndex(x, y)
 				total = 0.0
 				count = 0.0
+				# <advc>
+				minRf = 1.0
+				maxRf = 0.0 # </advc>
 				for yy in range(y, y - 2, -1):
 					for xx in range(x, x + 2):
 						ii = GetIndex(xx, yy)
 						if ii >= 0:
-							total += cm.RainfallMap.data[ii]
+							rfVal = cm.RainfallMap.data[ii]
+							# <advc>
+							rfVal *= latitudeMult
+							minRf = min(minRf, rfVal)
+							maxRf = max(maxRf, rfVal) # </advc>
+							total += rfVal
 							count += 1.0
 				self.averageRainfallMap[i] = total / count
+				# <advc> Another kludge pretty much. Spreads rivers out more, it seems.
+				if mc.ClimateSystem == 0:
+					# Note that increasing rainfall values like this (or decreasing them through latitudeMult) requires adjustments to riverThreshold as well.
+					self.averageRainfallMap[i] += 4 * (maxRf - minRf) # </advc>
 		#Now use the flowMap as a guide to distribute average rainfall.
 		#Wherever the most rainfall ends up is where the rivers will be.
 		print "Distributing rainfall"
@@ -4417,12 +4446,21 @@ class RiverMap:
 			riverThreshold = mc.RiverThreshold3
 		else:
 			riverThreshold = mc.RiverThreshold2
+		# <advc> The river generator tends to produce a larger proportion of river tiles when there is more land. Perhaps better to let the chips fall where they may than to try and counter this. The standard river generator also doesn't produce a fixed ratio of river tiles (more rivers when the landmasses are bulkier).
+		#if mc.RiverGenerator == 0:
+			# This formula is based purely on observation
+		#	riverThreshAdjust = math.pow(tm.landTiles, 0.25) / 5
+		#	riverThreshold *= riverThreshAdjust
+		# </advc>
+		riversPlaced = 0 # advc
 		for i in range(em.length):
 			if (self.drainageMap[i] >= riverThreshold):
 				self.riverMap[i] = self.flowMap[i]
+				riversPlaced += 1
 			else:
 				self.riverMap[i] = self.O
-		print "River map generated"
+		# advc: Print number of pegged river segments
+		print "River map generated (" + str(riversPlaced) + " segments placed)"
 		#at this point river should be in tolerance or close to it
 		#riverMap is ready for use
 
@@ -6800,22 +6838,30 @@ def expandLake(x, y, riversIntoLake, oceanMap):
 					lakeNeighbors.append(LakePlot(xx, yy, em.data[ii]))
 		lakeSize -= 1
 
+# <advc> Let the DLL place rivers even if the PM river generator is enabled (once the PM river generator has finished)
+def addRivers():
+	CyPythonMgr().allowDefaultImpl() # </advc>
+	if mc.RiverGenerator != 0:
+		return
+	# <advc> Cut from addLakes. Let PM
+	''' # We no longer let the DLL place rivers first; no need to clear them.
+	for y in range(mc.height):
+		for x in range(mc.width):
+			plot = CyMap().plot(x, y)
+			plot.setRiverID(-1)
+			plot.setNOfRiver(False, CardinalDirectionTypes.NO_CARDINALDIRECTION)
+			plot.setWOfRiver(False, CardinalDirectionTypes.NO_CARDINALDIRECTION)
+	'''
+	for y in range(mc.height):
+		for x in range(mc.width):
+			placeRiversInPlot(x, y) # </advc>
+
 
 def addLakes():
 	gc = CyGlobalContext()
 	mmap = gc.getMap()
 
-	if mc.RiverGenerator == 0:  # advc: 0 is now the PW2 river generator
-		for y in range(mc.height):
-			for x in range(mc.width):
-				plot = mmap.plot(x, y)
-				plot.setRiverID(-1)
-				plot.setNOfRiver(False, CardinalDirectionTypes.NO_CARDINALDIRECTION)
-				plot.setWOfRiver(False, CardinalDirectionTypes.NO_CARDINALDIRECTION)
-		for y in range(mc.height):
-			for x in range(mc.width):
-				placeRiversInPlot(x, y)
-
+	# (advc: River generation code moved into addRivers.)
 	oceanMap = AreaMap(mc.width, mc.height, True, True)
 	oceanMap.defineAreas(isWaterMatch)
 	for y in range(mc.height):
