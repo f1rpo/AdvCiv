@@ -362,10 +362,12 @@ class MapConstants:
 
 		#Chance an Oasis will appear. A tile must be Desert, not be on a hill, not be near another Oasis,
 		#and be surrounded by Desert on all sides.
-		# <advc> Was 0.5, 0.5, 1.0, but I'm relaxing the enclosure condition. And I'm adding a minor map-size adjustment in initInGameOptions.
-		self.OasisPercent   = 0.17
-		self.OasisMinChance = 0.12
-		self.OasisMaxChance = 0.22 # </advc>
+		#self.OasisPercent   = 0.5
+		#self.OasisMinChance = 0.5
+		#self.OasisMaxChance = 1.0
+		# <advc> This works differently now, and the enclosure conditions are also less strict (i.e. not as described above).
+		self.OasisMinChance = 0.015
+		self.OasisMaxChance = 0.03 # </advc>
 
 		#This variable adjusts the amount of bonuses on the map. Values above 1.0 will add bonus bonuses.
 		#People often want lots of bonuses, and for those people, this variable is definately a bonus.
@@ -786,6 +788,8 @@ class MapConstants:
 			self.WrapX = False
 			self.hmWidth += 1
 		# <advc>
+		# Portion of desert tiles that receives an oasis
+		self.OasisPercent = self.OasisMinChance + (self.OasisMaxChance - self.OasisMinChance) * PRand.random() 
 		# Far fewer than the 15 set initially
 		self.maximumMeteorCount = (3 * mmap.getWorldSize()) // 2 + 1
 		if self.SeaLevel == 1:
@@ -815,23 +819,12 @@ class MapConstants:
 			self.westAttenuationRange  = self.northAttenuationRange
 			self.eastAttenuationFactor = self.northAttenuationFactor
 			self.westAttenuationFactor = self.northAttenuationFactor
-		# Slightly more oases on smaller maps - to make it less likely that the map won't have any.
-		oasisAdjust = (3 - mmap.getWorldSize()) / 120.0
 		if self.ClimateSystem != 0: # High-altitude plots seem to be wetter with the PW2 climate system
 			self.tundraSnowRainfallTarget *= 1.4
 		# Some extra Jungle for the PM3 land generator b/c it tends to place less land near the equator.
-		if mc.LandmassGenerator != 2:
-			mc.JungleFactor -= 0.03
-			mc.JunglePercent += 0.03
-			oasisAdjust += 0.01
-			# Large deserts are too uncommon
-			mc.DesertPercent += 0.01
-		#else: # Bulkier deserts with the PW2 generator allow for more (too many?) oases
-		#	oasisAdjust -= 0.01
-		#	mc.DesertPercent -= 0.01
-		self.OasisPercent += oasisAdjust
-		self.OasisMinChance += oasisAdjust
-		self.OasisMaxChance += 2 * oasisAdjust
+		if self.LandmassGenerator != 2:
+			self.JungleFactor -= 0.03
+			self.JunglePercent += 0.03
 		# </advc>
 		self.optionsString = "Map Options:\n"
 		if self.SeaLevel == 0:
@@ -3420,6 +3413,39 @@ def createDistanceMap(bToLand):
 # advc: Need this in three places. The latitude check and plains as possible terrain are new.
 def canHaveJungle(rfData, jungleRf, tData, pData, lat, tempData = 1.0, jungleTemp = 0.0):
 	return (rfData >= jungleRf and (tData == mc.GRASS or tData == mc.PLAINS) and pData != mc.PEAK and abs(lat) * 2 <= mc.tropicsLatitude + mc.horseLatitude and tempData >= jungleTemp)
+
+def canHaveOasis(x, y, tData, fOasis):
+	'''
+	for direction in range(1, 5):
+		xx, yy = GetNeighbor(x, y, direction)
+		ii = GetIndex(xx, yy)
+		if ii >= 0 and tData[ii] != mc.DESERT:
+			return False
+		for yy in range(y - 2, y + 3):
+			for xx in range(x - 2, x + 3):
+				xx, yy = CoordsFromIndex(ii, mc.width) # advc.001
+				surrPlot = CyMap().plot(xx, yy)
+				if surrPlot != 0 and surrPlot.getFeatureType() == fOasis:
+					return False
+	'''
+	# <advc> Use a single loop again, as in v3.2.
+	adjNonDesertCount = 0
+	for direction in range(1, 9):
+		xx, yy = GetNeighbor(x, y, direction)
+		ii = GetIndex(xx, yy)
+		if ii < 0:
+			continue
+		xx, yy = CoordsFromIndex(ii, mc.width)
+		adj = CyMap().plot(xx, yy)
+		if adj.isWater() or adj.getFeatureType() == fOasis:
+			return False
+		# Only exclude tiles with more than 4 adjacent non-desert tiles
+		if tData[ii] != mc.DESERT:
+			adjNonDesertCount += 1
+			if adjNonDesertCount > 4:
+				return False
+	# </advc>
+	return True
 
 
 class TerrainMap:
@@ -6857,26 +6883,25 @@ def addFeatures():
 	deciduousTemp = FindValueFromPercent(forestTiles, forestLength, mc.DeciduousPercent, True)
 
 	#print "Oasis"
-	desertTiles  = []
+	oasisCandidates = [] # advc
 	desertLength = 0
 	for y in range(mc.height):
 		for x in range(mc.width):
 			i = GetIndex(x, y)
-			if tm.tData[i] == mc.DESERT:
-				valid = True
-				''' # advc: Check the surroundings only once (i.e. later)
-				for direction in range(1, 5):
-					xx, yy = GetNeighbor(x, y, direction)
-					ii = GetIndex(xx, yy)
-					if ii >= 0 and tm.tData[ii] != mc.DESERT:
-						valid = False
-						break
-				'''
-				if valid:
-					desertTiles.append(cm.RainfallMap.data[i])
-					desertLength += 1
-	# advc: Was FindValueFromPercent, which has trouble with the distribution being almost uniform. (Meaning also that rainfall is actually a pretty meaningsless criterion for picking oases.)
-	oasisRainfall = FindThresholdFromPercent(desertTiles, desertLength, mc.OasisPercent, False)
+			if tm.tData[i] != mc.DESERT:
+				continue
+			desertLength += 1
+			# advc: Moved into new global function
+			if canHaveOasis(x, y, tm.tData, fOasis):
+				oasisCandidates.append(cm.RainfallMap.data[i])
+	# <advc>
+	oasisRainfall = 1000
+	if len(oasisCandidates) > 0:
+		# The target frequency is supposed to apply to all desert tiles, but only certain tiles are eligible. I think PM had been making this adjustment later on through the min/max chance.
+		oasisPercent = (mc.OasisPercent * desertLength) / float(len(oasisCandidates))
+		# Was FindValueFromPercent, which has trouble with the distribution being almost uniform. (Meaning also that rainfall is actually a pretty meaningless criterion for placing oases.)
+		oasisRainfall = FindThresholdFromPercent(oasisCandidates, len(oasisCandidates), oasisPercent, True)
+	# </advc>
 	createIce()
 	for y in range(mc.height):
 		lat = em.GetLatitudeForY(y)
@@ -6934,51 +6959,14 @@ def addFeatures():
 							if setFeature(plot, fForest, FORESTEVERGREEN):
 								set = True
 			#Floodplains, Oasis
-			if not set and tm.tData[i] == mc.DESERT and tm.pData[i] == mc.LAND:
+			if not set and tm.tData[i] == mc.DESERT:
 				#if plot.isRiver(): # advc: Let setFeature (i.e. the DLL) check this
 				if setFeature(plot, fFloodPlains, 0):
 					set = True
-				if not set and cm.RainfallMap.data[i] >= oasisRainfall and PRand.random() < mc.OasisMinChance + (((mc.OasisMaxChance - mc.OasisMinChance) * (cm.RainfallMap.data[i] - oasisRainfall)) / (tm.desertRainfall - oasisRainfall)):
-					valid = True
-					'''
-					for direction in range(1, 5):
-						xx, yy = GetNeighbor(x, y, direction)
-						ii = GetIndex(xx, yy)
-						if ii >= 0 and tm.tData[ii] != mc.DESERT:
-							valid = False
-							break
-					if valid:
-						for yy in range(y - 2, y + 3):
-							for xx in range(x - 2, x + 3):
-								xx, yy = CoordsFromIndex(ii, mc.width) # advc (bugfix?)
-								surPlot = mmap.plot(xx, yy)
-								if surPlot != 0 and surPlot.getFeatureType() == fOasis:
-									valid = False
-									break
-							if not valid:
-								break
-					'''
-					# <advc>
-					adjNonDesertCount = 0
-					# Use a single loop again, as in v3.2.
-					for direction in range(1, 9):
-						xx, yy = GetNeighbor(x, y, direction)
-						ii = GetIndex(xx, yy)
-						if ii < 0:
-							continue
-						xx, yy = CoordsFromIndex(ii, mc.width) # advc (bugfix?)
-						surPlot = mmap.plot(xx, yy)
-						if surPlot.isWater() or surPlot.getFeatureType() == fOasis:
-							valid = False
-							break
-						# Only exclude tiles with more than 4 adjacent non-desert tiles
-						if tm.tData[ii] != mc.DESERT:
-							adjNonDesertCount += 1
-							if adjNonDesertCount > 4:
-								valid = False
-								break
-					# </advc>
-					if valid:
+				if not set and cm.RainfallMap.data[i] >= oasisRainfall:
+					#if PRand.random() < mc.OasisMinChance + (((mc.OasisMaxChance - mc.OasisMinChance) * (cm.RainfallMap.data[i] - oasisRainfall)) / (tm.desertRainfall - oasisRainfall)):
+					# advc: The rainfall ratio is dubious b/c there is very little rainfall on all desert tiles. I'm not sure that a (min/max) chance is needed at all. Let's try it w/o that. Surroundings check moved into new global function.
+					if canHaveOasis(x, y, tm.tData, fOasis):
 						if setFeature(plot, fOasis, 0):
 							set = True
 
