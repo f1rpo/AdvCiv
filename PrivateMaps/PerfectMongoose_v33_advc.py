@@ -60,7 +60,7 @@ class MapConstants:
 
 	def initialize(self):
 		#This variable sets how much land the map will have, and thus how large its oceans will be.
-		self.SeaLevel          = 0
+		#self.SeaLevel          = 0 # advc: Use the standard option (low/medium/high) for this
 
 		#This variable sets whether to use the new PW3 landmass generator or the old PW2 one.
 		self.LandmassGenerator = 0
@@ -516,10 +516,12 @@ class MapConstants:
 		##############################################################################
 
 		# Factors to modify mc.landPercent by if a Low or High Sea Level is chosen
-		self.SeaLevelFactor1 = 1.34 # advc: was 1.75
-		self.SeaLevelFactor2 = 0.745 # advc: was 0.75
-		self.SeaLevelFactor3 = 1.5 # advc: was 2.5 (but I'm removing choices 3 and 4 anyway)
-		self.SeaLevelFactor4 = 0.5
+		#self.SeaLevelFactor1 = 1.75
+		#self.SeaLevelFactor2 = 0.75
+		#self.SeaLevelFactor3 = 1.5 # advc: was 2.5 (but I'm removing choices 3 and 4 anyway)
+		#self.SeaLevelFactor4 = 0.5
+		# advc:
+		self.SeaLevelFactor = 1 # advc: Set this properly in initInGameOptions
 
 
 		##############################################################################
@@ -546,7 +548,10 @@ class MapConstants:
 		gc = CyGlobalContext()
 		mmap = gc.getMap()
 		# Sea Level
-		self.SeaLevel          = mmap.getCustomMapOption(0)
+		#self.SeaLevel          = mmap.getCustomMapOption(0)
+		# <advc> Use the standard sea level option instead
+		seaChg = gc.getSeaLevelInfo(CyMap().getSeaLevel()).getSeaLevelChange()
+		self.SeaLevelFactor -= 0.0425 * seaChg # </advc>
 		# Landmass Generator
 		self.LandmassGenerator = mmap.getCustomMapOption(1)
 		# Hill/Peak Style
@@ -586,9 +591,9 @@ class MapConstants:
 		self.OasisPercent = self.OasisMinChance + (self.OasisMaxChance - self.OasisMinChance) * PRand.random() 
 		# Far fewer than the 15 set initially
 		self.maximumMeteorCount = (3 * mmap.getWorldSize()) // 2 + 1
-		if self.SeaLevel == 1:
+		if self.SeaLevelFactor > 1.2:
 			self.maximumMeteorCount += 1
-		if self.SeaLevel == 3:
+		elif self.SeaLevelFactor < 0.85:
 			self.maximumMeteorCount += 1
 		# Caveat: Need to keep an eye on isHmWaterMatch when adjusting the min. meteor size. Smaller meteors affect fewer plots but are also more likely to create peaks and hills through steep slopes.
 		self.minimumMeteorSize = 1
@@ -598,14 +603,12 @@ class MapConstants:
 			self.minimumMeteorSize += 1
 		if mmap.getWorldSize() > 4:
 			self.minimumMeteorSize += 1
-		self.northAttenuationRange  = 0.13
 		# Smaller value means more less land near the poles
 		self.northAttenuationFactor = 0.59
 		# Avoid elongated Antarctica; likelier to occur when land ratio is high.
-		if self.SeaLevel == 1:
-			self.northAttenuationFactor -= 0.08
-		if self.SeaLevel == 3:
-			self.northAttenuationFactor -= 0.04
+		self.northAttenuationFactor += (1 - self.SeaLevelFactor) / 4.25
+		self.northAttenuationFactor = max(0.0, min(1.0, self.northAttenuationFactor))
+		self.northAttenuationRange = (1 - self.northAttenuationFactor) / 3.15
 		self.southAttenuationRange = self.northAttenuationRange
 		self.southAttenuationFactor = self.northAttenuationFactor
 		if not self.WrapX:
@@ -620,6 +623,7 @@ class MapConstants:
 			self.JungleFactor -= 0.03
 			self.JunglePercent += 0.03
 		# </advc>
+		'''
 		self.optionsString = "Map Options:\n"
 		if self.SeaLevel == 0:
 			string = "Normal"
@@ -632,6 +636,7 @@ class MapConstants:
 		else:
 			string = "Water"
 		self.optionsString += "Sea Level = " + string + "\n"
+		'''
 		if self.LandmassGenerator == 0:
 			string = "PW3 (Sqr)"
 		elif self.LandmassGenerator == 1:
@@ -1465,15 +1470,8 @@ def GenerateMountainMap(width, height, wrapX, wrapY, initFreq):
 				mountainMap.data[i] = 1.0
 			else:
 				mountainMap.data[i] = 0.0
-	land = mc.landPercent
-	if mc.SeaLevel == 1:
-		land *= mc.SeaLevelFactor1
-	elif mc.SeaLevel == 2:
-		land *= mc.SeaLevelFactor2
-	elif mc.SeaLevel == 3:
-		land *= mc.SeaLevelFactor3
-	elif mc.SeaLevel == 4:
-		land *= mc.SeaLevelFactor4
+	# advc: simplified
+	land = mc.landPercent * mc.SeaLevelFactor
 	stdDevThreshold = FindThresholdFromPercent(stdDevMap.data, stdDevMap.length, land, True)
 	for y in range(mountainMap.height):
 		for x in range(mountainMap.width):
@@ -1545,15 +1543,7 @@ class ElevationMap3(FloatMap):
 
 
 	def CalculateSeaLevel(self):
-		land = mc.landPercent
-		if mc.SeaLevel == 1:
-			land *= mc.SeaLevelFactor1
-		elif mc.SeaLevel == 2:
-			land *= mc.SeaLevelFactor2
-		elif mc.SeaLevel == 3:
-			land *= mc.SeaLevelFactor3
-		elif mc.SeaLevel == 4:
-			land *= mc.SeaLevelFactor4
+		land = mc.landPercent * mc.SeaLevelFactor
 		self.seaLevelThreshold = FindThresholdFromPercent(self.data, self.length, land, True)
 		# </advc>
 
@@ -1985,15 +1975,7 @@ class ElevationMap2(FloatMap):
 
 
 	def CalculateSeaLevel(self):
-		land = mc.landPercent
-		if mc.SeaLevel == 1:
-			land *= mc.SeaLevelFactor1
-		elif mc.SeaLevel == 2:
-			land *= mc.SeaLevelFactor2
-		elif mc.SeaLevel == 3:
-			land *= mc.SeaLevelFactor3
-		elif mc.SeaLevel == 4:
-			land *= mc.SeaLevelFactor4
+		land = mc.landPercent * mc.SeaLevelFactor # advc: simplified
 		self.seaLevelThreshold = FindValueFromPercent(self.data, self.length, land, True)
 
 
@@ -4835,6 +4817,7 @@ class StartingPlotFinder:
 				self.peakMap.defineAreas(isPeakWaterMatch)
 
 			self.startingAreaList = list()
+			'''
 			if mc.SeaLevel == 0:
 				if mc.OldWorldStarts:
 					iWorldSizeFactor = 3
@@ -4860,10 +4843,21 @@ class StartingPlotFinder:
 					iWorldSizeFactor = 2
 				else:
 					iWorldSizeFactor = 3
-			self.iMinIslandSize = 5 + int(round(gc.getMap().getWorldSize() * iWorldSizeFactor))
+			iWorldSizeFactor *= gc.getMap().getWorldSize()
+			'''
+			# <advc> Less impact for the Old World Starts option; apart from that, pretty much as above.
+			iWorldSizeFactor = math.sqrt(CyMap().getLandPlots()) / 1.67
+			if mc.OldWorldStarts:
+				iWorldSizeFactor *= 0.78
+			# </advc>
+			self.iMinIslandSize = 5 + int(round(iWorldSizeFactor))
 			iMinRegionSize = self.iMinIslandSize * 4
 			for i in range(len(areas)):
-				if isAreaOldWorld[i] and areas[i].getNumTiles() >= self.iMinIslandSize:
+				if not isAreaOldWorld[i]:
+					continue
+				#areas[i].getNumTiles() >= self.iMinIslandSize:
+				# advc: This is an AdvCiv DLL function. (Not crucial to call it.)
+				if areas[i].getNumHabitableTiles() >= self.iMinIslandSize:
 					iRegionSize = 0
 					for pI in range(em.length):
 						plot = CyMap().plotByIndex(pI)
@@ -5735,7 +5729,7 @@ class StartingArea:
 		if mc.OldWorldStarts:
 			newWorldSubtr = 1
 		civs = max(1, gc.getGame().countCivPlayersEverAlive())
-		seaLevelAdj = 0.0 # tbd.
+		seaLevelAdj = (mc.SeaLevelFactor - 1) * 1.33
 		cull = min(int(round(0.7 * len(self.plotList))), max(0, int(round(len(self.plotList) * (0.22  + (CyMap().getWorldSize() - newWorldSubtr + seaLevelAdj) / (2.0 * civs))))))
 		print("cull ratio: %d percent of %d sites" % (int(100*cull/len(self.plotList)),len(self.plotList)))
 		# </advc>
@@ -6186,9 +6180,9 @@ def isAdvancedMap():
 
 def isClimateMap():
 	return False
-
-def isSeaLevelMap():
-	return False
+# advc: Yes, we do use the standard sea level option.
+#def isSeaLevelMap():
+#	return False
 
 
 def getTopLatitude():
