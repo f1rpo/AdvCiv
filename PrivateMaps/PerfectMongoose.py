@@ -1674,8 +1674,8 @@ class ElevationMap2(FloatMap):
 					average = (self.data[topLeft] + self.data[topRight] + self.data[bottomLeft] + self.data[bottomRight]) / 4.0
 					displacement = h * PRand.random() - h / 2.0
 					self.data[middle] = average + displacement
-					#now add that heuristic to the four points to diminish
-					#artifacts. We don't need this on the diamond pass I don't think
+					#now add that heuristic to the four points to diminish artifacts.
+					#We don't need this on the diamond pass I don't think
 					displacement = h * PRand.random() - h / 2.0
 					self.data[topLeft] += displacement
 					displacement = h * PRand.random() - h / 2.0
@@ -6077,8 +6077,11 @@ def getCustomMapOptionDescAt(argsList):
 	[iOption, iSelection] = argsList
 	selection_names = {
 		0:	{
-			0: "TXT_KEY_MAP_SCRIPT_NORMAL_CONTINENTS",
-			1: "TXT_KEY_MAP_SCRIPT_MASSIVE_CONTINENTS",
+			#0: "TXT_KEY_MAP_SCRIPT_NORMAL_CONTINENTS",
+			#1: "TXT_KEY_MAP_SCRIPT_MASSIVE_CONTINENTS",
+			# I wish we could generate "massive" continents; alas ...
+			0: "Perlin Noise",
+			1: "Plate Tectonics",
 			},
 		1:	{
 			0: "TXT_KEY_MAP_SCRIPT_START_ANYWHERE",
