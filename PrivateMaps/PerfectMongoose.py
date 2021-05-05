@@ -90,8 +90,8 @@ class MapConstants:
 		#Percent of land vs. water
 		#LM - Exact Real Earth Value. Actual results vary depending on map size, meteors, and which landmass generator was used.
 		#self.landPercent = 0.2889
-		# advc: Low sea level should be close to the real ratio because that's how it works with the standard map scripts (e.g. Fractal). At Medium sea level, Fractal only yields about 21% land - but PM has more bad, marginal and initially inaccessible terrain.
-		self.landPercent = 0.234
+		# advc: Low sea level should be close to the real ratio because that's how it works with the standard map scripts (e.g. Fractal). At Medium sea level, Fractal only yields about 21% land. PM has more bad, marginal and initially inaccessible terrain, but also a longer coastline and thus more seafood.
+		self.landPercent = 0.223
 
 		#Percentage of land squares high enough to be Hills or Peaks.
 		self.HillPercent = 0.225 # advc: was 0.42
@@ -310,7 +310,7 @@ class MapConstants:
 		##############################################################################
 		## PW3 Settings
 		##############################################################################
-		# advc: twistMinFreq was 0.02. Gets adjusted in ElevationMap3.GenerateElevationMap. Greater values (closer to twistMaxFreq) seem to result in larger landmasses; perhaps/ hopefully similar to the "grain" parameter of the Fractal algorithm?
+		# advc: twistMinFreq was 0.02. Gets adjusted in ElevationMap3.GenerateElevationMap. Greater values (closer to twistMaxFreq) seem to result in somewhat larger landmasses (or maybe not ...)
 		self.twistMinFreq = 0.045
 		self.twistMaxFreq = 0.12
 		self.twistVar     = 0.042
@@ -1472,7 +1472,7 @@ class ElevationMap3(FloatMap):
 
 
 	def GenerateElevationMap(self):
-		# <advc> Increased in MapConstants.initialize for larger landmasses. But that makes it more difficult to prevent a pangaea, so:
+		# <advc> Increased in MapConstants.initialize for larger landmasses. Not sure if it has that effect, but, if so, that'll make it more difficult to prevent a pangaea, so:
 		twistMinFreq = mc.twistMinFreq
 		if mc.OldWorldStarts:
 			twistMinFreq *= 0.6 # </advc>
