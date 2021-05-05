@@ -1,11 +1,27 @@
 ##
-## PerfectMongoose_v320_MM_Edition.py
-##
-## Copyright 2011 Kenny Welch aka LunarMongoose
+## advc.021b: Latest changes to PerfectWorld in MongooseMod (v3.3) ported back
+## to the latest standalone version of the script (v3.2) and enhanced and
+## customized for the AdvCiv mod. The AdvCiv changes are marked with
+## "advc" comments, "advc.001" for bugfixes, "advc.027" for the integration of
+## AdvCiv's starting position algorithm.
+## Version history up to v3.3 moved to the end of the file.
 ##
 ##############################################################################
 ##
 ## Based on:
+## PerfectMongoose_v320_MM_Edition.py
+## Copyright (C) 2011 Kenny Welch aka LunarMongoose
+##
+##############################################################################
+##
+## And on:
+##
+## PerfectMongoose_v33_MM_Edition_v20.py
+## for MongooseMod 4.1; 20 Jan 2013
+## Copyright (C) 2013 Kenny Welch
+##############################################################################
+##
+## And on:
 ##
 ## PerfectWorld_v2.06.py (for Civ4)
 ##
@@ -22,206 +38,11 @@
 ## Used with Permission
 ##
 
-
-# advc.021b: Made some changes myself and ported some from the Totestra version included in Civ 4 Reimagined. The changes mostly remove/ bypass code and set parameters.
-
-
-
-##############################################################################
-## Version History (LunarMongoose)
-##############################################################################
-##
-## 3.2 - Added AIAndy's square grid evaluation, float division and geostrophic fixes,
-## his bonus placement and starting location speed enhancements, and his PythonRandom
-## multiplayer support. Added a game option to continue using the old hex-grid-based
-## Perlin Noise code if desired, since the previous PW3 landmass shapes are different
-## and still fully viable. Merged in the remaining PW 2.0.8 functionality with a game
-## option to select the PW2 landmass generator if desired. Changed the rainfall
-## thresholds from absolute values to global percents like the temperature thresholds,
-## set them to ignore Peaks, and merged the climate system constants back together.
-## Enforced the current map's x and y wrap settings in a number of places in the code,
-## which fixes some bugs with -1 data values near the edges and should get rivers
-## wrapping only when they're supposed to. Fixed natural harbor bug, and added shape
-## randomization to natural harbor creation on diagonals. Changed sea ice to vary with
-## map size instead of always being 4 tiles thick, and to require water temperature to
-## be near freezing so the bands have some limited shape to them. Switched to PW2's
-## oversized internal grid when using the PW3 LMG with the PW2 climate system so the
-## latter works correctly. Changed the +/- 10% tolerances on elevation, rainfall and
-## sea level thresholds to +/- 2%. Removed MeteorCompensationFactor since the system
-## does indeed work best without it. (My apologies Ceph; you were right!) Made a
-## number of additional code improvements.
-##
-## 3.1 - Fuyu's 2.0.6f bonus placement, starting location enhancement, minimum hill
-## enforcement and bad feature removal code were added, along with his control
-## variables. Reverted some more settings for use with vanilla that were still set for
-## my mod. Added allowance in getPlotPotentialValue() for clearing features with
-## negative food (ie Jungles), since it already accounted for cleared features with
-## tile improvements that require it (only useful in mods). Added StartEra checks to
-## verify the tech requirements are met for clearing features in both cases. Agreeing
-## with Cephalo, I left the starting location production resource food override
-## threshold at half the city plots being workable, rather than two-thirds. Changed
-## the TechCityTrade requirement for resource valuation and placement to TechReveal
-## since the former makes no sense: if a bonus is visible it enhances the tile, and if
-## it isn't visible it doesn't enhance the tile, regardless of whether it can be
-## harvested or traded with other cities. Added BonusMaxGroupSize option of -1 for
-## setting Fuyu's clump limit based on WorldSize, clarified the description of what
-## the 0 option there actually does, and fixed the random bounds. Added a minimum
-## value to the StartEra checks to include all Classical resources, improvements and
-## clearing abilities in the plot valuations. Changed allowWonderBonusChance to allow
-## any strategic resource (not just Stone or Marble), and the city sweetener to allow
-## non-strategic resources - both up through Classical (or later). Adjusted lake and
-## river values again, and added separate controls for them for the two climate
-## systems. Increased Desert slightly and Plains considerably in the PW2 system.
-## Synchronized the PM3/PW2 code substantially more to make future updates easier.
-## Scaled temperature from normal linearly down to zero in the top and bottom thirds
-## of the map in the PW3 climate system, to get Tundra and Snow in the higher and
-## lower latitudes as there should be. Lowered Tundra/Snow temperatures to compensate.
-## Increased PW3 Grassland level slightly.
-##
-## 3.0 - Initial release of LM's Civ4 Port of Civ5's PW3_v2, using PW_2.06 as base.
-## The PW2 HeightMap and ClimateMap have been replaced with their PW3 counterparts.
-## PW2's high-altitude randomization was removed since it was causing 80-100%
-## of land tiles to be Peaks regardless of settings. PW2's SmallMaps were removed
-## since the new Perlin Noise landmass generator does not require an oversized map
-## to avoid looking bad. The YToXRatio hex grid scale factor has been removed.
-## PW2 control variables that are now unused have been removed, and the necessary
-## PW3 ones have been added. Values have also been adjusted as needed or desired.
-## MeteorCompensationFactor was added to try and help preserve total land percent
-## when using Break Pangaeas. The Sea Level menu option has been enabled, and
-## mc.SeaLevelFactor was added to support it. The Use menu option has been added,
-## and a slightly-modified version of the PW2 ClimateMap was added back in, to
-## support having a choice between the PW2 and PW3 climate systems. PW3's north
-## and south attenuation were removed. PW2's code that forced Snow to be at higher
-## elevation than Tundra, Tundra to be higher than everything else, and Desert to
-## not be, well, something... was removed. Plains in the PW3 ClimateMap were
-## set to have a null rainfall window and a relatively large temperature window,
-## so that they form exclusively as a result of cold deserts; this helps create
-## Great Plains type areas. RiverThreshold's dependence on PlainsPercent (via
-## PlainsThreshold) was removed so that its value can be set reliably.
-##
-
-##############################################################################
-## Version History (Cephalo)
-##############################################################################
-##
-## 3v2 - Shrank the map sizes except for huge. Added a better way to adjust river
-## lengths. Used the continent art styles in a more diverse way. Cleaned up the
-## mountain ranges a bit.
-##
-## 3v1 - initial release! 11/24/2010
-##
-## 2.06 - Fixed a few bugs from my minimum hill/maximum bad feature function.
-##
-## 2.05 - Made maps of standard size and below a bit smaller. Changed the way I
-## remove jungle to prevent excessive health problems. Tiles in FC on different
-## continents have zero value. Tiles on different continents will not be boosted
-## with resources or hills. Water tiles have zero value for non-coastal cities.
-## Water tiles will not be boosted with resources for non-coastal cities, land
-## tiles will be boosted instead. (lookout Sid's Sushi!)
-##
-## 2.04 - Changed many percent values to be a percent of land tiles rather than
-## total map tiles for easier, more predictable adjustment. Ensured a minimum
-## number of hills in a starting fat cross. Disabled the normalizeRemovePeaks
-## function a replaced it with a maximum peaks in FC function. Added bonus
-## resources to FC depending on player handicap. Added a value bonus for cities
-## placed on river sides.
-##
-## 2.03 - Fixed an initialization problem related to Blue Marble. Added some
-## enhanced error handling to help me track down some of the intermittant bugs
-## that still remain.
-##
-## 2.02 - Fixed some problems with monsoons that were creating strange artifacts
-## near the tropics. Added an exponential curve to heat loss due to altitude, so
-## that jungles can appear more readily without crawling to inappropriate
-## latitudes.
-##
-## 2.01 - Changed the way I handled a vanilla version difference. Added toroidal
-## and flat map options. Made tree amount more easily adjustable. Added a variable to
-## tune the level of resource bonuses. Changed the rules for fixing tundra/ice next
-## to desert. Added altitude noise to the plate map to improve island chains. Added
-## a variable to control heat loss due to high altitude. Implimented a new interleaved
-## bonus placement scheme so that bonuses are placed individually in random order,
-## rather than all of each bonus type at once. Brought back the meteor code from
-## PerfectWorld 1 and eliminated the east/west continent divide.
-##
-## 2.0 - Rebuilt the landmass and climate model using the FaireWeather.py for
-## Colonization map script engine. Improved the river system. Fixed some
-## old bugs.
-##
-## 1.13 - Fixed a bug where starting on a goody hut would crash the game.
-## Prevented start plots from being on mountain peaks. Changed an internal
-## distance calculation from a straight line to a path distance, improving
-## start locations somewhat. Created a new tuning variable called
-## DesertLowTemp. Since deserts in civ are intended to be hot deserts, this
-## variable will prevent deserts from appearing near the poles where the
-## desert texture clashes horribly with the tundra texture.
-##
-## 1.12 - Found a small bug in the bonus placer that gave bonuses a minimum
-## of zero, this is why duel size maps were having so much trouble.
-##
-## 1.11 - limited the features mixing with bonuses to forests only. This
-## eliminates certain undesireable effects like floodplains being erased by
-## or coinciding with oil or incense, or corn appearing in jungle.
-##
-## 1.10 - Wrapped all map constants into a class to avoid all those
-## variables being loaded up when PW is not used. Also this makes it a
-## little easier to change them programatically. Added two in-game options,
-## New World Rules and Pangaea Rules. Added a tuning variable that allows
-## bonuses with a tech requirement to co-exist with features, so that the
-## absence of those features does not give away their location.
-##
-## 1.09 - Fixed a starting placement bug introduced in 1.07. Added a tuning
-## variable to turn off 'New world' placement.
-##
-## 1.08 - Removed the hemispheres logic and replaced it with a simulated meteor
-## shower to break up pangeas. Added a tuning variable to allow pangeas.
-##
-## 1.07 - Placing lakes and harbors after river placement was not updating river
-## crossings. Resetting rivers after lake placement should solve this. Fixed a
-## small discrepancy between Python randint and mapRand to make them behave the
-## same way. Bonuses of the same bonus class, when forced to appear on the
-## same continent, were sometimes crowding each other off the map. This was
-## especially problematic on the smaller maps. I added some additional, less
-## restrictive, passes to ensure that every resource has at least one placement
-## unless the random factors decide that none should be placed. Starting plot
-## normalization now will place food if a different bonus can not be used due
-## to lack of food. Changed heightmap generation to more likely create a
-## new world.
-##
-## 1.06 - Overhauled starting positions and resource placement to better
-## suit the peculiarities of PerfectWorld
-##
-## 1.05 - Fixed the Mac bug and the multi-player bug.
-##
-## 1.04a - I had unfairly slandered getMapRand in my comments. I had stated
-## that the period was shortened unnecessarily, which is not the case.
-##
-## 1.04 - Added and option to use the superior Python random number generator
-## or the getMapRand that civ uses. Made the number of rivers generated tunable.
-## Fixed a bug that prevented floodplains on river corners. Made floodplains
-## in desert tunable.
-##
-## 1.03a - very minor change in hope of finding the source of a multi-player
-## glitch.
-##
-## 1.03 - Improved lake generation. Added tuning variables to control some
-## new features. Fixed some minor bugs involving the AreaMap filler
-## and fixed the issue with oasis appearing on lakes. Maps will now report
-## the random seed value that was used to create them, so they can be easily
-## re-created for debugging purposes.
-##
-## 1.02 - Fixed a bug that miscalculated the random placing of deserts. This
-## also necessitated a readjustment of the default settings.
-##
-## 1.01 - Added global tuning variables for easier customization. Fixed a few
-## bugs that caused deserts to get out of control.
-##
-
 from CvPythonExtensions import *
 import CvUtil
 import CvMapGeneratorUtil
 
-from array import array
+from array  import array
 from random import random, randint, seed, shuffle
 import math
 import sys
@@ -239,120 +60,131 @@ class MapConstants:
 
 
 	def initialize(self):
+		#This variable sets how much land the map will have, and thus how large its oceans will be.
+		#self.SeaLevel          = 0 # advc: Use the standard option (low/medium/high) for this
+
 		#This variable sets whether to use the new PW3 landmass generator or the old PW2 one.
 		self.LandmassGenerator = 0
+
+		#This variable sets whether to use Average Slope or Absolute Height to determine which tiles are Hills and Peaks.
+		self.HillPeakStyle     = 0
 
 		#This variable sets whether to use the new PW3 climate system or the old PW2 one.
 		self.ClimateSystem     = 0
 
+		#This variable sets whether to use the PW2 river generator or the Vanilla Civ4 one.
+		self.RiverGenerator    = 0
+
 		#If this variable is set to False, a shower of colossal meteors will attempt to
-		#break up any pangea-like continents. Setting this variable to True will allow
-		#pangeas to sometimes occur and should be greatly favored by any dinosaurs
+		#break up any pangaea-like continents. Setting this variable to True will allow
+		#pangaeas to sometimes occur and should be greatly favored by any dinosaurs
 		#that might be living on this planet at the time.
-		self.AllowPangeas  = False
+		self.AllowPangaeas = True # advc: Initial value gets overwritten, but let's still use the default.
 
 		#This variable can be used to turn off 'New world' logic and place starting positions
 		#anywhere in the world. For some mods, a new world doesn't make sense.
-		# advc.021b (comment): This gets overwritten when custom options are read. Apparently, AllowNewWorld stands for "allow there to be a New World", which really means that starts in the New World are disallowed!
-		self.AllowNewWorld = False
-
-		## (Mongoose Setting)
-		# Factor to modify mc.landPercent by if a Low or High Sea Level is chosen
-		#self.SeaLevelFactor = 1.5
-		# advc.021b: Moving this setting up and replacing it with a separate one for low and high sea level. Not getting the land ratios I want with just one.
-		# Aiming at around 18% land at high sea level, 25% at medium sea level and 32% at low sea level. This is higher than Fractal, which has about 15/20/29, but the land shapes produced by PM look too delicate with the Fractal ratios. I think PM also produces more marginal or unusable land than Fractal. Ultimately, the goal is to support exactly the same number of players as Fractal for all combinations of map settings.
-		self.LoSeaLevelFactor = 1.225
-		self.HiSeaLevelFactor = 0.72
+		#self.AllowNewWorld = False
+		# advc: Renamed b/c, apparently, AllowNewWorld stands for "allow there to be a New World", which really means that starts in the New World are disallowed! Gets overwritten when custom options are read.
+		self.OldWorldStarts = False
 
 		#Percent of land vs. water
-		#LM - Exact Real Earth Value. Actual generated results are in the 24-31% range
-		#depending on map size, meteors, and which landmass generator was selected.
-		#self.landPercent   = 0.2889
-		# advc.021b: See comments about sea level above. Gets further modified in initInGameOptions.
-		self.landPercent = 0.27
+		#LM - Exact Real Earth Value. Actual results vary depending on map size, meteors, and which landmass generator was used.
+		#self.landPercent = 0.2889
+		# advc: Low sea level should be close to the real ratio because that's how it works with the standard map scripts (e.g. Fractal). At Medium sea level, Fractal only yields about 21% land - but PM has more bad, marginal and initially inaccessible terrain.
+		self.landPercent = 0.234
 
 		#Percentage of land squares high enough to be Hills or Peaks.
-		self.HillPercent   = 0.30 # advc.021b: was 42
+		self.HillPercent = 0.225 # advc: was 0.42
 
 		#Percentage of land squares high enough to be Peaks.
-		# advc.021b: was 0.12
-		self.PeakPercent = 0.045
+		self.PeakPercent = 0.048 # advc: was 0.12
 
 		#Percentage of land squares cold enough to be Snow.
-		# <advc.021b>
-		self.SnowPercent = 0.08 # was 0.15
-		# The original script uses Tundra and Snow also to represent high plateaus. I'm not allowing this in the tropics, and, outside the polar circles, I'm adding rainfall constraints. As a result, the final terrain distribution will deviate from the target [Terrain]Percent values.
+		#self.SnowPercent = 0.1
+		#Percentage of land squares cold enough to be Snow or Tundra.
+		#self.TundraPercent = 0.24 + self.SnowPercent
+		# <advc> Replacing the above
+		self.TemperateSnowPercent = 0.05
+		self.TemperateTundraPercent = 0.07 + self.TemperateSnowPercent
+		# These percentages now apply only to plots with the proper latitude
+		self.SnowPercent = 0.24
+		self.TundraPercent = 0.8
+		# The original script uses Tundra and Snow also to represent high plateaus. I'm not allowing this in the tropics, and, outside the polar circles, I'm adding rainfall constraints. This means that the final terrain distribution will deviate from the target terrain-percent values.
 		self.snowPlateauMinLatitude = 67 # (polar circles)
 		self.snowHillMinLatitude = 24 # (tropics)
-		self.tundraMinLatitude = 24
-		self.taigaMinLatitude = 59 # (taiga is forested Tundra in my mind)
-		# Even this very low target value all but rules out Tundra and Snow in the temperate zone. Somehow, the high-elevation plots are all very dry. (Maybe rain shadow is assumed?)
-		self.tundraSnowRainfallTarget = 0.05
-		# </advc.021b>
-
-		#Percentage of land squares cold enough to be Snow or Tundra.
-		# advc.021b: was 0.2 (+ ...)
-		self.TundraPercent = 0.10 + self.SnowPercent
+		#self.tundraMinLatitude = 24
+		# Better disable temperate Tundra. More weird than interesting.
+		self.tundraMinLatitude = 58
+		self.taigaMinLatitude = 58 # (taiga is forested Tundra in my mind)
+		self.tundraSnowRainfallTarget = 0.45
+		# </advc>
 
 		#Of the squares too warm to be Snow or Tundra, percentage dry enough to be Desert.
 		#(Use the first number to set the percent of TOTAL land area. I'm using 18%, while the
 		#Google Consensus for a Real Earth Desert Value seems to be 20%.)
-		# advc.021b: Since it's the ratio among non-Snow/Tundra, I'm using 15.5%.
-		self.DesertPercent = 0.155 / (1.0 - self.TundraPercent)
+		#self.DesertPercent = 0.18 / (1.0 - self.TundraPercent)
+		# advc: TundraPercent has a different meaning now. Those 20% figures include Antarctica. So around 15% should be realistic. Go a bit higher b/c the default terrain generator does so too.
+		self.DesertPercent = 0.165
 
 		#Of the squares too warm to be Snow or Tundra, percentage dry enough to be Desert or Plains.
 		#The remainder will be Grassland. (This code auto-sets Plains and Grassland to be equal.)
 		#self.PlainsPercent = ((1.0 - self.DesertPercent) / 2.0) + self.DesertPercent
-		# advc.021b: Replacing the above. 39% Plains instead of 50%. (And a portion of that will be placed under Jungle.)
-		self.PlainsPercent = ((1.0 - self.DesertPercent) * 0.39) + self.DesertPercent
+		# advc: 34% Plains instead of 50%. (And a portion of that will be placed under Jungle.)
+		self.PlainsPercent = ((1.0 - self.DesertPercent) * 0.34) + self.DesertPercent
 
-		#---The following variables are not based on percentages. Because temperature
-		#---is so strongly tied to latitude, using percentages for things like ice and
-		#---tundra leads to very strange results if most of the worlds land lies near
-		#---the equator
+		#Sets the threshold for Jungle rainfall by modifying plainsRainfall by this factor.
+		# advc: Was 1.2; want to allow Jungle on Plains.
+		self.JungleFactor = 0.28
 
-		#Hotter than this temperature will be considered deciduous forest, colder will
-		#be evergreen forest. Temperatures range from coldest 0.0 to hottest 1.0.
-		self.ForestTemp = 0.6
+		#Percentage of high-rainfall Grassland [advc: or non-low-rainfall Plains] squares hot enough to be Jungle.
+		self.JunglePercent = 0.8 # advc: Was 0.5. Latitude checks added to prevent jungle too far from the equator.
 
-		#What temperature will be considered hot enough to be Jungle.
-		#Temperatures range from coldest 0.0 to hottest 1.0.
-		self.JungleTemp = 0.75
-
-		#Sets the threshold for Jungle rainfall by modifying the plains threshold by this factor.
-		# advc.021b: Was 1.2; want to allow Jungle on Plains.
-		self.JungleFactor = 0.3
+		#Percentage of Plains and sub-Jungle Grassland squares warm enough to have Deciduous Forest.
+		#The remainder will have Evergreen Forest.
+		self.DeciduousPercent = 0.55 # advc: was 0.5
+		# advc: Tundra area assumed to be warm enough for tree growth
+		self.TreelinePercent = 0.67
 
 		#Chance Forest and Jungle will be placed when their temperature and rainfall conditions are met.
-		#Note there will be plenty of tiles without tree coverage even when this is at maximum.
+		#Note there will still be plenty of tiles without tree coverage even when this is at maximum.
 		#Use a value between 0.0 and 1.0.
-		# <advc.021b> Was 1.0; but, for Forests, that chance is further multiplied by the new setting below.
-		self.MaxTreeChance = 0.85
-		self.ForestChance = 0.5 # </advc.021b>
+		# <advc> Was 1.0. For Forests, the chance is further multiplied by the new settings below.
+		self.MaxTreeChance = 0.75
+		self.TemperateForestChance = 0.46
+		self.BorealForestChance = 1.0
+		# </advc>
 
-		#The percent chance that an Oasis will appear. A tile must be Desert, and not be next to any
-		#non-Desert tiles.
-		# Was 0.16, but I'm lifting the enclosure restriction in addFeatures.
-		self.OasisChance = 0.05
+		#Chance an Oasis will appear. A tile must be Desert, not be on a hill, not be near another Oasis,
+		#and be surrounded by Desert on all sides.
+		#self.OasisPercent   = 0.5
+		#self.OasisMinChance = 0.5
+		#self.OasisMaxChance = 1.0
+		# <advc> This works differently now, and the enclosure conditions are also less strict (i.e. not as described above).
+		self.OasisMinChance = 0.015
+		self.OasisMaxChance = 0.03 # </advc>
 
 		#This variable adjusts the amount of bonuses on the map. Values above 1.0 will add bonus bonuses.
-		#People often want lots of bonuses, and for those people, this variable is definitely a bonus.
+		#People often want lots of bonuses, and for those people, this variable is definately a bonus.
 		self.BonusBonus = 1.0
 
 		#This value modifies LakeSizePerDrainage when a lake begins in desert
 		self.DesertLakeModifier = 0.6
 
-		#This value controls the amount of siltification in lakes
-		self.maxSiltPanSize = 0
+		#This value controls the amount of siltification in lakes when using the Default Civ4 SDK River Generator
+		self.maxSiltPanSizeSDK = 5
+
+		#This value controls the amount of siltification in lakes when using Cephalo's PerfectWorld 2 River Generator
+		self.maxSiltPanSizePW2 = 0
 
 		#This value sets the minimum altitude of lake depressions. They
 		#generally look better higher up.
-		self.minLakeAltitude = 0.2
+		self.minLakeAltitude = 0.0
 
 		#Degrees latitude for the top and bottom of the map. This allows
 		#for more specific climate zones
-		self.topLatitude    = 90
-		self.bottomLatitude = -90
+		# advc: Was 90, -90. That results in one whole row for 90 and -90 each, which, with an equal-area projection, should take up at most one plot each.
+		self.topLatitude    = 85
+		self.bottomLatitude = -85
 
 		#Horse latitudes and polar fronts plus and minus in case you
 		#want some zones to be compressed or emphasized.
@@ -373,7 +205,7 @@ class MapConstants:
 		#Too many meteors will simply destroy the Earth, and just
 		#in case the meteor shower can't break the pangaea, this will also
 		#prevent and endless loop.
-		# advc.021b (comment): Set in initInGameOptions now.
+		# advc (note): Set in initInGameOptions now.
 		self.maximumMeteorCount = 15
 
 		#Minimum size for a meteor strike that attemps to break pangaeas.
@@ -387,37 +219,41 @@ class MapConstants:
 		self.MinHillsInFC = 2
 
 		#Max number of peaks in fat cross
-		# advc.021b (comment): Won't matter b/c I'm calling the standard RemovePeaks function (with my own modifications)
-		self.MaxPeaksInFC = 5
+		self.MaxPeaksInFC = 3 # advc: was 5
 
-		#Max number of bad features(jungle) in fat cross
-		# advc.021b (comment): Doesn't matter; see above. For the record: I think 10 is way too much.
-		self.MaxBadFeaturesInFC = 10
+		#Max number of bad features (jungle) in fat cross
+		self.MaxBadFeaturesInFC = 4 # advc: was 10
 
 		#The following values are used for assigning starting locations. For now,
 		#they have the same ratio that is found in CvPlot::getFoundValue
-		# <advc.021b> Was 10/40/20. Using the values from Civ 4 Reimagined instead, except for food, now valued at 23 (40 in Civ 4 Reimagined). Don't want to rule out steppe starts when there isn't enough room elsewhere. Let the normalization code worry about lack of food.
-		# Mongoose Mod uses 16/16/8 according to the changelog from 19 Jan 2013
-		# (Now that I've replaced PotentialValue with AI_foundValue in one important spot, these coefficients should be less important. They're still used though.)
-		self.FoodValue       = 23
-		self.ProductionValue = 30
-		self.CommerceValue   = 15
-		# </advc.021b>
+		#self.FoodValue       = 16
+		self.ProductionValue = 16
+		#self.CommerceValue   = 16
+		# advc: v3.2 had used 10/40/20 (also weird); The MongooseMod changelog from 19 Jan 2013 says 16/16/8, and a comment elsewhere cites commerce being worth half as much as the other yields as the "standard rule for yield balance". So this might be a bug. Let's give food a little less weight though - b/c lack of food is easily amended during normalization - and commerce a little more because it's difficult to come by in the very early game.
+		self.FoodValue       = 14
+		self.CommerceValue   = 10
 
-		#Coastal cities are important, how important is determined by this
-		#value.
-		# advc.021b: Was 1.3; 1.25 in Civ 4 Reimagined. 1.2 seems to be enough to prevent cities one off the coast.
-		self.CoastalCityValueBonus = 1.2
+		#Coastal cities are important, how important is determined by this value.
+		# advc (note): I think this was intended for discouraging starts one off the coast and turned out not to be needed (at 1, it has no effect). Was 1.3 in v1.32.
+		self.CoastalCityValueBonus = 1.0
 
-		#River side cities are also important, how important is determined by this
-		#value.
+		#River cities are important, how important is determined by this value.
 		self.RiverCityValueBonus = 1.2
+
+		#Hill cities are important, how important is determined by this value.
+		# advc: Was 1.1 (and equivalent to 1 in v1.32) This is specifically about hill defense, which is really quite unimportant in the capital.
+		self.HillCityValueBonus = 1.015
+
+		#Secure resources are important, how important is determined by this value.
+		# advc: Was 1.1, 1.05. Secure access (and w/o worker turns) is, again, not an important consideration for a capital.
+		self.StrategicBonusCityValueBonus = 1.03
+		self.OtherBonusCityValueBonus     = 1.0
 
 		#Bonus resources to add depending on difficulty settings
 		self.SettlerBonus   = 2
 		self.ChieftainBonus = 2
 		self.WarlordBonus   = 1
-		# advc.021b: Was 1. I've disabled these bonuses anyway, but if someone turns them back on, I still doubt they'd want an extra bonus on Noble.
+		# advc: Was 1. I'm disabling these bonuses anyway (at the end of SetStartingPlots), but if someone turns them back on, I still doubt they'd want an extra bonus on Noble.
 		self.NobleBonus     = 0
 		self.PrinceBonus    = 0
 		self.MonarchBonus   = 0
@@ -432,7 +268,7 @@ class MapConstants:
 		#However, the problem with using the Python random is that it may create
 		#syncing issues for multi-player now or in the future, therefore it must
 		#be optional.
-		# advc.021b (comment): Haven't tested whether this causes problems. AIAndy appears to think that it's OK; see his comment in the seed function.
+		# advc (note): See AIAndy's comment in the seed function. This should be fine.
 		self.UsePythonRandom = True
 
 		#Below here are static defines. If you change these, the map won't work.
@@ -454,14 +290,14 @@ class MapConstants:
 		self.width  = 0
 		self.height = 0
 
-		self.OCEAN = 0
+		self.WATER = 0
 		self.LAND  = 1
 		self.HILLS = 2
 		self.PEAK  = 3
 
 		self.OCEAN  = 0
 		self.COAST  = 1
-		self.MARSH  = 2
+		#self.MARSH  = 2
 		self.GRASS  = 3
 		self.PLAINS = 4
 		self.DESERT = 5
@@ -474,7 +310,7 @@ class MapConstants:
 		##############################################################################
 		## PW3 Settings
 		##############################################################################
-		# advc.021b: Was 0.02. Gets adjusted in ElevationMap3.GenerateElevationMap. Greater values (closer to twistMaxFreq) seem to result in larger landmasses; perhaps/ hopefully similar to the "grain" parameter of the Fractal algorithm?
+		# advc: twistMinFreq was 0.02. Gets adjusted in ElevationMap3.GenerateElevationMap. Greater values (closer to twistMaxFreq) seem to result in larger landmasses; perhaps/ hopefully similar to the "grain" parameter of the Fractal algorithm?
 		self.twistMinFreq = 0.045
 		self.twistMaxFreq = 0.12
 		self.twistVar     = 0.042
@@ -517,13 +353,11 @@ class MapConstants:
 		# currently used to prevent large continents in the uninhabitable polar
 		# regions. East/west attenuation is set to zero, but modded maps may
 		# have need for them.
-		# advc.021b (comment): Set based on sea level in initInGameOptions
+		# advc (note): Now set in initInGameOptions
 		self.northAttenuationFactor = 0.0
-		#percent of the map height.
-		self.northAttenuationRange  = 0.0
+		self.northAttenuationRange  = 0.0 #percent of the map height.
 		self.southAttenuationFactor = 0.0
-		self.southAttenuationRange  = 0.0 
-		
+		self.southAttenuationRange  = 0.0
 		# east west attenuation may be desired for flat maps.
 		self.eastAttenuationFactor = 0.0
 		self.eastAttenuationRange  = 0.0 #percent of the map width.
@@ -539,7 +373,8 @@ class MapConstants:
 
 		#This value is used to decide if enough water has accumulated to form a river.
 		#A lower value creates more rivers over the entire map.
-		self.RiverThreshold3 = 0.055 # advc.021b: was 0.05
+		# advc: Was 0.05, but is now on a different scale. Also, I want the script to place only a few rivers and let the DLL do most of the work.
+		self.RiverThreshold3 = 0.95
 
 
 		##############################################################################
@@ -548,7 +383,7 @@ class MapConstants:
 
 		#Height and Width of main climate and height maps. This does not
 		#reflect the resulting map size. Both dimensions( + 1 if wrapping in
-		#that dimension = False) must be evenly divisble by self.hmMaxGrain
+		#that dimension = False) must be evenly divisible by self.hmMaxGrain
 		self.hmWidth  = 144
 		self.hmHeight = 97
 
@@ -618,7 +453,7 @@ class MapConstants:
 		#1 = NORTH_SOUTH_SEPARATION and 2 = EAST_WEST_SEPARATION.
 		self.hmSeparation = 0
 
-		#Creates a water margin around the map edges. 
+		#Creates a water margin around the map edges.
 		self.northMargin = False
 		self.southMargin = False
 		self.eastMargin  = False
@@ -658,8 +493,7 @@ class MapConstants:
 
 		#This sets the amount of heat lost at the highest altitude. 1.0 loses all heat
 		#0.0 loses no heat.
-		# advc.021b: was 1.0
-		self.heatLostAtOne = 0.8
+		self.heatLostAtOne = 0.8 # advc: was 1.0
 
 		#This value is an exponent that controls the curve associated with
 		#temperature loss. Higher values create a steeper curve.
@@ -675,19 +509,32 @@ class MapConstants:
 
 		#This value is used to decide if enough water has accumulated to form a river.
 		#A lower value creates more rivers over the entire map.
-		self.RiverThreshold2 = 0.25
+		self.RiverThreshold2 = 0.33 # advc: Was 0.25; see RiverThreshold3.
+
+
+		##############################################################################
+		## Mongoose Settings
+		##############################################################################
+
+		# Factors to modify mc.landPercent by if a Low or High Sea Level is chosen
+		#self.SeaLevelFactor1 = 1.75
+		#self.SeaLevelFactor2 = 0.75
+		#self.SeaLevelFactor3 = 1.5 # advc: was 2.5 (but I'm removing choices 3 and 4 anyway)
+		#self.SeaLevelFactor4 = 0.5
+		# advc:
+		self.SeaLevelFactor = 1 # advc: Set this properly in initInGameOptions
 
 
 		##############################################################################
 		## Fuyu Settings
 		##############################################################################
 
-		#This variable adjusts the maximun number of identical bonuses to be placed in a
+		#This variable adjusts the maximum number of identical bonuses to be placed in a
 		#single group. People tend not to like all instances of a bonus type to be found within
 		#a single 3x3 area. When set to -1 (default), the maximum group size is between 3 and 6,
 		#based on WorldSize. When set to 0, the maximum group size is a random number between
 		# zero and (number of players). When set to 1, this will disable all bonus grouping.
-		# advc.021b (comment): Doesn't apply b/c I'm letting CvMapGenerator handle resource placement, and I have my own changes in that class that reduce resource grouping.
+		# advc (comment): Doesn't apply b/c I'm letting CvMapGenerator handle resource placement, and I have my own changes in that class that reduce resource grouping.
 		self.BonusMaxGroupSize = -1
 
 		#Randomly allows strategic bonuses to be used to sweeten starting positions.
@@ -702,22 +549,42 @@ class MapConstants:
 	def initInGameOptions(self):
 		gc = CyGlobalContext()
 		mmap = gc.getMap()
-		# Landmass Generator
-		# <advc.021b>
-		# Keep the default (no longer optional)
-		#self.LandmassGenerator = mmap.getCustomMapOption(0)
-		#self.ClimateSystem     = mmap.getCustomMapOption(1)
+		# Sea Level
+		#self.SeaLevel          = mmap.getCustomMapOption(0)
+		# <advc> Use the standard sea level option instead
+		seaChg = gc.getSeaLevelInfo(CyMap().getSeaLevel()).getSeaLevelChange()
+		self.SeaLevelFactor -= 0.0425 * seaChg
+		# Some other changes to options below ...
+		# Landmass Generator (renumbered to option index 0; was 1)
+		self.LandmassGenerator  = mmap.getCustomMapOption(0)
+		# I'm making the hex-based generator unavailable. So the PW2 generator takes choice id 1 on the menu, but is still represented by id 2 within the script (b/c a lot of code would have to be changed otherwise).
+		if self.LandmassGenerator == 1:
+			self.LandmassGenerator = 2
+		# Hill/Peak Style
+		# Always place hills and peaks based (mainly) on differences in altitude. Using absolute altitude is pretty much only good for concluding that it's a bad idea.
+		#self.HillPeakStyle     = mmap.getCustomMapOption(2)
+		# Climate System
+		# Always use PW3. The older system is working, but I see no compelling reason to prefer it.
+		#self.ClimateSystem     = mmap.getCustomMapOption(3)
+		# River Generator
+		# Always use the PM river generator (but only for placing a portion of the rivers; best of both worlds, hopefully).
+		#self.RiverGenerator     = mmap.getCustomMapOption(4)
 		# Pangaea Rules
-		#if mmap.getCustomMapOption(2) == 1:
-			#self.AllowPangeas = not self.AllowPangeas
-		# Wrap Options
-		selectionID = mmap.getCustomMapOption(0)
-		if selectionID == 0:
+		# Allow them unless the Old World Starts option is used
+		#self.AllowPangaeas      = (mmap.getCustomMapOption(5) == 0)
+		# Wrap Options (renumbered to option index 2; was 6)
+		selectionID            = mmap.getCustomMapOption(2)
+		# New World Rules (renumbered to option index 1; was 7)
+		self.OldWorldStarts    = mmap.getCustomMapOption(1)
+		# Break Pangaea if and only if there has to be an Old World
+		self.AllowPangaeas = not self.OldWorldStarts
+		# </advc>
+		if selectionID == 1: # advc: was 0
 			self.eastWaterBand  = 0
 			self.westWaterBand  = 0
 			self.eastCrop       = 0
 			self.westCrop       = 0
-		elif selectionID == 1:
+		elif selectionID == 2: # advc: was 1
 			self.WrapY = True
 			self.hmHeight -= 1
 			self.northWaterBand = 0
@@ -728,73 +595,49 @@ class MapConstants:
 			self.southCrop      = 0
 			self.eastCrop       = 0
 			self.westCrop       = 0
-		elif selectionID == 2:
+		elif selectionID == 0: # advc: was 2
 			self.WrapX = False
 			self.hmWidth += 1
-		# New World Rules
-		if mmap.getCustomMapOption(1) == 1:
-			# advc: Was "= not self.AllowNewWorld", which I found confusing.
-			self.AllowNewWorld = True
-		self.optionsString = "Map Options:\n"
-		#if self.LandmassGenerator == 0:
-			#string = "PW3 (Square)"
-		#elif self.LandmassGenerator == 1:
-			#string = "PW3 (Hex)"
-		#else:
-			#string = "PW2"
-		#self.optionsString += "Landmass Generator = " + string + "\n"
-		#if self.ClimateSystem == 0:
-			#string = "PW3"
-		#else:
-			#string = "PW2"
-		#self.optionsString += "Climate System = " + string + "\n"
-		#if self.AllowPangeas:
-			#string = "True"
-		#else:
-			#string = "False"
-		#self.optionsString += "Allow Pangeas = " + string + "\n"
-		if self.WrapX:
-			if not self.WrapY:
-				string = "Cylindrical"
-			else:
-				string = "Toroidal"
-		else:
-			string = "Flat"
-		self.optionsString += "World Wrap = " + string + "\n"
-		if self.AllowNewWorld:
-			string = "True"
-		else:
-			string = "False"
-		self.optionsString += "Allow New World = " + string + "\n"
-
-		self.northAttenuationRange  = 0.1
-		# Avoid elongated Antarctica; likelier to occur when land ratio is high
-		seaChg = gc.getSeaLevelInfo(mmap.getSeaLevel()).getSeaLevelChange()
-		if seaChg < 0:
-			self.northAttenuationFactor = 0.2
-		else:
-			self.northAttenuationFactor = 0.28
+		# <advc>
+		# Portion of desert tiles that receive an oasis
+		self.OasisPercent = self.OasisMinChance + (self.OasisMaxChance - self.OasisMinChance) * PRand.random() 
+		# Far fewer than the 15 set initially
+		self.maximumMeteorCount = (3 * mmap.getWorldSize()) // 2 + 1
+		if self.SeaLevelFactor > 1.2:
+			self.maximumMeteorCount += 1
+		elif self.SeaLevelFactor < 0.85:
+			self.maximumMeteorCount += 1
+		# Caveat: Need to keep an eye on isHmWaterMatch when adjusting the min. meteor size. Smaller meteors affect fewer plots but are also more likely to create peaks and hills through steep slopes.
+		self.minimumMeteorSize = 1
+		if mmap.getWorldSize() > 0:
+			self.minimumMeteorSize += 1
+		if mmap.getWorldSize() > 2:
+			self.minimumMeteorSize += 1
+		if mmap.getWorldSize() > 4:
+			self.minimumMeteorSize += 1
+		# Smaller value means more less land near the poles
+		self.northAttenuationFactor = 0.59
+		# Avoid elongated Antarctica; likelier to occur when land ratio is high.
+		self.northAttenuationFactor += (1 - self.SeaLevelFactor) / 4.25
+		self.northAttenuationFactor = max(0.0, min(1.0, self.northAttenuationFactor))
+		self.northAttenuationRange = (1 - self.northAttenuationFactor) / 3.15
 		self.southAttenuationRange = self.northAttenuationRange
 		self.southAttenuationFactor = self.northAttenuationFactor
-		# Between 0 (Duel) and 5 (Huge)
-		worldSz = mmap.getWorldSize()
-		# I'm somehow getting a bit more land than configured on Duel and Tiny, and resources are also denser on these maps, leading to more cities per player than I'd like.
-		delta = 0.0
-		if worldSz == 0:
-			delta = -0.02
-		elif worldSz == 1:
-			delta = -0.01
-		if mc.AllowNewWorld:
-			# Far fewer than the 15 in PerfectMongoose. Now only a best effort.
-			self.maximumMeteorCount = 2 * (worldSz - 1)
-			if seaChg < 0:
-				self.maximumMeteorCount = self.maximumMeteorCount + 1
-			self.maximumMeteorCount = max(1, self.maximumMeteorCount)
-		else:
-			self.maximumMeteorCount = 0
-			delta -= 0.05
-		self.landPercent += delta
-		# </advc.021b>
+		if not self.WrapX:
+			self.eastAttenuationRange  = self.northAttenuationRange
+			self.westAttenuationRange  = self.northAttenuationRange
+			self.eastAttenuationFactor = self.northAttenuationFactor
+			self.westAttenuationFactor = self.northAttenuationFactor
+		if self.ClimateSystem != 0: # High-altitude plots seem to be wetter with the PW2 climate system
+			self.tundraSnowRainfallTarget *= 1.4
+		# Some extra Jungle for the PM3 land generator b/c it tends to place less land near the equator.
+		if self.LandmassGenerator < 2:
+			self.JungleFactor -= 0.03
+			self.JunglePercent += 0.03
+		# </advc>
+		# advc: Deleted; can be looked up in-game in AdvCiv. And it's tedious to keep it up to date here.
+		#self.optionsString = 
+
 
 mc = MapConstants()
 
@@ -813,10 +656,11 @@ class PythonRandom:
 		#AIAndy - I disagree. Python randoms are deterministic so the only important thing is to seed from a synchronized source like MapRand.
 		if mc.UsePythonRandom:
 			if CyGame().isNetworkMultiPlayer():
+				# advc (note): Would be nice to use this branch also - automatically - when a nonzero seed is set in CivilizationIV.ini. As it is, the script will have to be changed manually (in addition to the .ini) when a fixed seed is desired.
 				#AIAndy - seed Python random with MapRand
 				gc = CyGlobalContext()
 				self.mapRand = gc.getGame().getMapRand()
-				seedValue = self.mapRand.get(65535, "Seeding mapRand - PerfectMongoose.py")
+				seedValue = self.mapRand.get(65535, "Seeding mapRand - FairWeather.py")
 				seed(seedValue)
 				self.seedString = "Random seed (Using getMapRand) for this map is %(s)20d" % {"s" :seedValue}
 			else:
@@ -829,7 +673,7 @@ class PythonRandom:
 		else:
 			gc = CyGlobalContext()
 			self.mapRand = gc.getGame().getMapRand()
-			seedValue = self.mapRand.get(65535, "Seeding mapRand - PerfectMongoose.py")
+			seedValue = self.mapRand.get(65535, "Seeding mapRand - FairWeather.py")
 			self.mapRand.init(seedValue)
 			self.seedString = "Random seed (Using getMapRand) for this map is %(s)20d" % {"s" :seedValue}
 
@@ -840,7 +684,7 @@ class PythonRandom:
 		else:
 			#This formula is identical to the getFloat function in CvRandom. It
 			#is not exposed to Python so I have to recreate it.
-			fResult = float(self.mapRand.get(65535, "Getting float -PerfectMongoose.py")) / float(65535)
+			fResult = float(self.mapRand.get(65535, "Getting float -FairWeather.py")) / float(65535)
 			return fResult
 
 
@@ -853,7 +697,7 @@ class PythonRandom:
 			return randint(rMin, rMax)
 		else:
 			#mapRand.get() is not inclusive, so we must make it so
-			return rMin + self.mapRand.get(rMax + 1 - rMin, "Getting a randint - PerfectMongoose.py")
+			return rMin + self.mapRand.get(rMax + 1 - rMin, "Getting a randint - FairWeather.py")
 
 
 PRand = PythonRandom()
@@ -884,8 +728,8 @@ class AreaMap:
 		for i in range(self.length):
 			if self.data[i] == 0: #not assigned to an area yet
 				areaID += 1
-				areaSize, match = self.fillArea(i, areaID, matchFunction)
-				area = Area(areaID, areaSize, match)
+				areaSize, avgX, avgY, bWater = self.fillArea(i, areaID, matchFunction)
+				area = Area(areaID, areaSize, avgX, avgY, bWater)
 				self.areaList.append(area)
 
 
@@ -929,19 +773,32 @@ class AreaMap:
 		#water squares are not passable diagonally across land
 		self.segStack = list()
 		self.size = 0
-		matchValue = matchFunction(x, y)
+		self.totalX = 0
+		self.totalY = 0
+		bWater = matchFunction(x, y)
 		#place seed on stack for both directions
 		seg = LineSegment(y, x, x, 1)
-		self.segStack.append(seg) 
+		self.segStack.append(seg)
 		seg = LineSegment(y + 1, x, x, -1)
-		self.segStack.append(seg) 
+		self.segStack.append(seg)
 		while(len(self.segStack) > 0):
 			seg = self.segStack.pop()
-			self.scanAndFillLine(seg, areaID, matchValue, matchFunction)
-		return self.size,matchFunction(x, y)
+			self.scanAndFillLine(seg, areaID, bWater, matchFunction)
+		#LM - set landmass position values
+		avgX = float(self.totalX) / float(self.size)
+		avgY = float(self.totalY) / float(self.size)
+		if avgX < 0:
+			avgX += self.width
+		elif avgX >= self.width:
+			avgX -= self.width
+		if avgY < 0:
+			avgY += self.height
+		elif avgY >= self.height:
+			avgY -= self.height
+		return self.size, avgX, avgY, bWater
 
 
-	def scanAndFillLine(self, seg, areaID, matchValue, matchFunction):
+	def scanAndFillLine(self, seg, areaID, bWater, matchFunction):
 		#check for y + dy being off map
 		i = self.getIndex(seg.xLeft, seg.y + seg.dy)
 		if i < 0:
@@ -950,12 +807,12 @@ class AreaMap:
 		#for land tiles we must look one past the x extents to include
 		#8-connected neighbors
 		if self.b8connected:
-			if self.bSwitch4Or8OnFalseMatch and matchValue:
+			if self.bSwitch4Or8OnFalseMatch and bWater:
 				landOffset = 0
 			else:
 				landOffset = 1
 		else:
-			if self.bSwitch4Or8OnFalseMatch and matchValue:
+			if self.bSwitch4Or8OnFalseMatch and bWater:
 				landOffset = 1
 			else:
 				landOffset = 0
@@ -967,9 +824,12 @@ class AreaMap:
 			xStop = -1
 		for xLeftExtreme in range(seg.xLeft - landOffset, xStop, -1):
 			i = self.getIndex(xLeftExtreme, seg.y + seg.dy)
-			if self.data[i] == 0 and matchValue == matchFunction(xLeftExtreme, seg.y + seg.dy):
+			if self.data[i] == 0 and bWater == matchFunction(xLeftExtreme, seg.y + seg.dy):
 				self.data[i] = areaID
 				self.size += 1
+				#LM - set landmass position values
+				self.totalX += xLeftExtreme
+				self.totalY += seg.y + seg.dy
 				lineFound = True
 			else:
 				#if no line was found, then xLeftExtreme is fine, but if
@@ -986,13 +846,16 @@ class AreaMap:
 			xStop = self.width
 		for xRightExtreme in range(seg.xLeft + lineFound - landOffset, xStop, 1):
 			i = self.getIndex(xRightExtreme, seg.y + seg.dy)
-			if self.data[i] == 0 and matchValue == matchFunction(xRightExtreme, seg.y + seg.dy):
+			if self.data[i] == 0 and bWater == matchFunction(xRightExtreme, seg.y + seg.dy):
 				self.data[i] = areaID
 				self.size += 1
+				#LM - set landmass position values
+				self.totalX += xRightExtreme
+				self.totalY += seg.y + seg.dy
 				if not lineFound:
 					lineFound = True
 					xLeftExtreme = xRightExtreme #starting new line
-			elif lineFound: #found the right end of a line segment!				
+			elif lineFound: #found the right end of a line segment!
 				lineFound = False
 				#put same direction on stack
 				newSeg = LineSegment(seg.y + seg.dy, xLeftExtreme, xRightExtreme - 1, seg.dy)
@@ -1042,10 +905,21 @@ class LineSegment:
 
 
 class Area:
-	def __init__(self, iD, size, water):
-		self.ID    = iD
-		self.size  = size
-		self.water = water
+	def __init__(self, iD, size, avgX, avgY, water):
+		self.ID			= iD
+		self.size		= size
+		self.avgX		= avgX
+		self.avgY		= avgY
+		self.distance	= 0.0
+		self.water		= water
+
+	# advc: (Based on what little info we have)
+	def startScore(self):
+		if mc.LandmassGenerator == 2:
+			em = e2
+		else:
+			em = e3
+		return self.size * max(0.18, 1 - 0.0135 * max(0, abs(mc.horseLatitude - abs(em.GetLatitudeForY(self.avgY))) - 10))
 
 
 	def __str__(self):
@@ -1553,14 +1427,8 @@ def GenerateMountainMap(width, height, wrapX, wrapY, initFreq):
 				mountainMap.data[i] = 1.0
 			else:
 				mountainMap.data[i] = 0.0
-	land = mc.landPercent
-	gc = CyGlobalContext()
-	sea = gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getSeaLevelChange()
-	if sea < 0:
-		land *= mc.LoSeaLevelFactor # advc.021b: was SeaLevelFactor
-	elif sea > 0:
-		land *= mc.HiSeaLevelFactor # Replacing the line below
-		#land /= mc.SeaLevelFactor
+	# advc: simplified
+	land = mc.landPercent * mc.SeaLevelFactor
 	stdDevThreshold = FindThresholdFromPercent(stdDevMap.data, stdDevMap.length, land, True)
 	for y in range(mountainMap.height):
 		for x in range(mountainMap.width):
@@ -1604,11 +1472,11 @@ class ElevationMap3(FloatMap):
 
 
 	def GenerateElevationMap(self):
-		# <advc.021b> Increased in MapConstants.initialize for larger landmasses. But that makes it difficult to prevent a pangaea, so:
+		# <advc> Increased in MapConstants.initialize for larger landmasses. But that makes it more difficult to prevent a pangaea, so:
 		twistMinFreq = mc.twistMinFreq
-		if mc.AllowNewWorld:
-			twistMinFreq *= 0.6 # </advc.021b>
-		twistMinFreq = 128.0 / self.width * twistMinFreq
+		if mc.OldWorldStarts:
+			twistMinFreq *= 0.6 # </advc>
+		twistMinFreq = 128.0 / self.width * twistMinFreq #0.02  / 128
 		twistMaxFreq = 128.0 / self.width * mc.twistMaxFreq #0.12  / 128
 		twistVar     = 128.0 / self.width * mc.twistVar     #0.042 / 128
 		mountainFreq = 128.0 / self.width * mc.mountainFreq #0.05  / 128
@@ -1626,17 +1494,15 @@ class ElevationMap3(FloatMap):
 			for x in range(self.width):
 				i = self.GetIndex(x, y)
 				attenuationFactor = GetAttenuationFactor(self, x, y)
-				self.data[i] = self.data[i] * attenuationFactor
-		land = mc.landPercent
-		gc = CyGlobalContext()
-		sea = gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getSeaLevelChange()
-		if sea < 0:
-			land *= mc.LoSeaLevelFactor # advc.021b: was SeaLevelFactor
-		elif sea > 0:
-			land *= mc.HiSeaLevelFactor # Replacing the line below
-			#land /= mc.SeaLevelFactor
-		self.seaLevelThreshold = FindThresholdFromPercent(self.data, self.length, land, True)
+				self.data[i] *= attenuationFactor
+		# <advc> Moved into new method (like it was already done for ElevationMap2)
+		self.CalculateSeaLevel()
 
+
+	def CalculateSeaLevel(self):
+		land = mc.landPercent * mc.SeaLevelFactor
+		self.seaLevelThreshold = FindThresholdFromPercent(self.data, self.length, land, True)
+		# </advc>
 
 	def IsBelowSeaLevel(self, x, y):
 		i = self.GetIndex(x, y)
@@ -1900,9 +1766,10 @@ class ElevationMap2(FloatMap):
 						nn = GetHmIndex(xx, yy)
 						if nn != -1:
 							self.plateMap[nn].plateID = i
+							xx, yy = CoordsFromIndex(nn, self.width) # advc.001
 							plot = (xx, yy, i)
 							growthPlotList.append(plot)
-					break		
+					break
 		#Now cause the seeds to grow into plates
 		iterations = 0
 		while(len(growthPlotList) > 0):
@@ -1930,6 +1797,7 @@ class ElevationMap2(FloatMap):
 						growthChance = mc.plateGrowthChanceX
 					if PRand.random() < growthChance:
 						self.plateMap[ii].plateID = plateID
+						xx, yy = CoordsFromIndex(ii, self.width) # advc.001
 						newPlot = (xx, yy, plateID)
 						growthPlotList.append(newPlot)
 			#move plot to the end of the list if room left, otherwise
@@ -1962,7 +1830,7 @@ class ElevationMap2(FloatMap):
 			if plateList[self.plateMap[i].plateID].isOnMapEdge and PRand.random() < mc.chanceForWaterEdgePlate:
 				preSmoothMap[i] = 0.0
 			elif plateList[self.plateMap[i].plateID].raiseOnly:
-				preSmoothMap[i] = (float(self.plateMap[i].plateID % steps) * mc.plateStagger) / 2.0 + 0.5			   
+				preSmoothMap[i] = (float(self.plateMap[i].plateID % steps) * mc.plateStagger) / 2.0 + 0.5
 			else:
 				preSmoothMap[i] = float(self.plateMap[i].plateID % steps) * mc.plateStagger
 		#Now smooth the plate height map and create the distance map at the same time
@@ -2064,14 +1932,7 @@ class ElevationMap2(FloatMap):
 
 
 	def CalculateSeaLevel(self):
-		land = mc.landPercent
-		gc = CyGlobalContext()
-		sea = gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getSeaLevelChange()
-		if sea < 0:
-			land *= mc.LoSeaLevelFactor # advc.021b: was SeaLevelFactor
-		elif sea > 0:
-			land *= mc.HiSeaLevelFactor # Replacing the line below
-			#land /= mc.SeaLevelFactor
+		land = mc.landPercent * mc.SeaLevelFactor # advc: simplified
 		self.seaLevelThreshold = FindValueFromPercent(self.data, self.length, land, True)
 
 
@@ -2208,57 +2069,79 @@ class ClimateMap3:
 			em = e2
 		else:
 			em = e3
-		aboveSeaLevelMap    = FloatMap()
-		self.summerMap      = FloatMap()
-		self.winterMap      = FloatMap()
-		self.TemperatureMap = FloatMap()
-		aboveSeaLevelMap.initialize(em.width,    em.height, em.wrapX, em.wrapY)
-		self.summerMap.initialize(em.width,      em.height, em.wrapX, em.wrapY)
-		self.winterMap.initialize(em.width,      em.height, em.wrapX, em.wrapY)
-		self.TemperatureMap.initialize(em.width, em.height, em.wrapX, em.wrapY)
+		# advc: Make this map also available for GenerateRainfallMap
+		self.aboveSeaLevelMap = FloatMap()
+		self.summerMap        = FloatMap()
+		self.winterMap        = FloatMap()
+		self.TemperatureMap   = FloatMap()
+		self.aboveSeaLevelMap.initialize(em.width, em.height, em.wrapX, em.wrapY)
+		self.summerMap.initialize(em.width,        em.height, em.wrapX, em.wrapY)
+		self.winterMap.initialize(em.width,        em.height, em.wrapX, em.wrapY)
+		self.TemperatureMap.initialize(em.width,   em.height, em.wrapX, em.wrapY)
 		for y in range(em.height):
 			for x in range(em.width):
-				i = aboveSeaLevelMap.GetIndex(x, y)
+				i = self.aboveSeaLevelMap.GetIndex(x, y)
 				if em.IsBelowSeaLevel(x, y):
-					aboveSeaLevelMap.data[i] = 0.0
+					self.aboveSeaLevelMap.data[i] = 0.0
 				else:
-					aboveSeaLevelMap.data[i] = em.data[i] - em.seaLevelThreshold
-		aboveSeaLevelMap.Normalize()
+					self.aboveSeaLevelMap.data[i] = em.data[i] - em.seaLevelThreshold
+		self.aboveSeaLevelMap.Normalize()
+		# <advc>
+		waterTempMap = FloatMap()
+		waterTempMap.initialize(em.width, em.height, em.wrapX, em.wrapY)
+		# </advc>
 		zenith        = mc.tropicsLatitude
 		topTempLat    = mc.topLatitude + zenith
 		bottomTempLat = mc.bottomLatitude
 		latRange = topTempLat - bottomTempLat
-		for y in range(em.height):
-			lat = self.summerMap.GetLatitudeForY(y) #LM - moved out of x loop
-			latPercent = (lat - bottomTempLat) / latRange
-			for x in range(em.width):
-				i = self.summerMap.GetIndex(x, y)
-				temp = math.sin(latPercent * math.pi * 2.0 - math.pi * 0.5) * 0.5 + 0.5
-				if em.IsBelowSeaLevel(x, y):
-					temp = temp * mc.maxWaterTemp + mc.minWaterTemp
-				self.summerMap.data[i] = temp
-		self.summerMap.Smooth(int(math.floor(em.width / 8.0)))
-		self.summerMap.Normalize()
+		# advc: Moved into new method
+		self.fillLatitudeMap(self.summerMap, waterTempMap, bottomTempLat, latRange)
 		zenith        = mc.tropicsLatitude * -1
 		topTempLat    = mc.topLatitude
 		bottomTempLat = mc.bottomLatitude + zenith
 		latRange = topTempLat - bottomTempLat
-		for y in range(em.height):
-			lat = self.winterMap.GetLatitudeForY(y)  #LM - moved out of x loop
-			latPercent = (lat - bottomTempLat) / latRange
-			for x in range(em.width):
-				i = self.winterMap.GetIndex(x, y)
-				temp = math.sin(latPercent * math.pi * 2.0 - math.pi * 0.5) * 0.5 + 0.5
-				if em.IsBelowSeaLevel(x, y):
-					temp = temp * mc.maxWaterTemp + mc.minWaterTemp
-				self.winterMap.data[i] = temp
-		self.winterMap.Smooth(int(math.floor(em.width / 8.0)))
-		self.winterMap.Normalize()
+		# advc: Moved into new method
+		self.fillLatitudeMap(self.winterMap, waterTempMap, bottomTempLat, latRange)
+		# advc:
+		self.distToSea = createDistanceMap(False)
 		for y in range(em.height):
 			for x in range(em.width):
 				i = self.TemperatureMap.GetIndex(x, y)
-				self.TemperatureMap.data[i] = (self.winterMap.data[i] + self.summerMap.data[i]) * (1.0 - aboveSeaLevelMap.data[i])
+				self.TemperatureMap.data[i] = (self.winterMap.data[i] + self.summerMap.data[i]) * (1.0 - self.aboveSeaLevelMap.data[i])
+				# <advc> Based on C2C_World.py
+				# 1.0 would correspond to the C2C formula. (However, C2C computes the latitude-based temperatures differently - I think).
+				maritimeWeight = 0.75
+				if self.distToSea[i] > 0:
+					if self.distToSea[i] <= 1 + CyMap().getWorldSize():
+						seaDistMult = (waterTempMap.data[i] - self.TemperatureMap.data[i]) / float(self.distToSea[i])
+					else:
+						seaDistMult = (self.distToSea[i] + em.width / 12.0) / ((13.0/12.0) * em.width)
+					self.TemperatureMap.data[i] *= 1 + maritimeWeight * seaDistMult
+				# </advc>
 		self.TemperatureMap.Normalize()
+
+
+	# advc: Cut from GenerateTemperatureMap
+	def fillLatitudeMap(self, tempMap, waterTempMap, bottomTempLat, latRange):
+		if mc.LandmassGenerator == 2:
+			em = e2
+		else:
+			em = e3
+		for y in range(em.height):
+			# advc.opt/ LM: Moved some stuff out of the inner loop
+			lat = tempMap.GetLatitudeForY(y)
+			latPercent = (lat - bottomTempLat) / latRange
+			latTemp = math.sin(latPercent * math.pi * 2.0 - math.pi * 0.5) * 0.5 + 0.5
+			waterTemp = latTemp * mc.maxWaterTemp + mc.minWaterTemp
+			for x in range(em.width):
+				i = tempMap.GetIndex(x, y)
+				waterTempMap.data[i] += waterTemp
+				if em.IsBelowSeaLevel(x, y):
+					tempMap.data[i] = waterTemp
+				else:
+					tempMap.data[i] = latTemp
+		tempMap.Smooth(int(math.floor(em.width / 8.0)))
+		tempMap.Normalize()
 
 
 	def GenerateRainfallMap(self):
@@ -2278,7 +2161,7 @@ class ClimateMap3:
 		rainfallGeostrophicMap.initialize(em.width, em.height, em.wrapX, em.wrapY)
 		self.RainfallMap.initialize(em.width,       em.height, em.wrapX, em.wrapY)
 		for y in range(em.height):
-			lat      = em.GetLatitudeForY(y) #AIAndy - moved out of x loop
+			lat      = em.GetLatitudeForY(y) #AIAndy - moved these 2 lines out of x loop
 			pressure = em.GetGeostrophicPressure(lat)
 			for x in range(em.width):
 				i = em.GetIndex(x, y)
@@ -2303,7 +2186,6 @@ class ClimateMap3:
 		incX   = 0
 		incY   = 0
 		geoIndex = 0
-		str = ""
 		for zone in range(6):
 			topY    = em.GetYFromZone(zone, True)
 			bottomY = em.GetYFromZone(zone, False)
@@ -2340,8 +2222,9 @@ class ClimateMap3:
 							break
 					for x in range(xxStart, xxStop, incX):
 						i = em.GetIndex(x, y)
-						sortedGeoMap[geoIndex] = (x, y, geoMap.data[i])
-						geoIndex += 1
+						if i >= 0: # advc.001 (from C2C_World)
+							sortedGeoMap[geoIndex] = (x, y, geoMap.data[i])
+							geoIndex += 1
 		moistureMap.initialize(em.width, em.height, em.wrapX, em.wrapY)
 		for i in range(len(sortedSummerMap)):
 			x = sortedSummerMap[i][0]
@@ -2352,10 +2235,6 @@ class ClimateMap3:
 			x = sortedWinterMap[i][0]
 			y = sortedWinterMap[i][1]
 			self.DistributeRain(x, y, self.winterMap, rainfallWinterMap,      moistureMap, False)
-		#AIAndy Bugfix - geostrophic rain disabled
-		#LM - I disabled this in the original PW3 port due to it not working
-		#due to the other bugs with the PW3 climate system, then promptly
-		#forgot about it b/c I didn't understand how important it was. Sorry.
 		moistureMap.initialize(em.width, em.height, em.wrapX, em.wrapY)
 		for i in range(len(sortedGeoMap)):
 			x = sortedGeoMap[i][0]
@@ -2375,8 +2254,12 @@ class ClimateMap3:
 		for y in range(em.height):
 			for x in range(em.width):
 				i = em.GetIndex(x, y)
-				self.RainfallMap.data[i] = rainfallSummerMap.data[i] + rainfallWinterMap.data[i] + (rainfallGeostrophicMap.data[i] * mc.geostrophicFactor)
-		self.RainfallMap.Normalize()
+				# <advc> (from C2C_World): Take into account distance to sea, but only with a sqrt. Also adopted code for an altitude factor, but that leads to fragmentation across all terrain types, in particular too few large deserts, so I've commented that out again.
+				if not em.IsBelowSeaLevel(x, y):
+					numerator = rainfallSummerMap.data[i] + rainfallWinterMap.data[i] + rainfallGeostrophicMap.data[i] * mc.geostrophicFactor
+					#numerator += 2 * self.aboveSeaLevelMap.data[i]
+					self.RainfallMap.data[i] = numerator / math.sqrt(self.distToSea[i])
+				# </advc>
 
 
 	def DistributeRain(self, x, y, pressureMap, RainfallMap, moistureMap, boolGeostrophic):
@@ -2397,10 +2280,12 @@ class ClimateMap3:
 			ii = em.GetIndex(x1, y1)
 			##neighbor must be on map and in same wind zone
 			if ii >= 0 and (em.GetZone(y1) == em.GetZone(y)):
+				x1, y1 = CoordsFromIndex(ii, em.width) # advc.001
 				nList.append((x1, y1))
 			x2, y2 = GetNeighbor(x, y, dir2)
 			ii = em.GetIndex(x2, y2)
 			if ii >= 0:
+				x2, y2 = CoordsFromIndex(ii, em.width) # advc.001
 				nList.append((x2, y2))
 		else:
 			#AIAndy Bugfix - climate hex evaluation
@@ -2408,6 +2293,7 @@ class ClimateMap3:
 				xx, yy = GetNeighbor(x, y, direction)
 				ii = em.GetIndex(xx, yy)
 				if ii >= 0 and pressureMap.data[i] <= pressureMap.data[ii]:
+					xx, yy = CoordsFromIndex(ii, em.width) # advc.001
 					nList.append((xx, yy))
 		if len(nList) == 0 or (boolGeostrophic and len(nList) == 1):
 			cost = moistureMap.data[i]
@@ -2593,6 +2479,7 @@ class ClimateMap2:
 					xx, yy = GetNeighbor(plot.x, plot.y, direction)
 					ii = GetHmIndex(xx, yy)
 					if ii >= 0 and tempMap[i] <= tempMap[ii]:
+						xx, yy = CoordsFromIndex(ii, em.width) # advc.001
 						nList.append((xx, yy))
 				#divide moisture by number of neighbors for distribution
 				if len(nList) == 0:
@@ -2611,7 +2498,7 @@ class ClimateMap2:
 				else:
 					cost = self.getRainCost(plot.x, plot.y, xx, yy, countRemaining / mc.monsoonUplift)
 				#Convert moisture into rain
-				#self.moistureMap[i] -= cost * moisturePerNeighbor (this line is unecessary actually, we are finished with moisture map for this plot) 
+				#self.moistureMap[i] -= cost * moisturePerNeighbor (this line is unecessary actually, we are finished with moisture map for this plot)
 				self.RainfallMap.data[i] += cost * moisturePerNeighbor * geostrophicFactor #geostrophicFactor is not involved with moisture, only to weigh against monsoons
 				#send remaining moisture to neighbor
 				ii = GetHmIndex(xx, yy)
@@ -2773,7 +2660,10 @@ def errorPopUp(message):
 		if player.isAlive():
 			iPlayerNum = iPlayerNum + 1
 			if player.isHuman():
-				text = message + "\n\n" + mc.optionsString + "\n" + PRand.seedString
+				text = message
+				# advc: disused
+				#text += "\n\n" + mc.optionsString
+				text += "\n" + PRand.seedString
 				popupInfo = CyPopupInfo()
 				popupInfo.setButtonPopupType(ButtonPopupTypes.BUTTONPOPUP_PYTHON)
 				popupInfo.setText(text)
@@ -2796,6 +2686,12 @@ def GetIndex(x, y):
 	else:
 		yy = y
 	return yy * mc.width + xx
+
+# advc: To fix potential problems with GetNeighbor (q.v.)
+def CoordsFromIndex(i, width):
+	assert i >= 0
+	y = i / width
+	return i - y * width, y
 
 
 def GetHmIndex(x, y):
@@ -3048,7 +2944,7 @@ def GetOppositeDirection(direction):
 		opposite = mc.SW
 	return opposite
 
-
+# advc (note): Since this function does not apply world-wraps, the result should only be fed into one of the get-index functions, which do apply world-wraps. Where the PerfectMongoose code had used the coordinates for other purposes, I've added a call to the (new) CoordsFromIndex function - which maps the valid index to valid coordinates.
 def GetNeighbor(x, y, direction):
 	if direction == mc.L:
 		return x, y
@@ -3090,7 +2986,13 @@ def FindThresholdFromPercent(map, length, percent, greaterThan):
 ##This function is a general purpose value tuner. It finds a value that will be greater
 ##than or less than the desired percent of a whole map within a given tolerance. Map values
 ##should be between 0 and 1. To exclude parts of the map, set them to value 0.0
+# advc (comment): Is this function really needed? Seems that, apart from special treatment for 0s, FindThresholdFromPercent accomplishes the same thing (percentile calculation) more reliably. Not sure which is faster though.
 def FindValueFromPercent(map, length, percent, greaterThan):
+	if length == 0:
+		if greaterThan:
+			return 1.0
+		else:
+			return 0.0
 	tolerance = percent / 50.0
 	inTolerance = False
 	#to speed things up a little, lets take some time to find the middle value
@@ -3120,7 +3022,7 @@ def FindValueFromPercent(map, length, percent, greaterThan):
 	while not inTolerance:
 		iterations += 1
 		if(iterations > 500):
-			print "can't find value within tolerance, end value = "
+			print "can't find value within tolerance"
 			print "threshold = %f, thresholdChange = %f" % (threshold, thresholdChange)
 			break #close enough
 		matchCount = 0
@@ -3170,15 +3072,116 @@ def isWaterMatch(x, y):
 		em = e2
 	else:
 		em = e3
-	result = em.IsBelowSeaLevel(x, y)
-	return result
+	return em.IsBelowSeaLevel(x, y)
+
+
+def isDeepWaterMatch(x, y):
+	if mc.LandmassGenerator == 2:
+		em = e2
+	else:
+		em = e3
+	if not em.IsBelowSeaLevel(x, y):
+		return False
+	plot = CyMap().plot(x, y)
+	if plot.isImpassable():
+		return True
+	for direction in range(1, 9):
+		xx, yy = GetNeighbor(x, y, direction)
+		ii = GetIndex(xx, yy)
+		#if ii >= 0 and not em.IsBelowSeaLevel(x, y):
+		# <advc.001>
+		if ii < 0:
+			continue
+		xx, yy = CoordsFromIndex(ii, mc.width)
+		if not em.IsBelowSeaLevel(xx, yy): # </advc.001>
+			return False
+	return True
+
+
+def isPeakWaterMatch(x, y): # advc.030 (note): disused
+	if mc.LandmassGenerator == 2:
+		em = e2
+	else:
+		em = e3
+	return em.IsBelowSeaLevel(x, y) or (tm.pData[GetIndex(x, y)] == mc.PEAK)
 
 
 def isHmWaterMatch(x, y):
 	i = GetHmIndex(x, y)
-	if pb.distanceMap[i] > mc.minimumMeteorSize / 3:
+	#if pb.distanceMap[i] > mc.minimumMeteorSize / 3:
+	# advc: Adjusted to decreased min. meteor size
+	if pb.distanceMap[i] * 2 > mc.minimumMeteorSize:
 		return True
 	return False
+
+# advc: Cut from PangaeaBreaker.createDistanceMap, which creates a table with distances to the nearest land plot. This global function can also create a table with distances to the closest sea plot (bToLand=False).
+def createDistanceMap(bToLand):
+	if mc.LandmassGenerator == 2:
+		em = e2
+	else:
+		em = e3
+	distanceMap = array('i')
+	processQueue = []
+	for y in range(em.height):
+		for x in range(em.width):
+			# advc: Switched around if not bToLand
+			if em.IsBelowSeaLevel(x, y) == bToLand:
+				distanceMap.append(1000)
+			else:
+				distanceMap.append(0)
+				processQueue.append((x, y))
+	while len(processQueue) > 0:
+		x, y = processQueue[0]
+		i = GetHmIndex(x, y)
+		del processQueue[0]
+		dist = distanceMap[i]
+		for direction in range(1, 9):
+			xx, yy = GetNeighbor(x, y, direction)
+			ii = GetHmIndex(xx, yy)
+			if ii >= 0:
+				neighborDist = distanceMap[ii]
+				if neighborDist > dist + 1:
+					distanceMap[ii] = dist + 1
+					xx, yy = CoordsFromIndex(ii, em.width) # advc.001
+					processQueue.append((xx, yy))
+	return distanceMap
+
+# advc: Need this in three places. The latitude check and plains as possible terrain are new.
+def canHaveJungle(rfData, jungleRf, tData, pData, lat, tempData = 1.0, jungleTemp = 0.0):
+	return (rfData >= jungleRf and (tData == mc.GRASS or tData == mc.PLAINS) and pData != mc.PEAK and abs(lat) * 2 <= mc.tropicsLatitude + mc.horseLatitude and tempData >= jungleTemp)
+
+def canHaveOasis(x, y, tData, fOasis):
+	'''
+	for direction in range(1, 5):
+		xx, yy = GetNeighbor(x, y, direction)
+		ii = GetIndex(xx, yy)
+		if ii >= 0 and tData[ii] != mc.DESERT:
+			return False
+		for yy in range(y - 2, y + 3):
+			for xx in range(x - 2, x + 3):
+				xx, yy = CoordsFromIndex(ii, mc.width) # advc.001
+				surrPlot = CyMap().plot(xx, yy)
+				if surrPlot != 0 and surrPlot.getFeatureType() == fOasis:
+					return False
+	'''
+	# <advc> Use a single loop again, as in v3.2.
+	adjNonDesertCount = 0
+	for direction in range(1, 9):
+		xx, yy = GetNeighbor(x, y, direction)
+		ii = GetIndex(xx, yy)
+		if ii < 0:
+			continue
+		xx, yy = CoordsFromIndex(ii, mc.width)
+		adj = CyMap().plot(xx, yy)
+		if adj.isWater() or adj.getFeatureType() == fOasis:
+			return False
+		# Only exclude tiles with more than 4 adjacent non-desert tiles
+		if tData[ii] != mc.DESERT:
+			adjNonDesertCount += 1
+			if adjNonDesertCount > 4:
+				return False
+	# </advc>
+	return True
 
 
 class TerrainMap:
@@ -3191,55 +3194,133 @@ class TerrainMap:
 			em = e2
 		else:
 			em = e3
+		#self.dData = []
+		# <advc> Separate values for hills and peaks
+		self.hillData = []
+		self.peakData = [] # </advc>
 		self.pData = []
 		self.tData = []
 		for i in range(em.length):
-			self.pData.append(mc.OCEAN)
+			#self.dData.append(0.0)
+			# <advc>
+			self.hillData.append(0.0)
+			self.peakData.append(0.0) # </advc>
+			self.pData.append(mc.WATER)
 			self.tData.append(mc.OCEAN)
 
 
 	def GeneratePlotMap(self):
+		print "-------------------"
+		print "Generating Plot Map"
+		print "-------------------"
+		deAttenuate = False # advc (only e3 uses attenuation)
 		if mc.LandmassGenerator == 2:
 			em = e2
 		else:
 			em = e3
-		print "creating plot map"
-		#create height difference map to allow for tuning
-		diffMap = []
-		for i in range(em.length):
-			diffMap.append(0.0)
-		#I tried using a deviation from surrounding average altitude
-		#to determine hills and peaks but I didn't like the
-		#results. Therefore I am using lowest neighbor
+			deAttenuate = True # advc
 		for y in range(mc.height):
 			for x in range(mc.width):
 				i = em.GetIndex(x, y)
-				myAlt = em.data[i]
-				minAlt = 1.0
-				for direction in range(1, 9):
-					xx, yy = GetNeighbor(x, y, direction)
-					ii = em.GetIndex(xx, yy)
-					if ii >= 0 and em.data[ii] < minAlt:
-						minAlt = em.data[ii]
-				diffMap[i] = myAlt - minAlt
-		NormalizeMap(diffMap, mc.width, mc.height)
+				# <advc> Remove attenuation effect - b/c it should only affect the coastline, not elevation above sea.
+				elevData = em.data[i]
+				if deAttenuate:
+					if elevData > 0: # Then the attenuation factor can't be 0 either
+						elevData /= GetAttenuationFactor(em, x, y)
+				# </advc>
+				if mc.HillPeakStyle == 1:
+					#self.dData[i] = elevData
+					# <advc>
+					self.hillData[i] = elevData
+					self.peakData[i] = elevData # </advc>
+				else:
+					#create height difference map to allow for tuning
+					#I tried using a deviation from surrounding average altitude
+					#to determine hills and peaks but I didn't like the
+					#results. Therefore I am using lowest neighbor.
+					# <advc> Let's see if we can use the avg. for something .... indeed doesn't look too useful.
+					#avgAlt = 0
+					#avgAltDiv = 0
+					myAlt = elevData
+					# Considering the lowest orthogonal and the lowest diagonal neighbor seems to yield reasonable clustering. The overall minumum clusters too much, in particular results in blocks, enclosures, straight chains too often. (If enclosures still occur, one should perhaps simply convert peaks with a high number of adjacent lower-altitude peaks into snow hills.)
+					minAltOrth = 1.0
+					minAltDiag = 1.0
+					# And count the neighbors with greater altitude
+					numHigher = 0 # </advc>
+					for direction in range(1, 9):
+						xx, yy = GetNeighbor(x, y, direction)
+						ii = em.GetIndex(xx, yy)
+						if ii < 0:
+							continue
+						# <advc>
+						xx, yy = CoordsFromIndex(ii, em.width)
+						neighborElevData = em.data[ii]
+						if deAttenuate:
+							if neighborElevData > 0:
+								neighborElevData /= GetAttenuationFactor(em, xx, yy)
+						if neighborElevData < myAlt and em.IsBelowSeaLevel(xx, yy):
+							# Adjacent water: assume that half of the slope is submerged (and thus shouldn't contribute to the land plot type)
+							neighborElevData += (myAlt - neighborElevData) / 2
+						elif neighborElevData > myAlt:
+							numHigher += 1
+						#avgAlt += neighborElevData
+						#avgAltDiv += 1
+						# </advc>
+						if direction % 2 == 0:
+							if neighborElevData < minAltOrth:
+								minAltOrth = neighborElevData
+						else:
+							if neighborElevData < minAltDiag:
+								minAltDiag = neighborElevData
+					#self.dData[i] = myAlt - minAlt
+					# <advc>
+					altDiff = myAlt - (minAltOrth * 3 + minAltDiag * 2) / 5
+					self.hillData[i] = altDiff * pow(0.95, numHigher)
+					# Give absolute height some more weight for peaks. It's OK if that causes them to clump a bit more on small and medium-size maps (whereas, for hills, more clumping is not OK); my main goal is to make coastal peaks less common.
+					# Actually, now that I've tweaked GeneratePlotMap, coastal peaks have become much less common and clumps of peaks more common. So I'm going to dial the absolute altitude tweak down.
+					absAltWeight = 1.075
+					#if CyMap().getWorldSize() > 3:
+					#	absAltWeight = (1 + absAltWeight) / 2
+					self.peakData[i] = absAltWeight * altDiff
+					# Discourage long, uninterrupted chains
+					if numHigher >= 2:
+						self.peakData[i] *= 0.82
+					#if avgAltDiv > 0:
+					#	avgAlt /= avgAltDiv
+					# </advc>
+		#NormalizeMap(self.dData, mc.width, mc.height)
+		#landMap = []
+		#for i in range(em.length):
+		#	landMap.append(0.0)
+		# <advc>
+		NormalizeMap(self.hillData, mc.width, mc.height)
+		NormalizeMap(self.peakData, mc.width, mc.height) # </advc>
+		hillMap = []
+		peakMap = []
+		for i in range(em.length):
+			hillMap.append(0.0)
+			peakMap.append(0.0) #</advc>
 		#zero out water tiles so percent is percent of land
 		for y in range(mc.height):
 			for x in range(mc.width):
 				i = em.GetIndex(x, y)
-				if em.IsBelowSeaLevel(x, y):
-					diffMap[i] = 0.0
-		hillHeight = FindValueFromPercent(diffMap, em.length, mc.HillPercent, True)
-		peakHeight = FindValueFromPercent(diffMap, em.length, mc.PeakPercent, True)
+				if not em.IsBelowSeaLevel(x, y):
+					#landMap[i] = self.dData[i]
+					# <advc>
+					hillMap[i] = self.hillData[i]
+					peakMap[i] = self.peakData[i] # </advc>
+		# advc: Was landMap in both lines
+		hillHeight = FindValueFromPercent(hillMap, em.length, mc.HillPercent, True)
+		peakHeight = FindValueFromPercent(peakMap, em.length, mc.PeakPercent, True)
 		for y in range(mc.height):
 			for x in range(mc.width):
 				i = em.GetIndex(x, y)
-				altDiff = diffMap[i]
 				if em.data[i] < em.seaLevelThreshold:
-					self.pData[i] = mc.OCEAN
-				elif altDiff < hillHeight:
+					self.pData[i] = mc.WATER
+				# advc: Was landMap in both elifs
+				elif hillMap[i] < hillHeight:
 					self.pData[i] = mc.LAND
-				elif altDiff < peakHeight:
+				elif peakMap[i] < peakHeight:
 					self.pData[i] = mc.HILLS
 				else:
 					self.pData[i] = mc.PEAK
@@ -3268,6 +3349,11 @@ class TerrainMap:
 
 
 	def GenerateTerrainMap(self):
+		print "----------------------"
+		print "Generating Terrain Map"
+		print "----------------------"
+		gc = CyGlobalContext()
+		mmap = gc.getMap()
 		if mc.LandmassGenerator == 2:
 			em = e2
 		else:
@@ -3279,7 +3365,7 @@ class TerrainMap:
 		#Find minimum rainfall on land
 		minRain = 10.0
 		for i in range(em.length):
-			if self.pData[i] != mc.OCEAN:
+			if self.pData[i] != mc.WATER:
 				if cm.RainfallMap.data[i] < minRain:
 					minRain = cm.RainfallMap.data[i]
 		#zero water tiles to obtain percent of land
@@ -3292,58 +3378,108 @@ class TerrainMap:
 		#from the percent coverage calculations since their terrain types don't actually matter.
 		#(You could end up wasting most of your Snow tiles under polar mountain ranges and not
 		#have very many on the map, for example.)
-		flatTiles  = []
-		flatLength = 0
+		#waterTiles  = []
+		#waterLength = 0
+		landTiles   = []
+		landLength  = 0
+		polarTiles = [] # advc
+		landRf = [] # advc
 		for y in range(mc.height):
+			latitude = abs(em.GetLatitudeForY(y)) # advc
 			for x in range(mc.width):
 				i = GetIndex(x, y)
-				if self.pData[i] != mc.OCEAN and self.pData[i] != mc.PEAK:
-					flatTiles.append(cm.TemperatureMap.data[i])
-					flatLength += 1
-		snowThreshold = FindValueFromPercent(flatTiles, flatLength, mc.SnowPercent, False)
-		tundraThreshold = FindValueFromPercent(flatTiles, flatLength, mc.TundraPercent, False)
-		# advc.021b:
-		tundraSnowRainfallThreshold = FindValueFromPercent(flatTiles, flatLength, mc.tundraSnowRainfallTarget, False)
+				if self.pData[i] != mc.WATER and self.pData[i] != mc.PEAK:
+					landTiles.append(cm.TemperatureMap.data[i])
+					landLength += 1
+					# <advc>
+					landRf.append(cm.RainfallMap.data[i])
+					if latitude >= mc.taigaMinLatitude:
+						polarTiles.append(cm.TemperatureMap.data[i])
+					# </advc>
+				'''
+				if self.pData[i] == mc.WATER:
+					waterTiles.append(em.data[i])
+					waterLength += 1
+				elif self.pData[i] != mc.PEAK:
+					landTiles.append(cm.TemperatureMap.data[i])
+					landLength += 1
+				'''
+		# <advc> Apply only the 'temperate' percentages to all land tiles
+		snowTemp = FindValueFromPercent(landTiles, landLength, mc.TemperateSnowPercent, False)
+		self.tundraTemp = FindValueFromPercent(landTiles, landLength, mc.TemperateTundraPercent, False)
+		flatSnowTemp = FindValueFromPercent(polarTiles, len(polarTiles), mc.SnowPercent, False)
+		taigaTemp = FindValueFromPercent(polarTiles, len(polarTiles), mc.TundraPercent, False)
+		tundraSnowRainfallThreshold = FindValueFromPercent(landRf, len(landRf), mc.tundraSnowRainfallTarget, False)
+		# </advc>
 		warmTiles  = []
 		warmLength = 0
 		for y in range(mc.height):
-			latitude = abs(em.GetLatitudeForY(y)) # advc.021b
+			latitude = abs(em.GetLatitudeForY(y)) # advc
 			for x in range(mc.width):
 				i = GetIndex(x, y)
-				if self.pData[i] == mc.OCEAN:
+				bWarm = True # advc
+				if self.pData[i] == mc.WATER:
+					bWarm = False # advc
 					for direction in range(1, 9):
 						xx, yy = GetNeighbor(x, y, direction)
 						ii = GetIndex(xx, yy)
-						if ii >= 0 and self.pData[ii] != mc.OCEAN:
+						if ii >= 0 and self.pData[ii] != mc.WATER:
 							self.tData[i] = mc.COAST
-				# advc.021b: No snow near the equator, especially no flat snow, and non-polar snow mustn't be dry.
-				elif cm.TemperatureMap.data[i] < snowThreshold and ((tm.pData[i] == mc.HILLS and latitude >= mc.snowHillMinLatitude) or (tm.pData[i] != mc.HILLS and latitude >= mc.snowPlateauMinLatitude)) and (latitude >= mc.snowPlateauMinLatitude or cm.RainfallMap.data[i] >= tundraSnowRainfallThreshold):
-					self.tData[i] = mc.SNOW
-				# advc.021b: No tundra near the equator, and non-polar tundra mustn't be dry.
-				elif cm.TemperatureMap.data[i] < tundraThreshold and latitude >= mc.tundraMinLatitude and (latitude >= mc.taigaMinLatitude or cm.RainfallMap.data[i] >= tundraSnowRainfallThreshold):
-					self.tData[i] = mc.TUNDRA
-				elif self.pData[i] != mc.PEAK:
+				# <advc>
+				elif latitude < mc.taigaMinLatitude:
+					if cm.RainfallMap.data[i] >= tundraSnowRainfallThreshold:
+						# No snow near the equator, especially no flat snow, and non-polar snow mustn't be dry.
+						if tm.pData[i] == mc.HILLS and latitude >= mc.snowHillMinLatitude and cm.TemperatureMap.data[i] < snowTemp:
+							self.tData[i] = mc.SNOW
+							bWarm = False
+						# No tundra near the equator, and non-polar tundra mustn't be dry.
+						elif latitude >= mc.tundraMinLatitude and cm.TemperatureMap.data[i] < self.tundraTemp:
+							self.tData[i] = mc.TUNDRA
+							bWarm = False
+				else:
+					# Very cold or topmost or bottommost row - those rows get shown with an icecap in Globe view (regardless of the true terrain).
+					if (latitude >= mc.snowPlateauMinLatitude and cm.TemperatureMap.data[i] < flatSnowTemp) or (latitude > 77 and (y == 0 or y == mc.height - 1)):
+						self.tData[i] = mc.SNOW
+						bWarm = False
+					elif cm.TemperatureMap.data[i] < taigaTemp or latitude >= mc.snowPlateauMinLatitude:
+						self.tData[i] = mc.TUNDRA
+						bWarm = False
+				#elif self.pData[i] != mc.PEAK:
+				if bWarm and self.pData[i] != mc.PEAK: # </advc>
 					warmTiles.append(cm.RainfallMap.data[i])
 					warmLength += 1
-		desertThreshold = FindValueFromPercent(warmTiles, warmLength, mc.DesertPercent, False)
-		# <advc.021b> Reserve a small portion of plains for the wettest climate
-		steppePlainsPercent = mc.PlainsPercent * 0.88
+		self.desertRainfall = FindValueFromPercent(warmTiles, warmLength, mc.DesertPercent, False)
+		#self.plainsRainfall = FindValueFromPercent(warmTiles, warmLength, mc.PlainsPercent, False)
+		# <advc> Reserve a portion of plains for the wettest climate
+		steppePlainsPercent = mc.PlainsPercent * 0.75
 		junglePlainsPercent = mc.PlainsPercent - steppePlainsPercent
 		junglePlainsThreshold = FindValueFromPercent(warmTiles, warmLength, 1 - junglePlainsPercent, False)
-		self.plainsThreshold = FindValueFromPercent(warmTiles, warmLength, steppePlainsPercent, False) # </advc.021b>
+		self.plainsRainfall = FindValueFromPercent(warmTiles, warmLength, steppePlainsPercent, False) # </advc.021b>
+		self.jungleRainfall = self.plainsRainfall * mc.JungleFactor
 		for y in range(mc.height):
 			for x in range(mc.width):
 				i = GetIndex(x, y)
-				# advc.021b: Can no longer rely on the tundraThreshold here. Instead simply treat all unassigned land as warm .
-				if self.pData[i] != mc.OCEAN and self.tData[i] == mc.OCEAN:#cm.TemperatureMap.data[i] >= tundraThreshold:
-					# advc.021b: Temperature clause added to reduce the frequency of cold deserts
-					if cm.RainfallMap.data[i] < desertThreshold and cm.TemperatureMap.data[i] >= tundraThreshold * 1.3:
+				# advc: Can no longer rely on the tundraTemp here. Instead simply treat all unassigned land as warm .
+				if self.pData[i] != mc.WATER and self.tData[i] == mc.OCEAN:#cm.TemperatureMap.data[i] >= self.tundraTemp:
+					# advc: Temperature clause added to reduce the frequency of cold deserts
+					if cm.RainfallMap.data[i] < self.desertRainfall and cm.TemperatureMap.data[i] >= self.tundraTemp * 1.3:
 						self.tData[i] = mc.DESERT
-					# advc.021b: '>' clause added
-					elif cm.RainfallMap.data[i] < self.plainsThreshold or cm.RainfallMap.data[i] > junglePlainsThreshold:
+					# advc: '>' clause added
+					elif cm.RainfallMap.data[i] < self.plainsRainfall or cm.RainfallMap.data[i] > junglePlainsThreshold:
 						self.tData[i] = mc.PLAINS
 					else:
 						self.tData[i] = mc.GRASS
+		print "Jungle Temperature"
+		jungleTiles  = []
+		jungleLength = 0
+		for y in range(mc.height):
+			for x in range(mc.width):
+				i = GetIndex(x, y)
+				# advc: Checks moved into global function
+				if canHaveJungle(cm.RainfallMap.data[i], self.jungleRainfall, self.tData[i], self.pData[i], em.GetLatitudeForY(y)):
+					jungleTiles.append(cm.TemperatureMap.data[i])
+					jungleLength += 1
+		self.jungleTemp = FindValueFromPercent(jungleTiles, jungleLength, mc.JunglePercent, True)
 
 
 tm = TerrainMap()
@@ -3355,46 +3491,49 @@ class PangaeaBreaker:
 
 
 	def breakPangaeas(self):
+		if mc.AllowPangaeas:
+			print "Pangaeas are allowed on this map and will not be suppressed."
+			return
+		''' # advc: Should be OK now (will at most throw a couple of small ones)
+		gc = CyGlobalContext()
+		if gc.getMap().getWorldSize() < 3:
+			print "This map is too small for meteors to work properly, so they will not be used."
+			return
+		'''
 		if mc.LandmassGenerator == 2:
 			em = e2
 		else:
 			em = e3
 		self.areaMap = AreaMap(em.width, em.height, True, True)
 		meteorThrown   = False
-		pangeaDetected = False
+		pangaeaDetected = False
 		self.createDistanceMap()
 		self.areaMap.defineAreas(isHmWaterMatch)
 		meteorCount = 0
-		while not mc.AllowPangeas and self.isPangea() and meteorCount < mc.maximumMeteorCount:
-			pangeaDetected = True
-			# <advc.021b> Moved up
-			meteorCount += 1
-			if True: # </advc.021b>
+		if not mc.AllowPangaeas: #and gc.getMap().getWorldSize() >= 3: # advc
+			while self.isPangaea() and meteorCount < mc.maximumMeteorCount:
+				pangaeaDetected = True
 				x, y = self.getMeteorStrike()
 				print "A meteor has struck the Earth at %(x)d, %(y)d!!" % {"x":x,"y":y}
 				self.castMeteorUponTheEarth(x, y)
 				meteorThrown = True
-			# <advc.021b> I've tried raising the seas here. Didn't work well at all.
-			else:
-				em.seaLevelThreshold *= 1.03
-			# </advc.021b>
-			self.createDistanceMap()
-			self.areaMap.defineAreas(isHmWaterMatch)
+				meteorCount += 1
+				em.CalculateSeaLevel() # advc: Restore land ratio (inspired by C2C_World.py)
+				self.createDistanceMap()
+				self.areaMap.defineAreas(isHmWaterMatch)
+		if not pangaeaDetected:
+			print "No pangaea detected on this map."
 		if meteorThrown:
-			print "The age of dinosours has come to a cataclysmic end."
-		# advc.021b: Was == 15; probably a coding error.
-		if meteorCount == mc.maximumMeteorCount:
+			print "The age of dinosaurs has come to a cataclysmic end."
+		#if meteorCount == 15:
+		if meteorCount == mc.maximumMeteorCount: # advc.001
 			print "Maximum meteor count of %d has been reached." % meteorCount
-			# <advc.021b> Previously always said that "Pangaea may still exist"
-			if self.isPangea():
-				print "Pangaea still exists" # </advc.021b>
-		if mc.AllowPangeas:
-			print "Pangeas are allowed on this map and will not be suppressed."
-		elif not pangeaDetected:
-			print "No pangea detected on this map."
+			# <advc> Previously always said that "Pangaea may still exist"
+			if self.isPangaea():
+				print "Pangaea still exists" # </advc>
 
 
-	def isPangea(self):
+	def isPangaea(self):
 		continentList = list()
 		for a in self.areaMap.areaList:
 			if not a.water:
@@ -3406,8 +3545,8 @@ class PangaeaBreaker:
 		continentList.sort(lambda x, y:cmp(x.size, y.size))
 		continentList.reverse()
 		biggestSize = continentList[0].size
-		# advc.021b: was 0.7<...
-		if 0.75 < float(biggestSize) / float(totalLand):
+		# advc: was 0.7 < ...
+		if 0.73 < float(biggestSize) / float(totalLand):
 			return True
 		return False
 
@@ -3518,7 +3657,9 @@ class PangaeaBreaker:
 			em = e2
 		else:
 			em = e3
-		radius = PRand.randint(mc.minimumMeteorSize, max(mc.minimumMeteorSize + 1, 2 * mc.minimumMeteorSize)) #,em.width / 16)) # advc.021b
+		#radius = PRand.randint(mc.minimumMeteorSize, max(mc.minimumMeteorSize + 1, em.width / 16))
+		# advc:
+		radius = PRand.randint(mc.minimumMeteorSize, max(mc.minimumMeteorSize + 1, 2 * mc.minimumMeteorSize))
 		circlePointList = self.getCirclePoints(x, y, radius)
 		circlePointList.sort(lambda n, m:cmp(n.y, m.y))
 		for n in range(0, len(circlePointList), 2):
@@ -3529,11 +3670,11 @@ class PangaeaBreaker:
 			else:
 				x2 = circlePointList[n].x
 				x1 = circlePointList[n + 1].x
-			# <advc.021b> params centerX, centerY added
+			# <advc> params centerX, centerY added
 			self.drawCraterLine(x1, x2, cy, x, y)
 
 
-	def drawCraterLine(self, x1, x2, y, centerX, centerY): # </advc.021b>
+	def drawCraterLine(self, x1, x2, y, centerX, centerY): # </advc>
 		if mc.LandmassGenerator == 2:
 			em = e2
 		else:
@@ -3542,8 +3683,9 @@ class PangaeaBreaker:
 			return
 		for x in range(x1, x2 + 1):
 			i = GetHmIndex(x, y)
-			# advc.021b: was em.data[i]=0.0, which seems to lead to coastal Peaks
-			em.data[i] *= min(0.88,0.37+math.sqrt((x-centerX)*(x-centerX)+(y-centerY)*(y-centerY))/7.0)
+			#em.data[i] = 0.0
+			# advc: 0 elevation leads to coastal peaks when using the lowest-neighbor slope option.
+			em.data[i] *= min(0.88, 0.37 + math.sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY)) / 7.0)
 
 
 	def getCirclePoints(self, xCenter, yCenter, radius):
@@ -3575,43 +3717,19 @@ class PangaeaBreaker:
 
 
 	def createDistanceMap(self):
-		if mc.LandmassGenerator == 2:
-			em = e2
-		else:
-			em = e3
-		self.distanceMap = array('i')
-		processQueue = []
-		for y in range(em.height):
-			for x in range(em.width):
-				if em.IsBelowSeaLevel(x, y):
-					self.distanceMap.append(1000)
-				else:
-					self.distanceMap.append(0)
-					processQueue.append((x, y))
-		while len(processQueue) > 0:
-			x, y = processQueue[0]
-			i = GetHmIndex(x, y)
-			del processQueue[0]
-			distanceToLand = self.distanceMap[i]
-			for direction in range(1, 9):
-				xx, yy = GetNeighbor(x, y, direction)
-				ii = GetHmIndex(xx, yy)
-				if ii >= 0:
-					neighborDistanceToLand = self.distanceMap[ii]
-					if neighborDistanceToLand > distanceToLand + 1:
-						self.distanceMap[ii] = distanceToLand + 1
-						processQueue.append((xx, yy))
+		# advc: Moved into global function
+		self.distanceMap = createDistanceMap(True)
 
 
 	def getHighestCentrality(self, ID):
 		C = self.createCentralityList(ID)
 		C.sort(lambda x, y:cmp(x.centrality, y.centrality))
 		C.reverse()
-		# <advc.021b> Kludge. I see meteors cast near the poles or twice in the same spot; ruling out water targets should help.
+		# <advc> Kludge. I see meteors cast near the poles or twice in the same spot; ruling out water targets should help.
 		for i in range(len(C)):
 			centralPlot = CyMap().plot(C[i].x, C[i].y)
 			if not centralPlot is None and centralPlot.getX() >= 0 and centralPlot.getY() >= 0 and not centralPlot.isWater():
-				return C[i].x, C[i].y # </advc.021b>
+				return C[i].x, C[i].y # </advc>
 		return C[0].x, C[0].y
 
 
@@ -3755,78 +3873,131 @@ class ContinentMap:
 
 
 	def GenerateContinentMap(self):
+		print "------------------------"
+		print "Generating Continent Map"
+		print "------------------------"
 		self.areaMap = AreaMap(mc.width, mc.height, True, True)
-		self.areaMap.defineAreas(isNonCoastWaterMatch)
-		self.newWorldID = self.getNewWorldID()
+		self.areaMap.defineAreas(isWaterMatch)
+		#self.newWorldID = self.getNewWorldID()
+		# <advc> Moved into separate method so that the new world can be designated later
+		self.newWorldAreaID = 0
+		self.newWorldRegionID = 0
 
 
-	def getNewWorldID(self):
+	def designateNewWorld(self):
+		# Want the New World to be separated from the Old World by deep water.
+		self.regionMap = AreaMap(mc.width, mc.height, True, True)
+		self.regionMap.defineAreas(isDeepWaterMatch)
+		self.newWorldAreaID, self.newWorldRegionID = self._getNewWorldID() # </advc>
+
+
+	def _getNewWorldID(self):
 		if mc.LandmassGenerator == 2:
 			em = e2
 		else:
 			em = e3
-		nID = 0
 		continentList = list()
-		for a in self.areaMap.areaList:
+		# <advc> Try regionMap first
+		bRegionID = True
+		for a in self.regionMap.areaList: # </advc>
 			if not a.water:
 				continentList.append(a)
-		totalLand = 0
+		if len(continentList) <= 1:
+			# <advc> Fall back on areaMap
+			continentList = list()
+			for a in self.areaMap.areaList:
+				if not a.water:
+					continentList.append(a)
+			if len(continentList) <= 1:
+				return 0, 0
+			bRegionID = False
+			print "Pangaea; will at best be able to designate an area separated by shallow water as the New World"
+			# </advc>
+		#totalLand = 0
+		#for c in continentList:
+		#	totalLand += c.size
+		# <advc> Could use AdvCiv's CyArea::getNumHabitableTiles (the map is pretty much finished), but it's awkward to map the Area object to a CvArea. So I've written only a one-liner (Area.startScore) that takes into account the average latitude. That should already be much better than area size alone.
+		totalScore = 0
 		for c in continentList:
-			totalLand += c.size
+			totalScore += c.startScore() # </advc>
 		#sort all the continents by size, largest first
-		continentList.sort(lambda x, y:cmp(x.size, y.size))
+		#continentList.sort(lambda x, y:cmp(x.size, y.size))
+		continentList.sort(lambda x, y:cmp(x.startScore(), y.startScore())) # advc
 		continentList.reverse()
 		#now remove a percentage of the landmass to be considered 'Old World'
-		oldWorldSize = 0
 		#biggest continent is automatically 'Old World'
-		oldWorldSize += continentList[0].size
-		print("%d continents, largest one (%d tiles) added to Old World" % (len(continentList),oldWorldSize)) # advc.021b
+		#oldWorldSize = continentList[0].size
+		oldWorldScore = continentList[0].startScore() # advc
+		oldWorldAvgX = continentList[0].avgX
+		oldWorldAvgY = continentList[0].avgY
+		print("%d continents, best one (%d tiles, %d avg. y-coord., %d score) added to Old World" % (len(continentList), continentList[0].size, continentList[0].avgY, round(oldWorldScore*100))) # advc
 		del continentList[0]
-		#If this was the only continent than we have a pangaea. Oh well.
-		if len(continentList) == 0:
-			return -1
-		# <advc.021> Only reserve the second largest continent if this still leaves enough room per civ in the Old World
-		reservedSecondBiggest = False
+		# <advc> Only reserve the second best continent if this still leaves enough room per civ in the Old World
+		reserveSecondBest = False
 		iCivs = CyGlobalContext().getGame().countCivPlayersEverAlive()
-		if float(totalLand - continentList[0].size) / float(iCivs) > 100:
-			reservedSecondBiggest = True # </advc.021>
+		if float(totalScore - continentList[0].startScore()) / float(iCivs) > 70:
+			reserveSecondBest = True # </advc>
 			#get the next largest continent and temporarily remove from list
 			#add it back later and is automatically 'New World'
-			biggestNewWorld = continentList[0]
-			print("Second largest continent (%d tiles) reserved for New World" % (biggestNewWorld.size)) # advc.021b
+			mainNewWorld = continentList[0]
+			print("Second best continent (%d tiles, %d avg. y-coord., %d score) reserved for New World" % (mainNewWorld.size, mainNewWorld.avgY, round(mainNewWorld.startScore()*100))) # advc
 			del continentList[0]
-		#sort list by ID rather than size to make things
-		#interesting and possibly bigger new worlds
-		continentList.sort(lambda x, y:cmp(x.ID, y.ID))
-		continentList.reverse()
-		# Was > 0.6. A larger Old World plays better, while the true ratio (Africa+Eurasia)/(Africa+EurasiaAmerica+Oceania) is indeed just 62.5%. Use randomness to make a realistic size possible but rather unlikely.
+		#LM - sort list by proximity
+		for c in continentList:
+			minX = abs(oldWorldAvgX - c.avgX)
+			minY = abs(oldWorldAvgY - c.avgY)
+			if mc.WrapX:
+				minX = min(minX, mc.width  - minX)
+			if mc.WrapY:
+				minY = min(minY, mc.height - minY)
+			c.distance = math.sqrt(pow(minX, 2) + pow(minY, 2))
+		continentList.sort(lambda x, y:cmp(x.distance, y.distance))
+		# advc: Was 0.55. The true ratio (Africa+Eurasia)/(Africa+EurasiaAmerica+Oceania) is 62.5%. An even larger Old World plays better. Use randomness to make a realistic size possible but rather unlikely.
 		oldWorldTargetPercent = (60 + PRand.randint(0, 9)) / 100.0
+		skipped = 0 # advc
+		oldWorldPercent = 0 # advc
 		for n in range(len(continentList)):
-			# <advc.021b> Small land masses are no use for the Old World b/c civs can't start there
-			if continentList[0].size < 50:
+			# <advc> Small land masses are no use for the Old World b/c civs can't start there
+			if continentList[0].size < 50 and skipped * 2 < len(continentList):
+				skipped += 1
 				continentList.append(continentList[0])
 				del continentList[0]
-				continue # </advc.021b>
-			oldWorldSize += continentList[0].size
+				continue # </advc>
+			#oldWorldSize += continentList[0].size
+			oldWorldScore += continentList[0].startScore() # advc
 			del continentList[0]
-			if float(oldWorldSize) / float(totalLand) > oldWorldTargetPercent:
+			#if float(oldWorldSize) / float(totalLand) > oldWorldTargetPercent:
+			# advc: Put this in a variable (for debug output)
+			oldWorldPercent = oldWorldScore / float(totalScore)
+			if oldWorldPercent > oldWorldTargetPercent:
 				break
-		# advc.021b: A too small Old World is going to be unplayable; rather reserve no New World then (or just some islands).
-		if reservedSecondBiggest and float(oldWorldSize) / float(iCivs) < 85:
-			#add back the biggestNewWorld continent
-			continentList.append(biggestNewWorld)
-			print("Largest New World continent added to Old World b/c tiles per civ in the Old World was only %d" % (oldWorldSize // iCivs))
+		print "oldWorldPercent=" + str(oldWorldPercent) # advc
+		#add back the mainNewWorld continent
+		if reserveSecondBest:
+			# <advc> A too small Old World is going to be unplayable; rather reserve no New World then (or just some islands).
+			if float(oldWorldScore) / float(iCivs) < 60:
+				print("Best New World continent added to Old World b/c tiles per civ in the Old World was only %d" % (oldWorldScore // iCivs))
+			else: # </advc>
+				continentList.append(mainNewWorld)
 		#what remains in the list will be considered 'New World'
-		#get ID for the next continent, we will use this ID for 'New World'
-		#designation
+		#get ID for the next continent, we will use this ID for 'New World' designation
 		nID = continentList[0].ID
 		del continentList[0] #delete to avoid unnecessary overwrite
 		#now change all the remaining continents to also have nID as their ID
 		for i in range(em.length):
 			for c in continentList:
-				if c.ID == self.areaMap.data[i]:
-					self.areaMap.data[i] = nID
-		return nID
+				# <advc>
+				if bRegionID:
+					if c.ID == self.regionMap.data[i]:
+						self.regionMap.data[i] = nID
+				else: # </advc>
+					if c.ID == self.areaMap.data[i]:
+						self.areaMap.data[i] = nID
+		#return nID
+		# <advc>
+		if bRegionID:
+			return 0, nID
+		return nID, 0 # </advc>
 
 
 km = ContinentMap()
@@ -3843,6 +4014,9 @@ class RiverMap:
 
 
 	def GenerateRiverMap(self):
+		print "--------------------"
+		print "Generating River Map"
+		print "--------------------"
 		if mc.LandmassGenerator == 2:
 			em = e2
 		else:
@@ -3873,7 +4047,7 @@ class RiverMap:
 						if ii >= 0:
 							#use an average hight of <0 to denote an ocean border
 							#this will save processing time later
-							if (tm.pData[ii] == mc.OCEAN):
+							if (tm.pData[ii] == mc.WATER):
 								maxHeight = -100.0
 							elif maxHeight >= 0 and maxHeight < em.data[ii]:
 								maxHeight = em.data[ii]
@@ -3937,17 +4111,42 @@ class RiverMap:
 		#Create average rainfall map so that each intersection is an average
 		#of the rainfall from rm.rainMap
 		for y in range(mc.height):
+			# <advc> Kludge for making the extreme latitudes less riverine. Those river exacerbate the problem with (supposed) rainforests being highly productive tiles, and such rivers weren't as important to human habitation than rivers through temperate areas or through deserts.
+			latitudeMult = 1.0
+			absLat = abs(em.GetLatitudeForY(y))
+			vicinityToEquator = (mc.tropicsLatitude - absLat) / float(mc.tropicsLatitude)
+			if vicinityToEquator > 0:
+				latitudeMult = 1 - (5/6.) * math.sqrt(vicinityToEquator)
+			else:
+				intervalLength = 90 - mc.polarFrontLatitude
+				vicinityToPole = (intervalLength - abs(em.GetLatitudeForY(y))) / float(intervalLength)
+				if vicinityToPole > 0:
+					latitudeMult = 1 - (2/3.) * vicinityToPole
+			# (No penalty for plots _near_ the tropics or polar front - rivers starting there may well flow into less extreme latitudes.)
+			# </advc>
 			for x in range(mc.width):
 				i = GetIndex(x, y)
 				total = 0.0
 				count = 0.0
+				# <advc>
+				minRf = 1.0
+				maxRf = 0.0 # </advc>
 				for yy in range(y, y - 2, -1):
 					for xx in range(x, x + 2):
 						ii = GetIndex(xx, yy)
 						if ii >= 0:
-							total += cm.RainfallMap.data[ii]
+							rfVal = cm.RainfallMap.data[ii]
+							# <advc>
+							rfVal *= latitudeMult
+							minRf = min(minRf, rfVal)
+							maxRf = max(maxRf, rfVal) # </advc>
+							total += rfVal
 							count += 1.0
 				self.averageRainfallMap[i] = total / count
+				# <advc> Another kludge pretty much. Spreads rivers out more, it seems.
+				if mc.ClimateSystem == 0:
+					# Note that increasing rainfall values like this (or decreasing them through latitudeMult) requires adjustments to riverThreshold as well.
+					self.averageRainfallMap[i] += 4 * (maxRf - minRf) # </advc>
 		#Now use the flowMap as a guide to distribute average rainfall.
 		#Wherever the most rainfall ends up is where the rivers will be.
 		print "Distributing rainfall"
@@ -3979,12 +4178,15 @@ class RiverMap:
 			riverThreshold = mc.RiverThreshold3
 		else:
 			riverThreshold = mc.RiverThreshold2
+		riversPlaced = 0 # advc
 		for i in range(em.length):
 			if (self.drainageMap[i] >= riverThreshold):
 				self.riverMap[i] = self.flowMap[i]
+				riversPlaced += 1
 			else:
 				self.riverMap[i] = self.O
-		print "River map generated"
+		# advc: Print number of pegged river segments
+		print "River map generated (" + str(riversPlaced) + " segments placed)"
 		#at this point river should be in tolerance or close to it
 		#riverMap is ready for use
 
@@ -4007,8 +4209,12 @@ class RiverMap:
 			del lakeList[0]
 			i = GetIndex(x, y)
 			onQueueMap[i] = 0
-			if lakeSize > mc.maxSiltPanSize:
-				continue
+			if mc.RiverGenerator == 0: # advc: Flipped so that 0 is the PW2 river generator
+				if lakeSize > mc.maxSiltPanSizePW2:
+					continue
+			else:
+				if lakeSize > mc.maxSiltPanSizeSDK:
+					continue
 			lakeSize += 1
 			lowestNeighborAlt = self.getLowestNeighborAltitude(x, y)
 			self.averageHeightMap[i] = lowestNeighborAlt + 0.005
@@ -4016,6 +4222,7 @@ class RiverMap:
 				xx, yy = GetNeighbor(x, y, direction)
 				ii = GetIndex(xx, yy)
 				if ii >= 0 and self.isLake(xx, yy) and onQueueMap[ii] == 0:
+					xx, yy = CoordsFromIndex(ii, mc.width) # advc.001
 					lakeList.append((xx, yy, lakeSize))
 					onQueueMap[ii] = 1
 
@@ -4070,7 +4277,7 @@ class RiverMap:
 rm = RiverMap()
 
 
-class BonusPlacer:
+class BonusPlacer: # advc (note): Disused; see addBonuses.
 	def __init__(self):
 		return
 
@@ -4081,8 +4288,7 @@ class BonusPlacer:
 		else:
 			em = e3
 		gc = CyGlobalContext()
-		gameMap = CyMap()
-		gameMap.recalculateAreas()
+		CyMap().recalculateAreas()
 		self.AssignBonusAreas()
 		numBonuses = gc.getNumBonusInfos()
 		#Create a list of map indices and shuffle them
@@ -4130,13 +4336,9 @@ class BonusPlacer:
 				print "No room at all found for %(bt)s!!!" % {"bt":bonusInfo.getType()}
 			print "Placed %(cb)d, desired %(db)d for %(bt)s" % {"cb":bonus.currentBonusCount, "db":bonus.desiredBonusCount, "bt":bonusInfo.getType()}
 
+
 	#AIAndy - Changed to start at the end of the last run in the plot list
 	def AddBonusType(self, eBonus, plotIndexList, startAtIndex):
-		
-		# <advc.021b> As in Civ 4 Reimagined; skip the code below.
-		CyPythonMgr().allowDefaultImpl()
-		return # </advc.021b>
-
 		#first get bonus/area link
 		bonus = self.bonusList[self.bonusDict[eBonus]]
 		if bonus.currentBonusCount >= bonus.desiredBonusCount:
@@ -4197,7 +4399,6 @@ class BonusPlacer:
 
 
 	#AIAndy - Changed to start at the end of the last run in the plot list and not shuffle an extra plot list
-	# advc.021b (comment): No longer called
 	def AddEmergencyBonus(self, bonus, ignoreClass, plotIndexList, startAtIndex):
 		gc = CyGlobalContext()
 		bonusInfo = gc.getBonusInfo(bonus.eBonus)
@@ -4247,7 +4448,6 @@ class BonusPlacer:
 	def AssignBonusAreas(self):
 		gc = CyGlobalContext()
 		self.areas = CvMapGeneratorUtil.getAreas()
-		gameMap = CyMap()
 		self.bonusList = list()
 		#Create and shuffle the bonus list and keep tally on one-area
 		#bonuses and find the smallest min area requirement among those
@@ -4295,7 +4495,6 @@ class BonusPlacer:
 
 	def CanPlaceBonusAt(self, plot, eBonus, bIgnoreLatitude, bIgnoreArea):
 		gc = CyGlobalContext()
-		gameMap = CyMap()
 		x = plot.getX()
 		y = plot.getY()
 		areaID = plot.getArea()
@@ -4308,7 +4507,7 @@ class BonusPlacer:
 		bonusInfo = gc.getBonusInfo(eBonus)
 		classInfo = gc.getBonusClassInfo(bonusInfo.getBonusClassType())
 		if plot.isWater():
-			if (gameMap.getNumBonusesOnLand(eBonus) * 100) / (gameMap.getNumBonuses(eBonus) + 1) < bonusInfo.getMinLandPercent():
+			if (CyMap().getNumBonusesOnLand(eBonus) * 100) / (CyMap().getNumBonuses(eBonus) + 1) < bonusInfo.getMinLandPercent():
 				return False
 		#Make sure there are no bonuses of the same class (but a different type) nearby:
 		if classInfo != None:
@@ -4357,7 +4556,7 @@ class BonusPlacer:
 		featureForest  = gc.getInfoTypeForString("FEATURE_FOREST")
 		requiresForest = bonusInfo.isFeature(featureForest)
 		plotIsForest   = plot.getFeatureType() == featureForest
-		#To avoid silk and spices on ice/tundra
+		#To avoid silk and spices on snow/tundra
 		if plotIsForest and requiresForest:
 			if not bonusInfo.isFeatureTerrain(plot.getTerrainType()):
 				return False
@@ -4491,14 +4690,13 @@ class BonusPlacer:
 		else:
 			em = e3
 		gc = CyGlobalContext()
-		gameMap = CyMap()
 		areaID = area.getID()
 		uniqueTypesInArea    = self.GetUniqueBonusTypeCountInArea(area)
 		sameClassTypesInArea = self.GetSameClassTypeCountInArea(area, eBonus)
 		#Get the raw number of suitable tiles
 		numPossible = 0
 		for i in range(em.length):
-			plot = gameMap.plotByIndex(i)
+			plot = CyMap().plotByIndex(i)
 			if plot.getArea() == areaID:
 				if self.PlotCanHaveBonus(plot, eBonus, False, True):
 					numPossible += 1
@@ -4531,83 +4729,126 @@ class StartingPlotFinder:
 
 
 	def CachePlotValue(self):
-		self.plotvalueList = []
-		self.plotfoodList  = []
+		self.inlandValueList  = []
+		self.inlandFoodList   = []
+		self.coastalValueList = []
+		self.coastalFoodList  = []
 		for y in range(mc.height):
 			for x in range(mc.width):
+				food, value = self.getPlotPotentialValueUncached(x, y, False)
+				self.inlandValueList.append(value)
+				self.inlandFoodList.append(food)
 				food, value = self.getPlotPotentialValueUncached(x, y, True)
-				self.plotvalueList.append(value)
-				self.plotfoodList.append(food)
+				self.coastalValueList.append(value)
+				self.coastalFoodList.append(food)
 
 
 	def SetStartingPlots(self):
 		try:
+			if mc.LandmassGenerator == 2:
+				em = e2
+			else:
+				em = e3
 			gc = CyGlobalContext()
-			gameMap = CyMap()
 			iPlayers = gc.getGame().countCivPlayersEverAlive()
-			gameMap.recalculateAreas()
-			areas = CvMapGeneratorUtil.getAreas()
-			#get old/new world status
-			areaOldWorld = self.setupOldWorldAreaList()
-			# advc.021b: Not helpful; it's the same as len(areas).
-			#print "len(areaOldWorld) = %d" % len(areaOldWorld)
 			self.CachePlotValue()
 			#Shuffle players so the same player doesn't always get the first pick.
 			#lifted from Highlands.py that ships with Civ.
 			player_list = []
 			for plrCheckLoop in range(gc.getMAX_CIV_PLAYERS()):
-					if CyGlobalContext().getPlayer(plrCheckLoop).isEverAlive():
-							player_list.append(plrCheckLoop)
+				if CyGlobalContext().getPlayer(plrCheckLoop).isEverAlive():
+					player_list.append(plrCheckLoop)
 			shuffledPlayers = []
 			for playerLoop in range(iPlayers):
-					iChoosePlayer = PRand.randint(0, len(player_list) - 1)
-					shuffledPlayers.append(player_list[iChoosePlayer])
-					del player_list[iChoosePlayer]
+				iChoosePlayer = PRand.randint(0, len(player_list) - 1)
+				shuffledPlayers.append(player_list[iChoosePlayer])
+				del player_list[iChoosePlayer]
+
+			CyMap().recalculateAreas()
+			areas = CvMapGeneratorUtil.getAreas()
+			#get old/new world status
+			isAreaOldWorld = self.setupOldWorldAreaList()
+			#LM - Set up a map that merges Coast-linked landmasses so we can allow island starts while still ensuring adequate expansion room.
+			regionMap = AreaMap(mc.width, mc.height, True, True)
+			regionMap.defineAreas(isDeepWaterMatch)
+			#LM - Set up a map that divides areas by Peaks so we can prevent starting locations from being walled-off in small pockets.
+			''' # advc.030: Won't be needed
+			if gc.getGame().getStartEra() < 3:
+				self.peakMap = AreaMap(mc.width, mc.height, True, True)
+				self.peakMap.defineAreas(isPeakWaterMatch)
+			'''
 			self.startingAreaList = list()
-			# advc.021b: Start with the largest area
-			areas.sort(lambda x, y: -1 * cmp(x.getNumTiles(), y.getNumTiles()))
+			'''
+			if mc.SeaLevel == 0:
+				if mc.OldWorldStarts:
+					iWorldSizeFactor = 3
+				else:
+					iWorldSizeFactor = 5
+			elif mc.SeaLevel == 1:
+				if mc.OldWorldStarts:
+					iWorldSizeFactor = 3.5
+				else:
+					iWorldSizeFactor = 6
+			elif mc.SeaLevel == 2:
+				if mc.OldWorldStarts:
+					iWorldSizeFactor = 2.5
+				else:
+					iWorldSizeFactor = 4
+			elif mc.SeaLevel == 3:
+				if mc.OldWorldStarts:
+					iWorldSizeFactor = 4
+				else:
+					iWorldSizeFactor = 7
+			else:
+				if mc.OldWorldStarts:
+					iWorldSizeFactor = 2
+				else:
+					iWorldSizeFactor = 3
+			iWorldSizeFactor *= gc.getMap().getWorldSize()
+			'''
+			# <advc> Less impact for the Old World Starts option; apart from that, pretty much as above.
+			iWorldSizeFactor = math.sqrt(CyMap().getLandPlots()) / 1.67
+			if mc.OldWorldStarts:
+				iWorldSizeFactor *= 0.78
+			# </advc>
+			self.iMinIslandSize = 5 + int(round(iWorldSizeFactor))
+			iMinRegionSize = self.iMinIslandSize * 4
 			for i in range(len(areas)):
-				# <advc.021b>
-				tileThresh = 36
-				gc = CyGlobalContext()
-				sea = gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getSeaLevelChange()
-				if sea < 0:
-					tileThresh *= mc.LoSeaLevelFactor
-				elif sea > 0:
-					tileThresh *= mc.HiSeaLevelFactor
-					if gc.getMap().getWorldSize() <= 0:
-						tileThresh *= 0.7
-				# Second clause was getNumTiles()>5 (>45 in Civ 4 Reimagined)
-				iHabitable = areas[i].getNumHabitableTiles()
-				if areaOldWorld[i] and iHabitable > tileThresh: # </advc.021b>
-					startArea = StartingArea(areas[i].getID())
-					self.startingAreaList.append(startArea)
-				# <advc.021b> Tracing
-				elif areaOldWorld[i] and areas[i].getNumTiles() > 15 and not areas[i].isWater():
-					print("Disregarded as starting area b/c too small: %d tiles (%d habitable, threshold %d)" % (areas[i].getNumTiles(),iHabitable, tileThresh))
-				# </advc.021b>
+				if not isAreaOldWorld[i]:
+					continue
+				#areas[i].getNumTiles() >= self.iMinIslandSize:
+				# advc: This is an AdvCiv DLL function. (Not crucial to call it.)
+				if areas[i].getNumHabitableTiles() >= self.iMinIslandSize:
+					iRegionSize = 0
+					for pI in range(em.length):
+						plot = CyMap().plotByIndex(pI)
+						if plot.getArea() == areas[i].getID():
+							iRegionSize = regionMap.getAreaByID(regionMap.data[pI]).size
+							break
+					if iRegionSize >= iMinRegionSize:
+						startArea = StartingArea(areas[i].getID())
+						# <advc>
+						if mc.OldWorldStarts:
+							print "Appending area of size " + str(areas[i].getNumTiles()) + " to startingAreaList"
+						# </advc>
+						self.startingAreaList.append(startArea)
+
 			#Get the value of the whole old world
 			oldWorldValue = 0
 			for i in range(len(self.startingAreaList)):
 				oldWorldValue += self.startingAreaList[i].rawValue
 			#calulate value per player of old world
 			oldWorldValuePerPlayer = oldWorldValue / len(shuffledPlayers)
-			# advc.021b: Aim a little lower when eliminating low-value areas:
-			oldWorldValuePerPlayer *= 0.87
 			#Sort startingAreaList by rawValue
 			self.startingAreaList.sort(lambda x, y: cmp(x.rawValue, y.rawValue))
 			#Get rid of areas that have less value than oldWorldValuePerPlayer
 			#as they are too small to put a player on, however leave at least
 			#half as many continents as there are players, just in case the
-			#continents are *all* quite small. 
-			numAreas = max(1, len(self.startingAreaList) - len(shuffledPlayers) / 2)
+			#continents are *all* quite small.
+			#LM - max(1) is not necessary! Use max(0) in case it's already at or below the minimum number of areas allowed.
+			numAreas = max(0, len(self.startingAreaList) - len(shuffledPlayers) / 2)
 			for i in range(numAreas):
-				iRaw = self.startingAreaList[0].rawValue # advc.021b
-				if iRaw < oldWorldValuePerPlayer:
-					# <advc.021b> I think there's somehow one water area in the list; don't print that one.
-					if iRaw > 0:
-						print("Area disregarded b/c raw value (%d) too small compared with old-world value (%d)" % (iRaw, oldWorldValuePerPlayer))
-					# </advc.021b>
+				if self.startingAreaList[0].rawValue < oldWorldValuePerPlayer:
 					del self.startingAreaList[0]
 				else:
 					break #All remaining should be big enough
@@ -4615,45 +4856,83 @@ class StartingPlotFinder:
 			oldWorldValue = 0
 			for i in range(len(self.startingAreaList)):
 				oldWorldValue += self.startingAreaList[i].rawValue
-			#Recalulate value per player of old world so we are starting more
-			#accurately
+			#Recalulate value per player of old world so we are starting more accurately
 			oldWorldValuePerPlayer = oldWorldValue / len(shuffledPlayers)
+			assert oldWorldValuePerPlayer > 0 # advc
 			#Record the ideal number of players for each continent
-			# <advc.021b> assert and max added
-			assert oldWorldValuePerPlayer > 0
 			for startingArea in self.startingAreaList:
-				startingArea.idealNumberOfPlayers = int(round(float(startingArea.rawValue) / float(max(1, oldWorldValuePerPlayer))))
-			# </advc.021b>
+				#LM - Store fractional values for accurate scaling below.
+				startingArea.idealNumberOfPlayers = float(startingArea.rawValue) / float(max(1, oldWorldValuePerPlayer))
 			#Now we want best first
 			self.startingAreaList.reverse()
 			print "number of starting areas is %(s)3d" % {"s":len(self.startingAreaList)}
-			iterations = 0
-			while True:
-				iterations += 1
-				if iterations > 20:
-					raise ValueError, "Too many iterations in starting area choosing loop."
-				chosenStartingAreas = list()
-				playersPlaced = 0
-				#add up idealNumbers
-				idealNumbers = 0
+			#LM - This iteration-based while loop is a complete mess. Not only is it slow and inefficient, but it
+			#ONLY MODIFIES THE BEST/LARGEST LANDMASS'S PLAYER COUNT, no matter HOW far off it is in either direction!
+			#You can EASILY end up with a super-crowded main landmass, or a nearly-deserted one, this way.
+			#Player count assignments SHOULD SCALE PROPORTIONATELY!!!
+			floatTotal = 0.0
+			for startingArea in self.startingAreaList:
+				floatTotal += startingArea.idealNumberOfPlayers
+			fRatio = float(len(shuffledPlayers)) / floatTotal
+			for startingArea in self.startingAreaList:
+				startingArea.idealNumberOfPlayers *= fRatio
+			#LM - Reallocate players as needed to fix any overloaded landmasses.
+			iterations = len(self.startingAreaList)
+			bSpaceAvailable = True
+			while iterations > 0 and bSpaceAvailable:
 				for startingArea in self.startingAreaList:
-					idealNumbers += startingArea.idealNumberOfPlayers
-				if idealNumbers < len(shuffledPlayers):
-					self.startingAreaList[0].idealNumberOfPlayers += 1
-				elif idealNumbers > len(shuffledPlayers):
-					self.startingAreaList[0].idealNumberOfPlayers -= 1
-				#Choose areas
-				for startingArea in self.startingAreaList:
-					if startingArea.idealNumberOfPlayers + playersPlaced <= len(shuffledPlayers):
-						chosenStartingAreas.append(startingArea)
-						playersPlaced += startingArea.idealNumberOfPlayers
-				#add up idealNumbers again
-				idealNumbers = 0
-				for startingArea in chosenStartingAreas:
-					idealNumbers += startingArea.idealNumberOfPlayers
-				if idealNumbers == len(shuffledPlayers):
-					break
-			for startingArea in chosenStartingAreas:
+					difference = startingArea.idealNumberOfPlayers - float(len(startingArea.plotList))
+					if difference > 0.0:
+						searchTotal = 0.0
+						for searchArea in self.startingAreaList:
+							if searchArea.idealNumberOfPlayers < float(len(searchArea.plotList)):
+								searchTotal += searchArea.idealNumberOfPlayers
+						if searchTotal > 0.0:
+							startingArea.idealNumberOfPlayers = float(len(startingArea.plotList))
+							fRatio = (searchTotal + difference) / searchTotal
+							for searchArea in self.startingAreaList:
+								if searchArea.idealNumberOfPlayers < float(len(searchArea.plotList)):
+									searchArea.idealNumberOfPlayers *= fRatio
+						else:
+							raise ValueError, "Not enough room on the map to place all players!"
+							bSpaceAvailable = False
+							break
+				iterations -= 1
+			#LM - Done with fractional values, finally.
+			for startingArea in self.startingAreaList:
+				startingArea.idealNumberOfPlayers = int(round(startingArea.idealNumberOfPlayers))
+			#LM - Total player allocation should be pretty close to the correct number here. Smooth out any difference that's left.
+			idealTotal = 0
+			for startingArea in self.startingAreaList:
+				idealTotal += startingArea.idealNumberOfPlayers
+			if idealTotal < len(shuffledPlayers):
+				iNum = len(shuffledPlayers) - idealTotal
+				while iNum > 0:
+					iEntry = iNum
+					for startingArea in self.startingAreaList:
+						if startingArea.idealNumberOfPlayers < len(startingArea.plotList):
+							startingArea.idealNumberOfPlayers += 1
+							iNum -= 1
+							if iNum == 0:
+								break
+					if iNum == iEntry:
+						raise ValueError, "Not enough room on the map to place all players!"
+						break
+			elif idealTotal > len(shuffledPlayers):
+				iNum = idealTotal - len(shuffledPlayers)
+				while iNum > 0:
+					iEntry = iNum
+					for startingArea in self.startingAreaList:
+						if startingArea.idealNumberOfPlayers > 0:
+							startingArea.idealNumberOfPlayers -= 1
+							iNum -= 1
+							if iNum == 0:
+								break
+					if iNum == iEntry:
+						raise ValueError, "Not enough room on the map to place all players!"
+						break
+			#Assign players.
+			for startingArea in self.startingAreaList:
 				for i in range(startingArea.idealNumberOfPlayers):
 					startingArea.playerList.append(shuffledPlayers[0])
 					del shuffledPlayers[0]
@@ -4661,6 +4940,7 @@ class StartingPlotFinder:
 			if len(shuffledPlayers) > 0:
 				raise ValueError, "Some players not placed in starting plot finder!"
 			#Now set up for normalization
+			''' # advc: AdvCiv DLL handles normalization
 			self.plotList = list()
 			for startingArea in self.startingAreaList:
 				for i in range(len(startingArea.plotList)):
@@ -4668,27 +4948,24 @@ class StartingPlotFinder:
 			#Remove bad features. (Jungle in the case of standard game)
 			#also ensure minimum hills
 			for i in range(len(self.plotList)):
-				if self.plotList[i].vacant:
-					continue
-				self.ensureMinimumHills(self.plotList[i].x, self.plotList[i].y)
+				if not self.plotList[i].vacant:
+					self.ensureMinimumHills(self.plotList[i].x, self.plotList[i].y)
 			#find the best totalValue
 			self.plotList.sort(lambda x, y:cmp(x.totalValue, y.totalValue))
 			self.plotList.reverse()
 			bestTotalValue = self.plotList[0].totalValue
-			# advc.021b: Removing this loop (as does Civ 4 Reimagined)
-			#for i in range(len(self.plotList)):
-				#if self.plotList[i].vacant:
-					#continue
-				#currentTotalValue = self.plotList[i].totalValue
-				#percentLacking = 1.0 - (float(currentTotalValue) / float(bestTotalValue))
-				#if percentLacking > 0:
-					#bonuses = min(5, int(percentLacking / 0.2))
-					#self.boostCityPlotValue(self.plotList[i].x, self.plotList[i].y, bonuses, self.plotList[i].isCoast())
+			for i in range(len(self.plotList)):
+				if not self.plotList[i].vacant:
+					currentTotalValue = self.plotList[i].totalValue
+					percentLacking = 1.0 - (float(currentTotalValue) / float(bestTotalValue))
+					if percentLacking > 0:
+						bonuses = min(5, int(percentLacking / 0.2))
+						self.boostCityPlotValue(self.plotList[i].x, self.plotList[i].y, bonuses, self.plotList[i].isCoast())
 			#add bonuses due to player difficulty settings
-			# advc.021b: I'm also disabling the difficulty-based bonuses:
-			#self.addHandicapBonus()
+			self.addHandicapBonus()
+			'''
 		except Exception, e:
-			# advc.021b: Removed "due to a rarely occurring bug" - could be any error, and not necessarily that rare. Added info about the exception. (Although, for debugging, it's better to change 'Exception' to an unlikely type like 'ImportError' and consult PythonErr.log after generating the map. This reveals the origin of the exception.)
+			# advc: Removed "due to a rarely occurring bug" - could be any error, and not necessarily that rare. Added info about the exception. That said, for debugging, it may be better not to catch (and re-raise) the exception here because this obscures the specific origin.
 			errorPopUp("PerfectWorld's starting plot finder has failed; this map likely has unfair starting locations. You may wish to quit this game and generate a new map." + "\n\nAn exception of type " + e.__class__.__name__ + " occurred. Arguments:\n" + str(e.args))
 			raise Exception, e
 
@@ -4699,49 +4976,97 @@ class StartingPlotFinder:
 		else:
 			em = e3
 		gc = CyGlobalContext()
-		gameMap = CyMap()
-		#get official areas and make corresponding lists that determines old
-		#world vs. new and also the pre-settled value.
+		#get official areas and make corresponding lists that determines
+		#old world vs. new and also the pre-settled value.
 		areas = CvMapGeneratorUtil.getAreas()
+		# <advc> Do this as late as possible (and don't do it when the Old World Starts option isn't used)
+		if mc.OldWorldStarts:
+			km.designateNewWorld() # </advc>
 		areaOldWorld = list()
 		for i in range(len(areas)):
+			# <advc>
+			if areas[i].isWater():
+				areaOldWorld.append(False)
+				continue
+			if not mc.OldWorldStarts:
+				areaOldWorld.append(True)
+				continue
+			# </advc>
 			for pI in range(em.length):
-				plot = gameMap.plotByIndex(pI)
+				plot = CyMap().plotByIndex(pI)
 				if plot.getArea() == areas[i].getID():
-					if mc.AllowNewWorld and km.areaMap.data[pI] == km.newWorldID:
-						areaOldWorld.append(False)#new world True = old world False
-					else:
+					# advc: Check both area id and region id
+					if km.areaMap.data[pI] != km.newWorldAreaID and km.regionMap.data[pI] != km.newWorldRegionID:
 						areaOldWorld.append(True)
+						#print "Added to Old World: area of size " + str(km.areaMap.getAreaByID(km.areaMap.data[pI]).size) + " in region of size " + str(km.regionMap.getAreaByID(km.regionMap.data[pI]).size)
+					else:
+						areaOldWorld.append(False)
 					break
 		return areaOldWorld
 
 
-	def getCityPotentialValue(self, x, y, cached = True):
+	def getCityPotentialValue(self, x, y):
 		gc = CyGlobalContext()
 		numCityPlots = gc.getNUM_CITY_PLOTS()
 		totalValue = 0
 		totalFood  = 0
-		plot = CyMap().plot(x, y)
-		if plot.isWater():
-			return 0, 0
-		if plot.isImpassable():
-			return 0, 0
+		start = CyMap().plot(x, y)
+		if start.isWater():
+			return -1, -1
+		if start.isImpassable():
+			return -1, -1
+
+		#################################################
+		## MongooseMod 3.5 BEGIN
+		#################################################
+
+		if start.isPeak():
+			return -1, -1
+
+		#################################################
+		## MongooseMod 3.5 END
+		#################################################
+
+		#LM - Block invalid locations!
+		terrainInfo = gc.getTerrainInfo(start.getTerrainType())
+		if not terrainInfo.isFound() and (not terrainInfo.isFoundCoast() or not start.isCoastalLand()) and (not terrainInfo.isFoundFreshWater() or not start.isFreshWater()):
+			return -1, -1
+		featureEnum = start.getFeatureType()
+		if featureEnum != FeatureTypes.NO_FEATURE:
+			featureInfo = gc.getFeatureInfo(featureEnum)
+			if featureInfo.isNoCity():
+				return -1, -1
+		#LM - Also block sucky locations unless there's a good feature present!
+		base = terrainInfo.getYield(YieldTypes.YIELD_FOOD) + terrainInfo.getYield(YieldTypes.YIELD_PRODUCTION) + terrainInfo.getYield(YieldTypes.YIELD_COMMERCE)
+		if featureEnum != FeatureTypes.NO_FEATURE:
+			extra = featureInfo.getYieldChange(YieldTypes.YIELD_FOOD)
+		else:
+			extra = 0
+		if base <= 0 and extra <= 0:
+			return -1, -1
+
 		cityPlotList = list()
 		#The StartPlot class has a nifty function to determine salt water vs. fresh
-		start = plot
 		sPlot = StartPlot(x, y, 0)
+		#noFoodPlots  = 0
+		#lowFoodPlots = 0
 		for i in range(numCityPlots):
 			plot = plotCity(x, y, i)
 			if not plot.isWater() and plot.getArea() != start.getArea():
 				food, value = 0, 0
+			elif plot.getX() == start.getX() and plot.getY() == start.getY():
+				food, value = self.getCityPlotPotentialValueUncached(plot.getX(), plot.getY(), sPlot.isCoast())
 			else:
-				if cached:
-					food, value = self.getPlotPotentialValue(plot.getX(), plot.getY(), sPlot.isCoast())
-				else:
-					food, value = self.getPlotPotentialValueUncached(plot.getX(), plot.getY(), sPlot.isCoast())
+				food, value = self.getPlotPotentialValue(plot.getX(), plot.getY(), sPlot.isCoast())
 			totalFood += food
+			#if food == 0:
+			#	noFoodPlots  += 1
+			#elif food == 1:
+			#	lowFoodPlots += 1
 			cPlot = CityPlot(food, value)
 			cityPlotList.append(cPlot)
+		#if noFoodPlots > 6 or lowFoodPlots + noFoodPlots > 12:
+		#	return totalFood, 0
 		usablePlots = totalFood / gc.getFOOD_CONSUMPTION_PER_POPULATION()
 		cityPlotList.sort(lambda x, y:cmp(x.value, y.value))
 		cityPlotList.reverse()
@@ -4751,108 +5076,315 @@ class StartingPlotFinder:
 		for i in range(usablePlots):
 			cPlot = cityPlotList[i]
 			totalValue += cPlot.value
-		#The StartPlot class has a nifty function to determine salt water vs. fresh
-		sPlot = StartPlot(x, y, 0)
+		#LM - Removed redundant assignment.
 		if sPlot.isCoast():
 			totalValue = int(float(totalValue) * mc.CoastalCityValueBonus)
-		if sPlot.isRiverSide():
+		#LM - Use isRiver, not isRiverSide!
+		if start.isRiver():
 			totalValue = int(float(totalValue) * mc.RiverCityValueBonus)
+		#LM - Add small bonus for hill defense.
+		if start.isHills():
+			totalValue = int(float(totalValue) * mc.HillCityValueBonus)
+		#LM - Add small bonus for starting on bonus.
+		bonusEnum = start.getBonusType(TeamTypes.NO_TEAM)
+		if bonusEnum != BonusTypes.NO_BONUS:
+			bonusInfo = gc.getBonusInfo(bonusEnum)
+			if bonusInfo.getBonusClassType() == gc.getInfoTypeForString("BONUSCLASS_WONDER") or bonusInfo.getBonusClassType() == gc.getInfoTypeForString("BONUSCLASS_RUSH") or bonusInfo.getBonusClassType() == gc.getInfoTypeForString("BONUSCLASS_MODERN"):
+				totalValue = int(float(totalValue) * mc.StrategicBonusCityValueBonus)
+			else:
+				totalValue = int(float(totalValue) * mc.OtherBonusCityValueBonus)
+		# <advc> Extra avoidance for starts in high latitudes. A cradle of civilization shouldn't be placed in the tundra if it can be helped.
+		if start.area().getNumTiles() - start.getLatitude() / 2 < 25 or start.getLatitude() > 60:
+			totalValue /= 2 # </advc>
 		return totalFood, totalValue
 
 
 	def getPlotPotentialValue(self, x, y, coastalCity):
 		i = GetIndex(x, y)
-		value = self.plotvalueList[i]
-		if CyMap().plot(x, y).isWater() and not coastalCity:
-			return 0, value
-		food = self.plotfoodList[i]
+		#LM - This included an extension of the "ignore lakes" TRAIN WRECK below.
+		#CODE ERASED.
+		if coastalCity:
+			value = self.coastalValueList[i]
+			food  = self.coastalFoodList[i]
+		else:
+			value = self.inlandValueList[i]
+			food  = self.inlandFoodList[i]
 		return food, value
 
 
 	def getPlotPotentialValueUncached(self, x, y, coastalCity):
-		gc = CyGlobalContext()
-		game = gc.getGame()
-		value = 0
 		plot = CyMap().plot(x, y)
-		commerce    = plot.calculateBestNatureYield(YieldTypes.YIELD_COMMERCE,   TeamTypes.NO_TEAM)
-		food        = plot.calculateBestNatureYield(YieldTypes.YIELD_FOOD,       TeamTypes.NO_TEAM)
-		production  = plot.calculateBestNatureYield(YieldTypes.YIELD_PRODUCTION, TeamTypes.NO_TEAM)
+		sPlot = StartPlot(x, y, 0)
+		gc = CyGlobalContext()
+		#LM - Store highest era allowed for any of these things.
+		if gc.getGame().getStartEra() < 5:
+			eraLimit = 6
+		else:
+			eraLimit = 7
+		#LM - Store most advanced route type that can be built within the allowed Era range.
+		maxRoute = -1
+		for n in range(gc.getNumRouteInfos()):
+			for i in range(gc.getNumBuildInfos()):
+				buildInfo = gc.getBuildInfo(i)
+				if buildInfo.getRoute() == n:
+					if buildInfo.getTechPrereq() == TechTypes.NO_TECH or gc.getTechInfo(buildInfo.getTechPrereq()).getEra() <= eraLimit:
+						maxRoute = n
+					break
+
+		terrainEnum = plot.getTerrainType()
+		terrainInfo = gc.getTerrainInfo(terrainEnum)
 		featureEnum = plot.getFeatureType()
 		featureInfo = gc.getFeatureInfo(featureEnum)
+
 		#Get best bonus improvement score. Test tachnology era of bonus first, then test each improvement
-		bestImp = None
+		food       = plot.calculateBestNatureYield(YieldTypes.YIELD_FOOD,       TeamTypes.NO_TEAM)
+		production = plot.calculateBestNatureYield(YieldTypes.YIELD_PRODUCTION, TeamTypes.NO_TEAM)
+		commerce   = plot.calculateBestNatureYield(YieldTypes.YIELD_COMMERCE,   TeamTypes.NO_TEAM)
+		#LM - Handle Plains-Floodplains (since it's a special case).
+		#LM - Assume Lighthouse (since it's always one of the very first things a coastal city builds), and add in the VITAL extra food point from it.
+		#But remember it doesn't apply on Sea Ice!
+		if plot.isWater() and coastalCity and not plot.isImpassable():
+			food += 1
+
 		bonusEnum = plot.getBonusType(TeamTypes.NO_TEAM)
-		bonusInfo = gc.getBonusInfo(bonusEnum)
-		if bonusInfo != None and (gc.getTechInfo(bonusInfo.getTechReveal()) == None or gc.getTechInfo(bonusInfo.getTechReveal()).getEra() <= max(game.getStartEra(), 2)):
-			commerce   += bonusInfo.getYieldChange(YieldTypes.YIELD_COMMERCE)
-			food       += bonusInfo.getYieldChange(YieldTypes.YIELD_FOOD)
-			production += bonusInfo.getYieldChange(YieldTypes.YIELD_PRODUCTION)
-		else:
-			bonusEnum = -1
-			bonusInfo = None
+		bonusFood       = 0
+		bonusProduction = 0
+		bonusCommerce   = 0
+		if bonusEnum != BonusTypes.NO_BONUS:
+			bonusInfo = gc.getBonusInfo(bonusEnum)
+			if bonusInfo.getTechReveal() == TechTypes.NO_TECH or gc.getTechInfo(bonusInfo.getTechReveal()).getEra() <= gc.getGame().getStartEra() + 1:
+				food       += bonusInfo.getYieldChange(YieldTypes.YIELD_FOOD)
+				production += bonusInfo.getYieldChange(YieldTypes.YIELD_PRODUCTION)
+				commerce   += bonusInfo.getYieldChange(YieldTypes.YIELD_COMMERCE)
+			elif gc.getTechInfo(bonusInfo.getTechReveal()).getEra() <= eraLimit:
+				bonusFood       += bonusInfo.getYieldChange(YieldTypes.YIELD_FOOD)
+				bonusProduction += bonusInfo.getYieldChange(YieldTypes.YIELD_PRODUCTION)
+				bonusCommerce   += bonusInfo.getYieldChange(YieldTypes.YIELD_COMMERCE)
+			else:
+				bonusEnum = BonusTypes.NO_BONUS
+
 		improvementList = list()
 		for n in range(gc.getNumBuildInfos()):
 			#Test for improvement validity
 			buildInfo = gc.getBuildInfo(n)
 			impEnum = buildInfo.getImprovement()
+			if impEnum == ImprovementTypes.NO_IMPROVEMENT:
+				continue
 			impInfo = gc.getImprovementInfo(impEnum)
-			if impInfo == None:
-				continue
+			while impInfo.getImprovementUpgrade() != ImprovementTypes.NO_IMPROVEMENT:
+				impEnum = impInfo.getImprovementUpgrade()
+				impInfo = gc.getImprovementInfo(impEnum)
+
 			#some mods use improvements for other things, so if there's no tech requirement we still don't want it factored in.
-			if buildInfo.getTechPrereq() == TechTypes.NO_TECH or gc.getTechInfo(buildInfo.getTechPrereq()).getEra() > max(game.getStartEra(), 2):
+			if buildInfo.getTechPrereq() == TechTypes.NO_TECH or gc.getTechInfo(buildInfo.getTechPrereq()).getEra() > eraLimit:
 				continue
+			#LM - I'm not even going to block water tile improvements for non-coastal cities, b/c even if a player both DOESN'T have, and will NEVER have,
+			#Workboat access to a non-coastal city's water tiles (VERY unlikely - start a war to get there if necessary!), we don't block land tiles that
+			#are across a channel and might ultimately end up under enemy control... Plus an ally may come along and place Fishing Nets for him anyway.
 			if plot.canHaveImprovement(impEnum, TeamTypes.NO_TEAM, True):
-				#This function will not find bonus yield changes for NO_PLAYER much to my annoyance
-				impCommerce   = plot.calculateImprovementYieldChange(impEnum, YieldTypes.YIELD_COMMERCE,   PlayerTypes.NO_PLAYER, False)
 				impFood       = plot.calculateImprovementYieldChange(impEnum, YieldTypes.YIELD_FOOD,       PlayerTypes.NO_PLAYER, False)
 				impProduction = plot.calculateImprovementYieldChange(impEnum, YieldTypes.YIELD_PRODUCTION, PlayerTypes.NO_PLAYER, False)
-				if bonusEnum != -1:
-					impCommerce   += impInfo.getImprovementBonusYield(bonusEnum, YieldTypes.YIELD_COMMERCE)
+				impCommerce   = plot.calculateImprovementYieldChange(impEnum, YieldTypes.YIELD_COMMERCE,   PlayerTypes.NO_PLAYER, False)
+				#That function will not find bonus yield changes for NO_PLAYER, much to my annoyance
+				if bonusEnum != BonusTypes.NO_BONUS:
 					impFood       += impInfo.getImprovementBonusYield(bonusEnum, YieldTypes.YIELD_FOOD)
 					impProduction += impInfo.getImprovementBonusYield(bonusEnum, YieldTypes.YIELD_PRODUCTION)
+					impCommerce   += impInfo.getImprovementBonusYield(bonusEnum, YieldTypes.YIELD_COMMERCE)
+				#LM - Assume irrigation (since it's very easy to get everywhere once you have Civil Service), and add in any extra yields from it.
+				#(bOptimal is false, so calculateImprovementYieldChange() didn't add anything.)
+				impFood       += impInfo.getIrrigatedYieldChange(YieldTypes.YIELD_FOOD)
+				impProduction += impInfo.getIrrigatedYieldChange(YieldTypes.YIELD_PRODUCTION)
+				impCommerce   += impInfo.getIrrigatedYieldChange(YieldTypes.YIELD_COMMERCE)
+				#LM - Add in extra yields from the most advanced route type that is unlocked up through the Era limit.
+				#(bOptimal is false and these plots don't have any routes already on them, so calculateImprovementYieldChange() didn't add anything.)
+				if maxRoute >= 0:
+					impFood       += impInfo.getRouteYieldChanges(maxRoute, YieldTypes.YIELD_FOOD)
+					impProduction += impInfo.getRouteYieldChanges(maxRoute, YieldTypes.YIELD_PRODUCTION)
+					impCommerce   += impInfo.getRouteYieldChanges(maxRoute, YieldTypes.YIELD_COMMERCE)
+				#LM - Undo later tech modifiers, and ALL civic modifiers, to the improvement, since calculateImprovementYieldChange()
+				#adds them in when called with NO_PLAYER, regardless of the bOptimal parameter.
+				for i in range(gc.getNumTechInfos()):
+					if gc.getTechInfo(i).getEra() > eraLimit:
+						impFood       -= impInfo.getTechYieldChanges(i, YieldTypes.YIELD_FOOD)
+						impProduction -= impInfo.getTechYieldChanges(i, YieldTypes.YIELD_PRODUCTION)
+						impCommerce   -= impInfo.getTechYieldChanges(i, YieldTypes.YIELD_COMMERCE)
+				for i in range(gc.getNumCivicInfos()):
+					civicInfo = gc.getCivicInfo(i)
+					impFood       -= civicInfo.getImprovementYieldChanges(impEnum, YieldTypes.YIELD_FOOD)
+					impProduction -= civicInfo.getImprovementYieldChanges(impEnum, YieldTypes.YIELD_PRODUCTION)
+					impCommerce   -= civicInfo.getImprovementYieldChanges(impEnum, YieldTypes.YIELD_COMMERCE)
 				#See if feature is removed, if so we must subtract the added yield from that feature
 				bProceed = True
 				if featureEnum != FeatureTypes.NO_FEATURE and buildInfo.isFeatureRemove(featureEnum):
-					if buildInfo.getFeatureTech(featureEnum) == TechTypes.NO_TECH or gc.getTechInfo(buildInfo.getFeatureTech(featureEnum)).getEra() <= max(game.getStartEra(), 2):
-						impCommerce   -= featureInfo.getYieldChange(YieldTypes.YIELD_COMMERCE)   + featureInfo.getRiverYieldChange(YieldTypes.YIELD_COMMERCE)   + featureInfo.getHillsYieldChange(YieldTypes.YIELD_COMMERCE)
-						impFood       -= featureInfo.getYieldChange(YieldTypes.YIELD_FOOD)       + featureInfo.getRiverYieldChange(YieldTypes.YIELD_FOOD)       + featureInfo.getHillsYieldChange(YieldTypes.YIELD_FOOD)
-						impProduction -= featureInfo.getYieldChange(YieldTypes.YIELD_PRODUCTION) + featureInfo.getRiverYieldChange(YieldTypes.YIELD_PRODUCTION) + featureInfo.getHillsYieldChange(YieldTypes.YIELD_PRODUCTION)
+					if buildInfo.getFeatureTech(featureEnum) == TechTypes.NO_TECH or gc.getTechInfo(buildInfo.getFeatureTech(featureEnum)).getEra() <= gc.getGame().getStartEra() + 2:
+						#LM - Ceph's code was subtracting out the feature's extra river and hill yields EVEN IF THERE WAS NO RIVER OR HILL ON THE PLOT!!!
+						#It was ALSO not restoring the TERRAIN'S extra river and hill yields afterward, which are used when no feature is present.
+						#Wow, so many major bugs in this function...
+						impFood       -= featureInfo.getYieldChange(YieldTypes.YIELD_FOOD)
+						impProduction -= featureInfo.getYieldChange(YieldTypes.YIELD_PRODUCTION)
+						impCommerce   -= featureInfo.getYieldChange(YieldTypes.YIELD_COMMERCE)
+						if plot.isRiver():
+							impFood       -= featureInfo.getRiverYieldChange(YieldTypes.YIELD_FOOD)
+							impProduction -= featureInfo.getRiverYieldChange(YieldTypes.YIELD_PRODUCTION)
+							impCommerce   -= featureInfo.getRiverYieldChange(YieldTypes.YIELD_COMMERCE)
+							impFood       += terrainInfo.getRiverYieldChange(YieldTypes.YIELD_FOOD)
+							impProduction += terrainInfo.getRiverYieldChange(YieldTypes.YIELD_PRODUCTION)
+							impCommerce   += terrainInfo.getRiverYieldChange(YieldTypes.YIELD_COMMERCE)
+						if plot.isHills():
+							impFood       -= featureInfo.getHillsYieldChange(YieldTypes.YIELD_FOOD)
+							impProduction -= featureInfo.getHillsYieldChange(YieldTypes.YIELD_PRODUCTION)
+							impCommerce   -= featureInfo.getHillsYieldChange(YieldTypes.YIELD_COMMERCE)
+							impFood       += terrainInfo.getHillsYieldChange(YieldTypes.YIELD_FOOD)
+							impProduction += terrainInfo.getHillsYieldChange(YieldTypes.YIELD_PRODUCTION)
+							impCommerce   += terrainInfo.getHillsYieldChange(YieldTypes.YIELD_COMMERCE)
 					else:
 						bProceed = False
 				if bProceed:
 					imp = Improvement(impEnum, impFood, impProduction, impCommerce, 0)
 					improvementList.append(imp)
 		for i in range(len(improvementList)):
-			impCommerce   = improvementList[i].commerce   + commerce
-			impFood       = improvementList[i].food       + food
-			impProduction = improvementList[i].production + production
-			impValue = impCommerce * mc.CommerceValue + impFood * mc.FoodValue + impProduction * mc.ProductionValue
-			#Food surplus makes the square much more valueable than if there is no food here.
-			if food >= gc.getFOOD_CONSUMPTION_PER_POPULATION():
-				impValue *= 4
-			elif food == gc.getFOOD_CONSUMPTION_PER_POPULATION() - 1:
+			impFood       = improvementList[i].food       + food       + bonusFood
+			impProduction = improvementList[i].production + production + bonusProduction
+			impCommerce   = improvementList[i].commerce   + commerce   + bonusCommerce
+			impValue = (impFood * mc.FoodValue) + (impProduction * mc.ProductionValue) + (impCommerce * mc.CommerceValue)
+			#LM - Encourage Floodplains, Oases and early food resources here to differentiate them from tile improvements that add food!
+			if food >= 3:
 				impValue *= 2
+			#LM - Encourage Forest-Plains-Hills and early production resources here to differentiate them from tile improvements that add production!
+			if production >= 3:
+				impValue *= 2
+			#LM - Encourage Oases and early commerce resources here to differentiate them from tile improvements that add commerce!
+			if commerce >= 3:
+				impValue *= 2
+			#LM - Discourage coastal water when dealing with a non-coastal city, BUT LEAVE LAKES ALONE!!!
+			if not coastalCity and sPlot.isCoast():
+				impValue /= 2
+			#LM - Add small value for improvements with coughup chances.
+			impInfo = gc.getImprovementInfo(improvementList[i].e)
+			for n in range(gc.getNumBonusInfos()):
+				if impInfo.getImprovementBonusDiscoverRand(n) > 0:
+					impValue += (mc.ProductionValue / 2) + (mc.CommerceValue / 2)
+					break
+			#Food surplus makes the square much more valuable than if there is no food here.
+			#LM - Another CRITICAL BUGFIX!!! This code was using "food", which is the base yield of the tile, rather than "impFood", which is the final value that actually MATTERS.
+			#Since "food" is a constant from outside this loop, the result was value multiplication being always applied or never applied, regardless of the improvement under consideration.
+			if impFood > gc.getFOOD_CONSUMPTION_PER_POPULATION():
+				impValue *= 3
+			elif impFood == gc.getFOOD_CONSUMPTION_PER_POPULATION():
+				impValue *= 2
+			#LM - "Commerce / 2" is my standard rule for yield balance
+			elif impFood + impProduction + (impCommerce / 2) < 3:
+				impValue = 0
 			improvementList[i].value = impValue
 		if len(improvementList) > 0:
 			#sort all allowed improvement values to find the best
 			improvementList.sort(lambda x, y:cmp(x.value, y.value))
 			improvementList.reverse()
 			bestImp = improvementList[0]
-			commerce   += bestImp.commerce
-			food       += bestImp.food
-			production += bestImp.production
-		value = commerce * mc.CommerceValue + food * mc.FoodValue + production * mc.ProductionValue
+			#LM - And yet ANOTHER huge bug... I've lost count, lol. This code was ADDING bestImp's yields to the base yields, but bestImp already INCLUDED the base yields!!!
+			#The result was a VERY messed up final value calculation below. None of this is necessary at all though; since the calculation is the same, just use bestImp's values directly.
+			return bestImp.food, bestImp.value
+
 		#Try to avoid included water food resources for non-coastal starts. It confuses the AI.
-		if not coastalCity and plot.isWater():
-			# advc.021b: Was =0; now as in Civ 4 Reimagined. Totestra also sets food=0; not sure if I should adopt that too.
-			value -= 300
-		#Food surplus makes the square much more valuable than if there is no food here.
-		if food >= gc.getFOOD_CONSUMPTION_PER_POPULATION():
-			value *= 4
-		elif food == gc.getFOOD_CONSUMPTION_PER_POPULATION() - 1:
+		#LM - Yeah, umm, WRONG! This is a TRAIN WRECK!!! It completely blocks lakes which have HUGE base values, and even then, coastal tiles can
+		#be useful to non-coastal cities even WITHOUT any tile improvements or coastal buildings, especially with features or resources present.
+		#CODE ERASED.
+
+		#LM - Now we have to support the case where no valid improvements were found (even though it'll probably never happen, sigh).
+		value = ((food + bonusFood) * mc.FoodValue) + ((production + bonusProduction) * mc.ProductionValue) + ((commerce + bonusCommerce) * mc.CommerceValue)
+		if food >= 3:
 			value *= 2
-		# advc.021b: value>0 clause added (as in Civ 4 Reimagined)
-		if food + commerce + production < 3 and value > 0:
+		if production >= 3:
+			value *= 2
+		if commerce >= 3:
+			value *= 2
+		if not coastalCity and sPlot.isCoast():
+			value /= 2
+		food += bonusFood
+		if food > gc.getFOOD_CONSUMPTION_PER_POPULATION():
+			value *= 3
+		elif food == gc.getFOOD_CONSUMPTION_PER_POPULATION():
+			value *= 2
+		elif food + (production + bonusProduction) + ((commerce + bonusCommerce) / 2) < 3:
+			#value = 0
+			value = max(0, value) # advc (from Civ 4 Reimagined)
+		return food, value
+
+
+	#LM - We need a whole new version of the function specifically for city plots, because they have different rules for calculating yields (and no tile improvements either).
+	def getCityPlotPotentialValueUncached(self, x, y, coastalCity):
+		plot = CyMap().plot(x, y)
+		gc = CyGlobalContext()
+		if gc.getGame().getStartEra() < 5:
+			eraLimit = 6
+		else:
+			eraLimit = 7
+
+		terrainEnum = plot.getTerrainType()
+		terrainInfo = gc.getTerrainInfo(terrainEnum)
+		featureEnum = plot.getFeatureType()
+		featureInfo = gc.getFeatureInfo(featureEnum)
+		bonusEnum   = plot.getBonusType(TeamTypes.NO_TEAM)
+		bonusInfo   = gc.getBonusInfo(bonusEnum)
+
+		#LM - Get base value, then subtract out ALL feature and resource effects.
+		food       = plot.calculateBestNatureYield(YieldTypes.YIELD_FOOD,       TeamTypes.NO_TEAM)
+		production = plot.calculateBestNatureYield(YieldTypes.YIELD_PRODUCTION, TeamTypes.NO_TEAM)
+		commerce   = plot.calculateBestNatureYield(YieldTypes.YIELD_COMMERCE,   TeamTypes.NO_TEAM)
+		bonusFood       = 0
+		bonusProduction = 0
+		bonusCommerce   = 0
+		if featureEnum != FeatureTypes.NO_FEATURE:
+			food       -= featureInfo.getYieldChange(YieldTypes.YIELD_FOOD)
+			production -= featureInfo.getYieldChange(YieldTypes.YIELD_PRODUCTION)
+			commerce   -= featureInfo.getYieldChange(YieldTypes.YIELD_COMMERCE)
+			if plot.isRiver():
+				food       -= featureInfo.getRiverYieldChange(YieldTypes.YIELD_FOOD)
+				production -= featureInfo.getRiverYieldChange(YieldTypes.YIELD_PRODUCTION)
+				commerce   -= featureInfo.getRiverYieldChange(YieldTypes.YIELD_COMMERCE)
+				food       += terrainInfo.getRiverYieldChange(YieldTypes.YIELD_FOOD)
+				production += terrainInfo.getRiverYieldChange(YieldTypes.YIELD_PRODUCTION)
+				commerce   += terrainInfo.getRiverYieldChange(YieldTypes.YIELD_COMMERCE)
+			if plot.isHills():
+				food       -= featureInfo.getHillsYieldChange(YieldTypes.YIELD_FOOD)
+				production -= featureInfo.getHillsYieldChange(YieldTypes.YIELD_PRODUCTION)
+				commerce   -= featureInfo.getHillsYieldChange(YieldTypes.YIELD_COMMERCE)
+				food       += terrainInfo.getHillsYieldChange(YieldTypes.YIELD_FOOD)
+				production += terrainInfo.getHillsYieldChange(YieldTypes.YIELD_PRODUCTION)
+				commerce   += terrainInfo.getHillsYieldChange(YieldTypes.YIELD_COMMERCE)
+		if bonusEnum != BonusTypes.NO_BONUS:
+			food       -= bonusInfo.getYieldChange(YieldTypes.YIELD_FOOD)
+			production -= bonusInfo.getYieldChange(YieldTypes.YIELD_PRODUCTION)
+			commerce   -= bonusInfo.getYieldChange(YieldTypes.YIELD_COMMERCE)
+
+		#LM - Apply city minimum effects, then add permanent features and visible resources back in on top.
+		food       = max(food,       gc.getYieldInfo(YieldTypes.YIELD_FOOD).getMinCity())
+		production = max(production, gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getMinCity())
+		commerce   += gc.getYieldInfo(YieldTypes.YIELD_COMMERCE).getMinCity()
+		if bonusEnum != BonusTypes.NO_BONUS:
+			if bonusInfo.getTechReveal() == TechTypes.NO_TECH or gc.getTechInfo(bonusInfo.getTechReveal()).getEra() <= gc.getGame().getStartEra() + 1:
+				food       += bonusInfo.getYieldChange(YieldTypes.YIELD_FOOD)
+				production += bonusInfo.getYieldChange(YieldTypes.YIELD_PRODUCTION)
+				commerce   += bonusInfo.getYieldChange(YieldTypes.YIELD_COMMERCE)
+			elif gc.getTechInfo(bonusInfo.getTechReveal()).getEra() <= eraLimit:
+				bonusFood       += bonusInfo.getYieldChange(YieldTypes.YIELD_FOOD)
+				bonusProduction += bonusInfo.getYieldChange(YieldTypes.YIELD_PRODUCTION)
+				bonusCommerce   += bonusInfo.getYieldChange(YieldTypes.YIELD_COMMERCE)
+
+		#LM - Now calculate tile value the same way as in getPlotPotentialValueUncached().
+		value = ((food + bonusFood) * mc.FoodValue) + ((production + bonusProduction) * mc.ProductionValue) + ((commerce + bonusCommerce) * mc.CommerceValue)
+		if food >= 3:
+			value *= 2
+		if production >= 3:
+			value *= 2
+		if commerce >= 3:
+			value *= 2
+		food += bonusFood
+		if food > gc.getFOOD_CONSUMPTION_PER_POPULATION():
+			value *= 3
+		elif food == gc.getFOOD_CONSUMPTION_PER_POPULATION():
+			value *= 2
+		elif food + (production + bonusProduction) + ((commerce + bonusCommerce) / 2) < 3:
 			value = 0
 		return food, value
 
@@ -4861,7 +5393,6 @@ class StartingPlotFinder:
 		mapGen = CyMapGenerator()
 		food, value = self.getCityPotentialValue(x, y)
 		gc = CyGlobalContext()
-		game = gc.getGame()
 		numCityPlots = gc.getNUM_CITY_PLOTS()
 		#Shuffle the bonus order so that different cities have different preferences for bonuses
 		bonusList = list()
@@ -4900,7 +5431,7 @@ class StartingPlotFinder:
 					continue
 				if plot.getBonusType(TeamTypes.NO_TEAM) != BonusTypes.NO_BONUS:
 					continue
-				food, value = self.getCityPotentialValue(x, y, False)
+				food, value = self.getCityPotentialValue(x, y)
 				#NEW CODE - Fuyu
 				currentYield = yields[(n + bonusCount) % (len(yields))]
 				#switch to food if food is needed
@@ -4920,7 +5451,7 @@ class StartingPlotFinder:
 					if bonusInfo.getYieldChange(currentYield) < 1:
 						continue
 					#NEW CODE - Fuyu/LM
-					if gc.getTechInfo(bonusInfo.getTechReveal()) != None and gc.getTechInfo(bonusInfo.getTechReveal()).getEra() > max(game.getStartEra(), 2):
+					if bonusInfo.getTechReveal() != TechTypes.NO_TECH and gc.getTechInfo(bonusInfo.getTechReveal()).getEra() > gc.getGame().getStartEra() + 1:
 						continue
 					if not bp.PlotCanHaveBonus(plot, bonusEnum, False, False):
 						if not PRand.random() < mc.ignoreAreaRestrictionChance:
@@ -4943,14 +5474,10 @@ class StartingPlotFinder:
 
 
 	def ensureMinimumHills(self, x, y):
-		# advc.021b: Made same changes below b/c I meant to keep the extra hills, then I realized that the DLL does the same thing. So:
-		return
 		gc = CyGlobalContext()
-		gameMap = CyMap()
 		hillsFound = 0
 		peaksFound = 0
 		badFeaturesFound = 0
-
 		plotList = []
 		for i in range(gc.getNUM_CITY_PLOTS()):
 			plot = plotCity(x, y, i)
@@ -4964,7 +5491,7 @@ class StartingPlotFinder:
 					if totalYield <= 0:#bad feature
 						plot.setFeatureType(FeatureTypes.NO_FEATURE, -1)
 				continue
-			if plot.getPlotType() == PlotTypes.PLOT_HILLS and gameMap.plot(x, y).getArea() == plot.getArea():
+			if plot.getPlotType() == PlotTypes.PLOT_HILLS and CyMap().plot(x, y).getArea() == plot.getArea():
 				hillsFound += 1
 			if plot.getPlotType() == PlotTypes.PLOT_PEAK:
 				peaksFound += 1
@@ -4982,16 +5509,15 @@ class StartingPlotFinder:
 			plotList.append(plot)
 		plotList = ShuffleList(plotList)
 		#ensure maximum number of peaks
-		# advc.021b: Code block removed; let normalizeRemovePeaks handle it.
-		#if peaksFound > mc.MaxPeaksInFC:
-			#for plot in plotList:
-				#if peaksFound == mc.MaxPeaksInFC:
-					#break
-				#if plot.getPlotType() == PlotTypes.PLOT_PEAK:
-					#plot.setPlotType(PlotTypes.PLOT_HILLS, True, True)
-					#if plot.getArea() == gameMap.plot(x, y).getArea():
-						#hillsFound += 1
-					#peaksFound -= 1
+		if peaksFound > mc.MaxPeaksInFC:
+			for plot in plotList:
+				if peaksFound == mc.MaxPeaksInFC:
+					break
+				if plot.getPlotType() == PlotTypes.PLOT_PEAK:
+					plot.setPlotType(PlotTypes.PLOT_HILLS, True, True)
+					if plot.getArea() == CyMap().plot(x, y).getArea():
+						hillsFound += 1
+					peaksFound -= 1
 		#Ensure minimum number of hills
 		hillsNeeded = mc.MinHillsInFC - hillsFound
 		if hillsNeeded > 0:
@@ -5001,21 +5527,20 @@ class StartingPlotFinder:
 				featureInfo = gc.getFeatureInfo(plot.getFeatureType())
 				requiresFlatlands = (featureInfo != None and featureInfo.isRequiresFlatlands())
 				bonusInfo = gc.getBonusInfo(plot.getBonusType(TeamTypes.NO_TEAM))
-				if plot.getPlotType() != PlotTypes.PLOT_HILLS and plot.getArea() == gameMap.plot(x, y).getArea() and bonusInfo == None and not requiresFlatlands:
+				if plot.getPlotType() != PlotTypes.PLOT_HILLS and plot.getArea() == CyMap().plot(x, y).getArea() and bonusInfo == None and not requiresFlatlands:
 					plot.setPlotType(PlotTypes.PLOT_HILLS, True, True)
 					hillsNeeded -= 1
 			if hillsNeeded > 0:
 				for plot in plotList:
-					# advc.001: Was 'not bonusInfo.isRequiresFlatlands()' - that function doesn't exist. Use isHills instead (like in the DLL).
-					if plot.getPlotType() != PlotTypes.PLOT_HILLS and plot.getArea() == gameMap.plot(x, y).getArea() and (bonusInfo == None or bonusInfo.isHills()):
-						plot.setPlotType(PlotTypes.PLOT_HILLS, True, True)
-						hillsNeeded -= 1
-						if requiresFlatlands:
-							plot.setFeatureType(FeatureTypes.NO_FEATURE, -1)
+					if plot.getPlotType() != PlotTypes.PLOT_HILLS and plot.getArea() == CyMap().plot(x, y).getArea():
+						#if bonusInfo == None or not bonusInfo.isRequiresFlatlands():
+						# advc.001: That function doesn't exist in the original BtS DLL. It might exist in MongooseMod, but, in the v3.2 standalone version, this was definitely a bug. Use isHills instead (like in the DLL).
+						if bonusInfo is None or bonusInfo.isHills():
+							plot.setPlotType(PlotTypes.PLOT_HILLS, True, True)
+							hillsNeeded -= 1
+							if requiresFlatlands:
+								plot.setFeatureType(FeatureTypes.NO_FEATURE, -1)
 		#ensure maximum number of bad features
-		# advc.021b: Let normalizeRemoveBadFeatures handle it
-		return
-	
 		badFeaturesToRemove = badFeaturesFound - mc.MaxBadFeaturesInFC
 		if badFeaturesToRemove > 0:
 			#remove half from flatlands, the rest from hills
@@ -5119,10 +5644,10 @@ class Improvement:
 class StartingArea:
 	def __init__(self, areaID):
 		self.areaID = areaID
-		self.playerList = list()
 		self.plotList   = list()
+		self.playerList = list()
 		self.distanceTable = array('i')
-		self.distTableOtherAreas = array('i') # advc.021b
+		self.distTableOtherAreas = array('i') # advc
 		self.rawValue = 0
 		self.CalculatePlotList()
 		self.idealNumberOfPlayers = 0
@@ -5130,108 +5655,105 @@ class StartingArea:
 
 	def CalculatePlotList(self):
 		gc = CyGlobalContext()
-		gameMap = CyMap()
-		# <advc.021b> Initialize found values. Enough to do this for a single player. Shouldn't matter which, but let's use a human.
-		# Can't just use ActivePlayer b/c of networked multiplayer
-		humanId = -1
-		for i in range(gc.getMAX_CIV_PLAYERS()):
-			kPlayer = gc.getPlayer(i)
-			if kPlayer.isAlive() and kPlayer.isHuman():
-				humanId = i
-				kPlayer.AI_updateFoundValues(True)
-				break
-		# </advc.021b>
 		for y in range(mc.height):
 			for x in range(mc.width):
-				plot = gameMap.plot(x, y)
+				plot = CyMap().plot(x, y)
 				if plot.getArea() == self.areaID:
+					food, value = sf.getCityPotentialValue(x, y)
 					#don't place a city on top of a bonus
+					#LM - Why completely rule out great tiles that could possibly be the only valid locations in their areas?!
+					#I actually recommend a small BONUS to the value (no pun intended, lol), due to the protection from pillaging it affords.
+					#This is not the right place to apply it, though!
 					if plot.getBonusType(TeamTypes.NO_TEAM) != BonusTypes.NO_BONUS:
 						continue
-					# <advc.021b> Don't place the cradle of civilization in the Tundra
-					if plot.area().getNumTiles() - plot.getLatitude()/2 < 25 or plot.getLatitude() > 60:
-						continue # </advc.021b>
-					food, value = sf.getCityPotentialValue(x, y)
-					# <advc.021b>
-					if humanId >= 0:
-						value = plot.getFoundValue(humanId)
-					# </advc.021b>
+
+					#LM - Prevent starting locations from being walled-off in small pockets.
+					# advc.030: No need; in AdvCiv, peaks always separate areas.
+					'''
+					# advc.001: Map unavailable in later eras (I think)
+					if gc.getGame().getStartEra() < 3 and sf.peakMap.getAreaByID(sf.peakMap.data[GetIndex(x, y)]).size < sf.iMinIslandSize:
+						value = 0
+					'''
+					#LM - Invalid locations are given a value of -1, which is blocked. Highly undesirable but technically valid locations are given a value of 0
+					#which is also blocked, with any landmass overflows now handled above. I've left the values separate anyway though, in case they're ever used.
 					if value > 0:
 						startPlot = StartPlot(x, y, value)
 						if plot.isWater():
 							raise ValueError, "potential start plot is water!"
 						self.plotList.append(startPlot)
-		# <advc.021b> Want to be able to divide by this length
+		# <advc> Want to be able to divide by this length
 		if len(self.plotList) <= 0:
-			return # </advc.021b>
+			return # </advc>
 		#Sort plots by local value
 		self.plotList.sort(lambda x, y: cmp(x.localValue, y.localValue))
 		#To save time and space let's get rid of some of the lesser plots
-		#cull = (len(self.plotList) * 2) / 3
-		# <advc.021b> Cull fewer tiles b/c start plots are getting placed too close to each other. If too few are culled, however, civs start in the middle of a continent too rarely.
+		#LM - Let's not. (You run a high risk of eliminating perfectly good low-value plots that are the only places to put cities in certain areas.)
+		#LM - Hmm, apparently this is really important for masking out sucky regions. Instead or removing it, let's increase the cull percent from 2/3 to 3/4! ;)
+		#cull = (len(self.plotList) * 3) / 4
+		# <advc> Cull fewer tiles b/c start plots are getting placed too close to each other. If too few are culled, however, civs start in the middle of a continent too rarely.
 		newWorldSubtr = 0
 		# The more crowded the map, the fewer the tiles we can afford to rule out.
-		if mc.AllowNewWorld:
+		if mc.OldWorldStarts:
 			newWorldSubtr = 1
 		civs = max(1, gc.getGame().countCivPlayersEverAlive())
-		seaLevelAdj = 0.0
-		seaChg = gc.getSeaLevelInfo(gameMap.getSeaLevel()).getSeaLevelChange()
-		if seaChg < 0:
-			seaLevelAdj = 0.5
-		elif seaChg > 0:
-			seaLevelAdj = -0.5
-		cull = min(int(round(0.7 * len(self.plotList))), max(0, int(round(len(self.plotList) * (0.22  + (gameMap.getWorldSize() - newWorldSubtr + seaLevelAdj) / (2.0 * civs))))))
+		seaLevelAdj = (mc.SeaLevelFactor - 1) * 1.33
+		cull = min(int(round(0.7 * len(self.plotList))), max(0, int(round(len(self.plotList) * (0.22  + (CyMap().getWorldSize() - newWorldSubtr + seaLevelAdj) / (2.0 * civs))))))
 		print("cull ratio: %d percent of %d sites" % (int(100*cull/len(self.plotList)),len(self.plotList)))
-		# </advc.021b>
+		# </advc>
 		for i in range(cull):
 			del self.plotList[0]
 		#You now should be able to eliminate more plots by sorting high to low and
 		#having the best plot eat plots within 3 squares, then same for next, etc.
 		self.plotList.reverse()
-		# advc.021b: Moved into subroutine
+		# advc: Moved into subroutine
 		self.ClearVicinity(3)
-		# advc.021b: Area id isn't helpful b/c advc.030 reassigns area ids after (possibly) removing peaks during normalization
-		#print "number of final plots in areaID = %(a)3d is %(p)5d" % {"a":self.areaID, "p":len(self.plotList)}
+		print "Number of final plots in areaID = %(a)3d is %(p)5d" % {"a":self.areaID, "p":len(self.plotList)}
 		# advc.021b: Moved up:
 		for n in range(len(self.plotList)):
 			self.rawValue += self.plotList[n].localValue
 		# Moved the last third of this function's body into a new function FillDistanceTable
-		
-	# advc.021b: Mostly cut from CalculatePlotList. Assumes that plotList is sorted by localValue in descending order
+
+	# advc: Mostly cut from CalculatePlotList. Assumes that plotList is sorted by localValue in descending order
 	def ClearVicinity(self, radius):
-	
 		numPlots = len(self.plotList)
-		# <advc.021b>
-		protectedPlots = max(2,(1 + radius/10.0) * len(self.playerList))
+		# <advc>
+		protectedPlots = max(2, (1 + radius/10.0) * len(self.playerList))
 		if numPlots <= protectedPlots:
-			return # </advc.021b>
+			return # </advc>
 		for n in range(numPlots):
-			#At some point the length of plot list will be much shorter
-			#than at the beginning of the loop, so it can never end normally
+			#At some point the length of plot list will be much shorter than at
+			#the beginning of the loop, so it can never end normally
 			if n >= len(self.plotList) - 1:
 				break
-			y = self.plotList[n].y
 			x = self.plotList[n].x
+			y = self.plotList[n].y
 			for yy in range(y - radius, y + radius + 1):
 				for xx in range(x - radius, x + radius + 1):
-					if yy < 0 or yy >= mc.height:
+					#LM - Easier to avoid the self-evaluation case here than down below.
+					if xx == x and yy == y:
 						continue
-					xx = xx % mc.width #wrap xx
-					if xx < 0:
-						raise ValueError, "xx value not wrapping properly in StartingArea.CalculatePlotList"
-					# <advc.021b> Clear a circular range, not square.
+					# <advc> Clear a circular range, not square. That's better than LM's tweak below.
 					if plotDistance(x, y, xx, yy) > radius:
-						continue # </advc.021b>
-					for m in range(n, len(self.plotList)):
-						if m >= len(self.plotList) - 1:
+						continue # </advc>
+					#LM - Don't eat the outside corners! Cities there actually have less overlap (2) than the ones 4 tiles away in a cardinal line (3).
+					#if abs(xx - x) == radius and abs(yy - y) == radius:
+					#	continue
+					#LM - Obey the mapscript wrap globals, don't ignore them!!!
+					if mc.WrapX:
+						xx = xx % mc.width
+					elif xx < 0 or xx >= mc.width:
+						continue
+					if mc.WrapY:
+						yy = yy % mc.height
+					elif yy < 0 or yy >= mc.height:
+						continue
+					#LM - Search from n + 1, rather than n, to save time.
+					for m in range(n + 1, len(self.plotList)):
+						#LM - Just break when you find the target entry, it's a lot faster! Sheesh...
+						if self.plotList[m].x == xx and self.plotList[m].y == yy:
+							del self.plotList[m]
 							break
-						# <advc.021b> Don't eliminate all our choices
-						if len(self.plotList) <= protectedPlots:
-							break # </advc.021b>
-						if self.plotList[m] != self.plotList[n]:
-							if self.plotList[m].x == xx and self.plotList[m].y == yy:
-								del self.plotList[m]
-					# <advc.021b>
+					# <advc> Don't eliminate all our choices
 					if len(self.plotList) <= protectedPlots:
 						break
 				if len(self.plotList) <= protectedPlots:
@@ -5239,54 +5761,52 @@ class StartingArea:
 			if len(self.plotList) <= protectedPlots:
 				break
 		print("%d/%d sites eliminated at dist=%d" % (numPlots-len(self.plotList),numPlots,radius))
-		# </advc.021b>
-	
+		# </advc>
 
-	# advc.021b: Cut from CalculatePlotList
+
+	# advc: Cut from CalculatePlotList
 	def FillDistanceTable(self):
 		gc = CyGlobalContext()
-		gameMap = CyMap()
-
 		#At this point we should have a list of the very best places
 		#to build cities on this continent. Now we need a table with
 		#the distance from each city to every other city
 		#Create distance table
 		for i in range(len(self.plotList) * len(self.plotList)):
-			self.distanceTable.append(-11)
-		# <advc.021b>
+			self.distanceTable.append(-1) #LM - I think he meant -1 instead of -11, lol :)
+		# <advc>
 		assignedStartingPlots = list()
 		for i in range(gc.getGame().countCivPlayersEverAlive()):
 			player = gc.getPlayer(i)
 			startingPlot = player.getStartingPlot()
-			if startingPlot != None and startingPlot.getX() >= 0 and startingPlot.getY() >= 0:
+			if startingPlot and startingPlot.getX() >= 0 and startingPlot.getY() >= 0:
 				assignedStartingPlots.append(startingPlot)
 		for i in range(len(self.plotList) * len(assignedStartingPlots)):
-			# Same strange initial value as above
-			self.distTableOtherAreas.append(-11)
+			self.distTableOtherAreas.append(-1)
 		bSingleCiv = (len(self.playerList) == 1)
 		if bSingleCiv:
 			print("Only one civ to be placed; ignoring distances within area")
-		# </advc.021b>
+		mmap = CyMap()
+		# </advc>
 		#Fill distance table
 		for n in range(len(self.plotList)):
 			#While were already looping lets calculate the raw value
-			# advc.021b: Moved up so that it remains in CalculatePlotList
+			# advc: Moved up so that it remains in CalculatePlotList
 			#self.rawValue += self.plotList[n].localValue
 			avgDistance = 0
 			for m in range(n, len(self.plotList)):
-				nPlot = gameMap.plot(self.plotList[n].x, self.plotList[n].y)
-				mPlot = gameMap.plot(self.plotList[m].x, self.plotList[m].y)
-				gameMap.resetPathDistance()
-				distance = gameMap.calculatePathDistance(nPlot, mPlot)
+				nPlot = mmap.plot(self.plotList[n].x, self.plotList[n].y)
+				mPlot = mmap.plot(self.plotList[m].x, self.plotList[m].y)
+				mmap.resetPathDistance()
+				distance = mmap.calculatePathDistance(nPlot, mPlot)
 				#If path fails try reversing it
 				self.distanceTable[n * len(self.plotList) + m] = distance
 				self.distanceTable[m * len(self.plotList) + n] = distance
-				if not bSingleCiv: # advc.021b
+				if not bSingleCiv: # advc
 					avgDistance += distance
-			# <advc.021b>
+			# <advc>
 			for m in range(len(assignedStartingPlots)):
-				nPlot = gameMap.plot(self.plotList[n].x, self.plotList[n].y)
-				mPlot = gameMap.plot(assignedStartingPlots[m].getX(), assignedStartingPlots[m].getY())
+				nPlot = mmap.plot(self.plotList[n].x, self.plotList[n].y)
+				mPlot = mmap.plot(assignedStartingPlots[m].getX(), assignedStartingPlots[m].getY())
 				distance = plotDistance(nPlot.getX(), nPlot.getY(), mPlot.getX(), mPlot.getY())
 				# Cap; don't need distance to be maximized, just large enough.
 				if distance >= 13:
@@ -5298,33 +5818,31 @@ class StartingArea:
 				distance += 5
 				self.distTableOtherAreas[m * len(self.plotList) + n] = distance
 				avgDistance += distance
-			# </advc.021b>
+			# </advc>
 			self.plotList[n].avgDistance = avgDistance
 
 
 	def FindStartingPlots(self):
 		gc = CyGlobalContext()
-		gameMap = CyMap()
 		numPlayers = len(self.playerList)
 		if numPlayers <= 0:
 			return
-		# <advc.021b> Eliminate sites in a range that increases successively
+		# <advc> Eliminate sites in a range that increases successively
 		for radius in range(4, 11):
 			self.ClearVicinity(radius)
-		# </advc.021b>
-		self.FillDistanceTable() # advc.021b: Was previously already done in the constructor
-		# <advc.021b> Sometimes begin by making the plot with the best localValue a starting plot
+		self.FillDistanceTable() # Was previously already done in the constructor
+		# Sometimes begin by making the plot with the best localValue a starting plot
 		firstPlayerPlaced = False
-		if numPlayers == 1 or PRand.randint(0, 100) < (numPlayers - 2) * 20:
-			# On PM, the best plot is almost always at a coast. I want to have inland starts too from time to time.
+		# Space tends to be too tight in the Old World; need to focus on maximizing distances. Coastal starts also make more sense when there is a New World to colonize.
+		if not mc.OldWorldStarts and (numPlayers == 1 or PRand.randint(0, 100) < (numPlayers - 2) * 20):
+			# Force an inland start from time to time
 			for i in range(min(7, len(self.plotList))):
 				if not self.plotList[i].isCoast() or PRand.randint(0, 100) < 15:
 					print("First location placed with inland bias in area with %d players" % (numPlayers))
 					self.plotList[i].vacant = False
 					firstPlayerPlaced = True
 					break
-		if not firstPlayerPlaced:
-		# </advc.021b>
+		if not firstPlayerPlaced: # </advc>
 			avgDistanceList = list()
 			for i in range(len(self.plotList)):
 				avgDistanceList.append(self.plotList[i])
@@ -5332,11 +5850,10 @@ class StartingArea:
 			#there are two players one will start on the middle and the other on the end
 			avgDistanceList.sort(lambda x, y:cmp(x.avgDistance, y.avgDistance))
 			avgDistanceList.reverse()
-			
 			#First place players as far as possible away from each other
 			#Place the first player
 			avgDistanceList[0].vacant = False
-		for i in range(1,numPlayers):
+		for i in range(1, numPlayers):
 			distanceList = list()
 			for n in range(len(self.plotList)):
 				if self.plotList[n].vacant:
@@ -5345,44 +5862,43 @@ class StartingArea:
 						if not self.plotList[m].vacant:
 							ii = n * len(self.plotList) + m
 							distance = self.distanceTable[ii]
-							if minDistance == -1 or minDistance > distance:
+							if distance < minDistance or minDistance == -1:
 								minDistance = distance
-					# <advc.021b>
+					# <advc>
 					for m in range(len(self.distTableOtherAreas) // len(self.plotList)):
 						ii = m * len(self.plotList) + n
 						distance = self.distTableOtherAreas[ii]
 						if minDistance == -1 or minDistance > distance:
-							minDistance = distance 
-					# </advc.021b>
+							minDistance = distance
+					# </advc>
 					self.plotList[n].nearestStart = minDistance
 					distanceList.append(self.plotList[n])
 			#Find biggest nearestStart and place a start there
 			distanceList.sort(lambda x, y:cmp(x.nearestStart, y.nearestStart))
 			distanceList.reverse()
-			# advc.021b (comment): This causes an exception when no suitable plot is found. Caught by SetStartingPlots.
+			# advc (comment): This raises an exception when no suitable plot is found. Caught by SetStartingPlots.
 			distanceList[0].vacant = False
 		self.CalculateStartingPlotValues()
 		#Now place all starting positions
 		n = 0
 		for m in range(len(self.plotList)):
 			if not self.plotList[m].vacant:
-				sPlot = gameMap.plot(self.plotList[m].x,self.plotList[m].y)
+				sPlot = CyMap().plot(self.plotList[m].x, self.plotList[m].y)
 				if sPlot.isWater():
 					raise ValueError, "Start plot is water!"
 				#sPlot.setImprovementType(gc.getInfoTypeForString("NO_IMPROVEMENT"))
-				# advc.001: NO_IMPROVEMENT is not an InfoType. (getInfoType will return -1 then, which is equal to ImprovementTypes.NO_IMPROVEMENT, so this is really a harmless error.)
+				# advc.001:
 				sPlot.setImprovementType(ImprovementTypes.NO_IMPROVEMENT)
 				playerID = self.playerList[n]
 				player = gc.getPlayer(playerID)
 				sPlot.setStartingPlot(True)
-				player.setStartingPlot(sPlot,True)
-				# advc.021b (Might need this again)
-				#print("%d/%d assigned as starting plot" % (sPlot.getX(),sPlot.getY()))
+				player.setStartingPlot(sPlot, True)
+				# advc:
+				print("%d/%d assigned as starting plot" % (sPlot.getX(),sPlot.getY()))
 				n += 1
 
 
 	def CalculateStartingPlotValues(self):
-		gameMap = CyMap()
 		numPlots = len(self.plotList)
 		for n in range(numPlots):
 			self.plotList[n].owner = -1
@@ -5390,7 +5906,7 @@ class StartingArea:
 		for n in range(numPlots):
 			if self.plotList[n].vacant:
 				continue
-			self.plotList[n].totalValue = 0
+			#LM - Removed redundant assignment.
 			self.plotList[n].numberOfOwnedCities = 0
 			for m in range(numPlots):
 				i = n * numPlots + m
@@ -5409,9 +5925,9 @@ class StartingArea:
 						break
 				if leastDistance:
 					self.plotList[n].totalValue += self.plotList[m].localValue
+					self.plotList[n].numberOfOwnedCities += 1
 					self.plotList[m].owner = self.plotList[n]
 					self.plotList[m].distanceToOwner = nDistance
-					self.plotList[n].numberOfOwnedCities += 1
 
 
 	def getDistance(self, x, y, dx, dy):
@@ -5437,23 +5953,20 @@ class StartPlot:
 
 
 	def isCoast(self):
-		gameMap = CyMap()
-		plot = gameMap.plot(self.x, self.y)
+		plot = CyMap().plot(self.x, self.y)
 		waterArea = plot.waterArea()
-		if waterArea.isNone() or waterArea.isLake(): 
+		if waterArea.isNone() or waterArea.isLake():
 			return False
 		return True
 
 
 	def isRiverSide(self):
-		gameMap = CyMap()
-		plot = gameMap.plot(self.x, self.y)
+		plot = CyMap().plot(self.x, self.y)
 		return plot.isRiverSide()
 
 
 	def plot(self):
-		gameMap = CyMap()
-		return gameMap.plot(self.x, self.y)
+		return CyMap().plot(self.x, self.y)
 
 
 	def copy(self):
@@ -5481,8 +5994,9 @@ sf = StartingPlotFinder()
 ## Required DLL Tie-in Functions (Mapscript Template)
 ###############################################################################
 
-def getDescription(): # advc.021b: A sentence added
-	return "Official Civ4 Port of Civ5's PerfectWorld 3, with new Perlin Noise landmass generator and new climate system. River, Lake, Feature and Resource placement remain unchanged from PerfectWorld 2, with updated Sea Ice placement. AdvCiv: Customized so that it plays more similarly to the standard map scripts."
+def getDescription():
+	# advc: First sentence taken from Perfect World 2. The description imo isn't the place for recounting the history of the map script.
+	return "Random map that simulates earth-like plate tectonics, geostrophic and monsoon winds and rainfall. Customized for the AdvCiv mod."
 
 
 def getWrapX():
@@ -5495,182 +6009,229 @@ def getWrapY():
 
 def getNumCustomMapOptions():
 	mc.initialize()
-	#return 5 # advc.021b: Removing three options and changing the order of the others
-	return 2
+	return 3 # advc: was 8
 
 
 def getCustomMapOptionName(argsList):
-		optionID = argsList[0]
-		# <advc.021b>
-		#if optionID == 0:
-			#return "Landmasses:"
-		#elif optionID == 1:
-			#return "Use:"
-		#elif optionID == 2:
-		#if optionID == 2:
-			#return "Pangaeas:"
-		# </advc.021b>
-		if optionID == 0:
-			return "World Wrap:"
-		elif optionID == 1:
-			return "Start:"
-		return u""
+	optionID = argsList[0]
+	'''
+	if optionID == 0:
+		return "Sea Level:"
+	if optionID == 1:
+		return "Landmasses:"
+	if optionID == 2:
+		return "Mountains:"
+	if optionID == 3:
+		return "Climate:"
+	if optionID == 4:
+		return "Rivers:"
+	if optionID == 5:
+		return "Pangaeas:"
+	if optionID == 6:
+		return "World Wrap:"
+	if optionID == 7:
+		return "Start:"
+	'''
+	# <advc> Reorder and use existing translations
+	[optionID] = argsList
+	option_names = {
+		0:	"TXT_KEY_MAP_SCRIPT_LAND_SHAPE",
+		1:	"Start", # Doesn't really need a translation ...
+		2:	"TXT_KEY_MAP_WORLD_WRAP"
+		}
+	return unicode(CyTranslator().getText(option_names[optionID], ())) # </advc>
 
 
 def getNumCustomMapOptionValues(argsList):
-		optionID = argsList[0]
-		# <advc.021b>
-		#if optionID == 0:
-			#return 3
-		#elif optionID == 1:
-			#return 2
-		#elif optionID == 2:
-		#if optionID == 2:
-			#return 2
-		# </advc.021b>
-		if optionID == 0:
-			return 3
-		elif optionID == 1:
-			return 2
-		return 0
-
+	optionID = argsList[0]
+	# <advc>
+	option_values = {
+		0:	2,
+		1:	2,
+		2:	3
+		}
+	return option_values[optionID]
+	# </advc>
+	'''
+	if optionID == 0:
+		return 5
+	if optionID == 1:
+		return 3
+	if optionID == 2:
+		return 2
+	if optionID == 3:
+		return 2
+	if optionID == 4:
+		return 2
+	if optionID == 5:
+		return 2
+	if optionID == 6:
+		return 3
+	if optionID == 7:
+		return 2
+	return 0
+	'''
 
 def getCustomMapOptionDescAt(argsList):
+	# <advc>
+	[iOption, iSelection] = argsList
+	selection_names = {
+		0:	{
+			0: "TXT_KEY_MAP_SCRIPT_NORMAL_CONTINENTS",
+			1: "TXT_KEY_MAP_SCRIPT_MASSIVE_CONTINENTS",
+			},
+		1:	{
+			0: "TXT_KEY_MAP_SCRIPT_START_ANYWHERE",
+			#1: "TXT_KEY_MAP_SCRIPT_ALL_IN_OLD_WORLD"
+			1: "Old World (unless Pangaea); -30% players recommended"
+			},
+		2:	{
+			0: "TXT_KEY_MAP_WRAP_FLAT",
+			1: "TXT_KEY_MAP_WRAP_CYLINDER",
+			2: "TXT_KEY_MAP_WRAP_TOROID"
+			}
+		}
+	translated_text = unicode(CyTranslator().getText(selection_names[iOption][iSelection], ()))
+	return translated_text
+	# </advc>
+	'''
 	optionID    = argsList[0]
 	selectionID = argsList[1]
-	# <advc.021b>
-	#if optionID == 0:
-		#if selectionID == 0:
-			#return "PW3 Generator (Square Grid - Accurate)"
-		#elif selectionID == 1:
-			#return "PW3 Generator (Hex Grid - Interesting)"
-		#else:
-			#return "PW2 Generator"
-	#elif optionID == 1:
-		#if selectionID == 0:
-			#return "PW3 Climate System"
-		#else:
-			#return "PW2 Climate System"
-
-	# Try to break Pangaea iff the New World option is set.
-	#if optionID == 2:
-		#if mc.AllowPangeas:
-			#if selectionID == 0:
-				#return "Allow (Do Nothing)"
-			#else:
-				#return "Break with Meteors"
-		#else:
-			#if selectionID == 0:
-				#return "Break with Meteors"
-			#else:
-				#return "Allow (Do Nothing)"
-	# </advc.021b>
 	if optionID == 0:
+		if selectionID == 0:
+			return "Normal"
+		elif selectionID == 1:
+			return "Low Tide"
+		elif selectionID == 2:
+			return "High Tide"
+		elif selectionID == 3:
+			return "Land Ho!"
+		else:
+			return "Water World"
+	elif optionID == 1:
+		if selectionID == 0:
+			return "PerfectWorld 3"
+		elif selectionID == 1:
+			return "PerfectWorld 3 (Hex Grid)"
+		else:
+			return "PerfectWorld 2"
+	elif optionID == 2:
+		if selectionID == 0:
+			return "Neighbor Slope"
+		else:
+			return "Absolute Height"
+	elif optionID == 3:
+		if selectionID == 0:
+			return "PerfectWorld 3"
+		else:
+			return "PerfectWorld 2"
+	elif optionID == 4:
+		if selectionID == 0:
+			return "Default SDK"
+		else:
+			return "PerfectWorld 2"
+	elif optionID == 5:
+		if selectionID == 0:
+			return "Break"
+		else:
+			return "Allow"
+	elif optionID == 6:
 		if selectionID == 0:
 			return "Cylindrical"
 		elif selectionID == 1:
 			return "Toroidal"
 		else:
 			return "Flat"
-	elif optionID == 1:
-		# advc.021b: Was just "Old World". The recommendation partly takes into account that the Old World option often doesn't have much of an effect. If it were working reliably, the recommendation should be -25% to -30%.
-		owMsg = "Old World (unless Pangaea); -20% players recommended"
-		if mc.AllowNewWorld:
-			if selectionID == 0:
-				return owMsg
-			else: # advc.021b: was "Everywhere"
-				return "Anywhere"
+	elif optionID == 7:
+		if selectionID == 0:
+			return "Everywhere"
 		else:
-			if selectionID == 0:
-				return "Anywhere" # advc.021b
-			else:
-				return owMsg # advc.021b
+			return "Old World Only"
 	return u""
+	'''
 
-
+# <advc> Make cylindrical the middle option b/c that's what the standard map scripts do
 def getCustomMapOptionDefault(argsList):
-	return 0
+#	return 0
+	[iOption] = argsList
+	option_defaults = {
+		0:	0,
+		1:	0,
+		2:	1
+		}
+	return option_defaults[iOption] # </advc>
 
 
 def isRandomCustomMapOption(argsList):
 	return False
 
 
+''' # advc: Re-enable all the normalization functions in the DLL. Extra rivers and lakes had already been re-enabled by v3.3.
 #This doesn't work with my river system so it is disabled. Some civs
-#might start without a river. Boo hoo.
-# <advc.021b> Turn on all the default normalizers. "Doesn't work" seems to be just a matter of aesthetics.
-#def normalizeAddRiver():
-#	return
-#def normalizeAddLakes():
-#	return
-#def normalizeAddGoodTerrain():
-#	return
-#def normalizeRemoveBadTerrain():
-#	return
-#def normalizeRemoveBadFeatures():
-#	return
-#def normalizeAddFoodBonuses():
-#	return
-#def normalizeAddExtras():
-#	return
-#def normalizeRemovePeaks():
-#	return
-# </advc.021b>
+#might start without a river.
+def normalizeAddRiver():
+	return
+def normalizeAddLakes():
+	return
+def normalizeAddGoodTerrain():
+	return
+def normalizeRemoveBadTerrain():
+	return
+def normalizeRemoveBadFeatures():
+	return
+def normalizeAddFoodBonuses():
+	return
+def normalizeAddExtras():
+	return
+def normalizeRemovePeaks():
+	return
+'''
 
 def isAdvancedMap():
 	return False
 
-
 def isClimateMap():
 	return False
-
-
-def isSeaLevelMap():
-	return True
+# advc: Yes, we do use the standard sea level option.
+#def isSeaLevelMap():
+#	return False
 
 
 def getTopLatitude():
-	return mc.topLatitude # advc.021b: was 90
-
+	return mc.topLatitude # advc.001: was 90
 
 def getBottomLatitude():
-	return mc.bottomLatitude # advc.021b: was -90
+	return mc.bottomLatitude # advc.001: was -90
 
-
+''' # advc: Use the defaults, which are smaller, combined with more arable land.
 def getGridSize(argsList):
-	# <advc.021b> Use the defaults, which are smaller, combined with a higher land ratio.
-	CyPythonMgr().allowDefaultImpl()
-	return
-	# At first, I had tried these sizes in between the default and PerfectMongoose:
 	grid_sizes = {
-		# was 12x8
-		WorldSizeTypes.WORLDSIZE_DUEL:					(13,  8),
+		WorldSizeTypes.WORLDSIZE_DUEL:					(12,  8),
 		WorldSizeTypes.WORLDSIZE_TINY:					(15, 10),
-		# was 18x12
-		WorldSizeTypes.WORLDSIZE_SMALL:					(17, 11),
-		# was 24x16
-		WorldSizeTypes.WORLDSIZE_STANDARD:				(22, 14),
-		# was 30x20
-		WorldSizeTypes.WORLDSIZE_LARGE:					(27, 18),
-		# was 36x24
-		WorldSizeTypes.WORLDSIZE_HUGE:					(33, 22)
-		# </advc.021b>
+		WorldSizeTypes.WORLDSIZE_SMALL:					(18, 12),
+		WorldSizeTypes.WORLDSIZE_STANDARD:				(24, 16),
+		WorldSizeTypes.WORLDSIZE_LARGE:					(30, 20),
+		WorldSizeTypes.WORLDSIZE_HUGE:					(36, 24)
 	}
 	if (argsList[0] == -1): # (-1,) is passed to function on loads
 			return []
 	[eWorldSize] = argsList
 	return grid_sizes[eWorldSize]
+'''
 
 
 def generatePlotTypes():
+	print ""
+	print "====================="
+	print "Generating Plot Types"
+	print "====================="
 	gc = CyGlobalContext()
 	map = gc.getMap()
 	mc.width  = map.getGridWidth()
 	mc.height = map.getGridHeight()
 	PRand.seed()
 	if mc.LandmassGenerator == 2:
-		# advc.021b, advc.001: Was hmWidth/width, but hmWidth is a constant (144), and meteor size should grow with the map size. E.g. Standard map size means width=84.
-		mc.minimumMeteorSize = 1 + int(round((2.0 * mc.width) / float(mc.hmWidth))) # advc.021b: Coefficient moved into numerator; was 3.
+		scaleMinMeteorSize() # advc: Moved into new function
 		em = e2
 		em.initialize(mc.hmWidth, mc.hmHeight, mc.WrapX, mc.WrapY)
 		em.PerformTectonics()
@@ -5683,27 +6244,25 @@ def generatePlotTypes():
 		em = e3
 		if mc.ClimateSystem == 0:
 			em.initialize(mc.width,   mc.height,   mc.WrapX, mc.WrapY)
-		else: 
-			# advc.021b: See above
-			mc.minimumMeteorSize = 1 + int(round((2.0 * mc.width) / float(mc.hmWidth))) # advc.021b
+		else:
+			scaleMinMeteorSize() # advc: Moved into new function
 			em.initialize(mc.hmWidth, mc.hmHeight, mc.WrapX, mc.WrapY)
 		em.GenerateElevationMap()
 		em.FillInLakes()
-	if mc.maximumMeteorCount > 0: # advc.021b
+	if mc.maximumMeteorCount > 0: # advc
 		pb.breakPangaeas()
 	if mc.ClimateSystem == 0:
 		c3.GenerateTemperatureMap()
 		c3.GenerateRainfallMap()
 	else:
 		c2.CreateClimateMaps()
-	#if mc.LandmassGenerator == 2 or mc.ClimateSystem == 1:
-		#ShrinkMaps()
+	if mc.LandmassGenerator == 2 or mc.ClimateSystem == 1:
+		ShrinkMaps()
 	tm.initialize()
 	tm.GeneratePlotMap()
 	tm.GenerateTerrainMap()
 	rm.GenerateRiverMap()
-	if mc.AllowNewWorld:
-		km.GenerateContinentMap()
+	km.GenerateContinentMap()
 	'''
 	land   = 0.0
 	flat   = 0.0
@@ -5713,7 +6272,7 @@ def generatePlotTypes():
 	plains = 0.0
 	grass  = 0.0
 	for i in range(em.length):
-		if tm.pData[i] != mc.OCEAN:
+		if tm.pData[i] != mc.WATER:
 			land += 1.0
 			if tm.pData[i] != mc.PEAK:
 				flat += 1.0
@@ -5746,75 +6305,46 @@ def generatePlotTypes():
 			plotTypes[i] = PlotTypes.PLOT_LAND
 	return plotTypes
 
+# advc: Cut out of generatePlotTypes
+def scaleMinMeteorSize():
+	#return (1 + int(round(float(mc.hmWidth) / float(mc.width)))) * 3
+	# advc: When using the PW 2 climate system, the PangaeaBreaker has to work with a map of dimensions hmWidth x hmHeight. Therefore, counterintuitively, the meteor size needs to be increased on small maps. That part is OK in the original code above. But we shouldn't discard the meteor size set previously.
+	mc.minimumMeteorSize = int(math.ceil((mc.minimumMeteorSize * mc.hmWidth) / float(mc.width)))
+
 
 def generateTerrainTypes():
+	print "========================"
+	print "Generating Terrain Types"
+	print "========================"
 	if mc.LandmassGenerator == 2:
 		em = e2
 	else:
 		em = e3
 	gc = CyGlobalContext()
-	terrainDesert = gc.getInfoTypeForString("TERRAIN_DESERT")
-	terrainPlains = gc.getInfoTypeForString("TERRAIN_PLAINS")
-	terrainSnow   = gc.getInfoTypeForString("TERRAIN_SNOW") # advc.004g: Now officially called "Snow"
-	terrainTundra = gc.getInfoTypeForString("TERRAIN_TUNDRA")
-	terrainGrass  = gc.getInfoTypeForString("TERRAIN_GRASS")
-	terrainHill   = gc.getInfoTypeForString("TERRAIN_HILL")
-	terrainCoast  = gc.getInfoTypeForString("TERRAIN_COAST")
-	terrainOcean  = gc.getInfoTypeForString("TERRAIN_OCEAN")
-	terrainPeak   = gc.getInfoTypeForString("TERRAIN_PEAK")
+	iGrass  = gc.getInfoTypeForString("TERRAIN_GRASS")
+	iPlains = gc.getInfoTypeForString("TERRAIN_PLAINS")
+	iDesert = gc.getInfoTypeForString("TERRAIN_DESERT")
+	iTundra = gc.getInfoTypeForString("TERRAIN_TUNDRA")
+	iSnow   = gc.getInfoTypeForString("TERRAIN_SNOW")
+	iCoast  = gc.getInfoTypeForString("TERRAIN_COAST")
+	iOcean  = gc.getInfoTypeForString("TERRAIN_OCEAN")
 	terrainTypes = [0] * em.length
 	for i in range(em.length):
 		if tm.tData[i] == mc.OCEAN:
-			terrainTypes[i] = terrainOcean
+			terrainTypes[i] = iOcean
 		elif tm.tData[i] == mc.COAST:
-			terrainTypes[i] = terrainCoast
-		elif tm.tData[i] == mc.DESERT:
-			terrainTypes[i] = terrainDesert
-		elif tm.tData[i] == mc.PLAINS:
-			terrainTypes[i] = terrainPlains
+			terrainTypes[i] = iCoast
 		elif tm.tData[i] == mc.GRASS:
-			terrainTypes[i] = terrainGrass
+			terrainTypes[i] = iGrass
+		elif tm.tData[i] == mc.PLAINS:
+			terrainTypes[i] = iPlains
 		elif tm.tData[i] == mc.TUNDRA:
-			terrainTypes[i] = terrainTundra
+			terrainTypes[i] = iTundra
 		elif tm.tData[i] == mc.SNOW:
-			terrainTypes[i] = terrainSnow
+			terrainTypes[i] = iSnow
+		elif tm.tData[i] == mc.DESERT:
+			terrainTypes[i] = iDesert
 	return terrainTypes
-
-
-def addRivers():
-	gc = CyGlobalContext()
-	pmap = gc.getMap()
-	for y in range(mc.height):
-		for x in range(mc.width):
-			placeRiversInPlot(x, y)
-	#peaks and rivers don't always mix well graphically, so lets eliminate
-	#these potential glitches. Basically if there are adjacent peaks on both
-	#sides of a river, either in a cardinal direction or diagonally, they
-	#will look bad.
-	for y in range(mc.height):
-		for x in range(mc.width):
-			plot = pmap.plot(x, y)
-			if plot.isPeak() and plot.isNOfRiver():
-				yy = y - 1
-				for xx in range(x - 1, x + 2):
-					ii = GetIndex(xx, yy)
-					if ii >= 0:
-						newPlot = pmap.plot(xx, yy)
-						if newPlot.isPeak():
-							plot.setPlotType(PlotTypes.PLOT_HILLS, True, True)
-							tm.pData[ii] = mc.HILLS
-							break
-			#possibly changed so checked again
-			if plot.isPeak() and plot.isWOfRiver():
-				xx = x + 1
-				for yy in range(y - 1, y + 2):
-					ii = GetIndex(xx, yy)
-					if ii >= 0:
-						newPlot = pmap.plot(xx, yy)
-						if newPlot.isPeak():
-							plot.setPlotType(PlotTypes.PLOT_HILLS, True, True)
-							tm.pData[ii] = mc.HILLS
-							break
 
 
 def placeRiversInPlot(x, y):
@@ -5957,7 +6487,7 @@ def replaceRivers(x, y):
 
 '''
 It looks bad to have a lake, fed by a river, sitting right next to the coast.
-This function tries to minimize that occurrence by replacing it with a
+This function tries to minimize that occurance by replacing it with a
 natural harbor, which looks much better.
 '''
 def makeHarbor(x, y, oceanMap):
@@ -5965,9 +6495,9 @@ def makeHarbor(x, y, oceanMap):
 	i = oceanMap.getIndex(x, y)
 	if oceanMap.data[i] != oceanID:
 		return
-	# <advc.021b> Most tiles are near a coast; but shouldn't eliminate most lakes that are fed by rivers. And bays are rather too common.
+	# <advc> Most tiles are near a coast; but shouldn't eliminate most lakes that are fed by rivers. And bays are rather too common.
 	if PRand.randint(0, 1) != 0:
-		return # </advc.021b>
+		return # </advc>
 	#N
 	ii = oceanMap.getIndex(x, y + 2)
 	if ii >= 0 and oceanMap.getAreaByID(oceanMap.data[ii]).water and oceanMap.data[ii] != oceanID:
@@ -6033,16 +6563,16 @@ def makeHarbor(x, y, oceanMap):
 def makeChannel(x, y):
 	gc = CyGlobalContext()
 	mmap = gc.getMap()
-	terrainCoast = gc.getInfoTypeForString("TERRAIN_COAST")
 	plot = mmap.plot(x, y)
 	cleanUpLake(x, y)
-	plot.setTerrainType(terrainCoast, False, False) # advc.opt: was True,True
+	plot.setPlotType(PlotTypes.PLOT_OCEAN, False, False) # advc.opt: was True,True
 	plot.setRiverID(-1)
 	plot.setNOfRiver(False, CardinalDirectionTypes.NO_CARDINALDIRECTION)
 	plot.setWOfRiver(False, CardinalDirectionTypes.NO_CARDINALDIRECTION)
 	replaceRivers(x, y)
 	i = GetIndex(x, y)
-	tm.pData[i] = mc.OCEAN
+	tm.pData[i] = mc.WATER
+	tm.tData[i] = mc.COAST
 
 
 def expandLake(x, y, riversIntoLake, oceanMap):
@@ -6057,7 +6587,6 @@ def expandLake(x, y, riversIntoLake, oceanMap):
 		em = e3
 	gc = CyGlobalContext()
 	mmap = gc.getMap()
-	terrainCoast = gc.getInfoTypeForString("TERRAIN_COAST")
 	lakePlots = list()
 	lakeNeighbors = list()
 	i = oceanMap.getIndex(x, y)
@@ -6094,15 +6623,35 @@ def expandLake(x, y, riversIntoLake, oceanMap):
 					if oceanMap.areaList[n].ID == areaID:
 						if oceanMap.areaList[n].water:
 							return
+				xx, yy = CoordsFromIndex(ii, oceanMap.width) # advc.001
 				if rm.riverMap[ii] != mc.L and not mmap.plot(xx, yy).isWater():
 					lakeNeighbors.append(LakePlot(xx, yy, em.data[ii]))
 		lakeSize -= 1
+
+# <advc> Let the DLL place rivers even if the PM river generator is enabled (once the PM river generator has finished)
+def addRivers():
+	CyPythonMgr().allowDefaultImpl() # </advc>
+	if mc.RiverGenerator != 0:
+		return
+	# <advc> Cut from addLakes. Let PM
+	''' # We no longer let the DLL place rivers first; no need to clear them.
+	for y in range(mc.height):
+		for x in range(mc.width):
+			plot = CyMap().plot(x, y)
+			plot.setRiverID(-1)
+			plot.setNOfRiver(False, CardinalDirectionTypes.NO_CARDINALDIRECTION)
+			plot.setWOfRiver(False, CardinalDirectionTypes.NO_CARDINALDIRECTION)
+	'''
+	for y in range(mc.height):
+		for x in range(mc.width):
+			placeRiversInPlot(x, y) # </advc>
 
 
 def addLakes():
 	gc = CyGlobalContext()
 	mmap = gc.getMap()
-	terrainCoast = gc.getInfoTypeForString("TERRAIN_COAST")
+
+	# (advc: River generation code moved into addRivers.)
 	oceanMap = AreaMap(mc.width, mc.height, True, True)
 	oceanMap.defineAreas(isWaterMatch)
 	for y in range(mc.height):
@@ -6127,17 +6676,11 @@ def addLakes():
 
 
 def addFeatures():
+	print "========================"
+	print "Generating Feature Types"
+	print "========================"
 	gc = CyGlobalContext()
 	mmap = gc.getMap()
-	fForest      = gc.getInfoTypeForString("FEATURE_FOREST")
-	fJungle      = gc.getInfoTypeForString("FEATURE_JUNGLE")
-	fFloodPlains = gc.getInfoTypeForString("FEATURE_FLOOD_PLAINS")
-	fOasis       = gc.getInfoTypeForString("FEATURE_OASIS")
-	FORESTLEAFY     = 0
-	FORESTEVERGREEN = 1
-	FORESTSNOWY     = 2
-	#LM - Rewrote this function, separately from AIAndy's update, to clean up
-	#my bloated mess of code that was here before.
 	if mc.LandmassGenerator == 2:
 		em = e2
 	else:
@@ -6146,17 +6689,67 @@ def addFeatures():
 		cm = c3
 	else:
 		cm = c2
+	fForest      = gc.getInfoTypeForString("FEATURE_FOREST")
+	fJungle      = gc.getInfoTypeForString("FEATURE_JUNGLE")
+	fFloodPlains = gc.getInfoTypeForString("FEATURE_FLOOD_PLAINS")
+	fOasis       = gc.getInfoTypeForString("FEATURE_OASIS")
+	FORESTLEAFY     = 0
+	FORESTEVERGREEN = 1
+	FORESTSNOWY     = 2
+
+	#print "Forest"
+	forestTiles  = []
+	forestLength = 0
+	coldTiles = [] # advc
+	for y in range(mc.height):
+		for x in range(mc.width):
+			i = GetIndex(x, y)
+			# <advc>
+			if tm.pData[i] == mc.WATER or tm.pData[i] == mc.PEAK:
+				continue
+			# Use global function for not-jungle checks
+			if tm.tData[i] == mc.GRASS or tm.tData[i] == mc.PLAINS:
+				if not canHaveJungle(cm.RainfallMap.data[i], tm.jungleRainfall, tm.tData[i], tm.pData[i], em.GetLatitudeForY(y), cm.TemperatureMap.data[i], tm.jungleTemp):
+					forestTiles.append(cm.TemperatureMap.data[i])
+					forestLength += 1
+			elif tm.tData[i] == mc.TUNDRA:
+				coldTiles.append(cm.TemperatureMap.data[i])
+	treeLineTemp = FindValueFromPercent(coldTiles, len(coldTiles), mc.TreelinePercent, True)
+	 # </advc>
+	deciduousTemp = FindValueFromPercent(forestTiles, forestLength, mc.DeciduousPercent, True)
+
+	#print "Oasis"
+	oasisCandidates = [] # advc
+	desertLength = 0
+	for y in range(mc.height):
+		for x in range(mc.width):
+			i = GetIndex(x, y)
+			if tm.tData[i] != mc.DESERT:
+				continue
+			desertLength += 1
+			# advc: Moved into new global function
+			if canHaveOasis(x, y, tm.tData, fOasis):
+				oasisCandidates.append(cm.RainfallMap.data[i])
+	# <advc>
+	oasisRainfall = 1000
+	if len(oasisCandidates) > 0:
+		# The target frequency is supposed to apply to all desert tiles, but only certain tiles are eligible. I think PM had been making this adjustment later on through the min/max chance.
+		oasisPercent = (mc.OasisPercent * desertLength) / float(len(oasisCandidates))
+		# Was FindValueFromPercent, which has trouble with the distribution being almost uniform. (Meaning also that rainfall is actually a pretty meaningless criterion for placing oases.)
+		oasisRainfall = FindThresholdFromPercent(oasisCandidates, len(oasisCandidates), oasisPercent, True)
+	# </advc>
 	createIce()
-	#Now plant forest or jungle
 	for y in range(mc.height):
 		lat = em.GetLatitudeForY(y)
 		for x in range(mc.width):
+			set = False
 			i = GetIndex(x, y)
 			plot = mmap.plot(x, y)
 			#Jungle, Forest
-			if not plot.isWater() and tm.tData[i] != mc.DESERT and tm.tData[i] != mc.SNOW and not plot.isPeak():
-				if cm.TemperatureMap.data[i] >= mc.JungleTemp and cm.RainfallMap.data[i] >= tm.plainsThreshold * mc.JungleFactor and PRand.random() < mc.MaxTreeChance:
-					# <advc.021b> Avoid placing jungle adjacent to desert
+			if (tm.tData[i] == mc.GRASS or tm.tData[i] == mc.PLAINS or tm.tData[i] == mc.TUNDRA) and tm.pData[i] != mc.PEAK:
+				# advc: Jungle checks moved into global function
+				if not set and canHaveJungle(cm.RainfallMap.data[i], tm.jungleRainfall, tm.tData[i], tm.pData[i], lat, cm.TemperatureMap.data[i], tm.jungleTemp) and PRand.random() < mc.MaxTreeChance:
+					# <advc> Avoid placing jungle adjacent to desert
 					desertScore = 0
 					for dx in range(-1,2):
 						for dy in range(-1,2):
@@ -6180,54 +6773,47 @@ def addFeatures():
 							tm.tData[i] = mc.PLAINS
 							# Terrain has already been set at this point; need to overwrite that.
 							plot.setTerrainType(gc.getInfoTypeForString("TERRAIN_PLAINS"), False, False)
-					else:
-					# </advc.021b>					
-						setFeature(plot, fJungle, 0)
-				elif cm.RainfallMap.data[i] >= tm.plainsThreshold * mc.JungleFactor * PRand.random() and PRand.random() < (mc.MaxTreeChance * mc.ForestChance): # advc.021b: Multiplication by ForestChance added
+					else: # </advc>
+						if setFeature(plot, fJungle, 0):
+							set = True
+				# <advc>
+				if not set:
 					if tm.tData[i] == mc.TUNDRA:
-						setFeature(plot, fForest, FORESTSNOWY)
-					elif cm.TemperatureMap.data[i] >= mc.ForestTemp:
-						setFeature(plot, fForest, FORESTLEAFY)
+						if cm.TemperatureMap.data[i] < treeLineTemp:
+							continue
+						forestChance = mc.BorealForestChance
 					else:
-						setFeature(plot, fForest, FORESTEVERGREEN)
+						forestChance = mc.TemperateForestChance # </advc>
+					if cm.RainfallMap.data[i] >= tm.jungleRainfall * PRand.random() and PRand.random() < mc.MaxTreeChance * forestChance: # advc: Multiplication by ForestChance added
+						if tm.tData[i] == mc.TUNDRA:
+							if setFeature(plot, fForest, FORESTSNOWY):
+								set = True
+						elif cm.TemperatureMap.data[i] >= deciduousTemp:
+							if setFeature(plot, fForest, FORESTLEAFY):
+								set = True
+						else:
+							if setFeature(plot, fForest, FORESTEVERGREEN):
+								set = True
 			#Floodplains, Oasis
-			elif not plot.isWater() and tm.tData[i] == mc.DESERT and tm.pData[i] == mc.LAND:
-				#if plot.isRiver():
-					#plot.setFeatureType(fFloodPlains, 0)
-				# <advc.021b> Let the DLL check that
+			if not set and tm.tData[i] == mc.DESERT:
+				#if plot.isRiver(): # advc: Let setFeature (i.e. the DLL) check this
 				if setFeature(plot, fFloodPlains, 0):
-					pass # </advc.021b>
-				else:
-					#is this square surrounded by desert?
-					valid = True
-					adjNonDesertCount = 0 # advc.021b
-					for yy in range(y - 1, y + 2):
-						for xx in range(x - 1, x + 2):
-							ii = GetIndex(xx, yy)
-							if ii >= 0:
-								surPlot = mmap.plot(xx, yy)
-								# advc.021b: Moved the mc.DESERT clause into a separate conditional
-								if surPlot.isWater() or surPlot.getFeatureType() == fOasis:
-									valid = False
-									break
-								# <advc.021b> Only exclude tiles with more than 4 adjacent non-desert tiles
-								if tm.tData[ii] != mc.DESERT:
-									adjNonDesertCount = adjNonDesertCount + 1
-									if adjNonDesertCount > 4:
-										valid = False
-										break # </advc.021b>
-						if not valid:
-							break
-					if valid and PRand.random() < mc.OasisChance:
-						setFeature(plot, fOasis, 0)
+					set = True
+				if not set and cm.RainfallMap.data[i] >= oasisRainfall:
+					#if PRand.random() < mc.OasisMinChance + (((mc.OasisMaxChance - mc.OasisMinChance) * (cm.RainfallMap.data[i] - oasisRainfall)) / (tm.desertRainfall - oasisRainfall)):
+					# advc: The rainfall ratio is dubious b/c there is very little rainfall on all desert tiles. I'm not sure that a (min/max) chance is needed at all. Let's try it w/o that. Surroundings check moved into new global function.
+					if canHaveOasis(x, y, tm.tData, fOasis):
+						if setFeature(plot, fOasis, 0):
+							set = True
 
-# <advc.021b> Make sure that placement rules are consistent with DLL.
+
+# advc: Make sure that the placement rules are consistent with the DLL.
 # setFeatureType calls above redirected here.
 def setFeature(plot, feature, variety):
 	if not plot.canHaveFeature(feature):
 		return False
 	plot.setFeatureType(feature, variety)
-	return True # </advc.021b>
+	return True
 
 
 def createIce():
@@ -6240,7 +6826,11 @@ def createIce():
 	else:
 		cm = c2
 		iceTemp = 0.4
-	worldSize  = gc.getMap().getWorldSize()
+	# advc: Adjust to top latitude
+	iceTemp = iceTemp * mc.topLatitude / 90
+	iceTemp *= 0.9 # advc: There's also a bit too much ice in general
+	'''
+	worldSize = gc.getMap().getWorldSize()
 	if worldSize == 0:
 		thickness = 3  #/ 8  = 0.375
 	elif worldSize == 1:
@@ -6257,6 +6847,9 @@ def createIce():
 		thickness = 11 #/ 28 = 0.393
 	else:
 		thickness = 14 #/ 36 = 0.389
+	'''
+	# advc: Simpler, and doesn't need to be adjusted to getGridSize. Divisor 10.0 would be (pretty much) equivalent to the above, but I don't want it to be as thick as that.
+	thickness = int(round((mc.height / 12.5) * mc.topLatitude / 90))
 	if mc.WrapY:
 		iceChance    = 0.5
 		iceReduction = 0.3 / (thickness - 1)
@@ -6282,20 +6875,247 @@ def createIce():
 				plot.setFeatureType(featureIce, 0)
 		iceChance -= iceReduction
 
-
-def addBonuses():
-	# advc.021b: Replacing the code below. Let CvMapGenerator handle the bonuses.
-	CyPythonMgr().allowDefaultImpl()
-	#bp.AddBonuses()
+# advc: The AdvCiv DLL can do this better - and much faster; the PM bonus placer seems to be almost as slow as generateTerrainTypes.
+#def addBonuses():
+#	bp.AddBonuses()
 
 
 def assignStartingPlots():
-	# advc.027: If we set starting plots, then starting position iteration can't move starting plots to uninhabited landmasses. That's good if those landmasses are reserved for a New World, bad otherwise.
-	if mc.AllowNewWorld or CyGlobalContext().getDefineINT("ENABLE_STARTING_POSITION_ITERATION") <= 0:
+	# <advc.027> Handle starting sites in findStartingArea - unless SPI is disabled.
+	if CyGlobalContext().getDefineINT("ENABLE_STARTING_POSITION_ITERATION") <= 0:
 		sf.SetStartingPlots()
-	# advc.021b: Let CvGame::asignStartingPlots shuffle plots around based on difficulty
-	CyPythonMgr().allowDefaultImpl()
+	else:
+		CyPythonMgr().allowDefaultImpl()
 
+
+def findStartingArea(argsList):
+	[playerID] = argsList
+	player = CyGlobalContext().getPlayer(playerID)
+	if CyGlobalContext().getDefineINT("ENABLE_STARTING_POSITION_ITERATION") <= 0:
+		# Starting plots have already been computed in assignStartingPlots then
+		CyPythonMgr().allowDefaultImpl()
+		return -1
+	if not mc.OldWorldStarts:
+		# Would be nice to let SPI use the PM sites as its initial solution, but, if the PM sites are set in assignStartingPlots, then SPI won't call findStartingArea, and, once findStartingArea is called, SPI is already in the process of generating its own initial solution. Could be worked out perhaps ... Oh, well, leaving all the work to SPI at least saves time.
+		CyPythonMgr().allowDefaultImpl()
+		return -1
+	plot = player.getStartingPlot()
+	if not plot or plot.isNone(): # Don't run starting plot finder more than once(!)
+		sf.SetStartingPlots()
+	# Tell SPI to respect the starting areas chosen by PM. (One area per-player- however, SPI may still move players between starting areas; i.e. only the New-Old World split is handled by PM.)
+	plot = player.getStartingPlot()
+	if plot and not plot.isNone():
+		return plot.getArea()
+	CyPythonMgr().allowDefaultImpl()
+	return -1
+# </advc.027>
 
 def beforeInit():
 	mc.initInGameOptions()
+
+
+##############################################################################
+## Version History (LunarMongoose)
+##############################################################################
+##
+## 3.3 - Added a menu option to use Vanilla Civ4's SDK river generator by default
+## instead of PerfectWorld 2's generator. Added a menu option to use absolute height
+## instead of lowest-neighbor slope for setting Hills and Peaks. Wrote a new proximity
+## calculation for determining which landmasses are added to the largest and
+## second-largest continents to form the Old World and New World regions. Set Oases to
+## only require Desert in all cardinal directions. Disabled meteors on Duel, Tiny, and
+## Small regardless of Pangaea setting, since they tend to wipe out most of the land
+## on the smaller map sizes (often leading to player spawning errors on Duel). Added a
+## menu option to use 5 different Sea Level values.
+##
+## 3.2.1 - Changed Jungle temperature requirement from an absolute value to a global
+## percent to avoid large amounts of Jungle on maps with a lot of land near the
+## equator, and to avoid small amounts of Jungle on maps without much land near the
+## equator. Increased minimum distance between Oases from 1 to 2 tiles.
+##
+## 3.2 - Added AIAndy's square grid evaluation, float division and geostrophic fixes,
+## his bonus placement and starting location speed enhancements, and his PythonRandom
+## multiplayer support. Added a menu option to continue using the old hex-grid-based
+## Perlin Noise code if desired, since the previous PW3 landmass shapes are different
+## and still fully viable. Merged in the remaining PW 2.0.8 functionality with a menu
+## option to select the PW2 landmass generator if desired. Changed the rainfall
+## thresholds from absolute values to global percents like the temperature thresholds,
+## set them to ignore Peaks, and merged the climate system constants back together.
+## Enforced the current map's x and y wrap settings in a number of places in the code,
+## which fixes some bugs with -1 data values near the edges and should get rivers
+## wrapping only when they're supposed to. Fixed natural harbor bug, and added shape
+## randomization to natural harbor creation on diagonals. Changed sea ice to vary with
+## map size instead of always being 4 tiles thick, and to require water temperature to
+## be near freezing so the bands have some limited shape to them. Switched to PW2's
+## oversized internal grid when using the PW3 LMG with the PW2 climate system so the
+## latter works correctly. Changed the +/- 10% tolerances on elevation, rainfall and
+## sea level thresholds to +/- 2%. Removed MeteorCompensationFactor since the system
+## does indeed work best without it. (My apologies Ceph; you were right!) Made a
+## number of additional code improvements.
+##
+## 3.1 - Fuyu's 2.0.6f bonus placement, starting location enhancement, minimum hill
+## enforcement and bad feature removal code were added, along with his control
+## variables. Reverted some more settings for use with vanilla that were still set for
+## my mod. Added allowance in getPlotPotentialValue() for clearing features with
+## negative food (ie Jungles), since it already accounted for cleared features with
+## tile improvements that require it (only useful in mods). Added StartEra checks to
+## verify the tech requirements are met for clearing features in both cases. Agreeing
+## with Cephalo, I left the starting location production resource food override
+## threshold at half the city plots being workable, rather than two-thirds. Changed
+## the TechCityTrade requirement for resource valuation and placement to TechReveal
+## since the former makes no sense: if a bonus is visible it enhances the tile, and if
+## it isn't visible it doesn't enhance the tile, regardless of whether it can be
+## harvested or traded with other cities. Added BonusMaxGroupSize option of -1 for
+## setting Fuyu's clump limit based on WorldSize, clarified the description of what
+## the 0 option there actually does, and fixed the random bounds. Added a minimum
+## value to the StartEra checks to include all Classical resources, improvements and
+## clearing abilities in the plot valuations. Changed allowWonderBonusChance to allow
+## any strategic resource (not just Stone or Marble), and the city sweetener to allow
+## non-strategic resources - both up through Classical (or later). Adjusted lake and
+## river values again, and added separate controls for them for the two climate
+## systems. Increased Desert slightly and Plains considerably in the PW2 system.
+## Synchronized the PM3/PW2 code substantially more to make future updates easier.
+## Scaled temperature from normal linearly down to zero in the top and bottom thirds
+## of the map in the PW3 climate system, to get Tundra and Snow in the higher and
+## lower latitudes as there should be. Lowered Tundra/Snow temperatures to compensate.
+## Increased PW3 Grassland level slightly.
+##
+## 3.0 - Initial release of LM's Civ4 Port of Civ5's PW3_v2, using PW_2.06 as base.
+## The PW2 HeightMap and ClimateMap have been replaced with their PW3 counterparts.
+## PW2's high-altitude randomization was removed since it was causing 80-100%
+## of land tiles to be Peaks regardless of settings. PW2's SmallMaps were removed
+## since the new Perlin Noise landmass generator does not require an oversized map
+## to avoid looking bad. The YToXRatio hex grid scale factor has been removed.
+## PW2 control variables that are now unused have been removed, and the necessary
+## PW3 ones have been added. Values have also been adjusted as needed or desired.
+## MeteorCompensationFactor was added to try and help preserve total land percent
+## when using Break Pangaeas. The Sea Level menu option has been enabled, and
+## mc.SeaLevelFactor was added to support it. The Use menu option has been added,
+## and a slightly-modified version of the PW2 ClimateMap was added back in, to
+## support having a choice between the PW2 and PW3 climate systems. PW3's north
+## and south attenuation were removed. PW2's code that forced Snow to be at higher
+## elevation than Tundra, Tundra to be higher than everything else, and Desert to
+## not be, well, something... was removed. Plains in the PW3 ClimateMap were
+## set to have a null rainfall window and a relatively large temperature window,
+## so that they form exclusively as a result of cold deserts; this helps create
+## Great Plains type areas. RiverThreshold's dependence on PlainsPercent (via
+## PlainsThreshold) was removed so that its value can be set reliably. Set Oases to
+## require Desert in all surrounding tiles with no Oases present.
+##
+
+##############################################################################
+## Version History (Cephalo)
+##############################################################################
+##
+## 3v2 - Shrank the map sizes except for huge. Added a better way to adjust river
+## lengths. Used the continent art styles in a more diverse way. Cleaned up the
+## mountain ranges a bit.
+##
+## 3v1 - initial release! 11/24/2010
+##
+## 2.06 - Fixed a few bugs from my minimum hill/maximum bad feature function.
+##
+## 2.05 - Made maps of standard size and below a bit smaller. Changed the way I
+## remove jungle to prevent excessive health problems. Tiles in FC on different
+## continents have zero value. Tiles on different continents will not be boosted
+## with resources or hills. Water tiles have zero value for non-coastal cities.
+## Water tiles will not be boosted with resources for non-coastal cities, land
+## tiles will be boosted instead. (lookout Sid's Sushi!)
+##
+## 2.04 - Changed many percent values to be a percent of land tiles rather than
+## total map tiles for easier, more predictable adjustment. Ensured a minimum
+## number of hills in a starting fat cross. Disabled the normalizeRemovePeaks
+## function a replaced it with a maximum peaks in FC function. Added bonus
+## resources to FC depending on player handicap. Added a value bonus for cities
+## placed on river sides.
+##
+## 2.03 - Fixed an initialization problem related to Blue Marble. Added some
+## enhanced error handling to help me track down some of the intermittant bugs
+## that still remain.
+##
+## 2.02 - Fixed some problems with monsoons that were creating strange artifacts
+## near the tropics. Added an exponential curve to heat loss due to altitude, so
+## that jungles can appear more readily without crawling to inappropriate
+## latitudes.
+##
+## 2.01 - Changed the way I handled a vanilla version difference. Added toroidal
+## and flat map options. Made tree amount more easily adjustable. Added a variable to
+## tune the level of resource bonuses. Changed the rules for fixing tundra/ice next
+## to desert. Added altitude noise to the plate map to improve island chains. Added
+## a variable to control heat loss due to high altitude. Implimented a new interleaved
+## bonus placement scheme so that bonuses are placed individually in random order,
+## rather than all of each bonus type at once. Brought back the meteor code from
+## PerfectWorld 1 and eliminated the east/west continent divide.
+##
+## 2.0 - Rebuilt the landmass and climate model using the FaireWeather.py for
+## Colonization map script engine. Improved the river system. Fixed some
+## old bugs.
+##
+## 1.13 - Fixed a bug where starting on a goody hut would crash the game.
+## Prevented start plots from being on mountain peaks. Changed an internal
+## distance calculation from a straight line to a path distance, improving
+## start locations somewhat. Created a new tuning variable called
+## DesertLowTemp. Since deserts in civ are intended to be hot deserts, this
+## variable will prevent deserts from appearing near the poles where the
+## desert texture clashes horribly with the tundra texture.
+##
+## 1.12 - Found a small bug in the bonus placer that gave bonuses a minimum
+## of zero, this is why duel size maps were having so much trouble.
+##
+## 1.11 - limited the features mixing with bonuses to forests only. This
+## eliminates certain undesireable effects like floodplains being erased by
+## or coinciding with oil or incense, or corn appearing in jungle.
+##
+## 1.10 - Wrapped all map constants into a class to avoid all those
+## variables being loaded up when PW is not used. Also this makes it a
+## little easier to change them programatically. Added two in-game options,
+## New World Rules and Pangaea Rules. Added a tuning variable that allows
+## bonuses with a tech requirement to co-exist with features, so that the
+## absence of those features does not give away their location.
+##
+## 1.09 - Fixed a starting placement bug introduced in 1.07. Added a tuning
+## variable to turn off 'New world' placement.
+##
+## 1.08 - Removed the hemispheres logic and replaced it with a simulated meteor
+## shower to break up pangaeas. Added a tuning variable to allow pangaeas.
+##
+## 1.07 - Placing lakes and harbors after river placement was not updating river
+## crossings. Resetting rivers after lake placement should solve this. Fixed a
+## small discrepancy between Python randint and mapRand to make them behave the
+## same way. Bonuses of the same bonus class, when forced to appear on the
+## same continent, were sometimes crowding each other off the map. This was
+## especially problematic on the smaller maps. I added some additional, less
+## restrictive, passes to ensure that every resource has at least one placement
+## unless the random factors decide that none should be placed. Starting plot
+## normalization now will place food if a different bonus can not be used due
+## to lack of food. Changed heightmap generation to more likely create a
+## new world.
+##
+## 1.06 - Overhauled starting positions and resource placement to better
+## suit the peculiarities of PerfectWorld
+##
+## 1.05 - Fixed the Mac bug and the multi-player bug.
+##
+## 1.04a - I had unfairly slandered getMapRand in my comments. I had stated
+## that the period was shortened unnecessarily, which is not the case.
+##
+## 1.04 - Added and option to use the superior Python random number generator
+## or the getMapRand that civ uses. Made the number of rivers generated tunable.
+## Fixed a bug that prevented floodplains on river corners. Made floodplains
+## in desert tunable.
+##
+## 1.03a - very minor change in hope of finding the source of a multi-player
+## glitch.
+##
+## 1.03 - Improved lake generation. Added tuning variables to control some
+## new features. Fixed some minor bugs involving the AreaMap filler
+## and fixed the issue with oasis appearing on lakes. Maps will now report
+## the random seed value that was used to create them, so they can be easily
+## re-created for debugging purposes.
+##
+## 1.02 - Fixed a bug that miscalculated the random placing of deserts. This
+## also necessitated a readjustment of the default settings.
+##
+## 1.01 - Added global tuning variables for easier customization. Fixed a few
+## bugs that caused deserts to get out of control.
+##
