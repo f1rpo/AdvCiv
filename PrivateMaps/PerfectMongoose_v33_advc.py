@@ -2,7 +2,8 @@
 ## advc.021b: Latest changes to PerfectWorld in MongooseMod (v3.3) ported back
 ## to the latest standalone version of the script (v3.2) and enhanced and
 ## customized for the AdvCiv mod. The AdvCiv changes are marked with
-## "advc" comments, "advc.001" for bugfixes.
+## "advc" comments, "advc.001" for bugfixes, "advc.027" for the integration of
+## AdvCiv's starting position algorithm.
 ## Version history up to v3.3 moved to the end of the file.
 ##
 ##############################################################################
@@ -78,7 +79,7 @@ class MapConstants:
 		#break up any pangaea-like continents. Setting this variable to True will allow
 		#pangaeas to sometimes occur and should be greatly favored by any dinosaurs
 		#that might be living on this planet at the time.
-		self.AllowPangaeas = False
+		self.AllowPangaeas = True # advc: Initial value gets overwritten, but let's still use the default.
 
 		#This variable can be used to turn off 'New world' logic and place starting positions
 		#anywhere in the world. For some mods, a new world doesn't make sense.
@@ -533,6 +534,7 @@ class MapConstants:
 		#a single 3x3 area. When set to -1 (default), the maximum group size is between 3 and 6,
 		#based on WorldSize. When set to 0, the maximum group size is a random number between
 		# zero and (number of players). When set to 1, this will disable all bonus grouping.
+		# advc (comment): Doesn't apply b/c I'm letting CvMapGenerator handle resource placement, and I have my own changes in that class that reduce resource grouping.
 		self.BonusMaxGroupSize = -1
 
 		#Randomly allows strategic bonuses to be used to sweeten starting positions.
@@ -551,28 +553,38 @@ class MapConstants:
 		#self.SeaLevel          = mmap.getCustomMapOption(0)
 		# <advc> Use the standard sea level option instead
 		seaChg = gc.getSeaLevelInfo(CyMap().getSeaLevel()).getSeaLevelChange()
-		self.SeaLevelFactor -= 0.0425 * seaChg # </advc>
-		# Landmass Generator
-		self.LandmassGenerator = mmap.getCustomMapOption(1)
+		self.SeaLevelFactor -= 0.0425 * seaChg
+		# Some other changes to options below ...
+		# Landmass Generator (renumbered to option index 0; was 1)
+		self.LandmassGenerator  = mmap.getCustomMapOption(0)
+		# I'm making the hex-based generator unavailable. So the PW2 generator takes choice id 1 on the menu, but is still represented by id 2 within the script (b/c a lot of code would have to be changed otherwise).
+		if self.LandmassGenerator == 1:
+			self.LandmassGenerator = 2
 		# Hill/Peak Style
-		self.HillPeakStyle     = mmap.getCustomMapOption(2)
+		# Always place hills and peaks based (mainly) on differences in altitude. Using absolute altitude is pretty much only good for concluding that it's a bad idea.
+		#self.HillPeakStyle     = mmap.getCustomMapOption(2)
 		# Climate System
-		self.ClimateSystem     = mmap.getCustomMapOption(3)
+		# Always use PW3. The older system is working, but I see no compelling reason to prefer it.
+		#self.ClimateSystem     = mmap.getCustomMapOption(3)
 		# River Generator
-		self.RiverGenerator    = mmap.getCustomMapOption(4)
-		# Pangaea Rules  advc: Allow Pangaea by default
-		self.AllowPangaeas      = (mmap.getCustomMapOption(5) == 0)
-		# Wrap Options
-		selectionID            = mmap.getCustomMapOption(6)
-		# New World Rules
-		self.OldWorldStarts    = mmap.getCustomMapOption(7)
-
-		if selectionID == 0:
+		# Always use the PM river generator (but only for placing a portion of the rivers; best of both worlds, hopefully).
+		#self.RiverGenerator     = mmap.getCustomMapOption(4)
+		# Pangaea Rules
+		# Allow them unless the Old World Starts option is used
+		#self.AllowPangaeas      = (mmap.getCustomMapOption(5) == 0)
+		# Wrap Options (renumbered to option index 2; was 6)
+		selectionID            = mmap.getCustomMapOption(2)
+		# New World Rules (renumbered to option index 1; was 7)
+		self.OldWorldStarts    = mmap.getCustomMapOption(1)
+		# Break Pangaea if and only if there has to be an Old World
+		self.AllowPangaeas = not self.OldWorldStarts
+		# </advc>
+		if selectionID == 1: # advc: was 0
 			self.eastWaterBand  = 0
 			self.westWaterBand  = 0
 			self.eastCrop       = 0
 			self.westCrop       = 0
-		elif selectionID == 1:
+		elif selectionID == 2: # advc: was 1
 			self.WrapY = True
 			self.hmHeight -= 1
 			self.northWaterBand = 0
@@ -583,11 +595,11 @@ class MapConstants:
 			self.southCrop      = 0
 			self.eastCrop       = 0
 			self.westCrop       = 0
-		elif selectionID == 2:
+		elif selectionID == 0: # advc: was 2
 			self.WrapX = False
 			self.hmWidth += 1
 		# <advc>
-		# Portion of desert tiles that receives an oasis
+		# Portion of desert tiles that receive an oasis
 		self.OasisPercent = self.OasisMinChance + (self.OasisMaxChance - self.OasisMinChance) * PRand.random() 
 		# Far fewer than the 15 set initially
 		self.maximumMeteorCount = (3 * mmap.getWorldSize()) // 2 + 1
@@ -619,67 +631,12 @@ class MapConstants:
 		if self.ClimateSystem != 0: # High-altitude plots seem to be wetter with the PW2 climate system
 			self.tundraSnowRainfallTarget *= 1.4
 		# Some extra Jungle for the PM3 land generator b/c it tends to place less land near the equator.
-		if self.LandmassGenerator != 2:
+		if self.LandmassGenerator < 2:
 			self.JungleFactor -= 0.03
 			self.JunglePercent += 0.03
 		# </advc>
-		'''
-		self.optionsString = "Map Options:\n"
-		if self.SeaLevel == 0:
-			string = "Normal"
-		elif self.SeaLevel == 1:
-			string = "Low"
-		elif self.SeaLevel == 2:
-			string = "High"
-		elif self.SeaLevel == 3:
-			string = "Land"
-		else:
-			string = "Water"
-		self.optionsString += "Sea Level = " + string + "\n"
-		'''
-		if self.LandmassGenerator == 0:
-			string = "PW3 (Sqr)"
-		elif self.LandmassGenerator == 1:
-			string = "PW3 (Hex)"
-		else:
-			string = "PW2"
-		self.optionsString += "Landmass Generator = " + string + "\n"
-		if self.HillPeakStyle == 0:
-			string = "Slope"
-		else:
-			string = "Height"
-		self.optionsString += "Hill/Peak Style = " + string + "\n"
-		if self.ClimateSystem == 0:
-			string = "PW3"
-		else:
-			string = "PW2"
-		self.optionsString += "Climate System = " + string + "\n"
-		#if self.RiverGenerator == 0:
-		if self.RiverGenerator != 0: # advc
-			string = "Civ4"
-		else:
-			string = "PW2"
-		self.optionsString += "River Generator = " + string + "\n"
-		if self.AllowPangaeas:
-			string = "True"
-		else:
-			string = "False"
-		self.optionsString += "Allow Pangaeas = " + string + "\n"
-		if self.WrapX:
-			if not self.WrapY:
-				string = "Cylindrical"
-			else:
-				string = "Toroidal"
-		else:
-			string = "Flat"
-		self.optionsString += "World Wrap = " + string + "\n"
-		if self.OldWorldStarts:
-			string = "True"
-		else:
-			string = "False"
-		#self.optionsString += "Allow New World = " + string + "\n"
-		# advc:
-		self.optionsString += "Old World Starts = " + string + "\n"
+		# advc: Deleted; can be looked up in-game in AdvCiv. And it's tedious to keep it up to date here.
+		#self.optionsString = 
 
 
 mc = MapConstants()
@@ -2703,7 +2660,10 @@ def errorPopUp(message):
 		if player.isAlive():
 			iPlayerNum = iPlayerNum + 1
 			if player.isHuman():
-				text = message + "\n\n" + mc.optionsString + "\n" + PRand.seedString
+				text = message
+				# advc: disused
+				#text += "\n\n" + mc.optionsString
+				text += "\n" + PRand.seedString
 				popupInfo = CyPopupInfo()
 				popupInfo.setButtonPopupType(ButtonPopupTypes.BUTTONPOPUP_PYTHON)
 				popupInfo.setText(text)
@@ -3138,7 +3098,7 @@ def isDeepWaterMatch(x, y):
 	return True
 
 
-def isPeakWaterMatch(x, y):
+def isPeakWaterMatch(x, y): # advc.030 (note): disused
 	if mc.LandmassGenerator == 2:
 		em = e2
 	else:
@@ -3956,7 +3916,7 @@ class ContinentMap:
 		#totalLand = 0
 		#for c in continentList:
 		#	totalLand += c.size
-		# <advc> Could go through all plots (the map is pretty much finished), but I don't feel like writing yet another starting area heuristic. So I've written only a one-liner (Area.startScore) that takes into account the average latitude. That should already be much better than area size alone.
+		# <advc> Could use AdvCiv's CyArea::getNumHabitableTiles (the map is pretty much finished), but it's awkward to map the Area object to a CvArea. So I've written only a one-liner (Area.startScore) that takes into account the average latitude. That should already be much better than area size alone.
 		totalScore = 0
 		for c in continentList:
 			totalScore += c.startScore() # </advc>
@@ -4317,7 +4277,7 @@ class RiverMap:
 rm = RiverMap()
 
 
-class BonusPlacer:
+class BonusPlacer: # advc (note): Disused; see addBonuses.
 	def __init__(self):
 		return
 
@@ -4812,10 +4772,11 @@ class StartingPlotFinder:
 			regionMap = AreaMap(mc.width, mc.height, True, True)
 			regionMap.defineAreas(isDeepWaterMatch)
 			#LM - Set up a map that divides areas by Peaks so we can prevent starting locations from being walled-off in small pockets.
+			''' # advc.030: Won't be needed
 			if gc.getGame().getStartEra() < 3:
 				self.peakMap = AreaMap(mc.width, mc.height, True, True)
 				self.peakMap.defineAreas(isPeakWaterMatch)
-
+			'''
 			self.startingAreaList = list()
 			'''
 			if mc.SeaLevel == 0:
@@ -4979,6 +4940,7 @@ class StartingPlotFinder:
 			if len(shuffledPlayers) > 0:
 				raise ValueError, "Some players not placed in starting plot finder!"
 			#Now set up for normalization
+			''' # advc: AdvCiv DLL handles normalization
 			self.plotList = list()
 			for startingArea in self.startingAreaList:
 				for i in range(len(startingArea.plotList)):
@@ -5000,7 +4962,8 @@ class StartingPlotFinder:
 						bonuses = min(5, int(percentLacking / 0.2))
 						self.boostCityPlotValue(self.plotList[i].x, self.plotList[i].y, bonuses, self.plotList[i].isCoast())
 			#add bonuses due to player difficulty settings
-			#self.addHandicapBonus() # advc: disabled
+			self.addHandicapBonus()
+			'''
 		except Exception, e:
 			# advc: Removed "due to a rarely occurring bug" - could be any error, and not necessarily that rare. Added info about the exception. That said, for debugging, it may be better not to catch (and re-raise) the exception here because this obscures the specific origin.
 			errorPopUp("PerfectWorld's starting plot finder has failed; this map likely has unfair starting locations. You may wish to quit this game and generate a new map." + "\n\nAn exception of type " + e.__class__.__name__ + " occurred. Arguments:\n" + str(e.args))
@@ -5705,8 +5668,12 @@ class StartingArea:
 						continue
 
 					#LM - Prevent starting locations from being walled-off in small pockets.
-					if sf.peakMap.getAreaByID(sf.peakMap.data[GetIndex(x, y)]).size < sf.iMinIslandSize:
+					# advc.030: No need; in AdvCiv, peaks always separate areas.
+					'''
+					# advc.001: Map unavailable in later eras (I think)
+					if gc.getGame().getStartEra() < 3 and sf.peakMap.getAreaByID(sf.peakMap.data[GetIndex(x, y)]).size < sf.iMinIslandSize:
 						value = 0
+					'''
 					#LM - Invalid locations are given a value of -1, which is blocked. Highly undesirable but technically valid locations are given a value of 0
 					#which is also blocked, with any landmass overflows now handled above. I've left the values separate anyway though, in case they're ever used.
 					if value > 0:
@@ -6028,8 +5995,8 @@ sf = StartingPlotFinder()
 ###############################################################################
 
 def getDescription():
-	# advc: Taken from Perfect World 2. The description imo isn't the place for recounting the history of the map script.
-	return "Random map that simulates earth-like plate tectonics, geostrophic and monsoon winds and rainfall."
+	# advc: First sentence taken from Perfect World 2. The description imo isn't the place for recounting the history of the map script.
+	return "Random map that simulates earth-like plate tectonics, geostrophic and monsoon winds and rainfall. Customized for the AdvCiv mod."
 
 
 def getWrapX():
@@ -6042,52 +6009,92 @@ def getWrapY():
 
 def getNumCustomMapOptions():
 	mc.initialize()
-	return 8
+	return 3 # advc: was 8
 
 
 def getCustomMapOptionName(argsList):
-		optionID = argsList[0]
-		if optionID == 0:
-			return "Sea Level:"
-		elif optionID == 1:
-			return "Landmasses:"
-		elif optionID == 2:
-			return "Mountains:"
-		elif optionID == 3:
-			return "Climate:"
-		elif optionID == 4:
-			return "Rivers:"
-		elif optionID == 5:
-			return "Pangaeas:"
-		elif optionID == 6:
-			return "World Wrap:"
-		elif optionID == 7:
-			return "Start:"
-		return u""
+	optionID = argsList[0]
+	'''
+	if optionID == 0:
+		return "Sea Level:"
+	if optionID == 1:
+		return "Landmasses:"
+	if optionID == 2:
+		return "Mountains:"
+	if optionID == 3:
+		return "Climate:"
+	if optionID == 4:
+		return "Rivers:"
+	if optionID == 5:
+		return "Pangaeas:"
+	if optionID == 6:
+		return "World Wrap:"
+	if optionID == 7:
+		return "Start:"
+	'''
+	# <advc> Reorder and use existing translations
+	[optionID] = argsList
+	option_names = {
+		0:	"TXT_KEY_MAP_SCRIPT_LAND_SHAPE",
+		1:	"Start", # Doesn't really need a translation ...
+		2:	"TXT_KEY_MAP_WORLD_WRAP"
+		}
+	return unicode(CyTranslator().getText(option_names[optionID], ())) # </advc>
 
 
 def getNumCustomMapOptionValues(argsList):
-		optionID = argsList[0]
-		if optionID == 0:
-			return 5
-		elif optionID == 1:
-			return 3
-		elif optionID == 2:
-			return 2
-		elif optionID == 3:
-			return 2
-		elif optionID == 4:
-			return 2
-		elif optionID == 5:
-			return 2
-		elif optionID == 6:
-			return 3
-		elif optionID == 7:
-			return 2
-		return 0
-
+	optionID = argsList[0]
+	# <advc>
+	option_values = {
+		0:	2,
+		1:	2,
+		2:	3
+		}
+	return option_values[optionID]
+	# </advc>
+	'''
+	if optionID == 0:
+		return 5
+	if optionID == 1:
+		return 3
+	if optionID == 2:
+		return 2
+	if optionID == 3:
+		return 2
+	if optionID == 4:
+		return 2
+	if optionID == 5:
+		return 2
+	if optionID == 6:
+		return 3
+	if optionID == 7:
+		return 2
+	return 0
+	'''
 
 def getCustomMapOptionDescAt(argsList):
+	# <advc>
+	[iOption, iSelection] = argsList
+	selection_names = {
+		0:	{
+			0: "TXT_KEY_MAP_SCRIPT_NORMAL_CONTINENTS",
+			1: "TXT_KEY_MAP_SCRIPT_MASSIVE_CONTINENTS",
+			},
+		1:	{
+			0: "TXT_KEY_MAP_SCRIPT_START_ANYWHERE",
+			#1: "TXT_KEY_MAP_SCRIPT_ALL_IN_OLD_WORLD"
+			1: "Old World (unless Pangaea); -30% players recommended"
+			},
+		2:	{
+			0: "TXT_KEY_MAP_WRAP_FLAT",
+			1: "TXT_KEY_MAP_WRAP_CYLINDER",
+			2: "TXT_KEY_MAP_WRAP_TOROID"
+			}
+		}
+	translated_text = unicode(CyTranslator().getText(selection_names[iOption][iSelection], ()))
+	return translated_text
+	# </advc>
+	'''
 	optionID    = argsList[0]
 	selectionID = argsList[1]
 	if optionID == 0:
@@ -6119,17 +6126,15 @@ def getCustomMapOptionDescAt(argsList):
 		else:
 			return "PerfectWorld 2"
 	elif optionID == 4:
-		# advc: selectionID 0 and 1 flipped
 		if selectionID == 0:
-			return "PerfectWorld 2"
-		else:
 			return "Default SDK"
-	elif optionID == 5:
-		# advc: selectionID 0 and 1 flipped
-		if selectionID == 0:
-			return "Allow"
 		else:
+			return "PerfectWorld 2"
+	elif optionID == 5:
+		if selectionID == 0:
 			return "Break"
+		else:
+			return "Allow"
 	elif optionID == 6:
 		if selectionID == 0:
 			return "Cylindrical"
@@ -6143,24 +6148,31 @@ def getCustomMapOptionDescAt(argsList):
 		else:
 			return "Old World Only"
 	return u""
+	'''
 
-
+# <advc> Make cylindrical the middle option b/c that's what the standard map scripts do
 def getCustomMapOptionDefault(argsList):
-	return 0
+#	return 0
+	[iOption] = argsList
+	option_defaults = {
+		0:	0,
+		1:	0,
+		2:	1
+		}
+	return option_defaults[iOption] # </advc>
 
 
 def isRandomCustomMapOption(argsList):
 	return False
 
 
-'''
+''' # advc: Re-enable all the normalization functions in the DLL. Extra rivers and lakes had already been re-enabled by v3.3.
 #This doesn't work with my river system so it is disabled. Some civs
-#might start without a river. Boo hoo.
+#might start without a river.
 def normalizeAddRiver():
 	return
 def normalizeAddLakes():
 	return
-'''
 def normalizeAddGoodTerrain():
 	return
 def normalizeRemoveBadTerrain():
@@ -6173,7 +6185,7 @@ def normalizeAddExtras():
 	return
 def normalizeRemovePeaks():
 	return
-
+'''
 
 def isAdvancedMap():
 	return False
@@ -6863,14 +6875,40 @@ def createIce():
 				plot.setFeatureType(featureIce, 0)
 		iceChance -= iceReduction
 
-
-def addBonuses():
-	bp.AddBonuses()
+# advc: The AdvCiv DLL can do this better - and much faster; the PM bonus placer seems to be almost as slow as generateTerrainTypes.
+#def addBonuses():
+#	bp.AddBonuses()
 
 
 def assignStartingPlots():
-	sf.SetStartingPlots()
+	# <advc.027> Handle starting sites in findStartingArea - unless SPI is disabled.
+	if CyGlobalContext().getDefineINT("ENABLE_STARTING_POSITION_ITERATION") <= 0:
+		sf.SetStartingPlots()
+	else:
+		CyPythonMgr().allowDefaultImpl()
 
+
+def findStartingArea(argsList):
+	[playerID] = argsList
+	player = CyGlobalContext().getPlayer(playerID)
+	if CyGlobalContext().getDefineINT("ENABLE_STARTING_POSITION_ITERATION") <= 0:
+		# Starting plots have already been computed in assignStartingPlots then
+		CyPythonMgr().allowDefaultImpl()
+		return -1
+	if not mc.OldWorldStarts:
+		# Would be nice to let SPI use the PM sites as its initial solution, but, if the PM sites are set in assignStartingPlots, then SPI won't call findStartingArea, and, once findStartingArea is called, SPI is already in the process of generating its own initial solution. Could be worked out perhaps ... Oh, well, leaving all the work to SPI at least saves time.
+		CyPythonMgr().allowDefaultImpl()
+		return -1
+	plot = player.getStartingPlot()
+	if not plot or plot.isNone(): # Don't run starting plot finder more than once(!)
+		sf.SetStartingPlots()
+	# Tell SPI to respect the starting areas chosen by PM. (One area per-player- however, SPI may still move players between starting areas; i.e. only the New-Old World split is handled by PM.)
+	plot = player.getStartingPlot()
+	if plot and not plot.isNone():
+		return plot.getArea()
+	CyPythonMgr().allowDefaultImpl()
+	return -1
+# </advc.027>
 
 def beforeInit():
 	mc.initInGameOptions()
