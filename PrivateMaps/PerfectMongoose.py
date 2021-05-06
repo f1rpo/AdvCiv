@@ -402,7 +402,9 @@ class MapConstants:
 		self.hmNoiseLevel = 2.0
 
 		#Number of tectonic plates
-		self.hmNumberOfPlates = int(float(self.hmWidth * self.hmHeight) * 0.0016)
+		#self.hmNumberOfPlates = int(float(self.hmWidth * self.hmHeight) * 0.0016)
+		# advc:
+		self.hmNumberOfPlates = int(round(math.sqrt(self.hmWidth * self.hmHeight) / 8))
 
 		#Influence of the plate map, or how much of it is added to the height map.
 		self.plateMapScale = 1.1
@@ -415,8 +417,9 @@ class MapConstants:
 
 		#Chance for plates to grow. Higher chance tends to make more regular
 		#shapes. Lower chance makes more irregular shapes and takes longer.
-		self.plateGrowthChanceX = 0.3
-		self.plateGrowthChanceY = 0.3
+		# advc: Was 0.3, both.
+		self.plateGrowthChanceX = 0.6
+		self.plateGrowthChanceY = 0.6
 
 		#This sets the amount that tectonic plates differ in altitude.
 		self.plateStagger = 0.1
@@ -431,7 +434,7 @@ class MapConstants:
 		self.rippleFrequency = 0.5
 
 		#This is the amplitude of the ripples near plate boundaries.
-		self.rippleAmplitude = 0.75
+		self.rippleAmplitude = 0.25 # advc: was 0.75
 
 		#This is the amount of noise added to the plate map.
 		self.plateNoiseFactor = 1.2
@@ -560,6 +563,8 @@ class MapConstants:
 		# I'm making the hex-based generator unavailable. So the PW2 generator takes choice id 1 on the menu, but is still represented by id 2 within the script (b/c a lot of code would have to be changed otherwise).
 		if self.LandmassGenerator == 1:
 			self.LandmassGenerator = 2
+			# advc: Land tends to be easier to access with the PW2 generator (though, on the other hand, there tends to be less seafood).
+			self.landPercent -= 0.003
 		# Hill/Peak Style
 		# Always place hills and peaks based (mainly) on differences in altitude. Using absolute altitude is pretty much only good for concluding that it's a bad idea.
 		#self.HillPeakStyle     = mmap.getCustomMapOption(2)
@@ -6079,7 +6084,7 @@ def getCustomMapOptionDescAt(argsList):
 		0:	{
 			#0: "TXT_KEY_MAP_SCRIPT_NORMAL_CONTINENTS",
 			#1: "TXT_KEY_MAP_SCRIPT_MASSIVE_CONTINENTS",
-			# I wish we could generate "massive" continents; alas ...
+			# But they're not quite "massive" (and the Perlin continents aren't exactly "normal") ...
 			0: "Perlin Noise",
 			1: "Plate Tectonics",
 			},
