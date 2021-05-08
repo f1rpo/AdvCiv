@@ -6,49 +6,6 @@
 /*  advc.enum: New header; mostly for macros dealing with CvInfo classes and their
 	associated enum types. */
 
-/*  Increment/decrement functions copied from "We the People" (original author: Nightinggale).
-	For iterating over an enum when FOR_EACH_ENUM isn't applicable. Also used by EnumMap. */
-template <class T>
-static inline T& operator++(T& c)
-{
-	c = static_cast<T>(c + 1);
-	return c;
-}
-template <class T>
-static inline T operator++(T& c, int)
-{
-	T cache = c;
-	c = static_cast<T>(c + 1);
-	return cache;
-}
-template <class T>
-static inline T& operator--(T& c)
-{
-	c = static_cast<T>(c - 1);
-	return c;
-}
-template <class T>
-static inline T operator--(T& c, int)
-{
-	T cache = c;
-	c = static_cast<T>(c - 1);
-	return cache;
-}
-/*	advc: Also get rid of explicit casts when adding two enum values?
-	I think it matters too rarely to bother. */
-/*template <class T>
-static inline T operator+(T leftSummand, T rightSummand)
-{
-	int iLeftSummand = leftSummand, iRightSummand = rightSummand;
-	return static_cast<T>(iLeftSummand + rightSummand);
-}
-template <class T>
-static inline T operator-(T minuend, T subtrahend)
-{
-	int iMinuend = minuend, iSubtrahend = subtrahend;
-	return static_cast<T>(iMinuend - iSubtrahend);
-}*/
-
 #define FOR_EACH_ENUM(TypeName) \
 	for (TypeName##Types eLoop##TypeName = (TypeName##Types)0; \
 			eLoop##TypeName < getEnumLength(eLoop##TypeName); \
@@ -276,11 +233,38 @@ static inline T operator-(T minuend, T subtrahend)
 		return static_cast<Name##Types>(gGlobals.getNum##Name##Infos()); \
 	}
 
+/*  Increment/decrement functions based on code in the "We the People" mod.
+	Used by EnumMap, otherwise mostly superseded by FOR_EACH_ENUM. */
+#define DEFINE_INCREMENT_OPERATORS(EnumType) \
+	__forceinline EnumType& operator++(EnumType& e) \
+	{ \
+		e = static_cast<EnumType>(e + 1); \
+		return e; \
+	} \
+	__forceinline EnumType operator++(EnumType& e, int) \
+	{ \
+		EnumType eResult = e; \
+		e = static_cast<EnumType>(e + 1); \
+		return eResult; \
+	} \
+	__forceinline EnumType& operator--(EnumType& e) \
+	{ \
+		e = static_cast<EnumType>(e - 1); \
+		return e; \
+	} \
+	__forceinline EnumType operator--(EnumType& e, int) \
+	{ \
+		EnumType eResult = e; \
+		e = static_cast<EnumType>(e - 1); \
+		return eResult; \
+	}
+
 #define MAKE_INFO_ENUM(Name, PREFIX) \
 enum Name##Types \
 { \
 	NO_ENUM_TYPE(PREFIX), \
-};
+}; \
+DEFINE_INCREMENT_OPERATORS(Name##Types)
 
 /*  No variadic macros in MSVC03, so, without using an external code generator,
 	this is all I can do: */
@@ -292,11 +276,13 @@ enum Name##Types \
 #define ENUM_END(Name, PREFIX) \
 	NUM_ENUM_TYPES(PREFIX) \
 }; \
-SET_ENUM_LENGTH_STATIC(Name, PREFIX)
+SET_ENUM_LENGTH_STATIC(Name, PREFIX) \
+DEFINE_INCREMENT_OPERATORS(Name##Types)
 // For enumerators that are supposed to be excluded from iteration
 #define ENUM_END_HIDDEN(Name, PREFIX) \
 }; \
-SET_ENUM_LENGTH_STATIC(Name, PREFIX)
+SET_ENUM_LENGTH_STATIC(Name, PREFIX) \
+DEFINE_INCREMENT_OPERATORS(Name##Types)
 // (Let's worry about #ifdef _USRDLL only when the source of the EXE is released, i.e. probably never.)
 
 namespace info_enum_detail

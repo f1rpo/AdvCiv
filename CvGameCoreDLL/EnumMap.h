@@ -1290,6 +1290,7 @@ template<> struct EnumMapGetDefault<PlotNumTypes> {
 // The other getEnumLength functions are generated through macros in CvEnums.h
 #define SET_NONXML_ENUM_LENGTH(TypeName, eLength) \
 	__forceinline TypeName getEnumLength(TypeName) { return eLength; } \
+	DEFINE_INCREMENT_OPERATORS(TypeName) \
 	template <> struct EnumMapGetDefault<TypeName> \
 	{ \
 		enum { \

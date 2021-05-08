@@ -78,6 +78,7 @@ enum PlotNumTypes
 {
 	NO_PLOT_NUM = -1
 };
+DEFINE_INCREMENT_OPERATORS(PlotNumTypes)
 
 ENUM_START(GameState, GAMESTATE)
 	GAMESTATE_ON,
