@@ -2700,6 +2700,7 @@ void CvGame::normalizeStartingPlots(NormalizationTarget const* pTarget)
 		}
 		logBBAI("normalizeAddExtras() complete");
 	} // </advc>
+	GC.getLogger().logMapStats(true); // advc.mapstat
 }
 
 /*  advc.opt: Body cut from CvPlayer::startingPlotRange. Not player-dependent,

@@ -18,7 +18,7 @@ public:
 	void logCityBuilt(CvCity const& kCity);
 	void logCombat(CvUnit const& kAttacker, CvUnit const& kDefender);
 	void logUnitStuck(CvUnit const& kUnit);
-	void logMapStats(); // advc.mapstat
+	void logMapStats(bool bAfterNormalization = false); // advc.mapstat
 
 private:
 	bool m_bEnabled;

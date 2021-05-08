@@ -127,12 +127,15 @@ void appendPercentage(std::ostringstream& os, wchar const* szLabel, int iAbsolut
 }
 }
 
-void CvDLLLogger::logMapStats()
+void CvDLLLogger::logMapStats(bool bAfterNormalization)
 {
 	if (!isEnabled() || !GC.getDefineBOOL("LOG_MAP_STATS"))
 		return;
 	std::ostringstream out;
-	out << "\nMap stats:\n\n";
+	out << "\nMap stats";
+	if (bAfterNormalization)
+		out << " after normalization";
+	out << ":\n\n";
 	/*  As for map settings - will have to go to the Victory screen
 		and maybe take a screenshot. */
 	std::vector<int> plotTypeCounts;
@@ -149,6 +152,7 @@ void CvDLLLogger::logMapStats()
 	landResourceCounts.resize(GC.getNumBonusInfos());
 	std::vector<int> waterResourceCounts;
 	waterResourceCounts.resize(GC.getNumBonusInfos());
+	int iRiverPlots = 0;
 	int iResourceTotal = 0;
 	CvMap const& kMap = GC.getMap();
 	for (int i = 0; i < kMap.numPlots(); i++)
@@ -171,6 +175,8 @@ void CvDLLLogger::logMapStats()
 			landFeatureCounts[kPlot.getFeatureType()]++;
 			if (eBonus != NO_BONUS)
 				landResourceCounts[eBonus]++;
+			if (kPlot.isRiver())
+				iRiverPlots++;
 		}
 	}
 	int iTotal = kMap.numPlots();
@@ -221,6 +227,7 @@ void CvDLLLogger::logMapStats()
 			out << szNarrow.c_str() << ": " << resourceCounts[i] << "\n";
 		}
 	}
+	appendPercentage(out, "River plots", iRiverPlots, iLand);
 	std::vector<int> majorLandmassSizes;
 	int iIslands = 0;
 	int iLargeIslands = 0;
