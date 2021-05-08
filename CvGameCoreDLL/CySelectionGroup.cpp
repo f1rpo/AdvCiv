@@ -4,7 +4,7 @@
 //
 #include "CvGameCoreDLL.h"
 #include "CySelectionGroup.h"
-#include "CvSelectionGroup.h"
+#include "CvSelectionGroupAI.h"
 #include "CyArea.h"
 #include "CvArea.h"
 #include "CvPlot.h"
@@ -159,11 +159,11 @@ bool CySelectionGroup::hasWorker()
 {
 	return m_pSelectionGroup ? m_pSelectionGroup->hasWorker() : false;
 }
-// BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000: START
+// BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000:
 bool CySelectionGroup::isStranded()
 {
-	return m_pSelectionGroup ? m_pSelectionGroup->isStranded() : false;
-} // BETTER_BTS_AI_MOD: END
+	return m_pSelectionGroup ? m_pSelectionGroup->AI().AI_isStranded() : false;
+}
 
 bool CySelectionGroup::at(int iX, int iY)
 {

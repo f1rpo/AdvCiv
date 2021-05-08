@@ -52,9 +52,18 @@ public:
 
 	bool AI_isControlled() const { return (!isHuman() || isAutomated()); } // advc.inl
 	bool AI_isDeclareWar(CvPlot const& kPlot) const;
+	/*	BETTER_BTS_AI_MOD, General AI, 08/19/09, jdog5000: START
+		(advc: Moved from CvSelectionGroup) */
+	int AI_getBombardTurns(CvCity const* pCity) const;
 	bool AI_isHasPathToAreaEnemyCity(bool bMajorOnly = true,
 			MovementFlags eFlags = NO_MOVEMENT_FLAGS, int iMaxPathTurns = -1) /* Erik (CODE1): */ const;
-
+	bool AI_isHasPathToAreaPlayerCity(PlayerTypes ePlayer, MovementFlags eFlags = NO_MOVEMENT_FLAGS,
+			int iMaxPathTurns = -1) /* Erik (CODE1): */ const;
+	// Note: K-Mod no longer uses the stranded cache. I have a new system.
+	bool AI_isStranded() const;
+	//void invalidateIsStrandedCache(); // deleted by K-Mod
+	//bool calculateIsStranded();
+	// BETTER_BTS_AI_MOD: END
 	CvPlot* AI_getMissionAIPlot() const;
 
 	bool AI_isForceSeparate() const;

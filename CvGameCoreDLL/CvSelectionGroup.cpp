@@ -2379,89 +2379,7 @@ int CvSelectionGroup::visibilityRange() const // advc: const; return type was bo
 	return iMaxRange;
 }
 
-/*  BETTER_BTS_AI_MOD, General AI, 03/30/10, jdog5000: START
-	Approximate how many turns this group would take to reduce pCity's defense to zero */
-int CvSelectionGroup::getBombardTurns(CvCity const* pCity) const // advc: 2x const
-{
-	PROFILE_FUNC();
-
-	bool const bHasBomber = (getOwner() != NO_PLAYER ?
-			(GET_PLAYER(getOwner()).AI_calculateTotalBombard(DOMAIN_AIR) > 0) : false);
-	int iTotalBombardRate = (bHasBomber ? 16 : 0);
-	bool bIgnoreBuildingDefense = bHasBomber;
-	int iUnitBombardRate = 0;
-	FOR_EACH_UNIT_IN(pUnit, *this)
-	{
-		if (pUnit->bombardRate() <= 0)
-			continue;
-		iUnitBombardRate = pUnit->bombardRate();
-		if (pUnit->ignoreBuildingDefense())
-			bIgnoreBuildingDefense = true;
-		else
-		{
-			iUnitBombardRate *= std::max(25, 100 - pCity->getBuildingBombardDefense());
-			iUnitBombardRate /= 100;
-		}
-		iTotalBombardRate += iUnitBombardRate;
-	}
-
-
-	if (pCity->getTotalDefense(bIgnoreBuildingDefense) == 0)
-		return 0;
-
-	int iBombardTurns = pCity->getTotalDefense(bIgnoreBuildingDefense);
-
-	if (iTotalBombardRate > 0)
-	{
-		iBombardTurns = (GC.getMAX_CITY_DEFENSE_DAMAGE() - pCity->getDefenseDamage());
-		iBombardTurns *= pCity->getTotalDefense(false);
-		iBombardTurns += (GC.getMAX_CITY_DEFENSE_DAMAGE() * iTotalBombardRate) - 1;
-		iBombardTurns /= std::max(1, (GC.getMAX_CITY_DEFENSE_DAMAGE() * iTotalBombardRate));
-	}
-
-	//if (gUnitLogLevel > 2) logBBAI("      Bombard of %S will take %d turns at rate %d and current damage %d with bombard def %d", pCity->getName().GetCString(), iBombardTurns, iTotalBombardRate, pCity->getDefenseDamage(), (bIgnoreBuildingDefense ? 0 : pCity->getBuildingBombardDefense()));
-
-	return iBombardTurns;
-}
-
-
-bool CvSelectionGroup::isHasPathToAreaPlayerCity(PlayerTypes ePlayer,
-	MovementFlags eFlags, int iMaxPathTurns) const
-{
-	PROFILE_FUNC();
-	// <advc> Instead of relying on the area checks to fail when the group has no area
-	if (getNumUnits() <= 0)
-		return false; // </advc>
-	FOR_EACH_CITY(pLoopCity, GET_PLAYER(ePlayer))
-	{
-		if (pLoopCity->isArea(*area()))
-		{
-			int iPathTurns;
-			if (generatePath(getPlot(), pLoopCity->getPlot(), eFlags, true,
-				&iPathTurns, iMaxPathTurns))
-			{
-				if (iMaxPathTurns < 0 || iPathTurns <= iMaxPathTurns)
-					return true;
-			}
-		}
-	}
-	return false;
-}
-
-
-bool CvSelectionGroup::isStranded() const
-{
-	/*PROFILE_FUNC();
-	if (!m_bIsStrandedCacheValid){
-		m_bIsStrandedCache = calculateIsStranded();
-		m_bIsStrandedCacheValid = true;
-	}
-	return m_bIsStrandedCache; */
-
-	return (AI().AI_getMissionAIType() == MISSIONAI_STRANDED); // K-Mod
-}
-
-
+// BETTER_BTS_AI_MOD, 08/19/09, jdog5000 (General AI):
 bool CvSelectionGroup::canMoveAllTerrain() const
 {
 	//PROFILE_FUNC();
@@ -2476,7 +2394,7 @@ bool CvSelectionGroup::canMoveAllTerrain() const
 	}
 	return true;
 }
-// BETTER_BTS_AI_MOD: END
+
 
 void CvSelectionGroup::unloadAll()
 {

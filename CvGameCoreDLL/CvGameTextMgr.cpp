@@ -2134,7 +2134,7 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 				szString.append(CvWString::format(L" %d%%", 100 - iAverageDamage));
 		}
 
-		if (!pHeadGroup->isHuman() && pHeadGroup->isStranded())
+		if (!pHeadGroup->isHuman() && pHeadGroup->AI_isStranded())
 		{
 			szString.append(CvWString::format(SETCOLR L"\n***STRANDED***" ENDCOLR,
 					TEXT_COLOR("COLOR_RED")));
@@ -2855,7 +2855,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		if (pPlot->getPlotCity() != NULL)
 		{
 			szTempBuffer.Format(L"\nBombard turns = %d",
-					kSelectionList.getBombardTurns(pPlot->getPlotCity()));
+					kSelectionList.AI_getBombardTurns(pPlot->getPlotCity()));
 			szString.append(szTempBuffer);
 		}
 

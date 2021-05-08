@@ -3040,7 +3040,7 @@ void CvUnitAI::AI_attackCityMove()
 	{
 		int iComparePostBombard = AI_getGroup()->
 				AI_compareStacks(pTargetCity->plot(), true);
-		int iBombardTurns = getGroup()->getBombardTurns(pTargetCity);
+		int iBombardTurns = AI_getGroup()->AI_getBombardTurns(pTargetCity);
 		// K-Mod note: AI_compareStacks will try to use the AI memory if it can't see.
 		{
 			// K-Mod
@@ -3964,7 +3964,7 @@ void CvUnitAI::AI_pillageMove()
 	if (!isHuman() && getPlot().isCoastalLand() &&
 		/*  advc.046: SKIP w/o setting eMissionAI would make the group forget
 			that it's stranded, and then AI_pickupStranded won't find it. */
-		!getGroup()->isStranded() &&
+		!AI_getGroup()->AI_isStranded() &&
 		GET_PLAYER(getOwner()).AI_isAnyUnitTargetMissionAI(*this, MISSIONAI_PICKUP))
 	{
 		getGroup()->pushMission(MISSION_SKIP);
@@ -13191,7 +13191,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 				else iValue = kOwner.AI_targetCityValue(*pLoopCity, true, true);
 				// adjust value based on defensive bonuses
 				{
-					int iMod = std::min(8, getGroup()->getBombardTurns(pLoopCity)) *
+					int iMod = std::min(8, AI_getGroup()->AI_getBombardTurns(pLoopCity)) *
 							pLoopCity->getDefenseModifier(false) / 8
 							+ (pLoopCity->getPlot().isHills() ?
 							GC.getDefineINT(CvGlobals::HILLS_EXTRA_DEFENSE) : 0);
@@ -13579,12 +13579,12 @@ bool CvUnitAI::AI_bombardCity()
 
 	FAssert(pBombardCity != NULL);
 
-	int iAttackOdds = AI_getGroup()->AI_attackOdds(pBombardCity->plot(), true);
+	int const iAttackOdds = AI_getGroup()->AI_attackOdds(pBombardCity->plot(), true);
 	int iBase = GC.getDefineINT(CvGlobals::BBAI_SKIP_BOMBARD_BASE_STACK_RATIO);
 	int iMin = GC.getDefineINT(CvGlobals::BBAI_SKIP_BOMBARD_MIN_STACK_RATIO);
-	int iBombardTurns = getGroup()->getBombardTurns(pBombardCity);
+	int const iBombardTurns = AI_getGroup()->AI_getBombardTurns(pBombardCity);
 	// <advc.004c>
-	if(iBombardTurns == 0)
+	if(iBombardTurns <= 0)
 		return false; // </advc.004c>
 	iBase = (iBase * (GC.getMAX_CITY_DEFENSE_DAMAGE() - pBombardCity->getDefenseDamage()) +
 			iMin * pBombardCity->getDefenseDamage()) /
@@ -18369,10 +18369,10 @@ bool CvUnitAI::AI_handleStranded(MovementFlags eFlags)
 		{
 			return false;
 		}
-		if (getGroup()->isHasPathToAreaPlayerCity(getOwner(), eFlags))
+		if (AI_getGroup()->AI_isHasPathToAreaPlayerCity(getOwner(), eFlags))
 			return false;
-		if ((canFight() || isSpy()) && AI_getGroup()->
-			AI_isHasPathToAreaEnemyCity(true, eFlags))
+		if ((canFight() || isSpy()) &&
+			AI_getGroup()->AI_isHasPathToAreaEnemyCity(true, eFlags))
 		{
 			return false;
 		}
@@ -18652,7 +18652,7 @@ bool CvUnitAI::AI_pickupStranded(UnitAITypes eUnitAI, int iMaxPath)
 	CvPlot* pEndTurnPlot = 0;
 	FOR_EACH_GROUPAI_VAR(pLoopGroup, kPlayer)
 	{
-		if (!pLoopGroup->isStranded())
+		if (!pLoopGroup->AI_isStranded())
 			continue;
 
 		CvUnit* pHeadUnit = pLoopGroup->getHeadUnit();

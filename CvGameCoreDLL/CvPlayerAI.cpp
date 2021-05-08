@@ -1164,7 +1164,7 @@ int CvPlayerAI::AI_movementPriority(
 	if (pHeadUnit->collateralDamage() > 0)
 		return 12;
 
-	if (kGroup.isStranded())
+	if (kGroup.AI_isStranded())
 		return 505;
 
 	if (pHeadUnit->canFight())
