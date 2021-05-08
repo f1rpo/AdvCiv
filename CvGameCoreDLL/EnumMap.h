@@ -535,7 +535,7 @@ inline EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 	BOOST_STATIC_ASSERT(SIZE != ENUMMAP_SIZE_BOOL || DEFAULT == 0 || DEFAULT == 1);
 	FAssertMsg(bINLINE_BOOL || sizeof(*this) == 4, "EnumMap is supposed to only contain a pointer");
 	FAssertMsg(getLength() >= 0 && getLength() <= getEnumLength((LengthType)0), "Custom length out of range");
-	FAssertMsg(First() >= 0 && First() <= getLength(), "Custom length out of range");
+	FAssertMsg(First() >= 0 && (First() < getLength() || First() == 0), "Custom length out of range");
 
 	if (bINLINE)
 	{
