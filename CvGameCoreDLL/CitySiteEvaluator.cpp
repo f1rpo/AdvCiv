@@ -2313,15 +2313,17 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, scaled rProductionMod
 	Could then also add a chokepoint evaluation. */
 int AIFoundValue::evaluateDefense() const
 {
-	int r = 0;
+	if (bBarbarian) // advc.031: Don't make Barbarian cities too difficult to assail
+		return 0;
+	int iR = 0;
 	if (kPlot.isHills())
 	{
 		/*  advc.031: Was 100+100 in K-Mod, 200 flat in BtS. Reduced b/c
 			counted again for diploFactor below. */
-		r += 75 + (kSet.isDefensive() ? 75 : 0);
-		IFLOG logBBAI("+%d from hill defense", r);
+		iR += 75 + (kSet.isDefensive() ? 75 : 0);
+		IFLOG logBBAI("+%d from hill defense", iR);
 	}
-	return r;
+	return iR;
 }
 
 
