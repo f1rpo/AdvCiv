@@ -151,7 +151,9 @@ public:
 
 	// allocate and initialize a list from a tag pair in the xml
 	// advc.003x: Unused param iInfoBaseSize removed
-	template<typename T> // advc: Replaced three functions with a template (inspired by rheinig's mod)
+	/*	advc: Replaced three functions with a template (inspired by rheinig's mod;
+		Civ4Col also does this) */
+	template<typename T>
 	void SetVariableListTagPair(T** pptList, const TCHAR* szRootTagName,
 			int iInfoBaseLength, T tDefaultListVal = 0);
 	void SetVariableListTagPair(CvString** ppszList, const TCHAR* szRootTagName,

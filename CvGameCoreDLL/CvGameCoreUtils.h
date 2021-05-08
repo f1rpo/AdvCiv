@@ -373,6 +373,7 @@ int baseYieldToSymbol(int iNumYieldTypes, int iYieldStack);
 //bool isPickableName(const TCHAR* szName); // advc.003j
 
 DllExport int* shuffle(int iNum, CvRandom& rand);
+// advc (tbd.): Move these two to CvRandom (as it's done by Civ4Col too)
 void shuffleArray(int* piShuffle, int iNum, CvRandom& rand);
 void shuffleVector(std::vector<int>& aiIndices, CvRandom& rand); // advc.enum
 

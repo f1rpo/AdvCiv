@@ -7120,7 +7120,7 @@ void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 	else
 	{
 		// <advc.031c>
-		if (gFoundLogLevel > 0 && !GC.getInitCore().isScenario() &&
+		if (gFoundLogLevel > 0 && !GC.getInitCore().getScenario() &&
 			m_pStartingPlot == NULL)
 		{
 			AI().logFoundValue(*pNewValue, true);

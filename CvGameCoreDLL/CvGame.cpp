@@ -918,7 +918,7 @@ void CvGame::initFreeState()
 	if(isOption(GAMEOPTION_SPAH))
 		// Reassigns start plots and start points
 		m_pSpah->setInitialItems(); // </advc.250b>
-	if (GC.getInitCore().isScenario())
+	if (GC.getInitCore().getScenario())
 	{
 		setScenario(true); // advc.052
 		AI().AI_initScenario(); // advc.104u
@@ -1015,7 +1015,7 @@ void CvGame::initScenario()
 
 void CvGame::initFreeUnits()
 {
-	bool bScenario = GC.getInitCore().isScenario();
+	bool bScenario = GC.getInitCore().getScenario();
 	/*  In scenarios, neither setInitialItems nor initFreeState is called; the
 		EXE only calls initFreeUnits, so the initialization of freebies needs to
 		happen here. */

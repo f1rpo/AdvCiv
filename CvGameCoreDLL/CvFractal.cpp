@@ -370,10 +370,12 @@ void CvFractal::tectonicAction(CvFractal* pRifts)  //  Assumes FRAC_WRAP_X is on
 
 int CvFractal::yieldX(int iBadX)  //  Assumes FRAC_WRAP_X is on.
 {
-	if (iBadX < 0)
-		return (iBadX + m_iFracX);
-	if (iBadX >= m_iFracX)
-		return (iBadX - m_iFracX);
+	/*	<advc> while instead of if. Adopted from Civ4Col.
+		Seems like a reasonable precaution if nothing else. */
+	while (iBadX < 0)
+		iBadX += m_iFracX;
+	while (iBadX >= m_iFracX)
+		iBadX -= m_iFracX; // </advc>
 	return iBadX;
 }
 
