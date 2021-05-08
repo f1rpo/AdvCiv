@@ -3156,6 +3156,9 @@ def canHaveJungle(rfData, jungleRf, tData, pData, lat, tempData = 1.0, jungleTem
 	return (rfData >= jungleRf and (tData == mc.GRASS or tData == mc.PLAINS) and pData != mc.PEAK and abs(lat) * 2 <= mc.tropicsLatitude + mc.horseLatitude and tempData >= jungleTemp)
 
 def canHaveOasis(x, y, tData, fOasis):
+	# <advc> Checking these conditions already at this point should get us closer to the target frequency for oases
+	if not CyMap().plot(x, y).canHaveFeature(fOasis):
+		return False # </advc>
 	'''
 	for direction in range(1, 5):
 		xx, yy = GetNeighbor(x, y, direction)
