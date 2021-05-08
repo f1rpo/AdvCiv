@@ -310,7 +310,7 @@ class MapConstants:
 		##############################################################################
 		## PW3 Settings
 		##############################################################################
-		# advc: twistMinFreq was 0.02. Gets adjusted in ElevationMap3.GenerateElevationMap. Greater values (closer to twistMaxFreq) seem to result in somewhat larger landmasses (or maybe not ...)
+		# advc: twistMinFreq was 0.02. Gets adjusted in ElevationMap3.GenerateElevationMap. Greater values (closer to twistMaxFreq) seem to result in somewhat larger landmasses (or maybe not ...). Fwiw, cephalo uses 0.05 in PerfectWorld6.lua.
 		self.twistMinFreq = 0.045
 		self.twistMaxFreq = 0.12
 		self.twistVar     = 0.042
@@ -3151,7 +3151,7 @@ def createDistanceMap(bToLand):
 					processQueue.append((xx, yy))
 	return distanceMap
 
-# advc: Need this in three places. The latitude check and plains as possible terrain are new.
+# advc: Need this in three places. The latitude check and plains as possible terrain are new. Not doing a canHaveFeature check b/c jungle doesn't really have restrictions.
 def canHaveJungle(rfData, jungleRf, tData, pData, lat, tempData = 1.0, jungleTemp = 0.0):
 	return (rfData >= jungleRf and (tData == mc.GRASS or tData == mc.PLAINS) and pData != mc.PEAK and abs(lat) * 2 <= mc.tropicsLatitude + mc.horseLatitude and tempData >= jungleTemp)
 
@@ -3181,6 +3181,7 @@ def canHaveOasis(x, y, tData, fOasis):
 			continue
 		xx, yy = CoordsFromIndex(ii, mc.width)
 		adj = CyMap().plot(xx, yy)
+		# Tbd.(?): Should perhaps ensure two tiles in between oases, not just one. (PerfectWorld6.lua puts at least three tiles in between oases, but Civ6 has a different scale than Civ4.)
 		if adj.isWater() or adj.getFeatureType() == fOasis:
 			return False
 		# Only exclude tiles with more than 4 adjacent non-desert tiles
@@ -3246,7 +3247,7 @@ class TerrainMap:
 					#I tried using a deviation from surrounding average altitude
 					#to determine hills and peaks but I didn't like the
 					#results. Therefore I am using lowest neighbor.
-					# <advc> Let's see if we can use the avg. for something .... indeed doesn't look too useful.
+					# <advc> PerfectWorld6.lua still uses the avg.; but ... no, I don't like it either.
 					#avgAlt = 0
 					#avgAltDiv = 0
 					myAlt = elevData
