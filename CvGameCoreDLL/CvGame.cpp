@@ -2033,7 +2033,9 @@ void CvGame::normalizeRemoveBadTerrain()
 						continue;
 					if (kRepl.getYield(YIELD_FOOD) >= iTargetFood &&
 						kRepl.getYield(YIELD_FOOD) +
-						kRepl.getYield(YIELD_PRODUCTION) == iTargetTotal)
+						kRepl.getYield(YIELD_PRODUCTION) == iTargetTotal &&
+						// advc.108: Don't go from 0 food to 2 food
+						kRepl.getYield(YIELD_FOOD) <= iPlotFood + 1)
 					{
 						if (!p.isFeature() ||
 							GC.getInfo(p.getFeatureType()).isTerrain(eLoopTerrain))
