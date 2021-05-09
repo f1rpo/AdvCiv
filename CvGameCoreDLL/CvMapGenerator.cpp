@@ -1082,8 +1082,12 @@ int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonus)
 			iFromTiles += (iNumPossible / kBonus.getTilesPer());
 	}
 
-	int iFromPlayers = (kGame.countCivPlayersAlive() *
-			kBonus.getPercentPerPlayer()) / 100;
-	int iBonusCount = (iBaseCount * (iFromTiles + iFromPlayers)) / 100;
+	scaled rFromPlayers = kGame.countCivPlayersAlive() *
+			per100(kBonus.getPercentPerPlayer());
+	/*	<advc.129> Same as in BtS for 8 players, a bit less for high player counts,
+		a bit more for small player counts. */
+	rFromPlayers.exponentiate(fixp(0.8));
+	rFromPlayers *= fixp(1.5); // </advc.129>
+	int iBonusCount = (iBaseCount * (iFromTiles + rFromPlayers.round())) / 100;
 	return std::max(1, iBonusCount);
 }
