@@ -428,6 +428,27 @@ void setListHelp(CvWStringBuffer& szBuffer, wchar const* szStart, wchar const* s
 	bFirst = false; // advc: And deleted this line from every call location
 }
 
+// <advc> Based on the above
+void setListHelp(CvWString& szBuffer, wchar const* szStart, wchar const* szItem,
+	wchar const* szSeparator, int& iLastListID, int iListID)
+{
+	if (iLastListID != iListID)
+		szBuffer += szStart;
+	else szBuffer += szSeparator;
+	szBuffer += szItem;
+	iLastListID = iListID; // advc: And deleted this line from every call location
+}
+
+void setListHelp(CvWStringBuffer& szBuffer, wchar const* szStart, wchar const* szItem,
+	wchar const* szSeparator, int& iLastListID, int iListID)
+{
+	if (iLastListID != iListID)
+		szBuffer.append(szStart);
+	else szBuffer.append(szSeparator);
+	szBuffer.append(szItem);
+	iLastListID = iListID; // advc: And deleted this line from every call location
+} // </advc>
+
 
 bool PUF_isGroupHead(CvUnit const* pUnit, int iDummy1, int iDummy2)
 {
