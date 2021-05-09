@@ -474,8 +474,8 @@ class CvInfoScreen:
 		self.TEXT_CITIES_RAZED = localText.getText("TXT_KEY_INFO_SCREEN_CITIES_RAZED", ())
 		self.TEXT_NUM_GOLDEN_AGES = localText.getText("TXT_KEY_INFO_SCREEN_NUM_GOLDEN_AGES", ())
 		self.TEXT_NUM_RELIGIONS_FOUNDED = localText.getText("TXT_KEY_INFO_SCREEN_RELIGIONS_FOUNDED", ())
-
-		self.TEXT_CURRENT = localText.getText("TXT_KEY_CURRENT", ())
+		# advc.002b: Text key was TXT_KEY_CURRENT; abbreviate.
+		self.TEXT_CURRENT = localText.getText("TXT_KEY_CURRENT_ABBR", ())
 		self.TEXT_UNITS = localText.getText("TXT_KEY_CONCEPT_UNITS", ())
 		self.TEXT_BUILDINGS = localText.getText("TXT_KEY_CONCEPT_BUILDINGS", ())
 		self.TEXT_KILLED = localText.getText("TXT_KEY_INFO_SCREEN_KILLED", ())

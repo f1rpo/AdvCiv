@@ -1059,7 +1059,18 @@
 		<Italian>Governo preferito</Italian>
 		<Spanish>Principios favoritos</Spanish>
 	</TEXT>
-	
+
+	<!-- advc.002b: Based on TXT_KEY_CURRENT (CIV4GameText_Misc1.xml);
+		 translations unchanged. -->
+	<TEXT>
+		<Tag>TXT_KEY_CURRENT_ABBR</Tag>
+		<English>Curr.</English>
+		<French>Actuel</French>
+		<German>Aktuell</German>
+		<Italian>Attuale</Italian>
+		<Spanish>Actual</Spanish>
+	</TEXT>
+
 	<!-- advc.004g: Originally in CIV4GameText_BTS.xml
 		 Was:
 		 "The unit disrupts the trade route so that no intercontinental trade
