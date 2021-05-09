@@ -2905,79 +2905,16 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 		bShift || BUGOption::isEnabled("MiscHover__CultureInUnownedTiles", false))
 	{
 		if (kPlot.isActiveVisible(true))
-		{	/*  <advc.101> Similar to code added in
-				CvDLLWidgetData::parseNationalityHelp */
-			if(kPlot.isCity())
+		{	// <advc.101>
+			if (kPlot.isCity() &&
+				BUGOption::isEnabled("MainInterface__RevoltHelp", true))
 			{
-				CvCity const& kCity = *kPlot.getPlotCity();
-				bool const bActiveOwned = (kCity.getOwner() == eActivePlayer);
-				scaled rRevoltProb = kCity.revoltProbability();
-				// <advc.023>
-				scaled const rDecrementProb = kCity.probabilityOccupationDecrement();
-				rRevoltProb *= 1 - rDecrementProb; // </advc.023>
-				PlayerTypes const eCulturalOwner = (bActiveOwned ? kCity.calculateCulturalOwner() : NO_PLAYER);
-				int const iGarrisonStr = (bActiveOwned ? kCity.cultureGarrison(eCulturalOwner) : -1);
-				int const iCultureStr = (bActiveOwned ? kCity.cultureStrength(eCulturalOwner) : -1);
-				if (rRevoltProb > 0)
+				CvWStringBuffer szRevoltHelp;
+				setRevoltHelp(szRevoltHelp, *kPlot.getPlotCity());
+				if (!szRevoltHelp.isEmpty())
 				{
-					/*  CvCity::revoltProbability rounds probabilities that are too
-						small to display to 0, but that doesn't take into account
-						prDecrement, so prRevolt here can still be less than
-						1 permille -- though not much less, so this isn't going to
-						overstate the probability much: */
-					float fRevoltProb = std::max(0.001f, rRevoltProb.getFloat());
-					wchar floatBuffer[1024];
-					swprintf(floatBuffer, L"%.1f", 100 * fRevoltProb);
-					szString.append(gDLL->getText("TXT_KEY_MISC_CHANCE_OF_REVOLT",
-							floatBuffer));
-					if (bActiveOwned)
-					{
-						FAssert(iCultureStr > iGarrisonStr);
-						int iGarrisonStrNeeded = std::max(1, iCultureStr - iGarrisonStr);
-						szString.append(L"  ");
-						szString.append(gDLL->getText("TXT_KEY_GARRISON_STRENGTH_NEEDED_SHORT",
-								iGarrisonStrNeeded));
-					}
-					int const iPriorRevolts = kCity.getNumRevolts();
-					if (kCity.canCultureFlip())
-					{
-						szString.append(bActiveOwned ? NEWLINE : L" ");
-						szString.append(gDLL->getText(bActiveOwned ?
-								"TXT_KEY_MISC_WILL_FLIP" : "TXT_KEY_MISC_WILL_FLIP_SHORT"));
-					}
-					else if (iPriorRevolts > 0)
-					{
-						szString.append(bActiveOwned ? NEWLINE : L" (");
-						szString.append(gDLL->getText("TXT_KEY_MISC_PRIOR", iPriorRevolts));
-						if (!bActiveOwned)
-							szString.append(L" )");
-					}
+					szString.append(szRevoltHelp.getCString());
 					szString.append(NEWLINE);
-				} // <advc.023>
-				if (rDecrementProb > 0)
-				{
-					wchar floatBuffer[1024];
-					swprintf(floatBuffer, L"%.1f", 100 * rDecrementProb.getFloat());
-					szString.append(gDLL->getText("TXT_KEY_OCCUPATION_DECREASE_CHANCE",
-							floatBuffer));
-					szString.append(NEWLINE);
-				} // </advc.023>
-				else if (rRevoltProb <= 0 && bActiveOwned && iGarrisonStr > 0 &&
-					eCulturalOwner != kCity.getOwner() && iGarrisonStr >= iCultureStr)
-				{
-					// Show it only when a local unit is selected? Eh ...
-					/*CvUnit* pSelectedUnit = gDLL->UI().getHeadSelectedUnit();
-					if (pSelectedUnit != NULL && pSelectedUnit->at(kPlot))*/
-					{
-						int iSafeToRemove = (iGarrisonStr - iCultureStr);
-						if (iSafeToRemove < iGarrisonStr)
-						{
-							szString.append(gDLL->getText(
-									"TXT_KEY_GARRISON_STRENGTH_EXCESS_SHORT",
-									std::min(999, iSafeToRemove)));
-							szString.append(NEWLINE);
-						}
-					}
 				}
 			} // </advc.101>
 			// <advc.099g> Put the players w/ tile culture in a container first
@@ -5276,7 +5213,17 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 	szString.append(pCity->getName());
 	{
 		int const iFoodDifference = pCity->foodDifference();
-		// advc.002f:
+	// <advc.101>
+	if (!BUGOption::isEnabled("MainInterface__RevoltHelp", true))
+	{
+		CvWStringBuffer szRevoltHelp;
+		setRevoltHelp(szRevoltHelp, kCity);
+		if (!szRevoltHelp.isEmpty())
+		{
+			szString.append(NEWLINE);
+			szString.append(szRevoltHelp.getCString());
+		}
+	} // </advc.101>		// advc.002f:
 		bool const bAvoidGrowth = pCity->AI().AI_isEmphasizeAvoidGrowth();
 		if (iFoodDifference == 0) // advc.004: was <=
 		{
@@ -5421,6 +5368,89 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 	szString.append(gDLL->getText("TXT_KEY_CITY_BAR_SELECT", pCity->getNameKey()));
 	szString.append(gDLL->getText("TXT_KEY_CITY_BAR_SELECT_CTRL"));
 	szString.append(gDLL->getText("TXT_KEY_CITY_BAR_SELECT_ALT"));
+}
+
+/*  advc.101: Similar to code added in CvDLLWidgetData::parseNationalityHelp;
+	replacing BULL's "Revolt Chance" code (which has never been merged into
+	K-Mod/AdvCiv). */
+void CvGameTextMgr::setRevoltHelp(CvWStringBuffer &szString, CvCity const& kCity)
+{
+	if (!kCity.getPlot().isActiveVisible(true))
+		return;	
+	bool const bActiveOwned = (kCity.getOwner() == GC.getGame().getActivePlayer());
+	scaled rRevoltProb = kCity.revoltProbability();
+	// <advc.023>
+	scaled const rDecrementProb = kCity.probabilityOccupationDecrement();
+	rRevoltProb *= 1 - rDecrementProb; // </advc.023>
+	PlayerTypes const eCulturalOwner = (bActiveOwned ?
+			kCity.calculateCulturalOwner() : NO_PLAYER);
+	int const iGarrisonStr = (bActiveOwned ?
+			kCity.cultureGarrison(eCulturalOwner) : -1);
+	int const iCultureStr = (bActiveOwned ?
+			kCity.cultureStrength(eCulturalOwner) : -1);
+	if (rRevoltProb > 0)
+	{
+		/*  CvCity::revoltProbability rounds probabilities that are too small to
+			display to 0, but that doesn't take into account prDecrement, so
+			prRevolt here can still be less than 1 permille -- though not much
+			less, so this isn't going to overstate the probability much: */
+		float fRevoltProb = std::max(0.001f, rRevoltProb.getFloat());
+		wchar floatBuffer[1024];
+		swprintf(floatBuffer, L"%.1f", 100 * fRevoltProb);
+		szString.append(gDLL->getText(
+				"TXT_KEY_MISC_CHANCE_OF_REVOLT", floatBuffer));
+		if (bActiveOwned)
+		{
+			FAssert(iCultureStr > iGarrisonStr);
+			int iGarrisonStrNeeded = std::max(1, iCultureStr - iGarrisonStr);
+			szString.append(L"  ");
+			szString.append(gDLL->getText(
+					"TXT_KEY_GARRISON_STRENGTH_NEEDED_SHORT",
+					iGarrisonStrNeeded));
+		}
+		int const iPriorRevolts = kCity.getNumRevolts();
+		if (kCity.canCultureFlip())
+		{
+			szString.append(bActiveOwned ? NEWLINE : L" ");
+			szString.append(gDLL->getText(bActiveOwned ?
+					"TXT_KEY_MISC_WILL_FLIP" : "TXT_KEY_MISC_WILL_FLIP_SHORT"));
+		}
+		else if (iPriorRevolts > 0)
+		{
+			szString.append(bActiveOwned ? NEWLINE : L" (");
+			szString.append(gDLL->getText(
+					"TXT_KEY_MISC_PRIOR", iPriorRevolts));
+			if (!bActiveOwned)
+				szString.append(L" )");
+		}
+	}  // <advc.023>
+	if (rDecrementProb > 0)
+	{
+		if (!szString.isEmpty())
+			szString.append(NEWLINE);
+		wchar floatBuffer[1024];
+		swprintf(floatBuffer, L"%.1f", 100 * rDecrementProb.getFloat());
+		szString.append(gDLL->getText(
+				"TXT_KEY_OCCUPATION_DECREASE_CHANCE", floatBuffer));
+	} // </advc.023>
+	else if (rRevoltProb <= 0 && bActiveOwned && iGarrisonStr > 0 &&
+		eCulturalOwner != kCity.getOwner() && iGarrisonStr >= iCultureStr)
+	{
+		// Show it only when a local unit is selected? Eh ...
+		/*CvUnit* pSelectedUnit = gDLL->UI().getHeadSelectedUnit();
+		if (pSelectedUnit != NULL && pSelectedUnit->at(kPlot))*/
+		{
+			int iSafeToRemove = iGarrisonStr - iCultureStr;
+			if (iSafeToRemove < iGarrisonStr)
+			{
+				if (!szString.isEmpty())
+					szString.append(NEWLINE);
+				szString.append(gDLL->getText(
+						"TXT_KEY_GARRISON_STRENGTH_EXCESS_SHORT",
+						std::min(999, iSafeToRemove)));
+			}
+		}
+	}
 }
 
 
@@ -17275,7 +17305,15 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 	szBuffer.clear();
 	if (pCity->isGovernmentCenter() && !(pCity->isCapital()))
 		szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(SILVER_STAR_CHAR)));
-	// happiness, healthiness, superlative icons
+	// <advc.101>
+	if (pCity->getPlot().isActiveVisible(true))
+	{
+		if (!pCity->isOccupation() && pCity->revoltProbability() > 0 &&
+			BUGOption::isEnabled("MainInterface__RevoltChanceIcon", false))
+		{
+			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(OCCUPATION_CHAR)));
+		}
+	} // </advc.101>
 	if (pCity->canBeSelected())
 	{	// <advc.002f>
 		if (pCity->AI().AI_isEmphasizeAvoidGrowth() &&

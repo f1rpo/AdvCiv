@@ -268,7 +268,7 @@
 		<Italian>Quando è selezionato, mostra delle icone per gli Specialisti in città (sia i Cittadini Specialisti che i Grandi Personaggi trasformati in Super-Specialisti).</Italian>
 		<Spanish>Si se activa, muestra iconos para los especialistas de la ciudad (tanto ciudadanos como grandes personajes).</Spanish>
 	</TEXT>
-	<!-- advc.101: Unlikely to be merged from BULL; already shown on tile hover. -->
+	<!-- Handled by advc.101; non-optional. -->
 	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__REVOLTCHANCE_TEXT</Tag>
 		<English>Revolt Chance</English>

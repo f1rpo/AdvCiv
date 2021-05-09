@@ -4968,7 +4968,7 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 		szBuffer.append(szTempBuffer);
 	}
 	PlayerTypes const eCulturalOwner = c.calculateCulturalOwner(); // advc.099c
-	// <advc.101>
+	// <advc.101> (Akin to code in CvGameTextMgr::setCityBarHelp)
 	std::vector<CvCity::GrievanceTypes> aGrievances;
 	// <advc.023>
 	scaled const rDecrementProb = c.probabilityOccupationDecrement();

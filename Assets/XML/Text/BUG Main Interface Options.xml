@@ -869,7 +869,29 @@
 		<German>Zeigt das [ICON_HEALTHY]-Symbol über den Namen von Städten an, deren Bevölkerung keine [ICON_UNHEALTHY]-Punkte generiert.</German>
 	</TEXT-->
 
-	<!-- advc.095: -->
+	<!-- advc.101 -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__REVOLTCHANCEICON_TEXT</Tag>
+		<English>Revolt Icon</English>
+		<German>Revolte droht</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__REVOLTCHANCEICON_HOVER</Tag>
+		<English>When checked, the [ICON_OCCUPATION] icon is shown above the billboards of cities with a positive probability of revolt. (Regardless of this option, [ICON_OCCUPATION] is shown - along with a countdown - for cities under occupation.)</English>
+		<German>Zeigt das [ICON_OCCUPATION]-Symbol über den Namen von Städten an, in denen eine Revolte ausbrechen kann. Das [ICON_OCCUPATION]-Symbol wird in jedem Fall - zusammen mit einem Countdown - über besetzten Städten angezeigt.</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__REVOLTHELP_TEXT</Tag>
+		<English>Revolt Help on Tile</English>
+		<German>Revolten-Hilfe</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__REVOLTHELP_HOVER</Tag>
+		<English>If checked, help text about revolts is shown when hovering over city tiles; otherwise, it's shown when hovering over city bars.</English>
+		<German>Zeigt Hilfetext zu Revolten an, wenn der Mauszeiger auf ein Stadtfeld bewegt wird. Ist diese Option deaktiviert, informiert stattdessen der Hilfetext zum Stadt-Balken über Revolten.</German>
+	</TEXT>
+
+	<!-- advc.095 -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__WIDECITYBARS_TEXT</Tag>
 		<English>Wide City Bars</English>

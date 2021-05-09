@@ -55,6 +55,7 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, center, "MainInterface__ListUnitsPerOwner")
 		#self.addCheckbox(screen, center, "MiscHover__LatLongCoords")
 		#self.addCheckbox(screen, center, "MiscHover__PartialBuilds")
+		self.addCheckbox(screen, center, "MainInterface__RevoltHelp") # advc.101
 		self.addSpacer(screen, center, "SpacerCenter1") # advc.004
 		# <advc.002f>
 		self.addLabel(screen, center, "CityIcons", "City Billboards:")
@@ -74,6 +75,7 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		#self.addCheckbox(screen, centerL, "MainInterface__NoUnhappyIcon")
 		#self.addCheckbox(screen, centerR, "MainInterface__NoBadHealthIcon")
 		# </advc.002f>
+		self.addCheckbox(screen, centerL, "MainInterface__RevoltChanceIcon") # advc.101
 		self.addLabel(screen, right, "Camera", "Camera:") # advc.004m
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView")
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView_Remember", True)
