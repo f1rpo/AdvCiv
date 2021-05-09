@@ -17276,9 +17276,8 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
-		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
-		// advc: Some refactoring to reduce indentation
-		if(kPlot.getOwner() == getOwner() || // XXX team???
+		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
+		if(kPlot.getOwner() != getOwner() || // XXX team???
 			/*!AI_plotValid(kPlot)*/ !isArea(kPlot.getArea())) // advc.opt
 		{
 			continue;
