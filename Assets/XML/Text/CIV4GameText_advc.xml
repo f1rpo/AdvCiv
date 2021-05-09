@@ -6676,5 +6676,32 @@
 		<Italian>non cumulativo con altre [ICON_RELIGION]</Italian>
 		<Spanish>no se acumula con otras [ICON_RELIGION]</Spanish>
 	</TEXT>
+	<!-- advc.188: From CIV4GameTextInfos.xml. Add remaining duration to make
+		 the anger countdown (BUG option) easier to understand. -->
+	<TEXT>
+		<Tag>TXT_KEY_ANGER_OPPRESSION</Tag>
+		<English>+%d1_Change[ICON_UNHAPPY]: "We cannot forget your cruel oppression!" (%d2 [NUM2:Turn:Turns])</English>
+		<French>+%d1_Change[ICON_UNHAPPY] : "Nous n'oublierons jamais votre oppression cruelle !" (%d2 [NUM2:tour:tours])</French>
+		<German>+%d1_Change[ICON_UNHAPPY]: "Wir k&#246;nnen Eure grausame Tyrannei nicht ertragen!" (%d2 [NUM2:Runde:Runden])</German>
+		<Italian>+%d1_Change[ICON_UNHAPPY]: "Non possiamo dimenticare la tua crudele oppressione!" (%d2 [NUM2:turno:turni])</Italian>
+		<Spanish>+%d1_Change [ICON_UNHAPPY]: "&#161;No olvidaremos vuestra cruel opresi&#243;n!" (%d2 [NUM2:turno:turnos])</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ANGER_DRAFT</Tag>
+		<English>+%d1_Change[ICON_UNHAPPY]: "Hell NO, we won't GO!" (%d2 [NUM2:Turn:Turns])</English>
+		<French>+%d1_Change[ICON_UNHAPPY] : "Pas question, nous n'irons PAS !" (%d2 [NUM2:tour:tours])</French>
+		<German>+%d1_Change[ICON_UNHAPPY]: "Zur H&#246;lle, NEIN, wir werden NICHT gehen!" (%d2 [NUM2:Runde:Runden])</German>
+		<Italian>+%d1_Change[ICON_UNHAPPY]: "NO! Non partiremo!" (%d2 [NUM2:turno:turni])</Italian>
+		<Spanish>+%d1_Change [ICON_UNHAPPY]: "&#161;No pensamos ir, pu&#241;etas!" (%d2 [NUM2:turno:turnos])</Spanish>
+	</TEXT>
+	<!-- From CIV4GameText_BTS.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_ANGER_DEFY_RESOLUTION</Tag>
+		<English>+%d1_Change[ICON_UNHAPPY]: "The world considers you a villain!" (%d2 [NUM2:Turn:Turns])</English>
+		<French>+%d1_Change[ICON_UNHAPPY] : " Le monde vous consid&#232;re comme une crapule ! " (%d2 [NUM2:tour:tours])</French>
+		<German>+%d1_Change[ICON_UNHAPPY]: "Die Welt h&#228;lt Euch f&#252;r einen Verbrecher!" (%d2 [NUM2:Runde:Runden])</German>
+		<Italian>+%d1_Change[ICON_UNHAPPY]: "Il mondo ti considera un malvagio!" (%d2 [NUM2:turno:turni])</Italian>
+		<Spanish>+%d1_Change [ICON_UNHAPPY]: "&#161;El mundo os considera un ser vil!" (%d2 [NUM2:turno:turnos])</Spanish>
+	</TEXT>
 
 </Civ4GameText>

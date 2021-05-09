@@ -12149,7 +12149,8 @@ void CvGameTextMgr::setAngerHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_OPPRESSION", iAnger));
+			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_OPPRESSION", iAnger,
+					kCity.getHurryAngerTimer())); // advc.188
 			szBuffer.append(NEWLINE);
 		}
 	}
@@ -12162,7 +12163,8 @@ void CvGameTextMgr::setAngerHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_DRAFT", iAnger));
+			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_DRAFT", iAnger,
+					kCity.getConscriptAngerTimer())); // advc.188
 			szBuffer.append(NEWLINE);
 		}
 	}
@@ -12175,7 +12177,8 @@ void CvGameTextMgr::setAngerHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_DEFY_RESOLUTION", iAnger));
+			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_DEFY_RESOLUTION", iAnger,
+					kCity.getDefyResolutionAngerTimer())); // advc.188
 			szBuffer.append(NEWLINE);
 		}
 	}

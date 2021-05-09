@@ -173,12 +173,13 @@
 		<Spanish>Contador Infelicidad</Spanish>
 	</TEXT>
 	
-	<!-- advc.004: English rewritten, German revised -->
+	<!-- advc.188: Now affects all temporary unhappiness -
+		 and [advc.186] the city bar. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYSCREEN__ANGER_COUNTER_HOVER</Tag>
-		<English>When checked, the remaining duration of anger from "cruel oppression" is shown next to the happiness display.</English>
+		<English>When checked, the remaining duration of temporary anger is shown next to the happiness display on the city screen and when hovering over the city bar on the main screen.</English>
 		<French>En activant, montre un compteur de colère sur l'écran de ville.</French>
-		<German>Zeigt einen Countdown an (neben der Zufriedenheitsanzeige), der die Anzahl der Runden angibt, bis die Unzufriedenheit über Zwangsarbeit ("Eure grausame Tyrannei") verflogen ist.</German>
+		<German>Die Restdauer vorrübergehender Unzufriedenheit wird neben der Zufriedenheitsanzeige auf dem Stadtbildschirm und im Stadt-Hilfetext auf dem Hauptbildschirm angezeigt.</German>
 		<Italian>Quando è selezionato, nella Schermata Cittadina viene visualizzato un contatore dei turni di Infelicità da sacrifici.</Italian>
 		<Spanish>Si está activa, muestra un contador de infelicidad en la pantalla de la ciudad.</Spanish>
 	</TEXT>
