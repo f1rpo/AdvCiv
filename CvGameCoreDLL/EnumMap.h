@@ -3,12 +3,11 @@
 	I have -for now- omitted the WtP serialization functions, and uncoupled the
 	code from the Perl-generated enums that WtP uses. Instead of defining
 	ArrayLength functions, the getEnumLength functions that AdvCiv defines in
-	CvEnums.h and CvGlobals.h are used.
-	Formatting: linebreaks added before scope resolution operators.
-	advc.fract: Disabled the INLINE_NATIVE representation for "small" enum types
-	in order to allow T=ScaledNum. (As suggested to me by Nightinggale.)
+	CvEnums.h and CvGlobals.h are used. CvEnums.h also defines enum increment operators.
 	Functions for bitwise operations moved into BitUtil.h (included in PCH);
-	WtP defines them directly in the PCH. */
+	WtP defines them directly in the PCH.
+	advc.fract: Disabled the INLINE_NATIVE representation for "small" enum types
+	in order to allow T=ScaledNum. (As suggested to me by Nightinggale.) */
 
 #pragma once
 

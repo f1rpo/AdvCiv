@@ -68,7 +68,7 @@ void CvGameTextMgr::setYearStr(CvWString& szString, int iGameTurn, bool bSave,
 {
 	int iTurnYear = getTurnYearForGame(iGameTurn, iStartYear, eCalendar, eSpeed);
 	// <advc.002k>
-	enum NotationTypes { AD_PREFIX = 0, AD_POSTFIX = 1, COMMON_ERA = 2 };
+	enum NotationTypes { AD_PREFIX, AD_POSTFIX, COMMON_ERA };
 	NotationTypes eNotation = (NotationTypes)BUGOption::getValue(
 			"NJAGC__YearNotation", 0, false);
 	// </advc.002k>
@@ -7841,7 +7841,7 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 			}
 		}
 	}
-	// BULL - Trade Denial - start (advc.073: refactored; getBugOptionBOOL check removed)
+	// BULL - Trade Denial - start (advc.073: refactored; BUGOption check removed)
 	if (eTradePlayer != NO_PLAYER && eActivePlayer != NO_PLAYER)
 	{
 		TradeData item(TRADE_TECHNOLOGIES, eTech);
@@ -9454,81 +9454,83 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 	CvWString szObsoleteWithTag = bObsolete ? L"TXT_KEY_BUILDING_OBSOLETE_WITH" :
 			L"TXT_KEY_BUILDING_NOT_OBSOLETE";
 	// </advc.004w>
-
-	/*if (NULL != pCity)
-		iHappiness = pCity->getBuildingHappiness(eBuilding);
-	else iHappiness = kBuilding.getHappiness();*/ // BtS
-	/*  K-Mod, 30/dec/10, karadoc
-		changed so that conditional happiness is not double-reported.
-		(such as happiness from state-religion buildings, or culture slider) */
-	int iHappiness = kBuilding.getHappiness();
-	if (pCity != NULL)
 	{
-		// special modifiers (eg. events). These modifiers don't get their own line of text, so they need to be included here.
-		iHappiness += pCity->getBuildingHappyChange(eBuildingClass);
-		iHappiness += pPlayer->getExtraBuildingHappiness(eBuilding);
-		// 'Extra building happiness' includes happiness from several sources, including events, civics, traits, and boosts from other buildings.
-		// My aim here is to only include in the total what isn't already in the list of bonuses below. As far as I know the only thing that would
-		// be double-reported is the civic happiness. So I'll subtract that.
-		FOR_EACH_ENUM(Civic)
+		/*if (NULL != pCity)
+			iHappiness = pCity->getBuildingHappiness(eBuilding);
+		else iHappiness = kBuilding.getHappiness();*/ // BtS
+		/*  K-Mod, 30/dec/10, karadoc
+			changed so that conditional happiness is not double-reported.
+			(such as happiness from state-religion buildings, or culture slider) */
+		int iHappiness = kBuilding.getHappiness();
+		if (pCity != NULL)
 		{
-			if (pPlayer->isCivic(eLoopCivic))
+			// special modifiers (eg. events). These modifiers don't get their own line of text, so they need to be included here.
+			iHappiness += pCity->getBuildingHappyChange(eBuildingClass);
+			iHappiness += pPlayer->getExtraBuildingHappiness(eBuilding);
+			// 'Extra building happiness' includes happiness from several sources, including events, civics, traits, and boosts from other buildings.
+			// My aim here is to only include in the total what isn't already in the list of bonuses below. As far as I know the only thing that would
+			// be double-reported is the civic happiness. So I'll subtract that.
+			FOR_EACH_ENUM(Civic)
 			{
-				iHappiness -= GC.getInfo(eLoopCivic).
-						getBuildingHappinessChanges(eBuildingClass);
+				if (pPlayer->isCivic(eLoopCivic))
+				{
+					iHappiness -= GC.getInfo(eLoopCivic).
+							getBuildingHappinessChanges(eBuildingClass);
+				}
+			}
+		} // K-Mod end
+		if (iHappiness != 0)
+		{
+			szTempBuffer.Format(L", +%d%c", abs(iHappiness), iHappiness > 0 ?
+					gDLL->getSymbolID(HAPPY_CHAR) :
+					gDLL->getSymbolID(UNHAPPY_CHAR));
+			szBuffer.append(szTempBuffer);
+		}
+	}
+	{
+		/*if (NULL != pCity)
+			iHealth = pCity->getBuildingGoodHealth(eBuilding);
+		else {
+			iHealth = kBuilding.getHealth();
+			if (ePlayer != NO_PLAYER) {
+				if (eBuilding == GC.getInfo(GET_PLAYER(ePlayer).getCivilizationType()).getCivilizationBuildings(kBuilding.getBuildingClassType()))
+					iHealth += GET_PLAYER(ePlayer).getExtraBuildingHealth(eBuilding);
 			}
 		}
-	} // K-Mod end
-
-	if (iHappiness != 0)
-	{
-		szTempBuffer.Format(L", +%d%c", abs(iHappiness), iHappiness > 0 ?
-				gDLL->getSymbolID(HAPPY_CHAR) :
-				gDLL->getSymbolID(UNHAPPY_CHAR));
-		szBuffer.append(szTempBuffer);
-	}
-
-	/*if (NULL != pCity)
-		iHealth = pCity->getBuildingGoodHealth(eBuilding);
-	else {
-		iHealth = kBuilding.getHealth();
-		if (ePlayer != NO_PLAYER) {
-			if (eBuilding == GC.getInfo(GET_PLAYER(ePlayer).getCivilizationType()).getCivilizationBuildings(kBuilding.getBuildingClassType()))
-				iHealth += GET_PLAYER(ePlayer).getExtraBuildingHealth(eBuilding);
+		if (iHealth != 0) {
+			szTempBuffer.Format(L", +%d%c", abs(iHealth), ((iHealth > 0) ? gDLL->getSymbolID(HEALTHY_CHAR): gDLL->getSymbolID(UNHEALTHY_CHAR)));
+			szBuffer.append(szTempBuffer);
 		}
-	}
-	if (iHealth != 0) {
-		szTempBuffer.Format(L", +%d%c", abs(iHealth), ((iHealth > 0) ? gDLL->getSymbolID(HEALTHY_CHAR): gDLL->getSymbolID(UNHEALTHY_CHAR)));
-		szBuffer.append(szTempBuffer);
-	}
-	iHealth = 0;
-	if (NULL != pCity)
-		iHealth = pCity->getBuildingBadHealth(eBuilding);*/ // BtS
-	/*  K-Mod, 30/dec/10, karadoc
-		changed so that conditional healthiness is not counted.
-		(such as healthiness from public transport with environmentalism) */
-	int iHealth = kBuilding.getHealth();
-	if (pCity != NULL)
-	{
-		// special modifiers (eg. events). These modifiers don't get their own line of text, so they need to be included here.
-		iHealth += pCity->getBuildingHealthChange(eBuildingClass);
-		iHealth += pPlayer->getExtraBuildingHealth(eBuilding);
-		// We need to subtract any civic bonuses from 'extra building health', so as not to double-report. (see comments for the happiness section.)
-		FOR_EACH_ENUM(Civic)
+		iHealth = 0;
+		if (NULL != pCity)
+			iHealth = pCity->getBuildingBadHealth(eBuilding);*/ // BtS
+		/*  K-Mod, 30/dec/10, karadoc
+			changed so that conditional healthiness is not counted.
+			(such as healthiness from public transport with environmentalism) */
+		int iHealth = kBuilding.getHealth();
+		if (pCity != NULL)
 		{
-			if (pPlayer->isCivic(eLoopCivic))
-				iHealth -= GC.getInfo(eLoopCivic).getBuildingHealthChanges(eBuildingClass);
+			// special modifiers (eg. events). These modifiers don't get their own line of text, so they need to be included here.
+			iHealth += pCity->getBuildingHealthChange(eBuildingClass);
+			iHealth += pPlayer->getExtraBuildingHealth(eBuilding);
+			// We need to subtract any civic bonuses from 'extra building health', so as not to double-report. (see comments for the happiness section.)
+			FOR_EACH_ENUM(Civic)
+			{
+				if (pPlayer->isCivic(eLoopCivic))
+				{
+					iHealth -= GC.getInfo(eLoopCivic).
+							getBuildingHealthChanges(eBuildingClass);
+				}
+			}
+		} // K-Mod end
+		if (iHealth != 0)
+		{
+			szTempBuffer.Format(L", +%d%c", abs(iHealth), iHealth > 0 ?
+					gDLL->getSymbolID(HEALTHY_CHAR) :
+					gDLL->getSymbolID(UNHEALTHY_CHAR));
+			szBuffer.append(szTempBuffer);
 		}
-	} // K-Mod end
-
-	if (iHealth != 0)
-	{
-		szTempBuffer.Format(L", +%d%c", abs(iHealth), iHealth > 0 ?
-				gDLL->getSymbolID(HEALTHY_CHAR) :
-				gDLL->getSymbolID(UNHEALTHY_CHAR));
-		szBuffer.append(szTempBuffer);
 	}
-
 	int aiYields[NUM_YIELD_TYPES];
 	FOR_EACH_ENUM(Yield)
 	{
@@ -10660,9 +10662,9 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 						"TXT_KEY_BUILDING_HAPPINESS_CHANGE",
 						/*	UNOFFICIAL_PATCH, Bugfix, 08/28/09, jdog5000 (start):
 							Use absolute value with unhappy face */
-						abs(iHappyChange), (iHappyChange > 0 ?
+						abs(iHappyChange), iHappyChange > 0 ?
 						gDLL->getSymbolID(HAPPY_CHAR) :
-						gDLL->getSymbolID(UNHAPPY_CHAR))).c_str());
+						gDLL->getSymbolID(UNHAPPY_CHAR)).c_str());
 						// UNOFFICIAL_PATCH (end)
 				CvWString szBuilding;
 				if (ePlayer != NO_PLAYER)
@@ -12035,432 +12037,477 @@ bool CvGameTextMgr::setBuildingAdditionalHealthHelp(CvWStringBuffer &szBuffer, c
 }
 // BUG - Building Additional Health - end
 
-void CvGameTextMgr::setAngerHelp(CvWStringBuffer &szBuffer, CvCity& city)
+void CvGameTextMgr::setAngerHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 {
-	if (city.isOccupation())
+	if (kCity.isOccupation())
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_ANGER_RESISTANCE"));
+		return;
 	}
-	else if (GET_PLAYER(city.getOwner()).isAnarchy())
+	if (GET_PLAYER(kCity.getOwner()).isAnarchy())
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_ANGER_ANARCHY"));
+		return;
 	}
-	else if (city.unhappyLevel() > 0)
+	if (kCity.unhappyLevel() <= 0)
+		return;
+
+	int iNewAngerPercent = 0;
+	int iNewAnger = 0;
+	// K-Mod, 5/jan/11: all anger perecent bits were like this:
+	//iNewAnger += (((iNewAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * kCity.getPopulation()) / GC.getDefineINT("PERCENT_ANGER_DIVISOR")));
+	// I've changed it to use GC.getPERCENT_ANGER_DIVISOR() for both parts.
+	// XXX decomp these???
 	{
-		int iOldAngerPercent = 0;
-		int iNewAngerPercent = 0;
-
-		int iOldAnger = 0;
-		int iNewAnger = 0;
-
-		/*  K-Mod, 5/jan/11
-			all anger perecent bits were like this: */
-		//iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getDefineINT("PERCENT_ANGER_DIVISOR")));
-		// I've changed it to use GC.getPERCENT_ANGER_DIVISOR() for both parts.
-		// XXX decomp these???
-		iNewAngerPercent += city.getOvercrowdingPercentAnger();
-		iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()));
-		int iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+		int const iOldAngerPercent = 0;
+		int const iOldAnger = 0;
+		iNewAngerPercent += kCity.getOvercrowdingPercentAnger();
+		iNewAnger += (iNewAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()
+				- (iOldAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR();
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_OVERCROWDING", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAngerPercent = iNewAngerPercent;
-		iOldAnger = iNewAnger;
-
-		iNewAngerPercent += city.getNoMilitaryPercentAnger();
-		iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()));
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAngerPercent = iNewAngerPercent;
+		int const iOldAnger = iNewAnger;
+		iNewAngerPercent += kCity.getNoMilitaryPercentAnger();
+		iNewAnger += (iNewAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()
+				- (iOldAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR();
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_MILITARY_PROTECTION", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAngerPercent = iNewAngerPercent;
-		iOldAnger = iNewAnger;
-
-		iNewAngerPercent += city.getCulturePercentAnger();
-		iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()));
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAngerPercent = iNewAngerPercent;
+		int const iOldAnger = iNewAnger;
+		iNewAngerPercent += kCity.getCulturePercentAnger();
+		iNewAnger += (iNewAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()
+				- (iOldAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR();
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_OCCUPIED", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAngerPercent = iNewAngerPercent;
-		iOldAnger = iNewAnger;
-
-		iNewAngerPercent += city.getReligionPercentAnger();
-		iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()));
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAngerPercent = iNewAngerPercent;
+		int const iOldAnger = iNewAnger;
+		iNewAngerPercent += kCity.getReligionPercentAnger();
+		iNewAnger += (iNewAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()
+				- (iOldAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR();
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_RELIGION_FIGHT", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAngerPercent = iNewAngerPercent;
-		iOldAnger = iNewAnger;
-
-		iNewAngerPercent += city.getHurryPercentAnger();
-		iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()));
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAngerPercent = iNewAngerPercent;
+		int const iOldAnger = iNewAnger;
+		iNewAngerPercent += kCity.getHurryPercentAnger();
+		iNewAnger += (iNewAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()
+				- (iOldAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR();
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_OPPRESSION", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAngerPercent = iNewAngerPercent;
-		iOldAnger = iNewAnger;
-
-		iNewAngerPercent += city.getConscriptPercentAnger();
-		iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()));
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAngerPercent = iNewAngerPercent;
+		int const iOldAnger = iNewAnger;
+		iNewAngerPercent += kCity.getConscriptPercentAnger();
+		iNewAnger += (iNewAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()
+				- (iOldAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR();
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_DRAFT", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAngerPercent = iNewAngerPercent;
-		iOldAnger = iNewAnger;
-
-		iNewAngerPercent += city.getDefyResolutionPercentAnger();
-		iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()));
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAngerPercent = iNewAngerPercent;
+		int const iOldAnger = iNewAnger;
+		iNewAngerPercent += kCity.getDefyResolutionPercentAnger();
+		iNewAnger += (iNewAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()
+				- (iOldAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR();
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_DEFY_RESOLUTION", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAngerPercent = iNewAngerPercent;
-		iOldAnger = iNewAnger;
-
-		iNewAngerPercent += city.getWarWearinessPercentAnger();
-		iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()));
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAngerPercent = iNewAngerPercent;
+		int const iOldAnger = iNewAnger;
+		iNewAngerPercent += kCity.getWarWearinessPercentAnger();
+		iNewAnger += (iNewAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()
+				- (iOldAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR();
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_WAR_WEAR", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAngerPercent = iNewAngerPercent;
-		iOldAnger = iNewAnger;
+	}
+	{
+		int const iOldAngerPercent = iNewAngerPercent;
+		int const iOldAnger = iNewAnger;
 		/*	K-Mod, 30/dec/10, Global warming unhappiness (start)
 			when I say 'percent' I mean 1/100. Unfortunately,
 			people who made the rest of the game meant something else...
 			so I have to multiply my GwPercentAnger by 10 to make it fit in. */
 		iNewAngerPercent += std::max(0,
-				GET_PLAYER(city.getOwner()).getGwPercentAnger() * 10);
-		iNewAnger += (iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()
-				-(iOldAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR();
-		iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
+				GET_PLAYER(kCity.getOwner()).getGwPercentAnger() * 10);
+		iNewAnger += (iNewAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()
+				- (iOldAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR();
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_GLOBAL_WARMING", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAngerPercent = iNewAngerPercent;
-		iOldAnger = iNewAnger;
+	}
+	{
+		int const iOldAnger = iNewAnger;
 		// K-Mod end
-		iNewAnger += std::max(0, city.getVassalUnhappiness());
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+		iNewAnger += std::max(0, kCity.getVassalUnhappiness());
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_UNHAPPY_VASSAL", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAnger = iNewAnger;
-
-		iNewAnger += std::max(0, city.getEspionageHappinessCounter());
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAnger = iNewAnger;
+		iNewAnger += std::max(0, kCity.getEspionageHappinessCounter());
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_ESPIONAGE", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAnger = iNewAnger;
+	}
 
-		for (int iI = 0; iI < GC.getNumCivicInfos(); ++iI)
+	FOR_EACH_ENUM(Civic)
+	{
+		int const iOldAngerPercent = iNewAngerPercent;
+		int const iOldAnger = iNewAnger;
+		iNewAngerPercent += GET_PLAYER(kCity.getOwner()).getCivicPercentAnger(eLoopCivic);
+		iNewAnger += (iNewAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()
+				- (iOldAngerPercent * kCity.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR();
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
+		if (iAnger > 0)
 		{
-			iNewAngerPercent += GET_PLAYER(city.getOwner()).getCivicPercentAnger((CivicTypes)iI);
-			iNewAnger += (((iNewAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()) - ((iOldAngerPercent * city.getPopulation()) / GC.getPERCENT_ANGER_DIVISOR()));
-			iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
-			if (iAnger > 0)
-			{
-				szBuffer.append(gDLL->getText("TXT_KEY_ANGER_DEMAND_CIVIC", iAnger, GC.getInfo((CivicTypes) iI).getTextKeyWide()));
-				szBuffer.append(NEWLINE);
-			}
-			iOldAngerPercent = iNewAngerPercent;
-			iOldAnger = iNewAnger;
+			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_DEMAND_CIVIC", iAnger,
+					GC.getInfo(eLoopCivic).getTextKeyWide()));
+			szBuffer.append(NEWLINE);
 		}
-
-		iNewAnger -= std::min(0, city.getLargestCityHappiness());
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAnger = iNewAnger;
+		iNewAnger -= std::min(0, kCity.getLargestCityHappiness());
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_BIG_CITY", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAnger = iNewAnger;
-
-		iNewAnger -= std::min(0, city.getMilitaryHappiness());
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAnger = iNewAnger;
+		iNewAnger -= std::min(0, kCity.getMilitaryHappiness());
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_MILITARY_PRESENCE", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAnger = iNewAnger;
-
-		iNewAnger -= std::min(0, city.getCurrentStateReligionHappiness());
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAnger = iNewAnger;
+		iNewAnger -= std::min(0, kCity.getCurrentStateReligionHappiness());
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_STATE_RELIGION", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAnger = iNewAnger;
-
-		iNewAnger -= std::min(0, (city.getBuildingBadHappiness() + city.getExtraBuildingBadHappiness()));
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAnger = iNewAnger;
+		iNewAnger -= std::min(0,
+				kCity.getBuildingBadHappiness() + kCity.getExtraBuildingBadHappiness());
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_BUILDINGS", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAnger = iNewAnger;
-
-		iNewAnger -= std::min(0, city.getSurroundingBadHappiness());
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAnger = iNewAnger;
+		iNewAnger -= std::min(0, kCity.getSurroundingBadHappiness());
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			// advc.059: Text key was ..._FEATURES
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_SURROUNDINGS", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAnger = iNewAnger;
-
-		iNewAnger -= std::min(0, city.getBonusBadHappiness());
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAnger = iNewAnger;
+		iNewAnger -= std::min(0, kCity.getBonusBadHappiness());
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_BONUS", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAnger = iNewAnger;
-
-		iNewAnger -= std::min(0, city.getReligionBadHappiness());
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAnger = iNewAnger;
+		iNewAnger -= std::min(0, kCity.getReligionBadHappiness());
+		int const iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_RELIGIOUS_FREEDOM", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAnger = iNewAnger;
-
-		iNewAnger -= std::min(0, city.getCommerceHappiness());
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAnger = iNewAnger;
+		iNewAnger -= std::min(0, kCity.getCommerceHappiness());
+		int const iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_BAD_ENTERTAINMENT", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAnger = iNewAnger;
-
-		iNewAnger -= std::min(0, city.getArea().getBuildingHappiness(city.getOwner()));
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAnger = iNewAnger;
+		iNewAnger -= std::min(0, kCity.getArea().getBuildingHappiness(kCity.getOwner()));
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_BUILDINGS", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAnger = iNewAnger;
-
-		iNewAnger -= std::min(0, GET_PLAYER(city.getOwner()).getBuildingHappiness());
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAnger = iNewAnger;
+		iNewAnger -= std::min(0, GET_PLAYER(kCity.getOwner()).getBuildingHappiness());
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_BUILDINGS", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAnger = iNewAnger;
-
-		iNewAnger -= std::min(0, (city.getExtraHappiness() + GET_PLAYER(city.getOwner()).getExtraHappiness()));
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAnger = iNewAnger;
+		iNewAnger -= std::min(0,
+				kCity.getExtraHappiness() + GET_PLAYER(kCity.getOwner()).getExtraHappiness());
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_ARGH", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAnger = iNewAnger;
-
-		iNewAnger -= std::min(0, GC.getInfo(city.getHandicapType()).getHappyBonus());
-		iAnger = ((iNewAnger - iOldAnger) + std::min(0, iOldAnger));
+	}
+	{
+		int const iOldAnger = iNewAnger;
+		iNewAnger -= std::min(0, GC.getInfo(kCity.getHandicapType()).getHappyBonus());
+		int iAnger = iNewAnger - iOldAnger + std::min(0, iOldAnger);
 		if (iAnger > 0)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ANGER_HANDICAP", iAnger));
 			szBuffer.append(NEWLINE);
 		}
-		iOldAnger = iNewAnger;
-
-		szBuffer.append(L"-----------------------\n");
-
-		szBuffer.append(gDLL->getText("TXT_KEY_ANGER_TOTAL_UNHAPPY", iOldAnger));
-
-		FAssert(iOldAnger == city.unhappyLevel());
 	}
+	szBuffer.append(L"-----------------------\n");
+	szBuffer.append(gDLL->getText("TXT_KEY_ANGER_TOTAL_UNHAPPY", iNewAnger));
+	FAssert(iNewAnger == kCity.unhappyLevel());
 }
 
 
-void CvGameTextMgr::setHappyHelp(CvWStringBuffer &szBuffer, CvCity& city)
+void CvGameTextMgr::setHappyHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 {
-	if(city.isOccupation() || GET_PLAYER(city.getOwner()).isAnarchy())
+	if (kCity.isOccupation() || GET_PLAYER(kCity.getOwner()).isAnarchy())
 		return;
-	if (city.happyLevel() <= 0)
+	if (kCity.happyLevel() <= 0)
 		return;
 
 	int iTotalHappy = 0;
-	int iHappy = city.getLargestCityHappiness();
-	if (iHappy > 0)
 	{
+		int iHappy = kCity.getLargestCityHappiness();
+		if (iHappy > 0)
+		{
+			iTotalHappy += iHappy;
+			szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_BIG_CITY", iHappy));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	{
+		int iHappy = kCity.getMilitaryHappiness();
+		if (iHappy > 0)
+		{
+			iTotalHappy += iHappy;
+			szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_MILITARY_PRESENCE", iHappy));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	{
+		int iHappy = kCity.getVassalHappiness();
+		if (iHappy > 0)
+		{
+			iTotalHappy += iHappy;
+			szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_VASSAL", iHappy));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	{
+		int iHappy = kCity.getCurrentStateReligionHappiness();
+		if (iHappy > 0)
+		{
+			iTotalHappy += iHappy;
+			szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_STATE_RELIGION", iHappy));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	{
+		int iHappy = kCity.getBuildingGoodHappiness() +
+				kCity.getExtraBuildingGoodHappiness();
+		if (iHappy > 0)
+		{
+			iTotalHappy += iHappy;
+			szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_BUILDINGS", iHappy));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	{
+		int iHappy = kCity.getSurroundingGoodHappiness();
+		if (iHappy > 0)
+		{
+			iTotalHappy += iHappy;
+			// advc.059: Text key was ..._FEATURES
+			szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_SURROUNDINGS", iHappy));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	{
+		int iHappy = kCity.getBonusGoodHappiness();
+		if (iHappy > 0)
+		{
+			iTotalHappy += iHappy;
+			szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_BONUS", iHappy));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	{
+		int iHappy = kCity.getReligionGoodHappiness();
+		if (iHappy > 0)
+		{
+			iTotalHappy += iHappy;
+			szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_RELIGIOUS_FREEDOM", iHappy));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	{
+		int iHappy = kCity.getCommerceHappiness();
+		if (iHappy > 0)
+		{
+			iTotalHappy += iHappy;
+			szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_ENTERTAINMENT", iHappy));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	{
+		int iHappy = kCity.getArea().getBuildingHappiness(kCity.getOwner());
+		if (iHappy > 0)
+		{
+			iTotalHappy += iHappy;
+			szBuffer.append(gDLL->getText(
+					"TXT_KEY_HAPPY_BUILDINGS_AREA", // advc.004g
+					iHappy));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	{
+		int iHappy = GET_PLAYER(kCity.getOwner()).getBuildingHappiness();
+		if (iHappy > 0)
+		{
+			iTotalHappy += iHappy;
+			szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_BUILDINGS", iHappy));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	{
+		int iHappy = kCity.getExtraHappiness() +
+				GET_PLAYER(kCity.getOwner()).getExtraHappiness();
+		if (iHappy > 0)
+		{
+			iTotalHappy += iHappy;
+			szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_YEAH", iHappy));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	if (kCity.getHappinessTimer() > 0)
+	{
+		int iHappy = GC.getDefineINT("TEMP_HAPPY");
 		iTotalHappy += iHappy;
-		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_BIG_CITY", iHappy));
+		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_TEMP", iHappy,
+				kCity.getHappinessTimer()));
 		szBuffer.append(NEWLINE);
 	}
-
-	iHappy = city.getMilitaryHappiness();
-	if (iHappy > 0)
 	{
-		iTotalHappy += iHappy;
-		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_MILITARY_PRESENCE", iHappy));
-		szBuffer.append(NEWLINE);
+		int iHappy = GC.getInfo(kCity.getHandicapType()).getHappyBonus();
+		if (iHappy > 0)
+		{
+			iTotalHappy += iHappy;
+			szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_HANDICAP", iHappy));
+			szBuffer.append(NEWLINE);
+		}
 	}
-
-	iHappy = city.getVassalHappiness();
-	if (iHappy > 0)
-	{
-		iTotalHappy += iHappy;
-		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_VASSAL", iHappy));
-		szBuffer.append(NEWLINE);
-	}
-
-	iHappy = city.getCurrentStateReligionHappiness();
-	if (iHappy > 0)
-	{
-		iTotalHappy += iHappy;
-		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_STATE_RELIGION", iHappy));
-		szBuffer.append(NEWLINE);
-	}
-
-	iHappy = (city.getBuildingGoodHappiness() + city.getExtraBuildingGoodHappiness());
-	if (iHappy > 0)
-	{
-		iTotalHappy += iHappy;
-		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_BUILDINGS", iHappy));
-		szBuffer.append(NEWLINE);
-	}
-
-	iHappy = city.getSurroundingGoodHappiness();
-	if (iHappy > 0)
-	{
-		iTotalHappy += iHappy;
-		// advc.059: Text key was ..._FEATURES
-		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_SURROUNDINGS", iHappy));
-		szBuffer.append(NEWLINE);
-	}
-
-	iHappy = city.getBonusGoodHappiness();
-	if (iHappy > 0)
-	{
-		iTotalHappy += iHappy;
-		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_BONUS", iHappy));
-		szBuffer.append(NEWLINE);
-	}
-
-	iHappy = city.getReligionGoodHappiness();
-	if (iHappy > 0)
-	{
-		iTotalHappy += iHappy;
-		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_RELIGIOUS_FREEDOM", iHappy));
-		szBuffer.append(NEWLINE);
-	}
-
-	iHappy = city.getCommerceHappiness();
-	if (iHappy > 0)
-	{
-		iTotalHappy += iHappy;
-		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_ENTERTAINMENT", iHappy));
-		szBuffer.append(NEWLINE);
-	}
-
-	iHappy = city.getArea().getBuildingHappiness(city.getOwner());
-	if (iHappy > 0)
-	{
-		iTotalHappy += iHappy;
-		szBuffer.append(gDLL->getText(
-				"TXT_KEY_HAPPY_BUILDINGS_AREA", // advc.004g
-				iHappy));
-		szBuffer.append(NEWLINE);
-	}
-
-	iHappy = GET_PLAYER(city.getOwner()).getBuildingHappiness();
-	if (iHappy > 0)
-	{
-		iTotalHappy += iHappy;
-		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_BUILDINGS", iHappy));
-		szBuffer.append(NEWLINE);
-	}
-
-	iHappy = (city.getExtraHappiness() + GET_PLAYER(city.getOwner()).getExtraHappiness());
-	if (iHappy > 0)
-	{
-		iTotalHappy += iHappy;
-		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_YEAH", iHappy));
-		szBuffer.append(NEWLINE);
-	}
-
-	if (city.getHappinessTimer() > 0)
-	{
-		iHappy = GC.getDefineINT("TEMP_HAPPY");
-		iTotalHappy += iHappy;
-		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_TEMP", iHappy, city.getHappinessTimer()));
-		szBuffer.append(NEWLINE);
-	}
-
-	iHappy = GC.getInfo(city.getHandicapType()).getHappyBonus();
-	if (iHappy > 0)
-	{
-		iTotalHappy += iHappy;
-		szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_HANDICAP", iHappy));
-		szBuffer.append(NEWLINE);
-	}
-
 	szBuffer.append(L"-----------------------\n");
-
 	szBuffer.append(gDLL->getText("TXT_KEY_HAPPY_TOTAL_HAPPY", iTotalHappy));
-
-	FAssert(iTotalHappy == city.happyLevel());
+	FAssert(iTotalHappy == kCity.happyLevel());
 }
 
 // BUG - Building Additional Happiness - start
 bool CvGameTextMgr::setBuildingAdditionalHappinessHelp(CvWStringBuffer &szBuffer,
-	const CvCity& city, const CvWString& szStart, bool bStarted)
+	const CvCity& kCity, const CvWString& szStart, bool bStarted)
 {
 	CvWString szLabel;
 
-	CvCivilization const& kCiv = city.getCivilization(); // advc.003w
+	CvCivilization const& kCiv = kCity.getCivilization(); // advc.003w
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eBuilding = kCiv.buildingAt(i);
-		if (city.canConstruct(eBuilding, false, true, false))
+		if (kCity.canConstruct(eBuilding, false, true, false))
 		{
 			int iGood = 0, iBad = 0;
 			//int iChange = // advc: unused
-			  city.getAdditionalHappinessByBuilding(eBuilding, iGood, iBad);
+			  kCity.getAdditionalHappinessByBuilding(eBuilding, iGood, iBad);
 
 			if (iGood != 0 || iBad != 0)
 			{
-				int iAngryPop = city.getAdditionalAngryPopuplation(iGood, iBad);
+				int iAngryPop = kCity.getAdditionalAngryPopuplation(iGood, iBad);
 
 				if (!bStarted)
 				{
@@ -12871,7 +12918,7 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 		setBonusExtraHelp(szBuffer, eBonus, bCivilopediaText, eTradePlayer, bDiplo, pCity);
 	}
 
-	// BULL - Trade Denial - start  (advc.073: refactored; getBugOptionBOOL check removed)
+	// BULL - Trade Denial - start  (advc.073: refactored; BugOption check removed)
 	if (eTradePlayer == NO_PLAYER || eActivePlayer == NO_PLAYER)
 		return; // advc
 
@@ -15881,18 +15928,18 @@ void CvGameTextMgr::buildFinanceForeignIncomeString(CvWStringBuffer& szBuffer, P
 }
 
 // BUG - Building Additional Yield - start
-bool CvGameTextMgr::setBuildingAdditionalYieldHelp(CvWStringBuffer &szBuffer, const CvCity& city, YieldTypes eIndex, const CvWString& szStart, bool bStarted)
+bool CvGameTextMgr::setBuildingAdditionalYieldHelp(CvWStringBuffer &szBuffer, const CvCity& kCity, YieldTypes eIndex, const CvWString& szStart, bool bStarted)
 {
 	CvYieldInfo& info = GC.getInfo(eIndex);
 	CvWString szLabel;
 
-	CvCivilization const& kCiv = city.getCivilization(); // advc.003w
+	CvCivilization const& kCiv = kCity.getCivilization(); // advc.003w
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eBuilding = kCiv.buildingAt(i);
-		if (city.canConstruct(eBuilding, false, true, false))
+		if (kCity.canConstruct(eBuilding, false, true, false))
 		{
-			int iChange = city.getAdditionalYieldByBuilding(eIndex, eBuilding);
+			int iChange = kCity.getAdditionalYieldByBuilding(eIndex, eBuilding);
 			if (iChange != 0)
 			{
 				if (!bStarted)
@@ -15911,18 +15958,18 @@ bool CvGameTextMgr::setBuildingAdditionalYieldHelp(CvWStringBuffer &szBuffer, co
 } // BUG - Building Additional Yield - end
 
 // BUG - Building Additional Commerce - start
-bool CvGameTextMgr::setBuildingAdditionalCommerceHelp(CvWStringBuffer &szBuffer, const CvCity& city, CommerceTypes eIndex, const CvWString& szStart, bool bStarted)
+bool CvGameTextMgr::setBuildingAdditionalCommerceHelp(CvWStringBuffer &szBuffer, const CvCity& kCity, CommerceTypes eIndex, const CvWString& szStart, bool bStarted)
 {
 	CvCommerceInfo& info = GC.getInfo(eIndex);
 	CvWString szLabel;
 
-	CvCivilization const& kCiv = city.getCivilization(); // advc.003w
+	CvCivilization const& kCiv = kCity.getCivilization(); // advc.003w
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eBuilding = kCiv.buildingAt(i);
-		if (city.canConstruct(eBuilding, false, true, false))
+		if (kCity.canConstruct(eBuilding, false, true, false))
 		{
-			int iChange = city.getAdditionalCommerceTimes100ByBuilding(eIndex, eBuilding);
+			int iChange = kCity.getAdditionalCommerceTimes100ByBuilding(eIndex, eBuilding);
 			if (iChange != 0)
 			{
 				if (!bStarted)
@@ -15941,18 +15988,18 @@ bool CvGameTextMgr::setBuildingAdditionalCommerceHelp(CvWStringBuffer &szBuffer,
 } // BUG - Building Additional Commerce - end
 
 // BUG - Building Saved Maintenance - start
-bool CvGameTextMgr::setBuildingSavedMaintenanceHelp(CvWStringBuffer &szBuffer, const CvCity& city, const CvWString& szStart, bool bStarted)
+bool CvGameTextMgr::setBuildingSavedMaintenanceHelp(CvWStringBuffer &szBuffer, const CvCity& kCity, const CvWString& szStart, bool bStarted)
 {
 	CvCommerceInfo& info = GC.getInfo(COMMERCE_GOLD);
 	CvWString szLabel;
 
-	CvCivilization const& kCiv = city.getCivilization(); // advc.003w
+	CvCivilization const& kCiv = kCity.getCivilization(); // advc.003w
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eBuilding = kCiv.buildingAt(i);
-		if (city.canConstruct(eBuilding, false, true, false))
+		if (kCity.canConstruct(eBuilding, false, true, false))
 		{
-			int iChange = city.getSavedMaintenanceTimes100ByBuilding(eBuilding);
+			int iChange = kCity.getSavedMaintenanceTimes100ByBuilding(eBuilding);
 
 			if (iChange != 0)
 			{
@@ -15989,7 +16036,7 @@ void CvGameTextMgr::setProductionHelp(CvWStringBuffer &szBuffer, CvCity const& k
 		szBuffer.append(NEWLINE);
 	}
 
-	//if (city.getCurrentProductionDifference(false, true) == 0)
+	//if (kCity.getCurrentProductionDifference(false, true) == 0)
 	// BUG - Building Additional Production - start
 	bool bBuildingAdditionalYield = (BUGOption::isEnabled("MiscHover__BuildingAdditionalProduction", false) ||
 			GC.altKey()); // advc.063
@@ -16498,8 +16545,9 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCi
 	CommerceTypes eCommerce)
 {
 	// BUG - Building Additional Commerce - start
-	bool bBuildingAdditionalCommerce = (BUGOption::isEnabled("MiscHover__BuildingAdditionalCommerce", false)
-			|| GC.altKey()); // advc.063
+	bool bBuildingAdditionalCommerce = (
+			BUGOption::isEnabled("MiscHover__BuildingAdditionalCommerce", false) ||
+			GC.altKey()); // advc.063
 	if(NO_COMMERCE == eCommerce ||
 		(kCity.getCommerceRateTimes100(eCommerce) == 0 &&
 		!bBuildingAdditionalCommerce) ||
@@ -16508,7 +16556,7 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCi
 	{
 		return;
 	}
-	CvCommerceInfo& kCommerce = GC.getInfo(eCommerce);
+	CvCommerceInfo const& kCommerce = GC.getInfo(eCommerce);
 	int const iCommerceChar = kCommerce.getChar();
 
 	if(kCity.getOwner() == NO_PLAYER)
@@ -16595,7 +16643,7 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCi
 	// BUG - Base Commerce - start
 	if (bNeedSubtotal && kCity.getCommerceRateModifier(eCommerce) != 0
 		// advc.065: No longer optional
-		/*&& getBugOptionBOOL("MiscHover__BaseCommerce", false)*/)
+		/*&& BUGOption::isEnabled("MiscHover__BaseCommerce", false)*/)
 	{
 		CvWString szYield = CvWString::format(L"%d.%02d",
 				iBaseCommerceRate / 100, iBaseCommerceRate % 100);
@@ -16696,7 +16744,6 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCi
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_PRODUCTION_TO_COMMERCE",
 					iProductionToCommerce / 100, iCommerceChar));
-			szBuffer.append(NEWLINE);
 		}
 		else
 		{
@@ -16704,8 +16751,8 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCi
 					iProductionToCommerce / 100, iProductionToCommerce % 100);
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_PRODUCTION_TO_COMMERCE_FLOAT",
 					szRate.GetCString(), iCommerceChar));
-			szBuffer.append(NEWLINE);
 		}
+		szBuffer.append(NEWLINE);
 		iModYield += iProductionToCommerce;
 	}
 
@@ -16943,19 +16990,20 @@ void CvGameTextMgr::setVassalRevoltHelp(CvWStringBuffer& szBuffer, TeamTypes eMa
 
 void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 {
-	if(NO_PLAYER == kCity.getOwner())
+	if (kCity.getOwner() == NO_PLAYER)
 		return;
 	CvPlayer const& kOwner = GET_PLAYER(kCity.getOwner());
 	szBuffer.assign(gDLL->getText("TXT_KEY_MISC_GREAT_PERSON", kCity.getGreatPeopleProgress(),
 			kOwner.greatPeopleThreshold(false)));
-	int iTurnsLeft = kCity.GPTurnsLeft(); // advc.001c:
-	if (kCity.getGreatPeopleRate() > 0)
+	int iTurnsLeft = kCity.GPTurnsLeft(); // advc.001c
+	int const iGPRate = kCity.getGreatPeopleRate();
+	if (iGPRate > 0)
 	{
 		int iGPPLeft = kOwner.greatPeopleThreshold(false) - kCity.getGreatPeopleProgress();
 		if (iGPPLeft > 0)
 		{	// advc.001c: Moved into CvCity::GPTurnsLeft
-			/*iTurnsLeft = iGPPLeft / city.getGreatPeopleRate();
-			if (iTurnsLeft * city.getGreatPeopleRate() <  iGPPLeft)
+			/*iTurnsLeft = iGPPLeft / iGPRate;
+			if (iTurnsLeft * kCity.getGreatPeopleRate() <  iGPPLeft)
 				iTurnsLeft++;*/
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("INTERFACE_CITY_TURNS",
@@ -16964,9 +17012,8 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity const
 	}
 
 	int iTotalGreatPeopleUnitProgress = 0;
-	for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
+	FOR_EACH_ENUM2(Unit, eGPType)
 	{
-		UnitTypes eGPType = (UnitTypes)iI; // advc
 		iTotalGreatPeopleUnitProgress += kCity.getGreatPeopleUnitProgress(eGPType);
 		// advc.001c:
 		iTotalGreatPeopleUnitProgress += kCity.getGreatPeopleUnitRate(eGPType);
@@ -16981,19 +17028,18 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity const
 		std::vector<std::pair<UnitTypes,int> > aUnitProgress;
 		// advc.001c: BtS code moved into CvCity::GPProjection
 		kCity.GPProjection(aUnitProgress);
-		for(int iI = 0; iI < (int)aUnitProgress.size(); iI++)
+		for (size_t i = 0; i < aUnitProgress.size(); i++)
 		{
 			szBuffer.append(CvWString::format(L"%s%s - %d%%", NEWLINE,
-					GC.getInfo(aUnitProgress[iI].first).getDescription(),
-					aUnitProgress[iI].second));
+					GC.getInfo(aUnitProgress[i].first).getDescription(),
+					aUnitProgress[i].second));
 		}
 	}
-
-	//if (city.getGreatPeopleRate() == 0)
 	// BUG - Building Additional Great People - start
-	bool bBuildingAdditionalGreatPeople = (BUGOption::isEnabled("MiscHover__BuildingAdditionalGreatPeople", false)
-			|| GC.altKey()); // advc.063
-	if (kCity.getGreatPeopleRate() == 0 && !bBuildingAdditionalGreatPeople)
+	bool bBuildingAdditionalGreatPeople =
+			(BUGOption::isEnabled("MiscHover__BuildingAdditionalGreatPeople", false) ||
+			GC.altKey()); // advc.063
+	if (iGPRate == 0 && !bBuildingAdditionalGreatPeople)
 	// BUG - Building Additional Great People - end
 		return;
 
@@ -17003,89 +17049,88 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity const
 	int const iTotalGreatPeopleRateModifier = kCity.getTotalGreatPeopleRateModifier();
 	if (iTotalGreatPeopleRateModifier != 100) // </advc.004>
 	{
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_BASE_RATE", kCity.getBaseGreatPeopleRate()));
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_BASE_RATE",
+				kCity.getBaseGreatPeopleRate()));
 		szBuffer.append(NEWLINE);
 	}
 	int iModifier = 100;
-
-	// Buildings
-	int iBuildingMod = 0;
-	for (int i = 0; i < GC.getNumBuildingInfos(); i++)
 	{
-		CvBuildingInfo& infoBuilding = GC.getInfo((BuildingTypes)i);
-		if (kCity.getNumBuilding((BuildingTypes)i) > 0 && !GET_TEAM(kCity.getTeam()).isObsoleteBuilding((BuildingTypes)i))
+		int iBuildingMod = 0;
+		FOR_EACH_ENUM2(Building, eBuilding)
 		{
-			for (int iLoop = 0; iLoop < kCity.getNumBuilding((BuildingTypes)i); iLoop++)
+			CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+			if (kCity.getNumBuilding(eBuilding) > 0 &&
+				!GET_TEAM(kCity.getTeam()).isObsoleteBuilding(eBuilding))
 			{
-				iBuildingMod += infoBuilding.getGreatPeopleRateModifier();
+				iBuildingMod += kCity.getNumBuilding(eBuilding) *
+						kBuilding.getGreatPeopleRateModifier();
 			}
-		}
-		for (int j = 0; j < MAX_CIV_PLAYERS; j++)
-		{
-			CvPlayer const& kMember = GET_PLAYER((PlayerTypes)j);
-			if (!kMember.isAlive() || kMember.getTeam() != kOwner.getTeam())
-				continue; // advc
-			FOR_EACH_CITY(pLoopCity, kMember)
+			for (MemberIter itMember(kOwner.getTeam()); itMember.hasNext(); ++itMember)
 			{
-				if (pLoopCity->getNumBuilding((BuildingTypes)i) > 0 &&
-					!GET_TEAM(pLoopCity->getTeam()).isObsoleteBuilding((BuildingTypes)i))
+				FOR_EACH_CITY(pLoopCity, *itMember)
 				{
-					for (int k = 0; k < pLoopCity->getNumBuilding((BuildingTypes)i); k++)
-						iBuildingMod += infoBuilding.getGlobalGreatPeopleRateModifier();
+					if (pLoopCity->getNumBuilding(eBuilding) > 0 &&
+						!GET_TEAM(pLoopCity->getTeam()).isObsoleteBuilding(eBuilding))
+					{
+						iBuildingMod += pLoopCity->getNumBuilding(eBuilding) *
+								kBuilding.getGlobalGreatPeopleRateModifier();
+					}
 				}
 			}
 		}
-	}
-	if (iBuildingMod != 0)
-	{
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_BUILDINGS", iBuildingMod));
-		szBuffer.append(NEWLINE);
-		iModifier += iBuildingMod;
-	}
-
-	// Civics
-	int iCivicMod = 0;
-	for (int i = 0; i < GC.getNumCivicOptionInfos(); i++)
-	{
-		if (NO_CIVIC != kOwner.getCivics((CivicOptionTypes)i))
+		if (iBuildingMod != 0)
 		{
-			iCivicMod += GC.getInfo(kOwner.getCivics((CivicOptionTypes)i)).getGreatPeopleRateModifier();
-			if (kOwner.getStateReligion() != NO_RELIGION && kCity.isHasReligion(kOwner.getStateReligion()))
-			{
-				iCivicMod += GC.getInfo(kOwner.getCivics((CivicOptionTypes)i)).getStateReligionGreatPeopleRateModifier();
-			}
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_BUILDINGS",
+					iBuildingMod));
+			szBuffer.append(NEWLINE);
+			iModifier += iBuildingMod;
 		}
 	}
-	if (iCivicMod != 0)
 	{
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_CIVICS", iCivicMod));
-		szBuffer.append(NEWLINE);
-		iModifier += iCivicMod;
-	}
-
-	// Trait
-	for (int i = 0; i < GC.getNumTraitInfos(); i++)
-	{
-		if (kCity.hasTrait((TraitTypes)i))
+		int iCivicMod = 0;
+		FOR_EACH_ENUM(CivicOption)
 		{
-			CvTraitInfo& trait = GC.getInfo((TraitTypes)i);
-			int iTraitMod = trait.getGreatPeopleRateModifier();
+			if (kOwner.getCivics(eLoopCivicOption) != NO_CIVIC)
+			{
+				CvCivicInfo const& kCivic = GC.getInfo(kOwner.getCivics(eLoopCivicOption));
+				iCivicMod += kCivic.getGreatPeopleRateModifier();
+				if (kOwner.getStateReligion() != NO_RELIGION &&
+					kCity.isHasReligion(kOwner.getStateReligion()))
+				{
+					iCivicMod += kCivic.getStateReligionGreatPeopleRateModifier();
+				}
+			}
+		}
+		if (iCivicMod != 0)
+		{
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_CIVICS",
+					iCivicMod));
+			szBuffer.append(NEWLINE);
+			iModifier += iCivicMod;
+		}
+	}
+	FOR_EACH_ENUM2(Trait, eTrait)
+	{
+		if (kCity.hasTrait(eTrait))
+		{
+			CvTraitInfo const& kTrait = GC.getInfo(eTrait);
+			int iTraitMod = kTrait.getGreatPeopleRateModifier();
 			if (iTraitMod != 0)
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_TRAIT", iTraitMod, trait.getTextKeyWide()));
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_TRAIT",
+						iTraitMod, kTrait.getTextKeyWide()));
 				szBuffer.append(NEWLINE);
 				iModifier += iTraitMod;
 			}
 		}
 	}
-
 	if (kOwner.isGoldenAge())
 	{
 		int iGoldenAgeMod = GC.getDefineINT("GOLDEN_AGE_GREAT_PEOPLE_MODIFIER");
-
 		if (iGoldenAgeMod != 0)
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_GOLDEN_AGE", iGoldenAgeMod));
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_GOLDEN_AGE",
+					iGoldenAgeMod));
 			szBuffer.append(NEWLINE);
 			iModifier += iGoldenAgeMod;
 		}
@@ -17096,16 +17141,17 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity const
 
 	szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_FINAL", iModGreatPeople));
 	//szBuffer.append(NEWLINE);
-// BUG - Building Additional Great People - start
-	if (bBuildingAdditionalGreatPeople && kCity.getOwner() == GC.getGame().getActivePlayer())
+	// BUG - Building Additional Great People - start
+	if (bBuildingAdditionalGreatPeople &&
+		kCity.getOwner() == GC.getGame().getActivePlayer())
 	{
 		setBuildingAdditionalGreatPeopleHelp(szBuffer, kCity, DOUBLE_SEPARATOR);
-	}
-// BUG - Building Additional Great People - end
+	} // BUG - Building Additional Great People - end
 }
 
 // BUG - Building Additional Great People - start
-bool CvGameTextMgr::setBuildingAdditionalGreatPeopleHelp(CvWStringBuffer &szBuffer, const CvCity& city, const CvWString& szStart, bool bStarted)
+bool CvGameTextMgr::setBuildingAdditionalGreatPeopleHelp(CvWStringBuffer &szBuffer, const CvCity& city,
+	const CvWString& szStart, bool bStarted)
 {
 	CvWString szLabel;
 
@@ -17143,8 +17189,6 @@ void CvGameTextMgr::parseGreatGeneralHelp(CvWStringBuffer &szBuffer, CvPlayer& k
 void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvCity* pCity)
 {
 	szBuffer.clear();
-
-	// government center icon
 	if (pCity->isGovernmentCenter() && !(pCity->isCapital()))
 		szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(SILVER_STAR_CHAR)));
 	// happiness, healthiness, superlative icons
@@ -17283,7 +17327,6 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 		} // BUG - Airport Icon - end
 		// </advc.002f>
 	}
-	// religion icons
 	FOR_EACH_ENUM(Religion)
 	{
 		if (pCity->isHasReligion(eLoopReligion))
@@ -17300,7 +17343,6 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 			}
 		}
 	}
-	// corporation icons
 	FOR_EACH_ENUM2(Corporation, eLoopCorp)
 	{
 		if (pCity->isHeadquarters(eLoopCorp))
@@ -17331,28 +17373,26 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 				gDLL->getSymbolID(OCCUPATION_CHAR), pCity->getOccupationTimer()));
 	}
 	// defense icon and text
-	//if (pCity->getTeam() != GC.getGame().getActiveTeam())
+	//if (pCity->getTeam() != GC.getGame().getActiveTeam()) {
+	if (pCity->isVisible(GC.getGame().getActiveTeam(), true))
 	{
-		if (pCity->isVisible(GC.getGame().getActiveTeam(), true))
+		int iDefenseModifier = pCity->getDefenseModifier(
+				GC.getGame().selectionListIgnoreBuildingDefense());
+		if (iDefenseModifier != 0)
 		{
-			int iDefenseModifier = pCity->getDefenseModifier(
-					GC.getGame().selectionListIgnoreBuildingDefense());
-			if (iDefenseModifier != 0)
-			{
-				//szBuffer.append(CvWString::format(L" %c:%s%d%%", gDLL->getSymbolID(DEFENSE_CHAR), ((iDefenseModifier > 0) ? "+" : ""), iDefenseModifier));
-				// <advc.002f>
-				szBuffer.append(CvWString::format(L"   " SETCOLR L"%s%d%%" ENDCOLR L"%c",
-						// I've tried some other colors, but they're no easier to read.
-						TEXT_COLOR("COLOR_WHITE"),
-						((iDefenseModifier > 0) ? "+" : ""),
-						iDefenseModifier,
-						gDLL->getSymbolID(DEFENSE_CHAR))); // </advc.002f>
-			}
+			//szBuffer.append(CvWString::format(L" %c:%s%d%%", gDLL->getSymbolID(DEFENSE_CHAR), ((iDefenseModifier > 0) ? "+" : ""), iDefenseModifier));
+			// <advc.002f>
+			szBuffer.append(CvWString::format(L"   " SETCOLR L"%s%d%%" ENDCOLR L"%c",
+					// I've tried some other colors, but they're no easier to read.
+					TEXT_COLOR("COLOR_WHITE"),
+					((iDefenseModifier > 0) ? "+" : ""),
+					iDefenseModifier,
+					gDLL->getSymbolID(DEFENSE_CHAR))); // </advc.002f>
 		}
 	}
 }
 
-void CvGameTextMgr::buildCityBillboardCityNameString( CvWStringBuffer& szBuffer, CvCity* pCity)
+void CvGameTextMgr::buildCityBillboardCityNameString(CvWStringBuffer& szBuffer, CvCity* pCity)
 {
 	szBuffer.assign(pCity->getName());
 	if (pCity->canBeSelected())
@@ -19480,7 +19520,7 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 	else
 	{
 		if (pCity != NULL)
-			setCityBarHelp(strHelp, pCity);
+			setCityBarHelp(strHelp, *pCity);
 		else if (pFlagPlot != NULL)
 			setPlotListHelp(strHelp, *pFlagPlot, false, true);
 		if (strHelp.isEmpty() && pMouseOverPlot != NULL)

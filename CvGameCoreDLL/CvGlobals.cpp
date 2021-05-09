@@ -878,6 +878,11 @@ void CvGlobals::updateCameraStartDistance(bool bReset)
 	cacheGlobalFloats(false);
 }
 
+int CvGlobals::getMaxCivPlayers() const
+{
+	return MAX_CIV_PLAYERS;
+}
+
 int CvGlobals::getMAX_CIV_PLAYERS()
 {
 	return MAX_CIV_PLAYERS;
@@ -1005,11 +1010,6 @@ void CvGlobals::handleUnknownTypeString(char const* szType,
 CvMap& CvGlobals::getMapExternal() { return getMap(); }
 CvGameAI& CvGlobals::getGameExternal() { return AI_getGame(); } // </advc.inl>
 CvGameAI *CvGlobals::getGamePointer() { return m_game; }
-
-int CvGlobals::getMaxCivPlayers() const
-{
-	return MAX_CIV_PLAYERS;
-}
 
 bool CvGlobals::IsGraphicsInitialized() const { return m_bGraphicsInitialized;}
 

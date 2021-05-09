@@ -2376,13 +2376,13 @@ int CvCity::getProductionDifference(int iProductionNeeded, int iProduction,
 	//int iOverflow = (bOverflow ? (getOverflowProduction() + getFeatureProduction()) : 0);
 	// <advc.064b> Replacing the above
 	int iOverflow = 0;
-	if(bOverflow)
+	if (bOverflow)
 		iOverflow = getOverflowProduction();
 	int iFeatureProduction = 0;
 	FAssert(!bIgnoreFeatureProd || (!bForceFeatureProd && piFeatureProd == NULL));
-	if(!bIgnoreFeatureProd)
+	if (!bIgnoreFeatureProd)
 	{
-		if(bForceFeatureProd)
+		if (bForceFeatureProd)
 			iFeatureProduction = getFeatureProduction();
 		else /* Compute needed feature production (derived from the formula in the
 				return statement) */
@@ -2400,7 +2400,8 @@ int CvCity::getProductionDifference(int iProductionNeeded, int iProduction,
 		*piFeatureProd = iFeatureProduction;
 	/*  Replacing the BtS formula below. The BaseYieldRateModifier is now already
 		applied when the overflow is generated; see comment in unmodifyOverflow. */
-	return iFoodProduction + ((iRate + iFeatureProduction) * iModifier +
+	return iFoodProduction +
+			((iRate + iFeatureProduction) * iModifier +
 			iOverflow * (100 + iProductionModifier)) / 100;
 	// </advc.064b>
 	//return ((iRate + iOverflow) * iModifier) / 100 + iFoodProduction;
@@ -3491,12 +3492,9 @@ int CvCity::getHurryPercentAnger(int iExtra) const
 {
 	if (getHurryAngerTimer() == 0)
 		return 0;
-
-	return ((((((getHurryAngerTimer() - 1) /
-			flatHurryAngerLength()) + 1) *
-			GC.getDefineINT(CvGlobals::HURRY_POP_ANGER) *
-			GC.getPERCENT_ANGER_DIVISOR()) /
-			std::max(1, getPopulation() + iExtra)) + 1);
+	return 1 + (((((getHurryAngerTimer() - 1) / flatHurryAngerLength()) + 1) *
+			GC.getDefineINT(CvGlobals::HURRY_POP_ANGER) * GC.getPERCENT_ANGER_DIVISOR()) /
+			std::max(1, getPopulation() + iExtra));
 }
 
 
@@ -3505,24 +3503,21 @@ int CvCity::getConscriptPercentAnger(int iExtra) const
 	if (getConscriptAngerTimer() == 0)
 		return 0;
 
-	return ((((((getConscriptAngerTimer() - 1) /
-			flatConscriptAngerLength()) + 1) *
-			GC.getDefineINT(CvGlobals::CONSCRIPT_POP_ANGER) *
-			GC.getPERCENT_ANGER_DIVISOR()) /
-			std::max(1, getPopulation() + iExtra)) + 1);
+	return 1 + (((((getConscriptAngerTimer() - 1) / flatConscriptAngerLength()) + 1) *
+			GC.getDefineINT(CvGlobals::CONSCRIPT_POP_ANGER) * GC.getPERCENT_ANGER_DIVISOR()) /
+			std::max(1, getPopulation() + iExtra));
 }
+
 
 int CvCity::getDefyResolutionPercentAnger(int iExtra) const
 {
 	if (getDefyResolutionAngerTimer() == 0)
 		return 0;
-
-	static int const iDEFY_RESOLUTION_POP_ANGER = GC.getDefineINT("DEFY_RESOLUTION_POP_ANGER"); // advc.opt
-	return ((((((getDefyResolutionAngerTimer() - 1) /
-			flatDefyResolutionAngerLength()) + 1) *
-			iDEFY_RESOLUTION_POP_ANGER *
-			GC.getPERCENT_ANGER_DIVISOR()) /
-			std::max(1, getPopulation() + iExtra)) + 1);
+	// advc.opt:
+	static int const iDEFY_RESOLUTION_POP_ANGER = GC.getDefineINT("DEFY_RESOLUTION_POP_ANGER");
+	return 1 + (((((getDefyResolutionAngerTimer() - 1) / flatDefyResolutionAngerLength()) + 1) *
+			iDEFY_RESOLUTION_POP_ANGER * GC.getPERCENT_ANGER_DIVISOR()) /
+			std::max(1, getPopulation() + iExtra));
 }
 
 
@@ -4333,9 +4328,9 @@ CvPlotGroup* CvCity::plotGroup(PlayerTypes ePlayer) const
 }
 
 
-bool CvCity::isConnectedTo(CvCity const* pCity) const // advc: const CvCity*
+bool CvCity::isConnectedTo(CvCity const& kCity) const
 {
-	return getPlot().isConnectedTo(pCity);
+	return getPlot().isConnectedTo(kCity);
 }
 
 
@@ -6527,17 +6522,17 @@ int CvCity::getCultureThreshold(CultureLevelTypes eLevel)
 {
 	if (eLevel == NO_CULTURELEVEL)
 		return 1;
-	return std::max(1, GC.getGame().getCultureThreshold((CultureLevelTypes)(std::min((eLevel + 1), (GC.getNumCultureLevelInfos() - 1)))));
+	return std::max(1,
+			GC.getGame().getCultureThreshold((CultureLevelTypes)
+			std::min(eLevel + 1, GC.getNumCultureLevelInfos() - 1)));
 }
 
 
 void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups)
 {
-	CultureLevelTypes eOldValue = getCultureLevel();
-
+	CultureLevelTypes const eOldValue = getCultureLevel();
 	if (eOldValue == eNewValue)
 		return;
-
 	m_eCultureLevel = eNewValue;
 	if (eOldValue != NO_CULTURELEVEL)
 	{
@@ -6722,8 +6717,10 @@ int CvCity::getAdditionalYieldByBuilding(YieldTypes eYield, BuildingTypes eBuild
 }
 
 /*	Returns the additional yield rate that adding one of the given buildings will provide.
-	Doesn't check if the building can be constructed in this city. */
-int CvCity::getAdditionalBaseYieldRateByBuilding(YieldTypes eYield, BuildingTypes eBuilding) const
+	Doesn't check if the building can be constructed in this city.
+	advc: _MOD_FRACTRADE removed */
+int CvCity::getAdditionalBaseYieldRateByBuilding(YieldTypes eYield,
+	BuildingTypes eBuilding) const
 {
 	if (GET_TEAM(getTeam()).isObsoleteBuilding(eBuilding))
 		return 0;
@@ -6787,17 +6784,7 @@ int CvCity::getAdditionalBaseYieldRateByBuilding(YieldTypes eYield, BuildingType
 	{
 		int iTotalTradeYield = 0;
 		int iNewTotalTradeYield = 0;
-		// BUG - Fractional Trade Routes - start
-		/*  advc (caveat): _MOD_FRACTRADE has never been tested in AdvCiv and the
-			BULL - Trade Hover (CvCity::calculateTradeTotals) has been merged w/o support
-			for _MOD_FRACTRADE. */
-		#ifdef _MOD_FRACTRADE
-		int iTradeProfitDivisor = 100;
-		#else
 		int iTradeProfitDivisor = 10000;
-		#endif
-		// BUG - Fractional Trade Routes - end
-
 		for (int iI = 0; iI < getTradeRoutes(); ++iI)
 		{
 			CvCity* pCity = getTradeCity(iI);
@@ -6815,12 +6802,6 @@ int CvCity::getAdditionalBaseYieldRateByBuilding(YieldTypes eYield, BuildingType
 					(iPlayerTradeYieldModifier / 100);
 			iNewTotalTradeYield += iNewTradeYield;
 		}
-		// BUG - Fractional Trade Routes - start
-		#ifdef _MOD_FRACTRADE
-		iTotalTradeYield /= 100;
-		iNewTotalTradeYield /= 100;
-		#endif
-		// BUG - Fractional Trade Routes - end
 		iExtraRate += iNewTotalTradeYield - iTotalTradeYield;
 	}
 
@@ -9207,7 +9188,7 @@ void CvCity::setHasReligion(ReligionTypes eReligion, bool bNewValue, bool bAnnou
 	else CvEventReporter::getInstance().religionRemove(eReligion, kOwner.getID(), this);
 }
 
-// K-Mod. A rating for how strong a religion can take hold in this city
+// K-Mod: A rating for how strong a religion can take hold in this city
 int CvCity::getReligionGrip(ReligionTypes eReligion) const
 {
 	PROFILE_FUNC();
@@ -9248,7 +9229,7 @@ int CvCity::getReligionGrip(ReligionTypes eReligion) const
 	}
 
 	CvCity* pHolyCity = GC.getGame().getHolyCity(eReligion);
-	if (pHolyCity && isConnectedTo(pHolyCity))
+	if (pHolyCity && isConnectedTo(*pHolyCity))
 	{
 		if (pHolyCity->hasShrine(eReligion))
 			iScore += iRELIGION_INFLUENCE_SHRINE_WEIGHT;
@@ -9268,7 +9249,7 @@ int CvCity::getReligionGrip(ReligionTypes eReligion) const
 			(iCurrentTurn + iTimeScale);
 
 	return iScore; // note. the random part is not included in this function.
-} // K-Mod end
+}
 
 
 void CvCity::processVoteSource(VoteSourceTypes eVoteSource, bool bActive) // advc: Renamed from "processVoteSourceBonus"
@@ -10364,12 +10345,12 @@ void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer,  // advc: 
 		eCultureLevel = getCultureLevel();
 	else
 	{
-		for (int iI = GC.getNumCultureLevelInfos() - 1; iI > 0; iI--)
+		for (int i = GC.getNumCultureLevelInfos() - 1; i > 0; i--)
 		{
 			if (getCultureTimes100(ePlayer) >=
-				100 * GC.getGame().getCultureThreshold((CultureLevelTypes)iI))
+				100 * GC.getGame().getCultureThreshold((CultureLevelTypes)i))
 			{
-				eCultureLevel = (CultureLevelTypes)iI;
+				eCultureLevel = (CultureLevelTypes)i;
 				break;
 			}
 		}
@@ -10780,7 +10761,7 @@ void CvCity::doReligion()
 		{
 			FOR_EACH_CITY(pLoopCity, *it)
 			{
-				if (!pLoopCity->isConnectedTo(this))
+				if (!pLoopCity->isConnectedTo(*this))
 					continue;
 
 				int iSpread = pLoopCity->getReligionInfluence(eLoopReligion);
@@ -10795,7 +10776,7 @@ void CvCity::doReligion()
 						and too little at long. */
 					int iDivisor = std::max(1, iDivisorBase);
 					iDivisor *= 100 + 100 * iDistanceFactor *
-							plotDistance(getX(), getY(), pLoopCity->getX(), pLoopCity->getY()) /
+							plotDistance(plot(), pLoopCity->plot()) /
 							GC.getMap().maxTypicalDistance();  // advc.140: was maxPlotDistance
 					iDivisor /= 100;
 
@@ -10812,9 +10793,14 @@ void CvCity::doReligion()
 
 		// scale for game speed
 		iRandThreshold *= 100;
-		iRandThreshold /= GC.getInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent();
+		iRandThreshold /= GC.getInfo(GC.getGame().getGameSpeedType()).
+				/*	advc (note): Missionaries only get slowed down by getTrainPercent().
+					But I don't think we want to double down on quicker proselytization
+					by making natural spread faster as well. Units having a bigger role
+					is normal for Marathon. */
+				getVictoryDelayPercent();
 
-		// K-Mod. Give a bonus for the first few cities.
+		// K-Mod. Give a bonus for the first few cities?
 		/*int iReligionCities = GC.getGame().countReligionLevels(eLoopReligion);
 		if (iReligionCities < 3) {
 			iRandThreshold *= 2 + iReligionCities;

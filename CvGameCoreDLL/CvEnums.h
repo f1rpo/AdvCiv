@@ -435,14 +435,16 @@ ENUM_START(Widget, WIDGET)
 	WIDGET_LEADERHEAD,
 	WIDGET_LEADER_LINE,
 	WIDGET_COMMERCE_MOD_HELP,
-	WIDGET_CLOSE_SCREEN,
+	/*	advc: See the K-Mod comment below. The EXE apparently relies on this id.
+		But I expect that some other enumerators are also hardcoded in the EXE. */
+	WIDGET_CLOSE_SCREEN = 157,
 	WIDGET_PEDIA_JUMP_TO_RELIGION,
 	WIDGET_PEDIA_JUMP_TO_CORPORATION,
 	WIDGET_GLOBELAYER,
 	WIDGET_GLOBELAYER_OPTION,
 	WIDGET_GLOBELAYER_TOGGLE,
-	// K-Mod. Environmental advisor widgets.
-	// Note: this apparently breaks WIDGET_CLOSE_SCREEN if it is defined out of order.
+	/*	K-Mod. Environmental advisor widgets.
+		Note: this apparently breaks WIDGET_CLOSE_SCREEN if it is defined out of order. */
 	WIDGET_HELP_POLLUTION_OFFSETS,
 	WIDGET_HELP_POLLUTION_SOURCE,
 	WIDGET_HELP_SUSTAINABILITY_THRESHOLD,

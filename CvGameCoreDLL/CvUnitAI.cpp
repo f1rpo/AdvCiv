@@ -33,7 +33,7 @@ CvUnitAI::~CvUnitAI()
 
 // Instead of having CvUnit::init call CvUnitAI::AI_init. finalizeInit split off.
 void CvUnitAI::init(int iID, UnitTypes eUnit, UnitAITypes eUnitAI,
-		PlayerTypes eOwner, int iX, int iY, DirectionTypes eFacingDirection)
+	PlayerTypes eOwner, int iX, int iY, DirectionTypes eFacingDirection)
 {
 	CvUnit::init(iID, eUnit, eOwner, iX, iY, eFacingDirection);
 	m_eUnitAIType = eUnitAI;
@@ -78,11 +78,14 @@ bool CvUnitAI::AI_update()
 			CvUnit* pTransportUnit = getTransportUnit();
 			if (pTransportUnit != NULL)
 			{
-				CvSelectionGroupAI const* pTransportGroup = pTransportUnit->AI().AI_getGroup(); // advc.003u
+				CvSelectionGroupAI const* pTransportGroup =
+						pTransportUnit->AI().AI_getGroup();
 				//if (pTransportGroup->hasMoved() || (pTransportGroup->headMissionQueueNode() != NULL))
-				// K-Mod. Note: transport units with cargo always have their turn before the cargo does - so... well... I've changed the skip condition.
+				/*	K-Mod. Note: transport units with cargo always have their turn
+					before the cargo does - so... I've changed the skip condition. */
 				if (pTransportGroup->headMissionQueueNode() != NULL ||
-					(pTransportGroup->AI_getMissionAIPlot() && !atPlot(pTransportGroup->AI_getMissionAIPlot())))
+					(pTransportGroup->AI_getMissionAIPlot() &&
+					!atPlot(pTransportGroup->AI_getMissionAIPlot())))
 				// K-Mod end
 				{
 					getGroup()->pushMission(MISSION_SKIP);
@@ -93,9 +96,7 @@ bool CvUnitAI::AI_update()
 	}
 
 	if (AI_afterAttack())
-	{
 		return false;
-	}
 
 	if (getGroup()->isAutomated() && isHuman())
 	{
@@ -103,43 +104,33 @@ bool CvUnitAI::AI_update()
 		{
 		case AUTOMATE_BUILD:
 			if (AI_getUnitAIType() == UNITAI_WORKER)
-			{
 				AI_workerMove();
-			}
 			else if (AI_getUnitAIType() == UNITAI_WORKER_SEA)
-			{
 				AI_workerSeaMove();
-			}
-			else
-			{
-				FAssert(false);
-			}
+			else FAssert(false);
 			break;
-
 		case AUTOMATE_NETWORK:
 			AI_networkAutomated();
 			// XXX else wake up???
 			break;
-
 		case AUTOMATE_CITY:
 			AI_cityAutomated();
 			// XXX else wake up???
 			break;
-
 		case AUTOMATE_EXPLORE:
 			switch (getDomainType())
 			{
 			case DOMAIN_SEA:
 				AI_exploreSeaMove();
 				break;
-
 			case DOMAIN_AIR:
 			{
-				// if we are cargo (on a carrier), hold if the carrier is not done moving yet
+				// If we are cargo, hold if the carrier is not done moving yet.
 				CvUnit* pTransportUnit = getTransportUnit();
 				if (pTransportUnit != NULL)
 				{
-					if (pTransportUnit->isAutomated() && pTransportUnit->canMove() && pTransportUnit->getGroup()->getActivityType() != ACTIVITY_HOLD)
+					if (pTransportUnit->isAutomated() && pTransportUnit->canMove() &&
+						pTransportUnit->getGroup()->getActivityType() != ACTIVITY_HOLD)
 					{
 						getGroup()->pushMission(MISSION_SKIP);
 						break;
@@ -153,141 +144,122 @@ bool CvUnitAI::AI_update()
 			case DOMAIN_LAND:
 				AI_exploreMove();
 				break;
-
 			default:
 				FAssert(false);
 				break;
 			}
-
-			// if we have air cargo (we are a carrier), and we done moving, explore with the aircraft as well
-			if (hasCargo() && domainCargo() == DOMAIN_AIR && (!canMove() || getGroup()->getActivityType() == ACTIVITY_HOLD))
+			/*	If we have air cargo (we are a carrier), and we done moving,
+				explore with the aircraft as well */
+			if (hasCargo() && domainCargo() == DOMAIN_AIR &&
+				(!canMove() || getGroup()->getActivityType() == ACTIVITY_HOLD))
 			{
 				std::vector<CvUnit*> aCargoUnits;
 				getCargoUnits(aCargoUnits);
-				for (size_t i = 0; i < aCargoUnits.size() && isAutomated(); ++i)
+				for (size_t i = 0; i < aCargoUnits.size() && isAutomated(); i++)
 				{
 					CvUnit* pCargoUnit = aCargoUnits[i];
-					if (pCargoUnit->getDomainType() == DOMAIN_AIR)
+					if (pCargoUnit->getDomainType() == DOMAIN_AIR &&
+						pCargoUnit->canMove())
 					{
-						if (pCargoUnit->canMove())
-						{
-							pCargoUnit->getGroup()->setAutomateType(AUTOMATE_EXPLORE);
-							pCargoUnit->getGroup()->setActivityType(ACTIVITY_AWAKE);
-						}
+						pCargoUnit->getGroup()->setAutomateType(AUTOMATE_EXPLORE);
+						pCargoUnit->getGroup()->setActivityType(ACTIVITY_AWAKE);
 					}
 				}
 			}
 			break;
-
 		case AUTOMATE_RELIGION:
 			if (AI_getUnitAIType() == UNITAI_MISSIONARY)
-			{
 				AI_missionaryMove();
-			}
 			break;
-
 		default:
 			FAssert(false);
 			break;
 		}
-
 		// if no longer automated, then we want to bail
 		return !getGroup()->isAutomated();
 	}
 	// <advc.139>
-	UnitAITypes const uai = AI_getUnitAIType();
-	static UnitAITypes aeEvacAITypes[] =
-	{	/*  The other AI types are obscure or already have routines for
-			escaping untenable cities. */
-		UNITAI_ATTACK, UNITAI_ATTACK_CITY, UNITAI_COLLATERAL, UNITAI_PILLAGE,
-		UNITAI_RESERVE, UNITAI_COUNTER, UNITAI_CITY_DEFENSE, UNITAI_CITY_COUNTER,
-		UNITAI_CITY_SPECIAL,
-	};
-	bool bEvacAI = false;
-	for(int i = 0; i < ARRAY_LENGTH(aeEvacAITypes); i++)
+	UnitAITypes const eUnitAI = AI_getUnitAIType();
+	if (getPlot().isCity() && getPlot().getTeam() == getTeam() && !isBarbarian())
 	{
-		if(uai == aeEvacAITypes[i])
+		bool bEvacAI = false;
+		switch(eUnitAI)
 		{
+		case UNITAI_ATTACK:
+		case UNITAI_ATTACK_CITY:
+		case UNITAI_COLLATERAL:
+		case UNITAI_PILLAGE:
+		case UNITAI_RESERVE:
+		case UNITAI_COUNTER:
+		case UNITAI_CITY_DEFENSE:
+		case UNITAI_CITY_COUNTER:
+		case UNITAI_CITY_SPECIAL:
 			bEvacAI = true;
 			break;
+		/*  The other AI types are obscure or already have routines for
+			escaping untenable cities. */
 		}
-	}
-	if(getPlot().isCity() && getPlot().getTeam() == getTeam() &&
-		!isBarbarian() && bEvacAI)
-	{
-		if (AI_evacuateCity())
-			return false;
-	}
-	switch(uai) // </advc.139>
+		if (bEvacAI)
+		{
+			if (AI_evacuateCity())
+				return false;
+		}
+	} // </advc.139>
+
+	switch (eUnitAI)
 	{
 	case UNITAI_UNKNOWN:
 		getGroup()->pushMission(MISSION_SKIP);
 		break;
-
 	case UNITAI_ANIMAL:
 		AI_animalMove();
 		break;
-
 	case UNITAI_SETTLE:
 		AI_settleMove();
 		break;
-
 	case UNITAI_WORKER:
 		AI_workerMove();
 		break;
-
 	case UNITAI_ATTACK:
 		if (isBarbarian())
 			AI_barbAttackMove();
 		else AI_attackMove();
 		break;
-
 	case UNITAI_ATTACK_CITY:
 		AI_attackCityMove();
 		break;
-
 	case UNITAI_COLLATERAL:
 		AI_collateralMove();
 		break;
-
 	case UNITAI_PILLAGE:
 		AI_pillageMove();
 		break;
-
 	case UNITAI_RESERVE:
 		AI_reserveMove();
 		break;
-
 	case UNITAI_COUNTER:
 		AI_counterMove();
 		break;
-
 	case UNITAI_PARADROP:
 		AI_paratrooperMove();
 		break;
-
 	case UNITAI_CITY_DEFENSE:
 		AI_cityDefenseMove();
 		break;
-
 	case UNITAI_CITY_COUNTER:
 	case UNITAI_CITY_SPECIAL:
 		AI_cityDefenseExtraMove();
 		break;
-
 	case UNITAI_EXPLORE:
 		AI_exploreMove();
 		break;
-
 	case UNITAI_MISSIONARY:
 		AI_missionaryMove();
 		break;
-
 	case UNITAI_GENERAL:
 		AI_generalMove();
 		break;
-
-	case UNITAI_PROPHET: // advc: Fall through. They all use the same routine.
+	case UNITAI_PROPHET:
 	case UNITAI_ARTIST:
 	case UNITAI_SCIENTIST:
 	case UNITAI_MERCHANT:
@@ -296,88 +268,67 @@ bool CvUnitAI::AI_update()
 	case UNITAI_GREAT_SPY:
 		//AI_greatSpyMove();
 		AI_greatPersonMove(); // advc
-		break;
-	// K-Mod end
+		break; // K-Mod end
 	case UNITAI_SPY:
 		AI_spyMove();
 		break;
-
 	case UNITAI_ICBM:
 		AI_ICBMMove();
 		break;
-
 	case UNITAI_WORKER_SEA:
 		AI_workerSeaMove();
 		break;
-
 	case UNITAI_ATTACK_SEA:
 		if (isBarbarian())
 			AI_barbAttackSeaMove();
 		else AI_attackSeaMove();
 		break;
-
 	case UNITAI_RESERVE_SEA:
 		AI_reserveSeaMove();
 		break;
-
 	case UNITAI_ESCORT_SEA:
 		AI_escortSeaMove();
 		break;
-
 	case UNITAI_EXPLORE_SEA:
 		AI_exploreSeaMove();
 		break;
-
 	case UNITAI_ASSAULT_SEA:
 		AI_assaultSeaMove();
 		break;
-
 	case UNITAI_SETTLER_SEA:
 		AI_settlerSeaMove();
 		break;
-
 	case UNITAI_MISSIONARY_SEA:
 		AI_missionarySeaMove();
 		break;
-
 	case UNITAI_SPY_SEA:
 		AI_spySeaMove();
 		break;
-
 	case UNITAI_CARRIER_SEA:
 		AI_carrierSeaMove();
 		break;
-
 	case UNITAI_MISSILE_CARRIER_SEA:
 		AI_missileCarrierSeaMove();
 		break;
-
 	case UNITAI_PIRATE_SEA:
 		AI_pirateSeaMove();
 		break;
-
 	case UNITAI_ATTACK_AIR:
 		AI_attackAirMove();
 		break;
-
 	case UNITAI_DEFENSE_AIR:
 		AI_defenseAirMove();
 		break;
-
 	case UNITAI_CARRIER_AIR:
 		AI_carrierAirMove();
 		break;
-
 	case UNITAI_MISSILE_AIR:
 		AI_missileAirMove();
 		break;
-
 	case UNITAI_ATTACK_CITY_LEMMING:
 		AI_attackCityLemmingMove();
 		break;
-
-	default:
-		FErrorMsg("Unknown Unit AI type");
+	default: FErrorMsg("Unknown Unit AI type");
 	}
 
 	return false;
@@ -13221,7 +13172,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 				if (pLoopCity->isVisible(kOurTeam.getID()) && iPathTurns < 6)
 				{
 					FAssert(iEnemyDefence != -1);
-					if (iOffenceEnRoute > iEnemyDefence/3 && iOffenceEnRoute < iEnemyDefence)
+					if (iOffenceEnRoute * 3 > iEnemyDefence && iOffenceEnRoute < iEnemyDefence)
 					{
 						iValue *= 100 + (9 * iTotalOffence > 10 * iEnemyDefence ? 30 : 15);
 						iValue /= 100;
@@ -13593,13 +13544,11 @@ bool CvUnitAI::AI_bombardCity()
 			(1 + iBombardTurns/2) * iMin * iAttackOdds) /
 			(100 + (iBombardTurns/2) * iAttackOdds);
 	int iComparison = AI_getGroup()->AI_compareStacks(pBombardCity->plot(), true);
-
 	if (iComparison > iThreshold)
 	{
 		if (gUnitLogLevel > 2) logBBAI("      Stack skipping bombard of %S with compare %d, starting odds %d, bombard turns %d, threshold %d", pBombardCity->getName().GetCString(), iComparison, iAttackOdds, iBombardTurns, iThreshold);
 		return false;
 	}
-
 	getGroup()->pushMission(MISSION_BOMBARD,  // <K-Mod>
 			-1, -1, NO_MOVEMENT_FLAGS, false, false,
 			MISSIONAI_ASSAULT, pBombardCity->plot()); // </K-Mod>
@@ -16766,7 +16715,7 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 			{
 				CvCity* c = kPlot.getWorkingCity();
 				int iDummy;
-				if(c == NULL || !at(kPlot) || kPlot.isConnectedTo(c) ||
+				if(c == NULL || !at(kPlot) || kPlot.isConnectedTo(*c) ||
 					/*	If Barbarians expand their borders somehow,
 						then the city might not be adjacent. */
 					!generatePath(c->getPlot(), MOVE_SAFE_TERRITORY, false, &iDummy, 2))
@@ -16779,7 +16728,7 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 			} // </advc.300>
 			FOR_EACH_CITY(pLoopCity, GET_PLAYER(getOwner()))
 			{
-				if (!kPlot.isConnectedTo(pLoopCity))
+				if (!kPlot.isConnectedTo(*pLoopCity))
 				{
 					FAssert(kPlot.getPlotCity() != pLoopCity);
 					if (getPlot().isSamePlotGroup(*pLoopCity->plot(), getOwner()))
@@ -16799,7 +16748,7 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 				if (!pLoopCity->isArea(kPlot.getArea()))
 					continue;
 				// BETTER_BTS_AI_MOD: END
-				if (kPlot.isConnectedTo(pLoopCity))
+				if (kPlot.isConnectedTo(*pLoopCity))
 					continue;
 				FAssert(kPlot.getPlotCity() != pLoopCity);
 				//if (!pLoopCity->getPlot().isVisibleEnemyUnit(this)) { // advc.opt: It's our city
@@ -17315,7 +17264,8 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 {
 	PROFILE_FUNC();
 
-	// K-Mod. This function currently only handles canals and airbases. So if we want neither, just abort.
+	/*	K-Mod. This function currently only handles canals and airbases.
+		So if we want neither, just abort. */
 	if (!bCanal && !bAirbase)
 		return false;
 	// K-Mod end
@@ -17323,8 +17273,8 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 	BuildTypes eBestBuild = NO_BUILD;
 	CvPlot const* pBestPlot = NULL;
 	int iBestValue = 0;
-	CvPlayerAI& kOwner = GET_PLAYER(getOwner());
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
 		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
 		// advc: Some refactoring to reduce indentation
@@ -17342,15 +17292,11 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 			continue;
 		int iBestTempBuildValue = MAX_INT;
 		BuildTypes eBestTempBuild = NO_BUILD;
-
-		/*  K-Mod note: the following code may choose the improvement poorly if there are
-			multiple fort options to choose from. I don't want to spend time fixing it now,
-			because K-Mod only has one type of fort anyway. */
 		FOR_EACH_ENUM(Build)
 		{
 			if (GC.getInfo(eLoopBuild).getImprovement() != NO_IMPROVEMENT)
 			{ /* advc.121: Same problems as in AI_improveBonus, but there's
-				 only one type of Fort anyway (see also the K-Mod comment above). */
+				 only one type of Fort anyway (K-Mod comment to that effect deleted). */
 				ImprovementTypes eImprov = GC.getInfo(eLoopBuild).getImprovement();
 				if(GC.getInfo(eImprov).isActsAsCity() &&
 					GC.getInfo(eImprov).getDefenseModifier() > 0)
@@ -17358,12 +17304,11 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 					if (canBuild(kPlot, eLoopBuild) ||
 						eImprov == kPlot.getImprovementType()) // advc.121
 					{
-						/* int iValue = 10000;
+						/*int iValue = 10000;
 						iValue /= (GC.getInfo(eBuild).getTime() + 1);*/
 						// <advc.121> Replacing the above
 						int iTempBuildValue = (eImprov == kPlot.getImprovementType() ?
-								0 : GC.getInfo(eLoopBuild).getTime());
-						// </advc.121>
+								0 : GC.getInfo(eLoopBuild).getTime()); // </advc.121>
 						if (iTempBuildValue < iBestTempBuildValue)
 						{
 							iBestTempBuildValue = iTempBuildValue;
@@ -17410,12 +17355,9 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 			}
 		}
 	}
-
 	if (pBestPlot != NULL)
 	{
-		FAssertMsg(eBestBuild != NO_BUILD, "BestBuild is not assigned a valid value");
-		FAssertMsg(eBestBuild < GC.getNumBuildInfos(), "BestBuild is assigned a corrupt value");
-
+		FAssertEnumBounds(eBestBuild);
 		getGroup()->pushMission(MISSION_ROUTE_TO,
 				pBestPlot->getX(), pBestPlot->getY(),
 				NO_MOVEMENT_FLAGS, false, false,

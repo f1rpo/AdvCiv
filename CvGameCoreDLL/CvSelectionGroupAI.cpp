@@ -147,8 +147,8 @@ bool CvSelectionGroupAI::AI_update()
 		setForceUpdate(false);
 		iAttempts++;
 		/*  <advc.001y> Moved out of the block below so I can see what the loop does
-			before it terminates. Debugger stops in CvSelectionGroup::pushMission and
-			startMission have been helpful to me. */
+			before it terminates. Debugger stops in CvSelectionGroup::pushMission,
+			startMission and in CvUnitAI::AI_update have been helpful to me. */
 		FAssertMsg(iAttempts != iMaxAttempts - 5, "Unit stuck in a loop");
 		if(iAttempts >= iMaxAttempts) // was > 100 </advc.001y>
 		{
@@ -993,14 +993,14 @@ CvPlot* CvSelectionGroupAI::AI_getMissionAIPlot() const
 }
 
 
-bool CvSelectionGroupAI::AI_isForceSeparate() /* advc: */ const
+bool CvSelectionGroupAI::AI_isForceSeparate() const
 {
 	return m_bForceSeparate;
 }
 
 
 void CvSelectionGroupAI::AI_setMissionAI(MissionAITypes eNewMissionAI,
-	CvPlot const* pNewPlot, CvUnit const* pNewUnit) // advc: 2x const
+	CvPlot const* pNewPlot, CvUnit const* pNewUnit)
 {
 	//PROFILE_FUNC();
 
@@ -1023,7 +1023,7 @@ void CvSelectionGroupAI::AI_setMissionAI(MissionAITypes eNewMissionAI,
 }
 
 
-CvUnitAI* CvSelectionGroupAI::AI_getMissionAIUnit() /* advc: */ const
+CvUnitAI* CvSelectionGroupAI::AI_getMissionAIUnit() const
 {
 	return ::AI_getUnit(m_missionAIUnit);
 }

@@ -4930,7 +4930,7 @@ void CvDLLWidgetData::parseHealthHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 }
 
 
-void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,  // advc: some refactoring
+void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 	CvWStringBuffer &szBuffer)
 {
 	wchar szTempBuffer[1024];

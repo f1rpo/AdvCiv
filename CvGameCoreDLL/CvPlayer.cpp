@@ -4127,12 +4127,12 @@ bool CvPlayer::canTradeNetworkWith(PlayerTypes ePlayer) const
 	{
 		FOR_EACH_CITY(c, kThey)
 		{
-			if(pOurCapital->isConnectedTo(c) && c->isConnectedToCapital(ePlayer))
+			if(pOurCapital->isConnectedTo(*c) && c->isConnectedToCapital(ePlayer))
 				return true;
 		}
 		FOR_EACH_CITY(c, *this)
 		{
-			if(pTheirCapital->isConnectedTo(c) && c->isConnectedToCapital(getID()))
+			if(pTheirCapital->isConnectedTo(*c) && c->isConnectedToCapital(getID()))
 				return true;
 		}
 		// Replaced BtS code:

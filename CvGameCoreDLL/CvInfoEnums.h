@@ -204,7 +204,6 @@
 #define CvMonthInfo CvInfoBase
 #define CvUnitCombatInfo CvInfoBase
 #define CvInvisibleInfo CvInfoBase
-#define CvUnitCombatInfo CvInfoBase
 #define CvDomainInfo CvInfoBase
 #define CvAttitudeInfo CvInfoBase
 #define CvMemoryInfo CvInfoBase

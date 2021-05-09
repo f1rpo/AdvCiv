@@ -39,7 +39,8 @@ void CyPlot::nukeExplosion(int iRange, CyUnit* pNukeUnit)
 
 bool CyPlot::isConnectedTo(CyCity* pCity)
 {
-	return m_pPlot ? m_pPlot->isConnectedTo(pCity->getCity()) : false;
+	return (m_pPlot && pCity && pCity->getCity()) ?
+			m_pPlot->isConnectedTo(*pCity->getCity()) : false;
 }
 
 bool CyPlot::isConnectedToCapital(int /*PlayerTypes*/ ePlayer)

@@ -346,13 +346,13 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		}
 		break;
 
-	case BUTTONPOPUP_CHOOSEPRODUCTION: {
+	case BUTTONPOPUP_CHOOSEPRODUCTION:
+	{
 		int iExamineCityID = 0;
 		iExamineCityID = std::max(iExamineCityID, GC.getNumUnitInfos());
 		iExamineCityID = std::max(iExamineCityID, GC.getNumBuildingInfos());
 		iExamineCityID = std::max(iExamineCityID, GC.getNumProjectInfos());
 		iExamineCityID = std::max(iExamineCityID, GC.getNumProcessInfos());
-
 		if (pPopupReturn->getButtonClicked() == iExamineCityID)
 		{
 			CvCity* pCity = GET_PLAYER(kGame.getActivePlayer()).getCity(info.getData1());

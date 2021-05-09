@@ -27036,9 +27036,7 @@ int CvPlayerAI::AI_calculateTotalBombard(DomainTypes eDomain) const
 		UnitTypes eLoopUnit = kCiv.unitAt(i);
 		if (GC.getInfo(eLoopUnit).getDomainType() != eDomain)
 			continue;
-
-		UnitClassTypes eLoopClass = kCiv.unitClassAt(i);
-
+		UnitClassTypes const eLoopClass = kCiv.unitClassAt(i);
 		int iBombardRate = GC.getInfo(eLoopUnit).getBombardRate();
 		if (iBombardRate > 0)
 		{

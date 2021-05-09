@@ -88,7 +88,6 @@ public:
 	CvStatsReporter* getStatsReporterPtr();
 	DllExport CvInterface& getInterface();
 	DllExport CvInterface* getInterfacePtr();
-	DllExport int getMaxCivPlayers() const;
 	#ifdef _USRDLL // inlined for perf reasons, do not use outside of dll
 	// advc.inl: forceinline just to be sure
 	__forceinline CvMap& getMap() const { return *m_map; } // was getMapINLINE
@@ -664,8 +663,10 @@ public:
 			((GetKeyState('U') & 0x8000) && shiftKey() && altKey());
 	}
 	// K-Mod end
-
-	DllExport int getMAX_CIV_PLAYERS(); // advc: Shouldn't be used in the DLL
+	/*	advc: These two shouldn't be used in the DLL.
+		The EXE mostly seems to call the const version. */
+	DllExport int getMaxCivPlayers() const;
+	DllExport int getMAX_CIV_PLAYERS();
 	/*  The rest of these (getMAX_PLAYERS, getMAX_CIV_TEAMS, getMAX_TEAMS,
 		getBARBARIAN_PLAYER, getBARBARIAN_TEAM, getINVALID_PLOT_COORD,
 		getNUM_CITY_PLOTS, getCITY_HOME_PLOT) were only used by CyGlobalContext. */

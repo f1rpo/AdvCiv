@@ -1388,7 +1388,6 @@ void CvGame::applyStartingLocHandicaps(
 		apStartingSitesByValue.push_back(GET_PLAYER(aePlayersByStartValue[i]).
 				getStartingPlot());
 	}
-
 	// <advc.027> Try to avoid giving human players high-volatility starts
 	if (pStartValues != NULL && aePlayersByHandicap.size() > 5u &&
 		!isTeamGame())
@@ -2017,7 +2016,7 @@ void CvGame::normalizeRemoveBadTerrain()
 					}
 				} // </advc.108>
 				int const iTargetTotal = 2;
-				int iTargetFood = 1;
+				int iTargetFood=0;
 				if (p.getBonusType(itPlayer->getTeam()) != NO_BONUS)
 					iTargetFood = 1;
 				else if (iPlotFood == 1 || iDistance <= iCityRange)
@@ -2025,7 +2024,6 @@ void CvGame::normalizeRemoveBadTerrain()
 					iTargetFood = 1 + getMapRandNum(2, "Map Upgrade Terrain Food 4");
 				}
 				else iTargetFood = (p.isCoastalLand() ? 2 : 1);
-
 				FOR_EACH_ENUM(Terrain)
 				{
 					CvTerrainInfo const& kRepl = GC.getInfo(eLoopTerrain);

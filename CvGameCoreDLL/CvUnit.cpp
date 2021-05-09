@@ -7485,15 +7485,20 @@ bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttack
 	}
 	else
 	{
-		if (!(pAttacker->immuneToFirstStrikes()))
+		if (!pAttacker->immuneToFirstStrikes())
 		{
-			iOurDefense *= 100 + (firstStrikes() * 2 + chanceFirstStrikes()) * GC.getCOMBAT_DAMAGE() * 2 / 5;
+			iOurDefense *= 100 +
+					((firstStrikes() * 2 + chanceFirstStrikes()) *
+					GC.getCOMBAT_DAMAGE() * 2) / 5;
 			iOurDefense /= 100;
 		}
 
 		if (immuneToFirstStrikes())
 		{
-			iOurDefense *= 100 + (pAttacker->firstStrikes() * 2 + pAttacker->chanceFirstStrikes()) * GC.getCOMBAT_DAMAGE() * 2 / 5;
+			iOurDefense *= 100 +
+					((pAttacker->firstStrikes() * 2 +
+					pAttacker->chanceFirstStrikes()) *
+					GC.getCOMBAT_DAMAGE() * 2) / 5;
 			iOurDefense /= 100;
 		}
 	}

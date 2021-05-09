@@ -754,7 +754,8 @@ CyPlot* CyCity::plot()
 
 bool CyCity::isConnectedTo(CyCity* pCity)
 {
-	return m_pCity ? m_pCity->isConnectedTo(pCity->getCity()) : false;
+	return (m_pCity && pCity && pCity->getCity()) ?
+			m_pCity->isConnectedTo(*pCity->getCity()) : false;
 }
 
 bool CyCity::isConnectedToCapital(int /*PlayerTypes*/ ePlayer)

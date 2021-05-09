@@ -232,7 +232,7 @@ void CvMapGenerator::addRivers()  // advc: refactored
 						GC.getGame().getMapRandNum(8, "addRivers") == 0);
 				break;
 			case 2:
-				bValid =  ((p.isHills() || p.isPeak()) &&
+				bValid = ((p.isHills() || p.isPeak()) &&
 						p.getArea().getNumRiverEdges() <
 						1 + p.getArea().getNumTiles() / iPlotsPerRiverEdge);
 				break;
@@ -259,7 +259,8 @@ void CvMapGenerator::addRivers()  // advc: refactored
 }
 
 // pStartPlot = the plot at whose SE corner the river is starting
-void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCardinalDirection,
+void CvMapGenerator::doRiver(CvPlot* pStartPlot,
+	CardinalDirectionTypes eLastCardinalDirection,
 	CardinalDirectionTypes eOriginalCardinalDirection, short iThisRiverID)
 {
 	if (iThisRiverID == -1)
@@ -315,7 +316,7 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 	else if (eLastCardinalDirection == CARDINALDIRECTION_SOUTH)
 	{
 		pRiverPlot = plotCardinalDirection(pStartPlot->getX(), pStartPlot->getY(),
-			CARDINALDIRECTION_SOUTH);
+				CARDINALDIRECTION_SOUTH);
 		if (pRiverPlot == NULL)
 			return;
 		pAdjacentPlot = plotCardinalDirection(pRiverPlot->getX(), pRiverPlot->getY(),
@@ -592,7 +593,7 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonus)
 	for (int iPass = 0; iPass < 2; iPass++)
 	{	/*  Two passes - just to make sure that the new per-area limit doesn't
 			lead to fewer resources overall. */
-		bool bIgnoreAreaLimit = (iPass == 1); // </advc.129>
+		bool const bIgnoreAreaLimit = (iPass == 1); // </advc.129>
 		while (/* advc.129: */kMap.getNumBonuses(eBonus) < iTarget)
 		{
 			int iBestValue = 0;
@@ -659,14 +660,13 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonus)
 			int const iAreaLimit = std::min(2, 3 * pBestArea->getNumTiles()) +
 					pBestArea->getNumTiles() / 25; // </advc.129>
 
-			// Place the bonuses:
-
+			// Place the bonuses ...
 			int* aiShuffledIndices = shuffle(kMap.numPlots(), kGame.getMapRand());
-			for (int iI = 0; iI < kMap.numPlots() &&
+			for (int i = 0; i < kMap.numPlots() &&
 				(bIgnoreAreaLimit || iAdded < iAreaLimit) && // advc.129
-				kMap.getNumBonuses(eBonus) < iTarget; iI++)
+				kMap.getNumBonuses(eBonus) < iTarget; i++)
 			{
-				CvPlot& kRandPlot = kMap.getPlotByIndex(aiShuffledIndices[iI]);
+				CvPlot& kRandPlot = kMap.getPlotByIndex(aiShuffledIndices[i]);
 				if (pBestArea != kRandPlot.area())
 					continue;
 				if (!canPlaceBonusAt(eBonus, kRandPlot.getX(), kRandPlot.getY(),

@@ -24,7 +24,7 @@ class CvArea;
 class ArmamentForecast
 {
 public:
-	/*	kMA is making a forecast about ePlayer. The predicated power increase
+	/*	kMA is making a forecast about ePlayer. The predicted power increase
 		is written to kMilitary.
 		bPeaceScenario: Assume peace between the agent and target of kMA.
 		bPartyAddedRecently: Indicates that this is the first forecast after adding

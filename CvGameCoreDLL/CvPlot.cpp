@@ -898,11 +898,11 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 }
 
 
-bool CvPlot::isConnectedTo(const CvCity* pCity) const
+bool CvPlot::isConnectedTo(CvCity const& kCity) const
 {
 	FAssert(isOwned());
-	return (isSamePlotGroup(*pCity->plot(), getOwner()) ||
-			isSamePlotGroup(*pCity->plot(), pCity->getOwner()));
+	return (isSamePlotGroup(kCity.getPlot(), getOwner()) ||
+			isSamePlotGroup(kCity.getPlot(), kCity.getOwner()));
 }
 
 
@@ -915,7 +915,7 @@ bool CvPlot::isConnectedToCapital(PlayerTypes ePlayer) const
 	{
 		CvCity* pCapital = GET_PLAYER(ePlayer).getCapital();
 		if (pCapital != NULL)
-			return isConnectedTo(pCapital);
+			return isConnectedTo(*pCapital);
 	}
 
 	return false;
@@ -1735,8 +1735,10 @@ bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude,
 	if(bIgnoreFeature)
 	{
 		if(!kBonus.isFeatureTerrain(getTerrainType()) &&
-				!kBonus.isTerrain(getTerrainType()))
+			!kBonus.isTerrain(getTerrainType()))
+		{
 			return false;
+		}
 	}
 	else /* </advc.129> */ if (isFeature())
 	{
@@ -7931,7 +7933,7 @@ int CvPlot::airUnitSpaceAvailable(TeamTypes eTeam) const
 	if (pCity != NULL)
 		iMaxUnits = pCity->getAirUnitCapacity(getTeam());
 	else iMaxUnits = GC.getDefineINT(CvGlobals::CITY_AIR_UNIT_CAPACITY);
-	return (iMaxUnits - countNumAirUnits(eTeam));
+	return iMaxUnits - countNumAirUnits(eTeam);
 }
 
 // advc.081: Cut from CvPlayerAI::AI_countNumAreaHostileUnits

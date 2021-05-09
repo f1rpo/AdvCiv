@@ -108,10 +108,10 @@ public:
 // BUG - Building Additional Health - start
 	bool setBuildingAdditionalHealthHelp(CvWStringBuffer &szBuffer, const CvCity& city, const CvWString& szStart, bool bStarted = false);
 // BUG - Building Additional Health - end
-	void setAngerHelp(CvWStringBuffer &szBuffer, CvCity& city);
-	void setHappyHelp(CvWStringBuffer &szBuffer, CvCity& city);
+	void setAngerHelp(CvWStringBuffer &szBuffer, CvCity const& kCity);
+	void setHappyHelp(CvWStringBuffer &szBuffer, CvCity const& kCity);
 // BUG - Building Additional Happiness - start
-	bool setBuildingAdditionalHappinessHelp(CvWStringBuffer &szBuffer, const CvCity& city, const CvWString& szStart, bool bStarted = false);
+	bool setBuildingAdditionalHappinessHelp(CvWStringBuffer &szBuffer, const CvCity& kCity, const CvWString& szStart, bool bStarted = false);
 // BUG - Building Additional Happiness - end
 	void setYieldChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, const int* piYieldChange, bool bPercent = false, bool bNewLine = true);
 	void setCommerceChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, const int* piCommerceChange, bool bPercent = false, bool bNewLine = true);
@@ -146,9 +146,9 @@ public:
 	void setTerrainHelp(CvWStringBuffer &szBuffer, TerrainTypes eTerrain, bool bCivilopediaText = false);
 	void setFeatureHelp(CvWStringBuffer &szBuffer, FeatureTypes eFeature, bool bCivilopediaText = false);
 	// BUG - Building Additional info - start
-	bool setBuildingAdditionalYieldHelp(CvWStringBuffer &szBuffer, const CvCity& city, YieldTypes eIndex, const CvWString& szStart, bool bStarted = false);
-	bool setBuildingAdditionalCommerceHelp(CvWStringBuffer &szBuffer, const CvCity& city, CommerceTypes eIndex, const CvWString& szStart, bool bStarted = false);
-	bool setBuildingSavedMaintenanceHelp(CvWStringBuffer &szBuffer, const CvCity& city, const CvWString& szStart, bool bStarted = false);
+	bool setBuildingAdditionalYieldHelp(CvWStringBuffer &szBuffer, const CvCity& kCity, YieldTypes eIndex, const CvWString& szStart, bool bStarted = false);
+	bool setBuildingAdditionalCommerceHelp(CvWStringBuffer &szBuffer, const CvCity& kCity, CommerceTypes eIndex, const CvWString& szStart, bool bStarted = false);
+	bool setBuildingSavedMaintenanceHelp(CvWStringBuffer &szBuffer, const CvCity& kCity, const CvWString& szStart, bool bStarted = false);
 	// BUG - Building Additional info - end
 	void setProductionHelp(CvWStringBuffer &szBuffer, CvCity const& kCity);  // advc: const city in this function and the next 2
 	void setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCity, CommerceTypes eCommerce);

@@ -60,7 +60,7 @@ public:
 	void nukeExplosion(int iRange, CvUnit* pNukeUnit = NULL,
 			bool bBomb = true); //  K-Mod added bBomb, Exposed to Python
 
-	bool isConnectedTo(CvCity const* pCity) const;													// Exposed to Python
+	bool isConnectedTo(CvCity const& kCity) const;													// Exposed to Python
 	bool isConnectedToCapital(PlayerTypes ePlayer = NO_PLAYER) const;								// Exposed to Python
 	int getPlotGroupConnectedBonus(PlayerTypes ePlayer, BonusTypes eBonus) const;					// Exposed to Python
 	bool isPlotGroupConnectedBonus(PlayerTypes ePlayer, BonusTypes eBonus) const					// Exposed to Python

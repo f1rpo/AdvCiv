@@ -331,7 +331,7 @@ public:
 	__forceinline CvPlot& getPlot() const { return *m_pPlot; } // advc
 	void updatePlot(); // advc.opt
 	CvPlotGroup* plotGroup(PlayerTypes ePlayer) const;
-	bool isConnectedTo(CvCity const* pCity) const;																// Exposed to Python
+	bool isConnectedTo(CvCity const& kCity) const;																// Exposed to Python
 	bool isConnectedToCapital(PlayerTypes ePlayer = NO_PLAYER) const;											// Exposed to Python
 	// <advc>
 	inline CvArea* area() const { return m_pArea; }																// Exposed to Python
