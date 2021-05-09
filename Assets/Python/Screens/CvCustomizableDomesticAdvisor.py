@@ -1257,7 +1257,8 @@ class CvCustomizableDomesticAdvisor:
  		nFood = city.foodDifference (True)
 
 		# If this is a food production (i.e., worker or settler)
-		if (self.isFoodProduction(city.getProductionName())):
+		# advc.189: 0 food also means no growth
+		if self.isFoodProduction(city.getProductionName()) or nFood == 0:
 			# We need to indicate there's no growth manually
 			szReturn = u"-"
 		else:
@@ -1266,10 +1267,11 @@ class CvCustomizableDomesticAdvisor:
 
 		# Not enough food, so calculate how many turns until we starve.
 		# We put this here because we still starve if building a food production
-		if nFood < 0:
+		# advc.189: Not needed anymore; getFoodTurnsLeft returns starvation turns (as a negative number).
+		#if nFood < 0:
 			# Use floor divide (//) because we want the number it'll drop below 0
 			# (that's also the reason for the additional 1)
-			szReturn = unicode ((city.getFood()+1) // nFood)
+		#	szReturn = unicode ((city.getFood()+1) // nFood)
 
 		return szReturn
 

@@ -17,7 +17,8 @@
 	</TEXT>
 	
 	<!-- Food Assist -->
-	<TEXT>
+	<!-- advc.189: Handled through (less verbose) text in Civ4GameText_advc.xml -->
+	<!--TEXT>
 		<Tag>TXT_KEY_CITY_BAR_FOOD_GROW</Tag>
 		<English>[NEWLINE]%d1 [ICON_FOOD]/Turn[NEWLINE]Growing: %d2/%d3 [ICON_FOOD] (%d4 [NUM4:Turn:Turns])</English>
 		<French>[NEWLINE]%d1 [ICON_FOOD]/tour[NEWLINE]Croissance : %d2/%d3 [ICON_FOOD] (%d4 [NUM4:tour:tours])</French>
@@ -48,7 +49,7 @@
 		<German>[NEWLINE]%d1 [ICON_BAD_FOOD]/Runde[NEWLINE][COLOR_WARNING_TEXT]HUNGERSNOT: %d2/%d3 [ICON_FOOD][COLOR_REVERT]</German>
 		<Italian>[NEWLINE]%d1 [ICON_BAD_FOOD]/Turno[NEWLINE][COLOR_WARNING_TEXT]CARESTIA: %d2/%d3 [ICON_FOOD][COLOR_REVERT]</Italian>
 		<Spanish>[NEWLINE]%d1 [ICON_BAD_FOOD]/turno[NEWLINE][COLOR_WARNING_TEXT]&#161;HAMBRUNA: %d2/%d3 [ICON_FOOD][COLOR_REVERT]</Spanish>
-	</TEXT>
+	</TEXT-->
 	
 	<!-- Base Production -->
 	<TEXT>

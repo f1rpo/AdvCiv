@@ -6474,38 +6474,37 @@
 		<Spanish>[ICON_BULLET]%D1_Change %F2_YieldIcon con [NUM3:el:la:los:las] %s3_RouteName</Spanish>
 	</TEXT>
 
-	<!-- advc.004 -->
+	<!-- advc.189 -->
 	<!-- Replacing key in Civ4GameTextInfos.xml.
 		 Don't refer to the food store as "growth" b/c that's a bit misleading
-		 when growth is stagnating. -->
+		 when growth is stagnating. Also remove the spaces before yield icons. -->
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BAR_GROWTH</Tag>
-		<English>[NEWLINE]%d1/%d2 [ICON_FOOD]</English>
-		<French>[NEWLINE]%d1/%d2 [ICON_FOOD]</French>
-		<German>[NEWLINE]%d1/%d2 [ICON_FOOD]</German>
-		<Italian>[NEWLINE]%d1/%d2 [ICON_FOOD]</Italian>
-		<Spanish>[NEWLINE]%d1/%d2 [ICON_FOOD]</Spanish>
+		<English>[NEWLINE]%d1/%d2[ICON_FOOD]</English>
+		<French>[NEWLINE]%d1/%d2[ICON_FOOD]</French>
+		<German>[NEWLINE]%d1/%d2[ICON_FOOD]</German>
+		<Italian>[NEWLINE]%d1/%d2[ICON_FOOD]</Italian>
+		<Spanish>[NEWLINE]%d1/%d2[ICON_FOOD]</Spanish>
 	</TEXT>
 	<!-- Replacing TXT_KEY_CITY_BAR_FOOD_GROWTH; Don't like the word "growth"
 		 here either. The idea is, apparently, to mirror the text for production,
-		 which names the production order and then shows the turns remaining.
-		 FIS unchanged. -->
+		 which names the production order and then shows the turns remaining. -->
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BAR_FOOD_GROWTH</Tag>
-		<English>[NEWLINE]%d1 [ICON_FOOD]/Turn[NEWLINE]%d2/%d3 [ICON_FOOD] (%d4 [NUM4:Turn:Turns])</English>
-		<French>[NEWLINE]%d1 [ICON_FOOD]/tour[NEWLINE]Croissance : %d2/%d3 [ICON_FOOD] (%d4 [NUM4:tour:tours])</French>
-		<German>[NEWLINE]%d1 [ICON_FOOD]/Runde[ICON_FOOD]%d2/%d3 (%d4 [NUM4:Turn:Turns])</German>
-		<Italian>[NEWLINE]%d1 [ICON_FOOD]/Turno[NEWLINE]Crescita: %d2/%d3 [ICON_FOOD] (%d4 [NUM4:turno:turni])</Italian>
-		<Spanish>[NEWLINE]%d1 [ICON_FOOD]/turno[NEWLINE]Crecimiento: %d2/%d3 [ICON_FOOD] (%d4 [NUM4:turno:turnos])</Spanish>
+		<English>[NEWLINE]%d1[ICON_FOOD]/Turn[NEWLINE]%d2/%d3[ICON_FOOD] (%d4 [NUM4:Turn:Turns])</English>
+		<French>[NEWLINE]%d1[ICON_FOOD]/tour[NEWLINE]%d2/%d3[ICON_FOOD] (%d4 [NUM4:tour:tours])</French>
+		<German>[NEWLINE]%d1[ICON_FOOD]/Runde[NEWLINE]%d2/%d3[ICON_FOOD] (%d4 [NUM4:Turn:Turns])</German>
+		<Italian>[NEWLINE]%d1[ICON_FOOD]/Turno[NEWLINE]%d2/%d3[ICON_FOOD] (%d4 [NUM4:turno:turni])</Italian>
+		<Spanish>[NEWLINE]%d1[ICON_FOOD]/turno[NEWLINE]%d2/%d3[ICON_FOOD] (%d4 [NUM4:turno:turnos])</Spanish>
 	</TEXT>
-	<!-- As above, but with bad food. (No need for text color in addition.) -->
+	<!-- As above, but with bad food. -->
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BAR_STARVATION</Tag>
-		<English>[NEWLINE]%d1 [ICON_BAD_FOOD]/Turn[NEWLINE]%d2/%d3 [ICON_FOOD] (%d4 [NUM4:Turn:Turns]) </English>
-		<French>[NEWLINE]%d1 [ICON_BAD_FOOD]/tour[NEWLINE]Croissance : %d2/%d3 [ICON_FOOD] (%d4 [NUM4:tour:tours])</French>
-		<German>[NEWLINE]%d1 [ICON_BAD_FOOD]/Runde[NEWLINE]%d2/%d3 [ICON_FOOD] (%d4 [NUM4:Turn:Turns])</German>
-		<Italian>[NEWLINE]%d1 [ICON_BAD_FOOD]/Turno[NEWLINE]Crescita: %d2/%d3 [ICON_FOOD] (%d4 [NUM4:turno:turni])</Italian>
-		<Spanish>[NEWLINE]%d1 [ICON_BAD_FOOD]/turno[NEWLINE]Crecimiento: %d2/%d3 [ICON_FOOD] (%d4 [NUM4:turno:turnos])</Spanish>
+		<English>[NEWLINE]%d1[ICON_BAD_FOOD]/Turn[NEWLINE]%d2/%d3[ICON_FOOD] ([COLOR_WARNING_TEXT]%d4[COLOR_REVERT] [NUM4:Turn:Turns]) </English>
+		<French>[NEWLINE]%d1[ICON_BAD_FOOD]/tour[NEWLINE]%d2/%d3[ICON_FOOD] ([COLOR_WARNING_TEXT]%d4[COLOR_REVERT] [NUM4:tour:tours])</French>
+		<German>[NEWLINE]%d1[ICON_BAD_FOOD]/Runde[NEWLINE]%d2/%d3[ICON_FOOD] ([COLOR_WARNING_TEXT]%d4[COLOR_REVERT] [NUM4:Turn:Turns])</German>
+		<Italian>[NEWLINE]%d1[ICON_BAD_FOOD]/Turno[NEWLINE]%d2/%d3[ICON_FOOD] ([COLOR_WARNING_TEXT]%d4[COLOR_REVERT] [NUM4:turno:turni])</Italian>
+		<Spanish>[NEWLINE]%d1[ICON_BAD_FOOD]/turno[NEWLINE]%d2/%d3[ICON_FOOD] ([COLOR_WARNING_TEXT]%d4[COLOR_REVERT] [NUM4:turno:turnos])</Spanish>
 	</TEXT>
 
 	<!-- advc.002f: Based on INTERFACE_CITY_GROWING (Civ4GameTextInfos.xml) and

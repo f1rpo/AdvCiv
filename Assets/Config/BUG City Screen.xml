@@ -43,9 +43,10 @@
 			<option id="ClickMapToExit" key="Click Map To Exit" 
 					type="boolean" default="False"/>
 			
-			<!-- FoodAssist by EmperorFool -->
+			<!-- FoodAssist by EmperorFool
+				 advc.004: default was False in K-Mod -->
 			<option id="FoodAssist" key="FoodAssist" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isShowFoodAssist" dirtyBit="CityScreen"/>
 			
 			<!-- WhipAssist by EmperorFool, Dresden -->

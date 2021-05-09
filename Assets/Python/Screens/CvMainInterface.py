@@ -3744,7 +3744,9 @@ class CvMainInterface:
 							szBuffer = localText.getText("INTERFACE_CITY_GROWING", (pHeadSelectedCity.getFoodTurnsLeft(), ))
 					elif (iFoodDifference < 0):
 						if (CityScreenOpt.isShowFoodAssist()):
-							iTurnsToStarve = pHeadSelectedCity.getFood() / -iFoodDifference + 1
+							#iTurnsToStarve = pHeadSelectedCity.getFood() / -iFoodDifference + 1
+							# advc.189: The DLL can compute this now
+							iTurnsToStarve = -pHeadSelectedCity.getFoodTurnsLeft()
 							if iTurnsToStarve > 1:
 								szBuffer = localText.getText("INTERFACE_CITY_SHRINKING", (iTurnsToStarve, ))
 							else:

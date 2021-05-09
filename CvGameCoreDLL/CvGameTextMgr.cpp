@@ -5286,20 +5286,21 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 		else
 		{
 			szString.append(gDLL->getText(
-					iFoodDifference < 0 ? "TXT_KEY_CITY_BAR_STARVATION" : // advc.004
+					// advc.189: Not merging BULL Food Assist - this tweak should suffice
+					iFoodDifference < 0 ? "TXT_KEY_CITY_BAR_STARVATION" :
 					"TXT_KEY_CITY_BAR_FOOD_GROWTH",
-					iFoodDifference < 0 ? -iFoodDifference : // advc.004
-					iFoodDifference, pCity->getFood(),
-					pCity->growthThreshold(), pCity->getFoodTurnsLeft()));
+					iFoodDifference < 0 ? -iFoodDifference : // advc.189
+					iFoodDifference, kCity.getFood(), kCity.growthThreshold(),
+					abs(kCity.getFoodTurnsLeft()))); // advc.189: abs
 		}
 		// <advc.002f>
 		if (bAvoidGrowth)
 		{
-			szTempBuffer += gDLL->getText("TXT_KEY_CITY_BAR_AVOID_GROWTH");
-			if (pCity->getFoodTurnsLeft() == 1)
+			szTempBuffer = gDLL->getText("TXT_KEY_CITY_BAR_AVOID_GROWTH");
+			if (kCity.getFoodTurnsLeft() == 1)
 			{
 				szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
-						TEXT_COLOR("COLOR_WARNING_TEXT"), szTempBuffer.GetCString());
+						TEXT_COLOR("COLOR_WARNING_TEXT"), szTempBuffer.c_str());
 			}
 			szString.append(L" - ");
 			szString.append(szTempBuffer);
@@ -17426,18 +17427,19 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 void CvGameTextMgr::buildCityBillboardCityNameString(CvWStringBuffer& szBuffer, CvCity* pCity)
 {
 	szBuffer.assign(pCity->getName());
-	if (pCity->canBeSelected())
+	if (pCity->canBeSelected() &&
+		gDLL->getGraphicOption(GRAPHICOPTION_CITY_DETAIL) /*&&
+		pCity->foodDifference() > 0*/) // advc.189
 	{
-		if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_DETAIL))
+		int iTurns = pCity->getFoodTurnsLeft();
+		if (abs(iTurns) > 1 || !pCity->AI().AI_isEmphasizeAvoidGrowth())
 		{
-			if (pCity->foodDifference() > 0)
+			if (iTurns < MAX_INT)
 			{
-				int iTurns = pCity->getFoodTurnsLeft();
-				if (iTurns > 1 || !pCity->AI().AI_isEmphasizeAvoidGrowth())
-				{
-					if (iTurns < MAX_INT)
-						szBuffer.append(CvWString::format(L" (%d)", iTurns));
-				}
+				szBuffer.append(CvWString::format(L" (%d)",
+						/*	advc.189: Absolute value. Red color would be nice,
+							but not possible here. */
+						abs(iTurns)));
 			}
 		}
 	}

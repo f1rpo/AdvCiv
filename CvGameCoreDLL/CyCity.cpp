@@ -168,7 +168,13 @@ bool CyCity::canJoin()
 
 int CyCity::getFoodTurnsLeft()
 {
-	return m_pCity ? m_pCity->getFoodTurnsLeft() : 0;
+	if (m_pCity == NULL)
+		return 0;
+	// <advc.189>
+	int iR = m_pCity->getFoodTurnsLeft();
+	if (iR == MAX_INT)
+		return 0; // </advc.189>
+	return iR;
 }
 
 bool CyCity::isProduction()

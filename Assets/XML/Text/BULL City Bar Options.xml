@@ -22,7 +22,8 @@
 		<Italian>Quando è selezionato, aggiunge una icona aeroportuale alle città che hanno un Aeroporto.</Italian>
 		<Spanish>Muestra un icono de aeropuerto sobre las barras de ciudad que tengan un aeropuerto.</Spanish>
 	</TEXT-->
-	<TEXT>
+	<!-- advc.189: Don't need an option for this -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__STARVATIONTURNS_TEXT</Tag>
 		<English>Turns to Starvation</English>
 		<German>Runden bis Hungersnot</German>
@@ -93,8 +94,9 @@
 		<German>Zeigt die Anzahl der wegen Zwangsrekrutierung unzufriedenen Bürger ([ICON_ANGRYPOP]) und die Anzahl der verbleibenden Runden an, bis diese sich wieder beruhigt haben</German>
 		<Spanish>Muestra la cantidad de población enfadada ([ICON_ANGRYPOP]) debido al reclutamiento y el número de turnos restantes de la misma.</Spanish>
 	</TEXT>
-	
-	<TEXT>
+
+	<!-- advc.189: Partially merged, non-optional, no intention to merge fully. -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__FOODASSIST_TEXT</Tag>
 		<English>Growth Detail</English>
 		<German>Wachstum</German>
@@ -107,7 +109,7 @@
 		<German>Zeigt detailliertere Informationen über das Wachstum einer Stadt an (Zunahme, Abnahme, Hungersnot, Stagnation).</German>
 		<Italian>Quando è selezionato, mostra più dettagli sulla crescita (crescita, decrescita, carestia, stagnazione).</Italian>
 		<Spanish>Si se activa, muestra información detallada sobre el crecimiento (creciendo, reduciéndose, hambruna, detenido).</Spanish>
-	</TEXT>
+	</TEXT-->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__BASEVALUES_TEXT</Tag>
 		<English>Base Values</English>

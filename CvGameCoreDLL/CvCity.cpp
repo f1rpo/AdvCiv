@@ -1569,13 +1569,18 @@ bool CvCity::canJoin() const
 
 int CvCity::getFoodTurnsLeft() const
 {
-	int iFoodLeft = (growthThreshold() - getFood());
-	if (foodDifference() <= 0)
-		return iFoodLeft;
-
-	int iTurnsLeft = (iFoodLeft / foodDifference());
-	if (iTurnsLeft * foodDifference() < iFoodLeft)
-		iTurnsLeft++;
+	int const iFoodDiff = foodDifference(); // advc.opt
+	// <advc.189>
+	if (iFoodDiff == 0)
+		return MAX_INT;
+	if (iFoodDiff < 0) // Turns to starvation
+	{
+		int iFoodLeft = getFood();
+		int iTurnsLeft = intdiv::uceil(iFoodLeft, -iFoodDiff);
+		return std::min(-1, -iTurnsLeft);
+	} // </advc.189>
+	int iFoodLeft = growthThreshold() - getFood();
+	int iTurnsLeft = intdiv::uceil(iFoodLeft, iFoodDiff);
 	return std::max(1, iTurnsLeft);
 }
 
