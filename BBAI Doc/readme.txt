@@ -1,4 +1,5 @@
-advc.009: This folder contains the documentation of BBAI 1.01 (minus the installation instructions). Much of this has changed in K-Mod and AdvCiv. I'm including it mostly in order to credit the minor contributors, i.e. EmperorFool, Afforess, Fuyu, LunarMongoose and others (search changelog.txt for the word "thanks").
+advc.009: This folder contains the documentation of BBAI 1.01 (minus the installation instructions). Much of this has changed in K-Mod and AdvCiv. I'm including it mostly in order to credit the minor contributors, i.e. EmperorFool, Afforess, Fuyu, LunarMongoose and others (search changelog.txt for the word "thanks"). Note that there is also an SVN revision history:
+https://sourceforge.net/p/civ4betterai/code/
 
 
 
@@ -66,43 +67,13 @@ _________________________
 
 The full change log from plain BTS is in changelog.txt, only the most recent changes are listed below.  There are hundreds of places where AI logic has been overhauled, tweaked, or better integrated with other pieces.
 
-New in Better BTS AI 1.01
-
-Merged in UP 1.6
+New in Better BTS AI 1.02
 
 Bugfixes
-- AI now considers monuments a cultural building when evaluating techs (thanks denev)
-- Fixed detection of when to have AIs go for wonders for cultural reasons in late game (thanks Fuyu)
-- Fixed bug introduced with Lead from Behind which allowed siege units to attack cities/stacks with non-combat units after all defenders were knocked below the siege combat limit
-- Fixed diplomatic side effects of new early game changes to AI_isLandTarget (thanks Fuyu)
-- Fixed issue causing crashes with debug DLLs under rare circumstances (I think ...)
+- Fixed several uses of maxMoves where baseMoves was intended in CvUnitAI, code should be a bit faster now (thanks denev)
 
 Victory strategy
-- Tweaked Conquest 3 and 4 so that they work better for isolated starts and continents maps
-- Boosted value of Apollo granting tech for civs running Space 2
-- AIs going for diplo victory now more highly value techs allowing construction of diplo wonder
-- AIs going for diplo victory now more highly value building wonders which allow diplo votes
-- Vassals now a little more likely to try space strategy
+- 
 
 War strategy
-- Changes to encourage aggressive AI players to consider limited wars in early game to choke opponents, should make first couple eras a little less predictable in normal games
-- If AI wants to declare war for a long time but doesn't and has no units moving to start war, it will eventually re-plan its wars (mainly handles case where AI can't move its units into position)
-- If AI is preparing a dogpile attack and the enemies of its target break off war, then it will replan
-- Improved AI detection of when its wars were cold and it might as well break them off
-- When AI has many more units in enemy territory or en route than its enemies have in its territory, it is now less inclined make peace.  Conversely, you can now move a big attack force into AI territory and sue for peace.  Replaced prior flawed city danger based method and expanded to include non-Aggressive AI games.
-- AI decisions to raze cities now factor in cultural victory, resources, how good a holy city is, and how likely the conquerer is to hold the city
-
-War tactics
-- Fixed issue where AI would pull back its troops to its own borders to regroup instead of regrouping in enemy territory
-- AI now puts extra emphasis on state religion holy cities of enemies in picking target cities (thanks Lunar Mongoose)
-- More changes to AI target city values to put higher value on wonders, holy cities, and needed resources
-
-City AI
-- AIs in isolated starts now will build fewer units until they meet somebody
-- Turned down AI production of transports and attack ships when approaching unit spending caps
-
-Tech AI
-- Big boost to value placed on ocean-capable transports when AI has naval assault war plans
-
-General AI
-- Changed AI_enemyTargetMissionAIs to AI_enemyTargetMissions, now counts how many units are in enemy territory or making war like moves into potential enemy territory
+- Tweaks to AI city razing decisions, including higher weight on wonders and culture

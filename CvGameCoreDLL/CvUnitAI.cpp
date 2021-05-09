@@ -14556,10 +14556,10 @@ bool CvUnitAI::AI_seaBombardRange(int iMaxRange)
 			if (generatePath(p, NO_MOVEMENT_FLAGS,
 				true, &iPathTurns, 1 + iMaxRange / baseMoves()))
 			{
-				/*  BETTER_BTS_AI_MOD, Naval AI, 6/24/08, jdog5000: START
+				/*  BETTER_BTS_AI_MOD, Naval AI, 6/24/08 and 7/5/10, jdog5000: START
 					Loop construction doesn't guarantee we can get there anytime soon,
 					could be on other side of narrow continent */
-				if (iPathTurns <= 1 + iMaxRange / baseMoves())
+				if (iPathTurns <= 1 + iMaxRange / std::max(baseMoves(), 1))
 				{
 					/*	Check only for supporting our own ground troops first
 						if none will look for another target */
@@ -15403,7 +15403,8 @@ bool CvUnitAI::AI_assaultSeaReinforce(bool bAttackBarbs)
 	bool const bCanMoveAllTerrain = getGroup()->canMoveAllTerrain();
 	MovementFlags const eFlags = MOVE_AVOID_ENEMY_WEIGHT_3; // K-Mod. (no declare war)
 	int iBestValue = 0;
-	for (SquareIter it(*this, 2 * maxMoves()); it.hasNext(); ++it)
+	// advc: (from BBAI 1.02; was 2*maxMoves() previously)
+	for (SquareIter it(*this, 2 * baseMoves()); it.hasNext(); ++it)
 	{
 		CvPlot const& p = *it;
 		if (!isEnemy(p))

@@ -1688,11 +1688,9 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity,  // advc.003u: param was CvCity
 		if(iHighCultureCount == iVictTarget || iHighCultureCount == iVictTarget + 1)
 		{
 			bCultureVictory = true;
-			// Don't raze if they're unlikely to reconquer it
-			scaled rPowRatio(kPreviousTeam.getPower(true),
-					std::max(1, GET_TEAM(getTeam()).getPower(false)));
-			if(rPowRatio > per100(80))
-				bRaze = true;
+			bRaze = (bRaze ||
+					// BETTER_BTS_AI_MOD, 07/05/10, jdog5000 (not in K-Mod):
+					(GET_TEAM(getTeam()).AI_getEnemyPowerPercent(false) > 75));
 			if(!bRaze)
 			{
 				int iAttStr = AI_localAttackStrength(kCity.plot(),
@@ -1943,8 +1941,9 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity,  // advc.003u: param was CvCity
 			if (bBarbCity)
 				iRazeValue += 5;
 			// K-Mod end
-
-			iRazeValue -= 15 * kCity.getNumActiveWorldWonders();
+			/*	advc.116: 25 in BBAI 1.02, but I guess 20 will do
+				now that I've adjusted other factors */
+			iRazeValue -= 20 * kCity.getNumActiveWorldWonders();
 
 			for (CityPlotIter it(kCity); it.hasNext(); ++it)
 			{
