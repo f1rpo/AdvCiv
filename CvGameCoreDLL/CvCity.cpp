@@ -7903,9 +7903,9 @@ scaled CvCity::probabilityOccupationDecrement() const
 	if (rRevoltProb < 1)
 		r = (1 - rRevoltProb).pow(GC.getDefineINT(CvGlobals::OCCUPATION_COUNTDOWN_EXPONENT));
 	// Don't use probabilities that are too small to be displayed
-	if (rRevoltProb.getPermille() < 1)
+	if (r.getPermille() < 1)
 		return 0;
-	if (rRevoltProb.getPermille() > 999)
+	if (r.getPermille() > 999)
 		return 1;
 	return r;
 }
