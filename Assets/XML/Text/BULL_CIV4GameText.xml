@@ -713,14 +713,15 @@
 	</TEXT>
 
 <!-- Feature Health -->
-	<TEXT>
+	<!-- advc.059 handles this -->
+	<!--TEXT>
 		<Tag>TXT_KEY_ACTION_CHANGE_IN_CITY</Tag>
 		<English>[ICON_BULLET]%s1 in %s2_CityName</English>
 		<French>[ICON_BULLET]%s1 &#224; %s2_CityName</French>
 		<German>[ICON_BULLET]%s1 in %s2_CityName</German>
 		<Italian>[ICON_BULLET]%s1 a %s2_CityName</Italian>
 		<Spanish>[ICON_BULLET]%s1 en %s2_CityName</Spanish>
-	</TEXT>
+	</TEXT-->
 
 <!-- Delete/Fortify/Sleep All Units Actions -->
 	<TEXT>
@@ -731,6 +732,14 @@
 		<Spanish>[SPACE](&lt;ALT&gt; para todas las unidades del mismo tipo que la unidad activa)</Spanish>
 	</TEXT>
 
+<!-- Free Tech Popup Fix -->
+	<TEXT>
+		<Tag>TXT_KEY_CHEATERS_NEVER_PROSPER</Tag>
+		<English>[COLOR_NEGATIVE_TEXT]You have already chosen your free tech(s)[COLOR_REVERT]</English>
+		<German>[COLOR_NEGATIVE_TEXT]Freie Technologie(n) schon gewählt[COLOR_REVERT]</German>
+		<Italian>[COLOR_NEGATIVE_TEXT]You have already chosen your free tech(s)[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_NEGATIVE_TEXT]Ya has escogido tu(s) tecnología(s) gratuita(s)[COLOR_REVERT]</Spanish>
+	</TEXT>
 
 <!-- Fractional Trade -->
 	<TEXT>
@@ -740,15 +749,6 @@
 		<German>%s1 [ICON_COMMERCE]: Gesamteinkommen</German>
 		<Italian>%s1 [ICON_COMMERCE]: totale</Italian>
 		<Spanish>%s1 [ICON_COMMERCE]: Total</Spanish>
-	</TEXT>
-
-<!-- Free Tech Popup Fix -->
-	<TEXT>
-		<Tag>TXT_KEY_CHEATERS_NEVER_PROSPER</Tag>
-		<English>[COLOR_NEGATIVE_TEXT]You have already chosen your free tech(s)[COLOR_REVERT]</English>
-		<German>[COLOR_NEGATIVE_TEXT]Freie Technologie(n) schon gewählt[COLOR_REVERT]</German>
-		<Italian>[COLOR_NEGATIVE_TEXT]You have already chosen your free tech(s)[COLOR_REVERT]</Italian>
-		<Spanish>[COLOR_NEGATIVE_TEXT]Ya has escogido tu(s) tecnología(s) gratuita(s)[COLOR_REVERT]</Spanish>
 	</TEXT>
 
 <!-- Optional Compile-Time Components -->
@@ -767,13 +767,14 @@
 		<Italian>New Sentry Actions</Italian>
 		<Spanish>Nuevas Acciones de Vigilancia</Spanish>
 	</TEXT-->
-	<TEXT>
+	<!-- advc: Won't want this as a compile-time option -->
+	<!--TEXT>
 		<Tag>TXT_KEY_MOD_GOVWORKERS</Tag>
 		<English>City Governors Build Workers</English>
 		<German>Stadtverwalter: Bautrupp aufstellen</German>
 		<Italian>City Governors Build Workers</Italian>
 		<Spanish>Gobernadores de Ciudad Construyen trabajadores</Spanish>
-	</TEXT>
+	</TEXT-->
 	<!-- advc.127: Won't need an option for this -->
 	<!--TEXT>
 		<Tag>TXT_KEY_MOD_AIAUTOPLAY</Tag>
@@ -783,13 +784,14 @@
 		<Italian>AI AutoPlay</Italian>
 		<Spanish>AI AutoPlay</Spanish>
 	</TEXT-->
-	<TEXT>
+	<!-- advc: K-Mod handles GW -->
+	<!--TEXT>
 		<Tag>TXT_KEY_MOD_GWARM</Tag>
 		<English>Global Warming</English>
 		<German>Globale Erwärmung</German>
 		<Italian>Global Warming</Italian>
 		<Spanish>Calentamiento Global</Spanish>
-	</TEXT>
+	</TEXT-->
 	<!-- advc.sha: Won't need this -->
 	<!--TEXT>
 		<Tag>TXT_KEY_MOD_SHAM_SPOILER</Tag>

@@ -329,8 +329,8 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__PARTIALSCOREGRAPHS_HOVER</Tag>
-		<English>For players whose full score history has never been visible to you, display a score graph that only shows the player's game scores since the turn that you've first met. (This partial graph won't appear until you've known a player for at least 5 turns, and, in savegames from AdvCiv 0.97 and earlier, players are assumed to have just been met.)</English>
-		<German>Zeigt für Spieler, deren Punktehistorie Ihnen unbekannt ist, die Punktestände seit Ihrer ersten Begegnung an. (Dieser Kurvenabschnitt wird aber erst angezeigt, wenn Sie einen Spieler seit wenigstens 5 Zügen kennen. In Spielständen, die vor AdvCiv 0.98 entstanden sind, wird angenommen, dass Sie alle Gegner gerade erst kennengelernt haben.)</German>
+		<English>For players whose full score history has never been visible to you, display a score graph that only shows the player's game scores since the turn that you've first met. (This partial graph won't appear until you've known a player for at least 5 turns.)</English>
+		<German>Zeigt für Spieler, deren Punktehistorie Ihnen unbekannt ist, die Punktestände seit Ihrer ersten Begegnung an. (Dieser Kurvenabschnitt wird aber erst angezeigt, wenn Sie einen Spieler seit wenigstens 5 Zügen kennen.)</German>
 	</TEXT>
 
 	<TEXT>

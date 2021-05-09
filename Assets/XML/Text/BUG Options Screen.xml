@@ -212,8 +212,8 @@
 	</TEXT>
 	<!-- advc.002f, advc.095: I had used "City Icons" at first,
 		 but now that I'm also placing city bar options here,
-		 I need a more generic term. "Billboard" is also used in
-		 CvCity::getCityBillboardSizeIconColors. -->
+		 I need a more general term. The icons aren't part of the bar.
+		 "Billboard" is used in CvCity::getCityBillboardSizeIconColors. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_CITYICONS</Tag>
 		<English>City Billboards:</English>
@@ -357,11 +357,10 @@
 		<Spanish>Barra Grandes Personajes:</Spanish>
 	</TEXT>
 	
-	<!-- advc.063: The English name of the mod component is arguably too
-		 established to be changed, but can at least change it in German. -->
+	<!-- advc.063: "absolute" is more precise than "actual" -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_BUILDINGEFFECTS</Tag>
-		<English>Building Actual Effects:</English>
+		<English>Absolute Building Effects:</English>
 		<German>Absolute Gebäudeerträge:</German>
 		<Italian>Effetti degli Edifici:</Italian>
 		<Spanish>Efectos Construcción:</Spanish>

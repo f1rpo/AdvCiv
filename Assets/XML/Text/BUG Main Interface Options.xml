@@ -74,8 +74,8 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__ENDTURNMESSAGE_HOVER</Tag>
-		<English>When checked, a flashing message "Press ENTER to end turn" is shown once all units and cities have been given orders (as in BtS). Otherwise, the "End Turn" button still blinks as it does in BtS, but no message is shown.</English>
-		<German>Blinkanzeige "Runde beenden mit EINGABETASTE" (wie in BtS), sobald alle Einheiten und Städte Befehle erhalten haben. Die rote Rundenende-Schaltfläche blinkt auch wenn diese Option nicht angekreuzt ist.</German>
+		<English>When checked, a flashing message "Press ENTER to end turn" is shown once all units and cities have been given orders (as in BtS). Otherwise, the "End Turn" button still pulses as it does in BtS, but no message is shown.</English>
+		<German>Blinkanzeige "Runde beenden mit EINGABETASTE" (wie in BtS), sobald alle Einheiten und Städte Befehle erhalten haben. Die rote Rundenende-Schaltfläche pulsiert auch wenn diese Option nicht angekreuzt ist.</German>
 	</TEXT>
 	
 	<!--TEXT>
@@ -675,8 +675,8 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__RESOURCEICONOPTIONS_HOVER</Tag>
-		<English>Shows filter options "Food", "Luxuries" and "General" when the Resource Display is enabled in Globe View. When unchecked, the Resource Display always highlights all resources and no options are shown, leaving space for the scoreboard.</English>
-		<German>Zeigt Filter-Optionen "Nahrung", "Luxusgüter" und "Allgemein" an, wenn die Ressourcenanzeige und die Globalansicht aktiviert sind. Ansonsten werden die Ressourcen stets ungefiltert angezeigt, und an Stelle der Filter-Optionen ist Platz für die Punkteanzeige.</German>
+		<English>Shows filter options "Food", "Luxuries" and "General" when the Resource Display is enabled in Globe View. When unchecked, the Resource Display always highlights all resources and no options are shown (leaving space for the scoreboard).</English>
+		<German>Zeigt Filter-Optionen "Nahrung", "Luxusgüter" und "Allgemein" an, wenn die Ressourcenanzeige und die Globalansicht aktiviert sind. Ansonsten werden die Ressourcen stets ungefiltert angezeigt (und an Stelle der Filter-Optionen bleibt Platz für die Punkteanzeige).</German>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TRIBALVILLAGEICONS_TEXT</Tag>
