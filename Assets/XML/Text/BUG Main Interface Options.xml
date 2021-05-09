@@ -650,9 +650,9 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__SEAPATROL_HOVER</Tag>
-		<English>Enables the "Sea Patrol" mission. When unchecked, the mission button is removed and the AI won't use the mission either.</English>
+		<English>Enables the "Sea Patrol" mission (except in network games). When disabled, the mission button is removed and the AI won't use the mission either.</English>
 		<French>Enables the "Patrouille des mers" mission. When unchecked, the mission button is removed and the AI won't use the mission either.</French>
-		<German>Erlaubt den Einheiten-Befehl "Seepatrouille"</German>
+		<German>Erlaubt den Einheiten-Befehl "Seepatrouille" (auﬂer in Netzwerk-Spielen)</German>
 		<Italian>Enables the "Pattuglia marina" mission. When unchecked, the mission button is removed and the AI won't use the mission either.</Italian>
 		<Spanish>Enables the "Patrulla mar&#237;tima" mission. When unchecked, the mission button is removed and the AI won't use the mission either.</Spanish>
 	</TEXT>

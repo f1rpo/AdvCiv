@@ -3459,6 +3459,9 @@ bool CvUnit::canAirPatrol(const CvPlot* pPlot) const
 
 bool CvUnit::canSeaPatrol(const CvPlot* pPlot) const
 {
+	// <advc.004k> To avoid sync issues with the BUG option
+	if (GC.getGame().isNetworkMultiPlayer())
+		return false; // </advc.004k>
 	if (!pPlot->isWater())
 		return false;
 
