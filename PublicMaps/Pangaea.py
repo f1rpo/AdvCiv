@@ -30,7 +30,7 @@ def getGridSize(argsList):
 		WorldSizeTypes.WORLDSIZE_SMALL:		(2, 0),
 		WorldSizeTypes.WORLDSIZE_STANDARD:	(2, 0),
 		WorldSizeTypes.WORLDSIZE_LARGE:		(2, 1),
-		WorldSizeTypes.WORLDSIZE_HUGE:		(2, 2)
+		WorldSizeTypes.WORLDSIZE_HUGE:		(3, 2)
 	}
 	wi = CyGlobalContext().getWorldInfo(iWorldSize)
 	return (sizeModifiers[iWorldSize][0] + wi.getGridWidth(), sizeModifiers[iWorldSize][1] + wi.getGridHeight())
