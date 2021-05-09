@@ -3248,22 +3248,30 @@ int CvPlot::getLatitude() const
 // advc.tsl: was getLatitude()
 char CvPlot::calculateLatitude() const
 {
-	/* orginal bts code
-	int iLatitude;
+	/*int iLatitude;
 	if (GC.getMap().isWrapX() || !(GC.getMap().isWrapY()))
 		iLatitude = ((getY() * 100) / GC.getMap().getGridHeight());
 	else iLatitude = ((getX() * 100) / GC.getMap().getGridWidth());
 	iLatitude = ((iLatitude * (GC.getMap().getTopLatitude() - GC.getMap().getBottomLatitude())) / 100);
-	return abs(iLatitude + GC.getMap().getBottomLatitude()); */
-	// UNOFFICIAL_PATCH, Bugfix, 07/12/09, Temudjin & jdog5000: START
-	int iLatitude;
-	double dLatitude;
-	if (GC.getMap().isWrapX() || !(GC.getMap().isWrapY()))
-		dLatitude = ((getY() * 1.0) / (GC.getMap().getGridHeight()-1));
-	else dLatitude = ((getX() * 1.0) / (GC.getMap().getGridWidth()-1));
-	dLatitude = dLatitude * (GC.getMap().getTopLatitude() - GC.getMap().getBottomLatitude());
-	iLatitude = (int)(dLatitude + 0.5);
-	return toChar(std::min(abs((iLatitude + GC.getMap().getBottomLatitude())), 90));
+	return abs(iLatitude + GC.getMap().getBottomLatitude());*/ // BtS
+	// UNOFFICIAL_PATCH (UP), Bugfix, 07/12/09, Temudjin & jdog5000: START
+	scaled rLatitude;
+	/*if (GC.getMap().isWrapX() || !GC.getMap().isWrapY())
+		rLatitude = scaled(getY(), GC.getMap().getGridHeight() - 1);
+	else rLatitude = scaled(getX(), GC.getMap().getGridWidth() - 1);
+	rLatitude *= GC.getMap().getTopLatitude() - GC.getMap().getBottomLatitude();
+	rLatitude += GC.getMap().getBottomLatitude();*/ // This would be equivalent to the UP
+	/*	<advc.129> Let top and bottom latitude refer to the _edges_ of the map.
+		I.e. the topmost and bottommost _row_ will receive smaller (absolute)
+		latitude values. */
+	rLatitude = GC.getMap().getBottomLatitude() + scaled(
+			GC.getMap().getTopLatitude() - GC.getMap().getBottomLatitude(),
+			GC.getMap().getGridHeight()) *
+			(((GC.getMap().isWrapX() || !GC.getMap().isWrapY()) ?
+			getY() : getX()) + fixp(0.5)); // </advc.129>
+	rLatitude = rLatitude.abs();
+	rLatitude.decreaseTo(90);
+	return toChar(rLatitude.round());
 	// UNOFFICIAL_PATCH: END
 }
 
