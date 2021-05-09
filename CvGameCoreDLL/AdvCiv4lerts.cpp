@@ -54,11 +54,11 @@ void AdvCiv4lert::check(bool bSilent)
 			that the checks aren't super fast. */
 		return;
 	}
-	if (m_bSilent)
+	bool const bWasSilent = m_bSilent;
+	if (bSilent)
 		m_bSilent = true;
 	check();
-	if (m_bSilent)
-		m_bSilent = false;
+	m_bSilent = bWasSilent;
 }
 
 // <advc.210a>
