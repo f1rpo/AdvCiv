@@ -10759,7 +10759,7 @@ void CvCity::doReligion()
 
 		int iRandThreshold = 0;
 
-		for (PlayerIter<ALIVE> it; it.hasNext(); ++it)
+		for (PlayerIter<ALIVE,KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 		{
 			FOR_EACH_CITY(pLoopCity, *it)
 			{

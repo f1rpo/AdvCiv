@@ -6579,7 +6579,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			{	// block moved from UNITAI_ATTACK_CITY:
 				iMilitaryValue += std::min(iOffenceValue, 100); // was straight 200
 				// </k146>
-				if (AI_calculateTotalBombard(DOMAIN_LAND) == 0)
+				if (!AI_isDomainBombard(DOMAIN_LAND))
 				{
 					iMilitaryValue += 600; // k146: was 800
 					if (AI_isDoStrategy(AI_STRATEGY_DAGGER))
@@ -13504,7 +13504,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI,
 			if (pArea != NULL &&
 				(pArea->getNumCities() == pArea->getCitiesPerPlayer(getID()) ||
 				(pArea->getAreaAIType(getTeam()) != AREAAI_NEUTRAL &&
-				!AI_isLandWar(*pArea))) && AI_calculateTotalBombard(DOMAIN_SEA) > 0)
+				!AI_isLandWar(*pArea))) && AI_isDomainBombard(DOMAIN_SEA))
 			{
 				iBombardValue /= 2;
 			}
@@ -27026,7 +27026,8 @@ int CvPlayerAI::AI_bestCityUnitAIValue(UnitAITypes eUnitAI, CvCity const* pCity,
 }
 
 
-int CvPlayerAI::AI_calculateTotalBombard(DomainTypes eDomain) const
+int CvPlayerAI::AI_calculateTotalBombard(DomainTypes eDomain,
+	int iMaxCount) const // advc.opt
 {
 	int iTotalBombard = 0;
 	CvCivilization const& kCiv = getCivilization(); // advc.003w
@@ -27045,12 +27046,17 @@ int CvPlayerAI::AI_calculateTotalBombard(DomainTypes eDomain) const
 				iBombardRate /= 2;
 			}
 			iTotalBombard += iBombardRate * getUnitClassCount(eLoopClass);
+			// <advc.opt>
+			if (iTotalBombard >= iMaxCount)
+				return iMaxCount; // </advc.opt>
 		}
-
 		int iBombRate = GC.getInfo(eLoopUnit).getBombRate();
 		if (iBombRate > 0)
 		{
 			iTotalBombard += iBombRate * getUnitClassCount(eLoopClass);
+			// <advc.opt>
+			if (iTotalBombard >= iMaxCount)
+				return iMaxCount; // </advc.opt>
 		}
 	}
 	return iTotalBombard;

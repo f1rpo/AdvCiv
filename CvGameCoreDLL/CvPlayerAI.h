@@ -634,8 +634,13 @@ public:
 
 	int AI_bestAreaUnitAIValue(UnitAITypes eUnitAI, CvArea const* pArea = NULL, UnitTypes* peBestUnitType = NULL) const;
 	int AI_bestCityUnitAIValue(UnitAITypes eUnitAI, CvCity const* pCity, UnitTypes* peBestUnitType = NULL) const;
-
-	int AI_calculateTotalBombard(DomainTypes eDomain) const;
+	// advc.opt:
+	bool AI_isDomainBombard(DomainTypes eDomain) const
+	{
+		return (AI_calculateTotalBombard(eDomain, 1) > 0);
+	}
+	int AI_calculateTotalBombard(DomainTypes eDomain,
+			int iMaxCount = MAX_INT) const; // advc.opt
 
 	void AI_updateBonusValue(BonusTypes eBonus);
 	void AI_updateBonusValue();
