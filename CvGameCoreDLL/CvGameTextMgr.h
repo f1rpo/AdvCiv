@@ -38,7 +38,7 @@ public:
 
 	void setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 			bool bOneLine = false, bool bShort = false,
-			bool bColorHostile = false, // advc.048
+			bool bColorAllegiance = false, // advc.048
 			bool bOmitOwner = false, // advc.061
 			bool bIndicator = false); // advc.007
 	void setPlotListHelp(CvWStringBuffer &szString, CvPlot const& kPlot, bool bOneLine, bool bShort,

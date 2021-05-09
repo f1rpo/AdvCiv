@@ -411,7 +411,7 @@ void CvGameTextMgr::setEspionageMissionHelp(CvWStringBuffer &szBuffer, const CvU
 
 void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 	bool bOneLine, bool bShort,
-	bool bColorHostile, // advc.048
+	bool bColorAllegiance, // advc.048
 	bool bOmitOwner, // advc.061
 	bool bIndicator) // advc.007
 {
@@ -422,15 +422,17 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 	bool const bShift = GC.shiftKey();
 	bool const bAlt = GC.altKey();
 	// <advc.007> Make info more compact in debug mode
-	if(bDebugMode && bOneLine)
+	if (bDebugMode && bOneLine)
 		bShort = true; // </advc.007>
 	CvUnitInfo const& kInfo = pUnit->getUnitInfo(); // advc
 	// <advc.048>
 	char const* szColTag = "COLOR_UNIT_TEXT";
-	if(bColorHostile)
+	if (bColorAllegiance)
 	{
-		szColTag = (pUnit->isEnemy(kGame.getActiveTeam()) ?
-				"COLOR_WARNING_TEXT" : "COLOR_POSITIVE_TEXT");
+		szColTag = (//pUnit->isEnemy(kGame.getActiveTeam()) ?
+				// For combat odds at peace (Alt hover)
+				pUnit->getTeam() != kGame.getActiveTeam() ?
+				"COLOR_NEGATIVE_TEXT" : "COLOR_POSITIVE_TEXT");
 	} // </advc.048>
 	{
 		CvWString szTempBuffer;
@@ -2754,84 +2756,27 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_ODDS_VS",
 				szOffenseOdds.GetCString(), szDefenseOdds.GetCString()));
-
-		szString.append(L' ');//XXX
-		szString.append(gDLL->getText("TXT_KEY_COLOR_POSITIVE"));
-		szString.append(L' ');//XXX
-		int iModifier = pAttacker->getExtraCombatPercent();
-		if (iModifier != 0)
-		{
-			szString.append(NEWLINE);
-			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_EXTRA_STRENGTH", iModifier));
-		}
-		/*	advc: Same code as in setACOModifiersPlotHelp; use subroutine instead.
-			(There is still some redundant code below that
-			PieceOfMind had apparently copy-pasted.) */
-		appendPositiveModifiers(szString, pAttacker, pDefender, pPlot, false);
-
-		if (!pDefender->immuneToFirstStrikes() && pAttacker->maxFirstStrikes() > 0)
-		{
-			if (pAttacker->firstStrikes() == pAttacker->maxFirstStrikes())
-			{
-				if (pAttacker->firstStrikes() == 1)
-				{
-					szString.append(NEWLINE);
-					szString.append(gDLL->getText("TXT_KEY_UNIT_ONE_FIRST_STRIKE"));
-				}
-				else
-				{
-					szString.append(NEWLINE);
-					szString.append(gDLL->getText("TXT_KEY_UNIT_NUM_FIRST_STRIKES",
-							pAttacker->firstStrikes()));
-				}
-			}
-			else
-			{
-				szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_UNIT_FIRST_STRIKE_CHANCES",
-						pAttacker->firstStrikes(), pAttacker->maxFirstStrikes()));
-			}
-		}
-		// advc.048: Commented out
+		/*	<advc.048> BtS code replaced with functions shared with ACO.
+			Also: how the generic modifier of the attacker upfront,
+			then the name of the defending unit, then the rest of the modifier
+			-- like ACO does it too. */
+		appendCombatModifiers(szString, *pPlot, *pAttacker, *pDefender,
+				true, false, true);
+		appendFirstStrikes(szString, *pAttacker, *pDefender, false);
+		szString.append(NEWLINE);
+		szString.append(gDLL->getText("TXT_KEY_MISC_VS"));
+		szString.append(L" ");
+		setUnitHelp(szString, pDefender, true, true, true);
+		appendCombatModifiers(szString, *pPlot, *pAttacker, *pDefender,
+				true, false, false, true);
+		// Commented out (not sure if it had been shown in COLOR_NEGATIVE ...)
 		/*if (pAttacker->isHurt()) {
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_HP", pAttacker->currHitPoints(), pAttacker->maxHitPoints()));
 		}*/
-		szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
-		szString.append(L' ');//XXX
-		szString.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
-		szString.append(L' ');//XXX
-		// advc: Same code as in setACOModifiersPlotHelp; use subroutine instead.
-		appendNegativeModifiers(szString, pAttacker, pDefender, pPlot);
-		if (!pAttacker->immuneToFirstStrikes() && pDefender->maxFirstStrikes() > 0)
-		{
-			if (pDefender->firstStrikes() == pDefender->maxFirstStrikes())
-			{
-				if (pDefender->firstStrikes() == 1)
-				{
-					szString.append(NEWLINE);
-					szString.append(gDLL->getText("TXT_KEY_UNIT_ONE_FIRST_STRIKE"));
-				}
-				else
-				{
-					szString.append(NEWLINE);
-					szString.append(gDLL->getText("TXT_KEY_UNIT_NUM_FIRST_STRIKES",
-							pDefender->firstStrikes()));
-				}
-			}
-			else
-			{
-				szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_UNIT_FIRST_STRIKE_CHANCES",
-						pDefender->firstStrikes(), pDefender->maxFirstStrikes()));
-			}
-		}
-		// <advc.048>
-		szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
-		szString.append(NEWLINE);
-		szString.append(gDLL->getText("TXT_KEY_MISC_VS"));
-		szString.append(L' ');
-		setUnitHelp(szString, pDefender, true, true, true);
+		appendCombatModifiers(szString, *pPlot, *pAttacker, *pDefender,
+				false, false);
+		appendFirstStrikes(szString, *pDefender, *pAttacker, true);
 		// Commented out: </advc.048>
 		/*if (pDefender->isHurt()) {
 			szString.append(NEWLINE);
@@ -20592,11 +20537,12 @@ void CvGameTextMgr::appendCombatModifier(CvWStringBuffer& szBuffer,
 		modifiers that favor the defender. */
 	if (iModifier < 0)
 		bNegativeColor = !bNegativeColor;
-	if (kParams.m_bACOEnabled &&
+	// advc.048: Let's always show the sign in the way that it actually works
+	if (//kParams.m_bACOEnabled &&
 		kParams.m_bAttackModifier && !kParams.m_bGenericModifier)
 	{
-		/*	Non-generic modifiers of the attacker apply -with inverted sign-
-			to the defender, and ACO displays them that way too. */
+		/*	Non-generic modifiers of the attacker apply
+			-with inverted sign- to the defender. */
 		iModifier *= -1;
 	}
 	szBuffer.append(NEWLINE);
@@ -20606,6 +20552,7 @@ void CvGameTextMgr::appendCombatModifier(CvWStringBuffer& szBuffer,
 			gDLL->getText(szTextKey, iModifier, szTextArg));
 	szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
 }
+
 
 void CvGameTextMgr::appendFirstStrikes(CvWStringBuffer& szBuffer,
 	CvUnit const& kFirstStriker, CvUnit const& kOther, bool bNegativeColor)

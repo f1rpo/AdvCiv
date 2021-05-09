@@ -1264,7 +1264,7 @@ void CvGameTextMgr::setACOModifiersPlotHelp(CvWStringBuffer &szString,
 	if ((iView & BUGOption::getValue("ACO__ShowAttackerInfo", 3)))
 	{
 		szString.append(NEWLINE);
-		setUnitHelp(szString, &kAttacker, true, true);
+		setUnitHelp(szString, &kAttacker, true, true, /* advc.048: */ true);
 	}
 	if ((!kDefender.immuneToFirstStrikes() && kAttacker.maxFirstStrikes() > 0) ||
 		kAttacker.maxCombatStr(NULL,NULL) != kAttacker.baseCombatStr() * 100)
@@ -1274,17 +1274,17 @@ void CvGameTextMgr::setACOModifiersPlotHelp(CvWStringBuffer &szString,
 		if (BUGOption::isEnabled("ACO__ShowModifierLabels", false))
 			szString.append(gDLL->getText("TXT_ACO_AttackModifiers"));
 	}
-	// advc: Moved into new function (shared with non-ACO code)
-	appendFirstStrikes(szString, kAttacker, kDefender, false);
 	//int iModifier = kAttacker.getExtraCombatPercent();
 	/*	advc: (Generic modifiers of the attacker are the only ones that
 		affect the attacker's combat strength) */
 	appendCombatModifiers(szString, kPlot, kAttacker, kDefender, true, true, true);
-	// advc.048: Moved defender info above the modifier label
+	// <advc.048> Modifiers before 1st strikes (as in BtS)
+	appendFirstStrikes(szString, kAttacker, kDefender, false);
+	// Moved defender info above the modifier label ... // </advc.048>
 	if (iView & BUGOption::getValue("ACO__ShowDefenderInfo", 3))
 	{
 		szString.append(NEWLINE);
-		setUnitHelp(szString, &kDefender, true, true);
+		setUnitHelp(szString, &kDefender, true, true, /* advc.048: */ true);
 	}
 	if ((!kAttacker.immuneToFirstStrikes() && kDefender.maxFirstStrikes() > 0) ||
 		kDefender.maxCombatStr(&kPlot, &kAttacker) != kDefender.baseCombatStr() * 100)
@@ -1297,14 +1297,16 @@ void CvGameTextMgr::setACOModifiersPlotHelp(CvWStringBuffer &szString,
 
 	if (iView & BUGOption::getValue("ACO__ShowDefenseModifiers", 3))
 	{
-		appendFirstStrikes(szString, kDefender, kAttacker, true);
-		/*	<advc> Use the same functions for ACO and BtS combat modifiers.
+		/*	advc: Use the same functions for ACO and BtS combat modifiers.
 			(Replacing code that had been copy-pasted and slightly modified.) */
-		appendCombatModifiers(szString, kPlot, kAttacker, kDefender,
-				false, true);
+		/*	<advc.048> ACO shows modifiers tied to the defender's abilities first;
+			I'm starting with the attacker (as in BtS). */
 		appendCombatModifiers(szString, kPlot, kAttacker, kDefender,
 				true, true, false, true);
-		// </advc>
+		appendCombatModifiers(szString, kPlot, kAttacker, kDefender,
+				false, true);
+		appendFirstStrikes(szString, kDefender, kAttacker, true);
+		// </advc.048>
 	}
 	if (iView & BUGOption::getValue("ACO__ShowTotalDefenseModifier", 2))
 	{
