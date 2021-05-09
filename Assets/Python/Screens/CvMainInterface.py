@@ -2551,8 +2551,7 @@ class CvMainInterface:
 				screen.selectMultiList( "BottomButtonContainer", CyInterface().getCityTabSelectionRow() )
 							
 		elif (not CyEngine().isGlobeviewUp() and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY):
-			if pHeadSelectedUnit: # advc.154: Moved out of the condition above
-				self.setMinimapButtonVisibility(True)
+			self.setMinimapButtonVisibility(True)
 			if CyInterface().getInterfaceMode() == InterfaceModeTypes.INTERFACEMODE_SELECTION:
 				# advc.154: pHeadSelectedUnit moved from above. (Handling of g_pSelectedUnit moved up.)
 				if pHeadSelectedUnit and pHeadSelectedUnit.getOwner() == gc.getGame().getActivePlayer() and bHeadSelectionChanged:
