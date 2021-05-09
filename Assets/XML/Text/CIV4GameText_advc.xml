@@ -5745,6 +5745,16 @@
 		<Italian>[COLOR_WARNING_TEXT]Non può velocizzare perché c'è già abbastanza [ICON_PRODUCTION] per finire la produzione.[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_WARNING_TEXT]No se puede acelerar porque ya hay suficiente [ICON_PRODUCTION] para terminar la producción.[COLOR_REVERT]</Spanish>
 	</TEXT>
+	<!-- Translations based on TXT_KEY_EVENT_REVOLT_TURNS
+		 (Civ4GameText_BTS.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_DISORDER_BLOCKS_HURRY</Tag>
+		<English>[COLOR_WARNING_TEXT]Can't hurry during disorder[COLOR_REVERT]</English>
+		<French>[COLOR_WARNING_TEXT]On ne peut pas accélérer pendant des émeutes[COLOR_REVERT]</French>
+		<German>[COLOR_WARNING_TEXT]Beschleunigung während Unruhen nicht möglich[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Non può velocizzare durante i disordini[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]No se puede acelerar durante los desórdenes[COLOR_REVERT]</Spanish>
+	</TEXT>
 
 	<!-- advc.004: From CIV4GameTextInfos.xml. The DLL passes the city name,
 		 but the Vanilla text didn't display it. -->

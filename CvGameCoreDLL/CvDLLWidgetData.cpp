@@ -1746,9 +1746,14 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 	if (pHeadSelectedCity == NULL)
 		return;
 	CvCity const& kCity = *pHeadSelectedCity;
-
 	szBuffer.assign(gDLL->getText("TXT_KEY_MISC_HURRY_PROD", kCity.getProductionNameKey()));
-
+	// <advc.064b>
+	if (kCity.isDisorder())
+	{
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_DISORDER_BLOCKS_HURRY"));
+		return;
+	} // </advc.064b>
 	HurryTypes eHurry = (HurryTypes)widgetDataStruct.m_iData1;
 	// advc.001: canHurry check in order to avoid (inconsequential) overflow
 	int const iHurryGold = (kCity.canHurry(eHurry, true) ? kCity.hurryGold(eHurry) : 0);
@@ -1760,11 +1765,11 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 	bool bReasonGiven = false; // advc.064b: Why we can't hurry
 	{
 		int iHurryPopulation = kCity.hurryPopulation(eHurry);
-		if (iHurryPopulation > 0)
+		if (iHurryPopulation > 0 &&
+			kCity.hurryCost(false) > 0) // advc.004: Don't show hurry pop if no production chosen
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HURRY_POP", iHurryPopulation));
-
 			if (iHurryPopulation > kCity.maxHurryPopulation())
 			{
 				szBuffer.append(gDLL->getText("TXT_KEY_MISC_MAX_POP_HURRY",

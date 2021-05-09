@@ -2363,7 +2363,7 @@ int CvCity::getProductionDifference(int iProductionNeeded, int iProduction,
 	bool bIgnoreFeatureProd, bool bIgnoreYieldRate,
 	bool bForceFeatureProd, int* piFeatureProd) const // </advc.064bc>
 {
-	if (isDisorder())
+	if (isDisorder() /* advc.004x: */ && !bForceFeatureProd)
 		return 0;
 
 	int iFoodProduction = (bFoodProduction ?
@@ -3923,6 +3923,8 @@ int CvCity::getHurryCost(bool bExtra, BuildingTypes eBuilding, bool bIgnoreNew) 
 int CvCity::getHurryCost(bool bExtra, int iProductionLeft, int iHurryModifier, int iModifier) const
 {
 	// <advc.064b>
+	if (iProductionLeft == MAX_INT)
+		return 0;
 	iProductionLeft -= getCurrentProductionDifference(bExtra, true, false, bExtra, true);
 	if(bExtra) // City yield rate uncertain if pop is sacrificed (bExtra) ...
 	{	// ... but city production is going to be at least 1
