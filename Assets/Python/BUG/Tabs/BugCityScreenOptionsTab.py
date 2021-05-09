@@ -80,6 +80,7 @@ class BugCityScreenOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addLabel(screen, panel, "GreatPersonBar", "Great Person Bar:")
 		self.addCheckbox(screen, panel, "CityScreen__GreatPersonTurns")
 		self.addCheckbox(screen, panel, "CityScreen__GreatPersonInfo")
+		# advc.078 (note): Merged, but always enabled.
 		#self.addCheckbox(screen, panel, "MiscHover__GreatPeopleRateBreakdown")
 		
 	def createProductionQueuePanel(self, screen, panel):

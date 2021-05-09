@@ -17074,7 +17074,56 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity const
 	if (iGPRate == 0 && !bBuildingAdditionalGreatPeople)
 	// BUG - Building Additional Great People - end
 		return;
-
+	// BULL - Great People Rate Breakdown - start (advc.078)
+	//if (BUGOption::isEnabled("MiscHover__GreatPeopleRateBreakdown", true))
+	{
+		bool bFirst = true;
+		{
+			int iRate = 0;
+			FOR_EACH_ENUM(Specialist)
+			{
+				iRate += (kCity.getSpecialistCount(eLoopSpecialist) +
+						kCity.getFreeSpecialistCount(eLoopSpecialist)) *
+						GC.getSpecialistInfo(eLoopSpecialist).getGreatPeopleRateChange();
+			}
+			if (iRate > 0)
+			{
+				if (bFirst)
+				{
+					szBuffer.append(SEPARATOR);
+					bFirst = false;
+				}
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_SPECIALIST_COMMERCE",
+						iRate, gDLL->getSymbolID(GREAT_PEOPLE_CHAR),
+						L"TXT_KEY_CONCEPT_SPECIALISTS"));
+			}
+		}
+		{
+			int iRate = 0;
+			FOR_EACH_ENUM2(Building, eBuilding)
+			{
+				if (kCity.getNumBuilding(eBuilding) > 0 &&
+					// advc (future-proofing):
+					!GET_TEAM(kCity.getTeam()).isObsoleteBuilding(eBuilding))
+				{
+					iRate += kCity.getNumBuilding(eBuilding) *
+							GC.getBuildingInfo(eBuilding).getGreatPeopleRateChange();
+				}
+			}
+			if (iRate > 0)
+			{
+				if (bFirst)
+				{
+					szBuffer.append(SEPARATOR);
+					bFirst = false;
+				}
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_BUILDING_COMMERCE",
+						iRate, gDLL->getSymbolID(GREAT_PEOPLE_CHAR)));
+			}
+		}
+	} // BULL - Great People Rate Breakdown - end
 	szBuffer.append(SEPARATOR);
 	szBuffer.append(NEWLINE);
 	// <advc.004> Skip base rate if final rate will be the same

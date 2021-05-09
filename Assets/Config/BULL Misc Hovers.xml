@@ -68,11 +68,12 @@
 		
 		
 		<section id="City Screen">
-			<!-- advc.065: No longer optional -->
+			<!-- advc.065: No longer optional (default was False) -->
 			<!--option id="BaseCommerce" key="Base Commerce" 
-					type="boolean" default="False"/-->
-			<option id="GreatPeopleRateBreakdown" key="Great People Rate Breakdown" 
-					type="boolean" default="False"/>
+					type="boolean" default="True"/-->
+			<!-- advc.078: No longer optional (default was False) -->
+			<!--option id="GreatPeopleRateBreakdown" key="Great People Rate Breakdown" 
+					type="boolean" default="True"/-->
 					
 			<option id="BuildingSavedMaintenance" key="Building Saved Maintenance" 
 					type="boolean" default="False"/>
