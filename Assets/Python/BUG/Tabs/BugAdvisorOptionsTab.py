@@ -89,8 +89,8 @@ class BugAdvisorOptionsTab(BugOptionsTab.BugOptionsTab):
 		# </advc.004>
 		self.addCheckbox(screen, right, "Advisors__PartialScoreGraphs") # advc.091
 		self.addCheckbox(screen, right, "Advisors__BugGraphsTab")
-		self.addCheckbox(screen, right, "Advisors__BugStatsTab")
-		# advc.004: No longer optional
+		# advc.004: No longer optional (x2)
+		#self.addCheckbox(screen, right, "Advisors__BugStatsTab")
 		#self.addCheckbox(screen, right, "Advisors__NonZeroStatsOnly") # K-Mod
 
 		self.addSpacer(screen, right, "Before_Sevopedia") # advc.004

@@ -404,23 +404,22 @@
 		<Spanish>Muestra las maravillas empleando el color del jugador que las ha construído.</Spanish>
 	</TEXT>
 	
-	<!-- advc.004: German was "BUG Statistiken" -->
-	<TEXT>
+	<!-- advc.004: Now disused (German was "BUG Statistiken") -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGSTATSTAB_TEXT</Tag>
 		<English>Improvement Stats</English>
 		<German>Zus. Statistiken</German>
 		<Italian>Scheda Statistiche</Italian>
 		<Spanish>Estadísticas de mejoras</Spanish>
-	</TEXT>
-	
-	<!-- advc.004: rewritten (English, German) -->
-	<TEXT>
+	</TEXT-->
+	<!-- advc.004: Now disused (English, German rewritten) -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__BUGSTATSTAB_HOVER</Tag>
 		<English>When checked, the "Statistics" tab shows how many improvements you currently own of each improvement type.</English>
 		<German>Zeigt auf dem Reiter "Statistik" für jeden Typ von Geländeverbesserung an, wie viele Verbesserungen dieses Typs Sie derzeit besitzen.</German>
 		<Italian>Quando è selezionato, mostra la Scheda delle Statistiche nella versione migliorata del BUG Mod</Italian>
 		<Spanish>Muestra mejoras de casillas en la pestaña 'Estadísticas'.</Spanish>
-	</TEXT>
+	</TEXT-->
 	
 	<!-- advc.004: No longer used -->
 	<!--TEXT>
