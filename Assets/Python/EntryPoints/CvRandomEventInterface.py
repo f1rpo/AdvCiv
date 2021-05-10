@@ -1886,7 +1886,7 @@ def getHelpImpactCrater2(argsList):
 	return szHelp
 
 
-# advc.311:
+# <advc.311>
 def numUnitsUprising(playerId):
 	# BtS code (deleted at the call locations):
 	#map = gc.getMap()
@@ -1902,85 +1902,98 @@ def numUnitsUprising(playerId):
 	#	iNumUnits  = 5
 	#else: 
 	#	iNumUnits  = 6
-	r = 2;
-	for i in range(gc.getPlayer(playerId).getCurrentEra() + 1):
-		r += i
-	return r
+
+	#r = 2;
+	#for i in range(gc.getPlayer(playerId).getCurrentEra() + 1):
+	#	r += i
+	#return r
+	# Next attempt (5 in the Medieval era seems one too many after all)
+	return 2 + gc.getPlayer(playerId).getCurrentEra()
+
+# Based (loosely) on BtS code deleted from the five canTriggerThe... functions
+def hasAnyCivTeamTech(techTag):
+	techId = gc.getInfoTypeForString(techTag)
+	if techId < 0:
+		return False
+	for i in range(gc.getMAX_CIV_TEAMS()):
+		t = gc.getTeam(i)
+		if t.isAlive() and t.isHasTech(techId):
+			return True
+	return False
+
+def isUprisingPlot(p, playerId):
+	# Cut from the uprising canTrigger and apply functions (was repeated there 10 times)
+	#return (not p.isOwned() and not p.isWater() and not p.isImpassable() and p.area().getCitiesPerPlayer(playerId) > 0 and p.isAdjacentPlayer(playerId, True))
+	if p.isWater(): # Redundant, but may save time.
+		return False
+	# Let's not take Barbarian territory off limits
+	if p.isOwned() and (not p.isBarbarian() or p.isCity()):
+		return False
+	# As above:
+	if p.isImpassable() or p.area().getCitiesPerPlayer(playerId) <= 0:
+		return False
+	# Additional checks:
+	if p.isUnit() or p.area().isBorderObstacle(gc.getPlayer(playerId).getTeam()):
+		return False
+	valid = False
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			if dx == 0 and dy == 0:
+				continue
+			adj = plotXY(p.getX(), p.getY(), dx, dy)
+			if not adj:
+				continue
+			# Adjacent is too close
+			if adj.isOwned() and not adj.isBarbarian():
+				return False
+			# Two plots away is what I want
+			if adj.isAdjacentPlayer(playerId, True):
+				valid = True
+	return valid
+
+# Based on BtS code deleted from the five canTriggerThe... functions
+def canTriggerUprising(playerId, techReqTag1, techReqTag2, counterUnitClassTag):
+	player = gc.getPlayer(playerId)
+
+	if gc.getGame().isOption(GameOptionTypes.GAMEOPTION_NO_BARBARIANS):
+		return False
+	if (techReqTag1 and not hasAnyCivTeamTech(techReqTag1)) or (techReqTag2 and not hasAnyCivTeamTech(techReqTag2)):
+		return False
+	if counterUnitClassTag:
+		counterClassId = gc.getInfoTypeForString(counterUnitClassTag)
+		if counterClassId < 0:
+			return False
+		counterUnitId = gc.getCivilizationInfo(player.getCivilizationType()).getCivilizationUnits(counterClassId)
+		if counterUnitId < 0:
+			return False
+		canTrain = False
+		(c, iter) = player.firstCity(False)
+		while c:
+			if c.canTrain(counterUnitId, False, False):
+				canTrain = True
+				break
+			(c, iter) = player.nextCity(iter, False)
+		if not canTrain:
+			return False
+	map = gc.getMap()	
+	for i in range(map.numPlots()):
+		if isUprisingPlot(map.plotByIndex(i), playerId):
+			return True
+	return False
+# </advc.311>
 
 
 ######## THE_HUNS ###########
 
 def canTriggerTheHuns(argsList):
-
-	kTriggeredData = argsList[0]
-	player = gc.getPlayer(kTriggeredData.ePlayer)
-	
-#   If Barbarians are disabled in this game, this event will not occur.
-	if gc.getGame().isOption(GameOptionTypes.GAMEOPTION_NO_BARBARIANS):
-		return false
-			
-#   At least one civ on the board must know Horseback Riding.
-	bFoundValid = false
-	iTech = CvUtil.findInfoTypeNum(gc.getTechInfo, gc.getNumTechInfos(), 'TECH_HORSEBACK_RIDING')
-	for iPlayer in range(gc.getMAX_CIV_PLAYERS()):			
-		loopPlayer = gc.getPlayer(iPlayer)
-		if loopPlayer.isAlive():
-			if gc.getTeam(loopPlayer.getTeam()).isHasTech(iTech):
-				bFoundValid = true
-				break
-				
-	if not bFoundValid:
-		return false
-					
-#   At least one civ on the board must know Iron Working.
-	bFoundValid = false
-	iTech = CvUtil.findInfoTypeNum(gc.getTechInfo, gc.getNumTechInfos(), 'TECH_IRON_WORKING')
-	for iPlayer in range(gc.getMAX_CIV_PLAYERS()):			
-		loopPlayer = gc.getPlayer(iPlayer)
-		if loopPlayer.isAlive():
-			if gc.getTeam(loopPlayer.getTeam()).isHasTech(iTech):
-				bFoundValid = true
-				break
-				
-	if not bFoundValid:
-		return false
-
-	# Can we build the counter unit?		
-	iCounterUnitClass = CvUtil.findInfoTypeNum(gc.getUnitClassInfo, gc.getNumUnitClassInfos(), 'UNITCLASS_SPEARMAN')
-	iCounterUnit = gc.getCivilizationInfo(player.getCivilizationType()).getCivilizationUnits(iCounterUnitClass)
-	if iCounterUnit == -1:
-		return false
-
-	(loopCity, iter) = player.firstCity(false)
-	bFound = false
-	while(loopCity):
-		if (loopCity.canTrain(iCounterUnit, false, false)):
-			bFound = true
-			break
-				
-		(loopCity, iter) = player.nextCity(iter, false)
-		
-	if not bFound:
-		return false
-
-#	Find an eligible plot
-	map = gc.getMap()	
-	for i in range(map.numPlots()):
-		plot = map.plotByIndex(i)
-		if (plot.getOwner() == -1 and not plot.isWater() and not plot.isImpassable() and plot.area().getCitiesPerPlayer(kTriggeredData.ePlayer) > 0 and plot.isAdjacentPlayer(kTriggeredData.ePlayer, true)):
-			return true
-
-	return false
-					
+	# advc.311: Moved into new function
+	return canTriggerUprising(argsList[0].ePlayer, 'TECH_HORSEBACK_RIDING', 'TECH_IRON_WORKING', 'UNITCLASS_SPEARMAN')
 
 def getHelpTheHuns1(argsList):
 	iEvent = argsList[0]
 	kTriggeredData = argsList[1]
-	
-	szHelp = localText.getText("TXT_KEY_EVENT_THE_HUNS_HELP_1", ())	
-
+	szHelp = localText.getText("TXT_KEY_EVENT_THE_HUNS_HELP_1", ())
 	return szHelp
-
 
 def applyTheHuns1(argsList):
 	iEvent = argsList[0]
@@ -1990,425 +2003,137 @@ def applyTheHuns1(argsList):
 	listPlots = []
 	map = gc.getMap()	
 	for i in range(map.numPlots()):
-		plot = map.plotByIndex(i)
-		if (plot.getOwner() == -1 and not plot.isWater() and not plot.isImpassable() and plot.area().getCitiesPerPlayer(kTriggeredData.ePlayer) > 0 and plot.isAdjacentPlayer(kTriggeredData.ePlayer, true)):
+		if isUprisingPlot(map.plotByIndex(i), kTriggeredData.ePlayer): # advc.311
 			listPlots.append(i)
-	
 	if 0 == len(listPlots):
 		return
-			
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Hun event location")])
-	# advc.311:
-	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer)
-		
+	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer) # advc.311
 	iUnitType = CvUtil.findInfoTypeNum(gc.getUnitInfo, gc.getNumUnitInfos(), 'UNIT_HORSE_ARCHER')
-
 	barbPlayer = gc.getPlayer(gc.getBARBARIAN_PLAYER())
 	for i in range(iNumUnits):
 		barbPlayer.initUnit(iUnitType, plot.getX(), plot.getY(), UnitAITypes.UNITAI_ATTACK_CITY_LEMMING, DirectionTypes.DIRECTION_SOUTH)
-		
 
 ######## THE_VANDALS ###########
 
 def canTriggerTheVandals(argsList):
-
-	kTriggeredData = argsList[0]
-	player = gc.getPlayer(kTriggeredData.ePlayer)
-	
-#   If Barbarians are disabled in this game, this event will not occur.
-	if gc.getGame().isOption(GameOptionTypes.GAMEOPTION_NO_BARBARIANS):
-		return false
-			
-#   At least one civ on the board must know Metal Casting.
-	bFoundValid = false
-	iTech = CvUtil.findInfoTypeNum(gc.getTechInfo, gc.getNumTechInfos(), 'TECH_METAL_CASTING')
-	for iPlayer in range(gc.getMAX_CIV_PLAYERS()):			
-		loopPlayer = gc.getPlayer(iPlayer)
-		if loopPlayer.isAlive():
-			if gc.getTeam(loopPlayer.getTeam()).isHasTech(iTech):
-				bFoundValid = true
-				break
-				
-	if not bFoundValid:
-		return false
-					
-#   At least one civ on the board must know Iron Working.
-	bFoundValid = false
-	iTech = CvUtil.findInfoTypeNum(gc.getTechInfo, gc.getNumTechInfos(), 'TECH_IRON_WORKING')
-	for iPlayer in range(gc.getMAX_CIV_PLAYERS()):			
-		loopPlayer = gc.getPlayer(iPlayer)
-		if loopPlayer.isAlive():
-			if gc.getTeam(loopPlayer.getTeam()).isHasTech(iTech):
-				bFoundValid = true
-				break
-				
-	if not bFoundValid:
-		return false
-
-	# Can we build the counter unit?		
-	iCounterUnitClass = CvUtil.findInfoTypeNum(gc.getUnitClassInfo, gc.getNumUnitClassInfos(), 'UNITCLASS_AXEMAN')
-	iCounterUnit = gc.getCivilizationInfo(player.getCivilizationType()).getCivilizationUnits(iCounterUnitClass)
-	if iCounterUnit == -1:
-		return false
-
-	(loopCity, iter) = player.firstCity(false)
-	bFound = false
-	while(loopCity):
-		if (loopCity.canTrain(iCounterUnit, false, false)):
-			bFound = true
-			break
-				
-		(loopCity, iter) = player.nextCity(iter, false)
-		
-	if not bFound:
-		return false
-
-#	Find an eligible plot
-	map = gc.getMap()	
-	for i in range(map.numPlots()):
-		plot = map.plotByIndex(i)
-		if (plot.getOwner() == -1 and not plot.isWater() and not plot.isImpassable() and plot.area().getCitiesPerPlayer(kTriggeredData.ePlayer) > 0 and plot.isAdjacentPlayer(kTriggeredData.ePlayer, true)):
-			return true
-
-	return false
-					
+	# advc.311: Moved into new function
+	return canTriggerUprising(argsList[0].ePlayer, 'TECH_METAL_CASTING', 'TECH_IRON_WORKING', 'UNITCLASS_AXEMAN')
 
 def getHelpTheVandals1(argsList):
 	iEvent = argsList[0]
 	kTriggeredData = argsList[1]
-	
-	szHelp = localText.getText("TXT_KEY_EVENT_THE_VANDALS_HELP_1", ())	
-
+	szHelp = localText.getText("TXT_KEY_EVENT_THE_VANDALS_HELP_1", ())
 	return szHelp
-
 
 def applyTheVandals1(argsList):
 	iEvent = argsList[0]
 	kTriggeredData = argsList[1]
 	player = gc.getPlayer(kTriggeredData.ePlayer)
-
 	listPlots = []
 	map = gc.getMap()	
 	for i in range(map.numPlots()):
-		plot = map.plotByIndex(i)
-		if (plot.getOwner() == -1 and not plot.isWater() and not plot.isImpassable() and plot.area().getCitiesPerPlayer(kTriggeredData.ePlayer) > 0 and plot.isAdjacentPlayer(kTriggeredData.ePlayer, true)):
+		if isUprisingPlot(map.plotByIndex(i), kTriggeredData.ePlayer): # advc.311
 			listPlots.append(i)
-	
 	if 0 == len(listPlots):
 		return
-			
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Vandal event location")])
-	# advc.311:
-	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer)
-		
+	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer) # advc.311
 	iUnitType = CvUtil.findInfoTypeNum(gc.getUnitInfo, gc.getNumUnitInfos(), 'UNIT_SWORDSMAN')
-
 	barbPlayer = gc.getPlayer(gc.getBARBARIAN_PLAYER())
 	for i in range(iNumUnits):
 		barbPlayer.initUnit(iUnitType, plot.getX(), plot.getY(), UnitAITypes.UNITAI_ATTACK_CITY_LEMMING, DirectionTypes.DIRECTION_SOUTH)
-		
 
 ######## THE_GOTHS ###########
 
 def canTriggerTheGoths(argsList):
-
-	kTriggeredData = argsList[0]
-	player = gc.getPlayer(kTriggeredData.ePlayer)
-	
-#   If Barbarians are disabled in this game, this event will not occur.
-	if gc.getGame().isOption(GameOptionTypes.GAMEOPTION_NO_BARBARIANS):
-		return false
-			
-#   At least one civ on the board must know Mathematics.
-	bFoundValid = false
-	iTech = CvUtil.findInfoTypeNum(gc.getTechInfo, gc.getNumTechInfos(), 'TECH_MATHEMATICS')
-	for iPlayer in range(gc.getMAX_CIV_PLAYERS()):			
-		loopPlayer = gc.getPlayer(iPlayer)
-		if loopPlayer.isAlive():
-			if gc.getTeam(loopPlayer.getTeam()).isHasTech(iTech):
-				bFoundValid = true
-				break
-				
-	if not bFoundValid:
-		return false
-					
-#   At least one civ on the board must know Iron Working.
-	bFoundValid = false
-	iTech = CvUtil.findInfoTypeNum(gc.getTechInfo, gc.getNumTechInfos(), 'TECH_IRON_WORKING')
-	for iPlayer in range(gc.getMAX_CIV_PLAYERS()):			
-		loopPlayer = gc.getPlayer(iPlayer)
-		if loopPlayer.isAlive():
-			if gc.getTeam(loopPlayer.getTeam()).isHasTech(iTech):
-				bFoundValid = true
-				break
-				
-	if not bFoundValid:
-		return false
-
-	# Can we build the counter unit?		
-	iCounterUnitClass = CvUtil.findInfoTypeNum(gc.getUnitClassInfo, gc.getNumUnitClassInfos(), 'UNITCLASS_CHARIOT')
-	iCounterUnit = gc.getCivilizationInfo(player.getCivilizationType()).getCivilizationUnits(iCounterUnitClass)
-	if iCounterUnit == -1:
-		return false
-
-	(loopCity, iter) = player.firstCity(false)
-	bFound = false
-	while(loopCity):
-		if (loopCity.canTrain(iCounterUnit, false, false)):
-			bFound = true
-			break
-				
-		(loopCity, iter) = player.nextCity(iter, false)
-		
-	if not bFound:
-		return false
-
-#	Find an eligible plot
-	map = gc.getMap()	
-	for i in range(map.numPlots()):
-		plot = map.plotByIndex(i)
-		if (plot.getOwner() == -1 and not plot.isWater() and not plot.isImpassable() and plot.area().getCitiesPerPlayer(kTriggeredData.ePlayer) > 0 and plot.isAdjacentPlayer(kTriggeredData.ePlayer, true)):
-			return true
-
-	return false
-					
+	# advc.311: Moved into new function
+	return canTriggerUprising(argsList[0].ePlayer, 'TECH_MATHEMATICS', 'TECH_IRON_WORKING', 'UNITCLASS_CHARIOT')
 
 def getHelpTheGoths1(argsList):
 	iEvent = argsList[0]
 	kTriggeredData = argsList[1]
-	
-	szHelp = localText.getText("TXT_KEY_EVENT_THE_GOTHS_HELP_1", ())	
-
+	szHelp = localText.getText("TXT_KEY_EVENT_THE_GOTHS_HELP_1", ())
 	return szHelp
-
 
 def applyTheGoths1(argsList):
 	iEvent = argsList[0]
 	kTriggeredData = argsList[1]
 	player = gc.getPlayer(kTriggeredData.ePlayer)
-
 	listPlots = []
 	map = gc.getMap()	
 	for i in range(map.numPlots()):
-		plot = map.plotByIndex(i)
-		if (plot.getOwner() == -1 and not plot.isWater() and not plot.isImpassable() and plot.area().getCitiesPerPlayer(kTriggeredData.ePlayer) > 0 and plot.isAdjacentPlayer(kTriggeredData.ePlayer, true)):
+		if isUprisingPlot(map.plotByIndex(i), kTriggeredData.ePlayer): # advc.311
 			listPlots.append(i)
-	
 	if 0 == len(listPlots):
 		return
-			
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Goth event location")])
-	# advc.311:
-	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer)
-		
+	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer) # advc.311
 	iUnitType = CvUtil.findInfoTypeNum(gc.getUnitInfo, gc.getNumUnitInfos(), 'UNIT_AXEMAN')
-
 	barbPlayer = gc.getPlayer(gc.getBARBARIAN_PLAYER())
 	for i in range(iNumUnits):
 		barbPlayer.initUnit(iUnitType, plot.getX(), plot.getY(), UnitAITypes.UNITAI_ATTACK_CITY_LEMMING, DirectionTypes.DIRECTION_SOUTH)
-		
 
 ######## THE_PHILISTINES ###########
 
 def canTriggerThePhilistines(argsList):
-
-	kTriggeredData = argsList[0]
-	player = gc.getPlayer(kTriggeredData.ePlayer)
-	
-#   If Barbarians are disabled in this game, this event will not occur.
-	if gc.getGame().isOption(GameOptionTypes.GAMEOPTION_NO_BARBARIANS):
-		return false
-			
-#   At least one civ on the board must know Monotheism.
-	bFoundValid = false
-	iTech = CvUtil.findInfoTypeNum(gc.getTechInfo, gc.getNumTechInfos(), 'TECH_MONOTHEISM')
-	for iPlayer in range(gc.getMAX_CIV_PLAYERS()):			
-		loopPlayer = gc.getPlayer(iPlayer)
-		if loopPlayer.isAlive():
-			if gc.getTeam(loopPlayer.getTeam()).isHasTech(iTech):
-				bFoundValid = true
-				break
-				
-	if not bFoundValid:
-		return false
-					
-#   At least one civ on the board must know Bronze Working.
-	bFoundValid = false
-	iTech = CvUtil.findInfoTypeNum(gc.getTechInfo, gc.getNumTechInfos(), 'TECH_BRONZE_WORKING')
-	for iPlayer in range(gc.getMAX_CIV_PLAYERS()):			
-		loopPlayer = gc.getPlayer(iPlayer)
-		if loopPlayer.isAlive():
-			if gc.getTeam(loopPlayer.getTeam()).isHasTech(iTech):
-				bFoundValid = true
-				break
-				
-	if not bFoundValid:
-		return false
-
-	# Can we build the counter unit?		
-	iCounterUnitClass = CvUtil.findInfoTypeNum(gc.getUnitClassInfo, gc.getNumUnitClassInfos(), 'UNITCLASS_AXEMAN')
-	iCounterUnit = gc.getCivilizationInfo(player.getCivilizationType()).getCivilizationUnits(iCounterUnitClass)
-	if iCounterUnit == -1:
-		return false
-
-	(loopCity, iter) = player.firstCity(false)
-	bFound = false
-	while(loopCity):
-		if (loopCity.canTrain(iCounterUnit, false, false)):
-			bFound = true
-			break
-				
-		(loopCity, iter) = player.nextCity(iter, false)
-		
-	if not bFound:
-		return false
-
-#	Find an eligible plot
-	map = gc.getMap()	
-	for i in range(map.numPlots()):
-		plot = map.plotByIndex(i)
-		if (plot.getOwner() == -1 and not plot.isWater() and not plot.isImpassable() and plot.area().getCitiesPerPlayer(kTriggeredData.ePlayer) > 0 and plot.isAdjacentPlayer(kTriggeredData.ePlayer, true)):
-			return true
-
-	return false
-					
+	# advc.311: Moved into new function
+	return canTriggerUprising(argsList[0].ePlayer, 'TECH_MONOTHEISM', 'TECH_BRONZE_WORKING', 'UNITCLASS_AXEMAN')
 
 def getHelpThePhilistines1(argsList):
 	iEvent = argsList[0]
 	kTriggeredData = argsList[1]
-	
-	szHelp = localText.getText("TXT_KEY_EVENT_THE_PHILISTINES_HELP_1", ())	
-
+	szHelp = localText.getText("TXT_KEY_EVENT_THE_PHILISTINES_HELP_1", ())
 	return szHelp
-
 
 def applyThePhilistines1(argsList):
 	iEvent = argsList[0]
 	kTriggeredData = argsList[1]
 	player = gc.getPlayer(kTriggeredData.ePlayer)
-
 	listPlots = []
 	map = gc.getMap()	
 	for i in range(map.numPlots()):
-		plot = map.plotByIndex(i)
-		if (plot.getOwner() == -1 and not plot.isWater() and not plot.isImpassable() and plot.area().getCitiesPerPlayer(kTriggeredData.ePlayer) > 0 and plot.isAdjacentPlayer(kTriggeredData.ePlayer, true)):
+		if isUprisingPlot(map.plotByIndex(i), kTriggeredData.ePlayer): # advc.311
 			listPlots.append(i)
-	
 	if 0 == len(listPlots):
 		return
-			
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Philistine event location")])
-	# advc.311:
-	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer)
-		
+	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer) # advc.311
 	iUnitType = CvUtil.findInfoTypeNum(gc.getUnitInfo, gc.getNumUnitInfos(), 'UNIT_SPEARMAN')
-
 	barbPlayer = gc.getPlayer(gc.getBARBARIAN_PLAYER())
 	for i in range(iNumUnits):
 		barbPlayer.initUnit(iUnitType, plot.getX(), plot.getY(), UnitAITypes.UNITAI_ATTACK_CITY_LEMMING, DirectionTypes.DIRECTION_SOUTH)
-		
 
 ######## THE_VEDIC_ARYANS ###########
 
 def canTriggerTheVedicAryans(argsList):
-
-	kTriggeredData = argsList[0]
-	player = gc.getPlayer(kTriggeredData.ePlayer)
-	
-#   If Barbarians are disabled in this game, this event will not occur.
-	if gc.getGame().isOption(GameOptionTypes.GAMEOPTION_NO_BARBARIANS):
-		return false
-			
-#   At least one civ on the board must know Polytheism.
-
-	bFoundValid = false
-	# advc.311 (from BUFFY 3.19.003): Replace Polytheism with Priesthood
-	iTech = CvUtil.findInfoTypeNum(gc.getTechInfo, gc.getNumTechInfos(), 'TECH_PRIESTHOOD')
-	for iPlayer in range(gc.getMAX_CIV_PLAYERS()):			
-		loopPlayer = gc.getPlayer(iPlayer)
-		if loopPlayer.isAlive():
-			if gc.getTeam(loopPlayer.getTeam()).isHasTech(iTech):
-				bFoundValid = true
-				break
-				
-	if not bFoundValid:
-		return false
-					
-#   At least one civ on the board must know Archery.
-	bFoundValid = false
-	iTech = CvUtil.findInfoTypeNum(gc.getTechInfo, gc.getNumTechInfos(), 'TECH_ARCHERY')
-	for iPlayer in range(gc.getMAX_CIV_PLAYERS()):			
-		loopPlayer = gc.getPlayer(iPlayer)
-		if loopPlayer.isAlive():
-			if gc.getTeam(loopPlayer.getTeam()).isHasTech(iTech):
-				bFoundValid = true
-				break
-				
-	if not bFoundValid:
-		return false
-
-	# Can we build the counter unit?		
-	iCounterUnitClass = CvUtil.findInfoTypeNum(gc.getUnitClassInfo, gc.getNumUnitClassInfos(), 'UNITCLASS_ARCHER')
-	iCounterUnit = gc.getCivilizationInfo(player.getCivilizationType()).getCivilizationUnits(iCounterUnitClass)
-	if iCounterUnit == -1:
-		return false
-
-	(loopCity, iter) = player.firstCity(false)
-	bFound = false
-	while(loopCity):
-		if (loopCity.canTrain(iCounterUnit, false, false)):
-			bFound = true
-			break
-				
-		(loopCity, iter) = player.nextCity(iter, false)
-		
-	if not bFound:
-		return false
-
-#	Find an eligible plot
-	map = gc.getMap()	
-	for i in range(map.numPlots()):
-		plot = map.plotByIndex(i)
-		if (plot.getOwner() == -1 and not plot.isWater() and not plot.isImpassable() and plot.area().getCitiesPerPlayer(kTriggeredData.ePlayer) > 0 and plot.isAdjacentPlayer(kTriggeredData.ePlayer, true)):
-			return true
-
-	return false
-					
+	# advc.311: Moved into new function; replace Polytheism with Priesthood (from BUFFY 3.19.003).
+	return canTriggerUprising(argsList[0].ePlayer, 'TECH_PRIESTHOOD', 'TECH_ARCHERY', 'UNITCLASS_ARCHER')
 
 def getHelpTheVedicAryans1(argsList):
 	iEvent = argsList[0]
 	kTriggeredData = argsList[1]
-	
-	szHelp = localText.getText("TXT_KEY_EVENT_THE_VEDIC_ARYANS_HELP_1", ())	
-
+	szHelp = localText.getText("TXT_KEY_EVENT_THE_VEDIC_ARYANS_HELP_1", ())
 	return szHelp
-
 
 def applyTheVedicAryans1(argsList):
 	iEvent = argsList[0]
 	kTriggeredData = argsList[1]
 	player = gc.getPlayer(kTriggeredData.ePlayer)
-
 	listPlots = []
 	map = gc.getMap()	
 	for i in range(map.numPlots()):
-		plot = map.plotByIndex(i)
-		if (plot.getOwner() == -1 and not plot.isWater() and not plot.isImpassable() and plot.area().getCitiesPerPlayer(kTriggeredData.ePlayer) > 0 and plot.isAdjacentPlayer(kTriggeredData.ePlayer, true)):
+		if isUprisingPlot(map.plotByIndex(i), kTriggeredData.ePlayer): # advc.311
 			listPlots.append(i)
-	
 	if 0 == len(listPlots):
 		return
-			
 	plot = map.plotByIndex(listPlots[gc.getGame().getSorenRandNum(len(listPlots), "Vedic Aryan event location")])
-	# advc.311:
-	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer)
-		
+	iNumUnits = numUnitsUprising(kTriggeredData.ePlayer) # advc.311
 	iUnitType = CvUtil.findInfoTypeNum(gc.getUnitInfo, gc.getNumUnitInfos(), 'UNIT_ARCHER')
-
 	barbPlayer = gc.getPlayer(gc.getBARBARIAN_PLAYER())
 	for i in range(iNumUnits):
 		barbPlayer.initUnit(iUnitType, plot.getX(), plot.getY(), UnitAITypes.UNITAI_ATTACK_CITY_LEMMING, DirectionTypes.DIRECTION_SOUTH)
-		
+
 ######## SECURITY_TAX ###########
 
 def canTriggerSecurityTax(argsList):
