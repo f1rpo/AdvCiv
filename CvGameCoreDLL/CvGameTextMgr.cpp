@@ -5216,14 +5216,19 @@ void CvGameTextMgr::setYieldValueString(CvWStringBuffer &szString,
 	else szString.append(CvWString::format(L"           " ENDCOLR));
 }
 
-void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
+void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity const& kCity)
 {
 	PROFILE_FUNC();
-	CvWString szTempBuffer;
-
-	szString.append(pCity->getName());
+	bool const bPopup = gDLL->UI().isPopupUp(); // advc.186b
+	CvWString szTempBuffer(kCity.getName());
+	// <advc.186b>
+	if (bPopup)
 	{
-		int const iFoodDifference = pCity->foodDifference();
+		szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
+				TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), szTempBuffer.GetCString());
+	} // </advc.186b>
+	szString.append(szTempBuffer);
+	PlayerTypes const eOwner = kCity.getOwner();
 	// <advc.101>
 	if (!BUGOption::isEnabled("MainInterface__RevoltHelp", true))
 	{

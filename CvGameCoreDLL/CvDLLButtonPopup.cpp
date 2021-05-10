@@ -1065,8 +1065,11 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 		m_kUI.popupAddGenericButton(pPopup,
 				gDLL->getText("TXT_KEY_POPUP_EXAMINE_CITY").c_str(),
 				ARTFILEMGR.getInterfaceArtPath("INTERFACE_BUTTONS_CITYSELECTION"),
-				iExamineCityID, WIDGET_GENERAL, -1, -1, true,
-				POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
+				iExamineCityID,
+				//WIDGET_GENERAL, -1, -1,
+				// BULL - Zoom City Details (advc.186b):
+				WIDGET_ZOOM_CITY, GC.getGame().getActivePlayer(), info.getData1(),
+				true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
 	}
 	// Were never read before being reassigned
 	/*UnitTypes eProductionUnit = pCity->getProductionUnit();
