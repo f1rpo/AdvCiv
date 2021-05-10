@@ -36,9 +36,10 @@
 		<German>Zeigt an, in wie vielen Runden eine Stadt einen Bürger verliert, falls ihre Bevölkerung schrumpft</German>
 		<Italian>When checked, shows how many turns until a city will lose population if it is shrinking.</Italian>
 		<Spanish>Muestra cuántos turnos faltan para que una ciudad pierda población.</Spanish>
-	</TEXT>
-	
-	<TEXT>
+	</TEXT-->
+
+	<!-- advc.186: Not making these optional -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__HEALTH_TEXT</Tag>
 		<English>Health</English>
 		<German>Gesundheit</German>
@@ -65,9 +66,10 @@
 		<German>Zeigt die derzeitige Zufriedenheit ([ICON_HAPPY] oder [ICON_UNHAPPY]) einer Stadt an</German>
 		<Italian>Quando è selezionato, mostra la felicità risultante ([ICON_HAPPY] o [ICON_UNHAPPY]) per la città.</Italian>
 		<Spanish>Permite mostrar los iconos de felicidad ([ICON_HAPPY] o [ICON_UNHAPPY]) para la ciudad.</Spanish>
-	</TEXT>
-	
-	<TEXT>
+	</TEXT-->
+
+	<!-- advc.186: Tied to CityScreen__Anger_Counter now -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__HURRYANGER_TEXT</Tag>
 		<English>Hurry Anger</English>
 		<German>Zwangsarbeit</German>
@@ -93,9 +95,9 @@
 		<English>When checked, shows the number of angry population ([ICON_ANGRYPOP]) due to drafting and the number of turns left on the timer.</English>
 		<German>Zeigt die Anzahl der wegen Zwangsrekrutierung unzufriedenen Bürger ([ICON_ANGRYPOP]) und die Anzahl der verbleibenden Runden an, bis diese sich wieder beruhigt haben</German>
 		<Spanish>Muestra la cantidad de población enfadada ([ICON_ANGRYPOP]) debido al reclutamiento y el número de turnos restantes de la misma.</Spanish>
-	</TEXT>
+	</TEXT-->
 
-	<!-- advc.189: Partially merged, non-optional, no intention to merge fully. -->
+	<!-- advc.186, advc.189: Partially merged, non-optional, no intention to merge fully. -->
 	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__FOODASSIST_TEXT</Tag>
 		<English>Growth Detail</English>
@@ -109,7 +111,7 @@
 		<German>Zeigt detailliertere Informationen über das Wachstum einer Stadt an (Zunahme, Abnahme, Hungersnot, Stagnation).</German>
 		<Italian>Quando è selezionato, mostra più dettagli sulla crescita (crescita, decrescita, carestia, stagnazione).</Italian>
 		<Spanish>Si se activa, muestra información detallada sobre el crecimiento (creciendo, reduciéndose, hambruna, detenido).</Spanish>
-	</TEXT-->
+	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__BASEVALUES_TEXT</Tag>
 		<English>Base Values</English>
@@ -137,7 +139,7 @@
 		<German>Zeigt die Grundproduktion (ohne Überschuss, Zwangsarbeit und Waldrodung) zusätzlich zur Produktion der derzeitigen Runde an</German>
 		<Italian>Quando è selezionato, mostra la produzione base (escluse le quote da surplus, sacrifici e abbattimento alberi) come aggiunta alla produzione del turno corrente.</Italian>
 		<Spanish>Muestra la producción base (excluyendo excedentes, sacrificios y tala) además de la producción del turno actual.</Spanish>
-	</TEXT>
+	</TEXT-->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__BUILDINGACTUALEFFECTS_TEXT</Tag>
 		<English>Building Actual Effects</English>
@@ -151,8 +153,9 @@
 		<German>Zeigt die effektiven Erträge von [ICON_COMMERCE], [ICON_HAPPY], [ICON_HEALTHY] und [ICON_GREATPEOPLE] eines Gebäudes an, das gerade errichtet wird</German>
 		<Spanish>Si se activa y una ciudad está construyendo un edificio, se muestran los beneficios reales esperados de [ICON_COMMERCE], [ICON_HAPPY], [ICON_HEALTHY], and [ICON_GREATPEOPLE] que produzca.</Spanish>
 	</TEXT>
-	
-	<TEXT>
+
+	<!-- advc.186: Tied to CityScreen__WhipAssist now -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__HURRYASSIST_TEXT</Tag>
 		<English>City Bar</English>
 		<German>Stadtbalken</German>
@@ -179,9 +182,10 @@
 		<German>Bezieht [ICON_PRODUCTION] einer Stadt aus der aktuellen Runde in die Berechnung des Produktionsüberschusses ([ICON_PRODUCTION] und/oder [ICON_GOLD]) ein, der aus der Produktionsbeschleunigung durch Zwangsarbeit entsteht</German>
 		<Italian>Quando è selezionato, include il turno corrente quando calcola il surplus ([ICON_PRODUCTION] e/o [ICON_GOLD]) per l'accelerazione da sacrifici.</Italian>
 		<Spanish>Si se activa, incluye la producción del turno actual cuando se calcule el excedente ([ICON_PRODUCTION] y/o [ICON_GOLD]) de apresurar construcción mediante sacrificio.</Spanish>
-	</TEXT>
-	
-	<TEXT>
+	</TEXT-->
+
+	<!-- advc.186: Don't need options for this -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__TRADEDETAIL_TEXT</Tag>
 		<English>Trade</English>
 		<German>Handel</German>
@@ -208,9 +212,10 @@
 		<German>Zeigt das gesamte Wirtschaftseinkommen ([ICON_COMMERCE]) vor den einzelnen Einkommensarten ([ICON_GOLD], [ICON_RESEARCH], [ICON_CULTURE] und [ICON_ESPIONAGE]) an</German>
 		<Italian>Quando è selezionato, mostra l'oro totale ([ICON_COMMERCE]) prima dei singoli tipi ([ICON_GOLD], [ICON_RESEARCH], [ICON_CULTURE], e [ICON_ESPIONAGE]).</Italian>
 		<Spanish>Muestra el comercio total ([ICON_COMMERCE]) delante de cada uno de los tipos de comercio individuales  ([ICON_GOLD], [ICON_RESEARCH], [ICON_CULTURE], y [ICON_ESPIONAGE]).</Spanish>
-	</TEXT>
-	
-	<TEXT>
+	</TEXT-->
+
+	<!-- advc.186: Replaced by the options below -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__BUILDINGICONS_TEXT</Tag>
 		<English>Building Icons</English>
 		<German>Gebäude-Symbole</German>
@@ -224,8 +229,55 @@
 		<Italian>Quando è selezionato, la lista degli edifici viene visualizzata con le rispettive icone invece dei nomi.</Italian>
 		<Spanish>Si se activa, se muestra la lista de edificios empleando iconos en lugar de nombres.</Spanish>
 	</TEXT>
-	
 	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYBAR__HIDEINSTRUCTIONS_TEXT</Tag>
+		<English>Hide Instructions</English>
+		<German>Hinweise verbergen</German>
+		<Italian>Nascondi Istruzioni</Italian>
+		<Spanish>Ocultar Instrucciones</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYBAR__HIDEINSTRUCTIONS_HOVER</Tag>
+		<English>When checked, hides the instructions for selecting cities and showing base values to make room for the new information.</English>
+		<German>Verbirgt die Hinweise zur Auswahl von Städten und zur Anzeige der Basiswerte, um Platz für die neuen Informationen zu schaffen</German>
+		<Italian>Quando è selezionato, nasconde le istruzioni per la selezione delle Città e mostra i valori base per fare posto alle nuove informazioni.</Italian>
+		<Spanish>Si se activa, se ocultan las instrucciones para seleccionar ciudades y mostrar valores base para hacer sitio a más información.</Spanish>
+	</TEXT-->
+	<!-- advc.186 -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYBAR__BUILDINGDISPLAY_TEXT</Tag>
+		<English>Building List</English>
+		<German>Gebäude-Liste</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYBAR__BUILDINGDISPLAY_HOVER</Tag>
+		<English>Whether and how to list buildings when hovering over a city bar. Note: Free buildings like the [COLOR_BUILDING_TEXT]Stonehenge Monuments[COLOR_REVERT] are never listed.</English>
+		<German>Wie und ob im Hilfetext von Städte-Balken Gebäude aufgeführt werden sollen. Bemerkung: Gratis-Gebäude wie etwa die [COLOR_BUILDING_TEXT]Stonehenge-Monumente[COLOR_REVERT] werden nicht aufgeführt.</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYBAR__BUILDINGDISPLAY_LIST</Tag>
+		<English>None|Icons|Names</English>
+		<German>Keine|Symbole|Namen</German>
+	</TEXT>
+	<!-- Unused (but might want to use it again).
+		 (Sp., It. translations are partial and based on the BULL texts above.) -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYBAR__SELECTIONHELP_TEXT</Tag>
+		<English>Selection Help</English>
+		<German>Hinweistext</German>
+		<Italian>Istruzioni</Italian>
+		<Spanish>Instrucciones</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYBAR__SELECTIONHELP_HOVER</Tag>
+		<English>When checked, a (BtS) hint about selecting cities through left-click is shown at the end of the city bar hover text.</English>
+		<German>Zeigt als Teil des Hilfetextes zu den Städte-Balken einen (BtS)-Hinweis an, der erklärt, dass Städte per Mausklick ausgewählt werden können.</German>
+		<Italian>Quando è selezionato, mostra le istruzioni per la selezione delle Città.</Italian>
+		<Spanish>Si se activa, mostrar las instrucciones para seleccionar ciudades.</Spanish>
+	</TEXT>
+
+	<!-- advc.186: Don't need options for this -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__CULTURETURNS_TEXT</Tag>
 		<English>Culture Turns</English>
 		<German>Kultur</German>
@@ -252,7 +304,7 @@
 		<German>Zeigt die Anzahl der Runden an, bis eine Stadt eine Große Persönlichkeit ([ICON_GREATPEOPLE]) hervorbringt</German>
 		<Italian>Quando è selezionato, mostra il numero di turni necessario perchè la città generi il successivo Grande Personaggio([ICON_GREATPEOPLE]).</Italian>
 		<Spanish>Si se activa, muestra el número de turnos restantes para que en la ciudad nazca una gran personaje ([ICON_GREATPEOPLE]).</Spanish>
-	</TEXT>
+	</TEXT-->
 	
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__SPECIALISTS_TEXT</Tag>
@@ -283,20 +335,5 @@
 		<Italian>Quando è selezionato, mostra la probabilità che la Città si rivolti a causa della pressione culturale.</Italian>
 		<Spanish>Si se activa, muestra las probabilidades de que tenga lugar una revuelta en la ciudad debido a la presión cultural.</Spanish>
 	</TEXT-->
-	
-	<TEXT>
-		<Tag>TXT_KEY_BUG_OPT_CITYBAR__HIDEINSTRUCTIONS_TEXT</Tag>
-		<English>Hide Instructions</English>
-		<German>Hinweise verbergen</German>
-		<Italian>Nascondi Istruzioni</Italian>
-		<Spanish>Ocultar Instrucciones</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_BUG_OPT_CITYBAR__HIDEINSTRUCTIONS_HOVER</Tag>
-		<English>When checked, hides the instructions for selecting cities and showing base values to make room for the new information.</English>
-		<German>Verbirgt die Hinweise zur Auswahl von Städten und zur Anzeige der Basiswerte, um Platz für die neuen Informationen zu schaffen</German>
-		<Italian>Quando è selezionato, nasconde le istruzioni per la selezione delle Città e mostra i valori base per fare posto alle nuove informazioni.</Italian>
-		<Spanish>Si se activa, se ocultan las instrucciones para seleccionar ciudades y mostrar valores base para hacer sitio a más información.</Spanish>
-	</TEXT>
 
 </Civ4GameText>

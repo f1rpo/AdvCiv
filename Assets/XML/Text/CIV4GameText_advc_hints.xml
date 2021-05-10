@@ -939,4 +939,11 @@
 	<German>(AdvCiv) Wenn in einer Stadt [COLOR_HIGHLIGHT_TEXT]Wachstum vermeiden[COLOR_REVERT] aktiviert ist, erscheint (optional) zur Erinnerung ein Symbol über dem Stadtnamen auf der Hauptkarte. Übrigens: Wenn der KI-Gouverneur beim Vermeiden von Wachstum andere Erträge maximieren soll, muss auch die Bürgerautomatisierung aktiv sein.</German>
 </TEXT>
 
+<!-- advc.186 -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_50</Tag>
+	<English>To change the production order of a city, it suffices to select the city's billboard on the main screen; opening the city screen isn't necessary. Essential city statistics are shown in hover text.</English>
+	<German>Um einer Stadt einen neuen Produktionsauftrag zu erteilen genügt es, den Stadtbalken per Klick auszuwählen; es ist nicht notwendig, den Stadtbildschirm zu öffnen. Der Hilfetext des Stadtbalkens liefert einen Kompakt-Überblick.</German>
+</TEXT>
+
 </Civ4GameText>

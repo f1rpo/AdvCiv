@@ -684,6 +684,9 @@
 			<Description>TXT_KEY_ADVC_HINT_48</Description>
 		</HintInfo>
 		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_50</Description>
+		</HintInfo>
+		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_1</Description>
 		</HintInfo>
 		<HintInfo>
@@ -821,6 +824,9 @@
 		</HintInfo>
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_49</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_50</Description>
 		</HintInfo>
 	</HintInfos>
 </Civ4Hints>

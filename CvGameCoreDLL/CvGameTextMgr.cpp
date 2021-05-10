@@ -5216,6 +5216,7 @@ void CvGameTextMgr::setYieldValueString(CvWStringBuffer &szString,
 	else szString.append(CvWString::format(L"           " ENDCOLR));
 }
 
+
 void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity const& kCity)
 {
 	PROFILE_FUNC();
@@ -5229,6 +5230,64 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity const& kCit
 	} // </advc.186b>
 	szString.append(szTempBuffer);
 	PlayerTypes const eOwner = kCity.getOwner();
+	// <advc.186>
+	// BULL - Health - start
+	//if (BUGOption::isEnabled("CityBar__Health", true))
+	{
+		int iHealth = kCity.goodHealth() - kCity.badHealth();
+		szTempBuffer.Format(L", %d%c", abs(iHealth),
+				gDLL->getSymbolID(iHealth >= 0 ? HEALTHY_CHAR : UNHEALTHY_CHAR));
+		szString.append(szTempBuffer);
+	} // BULL - Health - end
+	// BULL - Happiness - start
+	//if (BUGOption::isEnabled("CityBar__Happiness", true))
+	{
+		if (kCity.isDisorder())
+		{
+			int iAngryPop = kCity.angryPopulation();
+			if (iAngryPop > 0)
+			{
+				szTempBuffer.Format(L", %d%c", iAngryPop,
+						gDLL->getSymbolID(ANGRY_POP_CHAR));
+				szString.append(szTempBuffer);
+			}
+		}
+		else
+		{
+			int iHappy = kCity.happyLevel() - kCity.unhappyLevel();
+			szTempBuffer.Format(L", %d%c", abs(iHappy),
+					gDLL->getSymbolID(iHappy >= 0 ? HAPPY_CHAR : UNHAPPY_CHAR));
+			szString.append(szTempBuffer);
+		}
+	} // BULL - Happiness - end
+	// Based on BULL code ("Hurry Anger Turns")
+	if (eOwner == GC.getGame().getActivePlayer() &&
+		//BUGOption::isEnabled("CityBar__HurryAnger", true))
+		BUGOption::isEnabled("CityScreen__Anger_Counter", true))
+	{
+		int iAngerTimer = std::max(kCity.getHurryAngerTimer(), kCity.getConscriptAngerTimer());
+		// As in CvMainInterface.updateCityScreen
+		iAngerTimer = std::max(iAngerTimer, kCity.getDefyResolutionAngerTimer());
+		if (iAngerTimer > 0)
+		{
+			// No happiness is displayed in disorder
+			bool const bParentheses = !kCity.isDisorder();
+			if (bParentheses)
+				szString.append(L"(");
+			else szString.append(L", ");
+			// (BULL had largely duplicated the CvCity::get...PercentAnger functions)
+			int iPercentAnger = std::max(kCity.getHurryPercentAnger(),
+					kCity.getConscriptPercentAnger());
+			iPercentAnger = std::max(iPercentAnger,
+					kCity.getDefyResolutionPercentAnger());
+			int iAngryPop = (iPercentAnger * kCity.getPopulation()) /
+					GC.getPERCENT_ANGER_DIVISOR();
+			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_ANGER_TIMER",
+					iAngryPop, iAngerTimer));
+			if (bParentheses)
+				szString.append(L")");
+		}
+	} // </advc.186>
 	// <advc.101>
 	if (!BUGOption::isEnabled("MainInterface__RevoltHelp", true))
 	{
@@ -5239,12 +5298,15 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity const& kCit
 			szString.append(NEWLINE);
 			szString.append(szRevoltHelp.getCString());
 		}
-	} // </advc.101>		// advc.002f:
-		bool const bAvoidGrowth = pCity->AI().AI_isEmphasizeAvoidGrowth();
+	} // </advc.101>
+	{
+		int const iFoodDifference = kCity.foodDifference();
+		// advc.002f:
+		bool const bAvoidGrowth = kCity.AI().AI_isEmphasizeAvoidGrowth();
 		if (iFoodDifference == 0) // advc.004: was <=
 		{
 			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_GROWTH",
-					pCity->getFood(), pCity->growthThreshold()));
+					kCity.getFood(), kCity.growthThreshold()));
 		}
 		else
 		{
@@ -5269,106 +5331,332 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity const& kCit
 			szString.append(szTempBuffer);
 		} // </advc.002f>
 	}
-	if (pCity->getProductionNeeded() != MAX_INT)
 	{
-		int iProductionDiffNoFood = pCity->getCurrentProductionDifference(true, true);
-		int iProductionDiffJustFood = (pCity->getCurrentProductionDifference(false, true) -
-				iProductionDiffNoFood);
-		int iTurns = pCity->getProductionTurnsLeft(); // advc.004x
+		int iProductionDiffNoFood = kCity.getCurrentProductionDifference(true,
+				false, true); // advc.186
+		int iProductionDiffJustFood = (kCity.getCurrentProductionDifference(false,
+				false, true) // advc.186
+				- iProductionDiffNoFood);
+		// <advc.186>
+		int iStoredProduction = kCity.getCurrentProductionDifference(
+				true, true, false, true, true); // </advc.186>
+		if (iProductionDiffNoFood + iProductionDiffJustFood + iStoredProduction > 0)
+			szString.append(NEWLINE);
 		if (iProductionDiffJustFood > 0)
-		{	// <advc.004x>
-			if(iTurns == MAX_INT)
-			{
-				szString.append(gDLL->getText("TXT_KEY_CITY_BAR_FOOD_HAMMER_NO_PRODUCTION",
-						iProductionDiffJustFood, iProductionDiffNoFood,
-						pCity->getProductionName(), pCity->getProduction(),
-						pCity->getProductionNeeded()));
-			}
-			else // </advc.004x>
-			{
-				szString.append(gDLL->getText("TXT_KEY_CITY_BAR_FOOD_HAMMER_PRODUCTION",
-						iProductionDiffJustFood, iProductionDiffNoFood,
-						pCity->getProductionName(), pCity->getProduction(),
-						pCity->getProductionNeeded(), iTurns));
-			}
+		{
+			szString.append(gDLL->getText(
+					"TXT_KEY_CITY_BAR_FOOD_PRODUCTION_PER_TURN",
+					iProductionDiffJustFood, iProductionDiffNoFood));
 		}
 		else if (iProductionDiffNoFood > 0)
-		{	// <advc.004x>
-			if(iTurns == MAX_INT)
-			{
-				szString.append(gDLL->getText("TXT_KEY_CITY_BAR_HAMMER_NO_PRODUCTION",
-						iProductionDiffNoFood, pCity->getProductionName(),
-						pCity->getProduction(), pCity->getProductionNeeded()));
-			}
-			else // </advc.004x>
-			{
-				szString.append(gDLL->getText("TXT_KEY_CITY_BAR_HAMMER_PRODUCTION",
-						iProductionDiffNoFood, pCity->getProductionName(),
-						pCity->getProduction(), pCity->getProductionNeeded(),
-						iTurns));
-			}
-		}
-		else
 		{
-			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_PRODUCTION",
-					pCity->getProductionName(), pCity->getProduction(),
-					pCity->getProductionNeeded()));
+			szString.append(gDLL->getText(
+					"TXT_KEY_CITY_BAR_PRODUCTION_PER_TURN",
+					iProductionDiffNoFood));
 		}
+		int const iProductionTurns = kCity.getProductionTurnsLeft();
+		if (iStoredProduction > 0)
+		{
+			if (iProductionTurns != MAX_INT)
+			{
+				szString.append(gDLL->getText(
+						"TXT_KEY_CITY_BAR_ONE_TIME_PRODUCTION",
+						iStoredProduction));
+			}
+			else
+			{
+				if (iProductionDiffNoFood + iProductionDiffJustFood > 0)
+					szString.append(L", ");
+				szString.append(gDLL->getText(
+						"TXT_KEY_CITY_BAR_STORED_PRODUCTION",
+						iStoredProduction));
+			}
+		}
+		if (kCity.getProductionNeeded() != MAX_INT)
+		{
+			// <advc.004x>
+			szString.append(gDLL->getText(
+					"TXT_KEY_CITY_BAR_PRODUCTION", // (NB: starts with a linebreak)
+					kCity.getProductionName(), kCity.getProduction(),
+					kCity.getProductionNeeded()));
+			if (iProductionTurns != MAX_INT) // </advc.004x>
+			{
+				szString.append(gDLL->getText(
+						"TXT_KEY_CITY_BAR_PRODUCTION_TURNS",
+						iProductionTurns));
+			}
+
+		}
+		// <advc.186>
+		else if (!kCity.isDisorder())
+		{
+			CvWString szProcessCommerce;
+			bool bFirst = true;
+			FOR_EACH_ENUM(Commerce)
+			{
+				// Akin to code in SetCommerceHelp
+				int iRate = kCity.getProductionToCommerceModifier(eLoopCommerce) *
+						kCity.getYieldRate(YIELD_PRODUCTION);
+				if (iRate == 0)
+					continue;
+				wchar cIcon = GC.getInfo(eLoopCommerce).getChar();
+				setListHelp(szProcessCommerce, L"", iRate % 100 == 0 ?
+						CvWString::format(L"%d%c", iRate / 100, cIcon) :
+						CvWString::format(L"%.2f%c", iRate / 100.f, cIcon),
+						L", ", bFirst);
+			}
+			if (!szProcessCommerce.empty())
+			{
+				szString.append(NEWLINE);
+				szString.append(gDLL->getText(
+						"TXT_KEY_CITY_BAR_PRODUCTION_PROCESS",
+						szProcessCommerce.c_str()));
+			}
+		} // </advc.186>
 	}
+	// BULL - Hurry Assist - start (advc.186)
+	if (eOwner == GC.getGame().getActivePlayer() &&
+		BUGOption::isEnabled("CityScreen__WhipAssist", true))
+	{
+		bool bFirstHurry = true;
+		FOR_EACH_ENUM(Hurry)
+		{
+			if (!kCity.canHurry(eLoopHurry))
+				continue;
+			CvWString szHurryHelp;
+			bool bFirstDetail = true;
+			int iPopulation = kCity.hurryPopulation(eLoopHurry);
+			if (iPopulation > 0)
+			{
+				szTempBuffer.Format(L"%d%c", -iPopulation,
+						gDLL->getSymbolID(CITIZEN_CHAR));
+				setListHelp(szHurryHelp, L"", szTempBuffer, L", ", bFirstDetail);
+			}
+			int iGold = kCity.hurryGold(eLoopHurry);
+			if (iGold > 0)
+			{
+				szTempBuffer.Format(L"%d%c", -iGold,
+						GC.getInfo(COMMERCE_GOLD).getChar());
+				setListHelp(szHurryHelp, L"", szTempBuffer, L", ", bFirstDetail);
+			}
+			int iOverflowProduction = 0;
+			int iOverflowGold = 0;
+			if (kCity.hurryOverflow(eLoopHurry, &iOverflowProduction, &iOverflowGold,
+				BUGOption::isEnabled("CityScreen__WhipAssistOverflowCountCurrentProduction", false)))
+			{
+				if (iOverflowProduction > 0)
+				{
+					szTempBuffer.Format(L"+%d%c", iOverflowProduction,
+							GC.getInfo(YIELD_PRODUCTION).getChar());
+					setListHelp(szHurryHelp, L"", szTempBuffer, L", ", bFirstDetail);
+				}
+				if (iOverflowGold > 0)
+				{
+					szTempBuffer.Format(L"+%d%c", iOverflowGold,
+							GC.getInfo(COMMERCE_GOLD).getChar());
+					setListHelp(szHurryHelp, L"", szTempBuffer, L", ", bFirstDetail);
+				}
+			}
+			if (!bFirstDetail)
+			{
+				szString.append(NEWLINE);
+				setListHelp(szString, gDLL->getText("TXT_KEY_CITY_BAR_HURRY_HEADING"),
+						szHurryHelp, gDLL->getText("TXT_KEY_OR"), bFirstHurry);
+			}
+		}
+	} // BULL - Hurry Assist - end
+	// BULL - Commerce - start
+	/*	advc.186: Show raw commerce in the trade-routes line;
+		not enough room in the commerce line (due to advc.002b),
+		and also a bit confusing there. */
+	//if (BUGOption::isEnabled("CityBar__Commerce", true)) {
+	int const iCommerceRate = kCity.getYieldRate(YIELD_COMMERCE);
+	if (iCommerceRate != 0)
+	{
+		szString.append(NEWLINE);
+		szTempBuffer.Format(L"%d%c", iCommerceRate,
+				GC.getInfo(YIELD_COMMERCE).getChar());
+		szString.append(szTempBuffer);
+		szString.append(gDLL->getText("TXT_KEY_PER_TURN"));
+	} // BULL - Commerce - end
+	// BULL - Trade Detail - start (advc.186; fractional TR code removed)
+	//if (BUGOption::isEnabled("CityBar__TradeDetail", true))
+	{
+		int iDomesticTrade = 0;
+		int iDomesticRoutes = 0;
+		int iForeignTrade = 0;
+		int iForeignRoutes = 0;
+		kCity.calculateTradeTotals(YIELD_COMMERCE, iDomesticTrade, iDomesticRoutes,
+				iForeignTrade, iForeignRoutes);
+		int const iTotalTrade = iDomesticTrade + iForeignTrade;
+		if (iTotalTrade > 0)
+		{
+			FAssert(iCommerceRate > 0);
+			szString.append(L", ");
+			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_FROM_TR", iTotalTrade));
+			szString.append(L" (");
+			if (iTotalTrade == iDomesticTrade)
+				szString.append(gDLL->getText("TXT_KEY_CITY_BAR_ALL_DOMESTIC"));
+			else if (iTotalTrade == iForeignTrade)
+				szString.append(gDLL->getText("TXT_KEY_CITY_BAR_ALL_FOREIGN"));
+			else szString.append(gDLL->getText("TXT_KEY_CITY_BAR_FOREIGN_TR_COMMERCE", iForeignTrade));
+			szString.append(L")");
+		}
+	} // BULL - Trade Detail - end
 	{
 		bool bFirst = true;
 		FOR_EACH_ENUM(Commerce)
 		{
-			int iRate = pCity->getCommerceRateTimes100(eLoopCommerce);
+			int iRate = kCity.getCommerceRateTimes100(eLoopCommerce);
 			if (iRate != 0)
 			{
-				szTempBuffer.Format(L"%d.%02d %c", iRate/100, iRate%100,
-						GC.getInfo(eLoopCommerce).getChar());
+				wchar const cIcon = GC.getInfo(eLoopCommerce).getChar();
+				/*	<advc.002b> Can probably fit all rates in one line by omitting
+					trailing zeros */
+				if (iRate % 100 == 0)
+					szTempBuffer.Format(L"%d%c", iRate / 100, cIcon);
+				else if (iRate % 10 == 0)
+					szTempBuffer.Format(L"%d.%d%c", iRate / 100, (iRate % 100) / 10, cIcon);
+				// </advc.002b>
+				else szTempBuffer.Format(L"%d.%02d%c", iRate / 100, iRate % 100, cIcon);
 				setListHelp(szString, NEWLINE, szTempBuffer, L", ", bFirst);
 			}
-		}
-		int iRate = pCity->getGreatPeopleRate();
-		if (iRate != 0)
-		{
-			szTempBuffer.Format(L"%d%c", iRate, gDLL->getSymbolID(GREAT_PEOPLE_CHAR));
-			setListHelp(szString, NEWLINE, szTempBuffer, L", ", bFirst);
 		}
 		if (!bFirst)
 			szString.append(gDLL->getText("TXT_KEY_PER_TURN"));
 	}
-	szString.append(NEWLINE);
-	szString.append(gDLL->getText("INTERFACE_CITY_MAINTENANCE"));
+	// advc.186: Culture moved up; and CULTURELEVEL_NONE has id NO_CULTURELEVEL+1
+	if (kCity.getCultureLevel() > NO_CULTURELEVEL + 1)
 	{
-		int iMaintenance = pCity->getMaintenanceTimes100() *
-				(100 + GET_PLAYER(pCity->getOwner()).calculateInflationRate()) / 100; // K-Mod
-		szString.append(CvWString::format(L" -%d.%02d %c",
-				iMaintenance/100, iMaintenance%100,
-				GC.getInfo(COMMERCE_GOLD).getChar()));
-	}
-	{
-		bool bFirst = true;
-		FOR_EACH_ENUM(Building)
+		szString.append(NEWLINE);
+		// advc.186: Don't name the culture level
+		/*szString.append(gDLL->getText("TXT_KEY_CITY_BAR_CULTURE",
+				kCity.getCulture(eOwner), kCity.getCultureThreshold(),
+				GC.getInfo(kCity.getCultureLevel()).getTextKeyWide()));*/
+		// BULL - Culture Turns - start
+		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_CULTURE_NO_LEVEL",
+				kCity.getCulture(eOwner), kCity.getCultureThreshold()));
+		int iCultureRate = kCity.getCommerceRateTimes100(COMMERCE_CULTURE);
+		if (iCultureRate > 0)
 		{
-			if (pCity->getNumRealBuilding(eLoopBuilding) > 0)
+			int iCulture = kCity.getCultureTimes100(eOwner);
+			int iCultureLeft = 100 * kCity.getCultureThreshold() - iCulture;
+			if (iCultureLeft > 0) // (Inspired by Dawn of Civilization mod)
 			{
-				setListHelp(szString, NEWLINE,
-						GC.getInfo(eLoopBuilding).getDescription(), L", ", bFirst);
+				szString.append(L" ");
+				szString.append(gDLL->getText("INTERFACE_CITY_TURNS",
+						intdiv::uceil(iCultureLeft, iCultureRate)));
+			}
+		} // BULL - Culture Turns - end
+	}
+	// <advc.186> Separate line for GP rate
+	{
+		bool bNewlineNeeded = true;
+		int iRate = kCity.getGreatPeopleRate();
+		if (iRate != 0)
+		{
+			szString.append(NEWLINE);
+			bNewlineNeeded = false;
+			szTempBuffer.Format(L"%d%c", iRate, gDLL->getSymbolID(GREAT_PEOPLE_CHAR));
+			szString.append(szTempBuffer);
+			szString.append(gDLL->getText("TXT_KEY_PER_TURN"));
+		}
+		// City specialist (based on BULL)
+		//if (BUGOption::isEnabled("CityBar__Specialists", true))
+		std::vector<SpecialistTypes> aeSpecialists;
+		FOR_EACH_ENUM(Specialist)
+		{
+			for (int i = 0; i < kCity.getSpecialistCount(eLoopSpecialist); i++)
+				aeSpecialists.push_back(eLoopSpecialist);
+		}
+		// Free specialists last
+		FOR_EACH_ENUM(Specialist)
+		{
+			for (int i = 0; i < kCity.getFreeSpecialistCount(eLoopSpecialist); i++)
+			{
+				aeSpecialists.push_back(eLoopSpecialist);
+			}
+		}
+		if (!aeSpecialists.empty())
+		{
+			if (bNewlineNeeded)
+				szString.append(NEWLINE);
+			//bNewlineNeeded = false;
+			bool bFirst = true;
+			for (size_t i = 0; i < aeSpecialists.size(); i++)
+			{	// (was size 24 in BULL)
+				szTempBuffer.Format(L"<img=%S size=20></img>",
+						GC.getInfo(aeSpecialists[i]).getButton());
+				setListHelp(szString, L" ", szTempBuffer, L"", bFirst);
 			}
 		}
 	}
-	if (pCity->getCultureLevel() != NO_CULTURELEVEL)
-	{
-		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_CULTURE",
-				pCity->getCulture(pCity->getOwner()),
-				pCity->getCultureThreshold(),
-				GC.getInfo(pCity->getCultureLevel()).getTextKeyWide()));
-	}
-	if (pCity->getGreatPeopleProgress() > 0)
-	{
+	// Hide when 0 rate and no substantial progress
+	if (kCity.getGreatPeopleRate() > 0 ||
+		kCity.getGreatPeopleProgress() * 25 >
+		GET_PLAYER(eOwner).greatPeopleThreshold())
+	{	// <BtS>
 		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_GREAT_PEOPLE",
-				pCity->getGreatPeopleProgress(),
-				GET_PLAYER(pCity->getOwner()).greatPeopleThreshold(false)));
+				kCity.getGreatPeopleProgress(),
+				GET_PLAYER(eOwner).greatPeopleThreshold(false))); // </BtS>
+		// (based on BULL's "Great Person Turns")
+		int iTurnsLeft = kCity.GPTurnsLeft();
+		if (iTurnsLeft >= 0)
+		{
+			szString.append(L" ");
+			szString.append(gDLL->getText("INTERFACE_CITY_TURNS", iTurnsLeft));
+		}
 	}
+	if (!kCity.isDisorder())// </advc.186>
+	{
+		szString.append(NEWLINE);
+		szString.append(gDLL->getText("INTERFACE_CITY_MAINTENANCE"));
+		int iMaintenance = kCity.getMaintenanceTimes100() *
+				// K-Mod:
+				(100 + GET_PLAYER(kCity.getOwner()).calculateInflationRate()) / 100;
+		szString.append(CvWString::format(L" -%d.%02d%c",
+				iMaintenance / 100, iMaintenance % 100,
+				GC.getInfo(COMMERCE_GOLD).getChar()));
+	}
+	// <advc.186>
+	{
+		enum BuildingDisplayMode { DISPLAY_NONE, DISPLAY_ICONS, DISPLAY_NAMES };
+		BuildingDisplayMode const eMode = (BuildingDisplayMode)BUGOption::getValue(
+				"CityBar__BuildingDisplay", DISPLAY_ICONS);
+		std::vector<std::pair<CvWString,BuildingTypes> > aszeBuildingsByName;
+		if (eMode != DISPLAY_NONE)
+		{
+			CvCivilization const& kCiv = GET_PLAYER(eOwner).getCivilization();
+			for (int i = 0; i < kCiv.getNumBuildings(); i++)
+			{
+				BuildingTypes eBuilding = kCiv.buildingAt(i);
+				if (kCity.getNumRealBuilding(eBuilding) > 0)
+				{
+					aszeBuildingsByName.push_back(std::make_pair(
+						GC.getInfo(eBuilding).getDescription(), eBuilding));
+				}
+			}
+			std::sort(aszeBuildingsByName.begin(), aszeBuildingsByName.end());
+		}
+		bool bFirst = true;
+		for (size_t i = 0; i < aszeBuildingsByName.size(); i++)
+		{
+			if (eMode == DISPLAY_NAMES)
+			{	// <BtS>
+				setListHelp(szString, NEWLINE, aszeBuildingsByName[i].first,
+						L", ", bFirst); // </BtS>
+			}
+			else
+			{
+				FAssert(eMode == DISPLAY_ICONS);
+				// BULL - Building Icons - start (advc: BULL had used size 24)
+				szTempBuffer.Format(L"<img=%S size=32></img>",
+						GC.getBuildingInfo(aszeBuildingsByName[i].second).getButton());
+				setListHelp(szString, NEWLINE, szTempBuffer, L"", bFirst);
+				// BULL - Building Icons - end
+			}
+		}
+	} // </advc.186>
 	{
 		TeamTypes eActiveTeam = GC.getGame().getActiveTeam();
 		int iAirUnits = kCity.getPlot().countNumAirUnits(eActiveTeam);
@@ -5381,11 +5669,18 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity const& kCit
 					iAirUnits, kCity.getAirUnitCapacity(eActiveTeam)));
 		}
 	}
-	szString.append(NEWLINE);
-
-	szString.append(gDLL->getText("TXT_KEY_CITY_BAR_SELECT", pCity->getNameKey()));
-	szString.append(gDLL->getText("TXT_KEY_CITY_BAR_SELECT_CTRL"));
-	szString.append(gDLL->getText("TXT_KEY_CITY_BAR_SELECT_ALT"));
+	/*	<advc.186> Even as a single line, the hint is distracting. An option
+		only makes sense if it's enabled by default. */
+	#if 0
+	if (bPopup || !BUGOption::isEnabled("CityBar__SelectionHelp", false))
+		return; 
+	//szString.append(NEWLINE);
+	szString.append(gDLL->getText("TXT_KEY_CITY_BAR_SELECT", kCity.getNameKey()));
+	// Takes up too much space
+	/*szString.append(gDLL->getText("TXT_KEY_CITY_BAR_SELECT_CTRL"));
+	szString.append(gDLL->getText("TXT_KEY_CITY_BAR_SELECT_ALT"));*/
+	#endif
+	// </advc.186>
 }
 
 /*  advc.101: Similar to code added in CvDLLWidgetData::parseNationalityHelp;

@@ -5779,23 +5779,67 @@
 	</TEXT>
 	
 	<!-- advc.004x: Based on TXT_KEY_CITY_BAR_HAMMER_PRODUCTION and
-		 TXT_KEY_CITY_BAR_FOOD_HAMMER_PRODUCTION in
-		 CIV4GameTextInfos.xml. Removed the production turns in parentheses. -->
+		 TXT_KEY_CITY_BAR_FOOD_HAMMER_PRODUCTION (CIV4GameTextInfos.xml). -->
 	<TEXT>
-		<Tag>TXT_KEY_CITY_BAR_HAMMER_NO_PRODUCTION</Tag>
-		<English>[NEWLINE]%d1 [ICON_PRODUCTION]/Turn[NEWLINE]%s2: %d3/%d4 [ICON_PRODUCTION]</English>
-		<French>[NEWLINE]%d1 [ICON_PRODUCTION]/tour[NEWLINE]%s2 : %d3/%d4 [ICON_PRODUCTION]</French>
-		<German>[NEWLINE]%d1 [ICON_PRODUCTION]/Runde[NEWLINE]%s2: %d3/%d4 [ICON_PRODUCTION]</German>
-		<Italian>[NEWLINE]%d1 [ICON_PRODUCTION]/Turno[NEWLINE]%s2: %d3/%d4 [ICON_PRODUCTION]</Italian>
-		<Spanish>[NEWLINE]%d1 [ICON_PRODUCTION]/turno[NEWLINE]%s2: %d3/%d4 [ICON_PRODUCTION]</Spanish>
+		<Tag>TXT_KEY_CITY_BAR_PRODUCTION_PER_TURN</Tag>
+		<English>%d1[ICON_PRODUCTION]/Turn</English>
+		<French>%d1[ICON_PRODUCTION]/tour</French>
+		<German>%d1[ICON_PRODUCTION]/Runde</German>
+		<Italian>%d1[ICON_PRODUCTION]/Turno</Italian>
+		<Spanish>%d1[ICON_PRODUCTION]/turno</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>TXT_KEY_CITY_BAR_FOOD_HAMMER_NO_PRODUCTION</Tag>
-		<English>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/Turn[NEWLINE]%s3: %d4/%d5 [ICON_PRODUCTION]</English>
-		<French>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/tour[NEWLINE]%s3 : %d4/%d5 [ICON_PRODUCTION]</French>
-		<German>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/Runde[NEWLINE]%s3: %d4/%d5 [ICON_PRODUCTION]</German>
-		<Italian>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/Turno[NEWLINE]%s3: %d4/%d5 [ICON_PRODUCTION]</Italian>
-		<Spanish>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/turno[NEWLINE]%s3: %d4/%d5 [ICON_PRODUCTION]</Spanish>
+		<Tag>TXT_KEY_CITY_BAR_FOOD_PRODUCTION_PER_TURN</Tag>
+		<English>%d1[ICON_FOOD] + %d2[ICON_PRODUCTION]/Turn</English>
+		<French>%d1[ICON_FOOD] + %d2[ICON_PRODUCTION]/tour</French>
+		<German>%d1[ICON_FOOD] + %d2[ICON_PRODUCTION]/Runde</German>
+		<Italian>%d1[ICON_FOOD] + %d2[ICON_PRODUCTION]/Turno</Italian>
+		<Spanish>%d1[ICON_FOOD] + %d2[ICON_PRODUCTION]/turno</Spanish>
+	</TEXT>
+	<!-- Cut from TXT_KEY_CITY_BAR_HAMMER_PRODUCTION -->
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_PRODUCTION_TURNS</Tag>
+		<English>[SPACE](%d1 [NUM1:Turn:Turns])</English>
+		<French>[SPACE](%d1 [NUM1:tour:tours])</French>
+		<German>[SPACE](%d1 [NUM1:Runde:Runden])</German>
+		<Italian>[SPACE](%d1 [NUM1:turno:turni])</Italian>
+		<Spanish>[SPACE](%d1 [NUM1:turno:turnos])</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_ONE_TIME_PRODUCTION</Tag>
+		<English>[SPACE]+ %d1[ICON_PRODUCTION] this Turn</English>
+		<French>[SPACE]+ %d1[ICON_PRODUCTION] ce tour</French>
+		<German>[SPACE]+ %d1[ICON_PRODUCTION] diese Runde</German>
+		<Italian>[SPACE]+ %d1[ICON_PRODUCTION] questo turno</Italian>
+		<Spanish>[SPACE]+ %d1[ICON_PRODUCTION] este turno</Spanish>
+	</TEXT>
+	<!-- "This turn" won't work when maintaining a production process.
+		 Don't want to coin a new game term, but e.g. "waiting"
+		 isn't clear enough. -->
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_STORED_PRODUCTION</Tag>
+		<English>%d1[ICON_PRODUCTION] Stored</English>
+		<French>%d1[ICON_PRODUCTION] récupérable</French>
+		<German>%d1[ICON_PRODUCTION] abrufbar</German>
+		<Italian>%d1[ICON_PRODUCTION] conservato</Italian>
+		<Spanish>%d1[ICON_PRODUCTION] almacenado</Spanish>
+	</TEXT>
+	<!-- advc.186 -->
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_HAMMER_PROCESS</Tag>
+		<English>[NEWLINE]%d1[ICON_PRODUCTION]/Turn[NEWLINE]Converting to %s2/Turn</English>
+		<French>[NEWLINE]%d1[ICON_PRODUCTION]/tour[NEWLINE]Transformé en %s2/tour</French>
+		<German>[NEWLINE]%d1[ICON_PRODUCTION]/Runde[NEWLINE]Umgewandelt zu %s2/Runde</German>
+		<Italian>[NEWLINE]%d1[ICON_PRODUCTION]/Turno[NEWLINE]Trasformato in %s2/Turno</Italian>
+		<Spanish>[NEWLINE]%d1[ICON_PRODUCTION]/turno[NEWLINE]Convertido en %s2/turno</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_PRODUCTION_PROCESS</Tag>
+		<English>Converting to %s1/Turn</English>
+		<French>Transformé en %s1/tour</French>
+		<German>Umgewandelt zu %s1/Runde</German>
+		<Italian>Trasformato in %s1/Turno</Italian>
+		<Spanish>Convertido en %s1/turno</Spanish>
 	</TEXT>
 
 	<!-- advc.251 -->
@@ -6676,6 +6720,15 @@
 		<Italian>non cumulativo con altre [ICON_RELIGION]</Italian>
 		<Spanish>no se acumula con otras [ICON_RELIGION]</Spanish>
 	</TEXT>
+	<!-- advc.186 -->
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_ANGER_TIMER</Tag>
+		<English>-%d1[ICON_UNHAPPY] in %d2 [NUM2:Turn:Turns]</English>
+		<French>-%d1[ICON_UNHAPPY] pour %d2 %d1 [NUM2:tour:tours]</French>
+		<German>-%d1[ICON_UNHAPPY] dans %d2 [NUM2:Runde:Runden]</German>
+		<Italian>-%d1[ICON_UNHAPPY] tra %d2 [NUM2:turno:turni]</Italian>
+		<Spanish>-%d1[ICON_UNHAPPY] en %d2 [NUM2:turno:turnos]</Spanish>
+	</TEXT>
 	<!-- advc.188: From CIV4GameTextInfos.xml. Add remaining duration to make
 		 the anger countdown (BUG option) easier to understand. -->
 	<TEXT>
@@ -6703,7 +6756,58 @@
 		<Italian>+%d1_Change[ICON_UNHAPPY]: "Il mondo ti considera un malvagio!" (%d2 [NUM2:turno:turni])</Italian>
 		<Spanish>+%d1_Change [ICON_UNHAPPY]: "&#161;El mundo os considera un ser vil!" (%d2 [NUM2:turno:turnos])</Spanish>
 	</TEXT>
-
+	<!-- advc.186 -->
+	<!-- Based on TXT_KEY_MISC_HURRY_PROD (Civ4GameTextInfos.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_HURRY_HEADING</Tag>
+		<English>Hurry:[SPACE]</English>
+		<French>Acc&#233;l&#233;rer :[SPACE]</French>
+		<German>Beschleunigen: [SPACE]</German>
+		<Italian>Accelera: [SPACE]</Italian>
+		<Spanish>Acelerar: [SPACE]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_FROM_TR</Tag>
+		<English>%d1[ICON_COMMERCE] from [ICON_TRADE]</English>
+		<French>%d1[ICON_COMMERCE] par [ICON_TRADE]</French>
+		<German>%d1[ICON_COMMERCE] durch [ICON_TRADE]</German>
+		<Italian>%d1[ICON_COMMERCE] dalle [ICON_TRADE]</Italian>
+		<Spanish>%d1[ICON_COMMERCE] por [ICON_TRADE]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_ALL_DOMESTIC</Tag>
+		<English>all domestic</English>
+		<French>toutes domestiques</French>
+		<German>alle inländisch</German>
+		<Italian>tutte domestiche</Italian>
+		<Spanish>todas domésticas</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_ALL_FOREIGN</Tag>
+		<English>all foreign</English>
+		<French>toutes étrangères</French>
+		<German>alle ausländisch</German>
+		<Italian>tutte estere</Italian>
+		<Spanish>todas extranjeras</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_FOREIGN_TR_COMMERCE</Tag>
+		<English>foreign: %d1[ICON_COMMERCE]</English>
+		<French>&#233;trang&#232;res : %d1[ICON_COMMERCE]</French>
+		<German>Außenhandel: %d1[ICON_COMMERCE]</German>
+		<Italian>estere: %d1[ICON_COMMERCE]</Italian>
+		<Spanish>extranjeras : %d1[ICON_COMMERCE]</Spanish>
+	</TEXT>
+	<!-- From CIV4GameTextInfos.xml. NEWLINE removed.
+		 (Key unused now, but might want to use it again.) -->
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_CULTURE</Tag>
+		<English>[ICON_CULTURE]: %d1/%d2 (%s3)</English>
+		<French>[ICON_CULTURE] : %d1/%d2 (%s3)</French>
+		<German>[ICON_CULTURE]: %d1/%d2 (%s3)</German>
+		<Italian>[ICON_CULTURE]: %d1/%d2 (%s3)</Italian>
+		<Spanish>[ICON_CULTURE]: %d1/%d2 (%s3)</Spanish>
+	</TEXT>
 	<!-- advc.187: From CIV4GameText_BTS.xml. Use BULL's airport icon
 		 (which AdvCiv adds to GameFont_75.tga for this purpose). -->
 	<TEXT>

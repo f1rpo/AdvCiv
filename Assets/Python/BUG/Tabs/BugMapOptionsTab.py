@@ -77,6 +77,12 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		#self.addCheckbox(screen, centerR, "MainInterface__NoBadHealthIcon")
 		# </advc.002f>
 		self.addCheckbox(screen, centerL, "MainInterface__RevoltChanceIcon") # advc.101
+		# <advc.186>
+		# Moved from City Screen tab. But let's disable it entirely.
+		#self.addCheckbox(screen, centerR, "CityBar__SelectionHelp")
+		self.addSpacer(screen, centerR, "SelectionHelp")
+		self.addTextDropdown(screen, centerL, centerR, "CityBar__BuildingDisplay")
+		# </advc.186>
 		self.addLabel(screen, right, "Camera", "Camera:") # advc.004m
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView")
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView_Remember", True)

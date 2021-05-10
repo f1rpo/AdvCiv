@@ -510,13 +510,12 @@
 		<Spanish>Barra de Producción</Spanish>
 	</TEXT>
 	
-	<!-- advc.064: Moved from 'BUG City Screen Options.xml'
-		 and made some changes. [ICON_CITIZEN] apparently can't be used in
-		 help text. -->
+	<!-- advc.064: Moved from 'BUG City Screen Options.xml' and made some changes.
+		 advc.186: Also affects city bars now. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYSCREEN__WHIPASSIST_HOVER</Tag>
-		<English>When checked, the production bar shows the [ICON_CITIZEN] or [ICON_GOLD] cost and [ICON_PRODUCTION]/[ICON_GOLD] overflow caused by hurrying the city's current production order.</English>
-		<German>Zeigt im Produktionsbalken die [ICON_CITIZEN]- oder [ICON_GOLD]-Kosten und den [ICON_PRODUCTION]/[ICON_GOLD]-Überschuss, die eine Beschleunigung des derzeitigen Produktionsauftrags verursachen würde.</German>
+		<English>When checked, the production bar shows the [ICON_CITIZEN] or [ICON_GOLD] cost and [ICON_PRODUCTION]/[ICON_GOLD] overflow caused by hurrying the city's current production order. Additionally, this information gets shown when hovering over the city bar on the main screen.</English>
+		<German>Zeigt im Produktionsbalken die [ICON_CITIZEN]- oder [ICON_GOLD]-Kosten und den [ICON_PRODUCTION]/[ICON_GOLD]-Überschuss, die eine Beschleunigung des derzeitigen Produktionsauftrags verursachen würde. Zeigt dieselben Informationen außerdem im Hilfetext des Stadtbalkens auf dem Hauptbilschirm an.</German>
 		<Italian>Quando è selezionato, la Barra della Pruduzione della Schermata Cittadina mostra il costo in popolazione ed il surplus di produzione per l'accelerazione di produzione mediante sacrifici e il costo in oro per l'accelerazione di produzione mediante pagamenti relativi all'oggetto attualmente costruito.</Italian>
 		<Spanish>Si se activa, muestra el coste en población y el excedente de [ICON_PRODUCTION]/[ICON_GOLD] por usar sacrificios y/o el coste en [ICON_GOLD] por comprar la producción mostrada en la barra de producción.</Spanish>
 	</TEXT>

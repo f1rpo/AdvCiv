@@ -4,6 +4,7 @@
 	by EmperorFool
 	
 	Copyright (c) 2009 The BUG Mod.
+	advc: Don't require dll=1
 -->
 <mod id="CityBar" 
 	 name="BULL City Bar" 
@@ -11,7 +12,7 @@
 	 version="1.0" 
 	 date="04/20/2009"
 	 url="http://forums.civfanatics.com/showthread.php?t=307951"
-	 dll="1">
+	 dll="0">
 	 
 	<options id="CityBar" file="BUG City Bar.ini">
 		
@@ -53,9 +54,6 @@
 			<option id="Commerce" key="Commerce" 
 					type="boolean" default="False"/>
 					
-			<option id="BuildingIcons" key="BuildingIcons" 
-					type="boolean" default="False"/>
-					
 			<option id="CultureTurns" key="Culture Turns" 
 					type="boolean" default="False"/>
 			<option id="GreatPersonTurns" key="Great Person Turns" 
@@ -65,8 +63,23 @@
 					type="boolean" default="False"/>
 			<option id="RevoltChance" key="Revolt Chance" 
 					type="boolean" default="False"/>
-					
+
+			<option id="BuildingIcons" key="BuildingIcons" 
+					type="boolean" default="False"/>
 			<option id="HideInstructions" key="Hide Instructions" 
+					type="boolean" default="True"/>
+
+			<!-- advc.186 (Note that AdvCiv uses none of the options above.)
+				 The order of the choices needs to correspond to the order
+				 assumed in the DLL. -->
+			<list   id="BuildingDisplay" key="Building Display" 
+					type="int" default="1" listType="string" 
+					values="None|Icons|Names">
+				<choice id="None"/>
+				<choice id="Icons"/>
+				<choice id="Names"/>
+			</list>
+			<option id="SelectionHelp" key="Selection Help" 
 					type="boolean" default="True"/>
 		</section>
 	</options>

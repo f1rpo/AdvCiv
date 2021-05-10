@@ -7,14 +7,6 @@
 <Civ4GameText xmlns="http://www.firaxis.com">
 
 <!-- City Bar Hover -->
-
-	<TEXT>
-		<Tag>TXT_KEY_CITY_BAR_CTRL_BASE_VALUES</Tag>
-		<English>[NEWLINE]Hold &lt;CTRL&gt; to see base values.</English>
-		<German>[NEWLINE][BOLD]&lt;STRG&gt;[\BOLD] drücken, um die Basiswerte zu sehen</German>
-		<Italian>[NEWLINE]Tieni premuto &lt;CTRL&gt; per visualizzare i valori base.</Italian>
-		<Spanish>[NEWLINE]Pulsa &lt;CTRL&gt; para ver los valores base.</Spanish>
-	</TEXT>
 	
 	<!-- Food Assist -->
 	<!-- advc.189: Handled through (less verbose) text in Civ4GameText_advc.xml -->
@@ -53,6 +45,13 @@
 	
 	<!-- Base Production -->
 	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_CTRL_BASE_VALUES</Tag>
+		<English>[NEWLINE]Hold &lt;CTRL&gt; to see base values.</English>
+		<German>[NEWLINE][BOLD]&lt;STRG&gt;[\BOLD] drücken, um die Basiswerte zu sehen</German>
+		<Italian>[NEWLINE]Tieni premuto &lt;CTRL&gt; per visualizzare i valori base.</Italian>
+		<Spanish>[NEWLINE]Pulsa &lt;CTRL&gt; para ver los valores base.</Spanish>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_CITY_BAR_HAMMER_PRODUCTION_WITH_BASE</Tag>
 		<English>[NEWLINE]%d1 [ICON_PRODUCTION]/Turn (%d6 [ICON_PRODUCTION]/Turn)[NEWLINE]%s2: %d3/%d4 [ICON_PRODUCTION] (%d5 [NUM5:Turn:Turns])</English>
 		<French>[NEWLINE]%d1 [ICON_PRODUCTION]/tour (%d6 [ICON_PRODUCTION]/tour)[NEWLINE]%s2 : %d3/%d4 [ICON_PRODUCTION] (%d5 [NUM5:tour:tours])</French>
@@ -85,14 +84,14 @@
 		<Spanish>[NEWLINE]%d1 [ICON_PRODUCTION] (%d2 [ICON_PRODUCTION]/turno)</Spanish>
 	</TEXT>
 	
-	<!-- Culture Turns -->
+	<!-- Culture Turns --> <!-- advc.186: NEWLINE removed -->
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BAR_CULTURE_NO_LEVEL</Tag>
-		<English>[NEWLINE][ICON_CULTURE]: %d1/%d2</English>
-		<French>[NEWLINE][ICON_CULTURE] : %d1/%d2</French>
-		<German>[NEWLINE][ICON_CULTURE]: %d1/%d2</German>
-		<Italian>[NEWLINE][ICON_CULTURE]: %d1/%d2</Italian>
-		<Spanish>[NEWLINE][ICON_CULTURE]: %d1/%d2</Spanish>
+		<English>[ICON_CULTURE]: %d1/%d2</English>
+		<French>[ICON_CULTURE] : %d1/%d2</French>
+		<German>[ICON_CULTURE]: %d1/%d2</German>
+		<Italian>[ICON_CULTURE]: %d1/%d2</Italian>
+		<Spanish>[ICON_CULTURE]: %d1/%d2</Spanish>
 	</TEXT>
 	
 <!-- Finance Advisor -->
