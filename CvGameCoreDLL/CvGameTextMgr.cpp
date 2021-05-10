@@ -2757,8 +2757,8 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_ODDS_VS",
 				szOffenseOdds.GetCString(), szDefenseOdds.GetCString()));
 		/*	<advc.048> BtS code replaced with functions shared with ACO.
-			Also: how the generic modifier of the attacker upfront,
-			then the name of the defending unit, then the rest of the modifier
+			Also: show the generic modifier of the attacker upfront,
+			then the name of the defending unit, then the rest of the modifiers
 			-- like ACO does it too. */
 		appendCombatModifiers(szString, *pPlot, *pAttacker, *pDefender,
 				true, false, true);
