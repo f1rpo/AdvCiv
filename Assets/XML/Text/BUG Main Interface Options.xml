@@ -890,6 +890,17 @@
 		<English>If checked, help text about revolts is shown when hovering over city tiles; otherwise, it's shown when hovering over city bars.</English>
 		<German>Zeigt Hilfetext zu Revolten an, wenn der Mauszeiger auf ein Stadtfeld bewegt wird. Ist diese Option deaktiviert, informiert stattdessen der Hilfetext zum Stadt-Balken über Revolten.</German>
 	</TEXT>
+	<!-- advc.187 -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__AIRCAPACITY_TEXT</Tag>
+		<English>Air Unit Capacity on Tile</English>
+		<German>Kapazität für Lufteinheiten</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__AIRCAPACITY_HOVER</Tag>
+		<English>If checked, the air unit capacity is shown when hovering over a (city or fort) tile with a friendly air unit; otherwise, the air unit capacity is shown (only for proper cities) when hovering over a city bar.</English>
+		<German>Zeigt die Kapazität für Lufteinheiten an, wenn der Mauszeiger auf ein (Stadt- oder Festungs-) Feld bewegt wird, auf dem sich freundliche Lufteinheiten befinden. Ist diese Option deaktiviert, wird die Kapazität stattdessen im Hilfetext zum Stadt-Balken (also nur für Stadtfelder) angegeben.</German>
+	</TEXT>
 
 	<!-- advc.095 -->
 	<TEXT>

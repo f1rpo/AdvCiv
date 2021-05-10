@@ -6704,4 +6704,15 @@
 		<Spanish>+%d1_Change [ICON_UNHAPPY]: "&#161;El mundo os considera un ser vil!" (%d2 [NUM2:turno:turnos])</Spanish>
 	</TEXT>
 
+	<!-- advc.187: From CIV4GameText_BTS.xml. Use BULL's airport icon
+		 (which AdvCiv adds to GameFont_75.tga for this purpose). -->
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_AIR_UNIT_CAPACITY</Tag>
+		<English>[ICON_AIRPORT] Capacity %d1/%d2</English>
+		<French>Capacit&#233; [ICON_AIRPORT] %d1/%d2</French>
+		<German>[ICON_AIRPORT]-Kapazit&#228;t %d1/%d2</German>
+		<Italian>Spazio di [ICON_AIRPORT]: %d1/%d2</Italian>
+		<Spanish>Capacidad de [ICON_AIRPORT]: %d1/%d2</Spanish>
+	</TEXT>
+
 </Civ4GameText>

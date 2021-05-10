@@ -2898,7 +2898,18 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 	TeamTypes const eActiveTeam = kGame.getActiveTeam();
 	PlayerTypes const eActivePlayer = kGame.getActivePlayer();
 	CvWString szTempBuffer;
-
+	// <advc.187>
+	if (kPlot.isActiveVisible(false))
+	{
+		int iAirUnits = kPlot.countNumAirUnits(eActiveTeam);
+		if (gDLL->UI().getInterfaceMode() == INTERFACEMODE_REBASE ||
+			(iAirUnits > 0 && BUGOption::isEnabled("MainInterface__AirCapacity", true)))
+		{
+			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_AIR_UNIT_CAPACITY",
+					iAirUnits, kPlot.airUnitSpaceAvailable(eActiveTeam) + iAirUnits));
+			szString.append(NEWLINE);
+		}
+	} // </advc.187>
 	PlayerTypes const eRevealedOwner = kPlot.getRevealedOwner(eActiveTeam, true);
 	if (eRevealedOwner != NO_PLAYER ||
 		// advc.099f:
@@ -5354,13 +5365,15 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 				GET_PLAYER(pCity->getOwner()).greatPeopleThreshold(false)));
 	}
 	{
-		TeamTypes const eActiveTeam = GC.getGame().getActiveTeam();
-		int const iUnits = pCity->getPlot().countNumAirUnits(eActiveTeam);
-		if (iUnits > 0 && pCity->getAirUnitCapacity(eActiveTeam) > 0)
+		TeamTypes eActiveTeam = GC.getGame().getActiveTeam();
+		int iAirUnits = kCity.getPlot().countNumAirUnits(eActiveTeam);
+		if (iAirUnits > 0 &&
+			// advc.187: Now shown in plot help by default
+			!BUGOption::isEnabled("MainInterface__AirCapacity", true))
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_AIR_UNIT_CAPACITY",
-					iUnits, pCity->getAirUnitCapacity(eActiveTeam)));
+					iAirUnits, kCity.getAirUnitCapacity(eActiveTeam)));
 		}
 	}
 	szString.append(NEWLINE);
@@ -19766,8 +19779,9 @@ void CvGameTextMgr::getRebasePlotHelp(CvPlot const& kPlot,
 	bool const bFull = (iUnits >= pCity->getAirUnitCapacity(eActiveTeam));
 	if (bFull)
 		szHelp += CvWString::format(SETCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"));
-	szHelp +=  NEWLINE + gDLL->getText("TXT_KEY_CITY_BAR_AIR_UNIT_CAPACITY",
-			iUnits, pCity->getAirUnitCapacity(eActiveTeam));
+	// advc.187: Handled by setPlotHelp now
+	/*szHelp += NEWLINE + gDLL->getText("TXT_KEY_CITY_BAR_AIR_UNIT_CAPACITY",
+			iUnits, pCity->getAirUnitCapacity(eActiveTeam));*/
 	if (bFull)
 		szHelp += ENDCOLR;
 	szHelp += NEWLINE;

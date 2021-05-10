@@ -56,6 +56,7 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		#self.addCheckbox(screen, center, "MiscHover__LatLongCoords")
 		#self.addCheckbox(screen, center, "MiscHover__PartialBuilds")
 		self.addCheckbox(screen, center, "MainInterface__RevoltHelp") # advc.101
+		self.addCheckbox(screen, center, "MainInterface__AirCapacity") # advc.187
 		self.addSpacer(screen, center, "SpacerCenter1") # advc.004
 		# <advc.002f>
 		self.addLabel(screen, center, "CityIcons", "City Billboards:")

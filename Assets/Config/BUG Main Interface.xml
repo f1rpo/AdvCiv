@@ -192,6 +192,9 @@
 			<!-- advc.101 -->
 			<option id="RevoltHelp" key="Revolt Help" 
 					type="boolean" default="True"/>
+			<!-- advc.187 -->
+			<option id="AirCapacity" key="Air Capacity" 
+					type="boolean" default="True"/>
 
 			<!-- Build/Action Icon Size by EmperorFool -->
 			<list   id="BuildIconSize" key="Build Icon Size" 
