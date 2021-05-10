@@ -1353,9 +1353,11 @@
 			<iTilesPer>0</iTilesPer>
 			<iMinLandPercent>0</iMinLandPercent>
 			<iUnique>0</iUnique>
-			<iGroupRange>1</iGroupRange>
+			<!-- advc.129: Was 1. Note that the "precious" bonus class has a
+				 unique range of 1. -->
+			<iGroupRange>2</iGroupRange>
 			<!-- advc.129: was 25 -->
-			<iGroupRand>17</iGroupRand>
+			<iGroupRand>12</iGroupRand>
 			<!-- advc.129: was 1 -->
 			<bArea>0</bArea>
 			<bHills>1</bHills>
@@ -1410,9 +1412,11 @@
 			<iTilesPer>0</iTilesPer>
 			<iMinLandPercent>0</iMinLandPercent>
 			<iUnique>0</iUnique>
-			<iGroupRange>1</iGroupRange>
+			<!-- advc.129: Was 1. Note that the "precious" bonus class has a
+				 unique range of 1. -->
+			<iGroupRange>2</iGroupRange>
 			<!-- advc.129: was 25 -->
-			<iGroupRand>17</iGroupRand>
+			<iGroupRand>10</iGroupRand>
 			<!-- advc.129: was 1 -->
 			<bArea>0</bArea>
 			<bHills>1</bHills>
@@ -1520,9 +1524,10 @@
 			<iTilesPer>0</iTilesPer>
 			<iMinLandPercent>0</iMinLandPercent>
 			<iUnique>0</iUnique>
-			<iGroupRange>1</iGroupRange>
+			<!-- advc.129: was 1 -->
+			<iGroupRange>2</iGroupRange>
 			<!-- advc.129: was 50 -->
-			<iGroupRand>36</iGroupRand>
+			<iGroupRand>17</iGroupRand>
 			<bArea>1</bArea>
 			<bHills>0</bHills>
 			<bFlatlands>1</bFlatlands>
@@ -1645,9 +1650,10 @@
 			<iTilesPer>0</iTilesPer>
 			<iMinLandPercent>0</iMinLandPercent>
 			<iUnique>0</iUnique>
-			<iGroupRange>1</iGroupRange>
+			<!-- advc.129: was 1 -->
+			<iGroupRange>0</iGroupRange>
 			<!-- advc.129: was 25 -->
-			<iGroupRand>12</iGroupRand>
+			<iGroupRand>0</iGroupRand>
 			<!-- advc.129: was 1 -->
 			<bArea>0</bArea>
 			<bHills>1</bHills>

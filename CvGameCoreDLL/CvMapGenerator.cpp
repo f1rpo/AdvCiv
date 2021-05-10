@@ -688,10 +688,11 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonus)
 				if (kBonus.getGroupRand() > 0 && eClassToAvoid > 0)
 				{
 					bool bSkip = false;
-					/*  Can't use kUnitClass.getUniqueRange() b/c this has to be
-						0 for bonuses that appear in clusters. 5 hardcoded. */
-					int const iDist = 5;
-					for (PlotCircleIter it(kRandPlot, iDist); it.hasNext(); ++it)
+					/*	Check a range that makes it difficult to cover more than
+						one group with a single city. */
+					int const iRange = CITY_PLOTS_DIAMETER + kBonus.getGroupRange() - 1;
+					for (PlotCircleIter it(kRandPlot, iRange);
+						it.hasNext(); ++it)
 					{
 						CvPlot const& p = *it;
 						if (!p.sameArea(kRandPlot))
@@ -765,20 +766,17 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonus)
 
 // advc.129:
 int CvMapGenerator::placeGroup(BonusTypes eBonus, CvPlot const& kCenter,
-		bool bIgnoreLatitude, int iLimit)
+	bool bIgnoreLatitude, int iLimit)
 {
 	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
 	// The one in the center is already placed, but that doesn't count here.
 	int iPlaced = 0;
 	std::vector<CvPlot*> apGroupRange;
-	for (SquareIter it(kCenter, kBonus.getGroupRange()); it.hasNext(); ++it)
-	{
-		CvPlot& p = *it;
-		if(canPlaceBonusAt(eBonus, p.getX(), p.getY(), bIgnoreLatitude))
-			apGroupRange.push_back(&p);
-	}
-	int iSize = (int)apGroupRange.size();
-	if(iSize <= 0)
+	// BtS used a square here (but also only used GroupRange 1)
+	for (PlotCircleIter it(kCenter, kBonus.getGroupRange()); it.hasNext(); ++it)
+		apGroupRange.push_back(&*it);
+	int const iSize = (int)apGroupRange.size();
+	if (iSize <= 0)
 		return 0;
 	std::vector<int> aiShuffled(iSize);
 	::shuffleVector(aiShuffled, GC.getGame().getMapRand());
@@ -789,6 +787,7 @@ int CvMapGenerator::placeGroup(BonusTypes eBonus, CvPlot const& kCenter,
 		if (!canPlaceBonusAt(eBonus, kPlot.getX(), kPlot.getY(), bIgnoreLatitude))
 			continue;
 		scaled rAddBonusProb = per100(kBonus.getGroupRand());
+		// Make large clusters exponentially unlikely
 		rAddBonusProb *= fixp(2/3.).pow(iPlaced);
 		if (rAddBonusProb.bernoulliSuccess(GC.getGame().getMapRand(), "addNonUniqueBonusType"))
 		{
