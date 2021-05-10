@@ -2029,16 +2029,15 @@ void CvGame::normalizeRemoveBadTerrain()
 					CvTerrainInfo const& kRepl = GC.getInfo(eLoopTerrain);
 					if (kRepl.isWater())
 						continue;
-					if (kRepl.getYield(YIELD_FOOD) >= iTargetFood &&
+					if (kRepl.getYield(YIELD_FOOD) == iTargetFood && // advc.108: was >=
 						kRepl.getYield(YIELD_FOOD) +
-						kRepl.getYield(YIELD_PRODUCTION) == iTargetTotal &&
-						// advc.108: Don't go from 0 food to 2 food
-						kRepl.getYield(YIELD_FOOD) <= iPlotFood + 1)
+						kRepl.getYield(YIELD_PRODUCTION) == iTargetTotal)
 					{
 						if (!p.isFeature() ||
 							GC.getInfo(p.getFeatureType()).isTerrain(eLoopTerrain))
 						{
 							p.setTerrainType(eLoopTerrain);
+							break; // advc.108
 						}
 					}
 				}
