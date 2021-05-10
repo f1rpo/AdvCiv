@@ -1628,8 +1628,8 @@ void CvInitCore::reRandomizeCivsAndLeaders()
 	{
 		if (GC.getInfo(eCiv).isAIPlayable() != GC.getInfo(eCiv).isPlayable())
 		{
-			FErrorMsg("Not sure how to handle (non)-AI playable leaders; "
-					"falling back on BtS algorithm.");
+			/*FErrorMsg("Not sure how to handle (non)-AI playable leaders; "
+					"falling back on BtS algorithm.");*/ // Well, not exactly an error ...
 			return;
 		}
 	}
