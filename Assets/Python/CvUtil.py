@@ -433,7 +433,7 @@ def addIconToMap(infoChar, desc):
 	uc = infoChar()
 	if (uc>=0):
 		FontIconMap[desc] = u"%c" %(uc,)
-# advc (note): Don't add to this list; it seems that BUG's FontUtil.py handles the values of the FontSymbols enum in the DLL (so long as they're exposed to Python).
+# advc (note): Don't add to this list; it seems that BUG's FontUtil.py handles the values of the FontSymbols enum in the DLL (so long as they're exposed to Python). Adding to the IconMap in CvTranslator.py also seems moot.
 OtherFontIcons = { 'happy' : FontSymbols.HAPPY_CHAR,
 				'unhappy' : FontSymbols.UNHAPPY_CHAR,
 				'healthy' : FontSymbols.HEALTHY_CHAR,
