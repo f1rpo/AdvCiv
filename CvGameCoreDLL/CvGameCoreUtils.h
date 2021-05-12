@@ -310,6 +310,13 @@ void setListHelp(CvWString& szBuffer, wchar const* szStart, wchar const* szItem,
 		wchar const* szSeparator, bool& bFirst); // advc: bool&
 void setListHelp(CvWStringBuffer& szBuffer, wchar const* szStart, wchar const* szItem,
 		wchar const* szSeparator, bool& bFirst); // advc: bool&
+/*	<advc> Add variants for items that can go into one list only when a value
+	matches the most recently added item. (This stuff should really be wrapped
+	into a class.) */
+void setListHelp(CvWString& szBuffer, wchar const* szStart, wchar const* szItem,
+		wchar const* szSeparator, int& iLastListID, int iListID);
+void setListHelp(CvWStringBuffer& szBuffer, wchar const* szStart, wchar const* szItem,
+		wchar const* szSeparator, int& iLastListID, int iListID); // </advc>
 
 // PlotUnitFunc's...  (advc: Parameters iData1, iData2 renamed)
 bool PUF_isGroupHead(CvUnit const* pUnit, int iDummy1 = -1, int iDummy2 = -1);

@@ -680,20 +680,19 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonus)
 					can't enforce this well b/c it doesn't know whether a cluster starts
 					(distance needs to be heeded) or continues (distance mustn't be heeded). */
 				BonusClassTypes eClassToAvoid = kBonus.getBonusClassType();
-				/*  Only resources that occur in clusters are problematic. Not sure about
-					the iClassToAvoid>0 clause. 0 is the "general" bonus class containing
-					all the clustered resources except for Gold, Silver, Gems which I've
-					moved to a separate class "precious". I.e. currently only double clusters
-					of precious bonuses are avoided. Eliminating all double clusters might
-					get in the way of (early) resource trades too much and make the map
-					less exciting than it could be. */
-				if(kBonus.getGroupRand() > 0 && eClassToAvoid != NO_BONUSCLASS)
+				/*	In BtS, all resources that occur in clusters are of the
+					"general" class, id 0. Don't want to eliminate all overlapping clusters
+					b/c that may get in the way of (early) resource trades too much and
+					make the map less exciting than it could be. So I've moved the
+					problematic resources into a new class "precious" (id greater than 0). */
+				if (kBonus.getGroupRand() > 0 && eClassToAvoid > 0)
 				{
 					bool bSkip = false;
-					/*  Can't use kUnitClass.getUniqueRange() b/c this has to be
-						0 for bonuses that appear in clusters. 5 hardcoded. */
-					int const iDist = 5;
-					for (PlotCircleIter it(kRandPlot, iDist); it.hasNext(); ++it)
+					/*	Check a range that makes it difficult to cover more than
+						one group with a single city. */
+					int const iRange = CITY_PLOTS_DIAMETER + kBonus.getGroupRange() - 1;
+					for (PlotCircleIter it(kRandPlot, iRange);
+						it.hasNext(); ++it)
 					{
 						CvPlot const& p = *it;
 						if (!p.sameArea(kRandPlot))
@@ -767,31 +766,32 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonus)
 
 // advc.129:
 int CvMapGenerator::placeGroup(BonusTypes eBonus, CvPlot const& kCenter,
-		bool bIgnoreLatitude, int iLimit)
+	bool bIgnoreLatitude, int iLimit)
 {
 	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
 	// The one in the center is already placed, but that doesn't count here.
 	int iPlaced = 0;
 	std::vector<CvPlot*> apGroupRange;
-	for (SquareIter it(kCenter, kBonus.getGroupRange()); it.hasNext(); ++it)
-	{
-		CvPlot& p = *it;
-		if(canPlaceBonusAt(eBonus, p.getX(), p.getY(), bIgnoreLatitude))
-			apGroupRange.push_back(&p);
-	}
-	int iSize = (int)apGroupRange.size();
-	if(iSize <= 0)
+	// BtS used a square here (but also only used GroupRange 1)
+	for (PlotCircleIter it(kCenter, kBonus.getGroupRange()); it.hasNext(); ++it)
+		apGroupRange.push_back(&*it);
+	int const iSize = (int)apGroupRange.size();
+	if (iSize <= 0)
 		return 0;
 	std::vector<int> aiShuffled(iSize);
 	::shuffleVector(aiShuffled, GC.getGame().getMapRand());
 	for (int j = 0; j < iSize &&
 		iLimit > 0; j++)
 	{
-		scaled pr = per100(kBonus.getGroupRand());
-		pr *= fixp(2/3.).pow(iPlaced);
-		if (pr.bernoulliSuccess(GC.getGame().getMapRand(), "addNonUniqueBonusType"))
+		CvPlot& kPlot = *apGroupRange[aiShuffled[j]];
+		if (!canPlaceBonusAt(eBonus, kPlot.getX(), kPlot.getY(), bIgnoreLatitude))
+			continue;
+		scaled rAddBonusProb = per100(kBonus.getGroupRand());
+		// Make large clusters exponentially unlikely
+		rAddBonusProb *= fixp(2/3.).pow(iPlaced);
+		if (rAddBonusProb.bernoulliSuccess(GC.getGame().getMapRand(), "addNonUniqueBonusType"))
 		{
-			apGroupRange[aiShuffled[j]]->setBonusType(eBonus);
+			kPlot.setBonusType(eBonus);
 			iLimit--;
 			iPlaced++;
 		}
