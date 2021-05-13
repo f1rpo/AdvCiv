@@ -12449,32 +12449,7 @@ bool CvUnitAI::AI_patrol() // advc: refactored
 		}
 		// </advc.102>
 		int iValue = 1 + kGame.getSorenRandNum(10000, "AI Patrol");
-		// <advc.309>
-		if(isAnimal())
-		{
-			// Same check as in CvGame::createAnimals
-			if((kAdj.isFeature()) ?
-				getUnitInfo().getFeatureNative(kAdj.getFeatureType()) :
-				getUnitInfo().getTerrainNative(kAdj.getTerrainType()))
-			{
-				iValue += kGame.getSorenRandNum(10000, "advc.309");
-			}
-		}
-		else // (Animals shouldn't follow a consistent direction)
-		{ // </advc.309>
-			/*  <advc.102> Prefer faced plot or a plot that's
-				orthogonally adjacent to faced plot. */
-			int iX = kAdj.getX();
-			int iY = kAdj.getY();
-			int iDelta = ::abs(iFacedX - iX) + ::abs(iFacedY - iY);
-			if(iDelta <= 1)
-				iValue += kGame.getSorenRandNum(10000, "advc.102");
-			/*  Prefer to stay/get out of foreign borders: AI patrols inside
-				human borders are annoying */
-			PlayerTypes eAdjOwner = kAdj.getOwner();
-			if(eAdjOwner != NO_PLAYER && eAdjOwner != getOwner())
-				iValue -= 4000; // </advc.102>
-		}
+		// advc.309: Moved this if/else up
 		if (isBarbarian() &&
 			/*  advc.306: Patrolling Barbarian ships should pretty much
 				move about randomly, neither seeking nor avoiding owned tiles. */
@@ -12493,7 +12468,51 @@ bool CvUnitAI::AI_patrol() // advc: refactored
 			if (pAdjacentPlot->getOwner() == getOwner())
 				iValue += 10000;*/
 		}
-
+		// <advc.309>
+		if(isAnimal())
+		{
+			// Same check as in CvGame::createAnimals
+			if((kAdj.isFeature()) ?
+				getUnitInfo().getFeatureNative(kAdj.getFeatureType()) :
+				getUnitInfo().getTerrainNative(kAdj.getTerrainType()))
+			{
+				iValue += kGame.getSorenRandNum(10000, "advc.309");
+			}
+			/*	Neither a native terrain nor at least adjacent to
+				a native feature: probably avoid */
+			if (!getUnitInfo().getTerrainNative(kAdj.getTerrainType()) &&
+				(!kAdj.isFeature() ||
+				!getUnitInfo().getFeatureNative(kAdj.getFeatureType())))
+			{
+				bool bNativeFeatureFound = false;
+				FOR_EACH_ADJ_PLOT2(pAdjAdj, kAdj)
+				{
+					if (pAdjAdj->isFeature() &&
+						getUnitInfo().getFeatureNative(pAdjAdj->getFeatureType()))
+					{
+						bNativeFeatureFound = true;
+						break;
+					}
+				}
+				if (!bNativeFeatureFound)
+					iValue /= 2;
+			}
+		}
+		else // (Animals shouldn't follow a consistent direction)
+		{ // </advc.309>
+			/*  <advc.102> Prefer faced plot or a plot that's
+				orthogonally adjacent to faced plot. */
+			int iX = kAdj.getX();
+			int iY = kAdj.getY();
+			int iDelta = ::abs(iFacedX - iX) + ::abs(iFacedY - iY);
+			if(iDelta <= 1)
+				iValue += kGame.getSorenRandNum(10000, "advc.102");
+			/*  Prefer to stay/get out of foreign borders: AI patrols inside
+				human borders are annoying */
+			PlayerTypes eAdjOwner = kAdj.getOwner();
+			if(eAdjOwner != NO_PLAYER && eAdjOwner != getOwner())
+				iValue -= 4000; // </advc.102>
+		}
 		if (iValue > iBestValue)
 		{
 			iBestValue = iValue;
