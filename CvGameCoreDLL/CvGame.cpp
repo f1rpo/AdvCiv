@@ -7313,41 +7313,39 @@ void CvGame::doHolyCity()
 // <advc.138>
 int CvGame::religionPriority(TeamTypes eTeam, ReligionTypes eReligion) const {
 
-	int iMembers = 0;
-	int r = 0;
-	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	int iR = 0;
+	MemberIter itMember(eTeam);
+	for (; itMember.hasNext(); ++itMember)
 	{
-		CvPlayer const& kMember = GET_PLAYER((PlayerTypes)i);
-		if(!kMember.isAlive() || kMember.getTeam() != eTeam)
-			continue;
-		iMembers++;
-		r += religionPriority(kMember.getID(), eReligion);
+		iR += religionPriority(itMember->getID(), eReligion);
 	}
+	int iMembers = itMember.nextIndex();
 	if (iMembers <= 0)
 		return 0;
-	return r / iMembers;
+	return iR / iMembers;
 }
 
 
 int CvGame::religionPriority(PlayerTypes ePlayer, ReligionTypes eReligion) const
 {
-	int r = 0;
+	int iR = 0;
 	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
-	for(int i = 0; i < GC.getNumTraitInfos(); i++)
+	FOR_EACH_ENUM2(Trait, eNoAnarchyTrait)
 	{
-		TraitTypes eNoAnarchyTrait = (TraitTypes)i;
 		if (!kPlayer.hasTrait(eNoAnarchyTrait) ||
-				GC.getInfo(eNoAnarchyTrait).getMaxAnarchy() != 0)
+			GC.getInfo(eNoAnarchyTrait).getMaxAnarchy() != 0)
+		{
 			continue;
-		r += 5;
+		}
+		iR += 5;
 		/*  Spiritual human should be sure to get a religion (so long as
 			difficulty isn't above Noble). Not quite sure if my choice of
 			numbers in this function and in doHolyCity accomplishes that. */
 		if (kPlayer.isHuman())
-			r += 6;
+			iR += 6;
 		break;
 	}
-	r += ((100 - GC.getInfo(kPlayer.getHandicapType()).
+	iR += ((100 - GC.getInfo(kPlayer.getHandicapType()).
 			getStartingLocationPercent()) * 31) / 100;
 	// With the pick-rel option, eReligion will change later on anyway.
 	if (!isOption(GAMEOPTION_PICK_RELIGION))
@@ -7360,9 +7358,9 @@ int CvGame::religionPriority(PlayerTypes ePlayer, ReligionTypes eReligion) const
 			Don't use PersonalityType here; fav. religion is always a matter
 			of LeaderType. */
 		if (GC.getInfo(kPlayer.getLeaderType()).getFavoriteReligion() == eReligion)
-			r += 6;
+			iR += 6;
 	}
-	return r;
+	return iR;
 } // </advc.138>
 
 /*  advc: Since none of the BtS corps have a prereq. tech, this function
