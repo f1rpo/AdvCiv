@@ -4491,6 +4491,28 @@
 		<Italian>Apri il menu</Italian>
 		<Spanish>Abrir men&#250;</Spanish>
 	</TEXT>
+	<!-- From CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MAIN_MENU_MULTIPLAYER_INTERNET_GAMES</Tag>
+		<English>[COLOR_PLAYER_GRAY]GameSpy Login[COLOR_REVERT]</English>
+		<French>[COLOR_PLAYER_GRAY]Parties Internet[COLOR_REVERT]</French>
+		<German>[COLOR_PLAYER_GRAY]GameSpy-Netzwerk[COLOR_REVERT]</German>
+		<Italian>[COLOR_PLAYER_GRAY]Partite Internet[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_PLAYER_GRAY]Partidas en Internet[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<!-- From CIV4GameText_Misc1.xml. Instead of instructions how to
+		 register with GameSpy and login, inform the player that GameSpy
+		 is gone. -->
+	<TEXT>
+		<Tag>TXT_KEY_GAMESPY_LOGIN_DESC</Tag>
+		<English>The GameSpy platform has shut down in 2014!</English>
+		<German>Das GameSpy-Netzwerk wurde 2014 abgeschaltet!</German>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAMESPY_CREATE_ACCOUNT_HELP</Tag>
+		<English>The GameSpy platform has shut down in 2014!</English>
+		<German>Das GameSpy-Netzwerk wurde 2014 abgeschaltet!</German>
+	</TEXT>
 	
 	<!-- advc.106b -->
 	<TEXT>
