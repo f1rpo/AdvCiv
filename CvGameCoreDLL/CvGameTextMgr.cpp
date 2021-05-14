@@ -5307,6 +5307,9 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity const& kCit
 		{
 			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_GROWTH",
 					kCity.getFood(), kCity.growthThreshold()));
+			szString.append(L" (");
+			szString.append(gDLL->getText("INTERFACE_CITY_STAGNANT"));
+			szString.append(L")");
 		}
 		else
 		{

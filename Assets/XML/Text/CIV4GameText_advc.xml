@@ -6798,7 +6798,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BAR_ALL_DOMESTIC</Tag>
-		<English>all domestic</English>
+		<English>all Domestic</English>
 		<French>toutes domestiques</French>
 		<German>alle inländisch</German>
 		<Italian>tutte domestiche</Italian>
@@ -6806,7 +6806,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BAR_ALL_FOREIGN</Tag>
-		<English>all foreign</English>
+		<English>all Foreign</English>
 		<French>toutes étrangères</French>
 		<German>alle ausländisch</German>
 		<Italian>tutte estere</Italian>
@@ -6814,7 +6814,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BAR_FOREIGN_TR_COMMERCE</Tag>
-		<English>foreign: %d1[ICON_COMMERCE]</English>
+		<English>Foreign: %d1[ICON_COMMERCE]</English>
 		<French>&#233;trang&#232;res : %d1[ICON_COMMERCE]</French>
 		<German>Außenhandel: %d1[ICON_COMMERCE]</German>
 		<Italian>estere: %d1[ICON_COMMERCE]</Italian>
