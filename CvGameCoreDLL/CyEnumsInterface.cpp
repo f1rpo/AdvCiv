@@ -714,7 +714,7 @@ void CyEnumsPythonInterface()
 		.value("GREAT_GENERAL_CHAR", GREAT_GENERAL_CHAR)
 		.value("AIRPORT_CHAR", AIRPORT_CHAR)
 		// </advc.002f>
-		.value("NO_ATTITUDE_CHAR", NO_ATTITUDE_CHAR) // advc.187
+		.value("WORST_ATTITUDE_CHAR", WORST_ATTITUDE_CHAR) // advc.187
 		.value("MAX_NUM_SYMBOLS", MAX_NUM_SYMBOLS)
 		;
 
