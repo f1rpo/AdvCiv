@@ -22,21 +22,22 @@
 	(getEnumLength((TypeName##Types)0)); \
 	::shuffleVector(CONCATVARNAME(aiLoop##TypeName##Indices_, __LINE__), (kRand)); \
 	int CONCATVARNAME(iLoop##TypeName##Counter_, __LINE__) = 0; \
-	for ( TypeName##Types eLoop##TypeName = (TypeName##Types) \
-			CONCATVARNAME(aiLoop##TypeName##Indices_, __LINE__)[0]; \
-			CONCATVARNAME(iLoop##TypeName##Counter_, __LINE__) < getEnumLength(eLoop##TypeName); \
-			eLoop##TypeName = (TypeName##Types)CONCATVARNAME(aiLoop##TypeName##Indices_, __LINE__) \
-			[++CONCATVARNAME(iLoop##TypeName##Counter_, __LINE__)] )
+	for ( TypeName##Types eLoop##TypeName; \
+			CONCATVARNAME(iLoop##TypeName##Counter_, __LINE__) < getEnumLength((TypeName##Types)0) && \
+			/* Do the increment in the termination check, but don't branch on it. */ \
+			(eLoop##TypeName = (TypeName##Types)CONCATVARNAME(aiLoop##TypeName##Indices_, __LINE__) \
+			[CONCATVARNAME(iLoop##TypeName##Counter_, __LINE__)], \
+			(CONCATVARNAME(iLoop##TypeName##Counter_, __LINE__)++, true)); )
 /*	Example. FOR_EACH_ENUM_RAND(CardinalDirection, GC.getGame().getMapRand())
 	expands to:
 	std::vector<int> aiLoopCardinalDirectionIndices_443(getEnumLength((CardinalDirectionTypes)0));
 	::shuffleVector(aiLoopCardinalDirectionIndices_443, (GC.getGame().getMapRand()));
 	int iLoopCardinalDirectionCounter_443 = 0;
-	for ( CardinalDirectionTypes eLoopCardinalDirection = (CardinalDirectionTypes)
-			aiLoopCardinalDirectionIndices_443[0];
-			iLoopCardinalDirectionCounter_443 < getEnumLength(eLoopCardinalDirection);
-			eLoopCardinalDirection = (CardinalDirectionTypes)aiLoopCardinalDirectionIndices_443
-			[++iLoopCardinalDirectionCounter_443] )
+	for ( CardinalDirectionTypes eLoopCardinalDirection;
+			iLoopCardinalDirectionCounter_443 < getEnumLength((CardinalDirectionTypes)0) &&
+			(eLoopCardinalDirection = (CardinalDirectionTypes)aiLoopCardinalDirectionIndices_443
+			[iLoopCardinalDirectionCounter_443],
+			(iLoopCardinalDirectionCounter_443++, true)); )
 */
 // Reversed order
 #define FOR_EACH_ENUM_REV(TypeName) \
