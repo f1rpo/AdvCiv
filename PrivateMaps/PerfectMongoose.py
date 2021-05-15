@@ -4134,18 +4134,19 @@ class RiverMap:
 			cm = c2
 		#Create average rainfall map so that each intersection is an average
 		#of the rainfall from rm.rainMap
+		worldSz = CyMap().getWorldSize() # advc
 		for y in range(mc.height):
-			# <advc> Kludge for making the extreme latitudes less riverine. Those river exacerbate the problem with (supposed) rainforests being highly productive tiles, and such rivers weren't as important to human habitation than rivers through temperate areas or through deserts.
+			# <advc> Kludge for making the extreme latitudes less riverine. Those river exacerbate the problem with (supposed) rainforests being highly productive tiles, and such rivers weren't as important to human habitation than rivers through temperate areas or through deserts. Somehow, it seems that rivers tend to be placed in higher latitudes on larger maps. Hence the worldSz adjustment.
 			latitudeMult = 1.0
 			absLat = abs(em.GetLatitudeForY(y))
 			vicinityToEquator = (mc.tropicsLatitude - absLat) / float(mc.tropicsLatitude)
 			if vicinityToEquator > 0:
-				latitudeMult = 1 - (5/6.) * math.sqrt(vicinityToEquator)
+				latitudeMult = 1 - (max(1, min(7 - worldSz, 4))/5.) * math.sqrt(vicinityToEquator)
 			else:
-				intervalLength = 90 - mc.polarFrontLatitude
+				intervalLength = 90 - mc.polarFrontLatitude + 3
 				vicinityToPole = (intervalLength - abs(em.GetLatitudeForY(y))) / float(intervalLength)
 				if vicinityToPole > 0:
-					latitudeMult = 1 - (2/3.) * vicinityToPole
+					latitudeMult = 1 - (min(worldSz + 4, 9)/10.) * pow(vicinityToPole, 1.13)
 			# (No penalty for plots _near_ the tropics or polar front - rivers starting there may well flow into less extreme latitudes.)
 			# </advc>
 			for x in range(mc.width):
