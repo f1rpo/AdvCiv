@@ -3247,15 +3247,17 @@ class TerrainMap:
 					#I tried using a deviation from surrounding average altitude
 					#to determine hills and peaks but I didn't like the
 					#results. Therefore I am using lowest neighbor.
-					# <advc> PerfectWorld6.lua still uses the avg.; but ... no, I don't like it either.
-					#avgAlt = 0
-					#avgAltDiv = 0
+					# <advc> This will be pretty arcane b/c I've tried several methods and only got it to work OK by combining them. Don't want hills to clump much, but peaks need to clump (in patterns that look natural) and should have surrounding foothills, so the hill placement can't be totally different. Also, mountain ranges need to appear near high-altitude tiles, otherwise the monsoon rain shadow won't make sense.
+					neighbors = 0
 					myAlt = elevData
 					# Considering the lowest orthogonal and the lowest diagonal neighbor seems to yield reasonable clustering. The overall minumum clusters too much, in particular results in blocks, enclosures, straight chains too often. (If enclosures still occur, one should perhaps simply convert peaks with a high number of adjacent lower-altitude peaks into snow hills.)
 					minAltOrth = 1.0
 					minAltDiag = 1.0
 					# And count the neighbors with greater altitude
-					numHigher = 0 # </advc>
+					numHigher = 0
+					numHigherButNotMuch = 0
+					sumOfDiffs = 0
+					# </advc>
 					for direction in range(1, 9):
 						xx, yy = GetNeighbor(x, y, direction)
 						ii = em.GetIndex(xx, yy)
@@ -3272,30 +3274,43 @@ class TerrainMap:
 							neighborElevData += (myAlt - neighborElevData) / 2
 						elif neighborElevData > myAlt:
 							numHigher += 1
-						#avgAlt += neighborElevData
-						#avgAltDiv += 1
-						# </advc>
+							if 1.5 * myAlt > neighborElevData:
+								numHigherButNotMuch += 1
+						neighbors += 1
+						distFactor = 1 # More weight for orth. neighbors
+						if direction % 2 == 0:
+							distFactor = 1.3
+						# 1 would amount to computing the mean altitude difference. 0 would mean counting higher vs. lower neighbors (resulting in dispersed hills and peaks).
+						diffExp = 0.4
+						if myAlt > neighborElevData:
+							sumOfDiffs += pow(myAlt - neighborElevData, diffExp) * distFactor
+						if myAlt < neighborElevData:
+							sumOfDiffs -= pow(abs(myAlt - neighborElevData), diffExp) * distFactor
 						if direction % 2 == 0:
 							if neighborElevData < minAltOrth:
 								minAltOrth = neighborElevData
 						else:
 							if neighborElevData < minAltDiag:
 								minAltDiag = neighborElevData
+						# </advc>
 					#self.dData[i] = myAlt - minAlt
 					# <advc>
+					if neighbors > 0:
+						sumOfDiffs /= neighbors
+						self.peakData[i] = sumOfDiffs
+						self.hillData[i] = sumOfDiffs
 					altDiff = myAlt - (minAltOrth * 3 + minAltDiag * 2) / 5
-					self.hillData[i] = altDiff * pow(0.95, numHigher)
-					# Give absolute height some more weight for peaks. It's OK if that causes them to clump a bit more on small and medium-size maps (whereas, for hills, more clumping is not OK); my main goal is to make coastal peaks less common.
-					# Actually, now that I've tweaked GeneratePlotMap, coastal peaks have become much less common and clumps of peaks more common. So I'm going to dial the absolute altitude tweak down.
-					absAltWeight = 1.075
-					#if CyMap().getWorldSize() > 3:
-					#	absAltWeight = (1 + absAltWeight) / 2
-					self.peakData[i] = absAltWeight * altDiff
+					# A high multiplier here aligns the hills better with the peaks, meaning also that hills clump together more. The randomness should help place at least a couple of hills near each group of peaks.
+					self.hillData[i] += PRand.random() * 2 * altDiff
+					# Not counting much higher neighbors here b/c I don't want to discourage hills near peaks. Not sure if I'm really accomplishing that.
+					self.hillData[i] *= pow(0.95, numHigherButNotMuch)
+					# High multiplier, meaning that peaks are mostly placed based on the maximal altitude differences, which results in fairly dense patterns.
+					self.peakData[i] += 4.3 * altDiff
+					# Extra weight for absolute altitude to discourage coastal peaks a bit
+					self.peakData[i] += 0.1 * myAlt
 					# Discourage long, uninterrupted chains
 					if numHigher >= 2:
 						self.peakData[i] *= 0.82
-					#if avgAltDiv > 0:
-					#	avgAlt /= avgAltDiv
 					# </advc>
 		#NormalizeMap(self.dData, mc.width, mc.height)
 		#landMap = []
