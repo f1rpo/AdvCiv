@@ -541,6 +541,7 @@ void RiseFall::welcomeToNextChapter(int pos) {
 	RFChapter& ch = *chapters[pos];
 	setPlayerName();
 	CvPlayer& p = GET_PLAYER(ch.getCiv());
+	p.verifyCivics();
 	// Doing this in setUIHidden has no effect
 	if(gDLL->getEngineIFace()->isGlobeviewUp())
 		gDLL->getEngineIFace()->toggleGlobeview();

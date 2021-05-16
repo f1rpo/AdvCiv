@@ -2871,10 +2871,12 @@ void CvPlayer::doTurnUnits()
 }
 
 
-void CvPlayer::verifyCivics()  // advc: refactored
+void CvPlayer::verifyCivics()
 {
-	if (isAnarchy())
-		return;
+	/*	advc.700, advc.912d: I don't think this is necessary, and it gets
+		in the way of R&F when playing w/o Slavery. */
+	/*if (isAnarchy())
+		return;*/
 
 	FOR_EACH_ENUM(CivicOption)
 	{
