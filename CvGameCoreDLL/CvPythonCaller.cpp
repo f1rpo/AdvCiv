@@ -379,7 +379,7 @@ bool CvPythonCaller::canPickRevealedPlot(CvPlot const& kPlot) const
 }
 
 bool CvPythonCaller::cannotSelectionListMoveOverride(CvPlot const& kPlot,
-		bool bAlt, bool bShift, bool bCtrl) const
+	bool bAlt, bool bShift, bool bCtrl) const
 {
 	ARGSLIST(false);
 	CyPlot* pyPlot = new CyPlot(kPlot);
@@ -393,7 +393,7 @@ bool CvPythonCaller::cannotSelectionListMoveOverride(CvPlot const& kPlot,
 }
 
 bool CvPythonCaller::cannotSelectionListNetOverride(GameMessageTypes eMessage,
-		int aiData[3], int iFlags, bool bAlt, bool bShift) const
+	int aiData[3], int iFlags, bool bAlt, bool bShift) const
 {
 	ARGSLIST(false);
 	argsList.add(eMessage);
@@ -407,7 +407,7 @@ bool CvPythonCaller::cannotSelectionListNetOverride(GameMessageTypes eMessage,
 }
 
 bool CvPythonCaller::cannotHandleActionOverride(CvPlot* pPlot, int iAction,
-		bool bTestVisible) const
+	bool bTestVisible) const
 {
 	if (!isUse(CANNOT_HANDLE_ACTION))
 		return false;
@@ -586,7 +586,7 @@ bool CvPythonCaller::isCitiesDestroyFeatures(int iX, int iY) const
 }
 
 bool CvPythonCaller::canTrainOverride(CvCity const& kCity, UnitTypes eUnit,
-		bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreUpgrades) const
+	bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreUpgrades) const
 {
 	if (!isUse(CAN_TRAIN))
 		return false;
@@ -606,7 +606,7 @@ bool CvPythonCaller::canTrainOverride(CvCity const& kCity, UnitTypes eUnit,
 	with a bool& parameter, but then a Python modder who just needs either function
 	would have to "pay" for two DLL-to-Python calls instead of one. */
 bool CvPythonCaller::cannotTrainOverride(CvCity const& kCity, UnitTypes eUnit,
-		bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreUpgrades) const
+	bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreUpgrades) const
 {
 	if (!isUse(CANNOT_TRAIN))
 		return false;
@@ -624,7 +624,7 @@ bool CvPythonCaller::cannotTrainOverride(CvCity const& kCity, UnitTypes eUnit,
 }
 
 bool CvPythonCaller::canConstructOverride(CvCity const& kCity, BuildingTypes eBuilding,
-		bool bContinue, bool bTestVisible, bool bIgnoreCost) const
+	bool bContinue, bool bTestVisible, bool bIgnoreCost) const
 {
 	if (!isUse(CAN_CONSTRUCT))
 		return false;
@@ -641,7 +641,7 @@ bool CvPythonCaller::canConstructOverride(CvCity const& kCity, BuildingTypes eBu
 }
 
 bool CvPythonCaller::cannotConstructOverride(CvCity const& kCity, BuildingTypes eBuilding,
-		bool bContinue, bool bTestVisible, bool bIgnoreCost) const
+	bool bContinue, bool bTestVisible, bool bIgnoreCost) const
 {
 	if (!isUse(CANNOT_CONSTRUCT))
 		return false;
@@ -658,7 +658,7 @@ bool CvPythonCaller::cannotConstructOverride(CvCity const& kCity, BuildingTypes 
 }
 
 bool CvPythonCaller::canCreateOverride(CvCity const& kCity, ProjectTypes eProject,
-		bool bContinue, bool bTestVisible) const
+	bool bContinue, bool bTestVisible) const
 {
 	if (!isUse(CAN_CREATE))
 		return false;
@@ -674,7 +674,7 @@ bool CvPythonCaller::canCreateOverride(CvCity const& kCity, ProjectTypes eProjec
 }
 
 bool CvPythonCaller::cannotCreateOverride(CvCity const& kCity, ProjectTypes eProject,
-		bool bContinue, bool bTestVisible) const
+	bool bContinue, bool bTestVisible) const
 {
 	if (!isUse(CANNOT_CREATE))
 		return false;
@@ -690,7 +690,7 @@ bool CvPythonCaller::cannotCreateOverride(CvCity const& kCity, ProjectTypes ePro
 }
 
 bool CvPythonCaller::canMaintainOverride(CvCity const& kCity, ProcessTypes eProcess,
-		bool bContinue) const
+	bool bContinue) const
 {
 	if (!isUse(CAN_MAINTAIN))
 		return false;
@@ -705,7 +705,7 @@ bool CvPythonCaller::canMaintainOverride(CvCity const& kCity, ProcessTypes eProc
 }
 
 bool CvPythonCaller::cannotMaintainOverride(CvCity const& kCity, ProcessTypes eProcess,
-		bool bContinue) const
+	bool bContinue) const
 {
 	if (!isUse(CANNOT_MAINTAIN))
 		return false;
@@ -766,7 +766,7 @@ bool CvPythonCaller::doCulture(CvCity const& kCity) const
 }
 
 bool CvPythonCaller::doPlotCultureTimes100(CvCity const& kCity, PlayerTypes ePlayer,
-		bool bUpdate,int iCultureRateTimes100) const
+	bool bUpdate,int iCultureRateTimes100) const
 {
 	if (!isUse(DO_PLOT_CULTURE))
 		return false;
@@ -875,7 +875,7 @@ bool CvPythonCaller::canRaze(CvCity const& kCity, PlayerTypes eNewOwner) const
 }
 
 bool CvPythonCaller::canBuild(CvPlot const& kPlot, BuildTypes eBuild, PlayerTypes ePlayer,
-		bool& bOverride) const
+	bool& bOverride) const
 {
 	bOverride = false;
 	if (!isUse(CAN_BUILD))
@@ -1077,7 +1077,7 @@ bool CvPythonCaller::AI_doWar(TeamTypes eTeam) const
 }
 
 bool CvPythonCaller::doOrganizationTech(TeamTypes eTechTeam, PlayerTypes eTechPlayer,
-		TechTypes eTech) const
+	TechTypes eTech) const
 {
 	if (!isUse(DO_HOLY_CITY_TECH))
 		return false;
@@ -1448,7 +1448,7 @@ bool CvPythonCaller::addRivers() const
 }
 
 void CvPythonCaller::riverStartCardinalDirection(CvPlot const& kPlot,
-		CardinalDirectionTypes& r) const
+	CardinalDirectionTypes& r) const
 {
 	ARGSLIST(NO_CARDINALDIRECTION);
 	CyPlot* pyPlot = new CyPlot(kPlot);

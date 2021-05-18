@@ -1008,7 +1008,7 @@ void CvInitCore::setActivePlayer(PlayerTypes eActivePlayer)
 void CvInitCore::setType(GameType eType)
 {
 	if (getType() == eType)
-		return; // advc
+		return;
 
 	m_eType = eType;
 	// <advc.054>

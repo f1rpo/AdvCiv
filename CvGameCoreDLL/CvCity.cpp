@@ -5228,7 +5228,7 @@ void CvCity::GPProjection(std::vector<std::pair<UnitTypes,int> >& r) const
 		int iTotalError = 100 - iRoundedPercentages;
 		if (iTotalError >= 2)
 		{
-			FAssert(abs(iTotalError) == 2);
+			FAssert(iTotalError == 2);
 			/*	I'm too lazy to handle that error properly. Adding up to 99% is OK.
 				Otherwise add 1 to the GP with the highest share. */
 			size_t iArgmax = 0;

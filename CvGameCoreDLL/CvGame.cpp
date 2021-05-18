@@ -9115,7 +9115,7 @@ void CvGame::doFPCheck(int iChecksum, PlayerTypes ePlayer)
 			GC.getColorType("WARNING_TEXT"));
 } // </advc.003g
 
-// <advc.003r>
+// advc.003r:
 void CvGame::handleUpdateTimer(UpdateTimerTypes eTimerType)
 {
 	if(m_aiUpdateTimers[eTimerType] < 0)
@@ -9150,7 +9150,7 @@ void CvGame::handleUpdateTimer(UpdateTimerTypes eTimerType)
 		}
 	}
 	m_aiUpdateTimers[eTimerType]--;
-} // </advc.003r>
+}
 
 
 void CvGame::addReplayMessage(ReplayMessageTypes eType, PlayerTypes ePlayer,

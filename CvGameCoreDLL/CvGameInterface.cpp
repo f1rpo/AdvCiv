@@ -18,12 +18,9 @@
 #include "CvBugOptions.h"
 #include <fstream> // advc.003d
 
-/*  advc: This file was, reportedly, added by patch 3.17:
-	forums.civfanatics.com/threads/sdk-using-microsoft-visual-c-2005-express-edition.196283/page-7#post-6942578
-	The near name clash with CyGameInterface.cpp is coincidental.
-	Functions previously implemented in CvGame.cpp were moved here.
-	I guess the idea is to separate the UI code from the game rules, and simply to
-	make the translation units smaller. */
+/*  advc: This file was added by patch 3.17, moving some UI functionality
+	out of the EXE and thus exposing it to mods.
+	The near name clash with CyGameInterface.cpp is coincidental. */
 
 /*	<advc.007b> The functions in this header arguably shouldn't use any of the
 	synchronized RNGs that are part of CvGame. */

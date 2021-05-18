@@ -876,11 +876,11 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 bool CvUnitAI::AI_isCityAIType() const
 {	// advc.104 (note): There's a similar list in MilitaryBranch::HomeGuard::initUnitsTrained
 	return (AI_getUnitAIType() == UNITAI_CITY_DEFENSE ||
-		AI_getUnitAIType() == UNITAI_CITY_COUNTER ||
-		AI_getUnitAIType() == UNITAI_CITY_SPECIAL ||
-		AI_getUnitAIType() == UNITAI_RESERVE ||
-		//advc.rom (Afforess): count units on guard mission as city defenders
-		AI_getGroup()->AI_getMissionAIType() == MISSIONAI_GUARD_CITY);
+			AI_getUnitAIType() == UNITAI_CITY_COUNTER ||
+			AI_getUnitAIType() == UNITAI_CITY_SPECIAL ||
+			AI_getUnitAIType() == UNITAI_RESERVE ||
+			//advc.rom (Afforess): count units on guard mission as city defenders
+			AI_getGroup()->AI_getMissionAIType() == MISSIONAI_GUARD_CITY);
 }
 
 /*	advc: Renamed from AI_potentialEnemy. Says whether this unit is allowed to
@@ -10135,7 +10135,7 @@ bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, MovementFla
 			int iDefendersNeeded = pLoopCity->AI_neededDefenders(true);
 			int iDefendersHave = pLoopCity->getPlot().plotCount(
 					PUF_canDefendGroupHead, -1, -1, getOwner(),
-					NO_TEAM, AI_isCityAIType() ? PUF_isCityAIType : 0);
+					NO_TEAM, AI_isCityAIType() ? PUF_isCityAIType : NULL);
 			if (pCity == pLoopCity)
 				iDefendersHave -= getGroup()->getNumUnits();
 			// K-Mod end
