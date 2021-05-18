@@ -9555,21 +9555,35 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 							GC.getInfo(u.getPrereqAndBonus()).getTextKeyWide()));
 				}
 			}
+			/*	<advc.004> (rewritten based on MNAI - lfgr fix 04/2021:
+				Don't show any OR-prereq bonus if one of them is available.)
+				This concerns units with an OR req. (which is met) and some
+				additional requirement (which isn't met). */
 			{
-				bool bFirst = true;
+				std::vector<BonusTypes> aePrereqOrBonuses;
+				bool bAnyReqFound = false;
 				for (int i = 0; i < u.getNumPrereqOrBonuses(); i++)
 				{
-					if (pCity == NULL || !pCity->hasBonus(u.getPrereqOrBonuses(i)))
+					if (pCity != NULL || pCity->hasBonus(u.getPrereqOrBonuses(i)))
 					{
-						szTempBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_REQUIRES").c_str());
+						bAnyReqFound = true;
+						break;
+					}
+					aePrereqOrBonuses.push_back(u.getPrereqOrBonuses(i));
+				}
+				if (!bAnyReqFound && !aePrereqOrBonuses.empty())
+				{
+					szTempBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_REQUIRES").c_str());
+					bool bFirst = true;
+					for (size_t i = 0; i < aePrereqOrBonuses.size(); i++)
+					{
 						setListHelp(szBuffer, szTempBuffer,
 								GC.getInfo(u.getPrereqOrBonuses(i)).getDescription(),
 								gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
 					}
-				}
-				if (!bFirst)
 					szBuffer.append(ENDCOLR);
-			}
+				}
+			} // </advc.004>
 		}
 	} /* <advc.004> Show this right before the cost in Civilopedia text and
 		 otherwise (i.e. in hover text) after the cost */
