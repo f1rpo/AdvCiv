@@ -33,7 +33,7 @@
 		if (ReproTest::getInstance() != NULL) \
 			ReproTest::getInstance()->endWrite(true);
 	#define INIT_STRUCT_PADDING_INL() \
-		memset(this, 0, sizeof(*this))
+		SecureZeroMemory(this, sizeof(*this))
 	#define INIT_STRUCT_PADDING(StructName) \
 		StructName() { INIT_STRUCT_PADDING_INL(); }
 #else

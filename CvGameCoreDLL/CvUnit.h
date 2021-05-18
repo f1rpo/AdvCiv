@@ -1252,7 +1252,7 @@ struct CombatDetails											// Exposed to Python
 	// advc:
 	void reset(PlayerTypes eOwner, PlayerTypes eVisualOwner, std::wstring sUnitName)
 	{
-		memset(this, 0, sizeof(*this));
+		ZeroMemory(this, sizeof(*this));
 		this->eOwner = eOwner;
 		this->eVisualOwner = eVisualOwner;
 		this->sUnitName = sUnitName;

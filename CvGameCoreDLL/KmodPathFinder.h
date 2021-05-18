@@ -314,7 +314,7 @@ protected:
 				There's a section "Beating memset" by Dan Higgins in the book
 				that's credited at the start of FAStarNode.h. */
 				PROFILE("NodeMap::reset - memset");
-				memset(m_data, 0, numBytes());
+				ZeroMemory(m_data, numBytes());
 			}
 			m_bDirty = false;
 		}
