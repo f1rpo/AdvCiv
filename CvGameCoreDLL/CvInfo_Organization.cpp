@@ -71,7 +71,7 @@ bool CvOrganizationInfo::read(CvXMLLoadUtility* pXML)
 }
 
 CvReligionInfo::CvReligionInfo() :
-m_iHolyCityChar(0),
+m_cHolyCityChar(0),
 m_iNumFreeUnits(0),
 m_paiGlobalReligionCommerce(NULL),
 m_paiHolyCityCommerce(NULL),
@@ -85,14 +85,14 @@ CvReligionInfo::~CvReligionInfo()
 	SAFE_DELETE_ARRAY(m_paiStateReligionCommerce);
 }
 
-int CvReligionInfo::getHolyCityChar() const
+wchar CvReligionInfo::getHolyCityChar() const
 {
-	return m_iHolyCityChar;
+	return m_cHolyCityChar;
 }
 
-void CvReligionInfo::setHolyCityChar(int i)
+void CvReligionInfo::setHolyCityChar(wchar c)
 {
-	m_iHolyCityChar = i;
+	m_cHolyCityChar = c;
 }
 
 int CvReligionInfo::getNumFreeUnits() const
@@ -210,7 +210,7 @@ bool CvReligionInfo::isReligionTech(TechTypes eTech)
 }
 
 CvCorporationInfo::CvCorporationInfo() :
-m_iHeadquarterChar(0),
+m_cHeadquarterChar(0),
 m_iSpreadCost(0),
 m_iMaintenance(0),
 m_eBonusProduced(NO_BONUS),
@@ -226,14 +226,14 @@ CvCorporationInfo::~CvCorporationInfo()
 	SAFE_DELETE_ARRAY(m_paiYieldProduced);
 }
 
-int CvCorporationInfo::getHeadquarterChar() const
+wchar CvCorporationInfo::getHeadquarterChar() const
 {
-	return m_iHeadquarterChar;
+	return m_cHeadquarterChar;
 }
 
-void CvCorporationInfo::setHeadquarterChar(int i)
+void CvCorporationInfo::setHeadquarterChar(wchar c)
 {
-	m_iHeadquarterChar = i;
+	m_cHeadquarterChar = c;
 }
 // advc.003t: Calls from Python aren't going to respect the bounds
 int CvCorporationInfo::py_getPrereqBonus(int i) const
