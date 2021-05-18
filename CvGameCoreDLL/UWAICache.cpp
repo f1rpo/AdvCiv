@@ -574,7 +574,7 @@ scaled UWAICache::goldPerProdSites()
 	}
 	std::sort(aiFoundVals.begin(), aiFoundVals.end(), std::greater<int>());
 	scaled arSiteWeights[] = { 1, fixp(0.8), fixp(0.6), fixp(0.4), fixp(0.2) };
-	int const iSitesMax = ARRAY_LENGTH(arSiteWeights);
+	int const iSitesMax = ARRAYSIZE(arSiteWeights);
 	scaled rSiteScore;
 	int const iSettlers = kOwner.AI_getNumAIUnits(UNITAI_SETTLE);
 	for (int i = iSettlers; i < std::min(iSitesMax, (int)aiFoundVals.size()); i++)

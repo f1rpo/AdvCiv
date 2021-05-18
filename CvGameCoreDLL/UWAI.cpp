@@ -92,14 +92,14 @@ void UWAI::doXML()
 	char const* const aszAspectTagNames[] = {
 		DO_FOR_EACH_WAR_UTILITY_ASPECT(MAKE_TAG_NAME)
 	};
-	FAssert(ARRAY_LENGTH(aszAspectTagNames) == NUM_ASPECTS);
+	FAssert(ARRAYSIZE(aszAspectTagNames) == NUM_ASPECTS);
 	for (int i = 0; i < NUM_ASPECTS; i++)
 		m_aiXmlWeights.push_back(GC.getDefineINT(aszAspectTagNames[i]));
 
 	char const* const aszAspectReportNames[] = {
 		DO_FOR_EACH_WAR_UTILITY_ASPECT(MAKE_REPORT_NAME)
 	};
-	FAssert(ARRAY_LENGTH(aszAspectReportNames) == NUM_ASPECTS);
+	FAssert(ARRAYSIZE(aszAspectReportNames) == NUM_ASPECTS);
 	for (int i = 0; i < NUM_ASPECTS; i++)
 		m_aszAspectNames.push_back(aszAspectReportNames[i]);
 
@@ -165,7 +165,7 @@ void UWAI::applyPersonalityWeight()
 			&kLeader.m_iPermanentAllianceRefuseAttitudeThreshold, &kLeader.m_iVassalRefuseAttitudeThreshold,
 			&kLeader.m_iVassalPowerModifier, &kLeader.m_iFreedomAppreciation,
 		};
-		int const iPrimitiveMembers = ARRAY_LENGTH(aiPrimitiveMembers);
+		int const iPrimitiveMembers = ARRAYSIZE(aiPrimitiveMembers);
 		std::vector<int*>* paiPersonalityVector = new std::vector<int*>(
 				aiPrimitiveMembers, aiPrimitiveMembers + iPrimitiveMembers);
 		FOR_EACH_ENUM(Flavor)

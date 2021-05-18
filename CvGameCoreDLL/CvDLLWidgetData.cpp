@@ -44,7 +44,7 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 		WIDGET_CONTACT_CIV, WIDGET_SCORE_BREAKDOWN, WIDGET_POWER_RATIO,
 		WIDGET_GOLDEN_AGE, WIDGET_ANARCHY
 	};
-	for(int i = 0; i < ARRAY_LENGTH(aePlayerAsData1); i++)
+	for(int i = 0; i < ARRAYSIZE(aePlayerAsData1); i++)
 	{
 		if(widgetDataStruct.m_eWidgetType == aePlayerAsData1[i] &&
 			(widgetDataStruct.m_iData1 <= NO_PLAYER ||
@@ -718,7 +718,7 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 		WIDGET_EXPAND_SCORES, WIDGET_SCORE_BREAKDOWN, WIDGET_POWER_RATIO,
 		WIDGET_GOLDEN_AGE, WIDGET_ANARCHY
 	};
-	for(int i = 0; i < ARRAY_LENGTH(aeExpandTypes); i++)
+	for(int i = 0; i < ARRAYSIZE(aeExpandTypes); i++)
 	{
 		if((widgetDataStruct.m_eWidgetType == aeExpandTypes[i] &&
 			widgetDataStruct.m_iData2 == 0) ||

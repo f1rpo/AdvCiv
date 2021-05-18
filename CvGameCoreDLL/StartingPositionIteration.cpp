@@ -115,7 +115,7 @@ StartingPositionIteration::StartingPositionIteration() :
 			{22, 36}, {19, 13}, {29, 12}, {29, 23},
 			{19, 29}, {32, 39}, {51, 11}, {55, 19},
 		};
-		for (int j = 0; j < ARRAY_LENGTH(aiiForcedInitialPosition); j++)
+		for (int j = 0; j < ARRAYSIZE(aiiForcedInitialPosition); j++)
 		{
 			GET_PLAYER((PlayerTypes)j).setStartingPlot(&kMap.getPlot(
 					aiiForcedInitialPosition[j][0], aiiForcedInitialPosition[j][1]), false);

@@ -324,7 +324,7 @@ scaled MilitaryBranch::HomeGuard::initTotals(int iNonNavalUnits,
 	else
 	{
 		m_iUnits = 0;
-		for (int i = 0; i < ARRAY_LENGTH(guardAITypes); i++)
+		for (int i = 0; i < ARRAYSIZE(guardAITypes); i++)
 			m_iUnits += kOwner.AI_getNumAIUnits(guardAITypes[i]);
 		/*	Units with aggressive AI types can be temporarily tied down
 			defending cities. So the count based on AI types isn't reliable. */

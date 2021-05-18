@@ -2656,7 +2656,7 @@ void CvGame::setCityBarWidth(bool bWide)
 		"INTERFACE_CITY_BAR_REGULAR_GLOW",
 		"INTERFACE_CITY_BAR_CAPITAL_GLOW"
 	};
-	int const iCityBarTags = ARRAY_LENGTH(aszCityBarTags);
+	int const iCityBarTags = ARRAYSIZE(aszCityBarTags);
 	CvArtInfoInterface* apCityBarArtInfos[iCityBarTags];
 	for (int i = 0; i < iCityBarTags; i++)
 	{

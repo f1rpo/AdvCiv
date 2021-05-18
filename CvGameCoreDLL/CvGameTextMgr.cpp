@@ -15681,7 +15681,7 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 			MEMORY_SPY_CAUGHT, MEMORY_ACCEPTED_STOP_TRADING,
 			MEMORY_NUKED_FRIEND, MEMORY_DECLARED_WAR_ON_FRIEND,
 		};
-		int const iNumObscureMemoryTypes = ARRAY_LENGTH(aeObscureMemoryTypes);
+		int const iNumObscureMemoryTypes = ARRAYSIZE(aeObscureMemoryTypes);
 		// </advc.004q>
 		FOR_EACH_ENUM(Memory)
 		{

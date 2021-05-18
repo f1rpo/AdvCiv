@@ -186,11 +186,6 @@ void iota(ForwardIt first, ForwardIt last, T value)
 }
 };
 
-/*	advc: For arrays initialized through brace-enclosed list.
-	The array must not be empty. Corresponds to std::size in C++17
-	(but we don't have constexpr, so it has to be a macro). */
-#define ARRAY_LENGTH(aArray) (sizeof(aArray) / sizeof(aArray[0]))
-
 // advc.004w:
 void applyColorToString(CvWString& s, char const* szColor, bool bLink = false);
 void narrowUnsafe(CvWString const& szWideString, CvString& szNarowString); // advc
