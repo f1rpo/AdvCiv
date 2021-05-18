@@ -9564,7 +9564,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 				bool bAnyReqFound = false;
 				for (int i = 0; i < u.getNumPrereqOrBonuses(); i++)
 				{
-					if (pCity != NULL || pCity->hasBonus(u.getPrereqOrBonuses(i)))
+					if (pCity != NULL && pCity->hasBonus(u.getPrereqOrBonuses(i)))
 					{
 						bAnyReqFound = true;
 						break;
