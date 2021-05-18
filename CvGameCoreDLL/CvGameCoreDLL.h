@@ -17,8 +17,11 @@
 #ifndef NOMINMAX
 	#define NOMINMAX
 #endif // </advc.fract>
+/*	<advc.make> That's Windows 2000, which is what Civ 4 requires anyway
+	(according to the publisher's website). Enables some more macros;
+	who knows, maybe also more optimized code. */
+#define _WIN32_WINNT 0x0500
 #include <windows.h>
-
 // advc.fract: Commented out, originally in CvGameCoreUtils.h.
 //#undef max
 //#undef min
