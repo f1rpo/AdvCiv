@@ -326,7 +326,9 @@ protected:
 	int AI_pillageValue(CvPlot const& kPlot, int iBonusValueThreshold = 0);
 	//bool AI_canPillage(CvPlot& kPlot) const; // advc.003j
 	//int AI_nukeValue(CvCity* pCity);
-	int AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBestTarget, int iCivilianTargetWeight = 50) const; // K-Mod
+	// <K-Mod>
+	int AI_nukeValue(CvPlot const& kCenterPlot, int iSearchRange,
+			CvPlot const*& pBestTarget, int iCivilianTargetWeight = 50) const; // </K-Mod>
 	// <advc.121>
 	int AI_connectBonusCost(CvPlot const& p, BuildTypes eBuild,
 			int iMissingWorkersInArea) const;

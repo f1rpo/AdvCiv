@@ -19753,65 +19753,68 @@ bool CvUnitAI::AI_nuke()
 {
 	PROFILE_FUNC();
 
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwner());
-	const CvTeamAI& kTeam = GET_TEAM(kOwner.getTeam());
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam());
 
-	bool bDanger = kOwner.AI_isAnyPlotDanger(getPlot(), 2); // consider changing this to something smarter
-	int iWarRating = kTeam.AI_getWarSuccessRating();
+	// consider changing this to something smarter
+	bool bDanger = kOwner.AI_isAnyPlotDanger(getPlot(), 2);
+	int const iWarRating = kTeam.AI_getWarSuccessRating();();
 	// iBaseWeight is the civ-independant part of the weight for civilian damage evaluation
 	int iBaseWeight = 10;
 	iBaseWeight += kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST3) || GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI)
 			? 10 : 0; // advc.019: was ?20:0
 	iBaseWeight += kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST4) ? 20 : 0;
 	iBaseWeight += std::max(0, -iWarRating);
-	iBaseWeight -= std::max(0, iWarRating - 50); // don't completely destroy them if we want to keep their land.
+	// don't completely destroy them if we want to keep their land.
+	iBaseWeight -= std::max(0, iWarRating - 50);
 
 	CvPlot* pBestTarget = 0;
 	// the initial value of iBestValue is the threshold for action. (cf. units of AI_nukeValue)
 	int iBestValue = std::max(0, 4 * getUnitInfo().getProductionCost());
-	iBestValue += bDanger || kOwner.AI_isDoStrategy(AI_STRATEGY_DAGGER) ? 20 : 100;
-	iBestValue *= std::max(1, kOwner.getNumNukeUnits() + 2 * kOwner.getNumCities());
-	iBestValue /= std::max(1, 2 * kOwner.getNumNukeUnits() + (bDanger ? 2 : 1) * kOwner.getNumCities());
+	iBestValue += (bDanger || kOwner.AI_isDoStrategy(AI_STRATEGY_DAGGER) ? 20 : 100);
+	iBestValue *= std::max(1,
+			kOwner.getNumNukeUnits() + 2 * kOwner.getNumCities());
+	iBestValue /= std::max(1,
+			2 * kOwner.getNumNukeUnits() + (bDanger ? 2 : 1) * kOwner.getNumCities());
 	iBestValue *= 150 + iWarRating;
 	iBestValue /= 150;
-
-	for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i = (PlayerTypes)(i+1))
+	for (PlayerIter<CIV_ALIVE,ENEMY_OF> itEnemy(kTeam.getID());
+		itEnemy.hasNext(); ++itEnemy)
 	{
-		const CvPlayer& kLoopPlayer = GET_PLAYER(i);
-		if (kLoopPlayer.isAlive() && isEnemy(kLoopPlayer.getTeam()))
-		{
-			int iDestructionWeight = iBaseWeight - kOwner.AI_getAttitudeWeight(i) / 2 + std::min(60,
-				//2 * // advc.130j: Cancels out with the new way of counting memory
-				kOwner.AI_getMemoryCount(i, MEMORY_NUKED_FRIEND) +
+		CvPlayer const& kEnemy = *itEnemy;
+		int iDestructionWeight = iBaseWeight
+				- kOwner.AI_getAttitudeWeight(kEnemy.getID()) / 2 +
+				std::min(60, //2 * // advc.130j: Cancels out with the new way of counting memory
+				kOwner.AI_getMemoryCount(kEnemy.getID(), MEMORY_NUKED_FRIEND) +
 				//5 * // advc.130j: Make it 3 *
-				3 * kOwner.AI_getMemoryCount(i, MEMORY_NUKED_US));
-			FOR_EACH_CITY(pLoopCity, kLoopPlayer)
+				3 * kOwner.AI_getMemoryCount(kEnemy.getID(), MEMORY_NUKED_US));
+		FOR_EACH_CITY(pLoopCity, kEnemy)
+		{
+			/*	note: we could use "AI_deduceCitySite" here, but, if we can't see
+				the city, then we can't properly judge its target value. */
+			if (!pLoopCity->isRevealed(getTeam()) ||
+				!canNukeAt(plot(), pLoopCity->getX(), pLoopCity->getY()))
 			{
-				// note: we could use "AI_deduceCitySite" here, but if we can't see the city, then we can't properly judge its target value anyway.
-				if (pLoopCity->isRevealed(getTeam()) &&
-					canNukeAt(plot(), pLoopCity->getX(), pLoopCity->getY()))
-				{
-					CvPlot* pTarget;
-					int iValue = AI_nukeValue(pLoopCity->plot(), nukeRange(), pTarget, iDestructionWeight);
-					iValue /= (kTeam.AI_getWarPlan(pLoopCity->getTeam()) == WARPLAN_LIMITED && iWarRating > -10) ? 2 : 1;
-
-					if (iValue > iBestValue)
-					{
-						iBestValue = iValue;
-						pBestTarget = pTarget;
-					}
-				}
+				continue;
+			}
+			CvPlot* pTarget;
+			int iValue = AI_nukeValue(pLoopCity->getPlot(), nukeRange(), pTarget,
+					iDestructionWeight);
+			if (kTeam.AI_getWarPlan(pLoopCity->getTeam()) == WARPLAN_LIMITED && iWarRating > -10)
+				iValue /= 2;
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				pBestTarget = pTarget;
 			}
 		}
 	}
-
 	if (pBestTarget)
 	{
 		FAssert(canNukeAt(plot(), pBestTarget->getX(), pBestTarget->getY()));
 		getGroup()->pushMission(MISSION_NUKE, pBestTarget->getX(), pBestTarget->getY());
 		return true;
 	}
-
 	return false;
 }
 
@@ -19825,7 +19828,7 @@ bool CvUnitAI::AI_nukeRange(int iRange)
 		iThresholdValue = iThresholdValue * 3/2;
 
 	CvPlot* pTargetPlot = 0;
-	int iNukeValue = AI_nukeValue(plot(), iRange, pTargetPlot);
+	int iNukeValue = AI_nukeValue(getPlot(), iRange, pTargetPlot);
 	if (iNukeValue > iThresholdValue)
 	{
 		FAssert(pTargetPlot && canNukeAt(plot(), pTargetPlot->getX(), pTargetPlot->getY()));
@@ -20918,21 +20921,20 @@ int CvUnitAI::AI_pillageValue(CvPlot const& kPlot, int iBonusValueThreshold) // 
 	return iValue;
 }
 
-// K-Mod.
-// Return the value of the best nuke target in the range specified, and set pBestTarget to be the specific target plot.
-// The return value is roughly in units of production.
-int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBestTarget, int iCivilianTargetWeight) const
+/*	K-Mod: Return the value of the best nuke target in the range specified,
+	and set pBestTarget to be the specific target plot. The return value is
+	roughly in units of production. */
+int CvUnitAI::AI_nukeValue(CvPlot const& kCenterPlot, int iSearchRange,
+	CvPlot const*& pBestTarget, int iCivilianTargetWeight) const
 {
 	PROFILE_FUNC();
 
-	FAssert(pCenterPlot);
-
 	int const iMilitaryTargetWeight = 100;
 	typedef std::map<CvPlot const*, int> plotMap_t;
-	plotMap_t affected_plot_values; // advc (comment): cache
+	plotMap_t plotValueCache;
 	pBestTarget = NULL;
 	int iBestValue = 0; // note: value is divided by 100 at the end
-	for (SquareIter itTarget(*pCenterPlot, iSearchRange); itTarget.hasNext(); ++itTarget)
+	for (SquareIter itTarget(kCenterPlot, iSearchRange); itTarget.hasNext(); ++itTarget)
 	{
 		CvPlot& kLoopTarget = *itTarget;
 		if (!canNukeAt(plot(), kLoopTarget.getX(), kLoopTarget.getY()))
@@ -20945,8 +20947,8 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 		for (SquareIter itNuke(kLoopTarget, nukeRange()); itNuke.hasNext(); ++itNuke)
 		{
 			CvPlot const& p = *itNuke;
-			plotMap_t::iterator plot_it = affected_plot_values.find(&p);
-			if (plot_it != affected_plot_values.end())
+			plotMap_t::iterator plot_it = plotValueCache.find(&p);
+			if (plot_it != plotValueCache.end())
 			{
 				if (plot_it->second == MIN_INT)
 					continue;
@@ -20955,12 +20957,12 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 			}
 			// plot evaluation:
 			int iPlotValue = 0;
-
 			// value for improvements / bonuses etc.
 			if (p.isOwned())
 			{
 				bool bEnemy = isEnemy(p);
-				FAssert(bEnemy || p.getTeam() == getTeam()); // it is owned, and we aren't allowed to nuke neutrals; so it is either enemy or ours.
+				// it is owned, and we aren't allowed to nuke neutrals; so ...
+				FAssert(bEnemy || p.getTeam() == getTeam());
 
 				CvPlayerAI const& kPlotOwner = GET_PLAYER(p.getOwner());
 				BonusTypes eBonus = p.getNonObsoleteBonusType(getTeam());
@@ -21025,7 +21027,7 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 									iPlotValue -= iMilitaryTargetWeight * x;
 								else // assume this is a special unit.
 								{
-									affected_plot_values[&p] = MIN_INT;
+									plotValueCache[&p] = MIN_INT;
 									continue;
 								}
 							}
@@ -21043,7 +21045,7 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 				// it might even be one of our own cities, so be careful!
 				if (!isEnemy(pLoopCity->getTeam(), p))
 				{
-					affected_plot_values[&p] = MIN_INT;
+					plotValueCache[&p] = MIN_INT;
 					continue;
 				}
 				// the values used here are quite arbitrary.
@@ -21067,7 +21069,6 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 						}
 					}
 				}
-
 				/*	if we don't have vision of the city, just assume that there are
 					at least a couple of defenders, and count that into our evaluation. */
 				if (!p.isVisible(getTeam()))
@@ -21082,7 +21083,7 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 				}
 			}
 			// end of plot evaluation
-			affected_plot_values[&p] = iPlotValue;
+			plotValueCache[&p] = iPlotValue;
 			iTargetValue += iPlotValue;
 		}
 		if (iTargetValue > iBestValue)
