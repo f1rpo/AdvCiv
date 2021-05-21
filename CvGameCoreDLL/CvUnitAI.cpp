@@ -11,7 +11,7 @@
 #include "CvArea.h"
 #include "CvInfo_Terrain.h"
 #include "CvInfo_GameOption.h"
-#include "CvInfo_Building.h" // advc.003x: Only needed for the special buildings that GP can construct and AI_nukeValue
+#include "CvInfo_Building.h" // advc.003x: Only needed for the special buildings that GP can construct
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 
 //#define FOUND_RANGE (7) // advc: unused
@@ -20933,7 +20933,6 @@ int CvUnitAI::AI_nukeValue(CvPlot const& kCenterPlot, int iSearchRange,
 {
 	PROFILE_FUNC();
 
-	int const iMilitaryTargetWeight = 100;
 	typedef std::map<CvPlot const*, int> plotMap_t;
 	plotMap_t plotValueCache;
 	pBestTarget = NULL;
@@ -20950,144 +20949,18 @@ int CvUnitAI::AI_nukeValue(CvPlot const& kCenterPlot, int iSearchRange,
 		//bool bValid = true; // advc: Rewritten w/o this flag
 		for (SquareIter itNuke(kLoopTarget, nukeRange()); itNuke.hasNext(); ++itNuke)
 		{
-			CvPlot const& p = *itNuke;
-			plotMap_t::iterator plot_it = plotValueCache.find(&p);
-			if (plot_it != plotValueCache.end())
+			plotMap_t::iterator pos = plotValueCache.find(&*itNuke);
+			if (pos != plotValueCache.end())
 			{
-				if (plot_it->second == MIN_INT)
+				if (pos->second == MIN_INT)
 					continue;
-				iTargetValue += plot_it->second;
+				iTargetValue += pos->second;
 				continue;
 			}
-			// plot evaluation:
-			int iPlotValue = 0;
-			// value for improvements / bonuses etc.
-			if (p.isOwned())
-			{
-				bool bEnemy = isEnemy(p);
-				// it is owned, and we aren't allowed to nuke neutrals; so ...
-				FAssert(bEnemy || p.getTeam() == getTeam());
-
-				CvPlayerAI const& kPlotOwner = GET_PLAYER(p.getOwner());
-				BonusTypes eBonus = p.getNonObsoleteBonusType(getTeam());
-				ImprovementTypes eImprovement = p.getRevealedImprovementType(getTeam());
-				if (eImprovement != NO_IMPROVEMENT)
-				{
-					CvImprovementInfo const& kImprovement = GC.getInfo(eImprovement);
-					if (!kImprovement.isPermanent())
-					{
-						// arbitrary values, sorry.
-						iPlotValue += 8 * (bEnemy ? iCivilianTargetWeight : -50);
-						if (kImprovement.getImprovementPillage() != NO_IMPROVEMENT)
-						{
-							iPlotValue += (kImprovement.getImprovementUpgrade() == NO_IMPROVEMENT ?
-									32 : 16) * (bEnemy ? iCivilianTargetWeight : -50);
-						}
-					}
-				}
-				if (eBonus != NO_BONUS)
-				{
-					iPlotValue += 8 * (bEnemy ? iCivilianTargetWeight : -50);
-					if (kPlotOwner.doesImprovementConnectBonus(eImprovement, eBonus))
-					{
-						/*	assume that valuable bonuses are military targets, because
-							the enemy might be using the bonus to build weapons. */
-						iPlotValue += kPlotOwner.AI_bonusVal(eBonus, 0) *
-								(bEnemy ? iMilitaryTargetWeight : -100);
-					}
-				}
-			}
-
-			/*	consider military units if the plot is visible.
-				(todo: increase value of military units that we can chase down this turn, maybe.) */
-			if (p.isVisible(getTeam()))
-			{
-				FOR_EACH_UNIT_IN(pLoopUnit, p)
-				{
-					/*	I'm going to allow the AI to cheat here by seeing cargo units.
-						(Human players can usually guess when a ship is loaded...) */
-					if (!pLoopUnit->isInvisible(getTeam(), false, true))
-					{
-						if (pLoopUnit->isEnemy(getTeam(), p))
-						{
-							int iUnitValue = std::max(1,
-									pLoopUnit->getUnitInfo().getProductionCost());
-							/*	decrease the value for wounded units.
-								(it might be nice to only do this if we are
-								in a position to attack with ground forces...) */
-							int x = 100 * (pLoopUnit->maxHitPoints() -
-									pLoopUnit->currHitPoints()) /
-									std::max(1, pLoopUnit->maxHitPoints());
-							iUnitValue -= iUnitValue*x*x/10000;
-							iPlotValue += iMilitaryTargetWeight * iUnitValue;
-						}
-						else // non enemy unit
-						{
-							if (pLoopUnit->getTeam() == getTeam())
-							{
-								// nuking our own units... sometimes acceptable
-								int x = pLoopUnit->getUnitInfo().getProductionCost();
-								if (x > 0)
-									iPlotValue -= iMilitaryTargetWeight * x;
-								else // assume this is a special unit.
-								{
-									plotValueCache[&p] = MIN_INT;
-									continue;
-								}
-							}
-							// kekm.7: Commented out
-							//else FErrorMsg("3rd party unit being considered for nuking.");
-						}
-					}
-				} // end unit loop
-			} // end plot visible
-
-			// I can imagine some cases where this actually isn't pCity. Can you?
-			CvCity* pLoopCity = p.getPlotCity(); // advc (moved up)
-			if (pLoopCity != NULL && pLoopCity->isRevealed(getTeam()))
-			{
-				// it might even be one of our own cities, so be careful!
-				if (!isEnemy(pLoopCity->getTeam(), p))
-				{
-					plotValueCache[&p] = MIN_INT;
-					continue;
-				}
-				// the values used here are quite arbitrary.
-				iPlotValue += iCivilianTargetWeight * 2 * (pLoopCity->getCultureLevel() + 2) *
-						pLoopCity->getPopulation();
-				/*	note, it is possible to see which buildings the city has
-					by looking at the map. This is not secret information. */
-				/*  advc.045 (comment): The above is no longer true. Tbd.:
-					if (!pLoopCity->isAllBuildingsVisible(getTeam(), false))
-					... then use an estimate only. */
-				FOR_EACH_ENUM(Building)
-				{
-					if (pLoopCity->getNumRealBuilding(eLoopBuilding) > 0)
-					{
-						CvBuildingInfo const& kBuilding = GC.getInfo(eLoopBuilding);
-						if (!kBuilding.isNukeImmune())
-						{
-							iPlotValue += iCivilianTargetWeight *
-									pLoopCity->getNumRealBuilding(eLoopBuilding) *
-									std::max(0, kBuilding.getProductionCost());
-						}
-					}
-				}
-				/*	if we don't have vision of the city, just assume that there are
-					at least a couple of defenders, and count that into our evaluation. */
-				if (!p.isVisible(getTeam()))
-				{
-					UnitTypes eBasicUnit = pLoopCity->getConscriptUnit();
-					int iBasicCost = std::max(10, eBasicUnit != NO_UNIT ?
-							GC.getInfo(eBasicUnit).getProductionCost() : 0);
-					int iExpectedUnits = 1 + ((1 + pLoopCity->getCultureLevel()) *
-							pLoopCity->getPopulation() + pLoopCity->getHighestPopulation()/2) /
-							std::max(1, pLoopCity->getHighestPopulation());
-					iPlotValue += iMilitaryTargetWeight * iExpectedUnits * iBasicCost;
-				}
-			}
-			// end of plot evaluation
-			plotValueCache[&p] = iPlotValue;
+			// plot evaluation ... (advc: moved to CvPlayerAI)
+			int iPlotValue = GET_PLAYER(getOwner()).AI_nukePlotValue(
+					*itNuke, iCivilianTargetWeight);
+			plotValueCache[&*itNuke] = iPlotValue;
 			iTargetValue += iPlotValue;
 		}
 		if (iTargetValue > iBestValue)

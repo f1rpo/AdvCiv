@@ -14456,7 +14456,7 @@ int CvPlayerAI::AI_neededExecutives(CvArea const& kArea,
 	return iCount;
 }
 
-/*	K-Mod. This function is used to replace the old (broken)
+/*	<K-Mod> This function is used to replace the old (broken)
 	"unit cost percentage" calculation used by the AI */
 int CvPlayerAI::AI_unitCostPerMil() const
 {
@@ -14594,6 +14594,20 @@ int CvPlayerAI::AI_maxUnitCostPerMil(CvArea const* pArea, int iBuildProb) const
 	return iMaxUnitSpending;
 }
 
+
+bool CvPlayerAI::AI_isLandWar(CvArea const& kArea) const
+{
+	switch(kArea.getAreaAIType(getTeam()))
+	{
+	case AREAAI_OFFENSIVE:
+	case AREAAI_MASSING:
+	case AREAAI_DEFENSIVE:
+		return true;
+	default:
+		return false;
+	}
+} 
+
 /*	When nukes are enabled, this function returns a percentage factor
 	of how keen this player is to build nukes. The starting value is around 100,
 	which corresponds to quite a low tendency to build nukes. */
@@ -14649,21 +14663,160 @@ int CvPlayerAI::AI_nukeWeight() const
 		iNukeWeight = (iNukeWeight * 4) / 3;
 	}
 	return iNukeWeight;
+} // </K-Mod>
+
+// advc: K-Mod code cut from CvUnitAI::AI_nukeValue
+int CvPlayerAI::AI_nukePlotValue(CvPlot const& kPlot,
+	int iCivilianTargetWeight) const
+{
+	int const iMilitaryTargetWeight = 100;
+	int iValue = 0;
+	// value for improvements / bonuses etc.
+	if (kPlot.isOwned())
+	{
+		// (we aren't allowed to nuke neutrals)
+		bool const bEnemy = (kPlot.getTeam() != getTeam());
+		CvPlayerAI const& kPlotOwner = GET_PLAYER(kPlot.getOwner());
+		ImprovementTypes const eImprovement = kPlot.getRevealedImprovementType(getTeam());
+		if (eImprovement != NO_IMPROVEMENT)
+		{
+			CvImprovementInfo const& kImprovement = GC.getInfo(eImprovement);
+			if (!kImprovement.isPermanent())
+			{
+				// arbitrary values, sorry.
+				iValue += 8 * (bEnemy ? iCivilianTargetWeight : -50);
+				if (kImprovement.getImprovementPillage() != NO_IMPROVEMENT)
+				{
+					iValue += (kImprovement.getImprovementUpgrade() == NO_IMPROVEMENT ?
+							32 : 16) * (bEnemy ? iCivilianTargetWeight : -50);
+				}
+			}
+		}
+		BonusTypes const eBonus = kPlot.getNonObsoleteBonusType(getTeam());
+		if (eBonus != NO_BONUS)
+		{
+			iValue += 8 * (bEnemy ? iCivilianTargetWeight : -50);
+			if (kPlotOwner.doesImprovementConnectBonus(eImprovement, eBonus))
+			{
+				/*	assume that valuable bonuses are military targets, because
+					the enemy might be using the bonus to build weapons. */
+				iValue += kPlotOwner.AI_bonusVal(eBonus, 0) *
+						(bEnemy ? iMilitaryTargetWeight : -100);
+			}
+		}
+	}
+	/*	consider military units if the plot is visible.
+		(todo: increase value of military units that we can chase down this turn, maybe.) */
+	if (kPlot.isVisible(getTeam()))
+	{
+		FOR_EACH_UNIT_IN(pUnit, kPlot)
+		{
+			/*	I'm going to allow the AI to cheat here by seeing cargo units.
+				(Human players can usually guess when a ship is loaded...) */
+			if (!pUnit->isInvisible(getTeam(), false, true))
+			{
+				if (pUnit->isEnemy(getTeam(), kPlot))
+				{
+					int iUnitValue = std::max(1, pUnit->getUnitInfo().getProductionCost());
+					/*	decrease the value for wounded units.
+						(it might be nice to only do this if we are
+						in a position to attack with ground forces...) */
+					int x = 100 * (pUnit->maxHitPoints() - pUnit->currHitPoints()) /
+							std::max(1, pUnit->maxHitPoints());
+					iUnitValue -= iUnitValue*x*x/10000;
+					iValue += iMilitaryTargetWeight * iUnitValue;
+				}
+				else // non enemy unit
+				{
+					if (pUnit->getTeam() == getTeam())
+					{
+						// nuking our own units... sometimes acceptable
+						int x = pUnit->getUnitInfo().getProductionCost();
+						if (x > 0)
+							iValue -= iMilitaryTargetWeight * x;
+						// assume this is a special unit.
+						else return MIN_INT;
+					}
+					// kekm.7: Commented out
+					//else FErrorMsg("3rd party unit being considered for nuking.");
+				}
+			}
+		}
+	}
+	CvCity const* pCity = kPlot.getPlotCity(); // advc (moved up)
+	if (pCity == NULL || !pCity->isRevealed(getTeam()))
+		return iValue;
+	if (pCity->getTeam() == getTeam())
+		return MIN_INT;
+	// the values used here are quite arbitrary.
+	iValue += iCivilianTargetWeight * 2 * (pCity->getCultureLevel() + 2) *
+			pCity->getPopulation();
+	/*	note, it is possible to see which buildings the city has
+		by looking at the map. This is not secret information. */
+	/*  advc.045 (comment): The above is no longer true. Tbd.:
+		if (!pLoopCity->isAllBuildingsVisible(getTeam(), false))
+		... then use an estimate only. */
+	FOR_EACH_ENUM(Building)
+	{
+		if (pCity->getNumRealBuilding(eLoopBuilding) > 0)
+		{
+			CvBuildingInfo const& kBuilding = GC.getInfo(eLoopBuilding);
+			if (!kBuilding.isNukeImmune())
+			{
+				iValue += iCivilianTargetWeight *
+						pCity->getNumRealBuilding(eLoopBuilding) *
+						std::max(0, kBuilding.getProductionCost());
+			}
+		}
+	}
+	/*	if we don't have vision of the city, just assume that there are
+		at least a couple of defenders, and count that into our evaluation. */
+	if (!kPlot.isVisible(getTeam()))
+	{
+		UnitTypes eBasicUnit = pCity->getConscriptUnit();
+		int iBasicCost = std::max(10, eBasicUnit != NO_UNIT ?
+				GC.getInfo(eBasicUnit).getProductionCost() : 0);
+		int iExpectedUnits = 1 + ((1 + pCity->getCultureLevel()) *
+				pCity->getPopulation() + pCity->getHighestPopulation() / 2) /
+				std::max(1, pCity->getHighestPopulation());
+		iValue += iMilitaryTargetWeight * iExpectedUnits * iBasicCost;
+	}
+	return iValue;
 }
 
-bool CvPlayerAI::AI_isLandWar(CvArea const& kArea) const
+// kekm.16:
+int CvPlayerAI::AI_nukeDangerDivisor() const
 {
-	switch(kArea.getAreaAIType(getTeam()))
+	if (GC.getGame().isNoNukes())
+		return 15;
+	bool bRemoteDanger = false;
+	CvLeaderHeadInfo const& kOurPers = GC.getInfo(getPersonalityType());
+	// Vassals can't have nukes b/c of change advc.143b
+	for (PlayerIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itRival(getTeam());
+		itRival.hasNext(); ++itRival)
 	{
-	case AREAAI_OFFENSIVE:
-	case AREAAI_MASSING:
-	case AREAAI_DEFENSIVE:
-		return true;
-	default:
-		return false;
+		/*  advc: Avoid building shelters against friendly
+			nuclear powers. This is mostly role-playing. */
+		AttitudeTypes towardThem = AI_getAttitude(itRival->getID());
+		if (kOurPers.getNoWarAttitudeProb(towardThem) >= 100 &&
+			(itRival->isHuman() ?
+			towardThem >= ATTITUDE_FRIENDLY :
+			// advc.104y:
+			GET_TEAM(itRival->getTeam()).AI_isAvoidWar(getTeam())))
+		{
+			continue;
+		}
+		/*	DarkLunaPhantom: We're going to cheat a little bit,
+			by counting nukes that we probably shouldn't know about. */
+		if (itRival->getNumNukeUnits() > 0)
+			return 1; // Greatest danger, smallest divisor.
+		if (itRival->getCurrentEra() >= CvEraInfo::AI_getAtomicAge())
+			bRemoteDanger = true;
 	}
+	if (bRemoteDanger)
+		return 10;
+	return 20;
 }
-// K-Mod end
 
 /*  advc.105: To replace some of the
 	GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0
@@ -28290,40 +28443,6 @@ bool CvPlayerAI::AI_isThreatFromMinorCiv() const
 	}
 	return false;
 } // </advc.109>
-
-// kekm.16:
-int CvPlayerAI::AI_nukeDangerDivisor() const
-{
-	if (GC.getGame().isNoNukes())
-		return 15;
-	bool bRemoteDanger = false;
-	CvLeaderHeadInfo const& kOurPers = GC.getInfo(getPersonalityType());
-	// Vassals can't have nukes b/c of change advc.143b
-	for (PlayerIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itRival(getTeam());
-		itRival.hasNext(); ++itRival)
-	{
-		/*  advc: Avoid building shelters against friendly
-			nuclear powers. This is mostly role-playing. */
-		AttitudeTypes towardThem = AI_getAttitude(itRival->getID());
-		if (kOurPers.getNoWarAttitudeProb(towardThem) >= 100 &&
-			(itRival->isHuman() ?
-			towardThem >= ATTITUDE_FRIENDLY :
-			// advc.104y:
-			GET_TEAM(itRival->getTeam()).AI_isAvoidWar(getTeam())))
-		{
-			continue;
-		}
-		/*	DarkLunaPhantom: We're going to cheat a little bit,
-			by counting nukes that we probably shouldn't know about. */
-		if (itRival->getNumNukeUnits() > 0)
-			return 1; // Greatest danger, smallest divisor.
-		if (itRival->getCurrentEra() >= CvEraInfo::AI_getAtomicAge())
-			bRemoteDanger = true;
-	}
-	if (bRemoteDanger)
-		return 10;
-	return 20;
-}
 
 // advc: Mostly cut from CvTeamAI::AI_hasSharedPrimaryArea
 bool CvPlayerAI::AI_hasSharedPrimaryArea(PlayerTypes eOther) const

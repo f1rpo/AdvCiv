@@ -339,10 +339,11 @@ public:
 	int AI_neededExecutives(CvArea const& kArea, CorporationTypes eCorporation) const;
 	int AI_unitCostPerMil() const; // K-Mod
 	int AI_maxUnitCostPerMil(CvArea const* pArea = NULL, int iBuildProb = -1) const; // K-Mod
-	int AI_nukeWeight() const; // K-Mod
-	int AI_nukeDangerDivisor() const; // kekm.16
 	bool AI_isLandWar(CvArea const& kArea) const; // K-Mod
 	bool AI_isFocusWar(CvArea const* pArea = NULL) const; // advc.105
+	int AI_nukeWeight() const; // K-Mod
+	int AI_nukeDangerDivisor() const; // kekm.16
+	int AI_nukePlotValue(CvPlot const& kPlot, int iCivilianTargetWeight) const; // advc
 
 	int AI_missionaryValue(ReligionTypes eReligion, CvArea const* pArea = NULL/*, PlayerTypes* peBestPlayer = NULL*/) const;
 	int AI_executiveValue(CorporationTypes eCorporation, CvArea const* pArea = NULL,
