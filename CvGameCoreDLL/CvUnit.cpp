@@ -886,11 +886,9 @@ void CvUnit::resolveAirCombat(CvUnit* pInterceptor, CvPlot* pPlot, CvAirMissionD
 
 void CvUnit::updateAirCombat(bool bQuick)
 {
-	CvUnit* pInterceptor = NULL;
-	bool bFinish = false;
-
 	FAssert(getDomainType() == DOMAIN_AIR || getDropRange() > 0);
 
+	bool bFinish = false;
 	if (getCombatTimer() > 0)
 	{
 		changeCombatTimer(-1);
@@ -899,14 +897,11 @@ void CvUnit::updateAirCombat(bool bQuick)
 		else bFinish = true;
 	}
 
-	CvPlot* pPlot = getAttackPlot();
+	CvPlot* const pPlot = getAttackPlot();
 	if (pPlot == NULL)
 		return;
 
-	if (bFinish)
-		pInterceptor = getCombatUnit();
-	else pInterceptor = bestInterceptor(*pPlot);
-
+	CvUnit* const pInterceptor = (bFinish ? getCombatUnit() : bestInterceptor(*pPlot));
 	if (pInterceptor == NULL)
 	{
 		setAttackPlot(NULL, false);
@@ -916,9 +911,7 @@ void CvUnit::updateAirCombat(bool bQuick)
 	}
 
 	//check if quick combat
-	bool bVisible = false;
-	if (!bQuick)
-		bVisible = isCombatVisible(pInterceptor);
+	bool const bVisible = (bQuick ? false : isCombatVisible(pInterceptor));
 
 	//if not finished and not fighting yet, set up combat damage and mission
 	if (!bFinish)
@@ -926,7 +919,8 @@ void CvUnit::updateAirCombat(bool bQuick)
 		if (!isFighting())
 		{
 			//if (getPlot().isFighting() || pPlot->isFighting())
-			// K-Mod. I don't think it matters if the plot we're on is fighting already - but the interceptor needs to be available to fight!
+			/*	K-Mod. I don't think it matters if the plot we're on is fighting already
+				- but the interceptor needs to be available to fight! */
 			if (pPlot->isFighting() || pInterceptor->isFighting())
 				return;
 			setMadeAttack(true);
@@ -934,7 +928,6 @@ void CvUnit::updateAirCombat(bool bQuick)
 			pInterceptor->setCombatUnit(this, false);
 		}
 
-		FAssert(pInterceptor != NULL);
 		FAssert(getPlot().isFighting());
 		FAssert(pInterceptor->getPlot().isFighting());
 
@@ -948,27 +941,20 @@ void CvUnit::updateAirCombat(bool bQuick)
 		resolveAirCombat(pInterceptor, pPlot, kAirMission);
 
 		if (!bVisible)
-		{
 			bFinish = true;
-		}
 		else
 		{
 			kAirMission.setPlot(pPlot);
 			kAirMission.setMissionTime(GC.getInfo(MISSION_AIRSTRIKE).getTime() * gDLL->getSecsPerTurn());
 			setCombatTimer(GC.getInfo(MISSION_AIRSTRIKE).getTime());
 			GC.getGame().incrementTurnTimer(getCombatTimer());
-
 			if (pPlot->isActiveVisible(false))
-			{
 				gDLL->getEntityIFace()->AddMission(&kAirMission);
-			}
 		}
 
 		changeMoves(GC.getMOVE_DENOMINATOR());
-		if (DOMAIN_AIR != pInterceptor->getDomainType())
-		{
+		if (pInterceptor->getDomainType() != DOMAIN_AIR)
 			pInterceptor->setMadeInterception(true);
-		}
 
 		if (isDead())
 		{

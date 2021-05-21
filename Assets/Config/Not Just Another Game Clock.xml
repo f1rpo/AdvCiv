@@ -27,14 +27,16 @@
 
 			<!-- advc.002k: New option. No need for a dirty-bit; the time
 				 display is constantly updated (I guess in case a clock is
-				 activated) -->
+				 activated).
+				 Note: The order of the choices needs to match
+				 CvGameTextMgr::setGameYearStr. -->
 			<list id="YearNotation" key="Year Notation" 
 					type="int" default="0" listType="string" 
 					values="AD Prefix|AD Postfix|Common Era" 
 					get="getYearNotation">
-				<choice id="ADPrefix" get="isADPrefix"/>
-				<choice id="ADPostfix" get="isADPostfix"/>
-				<choice id="CommonEra" get="isCommonEra"/>
+				<choice id="ADPrefix"/>
+				<choice id="ADPostfix"/>
+				<choice id="CommonEra"/>
 			</list>
 
 			<!-- advc.067: New option -->

@@ -64,7 +64,7 @@ int CvGameTextMgr::getCurrentLanguage()
 
 
 void CvGameTextMgr::setYearStr(CvWString& szString, int iGameTurn, bool bSave,
-		CalendarTypes eCalendar, int iStartYear, GameSpeedTypes eSpeed)
+	CalendarTypes eCalendar, int iStartYear, GameSpeedTypes eSpeed)
 {
 	int iTurnYear = getTurnYearForGame(iGameTurn, iStartYear, eCalendar, eSpeed);
 	// <advc.002k>
@@ -114,6 +114,7 @@ void CvGameTextMgr::setYearStr(CvWString& szString, int iGameTurn, bool bSave,
 		}
 	}
 }
+
 
 void CvGameTextMgr::setDateStr(CvWString& szString, int iGameTurn, bool bSave, CalendarTypes eCalendar, int iStartYear, GameSpeedTypes eSpeed)
 {
