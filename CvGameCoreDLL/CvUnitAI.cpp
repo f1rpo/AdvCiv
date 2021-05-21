@@ -19758,12 +19758,16 @@ bool CvUnitAI::AI_nuke()
 
 	// consider changing this to something smarter
 	bool bDanger = kOwner.AI_isAnyPlotDanger(getPlot(), 2);
-	int const iWarRating = kTeam.AI_getWarSuccessRating();();
+	int const iWarRating = kTeam.AI_getWarSuccessRating();
 	// iBaseWeight is the civ-independant part of the weight for civilian damage evaluation
-	int iBaseWeight = 10;
-	iBaseWeight += kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST3) || GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI)
-			? 10 : 0; // advc.019: was ?20:0
-	iBaseWeight += kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST4) ? 20 : 0;
+	/*int iBaseWeight = 10;
+	iBaseWeight += kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST3) || GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI) ? 20 : 0;*/
+	// <advc.019>
+	int iBaseWeight = (GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI) ? 17 : 10);
+	if (kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST3))
+		iBaseWeight += 8; // </advc.019>
+	if (kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST4))
+	iBaseWeight += 20;
 	iBaseWeight += std::max(0, -iWarRating);
 	// don't completely destroy them if we want to keep their land.
 	iBaseWeight -= std::max(0, iWarRating - 50);
