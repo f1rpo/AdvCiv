@@ -19797,7 +19797,7 @@ bool CvUnitAI::AI_nuke()
 			/*	note: we could use "AI_deduceCitySite" here, but, if we can't see
 				the city, then we can't properly judge its target value. */
 			if (!pLoopCity->isRevealed(getTeam()) ||
-				!canNukeAt(plot(), pLoopCity->getX(), pLoopCity->getY()))
+				!canNukeAt(getPlot(), pLoopCity->getX(), pLoopCity->getY()))
 			{
 				continue;
 			}
@@ -19815,7 +19815,7 @@ bool CvUnitAI::AI_nuke()
 	}
 	if (pBestTarget)
 	{
-		FAssert(canNukeAt(plot(), pBestTarget->getX(), pBestTarget->getY()));
+		FAssert(canNukeAt(getPlot(), pBestTarget->getX(), pBestTarget->getY()));
 		getGroup()->pushMission(MISSION_NUKE, pBestTarget->getX(), pBestTarget->getY());
 		return true;
 	}
@@ -19835,7 +19835,7 @@ bool CvUnitAI::AI_nukeRange(int iRange)
 	int iNukeValue = AI_nukeValue(getPlot(), iRange, pTargetPlot);
 	if (iNukeValue > iThresholdValue)
 	{
-		FAssert(pTargetPlot && canNukeAt(plot(), pTargetPlot->getX(), pTargetPlot->getY()));
+		FAssert(pTargetPlot && canNukeAt(getPlot(), pTargetPlot->getX(), pTargetPlot->getY()));
 		getGroup()->pushMission(MISSION_NUKE, pTargetPlot->getX(), pTargetPlot->getY());
 		return true;
 	}
@@ -20940,7 +20940,7 @@ int CvUnitAI::AI_nukeValue(CvPlot const& kCenterPlot, int iSearchRange,
 	for (SquareIter itTarget(kCenterPlot, iSearchRange); itTarget.hasNext(); ++itTarget)
 	{
 		CvPlot& kLoopTarget = *itTarget;
-		if (!canNukeAt(plot(), kLoopTarget.getX(), kLoopTarget.getY()))
+		if (!canNukeAt(getPlot(), kLoopTarget.getX(), kLoopTarget.getY()))
 			continue;
 		/*	Note: canNukeAt checks that we aren't hitting any 3rd party targets,
 			so we don't have to worry about checking that elsewhere */
