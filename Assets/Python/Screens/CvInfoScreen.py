@@ -2917,8 +2917,8 @@ class CvInfoScreen:
 			# Check to see if active player can see this city
 			# advc.001d: Replaced gc.getGame().getActiveTeam with self.iActiveTeam. Check bRevealAll.
 			# advc.007: bDebug=True unless perspective switched. 
-			bRevealed = pCity.GetCy().isRevealed(self.iActiveTeam, self.iActiveTeam == gc.getGame().getActiveTeam()) or self.bRevealAll
-			if pCity and bRevealed:
+			bRevealed = pCity and (pCity.GetCy().isRevealed(self.iActiveTeam, self.iActiveTeam == gc.getGame().getActiveTeam()) or self.bRevealAll)
+			if bRevealed:
 				szCityName = pCity.getName()
 			else:
 				szCityName = u""
@@ -2928,7 +2928,7 @@ class CvInfoScreen:
 				szCityName = localText.changeTextColor(szCityName, color)
 
 			screen.appendTableRow(self.szWondersTable)
-			if bKnown and pCity and bRevealed:
+			if bKnown and bRevealed:
 				screen.setTableText(self.szWondersTable, 0, iWonderLoop+iWBB, "", zoomArt, WidgetTypes.WIDGET_ZOOM_CITY, pCity.getOwner(), pCity.getID(), CvUtil.FONT_LEFT_JUSTIFY)
 			screen.setTableText(self.szWondersTable, 1, iWonderLoop+iWBB, szWonderName   , "", iWidget, iWonderType, -1, CvUtil.FONT_LEFT_JUSTIFY)
 			screen.setTableInt (self.szWondersTable, 2, iWonderLoop+iWBB, szTurnYearBuilt, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
