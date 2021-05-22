@@ -20727,7 +20727,9 @@ void CvPlayerAI::AI_proposeWarTrade(PlayerTypes eHireling)
 			CvCity const* pBestCity = NULL;
 			int iBestFitness = MIN_INT;
 			/*	Akin to code in AI_balanceDeal, but this here is less strict
-				with cities that are more useful to us than to them. */
+				with cities that are more useful to us than to them.
+				Based on AI Auto Play tests, it's still very rare that a deal
+				(city ceded in exchange for help in a war) is struck. */
 			FOR_EACH_CITYAI(pCity, *this)
 			{
 				if (!canTradeItem(eHireling,
@@ -20740,7 +20742,6 @@ void CvPlayerAI::AI_proposeWarTrade(PlayerTypes eHireling)
 				if (iAcquireVal <= 0) // Hireling insisting on liberation
 					continue;
 				int iFitness = iAcquireVal - iKeepVal;
-				FErrorMsg("Just for testing the condition below; hasn't been true in tests so far."); // advc.test
 				if (iFitness > iBestFitness && (iKeepVal <= 0 ||
 					scaled(iAcquireVal, iKeepVal) - 1 > per100(iWSRating)))
 				{

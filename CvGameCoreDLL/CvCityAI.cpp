@@ -1446,8 +1446,10 @@ void CvCityAI::AI_chooseProduction()
 			(bFinancialTrouble && iUnitSpending > iMaxUnitSpending)); // </advc>
 	//minimal defense.
 	//if (!bUnitExempt && iPlotCityDefenderCount < (AI_minDefenders() + iPlotSettlerCount))
-	// K-Mod.. take into account any defenders that are on their way. (recall that in AI_guardCityMinDefender, defenders can be shuffled around)
-	// (I'm doing the min defender check twice for efficiency - so that we don't count targetmissionAIs when we don't need to)
+	/*	K-Mod.. take into account any defenders that are on their way.
+		(recall that in AI_guardCityMinDefender, defenders can be shuffled around)
+		(I'm doing the min defender check twice for efficiency -
+		so that we don't count targetmissionAIs when we don't need to) */
 	if (!bSpendingExempt &&
 		iPlotCityDefenderCount < iMinDefenders &&
 		iPlotCityDefenderCount < iMinDefenders - kPlayer.AI_plotTargetMissionAIs(getPlot(), MISSIONAI_GUARD_CITY))
@@ -1677,7 +1679,7 @@ void CvCityAI::AI_chooseProduction()
 	}*/ // BtS
 
 	//opportunistic wonder build
-	if (!bDanger && (!hasActiveWorldWonder() || (kPlayer.getNumCities() > 3)))
+	if (!bDanger && (!hasActiveWorldWonder() || kPlayer.getNumCities() > 3))
 	{
 		// For civ at war, don't build wonders if losing
 		if (!bTotalWar && (!bLandWar || iWarSuccessRating > 0)) // was -30
@@ -2880,7 +2882,8 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 	}
 
 	// XXX this should account for air and heli units too...
-	// K-Mod. Human players don't choose the AI type of the units they build. Therefore we shouldn't use the unit AI counts to decide what to build next.
+	/*	K-Mod. Human players don't choose the AI type of the units they build.
+		Therefore we shouldn't use the unit AI counts to decide what to build next. */
 	if (isHuman())
 	{
 		aiUnitAIVal[UNITAI_SETTLE] = 0;
@@ -5935,13 +5938,15 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bA
 
 		// give a small chance of building global projects, regardless of strategy, just for a bit of variety.
 		if ((kLoopProject.getEveryoneSpecialUnit() != NO_SPECIALUNIT) ||
-			  (kLoopProject.getEveryoneSpecialBuilding() != NO_SPECIALBUILDING) ||
-			  kLoopProject.isAllowsNukes())
+			(kLoopProject.getEveryoneSpecialBuilding() != NO_SPECIALBUILDING) ||
+			kLoopProject.isAllowsNukes())
 		{	// <advc.001n>
 			if ((bAsync ?
-					GC.getASyncRand().get(100, "Project Everyone ASYNC") : // </advc.001n>
-					GC.getGame().getSorenRandNum(100, "Project Everyone")) == 0)
+				GC.getASyncRand().get(100, "Project Everyone ASYNC") : // </advc.001n>
+				GC.getGame().getSorenRandNum(100, "Project Everyone")) == 0)
+			{
 				iValue++;
+			}
 		}
 
 		if (iValue <= 0)
@@ -6037,16 +6042,15 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bA
 // However, note that most projects don't actually give commerce per turn - so the evaluation is quite rough.
 int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 {
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwner());
-	const CvTeamAI& kTeam = GET_TEAM(kOwner.getTeam());
-	const CvProjectInfo& kProject = GC.getInfo(eProject);
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam());
+	CvProjectInfo const& kProject = GC.getInfo(eProject);
 
 	int iValue = 0;
 
 	if (kProject.getTechShare() > 0)
 	{
-		if (kProject.getTechShare() <
-			GET_TEAM(getTeam()).getHasMetCivCount(true) &&
+		if (kProject.getTechShare() < kTeam.getHasMetCivCount(true) &&
 			!kOwner.AI_avoidScience())
 		{
 			TechTypes eSampleTech = kOwner.getCurrentResearch();
