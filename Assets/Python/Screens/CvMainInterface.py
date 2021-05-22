@@ -821,10 +821,15 @@ class CvMainInterface:
 					screen.hide( szName )
 
 # BUG - city specialist - start
-		screen.addPanel( "SpecialistBackground", u"", u"", True, False, xResolution - 243, yResolution - 423, 230, 30, PanelStyles.PANEL_STYLE_STANDARD )
+		screen.addPanel( "SpecialistBackground", u"", u"", True, False, xResolution - 243,
+				# advc.004: y position was yResolution minus 423. That works well for the stacked specialists, but not for the other options.
+				yResolution - 475, 230, 30, PanelStyles.PANEL_STYLE_STANDARD )
 		screen.setStyle( "SpecialistBackground", "Panel_City_Header_Style" )
 		screen.hide( "SpecialistBackground" )
-		screen.setLabel( "SpecialistLabel", "Background", localText.getText("TXT_KEY_CONCEPT_SPECIALISTS", ()), CvUtil.FONT_CENTER_JUSTIFY, xResolution - 128, yResolution - 415, -0.1, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.setLabel( "SpecialistLabel", "Background", localText.getText("TXT_KEY_CONCEPT_SPECIALISTS", ()),
+				CvUtil.FONT_CENTER_JUSTIFY, xResolution - 128,
+				# advc.004: y position was yResolution minus 415.
+				yResolution - 467, -0.1, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		screen.hide( "SpecialistLabel" )
 # BUG - city specialist - end
 
@@ -1320,12 +1325,21 @@ class CvMainInterface:
 
 # BUG - city specialist - start
 			self.updateCitizenButtons_hide()
+			# advc.004: Show the SpecialistLabel regardless of BUG options
+			bShowingCitizenButtons = False
 			if (CityScreenOpt.isCitySpecialist_Stacker()):
-				self.updateCitizenButtons_Stacker()
+				bShowingCitizenButtons = self.updateCitizenButtons_Stacker()
 			elif (CityScreenOpt.isCitySpecialist_Chevron()):
-				self.updateCitizenButtons_Chevron()
+				bShowingCitizenButtons = self.updateCitizenButtons_Chevron()
 			else:
-				self.updateCitizenButtons()
+				bShowingCitizenButtons = self.updateCitizenButtons()
+			# <advc.004>
+			if (bShowingCitizenButtons
+				# Not quite enough room for this label on low res
+				and self.yResolution > 900):
+				# Cut from updateCitizenButtons_Stacker ...
+				screen.show( "SpecialistBackground" )
+				screen.show( "SpecialistLabel" ) # </advc.004>
 # BUG - city specialist - end
 			
 			CyInterface().setDirty(InterfaceDirtyBits.CitizenButtons_DIRTY_BIT, False)
@@ -2768,10 +2782,10 @@ class CvMainInterface:
 	# Will update the citizen buttons
 	def updateCitizenButtons( self ):
 
-		if not CyInterface().isCityScreenUp(): return 0
+		if not CyInterface().isCityScreenUp(): return False
 
 		pHeadSelectedCity = CyInterface().getHeadSelectedCity()
-		if not (pHeadSelectedCity and CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW): return 0
+		if not (pHeadSelectedCity and CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW): return False
 	
 		global MAX_CITIZEN_BUTTONS
 		
@@ -2866,15 +2880,15 @@ class CvMainInterface:
 				szName = "CitizenDisabledButton" + str(i)
 				screen.show( szName )
 
-		return 0
+		return True # advc.004: Signal success
 
 # BUG - city specialist - start
 	def updateCitizenButtons_Stacker( self ):
 	
-		if not CyInterface().isCityScreenUp(): return 0
+		if not CyInterface().isCityScreenUp(): return False
 
 		pHeadSelectedCity = CyInterface().getHeadSelectedCity()
-		if not (pHeadSelectedCity and CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW): return 0
+		if not (pHeadSelectedCity and CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW): return False
 
 		global g_iSuperSpecialistCount
 		global g_iCitySpecialistCount
@@ -2987,20 +3001,19 @@ class CvMainInterface:
 					szName = "DecresseCitizenButton" + str((i * 100) + k)					
 					screen.addCheckBoxGFC( szName, gc.getSpecialistInfo(i).getTexture(), "", xResolution - (SPECIALIST_AREA_MARGIN + iXShiftVal) - (HorizontalSpacing * k), (yResolution - 282 - (SPECIALIST_ROW_HEIGHT * iYShiftVal)), 30, 30, WidgetTypes.WIDGET_CHANGE_SPECIALIST, i, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 					screen.show( szName )
-					
-		screen.show( "SpecialistBackground" )
-		screen.show( "SpecialistLabel" )
-	
-		return 0
+		#screen.show( "SpecialistBackground" )
+		#screen.show( "SpecialistLabel" )
+		# advc.004: Signal to the caller that the label should be shown
+		return True
 # BUG - city specialist - end
 
 # BUG - city specialist - start
 	def updateCitizenButtons_Chevron( self ):
 	
-		if not CyInterface().isCityScreenUp(): return 0
+		if not CyInterface().isCityScreenUp(): return False
 
 		pHeadSelectedCity = CyInterface().getHeadSelectedCity()
-		if not (pHeadSelectedCity and CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW): return 0
+		if not (pHeadSelectedCity and CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW): return False
 
 		global MAX_CITIZEN_BUTTONS
 		
@@ -3135,7 +3148,7 @@ class CvMainInterface:
 				szName = "CitizenDisabledButton" + str(i)
 				screen.show( szName )
 
-		return 0
+		return True # advc.004: Signal success
 # BUG - city specialist - end
 
 	# Will update the game data strings
