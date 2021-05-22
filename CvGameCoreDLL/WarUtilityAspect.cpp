@@ -2881,7 +2881,7 @@ int Risk::preEvaluate()
 		PlayerTypes const eVassal = itVassal->getID();
 		CvPlayerAI const& kVassal = GET_PLAYER(eVassal);
 		// OK to peek into our vassal's cache
-		UWAICache const& vassalCache = kVassal.uwai().getCache();
+		UWAICache const& kVassalCache = kVassal.uwai().getCache();
 		scaled rRelativeVassalLoss = 1;
 		if (!militAnalyst().isEliminated(eVassal))
 		{
@@ -2889,17 +2889,21 @@ int Risk::preEvaluate()
 			CitySet const& kLostCities = militAnalyst().lostCities(eVassal);
 			for (CitySetIter it = kLostCities.begin(); it != kLostCities.end(); ++it)
 			{
-				City const* pCacheCity = vassalCache.lookupCity(*it);
+				City const* pCacheCity = kVassalCache.lookupCity(*it);
 				if (pCacheCity == NULL)
 					continue;
 				rLostVassalAssets += pCacheCity->getAssetScore();
 			}
 			rRelativeVassalLoss = rLostVassalAssets /
-					(vassalCache.totalAssetScore() + scaled::epsilon());
+					scaled::max(1, kVassalCache.totalAssetScore());
 		}
 		scaled rVassalCost; // (i.e. negative utility)
 		if (rRelativeVassalLoss > 0)
-		{
+		{	/*	advc.test: Total asset score less than the sum of the city scores.
+				I've seen this happen with the total being 0.
+				To be investigated further. */
+			FAssert(rRelativeVassalLoss <= 1);
+			rRelativeVassalLoss.decreaseTo(1);
 			rVassalCost = rRelativeVassalLoss * 33;
 			log("Cost for losses of vassal %s: %d", m_kReport.leaderName(eVassal),
 					rVassalCost.uround());
@@ -2908,7 +2912,7 @@ int Risk::preEvaluate()
 		{
 			scaled rRelativePow =
 					(militAnalyst().gainedPower(eVassal, ARMY) +
-					vassalCache.getPowerValues()[ARMY]->power()) /
+					kVassalCache.getPowerValues()[ARMY]->power()) /
 					(militAnalyst().gainedPower(eWe, ARMY) +
 					ourCache().getPowerValues()[ARMY]->power() + scaled::epsilon());
 			rRelativePow -= fixp(0.9);
@@ -2964,10 +2968,11 @@ void Risk::evaluate()
 				rAssetScore += (bCulture4 ? 15 : 8);
 			}
 		}
-		log("%s: %d lost assets%s", m_kReport.cityName(kCity), rAssetScore.uround(),
+		log("%s: %d lost assets%s", m_kReport.cityName(kCity), rAssetScore.round(),
 				(bCulture3 || bSpace4 ? " (important for victory)" : ""));
 		rLostAssets += rAssetScore;
 	}
+	rLostAssets.increaseTo(0); // Per-city score can be negative (maintenance)
 	scaled rUtility = 400 * rLostAssets; // (Will be subtracted in the end)
 	scaled const rTotalAssets = ourCache().totalAssetScore() + scaled::epsilon();
 	scaled rFromBlockade = lossesFromBlockade(eWe, eThey) * fixp(0.1) *
