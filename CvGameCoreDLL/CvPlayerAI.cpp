@@ -14606,7 +14606,7 @@ bool CvPlayerAI::AI_isLandWar(CvArea const& kArea) const
 	default:
 		return false;
 	}
-} 
+}
 
 /*	When nukes are enabled, this function returns a percentage factor
 	of how keen this player is to build nukes. The starting value is around 100,
@@ -14615,20 +14615,26 @@ int CvPlayerAI::AI_nukeWeight() const
 {
 	//PROFILE_FUNC(); // advc.003o
 
-	if (!GC.getGame().isNukesValid() || GC.getGame().isNoNukes())
+	if (!GC.getGame().isNukesValid() || GC.getGame().isNoNukes() ||
+		!GET_TEAM(getTeam()).AI_isWarPossible()) // advc.650
+	{
 		return 0;
-
-	const CvTeamAI& kTeam = GET_TEAM(getTeam());
+	}
+	CvTeamAI const& kTeam = GET_TEAM(getTeam());
 	// <advc.143b>
 	if(kTeam.isCapitulated())
 		return 0; // </advc.143b>
 	int iNukeWeight = 100;
+	// <advc.650> Become a nuclear power
+	if (AI_totalUnitAIs(UNITAI_ICBM) <= 0)
+		iNukeWeight += 80; // </advc.650>
 
 	// Increase the weight based on how many nukes the world has made & used so far.
 	int iHistory = 2 * GC.getGame().getNukesExploded() +
-			GC.getGame().countTotalNukeUnits()
-			- GC.getInfo(getPersonalityType()).getBasePeaceWeight();
-	iHistory *= 35; // 5% for each nuke, 10% for each exploded
+			GC.getGame().countTotalNukeUnits();//- GC.getInfo(getPersonalityType()).getBasePeaceWeight()
+	//iHistory *= 35; // 5% for each nuke, 10% for each exploded
+	// advc.650: Keep the impact of peace weight constant
+	iHistory *= 40 - GC.getInfo(getPersonalityType()).getBasePeaceWeight();
 	iHistory /= std::max(1,
 			//GC.getInfo(GC.getMap().getWorldSize()).getDefaultPlayers()
 			GC.getGame().getRecommendedPlayers()); // advc.137
@@ -14638,9 +14644,7 @@ int CvPlayerAI::AI_nukeWeight() const
 		iHistory *= 90 + GC.getInfo(getPersonalityType()).getConquestVictoryWeight();
 		iHistory /= 100;
 	}
-
 	iNukeWeight += iHistory;
-
 	/*	increase the weight if we were the team who enabled nukes.
 		(look for projects only. buildings can get stuffed.) */
 	FOR_EACH_ENUM(Project)
@@ -14654,13 +14658,26 @@ int CvPlayerAI::AI_nukeWeight() const
 	}
 	/*	increase the weight for total war, or for the home-stretch to victory,
 		or for losing wars. */
-	if (kTeam.AI_anyMemberAtVictoryStage4())
-		iNukeWeight = iNukeWeight*3/2;
-	else if (kTeam.AI_getNumWarPlans(WARPLAN_TOTAL) > 0 ||
+	//if (kTeam.AI_anyMemberAtVictoryStage4())
+	// <advc.650>
+	bool bNearVictory = false;
+	for (PlayerIter<FREE_MAJOR_CIV,KNOWN_TO> itPlayer(getTeam());
+		itPlayer.hasNext(); ++itPlayer)
+	{
+		if (itPlayer->AI_atVictoryStage4())
+		{
+			bNearVictory = true;
+			break;
+		}
+	}
+	if (bNearVictory)	// <advc.650>
+		iNukeWeight = (iNukeWeight * 4) / 3; // advc.650: was *3/2
+	//else // advc.650: cumulative
+	if (kTeam.AI_getNumWarPlans(WARPLAN_TOTAL) > 0 ||
 		kTeam.AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) > 0 || // advc.650
 		kTeam.AI_getWarSuccessRating() < -20)
 	{
-		iNukeWeight = (iNukeWeight * 4) / 3;
+		iNukeWeight = (iNukeWeight * 3) / 2; // advc.650: was *4/3
 	}
 	return iNukeWeight;
 } // </K-Mod>
