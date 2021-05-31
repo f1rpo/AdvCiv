@@ -6139,9 +6139,49 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 		//if (kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH | AI_STRATEGY_DAGGER) || kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST4))
 		// <advc.650>
 		CvGame const& kGame = GC.getGame();
-		if(!GET_TEAM(getTeam()).AI_anyMemberAtVictoryStage4() &&
-			kGame.getTeamRank(getTeam()) != 0 &&
-			GET_TEAM(getTeam()).AI_getAttitude(kGame.getRankTeam(0)) < ATTITUDE_PLEASED)
+		TeamTypes eWinningTeam = NO_TEAM;
+		/*	This loop overlaps with KingMaking::addWinning, which, however,
+			is difficult to separate from the UWAI component. */
+		int iBestScore = 0;
+		int iOurScore = 0;
+		for (TeamIter<FREE_MAJOR_CIV,KNOWN_TO> itTeam(kTeam.getID());
+			itTeam.hasNext(); ++itTeam)
+		{
+			int iScore = kGame.getTeamScore(itTeam->getID());
+			if (itTeam->AI_anyMemberAtVictoryStage3())
+			{
+				iScore *= 140;
+				iScore /= 100;
+				if (itTeam->AI_anyMemberAtVictoryStage4())
+				{
+					iScore *= 155;
+					iScore /= 100;
+				}
+			}
+			if (iScore > iBestScore)
+			{
+				iBestScore = iScore;
+				eWinningTeam = itTeam->getID();
+			}
+			if (&*itTeam == &kTeam)
+				iOurScore = iScore;
+		}
+		if (!kTeam.AI_anyMemberAtVictoryStage4() &&
+			kTeam.getID() != eWinningTeam && eWinningTeam != NO_TEAM &&
+			// If it's close, then focus on our own victory strategy.
+			100 * iOurScore < 95 * iBestScore &&
+			// Willing to thwart victory through nuclear war?
+			(((4 * iOurScore > 3 * iBestScore ||
+			10 * kTeam.getPower(true) > 7 * GET_TEAM(eWinningTeam).getPower(false)) &&
+			kTeam.AI_noWarAttitudeProb((AttitudeTypes)
+			(kTeam.AI_getAttitude(eWinningTeam) + 1)) < 100) ||
+			/*	Need defensive nukes? (When already losing a war,
+				then getting nukes will take too long.) */
+			kTeam.AI_countMembersWithStrategy(AI_STRATEGY_ALERT1) > 0 ||
+			(GET_TEAM(eWinningTeam).AI_anyMemberAtVictoryStage(AI_VICTORY_MILITARY3) &&
+			GET_TEAM(eWinningTeam).AI_getAttitude(kTeam.getID()) <
+			(GET_TEAM(eWinningTeam).AI_anyMemberAtVictoryStage(AI_VICTORY_MILITARY4) ?
+			ATTITUDE_PLEASED : ATTITUDE_CAUTIOUS))))
 			// </advc.650>
 		{
 			int iNukeValue = 0;
@@ -6151,20 +6191,16 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 				const CvUnitInfo& kLoopUnit = GC.getInfo(eLoopUnit);
 				if (kLoopUnit.getNukeRange() < 0 || kLoopUnit.getProductionCost() < 0)
 					continue; // either not a unit, or not normally buildable
-
-				for (PlayerTypes j = (PlayerTypes)0; j < MAX_CIV_PLAYERS; j = (PlayerTypes)(j+1))
+				for (PlayerIter<CIV_ALIVE,KNOWN_TO> itLoopPlayer(kTeam.getID());
+					itLoopPlayer.hasNext(); ++itLoopPlayer)
 				{
-					CvPlayerAI const& kLoopPlayer = GET_PLAYER(j);
-					// advc.650:
+					CvPlayerAI const& kLoopPlayer = *itLoopPlayer;
 					CvTeamAI const& kLoopTeam = GET_TEAM(kLoopPlayer.getTeam());
-					if (kLoopPlayer.isAlive() &&
-						!GET_TEAM(kLoopPlayer.getTeam()).isCapitulated() && // advc.130v
+					if (!kLoopTeam.isCapitulated() && // advc.130v
 						// advc.650: These have too much to lose from nukes
 						!kLoopTeam.AI_anyMemberAtVictoryStage4() &&
 						kLoopPlayer.getCivilization().getUnit(
-						kLoopUnit.getUnitClassType()) == eLoopUnit &&
-						(kLoopPlayer.getTeam() == kOwner.getTeam() ||
-						kTeam.isHasMet(kLoopPlayer.getTeam())))
+						kLoopUnit.getUnitClassType()) == eLoopUnit)
 					{
 						int iTemp=0; // advc
 						if (kLoopPlayer.getID() == kOwner.getID())
@@ -6185,7 +6221,8 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 						}
 						else
 						{
-							iTemp = std::max(-100, (kOwner.AI_getAttitudeWeight(j) - 125) /
+							iTemp = std::max(-100,
+									(kOwner.AI_getAttitudeWeight(kLoopPlayer.getID()) - 125) /
 									3); // advc.650: was 2
 						}
 						// tech prereqs.  reduce the value for each missing prereq
@@ -6195,7 +6232,6 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 							if (!kLoopPlayer.canResearch(kLoopUnit.getPrereqAndTech()))
 								iTemp /= 3;
 						}
-
 						for (int k = 0; k < kLoopUnit.getNumPrereqAndTechs(); k++)
 						{
 							TechTypes const ePrereqTech = kLoopUnit.getPrereqAndTechs(k);
@@ -6214,10 +6250,8 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 						{
 							iTemp /= 5;
 						}
-
-						iTemp *= 3*kLoopPlayer.getPower();
-						iTemp /= std::max(1, 2 * kOwner.getPower()+kLoopPlayer.getPower());
-
+						iTemp *= 3 * kLoopPlayer.getPower();
+						iTemp /= std::max(1, 2 * kOwner.getPower() + kLoopPlayer.getPower());
 						iNukeValue += iTemp;
 					}
 				}
@@ -6230,11 +6264,15 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 					where nukes would be very helpful, I estimate that iNukeValue
 					would currently be around 30.
 					I'm just going to do a very rough job or rescaling it to be
-					more like the other project value. But first, I want to make
+					more like the other project values. But first, I want to make
 					a few more situational adjustments to the value. */
 				iNukeValue *= (2 + //kTeam.getAnyWarPlanCount(true));
-						// advc.105:
-						(GET_PLAYER(getOwner()).AI_isFocusWar(area()) ? 1 : 0));
+						//(GET_PLAYER(getOwner()).AI_isFocusWar() ? 1 : 0) // advc.105
+						/*	<advc.650> All other war plans need faster action or
+							aren't serious enough */
+						kTeam.AI_getNumWarPlans(WARPLAN_PREPARING_TOTAL) +
+						kTeam.AI_countMembersWithStrategy(AI_STRATEGY_ALERT1));
+						// </advc.650>
 				iNukeValue /= 2;
 
 				// cf. iTargetValue in the SDI section.
