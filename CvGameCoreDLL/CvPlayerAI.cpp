@@ -14626,22 +14626,24 @@ int CvPlayerAI::AI_nukeWeight() const
 		return 0; // </advc.143b>
 	int iNukeWeight = 100;
 	// <advc.650> Become a nuclear power
-	if (AI_totalUnitAIs(UNITAI_ICBM) <= 0)
-		iNukeWeight += 80; // </advc.650>
+	bool const bFirstNuke = (AI_totalUnitAIs(UNITAI_ICBM) <= 0);
+	if (bFirstNuke)
+		iNukeWeight += 67; // </advc.650>
+	CvLeaderHeadInfo const& kPersonality = GC.getInfo(getPersonalityType());
 
 	// Increase the weight based on how many nukes the world has made & used so far.
 	int iHistory = 2 * GC.getGame().getNukesExploded() +
 			GC.getGame().countTotalNukeUnits();//- GC.getInfo(getPersonalityType()).getBasePeaceWeight()
 	//iHistory *= 35; // 5% for each nuke, 10% for each exploded
 	// advc.650: Keep the impact of peace weight constant
-	iHistory *= 40 - GC.getInfo(getPersonalityType()).getBasePeaceWeight();
+	iHistory *= 40 - kPersonality.getBasePeaceWeight();
 	iHistory /= std::max(1,
 			//GC.getInfo(GC.getMap().getWorldSize()).getDefaultPlayers()
 			GC.getGame().getRecommendedPlayers()); // advc.137
 	iHistory = std::min(iHistory, 300);
 	if (iHistory > 0)
 	{
-		iHistory *= 90 + GC.getInfo(getPersonalityType()).getConquestVictoryWeight();
+		iHistory *= 90 + kPersonality.getConquestVictoryWeight();
 		iHistory /= 100;
 	}
 	iNukeWeight += iHistory;
@@ -14679,6 +14681,16 @@ int CvPlayerAI::AI_nukeWeight() const
 	{
 		iNukeWeight = (iNukeWeight * 3) / 2; // advc.650: was *4/3
 	}
+	// <advc.650> Stronger personality adjustment than the above
+	scaled rPersonalNukeLove = per100(kPersonality.getEspionageWeight() *
+			(100 - kPersonality.getNoWarAttitudeProb(ATTITUDE_CAUTIOUS)));
+	rPersonalNukeLove.clamp(per100(5), per100(95));
+	rPersonalNukeLove += fixp(0.5);
+	// Don't make leaders who don't like nukes too eager to get their first
+	if (bFirstNuke)
+		rPersonalNukeLove *= rPersonalNukeLove;
+	iNukeWeight = (iNukeWeight * rPersonalNukeLove).uround();
+	// </advc.650>
 	return iNukeWeight;
 } // </K-Mod>
 
