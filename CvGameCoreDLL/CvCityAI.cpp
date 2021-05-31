@@ -1467,6 +1467,21 @@ void CvCityAI::AI_chooseProduction()
 			return;
 		}
 	}
+	int const iNukeWeight = kPlayer.AI_nukeWeight(); // K-Mod (advc: moved up)
+	// <advc.650> This has much higher priority than the !bLandWar code later on
+	if (!bSpendingExempt && iNukeWeight > 0)
+	{
+		int iNukesHave = kPlayer.AI_totalUnitAIs(UNITAI_ICBM);
+		int iNukesWant = 1 + std::min(kPlayer.getNumCities(),
+				kGame.getNumCities() - kPlayer.getNumCities()) / 5;
+		if (iNukesHave < iNukesWant &&
+			kGame.getSorenRandNum(425, "AI high-priority nuke") * iNukesWant <
+			iNukeWeight * (iNukesWant - iNukesHave))
+		{
+			if (AI_chooseUnit(UNITAI_ICBM))
+				return;
+		}
+	} // </advc.650>
 
 	if (!(bDefenseWar && iWarSuccessRating < -50))
 	{
@@ -2048,8 +2063,6 @@ void CvCityAI::AI_chooseProduction()
 	UnitTypes eBestAttackAircraft = NO_UNIT;
 	UnitTypes eBestMissile = NO_UNIT;
 
-	int iNukeWeight = kPlayer.AI_nukeWeight(); // K-Mod
-
 	if (iUnitSpending < iMaxUnitSpending + 12 && (!bImportantCity || bDefenseWar)) // K-Mod. was +4, now +12 for the new unit spending metric
 	{
 		if (bLandWar || bAssault || iFreeAirExperience > 0 ||
@@ -2205,13 +2218,13 @@ void CvCityAI::AI_chooseProduction()
 		}
 	}*/ // BtS
 	// K-Mod. Roughly the same conditions for building a nuke, but with a few adjustments for flavour and strategy
-	if (!bAlwaysPeace && !bLandWar && !bUnitExempt && !bFinancialTrouble
-		&& !GET_TEAM(kPlayer.getTeam()).isCapitulated()) // advc.143b
+	if (!bLandWar && !bUnitExempt && !bFinancialTrouble &&
+		iNukeWeight > 0) // advc.143b
 	{
 		if ((kPlayer.AI_isDoStrategy(AI_STRATEGY_OWABWNW) ||
 			kGame.getSorenRandNum(1200, "AI consider Nuke") < std::min(400, iNukeWeight)) &&
 			(!bAssault ||
-			kGame.getSorenRandNum(400, "AI consider Nuke despite assult") < std::min(200, 50 + iNukeWeight/2)))
+			kGame.getSorenRandNum(400, "AI consider Nuke despite assault") < std::min(200, 50 + iNukeWeight/2)))
 		{
 			int iTotalNukes = kPlayer.AI_totalUnitAIs(UNITAI_ICBM);
 			int iNukesWanted = 1 + 2 * std::min(kPlayer.getNumCities(),
