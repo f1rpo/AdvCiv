@@ -3714,13 +3714,12 @@ bool CvUnit::isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam) const
 }
 
 
-bool CvUnit::canNukeAt(/* advc: renamed from "pPlot" */ CvPlot const* pFrom,
-	int iX, int iY) const
+bool CvUnit::canNukeAt(CvPlot const& kFrom, int iX, int iY) const
 {
-	if (!canNuke(pFrom))
+	if (!canNuke(&kFrom))
 		return false;
 
-	int iDistance = plotDistance(pFrom->getX(), pFrom->getY(), iX, iY);
+	int iDistance = plotDistance(kFrom.getX(), kFrom.getY(), iX, iY);
 	if (iDistance <= nukeRange())
 		return false;
 
@@ -3732,7 +3731,7 @@ bool CvUnit::canNukeAt(/* advc: renamed from "pPlot" */ CvPlot const* pFrom,
 	{
 		if (isNukeVictim(pTargetPlot, it->getID()))
 		{
-			if (!isEnemy(it->getID(), *pFrom))
+			if (!isEnemy(it->getID(), kFrom))
 				return false;
 		}
 	}
@@ -3743,7 +3742,7 @@ bool CvUnit::canNukeAt(/* advc: renamed from "pPlot" */ CvPlot const* pFrom,
 
 bool CvUnit::nuke(int iX, int iY)
 {
-	if(!canNukeAt(plot(), iX, iY))
+	if(!canNukeAt(getPlot(), iX, iY))
 		return false;
 
 	CvWString szBuffer;

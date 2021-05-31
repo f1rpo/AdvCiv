@@ -1944,7 +1944,7 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 				return true;
 			break;
 		case INTERFACEMODE_NUKE:
-			if (pUnit->canNukeAt(pUnit->plot(), pPlot->getX(), pPlot->getY()))
+			if (pUnit->canNukeAt(pUnit->getPlot(), pPlot->getX(), pPlot->getY()))
 				return true;
 			break;
 		case INTERFACEMODE_RECON:
@@ -3385,7 +3385,7 @@ bool CvSelectionGroup::canDoMission(MissionTypes eMission, int iData1, int iData
 			break;
 
 		case MISSION_NUKE:
-			if (pUnit->canNukeAt(pPlot, iData1, iData2) &&
+			if (pUnit->canNukeAt(*pPlot, iData1, iData2) &&
 				(!bCheckMoves || pUnit->canMove()))
 			{
 				return true;

@@ -853,7 +853,7 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 				}
 				//else if (iNukeDamage >= GC.getDefineINT("NUKE_NON_COMBAT_DEATH_THRESHOLD"))
 				// <kekm.20>
-				else if(GC.getGame().getSorenRandNum(100,"Non-Combat Nuke Rand") * 100 <
+				else if(GC.getGame().getSorenRandNum(100, "Non-Combat Nuke Rand") * 100 <
 					std::max(0, ((pCity == NULL ? 0 : pCity->getNukeModifier()) + 100)) *
 					(iNUKE_UNIT_DAMAGE_BASE - 1 + (iNUKE_UNIT_DAMAGE_RAND_1 +
 					iNUKE_UNIT_DAMAGE_RAND_2 - 1) / 2)) // </kekm.20>
