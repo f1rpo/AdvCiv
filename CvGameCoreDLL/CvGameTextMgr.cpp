@@ -9976,8 +9976,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 	// test for unique building
 	BuildingTypes eDefaultBuilding = GC.getInfo(eBuildingClass).getDefaultBuilding();
 
-	if (eDefaultBuilding != NO_BUILDING && eDefaultBuilding != eBuilding &&
-		!bInBuildingList) // advc.004w
+	if (eDefaultBuilding != eBuilding && /* advc.004w: */ !bInBuildingList)
 	{
 		FOR_EACH_ENUM(Civilization)
 		{
@@ -9990,10 +9989,13 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 						GC.getInfo(eLoopCivilization).getTextKeyWide()));
 			}
 		}
-
-		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_REPLACES_UNIT",
-				GC.getInfo(eDefaultBuilding).getTextKeyWide()));
+		// advc.003l: Moved from the enclosing conditional 
+		if (eDefaultBuilding != NO_BUILDING)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_REPLACES_UNIT",
+					GC.getInfo(eDefaultBuilding).getTextKeyWide()));
+		}
 	}
 
 	if (bCivilopediaText ||

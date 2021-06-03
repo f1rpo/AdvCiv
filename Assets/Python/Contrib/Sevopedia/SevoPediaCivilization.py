@@ -104,7 +104,9 @@ class SevoPediaCivilization:
 		for iBuilding in range(gc.getNumBuildingClassInfos()):
 			iUniqueBuilding = gc.getCivilizationInfo(self.iCivilization).getCivilizationBuildings(iBuilding)
 			iDefaultBuilding = gc.getBuildingClassInfo(iBuilding).getDefaultBuildingIndex()
-			if (iDefaultBuilding > -1 and iUniqueBuilding > -1 and iDefaultBuilding != iUniqueBuilding):
+			# advc.003l: Allow uniques w/o a default unit. Based on a change by Toffer90 in Inthegrave's mod.
+			if (#iDefaultBuilding > -1 and
+				iUniqueBuilding > -1 and iDefaultBuilding != iUniqueBuilding):
 				screen.attachImageButton(panelName, "", gc.getBuildingInfo(iUniqueBuilding).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BUILDING, iUniqueBuilding, 1, False)
 
 
@@ -117,7 +119,8 @@ class SevoPediaCivilization:
 		for iUnit in range(gc.getNumUnitClassInfos()):
 			iUniqueUnit = gc.getCivilizationInfo(self.iCivilization).getCivilizationUnits(iUnit)
 			iDefaultUnit = gc.getUnitClassInfo(iUnit).getDefaultUnitIndex()
-			if (iDefaultUnit > -1 and iUniqueUnit > -1 and iDefaultUnit != iUniqueUnit):
+			if (#iDefaultUnit > -1 and # advc.003l: See comment in placeBuilding
+			iUniqueUnit > -1 and iDefaultUnit != iUniqueUnit):
 				screen.attachImageButton(panelName, "", gc.getUnitInfo(iUniqueUnit).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_UNIT, iUniqueUnit, 1, False)
 
 
