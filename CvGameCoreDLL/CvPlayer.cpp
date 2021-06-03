@@ -5478,7 +5478,8 @@ scaled CvPlayer::trainingModifierFromHandicap(bool bWorldClass) const
 	return std::max(r, per100(1));
 }
 
-int CvPlayer::getBuildingClassPrereqBuilding(BuildingTypes eBuilding, BuildingClassTypes ePrereqBuildingClass, int iExtra) const
+int CvPlayer::getBuildingClassPrereqBuilding(BuildingTypes eBuilding,
+	BuildingClassTypes ePrereqBuildingClass, int iExtra) const
 {
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
 
@@ -5489,7 +5490,7 @@ int CvPlayer::getBuildingClassPrereqBuilding(BuildingTypes eBuilding, BuildingCl
 	iPrereqs *= std::max(0, GC.getInfo(GC.getMap().getWorldSize()).
 			getBuildingClassPrereqModifier() + 100);
 	//iPrereqs /= 100;
-	iPrereqs = per100(iPrereqs).ceil(); // advc.140: Round up
+	iPrereqs = intdiv::uceil(iPrereqs, 100); // advc.140: Round up
 
 	if (!kBuilding.isLimited())
 	{

@@ -3174,9 +3174,11 @@ void CvDLLWidgetData::parseDisabledCitizenHelp(CvWidgetDataStruct &widgetDataStr
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
-		if (GC.getInfo(eLoopBuilding).getSpecialistCount(widgetDataStruct.m_iData1) <= 0)
-			continue; // advc
-
+		if (GC.getInfo(eLoopBuilding).getSpecialistCount((SpecialistTypes)
+			widgetDataStruct.m_iData1) <= 0)
+		{
+			continue;
+		}
 		if (pHeadSelectedCity->getNumBuilding(eLoopBuilding) <= 0 &&
 			!GC.getInfo(eLoopBuilding).isLimited())
 		{

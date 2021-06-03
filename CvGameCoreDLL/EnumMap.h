@@ -152,7 +152,7 @@ private: // advc (Maybe some of these should indeed be public, but probably not 
 
 	static const bool bINLINE_BOOL = (SIZE == ENUMMAP_SIZE_BOOL && MAX_LENGTH <= ENUMMAP_MAX_INLINE_BOOL);
 	static const int NUM_BOOL_BLOCKS = bINLINE_BOOL ? (MAX_LENGTH + 31) / 32 : 1;
-	static const unsigned int BOOL_BLOCK_DEFAULT = DEFAULT ? MAX_UNSIGNED_INT : 0;
+	static const uint BOOL_BLOCK_DEFAULT = DEFAULT ? MAX_UNSIGNED_INT : 0;
 
 	static const bool bINLINE = (/*bINLINE_NATIVE ||*/ // advc.fract
 			bINLINE_1_BYTE || bINLINE_2_BYTE || bINLINE_BOOL);
@@ -187,13 +187,13 @@ private:
 		T* m_pArrayFull;
 		short* m_pArrayShort;
 		char* m_pArrayChar;
-		unsigned int* m_pArrayBool;
+		uint* m_pArrayBool;
 		/*	advc.fract: This wouldn't work for ScaledNum
 			b/c C++03 allows only POD types in unions. */
 		//T m_InlineNative[NUM_NATIVE_BLOCKS];
 		char m_Inline_1_byte[NUM_1_BYTE_BLOCKS];
 		short m_Inline_2_byte[NUM_2_BYTE_BLOCKS];
-    	unsigned int m_InlineBoolArray[NUM_BOOL_BLOCKS];
+    	uint m_InlineBoolArray[NUM_BOOL_BLOCKS];
 	};
 
 	// the code will technically still work if this fails, but it will waste memory
@@ -216,8 +216,9 @@ private:
 		interval() : first((IndexType)0), last((IndexType)0) {}
 	};
 
-	// bool helpers
-	int getBoolArrayBlock(int iIndex) const
+	/*	bool helpers (advc: force-inline, if only for clarity)
+		advc.003t (note): ArrayEnumMap uses the same logic */
+	__forceinline int getBoolArrayBlock(int iIndex) const
 	{
 		if (bINLINE_BOOL && NUM_BOOL_BLOCKS == 1)
 		{
@@ -226,9 +227,8 @@ private:
 			FAssert(iIndex < 32);
 			return 0;
 		}
-		else return iIndex / 32;
+		return iIndex / 32;
 	}
-	// advc: This one had no inline keyword
 	__forceinline int getBoolArrayIndexInBlock(int iIndex) const
 	{
 		return iIndex & ENUMMAP_BITMASK_32_BIT;
@@ -269,7 +269,7 @@ private:
 	void _setAll(T val);
 
 	template <bool bInline>
-	unsigned int _getNumBoolBlocks() const;
+	uint _getNumBoolBlocks() const;
 
 	template <int iSize>
 	void _Read(/* <advc> */ FDataStreamBase* pStream, bool bAsInt = true, bool bAsShort = false,
@@ -439,7 +439,7 @@ private:
 	void _allocate<false, ENUMMAP_SIZE_BOOL>(T tValue)
 	{
 		FAssert(m_pArrayBool == NULL);
-		m_pArrayBool = new unsigned int[_getNumBoolBlocks<bINLINE>()];
+		m_pArrayBool = new uint[_getNumBoolBlocks<bINLINE>()];
 		_setAll<bINLINE, SIZE>(tValue);
 	}
 	/*template<>
@@ -468,13 +468,13 @@ private:
 	////
 
 	template <>
-	__forceinline unsigned int _getNumBoolBlocks<false>() const
+	__forceinline uint _getNumBoolBlocks<false>() const
 	{
 		return (numElements() + 31) / 32;
 	}
 
 	template <>
-	__forceinline unsigned int _getNumBoolBlocks<true>() const
+	__forceinline uint _getNumBoolBlocks<true>() const
 	{
 		return NUM_BOOL_BLOCKS;
 	}
@@ -1204,8 +1204,8 @@ template <> struct EnumMapGetDefault< X > \
 SET_ARRAY_DEFAULT(int);
 SET_ARRAY_DEFAULT(short);
 SET_ARRAY_DEFAULT(char);
-SET_ARRAY_DEFAULT(unsigned int);
-SET_ARRAY_DEFAULT(unsigned short);
+SET_ARRAY_DEFAULT(uint);
+SET_ARRAY_DEFAULT(word);
 SET_ARRAY_DEFAULT(byte);
 SET_ARRAY_DEFAULT(float); // advc
 // <advc.fract> (Can't pass template params into SET_ARRAY_DEFAULT)

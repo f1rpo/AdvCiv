@@ -9842,12 +9842,15 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 		int iHappiness = kBuilding.getHappiness();
 		if (pCity != NULL)
 		{
-			// special modifiers (eg. events). These modifiers don't get their own line of text, so they need to be included here.
+			/*	special modifiers (eg. events). These don't get their own line of text,
+				so they need to be included here. */
 			iHappiness += pCity->getBuildingHappyChange(eBuildingClass);
 			iHappiness += pPlayer->getExtraBuildingHappiness(eBuilding);
-			// 'Extra building happiness' includes happiness from several sources, including events, civics, traits, and boosts from other buildings.
-			// My aim here is to only include in the total what isn't already in the list of bonuses below. As far as I know the only thing that would
-			// be double-reported is the civic happiness. So I'll subtract that.
+			/*	'Extra building happiness' includes happiness from several sources, including
+				events, civics, traits, and boosts from other buildings.
+				My aim here is to only include in the total what isn't already in the
+				list of bonuses below. As far as I know the only thing that would
+				be double-reported is the civic happiness. So I'll subtract that. */
 			FOR_EACH_ENUM(Civic)
 			{
 				if (pPlayer->isCivic(eLoopCivic))
@@ -10817,7 +10820,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 
 	FOR_EACH_ENUM(Specialist)
 	{
-		if (kBuilding.getSpecialistCount(eLoopSpecialist) > 0)
+		if (kBuilding.getSpecialistCount(eLoopSpecialist) != 0)
 		{
 			bool const bSingular = (kBuilding.getSpecialistCount(eLoopSpecialist) == 1);
 			// <advc.001>
@@ -10838,8 +10841,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 						szSpecialistLink.c_str())); // advc.001
 			}
 		}
-
-		if (kBuilding.getFreeSpecialistCount(eLoopSpecialist) > 0)
+		if (kBuilding.getFreeSpecialistCount(eLoopSpecialist) != 0)
 		{
 			szBuffer.append(NEWLINE);
 			// <advc.001>
@@ -11109,8 +11111,8 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 					GC.getInfo(eLoopBuildingClass).getDefaultBuilding());
 			if(eLoopBuilding == NO_BUILDING)
 				continue; // advc
-			if (GC.getInfo(eLoopBuilding).isBuildingClassNeededInCity(eBuildingClass)
-				&& !bInBuildingList) // advc.004w
+			if (GC.getInfo(eLoopBuilding).isBuildingClassNeededInCity(eBuildingClass) &&
+				!bInBuildingList) // advc.004w
 			{
 				if (pCity == NULL || pCity->canConstruct(eLoopBuilding, false, true))
 				{
@@ -11816,7 +11818,8 @@ void CvGameTextMgr::buildBuildingReligionYieldString(CvWStringBuffer& szBuffer,
 }
 
 
-void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProject, bool bCivilopediaText, CvCity* pCity)
+void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProject,
+	bool bCivilopediaText, CvCity* pCity)
 {
 	PROFILE_FUNC();
 
@@ -13634,10 +13637,9 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 	if(eActivePlayer != NO_PLAYER)
 	{
 		// Based on the loop above
-		for(int i = 0; i < GC.getNumProjectInfos(); i++)
+		FOR_EACH_ENUM2(Project, eProject)
 		{
-			ProjectTypes eLoopProject = (ProjectTypes)i;
-			CvProjectInfo& kProject = GC.getInfo(eLoopProject);
+			CvProjectInfo const& kProject = GC.getInfo(eProject);
 			int iProductionMod = kProject.getBonusProductionModifier(eBonus);
 			if(iProductionMod == 0)
 				continue;
@@ -13653,18 +13655,18 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 				VictoryTypes eVict = (VictoryTypes)kProject.getVictoryPrereq();
 				if(eVict != NO_VICTORY && !kGame.isVictoryValid(eVict))
 					continue;
-				if(kGame.isProjectMaxedOut(eLoopProject) && GET_TEAM(eActivePlayer).
-					getProjectCount(eLoopProject) <= 0)
+				if(kGame.isProjectMaxedOut(eProject) && GET_TEAM(eActivePlayer).
+					getProjectCount(eProject) <= 0)
 				{
 					continue;
 				}
 				if(kProject.isSpaceship() && (!pActivePlayer->hasCapital() ||
-					!pActivePlayer->getCapital()->canCreate(eLoopProject, false, true)))
+					!pActivePlayer->getCapital()->canCreate(eProject, false, true)))
 				{
 					continue;
 				}
 			}
-			else if(!pCity->canCreate(eLoopProject, false, true))
+			else if(!pCity->canCreate(eProject, false, true))
 				continue;
 			// Copy-paste from the building loop
 			szBuffer.append(NEWLINE);
@@ -21103,14 +21105,14 @@ void CvGameTextMgr::setProductionSpeedHelp(CvWStringBuffer& szBuffer,
 		}
 		if(iProductionModifier == 0)
 			continue;
-		if(pCity != NULL)
+		if (pCity != NULL)
 		{
 			bool bHasBonus = pCity->hasBonus(eBonus);
-			if(iProductionModifier > 0 ? bHasBonus : !bHasBonus)
+			if (iProductionModifier > 0 ? bHasBonus : !bHasBonus)
 				szBuffer.append(gDLL->getText("TXT_KEY_COLOR_POSITIVE"));
 			else szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
 		}
-		if(!bCivilopediaText)
+		if (!bCivilopediaText)
 			szBuffer.append(L" (");
 		else
 		{
@@ -21118,7 +21120,7 @@ void CvGameTextMgr::setProductionSpeedHelp(CvWStringBuffer& szBuffer,
 			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(BULLET_CHAR)));
 		}
 		wchar const* szBonus = GC.getInfo(eBonus).getTextKeyWide();
-		if(iProductionModifier == 100)
+		if (iProductionModifier == 100)
 		{
 			szBuffer.append(gDLL->getText(bCivilopediaText ?
 					"TXT_KEY_DOUBLE_PRODUCTION_WITH" :
@@ -21135,11 +21137,11 @@ void CvGameTextMgr::setProductionSpeedHelp(CvWStringBuffer& szBuffer,
 			szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
 	}
 	PlayerTypes eActivePlayer = GC.getGame().getActivePlayer();
-	if(!bCivilopediaText && eActivePlayer == NO_PLAYER)
+	if (!bCivilopediaText && eActivePlayer == NO_PLAYER)
 		return;
 	FOR_EACH_ENUM2(Trait, eTrait)
 	{
-		if(!bCivilopediaText)
+		if (!bCivilopediaText)
 		{
 			if(!GC.getInfo(GET_PLAYER(eActivePlayer).getLeaderType()).hasTrait(eTrait))
 				continue;
@@ -21155,15 +21157,15 @@ void CvGameTextMgr::setProductionSpeedHelp(CvWStringBuffer& szBuffer,
 			iProductionModifier = static_cast<CvBuildingInfo const*>(pInfo)->
 					getProductionTraits(eTrait);
 		}
-		if(iProductionModifier == 0)
+		if (iProductionModifier == 0)
 			continue;
-		if(!bCivilopediaText)
+		if (!bCivilopediaText)
 		{
 			if(iProductionModifier > 0)
 				szBuffer.append(gDLL->getText("TXT_KEY_COLOR_POSITIVE"));
 			else szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
 		}
-		if(!bCivilopediaText)
+		if (!bCivilopediaText)
 		{
 			/*  Not nice when more than one speed modifier applies (e.g. Wall).
 				Should put each modifier on a separate line then. Also, "+100%"
@@ -21177,7 +21179,7 @@ void CvGameTextMgr::setProductionSpeedHelp(CvWStringBuffer& szBuffer,
 			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(BULLET_CHAR)));
 		}
 		wchar const* szTrait = GC.getInfo(eTrait).getTextKeyWide();
-		if(iProductionModifier == 100)
+		if (iProductionModifier == 100)
 		{
 			szBuffer.append(gDLL->getText(bCivilopediaText ?
 					"TXT_KEY_DOUBLE_SPEED_TRAIT" :
@@ -21188,7 +21190,7 @@ void CvGameTextMgr::setProductionSpeedHelp(CvWStringBuffer& szBuffer,
 			szBuffer.append(gDLL->getText("TXT_KEY_PRODUCTION_MODIFIER_TRAIT",
 				iProductionModifier, szTrait));
 		}
-		if(!bCivilopediaText)
+		if (!bCivilopediaText)
 		{
 			szBuffer.append(L")");
 			szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));

@@ -3033,27 +3033,14 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 		{
 			if (!hasBonus(eLoopBonus))
 				continue;
-
-			if (kBuilding.getBonusHealthChanges(eLoopBonus) > 0)
-			{
-				changeBonusGoodHealth(iChange *
-						kBuilding.getBonusHealthChanges(eLoopBonus));
-			}
-			else
-			{
-				changeBonusBadHealth(iChange *
-						kBuilding.getBonusHealthChanges(eLoopBonus));
-			}
-			if (kBuilding.getBonusHappinessChanges(eLoopBonus) > 0)
-			{
-				changeBonusGoodHappiness(iChange *
-						kBuilding.getBonusHappinessChanges(eLoopBonus));
-			}
-			else
-			{
-				changeBonusBadHappiness(iChange *
-						kBuilding.getBonusHappinessChanges(eLoopBonus));
-			}
+			int const iBonusHealthChange = kBuilding.getBonusHealthChanges(eLoopBonus);
+			if (iBonusHealthChange > 0)
+				changeBonusGoodHealth(iChange * iBonusHealthChange);
+			else changeBonusBadHealth(iChange * iBonusHealthChange);
+			int const iBonusHappyChange = kBuilding.getBonusHappinessChanges(eLoopBonus);
+			if (iBonusHappyChange > 0)
+				changeBonusGoodHappiness(iChange * iBonusHappyChange);
+			else changeBonusBadHappiness(iChange * iBonusHappyChange);
 			if (kBuilding.getPowerBonus() == eLoopBonus)
 				changePowerCount(iChange, kBuilding.isDirtyPower());
 
@@ -6824,9 +6811,11 @@ int CvCity::getAdditionalBaseYieldRateByBuilding(YieldTypes eYield,
 	return iExtraRate;
 }
 
-/*	Returns the additional yield rate modifier that adding one of the given buildings will provide.
-	Doesn't check if the building can be constructed in this city. */
-int CvCity::getAdditionalYieldRateModifierByBuilding(YieldTypes eYield, BuildingTypes eBuilding) const
+/*	Returns the additional yield rate modifier that adding one of
+	the given buildings will provide. Doesn't check if the building can be
+	constructed in this city. */
+int CvCity::getAdditionalYieldRateModifierByBuilding(YieldTypes eYield,
+	BuildingTypes eBuilding) const
 {
 	if (GET_TEAM(getTeam()).isObsoleteBuilding(eBuilding))
 		return 0; // advc
@@ -8649,11 +8638,9 @@ int CvCity::getAddedFreeSpecialistCount(SpecialistTypes eSpecialist) const
 	for (int i = 0; i < kCiv.getNumBuildings(); i++)
 	{
 		BuildingTypes eBuilding = kCiv.buildingAt(i);
-		if (GC.getInfo(eBuilding).getFreeSpecialistCount(eSpecialist) > 0)
-		{
-			iR -= getNumActiveBuilding(eBuilding) *
-					GC.getInfo(eBuilding).getFreeSpecialistCount(eSpecialist);
-		}
+		int iFreeSpecialists = GC.getInfo(eBuilding).getFreeSpecialistCount(eSpecialist);
+		if (iFreeSpecialists > 0)
+			iR -= getNumActiveBuilding(eBuilding) * iFreeSpecialists;
 	}
 	FAssert(iR >= 0);
 	return std::max(0, iR);
@@ -9258,8 +9245,8 @@ int CvCity::getReligionGrip(ReligionTypes eReligion) const
 	return iScore; // note. the random part is not included in this function.
 }
 
-
-void CvCity::processVoteSource(VoteSourceTypes eVoteSource, bool bActive) // advc: Renamed from "processVoteSourceBonus"
+// advc: Renamed from "processVoteSourceBonus"
+void CvCity::processVoteSource(VoteSourceTypes eVoteSource, bool bActive)
 {
 	if (!GET_PLAYER(getOwner()).isLoyalMember(eVoteSource))
 		return;

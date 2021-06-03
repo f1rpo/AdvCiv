@@ -58,11 +58,10 @@ public: // All the const functions are exposed to Python
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
 	#endif
-	// FUNCTION:    read
-	//! \brief      Reads in a CvAnimationPathInfo definition from XML
-	//! \param      pXML Pointer to the XML loading object
-	//! \retval     true if the definition was read successfully, false otherwise
-	// (advc: Cut this comment from CvAnimationPathInfo)
+	/*	Reads in a Cv...Info definition from XML
+		param: pXML Pointer to the XML loading object
+		returns: true if the definition was read successfully, false otherwise.
+		(advc: Cut this comment from CvAnimationPathInfo) */
 	virtual bool read(CvXMLLoadUtility* pXML);
 	virtual bool readPass2(CvXMLLoadUtility* pXML)
 	{
@@ -76,7 +75,6 @@ public: // All the const functions are exposed to Python
 	}
 
 protected:
-	//bool doneReadingXML(CvXMLLoadUtility* pXML); // advc.003j: Never had an implementation
 
 	bool m_bGraphicalOnly;
 
@@ -94,6 +92,8 @@ protected:
 	mutable CvWString m_szCachedHelp;
 	mutable CvWString m_szCachedStrategy;
 	mutable CvWString m_szCachedCivilopedia;
+
+	//bool doneReadingXML(CvXMLLoadUtility* pXML); // advc.003j: Never had an implementation
 };
 
 // holds the scale for scalable objects
@@ -185,7 +185,7 @@ protected:
 	private:
 		int m_bDefaultValue;
 	};
-	/*  Derived classes that extend any of the element type enums need to override this.
+	/*	Derived classes that extend any of the element type enums need to override this.
 		The overridden function needs to call the base function and then append its
 		own elements to r. */
 	virtual void addElements(std::vector<XMLElement*>& r) const;

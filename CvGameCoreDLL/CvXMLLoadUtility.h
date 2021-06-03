@@ -36,7 +36,7 @@ public:
 	bool LoadOptionalGlobals();
 	bool LoadThroneRoomInfo(); // </advc.003v>
 
-	bool ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObject* cache);
+	bool ReadGlobalDefines(TCHAR const* szXMLFileName, CvCacheObject* cache);
 	
 	DllExport bool SetGlobalDefines();
 	DllExport bool SetGlobalTypes();
@@ -89,7 +89,7 @@ public:
 		that lacks tags which, normally, are mandatory. */
 	void setAssertMandatoryEnabled(bool b);
 
-	bool LoadCivXml(FXml* pFXml, const TCHAR* szFilename);
+	bool LoadCivXml(FXml* pFXml, TCHAR const* szFilename);
 
 	bool GetXmlVal(std::wstring& r, wchar const* szDefault = NULL);
 	bool GetXmlVal(std::string& r, char const* szDefault = NULL);
@@ -132,7 +132,7 @@ public:
 	void SetFeatureStruct(int** ppiFeatureTech, int** ppiFeatureTime, int** ppiFeatureProduction, bool** ppbFeatureRemove);
 	void SetImprovementBonuses(CvImprovementBonusInfo** ppImprovementBonus);
 
-	static int FindInInfoClass(const TCHAR* szType, bool hideAssert = false);
+	static int FindInInfoClass(TCHAR const* szType, bool hideAssert = false);
 
 	#ifdef _USRDLL
 	template <class T>
@@ -156,9 +156,9 @@ public:
 	template<typename T>
 	void SetVariableListTagPair(T** pptList, const TCHAR* szRootTagName,
 			int iInfoBaseLength, T tDefaultListVal = 0);
-	void SetVariableListTagPair(CvString** ppszList, const TCHAR* szRootTagName,
+	void SetVariableListTagPair(CvString** ppszList, TCHAR const* szRootTagName,
 			int iInfoBaseLength, CvString szDefaultListVal = "");
-	void SetVariableListTagPairForAudioScripts(int **ppiList, const TCHAR* szRootTagName,
+	void SetVariableListTagPairForAudioScripts(int **ppiList, TCHAR const* szRootTagName,
 			int iInfoBaseLength, int iDefaultListVal = -1);
 	/*	advc (19 Feb 2021): Deleted four versions (a fifth - AudioScripts - deleted
 		much earlier) that took a param CvString* m_paszTagList.
@@ -169,7 +169,7 @@ public:
 
 	bool SetAndLoadVar(int** ppiVar, int iDefault=0);
 	bool SetStringList(CvString** ppszStringArray, int* piSize);
-	int GetHotKeyInt(const TCHAR* pszHotKeyVal);
+	int GetHotKeyInt(TCHAR const* pszHotKeyVal);
 
 
 private:
@@ -208,7 +208,7 @@ private:
 	template <class T>
 	void LoadGlobalClassInfo(std::vector<T*>& aInfos, const char* szFileRoot,
 			const char* szFileDirectory, const char* szXmlPath, bool bTwoPass,
-			CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction)(const TCHAR*) = NULL);
+			CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction)(TCHAR const*) = NULL);
 	template <class T>
 	void SetGlobalClassInfo(std::vector<T*>& aInfos, const char* szTagName, bool bTwoPass,
 			bool bFinalCall = false); // advc.xmldefault
@@ -216,7 +216,7 @@ private:
 	void SetDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfos, const char* szTagName);
 	void LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfos, const char* szFileRoot,
 			const char* szFileDirectory, const char* szXmlPath,
-			CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*));
+			CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (TCHAR const*));
 	//
 	// special cases of set class info which don't use the template because of extra code they have
 	//

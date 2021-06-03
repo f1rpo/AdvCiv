@@ -4062,11 +4062,11 @@ void CvTeam::changeVictoryCountdown(VictoryTypes eIndex, int iChange)
 	setVictoryCountdown(eIndex, getVictoryCountdown(eIndex) + iChange); // advc: instead of m_aiVictoryCountdown.add(eIndex, iChange)
 }
 
-// <advc.opt>
+// advc.opt:
 bool CvTeam::isAnyVictoryCountdown() const
 {
 	return m_bAnyVictoryCountdown;
-} // </advc.opt>
+}
 
 
 int CvTeam::getVictoryDelay(VictoryTypes eVictory) const
@@ -4074,15 +4074,13 @@ int CvTeam::getVictoryDelay(VictoryTypes eVictory) const
 	int iExtraDelayPercent = 0;
 	FOR_EACH_ENUM(Project)
 	{
-		CvProjectInfo& kProject = GC.getInfo(eLoopProject);
+		CvProjectInfo const& kProject = GC.getInfo(eLoopProject);
 		int iCount = getProjectCount(eLoopProject);
-
 		if (iCount < kProject.getVictoryMinThreshold(eVictory))
 		{
 			FAssert(false);
 			return -1;
 		}
-
 		if (iCount < kProject.getVictoryThreshold(eVictory))
 		{
 			iExtraDelayPercent += ((kProject.getVictoryThreshold(eVictory) -
@@ -4090,7 +4088,6 @@ int CvTeam::getVictoryDelay(VictoryTypes eVictory) const
 					kProject.getVictoryThreshold(eVictory);
 		}
 	}
-
 	return (GC.getGame().victoryDelay(eVictory)  * (100 + iExtraDelayPercent)) / 100;
 }
 
@@ -4113,17 +4110,13 @@ int CvTeam::getLaunchSuccessRate(VictoryTypes eVictory) const
 		int iCount = getProjectCount(eLoopProject);
 		if (iCount < kProject.getVictoryMinThreshold(eVictory))
 			return 0;
-
-		if (iCount < kProject.getVictoryThreshold(eVictory))
+		if (iCount < kProject.getVictoryThreshold(eVictory) &&
+			kProject.getSuccessRate() > 0)
 		{
-			if (kProject.getSuccessRate() > 0)
-			{
-				iSuccessRate -= (kProject.getSuccessRate() *
-						(kProject.getVictoryThreshold(eVictory) - iCount));
-			}
+			iSuccessRate -= (kProject.getSuccessRate() *
+					(kProject.getVictoryThreshold(eVictory) - iCount));
 		}
 	}
-
 	return iSuccessRate;
 }
 

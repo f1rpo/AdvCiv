@@ -23,7 +23,7 @@
 #define CHECK_FOR_REDEFINES 0
 
 // read the global defines from a specific file
-bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObject* cache)
+bool CvXMLLoadUtility::ReadGlobalDefines(TCHAR const* szXMLFileName, CvCacheObject* cache)
 {
 	#if ENABLE_XML_FILE_CACHE
 	// advc: Handle successful read upfront

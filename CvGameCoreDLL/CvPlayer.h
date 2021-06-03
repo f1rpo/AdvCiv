@@ -1571,6 +1571,8 @@ protected:  // <advc.210>
 	EnumMap<BonusTypes,int> m_aiBonusImport;
 	EnumMap<ImprovementTypes,int> m_aiImprovementCount;
 
+	/*	advc (note): These three should be per building class
+		(but it's tedious to change) */
 	EnumMap<BuildingTypes,int> m_aiFreeBuildingCount;
 	EnumMap<BuildingTypes,int> m_aiExtraBuildingHappiness;
 	EnumMap<BuildingTypes,int> m_aiExtraBuildingHealth;

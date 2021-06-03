@@ -57,6 +57,7 @@ namespace branchless
 		return y + ((x - y) & -(x < y));
 	}
 }
+
 // <advc.003g>
 namespace stats // Seems too generic, but what else to name it?
 {
@@ -188,7 +189,6 @@ void iota(ForwardIt first, ForwardIt last, T value)
 
 // advc.004w:
 void applyColorToString(CvWString& s, char const* szColor, bool bLink = false);
-void narrowUnsafe(CvWString const& szWideString, CvString& szNarowString); // advc
 
 // (advc: getSign move to CvPlot.cpp)
 

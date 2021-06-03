@@ -75,7 +75,8 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 				{
 					UnitTypes eFoundUnit = kCiv.unitAt(i);
 					if (GC.getInfo(eFoundUnit).isFound() &&
-						GC.getInfo(eFoundUnit).getProductionTraits(eLoopTrait) &&
+						// advc.031: was > 0
+						GC.getInfo(eFoundUnit).getProductionTraits(eLoopTrait) > 20 &&
 						kPlayer.canTrain(eFoundUnit))
 					{
 						m_bAmbitious = true;
