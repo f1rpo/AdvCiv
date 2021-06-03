@@ -528,7 +528,7 @@ nmake precompile /NOLOGO
 bin\jom build /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Profile
 nmake clean /NOLOGO</NMakeCleanCommandLine>
-    <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /D_CODE_EDITOR /DUSE_TSC_PROFILER /DUSE_INTERNAL_PROFILER</AdditionalOptions>
+    <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR /D_CODE_EDITOR /DUSE_TSC_PROFILER /DUSE_INTERNAL_PROFILER /DPROFILE_AI_AUTO_PLAY</AdditionalOptions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-fast|Win32'">
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>

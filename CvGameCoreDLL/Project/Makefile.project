@@ -12,6 +12,8 @@ PROJECT_Debug_CFLAGS = /Ob1
 # Time Stamp Counter profiler: /DUSE_TSC_PROFILER
 # External profiler, e.g. Very Sleepy: No profile flags needed; profile builds always use Z7.
 # Standard Firaxis profiler (not sure if this can work w/o access to the EXE): /DFP_PROFILE_ENABLE
-PROJECT_Profile_CFLAGS = /DUSE_INTERNAL_PROFILER
+# The Auto Play flag disables graphics updates known to be rare and costly b/c they may
+#   skew profiling of the DLL. So far only affects map trades involving the active player.
+PROJECT_Profile_CFLAGS = /DPROFILE_AI_AUTO_PLAY
 PROJECT_LDFLAGS = /DEF:CvGameCoreDLL.def
 PRECOMPILE_DEPENDENCIES = 

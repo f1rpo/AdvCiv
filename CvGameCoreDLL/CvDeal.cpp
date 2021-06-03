@@ -789,7 +789,18 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		break;
 
 	case TRADE_MAPS:
-	{
+	{	// <advc.003o>
+		#ifdef PROFILE_AI_AUTO_PLAY
+		/*	Implementing map trades for the active player is very slow due to
+			graphics updates, which, it seems could only be optimized in the EXE.
+			Don't want that to skew DLL profiling on AI Auto Play. */
+		if (GC.getGame().getAIAutoPlay() > 0 &&
+			GC.getGame().getActiveTeam() == TEAMID(eToPlayer))
+		{
+			break;
+		}
+		#endif
+		// </advc.003o>
 		PROFILE("CvDeal::startTrade.MAPS"); // advc
 		CvMap const& kMap = GC.getMap();
 		for (int i = 0; i < kMap.numPlots(); i++)
