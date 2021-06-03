@@ -275,12 +275,12 @@ void CvHotkeyInfo::write(FDataStreamBase* pStream)
 	pStream->WriteString(m_szHotKeyString);
 }
 #endif
-// <advc.tag>
+// advc.tag:
 void CvHotkeyInfo::addElements(std::vector<XMLElement*>& r) const
 {
 	CvXMLInfo::addElements(r);
 	// (Could add CvHotKeyInfo elements here)
-} // </advc.tag>
+}
 
 int CvHotkeyInfo::getActionInfoIndex() const
 {
@@ -399,7 +399,7 @@ bool CvXMLInfo::XMLElement::isMandatory() const { return m_bMandatory; }
 CvXMLInfo::IntElement::IntElement(int iEnumValue, CvString szName) :
 		XMLElement(iEnumValue, szName), m_iDefaultValue(0) {}
 
-CvXMLInfo::IntElement::IntElement(int iEnumValue, CvString szName, int iDefault) :
+CvXMLInfo::IntElement::IntElement(int iEnumValue, CvString szName, short iDefault) :
 		XMLElement(iEnumValue, szName, false), m_iDefaultValue(iDefault) {}
 
 CvXMLInfo::ElementDataType CvXMLInfo::IntElement::getDataType() const
@@ -407,7 +407,7 @@ CvXMLInfo::ElementDataType CvXMLInfo::IntElement::getDataType() const
 	return INT_ELEMENT;
 }
 
-int CvXMLInfo::IntElement::getDefaultValue() const { return m_iDefaultValue; }
+short CvXMLInfo::IntElement::getDefaultValue() const { return m_iDefaultValue; }
 
 CvXMLInfo::BoolElement::BoolElement(int iEnumValue, CvString szName) :
 		XMLElement(iEnumValue, szName), m_bDefaultValue(false) {}
@@ -430,7 +430,7 @@ void CvXMLInfo::addElements(std::vector<XMLElement*>& r) const
 void CvXMLInfo::set(IntElementTypes e, int iNewValue)
 {
 	FAssertBounds(0, m_aiData.size(), e);
-	m_aiData[e] = iNewValue;
+	m_aiData[e] = toShort(iNewValue);
 }
 
 void CvXMLInfo::set(BoolElementTypes e, bool bNewValue)
@@ -478,7 +478,7 @@ bool CvXMLInfo::read(CvXMLLoadUtility* pXML)
 						static_cast<IntElement&>(kElement).getDefaultValue());
 			}
 			FAssertBounds(0, m_aiData.size(), iEnumValue);
-			m_aiData[iEnumValue] = iTmp;
+			m_aiData[iEnumValue] = toShort(iTmp);
 			break;
 		case BOOL_ELEMENT:
 			szName.insert(0, "b");

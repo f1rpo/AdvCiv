@@ -115,7 +115,8 @@ protected:
 };
 
 /*	advc.tag: Abstract class that allows XML elements to be added
-	and accessed through enum values */
+	and accessed through enum values
+	For elements that map an enum key to a value, see CvInfo_EnumMap.h. */
 class CvXMLInfo : public CvInfoBase
 {
 public:
@@ -128,12 +129,12 @@ public:
 	{
 		NUM_BOOL_ELEMENT_TYPES
 	};
-	__forceinline int get(IntElementTypes e) const
+	__forceinline short get(IntElementTypes e) const
 	{
 		FAssertBounds(0, m_aiData.size(), e);
 		return m_aiData[e];
 	}
-	__forceinline int get(BoolElementTypes e) const
+	__forceinline bool get(BoolElementTypes e) const
 	{
 		FAssertBounds(0, m_abData.size(), e);
 		return m_abData[e];
@@ -169,11 +170,11 @@ protected:
 	{
 	public:
 		IntElement(int iEnumValue, CvString szName);
-		IntElement(int iEnumValue, CvString szName, int iDefault);
+		IntElement(int iEnumValue, CvString szName, short iDefault);
 		ElementDataType getDataType() const;
-		int getDefaultValue() const;
+		short getDefaultValue() const;
 	private:
-		int m_iDefaultValue;
+		short m_iDefaultValue;
 	};
 	class BoolElement : public XMLElement
 	{
@@ -194,9 +195,21 @@ protected:
 	void set(BoolElementTypes e, bool bNewValue);
 
 private:
-	std::vector<int> m_aiData;
-	std::vector<bool> m_abData;
+	std::vector<short> m_aiData;
+	std::vector<bool> m_abData; // Should use a dynamic bitfield internally
 };
+
+/*	advc.tag: (To expose a tag to Python, this macro needs to be called in the
+	public section of the concrete XML info class that defines the tag, and a
+	py_get... def needs to be added in the appropriate CyInfoPythonInterface*.cpp.) */
+#define PY_GET_ELEMENT(ReturnType, TagName) \
+	private: \
+		FRIEND_CY_INFO_PYTHON_INTERFACE; \
+		ReturnType py_get##TagName() const \
+		{ \
+			return get(TagName); \
+		} \
+	public:
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  class : CvHotkeyInfo
