@@ -985,6 +985,7 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 				(kDefender.m_military[FLEET]->power()
 				- kDefender.m_arLostPower[FLEET]) *
 				rConfDef * rArmyPortionDefender;
+		rDefFleetPow.increaseTo(0);
 		// Reduced b/c not all transports are available for military purposes
 		scaled rCargoCap = fixp(0.73) *
 				(m_military[LOGISTICS]->power() - m_arLostPower[LOGISTICS]);
@@ -2333,10 +2334,11 @@ SimulationStep::SimulationStep(PlayerTypes eAttacker,
 void SimulationStep::reducePower(PlayerTypes ePlayer,
 	MilitaryBranchTypes eBranch, scaled rSubtrahend)
 {
+	FAssert(rSubtrahend >= 0);
+	rSubtrahend.increaseTo(0);
 	(ePlayer == m_eAttacker ?
 			m_arLostPowerAttacker[eBranch] :
 			m_arLostPowerDefender[eBranch]) += rSubtrahend;
-	FAssert(m_arLostPowerAttacker[eBranch] >= 0 && m_arLostPowerDefender[eBranch] >= 0);
 }
 
 
