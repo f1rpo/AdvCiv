@@ -212,7 +212,7 @@ void CvCivicInfo::read(FDataStreamBase* stream)
 	uint uiFlag=0;
 	stream->Read(&uiFlag);
 
-	stream->Read(&m_eCivicOptionType);
+	stream->Read((int*)&m_eCivicOptionType);
 	stream->Read(&m_iAnarchyLength);
 	stream->Read(&m_iUpkeep);
 	stream->Read(&m_iAIWeight);
@@ -252,7 +252,7 @@ void CvCivicInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iWarWearinessModifier);
 	stream->Read(&m_iFreeSpecialist);
 	stream->Read(&m_iTradeRoutes);
-	stream->Read(&m_eTechPrereq);
+	stream->Read((int*)&m_eTechPrereq);
 	stream->Read(&m_iCivicPercentAnger);
 	stream->Read(&m_iMaxConscript);
 	stream->Read(&m_iStateReligionHappiness);

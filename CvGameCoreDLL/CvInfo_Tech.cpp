@@ -264,13 +264,13 @@ void CvTechInfo::write(FDataStreamBase* stream)
 		int iOrTechPrereqs = getNumOrTechPrereqs();
 		stream->Write(iOrTechPrereqs);
 		if (iOrTechPrereqs > 0)
-			stream->Write(iOrTechPrereqs, &m_aePrereqOrTechs[0]);
+			stream->Write(iOrTechPrereqs, (int*)&m_aePrereqOrTechs[0]);
 	}
 	{
 		int iAndTechPrereqs = getNumAndTechPrereqs();
 		stream->Write(iAndTechPrereqs);
 		if (iAndTechPrereqs > 0)
-			stream->Write(iAndTechPrereqs, &m_aePrereqAndTechs[0]);
+			stream->Write(iAndTechPrereqs, (int*)&m_aePrereqAndTechs[0]);
 	} // </advc.003t>
 	stream->Write(NUM_COMMERCE_TYPES, m_piSpecialistExtraCommerce); // K-Mod
 	stream->Write(NUM_COMMERCE_TYPES, m_pbCommerceFlexible);

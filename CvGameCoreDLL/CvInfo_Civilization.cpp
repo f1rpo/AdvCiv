@@ -280,6 +280,7 @@ void CvCivilizationInfo::write(FDataStreamBase* stream)
 	stream->WriteString(m_iNumCityNames, m_paszCityNames);
 }
 #endif
+
 bool CvCivilizationInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
@@ -661,6 +662,7 @@ const TCHAR* CvLeaderHeadInfo::getLeaderHead() const
 
 	return NULL;
 }
+
 #if ENABLE_XML_FILE_CACHE
 void CvLeaderHeadInfo::read(FDataStreamBase* stream)
 {
@@ -913,6 +915,7 @@ void CvLeaderHeadInfo::write(FDataStreamBase* stream)
 	stream->Write(GC.getNumEraInfos(), m_piDiploWarMusicScriptIds);
 }
 #endif
+
 const CvArtInfoLeaderhead* CvLeaderHeadInfo::getArtInfo() const
 {
 	return ARTFILEMGR.getLeaderheadArtInfo( getArtDefineTag());
@@ -1390,7 +1393,8 @@ void CvDiplomacyResponse::setDiplomacyText(int i, CvString szText)
 	FAssertBounds(0, getNumDiplomacyText(), i);
 	m_paszDiplomacyText[i] = szText;
 }
-/*#if ENABLE_XML_FILE_CACHE
+
+#if ENABLE_XML_FILE_CACHE
 void CvDiplomacyResponse::read(FDataStreamBase* stream)
 {
 	uint uiFlag=0;
@@ -1425,8 +1429,9 @@ void CvDiplomacyResponse::write(FDataStreamBase* stream)
 	stream->Write(NUM_ATTITUDE_TYPES, m_pbAttitudeTypes);
 	stream->Write(NUM_DIPLOMACYPOWER_TYPES, m_pbDiplomacyPowerTypes);
 	stream->WriteString(m_iNumDiplomacyText, m_paszDiplomacyText);
-}*/
-//#endif
+}
+#endif
+
 bool CvDiplomacyResponse::read(CvXMLLoadUtility* pXML)
 {
 	pXML->SetVariableListTagPair(&m_pbCivilizationTypes, "Civilizations", GC.getNumCivilizationInfos());
@@ -1504,8 +1509,9 @@ const TCHAR* CvDiplomacyInfo::getDiplomacyText(int i, int j) const
 	FAssertBounds(0, getNumDiplomacyText(i), j);
 	return m_pResponses[i]->getDiplomacyText(j);
 }
-//#if ENABLE_XML_FILE_CACHE
-/*void CvDiplomacyInfo::read(FDataStreamBase* stream)
+
+#if ENABLE_XML_FILE_CACHE
+void CvDiplomacyInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
 	uint uiFlag=0;
@@ -1531,8 +1537,8 @@ void CvDiplomacyInfo::write(FDataStreamBase* stream)
 	stream->Write(iNumResponses);
 	for (int uiIndex = 0; uiIndex < iNumResponses; ++uiIndex)
 		m_pResponses[uiIndex]->write(stream);
-}*/
-//#endif
+}
+#endif
 bool CvDiplomacyInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))

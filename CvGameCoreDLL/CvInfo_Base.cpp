@@ -504,14 +504,30 @@ bool CvXMLInfo::read(CvXMLLoadUtility* pXML)
 void CvXMLInfo::read(FDataStreamBase* pStream)
 {
 	CvInfoBase::read(pStream);
-	pStream->Read((int)m_aiData.size(), m_aiData.data());
-	pStream->Read((int)m_abData.size(), m_abData.data());
+	for (size_t i = 0; i < m_aiData.size(); i++)
+	{
+		short iVal;
+		pStream->Read(&iVal);
+		m_aiData[i] = iVal;
+	}
+	for (size_t i = 0; i < m_abData.size(); i++)
+	{
+		bool bVal;
+		pStream->Read(&bVal);
+		m_abData[i] = bVal;
+	}
 }
 
 void CvXMLInfo::write(FDataStreamBase* pStream)
 {
 	CvInfoBase::write(pStream);
-	pStream->Write((int)m_aiData.size(), m_aiData.data());
-	pStream->Write((int)m_abData.size(), m_abData.data());
+	for (size_t i = 0; i < m_aiData.size(); i++)
+	{
+		pStream->Write(m_aiData[i]);
+	}
+	for (size_t i = 0; i < m_abData.size(); i++)
+	{
+		pStream->Write(m_abData[i]);
+	}
 }
 #endif // </advc.tag>

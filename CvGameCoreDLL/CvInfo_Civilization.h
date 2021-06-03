@@ -433,11 +433,10 @@ public: // advc: All the const functions are exposed to Python (some const quali
 	const TCHAR* getDiplomacyText(int i) const;
 	const CvString* getDiplomacyText() const;
 	void setDiplomacyText(int i, CvString szText);
-	// advc.003i: I don't think these were actually included in the XML cache
-	//#if ENABLE_XML_FILE_CACHE
-	/*void read(FDataStreamBase* stream);
-	void write(FDataStreamBase* stream);*/
-	//#endif
+	#if ENABLE_XML_FILE_CACHE
+	void read(FDataStreamBase* stream);
+	void write(FDataStreamBase* stream);
+	#endif
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:
@@ -472,11 +471,10 @@ public: // advc: All the const functions are exposed to Python
 	int getNumDiplomacyText(int i) const;
 
 	const TCHAR* getDiplomacyText(int i, int j) const;
-	// advc.003i: I don't think these were actually included in the XML cache
-	//#if ENABLE_XML_FILE_CACHE
-	/*void read(FDataStreamBase* stream);
-	void write(FDataStreamBase* stream);*/
-	//#endif
+	#if ENABLE_XML_FILE_CACHE
+	void read(FDataStreamBase* stream);
+	void write(FDataStreamBase* stream);
+	#endif
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:

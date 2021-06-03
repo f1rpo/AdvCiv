@@ -623,7 +623,11 @@ void CvBonusInfo::read(FDataStreamBase* stream)
 	stream->Read(&uiFlag);
 
 	stream->Read((int*)&m_eBonusClassType);
-	stream->Read(&m_iChar);
+	{
+		int iSymbol;
+		stream->Read(&iSymbol);
+		m_wcSymbol = toWChar(iSymbol);
+	}
 	stream->Read((int*)&m_eTechReveal);
 	stream->Read((int*)&m_eTechCityTrade);
 	stream->Read((int*)&m_eTechObsolete);
@@ -673,7 +677,10 @@ void CvBonusInfo::write(FDataStreamBase* stream)
 	stream->Write(uiFlag);
 
 	stream->Write(m_eBonusClassType);
-	stream->Write(m_iChar);
+	{
+		int iSymbol = m_wcSymbol;
+		stream->Write(iSymbol);
+	}
 	stream->Write(m_eTechReveal);
 	stream->Write(m_eTechCityTrade);
 	stream->Write(m_eTechObsolete);
