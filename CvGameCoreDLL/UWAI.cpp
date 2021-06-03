@@ -36,7 +36,7 @@ void UWAI::initNewPlayerInGame(PlayerTypes eNewPlayer)
 
 void UWAI::processNewPlayerInGame(PlayerTypes eNewPlayer)
 {
-	GET_PLAYER(eNewPlayer).uwai().getCache().updateTypicalUnits();
+	GET_PLAYER(eNewPlayer).uwai().getCache().update(true);
 	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		it->uwai().turnPre();
 }

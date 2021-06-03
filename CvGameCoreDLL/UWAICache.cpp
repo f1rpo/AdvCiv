@@ -297,7 +297,7 @@ void UWAICache::read(FDataStreamBase* pStream)
 
 /*	Called each turn. Some data are also updated throughout the turn, e.g. through
 	reportUnitCreated. */
-void UWAICache::update()
+void UWAICache::update(bool bNewPlayer)
 {
 	PROFILE_FUNC();
 	clear(true);
@@ -317,10 +317,12 @@ void UWAICache::update()
 	updateTotalAssetScore();
 	updateTargetMissionCounts();
 	updateTypicalUnits();
-	bool const bPlayerHistAvailable = (GC.getGame().getElapsedGameTurns() > 0);
+	bool const bPlayerHistAvailable = (GC.getGame().getElapsedGameTurns() > 0 &&
+			!bNewPlayer);
 	if (bPlayerHistAvailable) // Can't do yield estimates on the first turn
 		updateThreatRatings();
-	updateVassalScores();
+	if (!GET_PLAYER(m_eOwner).isAVassal())
+		updateVassalScores();
 	updateAdjacentLand();
 	updateLostTilesAtWar(); // advc.035
 	updateRelativeNavyPower();

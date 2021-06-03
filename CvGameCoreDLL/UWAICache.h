@@ -64,7 +64,7 @@ public:
 		+	The reset function is named "clear" and is also used before cache updates. */
 	void init(PlayerTypes eOwner);
 	void uninit();
-	void update();
+	void update(bool bNewPlayer = false);
 	void write(FDataStreamBase* pStream) const;
 	void read(FDataStreamBase* pStream);
 	int numReachableCities(PlayerTypes ePlayer) const
@@ -165,9 +165,6 @@ public:
 	void addTeam(PlayerTypes eOtherLeader);
 	// Moves data that is stored only at the team leader
 	void onTeamLeaderChanged(PlayerTypes formerLeaderId);
-	/*	public b/c this needs to be done ahead of the normal update when a
-		colony is created (bootstrapping problem) */
-	void updateTypicalUnits();
 
 private:
 	// bBeforeUpdate: Only clear data that is recomputed by the update function
@@ -182,6 +179,7 @@ private:
 	TeamPathFinders* createTeamPathFinders() const;
 	static void deleteTeamPathFinders(TeamPathFinders& kPathFinders);
 	void resetTeamPathFinders(TeamPathFinders& kPathFinders, TeamTypes eWarTarget) const;
+	void updateTypicalUnits();
 	void updateTraits();
 	void updateTargetMissionCounts();
 	void updateThreatRatings();

@@ -2900,8 +2900,8 @@ int Risk::preEvaluate()
 		scaled rVassalCost; // (i.e. negative utility)
 		if (rRelativeVassalLoss > 0)
 		{	/*	advc.test: Total asset score less than the sum of the city scores.
-				I've seen this happen with the total being 0.
-				To be investigated further. */
+				Had not worked correctly when called from UWAI::processNewPlayerInGame.
+				Should be fixed now; let's see ... */
 			FAssert(rRelativeVassalLoss <= 1);
 			rRelativeVassalLoss.decreaseTo(1);
 			rVassalCost = rRelativeVassalLoss * 33;
