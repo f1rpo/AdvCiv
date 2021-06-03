@@ -11326,7 +11326,8 @@ void CvCity::read(FDataStreamBase* pStream)
 			}
 		}
 	} // </advc.310>
-	// <advc.911a>
+	/*	<advc.911a>  (Reminder: All this junk can and should be
+		deleted as soon as savegame compatibility gets broken by a release) */
 	if (uiFlag < 10)
 	{
 		SpecialistTypes eSpy = (SpecialistTypes)GC.getInfoTypeForString(
@@ -11356,8 +11357,44 @@ void CvCity::read(FDataStreamBase* pStream)
 
 				}
 			}
+		} // </advc.911a>
+		// <advc.908b>
+		BuildingTypes eHippodrome = (BuildingTypes)
+					GC.getInfoTypeForString("BUILDING_BYZANTINE_HIPPODROME");
+		if (eHippodrome != NO_BUILDING && getNumBuilding(eHippodrome) > 0 &&
+			!GET_TEAM(getTeam()).isObsoleteBuilding(eHippodrome))
+		{
+			SpecialistTypes eArtist = (SpecialistTypes)GC.getInfoTypeForString(
+					"SPECIALIST_ARTIST");
+			if (eArtist != NO_SPECIALIST)
+				changeMaxSpecialistCount(eArtist, getNumBuilding(eHippodrome));
 		}
-	} // </advc.911a>
+		std::vector<std::pair<BuildingClassTypes,int> > aeiCultureHappyMults;
+		aeiCultureHappyMults.push_back(std::make_pair((BuildingClassTypes)
+				GC.getInfoTypeForString("BUILDINGCLASS_THEATRE"),
+				50));
+		aeiCultureHappyMults.push_back(std::make_pair((BuildingClassTypes)
+				GC.getInfoTypeForString("BUILDINGCLASS_COLOSSEUM"),
+				200));
+		for (size_t i = 0; i < aeiCultureHappyMults.size(); i++)
+		{
+			BuildingClassTypes const eClass = aeiCultureHappyMults[i].first;
+			if (eClass == NO_BUILDINGCLASS || getNumBuilding(eClass) <= 0)
+				continue;
+			FOR_EACH_ENUM(Building)
+			{
+				if (GC.getInfo(eLoopBuilding).getBuildingClassType() == eClass &&
+					!GET_TEAM(getTeam()).isObsoleteBuilding(eLoopBuilding))
+				{
+					int iNewHappy = GC.getInfo(eLoopBuilding).
+							getCommerceHappiness(COMMERCE_CULTURE);
+					int iOldHappy = (iNewHappy * 100) / aeiCultureHappyMults[i].second;
+					changeCommerceHappinessPer(COMMERCE_CULTURE,
+							(iNewHappy - iOldHappy) * getNumBuilding(eLoopBuilding));
+				}
+			}
+		}
+	} // </advc.908b>
 }
 
 void CvCity::write(FDataStreamBase* pStream)
@@ -11374,7 +11411,7 @@ void CvCity::write(FDataStreamBase* pStream)
 	//uiFlag = 7; // advc.003u: m_bChooseProductionDirty
 	//uiFlag = 8; // advc.310
 	//uiFlag = 9; // advc.912d (adjust food kept)
-	uiFlag = 10; // advc.911a
+	uiFlag = 10; // advc.911a, advc.908b
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iID);
