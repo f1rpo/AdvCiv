@@ -5234,10 +5234,11 @@ bool CvPlayer::canCreate(ProjectTypes eProject, bool bContinue, bool bTestVisibl
 		{
 			return false;
 		}
-		FOR_EACH_ENUM(Project)
+		FOR_EACH_NON_DEFAULT_INFO_PAIR(GC.getInfo(eProject).
+			getProjectsNeeded(), Project, int)
 		{
-			if (GET_TEAM(getTeam()).getProjectCount(eLoopProject) <
-				GC.getInfo(eProject).getProjectsNeeded(eLoopProject))
+			if (GET_TEAM(getTeam()).getProjectCount(perProjectVal.first) <
+				perProjectVal.second)
 			{
 				return false;
 			}
@@ -5411,37 +5412,16 @@ int CvPlayer::getProductionModifier(UnitTypes eUnit) const
 	int iMultiplier = 0;
 	if (GC.getInfo(eUnit).isMilitaryProduction())
 		iMultiplier += getMilitaryProductionModifier();
-
-	FOR_EACH_ENUM(Trait)
-	{
-		if (!hasTrait(eLoopTrait))
-			continue;
-		iMultiplier += GC.getInfo(eUnit).getProductionTraits(eLoopTrait);
-		if (GC.getInfo(eUnit).getSpecialUnitType() != NO_SPECIALUNIT)
-		{
-			iMultiplier += GC.getInfo(GC.getInfo(eUnit).getSpecialUnitType()).
-					getProductionTraits(eLoopTrait);
-		}
-	}
-
+	// advc: Moved into new function
+	iMultiplier += getProductionTraitModifier(eUnit);
 	return iMultiplier;
 }
 
 int CvPlayer::getProductionModifier(BuildingTypes eBuilding) const
 {
-	int iMultiplier = 0;
+	// advc: Moved into new function
+	int iMultiplier = getProductionTraitModifier(eBuilding);
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
-	FOR_EACH_ENUM(Trait)
-	{
-		if (!hasTrait(eLoopTrait))
-			continue;
-		iMultiplier += kBuilding.getProductionTraits(eLoopTrait);
-		if (GC.getInfo(eBuilding).getSpecialBuildingType() != NO_SPECIALBUILDING)
-		{
-			iMultiplier += GC.getInfo(GC.getInfo(eBuilding).getSpecialBuildingType()).
-					getProductionTraits(eLoopTrait);
-		}
-	}
 	if (kBuilding.isWorldWonder())
 		iMultiplier += getMaxGlobalBuildingProductionModifier();
 	if (kBuilding.isTeamWonder())
@@ -5451,6 +5431,47 @@ int CvPlayer::getProductionModifier(BuildingTypes eBuilding) const
 
 	return iMultiplier;
 }
+
+// <advc> Cut from the getProductionModifier functions
+int CvPlayer::getProductionTraitModifier(UnitTypes eUnit) const
+{
+	int iMultiplier = 0;
+	CvUnitInfo const& kUnit = GC.getInfo(eUnit);
+	FOR_EACH_ENUM(Trait)
+	{
+		if (!hasTrait(eLoopTrait))
+			continue;
+		iMultiplier += kUnit.getProductionTraits(eLoopTrait);
+		if (kUnit.getSpecialUnitType() != NO_SPECIALUNIT)
+		{
+			iMultiplier += GC.getInfo(kUnit.getSpecialUnitType()).
+					getProductionTraits(eLoopTrait);
+		}
+	}
+	return iMultiplier;
+}
+
+int CvPlayer::getProductionTraitModifier(BuildingTypes eBuilding) const
+{
+	int iMultiplier = 0;
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
+		getProductionTraits(), Trait, int)
+	{
+		if (hasTrait(perTraitVal.first))
+			iMultiplier += perTraitVal.second;
+	}
+	if (kBuilding.getSpecialBuildingType() != NO_SPECIALBUILDING)
+	{
+		FOR_EACH_NON_DEFAULT_INFO_PAIR(GC.getInfo(kBuilding.getSpecialBuildingType()).
+			getProductionTraits(), Trait, int)
+		{
+			if (hasTrait(perTraitVal.first))
+				iMultiplier += perTraitVal.second;
+		}
+	}
+	return iMultiplier;
+} // </advc>
 
 int CvPlayer::getProductionModifier(ProjectTypes eProject) const
 {
@@ -5602,23 +5623,24 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea& kAr
 		changeStateReligionBuildingCommerce(c, kBuilding.getStateReligionCommerce(c) * iChange);
 		changeCommerceFlexibleCount(c, kBuilding.isCommerceFlexible(c) ? iChange : 0);
 	}
-	if (kBuilding.isAnyBuildingHappinessChanges()) // advc.003t
+	FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
+		getBuildingHappinessChanges(), BuildingClass, int)
 	{
-		CvCivilization const& kCiv = getCivilization(); // advc.003w
-		for (int i = 0; i < kCiv.getNumBuildings(); i++)
+		BuildingTypes eOtherBuilding = getCivilization().getBuilding(
+				perBuildingClassVal.first);
+		if (eOtherBuilding != NO_BUILDING)
 		{
-			BuildingTypes eOldBuilding = kCiv.buildingAt(i);
-			changeExtraBuildingHappiness(eOldBuilding,
-					kBuilding.getBuildingHappinessChanges(eOldBuilding) * iChange);
+			changeExtraBuildingHappiness(eOtherBuilding,
+					 perBuildingClassVal.second * iChange);
 		}
 	}
-	FOR_EACH_ENUM(Specialist)
+	FOR_EACH_ENUM(Yield)
 	{
-		FOR_EACH_ENUM(Yield)
+		FOR_EACH_NON_DEFAULT_INFO_PAIR(GC.getInfo(eBuilding).
+			getSpecialistYieldChange(eLoopYield), Specialist, int)
 		{
-			changeSpecialistExtraYield(eLoopSpecialist, eLoopYield,
-					GC.getInfo(eBuilding).getSpecialistYieldChange(
-					eLoopSpecialist, eLoopYield) * iChange);
+			changeSpecialistExtraYield(perSpecialistVal.first, eLoopYield,
+					perSpecialistVal.second * iChange);
 		}
 	}
 }
@@ -13217,26 +13239,15 @@ int CvPlayer::getAdvancedStartBuildingCost(BuildingTypes eBuilding, bool bAdd,
 				return -1;
 
 			// Check other buildings in this city and make sure none of them require this one ...
-
-			// Loop through Buildings to see which are present
 			FOR_EACH_ENUM(Building)
 			{
-				if (pCity->getNumBuilding(eLoopBuilding) > 0)
+				if (pCity->getNumBuilding(eLoopBuilding) <= 0)
+					continue;
+				FOR_EACH_NON_DEFAULT_KEY(GC.getInfo(eLoopBuilding).
+					isBuildingClassNeededInCity(), BuildingClass)
 				{
-					// Loop through present Building's requirements
-					for (int iBuildingClassPrereqLoop = 0; iBuildingClassPrereqLoop <
-						GC.getNumBuildingClassInfos(); iBuildingClassPrereqLoop++)
-					{
-						if (GC.getInfo(eLoopBuilding).isBuildingClassNeededInCity(
-							iBuildingClassPrereqLoop))
-						{
-							if ((getCivilization().getBuilding((BuildingClassTypes)
-								iBuildingClassPrereqLoop)) == eBuilding)
-							{
-								return -1;
-							}
-						}
-					}
+					if (getCivilization().getBuilding(eLoopBuildingClass) == eBuilding)
+						return -1;
 				}
 			}
 		}
@@ -17730,7 +17741,7 @@ bool CvPlayer::isFullMember(VoteSourceTypes eVoteSource) const
 
 	if (GC.getInfo(eVoteSource).getCivic() != NO_CIVIC)
 	{
-		if (!isCivic((CivicTypes)GC.getInfo(eVoteSource).getCivic()))
+		if (!isCivic(GC.getInfo(eVoteSource).getCivic()))
 			return false;
 	}
 

@@ -279,6 +279,43 @@ bool CvXMLLoadUtility::GetNextXmlVal(int& r, int iDefault)
 	return false; // no more sibling nodes
 }
 
+// <advc.003t>
+bool CvXMLLoadUtility::GetNextXmlVal(short& r, short iDefault)
+{
+	assignDefault(r, iDefault);
+	if (gDLL->getXMLIFace()->NextSibling(m_pFXml))
+	{
+		if (SkipToNextVal())
+		{
+			int i;
+			bool b = SafeGetLastNodeValue(m_pFXml, i, (int)iDefault); // advc.006d
+			r = toShort(i);
+			return b;
+		}
+		FErrorMsg("Error in GetNextXmlVal function, unable to find the next non-comment node");
+		return false;
+	}
+	return false;
+}
+
+bool CvXMLLoadUtility::GetNextXmlVal(char& r, char iDefault)
+{
+	assignDefault(r, iDefault);
+	if (gDLL->getXMLIFace()->NextSibling(m_pFXml))
+	{
+		if (SkipToNextVal())
+		{
+			int i;
+			bool b = SafeGetLastNodeValue(m_pFXml, i, (int)iDefault); // advc.006d
+			r = toChar(i);
+			return b;
+		}
+		FErrorMsg("Error in GetNextXmlVal function, unable to find the next non-comment node");
+		return false;
+	}
+	return false;
+} // </advc.003t>
+
 // see CvXMLLoadUtility::GetNextXmlVal(std::string&...
 bool CvXMLLoadUtility::GetNextXmlVal(float& r, float fDefault)
 {

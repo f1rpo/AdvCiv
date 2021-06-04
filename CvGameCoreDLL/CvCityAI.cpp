@@ -3396,14 +3396,11 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 		if (!canConstruct(eLoopBuilding))
 			continue;
 
-		if (isProductionAutomated())
+		if (isProductionAutomated() &&
+			// advc.003t: Replacing loop
+			kBuilding.getPrereqNumOfBuildingClass().isAnyNonDefault())
 		{
-			bool bHasPrereqs = false;
-			for (int iJ = 0; !bHasPrereqs && iJ < GC.getNumBuildingClassInfos(); iJ++)
-				bHasPrereqs = kBuilding.getPrereqNumOfBuildingClass(iJ) > 0;
-
-			if (bHasPrereqs)
-				continue;
+			continue;
 		}
 
 		int iValue = AI_buildingValue(eLoopBuilding, iFocusFlags, iMinThreshold, bAsync);
@@ -3446,23 +3443,20 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 			if (iLimit == -1)
 			{
 				// We're not out of the woods yet. Check for prereq buildings.
-				if (kBuilding.isAnyPrereqNumOfBuildingClass()) // advc.003t
+				FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
+					getPrereqNumOfBuildingClass(), BuildingClass, int)
 				{
-					FOR_EACH_ENUM2(BuildingClass, ePrereqClass)
-					{
-						if (kBuilding.getPrereqNumOfBuildingClass(ePrereqClass) <= 0)
-							continue;
-						// I wish this was easier to calculate...
-						int iBuilt = kOwner.getBuildingClassCount(eLoopClass);
-						int iBuilding = kOwner.getBuildingClassMaking(eLoopClass);
-						int iPrereqEach = kOwner.getBuildingClassPrereqBuilding(eLoopBuilding,
-								ePrereqClass, -iBuilt);
-						int iPrereqBuilt = kOwner.getBuildingClassCount(ePrereqClass);
-						FAssert(iPrereqEach > 0);
-						iLimit = iPrereqBuilt / iPrereqEach - iBuilt - iBuilding;
-						FAssert(iLimit > 0);
-						break;
-					}
+					BuildingClassTypes const ePrereqClass = perBuildingClassVal.first;
+					// I wish this was easier to calculate...
+					int iBuilt = kOwner.getBuildingClassCount(eLoopClass);
+					int iBuilding = kOwner.getBuildingClassMaking(eLoopClass);
+					int iPrereqEach = kOwner.getBuildingClassPrereqBuilding(eLoopBuilding,
+							ePrereqClass, -iBuilt);
+					int iPrereqBuilt = kOwner.getBuildingClassCount(ePrereqClass);
+					FAssert(iPrereqEach > 0);
+					iLimit = iPrereqBuilt / iPrereqEach - iBuilt - iBuilding;
+					FAssert(iLimit > 0);
+					break; // advc (note): I.e. only support one prereq class per building
 				}
 			}
 			if (iLimit != -1)
@@ -3652,15 +3646,13 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 	{
 		return 0;
 	} // </advc.014>
-	if (kBuilding.isAnyReligionChange()) // advc.003t
+	FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
+		getReligionChange(), Religion, int)
 	{
-		FOR_EACH_ENUM(Religion)
+		if (perReligionVal.second > 0 &&
+			!GET_TEAM(getTeam()).hasHolyCity(perReligionVal.first))
 		{
-			if (kBuilding.getReligionChange(eLoopReligion) > 0)
-			{
-				if (!GET_TEAM(getTeam()).hasHolyCity(eLoopReligion))
-					return 0;
-			}
+			return 0;
 		}
 	}
 	// Construction value cache.
@@ -3848,16 +3840,11 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 						GC.getPERCENT_ANGER_DIVISOR() / (bWarPlan ? 10 : 20)) /
 						(100 * GC.getPERCENT_ANGER_DIVISOR()); // </K-Mod>
 			}
-			if (kBuilding.isAnyBuildingHappinessChanges()) // advc.003t
+			FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
+				getBuildingHappinessChanges(), BuildingClass, int)
 			{
-				FOR_EACH_ENUM(BuildingClass)
-				{
-					if (kBuilding.getBuildingHappinessChanges(eLoopBuildingClass) != 0)
-					{
-						iValue += (kBuilding.getBuildingHappinessChanges(eLoopBuildingClass) *
-								kOwner.getBuildingClassCount(eLoopBuildingClass) * 8);
-					}
-				}
+				iValue += (perBuildingClassVal.second *
+						kOwner.getBuildingClassCount(perBuildingClassVal.first) * 8);
 			}
 		}
 
@@ -3934,19 +3921,15 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					kOwner.AI_getNumCitySites() <= 0)) ? 1 : 4); // </advc.017>
 			iValue += kBuilding.getFreeExperience() * iWeight;
 
-			FOR_EACH_ENUM(UnitCombat)
-			{	// <advc.rom4> Avoid canTrain call; credits: alberts2 (C2C).
-				if(kBuilding.getUnitCombatFreeExperience(eLoopUnitCombat) == 0)
-					continue; // </advc.rom4>
-				if (canTrain(eLoopUnitCombat))
-				{
-					iValue += kBuilding.getUnitCombatFreeExperience(
-							eLoopUnitCombat) * iWeight / 2;
-				}
+			FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
+				getUnitCombatFreeExperience(), UnitCombat, int)
+			{
+				if (canTrain(perUnitCombatVal.first))
+					iValue += (perUnitCombatVal.second * iWeight) / 2;
 			}
 
 			FOR_EACH_ENUM(Domain)
-			{	// advc: refactored
+			{
 				int iDomainXPValue = kBuilding.getDomainFreeExperience(eLoopDomain);
 				switch (eLoopDomain)
 				{
@@ -4062,7 +4045,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				{
 					int iTempValue = AI_specialistValue(eLoopSpecialist, false, false);
 
-					iTempValue *= (iLimit == 0 ? 60 : 0) + 40 * std::min(iAvailableWorkers,
+					iTempValue *= (iLimit == 0 ? 60 : 0) + 40 * std::min<int>(iAvailableWorkers,
 							kBuilding.getSpecialistCount(eLoopSpecialist));
 					/*	I'm choosing not to reduce 'iAvailableWorkers'...
 						It's a tough call. Either way, the answer is going to be wrong! */
@@ -4500,29 +4483,19 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			}
 
 			iValue += kBuilding.getEnemyWarWearinessModifier() / 2;
-			FOR_EACH_ENUM(Specialist)
+			FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
+				getFreeSpecialistCount(), Specialist, int)
 			{
-				if (kBuilding.getFreeSpecialistCount(eLoopSpecialist) > 0)
-				{
-					iValue += AI_permanentSpecialistValue(
-							eLoopSpecialist/*, false, false*/) * // K-Mod
-							kBuilding.getFreeSpecialistCount(eLoopSpecialist) /
-							100; // K-Mod: was 50
-				}
+				iValue += AI_permanentSpecialistValue(
+						perSpecialistVal.first/*, false, false*/) * // K-Mod
+						perSpecialistVal.second / /* K-Mod: was 50 */ 100;
 			}
-			if (kBuilding.isAnyImprovementFreeSpecialist()) // advc.003t
+			FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
+				getImprovementFreeSpecialist(), Improvement, int)
 			{
-				FOR_EACH_ENUM(Improvement)
-				{
-					if (kBuilding.getImprovementFreeSpecialist(eLoopImprovement) > 0)
-					{
-						iValue += kBuilding.getImprovementFreeSpecialist(eLoopImprovement) *
-								countNumImprovedPlots(eLoopImprovement, true) * 50;
-						// <advc.131>
-						iTotalImprFreeSpecialists += kBuilding.
-								getImprovementFreeSpecialist(eLoopImprovement); // </advc.131>
-					}
-				}
+				iValue += countNumImprovedPlots(perImprovementVal.first, true) * 50 *
+						perImprovementVal.second;
+				iTotalImprFreeSpecialists += perImprovementVal.second; // advc.131
 			}
 			FOR_EACH_ENUM(Domain)
 			{
@@ -4597,9 +4570,11 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					BuildingTypes eLoopBuilding = kCiv.buildingAt(i);
 					BuildingClassTypes eLoopClass = kCiv.buildingClassAt(i);
 					int iPrereqBuildings = 0; // number of eBuilding required by eLoopBuilding
-					const CvBuildingInfo& kLoopBuilding = GC.getInfo(eLoopBuilding);
-					int iLimitForLoopBuilding = GC.getInfo(eLoopClass).getLimit();
-					if ((kLoopBuilding.getPrereqNumOfBuildingClass(eBuildingClass) <= 0 &&
+					CvBuildingInfo const& kLoopBuilding = GC.getInfo(eLoopBuilding);
+					int const iLimitForLoopBuilding = GC.getInfo(eLoopClass).getLimit();
+					int const iPrereqNumOfBuildingClass = kLoopBuilding.
+							getPrereqNumOfBuildingClass(eBuildingClass);
+					if ((iPrereqNumOfBuildingClass <= 0 &&
 						!kLoopBuilding.isBuildingClassNeededInCity(eBuildingClass)) ||
 						(iLimitForLoopBuilding > 0 &&
 						// advc.opt: Was getBuildingClassMaking; no need to call canConstruct for that.
@@ -4614,7 +4589,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 						continue;
 					}
 
-					if (kLoopBuilding.getPrereqNumOfBuildingClass(eBuildingClass) > 0)
+					if (iPrereqNumOfBuildingClass > 0)
 					{	/*	calculate how many more of eBuilding we actually need,
 							given that we might be constructing some eLoopBuilding already. */
 						iPrereqBuildings = kOwner.getBuildingClassPrereqBuilding(
@@ -4938,18 +4913,27 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 							27; // was 12
 				}
 
-				FOR_EACH_ENUM(Bonus)
+				FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
+					getBonusYieldModifier(), Bonus, YieldPercentMap)
 				{
-					if (hasBonus(eLoopBonus))
+					if (hasBonus(perBonusVal.first))
 					{
-						iTempValue += (kBuilding.getBonusYieldModifier(
-								eLoopBonus, eLoopYield) * iBaseRate) /
+						int iBonusYieldMod = perBonusVal.second[eLoopYield];
+						iTempValue += (iBonusYieldMod * iBaseRate) /
 								27; // was 12
-						// advc.131:
-						iTotalBonusYieldMod += kBuilding.getBonusYieldModifier(
-								eLoopBonus, eLoopYield);
+						iTotalBonusYieldMod += iBonusYieldMod; // advc.131
 					}
-				}
+				}//advc.tmp: decide which one to keep
+				/*FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.getBonusYieldModifier(
+					eLoopYield), Bonus, short)
+				{
+					if (hasBonus(perBonusVal.first))
+					{
+						iTempValue += (perBonusVal.second * iBaseRate) /
+								27; // was 12
+						iTotalBonusYieldMod += perBonusVal.second; // advc.131
+					}
+				}*/
 
 				/*	if this is a limited wonder, and we are not in the top 4
 					of this category, subtract the value - we do _not_ want this here
@@ -5004,11 +4988,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				iRawYieldValue *= AI_yieldMultiplier(eLoopYield);
 				iRawYieldValue /= 100;
 				iTempValue += iRawYieldValue;
-
-				FOR_EACH_ENUM(Specialist)
+				FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
+					getSpecialistYieldChange(eLoopYield), Specialist, char)
 				{
-					iTempValue += (kBuilding.getSpecialistYieldChange(eLoopSpecialist, eLoopYield) *
-							iTotalPopulation) / 5;
+					iTempValue += (perSpecialistVal.second * iTotalPopulation) / 5;
 				}
 				iTempValue += kBuilding.getGlobalSeaPlotYieldChange(eLoopYield) *
 						kOwner.countNumCoastalCities() * 8;
@@ -5513,16 +5496,17 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					iValue += iCorpValue;
 			}
 			// K-Mod end (corp)
-			if (kBuilding.isAnyReligionChange()) // advc.003t
+			FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
+				getReligionChange(), Religion, int)
 			{
-				FOR_EACH_ENUM(Religion)
+				ReligionTypes const eLoopReligion = perReligionVal.first;
+				int iReligionChange = perReligionVal.second;
+				if (iReligionChange > 0 &&
+					GET_TEAM(getTeam()).hasHolyCity(eLoopReligion))
 				{
-					if (kBuilding.getReligionChange(eLoopReligion) > 0 &&
-						GET_TEAM(getTeam()).hasHolyCity(eLoopReligion))
-					{
-						iValue += kBuilding.getReligionChange(eLoopReligion) *
-								((eStateReligion == eLoopReligion) ? 10 : 1);
-					}
+					if (eStateReligion == eLoopReligion)
+						iReligionChange *= 10;
+					iValue += iReligionChange;
 				}
 			}
 			if (kBuilding.getVoteSourceType() != NO_VOTESOURCE)
@@ -5737,12 +5721,13 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				kBuilding.getProductionCost() > 0 && !bRemove)
 			{
 				int iFlavour = 0;
-				FOR_EACH_ENUM(Flavor)
+				FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
+					getFlavorValue(), Flavor, int)
 				{
 					//iValue += (kOwner.AI_getFlavorValue(eLoopFlavor) * kBuilding.getFlavorValue(eLoopFlavor));
 					// <K-Mod>
-					iFlavour += std::min(kOwner.AI_getFlavorValue(eLoopFlavor),
-							kBuilding.getFlavorValue(eLoopFlavor)); // </K-Mod>
+					iFlavour += std::min(kOwner.AI_getFlavorValue(perFlavorVal.first),
+							perFlavorVal.second); // </K-Mod>
 				}
 				// K-Mod. (This will give +100% for 10-10 flavour matchups.)
 				//iValue = iValue * (10 + iFlavour) / 10;
@@ -6312,23 +6297,22 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 	}
 	/*	projects which are required components for victory.
 		(ie. components of the spaceship) */
-	FOR_EACH_ENUM(Victory)
+	FOR_EACH_NON_DEFAULT_INFO_PAIR(kProject.
+		getVictoryThreshold(), Victory, int)
 	{
-		if (GC.getGame().isVictoryValid(eLoopVictory) &&
-			kProject.getVictoryThreshold(eLoopVictory) > 0)
-		{
-			/* iSpaceValue += 20;
-			iSpaceValue += std::max(0, kProject.getVictoryThreshold(eLoopVictory) - GET_TEAM(getTeam()).getProjectCount(eProject)) * 20; */
-			iSpaceValue += 15;
-			iSpaceValue += std::max(0,
-					kProject.getVictoryMinThreshold(eLoopVictory)
-					- GET_TEAM(getTeam()).getProjectCount(eProject)) *
-					(kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4) ? 60 : 30);
-			iSpaceValue += kProject.getSuccessRate();
-			iSpaceValue += kProject.getVictoryDelayPercent() /
-					(4 * kProject.getVictoryThreshold(eLoopVictory));
-			//
-		}
+		VictoryTypes const eLoopVictory = perVictoryVal.first;
+		if (!GC.getGame().isVictoryValid(eLoopVictory))
+			continue;
+		/*iSpaceValue += 20;
+		iSpaceValue += std::max(0, kProject.getVictoryThreshold(eLoopVictory) - GET_TEAM(getTeam()).getProjectCount(eProject)) * 20;*/
+		iSpaceValue += 15;
+		iSpaceValue += std::max(0,
+				kProject.getVictoryMinThreshold(eLoopVictory)
+				- GET_TEAM(getTeam()).getProjectCount(eProject)) *
+				(kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4) ? 60 : 30);
+		iSpaceValue += kProject.getSuccessRate();
+		iSpaceValue += kProject.getVictoryDelayPercent() /
+				(4 * perVictoryVal.second);
 	}
 
 	if (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4))

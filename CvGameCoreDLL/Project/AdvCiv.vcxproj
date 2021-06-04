@@ -261,6 +261,7 @@
     <ClInclude Include="..\CvInfo_Civics.h" />
     <ClInclude Include="..\CvInfo_Civilization.h" />
     <ClInclude Include="..\CvInfo_Command.h" />
+    <ClInclude Include="..\CvInfo_EnumMap.h" />
     <ClInclude Include="..\CvInfo_GameOption.h" />
     <ClInclude Include="..\CvInfo_Misc.h" />
     <ClInclude Include="..\CvInfo_Organization.h" />

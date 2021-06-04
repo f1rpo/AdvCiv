@@ -114,16 +114,34 @@ public:
 // BUG - Building Additional Happiness - start
 	bool setBuildingAdditionalHappinessHelp(CvWStringBuffer &szBuffer, const CvCity& kCity, const CvWString& szStart, bool bStarted = false);
 // BUG - Building Additional Happiness - end
-	void setYieldChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, const int* piYieldChange, bool bPercent = false, bool bNewLine = true);
-	void setCommerceChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, const int* piCommerceChange, bool bPercent = false, bool bNewLine = true);
-// BUG - Resumable Value Change Help - start
-	void setCommerceTimes100ChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, const int* piCommerceChange, bool bNewLine = false, bool bStarted = false);
-	bool setResumableYieldChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, const int* piYieldChange, bool bPercent = false, bool bNewLine = true, bool bStarted = false);
-	bool setResumableCommerceChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, const int* piCommerceChange, bool bPercent = false, bool bNewLine = true, bool bStarted = false);
-	bool setResumableCommerceTimes100ChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, const int* piCommerceChange, bool bNewLine, bool bStarted = false);
-	bool setResumableGoodBadChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, int iGood, int iGoodSymbol, int iBad, int iBadSymbol, bool bPercent = false, bool bNewLine = false, bool bStarted = false);
-	bool setResumableValueChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, int iValue, int iSymbol, bool bPercent = false, bool bNewLine = false, bool bStarted = false);
-	bool setResumableValueTimes100ChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, int iValue, int iSymbol, bool bNewLine = false, bool bStarted = false);
+// BUG - Resumable Value Change Help - start  (advc: unnecessary wrappers removed)
+	template<class YieldChanges> // advc.003t
+	bool setYieldChangeHelp(CvWStringBuffer &szBuffer,
+			const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd,
+			YieldChanges piYieldChange,
+			bool bPercent = false, bool bNewLine = true, bool bStarted = false);
+	template<class CommerceChanges> // advc.003t
+	bool setCommerceChangeHelp(CvWStringBuffer &szBuffer,
+			const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd,
+			CommerceChanges piCommerceChange,
+			bool bPercent = false, bool bNewLine = true, bool bStarted = false);
+	template<class CommercePercentChanges> // advc.003t
+	bool setCommerceTimes100ChangeHelp(CvWStringBuffer &szBuffer,
+			const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd,
+			CommercePercentChanges piCommerceChange,
+			bool bNewLine, bool bStarted = false);
+	bool setGoodBadChangeHelp(CvWStringBuffer &szBuffer,
+			const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd,
+			int iGood, int iGoodSymbol, int iBad, int iBadSymbol,
+			bool bPercent = false, bool bNewLine = false, bool bStarted = false);
+	bool setValueChangeHelp(CvWStringBuffer &szBuffer,
+			const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd,
+			int iValue, int iSymbol,
+			bool bPercent = false, bool bNewLine = false, bool bStarted = false);
+	bool setValueTimes100ChangeHelp(CvWStringBuffer &szBuffer,
+			const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd,
+			int iValue, int iSymbol,
+			bool bNewLine = false, bool bStarted = false);
 // BUG - Resumable Value Change Help - end
 	void setBonusHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus, bool bCivilopediaText = false);
 // BULL - Trade Denial - start
@@ -337,13 +355,15 @@ private:
 	void setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
 	// </advc>
 	// <advc.004w>
-	void setProductionSpeedHelp(CvWStringBuffer& szString, OrderTypes eInfoType,
-			CvInfoBase const* pInfo, CvCity* pCity, bool bCivilopediaText);
-	// </advc.004w>  <advc.001>
+	template<OrderTypes eORDER, typename ORDER_DATA1, typename ORDER_DATA2>
+	void setProductionSpeedHelp(CvWStringBuffer& szBuffer,
+			ORDER_DATA1 eData1, ORDER_DATA2 eData2,
+			CvCity const* pCity, bool bCivilopediaText); // </advc.004w>
+	// <advc.001>
 	void setSpecialistLink(CvWString& szBuffer, SpecialistTypes eSpecialist,
 			bool bPlural = false);
-	void setCorporationLink(CvWString& szBuffer, CorporationTypes eCorp);
-	// </advc.001>  <advc.135c>
+	void setCorporationLink(CvWString& szBuffer, CorporationTypes eCorp); // </advc.001>
+	// <advc.135c>
 	void setPlotHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
 	void setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot const& kPlot);
 	void setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot const& kPlot);

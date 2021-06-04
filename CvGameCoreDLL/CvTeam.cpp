@@ -3767,12 +3767,9 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)
 	if (kProject.getTechShare() > 0 && kProject.getTechShare() <= MAX_TEAMS)
 		changeTechShareCount((TeamTypes)(kProject.getTechShare() - 1), iChange);
 
-	FOR_EACH_ENUM(Victory)
+	FOR_EACH_NON_DEFAULT_KEY(kProject.getVictoryThreshold(), Victory)
 	{
-		if (kProject.getVictoryThreshold(eLoopVictory) > 0)
-		{
-			setCanLaunch(eLoopVictory, GC.getGame().testVictory(eLoopVictory, getID()));
-		}
+		setCanLaunch(eLoopVictory, GC.getGame().testVictory(eLoopVictory, getID()));
 	}
 
 	if (iChange <= 0)

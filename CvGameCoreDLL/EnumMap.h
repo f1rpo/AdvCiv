@@ -7,7 +7,9 @@
 	Functions for bitwise operations moved into BitUtil.h (included in PCH);
 	WtP defines them directly in the PCH.
 	advc.fract: Disabled the INLINE_NATIVE representation for "small" enum types
-	in order to allow T=ScaledNum. (As suggested to me by Nightinggale.) */
+	in order to allow T=ScaledNum. (As suggested to me by Nightinggale.)
+	advc.003t: I've implemented a similar class, ArrayEnumMap, for storing data
+	loaded from XML, see CvInfo_EnumMap.h. */
 
 #pragma once
 
@@ -138,7 +140,7 @@ public:
 // Compile-time constants
 	// advc: Renamed from "LENGTH"; can't guarantee a length for types loaded from XML.
 	static const int MAX_LENGTH = EnumMapGetDefault<LengthType>::MAX_LENGTH;
-private: // advc (Maybe some of these should indeed be public, but probably not all.)
+protected: // advc (Maybe some of these should indeed be public, but probably not all.)
 	static const int SIZE = EnumMapGetDefault<T>::SIZE;
 	static const int SIZE_OF_T = EnumMapGetDefault<T>::SIZE_OF_T;
 	/*static const bool bINLINE_NATIVE = (SIZE == ENUMMAP_SIZE_NATIVE && (MAX_LENGTH * SIZE_OF_T) <= ENUMMAP_MAX_BYTES);

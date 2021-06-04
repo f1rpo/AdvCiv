@@ -292,11 +292,18 @@ namespace info_enum_detail
 	{
 		FAssertBounds(0, getEnumLength(eIndex), eIndex);
 	}
+	template<typename E>
+	inline void assertInfoEnum(E eIndex)
+	{
+		FAssertBounds(-1, getEnumLength(eIndex), eIndex);
+	}
 };
 #ifdef FASSERT_ENABLE
 #define FAssertEnumBounds(eIndex) info_enum_detail::assertEnumBounds(eIndex)
+#define FAssertInfoEnum(eIndex) info_enum_detail::assertInfoEnum(eIndex)
 #else
 #define FAssertEnumBounds(eIndex) (void)0
+#define FAssertInfoEnum(eIndex) (void)0
 #endif
 
 // Macros for generating CvInfo accessor functions (CvGlobals) ...

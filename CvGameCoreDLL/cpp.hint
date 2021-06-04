@@ -26,6 +26,9 @@
 #define FOR_EACH_ENUM_RAND(TypeName)
 #define FOR_EACH_ENUM_REV(TypeName)
 
+#define FOR_EACH_NON_DEFAULT_INFO_PAIR(kEnumMapSeq, EnumPrefix, ValueType)
+#define FOR_EACH_NON_DEFAULT_ENUM(kEnumMapSeq, EnumPrefix)
+
 #define FOR_EACH_UNIT_IN(pUnit, kUnitListWrapper)
 #define FOR_EACH_UNITAI_IN(pUnit, kUnitListWrapper)
 #define FOR_EACH_UNIT_VAR_IN(pUnit, kUnitListWrapper)

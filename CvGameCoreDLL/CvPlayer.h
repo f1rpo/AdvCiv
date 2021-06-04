@@ -281,6 +281,9 @@ public:
 	int getProductionNeeded(ProjectTypes eProject) const;															// Exposed to Python
 	int getProductionModifier(UnitTypes eUnit) const;
 	int getProductionModifier(BuildingTypes eBuilding) const;
+	// <advc>
+	int getProductionTraitModifier(UnitTypes eUnit) const;
+	int getProductionTraitModifier(BuildingTypes eBuilding) const; // </advc>
 	int getProductionModifier(ProjectTypes eProject) const;
 	scaled trainingModifierFromHandicap(bool bWorldClass = false) const;
 

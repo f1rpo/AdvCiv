@@ -106,6 +106,8 @@ public:
 	bool GetNextXmlVal(wchar* r, wchar const* szDefault = NULL);
 	// advc: Return by reference (was pointer)
 	bool GetNextXmlVal(int& r, int iDefault = 0);
+	bool GetNextXmlVal(short& r, short iDefault = 0); // advc.003t
+	bool GetNextXmlVal(char& r, char iDefault = 0); // advc.003t
 	bool GetNextXmlVal(float& r, float fDefault = 0.0f);
 	bool GetNextXmlVal(bool& r, bool bDefault = false);
 
@@ -154,8 +156,52 @@ public:
 	/*	advc: Replaced three functions with a template (inspired by rheinig's mod;
 		Civ4Col also does this) */
 	template<typename T>
-	void SetVariableListTagPair(T** pptList, const TCHAR* szRootTagName,
-			int iInfoBaseLength, T tDefaultListVal = 0);
+	void SetVariableListTagPair(T** pptList, TCHAR const* szRootTagName,
+			int iInfoBaseLength, T tDefaultListVal = 0,
+			// <advc.003t>
+			CvInfoMap<T>* pMap = NULL);
+	template<typename T>
+	void SetVariableListTagPair(CvInfoMap<T>& kMap, TCHAR const* szRootTagName)
+	{
+		SetVariableListTagPair<T>(NULL, szRootTagName, kMap.numKeys(),
+				kMap.getDefault(), &kMap);
+	}
+	template<typename INT>
+	void SetVariableListPerYield(CvInfoMap<INT>& kMap, TCHAR const* szRootTagName);
+	void SetVariableListPerCommerce(CvInfoMap<bool>& kMap, TCHAR const* szRootTagName);
+	template<typename INT>
+	void SetVariable2DYieldList(CvInfoMap2D<INT>& kMap, TCHAR const* szTagName,
+			TCHAR const* szKeyTagName, TCHAR const* szYieldTagName);
+	template<class YieldMap_t, typename V>
+	void SetVariableListTagYield(CvInfoMap<V>& kMap, TCHAR const* szTagName,
+			TCHAR const* szKeyTagName, TCHAR const* szYieldTagName);
+	template<bool bYIELD, typename CvInfoMapType>
+	void SetShortTagList(CvInfoMapType& kMap, TCHAR const* szTagName)
+	{	// Based on BtS code repeated throughout the CvInfo classes
+		if (gDLL->getXMLIFace()->SetToChildByTagName(GetXML(), szTagName))
+		{
+			int* piArray = NULL;
+			int iValuesSet = (bYIELD ? SetYields(&piArray) : SetCommerce(&piArray));
+			if (iValuesSet > 0)
+				kMap.insert(piArray);
+			/*	These (de-)allocations are very much avoidable.
+				Tbd.: Write SetYields, SetCommerce variants for CvInfoMap. */
+			delete[] piArray;
+			gDLL->getXMLIFace()->SetToParent(GetXML());
+		}
+		kMap.finalizeInsertions();
+	}
+	template<typename MapType>
+	void SetYieldList(MapType& kMap, TCHAR const* szTagName)
+	{
+		SetShortTagList<true>(kMap, szTagName);
+	}
+	template<typename MapType>
+	void SetCommerceList(MapType& kMap, TCHAR const* szTagName)
+	{
+		SetShortTagList<false>(kMap, szTagName);
+	}
+	// </advc.003t>
 	void SetVariableListTagPair(CvString** ppszList, TCHAR const* szRootTagName,
 			int iInfoBaseLength, CvString szDefaultListVal = "");
 	void SetVariableListTagPairForAudioScripts(int **ppiList, TCHAR const* szRootTagName,

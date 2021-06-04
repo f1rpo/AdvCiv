@@ -4,6 +4,7 @@
 #define CV_INFO_BASE_H
 
 #include "CyInfoWrapper.h" // advc.003x
+#include "CvInfo_EnumMap.h" // advc.enum
 
 /*  advc.003x: Cut from CvInfos.h; to be precompiled.
 	CvInfoBase, CvScalableInfo, CvHotkeyInfo */

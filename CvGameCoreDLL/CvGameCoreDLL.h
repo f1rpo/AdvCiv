@@ -119,7 +119,7 @@ BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 #include "CvPythonCaller.h" // advc.003y
 #include "CvDLLLogger.h" // advc.003t
 // <advc.003x> Include only parts of the old CvInfos.h (caveat: the order of these matters)
-#include "CvInfo_Base.h"
+#include "CvInfo_Base.h" // advc.enum: Includes CvInfo_EnumMap.h
 #include "CvInfo_Asset.h"
 #include "CvInfo_Tech.h"
 #include "CvInfo_Civilization.h"

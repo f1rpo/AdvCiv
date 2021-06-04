@@ -6095,30 +6095,13 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 		{
 			// Scale the value based on production cost and special production multipliers.
 			if (kLoopBuilding.getProductionCost() > 0)
-			{
-				int iMultiplier = 0;
-				FOR_EACH_ENUM(Trait)
+			{	// advc: Moved into new function
+				int iMultiplier = getProductionTraitModifier(eLoopBuilding);
+				FOR_EACH_NON_DEFAULT_INFO_PAIR(kLoopBuilding.
+					getBonusProductionModifier(), Bonus, int)
 				{
-					if (hasTrait(eLoopTrait))
-					{
-						iMultiplier += kLoopBuilding.getProductionTraits(eLoopTrait);
-						if (kLoopBuilding.getSpecialBuildingType() != NO_SPECIALBUILDING)
-						{
-							iMultiplier += GC.getInfo(kLoopBuilding.
-									getSpecialBuildingType()).getProductionTraits(eLoopTrait);
-						}
-					}
-				}
-				if (kLoopBuilding.isAnyBonusProductionModifier()) // advc.003t
-				{
-					FOR_EACH_ENUM(Bonus)
-					{
-						if (hasBonus(eLoopBonus))
-						{
-							iMultiplier += kLoopBuilding.
-									getBonusProductionModifier(eLoopBonus);
-						}
-					}
+					if (hasBonus(perBonusVal.first))
+						iMultiplier += perBonusVal.second;
 				}
 				/*	hammers (ideally this would be based on the average city yield
 					or something like that.) */
@@ -8419,9 +8402,9 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData,
 	bool bDefy = false;
 	bool bValid = true;
 
-	FOR_EACH_ENUM(Civic)
+	FOR_EACH_NON_DEFAULT_KEY(GC.getInfo(eVote).isForceCivic(), Civic)
 	{
-		if (!GC.getInfo(eVote).isForceCivic(eLoopCivic) || isCivic(eLoopCivic))
+		if (isCivic(eLoopCivic))
 			continue;
 		CivicTypes eBestCivic = AI_bestCivic(GC.getInfo(eLoopCivic).getCivicOptionType());
 		if (eBestCivic == NO_CIVIC || eBestCivic == eLoopCivic)
@@ -11440,21 +11423,27 @@ int CvPlayerAI::AI_baseBonusBuildingVal(BonusTypes eBonus, BuildingTypes eBuildi
 	if(kBuilding.getPowerBonus() == eBonus)
 		iValue += 40; // advc.036: was 60
 
+	if (kBuilding.getBonusYieldModifier().isAnyNonDefault()) // advc.opt
+	{
+		FOR_EACH_ENUM(Yield)
+		{
+			// <advc> Easier to debug this way
+			int const iYieldMod = kBuilding.getBonusYieldModifier(eBonus, eLoopYield);
+			if (iYieldMod > 0) // </advc>
+			{
+				iValue += iYieldMod /
+						/*  <advc.036> 25 for Ironworks is normally too much;
+							need to take into account that we can build it in
+							only one city. Then again, if we have very few cities,
+							we may not be able to build it at all ...
+							Too tedious to check getPrereqNumOfBuildingClass,
+							so just use a constant divisor. */
+						(kBuilding.isNationalWonder() ? 5 : 2);
+			}
+		}
+	}
 	FOR_EACH_ENUM(Yield)
 	{
-		// <advc> Easier to debug this way
-		int iYieldMod = kBuilding.getBonusYieldModifier(eBonus, eLoopYield);
-		if (iYieldMod > 0) // </advc>
-		{
-			iValue += iYieldMod /
-					/*  <advc.036> 25 for Ironworks is normally too much;
-						need to take into account that we can build it in
-						only one city. Then again, if we have very few cities,
-						we may not be able to build it at all ...
-						Too tedious to check getPrereqNumOfBuildingClass,
-						so just use a constant divisor. */
-					(kBuilding.isNationalWonder() ? 5 : 2);
-		}
 		if (kBuilding.getPowerBonus() == eBonus)
 			iValue += kBuilding.getPowerYieldModifier(eLoopYield);
 	}

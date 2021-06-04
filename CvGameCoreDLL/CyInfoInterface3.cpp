@@ -160,8 +160,8 @@ void CyInfoPythonInterface3()
 
 		// Arrays
 
-		.def("isForceCivic", &CvVoteInfo::isForceCivic, "bool (int i)")
-		.def("isVoteSourceType", &CvVoteInfo::isVoteSourceType, "bool (int i)")
+		.def("isForceCivic", &CvVoteInfo::py_isForceCivic, "bool (int i)")
+		.def("isVoteSourceType", &CvVoteInfo::py_isVoteSourceType, "bool (int i)")
 		;
 
 	python::class_<CvProjectInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvProjectInfo")
@@ -184,12 +184,12 @@ void CyInfoPythonInterface3()
 
 		// Arrays
 
-		.def("getBonusProductionModifier", &CvProjectInfo::getBonusProductionModifier, "int (int i)")
-		.def("getVictoryThreshold", &CvProjectInfo::getVictoryThreshold, "int (int i)")
-		.def("getVictoryMinThreshold", &CvProjectInfo::getVictoryMinThreshold, "int (int i)")
+		.def("getBonusProductionModifier", &CvProjectInfo::py_getBonusProductionModifier, "int (int i)")
+		.def("getVictoryThreshold", &CvProjectInfo::py_getVictoryThreshold, "int (int i)")
+		.def("getVictoryMinThreshold", &CvProjectInfo::py_getVictoryMinThreshold, "int (int i)")
 		.def("getVictoryDelayPercent", &CvProjectInfo::getVictoryDelayPercent, "int ()")
 		.def("getSuccessRate", &CvProjectInfo::getSuccessRate, "int ()")
-		.def("getProjectsNeeded", &CvProjectInfo::getProjectsNeeded, "int (int i)")
+		.def("getProjectsNeeded", &CvProjectInfo::py_getProjectsNeeded, "int (int i)")
 		;
 
 	python::class_<CvReligionInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvReligionInfo")
@@ -722,8 +722,8 @@ void CyInfoPythonInterface3()
 		.def("getVoteInterval", &CvVoteSourceInfo::getVoteInterval, "int ()")
 		.def("getCivic", &CvVoteSourceInfo::getCivic, "int ()")
 		.def("getFreeSpecialist", &CvVoteSourceInfo::getFreeSpecialist, "int ()")
-		.def("getReligionYield", &CvVoteSourceInfo::getReligionYield, "int (int)")
-		.def("getReligionCommerce", &CvVoteSourceInfo::getReligionCommerce, "int (int)")
+		.def("getReligionYield", &CvVoteSourceInfo::py_getReligionYield, "int (int)")
+		.def("getReligionCommerce", &CvVoteSourceInfo::py_getReligionCommerce, "int (int)")
 		.def("getSecretaryGeneralText", &CvVoteSourceInfo::pyGetSecretaryGeneralText, "wstring ()")
 		;
 

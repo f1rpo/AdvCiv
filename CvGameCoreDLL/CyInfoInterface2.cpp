@@ -21,7 +21,7 @@ void CyInfoPythonInterface2()
 
 		// Arrays
 
-		.def("getVictoryThreshold", &CvBuildingClassInfo::getVictoryThreshold, "int (int i)")
+		.def("getVictoryThreshold", &CvBuildingClassInfo::py_getVictoryThreshold, "int (int i)")
 		;
 
 	python::class_<CvRouteModelInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvRouteModelInfo")

@@ -2180,13 +2180,10 @@ DenialTypes CvTeamAI::AI_techTrade(TechTypes eTech, TeamTypes eToTeam) const
 			continue;
 		if (kLoopProject.isWorldProject() && getProjectMaking(eLoopProject) > 0)
 			return DENIAL_MYSTERY;
-		FOR_EACH_ENUM(Victory)
+		FOR_EACH_NON_DEFAULT_KEY(kLoopProject.getVictoryThreshold(), Victory)
 		{
-			if (GC.getGame().isVictoryValid(eLoopVictory) &&
-				kLoopProject.getVictoryThreshold(eLoopVictory))
-			{
+			if (GC.getGame().isVictoryValid(eLoopVictory))
 				return DENIAL_VICTORY;
-			}
 		}
 	}
 	return NO_DENIAL;
