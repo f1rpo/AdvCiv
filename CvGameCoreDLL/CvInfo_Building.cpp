@@ -420,7 +420,7 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 	CommerceFlexible().read(stream);
 	CommerceChangeOriginalOwner().read(stream);
 	BuildingClassNeededInCity().read(stream);
-	SpecialistYieldChange().read(stream);
+	SpecialistYieldChange().readEncode<YieldChangeMap>(stream);
 	BonusYieldModifier().readEncoded<YieldPercentMap>(stream);
 	// </advc.003t>
 }
@@ -597,7 +597,7 @@ void CvBuildingInfo::write(FDataStreamBase* stream)
 	CommerceFlexible().write(stream);
 	CommerceChangeOriginalOwner().write(stream);
 	BuildingClassNeededInCity().write(stream);
-	SpecialistYieldChange().write(stream);
+	SpecialistYieldChange().writeEncoded<YieldChangeMap>(stream);
 	BonusYieldModifier().writeEncoded<YieldPercentMap>(stream);
 	// </advc.003t>
 }
@@ -819,7 +819,7 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	pXML->SetVariableListTagPair(PrereqNumOfBuildingClass(), "PrereqBuildingClasses");
 	pXML->SetVariableListTagPair(BuildingClassNeededInCity(), "BuildingClassNeededs");
 
-	pXML->SetVariable2DYieldList(SpecialistYieldChange(),
+	pXML->SetVariableListTagYield<YieldChangeMap>(SpecialistYieldChange(),
 			"SpecialistYieldChange", "SpecialistType", "YieldChanges");
 	pXML->SetVariableListTagYield<YieldPercentMap>(BonusYieldModifier(),
 			"BonusYieldModifier", "BonusType", "YieldModifiers");

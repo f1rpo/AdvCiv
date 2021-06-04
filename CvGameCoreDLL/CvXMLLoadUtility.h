@@ -169,9 +169,6 @@ public:
 	template<typename INT>
 	void SetVariableListPerYield(CvInfoMap<INT>& kMap, TCHAR const* szRootTagName);
 	void SetVariableListPerCommerce(CvInfoMap<bool>& kMap, TCHAR const* szRootTagName);
-	template<typename INT>
-	void SetVariable2DYieldList(CvInfoMap2D<INT>& kMap, TCHAR const* szTagName,
-			TCHAR const* szKeyTagName, TCHAR const* szYieldTagName);
 	template<class YieldMap_t, typename V>
 	void SetVariableListTagYield(CvInfoMap<V>& kMap, TCHAR const* szTagName,
 			TCHAR const* szKeyTagName, TCHAR const* szYieldTagName);

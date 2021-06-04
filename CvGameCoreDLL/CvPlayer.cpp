@@ -5634,13 +5634,13 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea& kAr
 					 perBuildingClassVal.second * iChange);
 		}
 	}
-	FOR_EACH_ENUM(Yield)
+	FOR_EACH_NON_DEFAULT_INFO_PAIR(GC.getInfo(eBuilding).
+		getSpecialistYieldChange(), Specialist, YieldChangeMap)
 	{
-		FOR_EACH_NON_DEFAULT_INFO_PAIR(GC.getInfo(eBuilding).
-			getSpecialistYieldChange(eLoopYield), Specialist, int)
+		FOR_EACH_ENUM(Yield)
 		{
 			changeSpecialistExtraYield(perSpecialistVal.first, eLoopYield,
-					perSpecialistVal.second * iChange);
+					perSpecialistVal.second[eLoopYield] * iChange);
 		}
 	}
 }

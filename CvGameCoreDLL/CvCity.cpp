@@ -6848,13 +6848,7 @@ int CvCity::getAdditionalYieldRateModifierByBuilding(YieldTypes eYield,
 	{
 		if (hasBonus(perBonusVal.first))
 			iExtraModifier += perBonusVal.second[eYield];
-	}//advc.tmp: decide which one to keep
-	/*FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.getBonusYieldModifier(eYield), Bonus, short)
-	{
-		if (hasBonus(perBonusVal.first))
-			iExtraModifier += perBonusVal.second;
-	}*/
-
+	}
 	return iExtraModifier;
 }
 // BUG - Building Additional Yield - end

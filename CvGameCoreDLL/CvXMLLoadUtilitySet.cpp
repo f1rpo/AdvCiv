@@ -1868,70 +1868,8 @@ void CvXMLLoadUtility::SetVariableListPerCommerce(CvInfoMap<bool>& kMap, TCHAR c
 	kMap.finalizeInsertions();
 }
 
-/*	Load mapping from pairs of enums to integral values.
+/*	Load mapping from an enum key to a list of yields.
 	Based on BtS code repeated in the CvInfo classes, e.g. CvInfo_Building. */
-template<typename INT>
-void CvXMLLoadUtility::SetVariable2DYieldList(CvInfoMap2D<INT>& kMap,
-	TCHAR const* szTagName, TCHAR const* szKeyTagName, TCHAR const* szYieldTagName)
-{
-	CvString szRootTagName(szTagName);
-	szRootTagName.append("s"); // plural
-	if (!gDLL->getXMLIFace()->SetToChildByTagName(GetXML(), szRootTagName.GetCString()))
-	{
-		kMap.finalizeInsertions();
-		return;
-	}
-	int const iNumChildren = gDLL->getXMLIFace()->GetNumChildren(GetXML());
-	if (gDLL->getXMLIFace()->SetToChildByTagName(GetXML(), szTagName))
-	{
-		int* aiYieldChanges = new int[NUM_YIELD_TYPES];
-		int iDefault = kMap.getDefault();
-		for (int i = 0; i < iNumChildren; i++)
-		{
-			CvString szTextVal;
-			GetChildXmlValByName(szTextVal, szKeyTagName);
-			int iFirstKey = FindInInfoClass(szTextVal);
-			if (iFirstKey >= 0)
-			{
-				if (gDLL->getXMLIFace()->SetToChildByTagName(GetXML(), szYieldTagName))
-				{
-					std::fill_n(aiYieldChanges, NUM_YIELD_TYPES, iDefault);
-					int iValuesSet = SetYields(&aiYieldChanges);
-					if (iValuesSet > 0)
-					{
-						FOR_EACH_ENUM(Yield)
-						{
-							int iValue = aiYieldChanges[eLoopYield];
-							INT nValue;
-							if (sizeof(INT) == 1)
-								nValue = static_cast<INT>(toChar(iValue));
-							else if (sizeof(INT) == 2)
-								nValue = static_cast<INT>(toShort(iValue));
-							else nValue = static_cast<INT>(iValue);
-							/*	CvInfoMap2D uses the smaller type (Yield)
-								as the first key and the larger type as the second */
-							kMap.insert(eLoopYield, iFirstKey, nValue);
-						}
-					}
-					gDLL->getXMLIFace()->SetToParent(GetXML());
-				}
-			}
-			if (!gDLL->getXMLIFace()->NextSibling(GetXML()))
-				break;
-		}
-		delete[] aiYieldChanges;
-		gDLL->getXMLIFace()->SetToParent(GetXML());
-	}
-	gDLL->getXMLIFace()->SetToParent(GetXML());
-	kMap.finalizeInsertions();
-}
-
-#define THREE_STRINGS TCHAR const*, TCHAR const*, TCHAR const*
-template void CvXMLLoadUtility::SetVariable2DYieldList(CvInfoMap2D<int>&, THREE_STRINGS);
-template void CvXMLLoadUtility::SetVariable2DYieldList(CvInfoMap2D<short>&, THREE_STRINGS);
-template void CvXMLLoadUtility::SetVariable2DYieldList(CvInfoMap2D<char>&, THREE_STRINGS);
-
-// advc.tmp: Copy-pasted from above except for the positive-iValuesSet block and handling of default val (fixme)
 template<class YieldMap_t, typename V>
 void CvXMLLoadUtility::SetVariableListTagYield(CvInfoMap<V>& kMap,
 	TCHAR const* szTagName, TCHAR const* szKeyTagName, TCHAR const* szYieldTagName)
@@ -1978,6 +1916,7 @@ void CvXMLLoadUtility::SetVariableListTagYield(CvInfoMap<V>& kMap,
 	gDLL->getXMLIFace()->SetToParent(GetXML());
 	kMap.finalizeInsertions();
 }
+#define THREE_STRINGS TCHAR const*, TCHAR const*, TCHAR const*
 template void CvXMLLoadUtility::SetVariableListTagYield<YieldChangeMap>(
 		CvInfoMap<YieldChangeMap::enc_t>&, THREE_STRINGS);
 template void CvXMLLoadUtility::SetVariableListTagYield<YieldPercentMap>(

@@ -304,8 +304,7 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 	DEF_INFO_ENUM_MAP_BOOL(CommerceChangeOriginalOwner, Commerce, ArrayEnumMap);
 	DEF_INFO_ENUM_MAP_BOOL(BuildingClassNeededInCity, BuildingClass, ListEnumMap);
 	// (Replacing optimizations by UNOFFICIAL_PATCH, 06/27/10, Afforess & jdog5000)
-	DEF_INFO_ENUM_MAP2D(SpecialistYieldChange, Specialist, Yield, char, ListEnumMap);
-	//DEF_INFO_ENUM_MAP2D(BonusYieldModifier, Bonus, Yield, short, ListEnumMap);
+	DEF_INFO_ENUM2SHORT_MAP(SpecialistYieldChange, Specialist, Yield, YieldChangeMap, ListEnumMap);
 	DEF_INFO_ENUM2SHORT_MAP(BonusYieldModifier, Bonus, Yield, YieldPercentMap, ListEnumMap);
 	// <advc.003w> for convenience
 	inline bool isWorldWonder() const

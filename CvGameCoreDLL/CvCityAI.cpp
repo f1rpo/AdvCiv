@@ -4923,17 +4923,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 								27; // was 12
 						iTotalBonusYieldMod += iBonusYieldMod; // advc.131
 					}
-				}//advc.tmp: decide which one to keep
-				/*FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.getBonusYieldModifier(
-					eLoopYield), Bonus, short)
-				{
-					if (hasBonus(perBonusVal.first))
-					{
-						iTempValue += (perBonusVal.second * iBaseRate) /
-								27; // was 12
-						iTotalBonusYieldMod += perBonusVal.second; // advc.131
-					}
-				}*/
+				}
 
 				/*	if this is a limited wonder, and we are not in the top 4
 					of this category, subtract the value - we do _not_ want this here
@@ -4989,9 +4979,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				iRawYieldValue /= 100;
 				iTempValue += iRawYieldValue;
 				FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
-					getSpecialistYieldChange(eLoopYield), Specialist, char)
+					getSpecialistYieldChange(), Specialist, YieldChangeMap)
 				{
-					iTempValue += (perSpecialistVal.second * iTotalPopulation) / 5;
+					iTempValue += (perSpecialistVal.second[eLoopYield] *
+							iTotalPopulation) / 5;
 				}
 				iTempValue += kBuilding.getGlobalSeaPlotYieldChange(eLoopYield) *
 						kOwner.countNumCoastalCities() * 8;

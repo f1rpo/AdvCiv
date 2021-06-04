@@ -10789,25 +10789,19 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 	}
 	/*	<advc.opt> Yield arrays - replacing optimization from UNOFFICIAL_PATCH
 		(06/27/10, Afforess & jdog5000) */
-	FOR_EACH_ENUM(Yield)
+	FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
+		getSpecialistYieldChange(), Specialist, YieldChangeMap)
 	{
-		if (!kBuilding.getSpecialistYieldChange(eLoopYield).isAnyNonDefault())
-			continue;
-		FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
-			getSpecialistYieldChange(eLoopYield), Specialist, int)
-		{
-			SpecialistTypes const eLoopSpecialist = perSpecialistVal.first;
-			// <advc.001>
-			CvWString szSpecialistLink;
-			setSpecialistLink(szSpecialistLink, eLoopSpecialist, true);
-			// </advc.001>
-			szFirstBuffer = gDLL->getText("TXT_KEY_BUILDING_FROM_IN_ALL_CITIES",
-					//GC.getInfo(eLoopSpecialist).getTextKeyWide()
-					szSpecialistLink.c_str()); // advc.001
-			setYieldChangeHelp(szBuffer, L"", L"", szFirstBuffer,
-					kBuilding.getSpecialistYieldChangeArray(eLoopSpecialist));
-		}
-		break;
+		SpecialistTypes const eLoopSpecialist = perSpecialistVal.first;
+		// <advc.001>
+		CvWString szSpecialistLink;
+		setSpecialistLink(szSpecialistLink, eLoopSpecialist, true);
+		// </advc.001>
+		szFirstBuffer = gDLL->getText("TXT_KEY_BUILDING_FROM_IN_ALL_CITIES",
+				//GC.getInfo(eLoopSpecialist).getTextKeyWide()
+				szSpecialistLink.c_str()); // advc.001
+		setYieldChangeHelp(szBuffer, L"", L"", szFirstBuffer,
+				perSpecialistVal.second);
 	}
 	FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
 		getBonusYieldModifier(), Bonus, YieldPercentMap)
@@ -10817,21 +10811,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 				GC.getInfo(eLoopBonus).getTextKeyWide());
 		setYieldChangeHelp(szBuffer, L"", L"", szFirstBuffer,
 				perBonusVal.second, true);
-	}//advc.tmp: decide which one to keep
-	/*FOR_EACH_ENUM(Yield)
-	{
-		if (!kBuilding.getBonusYieldModifier(eLoopYield).isAnyNonDefault())
-			continue;
-		FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
-			getBonusYieldModifier(eLoopYield), Bonus, int)
-		{
-			BonusTypes const eLoopBonus = perBonusVal.first;
-			szFirstBuffer = gDLL->getText("TXT_KEY_BUILDING_WITH_BONUS",
-					GC.getInfo(eLoopBonus).getTextKeyWide());
-			setYieldChangeHelp(szBuffer, L"", L"", szFirstBuffer,
-					kBuilding.getBonusYieldModifierArray(eLoopBonus), true);
-		}
-	}*/ // </advc.opt>
+	} // </advc.opt>
 
 	FOR_EACH_NON_DEFAULT_INFO_PAIR(kBuilding.
 		getReligionChange(), Religion, int)
@@ -13559,18 +13539,7 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 					setYieldChangeHelp(szBuffer, szStart, L"", L"", yieldMap, true);
 					break;
 				}
-			}//advc.tmp: decide which one to keep
-			/*FOR_EACH_ENUM(Yield)
-			{
-				if(kBuilding.getBonusYieldModifier(eBonus, eLoopYield) != 0)
-				{
-					CvWString szStart(kBuilding.getDescription());
-					szStart.append(L": ");
-					setYieldChangeHelp(szBuffer, szStart, L"", L"",
-							kBuilding.getBonusYieldModifierArray(eBonus), true);
-					break;
-				}
-			}*/
+			}
 		}
 		// Only construction effects remain
 		if(!bCanEverConstruct)
