@@ -281,7 +281,12 @@ public:
 		return m_abAtWar.get(eIndex);
 	} // </advc.134a>
 	void setAtWar(TeamTypes eIndex, bool bNewValue);
-	bool hasJustDeclaredWar(TeamTypes eIndex) const; // advc.162
+	/*  advc.162: "Just" meaning on the current turn. Don't want to rely on
+		AI code (AI_getWarPlanStateCounter) for this. */
+	bool hasJustDeclaredWar(TeamTypes eIndex) const
+	{
+		return m_abJustDeclaredWar.get(eIndex);
+	}
 
 	bool isPermanentWarPeace(TeamTypes eIndex) const { return m_abPermanentWarPeace.get(eIndex); } // advc.inl									// Exposed to Python
 	void setPermanentWarPeace(TeamTypes eIndex, bool bNewValue);									// Exposed to Python

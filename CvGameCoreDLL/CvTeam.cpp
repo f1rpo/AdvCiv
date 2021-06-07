@@ -1080,7 +1080,7 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 	setAtWar(eTarget, true);
 	kTarget.setAtWar(getID(), true);
 	// <advc.162>
-	if(GC.getDefineBOOL(CvGlobals::ENABLE_162))
+	if(GC.getDefineBOOL(CvGlobals::SPEND_ALL_MOVES_ON_INVASION))
 		m_abJustDeclaredWar.set(eTarget, true); // </advc.162>
 	// BETTER_BTS_AI_MOD (08/21/09, jdog5000, Efficiency): START
 	GC.getMap().invalidateBorderDangerCache(eTarget);
@@ -2993,13 +2993,6 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 		}
 	} // (Attitude cache is updated by caller)
 	// </advc.035>
-}
-
-/*  advc.162: "Just" meaning on the current turn. Don't want to rely on
-	AI code (AI_getWarPlanStateCounter) for this. */
-bool CvTeam::hasJustDeclaredWar(TeamTypes eIndex) const
-{
-	return m_abJustDeclaredWar.get(eIndex);
 }
 
 

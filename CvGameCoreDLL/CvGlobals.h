@@ -450,7 +450,7 @@ public:
 		DO(AI_GROUNDBREAKING_PENALTY_ENABLE) \
 		DO(HUMAN_GROUNDBREAKING_PENALTY_ENABLE) \
 		/* </advc.groundbr> */ \
-		DO(ENABLE_162) /* advc.162 */ \
+		DO(SPEND_ALL_MOVES_ON_INVASION) /* advc.162 */ \
 		/* <advc.ctr> */ \
 		DO(CITY_TRADE_CULTURE_THRESH) \
 		DO(NATIVE_CITY_CULTURE_THRESH) /* </advc.ctr> */ \

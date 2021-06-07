@@ -2665,7 +2665,7 @@ bool CvUnit::isRevealedPlotValid(CvPlot const& kPlot) const
 bool CvUnit::isInvasionMove(CvPlot const& kFrom, CvPlot const& kTo) const
 {
 	// Redundant; only to save time when it's disabled.
-	if (!GC.getDefineBOOL(CvGlobals::ENABLE_162))
+	if (!GC.getDefineBOOL(CvGlobals::SPEND_ALL_MOVES_ON_INVASION))
 		return false;
 	TeamTypes eToTeam = kTo.getTeam();
 	if(eToTeam == NO_TEAM || eToTeam == kFrom.getTeam() || isRivalTerritory())

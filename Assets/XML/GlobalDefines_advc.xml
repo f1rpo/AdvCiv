@@ -1062,10 +1062,11 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
-	<!-- advc.162: 1 enables change 162 (see manual), 0 disables it (BtS
-		 behavior). -->
+	<!-- advc.162: 1 causes units to lose all remaining moves when they enter
+		 an enemy's territory on the same as declaring war on that enemy.
+		 See manual for details. 0 disables that change (BtS behavior). -->
 	<Define>
-		<DefineName>ENABLE_162</DefineName>
+		<DefineName>SPEND_ALL_MOVES_ON_INVASION</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 
