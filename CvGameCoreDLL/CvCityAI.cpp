@@ -1474,12 +1474,19 @@ void CvCityAI::AI_chooseProduction()
 		int iNukesHave = kPlayer.AI_totalUnitAIs(UNITAI_ICBM);
 		int iNukesWant = 1 + std::min(kPlayer.getNumCities(),
 				kGame.getNumCities() - kPlayer.getNumCities()) / 5;
-		if (iNukesHave < iNukesWant &&
-			kGame.getSorenRandNum(425, "AI high-priority nuke") * iNukesWant <
-			iNukeWeight * (iNukesWant - iNukesHave))
+		if (iNukesHave < iNukesWant)
 		{
-			if (AI_chooseUnit(UNITAI_ICBM))
-				return;
+			/*	Relying on the RNG in this function seems generally questionable
+				b/c the AI reconsiders orders during the first few production turns */
+			std::vector<int> aiInputs;
+			aiInputs.push_back(getID());
+			aiInputs.push_back(GC.getGame().getGameTurn() / 8);
+			scaled rTrainProb(iNukeWeight * (iNukesWant - iNukesHave), 425 * iNukesWant);
+			if (scaled::hash(aiInputs, getOwner()) < rTrainProb)
+			{
+				if (AI_chooseUnit(UNITAI_ICBM))
+					return;
+			}
 		}
 	} // </advc.650>
 
