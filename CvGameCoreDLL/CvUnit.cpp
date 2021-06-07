@@ -414,7 +414,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 
 	CvPlot const& kPlot = getPlot();
 	// <advc.004h>
-	if(canFound() && isHuman())
+	if(isFound() && isHuman())
 		updateFoundingBorder(true); // </advc.004h>
 
 	FOR_EACH_UNIT_VAR_IN(pLoopUnit, kPlot)
@@ -1710,7 +1710,7 @@ bool CvUnit::isActionRecommended(int iAction)
 	} // </advc.002e>
 
 	// <advc.004h> Hack for replacing the founding borders shown around Settlers
-	if(iAction == 0 && canFound())
+	if(iAction == 0 && isFound())
 		updateFoundingBorder(); // </advc.004h>
 
 	if (GET_PLAYER(getOwner()).isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS))
@@ -1887,11 +1887,11 @@ void CvUnit::updateFoundingBorder(bool bForceClear) const
 		return; // BtS behavior
 	gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_FOUNDING_BORDER);
 	gDLL->UI().setDirty(ColoredPlots_DIRTY_BIT, true);
-	if(bForceClear || iMode <= 0 || !canFound())
+	if(bForceClear || iMode <= 0 || !isFound())
 		return;
 	FOR_EACH_UNIT_IN(pUnit, *getGroup())
 	{
-		if(pUnit == NULL || (pUnit->IsSelected() && !pUnit->canFound()))
+		if(pUnit == NULL || (pUnit->IsSelected() && !pUnit->isFound()))
 			return;
 	}
 	CvPlot* pGoToPlot = gDLL->UI().getGotoPlot();
@@ -5122,7 +5122,7 @@ bool CvUnit::stealPlans()
 
 bool CvUnit::canFound(const CvPlot* pPlot, bool bTestVisible) const
 {
-	if (!canFound()) // advc.004h: was isFound
+	if (!isFound())
 		return false;
 	if (!GET_PLAYER(getOwner()).canFound(pPlot->getX(), pPlot->getY(), bTestVisible))
 		return false;
@@ -6800,14 +6800,6 @@ int CvUnit::garrisonStrength() const
 	return r * iModifier;
 }
 
-// advc.004h:
-bool CvUnit::isFound() const
-{
-	if(BUGOption::isEnabled("MainInterface__FoundingYields", false))
-		return canFound();
-	return false;
-} 
-
 
 bool CvUnit::isGoldenAge() const
 {
@@ -6815,6 +6807,7 @@ bool CvUnit::isGoldenAge() const
 		return false;
 	return m_pUnitInfo->isGoldenAge();
 }
+
 
 bool CvUnit::canCoexistWithEnemyUnit(TeamTypes eTeam) const
 {
@@ -8666,7 +8659,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 
 	if (IsSelected())
 	{
-		if (canFound()) // advc.004h: was isFound
+		if (isFound())
 		{
 			gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
 			gDLL->getEngineIFace()->updateFoundingBorder();
@@ -11399,7 +11392,11 @@ bool CvUnit::shouldShowEnemyGlow(TeamTypes eForTeam) const
 
 bool CvUnit::shouldShowFoundBorders() const
 {
-	return isFound();
+	//return isFound();
+	// <advc.004h>
+	if (BUGOption::isEnabled("MainInterface__FoundingYields", false))
+		return isFound();
+	return false; // </advc.004h>
 }
 
 

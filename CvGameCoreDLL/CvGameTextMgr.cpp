@@ -3112,8 +3112,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 		szString.append(gDLL->getText("TXT_KEY_PLOT_FRESH_WATER"));
 		// <advc.059>
 		if(pHeadSelectedUnit != NULL &&
-			// advc.004h:
-			pHeadSelectedUnit->canFound() && pHeadSelectedUnit->at(kPlot))
+			pHeadSelectedUnit->isFound() && pHeadSelectedUnit->at(kPlot))
 		{
 			szTempBuffer = CvWString::format(L" +%d%c",
 					GC.getDefineINT(CvGlobals::FRESH_WATER_HEALTH_CHANGE),
@@ -3540,7 +3539,7 @@ void CvGameTextMgr::setPlotHealthHappyHelp(CvWStringBuffer& szBuffer, CvPlot con
 	bool bFound = false;
 	if (pHeadSelectedUnit != NULL)
 	{
-		if (pHeadSelectedUnit->canFound()) // advc.004h
+		if (pHeadSelectedUnit->isFound())
 			bFound = true; // </advc.004b>
 		if (pHeadSelectedUnit->AI_getUnitAIType() == UNITAI_WORKER &&
 			pHeadSelectedUnit->at(kPlot) &&

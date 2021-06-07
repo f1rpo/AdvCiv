@@ -376,12 +376,10 @@ public:
 	{
 		return m_pUnitInfo->isSpy();
 	}
-	bool isFound() const;																					// Exposed to Python
-	// <advc.004h> Let only the EXE use isFound
-	bool canFound() const
+	bool isFound() const																					// Exposed to Python
 	{
 		return m_pUnitInfo->isFound();
-	} // </advc.004h>
+	}
 	bool isGoldenAge() const;																				// Exposed to Python
 	bool canCoexistWithEnemyUnit(TeamTypes eTeam) const;													// Exposed to Python
 

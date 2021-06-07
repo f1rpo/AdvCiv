@@ -193,7 +193,7 @@ void CvGame::updateColoredPlots()
 	if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_RADIUS))
 	{
 		//if (kUI.canSelectionListFound())
-		if (pHeadSelectedUnit->canFound()) // advc.004h
+		if (pHeadSelectedUnit->isFound()) // advc.004h
 		{
 			for (int iI = 0; iI < iPlots; iI++)
 			{
@@ -289,7 +289,7 @@ void CvGame::updateColoredPlots()
 		GroupPathFinder sitePath;
 		sitePath.setGroup(*pHeadSelectedUnit->getGroup(), NO_MOVEMENT_FLAGS,
 				7, GC.getMOVE_DENOMINATOR());
-		if (pHeadSelectedUnit->canFound()) // advc.004h: was isFound
+		if (pHeadSelectedUnit->isFound())
 		{
 			for (int i = 0; i < kActivePlayer.AI_getNumCitySites(); i++)
 			{

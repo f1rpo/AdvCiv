@@ -4717,7 +4717,7 @@ void CvPlot::updateWorkingCity()
 			//if (gDLL->UI().canSelectionListFound())
 			// <advc.004h>
 			CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
-			if(pHeadSelectedUnit != NULL && pHeadSelectedUnit->canFound()) // </advc.004h>
+			if(pHeadSelectedUnit != NULL && pHeadSelectedUnit->isFound()) // </advc.004h>
 				gDLL->UI().setDirty(ColoredPlots_DIRTY_BIT, true);
 		}
 	}
