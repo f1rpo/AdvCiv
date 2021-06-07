@@ -1999,6 +1999,8 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam,
 		CvGame const& kGame = GC.getGame();
 		scaled rGameProgress(kGame.getGameTurn() - kGame.getStartTurn(),
 				std::max(1, kGame.getEstimateEndTurn() - kGame.getStartTurn()));
+		// Too big a discount too early this way? Could do:
+		//rGameProgress = 1 / (1 + 1 / rGameProgress);
 		rGameProgress.clamp(0, fixp(0.5));
 		rPowRatio.clamp(1 - rGameProgress, 1 + rGameProgress);
 		rTechRatio.clamp(1 - rGameProgress, 1 + rGameProgress);

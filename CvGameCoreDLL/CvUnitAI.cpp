@@ -19757,7 +19757,7 @@ bool CvUnitAI::AI_nuke()
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam());
 
 	// consider changing this to something smarter
-	bool bDanger = kOwner.AI_isAnyPlotDanger(getPlot(), 2);
+	bool const bDanger = kOwner.AI_isAnyPlotDanger(getPlot(), 2);
 	int const iWarRating = kTeam.AI_getWarSuccessRating();
 	// iBaseWeight is the civ-independant part of the weight for civilian damage evaluation
 	/*int iBaseWeight = 10;
@@ -19767,15 +19767,17 @@ bool CvUnitAI::AI_nuke()
 	if (kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST3))
 		iBaseWeight += 8; // </advc.019>
 	if (kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST4))
-	iBaseWeight += 20;
+		iBaseWeight += 20;
 	iBaseWeight += std::max(0, -iWarRating);
 	// don't completely destroy them if we want to keep their land.
 	iBaseWeight -= std::max(0, iWarRating - 50);
 
 	CvPlot* pBestTarget = 0;
-	// the initial value of iBestValue is the threshold for action. (cf. units of AI_nukeValue)
-	int iBestValue = std::max(0, 4 * getUnitInfo().getProductionCost());
-	iBestValue += (bDanger || kOwner.AI_isDoStrategy(AI_STRATEGY_DAGGER) ? 20 : 100);
+	/*	the initial value of iBestValue is the threshold for action.
+		(cf. units of AI_nukeValue) */
+	int iBestValue = std::max(0, 4 * getUnitInfo().getProductionCost()) + 100;
+	if (bDanger || kOwner.AI_isDoStrategy(AI_STRATEGY_DAGGER))
+		iBestValue -= 80;
 	iBestValue *= std::max(1,
 			kOwner.getNumNukeUnits() + 2 * kOwner.getNumCities());
 	iBestValue /= std::max(1,
@@ -19804,8 +19806,11 @@ bool CvUnitAI::AI_nuke()
 			CvPlot* pTarget;
 			int iValue = AI_nukeValue(pLoopCity->getPlot(), nukeRange(), pTarget,
 					iDestructionWeight);
-			if (kTeam.AI_getWarPlan(pLoopCity->getTeam()) == WARPLAN_LIMITED && iWarRating > -10)
+			if (kTeam.AI_getWarPlan(pLoopCity->getTeam()) == WARPLAN_LIMITED &&
+				iWarRating > -10)
+			{
 				iValue /= 2;
+			}
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;

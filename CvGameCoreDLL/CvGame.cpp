@@ -10790,7 +10790,6 @@ void CvGame::doVoteResults()
 					size_t pos1 = szResolution.find(L"(");
 					if(pos1 != CvWString::npos && pos1 + 1 < szResolution.length())
 					{
-						bool bForceCivic = false;
 						// Mustn't remove the stuff after the dash if bForceCivic
 						size_t pos2 = std::min((kVote.isForceCivic().isAnyNonDefault() ?
 								CvWString::npos : szResolution.find(L" -")),

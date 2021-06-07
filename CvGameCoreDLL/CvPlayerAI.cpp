@@ -14739,9 +14739,10 @@ int CvPlayerAI::AI_nukePlotValue(CvPlot const& kPlot,
 					/*	decrease the value for wounded units.
 						(it might be nice to only do this if we are
 						in a position to attack with ground forces...) */
-					int x = 100 * (pUnit->maxHitPoints() - pUnit->currHitPoints()) /
+					int iDamagePercent = (100 *
+							(pUnit->maxHitPoints() - pUnit->currHitPoints())) /
 							std::max(1, pUnit->maxHitPoints());
-					iUnitValue -= iUnitValue*x*x/10000;
+					iUnitValue -= (iUnitValue * SQR(iDamagePercent)) / 10000;
 					iValue += iMilitaryTargetWeight * iUnitValue;
 				}
 				else // non enemy unit
@@ -14749,9 +14750,9 @@ int CvPlayerAI::AI_nukePlotValue(CvPlot const& kPlot,
 					if (pUnit->getTeam() == getTeam())
 					{
 						// nuking our own units... sometimes acceptable
-						int x = pUnit->getUnitInfo().getProductionCost();
-						if (x > 0)
-							iValue -= iMilitaryTargetWeight * x;
+						int const iCost = pUnit->getUnitInfo().getProductionCost();
+						if (iCost > 0)
+							iValue -= iMilitaryTargetWeight * iCost;
 						// assume this is a special unit.
 						else return MIN_INT;
 					}

@@ -241,7 +241,7 @@ bool GroupStepMetric::isValidDest(CvPlot const& kPlot, CvSelectionGroup const& k
 #define PATH_STRAIGHT_WEIGHT       (2) // K-Mod: was 1
 //#define PATH_ASYMMETRY_WEIGHT    (1) // K-Mod
 
-// #define PATH_DAMAGE_WEIGHT      (500) // K-Mod (disabled because it isn't used)
+// #define PATH_DAMAGE_WEIGHT      (500) // K-Mod (gets loaded from XML)
 // advc.pf: Was 300 in K-Mod
 #define PATH_COMBAT_WEIGHT         (350) // K-Mod. penalty for having to fight along the way.
 // Note: there will also be other combat penalties added, for example from defence weight and city weight.

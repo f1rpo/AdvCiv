@@ -3534,7 +3534,7 @@ void CvGameTextMgr::setPlotHealthHappyHelp(CvWStringBuffer& szBuffer, CvPlot con
 {
 	CvTeam const& kActiveTeam = GET_TEAM(GC.getGame().getActiveTeam());
 	CvPlayer const& kActivePlayer = GET_PLAYER(GC.getGame().getActivePlayer());
-	CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
+	CvUnit const* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();
 	bool bCanRemove = false;
 	// <advc.004b>
 	bool bFound = false;
