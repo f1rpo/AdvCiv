@@ -14790,9 +14790,12 @@ int CvPlayerAI::AI_nukePlotValue(CvPlot const& kPlot,
 			CvBuildingInfo const& kBuilding = GC.getInfo(eLoopBuilding);
 			if (!kBuilding.isNukeImmune())
 			{
-				iValue += iCivilianTargetWeight *
+				iValue += (iCivilianTargetWeight *
 						pCity->getNumRealBuilding(eLoopBuilding) *
-						std::max(0, kBuilding.getProductionCost());
+						std::max(0, kBuilding.getProductionCost()) *
+						// <advc.650>
+						GC.getDefineINT(CvGlobals::NUKE_BUILDING_DESTRUCTION_PROB))
+						/ 100; // </advc.650>
 			}
 		}
 	}
