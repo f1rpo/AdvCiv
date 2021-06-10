@@ -14292,6 +14292,19 @@ void CvPlayer::read(FDataStreamBase* pStream)
 		FOR_EACH_ENUM(Yield)
 			updateExtraYieldThresholds(eLoopYield);
 	} // </advc.908a>
+	// <advc.908c> Philosophical trait effect reduced by 20 points in AdvCiv 1.0
+	if (uiFlag < 15)
+	{
+		FOR_EACH_ENUM(Trait)
+		{
+			if (hasTrait(eLoopTrait) &&
+				GC.getInfo(eLoopTrait).getGreatPeopleRateModifier() == 80)
+			{
+				changeGreatPeopleRateModifier(-20);
+				break;
+			}
+		}
+	} // </advc.908c>
 	// <advc.912c>
 	if(uiFlag <= 6)
 	{
