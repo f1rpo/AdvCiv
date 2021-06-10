@@ -1579,7 +1579,6 @@ void CvTeam::signOpenBorders(TeamTypes eTeam, /* advc.032: */ bool bProlong)
 {
 	FAssert(eTeam != NO_TEAM);
 	FAssert(eTeam != getID());
-
 	if (!isAtWar(eTeam) && (getID() != eTeam))
 	{
 		TradeData item(TRADE_OPEN_BORDERS);
@@ -1603,7 +1602,6 @@ void CvTeam::signDefensivePact(TeamTypes eTeam, /* advc.032: */ bool bProlong)
 	FAssert(eTeam != getID());
 	if (isAtWar(eTeam))
 		return;
-
 	TradeData item(TRADE_DEFENSIVE_PACT);
 	if ((bProlong && isDefensivePact(eTeam)) || // advc.032
 		(GET_PLAYER(getLeaderID()).canTradeItem(GET_TEAM(eTeam).getLeaderID(), item) &&
@@ -1627,7 +1625,6 @@ bool CvTeam::canSignDefensivePact(TeamTypes eTeam) /* advc: */ const
 		CvTeam& kThirdTeam = *it;
 		if (kThirdTeam.getID() == getID() || kThirdTeam.getID() == eTeam)
 			continue;
-
 		if (kThirdTeam.isPermanentWarPeace(eTeam) != kThirdTeam.isPermanentWarPeace(getID()))
 			return false;
 		if (isPermanentWarPeace(kThirdTeam.getID()) != GET_TEAM(eTeam).isPermanentWarPeace(kThirdTeam.getID()))
@@ -1648,26 +1645,24 @@ int CvTeam::getAssets() const
 
 int CvTeam::getPower(bool bIncludeVassals) const
 {
-	int r = 0;
-
+	int iPow = 0;
 	for (MemberIter it(getID()); it.hasNext(); ++it)
-		r += it->getPower();
-
+		iPow += it->getPower();
 	if (bIncludeVassals)
 	{
 		for (PlayerIter<ALIVE,VASSAL_OF> it(getID()); it.hasNext(); ++it)
-			r += it->getPower();
+			iPow += it->getPower();
 	}
-	return r;
+	return iPow;
 }
 
 
-int CvTeam::getDefensivePower(TeamTypes eExcludeTeam) const  // advc: refactored
+int CvTeam::getDefensivePower(TeamTypes eExcludeTeam) const
 {
 	FAssert(eExcludeTeam != getID());
 	FAssert(!isBarbarian()); // advc
 
-	int r = 0;
+	int iPow = 0;
 	// K-Mod. only our master will have defensive pacts.
 	CvTeam const& kOurMaster = GET_TEAM(getMasterTeam());
 	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
@@ -1677,9 +1672,9 @@ int CvTeam::getDefensivePower(TeamTypes eExcludeTeam) const  // advc: refactored
 			continue;
 		TeamTypes eMaster = kPlayer.getMasterTeam();
 		if (eMaster == kOurMaster.getID() || kOurMaster.isDefensivePact(eMaster))
-			r += kPlayer.getPower();
+			iPow += kPlayer.getPower();
 	}
-	return r;
+	return iPow;
 }
 
 // advc.003j (comment): Unused. Added by the BtS expansion; looks like it was never used.
@@ -1735,13 +1730,13 @@ bool CvTeam::isFullMember(VoteSourceTypes eVoteSource) const
 // BETTER_BTS_AI_MOD, General AI, 07/20/09, jdog5000: START
 int CvTeam::getNumWars(bool bIgnoreMinors, bool bIgnoreVassals) const
 {	// <advc.003m> Cached
-	int r = m_iMajorWarEnemies;
+	int iCount = m_iMajorWarEnemies;
 	if(!bIgnoreMinors)
-		r += m_iMinorWarEnemies;
+		iCount += m_iMinorWarEnemies;
 	if(bIgnoreVassals)
-		r -= m_iVassalWarEnemies;
-	FAssert(r >= 0 || !GC.getGame().isAllGameDataRead());
-	return r;
+		iCount -= m_iVassalWarEnemies;
+	FAssert(iCount >= 0 || !GC.getGame().isAllGameDataRead());
+	return iCount;
 }
 
 void CvTeam::changeAtWarCount(int iChange, bool bMinorTeam, bool bVassal) {
@@ -1780,8 +1775,10 @@ bool CvTeam::allWarsShared(TeamTypes eOther, /* advc.130f: */ bool bCheckBothWay
 	{
 		CvTeam const& kLoopTeam = *it;
 		if(bCheckBothWays && // advc.130f
-				kLoopTeam.isAtWar(getID()) != kLoopTeam.isAtWar(eOther))
+			kLoopTeam.isAtWar(getID()) != kLoopTeam.isAtWar(eOther))
+		{
 			return false;
+		}
 		// <advc.130f>
 		if(!kLoopTeam.isAtWar(eOther) && kLoopTeam.isAtWar(getID()))
 			return false; // </advc.130f>
@@ -1793,10 +1790,10 @@ bool CvTeam::allWarsShared(TeamTypes eOther, /* advc.130f: */ bool bCheckBothWay
 int CvTeam::getHasMetCivCount(bool bIgnoreMinors) const
 {
 	PROFILE_FUNC(); // advc.agent: Would be easy enough to cache this
-	int r = (bIgnoreMinors ?
+	int iCount = (bIgnoreMinors ?
 			TeamIter<MAJOR_CIV,OTHER_KNOWN_TO>::count(getID()) :
 			TeamIter<CIV_ALIVE,OTHER_KNOWN_TO>::count(getID()));
-	return r;
+	return iCount;
 }
 
 
@@ -5052,7 +5049,7 @@ void CvTeam::doWarWeariness()
 {
 	static int const iWW_DECAY_RATE = GC.getDefineINT("WW_DECAY_RATE"); // advc.opt
 	static int const iWW_DECAY_PEACE_PERCENT = GC.getDefineINT("WW_DECAY_PEACE_PERCENT"); // advc.opt
-	CvGame const& g = GC.getGame();
+	CvGame const& kGame = GC.getGame();
 	for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
 		TeamTypes eLoopTeam = it->getID();
@@ -5060,7 +5057,8 @@ void CvTeam::doWarWeariness()
 		{
 			changeWarWeariness(eLoopTeam, 100 * iWW_DECAY_RATE);
 			if (!GET_TEAM(eLoopTeam).isAlive() || !isAtWar(eLoopTeam) ||
-				g.isOption(GAMEOPTION_ALWAYS_WAR) || g.isOption(GAMEOPTION_NO_CHANGING_WAR_PEACE))
+				kGame.isOption(GAMEOPTION_ALWAYS_WAR) ||
+				kGame.isOption(GAMEOPTION_NO_CHANGING_WAR_PEACE))
 			{
 				setWarWeariness(eLoopTeam, (getWarWeariness(eLoopTeam) *
 						iWW_DECAY_PEACE_PERCENT) / 100);

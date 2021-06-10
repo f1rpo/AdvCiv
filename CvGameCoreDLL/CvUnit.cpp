@@ -3770,7 +3770,6 @@ bool CvUnit::nuke(int iX, int iY)
 		CvTeam const& kInterceptTeam = *it;
 		if (!abTeamsAffected.get(kInterceptTeam.getID()))
 			continue;
-
 		if (kInterceptTeam.getNukeInterception() > iBestInterception)
 		{
 			iBestInterception = kInterceptTeam.getNukeInterception();

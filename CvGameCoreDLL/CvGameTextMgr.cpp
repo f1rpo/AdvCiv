@@ -23,28 +23,10 @@
 static char* szErrorMsg; // for displaying assertion and error messages
 
 
-CvGameTextMgr& CvGameTextMgr::GetInstance()
-{
-	static CvGameTextMgr gs_GameTextMgr;
-	return gs_GameTextMgr;
-}
-
-
-CvGameTextMgr::CvGameTextMgr() {}
-
-
-CvGameTextMgr::~CvGameTextMgr() {}
-
-//	PURPOSE: Allocate memory
-void CvGameTextMgr::Initialize() {}
-
-// PURPOSE: Clear memory
 void CvGameTextMgr::DeInitialize()
 {
-	for(int i=0;i<(int)m_apbPromotion.size();i++)
-	{
-		delete [] m_apbPromotion[i];
-	}
+	for (size_t i = 0 ; i < m_apbPromotion.size(); i++)
+		delete[] m_apbPromotion[i];
 }
 
 
@@ -56,7 +38,7 @@ void CvGameTextMgr::Reset()
 	pXML.LoadGlobalText();
 }
 
-// Returns the current language
+
 int CvGameTextMgr::getCurrentLanguage()
 {
 	return gDLL->getCurrentLanguage();
@@ -15772,69 +15754,75 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 	}*/ // K-Mod, I've moved this to a new function
 }
 
-// K-Mod
+// K-Mod:
 void CvGameTextMgr::getVassalInfoString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer)
 {
 	FAssert(ePlayer != NO_PLAYER);
 
-	const CvTeam& kTeam = GET_TEAM(GET_PLAYER(ePlayer).getTeam());
-	//CvTeam& kTargetTeam = GET_TEAM(GET_PLAYER(eTargetPlayer).getTeam());
-
-	for (TeamTypes i = (TeamTypes)0; i < MAX_TEAMS; i=(TeamTypes)(i+1))
+	CvTeam const& kTeam = GET_TEAM(ePlayer);
+	if (kTeam.isAVassal())
 	{
-		const CvTeam& kLoopTeam = GET_TEAM(i);
-		if (kLoopTeam.isAlive())
+		szBuffer.append(NEWLINE);
+		szBuffer.append(CvWString::format(SETCOLR, TEXT_COLOR("COLOR_LIGHT_GREY")));
+		CvTeam const& kMaster = GET_TEAM(kTeam.getMasterTeam());
+		// <advc.130v>
+		if (kTeam.isCapitulated())
 		{
-			//if (kTargetTeam.isHasMet(i))
-
-			if (kTeam.isVassal(i))
-			{
-				szBuffer.append(NEWLINE);
-				szBuffer.append(CvWString::format(SETCOLR, TEXT_COLOR("COLOR_LIGHT_GREY")));
-				// <advc.130v>
-				if(kTeam.isCapitulated())
-					szBuffer.append(gDLL->getText("TXT_KEY_ATTITUDE_VASSAL_CAP_OF",
-							kLoopTeam.getName().GetCString()));
-				else // </advc.130v>
-				szBuffer.append(gDLL->getText("TXT_KEY_ATTITUDE_VASSAL_OF", kLoopTeam.getName().GetCString()));
-				setVassalRevoltHelp(szBuffer, i, kTeam.getID());
-				szBuffer.append(ENDCOLR);
-			}
-			else if (kLoopTeam.isVassal(kTeam.getID()))
-			{
-				szBuffer.append(NEWLINE);
-				szBuffer.append(CvWString::format(SETCOLR, TEXT_COLOR("COLOR_LIGHT_GREY")));
-				szBuffer.append(gDLL->getText("TXT_KEY_ATTITUDE_MASTER_OF", kLoopTeam.getName().GetCString()));
-				szBuffer.append(ENDCOLR);
-			}
+			szBuffer.append(gDLL->getText("TXT_KEY_ATTITUDE_VASSAL_CAP_OF",
+					kMaster.getName().GetCString()));
 		}
+		else // </advc.130v>
+		{
+			szBuffer.append(gDLL->getText("TXT_KEY_ATTITUDE_VASSAL_OF",
+					kMaster.getName().GetCString()));
+		}
+		setVassalRevoltHelp(szBuffer, kMaster.getID(), kTeam.getID());
+		szBuffer.append(ENDCOLR);
+		return;
+	}
+	for (TeamIter<CIV_ALIVE,VASSAL_OF> itVassal(kTeam.getID());
+		itVassal.hasNext(); ++itVassal)
+	{
+		szBuffer.append(NEWLINE);
+		szBuffer.append(CvWString::format(SETCOLR, TEXT_COLOR("COLOR_LIGHT_GREY")));
+		szBuffer.append(gDLL->getText("TXT_KEY_ATTITUDE_MASTER_OF",
+				itVassal->getName().GetCString()));
+		szBuffer.append(ENDCOLR);
 	}
 }
 
-void CvGameTextMgr::getWarWearinessString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer) const
+// K-Mod:
+void CvGameTextMgr::getWarWearinessString(CvWStringBuffer& szBuffer,
+	PlayerTypes ePlayer, PlayerTypes eTargetPlayer) const
 {
 	FAssert(ePlayer != NO_PLAYER);
-	// Show ePlayer's war weariness towards eTargetPlayer.
-	// (note: this is the reverse of what was shown in the original code.)
-	// War weariness should be shown in it natural units - it's a percentage of population
-	const CvPlayer& kPlayer = GET_PLAYER(ePlayer);
+	/*	Show ePlayer's war weariness towards eTargetPlayer.
+		(note: this is the reverse of what was shown in the original code.)
+		War weariness should be shown in it natural units -
+		it's a percentage of population */
+	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
 
 	int iWarWeariness = 0;
 	if (eTargetPlayer == NO_PLAYER || eTargetPlayer == ePlayer)
 	{
-		// If eTargetPlayer == NO_PLAYER, show ePlayer's total war weariness?
-		// There are a couple of problems with displaying the total war weariness: information leak, out-of-date information...
-		// lets do it only for the active player.
+		/*	If eTargetPlayer == NO_PLAYER, show ePlayer's total war weariness?
+			There are a couple of problems with displaying the total war weariness:
+			information leak, out-of-date information...
+			lets do it only for the active player. */
 		if (GC.getGame().getActivePlayer() == ePlayer)
 			iWarWeariness = kPlayer.getWarWearinessPercentAnger();
 	}
 	else
 	{
-		const CvPlayer& kTargetPlayer = GET_PLAYER(eTargetPlayer);
+		CvPlayer const& kTargetPlayer = GET_PLAYER(eTargetPlayer);
 		if (atWar(kPlayer.getTeam(), kTargetPlayer.getTeam()) &&
-			(GC.getGame().isDebugMode() || GET_PLAYER(GC.getGame().getActivePlayer()).canSeeDemographics(ePlayer)))
+			(GC.getGame().isDebugMode() ||
+			GET_PLAYER(GC.getGame().getActivePlayer()).canSeeDemographics(ePlayer)))
 		{
-			iWarWeariness = kPlayer.getModifiedWarWearinessPercentAnger(GET_TEAM(kPlayer.getTeam()).getWarWeariness(kTargetPlayer.getTeam(), true)/100);
+			iWarWeariness = kPlayer.getModifiedWarWearinessPercentAnger(
+					GET_TEAM(kPlayer.getTeam()).getWarWeariness(
+					kTargetPlayer.getTeam(), true)
+					/ 100);
 		}
 	}
 
@@ -15842,26 +15830,31 @@ void CvGameTextMgr::getWarWearinessString(CvWStringBuffer& szBuffer, PlayerTypes
 	iWarWeariness /= GC.getPERCENT_ANGER_DIVISOR();
 
 	if (iWarWeariness != 0)
-		szBuffer.append(CvWString::format(L"\n%s: %d%%", gDLL->getText("TXT_KEY_WAR_WEAR_HELP").GetCString(), iWarWeariness));
+	{
+		szBuffer.append(CvWString::format(L"\n%s: %d%%",
+				gDLL->getText("TXT_KEY_WAR_WEAR_HELP").GetCString(), iWarWeariness));
+	}
 }
-// K-Mod end
 
-void CvGameTextMgr::getEspionageString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer)
+
+/*void CvGameTextMgr::getEspionageString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer)
 {
-	FErrorMsg("obsolete function. (getEspionageString)"); // K-Mod
 	if (!GC.getGame().isOption(GAMEOPTION_NO_ESPIONAGE))
 	{
 		CvPlayer& kPlayer = GET_PLAYER(ePlayer);
 		TeamTypes eTeam = (TeamTypes) kPlayer.getTeam();
 		CvTeam& kTeam = GET_TEAM(eTeam);
 		CvPlayer& kTargetPlayer = GET_PLAYER(eTargetPlayer);
-
-		szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_AGAINST_PLAYER", kTargetPlayer.getNameKey(), kTeam.getEspionagePointsAgainstTeam(kTargetPlayer.getTeam()), GET_TEAM(kTargetPlayer.getTeam()).getEspionagePointsAgainstTeam(kPlayer.getTeam())));
+		szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_AGAINST_PLAYER",
+				kTargetPlayer.getNameKey(),
+				kTeam.getEspionagePointsAgainstTeam(kTargetPlayer.getTeam()),
+				GET_TEAM(kTargetPlayer.getTeam()).getEspionagePointsAgainstTeam(kPlayer.getTeam())));
 	}
-}
+}*/ // advc: Obsolete according to a K-Mod comment
 
 
-void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData, PlayerTypes ePlayer1, PlayerTypes ePlayer2,
+void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData,
+	PlayerTypes ePlayer1, PlayerTypes ePlayer2,
 	int iTurnsToCancel) // advc.004w
 {
 	switch (tradeData.m_eItemType)

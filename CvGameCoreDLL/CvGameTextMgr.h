@@ -15,13 +15,17 @@ class CvGameTextMgr
 {
 	friend class CvGlobals;
 public:
-	DllExport static CvGameTextMgr& GetInstance(); // singleton accessor
+	DllExport static CvGameTextMgr& GetInstance() // singleton accessor
+	{
+		static CvGameTextMgr gs_GameTextMgr;
+		return gs_GameTextMgr;
+	}
 
-	CvGameTextMgr();
-	virtual ~CvGameTextMgr();
+	CvGameTextMgr() {}
+	virtual ~CvGameTextMgr() {}
 
-	DllExport void Initialize();
-	DllExport void DeInitialize();
+	DllExport void Initialize() {} // allocate memory
+	DllExport void DeInitialize(); // deallocate memory
 	DllExport void Reset();
 
 	int getCurrentLanguage();
@@ -247,7 +251,7 @@ public:
 			char const* szTextKey, char const* szTextKeyAlt = NULL); // </advc>
 	void getVassalInfoString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer); // K-Mod
 	void getWarWearinessString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer) const; // K-Mod
-	void getEspionageString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer);
+	//void getEspionageString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer);
 	void getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData,
 			PlayerTypes ePlayer1, PlayerTypes ePlayer2,
 			int iTurnsToCancel = -1); // advc.004w

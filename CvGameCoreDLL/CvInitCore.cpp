@@ -1014,11 +1014,8 @@ void CvInitCore::setType(GameType eType)
 	// <advc.054>
 	// Permanent war/peace always visible in scenarios
 	CvGameOptionInfo& kPermWarPeace = GC.getInfo(GAMEOPTION_NO_CHANGING_WAR_PEACE);
-	if(eType == GAME_SP_SCENARIO || eType == GAME_MP_SCENARIO ||
-		eType == GAME_HOTSEAT_SCENARIO || eType == GAME_PBEM_SCENARIO)
-	{
+	if(getScenario())
 		kPermWarPeace.setVisible(true);
-	}
 	// Otherwise as set in XML
 	else kPermWarPeace.setVisible(kPermWarPeace.getVisibleXML());
 	// Never visible in MP
