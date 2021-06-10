@@ -1677,13 +1677,13 @@ int CvTeam::getDefensivePower(TeamTypes eExcludeTeam) const
 	return iPow;
 }
 
-// advc.003j (comment): Unused. Added by the BtS expansion; looks like it was never used.
+// advc.650 (comment): AdvCiv uses this BtS function; was previously unused.
 int CvTeam::getEnemyPower() const
 {
-	int r = 0;
+	int iPow = 0;
 	for (TeamIter<CIV_ALIVE,ENEMY_OF> it(getID()); it.hasNext(); ++it)
-		r += it->getPower(false);
-	return r;
+		iPow += it->getPower(false);
+	return iPow;
 }
 
 

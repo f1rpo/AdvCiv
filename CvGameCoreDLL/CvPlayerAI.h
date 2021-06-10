@@ -344,6 +344,11 @@ public:
 	int AI_nukeWeight() const; // K-Mod
 	int AI_nukeDangerDivisor() const; // kekm.16
 	int AI_nukePlotValue(CvPlot const& kPlot, int iCivilianTargetWeight) const; // advc
+	// <advc.650>
+	int AI_nukeBaseDestructionWeight() const;
+	int AI_nukeExtraDestructionWeight(PlayerTypes eTarget,
+			int iTheirNukes, bool bLimited) const;
+	int AI_estimateNukeCount(PlayerTypes eOwner) const; // </advc.650>
 
 	int AI_missionaryValue(ReligionTypes eReligion, CvArea const* pArea = NULL/*, PlayerTypes* peBestPlayer = NULL*/) const;
 	int AI_executiveValue(CorporationTypes eCorporation, CvArea const* pArea = NULL,

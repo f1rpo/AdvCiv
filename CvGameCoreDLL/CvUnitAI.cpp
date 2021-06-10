@@ -19759,19 +19759,10 @@ bool CvUnitAI::AI_nuke()
 	// consider changing this to something smarter
 	bool const bDanger = kOwner.AI_isAnyPlotDanger(getPlot(), 2);
 	int const iWarRating = kTeam.AI_getWarSuccessRating();
+	int const iOurNukes = kOwner.getNumNukeUnits();
 	// iBaseWeight is the civ-independant part of the weight for civilian damage evaluation
-	/*int iBaseWeight = 10;
-	iBaseWeight += kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST3) || GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI) ? 20 : 0;*/
-	// <advc.019>
-	int iBaseWeight = (GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI) ? 17 : 10);
-	if (kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST3))
-		iBaseWeight += 8; // </advc.019>
-	if (kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST4))
-		iBaseWeight += 20;
-	iBaseWeight += std::max(0, -iWarRating);
-	// don't completely destroy them if we want to keep their land.
-	iBaseWeight -= std::max(0, iWarRating - 50);
-
+	// advc.650: Moved into new function
+	int const iBaseWeight = kOwner.AI_nukeBaseDestructionWeight();
 	CvPlot* pBestTarget = 0;
 	/*	the initial value of iBestValue is the threshold for action.
 		(cf. units of AI_nukeValue) */
@@ -19787,13 +19778,19 @@ bool CvUnitAI::AI_nuke()
 	for (PlayerIter<CIV_ALIVE,ENEMY_OF> itEnemy(kTeam.getID());
 		itEnemy.hasNext(); ++itEnemy)
 	{
-		CvPlayer const& kEnemy = *itEnemy;
-		int iDestructionWeight = iBaseWeight
-				- kOwner.AI_getAttitudeWeight(kEnemy.getID()) / 2 +
-				std::min(60, //2 * // advc.130j: Cancels out with the new way of counting memory
-				kOwner.AI_getMemoryCount(kEnemy.getID(), MEMORY_NUKED_FRIEND) +
-				//5 * // advc.130j: Make it 3 *
-				3 * kOwner.AI_getMemoryCount(kEnemy.getID(), MEMORY_NUKED_US));
+		CvPlayerAI const& kEnemy = *itEnemy;
+		// <advc.650>
+		int const iTheirNukes = kOwner.AI_estimateNukeCount(kEnemy.getID());
+		// Don't be too shy if we have far more nukes than they do
+		int const iTheirNukesAdjusted = iTheirNukes - intdiv::uround(iOurNukes, 3);
+		int const iNukedUsMemory = kOwner.AI_getMemoryCount(
+				kEnemy.getID(), MEMORY_NUKED_US);
+		WarPlanTypes const eWP = kTeam.AI_getWarPlan(kEnemy.getTeam());
+		// Treat dogpile like limited war
+		bool const bLimited = (eWP == WARPLAN_LIMITED || eWP == WARPLAN_DOGPILE);
+		// Moved into new function
+		int iDestructionWeight = iBaseWeight + kOwner.AI_nukeExtraDestructionWeight(
+				kEnemy.getID(), iTheirNukes, bLimited); // </advc.650>
 		FOR_EACH_CITY(pLoopCity, kEnemy)
 		{
 			/*	note: we could use "AI_deduceCitySite" here, but, if we can't see
@@ -19806,11 +19803,16 @@ bool CvUnitAI::AI_nuke()
 			CvPlot* pTarget;
 			int iValue = AI_nukeValue(pLoopCity->getPlot(), nukeRange(), pTarget,
 					iDestructionWeight);
-			if (kTeam.AI_getWarPlan(pLoopCity->getTeam()) == WARPLAN_LIMITED &&
-				iWarRating > -10)
-			{
+			if (bLimited && iWarRating > -10)
 				iValue /= 2;
-			}
+			// <advc.650> Avoid escalation
+			if (iTheirNukesAdjusted > 0)
+			{
+				scaled rEscalationMult = (1 + iNukedUsMemory) /
+						(1 + scaled(iTheirNukesAdjusted).sqrt());
+				rEscalationMult.decreaseTo(1);
+				iValue = (iValue * rEscalationMult).uround();
+			} // </advc.650>
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;

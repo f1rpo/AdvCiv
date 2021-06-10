@@ -14848,6 +14848,87 @@ int CvPlayerAI::AI_nukeDangerDivisor() const
 	return 20;
 }
 
+// <advc> K-Mod code cut from CvUnitAI::AI_nuke
+int CvPlayerAI::AI_nukeBaseDestructionWeight() const
+{
+	/*int iR = 10;
+	iR += kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST3) || GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI) ? 20 : 0;*/
+	int iR = 4; // advc.650: Down from 10; rather count more extra weight for total war.
+	// <advc.019>
+	if (GC.getGame().isOption(GAMEOPTION_AGGRESSIVE_AI))
+		iR += 6;
+	if (AI_atVictoryStage(AI_VICTORY_CONQUEST3))
+	{
+		iR += 8; // </advc.019>
+		if (AI_atVictoryStage(AI_VICTORY_CONQUEST4))
+			iR += 12;
+	}
+	int const iWS = GET_TEAM(getTeam()).AI_getWarSuccessRating();
+	/*	advc.650: War going badly is not a good reason for hitting civilian targets.
+		Let's say, only when it's going very, very badly (still questionable): */
+	if (iWS < -88)
+		iR -= iWS;
+	// don't completely destroy them if we want to keep their land.
+	int iWSThresh = 50;
+	if (iWS > iWSThresh)
+		iR -= iWS - iWSThresh;
+	// <advc.650>
+	// Also spare their stuff if the power ratio is very favorable
+	else
+	{
+		int iTargetPowRatio = 200;
+		int iPowRatioPercent = (100 * GET_TEAM(getTeam()).getPower(true)) /
+				std::max(1, GET_TEAM(getTeam()).getEnemyPower());
+		if (iPowRatioPercent > iTargetPowRatio)
+			iR -= iPowRatioPercent - iTargetPowRatio;
+	}
+	// Personality factor
+	iR += GC.getInfo(getPersonalityType()).getRazeCityProb() / 3;
+	// </advc.650>
+	return iR;
+}
+
+
+int CvPlayerAI::AI_nukeExtraDestructionWeight(PlayerTypes eTarget,
+	int iTheirNukes, bool bLimited) const
+{
+	int iR = 0;
+	CvPlayerAI const& kTarget = GET_PLAYER(eTarget);
+	// <advc.650>
+	if (kTarget.AI_atVictoryStage(AI_VICTORY_CULTURE3))
+	{
+		iR += 12;
+		if (kTarget.AI_atVictoryStage(AI_VICTORY_CULTURE4))
+			iR += 8;
+	} // </advc.650>
+	iR -= AI_getAttitudeWeight(kTarget.getID()) /// 2;
+	// <advc.650> Attitude isn't very telling when at war
+			/ 8;
+	if (GET_TEAM(getTeam()).AI_getWorstEnemy() == kTarget.getTeam())
+		iR += 12;
+	if (!bLimited)
+		iR += 16;
+	// </advc.650>
+	int iMemoryVal = std::min(120,
+			2 * AI_getMemoryCount(kTarget.getID(), MEMORY_NUKED_FRIEND) +
+			5 * AI_getMemoryCount(kTarget.getID(), MEMORY_NUKED_US));
+	iMemoryVal /= 2; // advc.130j: Memory now counted at times-2 precision
+	// <advc.650> Avoid escalation
+	if (iMemoryVal <= 5 && iTheirNukes > 0)
+		iR -= (scaled(iTheirNukes).sqrt() * 8).uround(); // </advc.650>
+	iR += iMemoryVal;
+	return iR;
+} // </advc>
+
+// advc.650: Cheating plus noise
+int CvPlayerAI::AI_estimateNukeCount(PlayerTypes eOwner) const
+{
+	std::vector<int> aiInputs;
+	aiInputs.push_back(eOwner);
+	return (GET_PLAYER(eOwner).getNumNukeUnits() *
+			(scaled::hash(aiInputs, getID()) + fixp(0.5))).uround();
+}
+
 /*  advc.105: To replace some of the
 	GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0
 	checks. */
