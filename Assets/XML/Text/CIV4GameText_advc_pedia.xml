@@ -1000,4 +1000,56 @@
 		<Spanish>[H1]Combate de asedio mejorado[\H1][PARAGRAPH:2]Ahora, las unidades de asedio tienen un l&#237;mite de "da&#241;o m&#225;ximo". Cuando una unidad de asedio ataca, puede causar da&#241;os hasta un l&#237;mite, tras lo cual se retirar&#225;. Las unidades de asedio adicionales no podr&#225;n atacar dicho objetivo de nuevo hasta que su salud vuelva a estar por encima del l&#237;mite de "da&#241;o m&#225;ximo" de la unidad de asedio. Las unidades de asedio m&#225;s modernas tienen un l&#237;mite de "da&#241;o m&#225;ximo" m&#225;s alto, as&#237; que aseg&#250;rate de modernizar lo antes posible tus catapultas para convertirlas en ca&#241;ones, o tus ca&#241;ones en artiller&#237;a. No obstante, una unidad de asedio defensiva puede matar a un atacante.[PARAGRAPH:1]Adem&#225;s, las unidades montadas pueden causar da&#241;os de "flanqueo" a todas las unidades de asedio de un apilamiento. Al atacar un apilamiento con unidades de asedio, la unidad montada infligir&#225; este da&#241;o de flanqueo siempre que sobreviva al combate, tanto si se retira como si gana. Si muere, no se infligir&#225; da&#241;o de flanqueo alguno. Por tanto, cuando veas acercarse al enemigo con apilamientos de potentes armas de asedio, otorga a tus unidades montadas el ascenso "flanqueo" para que tengan una mayor probabilidad de retirada y, por tanto, tambi&#233;n de infligir da&#241;o a las armas de asedio.</Spanish>
 	</TEXT>
 
+	<!-- advc.907c -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_INDIAN_FAST_WORKER_PEDIA</Tag>
+		<English>[TAB](AdvCiv) The BtS background text (deleted) had sought to explain the Indian Fast Worker through the "compact, wiry frames" of Indian people and them being "sturdy," "strong," "hardy," "hard-working" and "determined." For a less bizarre explanation, one could perhaps look to the ancient Indian treatises about craftsmanship and architecture (shilpa and vastru shastra).</English>
+		<French>[TAB]Les Indiens sont extr&#234;mement robustes et travailleurs. Leur constitution fine et nerveuse leur permet de r&#233;sister aux travaux les plus p&#233;nibles sous des climats extr&#234;mes, comme ceux du d&#233;sert, de la jungle ou de la haute montagne, largement r&#233;pandus sur le sous-continent indien. C'est ainsi que l'on trouve, dans ces r&#233;gions hostiles, temples, forteresses et tombeaux, qui apparaissent comme autant de t&#233;moignages de la force et de la d&#233;termination du peuple indien.</French>
+		<German>[TAB](AdvCiv) Der BtS-Hintergrundtext (gelöscht) hatte die schnellen indischen Bautrupps mit dem "drahtigen Körperbau" der Inder erklärt, ihrer "Stärke und Entschlossenheit" und damit, dass sie "hart arbeitende Menschen" seien. Als Ersatz für diese befremdliche Erklärung könnte man vielleicht an die altindischen Abhandlungen über Handwerk und Baukunst (Shilpa und Vastru Shastra) denken.</German>
+		<Italian>[TAB]Gli Indiani sono dei grandi lavoratori incredibilmente forti. La loro costituzione robusta e asciutta gli permette di eseguire anche i lavori pi&#249; duri nelle zone dal clima pi&#249; ostile, come il subcontinente Indiano, ricco di deserti, giungle e montagne molto alte e pericolose. Malgrado ci&#242;, lungo tutte queste strade si possono trovare templi, santuari e fortezze, monumenti alla forza e alla determinazione della fiera popolazione Indiana.</Italian>
+		<Spanish>[TAB]Los hind&#250;es son notablemente robustos y trabajadores. Sus cuerpos compactos y fibrosos pueden soportar el trabajo m&#225;s duro en algunos de los climas m&#225;s dif&#237;ciles, muy abundantes en el subcontinente indio, como el desierto, la selva y las altas y peligrosas monta&#241;as. Sin embargo, en todos estos lugares se pueden encontrar templos, santuarios y fortalezas, monumentos a la fortaleza y la determinaci&#243;n de los vigorosos hind&#250;es.</Spanish>
+	</TEXT>
+	<!-- advc.907c -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_INDIAN_FAST_WORKER_STRATEGY</Tag>
+		<English>Build the special Indian [COLOR_UNIT_TEXT]Fast Worker[COLOR_REVERT] to construct roads and railroads and to improve your land. It can move further than regular workers, allowing it to move and carry out an action on the same turn. [BOLD]AdvCiv[\BOLD]: No longer has an extra movement point; instead ignores extra movement costs from terrain.</English>
+		<French>Produisez des [COLOR_UNIT_TEXT]ouvriers rapides[COLOR_REVERT] indiens pour construire routes et voies ferr&#233;es et am&#233;nager le terrain. Son rayon d'action est sup&#233;rieur &#224; celui d'un ouvrier normal, ce qui lui permet de se d&#233;placer et effectuer une action pendant le m&#234;me tour. </French>
+		<German>Die [COLOR_UNIT_TEXT]schnellen Bautrupps[COLOR_REVERT] Indiens erm&#246;glichen Ihnen den Bau von Stra&#223;en und Eisenbahnstrecken sowie die Verbesserung Ihres Landes. Schnelle Bautrupps haben eine gr&#246;&#223;ere Reichweite und k&#246;nnen in einer Runde mehr Arbeiten verrichten als normale Bautrupps. [BOLD]AdvCiv[\BOLD]: Anstatt einen zusätzlichen Bewegungspunkt zu erhalten, sind schnelle Bautrupps von geländebasierten Bewegungskosten ausgenommen.</German>
+		<Italian>Realizza lo speciale [COLOR_UNIT_TEXT]lavoratore veloce[COLOR_REVERT] Indiano per costruire strade, ferrovie e migliorare il territorio. Rispetto ai normali lavoratori, si muove pi&#249; rapidamente, riuscendo cos&#236; a muovere e compiere un'azione nello stesso turno.</Italian>
+		<Spanish>La unidad especial del [COLOR_UNIT_TEXT]Trabajador r&#225;pido[COLOR_REVERT] indio permite construir carreteras y ferrocarriles, as&#237; como mejorar la tierra. Es capaz de moverse m&#225;s que los trabajadores normales, por lo que puede desplazarse y llevar a cabo una acci&#243;n en el mismo turno. </Spanish>
+	</TEXT>
+
+	<!-- advc.907d -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_MALI_SKIRMISHER_STRATEGY</Tag>
+		<English>This early combat unit (the Malian replacement for the [COLOR_UNIT_TEXT]Archer[COLOR_REVERT]) is a great early choice for city and hill defense. [BOLD]AdvCiv[\BOLD] removes one first strike from this unit, leaving it only with one (50-percent) first strike chance and insofar weaker than a regular Archer. However, it still has one more combat strength than a regular Archer.</English>
+		<French>Cette unit&#233; de combat &#224; distance primitive (l'unit&#233; malienne qui vient remplacer l'[COLOR_UNIT_TEXT]archer[COLOR_REVERT]) constitue un tr&#232;s bon choix dans les premi&#232;res phases du jeu pour la d&#233;fense des villes et collines.</French>
+		<German>Diese fr&#252;he Kampfeinheit (die malische Version des [COLOR_UNIT_TEXT]Bogensch&#252;tzen[COLOR_REVERT]) eignet sich hervorragend f&#252;r die Verteidigung von St&#228;dten und Anh&#246;hen. [BOLD]AdvCiv[\BOLD] reduziert die Anzahl der Erstangriffe von 1-2 auf 0-1; das heißt, es besteht, anders als beim regulären Bogenschützen, nur eine 50-prozentige Erstangriffs-Chance. Andererseits liegt die Kampfstärke weiterhin um einen Punkt höher als beim regulären Bogenschützen.</German>
+		<Italian>Questa unit&#224; iniziale da combattimento (l'equivalente Malese dell'[COLOR_UNIT_TEXT]arciere[COLOR_REVERT]) &#232; un'ottima scelta iniziale per difendere citt&#224; e colline.</Italian>
+		<Spanish>Esta unidad temprana (que reemplaza al [COLOR_UNIT_TEXT]Arquero[COLOR_REVERT] en la civilizaci&#243;n mal&#237;) es una buena elecci&#243;n temprana para defender ciudades y colinas.</Spanish>
+	</TEXT>
+
+	<!-- advc.907e (also added mention of defensive bonuses) -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_PERIA_IMMORTAL_STRATEGY</Tag>
+		<English>This mounted combat unit (the Persian replacement for the [COLOR_UNIT_TEXT]Chariot[COLOR_REVERT]) is more effective than the chariot against Archery units and, unlike other Mounted units, can receive defensive bonuses. [BOLD]AdvCiv[\BOLD]: Only 25%% more effective, not 50%%. Now immune against first strikes, which also helps against Archers, but, on the bottom line, not as much as the 50%% combat modifier in BtS.</English>
+		<French>Cette unit&#233; mont&#233;e de combat (l'unit&#233; perse qui vient remplacer le [COLOR_UNIT_TEXT]char[COLOR_REVERT]) est plus efficace que le char contre les unit&#233;s &#233;quip&#233;es d'un arc.</French>
+		<German>Diese berittene Kampfeinheit (die persische Version des [COLOR_UNIT_TEXT]Streitwagens[COLOR_REVERT]) ist im Kampf gegen Bogensch&#252;tzen effektiver als der normale Streitwagen. Außerdem kann sie, anders als andere berittene Einheiten, Verteidigungsboni erhalten. [BOLD]AdvCiv[\BOLD]: Aber bloß 25%% effektiver, nicht 50%%. Nun außerdem immun gegen Erstangriffe - was auch effektiv ist gegen Bogenschützen, aber, unterm Strich, nicht so effektiv wie der 50%%-Bonus in BtS.</German>
+		<Italian>Questa unit&#224; montata (l'equivalente Persiano della [COLOR_UNIT_TEXT]biga[COLOR_REVERT]) &#232; pi&#249; effettiva delle bighe contro le unit&#224; d'attacco a distanza.</Italian>
+		<Spanish>Esta unidad montada (que reemplaza al [COLOR_UNIT_TEXT]Carro[COLOR_REVERT] en la civilizaci&#243;n persa) resulta m&#225;s eficaz que el Carro contra unidades con proyectiles.</Spanish>
+	</TEXT>
+
+	<!-- advc.907e: I've corrected the original text too - which
+		 hadn't mentioned the increased combat strength and had said that
+		 War Chariot receives no defensive bonuses (that's no different from
+		 the regular Chariot). -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_EGYPT_WARCHARIOT_STRATEGY</Tag>
+		<English>This early mounted combat unit (the Egyptian replacement for the [COLOR_UNIT_TEXT]Chariot[COLOR_REVERT]) is immune to first strikes and has one extra combat strength. [BOLD]AdvCiv[\BOLD]: No longer immune to first strikes (that ability moves to the Persian Immortal).</English>
+		<French>Cette puissante unit&#233; mont&#233;e de combat (l'unit&#233; &#233;gyptienne qui vient remplacer le [COLOR_UNIT_TEXT]char[COLOR_REVERT]) n'est pas vuln&#233;rable face aux premi&#232;res attaques, mais ne b&#233;n&#233;ficie d'aucun bonus en d&#233;fense.</French>
+		<German>Diese fr&#252;he berittene Kampfeinheit (die &#228;gyptische Version des [COLOR_UNIT_TEXT]Streitwagens[COLOR_REVERT]) ist gegen Erstangriffe immun und hat eine größere Kampfstärke.  [BOLD]AdvCiv[\BOLD]: Nicht mehr immun gegen Erstangriffe (diese Fähigkeit erhalten stattdessen die persischen Unsterblichen).</German>
+		<Italian>Questa unit&#224; montata iniziale (l'equivalente Egiziano della [COLOR_UNIT_TEXT]biga[COLOR_REVERT]) &#232; immune agli attacchi improvvisi ma non ottiene bonus difensivi.</Italian>
+		<Spanish>Esta unidad montada temprana (que reemplaza al [COLOR_UNIT_TEXT]Carro[COLOR_REVERT] en la civilizaci&#243;n egipcia) es inmune a los ataques de iniciativa pero no recibe bonificaciones defensivas.</Spanish>
+	</TEXT>
+
 </Civ4GameText>
