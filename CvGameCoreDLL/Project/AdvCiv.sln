@@ -13,7 +13,7 @@ Global
 		Final_Release-fast|Win32 = Final_Release-fast|Win32
 		Profile-fast|Win32 = Profile-fast|Win32
 		Release|Win32 = Release|Win32
-		Release-fast|Win32 = Release-fast|Win32
+		_Release-fast|Win32 = _Release-fast|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Assert-fast|Win32.ActiveCfg = Assert-fast|Win32
@@ -30,8 +30,8 @@ Global
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Profile-fast|Win32.Build.0 = Profile-fast|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Release|Win32.ActiveCfg = Release|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Release|Win32.Build.0 = Release|Win32
-		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Release-fast|Win32.ActiveCfg = Release-fast|Win32
-		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Release-fast|Win32.Build.0 = Release-fast|Win32
+		{3021AF0E-699D-4232-86F6-FC374A0C9957}._Release-fast|Win32.ActiveCfg = _Release-fast|Win32
+		{3021AF0E-699D-4232-86F6-FC374A0C9957}._Release-fast|Win32.Build.0 = _Release-fast|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
