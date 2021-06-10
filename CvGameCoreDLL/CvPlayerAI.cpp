@@ -14676,7 +14676,7 @@ int CvPlayerAI::AI_nukeWeight() const
 	{	// Environmentalists shouldn't like nukes
 		CivicTypes eFavCivic = GC.getInfo(getLeaderType()).getFavoriteCivic();
 		if (eFavCivic != NO_CIVIC &&
-			GC.getInfo(eFavCivic).getUnhealthyPopulationModifier() <= 10)
+			GC.getInfo(eFavCivic).getUnhealthyPopulationModifier() <= -10)
 		{
 			rPersonalNukeLove -= fixp(1/3.);
 		}
