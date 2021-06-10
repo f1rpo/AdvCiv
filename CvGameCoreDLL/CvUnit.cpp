@@ -3820,7 +3820,17 @@ bool CvUnit::nuke(int iX, int iY)
 			gDLL->getEntityIFace()->AddMission(&kMissionDef);
 		}
 		kill(true);
-		return true; // Intercepted!!! (XXX need special event for this...)
+		// Intercepted!!! (XXX need special event for this...)
+		/*	<advc.130q> The XXX comment might be trying to say that a new memory type
+			should be added for intercepted nukes. Since advc.130j counts memory
+			at times-2 precision, that's not really necessary; we just count the
+			intercepted nuke as half a hit. */
+		for (PlayerIter<MAJOR_CIV> itAffected; itAffected.hasNext(); ++itAffected)
+		{
+			if (abTeamsAffected.get(itAffected->getTeam()))
+				itAffected->AI_changeMemoryCount(getOwner(), MEMORY_NUKED_US, 1);
+		} // </advc.130q>
+		return true;
 	}
 
 	if (kPlot.isActiveVisible(false))
