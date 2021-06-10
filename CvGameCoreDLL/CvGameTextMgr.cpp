@@ -5872,20 +5872,36 @@ void CvGameTextMgr::parseTraits(CvWStringBuffer &szHelpString, TraitTypes eTrait
 		}
 	}
 	FOR_EACH_ENUM2(Yield, eYield)
-	{	// advc.908a:
-		int iExtraYieldThresh = kTrait.getExtraYieldThreshold(eYield);
-		wchar iYieldChar = GC.getInfo(eYield).getChar();
-		if(iExtraYieldThresh > 0)
+	{
+		wchar const iYieldChar = GC.getInfo(eYield).getChar();
 		{
-			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_EXTRA_YIELD_THRESHOLDS",
-					GC.getInfo(eYield).getChar(), iExtraYieldThresh, iYieldChar,
-					iExtraYieldThresh + 1, iYieldChar)); // advc.908a
+			int const iThresh = kTrait.getExtraYieldThreshold(eYield);
+			if (iThresh != 0)
+			{
+				szHelpString.append(gDLL->getText(
+						"TXT_KEY_TRAIT_EXTRA_YIELD_THRESHOLDS",
+						iYieldChar, iThresh, iYieldChar));
+			}
 		}
-		if (kTrait.getTradeYieldModifier(eYield) != 0)
+		// <advc.908a>
 		{
-			szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_TRADE_YIELD_MODIFIERS",
-					kTrait.getTradeYieldModifier(eYield),
-					GC.getInfo(eYield).getChar(), "YIELD"));
+			
+			int const iThresh = kTrait.getExtraYieldNaturalThreshold(eYield);
+			if (iThresh != 0)
+			{
+				szHelpString.append(gDLL->getText(
+						"TXT_KEY_TRAIT_EXTRA_YIELD_NATURAL_THRESHOLDS",
+						iYieldChar, iThresh - 1, iYieldChar, iThresh, iYieldChar));
+			}
+		} // </advc.908a>
+		{
+			int const iModifier = kTrait.getTradeYieldModifier(eYield);
+			if (iModifier != 0)
+			{
+				szHelpString.append(gDLL->getText(
+						"TXT_KEY_TRAIT_TRADE_YIELD_MODIFIERS",
+						iModifier, iYieldChar, "YIELD"));
+			}
 		}
 	}
 	FOR_EACH_ENUM2(Commerce, eCommerce)
@@ -16744,7 +16760,8 @@ void CvGameTextMgr::parseLeaderHeadHelp(CvWStringBuffer &szBuffer, PlayerTypes e
 		trait_info(Defensive);
 		trait_info(EasyCulture);
 		trait_info(Expansive);
-		trait_info(ExtraCommerceThreshold); // advc.031c: Renamed from "Financial"
+		trait_info(ExtraYieldThreshold); // advc.031c: Renamed from "Financial"
+		trait_info(ExtraYieldNaturalThreshold); // advc.908a
 		trait_info(Seafaring);
 
 #undef trait_info

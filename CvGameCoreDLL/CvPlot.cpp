@@ -5058,14 +5058,24 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 	//iYield += GC.getGame().getPlotExtraYield(m_iX, m_iY, eYield);
 
 	if (ePlayer != NO_PLAYER)
-	{	// <advc.908a>
-		int iExtraYieldThresh = GET_PLAYER(ePlayer).getExtraYieldThreshold(eYield);
-		if(iExtraYieldThresh > 0)
+	{
 		{
-			if(iYield > iExtraYieldThresh || iNatureYield >= iExtraYieldThresh)
-				iYield += GC.getDefineINT(CvGlobals::EXTRA_YIELD); // </advc.908a>
+			int iThresh = GET_PLAYER(ePlayer).getExtraYieldThreshold(eYield);
+			if (iThresh > 0)
+			{
+				if(iYield >= iThresh)
+					iYield += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
+			}
 		}
-
+		// <advc.908a>
+		{
+			int iThresh = GET_PLAYER(ePlayer).getExtraYieldNaturalThreshold(eYield);
+			if (iThresh > 0)
+			{
+				if (iYield >= iThresh || iNatureYield + 1 >= iThresh)
+					iYield += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
+			}
+		} // </advc.908a>
 		if (GET_PLAYER(ePlayer).isGoldenAge())
 		{
 			if (iYield >= GC.getInfo(eYield).getGoldenAgeYieldThreshold())

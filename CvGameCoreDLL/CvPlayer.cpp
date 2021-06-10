@@ -438,6 +438,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_aiYieldRateModifier.reset();
 	m_aiCapitalYieldRateModifier.reset();
 	m_aiExtraYieldThreshold.reset();
+	m_aiExtraYieldNaturalThreshold.reset(); // advc.908a
 	m_aiTradeYieldModifier.reset();
 	m_aiFreeCityCommerce.reset();
 	m_aiCommercePercent.reset();
@@ -592,7 +593,7 @@ void CvPlayer::processTraits(int iChange)
 	updateMaxAnarchyTurns();
 
 	FOR_EACH_ENUM(Yield)
-		updateExtraYieldThreshold(eLoopYield);
+		updateExtraYieldThresholds(eLoopYield);
 
 	// advc.003q: setCivics code removed; a change in traits should not reset civics.
 
@@ -9521,28 +9522,44 @@ void CvPlayer::changeCapitalYieldRateModifier(YieldTypes eYield, int iChange)
 		pCapital->setInfoDirty(true);
 }
 
-
-void CvPlayer::updateExtraYieldThreshold(YieldTypes eYield)
+/*	advc.908a: Appended an 's' to the name b/c it handles two types of
+	threshold now */
+void CvPlayer::updateExtraYieldThresholds(YieldTypes eYield)
 {
-	int iBestValue = 0;
+	int iBestThresh = 0;
+	int iBestNaturalThresh = 0; // advc.908a
 	FOR_EACH_ENUM2(Trait, eTrait)
 	{
 		CvTraitInfo const& kTrait = GC.getInfo(eTrait);
-		if (hasTrait(eTrait) && kTrait.getExtraYieldThreshold(eYield) > 0)
+		if (!hasTrait(eTrait))
+			continue;
+		int const iThresh = kTrait.getExtraYieldThreshold(eYield);
+		if (iThresh > 0)
 		{
-			if (iBestValue == 0 ||
-				kTrait.getExtraYieldThreshold(eYield) < iBestValue)
-			{
-				iBestValue = kTrait.getExtraYieldThreshold(eYield);
-			}
+			if (iBestThresh == 0 || iThresh < iBestThresh)
+				iBestThresh = iThresh;
 		}
+		// advc.908a>
+		int const iNaturalThresh = kTrait.getExtraYieldNaturalThreshold(eYield);
+		if (iNaturalThresh > 0)
+		{
+			if (iBestNaturalThresh == 0 || iBestNaturalThresh < iBestThresh)
+				iBestNaturalThresh = iNaturalThresh;
+		} // </advc.908a>
 	}
-	if (getExtraYieldThreshold(eYield) != iBestValue)
+	if (getExtraYieldThreshold(eYield) != iBestThresh)
 	{
-		m_aiExtraYieldThreshold.set(eYield, iBestValue);
+		m_aiExtraYieldThreshold.set(eYield, iBestThresh);
 		FAssert(getExtraYieldThreshold(eYield) >= 0);
 		updateYield();
 	}
+	// <advc.908a>
+	if (getExtraYieldNaturalThreshold(eYield) != iBestNaturalThresh)
+	{
+		m_aiExtraYieldNaturalThreshold.set(eYield, toChar(iBestNaturalThresh));
+		FAssert(getExtraYieldNaturalThreshold(eYield) >= 0);
+		updateYield();
+	} // </advc.908a>
 }
 
 
@@ -13976,6 +13993,22 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	m_aiYieldRateModifier.Read(pStream);
 	m_aiCapitalYieldRateModifier.Read(pStream);
 	m_aiExtraYieldThreshold.Read(pStream);
+	// <advc.908a>
+	if (uiFlag >= 15)
+		m_aiExtraYieldNaturalThreshold.Read(pStream);
+	else
+	{
+		FOR_EACH_ENUM(Yield)
+		{
+			int iThresh = m_aiExtraYieldThreshold.get(eLoopYield);
+			if (iThresh > 0)
+			{
+				m_aiExtraYieldNaturalThreshold.set(eLoopYield,
+						toChar(iThresh + 1));
+			}
+		}
+		m_aiExtraYieldThreshold.reset();
+	} // </advc.908a>
 	m_aiTradeYieldModifier.Read(pStream);
 	m_aiFreeCityCommerce.Read(pStream);
 	m_aiCommercePercent.Read(pStream);
@@ -14257,7 +14290,7 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	if(uiFlag < 5 && !isBarbarian())
 	{
 		FOR_EACH_ENUM(Yield)
-			updateExtraYieldThreshold(eLoopYield);
+			updateExtraYieldThresholds(eLoopYield);
 	} // </advc.908a>
 	// <advc.912c>
 	if(uiFlag <= 6)
@@ -14295,7 +14328,8 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	//uiFlag = 11; // advc.001x
 	//uiFlag = 12; // advc.091
 	//uiFlag = 13; // advc.004s
-	uiFlag = 14; // advc.027 (m_bRandomWBStart)
+	//uiFlag = 14; // advc.027 (m_bRandomWBStart)
+	uiFlag = 15; // advc.908a (separate tag for nerfed trait effect), advc.908c
 	pStream->Write(uiFlag);
 
 	// <advc.027>
@@ -14430,6 +14464,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	m_aiYieldRateModifier.Write(pStream);
 	m_aiCapitalYieldRateModifier.Write(pStream);
 	m_aiExtraYieldThreshold.Write(pStream);
+	m_aiExtraYieldNaturalThreshold.Write(pStream); // advc.908a
 	m_aiTradeYieldModifier.Write(pStream);
 	m_aiFreeCityCommerce.Write(pStream);
 	m_aiCommercePercent.Write(pStream);

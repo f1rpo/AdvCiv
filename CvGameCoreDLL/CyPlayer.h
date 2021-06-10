@@ -384,6 +384,8 @@ public:
 	int getYieldRateModifier(YieldTypes eIndex);
 	int getCapitalYieldRateModifier(YieldTypes eIndex);
 	int getExtraYieldThreshold(YieldTypes eIndex);
+	// advc.908a: (Not actually used, but let's expose it for symmetry's sake.)
+	int getExtraYieldNaturalThreshold(YieldTypes eIndex);
 	int getTradeYieldModifier(YieldTypes eIndex);
 	int getFreeCityCommerce(CommerceTypes eIndex);
 	int getCommercePercent(int /*CommerceTypes*/ eIndex);

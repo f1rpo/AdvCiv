@@ -1622,6 +1622,12 @@ int CyPlayer::getExtraYieldThreshold(YieldTypes eIndex)
 	return m_pPlayer ? m_pPlayer->getExtraYieldThreshold(eIndex) : NO_YIELD;
 }
 
+// advc.908a:
+int CyPlayer::getExtraYieldNaturalThreshold(YieldTypes eIndex)
+{
+	return m_pPlayer ? m_pPlayer->getExtraYieldNaturalThreshold(eIndex) : NO_YIELD;
+}
+
 int CyPlayer::getTradeYieldModifier(YieldTypes eIndex)
 {
 	return m_pPlayer ? m_pPlayer->getTradeYieldModifier(eIndex) : NO_YIELD;

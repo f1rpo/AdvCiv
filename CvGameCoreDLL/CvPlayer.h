@@ -907,7 +907,12 @@ public:
 	void changeCapitalYieldRateModifier(YieldTypes eYield, int iChange);
 
 	int getExtraYieldThreshold(YieldTypes eYield) const { return m_aiExtraYieldThreshold.get(eYield); }				// Exposed to Python
-	void updateExtraYieldThreshold(YieldTypes eYield);
+	void updateExtraYieldThresholds(YieldTypes eYield);
+	// <advc.908a>
+	int getExtraYieldNaturalThreshold(YieldTypes eYield) const														// Exposed to Python
+	{
+		return m_aiExtraYieldNaturalThreshold.get(eYield);
+	} // </advc.908a>
 
 	int getTradeYieldModifier(YieldTypes eYield) const { return m_aiTradeYieldModifier.get(eYield); }				// Exposed to Python
 	void changeTradeYieldModifier(YieldTypes eYield, int iChange);
@@ -1553,11 +1558,12 @@ protected:  // <advc.210>
 	CvPlot* m_pStartingPlot; // advc.027: Replacing m_iStartingX/Y
 
 	CvString m_szScriptData;
-	// <advc.enum>
+	// <advc.enum> (Tbd.: Should map to char or short)
 	EnumMap<YieldTypes,int> m_aiSeaPlotYield;
 	EnumMap<YieldTypes,int> m_aiYieldRateModifier;
 	EnumMap<YieldTypes,int> m_aiCapitalYieldRateModifier;
 	EnumMap<YieldTypes,int> m_aiExtraYieldThreshold;
+	EnumMap<YieldTypes,char> m_aiExtraYieldNaturalThreshold; // advc.908a
 	EnumMap<YieldTypes,int> m_aiTradeYieldModifier;
 	EnumMap<CommerceTypes,int> m_aiFreeCityCommerce;
 	EnumMap<CommerceTypes,int> m_aiCommercePercent;

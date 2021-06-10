@@ -22,8 +22,10 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 	bool bStartingLoc, /* advc.031e: */ bool bNormalize)
 :	m_kPlayer(kPlayer), m_iMinRivalRange(iMinRivalRange), m_bStartingLoc(bStartingLoc),
 	m_bNormalize(bNormalize),
-	m_bScenario(false), m_bAmbitious(false), m_bFinancial(false), m_bDefensive(false),
-	m_bSeafaring(false), m_bExpansive(false), /* advc.007: */ m_bDebug(false),
+	m_bScenario(false), m_bAmbitious(false), m_bExtraYieldThresh(false),
+	m_bExtraYieldNaturalThresh(false), // advc.908a
+	m_bDefensive(false), m_bSeafaring(false), m_bExpansive(false),
+	m_bDebug(false), // advc.007
 	m_bAdvancedStart(false), /* advc.027: */ m_bIgnoreStartingSurroundings(false),
 	m_iBarbDiscouragedRange(iDEFAULT_BARB_DISCOURAGED_RANGE) // advc.303
 {
@@ -56,7 +58,10 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 					m_bAmbitious = true;
 			}
 			if (kLoopTrait.getExtraYieldThreshold(YIELD_COMMERCE) > 0)
-				m_bFinancial = true;
+				m_bExtraYieldThresh = true;
+			// <advc.908a>
+			if (kLoopTrait.getExtraYieldNaturalThreshold(YIELD_COMMERCE) > 0)
+				m_bExtraYieldNaturalThresh = true; // </advc.908a>
 			if (kLoopTrait.isAnyFreePromotion()) // advc.003t
 			{
 				FOR_EACH_ENUM(Promotion)
@@ -563,12 +568,25 @@ short AIFoundValue::evaluate()
 			// <advc.031>
 			FOR_EACH_ENUM(Yield)
 			{
-				if (!kSet.isStartingLoc() && // Don't factor traits into starting sites
-					kPlayer.getExtraYieldThreshold(eLoopYield) > 0 &&
-					aiNatureYield[eLoopYield] >= kPlayer.getExtraYieldThreshold(eLoopYield))
+				if (kSet.isStartingLoc()) // Don't factor traits into starting sites
+					continue;
 				{
-					aiNatureYield[eLoopYield] += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
+					int iThresh = kPlayer.getExtraYieldThreshold(eLoopYield);
+					if (iThresh > 0 &&
+						aiNatureYield[eLoopYield] >= iThresh)
+					{
+						aiNatureYield[eLoopYield] += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
+					}
 				}
+				// <advc.908a>
+				{
+					int iThresh = kPlayer.getExtraYieldNaturalThreshold(eLoopYield);
+					if (iThresh > 0 &&
+						aiNatureYield[eLoopYield] + 1 >= iThresh)
+					{
+						aiNatureYield[eLoopYield] += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
+					}
+				} // </advc.908a>
 			} // </advc.031>
 			// K-Mod. add non-home plot production to BaseProduction.
 			if (!bShare)
@@ -1705,39 +1723,45 @@ int AIFoundValue::evaluateYield(int const* aiYield, CvPlot const* p,
 int AIFoundValue::evaluateFreshWater(CvPlot const& p, int const* aiYield, bool bSteal,
 	int& iRiverTiles, int& iGreenTiles) const
 {
-	int r = 0;
+	int iR = 0;
 	// <advc.053>
 	bool bLowYield = (aiYield[YIELD_FOOD] + aiYield[YIELD_PRODUCTION] +
 			aiYield[YIELD_COMMERCE] / 2 < 2); // </advc.053>
 	if (p.isRiver())
 	{
-		//r += 10; // BtS
+		//iR += 10; // BtS
 		// <K-Mod>
-		//r += (kSet.isExtraCommerceThreshold() || kSet.isStartingLoc()) ? 30 : 10;
-		//r += (pPlot->isRiver() ? 15 : 0); // </K-Mod>
+		//iR += (kSet.isExtraYieldThreshold() || kSet.isStartingLoc()) ? 30 : 10;
+		//iR += (pPlot->isRiver() ? 15 : 0); // </K-Mod>
 		// advc: Replaced by the code below
 		// <advc.053>
 		if (bLowYield)
 		{
-			if (kSet.isExtraCommerceThreshold())
-				r += 5;
+			if (kSet.isExtraYieldThreshold())
+				iR += 9;
+			// advc.908a>
+			if (kSet.isExtraYieldNaturalThreshold())
+				iR += 5; // </advc.908a>
 		}
 		else // </advc.053>
 		{
 			// <advc.031>
-			if (kSet.isExtraCommerceThreshold())
-				r += 8;
+			if (kSet.isExtraYieldThreshold())
+				iR += 13;
+			// <advc.908a>
+			if (kSet.isExtraYieldNaturalThreshold())
+				iR += 8; // </advc.908a>
 			if (!bSteal)
 			{
 				iRiverTiles++;
 				if (iCities <= 0) // advc.108
-					r += 10;
+					iR += 10;
 				/*  I'm guessing this K-Mod clause is supposed to
 					steer the AI toward settling at rivers rather
 					than trying to make all river plots workable. */
 				if (kPlot.isRiver())
 				{
-					r += (/* advc.108: */ iCities <= 0
+					iR += (/* advc.108: */ iCities <= 0
 							? 10 : 4);
 				}
 			} // </advc.031>
@@ -1746,10 +1770,10 @@ int AIFoundValue::evaluateFreshWater(CvPlot const& p, int const* aiYield, bool b
 	if (p.canHavePotentialIrrigation() && /* advc.053: */ !bLowYield)
 	{
 		// <advc.031> was 5/5
-		r += 4;
+		iR += 4;
 		if (p.isFreshWater())
 		{
-			r += 6;
+			iR += 6;
 			if (aiYield[YIELD_FOOD] >= GC.getFOOD_CONSUMPTION_PER_POPULATION() &&
 				!bSteal)
 			{
@@ -1757,7 +1781,7 @@ int AIFoundValue::evaluateFreshWater(CvPlot const& p, int const* aiYield, bool b
 			}
 		} // <advc.031>
 	}
-	return r;
+	return iR;
 }
 
 /*	<advc.031> A plot next to a resource will usually have a higher found value
@@ -3049,8 +3073,11 @@ void CitySiteEvaluator::logSettings() const
 		logBBAI("Easy culture");
 	if (isAmbitious())
 		logBBAI("Ambitious");
-	if (isExtraCommerceThreshold())
-		logBBAI("Financial");
+	// <advc.908a>
+	if (isExtraYieldNaturalThreshold())
+		logBBAI("Financial (AdvCiv effect)"); // </advc.908a>
+	if (isExtraYieldThreshold())
+		logBBAI("Financial (BtS effect)");
 	if (isDefensive())
 		logBBAI("Defensive");
 	if (isSeafaring())

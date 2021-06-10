@@ -367,6 +367,8 @@ public: // advc: All the const functions are exposed to Python except those adde
 	// Array access:
 
 	int getExtraYieldThreshold(int i) const;
+	// advc.908a:
+	DEF_SHORT_INFO_ENUM_MAP(ExtraYieldNaturalThreshold, Yield, YieldChangeMap);
 	int getTradeYieldModifier(int i) const;
 	int getCommerceChange(int i) const;
 	int getCommerceModifier(int i) const;

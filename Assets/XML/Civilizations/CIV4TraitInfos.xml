@@ -171,11 +171,15 @@
 			<iMaxGlobalBuildingProductionModifier>0</iMaxGlobalBuildingProductionModifier>
 			<iMaxTeamBuildingProductionModifier>0</iMaxTeamBuildingProductionModifier>
 			<iMaxPlayerBuildingProductionModifier>0</iMaxPlayerBuildingProductionModifier>
-			<ExtraYieldThresholds>
-				<iExtraYieldThreshold>0</iExtraYieldThreshold>
-				<iExtraYieldThreshold>0</iExtraYieldThreshold>
-				<iExtraYieldThreshold>2</iExtraYieldThreshold>
-			</ExtraYieldThresholds>
+			<!-- advc.908a: Replace the original extra commerce threshold of 2
+				 with a "natural" (see comment in schema file or see manual
+				 or game text) commerce threshold of 3.  -->
+			<ExtraYieldThresholds/>
+			<ExtraYieldNaturalThresholds>
+				<iExtraYieldNaturalThreshold>0</iExtraYieldNaturalThreshold>
+				<iExtraYieldNaturalThreshold>0</iExtraYieldNaturalThreshold>
+				<iExtraYieldNaturalThreshold>3</iExtraYieldNaturalThreshold>
+			</ExtraYieldNaturalThresholds>
 			<TradeYieldModifiers/>
 			<CommerceChanges/>
 			<CommerceModifiers/>

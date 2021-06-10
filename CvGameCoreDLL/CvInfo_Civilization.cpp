@@ -1249,7 +1249,14 @@ bool CvTraitInfo::read(CvXMLLoadUtility* pXML)
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
 	else pXML->InitList(&m_paiExtraYieldThreshold, NUM_YIELD_TYPES);
-
+	// <advc.908a>
+	pXML->SetYieldList(ExtraYieldNaturalThreshold(), "ExtraYieldNaturalThresholds");
+	#ifdef FASSERT_ENABLE
+	FOR_EACH_ENUM(Yield)
+	{
+		FAssert(getExtraYieldNaturalThreshold(eLoopYield) >= 0);
+	}
+	#endif // </advc.908a>
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "TradeYieldModifiers"))
 	{
 		pXML->SetYields(&m_paiTradeYieldModifier);
