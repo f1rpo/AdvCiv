@@ -303,15 +303,30 @@ public:
 	}
 	void changeTotalPopulation(int iChange);
 
-	int getTradeRoutes() const;																		// Exposed to Python
+	int getTradeRoutes() const																		// Exposed to Python
+	{
+		return m_iTradeRoutes;
+	}
 	void changeTradeRoutes(int iChange);													// Exposed to Python
 
-	int getFreeTradeCount() const;																// Exposed to Python
-	bool isFreeTrade() const;																			// Exposed to Python
+	int getFreeTradeCount() const																// Exposed to Python
+	{
+		return m_iFreeTradeCount;
+	}
+	bool isFreeTrade() const																			// Exposed to Python
+	{
+		return (getFreeTradeCount() > 0);
+	}
 	void changeFreeTradeCount(int iChange);												// Exposed to Python
 
-	int getNoNukesCount() const;																	// Exposed to Python
-	bool isNoNukes() const;																				// Exposed to Python
+	int getNoNukesCount() const																	// Exposed to Python
+	{
+		return m_iNoNukesCount;
+	}
+	bool isNoNukes() const																				// Exposed to Python
+	{
+		return (getNoNukesCount() > 0);
+	}
 	void changeNoNukesCount(int iChange);													// Exposed to Python
 
 	int getSecretaryGeneralTimer(VoteSourceTypes eVoteSource) const;													// Exposed to Python

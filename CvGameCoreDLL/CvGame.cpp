@@ -4176,8 +4176,10 @@ bool CvGame::isGameMultiPlayer() const
 
 bool CvGame::isTeamGame() const
 {
-	FAssert(countCivPlayersAlive() >= countCivTeamsAlive());
-	return (countCivPlayersAlive() > countCivTeamsAlive());
+	int iCivPlayersAlive = countCivPlayersAlive();
+	int iCivTeamsAlive = countCivTeamsAlive();
+	FAssert(iCivPlayersAlive >= iCivTeamsAlive);
+	return (iCivPlayersAlive > iCivTeamsAlive);
 }
 
 
@@ -4504,12 +4506,6 @@ void CvGame::changeTotalPopulation(int iChange)
 }
 
 
-int CvGame::getTradeRoutes() const
-{
-	return m_iTradeRoutes;
-}
-
-
 void CvGame::changeTradeRoutes(int iChange)
 {
 	if (iChange != 0)
@@ -4519,18 +4515,6 @@ void CvGame::changeTradeRoutes(int iChange)
 
 		updateTradeRoutes();
 	}
-}
-
-
-int CvGame::getFreeTradeCount() const
-{
-	return m_iFreeTradeCount;
-}
-
-
-bool CvGame::isFreeTrade() const
-{
-	return (getFreeTradeCount() > 0);
 }
 
 
@@ -4548,18 +4532,6 @@ void CvGame::changeFreeTradeCount(int iChange)
 	{
 		updateTradeRoutes();
 	}
-}
-
-
-int CvGame::getNoNukesCount() const
-{
-	return m_iNoNukesCount;
-}
-
-
-bool CvGame::isNoNukes() const
-{
-	return (getNoNukesCount() > 0);
 }
 
 
