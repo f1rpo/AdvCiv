@@ -1083,7 +1083,9 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 			&cdDefenderDetails);
 	int iAttackerKillOdds = iDefenderOdds * (100 - withdrawalProbability()) / 100;
 
-	if (isHuman() || pDefender->isHuman())
+	// <advc.001> Replacing isHuman checks
+	if (getOwner() == GC.getGame().getActivePlayer() ||
+		pDefender->getOwner() == GC.getGame().getActivePlayer()) // </advc.001>
 	{
 		CyArgsList pyArgsCD;
 		pyArgsCD.add(gDLL->getPythonIFace()->makePythonObject(&cdAttackerDetails));
