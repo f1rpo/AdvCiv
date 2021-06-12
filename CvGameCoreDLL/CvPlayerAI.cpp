@@ -14901,7 +14901,7 @@ int CvPlayerAI::AI_nukeExtraDestructionWeight(PlayerTypes eTarget,
 		if (kTarget.AI_atVictoryStage(AI_VICTORY_CULTURE4))
 			iR += 8;
 	} // </advc.650>
-	iR -= AI_getAttitudeWeight(kTarget.getID()) /// 2;
+	iR -= AI_getAttitudeWeight(kTarget.getID()) // /2;
 	// <advc.650> Attitude isn't very telling when at war
 			/ 8;
 	if (GET_TEAM(getTeam()).AI_getWorstEnemy() == kTarget.getTeam())
