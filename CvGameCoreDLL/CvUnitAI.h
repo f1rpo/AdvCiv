@@ -294,8 +294,7 @@ protected:
 	void AI_exploreAirMove();
 	// BETTER_BTS_AI_MOD: END
 
-	bool AI_nuke();
-	bool AI_nukeRange(int iRange);
+	bool AI_nuke(); // advc.650: Merged AI_nukeRange into this
 	//bool AI_trade(int iValueThreshold); // deleted by K-Mod
 	int AI_tradeMissionValue(CvPlot*& pBestPlot, int iThreshold = 0); // K-Mod
 	bool AI_doTradeMission(CvPlot* pTradePlot); // K-Mod
