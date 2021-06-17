@@ -737,7 +737,7 @@ void CvPlot::verifyUnitValidPlot()
 	} // K-Mod end
 }
 
-/*  K-Mod, 2/jan/11, karadoc
+/*  K-Mod, 2/jan/11, karadoc:
 	forceBumpUnits() forces all units off the plot, onto a nearby plot */
 void CvPlot::forceBumpUnits()
 {
@@ -766,7 +766,7 @@ void CvPlot::forceBumpUnits()
 			it = apUnits.erase(it);
 		else ++it;
 	}
-} // K-Mod end
+}
 
 /*	K-Mod. Added bBomb argument.
 	bBomb signals that the explosion should damage units, buildings, and city population.

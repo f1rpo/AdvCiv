@@ -238,9 +238,10 @@ public:
 	void AI_setEnemyPeacetimeGrantValue(TeamTypes eIndex, int iNewValue);
 	void AI_changeEnemyPeacetimeGrantValue(TeamTypes eIndex, int iChange);
 
-	// <advc.003u> Moved from CvTeam b/c these functions count wars in preparation
-	int AI_countEnemyPowerByArea(CvArea const& kArea) const;																			// Exposed to Python
+	// advc: countEnemy... functions moved from CvTeam
+	int AI_countEnemyPowerByArea(CvArea const& kArea) const;												// Exposed to Python
 	int AI_countEnemyCitiesByArea(CvArea const& kArea) const; // K-Mod
+	int AI_countEnemyDangerByArea(CvArea const& kArea, TeamTypes eEnemyTeam = NO_TEAM) const; // bbai		// Exposed to Python
 	int AI_countEnemyPopulationByArea(CvArea const& kArea) const; // bbai (advc: unused)
 	inline WarPlanTypes AI_getWarPlan(TeamTypes eIndex) const // advc.inl
 	{
@@ -309,7 +310,6 @@ public:
 
 protected:
 	TeamTypes m_eWorstEnemy;
-	std::map<ReligionTypes,int> m_religionKnownSince; // advc.130n
 	/*  <advc.enum> (Tbd.: Should be CivTeamMap so that Barbarians are excluded;
 		the counters should be CivTeamMap<short>.) */
 	EnumMap<TeamTypes,int> m_aiWarPlanStateCounter;
@@ -325,6 +325,9 @@ protected:
 	EnumMap<TeamTypes,int> m_aiEnemyPeacetimeGrantValue;
 	EnumMap<WarPlanTypes,int> m_aiWarPlanCounts; // advc.opt
 	EnumMap<TeamTypes,WarPlanTypes> m_aeWarPlan;
+	/*	Tbd.: Should be EnumMap<ReligionTypes,short> - or rather:
+		remove this whole ill-conceived (by me) mechanism. */
+	std::map<ReligionTypes,int> m_religionKnownSince; // advc.130n
 	// </advc.enum>
 	bool m_bAnyWarPlan; // advc.opt
 	bool m_bLonely; // advc.109

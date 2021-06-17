@@ -213,7 +213,7 @@ int CyTeam::countNumAIUnitsByArea(CyArea* pArea, int /*UnitAITypes*/ eUnitAI)
 
 int CyTeam::countEnemyDangerByArea(CyArea* pArea)
 {
-	return m_pTeam ? m_pTeam->countEnemyDangerByArea(pArea->getArea()) : -1;
+	return m_pTeam ? m_pTeam->AI_countEnemyDangerByArea(pArea->getArea()) : -1;
 }
 
 int CyTeam::getResearchCost(int /*TechTypes*/ eTech)

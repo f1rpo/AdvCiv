@@ -124,7 +124,7 @@ public:
 	int countTotalPopulationByArea(CvArea const& kArea) const;																// Exposed to Python
 	int countPowerByArea(CvArea const& kArea) const;																					// Exposed to Python
 	int countNumAIUnitsByArea(CvArea const& kArea, UnitAITypes eUnitAI) const;								// Exposed to Python
-	int countEnemyDangerByArea(CvArea const& kArea, TeamTypes eEnemyTeam = NO_TEAM) const;																		// Exposed to Python
+	// (advc: countEnemyDangerByArea moved to CvTeamAI)
 	EraTypes getCurrentEra() const; // advc.112b
 	// K-Mod:
 	int getTypicalUnitValue(UnitAITypes eUnitAI, DomainTypes eDomain = NO_DOMAIN) const;

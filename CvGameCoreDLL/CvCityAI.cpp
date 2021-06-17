@@ -6088,6 +6088,7 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 	// SDI
 	if (kProject.getNukeInterception() > 0)
 	{
+		//iValue += (GC.getInfo(eProject).getNukeInterception() / 10);
 		/*	we're going to cheat a little bit
 			by counting nukes that we probably shouldn't know about */
 		int iForeignNukes = 0;
@@ -6113,7 +6114,6 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 					2 + GC.getGame().getNukesExploded() / (2 + iTeamsMet));
 			iValue += kProject.getNukeInterception() * iEstimatedNukeAttacks * iTargetValue / 100;
 		}
-		//iValue += (GC.getInfo(eProject).getNukeInterception() / 10);
 	}
 	// Manhattan project
 	if (kProject.isAllowsNukes() && !GC.getGame().isNoNukes())

@@ -774,11 +774,11 @@ void CvCity::updateSelectedCity(bool bTestProduction)
 	}
 }
 
-// <advc.103>
+// advc.103:
 void CvCity::setInvestigate(bool b)
 {
 	m_bInvestigate = b;
-} // </advc.103>
+}
 
 
 void CvCity::updateYield()

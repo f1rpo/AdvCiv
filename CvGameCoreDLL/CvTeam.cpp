@@ -2043,27 +2043,6 @@ int CvTeam::countNumAIUnitsByArea(CvArea const& kArea, UnitAITypes eUnitAI) cons
 	return iCount;
 }
 
-// BETTER_BTS_AI_MOD, War strategy AI, 05/19/10, jdog5000:
-int CvTeam::countEnemyDangerByArea(CvArea const& kArea, TeamTypes eEnemyTeam) const
-{
-	PROFILE_FUNC();
-
-	int iCount = 0;
-	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
-	{
-		CvPlot const& kPlot = GC.getMap().getPlotByIndex(iI);
-		if (kPlot.isArea(kArea))
-		{
-			if (kPlot.getTeam() == getID())
-			{
-				iCount += kPlot.plotCount(PUF_canDefendEnemy, getLeaderID(),
-						false, NO_PLAYER, eEnemyTeam, PUF_isVisible, getLeaderID());
-			}
-		}
-	}
-	return iCount;
-}
-
 /*	advc.112b: (Akin to CvGame::getCurrentEra;
 	in part duplicated in CvTeamAI::AI_getCurrEraFactor) */
 EraTypes CvTeam::getCurrentEra() const

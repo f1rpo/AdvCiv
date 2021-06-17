@@ -700,9 +700,10 @@ int CvUnitAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy) const
 			(iOurFirepower + iStrengthFactor)) /
 			(iTheirFirepower + iStrengthFactor));
 	int iHitLimitThem = pDefender->maxHitPoints() - combatLimit();
-	int iNeededRoundsUs = (std::max(0, pDefender->currHitPoints() - iHitLimitThem) +
-			iDamageToThem - 1) / iDamageToThem;
-	int iNeededRoundsThem = (std::max(0, currHitPoints()) + iDamageToUs - 1) / iDamageToUs;
+	int iNeededRoundsUs = intdiv::uceil(
+			std::max(0, pDefender->currHitPoints() - iHitLimitThem), iDamageToThem);
+	int iNeededRoundsThem = intdiv::uceil(
+			std::max(0, currHitPoints()), iDamageToUs);
 
 	if (getDomainType() != DOMAIN_AIR)
 	{
