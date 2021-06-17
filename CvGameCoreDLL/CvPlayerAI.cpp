@@ -3088,7 +3088,7 @@ scaled CvPlayerAI::AI_assetVal(CvCityAI const& c, bool bConquest) const
 	{
 		/*	Due to advc.045, the AI can't really know the buildings in a human city;
 			but using NumBuildings is a pretty coarse estimate of building utility anyway. */
-		/*if (bOwn && c.isHuman())
+		/*if (bOwn && c.isHuman() && !c.isAllBuildingsVisible(getTeam(), false))
 			...; else */
 		 // (Note: Includes obsolete buildings, double counts wonders.)
 		r += fixp(2.25) * c.getNumBuildings();

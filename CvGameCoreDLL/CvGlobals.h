@@ -454,6 +454,7 @@ public:
 		/* <advc.ctr> */ \
 		DO(CITY_TRADE_CULTURE_THRESH) \
 		DO(NATIVE_CITY_CULTURE_THRESH) /* </advc.ctr> */ \
+		DO(TREAT_REVEALED_BUILDINGS_AS_VISIBLE) /* advc.045 */ \
 		/* <advc.opt> */ \
 		DO(DIPLOMACY_VALUE_REMAINDER) \
 		DO(PEACE_TREATY_LENGTH) \

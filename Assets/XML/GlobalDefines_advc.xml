@@ -1182,4 +1182,16 @@
 		<iDefineIntVal>20</iDefineIntVal>
 	</Define>
 
+	<!-- advc.045: A value of 1 means that 3D models of all buildings in
+		 revealed rival cities are shown on the main map (as in BtS) and that
+		 the UI in general treats such buildings as open information.
+		 A value of 0 (recommended) treats rival buildings as secret unless
+		 the active (human) player has a unit in the city tile or the building
+		 can be inferred from tile yields (e.g. Lighthouse) or city
+		 defense modifier (e.g. Walls). -->
+	<Define>
+		<DefineName>TREAT_REVEALED_BUILDINGS_AS_VISIBLE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
 </Civ4Defines>
