@@ -19777,29 +19777,29 @@ bool CvUnitAI::AI_nuke()
 	int const iBaseDestrWeight = kOwner.AI_nukeBaseDestructionWeight();
 
 	CvPlot* pBestTarget = NULL;
-	/*	the initial value of iBestValue is the threshold for action
-		(cf. units of AI_nukeValue).
+	/*	threshold for action (cf. units of AI_nukeValue)
 		advc.650: K-Mod code from AI_nukeRange integrated (bRangeLimited branches);
 		no functional change except for a removed Dagger strategy check. I guess
 		it makes sense that range-limited nukes are more sensitive to danger -
 		might not find a target at all if danger isn't responded to swiftly. */
-	int iBestValue = std::max(0, (bRangeLimited ? 3 : 4) *
+	int iValueThresh = std::max(0, (bRangeLimited ? 3 : 4) *
 			getUnitInfo().getProductionCost()) + (bRangeLimited ? 60 : 20);
 	if (!bDanger)
 	{
 		if (bRangeLimited)
-			iBestValue = (iBestValue * 3) / 2;
-		else iBestValue += 80;
+			iValueThresh = (iValueThresh * 3) / 2;
+		else iValueThresh += 80;
 	}	
 	/*	advc.650: All adjustments below had not previously (K-Mod) applied
 		to range-limited nukes */
 
-	iBestValue *= std::max(1, iOurNukes + 2 * iOurCities);
-	iBestValue /= std::max(1, 2 * iOurNukes + (bDanger ? 2 : 1) * iOurCities);
+	iValueThresh *= std::max(1, iOurNukes + 2 * iOurCities);
+	iValueThresh /= std::max(1, 2 * iOurNukes + (bDanger ? 2 : 1) * iOurCities);
 
-	iBestValue *= 150 + iWarRating;
-	iBestValue /= 150;
-
+	iValueThresh *= 150 + iWarRating;
+	iValueThresh /= 150;
+	// advc.650: Need separate variables for threshold and argmax now
+	int iBestValue = 0;
 	for (PlayerIter<CIV_ALIVE,ENEMY_OF> itEnemy(kTeam.getID());
 		itEnemy.hasNext(); ++itEnemy)
 	{
@@ -19873,15 +19873,21 @@ bool CvUnitAI::AI_nuke()
 					iDestructionWeight);
 			if (bLimited && iWarRating > -10)
 				iValue /= 2;
-			// <advc.650> Avoid escalation
-			if (iTheirNukesAdjusted > 0)
+			// <advc.650>
+			if (iTheirNukesAdjusted > 0) // Avoid escalation
 			{
 				scaled rEscalationMult = (1 + iNukedUsMemory) /
 						(1 + scaled(iTheirNukesAdjusted).sqrt());
 				rEscalationMult.decreaseTo(1);
 				iValue = (iValue * rEscalationMult).uround();
-			} // </advc.650>
-			if (iValue > iBestValue)
+			}
+			if (iValue > iBestValue &&
+				/*	Lower threshold for hitting human unit stacks -
+					b/c destroying human units is normally difficult to do
+					for the AI; shouldn't let a chance pass. */
+				(!pTarget->isCity() && pTarget->isOwned() &&
+				GET_PLAYER(pTarget->getOwner()).isHuman() ? 3 : 2) *
+				iValue > 2 * iValueThresh) // </advc.650>
 			{
 				iBestValue = iValue;
 				pBestTarget = pTarget;
