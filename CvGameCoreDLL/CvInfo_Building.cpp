@@ -1043,16 +1043,16 @@ bool CvVoteInfo::read(CvXMLLoadUtility* pXML)
 }
 
 CvProjectInfo::CvProjectInfo() :
-m_iVictoryPrereq(NO_VICTORY),
-m_iTechPrereq(NO_TECH),
-m_iAnyoneProjectPrereq(NO_PROJECT),
+m_eVictoryPrereq(NO_VICTORY),
+m_eTechPrereq(NO_TECH),
+m_eAnyoneProjectPrereq(NO_PROJECT),
 m_iMaxGlobalInstances(0),
 m_iMaxTeamInstances(0),
 m_iProductionCost(0),
 m_iNukeInterception(0),
 m_iTechShare(0),
-m_iEveryoneSpecialUnit(NO_SPECIALUNIT),
-m_iEveryoneSpecialBuilding(NO_SPECIALBUILDING),
+m_eEveryoneSpecialUnit(NO_SPECIALUNIT),
+m_eEveryoneSpecialBuilding(NO_SPECIALBUILDING),
 m_iVictoryDelayPercent(0),
 m_iSuccessRate(0),
 m_bSpaceship(false),
@@ -1090,8 +1090,8 @@ bool CvProjectInfo::read(CvXMLLoadUtility* pXML)
 	if (!CvInfoBase::read(pXML))
 		return false;
 
-	pXML->SetInfoIDFromChildXmlVal(m_iVictoryPrereq, "VictoryPrereq");
-	pXML->SetInfoIDFromChildXmlVal(m_iTechPrereq, "TechPrereq");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eVictoryPrereq, "VictoryPrereq");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eTechPrereq, "TechPrereq");
 
 	pXML->GetChildXmlValByName(&m_iMaxGlobalInstances, "iMaxGlobalInstances");
 	pXML->GetChildXmlValByName(&m_iMaxTeamInstances, "iMaxTeamInstances");
@@ -1099,8 +1099,8 @@ bool CvProjectInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iNukeInterception, "iNukeInterception");
 	pXML->GetChildXmlValByName(&m_iTechShare, "iTechShare");
 
-	pXML->SetInfoIDFromChildXmlVal(m_iEveryoneSpecialUnit, "EveryoneSpecialUnit");
-	pXML->SetInfoIDFromChildXmlVal(m_iEveryoneSpecialBuilding, "EveryoneSpecialBuilding");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eEveryoneSpecialUnit, "EveryoneSpecialUnit");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eEveryoneSpecialBuilding, "EveryoneSpecialBuilding");
 
 	pXML->GetChildXmlValByName(&m_bSpaceship, "bSpaceship");
 	pXML->GetChildXmlValByName(&m_bAllowsNukes, "bAllowsNukes");
@@ -1138,7 +1138,7 @@ bool CvProjectInfo::read(CvXMLLoadUtility* pXML)
 bool CvProjectInfo::readPass2(CvXMLLoadUtility* pXML)
 {
 	pXML->SetVariableListTagPair(ProjectsNeeded(), "PrereqProjects");
-	pXML->SetInfoIDFromChildXmlVal(m_iAnyoneProjectPrereq, "AnyonePrereqProject");
+	pXML->SetInfoIDFromChildXmlVal((int&)m_eAnyoneProjectPrereq, "AnyonePrereqProject");
 
 	return true;
 }

@@ -6550,13 +6550,12 @@ int CvTeamAI::AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const
 	}
 	// advc.550c: Or perhaps divide by the sqrt?
 	iValue /= std::max(1, it.nextIndex());
-	for (int i = 0; i < GC.getNumProjectInfos(); i++)
+	FOR_EACH_ENUM(Project)
 	{
-		ProjectTypes eProject = (ProjectTypes)i;
-		if (GC.getInfo(eProject).getTechPrereq() != eTech)
+		if (GC.getInfo(eLoopProject).getTechPrereq() != eTech)
 			continue;
-		if (GC.getInfo(eProject).isWorldProject() &&
-			!GC.getGame().isProjectMaxedOut(eProject))
+		if (GC.getInfo(eLoopProject).isWorldProject() &&
+			!GC.getGame().isProjectMaxedOut(eLoopProject))
 		{
 			iValue += 80; // advc.550c: was 100
 		}

@@ -5935,8 +5935,8 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bA
 		int iValue = AI_projectValue(eProject);
 
 		// give a small chance of building global projects, regardless of strategy, just for a bit of variety.
-		if ((kProject.getEveryoneSpecialUnit() != NO_SPECIALUNIT) ||
-			(kProject.getEveryoneSpecialBuilding() != NO_SPECIALBUILDING) ||
+		if (kProject.getEveryoneSpecialUnit() != NO_SPECIALUNIT ||
+			kProject.getEveryoneSpecialBuilding() != NO_SPECIALBUILDING ||
 			kProject.isAllowsNukes())
 		{	// <advc.001n>
 			if ((bAsync ?

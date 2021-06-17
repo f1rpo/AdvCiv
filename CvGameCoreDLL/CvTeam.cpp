@@ -3748,7 +3748,7 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)
 		GC.getGame().makeSpecialUnitValid((SpecialUnitTypes)kProject.getEveryoneSpecialUnit());
 
 	if (kProject.getEveryoneSpecialBuilding() != NO_SPECIALBUILDING)
-		GC.getGame().makeSpecialBuildingValid((SpecialBuildingTypes)kProject.getEveryoneSpecialBuilding());
+		GC.getGame().makeSpecialBuildingValid(kProject.getEveryoneSpecialBuilding());
 
 	if (kProject.isAllowsNukes())
 		GC.getGame().makeNukesValid(true);

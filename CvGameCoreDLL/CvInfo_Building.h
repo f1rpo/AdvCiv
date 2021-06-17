@@ -590,17 +590,17 @@ class CvProjectInfo : public CvInfoBase
 public: // All const functions are exposed to Python. advc.inl: Most of them inlined.
 	CvProjectInfo();
 
-	int getVictoryPrereq() const
+	VictoryTypes getVictoryPrereq() const
 	{
-		return m_iVictoryPrereq;
+		return m_eVictoryPrereq;
 	}
-	int getTechPrereq() const
+	TechTypes getTechPrereq() const
 	{
-		return m_iTechPrereq;
+		return m_eTechPrereq;
 	}
-	int getAnyoneProjectPrereq() const
+	ProjectTypes getAnyoneProjectPrereq() const
 	{
-		return m_iAnyoneProjectPrereq;
+		return m_eAnyoneProjectPrereq;
 	}
 	inline int getMaxGlobalInstances() const
 	{
@@ -634,13 +634,13 @@ public: // All const functions are exposed to Python. advc.inl: Most of them inl
 	{
 		return m_iTechShare;
 	}
-	int getEveryoneSpecialUnit() const
+	SpecialUnitTypes getEveryoneSpecialUnit() const
 	{
-		return m_iEveryoneSpecialUnit;
+		return m_eEveryoneSpecialUnit;
 	}
-	int getEveryoneSpecialBuilding() const
+	SpecialBuildingTypes getEveryoneSpecialBuilding() const
 	{
-		return m_iEveryoneSpecialBuilding;
+		return m_eEveryoneSpecialBuilding;
 	}
 	int getVictoryDelayPercent() const
 	{
@@ -675,16 +675,16 @@ public: // All const functions are exposed to Python. advc.inl: Most of them inl
 	bool readPass2(CvXMLLoadUtility* pXML);
 
 protected:
-	int m_iVictoryPrereq;
-	int m_iTechPrereq;
-	int m_iAnyoneProjectPrereq;
+	VictoryTypes m_eVictoryPrereq;
+	TechTypes m_eTechPrereq;
+	ProjectTypes m_eAnyoneProjectPrereq;
 	int m_iMaxGlobalInstances;
 	int m_iMaxTeamInstances;
 	int m_iProductionCost;
 	int m_iNukeInterception;
 	int m_iTechShare;
-	int m_iEveryoneSpecialUnit;
-	int m_iEveryoneSpecialBuilding;
+	SpecialUnitTypes m_eEveryoneSpecialUnit;
+	SpecialBuildingTypes m_eEveryoneSpecialBuilding;
 	int m_iVictoryDelayPercent;
 	int m_iSuccessRate;
 

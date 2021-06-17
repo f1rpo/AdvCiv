@@ -1,7 +1,5 @@
 #pragma once
 
-// cityAI.h
-
 #ifndef CIV4_CITY_AI_H
 #define CIV4_CITY_AI_H
 

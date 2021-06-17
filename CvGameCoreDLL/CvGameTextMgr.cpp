@@ -11895,15 +11895,13 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_ENABLES_SPECIAL",
-				GC.getInfo((SpecialUnitTypes)
-				kProject.getEveryoneSpecialUnit()).getTextKeyWide()));
+				GC.getInfo(kProject.getEveryoneSpecialUnit()).getTextKeyWide()));
 	}
 	if (kProject.getEveryoneSpecialBuilding() != NO_SPECIALBUILDING)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_ENABLES_SPECIAL",
-				GC.getInfo((SpecialBuildingTypes)
-				kProject.getEveryoneSpecialBuilding()).getTextKeyWide()));
+				GC.getInfo(kProject.getEveryoneSpecialBuilding()).getTextKeyWide()));
 	}
 	FOR_EACH_NON_DEFAULT_INFO_PAIR(kProject.
 		getVictoryThreshold(), Victory, int)
@@ -12009,16 +12007,15 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 		{
 			if (kProject.getVictoryPrereq() != NO_VICTORY)
 			{	// <advc.008a>
-				if(ePlayer == NO_PLAYER || !GC.getGame().isVictoryValid((VictoryTypes)
-					kProject.getVictoryPrereq()))
+				if(ePlayer == NO_PLAYER ||
+					!GC.getGame().isVictoryValid(kProject.getVictoryPrereq()))
 				{
 					if(ePlayer != NO_PLAYER)
 						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
 					// </advc.008a>
 					szBuffer.append(NEWLINE);
 					szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_REQUIRES_STRING_VICTORY",
-							GC.getInfo((VictoryTypes)kProject.getVictoryPrereq()).
-							getTextKeyWide()));
+							GC.getInfo(kProject.getVictoryPrereq()).getTextKeyWide()));
 					// <advc.008a>
 					if(ePlayer != NO_PLAYER)
 						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
@@ -13618,14 +13615,14 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 				continue;
 			if(pCity == NULL)
 			{
-				TechTypes eTech = (TechTypes)kProject.getTechPrereq();
+				TechTypes eTech = kProject.getTechPrereq();
 				if(eTech != NO_TECH &&
 					GC.getInfo(eTech).getEra() >
 					iCurrentEra + (kProject.isWorldProject() ? 0 : 1))
 				{
 					continue;
 				}
-				VictoryTypes eVict = (VictoryTypes)kProject.getVictoryPrereq();
+				VictoryTypes eVict = kProject.getVictoryPrereq();
 				if(eVict != NO_VICTORY && !kGame.isVictoryValid(eVict))
 					continue;
 				if(kGame.isProjectMaxedOut(eProject) && GET_TEAM(eActivePlayer).

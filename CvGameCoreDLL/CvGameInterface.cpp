@@ -2247,35 +2247,30 @@ void CvGame::cheatSpaceship() const
 		return; // </advc.007b>
 	//add one space project that is still available
 	CvTeam& kTeam = GET_TEAM(getActiveTeam());
-	for (int i = 0; i < GC.getNumProjectInfos(); i++)
+	FOR_EACH_ENUM2(Project, eProject)
 	{
-		ProjectTypes eProject = (ProjectTypes) i;
-		CvProjectInfo& kProject = GC.getInfo(eProject);
+		CvProjectInfo const& kProject = GC.getInfo(eProject);
 		if (kProject.isSpaceship())
 		{
 			//cheat required projects
-			for (int j = 0; j < GC.getNumProjectInfos(); j++)
+			FOR_EACH_ENUM2(Project, eReqProject)
 			{
-				ProjectTypes eRequiredProject = (ProjectTypes) j;
-				int iNumReqProjects = kProject.getProjectsNeeded(eRequiredProject);
-				while (kTeam.getProjectCount(eRequiredProject) < iNumReqProjects)
+				int iNumReqProjects = kProject.getProjectsNeeded(eReqProject);
+				while (kTeam.getProjectCount(eReqProject) < iNumReqProjects)
 				{
-					kTeam.changeProjectCount(eRequiredProject, 1);
+					kTeam.changeProjectCount(eReqProject, 1);
 				}
 			}
 
 			//cheat required techs
-			TechTypes eRequiredTech = (TechTypes) kProject.getTechPrereq();
+			TechTypes eRequiredTech = kProject.getTechPrereq();
 			if (!kTeam.isHasTech(eRequiredTech))
-			{
 				kTeam.setHasTech(eRequiredTech, true, getActivePlayer(), true, true);
-			}
 
 			//cheat one space component
 			if (kTeam.getProjectCount(eProject) < kProject.getMaxTeamInstances())
 			{
 				kTeam.changeProjectCount(eProject, 1);
-
 				CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_PYTHON_SCREEN, eProject);
 				pInfo->setText(L"showSpaceShip");
 				gDLL->UI().addPopup(pInfo, getActivePlayer());
@@ -2353,17 +2348,15 @@ CivilopediaWidgetShowTypes CvGame::getWidgetShow(ImprovementTypes eImprovement) 
 VictoryTypes CvGame::getSpaceVictory() const
 {
 	VictoryTypes eVictory = NO_VICTORY;
-	for (int i=0; i < GC.getNumProjectInfos(); i++)
+	FOR_EACH_ENUM(Project)
 	{
-		ProjectTypes eProject = (ProjectTypes) i;
-		if (GC.getInfo(eProject).isSpaceship())
+		if (GC.getInfo(eLoopProject).isSpaceship())
 		{
-			eVictory = (VictoryTypes) GC.getInfo(eProject).getVictoryPrereq();
+			eVictory = GC.getInfo(eLoopProject).getVictoryPrereq();
 			break;
 		}
 	}
-
-	FAssertMsg(eVictory != NO_VICTORY, "Invalid space victory type.");
+	FAssertMsg(eVictory != NO_VICTORY, "Invalid space victory type");
 	return eVictory;
 }
 

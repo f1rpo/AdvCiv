@@ -9810,7 +9810,7 @@ void CvCity::popOrder(int iNum, bool bFinish,
 		if (GC.getInfo(eCreateProject).isSpaceship())
 		{
 			bool bNeedsArtType = true;
-			VictoryTypes eVictory = (VictoryTypes)GC.getInfo(eCreateProject).getVictoryPrereq();
+			VictoryTypes eVictory = GC.getInfo(eCreateProject).getVictoryPrereq();
 			if (NO_VICTORY != eVictory && GET_TEAM(getTeam()).canLaunch(eVictory))
 			{
 				if(isHuman())

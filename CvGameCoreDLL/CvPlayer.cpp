@@ -5181,22 +5181,17 @@ bool CvPlayer::canCreate(ProjectTypes eProject, bool bContinue, bool bTestVisibl
 	if (GC.getInfo(eProject).getProductionCost() == -1)
 		return false;
 
-	if (!GET_TEAM(getTeam()).isHasTech((TechTypes)
-		GC.getInfo(eProject).getTechPrereq()))
-	{
+	if (!GET_TEAM(getTeam()).isHasTech(GC.getInfo(eProject).getTechPrereq()))
 		return false;
-	}
+
 	if (GC.getInfo(eProject).getVictoryPrereq() != NO_VICTORY)
 	{
-		if (!GC.getGame().isVictoryValid((VictoryTypes)
-			GC.getInfo(eProject).getVictoryPrereq()))
-		{
+		if (!GC.getGame().isVictoryValid(GC.getInfo(eProject).getVictoryPrereq()))
 			return false;
-		}
 		if (isMinorCiv())
 			return false;
 
-		if (GET_TEAM(getTeam()).getVictoryCountdown((VictoryTypes)
+		if (GET_TEAM(getTeam()).getVictoryCountdown(
 			GC.getInfo(eProject).getVictoryPrereq()) >= 0)
 		{
 			return false;
@@ -5230,7 +5225,7 @@ bool CvPlayer::canCreate(ProjectTypes eProject, bool bContinue, bool bTestVisibl
 			}*/
 		}
 		if (GC.getInfo(eProject).getAnyoneProjectPrereq() != NO_PROJECT &&
-			GC.getGame().getProjectCreatedCount((ProjectTypes)
+			GC.getGame().getProjectCreatedCount(
 			GC.getInfo(eProject).getAnyoneProjectPrereq()) == 0)
 		{
 			return false;
@@ -15396,7 +15391,7 @@ bool CvPlayer::canDoEvent(EventTypes eEvent, const EventTriggeredData& kTriggere
 			CvProjectInfo& kProject = GC.getInfo(eProject);
 			if (kProject.isSpaceship() && kProject.getVictoryPrereq() != NO_VICTORY)
 			{
-				if (GC.getGame().isVictoryValid((VictoryTypes)kProject.getVictoryPrereq()))
+				if (GC.getGame().isVictoryValid(kProject.getVictoryPrereq()))
 				{
 					bValid = true;
 					break;
@@ -17957,7 +17952,7 @@ bool CvPlayer::canSpyDestroyProject(PlayerTypes eTarget, ProjectTypes eProject) 
 		return false;
 	else
 	{
-		VictoryTypes eVictory = (VictoryTypes)kProject.getVictoryPrereq();
+		VictoryTypes eVictory = kProject.getVictoryPrereq();
 		if (eVictory != NO_VICTORY)
 		{
 			// Can't destroy spaceship components if we have already launched
