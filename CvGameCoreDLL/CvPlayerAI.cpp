@@ -11328,7 +11328,7 @@ int CvPlayerAI::AI_baseBonusUnitVal(BonusTypes eBonus, UnitTypes eUnit,
 	if(iValue > 0)
 	{
 		// devalue the unit if we wouldn't be able to build it anyway
-		if(canTrain(eUnit))
+		if (canTrain(eUnit, /* advc.001: */ true))
 		{
 			//bCanTrain = true;
 			/*  is it a water unit and no coastal cities or our coastal city
@@ -11463,8 +11463,9 @@ int CvPlayerAI::AI_baseBonusBuildingVal(BonusTypes eBonus, BuildingTypes eBuildi
 	}
 
 	bool const bStateReligion = (NO_RELIGION != kBuilding.getStateReligion());
-	//check if function call is cached
-	bool const bCanConstruct = canConstruct(eBuilding, false,
+	//check if function call is cached  (advc: I don't understand this comment by Blake)
+	bool const bCanConstruct = canConstruct(eBuilding,
+			true, // advc.001 (Doesn't really matter, but more correct this way.)
 			/*bTestVisible*/ true, /*bIgnoreCost*/ true);
 	/*  bCanNeverBuild when true is accurate, it may be false in some cases
 		where we will never be able to build */
@@ -11523,7 +11524,7 @@ int CvPlayerAI::AI_baseBonusProjectVal(BonusTypes eBonus, ProjectTypes eProject,
 	{
 		return 0;
 	}
-	if(canCreate(eProject))
+	if (canCreate(eProject, /* advc.001: */ true))
 		iValue *= 2;
 
 	if(kProject.getTechPrereq() == NO_TECH)
