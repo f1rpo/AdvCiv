@@ -1194,4 +1194,23 @@
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 
+	<!-- advc.650: 30/50/50 in BtS. Recommended: 10/140/0,
+		 meaning that nuke damage is distributed uniformly in
+		 the half-open interval [10, 150) and thus
+		 less predictable than in BtS.
+		 Caveat: Not sure if a negative base damage value would work correctly.
+		 Negative values for the rands aren't going to work. -->
+	<Define> <!-- redefine -->
+		<DefineName>NUKE_UNIT_DAMAGE_BASE</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	<Define> <!-- redefine -->
+		<DefineName>NUKE_UNIT_DAMAGE_RAND_1</DefineName>
+		<iDefineIntVal>140</iDefineIntVal>
+	</Define>
+	<Define> <!-- redefine -->
+		<DefineName>NUKE_UNIT_DAMAGE_RAND_2</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
 </Civ4Defines>
