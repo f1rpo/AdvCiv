@@ -6842,4 +6842,133 @@
 		<Spanish>Capacidad de [ICON_AIRPORT]: %d1/%d2</Spanish>
 	</TEXT>
 
+	<!-- advc.650 -->
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECTS_START</Tag>
+		<English>Devastation caused by nuclear explosion:</English>
+		<French>Explosion nucléaire :</French>
+		<German>Atomexplosion:</German>
+		<Italian>Esplosione nucleare:</Italian>
+		<Spanish>Explosión nuclear:</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_EVENT_PILLAGE_RANGE_CITY (Civ4GameText_BTS.xml),
+		 TXT_KEY_EVENT_HURRICANE_1 (CivGameText_Events.xml),
+		 TXT_KEY_EVENT_CITY_IMPROVEMENT_DESTROYED (Civ4GameText_BTS.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECT_NUM_IMPROVEMENTS_DESTROYED</Tag>
+		<English>%d1 terrain improvements have been destroyed.</English>
+		<French>%d1 am&#233;nagements ont &#233;t&#233; d&#233;truits.</French>
+		<German>%d1 Gel&#228;nde-Modernisierungen wurden zerstört.</German>
+		<Italian>%d1 miglioramenti del terreno sono stati distrutti.</Italian>
+		<Spanish>%d1 mejoras de terreno han quedado destruidas.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECT_IMPROVEMENTS_DESTROYED</Tag>
+		<English>Terrain improvements have been destroyed:</English>
+		<French>Des am&#233;nagements ont &#233;t&#233; d&#233;truits :</French>
+		<German>Gel&#228;nde-Modernisierungen wurden zerstört:</German>
+		<Italian>Sono stati distrutti dei miglioramenti del terreno :</Italian>
+		<Spanish>Mejoras de terreno han quedado destruidas:</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_PEDIA_CATEGORY_FEATURE (Civ4GameTextInfos_Objects.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECT_NUM_FEATURES_DESTROYED</Tag>
+		<English>%d1 terrain features have been destroyed.</English>
+		<French>%d1 caract&#233;ristiques du terrain ont &#233;t&#233; d&#233;truits.</French>
+		<German>%d1 Gel&#228;ndeeigenschaften wurden zerstört.</German>
+		<Italian>%d1 caratteristiche del terreno sono state distrutte.</Italian>
+		<Spanish>%d1 accidentes del terreno han quedado destruidas.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECT_FEATURES_DESTROYED</Tag>
+		<English>Terrain features have been destroyed:</English>
+		<French>Des caract&#233;ristiques du terrain ont &#233;t&#233; d&#233;truits :</French>
+		<German>Gel&#228;ndeeigenschaften wurden zerstört:</German>
+		<Italian>Sono state distrutte delle caratteristiche del terreno :</Italian>
+		<Spanish>Mejoras de terreno han quedado destruidas:</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECT_NUM_UNITS_DESTROYED</Tag>
+		<English>%d1 %s2 units have been destroyed.</English>
+		<French>%d1 unit&#233;s %s2 ont &#233;t&#233; d&#233;truits.</French>
+		<German>%d1 %s2:3 Einheiten wurden zerstört.</German>
+		<Italian>%d1 unit&#224; %s2:4 sono state distrutte.</Italian>
+		<Spanish>%d1 unidades %s2:4 han quedado destruidas.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECT_UNITS_DESTROYED</Tag>
+		<English>%s1 units have been destroyed:</English>
+		<French>Des unit&#233;s %s1 unit&#233;s ont &#233;t&#233; d&#233;truits :</French>
+		<German>%s1:3 Einheiten wurden zerstört:</German>
+		<Italian>Sono state distrutte delle unit&#224; %s1:4:</Italian>
+		<Spanish>Unidades %s1:4 han quedado destruidas:</Spanish>
+	</TEXT>
+	<!-- Trying to handle singular and pluranl in a single key gets too complicated.
+		 Take the d1 parameter in any case (even if it has to be 1); easier to use
+		 that way. -->
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECT_ONE_UNIT_DESTROYED</Tag>
+		<English>%d1 %s2 unit has been destroyed.</English>
+		<French>%d1 unit&#233; (%s2) ont &#233;t&#233; d&#233;truit.</French>
+		<German>%d1 %s2:3 Einheit wurde zerstört.</German>
+		<Italian>%d1 unit&#224; %s2:4 è stata distrutta.</Italian>
+		<Spanish>%d1 unidad %s2:4 ha quedado destruida.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECT_NUM_UNITS_DAMAGED</Tag>
+		<English>%d1 %s2 units have been damaged.</English>
+		<French>%d1 unit&#233;s %s2_CivAdj ont &#233;t&#233; endommag&#233;es.</French>
+		<German>%d1 %s2:3 Einheiten wurden beschädigt.</German>
+		<Italian>%d1 unit&#224; %s2:4 sono state danneggiate.</Italian>
+		<Spanish>%d1 unidades %s2:4 han quedado da&#241;adas.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECT_UNITS_DAMAGED</Tag>
+		<English>%s1 units have been damaged:</English>
+		<French>Des unit&#233;s %s1 unit&#233;s ont &#233;t&#233; endommag&#233;es :</French>
+		<German>%s1 Einheiten wurden beschädigt:</German>
+		<Italian>Sono state danneggiate delle unit&#224; %s2:4:</Italian>
+		<Spanish>Unidades %s2:4 han quedado da&#241;adas:</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECT_ONE_UNIT_DAMAGED</Tag>
+		<English>%d1 %s2 unit has been damaged.</English>
+		<French>%d1 unit&#233; (%s2) ont &#233;t&#233; endommag&#233;e.</French>
+		<German>%d1 %s2:3 Einheit wurde beschädigt.</German>
+		<Italian>%d1 unit&#224; %s2:4 è stata danneggiata.</Italian>
+		<Spanish>%d1 unidad %s2:4 ha quedado da&#241;ada.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECT_NUM_BUILDINGS_DESTROYED</Tag>
+		<English>%d1 buildings have been destroyed.</English>
+		<French>%d1 b&#226;timents ont &#233;t&#233; d&#233;truits.</French>
+		<German>%d1 Gebäude wurden zerstört.</German>
+		<Italian>%d1 edifici sono stati distrutti.</Italian>
+		<Spanish>%d1 edificios han quedado destruidos.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECT_BUILDINGS_DESTROYED</Tag>
+		<English>Buildings have been destroyed:</English>
+		<French>Des b&#226;timents ont &#233;t&#233; d&#233;truits :</French>
+		<German>Gebäude wurden zerstört:</German>
+		<Italian>Sono stati distrutti degli edifici:</Italian>
+		<Spanish>Edificios han quedado destruidos:</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECT_BUILDINGS_MAYBE_DESTROYED</Tag>
+		<English>Buildings may have been destroyed.</English>
+		<French>Des b&#226;timents pourraient avoir &#233;t&#233; d&#233;truits.</French>
+		<German>Gebäude wurden möglicherweise zerstört.</German>
+		<Italian>Degli edifici potrebbero essere stati distrutti.</Italian>
+		<Spanish>Podrían haber sido destruidos edificios.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_EFFECT_NUM_CITIZENS_KILLED</Tag>
+		<English>Population minus %s1_Num (civilian casualties).</English>
+		<French>Population moins %s1_Num (victimes civiles).</French>
+		<German>Bevölkerung minus %s1_Num (zivile Opfer).</German>
+		<Italian>Popolazione meno %s1_Num (vittime civili).</Italian>
+		<Spanish>Población menos %s1_Num (víctimas civiles).</Spanish>
+	</TEXT>
+
 </Civ4GameText>

@@ -407,6 +407,11 @@ public:
 	{
 		return (getDamage() >= maxHitPoints());
 	}
+	// advc:
+	inline bool isLethalDamage(int iDamage)
+	{
+		return (currHitPoints() - iDamage <= 0);
+	}
 
 	void setBaseCombatStr(int iCombat);																		// Exposed to Python
 	inline int baseCombatStr() const																		// Exposed to Python

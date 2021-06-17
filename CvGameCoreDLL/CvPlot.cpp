@@ -783,6 +783,15 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 	static int const iNUKE_POPULATION_DEATH_RAND_1 = GC.getDefineINT("NUKE_POPULATION_DEATH_RAND_1");
 	static int const iNUKE_POPULATION_DEATH_RAND_2 = GC.getDefineINT("NUKE_POPULATION_DEATH_RAND_2");
 	// </advc.opt>
+	// <advc.650> For announcing effects of a nuke explosion
+	typedef std::pair<CvPlot const*,CvWString> NukeEffect;
+	std::vector<NukeEffect> aImprovementDestroyed;
+	std::vector<NukeEffect> aFeatureDestroyed;
+	std::vector<std::vector<NukeEffect> > aaUnitDamaged(MAX_PLAYERS);
+	std::vector<std::vector<NukeEffect> > aaUnitKilled(MAX_PLAYERS);
+	std::vector<NukeEffect> aBuildingDestroyed;
+	std::vector<NukeEffect> aCitizensKilled;
+	// </advc.650>
 	for (SquareIter it(*this, iRange); it.hasNext(); ++it)
 	{
 		CvPlot& p = *it;
@@ -794,10 +803,22 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 		{
 			if (!p.isWater() && !p.isImpassable())
 			{
-				if (p.getFeatureType() == NO_FEATURE || !GC.getInfo(p.getFeatureType()).isNukeImmune())
+				if (p.getFeatureType() == NO_FEATURE ||
+					!GC.getInfo(p.getFeatureType()).isNukeImmune())
 				{
 					if (GC.getGame().getSorenRandNum(100, "Nuke Fallout") < iNUKE_FALLOUT_PROB)
-					{
+					{	// <advc.650>
+						if (p.isImproved())
+						{
+							aImprovementDestroyed.push_back(NukeEffect(&p,
+									GC.getInfo(p.getImprovementType()).getDescription()));
+						}
+						if (p.isFeature() &&
+							p.getFeatureType() != GC.getDefineINT("NUKE_FEATURE"))
+						{
+							aFeatureDestroyed.push_back(NukeEffect(&p,
+									GC.getInfo(p.getFeatureType()).getDescription()));
+						} // </advc.650>
 						p.setImprovementType(NO_IMPROVEMENT);
 						p.setFeatureType((FeatureTypes)GC.getDefineINT("NUKE_FEATURE"));
 					}
@@ -847,7 +868,21 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 					iNukeDamage /= 100;
 				}
 				if (pLoopUnit->canFight() || pLoopUnit->airBaseCombatStr() > 0)
-				{
+				{	// <advc.650>
+					bool const bLethal = pLoopUnit->isLethalDamage(iNukeDamage);
+					(bLethal ? aaUnitKilled : aaUnitDamaged)[pLoopUnit->getOwner()].
+							push_back(NukeEffect(&p, pLoopUnit->getName()));
+					if (bLethal && pLoopUnit->hasCargo())
+					{
+						std::vector<CvUnit*> apCargo;
+						pLoopUnit->getCargoUnits(apCargo);
+						for (size_t i = 0; i < apCargo.size(); i++)
+						{
+							aaUnitKilled[apCargo[i]->getOwner()].push_back(
+									NukeEffect(&p, apCargo[i]->getName()));
+						}
+					}
+					// </advc.650>
 					pLoopUnit->changeDamage(iNukeDamage, pNukeUnit != NULL ?
 							pNukeUnit->getOwner() : NO_PLAYER);
 				}
@@ -858,6 +893,9 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 					(iNUKE_UNIT_DAMAGE_BASE - 1 + (iNUKE_UNIT_DAMAGE_RAND_1 +
 					iNUKE_UNIT_DAMAGE_RAND_2 - 1) / 2)) // </kekm.20>
 				{
+					// <advc.650>
+					aaUnitKilled[pLoopUnit->getOwner()].push_back(
+							NukeEffect(&p, pLoopUnit->getName())); // </advc.650>
 					pLoopUnit->kill(false, pNukeUnit != NULL ? pNukeUnit->getOwner() : NO_PLAYER);
 				}
 			}
@@ -865,36 +903,289 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 		if (pCity == NULL)
 			continue;
 
-		for (int i = 0; i < GC.getNumBuildingInfos(); ++i)
+		FOR_EACH_ENUM2(Building, eBuilding)
 		{
-			BuildingTypes eBuilding = (BuildingTypes)i;
-			if (pCity->getNumRealBuilding(eBuilding) > 0)
+			if (pCity->getNumRealBuilding(eBuilding) > 0 &&
+				!GC.getInfo(eBuilding).isNukeImmune() &&
+				GC.getGame().getSorenRandNum(100, "Building Nuked") <
+				iNUKE_BUILDING_DESTRUCTION_PROB)
 			{
-				if (!GC.getInfo(eBuilding).isNukeImmune())
-				{
-					if (GC.getGame().getSorenRandNum(100, "Building Nuked") <
-						iNUKE_BUILDING_DESTRUCTION_PROB)
-					{
-						pCity->setNumRealBuilding(eBuilding,
-								pCity->getNumRealBuilding(eBuilding) - 1);
-					}
-				}
+				// <advc.650>
+				aBuildingDestroyed.push_back(NukeEffect(&p,
+						GC.getInfo(eBuilding).getDescription())); // </advc.650>
+				pCity->setNumRealBuilding(eBuilding,
+						pCity->getNumRealBuilding(eBuilding) - 1);
 			}
 		}
-		int iNukedPopulation = ((pCity->getPopulation() *
+		int iNukedPopulation = (pCity->getPopulation() *
 				(iNUKE_POPULATION_DEATH_BASE +
 				GC.getGame().getSorenRandNum(iNUKE_POPULATION_DEATH_RAND_1, "Population Nuked 1") +
 				GC.getGame().getSorenRandNum(iNUKE_POPULATION_DEATH_RAND_2, "Population Nuked 2")))
-				/ 100);
+				/ 100;
 		iNukedPopulation *= std::max(0, (pCity->getNukeModifier() + 100));
 		iNukedPopulation /= 100;
-		pCity->changePopulation(-std::min(pCity->getPopulation() - 1, iNukedPopulation));
+		int iPopChange = -std::min(pCity->getPopulation() - 1, iNukedPopulation);
+		// advc.650:
+		aCitizensKilled.push_back(NukeEffect(&p, CvWString::format(L"%d", -iPopChange)));
+		pCity->changePopulation(iPopChange);
 	}
 	if (bBomb) // K-Mod
 	{
 		GC.getGame().changeNukesExploded(1);
 		CvEventReporter::getInstance().nukeExplosion(this, pNukeUnit);
 	}
+	// <advc.650>
+	// Could replace this with L" " - but I think line breaks make it easier to read.
+	#define SZSEP NEWLINE
+	for (PlayerIter<MAJOR_CIV> itPlayer; itPlayer.hasNext(); ++itPlayer)
+	{
+		TeamTypes const eObs = itPlayer->getTeam();
+		CvWString szEffects;
+		bool bTeamUnitAffected = false;
+		bool bEnemyUnitAffected = false;
+		for (PlayerIter<ALIVE> itUnitOwner; itUnitOwner.hasNext(); ++itUnitOwner)
+		{
+			PlayerTypes const eUnitOwner = itUnitOwner->getID();
+			std::vector<NukeEffect> aUnitDamaged(aaUnitDamaged[eUnitOwner]);
+			std::vector<NukeEffect> aUnitKilled(aaUnitKilled[eUnitOwner]);
+			wchar const* szCivAdj = GET_PLAYER(eUnitOwner).
+					getCivilizationAdjectiveKey();
+			bool bListUnits = (TEAMID(eUnitOwner) == eObs ||
+					GET_TEAM(eUnitOwner).isAtWar(eObs));
+			{
+				std::vector<CvWString*> apStrings;
+				for (size_t i = 0; i < aUnitKilled.size(); i++)
+				{
+					if (aUnitKilled[i].first->isVisible(eObs))
+						apStrings.push_back(&aUnitKilled[i].second);
+				}
+				if (apStrings.size() > 8 || (!bListUnits && !apStrings.empty()))
+				{
+					bListUnits = false;
+					szEffects.append(gDLL->getText(
+							apStrings.size() == 1 ?
+							"TXT_KEY_NUKE_EFFECT_ONE_UNIT_DESTROYED" :
+							"TXT_KEY_NUKE_EFFECT_NUM_UNITS_DESTROYED",
+							(int)apStrings.size(), szCivAdj));
+					szEffects.append(L" ");
+				}
+				else if (!apStrings.empty())
+				{
+					szEffects.append(gDLL->getText(
+							"TXT_KEY_NUKE_EFFECT_UNITS_DESTROYED", szCivAdj));
+					szEffects.append(SZSEP);
+					for (size_t i = 0; i < apStrings.size(); i++)
+					{
+						szEffects.append(*apStrings[i]);
+						szEffects.append(i + 1 == apStrings.size() ? L"."SZSEP : L", ");
+					}
+					if (TEAMID(eUnitOwner) == eObs)
+						bTeamUnitAffected = true;
+					else if (GET_TEAM(eUnitOwner).isAtWar(eObs))
+						bEnemyUnitAffected = true;
+				}
+			}
+			{
+				std::vector<CvWString*> apStrings;
+				for (size_t i = 0; i < aUnitDamaged.size(); i++)
+				{
+					if (aUnitDamaged[i].first->isVisible(eObs))
+						apStrings.push_back(&aUnitDamaged[i].second);
+				}
+				if (apStrings.size() > 2 || (!bListUnits && !apStrings.empty()))
+				{
+					szEffects.append(gDLL->getText(
+							apStrings.size() == 1 ?
+							"TXT_KEY_NUKE_EFFECT_ONE_UNIT_DAMAGED" :
+							"TXT_KEY_NUKE_EFFECT_NUM_UNITS_DAMAGED",
+							(int)apStrings.size(), szCivAdj));
+					szEffects.append(SZSEP);
+				}
+				else if (!apStrings.empty())
+				{
+					szEffects.append(gDLL->getText(
+							"TXT_KEY_NUKE_EFFECT_UNITS_DAMAGED", szCivAdj));
+					szEffects.append(SZSEP);
+					for (size_t i = 0; i < apStrings.size(); i++)
+					{
+						szEffects.append(*apStrings[i]);
+						szEffects.append(i + 1 == apStrings.size() ? L"."SZSEP : L", ");
+					}
+					if (TEAMID(eUnitOwner) == eObs)
+						bTeamUnitAffected = true;
+					else if (GET_TEAM(eUnitOwner).isAtWar(eObs))
+						bEnemyUnitAffected = true;
+				}
+			}
+		}
+		bool bTeamCityAffected = false;
+		bool bEnemyCityAffected = false;
+		{
+			std::vector<CvWString*> apStrings;
+			for (size_t i = 0; i < aCitizensKilled.size(); i++)
+			{
+				CvCity const* pCity = aCitizensKilled[i].first->getPlotCity();
+				if (pCity != NULL && pCity->isRevealed(eObs))
+				{
+					apStrings.push_back(&aCitizensKilled[i].second);
+					if (pCity->getTeam() == eObs)
+						bTeamCityAffected = true;
+					else if (GET_TEAM(eObs).isAtWar(pCity->getTeam()))
+						bEnemyCityAffected = true;
+				}
+			}
+			if (!apStrings.empty())
+			{
+				for (size_t i = 0; i < apStrings.size(); i++)
+				{
+					szEffects.append(gDLL->getText(
+							"TXT_KEY_NUKE_EFFECT_NUM_CITIZENS_KILLED",
+							apStrings[i]->c_str()));
+					szEffects.append(L" ");
+				}
+			}
+		}
+		{
+			bool bAnyCityRevealed = false;
+			bool bListBuildings = false;
+			std::vector<CvWString*> apStrings;
+			for (size_t i = 0; i < aBuildingDestroyed.size(); i++)
+			{
+				CvCity const* pCity = aBuildingDestroyed[i].first->getPlotCity();
+				if (pCity == NULL)
+					continue;
+				if (pCity->getTeam() == eObs || GET_TEAM(pCity->getTeam()).isAtWar(eObs))
+					bListBuildings = true;
+				if (pCity->isAllBuildingsVisible(eObs, false))
+					apStrings.push_back(&aBuildingDestroyed[i].second);
+				if (pCity->isRevealed(eObs))
+				{
+					bAnyCityRevealed = true;
+					if (pCity->getTeam() == eObs)
+						bTeamCityAffected = true;
+					else if (GET_TEAM(eObs).isAtWar(pCity->getTeam()))
+						bEnemyCityAffected = true;
+				}
+			}
+			if (apStrings.size() > 12 || (!bListBuildings && apStrings.size() > 1))
+			{
+				szEffects.append(gDLL->getText(
+						"TXT_KEY_NUKE_EFFECT_NUM_BUILDINGS_DESTROYED",
+						(int)apStrings.size()));
+				szEffects.append(SZSEP);
+			}
+			else if (!apStrings.empty())
+			{
+				szEffects.append(gDLL->getText(
+						"TXT_KEY_NUKE_EFFECT_BUILDINGS_DESTROYED"));
+				szEffects.append(L" ");
+				for (size_t i = 0; i < apStrings.size(); i++)
+				{
+					szEffects.append(*apStrings[i]);
+						szEffects.append(i + 1 == apStrings.size() ? L"."SZSEP : L", ");
+				}
+			}
+			else if (bAnyCityRevealed && iNUKE_BUILDING_DESTRUCTION_PROB > 0)
+			{
+				szEffects.append(gDLL->getText(
+						"TXT_KEY_NUKE_EFFECT_BUILDINGS_MAYBE_DESTROYED"));
+				szEffects.append(SZSEP);
+			}
+		}
+		{
+			bool bShowImprovements = false;
+			std::vector<CvWString*> apStrings;
+			for (size_t i = 0; i < aImprovementDestroyed.size(); i++)
+			{
+				if (aImprovementDestroyed[i].first->isVisible(eObs))
+				{
+					apStrings.push_back(&aImprovementDestroyed[i].second);
+					TeamTypes eImprovTeam = aImprovementDestroyed[i].first->getTeam();
+					if (eImprovTeam != NO_TEAM &&
+						(eImprovTeam == eObs || GET_TEAM(eImprovTeam).isAtWar(eObs)))
+					{
+						bShowImprovements = true;
+					}
+				}
+			}
+			if (!bShowImprovements)
+				apStrings.clear();
+			if (apStrings.size() > 5)
+			{
+				szEffects.append(gDLL->getText(
+						"TXT_KEY_NUKE_EFFECT_NUM_IMPROVEMENTS_DESTROYED",
+						(int)apStrings.size()));
+				szEffects.append(SZSEP);
+			}
+			else if (!apStrings.empty())
+			{
+				szEffects.append(gDLL->getText(
+						"TXT_KEY_NUKE_EFFECT_IMPROVEMENTS_DESTROYED"));
+				szEffects.append(L" ");
+				for (size_t i = 0; i < apStrings.size(); i++)
+				{
+					szEffects.append(*apStrings[i]);
+					szEffects.append(i + 1 == apStrings.size() ? L". " : L", ");
+				}
+			}
+		}
+		{
+			bool bShowFeatures = false;
+			std::vector<CvWString*> apStrings;
+			for (size_t i = 0; i < aFeatureDestroyed.size(); i++)
+			{
+				if (aFeatureDestroyed[i].first->isVisible(eObs))
+				{
+					apStrings.push_back(&aFeatureDestroyed[i].second);
+					TeamTypes eFeatureTeam = aFeatureDestroyed[i].first->getTeam();
+					if (eFeatureTeam != NO_TEAM &&
+						(eFeatureTeam == eObs || GET_TEAM(eFeatureTeam).isAtWar(eObs)))
+					{
+						bShowFeatures = true;
+					}
+				}
+			}
+			if (!bShowFeatures)
+				apStrings.clear();
+			if (apStrings.size() > 5)
+			{
+				szEffects.append(gDLL->getText(
+						"TXT_KEY_NUKE_EFFECT_NUM_FEATURES_DESTROYED",
+						(int)apStrings.size()));
+				szEffects.append(SZSEP);
+			}
+			else if (!apStrings.empty())
+			{
+				szEffects.append(gDLL->getText(
+						"TXT_KEY_NUKE_EFFECT_FEATURES_DESTROYED"));
+				szEffects.append(L" ");
+				for (size_t i = 0; i < apStrings.size(); i++)
+				{
+					szEffects.append(*apStrings[i]);
+					szEffects.append(i + 1 == apStrings.size() ? L"."SZSEP : L", ");
+				}
+			}
+		}
+		if (szEffects.empty())
+			continue;
+		CvWString szMsg = gDLL->getText("TXT_KEY_NUKE_EFFECTS_START");
+		szMsg.append(SZSEP);
+		// Drop final separator
+		szMsg.append(szEffects.substr(0, szEffects.length() - 1));
+		ColorTypes eMsgColor = GC.getColorType(
+				bTeamCityAffected || (bTeamUnitAffected && !bEnemyCityAffected) ? "RED" :
+				/*	A bit distasteful to use green color here?
+					But it looks strange to show a positive combat outcome in white ... */
+				(bEnemyCityAffected || bEnemyUnitAffected ? "GREEN" : "WHITE"));
+		gDLL->UI().addMessage(itPlayer->getID(),
+				bTeamCityAffected || bTeamUnitAffected ||
+				bEnemyCityAffected || bEnemyUnitAffected,
+				bTeamUnitAffected || bEnemyUnitAffected ?
+				GC.getDefineINT(CvGlobals::EVENT_MESSAGE_TIME_LONG) : -1,
+				szMsg, *this, NULL, MESSAGE_TYPE_INFO, NULL, eMsgColor, false, false);
+	}
+	#undef SZSEP
+	// </advc.650>
 }
 
 
