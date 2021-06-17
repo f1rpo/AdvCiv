@@ -5870,10 +5870,7 @@ int CvCityAI::AI_defensiveBuildingValue(BuildingTypes eBuilding,
 			}
 		}
 		iNukeEvasionProbability /= std::max(1, iNukeUnitTypes);
-		/*  DarkLunaPhantom - "cf. iTargetValue in the SDI section of
-			AI_projectValue() (K-Mod)." */
-		int iTargetValue = 10 + (getYieldRate(YIELD_PRODUCTION) * 5 +
-				getYieldRate(YIELD_COMMERCE) * 3)/2;
+		int iTargetValue = AI_nukeEplosionValue();
 		/*  "Lazy attempt to estimate the value of the strongest
 			unit stack this shelter might defend." */
 		int iStackValue = 0;
@@ -6039,9 +6036,10 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bA
 	return eBestProject;
 }
 
-// This function has been completely rewritten for K-Mod
-// The return value is roughly in units of 4 * commerce per turn, to match AI_buildingValue.
-// However, note that most projects don't actually give commerce per turn - so the evaluation is quite rough.
+/*	This function has been completely rewritten for K-Mod.
+	The return value is roughly in units of 4 * commerce per turn,
+	to match AI_buildingValue. However, note that most projects don't actually
+	give commerce per turn - so the evaluation is quite rough. */
 int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 {
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
@@ -6104,13 +6102,13 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 		if (!GC.getGame().isNoNukes() || iForeignNukes > iTeamsMet)
 		{
 			// a very rough estimate of the cost of being nuked
-			int iTargetValue = 10 + (getYieldRate(YIELD_PRODUCTION) * 5 +
-					getYieldRate(YIELD_COMMERCE) * 3) / 2;
+			int iTargetValue = AI_nukeEplosionValue();
 			int iEstimatedNukeAttacks = iForeignNukes * (2 + iTeamsMet) /
 					(2 + 2*iTeamsMet) +
 					(GC.getGame().isNoNukes() ? 0 :
 					2 + GC.getGame().getNukesExploded() / (2 + iTeamsMet));
-			iValue += kProject.getNukeInterception() * iEstimatedNukeAttacks * iTargetValue / 100;
+			iValue += kProject.getNukeInterception() * iEstimatedNukeAttacks *
+					iTargetValue / 100;
 		}
 	}
 	// Manhattan project
@@ -6175,7 +6173,7 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 			int const iCivsAlive = PlayerIter<CIV_ALIVE>::count(); // advc.650
 			FOR_EACH_ENUM(Unit)
 			{
-				const CvUnitInfo& kLoopUnit = GC.getInfo(eLoopUnit);
+				CvUnitInfo const& kLoopUnit = GC.getInfo(eLoopUnit);
 				if (kLoopUnit.getNukeRange() < 0 || kLoopUnit.getProductionCost() < 0)
 					continue; // either not a unit, or not normally buildable
 				for (PlayerIter<CIV_ALIVE,KNOWN_TO> itLoopPlayer(kTeam.getID());
@@ -6261,11 +6259,7 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 						kTeam.AI_countMembersWithStrategy(AI_STRATEGY_ALERT1));
 						// </advc.650>
 				iNukeValue /= 2;
-
-				// cf. iTargetValue in the SDI section.
-				iNukeValue *= 10 +
-						(getYieldRate(YIELD_PRODUCTION) * 5 +
-						getYieldRate(YIELD_COMMERCE) * 3) / 2;
+				iNukeValue *= AI_nukeEplosionValue();
 				iNukeValue /= 25;
 				iValue += iNukeValue;
 			}
@@ -6334,6 +6328,24 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 	iValue += iSpaceValue;
 
 	return iValue;
+}
+
+/*	advc.650: K-Mod code cut from CvCityAI::AI_projectValue
+	(used there repeatedly). K-Mod comments:
+	"a very rough estimate of the cost of being nuked"
+	"roughly in units of 4 * commerce per turn"
+	It's also used for estimating the usefulness of nukes against
+	enemy cities. Really shouldn't be a CvCityAI function because the
+	city creating a nuke-related project isn't necessarily a
+	typical city in terms of its economic output. Still, I'm leaving the
+	logic as in K-Mod because this might provide a useful incentive for
+	producing nuke-related projects in a high-yield city. These tend to be
+	pretty important projects. */
+int CvCityAI::AI_nukeEplosionValue() const
+{
+	return 10 +
+		(getYieldRate(YIELD_PRODUCTION) * 5 +
+		getYieldRate(YIELD_COMMERCE) * 3) / 2;
 }
 
 ProcessTypes CvCityAI::AI_bestProcess(CommerceTypes eCommerceType) const
@@ -7666,11 +7678,10 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 			/* <advc.121> Make sure the AI prefers improvements with yields over
 				Forts. Don't want to rule out Forts altogether b/c of Gems in a
 				Jungle -- w/o IW, a Fort is the only way to connect the resource. */
-			CvImprovementInfo& imp = GC.getInfo(eImprovement);
 			int iImprYieldChange = 0;
-			for(int i = 0; i < NUM_YIELD_TYPES; i++)
-				iImprYieldChange += imp.getYieldChange(i);
-			if(iImprYieldChange <= 0 && kPlot.getWorkingCity() != NULL)
+			for (int i = 0; i < NUM_YIELD_TYPES; i++)
+				iImprYieldChange += GC.getInfo(eImprovement).getYieldChange(i);
+			if (iImprYieldChange <= 0 && kPlot.getWorkingCity() != NULL)
 				rValue /= 5;
 			// </advc.121>
 		}
@@ -7874,7 +7885,8 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 		rValue += 500;
 	}
 	if (getImprovementFreeSpecialists(eFinalImprovement) > 0)
-		rValue += 2000;
+		// advc.131: Was 2000. That beats crucial strategic resources too easily.
+		rValue += 1600;
 	if (kOwner.getAdvancedStartPoints() < 0)
 	{	// <advc.901> Code moved into (recursive) auxiliary function
 		rValue += AI_healthHappyImprovementValue(kPlot, eImprovement,

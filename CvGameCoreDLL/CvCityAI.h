@@ -270,6 +270,7 @@ protected:
 	int AI_countGoodTiles(bool bHealthy, bool bUnworkedOnly, int iThreshold = 50, bool bWorkerOptimization = false) const;
 	int AI_countGoodSpecialists(bool bHealthy) const;
 	//int AI_calculateTargetCulturePerTurn() const; // disabled by K-Mod
+	int AI_nukeEplosionValue() const; // advc.650
 
 	void AI_stealPlots();
 
