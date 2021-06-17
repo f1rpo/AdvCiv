@@ -775,9 +775,9 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 {
 	// <advc.opt>
 	static int const iNUKE_FALLOUT_PROB = GC.getDefineINT("NUKE_FALLOUT_PROB");
-	static int const iNUKE_UNIT_DAMAGE_BASE = GC.getDefineINT("NUKE_UNIT_DAMAGE_BASE");
-	static int const iNUKE_UNIT_DAMAGE_RAND_1 = GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_1");
-	static int const iNUKE_UNIT_DAMAGE_RAND_2 = GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_2");
+	static int const iNUKE_UNIT_DAMAGE_BASE = GC.getDefineINT(CvGlobals::NUKE_UNIT_DAMAGE_BASE);
+	static int const iNUKE_UNIT_DAMAGE_RAND_1 = GC.getDefineINT(CvGlobals::NUKE_UNIT_DAMAGE_RAND_1);
+	static int const iNUKE_UNIT_DAMAGE_RAND_2 = GC.getDefineINT(CvGlobals::NUKE_UNIT_DAMAGE_RAND_2);
 	static int const iNUKE_BUILDING_DESTRUCTION_PROB = GC.getDefineINT(CvGlobals::NUKE_BUILDING_DESTRUCTION_PROB);
 	static int const iNUKE_POPULATION_DEATH_BASE = GC.getDefineINT("NUKE_POPULATION_DEATH_BASE");
 	static int const iNUKE_POPULATION_DEATH_RAND_1 = GC.getDefineINT("NUKE_POPULATION_DEATH_RAND_1");
@@ -828,21 +828,22 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 		// K-Mod. If this is not a bomb, then we're finished with this plot.
 		if (!bBomb)
 			continue;
+		// <advc.650>
+		for (TeamIter<ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
+		{
+			/*	Strictly speaking, we should check the same conditions as in
+				CvUnit::nuke, i.e. whether the nuke owner and plot have been met,
+				but that's awkward to implement. A very minor AI cheat. */
+			if (isRevealed(itTeam->getID()))
+				itTeam->AI_rememberNukeExplosion(p);
+		} // </advc.650>
 
-		CLinkList<IDInfo> oldUnits;
-		{
-			for (CLLNode<IDInfo> const* pUnitNode = p.headUnitNode();
-				pUnitNode != NULL; pUnitNode = p.nextUnitNode(pUnitNode))
-			{
-				oldUnits.insertAtEnd(pUnitNode->m_data);
-			}
-		}
-		CLLNode<IDInfo>* pUnitNode = oldUnits.head();
-		while (pUnitNode != NULL)
-		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = oldUnits.next(pUnitNode);
-			if (pLoopUnit == NULL || pLoopUnit == pNukeUnit)
+		FOR_EACH_UNIT_VAR_IN(pLoopUnit, p)
+		{	/*	<advc> BtS had used two loops here and a temporary list.
+				We do need a NULL check to deal with units killed while in cargo. */
+			if (pLoopUnit == NULL)
+				continue; // </advc>
+			if (pLoopUnit == pNukeUnit)
 				continue;
 			// <kekm.7>
 			TeamTypes eAttackingTeam = NO_TEAM;

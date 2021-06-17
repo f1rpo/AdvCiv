@@ -348,7 +348,8 @@ public:
 	int AI_nukeBaseDestructionWeight() const;
 	int AI_nukeExtraDestructionWeight(PlayerTypes eTarget,
 			int iTheirNukes, bool bLimited) const;
-	int AI_estimateNukeCount(PlayerTypes eOwner) const; // </advc.650>
+	int AI_estimateNukeCount(PlayerTypes eOwner) const;
+	scaled AI_nukeChanceToKillUnit(int iHP, int iNukeModifier = 0) const; // </advc.650>
 
 	int AI_missionaryValue(ReligionTypes eReligion, CvArea const* pArea = NULL/*, PlayerTypes* peBestPlayer = NULL*/) const;
 	int AI_executiveValue(CorporationTypes eCorporation, CvArea const* pArea = NULL,

@@ -87,10 +87,11 @@ void CvTeamAI::AI_reset(bool bConstructor)
 			kLoopTeam.m_aeWarPlan.set(getID(), NO_WARPLAN);
 		}
 	}
+	m_religionKnownSince.clear(); // advc.130n
 	m_aiWarPlanCounts.reset(); // advc.opt
 	m_bAnyWarPlan = false; // advc.opt
 	m_bLonely = false; // advc.109
-	m_religionKnownSince.clear(); // advc.130n
+	m_aeNukeExplosions.clear(); // advc.650
 	m_strengthMemory.reset(); // advc.158
 }
 
@@ -123,6 +124,8 @@ void CvTeamAI::AI_doTurnPost()
 {
 	//AI_updateStrengthMemory(); // K-Mod
 	m_strengthMemory.decay(); // advc.158
+	// advc.650: Only remembered over the course of one game turn
+	m_aeNukeExplosions.clear();
 
 	if(isMajorCiv()) // advc.003n
 	{
@@ -597,7 +600,7 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea const& kArea, bool bPreparin
 		}
 	}
 	// advc.107: 2*iAreaCities (from MNAI)
-	if (iAreaCities > 0 && countEnemyDangerByArea(kArea) > 2 * iAreaCities)
+	if (iAreaCities > 0 && AI_countEnemyDangerByArea(kArea) > 2 * iAreaCities)
 		return AREAAI_DEFENSIVE;
 
 	if (bChosenTargets)
@@ -1908,7 +1911,7 @@ int CvTeamAI::AI_endWarVal(TeamTypes eTeam) const // XXX this should consider ar
 		iOurAttackers += it->AI_enemyTargetMissions(eTeam);
 	int iTheirAttackers = 0;
 	FOR_EACH_AREA(pLoopArea)
-		iTheirAttackers += countEnemyDangerByArea(*pLoopArea, eTeam);
+		iTheirAttackers += AI_countEnemyDangerByArea(*pLoopArea, eTeam);
 
 	int iAttackerRatio = (100 * iOurAttackers) /
 			std::max(1 + GC.getGame().getCurrentEra(), iTheirAttackers);
@@ -2638,7 +2641,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 				int iAreaCities = countNumCitiesByArea(*pLoopArea);
 				if(iAreaCities <= 0)
 					continue;
-				int iAreaDanger = countEnemyDangerByArea(*pLoopArea, eMasterTeam);
+				int iAreaDanger = AI_countEnemyDangerByArea(*pLoopArea, eMasterTeam);
 				int iAreaPop = countTotalPopulationByArea(*pLoopArea);
 				if(iAreaDanger < iAreaPop / 3)
 					iSafePopulation += iAreaPop;
@@ -4521,7 +4524,7 @@ int CvTeamAI::AI_countEnemyPowerByArea(CvArea const& kArea) const
 	return iCount;
 }
 
-// K-Mod. (Note: this includes barbarian cities.)
+// K-Mod: (Note: this includes barbarian cities.)
 int CvTeamAI::AI_countEnemyCitiesByArea(CvArea const& kArea) const // advc.003u: Moved from CvTeam
 {
 	int iCount = 0;
@@ -4532,10 +4535,28 @@ int CvTeamAI::AI_countEnemyCitiesByArea(CvArea const& kArea) const // advc.003u:
 			iCount += kArea.getCitiesPerPlayer(kEnemy.getID());
 	}
 	return iCount; // advc.001: was 'return 0'
-} // K-Mod end
+}
+
+// BETTER_BTS_AI_MOD, War strategy AI, 05/19/10, jdog5000:
+// advc: Moved from CvTeam
+int CvTeamAI::AI_countEnemyDangerByArea(CvArea const& kArea, TeamTypes eEnemyTeam) const
+{
+	PROFILE_FUNC();
+	int iCount = 0;
+	FOR_EACH_ENUM(PlotNum)
+	{
+		CvPlot const& kPlot = GC.getMap().getPlotByIndex(eLoopPlotNum);
+		if (kPlot.isArea(kArea) && kPlot.getTeam() == getID())
+		{
+			iCount += kPlot.plotCount(PUF_canDefendEnemy, getLeaderID(),
+					false, NO_PLAYER, eEnemyTeam, PUF_isVisible, getLeaderID());
+		}
+	}
+	return iCount;
+}
 
 // BETTER_BTS_AI_MOD, War strategy AI, 04/01/10, jdog5000: START
-// advc.003j (comment): unused; advc.003u: Moved from CvTeam
+// advc.003j (comment): unused; advc: moved from CvTeam
 int CvTeamAI::AI_countEnemyPopulationByArea(CvArea const& kArea) const
 {
 	int iCount = 0;
@@ -4842,8 +4863,21 @@ void CvTeamAI::AI_updateWarPlanCounts(TeamTypes eTarget, WarPlanTypes eOldPlan, 
 	m_bAnyWarPlan = false;
 }
 
-//if this number is over 0 the teams are "close"
-//this may be expensive to run, kinda O(N^2)...
+// <advc.650>
+void CvTeamAI::AI_rememberNukeExplosion(CvPlot const& kPlot)
+{
+	m_aeNukeExplosions.push_back(GC.getMap().plotNum(kPlot));
+}
+
+
+bool CvTeamAI::AI_wasRecentlyNuked(CvPlot const& kPlot) const
+{
+	return (std::find(m_aeNukeExplosions.begin(), m_aeNukeExplosions.end(),
+			GC.getMap().plotNum(kPlot)) != m_aeNukeExplosions.end());
+}  // </advc.650>
+
+/*	if this number is over 0 the teams are "close"
+	this may be expensive to run, kinda O(N^2)... */
 int CvTeamAI::AI_teamCloseness(TeamTypes eIndex, int iMaxDistance,
 	bool bConsiderLandTarget, // advc.104o
 	bool bConstCache) const // advc.001n
@@ -4917,15 +4951,24 @@ void CvTeamAI::read(FDataStreamBase* pStream)
 	m_aeWarPlan.Read(pStream);
 	pStream->Read((int*)&m_eWorstEnemy);
 	// <advc.109>
-	if(uiFlag >= 2)
+	if (uiFlag >= 2)
 		pStream->Read(&m_bLonely); // </advc.109>
+	// <advc.650>
+	if (uiFlag >= 5)
+	{
+		size_t iSize;
+		pStream->Read(&iSize);
+		m_aeNukeExplosions.resize(iSize);
+		if (iSize > 0)
+			pStream->Read((int)iSize, (int*)&m_aeNukeExplosions[0]);
+	} // </advc.650>
 	m_strengthMemory.read(pStream, uiFlag, getID()); // advc.158
 	// <advc.104>
-	if(isEverAlive() && !isBarbarian() && !isMinorCiv())
+	if (isEverAlive() && !isBarbarian() && !isMinorCiv())
 		m_pUWAI->read(pStream); // </advc.104>
 }
 
-// <advc.opt> (for legacy savegames)
+// advc.opt: (for legacy savegames)
 void CvTeamAI::AI_finalizeInit()
 {
 	FOR_EACH_ENUM(WarPlan)
@@ -4936,7 +4979,7 @@ void CvTeamAI::AI_finalizeInit()
 			m_bAnyWarPlan = true;
 	}
 	m_aiWarPlanCounts.hasContent(); // De-allocate if all 0
-} // </advc.opt>
+}
 
 
 void CvTeamAI::write(FDataStreamBase* pStream)
@@ -4949,7 +4992,8 @@ void CvTeamAI::write(FDataStreamBase* pStream)
 	//uiFlag = 1; // K-Mod: StrengthMemory
 	//uiFlag = 2; // advc.109
 	//uiFlag = 3; // advc.opt: m_aiWarPlanCounts
-	uiFlag = 4; // advc.158
+	//uiFlag = 4; // advc.158
+	uiFlag = 5; // advc.650
 	pStream->Write(uiFlag);
 
 	m_aiWarPlanStateCounter.Write(pStream);
@@ -4976,6 +5020,11 @@ void CvTeamAI::write(FDataStreamBase* pStream)
 	m_aeWarPlan.Write(pStream);
 	pStream->Write(m_eWorstEnemy);
 	pStream->Write(m_bLonely); // advc.109
+	// <advc.650>
+	pStream->Write(m_aeNukeExplosions.size());
+	if (!m_aeNukeExplosions.empty())
+		pStream->Write((int)m_aeNukeExplosions.size(), (int*)&m_aeNukeExplosions[0]);
+	// </advc.650>
 	m_strengthMemory.write(pStream); // advc.158
 	// <advc.104>
 	if(isEverAlive() && !isBarbarian() && !isMinorCiv())

@@ -269,10 +269,13 @@ public:
 	bool AI_isMasterPlanningLandWar(CvArea const& kArea) const;
 	bool AI_isMasterPlanningSeaWar(CvArea const& kArea) const;
 	// BETTER_BTS_AI_MOD: END
+	void AI_setWarPlanNoUpdate(TeamTypes eIndex, WarPlanTypes eNewValue);
+	// <advc.650>
+	void AI_rememberNukeExplosion(CvPlot const& kPlot);
+	bool AI_wasRecentlyNuked(CvPlot const& kPlot) const; // </advc.650>
 	// advc.158:
 	inline AIStrengthMemoryMap& AI_strengthMemory() const { return m_strengthMemory; }
 	// advc.104:
-	void AI_setWarPlanNoUpdate(TeamTypes eIndex, WarPlanTypes eNewValue);
 	int AI_teamCloseness(TeamTypes eIndex, int iMaxDistance = -1,
 			bool bConsiderLandTarget = false, // advc.104o
 			bool bConstCache = false) const; // advc.001n
@@ -332,6 +335,7 @@ protected:
 	bool m_bAnyWarPlan; // advc.opt
 	bool m_bLonely; // advc.109
 
+	std::vector<PlotNumTypes> m_aeNukeExplosions; // advc.650
 	mutable AIStrengthMemoryMap m_strengthMemory; // advc.158
 	UWAI::Team* m_pUWAI; // advc.104
 
