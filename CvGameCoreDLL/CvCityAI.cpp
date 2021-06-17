@@ -6089,8 +6089,6 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 	if (kProject.getNukeInterception() > 0)
 	{
 		//iValue += (GC.getInfo(eProject).getNukeInterception() / 10);
-		/*	we're going to cheat a little bit
-			by counting nukes that we probably shouldn't know about */
 		int iForeignNukes = 0;
 		int iTeamsMet = 0;
 		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i = (PlayerTypes)(i + 1))
@@ -6099,7 +6097,7 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 			if (kLoopPlayer.getTeam() != kOwner.getTeam() &&
 				kTeam.isHasMet(kLoopPlayer.getTeam()))
 			{
-				iForeignNukes += kLoopPlayer.getNumNukeUnits();
+				iForeignNukes += kOwner.AI_estimateNukeCount(kLoopPlayer.getID());
 				iTeamsMet++;
 			}
 		}

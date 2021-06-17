@@ -14836,9 +14836,7 @@ int CvPlayerAI::AI_nukeDangerDivisor() const
 		{
 			continue;
 		}
-		/*	DarkLunaPhantom: We're going to cheat a little bit,
-			by counting nukes that we probably shouldn't know about. */
-		if (itRival->getNumNukeUnits() > 0)
+		if (AI_estimateNukeCount(itRival->getID()))
 			return 1; // Greatest danger, smallest divisor.
 		if (itRival->getCurrentEra() >= CvEraInfo::AI_getAtomicAge())
 			bRemoteDanger = true;
