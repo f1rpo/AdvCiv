@@ -5671,6 +5671,18 @@ void CvTeam::read(FDataStreamBase* pStream)
 
 	m_aiRouteChange.Read(pStream);
 	m_aiProjectCount.Read(pStream);
+	if (uiFlag < 14)
+	{	// Reduced SDI interception chance in AdvCiv 1.0
+		ProjectTypes eSDI = (ProjectTypes)GC.getInfoTypeForString("PROJECT_SDI");
+		if (eSDI != NO_PROJECT)
+		{
+			int iSDICount = m_aiProjectCount.get(eSDI);
+			if (iSDICount > 0 && getNukeInterception() >= iSDICount * 75)
+			{
+				changeNukeInterception(iSDICount * -15);
+			}
+		}
+	}
 	m_aiProjectDefaultArtTypes.Read(pStream);
 
 	//project art types
@@ -5782,7 +5794,8 @@ void CvTeam::write(FDataStreamBase* pStream)
 	//uiFlag = 10; // advc.101: m_iTechCount
 	//uiFlag = 11; // advc.opt: fix m_aiVictoryCountdown bug
 	//uiFlag = 12; // advc.091
-	uiFlag = 13; // advc.183
+	//uiFlag = 13; // advc.183
+	uiFlag = 14; // advc.650
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iNumMembers);

@@ -81,8 +81,10 @@
 			<AnyonePrereqProject>PROJECT_MANHATTAN_PROJECT</AnyonePrereqProject>
 			<iMaxGlobalInstances>-1</iMaxGlobalInstances>
 			<iMaxTeamInstances>1</iMaxTeamInstances>
-			<iCost>1000</iCost>
-			<iNukeInterception>75</iNukeInterception>
+			<!-- advc.650: was 1000 -->
+			<iCost>1500</iCost>
+			<!-- advc.650: was 75 -->
+			<iNukeInterception>60</iNukeInterception>
 			<iTechShare>0</iTechShare>
 			<EveryoneSpecialUnit>NONE</EveryoneSpecialUnit>
 			<EveryoneSpecialBuilding>NONE</EveryoneSpecialBuilding>
