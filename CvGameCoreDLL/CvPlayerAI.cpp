@@ -11381,6 +11381,12 @@ int CvPlayerAI::AI_baseBonusUnitVal(BonusTypes eBonus, UnitTypes eUnit,
 		iValue = (iValue * std::max(0, std::min(
 				100, 120 * iNewTypeValue / iBestTypeValue - 20))) / 100;
 	}
+	/*	<advc.650> Having access to at least a few nukes is very valuable.
+		The XML power values can't capture that sufficiently. */
+	else if (kUnit.getNukeRange() > 0 && getNumNukeUnits() * 2 < getNumCities())
+	{
+		iValue = (iValue * 3) / 2; 
+	} // </advc.650>
 	/*	devalue units which are related to our current era.
 		(but not if it is still our best unit!) */
 	if (kUnit.getPrereqAndTech() != NO_TECH)
