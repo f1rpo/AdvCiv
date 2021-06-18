@@ -19781,21 +19781,43 @@ bool CvUnitAI::AI_nuke()
 		advc.650: K-Mod code from AI_nukeRange integrated (bRangeLimited branches);
 		no functional change except for a removed Dagger strategy check. I guess
 		it makes sense that range-limited nukes are more sensitive to danger -
-		might not find a target at all if danger isn't responded to swiftly. */
-	int iValueThresh = std::max(0, (bRangeLimited ? 3 : 4) *
+		might not find a target at all if danger isn't responded to swiftly.
+		I've decreased the production cost multipliers by 1 (i.e. from 3:4 to 2:3)
+		because the nuke value counted per unit and per building is now (much) smaller. */
+	int iValueThresh = std::max(0, (bRangeLimited ? 2 : 3) *
 			getUnitInfo().getProductionCost()) + (bRangeLimited ? 60 : 20);
 	if (!bDanger)
 	{
 		if (bRangeLimited)
 			iValueThresh = (iValueThresh * 3) / 2;
 		else iValueThresh += 80;
-	}	
+	}
 	/*	advc.650: All adjustments below had not previously (K-Mod) applied
 		to range-limited nukes */
 
-	iValueThresh *= std::max(1, iOurNukes + 2 * iOurCities);
-	iValueThresh /= std::max(1, 2 * iOurNukes + (bDanger ? 2 : 1) * iOurCities);
-
+	// <advc.650> Don't bother to stash away nukes if we don't need a deterrent
+	bool bNeedDeterrent = kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1);
+	if (!bNeedDeterrent)
+	{
+		for (PlayerIter<CIV_ALIVE,KNOWN_POTENTIAL_ENEMY_OF> itRival(kTeam.getID());
+			itRival.hasNext(); ++itRival)
+		{
+			bool const bWar = GET_TEAM(itRival->getTeam()).isAtWar(kTeam.getID());
+			if (!bWar && GET_TEAM(itRival->getTeam()).AI_isAvoidWar(kTeam.getID()))
+				continue;
+			if (itRival->getNumNukeUnits() > 0 ||
+				(!bWar && itRival->getPower() > kOwner.getPower()))
+			{
+				bNeedDeterrent = true;
+				break;
+			}
+		}
+	}
+	if (bNeedDeterrent) // </advc.650>
+	{
+		iValueThresh *= std::max(1, iOurNukes + 2 * iOurCities);
+		iValueThresh /= std::max(1, 2 * iOurNukes + (bDanger ? 2 : 1) * iOurCities);
+	}
 	iValueThresh *= 150 + iWarRating;
 	iValueThresh /= 150;
 	// advc.650: Need separate variables for threshold and argmax now
@@ -19881,16 +19903,30 @@ bool CvUnitAI::AI_nuke()
 				rEscalationMult.decreaseTo(1);
 				iValue = (iValue * rEscalationMult).uround();
 			}
-			if (iValue > iBestValue &&
+			if (iValue > iBestValue)
+			{
+				int iLoopValueThresh = iValueThresh;
 				/*	Lower threshold for hitting human unit stacks -
 					b/c destroying human units is normally difficult to do
 					for the AI; shouldn't let a chance pass. */
-				(!pTarget->isCity() && pTarget->isOwned() &&
-				GET_PLAYER(pTarget->getOwner()).isHuman() ? 3 : 2) *
-				iValue > 2 * iValueThresh) // </advc.650>
-			{
-				iBestValue = iValue;
-				pBestTarget = pTarget;
+				if (!pTarget->isCity() && pTarget->isOwned() &&
+					GET_PLAYER(pTarget->getOwner()).isHuman())
+				{
+					iLoopValueThresh *= 2;
+					iLoopValueThresh /= 3;
+				}
+				// Hiroshima clause
+				if (GC.getGame().getNukesExploded() == 0 &&
+					iTheirNukesAdjusted <= 0)
+				{
+					iLoopValueThresh *= 3;
+					iLoopValueThresh /= 5;
+				}
+				if (iValue > iLoopValueThresh) // </advc.650>
+				{
+					iBestValue = iValue;
+					pBestTarget = pTarget;
+				}
 			}
 		}
 	}
