@@ -11951,15 +11951,16 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 		}
 	} // <advc.036>
 	int iAvailUs = getNumAvailableBonuses(eBonus);
-	/*  Doesn't seem necessary after all; the iValueForUs clauses rule out such
-		trades anyway. By returning DENIAL_JOKING, crucial strategic resources
+	/*  Perhaps better to handle this through iValueForUs checks.
+		By returning DENIAL_JOKING, crucial strategic resources
 		could be excluded from the trade table (see changes in buildTradeTable),
 		but it's perhaps confusing to show some non-surplus resources on the
 		trade table and not others. */
-	/*if(!isHuman() && bCrucialStrategic && iAvailUs - iChange <= 1 && (!bVassal ||
-			iAvailThem + iChange > 1))
+	/*if(!isHuman() && bCrucialStrategic && iAvailUs - iChange <= 1 &&
+		(!bVassal || iAvailThem + iChange > 1))
+	{
 		return DENIAL_JOKING;
-	*/// </advc.036>
+	}*/ // </advc.036>
 	// <advc.133> See the previous 133-comment
 	if(iChange < 0)
 		return NO_DENIAL; // </advc.133>
@@ -11988,21 +11989,29 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 	{
 		if(iValueForUs >= 2 * (kPlayer.isHuman() ? iTradeValThresh : iValueForThem))
 			return DENIAL_NO_GAIN;
-		else return NO_DENIAL;
+		return NO_DENIAL;
 	} // </advc.037>
 	// Replacing the JOKING clause further up
-	if(kPlayer.isHuman() && (iAvailThem + iChange <= 1 ? /*  Don't presume value
-		for human unless human only needs the resource for a corp */
-		(iValueForUs >= iTradeValThresh +
-		/*  bonusVal gives every city equal weight, but early on,
-			it's mostly about the capital, which can grow fast. */
-		std::min(2, (getNumCities() - 1) / 2)) :
-		(3 * iValueForUs >= 2 * iValueForThem || iValueForThem <= 0 ||
-		(iValueForUs > 0 && iValueForThem - iValueForUs < iTradeValThresh) ||
-		iValueForUs > iTradeValThresh + 2)))
+	if (kPlayer.isHuman())
 	{
+		if (iAvailThem + iChange <= 1 ? /*  Don't presume value
+			for human unless human only needs the resource for a corp */
+			(iValueForUs >= iTradeValThresh +
+			/*  AI_bonusVal gives every city equal weight, but, early on,
+				it's mostly about the capital, which can grow fast. */
+			std::min(2, (getNumCities() - 1) / 2)) :
+			(3 * iValueForUs >= 2 * iValueForThem || iValueForThem <= 0 ||
+			(iValueForUs > 0 && iValueForThem - iValueForUs < iTradeValThresh) ||
+			iValueForUs > iTradeValThresh + 2))
+		{
+			return DENIAL_NO_GAIN;
+		}
+	}
+	/*	See the comment about bCrucialStrategic above. Don't want strange-looking
+		AI-AI trades that. */
+	else if (3 * iValueForUs > 5 * iValueForThem)
 		return DENIAL_NO_GAIN;
-	} // </advc.036>
+	// </advc.036>
 	return NO_DENIAL;
 }
 
