@@ -7882,11 +7882,11 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 	if (bEmphasizeIrrigation &&
 		GC.getInfo(eFinalImprovement).isCarriesIrrigation())
 	{
-		rValue += 500;
+		rValue += 400; // advc.131: was 500
 	}
 	if (getImprovementFreeSpecialists(eFinalImprovement) > 0)
 		// advc.131: Was 2000. That beats crucial strategic resources too easily.
-		rValue += 1600;
+		rValue += 1200;
 	if (kOwner.getAdvancedStartPoints() < 0)
 	{	// <advc.901> Code moved into (recursive) auxiliary function
 		rValue += AI_healthHappyImprovementValue(kPlot, eImprovement,
