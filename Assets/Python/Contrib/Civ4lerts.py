@@ -931,7 +931,7 @@ class RefusesToTalk(AbstractStatefulAlert):
 		try: # advc.009b
 			refusals = self.refusals[eActivePlayer]
 		# <advc.009b>
-		except AttributeError:
+		except AttributeError, KeyError:
 			return # </advc.009b>
 		newRefusals = set()
 		newRefusalsDisplay = set() # advc.106d: Don't necessarily display them all
@@ -1033,7 +1033,7 @@ class WorstEnemy(AbstractStatefulAlert):
 		try: # advc.009b
 			enemies = self.enemies[eActivePlayer]
 		# <advc.009b>
-		except AttributeError:
+		except AttributeError, KeyError:
 			return # </advc.009b>
 		newEnemies = AttitudeUtil.getWorstEnemyTeams()
 		delayedMessages = {}
