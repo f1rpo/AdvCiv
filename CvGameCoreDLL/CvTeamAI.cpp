@@ -2951,7 +2951,7 @@ bool CvTeamAI::AI_anyMemberAtVictoryStage3() const
 	return false;
 } // BETTER_BTS_AI_MOD: END
 
-/*	K-Mod. return a rating of our war success between -99 and 99.
+/*	K-Mod: return a rating of our war success between -99 and 99.
 	-99 means we losing and have very little hope of surviving.
 	99 means we are soundly defeating our enemies.
 	Zero is neutral (eg. no wars being fought).
@@ -2980,7 +2980,7 @@ int CvTeamAI::AI_getWarSuccessRating() const
 	}
 	iScore = range((100*iScore)/std::max(1, iThisTeamPower*iSuccessScale*5), -99, 99);
 	return iScore;
-} // K-Mod end
+}
 
 /*  BETTER_BTS_AI_MOD, War Strategy AI, 03/20/10, jdog5000: START
 	Compute power of enemies as percentage of our power */

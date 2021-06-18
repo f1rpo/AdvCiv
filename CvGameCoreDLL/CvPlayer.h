@@ -237,7 +237,10 @@ public:
 	DllExport DenialTypes getTradeDenial(PlayerTypes eWhoTo, TradeData item) const;									// Exposed to Python
 	bool canTradeNetworkWith(PlayerTypes ePlayer) const;															// Exposed to Python
 	int getNumAvailableBonuses(BonusTypes eBonus) const;															// Exposed to Python
-	int getNumTradeableBonuses(BonusTypes eBonus) const;															// Exposed to Python
+	int getNumTradeableBonuses(BonusTypes eBonus) const																// Exposed to Python
+	{
+		return (getNumAvailableBonuses(eBonus) - getBonusImport(eBonus));
+	}
 	int getNumTradeBonusImports(PlayerTypes eFromPlayer) const;														// Exposed to Python
 	bool hasBonus(BonusTypes eBonus) const;																			// Exposed to Python
 	// advc: Said "IncludeCancelable", but actually does the opposite.

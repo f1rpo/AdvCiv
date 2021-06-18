@@ -5702,7 +5702,8 @@ void CvUnitAI::AI_ICBMMove()
 	{
 		// BETTER_BTS_AI_MOD, 04/25/10, jdog5000: Unit AI
 		/*	(advc: Had been deleted entirely by K-Mod upon introducing
-			AI_localDefenceStrength and AI_localAttackStrength) */
+			AI_localDefenceStrength and AI_localAttackStrength. The BBAI code does
+			seem unnecessary seeing that rebasing is considered in any case.) */
 		/*if (GET_TEAM(getTeam()).isAirBase(getPlot())) {
 			int iOurDefense = GET_TEAM(getTeam()).AI_getOurPlotStrength(plot(),0,true,false,true);
 			int iEnemyOffense = GET_PLAYER(getOwner()).AI_getEnemyPlotStrength(plot(),2,false,false);
@@ -19772,7 +19773,7 @@ bool CvUnitAI::AI_nuke()
 	int const iWarRating = kTeam.AI_getWarSuccessRating();
 	int const iOurNukes = kOwner.getNumNukeUnits();
 	int const iOurCities = kOwner.getNumCities();
-	// Player-independant part of the weight for civilian damage evaluation
+	// Player-independent part of the weight for civilian damage evaluation
 	// advc.650: Moved into new function
 	int const iBaseDestrWeight = kOwner.AI_nukeBaseDestructionWeight();
 
@@ -19782,6 +19783,7 @@ bool CvUnitAI::AI_nuke()
 		no functional change except for a removed Dagger strategy check. I guess
 		it makes sense that range-limited nukes are more sensitive to danger -
 		might not find a target at all if danger isn't responded to swiftly.
+		(Well, I don't know ...)
 		I've decreased the production cost multipliers by 1 (i.e. from 3:4 to 2:3)
 		because the nuke value counted per unit and per building is now (much) smaller. */
 	int iValueThresh = std::max(0, (bRangeLimited ? 2 : 3) *
@@ -19825,7 +19827,7 @@ bool CvUnitAI::AI_nuke()
 	for (PlayerIter<CIV_ALIVE,ENEMY_OF> itEnemy(kTeam.getID());
 		itEnemy.hasNext(); ++itEnemy)
 	{
-		CvPlayerAI const& kEnemy = *itEnemy;
+		CvPlayer const& kEnemy = *itEnemy;
 		// <advc.650>
 		int const iTheirNukes = kOwner.AI_estimateNukeCount(kEnemy.getID());
 		// Don't be too shy if we have far more nukes than they do
@@ -19944,6 +19946,53 @@ bool CvUnitAI::AI_nuke()
 {
 	// ...
 }*/
+
+/*	K-Mod: Return the value of the best nuke target in the range specified,
+	and set pBestTarget to be the specific target plot. The return value is
+	roughly in units of production. */
+int CvUnitAI::AI_nukeValue(CvPlot const& kCenterPlot, int iSearchRange,
+	CvPlot const*& pBestTarget, int iCivilianTargetWeight) const
+{
+	PROFILE_FUNC();
+
+	typedef std::map<CvPlot const*, int> plotMap_t;
+	plotMap_t plotValueCache;
+	pBestTarget = NULL;
+	int iBestValue = 0; // note: value is divided by 100 at the end
+	for (SquareIter itTarget(kCenterPlot, iSearchRange); itTarget.hasNext(); ++itTarget)
+	{
+		CvPlot& kLoopTarget = *itTarget;
+		if (!canNukeAt(getPlot(), kLoopTarget.getX(), kLoopTarget.getY()))
+			continue;
+		/*	Note: canNukeAt checks that we aren't hitting any 3rd party targets,
+			so we don't have to worry about checking that elsewhere */
+
+		int iTargetValue = 0;
+		//bool bValid = true; // advc: Rewritten w/o this flag
+		for (SquareIter itNuke(kLoopTarget, nukeRange()); itNuke.hasNext(); ++itNuke)
+		{
+			plotMap_t::iterator pos = plotValueCache.find(&*itNuke);
+			if (pos != plotValueCache.end())
+			{
+				if (pos->second == MIN_INT)
+					continue;
+				iTargetValue += pos->second;
+				continue;
+			}
+			// plot evaluation ... (advc: moved to CvPlayerAI)
+			int iPlotValue = GET_PLAYER(getOwner()).AI_nukePlotValue(
+					*itNuke, iCivilianTargetWeight);
+			plotValueCache[&*itNuke] = iPlotValue;
+			iTargetValue += iPlotValue;
+		}
+		if (iTargetValue > iBestValue)
+		{
+			pBestTarget = &kLoopTarget;
+			iBestValue = iTargetValue;
+		}
+	}
+	return iBestValue / 100;
+}
 
 // K-Mod. Get the best trade mission value.
 // Note. The iThreshold parameter is only there to improve efficiency.
@@ -21020,53 +21069,6 @@ int CvUnitAI::AI_pillageValue(CvPlot const& kPlot, int iBonusValueThreshold) // 
 	}
 
 	return iValue;
-}
-
-/*	K-Mod: Return the value of the best nuke target in the range specified,
-	and set pBestTarget to be the specific target plot. The return value is
-	roughly in units of production. */
-int CvUnitAI::AI_nukeValue(CvPlot const& kCenterPlot, int iSearchRange,
-	CvPlot const*& pBestTarget, int iCivilianTargetWeight) const
-{
-	PROFILE_FUNC();
-
-	typedef std::map<CvPlot const*, int> plotMap_t;
-	plotMap_t plotValueCache;
-	pBestTarget = NULL;
-	int iBestValue = 0; // note: value is divided by 100 at the end
-	for (SquareIter itTarget(kCenterPlot, iSearchRange); itTarget.hasNext(); ++itTarget)
-	{
-		CvPlot& kLoopTarget = *itTarget;
-		if (!canNukeAt(getPlot(), kLoopTarget.getX(), kLoopTarget.getY()))
-			continue;
-		/*	Note: canNukeAt checks that we aren't hitting any 3rd party targets,
-			so we don't have to worry about checking that elsewhere */
-
-		int iTargetValue = 0;
-		//bool bValid = true; // advc: Rewritten w/o this flag
-		for (SquareIter itNuke(kLoopTarget, nukeRange()); itNuke.hasNext(); ++itNuke)
-		{
-			plotMap_t::iterator pos = plotValueCache.find(&*itNuke);
-			if (pos != plotValueCache.end())
-			{
-				if (pos->second == MIN_INT)
-					continue;
-				iTargetValue += pos->second;
-				continue;
-			}
-			// plot evaluation ... (advc: moved to CvPlayerAI)
-			int iPlotValue = GET_PLAYER(getOwner()).AI_nukePlotValue(
-					*itNuke, iCivilianTargetWeight);
-			plotValueCache[&*itNuke] = iPlotValue;
-			iTargetValue += iPlotValue;
-		}
-		if (iTargetValue > iBestValue)
-		{
-			pBestTarget = &kLoopTarget;
-			iBestValue = iTargetValue;
-		}
-	}
-	return iBestValue / 100;
 }
 
 // <advc.121>

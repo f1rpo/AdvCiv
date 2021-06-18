@@ -20096,7 +20096,7 @@ void CvGameTextMgr::getNukePlotHelp(CvPlot const& kPlot,
 		if (kHeadSelectedUnit.isNukeVictim(&kPlot, eVictimTeam) &&
 			!kHeadSelectedUnit.isEnemy(eVictimTeam))
 		{	// advc.130q: No newline
-			szHelp += gDLL->getText("TXT_KEY_CANT_NUKE_FRIENDS");
+			szHelp.append(gDLL->getText("TXT_KEY_CANT_NUKE_FRIENDS"));
 			break;
 		}
 	}

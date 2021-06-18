@@ -3607,11 +3607,11 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BAD_ATTITUDE_TOWARDS</Tag>
-		<English>%s1_attitude ([COLOR_WARNING_TEXT]%d2[COLOR_REVERT]) towards %s3_leader</English>
-		<French>%s1_attitude ([COLOR_WARNING_TEXT]%d2[COLOR_REVERT]) envers %s3_leader</French>
-		<German>%s1_attitude ([COLOR_WARNING_TEXT]%d2[COLOR_REVERT]) gegen&#252;ber %s3_leader</German>
-		<Italian>%s1_attitude ([COLOR_WARNING_TEXT]%d2[COLOR_REVERT]) confronti di %s3_leader</Italian>
-		<Spanish>Actitud hacia %s3_leader: %s1_attitude ([COLOR_WARNING_TEXT]%d2[COLOR_REVERT])</Spanish>
+		<English>%s1_attitude ([COLOR_NEGATIVE_TEXT]%d2[COLOR_REVERT]) towards %s3_leader</English>
+		<French>%s1_attitude ([COLOR_NEGATIVE_TEXT]%d2[COLOR_REVERT]) envers %s3_leader</French>
+		<German>%s1_attitude ([COLOR_NEGATIVE_TEXT]%d2[COLOR_REVERT]) gegen&#252;ber %s3_leader</German>
+		<Italian>%s1_attitude ([COLOR_NEGATIVE_TEXT]%d2[COLOR_REVERT]) confronti di %s3_leader</Italian>
+		<Spanish>Actitud hacia %s3_leader: %s1_attitude ([COLOR_NEGATIVE_TEXT]%d2[COLOR_REVERT])</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_POSITIVE_NEUTRAL_ATTITUDE_TOWARDS</Tag>

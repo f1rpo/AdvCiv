@@ -13,13 +13,13 @@ using std::vector; // advc
 	the implementation of that function was:
 	srand(7297 * iSeedX + 2909  * iSeedY);
 	return (rand() % (iMax - iMin)) + iMin; */
-int intHash(vector<int> const& x, PlayerTypes ePlayer)
+int intHash(vector<int> const& kInputs, PlayerTypes ePlayer)
 {
 	int const iPrime = 31;
 	int iHashVal = 0;
-	for (size_t i = 0; i < x.size(); i++)
+	for (size_t i = 0; i < kInputs.size(); i++)
 	{
-		iHashVal += x[i];
+		iHashVal += kInputs[i];
 		iHashVal *= iPrime;
 	}
 	int iCapitalIndex = -1;

@@ -75,9 +75,7 @@ void CvCityAI::init(int iID, PlayerTypes eOwner, int iX, int iY,
 	CvCity::init(iID, eOwner, iX, iY, bBumpUnits, bUpdatePlotGroups, iOccupationTimer);
 	//AI_reset(); // advc.003u: Merged into constructor
 	AI_assignWorkingPlots();
-	/*AI_updateWorkersHaveAndNeeded();
-	AI_updateBestBuild();*/
-	// BETTER_BTS_AI_MOD, City AI, Worker AI, 11/14/09, jdog5000: START
+	// BETTER_BTS_AI_MOD, City AI, Worker AI, 11/14/09, jdog5000: calls swapped
 	AI_updateBestBuild();
 	AI_updateWorkersHaveAndNeeded();
 	// BETTER_BTS_AI_MOD: END

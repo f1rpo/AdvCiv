@@ -2166,7 +2166,8 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 	{
 		CvInterfaceModeInfo const& kIMode = GC.getInfo((InterfaceModeTypes)
 				kAction.getInterfaceModeType());
-		if (!CvWString(kIMode.getHelp()).empty()) {
+		if (!CvWString(kIMode.getHelp()).empty())
+		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(kIMode.getHelp());
 		}

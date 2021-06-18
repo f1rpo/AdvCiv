@@ -10158,22 +10158,21 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal,
 					iTheyReceive - iWeReceive - iItemValue > 10)
 				{
 					// No randomness here; needs to be reproducible.
-					std::vector<int> hashInputs;
-					hashInputs.push_back(GC.getGame().getGameTurn());
-					hashInputs.push_back(eBonus);
-					if(scaled::hash(hashInputs, getID()) > per100(iItemValue))
+					std::vector<int> aihashInputs;
+					aihashInputs.push_back(GC.getGame().getGameTurn());
+					aihashInputs.push_back(eBonus);
+					if(scaled::hash(aihashInputs, getID()) > per100(iItemValue))
 						continue;
 				}
 				abBonusDeal.set(eBonus, true);
 				bNonsurplus = true;
-				if ((kPlayer.getNumTradeableBonuses(eBonus) > 1 &&
-					kPlayer.AI_corporationBonusVal(eBonus, true) == 0) ||
-					/*  Prefer to give non-surplus resources over gpt in
-						AI-AI trades (i.e. no special treatment of nonsurplus
-						resources needed). If a human is involved, gpt needs to
-						be preferred b/c we don't want humans to minmax the gpt
-						through trial and error. */
-					(!isHuman() && !kPlayer.isHuman()))
+				/*  Prefer to give non-surplus resources over gpt in AI-AI trades
+					(i.e. no special treatment of nonsurplus resources needed).
+					If a human is involved, gpt needs to be preferred b/c we
+					don't want humans to minmax the gpt through trial and error. */
+				if ((!isHuman() && !kPlayer.isHuman()) ||
+					(kPlayer.getNumTradeableBonuses(eBonus) > 1 &&
+					kPlayer.AI_corporationBonusVal(eBonus, true) == 0))
 				{
 					bNonsurplus = false;
 				}
@@ -11862,8 +11861,8 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 		iValueForThem = kPlayer.AI_bonusVal(eBonus, iChange, false, true);
 	// </advc.036>
 		if (isHuman() &&
-				/*  advc.036: No deal if they (AI) don't need the resource, but
-					check attitude before giving the human that info. */
+			/*  advc.036: No deal if they (AI) don't need the resource, but
+				check attitude before giving the human that info. */
 			iValueForThem >= iTradeValThresh)
 		{
 			return NO_DENIAL;
@@ -11876,7 +11875,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer,
 		return DENIAL_JOKING;*/
 
 	bool bStrategic = false;
-	bool bCrucialStrategic = false; // advc.036
+	bool bCrucialStrategic = false; // advc.036 (NB: unused)
 
 	CvCity const* pCapital = getCapital();
 	FOR_EACH_ENUM2(Unit, eUnit)

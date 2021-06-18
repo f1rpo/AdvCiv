@@ -3384,7 +3384,8 @@ int CvPlayer::countNumCitiesConnectedToCapital() const
 }
 
 // K-Mod:
-bool CvPlayer::doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const
+bool CvPlayer::doesImprovementConnectBonus(ImprovementTypes eImprovement,
+	BonusTypes eBonus) const
 {
 	return GET_TEAM(getTeam()).doesImprovementConnectBonus(eImprovement, eBonus);
 }
@@ -4158,11 +4159,6 @@ int CvPlayer::getNumAvailableBonuses(BonusTypes eBonus) const
 }
 
 
-int CvPlayer::getNumTradeableBonuses(BonusTypes eBonus) const
-{
-	return (getNumAvailableBonuses(eBonus) - getBonusImport(eBonus));
-}
-
 bool CvPlayer::hasBonus(BonusTypes eBonus) const
 {
 	FOR_EACH_CITY(pLoopCity, *this)
@@ -4172,6 +4168,7 @@ bool CvPlayer::hasBonus(BonusTypes eBonus) const
 	}
 	return false;
 }
+
 
 int CvPlayer::getNumTradeBonusImports(PlayerTypes eFromPlayer) const // advc: Simplified using the new CvDeal interface
 {

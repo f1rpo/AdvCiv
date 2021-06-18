@@ -130,9 +130,9 @@ namespace stats // Seems too generic, but what else to name it?
 	} 
 }
 
-/*  Hash based on the components of x. Plot index of capital factored in for
+/*  Hash based on kInputs. Plot index of capital factored in for
 	increased range if ePlayer given. (ePlayer is ignored if it has no capital.) */
-int intHash(std::vector<int> const& x, PlayerTypes ePlayer = NO_PLAYER);
+int intHash(std::vector<int> const& kInputs, PlayerTypes ePlayer = NO_PLAYER);
 
 namespace fmath
 {
@@ -145,22 +145,22 @@ namespace fmath
 	/*	See intHash about the parameters.
 		Result between 0 and 1. Returns float b/c CvRandom uses float (not double).
 		(Similar but more narrow: CvUnitAI::AI_unitBirthmarkHash, AI_unitPlotHash) */
-	inline float hash(std::vector<int> const& x, PlayerTypes ePlayer = NO_PLAYER)
+	inline float hash(std::vector<int> const& kInputs, PlayerTypes ePlayer = NO_PLAYER)
 	{
 		/*  Use ASyncRand to avoid the overhead of creating a new object?
 			Or use stdlib's rand/sRand? I don't think it matters. */
 		/*CvRandom& rng = GC.getASyncRand();
 		rng.reset(hashVal);*/
 		CvRandom rng;
-		rng.init(intHash(x, ePlayer));
+		rng.init(intHash(kInputs, ePlayer));
 		return rng.getFloat();
 	}
 	// For hashing just a single input
-	inline float hash(int x, PlayerTypes ePlayer = NO_PLAYER)
+	inline float hash(int iInputs, PlayerTypes ePlayer = NO_PLAYER)
 	{
-		std::vector<int> v;
-		v.push_back(x);
-		return hash(v, ePlayer);
+		std::vector<int> inputs;
+		inputs.push_back(iInputs);
+		return hash(inputs, ePlayer);
 	}
 } // </advc.003g>
 
