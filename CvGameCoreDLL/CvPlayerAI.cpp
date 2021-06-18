@@ -14688,8 +14688,8 @@ int CvPlayerAI::AI_nukeWeight() const
 		iNukeWeight = (iNukeWeight * 3) / 2; // advc.650: was *4/3
 	}
 	// <advc.650> Stronger personality adjustment than the above
-	scaled rPersonalNukeLove = per100(kPersonality.getEspionageWeight() *
-			(100 - kPersonality.getNoWarAttitudeProb(ATTITUDE_CAUTIOUS)));
+	scaled rPersonalNukeLove = per100(kPersonality.getEspionageWeight()) *
+			per100(100 - kPersonality.getNoWarAttitudeProb(ATTITUDE_CAUTIOUS));
 	{	// Environmentalists shouldn't like nukes
 		CivicTypes eFavCivic = GC.getInfo(getLeaderType()).getFavoriteCivic();
 		if (eFavCivic != NO_CIVIC &&
