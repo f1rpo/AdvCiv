@@ -14822,6 +14822,7 @@ int CvPlayerAI::AI_nukePlotValue(CvPlot const& kPlot,
 	/*  advc.045 (comment): The above is no longer true. Tbd.:
 		if (!pLoopCity->isAllBuildingsVisible(getTeam(), false))
 		... then use an estimate only. */
+	int iBuildingValue = 0;
 	FOR_EACH_ENUM(Building)
 	{
 		if (pCity->getNumRealBuilding(eLoopBuilding) > 0)
@@ -14829,15 +14830,14 @@ int CvPlayerAI::AI_nukePlotValue(CvPlot const& kPlot,
 			CvBuildingInfo const& kBuilding = GC.getInfo(eLoopBuilding);
 			if (!kBuilding.isNukeImmune())
 			{
-				iValue += (iCivilianTargetWeight *
-						pCity->getNumRealBuilding(eLoopBuilding) *
-						std::max(0, kBuilding.getProductionCost()) *
-						// <advc.650>
-						GC.getDefineINT(CvGlobals::NUKE_BUILDING_DESTRUCTION_PROB))
-						/ 100; // </advc.650>
+				iBuildingValue += pCity->getNumRealBuilding(eLoopBuilding) *
+						std::max(0, kBuilding.getProductionCost());
 			}
 		}
 	}
+	iValue += (iCivilianTargetWeight * iBuildingValue *
+			// advc.650:
+			GC.getDefineINT(CvGlobals::NUKE_BUILDING_DESTRUCTION_PROB)) / 100;
 	/*	if we don't have vision of the city, just assume that there are
 		at least a couple of defenders, and count that into our evaluation. */
 	if (!kPlot.isVisible(getTeam()))

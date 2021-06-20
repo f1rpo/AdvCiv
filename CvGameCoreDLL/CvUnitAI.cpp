@@ -19762,6 +19762,9 @@ bool CvUnitAI::AI_nuke()
 
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam());
+	// To save time. Don't need to nuke Barbarians.
+	if (kTeam.getNumWars(false, true) <= 0)
+		return false;
 	// advc.650: Range limited nukes were previously handled by AI_nukeRange (deleted)
 	int const iRange = airRange();
 	bool const bRangeLimited = (iRange > 0);
@@ -19814,13 +19817,19 @@ bool CvUnitAI::AI_nuke()
 				break;
 			}
 		}
-	}
-	if (bNeedDeterrent) // </advc.650>
+	} // </advc.650>
 	{
-		iValueThresh *= std::max(1, iOurNukes + 2 * iOurCities);
-		iValueThresh /= std::max(1, 2 * iOurNukes + (bDanger ? 2 : 1) * iOurCities);
+		int iDividend = std::max(1, iOurNukes + 2 * iOurCities);
+		int iDivisor = std::max(1, 2 * iOurNukes + (bDanger ? 2 : 1) * iOurCities);
+		if (bNeedDeterrent || iDivisor > iDividend) // advc.650
+		{
+			iValueThresh *= iDividend;
+			iValueThresh /= iDivisor;
+		}
 	}
-	iValueThresh *= 150 + iWarRating;
+	/*	advc.650: max - Don't be too motivated by a hopeless war.
+		Getting nuked back and losing is worse than just losing. */
+	iValueThresh *= 150 + std::max(-50, iWarRating);
 	iValueThresh /= 150;
 	// advc.650: Need separate variables for threshold and argmax now
 	int iBestValue = 0;
@@ -19905,6 +19914,12 @@ bool CvUnitAI::AI_nuke()
 				rEscalationMult.decreaseTo(1);
 				iValue = (iValue * rEscalationMult).uround();
 			}
+			// Hiroshima clause
+			else if (GC.getGame().getNukesExploded() == 0)
+			{
+				iValue *= 5;
+				iValue /= 3;
+			}
 			if (iValue > iBestValue)
 			{
 				int iLoopValueThresh = iValueThresh;
@@ -19916,13 +19931,6 @@ bool CvUnitAI::AI_nuke()
 				{
 					iLoopValueThresh *= 2;
 					iLoopValueThresh /= 3;
-				}
-				// Hiroshima clause
-				if (GC.getGame().getNukesExploded() == 0 &&
-					iTheirNukesAdjusted <= 0)
-				{
-					iLoopValueThresh *= 3;
-					iLoopValueThresh /= 5;
 				}
 				if (iValue > iLoopValueThresh) // </advc.650>
 				{
