@@ -14950,27 +14950,19 @@ int CvPlayerAI::AI_nukeBaseDestructionWeight() const
 			iR += 12;
 	}
 	int const iWS = GET_TEAM(getTeam()).AI_getWarSuccessRating();
-	/*	advc.650: War going badly is not a good reason for hitting civilian targets.
+	/*	<advc.650> War going badly is not a good reason for hitting civilian targets.
 		Let's say, only when it's going very, very badly (still questionable): */
-	if (iWS < -88)
-		iR -= iWS;
-	// don't completely destroy them if we want to keep their land.
-	int iWSThresh = 50;
-	if (iWS > iWSThresh)
-		iR -= iWS - iWSThresh;
-	// <advc.650>
-	// Also spare their stuff if the power ratio is very favorable
-	else
+	if (iWS < -88 &&
+		GET_TEAM(getTeam()).AI_countEnemyWarSuccess() * 5
+		> GC.getWAR_SUCCESS_CITY_CAPTURING() * GET_TEAM(getTeam()).getNumCities())
+		// </advc.650>
 	{
-		int iTargetPowRatio = 200;
-		int iPowRatioPercent = (100 * GET_TEAM(getTeam()).getPower(true)) /
-				std::max(1, GET_TEAM(getTeam()).getEnemyPower());
-		if (iPowRatioPercent > iTargetPowRatio)
-			iR -= iPowRatioPercent - iTargetPowRatio;
+		iR -= iWS;
 	}
-	// Personality factor
+	// don't completely destroy them if we want to keep their land.
+	iR -= std::max(0, iWS - 50);
+	// advc.650: Personality factor
 	iR += GC.getInfo(getPersonalityType()).getRazeCityProb() / 3;
-	// </advc.650>
 	return iR;
 }
 
@@ -14994,15 +14986,22 @@ int CvPlayerAI::AI_nukeExtraDestructionWeight(PlayerTypes eTarget,
 		iR += 12;
 	if (!bLimited)
 		iR += 16;
+	int const iMemoryNukedUs = AI_getMemoryCount(kTarget.getID(), MEMORY_NUKED_US);
 	// </advc.650>
 	int iMemoryVal = std::min(120,
 			2 * AI_getMemoryCount(kTarget.getID(), MEMORY_NUKED_FRIEND) +
-			5 * AI_getMemoryCount(kTarget.getID(), MEMORY_NUKED_US));
+			5 * iMemoryNukedUs);
 	iMemoryVal /= 2; // advc.130j: Memory now counted at times-2 precision
 	// <advc.650> Avoid escalation
 	if (iMemoryVal <= 5 && iTheirNukes > 0)
 		iR -= (scaled(iTheirNukes).sqrt() * 8).uround(); // </advc.650>
 	iR += iMemoryVal;
+	// <advc.650> Let's see how bad the war gets before using nukes
+	if (iMemoryNukedUs <= 0 &&
+		GET_TEAM(getTeam()).AI_getWarPlan(kTarget.getTeam()) == WARPLAN_ATTACKED_RECENT)
+	{
+		iR = (iR * 2) / 3;
+	} // </advc.650>
 	return iR;
 } // </advc>
 
