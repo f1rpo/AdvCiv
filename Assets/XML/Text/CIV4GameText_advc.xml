@@ -6971,4 +6971,15 @@
 		<Spanish>Población menos %s1_Num (víctimas civiles).</Spanish>
 	</TEXT>
 
+	<!-- advc.650: Would be nice to make clear somehow that the evasion chance
+		 is already taken into account here. -->
+	<TEXT>
+		<Tag>TXT_KEY_NUKE_INTERCEPT_CHANCE</Tag>
+		<English>[COLOR_NEGATIVE_TEXT]Interception[COLOR_REVERT] chance (%s1_TeamName): %d2%%</English>
+		<French>Chance d'[COLOR_NEGATIVE_TEXT]interception[COLOR_REVERT] (%s1_TeamName): %d2%%</French>
+		<German>[COLOR_NEGATIVE_TEXT]Abfangchance[COLOR_REVERT] (%s1_TeamName): %d2%%</German>
+		<Italian>Probabilità di [COLOR_NEGATIVE_TEXT]intercettazione[COLOR_REVERT] (%s1_TeamName): %d2%%</Italian>
+		<Spanish>Probabilidad de [COLOR_NEGATIVE_TEXT]intercepción[COLOR_REVERT] (%s1_TeamName): %d2%%</Spanish>
+	</TEXT>
+
 </Civ4GameText>

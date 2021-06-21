@@ -218,6 +218,7 @@ public:
 	int AI_getWarSuccess(TeamTypes eIndex) const { return m_aiWarSuccess.get(eIndex); }							 // Exposed to Python
 	void AI_setWarSuccess(TeamTypes eIndex, int iNewValue);
 	void AI_changeWarSuccess(TeamTypes eIndex, int iChange);
+	int AI_countEnemyWarSuccess() const; // advc
 	// <advc.130m>
 	void AI_reportSharedWarSuccess(int iIntensity, TeamTypes eWarAlly,
 			TeamTypes eEnemy, bool bIgnoreDistress = false);

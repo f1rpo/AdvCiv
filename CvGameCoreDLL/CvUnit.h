@@ -146,6 +146,9 @@ public:
 	bool canNuke(CvPlot const* pFrom) const { return (nukeRange() != -1); }									// Exposed to Python
 	bool canNukeAt(CvPlot const& kFrom, int iX, int iY) const;												// Exposed to Python
 	bool nuke(int iX, int iY);
+	// <advc.650>
+	int nukeInterceptionChance(CvPlot const& kTarget, TeamTypes* pBestTeam = NULL,
+			EnumMap<TeamTypes,bool> const* pTeamsAffected = NULL) const; // <advc.650>
 
 	bool canRecon(const CvPlot* pPlot) const;																// Exposed to Python
 	bool canReconAt(const CvPlot* pPlot, int iX, int iY) const;												// Exposed to Python

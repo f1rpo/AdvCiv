@@ -3764,34 +3764,10 @@ bool CvUnit::nuke(int iX, int iY)
 		}
 		CvTeam::triggerWars(); // kekm.26
 	}
-
-	int iBestInterception = 0;
-	TeamTypes eBestTeam = NO_TEAM;
-	for (TeamIter<> it; it.hasNext(); ++it)
-	{
-		CvTeam const& kInterceptTeam = *it;
-		if (!abTeamsAffected.get(kInterceptTeam.getID()))
-			continue;
-		if (kInterceptTeam.getNukeInterception() > iBestInterception)
-		{
-			iBestInterception = kInterceptTeam.getNukeInterception();
-			eBestTeam = kInterceptTeam.getID();
-		} // <advc.143b>
-		if (kInterceptTeam.isAVassal())
-		{
-			int iMasterChance = GET_TEAM(kInterceptTeam.getMasterTeam()).
-					getNukeInterception();
-			if(iMasterChance > iBestInterception)
-			{
-				iBestInterception = iMasterChance;
-				eBestTeam = kInterceptTeam.getMasterTeam();
-			}
-		} // </advc.143b>
-	}
-
-	iBestInterception *= 100 - m_pUnitInfo->getEvasionProbability();
-	iBestInterception /= 100;
-
+	// <advc.650> Moved into subroutine
+	TeamTypes eBestTeam=NO_TEAM;
+	int iBestInterception = nukeInterceptionChance(kPlot, &eBestTeam, &abTeamsAffected);
+	// </advc.650>
 	setReconPlot(&kPlot);
 	// <advc.002m>
 	int const iMissionTime = getGroup()->nukeMissionTime();
@@ -3977,6 +3953,50 @@ bool CvUnit::nuke(int iX, int iY)
 		kill(true);
 
 	return true;
+}
+
+// advc.650:
+int CvUnit::nukeInterceptionChance(CvPlot const& kTarget,
+	TeamTypes* pBestTeam, // Optional out-param
+	// Allow caller to provide set of affected teams (just to save time)
+	EnumMap<TeamTypes,bool> const* pTeamsAffected) const
+{
+	TeamTypes eBestTeam_local = NO_TEAM;
+	TeamTypes& eBestTeam = (pBestTeam == NULL ? eBestTeam_local : *pBestTeam);
+	EnumMap<TeamTypes,bool> abTeamsAffected_local;
+	if (pTeamsAffected == NULL)
+	{
+		for (TeamIter<ALIVE> it; it.hasNext(); ++it)
+			abTeamsAffected_local.set(it->getID(), isNukeVictim(&kTarget, it->getID()));
+	}
+	EnumMap<TeamTypes,bool> const& abTeamsAffected = (pTeamsAffected == NULL ?
+			abTeamsAffected_local : *pTeamsAffected);
+	// Rest of the body cut from nuke(int,int) ...
+	int iBestInterception = 0;
+	FOR_EACH_ENUM(Team)
+	{
+		CvTeam const& kInterceptTeam = GET_TEAM(eLoopTeam);
+		if (!abTeamsAffected.get(kInterceptTeam.getID()))
+			continue;
+		if (kInterceptTeam.getNukeInterception() > iBestInterception)
+		{
+			iBestInterception = kInterceptTeam.getNukeInterception();
+			eBestTeam = kInterceptTeam.getID();
+		} // <advc.143b>
+		if (kInterceptTeam.isAVassal())
+		{
+			int iMasterChance = GET_TEAM(kInterceptTeam.getMasterTeam()).
+					getNukeInterception();
+			if(iMasterChance > iBestInterception)
+			{
+				iBestInterception = iMasterChance;
+				eBestTeam = kInterceptTeam.getMasterTeam();
+			}
+		} // </advc.143b>
+	}
+	iBestInterception *= 100 - m_pUnitInfo->getEvasionProbability();
+	iBestInterception /= 100;
+	return range(iBestInterception, 0, 100);
 }
 
 

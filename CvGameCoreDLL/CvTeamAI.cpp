@@ -4386,6 +4386,17 @@ void CvTeamAI::AI_changeWarSuccess(TeamTypes eIndex, int iChange)
 	}
 }
 
+// advc:
+int CvTeamAI::AI_countEnemyWarSuccess() const
+{
+	int iR = 0;
+	for (TeamIter<CIV_ALIVE,ENEMY_OF> itEnemy(getID()); itEnemy.hasNext(); ++itEnemy)
+	{
+		iR += itEnemy->AI_getWarSuccess(getID());
+	}
+	return iR;
+}
+
 /*  eEnemy is a war enemy that this team and eWarAlly have in common.
 	Either eWarAlly has inflicted a war success on eEnemy or vice versa.
 	This team is being informed about the war success, and

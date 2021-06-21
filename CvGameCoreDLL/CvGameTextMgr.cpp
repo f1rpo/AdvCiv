@@ -20100,6 +20100,21 @@ void CvGameTextMgr::getNukePlotHelp(CvPlot const& kPlot,
 			break;
 		}
 	}
+	// <advc.650>
+	if (kHeadSelectedUnit.canNukeAt(
+		kHeadSelectedUnit.getPlot(), kPlot.getX(), kPlot.getY()))
+	{
+		TeamTypes eInterceptTeam=NO_TEAM;
+		int iInterceptChance = kHeadSelectedUnit.nukeInterceptionChance(
+				kPlot, &eInterceptTeam);
+		if (eInterceptTeam != NO_TEAM)
+		{
+			FAssert(iInterceptChance > 0);
+			szHelp.append(gDLL->getText("TXT_KEY_NUKE_INTERCEPT_CHANCE",
+					// Should perhaps show the team only when its not directly affected?
+					GET_TEAM(eInterceptTeam).getName().c_str(), iInterceptChance));
+		}
+	} // </advc.650>
 	szHelp += NEWLINE; // advc.130q
 }
 
