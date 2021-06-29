@@ -57,7 +57,6 @@ public:
 	{
 		return getNumCities() - getCitiesPerPlayer(BARBARIAN_PLAYER);
 	}
-	int countCivs(bool bSubtractOCC = false) const; // with at least 1 city
 	bool hasAnyAreaPlayerBonus(BonusTypes eBonus) const;
 	int getBarbarianCitiesEverCreated() const;
 	void reportBarbarianCityCreated();

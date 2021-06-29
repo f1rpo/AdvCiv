@@ -1318,51 +1318,40 @@ bool CvDLLButtonPopup::launchChooseElectionPopup(CvPopup* pPopup, CvPopupInfo &i
 
 bool CvDLLButtonPopup::launchDiploVotePopup(CvPopup* pPopup, CvPopupInfo &info)
 {
-	VoteTriggeredData* pVoteTriggered = GC.getGame().getVoteTriggered(info.getData1());
-	if (NULL == pVoteTriggered)
+	VoteTriggeredData const* pVoteTriggered = GC.getGame().
+			getVoteTriggered(info.getData1());
+	if (pVoteTriggered == NULL)
 	{
 		FAssert(false);
 		return false;
 	}
 
-	VoteTypes eVote = pVoteTriggered->kVoteOption.eVote;
-	VoteSourceTypes eVoteSource = pVoteTriggered->eVoteSource;
+	VoteTypes const eVote = pVoteTriggered->kVoteOption.eVote;
+	VoteSourceTypes const eVoteSource = pVoteTriggered->eVoteSource;
 
-	TeamTypes eVassalOfTeam = NO_TEAM;
+	TeamTypes eMasterTeam = NO_TEAM;
 	bool bEligible = false;
 
 	m_kUI.popupSetHeaderString(pPopup, GC.getInfo(eVoteSource).getDescription());
 	m_kUI.popupSetBodyString(pPopup, pVoteTriggered->kVoteOption.szText);
 	if (GC.getGame().isTeamVote(eVote))
-	{
-		for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
+	{	// <advc> Replacing a loop
+		eMasterTeam = GET_TEAM(GC.getGame().getActiveTeam()).getMasterTeam();
+		if (eMasterTeam == GC.getGame().getActiveTeam() ||
+			!GC.getGame().isTeamVoteEligible(eMasterTeam, eVoteSource))
 		{
-			if (GET_TEAM((TeamTypes)iI).isAlive())
-			{
-				if (GC.getGame().isTeamVoteEligible((TeamTypes)iI, eVoteSource))
-				{
-					if (GET_TEAM(GC.getGame().getActiveTeam()).isVassal((TeamTypes)iI))
-					{
-						eVassalOfTeam = (TeamTypes)iI;
-						break;
-					}
-				}
-			}
-		}
-
-		for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
+			eMasterTeam = NO_TEAM;
+		} // </advc>
+		for (TeamIter<MAJOR_CIV> itTeam; itTeam.hasNext(); ++itTeam)
 		{
-			if (GET_TEAM((TeamTypes)iI).isAlive())
+			if (!GC.getGame().isTeamVoteEligible(itTeam->getID(), eVoteSource))
+				continue;
+			if (eMasterTeam == NO_TEAM || eMasterTeam == itTeam->getID() ||
+				itTeam->getID() == GC.getGame().getActiveTeam())
 			{
-				if (GC.getGame().isTeamVoteEligible((TeamTypes)iI, eVoteSource))
-				{
-					if (eVassalOfTeam == NO_TEAM || eVassalOfTeam == iI || iI == GC.getGame().getActiveTeam())
-					{
-						m_kUI.popupAddGenericButton(pPopup, GET_TEAM((TeamTypes)iI).getName().GetCString(),
-								NULL, iI, WIDGET_GENERAL);
-						bEligible = true;
-					}
-				}
+				m_kUI.popupAddGenericButton(pPopup, itTeam->getName().GetCString(),
+						NULL, itTeam->getID(), WIDGET_GENERAL);
+				bEligible = true;
 			}
 		}
 	}
@@ -1372,21 +1361,21 @@ bool CvDLLButtonPopup::launchDiploVotePopup(CvPopup* pPopup, CvPopupInfo &info)
 				NULL, PLAYER_VOTE_YES, WIDGET_GENERAL);
 		m_kUI.popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_NO").c_str(),
 				NULL, PLAYER_VOTE_NO, WIDGET_GENERAL);
-
-		if (GET_PLAYER(GC.getGame().getActivePlayer()).canDefyResolution(eVoteSource, pVoteTriggered->kVoteOption))
+		if (GET_PLAYER(GC.getGame().getActivePlayer()).canDefyResolution(
+			eVoteSource, pVoteTriggered->kVoteOption))
 		{
-			m_kUI.popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_VOTE_NEVER").c_str(),
+			m_kUI.popupAddGenericButton(pPopup,
+					gDLL->getText("TXT_KEY_POPUP_VOTE_NEVER").c_str(),
 					NULL, PLAYER_VOTE_NEVER, WIDGET_GENERAL);
 		}
 		bEligible = true;
 	}
-
-	if (eVassalOfTeam == NO_TEAM || !bEligible)
+	if (eMasterTeam == NO_TEAM || !bEligible)
 	{
-		m_kUI.popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_ABSTAIN").c_str(),
+		m_kUI.popupAddGenericButton(pPopup,
+				gDLL->getText("TXT_KEY_POPUP_ABSTAIN").c_str(),
 				NULL, PLAYER_VOTE_ABSTAIN, WIDGET_GENERAL);
 	}
-
 	m_kUI.popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);
 	return true;
 }
@@ -1394,23 +1383,24 @@ bool CvDLLButtonPopup::launchDiploVotePopup(CvPopup* pPopup, CvPopupInfo &info)
 
 bool CvDLLButtonPopup::launchRazeCityPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
-	CvPlayer& player = GET_PLAYER(GC.getGame().getActivePlayer());
+	CvPlayer& kPlayer = GET_PLAYER(GC.getGame().getActivePlayer());
 
-	CvCity* pNewCity = player.getCity(info.getData1());
-	if (NULL == pNewCity)
+	CvCity* pNewCity = kPlayer.getCity(info.getData1());
+	if (pNewCity == NULL)
 	{
 		FAssert(false);
 		return false;
 	}
 	if (GC.getDefineINT("PLAYER_ALWAYS_RAZES_CITIES") != 0)
 	{
-		player.raze(*pNewCity);
+		kPlayer.raze(*pNewCity);
 		return false;
 	}
 
 	int iCaptureGold = info.getData3();
-	bool bRaze = player.canRaze(*pNewCity);
-	PlayerTypes eLiberationPlayer = (PlayerTypes)info.getData2(); // advc: Was still named eHighestCulturePlayer as in Vanilla Civ 4
+	bool bRaze = kPlayer.canRaze(*pNewCity);
+	// advc: Was still named "eHighestCulturePlayer" as in Vanilla Civ 4
+	PlayerTypes eLiberationPlayer = (PlayerTypes)info.getData2();
 	// advc: Other bGift checks deleted; now implied by eLiberationPlayer.
 	bool bGift = (eLiberationPlayer != NO_PLAYER);
 	CvWString szBuffer;
@@ -2474,16 +2464,13 @@ bool CvDLLButtonPopup::launchDiplomacyPopup(CvPopup* pPopup, CvPopupInfo &info)
 	m_kUI.popupSetHeaderString(pPopup, gDLL->getText("TXT_KEY_DIPLOMACY_TITLE"));
 
 	int iCount = 0;
-	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		if (GET_PLAYER(GC.getGame().getActivePlayer()).canContact(itPlayer->getID()))
 		{
-			if (GET_PLAYER(GC.getGame().getActivePlayer()).canContact((PlayerTypes)iI))
-			{
-				m_kUI.popupAddGenericButton(pPopup,
-						GET_PLAYER((PlayerTypes)iI).getName(), NULL, iI, WIDGET_GENERAL);
-				iCount++;
-			}
+			m_kUI.popupAddGenericButton(pPopup, itPlayer->getName(),
+					NULL, itPlayer->getID(), WIDGET_GENERAL);
+			iCount++;
 		}
 	}
 

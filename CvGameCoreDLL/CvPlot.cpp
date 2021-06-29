@@ -1381,15 +1381,11 @@ bool CvPlot::isWithinTeamCityRadius(TeamTypes eTeam, PlayerTypes eIgnorePlayer) 
 {
 	PROFILE_FUNC();
 
-	for (int i = 0; i < MAX_PLAYERS; i++)
+	for (MemberIter itMember(eTeam); itMember.hasNext(); ++itMember)
 	{
-		CvPlayer const& kMember = GET_PLAYER((PlayerTypes)i);
-		if (!kMember.isAlive() || kMember.getTeam() != eTeam)
-			continue;
-
-		if (eIgnorePlayer == NO_PLAYER || kMember.getID() != eIgnorePlayer)
+		if (eIgnorePlayer == NO_PLAYER || itMember->getID() != eIgnorePlayer)
 		{
-			if (isPlayerCityRadius(kMember.getID()))
+			if (isPlayerCityRadius(itMember->getID()))
 				return true;
 		}
 	}
@@ -3018,13 +3014,10 @@ bool CvPlot::isActiveVisible(bool bDebug) const
 
 bool CvPlot::isVisibleToCivTeam() const
 {
-	for (int iI = 0; iI < MAX_CIV_TEAMS; ++iI)
+	for (TeamIter<CIV_ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
 	{
-		if (GET_TEAM((TeamTypes)iI).isAlive())
-		{
-			if (isVisible(((TeamTypes)iI)))
-				return true;
-		}
+		if (isVisible(itTeam->getID()))
+			return true;
 	}
 	return false;
 }
@@ -3032,12 +3025,9 @@ bool CvPlot::isVisibleToCivTeam() const
 
 bool CvPlot::isVisibleToWatchingHuman() const
 {
-	for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+	for (TeamIter<HUMAN> itTeam; itTeam.hasNext(); ++itTeam)
 	{
-		CvPlayer const& kHuman = GET_PLAYER((PlayerTypes)i);
-		if (!kHuman.isAlive() || !kHuman.isHuman())
-			continue;
-		if (isVisible(kHuman.getTeam()))
+		if (isVisible(itTeam->getID()))
 			return true;
 	}
 	return false;
@@ -4804,13 +4794,10 @@ void CvPlot::setRouteType(RouteTypes eNewValue, bool bUpdatePlotGroups)
 	m_eRouteType = eNewValue;
 	updatePlotGroupBonus(true);
 
-	for (int iI = 0; iI < MAX_TEAMS; ++iI)
+	for (TeamIter<ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
 	{
-		if (GET_TEAM((TeamTypes)iI).isAlive())
-		{
-			if (isVisible((TeamTypes)iI))
-				setRevealedRouteType((TeamTypes)iI, getRouteType());
-		}
+		if (isVisible(itTeam->getID()))
+			setRevealedRouteType(itTeam->getID(), getRouteType());
 	}
 
 	updateYield();
@@ -5427,18 +5414,6 @@ void CvPlot::updateYield()
 }
 
 
-int CvPlot::countTotalCulture() const
-{
-	int iTotal = 0;
-	for (int iI = 0; iI < MAX_PLAYERS; ++iI)
-	{
-		if (GET_PLAYER((PlayerTypes)iI).isEverAlive()) // advc.099: was isAlive
-			iTotal += getCulture((PlayerTypes)iI);
-	}
-	return iTotal;
-}
-
-
 void CvPlot::updateTeam() // advc.opt: What getTeam used to do
 {
 	m_eTeam = (isOwned() ? TEAMID(getOwner()) : NO_TEAM);
@@ -5458,17 +5433,16 @@ PlayerTypes CvPlot::findHighestCulturePlayer(/* advc.035: */ bool bAlive) const
 {
 	PlayerTypes eBestPlayer = NO_PLAYER;
 	int iBestValue = 0;
-	for (int iI = 0; iI < MAX_PLAYERS; ++iI)
+	// advc.099: EVER_ALIVE
+	for (PlayerIter<EVER_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		PlayerTypes eLoopPlayer = (PlayerTypes)iI;
-		if ((GET_PLAYER(eLoopPlayer).isEverAlive() // advc.099: was isAlive
-			&& !bAlive) || GET_PLAYER(eLoopPlayer).isAlive()) // advc.035
+		if (!bAlive || itPlayer->isAlive()) // advc.035
 		{
-			int iValue = getCulture(eLoopPlayer);
+			int iValue = getCulture(itPlayer->getID());
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;
-				eBestPlayer = eLoopPlayer;
+				eBestPlayer = itPlayer->getID();
 			}
 		}
 	}
@@ -5476,28 +5450,24 @@ PlayerTypes CvPlot::findHighestCulturePlayer(/* advc.035: */ bool bAlive) const
 }
 
 
-int CvPlot::calculateCulturePercent(PlayerTypes eIndex) const
+int CvPlot::calculateCulturePercent(PlayerTypes ePlayer) const
 {
 	int iTotalCulture = getTotalCulture(); // advc.opt: was countTotalCulture
-	if(iTotalCulture <= 0)
+	if (iTotalCulture <= 0)
 		return 0;
-	return ((getCulture(eIndex) * 100) / iTotalCulture);
+	return (getCulture(ePlayer) * 100) / iTotalCulture;
 }
 
 
-int CvPlot::calculateTeamCulturePercent(TeamTypes eIndex) const
+int CvPlot::calculateTeamCulturePercent(TeamTypes eTeam) const
 {
 	int iTeamCulturePercent = 0;
-	for (int iI = 0; iI < MAX_PLAYERS; ++iI)
+	/*  advc.099: Was isAlive. (BtS doesn't call this function, but I'm
+		using it for 130w.) */
+	for (PlayerIter<EVER_ALIVE,MEMBER_OF> itMember(eTeam);
+		itMember.hasNext(); ++itMember)
 	{
-		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)iI);
-		/*  advc.099: Was isAlive. (BtS doesn't call this function, but I'm
-			using it for 130w.) */
-		if (kPlayer.isEverAlive())
-		{
-			if (kPlayer.getTeam() == eIndex)
-				iTeamCulturePercent += calculateCulturePercent(kPlayer.getID());
-		}
+		iTeamCulturePercent += calculateCulturePercent(itMember->getID());
 	}
 	return iTeamCulturePercent;
 }
@@ -5855,14 +5825,10 @@ void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange,
 	if (pCity != NULL)
 		pCity->setInfoDirty(true);
 
-	for (int iI = 0; iI < MAX_TEAMS; ++iI)
+	for (TeamIter<ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
 	{
-		CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iI);
-		if (kLoopTeam.isAlive())
-		{
-			if (kLoopTeam.isStolenVisibility(eTeam))
-				changeStolenVisibilityCount(kLoopTeam.getID(), isVisible(eTeam) ? 1 : -1);
-		}
+		if (itTeam->isStolenVisibility(eTeam))
+			changeStolenVisibilityCount(itTeam->getID(), isVisible(eTeam) ? 1 : -1);
 	}
 
 	if (eTeam == GC.getGame().getActiveTeam())
@@ -6126,17 +6092,12 @@ void CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, Tea
 		getRevealedRouteType(eTeam) != getRouteType() ||
 		(pCity != NULL && !pCity->isRevealed(eTeam)))) // </advc.124>
 	{
-		for (int iI = 0; iI < MAX_PLAYERS; ++iI)
+		for (MemberIter itMember(eTeam); itMember.hasNext(); ++itMember)
 		{
-			PlayerTypes eLoopPlayer = (PlayerTypes)iI;
-			if (GET_PLAYER(eLoopPlayer).isAlive())
-			{
-				if (TEAMID(eLoopPlayer) == eTeam)
-					updatePlotGroup(eLoopPlayer);
-			}
+			updatePlotGroup(itMember->getID());
 		}
 	}
-	if(bOldValue != bNewValue) // advc.124
+	if (bOldValue != bNewValue) // advc.124
 	{
 		if (eTeam == GC.getGame().getActiveTeam())
 		{

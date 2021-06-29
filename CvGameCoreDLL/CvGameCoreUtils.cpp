@@ -43,12 +43,14 @@ void contestedPlots(vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2)
 		return;
 	// Sufficient to check plots around the teams' cities
 	vector<CvCity const*> apCities;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+	for (MemberIter itMember1(t1); itMember1.hasNext(); ++itMember1)
 	{
-		CvPlayer& kMember = GET_PLAYER((PlayerTypes)i);
-		if(!kMember.isAlive() || (kMember.getTeam() != t1 && kMember.getTeam() != t2))
-			continue;
-		FOR_EACH_CITY(c, kMember)
+		FOR_EACH_CITY(c, *itMember1)
+			apCities.push_back(c);
+	}
+	for (MemberIter itMember2(t2); itMember2.hasNext(); ++itMember2)
+	{
+		FOR_EACH_CITY(c, *itMember2)
 			apCities.push_back(c);
 	}
 	std::set<int> seenPlots; // To avoid duplicates

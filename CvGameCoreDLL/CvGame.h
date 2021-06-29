@@ -647,9 +647,9 @@ public:
 	CvCity* getHeadquarters(CorporationTypes eIndex) const; // Exposed to Python
 	void setHeadquarters(CorporationTypes eIndex, CvCity* pNewValue, bool bAnnounce);	// Exposed to Python
 
-	PlayerVoteTypes getPlayerVote(PlayerTypes eOwnerIndex, int iVoteId) const;			// Exposed to Python
-	void setPlayerVote(PlayerTypes eOwnerIndex, int iVoteId, PlayerVoteTypes eNewValue);
-	void castVote(PlayerTypes eOwnerIndex, int iVoteId, PlayerVoteTypes ePlayerVote);
+	PlayerVoteTypes getPlayerVote(PlayerTypes eVoter, int iVote) const;			// Exposed to Python
+	void setPlayerVote(PlayerTypes eVoter, int iVote, PlayerVoteTypes eNewValue);
+	void castVote(PlayerTypes eVoter, int iVote, PlayerVoteTypes ePlayerVote);
 
 	DllExport CvWString const& getName();
 	void setName(TCHAR const* szName);

@@ -18308,43 +18308,61 @@ void CvPlayerAI::AI_setMemoryCount(PlayerTypes eAboutPlayer, MemoryTypes eMemory
 // advc.130j:
 void CvPlayerAI::AI_rememberEvent(PlayerTypes ePlayer, MemoryTypes eMemoryType)
 {
-	int delta = 2;
+	// Tech memory, vote memory are still counted on the BtS scale
+	FAssert(eMemoryType != MEMORY_TRADED_TECH_TO_US && eMemoryType != MEMORY_RECEIVED_TECH_FROM_ANY &&
+			eMemoryType != MEMORY_VOTED_AGAINST_US && eMemoryType != MEMORY_VOTED_FOR_US);
+	int iDelta = 2;
 	// Need a finer granularity for DoW
-	// (Tbd.: Don't use magic values for memory granularity)
-	if(eMemoryType == MEMORY_DECLARED_WAR)
-		delta = 3;
+	// (Tbd.: Shouldn't use magic values for the memory granularity)
+	if (eMemoryType == MEMORY_DECLARED_WAR)
+		iDelta = 3;
 #if 0 // This disables the bulk of change 130j
-	int sign = 0; // 0 means it's a neutral event, 1 is good, -1 bad
-	/*  Random events should have the effects that the event dialogs say they have.
+	int iSign = 0; // 0 means it's a neutral event, 1 is good, -1 bad
+	/*	Random events should have the effects that the event dialogs say they have.
 		(E.g. "... you gain +1 attitude with ...")
 		Don't want votes for hostile civs to improve relations much, at least not
 		until the AI can figure out when a vote matters (often it doesn't). */
-	if(eMemoryType != MEMORY_EVENT_GOOD_TO_US && eMemoryType != MEMORY_EVENT_BAD_TO_US && eMemoryType != MEMORY_VOTED_FOR_US) {
-		int iMemoryAttitude = GC.getInfo(getPersonalityType()).getMemoryAttitudePercent(eMemoryType);
-		if(iMemoryAttitude < 0)
-			sign = -1;
-		if(iMemoryAttitude > 0)
-			sign = 1;
+	if (eMemoryType != MEMORY_EVENT_GOOD_TO_US &&
+		eMemoryType != MEMORY_EVENT_BAD_TO_US &&
+		eMemoryType != MEMORY_VOTED_FOR_US)
+	{
+		int iMemoryAttitude = GC.getInfo(getPersonalityType()).
+				getMemoryAttitudePercent(eMemoryType);
+		if (iMemoryAttitude < 0)
+			iSign = -1;
+		if (iMemoryAttitude > 0)
+			iSign = 1;
 	}
 	// We're surprised by the actions of ePlayer
-	if((sign < 0 && (AI_getAttitude(ePlayer) >= ATTITUDE_FRIENDLY ||
-			// <advc.130o> Surprised by war despite tribute
-			(eMemoryType == MEMORY_DECLARED_WAR && !isHuman() && GET_PLAYER(ePlayer).isHuman() &&
-			AI_getMemoryCount(ePlayer, MEMORY_MADE_DEMAND) > 0))) || // </advc.130o>
-			(sign > 0 && AI_getAttitude(ePlayer) <= ATTITUDE_ANNOYED))
-		delta++;
+	if ((iSign < 0 && (AI_getAttitude(ePlayer) >= ATTITUDE_FRIENDLY ||
+		// <advc.130o> Surprised by war despite tribute
+		(eMemoryType == MEMORY_DECLARED_WAR && !isHuman() &&
+		GET_PLAYER(ePlayer).isHuman() &&
+		AI_getMemoryCount(ePlayer, MEMORY_MADE_DEMAND) > 0))) || // </advc.130o>
+		(iSign > 0 && AI_getAttitude(ePlayer) <= ATTITUDE_ANNOYED))
+	{
+		iDelta++;
+	}
 	// Just what we expected from ePlayer
-	if((sign > 0 && AI_getAttitude(ePlayer) >= ATTITUDE_FRIENDLY) ||
-			(sign < 0 && AI_getAttitude(ePlayer) <= ATTITUDE_ANNOYED))
-		delta--;
+	if ((iSign > 0 && AI_getAttitude(ePlayer) >= ATTITUDE_FRIENDLY) ||
+		(iSign < 0 && AI_getAttitude(ePlayer) <= ATTITUDE_ANNOYED))
+	{
+		iDelta--;
+	}
 #endif
 	// <advc.130y> Cap DoW penalty for vassals
-	if(eMemoryType == MEMORY_DECLARED_WAR && (isAVassal() || GET_TEAM(ePlayer).isAVassal()))
-		delta = std::min(3, delta); // </advc.130y>
+	if (eMemoryType == MEMORY_DECLARED_WAR &&
+		(isAVassal() || GET_TEAM(ePlayer).isAVassal()))
+	{
+		iDelta = std::min(3, iDelta);
+	} // </advc.130y>
 	// <advc.130f>
-	if(eMemoryType == MEMORY_HIRED_TRADE_EMBARGO && GET_TEAM(getTeam()).isAtWar(TEAMID(ePlayer)))
-		delta--; // </advc.130f>
-	AI_changeMemoryCount(ePlayer, eMemoryType, delta);
+	if(eMemoryType == MEMORY_HIRED_TRADE_EMBARGO &&
+		GET_TEAM(getTeam()).isAtWar(TEAMID(ePlayer)))
+	{
+		iDelta--;
+	} // </advc.130f>
+	AI_changeMemoryCount(ePlayer, eMemoryType, iDelta);
 	// <advc.130l>
 	static bool const bENABLE_130L = GC.getDefineBOOL("ENABLE_130L");
 	if(!bENABLE_130L)
@@ -18369,11 +18387,11 @@ void CvPlayerAI::AI_rememberEvent(PlayerTypes ePlayer, MemoryTypes eMemoryType)
 		//{MEMORY_DECLARED_WAR, MEMORY_INDEPENDENCE},
 		// !! Update iPairs when adding/removing pairs !!
 	};
-	for(int i = 0; i < iPairs; i++)
+	for (int i = 0; i < iPairs; i++)
 	{
-		for(int j = 0; j < 2; j++)
+		for (int j = 0; j < 2; j++)
 		{
-			if(eMemoryType == coupledRequests[i][j])
+			if (eMemoryType == coupledRequests[i][j])
 			{
 				MemoryTypes eOtherType = coupledRequests[i][(j + 1) % 2];
 				AI_changeMemoryCount(ePlayer, eOtherType, -std::min(1,

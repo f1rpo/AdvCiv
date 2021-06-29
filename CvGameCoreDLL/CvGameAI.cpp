@@ -106,21 +106,18 @@ void CvGameAI::AI_reset(/* advc (as in CvGame): */ bool bConstructor)
 
 void CvGameAI::AI_makeAssignWorkDirty()
 {
-	for (int iI = 0; iI < MAX_PLAYERS; iI++)
+	for (PlayerIter<ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-			GET_PLAYER((PlayerTypes)iI).AI_makeAssignWorkDirty();
+		itPlayer->AI_makeAssignWorkDirty();
 	}
 }
 
 
 void CvGameAI::AI_updateAssignWork()
 {
-	for (int iI = 0; iI < MAX_PLAYERS; iI++)
+	for (PlayerIter<HUMAN> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-		if (GET_TEAM(kLoopPlayer.getTeam()).isHuman() && kLoopPlayer.isAlive())
-			kLoopPlayer.AI_updateAssignWork();
+		itPlayer->AI_updateAssignWork();
 	}
 }
 

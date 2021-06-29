@@ -70,8 +70,8 @@ void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 	//m_aiImprovements.reset(); // advc.opt
 	m_aeAreaAIType.reset();
 
-	for (int i = 0; i < MAX_PLAYERS; i++)
-		m_aTargetCities[i].reset();
+	FOR_EACH_ENUM(Player)
+		m_aTargetCities[eLoopPlayer].reset();
 
 	m_aaiYieldRateModifier.reset();
 	m_aaiNumTrainAIUnits.reset();
@@ -141,10 +141,9 @@ int CvArea::countHasReligion(ReligionTypes eReligion, PlayerTypes eOwner) const
 	// <advc.opt> Don't go through all players if eOwner is given
 	if (eOwner == NO_PLAYER)
 	{
-		for (int iI = 0; iI < MAX_PLAYERS; iI++)
-		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive()) // Recursive call with eOwner!=NO_PLAYER
-				iCount += countHasReligion(eReligion, (PlayerTypes)iI);
+		for (PlayerIter<ALIVE> itOwner; itOwner.hasNext(); ++itOwner)
+		{	// Recursive call with eOwner!=NO_PLAYER
+			iCount += countHasReligion(eReligion, itOwner->getID());
 		}
 		return iCount;
 	} // </advc.opt>
@@ -165,10 +164,9 @@ int CvArea::countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwne
 	// <advc.opt> Don't go through all players if eOwner is given
 	if (eOwner == NO_PLAYER)
 	{
-		for (int iI = 0; iI < MAX_PLAYERS; iI++)
-		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive()) // Recursive call with eOwner!=NO_PLAYER
-				iCount += countHasCorporation(eCorporation, (PlayerTypes)iI);
+		for (PlayerIter<ALIVE> itOwner; itOwner.hasNext(); ++itOwner)
+		{	// Recursive call with eOwner!=NO_PLAYER
+			iCount += countHasCorporation(eCorporation, itOwner->getID());
 		}
 		return iCount;
 	} // </advc.opt>
@@ -297,39 +295,23 @@ std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool bIgnoreBarb) con
 }
 
 
-int CvArea::countCivs(bool bSubtractOCC) const
-{
-	/* Perhaps an owned tile (across the sea) should suffice, but tiles-per-civ
-	   aren't cached/ serialized (yet). */
-	int r = 0;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
-	{
-		PlayerTypes ePlayer = (PlayerTypes)i;
-		if(getCitiesPerPlayer(ePlayer) > 0 &&
-				(!bSubtractOCC || !GET_PLAYER(ePlayer).isHuman() ||
-				!GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)))
-			r++;
-	}
-	return r;
-}
-
-
 bool CvArea::hasAnyAreaPlayerBonus(BonusTypes eBonus) const
 {
-	for(int i = 0; i < MAX_PLAYERS; i++)
+	for (PlayerIter<ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		PlayerTypes ePlayer = (PlayerTypes)i;
 		// Barbarian, minor civ, anything goes so long as there's a city.
-		if(getCitiesPerPlayer(ePlayer) > 0 && GET_PLAYER(ePlayer).hasBonus(eBonus))
+		if (getCitiesPerPlayer(itPlayer->getID()) > 0 && itPlayer->hasBonus(eBonus))
 			return true;
 	}
 	return false;
 }
 
+
 int CvArea::getBarbarianCitiesEverCreated() const
 {
 	return m_iBarbarianCitiesEver;
 }
+
 
 void CvArea::reportBarbarianCityCreated()
 {
@@ -619,7 +601,7 @@ void CvArea::read(FDataStreamBase* pStream)
 	if (uiFlag < 2)
 	{
 		// Discard AnimalsPerPlayer
-		for (int i = 0; i < MAX_PLAYERS; i++)
+		FOR_EACH_ENUM(Player)
 		{
 			int iTmp;
 			pStream->Read(&iTmp);
@@ -639,11 +621,11 @@ void CvArea::read(FDataStreamBase* pStream)
 	m_aiBorderObstacleCount.Read(pStream);
 	m_aeAreaAIType.Read(pStream);
 
-	for (int i = 0; i < MAX_PLAYERS; i++)
+	FOR_EACH_ENUM(Player)
 	{
-		pStream->Read((int*)&m_aTargetCities[i].eOwner);
-		pStream->Read(&m_aTargetCities[i].iID);
-		m_aTargetCities[i].validateOwner(); // advc.opt
+		pStream->Read((int*)&m_aTargetCities[eLoopPlayer].eOwner);
+		pStream->Read(&m_aTargetCities[eLoopPlayer].iID);
+		m_aTargetCities[eLoopPlayer].validateOwner(); // advc.opt
 	}
 
 	m_aaiYieldRateModifier.Read(pStream, uiFlag < 2);
@@ -701,10 +683,10 @@ void CvArea::write(FDataStreamBase* pStream)
 	m_aiBorderObstacleCount.Write(pStream);
 	m_aeAreaAIType.Write(pStream);
 
-	for (int i = 0; i < MAX_PLAYERS; i++)
+	FOR_EACH_ENUM(Player)
 	{
-		pStream->Write(m_aTargetCities[i].eOwner);
-		pStream->Write(m_aTargetCities[i].iID);
+		pStream->Write(m_aTargetCities[eLoopPlayer].eOwner);
+		pStream->Write(m_aTargetCities[eLoopPlayer].iID);
 	}
 
 	m_aaiYieldRateModifier.Write(pStream, false);

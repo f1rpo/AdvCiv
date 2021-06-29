@@ -1783,6 +1783,8 @@ enum ChatTargetTypes
 	CHATTARGET_TEAM = -3,
 };
 
+/*	advc (note): Nonnegative values are reserved for team votes
+	(i.e. players electing one team to become e.g. Secretary General). */
 enum PlayerVoteTypes
 {
 	NO_PLAYER_VOTE_CHECKED = -6,

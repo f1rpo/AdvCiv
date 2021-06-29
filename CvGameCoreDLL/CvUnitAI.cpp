@@ -2074,11 +2074,21 @@ void CvUnitAI::AI_barbAttackMove()
 	// <advc.300> See also CvTeamAI::AI_calculateAreaAIType
 	if(getArea().getAreaAIType(getTeam()) != AREAAI_ASSAULT)
 	{
-		int iCivsInArea = getArea().countCivs(true);
-		int iCivCitiesInArea = getArea().getNumCivCities();
-		int iBabarianCitiesInArea = getArea().getNumCities() - iCivCitiesInArea;
-		int iCivCities = kGame.getNumCivCities();
-		int iCivs = kGame.countCivPlayersAlive(); // </advc.300>
+		int iCivsInArea = 0;
+		for (PlayerIter<CIV_ALIVE> itCivPlayer; itCivPlayer.hasNext(); ++itCivPlayer)
+		{
+			/*	Perhaps an owned tile (across the sea) should suffice, but tiles
+				per player aren't cached. */
+			if (getArea().getCitiesPerPlayer(itCivPlayer->getID()) > 0 &&
+				!itCivPlayer->isOneCityChallenge())
+			{
+				iCivsInArea++;
+			}
+		}
+		int const iCivCitiesInArea = getArea().getNumCivCities();
+		int const iBabarianCitiesInArea = getArea().getNumCities() - iCivCitiesInArea;
+		int const iCivCities = kGame.getNumCivCities();
+		int const iCivs = kGame.countCivPlayersAlive(); // </advc.300>
 		if(kGame.isOption(GAMEOPTION_RAGING_BARBARIANS) &&
 			/*  <advc.300> On slower than Normal game speed, don't start to rage
 				until 3 in 5 civs have founded a second city. */

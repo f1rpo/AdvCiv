@@ -1647,44 +1647,40 @@ void CvCityAI::AI_chooseProduction()
 		}
 	}
 
-	/*  <advc.124> Could've modified the K-Mod condition above, but that one
+	/*	<advc.124> Could've modified the K-Mod condition above, but that one
 		is aimed at exploration for the sake of initial meetings and expansion,
 		not (specifically) at trade. Rather handle trade here separately. */
-	if(!bDanger && !bDefenseWar && pWaterArea != NULL && iSeaExplorersNow == 0)
+	if (!bDanger && !bDefenseWar && pWaterArea != NULL && iSeaExplorersNow == 0)
 	{
 		bool bNavalTrade = false;
-		for(int i = 0; i < GC.getNumTerrainInfos(); i++)
+		FOR_EACH_ENUM(Terrain)
 		{
-			TerrainTypes eTerrain = (TerrainTypes)i;
-			if(GC.getInfo(eTerrain).isWater() &&
-					GET_TEAM(getOwner()).isTerrainTrade(eTerrain))
+			if(GC.getInfo(eLoopTerrain).isWater() &&
+				GET_TEAM(getOwner()).isTerrainTrade(eLoopTerrain))
 			{
 				bNavalTrade = true;
 				break;
 			}
 		}
-		if(bNavalTrade)
+		if (bNavalTrade)
 		{
-			/*  Don't rely on seaExplorersTarget. Can be 0 if already met all
+			/*	Don't rely on seaExplorersTarget. Can be 0 if already met all
 				other civs or if there is a larger separate water area. */
 			bool bEnoughWaterUnits = false;
 			int iWaterUnits = 0;
-			for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+			for (MemberIter itMember(getTeam()); itMember.hasNext(); ++itMember)
 			{
-				CvPlayer const& kMember = GET_PLAYER((PlayerTypes)i);
-				if(!kMember.isAlive() || kMember.isMinorCiv() || kMember.getTeam() != getTeam())
-					continue;
-				iWaterUnits += pWaterArea->getNumAIUnits(kMember.getID(), NO_UNITAI);
-				if(iWaterUnits >= 3)
+				iWaterUnits += pWaterArea->getNumAIUnits(itMember->getID(), NO_UNITAI);
+				if (iWaterUnits >= 3)
 				{
 					bEnoughWaterUnits = true;
 					break;
 				}
 			}
-			/*  Would rather use a condition based on the number of unrevealed
+			/*	Would rather use a condition based on the number of unrevealed
 				tiles, but it's difficult to count just the tiles that an explorer
 				could actually reach. */
-			if(!bEnoughWaterUnits && AI_chooseUnit(UNITAI_EXPLORE_SEA, 25))
+			if (!bEnoughWaterUnits && AI_chooseUnit(UNITAI_EXPLORE_SEA, 25))
 			{
 				if (gCityLogLevel >= 2) logBBAI("      City %S uses choose sea explorer for naval trade", getName().GetCString());
 				return;
@@ -3345,7 +3341,7 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 
 	if (iFocusFlags & BUILDINGFOCUS_CAPITAL)
 	{
-		int iBestTurnsLeft = iMaxTurns > 0 ? iMaxTurns : MAX_INT;
+		int iBestTurnsLeft = (iMaxTurns > 0 ? iMaxTurns : MAX_INT);
 		CvCivilization const& kCiv = getCivilization(); // advc.003w
 		for (int i = 0; i < kCiv.getNumBuildings(); i++)
 		{
@@ -5872,11 +5868,9 @@ int CvCityAI::AI_defensiveBuildingValue(BuildingTypes eBuilding,
 		/*  "Lazy attempt to estimate the value of the strongest
 			unit stack this shelter might defend." */
 		int iStackValue = 0;
-		for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+		for (MemberIter itMember(getTeam()); itMember.hasNext(); ++itMember)
 		{
-			CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
-			if(kLoopPlayer.getTeam() == getTeam())
-				iStackValue += getArea().getPower(kLoopPlayer.getID());
+				iStackValue += getArea().getPower(itMember->getID());
 		}
 		iStackValue *= 7;
 		iStackValue /= 20;
@@ -6086,25 +6080,20 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 	{
 		//iValue += (GC.getInfo(eProject).getNukeInterception() / 10);
 		int iForeignNukes = 0;
-		int iTeamsMet = 0;
-		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i = (PlayerTypes)(i + 1))
-		{
-			const CvPlayerAI& kLoopPlayer = GET_PLAYER(i);
-			if (kLoopPlayer.getTeam() != kOwner.getTeam() &&
-				kTeam.isHasMet(kLoopPlayer.getTeam()))
-			{
-				iForeignNukes += kOwner.AI_estimateNukeCount(kLoopPlayer.getID());
-				iTeamsMet++;
-			}
+		PlayerIter<CIV_ALIVE,KNOWN_POTENTIAL_ENEMY_OF> itRival(getTeam());
+		for (; itRival.hasNext(); ++itRival)
+		{	// advc.650:
+			if (!GET_TEAM(itRival->getTeam()).AI_isAvoidWar(getTeam()))
+				iForeignNukes += kOwner.AI_estimateNukeCount(itRival->getID());
 		}
-		if (!GC.getGame().isNoNukes() || iForeignNukes > iTeamsMet)
+		// advc.650: Was misleadingly named "iTeamsMet". Now only counts dangerous players.
+		int const iMet = itRival.nextIndex();
+		if (!GC.getGame().isNoNukes() || iForeignNukes > iMet)
 		{
-			// a very rough estimate of the cost of being nuked
 			int iTargetValue = AI_nukeEplosionValue();
-			int iEstimatedNukeAttacks = iForeignNukes * (2 + iTeamsMet) /
-					(2 + 2*iTeamsMet) +
+			int iEstimatedNukeAttacks = (iForeignNukes * (2 + iMet)) / (2 + 2 * iMet) +
 					(GC.getGame().isNoNukes() ? 0 :
-					2 + GC.getGame().getNukesExploded() / (2 + iTeamsMet));
+					2 + GC.getGame().getNukesExploded() / (2 + iMet));
 			iValue += kProject.getNukeInterception() * iEstimatedNukeAttacks *
 					iTargetValue / 100;
 		}
@@ -6960,13 +6949,9 @@ void CvCityAI::AI_updateRouteToCity()
 	int iBestValue = MAX_INT;
 	CvCity const* pBestCity = NULL;
 
-	for (int iI = 0; iI < MAX_PLAYERS; iI++)
+	for (MemberIter itMember(getTeam()); itMember.hasNext(); ++itMember)
 	{
-		CvPlayer const& kMember = GET_PLAYER((PlayerTypes)iI);
-		if(kMember.getTeam() != getTeam())
-			continue;
-
-		FOR_EACH_CITY(pLoopCity, kMember)
+		FOR_EACH_CITY(pLoopCity, *itMember)
 		{
 			if(pLoopCity == this || !sameArea(*pLoopCity))
 				continue;
