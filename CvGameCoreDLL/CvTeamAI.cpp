@@ -5003,6 +5003,7 @@ void CvTeamAI::read(FDataStreamBase* pStream)
 // advc.opt: (for legacy savegames)
 void CvTeamAI::AI_finalizeInit()
 {
+	m_aiWarPlanCounts.reset(); // De-allocate in case that the counts are all 0
 	FOR_EACH_ENUM(WarPlan)
 	{
 		m_aiWarPlanCounts.set(eLoopWarPlan, AI_countWarPlans(eLoopWarPlan,
@@ -5010,7 +5011,6 @@ void CvTeamAI::AI_finalizeInit()
 		if (m_aiWarPlanCounts.get(eLoopWarPlan) > 0)
 			m_bAnyWarPlan = true;
 	}
-	m_aiWarPlanCounts.resetIfNoContent();
 }
 
 

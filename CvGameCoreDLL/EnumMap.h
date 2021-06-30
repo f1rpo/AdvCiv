@@ -112,8 +112,6 @@ public:
 	// Note: hasContent() can release memory if it doesn't alter what get() will return.
 	bool isAllocated() const;
 	bool hasContent() const;
-	// advc: Non-const alias b/c calling a const function for its side-effect is awkward
-	__forceinline void resetIfNoContent() { hasContent(); }
 
 	T getMin() const;
 	T getMax() const;
@@ -1582,7 +1580,7 @@ private:
 /*	There's boost::is_enum in boost/type_traits.hpp,
 	but I think this will be good enough for my purposes,
 	i.e. assuming that T is an integral type.
-	(Using my own meta-programming macros from TypeChoice.h.) */
+	(Using my own meta-programming structs from TypeChoice.h.) */
 #define IS_ENUM_TYPE(T) \
 	sizeof(V) == 4 && \
 	!is_same_type<V,int>::value && \

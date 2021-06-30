@@ -14854,7 +14854,7 @@ int CvPlayerAI::AI_nukePlotValue(CvPlot const& kPlot,
 				iMilitaryTargetWeight) / 100;
 		/*	Pretty arbitrary coefficient. Some measure of for how long we
 			will care about their military production. But we've also already
-			counted the productionm costs of military buildings and have already
+			counted the production costs of military buildings and have already
 			counted destroyed improvements ... */
 		iValue += GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH) *
 				iMilitaryProduction;
