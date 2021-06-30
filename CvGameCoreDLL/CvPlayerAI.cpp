@@ -14835,6 +14835,17 @@ int CvPlayerAI::AI_nukePlotValue(CvPlot const& kPlot,
 	iValue += (iCivilianTargetWeight * iBuildingValue *
 			// advc.650:
 			GC.getDefineINT(CvGlobals::NUKE_BUILDING_DESTRUCTION_PROB)) / 100;
+	// <advc.650>
+	{
+		int iMilitaryProduction = (pCity->AI().AI_calculateMilitaryOutput() *
+				iMilitaryTargetWeight) / 100;
+		/*	Pretty arbitrary coefficient. Some measure of for how long we
+			will care about their military production. But we've also already
+			counted the productionm costs of military buildings and have already
+			counted destroyed improvements ... */
+		iValue += GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH) *
+				iMilitaryProduction;
+	} // </advc.650>
 	/*	if we don't have vision of the city, just assume that there are
 		at least a couple of defenders, and count that into our evaluation. */
 	if (!kPlot.isVisible(getTeam()))

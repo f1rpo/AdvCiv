@@ -12608,26 +12608,25 @@ int CvCityAI::AI_highestTeamCloseness(TeamTypes eTeam, /* advc.001n: */ bool bCo
 	return iCloseness;
 }
 
-// advc.003j: These two K-Mod functions aren't used, and it seems they never were.
-/* K-Mod
+/*K-Mod // advc.003j: unused
 // return true if there is an adjacent plot not owned by us.
 bool CvCityAI::AI_isFrontlineCity() const {
-	for (int i = 0; i < NUM_DIRECTION_TYPES; i++) {
-		CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)i);
-		if (pAdjacentPlot && !pAdjacentPlot->isWater() && pAdjacentPlot->getTeam() != getTeam())
+	FOR_EACH_ADJ_PLOT(getPlot()) {
+		if (pAdj != NULL && !pAdj->isWater() && pAdj->getTeam() != getTeam())
 			return true;
 	}
 	return false;
-}
+}*/
 
-int CvCityAI::AI_calculateMilitaryOutput() const {
-	int iValue = 0;
-	iValue = getBaseYieldRate(YIELD_PRODUCTION);
+// K-Mod: (advc.650 - Was unused in K-Mod; now has a use.)
+int CvCityAI::AI_calculateMilitaryOutput() const
+{
+	int iValue = getBaseYieldRate(YIELD_PRODUCTION);
 	//UnitTypes eDefaultUnit = getConscriptUnit();
 	iValue *= 100 + getMilitaryProductionModifier() + 10 * getProductionExperience();
 	iValue /= 100;
 	return iValue;
-}*/ // K-Mod end
+}
 
 /*	K-Mod has made significant structural & function changes to this function.
 	(loosely described in the comments throughout the function.) */

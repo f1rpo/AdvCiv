@@ -151,9 +151,8 @@ public:
 			bool bConstCache = false) const; // advc.001n
 	int AI_highestTeamCloseness(TeamTypes eTeam, // K-Mod
 			bool bConstCache) const; // advc.001n
-	// advc.003j: Both unused
-	/*bool AI_isFrontlineCity() const; // K-Mod
-	int AI_calculateMilitaryOutput() const;*/ // K-Mod
+	//bool AI_isFrontlineCity() const; // K-Mod // advc.003j: unused
+	int AI_calculateMilitaryOutput() const; // K-Mod
 	int AI_cityThreat(/*bool bDangerPercent = false*/) const; // advc: param was (and has always been) unused
 
 	int AI_getWorkersHave() const;
