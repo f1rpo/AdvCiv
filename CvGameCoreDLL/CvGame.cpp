@@ -387,9 +387,12 @@ void CvGame::showDawnOfMan()
 		return;
 	// Based on CvAllErasDawnOfManScreenEventManager.py
 	CvPopupInfo* pDummyPopup = new CvPopupInfo();
-	pDummyPopup->setButtonPopupType(BUTTONPOPUP_PYTHON_SCREEN);
-	pDummyPopup->setText(L"showDawnOfMan");
-	GET_PLAYER(getActivePlayer()).addPopup(pDummyPopup);
+	if (pDummyPopup != NULL)
+	{
+		pDummyPopup->setButtonPopupType(BUTTONPOPUP_PYTHON_SCREEN);
+		pDummyPopup->setText(L"showDawnOfMan");
+		GET_PLAYER(getActivePlayer()).addPopup(pDummyPopup);
+	}
 	setDawnOfManShown(true); // advc.004x
 }
 
@@ -10413,8 +10416,11 @@ VoteTriggeredData* CvGame::addVoteTriggered(VoteSourceTypes eVoteSource, const V
 			}
 		} // </kekm.25>
 		CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DIPLOVOTE);
-		pInfo->setData1(pData->getID());
-		gDLL->getInterfaceIFace()->addPopup(pInfo, kVoter.getID());
+		if (pInfo != NULL)
+		{
+			pInfo->setData1(pData->getID());
+			gDLL->getInterfaceIFace()->addPopup(pInfo, kVoter.getID());
+		}
 	}
 	return pData;
 }
