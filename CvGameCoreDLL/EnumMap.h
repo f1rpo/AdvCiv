@@ -1278,9 +1278,9 @@ SET_XML_ENUM_SIZE1(PlayerVote, Dummy)
 DO_FOR_EACH_BIG_DYN_INFO_TYPE(SET_XML_ENUM_SIZE2)
 /*	The corresponding getEnumLength function is inlined in CvMap.h.
 	2 byte allows for at most 256*128 tiles (or 181*181).
-	Larger maps really aren't playable, but let's allow them when
-	the player limit has been increased. */
-#if MAX_CIV_PLAYERS <= 18
+	Larger maps really aren't playable, but let's allow them
+	if the civ limit has been increased by a lot. */
+#if MAX_CIV_PLAYERS >= 32
 SET_XML_ENUM_SIZE2(PlotNum, Dummy)
 #else
 template<> struct EnumMapGetDefault<PlotNumTypes> {
