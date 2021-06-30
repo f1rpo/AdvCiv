@@ -12518,102 +12518,92 @@ int CvCityAI::AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
 {
 	FAssert(GET_PLAYER(eIndex).isAlive());
 
-	int r = m_aiPlayerCloseness[eIndex];
+	int iCloseness = m_aiPlayerCloseness[eIndex];
 	if ((m_iCachePlayerClosenessTurn[eIndex] != GC.getGame().getGameTurn() ||
 		m_iCachePlayerClosenessDistance[eIndex] != iMaxDistance))
 	{
-		r = AI_calculatePlayerCloseness(iMaxDistance,
+		iCloseness = AI_calculatePlayerCloseness(iMaxDistance,
 				eIndex, bConstCache); // advc.001n
 	}
-	return r;
+	return iCloseness;
 }
 
-
-int CvCityAI::AI_calculatePlayerCloseness(int iMaxDistance,
-	PlayerTypes ePlayer, bool bConstCache) const // advc.001n
+// advc.opt: Renamed from "AI_cachePlayerCloseness"; no longer updates the whole cache.
+// BETTER_BTS_AI_MOD (5/16/10, jdog5000): General AI, closeness changes
+int CvCityAI::AI_calculatePlayerCloseness(int iMaxDistance, PlayerTypes ePlayer,
+	bool bConstCache) const // advc.001n
 {
 	PROFILE_FUNC();
 
-	int r = 0; // advc.001n
-	// BETTER_BTS_AI_MOD, General AI, closeness changes, 5/16/10, jdog5000: START
-	// <advc.opt> A little messy I'll admit
-	for (int iI = (ePlayer == NO_PLAYER ? 0 : ePlayer); iI <=
-		(ePlayer == NO_PLAYER ? (MAX_PLAYERS-1) : ePlayer); iI++) // </advc.opt>
+	int iCloseness = 0;
+	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
+	
+	int iValue = 0;
+	int iBestValue = 0;
+	CvMap const& kMap = GC.getMap();
+	FOR_EACH_CITY(pLoopCity, kPlayer)
 	{
-		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)iI);
-		if (!kPlayer.isAlive() ||  !GET_TEAM(getTeam()).isHasMet(kPlayer.getTeam()))
+		if (pLoopCity == this)
 			continue;
-
-		int iValue = 0;
-		int iBestValue = 0;
-		CvMap const& m = GC.getMap();
-		FOR_EACH_CITY(pLoopCity, kPlayer)
+		int iDistance = stepDistance(getX(), getY(),
+				pLoopCity->getX(), pLoopCity->getY());
+		/*  <advc.107> No functional change here. It's OK to use a higher
+			search range for cities on other continents; but will have to
+			decrease the distance later on when computing the closeness value. */
+		bool const bSameArea = sameArea(*pLoopCity);
+		if (!bSameArea) // </advc.107>
 		{
-			if (pLoopCity == this)
-				continue;
-
-			int iDistance = stepDistance(getX(), getY(),
-					pLoopCity->getX(), pLoopCity->getY());
-			/*  <advc.107> No functional change here. It's OK to use a higher
-				search range for cities on other continents; but will have to
-				decrease the distance later on when computing the closeness value. */
-			bool const bSameArea = sameArea(*pLoopCity);
-			if (!bSameArea) // </advc.107>
-			{
-				iDistance += 1;
-				iDistance /= 2;
-			}
-			if (iDistance > iMaxDistance)
-				continue;
-			if (bSameArea) // advc.107: No functional change
-			{
-				int iPathDistance = m.calculatePathDistance(plot(), pLoopCity->plot());
-				if (iPathDistance > 0)
-					iDistance = iPathDistance;
-			}
-			if (iDistance > iMaxDistance)
-				continue;
-			// Weight by population of both cities, not just pop of other city
-			//iTempValue = 20 + 2*pLoopCity->getPopulation();
-			int iTempValue = 20 + pLoopCity->getPopulation() + getPopulation();
-			iTempValue *= (1 + (iMaxDistance - iDistance));
-			iTempValue /= (1 + iMaxDistance);
-			//reduce for small islands.
-			int iAreaCityCount = pLoopCity->getArea().getNumCities();
-			iTempValue *= std::min(iAreaCityCount, 5);
-			iTempValue /= 5;
-			if (iAreaCityCount < 3)
-				iTempValue /= 2;
-			if (pLoopCity->isBarbarian())
-				iTempValue /= 4;
-			// <advc.107>
-			if(!bSameArea)
-				iTempValue /= (pLoopCity->isCoastal() ? 2 : 3); // </advc.107>
-			iValue += iTempValue;
-			iBestValue = std::max(iBestValue, iTempValue);
-		} // <advc.opt> (No change to the formula)
-		r = iBestValue + iValue / 4;
-		if(!bConstCache) // advc.001n
+			iDistance += 1;
+			iDistance /= 2;
+		}
+		if (iDistance > iMaxDistance)
+			continue;
+		if (bSameArea) // advc.107: No functional change
 		{
-			m_aiPlayerCloseness[iI] = r;
-			m_iCachePlayerClosenessTurn[ePlayer] = GC.getGame().getGameTurn();
-			m_iCachePlayerClosenessDistance[ePlayer] = iMaxDistance;
-		} // </advc.opt>
-	} // BETTER_BTS_AI_MOD: END
-	return r; // advc.001n
+			int iPathDistance = kMap.calculatePathDistance(plot(), pLoopCity->plot());
+			if (iPathDistance > 0)
+				iDistance = iPathDistance;
+		}
+		if (iDistance > iMaxDistance)
+			continue;
+		// Weight by population of both cities, not just pop of other city
+		//iTempValue = 20 + 2*pLoopCity->getPopulation();
+		int iTempValue = 20 + pLoopCity->getPopulation() + getPopulation();
+		iTempValue *= (1 + (iMaxDistance - iDistance));
+		iTempValue /= (1 + iMaxDistance);
+		//reduce for small islands.
+		int iAreaCityCount = pLoopCity->getArea().getNumCities();
+		iTempValue *= std::min(iAreaCityCount, 5);
+		iTempValue /= 5;
+		if (iAreaCityCount < 3)
+			iTempValue /= 2;
+		if (pLoopCity->isBarbarian())
+			iTempValue /= 4;
+		// <advc.107>
+		if(!bSameArea)
+			iTempValue /= (pLoopCity->isCoastal() ? 2 : 3); // </advc.107>
+		iValue += iTempValue;
+		iBestValue = std::max(iBestValue, iTempValue);
+	}
+	iCloseness = iBestValue + iValue / 4;
+	if (!bConstCache) // advc.001n
+	{
+		m_aiPlayerCloseness[kPlayer.getID()] = iCloseness;
+		m_iCachePlayerClosenessTurn[ePlayer] = GC.getGame().getGameTurn();
+		m_iCachePlayerClosenessDistance[ePlayer] = iMaxDistance;
+	}
+	return iCloseness;
 }
 
 // K-Mod
 int CvCityAI::AI_highestTeamCloseness(TeamTypes eTeam, /* advc.001n: */ bool bConstCache) const
 {
 	int iCloseness = -1;
-	for (PlayerTypes i = (PlayerTypes)0; i < MAX_PLAYERS; i=(PlayerTypes)(i+1))
+	for (MemberIter itMember(eTeam); itMember.hasNext(); ++itMember)
 	{
-		if (GET_PLAYER(i).getTeam() == eTeam)
-		{
-			iCloseness = std::max(iCloseness, AI_playerCloseness(i, DEFAULT_PLAYER_CLOSENESS,
-					bConstCache)); // advc.001n
-		}
+		iCloseness = std::max(iCloseness, AI_playerCloseness(
+				itMember->getID(), DEFAULT_PLAYER_CLOSENESS,
+				bConstCache)); // advc.001n
 	}
 	return iCloseness;
 }

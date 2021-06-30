@@ -276,9 +276,9 @@ protected:
 
 	//int AI_buildingSpecialYieldChangeValue(BuildingTypes kBuilding, YieldTypes eYield) const;
 	int AI_buildingSeaYieldChangeWeight(BuildingTypes eBuilding, bool bGrowing = true) const; // K-Mod
-	// <advc.001n> was void AI_cachePlayerCloseness(int)
+	// advc.opt: was void AI_cachePlayerCloseness(int)
 	int AI_calculatePlayerCloseness(int iMaxDistance, PlayerTypes ePlayer,
-			bool bConstCache) const; // </advc.001n>
+			bool bConstCache) const; // advc.001n
 	// <advc.031b>
 	int AI_calculateSettlerPriority(int iAreaSites, int iBestAreaFoundValue,
 			int iWaterAreaSites, int iBestWaterAreaFoundValue) const; // </advc.031b>
