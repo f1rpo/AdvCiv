@@ -8157,19 +8157,18 @@ bool CvPlot::canConstruct(BuildingTypes eBuilding) const
 int CvPlot::countFriendlyCulture(TeamTypes eTeam) const
 {
 	int iTotal = 0;
-	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
+	for (PlayerIter<ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-		if (kLoopPlayer.isEverAlive()) // advc.099: was isAlive
-		{
-			CvTeam& kLoopTeam = GET_TEAM(kLoopPlayer.getTeam());
-			if (kLoopPlayer.getTeam() == eTeam || kLoopTeam.isVassal(eTeam) ||
-				kLoopTeam.isOpenBorders(eTeam))
-			{
-				iTotal += getCulture((PlayerTypes)iPlayer);
-			}
-		}
+		if (GET_TEAM(eTeam).canPeacefullyEnter(itPlayer->getTeam()))
+			iTotal += getCulture(itPlayer->getID());
 	}
+	/*	<advc.099> Count defeated teammates as friendly, but don't rely on
+		any other relations info to be preserved posthumously. */
+	for (PlayerIter<EVER_ALIVE> itDeadPlayer; itDeadPlayer.hasNext(); ++itDeadPlayer)
+	{
+		if (!itDeadPlayer->isAlive() && itDeadPlayer->getTeam() == eTeam)
+			iTotal += getCulture(itDeadPlayer->getID());
+	} // </advc.099>
 	return iTotal;
 }
 
@@ -8329,13 +8328,14 @@ bool CvPlot::checkLateEra() const
 	{
 		eBestPlayer = GC.getGame().getActivePlayer();
 		int iBestCulture = getCulture(eBestPlayer);
-		for (int i = 0; i < MAX_PLAYERS; i++)
+		// advc: ALIVE - shouldn't rely on era of dead players
+		for (PlayerIter<ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 		{
-			int iLoopCulture = getCulture((PlayerTypes) i);
+			int iLoopCulture = getCulture(itPlayer->getID());
 			if (iLoopCulture > iBestCulture)
 			{
 				iBestCulture = iLoopCulture;
-				eBestPlayer = (PlayerTypes)i;
+				eBestPlayer = itPlayer->getID();
 			}
 		}
 	}
