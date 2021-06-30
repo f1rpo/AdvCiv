@@ -206,7 +206,7 @@ int WarEvaluator::evaluate(WarPlanTypes eWarPlan, int iPreparationTime)
 		But could also already have transports e.g. from earlier wars.
 		(BtS/K-Mod only considers total naval war.) */
 	bool bSkipNaval = true;
-	for (MemberIter itMember(m_kAgent.getID()); itMember.hasNext(); ++itMember)
+	for (MemberAIIter itMember(m_kAgent.getID()); itMember.hasNext(); ++itMember)
 	{
 		if (itMember->AI_totalUnitAIs(UNITAI_ASSAULT_SEA) +
 			itMember->AI_totalUnitAIs(UNITAI_SETTLER_SEA) > 0)

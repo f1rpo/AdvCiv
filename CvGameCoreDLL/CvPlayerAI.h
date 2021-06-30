@@ -691,9 +691,6 @@ public:
 	bool AI_isDangerFromSubmarines() const; // advc.651
 	bool AI_isPiracyTarget(PlayerTypes eTarget) const; // advc.033
 	bool AI_isUnitNeedingOpenBorders(TeamTypes eTarget) const; // advc.124
-	/* Are there cities with sufficient production to
-	   train a significant number of units of type eUnit? */
-	bool AI_canBeExpectedToTrain(UnitTypes eUnit) const; // advc.104, advc.651
 	bool AI_isDefenseFocusOnBarbarians(CvArea const& kArea) const; // advc.300
 	bool AI_hasSharedPrimaryArea(PlayerTypes eOther) const; // advc
 

@@ -5111,7 +5111,7 @@ void CvGameTextMgr::getOtherRelationsString(CvWStringBuffer& szString,
 		return;
 	CvWString szWar, szPeace, szEnemy, szPact;
 	bool bFirstWar = true, bFirstPeace = true, bFirstEnemy = true, bFirstPact = true;
-	for (TeamIter<MAJOR_CIV,OTHER_KNOWN_TO> itThird(eThisTeam);
+	for (TeamAIIter<MAJOR_CIV,OTHER_KNOWN_TO> itThird(eThisTeam);
 		itThird.hasNext(); ++itThird)
 	{
 		/*	K-Mod. (show "at war" even for the civ selected.)
@@ -13299,7 +13299,7 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 			active player and all takers need to be listed. */
 		std::vector<PlayerTypes> aTakers;
 
-		for (PlayerIter<MAJOR_CIV,KNOWN_TO> it(TEAMID(eActivePlayer));
+		for (PlayerAIIter<MAJOR_CIV,KNOWN_TO> it(TEAMID(eActivePlayer));
 			it.hasNext(); ++it)
 		{
 			CvPlayerAI const& kTaker = *it;

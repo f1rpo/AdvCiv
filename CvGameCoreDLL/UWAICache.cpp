@@ -382,10 +382,9 @@ void UWAICache::updateCities(TeamTypes eTeam, TeamPathFinders* pPathFinders)
 	if (eTeam == kCacheTeam.getID())
 		pPathFinders = NULL;
 	else resetTeamPathFinders(*pPathFinders, eTeam);
-	for (MemberIter it(eTeam); it.hasNext(); ++it)
+	for (MemberAIIter itMember(eTeam); itMember.hasNext(); ++itMember)
 	{
-		CvPlayerAI const& kMember = *it;
-		FOR_EACH_CITY_VAR(pCity, kMember)
+		FOR_EACH_CITY_VAR(pCity, *itMember)
 		{
 			// pCity.isRevealed() impedes the AI too much
 			if (eTeam == kCacheTeam.getID() ||
@@ -632,7 +631,7 @@ scaled UWAICache::goldPerProdVictory()
 		return fixp(0.5);
 	}
 	scaled r = iOwnerVictoryStage + 1;
-	for (TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itRival(kOwnerTeam.getID());
+	for (TeamAIIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itRival(kOwnerTeam.getID());
 		itRival.hasNext(); ++itRival)
 	{
 		int iRivalVictoryStage = 0;
@@ -799,7 +798,7 @@ bool UWAICache::calculateFocusOnPeacefulVictory()
 	}
 	bool const bHuman = kOwner.isHuman();
 	// Space3 or Culture3 -- but is there a rival at stage 4?
-	for (PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itRival(kOwner.getTeam());
+	for (PlayerAIIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itRival(kOwner.getTeam());
 		itRival.hasNext(); ++itRival)
 	{
 		if (!itRival->AI_atVictoryStage(AI_VICTORY_CULTURE4) &&
@@ -1137,7 +1136,7 @@ scaled UWAICache::longTermPower(TeamTypes eTeam, bool bDefensive) const
 {
 	CvTeamAI const& kOwnerTeam = GET_TEAM(m_eOwner);
 	scaled r;
-	for (PlayerIter<MAJOR_CIV> itAlly; itAlly.hasNext(); ++itAlly)
+	for (PlayerAIIter<MAJOR_CIV> itAlly; itAlly.hasNext(); ++itAlly)
 	{
 		CvPlayerAI const& kAlly = *itAlly;
 		PlayerTypes const eAlly = kAlly.getID();

@@ -1816,7 +1816,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 	// Notify observers ...
 	// <advc.104>
-	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+	for (PlayerAIIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		it->AI_cityCreated(kNewCity); // </advc.104>
 	CvEventReporter::getInstance().cityAcquired(
 			eOldOwner, getID(), &kNewCity, bConquest, bTrade);
@@ -3599,7 +3599,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		// <advc.130f> We also stop trading (unless ePlayer is our capitulated vassal)
 		if(!GET_TEAM(ePlayer).isCapitulated() || !GET_TEAM(ePlayer).isVassal(getTeam()))
 			stopTradingWithTeam((TeamTypes)iData1, false); // </advc.130f>
-		for (MemberIter itMember((TeamTypes)iData1); itMember.hasNext(); ++itMember)
+		for (MemberAIIter itMember((TeamTypes)iData1); itMember.hasNext(); ++itMember)
 		{
 			// advc (tbd.?): Should perhaps remember this about each member of this->getTeam()
 			itMember->AI_rememberEvent(getID(), MEMORY_HIRED_TRADE_EMBARGO); // advc.130j
@@ -4949,7 +4949,7 @@ void CvPlayer::found(int iX, int iY)
 	// <advc.104>
 	else
 	{
-		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+		for (PlayerAIIter<MAJOR_CIV> it; it.hasNext(); ++it)
 			it->AI_cityCreated(*pCity);
 	} // </advc.104>
 
@@ -9307,7 +9307,7 @@ void CvPlayer::setLastStateReligion(ReligionTypes eNewValue)
 	CvEventReporter::getInstance().playerChangeStateReligion(getID(), eNewValue, eOldReligion);
 	if (isMajorCiv()) // advc.003n
 	{	// <K-Mod>
-		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) // advc.003n
+		for (PlayerAIIter<MAJOR_CIV> it; it.hasNext(); ++it) // advc.003n
 		{
 			CvPlayerAI& kLoopPlayer = *it;
 			if (kLoopPlayer.getStateReligion() != NO_RELIGION)
@@ -10354,7 +10354,7 @@ void CvPlayer::setCivics(CivicOptionTypes eCivicOption, CivicTypes eNewValue)
 	GC.getGame().updateGwPercentAnger();
 	if (isMajorCiv()) // advc.003n
 	{	// <K-Mod>
-		for (PlayerIter<MAJOR_CIV> it(getTeam()); it.hasNext(); ++it) // advc.003n
+		for (PlayerAIIter<MAJOR_CIV> it(getTeam()); it.hasNext(); ++it) // advc.003n
 		{
 			AI().AI_updateAttitude(it->getID());
 			it->AI_updateAttitude(getID());
@@ -16064,7 +16064,7 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 		pTriggeredData->m_eOtherPlayer != NO_PLAYER &&
 		eTheirWorstEnemy != NO_TEAM)
 	{
-		for (MemberIter itEnemyMember(eTheirWorstEnemy); itEnemyMember.hasNext();
+		for (MemberAIIter itEnemyMember(eTheirWorstEnemy); itEnemyMember.hasNext();
 			++itEnemyMember)
 		{
 			if (kEvent.getTheirEnemyAttitudeModifier() > 0)

@@ -303,6 +303,8 @@ public:
 	// advc.012:
 	int AI_plotDefense(CvPlot const& kPlot, bool bIgnoreBuilding = false,
 			bool bGarrisonStrength = false) const; // advc.500b
+	// advc.104, advc.651:
+	bool AI_isExpectingToTrain(PlayerTypes eTrainPlayer, UnitTypes eUnit) const;
 
 	int AI_getAttitudeWeight(TeamTypes eTeam) const;
 	int AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const;

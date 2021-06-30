@@ -265,7 +265,7 @@ void CvGame::setInitialItems()
 				d->setInitialGameTurn(getGameTurn());
 		} // </advc.251>
 	} // </advc.250c>
-	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+	for (PlayerAIIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		it->AI_updateFoundValues();
 }
 
@@ -2317,7 +2317,7 @@ void CvGame::normalizeAddExtras(/* advc.027: */ NormalizationTarget const* pTarg
 		already takes the extra hills into account */
 	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
-		CvPlayerAI const& kPlayer = *itPlayer;
+		CvPlayer const& kPlayer = *itPlayer;
 		CvPlot* pStartingPlot = kPlayer.getStartingPlot();
 		if (pStartingPlot == NULL)
 			continue;
@@ -2362,7 +2362,7 @@ void CvGame::normalizeAddExtras(/* advc.027: */ NormalizationTarget const* pTarg
 		int iTotalValue = 0;
 		int iBestValue = 0;
 		int iWorstValue = MAX_INT;
-		for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
+		for (PlayerAIIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 		{
 			CvPlayerAI const& kPlayer = *itPlayer;
 			CvPlot const* pStartingPlot = kPlayer.getStartingPlot();
@@ -2382,7 +2382,7 @@ void CvGame::normalizeAddExtras(/* advc.027: */ NormalizationTarget const* pTarg
 		logBBAI("Adding extras to normalize starting positions. (target value: %d)", rTargetValue.round()); // K-Mod
 	}
 
-	for (PlayerIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
+	for (PlayerAIIter<CIV_ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
 		CvPlayerAI const& kPlayer = *itPlayer;
 		CvPlot* pStartingPlot = kPlayer.getStartingPlot();
@@ -2695,7 +2695,7 @@ void CvGame::normalizeStartingPlots(NormalizationTarget const* pTarget)
 	// <advc> K-Mod logging code moved out of normalizeAddExtras
 	if (gMapLogLevel > 0)
 	{
-		for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+		for (PlayerAIIter<CIV_ALIVE> it; it.hasNext(); ++it)
 		{
 			if (it->getStartingPlot() != NULL)
 				logBBAI("    Player %d final value: %d", it->getID(), it->AI_foundValue(it->getStartingPlot()->getX(), it->getStartingPlot()->getY(), -1, false, true));
@@ -5390,12 +5390,12 @@ void CvGame::setFinalInitialized(bool bNewValue)
 	updatePlotGroups();
 	GC.getMap().updateIrrigated();
 	// <advc.158> Replacing K-Mod code. If spawned later, CvPlayer::initInGame will handle it.
-	for (TeamIter<ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
+	for (TeamAIIter<ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
 	{
 		itTeam->AI_strengthMemory().init(
 				GC.getMap().numPlots(), itTeam->getID());
 	} // </advc.158>
-	for (TeamIter<ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
+	for (TeamAIIter<ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
 		itTeam->AI_updateAreaStrategies();
 }
 
@@ -6435,7 +6435,7 @@ void CvGame::castVote(PlayerTypes eVoter, int iVote, PlayerVoteTypes ePlayerVote
 		TeamTypes const eTeamVotedFor = (TeamTypes)ePlayerVote;
 		if (eVotingTeam != eTeamVotedFor)
 		{
-			for (MemberIter itMember(eTeamVotedFor); itMember.hasNext(); ++itMember)
+			for (MemberAIIter itMember(eTeamVotedFor); itMember.hasNext(); ++itMember)
 			{
 				/*  advc.130j (comment): Should not happen if there was
 					only one name on the ballot. (Tbd.) */
@@ -9611,7 +9611,7 @@ void CvGame::onAllGameDataRead()
 			it->finalizeInit();
 		}
 	} // </advc.003m>  <advc.opt>
-	for (TeamIter<> it; it.hasNext(); ++it)
+	for (TeamAIIter<> it; it.hasNext(); ++it)
 	{
 		FOR_EACH_ENUM(WarPlan)
 		{
@@ -9625,22 +9625,15 @@ void CvGame::onAllGameDataRead()
 	m_bAllGameDataRead = true;
 	for (PlayerIter<HUMAN> it; it.hasNext(); ++it)
 	{
-		CvPlayerAI& kActive = *it;
+		CvPlayer& kActive = *it;
 		if (!kActive.isTurnActive())
 			continue;
-		/*	Bad idea (by me). The cache data has to be serialized instead.
-			It gets updated at the start of a turn, yes, but if we rely on
-			that, then it won't be safe to access data from another player's
-			cache (who may not have taken a turn since a savegame was loaded).
-			Could update all caches after loading, but that would result in
-			more recent data after loading than upon saving. */
-		//kActive.AI_updateCacheData();
 		kActive.validateDiplomacy(); // advc.134a
 	}
 	// <advc.127> Save created during AI Auto Play
 	if (m_iAIAutoPlay != 0 && !isNetworkMultiPlayer())
 	{
-		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+		for (PlayerAIIter<MAJOR_CIV> it; it.hasNext(); ++it)
 			it->AI_updateAttitude();
 	}
 	m_iAIAutoPlay = 0; // </advc.127>
@@ -10393,7 +10386,7 @@ VoteTriggeredData* CvGame::addVoteTriggered(VoteSourceTypes eVoteSource, const V
 	FAssert(pData != NULL); // advc
 	pData->eVoteSource = eVoteSource;
 	pData->kVoteOption = kOptionData;
-	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+	for (PlayerAIIter<MAJOR_CIV> it; it.hasNext(); ++it)
 	{
 		CvPlayerAI& kVoter = *it;
 		if (!kVoter.isVotingMember(eVoteSource))

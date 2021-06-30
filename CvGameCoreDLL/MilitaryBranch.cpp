@@ -112,7 +112,7 @@ void MilitaryBranch::updateTypicalUnit()
 			those is faster, and perhaps more accurate as well. */
 		if (kUnit.getDomainType() == DOMAIN_SEA)
 		{
-			if (!kOwner.AI_canBeExpectedToTrain(eUnit))
+			if (!GET_TEAM(kOwner.getTeam()).AI_isExpectingToTrain(kOwner.getID(), eUnit))
 				continue;
 		}
 		else
@@ -526,7 +526,7 @@ void MilitaryBranch::Army::updateCanBombard()
 		CvUnitInfo const& kUnit = GC.getInfo(eUnit);
 		if (((kUnit.getBombardRate() > 0 && kUnit.getDomainType() == DOMAIN_LAND) ||
 			(kUnit.getBombardRate() > 0 && kUnit.getDomainType() == DOMAIN_AIR)) &&
-			kOwner.AI_canBeExpectedToTrain(eUnit))
+			GET_TEAM(kOwner.getTeam()).AI_isExpectingToTrain(kOwner.getID(), eUnit))
 		{
 			m_bCanBombard = true;
 			return;
@@ -551,7 +551,7 @@ void MilitaryBranch::Army::updateCanSoften()
 				of coll.-dmg. units after discovering the respective tech, so
 				let's delay things a bit with this (cheap) extra check. */
 			kOwner.getUnitClassCountPlusMaking(kCiv.unitClass(eUnit)) > 1 &&
-			kOwner.AI_canBeExpectedToTrain(eUnit))
+			GET_TEAM(kOwner.getTeam()).AI_isExpectingToTrain(kOwner.getID(), eUnit))
 		{
 			m_bCanSoften = true;
 			return;

@@ -1714,7 +1714,7 @@ bool CvDLLButtonPopup::launchDeclareWarMovePopup(CvPopup* pPopup, CvPopupInfo &i
 	bool bReceivedTribute = false; // advc.130o
 	for(size_t i = 0; i < aeTargets.size(); i++)
 	{
-		for (PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(kActiveTeam.getID());
+		for (PlayerAIIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(kActiveTeam.getID());
 			it.hasNext(); ++it)
 		{
 			CvPlayerAI const& kPlayer = *it;

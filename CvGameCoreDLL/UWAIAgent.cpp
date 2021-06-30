@@ -68,7 +68,7 @@ void UWAI::Team::read(FDataStreamBase* pStream)
 
 void UWAI::Team::addTeam(PlayerTypes eOtherLeader)
 {
-	for (MemberIter it(m_eAgent); it.hasNext(); ++it)
+	for (MemberAIIter it(m_eAgent); it.hasNext(); ++it)
 		it->uwai().getCache().addTeam(eOtherLeader);
 }
 
@@ -79,7 +79,7 @@ void UWAI::Team::reportWarEnding(TeamTypes eEnemy,
 {
 	/*  This isn't team-level data b/c each member can have its
 		own interpretation of whether the war was successful. */
-	for(MemberIter it(m_eAgent); it.hasNext(); ++it)
+	for(MemberAIIter it(m_eAgent); it.hasNext(); ++it)
 		it->uwai().getCache().reportWarEnding(eEnemy, pWeReceive, pWeGive);
 }
 
@@ -90,7 +90,7 @@ void UWAI::Team::turnPre()
 		That's OK b/c AI_turnPre doesn't do anything crucial for UWAI::Player.
 		Need to call Player::turnPre already during the team turn b/c
 		the update to UWAICache is important for war planning. */
-	for(MemberIter it(m_eAgent); it.hasNext(); ++it)
+	for(MemberAIIter it(m_eAgent); it.hasNext(); ++it)
 		it->uwai().turnPre();
 }
 
@@ -185,7 +185,7 @@ UWAI::Player& UWAI::Team::leaderUWAI()
 scaled UWAI::Team::utilityToTradeVal(scaled rUtility) const
 {
 	scaled r;
-	MemberIter itMember(m_eAgent);
+	MemberAIIter itMember(m_eAgent);
 	for(; itMember.hasNext(); ++itMember)
 		r += itMember->uwai().utilityToTradeVal(rUtility);
 	return r / itMember.nextIndex();
@@ -195,7 +195,7 @@ scaled UWAI::Team::utilityToTradeVal(scaled rUtility) const
 scaled UWAI::Team::tradeValToUtility(scaled rTradeVal) const
 {
 	scaled r;
-	MemberIter itMember(m_eAgent);
+	MemberAIIter itMember(m_eAgent);
 	for(; itMember.hasNext(); ++itMember)
 		r += itMember->uwai().tradeValToUtility(rTradeVal);
 	return r / itMember.nextIndex();
@@ -233,9 +233,10 @@ bool UWAI::Team::reviewWarPlans()
 	bool bPlanChanged = false;
 	bool bAllNaval = true, bAnyNaval = false;
 	bool bAllLand = true, bAnyLand = false;
-	do {
+	do
+	{
 		vector<PlanData> aPlans;
-		for (TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itTarget(kAgent.getID());
+		for (TeamAIIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itTarget(kAgent.getID());
 			itTarget.hasNext(); ++itTarget)
 		{
 			CvTeamAI const& kTarget = *itTarget;
@@ -314,7 +315,7 @@ void UWAI::Team::alignAreaAI(bool bNaval)
 	PROFILE_FUNC();
 	set<int> areasToAlign;
 	set<int> areasNotToAlign;
-	for (MemberIter itMember(m_eAgent); itMember.hasNext(); ++itMember)
+	for (MemberAIIter itMember(m_eAgent); itMember.hasNext(); ++itMember)
 	{
 		CvPlayerAI const& kMember = *itMember;
 		CvCity const* pCapital = kMember.getCapital();
@@ -476,7 +477,7 @@ bool UWAI::Team::reviewPlan(TeamTypes eTarget, int iU, int iPrepTurns)
 			if (iWPAge > iTimeout)
 			{
 				// Akin to code in CvTeamAI::AI_endWarVal
-				for(MemberIter itMember(kAgent.getID()); itMember.hasNext(); ++itMember)
+				for(MemberAIIter itMember(kAgent.getID()); itMember.hasNext(); ++itMember)
 				{
 					if (itMember->AI_isAnyEnemyTargetMission(eTarget))
 					{
@@ -713,7 +714,7 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU)
 	// Liberate any colonies (to leave sth. behind, or just to spite the enemy)
 	if (!isInBackground())
 	{
-		for (MemberIter it(kAgent.getID()); it.hasNext(); ++it)
+		for (MemberAIIter it(kAgent.getID()); it.hasNext(); ++it)
 			it->AI_doSplit(true);
 	}
 	if (kAgent.getNumCities() != iCities)
@@ -842,7 +843,7 @@ bool UWAI::Team::considerCapitulation(TeamTypes eMaster, int iAgentWarUtility,
 bool UWAI::Team::tryFindingMaster(TeamTypes eEnemy)
 {
 	CvPlayerAI& kAgentPlayer = GET_PLAYER(GET_TEAM(m_eAgent).getRandomMemberAlive(false));
-	for (TeamIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF,true> itMaster(m_eAgent);
+	for (TeamAIIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF,true> itMaster(m_eAgent);
 		itMaster.hasNext(); ++itMaster)
 	{
 		CvTeamAI& kMaster = *itMaster;
@@ -1357,7 +1358,7 @@ void UWAI::Team::scheme()
 		m_pReport->log("No scheming b/c already a war in preparation");
 		return;
 	}
-	for (TeamIter<CIV_ALIVE> itMinor; itMinor.hasNext(); ++itMinor)
+	for (TeamAIIter<CIV_ALIVE> itMinor; itMinor.hasNext(); ++itMinor)
 	{
 		if (!itMinor->isMinorCiv())
 			continue;
@@ -1559,7 +1560,7 @@ DenialTypes UWAI::Team::declareWarTrade(TeamTypes eTarget, TeamTypes eSponsor) c
 				for (MemberIter itSponsorMember(eSponsor);
 					itSponsorMember.hasNext(); ++itSponsorMember)
 				{
-					for (MemberIter itAgentMember(kAgent.getID());
+					for (MemberAIIter itAgentMember(kAgent.getID());
 						itAgentMember.hasNext(); ++itAgentMember)
 					{
 						int iMemberTradeVal=-1;
@@ -2162,7 +2163,7 @@ bool UWAI::Team::isLandTarget(TeamTypes eTeam) const
 	bool bHasCoastalCity = false;
 	bool bCanReachAnyByLand = false;
 	int iDistLimit = getUWAI().maxLandDist();
-	for (MemberIter itMember(m_eAgent); itMember.hasNext(); ++itMember)
+	for (MemberAIIter itMember(m_eAgent); itMember.hasNext(); ++itMember)
 	{
 		UWAICache const& kCache = itMember->uwai().getCache();
 		// Sea route then unlikely to be much slower
@@ -2192,12 +2193,12 @@ bool UWAI::Team::isLandTarget(TeamTypes eTeam) const
 
 bool UWAI::Team::canReach(TeamTypes eTarget) const
 {
-	for (MemberIter targetIt(eTarget); targetIt.hasNext(); ++targetIt)
+	for (MemberIter itTarget(eTarget); itTarget.hasNext(); ++itTarget)
 	{
-		for (MemberIter agentIt(m_eAgent); agentIt.hasNext(); ++agentIt)
+		for (MemberAIIter itAgent(m_eAgent); itAgent.hasNext(); ++itAgent)
 		{	// (Don't call UWAI::Player::canReach - to avoid the call overhead.)
-			if (agentIt->uwai().getCache().
-				numReachableCities(targetIt->getID()) > 0)
+			if (itAgent->uwai().getCache().
+				numReachableCities(itTarget->getID()) > 0)
 			{
 				return true;
 			}

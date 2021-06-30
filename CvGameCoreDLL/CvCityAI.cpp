@@ -1888,7 +1888,7 @@ void CvCityAI::AI_chooseProduction()
 				/*  Use max, not sum, b/c multiple war enemies are unlikely
 					to coordinate an attack on our transports. */
 				scaled rMaxThreat = 0;
-				for (PlayerIter<CIV_ALIVE,KNOWN_POTENTIAL_ENEMY_OF> it(kTeam.getID());
+				for (PlayerAIIter<CIV_ALIVE,KNOWN_POTENTIAL_ENEMY_OF> it(kTeam.getID());
 					it.hasNext(); ++it)
 				{
 					CvPlayerAI const& kEnemy = *it;
@@ -4732,7 +4732,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				// Don't pave the way for rival victory
 				int iMaxRivalStage = 0;
 				bool bHumanRival = false;
-				for (PlayerIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(getTeam());
+				for (PlayerAIIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(getTeam());
 					it.hasNext(); ++it)
 				{
 					CvPlayerAI const& kRival = *it;
@@ -6116,7 +6116,7 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 			is difficult to separate from the UWAI component. */
 		int iBestScore = 0;
 		int iOurScore = 0;
-		for (TeamIter<FREE_MAJOR_CIV,KNOWN_TO> itTeam(kTeam.getID());
+		for (TeamAIIter<FREE_MAJOR_CIV,KNOWN_TO> itTeam(kTeam.getID());
 			itTeam.hasNext(); ++itTeam)
 		{
 			int iScore = kGame.getTeamScore(itTeam->getID());
@@ -6163,7 +6163,7 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 				CvUnitInfo const& kLoopUnit = GC.getInfo(eLoopUnit);
 				if (kLoopUnit.getNukeRange() < 0 || kLoopUnit.getProductionCost() < 0)
 					continue; // either not a unit, or not normally buildable
-				for (PlayerIter<CIV_ALIVE,KNOWN_TO> itLoopPlayer(kTeam.getID());
+				for (PlayerAIIter<CIV_ALIVE,KNOWN_TO> itLoopPlayer(kTeam.getID());
 					itLoopPlayer.hasNext(); ++itLoopPlayer)
 				{
 					CvPlayerAI const& kLoopPlayer = *itLoopPlayer;
@@ -11039,7 +11039,8 @@ int CvCityAI::AI_buildUnitProb(bool bDraft)
 		{
 			CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
 			int iHighestRivalPow = 1;
-			for (TeamIter<FREE_MAJOR_CIV,OTHER_KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
+			for (TeamAIIter<FREE_MAJOR_CIV,OTHER_KNOWN_TO> it(getTeam());
+				it.hasNext(); ++it)
 			{
 				CvTeamAI const& kRival = *it; // (Akin to code in CvPlayerAI::AI_feelsSafe)
 				if (kOurTeam.AI_getWarPlan(kRival.getID()) != NO_WARPLAN ||
@@ -12647,7 +12648,7 @@ int CvCityAI::AI_cityThreat(/*bool bDangerPercent*/) const
 	bool bCrushStrategy = kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH);
 
 	// advc.001: Exclude unmet players (bug?), vassals; K-Mod had only excluded the master.
-	for (PlayerIter<ALIVE,KNOWN_POTENTIAL_ENEMY_OF> itPlayer(getTeam());
+	for (PlayerAIIter<ALIVE,KNOWN_POTENTIAL_ENEMY_OF> itPlayer(getTeam());
 		itPlayer.hasNext(); ++itPlayer)
 	{
 		CvPlayerAI const& kRival = *itPlayer;

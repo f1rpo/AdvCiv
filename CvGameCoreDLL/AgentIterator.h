@@ -32,12 +32,15 @@ protected:
 	of parameters in AgentIterator.cpp. This allows me to implement the
 	passFilters function outside of the header file. passFilters requires
 	CvPlayerAI.h and CvTeamAI.h; I don't want to include these in AgentIterator.h. */
-template<class AgentType, AgentStatusPredicate eSTATUS, AgentRelationPredicate eRELATION>
+template<class AgentType, AgentStatusPredicate eSTATUS, AgentRelationPredicate eRELATION,
+	/*	The iterator should be able to provide non-AI agent instances, but it still needs
+		to know the AI agent type b/c that's what's stored in the cached sequences. */
+	class AgentAIType = AgentType>
 class ExplicitAgentIterator : protected AgentIteratorBase
 {
 protected:
 	inline ExplicitAgentIterator(TeamTypes eTeam = NO_TEAM) : m_eTeam(eTeam) {}
-	bool passFilters(AgentType const& kAgent) const;
+	bool passFilters(AgentAIType const& kAgent) const;
 	TeamTypes m_eTeam;
 
 	// These two variables are needed in passFilters:
@@ -91,8 +94,8 @@ protected:
 		(!bAPPLY_FILTERS && _bADD_BARBARIANS(eCACHE_SUBSETEQ))))
 
 template<class AgentType, AgentStatusPredicate eSTATUS, AgentRelationPredicate eRELATION,
-		bool bSYNCRAND_ORDER = false>
-class AgentIterator : ExplicitAgentIterator<AgentType, eSTATUS, eRELATION>
+		bool bSYNCRAND_ORDER = false, class AgentAIType = AgentType>
+class AgentIterator : ExplicitAgentIterator<AgentType, eSTATUS, eRELATION, AgentAIType>
 {
 public:
 	__forceinline bool hasNext() const
@@ -102,7 +105,9 @@ public:
 
 	__forceinline AgentType& operator*() const
 	{
-		return *m_pNext;
+		/*	This is, at worst, an up-cast. But the compiler doesn't know this
+			b/c the AI headers aren't included here. */
+		return *reinterpret_cast<AgentType*>(m_pNext);
 	}
 
 	__forceinline AgentType* operator->() const
@@ -121,7 +126,7 @@ public:
 
 	static int count(TeamTypes eTeam = NO_TEAM)
 	{
-		AgentIterator<AgentType,eSTATUS,eRELATION,bSYNCRAND_ORDER> it(eTeam);
+		AgentIterator<AgentType,eSTATUS,eRELATION,bSYNCRAND_ORDER,AgentAIType> it(eTeam);
 		if (bAPPLY_FILTERS)
 		{
 			while (it.hasNext())
@@ -139,7 +144,7 @@ public:
 
 protected:
 	AgentIterator(TeamTypes eTeam = NO_TEAM)
-	:	ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>(eTeam), m_iSkipped(0)
+	:	ExplicitAgentIterator<AgentType,eSTATUS,eRELATION,AgentAIType>(eTeam), m_iSkipped(0)
 	{
 		/*  ExplicitAgentIterator gets instantiated for all combinations of template parameters,
 			so these static assertions would fail in that class. In this derived class, they'll
@@ -152,14 +157,14 @@ protected:
 		if (bAPPLY_FILTERS)
 		{
 			if (eCACHE_SUPER < CvAgents::NUM_STATUS_CACHES)
-				m_pCache = m_pAgents->getAgentSeqCache<AgentType>(eCACHE_SUPER);
-			else m_pCache = m_pAgents->getPerTeamSeqCache<AgentType>(eCACHE_SUPER, eTeam);
+				m_pCache = m_pAgents->getAgentSeqCache<AgentAIType>(eCACHE_SUPER);
+			else m_pCache = m_pAgents->getPerTeamSeqCache<AgentAIType>(eCACHE_SUPER, eTeam);
 		}
 		else
 		{
 			if (eCACHE_SUBSETEQ < CvAgents::NUM_STATUS_CACHES)
-				m_pCache = m_pAgents->getAgentSeqCache<AgentType>(eCACHE_SUBSETEQ);
-			else m_pCache = m_pAgents->getPerTeamSeqCache<AgentType>(eCACHE_SUBSETEQ, eTeam);
+				m_pCache = m_pAgents->getAgentSeqCache<AgentAIType>(eCACHE_SUBSETEQ);
+			else m_pCache = m_pAgents->getPerTeamSeqCache<AgentAIType>(eCACHE_SUBSETEQ, eTeam);
 		}
 		m_iPos = 0;
 		// Cache the cache size (std::vector computes it as 'end' minus 'begin')
@@ -233,11 +238,11 @@ protected:
 	}
 
 private:
-	std::vector<AgentType*> const* m_pCache;
+	std::vector<AgentAIType*> const* m_pCache;
 	short m_iCacheSize;
 	short m_iPos;
 	short m_iSkipped;
-	AgentType* m_pNext;
+	AgentAIType* m_pNext;
 	int* m_aiShuffledIndices; // only used if bSYNCRAND_ORDER
 
 	inline void setNextFromCache()
@@ -248,16 +253,16 @@ private:
 	}
 
 	// Don't want to assume that BARBARIAN_PLAYER==BARBARIAN_TEAM
-	static __forceinline AgentType* getBarbarianAgent()
+	static __forceinline AgentAIType* getBarbarianAgent()
 	{
-		return _getBarbarianAgent<AgentType>();
+		return _getBarbarianAgent<AgentAIType>();
 	}
+	// Don't want to include an AI header for GET_PLAYER
 	template<class T>
 	static T* _getBarbarianAgent();
 	template<>
 	static __forceinline CvPlayerAI* _getBarbarianAgent<CvPlayerAI>()
 	{
-		// Don't want to include an AI header for GET_PLAYER
 		return (*m_pAgents->getAgentSeqCache<CvPlayerAI>(CvAgents::ALL))[BARBARIAN_PLAYER];
 	}
 	template<>
@@ -270,54 +275,69 @@ private:
 #undef bADD_BARBARIANS
 #undef _bADD_BARBARIANS
 
-
-template<AgentStatusPredicate eSTATUS = ANY_AGENT_STATUS, AgentRelationPredicate eRELATION = ANY_AGENT_RELATION,
-		bool bSYNCRAND_ORDER = false>
-class PlayerIter : public AgentIterator<CvPlayerAI, eSTATUS, eRELATION, bSYNCRAND_ORDER>
-{
-public:
-	explicit PlayerIter(TeamTypes eTeam = NO_TEAM) :
-		AgentIterator<CvPlayerAI,eSTATUS,eRELATION,bSYNCRAND_ORDER>(eTeam)
-	{}
-	__forceinline PlayerIter& operator++()
-	{
-		generateNext();
-		return *this;
-	}
+/*	Want separate classes for AI and non-AI iterators - if only so that
+	AI headers don't need to be included in non-AI code. */
+#define DEFINE_PLAYER_ITER(PlayerClassName) \
+template<AgentStatusPredicate eSTATUS = ANY_AGENT_STATUS, AgentRelationPredicate eRELATION = ANY_AGENT_RELATION, \
+		bool bSYNCRAND_ORDER = false> \
+class PlayerClassName##Iter : public AgentIterator<Cv##PlayerClassName, eSTATUS, eRELATION, bSYNCRAND_ORDER, CvPlayerAI> \
+{ \
+public: \
+	explicit PlayerClassName##Iter(TeamTypes eTeam = NO_TEAM) : \
+	AgentIterator<Cv##PlayerClassName,eSTATUS,eRELATION,bSYNCRAND_ORDER,CvPlayerAI>(eTeam) \
+	{} \
+	__forceinline PlayerClassName##Iter& operator++() \
+	{ \
+		generateNext(); \
+		return *this; \
+	} \
 };
 
-template<AgentStatusPredicate eSTATUS = ANY_AGENT_STATUS, AgentRelationPredicate eRELATION = ANY_AGENT_RELATION,
-		bool bSYNCRAND_ORDER = false>
-class TeamIter : public AgentIterator<CvTeamAI, eSTATUS, eRELATION, bSYNCRAND_ORDER>
-{
-public:
-	explicit TeamIter(TeamTypes eTeam = NO_TEAM) :
-		AgentIterator<CvTeamAI,eSTATUS,eRELATION,bSYNCRAND_ORDER>(eTeam)
-	{
-		// Can't loop over all "teams that are members of eTeam"
-		BOOST_STATIC_ASSERT(eRELATION != MEMBER_OF);
-	}
-	__forceinline TeamIter& operator++()
-	{
-		generateNext();
-		return *this;
-	}
+DEFINE_PLAYER_ITER(Player)
+DEFINE_PLAYER_ITER(PlayerAI)
+#undef DEFINE_PLAYER_ITER
+
+#define DEFINE_TEAM_ITER(TeamClassName) \
+template<AgentStatusPredicate eSTATUS = ANY_AGENT_STATUS, AgentRelationPredicate eRELATION = ANY_AGENT_RELATION, \
+		bool bSYNCRAND_ORDER = false> \
+class TeamClassName##Iter : public AgentIterator<Cv##TeamClassName, eSTATUS, eRELATION, bSYNCRAND_ORDER, CvTeamAI> \
+{ \
+public: \
+	explicit TeamClassName##Iter(TeamTypes eTeam = NO_TEAM) : \
+	AgentIterator<Cv##TeamClassName,eSTATUS,eRELATION,bSYNCRAND_ORDER,CvTeamAI>(eTeam) \
+	{ \
+		/* Can't loop over all "teams that are members of eTeam" */ \
+		BOOST_STATIC_ASSERT(eRELATION != MEMBER_OF); \
+	} \
+	__forceinline TeamClassName##Iter& operator++() \
+	{ \
+		generateNext(); \
+		return *this; \
+	} \
 };
+
+DEFINE_TEAM_ITER(Team)
+DEFINE_TEAM_ITER(TeamAI)
+#undef DEFINE_TEAM_ITER
 
 //template<AgentStatusPredicate eSTATUS = ALIVE>
 /*  The above would require empty angle brackets for members alive.
 	I expect that a status other than ALIVE will rarely be needed;
 	will have to use PlayerIter for that. */
-class MemberIter : public PlayerIter<ALIVE, MEMBER_OF>
-{
-public:
-	explicit MemberIter(TeamTypes eTeam) : PlayerIter<ALIVE,MEMBER_OF>(eTeam) {}
-	__forceinline MemberIter& operator++()
-	{
-		generateNext();
-		return *this;
-	}
+#define DEFINE_MEMBER_ITER(PlayerClassName, IterClassName) \
+class IterClassName##Iter : public PlayerClassName##Iter<ALIVE, MEMBER_OF> \
+{ \
+public: \
+	explicit IterClassName##Iter(TeamTypes eTeam) : PlayerClassName##Iter<ALIVE,MEMBER_OF>(eTeam) {} \
+	__forceinline IterClassName##Iter& operator++() \
+	{ \
+		generateNext(); \
+		return *this; \
+	} \
 };
 
+DEFINE_MEMBER_ITER(Player, Member)
+DEFINE_MEMBER_ITER(PlayerAI, MemberAI)
+#undef DEFINE_MEMBER_ITER
 
 #endif

@@ -3416,7 +3416,7 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 		CvWStringBuffer szWorstEnemyString;
 		bool bFirstWar = true;
 		bool bFirstWorstEnemy = true;
-		for (TeamIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(eTeam);
+		for (TeamAIIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(eTeam);
 			itOther.hasNext(); ++itOther)
 		{
 			// K-Mod. show "at war" for the active player if appropriate
@@ -3516,7 +3516,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 	// show everyones power for the active player
 	if (eActivePlayer == ePlayer)
 	{
-		for (PlayerIter<CIV_ALIVE> itLoopPlayer; // advc.003n: exclude Barbarians
+		for (PlayerAIIter<CIV_ALIVE> itLoopPlayer; // advc.003n: exclude Barbarians
 			itLoopPlayer.hasNext(); ++itLoopPlayer)
 		{
 			CvPlayerAI const& kLoopPlayer = *itLoopPlayer;
@@ -3784,7 +3784,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 		// show peace values
 		bool bHadAny = false;
 		bool bFirst = true;
-		for (TeamIter<MAJOR_CIV,ENEMY_OF> itEnemy(eTeam); itEnemy.hasNext(); ++itEnemy)
+		for (TeamAIIter<MAJOR_CIV,ENEMY_OF> itEnemy(eTeam); itEnemy.hasNext(); ++itEnemy)
 		{
 			if (bFirst)
 			{
@@ -3893,7 +3893,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 	int iFinancialTroubleCount = 0;
 	int iDaggerCount = 0;
 	int iGetBetterUnitsCount = 0;
-	for (MemberIter itMember(eTeam); itMember.hasNext(); ++itMember)
+	for (MemberAIIter itMember(eTeam); itMember.hasNext(); ++itMember)
 	{
 		if (itMember->AI_isDoStrategy(AI_STRATEGY_DAGGER, /* advc.007: */ true) ||
 			itMember->AI_atVictoryStage(AI_VICTORY_CONQUEST3) ||

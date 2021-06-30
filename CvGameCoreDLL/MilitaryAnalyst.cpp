@@ -324,7 +324,7 @@ void MilitaryAnalyst::simulateNuclearWar()
 		if (isWar(eWe, itEnemy->getID()))
 			rOurTargets += (itEnemy->isAVassal() ? fixp(0.5) : 1);
 	}
-	for (PlayerIter<MAJOR_CIV> itEnemy; itEnemy.hasNext(); ++itEnemy)
+	for (PlayerAIIter<MAJOR_CIV> itEnemy; itEnemy.hasNext(); ++itEnemy)
 	{
 		CvPlayerAI const& kEnemy = *itEnemy;
 		if (!isWar(eWe, kEnemy.getID()))

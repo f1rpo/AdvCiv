@@ -11456,7 +11456,7 @@ bool CvUnitAI::AI_spreadCorporation()
 				return false; // corp is not worth spreading in this region.
 		}
 		int iBestValue = 0;
-		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+		for (PlayerAIIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		{
 			CvPlayerAI const& kLoopPlayer = *it;
 			if (canEnterTerritory(kLoopPlayer.getTeam()) &&
@@ -16466,7 +16466,7 @@ bool CvUnitAI::AI_specialSeaTransportSpy()
 	PlayerTypes eBestTarget = NO_PLAYER;
 	int iBestValue = 0;
 	// advc.opt: Exclude dead teams
-	for (PlayerIter<CIV_ALIVE,OTHER_KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
+	for (PlayerAIIter<CIV_ALIVE,OTHER_KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
 	{
 		CvPlayerAI const& kTarget = *it;
 
@@ -20038,7 +20038,7 @@ int CvUnitAI::AI_tradeMissionValue(CvPlot*& pBestPlot, int iThreshold)  // advc:
 
 	int iBestValue = 0;
 	int iBestPathTurns = MAX_INT;
-	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+	for (PlayerAIIter<MAJOR_CIV> it; it.hasNext(); ++it)
 	{
 		CvPlayerAI const& kPlayer = *it;
 		// Erik <AI1>: Do not consider cities belonging to players that we have a war plan against

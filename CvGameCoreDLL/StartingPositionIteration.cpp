@@ -244,7 +244,7 @@ CitySiteEvaluator* StartingPositionIteration::createSiteEvaluator(bool bNormaliz
 	bool const bOCC = GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE);
 	CvPlayerAI const* pPlayer = NULL;
 	int iBestPlayerVal = MAX_INT;
-	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+	for (PlayerAIIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
 		int iVal = 10 * it->getTechScore();
 		if (it->isHuman())

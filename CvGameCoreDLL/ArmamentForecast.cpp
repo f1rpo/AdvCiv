@@ -90,7 +90,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes ePlayer, MilitaryAnalyst const& k
 	bool bFictionalScenario = false;
 	TeamTypes eSingleWarEnemy = NO_TEAM; // Only relevant if there is just one enemy
 	bool const bNoWarVsExtra = (bPeaceScenario && kParams.isNoWarVsExtra());
-	for (TeamIter<MAJOR_CIV,KNOWN_TO> itOther(TEAMID(m_eAnalyst));
+	for (TeamAIIter<MAJOR_CIV,KNOWN_TO> itOther(TEAMID(m_eAnalyst));
 		itOther.hasNext(); ++itOther)
 	{
 		CvTeamAI const& kOther = *itOther;

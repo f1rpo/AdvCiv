@@ -67,10 +67,10 @@ namespace
 }
 
 
-template<class AgentType, AgentStatusPredicate eSTATUS, AgentRelationPredicate eRELATION>
-bool ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>::passFilters(AgentType const& kAgent) const
+template<class AgentType, AgentStatusPredicate eSTATUS, AgentRelationPredicate eRELATION, class AgentAIType>
+bool ExplicitAgentIterator<AgentType,eSTATUS,eRELATION,AgentAIType>::passFilters(AgentAIType const& kAgent) const
 {
-	#define args AgentType,eSTATUS,eRELATION,eCACHE_SUPER
+	#define args AgentAIType,eSTATUS,eRELATION,eCACHE_SUPER
 	switch(eSTATUS)
 	{
 	case ANY_AGENT_STATUS:
@@ -151,8 +151,10 @@ bool ExplicitAgentIterator<AgentType,eSTATUS,eRELATION>::passFilters(AgentType c
 	addressed through static assertions in the AgentIterator constructor. */
 
 #define INSTANTIATE_AGENT_ITERATOR(S, R) \
-	template class ExplicitAgentIterator<CvPlayerAI,S,R>; \
-	template class ExplicitAgentIterator<CvTeamAI,S,R>;
+	template class ExplicitAgentIterator<CvPlayer,S,R,CvPlayerAI>; \
+	template class ExplicitAgentIterator<CvTeam,S,R,CvTeamAI>; \
+	template class ExplicitAgentIterator<CvPlayerAI,S,R,CvPlayerAI>; \
+	template class ExplicitAgentIterator<CvTeamAI,S,R,CvTeamAI>;
 
 /*	(To avoid listing the predicates in two places, one could move these
 	definitions to AgentPredicates.h and generate the enums through a macro.) */

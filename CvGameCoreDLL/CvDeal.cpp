@@ -732,12 +732,12 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		// advc.550e: (K-Mod had checked this only for MEMORY_RECEIVED_TECH_FROM_ANY)
 		if (bSignificantTech)
 		{
-			for (MemberIter itToMember(kToPlayer.getTeam());
+			for (MemberAIIter itToMember(kToPlayer.getTeam());
 				itToMember.hasNext(); ++itToMember)
 			{
 				itToMember->AI_changeMemoryCount(eFromPlayer, MEMORY_TRADED_TECH_TO_US, 1);
 			}
-			for (PlayerIter<MAJOR_CIV,OTHER_KNOWN_TO> itThird(kToPlayer.getTeam());
+			for (PlayerAIIter<MAJOR_CIV,OTHER_KNOWN_TO> itThird(kToPlayer.getTeam());
 				itThird.hasNext(); ++itThird)
 			{
 				itThird->AI_changeMemoryCount(eToPlayer, MEMORY_RECEIVED_TECH_FROM_ANY, 1);
@@ -852,7 +852,7 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 				true, eToPlayer); // advc.100
 		// advc.146:
 		GET_TEAM(eFromPlayer).signPeaceTreaty(kToPlayer.getTeam());
-		for (MemberIter itAttackedMember(eAttackedTeam);
+		for (MemberAIIter itAttackedMember(eAttackedTeam);
 			itAttackedMember.hasNext(); ++itAttackedMember)
 		{
 			// advc.130j:
@@ -877,7 +877,7 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		if (!GET_TEAM(eFromPlayer).isCapitulated() || !GET_TEAM(eFromPlayer).isVassal(kToPlayer.getTeam()))
 			kToPlayer.stopTradingWithTeam(eTargetTeam, false);
 		// </advc.130f>
-		for (MemberIter itTargetMember(eTargetTeam);
+		for (MemberAIIter itTargetMember(eTargetTeam);
 			itTargetMember.hasNext(); ++itTargetMember)
 		{	// advc.130j:
 			itTargetMember->AI_rememberEvent(eToPlayer, MEMORY_HIRED_TRADE_EMBARGO);
@@ -983,7 +983,7 @@ namespace
 	void addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
 		TradeableItems eItemType)
 	{
-		for (MemberIter itToMember(TEAMID(eToPlayer));
+		for (MemberAIIter itToMember(TEAMID(eToPlayer));
 			itToMember.hasNext(); ++itToMember)
 		{
 			for (MemberIter itFromMember(TEAMID(eFromPlayer));

@@ -370,7 +370,7 @@ void CvCity::kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits)
 		}
 	} // UNOFFICIAL_PATCH: END
 	// <advc.104>
-	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+	for (PlayerAIIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		it->AI_cityKilled(*this); // </advc.104>
 	getArea().changeCitiesPerPlayer(getOwner(), -1);
 	// <advc.030b>
@@ -8901,7 +8901,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eBuilding, int iNewValue, boo
 			}
 			if (kBuilding.getGlobalPopulationChange() != 0)
 			{
-				for (MemberIter it(getTeam()); it.hasNext(); ++it)
+				for (MemberAIIter it(getTeam()); it.hasNext(); ++it)
 				{
 					CvPlayerAI const& kMember = *it;
 					if (kMember.getID() != getOwner() && !kBuilding.isTeamShare())
@@ -9155,7 +9155,7 @@ void CvCity::setHasReligion(ReligionTypes eReligion, bool bNewValue, bool bAnnou
 	{
 		CvEventReporter::getInstance().religionSpread(eReligion, kOwner.getID(), this);
 		// <advc.130n>
-		for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
+		for (TeamAIIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		{
 			if(isRevealed(it->getID()))
 				it->AI_reportNewReligion(eReligion);

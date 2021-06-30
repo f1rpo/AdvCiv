@@ -3803,7 +3803,7 @@ bool CvUnit::nuke(int iX, int iY)
 			should be added for intercepted nukes. Since advc.130j counts memory
 			at times-2 precision, that's not really necessary; we just count the
 			intercepted nuke as half a hit. */
-		for (PlayerIter<MAJOR_CIV> itAffected; itAffected.hasNext(); ++itAffected)
+		for (PlayerAIIter<MAJOR_CIV> itAffected; itAffected.hasNext(); ++itAffected)
 		{
 			if (abTeamsAffected.get(itAffected->getTeam()))
 				itAffected->AI_changeMemoryCount(getOwner(), MEMORY_NUKED_US, 1);
@@ -3863,7 +3863,7 @@ bool CvUnit::nuke(int iX, int iY)
 			aiDamageScore.set(it->getID(), 3);
 	} // </advc.130q> // The nuked-friend loop (refactored)
 	// advc.003n: Only major civs (both loops)
-	for (TeamIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(getTeam());
+	for (TeamAIIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(getTeam());
 		itOther.hasNext(); ++itOther)
 	{
 		CvTeamAI& kOther = *itOther;
@@ -3871,7 +3871,7 @@ bool CvUnit::nuke(int iX, int iY)
 		/*  advc.130q: Moved the is-affected case to a separate loop b/c it's now
 			important to process the nuked-friend penalties first */
 
-		for (TeamIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itAffected(kOther.getID());
+		for (TeamAIIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itAffected(kOther.getID());
 			itAffected.hasNext(); ++itAffected)
 		{
 			CvTeamAI const& kAffected = *itAffected;
@@ -3885,7 +3885,7 @@ bool CvUnit::nuke(int iX, int iY)
 				// advc.130h: bForced=false
 				kOther.AI_getAttitude(kAffected.getID(), false) >= ATTITUDE_CAUTIOUS)
 			{
-				for (MemberIter itOtherMember(kOther.getID());
+				for (MemberAIIter itOtherMember(kOther.getID());
 					itOtherMember.hasNext(); ++itOtherMember)
 				{	// advc.130j:
 					itOtherMember->AI_rememberEvent(getOwner(), MEMORY_NUKED_FRIEND);
@@ -3903,7 +3903,7 @@ bool CvUnit::nuke(int iX, int iY)
 		}
 	}
 	// <advc.130q> The nuked-us loop (refactored)
-	for (PlayerIter<ALIVE,NOT_SAME_TEAM_AS> itAffected(getTeam());
+	for (PlayerAIIter<ALIVE,NOT_SAME_TEAM_AS> itAffected(getTeam());
 		itAffected.hasNext(); ++itAffected)
 	{
 		TeamTypes const eAffectedTeam = itAffected->getTeam();
@@ -6498,7 +6498,7 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 		// air units can travel any distance
 		bool bIgnoreDistance = (getDomainType() == DOMAIN_AIR);
 		// check every player on our team's cities
-		for (MemberIter itMember(getTeam()); itMember.hasNext(); ++itMember)
+		for (MemberAIIter itMember(getTeam()); itMember.hasNext(); ++itMember)
 		{
 			FOR_EACH_CITYAI_VAR(pCity, *itMember)
 			{

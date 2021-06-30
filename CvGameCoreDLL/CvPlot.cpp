@@ -829,7 +829,7 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 		if (!bBomb)
 			continue;
 		// <advc.650>
-		for (TeamIter<ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
+		for (TeamAIIter<ALIVE> itTeam; itTeam.hasNext(); ++itTeam)
 		{
 			/*	Strictly speaking, we should check the same conditions as in
 				CvUnit::nuke, i.e. whether the nuke owner and plot have been met,

@@ -65,7 +65,7 @@ void AdvCiv4lert::check(bool bSilent)
 void WarTradeAlert::check()
 {
 	CvPlayer const& kOwner = GET_PLAYER(m_eOwner);
-	for (TeamIter<FREE_MAJOR_CIV,OTHER_KNOWN_TO> itHireling(kOwner.getTeam());
+	for (TeamAIIter<FREE_MAJOR_CIV,OTHER_KNOWN_TO> itHireling(kOwner.getTeam());
 		itHireling.hasNext(); ++itHireling)
 	{
 		CvTeamAI const& kHireling = *itHireling;
@@ -395,7 +395,7 @@ void CityTradeAlert::check()
 {
 	PROFILE_FUNC();
 	CvPlayer const& kAlertPlayer = GET_PLAYER(m_eOwner);
-	for (PlayerIter<MAJOR_CIV,OTHER_KNOWN_TO> itPlayer(kAlertPlayer.getTeam());
+	for (PlayerAIIter<MAJOR_CIV,OTHER_KNOWN_TO> itPlayer(kAlertPlayer.getTeam());
 		itPlayer.hasNext(); ++itPlayer)
 	{
 		CvPlayerAI const& kPlayer = *itPlayer;

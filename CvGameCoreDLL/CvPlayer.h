@@ -1556,7 +1556,7 @@ protected:  // <advc.210>
 	bool m_bScoreboardExpanded; // advc.085
 	bool m_bRandomWBStart; // advc.027
 
-	LeaderHeadTypes m_ePersonalityType;
+	LeaderHeadTypes m_ePersonalityType; // advc (tbd.): Move to CvPlayerAI
 	EraTypes m_eCurrentEra;
 	ReligionTypes m_eLastStateReligion;
 	PlayerTypes m_eParent;

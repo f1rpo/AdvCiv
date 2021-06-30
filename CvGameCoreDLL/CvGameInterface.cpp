@@ -64,7 +64,7 @@ void CvGame::updateColoredPlots()
 			for (int i = 0; i < iPlots; i++)
 			{
 				CvPlot& kPlot = kMap.getPlotByIndex(i);
-				for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+				for (PlayerAIIter<CIV_ALIVE> it; it.hasNext(); ++it)
 				{
 					CvPlayerAI const& kPlayer = *it;
 					if (kPlayer.AI_isPlotCitySite(kPlot))

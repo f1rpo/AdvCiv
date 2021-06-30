@@ -961,7 +961,7 @@ void GreedForVassals::evaluate()
 	bool bUsefulArea = false; // Look for a future enemy to dogpile on
 	if (&kOurArea == &kTheirArea)
 	{
-		for (PlayerIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itTarget(eOurTeam);
+		for (PlayerAIIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itTarget(eOurTeam);
 			itTarget.hasNext(); ++itTarget)
 		{
 			CvPlayerAI const& kTarget = *itTarget;
@@ -1930,7 +1930,7 @@ void HiredHand::evaluate()
 		}
 	}
 	// Have we hired someone to help us against eThey?
-	for (PlayerIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itAlly(eOurTeam);
+	for (PlayerAIIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itAlly(eOurTeam);
 		itAlly.hasNext(); ++itAlly)
 	{
 		CvPlayerAI const& kAlly = *itAlly;
@@ -2321,7 +2321,7 @@ void KingMaking::addWinning(std::set<PlayerTypes>& kWinning, bool bPredict) cons
 		a rival victory or prevent a rival from getting way ahead in score.
 		anyVictory and addLeadingPlayers take care of this. */
 	// Category III: Civs at victory stage 4
-	for (PlayerIter<FREE_MAJOR_CIV> itPlayer; itPlayer.hasNext(); ++itPlayer)
+	for (PlayerAIIter<FREE_MAJOR_CIV> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
 		AIVictoryStage eFlags = itPlayer->AI_getVictoryStageHash();
 		if ((eFlags & AI_VICTORY_CULTURE4) &&
@@ -2345,7 +2345,7 @@ void KingMaking::addWinning(std::set<PlayerTypes>& kWinning, bool bPredict) cons
 			return;
 		// (If none at stage 4 and time victory not imminent)
 		// Category II: Civs at victory stage 3 or game score near the top
-		for (PlayerIter<FREE_MAJOR_CIV> itPlayer; itPlayer.hasNext(); ++itPlayer)
+		for (PlayerAIIter<FREE_MAJOR_CIV> itPlayer; itPlayer.hasNext(); ++itPlayer)
 		{
 			if (anyVictory(itPlayer->getID(),
 				itPlayer->AI_getVictoryStageHash(), 3, bPredict))
@@ -2723,7 +2723,7 @@ int Effort::preEvaluate()
 			(ourCache().getPowerValues()[ARMY]->power() + scaled::epsilon());
 	scaled const rOurPower = kWe.getPower() * (1 + rOurPowerChange);
 	scaled rHighestRivalPower;
-	for (PlayerIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itRival(eOurTeam);
+	for (PlayerAIIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itRival(eOurTeam);
 		itRival.hasNext(); ++itRival)
 	{
 		CvPlayerAI const& kRival = *itRival;
@@ -3030,7 +3030,7 @@ void Risk::evaluate()
 int IllWill::preEvaluate()
 {
 	int iHostiles = 0;
-	for (PlayerIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itHostile(eOurTeam);
+	for (PlayerAIIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itHostile(eOurTeam);
 		itHostile.hasNext(); ++itHostile)
 	{
 		if (militAnalyst().isWar(eWe, itHostile->getID()) ||
@@ -3090,7 +3090,7 @@ scaled IllWill::nukeCost(scaled rCitiesWeNuked) const
 		return 0;
 	}
 	scaled rNukeCost;
-	for (PlayerIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itThird(eOurTeam);
+	for (PlayerAIIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itThird(eOurTeam);
 		itThird.hasNext(); ++itThird)
 	{
 		CvPlayerAI const& kThirdPlayer = *itThird;
@@ -3859,7 +3859,7 @@ void FairPlay::evaluate()
 	scaled rOtherEnemies; // Apart from us
 	int iPotentialOtherEnemies = 0;
 	int const iTheirRank = m_kGame.getPlayerRank(eThey);
-	for (PlayerIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itOther(eOurTeam);
+	for (PlayerAIIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itOther(eOurTeam);
 		itOther.hasNext(); ++itOther)
 	{
 		CvPlayerAI const& kOther = *itOther;

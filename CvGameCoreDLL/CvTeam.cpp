@@ -2969,10 +2969,10 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 		p.updatePlotGroup();
 		p.verifyUnitValidPlot();
 	}
-	for (MemberIter itOurMember(getID()); itOurMember.hasNext(); ++itOurMember)
+	for (MemberAIIter itOurMember(getID()); itOurMember.hasNext(); ++itOurMember)
 	{
 		CvPlayerAI& ourMember = *itOurMember;
-		for (MemberIter itTheirMember(eIndex); itTheirMember.hasNext(); ++itTheirMember)
+		for (MemberAIIter itTheirMember(eIndex); itTheirMember.hasNext(); ++itTheirMember)
 		{
 			CvPlayerAI& theirMember = *itTheirMember;
 			ourMember.AI_updateCloseBorderAttitude(theirMember.getID());
@@ -3022,7 +3022,7 @@ void CvTeam::setOpenBorders(TeamTypes eIndex, bool bNewValue)
 	bool bOldFreeTrade = isFreeTrade(eIndex);
 	m_abOpenBorders.set(eIndex, bNewValue);
 	// <advc.130p> OB affect diplo from rival trade
-	for (PlayerIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(getID()); itOther.hasNext(); ++itOther)
+	for (PlayerAIIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(getID()); itOther.hasNext(); ++itOther)
 	{
 		for (MemberIter itMember(getID()); itMember.hasNext(); ++itMember)
 			itOther->AI_updateAttitude(itMember->getID());
@@ -3117,7 +3117,7 @@ void CvTeam::setDefensivePact(TeamTypes eIndex, bool bNewValue)
 	// K-Mod. update attitude
 	if (GC.getGame().isFinalInitialized())
 	{
-		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+		for (PlayerAIIter<MAJOR_CIV> it; it.hasNext(); ++it)
 			it->AI_updateAttitude();
 	} // K-Mod end
 }
@@ -3192,7 +3192,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 			}
 		}
 	}  // advc: Update war and war plan counters
-	for (TeamIter<ALIVE> it; it.hasNext(); ++it)
+	for (TeamAIIter<ALIVE> it; it.hasNext(); ++it)
 	{
 		CvTeamAI& t = *it;
 		// <advc.003m>
@@ -3281,7 +3281,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 		setForcePeace(eMaster, false);
 		GET_TEAM(eMaster).setForcePeace(getID(), false);
 		// <advc.130o> Forget tribute demands
-		for (MemberIter itMember(getID()); itMember.hasNext(); ++itMember)
+		for (MemberAIIter itMember(getID()); itMember.hasNext(); ++itMember)
 		{
 			for (PlayerIter<MAJOR_CIV> itOther; itOther.hasNext(); ++itOther)
 				itMember->AI_setMemoryCount(itOther->getID(), MEMORY_MADE_DEMAND, 0);
@@ -3327,7 +3327,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 			}
 		}
 		triggerWars(); // kekm.26
-		for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
+		for (TeamAIIter<MAJOR_CIV> it; it.hasNext(); ++it)
 		{
 			CvTeamAI& kRival = *it;
 			if (!kRival.isAtWar(getID()))
@@ -3433,7 +3433,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 		if(m_bCapitulated && AI().AI_getSharedWarSuccess(eMaster) +
 			GET_TEAM(eMaster).AI_getSharedWarSuccess(getID()) > 0)
 		{
-			for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
+			for (TeamAIIter<MAJOR_CIV> it; it.hasNext(); ++it)
 			{
 				CvTeamAI& kRival = *it;
 				if (kRival.getID() != getID() && kRival.getID() != eMaster)
@@ -3454,7 +3454,7 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 			}
 		} // </advc.133>
 		// <advc.104j> Stop any war plans that eMaster may have forced on us
-		for (TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(eMaster); it.hasNext(); ++it)
+		for (TeamAIIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(eMaster); it.hasNext(); ++it)
 		{
 			CvTeamAI const& kRival = *it;
 			if(!kRival.isAtWar(getID()))
@@ -3468,9 +3468,9 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 	// <advc.130v> Border conflicts of capitulated vassal are held against the master
 	if (isCapitulated())
 	{
-		for (PlayerIter<MAJOR_CIV> itOther; itOther.hasNext(); ++itOther)
+		for (PlayerAIIter<MAJOR_CIV> itOther; itOther.hasNext(); ++itOther)
 		{
-			for (MemberIter itMember(eMaster); itMember.hasNext(); ++itMember)
+			for (MemberAIIter itMember(eMaster); itMember.hasNext(); ++itMember)
 				itOther->AI_updateCloseBorderAttitude(itMember->getID());
 		}
 	} // </advc.130v>
@@ -3482,9 +3482,9 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 	for (TeamTypes eTeam = getID(); eTeam != NO_TEAM; eTeam =
 		(eTeam == getID() ? eMaster : NO_TEAM))
 	{
-		for (MemberIter itMember(eTeam); itMember.hasNext(); ++itMember)
+		for (MemberAIIter itMember(eTeam); itMember.hasNext(); ++itMember)
 		{
-			for (PlayerIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(eTeam);
+			for (PlayerAIIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(eTeam);
 				itOther.hasNext(); ++itOther)
 			{
 				itMember->AI_updateAttitude(itOther->getID());
@@ -3516,10 +3516,10 @@ void CvTeam::setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated)
 	// <advc.130f> Delete stopped-trading memory
 	if(bWasCapitulated != bCapitulated)
 	{
-		for (MemberIter itMember(getID()); itMember.hasNext(); ++itMember)
+		for (MemberAIIter itMember(getID()); itMember.hasNext(); ++itMember)
 		{
 			CvPlayerAI& kOurMember = *itMember;
-			for (PlayerIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(getID());
+			for (PlayerAIIter<MAJOR_CIV,NOT_SAME_TEAM_AS> itOther(getID());
 				itOther.hasNext(); ++itOther)
 			{
 				CvPlayerAI& kOther = *itOther;
@@ -3579,7 +3579,7 @@ void CvTeam::freeVassal(TeamTypes eVassal) const
 		Want the civ that made the former master capitulate (i.e. getMasterTeam)
 		to have a right of first refusal. */
 	CvPlayerAI& kVassalLeader = GET_PLAYER(GET_TEAM(eVassal).getLeaderID());
-	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+	for (PlayerAIIter<MAJOR_CIV> it; it.hasNext(); ++it)
 	{
 		CvPlayerAI const& kOther = *it;
 		if(kOther.getTeam() == getMasterTeam() || kOther.getTeam() == eVassal)
@@ -3629,7 +3629,7 @@ void CvTeam::triggerWars(bool bForceUpdateAttitude)
 	if(bWarsDeclared /* advc: */ || bForceUpdateAttitude)
 	{
 		// from declareWar (K-Mod code)
-		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+		for (PlayerAIIter<MAJOR_CIV> it; it.hasNext(); ++it)
 			it->AI_updateAttitude();
 	}
 	bTriggeringWars = false;
@@ -3764,7 +3764,7 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)
 	if (kProject.isAllowsNukes())
 		GC.getGame().makeNukesValid(true);
 
-	for (MemberIter it(getID()); it.hasNext(); ++it)
+	for (MemberAIIter it(getID()); it.hasNext(); ++it)
 	{
 		CvPlayerAI& kAIMember = *it;
 		if (kAIMember.isHuman())
@@ -4424,7 +4424,7 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,
 			}
 		}
 
-		for (MemberIter it(getID()); it.hasNext(); ++it)
+		for (MemberAIIter it(getID()); it.hasNext(); ++it)
 		{
 			CvPlayerAI& kMember = *it;
 			if (kMember.isResearchingTech(eTech))
@@ -4499,14 +4499,13 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer,
 			} // </advc.004>
 			if (bFirstPerk)
 			{
-				for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
+				for (PlayerIter<CIV_ALIVE> itOther; itOther.hasNext(); ++itOther)
 				{
-					CvPlayerAI& kOther = *it;
-					if (!kOther.isHuman() && kOther.isResearchingTech(eTech))
+					if (!itOther->isHuman() && itOther->isResearchingTech(eTech))
 					{
 						/*	K-Mod note: we just want to flag it for re-evaluation.
 							Clearing the queue is currently the only way to do that. */
-						kOther.clearResearchQueue();
+						itOther->clearResearchQueue();
 					}
 				}
 			}
@@ -5487,7 +5486,7 @@ void CvTeam::processTech(TechTypes eTech, int iChange,
 		}  // <advc.121>
 		if (!bEndOfTurn) // Otherwise, CvCity::doTurn is about to be called anyway.
 		{
-			for (MemberIter it(getID()); it.hasNext(); ++it)
+			for (MemberAIIter it(getID()); it.hasNext(); ++it)
 			{
 				if (!it->isHuman())
 					it->AI_processNewBuild(eLoopBuild);
