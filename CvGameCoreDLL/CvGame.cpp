@@ -5257,8 +5257,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, VoteSelectionSubD
 		// kekm.25: 'These are not necessarily the same'
 		if (!GET_TEAM(kOtherPlayer.getTeam()).isFullMember(eVoteSource))
 			return false;
-
-		if (kOtherPlayer.isHuman() && isOption(GAMEOPTION_ONE_CITY_CHALLENGE))
+		if (kOtherPlayer.isOneCityChallenge())
 			return false;
 	}
 	return canDoResolution(eVoteSource, kData);

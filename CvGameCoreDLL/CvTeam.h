@@ -148,6 +148,8 @@ public:
 	// </advc.003m>  <advc.opt> This gets called a lot. Now precomputed.
 	PlayerTypes getLeaderID() const { return m_eLeader; }																					// Exposed to Python
 	void updateLeaderID(); // </advc.opt>
+	bool isAlwaysWar() const; // advc.127
+
 	PlayerTypes getSecretaryID() const;																									// Exposed to Python
 	HandicapTypes getHandicapType() const;																							// Exposed to Python
 	CvWString getName() const;																								// Exposed to Python

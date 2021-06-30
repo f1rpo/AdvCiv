@@ -123,10 +123,11 @@ public:
 	bool isHumanDisabled() /* advc.127: */ const // and exposed to Python
 	{
 		return m_bDisableHuman;
-	}
-	bool isSpectator() const; // advc.127
-	bool isAutoPlayJustEnded() const { return m_bAutoPlayJustEnded; } // advc.127 (exposed to Python)
-	// AI_AUTO_PLAY_MOD: END
+	} // AI_AUTO_PLAY_MOD: END
+	// <advc.127>
+	bool isSpectator() const;
+	bool isAutoPlayJustEnded() const { return m_bAutoPlayJustEnded; }												// Exposed to Python
+	bool isOneCityChallenge() const; // </advc.127>
 	DllExport inline bool isHuman() const { return m_bHuman; }														// Exposed to Python
 	DllExport inline bool isBarbarian() const { return (m_eID == BARBARIAN_PLAYER); }								// Exposed to Python
 	DllExport void updateHuman();
@@ -228,7 +229,10 @@ public:
 	void contact(PlayerTypes ePlayer);																				// Exposed to Python
 	DllExport void handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer, int iData1, int iData2);
 	bool canTradeWith(PlayerTypes eWhoTo) const;																	// Exposed to Python
-	bool canReceiveTradeCity() const;
+	bool canReceiveTradeCity() const
+	{
+		return !isOneCityChallenge();
+	}
 	DllExport bool canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial = false) const;				// Exposed to Python
 	bool canPossiblyTradeItem(PlayerTypes eWhoTo, TradeableItems eItemType) const; // advc.opt
 	// <advc.ctr>

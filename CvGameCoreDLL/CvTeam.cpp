@@ -1004,14 +1004,11 @@ bool CvTeam::canChangeWarPeace(TeamTypes eTeam, bool bAllowVassal) const
 	}
 	/*  <advc.001> Had a civ make peace with a minor civ in one game. Not sure how
 		that happened; probably through a random event. */
-	if(isMinorCiv() || GET_TEAM(eTeam).isMinorCiv())
+	if (isMinorCiv() || GET_TEAM(eTeam).isMinorCiv())
 		return false; // </advc.001>
 	// <advc.104> Don't want to have to check this separately in the UWAI code
-	if(GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR) && isAtWar(eTeam) &&
-		(isHuman() || GET_TEAM(eTeam).isHuman()))
-	{
-		return false;
-	} // </advc.104>
+	if (isAtWar(eTeam) && (isAlwaysWar() || GET_TEAM(eTeam).isAlwaysWar()))
+		return false; // </advc.104>
 
 	return true;
 }
@@ -2264,6 +2261,22 @@ void CvTeam::updateLeaderID()
 	}
 }
 
+// advc.127:
+bool CvTeam::isAlwaysWar() const
+{
+	if (!GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR))
+		return false;
+	if (isHuman())
+		return true;
+	// Let always-war option apply during AI Auto Play
+	for (MemberIter itMember(getID()); itMember.hasNext(); ++itMember)
+	{
+		if (itMember->isHumanDisabled())
+			return true;
+	}
+	return false;
+}
+
 
 PlayerTypes CvTeam::getSecretaryID() const
 {
@@ -2799,13 +2812,11 @@ void CvTeam::makeHasMet(TeamTypes eOther, bool bNewDiplo,
 		if(bShowMessage && iOnFirstContact == 1)
 			bShowMessage = false;
 	} // </advc.071>
-	if (GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR))
-	{
-		if (isHuman() && getID() != eOther)
-			declareWar(eOther, false, NO_WARPLAN);
-	}  // advc: reduce indentation in else branch
-	else if (GC.getGame().isFinalInitialized() && !gDLL->GetWorldBuilderMode() &&
-		bNewDiplo && !isHuman() && !isAtWar(eOther))
+	if (isAlwaysWar() && getID() != eOther)
+		declareWar(eOther, false, NO_WARPLAN);
+	else if (!isHuman() && bNewDiplo &&
+		GC.getGame().isFinalInitialized() && !gDLL->GetWorldBuilderMode() &&
+		!isAtWar(eOther))
 	{
 		for (PlayerIter<HUMAN,MEMBER_OF> it(eOther); it.hasNext(); ++it)
 		{

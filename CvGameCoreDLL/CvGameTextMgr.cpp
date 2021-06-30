@@ -11189,10 +11189,9 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer,
 			{
 				if (pCity->isNationalWondersMaxed())
 				{
-					int iMaxNumWonders = (kGame.isOption(GAMEOPTION_ONE_CITY_CHALLENGE) &&
-							GET_PLAYER(pCity->getOwner()).isHuman()) ?
+					int iMaxNumWonders = (GET_PLAYER(pCity->getOwner()).isOneCityChallenge() ?
 							GC.getDefineINT(CvGlobals::MAX_NATIONAL_WONDERS_PER_CITY_FOR_OCC) :
-							GC.getDefineINT(CvGlobals::MAX_NATIONAL_WONDERS_PER_CITY);
+							GC.getDefineINT(CvGlobals::MAX_NATIONAL_WONDERS_PER_CITY));
 					szBuffer.append(NEWLINE);
 					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_NATIONAL_WONDERS_PER_CITY",
 							iMaxNumWonders));

@@ -1033,13 +1033,10 @@ void CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 	bool const bFound = (eUnitAI == UNITAI_SETTLE) ||
 			(GC.getInfo(eUnit).getDefaultUnitAIType() == UNITAI_SETTLE);
 
-	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
+	if (isOneCityChallenge() && bFound &&
+		AI().AI_getNumAIUnits(UNITAI_SETTLE) >= 1)
 	{
-		if (bFound) // advc.108: No functional change
-		{
-			if (AI().AI_getNumAIUnits(UNITAI_SETTLE) >= 1)
-				return;
-		}
+		return;
 	}
 
 	CvPlot* pStartingPlot = getStartingPlot();
@@ -2402,11 +2399,18 @@ void CvPlayer::setHumanDisabled(bool bNewVal)
 	updateHuman();
 }
 
-// advc.127:
+// <advc.127>
 bool CvPlayer::isSpectator() const
 {
 	return isHumanDisabled() && GC.getGame().isDebugMode();
 }
+
+
+bool CvPlayer::isOneCityChallenge() const
+{
+	return (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) &&
+			(isHuman() || isHumanDisabled())); // Apply OCC also during AI Auto Play
+} // </advc.127>
 
 
 void CvPlayer::updateHuman()
@@ -3424,11 +3428,8 @@ bool CvPlayer::canContact(PlayerTypes ePlayer, /* K-Mod: */ bool bCheckWillingne
 				return false;
 		}
 
-		if (isHuman() || GET_PLAYER(ePlayer).isHuman())
-		{
-			if (GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR))
-				return false;
-		}
+		if (GET_TEAM(getTeam()).isAlwaysWar() || GET_TEAM(ePlayer).isAlwaysWar())
+			return false;
 	}
 
 	// <K-Mod> (moved here by advc)
@@ -3691,12 +3692,6 @@ bool CvPlayer::canTradeWith(PlayerTypes eWhoTo) const
 	items.clear();
 	GET_PLAYER(eWhoTo).buildTradeTable(getID(), items);
 	return (items.getLength() > 0); // </advc.ctr>
-}
-
-
-bool CvPlayer::canReceiveTradeCity() const
-{
-	return (!GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) || !isHuman());
 }
 
 
@@ -4521,11 +4516,8 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 		} // <advc.314> I guess a Worker with a slow WorkRate would be OK
 		if(bVeryEarlyGame && kUnit.getWorkRate() > 30)
 			return false; // </advc.314>
-		if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
-		{
-			if (kUnit.isFound())
-				return false;
-		}
+		if (isOneCityChallenge() && kUnit.isFound())
+			return false;
 	} // <advc.314> Free unit and no UnitClassType given
 	else if(!kGoody.isBad() && kGoody.getMinBarbarians() > 0 &&
 		(bEarlyMP || bVeryEarlyGame))
@@ -4876,7 +4868,7 @@ bool CvPlayer::canFound(int iX, int iY, bool bTestVisible) const
 	if (!kPlot.canFound(bTestVisible))
 		return false;
 	if (GC.getGame().isFinalInitialized() && getNumCities() > 0 &&
-		GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
+		isOneCityChallenge())
 	{
 		return false; // (advc.opt: Moved down)
 	}
@@ -5004,11 +4996,8 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 	if (getCivilization().getUnit(eUnitClass) != eUnit)
 		return false;
 
-	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
-	{
-		if (GC.getInfo(eUnit).isFound())
-			return false;
-	}
+	if (isOneCityChallenge() && GC.getInfo(eUnit).isFound())
+		return false;
 
 	if (!GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getInfo(eUnit).getPrereqAndTech()))
 		return false;
@@ -5512,7 +5501,7 @@ int CvPlayer::getBuildingClassPrereqBuilding(BuildingTypes eBuilding,
 				iExtra + 1;
 	}
 
-	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
+	if (isOneCityChallenge())
 		iPrereqs = std::min(1, iPrereqs);
 
 	return iPrereqs;

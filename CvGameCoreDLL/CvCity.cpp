@@ -641,11 +641,8 @@ void CvCity::doRevolt()
 	damageGarrison(eCulturalOwner); // advc: Code moved into subroutine
 	if (bCanFlip /* advc.099 */ && canCultureFlip(eCulturalOwner))
 	{
-		if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) &&
-			GET_PLAYER(eCulturalOwner).isHuman())
-		{
+		if (GET_PLAYER(eCulturalOwner).isOneCityChallenge())
 			kill(true);
-		}
 		else getPlot().setOwner(eCulturalOwner, true, true); // will delete pCity
 		/*  advc (comment): setOwner doesn't actually delete this object; just
 			calls CvCity::kill. Messages also handled by setOwner (through
@@ -1262,7 +1259,7 @@ bool CvCity::canUpgradeTo(UnitTypes eUnit) const
 
 bool CvCity::isWorldWondersMaxed() const
 {
-	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
+	if (GET_PLAYER(getOwner()).isOneCityChallenge())
 		return false;
 	if (GC.getDefineINT(CvGlobals::MAX_WORLD_WONDERS_PER_CITY) == -1)
 		return false;
@@ -1274,7 +1271,7 @@ bool CvCity::isWorldWondersMaxed() const
 
 bool CvCity::isTeamWondersMaxed() const
 {
-	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
+	if (GET_PLAYER(getOwner()).isOneCityChallenge())
 		return false;
 	if (GC.getDefineINT(CvGlobals::MAX_TEAM_WONDERS_PER_CITY) == -1)
 		return false;
@@ -1295,10 +1292,9 @@ bool CvCity::isNationalWondersMaxed() const
 
 int CvCity::getNumNationalWondersLeft() const
 {
-	int iMaxNumWonders = (GC.getGame().isOption(
-			GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman()) ?
+	int iMaxNumWonders = (GET_PLAYER(getOwner()).isOneCityChallenge() ?
 			GC.getDefineINT(CvGlobals::MAX_NATIONAL_WONDERS_PER_CITY_FOR_OCC) :
-			GC.getDefineINT(CvGlobals::MAX_NATIONAL_WONDERS_PER_CITY);
+			GC.getDefineINT(CvGlobals::MAX_NATIONAL_WONDERS_PER_CITY));
 	if(iMaxNumWonders < 0)
 		return -1;
 	return std::max(0, iMaxNumWonders - getNumNationalWonders());
@@ -1311,7 +1307,7 @@ bool CvCity::isBuildingsMaxed() const
 	static int const iMaxBuildingsPerCity = GC.getDefineINT("MAX_BUILDINGS_PER_CITY");
 	if (iMaxBuildingsPerCity < 0)
 		return false; // </advc.opt>
-	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
+	if (GET_PLAYER(getOwner()).isOneCityChallenge())
 		return false;
 	return (getNumBuildings() >= iMaxBuildingsPerCity);
 }
@@ -12875,12 +12871,9 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const  // advc: refactor
 bool CvCity::isAutoRaze(/* <advc> */ PlayerTypes eConqueror) const
 {
 	CvPlayer const& kAssumedOwner = GET_PLAYER(eConqueror == NO_PLAYER ?
-			getOwner() : eConqueror); // </advc>
-	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) &&
-		kAssumedOwner.isHuman()) // advc
-	{
+			getOwner() : eConqueror);
+	if (kAssumedOwner.isOneCityChallenge()) // </advc>
 		return true;
-	}
 	if (GC.getGame().isOption(GAMEOPTION_NO_CITY_RAZING))
 		return false;
 	if (GC.getGame().getMaxCityElimination() > 0)

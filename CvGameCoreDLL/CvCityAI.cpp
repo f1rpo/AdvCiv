@@ -3462,10 +3462,9 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 			}
 			if (iLimit != -1)
 			{
-				const int iMaxNumWonders = (
-						kGame.isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman()) ?
+				const int iMaxNumWonders = (GET_PLAYER(getOwner()).isOneCityChallenge() ?
 						GC.getDefineINT(CvGlobals::MAX_NATIONAL_WONDERS_PER_CITY_FOR_OCC) :
-						GC.getDefineINT(CvGlobals::MAX_NATIONAL_WONDERS_PER_CITY);
+						GC.getDefineINT(CvGlobals::MAX_NATIONAL_WONDERS_PER_CITY));
 				if (kBuilding.isNationalWonder() && iMaxNumWonders != -1)
 				{
 					iValue *= iMaxNumWonders + 1 - getNumNationalWonders();
@@ -12869,7 +12868,7 @@ int CvCityAI::AI_cityThreat(/*bool bDangerPercent*/) const
 	return iTotalThreat;
 }
 
-/*  <advc.031b> Between 1 and 100 (not 0 b/c the caller should ensure that there
+/*  advc.031b: Between 1 and 100 (not 0 b/c the caller should ensure that there
 	is at least one acceptable and reachable city site). Note that the result
 	is currently usually doubled and then used as the per-cent probability of
 	training a Settler, meaning that values greater than 50 get clamped. */
@@ -12879,21 +12878,22 @@ int CvCityAI::AI_calculateSettlerPriority(int iAreaSites, int iBestAreaFoundValu
 	FAssert(iAreaSites + iWaterAreaSites > 0);
 	if(iAreaSites <= 0)
 		return 60; // Don't really want to pace AI colonization
-	int r = 20;
+	int iPriority = 20;
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	int iMinFoundValue = std::max(1, kOwner.AI_getMinFoundValue());
-	r += (10 * std::max(iBestAreaFoundValue, iBestWaterAreaFoundValue)) / iMinFoundValue;
+	iPriority += (10 * std::max(iBestAreaFoundValue, iBestWaterAreaFoundValue)) / iMinFoundValue;
 	CvTeam const& kTeam = GET_TEAM(getTeam());
-	CvGame const& g = GC.getGame();
-	if(g.isOption(GAMEOPTION_ALWAYS_WAR))
-		r -= 10;
+	if(kTeam.isAlwaysWar())
+		iPriority -= 10;
 	else if(!GET_TEAM(getTeam()).AI_isWarPossible() || // Can't expand through war
-			(kTeam.isAVassal() && !kTeam.isCapitulated()) ||
-			(getUWAI().isEnabled() && kOwner.uwai().getCache().hasDefensiveTrait()))
-		r += 15;
+		(kTeam.isAVassal() && !kTeam.isCapitulated()) ||
+		(getUWAI().isEnabled() && kOwner.uwai().getCache().hasDefensiveTrait()))
+	{
+		iPriority += 15;
+	}
 	// Imperialistic trait? Awkward to check ...
 	// I don't think the number of sites should matter(?)
-	return std::min(100, r);
+	return std::min(100, iPriority);
 } // </advc.031b>
 
 //Workers have/needed is not intended to be a strict
