@@ -4840,7 +4840,8 @@ int CvGame::calculateGlobalPollution() const
 	return iGlobalPollution;
 }
 
-// if ePlayer == NO_PLAYER, all features are counted. Otherwise, only count features owned by the specified player.
+/*	if ePlayer == NO_PLAYER, all features are counted.
+	Otherwise, only count features owned by the specified player. */
 int CvGame::calculateGwLandDefence(PlayerTypes ePlayer) const
 {
 	int iTotal = 0;
@@ -4860,19 +4861,24 @@ int CvGame::calculateGwLandDefence(PlayerTypes ePlayer) const
 // again, NO_PLAYER means everyone
 int CvGame::calculateGwSustainabilityThreshold(PlayerTypes ePlayer) const
 {
-	// expect each pop to give ~10 pollution per turn at the time we cross the threshold, and ~1 pop per land tile...
-	// so default resistance should be around 10 per tile.
-	int iGlobalThreshold = GC.getMap().getLandPlots() * GC.getDefineINT("GLOBAL_WARMING_RESISTANCE");
+	/*	expect each pop to give ~10 pollution per turn at the time
+		we cross the threshold, and ~1 pop per land tile...
+		so default resistance should be around 10 per tile. */
+	int iGlobalThreshold = GC.getMap().getLandPlots() *
+			GC.getDefineINT("GLOBAL_WARMING_RESISTANCE");
 
-	// maybe we should add some points for coastal tiles as well, so that watery maps don't get too much warming
+	/*	maybe we should add some points for coastal tiles as well,
+		so that watery maps don't get too much warming */
 
 	if (ePlayer == NO_PLAYER)
 		return iGlobalThreshold;
 
-	// I have a few possible threshold distribution systems in mind:
-	// could be proportional to total natural food yield;
-	// or a combination of population, land size, total completed research, per player, etc.
-	// Currently, a player's share of the total threshold is just proportional to their land size (just like the threshold itself)
+	/*	I have a few possible threshold distribution systems in mind:
+		could be proportional to total natural food yield;
+		or a combination of population, land size, total completed research,
+		per player, etc.
+		Currently, a player's share of the total threshold is just proportional
+		to their land size (just like the threshold itself) */
 	CvPlayer& kPlayer = GET_PLAYER(ePlayer);
 	if (kPlayer.isAlive())
 	{
@@ -5140,9 +5146,8 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, VoteSelectionSubD
 	}
 	else if (GC.getInfo(kData.eVote).isForcePeace())
 	{
-		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
-
-		if(kPlayer.isAVassal()) // advc
+		CvPlayer const& kPlayer = GET_PLAYER(kData.ePlayer);
+		if (kPlayer.isAVassal()) // advc
 			return false;
 		//if (!kPlayer.isFullMember(eVoteSource))
 		// kekm.25: 'These are not necessarily the same.'
@@ -5165,7 +5170,7 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, VoteSelectionSubD
 	}
 	else if (GC.getInfo(kData.eVote).isForceNoTrade())
 	{
-		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
+		CvPlayer const& kPlayer = GET_PLAYER(kData.ePlayer);
 		//if (kPlayer.isFullMember(eVoteSource))
 		// kekm.25: 'These are not necessarily the same.'
 		if (GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource))
@@ -5282,12 +5287,12 @@ void CvGame::toggleDebugMode()
 	GC.getMap().setFlagsDirty(); // K-Mod
 	updateColoredPlots(); // K-Mod
 
-	gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
-	gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
-	gDLL->getInterfaceIFace()->setDirty(MinimapSection_DIRTY_BIT, true);
-	gDLL->getInterfaceIFace()->setDirty(UnitInfo_DIRTY_BIT, true);
-	gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
-	gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+	gDLL->UI().setDirty(GameData_DIRTY_BIT, true);
+	gDLL->UI().setDirty(Score_DIRTY_BIT, true);
+	gDLL->UI().setDirty(MinimapSection_DIRTY_BIT, true);
+	gDLL->UI().setDirty(UnitInfo_DIRTY_BIT, true);
+	gDLL->UI().setDirty(CityInfo_DIRTY_BIT, true);
+	gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
 
 	//gDLL->getEngineIFace()->SetDirty(GlobeTexture_DIRTY_BIT, true);
 	gDLL->getEngineIFace()->SetDirty(MinimapTexture_DIRTY_BIT, true);
@@ -5565,9 +5570,9 @@ int CvGame::getDifficultyForEndScore() const
 	// <advc.084>
 	if (getCivTeamsEverAlive() == 1)
 		r /= 4; // </advc.084>
-	if(isOption(GAMEOPTION_ONE_CITY_CHALLENGE))
+	if (isOption(GAMEOPTION_ONE_CITY_CHALLENGE))
 		r += 30;
-	if(!isOption(GAMEOPTION_SPAH))
+	if (!isOption(GAMEOPTION_SPAH))
 		return r.round();
 	std::vector<int> aiStartPointDistrib;
 	m_pSpah->distribution(aiStartPointDistrib);
@@ -6469,22 +6474,20 @@ void CvGame::setName(TCHAR const* szName)
 bool CvGame::isDestroyedCityName(CvWString& szName) const
 {
 	std::vector<CvWString>::const_iterator it;
-
 	for (it = m_aszDestroyedCities.begin(); it != m_aszDestroyedCities.end(); ++it)
 	{
 		if (*it == szName)
-		{
 			return true;
-		}
 	}
-
 	return false;
 }
+
 
 void CvGame::addDestroyedCityName(const CvWString& szName)
 {
 	m_aszDestroyedCities.push_back(szName);
 }
+
 
 bool CvGame::isGreatPersonBorn(CvWString& szName) const
 {
@@ -6500,6 +6503,7 @@ bool CvGame::isGreatPersonBorn(CvWString& szName) const
 
 	return false;
 }
+
 
 void CvGame::addGreatPersonBornName(const CvWString& szName)
 {
@@ -7229,7 +7233,7 @@ int CvGame::religionPriority(PlayerTypes ePlayer, ReligionTypes eReligion) const
 			continue;
 		}
 		iR += 5;
-		/*  Spiritual human should be sure to get a religion (so long as
+		/*	Spiritual human should be sure to get a religion (so long as
 			difficulty isn't above Noble). Not quite sure if my choice of
 			numbers in this function and in doHolyCity accomplishes that. */
 		if (kPlayer.isHuman())
@@ -7241,7 +7245,7 @@ int CvGame::religionPriority(PlayerTypes ePlayer, ReligionTypes eReligion) const
 	// With the pick-rel option, eReligion will change later on anyway.
 	if (!isOption(GAMEOPTION_PICK_RELIGION))
 	{
-		/*  Not excluding human here means that choosing a leader with an early
+		/*	Not excluding human here means that choosing a leader with an early
 			fav religion can make a difference in human getting a religion.
 			Unexpected, as fav. religions are pretty obscure knowledge. On the
 			other hand, it's a pity to assign human an arbitrary religion when
@@ -7254,7 +7258,7 @@ int CvGame::religionPriority(PlayerTypes ePlayer, ReligionTypes eReligion) const
 	return iR;
 } // </advc.138>
 
-/*  advc: Since none of the BtS corps have a prereq. tech, this function
+/*	advc: Since none of the BtS corps have a prereq. tech, this function
 	normally does nothing. It has clearly never been properly tested (I've found
 	two errors while refactoring it). I'm tempted to remove it, but corporations
 	that get founded through a tech could be interesting for XML modding. It remains

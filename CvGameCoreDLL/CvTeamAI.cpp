@@ -4989,7 +4989,7 @@ void CvTeamAI::AI_finalizeInit()
 		if (m_aiWarPlanCounts.get(eLoopWarPlan) > 0)
 			m_bAnyWarPlan = true;
 	}
-	m_aiWarPlanCounts.hasContent(); // De-allocate if all 0
+	m_aiWarPlanCounts.resetIfNoContent();
 }
 
 

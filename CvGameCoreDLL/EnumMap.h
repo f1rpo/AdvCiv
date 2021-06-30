@@ -1,5 +1,6 @@
-/*  advc.enum: From the "We the People" (WtP) mod for Civ4Col, original author: Nightinggale,
-	who may still be working on the EnumMap classes. This version is from 3 Nov 2019.
+/*  advc.enum: From the "We the People" (WtP) mod for Civ4Col,
+	original author: Nightinggale. This is essentially the version 3 Nov 2019,
+	with just a few tweaks and bugfixes adopted since then.
 	I have -for now- omitted the WtP serialization functions, and uncoupled the
 	code from the Perl-generated enums that WtP uses. Instead of defining
 	ArrayLength functions, the getEnumLength functions that AdvCiv defines in
@@ -109,6 +110,8 @@ public:
 	// Note: hasContent() can release memory if it doesn't alter what get() will return.
 	bool isAllocated() const;
 	bool hasContent() const;
+	// advc: Non-const alias b/c calling a const function for its side-effect is awkward
+	__forceinline void resetIfNoContent() { hasContent(); }
 
 	T getMin() const;
 	T getMax() const;
@@ -724,7 +727,7 @@ inline bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: inline removed
+// advc: was inline
 bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::hasContent() const
 {

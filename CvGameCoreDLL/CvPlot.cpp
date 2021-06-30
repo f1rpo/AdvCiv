@@ -7640,7 +7640,8 @@ void CvPlot::getVisibleBonusState(BonusTypes& eType, bool& bImproved, bool& bWor
 
 	if (eType != NO_BONUS) // improved and worked states ...
 	{
-		ImprovementTypes eRevealedImprovement = getRevealedImprovementType(GC.getGame().getActiveTeam(), true);
+		ImprovementTypes eRevealedImprovement = getRevealedImprovementType(
+				GC.getGame().getActiveTeam(), true);
 		if (eRevealedImprovement != NO_IMPROVEMENT &&
 			GC.getInfo(eRevealedImprovement).isImprovementBonusTrade(eType))
 		{

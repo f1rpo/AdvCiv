@@ -20312,10 +20312,11 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 
 			if (kGame.isOption(GAMEOPTION_ADVANCED_START) &&
 				!kGame.isOption(GAMEOPTION_ALWAYS_WAR) &&
-				kGame.getElapsedGameTurns() <= GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH)
+				kGame.getElapsedGameTurns() <=
+				GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH) &&
 				/*  advc.250b: No need to (constantly) remind human of
 					"universal" peace when the AI civs have big headstarts. */
-				&& !kGame.isOption(GAMEOPTION_SPAH))
+				!kGame.isOption(GAMEOPTION_SPAH))
 			{
 				if(!strText.empty())
 					strText += L" -- ";

@@ -3555,7 +3555,7 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 
 		if (bValid /* advc.004x: */ && iTurnsLeft < MAX_INT)
 		{
-			FAssert((MAX_INT / 1000) > iValue);
+			FAssert(MAX_INT / 1000 > iValue);
 			iValue *= 1000;
 			iValue /= std::max(1, iTurnsLeft + 3);
 
@@ -3621,7 +3621,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 		calculating the lost value of obsoleting walls and castles.
 		There are several sections which could, in the future, be improved
 		using bRemove - but I don't see it as a high priority. */
-	bool const bRemove = (getNumBuilding(eBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS));
+	bool const bRemove = (getNumBuilding(eBuilding) >=
+			GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS));
 	// advc.004c: bRemove && !bObsolete is OK; that means spy attack.
 	FAssert(!bObsolete || bRemove);
 
@@ -7138,7 +7139,8 @@ int CvCityAI::AI_clearFeatureValue(CityPlotTypes ePlot) // advc.enum: CityPlotTy
 			iHealthValue /= 2;
 		}*/ // BtS
 		// K-Mod start
-		iHealthValue += (iHealth < 0 ? 100 : 400/(4+iHealth)) + 100 * pPlot->getPlayerCityRadiusCount(getOwner());
+		iHealthValue += (iHealth < 0 ? 100 : 400 / (4 + iHealth)) +
+				100 * pPlot->getPlayerCityRadiusCount(getOwner());
 		iHealthValue *= kFeatureInfo.getHealthPercent();
 		iHealthValue /= 100;
 		/*  note: health is not any more valuable when we aren't working it.
@@ -11730,8 +11732,11 @@ void CvCityAI::AI_buildGovernorChooseProduction()
 			else // </advc.004x>
 			{
 				int iBuildingCost = AI_processValue(eBestProcess) * iConstructionTurns;
-				int iScaledTime = 10000 * iBuildingCost / (std::max(1, iBestBuildingValue) * GC.getInfo(GC.getGame().getGameSpeedType()).getConstructPercent());
-				iOdds = 100*(iScaledTime - 400)/(iScaledTime + 600); // <= 4 turns means 0%. 20 turns ~ 61%.
+				int iScaledTime = 10000 * iBuildingCost /
+						(std::max(1, iBestBuildingValue) *
+						GC.getInfo(GC.getGame().getGameSpeedType()).getConstructPercent());
+				// <= 4 turns means 0%. 20 turns ~ 61%.
+				iOdds = 100 * (iScaledTime - 400) / (iScaledTime + 600);
 			}
 		}
 		if (iOdds > 0 && GC.getGame().getSorenRandNum(100, "AI choose process") < iOdds)
@@ -11752,7 +11757,8 @@ void CvCityAI::AI_buildGovernorChooseProduction()
 		return;
 }
 
-// K-Mod. This is a chunk of code that I moved out of AI_chooseProduction. The only reason I've moved it is to reduce clutter in the other function.
+/*	K-Mod. This is a chunk of code that I moved out of AI_chooseProduction.
+	The only reason I've moved it is to reduce clutter in the other function. */
 void CvCityAI::AI_barbChooseProduction()
 {
 	const CvPlayerAI& kPlayer = GET_PLAYER(getOwner());
@@ -12107,6 +12113,7 @@ int CvCityAI::AI_countGoodSpecialists(bool bHealthy) const
 	//return iCount;
 	return std::max(0, iCount); // K-Mod
 }
+
 // return value: 0 is normal. greater than 0 has a special meaning.
 /*	(K-Mod todo: this function is currently only used for CvCityAI::AI_stealPlots,
 	and even there it is only used in a very binary way.
@@ -12450,7 +12457,7 @@ int CvCityAI::AI_countNumBonuses(BonusTypes eBonus,
 	return iCount;
 }
 
-// BBAI. K-Mod: I've rearranged some stuff and fixed some bugs.
+// BBAI (K-Mod - I've rearranged some stuff and fixed some bugs):
 // advc (tbd.): Some overlap with CvPlayerAI::AI_isUnimprovedBonus -- merge?
 int CvCityAI::AI_countNumImprovableBonuses(bool bIncludeNeutral, TechTypes eExtraTech, bool bLand,
 	bool bWater) /* advc: */ const
@@ -12462,7 +12469,7 @@ int CvCityAI::AI_countNumImprovableBonuses(bool bIncludeNeutral, TechTypes eExtr
 		if (!((bLand && isArea(kPlot.getArea())) ||
 			(bWater && kPlot.isWater())))
 		{
-			continue; // advc
+			continue;
 		}
 		BonusTypes const eLoopBonus = kPlot.getBonusType(getTeam());
 		if (eLoopBonus != NO_BONUS &&
@@ -12511,7 +12518,7 @@ int CvCityAI::AI_countNumImprovableBonuses(bool bIncludeNeutral, TechTypes eExtr
 	}
 	return iCount;
 }
-// bbai / K-Mod end
+
 
 int CvCityAI::AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
 	bool bConstCache) const // advc.001n
@@ -12883,7 +12890,7 @@ int CvCityAI::AI_calculateSettlerPriority(int iAreaSites, int iBestAreaFoundValu
 	// Imperialistic trait? Awkward to check ...
 	// I don't think the number of sites should matter(?)
 	return std::min(100, iPriority);
-} // </advc.031b>
+}
 
 //Workers have/needed is not intended to be a strict
 //target but rather an indication.

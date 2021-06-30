@@ -4988,7 +4988,7 @@ void CvPlayer::found(int iX, int iY)
 bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bIgnoreCost) const
 {
 	//PROFILE_FUNC(); // advc.003o
-	UnitClassTypes eUnitClass = GC.getInfo(eUnit).getUnitClassType();
+	UnitClassTypes const eUnitClass = GC.getInfo(eUnit).getUnitClassType();
 
 	/*	K-Mod note. This assert can fail if team games when checking whether this city can
 		upgrade a unit to one of our team member's UUs. */
@@ -8651,7 +8651,7 @@ void CvPlayer::verifyAlive()
 	{
 		if (getNumCities() > 0 || getNumUnits() > 0)
 			setAlive(true);
-		return; // advc
+		return;
 	}
 	bool bKill = false; // advc: Removed superfluous code
 	if (!isBarbarian())

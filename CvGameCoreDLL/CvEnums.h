@@ -3,8 +3,10 @@
 #ifndef CVENUMS_h
 #define CVENUMS_h
 
-/*  advc (note): All enums in this file are -probably- exposed to Python through
-	CyEnumsInterface.cpp -- unless a comment states otherwise */
+/*  advc (note): All enum types in this file are -probably- exposed to Python
+	through CyEnumsInterface.cpp -- unless a comment states otherwise. Also,
+	the EXE might use any of the enum types (no DllExport needed), so
+	enumerators should generally only be added to the end of an enum definition. */
 // <advc.enum>
 #include "CvInfoEnums.h"
 

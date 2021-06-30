@@ -213,7 +213,7 @@ public:
 			PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM,
 			ConstPlotUnitFunc funcB = NULL, int iData1B = -1, int iData2B = -1) const;
 
-	inline bool isOwned() const	/* advc.inl */																																		// Exposed to Python
+	inline bool isOwned() const	// advc.inl															// Exposed to Python
 	{
 		return (getOwner() != NO_PLAYER);
 	}
@@ -527,8 +527,8 @@ public:
 	TeamTypes findHighestCultureTeam() const;														// Exposed to Python
 	PlayerTypes findHighestCulturePlayer(
 			bool bAlive = false) const; // advc.035
-	int calculateCulturePercent(PlayerTypes eIndex) const;											// Exposed to Python
-	int calculateTeamCulturePercent(TeamTypes eIndex) const;										// Exposed to Python
+	int calculateCulturePercent(PlayerTypes ePlayer) const;											// Exposed to Python
+	int calculateTeamCulturePercent(TeamTypes eTeam) const;										// Exposed to Python
 	void setCulture(PlayerTypes eIndex, int iNewValue, bool bUpdate,								// Exposed to Python
 			bool bUpdatePlotGroups);
 	void changeCulture(PlayerTypes eIndex, int iChange, bool bUpdate);								// Exposed to Python
@@ -787,7 +787,10 @@ public:
 	static void setMaxVisibilityRangeCache();
 
 protected:
-	// advc (note): Should keep the data members in an order that optimizes the memory layout
+	/*	advc (note): Should keep the data members in an order that optimizes
+		the memory layout. While enum types can be declared as bitfields (:8 or :16),
+		it seems that e.g. a short int and a 16-bit enum won't get packed without
+		padding by the compiler; so I think it's better to stick to char and short. */
 	short m_iX;
 	short m_iY;
 	short m_iFeatureVariety;
@@ -894,7 +897,6 @@ protected:
 	void doFeature();
 	void doCulture();
 
-	int countTotalCulture() const; // advc.opt: Was public; replaced by getTotalCulture.
 	int areaID() const;
 	void processArea(CvArea& kArea, int iChange);
 	char calculateLatitude() const; // advc.tsl

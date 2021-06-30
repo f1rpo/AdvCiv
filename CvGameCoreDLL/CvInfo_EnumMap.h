@@ -40,8 +40,8 @@ for (std::pair<UnitCombatTypes,int> perUnitCombatVal =
 	perUnitCombatVal.first != non_default_enum_map::end;
 	perUnitCombatVal = kBuilding.getUnitCombatFreeXP().nextNonDefault(
 	perUnitCombatVal.first, ++iAnonNonDefaultIndex_3947))*/
-/*	(A heartache that the pair types can't be inferred from the map instance,
-	but that's how it is.) */
+/*	(A sadness that the pair types can't be inferred from the map instance,
+	but that's how it is. An iterator class wouldn't help with this problem either.) */
 /*	Mainly for boolean value type. Could make this more efficient by adding
 	nextNonDefaultKey functions (returning only the enum key). */
 #define FOR_EACH_NON_DEFAULT_KEY(kEnumMapSeq, EnumPrefix) \
@@ -142,7 +142,8 @@ for (std::pair<UnitCombatTypes,int> perUnitCombatVal =
 
 
 namespace non_default_enum_map
-{
+{	/*	-1 won't work here; only a high value avoids a comparison when
+		searching for an enum key in a list. */
 	int const end = MAX_SHORT;
 }
 
@@ -160,7 +161,7 @@ public:
 	virtual void finalizeInsertions() {}
 	virtual V getDefault() const=0;
 	virtual int numKeys() const=0;
-	/*	<advc.003i> Theese functions are only for the defunct XML cache ...
+	/*	<advc.003i> These functions are only for the defunct XML cache ...
 		Not tested - b/c the cache isn't working. */
 	void write(FDataStreamBase* pStream) const
 	{
