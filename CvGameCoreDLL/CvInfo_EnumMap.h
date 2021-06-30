@@ -18,9 +18,9 @@ class FDataStreamBase;
 	between them needs to be made at compile time. Would be nice to let the
 	program decide based on the data loaded from XML, but that would add a lot of
 	overhead for virtual function calls.
-	Inspired by the We the People mod - which uses a more compact and complex
-	datastructure for the list representation (and I don't think it has a
-	drop-in replacement based on an array). */
+	ArrayEnumMap and ListEnumMap have counterparts EnumMap (from the
+	"We the People" mod) and SparseEnumMap, both defined in EnumMap.h, for data
+	that changes continuously. */
 
 // Let's start, to motivate the iteration interface, with the for-each macro:
 #define iANON_NON_DEFAULT_INDEX CONCATVARNAME(iAnonNonDefaultIndex_, __LINE__)

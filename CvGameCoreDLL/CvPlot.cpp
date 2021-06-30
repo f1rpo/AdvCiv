@@ -7285,21 +7285,25 @@ void CvPlot::read(FDataStreamBase* pStream)
 	pStream->Read(&cCount);
 	if (cCount > 0)
 		m_aiFoundValue.Read(pStream, false);
-	pStream->Read(&cCount);
-	if (cCount > 0)
-		m_aiPlayerCityRadiusCount.Read(pStream, false);
+	if (uiFlag < 10)
+		m_aiPlayerCityRadiusCount.ReadBtS<char,char>(pStream);
+	else m_aiPlayerCityRadiusCount.Read(pStream);
 	pStream->Read(&cCount);
 	if (cCount > 0)
 		m_aiPlotGroup.Read(pStream);
 	pStream->Read(&cCount);
 	if (cCount > 0)
 		m_aiVisibilityCount.Read(pStream, false);
-	pStream->Read(&cCount);
-	if (cCount > 0)
-		m_aiStolenVisibilityCount.Read(pStream, false);
-	pStream->Read(&cCount);
-	if (cCount > 0)
-		m_aiBlockadedCount.Read(pStream, false);
+	if (uiFlag < 10)
+	{
+		m_aiStolenVisibilityCount.ReadBtS<char,short>(pStream);
+		m_aiBlockadedCount.ReadBtS<char,short>(pStream);
+	}
+	else
+	{
+		m_aiStolenVisibilityCount.Read(pStream);
+		m_aiBlockadedCount.Read(pStream);
+	}
 	pStream->Read(&cCount);
 	if (cCount > 0)
 		m_aiRevealedOwner.Read(pStream, false);
@@ -7309,13 +7313,21 @@ void CvPlot::read(FDataStreamBase* pStream)
 	pStream->Read(&cCount);
 	if (cCount > 0)
 		m_abRevealed.Read(pStream);
-	pStream->Read(&cCount);
-	if (cCount > 0)
-		m_aeRevealedImprovementType.Read(pStream, false, uiFlag < 5);
-	pStream->Read(&cCount);
-	if (cCount > 0)
-		m_aeRevealedRouteType.Read(pStream, false, uiFlag < 5);
-
+	if (uiFlag < 5)
+	{
+		m_aeRevealedImprovementType.ReadBtS<char,short>(pStream);
+		m_aeRevealedRouteType.ReadBtS<char,short>(pStream);
+	}
+	else if (uiFlag < 10)
+	{
+		m_aeRevealedImprovementType.ReadBtS<char,char>(pStream);
+		m_aeRevealedRouteType.ReadBtS<char,char>(pStream);
+	}
+	else
+	{
+		m_aeRevealedImprovementType.Read(pStream);
+		m_aeRevealedRouteType.Read(pStream);
+	}
 	m_szScriptData = pStream->ReadString();
 
 	pStream->Read(&iCount);
@@ -7337,20 +7349,22 @@ void CvPlot::read(FDataStreamBase* pStream)
 	if(uiFlag >= 2)
 		pStream->Read(&m_iTotalCulture);
 	else if(m_aiCulture.isAllocated()) // just to save time
-	{	//m_iTotalCulture = countTotalCulture();
-		/*  countTotalCulture checks CvPlayer::isEverAlive, but CvPlayer objects
-			aren't loaded yet. I'm pretty sure though that the isEverAlive check
-			can't make a difference in this case. */
+	{
+		/*  CvPlayer objects aren't loaded yet. Players that have never been alive
+			should have 0 culture, so we don't really need to check isEverAlive. */
 		for(int i = 0; i < MAX_PLAYERS; i++)
 			m_iTotalCulture += m_aiCulture.get((PlayerTypes)i);
 	} // </advc.opt>
-	pStream->Read(&cCount);
-	if (cCount > 0)
-		m_aaiCultureRangeCities.Read(pStream, false, true);
-	pStream->Read(&cCount);
-	if (cCount > 0)
-		m_aaiInvisibleVisibilityCount.Read(pStream, false, true);
-
+	if (uiFlag < 10)
+	{
+		m_aaiCultureRangeCities.ReadBtS<char,char>(pStream);
+		m_aaiInvisibleVisibilityCount.ReadBtS<char,char>(pStream);
+	}
+	else
+	{
+		m_aaiCultureRangeCities.Read(pStream);
+		m_aaiInvisibleVisibilityCount.Read(pStream);
+	}
 	m_units.Read(pStream);
 }
 
@@ -7367,7 +7381,8 @@ void CvPlot::write(FDataStreamBase* pStream)
 	//uiFlag = 6; // advc.opt: m_eTeam
 	//uiFlag = 7; // advc.opt: m_bImpassable
 	//uiFlag = 8; // advc.opt: m_bAnyIsthmus
-	uiFlag = 9; // advc.912f
+	//uiFlag = 9; // advc.912f
+	uiFlag = 10; // advc.enum (sparse maps)
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE(CvString::format("Plot pt1(%d,%d)", getX(), getY()).GetCString());
 	pStream->Write(m_iX);
@@ -7437,13 +7452,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 		pStream->Write((char)m_aiFoundValue.getLength());
 		m_aiFoundValue.Write(pStream, false);
 	}
-	if (!m_aiPlayerCityRadiusCount.hasContent())
-		pStream->Write((char)0);
-	else
-	{
-		pStream->Write((char)m_aiPlayerCityRadiusCount.getLength());
-		m_aiPlayerCityRadiusCount.Write(pStream, false);
-	}
+	m_aiPlayerCityRadiusCount.Write(pStream);
 	if (!m_aiPlotGroup.hasContent())
 		pStream->Write((char)0);
 	else
@@ -7458,20 +7467,8 @@ void CvPlot::write(FDataStreamBase* pStream)
 		pStream->Write((char)m_aiVisibilityCount.getLength());
 		m_aiVisibilityCount.Write(pStream, false);
 	}
-	if (!m_aiStolenVisibilityCount.hasContent())
-		pStream->Write((char)0);
-	else
-	{
-		pStream->Write((char)m_aiStolenVisibilityCount.getLength());
-		m_aiStolenVisibilityCount.Write(pStream, false);
-	}
-	if (!m_aiBlockadedCount.hasContent())
-		pStream->Write((char)0);
-	else
-	{
-		pStream->Write((char)m_aiBlockadedCount.getLength());
-		m_aiBlockadedCount.Write(pStream, false);
-	}
+	m_aiStolenVisibilityCount.Write(pStream);
+	m_aiBlockadedCount.Write(pStream);
 	if (!m_aiRevealedOwner.hasContent())
 		pStream->Write((char)0);
 	else
@@ -7493,20 +7490,8 @@ void CvPlot::write(FDataStreamBase* pStream)
 		pStream->Write((char)m_abRevealed.getLength());
 		m_abRevealed.Write(pStream);
 	}
-	if (!m_aeRevealedImprovementType.hasContent())
-		pStream->Write((char)0);
-	else
-	{
-		pStream->Write((char)m_aeRevealedImprovementType.getLength());
-		m_aeRevealedImprovementType.Write(pStream, false);
-	}
-	if (!m_aeRevealedRouteType.hasContent())
-		pStream->Write((char)0);
-	else
-	{
-		pStream->Write((char)m_aeRevealedRouteType.getLength());
-		m_aeRevealedRouteType.Write(pStream, false);
-	}
+	m_aeRevealedImprovementType.Write(pStream);
+	m_aeRevealedRouteType.Write(pStream);
 
 	pStream->WriteString(m_szScriptData);
 
@@ -7525,20 +7510,8 @@ void CvPlot::write(FDataStreamBase* pStream)
 	pStream->WriteString(szTmp); // </advc.005c>
 	pStream->Write(m_iTotalCulture); // advc.opt
 
-	if (!m_aaiCultureRangeCities.hasContent())
-		pStream->Write((char)0);
-	else
-	{
-		pStream->Write((char)m_aaiCultureRangeCities.Length());
-		m_aaiCultureRangeCities.Write(pStream, false, true);
-	}
-	if (!m_aaiInvisibleVisibilityCount.hasContent())
-		pStream->Write((char)0);
-	else
-	{
-		pStream->Write((char)m_aaiInvisibleVisibilityCount.Length());
-		m_aaiInvisibleVisibilityCount.Write(pStream, false, true);
-	}
+	m_aaiCultureRangeCities.Write(pStream);
+	m_aaiInvisibleVisibilityCount.Write(pStream);
 
 	m_units.Write(pStream);
 	REPRO_TEST_END_WRITE();

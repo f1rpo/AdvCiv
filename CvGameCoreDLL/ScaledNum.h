@@ -5,8 +5,8 @@
 
 // advc.fract: Header-only class template for fixed-point fractional numbers
 
-#include "FixedPointPowTables.h" // Large lookup table, but ScaledNum.h gets precompiled.
 #include "TypeChoice.h"
+#include "FixedPointPowTables.h" // Large lookup table, but ScaledNum.h gets precompiled.
 /*	Other non-BtS dependencies: intdiv::round, fmath::round, intHash, all in CvGameCoreUtils.h.
 	(Tbd.: Move those functions here?)
 	For inclusion in PCH, one may have to define NOMINMAX before including windows.h;

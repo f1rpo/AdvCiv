@@ -215,6 +215,21 @@ public:
 	{
 		WriteExternal(count, values);
 	} // <advc.repro>
+
+	// <advc.enum> for SparseEnumMap(2D)
+	template<class FirstType, class SecondType>
+	void Read(std::pair<FirstType,SecondType>* pPair)
+	{
+		Read(&pPair->first);
+		Read(&pPair->second);
+	}
+
+	template<class FirstType, class SecondType>
+	void Write(std::pair<FirstType,SecondType>& kPair)
+	{
+		Write(kPair.first);
+		Write(kPair.second);
+	} // </advc.enum>
 };
 
 #endif

@@ -113,7 +113,7 @@ BOOST_STATIC_ASSERT(MAX_PLAYERS < MAX_CHAR && MAX_TEAMS < MAX_CHAR);
 #include "CvRandom.h"
 #include "FProfiler.h"
 #include "CvGameCoreUtils.h"
-#include "ScaledNum.h"
+#include "ScaledNum.h" // Includes TypeChoice.h
 #include "CvGlobals.h"
 #include "EnumMap2D.h" // advc.enum: Includes EnumMap.h
 #include "CvPythonCaller.h" // advc.003y

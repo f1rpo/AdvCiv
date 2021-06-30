@@ -7,9 +7,11 @@
 	CvEnums.h and CvGlobals.h are used. CvEnums.h also defines enum increment operators.
 	Functions for bitwise operations moved into BitUtil.h (included in PCH);
 	WtP defines them directly in the PCH.
-	advc.fract: Disabled the INLINE_NATIVE representation for "small" enum types
+	advc.fract: Disabled the INLINE_NATIVE representation for short enum types
 	in order to allow T=ScaledNum. (As suggested to me by Nightinggale.)
-	advc.003t: I've implemented a similar class, ArrayEnumMap, for storing data
+	advc.enum: Added classes SparseEnumMap and SparseEnumMap2D to the end of this file.
+	They're dependent on the EnumMapGetDefault structs defined by the WtP enum map.
+	advc.003t: I've implemented a similar class, CvInfoEnumMap, for storing data
 	loaded from XML, see CvInfo_EnumMap.h. */
 
 #pragma once
@@ -1378,5 +1380,360 @@ class CivTeamMap : public SubEnumMap <TeamTypes, T, DEFAULT, CivTeamTypes, CivTe
 // </advc>
 
 typedef EnumMap<CivicOptionTypes,CivicTypes> CivicMap; // advc: Needed rather frequently
+
+
+/*	advc.enum: Base class for the list-based enum maps defined
+	at the end of this header; see comments there.
+	Akin to ListEnumMap in CvInfo_EnumMap, but that class doesn't have to deal
+	with continuous changes to its data. */
+/*	K - key; V - value; CK, CV compact representation of key and value;
+	vDEFAULT - value returned for keys not listed.
+	V needs to be an integral type (bool and long long not tested);
+	K can be any small-ish type, but a static cast from K to CK needs to be possible
+	(not a problem if CK=K). Both CK and CV need to have read and write functions
+	in FDataStreamBase.h. */
+template<typename K, typename V, typename CK = K, typename CV = V, V vDEFAULT = 0>
+class SortedPairList : private boost::noncopyable
+{
+	static CV const cDEFAULT = static_cast<CV>(vDEFAULT);
+	short m_iSize;
+	/*	Throwing this out might be worth a test. Lists with 0 non-defaults are
+		collapsed upon reloading a savegame anyway. Could replace it with a
+		capacity variable, allowing incrementSize to allocate spare memory. */
+	short m_iNonDefaults;
+	/*	While separate arrays for keys and values increase the size of this class,
+		overall, performance seemed a little bit better when I tried it that way.
+		The code was pretty messy though. (It's still not great ... Solving many
+		of the same problems as the WtP EnumMap, but the code there isn't easily
+		reusable and I don't want to copy-paste it; so I've cut some corners.) */
+	std::pair<CK,CV>* m_pairs;
+
+public:
+	SortedPairList()
+	{
+		reset();
+	}
+
+	~SortedPairList()
+	{
+		reset();
+	}
+
+	void reset()
+	{
+		SAFE_DELETE_ARRAY(m_pairs);
+		m_iSize = 0;
+		m_iNonDefaults = 0;
+	}
+
+	V get(K key) const
+	{
+		CK const cKey = compactKey(key);
+		for (short iPos = 0; iPos < m_iSize; iPos++)
+		{
+			CK const cLoop = m_pairs[iPos].first;
+			if (cLoop == cKey)
+				return static_cast<V>(m_pairs[iPos].second);
+			if (cLoop > cKey)
+				break;
+		}
+		return vDEFAULT;
+	}
+
+	void set(K key, V value)
+	{
+		change<false>(key, value);
+	}
+
+	void add(K key, V vDelta)
+	{
+		change<true>(key, vDelta);
+	}
+
+	bool isAnyNonDefault() const
+	{
+		return (m_iNonDefaults > 0);
+	}
+
+	template<typename ValueType>
+	bool nextNonDefault(int& iIter, std::pair<K,ValueType>& nextPair) const
+	{
+		// Allow caller to use a larger (integer) type for the map values
+		BOOST_STATIC_ASSERT(sizeof(ValueType) >= sizeof(CV) &&
+				(std::numeric_limits<ValueType>::is_signed ||
+				!std::numeric_limits<CV>::is_signed));
+		if (iIter >= m_iSize)
+		{	/*	We don't update the nextPair, so let's also leave
+				the iterator position unchanged. */
+			return false;
+		}
+		nextPair.first = static_cast<K>(m_pairs[iIter].first);
+		nextPair.second = static_cast<ValueType>(m_pairs[iIter].second);
+		iIter++;
+		return true;
+	}
+
+	void Read(FDataStreamBase* pStream)
+	{
+		pStream->Read(&m_iSize);
+		if (m_iSize == 0)
+			return;
+		FAssert(m_iSize > 0 && m_pairs == NULL);
+		m_pairs = new std::pair<CK,CV>[m_iSize];
+		for (short i = 0; i < m_iSize; i++)
+		{
+			pStream->Read(&m_pairs[i]);
+			if (m_pairs[i].second != cDEFAULT)
+				m_iNonDefaults++;
+		}
+	}
+
+	void Write(FDataStreamBase* pStream) const
+	{
+		pStream->Write(m_iSize);
+		for (short i = 0; i < m_iSize; i++)
+		{
+			pStream->Write(m_pairs[i]);
+		}
+	}
+
+protected:
+	/*	Derived classes set the compact types in convoluted ways
+		that I don't want to have to type repeatedly there */
+	typedef CK CompactKeyType;
+	static CK compactKey(K key)
+	{
+		return static_cast<CK>(key);
+	}
+	typedef CV CompactValueType;
+	static CV compactValue(V value)
+	{
+		return static_cast<CV>(value);
+	}
+
+private:
+	template<bool bADD>
+	void change(K key, V value)
+	{
+		CK const cKey = compactKey(key);
+		short iPos = 0;
+		for (; iPos < m_iSize; iPos++)
+		{
+			CK cLoop = m_pairs[iPos].first;
+			if (cLoop  == cKey)
+			{
+				CV& cOldVal = m_pairs[iPos].second;
+				CV const cNewVal = compactValue(value) + (bADD ? cOldVal : 0);
+				if (cNewVal != cDEFAULT)
+					m_iNonDefaults++;
+				if (cOldVal != cDEFAULT)
+				{
+					if ((--m_iNonDefaults) == 0 &&
+						/*	Otherwise not worth the risk of having to reallocate later.
+							Well, a test suggests that this check helps marginally
+							at best and that checking >=4 would hurt more than help. */
+						m_iSize >= 2)
+					{
+						reset();
+						return;
+					}
+				}
+				cOldVal = cNewVal;
+				return;
+			}
+			if (cLoop > cKey)
+				break;
+		}
+		CV const cNewVal = compactValue(value) + (bADD ? cDEFAULT : 0);
+		if (cNewVal == cDEFAULT)
+			return;
+		m_iNonDefaults++;
+		incrementSize(iPos);
+		m_pairs[iPos].first = cKey;
+		m_pairs[iPos].second = cNewVal;
+	}
+
+	void incrementSize(short iFreePos)
+	{
+		std::pair<CK,CV>* newPairs = new std::pair<CK,CV>[m_iSize + 1];
+		if (m_iSize == 0)
+		{
+			m_pairs = newPairs;
+			m_iSize++;
+			return;
+		}
+		size_t const iPairSz = sizeof(std::pair<CK,CV>);
+		if (iFreePos > 0)
+		{
+			memcpy(newPairs, m_pairs,
+					iFreePos * iPairSz);
+		}
+		if (iFreePos < m_iSize)
+		{
+			memcpy(newPairs + iFreePos + 1, m_pairs + iFreePos,
+					(m_iSize - iFreePos) * iPairSz);
+		}
+		delete[] m_pairs;
+		m_pairs = newPairs;
+		m_iSize++;
+	}
+};
+
+/*	There's boost::is_enum in boost/type_traits.hpp,
+	but I think this will be good enough for my purposes,
+	i.e. assuming that T is an integral type.
+	(Using my own meta-programming macros from TypeChoice.h.) */
+#define IS_ENUM_TYPE(T) \
+	sizeof(V) == 4 && \
+	!is_same_type<V,int>::value && \
+	!is_same_type<V,uint>::value
+
+#define COMPACT_VALUE_TYPE \
+	typename choose_type< \
+	IS_ENUM_TYPE(V), \
+	/* Use 2 byte for the compact representation. */ \
+	/* (Using just 1 byte if the enum is short enough would be better, */ \
+	/* but that's difficult to check here b/c the compiler evaluates */ \
+	/* both branches of choose_type, so we can't use MAX_LENGTH like below.) */ \
+	short, \
+	V>::type
+
+/*	"Sparse" but not usually empty (the WtP EnumMap is better for that - and is
+	also better for boolean value type). */
+template<typename E, typename V,
+	V vDEFAULT = static_cast<V>(IS_ENUM_TYPE(V) ? -1 : 0)>
+class SparseEnumMap : public SortedPairList<E, V,
+	// Infer from enum length whether to store the enum values as 1 byte or 2 byte
+	typename choose_type<
+			EnumMapGetDefault<E>::MAX_LENGTH == 1,
+			char, short>::type,
+	COMPACT_VALUE_TYPE,
+	vDEFAULT>
+{
+public:
+	SparseEnumMap()
+	{
+		FAssert(getEnumLength((E)0) <=
+				std::numeric_limits<CompactKeyType>::max());
+	}
+
+	template<typename SizeType, typename ValueType>
+	void ReadBtS(FDataStreamBase* pStream)
+	{
+		SizeType sz;
+		pStream->Read(&sz);
+		short iSize = static_cast<short>(sz);
+		if (iSize == 0) // Only size stored if unallocated
+			return;
+		for (short i = 0; i < iSize; i++)
+		{
+			ValueType vRead;
+			pStream->Read(&vRead);
+			V v = static_cast<V>(vRead);
+			if (v != vDEFAULT)
+				set(static_cast<E>(i), v);
+		}
+	}
+};
+
+#define COMPACT_ENUM_TYPE \
+		typename choose_type< \
+		EnumMapGetDefault<E1>::MAX_LENGTH == 1 && \
+		EnumMapGetDefault<E2>::MAX_LENGTH == 1, \
+		char, short>::type
+
+/*	Will need to call some hidden base-class functions
+	and the base class type is ... verbose. */
+#define SORTED_PAIR_LIST_BASE \
+		SortedPairList \
+		<std::pair<COMPACT_ENUM_TYPE,COMPACT_ENUM_TYPE>, V, \
+		std::pair<COMPACT_ENUM_TYPE,COMPACT_ENUM_TYPE>, COMPACT_VALUE_TYPE, vDEFAULT>
+
+template<typename E1, typename E2, typename V,
+	V vDEFAULT = static_cast<V>(IS_ENUM_TYPE(V) ? -1 : 0)>
+class SparseEnumMap2D : public SORTED_PAIR_LIST_BASE
+{
+public:
+	SparseEnumMap2D()
+	{
+		FAssert(std::max<int>(
+				getEnumLength((E1)0), getEnumLength((E2)0)) <=
+				std::numeric_limits<COMPACT_ENUM_TYPE>::max());
+	}
+
+	V get(E1 eFirst, E2 eSecond) const
+	{
+		return SORTED_PAIR_LIST_BASE::
+				get(std::make_pair(
+				static_cast<COMPACT_ENUM_TYPE>(eFirst),
+				static_cast<COMPACT_ENUM_TYPE>(eSecond)));
+	}
+
+	void set(E1 eFirst, E2 eSecond, V value)
+	{
+		SORTED_PAIR_LIST_BASE::
+				set(std::make_pair(
+				static_cast<COMPACT_ENUM_TYPE>(eFirst),
+				static_cast<COMPACT_ENUM_TYPE>(eSecond)), value);
+	}
+
+	void add(E1 eFirst, E2 eSecond, V vDelta)
+	{
+		SORTED_PAIR_LIST_BASE::
+				add(std::make_pair(
+				static_cast<COMPACT_ENUM_TYPE>(eFirst),
+				static_cast<COMPACT_ENUM_TYPE>(eSecond)), vDelta);
+	}
+
+	template<typename SizeType, typename ValueType>
+	void ReadBtS(FDataStreamBase* pStream)
+	{
+		BOOST_STATIC_ASSERT(sizeof(V) >= sizeof(ValueType));
+		FAssert(std::numeric_limits<ValueType>::is_signed ||
+				!std::numeric_limits<V>::is_signed);
+		SizeType sz;
+		pStream->Read(&sz);
+		short iSize = static_cast<short>(sz);
+		if (iSize == 0)
+			return;
+		for (short i = 0; i < iSize; i++)
+		{
+			/*	Up to here, it's the same as for the 1D map.
+				Not easy to let them use the same code w/o dynamic polymorphism. */
+			int iInnerSize;
+			pStream->Read(&iInnerSize);
+			for (int j = 0; j < iInnerSize; j++)
+			{
+				ValueType vRead;
+				pStream->Read(&vRead);
+				V v = static_cast<V>(vRead);
+				if (v != vDEFAULT)
+					set(static_cast<E1>(i), static_cast<E2>(j), v);
+			}
+		}
+	}
+};
+
+#undef IS_ENUM_TYPE
+#undef COMPACT_VALUE_TYPE
+#undef SORTED_PAIR_LIST_BASE
+#undef COMPACT_ENUM_TYPE
+
+#define iANON_NON_DEFAULT_ITER CONCATVARNAME(iAnonNonDefaultIter_L, __LINE__)
+/*	Similar to FOR_EACH_NON_DEFAULT_INFO_PAIR. Would sure be nice if the same
+	macro could be used for SortedPairList and CvInfoEnumMap, however,
+	merging the two macros w/ each other w/o loss of efficiency is tricky.
+	Well, so far, the macro here is unused anyway. */
+#define FOR_EACH_NON_DEFAULT_PAIR(kEnumMap, EnumPrefix, ValueType) \
+	int iANON_NON_DEFAULT_ITER = 0; \
+	for (std::pair<EnumPrefix##Types,ValueType> per##EnumPrefix##Val; \
+		kEnumMap.nextNonDefault(iANON_NON_DEFAULT_ITER, per##EnumPrefix##Val); )
+/*	Example:
+FOR_EACH_NON_DEFAULT_PAIR(kBuilding.getUnitCombatFreeXP(), UnitCombat, int)
+	expands to
+int iAnonNonDefaultIter_L3947 = 0;
+for (std::pair<UnitCombatTypes,int> perUnitCombatVal;
+	kBuilding.getUnitCombatFreeXP().nextNonDefault(
+		iAnonNonDefaultIter_L3947, perUnitCombatVal); )*/
 
 #endif

@@ -28,6 +28,7 @@
 
 #define FOR_EACH_NON_DEFAULT_INFO_PAIR(kEnumMapSeq, EnumPrefix, ValueType)
 #define FOR_EACH_NON_DEFAULT_ENUM(kEnumMapSeq, EnumPrefix)
+#define FOR_EACH_NON_DEFAULT_PAIR(kEnumMap, EnumPrefix, ValueType)
 
 #define FOR_EACH_UNIT_IN(pUnit, kUnitListWrapper)
 #define FOR_EACH_UNITAI_IN(pUnit, kUnitListWrapper)

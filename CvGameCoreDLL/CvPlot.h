@@ -867,18 +867,18 @@ protected:
 	EnumMap<PlayerTypes,int> m_aiCulture;
 	EnumMapDefault<PlayerTypes,int,FFreeList::INVALID_INDEX> m_aiPlotGroup;
 	mutable EnumMap<PlayerTypes,short> m_aiFoundValue; // advc: mutable
-	EnumMap<PlayerTypes,char> m_aiPlayerCityRadiusCount;
+	SparseEnumMap<PlayerTypes,char> m_aiPlayerCityRadiusCount;
 	EnumMap<TeamTypes,short> m_aiVisibilityCount;
-	EnumMap<TeamTypes,short> m_aiStolenVisibilityCount;
-	EnumMap<TeamTypes,short> m_aiBlockadedCount;
+	SparseEnumMap<TeamTypes,short> m_aiStolenVisibilityCount;
+	SparseEnumMap<TeamTypes,short> m_aiBlockadedCount;
 	EnumMap<TeamTypes,PlayerTypes> m_aiRevealedOwner;
-	EnumMap<TeamTypes,ImprovementTypes> m_aeRevealedImprovementType;
-	EnumMap<TeamTypes,RouteTypes> m_aeRevealedRouteType;
+	SparseEnumMap<TeamTypes,ImprovementTypes> m_aeRevealedImprovementType;
+	SparseEnumMap<TeamTypes,RouteTypes> m_aeRevealedRouteType;
 	EnumMap<TeamTypes,bool> m_abRevealed;
 	EnumMap<DirectionTypes,bool> m_abRiverCrossing;
 	EnumMap<BuildTypes,short> m_aiBuildProgress;
-	EnumMap2D<PlayerTypes,CultureLevelTypes,char> m_aaiCultureRangeCities;
-	EnumMap2D<TeamTypes,InvisibleTypes,short> m_aaiInvisibleVisibilityCount;
+	SparseEnumMap2D<PlayerTypes,CultureLevelTypes,char> m_aaiCultureRangeCities;
+	SparseEnumMap2D<TeamTypes,InvisibleTypes,short> m_aaiInvisibleVisibilityCount;
 	// </advc.enum>
 	CvFeature* m_pFeatureSymbol;
 	CvRoute* m_pRouteSymbol;
@@ -914,7 +914,7 @@ protected:
 };
 
 // advc.opt: It's fine to change the size, but might want to double check if it can be avoided.
-BOOST_STATIC_ASSERT(MAX_CIV_PLAYERS > 18 || sizeof(CvPlot) <= 216);
+BOOST_STATIC_ASSERT(MAX_CIV_PLAYERS > 18 || sizeof(CvPlot) <= 244);
 
 /*	advc.enum: For functions that choose random plots.
 	Moved from CvDefines, turned into an enum, exposed to Python. */
