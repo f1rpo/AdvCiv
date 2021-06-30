@@ -352,6 +352,9 @@ void CvInitCore::reassignPlayer(PlayerTypes eOldID, PlayerTypes eNewID)
 	}
 }
 
+/*	advc (caveat from C2C): When launching a network game, the EXE calls this only
+	on the host. Must not add code here that needs to be synchronized.
+	(Could add it e.g. in CvGame::init instead.) */
 void CvInitCore::closeInactiveSlots()
 {
 	// Open inactive slots mean different things to different game modes and types...
