@@ -93,37 +93,43 @@ public:
 	/*  advc: Added a default value for bIgnoreMinors to all WarPlan functions.
 		getAtWarCount renamed to getNumWars to avoid confusion with CvTeamAI::AI_getAtWarCounter. */
 	// BETTER_BTS_AI_MOD, 01/10/09, jdog5000: bIgnoreVassals added
-	int getNumWars(bool bIgnoreMinors = true, bool bIgnoreVassals = false) const;																				// Exposed to Python
+	int getNumWars(bool bIgnoreMinors = true, bool bIgnoreVassals = false) const;						// Exposed to Python
 	// advc: Replaced by CvTeamAI::AI_countWarPlans
 	//int getWarPlanCount(WarPlanTypes eWarPlan, bool bIgnoreMinors = true) const;
-	int getHasMetCivCount(bool bIgnoreMinors = true) const;																		// Exposed to Python
+	int getHasMetCivCount(bool bIgnoreMinors = true) const;												// Exposed to Python
 
 	bool allWarsShared(TeamTypes eOther, // kekm.3
 			/*  advc.130f: If false, check only if the war enemies of this team
 				are included in those of otherId (set inclusion). */
 			bool bCheckBothWays = true) const;
-	bool hasMetHuman() const;																														// Exposed to Python
+	bool hasMetHuman() const;																			// Exposed to Python
 	bool isInContactWithBarbarians() const; // advc.302
-	int getDefensivePactCount(TeamTypes eObs = NO_TEAM) const;																									// Exposed to Python
+	int getDefensivePactCount(TeamTypes eObs = NO_TEAM) const;											// Exposed to Python
 	int getVassalCount(TeamTypes eObs = NO_TEAM) const;
 	// advc.opt, advc.inl:
-	inline bool isAVassal() const { return (m_eMaster != NO_TEAM); }																						// Exposed to Python
+	inline bool isAVassal() const { return (m_eMaster != NO_TEAM); }									// Exposed to Python
 	bool canVassalRevolt(TeamTypes eMaster) const;
 	bool isLossesAllowRevolt(TeamTypes eMaster) const; // advc.112
-	int getUnitClassMaking(UnitClassTypes eUnitClass) const;														// Exposed to Python
-	int getUnitClassCountPlusMaking(UnitClassTypes eIndex) const;												// Exposed to Python
+	int getUnitClassMaking(UnitClassTypes eUnitClass) const;											// Exposed to Python
+	int getUnitClassCountPlusMaking(UnitClassTypes eIndex) const										// Exposed to Python
+	{
+		return getUnitClassCount(eIndex) + getUnitClassMaking(eIndex);
+	}
 	int getBuildingClassMaking(BuildingClassTypes eBuildingClass) const;								// Exposed to Python
-	int getBuildingClassCountPlusMaking(BuildingClassTypes eIndex) const;								// Exposed to Python
-	int getHasReligionCount(ReligionTypes eReligion) const;															// Exposed to Python
-	int getHasCorporationCount(CorporationTypes eCorporation) const;															// Exposed to Python
+	int getBuildingClassCountPlusMaking(BuildingClassTypes eIndex) const								// Exposed to Python
+	{
+		return getBuildingClassCount(eIndex) + getBuildingClassMaking(eIndex);
+	}
+	int getHasReligionCount(ReligionTypes eReligion) const;												// Exposed to Python
+	int getHasCorporationCount(CorporationTypes eCorporation) const;									// Exposed to Python
 
-	int countTotalCulture() const;																			// Exposed to Python
+	int countTotalCulture() const;																		// Exposed to Python
 
-	int countNumUnitsByArea(CvArea const& kArea) const;																				// Exposed to Python
-	int countNumCitiesByArea(CvArea const& kArea) const;																			// Exposed to Python
-	int countTotalPopulationByArea(CvArea const& kArea) const;																// Exposed to Python
-	int countPowerByArea(CvArea const& kArea) const;																					// Exposed to Python
-	int countNumAIUnitsByArea(CvArea const& kArea, UnitAITypes eUnitAI) const;								// Exposed to Python
+	int countNumUnitsByArea(CvArea const& kArea) const;													// Exposed to Python
+	int countNumCitiesByArea(CvArea const& kArea) const;												// Exposed to Python
+	int countTotalPopulationByArea(CvArea const& kArea) const;											// Exposed to Python
+	int countPowerByArea(CvArea const& kArea) const;													// Exposed to Python
+	int countNumAIUnitsByArea(CvArea const& kArea, UnitAITypes eUnitAI) const;							// Exposed to Python
 	// (advc: countEnemyDangerByArea moved to CvTeamAI)
 	EraTypes getCurrentEra() const; // advc.112b
 	// K-Mod:
@@ -251,7 +257,8 @@ public:
 	void setStolenVisibilityTimer(TeamTypes eIndex, int iNewValue);
 	void changeStolenVisibilityTimer(TeamTypes eIndex, int iChange);
 
-	int getWarWeariness(TeamTypes eIndex, bool bUseEnemyModifer = false) const;			// Exposed to Python. K-Mod added bUseEnemyModifier.
+	int getWarWeariness(TeamTypes eIndex,																// Exposed to Python
+			bool bUseEnemyModifer = false) const; // K-Mod
 	void setWarWeariness(TeamTypes eIndex, int iNewValue);												// Exposed to Python
 	void changeWarWeariness(TeamTypes eIndex, int iChange);												// Exposed to Python
 	// advc.enum: Params changed to TeamTypes (x3)

@@ -339,9 +339,9 @@ bool atWar(TeamTypes eTeamA, TeamTypes eTeamB)
 	return GET_TEAM(eOurTeam).AI_mayAttack(eTheirTeam);
 }*/
 
-// K-Mod: (advc - Where do we move this? Should be a static member, not global.)
+// K-Mod: (advc - Where do we move this? Should not be global.)
 int estimateCollateralWeight(CvPlot const* pPlot, TeamTypes eAttackTeam,
-	TeamTypes eDefenceTeam)
+	TeamTypes eDefenseTeam)
 {
 	int iBaseCollateral = GC.getDefineINT(CvGlobals::COLLATERAL_COMBAT_DAMAGE); // normally 10
 	if (pPlot == NULL)
@@ -352,7 +352,7 @@ int estimateCollateralWeight(CvPlot const* pPlot, TeamTypes eAttackTeam,
 		Therefore, I'm going to inflate the value of collateral damage based
 		on a rough estimate of the defenders bonuses. */
 
-	TeamTypes ePlotBonusTeam = eDefenceTeam;
+	TeamTypes ePlotBonusTeam = eDefenseTeam;
 	if (ePlotBonusTeam == NO_TEAM)
 		ePlotBonusTeam = (pPlot->getTeam() == eAttackTeam ? NO_TEAM : pPlot->getTeam());
 
@@ -368,7 +368,7 @@ int estimateCollateralWeight(CvPlot const* pPlot, TeamTypes eAttackTeam,
 	{
 		if (!pUnit->canDefend(pPlot))
 			continue;
-		if (eDefenceTeam != NO_TEAM && pUnit->getTeam() != eDefenceTeam)
+		if (eDefenseTeam != NO_TEAM && pUnit->getTeam() != eDefenseTeam)
 			continue;
 		if (eAttackTeam != NO_TEAM && pUnit->getTeam() == eAttackTeam)
 			continue;

@@ -7026,13 +7026,16 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 			bool bIgnoreBuildings = (pAttacker != NULL ?
 					pAttacker->ignoreBuildingDefense() :
 					ignoreBuildingDefense());
-			if(pAttacker == NULL)
+			if (pAttacker == NULL)
 			{
 				iExtraModifier = GET_TEAM(getTeam()).AI_plotDefense(*pPlot, bIgnoreBuildings,
 						bGarrisonStrength); // advc.500b
 			}
-			else iExtraModifier = pPlot->defenseModifier(getTeam(),
-					bIgnoreBuildings, pAttacker->getTeam()); // </advc.012>
+			else
+			{
+				iExtraModifier = pPlot->defenseModifier(getTeam(),
+						bIgnoreBuildings, pAttacker->getTeam());
+			} // </advc.012>
 			iModifier += iExtraModifier;
 			if (pCombatDetails != NULL)
 				pCombatDetails->iPlotDefenseModifier = iExtraModifier;
@@ -11060,31 +11063,31 @@ int CvUnit::computeWaveSize(bool bRangedRound, int iAttackerMax, int iDefenderMa
 		iDefenderMax));
 }
 
-bool CvUnit::isTargetOf(const CvUnit& attacker) const
+bool CvUnit::isTargetOf(CvUnit const& kAttacker) const
 {
-	CvUnitInfo const& attackerInfo = attacker.getUnitInfo();
+	CvUnitInfo const& kAttackerInfo = kAttacker.getUnitInfo();
 	//if (!getPlot().isCity(true, getTeam()))
 	if (!GET_TEAM(getTeam()).isCityDefense(getPlot())) // advc
 	{
 		if (getUnitClassType() != NO_UNITCLASS &&
-			attackerInfo.getTargetUnitClass(getUnitClassType()))
+			kAttackerInfo.getTargetUnitClass(getUnitClassType()))
 		{
 			return true;
 		}
 		if (getUnitCombatType() != NO_UNITCOMBAT &&
-			attackerInfo.getTargetUnitCombat(getUnitCombatType()))
+			kAttackerInfo.getTargetUnitCombat(getUnitCombatType()))
 		{
 			return true;
 		}
 	}
 
-	if (attackerInfo.getUnitClassType() != NO_UNITCLASS &&
-		m_pUnitInfo->getDefenderUnitClass(attackerInfo.getUnitClassType()))
+	if (kAttackerInfo.getUnitClassType() != NO_UNITCLASS &&
+		m_pUnitInfo->getDefenderUnitClass(kAttackerInfo.getUnitClassType()))
 	{
 		return true;
 	}
-	if (attackerInfo.getUnitCombatType() != NO_UNITCOMBAT &&
-		m_pUnitInfo->getDefenderUnitCombat(attackerInfo.getUnitCombatType()))
+	if (kAttackerInfo.getUnitCombatType() != NO_UNITCOMBAT &&
+		m_pUnitInfo->getDefenderUnitCombat(kAttackerInfo.getUnitCombatType()))
 	{
 		return true;
 	}

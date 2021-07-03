@@ -300,7 +300,7 @@ bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);										// Exposed to Python
 	Removed isTechRequiredForProject. */
 // advc: getCombatOdds, LFBgetCombatOdds moved to CombatOdds
 
-int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTypes eDefenceTeam = NO_TEAM); // K-Mod
+int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTypes eDefenseTeam = NO_TEAM); // K-Mod
 
 /*	advc (note): Still used in the DLL by CvPlayer::buildTradeTable, but mostly deprecated.
 	Use the TradeData constructor instead. */

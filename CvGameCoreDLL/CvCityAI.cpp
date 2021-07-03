@@ -1593,7 +1593,8 @@ void CvCityAI::AI_chooseProduction()
 				// advc.001j: Commented out
 				//+ kPlayer.AI_getNumTrainAIUnits(UNITAI_SPY);
 		int iNeededSpies = iNumCitiesInArea / 3;
-		iNeededSpies += bPrimaryArea ? (kPlayer.getCommerceRate(COMMERCE_ESPIONAGE)+50)/100 : 0;
+		if (bPrimaryArea)
+			iNeededSpies += intdiv::uround(kPlayer.getCommerceRate(COMMERCE_ESPIONAGE), 100);
 		iNeededSpies *= GC.getInfo(kPlayer.getPersonalityType()).getEspionageWeight();
 		iNeededSpies /= 100;
 		{
@@ -5108,8 +5109,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 				iTempValue += kBuilding.getObsoleteSafeCommerceChange(eLoopCommerce) * 4;
 				// BETTER_BTS_AI_MOD, City AI, 03/13/10, jdog5000: START
 				if (kBuilding.getReligionType() != NO_RELIGION &&
-						kBuilding.getReligionType() == kOwner.getStateReligion())
+					kBuilding.getReligionType() == kOwner.getStateReligion())
+				{
 					iTempValue += kOwner.getStateReligionBuildingCommerce(eLoopCommerce) * 3;
+				}
 				// BETTER_BTS_AI_MOD END
 				// Moved from below (K-Mod)
 				iTempValue += ((kBuilding.getSpecialistExtraCommerce(eLoopCommerce) *
@@ -6065,7 +6068,8 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 				int iRelativeTechScore = kTeam.getBestKnownTechScorePercent();
 				int iTechValue = 50 * kTeam.getResearchCost(eSampleTech) /
 						std::max(1, iRelativeTechScore);
-				iTechValue = 100 * iTechValue / std::max(1, iRelativeTechScore); // again, for emphasis.
+				// again, for emphasis.
+				iTechValue = 100 * iTechValue / std::max(1, iRelativeTechScore);
 				iTechValue *= (2 * GC.getNumEraInfos() - kOwner.getCurrentEra());
 				iTechValue /= std::max(1,
 						2 * GC.getNumEraInfos() - GC.getGame().getStartEra());
@@ -6555,7 +6559,7 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 		iDefenders = GC.getInfo(kGame.getHandicapType()).getBarbarianInitialDefenders();
 		iDefenders += (getPopulation() + 2) / 7;
 		return iDefenders;
-	} // advc.003n: Switched these two branches
+	} // advc.003n: Switched the order of these two branches
 	if (!GET_TEAM(getTeam()).AI_isWarPossible())
 		return iDefenders;
 
@@ -6582,7 +6586,7 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 		int iNeededFloating = AI_neededFloatingDefenders(bIgnoreEvac, bConstCache,
 				true); // advc.099c: To save time (avoid calling AI_neededCultureDefenders 2x)
 		if (kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH))
-			iNeededFloating = (iNeededFloating + 2) / 4;
+			iNeededFloating = intdiv::uround(iNeededFloating, 4);
 		iDefenders += iNeededFloating;
 		// </advc.139>
 	}
@@ -6684,13 +6688,13 @@ int CvCityAI::AI_neededFloatingDefenders(/* <advc.139> */ bool bIgnoreEvac,
 {
 	if(!bIgnoreEvac && AI_isEvacuating())
 		return 0; // </advc.139>
-	int r = m_iNeededFloatingDefenders;
+	int iR = m_iNeededFloatingDefenders;
 	if(m_iNeededFloatingDefendersCacheTurn != GC.getGame().getGameTurn())
 	{
-		r = AI_calculateNeededFloatingDefenders(bConstCache, // advc.001n
+		iR = AI_calculateNeededFloatingDefenders(bConstCache, // advc.001n
 				bIgnoreCulture); // advc.099c
 	}
-	return r;
+	return iR;
 }
 
 int CvCityAI::AI_calculateNeededFloatingDefenders(bool bConstCache,
@@ -12566,19 +12570,19 @@ int CvCityAI::AI_calculatePlayerCloseness(int iMaxDistance, PlayerTypes ePlayer,
 		}
 		if (iDistance > iMaxDistance)
 			continue;
-		if (bSameArea) // advc.107: No functional change
+		if (bSameArea) // advc.107 (no functional change)
 		{
 			int iPathDistance = kMap.calculatePathDistance(plot(), pLoopCity->plot());
 			if (iPathDistance > 0)
 				iDistance = iPathDistance;
+			if (iDistance > iMaxDistance)
+				continue;
 		}
-		if (iDistance > iMaxDistance)
-			continue;
 		// Weight by population of both cities, not just pop of other city
 		//iTempValue = 20 + 2*pLoopCity->getPopulation();
 		int iTempValue = 20 + pLoopCity->getPopulation() + getPopulation();
-		iTempValue *= (1 + (iMaxDistance - iDistance));
-		iTempValue /= (1 + iMaxDistance);
+		iTempValue *= 1 + iMaxDistance - iDistance;
+		iTempValue /= 1 + iMaxDistance;
 		//reduce for small islands.
 		int iAreaCityCount = pLoopCity->getArea().getNumCities();
 		iTempValue *= std::min(iAreaCityCount, 5);
@@ -12638,16 +12642,15 @@ int CvCityAI::AI_calculateMilitaryOutput() const
 
 /*	K-Mod has made significant structural & function changes to this function.
 	(loosely described in the comments throughout the function.) */
-// advc: const; removed unused param.
-int CvCityAI::AI_cityThreat(/*bool bDangerPercent*/) const
+int CvCityAI::AI_cityThreat(/*bool bDangerPercent*/) const // advc: param unused
 {
 	PROFILE_FUNC();
 
 	int iTotalThreat = 0; // was (iValue)
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwner()); // K-Mod
-	bool bCrushStrategy = kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH);
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // K-Mod
+	bool const bCrushStrategy = kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH);
 
-	// advc.001: Exclude unmet players (bug?), vassals; K-Mod had only excluded the master.
+	// advc.001: Exclude unmet players (bugfix?), vassals; K-Mod had only excluded the master.
 	for (PlayerAIIter<ALIVE,KNOWN_POTENTIAL_ENEMY_OF> itPlayer(getTeam());
 		itPlayer.hasNext(); ++itPlayer)
 	{
@@ -12735,7 +12738,7 @@ int CvCityAI::AI_cityThreat(/*bool bDangerPercent*/) const
 				/*	(K-Mod note: for good strategy,
 					this should probably be _their_ attitude rather than ours.
 					But perhaps for role-play it is better the way it is.) */
-				switch(eTowardUs) // </advc.022>
+				switch(eTowardUs) // Yep, use their attitude. </advc.022>
 				{
 				case ATTITUDE_FURIOUS:
 					iCivFactor = 180;
@@ -12769,7 +12772,7 @@ int CvCityAI::AI_cityThreat(/*bool bDangerPercent*/) const
 						I may add a turn limit later if this produces unwanted behaviour.
 						(getGameTurn() - getGameTurnAcquired() < 40) */
 					if (getPreviousOwner() == kRival.getID())
-						iCivFactor = iCivFactor * 3/2;
+						iCivFactor = (iCivFactor * 3) / 2;
 					// Don't get too comfortable if kLoopPlayer is using a military victory strategy.
 					if (kRival.AI_atVictoryStage(AI_VICTORY_MILITARY4))
 						iCivFactor = std::max(100, iCivFactor);

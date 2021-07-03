@@ -11883,7 +11883,8 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 	if (kProject.getTechShare() != 0)
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_TECH_SHARE", kProject.getTechShare()));
+		szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_TECH_SHARE",
+				kProject.getTechShare()));
 	}
 	if (kProject.isAllowsNukes())
 	{

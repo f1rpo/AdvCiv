@@ -975,7 +975,7 @@ public:
 	DllExport int getSubUnitsAlive() const;
 	int getSubUnitsAlive(int iDamage) const;
 
-	bool isTargetOf(const CvUnit& attacker) const;
+	bool isTargetOf(CvUnit const& kAttacker) const;
 	bool isEnemy(TeamTypes eTeam, CvPlot const& kPlot) const;
 	// advc.opt: Instead of allowing pPlot==NULL
 	inline bool isEnemy(TeamTypes eTeam) const

@@ -1898,24 +1898,12 @@ int CvTeam::getUnitClassMaking(UnitClassTypes eUnitClass) const
 }
 
 
-int CvTeam::getUnitClassCountPlusMaking(UnitClassTypes eIndex) const
-{
-	return getUnitClassCount(eIndex) + getUnitClassMaking(eIndex);
-}
-
-
 int CvTeam::getBuildingClassMaking(BuildingClassTypes eBuildingClass) const
 {
 	int iCount = 0;
 	for (MemberIter it(getID()); it.hasNext(); ++it)
 		iCount += it->getBuildingClassMaking(eBuildingClass);
 	return iCount;
-}
-
-
-int CvTeam::getBuildingClassCountPlusMaking(BuildingClassTypes eIndex) const
-{
-	return getBuildingClassCount(eIndex) + getBuildingClassMaking(eIndex);
 }
 
 

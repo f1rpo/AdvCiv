@@ -3896,11 +3896,11 @@ int CvGame::getRecommendedPlayers() const
 // advc.140:
 int CvGame::getSeaLevelChange() const
 {
-	int r = 0;
+	int iR = 0;
 	SeaLevelTypes eSeaLevel = GC.getInitCore().getSeaLevel();
 	if(eSeaLevel != NO_SEALEVEL)
-		r = GC.getInfo(eSeaLevel).getSeaLevelChange();
-	return r;
+		iR = GC.getInfo(eSeaLevel).getSeaLevelChange();
+	return iR;
 } // </advc.137>
 
 
