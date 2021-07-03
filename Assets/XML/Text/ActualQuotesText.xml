@@ -865,7 +865,7 @@
 		 at the start. -->
 	<TEXT>
 		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_FRANKLIN_ROOSEVELT_2</Tag>
-		<English>How agreat to see you again, [CT_NAME]! Do sit down; my man will get you a Martini.</English>
+		<English>How great to see you again, [CT_NAME]! Do sit down; my man will get you a Martini.</English>
 		<French>Je suis positivement ravi de vous revoir, [CT_NAME] ! Prenez un si&#232;ge, mon domestique va vous servir un Martini.</French>
 		<German>Ich bin entz&#252;ckt, Euch wiederzusehen, [CT_NAME]! Nehmt Platz, ich lasse Euch einen Martini bringen.</German>
 		<Italian>&#200; una sorpresa eccezionale vederti di nuovo, [CT_NAME]! Siediti, ti far&#242; portare un Martini.</Italian>
@@ -1050,7 +1050,7 @@
 	<!-- advc.005h: Make this #2, i.e. preserve "welcome to my yurt, care for some yak". -->
 	<TEXT>
 		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_GENGHIS_KHAN_2</Tag>
-		<English>Man’s highest joy is in victory -- to conquer one's enemies, to deprive them of their possessions, to make their beloved weep, to ride their horses and to embrace their wives and daughters. Do you not agree?</English>
+		<English>Man's highest joy is in victory -- to conquer one's enemies, to deprive them of their possessions, to make their beloved weep, to ride their horses and to embrace their wives and daughters. Do you not agree?</English>
 		<French>Bienvenue dans ma yourte, [CT_NAME] ! Installons-nous sur ces poufs en cuir de cheval et parlons de mille choses ! Un peu de yak bouilli ?</French>
 		<German>Willkommen in meiner Jurte, [CT_NAME]! Lassen wir uns doch auf diesen wunderbaren Pferdehaarkissen nieder und besprechen wir ein paar Dinge! M&#246;chtet Ihr etwas gekochten B&#252;ffel?</German>
 		<Italian>Ti do il benvenuto nella mia tenda, [CT_NAME]! Dobbiamo parlare di molte cose, sediamoci su questi cuscini di crine di cavallo! Gradisci dello yak bollito?</Italian>
@@ -1451,7 +1451,7 @@
 		<Italian>In onore della nostra amicizia sacrificher&#242; cinquanta guerrieri!</Italian>
 		<Spanish>&#161;Sacrificaremos a cincuenta guerreros en honor a vuestra amistad!</Spanish>
 	</TEXT>
-	<!-- advc.005h: Like the original ("ruler of too many places to mention") better. -->
+	<!-- advc.005h: I like the original ("ruler of too many places to mention") better. -->
 	<!--TEXT>
 		<Tag>AI_DIPLO_THANKS_20</Tag>
 		<English>I, [OUR_NAME], ruler of the [OUR_EMPIRE], do hereby thank my good friend, [CT_NAME]!</English>
@@ -2023,10 +2023,10 @@
 	</TEXT>
 	<!-- advc.005h: Vanilla was "all the cool civs",
 		 Actual Quotes "all the great civilisations of the world"
-		 - maybe we can strike a compromize. -->
+		 - maybe we can strike a compromise. -->
 	<TEXT>
 		<Tag>AI_DIPLO_CIVIC_PRESSURE_2</Tag>
-		<English>All the reputable civilizations are adopting %s1, [CT_NAME]. How about you?</English>
+		<English>All the repectable civilizations are adopting %s1, [CT_NAME]. How about you?</English>
 		<French>[CT_NAME], toutes les civilisations &#233;volu&#233;es adoptent : %s1. Pourquoi pas vous ?</French>
 		<German>Alle Zivilisationen, die etwas auf sich halten, nehmen die Staatsform %s1 an, [CT_NAME]. Und wie steht es mit Euch?</German>
 		<Italian>Tutte le civilt&#224; stanno adottando la forma di governo: %s1, [CT_NAME]. E tu?</Italian>
