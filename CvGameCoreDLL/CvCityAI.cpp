@@ -6665,19 +6665,36 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 }
 
 
-int CvCityAI::AI_minDefenders() /* advc: */ const
+int CvCityAI::AI_minDefenders() const
 {
+	/*	advc.test: Can we afford to check CvPlayerAI::AI_feelsSafe here?
+		Should then at least not add the 3rd defender in coastal cities. */
+	PROFILE_FUNC();
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	int iDefenders = 1;
-	int iEra = GET_PLAYER(getOwner()).getCurrentEra();
-	if (iEra >= CvEraInfo::AI_getAgeOfExploration()) // advc.107
-		iDefenders++;
-
+	{
+		//if (kOwner.getCurrentEra() > 0)
+		/*	<advc.107> Chosen so that the extra defender comes in the Medieval era
+			on Immortal and Deity and in Renaissance otherwise. That said,
+			the training modifier decreases as the game progresses, so things get
+			a little fuzzy (which is fine with me). */
+		scaled rExtraDefenderEraFactor = fixp(2.5);
+		scaled rHandicapModifier = kOwner.trainingModifierFromHandicap();
+		if (rHandicapModifier < 1)
+			rExtraDefenderEraFactor *= SQR(rHandicapModifier);
+		if (kOwner.AI_getCurrEraFactor() > rExtraDefenderEraFactor)
+		{	// </advc.107>
+			iDefenders++;
+		}
+	}
+	int const iEra = kOwner.getCurrentEra();
 	if (//iEra - GC.getGame().getStartEra() / 2 >= GC.getNumEraInfos() / 2 &&
 		// <advc.107>
 		iEra > GC.getGame().getStartEra() &&
 		iEra >= CvEraInfo::AI_getAgeOfExploration() &&
-		// A small water area doesn't justify an extra defender
-		isCoastal(2 * GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN))) // </advc.107>
+		getPopulation() > 2 + iEra && // </advc.107>
+		// advc.107: Times 2 - a small water area doesn't justify an extra defender.
+		isCoastal(2 * GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN)))
 	{
 		iDefenders++;
 	}
@@ -6707,11 +6724,13 @@ int CvCityAI::AI_calculateNeededFloatingDefenders(bool bConstCache,
 
 	int iFloatingDefenders = kOwner.AI_getTotalFloatingDefendersNeeded(getArea());
 	iFloatingDefenders -= getArea().getCitiesPerPlayer(getOwner());
-
-	int iTotalThreat = std::max(1, kOwner.AI_getTotalAreaCityThreat(getArea()));
-	iFloatingDefenders *= AI_cityThreat();
-	iFloatingDefenders += (iTotalThreat / 2);
-	iFloatingDefenders /= iTotalThreat;
+	// advc.107: (Can perhaps already be negative in BtS - on small islands)
+	iFloatingDefenders = std::max(0, iFloatingDefenders);
+	{
+		int iLocalThreat = AI_cityThreat();
+		int iTotalThreat = std::max(1, kOwner.AI_getTotalAreaCityThreat(getArea()));
+		iFloatingDefenders = intdiv::uround(iFloatingDefenders * iLocalThreat, iTotalThreat);
+	}
 	// <advc.099c>
 	if (!bIgnoreCulture)
 	{
