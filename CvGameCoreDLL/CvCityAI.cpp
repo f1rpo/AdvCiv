@@ -6053,15 +6053,17 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 			//iValue += 20 / kProject.getTechShare(); // BtS (this was all)
 			TechTypes eSampleTech = kOwner.getCurrentResearch();
 			if (eSampleTech == NO_TECH)
-			{
+			{	// advc (comment): Use costliest tech that we have
+				int iMaxCost = 0;
 				FOR_EACH_ENUM(Tech)
 				{
-					if (kTeam.isHasTech(eLoopTech) &&
-						(eSampleTech == NO_TECH ||
-						GC.getInfo(eSampleTech).getResearchCost() <
-						GC.getInfo(eLoopTech).getResearchCost()))
+					if (!kTeam.isHasTech(eLoopTech))
+						continue;
+					int iLoopCost = GC.getInfo(eLoopTech).getResearchCost();
+					if (iLoopCost > iMaxCost)
 					{
-						eSampleTech =  eLoopTech;
+						eSampleTech = eLoopTech;
+						iMaxCost = iLoopCost;
 					}
 				}
 			}
