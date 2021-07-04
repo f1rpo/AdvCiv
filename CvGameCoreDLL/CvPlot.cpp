@@ -7367,7 +7367,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 	if (uiFlag < 10)
 	{
 		m_aaiCultureRangeCities.ReadBtS<char,char>(pStream);
-		m_aaiInvisibleVisibilityCount.ReadBtS<char,char>(pStream);
+		m_aaiInvisibleVisibilityCount.ReadBtS<char,short>(pStream);
 	}
 	else
 	{
