@@ -980,36 +980,39 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 // advc.130p: Cut from CvDeal::endTrade
 namespace
 {
-	void addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
-		TradeableItems eItemType)
+	void addEndTradeMemory(PlayerTypes eEndingPlayer, PlayerTypes eRememberingPlayer,
+		TradeableItems eItemType, /* advc.130j: */ bool bHalve = false)
 	{
-		for (MemberAIIter itToMember(TEAMID(eToPlayer));
-			itToMember.hasNext(); ++itToMember)
+		for (MemberAIIter itRememberingMember(TEAMID(eRememberingPlayer));
+			itRememberingMember.hasNext(); ++itRememberingMember)
 		{
-			for (MemberIter itFromMember(TEAMID(eFromPlayer));
-				itFromMember.hasNext(); ++itFromMember)
+			for (MemberIter itEndingMember(TEAMID(eEndingPlayer));
+				itEndingMember.hasNext(); ++itEndingMember)
 			{
 				MemoryTypes eMemory = MEMORY_CANCELLED_OPEN_BORDERS;
 				if (eItemType == TRADE_DEFENSIVE_PACT)
 					eMemory = MEMORY_CANCELLED_DEFENSIVE_PACT;
 				else if(eItemType == TRADE_VASSAL)
 					eMemory = MEMORY_CANCELLED_VASSAL_AGREEMENT;
-				// advc.130j:
-				itToMember->AI_setMemoryCount(itFromMember->getID(), eMemory, 2);
+				/*	<advc.130j> Twice remembered (unless remembering it only half)
+					b/c now twice as fast forgotten. */
+				itRememberingMember->AI_setMemoryCount(itEndingMember->getID(),
+						eMemory, bHalve ? 1 : 2); // </advc.130j>
 			}
 		}
 	}
 }
 
 
-void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,  // advc: refactored
+void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 	PlayerTypes eToPlayer, bool bTeam, /* advc.036: */ bool bUpdateAttitude,
-	PlayerTypes eCancelPlayer) // advc.130p (param no longer used)
+	PlayerTypes eCancelPlayer) // advc.130p
 {
 	bool bTeamTradeEnded = false; // advc.133
 	/*	<advc> Skip some steps when a trade ends through the defeat of one party -
 		to avoid failed assertions */
-	bool const bAlive = (GET_PLAYER(eFromPlayer).isAlive() && GET_PLAYER(eToPlayer).isAlive());
+	bool const bAlive = (GET_PLAYER(eFromPlayer).isAlive() &&
+			GET_PLAYER(eToPlayer).isAlive());
 	if (!bAlive)
 		bUpdateAttitude = false; // </advc>
 	switch(trade.m_eItemType)
@@ -1074,11 +1077,15 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,  // advc: refact
 			/*  Don't check this after all -- if the other side loses all visible
 				territory and then regains some, they may still not really be worth
 				trading with. */
-			/*if(eCancelPlayer == NULL || GET_TEAM(eCancelPlayer).AI_openBordersTrade(
+			/*if(eCancelPlayer == NO_PLAYER ||
+				GET_TEAM(eCancelPlayer).AI_openBordersTrade(
 					TEAMID(eCancelPlayer == eToPlayer ? eFromPlayer : eToPlayer)) !=
 					DENIAL_NO_GAIN)*/
 			if (bAlive)
-				addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_OPEN_BORDERS);
+			{
+				addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_OPEN_BORDERS,
+						eCancelPlayer != eFromPlayer);
+			}
 			/* (This class really shouldn't be adding cancellation
 				memory as this is an AI thing; but BtS does it that way too.) */
 			// </advc.130p>
@@ -1091,8 +1098,11 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,  // advc: refact
 		{
 			endTeamTrade(TRADE_DEFENSIVE_PACT, TEAMID(eFromPlayer), TEAMID(eToPlayer));
 			bTeamTradeEnded = true; // advc.133
-			if (bAlive)  // advc.130p:
-				addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_DEFENSIVE_PACT);
+			if (bAlive)
+			{
+				addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_DEFENSIVE_PACT,
+						eCancelPlayer != eFromPlayer); // advc.130p
+			}
 		}
 		break;
 

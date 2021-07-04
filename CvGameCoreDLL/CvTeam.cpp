@@ -1066,7 +1066,8 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 		{
 			if (pLoopDeal->isBetween(getID(), eTarget))
 			{
-				pLoopDeal->kill(true, NO_PLAYER, /* <advc.002l> */ !bFirst);
+				pLoopDeal->kill(true, /* advc.130j: */ getLeaderID(),
+						/* <advc.002l> */ !bFirst);
 				bFirst = false; // </advc.002l>
 			}
 		}
