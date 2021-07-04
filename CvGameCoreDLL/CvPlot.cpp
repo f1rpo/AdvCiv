@@ -2535,13 +2535,19 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 	if (bHelp)
 		eImprovement = getRevealedImprovementType(GC.getGame().getActiveTeam());
 	else eImprovement = getImprovementType();
-
-	if (eImprovement != NO_IMPROVEMENT)
+	// <advc.183> No city defense should apply then
+	if (eDefender == NO_TEAM)
 	{
-		if (eDefender != NO_TEAM &&
-			// advc.183: OutsideBorders check added
-			((!isOwned() && GC.getInfo(eImprovement).isOutsideBorders()) ||
-			GET_TEAM(eDefender).isFriendlyTerritory(getTeam())))
+		FAssert(!bGarrisonStrength); // advc.500b
+		return iModifier;
+	}
+	/*	Note: The rest of this function (city defense) needs to be
+		consistent with CvTeam::isCityDefense. */ // </advc.183>
+	if (eImprovement != NO_IMPROVEMENT)
+	{	// advc.183: OutsideBorders check added
+		if ((!isOwned() && GC.getInfo(eImprovement).isOutsideBorders()) ||
+			// advc.183: was isFriendlyTerritory
+			GET_TEAM(eDefender).isAlliedTerritory(getTeam(), eAttacker))
 		{
 			iModifier += GC.getInfo(eImprovement).getDefenseModifier();
 		}
@@ -2555,7 +2561,10 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 			if (bGarrisonStrength)
 				iModifier += pCity->getBuildingDefense();
 			else // </advc.500b>
-				iModifier += pCity->getDefenseModifier(bIgnoreBuilding);
+			{	// advc.183: Open Borders shouldn't be enough
+				if (GET_TEAM(eDefender).isAlliedTerritory(getTeam(), eAttacker))
+					iModifier += pCity->getDefenseModifier(bIgnoreBuilding);
+			}
 		}
 	}
 

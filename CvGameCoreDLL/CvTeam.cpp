@@ -4696,6 +4696,17 @@ bool CvTeam::isFriendlyTerritory(TeamTypes eTerritoryOwner) const
 	return false;
 }
 
+/*	advc.183: A status between friendly territory and territory that can merely
+	be peacefully entered. Only applies wrt. a specific shared enemy. */
+bool CvTeam::isAlliedTerritory(TeamTypes eTerritoryOwner, TeamTypes eEnemy) const
+{
+	if (isFriendlyTerritory(eTerritoryOwner))
+		return true;
+	if (eEnemy == NO_TEAM) // Allow this for the callers' convenience
+		return false;
+	return (isAtWar(eEnemy) && GET_TEAM(eTerritoryOwner).isAtWar(eEnemy));
+}
+
 /*	advc: Says whether kPlot is a land plot that sea units of this team can enter
 	-- or could enter if kPlot were adjacent to water (not checked).
 	Was previously handled by CvPlot::isCity(bool,TeamTypes). */
@@ -4729,7 +4740,7 @@ bool CvTeam::isRevealedBase(CvPlot const& kPlot) const
 	city-like defensive advantages to this team. No fog-of-war checks.
 	Was previously handled by CvPlot::isCity(bool,TeamTypes).
 	Needs to be consistent with CvPlot::defenseModifier. */
-bool CvTeam::isCityDefense(CvPlot const& kPlot) const
+bool CvTeam::isCityDefense(CvPlot const& kPlot, TeamTypes eAttacker) const
 {
 	/*	I'm assuming that calls happen in the context of imminent combat, and
 		then the combatants wouldn't be visible if the plot weren't visible as well.
@@ -4738,7 +4749,8 @@ bool CvTeam::isCityDefense(CvPlot const& kPlot) const
 	//FAssert(kPlot.isVisible(getID()));
 	if (kPlot.isOwned())
 	{
-		if (!isFriendlyTerritory(kPlot.getTeam()))
+		//if (!isFriendlyTerritory(kPlot.getTeam()))
+		if (!isAlliedTerritory(kPlot.getTeam(), eAttacker)) // advc.183
 			return false;
 		if (kPlot.isCity())
 			return true;

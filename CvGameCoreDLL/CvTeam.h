@@ -468,6 +468,7 @@ public:
 				getID() == eTerritoryOwner || getTeam(eTerritoryOwner).isVassal(getID()));
 	}
 	bool isFriendlyTerritory(TeamTypes eTerritoryOwner) const;
+	bool isAlliedTerritory(TeamTypes eTerritoryOwner, TeamTypes eEnemy) const; // advc.183
 	// <advc> Same as isRevealedBase (but doesn't have to be)
 	inline bool isRevealedAirBase(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
 	inline bool isRevealedCityHeal(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
@@ -477,7 +478,7 @@ public:
 	inline bool isAirBase(CvPlot const& kPlot) const { return isBase(kPlot); }
 	inline bool isCityHeal(CvPlot const& kPlot) const { return isBase(kPlot); }
 	bool isBase(CvPlot const& kPlot) const;
-	bool isCityDefense(CvPlot const& kPlot) const; // </advc>
+	bool isCityDefense(CvPlot const& kPlot, TeamTypes eAttacker = NO_TEAM) const; // </advc>
 	bool canAccessHappyHealth(CvPlot const& kPlot, int iHealthOrHappy) const; // advc.901
 
 	int getEspionageModifier(TeamTypes eTarget) const;								// Exposed to Python (though CyGameCoreUtils)

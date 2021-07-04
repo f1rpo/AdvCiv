@@ -20875,7 +20875,8 @@ void CvGameTextMgr::appendCombatModifiers(CvWStringBuffer& szBuffer,
 				kDefender.getDomainType()),
 				params, "TXT_KEY_COMBAT_PLOT_MOD_VS_TYPE",
 				GC.getInfo(kDefender.getDomainType()).getTextKeyWide());
-		if (GET_TEAM(kDefender.getTeam()).isCityDefense(kPlot)) // advc: was isCity
+		if (GET_TEAM(kDefender.getTeam()).isCityDefense(kPlot, // advc: was isCity
+			kAttacker.getTeam())) // advc.183
 		{
 			appendCombatModifier(szBuffer,
 					kAttacker.cityAttackModifier(),
@@ -20990,7 +20991,8 @@ void CvGameTextMgr::appendCombatModifiers(CvWStringBuffer& szBuffer,
 	appendCombatModifier(szBuffer,
 			kDefender.fortifyModifier(),
 			params, "TXT_KEY_COMBAT_PLOT_FORTIFY_MOD");
-	if (GET_TEAM(kDefender.getTeam()).isCityDefense(kPlot)) // advc: was isCity
+	if (GET_TEAM(kDefender.getTeam()).isCityDefense(kPlot, // advc: was isCity
+		kAttacker.getTeam())) // advc.183
 	{
 		appendCombatModifier(szBuffer,
 				kDefender.cityDefenseModifier(),

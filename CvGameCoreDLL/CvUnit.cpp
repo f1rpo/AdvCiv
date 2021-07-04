@@ -7046,7 +7046,8 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 		if (pCombatDetails != NULL)
 			pCombatDetails->iFortifyModifier = iExtraModifier;
 		//if (pPlot->isCity(true, getTeam()))
-		if (GET_TEAM(getTeam()).isCityDefense(*pPlot)) // advc
+		if (GET_TEAM(getTeam()).isCityDefense(*pPlot, // advc
+			pAttacker == NULL ? NO_TEAM : pAttacker->getTeam())) // advc.183
 		{
 			iExtraModifier = cityDefenseModifier();
 			iModifier += iExtraModifier;
@@ -7085,7 +7086,8 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 	{
 		int iTempModifier = 0;
 		//if (pAttackedPlot->isCity(true, getTeam()))
-		if (GET_TEAM(getTeam()).isCityDefense(*pAttackedPlot)) // advc
+		if (GET_TEAM(getTeam()).isCityDefense(*pAttackedPlot, // advc
+			pAttacker->getTeam())) // advc.183
 		{
 			iExtraModifier = -pAttacker->cityAttackModifier();
 			iTempModifier += iExtraModifier;
@@ -10476,9 +10478,11 @@ void CvUnit::flankingStrikeCombat(const CvPlot* pPlot, int iAttackerStrength,
 	CvUnit const* pSkipUnit)
 {
 	//if (pPlot->isCity(true, pSkipUnit->getTeam()))
-	if (GET_TEAM(pSkipUnit->getTeam()).isCityDefense(*pPlot)) // advc
+	if (GET_TEAM(pSkipUnit->getTeam()).isCityDefense(*pPlot, // advc
+		getTeam())) // advc.183
+	{
 		return;
-
+	}
 	std::vector<std::pair<CvUnit*,int> > aFlankDamagePerUnit;
 	FOR_EACH_UNIT_VAR_IN(pLoopUnit, *pPlot)
 	{
@@ -11067,7 +11071,8 @@ bool CvUnit::isTargetOf(CvUnit const& kAttacker) const
 {
 	CvUnitInfo const& kAttackerInfo = kAttacker.getUnitInfo();
 	//if (!getPlot().isCity(true, getTeam()))
-	if (!GET_TEAM(getTeam()).isCityDefense(getPlot())) // advc
+	if (!GET_TEAM(getTeam()).isCityDefense(getPlot(), // advc
+		kAttacker.getTeam())) // advc.183
 	{
 		if (getUnitClassType() != NO_UNITCLASS &&
 			kAttackerInfo.getTargetUnitClass(getUnitClassType()))
