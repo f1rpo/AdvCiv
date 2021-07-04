@@ -6056,8 +6056,7 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 			{
 				FOR_EACH_ENUM(Tech)
 				{
-					// advc.001: Cheapest tech that we do _not_ yet have
-					if (!kTeam.isHasTech(eLoopTech) &&
+					if (kTeam.isHasTech(eLoopTech) &&
 						(eSampleTech == NO_TECH ||
 						GC.getInfo(eSampleTech).getResearchCost() <
 						GC.getInfo(eLoopTech).getResearchCost()))
