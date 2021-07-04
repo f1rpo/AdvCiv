@@ -1098,6 +1098,7 @@ bool CvProjectInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iProductionCost, "iCost");
 	pXML->GetChildXmlValByName(&m_iNukeInterception, "iNukeInterception");
 	pXML->GetChildXmlValByName(&m_iTechShare, "iTechShare");
+	FAssertBounds(0, MAX_PLAYERS, m_iTechShare); // advc
 
 	pXML->SetInfoIDFromChildXmlVal((int&)m_eEveryoneSpecialUnit, "EveryoneSpecialUnit");
 	pXML->SetInfoIDFromChildXmlVal((int&)m_eEveryoneSpecialBuilding, "EveryoneSpecialBuilding");

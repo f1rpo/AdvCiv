@@ -630,6 +630,7 @@ public: // All const functions are exposed to Python. advc.inl: Most of them inl
 	{
 		return m_iNukeInterception;
 	}
+	// advc/ kekm38 (note): This returns a player count (not a player id)
 	int getTechShare() const
 	{
 		return m_iTechShare;

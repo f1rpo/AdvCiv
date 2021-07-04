@@ -261,11 +261,19 @@ public:
 			bool bUseEnemyModifer = false) const; // K-Mod
 	void setWarWeariness(TeamTypes eIndex, int iNewValue);												// Exposed to Python
 	void changeWarWeariness(TeamTypes eIndex, int iChange);												// Exposed to Python
-	// advc.enum: Params changed to TeamTypes (x3)
-	int getTechShareCount(TeamTypes eIndex) const;																						// Exposed to Python
-	bool isTechShare(TeamTypes eIndex) const;																									// Exposed to Python
+	/*	<advc> (for kekm.38) Params changed to PlayerTypes; were named "eIndex".
+		NB: This function says how many team members have a tech share effect
+		that gets triggered when eSharePlayers other players know a tech. */
+	int getTechShareCount(PlayerTypes eSharePlayers) const												// Exposed to Python
+	{
+		return m_aiTechShareCount.get(eSharePlayers);
+	}
+	bool isTechShare(PlayerTypes eSharePlayers) const													// Exposed to Python
+	{
+		return (getTechShareCount(eSharePlayers) > 0);
+	}
 	bool isAnyTechShare() const { return m_aiTechShareCount.hasContent(); } // advc.opt
-	void changeTechShareCount(TeamTypes eIndex, int iChange);														// Exposed to Python
+	void changeTechShareCount(PlayerTypes eSharePlayers, int iChange); // </advc>						// Exposed to Python
 
 	int getCommerceFlexibleCount(CommerceTypes eIndex) const;														// Exposed to Python
 	bool isCommerceFlexible(CommerceTypes eIndex) const;																// Exposed to Python
@@ -584,10 +592,10 @@ protected:
 	// <advc.enum>
 	EnumMap<TeamTypes,int> m_aiStolenVisibilityTimer; // Make this <...,char> when breaking saves
 	EnumMap<TeamTypes,int> m_aiWarWeariness;
-	EnumMap<TeamTypes,int> m_aiTechShareCount;
 	EnumMap<TeamTypes,int> m_aiEspionagePointsAgainstTeam;
 	EnumMap<TeamTypes,int> m_aiCounterespionageTurnsLeftAgainstTeam; // <...,short>?
 	EnumMap<TeamTypes,int> m_aiCounterespionageModAgainstTeam; // <...,short>?
+	EnumMap<PlayerTypes,char> m_aiTechShareCount;
 
 	EnumMap<CommerceTypes,int> m_aiCommerceFlexibleCount;
 	EnumMap<DomainTypes,int> m_aiExtraMoves;
@@ -643,8 +651,9 @@ protected:
 
 	void doWarWeariness();
 	void doBarbarianResearch(); // advc
-	void updateTechShare(TechTypes eTech);
+	void updateTechShare(TechTypes eTech, /* advc.opt: */ int iOtherKnownThreshold = -1);
 	void updateTechShare();
+	int calculateBestTechShare() const; // advc.opt
 	void updatePlotGroupBonus(TechTypes eTech, bool bAdd); // advc
 
 	void processTech(TechTypes eTech, int iChange, /* advc.121: */ bool bEndOfTurn);

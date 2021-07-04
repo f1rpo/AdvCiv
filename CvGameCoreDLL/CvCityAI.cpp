@@ -6045,9 +6045,12 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 
 	if (kProject.getTechShare() > 0)
 	{
-		if (kProject.getTechShare() < kTeam.getHasMetCivCount(true) &&
+		if (kProject.getTechShare() < //kTeam.getHasMetCivCount(/*bIgnoreMinors=*/true)
+			// kekm.38: (Minors can spread tech - but are unlikely to have good tech)
+			PlayerIter<MAJOR_CIV,OTHER_KNOWN_TO>::count(kTeam.getID()) &&
 			!kOwner.AI_avoidScience())
 		{
+			//iValue += 20 / kProject.getTechShare(); // BtS (this was all)
 			TechTypes eSampleTech = kOwner.getCurrentResearch();
 			if (eSampleTech == NO_TECH)
 			{
@@ -6063,7 +6066,6 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 					}
 				}
 			}
-			FAssert(eSampleTech != NO_TECH);
 			if (eSampleTech != NO_TECH)
 			{
 				int iRelativeTechScore = kTeam.getBestKnownTechScorePercent();
@@ -6076,7 +6078,7 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 						2 * GC.getNumEraInfos() - GC.getGame().getStartEra());
 				iValue += iTechValue;
 			}
-			//iValue += (20 / GC.getInfo(eProject).getTechShare());
+			else FAssert(eSampleTech != NO_TECH);
 		}
 	}
 

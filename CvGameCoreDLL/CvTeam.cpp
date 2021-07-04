@@ -168,12 +168,15 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 	m_abNoTradeTech.reset();
 	if (!bConstructorCall && getID() != NO_TEAM)
 	{
-		for (int i = 0; i < MAX_TEAMS; i++)
+		FOR_EACH_ENUM(Team)
 		{
-			CvTeam& kLoopTeam = GET_TEAM((TeamTypes)i);
+			CvTeam& kLoopTeam = GET_TEAM(eLoopTeam);
 			kLoopTeam.m_aiStolenVisibilityTimer.reset(getID());
 			kLoopTeam.m_aiWarWeariness.reset(getID());
-			kLoopTeam.m_aiTechShareCount.reset(getID());
+			/*	advc.001: The TechShareCount does not contain info about other teams
+				but info about team counts (kekm.38: player counts).
+				So it shouldn't be reset on kLoopTeam when this team is reset. */
+			//kLoopTeam.m_aiTechShareCount.reset(getID());
 			kLoopTeam.m_aiEspionagePointsAgainstTeam.reset(getID());
 			kLoopTeam.m_aiCounterespionageTurnsLeftAgainstTeam.reset(getID());
 			kLoopTeam.m_aiCounterespionageModAgainstTeam.reset(getID());
@@ -2682,27 +2685,16 @@ void CvTeam::changeWarWeariness(TeamTypes eOtherTeam, const CvPlot& kPlot, int i
 	changeWarWeariness(eOtherTeam, iRatio * iFactor);
 }
 
-
-int CvTeam::getTechShareCount(TeamTypes eIndex) const
-{
-	return m_aiTechShareCount.get(eIndex);
-}
-
-
-bool CvTeam::isTechShare(TeamTypes eIndex) const
-{
-	return (getTechShareCount(eIndex) > 0);
-}
-
-
-void CvTeam::changeTechShareCount(TeamTypes eIndex, int iChange)
+// advc (for kekm.38): First param was TeamTypes eIndex; see comment in header.
+void CvTeam::changeTechShareCount(PlayerTypes eSharePlayers, int iChange)
 {
 	if (iChange == 0)
 		return;
 
-	m_aiTechShareCount.add(eIndex, iChange);
-	FAssert(getTechShareCount(eIndex) >= 0);
-	if (isTechShare(eIndex))
+	m_aiTechShareCount.add(eSharePlayers, toChar(iChange));
+	// advc: Both keys and values of the map are really player counts
+	FAssertBounds(0, MAX_PLAYERS, getTechShareCount(eSharePlayers));
+	if (isTechShare(eSharePlayers))
 		updateTechShare();
 }
 
@@ -3731,10 +3723,10 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)
 	CvProjectInfo& kProject = GC.getInfo(eIndex);
 
 	changeNukeInterception(kProject.getNukeInterception() * iChange);
-
-	if (kProject.getTechShare() > 0 && kProject.getTechShare() <= MAX_TEAMS)
-		changeTechShareCount((TeamTypes)(kProject.getTechShare() - 1), iChange);
-
+	// <advc> (for kekm.38): Player counts, not team counts. And don't subtract 1.
+	if (kProject.getTechShare() > 0 && kProject.getTechShare() <= MAX_PLAYERS)
+		changeTechShareCount((PlayerTypes)kProject.getTechShare(), iChange);
+	// </advc>
 	FOR_EACH_NON_DEFAULT_KEY(kProject.getVictoryThreshold(), Victory)
 	{
 		setCanLaunch(eLoopVictory, GC.getGame().testVictory(eLoopVictory, getID()));
@@ -5134,34 +5126,24 @@ void CvTeam::doBarbarianResearch()
 	}
 }
 
-void CvTeam::updateTechShare(TechTypes eTech)
+void CvTeam::updateTechShare(TechTypes eTech,
+	int iOtherKnownThreshold) // advc.opt: Allow caller to handle this
 {
 	if (isHasTech(eTech) /* advc.opt: */ || !isAnyTechShare())
 		return;
-
-	/*  advc (comment): isTechShare(iI) means that the team gets to
-		learn all techs known by at least iI+1 other teams.
-		So iI doesn't refer to a particular team here, but to a team count. */
-	int iBestShare = MAX_INT;
-	for (int iI = 0; iI < MAX_TEAMS; iI++)
-	{
-		if (isTechShare((TeamTypes)iI))
-		{
-			iBestShare = std::min(iBestShare, iI + 1);
-			break;
-		}
-	}
-	FAssert(iBestShare < MAX_INT); // advc
-
+	// <advc.opt>
+	if (iOtherKnownThreshold < 0)
+		iOtherKnownThreshold = calculateBestTechShare(); // </advc.opt>
 	int iCount = 0;
-	for (TeamIter<CIV_ALIVE,OTHER_KNOWN_TO> it(getID()); it.hasNext(); ++it)
+	for (TeamIter<CIV_ALIVE,OTHER_KNOWN_TO> itOther(getID());
+		itOther.hasNext(); ++itOther)
 	{
-		if (it->isHasTech(eTech))
-			iCount++;
-		if (iCount >= iBestShare) // advc.opt: Moved into the loop
+		if (itOther->isHasTech(eTech))
+			iCount += itOther->getNumMembers(); // kekm.38: was +1
+		if (iCount >= iOtherKnownThreshold) // advc.opt: Moved into the loop
 		{
 			setHasTech(eTech, true, NO_PLAYER, true, true);
-			if(GET_PLAYER(getLeaderID()).isSignificantDiscovery(eTech)) // advc.550e
+			if (GET_PLAYER(getLeaderID()).isSignificantDiscovery(eTech)) // advc.550e
 				setNoTradeTech(eTech, true); // kekm.31
 			return;
 		}
@@ -5173,9 +5155,28 @@ void CvTeam::updateTechShare()
 {
 	// <advc.opt>
 	if (!isAnyTechShare())
-		return; // </advc.opt>
+		return;
+	int const iBestTechShare = calculateBestTechShare(); // </advc.opt>
 	FOR_EACH_ENUM(Tech)
-		updateTechShare(eLoopTech);
+		updateTechShare(eLoopTech, /* advc.opt: */ iBestTechShare);
+}
+
+// advc.opt: Cut from updateTechShare(TechTypes)
+int CvTeam::calculateBestTechShare() const
+{
+	int iBestShare = MAX_INT;
+	// kekm.38: Go through all player counts, not all team counts.
+	FOR_EACH_ENUM2(Player, eSharePlayers)
+	{
+		if (isTechShare(eSharePlayers))
+		{	/*	advc: No longer stored as decreased by 1, so we don't need to
+				add 1 here. */
+			iBestShare = std::min<int>(iBestShare, eSharePlayers);
+			break;
+		}
+	}
+	FAssertBounds(0, MAX_INT, iBestShare); // advc
+	return std::max(0, iBestShare);
 }
 
 // advc: Duplicate code cut from setHasTech
@@ -5574,7 +5575,24 @@ void CvTeam::read(FDataStreamBase* pStream)
 
 	m_aiStolenVisibilityTimer.Read(pStream);
 	m_aiWarWeariness.Read(pStream);
-	m_aiTechShareCount.Read(pStream);
+	// <advc> (for kekm.38)
+	if (uiFlag >= 15)
+		m_aiTechShareCount.Read(pStream, false);
+	else
+	{	/*	Used to be stored for each possible team count, now player count.
+			And the iTechShare from XML is no longer treated as 1 less in the DLL.
+			Also use char for the values, while we're at it. */
+		EnumMap<TeamTypes,int> aiTeamTechShareCount;
+		aiTeamTechShareCount.Read(pStream);
+		if (aiTeamTechShareCount.isAllocated())
+		{
+			for (int i = 0; i < std::min<int>(MAX_TEAMS, MAX_PLAYERS - 1); i++)
+			{
+				m_aiTechShareCount.set((PlayerTypes)(i + 1),
+						toChar(aiTeamTechShareCount.get((TeamTypes)i)));
+			}
+		}
+	} // </advc>
 	m_aiEspionagePointsAgainstTeam.Read(pStream);
 	m_aiCounterespionageTurnsLeftAgainstTeam.Read(pStream);
 	m_aiCounterespionageModAgainstTeam.Read(pStream);
@@ -5772,7 +5790,8 @@ void CvTeam::write(FDataStreamBase* pStream)
 	//uiFlag = 11; // advc.opt: fix m_aiVictoryCountdown bug
 	//uiFlag = 12; // advc.091
 	//uiFlag = 13; // advc.183
-	uiFlag = 14; // advc.650
+	//uiFlag = 14; // advc.650
+	uiFlag = 15; // advc (for kekm.38)
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iNumMembers);
@@ -5813,7 +5832,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 
 	m_aiStolenVisibilityTimer.Write(pStream);
 	m_aiWarWeariness.Write(pStream);
-	m_aiTechShareCount.Write(pStream);
+	m_aiTechShareCount.Write(pStream, false);
 	m_aiEspionagePointsAgainstTeam.Write(pStream);
 	m_aiCounterespionageTurnsLeftAgainstTeam.Write(pStream);
 	m_aiCounterespionageModAgainstTeam.Write(pStream);
