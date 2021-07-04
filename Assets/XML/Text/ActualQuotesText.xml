@@ -2026,7 +2026,7 @@
 		 - maybe we can strike a compromise. -->
 	<TEXT>
 		<Tag>AI_DIPLO_CIVIC_PRESSURE_2</Tag>
-		<English>All the repectable civilizations are adopting %s1, [CT_NAME]. How about you?</English>
+		<English>All the respectable civilizations are adopting %s1, [CT_NAME]. How about you?</English>
 		<French>[CT_NAME], toutes les civilisations &#233;volu&#233;es adoptent : %s1. Pourquoi pas vous ?</French>
 		<German>Alle Zivilisationen, die etwas auf sich halten, nehmen die Staatsform %s1 an, [CT_NAME]. Und wie steht es mit Euch?</German>
 		<Italian>Tutte le civilt&#224; stanno adottando la forma di governo: %s1, [CT_NAME]. E tu?</Italian>
