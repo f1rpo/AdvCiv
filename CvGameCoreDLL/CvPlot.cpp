@@ -3541,19 +3541,14 @@ int CvPlot::getLatitude() const
 // advc.tsl: was getLatitude()
 char CvPlot::calculateLatitude() const
 {
-	/*int iLatitude;
-	if (GC.getMap().isWrapX() || !(GC.getMap().isWrapY()))
-		iLatitude = ((getY() * 100) / GC.getMap().getGridHeight());
-	else iLatitude = ((getX() * 100) / GC.getMap().getGridWidth());
-	iLatitude = ((iLatitude * (GC.getMap().getTopLatitude() - GC.getMap().getBottomLatitude())) / 100);
-	return abs(iLatitude + GC.getMap().getBottomLatitude());*/ // BtS
-	// UNOFFICIAL_PATCH (UP), Bugfix, 07/12/09, Temudjin & jdog5000: START
 	scaled rLatitude;
+	/*	UNOFFICIAL_PATCH (UP), Bugfix, 07/12/09, Temudjin & jdog5000:
+		Subtract 1 from dimensions */
 	/*if (GC.getMap().isWrapX() || !GC.getMap().isWrapY())
 		rLatitude = scaled(getY(), GC.getMap().getGridHeight() - 1);
 	else rLatitude = scaled(getX(), GC.getMap().getGridWidth() - 1);
 	rLatitude *= GC.getMap().getTopLatitude() - GC.getMap().getBottomLatitude();
-	rLatitude += GC.getMap().getBottomLatitude();*/ // This would be equivalent to the UP
+	rLatitude += GC.getMap().getBottomLatitude();*/
 	/*	<advc.129> Let top and bottom latitude refer to the _edges_ of the map.
 		I.e. the topmost and bottommost _row_ will receive smaller (absolute)
 		latitude values. */
@@ -3565,7 +3560,6 @@ char CvPlot::calculateLatitude() const
 	rLatitude = rLatitude.abs();
 	rLatitude.decreaseTo(90);
 	return toChar(rLatitude.round());
-	// UNOFFICIAL_PATCH: END
 }
 
 
