@@ -21600,7 +21600,8 @@
 			<ObsoleteSafeCommerceChanges>
 				<iCommerce>0</iCommerce>
 				<iCommerce>0</iCommerce>
-				<iCommerce>4</iCommerce>
+				<!-- advc.201: Was 8 in BtS, 4 in K-Mod. -->
+				<iCommerce>6</iCommerce>
 			</ObsoleteSafeCommerceChanges>
 			<CommerceChangeDoubleTimes>
 				<iCommerce>0</iCommerce>
@@ -23466,7 +23467,8 @@
 			<ObsoleteSafeCommerceChanges>
 				<iCommerce>0</iCommerce>
 				<iCommerce>0</iCommerce>
-				<iCommerce>8</iCommerce>
+				<!-- advc.201: Was 10 in BtS, 8 in K-Mod. -->
+				<iCommerce>7</iCommerce>
 			</ObsoleteSafeCommerceChanges>
 			<CommerceChangeDoubleTimes>
 				<iCommerce>0</iCommerce>
@@ -26158,7 +26160,8 @@
 			<ObsoleteSafeCommerceChanges>
 				<iCommerce>0</iCommerce>
 				<iCommerce>0</iCommerce>
-				<iCommerce>6</iCommerce>
+				<!-- advc.201: Was 8 in BtS, 6 in K-Mod. -->
+				<iCommerce>7</iCommerce>
 			</ObsoleteSafeCommerceChanges>
 			<CommerceChangeDoubleTimes>
 				<iCommerce>0</iCommerce>
