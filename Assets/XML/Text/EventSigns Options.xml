@@ -16,8 +16,8 @@
 	<!-- advc.004: Added mention of Alt+S -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_EVENTSIGNS__ENABLED_HOVER</Tag>
-		<English>When checked, a sign is placed on the map when a random event changes the yield of a tile. Regardless of this option, you can always place and remove signs manually by pressing Alt+S.</English>
-		<German>Markiert Geländefelder, wenn sich deren Erträge durch ein Zufallsereignis verändern. Unabhängig von dieser Option können Sie mit Alt+S Markierungen anbringen oder entfernen.</German>
+		<English>When checked, a sign is placed on the map when a random event changes the yield of a tile. Regardless of this option, you can always place signs manually by pressing Alt+S.</English>
+		<German>Markiert Geländefelder, wenn sich deren Erträge durch ein Zufallsereignis verändern. Unabhängig von dieser Option können Sie mit Alt+S Markierungen anbringen.</German>
 		<Italian>Quando è selezionato, le caselle che hanno avuto la propria resa produttiva modificata da un evento casuale vengono marcate sulla mappa con una indicazione di tale modifica.</Italian>
 		<Spanish>Si se activa, se colocan carteles en las casillas cuya producción haya sido modificada a causa de eventos aleatorios.</Spanish>
 	</TEXT>
