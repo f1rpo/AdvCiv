@@ -75,12 +75,12 @@ public:
 	/*	<advc.pf> Adapters to the interface of GroupPathNode - so that both
 		node classes can be used interchangeably as template parameters
 		in code shared by the FAStar path finder and GroupPathFinder. */
-	inline int getMoves() const { return m_iData1; }
-	inline void setMoves(int iMoves) { m_iData1 = iMoves; }
-	inline int getPathTurns() const { return m_iData2; }
-	inline void setPathTurns(int iPathTurns) { m_iData2 = iPathTurns; }
+	int getMoves() const { return m_iData1; }
+	void setMoves(int iMoves) { m_iData1 = iMoves; }
+	int getPathTurns() const { return m_iData2; }
+	void setPathTurns(int iPathTurns) { m_iData2 = iPathTurns; }
 	// Same thought - don't want to store plots as coordinates in my node classes.
-	inline CvPlot& getPlot() const { return GC.getMap().getPlot(m_iX, m_iY); }
+	CvPlot& getPlot() const { return GC.getMap().getPlot(m_iX, m_iY); }
 	// </advc.pf>
 
 	bool m_bOnStack;

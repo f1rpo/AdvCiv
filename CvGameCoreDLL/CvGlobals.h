@@ -63,8 +63,8 @@ class CvGlobals
 public:
 
 	// singleton accessor
-	DllExport __forceinline static CvGlobals& getInstance();
-	__forceinline static CvGlobals const& getConstInstance();
+	DllExport __inline static CvGlobals& getInstance();
+	__inline static CvGlobals const& getConstInstance();
 
 	CvGlobals();
 
@@ -80,7 +80,7 @@ public:
 	DllExport CvSetupData& getSetupData();
 	DllExport CvInitCore& getInitCore()  // <advc> const replacement
 	{ CvGlobals const& kThis = *this; return kThis.getInitCore(); }
-	inline CvInitCore& getInitCore() const { return *m_initCore; } // </advc>
+	CvInitCore& getInitCore() const { return *m_initCore; } // </advc>
 	DllExport CvInitCore& getLoadedInitCore();
 	DllExport CvInitCore& getIniInitCore();
 	DllExport CvMessageCodeTranslator& getMessageCodes();
@@ -88,25 +88,25 @@ public:
 	CvStatsReporter* getStatsReporterPtr();
 	DllExport CvInterface& getInterface();
 	DllExport CvInterface* getInterfacePtr();
-	#ifdef _USRDLL // inlined for perf reasons, do not use outside of dll
-	// advc.inl: forceinline just to be sure
-	__forceinline CvMap& getMap() const { return *m_map; } // was getMapINLINE
-	__forceinline CvGame& getGame() const // was getGameINLINE; advc.003u: return type was CvGameAI&
-	{	// Can't be helped; this function has to be inlined, and I won't include CvGameAI.h here.
+
+	CvMap& getMap() const { return *m_map; } // advc.inl: was "getMapINLINE"
+	// advc.003u: return type was CvGameAI&
+	CvGame& getGame() const // advc.inl: was "getGameINLINE
+	{	/*	Can't be helped; this function has to be inlined,
+			and I won't include CvGameAI.h here. */
 		return *reinterpret_cast<CvGame*>(m_game);
 	} 
-	__forceinline CvGameAI& AI_getGame() const { return *m_game; } // advc.003u
+	CvGameAI& AI_getGame() const { return *m_game; } // advc.003u
 	CvAgents& getAgents() const { return *m_agents; } // advc.agents
-	#endif
 	CvMap& getMapExternal(); // advc.inl: Exported through .def file
 	CvGameAI& getGameExternal(); // advc.inl: Exported through .def file
 	DllExport CvGameAI* getGamePointer();
 	// <advc.003y>
-	inline CvPythonCaller const* getPythonCaller() const
+	CvPythonCaller const* getPythonCaller() const
 	{
 		return m_pPythonCaller;
 	} // </advc.003y>
-	DllExport inline CvRandom& getASyncRand() { return *m_asyncRand; } // advc.inl
+	DllExport CvRandom& getASyncRand() { return *m_asyncRand; } // advc.inl
 	CvRandom& getASyncRand() const { return *m_asyncRand; } // advc
 	DllExport CMessageQueue& getMessageQueue();
 	DllExport CMessageQueue& getHotMessageQueue();
@@ -116,19 +116,19 @@ public:
 		the returned FAStar objects, but CvGlobals doesn't own those objects, so
 		it shouldn't be our concern. */
 	DllExport FAStar& getPathFinder() { CvGlobals const& kThis = *this; return kThis.getPathFinder(); }
-	inline FAStar& getPathFinder() const { return *m_pathFinder; }
+	FAStar& getPathFinder() const { return *m_pathFinder; }
 	DllExport FAStar& getInterfacePathFinder() { CvGlobals const& kThis = *this; return kThis.getInterfacePathFinder(); }
-	inline FAStar& getInterfacePathFinder() const { return *m_interfacePathFinder; }
+	FAStar& getInterfacePathFinder() const { return *m_interfacePathFinder; }
 	DllExport FAStar& getStepFinder() { CvGlobals const& kThis = *this; return kThis.getStepFinder(); }
-	inline FAStar& getStepFinder() const { return *m_stepFinder; }
+	FAStar& getStepFinder() const { return *m_stepFinder; }
 	DllExport FAStar& getRouteFinder() { CvGlobals const& kThis = *this; return kThis.getRouteFinder(); }
-	inline FAStar& getRouteFinder() const { return *m_routeFinder; }
+	FAStar& getRouteFinder() const { return *m_routeFinder; }
 	DllExport FAStar& getBorderFinder() { CvGlobals const& kThis = *this; return kThis.getBorderFinder(); }
-	inline FAStar& getBorderFinder() const { return *m_borderFinder; }
+	FAStar& getBorderFinder() const { return *m_borderFinder; }
 	DllExport FAStar& getAreaFinder() { CvGlobals const& kThis = *this; return kThis.getAreaFinder(); }
-	inline FAStar& getAreaFinder() const { return *m_areaFinder; }
+	FAStar& getAreaFinder() const { return *m_areaFinder; }
 	DllExport FAStar& getPlotGroupFinder() { CvGlobals const& kThis = *this; return kThis.getPlotGroupFinder(); }
-	inline FAStar& getPlotGroupFinder() const { return *m_plotGroupFinder; }
+	FAStar& getPlotGroupFinder() const { return *m_plotGroupFinder; }
 	//NiPoint3& getPt3Origin(); // advc.003j: unused
 	//NiPoint3& getPt3CameraDir(); // advc.003j: unused
 	DllExport bool& getLogging() { return m_bLogging; }
@@ -137,49 +137,49 @@ public:
 	DllExport bool& overwriteLogs() { return m_bOverwriteLogs; }
 	// <advc> const inline versions of the above
 	// The first two are exposed to Python for kekm.27
-	inline bool isLogging() const { return m_bLogging; }
-	inline bool isRandLogging() const { return m_bRandLogging; }
-	inline bool isSynchLogging() const { return m_bSynchLogging; }
-	inline bool isOverwriteLogs() const { return m_bOverwriteLogs; }
+	bool isLogging() const { return m_bLogging; }
+	bool isRandLogging() const { return m_bRandLogging; }
+	bool isSynchLogging() const { return m_bSynchLogging; }
+	bool isOverwriteLogs() const { return m_bOverwriteLogs; }
 	// <advc>
-	inline CvDLLLogger& getLogger() const
+	CvDLLLogger& getLogger() const
 	{
 		return *m_pLogger;
 	} // </advc>
 
 	// advc: Inlined and constified
 	DllExport int* getPlotDirectionX() { return m_aiPlotDirectionX; }
-	inline int const* getPlotDirectionX() const { return m_aiPlotDirectionX; }
+	int const* getPlotDirectionX() const { return m_aiPlotDirectionX; }
 	DllExport int* getPlotDirectionY() { return m_aiPlotDirectionY; }
-	inline int const* getPlotDirectionY() const { return m_aiPlotDirectionY; }
+	int const* getPlotDirectionY() const { return m_aiPlotDirectionY; }
 	DllExport int* getPlotCardinalDirectionX() { return m_aiPlotCardinalDirectionX; };
-	inline int const* getPlotCardinalDirectionX() const { return m_aiPlotCardinalDirectionX; };
+	int const* getPlotCardinalDirectionX() const { return m_aiPlotCardinalDirectionX; };
 	DllExport int* getPlotCardinalDirectionY() { return m_aiPlotCardinalDirectionY; };
-	inline int const* getPlotCardinalDirectionY() const { return m_aiPlotCardinalDirectionY; };
+	int const* getPlotCardinalDirectionY() const { return m_aiPlotCardinalDirectionY; };
 	DllExport DirectionTypes getXYDirection(int i, int j) { CvGlobals const& kThis = *this; return kThis.getXYDirection(i,j); }
-	inline DirectionTypes getXYDirection(int i, int j) const
+	DirectionTypes getXYDirection(int i, int j) const
 	{
 		FAssertBounds(0, DIRECTION_DIAMETER, i);
 		FAssertBounds(0, DIRECTION_DIAMETER, j);
 		return m_aaeXYDirection[i][j];
 	}
-	inline CityPlotTypes getXYCityPlot(int i, int j) const // advc.enum: return type was int
+	CityPlotTypes getXYCityPlot(int i, int j) const // advc.enum: return type was int
 	{
 		FAssertBounds(0, CITY_PLOTS_DIAMETER, i);
 		FAssertBounds(0, CITY_PLOTS_DIAMETER, j);
 		return m_aaeXYCityPlot[i][j];
 	}
-	inline int const* getCityPlotX() const { return m_aiCityPlotX; }
-	inline int const* getCityPlotY() const { return m_aiCityPlotY; }
-	inline int const* CvGlobals::getCityPlotPriority() const { return m_aiCityPlotPriority; }
-	inline DirectionTypes const* getTurnLeftDirection() const { return m_aeTurnLeftDirection; }
-	inline DirectionTypes getTurnLeftDirection(int i) const
+	int const* getCityPlotX() const { return m_aiCityPlotX; }
+	int const* getCityPlotY() const { return m_aiCityPlotY; }
+	int const* CvGlobals::getCityPlotPriority() const { return m_aiCityPlotPriority; }
+	DirectionTypes const* getTurnLeftDirection() const { return m_aeTurnLeftDirection; }
+	DirectionTypes getTurnLeftDirection(int i) const
 	{
 		FAssertBounds(0, NUM_DIRECTION_TYPES, i);
 		return m_aeTurnLeftDirection[i];
 	}
-	inline DirectionTypes const* getTurnRightDirection() const { return m_aeTurnRightDirection; }
-	inline DirectionTypes getTurnRightDirection(int i) const
+	DirectionTypes const* getTurnRightDirection() const { return m_aeTurnRightDirection; }
+	DirectionTypes getTurnRightDirection(int i) const
 	{
 		FAssertBounds(0, NUM_DIRECTION_TYPES, i);
 		return m_aeTurnRightDirection[i];
@@ -194,12 +194,12 @@ public:
 	{ return getInfoTypeForString(szType, bHideAssert, false); }
 	int getInfoTypeForString(const char* szType, bool bHideAssert, bool bFromPython) const;
 	// </advc.006>  // <advc>
-	inline ColorTypes getColorType(const char* szType) const
+	ColorTypes getColorType(const char* szType) const
 	{
 		static CvString szPrefix = "COLOR_";
 		return (ColorTypes)getInfoTypeForString((szPrefix + szType).c_str());
 	}
-	inline DiploCommentTypes getAIDiploCommentType(const char* szType) const
+	DiploCommentTypes getAIDiploCommentType(const char* szType) const
 	{
 		static CvString szPrefix = "AI_DIPLOCOMMENT_";
 		return (DiploCommentTypes)getInfoTypeForString((szPrefix + szType).c_str());
@@ -208,9 +208,9 @@ public:
 	DllExport void infoTypeFromStringReset();
 	DllExport void infosReset();
 
-	//inline int getNumGameTextXML() const { return (int)m_paGameTextXML.size(); } // advc.003j: unused
-	DllExport inline int getActiveLandscapeID() { CvGlobals const& kThis = *this; return kThis.getActiveLandscapeID(); }
-	inline int getActiveLandscapeID() const { return m_iActiveLandscapeID; } // advc
+	//int getNumGameTextXML() const { return (int)m_paGameTextXML.size(); } // advc.003j: unused
+	DllExport int getActiveLandscapeID() { CvGlobals const& kThis = *this; return kThis.getActiveLandscapeID(); }
+	int getActiveLandscapeID() const { return m_iActiveLandscapeID; } // advc
 	DllExport void setActiveLandscapeID(int iLandscapeID);
 	// <advc.003x> So that CvMap doesn't have to use CvLandscapeInfo directly
 	int getLandscapePlotsPerCellX() const;
@@ -313,16 +313,16 @@ public:
 	DO_FOR_EACH_DYN_INFO_TYPE(MAKE_INFO_ACCESSORS_DYN)
 	DO_FOR_EACH_INT_INFO_TYPE(MAKE_INFO_ACCESSORS_INT)
 	// World(Size)Info: awkward to generate through a macro
-	inline CvWorldInfo& getInfo(WorldSizeTypes eWorld) const
+	CvWorldInfo& getInfo(WorldSizeTypes eWorld) const
 	{
 		FAssertBounds(0, getNumWorldInfos(), eWorld);
 		return *m_paWorldInfo[eWorld];
 	}
-	inline int getNumWorldInfos() const
+	int getNumWorldInfos() const
 	{
 		return (int)m_paWorldInfo.size();
 	}
-	inline CvWorldInfo& getWorldInfo(WorldSizeTypes eWorld) const // deprecated
+	CvWorldInfo& getWorldInfo(WorldSizeTypes eWorld) const // deprecated
 	{
 		return getInfo(eWorld);
 	}
@@ -350,8 +350,8 @@ public:
 	CvString*& getFunctionTypes();
 	CvString& getFunctionTypes(FunctionTypes e);
 
-	inline int& getNumFlavorTypes() { return m_iNumFlavorTypes; }
-	inline int const& getNumFlavorTypes() const { return m_iNumFlavorTypes; } // advc
+	int& getNumFlavorTypes() { return m_iNumFlavorTypes; }
+	int const& getNumFlavorTypes() const { return m_iNumFlavorTypes; } // advc
 	CvString*& getFlavorTypes();
 	CvString& getFlavorTypes(FlavorTypes e);
 
@@ -398,14 +398,14 @@ public:
 	void cacheGlobals();
 
 	// ***** EXPOSED TO PYTHON *****
-	DllExport inline int getDefineINT(char const* szName) const
+	DllExport int getDefineINT(char const* szName) const
 	{
 		return getDefineINT(szName, 0); // advc.opt: Call the BBAI version
 	}
 	// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000:
 	int getDefineINT(char const* szName, int iDefault) const;
 	// <advc>
-	inline bool getDefineBOOL(char const* szName, bool bDefault = false) const
+	bool getDefineBOOL(char const* szName, bool bDefault = false) const
 	{
 		return (getDefineINT(szName, (int)bDefault) > 0);
 	} // </advc>
@@ -557,48 +557,48 @@ public:
 		DO_FOR_EACH_GLOBAL_DEFINE(MAKE_ENUMERATOR)
 		NUM_GLOBAL_DEFINES
 	};
-	__forceinline int getDefineINT(GlobalDefines eVarName) const
+	int getDefineINT(GlobalDefines eVarName) const
 	{
 		return m_aiGlobalDefinesCache[eVarName];
 	}
-	__forceinline bool getDefineBOOL(GlobalDefines eVarName) const
+	bool getDefineBOOL(GlobalDefines eVarName) const
 	{
 		return (getDefineINT(eVarName) > 0);
 	}
 	// Keep these as wrappers; too many call locations to change or DllExport.
 	// These are all exposed to Python
-	inline int getMOVE_DENOMINATOR() const { return getDefineINT(MOVE_DENOMINATOR); }
-	inline int getFOOD_CONSUMPTION_PER_POPULATION() const { return getDefineINT(FOOD_CONSUMPTION_PER_POPULATION); }
-	inline int getMAX_HIT_POINTS() const { return getDefineINT(MAX_HIT_POINTS); }
-	inline int getPERCENT_ANGER_DIVISOR() const { return getDefineINT(PERCENT_ANGER_DIVISOR); }
-	inline int getMAX_CITY_DEFENSE_DAMAGE() const { return getDefineINT(MAX_CITY_DEFENSE_DAMAGE); }
-	DllExport inline int getMAX_PLOT_LIST_ROWS() { CvGlobals const& kThis = *this; return kThis.getMAX_PLOT_LIST_ROWS(); }
-	inline int getMAX_PLOT_LIST_ROWS() const { return getDefineINT(MAX_PLOT_LIST_ROWS); }
-	DllExport inline int getUNIT_MULTISELECT_MAX() { CvGlobals const& kThis = *this; return kThis.getUNIT_MULTISELECT_MAX(); }
-	inline int getUNIT_MULTISELECT_MAX() const { return getDefineINT(UNIT_MULTISELECT_MAX); }
+	int getMOVE_DENOMINATOR() const { return getDefineINT(MOVE_DENOMINATOR); }
+	int getFOOD_CONSUMPTION_PER_POPULATION() const { return getDefineINT(FOOD_CONSUMPTION_PER_POPULATION); }
+	int getMAX_HIT_POINTS() const { return getDefineINT(MAX_HIT_POINTS); }
+	int getPERCENT_ANGER_DIVISOR() const { return getDefineINT(PERCENT_ANGER_DIVISOR); }
+	int getMAX_CITY_DEFENSE_DAMAGE() const { return getDefineINT(MAX_CITY_DEFENSE_DAMAGE); }
+	DllExport int getMAX_PLOT_LIST_ROWS() { CvGlobals const& kThis = *this; return kThis.getMAX_PLOT_LIST_ROWS(); }
+	int getMAX_PLOT_LIST_ROWS() const { return getDefineINT(MAX_PLOT_LIST_ROWS); }
+	DllExport int getUNIT_MULTISELECT_MAX() { CvGlobals const& kThis = *this; return kThis.getUNIT_MULTISELECT_MAX(); }
+	int getUNIT_MULTISELECT_MAX() const { return getDefineINT(UNIT_MULTISELECT_MAX); }
 	// Note: The EXE calls this during audio init if all audio devices are disabled
-	DllExport inline int getEVENT_MESSAGE_TIME() { CvGlobals const& kThis = *this; return kThis.getEVENT_MESSAGE_TIME(); }
-	inline int getEVENT_MESSAGE_TIME() const { return m_iEventMessageTime; }
+	DllExport int getEVENT_MESSAGE_TIME() { CvGlobals const& kThis = *this; return kThis.getEVENT_MESSAGE_TIME(); }
+	int getEVENT_MESSAGE_TIME() const { return m_iEventMessageTime; }
 	// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
-	inline int getWAR_SUCCESS_CITY_CAPTURING() const { return getDefineINT(WAR_SUCCESS_CITY_CAPTURING); }
-	inline int getCOMBAT_DIE_SIDES() const { return getDefineINT(COMBAT_DIE_SIDES); }
-	inline int getCOMBAT_DAMAGE() const { return getDefineINT(COMBAT_DAMAGE); }
+	int getWAR_SUCCESS_CITY_CAPTURING() const { return getDefineINT(WAR_SUCCESS_CITY_CAPTURING); }
+	int getCOMBAT_DIE_SIDES() const { return getDefineINT(COMBAT_DIE_SIDES); }
+	int getCOMBAT_DAMAGE() const { return getDefineINT(COMBAT_DAMAGE); }
 	// BETTER_BTS_AI_MOD: END
 	/*  <advc.opt> (TextVals can't be loaded by cacheGlobals. Hence also won't be
 		updated when a setDefine... function is called.) */
-	inline ImprovementTypes getRUINS_IMPROVEMENT() const
+	ImprovementTypes getRUINS_IMPROVEMENT() const
 	{
 		FAssertMsg(m_eRUINS_IMPROVEMENT != NO_IMPROVEMENT, "RUINS_IMPROVEMENT accessed before CvXMLLoadUtility::SetPostGlobalsGlobalDefines");
 		return m_eRUINS_IMPROVEMENT;
 	}
 	void setRUINS_IMPROVEMENT(int iVal);
-	inline SpecialistTypes getDEFAULT_SPECIALIST() const
+	SpecialistTypes getDEFAULT_SPECIALIST() const
 	{
 		FAssertMsg(m_eDEFAULT_SPECIALIST != NO_SPECIALIST, "DEFAULT_SPECIALIST accessed before CvXMLLoadUtility::SetPostGlobalsGlobalDefines");
 		return m_eDEFAULT_SPECIALIST;
 	}
 	void setDEFAULT_SPECIALIST(int iVal);
-	inline TerrainTypes getWATER_TERRAIN(bool bShallow) const
+	TerrainTypes getWATER_TERRAIN(bool bShallow) const
 	{
 		TerrainTypes r = m_aeWATER_TERRAIN[bShallow];
 		FAssertMsg(r != NO_TERRAIN, "WATER_TERRAIN accessed before CvXMLLoadUtility::SetPostGlobalsGlobalDefines");
@@ -617,36 +617,36 @@ public:
 	int getNUM_ROUTE_PREREQ_OR_BONUSES() const;
 	int getNUM_CORPORATION_PREREQ_BONUSES() const;*/
 	// advc: All inlined and constified
-	DllExport inline float getCAMERA_MIN_YAW() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MIN_YAW(); }
-	inline float getCAMERA_MIN_YAW() const { return m_fCAMERA_MIN_YAW; }
-	DllExport inline float getCAMERA_MAX_YAW() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MAX_YAW(); }
-	inline float getCAMERA_MAX_YAW() const { return m_fCAMERA_MAX_YAW; }
-	DllExport inline float getCAMERA_FAR_CLIP_Z_HEIGHT() { CvGlobals const& kThis = *this; return kThis.getCAMERA_FAR_CLIP_Z_HEIGHT(); }
-	inline float getCAMERA_FAR_CLIP_Z_HEIGHT() const { return m_fCAMERA_FAR_CLIP_Z_HEIGHT; }
-	DllExport inline float getCAMERA_MAX_TRAVEL_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MAX_TRAVEL_DISTANCE(); }
-	inline float getCAMERA_MAX_TRAVEL_DISTANCE() const { return m_fCAMERA_MAX_TRAVEL_DISTANCE; }
-	DllExport inline float getCAMERA_START_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getCAMERA_START_DISTANCE(); }
-	inline float getCAMERA_START_DISTANCE() const { return m_fCAMERA_START_DISTANCE; }
-	DllExport inline float getAIR_BOMB_HEIGHT() { CvGlobals const& kThis = *this; return kThis.getAIR_BOMB_HEIGHT(); }
-	inline float getAIR_BOMB_HEIGHT() const { return m_fAIR_BOMB_HEIGHT; }
-	DllExport inline float getPLOT_SIZE() { CvGlobals const& kThis = *this; return kThis.getPLOT_SIZE(); }
-	inline float getPLOT_SIZE() const { return m_fPLOT_SIZE; }
-	DllExport inline float getCAMERA_SPECIAL_PITCH() { CvGlobals const& kThis = *this; return kThis.getCAMERA_SPECIAL_PITCH(); }
-	inline float getCAMERA_SPECIAL_PITCH() const { return m_fCAMERA_SPECIAL_PITCH; }
-	DllExport inline float getCAMERA_MAX_TURN_OFFSET() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MAX_TURN_OFFSET(); }
-	inline float getCAMERA_MAX_TURN_OFFSET() const { return m_fCAMERA_MAX_TURN_OFFSET; }
-	DllExport inline float getCAMERA_MIN_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MIN_DISTANCE(); }
-	inline float getCAMERA_MIN_DISTANCE() const { return m_fCAMERA_MIN_DISTANCE; }
-	DllExport inline float getCAMERA_UPPER_PITCH() { CvGlobals const& kThis = *this; return kThis.getCAMERA_UPPER_PITCH(); }
-	inline float getCAMERA_UPPER_PITCH() const { return m_fCAMERA_UPPER_PITCH; }
-	DllExport inline float getCAMERA_LOWER_PITCH() { CvGlobals const& kThis = *this; return kThis.getCAMERA_LOWER_PITCH(); }
-	inline float getCAMERA_LOWER_PITCH() const { return m_fCAMERA_LOWER_PITCH; }
-	DllExport inline float getFIELD_OF_VIEW() { CvGlobals const& kThis = *this; return kThis.getFIELD_OF_VIEW(); }
-	inline float getFIELD_OF_VIEW() const { return m_fFIELD_OF_VIEW; }
+	DllExport float getCAMERA_MIN_YAW() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MIN_YAW(); }
+	float getCAMERA_MIN_YAW() const { return m_fCAMERA_MIN_YAW; }
+	DllExport float getCAMERA_MAX_YAW() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MAX_YAW(); }
+	float getCAMERA_MAX_YAW() const { return m_fCAMERA_MAX_YAW; }
+	DllExport float getCAMERA_FAR_CLIP_Z_HEIGHT() { CvGlobals const& kThis = *this; return kThis.getCAMERA_FAR_CLIP_Z_HEIGHT(); }
+	float getCAMERA_FAR_CLIP_Z_HEIGHT() const { return m_fCAMERA_FAR_CLIP_Z_HEIGHT; }
+	DllExport float getCAMERA_MAX_TRAVEL_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MAX_TRAVEL_DISTANCE(); }
+	float getCAMERA_MAX_TRAVEL_DISTANCE() const { return m_fCAMERA_MAX_TRAVEL_DISTANCE; }
+	DllExport float getCAMERA_START_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getCAMERA_START_DISTANCE(); }
+	float getCAMERA_START_DISTANCE() const { return m_fCAMERA_START_DISTANCE; }
+	DllExport float getAIR_BOMB_HEIGHT() { CvGlobals const& kThis = *this; return kThis.getAIR_BOMB_HEIGHT(); }
+	float getAIR_BOMB_HEIGHT() const { return m_fAIR_BOMB_HEIGHT; }
+	DllExport float getPLOT_SIZE() { CvGlobals const& kThis = *this; return kThis.getPLOT_SIZE(); }
+	float getPLOT_SIZE() const { return m_fPLOT_SIZE; }
+	DllExport float getCAMERA_SPECIAL_PITCH() { CvGlobals const& kThis = *this; return kThis.getCAMERA_SPECIAL_PITCH(); }
+	float getCAMERA_SPECIAL_PITCH() const { return m_fCAMERA_SPECIAL_PITCH; }
+	DllExport float getCAMERA_MAX_TURN_OFFSET() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MAX_TURN_OFFSET(); }
+	float getCAMERA_MAX_TURN_OFFSET() const { return m_fCAMERA_MAX_TURN_OFFSET; }
+	DllExport float getCAMERA_MIN_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getCAMERA_MIN_DISTANCE(); }
+	float getCAMERA_MIN_DISTANCE() const { return m_fCAMERA_MIN_DISTANCE; }
+	DllExport float getCAMERA_UPPER_PITCH() { CvGlobals const& kThis = *this; return kThis.getCAMERA_UPPER_PITCH(); }
+	float getCAMERA_UPPER_PITCH() const { return m_fCAMERA_UPPER_PITCH; }
+	DllExport float getCAMERA_LOWER_PITCH() { CvGlobals const& kThis = *this; return kThis.getCAMERA_LOWER_PITCH(); }
+	float getCAMERA_LOWER_PITCH() const { return m_fCAMERA_LOWER_PITCH; }
+	DllExport float getFIELD_OF_VIEW() { CvGlobals const& kThis = *this; return kThis.getFIELD_OF_VIEW(); }
+	float getFIELD_OF_VIEW() const { return m_fFIELD_OF_VIEW; }
 	DllExport float getSHADOW_SCALE() { CvGlobals const& kThis = *this; return kThis.getSHADOW_SCALE(); }
-	inline float getSHADOW_SCALE() const { return m_fSHADOW_SCALE; }
-	DllExport inline float getUNIT_MULTISELECT_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getUNIT_MULTISELECT_DISTANCE(); }
-	inline float getUNIT_MULTISELECT_DISTANCE() const { return m_fUNIT_MULTISELECT_DISTANCE; }
+	float getSHADOW_SCALE() const { return m_fSHADOW_SCALE; }
+	DllExport float getUNIT_MULTISELECT_DISTANCE() { CvGlobals const& kThis = *this; return kThis.getUNIT_MULTISELECT_DISTANCE(); }
+	float getUNIT_MULTISELECT_DISTANCE() const { return m_fUNIT_MULTISELECT_DISTANCE; }
 	void updateCameraStartDistance(bool bReset); // advc.004m  (exposed to Python)
 
 	DllExport int getUSE_FINISH_TEXT_CALLBACK();
@@ -654,9 +654,9 @@ public:
 #pragma endregion GlobalDefines
 	/*	K-Mod: more reliable versions of the 'gDLL->xxxKey' functions
 		NOTE: I've replaced all calls to the gDLL key functions with calls to these functions. */
-	inline bool altKey() const { return (GetKeyState(VK_MENU) & 0x8000); }
-	inline bool ctrlKey() const { return (GetKeyState(VK_CONTROL) & 0x8000); }
-	inline bool shiftKey() const { return (GetKeyState(VK_SHIFT) & 0x8000); }
+	bool altKey() const { return (GetKeyState(VK_MENU) & 0x8000); }
+	bool ctrlKey() const { return (GetKeyState(VK_CONTROL) & 0x8000); }
+	bool shiftKey() const { return (GetKeyState(VK_SHIFT) & 0x8000); }
 	// hold X to temporarily suppress automatic unit cycling.
 	bool suppressCycling() const
 	{
@@ -677,10 +677,8 @@ public:
 		getNUM_CITY_PLOTS, getCITY_HOME_PLOT) were only used by CyGlobalContext. */
 
 	DllExport void setDLLIFace(CvDLLUtilityIFaceBase* pDll);
-#ifdef _USRDLL
-	// inlined for perf reasons, do not use outside of dll
-	inline CvDLLUtilityIFaceBase* getDLLIFace() const { return m_pDLL; } // advc: const, inline keyword added
-#endif
+	CvDLLUtilityIFaceBase* getDLLIFace() const { return m_pDLL; } // advc: const
+
 	DllExport CvDLLUtilityIFaceBase* getDLLIFaceNonInl();
 	DllExport void setDLLProfiler(FProfiler* prof);
 	FProfiler* getDLLProfiler();
@@ -950,12 +948,12 @@ extern CvGlobals gGlobals;	// for debugging
 
 // inlines ...
 
-__forceinline CvGlobals& CvGlobals::getInstance()
+__inline CvGlobals& CvGlobals::getInstance()
 {
 	return gGlobals;
 }
 // advc:
-__forceinline CvGlobals const& CvGlobals::getConstInstance()
+__inline CvGlobals const& CvGlobals::getConstInstance()
 {
 	return gGlobals;
 }

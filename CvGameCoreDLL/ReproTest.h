@@ -53,7 +53,7 @@ class ReproTest
 	static ReproTest* m_pReproTest;
 public:
 	static void startTest(int iTurns);
-	static inline ReproTest* getInstance() { return m_pReproTest; }
+	static ReproTest* getInstance() { return m_pReproTest; }
 	ReproTest(int iTurns);
 	void beginWrite(CvString szObjectId);
 	void endWrite(bool bFinal);

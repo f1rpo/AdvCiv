@@ -222,14 +222,14 @@
 #define NO_ENUM_TYPE(SUFFIX) NO_##SUFFIX = -1
 
 #define SET_ENUM_LENGTH_STATIC(Name, INFIX) \
-	__forceinline Name##Types getEnumLength(Name##Types) \
+	inline Name##Types getEnumLength(Name##Types) \
 	{ \
 		return NUM_ENUM_TYPES(INFIX); \
 	}
 /*  This gets used in CvGlobals.h. (I wanted to do it in MAKE_INFO_ENUM, which is
 	used in CvEnums.h, but that lead to a circular dependency.) */
 #define SET_ENUM_LENGTH(Name, PREFIX) \
-	__forceinline Name##Types getEnumLength(Name##Types) \
+	inline Name##Types getEnumLength(Name##Types) \
 	{ \
 		return static_cast<Name##Types>(gGlobals.getNum##Name##Infos()); \
 	}
@@ -237,23 +237,23 @@
 /*  Increment/decrement functions based on code in the "We the People" mod.
 	Used by EnumMap, otherwise mostly superseded by FOR_EACH_ENUM. */
 #define DEFINE_INCREMENT_OPERATORS(EnumType) \
-	__forceinline EnumType& operator++(EnumType& e) \
+	inline EnumType& operator++(EnumType& e) \
 	{ \
 		e = static_cast<EnumType>(e + 1); \
 		return e; \
 	} \
-	__forceinline EnumType operator++(EnumType& e, int) \
+	inline EnumType operator++(EnumType& e, int) \
 	{ \
 		EnumType eResult = e; \
 		e = static_cast<EnumType>(e + 1); \
 		return eResult; \
 	} \
-	__forceinline EnumType& operator--(EnumType& e) \
+	inline EnumType& operator--(EnumType& e) \
 	{ \
 		e = static_cast<EnumType>(e - 1); \
 		return e; \
 	} \
-	__forceinline EnumType operator--(EnumType& e, int) \
+	inline EnumType operator--(EnumType& e, int) \
 	{ \
 		EnumType eResult = e; \
 		e = static_cast<EnumType>(e - 1); \
@@ -291,12 +291,12 @@ DEFINE_INCREMENT_OPERATORS(Name##Types)
 namespace info_enum_detail
 {
 	template<typename E>
-	inline void assertEnumBounds(E eIndex)
+	void assertEnumBounds(E eIndex)
 	{
 		FAssertBounds(0, getEnumLength(eIndex), eIndex);
 	}
 	template<typename E>
-	inline void assertInfoEnum(E eIndex)
+	void assertInfoEnum(E eIndex)
 	{
 		FAssertBounds(-1, getEnumLength(eIndex), eIndex);
 	}

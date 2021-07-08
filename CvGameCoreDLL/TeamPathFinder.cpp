@@ -19,17 +19,6 @@ void TeamPathFinder<eMODE>::reset(CvTeam const* pWarTarget = NULL, int iMaxPath 
 }
 
 template<Mode eMODE>
-bool TeamStepMetric<eMODE>::isValidStep(CvPlot const& kFrom, CvPlot const& kTo) const
-{
-	if (eMODE != LAND)
-	{
-		if (GC.getMap().isSeparatedByIsthmus(kFrom, kTo))
-			return false;
-	}
-	return true;
-}
-
-template<Mode eMODE>
 bool TeamStepMetric<eMODE>::canStepThrough(CvPlot const& kPlot) const
 {
 	if (kPlot.isImpassable())

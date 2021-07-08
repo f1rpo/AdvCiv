@@ -40,7 +40,7 @@ class CvPlayer /* advc.003e: */ : private boost::noncopyable
 {	// advc.inl: Moved pretty much all const one-liners to the header for inlining
 public:
 	// <advc.003u>
-	static inline CvPlayer& getPlayer(PlayerTypes ePlayer)
+	static CvPlayer& getPlayer(PlayerTypes ePlayer)
 	{
 		FAssertBounds(0, MAX_PLAYERS, ePlayer);
 		// Needs to be inline and I don't want to include CvPlayerAI.h here
@@ -128,8 +128,8 @@ public:
 	bool isSpectator() const;
 	bool isAutoPlayJustEnded() const { return m_bAutoPlayJustEnded; }												// Exposed to Python
 	bool isOneCityChallenge() const; // </advc.127>
-	DllExport inline bool isHuman() const { return m_bHuman; }														// Exposed to Python
-	DllExport inline bool isBarbarian() const { return (m_eID == BARBARIAN_PLAYER); }								// Exposed to Python
+	DllExport bool isHuman() const { return m_bHuman; }																// Exposed to Python
+	DllExport bool isBarbarian() const { return (m_eID == BARBARIAN_PLAYER); }										// Exposed to Python
 	DllExport void updateHuman();
 
 	DllExport wchar const* getName(uint uiForm = 0) const;															// Exposed to Python
@@ -423,7 +423,7 @@ public:
 	int specialistCommerce(SpecialistTypes eSpecialist, CommerceTypes eCommerce) const;								// Exposed to Python
 
 	// advc.027: Inline (called frequently by StartingPositionIteration)
-	inline CvPlot* getStartingPlot() const { return m_pStartingPlot; }												// Exposed to Python
+	CvPlot* getStartingPlot() const { return m_pStartingPlot; }														// Exposed to Python
 	// advc: No update by default. Non-Python calls should never have to use that param.
 	void setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist = false);											// Exposed to Python
 	// <advc.027>
@@ -675,7 +675,7 @@ public:
 	int getCorporationMaintenanceModifier() const { return m_iCorporationMaintenanceModifier; }						// Exposed to Python
 	void changeCorporationMaintenanceModifier(int iChange);
 
-	inline int getTotalMaintenance() const { return getTotalMaintenanceTimes100() / 100; }							// Exposed to Python
+	int getTotalMaintenance() const { return getTotalMaintenanceTimes100() / 100; }									// Exposed to Python
 	// advc.004b: Need the exact value (new getter function)
 	int getTotalMaintenanceTimes100() const { return m_iTotalMaintenance; }
 	void changeTotalMaintenance(int iChange);
@@ -763,7 +763,7 @@ public:
 	int getStateReligionFreeExperience() const { return m_iStateReligionFreeExperience; }							// Exposed to Python
 	void changeStateReligionFreeExperience(int iChange);
 
-	inline CvCity* getCapital() const // advc: abbreviate
+	CvCity* getCapital() const // advc: abbreviate
 	{
 		return getCity(m_iCapitalCityID);
 	}
@@ -778,7 +778,7 @@ public:
 	int getCapitalX(PlayerTypes eObserver, bool bDebug = false) const;
 	int getCapitalY(PlayerTypes eObserver, bool bDebug = false) const; // </advc.127b>
 	// advc:
-	inline bool hasCapital() const
+	bool hasCapital() const
 	{
 		return (m_iCapitalCityID != FFreeList::INVALID_INDEX);
 	}
@@ -854,7 +854,7 @@ public:
 	bool isStrike() const { return m_bStrike; }																		// Exposed to Python
 	void setStrike(bool bNewValue);
 
-	DllExport inline PlayerTypes getID() const { return m_eID; }													// Exposed to Python
+	DllExport PlayerTypes getID() const { return m_eID; }															// Exposed to Python
 
 	DllExport HandicapTypes getHandicapType() const;																// Exposed to Python
 
@@ -864,7 +864,7 @@ public:
 	}
 	// <advc.003u>
 	void setCivilization(CivilizationTypes eCivilization);
-	inline CvCivilization const& getCivilization() const
+	CvCivilization const& getCivilization() const
 	{
 		FAssertMsg(m_pCivilization != NULL, "Player has no civilization type");
 		return *m_pCivilization;
@@ -876,7 +876,7 @@ public:
 	LeaderHeadTypes getPersonalityType() const { return m_ePersonalityType; }										// Exposed to Python
 	void setPersonalityType(LeaderHeadTypes eNewValue);																// Exposed to Python
 
-	inline DllExport EraTypes getCurrentEra() const { return m_eCurrentEra; } // advc.inl							// Exposed to Python
+	DllExport EraTypes getCurrentEra() const { return m_eCurrentEra; } // advc.inl									// Exposed to Python
 	void setCurrentEra(EraTypes eNewValue);
 
 	ReligionTypes getLastStateReligion() const { return m_eLastStateReligion; }
@@ -891,7 +891,7 @@ public:
 	// <advc> Convenient to have these team-level functions directly at CvPlayer
 	TeamTypes getMasterTeam() const;
 	bool isAVassal() const; // </advc>
-	DllExport inline TeamTypes getTeam() const { return m_eTeamType; }												// Exposed to Python
+	DllExport TeamTypes getTeam() const { return m_eTeamType; }														// Exposed to Python
 	void setTeam(TeamTypes eTeam);
 	void updateTeamType();
 
@@ -1168,41 +1168,41 @@ public:
 
 	// plot groups iteration
 	// advc.inl: Inline most of these. Remove unused bRev param to avoid branching.
-	inline CvPlotGroup* firstPlotGroup(int *pIterIdx/*, bool bRev=false*/) const
+	CvPlotGroup* firstPlotGroup(int *pIterIdx/*, bool bRev=false*/) const
 	{
 		return /*bRev ? m_plotGroups.endIter(pIterIdx) :*/ m_plotGroups.beginIter(pIterIdx);
 	}
-	inline CvPlotGroup* nextPlotGroup(int *pIterIdx/*, bool bRev=false*/) const
+	CvPlotGroup* nextPlotGroup(int *pIterIdx/*, bool bRev=false*/) const
 	{
 		return /*bRev ? m_plotGroups.prevIter(pIterIdx) :*/ m_plotGroups.nextIter(pIterIdx);
 	}
-	inline int getNumPlotGroups() const { return m_plotGroups.getCount(); }
-	inline CvPlotGroup* getPlotGroup(int iID) const
+	int getNumPlotGroups() const { return m_plotGroups.getCount(); }
+	CvPlotGroup* getPlotGroup(int iID) const
 	{
 		return m_plotGroups.getAt(iID);
 	}
 	CvPlotGroup* addPlotGroup() { return m_plotGroups.add(); }
-	inline void deletePlotGroup(int iID)
+	void deletePlotGroup(int iID)
 	{
 		m_plotGroups.removeAt(iID);
 	}
 
 	// city iteration (advc.inl: inlined)
-	DllExport inline CvCity* firstCity(int *pIterIdx, bool bRev=false) const										// Exposed to Python
+	DllExport CvCity* firstCity(int *pIterIdx, bool bRev=false) const												// Exposed to Python
 	{	//return (!bRev ? m_cities.beginIter(pIterIdx) : m_cities.endIter(pIterIdx));
 		FAssert(!bRev);
 		return m_cities.beginIter(pIterIdx); // advc.opt
 	}
-	DllExport inline CvCity* nextCity(int* pIterIdx, bool bRev=false) const											// Exposed to Python
+	DllExport CvCity* nextCity(int* pIterIdx, bool bRev=false) const												// Exposed to Python
 	{	//return (!bRev ? m_cities.nextIter(pIterIdx) : m_cities.prevIter(pIterIdx));
 		return m_cities.nextIter(pIterIdx); // advc.opt
 	}
 	// <advc.opt> Backwards traversal Moved into separate functions (needed for city cycling)
-	inline CvCity* lastCity(int* pIterIdx) const
+	CvCity* lastCity(int* pIterIdx) const
 	{
 		return m_cities.endIter(pIterIdx);
 	}
-	inline CvCity* prevCity(int* pIterIdx) const
+	CvCity* prevCity(int* pIterIdx) const
 	{
 		return m_cities.prevIter(pIterIdx);
 	} // </advc.opt>
@@ -1210,7 +1210,7 @@ public:
 	{
 		return m_cities.getCount();
 	}
-	DllExport inline CvCity* getCity(int iID) const																	// Exposed to Python
+	DllExport CvCity* getCity(int iID) const																		// Exposed to Python
 	{
 		return m_cities.getAt(iID);
 	}
@@ -1218,12 +1218,12 @@ public:
 	void deleteCity(int iID);
 
 	// unit iteration (advc.inl: inlined)
-	DllExport inline CvUnit* firstUnit(int *pIterIdx, bool bRev=false) const										// Exposed to Python
+	DllExport CvUnit* firstUnit(int *pIterIdx, bool bRev=false) const												// Exposed to Python
 	{	//return (!bRev ? m_units.beginIter(pIterIdx) : m_units.endIter(pIterIdx));
 		FAssert(!bRev);
 		return m_units.beginIter(pIterIdx); // advc.opt
 	}
-	DllExport inline CvUnit* nextUnit(int *pIterIdx, bool bRev=false) const											// Exposed to Python
+	DllExport CvUnit* nextUnit(int *pIterIdx, bool bRev=false) const												// Exposed to Python
 	{	//return (!bRev ? m_units.nextIter(pIterIdx) : m_units.prevIter(pIterIdx));
 		return m_units.nextIter(pIterIdx);
 	}
@@ -1231,7 +1231,7 @@ public:
 	{
 		return m_units.getCount();
 	}
-	inline CvUnit* getUnit(int iID) const																			// Exposed to Python
+	CvUnit* getUnit(int iID) const																					// Exposed to Python
 	{
 		return m_units.getAt(iID);
 	}
@@ -1239,12 +1239,12 @@ public:
 	void deleteUnit(int iID);
 
 	// selection groups iteration (advc.inl: inlined)
-	inline CvSelectionGroup* firstSelectionGroup(int *pIterIdx, bool bRev=false) const								// Exposed to Python
+	CvSelectionGroup* firstSelectionGroup(int *pIterIdx, bool bRev=false) const										// Exposed to Python
 	{	//return (!bRev ? m_selectionGroups.beginIter(pIterIdx) : m_selectionGroups.endIter(pIterIdx));
 		FAssert(!bRev);
 		return m_selectionGroups.beginIter(pIterIdx);
 	}
-	inline CvSelectionGroup* nextSelectionGroup(int *pIterIdx, bool bRev=false) const								// Exposed to Python
+	CvSelectionGroup* nextSelectionGroup(int *pIterIdx, bool bRev=false) const										// Exposed to Python
 	{	//return (!bRev ? m_selectionGroups.nextIter(pIterIdx) : m_selectionGroups.prevIter(pIterIdx));
 		return m_selectionGroups.nextIter(pIterIdx);
 	}
@@ -1252,7 +1252,7 @@ public:
 	{
 		return m_selectionGroups.getCount();
 	}
-	inline CvSelectionGroup* getSelectionGroup(int iID) const														// Exposed to Python
+	CvSelectionGroup* getSelectionGroup(int iID) const																// Exposed to Python
 	{
 		return m_selectionGroups.getAt(iID);
 	}
@@ -1298,12 +1298,12 @@ public:
 	DllExport void clearSpaceShipPopups();
 	void doChangeCivicsPopup(CivicTypes eCivic); // advc.004x
 	// <advc.004s> Replacing implementation based on stdext::hash_map
-	inline int getHistory(PlayerHistoryTypes eHistory, int iTurn) const
+	int getHistory(PlayerHistoryTypes eHistory, int iTurn) const
 	{
 		FAssertEnumBounds(eHistory);
 		return m_playerHistory[eHistory].get(iTurn);
 	}
-	inline int getHistorySafe(PlayerHistoryTypes eHistory, int iTurn) const	// Exposed to Python (as e.g. getScoreHistory)
+	int getHistorySafe(PlayerHistoryTypes eHistory, int iTurn) const	// Exposed to Python (as e.g. getScoreHistory)
 	{
 		FAssertEnumBounds(eHistory);
 		return m_playerHistory[eHistory].getSafe(iTurn);
@@ -1416,13 +1416,13 @@ public:
 	void announceGameNameChange(CvWString szOldName, CvWString szNewName); // advc.135c
 	bool showGoodyOnResourceLayer() const; // advc.004z
 	// <advc.003u>
-	__forceinline CvPlayerAI& AI()
+	CvPlayerAI& AI()
 	{	//return *static_cast<CvPlayerAI*>(const_cast<CvPlayer*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
 			that CvPlayerAI is derived from CvPlayer */
 		return *reinterpret_cast<CvPlayerAI*>(this);
 	}
-	__forceinline CvPlayerAI const& AI() const
+	CvPlayerAI const& AI() const
 	{	//return *static_cast<CvPlayerAI const*>(this);
 		return *reinterpret_cast<CvPlayerAI const*>(this);
 	} // </advc.003u>	

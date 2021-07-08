@@ -17,12 +17,12 @@ public:
 	/*	Returns a value from the half-open interval [0, iNum).
 		advc.006: iNum taken as an int but needs to be in [0, 65535].
 		Will return 0 for iNum=0 (and also for iNum=1). */
-	inline unsigned short get(int iNum, TCHAR const* szMsg = NULL,
-			int iData1 = MIN_INT, int iData2 = MIN_INT) // advc.128
+	unsigned short get(int iNum, TCHAR const* szMsg = NULL,
+		int iData1 = MIN_INT, int iData2 = MIN_INT) // advc.128
 	{	// <advc.001n>
 		return getInt(iNum, szMsg, MIN_INT);
 	} // New name to avoid issues in CyRandomPythonInterface
-	inline unsigned short getInt(int iNum, TCHAR const* szMsg,
+	unsigned short getInt(int iNum, TCHAR const* szMsg,
 		int iData1, int iData2 = MIN_INT)
 	{	/*	</advc.001n>  <advc.006> The compiler doesn't warn when an int variable gets
 			passed as a short int. It does warn when a large int literal is passed, but
@@ -33,7 +33,7 @@ public:
 			which is 66868-MAX_UNSIGNED_SHORT+1. Don't know how this works in general. */
 		return getInt(static_cast<unsigned short>(iNum), szMsg, iData1, iData2);
 	}
-	static inline int getRange() { return MAX_UNSIGNED_SHORT; } // Client code may want to check
+	static int getRange() { return MAX_UNSIGNED_SHORT; } // Client code may want to check
 	// </advc.006>
 	// advc.190c: Exported through .def file
 	unsigned short getExternal(unsigned short usNum, TCHAR const* szMsg = NULL);

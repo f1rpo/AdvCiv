@@ -754,27 +754,9 @@ bool CvMap::findWater(CvPlot const* pPlot, int iRange, bool bFreshWater) // advc
 }
 
 
-bool CvMap::isPlotExternal(int iX, int iY) const // advc.inl
-{
-	return isPlot(iX, iY);
-}
-
-
 int CvMap::numPlotsExternal() const // advc.inl
 {
 	return numPlots();
-}
-
-
-int CvMap::plotX(int iIndex) const
-{
-	return iIndex % getGridWidth();
-}
-
-
-int CvMap::plotY(int iIndex) const
-{
-	return iIndex / getGridWidth();
 }
 
 
@@ -854,18 +836,6 @@ int CvMap::maxTypicalDistance() const
 	scaled r = (kWorld.getGridWidth() * kWorld.getGridHeight() * rCivRatio *
 			rSeaLvlModifier).sqrt() * fixp(3.5) - 5 * iWraps;
 	return std::max(1, r.round());
-}
-
-
-int CvMap::getGridWidthExternal() const // advc.inl
-{
-	return getGridWidth();
-}
-
-
-int CvMap::getGridHeightExternal() const // advc.inl
-{
-	return getGridHeight();
 }
 
 
@@ -978,12 +948,6 @@ void CvMap::changeNumBonusesOnLand(BonusTypes eIndex, int iChange)
 CvPlot* CvMap::plotByIndexExternal(int iIndex) const // advc.inl
 {
 	return plotByIndex(iIndex);
-}
-
-
-CvPlot* CvMap::plotExternal(int iX, int iY) const // advc.inl
-{
-	return plot(iX, iY);
 }
 
 

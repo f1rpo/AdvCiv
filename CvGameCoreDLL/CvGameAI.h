@@ -27,7 +27,7 @@ public:
   int AI_turnsPercent(int iTurns, int iPercent);
   // <advc.erai>
   scaled AI_getCurrEraFactor() const;
-  inline int AI_getCurrEra() const { return AI_getCurrEraFactor().uround(); }
+  int AI_getCurrEra() const { return AI_getCurrEraFactor().uround(); }
   EraTypes AI_getVoteSourceEra(VoteSourceTypes eVS = NO_VOTESOURCE) const;
   // </advc.erai>
   scaled AI_exclusiveRadiusWeight(int iDist = -1) const; // advc.099b
@@ -35,7 +35,7 @@ public:
   void read(FDataStreamBase* pStream);
   void write(FDataStreamBase* pStream);
 
-  __forceinline UWAI& uwai() { return m_uwai; } // advc.104
+  UWAI& uwai() { return m_uwai; } // advc.104
 
 protected:
 

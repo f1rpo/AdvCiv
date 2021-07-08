@@ -17,20 +17,20 @@ private:
 		Corresponds to FAStarNode::m_iData1 in K-Mod. */
 	int m_iMoves; // (short would suffice - but wouldn't help currently b/c of padding)
 public:
-	__forceinline int getMoves() const
+	int getMoves() const
 	{
 		return m_iMoves;
 	}
-	__forceinline void setMoves(int iMoves)
+	void setMoves(int iMoves)
 	{
 		m_iMoves = iMoves;
 	}
 	// Aliases; to give path length a more specific name.
-	__forceinline int getPathTurns() const
+	int getPathTurns() const
 	{
 		return getPathLength();
 	}
-	__forceinline void setPathTurns(int iPathTurns)
+	void setPathTurns(int iPathTurns)
 	{
 		setPathLength(iPathTurns);
 	}
@@ -53,7 +53,7 @@ public:
 	static int cost(CvPlot const& kFrom, CvPlot const& kTo,
 			CvSelectionGroup const& kGroup, MovementFlags eFlags,
 			int iCurrMoves, bool bAtStart);
-	static inline int heuristicStepCost(int iFromX, int iFromY, int iToX, int iToY)
+	static int heuristicStepCost(int iFromX, int iFromY, int iToX, int iToY)
 	{
 		return stepDistance(iFromX, iFromY, iToX, iToY) * PATH_MOVEMENT_WEIGHT;
 	}
@@ -71,47 +71,47 @@ public:
 	:	StepMetricBase<GroupPathNode>(iMaxPath), m_pGroup(pGroup),
 		m_eFlags(eFlags), m_iHeuristicWeight(iHeuristicWeight)
 	{}
-	inline CvSelectionGroup const* getGroup() const
+	CvSelectionGroup const* getGroup() const
 	{
 		return m_pGroup;
 	}
-	inline MovementFlags getFlags() const
+	MovementFlags getFlags() const
 	{
 		return m_eFlags;
 	}
-	inline int getHeuristicWeight() const
+	int getHeuristicWeight() const
 	{
 		return m_iHeuristicWeight;
 	}
-	inline bool isValidStep(CvPlot const& kFrom, CvPlot const& kTo) const
+	bool isValidStep(CvPlot const& kFrom, CvPlot const& kTo) const
 	{
 		return isValidStep(kFrom, kTo, *m_pGroup, m_eFlags);
 	}
-	inline bool canStepThrough(CvPlot const& kPlot, GroupPathNode const& kNode) const
+	bool canStepThrough(CvPlot const& kPlot, GroupPathNode const& kNode) const
 	{
 		return canStepThrough(kPlot, *m_pGroup, m_eFlags,
 				kNode.getMoves(), kNode.getPathTurns());
 	}
-	inline bool isValidDest(CvPlot const& kStart, CvPlot const& kDest) const
+	bool isValidDest(CvPlot const& kStart, CvPlot const& kDest) const
 	{
 		return isValidDest(kDest, *m_pGroup, m_eFlags);
 	}
-	inline int cost(CvPlot const& kFrom, CvPlot const& kTo,
+	int cost(CvPlot const& kFrom, CvPlot const& kTo,
 		GroupPathNode const& kParentNode) const
 	{
 		return cost(kFrom, kTo, *m_pGroup, m_eFlags,
 				kParentNode.getMoves(), kParentNode.m_iKnownCost == 0);
 	}
-	inline int heuristicCost(CvPlot const& kFrom, CvPlot const& kTo) const
+	int heuristicCost(CvPlot const& kFrom, CvPlot const& kTo) const
 	{
 		return heuristicStepCost(kFrom.getX(), kFrom.getY(), kTo.getX(), kTo.getY()) *
 				m_iHeuristicWeight;
 	}
-	inline bool updatePathData(GroupPathNode& kNode, GroupPathNode const& kParent) const
+	bool updatePathData(GroupPathNode& kNode, GroupPathNode const& kParent) const
 	{
 		return updatePathData(kNode, kParent, *m_pGroup, m_eFlags);
 	}
-	inline void initializePathData(GroupPathNode& kNode) const
+	void initializePathData(GroupPathNode& kNode) const
 	{
 		StepMetricBase<GroupPathNode>::initializePathData(kNode);
 		kNode.setMoves(initialMoves(*m_pGroup, m_eFlags));
@@ -138,8 +138,8 @@ public:
 	#ifndef VERIFY_PATHF // advc.test
 	// Unhide 2-argument version
 	using KmodPathFinder<GroupStepMetric,GroupPathNode>::generatePath;
-	inline int getPathTurns() const { return getPathLength(); }
-	__forceinline void reset() { resetNodes(); }
+	int getPathTurns() const { return getPathLength(); }
+	void reset() { resetNodes(); }
 	#endif // advc.test
 	CvPlot& getPathEndTurnPlot() const;
 	int getFinalMoves() const
@@ -167,7 +167,7 @@ public:
 		FAssert(iTurns == kLegacyPathf.GetPathTurns());
 		return iTurns;
 	}
-	inline void reset() { resetNodes(); kLegacyPathf.Reset(); }
+	void reset() { resetNodes(); kLegacyPathf.Reset(); }
 	CvPlot& getPathFirstPlot() const
 	{
 		CvPlot& kPlot = KmodPathFinder<GroupStepMetric, GroupPathNode>::getPathFirstPlot();

@@ -87,9 +87,9 @@ public: // The const functions are exposed to Python except those (to be) added 
 	int getSpecialistExtraCommerce(int i) const;
 	int* getSpecialistExtraCommerceArray() const;
 	int getBuildingHappinessChanges(int i) const;
-	inline bool isAnyBuildingHappinessChanges() const { return (m_paiBuildingHappinessChanges != NULL); } // advc.003t
+	bool isAnyBuildingHappinessChanges() const { return (m_paiBuildingHappinessChanges != NULL); } // advc.003t
 	int getBuildingHealthChanges(int i) const;
-	inline bool isAnyBuildingHealthChanges() const { return (m_paiBuildingHealthChanges != NULL); } // advc.003t
+	bool isAnyBuildingHealthChanges() const { return (m_paiBuildingHealthChanges != NULL); } // advc.003t
 	int getFeatureHappinessChanges(int i) const;
 
 	bool isHurry(int i) const;

@@ -52,7 +52,7 @@ public:
 		void addWarOpponents(PlyrSet const& kWarOpponents);
 		// If they aren't war opponents: no effect
 		void removeWarOpponents(PlyrSet const& kWarOpponents);
-		inline PlayerTypes getPlayer() const { return m_ePlayer; }
+		PlayerTypes getPlayer() const { return m_ePlayer; }
 		bool hasTarget() const { return (m_pPrimaryTarget != NULL); }
 		bool isIsolated() const { return (!hasTarget() && m_targetedBy.empty()); }
 
@@ -291,7 +291,7 @@ public:
 	// See reducePower
 	scaled getLostPower(PlayerTypes ePlayer, MilitaryBranchTypes eBranch) const;
 	// Temporary losses of attacking army
-	inline scaled getTempLosses() const { return m_rTempLosses; }
+	scaled getTempLosses() const { return m_rTempLosses; }
 	void setTempLosses(scaled rTempLosses) { m_rTempLosses = rTempLosses; }
 	bool isAttackerSuccessful() const { return m_bSuccess; }
 	bool isClashOnly() const { return (m_pContestedCity == NULL); }

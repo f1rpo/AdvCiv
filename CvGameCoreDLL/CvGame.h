@@ -209,12 +209,12 @@ public:
 	{
 		return GC.getInitCore().getNumHumans(); // advc.inl
 	}
-	DllExport inline int getGameTurn()																	// Exposed to Python
+	DllExport int getGameTurn()																	// Exposed to Python
 	// <advc> Need a const version
 	{	CvGame const& kThis = *this;
 		return kThis.getGameTurn();
 	}
-	inline int getGameTurn() const
+	int getGameTurn() const
 	{
 		return GC.getInitCore().getGameTurn(); // advc.inl
 	} // </advc>
@@ -274,7 +274,8 @@ public:
 	// <advc> Need a const version
 	{	CvGame const& kThis = *this;
 		return kThis.getTurnSlicesRemaining();
-	} inline int getTurnSlicesRemaining() const { return getCutoffSlice() - getTurnSlice(); };
+	}
+	int getTurnSlicesRemaining() const { return getCutoffSlice() - getTurnSlice(); };
 	// </advc>
 	void resetTurnTimer();
 	void incrementTurnTimer(int iNumTurnSlices);
@@ -487,7 +488,7 @@ public:
 	bool isPlayerOptionsSent() const;
 	void sendPlayerOptions(bool bForce = false);
 
-	DllExport inline PlayerTypes getActivePlayer() const															// Exposed to Python
+	DllExport PlayerTypes getActivePlayer() const												// Exposed to Python
 	{
 		return GC.getInitCore().getActivePlayer(); // advc.inl
 	}
@@ -501,7 +502,7 @@ public:
 	bool isInBetweenTurns() const;
 	void setInBetweenTurns(bool b); // </advc.106b>
 
-	inline HandicapTypes getHandicapType() const { return m_eHandicap; } // advc.inl
+	HandicapTypes getHandicapType() const { return m_eHandicap; } // advc.inl
 	void setHandicapType(HandicapTypes eHandicap);
 	HandicapTypes getAIHandicap() const { return m_eAIHandicap; } // advc.127
 
@@ -565,7 +566,7 @@ public:
 	DllExport int getTeamScore(TeamTypes eTeam) const;																// Exposed to Python
 	void setTeamScore(TeamTypes eTeam, int iScore);
 
-	DllExport inline bool isOption(GameOptionTypes eIndex) const													// Exposed to Python
+	DllExport bool isOption(GameOptionTypes eIndex) const													// Exposed to Python
 	{
 		return GC.getInitCore().getOption(eIndex); // advc.inl
 	}
@@ -668,11 +669,11 @@ public:
 	int getNumDeals();																													// Exposed to Python
 
 	// advc.inl: const version, inline
-	DllExport inline CvDeal* getDeal(int iID)																	// Exposed to Python
+	DllExport CvDeal* getDeal(int iID)																	// Exposed to Python
 	{
 		return m_deals.getAt(iID);
 	}
-	inline CvDeal const* getDeal(int iID) const
+	CvDeal const* getDeal(int iID) const
 	{
 		return m_deals.getAt(iID);
 	}
@@ -711,21 +712,21 @@ public:
 	{
 		return m_mapRand.get(iNum, pszLog);
 	}
-	inline CvRandom& getSorenRand()																								// Exposed to Python
+	CvRandom& getSorenRand()																								// Exposed to Python
 	{
 		return m_sorenRand;
 	}  // <advc> Shorter. "S" could also stand for "synchronized" (or "Soren"). (Tbd.: Move to CvGlobals.)
-	inline CvRandom& getSRand()																										// Exposed to Python
+	CvRandom& getSRand()																										// Exposed to Python
 	{
 		return getSorenRand();
 	}
-	inline int getSRandNum(int iNum, const char* pszLog,
+	int getSRandNum(int iNum, const char* pszLog,
 		int iData1 = MIN_INT, int iData2 = MIN_INT)
 	{
 		return getSorenRandNum(iNum, pszLog, iData1, iData2);
 	} // </advc>
 	//  Returns a value from the half-closed interval [0,iNum)
-	inline int getSorenRandNum(int iNum, const char* pszLog,
+	int getSorenRandNum(int iNum, const char* pszLog,
 		int iData1 = MIN_INT, int iData2 = MIN_INT) // advc.007
 	{
 		return m_sorenRand.getInt(iNum, pszLog, /* advc.007: */ iData1, iData2);
@@ -873,13 +874,13 @@ public:
 	void setHallOfFame(CvHallOfFameInfo* pHallOfFame); // advc.106i
 	std::set<int>& getActivePlayerCycledGroups(); // advc
 	// <advc.003u>
-	__forceinline CvGameAI& AI()
+	CvGameAI& AI()
 	{	//return *static_cast<CvGameAI*>(const_cast<CvGame*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
 			that CvGameAI is derived from CvGame */
 		return *reinterpret_cast<CvGameAI*>(this);
 	}
-	__forceinline CvGameAI const& AI() const
+	CvGameAI const& AI() const
 	{	//return *static_cast<CvGameAI const*>(this);
 		return *reinterpret_cast<CvGameAI const*>(this);
 	} // </advc.003u>

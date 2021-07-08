@@ -8299,18 +8299,6 @@ void CvUnit::setHotKeyNumber(int iNewValue)
 		gDLL->UI().setDirty(InfoPane_DIRTY_BIT, true);
 }
 
-// <advc.inl>
-int CvUnit::getXExternal() const
-{
-	return getX();
-}
-
-
-int CvUnit::getYExternal() const
-{
-	return getY();
-} // </advc.inl>
-
 
 void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool bCheckPlotVisible)
 {
@@ -9550,12 +9538,6 @@ void CvUnit::collectBlockadeGold()
 			}
 		}
 	}
-}
-
-
-PlayerTypes CvUnit::getOwnerExternal() const // advc.inl
-{
-	return getOwner();
 }
 
 

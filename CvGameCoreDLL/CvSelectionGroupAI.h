@@ -47,8 +47,8 @@ public:
 			CvPlot const* pMissionPlot = NULL); // </advc.004c>
 
 	void AI_queueGroupAttack(int iX, int iY);
-	inline void AI_cancelGroupAttack() { m_bGroupAttack = false; } // K-Mod (made inline)
-	inline bool AI_isGroupAttack() const { return m_bGroupAttack; } // K-Mod (made inline)
+	void AI_cancelGroupAttack() { m_bGroupAttack = false; } // K-Mod (made inline)
+	bool AI_isGroupAttack() const { return m_bGroupAttack; } // K-Mod (made inline)
 
 	bool AI_isControlled() const { return (!isHuman() || isAutomated()); } // advc.inl
 	bool AI_isDeclareWar(CvPlot const& kPlot) const;
@@ -68,9 +68,9 @@ public:
 
 	bool AI_isForceSeparate() const;
 	//void AI_makeForceSeparate();
-	inline void AI_setForceSeparate(bool bNewValue = true) { m_bForceSeparate = bNewValue; } // K-Mod
+	void AI_setForceSeparate(bool bNewValue = true) { m_bForceSeparate = bNewValue; } // K-Mod
 
-	inline MissionAITypes AI_getMissionAIType() /* K-Mod: */ const
+	MissionAITypes AI_getMissionAIType() /* K-Mod: */ const
 	{
 		return m_eMissionAIType; // advc.inl: inline (now that it's no longer virtual)
 	}

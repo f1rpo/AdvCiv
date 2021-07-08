@@ -24,7 +24,8 @@ public:
 	void kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits = true);									// Exposed to Python
 	void doTurn();
 	void doRevolt(); // advc: previously in CvPlot::doCulture
-	// K-Mod. public for the "insert culture" espionage mission. (I've also changed the functionality of it quite a bit.)
+	/*	K-Mod. public for the "insert culture" espionage mission.
+		(I've also changed the functionality of it quite a bit.) */
 	void doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultureRateTimes100, bool bCityCulture);
 
 	bool isCitySelected();
@@ -165,7 +166,7 @@ public:
 	int computeOverflow(int iRawOverflow, int iProductionModifier, OrderTypes eOrderType,
 			int* piProductionGold = NULL, int* piLostProduction = NULL,
 			int iPopulationChange = 0) const;
-	inline int minPlotProduction() const
+	int minPlotProduction() const
 	{	// Let pop-hurry ignore guaranteed production
 		return 0;/*GC.getInfo(YIELD_PRODUCTION).getMinCity()*/
 	} // (exposed to Python) </advc.064b>  <advc.064>
@@ -209,7 +210,7 @@ public:
 	bool isHuman() const;																						// Exposed to Python
 	DllExport bool isVisible(TeamTypes eTeam, bool bDebug) const;												// Exposed to Python
 	// advc: Make bDebug=false the default
-	inline bool isVisible(TeamTypes eTeam) const
+	bool isVisible(TeamTypes eTeam) const
 	{
 		return isVisible(eTeam, false);
 	}
@@ -304,17 +305,15 @@ public:
 	int getCorporationCount() const { return m_abHasCorporation.getSupportSz(); } // advc.opt					// Exposed to Python
 	static CvCity* fromIDInfo(IDInfo id); // advc
 	// <advc.inl>
-	DllExport inline int getID() const { return m_iID; }														// Exposed to Python
-	inline int getIndex() const { return (getID() & FLTA_INDEX_MASK); }
-	DllExport inline IDInfo getIDInfo() const { return IDInfo(getOwner(), getID()); }
+	DllExport int getID() const { return m_iID; }																// Exposed to Python
+	int getIndex() const { return (getID() & FLTA_INDEX_MASK); }
+	DllExport IDInfo getIDInfo() const { return IDInfo(getOwner(), getID()); }
 	// </advc.inl>
 	void setID(int iID);
-	inline PlotNumTypes plotNum() const { return m_ePlot; } // advc.104
+	PlotNumTypes plotNum() const { return m_ePlot; } // advc.104
 
-	int getXExternal() const; // advc.inl: Exported through .def file											// Exposed to Python
-	inline int getX() const { return m_iX; } // advc.inl: Renamed from getX_INLINE
-	int getYExternal() const; // advc.inl: Exported through .def file											// Exposed to Python
-	inline int getY() const { return m_iY; } // advc.inl: Renamed from getY_INLINE
+	DllExport int getX() const { return m_iX; } // advc.inl: was "getX_INLINE"									// Exposed to Python	
+	DllExport int getY() const { return m_iY; } // advc.inl: was "getY_INLINE"									// Exposed to Python
 
 	bool at(int iX, int iY) const  { return (getX() == iX && getY() == iY); } // advc.inl						// Exposed to Python
 	bool at(CvPlot const* pPlot) const // advc: const CvPlot*													// Exposed to Python as atPlot
@@ -325,18 +324,18 @@ public:
 	{
 		return (plot() == &kPlot);
 	} // </advc>
-	DllExport __forceinline CvPlot* plot() const { return m_pPlot; } // advc.opt: cached						// Exposed to Python
-	__forceinline CvPlot& getPlot() const { return *m_pPlot; } // advc
+	DllExport CvPlot* plot() const { return m_pPlot; } // advc.opt: cached										// Exposed to Python
+	CvPlot& getPlot() const { return *m_pPlot; } // advc
 	void updatePlot(); // advc.opt
 	CvPlotGroup* plotGroup(PlayerTypes ePlayer) const;
 	bool isConnectedTo(CvCity const& kCity) const;																// Exposed to Python
 	bool isConnectedToCapital(PlayerTypes ePlayer = NO_PLAYER) const;											// Exposed to Python
 	// <advc>
-	inline CvArea* area() const { return m_pArea; }																// Exposed to Python
+	CvArea* area() const { return m_pArea; }																	// Exposed to Python
 	//int getArea() const;
-	inline CvArea& getArea() const { return *m_pArea; }
-	inline bool isArea(CvArea const& kArea) const { return (area() == &kArea); }
-	inline bool sameArea(CvCity const& kOther) const { return (area() == kOther.area()); }
+	CvArea& getArea() const { return *m_pArea; }
+	bool isArea(CvArea const& kArea) const { return (area() == &kArea); }
+	bool sameArea(CvCity const& kOther) const { return (area() == kOther.area()); }
 	void updateArea();
 	// </advc>
 	// BETTER_BTS_AI_MOD, 01/02/09, jdog5000: START
@@ -349,14 +348,14 @@ public:
 	CvPlot* getRallyPlot() const;																				// Exposed to Python
 	void setRallyPlot(CvPlot* pPlot);
 
-	// advc.inl: Inlined most of the getters below (w/o adding inline keyword though)
+	// advc.inl: Inlined most of the getters below
 
 	int getGameTurnFounded() const { return m_iGameTurnFounded; }												// Exposed to Python
 	void setGameTurnFounded(int iNewValue);
 	int getGameTurnAcquired() const { return m_iGameTurnAcquired; }												// Exposed to Python
 	void setGameTurnAcquired(int iNewValue);
 
-	inline int getPopulation() const { return m_iPopulation; }													// Exposed to Python
+	int getPopulation() const { return m_iPopulation; }															// Exposed to Python
 	void setPopulation(int iNewValue);																			// Exposed to Python
 	void changePopulation(int iChange);																			// Exposed to Python
 	int getRealPopulation() const;																				// Exposed to Python
@@ -679,8 +678,7 @@ public:
 	DllExport bool isLayoutDirty() const;
 	DllExport void setLayoutDirty(bool bNewValue);
 
-	PlayerTypes getOwnerExternal() const; // advc.inl: Exported through .def file								// Exposed to Python
-	inline PlayerTypes getOwner() const { return m_eOwner; } // advc.inl: Renamed from getOwnerINLINE
+	DllExport PlayerTypes getOwner() const { return m_eOwner; } // advc.inl: was "getOwnerINLINE"				// Exposed to Python
 	DllExport TeamTypes getTeam() const;																		// Exposed to Python
 	PlayerTypes getPreviousOwner() const { return m_ePreviousOwner; }											// Exposed to Python
 	void setPreviousOwner(PlayerTypes eNewValue);
@@ -861,7 +859,7 @@ public:
 	{	// advc: Delegate to the Times100 function
 		return getCultureTimes100(ePlayer) / 100;
 	}
-	inline int getCultureTimes100(PlayerTypes ePlayer) const													// Exposed to Python
+	int getCultureTimes100(PlayerTypes ePlayer) const															// Exposed to Python
 	{
 		return m_aiCulture.get(ePlayer);
 	}
@@ -906,7 +904,7 @@ public:
 
 	DllExport bool isRevealed(TeamTypes eTeam, bool bDebug) const;												// Exposed to Python
 	// <advc.inl> Faster implementation for non-UI code
-	inline bool isRevealed(TeamTypes eToTeam) const
+	bool isRevealed(TeamTypes eToTeam) const
 	{
 		return m_abRevealed.get(eToTeam);
 	} // </advc.inl>
@@ -1251,13 +1249,13 @@ public:
 	// virtual for FFreeListTrashArray
 	virtual void read(FDataStreamBase* pStream); 
 	virtual void write(FDataStreamBase* pStream);
-	__forceinline CvCityAI& AI()
+	CvCityAI& AI()
 	{	//return *static_cast<CvCityAI*>(const_cast<CvCity*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
 			that CvCityAI is derived from CvCity */
 		return *reinterpret_cast<CvCityAI*>(this);
 	}
-	__forceinline CvCityAI const& AI() const
+	CvCityAI const& AI() const
 	{	//return *static_cast<CvCityAI const*>(this);
 		return *reinterpret_cast<CvCityAI const*>(this);
 	}

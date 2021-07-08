@@ -1778,7 +1778,7 @@ namespace
 	//sign function taken from FirePlace - JW
 	//template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); }
 	// advc: Moved from CvGameCoreUtils.h b/c it was only used here. Then replaced with:
-	inline int getSign(int x) { return (x > 0) - (x < 0); }
+	__inline int getSign(int x) { return (x > 0) - (x < 0); }
 }
 bool CvPlot::canSeeDisplacementPlot(TeamTypes eTeam, int iDX, int iDY,
 	int iOriginalDX, int iOriginalDY, bool bFirstPlot, bool bOuterRing) const
@@ -3127,12 +3127,6 @@ bool CvPlot::isBeingWorked() const
 }
 
 
-bool CvPlot::isInvestigate(TeamTypes eTeam) const
-{
-	return (plotCheck(PUF_isInvestigate, -1, -1, NO_PLAYER, eTeam) != NULL);
-}
-
-
 bool CvPlot::isVisibleEnemyDefender(const CvUnit* pUnit) const
 {
 	return (plotCheck(PUF_canDefendEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(*this),
@@ -3140,29 +3134,10 @@ bool CvPlot::isVisibleEnemyDefender(const CvUnit* pUnit) const
 }
 
 
-CvUnit *CvPlot::getVisibleEnemyDefender(PlayerTypes ePlayer) const
-{
-	return plotCheck(PUF_canDefendEnemy, ePlayer, false, NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer);
-}
-
-
-int CvPlot::getNumDefenders(PlayerTypes ePlayer) const
-{
-	return plotCount(PUF_canDefend, -1, -1, ePlayer);
-}
-
-
 int CvPlot::getNumVisibleEnemyDefenders(const CvUnit* pUnit) const
 {
 	return plotCount(PUF_canDefendEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(*this),
 			NO_PLAYER, NO_TEAM, PUF_isVisible, pUnit->getOwner());
-}
-
-
-bool CvPlot::isVisibleEnemyUnit(PlayerTypes ePlayer) const
-{
-	return (plotCheck(PUF_isEnemy, ePlayer, false,
-			NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer) != NULL);
 }
 
 // advc.ctr:
@@ -3201,19 +3176,6 @@ bool CvPlot::isVisibleEnemyUnit(CvUnit const* pUnit, CvUnit const* pPotentialEne
 {
 	return (PUF_isEnemy(pPotentialEnemy, pUnit->getOwner(), pUnit->isAlwaysHostile(*this)) &&
 			!pPotentialEnemy->isInvisible(pUnit->getTeam(), false));
-}
-
-
-bool CvPlot::isVisibleOtherUnit(PlayerTypes ePlayer) const
-{
-	return (plotCheck(PUF_isOtherTeam, ePlayer, -1,
-			NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer) != NULL);
-}
-
-
-bool CvPlot::isFighting() const
-{
-	return (plotCheck(PUF_isFighting) != NULL);
 }
 
 
@@ -3507,18 +3469,6 @@ void CvPlot::updateAnyIsthmus()
 		}
 	}
 	m_bAnyIsthmus = false;
-}
-
-
-int CvPlot::getXExternal() const
-{
-	return m_iX;
-}
-
-
-int CvPlot::getYExternal() const
-{
-	return m_iY;
 }
 
 // advc.tsl:
@@ -4020,12 +3970,6 @@ bool CvPlot::isFlagDirty() const
 void CvPlot::setFlagDirty(bool bNewValue)
 {
 	m_bFlagDirty = bNewValue;
-}
-
-
-PlayerTypes CvPlot::getOwnerExternal() const // advc.inl
-{
-	return getOwner();
 }
 
 

@@ -4287,18 +4287,6 @@ void CvCity::setID(int iID)
 	m_iID = iID;
 }
 
-// <advc.inl>
-int CvCity::getXExternal() const
-{
-	return getX();
-}
-
-
-int CvCity::getYExternal() const
-{
-	return getY();
-} // </advc.inl>
-
 // advc.opt: Update cached CvPlot, CvArea pointer and plot index.
 void CvCity::updatePlot()
 {
@@ -6470,12 +6458,6 @@ bool CvCity::isLayoutDirty() const
 void CvCity::setLayoutDirty(bool bNewValue)
 {
 	m_bLayoutDirty = bNewValue;
-}
-
-// advc.inl:
-PlayerTypes CvCity::getOwnerExternal() const
-{
-	return getOwner();
 }
 
 

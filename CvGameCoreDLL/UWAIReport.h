@@ -17,7 +17,7 @@ public:
 	~UWAIReport();
 	// No effect when set to silent or mute
 	void log(char const* fmt, ...);
-	inline void logNewline() { log(""); }
+	void logNewline() { log(""); }
 	/*	leaderName and the next four functions use dynamically allocated
 		memory in order to narrow wstrings. Therefore not const.
 		All the functions returning char const* return an empty string when

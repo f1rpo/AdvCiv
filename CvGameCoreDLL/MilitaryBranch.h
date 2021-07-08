@@ -38,14 +38,14 @@ public:
 	static char const* str(MilitaryBranchTypes eBranch);
 
 	// Replacing CvPlayer::getTypicalUnitValue
-	inline UnitTypes getTypicalUnit(TeamTypes eOberserver = NO_TEAM) const
+	UnitTypes getTypicalUnit(TeamTypes eOberserver = NO_TEAM) const
 	{
 		return m_eTypicalUnit;
 	}
 	scaled getTypicalPower(TeamTypes eOberserver = NO_TEAM) const;
 	scaled getTypicalCost(TeamTypes eOberserver = NO_TEAM) const;
 	// Total military power of units in this branch
-	inline scaled power() const { return m_rTotalPower; }
+	scaled power() const { return m_rTotalPower; }
 	void changePower(scaled rChange) { m_rTotalPower += rChange; }
 	/*	True iff eUnit belongs in this branch (at all).
 		The template implementation is based on unitPower. */
@@ -94,7 +94,7 @@ protected:
 	/*	Vague expectation of how many extra instances will have been produced
 		when halfway through with the military buildup that this class helps predict.
 		(Could get the era from m_eOwner, but don't want to include CvPlayer.h.) */
-	inline scaled estimateExtraInstances(scaled rEraFactor) const
+	scaled estimateExtraInstances(scaled rEraFactor) const
 	{
 		return fixp(1.75) + fixp(1.25) * rEraFactor;
 	}

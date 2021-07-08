@@ -142,8 +142,8 @@ private:
 		short d(CvPlot const& kSource, CvPlot const& kDestination) const;
 		/*	Typical distance according to DistanceTable::stepDist
 			between two friendly adjacent cities. */
-		inline short getAvgCityDist() const { return 40; }
-		inline short getLongDist() const { return 8 * getAvgCityDist(); }
+		short getAvgCityDist() const { return 40; }
+		short getLongDist() const { return 8 * getAvgCityDist(); }
 
 	private:
 		std::vector<std::vector<short> > m_distances;

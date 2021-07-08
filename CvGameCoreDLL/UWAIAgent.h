@@ -119,7 +119,7 @@ private:
 		war utility based on our current commerce rate. */
 	scaled tradeValToUtility(scaled rTradeVal) const;
 
-	inline bool isInBackground() const { return m_bInBackground; }
+	bool isInBackground() const { return m_bInBackground; }
 	void startReport();
 	void closeReport();
 	void setForceReport(bool b);
@@ -146,8 +146,8 @@ public:
 	// m_cache handles all the persistent data, these two only relay the calls.
 	void write(FDataStreamBase* pStream) const;
 	void read(FDataStreamBase* pStream);
-	inline UWAICache const& getCache() const { return m_cache; }
-	inline UWAICache& getCache() { return m_cache; }
+	UWAICache const& getCache() const { return m_cache; }
+	UWAICache& getCache() { return m_cache; }
 	// Demands and pleas. Augment BtS code in CvPlayerAI::AI_considerOffer.
 	bool considerDemand(PlayerTypes eDemandPlayer, int iTradeVal) const;
 	bool considerPlea(PlayerTypes ePleaPlayer, int iTradeVal) const;

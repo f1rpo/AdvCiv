@@ -188,15 +188,15 @@ private:
 			bool bCheckExists = false) const;
 	bool isOverride() const;
 	bool canPlaceItemAt(char const* szItemName, CvPlot const& kPlot, bool& bOverride) const;
-	inline bool isUse(CallbackDefines eCallback) const
+	bool isUse(CallbackDefines eCallback) const
 	{
 		return m_abUseCallback[eCallback];
 	}
-	static __forceinline int toInt(long l)
+	static int toInt(long l)
 	{
 		return static_cast<int>(l); // They're the same in MSVC03 x086
 	}
-	static inline bool toBool(long l)
+	static bool toBool(long l)
 	{
 		FAssert(l >= 0);
 		return (l == TRUE);

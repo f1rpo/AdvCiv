@@ -26,7 +26,7 @@ public:
 	void decay();
 	void read(FDataStreamBase* pStream, uint uiFlag, TeamTypes eTeam);
 	void write(FDataStreamBase* pStream) const;
-	inline int get(PlotNumTypes ePlot) const
+	int get(PlotNumTypes ePlot) const
 	{
 		/*FAssertBounds(0, m_aiMap.size(), ePlot);
 		return m_aiMap[ePlot];*/

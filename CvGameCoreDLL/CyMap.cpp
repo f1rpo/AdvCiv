@@ -82,12 +82,14 @@ int CyMap::plotNum(int iX, int iY)
 
 int CyMap::plotX(int iIndex)
 {
-	return m_kMap.plotX(iIndex);
+	// advc: Cut from deleted CvMap::plotX
+	return iIndex % m_kMap.getGridWidth();
 }
 
 int CyMap::plotY(int iIndex)
 {
-	return m_kMap.plotY(iIndex);
+	// advc: Cut from deleted CvMap::plotY
+	return iIndex / m_kMap.getGridWidth();
 }
 
 int CyMap::getGridWidth()

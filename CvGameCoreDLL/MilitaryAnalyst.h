@@ -32,7 +32,7 @@ public:
 	~MilitaryAnalyst();
 	WarEvalParameters& evaluationParams() { return m_kWarEvalParams; }
 	WarEvalParameters const& evaluationParams() const { return m_kWarEvalParams; }
-	__forceinline PlayerTypes getAgentPlayer() const { return m_eWe; }
+	PlayerTypes getAgentPlayer() const { return m_eWe; }
 	bool isPeaceScenario() const { return m_bPeaceScenario; }
 
 	bool isOnOurSide(TeamTypes eTeam) const;
@@ -94,31 +94,31 @@ private:
 	public:
 		PlayerResult() : m_rGameScore(-1) {}
 		void setGameScore(scaled rScore) { m_rGameScore = rScore; }
-		inline scaled getGameScore() const { return m_rGameScore; }
+		scaled getGameScore() const { return m_rGameScore; }
 		void addNukesSuffered(scaled rNukes) { m_rNukesSuffered += rNukes; }
-		inline scaled getNukesSuffered() const { return m_rNukesSuffered; }
+		scaled getNukesSuffered() const { return m_rNukesSuffered; }
 		void addNukesFired(scaled rNukes) { m_rNukesFired += rNukes; }
-		inline scaled getNukesFired() const { return m_rNukesFired; }
+		scaled getNukesFired() const { return m_rNukesFired; }
 		void setDoWOn(PlayerTypes eAggressor) { m_DoWOn.insert(eAggressor); }
 		void setDoWOn(PlyrSetIter const& itFirst, PlyrSetIter const& itLast)
 		{
 			m_DoWOn.insert(itFirst, itLast);
 		}
-		inline PlyrSet const& getDoWOn() const { return m_DoWOn; }
+		PlyrSet const& getDoWOn() const { return m_DoWOn; }
 		void setDoWBy(PlayerTypes eTarget) { m_DoWBy.insert(eTarget); }
 		void setDoWBy(PlyrSetIter const& itFirst, PlyrSetIter const& itLast)
 		{
 			m_DoWBy.insert(itFirst, itLast);
 		}
-		inline PlyrSet const& getDoWBy() const { return m_DoWBy; }
+		PlyrSet const& getDoWBy() const { return m_DoWBy; }
 		void setWarContinued(PlayerTypes eEnemy) { m_warsCont.insert(eEnemy); }
-		inline PlyrSet const& getWarsContinued() const { return m_warsCont; }
+		PlyrSet const& getWarsContinued() const { return m_warsCont; }
 		void setCityLost(PlotNumTypes eCityPlot) { m_lostCities.insert(eCityPlot); }
-		inline CitySet const& getLostCities() const { return m_lostCities; }
-		inline CitySet& getLostCities() { return m_lostCities; }
+		CitySet const& getLostCities() const { return m_lostCities; }
+		CitySet& getLostCities() { return m_lostCities; }
 		void setCityConquered(PlotNumTypes eCityPlot) { m_conqueredCities.insert(eCityPlot); }
-		inline CitySet const& getConqueredCities() const { return m_conqueredCities; }
-		inline CitySet& getConqueredCities() { return m_conqueredCities; }
+		CitySet const& getConqueredCities() const { return m_conqueredCities; }
+		CitySet& getConqueredCities() { return m_conqueredCities; }
 	private:
 		scaled m_rGameScore;
 		scaled m_rNukesSuffered;

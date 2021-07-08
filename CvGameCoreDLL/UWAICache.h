@@ -23,13 +23,13 @@ class FDataStreamBase;
 class UWAICity
 {
 public:
-	inline int getAssetScore() const { return m_iAssetScore; }
-	inline bool canReach() const { return (getDistance() >= 0); }
-	inline bool canReachByLand() const { return m_bReachByLand; } // from a primary area
-	inline bool canReachByLandFromCapital() const { return m_bCapitalArea; }
+	int getAssetScore() const { return m_iAssetScore; }
+	bool canReach() const { return (getDistance() >= 0); }
+	bool canReachByLand() const { return m_bReachByLand; } // from a primary area
+	bool canReachByLandFromCapital() const { return m_bCapitalArea; }
 	/*	-1 if unreachable, 0 for cities of the cache owner's team
 		(and never for cities of other teams). */
-	inline int getDistance() const { return m_iDistance; }
+	int getDistance() const { return m_iDistance; }
 
 protected:
 	int m_iDistance;
@@ -73,7 +73,7 @@ public:
 	}
 	int numCities() const { return (int)m_cityList.size(); }
 	void sortCitiesByAttackPriority();
-	inline City& cityAt(int iAt) const
+	City& cityAt(int iAt) const
 	{
 		FAssertBounds(0, m_cityList.size(), iAt);
 		return *m_cityList[iAt];
@@ -135,7 +135,7 @@ public:
 
 	/*	Power values per military branch. The caller must not modify
 		the MilitaryBranch data; should work on copies instead. */
-	inline std::vector<MilitaryBranch*> const& getPowerValues() const { return m_militaryPower; }
+	std::vector<MilitaryBranch*> const& getPowerValues() const { return m_militaryPower; }
 	// Counts only combatants
 	int numNonNavalUnits() const { return m_iNonNavalUnits; }
 	// Includes national wonders (which City::updateAssetScore does not count)
@@ -249,13 +249,13 @@ public:
 		City(PlayerTypes eCacheOwner, CvCity& kCity, TeamPathFinders* pPathFinders);
 		// for reading from a savegame:
 		City() : m_pCity(NULL), m_iTargetValue(-1), m_ePlot(NO_PLOT_NUM) {}
-		inline bool isOwnTeamCity() const { return (m_iDistance == 0); }
-		inline int getTargetValue() const { return m_iTargetValue; }
+		bool isOwnTeamCity() const { return (m_iDistance == 0); }
+		int getTargetValue() const { return m_iTargetValue; }
 		/*	A mix of target value and distance. Target value alone would
 			ignore opportunistic attacks. */
 		scaled attackPriority() const;
-		inline CvCity& city() const { return *m_pCity; }
-		inline PlotNumTypes getID() const { return m_ePlot; }
+		CvCity& city() const { return *m_pCity; }
+		PlotNumTypes getID() const { return m_ePlot; }
 		void cacheCvCity();
 		void write(FDataStreamBase* pStream) const;
 		void read(FDataStreamBase* pStream);

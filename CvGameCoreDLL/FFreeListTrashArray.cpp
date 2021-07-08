@@ -18,7 +18,7 @@
 {
 	template<class ConcreteType>
 	// Note: The parameter is only for type inference
-	inline ConcreteType* createElement(ConcreteType*)
+	ConcreteType* createElement(ConcreteType*)
 	{
 		return new ConcreteType();
 	}

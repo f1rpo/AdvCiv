@@ -130,12 +130,12 @@ public:
 	{
 		NUM_BOOL_ELEMENT_TYPES
 	};
-	__forceinline short get(IntElementTypes e) const
+	short get(IntElementTypes e) const
 	{
 		FAssertBounds(0, m_aiData.size(), e);
 		return m_aiData[e];
 	}
-	__forceinline bool get(BoolElementTypes e) const
+	bool get(BoolElementTypes e) const
 	{
 		FAssertBounds(0, m_abData.size(), e);
 		return m_abData[e];
@@ -230,11 +230,11 @@ public:
 		NUM_BOOL_ELEMENT_TYPES = CvXMLInfo::NUM_BOOL_ELEMENT_TYPES
 	};
 	using CvXMLInfo::get; // unhide
-	__forceinline int get(IntElementTypes e) const
+	int get(IntElementTypes e) const
 	{
 		return get(static_cast<CvXMLInfo::IntElementTypes>(e));
 	}
-	__forceinline int get(BoolElementTypes e) const
+	int get(BoolElementTypes e) const
 	{
 		return get(static_cast<CvXMLInfo::BoolElementTypes>(e));
 	} // </advc.tag>

@@ -20,7 +20,7 @@ class CvTeamAI : public CvTeam
 {
 public:
 	// advc.003u: Renamed from getTeam
-	static inline CvTeamAI& AI_getTeam(TeamTypes eTeam) // advc.inl
+	static CvTeamAI& AI_getTeam(TeamTypes eTeam) // advc.inl
 	{
 		FAssertBounds(0, MAX_TEAMS, eTeam);
 		return *m_aTeams[eTeam];
@@ -60,7 +60,7 @@ public:
 	bool AI_deduceCitySite(CvCity const& kCity) const; // K-Mod
 	// <advc.erai>
 	scaled AI_getCurrEraFactor() const;
-	inline int AI_getCurrEra() const { return AI_getCurrEraFactor().round(); }
+	int AI_getCurrEra() const { return AI_getCurrEraFactor().round(); }
 	// </advc.erai>
 
 	bool AI_isAnyCapitalAreaAlone() const;
@@ -68,7 +68,7 @@ public:
 	bool AI_hasCitiesInPrimaryArea(TeamTypes eTeam) const;
 	bool AI_hasSharedPrimaryArea(TeamTypes eTeam) const; // K-Mod
 	AreaAITypes AI_calculateAreaAIType(CvArea const& kArea, bool bPreparingTotal = false) const;
-	inline bool AI_isLonely() const { return m_bLonely; } // advc.109
+	bool AI_isLonely() const { return m_bLonely; } // advc.109
 
 	int AI_calculateAdjacentLandPlots(TeamTypes eTeam) const;
 	int AI_calculateCapitalProximity(TeamTypes eTeam) const;
@@ -244,7 +244,7 @@ public:
 	int AI_countEnemyCitiesByArea(CvArea const& kArea) const; // K-Mod
 	int AI_countEnemyDangerByArea(CvArea const& kArea, TeamTypes eEnemyTeam = NO_TEAM) const; // bbai		// Exposed to Python
 	int AI_countEnemyPopulationByArea(CvArea const& kArea) const; // bbai (advc: unused)
-	inline WarPlanTypes AI_getWarPlan(TeamTypes eIndex) const // advc.inl
+	WarPlanTypes AI_getWarPlan(TeamTypes eIndex) const // advc.inl
 	{
 		return m_aeWarPlan.get(eIndex);
 	}
@@ -255,11 +255,11 @@ public:
 	int AI_countWarPlans(WarPlanTypes eWarPlanType = NUM_WARPLAN_TYPES, bool bIgnoreMinors = true,			// Exposed to Python (through getWarPlanCount, getAnyWarPlanCount)
 			unsigned int iMaxCount = MAX_PLAYERS) const; // </advc>
 	// <advc.opt> Less flexible (ignores minors, vassals) but much faster
-	inline int AI_getNumWarPlans(WarPlanTypes eWarPlanType) const
+	int AI_getNumWarPlans(WarPlanTypes eWarPlanType) const
 	{
 		return m_aiWarPlanCounts.get(eWarPlanType);
 	}
-	inline bool AI_isAnyWarPlan() const { return m_bAnyWarPlan; } // </advc.opt>
+	bool AI_isAnyWarPlan() const { return m_bAnyWarPlan; } // </advc.opt>
 	bool AI_isSneakAttackReady(TeamTypes eIndex /* K-Mod (any team): */ = NO_TEAM) const;
 	bool AI_isSneakAttackPreparing(TeamTypes eIndex /* advc: */= NO_TEAM) const;
 	void AI_setWarPlan(TeamTypes eTarget, WarPlanTypes eNewValue, bool bWar = true);
@@ -275,15 +275,15 @@ public:
 	void AI_rememberNukeExplosion(CvPlot const& kPlot);
 	bool AI_wasRecentlyNuked(CvPlot const& kPlot) const; // </advc.650>
 	// advc.158:
-	inline AIStrengthMemoryMap& AI_strengthMemory() const { return m_strengthMemory; }
+	AIStrengthMemoryMap& AI_strengthMemory() const { return m_strengthMemory; }
 	// advc.104:
 	int AI_teamCloseness(TeamTypes eIndex, int iMaxDistance = -1,
 			bool bConsiderLandTarget = false, // advc.104o
 			bool bConstCache = false) const; // advc.001n
 
 	// <advc.104>
-	inline UWAI::Team& uwai() { return *m_pUWAI; }
-	inline UWAI::Team const& uwai() const { return *m_pUWAI; }
+	UWAI::Team& uwai() { return *m_pUWAI; }
+	UWAI::Team const& uwai() const { return *m_pUWAI; }
 	int AI_refuseToTalkWarThreshold() const;
 	// These 9 were protected </advc.104>
 	int AI_maxWarRand() const;

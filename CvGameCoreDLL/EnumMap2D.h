@@ -21,7 +21,7 @@ public:
 	T get(OuterArrayType eArray, InnerArrayType eIndex) const;
 	void set(OuterArrayType eArray, InnerArrayType eIndex, T tValue);
 	// advc: Allow individual elements to be reset
-	__forceinline void reset(OuterArrayType eArray, InnerArrayType eIndex)
+	void reset(OuterArrayType eArray, InnerArrayType eIndex)
 	{
 		set(eArray, eIndex, (T)DEFAULT);
 	}
@@ -70,21 +70,21 @@ EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 }
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
-__forceinline OuterArrayType EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
+OuterArrayType EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 ::First() const
 {
 	return (OuterArrayType)0;
 }
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
-__forceinline OuterArrayType EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
+OuterArrayType EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 ::Length() const
 {
 	return getEnumLength((OuterArrayType)0); // advc.enum: was ArrayLength
 }
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
-inline T EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
+T EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 ::get(OuterArrayType eArray, InnerArrayType eIndex) const
 {
 	FAssert(eArray >= 0 && eArray < Length());
@@ -92,7 +92,7 @@ inline T EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 }
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
-inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
+void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 ::set(OuterArrayType eArray, InnerArrayType eIndex, T tValue)
 {
 	FAssert(eArray >= 0 && eArray < Length());
@@ -105,7 +105,7 @@ inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 }
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
-inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
+void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 ::add(OuterArrayType eArray, InnerArrayType eIndex, T tValue)
 {
 	FAssert(eArray >= 0 && eArray < Length());
@@ -122,7 +122,7 @@ inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 }
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
-inline bool EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
+bool EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 ::hasContent() const
 {
 	if (m_pOuterArray)
@@ -144,14 +144,14 @@ inline bool EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 }
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
-inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
+void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 ::reset()
 {
 	SAFE_DELETE_ARRAY(m_pOuterArray);
 }
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
-inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
+void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 ::allocate()
 {
 	FAssert(m_pOuterArray == NULL);
@@ -159,7 +159,7 @@ inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 }
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
-inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
+void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 ::Read(/* <advc> */ FDataStreamBase* pStream, bool bAsInt, bool bLazy)
 {
 	if (m_pOuterArray == NULL)
@@ -180,7 +180,7 @@ inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 
 
 template<class OuterArrayType, class InnerArrayType, class T, int DEFAULT>
-inline void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
+void EnumMap2DDefault<OuterArrayType, InnerArrayType, T, DEFAULT>
 ::Write(/* <advc> */ FDataStreamBase* pStream, bool bAsInt, bool bLazy) const
 {
 	if (m_pOuterArray == NULL)

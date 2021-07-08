@@ -26,43 +26,43 @@ public:
 				later if appropriate. */
 			PlayerTypes eSponsor = NO_PLAYER,
 			TeamTypes eCapitulationTeam = NO_TEAM);
-	inline TeamTypes getAgent() const { return m_eAgent; }
-	inline TeamTypes getTarget() const { return m_eTarget; }
+	TeamTypes getAgent() const { return m_eAgent; }
+	TeamTypes getTarget() const { return m_eTarget; }
 	UWAIReport& getReport() const {return m_kReport; }
-	inline bool isConsideringPeace() const { return m_bConsideringPeace; }
+	bool isConsideringPeace() const { return m_bConsideringPeace; }
 	/*  For evaluating joint wars when the agent is already at war, but the ally
 		is not. The agent does then not consider itself (and its vassals) to be
 		at peace with the target in the peace scenario. */
 	void setNotConsideringPeace() { m_bConsideringPeace = false; }
-	inline bool isIgnoreDistraction() const { return m_bIgnoreDistraction; }
+	bool isIgnoreDistraction() const { return m_bIgnoreDistraction; }
 	// For joint wars
 	void addWarAlly(TeamTypes eTeam);
-	bool isWarAlly(TeamTypes eTeam) const { return m_warAllies.count(eTeam) > 0; }
+	bool isWarAlly(TeamTypes eTeam) const { return (m_warAllies.count(eTeam) > 0); }
 	bool isAnyWarAlly() const { return !m_warAllies.empty(); }
 	// For peace votes (peace will be assumed in the peace scenario)
 	void addExtraTarget(TeamTypes eTeam);
-	bool isExtraTarget(TeamTypes eTeam) const { return m_extraTargets.count(eTeam) > 0; }
+	bool isExtraTarget(TeamTypes eTeam) const { return (m_extraTargets.count(eTeam) > 0); }
 	/*  If this returns true, then, in the peace scenario, war should be assumed
 		against the main target and peace with the extra targets. Will return
 		true only if the ConsideringPeace flag is not set. */
 	bool isNoWarVsExtra() const;
 	void setSponsor(PlayerTypes ePlayer); // Alternative to constructor arg
-	inline PlayerTypes getSponsor() const { return m_eSponsor; }
+	PlayerTypes getSponsor() const { return m_eSponsor; }
 	/*	Team we're considering to capitulate to (would-be master);
 		NO_TEAM if we're not considering to capitulate. */
-	inline TeamTypes getCapitulationTeam() const { return m_eCapitulationTeam; }
+	TeamTypes getCapitulationTeam() const { return m_eCapitulationTeam; }
 	// Set to true automatically when a sponsor is set
 	void setImmediateDoW(bool b) { m_bImmediateDoW = b; }
-	inline bool isImmediateDoW() const { return m_bImmediateDoW; }
+	bool isImmediateDoW() const { return m_bImmediateDoW; }
 	// Perfect hash function for WarEvaluator cache
 	WarEvalParamID getID() const;
 	// These three should be filled in by WarEvaluator
 	void setTotal(bool b) { m_bTotal = b; }
 	void setNaval(bool b) { m_bNaval = b; }
 	void setPreparationTime(int iTurns) { m_iPreparationTime = iTurns; }
-	inline bool isTotal() const { return m_bTotal; }
-	inline bool isNaval() const { return m_bNaval; }
-	inline int getPreparationTime() const { return m_iPreparationTime; }
+	bool isTotal() const { return m_bTotal; }
+	bool isNaval() const { return m_bNaval; }
+	int getPreparationTime() const { return m_iPreparationTime; }
 
 private:
 	TeamTypes m_eAgent;

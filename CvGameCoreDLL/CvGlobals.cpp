@@ -1006,9 +1006,9 @@ void CvGlobals::handleUnknownTypeString(char const* szType,
 	}
 }
 
-// non-inline versions ...  <advc.inl>
+// non-inline versions ... 
 CvMap& CvGlobals::getMapExternal() { return getMap(); }
-CvGameAI& CvGlobals::getGameExternal() { return AI_getGame(); } // </advc.inl>
+CvGameAI& CvGlobals::getGameExternal() { return AI_getGame(); }
 CvGameAI *CvGlobals::getGamePointer() { return m_game; }
 
 bool CvGlobals::IsGraphicsInitialized() const { return m_bGraphicsInitialized;}

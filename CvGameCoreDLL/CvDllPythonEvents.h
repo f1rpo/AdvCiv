@@ -106,7 +106,7 @@ private:
 	// <advc.003y>
 	bool* m_abUseCallback;
 
-	inline bool isUse(CallbackDefines eCallback) const
+	bool isUse(CallbackDefines eCallback) const
 	{
 		return (m_abUseCallback == NULL ? false : m_abUseCallback[eCallback]);
 	} // </advc.003y>

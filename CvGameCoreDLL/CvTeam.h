@@ -15,7 +15,7 @@ class CvTeam /* advc.003e: */ : private boost::noncopyable
 {
 public:
 	// <advc.003u>
-	static inline CvTeam& getTeam(TeamTypes eTeam)
+	static CvTeam& getTeam(TeamTypes eTeam)
 	{
 		FAssertBounds(0, MAX_TEAMS, eTeam);
 		// Needs to be inline and I don't want to include CvTeamAI.h here
@@ -107,7 +107,7 @@ public:
 	int getDefensivePactCount(TeamTypes eObs = NO_TEAM) const;											// Exposed to Python
 	int getVassalCount(TeamTypes eObs = NO_TEAM) const;
 	// advc.opt, advc.inl:
-	inline bool isAVassal() const { return (m_eMaster != NO_TEAM); }									// Exposed to Python
+	bool isAVassal() const { return (m_eMaster != NO_TEAM); }											// Exposed to Python
 	bool canVassalRevolt(TeamTypes eMaster) const;
 	bool isLossesAllowRevolt(TeamTypes eMaster) const; // advc.112
 	int getUnitClassMaking(UnitClassTypes eUnitClass) const;											// Exposed to Python
@@ -145,11 +145,11 @@ public:
 
 	bool isHuman() const;																																// Exposed to Python
 	// advc: (The Barbarians aren't a proper civ)
-	inline bool isMajorCiv() const { return (!isBarbarian() && !isMinorCiv()); }
+	bool isMajorCiv() const { return (!isBarbarian() && !isMinorCiv()); }
 	// advc.inl
-	inline bool isBarbarian() const { return (m_eID == BARBARIAN_TEAM); }																				// Exposed to Python
+	bool isBarbarian() const { return (m_eID == BARBARIAN_TEAM); }								// Exposed to Python
 	// <advc.003m> cached
-	inline bool isMinorCiv() const { return m_bMinorTeam; }																							// Exposed to Python
+	bool isMinorCiv() const { return m_bMinorTeam; }											// Exposed to Python
 	void updateMinorCiv() { m_bMinorTeam = checkMinorCiv(); }
 	// </advc.003m>  <advc.opt> This gets called a lot. Now precomputed.
 	PlayerTypes getLeaderID() const { return m_eLeader; }																					// Exposed to Python
@@ -161,20 +161,20 @@ public:
 	CvWString getName() const;																								// Exposed to Python
 	CvWString getReplayName() const; // K-Mod
 
-	DllExport inline int getNumMembers() const { return m_iNumMembers; } // advc.inl																	// Exposed to Python
+	DllExport int getNumMembers() const { return m_iNumMembers; } // advc.inl									// Exposed to Python
 	void changeNumMembers(int iChange);
 
 	// advc.inl: In-line definitions for most of the get..Count and is... functions below
 	int getAliveCount() const { return m_iAliveCount; } // advc.155: Exposed to Python
-	inline bool isAlive() const { return (m_iAliveCount > 0); }																// Exposed to Python
+	bool isAlive() const { return (m_iAliveCount > 0); }														// Exposed to Python
 	void changeAliveCount(int iChange);
 	PlayerTypes getRandomMemberAlive(bool bHuman) const; // advc.104
 
-	inline int getEverAliveCount() const { return m_iEverAliveCount; }			
-	inline bool isEverAlive() const { return (getEverAliveCount() > 0); } // advc: return type was int												// Exposed to Python
+	int getEverAliveCount() const { return m_iEverAliveCount; }
+	bool isEverAlive() const { return (getEverAliveCount() > 0); } // advc: return type was int					// Exposed to Python
 	void changeEverAliveCount(int iChange);
 
-	inline int getNumCities() const { return m_iNumCities; }																							// Exposed to Python
+	int getNumCities() const { return m_iNumCities; }															// Exposed to Python
 	void changeNumCities(int iChange);
 
 	int getTotalPopulation(bool bCheckVassals = true) const;																											// Exposed to Python
@@ -282,7 +282,7 @@ public:
 	int getExtraMoves(DomainTypes eIndex) const;																				// Exposed to Python
 	void changeExtraMoves(DomainTypes eIndex, int iChange);								// Exposed to Python
 
-	inline bool isHasMet(TeamTypes eOther) const // advc.inl													// Exposed to Python
+	bool isHasMet(TeamTypes eOther) const // advc.inl											// Exposed to Python
 	{
 		return (m_aiHasMetTurn.get(eOther) >= 0); // advc.091
 	}
@@ -293,7 +293,7 @@ public:
 	void makeHasSeen(TeamTypes eOther) { m_abHasSeen.set(eOther, true); }; // K-Mod
 	// <advc.134a>
 	bool isAtWarExternal(TeamTypes eIndex) const; // Exported through .def file
-	inline bool isAtWar(TeamTypes eIndex) const																	// Exposed to Python
+	bool isAtWar(TeamTypes eIndex) const																	// Exposed to Python
 	{
 		return m_abAtWar.get(eIndex);
 	} // </advc.134a>
@@ -310,18 +310,18 @@ public:
 
 	bool canTradeWith(TeamTypes eWhoTo) const; // advc
 	bool isFreeTrade(TeamTypes eIndex) const;																	// Exposed to Python
-	inline bool isOpenBorders(TeamTypes eIndex) const																// Exposed to Python
+	bool isOpenBorders(TeamTypes eIndex) const																// Exposed to Python
 	{
 		return m_abOpenBorders.get(eIndex); // advc.inl
 	}
 	void setOpenBorders(TeamTypes eIndex, bool bNewValue);
 	// <advc.034>
-	inline bool isDisengage(TeamTypes eIndex) const { return m_abDisengage.get(eIndex);}
+	bool isDisengage(TeamTypes eIndex) const { return m_abDisengage.get(eIndex); }
 	void setDisengage(TeamTypes eIndex, bool bNewValue);
 	void cancelDisengage(TeamTypes otherId);
 	// </advc.034>
 	// advc.inl
-	inline bool isDefensivePact(TeamTypes eIndex) const { return m_abDefensivePact.get(eIndex); }															// Exposed to Python
+	bool isDefensivePact(TeamTypes eIndex) const { return m_abDefensivePact.get(eIndex); }						// Exposed to Python
 	void setDefensivePact(TeamTypes eIndex, bool bNewValue);
 
 	bool isForcePeace(TeamTypes eIndex) const { return m_abForcePeace.get(eIndex); } // advc.inl										// Exposed to Python
@@ -340,7 +340,7 @@ public:
 	void assignVassal(TeamTypes eVassal, bool bSurrender) const;																// Exposed to Python
 	void freeVassal(TeamTypes eVassal) const;																// Exposed to Python
 
-	inline bool isCapitulated() const // advc.130v: Exposed to Python
+	bool isCapitulated() const // advc.130v: Exposed to Python
 	{	// advc.inl: inline, disable K-Mod assertion
 		//FAssert(!m_bCapitulated || isAVassal()); // K-Mod
 		return m_bCapitulated;
@@ -408,18 +408,18 @@ public:
 	int getBestKnownTechScorePercent() const;
 
 	// advc.inl: inline (x2)
-	inline int getTerrainTradeCount(TerrainTypes eIndex) const
+	int getTerrainTradeCount(TerrainTypes eIndex) const
 	{
 		return m_aiTerrainTradeCount.get(eIndex);
 	}
-	inline bool isTerrainTrade(TerrainTypes eIndex) const																												// Exposed to Python
+	bool isTerrainTrade(TerrainTypes eIndex) const															// Exposed to Python
 	{
 		return (getTerrainTradeCount(eIndex) > 0);
 	}
 	void changeTerrainTradeCount(TerrainTypes eIndex, int iChange);
 
 	int getRiverTradeCount() const;
-	inline bool isRiverTrade() const																												// Exposed to Python
+	bool isRiverTrade() const																			// Exposed to Python
 	{
 		//return (getRiverTradeCount() > 0);
 		return true; // advc.124
@@ -444,7 +444,7 @@ public:
 			bool bFirst, bool bAnnounce, /* advc.121: */ bool bEndOfTurn = false);
 	/* advc.004a: A hack that allows other classes to pretend that a team knows
 	   a tech for some computation. Should be toggled back afterwards. */
-	inline void setHasTechTemporarily(TechTypes eTech, bool b) { m_abHasTech.set(eTech, b); }
+	void setHasTechTemporarily(TechTypes eTech, bool b) { m_abHasTech.set(eTech, b); }
 	int getTechCount() const { return m_iTechCount; } // advc.101
 	// <advc.134a>
 	void advancePeaceOfferStage(TeamTypes eAITeam = NO_TEAM);
@@ -461,7 +461,7 @@ public:
 
 	bool doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const; // K-Mod
 	// advc.opt:
-	inline bool canPeacefullyEnter(TeamTypes eTerritoryOwner) const
+	bool canPeacefullyEnter(TeamTypes eTerritoryOwner) const
 	{
 		return (isOpenBorders(eTerritoryOwner) || //isFriendlyTerritory(eTerritoryOwner)
 				// (The above checks too much stuff that we don't need)
@@ -470,13 +470,13 @@ public:
 	bool isFriendlyTerritory(TeamTypes eTerritoryOwner) const;
 	bool isAlliedTerritory(TeamTypes eTerritoryOwner, TeamTypes eEnemy) const; // advc.183
 	// <advc> Same as isRevealedBase (but doesn't have to be)
-	inline bool isRevealedAirBase(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
-	inline bool isRevealedCityHeal(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
-	inline bool isRevealedCityTrade(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
+	bool isRevealedAirBase(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
+	bool isRevealedCityHeal(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
+	bool isRevealedCityTrade(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
 	bool isRevealedBase(CvPlot const& kPlot) const; 
 	// Same as isBase (but doesn't have to be)
-	inline bool isAirBase(CvPlot const& kPlot) const { return isBase(kPlot); }
-	inline bool isCityHeal(CvPlot const& kPlot) const { return isBase(kPlot); }
+	bool isAirBase(CvPlot const& kPlot) const { return isBase(kPlot); }
+	bool isCityHeal(CvPlot const& kPlot) const { return isBase(kPlot); }
 	bool isBase(CvPlot const& kPlot) const;
 	bool isCityDefense(CvPlot const& kPlot, TeamTypes eAttacker = NO_TEAM) const; // </advc>
 	bool canAccessHappyHealth(CvPlot const& kPlot, int iHealthOrHappy) const; // advc.901
@@ -529,13 +529,13 @@ public:
 	// </advc.127b>
 	void finalizeInit(); // advc.003m
 	// <advc.003u>
-	__forceinline CvTeamAI& AI()
+	CvTeamAI& AI()
 	{	//return *static_cast<CvTeamAI*>(const_cast<CvTeam*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
 			that CvTeamAI is derived from CvTeam */
 		return *reinterpret_cast<CvTeamAI*>(this);
 	}
-	__forceinline CvTeamAI const& AI() const
+	CvTeamAI const& AI() const
 	{	//return *static_cast<CvTeamAI const*>(this);
 		return *reinterpret_cast<CvTeamAI const*>(this);
 	} // </advc.003u>

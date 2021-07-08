@@ -18,8 +18,8 @@ public:
 		m_aiValues.clear();
 	}
 	void grow(int iSize);
-	inline int size() const { return (int)m_aiValues.size(); }
-	inline int get(int iTurn) const
+	int size() const { return (int)m_aiValues.size(); }
+	int get(int iTurn) const
 	{
 		FAssertBounds(0, size(), iTurn); // iTurn is in the future or m_eOwner not alive
 		return m_aiValues[iTurn];

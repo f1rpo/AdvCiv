@@ -37,11 +37,11 @@ struct CvMapInitData // holds initialization info
 
 class CvMap /* advc.003e: */ : private boost::noncopyable
 {
-	/*  <advc.make> All the inline functions below used to be global functions
+	/*  <advc.make> All the public functions below used to be global functions
 		in CvGameCoreUtils.h except for coordRange, which was already in CvMap.h,
 		but as a global function. I've made some minor style changes.
 		Since I don't want to change all the call locations, I'm adding
-		global (inline) wrappers at the end of this file. */
+		global wrappers at the end of this file. */
 public:
 	// 4 | 4 | 3 | 3 | 3 | 4 | 4
 	// -------------------------
@@ -73,7 +73,7 @@ public:
 	}
 
 	// K-Mod, plot-to-plot alias for convenience:
-	inline int plotDistance(const CvPlot* plot1, const CvPlot* plot2) const
+	int plotDistance(const CvPlot* plot1, const CvPlot* plot2) const
 	{
 		return plotDistance(
 				plot1->getX(), plot1->getY(),
@@ -101,14 +101,14 @@ public:
 	}
 
 	// K-Mod, plot-to-plot alias for convenience:
-	inline int stepDistance(const CvPlot* plot1, const CvPlot* plot2) const
+	int stepDistance(const CvPlot* plot1, const CvPlot* plot2) const
 	{
 		return stepDistance(
 				plot1->getX(), plot1->getY(),
 				plot2->getX(), plot2->getY());
 	}
 
-	inline CvPlot* plotDirection(int iX, int iY, DirectionTypes eDirection) const
+	CvPlot* plotDirection(int iX, int iY, DirectionTypes eDirection) const
 	{
 		if(eDirection == NO_DIRECTION)
 			return plotValidXY(iX, iY);
@@ -118,7 +118,7 @@ public:
 				iY + GC.getPlotDirectionY()[eDirection]);
 	}
 
-	inline CvPlot* plotCardinalDirection(int iX, int iY,
+	CvPlot* plotCardinalDirection(int iX, int iY,
 		CardinalDirectionTypes eCardinalDirection) const
 	{
 		// advc.opt: Don't check for INVALID_PLOT_COORD
@@ -127,18 +127,18 @@ public:
 			iY + GC.getPlotCardinalDirectionY()[eCardinalDirection]);
 	}
 
-	inline CvPlot* plotXY(int iX, int iY, int iDX, int iDY) const
+	CvPlot* plotXY(int iX, int iY, int iDX, int iDY) const
 	{
 		// advc.opt: Don't check for INVALID_PLOT_COORD
 		return plotValidXY(iX + iDX, iY + iDY);
 	}
 	// K-Mod:
-	inline CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) const
+	CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) const
 	{
 		return plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
 	}
 
-	inline DirectionTypes directionXY(int iDX, int iDY) const
+	DirectionTypes directionXY(int iDX, int iDY) const
 	{
 		/*if (abs(iDX) > DIRECTION_RADIUS || abs(iDY) > DIRECTION_RADIUS)
 			return NO_DIRECTION;*/ /* advc.opt: Apparently can't happen
@@ -147,34 +147,34 @@ public:
 		return GC.getXYDirection(iDX + DIRECTION_RADIUS, iDY + DIRECTION_RADIUS);
 	}
 
-	inline DirectionTypes directionXY(CvPlot const& kFromPlot, CvPlot const& kToPlot) const // advc: take params as references
+	DirectionTypes directionXY(CvPlot const& kFromPlot, CvPlot const& kToPlot) const // advc: params as references
 	{
 		return directionXY(
 				dxWrap(kToPlot.getX() - kFromPlot.getX()),
 				dyWrap(kToPlot.getY() - kFromPlot.getY()));
 	}
 
-	inline int dxWrap(int iDX) const
+	int dxWrap(int iDX) const
 	{
 		return wrapCoordDifference(iDX, getGridWidth(), isWrapX());
 	}
 
-	inline int dyWrap(int iDY) const
+	int dyWrap(int iDY) const
 	{
 		return wrapCoordDifference(iDY, getGridHeight(), isWrapY());
 	}
 
-	inline int xDistance(int iFromX, int iToX) const
+	int xDistance(int iFromX, int iToX) const
 	{
 		return coordDistance(iFromX, iToX, getGridWidth(), isWrapX());
 	}
 
-	inline int yDistance(int iFromY, int iToY) const
+	int yDistance(int iFromY, int iToY) const
 	{
 		return coordDistance(iFromY, iToY, getGridHeight(), isWrapY());
 	}
 
-	inline CvPlot* plotCity(int iX, int iY, CityPlotTypes ePlot) const						// Exposed to Python (CyGameCoreUtils.py)
+	CvPlot* plotCity(int iX, int iY, CityPlotTypes ePlot) const								// Exposed to Python (CyGameCoreUtils.py)
 	{	// advc.enum: 3rd param was int
 		// advc.opt: Don't check for INVALID_PLOT_COORD
 		return plotValidXY(iX + GC.getCityPlotX()[ePlot], iY + GC.getCityPlotY()[ePlot]);
@@ -187,17 +187,17 @@ public:
 		return GC.getXYCityPlot(iDX + CITY_PLOTS_RADIUS, iDY + CITY_PLOTS_RADIUS);
 	}
 	// advc: 1st param (CvCity*) replaced with two ints - to allow hypothetical city sites
-	inline CityPlotTypes plotCityXY(int iCityX, int iCityY, CvPlot const& kPlot) const		// Exposed to Python (CyGameCoreUtils.py)
+	CityPlotTypes plotCityXY(int iCityX, int iCityY, CvPlot const& kPlot) const				// Exposed to Python (CyGameCoreUtils.py)
 	{
 		return plotCityXY(dxWrap(kPlot.getX() - iCityX), dyWrap(kPlot.getY() - iCityY));
 	}
 	// advc:
-	inline bool adjacentOrSame(CvPlot const& kFirstPlot, CvPlot const& kSecondPlot) const
+	bool adjacentOrSame(CvPlot const& kFirstPlot, CvPlot const& kSecondPlot) const
 	{
 		return (stepDistance(&kFirstPlot, &kSecondPlot) <= 1);
 	}
 	// advc.opt: Check cache at CvPlot before doing the computation
-	inline bool isSeparatedByIsthmus(CvPlot const& kFrom, CvPlot const& kTo) const
+	bool isSeparatedByIsthmus(CvPlot const& kFrom, CvPlot const& kTo) const
 	{
 		if (!kFrom.isAnyIsthmus())
 			return false;
@@ -205,11 +205,7 @@ public:
 	}
 
 private: // Auxiliary functions
-	/*	These look too large and branchy for inlining, but the keywords
-		(already present in BtS) do seem to improve performance a little bit.
-		Maybe b/c plotDistance and stepDistance aren't being inlined. */
-
-	inline int coordDistance(int iFrom, int iTo, int iRange, bool bWrap) const
+	int coordDistance(int iFrom, int iTo, int iRange, bool bWrap) const
 	{
 		int iDelta = abs(iFrom - iTo); // advc.opt: Make sure this is computed only once
 		if (bWrap && iDelta > iRange / 2)
@@ -217,7 +213,7 @@ private: // Auxiliary functions
 		return iDelta;
 	}
 
-	inline int wrapCoordDifference(int iDiff, int iRange, bool bWrap) const
+	int wrapCoordDifference(int iDiff, int iRange, bool bWrap) const
 	{
 		if (!bWrap)
 			return iDiff;
@@ -228,7 +224,7 @@ private: // Auxiliary functions
 		return iDiff;
 	}
 
-	inline int coordRange(int iCoord, int iRange, bool bWrap) const
+	int coordRange(int iCoord, int iRange, bool bWrap) const
 	{
 		if (!bWrap || iRange == 0)
 			return iCoord;
@@ -314,29 +310,30 @@ public: // advc: made several functions const
 	int getMapFractalFlags() const;																				// Exposed to Python
 	bool findWater(CvPlot const* pPlot, int iRange, bool bFreshWater);										// Exposed to Python
 
-	bool isPlotExternal(int iX, int iY) const; // advc.inl: Exported through .def file							// Exposed to Python
-	inline bool isPlot(int iX, int iY) const // advc.inl: Renamed from isPlotINLINE; return type was int.
+	// advc.inl: Was "isPlotINLINE", return type was int.
+	DllExport bool isPlot(int iX, int iY) const 													// Exposed to Python
 	{
 		return (iX >= 0 && iX < getGridWidth() && iY >= 0 && iY < getGridHeight());
 	}
 	int numPlotsExternal() const; // advc.inl: Exported through .def file							// Exposed to Python
-	inline PlotNumTypes numPlots() const // advc.inl: Renamed from numPlotsINLINE
+	PlotNumTypes numPlots() const // advc.inl: was "numPlotsINLINE"
 	{
 		return m_ePlots;//getGridWidth() * getGridHeight(); // advc.opt
 	}
 	/*	advc.inl: Merged with plotNumINLINE (plotNum wasn't called externally).
 		advc.enum: return type changed from int.
-		Tbd(?).: Cache this at CvPlot (and possibly CvCity)? */
-	inline PlotNumTypes plotNum(int iX, int iY) const 												// Exposed to Python
+		advc.opt (note): When a CvPlot or CvCity instance is available,
+		CvPlot::plotNum and CvCity::plotNum should be preferred. */
+	PlotNumTypes plotNum(int iX, int iY) const 														// Exposed to Python
 	{
-		return (PlotNumTypes)(iY * getGridWidth() + iX);
-	}  // advc: wrapper
-	__forceinline PlotNumTypes plotNum(CvPlot const& kPlot) const
-	{
-		return plotNum(kPlot.getX(), kPlot.getY());
+		int iPlotNum = iY * getGridWidth() + iX;
+		FAssertBounds(0, MAX_PLOT_NUM + 1, iPlotNum);
+		return static_cast<PlotNumTypes>(iPlotNum);
 	}
-	int plotX(int iIndex) const;																										// Exposed to Python
-	int plotY(int iIndex) const;																										// Exposed to Python
+	/*	I don't think this should be exposed. Still available to Python via CyMap
+		(to avoid breaking anyone's Python code - deprecated, let's say). */
+	/*int plotX(int iIndex) const;						// Exposed to Python
+	int plotY(int iIndex) const;*/						// Exposed to Python
 
 	int pointXToPlotX(float fX) const;
 	DllExport float plotXToPointX(int iX)  // <advc> const version
@@ -365,13 +362,11 @@ public: // advc: made several functions const
 	}
 	int maxTypicalDistance() const; // </advc.140>
 
-	int getGridWidthExternal() const; // advc.inl: Exported through .def file							// Exposed to Python
-	inline int getGridWidth() const // advc.inl: Renamed from getGridWidthINLINE
+	DllExport int getGridWidth() const // advc.inl: was "getGridWidthINLINE"							// Exposed to Python
 	{
 		return m_iGridWidth;
 	}
-	int getGridHeightExternal() const; // advc.inl: Exported through .def file							// Exposed to Python																	// Exposed to Python
-	inline int getGridHeight() const // advc.inl: Renamed from getGridHeightINLINE
+	DllExport int getGridHeight() const // advc.inl: was "getGridHeightINLINE"							// Exposed to Python
 	{
 		return m_iGridHeight;
 	}
@@ -390,11 +385,11 @@ public: // advc: made several functions const
 	void incrementNextRiverID();																					// Exposed to Python
 
 	bool isWrapXExternal(); // advc.inl: Exported through .def file							// Exposed to Python
-	inline bool isWrapX() const { return m_bWrapX; } // advc.inl: Renamed from isWrapXINLINE
+	bool isWrapX() const { return m_bWrapX; } // advc.inl: was "isWrapXINLINE"
 	bool isWrapYExternal(); // advc.inl: Exported through .def file							// Exposed to Python
-	inline bool isWrapY() const { return m_bWrapY; } // advc.inl: Renamed from isWrapYINLINE
+	bool isWrapY() const { return m_bWrapY; } // advc.inl: was "isWrapYINLINE"
 	bool isWrapExternal(); // advc.inl: Exported through .def file
-	inline bool isWrap() const // advc.inl: Renamed from isWrapINLINE
+	bool isWrap() const // advc.inl: Renamed from isWrapINLINE
 	{
 		return m_bWrapX || m_bWrapY;
 	}
@@ -421,21 +416,20 @@ public: // advc: made several functions const
 	int getNumBonusesOnLand(BonusTypes eIndex) const;														// Exposed to Python
 	void changeNumBonusesOnLand(BonusTypes eIndex, int iChange);
 
-	CvPlot* plotByIndexExternal(int iIndex) const; // advc.inl: Exported through .def file							// Exposed to Python
+	CvPlot* plotByIndexExternal(int iIndex) const; // advc.inl: Exported through .def file						// Exposed to Python
 	// advc.enum (tbd.): Change param to PlotNumTypes
-	inline CvPlot* plotByIndex(int iIndex) const // advc.inl: Renamed from plotByIndexINLINE
+	CvPlot* plotByIndex(int iIndex) const // advc.inl: was "plotByIndexINLINE"
 	{
 		return ((iIndex >= 0 && iIndex < numPlots()) ? &(m_pMapPlots[iIndex]) : NULL);
 	} // <advc.inl> Faster (w/o branching)
-	__forceinline CvPlot& getPlotByIndex(int iIndex) const
+	CvPlot& getPlotByIndex(int iIndex) const
 	{
 		FAssertBounds(0, numPlots(), iIndex);
 		return m_pMapPlots[iIndex];
 	} // </advc.inl>
-	CvPlot* plotExternal(int iX, int iY) const; // advc.inl: Exported through .def file							// Exposed to Python
-	/*  advc.inl: Renamed from plotINLINE. Was inlined, but I'm getting slightly
+	/*  advc.inl: Was "plotINLINE". Was force-inline, but I'm getting slightly
 		better performance without that (having replaced some calls with getPlot) . */
-	CvPlot* plot(int iX, int iY) const
+	DllExport CvPlot* plot(int iX, int iY) const															// Exposed to Python
 	{
 		if (iX == INVALID_PLOT_COORD || iY == INVALID_PLOT_COORD)
 			return NULL;
@@ -443,8 +437,8 @@ public: // advc: made several functions const
 		int iMapY = coordRange(iY, getGridHeight(), isWrapY());
 		return (isPlot(iMapX, iMapY) ? &m_pMapPlots[plotNum(iMapX, iMapY)] : NULL);
 	}
-	// advc.inl: Renamed from plotSorenINLINE (was already force-inlined in BtS and that helps too)
-	__forceinline CvPlot* plotSoren(int iX, int iY) const
+	// advc.inl: Renamed from plotSorenINLINE; was force-inlined.
+	CvPlot* plotSoren(int iX, int iY) const
 	{
 		if (iX == INVALID_PLOT_COORD || iY == INVALID_PLOT_COORD)
 			return NULL;
@@ -458,8 +452,7 @@ public: // advc: made several functions const
 	} // </advc.inl>
 	/*	advc.opt: Yet another plot getter. Checks coordRange but not INVALID_PLOT_COORD.
 		For functions that compute x,y as an offset from a (valid) plot -
-		not plausible that the new coordinates would equal INVALID_PLOT_COORD.
-		'inline' tested - faster without it. */
+		not plausible that the new coordinates would equal INVALID_PLOT_COORD. */
 	CvPlot* plotValidXY(int iX, int iY) const
 	{
 		int iMapX = coordRange(iX, getGridWidth(), isWrapX());
@@ -580,7 +573,7 @@ protected:
 };
 
 // advc.enum: (for EnumMap)
-__forceinline PlotNumTypes getEnumLength(PlotNumTypes)
+inline PlotNumTypes getEnumLength(PlotNumTypes)
 {
 	return GC.getMap().numPlots();
 }

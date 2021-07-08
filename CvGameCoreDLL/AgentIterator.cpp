@@ -16,11 +16,11 @@ void AgentIteratorBase::setAgentsCache(CvAgents const* pAgents)
 
 namespace
 {
-	inline TeamTypes getTeam(CvPlayerAI const& kPlayer)
+	__inline TeamTypes getTeam(CvPlayerAI const& kPlayer)
 	{
 		return kPlayer.getTeam();
 	}
-	inline TeamTypes getTeam(CvTeamAI const& kTeam)
+	__inline TeamTypes getTeam(CvTeamAI const& kTeam)
 	{
 		return kTeam.getID();
 	}
@@ -29,38 +29,38 @@ namespace
 
 	template<class AgentType,AgentStatusPredicate eSTATUS,AgentRelationPredicate eRELATION,
 	CvAgents::AgentSeqCache eCACHE>
-	inline bool isBarbarian(AgentType const& kAgent)
+	__inline bool isBarbarian(AgentType const& kAgent)
 	{
 		return (eCACHE == CvAgents::ALL && kAgent.isBarbarian());
 	}
 	template<class AgentType,AgentStatusPredicate eSTATUS,AgentRelationPredicate eRELATION,
 	CvAgents::AgentSeqCache eCACHE>
-	inline bool isEverAlive(AgentType const& kAgent)
+	__inline bool isEverAlive(AgentType const& kAgent)
 	{
 		return (eCACHE != CvAgents::ALL || kAgent.isEverAlive());
 	}
 	template<class AgentType,AgentStatusPredicate eSTATUS,AgentRelationPredicate eRELATION,
 	CvAgents::AgentSeqCache eCACHE>
-	inline bool isAlive(AgentType const& kAgent)
+	__inline bool isAlive(AgentType const& kAgent)
 	{
 		return ((eCACHE != CvAgents::ALL && eCACHE != CvAgents::CIV_EVER_ALIVE) ||
 				kAgent.isAlive());
 	}
 	template<class AgentType,AgentStatusPredicate eSTATUS,AgentRelationPredicate eRELATION,
 	CvAgents::AgentSeqCache eCACHE>
-	inline bool isMinorCiv(AgentType const& kAgent)
+	__inline bool isMinorCiv(AgentType const& kAgent)
 	{
 		return (eCACHE != CvAgents::MAJOR_ALIVE && kAgent.isMinorCiv());
 	}
 	template<class AgentType,AgentStatusPredicate eSTATUS,AgentRelationPredicate eRELATION,
 	CvAgents::AgentSeqCache eCACHE>
-	inline bool isAVassal(AgentType const& kAgent)
+	__inline bool isAVassal(AgentType const& kAgent)
 	{
 		return GET_TEAM(getTeam(kAgent)).isAVassal();
 	}
 	template<class AgentType,AgentStatusPredicate eSTATUS,AgentRelationPredicate eRELATION,
 	CvAgents::AgentSeqCache eCACHE>
-	inline bool isSameMaster(AgentType const& kAgent, TeamTypes eTeam)
+	__inline bool isSameMaster(AgentType const& kAgent, TeamTypes eTeam)
 	{
 		return (GET_TEAM(getTeam(kAgent)).getMasterTeam() == GET_TEAM(eTeam).getMasterTeam());
 	}

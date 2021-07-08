@@ -11,8 +11,6 @@
 	(Tbd.: Move those functions here?)
 	For inclusion in PCH, one may have to define NOMINMAX before including windows.h;
 	see CvGameCoreDLL.h.
-	May want to define __forceinline as __inline if FASSERT_ENABLE is defined;
-	see FAssert.h.
 	The bernoulliSuccess function assumes that CvRandom can include two integer values
 	in its log messages; see comment in bernoulliSuccess. */
 
@@ -40,7 +38,7 @@ protected:
 	/*	(Could also be global, but sizeof(OtherIntType) <= 4 shouldn't be assumed
 		in other contexts.) */
 	template<typename OtherIntType>
-	static __forceinline int safeToInt(OtherIntType n)
+	static int safeToInt(OtherIntType n)
 	{
 		BOOST_STATIC_ASSERT(sizeof(OtherIntType) <= 4);
 		// uint is the only problematic OtherIntType
@@ -110,9 +108,7 @@ CvString ScaledNumBase<Dummy>::szBuf = "";
 	EnumType is int and OtherEnumType isn't.
 
 	To avoid (even more) template clutter, most of the functions are defined within
-	the ScaledNum class definition. For those defined out-of-class, I've placed
-	__forceinline keywords in both places (declaration and definition) to make clear
-	that there will (probably) be no call overhead.
+	the ScaledNum class definition.
 
 	Tbd. -- in addition to "tbd." and "fixme" comments throughout this file:
 	- Add logarithm function.
@@ -149,30 +145,30 @@ public:
 		that the conversion to SCALE happens at compile time, so that
 		floating-point math can be used for maximal accuracy. */
 	template<int iNUM, int iDEN>
-	static __forceinline ScaledNum fromRational()
+	static ScaledNum fromRational()
 	{
 		BOOST_STATIC_ASSERT(iDEN != 0);
 		BOOST_STATIC_ASSERT(bSIGNED || (iDEN > 0 && iNUM >= 0));
 		return fromDouble(iNUM / static_cast<double>(iDEN));
 	}
 	// Smallest positive number that can be represented
-	static __forceinline ScaledNum epsilon()
+	static ScaledNum epsilon()
 	{
 		ScaledNum r;
 		r.m_i = 1;
 		return r;
 	}
 
-	__forceinline static ScaledNum max(ScaledNum r1, ScaledNum r2)
+	static ScaledNum max(ScaledNum r1, ScaledNum r2)
 	{
 		return std::max(r1, r2);
 	}
-	__forceinline static ScaledNum min(ScaledNum r1, ScaledNum r2)
+	static ScaledNum min(ScaledNum r1, ScaledNum r2)
 	{
 		return std::min(r1, r2);
 	}
 	template<typename LoType, typename HiType>
-	static __forceinline ScaledNum clamp(ScaledNum r, LoType lo, HiType hi)
+	static ScaledNum clamp(ScaledNum r, LoType lo, HiType hi)
 	{
 		r.clamp(lo, hi);
 		return r;
@@ -195,15 +191,15 @@ public:
 		return rand(rng, NULL);
 	}
 	// For hashing just a single input
-	static inline ScaledNum hash(int x, PlayerTypes ePlayer = NO_PLAYER)
+	static ScaledNum hash(int x, PlayerTypes ePlayer = NO_PLAYER)
 	{
 		std::vector<int> v;
 		v.push_back(x);
 		return hash(v, ePlayer);
 	}
 
-	__forceinline ScaledNum() : m_i(static_cast<IntType>(0)) {}
-	__forceinline ScaledNum(int i) : m_i(static_cast<IntType>(SCALE * i))
+	ScaledNum() : m_i(static_cast<IntType>(0)) {}
+	ScaledNum(int i) : m_i(static_cast<IntType>(SCALE * i))
 	{
 		// Respecting the limits is really the caller's responsibility
 		#ifdef SCALED_NUM_EXTRA_ASSERTS
@@ -211,29 +207,29 @@ public:
 			FAssert(static_cast<IntType>(i) <= INTMAX / SCALE);
 		#endif
 	}
-	__forceinline ScaledNum(uint u) : m_i(static_cast<IntType>(SCALE * u))
+	ScaledNum(uint u) : m_i(static_cast<IntType>(SCALE * u))
 	{
 		#ifdef SCALED_NUM_EXTRA_ASSERTS
 			FAssert(u <= static_cast<uint>(INTMAX) / static_cast<uint>(SCALE));
 		#endif
 	}
 	// Construction from rational
-	__forceinline ScaledNum(int iNum, int iDen)
+	ScaledNum(int iNum, int iDen)
 	{
 		m_i = safeCast(mulDiv(SCALE, iNum, iDen));
 	}
-	__forceinline ScaledNum(uint uiNum, uint uiDen)
+	ScaledNum(uint uiNum, uint uiDen)
 	{
 		m_i = safeCast(mulDiv(SCALE, uiNum, uiDen));
 	}
 
 	// Scale and integer type conversion constructor
 	template<int iFROM_SCALE, typename OtherIntType, typename OtherEnumType>
-	__forceinline ScaledNum(ScaledNum<iFROM_SCALE,OtherIntType,OtherEnumType> const& rOther);
+	ScaledNum(ScaledNum<iFROM_SCALE,OtherIntType,OtherEnumType> const& rOther);
 
 	/*	Explicit conversion to default EnumType
 		(can't overload explicit cast operator in C++03) */
-	__forceinline ScaledNum<iSCALE,IntType> convert() const
+	ScaledNum<iSCALE,IntType> convert() const
 	{
 		ScaledNum<iSCALE,IntType> r;
 		r.m_i = m_i;
@@ -242,14 +238,14 @@ public:
 
 	/*	Better be explicit about rounding. Since conversion to int should
 		not be extremely frequent, I recommend using 'round' in most cases. */
-	//__forceinline int getInt() const { return round(); }
+	//int getInt() const { return round(); }
 	// Cast operator - again, better to be explicit.
-	//__forceinline operator int() const { return getInt(); }
+	//operator int() const { return getInt(); }
 	int round() const; // Expect this to get inlined for unsigned IntType
 	/*	Only for signed IntType. Non-branching, expect this to get inlined always,
 		but only works on non-negative numbers. */
 	int uround() const;
-	__forceinline int floor() const
+	int floor() const
 	{
 		return static_cast<int>(m_i / SCALE);
 	}
@@ -263,27 +259,27 @@ public:
 		return (m_i % SCALE == 0);
 	}
 
-	__forceinline int getPercent() const
+	int getPercent() const
 	{
 		return safeToInt(mulDivRound(m_i, 100, SCALE));
 	}
-	__forceinline int getPermille() const
+	int getPermille() const
 	{
 		return safeToInt(mulDivRound(m_i, 1000, SCALE));
 	}
-	__forceinline int roundToMultiple(int iMultiple) const
+	int roundToMultiple(int iMultiple) const
 	{
 		return mulDivRound(m_i, 1, SCALE * iMultiple) * iMultiple;
 	}
-	__forceinline int toMultipleFloor(int iMultiple) const
+	int toMultipleFloor(int iMultiple) const
 	{
 		return (m_i / (SCALE * iMultiple)) * iMultiple;
 	}
-	__forceinline double getDouble() const
+	double getDouble() const
 	{
 		return m_i / static_cast<double>(SCALE);
 	}
-	__forceinline float getFloat() const
+	float getFloat() const
 	{
 		return m_i / static_cast<float>(SCALE);
 	}
@@ -312,7 +308,7 @@ public:
 		pStream->Read(&m_i);
 	}
 
-	__forceinline void mulDiv(int iMultiplier, int iDivisor)
+	void mulDiv(int iMultiplier, int iDivisor)
 	{
 		m_i = safeCast(mulDiv(m_i, iMultiplier, iDivisor));
 	}
@@ -322,31 +318,31 @@ public:
 			int iLogData1 = MIN_INT, int iLogData2 = MIN_INT) const;
 
 	ScaledNum pow(int iExp) const;
-	__forceinline ScaledNum pow(ScaledNum rExp) const
+	ScaledNum pow(ScaledNum rExp) const
 	{
 		return _pow<rExp.bSIGNED>(rExp);
 	}
-	__forceinline ScaledNum sqrt() const
+	ScaledNum sqrt() const
 	{
 		FAssert(!isNegative());
 		return powNonNegative(fromRational<1,2>());
 	}
-	__forceinline ScaledNum exp() const
+	ScaledNum exp() const
 	{
 		return fromRational<27182818,10000000>().pow(*this);
 	}
-	__forceinline void exponentiate(ScaledNum rExp)
+	void exponentiate(ScaledNum rExp)
 	{
 		*this = pow(rExp);
 	}
 
-	__forceinline ScaledNum abs() const
+	ScaledNum abs() const
 	{
 		return _abs<bSIGNED>();
 	}
 
 	template<typename LoType, typename HiType>
-	__forceinline void clamp(LoType lo, HiType hi)
+	void clamp(LoType lo, HiType hi)
 	{
 		FAssert(lo <= hi);
 		increaseTo(lo);
@@ -385,206 +381,206 @@ public:
 	template<typename NumType, typename Epsilon>
 	bool approxEquals(NumType num, Epsilon e) const;
 
-	__forceinline bool isPositive() const { return (m_i > 0); }
-	__forceinline bool isNegative() const { return (bSIGNED && m_i < 0); }
+	bool isPositive() const { return (m_i > 0); }
+	bool isNegative() const { return (bSIGNED && m_i < 0); }
 	/*	Typically, the 0 sign doesn't matter, so this function wouldn't be
 		as efficient as it could be in most cases. */
-	//__forceinline char getSign() const { return (isPositive() ? 1 : (isNegative() ? -1 : 0)); }
+	//char getSign() const { return (isPositive() ? 1 : (isNegative() ? -1 : 0)); }
 
-	__forceinline void flipSign() { *this = -(*this); }
-	__forceinline void flipFraction() { *this = 1 / *this; }
-	__forceinline ScaledNum operator-() const;
+	void flipSign() { *this = -(*this); }
+	void flipFraction() { *this = 1 / *this; }
+	ScaledNum operator-() const;
 
 	template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-	__forceinline bool operator<(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const;
+	bool operator<(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const;
 	template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-	__forceinline bool operator>(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const;
+	bool operator>(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const;
 	template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-	__forceinline bool operator==(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const;
+	bool operator==(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const;
 	template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-	__forceinline bool operator!=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const;
+	bool operator!=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const;
 	template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-	__forceinline bool operator<=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const;
+	bool operator<=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const;
 	template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-	__forceinline bool operator>=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const;
+	bool operator>=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const;
 
 	// Exact comparisons with int - to be consistent with int-float comparisons.
-	__forceinline bool operator<(int i) const
+	bool operator<(int i) const
 	{
 		return (m_i < scaleForComparison(i));
 	}
-	__forceinline bool operator>(int i) const
+	bool operator>(int i) const
 	{
 		return (m_i > scaleForComparison(i));
 	}
-	__forceinline bool operator==(int i) const
+	bool operator==(int i) const
 	{
 		return (m_i == scaleForComparison(i));
 	}
-	__forceinline bool operator!=(int i) const
+	bool operator!=(int i) const
 	{
 		return (m_i != scaleForComparison(i));
 	}
-	__forceinline bool operator<=(int i) const
+	bool operator<=(int i) const
 	{
 		return (m_i <= scaleForComparison(i));
 	}
-	__forceinline bool operator>=(int i) const
+	bool operator>=(int i) const
 	{
 		return (m_i >= scaleForComparison(i));
 	}
-	__forceinline bool operator<(uint i) const
+	bool operator<(uint i) const
 	{
 		return (m_i < scaleForComparison(u));
 	}
-	__forceinline bool operator>(uint u) const
+	bool operator>(uint u) const
 	{
 		return (m_i > scaleForComparison(u));
 	}
-	__forceinline bool operator==(uint u) const
+	bool operator==(uint u) const
 	{
 		return (m_i == scaleForComparison(u));
 	}
-	__forceinline bool operator!=(uint u) const
+	bool operator!=(uint u) const
 	{
 		return (m_i != scaleForComparison(i));
 	}
-	__forceinline bool operator<=(uint u) const
+	bool operator<=(uint u) const
 	{
 		return (m_i <= scaleForComparison(u));
 	}
-	__forceinline bool operator>=(uint u) const
+	bool operator>=(uint u) const
 	{
 		return (m_i >= scaleForComparison(u));
 	}
 
 	/*	Couldn't guarantee here that only const expressions are used.
 		So floating-point operands will have to be wrapped in fixp. */
-	/*__forceinline bool operator<(double d) const
+	/*bool operator<(double d) const
 	{
 		return (getDouble() < d);
 	}
-	__forceinline bool operator>(double d) const
+	bool operator>(double d) const
 	{
 		return (getDouble() > d);
 	}*/
 
 	// Operand on different scale: Let ctor implicitly convert it to ScaledNum
-	__forceinline ScaledNum& operator+=(ScaledNum rOther);
-	__forceinline ScaledNum& operator-=(ScaledNum rOther);
+	ScaledNum& operator+=(ScaledNum rOther);
+	ScaledNum& operator-=(ScaledNum rOther);
 
 	template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-	__forceinline ScaledNum& operator*=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther);
+	ScaledNum& operator*=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther);
 	template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-	__forceinline ScaledNum& operator/=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther);
+	ScaledNum& operator/=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther);
 
-	__forceinline ScaledNum& operator++()
+	ScaledNum& operator++()
 	{
 		(*this) += 1;
 		return *this;
 	}
-	__forceinline ScaledNum& operator--()
+	ScaledNum& operator--()
 	{
 		(*this) -= 1;
 		return *this;
 	}
-	__forceinline ScaledNum operator++(int)
+	ScaledNum operator++(int)
 	{
 		ScaledNum rCopy(*this);
 		(*this) += 1;
 		return rCopy;
 	}
-	__forceinline ScaledNum operator--(int)
+	ScaledNum operator--(int)
 	{
 		ScaledNum rCopy(*this);
 		(*this) -= 1;
 		return rCopy;
 	}
 
-	__forceinline ScaledNum& operator+=(int i)
+	ScaledNum& operator+=(int i)
 	{
 		(*this) += ScaledNum(i);
 		return (*this);
 	}
-	__forceinline ScaledNum& operator-=(int i)
+	ScaledNum& operator-=(int i)
 	{
 		(*this) -= ScaledNum(i);
 		return (*this);
 	}
-	__forceinline ScaledNum& operator*=(int i)
+	ScaledNum& operator*=(int i)
 	{
 		(*this) *= ScaledNum(i);
 		return (*this);
 	}
-	__forceinline ScaledNum& operator/=(int i)
+	ScaledNum& operator/=(int i)
 	{
 		(*this) /= ScaledNum(i);
 		return (*this);
 	}
-	__forceinline ScaledNum& operator+=(uint u)
+	ScaledNum& operator+=(uint u)
 	{
 		(*this) += ScaledNum(u);
 		return (*this);
 	}
-	__forceinline ScaledNum& operator-=(uint u)
+	ScaledNum& operator-=(uint u)
 	{
 		(*this) -= ScaledNum(u);
 		return (*this);
 	}
-	__forceinline ScaledNum& operator*=(uint u)
+	ScaledNum& operator*=(uint u)
 	{
 		(*this) *= ScaledNum(u);
 		return (*this);
 	}
-	__forceinline ScaledNum& operator/=(uint u)
+	ScaledNum& operator/=(uint u)
 	{
 		(*this) /= ScaledNum(u);
 		return (*this);
 	}
 
-	__forceinline ScaledNum operator+(int i) const
+	ScaledNum operator+(int i) const
 	{
 		ScaledNum rCopy(*this);
 		rCopy += i;
 		return rCopy;
 	}
-	__forceinline ScaledNum operator-(int i) const
+	ScaledNum operator-(int i) const
 	{
 		ScaledNum rCopy(*this);
 		rCopy -= i;
 		return rCopy;
 	}
-	__forceinline ScaledNum operator*(int i) const
+	ScaledNum operator*(int i) const
 	{
 		ScaledNum rCopy(*this);
 		rCopy *= i;
 		return rCopy;
 	}
-	__forceinline ScaledNum operator/(int i) const
+	ScaledNum operator/(int i) const
 	{
 		ScaledNum rCopy(*this);
 		rCopy /= i;
 		return rCopy;
 	}
-	__forceinline ScaledNum operator+(uint u) const
+	ScaledNum operator+(uint u) const
 	{
 		ScaledNum rCopy(*this);
 		rCopy += u;
 		return rCopy;
 	}
-	__forceinline ScaledNum operator-(uint u) const
+	ScaledNum operator-(uint u) const
 	{
 		ScaledNum rCopy(*this);
 		rCopy -= u;
 		return rCopy;
 	}
-	__forceinline ScaledNum operator*(uint u) const
+	ScaledNum operator*(uint u) const
 	{
 		ScaledNum rCopy(*this);
 		rCopy *= u;
 		return rCopy;
 	}
-	__forceinline ScaledNum operator/(uint u) const
+	ScaledNum operator/(uint u) const
 	{
 		ScaledNum rCopy(*this);
 		rCopy /= u;
@@ -595,8 +591,7 @@ private:
 	/*	Doesn't depend on any ScaledNum template param. Make it global? Would have to be in
 		a namespace in order to avoid confusion with MulDiv (WinBase.h). */
 	template<typename MultiplicandType, typename MultiplierType, typename DivisorType>
-	static __forceinline
-	typename choose_int_type
+	static typename choose_int_type
 		< typename choose_int_type<MultiplicandType,MultiplierType>::type, DivisorType >::type
 	mulDiv(MultiplicandType multiplicand, MultiplierType multiplier, DivisorType divisor)
 	{
@@ -644,8 +639,7 @@ private:
 	}
 
 	template<typename MultiplicandType, typename MultiplierType>
-	static __forceinline
-	typename choose_int_type
+	static typename choose_int_type
 		< typename choose_int_type<IntType,MultiplierType>::type, MultiplicandType >::type
 	mulDivByScale(MultiplicandType multiplicand, MultiplierType multiplier)
 	{
@@ -656,8 +650,7 @@ private:
 	}
 
 	template<typename MultiplierType, typename DivisorType>
-	static __forceinline
-	typename choose_int_type
+	static typename choose_int_type
 		< typename choose_int_type<IntType,MultiplierType>::type, DivisorType >::type
 	mulDivRound(IntType multiplicand, MultiplierType multiplier, DivisorType divisor)
 	{
@@ -678,7 +671,7 @@ private:
 	}
 
 	template<typename OtherIntType>
-	static __forceinline IntType safeCast(OtherIntType n)
+	static IntType safeCast(OtherIntType n)
 	{
 		if (std::numeric_limits<OtherIntType>::is_signed != bSIGNED ||
 			sizeof(IntType) < sizeof(OtherIntType))
@@ -713,7 +706,7 @@ private:
 		return powNonNegative(rExp);
 	}
 	template<>
-	__forceinline ScaledNum _pow<false>(ScaledNum rExp) const
+	ScaledNum _pow<false>(ScaledNum rExp) const
 	{
 		return powNonNegative(rExp);
 	}
@@ -801,8 +794,7 @@ private:
 	}
 
 	template<typename OtherIntType>
-	static __forceinline
-	typename product_int_type<IntType,OtherIntType>::type
+	static typename product_int_type<IntType,OtherIntType>::type
 	scaleForComparison(OtherIntType n)
 	{
 		// Tbd.: Perhaps some intrinsic function could do this faster (on the caller's side)?
@@ -816,7 +808,7 @@ private:
 		Converting from double to ScaledNum at runtime really defeats the
 		purpose of the ScaledNum class. */
 	public:
-	static __forceinline ScaledNum fromDouble(double d)
+	static ScaledNum fromDouble(double d)
 	{
 		ScaledNum r;
 		r.m_i = safeCast(fmath::round(d * SCALE));
@@ -824,11 +816,11 @@ private:
 	}
 	private:
 
-	// Use specialization so that the non-branching (unsigned) version can be force-inlined
+	// Use specialization so that the non-branching (unsigned) version can be inlined
 	template<bool bSigned>
 	ScaledNum _abs() const;
 	template<>
-	__forceinline ScaledNum _abs<false>() const
+	ScaledNum _abs<false>() const
 	{
 		return *this;
 	}
@@ -855,7 +847,6 @@ template<int iFROM_SCALE, typename OtherIntType, typename OtherEnumType>
 /*	Take the argument by reference although this isn't technically a copy constructor.
 	Taking it by value leads to peculiar compiler errors when an assignment is followed 
 	by an opening curly brace (compiler demands a semicolon then). */
-__forceinline
 ScaledNum_T::ScaledNum(ScaledNum<iFROM_SCALE,OtherIntType,OtherEnumType> const& rOther)
 {
 	STATIC_ASSERT_COMPATIBLE(EnumType,OtherEnumType);
@@ -933,7 +924,6 @@ bool ScaledNum_T::approxEquals(NumType num, Epsilon e) const
 }
 
 template<ScaledNum_PARAMS>
-__forceinline
 ScaledNum_T ScaledNum_T::operator-() const
 {
 	BOOST_STATIC_ASSERT(bSIGNED);
@@ -947,7 +937,6 @@ ScaledNum_T ScaledNum_T::operator-() const
 
 template<ScaledNum_PARAMS>
 template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-__forceinline
 bool ScaledNum_T::operator<(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const
 {
 	STATIC_ASSERT_COMPATIBLE(EnumType,OtherEnumType);
@@ -962,7 +951,6 @@ bool ScaledNum_T::operator<(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> r
 
 template<ScaledNum_PARAMS>
 template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-__forceinline
 bool ScaledNum_T::operator>(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const
 {
 	STATIC_ASSERT_COMPATIBLE(EnumType,OtherEnumType);
@@ -977,7 +965,6 @@ bool ScaledNum_T::operator>(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> r
 
 template<ScaledNum_PARAMS>
 template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-__forceinline
 bool ScaledNum_T::operator==(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const
 {
 	STATIC_ASSERT_COMPATIBLE(EnumType,OtherEnumType);
@@ -992,7 +979,6 @@ bool ScaledNum_T::operator==(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> 
 
 template<ScaledNum_PARAMS>
 template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-__forceinline
 bool ScaledNum_T::operator!=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const
 {
 	STATIC_ASSERT_COMPATIBLE(EnumType,OtherEnumType);
@@ -1007,7 +993,6 @@ bool ScaledNum_T::operator!=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> 
 
 template<ScaledNum_PARAMS>
 template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-__forceinline
 bool ScaledNum_T::operator<=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const
 {
 	STATIC_ASSERT_COMPATIBLE(EnumType,OtherEnumType);
@@ -1022,7 +1007,6 @@ bool ScaledNum_T::operator<=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> 
 
 template<ScaledNum_PARAMS>
 template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-__forceinline
 bool ScaledNum_T::operator>=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther) const
 {
 	STATIC_ASSERT_COMPATIBLE(EnumType,OtherEnumType);
@@ -1036,7 +1020,6 @@ bool ScaledNum_T::operator>=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> 
 }
 
 template<ScaledNum_PARAMS>
-__forceinline
 ScaledNum_T& ScaledNum_T::operator+=(ScaledNum rOther)
 {
 	#ifdef SCALED_NUM_EXTRA_ASSERTS
@@ -1048,7 +1031,6 @@ ScaledNum_T& ScaledNum_T::operator+=(ScaledNum rOther)
 }
 
 template<ScaledNum_PARAMS>
-__forceinline
 ScaledNum_T& ScaledNum_T::operator-=(ScaledNum rOther)
 {
 	#ifdef SCALED_NUM_EXTRA_ASSERTS
@@ -1061,7 +1043,6 @@ ScaledNum_T& ScaledNum_T::operator-=(ScaledNum rOther)
 
 template<ScaledNum_PARAMS>
 template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-__forceinline
 ScaledNum_T& ScaledNum_T::operator*=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther)
 {
 	STATIC_ASSERT_COMPATIBLE(EnumType,OtherEnumType);
@@ -1071,7 +1052,6 @@ ScaledNum_T& ScaledNum_T::operator*=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEn
 
 template<ScaledNum_PARAMS>
 template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
-__forceinline
 ScaledNum_T& ScaledNum_T::operator/=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEnumType> rOther)
 {
 	STATIC_ASSERT_COMPATIBLE(EnumType,OtherEnumType);
@@ -1100,7 +1080,7 @@ ScaledNum_T& ScaledNum_T::operator/=(ScaledNum<iOTHER_SCALE,OtherIntType,OtherEn
 
 template<int iLEFT_SCALE,  typename LeftIntType,  typename LeftEnumType,
 		 int iRIGHT_SCALE, typename RightIntType, typename RightEnumType>
-__forceinline COMMON_SCALED_NUM
+COMMON_SCALED_NUM
 operator+(
 	ScaledNum<iLEFT_SCALE,  LeftIntType,  LeftEnumType>  rLeft,
 	ScaledNum<iRIGHT_SCALE, RightIntType, RightEnumType> rRight)
@@ -1114,7 +1094,7 @@ operator+(
 }
 template<int iLEFT_SCALE,  typename LeftIntType,  typename LeftEnumType,
 		 int iRIGHT_SCALE, typename RightIntType, typename RightEnumType>
-__forceinline COMMON_SCALED_NUM
+COMMON_SCALED_NUM
 operator-(
 	ScaledNum<iLEFT_SCALE,  LeftIntType,  LeftEnumType>  rLeft,
 	ScaledNum<iRIGHT_SCALE, RightIntType, RightEnumType> rRight)
@@ -1170,115 +1150,115 @@ operator/(
 // Commutativity ...
 
 template<ScaledNum_PARAMS>
-__forceinline ScaledNum_T operator+(int i, ScaledNum_T r)
+ScaledNum_T operator+(int i, ScaledNum_T r)
 {
 	return r + i;
 }
 /*	As we don't implement an int cast operator, assignment to int
 	should be forbidden as well. (No implicit getInt.) */
 /*template<ScaledNum_PARAMS>
-__forceinline int& operator+=(int& i, ScaledNum_T r)
+int& operator+=(int& i, ScaledNum_T r)
 {
 	i = (r + i).getInt();
 	return i;
 }*/
 template<ScaledNum_PARAMS>
-__forceinline ScaledNum_T operator-(int i, ScaledNum_T r)
+ScaledNum_T operator-(int i, ScaledNum_T r)
 {
 	return ScaledNum_T(i) - r;
 }
 /*template<ScaledNum_PARAMS>
-__forceinline int& operator-=(int& i, ScaledNum_T r)
+int& operator-=(int& i, ScaledNum_T r)
 {
 	i = (ScaledNum_T(i) - r).getInt();
 	return i;
 }*/
 template<ScaledNum_PARAMS>
-__forceinline ScaledNum_T operator*(int i, ScaledNum_T r)
+ScaledNum_T operator*(int i, ScaledNum_T r)
 {
 	return r * i;
 }
 /*template<ScaledNum_PARAMS>
-__forceinline int& operator*=(int& i, ScaledNum_T r)
+int& operator*=(int& i, ScaledNum_T r)
 {
 	i = (r * i).getInt();
 	return i;
 }*/
 template<ScaledNum_PARAMS>
-__forceinline ScaledNum_T operator/(int i, ScaledNum_T r)
+ScaledNum_T operator/(int i, ScaledNum_T r)
 {
 	return ScaledNum_T(i) / r;
 }
 /*template<ScaledNum_PARAMS>
-__forceinline int& operator/=(int& i, ScaledNum_T r)
+int& operator/=(int& i, ScaledNum_T r)
 {
 	i = (ScaledNum_T(i) / r).getInt();
 	return i;
 }*/
 template<ScaledNum_PARAMS>
-__forceinline ScaledNum_T operator+(uint u, ScaledNum_T r)
+ScaledNum_T operator+(uint u, ScaledNum_T r)
 {
 	return r + u;
 }
 template<ScaledNum_PARAMS>
-__forceinline ScaledNum_T operator-(uint u, ScaledNum_T r)
+ScaledNum_T operator-(uint u, ScaledNum_T r)
 {
 	return r - u;
 }
 template<ScaledNum_PARAMS>
-__forceinline ScaledNum_T operator*(uint ui, ScaledNum_T r)
+ScaledNum_T operator*(uint ui, ScaledNum_T r)
 {
 	return r * ui;
 }
 template<ScaledNum_PARAMS>
-__forceinline ScaledNum_T operator/(uint u, ScaledNum_T r)
+ScaledNum_T operator/(uint u, ScaledNum_T r)
 {
 	return r / u;
 }
 template<ScaledNum_PARAMS>
- __forceinline bool operator<(int i, ScaledNum_T r)
+bool operator<(int i, ScaledNum_T r)
 {
 	return (r > i);
 }
 template<ScaledNum_PARAMS>
-__forceinline bool operator>(int i, ScaledNum_T r)
+bool operator>(int i, ScaledNum_T r)
 {
 	return (r < i);
 }
 template<ScaledNum_PARAMS>
- __forceinline bool operator==(int i, ScaledNum_T r)
+bool operator==(int i, ScaledNum_T r)
 {
 	return (r == i);
 }
 template<ScaledNum_PARAMS>
- __forceinline bool operator!=(int i, ScaledNum_T r)
+bool operator!=(int i, ScaledNum_T r)
 {
 	return (r != i);
 }
 template<ScaledNum_PARAMS>
-__forceinline bool operator<=(int i, ScaledNum_T r)
+bool operator<=(int i, ScaledNum_T r)
 {
 	return (r >= i);
 }
 template<ScaledNum_PARAMS>
- __forceinline bool operator>=(int i, ScaledNum_T r)
+bool operator>=(int i, ScaledNum_T r)
 {
 	return (r <= i);
 }
 /*	Couldn't guarantee here that only const expressions are used.
 	So floating-point operands will have to be wrapped in fixp. */
 /*template<ScaledNum_PARAMS>
-__forceinline bool operator<(double d, ScaledNum_T r)
+bool operator<(double d, ScaledNum_T r)
 {
 	return (r > d);
 }
 template<ScaledNum_PARAMS>
-__forceinline bool operator>(double d, ScaledNum_T r)
+bool operator>(double d, ScaledNum_T r)
 {
 	return (r < d);
 }*/
 
-// Scale 2048 leads to INTMAX=1048575, i.e. 1024*1024-1.
+// Scale 2048 leads to MAX=1048575, i.e. 1024*1024-1.
 typedef ScaledNum<2048,int> scaled;
 typedef ScaledNum<2048,uint> uscaled;
 
@@ -1289,27 +1269,27 @@ typedef ScaledNum<2048,uint> uscaled;
 /*	Note that the uint versions will not be called when
 	the caller passes a positive signed int literal (e.g. 5);
 	will have to be an unsigned literal (e.g. 5u). */
-__forceinline uscaled per100(uint uiNum)
+inline uscaled per100(uint uiNum)
 {
 	return uscaled(uiNum, 100u);
 }
-__forceinline scaled per100(int iNum)
+inline scaled per100(int iNum)
 {
 	return scaled(iNum, 100);
 }
-__forceinline uscaled per1000(uint uiNum)
+inline uscaled per1000(uint uiNum)
 {
 	return uscaled(uiNum, 1000u);
 }
-__forceinline scaled per1000(int iNum)
+inline scaled per1000(int iNum)
 {
 	return scaled(iNum, 1000);
 }
-__forceinline uscaled per10000(uint uiNum)
+inline uscaled per10000(uint uiNum)
 {
 	return uscaled(uiNum, 10000u);
 }
-__forceinline scaled per10000(int iNum)
+inline scaled per10000(int iNum)
 {
 	return scaled(iNum, 10000);
 }

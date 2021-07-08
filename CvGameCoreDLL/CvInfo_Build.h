@@ -15,16 +15,16 @@ public: /*	All the const functions are exposed to Python. advc.inl: inlined most
 	CvBuildInfo();
 	~CvBuildInfo();
 
-	inline int getTime() const { return m_iTime; }
-	inline int getCost() const { return m_iCost; }
-	inline TechTypes getTechPrereq() const { return (TechTypes)m_iTechPrereq; }
-	inline ImprovementTypes getImprovement() const { return (ImprovementTypes)m_iImprovement; }
-	inline RouteTypes getRoute() const { return (RouteTypes)m_iRoute; }
+	int getTime() const { return m_iTime; }
+	int getCost() const { return m_iCost; }
+	TechTypes getTechPrereq() const { return (TechTypes)m_iTechPrereq; }
+	ImprovementTypes getImprovement() const { return (ImprovementTypes)m_iImprovement; }
+	RouteTypes getRoute() const { return (RouteTypes)m_iRoute; }
 	DllExport int getEntityEvent() const;
 	DllExport int getMissionType() const;
 	void setMissionType(int iNewType);
 
-	inline bool isKill() const { return m_bKill; }
+	bool isKill() const { return m_bKill; }
 
 	TechTypes getFeatureTech(FeatureTypes eFeature) const;
 	int getFeatureTime(FeatureTypes eFeature) const;

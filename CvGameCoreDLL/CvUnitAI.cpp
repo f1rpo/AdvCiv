@@ -21318,14 +21318,6 @@ int CvUnitAI::AI_opportuneOdds(int iActualOdds, CvUnit const& kDefender) const
 	return r;
 }
 
-// advc.030:
-/*	When moved to the header, the compiler will inline this function (even w/o the
-	inline keyword), but, based on a test, non-inline is faster in this case. */
-bool CvUnitAI::AI_canEnterByLand(CvArea const& kArea) const
-{	// Not checked (to save time): unused canMoveAllTerrain
-	return (isArea(kArea) || (canMoveImpassable() && canEnterArea(kArea)));
-}
-
 // K-Mod. A simple hash of the unit's birthmark.
 /*	This is to be used for getting a 'random' number which depends on the unit
 	but which does not vary from turn to turn. */

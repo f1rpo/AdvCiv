@@ -17,14 +17,14 @@ public: // All the const functions are exposed to Python
 
 	wchar getChar() const; // advc: return wchar (not int)
 	void setChar(/* advc: */ wchar wc);
-	inline int getHillsChange() const { return m_iHillsChange; }
-	inline int getPeakChange() const { return m_iPeakChange; }
-	inline int getLakeChange() const { return m_iLakeChange; }
-	inline int getCityChange() const { return m_iCityChange; }
+	int getHillsChange() const { return m_iHillsChange; }
+	int getPeakChange() const { return m_iPeakChange; }
+	int getLakeChange() const { return m_iLakeChange; }
+	int getCityChange() const { return m_iCityChange; }
 	// advc: These two are unused in XML
-	inline int getPopulationChangeOffset() const { return m_iPopulationChangeOffset; }
-	inline int getPopulationChangeDivisor() const { return m_iPopulationChangeDivisor; }
-	inline int getMinCity() const { return m_iMinCity; }
+	int getPopulationChangeOffset() const { return m_iPopulationChangeOffset; }
+	int getPopulationChangeDivisor() const { return m_iPopulationChangeDivisor; }
+	int getMinCity() const { return m_iMinCity; }
 	int getTradeModifier() const { return m_iTradeModifier; }
 	int getGoldenAgeYield() const { return m_iGoldenAgeYield; }
 	int getGoldenAgeYieldThreshold() const { return m_iGoldenAgeYieldThreshold; }
@@ -66,7 +66,7 @@ public: // All the const functions are exposed to Python
 	void setChar(/* advc: */ wchar wc);
 	int getInitialPercent() const;
 	int getInitialHappiness() const;
-	inline int getAIWeightPercent() const { return m_iAIWeightPercent; }
+	int getAIWeightPercent() const { return m_iAIWeightPercent; }
 
 	bool isFlexiblePercent() const;
 

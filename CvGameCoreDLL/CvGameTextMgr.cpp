@@ -2052,7 +2052,7 @@ namespace
 	/*	advc: Moved from the top of the file. Only used in setPlotListHelpDebug.
 		I guess it was supposed to map FreeListTrashArray ids to e.g. the last
 		few digits. I'll just leave it alone. */
-	inline int shortenID(int iId)
+	__inline int shortenID(int iId)
 	{
 		return iId;
 	}

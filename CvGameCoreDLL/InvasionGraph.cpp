@@ -15,7 +15,7 @@ using std::vector;
 
 namespace
 {
-	inline scaled powerCorrect(scaled rMultiplier)
+	__inline scaled powerCorrect(scaled rMultiplier)
 	{
 		static scaled const rPOWER_ORRECTION = per100(GC.getDefineINT(
 				CvGlobals::POWER_CORRECTION));

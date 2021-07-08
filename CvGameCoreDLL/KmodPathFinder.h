@@ -31,29 +31,29 @@ class PathNodeBase
 {
 public:
 	PathNodeBase(); // public - to avoid a compiler warning (c4610), but w/o implementation.
-	__forceinline bool isState(PathNodeState eState) const
+	bool isState(PathNodeState eState) const
 	{
 		return (m_iState == eState);
 	}
-	__forceinline void setState(PathNodeState eState)
+	void setState(PathNodeState eState)
 	{
 		m_iState = static_cast<char>(eState);
 	}
 	/*	Consistent with a getPlot function added to FAStarNode.
 		To make PathNodes and FAStarNodes interchangeable as template parameters. */
-	__forceinline CvPlot& getPlot() const
+	CvPlot& getPlot() const
 	{
 		return *m_pPlot;
 	}
-	__forceinline void setPlot(CvPlot& kPlot)
+	void setPlot(CvPlot& kPlot)
 	{
 		m_pPlot = &kPlot;
 	}
-	__forceinline int getPathLength() const
+	int getPathLength() const
 	{
 		return m_iPathLength;
 	}
-	__forceinline void setPathLength(int iPathLength)
+	void setPathLength(int iPathLength)
 	{
 		m_iPathLength = iPathLength;
 	}
@@ -100,10 +100,10 @@ public:
 	/*	KmodPathFinder will only consider paths of this length or shorter.
 		It's up to updatePathData to compute the length and to store it
 		at the given node. */
-	inline int getMaxPath() const { return m_iMaxPath; }
+	int getMaxPath() const { return m_iMaxPath; }
 	/*	If this function is replaced, then initializePathData should be replaced
 		as well. */
-	inline int initialPathLength() const { return 1; }
+	int initialPathLength() const { return 1; }
 protected:
 	/*	Derived classes have to have a 0-argument constructor that will get called
 		when KmodPathFinder is instantiated. */
@@ -150,7 +150,7 @@ public:
 		FErrorMsg("Should've been hidden by a derived-class member");
 		return false;
 	}
-	inline bool isValidDest(CvPlot const& kStart, CvPlot const& kDest) const
+	bool isValidDest(CvPlot const& kStart, CvPlot const& kDest) const
 	{
 		FErrorMsg("Should've been hidden by a derived-class member");
 		return false;
@@ -180,7 +180,7 @@ public:
 		The new path length shouldn't be smaller than the old (kParent)
 		path length.
 		Should return true if any kNode data was changed, false otherwise. */
-	inline bool updatePathData(Node& kNode, Node const& kParent) const
+	bool updatePathData(Node& kNode, Node const& kParent) const
 	{
 		kNode.setPathLength(kParent.getPathLength() + 1); // uniform
 		return true;
@@ -189,7 +189,7 @@ public:
 		Note that the initialPathLength call is not polymorphic,
 		so derived classes that wish to change the initial path length will
 		have to replace both initialPathLength and initializePathData. */
-	inline void initializePathData(Node& kNode) const
+	void initializePathData(Node& kNode) const
 	{
 		kNode.setPathLength(initialPathLength());
 	}
@@ -197,7 +197,7 @@ public:
 		from a previous pathfinder call. Returning false will cause the
 		pathfinder's node data to be reset. Don't check kStart.getPathLength();
 		KmodPathFinder handles that. */
-	inline bool canReuseInitialPathData(Node const& kStart) const
+	bool canReuseInitialPathData(Node const& kStart) const
 	{
 		return true;
 	}
@@ -221,27 +221,27 @@ protected:
 		typedef std::vector<Node*> container_t;
 		typedef typename container_t::iterator iterator;
 		typedef typename container_t::const_iterator const_iterator;
-		inline const_iterator begin() const
+		const_iterator begin() const
 		{
 			return m_nodes.begin();
 		}
-		inline const_iterator end() const
+		const_iterator end() const
 		{
 			return m_nodes.end();
 		}
-		inline iterator begin()
+		iterator begin()
 		{
 			return m_nodes.begin();
 		}
-		inline iterator end()
+		iterator end()
 		{
 			return m_nodes.end();
 		}
-		inline void reserve(int iCapacity)
+		void reserve(int iCapacity)
 		{
 			m_nodes.reserve(iCapacity);
 		}
-		inline void clear() // Does not change the state of any nodes
+		void clear() // Does not change the state of any nodes
 		{
 			/*	This erases every element. So does resize(0).
 				The only way to avoid this, I think, would be to use a raw array
@@ -249,14 +249,14 @@ protected:
 			m_nodes.clear();
 		}
 		// These functions do change the state of nodes (hence the names) ...
-		inline void open(Node& kNode)
+		void open(Node& kNode)
 		{
 			m_nodes.push_back(&kNode);
 			// Inefficient to add the same node multiple times
 			//FAssert(!kNode.isState(PATHNODE_OPEN)); // (Seems to work; can stop checking.)
 			kNode.setState(PATHNODE_OPEN);
 		}
-		inline void close(iterator pos)
+		void close(iterator pos)
 		{
 			Node& kNode = **pos;
 			FAssert(kNode.isState(PATHNODE_OPEN));
@@ -290,16 +290,16 @@ protected:
 	class NodeMap
 	{
 	public:
-		inline NodeMap(PlotNumTypes eMaxPlots) : m_eMaxPlots(eMaxPlots), m_bDirty(true)
+		NodeMap(PlotNumTypes eMaxPlots) : m_eMaxPlots(eMaxPlots), m_bDirty(true)
 		{
 			m_data = new byte[numBytes()];
 			reset();
 		}
-		inline ~NodeMap()
+		~NodeMap()
 		{
 			delete[] m_data;
 		}
-		inline Node& get(PlotNumTypes ePlot)
+		Node& get(PlotNumTypes ePlot)
 		{
 			return reinterpret_cast<Node*>(m_data)[ePlot];
 		}
@@ -319,7 +319,7 @@ protected:
 			}
 			m_bDirty = false;
 		}
-		inline void setDirty(bool bDirty)
+		void setDirty(bool bDirty)
 		{
 			m_bDirty = bDirty;
 		}
@@ -328,7 +328,7 @@ protected:
 		PlotNumTypes m_eMaxPlots;
 		bool m_bDirty; // advc.opt: Make sure we're not resetting unnecessarily
 
-		inline int numBytes()
+		int numBytes()
 		{
 			return sizeof(Node) * m_eMaxPlots;
 		}
@@ -338,7 +338,7 @@ protected:
 public:
 	/*	It's up to the derived classes to define a function for setting up m_stepMetric.
 		This constructor will only call the StepMetric default constructor. */
-	inline KmodPathFinder()
+	KmodPathFinder()
 	:	m_pStart(NULL), m_pDest(NULL),
 		/*	K-Mod: [...] Ideally the pathfinder would be initialised with a given CvMap
 			and then not refer to any global objects. [...] */
@@ -352,7 +352,7 @@ public:
 	void resetNodes();
 	bool generatePath(CvPlot const& kStart, CvPlot const& kDest);
 	bool isPathComplete() const { return (m_pEndNode != NULL); }
-	inline int getPathLength() const // advc: Was "getPathTurns"; too specific.
+	int getPathLength() const // advc: Was "getPathTurns"; too specific.
 	{
 		return m_pEndNode->getPathLength();
 	}

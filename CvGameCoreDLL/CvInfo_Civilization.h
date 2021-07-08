@@ -145,7 +145,7 @@ public: // advc: All the const functions are exposed to Python except those adde
 	int getDemandRebukedSneakProb() const { return m_iDemandRebukedSneakProb; }
 	int getDemandRebukedWarProb() const { return m_iDemandRebukedWarProb; }
 	int getRazeCityProb() const { return m_iRazeCityProb; }
-	inline int getBuildUnitProb() const { return m_iBuildUnitProb; }
+	int getBuildUnitProb() const { return m_iBuildUnitProb; }
 	int getBaseAttackOddsChange() const { return m_iBaseAttackOddsChange; }
 	int getAttackOddsChangeRand() const { return m_iAttackOddsChangeRand; }
 	int getWorseRankDifferenceAttitudeChange() const { return m_iWorseRankDifferenceAttitudeChange; }
@@ -374,7 +374,7 @@ public: // advc: All the const functions are exposed to Python except those adde
 	int getCommerceModifier(int i) const;
 
 	bool isFreePromotion(int i) const; // advc.003t: Return type was int
-	inline bool isAnyFreePromotion() const { return (m_pabFreePromotion != NULL); } // advc.003t
+	bool isAnyFreePromotion() const { return (m_pabFreePromotion != NULL); } // advc.003t
 	bool isFreePromotionUnitCombat(int i) const; // advc.003t: Return type was int
 
 	bool read(CvXMLLoadUtility* pXML);

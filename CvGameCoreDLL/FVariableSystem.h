@@ -59,34 +59,34 @@ public:
 		and if we insist on avoiding the overhead of a virtual function call
 		within the GetValue functions, then I don't think there is an elegant
 		solution involving templates and inheritance. */
-	inline bool getValue(bool) const { return m_bValue; }
-	inline char getValue(char) const { return m_cValue; }
-	inline byte getValue(byte) const { return m_ucValue; }
-	inline short getValue(short) const { return m_wValue; }
-	inline word getValue(word) const { return m_uwValue; }
-	inline int getValue(int) const { return m_iValue; }
-	inline uint getValue(uint) const { return m_uiValue; }
-	inline float getValue(float) const { return m_fValue; }
-	inline double getValue(double) const { return m_dValue; }
-	inline char* getValue(char*) const { return m_szValue; }
-	inline wchar* getValue(wchar*) const { return m_wszValue; }
-	inline char* getValue(char const*) const { return m_szValue; }
-	inline wchar* getValue(wchar const*) const { return m_wszValue; }
-	inline void setValue(bool b) { m_bValue = b; m_eType = FVARTYPE_BOOL; }
-	inline void setValue(char c) { m_cValue = c; m_eType = FVARTYPE_CHAR; }
-	inline void setValue(byte uc) { m_ucValue = uc; m_eType = FVARTYPE_UCHAR; }
-	inline void setValue(short w) { m_wValue = w; m_eType = FVARTYPE_SHORT; }
-	inline void setValue(word uw) { m_uwValue = uw; m_eType = FVARTYPE_USHORT; }
-	inline void setValue(int i) { m_iValue = i; m_eType = FVARTYPE_INT; }
-	inline void setValue(uint ui) { m_uiValue = ui; m_eType = FVARTYPE_UINT; }
-	inline void setValue(float f) { m_fValue = f; m_eType = FVARTYPE_FLOAT; }
-	inline void setValue(double d) { m_dValue = d; m_eType = FVARTYPE_DOUBLE; }
-	inline void setValue(char* sz)
+	bool getValue(bool) const { return m_bValue; }
+	char getValue(char) const { return m_cValue; }
+	byte getValue(byte) const { return m_ucValue; }
+	short getValue(short) const { return m_wValue; }
+	word getValue(word) const { return m_uwValue; }
+	int getValue(int) const { return m_iValue; }
+	uint getValue(uint) const { return m_uiValue; }
+	float getValue(float) const { return m_fValue; }
+	double getValue(double) const { return m_dValue; }
+	char* getValue(char*) const { return m_szValue; }
+	wchar* getValue(wchar*) const { return m_wszValue; }
+	char* getValue(char const*) const { return m_szValue; }
+	wchar* getValue(wchar const*) const { return m_wszValue; }
+	void setValue(bool b) { m_bValue = b; m_eType = FVARTYPE_BOOL; }
+	void setValue(char c) { m_cValue = c; m_eType = FVARTYPE_CHAR; }
+	void setValue(byte uc) { m_ucValue = uc; m_eType = FVARTYPE_UCHAR; }
+	void setValue(short w) { m_wValue = w; m_eType = FVARTYPE_SHORT; }
+	void setValue(word uw) { m_uwValue = uw; m_eType = FVARTYPE_USHORT; }
+	void setValue(int i) { m_iValue = i; m_eType = FVARTYPE_INT; }
+	void setValue(uint ui) { m_uiValue = ui; m_eType = FVARTYPE_UINT; }
+	void setValue(float f) { m_fValue = f; m_eType = FVARTYPE_FLOAT; }
+	void setValue(double d) { m_dValue = d; m_eType = FVARTYPE_DOUBLE; }
+	void setValue(char* sz)
 	{
 		m_szValue = strcpy(new char[strlen(sz) + 1], sz);
 		m_eType = FVARTYPE_STRING;
 	}
-	inline void setValue(wchar* wsz)
+	void setValue(wchar* wsz)
 	{
 		m_wszValue = wcscpy(new wchar[wcslen(wsz) + 1], wsz);
 		m_eType = FVARTYPE_WSTRING;

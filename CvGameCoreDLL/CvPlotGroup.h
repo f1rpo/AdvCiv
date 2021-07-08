@@ -23,9 +23,9 @@ public:
 	void removePlot(CvPlot* pPlot, bool bVerifyProduction = true);
 	void recalculatePlots(/* advc.064d: */ bool bVerifyProduction = true);
 
-	inline int getID() const { return m_iID; } // advc.inl
+	int getID() const { return m_iID; } // advc.inl
 	void setID(int iID) { m_iID = iID; } // advc.inl
-	inline PlayerTypes getOwner() const { return m_eOwner; } // advc.inl
+	PlayerTypes getOwner() const { return m_eOwner; } // advc.inl
 
 	int getNumBonuses(BonusTypes eBonus) const { return m_aiNumBonuses.get(eBonus); } // advc.inl
 	bool hasBonus(BonusTypes eBonus) { return(getNumBonuses(eBonus) > 0); } // advc.inl
@@ -35,11 +35,11 @@ public:
 	void insertAtEndPlots(XYCoords xy) { m_plots.insertAtEnd(xy); } // advc.inl
 	CLLNode<XYCoords>* deletePlotsNode(CLLNode<XYCoords>* pNode);
 	// advc.inl
-	inline CLLNode<XYCoords>* nextPlotsNode(CLLNode<XYCoords>* pNode)
+	CLLNode<XYCoords>* nextPlotsNode(CLLNode<XYCoords>* pNode)
 	{
 		return m_plots.next(pNode);
 	} // <advc.003s> Safer in 'for' loops
-	inline CLLNode<XYCoords> const* nextPlotsNode(CLLNode<XYCoords> const* pNode)
+	CLLNode<XYCoords> const* nextPlotsNode(CLLNode<XYCoords> const* pNode)
 	{
 		return m_plots.next(pNode);
 	} // </advc.003s>

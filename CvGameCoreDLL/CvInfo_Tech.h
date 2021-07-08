@@ -12,45 +12,45 @@ public: // advc: All the const functions are exposed to Python except those adde
 	CvTechInfo();
 	~CvTechInfo();
 
-	inline int getAdvisorType() const { return m_iAdvisorType; }
-	inline int getAIWeight() const { return m_iAIWeight; }
-	inline int getAITradeModifier() const { return m_iAITradeModifier; }
-	inline int getResearchCost() const { return m_iResearchCost; }
+	int getAdvisorType() const { return m_iAdvisorType; }
+	int getAIWeight() const { return m_iAIWeight; }
+	int getAITradeModifier() const { return m_iAITradeModifier; }
+	int getResearchCost() const { return m_iResearchCost; }
 	int getAdvancedStartCost() const { return m_iAdvancedStartCost; }
 	int getAdvancedStartCostIncrease() const { return m_iAdvancedStartCostIncrease; }
-	inline EraTypes getEra() const { return (EraTypes)m_iEra; }
-	inline int getTradeRoutes() const { return m_iTradeRoutes; }
-	inline int getFeatureProductionModifier() const { return m_iFeatureProductionModifier; }
-	inline int getWorkerSpeedModifier() const { return m_iWorkerSpeedModifier; }
-	inline int getFirstFreeUnitClass() const { return m_iFirstFreeUnitClass; }
-	inline int getHealth() const { return m_iHealth; }
-	inline int getHappiness() const { return m_iHappiness; }
-	inline int getFirstFreeTechs() const { return m_iFirstFreeTechs; }
-	inline int getAssetValue() const { return m_iAssetValue; }
-	inline int getPowerValue() const { return m_iPowerValue; }
+	EraTypes getEra() const { return (EraTypes)m_iEra; }
+	int getTradeRoutes() const { return m_iTradeRoutes; }
+	int getFeatureProductionModifier() const { return m_iFeatureProductionModifier; }
+	int getWorkerSpeedModifier() const { return m_iWorkerSpeedModifier; }
+	int getFirstFreeUnitClass() const { return m_iFirstFreeUnitClass; }
+	int getHealth() const { return m_iHealth; }
+	int getHappiness() const { return m_iHappiness; }
+	int getFirstFreeTechs() const { return m_iFirstFreeTechs; }
+	int getAssetValue() const { return m_iAssetValue; }
+	int getPowerValue() const { return m_iPowerValue; }
 
 	int getGridX() const { return m_iGridX; }
 	int getGridY() const { return m_iGridY; }
 
-	inline bool isRepeat() const { return m_bRepeat; }
-	inline bool isTrade() const { return m_bTrade; }
-	inline bool isDisable() const { return m_bDisable; }
-	inline bool isGoodyTech() const { return m_bGoodyTech; }
-	inline bool isExtraWaterSeeFrom() const { return m_bExtraWaterSeeFrom; }
-	inline bool isMapCentering() const { return m_bMapCentering; }
-	inline bool isMapVisible() const { return m_bMapVisible; }
-	inline bool isMapTrading() const { return m_bMapTrading; }
-	inline bool isTechTrading() const { return m_bTechTrading; }
-	inline bool isGoldTrading() const { return m_bGoldTrading; }
-	inline bool isOpenBordersTrading() const { return m_bOpenBordersTrading; }
-	inline bool isDefensivePactTrading() const { return m_bDefensivePactTrading; }
-	inline bool isPermanentAllianceTrading() const { return m_bPermanentAllianceTrading; }
-	inline bool isVassalStateTrading() const { return m_bVassalStateTrading; }
-	inline bool isBridgeBuilding() const { return m_bBridgeBuilding; }
-	inline bool isIrrigation() const { return m_bIrrigation; }
-	inline bool isIgnoreIrrigation() const { return m_bIgnoreIrrigation; }
-	inline bool isWaterWork() const { return m_bWaterWork; }
-	inline bool isRiverTrade() const { return m_bRiverTrade; }
+	bool isRepeat() const { return m_bRepeat; }
+	bool isTrade() const { return m_bTrade; }
+	bool isDisable() const { return m_bDisable; }
+	bool isGoodyTech() const { return m_bGoodyTech; }
+	bool isExtraWaterSeeFrom() const { return m_bExtraWaterSeeFrom; }
+	bool isMapCentering() const { return m_bMapCentering; }
+	bool isMapVisible() const { return m_bMapVisible; }
+	bool isMapTrading() const { return m_bMapTrading; }
+	bool isTechTrading() const { return m_bTechTrading; }
+	bool isGoldTrading() const { return m_bGoldTrading; }
+	bool isOpenBordersTrading() const { return m_bOpenBordersTrading; }
+	bool isDefensivePactTrading() const { return m_bDefensivePactTrading; }
+	bool isPermanentAllianceTrading() const { return m_bPermanentAllianceTrading; }
+	bool isVassalStateTrading() const { return m_bVassalStateTrading; }
+	bool isBridgeBuilding() const { return m_bBridgeBuilding; }
+	bool isIrrigation() const { return m_bIrrigation; }
+	bool isIgnoreIrrigation() const { return m_bIgnoreIrrigation; }
+	bool isWaterWork() const { return m_bWaterWork; }
+	bool isRiverTrade() const { return m_bRiverTrade; }
 
 	std::wstring getQuote() const;
 	const TCHAR* getSound() const;
@@ -61,8 +61,8 @@ public: // advc: All the const functions are exposed to Python except those adde
 	int getDomainExtraMoves(int i) const;
 	int getFlavorValue(int i) const;
 	// <advc.003t>
-	inline int getNumOrTechPrereqs() const { return (int)m_aePrereqOrTechs.size(); }
-	inline int getNumAndTechPrereqs() const { return (int)m_aePrereqAndTechs.size(); }
+	int getNumOrTechPrereqs() const { return (int)m_aePrereqOrTechs.size(); }
+	int getNumAndTechPrereqs() const { return (int)m_aePrereqAndTechs.size(); }
 	TechTypes getPrereqOrTechs(int i) const
 	{
 		FAssertBounds(0, getNumOrTechPrereqs(), i);
@@ -82,7 +82,7 @@ public: // advc: All the const functions are exposed to Python except those adde
 	// K-Mod end
 	bool isCommerceFlexible(int i) const;
 	bool isTerrainTrade(int i) const;
-	inline bool isAnyTerrainTrade() const { return (m_pbTerrainTrade != NULL); } // advc.003t
+	bool isAnyTerrainTrade() const { return (m_pbTerrainTrade != NULL); } // advc.003t
 
 	#if ENABLE_XML_FILE_CACHE
 	void read(FDataStreamBase* );

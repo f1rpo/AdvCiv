@@ -21,31 +21,31 @@ class CvUnitClassInfo : public CvInfoBase
 public: // All the const functions are exposed to Python. advc:inl: All inlined.
 	CvUnitClassInfo();
 
-	inline int getMaxGlobalInstances() const
+	int getMaxGlobalInstances() const
 	{
 		return m_iMaxGlobalInstances;
 	}
-	inline bool isWorldUnit() const // advc.003w: Replacing global isWorldUnitClass
+	bool isWorldUnit() const // advc.003w: Replacing global isWorldUnitClass
 	{
 		return (getMaxGlobalInstances() != -1);
 	}
-	inline int getMaxTeamInstances() const
+	int getMaxTeamInstances() const
 	{
 		return m_iMaxTeamInstances;
 	}
-	inline bool isTeamUnit() const // advc.003w: Replacing global isTeamUnitClass
+	bool isTeamUnit() const // advc.003w: Replacing global isTeamUnitClass
 	{
 		return (getMaxTeamInstances() != -1);
 	}
-	inline int getMaxPlayerInstances() const
+	int getMaxPlayerInstances() const
 	{
 		return m_iMaxPlayerInstances;
 	}
-	inline bool isNationalUnit() const // advc.003w: Replacing global isNationalUnitClass
+	bool isNationalUnit() const // advc.003w: Replacing global isNationalUnitClass
 	{
 		return (getMaxPlayerInstances() != -1);
 	}
-	inline bool isLimited() const // advc.003w: Replacing global isLimitedUnitClass
+	bool isLimited() const // advc.003w: Replacing global isLimitedUnitClass
 	{
 		return (isWorldUnit() || isTeamUnit() || isNationalUnit());
 	}
@@ -80,17 +80,17 @@ public: /*  All const functions are exposed to Python except some related to art
 	~CvUnitInfo();
 
 	int getAIWeight() const { return m_iAIWeight; }
-	inline int getProductionCost() const { return m_iProductionCost; }
+	int getProductionCost() const { return m_iProductionCost; }
 	int getHurryCostModifier() const { return m_iHurryCostModifier; }
 	int getAdvancedStartCost() const;
 	int getAdvancedStartCostIncrease() const;
 	int getMinAreaSize() const { return m_iMinAreaSize; }
-	inline int getMoves() const { return m_iMoves; }
-	inline int getAirRange() const { return m_iAirRange; }
+	int getMoves() const { return m_iMoves; }
+	int getAirRange() const { return m_iAirRange; }
 	int getAirUnitCap() const { return m_iAirUnitCap; }
 	int getDropRange() const { return m_iDropRange; }
 	int getNukeRange() const { return m_iNukeRange; }
-	inline int getWorkRate() const { return m_iWorkRate; }
+	int getWorkRate() const { return m_iWorkRate; }
 	int getBaseDiscover() const { return m_iBaseDiscover; }
 	int getDiscoverMultiplier() const { return m_iDiscoverMultiplier; }
 	int getBaseHurry() const { return m_iBaseHurry; }
@@ -99,19 +99,19 @@ public: /*  All const functions are exposed to Python except some related to art
 	int getTradeMultiplier() const { return m_iTradeMultiplier; }
 	int getGreatWorkCulture() const { return m_iGreatWorkCulture; }
 	int getEspionagePoints() const { return m_iEspionagePoints; }
-	inline int getCombat() const { return m_iCombat; }
+	int getCombat() const { return m_iCombat; }
 	void setCombat(int iNum);
-	inline int getCombatLimit() const { return m_iCombatLimit; }
-	inline int getAirCombat() const { return m_iAirCombat; }
-	inline int getAirCombatLimit() const { return m_iAirCombatLimit; }
+	int getCombatLimit() const { return m_iCombatLimit; }
+	int getAirCombat() const { return m_iAirCombat; }
+	int getAirCombatLimit() const { return m_iAirCombatLimit; }
 	int getXPValueAttack() const { return m_iXPValueAttack; }
 	int getXPValueDefense() const { return m_iXPValueDefense; }
-	inline int getFirstStrikes() const { return m_iFirstStrikes; }
-	inline int getChanceFirstStrikes() const { return m_iChanceFirstStrikes; }
+	int getFirstStrikes() const { return m_iFirstStrikes; }
+	int getChanceFirstStrikes() const { return m_iChanceFirstStrikes; }
 	int getInterceptionProbability() const { return m_iInterceptionProbability; }
 	int getEvasionProbability() const { return m_iEvasionProbability; }
-	inline int getWithdrawalProbability() const { return m_iWithdrawalProbability; }
-	inline int getCollateralDamage() const { return m_iCollateralDamage; }
+	int getWithdrawalProbability() const { return m_iWithdrawalProbability; }
+	int getCollateralDamage() const { return m_iCollateralDamage; }
 	int getCollateralDamageLimit() const { return m_iCollateralDamageLimit; }
 	int getCollateralDamageMaxUnits() const { return m_iCollateralDamageMaxUnits; }
 	int getCityAttackModifier() const { return m_iCityAttackModifier; }
@@ -135,19 +135,19 @@ public: /*  All const functions are exposed to Python except some related to art
 	int getAssetValue() const { return m_iAssetValue; }
 	int getPowerValue() const { return m_iPowerValue; }
 
-	inline UnitClassTypes getUnitClassType() const { return m_eUnitClassType; }
+	UnitClassTypes getUnitClassType() const { return m_eUnitClassType; }
 	SpecialUnitTypes getSpecialUnitType() const { return m_eSpecialUnitType; }
 	UnitClassTypes getUnitCaptureClassType() const { return m_eUnitCaptureClassType; }
-	inline UnitCombatTypes getUnitCombatType() const { return m_eUnitCombatType; }
-	__forceinline DomainTypes getDomainType() const { return m_eDomainType; }
+	UnitCombatTypes getUnitCombatType() const { return m_eUnitCombatType; }
+	DomainTypes getDomainType() const { return m_eDomainType; }
 	UnitAITypes getDefaultUnitAIType() const { return m_eDefaultUnitAIType; }
-	inline InvisibleTypes getInvisibleType() const { return m_eInvisibleType; }
+	InvisibleTypes getInvisibleType() const { return m_eInvisibleType; }
 	InvisibleTypes getSeeInvisibleType(int i) const
 	{
 		FAssertBounds(0, m_aeSeeInvisibleTypes.size(), i);
 		return m_aeSeeInvisibleTypes[i];
 	}
-	inline int getNumSeeInvisibleTypes() const { return (int)m_aeSeeInvisibleTypes.size(); }
+	int getNumSeeInvisibleTypes() const { return (int)m_aeSeeInvisibleTypes.size(); }
 	AdvisorTypes getAdvisorType() const { return m_eAdvisorType; }
 	ReligionTypes getHolyCity() const { return m_eHolyCity; }
 	ReligionTypes getReligionType() const { return m_eReligionType; }
@@ -166,7 +166,7 @@ public: /*  All const functions are exposed to Python except some related to art
 	CommandTypes getCommandType() const;
 	void setCommandType(CommandTypes eNewType);
 
-	inline bool isAnimal() const { return m_bAnimal; }
+	bool isAnimal() const { return m_bAnimal; }
 	bool isFoodProduction() const { return m_bFoodProduction; }
 	bool isNoBadGoodies() const { return m_bNoBadGoodies; }
 	bool isOnlyDefensive() const { return m_bOnlyDefensive; }
@@ -185,7 +185,7 @@ public: /*  All const functions are exposed to Python except some related to art
 	bool isMilitarySupport() const { return m_bMilitarySupport; }
 	bool isMilitaryProduction() const { return m_bMilitaryProduction; }
 	bool isPillage() const { return m_bPillage; }
-	inline bool isSpy() const { return m_bSpy; }
+	bool isSpy() const { return m_bSpy; }
 	bool isSabotage() const { return m_bSabotage; }
 	bool isDestroy() const { return m_bDestroy; }
 	bool isStealPlans() const { return m_bStealPlans; }
@@ -193,14 +193,14 @@ public: /*  All const functions are exposed to Python except some related to art
 	bool isCounterSpy() const { return m_bCounterSpy; }
 	bool isFound() const { return m_bFound; }
 	bool isGoldenAge() const { return m_bGoldenAge; }
-	inline bool isInvisible() const { return m_bInvisible; }
+	bool isInvisible() const { return m_bInvisible; }
 	void setInvisible(bool bEnable) ;
 	bool isFirstStrikeImmune() const { return m_bFirstStrikeImmune; }
 	bool isNoDefensiveBonus() const { return m_bNoDefensiveBonus; }
 	bool isIgnoreBuildingDefense() const { return m_bIgnoreBuildingDefense; }
 	// advc.inl: force-inlined for CvArea::canBeEntered. Renamed from "isCanMoveImpassable"
-	__forceinline bool canMoveImpassable() const { return m_bCanMoveImpassable; }
-	inline bool isCanMoveAllTerrain() const { return m_bCanMoveAllTerrain; }
+	bool canMoveImpassable() const { return m_bCanMoveImpassable; }
+	bool isCanMoveAllTerrain() const { return m_bCanMoveAllTerrain; }
 	bool isFlatMovementCost() const { return m_bFlatMovementCost; }
 	bool isIgnoreTerrainCost() const { return m_bIgnoreTerrainCost; }
 	bool isNukeImmune() const { return m_bNukeImmune; }
@@ -213,15 +213,15 @@ public: /*  All const functions are exposed to Python except some related to art
 	bool isLineOfSight() const { return m_bLineOfSight; }
 	bool isHiddenNationality() const { return m_bHiddenNationality; }
 	bool isAlwaysHostile() const { return m_bAlwaysHostile; }
-	inline bool isNoRevealMap() const { return m_bNoRevealMap; }
+	bool isNoRevealMap() const { return m_bNoRevealMap; }
 
 	float getUnitMaxSpeed() const;
 	float getUnitPadTime() const;
 
 	// Array access:
 	// <advc.003t>
-	inline int getNumPrereqAndTechs() const { return m_aePrereqAndTechs.size(); }
-	inline int getNumPrereqOrBonuses() const { return m_aePrereqOrBonuses.size(); }
+	int getNumPrereqAndTechs() const { return m_aePrereqAndTechs.size(); }
+	int getNumPrereqOrBonuses() const { return m_aePrereqOrBonuses.size(); }
 	TechTypes getPrereqAndTechs(int i) const
 	{
 		FAssertBounds(0, getNumPrereqAndTechs(), i);
@@ -235,7 +235,7 @@ public: /*  All const functions are exposed to Python except some related to art
 	int py_getPrereqAndTechs(int i) const;
 	int py_getPrereqOrBonuses(int i) const;
 	// </advc.003t>  <advc.905b>
-	inline int getNumSpeedBonuses() const { return m_aeiSpeedBonuses.size(); }
+	int getNumSpeedBonuses() const { return m_aeiSpeedBonuses.size(); }
 	BonusTypes getSpeedBonuses(int i) const
 	{
 		FAssertBounds(0, getNumSpeedBonuses(), i);
@@ -256,62 +256,62 @@ public: /*  All const functions are exposed to Python except some related to art
 	int getFeatureAttackModifier(int i) const;
 	int getFeatureDefenseModifier(int i) const;
 	int getUnitClassAttackModifier(int i) const;
-	inline bool isAnyUnitClassAttackModifier() const { return (m_piUnitClassAttackModifier != NULL); } // advc.003t
+	bool isAnyUnitClassAttackModifier() const { return (m_piUnitClassAttackModifier != NULL); } // advc.003t
 	int getUnitClassDefenseModifier(int i) const;
-	inline bool isAnyUnitClassDefenseModifier() const { return (m_piUnitClassDefenseModifier != NULL); } // advc.003t
+	bool isAnyUnitClassDefenseModifier() const { return (m_piUnitClassDefenseModifier != NULL); } // advc.003t
 	int getUnitCombatModifier(int i) const;
 	int getUnitCombatCollateralImmune(int i) const;
 	int getDomainModifier(int i) const;
 	int getBonusProductionModifier(int i) const;
-	inline bool isAnyBonusProductionModifier() const { return (m_piBonusProductionModifier != NULL); } // advc.003t
+	bool isAnyBonusProductionModifier() const { return (m_piBonusProductionModifier != NULL); } // advc.003t
 	int getUnitGroupRequired(int i) const;
 	int getReligionSpreads(int i) const;
 	int getCorporationSpreads(int i) const;
 	TechTypes getTerrainPassableTech(int i) const;
-	inline bool isAnyTerrainPassableTech() const { return (m_piTerrainPassableTech != NULL); } // advc.003t
+	bool isAnyTerrainPassableTech() const { return (m_piTerrainPassableTech != NULL); } // advc.003t
 	TechTypes getFeaturePassableTech(int i) const;
 	int getFlankingStrikeUnitClass(int i) const;
-	inline bool isAnyFlankingStrikeUnitClass() const { return (m_piFlankingStrikeUnitClass != NULL); } // advc.003t
+	bool isAnyFlankingStrikeUnitClass() const { return (m_piFlankingStrikeUnitClass != NULL); } // advc.003t
 
 	bool getUpgradeUnitClass(int i) const;
-	inline bool isAnyUpgradeUnitClass() const { return (m_pbUpgradeUnitClass != NULL); } // advc.003t
+	bool isAnyUpgradeUnitClass() const { return (m_pbUpgradeUnitClass != NULL); } // advc.003t
 	bool getTargetUnitClass(int i) const;
-	inline bool isAnyTargetUnitClass() const { return (m_pbTargetUnitClass != NULL); } // advc.003t
+	bool isAnyTargetUnitClass() const { return (m_pbTargetUnitClass != NULL); } // advc.003t
 	bool getTargetUnitCombat(int i) const;
 	bool getDefenderUnitClass(int i) const;
-	inline bool isAnyDefenderUnitClass() const { return (m_pbDefenderUnitClass != NULL); } // advc.003t
+	bool isAnyDefenderUnitClass() const { return (m_pbDefenderUnitClass != NULL); } // advc.003t
 	bool getDefenderUnitCombat(int i) const;
 	bool getUnitAIType(int i) const;
 	bool getNotUnitAIType(int i) const;
-	inline bool isAnyNotUnitAIType() const { return (m_pbNotUnitAIType != NULL); } // advc.003t
+	bool isAnyNotUnitAIType() const { return (m_pbNotUnitAIType != NULL); } // advc.003t
 	bool getBuilds(int i) const;
-	inline bool isAnyBuilds() const { return (m_pbBuilds != NULL); } // advc.003t
+	bool isAnyBuilds() const { return (m_pbBuilds != NULL); } // advc.003t
 	bool getGreatPeoples(int i) const;
 	bool getBuildings(int i) const;
-	inline bool isAnyBuildings() const { return (m_pbBuildings != NULL); } // advc.003t
+	bool isAnyBuildings() const { return (m_pbBuildings != NULL); } // advc.003t
 	bool getForceBuildings(int i) const; // advc.003t: Dummy function
 	bool getTerrainImpassable(int i) const;
-	inline bool isAnyTerrainImpassable() const { return (m_pbTerrainImpassable != NULL); } // advc.003t
+	bool isAnyTerrainImpassable() const { return (m_pbTerrainImpassable != NULL); } // advc.003t
 	bool getFeatureImpassable(int i) const;
-	inline bool isAnyFeatureImpassable() const { return (m_pbFeatureImpassable != NULL); } // advc.003t
+	bool isAnyFeatureImpassable() const { return (m_pbFeatureImpassable != NULL); } // advc.003t
 	bool getTerrainNative(int i) const;
 	bool getFeatureNative(int i) const;
 	bool getFreePromotions(int i) const;
-	inline bool isAnyFreePromotions() const { return (m_pbFreePromotions != NULL); } // advc.003t
+	bool isAnyFreePromotions() const { return (m_pbFreePromotions != NULL); } // advc.003t
 	int getLeaderPromotion() const;
 	int getLeaderExperience() const;
 
 	// <advc.003w>
 	// Wrappers around CvUnitClass; for convenience.
-	inline bool isWorldUnit() const
+	bool isWorldUnit() const
 	{
 		return GC.getInfo(getUnitClassType()).isWorldUnit();
 	}
-	inline bool isTeamUnit() const
+	bool isTeamUnit() const
 	{
 		return GC.getInfo(getUnitClassType()).isTeamUnit();
 	}
-	inline bool isLimited() const
+	bool isLimited() const
 	{
 		return GC.getInfo(getUnitClassType()).isLimited();
 	}
@@ -338,12 +338,12 @@ public: /*  All const functions are exposed to Python except some related to art
 	#endif
 	bool read(CvXMLLoadUtility* pXML);
 	// <advc.315>
-	inline bool isMostlyDefensive() const
+	bool isMostlyDefensive() const
 	{
 		return isOnlyDefensive() || isOnlyAttackAnimals() || isOnlyAttackBarbarians();
 	} // </advc.315>
 	// advc.opt:
-	static inline bool canAnyMoveAllTerrain() { return m_bCanAnyMoveAllTerrain; }
+	static bool canAnyMoveAllTerrain() { return m_bCanAnyMoveAllTerrain; }
 
 protected:
 	static bool m_bCanAnyMoveAllTerrain; // advc.opt
@@ -722,8 +722,8 @@ class CvEspionageMissionInfo : public CvInfoBase
 public:
 	CvEspionageMissionInfo();
 
-	inline int getCost() const { return m_iCost; } // advc.inl
-	inline bool isPassive() const { return m_bIsPassive; } // advc.inl
+	int getCost() const { return m_iCost; } // advc.inl
+	bool isPassive() const { return m_bIsPassive; } // advc.inl
 	bool isTwoPhases() const;
 	bool isTargetsCity() const;
 	bool isSelectPlot() const;
@@ -755,7 +755,7 @@ public:
 	int getCounterespionageNumTurns() const;
 	int getCounterespionageMod() const;
 	int getDifficultyMod() const;
-	inline bool isReturnToCapital() const { return m_bReturnToCapital; } // advc.103
+	bool isReturnToCapital() const { return m_bReturnToCapital; } // advc.103
 
 	bool read(CvXMLLoadUtility* pXML);
 

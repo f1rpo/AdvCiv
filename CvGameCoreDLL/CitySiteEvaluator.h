@@ -138,7 +138,7 @@ private:
 	// </advc.031c>
 	short evaluate();
 	// Subroutines of evaluate ...
-	inline bool isHome(CvPlot const& p) const { return (&p == &kPlot); }
+	bool isHome(CvPlot const& p) const { return (&p == &kPlot); }
 	bool isSiteValid() const;
 	bool computeOverlap();
 	bool isPrioritizeAsFirstColony() const; // advc.040

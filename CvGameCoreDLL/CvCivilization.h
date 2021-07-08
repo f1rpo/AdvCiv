@@ -16,67 +16,67 @@ class CvCivilization : private boost::noncopyable
 {
 public:
 	explicit CvCivilization(CvCivilizationInfo const& kInfo);
-	inline int getNumBuildings() const
+	int getNumBuildings() const
 	{
 		return m_buildings.size();
 	}
-	inline BuildingTypes buildingAt(int iBuildingIndex) const
+	BuildingTypes buildingAt(int iBuildingIndex) const
 	{
 		return m_buildings[iBuildingIndex];
 	}
-	inline BuildingClassTypes buildingClassAt(int iBuildingIndex) const
+	BuildingClassTypes buildingClassAt(int iBuildingIndex) const
 	{	/*  (I've tested a vector<BuildingClassTypes> of the same size as m_buildings
 			to make this more efficient -- didn't help at all.) */
 		return buildingClass(buildingAt(iBuildingIndex));
 	}
-	inline int getNumUnits() const
+	int getNumUnits() const
 	{
 		return m_units.size();
 	}
-	inline UnitTypes unitAt(int iUnitIndex) const
+	UnitTypes unitAt(int iUnitIndex) const
 	{
 		return m_units[iUnitIndex];
 	}
-	inline UnitClassTypes unitClassAt(int iUnitIndex) const
+	UnitClassTypes unitClassAt(int iUnitIndex) const
 	{
 		return unitClass(unitAt(iUnitIndex));
 	}
 	BuildingTypes getBuilding(BuildingClassTypes eBuildingClass) const;
 	UnitTypes getUnit(UnitClassTypes eUnitClass) const;
 
-	inline int getNumUniqueBuildings() const
+	int getNumUniqueBuildings() const
 	{
 		return m_uniqueBuildings.size();
 	}
-	inline BuildingTypes uniqueBuildingAt(int iUniqueBuildingIndex) const
+	BuildingTypes uniqueBuildingAt(int iUniqueBuildingIndex) const
 	{
 		return m_uniqueBuildings[iUniqueBuildingIndex];
 	}
-	inline int getNumUniqueUnits() const
+	int getNumUniqueUnits() const
 	{
 		return m_uniqueUnits.size();
 	}
-	inline UnitTypes uniqueUnitAt(int iUniqueUnitIndex) const
+	UnitTypes uniqueUnitAt(int iUniqueUnitIndex) const
 	{
 		return m_uniqueUnits[iUniqueUnitIndex];
 	}
 	bool isUnique(BuildingTypes eBuilding) const;
-	inline bool isUnique(BuildingClassTypes eBuildingClass) const
+	bool isUnique(BuildingClassTypes eBuildingClass) const
 	{
 		return isUnique(getBuilding(eBuildingClass));
 	}
 	bool isUnique(UnitTypes eUnit) const;
-	inline bool isUnique(UnitClassTypes eUnitClass) const
+	bool isUnique(UnitClassTypes eUnitClass) const
 	{
 		return isUnique(getUnit(eUnitClass));
 	}
 
-	inline bool isFreeBuilding(BuildingTypes eBuilding) const
+	bool isFreeBuilding(BuildingTypes eBuilding) const
 	{
 		return isFreeBuilding(buildingClass(eBuilding));
 	}
 	bool isFreeBuilding(BuildingClassTypes eBuildingClass) const;
-	inline int getNumFreeUnits(UnitTypes eUnit) const
+	int getNumFreeUnits(UnitTypes eUnit) const
 	{
 		return getNumFreeUnits(unitClass(eUnit));
 	}

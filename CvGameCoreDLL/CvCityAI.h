@@ -76,11 +76,11 @@ public:
 	int AI_neededCultureDefenders() const; // </advc.099c>
 	// <advc.139>
 	void AI_updateSafety(bool bUpdatePerfectSafety = true);
-	inline CitySafetyTypes AI_getSafety() const { return m_eSafety; }
-	inline bool AI_isEvacuating() const { return (m_eSafety == CITYSAFETY_EVACUATING); }
-	inline bool AI_isSafe() const { return (m_eSafety >= CITYSAFETY_SAFE); }
+	CitySafetyTypes AI_getSafety() const { return m_eSafety; }
+	bool AI_isEvacuating() const { return (m_eSafety == CITYSAFETY_EVACUATING); }
+	bool AI_isSafe() const { return (m_eSafety >= CITYSAFETY_SAFE); }
 	void AI_setCityValPercent(int iValue);
-	inline int AI_getCityValPercent() const { return m_iCityValPercent; }
+	int AI_getCityValPercent() const { return m_iCityValPercent; }
 	// </advc.139>
 
 	// advc: Moved from CvCity b/c it's part of the AI

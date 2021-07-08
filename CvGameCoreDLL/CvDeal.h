@@ -44,7 +44,7 @@ public:
 	bool isVassalTributeDeal() const;
 	bool isDisengage() const; // advc.034
 
-	DllExport inline int getID() const { return m_iID; } // advc.inl
+	DllExport int getID() const { return m_iID; } // advc.inl
 	void setID(int iID);
 
 	int getInitialGameTurn() const;
@@ -60,21 +60,21 @@ public:
 	CLLNode<TradeData>* headSecondTradesNodeExternal() const;
 	CLLNode<TradeData>* nextSecondTradesNodeExternal(CLLNode<TradeData>* pNode) const;
 	// </advc.003s>  <advc.inl>
-	DllExport inline PlayerTypes getFirstPlayer() const
+	DllExport PlayerTypes getFirstPlayer() const
 	{
 		return m_eFirstPlayer;
 	}
 	// advc: Renamed from "getFirstTrades"
-	inline CLinkList<TradeData> const& getFirstList() const
+	CLinkList<TradeData> const& getFirstList() const
 	{
 		return m_firstList;
 	}
-	DllExport inline PlayerTypes CvDeal::getSecondPlayer() const
+	DllExport PlayerTypes CvDeal::getSecondPlayer() const
 	{
 		return m_eSecondPlayer;
 	}
 	// advc: Renamed from "getSecondTrades"
-	inline CLinkList<TradeData> const& getSecondList() const
+	CLinkList<TradeData> const& getSecondList() const
 	{
 		return m_secondList;
 	}
@@ -134,9 +134,9 @@ public:
 	{
 		return (eItem == TRADE_VASSAL || eItem == TRADE_SURRENDER);
 	}
-	DllExport static inline TradeableItems getPeaceItem() { return TRADE_PEACE_TREATY; }
-	DllExport static inline TradeableItems getGoldItem() { return TRADE_GOLD; }
-	DllExport static inline TradeableItems getGoldPerTurnItem() { return TRADE_GOLD_PER_TURN; }
+	DllExport static TradeableItems getPeaceItem() { return TRADE_PEACE_TREATY; }
+	DllExport static TradeableItems getGoldItem() { return TRADE_GOLD; }
+	DllExport static TradeableItems getGoldPerTurnItem() { return TRADE_GOLD_PER_TURN; }
 
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);

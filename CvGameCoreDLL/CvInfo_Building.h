@@ -19,31 +19,31 @@ class CvBuildingClassInfo : public CvInfoBase
 public: // All the const functions are exposed to Python; advc.inl: Inlined most of them.
 	CvBuildingClassInfo();
 
-	inline int getMaxGlobalInstances() const
+	int getMaxGlobalInstances() const
 	{
 		return m_iMaxGlobalInstances;
 	}
-	inline bool isWorldWonder() const // advc.003w: Replacing global isWorldWonderClass
+	bool isWorldWonder() const // advc.003w: Replacing global isWorldWonderClass
 	{
 		return (getMaxGlobalInstances() != -1);
 	}
-	inline int getMaxTeamInstances() const
+	int getMaxTeamInstances() const
 	{
 		return m_iMaxTeamInstances;
 	}
-	inline bool isTeamWonder() const // advc.003w: Replacing global isTeamWonderClass
+	bool isTeamWonder() const // advc.003w: Replacing global isTeamWonderClass
 	{
 		return (getMaxTeamInstances() != -1);
 	}
-	inline int getMaxPlayerInstances() const
+	int getMaxPlayerInstances() const
 	{
 		return m_iMaxPlayerInstances;
 	}
-	inline bool isNationalWonder() const // advc.003w: Replacing global isNationalWonderClass
+	bool isNationalWonder() const // advc.003w: Replacing global isNationalWonderClass
 	{
 		return (getMaxPlayerInstances() != -1);
 	}
-	inline bool isLimited() const // advc.003w: Replacing global isLimitedWonderClass
+	bool isLimited() const // advc.003w: Replacing global isLimitedWonderClass
 	{
 		return (isWorldWonder() || isTeamWonder() || isNationalWonder());
 	}
@@ -100,16 +100,16 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 		NUM_BOOL_ELEMENT_TYPES = CvHotkeyInfo::NUM_BOOL_ELEMENT_TYPES
 	};
 	using CvXMLInfo::get; // unhide
-	__forceinline int get(IntElementTypes e) const
+	int get(IntElementTypes e) const
 	{
 		return get(static_cast<CvXMLInfo::IntElementTypes>(e));
 	}
-	__forceinline int get(BoolElementTypes e) const
+	int get(BoolElementTypes e) const
 	{
 		return get(static_cast<CvXMLInfo::BoolElementTypes>(e));
 	} // </advc.tag>
 
-	inline BuildingClassTypes getBuildingClassType() const
+	BuildingClassTypes getBuildingClassType() const
 	{
 		return m_eBuildingClassType;
 	}
@@ -210,7 +210,7 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 	int getGlobalHealth() const { return m_iGlobalHealth; }
 	int getGlobalPopulationChange() const { return m_iGlobalPopulationChange; }
 	int getFreeTechs() const { return m_iFreeTechs; }
-	inline int getDefenseModifier() const { return m_iDefenseModifier; }
+	int getDefenseModifier() const { return m_iDefenseModifier; }
 	int getBombardDefenseModifier() const { return m_iBombardDefenseModifier; }
 	int getAllCityDefenseModifier() const { return m_iAllCityDefenseModifier; }
 	int getEspionageDefenseModifier() const { return m_iEspionageDefenseModifier; }
@@ -279,8 +279,8 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 	DEF_INFO_ENUM_MAP(DomainFreeExperience, Domain, char, ShortEnumMap);
 	DEF_INFO_ENUM_MAP(DomainProductionModifier, Domain, short, ShortEnumMap);
 
-	inline int getNumPrereqAndTechs() const { return m_aePrereqAndTechs.size(); }
-	inline int getNumPrereqOrBonuses() const { return m_aePrereqOrBonuses.size(); }
+	int getNumPrereqAndTechs() const { return m_aePrereqAndTechs.size(); }
+	int getNumPrereqOrBonuses() const { return m_aePrereqOrBonuses.size(); }
 	TechTypes getPrereqAndTechs(int i) const
 	{
 		FAssertBounds(0, getNumPrereqAndTechs(), i);
@@ -307,19 +307,19 @@ public: /*	All the const functions are exposed to Python. advc.inl: Inlined most
 	DEF_INFO_ENUM2SHORT_MAP(SpecialistYieldChange, Specialist, Yield, YieldChangeMap, ListEnumMap);
 	DEF_INFO_ENUM2SHORT_MAP(BonusYieldModifier, Bonus, Yield, YieldPercentMap, ListEnumMap);
 	// <advc.003w> for convenience
-	inline bool isWorldWonder() const
+	bool isWorldWonder() const
 	{
 		return GC.getInfo(getBuildingClassType()).isWorldWonder();
 	}
-	inline bool isTeamWonder() const
+	bool isTeamWonder() const
 	{
 		return GC.getInfo(getBuildingClassType()).isTeamWonder();
 	}
-	inline bool isNationalWonder() const
+	bool isNationalWonder() const
 	{
 		return GC.getInfo(getBuildingClassType()).isNationalWonder();
 	}
-	inline bool isLimited() const
+	bool isLimited() const
 	{
 		return GC.getInfo(getBuildingClassType()).isLimited();
 	} // </advc.003w>
@@ -602,23 +602,23 @@ public: // All const functions are exposed to Python. advc.inl: Most of them inl
 	{
 		return m_eAnyoneProjectPrereq;
 	}
-	inline int getMaxGlobalInstances() const
+	int getMaxGlobalInstances() const
 	{
 		return m_iMaxGlobalInstances;
 	}
-	inline bool isWorldProject() const // advc.003w: Replacing global isWorldProject(ProjectTypes)
+	bool isWorldProject() const // advc.003w: Replacing global isWorldProject(ProjectTypes)
 	{
 		return (getMaxGlobalInstances() != -1);
 	}
-	inline int getMaxTeamInstances() const
+	int getMaxTeamInstances() const
 	{
 		return m_iMaxTeamInstances;
 	}
-	inline bool isTeamProject() const // advc.003w: Replacing global isTeamProject(ProjectTypes)
+	bool isTeamProject() const // advc.003w: Replacing global isTeamProject(ProjectTypes)
 	{
 		return (getMaxTeamInstances() != -1);
 	}
-	inline bool isLimited() const // advc.003w: Replacing global isLimitedProject(ProjectTypes)
+	bool isLimited() const // advc.003w: Replacing global isLimitedProject(ProjectTypes)
 	{
 		return (isWorldProject() || isTeamProject());
 	} 

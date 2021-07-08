@@ -29,11 +29,11 @@ private:
 		function when the RandLog is disabled. */
 	friend class CvRandom;
 
-	inline bool isEnabled() const
+	bool isEnabled() const
 	{
 		return m_bEnabled;
 	}
-	inline bool isEnabledRand() const
+	bool isEnabledRand() const
 	{
 		return m_bRandEnabled;
 	}

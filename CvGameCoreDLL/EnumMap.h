@@ -90,7 +90,7 @@ public:
 	T get(IndexType eIndex) const;
 	void set(IndexType eIndex, T tValue);
 	// advc: Allow individual elements to be reset
-	__forceinline void reset(IndexType eIndex) { set(eIndex, (T)DEFAULT); }
+	void reset(IndexType eIndex) { set(eIndex, (T)DEFAULT); }
 	void add(IndexType eIndex, T tValue);
 	void multiply(IndexType eIndex, T tMultiplier); // advc
 	void divide(IndexType eIndex, T tDivisor); // advc
@@ -221,9 +221,9 @@ private:
 		interval() : first((IndexType)0), last((IndexType)0) {}
 	};
 
-	/*	bool helpers (advc: force-inline, if only for clarity)
+	/*	bool helpers
 		advc.003t (note): ArrayEnumMap uses the same logic */
-	__forceinline int getBoolArrayBlock(int iIndex) const
+	__inline int getBoolArrayBlock(int iIndex) const
 	{
 		if (bINLINE_BOOL && NUM_BOOL_BLOCKS == 1)
 		{
@@ -234,7 +234,7 @@ private:
 		}
 		return iIndex / 32;
 	}
-	__forceinline int getBoolArrayIndexInBlock(int iIndex) const
+	int getBoolArrayIndexInBlock(int iIndex) const
 	{
 		return iIndex & ENUMMAP_BITMASK_32_BIT;
 	}
@@ -291,7 +291,7 @@ private:
 	// The actual specialized impletation of the functions
 	//
 
-	// get  (advc: were all force-inlined)
+	// get
 	template<>
 	T _get<false, ENUMMAP_SIZE_NATIVE>(int iIndex) const
 	{
@@ -313,107 +313,107 @@ private:
 		return m_pArrayBool ? BitUtil::HasBit(m_pArrayBool[getBoolArrayBlock(iIndex)], getBoolArrayIndexInBlock(iIndex)) : DEFAULT;
 	}
 	/*template<>
-	__forceinline T _get<true, ENUMMAP_SIZE_NATIVE>(int iIndex) const
+	T _get<true, ENUMMAP_SIZE_NATIVE>(int iIndex) const
 	{
 		return m_InlineNative[iIndex];
 	}*/ // advc.fract
 	template<>
-	__forceinline T _get<true, ENUMMAP_SIZE_1_BYTE>(int iIndex) const
+	T _get<true, ENUMMAP_SIZE_1_BYTE>(int iIndex) const
 	{
 		return (T)m_Inline_1_byte[iIndex];
 	}
 	template<>
-	__forceinline T _get<true, ENUMMAP_SIZE_2_BYTE>(int iIndex) const
+	T _get<true, ENUMMAP_SIZE_2_BYTE>(int iIndex) const
 	{
 		return (T)m_Inline_2_byte[iIndex];
 	}
 	template<>
-	inline T _get<true, ENUMMAP_SIZE_BOOL>(int iIndex) const
+	T _get<true, ENUMMAP_SIZE_BOOL>(int iIndex) const
 	{
 		return BitUtil::HasBit(m_InlineBoolArray[getBoolArrayBlock(iIndex)], getBoolArrayIndexInBlock(iIndex));
 	}
 
 	// set
 	template<>
-	__forceinline void _set<false, ENUMMAP_SIZE_NATIVE>(int iIndex, T tValue)
+	void _set<false, ENUMMAP_SIZE_NATIVE>(int iIndex, T tValue)
 	{
 		m_pArrayFull[iIndex] = tValue;
 	}
 	template<>
-	__forceinline void _set<false, ENUMMAP_SIZE_1_BYTE>(int iIndex, T tValue)
+	void _set<false, ENUMMAP_SIZE_1_BYTE>(int iIndex, T tValue)
 	{	// advc: Cast added to conform with /W4
 		m_pArrayChar[iIndex] = static_cast<char>(tValue);
 	}
 	template<>
-	__forceinline void _set<false, ENUMMAP_SIZE_2_BYTE>(int iIndex, T tValue)
+	void _set<false, ENUMMAP_SIZE_2_BYTE>(int iIndex, T tValue)
 	{
 		m_pArrayShort[iIndex] = static_cast<short>(tValue); // advc: cast (see above)
 	}
 	template<>
-	inline void _set<false, ENUMMAP_SIZE_BOOL>(int iIndex, T tValue)
+	void _set<false, ENUMMAP_SIZE_BOOL>(int iIndex, T tValue)
 	{
 		BitUtil::SetBit(m_pArrayBool[getBoolArrayBlock(iIndex)],
 				getBoolArrayIndexInBlock(iIndex), tValue ? 1 : 0);
 	}
 	/*template<>
-	__forceinline void _set<true, ENUMMAP_SIZE_NATIVE>(int iIndex, T tValue)
+	void _set<true, ENUMMAP_SIZE_NATIVE>(int iIndex, T tValue)
 	{
 		m_InlineNative[iIndex] = tValue;
 	}*/ // advc.fract
 	template<>
-	__forceinline void _set<true, ENUMMAP_SIZE_1_BYTE>(int iIndex, T tValue)
+	void _set<true, ENUMMAP_SIZE_1_BYTE>(int iIndex, T tValue)
 	{
 		m_Inline_1_byte[iIndex] = tValue;
 	}
 	template<>
-	__forceinline void _set<true, ENUMMAP_SIZE_2_BYTE>(int iIndex, T tValue)
+	void _set<true, ENUMMAP_SIZE_2_BYTE>(int iIndex, T tValue)
 	{
 		m_Inline_2_byte[iIndex] = tValue;
 	}
 	template<>
-	inline void _set<true, ENUMMAP_SIZE_BOOL>(int iIndex, T tValue)
+	void _set<true, ENUMMAP_SIZE_BOOL>(int iIndex, T tValue)
 	{
 		BitUtil::SetBit(m_InlineBoolArray[getBoolArrayBlock(iIndex)], getBoolArrayIndexInBlock(iIndex), tValue ? 1 : 0);
 	}
 
 	// setAll
 	template<>
-	__forceinline void _setAll<false, ENUMMAP_SIZE_NATIVE>(T tValue)
+	void _setAll<false, ENUMMAP_SIZE_NATIVE>(T tValue)
 	{
 		std::fill_n(m_pArrayFull, numElements(), tValue);
 	}
 	template<>
-	__forceinline void _setAll<false, ENUMMAP_SIZE_1_BYTE>(T tValue)
+	void _setAll<false, ENUMMAP_SIZE_1_BYTE>(T tValue)
 	{
 		std::fill_n(m_pArrayChar, numElements(), tValue);
 	}
 	template<>
-	__forceinline void _setAll<false, ENUMMAP_SIZE_2_BYTE>(T tValue)
+	void _setAll<false, ENUMMAP_SIZE_2_BYTE>(T tValue)
 	{
 		std::fill_n(m_pArrayShort, numElements(), tValue);
 	}
 	template<>
-	__forceinline void _setAll<false, ENUMMAP_SIZE_BOOL>(T tValue)
+	void _setAll<false, ENUMMAP_SIZE_BOOL>(T tValue)
 	{
 		std::fill_n(m_pArrayBool, _getNumBoolBlocks<bINLINE_BOOL>(), tValue ? MAX_UNSIGNED_INT : 0);
 	}
 	/*template<>
-	__forceinline void _setAll<true, ENUMMAP_SIZE_NATIVE>(T tValue)
+	void _setAll<true, ENUMMAP_SIZE_NATIVE>(T tValue)
 	{
 		std::fill_n(&m_InlineNative[0], numElements(), tValue);
 	}*/ // advc.fract
 	template<>
-	__forceinline void _setAll<true, ENUMMAP_SIZE_1_BYTE>(T tValue)
+	void _setAll<true, ENUMMAP_SIZE_1_BYTE>(T tValue)
 	{
 		std::fill_n(&m_Inline_1_byte[0], numElements(), tValue);
 	}
 	template<>
-	__forceinline void _setAll<true, ENUMMAP_SIZE_2_BYTE>(T tValue)
+	void _setAll<true, ENUMMAP_SIZE_2_BYTE>(T tValue)
 	{
 		std::fill_n(&m_Inline_2_byte[0], numElements(), tValue);
 	}
 	template<>
-	__forceinline void _setAll<true, ENUMMAP_SIZE_BOOL>(T tValue)
+	void _setAll<true, ENUMMAP_SIZE_BOOL>(T tValue)
 	{
 		std::fill_n(&m_InlineBoolArray[0], _getNumBoolBlocks<bINLINE>(), tValue ? MAX_UNSIGNED_INT : 0);
 	}
@@ -473,13 +473,13 @@ private:
 	////
 
 	template <>
-	__forceinline uint _getNumBoolBlocks<false>() const
+	uint _getNumBoolBlocks<false>() const
 	{
 		return (numElements() + 31) / 32;
 	}
 
 	template <>
-	__forceinline uint _getNumBoolBlocks<true>() const
+	 uint _getNumBoolBlocks<true>() const
 	{
 		return NUM_BOOL_BLOCKS;
 	}
@@ -524,15 +524,14 @@ private:
 // To actually force the compiler to inline, the keyword __forceinline can be used, but this one should really be used with care.
 // Actually inlining functions can slow down the code and inline is usually only good for very small functions, like get variable.
 //
-/*  advc: MSVC03 seems to treat member functions as implicitly inline when it comes
-	to the one-definition rule - even if the functions aren't defined within the
-	class definition. So I've removed some inline keywords b/c I don't want to
-	recommend any function with branching for inline expansion. I've also
-	downgraded some __forceinline keywords to inline. */
+/*  advc: MSVC03 seems to treat function templates and member functions of
+	class templates as implicitly inline when it comes to the one-definition rule -
+	even if the functions aren't defined within the class definition.
+	So I've removed most the (force-)inline keywords. */
 
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-inline EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::EnumMapBase() : m_pArrayFull(NULL)
 {
 	// bools can only default to 0 or 1
@@ -548,21 +547,21 @@ inline EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-inline EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::~EnumMapBase()
 {
 	reset();
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-__forceinline T EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+T EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::getDefault() const
 {
 	return (T)DEFAULT;
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-__forceinline IndexType EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+IndexType EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::First() const
 {
 	//return ArrayStart((T_SUBSET)0);
@@ -570,7 +569,7 @@ __forceinline IndexType EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-__forceinline IndexType EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+IndexType EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::getLength() const
 {
 	// advc: getEnumLength(T_SUBSET) returns a T_SUBSET value, so a cast is needed.
@@ -578,7 +577,7 @@ __forceinline IndexType EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-__forceinline IndexType EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+IndexType EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::numElements() const
 {
 	// apparently subtracting two IndexTypes results in int, not IndexType
@@ -587,7 +586,7 @@ __forceinline IndexType EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-__forceinline T EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+T EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::get(IndexType eIndex) const
 {
 	FAssert(eIndex >= First() && eIndex < getLength());
@@ -595,7 +594,6 @@ __forceinline T EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::set(IndexType eIndex, T tValue)
 {
@@ -612,7 +610,6 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::add(IndexType eIndex, T tValue)
 {
@@ -626,7 +623,7 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 // advc:
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::multiply(IndexType eIndex, T tMultiplier)
 {
 	/*  In 'add', I expect that branching on tValue is better than risking a cache miss,
@@ -637,7 +634,7 @@ inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 // advc:
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::divide(IndexType eIndex, T tDivisor)
 {
 	set(eIndex, get(eIndex) / tDivisor);
@@ -645,7 +642,6 @@ inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
-// advc: was inline
 ::safeSet(IndexType eIndex, T tValue)
 {
 	BOOST_STATIC_ASSERT(SIZE != ENUMMAP_SIZE_BOOL);
@@ -657,7 +653,6 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
-// advc: was inline
 ::safeAdd(IndexType eIndex, T tValue)
 {
 	BOOST_STATIC_ASSERT(SIZE != ENUMMAP_SIZE_BOOL);
@@ -668,7 +663,6 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::addAll(T tValue)
 {
@@ -682,7 +676,7 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: was inline; advc.fract: return type was int
+// advc.fract: return type was int
 T EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::getTotal() const
 {
 	// bINLINE is set at compile time and if true, isAllocated will always be true
@@ -720,14 +714,13 @@ int EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::getSupportSz() con
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-inline bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::isAllocated() const
 {
 	return bINLINE || m_pArrayFull != NULL;
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: was inline
 bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::hasContent() const
 {
@@ -778,7 +771,6 @@ bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: was inline
 T EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::getMin() const
 {
@@ -792,7 +784,6 @@ T EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: was inline
 T EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::getMax() const
 {
@@ -818,7 +809,6 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::keepMax(IndexType eIndex, T tValue)
 {
@@ -831,7 +821,6 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::reset()
 {
@@ -848,7 +837,6 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::setAll(T tValue)
 {
@@ -867,7 +855,7 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::Read(/* <advc> */ FDataStreamBase* pStream, bool bAsInt, bool bAsShort,
 	bool bAsFloat, bool bAsDouble/*, bool bSkipLast*/)
 {
@@ -875,34 +863,34 @@ inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 }
 
 /*template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::ReadButOne(FDataStreamBase* pStream, bool bAsInt, bool bAsFloat, bool bAsDouble)
 {
 	Read(pStream, bAsInt, false, bAsFloat, bAsDouble, true);
 }*/
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::ReadFloat(FDataStreamBase* pStream, bool bAsDouble)
 {
 	Read(pStream, false, false, true, bAsDouble);
 } // </advc>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::Write(/* <advc> */ FDataStreamBase* pStream, bool bAsInt, bool bAsFloat) const
 {
 	_Write<SIZE>(pStream, bAsInt, bAsFloat); // </advc>
 }
 // <advc.fract>
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::ReadRecursive(FDataStreamBase* pStream)
 {
 	_ReadRecursive<SIZE>(pStream);
 }
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-inline void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
+void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::WriteRecursive(FDataStreamBase* pStream) const
 {
 	_WriteRecursive<SIZE>(pStream);
@@ -930,7 +918,6 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<int SIZE2>
-// advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::_Read(/* <advc> */ FDataStreamBase* pStream, bool bAsInt, bool bAsShort, bool bAsFloat,
 	bool bAsDouble/*, bool bSkipLast*/) // </advc>
@@ -998,7 +985,6 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<int SIZE2>
-// advc: was inline
 void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::_Write(/* advc: */ FDataStreamBase* pStream, bool bAsInt, bool bAsFloat) const
 {
@@ -1037,7 +1023,6 @@ void EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 //
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
-// advc: was inline
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>&
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::operator=(const EnumMapBase &rhs)
@@ -1059,7 +1044,6 @@ EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<class T2, int DEFAULT2>
-// advc: was inline
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>&
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::operator=(const EnumMapBase<IndexType, T2, DEFAULT2, T_SUBSET, LengthType> &rhs)
@@ -1083,7 +1067,6 @@ EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<class T2, int DEFAULT2>
-// advc: was inline
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>&
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::operator+=(const EnumMapBase<IndexType, T2, DEFAULT2, T_SUBSET, LengthType> &rhs)
@@ -1107,7 +1090,6 @@ EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<class T2, int DEFAULT2>
-// advc: was inline
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>&
 EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::operator-=(const EnumMapBase<IndexType, T2, DEFAULT2, T_SUBSET, LengthType> &rhs)
@@ -1131,7 +1113,6 @@ EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<class T2, int DEFAULT2>
-// advc: was inline
 bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::operator==(const EnumMapBase<IndexType, T2, DEFAULT2, T_SUBSET, LengthType> &rhs) const
 {
@@ -1159,7 +1140,6 @@ bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>
 template<class T2, int DEFAULT2>
-// advc: was inline
 bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 ::operator!=(const EnumMapBase<IndexType, T2, DEFAULT2, T_SUBSET, LengthType> &rhs) const
 {
@@ -1193,18 +1173,18 @@ bool EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>
 //
 //
 
-__forceinline bool ArrayDefault(bool var) { return 0; } \
+inline bool ArrayDefault(bool var) { return 0; } \
 template <> struct EnumMapGetDefault<bool> \
 { \
 enum { DEFAULT_VALUE = 0, SIZE = ENUMMAP_SIZE_BOOL, SIZE_OF_T = sizeof(char) }; \
 };
 
 #define SET_ARRAY_DEFAULT( X ) \
-__forceinline X ArrayDefault( X var) { return 0; } \
-template <> struct EnumMapGetDefault< X > \
-{ \
-	enum { DEFAULT_VALUE = 0, SIZE = ENUMMAP_SIZE_NATIVE, SIZE_OF_T = sizeof(X) }; \
-};
+	inline X ArrayDefault( X var) { return 0; } \
+	template <> struct EnumMapGetDefault< X > \
+	{ \
+		enum { DEFAULT_VALUE = 0, SIZE = ENUMMAP_SIZE_NATIVE, SIZE_OF_T = sizeof(X) }; \
+	};
 
 SET_ARRAY_DEFAULT(int);
 SET_ARRAY_DEFAULT(short);
@@ -1215,7 +1195,7 @@ SET_ARRAY_DEFAULT(byte);
 SET_ARRAY_DEFAULT(float); // advc
 // <advc.fract> (Can't pass template params into SET_ARRAY_DEFAULT)
 template<int iSCALE, typename IntType, typename EnumType>
-__forceinline ScaledNum<iSCALE,IntType,EnumType> ArrayDefault(ScaledNum<iSCALE,IntType,EnumType> var) { return 0; }
+ScaledNum<iSCALE,IntType,EnumType> ArrayDefault(ScaledNum<iSCALE,IntType,EnumType> var) { return 0; }
 template<int iSCALE, typename IntType, typename EnumType>
 struct EnumMapGetDefault<ScaledNum<iSCALE,IntType,EnumType> >
 {
@@ -1293,7 +1273,7 @@ template<> struct EnumMapGetDefault<PlotNumTypes> {
 
 // The other getEnumLength functions are generated through macros in CvEnums.h
 #define SET_NONXML_ENUM_LENGTH(TypeName, eLength) \
-	__forceinline TypeName getEnumLength(TypeName) { return eLength; } \
+	inline TypeName getEnumLength(TypeName) { return eLength; } \
 	DEFINE_INCREMENT_OPERATORS(TypeName) \
 	template <> struct EnumMapGetDefault<TypeName> \
 	{ \
@@ -1362,9 +1342,9 @@ class SubEnumMap : public EnumMapBase <IndexType, T, DEFAULT, T_SUBSET, LengthTy
 	/*	Adapters to allow indices of T_SUBSET. Can't define those in EnumMapBase
 		because IndexType and T_SUBSET can be (and usually are) the same there. */
 public:
-	__forceinline T get(T_SUBSET eSubIndex) const { return get(static_cast<IndexType>(eSubIndex)); }
-	__forceinline void set(T_SUBSET eSubIndex, T tValue) { set(static_cast<IndexType>(eSubIndex), tValue); }
-	__forceinline void add(T_SUBSET eSubIndex, T tValue) { add(static_cast<IndexType>(eSubIndex), tValue); }
+	T get(T_SUBSET eSubIndex) const { return get(static_cast<IndexType>(eSubIndex)); }
+	void set(T_SUBSET eSubIndex, T tValue) { set(static_cast<IndexType>(eSubIndex), tValue); }
+	void add(T_SUBSET eSubIndex, T tValue) { add(static_cast<IndexType>(eSubIndex), tValue); }
 	// Unhide base class functions
 	using EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::get;
 	using EnumMapBase<IndexType, T, DEFAULT, T_SUBSET, LengthType>::set;

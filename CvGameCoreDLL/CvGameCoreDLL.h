@@ -79,9 +79,9 @@ typedef wchar_t				wchar;
 #define MIN_UNSIGNED_INT					(0x00000000)
 /*	advc: These are unused. FLT_MAX and FLT_MIN are used in a few places,
 	so let's keep using those exclusively. */
-/*__forceinline DWORD FtoDW( float f ) { return *(DWORD*)&f; }
-__forceinline float DWtoF( dword n ) { return *(float*)&n; }
-__forceinline float MaxFloat() { return DWtoF(0x7f7fffff); }*/
+/*inline DWORD FtoDW( float f ) { return *(DWORD*)&f; }
+inline float DWtoF( dword n ) { return *(float*)&n; }
+inline float MaxFloat() { return DWtoF(0x7f7fffff); }*/
 
 // (advc.make: Some macros moved into new header Trigonometry.h)
 

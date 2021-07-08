@@ -105,92 +105,92 @@ public:
 	virtual void		WriteExternal(int count, const double values[]) = 0;
 
 	// <advc.repro> (And renamed the original functions to WriteExternal)
-	inline void Write(char value)
+	void Write(char value)
 	{
 		REPRO_TEST_REPORT(sizeof(value), &value);
 		WriteExternal(value);
 	}
-	inline void Write(byte value)
+	void Write(byte value)
 	{
 		REPRO_TEST_REPORT(sizeof(value), &value);
 		WriteExternal(value);
 	}
-	inline void Write(int iCount, char const values[])
+	void Write(int iCount, char const values[])
 	{
 		REPRO_TEST_REPORT(sizeof(char) * iCount, values);
 		WriteExternal(iCount, values);
 	}
-	inline void Write(int iCount, byte const values[])
+	void Write(int iCount, byte const values[])
 	{
 		REPRO_TEST_REPORT(sizeof(byte) * iCount, values);
 		WriteExternal(iCount, values);
 	}
-	inline void Write(bool value)
+	void Write(bool value)
 	{
 		REPRO_TEST_REPORT(sizeof(value), &value);
 		WriteExternal(value);
 	}
-	inline void Write(int iCount, const bool values[])
+	void Write(int iCount, const bool values[])
 	{
 		REPRO_TEST_REPORT(sizeof(bool) * iCount, values);
 		WriteExternal(iCount, values);
 	}
-	inline void Write(short value)
+	void Write(short value)
 	{
 		REPRO_TEST_REPORT(sizeof(value), &value);
 		WriteExternal(value);
 	}
-	inline void Write(unsigned short value)
+	void Write(unsigned short value)
 	{
 		REPRO_TEST_REPORT(sizeof(value), &value);
 		WriteExternal(value);
 	}
-	inline void Write(int iCount, const short values[])
+	void Write(int iCount, const short values[])
 	{
 		REPRO_TEST_REPORT(sizeof(short) * iCount, values);
 		WriteExternal(iCount, values);
 	}
-	inline void Write(int iCount, const unsigned short values[])
+	void Write(int iCount, const unsigned short values[])
 	{
 		REPRO_TEST_REPORT(sizeof(unsigned short) * iCount, values);
 		WriteExternal(iCount, values);
 	}
-	inline void Write(int value)
+	void Write(int value)
 	{
 		REPRO_TEST_REPORT(sizeof(value), &value);
 		WriteExternal(value);
 	}
-	inline void Write(unsigned int value)
+	void Write(unsigned int value)
 	{
 		REPRO_TEST_REPORT(sizeof(value), &value);
 		WriteExternal(value);
 	}
-	inline void Write(int iCount, int const values[])
+	void Write(int iCount, int const values[])
 	{
 		REPRO_TEST_REPORT(sizeof(int) * iCount, values);
 		WriteExternal(iCount, values);
 	}
-	inline void Write(int iCount, unsigned int const values[])
+	void Write(int iCount, unsigned int const values[])
 	{
 		REPRO_TEST_REPORT(sizeof(uint) * iCount, values);
 		WriteExternal(iCount, values);
 	}
-	inline void Write(long value)
+	void Write(long value)
 	{
 		REPRO_TEST_REPORT(sizeof(value), &value);
 		WriteExternal(value);
 	}
-	inline void Write(unsigned long value)
+	void Write(unsigned long value)
 	{
 		REPRO_TEST_REPORT(sizeof(value), &value);
 		WriteExternal(value);
 	}
-	inline void Write(int iCount, long const values[])
+	void Write(int iCount, long const values[])
 	{
 		REPRO_TEST_REPORT(sizeof(long) * iCount, values);
 		WriteExternal(iCount, values);
 	}
-	inline void Write(int iCount, unsigned long const values[])
+	void Write(int iCount, unsigned long const values[])
 	{
 		REPRO_TEST_REPORT(sizeof(unsigned long) * iCount, values);
 		WriteExternal(iCount, values);
@@ -199,19 +199,19 @@ public:
 		So these wrappers aren't needed, but, somehow, if I remove them and
 		rename the respective virtual functions back to "Write", I get a crash
 		when calling Write(bool). */
-	inline void Write(float value)
+	void Write(float value)
 	{
 		WriteExternal(value);
 	}
-	inline void Write(int count, const float values[])
+	void Write(int count, const float values[])
 	{
 		WriteExternal(count, values);
 	}
-	inline void Write(double value)
+	void Write(double value)
 	{
 		WriteExternal(value);
 	}
-	inline void Write(int count, const double values[])
+	void Write(int count, const double values[])
 	{
 		WriteExternal(count, values);
 	} // <advc.repro>

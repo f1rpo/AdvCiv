@@ -41,9 +41,10 @@ public:
 	int AI_countEnemyDefenders(CvPlot const& kPlot) const; // Replacing CvPlot::getNumVisiblePotentialEnemyDefenders
 	bool AI_isAnyEnemyDefender(CvPlot const& kPlot) const;
 	// </advc>
-	inline int AI_getBirthmark() const { return m_iBirthmark; }
+	int AI_getBirthmark() const { return m_iBirthmark; }
 	void AI_setBirthmark(int iNewValue);
-	inline UnitAITypes AI_getUnitAIType() const { return m_eUnitAIType; } // advc.inl: inline (now that it's no longer virtual)			// Exposed to Python
+	// advc.inl: inline (now that it's no longer virtual)
+	UnitAITypes AI_getUnitAIType() const { return m_eUnitAIType; } 									// Exposed to Python
 	void AI_setUnitAIType(UnitAITypes eNewValue);
 	CvSelectionGroupAI const* AI_getGroup() const; // advc.003u
 	CvSelectionGroupAI* AI_getGroup(); // advc.003u
@@ -336,11 +337,15 @@ protected:
 	int AI_searchRange(int iRange);
 	bool AI_plotValid(CvPlot /* advc: */ const* pPlot) const;
 	// <advc> Allow a reference to be used
-	__forceinline bool AI_plotValid(CvPlot const& kPlot) const
+	bool AI_plotValid(CvPlot const& kPlot) const
 	{
 		return AI_plotValid(&kPlot);
 	} // </advc>
-	bool AI_canEnterByLand(CvArea const& kArea) const; // advc.030
+	// advc.030:
+	bool AI_canEnterByLand(CvArea const& kArea) const
+	{	// Not checked (to save time): unused canMoveAllTerrain
+		return (isArea(kArea) || (canMoveImpassable() && canEnterArea(kArea)));
+	}
 
 	//int AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold); // disabled by K-Mod
 	unsigned AI_unitBirthmarkHash(int iExtra = 0) const; // K-Mod

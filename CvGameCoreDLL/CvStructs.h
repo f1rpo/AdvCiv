@@ -30,11 +30,11 @@ struct IDInfo
 {
 	/*	advc.opt: Default owner changed from NO_PLAYER to Barbarians so that
 		the owner doesn't need to be checked before calling FFreeListTrashArray::getAt. */
-	// advc.inl: inline keyword just to make sure
-	inline IDInfo(PlayerTypes eOwner = BARBARIAN_PLAYER, int iID = FFreeList::INVALID_INDEX) :
+	IDInfo(PlayerTypes eOwner = BARBARIAN_PLAYER, int iID = FFreeList::INVALID_INDEX) :
 		eOwner(eOwner), iID(iID)
-	{
-		FAssert(iID != FFreeList::INVALID_INDEX || eOwner == BARBARIAN_PLAYER); // advc.test
+	{	/*	advc: Not worth slowing down assert builds I think. I've had it enabled
+			for quite some time. It's fine currently and not likely to break I think. */
+		//FAssert(iID != FFreeList::INVALID_INDEX || eOwner == BARBARIAN_PLAYER);
 	}
 	void validateOwner(); // advc.opt
 

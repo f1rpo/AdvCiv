@@ -277,7 +277,7 @@ class ListEnumMap : public CvInfoEnumMap<E, V, vDEFAULT>
 	std::vector<std::pair<E,V> > m_pairs;
 	/*	This results in three move instructions.
 		Not worth the memory savings from using <short,short> I think(?). */
-	/*__forceinline static std::pair<E,V> expand(std::pair<short,short> iiPair)
+	/*static std::pair<E,V> expand(std::pair<short,short> iiPair)
 	{
 		return std::pair<E,V>(static_cast<E>(iiPair.first), static_cast<V>(iiPair.second));
 	}*/
@@ -302,7 +302,7 @@ public:
 			m_pairs.push_back(std::make_pair(static_cast<E>(iKey), vValue));
 	}
 
-	__forceinline V get(E eKey) const
+	V get(E eKey) const
 	{
 		FAssertEnumBounds(eKey);
 		return getUnsafe(eKey);
@@ -322,7 +322,7 @@ public:
 	}
 
 	// eDummy param for interchangeability with ArrayEnumMap
-	__forceinline std::pair<E,V> nextNonDefault(E eDummy, int iPairIndex) const
+	std::pair<E,V> nextNonDefault(E eDummy, int iPairIndex) const
 	{
 		FAssertBounds(0, m_pairs.size(), iPairIndex);
 		return m_pairs[iPairIndex];
@@ -380,7 +380,7 @@ public:
 			m_nonDefaultKeys.push_back(static_cast<E>(iKey));
 	}
 
-	__forceinline bool get(E eKey) const
+	bool get(E eKey) const
 	{
 		FAssertEnumBounds(eKey);
 		return getUnsafe(eKey);
@@ -397,7 +397,7 @@ public:
 		return bDEFAULT;
 	}
 
-	__forceinline std::pair<E,bool> nextNonDefault(E eDummy, int iPairIndex) const
+	std::pair<E,bool> nextNonDefault(E eDummy, int iPairIndex) const
 	{
 		FAssertBounds(0, m_nonDefaultKeys.size(), iPairIndex);
 		return std::make_pair(m_nonDefaultKeys[iPairIndex], !bDEFAULT);
@@ -473,13 +473,13 @@ public:
 		set(static_cast<E>(iKey), vValue);
 	}
 
-	__forceinline V get(E eKey) const
+	V get(E eKey) const
 	{
 		FAssertEnumBounds(eKey);
 		return getUnsafe(eKey);
 	}
 
-	__forceinline V getUnsafe(E eKey) const
+	V getUnsafe(E eKey) const
 	{
 		return _getUnsafe<V>(eKey);
 	}
@@ -578,18 +578,18 @@ private:
 	}
 
 	// (The inherited numKeys can't be inlined b/c it's virtual)
-	__forceinline E numValues() const
+	__inline E numValues() const
 	{
 		return getEnumLength(static_cast<E>(0));
 	}
 
-	__forceinline int fullLength() const
+	int fullLength() const
 	{
 		// +1 for the all-defaults flag
 		return numValues() + 1;
 	}
 
-	__forceinline bool isAllDefault() const
+	bool isAllDefault() const
 	{
 		return (getUnsafe(numValues()) != static_cast<V>(0));
 	}
@@ -623,7 +623,7 @@ private:
 	}
 
 	template<typename T>
-	__forceinline T _getUnsafe(E eKey) const
+	T _getUnsafe(E eKey) const
 	{
 		return m_values[eKey];
 	}
@@ -636,17 +636,17 @@ private:
 
 	/*	From the WtP enum map (EnumMap.h) ...  (Should only be called ifV==bool,
 		but I'm not going to bother safeguarding that requirement.) */
-	__forceinline int getBlock(int i) const
+	int getBlock(int i) const
 	{
 		return i / 32;
 	}
 
-	__forceinline int getIndexInBlock(int i) const
+	int getIndexInBlock(int i) const
 	{
 		return i & 0x1F;
 	}
 
-	__forceinline int numBlocks() const
+	int numBlocks() const
 	{
 		return intdiv::uceil(fullLength(), 32);
 	}
@@ -695,7 +695,7 @@ public:
 		return std::make_pair(static_cast<E>(non_default_enum_map::end), vDEFAULT);
 	}
 
-	__forceinline V getUnsafe(E eKey) const
+	V getUnsafe(E eKey) const
 	{	// (Can't bypass the bounds assertions in a derived class)
 		return get(eKey);
 	}
@@ -724,7 +724,7 @@ private:
 			set(static_cast<E>(i), kOther.get(static_cast<E>(i)));
 	} // </advc.xmldefault>
 
-	__forceinline int numValues() const
+	int numValues() const
 	{
 		return getEnumLength(static_cast<E>(0));
 	}
@@ -758,17 +758,17 @@ public:
 		m_array.insert(iKey, vValue);
 	}
 
-	__forceinline V get(E eKey) const
+	V get(E eKey) const
 	{
 		return m_array.get(eKey);
 	}
 
-	__forceinline V getUnsafe(E eKey) const
+	V getUnsafe(E eKey) const
 	{
 		return m_array.getUnsafe(eKey);
 	}
 
-	__forceinline std::pair<E,V> nextNonDefault(E eLastKey, int iPairIndex) const
+	std::pair<E,V> nextNonDefault(E eLastKey, int iPairIndex) const
 	{
 		return m_list.nextNonDefault(eLastKey, iPairIndex);
 	}
@@ -855,40 +855,40 @@ public:
 		set(static_cast<E>(iKey), vValue);
 	}
 
-	__forceinline void set(E eKey, V vValue)
+	void set(E eKey, V vValue)
 	{
 		FAssertEnumBounds(eKey);
 		setUnsafe(eKey, vValue);
 	}
 
-	__forceinline void setUnsafe(E eKey, V vValue)
+	void setUnsafe(E eKey, V vValue)
 	{
 		m_values[eKey] = vValue;
 	}
 
-	__forceinline V get(E eKey) const
+	V get(E eKey) const
 	{
 		FAssertEnumBounds(eKey);
 		return getUnsafe(eKey);
 	}
 
-	__forceinline V getUnsafe(E eKey) const
+	V getUnsafe(E eKey) const
 	{
 		return m_values[eKey];
 	}
 
-	__forceinline V operator[](E eKey) const
+	V operator[](E eKey) const
 	{
 		return getUnsafe(eKey);
 	}
 
-	__forceinline V& operator[](E eKey)
+	V& operator[](E eKey)
 	{
 		return m_values[eKey];
 	}
 
 	// Handling non-defaults at the call site is going to be faster and easier to read
-	/*__forceinline std::pair<E,V> nextNonDefault(E eLastKey, int iDummy) const
+	/*std::pair<E,V> nextNonDefault(E eLastKey, int iDummy) const
 	{
 		FAssert(eLastKey >= -1);
 		int const iValues = numValues();
@@ -942,7 +942,7 @@ private:
 		std::memcpy(m_values, kOther.m_values, numValues() * sizeof(m_values[0]));
 	} // </advc.xmldefault>
 
-	__forceinline int numValues() const
+	int numValues() const
 	{
 		return getEnumLength(static_cast<E>(0));
 	}

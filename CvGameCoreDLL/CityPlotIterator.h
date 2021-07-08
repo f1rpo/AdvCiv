@@ -71,34 +71,34 @@ public:
 		computeNext();
 	}
 
-	inline ~CityPlotIterator()
+	~CityPlotIterator()
 	{
 		if (bRAND_ORDER)
 			delete[] m_aiShuffledIndices;
 	}
 
-	__forceinline bool hasNext() const
+	bool hasNext() const
 	{
 		return (m_pNext != NULL);
 	}
 
-	__forceinline CityPlotIterator& operator++()
+	CityPlotIterator& operator++()
 	{
 		computeNext();
 		return *this;
 	}
 
-	__forceinline CvPlot& operator*() const
+	CvPlot& operator*() const
 	{
 		return *m_pNext;
 	}
 
-	__forceinline CvPlot* operator->() const
+	CvPlot* operator->() const
 	{
 		return m_pNext;
 	}
 
-	__forceinline CityPlotTypes currID() const
+	CityPlotTypes currID() const
 	{
 		if (bRAND_ORDER)
 			return shuffledID();
@@ -147,7 +147,7 @@ private:
 	CvRandom* m_pRandom;
 	int* m_aiShuffledIndices;
 
-	inline void shuffle(bool bIncludeHomePlot)
+	void shuffle(bool bIncludeHomePlot)
 	{
 		m_aiShuffledIndices = ::shuffle(NUM_CITY_PLOTS, *m_pRandom);
 		if (!bIncludeHomePlot)
@@ -165,12 +165,12 @@ private:
 		}
 	}
 
-	__forceinline CityPlotTypes shuffledID() const
+	CityPlotTypes shuffledID() const
 	{
 		return static_cast<CityPlotTypes>(m_aiShuffledIndices[m_ePos]);
 	}
 
-	inline CvPlot* nextCityPlot() const
+	CvPlot* nextCityPlot() const
 	{
 		CityPlotTypes ePos = m_ePos;
 		if (bRAND_ORDER)
@@ -189,7 +189,7 @@ public:
 	CityPlotIter(CvPlot const& kCenter, bool bIncludeHomePlot = true) :
 		CityPlotIterator<>(kCenter, bIncludeHomePlot) {}
 
-	__forceinline CityPlotIter& operator++()
+	CityPlotIter& operator++()
 	{
 		computeNext();
 		return *this;
@@ -204,7 +204,7 @@ public:
 	WorkingPlotIter(CvCity const& kCity, bool bIncludeHomePlot = true) :
 		 CityPlotIterator<WORKING_PLOT, false>(kCity, bIncludeHomePlot) {}
 
-	__forceinline WorkingPlotIter& operator++()
+	WorkingPlotIter& operator++()
 	{
 		computeNext();
 		return *this;
@@ -218,7 +218,7 @@ public:
 	WorkablePlotIter(CvCity const& kCity, bool bIncludeHomePlot = true) :
 		 CityPlotIterator<WORKABLE_PLOT, false>(kCity, bIncludeHomePlot) {}
 
-	__forceinline WorkablePlotIter& operator++()
+	WorkablePlotIter& operator++()
 	{
 		computeNext();
 		return *this;
@@ -237,7 +237,7 @@ public:
 		CityPlotIterator<ANY_CITY_PLOT, true>(kCenter.getX(), kCenter.getY(),
 		pRandom, bIncludeHomePlot) {}
 
-	__forceinline CityPlotRandIter& operator++()
+	CityPlotRandIter& operator++()
 	{
 		computeNext();
 		return *this;

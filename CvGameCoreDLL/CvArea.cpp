@@ -226,7 +226,7 @@ bool CvArea::canBeEntered(CvArea const& kFrom, CvUnit const* u) const
 {
 	//PROFILE_FUNC();
 	/*  Called very often. Mostly from the various plot danger functions.
-		advc.inl: I've force-inlined all functions called from here.
+		advc.inl: I've inlined all functions called from here.
 		Still consumes a significant portion of the total turn time. */
 	if(getID() == kFrom.getID())
 		return true;

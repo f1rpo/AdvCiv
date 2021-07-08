@@ -39,7 +39,7 @@ template<class AgentType, AgentStatusPredicate eSTATUS, AgentRelationPredicate e
 class ExplicitAgentIterator : protected AgentIteratorBase
 {
 protected:
-	inline ExplicitAgentIterator(TeamTypes eTeam = NO_TEAM) : m_eTeam(eTeam) {}
+	ExplicitAgentIterator(TeamTypes eTeam = NO_TEAM) : m_eTeam(eTeam) {}
 	bool passFilters(AgentAIType const& kAgent) const;
 	TeamTypes m_eTeam;
 
@@ -98,19 +98,19 @@ template<class AgentType, AgentStatusPredicate eSTATUS, AgentRelationPredicate e
 class AgentIterator : ExplicitAgentIterator<AgentType, eSTATUS, eRELATION, AgentAIType>
 {
 public:
-	__forceinline bool hasNext() const
+	bool hasNext() const
 	{
 		return (m_pNext != NULL);
 	}
 
-	__forceinline AgentType& operator*() const
+	AgentType& operator*() const
 	{
 		/*	This is, at worst, an up-cast. But the compiler doesn't know this
 			b/c the AI headers aren't included here. */
 		return *reinterpret_cast<AgentType*>(m_pNext);
 	}
 
-	__forceinline AgentType* operator->() const
+	AgentType* operator->() const
 	{
 		return m_pNext;
 	}
@@ -119,7 +119,7 @@ public:
 		returned by a subsequent call to next [i.e. computeNext], or
 		list size [sequence length] if the list iterator [AgentIterator] is at the end
 		of the list [sequence]" */
-	inline int nextIndex() const
+	int nextIndex() const
 	{
 		return (bAPPLY_FILTERS ? m_iPos - m_iSkipped : m_iPos);
 	}
@@ -174,7 +174,7 @@ protected:
 		generateNext();
 	}
 
-	inline ~AgentIterator()
+	~AgentIterator()
 	{
 		if (bSYNCRAND_ORDER)
 			delete[] m_aiShuffledIndices;
@@ -183,7 +183,7 @@ protected:
 	AgentIterator& operator++()
 	{
 		FErrorMsg("Derived classes should define their own operator++ function");
-		// This is what derived classes should do (force-inlined, arguably):
+		// This is what derived classes should do
 		generateNext();
 		return *this;
 	}
@@ -245,7 +245,7 @@ private:
 	AgentAIType* m_pNext;
 	int* m_aiShuffledIndices; // only used if bSYNCRAND_ORDER
 
-	inline void setNextFromCache()
+	void setNextFromCache()
 	{
 		if (bSYNCRAND_ORDER)
 			m_pNext = (*m_pCache)[m_aiShuffledIndices[m_iPos]];
@@ -253,7 +253,7 @@ private:
 	}
 
 	// Don't want to assume that BARBARIAN_PLAYER==BARBARIAN_TEAM
-	static __forceinline AgentAIType* getBarbarianAgent()
+	static AgentAIType* getBarbarianAgent()
 	{
 		return _getBarbarianAgent<AgentAIType>();
 	}
@@ -261,12 +261,12 @@ private:
 	template<class T>
 	static T* _getBarbarianAgent();
 	template<>
-	static __forceinline CvPlayerAI* _getBarbarianAgent<CvPlayerAI>()
+	static CvPlayerAI* _getBarbarianAgent<CvPlayerAI>()
 	{
 		return (*m_pAgents->getAgentSeqCache<CvPlayerAI>(CvAgents::ALL))[BARBARIAN_PLAYER];
 	}
 	template<>
-	static __forceinline CvTeamAI* _getBarbarianAgent<CvTeamAI>()
+	static CvTeamAI* _getBarbarianAgent<CvTeamAI>()
 	{
 		return (*m_pAgents->getAgentSeqCache<CvTeamAI>(CvAgents::ALL))[BARBARIAN_TEAM];
 	}
@@ -286,7 +286,7 @@ public: \
 	explicit PlayerClassName##Iter(TeamTypes eTeam = NO_TEAM) : \
 	AgentIterator<Cv##PlayerClassName,eSTATUS,eRELATION,bSYNCRAND_ORDER,CvPlayerAI>(eTeam) \
 	{} \
-	__forceinline PlayerClassName##Iter& operator++() \
+	PlayerClassName##Iter& operator++() \
 	{ \
 		generateNext(); \
 		return *this; \
@@ -309,7 +309,7 @@ public: \
 		/* Can't loop over all "teams that are members of eTeam" */ \
 		BOOST_STATIC_ASSERT(eRELATION != MEMBER_OF); \
 	} \
-	__forceinline TeamClassName##Iter& operator++() \
+	TeamClassName##Iter& operator++() \
 	{ \
 		generateNext(); \
 		return *this; \
@@ -329,7 +329,7 @@ class IterClassName##Iter : public PlayerClassName##Iter<ALIVE, MEMBER_OF> \
 { \
 public: \
 	explicit IterClassName##Iter(TeamTypes eTeam) : PlayerClassName##Iter<ALIVE,MEMBER_OF>(eTeam) {} \
-	__forceinline IterClassName##Iter& operator++() \
+	IterClassName##Iter& operator++() \
 	{ \
 		generateNext(); \
 		return *this; \

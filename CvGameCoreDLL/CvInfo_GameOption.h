@@ -72,11 +72,11 @@ public: // All the const functions are exposed to Python except those added by m
 		NUM_BOOL_ELEMENT_TYPES
 	};
 	using CvXMLInfo::get; // unhide
-	__forceinline int get(IntElementTypes e) const
+	int get(IntElementTypes e) const
 	{
 		return get(static_cast<CvXMLInfo::IntElementTypes>(e));
 	}
-	__forceinline int get(BoolElementTypes e) const
+	int get(BoolElementTypes e) const
 	{
 		return get(static_cast<CvXMLInfo::BoolElementTypes>(e));
 	} // </advc.tag>
@@ -90,18 +90,18 @@ public: // All the const functions are exposed to Python except those added by m
 	int getFreePopulation() const;
 	int getStartPercent() const;
 	// advc.inl: inlined some getters
-	inline int getGrowthPercent() const { return m_iGrowthPercent; }
-	inline int getTrainPercent() const { return m_iTrainPercent; }
-	inline int getConstructPercent() const { return m_iConstructPercent; }
-	inline int getCreatePercent() const { return m_iCreatePercent; }
-	inline int getResearchPercent() const { return m_iResearchPercent; }
+	int getGrowthPercent() const { return m_iGrowthPercent; }
+	int getTrainPercent() const { return m_iTrainPercent; }
+	int getConstructPercent() const { return m_iConstructPercent; }
+	int getCreatePercent() const { return m_iCreatePercent; }
+	int getResearchPercent() const { return m_iResearchPercent; }
 	// BETTER_BTS_AI_MOD, Tech Diffusion, 08/21/09, jdog5000:
-	inline int getTechCostModifier() const { return m_iTechCostModifier; }
-	inline int getBuildPercent() const { return m_iBuildPercent; }
-	inline int getImprovementPercent() const { return m_iImprovementPercent; }
-	inline int getGreatPeoplePercent() const { return m_iGreatPeoplePercent; }
-	inline int getCulturePercent() const  { return m_iCulturePercent; } // advc.126
-	inline int getAnarchyPercent() const { return m_iAnarchyPercent; }
+	int getTechCostModifier() const { return m_iTechCostModifier; }
+	int getBuildPercent() const { return m_iBuildPercent; }
+	int getImprovementPercent() const { return m_iImprovementPercent; }
+	int getGreatPeoplePercent() const { return m_iGreatPeoplePercent; }
+	int getCulturePercent() const  { return m_iCulturePercent; } // advc.126
+	int getAnarchyPercent() const { return m_iAnarchyPercent; }
 	int getEventChancePerTurn() const;
 	int getSoundtrackSpace() const;
 	int getNumSoundtracks() const;
@@ -123,32 +123,32 @@ public: // All the const functions are exposed to Python except those added by m
 	/*	NB: The "age" functions return ERA_NEVER instead of NO_ERA.
 		Not MAX_INT b/c we don't want callers to get in trouble with overflow. */
 	#define ERA_NEVER ((EraTypes)100)
-	static inline EraTypes AI_getAgeOfExploration()
+	static EraTypes AI_getAgeOfExploration()
 	{
 		return m_eAIAgeOfExploration;
 	}
-	static inline EraTypes AI_getAgeOfPestilence()
+	static EraTypes AI_getAgeOfPestilence()
 	{
 		return m_eAIAgeOfPestilence;
 	}
-	static inline EraTypes AI_getAgeOfPollution()
+	static EraTypes AI_getAgeOfPollution()
 	{
 		return m_eAIAgeOfPollution;
 	}
-	static inline EraTypes AI_getAgeOfFertility()
+	static EraTypes AI_getAgeOfFertility()
 	{
 		return m_eAIAgeOfFertility;
 	}
-	static inline EraTypes AI_getAgeOfGuns()
+	static EraTypes AI_getAgeOfGuns()
 	{
 		return m_eAIAgeOfGuns;
 	}
-	static inline EraTypes AI_getAtomicAge()
+	static EraTypes AI_getAtomicAge()
 	{
 		return m_eAIAtomicAge;
 	}
 	// Akin to normalizeEraFactor in Kek-Mod (CvGameCoreUtils)
-	static inline scaled normalizeEraNum(int iEra)
+	static scaled normalizeEraNum(int iEra)
 	{
 		/*	Important that iEra is on the scale of the available eras.
 			E.g. when AI code written for the 7 BtS eras checks
@@ -219,27 +219,27 @@ public: // The const functions are exposed to Python // advc.inl: inlined some g
 	CvGameSpeedInfo();
 	~CvGameSpeedInfo();
 
-	inline int getGrowthPercent() const { return m_iGrowthPercent; }
-	inline int getTrainPercent() const { return m_iTrainPercent; }
-	inline int getConstructPercent() const { return m_iConstructPercent; }
-	inline int getCreatePercent() const { return m_iCreatePercent; }
-	inline int getResearchPercent() const { return m_iResearchPercent; }
-	inline int getBuildPercent() const { return m_iBuildPercent; }
-	inline int getImprovementPercent() const { return m_iImprovementPercent; }
-	inline int getGreatPeoplePercent() const { return m_iGreatPeoplePercent; }
-	inline int getAnarchyPercent() const { return m_iAnarchyPercent; }
+	int getGrowthPercent() const { return m_iGrowthPercent; }
+	int getTrainPercent() const { return m_iTrainPercent; }
+	int getConstructPercent() const { return m_iConstructPercent; }
+	int getCreatePercent() const { return m_iCreatePercent; }
+	int getResearchPercent() const { return m_iResearchPercent; }
+	int getBuildPercent() const { return m_iBuildPercent; }
+	int getImprovementPercent() const { return m_iImprovementPercent; }
+	int getGreatPeoplePercent() const { return m_iGreatPeoplePercent; }
+	int getAnarchyPercent() const { return m_iAnarchyPercent; }
 	int getBarbPercent() const;
 	int getFeatureProductionPercent() const;
 	int getUnitDiscoverPercent() const;
 	int getUnitHurryPercent() const;
 	int getUnitTradePercent() const;
 	int getUnitGreatWorkPercent() const;
-	inline int getGoldenAgePercent() const { return m_iGoldenAgePercent; }
+	int getGoldenAgePercent() const { return m_iGoldenAgePercent; }
 	int getHurryPercent() const;
 	int getHurryConscriptAngerPercent() const;
 	int getInflationOffset() const;
 	int getInflationPercent() const;
-	inline int getVictoryDelayPercent() const { return m_iVictoryDelayPercent; }
+	int getVictoryDelayPercent() const { return m_iVictoryDelayPercent; }
 	int getNumTurnIncrements() const;
 
 	GameTurnInfo& getGameTurnInfo(int iIndex) const;
@@ -363,16 +363,16 @@ public: // The const functions are exposed to Python except functions added by m
 	int getFreeUnits() const;
 	int getUnitCostPercent() const;
 	// <advc.251>
-	inline int getBuildTimePercent() const { return m_iBuildTimePercent; }
-	inline int getBaseGrowthThresholdPercent() const { return m_iBaseGrowthThresholdPercent; }
-	inline int getGPThresholdPercent() const { return m_iGPThresholdPercent; }
-	inline int getCultureLevelPercent() const { return m_iCultureLevelPercent; }
+	int getBuildTimePercent() const { return m_iBuildTimePercent; }
+	int getBaseGrowthThresholdPercent() const { return m_iBaseGrowthThresholdPercent; }
+	int getGPThresholdPercent() const { return m_iGPThresholdPercent; }
+	int getCultureLevelPercent() const { return m_iCultureLevelPercent; }
 	// </advc.251>
-	inline int getResearchPercent() const { return m_iResearchPercent; } // advc.inl: Let's inline this one too
+	int getResearchPercent() const { return m_iResearchPercent; } // advc.inl: Let's inline this one too
 	// <advc.251>
-	inline int getTrainPercent() const { return m_iTrainPercent; }
-	inline int getConstructPercent() const { return m_iConstructPercent; }
-	inline int getCreatePercent() const { return m_iCreatePercent; }
+	int getTrainPercent() const { return m_iTrainPercent; }
+	int getConstructPercent() const { return m_iConstructPercent; }
+	int getCreatePercent() const { return m_iCreatePercent; }
 	// </advc.251>
 	int getDistanceMaintenancePercent() const;
 	int getNumCitiesMaintenancePercent() const;
@@ -411,8 +411,8 @@ public: // The const functions are exposed to Python except functions added by m
 	int getAIWorkRateModifier() const;
 	int getAIGrowthPercent() const;
 	// <advc.251>
-	inline int getAIGPThresholdPercent() const { return m_iAIGPThresholdPercent; }
-	inline int getAIResearchPercent() const { return m_iAIResearchPercent; }
+	int getAIGPThresholdPercent() const { return m_iAIGPThresholdPercent; }
+	int getAIResearchPercent() const { return m_iAIResearchPercent; }
 	// </advc.251>
 	int getAITrainPercent() const;
 	int getAIWorldTrainPercent() const;
@@ -427,7 +427,7 @@ public: // The const functions are exposed to Python except functions added by m
 	int getAIInflationPercent() const;
 	int getAIWarWearinessPercent() const;
 	//int getAIPerEraModifier() const;
-	inline int getAIHandicapIncrementTurns() const { return m_iAIHandicapIncrementTurns; }
+	int getAIHandicapIncrementTurns() const { return m_iAIHandicapIncrementTurns; }
 	int getAIAttitudeChangePercent() const; // advc.148
 	int getAIAdvancedStartPercent() const;
 	int getNumGoodies() const;
@@ -629,7 +629,7 @@ public:
 	CvSeaLevelInfo();
 
 	int getSeaLevelChange() const; // Exposed to Python
-	inline int getResearchPercent() const { return m_iResearchPercent; } // advc.910
+	int getResearchPercent() const { return m_iResearchPercent; } // advc.910
 	bool read(CvXMLLoadUtility* pXML);
 	virtual CvWString getDescriptionInternal() const; // advc.137
 

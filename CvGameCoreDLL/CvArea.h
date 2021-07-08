@@ -24,11 +24,11 @@ public:
 	int countHasReligion(ReligionTypes eReligion, PlayerTypes eOwner = NO_PLAYER) const;				// Exposed to Python
 	int countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwner = NO_PLAYER) const;		// Exposed to Python																					// Exposed to Python
 
-	__forceinline int getID() const { return m_iID; }													// Exposed to Python
+	int getID() const { return m_iID; }																	// Exposed to Python
 	void setID(int iID);
 	
-	__forceinline bool isWater() const { return m_bWater; }												// Exposed to Python
-	inline bool isLake() const																			// Exposed to Python
+	bool isWater() const { return m_bWater; }															// Exposed to Python
+	bool isLake() const																					// Exposed to Python
 	{	// <advc.030>
 		//return (isWater() && (getNumTiles() <= GC.getLAKE_MAX_AREA_SIZE()));
 		return m_bLake;		
@@ -40,13 +40,17 @@ public:
 	bool canBeEntered(CvArea const& kFrom, CvUnit const* u = NULL) const;
 	// </advc.030>
 
-	inline PlotNumTypes getNumTiles() const																// Exposed to Python
-	{ return (PlotNumTypes)m_iNumTiles; } // advc.enum: Return type was int
+	PlotNumTypes getNumTiles() const																	// Exposed to Python
+	{
+		return (PlotNumTypes)m_iNumTiles; // advc.enum: Return type was int
+	}
 	void changeNumTiles(int iChange);
 	void changeNumOwnedTiles(int iChange);
-	inline PlotNumTypes getNumOwnedTiles() const														// Exposed to Python
-	{ return (PlotNumTypes)m_iNumOwnedTiles; } // advc.enum
-	inline PlotNumTypes getNumUnownedTiles() const														// Exposed to Python
+	PlotNumTypes getNumOwnedTiles() const																// Exposed to Python
+	{
+		return (PlotNumTypes)m_iNumOwnedTiles; // advc.enum
+	}
+	PlotNumTypes getNumUnownedTiles() const																// Exposed to Python
 	{
 		return (PlotNumTypes)(getNumTiles() - getNumOwnedTiles()); // advc.enum
 	}
@@ -63,14 +67,14 @@ public:
 	// </advc.300>
 
 	void changeNumRiverEdges(int iChange);																// Exposed to Python
-	inline int getNumRiverEdges() const { return m_iNumRiverEdges; }									// Exposed to Python
+	int getNumRiverEdges() const { return m_iNumRiverEdges; }											// Exposed to Python
 
 	void changeNumStartingPlots(int iChange);
 	// advc.enum: return type was int
-	inline PlotNumTypes getNumStartingPlots() const { return (PlotNumTypes)m_iNumStartingPlots; }		// Exposed to Python
+	PlotNumTypes getNumStartingPlots() const { return (PlotNumTypes)m_iNumStartingPlots; }				// Exposed to Python
 	
-	inline int getNumUnits() const { return m_iNumUnits; }												// Exposed to Python
-	inline int getNumCities() const { return m_iNumCities; }											// Exposed to Python
+	int getNumUnits() const { return m_iNumUnits; }														// Exposed to Python
+	int getNumCities() const { return m_iNumCities; }													// Exposed to Python
 	int getUnitsPerPlayer(PlayerTypes eIndex) const { return m_aiUnitsPerPlayer.get(eIndex); }			// Exposed to Python
 	void changeUnitsPerPlayer(PlayerTypes eIndex, int iChange);
 	// advc: Unused; removed.
@@ -126,7 +130,7 @@ public:
 	}
 	void setBestFoundValue(PlayerTypes eIndex, int iNewValue);
 
-	inline int getNumUnrevealedTiles(TeamTypes eIndex) const											// Exposed to Python
+	int getNumUnrevealedTiles(TeamTypes eIndex) const													// Exposed to Python
 	{
 		return getNumTiles() - getNumRevealedTiles(eIndex);
 	}
