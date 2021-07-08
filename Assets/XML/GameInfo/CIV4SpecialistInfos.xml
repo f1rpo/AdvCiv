@@ -184,6 +184,7 @@
 			<bShiftDown>0</bShiftDown>
 			<bCtrlDown>0</bCtrlDown>
 			<iHotKeyPriority>0</iHotKeyPriority>
+			<!-- BUG: was ,.../Buttons/TechTree/Corporation.dds,.../Buttons/Beyond_the_Sword_Atlas.dds,5,14 -->
 			<Button>Art/Interface/MainScreen/CityScreen/spy.dds</Button>
 		</SpecialistInfo>
 		<SpecialistInfo>

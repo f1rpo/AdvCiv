@@ -342,6 +342,7 @@
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_STEAL_TREASURY</Type>
 			<Description>TXT_KEY_ESPIONAGE_STEAL_TREASURY</Description>
+			<!-- K-Mod: was 300 -->
 			<iCost>400</iCost>
 			<bIsPassive>0</bIsPassive>
 			<bIsTwoPhases>0</bIsTwoPhases>
@@ -361,6 +362,7 @@
 			<iDestroyProductionCostFactor>0</iDestroyProductionCostFactor>
 			<iBuyUnitCostFactor>0</iBuyUnitCostFactor>
 			<iBuyCityCostFactor>0</iBuyCityCostFactor>
+			<!-- K-Mod: was 100 (formula works differently now) -->
 			<iStealTreasuryTypes>20</iStealTreasuryTypes>
 			<iCityInsertCultureAmountFactor>0</iCityInsertCultureAmountFactor>
 			<iCityInsertCultureCostFactor>0</iCityInsertCultureCostFactor>
@@ -590,7 +592,7 @@
 			<iCityUnhappinessCounter>0</iCityUnhappinessCounter>
 			<iCityRevoltCounter>0</iCityRevoltCounter>
 			<iBuyTechCostFactor>0</iBuyTechCostFactor>
-			<!-- advc.132: was 800 -->
+			<!-- advc.132: Was 800 in K-Mod (and, fwiw, 60000 in BtS) -->
 			<iSwitchCivicCostFactor>1000</iSwitchCivicCostFactor>
 			<iSwitchReligionCostFactor>0</iSwitchReligionCostFactor>
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
@@ -629,7 +631,7 @@
 			<iCityRevoltCounter>0</iCityRevoltCounter>
 			<iBuyTechCostFactor>0</iBuyTechCostFactor>
 			<iSwitchCivicCostFactor>0</iSwitchCivicCostFactor>
-			<!-- advc.132: was 800 -->
+			<!-- advc.132: Was 800 in K-Mod (and, fwiw, 60000 in BtS) -->
 			<iSwitchReligionCostFactor>1000</iSwitchReligionCostFactor>
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
@@ -670,6 +672,7 @@
 			<iSwitchReligionCostFactor>0</iSwitchReligionCostFactor>
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>10</iCounterespionageNumTurns>
+			<!-- K-Mod: was 200 (works differently now) -->
 			<iCounterespionageMod>100</iCounterespionageMod>
 			<!-- advc.103 -->
 			<bReturnToCapital>1</bReturnToCapital>

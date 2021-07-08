@@ -90,6 +90,7 @@
 			<Type>UNITAI_ENGINEER</Type>
 			<Description>UNITAI_ENGINEER</Description>
 		</UnitAIInfo>
+		<!-- K-Mod: -->
 		<UnitAIInfo>
 			<Type>UNITAI_GREAT_SPY</Type>
 			<Description>UNITAI_GREAT_SPY</Description>

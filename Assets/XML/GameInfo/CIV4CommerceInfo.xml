@@ -12,6 +12,7 @@
 			<iInitialPercent>0</iInitialPercent>
 			<iInitialHappiness>0</iInitialHappiness>
 			<iAIWeightPercent>100</iAIWeightPercent>
+			<!-- K-Mod: was 0 -->
 			<bFlexiblePercent>1</bFlexiblePercent>
 			<Button>Art/Interface/Buttons/Process/ProcessWealth.dds</Button>
 		</CommerceInfo>
@@ -35,7 +36,6 @@
 			<bFlexiblePercent>0</bFlexiblePercent>
 			<Button>Art/Interface/Buttons/Process/ProcessCulture.dds</Button>
 		</CommerceInfo>
-		<!-- advc.120g: bFlexiblePercent was 1 -->
 		<CommerceInfo>
 			<Type>COMMERCE_ESPIONAGE</Type>
 			<!-- advc (note): That key actually exists -->
@@ -43,6 +43,7 @@
 			<iInitialPercent>0</iInitialPercent>
 			<iInitialHappiness>0</iInitialHappiness>
 			<iAIWeightPercent>25</iAIWeightPercent>
+			<!-- advc.120g: was 1 -->
 			<bFlexiblePercent>0</bFlexiblePercent>
 			<Button>Art/Interface/Buttons/Process/ProcessCulture.dds,Art/Interface/Buttons/Beyond_the_Sword_Atlas.dds,8,16</Button>
 		</CommerceInfo>

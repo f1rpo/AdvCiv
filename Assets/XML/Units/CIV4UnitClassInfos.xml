@@ -584,6 +584,7 @@
 		</UnitClassInfo>
 		<UnitClassInfo>
 			<Type>UNITCLASS_SHIP_OF_THE_LINE</Type>
+			<!-- BBAI: _UNIT_ was missing -->
 			<Description>TXT_KEY_UNIT_SHIP_OF_THE_LINE</Description>
 			<iMaxGlobalInstances>-1</iMaxGlobalInstances>
 			<iMaxTeamInstances>-1</iMaxTeamInstances>

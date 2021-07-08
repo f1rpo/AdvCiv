@@ -212,6 +212,7 @@
 			<Type>BUILD_LUMBERMILL</Type>
 			<Description>TXT_KEY_BUILD_LUMBERMILL</Description>
 			<Help/>
+			<!-- K-Mod: was REPLACEABLE_PARTS -->
 			<PrereqTech>TECH_GUILDS</PrereqTech>
 			<!-- advc.902: was 800 -->
 			<iTime>500</iTime>

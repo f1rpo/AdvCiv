@@ -804,6 +804,7 @@
 	<ElementType name="PromotionPrereq" content="textOnly"/>
 	<ElementType name="PromotionPrereqOr1" content="textOnly"/>
 	<ElementType name="PromotionPrereqOr2" content="textOnly"/>
+	<!-- K-Mod -->
 	<ElementType name="PromotionPrereqOr3" content="textOnly"/>
 	<ElementType name="TechPrereq" content="textOnly"/>
 	<ElementType name="StateReligionPrereq" content="textOnly"/>
@@ -867,11 +868,12 @@
 		<element type="PromotionPrereq"/>
 		<element type="PromotionPrereqOr1"/>
 		<element type="PromotionPrereqOr2"/>
+		<!-- K-Mod -->
 		<element type="PromotionPrereqOr3"/>
 		<element type="TechPrereq"/>
 		<element type="StateReligionPrereq"/>
 		<element type="bLeader"/>
-		<!-- advc.164: -->
+		<!-- advc.164 -->
 		<element type="iBlitz"/>
 		<element type="bAmphib"/>
 		<element type="bRiver"/>

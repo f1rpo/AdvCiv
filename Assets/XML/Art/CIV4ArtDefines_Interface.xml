@@ -1272,6 +1272,7 @@
 			<Type>SCROLL_DOWN_ARROW</Type>
 			<Path>Art/Interface/Buttons/down_arrow.dds</Path>
 		</InterfaceArtInfo>
+		<!-- BUG: start -->
 		<InterfaceArtInfo>
 			<Type>SCROLL_PAGE_UP_ARROW</Type>
 			<Path>Art/Interface/Buttons/page_up_arrow.dds</Path>
@@ -1292,6 +1293,7 @@
 			<Type>WHITE_CIRCLE_20</Type>
 			<Path>Art/Interface/Buttons/white_circle_20.dds</Path>
 		</InterfaceArtInfo>
+		<!-- BUG: end -->
 		<InterfaceArtInfo>
 			<Type>WHITE_CIRCLE_40</Type>
 			<Path>Art/Interface/Buttons/white_circle_40.dds</Path>

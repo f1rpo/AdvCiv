@@ -54,10 +54,12 @@
 	<ElementType name="DomainExtraMoves" content="eltOnly">
 		<element type="DomainExtraMove" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
+	<!-- K-Mod start -->
 	<ElementType name="iCommerce" content="textOnly" dt:type="int"/>
 	<ElementType name="SpecialistExtraCommerces" content="eltOnly">
 		<element type="iCommerce" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
+	<!-- K-Mod end -->
 	<ElementType name="bFlexible" content="textOnly" dt:type="boolean"/>
 	<ElementType name="CommerceFlexible" content="eltOnly">
 		<element type="bFlexible" minOccurs="0" maxOccurs="*"/>
@@ -144,6 +146,7 @@
 		<element type="iGridX"/>
 		<element type="iGridY"/>
 		<element type="DomainExtraMoves"/>
+		<!-- K-Mod -->
 		<element type="SpecialistExtraCommerces" minOccurs="0"/>
 		<element type="CommerceFlexible"/>
 		<element type="TerrainTrades"/>

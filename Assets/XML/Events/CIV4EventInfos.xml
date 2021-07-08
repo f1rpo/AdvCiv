@@ -5,7 +5,8 @@
 <!-- Copyright Firaxis Games 2006 -->
 <!-- -->
 <!-- Event Infos -->
-<!-- DAS: Adding Callbacks to all events which change plot yields in order to add landmarks -->
+<!-- BUG (event signs): Adding Callbacks to all events which change plot yields
+	 in order to add landmarks -->
 <Civ4EventInfos xmlns="x-schema:CIV4EventSchema.xml">
 	<EventInfos>
 		<EventInfo>

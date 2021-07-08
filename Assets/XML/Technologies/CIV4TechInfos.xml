@@ -3302,6 +3302,8 @@
 			<iGridX>13</iGridX>
 			<iGridY>9</iGridY>
 			<DomainExtraMoves/>
+			<!-- K-Mod 1.44
+				(K-Mod 1.45 uses CommerceModifiers for +10% research instead) -->
 			<SpecialistExtraCommerces>
 				<iCommerce>0</iCommerce>
 				<iCommerce>1</iCommerce>

@@ -119,7 +119,8 @@
 	<ElementType name="iDisappearance" content="textOnly" dt:type="int"/>
 	<ElementType name="iGrowth" content="textOnly" dt:type="int"/>
 	<ElementType name="iTurnDamage" content="textOnly" dt:type="int"/>
-	<ElementType name="iWarmingDefense" content="textOnly" dt:type="int"/> <!-- GWMod new XML field M.A. -->
+	<!-- GWMod new XML field M.A. -->
+	<ElementType name="iWarmingDefense" content="textOnly" dt:type="int"/>
 	<ElementType name="bNoCoast" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bNoRiver" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bNoAdjacent" content="textOnly" dt:type="boolean"/>
@@ -160,7 +161,7 @@
 		<element type="iDisappearance"/>
 		<element type="iGrowth"/>
 		<element type="iTurnDamage"/>
-		<!-- advc: Now optional; set to 0 by default in the DLL. -->
+		<!-- GWMod (advc: now optional; 0 by default) -->
 		<element type="iWarmingDefense" minOccurs="0"/>
 		<element type="bNoCoast"/>
 		<element type="bNoRiver"/>

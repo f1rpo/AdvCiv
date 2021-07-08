@@ -678,7 +678,8 @@
 	<ElementType name="iNumCitiesMaintenanceModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iCorporationMaintenanceModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iExtraHealth" content="textOnly" dt:type="int"/>
-	<ElementType name="iExtraHappiness" content="textOnly" dt:type="int"/> <!-- K-Mod -->
+	<!-- K-Mod -->
+	<ElementType name="iExtraHappiness" content="textOnly" dt:type="int"/>
 	<ElementType name="iFreeExperience" content="textOnly" dt:type="int"/>
 	<ElementType name="iWorkerSpeedModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iImprovementUpgradeRateModifier" content="textOnly" dt:type="int"/>
@@ -694,6 +695,7 @@
 	<ElementType name="iLuxuryModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="bMilitaryFoodProduction" content="textOnly" dt:type="boolean"/>
 	<ElementType name="iMaxConscript" content="textOnly" dt:type="int"/>
+	<!-- K-Mod -->
 	<ElementType name="iUnhealthyPopulationModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iExpInBorderModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="bBuildingOnlyHealthy" content="textOnly" dt:type="boolean"/>
@@ -819,8 +821,8 @@
 		<element type="iNumCitiesMaintenanceModifier"/>
 		<element type="iCorporationMaintenanceModifier"/>
 		<element type="iExtraHealth"/>
-		<!-- advc: Made optional; default is 0. -->
-		<element type="iExtraHappiness"  minOccurs="0"/> <!-- K-Mod -->
+		<!-- K-Mod (advc: made optional) -->
+		<element type="iExtraHappiness"  minOccurs="0"/>
 		<element type="iFreeExperience"/>
 		<element type="iWorkerSpeedModifier"/>
 		<element type="iImprovementUpgradeRateModifier"/>
@@ -836,7 +838,8 @@
 		<element type="iLuxuryModifier" minOccurs="0"/>
 		<element type="bMilitaryFoodProduction"/>
 		<element type="iMaxConscript"/>
-		<element type="iUnhealthyPopulationModifier"/>
+		<!-- K-Mod (advc: made optional) -->
+		<element type="iUnhealthyPopulationModifier" minOccurs="0"/>
 		<element type="iExpInBorderModifier"/>
 		<element type="bBuildingOnlyHealthy"/>
 		<element type="iLargestCityHappiness"/>
