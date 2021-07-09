@@ -21214,6 +21214,8 @@ int CvUnitAI::AI_searchRange(int iRange)
 {
 	if (iRange == 0)
 		return 0;
+	/*	advc.opt (note): Flat-movement now also true for all air units.
+		(Not sure if this function gets called for those ...) */
 	if (flatMovementCost() || getDomainType() == DOMAIN_SEA)
 		return iRange * baseMoves();
 	return (iRange + 1) * (baseMoves() + 1);

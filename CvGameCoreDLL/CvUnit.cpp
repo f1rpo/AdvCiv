@@ -89,6 +89,7 @@ CvUnit::CvUnit() // advc.003u: Body cut from the deleted reset function
 	m_bInfoBarDirty = false;
 	m_bBlockading = false;
 	m_bAirCombat = false;
+	m_bFlatMovement = false; // advc.opt
 
 	m_eOwner = NO_PLAYER;
 	m_eCapturingPlayer = NO_PLAYER;
@@ -113,10 +114,17 @@ void CvUnit::init(int iID, UnitTypes eUnit, PlayerTypes eOwner, int iX, int iY,
 	m_eFacingDirection = eFacingDirection;
 	m_pUnitInfo = &GC.getInfo(m_eUnitType);
 	m_iBaseCombat = m_pUnitInfo->getCombat();
+	updateFlatMovement(); // advc.opt
 	m_iCargoCapacity = m_pUnitInfo->getCargoSpace();
 	setXY(iX, iY, false, false);
 	/*  advc.003u: Rest of the body moved into finalizeInit so that subclasses
 		can do their init code in between */
+}
+
+// advc.opt:
+void CvUnit::updateFlatMovement()
+{
+	m_bFlatMovement = (m_pUnitInfo->isFlatMovementCost() || getDomainType() == DOMAIN_AIR);
 }
 
 
@@ -10197,19 +10205,38 @@ void CvUnit::read(FDataStreamBase* pStream)
 			m_iMadeAttacks = 1;
 		else m_iMadeAttacks = 0;
 	} // </advc.164>
-	pStream->Read(&m_bMadeInterception);
-	pStream->Read(&m_bPromotionReady);
-	pStream->Read(&m_bDeathDelay);
-	pStream->Read(&m_bCombatFocus);
-	// m_bInfoBarDirty not saved...
-	pStream->Read(&m_bBlockading);
-	if (uiFlag > 0)
-		pStream->Read(&m_bAirCombat);
-
+	{
+		bool bTmp; // advc.pt: For reading bitfield members
+		pStream->Read(&bTmp);
+		m_bMadeInterception = bTmp;
+		pStream->Read(&bTmp);
+		m_bPromotionReady = bTmp;
+		pStream->Read(&bTmp);
+		m_bDeathDelay = bTmp;
+		pStream->Read(&bTmp);
+		m_bCombatFocus = bTmp;
+		// m_bInfoBarDirty not saved...
+		pStream->Read(&bTmp);
+		m_bBlockading = bTmp;
+		if (uiFlag > 0)
+		{
+			pStream->Read(&bTmp);
+			m_bAirCombat = bTmp;
+		}
+		// <advc.opt>
+		if (uiFlag >= 6)
+		{
+			pStream->Read(&bTmp);
+			m_bFlatMovement = bTmp;
+		} // </advc.opt>
+	}
 	pStream->Read((int*)&m_eOwner);
 	pStream->Read((int*)&m_eCapturingPlayer);
 	pStream->Read((int*)&m_eUnitType);
 	m_pUnitInfo = &GC.getInfo(m_eUnitType);
+	// <advc.opt>
+	if (uiFlag <= 6)
+		updateFlatMovement(); // </advc.opt>
 	pStream->Read((int*)&m_eLeaderUnitType);
 	pStream->Read((int*)&m_combatUnit.eOwner);
 	pStream->Read(&m_combatUnit.iID);
@@ -10244,7 +10271,8 @@ void CvUnit::write(FDataStreamBase* pStream)
 	//uiFlag = 2; // BtS
 	//uiFlag = 3; // K-Mod
 	//uiFlag = 4; // advc.029
-	uiFlag = 5; // advc.164
+	//uiFlag = 5; // advc.164
+	uiFlag = 6; // advc.opt (m_bFlatMovement)
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iID);
@@ -10314,6 +10342,7 @@ void CvUnit::write(FDataStreamBase* pStream)
 	// m_bInfoBarDirty not saved...
 	pStream->Write(m_bBlockading);
 	pStream->Write(m_bAirCombat);
+	pStream->Write(m_bFlatMovement); // advc.opt
 
 	pStream->Write(m_eOwner);
 	pStream->Write(m_eCapturingPlayer);

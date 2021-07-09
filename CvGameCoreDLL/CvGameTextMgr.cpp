@@ -754,8 +754,9 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 				szString.append(NEWLINE);
 				szString.append(gDLL->getText("TXT_KEY_UNIT_NO_DEFENSE_BONUSES"));
 			}
-
-			if (pUnit->flatMovementCost())
+			/*	advc.opt: was pUnit->flatMovementCost, which is now always true
+				for air units. Don't want to show text for those. */
+			if (pUnit->getUnitInfo().isFlatMovementCost())
 			{
 				szString.append(NEWLINE);
 				szString.append(gDLL->getText("TXT_KEY_UNIT_FLAT_MOVEMENT"));

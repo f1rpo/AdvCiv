@@ -531,8 +531,8 @@ public:
 		return m_pUnitInfo->isCanMoveAllTerrain();
 	}
 	bool flatMovementCost() const																			// Exposed to Python
-	{
-		return m_pUnitInfo->isFlatMovementCost();
+	{	// advc.opt: Now also true for all air units
+		return m_bFlatMovement;
 	}
 	bool ignoreTerrainCost() const																			// Exposed to Python
 	{
@@ -1135,13 +1135,15 @@ protected:
 
 	//bool m_bMadeAttack;
 	int m_iMadeAttacks; // advc.164
-	bool m_bMadeInterception;
-	bool m_bPromotionReady;
-	bool m_bDeathDelay;
-	bool m_bCombatFocus;
-	bool m_bInfoBarDirty;
-	bool m_bBlockading;
-	bool m_bAirCombat;
+	// advc.opt: Since we have exactly 8 booleans ...
+	bool m_bMadeInterception:1;
+	bool m_bPromotionReady:1;
+	bool m_bDeathDelay:1;
+	bool m_bCombatFocus:1;
+	bool m_bInfoBarDirty:1;
+	bool m_bBlockading:1;
+	bool m_bAirCombat:1;
+	bool m_bFlatMovement:1; // advc.opt
 
 	PlayerTypes m_eCapturingPlayer;
 	UnitTypes m_eUnitType;
@@ -1200,6 +1202,7 @@ protected:
 	bool suppressStackAttackSound(CvUnit const& kDefender) const; // advc.002l
 	void resolveAirCombat(CvUnit* pInterceptor, CvPlot* pPlot, CvAirMissionDefinition& kBattle);
 	void checkRemoveSelectionAfterAttack();
+	void updateFlatMovement();
 // <advc.003u>
 private:
 	void uninitEntity(); // I don't think subclasses should ever call this
