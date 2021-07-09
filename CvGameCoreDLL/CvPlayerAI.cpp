@@ -7806,6 +7806,10 @@ int CvPlayerAI::AI_getRivalDefensivePactAttitude(PlayerTypes ePlayer) const
 // <advc.130w>
 int CvPlayerAI::AI_getExpansionistAttitude(PlayerTypes ePlayer) const
 {
+	/*	Too complex to update this while loading a legacy savegame.
+		(In particular, could then not use agent iterators in any subroutine.) */
+	if (!GC.getGame().isAllGameDataRead())
+		return 0;
 	CvPlayer const& kOther = GET_PLAYER(ePlayer);
 	scaled rForeignCities;
 	FOR_EACH_CITY(pCity, kOther)
@@ -7814,7 +7818,8 @@ int CvPlayerAI::AI_getExpansionistAttitude(PlayerTypes ePlayer) const
 		if(!c.isRevealed(getTeam()))
 			continue;
 		TeamTypes eHighestCultureTeam = c.getPlot().findHighestCultureTeam();
-		if(eHighestCultureTeam != TEAMID(ePlayer))
+		FAssert(eHighestCultureTeam != NO_TEAM);
+		if(eHighestCultureTeam != kOther.getTeam())
 		{
 			scaled rClaimFactor = 1;
 			/*  Doesn't capture the case where they raze our city to make room
@@ -7824,7 +7829,7 @@ int CvPlayerAI::AI_getExpansionistAttitude(PlayerTypes ePlayer) const
 			// Weighted by 2 times the difference between highest and ePlayer's
 			rForeignCities += scaled::clamp(fixp(0.02) *
 					(c.getPlot().calculateTeamCulturePercent(eHighestCultureTeam)
-					- c.getPlot().calculateTeamCulturePercent(TEAMID(ePlayer))),
+					- c.getPlot().calculateTeamCulturePercent(kOther.getTeam())),
 					0, 1) * rClaimFactor;
 		}
 	}
