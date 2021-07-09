@@ -19036,35 +19036,24 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer,
 			szBuffer.append(NEWLINE);
 		}
 	}
-	}
-
-	if (kMission.getStealTreasuryTypes() > 0)
+	if (kMission.getStolenGoldPercent() > 0 && eTargetPlayer != NO_PLAYER)
 	{
-		if (NO_PLAYER != eTargetPlayer)
+		int iNumTotalGold /* kmodx: initialize */ = 0;
+		if (pPlot != NULL)
 		{
-			//int iNumTotalGold = (GET_PLAYER(eTargetPlayer).getGold() * kMission.getStealTreasuryTypes()) / 100;
-			int iNumTotalGold
-				= 0; // kmodx: Missing initialization
-
-			if (NULL != pPlot)
+			CvCity const* pCity = pPlot->getPlotCity();
+			if (pCity != NULL)
 			{
-				CvCity* pCity = pPlot->getPlotCity();
-
-				if (NULL != pCity)
-				{
-					/* iNumTotalGold *= pCity->getPopulation();
-					iNumTotalGold /= std::max(1, GET_PLAYER(eTargetPlayer).getTotalPopulation());*/
-					// K-Mod
-					iNumTotalGold = kPlayer.getEspionageGoldQuantity(eMission, eTargetPlayer, pCity);
-				}
+				/*iNumTotalGold *= pCity->getPopulation();
+				iNumTotalGold /= std::max(1, GET_PLAYER(eTargetPlayer).getTotalPopulation());*/
+				// K-Mod:
+				iNumTotalGold = kPlayer.getEspionageGoldQuantity(eMission, eTargetPlayer, pCity);
 			}
-
-			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_STEAL_TREASURY",
-					iNumTotalGold, GET_PLAYER(eTargetPlayer).getCivilizationAdjectiveKey()));
-			szBuffer.append(NEWLINE);
 		}
+		szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_STEAL_TREASURY",
+				iNumTotalGold, GET_PLAYER(eTargetPlayer).getCivilizationAdjectiveKey()));
+		szBuffer.append(NEWLINE);
 	}
-
 	if (kMission.getBuyTechCostFactor() > 0)
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_STEAL_TECH",

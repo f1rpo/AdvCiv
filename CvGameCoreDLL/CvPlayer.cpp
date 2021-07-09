@@ -11633,20 +11633,15 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 	int iMissionCost = -1;
 	CvGameSpeedInfo const& kSpeed = GC.getInfo(GC.getGame().getGameSpeedType()); //advc
 
-	if (kMission.getStealTreasuryTypes() > 0)
+	if (kMission.getStolenGoldPercent() > 0)
 	{
-		// Steal Treasury
-		//int iNumTotalGold = (GET_PLAYER(eTargetPlayer).getGold() * kMission.getStealTreasuryTypes()) / 100;
-		int iNumTotalGold /* kmodx: */ = 0;
+		int iGoldStolen /* kmodx: */ = 0;
 		if (pCity!= NULL)
-		{
-			/*iNumTotalGold *= pCity->getPopulation();
-			iNumTotalGold /= std::max(1, GET_PLAYER(eTargetPlayer).getTotalPopulation());*/
-			// K-Mod:
-			iNumTotalGold = getEspionageGoldQuantity(eMission, eTargetPlayer, pCity);
+		{	// K-Mod: Moved into new function
+			iGoldStolen = getEspionageGoldQuantity(eMission, eTargetPlayer, pCity);
 		}
-		if (iNumTotalGold > 0)
-			iMissionCost = (iBaseMissionCost * iNumTotalGold) / 100;
+		if (iGoldStolen > 0)
+			iMissionCost = (iGoldStolen * iBaseMissionCost) / 100;
 	}
 	else if (kMission.getBuyTechCostFactor() > 0)
 	{
@@ -12280,22 +12275,15 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 		if (gUnitLogLevel >= 2 && !isHuman()) logBBAI("      Spy for player %d (%S) causes revolt in %S, owned by %S (%d)", getID(), getCivilizationDescription(0), pCity->getName().GetCString(), GET_PLAYER(pCity->getOwner()).getCivilizationDescription(0), pCity->getOwner());
 	}
 
-	if (kMission.getStealTreasuryTypes() > 0 && pCity != NULL)
-	{	/*	<advc> Part of this branch was executed for eTargetPlayer=NO_PLAYER.
-			I don't think that can happen. */
-		FAssert(eTargetPlayer == pCity->getOwner());
-		if (eTargetPlayer == NO_PLAYER)
-			eTargetPlayer = pCity->getOwner(); // </advc>
-		//int iNumTotalGold = (GET_PLAYER(eTargetPlayer).getGold() * kMission.getStealTreasuryTypes()) / 100;
-		int iNumTotalGold /* kmodx: */ = 0;
-		/* iNumTotalGold *= pCity->getPopulation();
-		iNumTotalGold /= std::max(1, GET_PLAYER(eTargetPlayer).getTotalPopulation()); */
-		// K-Mod. Make stealing gold still worthwhile against large civs.
-		iNumTotalGold = getEspionageGoldQuantity(eMission, eTargetPlayer, pCity);
+	if (kMission.getStolenGoldPercent() > 0 && pCity != NULL)
+	{
+		FAssert(eTargetPlayer == pCity->getOwner()); // advc: Replacing if(eTargetPlayer!=NO_PLAYER)
+		// K-Mod: Moved into new function
+		int iGoldStolen = getEspionageGoldQuantity(eMission, eTargetPlayer, pCity);
 		szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_STEAL_TREASURY",
-				iNumTotalGold); // advc.004i
-		changeGold(iNumTotalGold);
-		GET_PLAYER(eTargetPlayer).changeGold(-iNumTotalGold);
+				iGoldStolen); // advc.004i
+		changeGold(iGoldStolen);
+		GET_PLAYER(eTargetPlayer).changeGold(-iGoldStolen);
 		bSomethingHappened = true;
 	}
 
@@ -17949,7 +17937,7 @@ bool CvPlayer::canSpyDestroyProject(PlayerTypes eTarget, ProjectTypes eProject) 
 	return true;
 }
 
-// K-Mod
+// K-Mod: Moved out of getEspionageMissionBaseCost/ doEspionageMission
 int CvPlayer::getEspionageGoldQuantity(EspionageMissionTypes eMission,
 	PlayerTypes eTargetPlayer, CvCity const* pCity) const
 {
@@ -17959,7 +17947,11 @@ int CvPlayer::getEspionageGoldQuantity(EspionageMissionTypes eMission,
 	CvPlayer const& kTargetPlayer = GET_PLAYER(eTargetPlayer);
 	CvEspionageMissionInfo const& kMission = GC.getInfo(eMission);
 	int iGoldStolen = (kTargetPlayer.getGold() *
-			kMission.getStealTreasuryTypes()) / 100;
+			kMission.getStolenGoldPercent()) / 100;
+	/*iGoldStolen *= pCity->getPopulation();
+	iGoldStolen /= std::max(1,
+			GET_PLAYER(eTargetPlayer).getTotalPopulation());*/ // BtS
+	// Make stealing gold still worthwhile against large civs
 	iGoldStolen *= 3 * pCity->getPopulation();
 	iGoldStolen /= std::max(1, pCity->getPopulation() +
 			2 * kTargetPlayer.getAveragePopulation());

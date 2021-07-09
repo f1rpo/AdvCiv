@@ -17621,7 +17621,7 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer,
 		}
 	}
 
-	if (bMalicious && GC.getInfo(eMission).getStealTreasuryTypes() > 0 && pCity != NULL)
+	if (bMalicious && GC.getInfo(eMission).getStolenGoldPercent() > 0 && pCity != NULL)
 	{
 		/* int iGoldStolen = (GET_PLAYER(eTargetPlayer).getGold() * GC.getInfo(eMission).getStealTreasuryTypes()) / 100;
 		iGoldStolen *= kPlot.getPlotCity()->getPopulation();

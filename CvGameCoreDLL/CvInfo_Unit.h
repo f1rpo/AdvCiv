@@ -742,7 +742,13 @@ public:
 	int getDestroyProductionCostFactor() const;
 	int getBuyUnitCostFactor() const;
 	int getBuyCityCostFactor() const;
-	int getStealTreasuryTypes() const;
+	//int getStealTreasuryTypes() const;
+	/*	Use a less confusing name at least in the DLL
+		(not going to rename the XML tag) */
+	int getStolenGoldPercent() const
+	{
+		return m_iStolenGoldPercent;
+	}
 	int getCityInsertCultureAmountFactor() const;
 	int getCityInsertCultureCostFactor() const;
 	int getCityPoisonWaterCounter() const;
@@ -780,7 +786,7 @@ protected:
 	int m_iDestroyProductionCostFactor;
 	int m_iBuyUnitCostFactor;
 	int m_iBuyCityCostFactor;
-	int m_iStealTreasuryTypes;
+	int m_iStolenGoldPercent;
 	int m_iCityInsertCultureAmountFactor;
 	int m_iCityInsertCultureCostFactor;
 	int m_iCityPoisonWaterCounter;

@@ -705,7 +705,7 @@ void CyInfoPythonInterface3()
 		// </advc.120d>
 		.def("getBuyUnitCostFactor", &CvEspionageMissionInfo::getBuyUnitCostFactor, "int ()")
 		.def("getBuyCityCostFactor", &CvEspionageMissionInfo::getBuyCityCostFactor, "int ()")
-		.def("getStealTreasuryTypes", &CvEspionageMissionInfo::getStealTreasuryTypes, "int ()")
+		.def("getStealTreasuryTypes", &CvEspionageMissionInfo::getStolenGoldPercent, "int ()")
 		.def("getCityInsertCultureAmountFactor", &CvEspionageMissionInfo::getCityInsertCultureAmountFactor, "int ()")
 		.def("getCityInsertCultureCostFactor", &CvEspionageMissionInfo::getCityInsertCultureCostFactor, "int ()")
 		.def("getCityPoisonWaterCounter", &CvEspionageMissionInfo::getCityPoisonWaterCounter, "int ()")

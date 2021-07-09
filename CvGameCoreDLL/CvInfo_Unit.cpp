@@ -2393,7 +2393,7 @@ CvEspionageMissionInfo::CvEspionageMissionInfo() // <kmodx>
 	m_iDestroyProductionCostFactor(0),
 	m_iBuyUnitCostFactor(0),
 	m_iBuyCityCostFactor(0),
-	m_iStealTreasuryTypes(0),
+	m_iStolenGoldPercent(0),
 	m_iCityInsertCultureAmountFactor(0),
 	m_iCityInsertCultureCostFactor(0),
 	m_iCityPoisonWaterCounter(0),
@@ -2489,11 +2489,6 @@ int CvEspionageMissionInfo::getBuyCityCostFactor() const
 	return m_iBuyCityCostFactor;
 }
 
-int CvEspionageMissionInfo::getStealTreasuryTypes() const
-{
-	return m_iStealTreasuryTypes;
-}
-
 int CvEspionageMissionInfo::getCityInsertCultureAmountFactor() const
 {
 	return m_iCityInsertCultureAmountFactor;
@@ -2580,7 +2575,7 @@ bool CvEspionageMissionInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iDestroyProductionCostFactor, "iDestroyProductionCostFactor");
 	pXML->GetChildXmlValByName(&m_iBuyUnitCostFactor, "iBuyUnitCostFactor");
 	pXML->GetChildXmlValByName(&m_iBuyCityCostFactor, "iBuyCityCostFactor");
-	pXML->GetChildXmlValByName(&m_iStealTreasuryTypes, "iStealTreasuryTypes");
+	pXML->GetChildXmlValByName(&m_iStolenGoldPercent, "iStealTreasuryTypes");
 	pXML->GetChildXmlValByName(&m_iCityInsertCultureAmountFactor, "iCityInsertCultureAmountFactor");
 	pXML->GetChildXmlValByName(&m_iCityInsertCultureCostFactor, "iCityInsertCultureCostFactor");
 	pXML->GetChildXmlValByName(&m_iCityPoisonWaterCounter, "iCityPoisonWaterCounter");

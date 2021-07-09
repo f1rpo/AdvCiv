@@ -1278,6 +1278,8 @@
 	<ElementType name="iDestroyProductionCostFactor" content="textOnly" dt:type="int"/>
 	<ElementType name="iBuyUnitCostFactor" content="textOnly" dt:type="int"/>
 	<ElementType name="iBuyCityCostFactor" content="textOnly" dt:type="int"/>
+	<!-- advc (note): The DLL now uses the name "StolenGoldPercent" for this.
+		 The name of the XML element makes no sense to me. -->
 	<ElementType name="iStealTreasuryTypes" content="textOnly" dt:type="int"/>
 	<ElementType name="iCityInsertCultureAmountFactor" content="textOnly" dt:type="int"/>
 	<ElementType name="iCityInsertCultureCostFactor" content="textOnly" dt:type="int"/>
