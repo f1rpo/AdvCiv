@@ -1416,7 +1416,7 @@ protected:
 	EnumMap<BuildingTypes,int> m_aiBuildingProduction;
 	EnumMap<BuildingTypes,int> m_aiBuildingProductionTime;
 	EnumMap<BuildingTypes,PlayerTypes> m_aeBuildingOriginalOwner;
-	EnumMapDefault<BuildingTypes,int,MIN_INT> m_aiBuildingOriginalTime;
+	EnumMap<BuildingTypes,int,MIN_INT> m_aiBuildingOriginalTime;
 	EnumMap<BuildingTypes,int> m_aiNumRealBuilding;
 	EnumMap<BuildingTypes,int> m_aiNumFreeBuilding;
 	EnumMap<UnitTypes,int> m_aiUnitProduction;
@@ -1464,11 +1464,11 @@ protected:
 	// <advc.enum>
 	/*	Made mutable (not strictly necessary b/c findBaseYieldRateRank
 		accesses them through a CvCity pointer) */
-	mutable EnumMapDefault<YieldTypes,int,-1> m_aiBaseYieldRank;
+	mutable EnumMap<YieldTypes,int,-1> m_aiBaseYieldRank;
 	mutable EnumMap<YieldTypes,bool> m_abBaseYieldRankValid;
-	mutable EnumMapDefault<YieldTypes,int,-1> m_aiYieldRank;
+	mutable EnumMap<YieldTypes,int,-1> m_aiYieldRank;
 	mutable EnumMap<YieldTypes,bool> m_abYieldRankValid;
-	mutable EnumMapDefault<CommerceTypes,int,-1> m_aiCommerceRank;
+	mutable EnumMap<CommerceTypes,int,-1> m_aiCommerceRank;
 	mutable EnumMap<CommerceTypes,bool> m_abCommerceRankValid; // </advc.enum>
 
 	void doGrowth();

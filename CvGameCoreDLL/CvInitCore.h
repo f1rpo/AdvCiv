@@ -377,7 +377,7 @@ protected:
 	EnumMap<PlayerTypes,bool> m_abMinorNationCiv;
 
 	// Unsaved player data
-	EnumMapDefault<PlayerTypes,int,-1> m_aiNetID;
+	EnumMap<PlayerTypes,int,-1> m_aiNetID;
 	EnumMap<PlayerTypes,bool> m_abReady;
 
 	CvString* m_aszPythonCheck;

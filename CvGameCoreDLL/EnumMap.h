@@ -42,8 +42,6 @@ template <class T> struct EnumMapGetDefault {};
 // EnumMap<BuildingTypes,int>
 // EnumMap<TeamTypes, PlayerTypes>
 //
-// See the end of the file for (often unneeded) additionaly features, like disabling type checks and altering default values.
-// DEFAULT is 0, except if the second parameter is an enum, in which case the default is -1 (like NO_PLAYER)
 
 enum
 {
@@ -1298,35 +1296,9 @@ SET_NONXML_ENUM_LENGTH(CivTeamTypes, NUM_CIV_TEAM_TYPES)
 #undef SET_NONXML_ENUM_LENGTH
 // </advc>
 
-
-//
-// List of various types of EnumMaps
-// In most cases it's not nice code to include all parameters from EnumMapBase.
-// Adding other classes, which always sets the default makes it easier to add EnumMaps as arguments to functions etc.
-//
-
-// The different classes:
-// EnumMap:
-///  the default, which takes a length (xml file) and type to store. Use this one as much as possible.
-// EnumMapDefault:
-///  same as EnumMap, but you can set what the default value should be (read: the value assigned by constructor/reset)
-///  Note: indexes at default value aren't saved, hence saving an EnumMap with lots of default values will take less file space
-// EnumMapInt:
-///  Allows the index to be set by int instead of the enum type
-///  Do not use if it can be avoided. The tradeoff of easier coding is that the compiler can no longer catch bugs.
-///  The index arguments are consistently set to require the correct enum types specifically to catch bugs where arguments are switched etc.
-///  Using EnumMapInt can easily end up with the compiler accepting swapped arguments etc.
-///  For this reason, only use this if you know you have to typecast anyway for each call,
-///  like when using CityPlotTypes for length [advc: EnumMap<IndexType,CityPlotTypes> shouldn't require casts in AdvCiv].
-
-template<class IndexType, class T, int DEFAULT>
-class EnumMapDefault : public EnumMapBase <IndexType, T, DEFAULT> {};
-
-template<class IndexType, class T>
-class EnumMap : public EnumMapBase <IndexType, T, EnumMapGetDefault<T>::DEFAULT_VALUE> {};
-
-template<class IndexType, class T, int DEFAULT = 0>
-class EnumMapInt : public EnumMapBase <int, T, DEFAULT, IndexType, IndexType> {};
+// DEFAULT is 0, except if the second parameter is an enum, in which case the default is -1 (like NO_PLAYER)
+template<class IndexType, class T, int DEFAULT = EnumMapGetDefault<T>::DEFAULT_VALUE>
+class EnumMap : public EnumMapBase <IndexType, T, DEFAULT> {};
 
 // <advc>
 template<class IndexType, class T, int DEFAULT, class T_SUBSET, class LengthType>

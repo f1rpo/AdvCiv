@@ -1520,7 +1520,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	EnumMap<CorporationTypes,bool> abHeadquarters;
 	EnumMap<BuildingTypes,int> aiNumRealBuilding;
 	EnumMap<BuildingTypes,PlayerTypes> aeBuildingOriginalOwner;
-	EnumMapDefault<BuildingTypes,int,MIN_INT> aiBuildingOriginalTime;
+	EnumMap<BuildingTypes,int,MIN_INT> aiBuildingOriginalTime;
 
 	PlayerTypes const eOldOwner = pOldCity->getOwner();
 	PlayerTypes const eOriginalOwner = pOldCity->getOriginalOwner();

@@ -886,7 +886,7 @@ protected:
 
 	EnumMap<YieldTypes,char> m_aiYield;
 	EnumMap<PlayerTypes,int> m_aiCulture;
-	EnumMapDefault<PlayerTypes,int,FFreeList::INVALID_INDEX> m_aiPlotGroup;
+	EnumMap<PlayerTypes,int,FFreeList::INVALID_INDEX> m_aiPlotGroup;
 	mutable EnumMap<PlayerTypes,short> m_aiFoundValue; // advc: mutable
 	SparseEnumMap<PlayerTypes,char> m_aiPlayerCityRadiusCount;
 	EnumMap<TeamTypes,short> m_aiVisibilityCount;

@@ -1614,7 +1614,7 @@ protected:  // <advc.210>
 	EnumMap<PlayerOptionTypes,bool> m_abOptions;
 	EnumMap<TechTypes,bool> m_abResearchingTech;
 	EnumMap<PlayerTypes,bool> m_abEverSeenDemographics; // advc.091
-	EnumMapDefault<VoteSourceTypes,bool,true> m_abLoyalMember;
+	EnumMap<VoteSourceTypes,bool,true> m_abLoyalMember;
 
 	EnumMap2D<SpecialistTypes,YieldTypes,int> m_aaeSpecialistExtraYield;
 	EnumMap2D<ImprovementTypes,YieldTypes,int> m_aaeImprovementYieldChange;
