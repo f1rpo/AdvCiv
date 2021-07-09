@@ -49,6 +49,7 @@ CvPlot::CvPlot() // advc: Merged with the deleted reset function
 
 	m_iX = 0;
 	m_iY = 0;
+	m_iPlotNum = static_cast<PlotNumInt>(NO_PLOT_NUM); // advc.opt
 	m_pArea = NULL;
 	m_iFeatureVariety = 0;
 	m_iOwnershipDuration = 0;
@@ -117,7 +118,15 @@ void CvPlot::init(int iX, int iY)
 {
 	m_iX = toShort(iX);
 	m_iY = toShort(iY);
+	updatePlotNum(); // advc.opt
 	m_iLatitude = calculateLatitude(); // advc.tsl
+}
+
+// advc.opt:
+void CvPlot::updatePlotNum()
+{
+	if (getX() != INVALID_PLOT_COORD && getY() != INVALID_PLOT_COORD)
+		m_iPlotNum = static_cast<PlotNumInt>(GC.getMap().plotNum(getX(), getY()));
 }
 
 // advc.opt:
@@ -2579,9 +2588,12 @@ int CvPlot::movementCost(CvUnit const& kUnit, CvPlot const& kFrom,
 	if(kUnit.isInvasionMove(kFrom, *this))
 		return kUnit.movesLeft(); // </advc.162>
 
-	if (kUnit.flatMovementCost() || kUnit.getDomainType() == DOMAIN_AIR)
+	if (kUnit.flatMovementCost() /*||
+		advc.opt: Now covered by the above
+		//kUnit.getDomainType() == DOMAIN_AIR*/)
+	{
 		return GC.getMOVE_DENOMINATOR();
-
+	}
 	TeamTypes const eTeam = kUnit.getTeam(); // advc.opt
 	/*if (kUnit.isHuman()) {
 		if (!isRevealed(eTeam, false))
@@ -5072,7 +5084,7 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnor
 	bool bIgnoreHills) const // advc.300
 {
 	// advc.016: Cut from calculateYield
-	int iYield = GC.getGame().getPlotExtraYield(m_iX, m_iY, eYield);
+	int iYield = GC.getGame().getPlotExtraYield(getX(), getY(), eYield);
 	if (isImpassable())
 	{
 		//return 0;
@@ -5281,7 +5293,7 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 	}
 
 	// advc.016: Now factored into NatureYield
-	//iYield += GC.getGame().getPlotExtraYield(m_iX, m_iY, eYield);
+	//iYield += GC.getGame().getPlotExtraYield(getX(), getY(), eYield);
 
 	if (ePlayer != NO_PLAYER)
 	{
@@ -6299,7 +6311,7 @@ void CvPlot::updateFeatureSymbolVisibility()
 	if(wasVisible != bVisible)
 	{
 		gDLL->getFeatureIFace()->Hide(m_pFeatureSymbol, !bVisible);
-		gDLL->getEngineIFace()->MarkPlotTextureAsDirty(m_iX, m_iY);
+		gDLL->getEngineIFace()->MarkPlotTextureAsDirty(getX(), getY());
 	}
 }
 
@@ -6311,7 +6323,7 @@ void CvPlot::updateFeatureSymbol(bool bForce)
 	if (!GC.IsGraphicsInitialized())
 		return;
 
-	gDLL->getEngineIFace()->RebuildTileArt(m_iX,m_iY);
+	gDLL->getEngineIFace()->RebuildTileArt(getX(), getY());
 
 	FeatureTypes eFeature = getFeatureType();
 	if (eFeature == NO_FEATURE ||
@@ -7082,6 +7094,11 @@ void CvPlot::read(FDataStreamBase* pStream)
 	pStream->Read(&uiFlag);
 	pStream->Read(&m_iX);
 	pStream->Read(&m_iY);
+	// <advc.opt>
+	if (uiFlag >= 12)
+		pStream->Read(&m_iPlotNum);
+	else updatePlotNum();
+	// </advc.opt>
 	pStream->Read(&m_iArea);
 
 	pStream->Read(&m_iFeatureVariety);
@@ -7261,19 +7278,25 @@ void CvPlot::read(FDataStreamBase* pStream)
 	if (cCount > 0)
 		m_abRevealed.Read(pStream);
 	if (uiFlag < 5)
-	{
 		m_aeRevealedImprovementType.ReadBtS<char,short>(pStream);
-		m_aeRevealedRouteType.ReadBtS<char,short>(pStream);
-	}
 	else if (uiFlag < 10)
-	{
 		m_aeRevealedImprovementType.ReadBtS<char,char>(pStream);
-		m_aeRevealedRouteType.ReadBtS<char,char>(pStream);
+	else m_aeRevealedImprovementType.Read(pStream);
+	if (uiFlag == 10)
+	{	// Sparse map didn't work out well here
+		SparseEnumMap<TeamTypes,RouteTypes> aeRevealedRouteType;
+		aeRevealedRouteType.Read(pStream);
+		if (aeRevealedRouteType.isAnyNonDefault())
+		{
+			FOR_EACH_ENUM(Team)
+				m_aeRevealedRouteType.set(eLoopTeam, aeRevealedRouteType.get(eLoopTeam));
+		}
 	}
 	else
 	{
-		m_aeRevealedImprovementType.Read(pStream);
-		m_aeRevealedRouteType.Read(pStream);
+		pStream->Read(&cCount);
+		if (cCount > 0)
+			m_aeRevealedRouteType.Read(pStream, false, uiFlag < 5);
 	}
 	m_szScriptData = pStream->ReadString();
 
@@ -7329,11 +7352,14 @@ void CvPlot::write(FDataStreamBase* pStream)
 	//uiFlag = 7; // advc.opt: m_bImpassable
 	//uiFlag = 8; // advc.opt: m_bAnyIsthmus
 	//uiFlag = 9; // advc.912f
-	uiFlag = 10; // advc.enum (sparse maps)
+	//uiFlag = 10; // advc.enum (sparse maps 1)
+	//uiFlag = 11; // advc.enum (sparse maps 2)
+	uiFlag = 12; // advc.opt (m_iPlotNum)
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE(CvString::format("Plot pt1(%d,%d)", getX(), getY()).GetCString());
 	pStream->Write(m_iX);
 	pStream->Write(m_iY);
+	pStream->Write(m_iPlotNum); // advc.opt
 	pStream->Write(areaID());
 
 	pStream->Write(m_iFeatureVariety);
@@ -7438,8 +7464,13 @@ void CvPlot::write(FDataStreamBase* pStream)
 		m_abRevealed.Write(pStream);
 	}
 	m_aeRevealedImprovementType.Write(pStream);
-	m_aeRevealedRouteType.Write(pStream);
-
+	if (!m_aeRevealedRouteType.hasContent())
+		pStream->Write((char)0);
+	else
+	{
+		pStream->Write((char)m_aeRevealedRouteType.getLength());
+		m_aeRevealedRouteType.Write(pStream, false);
+	}
 	pStream->WriteString(m_szScriptData);
 
 	if (!m_aiBuildProgress.hasContent())

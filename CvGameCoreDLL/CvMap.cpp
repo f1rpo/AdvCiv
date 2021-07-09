@@ -115,7 +115,7 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 			m_iGridHeight *= GC.getLandscapePlotsPerCellY();
 		}
 	}
-	updatePlotNum(); // advc.opt
+	updateNumPlots(); // advc.opt
 
 	m_iLandPlots = 0;
 	m_iOwnedPlots = 0;
@@ -1112,7 +1112,7 @@ void CvMap::read(FDataStreamBase* pStream)
 	// <advc.opt>
 	if (uiFlag >= 3)
 		pStream->Read((int*)&m_ePlots);
-	else updatePlotNum(); // </advc.opt>
+	else updateNumPlots(); // </advc.opt>
 	pStream->Read(&m_iLandPlots);
 	pStream->Read(&m_iOwnedPlots);
 	pStream->Read(&m_iTopLatitude);
@@ -1224,7 +1224,7 @@ void CvMap::rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitud
 }
 
 // advc.opt:
-void CvMap::updatePlotNum()
+void CvMap::updateNumPlots()
 {
 	m_ePlots = (PlotNumTypes)(getGridWidth() * getGridHeight());
 }

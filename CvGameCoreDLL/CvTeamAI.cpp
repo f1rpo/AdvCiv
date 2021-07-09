@@ -4898,14 +4898,15 @@ void CvTeamAI::AI_updateWarPlanCounts(TeamTypes eTarget, WarPlanTypes eOldPlan, 
 // <advc.650>
 void CvTeamAI::AI_rememberNukeExplosion(CvPlot const& kPlot)
 {
-	m_aeNukeExplosions.push_back(GC.getMap().plotNum(kPlot));
+	m_aeNukeExplosions.push_back(kPlot.plotNum());
 }
 
 
 bool CvTeamAI::AI_wasRecentlyNuked(CvPlot const& kPlot) const
 {
-	return (std::find(m_aeNukeExplosions.begin(), m_aeNukeExplosions.end(),
-			GC.getMap().plotNum(kPlot)) != m_aeNukeExplosions.end());
+	return (std::find(
+			m_aeNukeExplosions.begin(), m_aeNukeExplosions.end(), kPlot.plotNum()) !=
+			m_aeNukeExplosions.end());
 }  // </advc.650>
 
 /*	if this number is over 0 the teams are "close"

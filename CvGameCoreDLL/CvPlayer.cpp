@@ -19389,7 +19389,7 @@ void CvPlayer::getReligionLayerColors(ReligionTypes eSelectedReligion,
 			{
 				if (!it->isRevealed(getTeam(), true))
 					continue;
-				int iIndex = GC.getMap().plotNum(*it);
+				int iIndex = it->plotNum();
 				if (fAlpha > aColors[iIndex].a)
 				{
 					aColors[iIndex] = kBaseColor;

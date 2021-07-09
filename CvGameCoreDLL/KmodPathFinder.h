@@ -473,7 +473,7 @@ bool KmodPathFinder<StepMetric,Node>::generatePath(
 	m_pStart = &kStart;
 	m_pDest = &kDest;
 	{
-		Node& kStartNode = m_pNodeMap->get(m_kMap.plotNum(kStart));
+		Node& kStartNode = m_pNodeMap->get(kStart.plotNum());
 		if (!kStartNode.isState(PATHNODE_UNINITIALIZED))
 		{
 			if (m_stepMetric.canReuseInitialPathData(kStartNode))
@@ -508,7 +508,7 @@ bool KmodPathFinder<StepMetric,Node>::generatePath(
 			to that destination remains open. */
 	}
 	{
-		Node& kDestNode = m_pNodeMap->get(m_kMap.plotNum(kDest));
+		Node& kDestNode = m_pNodeMap->get(kDest.plotNum());
 		if (!kDestNode.isState(PATHNODE_UNINITIALIZED))
 			m_pEndNode = &kDestNode;
 		/*	advc (note): If kDestNode is closed, then it could be that we've

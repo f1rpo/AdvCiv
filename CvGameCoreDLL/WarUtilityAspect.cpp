@@ -4142,7 +4142,7 @@ void TacticalSituation::evalEngagement()
 			{
 				continue;
 			}
-			PlotNumTypes ePlot = kMap.plotNum(kPlot);
+			PlotNumTypes ePlot = kPlot.plotNum();
 			std::map<PlotNumTypes,int>::iterator pos = weThreaten.find(ePlot);
 			if (pos == weThreaten.end())
 				weThreaten.insert(std::make_pair(ePlot, iGroupSize));

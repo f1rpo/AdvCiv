@@ -23,7 +23,7 @@ CvCity::CvCity() // advc.003u: Merged with the deleted reset function
 	m_iID = 0;
 	m_iX = INVALID_PLOT_COORD;
 	m_iY = INVALID_PLOT_COORD;
-	updatePlot();
+	m_ePlot = NO_PLOT_NUM; // advc.opt
 	m_iRallyX = INVALID_PLOT_COORD;
 	m_iRallyY = INVALID_PLOT_COORD;
 	m_iGameTurnFounded = 0;
@@ -4291,7 +4291,8 @@ void CvCity::setID(int iID)
 void CvCity::updatePlot()
 {
 	m_pPlot = GC.getMap().plotSoren(getX(), getY());
-	m_ePlot = GC.getMap().plotNum(getX(), getY());
+	if (m_pPlot != NULL)
+		m_ePlot = GC.getMap().plotNum(getX(), getY());
 	updateArea();
 }
 
@@ -10130,14 +10131,14 @@ void CvCity::addGreatWall(int iAttempt)
 			}
 			if (bValid)
 			{
-				aiWallPlots.insert(kMap.plotNum(*pOutside));
+				aiWallPlots.insert(pOutside->plotNum());
 				bFound = true;
 				//iOutside++;
 			}
 		}
 		if(bFound)
 		{
-			aiWallPlots.insert(kMap.plotNum(kInside));
+			aiWallPlots.insert(kInside.plotNum());
 			//iInside++;
 		}
 	}

@@ -324,6 +324,7 @@ public:
 	DllExport int getX() const { return m_iX; } // advc.inl: was "getX_INLINE"						// Exposed to Python
 	DllExport int getY() const { return m_iY; } // advc.inl: was "getY_INLINE"						// Exposed to Python
 	bool at(int iX, int iY) const {  return (getX() == iX && getY() == iY); } // advc.inl			// Exposed to Python
+	PlotNumTypes plotNum() const { return (PlotNumTypes)m_iPlotNum; } // advc.opt
 	int getLatitude() const;																																					// Exposed to Python
 	void setLatitude(int iLatitude); // advc.tsl	(exposed to Python)
 	int getFOWIndex() const;
@@ -806,11 +807,13 @@ public:
 
 protected:
 	/*	advc (note): Should keep the data members in an order that optimizes
-		the memory layout. While enum types can be declared as bitfields (:8 or :16),
-		it seems that e.g. a short int and a 16-bit enum won't get packed without
-		padding by the compiler; so I think it's better to stick to char and short. */
+		the memory layout (packing, locality). While enum types can be declared
+		as bitfields (:8 or :16), it seems that e.g. a short int and a 16-bit enum
+		won't get packed without padding by the compiler; so I think it's better
+		to stick to char and short. */
 	short m_iX;
 	short m_iY;
+	PlotNumInt m_iPlotNum; // advc.opt: worth caching
 	short m_iFeatureVariety;
 	short m_iOwnershipDuration;
 	short m_iImprovementDuration;
@@ -830,7 +833,6 @@ protected:
 	// advc.opt: char. It's also unused now, but since there would be padding here anyway ...
 	mutable char m_iActivePlayerSafeRangeCache;
 
-	char m_iLatitude; // advc.tsl
 	// advc.opt: These two were short int
 	char m_iCityRadiusCount;
 	char m_iRiverCrossingCount;
@@ -849,6 +851,7 @@ protected:
 	bool m_bLayoutStateWorked:1;
 
 	char /*TeamTypes*/ m_eTeam; // advc.opt: cache the owner's team
+	char m_iLatitude; // advc.tsl
 	// advc.opt: These five were short int
 	char /*PlotTypes*/ m_ePlotType;
 	char /*TerrainTypes*/ m_eTerrainType;
@@ -891,7 +894,7 @@ protected:
 	SparseEnumMap<TeamTypes,short> m_aiBlockadedCount;
 	EnumMap<TeamTypes,PlayerTypes> m_aiRevealedOwner;
 	SparseEnumMap<TeamTypes,ImprovementTypes> m_aeRevealedImprovementType;
-	SparseEnumMap<TeamTypes,RouteTypes> m_aeRevealedRouteType;
+	EnumMap<TeamTypes,RouteTypes> m_aeRevealedRouteType;
 	EnumMap<TeamTypes,bool> m_abRevealed;
 	EnumMap<DirectionTypes,bool> m_abRiverCrossing;
 	EnumMap<BuildTypes,short> m_aiBuildProgress;
@@ -921,6 +924,7 @@ protected:
 	void doCultureDecay(); // advc.099b
 	ColorTypes plotMinimapColor();
 	void updateImpassable(); // advc.opt
+	void updatePlotNum(); // advc.opt
 
 	/*	advc: protected b/c iteration through headUnitNode/ nextUnitNode is faster.
 		Iteration by index is needed for Python export though. */
@@ -932,7 +936,7 @@ protected:
 };
 
 // advc.opt: It's fine to change the size, but might want to double check if it can be avoided.
-BOOST_STATIC_ASSERT(MAX_CIV_PLAYERS > 18 || sizeof(CvPlot) <= 244);
+BOOST_STATIC_ASSERT(MAX_PLOT_NUM > MAX_SHORT || sizeof(CvPlot) <= 244);
 
 /*	advc.enum: For functions that choose random plots.
 	Moved from CvDefines, turned into an enum, exposed to Python. */

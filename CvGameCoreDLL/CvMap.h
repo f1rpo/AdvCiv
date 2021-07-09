@@ -569,7 +569,7 @@ protected:
 	void calculateAreas_DFS(CvPlot const& p);
 	void updateLakes();
 	// </advc.030>
-	void updatePlotNum(); // advc.opt
+	void updateNumPlots(); // advc.opt
 };
 
 // advc.enum: (for EnumMap)

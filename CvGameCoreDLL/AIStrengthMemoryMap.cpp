@@ -92,13 +92,13 @@ void AIStrengthMemoryMap::write(FDataStreamBase* pStream) const
 
 int AIStrengthMemoryMap::get(CvPlot const& kPlot) const
 {
-	return get(GC.getMap().plotNum(kPlot));
+	return get(kPlot.plotNum());
 }
 
 
 void AIStrengthMemoryMap::set(CvPlot const& kPlot, int iNewValue)
 {
-	PlotNumTypes ePlot = GC.getMap().plotNum(kPlot);
+	PlotNumTypes ePlot = kPlot.plotNum();
 	/*FAssertBounds(0, m_aiMap.size(), ePlot);
 	m_aiMap[ePlot] = iNewValue;*/
 	m_map[ePlot] = iNewValue;

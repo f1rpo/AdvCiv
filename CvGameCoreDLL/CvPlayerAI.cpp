@@ -15890,17 +15890,17 @@ void CvPlayerAI::AI_humanEnemyStackMovedInTerritory(
 		return;
 	std::set<int> aUpdPlots;
 	CvMap const& kMap = GC.getMap();
-	aUpdPlots.insert(kMap.plotNum(kFrom));
-	aUpdPlots.insert(kMap.plotNum(kTo));
+	aUpdPlots.insert(kFrom.plotNum());
+	aUpdPlots.insert(kTo.plotNum());
 	if (kFrom.getOwner() == getID())
 	{
 		FOR_EACH_ADJ_PLOT(kFrom)
-			aUpdPlots.insert(kMap.plotNum(*pAdj));
+			aUpdPlots.insert(pAdj->plotNum());
 	}
 	if (kTo.getOwner() == getID())
 	{
 		FOR_EACH_ADJ_PLOT(kTo)
-			aUpdPlots.insert(kMap.plotNum(*pAdj));
+			aUpdPlots.insert(pAdj->plotNum());
 	}
 	for (std::set<int>::const_iterator it = aUpdPlots.begin();
 		it != aUpdPlots.end(); ++it)
@@ -27057,7 +27057,7 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 		getNumCities() == 0 && iMaxSites > 0 && GC.getGame().getElapsedGameTurns() == 0 &&
 		getStartingPlot() != NULL) 
 	{
-		m_aeAICitySites.push_back(GC.getMap().plotNum(*getStartingPlot()));
+		m_aeAICitySites.push_back(getStartingPlot()->plotNum());
 		//AI_recalculateFoundValues(m_iStartingX, m_iStartingY, CITY_PLOTS_RADIUS, 2 * CITY_PLOTS_RADIUS);
 		return; // don't bother trying to pick a secondary spot
 	}
@@ -27092,7 +27092,7 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 		}
 		if (pBestFoundPlot != NULL)
 		{
-			m_aeAICitySites.push_back(GC.getMap().plotNum(*pBestFoundPlot));
+			m_aeAICitySites.push_back(pBestFoundPlot->plotNum());
 			AI_recalculateFoundValues(pBestFoundPlot->getX(), pBestFoundPlot->getY(),
 					CITY_PLOTS_RADIUS, 2 * CITY_PLOTS_RADIUS);
 		}
@@ -27127,8 +27127,7 @@ bool CvPlayerAI::AI_isPlotCitySite(CvPlot const& kPlot) const
 {
 	// advc: Replacing loop
 	return (std::find(m_aeAICitySites.begin(), m_aeAICitySites.end(),
-			GC.getMap().plotNum(kPlot)) !=
-			m_aeAICitySites.end());
+			kPlot.plotNum()) != m_aeAICitySites.end());
 }
 
 int CvPlayerAI::AI_getNumAreaCitySites(CvArea const& kArea, int& iBestValue) const

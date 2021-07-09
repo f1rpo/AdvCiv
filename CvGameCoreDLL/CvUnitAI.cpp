@@ -19870,7 +19870,6 @@ bool CvUnitAI::AI_nuke()
 				kEnemy.getID(), iTheirNukes, bLimited);
 		// First collect the potential targets
 		std::set<PlotNumTypes> aeTargetEvaluated; // to avoid duplicates
-		CvMap const& kMap = GC.getMap(); // for computing plotnum
 		std::vector<std::pair<CvPlot*,/*search range*/int> > apiPotentialTargets;
 		// </advc.650>
 		FOR_EACH_CITY(pLoopCity, kEnemy)
@@ -19890,7 +19889,7 @@ bool CvUnitAI::AI_nuke()
 				for (SquareIter itPlot(pLoopCity->getPlot(), nukeRange());
 					itPlot.hasNext(); ++itPlot)
 				{
-					aeTargetEvaluated.insert(kMap.plotNum(*itPlot));
+					aeTargetEvaluated.insert(itPlot->plotNum());
 				}
 			}
 		}
@@ -19904,14 +19903,14 @@ bool CvUnitAI::AI_nuke()
 			CvPlot const& kLoopPlot = pLoopGroup->getPlot();
 			if (kLoopPlot.isVisible(kTeam.getID()) &&
 				// Units in or near cities are already taken care of
-				aeTargetEvaluated.count(kMap.plotNum(kLoopPlot)) <= 0 &&
+				aeTargetEvaluated.count(kLoopPlot.plotNum()) <= 0 &&
 				canNukeAt(getPlot(), kLoopPlot.getX(), kLoopPlot.getY()))
 			{
 				apiPotentialTargets.push_back(std::make_pair(
 						/*	0 search range - let's not bother with max damage to
 							improvements here (see also comment in previous loop) */
 						pLoopGroup->plot(), 0));
-				aeTargetEvaluated.insert(kMap.plotNum(kLoopPlot));
+				aeTargetEvaluated.insert(kLoopPlot.plotNum());
 			}
 		}
 		for (size_t i = 0; i < apiPotentialTargets.size(); i++)
@@ -21331,7 +21330,7 @@ unsigned CvUnitAI::AI_unitBirthmarkHash(int iExtra) const
 // another 'random' hash, but which depends on a particular plot
 unsigned CvUnitAI::AI_unitPlotHash(const CvPlot* pPlot, int iExtra) const
 {
-	return AI_unitBirthmarkHash(GC.getMap().plotNum(*pPlot) + iExtra);
+	return AI_unitBirthmarkHash(pPlot->plotNum() + iExtra);
 } // K-Mod end
 
 /*	advc (note): Used mostly as a target group size for city-attack stacks.

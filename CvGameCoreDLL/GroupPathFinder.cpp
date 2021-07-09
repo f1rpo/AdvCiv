@@ -429,10 +429,8 @@ int GroupStepMetric::cost(CvPlot const& kFrom, CvPlot const& kTo,
 			}
 		}
 		else
-		{
-			// plot not visible. use memory
-			iEnemyDefence = GET_TEAM(eTeam).AI_strengthMemory().get(
-					GC.getMap().plotNum(kTo));
+		{	// plot not visible. use memory
+			iEnemyDefence = GET_TEAM(eTeam).AI_strengthMemory().get(kTo.plotNum());
 		}
 
 		if (iEnemyDefence > 0)

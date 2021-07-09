@@ -176,7 +176,7 @@ StartingPositionIteration::StartingPositionIteration() :
 		std::set<PlotNumTypes> sitePlotNums;
 		for (size_t i = 0; i < apPotentialSites.size(); i++)
 		{
-			sitePlotNums.insert(kMap.plotNum(*apPotentialSites[i]));
+			sitePlotNums.insert(apPotentialSites[i]->plotNum());
 		}
 		std::vector<CvPlot const*> relevantPlots;
 		FOR_EACH_ENUM(PlotNum)
@@ -374,13 +374,11 @@ void StartingPositionIteration::PotentialSites::recordSite(
 	CvPlot const& kPlot, short iFoundValue, bool bAdd,
 	EnumMap<PlotNumTypes,scaled>& kVicinityPenaltiesPerPlot)
 {
-	CvMap const& kMap = GC.getMap();
-
 	// Update vicinity penalties
 	int const iSign = (bAdd ? 1 : -1);
 	for (PlotCircleIter it(kPlot, 8, false); it.hasNext(); ++it)
 	{
-		PlotNumTypes const eLoopPlot = kMap.plotNum(*it);
+		PlotNumTypes const eLoopPlot = it->plotNum();
 		map<PlotNumTypes,short>::const_iterator pos = m_foundValuesPerSite.find(eLoopPlot);
 		if (pos != m_foundValuesPerSite.end() && pos->second < iFoundValue)
 		{
@@ -398,7 +396,7 @@ void StartingPositionIteration::PotentialSites::recordSite(
 	for (size_t i = 0; i < aClosestPlayers.size(); i++)
 	{
 		VoronoiCell& kCell = *m_sitesClosestToCurrSite.find(aClosestPlayers[i])->second;
-		PlotNumTypes ePlotNum = kMap.plotNum(kPlot);
+		PlotNumTypes ePlotNum = kPlot.plotNum();
 		if (bAdd)
 			kCell.insert(ePlotNum);
 		else
@@ -463,7 +461,7 @@ void StartingPositionIteration::PotentialSites::updateCurrSites(bool bUpdateCell
 	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
 		map<PlotNumTypes,short>::iterator pos = m_foundValuesPerSite.find(
-				kMap.plotNum(*it->getStartingPlot()));
+				it->getStartingPlot()->plotNum());
 		if (pos != m_foundValuesPerSite.end())
 		{
 			m_foundValuesPerCurrSite.set(it->getID(), pos->second);
@@ -540,11 +538,10 @@ PlotNumTypes StartingPositionIteration::PotentialSites::getRemoteSite(
 void StartingPositionIteration::PotentialSites::getCurrFoundValues(
 	EnumMap<PlayerTypes,short>& kFoundValuesPerPlayer) const
 {
-	CvMap const& kMap = GC.getMap();
 	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
 		map<PlotNumTypes,short>::const_iterator pos = m_foundValuesPerSite.
-				find(kMap.plotNum(*it->getStartingPlot()));
+				find(it->getStartingPlot()->plotNum());
 		if (pos != m_foundValuesPerSite.end())
 			kFoundValuesPerPlayer.set(it->getID(), pos->second);
 		else
@@ -573,7 +570,7 @@ StartingPositionIteration::DistanceTable::DistanceTable(
 	m_sourceIDs.resize(kMap.numPlots(), NOT_A_SOURCE);
 	for (size_t i = 0; i < kSources.size(); i++)
 	{
-		m_sourceIDs[kMap.plotNum(*kSources[i])] = (SourceID)i;
+		m_sourceIDs[kSources[i]->plotNum()] = (SourceID)i;
 	}
 	// Need (fast) 2-way conversion for destination ids and plot numbers
 	m_destinationIDs.resize(kMap.numPlots(), NOT_A_DESTINATION);
@@ -581,7 +578,7 @@ StartingPositionIteration::DistanceTable::DistanceTable(
 	for (size_t i = 0; i < kDestinations.size(); i++)
 	{
 		DestinationID eDst = (DestinationID)i;
-		PlotNumTypes ePlotNum = kMap.plotNum(*kDestinations[i]);
+		PlotNumTypes ePlotNum = kDestinations[i]->plotNum();
 		m_destinationIDs[ePlotNum] = eDst;
 		m_destinationIDToPlotNum[eDst] = ePlotNum;
 	}
@@ -616,7 +613,7 @@ StartingPositionIteration::DistanceTable::DistanceTable(
 				if (!it->canFound())
 					continue;
 				bool bInnerRingLoop = (it.currID() < NUM_INNER_PLOTS);
-				if (m_destinationIDs[kMap.plotNum(*it)] != NOT_A_DESTINATION)
+				if (m_destinationIDs[it->plotNum()] != NOT_A_DESTINATION)
 				{
 					short iDist = d(kSource, *it);
 					if (!bDest || iDist < iShortestDist)
@@ -659,9 +656,8 @@ short StartingPositionIteration::DistanceTable::d(
 	CvPlot const& kSource, CvPlot const& kDestination) const
 {
 	FAssertMsg(!kSource.isWater(), "kSource should be a (potential) city site");
-	CvMap const& kMap = GC.getMap();
-	SourceID eSource = m_sourceIDs[kMap.plotNum(kSource)];
-	DestinationID eDestination = m_destinationIDs[kMap.plotNum(kDestination)];
+	SourceID eSource = m_sourceIDs[kSource.plotNum()];
+	DestinationID eDestination = m_destinationIDs[kDestination.plotNum()];
 	FAssertBounds(0, m_distances.size(), eSource);
 	FAssertBounds(0, m_distances[eSource].size(), eDestination);
 	return m_distances[eSource][eDestination];
@@ -671,9 +667,8 @@ short StartingPositionIteration::DistanceTable::d(
 void StartingPositionIteration::DistanceTable::setDistance(
 	CvPlot const& kSource, CvPlot const& kDestination, short iDistance)
 {
-	CvMap const& kMap = GC.getMap();
-	SourceID eSource = m_sourceIDs[kMap.plotNum(kSource)];
-	DestinationID eDestination = m_destinationIDs[kMap.plotNum(kDestination)];
+	SourceID eSource = m_sourceIDs[kSource.plotNum()];
+	DestinationID eDestination = m_destinationIDs[kDestination.plotNum()];
 	if (eDestination != NOT_A_DESTINATION)
 	{
 		FAssertBounds(0, m_distances.size(), eSource);
@@ -702,14 +697,13 @@ namespace
 
 void StartingPositionIteration::DistanceTable::computeDistances(CvPlot const& kSource)
 {
-	CvMap const& kMap = GC.getMap();
 	bool const bSourceCoastal = kSource.isCoastalLand(-1);
 	// Plain old Dijkstra's algorithm
 	std::priority_queue<Node> q;
 	q.push(Node(kSource, 0));
 	/*	Keep track of visited nodes in order to save time. Can't use m_distances
 		for this b/c it only contains destinations; may have to visit all plots. */
-	vector<bool> abReached(kMap.numPlots(), false);
+	EnumMap<PlotNumTypes,bool> abReached;
 	while (!q.empty())
 	{
 		Node v = q.top();
@@ -717,16 +711,16 @@ void StartingPositionIteration::DistanceTable::computeDistances(CvPlot const& kS
 		CvPlot const& kAt = v.get();
 		setDistance(kSource, kAt, v.getDistance());
 		{
-			int iAt = kMap.plotNum(kAt);
-			if (abReached[iAt])
+			PlotNumTypes eAt = kAt.plotNum();
+			if (abReached.get(eAt))
 				continue;
-			abReached[iAt] = true;
+			abReached.set(eAt, true);
 		}
 		FOR_EACH_ADJ_PLOT(kAt)
 		{
 			/*	Note: even if not yet reached, it may already be in q;
 				that's what the abReached[iAt] check above is for. */
-			if (abReached[kMap.plotNum(*pAdj)])
+			if (abReached.get(pAdj->plotNum()))
 				continue;
 			short iDistance = stepDist(kAt, *pAdj, bSourceCoastal);
 			if (iDistance < MAX_SHORT)
@@ -912,7 +906,6 @@ void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes eP
 	#ifdef DEBUG_SPACE_BREAKDOWN
 		vector<pair<scaled,BreakDownData> > aSpaceBreakDown;
 	#endif
-	CvMap const& kMap = GC.getMap();
 	CvPlot const& kStartPlot = *GET_PLAYER(ePlayer).getStartingPlot();
 	scaled rSpaceVal;
 	word const iDistThresh = m_iDistThresh;
@@ -926,7 +919,7 @@ void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes eP
 		int const iCivsAlive = PlayerIter<CIV_ALIVE>::count();
 	#endif
 	// Use friend status to avoid FOR_EACH_ENUM(PlotNum)
-	DistanceTable::SourceID const eSrc = m_kDists.m_sourceIDs[kMap.plotNum(kStartPlot)];
+	DistanceTable::SourceID const eSrc = m_kDists.m_sourceIDs[kStartPlot.plotNum()];
 	for (size_t i = 0; i < m_kDists.m_distances[eSrc].size(); i++)
 	{
 		DistanceTable::DestinationID const eDst = (DistanceTable::DestinationID)i;
@@ -2149,12 +2142,11 @@ NormalizationTarget::NormalizationTarget(CitySiteEvaluator& kEval,
 	StartingPositionIteration::SolutionAttributes const& kSolution)
 {
 	m_pEval = &kEval;
-	CvMap const& kMap = GC.getMap();
 	for (PlayerIter<CIV_ALIVE> it; it.hasNext(); ++it)
 	{
 		PlayerTypes ePlayer = it->getID();
 		m_startValData.insert(make_pair(
-				kMap.plotNum(*it->getStartingPlot()),
+				it->getStartingPlot()->plotNum(),
 				StartValBreakdown(
 				kSolution.m_startValues.get(ePlayer),
 				kSolution.m_volatilityValues.get(ePlayer),
@@ -2274,7 +2266,7 @@ scaled NormalizationTarget::getVolatilityValue(CvPlot const& kStartSite) const
 NormalizationTarget::StartValBreakdown const* NormalizationTarget::getBreakdown(
 	CvPlot const& kSite) const
 {
-	PlotNumTypes const ePlot = GC.getMap().plotNum(kSite);
+	PlotNumTypes const ePlot = kSite.plotNum();
 	map<PlotNumTypes,StartValBreakdown>::const_iterator pos = m_startValData.find(ePlot);
 	if (pos == m_startValData.end())
 	{
