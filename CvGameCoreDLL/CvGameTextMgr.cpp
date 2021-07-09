@@ -18903,186 +18903,139 @@ void CvGameTextMgr::setTradeRouteHelp(CvWStringBuffer &szBuffer, int iRoute, CvC
 	}
 }
 
-void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pSpyUnit)
+void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer,
+	EspionageMissionTypes eMission, PlayerTypes eTargetPlayer,
+	CvPlot const* pPlot, int iExtraData, CvUnit const* pSpyUnit)
 {
-	CvPlayer& kPlayer = GET_PLAYER(GC.getGame().getActivePlayer());
-	CvEspionageMissionInfo& kMission = GC.getInfo(eMission);
+	CvPlayer const& kPlayer = GET_PLAYER(GC.getGame().getActivePlayer());
+	CvEspionageMissionInfo const& kMission = GC.getInfo(eMission);
 
 	//szBuffer.assign(kMission.getDescription());
 
-	int iMissionCost = kPlayer.getEspionageMissionBaseCost(eMission, eTargetPlayer, pPlot, iExtraData, pSpyUnit);
+	int iMissionCost = kPlayer.getEspionageMissionBaseCost(
+			eMission, eTargetPlayer, pPlot, iExtraData, pSpyUnit);
 	//iMissionCost *= GET_TEAM(kPlayer.getTeam()).getNumMembers(); // K-Mod
 	// kekm.33/advc:
 	iMissionCost = kPlayer.adjustMissionCostToTeamSize(iMissionCost, eTargetPlayer);
 
-	if (kMission.isDestroyImprovement())
+	if (kMission.isDestroyImprovement() && pPlot != NULL && pPlot->isImproved())
 	{
-		if (NULL != pPlot && pPlot->isImproved())
+		szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_DESTROY_IMPROVEMENT",
+				GC.getInfo(pPlot->getImprovementType()).getTextKeyWide()));
+		szBuffer.append(NEWLINE);
+	}
+	if (kMission.getDestroyBuildingCostFactor() > 0 && pPlot != NULL)
+	{
+		CvCity const* pCity = pPlot->getPlotCity();
+		if (pCity != NULL)
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_DESTROY_IMPROVEMENT", GC.getInfo(pPlot->getImprovementType()).getTextKeyWide()));
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_DESTROY_IMPROVEMENT",
+					GC.getInfo((BuildingTypes)iExtraData).getTextKeyWide()));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	if (kMission.getDestroyProjectCostFactor() > 0 && pPlot != NULL)
+	{
+		CvCity const* pCity = pPlot->getPlotCity();
+		if (pCity != NULL)
+		{
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_DESTROY_IMPROVEMENT",
+					GC.getInfo((ProjectTypes)iExtraData).getTextKeyWide()));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	if (kMission.getDestroyProductionCostFactor() > 0 && pPlot != NULL)
+	{
+		CvCity const* pCity = pPlot->getPlotCity();
+		if (pCity != NULL)
+		{
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_DESTROY_PRODUCTION",
+					pCity->getProduction()));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	if (kMission.getDestroyUnitCostFactor() > 0 && eTargetPlayer != NO_PLAYER)
+	{
+		int iTargetUnitID = iExtraData;
+		CvUnit const* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iTargetUnitID);
+		if (pUnit != NULL)
+		{
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_DESTROY_UNIT",
+					pUnit->getNameKey()));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	if (kMission.getBuyUnitCostFactor() > 0 && eTargetPlayer != NO_PLAYER)
+	{
+		int iTargetUnitID = iExtraData;
+		CvUnit const* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iTargetUnitID);
+		if (pUnit != NULL)
+		{
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_BRIBE",
+					pUnit->getNameKey()));
 			szBuffer.append(NEWLINE);
 		}
 	}
 
-	if (kMission.getDestroyBuildingCostFactor() > 0)
+	if (kMission.getBuyCityCostFactor() > 0 && pPlot != NULL)
 	{
-		BuildingTypes eTargetBuilding = (BuildingTypes)iExtraData;
-
-		if (NULL != pPlot)
+		CvCity const* pCity = pPlot->getPlotCity();
+		if (pCity != NULL)
 		{
-			CvCity* pCity = pPlot->getPlotCity();
-
-			if (NULL != pCity)
-			{
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_DESTROY_IMPROVEMENT", GC.getInfo(eTargetBuilding).getTextKeyWide()));
-				szBuffer.append(NEWLINE);
-			}
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_BRIBE",
+					pCity->getNameKey()));
+			szBuffer.append(NEWLINE);
 		}
 	}
-
-	if (kMission.getDestroyProjectCostFactor() > 0)
+	if (kMission.getCityInsertCultureCostFactor() > 0 && pPlot != NULL)
 	{
-		ProjectTypes eTargetProject = (ProjectTypes)iExtraData;
-
-		if (NULL != pPlot)
+		CvCity const* pCity = pPlot->getPlotCity();
+		if (pCity != NULL && pPlot->getCulture(kPlayer.getID()) > 0)
 		{
-			CvCity* pCity = pPlot->getPlotCity();
-
-			if (NULL != pCity)
-			{
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_DESTROY_IMPROVEMENT", GC.getInfo(eTargetProject).getTextKeyWide()));
-				szBuffer.append(NEWLINE);
-			}
+			int iCultureAmount = kMission.getCityInsertCultureAmountFactor() *
+					pCity->countTotalCultureTimes100();
+			iCultureAmount /= 10000;
+			iCultureAmount = std::max(1, iCultureAmount);
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_INSERT_CULTURE",
+					pCity->getNameKey(), iCultureAmount,
+					kMission.getCityInsertCultureAmountFactor()));
+			szBuffer.append(NEWLINE);
 		}
 	}
-
-	if (kMission.getDestroyProductionCostFactor() > 0)
+	if (kMission.getCityPoisonWaterCounter() > 0 && pPlot != NULL)
 	{
-		if (NULL != pPlot)
+		CvCity const* pCity = pPlot->getPlotCity();
+		if (pCity != NULL)
 		{
-			CvCity* pCity = pPlot->getPlotCity();
-
-			if (NULL != pCity)
-			{
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_DESTROY_PRODUCTION", pCity->getProduction()));
-				szBuffer.append(NEWLINE);
-			}
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_POISON",
+					kMission.getCityPoisonWaterCounter(),
+					gDLL->getSymbolID(UNHEALTHY_CHAR), pCity->getNameKey(),
+					kMission.getCityPoisonWaterCounter()));
+			szBuffer.append(NEWLINE);
 		}
 	}
-
-	if (kMission.getDestroyUnitCostFactor() > 0)
+	if (kMission.getCityUnhappinessCounter() > 0 && pPlot != NULL)
 	{
-		if (NO_PLAYER != eTargetPlayer)
+		CvCity const * pCity = pPlot->getPlotCity();
+		if (pCity != NULL)
 		{
-			int iTargetUnitID = iExtraData;
-
-			CvUnit* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iTargetUnitID);
-
-			if (NULL != pUnit)
-			{
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_DESTROY_UNIT", pUnit->getNameKey()));
-				szBuffer.append(NEWLINE);
-			}
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_POISON",
+					kMission.getCityUnhappinessCounter(),
+					gDLL->getSymbolID(UNHAPPY_CHAR), pCity->getNameKey(),
+					kMission.getCityUnhappinessCounter()));
+			szBuffer.append(NEWLINE);
 		}
 	}
-
-	if (kMission.getBuyUnitCostFactor() > 0)
+	if (kMission.getCityRevoltCounter() > 0 && pPlot != NULL)
 	{
-		if (NO_PLAYER != eTargetPlayer)
+		CvCity const* pCity = pPlot->getPlotCity();
+		if (pCity != NULL)
 		{
-			int iTargetUnitID = iExtraData;
-
-			CvUnit* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iTargetUnitID);
-
-			if (NULL != pUnit)
-			{
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_BRIBE", pUnit->getNameKey()));
-				szBuffer.append(NEWLINE);
-			}
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_REVOLT",
+					pCity->getNameKey(), kMission.getCityRevoltCounter()));
+			szBuffer.append(NEWLINE);
 		}
 	}
-
-	if (kMission.getBuyCityCostFactor() > 0)
-	{
-		if (NULL != pPlot)
-		{
-			CvCity* pCity = pPlot->getPlotCity();
-
-			if (NULL != pCity)
-			{
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_BRIBE", pCity->getNameKey()));
-				szBuffer.append(NEWLINE);
-			}
-		}
-	}
-
-	if (kMission.getCityInsertCultureCostFactor() > 0)
-	{
-		if (NULL != pPlot)
-		{
-			CvCity* pCity = pPlot->getPlotCity();
-
-			if (NULL != pCity && pPlot->getCulture(kPlayer.getID()) > 0)
-			{
-				int iCultureAmount = kMission.getCityInsertCultureAmountFactor() *  pCity->countTotalCultureTimes100();
-				iCultureAmount /= 10000;
-				iCultureAmount = std::max(1, iCultureAmount);
-
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_INSERT_CULTURE",
-						pCity->getNameKey(), iCultureAmount,
-						kMission.getCityInsertCultureAmountFactor()));
-				szBuffer.append(NEWLINE);
-			}
-		}
-	}
-
-	if (kMission.getCityPoisonWaterCounter() > 0)
-	{
-		if (NULL != pPlot)
-		{
-			CvCity* pCity = pPlot->getPlotCity();
-
-			if (NULL != pCity)
-			{
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_POISON",
-						kMission.getCityPoisonWaterCounter(),
-						gDLL->getSymbolID(UNHEALTHY_CHAR), pCity->getNameKey(),
-						kMission.getCityPoisonWaterCounter()));
-				szBuffer.append(NEWLINE);
-			}
-		}
-	}
-
-	if (kMission.getCityUnhappinessCounter() > 0)
-	{
-		if (NULL != pPlot)
-		{
-			CvCity* pCity = pPlot->getPlotCity();
-
-			if (NULL != pCity)
-			{
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_POISON",
-						kMission.getCityUnhappinessCounter(),
-						gDLL->getSymbolID(UNHAPPY_CHAR), pCity->getNameKey(),
-						kMission.getCityUnhappinessCounter()));
-				szBuffer.append(NEWLINE);
-			}
-		}
-	}
-
-	if (kMission.getCityRevoltCounter() > 0)
-	{
-		if (NULL != pPlot)
-		{
-			CvCity* pCity = pPlot->getPlotCity();
-
-			if (NULL != pCity)
-			{
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_REVOLT",
-						pCity->getNameKey(), kMission.getCityRevoltCounter()));
-				szBuffer.append(NEWLINE);
-			}
-		}
 	}
 
 	if (kMission.getStealTreasuryTypes() > 0)
@@ -19118,57 +19071,62 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 				GC.getInfo((TechTypes)iExtraData).getTextKeyWide()));
 		szBuffer.append(NEWLINE);
 	}
-
 	if (kMission.getSwitchCivicCostFactor() > 0)
 	{
-		if (NO_PLAYER != eTargetPlayer)
+		if (eTargetPlayer != NO_PLAYER)
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_SWITCH_CIVIC", GET_PLAYER(eTargetPlayer).getNameKey(), GC.getInfo((CivicTypes)iExtraData).getTextKeyWide()));
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_SWITCH_CIVIC",
+					GET_PLAYER(eTargetPlayer).getNameKey(),
+					GC.getInfo((CivicTypes)iExtraData).getTextKeyWide()));
 			szBuffer.append(NEWLINE);
 		}
 	}
-
 	if (kMission.getSwitchReligionCostFactor() > 0)
 	{
-		if (NO_PLAYER != eTargetPlayer)
+		if (eTargetPlayer != NO_PLAYER)
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_SWITCH_CIVIC", GET_PLAYER(eTargetPlayer).getNameKey(), GC.getInfo((ReligionTypes)iExtraData).getTextKeyWide()));
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_SWITCH_CIVIC",
+					GET_PLAYER(eTargetPlayer).getNameKey(),
+					GC.getInfo((ReligionTypes)iExtraData).getTextKeyWide()));
 			szBuffer.append(NEWLINE);
 		}
 	}
-
 	if (kMission.getPlayerAnarchyCounter() > 0)
 	{
-		if (NO_PLAYER != eTargetPlayer)
+		if (eTargetPlayer != NO_PLAYER)
 		{
-			int iTurns = (kMission.getPlayerAnarchyCounter() * GC.getInfo(GC.getGame().getGameSpeedType()).getAnarchyPercent()) / 100;
-			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_ANARCHY", GET_PLAYER(eTargetPlayer).getNameKey(), iTurns));
+			int iTurns = (kMission.getPlayerAnarchyCounter() *
+					GC.getInfo(GC.getGame().getGameSpeedType()).getAnarchyPercent()) / 100;
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_ANARCHY",
+					GET_PLAYER(eTargetPlayer).getNameKey(), iTurns));
 			szBuffer.append(NEWLINE);
 		}
 	}
-
-	if (kMission.getCounterespionageNumTurns() > 0 && kMission.getCounterespionageMod() > 0)
+	if (kMission.getCounterespionageNumTurns() > 0 &&
+		kMission.getCounterespionageMod() > 0)
 	{
-		if (NO_PLAYER != eTargetPlayer)
+		if (eTargetPlayer != NO_PLAYER)
 		{
-			int iTurns = (kMission.getCounterespionageNumTurns() * GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent()) / 100;
-
-			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_COUNTERESPIONAGE", kMission.getCounterespionageMod(), GET_PLAYER(eTargetPlayer).getCivilizationAdjectiveKey(), iTurns));
+			int iTurns = (kMission.getCounterespionageNumTurns() *
+					GC.getInfo(GC.getGame().getGameSpeedType()).getResearchPercent()) / 100;
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_COUNTERESPIONAGE",
+					kMission.getCounterespionageMod(),
+					GET_PLAYER(eTargetPlayer).getCivilizationAdjectiveKey(), iTurns));
 			szBuffer.append(NEWLINE);
 		}
 	}
 	// <advc.103>
 	if(kMission.isInvestigateCity() && pPlot != NULL)
 	{
-		CvCity* pCity = pPlot->getPlotCity();
-		if(pCity != NULL)
+		CvCity const* pCity = pPlot->getPlotCity();
+		if (pCity != NULL)
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_INVESTIGATE",
 					pCity->getNameKey()));
 			szBuffer.append(NEWLINE);
 		}
 	}
-	if(!kMission.isReturnToCapital() || kPlayer.getCapital() == NULL)
+	if (!kMission.isReturnToCapital() || kPlayer.getCapital() == NULL)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_NO_RETURN"));
@@ -19182,59 +19140,47 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 	{
 		int iModifier = 100;
 		int iTempModifier = 0;
-		CvCity* pCity = NULL;
-		if (NULL != pPlot)
-		{
-			pCity = pPlot->getPlotCity();
-		}
-
+		CvCity const* pCity = (pPlot == NULL ? NULL : pPlot->getPlotCity());
 		if (pCity != NULL && kMission.isTargetsCity())
 		{
-			// City Population
-			iTempModifier = (GC.getDefineINT("ESPIONAGE_CITY_POP_EACH_MOD") * (pCity->getPopulation() - 1));
+			iTempModifier = GC.getDefineINT("ESPIONAGE_CITY_POP_EACH_MOD") *
+					(pCity->getPopulation() - 1);
 			if (iTempModifier != 0)
 			{
 				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_POPULATION_MOD", iTempModifier));
+				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_POPULATION_MOD",
+						iTempModifier));
 				iModifier *= 100 + iTempModifier;
 				iModifier /= 100;
 			}
-
-			// Trade Route
 			if (pCity->isTradeRoute(kPlayer.getID()))
 			{
 				iTempModifier = GC.getDefineINT("ESPIONAGE_CITY_TRADE_ROUTE_MOD");
 				if (iTempModifier != 0)
 				{
 					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_TRADE_ROUTE_MOD", iTempModifier));
+					szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_TRADE_ROUTE_MOD",
+							iTempModifier));
 					iModifier *= 100 + iTempModifier;
 					iModifier /= 100;
 				}
 			}
-
 			ReligionTypes eReligion = kPlayer.getStateReligion();
-			if (NO_RELIGION != eReligion)
+			if (eReligion != NO_RELIGION)
 			{
 				iTempModifier = 0;
-
 				if (pCity->isHasReligion(eReligion))
 				{
 					if (GET_PLAYER(eTargetPlayer).getStateReligion() != eReligion)
-					{
 						iTempModifier += GC.getDefineINT("ESPIONAGE_CITY_RELIGION_STATE_MOD");
-					}
-
 					if (kPlayer.hasHolyCity(eReligion))
-					{
 						iTempModifier += GC.getDefineINT("ESPIONAGE_CITY_HOLY_CITY_MOD");
-					}
 				}
-
 				if (iTempModifier != 0)
 				{
 					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_RELIGION_MOD", iTempModifier));
+					szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_RELIGION_MOD",
+							iTempModifier));
 					iModifier *= 100 + iTempModifier;
 					iModifier /= 100;
 				}
@@ -19242,8 +19188,7 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 
 			// City's culture affects cost
 			/*iTempModifier = - (pCity->getCultureTimes100(kPlayer.getID()) * GC.getDefineINT("ESPIONAGE_CULTURE_MULTIPLIER_MOD")) / std::max(1, pCity->getCultureTimes100(eTargetPlayer) + pCity->getCultureTimes100(kPlayer.getID()));
-			if (iTempModifier != 0)
-			{
+			if (iTempModifier != 0) {
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_CULTURE_MOD", iTempModifier));
 				iModifier *= 100 + iTempModifier;
@@ -19311,9 +19256,10 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 		}
 
 		// Spy presence mission cost alteration
-		if (NULL != pSpyUnit)
+		if (pSpyUnit != NULL)
 		{
-			iTempModifier = -(pSpyUnit->getFortifyTurns() * GC.getDefineINT("ESPIONAGE_EACH_TURN_UNIT_COST_DECREASE"));
+			iTempModifier = -(pSpyUnit->getFortifyTurns() *
+					GC.getDefineINT("ESPIONAGE_EACH_TURN_UNIT_COST_DECREASE"));
 			if (iTempModifier != 0)
 			{
 				szBuffer.append(NEWLINE);
@@ -19340,7 +19286,7 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 		if (kTargetTeam.getCounterespionageModAgainstTeam(kPlayer.getTeam()) > 0)
 		{
 			//iTempModifier = kTargetTeam.getCounterespionageModAgainstTeam(kPlayer.getTeam()) - 100;
-			// K-Mod
+			// K-Mod:
 			iTempModifier = std::max(-100, kTargetTeam.getCounterespionageModAgainstTeam(kPlayer.getTeam()));
 			if (iTempModifier != 0)
 			{
@@ -19365,13 +19311,15 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 		szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_COST_TOTAL", iMissionCost));
 
 
-		if (NULL != pSpyUnit)
+		if (pSpyUnit != NULL)
 		{
-			int iInterceptChance = (pSpyUnit->getSpyInterceptPercent(GET_PLAYER(eTargetPlayer).getTeam(), true) * (100 + kMission.getDifficultyMod())) / 100;
-
+			int iInterceptChance =
+					(pSpyUnit->getSpyInterceptPercent(GET_PLAYER(eTargetPlayer).getTeam(), true) *
+					(100 + kMission.getDifficultyMod())) / 100;
 			szBuffer.append(NEWLINE);
 			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_CHANCE_OF_SUCCESS", std::min(100, std::max(0, 100 - iInterceptChance))));
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_CHANCE_OF_SUCCESS",
+					std::min(100, std::max(0, 100 - iInterceptChance))));
 		}
 	}
 }

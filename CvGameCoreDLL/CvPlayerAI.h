@@ -327,7 +327,8 @@ public:
 	bool AI_isOutdatedUnit(UnitTypes eUnit, UnitAITypes eRole, CvArea const* pArea = NULL) const;
 	// </advc.017b>
 	// <advc.042> Moved from CvPlayer and iLookAhead param added
-	int AI_countUnimprovedBonuses(CvArea const& kArea, CvPlot* pFromPlot = NULL, int iLookAhead = 0) const;														// Exposed to Python
+	int AI_countUnimprovedBonuses(CvArea const& kArea,													// Exposed to Python
+			CvPlot const* pFromPlot = NULL, int iLookAhead = 0) const;
 	int AI_countOwnedBonuses(BonusTypes eBonus, // </advc.042>											// Exposed to Python
 			/* <advc.opt> */ int iMaxCount = MAX_INT) const;
 	bool AI_isAnyOwnedBonus(BonusTypes eBonus) const
@@ -905,7 +906,7 @@ protected:
 	// advc.130c:
 	int AI_knownRankDifference(PlayerTypes eOther, scaled& rOutrankingBothRatio) const;
 	// advc.042: Relies on caller to reset GC.getBorderFinder()
-	bool AI_isUnimprovedBonus(CvPlot const& p, CvPlot* pFromPlot, bool bCheckPath) const;
+	bool AI_isUnimprovedBonus(CvPlot const& p, CvPlot const* pFromPlot, bool bCheckPath) const;
 	void AI_updateCityAttitude(CvPlot const& kCityPlot); // advc.130w
 	int AI_neededExplorers_bulk(CvArea const& kArea) const; // advc.opt
 	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/17/10, jdog5000: START

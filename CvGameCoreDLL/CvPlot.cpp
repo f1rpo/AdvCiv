@@ -5382,9 +5382,9 @@ void CvPlot::updateTeam() // advc.opt: What getTeam used to do
 TeamTypes CvPlot::findHighestCultureTeam() const
 {
 	PlayerTypes eBestPlayer = findHighestCulturePlayer();
-	if (NO_PLAYER == eBestPlayer)
+	if (eBestPlayer == NO_PLAYER)
 		return NO_TEAM;
-	return GET_PLAYER(eBestPlayer).getTeam();
+	return TEAMID(eBestPlayer);
 }
 
 

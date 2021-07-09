@@ -10,6 +10,19 @@
 	All globals and global types should be contained in this class. */
 
 #pragma region ForwardDeclarations
+// External classes ...
+class CMessageControl;
+class CvDropMgr;
+class CMessageQueue;
+class CvSetupData;
+class CvMessageCodeTranslator;
+class CvPortal;
+class CvDiplomacyScreen;
+class CMPDiplomacyScreen;
+class FAStar;
+class FMPIManager;
+class CvInterface;
+
 class FProfiler;
 class CvDLLUtilityIFaceBase;
 class CvPythonCaller; // advc.003y
@@ -18,21 +31,10 @@ class CvRandom;
 class CvGame; // advc.003u
 class CvGameAI;
 class CvAgents; // advc.agent
-class CMessageControl;
-class CvDropMgr;
-class CMessageQueue;
-class CvSetupData;
 class CvInitCore;
-class CvMessageCodeTranslator;
-class CvPortal;
 class CvStatsReporter;
 class CvDLLInterfaceIFaceBase;
 class CvPlayerAI;
-class CvDiplomacyScreen;
-class CMPDiplomacyScreen;
-class FMPIManager;
-class FAStar;
-class CvInterface;
 class CvArtFileMgr;
 class FVariableSystem;
 class CvMap;
@@ -74,7 +76,6 @@ public:
 
 	DllExport CvDiplomacyScreen* getDiplomacyScreen();
 	DllExport CMPDiplomacyScreen* getMPDiplomacyScreen();
-
 	DllExport FMPIManager*& getFMPMgrPtr();
 	DllExport CvPortal& getPortal();
 	DllExport CvSetupData& getSetupData();

@@ -10538,7 +10538,7 @@ int CvCityAI::AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, in
 		{
 		iYield -= old_job.first ?
 				kOwner.specialistYield((SpecialistTypes)old_job.second, eLoopYield) :
-			getCityIndexPlot((CityPlotTypes)old_job.second)->getYield(eLoopYield);
+				getCityIndexPlot((CityPlotTypes)old_job.second)->getYield(eLoopYield);
 		}
 
 		if (iYield >= 0)
@@ -10556,9 +10556,10 @@ int CvCityAI::AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, in
 		Note, AI_finalImprovementYieldDifference will update the yield vectors. */
 	bool bUpgradeYields = false;
 	if (new_job.second >= 0 && !new_job.first && AI_finalImprovementYieldDifference(
-			*getCityIndexPlot((CityPlotTypes)new_job.second), aiYieldGained))
-	bUpgradeYields = true;
-
+		*getCityIndexPlot((CityPlotTypes)new_job.second), aiYieldGained))
+	{
+		bUpgradeYields = true;
+	}
 	if (old_job.second >= 0 && !old_job.first && AI_finalImprovementYieldDifference(
 		*getCityIndexPlot((CityPlotTypes)old_job.second), aiYieldLost))
 	{

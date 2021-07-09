@@ -14218,7 +14218,7 @@ bool CvPlayerAI::AI_isOutdatedUnit(UnitTypes eUnit, UnitAITypes eRole,
 // advc.042: Cut from CvPlayer.cpp
 /*  K-Mod. I've rearranged some stuff in this function to fix a couple of minor bugs;
 	and to make the code neater and less error prone. */
-int CvPlayerAI::AI_countUnimprovedBonuses(CvArea const& kArea, CvPlot* pFromPlot,
+int CvPlayerAI::AI_countUnimprovedBonuses(CvArea const& kArea, CvPlot const* pFromPlot,
 	int iLookAhead) const
 {
 	PROFILE_FUNC();
@@ -14324,7 +14324,7 @@ int CvPlayerAI::AI_countOwnedBonuses(BonusTypes eBonus,
 /*  advc.042: Mostly cut from BtS/K-Mod CvPlayer::isUnimprovedBonus
 	(now CvPlayerAI::AI_isUnimprovedBonus; see above).
 	Relies on caller to reset GC.getBorderFinder(). */
-bool CvPlayerAI::AI_isUnimprovedBonus(CvPlot const& p, CvPlot* pFromPlot,
+bool CvPlayerAI::AI_isUnimprovedBonus(CvPlot const& p, CvPlot const* pFromPlot,
 	bool bCheckPath) const
 {
 	if (p.isCity())

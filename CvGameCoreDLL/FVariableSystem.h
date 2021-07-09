@@ -153,7 +153,8 @@ public:
 	eVariableType	m_eType;		// The type of data contained in this variable
 };
 BOOST_STATIC_ASSERT(sizeof(FVariable) == 24); // advc.003k
-// (Looks like the union takes up 16 byte - weird; plus 4 byte of padding after m_eType.)
+/*	(That's 4 for the vtable, 4 for m_eType and - apparently -
+	16 for the union and padding. A little weird, but must stay this way.) */
 
 typedef stdext::hash_map<std::string, FVariable*> FVariableHash;
 

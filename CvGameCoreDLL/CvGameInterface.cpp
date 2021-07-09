@@ -1144,8 +1144,7 @@ void CvGame::handleAction(int iAction)
 	if (kAction.getControlType() != NO_CONTROL)
 		doControl((ControlTypes)kAction.getControlType());
 
-	if (gDLL->UI().canDoInterfaceMode((InterfaceModeTypes)
-		kAction.getInterfaceModeType(),
+	if (gDLL->UI().canDoInterfaceMode((InterfaceModeTypes)kAction.getInterfaceModeType(),
 		gDLL->UI().getSelectionList()))
 	{
 		CvUnit* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit();

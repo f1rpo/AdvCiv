@@ -3682,14 +3682,13 @@ int CvCity::extraFreeSpecialists() const
 
 int CvCity::unhealthyPopulation(bool bNoAngry, int iExtra) const
 {
-	// K-Mod, 27/dec/10: replaced with UnhealthyPopulationModifier
 	/*if (isNoUnhealthyPopulation())
 		return 0;
 	return std::max(0, getPopulation() + iExtra - (bNoAngry ? angryPopulation(iExtra) : 0));*/ // BtS
+	// K-Mod, 27/dec/10: replaced with UnhealthyPopulationModifier
 	int iUnhealth = getPopulation() + iExtra - (bNoAngry ? angryPopulation(iExtra) : 0);
 	iUnhealth *= std::max(0, 100 + getUnhealthyPopulationModifier());
 	return intdiv::uround(std::max(0, iUnhealth), 100);
-	// K-Mod end
 }
 
 
@@ -10255,29 +10254,28 @@ void CvCity::doCulture()
 	{
 		/*	add up the culture contribution for each player before applying it
 			so that we avoid excessive calls to change culture and reduce rounding errors */
-		// advc: Array replaced with vector
-		std::vector<int> aiTradeCultureTimes100(PlayerIter<>::count(), 0);
+		EnumMap<PlayerTypes,int> aiTradeCultureTimes100;
 		for (int i = 0; i < GC.getDefineINT(CvGlobals::MAX_TRADE_ROUTES); i++)
 		{
 			CvCity* pLoopCity = getTradeCity(i);
 			if(pLoopCity != NULL)
 			{	// foreign and domestic
 				//if (pLoopCity->getOwner() != getOwner())
-				aiTradeCultureTimes100[pLoopCity->getOwner()] +=
-						pLoopCity->getTradeCultureRateTimes100();
+				aiTradeCultureTimes100.add(pLoopCity->getOwner(),
+						pLoopCity->getTradeCultureRateTimes100());
 			}
 		}
 		for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it) // advc.003n: MAJOR
 		{
 			PlayerTypes ePlayer = it->getID();
-			if (aiTradeCultureTimes100[ePlayer] > 0)
+			if (aiTradeCultureTimes100.get(ePlayer) > 0)
 			{
 				// <advc.125>
 				if(iUseKModTradeCulture < 0 && getPlot().getCulture(ePlayer) <= 0)
 					continue; // </advc.125>
 				// plot culture only.
-				//changeCultureTimes100(ePlayer, iTradeCultureTimes100[ePlayer], false, false);
-				doPlotCultureTimes100(false, ePlayer, aiTradeCultureTimes100[ePlayer], false);
+				//changeCultureTimes100(ePlayer, aiTradeCultureTimes100.get(ePlayer), false, false);
+				doPlotCultureTimes100(false, ePlayer, aiTradeCultureTimes100.get(ePlayer), false);
 			}
 		}
 		// K-Mod END
@@ -10290,7 +10288,7 @@ void CvCity::doCulture()
 	A note about scale: the city plot itself gets roughly 10x culture.
 	The outer edges of the cultural influence get 1x culture
 	(ie. the influence that extends beyond the borders). */
-void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer,  // advc: some refactoring
+void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer,
 	int iCultureRateTimes100, bool bCityCulture)
 {
 	FAssert(ePlayer != NO_PLAYER);

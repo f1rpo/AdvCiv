@@ -11147,9 +11147,10 @@ int CvUnit::getTriggerValue(EventTriggerTypes eTrigger, const CvPlot* pPlot, boo
 {
 	CvEventTriggerInfo& kTrigger = GC.getInfo(eTrigger);
 	if (kTrigger.getNumUnits() <= 0 || isDead() ||
-			!GC.getPythonCaller()->canTriggerEvent(*this, eTrigger))
+		!GC.getPythonCaller()->canTriggerEvent(*this, eTrigger))
+	{
 		return MIN_INT;
-
+	}
 	if (kTrigger.getNumUnitsRequired() > 0)
 	{
 		bool bFoundValid = false;

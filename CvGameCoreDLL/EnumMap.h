@@ -286,7 +286,7 @@ private:
 	void _WriteRecursive(FDataStreamBase* pStream) const; // </advc.fract>
 
 	//
-	// The actual specialized impletation of the functions
+	// The actual specialized implementation of the functions
 	//
 
 	// get
@@ -1332,9 +1332,9 @@ typedef EnumMap<CivicOptionTypes,CivicTypes> CivicMap; // advc: Needed rather fr
 /*	K - key; V - value; CK, CV compact representation of key and value;
 	vDEFAULT - value returned for keys not listed.
 	V needs to be an integral type (bool and long long not tested);
-	K can be any small-ish type, but a static cast from K to CK needs to be possible
-	(not a problem if CK=K). Both CK and CV need to have read and write functions
-	in FDataStreamBase.h. */
+	K can be any small-ish type with a suitable operator==, however, a static cast
+	from K to CK needs to be possible (not a problem if CK=K).
+	Both CK and CV need to have read and write functions in FDataStreamBase.h. */
 template<typename K, typename V, typename CK = K, typename CV = V, V vDEFAULT = 0>
 class SortedPairList : private boost::noncopyable
 {
@@ -1585,7 +1585,7 @@ public:
 		EnumMapGetDefault<E2>::MAX_LENGTH == 1, \
 		char, short>::type
 
-/*	Will need to call some hidden base-class functions
+/*	Will need to call some hidden base class functions
 	and the base class type is ... verbose. */
 #define SORTED_PAIR_LIST_BASE \
 		SortedPairList \
@@ -1672,11 +1672,10 @@ public:
 	for (std::pair<EnumPrefix##Types,ValueType> per##EnumPrefix##Val; \
 		kEnumMap.nextNonDefault(iANON_NON_DEFAULT_ITER, per##EnumPrefix##Val); )
 /*	Example:
-FOR_EACH_NON_DEFAULT_PAIR(kBuilding.getUnitCombatFreeXP(), UnitCombat, int)
+FOR_EACH_NON_DEFAULT_PAIR(m_aiBlockadedCount, Team, int)
 	expands to
 int iAnonNonDefaultIter_L3947 = 0;
-for (std::pair<UnitCombatTypes,int> perUnitCombatVal;
-	kBuilding.getUnitCombatFreeXP().nextNonDefault(
-		iAnonNonDefaultIter_L3947, perUnitCombatVal); )*/
+for (std::pair<TeamTypes,int> perTeamVal;
+	m_aiBlockadedCount.nextNonDefault(iAnonNonDefaultIter_L3947, perTeamVal); )*/
 
 #endif

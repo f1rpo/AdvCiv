@@ -1472,8 +1472,7 @@ void CvDLLWidgetData::doContactCiv(CvWidgetDataStruct &widgetDataStruct)
 		{
 			// Warning: use of this is not multiplayer compatible
 			// K-Mod, since this it isn't MP compatible, I'm going to disable it for the time being.
-			if (false && !GC.getGame().isGameMultiPlayer())
-			{
+			/*{
 				if (GET_TEAM(GC.getGame().getActiveTeam()).canDeclareWar(eWidgetTeam))
 				{
 					if (GET_TEAM(GC.getGame().getActiveTeam()).AI_getWarPlan(eWidgetTeam) == WARPLAN_PREPARING_TOTAL)
@@ -1486,8 +1485,7 @@ void CvDLLWidgetData::doContactCiv(CvWidgetDataStruct &widgetDataStruct)
 					}
 					gDLL->UI().setDirty(Score_DIRTY_BIT, true);
 				}
-			}
-			// K-Mod end
+			}*/ // K-Mod end
 		}
 		else
 		{
@@ -1943,7 +1941,7 @@ void CvDLLWidgetData::parseConscriptHelp(CvWidgetDataStruct &widgetDataStruct, C
 
 
 void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
-		CvWStringBuffer &szBuffer)
+	CvWStringBuffer &szBuffer)
 {
 	CvWString szTemp;
 	CvActionInfo const& kAction = GC.getActionInfo(widgetDataStruct.m_iData1);
@@ -2374,8 +2372,7 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		{
 			if (GET_PLAYER(pMissionCity->getOwner()).isNoNonStateReligionSpread())
 			{
-				if (eReligion != GET_PLAYER(pMissionCity->getOwner()).
-						getStateReligion())
+				if (eReligion != GET_PLAYER(pMissionCity->getOwner()).getStateReligion())
 				{
 					szBuffer.append(NEWLINE);
 					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CANNOT_SPREAD_NON_STATE_RELIGION"));
