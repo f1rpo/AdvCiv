@@ -237,6 +237,27 @@ protected:
 		{
 			return m_nodes.end();
 		}
+		/*	Backwards traversal doesn't seem to help with branch prediction.
+			Was worth a try. NB: Will have to call close(--it.base())
+			when using a reverse iterator. */
+		/*typedef typename container_t::reverse_iterator reverse_iterator;
+		typedef typename container_t::const_reverse_iterator const_reverse_iterator;
+		const_reverse_iterator rbegin() const
+		{
+			return m_nodes.rbegin();
+		}
+		const_reverse_iterator rend() const
+		{
+			return m_nodes.rend();
+		}
+		reverse_iterator rbegin()
+		{
+			return m_nodes.rbegin();
+		}
+		reverse_iterator rend()
+		{
+			return m_nodes.rend();
+		}*/
 		void reserve(int iCapacity)
 		{
 			m_nodes.reserve(iCapacity);
@@ -374,6 +395,9 @@ protected:
 
 	void recalculateHeuristics();
 	bool processNode();
+	// <advc> Cut out of process node
+	void processChild(Node& kParentNode,
+			CvPlot const& kParentPlot, CvPlot& kChildPlot); // </advc>
 	void forwardPropagate(Node& kHead, int iCostDelta);
 	//void addStartNode(); // advc: Better not to put that in a subroutine
 	// advc: Moved into NodeMap
@@ -545,7 +569,8 @@ bool KmodPathFinder<StepMetric,Node>::processNode()
 	OpenList::iterator itBest = m_openList.end();
 	{
 		int iLowestCost = (m_pEndNode != NULL ? m_pEndNode->m_iKnownCost : MAX_INT);
-		for (OpenList::iterator it = m_openList.begin(); it != m_openList.end(); ++it)
+		for (OpenList::iterator it = m_openList.begin();
+			it != m_openList.end(); ++it)
 		{
 			Node const& kNode = **it;
 			if (kNode.m_iTotalCost < iLowestCost &&
@@ -569,95 +594,104 @@ bool KmodPathFinder<StepMetric,Node>::processNode()
 	// Open a new node for each direction coming off the chosen node
 	FOR_EACH_ADJ_PLOT_VAR2(pChildPlot, kParentPlot)
 	{
-		if (kParent.m_pParent != NULL && pChildPlot == &kParent.m_pParent->getPlot())
-			continue; // don't backtrack
-		// advc: Moved up; no functional difference.
-		if (!m_stepMetric.isValidStep(kParentPlot, *pChildPlot))
-			continue; // Can't get to the plot from here
-		Node& kChild = m_pNodeMap->get(m_kMap.plotNum(*pChildPlot));
-		bool const bNewNode = kChild.isState(PATHNODE_UNINITIALIZED);
-		if (bNewNode) // (advc: No point in opening a node more than once)
-		{
-			// This path to the new node is valid. So we need to fill in the data.
-			//pathAdd(parent_node, child_node, ASNC_NEWADD, &settings, NULL); // K-Mod
-			kChild.setPlot(*pChildPlot);
-			m_stepMetric.updatePathData(kChild, kParent);
-			kChild.m_iKnownCost = MAX_INT;
-			kChild.m_iHeuristicCost = m_stepMetric.heuristicCost(
-					*pChildPlot, *m_pDest);
-			// Total cost will be set when the parent is set
-			if (m_stepMetric.canStepThrough(*pChildPlot, kChild))
-				m_openList.open(kChild);
-			else
-			{	// This node is a dead end
-				/*	(advc: Which is to say, we can never enter it, not even on a
-					later call to generatePath - except if it is the destination;
-					that remains to be checked.) */
-				kChild.setState(PATHNODE_CLOSED);
-			}
-		}
-		if (pChildPlot == m_pDest)
-		{
-			// We've found our destination but still need to finish our calculations
-			m_pEndNode = &kChild;
-		}
-		if (kParent.m_iKnownCost >= kChild.m_iKnownCost)
-			continue; // There must already be a faster route to the child
-
-		int const iNewCost = kParent.m_iKnownCost + m_stepMetric.cost(
-				//parent_node, child_node, 666, &settings, NULL); // K-Mod
-				kParentPlot, *pChildPlot, kParent);
-		FAssert(iNewCost > 0);
-		if (iNewCost >= kChild.m_iKnownCost)
-			continue;
-		// New minus old; negative value.
-		int const iCostDelta = iNewCost - kChild.m_iKnownCost;
-
-		kChild.m_iKnownCost = iNewCost;
-		kChild.m_iTotalCost = kChild.m_iKnownCost + kChild.m_iHeuristicCost;
-
-		// Remove child from the list of the previous parent
-		if (kChild.m_pParent != NULL)
-		{
-			FAssert(!bNewNode);
-			Node& kOldParent = *kChild.m_pParent;
-			#ifdef FASSERT_ENABLE
-			int iTemp = kOldParent.m_iNumChildren;
-			#endif
-			/*	kOldParent just lost one of its children.
-				We have to break the news to them.
-				This would easier if we had STL instead of bog arrays.
-				[advc: Could use a vector, but since karadoc has already
-				worked it out ...] */
-			for (int j = 0; j < kOldParent.m_iNumChildren; j++)
-			{
-				if (kOldParent.m_apChildren[j] == &kChild)
-				{	// Found it
-					for (j++; j < kOldParent.m_iNumChildren; j++)
-						kOldParent.m_apChildren[j - 1] = kOldParent.m_apChildren[j];
-					// Not necessary, but easy enough to keep things neat.
-					kOldParent.m_apChildren[j - 1] = 0;
-					kOldParent.m_iNumChildren--;
-				}
-			}
-			FAssert(kOldParent.m_iNumChildren == iTemp - 1);
-			// Recalculate movement points
-			//pathAdd(parent_node, child_node, ASNC_PARENTADD_UP, &settings, NULL);
-			m_stepMetric.updatePathData(kChild, kParent);
-		}
-
-		// Add child to the list of the new parent
-		FAssertBounds(0, NUM_DIRECTION_TYPES, kParent.m_iNumChildren);
-		kParent.m_apChildren[kParent.m_iNumChildren] = &kChild;
-		kParent.m_iNumChildren++;
-		kChild.m_pParent = &kParent;
-
-		// Update the new (reduced) costs for all the grandchildren.
-		FAssert(kChild.m_iNumChildren == 0 || !bNewNode);
-		forwardPropagate(kChild, iCostDelta);
-		FAssert(kChild.m_iKnownCost > kParent.m_iKnownCost);
+		processChild(kParent, kParentPlot, *pChildPlot);
 	}
 	return true;
+}
+
+template<class StepMetric, class Node>
+// advc: Cut out of processNode - but I think the compiler should leave it there.
+__forceinline
+void KmodPathFinder<StepMetric,Node>::processChild(
+	Node& kParent, CvPlot const& kParentPlot, CvPlot& kChildPlot)
+{
+	if (kParent.m_pParent != NULL && &kChildPlot == &kParent.m_pParent->getPlot())
+		return; // don't backtrack
+	// advc: Moved up; no functional difference.
+	if (!m_stepMetric.isValidStep(kParentPlot, kChildPlot))
+		return; // Can't get to the plot from here
+	Node& kChild = m_pNodeMap->get(kChildPlot.plotNum());
+	bool const bNewNode = kChild.isState(PATHNODE_UNINITIALIZED);
+	if (bNewNode) // (advc: No point in opening a node more than once)
+	{
+		// This path to the new node is valid. So we need to fill in the data.
+		//pathAdd(parent_node, child_node, ASNC_NEWADD, &settings, NULL); // K-Mod
+		kChild.setPlot(kChildPlot);
+		m_stepMetric.updatePathData(kChild, kParent);
+		kChild.m_iKnownCost = MAX_INT;
+		kChild.m_iHeuristicCost = m_stepMetric.heuristicCost(
+				kChildPlot, *m_pDest);
+		// Total cost will be set when the parent is set
+		if (m_stepMetric.canStepThrough(kChildPlot, kChild))
+			m_openList.open(kChild);
+		else
+		{	// This node is a dead end
+			/*	(advc: Which is to say, we can never enter it, not even on a
+				later call to generatePath - except if it is the destination;
+				that remains to be checked.) */
+			kChild.setState(PATHNODE_CLOSED);
+		}
+	}
+	if (&kChildPlot == m_pDest)
+	{
+		// We've found our destination but still need to finish our calculations
+		m_pEndNode = &kChild;
+	}
+	if (kParent.m_iKnownCost >= kChild.m_iKnownCost)
+		return; // There must already be a faster route to the child
+
+	int const iNewCost = kParent.m_iKnownCost + m_stepMetric.cost(
+			//parent_node, child_node, 666, &settings, NULL); // K-Mod
+			kParentPlot, kChildPlot, kParent);
+	FAssert(iNewCost > 0);
+	if (iNewCost >= kChild.m_iKnownCost)
+		return;
+	// New minus old; negative value.
+	int const iCostDelta = iNewCost - kChild.m_iKnownCost;
+
+	kChild.m_iKnownCost = iNewCost;
+	kChild.m_iTotalCost = kChild.m_iKnownCost + kChild.m_iHeuristicCost;
+
+	// Remove child from the list of the previous parent
+	if (kChild.m_pParent != NULL)
+	{
+		FAssert(!bNewNode);
+		Node& kOldParent = *kChild.m_pParent;
+		#ifdef FASSERT_ENABLE
+		int iTemp = kOldParent.m_iNumChildren;
+		#endif
+		/*	kOldParent just lost one of its children.
+			We have to break the news to them.
+			This would easier if we had STL instead of bog arrays.
+			[advc: Could use a vector, but since karadoc has already
+			worked it out ...] */
+		for (int j = 0; j < kOldParent.m_iNumChildren; j++)
+		{
+			if (kOldParent.m_apChildren[j] == &kChild)
+			{	// Found it
+				for (j++; j < kOldParent.m_iNumChildren; j++)
+					kOldParent.m_apChildren[j - 1] = kOldParent.m_apChildren[j];
+				// Not necessary, but easy enough to keep things neat.
+				kOldParent.m_apChildren[j - 1] = 0;
+				kOldParent.m_iNumChildren--;
+			}
+		}
+		FAssert(kOldParent.m_iNumChildren == iTemp - 1);
+		// Recalculate movement points
+		//pathAdd(parent_node, child_node, ASNC_PARENTADD_UP, &settings, NULL);
+		m_stepMetric.updatePathData(kChild, kParent);
+	}
+
+	// Add child to the list of the new parent
+	FAssertBounds(0, NUM_DIRECTION_TYPES, kParent.m_iNumChildren);
+	kParent.m_apChildren[kParent.m_iNumChildren] = &kChild;
+	kParent.m_iNumChildren++;
+	kChild.m_pParent = &kParent;
+
+	// Update the new (reduced) costs for all the grandchildren.
+	FAssert(kChild.m_iNumChildren == 0 || !bNewNode);
+	forwardPropagate(kChild, iCostDelta);
+	FAssert(kChild.m_iKnownCost > kParent.m_iKnownCost);
 }
 
 template<class StepMetric, class Node>
