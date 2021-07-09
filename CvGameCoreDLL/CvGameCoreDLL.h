@@ -52,6 +52,8 @@
 
 #define DllExport   __declspec( dllexport )
 
+/*	advc (tbd.): Put all this primitive type stuff into a separate header,
+	perhaps along with the contents of TypeChoice.h (advc.fract). */
 typedef unsigned char		byte;
 // advc (note): A little strange to me, but consistent with WORD in winnt.h.
 typedef unsigned short		word;
@@ -82,6 +84,58 @@ typedef wchar_t				wchar;
 /*inline DWORD FtoDW( float f ) { return *(DWORD*)&f; }
 inline float DWtoF( dword n ) { return *(float*)&n; }
 inline float MaxFloat() { return DWtoF(0x7f7fffff); }*/
+
+/*	advc: Get the limits of an integer type of at most 4 bytes length
+	(bool doesn't count either) -- since we don't have SIZE_MIN/MAX (cstdint),
+	nor boost::integer_traits<IntType>::const_max.
+	We do have std::numeric_limits<T>::min and max, but those are functions,
+	so they can't e.g. be used in static assertions. std::numeric_limits<T>::is_signed
+	is a constant, but let's nevertheless take of that here too, so that
+	integer_limits and numeric_limits won't have to be used side by side. */
+template<typename T>
+struct integer_limits;
+template<>
+struct integer_limits<char>
+{
+	static char const min = MIN_CHAR;
+	static char const max = MAX_CHAR;
+	static bool const is_signed = true;
+};
+template<>
+struct integer_limits<byte>
+{
+	static byte const min = MIN_UNSIGNED_CHAR;
+	static byte const max = MAX_UNSIGNED_CHAR;
+	static bool const is_signed = false;
+};
+template<>
+struct integer_limits<short>
+{
+	static short const min = MIN_SHORT;
+	static short const max = MAX_SHORT;
+	static bool const is_signed = true;
+};
+template<>
+struct integer_limits<word>
+{
+	static word const min = MIN_UNSIGNED_SHORT;
+	static word const max = MAX_UNSIGNED_SHORT;
+	static bool const is_signed = false;
+};
+template<>
+struct integer_limits<int>
+{
+	static int const min = MIN_INT;
+	static int const max = MAX_INT;
+	static bool const is_signed = true;
+};
+template<>
+struct integer_limits<uint>
+{
+	static uint const min = MIN_UNSIGNED_INT;
+	static uint const max = MAX_UNSIGNED_INT;
+	static bool const is_signed = false;
+};
 
 // (advc.make: Some macros moved into new header Trigonometry.h)
 

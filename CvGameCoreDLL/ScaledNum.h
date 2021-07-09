@@ -6,9 +6,10 @@
 // advc.fract: Header-only class template for fixed-point fractional numbers
 
 #include "TypeChoice.h"
-#include "FixedPointPowTables.h" // Large lookup table, but ScaledNum.h gets precompiled.
-/*	Other non-BtS dependencies: intdiv::round, fmath::round, intHash, all in CvGameCoreUtils.h.
-	(Tbd.: Move those functions here?)
+#include "FixedPointPowTables.h"
+/*	Other non-BtS dependencies: intdiv::round, fmath::round, intHash, all in CvGameCoreUtils.h
+	(tbd.: move those functions here?), and integer_limits in CvGameCoreDLL.h
+	(tbd. move into TypeChoice.h and rename that header to "TypeTraits.h"?).
 	For inclusion in PCH, one may have to define NOMINMAX before including windows.h;
 	see CvGameCoreDLL.h.
 	The bernoulliSuccess function assumes that CvRandom can include two integer values
@@ -42,7 +43,7 @@ protected:
 	{
 		BOOST_STATIC_ASSERT(sizeof(OtherIntType) <= 4);
 		// uint is the only problematic OtherIntType
-		if (!std::numeric_limits<OtherIntType>::is_signed &&
+		if (!integer_limits<OtherIntType>::is_signed &&
 			sizeof(int) == sizeof(OtherIntType))
 		{
 			FAssert(n <= static_cast<OtherIntType>(MAX_INT));
@@ -129,12 +130,9 @@ class ScaledNum : ScaledNumBase<void> // Not named "ScaledInt" b/c what's being 
 	template<int iOTHER_SCALE, typename OtherIntType, typename OtherEnumType>
 	friend class ScaledNum;
 
-	static bool const bSIGNED = std::numeric_limits<IntType>::is_signed;
-	/*	Limits of IntType. Set through std::numeric_limits, but can't do that in-line; and
-		we don't have SIZE_MIN/MAX (cstdint), nor boost::integer_traits<IntType>::const_max.
-		Therefore can't use INTMIN, INTMAX in static assertions. */
-	static IntType const INTMIN;
-	static IntType const INTMAX;
+	static bool const bSIGNED = integer_limits<IntType>::is_signed;
+	static IntType const INTMIN = integer_limits<IntType>::min;
+	static IntType const INTMAX = integer_limits<IntType>::max;
 
 public:
 	static IntType MAX() { return INTMAX / SCALE; }
@@ -603,7 +601,7 @@ private:
 		#ifdef SCALED_NUM_EXTRA_ASSERTS
 			FAssert(divisor != 0);
 		#endif
-		if (std::numeric_limits<ReturnType>::is_signed)
+		if (integer_limits<ReturnType>::is_signed)
 		{
 			int i;
 			if (sizeof(MultiplierType) == 4 || sizeof(MultiplicandType) == 4)
@@ -673,20 +671,20 @@ private:
 	template<typename OtherIntType>
 	static IntType safeCast(OtherIntType n)
 	{
-		if (std::numeric_limits<OtherIntType>::is_signed != bSIGNED ||
+		if (integer_limits<OtherIntType>::is_signed != bSIGNED ||
 			sizeof(IntType) < sizeof(OtherIntType))
 		{
-			if (!bSIGNED && std::numeric_limits<OtherIntType>::is_signed)
+			if (!bSIGNED && integer_limits<OtherIntType>::is_signed)
 				FAssert(n >= 0);
 			if (sizeof(IntType) < sizeof(OtherIntType) ||
 				(sizeof(IntType) == sizeof(OtherIntType) &&
-				bSIGNED && !std::numeric_limits<OtherIntType>::is_signed))
+				bSIGNED && !integer_limits<OtherIntType>::is_signed))
 			{
 				/*	(No static_cast b/c it needs to compile even when IntType is bigger
 					than OtherIntType, i.e. when the conditions above are false.
 					Tbd.: Solve this problem through choose_type and specialization?) */
 				FAssert(n <= (OtherIntType)INTMAX);
-				if (bSIGNED && std::numeric_limits<OtherIntType>::is_signed)
+				if (bSIGNED && integer_limits<OtherIntType>::is_signed)
 					FAssert(n >= (OtherIntType)INTMIN);
 			}
 		}
@@ -838,11 +836,6 @@ private:
 #define ScaledNum_T ScaledNum<iSCALE,IntType,EnumType>
 
 template<ScaledNum_PARAMS>
-IntType const ScaledNum_T::INTMAX = std::numeric_limits<IntType>::max();
-template<ScaledNum_PARAMS>
-IntType const ScaledNum_T::INTMIN = std::numeric_limits<IntType>::min();
-
-template<ScaledNum_PARAMS>
 template<int iFROM_SCALE, typename OtherIntType, typename OtherEnumType>
 /*	Take the argument by reference although this isn't technically a copy constructor.
 	Taking it by value leads to peculiar compiler errors when an assignment is followed 
@@ -863,8 +856,7 @@ ScaledNum_T::ScaledNum(ScaledNum<iFROM_SCALE,OtherIntType,OtherEnumType> const& 
 template<ScaledNum_PARAMS>
 int ScaledNum_T::round() const
 {
-	if (INTMAX < SCALE) // Wish I could BOOST_STATIC_ASSERT this
-		FAssert(false);
+	BOOST_STATIC_ASSERT(INTMAX >= SCALE);
 	if (bSIGNED)
 	{
 		FAssert(m_i > 0 ?
@@ -880,8 +872,7 @@ template<ScaledNum_PARAMS>
 int ScaledNum_T::uround() const
 {
 	BOOST_STATIC_ASSERT(bSIGNED); // Use round() instead
-	if (INTMAX < SCALE)
-		FAssert(false);
+	BOOST_STATIC_ASSERT(INTMAX >= SCALE);
 	FAssert(m_i >= 0 && m_i <= static_cast<IntType>(INTMAX - SCALE / 2));
 	return (m_i + SCALE / 2) / SCALE;
 }

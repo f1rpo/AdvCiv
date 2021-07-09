@@ -75,12 +75,25 @@ enum FlavorTypes
 		means that it was impossible to base AI code on FLAVOR_ESPIONAGE. */
 	FLAVOR_ESPIONAGE,
 };
-// advc.enum (cf. CvMap::plotNum)
+// <advc.enum> (cf. CvMap::plotNum)
+/*	2 byte (short) allow for at most 256*128 tiles (or 181*181).
+	Larger maps really aren't playable, but let's allow them
+	if the civ limit has been increased by a lot. */
+typedef
+	#if MAX_CIV_PLAYERS >= 32
+		int
+	#else
+		short
+	#endif
+		PlotNumInt;
 enum PlotNumTypes
 {
-	NO_PLOT_NUM = -1
+	NO_PLOT_NUM = -1,
+	// -1 allows checking bounds through less-than w/o overflow
+	MAX_PLOT_NUM = integer_limits<PlotNumInt>::max - 1
 };
-DEFINE_INCREMENT_OPERATORS(PlotNumTypes)
+DEFINE_INCREMENT_OPERATORS(PlotNumTypes);
+// </advc.enum>
 
 ENUM_START(GameState, GAMESTATE)
 	GAMESTATE_ON,
