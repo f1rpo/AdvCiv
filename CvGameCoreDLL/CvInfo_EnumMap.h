@@ -362,7 +362,8 @@ protected:
 template<typename E, bool bDEFAULT>
 class ListEnumMap<E, bool, bDEFAULT> : public CvInfoEnumMap<E, bool, bDEFAULT>
 {
-	std::vector<E> m_nonDefaultKeys;
+	// (With the WtP type setup, we could even use char here for many E types.)
+	std::vector<short> m_nonDefaultKeys;
 
 public:
 	ListEnumMap() {}
@@ -370,14 +371,14 @@ public:
 	void finalizeInsertions() // override
 	{
 		FAssert(m_nonDefaultKeys.empty() || m_nonDefaultKeys.back() != non_default_enum_map::end);
-		m_nonDefaultKeys.push_back(static_cast<E>(non_default_enum_map::end));
+		m_nonDefaultKeys.push_back(non_default_enum_map::end);
 	}
 
 	void insert(int iKey, bool bValue) // override
 	{
 		//FAssert(m_nonDefaultKeys.empty() || m_nonDefaultKeys.back() != non_default_enum_map::end);
 		if (bValue != bDEFAULT)
-			m_nonDefaultKeys.push_back(static_cast<E>(iKey));
+			m_nonDefaultKeys.push_back(toShort(iKey));
 	}
 
 	bool get(E eKey) const
@@ -388,10 +389,11 @@ public:
 
 	bool getUnsafe(E eKey) const
 	{
-		E eNonDefaultKey;
-		for (size_t i = 0; (eNonDefaultKey = m_nonDefaultKeys[i]) <= eKey; i++)
+		short const iKey = static_cast<short>(eKey);
+		short iNonDefaultKey;
+		for (size_t i = 0; (iNonDefaultKey = m_nonDefaultKeys[i]) <= iKey; i++)
 		{
-			if (eNonDefaultKey == eKey)
+			if (iNonDefaultKey == iKey)
 				return !bDEFAULT;
 		}
 		return bDEFAULT;
@@ -400,7 +402,7 @@ public:
 	std::pair<E,bool> nextNonDefault(E eDummy, int iPairIndex) const
 	{
 		FAssertBounds(0, m_nonDefaultKeys.size(), iPairIndex);
-		return std::make_pair(m_nonDefaultKeys[iPairIndex], !bDEFAULT);
+		return std::make_pair(static_cast<E>(m_nonDefaultKeys[iPairIndex]), !bDEFAULT);
 	}
 
 	bool isAnyNonDefault() const
@@ -634,7 +636,7 @@ private:
 		return BitUtil::HasBit(m_blocks[getBlock(eKey)], getIndexInBlock(eKey));
 	}
 
-	/*	From the WtP enum map (EnumMap.h) ...  (Should only be called ifV==bool,
+	/*	From the WtP enum map (EnumMap.h) ...  (Should only be called if V==bool,
 		but I'm not going to bother safeguarding that requirement.) */
 	int getBlock(int i) const
 	{
