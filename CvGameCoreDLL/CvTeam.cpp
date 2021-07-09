@@ -4702,7 +4702,8 @@ bool CvTeam::isAlliedTerritory(TeamTypes eTerritoryOwner, TeamTypes eEnemy) cons
 {
 	if (isFriendlyTerritory(eTerritoryOwner))
 		return true;
-	if (eEnemy == NO_TEAM) // Allow this for the callers' convenience
+	// Allow this for the callers' convenience
+	if (eEnemy == NO_TEAM || eTerritoryOwner == NO_TEAM)
 		return false;
 	return (isAtWar(eEnemy) && GET_TEAM(eTerritoryOwner).isAtWar(eEnemy));
 }
