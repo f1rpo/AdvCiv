@@ -686,11 +686,12 @@ public:
 	void setOriginalOwner(PlayerTypes eNewValue);
 
 	CultureLevelTypes getCultureLevel() const { return m_eCultureLevel; }										// Exposed to Python
+	CultureLevelTypes getCultureLevel(PlayerTypes ePlayer) const; // advc
 	int getCultureThreshold() const { return getCultureThreshold(getCultureLevel()); }							// Exposed to Python
 	static int getCultureThreshold(CultureLevelTypes eLevel);
 	void setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups);
 	void updateCultureLevel(bool bUpdatePlotGroups);
-	CultureLevelTypes calculateCultureLevel(PlayerTypes ePlayer) const; // advc.130f
+	CultureLevelTypes calculateCultureLevel(PlayerTypes ePlayer) const; // advc
 	int getNumPartisanUnits(PlayerTypes ePartisanPlayer) const; // advc.003y
 	int getCultureTurnsLeft() const; // advc.042
 

@@ -1394,39 +1394,32 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	if (bConquest) // Force unowned after conquest
 	{
 		int const iRange = pOldCity->getCultureLevel();
-		for (int iDX = -iRange; iDX <= iRange; iDX++)
+		for (SquareIter itPlot(kCityPlot, iRange, false); itPlot.hasNext(); ++itPlot)
 		{
-			for (int iDY = -iRange; iDY <= iRange; iDY++)
+			if (CvCity::cultureDistance(itPlot.currXDist(), itPlot.currYDist()) > iRange)
+				continue;
+			CvPlot& p = *itPlot;
+			if (p.getOwner() != pOldCity->getOwner() ||
+				p.getNumCultureRangeCities(pOldCity->getOwner()) != 1)
 			{
-				if (CvCity::cultureDistance(iDX, iDY) > iRange)
+				continue;
+			}
+			bool bForceUnowned = false;
+			for (PlayerIter<ALIVE,NOT_SAME_TEAM_AS> itThirdPlayer(getTeam());
+				itThirdPlayer.hasNext(); ++itThirdPlayer)
+			{
+				if (itThirdPlayer->getTeam() == pOldCity->getTeam())
 					continue;
-
-				CvPlot* pLoopPlot = ::plotXY(kCityPlot.getX(), kCityPlot.getY(), iDX, iDY);
-				if (pLoopPlot == NULL)
-					continue;
-
-				if (pLoopPlot->getOwner() != pOldCity->getOwner() ||
-					pLoopPlot->getNumCultureRangeCities(pOldCity->getOwner()) != 1)
+				if (p.getNumCultureRangeCities(itThirdPlayer->getID()) > 0)
 				{
-					continue;
+					bForceUnowned = true;
+					break;
 				}
-				bool bForceUnowned = false;
-				for (PlayerIter<ALIVE,NOT_SAME_TEAM_AS> itThirdPlayer(getTeam());
-					itThirdPlayer.hasNext(); ++itThirdPlayer)
-				{
-					if (itThirdPlayer->getTeam() == pOldCity->getTeam())
-						continue;
-					if (pLoopPlot->getNumCultureRangeCities(itThirdPlayer->getID()) > 0)
-					{
-						bForceUnowned = true;
-						break;
-					}
-				}
-				if (bForceUnowned)
-				{
-					static int const iFORCE_UNOWNED_CITY_TIMER = GC.getDefineINT("FORCE_UNOWNED_CITY_TIMER"); // advc.opt
-					pLoopPlot->setForceUnownedTimer(iFORCE_UNOWNED_CITY_TIMER);
-				}
+			}
+			if (bForceUnowned)
+			{
+				static int const iFORCE_UNOWNED_CITY_TIMER = GC.getDefineINT("FORCE_UNOWNED_CITY_TIMER"); // advc.opt
+				p.setForceUnownedTimer(iFORCE_UNOWNED_CITY_TIMER);
 			}
 		}
 	}
@@ -1687,10 +1680,10 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		int iNewOwnerCulture = kNewCity.getCultureTimes100(getID());
 		// Round down to a multiple of 100
 		int iConvertedCulture = (iOldOwnerCulture / 300) * 100;
-		kNewCity.setCultureTimes100(getID(),
-				iNewOwnerCulture + iConvertedCulture, true, false);
-		kNewCity.setCultureTimes100(eOldOwner,
-				iOldOwnerCulture - iConvertedCulture, true, false);
+		kNewCity.setCultureTimes100(getID(), iNewOwnerCulture + iConvertedCulture,
+				false, false); // advc.ctr: Tile culture already handled
+		kNewCity.setCultureTimes100(eOldOwner, iOldOwnerCulture - iConvertedCulture,
+				false, false); // advc.ctr
 	} // </kekm.23>
 
 	// Destruction of buildings

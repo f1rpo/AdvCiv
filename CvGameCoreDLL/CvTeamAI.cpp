@@ -4,7 +4,7 @@
 #include "CoreAI.h"
 #include "CvCityAI.h"
 #include "TeamPathFinder.h"
-#include "CityPlotIterator.h"
+#include "PlotRange.h"
 #include "CvArea.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"
@@ -311,28 +311,24 @@ bool CvTeamAI::AI_deduceCitySite(CvCity const& kCity) const
 	if (kCity.isRevealed(getID()))
 		return true;
 
-	// The rule is this:
-	// if we can see more than n plots of the nth culture ring, we can deduce where the city is.
+	/*	The rule is this: if we can see more than n plots of the nth culture ring,
+		we can deduce where the city is. */
 
 	int iPoints = 0;
-	int iLevel = kCity.getCultureLevel();
-	for (int iDX = -iLevel; iDX <= iLevel; iDX++)
+	int const iLevel = kCity.getCultureLevel();
+	for (SquareIter itPlot(kCity.getPlot(), iLevel, false); itPlot.hasNext(); ++itPlot)
 	{
-		for (int iDY = -iLevel; iDY <= iLevel; iDY++)
+		int iDist = CvCity::cultureDistance(itPlot.currXDist(), itPlot.currYDist());
+		if (iDist > iLevel)
+			continue;
+		if (itPlot->getRevealedOwner(getID()) == kCity.getOwner())
 		{
-			int iDist = CvCity::cultureDistance(iDX, iDY);
-			if (iDist > iLevel)
-				continue;
-			CvPlot* pLoopPlot = plotXY(kCity.getX(), kCity.getY(), iDX, iDY);
-			if (pLoopPlot && pLoopPlot->getRevealedOwner(getID()) == kCity.getOwner())
-			{
-				/*	if multiple cities have their plot in their range,
-					then that will make it harder to deduce the precise city location. */
-				iPoints += 1 + std::max(0, 1 + iLevel
-						- iDist - pLoopPlot->getNumCultureRangeCities(kCity.getOwner()));
-				if (iPoints > iLevel)
-					return true;
-			}
+			/*	if multiple cities have their plot in their range,
+				then that will make it harder to deduce the precise city location. */
+			iPoints += 1 + std::max(0, 1 + iLevel
+					- iDist - itPlot->getNumCultureRangeCities(kCity.getOwner()));
+			if (iPoints > iLevel)
+				return true;
 		}
 	}
 	return false;

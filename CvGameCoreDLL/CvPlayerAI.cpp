@@ -12099,7 +12099,7 @@ int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, // advc.003u: param was C
 	CvCity const* pOurCapital = getCapital();
 
 	scaled r = AI_assetVal(kCity, false);
-	CultureLevelTypes const eCultureLevel = kCity.calculateCultureLevel(getID());
+	CultureLevelTypes const eCultureLevel = kCity.getCultureLevel(getID());
 	// Kind of difficult to account for city culture; often not worth anything.
 	if (eCultureLevel > 1)
 		r += eCultureLevel - 1;

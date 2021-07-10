@@ -15,7 +15,7 @@
 	If bINCIRCLE is true, then the plotDistance metric is used, which corresponds
 	to a range of plots that approximates the incircle of a square of the same radius.
 	The implementation for bINCIRCLE=true isn't terribly efficient: A square is
-	generated and plots outside of the plostDistance radius are skipped.
+	generated and plots outside of the plotDistance radius are skipped.
 	(That's also what the BtS code did.)
 	There are derived classes at the end of this file that hide the template parameter.
 	For the special case of iterating over a city radius, see CityPlotIterator.h.
@@ -85,6 +85,18 @@ public:
 	int currPlotDist() const
 	{
 		return ::plotDistance(m_pCenter, m_pNext);
+	}
+
+	int currXDist() const
+	{
+		/*	World-wrap isn't applied to m_iCurrX (i.e. it can be off the map),
+			hence no need to check world wrap (CvMap::xDistance) here. */
+		return abs(m_pCenter->getX() - m_iCurrX);
+	}
+
+	int currYDist() const
+	{
+		return abs(m_pCenter->getY() - m_iCurrY);
 	}
 
 	int radius() const

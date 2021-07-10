@@ -1,11 +1,11 @@
 #include "CvGameCoreDLL.h"
 #include "CvCity.h"
 #include "CvCityAI.h"
-#include "CityPlotIterator.h"
+#include "PlotRange.h"
+#include "CvArea.h"
 #include "CoreAI.h"
 #include "CvUnit.h"
 #include "CvSelectionGroup.h"
-#include "CvArea.h"
 #include "CvInfo_City.h"
 #include "CvInfo_Terrain.h"
 #include "CvInfo_GameOption.h"
@@ -4021,7 +4021,7 @@ int CvCity::cultureStrength(PlayerTypes ePlayer,
 	rPopulation += // Gradually shift to highest pop, then back to actual pop.
 			(fixp(0.5) - (rTimeFactor - fixp(0.5)).abs()) *
 			(getHighestPopulation() - rPopulation);
-	scaled rEraFactor; // BtS used the game era here; I'll use sth. similar to era.
+	scaled rEraFactor; // BtS used the game era here
 	{
 		/*	ePlayer can be dead, but the tech count should still be good.
 			(CvPlayer::getTechScore / CvGame::getMaxTech would give
@@ -6500,53 +6500,33 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 	m_eCultureLevel = eNewValue;
 	if (eOldValue != NO_CULTURELEVEL)
 	{
-		for (int iDX = -eOldValue; iDX <= eOldValue; iDX++)
+		for (SquareIter itPlot(getPlot(), eOldValue); itPlot.hasNext(); ++itPlot)
 		{
-			for (int iDY = -eOldValue; iDY <= eOldValue; iDY++)
+			int iCultureRange = cultureDistance(itPlot.currXDist(), itPlot.currYDist());
+			if (iCultureRange > getCultureLevel() && iCultureRange <= eOldValue)
 			{
-				int iCultureRange = cultureDistance(iDX, iDY);
-				if (iCultureRange > getCultureLevel())
-				{
-					if (iCultureRange <= eOldValue)
-					{
-						FAssert(iCultureRange <= GC.getNumCultureLevelInfos());
-						CvPlot* pLoopPlot = plotXY(getX(), getY(), iDX, iDY);
-						if (pLoopPlot != NULL)
-						{
-							pLoopPlot->changeCultureRangeCities(getOwner(),
-									(CultureLevelTypes)iCultureRange, -1, bUpdatePlotGroups);
-						}
-					}
-				}
+				FAssert(iCultureRange <= GC.getNumCultureLevelInfos());
+				itPlot->changeCultureRangeCities(getOwner(), (CultureLevelTypes)
+						iCultureRange, -1, bUpdatePlotGroups);
 			}
 		}
 	}
 	if (getCultureLevel() != NO_CULTURELEVEL)
 	{
-		for (int iDX = -getCultureLevel(); iDX <= getCultureLevel(); iDX++)
+		for (SquareIter itPlot(getPlot(), getCultureLevel()); itPlot.hasNext(); ++itPlot)
 		{
-			for (int iDY = -getCultureLevel(); iDY <= getCultureLevel(); iDY++)
+			int iCultureRange = cultureDistance(itPlot.currXDist(), itPlot.currYDist());
+			if (iCultureRange > eOldValue && iCultureRange <= getCultureLevel())
 			{
-				int iCultureRange = cultureDistance(iDX, iDY);
-				if (iCultureRange > eOldValue)
-				{
-					if (iCultureRange <= getCultureLevel())
-					{
-						FAssert(iCultureRange <= GC.getNumCultureLevelInfos());
-
-						CvPlot* pLoopPlot = plotXY(getX(), getY(), iDX, iDY);
-						if (pLoopPlot != NULL)
-						{
-							pLoopPlot->changeCultureRangeCities(getOwner(),
-									(CultureLevelTypes)iCultureRange, 1, bUpdatePlotGroups);
-						}
-					}
-				}
+				FAssert(iCultureRange <= GC.getNumCultureLevelInfos());
+				itPlot->changeCultureRangeCities(getOwner(), (CultureLevelTypes)
+						iCultureRange, 1, bUpdatePlotGroups);
 			}
 		}
 	}
-	if (GC.getGame().isFinalInitialized() && getCultureLevel() > eOldValue && getCultureLevel() > 1)
-	{	// advc: Some refactoring changes in this block
+	if (GC.getGame().isFinalInitialized() && getCultureLevel() > eOldValue &&
+		getCultureLevel() > 1)
+	{
 		CvWString szBuffer(gDLL->getText("TXT_KEY_MISC_BORDERS_EXPANDED", getNameKey()));
 		gDLL->UI().addMessage(getOwner(), false, -1, szBuffer, getPlot(),
 				"AS2D_CULTUREEXPANDS", MESSAGE_TYPE_MINOR_EVENT,
@@ -6556,10 +6536,10 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 		int iVictoryCultureLevel = NO_CULTURELEVEL;
 		FOR_EACH_ENUM(Victory)
 		{
-			if(!GC.getGame().isVictoryValid(eLoopVictory))
+			if (!GC.getGame().isVictoryValid(eLoopVictory))
 				continue;
 			int iLevel = GC.getInfo(eLoopVictory).getCityCulture();
-			if(iLevel > 0 && (iVictoryCultureLevel <= 0 || iVictoryCultureLevel > iLevel))
+			if (iLevel > 0 && (iVictoryCultureLevel <= 0 || iVictoryCultureLevel > iLevel))
 				iVictoryCultureLevel = iLevel;
 		}
 		if (getCultureLevel() == iVictoryCultureLevel && iVictoryCultureLevel > 0)
@@ -6611,23 +6591,32 @@ void CvCity::updateCultureLevel(bool bUpdatePlotGroups)
 	CultureLevelTypes eCultureLevel = (CultureLevelTypes)0;
 	if (!isOccupation())
 	{
-		// advc.130f: Moved into subroutine
+		// advc: Moved into subroutine
 		eCultureLevel = calculateCultureLevel(getOwner());
 	}
 	setCultureLevel(eCultureLevel, bUpdatePlotGroups);
 }
 
-// advc.130f: Cut from updateCultureLevel
+/*	advc: Cut from updateCultureLevel. Unlike getCulture(PlayerTypes), this function
+	will always recalculate the culture level. */
 CultureLevelTypes CvCity::calculateCultureLevel(PlayerTypes ePlayer) const
 {
 	int const iCultureTimes100 = getCultureTimes100(ePlayer);
-	for(int i = GC.getNumCultureLevelInfos() - 1; i > 0; i--)
+	FOR_EACH_ENUM_REV(CultureLevel)
 	{
-		CultureLevelTypes eLoopLevel = (CultureLevelTypes)i;
-		if(iCultureTimes100 >= 100 * GC.getGame().getCultureThreshold(eLoopLevel))
-			return eLoopLevel;
+		if(iCultureTimes100 >= 100 * GC.getGame().getCultureThreshold(eLoopCultureLevel))
+			return eLoopCultureLevel;
 	}
+	FErrorMsg("No culture level threshold met");
 	return (CultureLevelTypes)0;
+}
+
+// advc:
+CultureLevelTypes CvCity::getCultureLevel(PlayerTypes ePlayer) const
+{
+	if (ePlayer == getOwner())
+		return getCultureLevel();
+	return calculateCultureLevel(ePlayer);
 }
 
 // advc.042: Mostly cut and pasted from CvDLLWidgetData::parseCultureHelp
@@ -6636,13 +6625,13 @@ int CvCity::getCultureTurnsLeft() const
 	int iCultureRateTimes100 = getCommerceRateTimes100(COMMERCE_CULTURE);
 	if(iCultureRateTimes100 <= 0)
 		return -1;
-	int iCultureLeftTimes100 = 100 * getCultureThreshold() -
-			getCultureTimes100(getOwner());
+	int iCultureLeftTimes100 = 100 * getCultureThreshold()
+			- getCultureTimes100(getOwner());
 	if(iCultureLeftTimes100 <= 0)
 		return -1;
-	int r = (iCultureLeftTimes100  + iCultureRateTimes100 - 1) / iCultureRateTimes100;
-	FAssert(r != 0);
-	return r;
+	int iR = (iCultureLeftTimes100 + iCultureRateTimes100 - 1) / iCultureRateTimes100;
+	FAssert(iR != 0);
+	return iR;
 }
 
 
@@ -10284,105 +10273,80 @@ void CvCity::doCulture()
 }
 
 /*	This function has essentially been rewritten for K-Mod.
-	(and it used to not be 'times 100')
-	A note about scale: the city plot itself gets roughly 10x culture.
-	The outer edges of the cultural influence get 1x culture
-	(ie. the influence that extends beyond the borders). */
+	(and it used to not be 'times 100') */
 void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer,
 	int iCultureRateTimes100, bool bCityCulture)
 {
-	FAssert(ePlayer != NO_PLAYER);
-
 	if (GC.getPythonCaller()->doPlotCultureTimes100(*this, ePlayer, bUpdate, iCultureRateTimes100))
 		return;
+	CultureLevelTypes const eCultureLevel = getCultureLevel(ePlayer);
 
-	CultureLevelTypes eCultureLevel = (CultureLevelTypes)0;
-	if (getOwner() == ePlayer)
-		eCultureLevel = getCultureLevel();
-	else
-	{
-		for (int i = GC.getNumCultureLevelInfos() - 1; i > 0; i--)
-		{
-			if (getCultureTimes100(ePlayer) >=
-				100 * GC.getGame().getCultureThreshold((CultureLevelTypes)i))
-			{
-				eCultureLevel = (CultureLevelTypes)i;
-				break;
-			}
-		}
-	}
-
-	/*  K-Mod, 30/oct/10
+	/*  K-Mod, 30/oct/10: start
 		increased culture range, added a percentage based distance bonus
-		(decreasing the importance of the flat rate bonus). */
-	// (original bts code deleted)
-
-	// Experimental culture profile...
-	// Ae^(-bx). A = 10 (no effect), b = log(full_range_ratio)/range
-	// (iScale-1)(iDistance - iRange)^2/(iRange^2) + 1
-	// This approximates the exponential pretty well
-	const int iScale = 10;
-	const int iCultureRange = eCultureLevel + 3;
+		(decreasing the importance of the flat rate bonus).
+	Experimental culture profile ...
+	Ae^(-bx). A = 10 (no effect), b = log(full_range_ratio)/range */
 	//const int iOuterRatio = 10;
 	//const double iB = log((double)iOuterRatio)/iCultureRange;
+	/*	(iScale-1)(iDistance - iRange)^2/(iRange^2) + 1
+		This approximates the exponential pretty well */
+	int const iExtraRange = 3;
+	// advc: Was 10 - should still be 10.
+	int const iScale = GC.getNumCultureLevelInfos() + iExtraRange;
+	int const iCultureRange = eCultureLevel + iExtraRange;
 
-	// free culture bonus for cities
-	iCultureRateTimes100 += (bCityCulture ? 400 : 0);
+	if (bCityCulture)
+	{
+		FAssertMsg(iCultureRateTimes100 >= 0, "dubious");
+		// <advc> Putting this XML define back to use
+		static int const iCITY_FREE_CULTURE_GROWTH_FACTOR = GC.getDefineINT("CITY_FREE_CULTURE_GROWTH_FACTOR");
+		iCultureRateTimes100 += iCITY_FREE_CULTURE_GROWTH_FACTOR * 100; // </advc>
+	}
 
-	// note, I took out "if (getCultureTimes100(ePlayer) > 0)".
 	if (eCultureLevel == NO_CULTURELEVEL ||
-		(abs(iCultureRateTimes100 * iScale) < 100 && !bCityCulture))
+		//getCultureTimes100(ePlayer) <= 0
+		abs(iCultureRateTimes100 * iScale) < 100)
 	{
 		return;
 	}
 	// <advc.025>
 	scaled rCultureToMaster = 1;
-	if(GET_TEAM(getTeam()).isCapitulated())
+	if (GET_TEAM(getTeam()).isCapitulated())
 	{
 		static scaled const rCAPITULATED_TO_MASTER_CULTURE_PERCENT = per100(
 				GC.getDefineINT("CAPITULATED_TO_MASTER_CULTURE_PERCENT"));
 		rCultureToMaster = rCAPITULATED_TO_MASTER_CULTURE_PERCENT;
 	} // </advc.025>
-	for (int iDX = -iCultureRange; iDX <= iCultureRange; iDX++)
+	for (SquareIter itPlot(getPlot(), iCultureRange); itPlot.hasNext(); ++itPlot)
 	{
-		for (int iDY = -iCultureRange; iDY <= iCultureRange; iDY++)
+		int iDistance = cultureDistance(itPlot.currXDist(), itPlot.currYDist());
+		if(iDistance > iCultureRange)
+			continue;
+		CvPlot& p = *itPlot;
+		if ((p.isWater() && // advc.098
+			!p.isPotentialCityWorkForArea(getArea())) ||
+			(!isArea(p.getArea()) && iDistance > eCultureLevel + 1)) // advc.098
 		{
-			int iDistance = cultureDistance(iDX, iDY);
-			if(iDistance > iCultureRange)
-				continue;
-			CvPlot* pLoopPlot = plotXY(getX(), getY(), iDX, iDY);
-			if (pLoopPlot == NULL || /* advc.098: */ (pLoopPlot->isWater() &&
-				!pLoopPlot->isPotentialCityWorkForArea(getArea())) ||
-				(!isArea(pLoopPlot->getArea()) && iDistance > eCultureLevel + 1)) // advc.098
-			{
-				continue;
-			}
-			//(eCultureLevel - iDistance) < 0 ? 0 : 1 + iCultureRateTimes100/100 + (eCultureLevel - iDistance) * 20; // BtS formula
-			//int iCultureToAdd = iCultureRateTimes100*((iScale-1)*(iDistance-iCultureRange)*(iDistance-iCultureRange) + iCultureRange*iCultureRange)/(100*iCultureRange*iCultureRange);
-			/*  <advc.001> Deleted some old K-Mod code that had been commented out.
-				The line above was the most recent K-Mod code. Causes an integer
-				overflow when a large amount of culture is added through the
-				WorldBuilder (e.g. 50000). Corrected below. (Also fixed in K-Mod 1.46.) */
-			scaled rCultureToAdd(iCultureRateTimes100, 100 * iCultureRange * iCultureRange);
-			int iDelta = iDistance - iCultureRange;
-			rCultureToAdd *= (iScale - 1) * iDelta * iDelta + iCultureRange * iCultureRange;
-			// </advc.001>  <advc.025>
-			if (pLoopPlot->getTeam() != getTeam() &&
-				pLoopPlot->getTeam() == GET_TEAM(getTeam()).getMasterTeam())
-			{
-				rCultureToAdd *= rCultureToMaster;
-			} // </advc.025>
-			// <kekm.23> Loss of tile culture upon city trade
-			if (rCultureToAdd.isNegative())
-			{
-				FAssert(iCultureRateTimes100 < 0);
-				int iPlotCulture = pLoopPlot->getCulture(ePlayer);
-				rCultureToAdd.flipSign();
-				rCultureToAdd.decreaseTo(iPlotCulture);
-			} // </kekm.23>
-			pLoopPlot->changeCulture(ePlayer, rCultureToAdd.round(),
-					bUpdate || !pLoopPlot->isOwned());
+			continue;
 		}
+		// BtS formula for culture to add (the 20 was "CITY_FREE_CULTURE_GROWTH_FACTOR"):
+		//eCultureLevel < iDistance ? 0 : (1 + iCultureRateTimes100/100 + (eCultureLevel - iDistance) * 20;
+		// K-Mod 1.45 (older K-Mod code deleted):
+		//int iCultureToAdd = iCultureRateTimes100*((iScale-1)*(iDistance-iCultureRange)*(iDistance-iCultureRange) + iCultureRange*iCultureRange)/(100*iCultureRange*iCultureRange);
+		/*  <advc.001> Secure this against overflow from culture added through WB.
+			(K-Mod 1.46 does so too - by using floating-point math.) */
+		scaled rDistFactor(SQR(iCultureRange - iDistance), SQR(iCultureRange));
+		scaled rCultureToAdd = per100(iCultureRateTimes100) * (1 + rDistFactor * (iScale - 1));
+		// </advc.001>  <advc.025>
+		if (p.getTeam() != getTeam() &&
+			p.getTeam() == GET_TEAM(getTeam()).getMasterTeam())
+		{
+			rCultureToAdd *= rCultureToMaster;
+		} // </advc.025>
+		// <kekm.23> Loss of tile culture upon city trade
+		if (rCultureToAdd.isNegative())
+			rCultureToAdd.increaseTo(-p.getCulture(ePlayer)); // </kekm.23>
+		p.changeCulture(ePlayer, rCultureToAdd.floor(), bUpdate || !p.isOwned());
 	} // K-Mod end
 }
 

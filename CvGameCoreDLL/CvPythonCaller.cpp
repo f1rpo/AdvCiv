@@ -774,6 +774,7 @@ bool CvPythonCaller::doPlotCultureTimes100(CvCity const& kCity, PlayerTypes ePla
 	CyCity* pyCity = new CyCity(kCity);
 	argsList.add(m_python.makePythonObject(pyCity));
 	argsList.add(bUpdate);
+	FAssert(ePlayer != NO_PLAYER);
 	argsList.add(ePlayer);
 	//argsList.add(iCultureRate);
 	argsList.add(iCultureRateTimes100 / 100); // K-Mod

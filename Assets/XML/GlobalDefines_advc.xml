@@ -126,6 +126,15 @@
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 
+	<!-- advc: Was 20 in BtS and was unused in K-Mod. The K-Mod formula works
+		 differently - free culture isn't multiplied by the culture level -,
+		 but there's still such a thing as free culture, so I'm putting this
+		 parameter back in use. Set to 4 for K-Mod behavior. -->
+	<Define> <!-- redefine -->
+		<DefineName>CITY_FREE_CULTURE_GROWTH_FACTOR</DefineName>
+		<iDefineIntVal>4</iDefineIntVal>
+	</Define>
+
     <!-- [advc.100]
 		 Only relevant if UWAI disabled (or only in the background).
 		 When an AI civ is willing to declare war in exchange for gold or tech,
