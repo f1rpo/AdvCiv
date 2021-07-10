@@ -25880,17 +25880,20 @@ int CvPlayerAI::AI_getAreaCultureDefendersNeeded(CvArea const& kArea) const
 }
 
 int CvPlayerAI::AI_countNumAreaHostileUnits(CvArea const& kArea, bool bPlayer, bool bTeam,
-	bool bNeutral, bool bHostile, /* advc.081: */ CvPlot* pCenter) const
+	bool bNeutral, bool bHostile, /* advc.081: */ CvPlot const* pCenter) const
 {
 	PROFILE_FUNC();
 
-	CvMap const& m = GC.getMap();
+	CvMap const& kMap = GC.getMap();
 	int iCount = 0;
-	if (pCenter == NULL) // advc.081
+	// <advc.081>
+	// We set the range, not the caller.
+	int const iRange = std::min<int>(13 + 2 * getCurrentEra(), kArea.getNumTiles());
+	if (pCenter == NULL || SQR(iRange) * 3 > kMap.numPlots())
 	{
-		for (int iI = 0; iI < m.numPlots(); iI++)
+		for (int i = 0; i < kMap.numPlots(); i++)
 		{
-			CvPlot const& kPlot = m.getPlotByIndex(iI);
+			CvPlot const& kPlot = kMap.getPlotByIndex(i);
 			// <advc.081> Moved into auxiliary function
 			if (kPlot.isArea(kArea))
 			{
@@ -25901,8 +25904,7 @@ int CvPlayerAI::AI_countNumAreaHostileUnits(CvArea const& kArea, bool bPlayer, b
 	}
 	else
 	{
-		// We set the range, not the caller - after all, this is an AI function.
-		for (SquareIter it(*pCenter, 13 + 2 * getCurrentEra()); it.hasNext(); ++it)
+		for (SquareIter it(*pCenter, iRange); it.hasNext(); ++it)
 		{
 			if (it->isArea(kArea))
 				iCount += it->countHostileUnits(getID(), bPlayer, bTeam, bNeutral, bHostile);

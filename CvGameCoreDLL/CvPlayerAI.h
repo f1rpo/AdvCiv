@@ -602,7 +602,7 @@ public:
 	int AI_getTotalAreaCityThreat(CvArea const& kArea) const;
 	int AI_getAreaCultureDefendersNeeded(CvArea const& kArea) const; // advc.099c
 	int AI_countNumAreaHostileUnits(CvArea const& kArea, bool bPlayer, bool bTeam, bool bNeutral, bool bHostile,
-			CvPlot* pCenter = NULL) const; // advc.081
+			CvPlot const* pCenter = NULL) const; // advc.081
 	int AI_getTotalFloatingDefendersNeeded(CvArea const& kArea,
 			bool bDebug = false) const; // advc.007
 	int AI_getTotalFloatingDefenders(CvArea const& kArea) const;
