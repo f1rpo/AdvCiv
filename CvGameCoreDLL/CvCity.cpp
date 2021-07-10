@@ -11216,17 +11216,17 @@ void CvCity::read(FDataStreamBase* pStream)
 	if (uiFlag < 8)
 	{
 		BuildingTypes eVersailles = (BuildingTypes)GC.getInfoTypeForString(
-				"BUILDING_VERSAILLES");
+				"BUILDING_VERSAILLES", true);
 		if (eVersailles != NO_BUILDING && getNumBuilding(eVersailles) > 0)
 		{
 			CvBuildingInfo const& kVersailles = GC.getInfo(eVersailles);
 			int iRateChange = kVersailles.getGreatPeopleRateChange();
 			UnitClassTypes eOldGPClass = (UnitClassTypes)GC.getInfoTypeForString(
-						"UNITCLASS_MERCHANT");
+						"UNITCLASS_MERCHANT", true);
 			UnitClassTypes eNewGPClass = (UnitClassTypes)kVersailles.getGreatPeopleUnitClass();
 			/*	To provide some safety against messing up savegames of a mod-mod
 				that may not have adopted this XML change */
-			if (eNewGPClass == GC.getInfoTypeForString("UNITCLASS_GREAT_SPY") &&
+			if (eNewGPClass == GC.getInfoTypeForString("UNITCLASS_GREAT_SPY", true) &&
 				iRateChange == 2 && eOldGPClass != NO_UNITCLASS)
 			{
 				UnitTypes eOldGPUnit = getCivilization().getUnit(eOldGPClass);
@@ -11244,15 +11244,15 @@ void CvCity::read(FDataStreamBase* pStream)
 	if (uiFlag < 10)
 	{
 		SpecialistTypes eSpy = (SpecialistTypes)GC.getInfoTypeForString(
-				"SPECIALIST_SPY");
+				"SPECIALIST_SPY", true);
 		if (eSpy != NO_SPECIALIST)
 		{
 			std::vector<std::pair<BuildingClassTypes,int> > aeiSpyChanges;
 			aeiSpyChanges.push_back(std::make_pair((BuildingClassTypes)
-					GC.getInfoTypeForString("BUILDINGCLASS_COURTHOUSE"),
+					GC.getInfoTypeForString("BUILDINGCLASS_COURTHOUSE", true),
 					1));
 			aeiSpyChanges.push_back(std::make_pair((BuildingClassTypes)
-					GC.getInfoTypeForString("BUILDINGCLASS_JAIL"),
+					GC.getInfoTypeForString("BUILDINGCLASS_JAIL", true),
 					-1));
 			for (size_t i = 0; i < aeiSpyChanges.size(); i++)
 			{
@@ -11273,21 +11273,21 @@ void CvCity::read(FDataStreamBase* pStream)
 		} // </advc.911a>
 		// <advc.908b>
 		BuildingTypes eHippodrome = (BuildingTypes)
-					GC.getInfoTypeForString("BUILDING_BYZANTINE_HIPPODROME");
+					GC.getInfoTypeForString("BUILDING_BYZANTINE_HIPPODROME", true);
 		if (eHippodrome != NO_BUILDING && getNumBuilding(eHippodrome) > 0 &&
 			!GET_TEAM(getTeam()).isObsoleteBuilding(eHippodrome))
 		{
 			SpecialistTypes eArtist = (SpecialistTypes)GC.getInfoTypeForString(
-					"SPECIALIST_ARTIST");
+					"SPECIALIST_ARTIST", true);
 			if (eArtist != NO_SPECIALIST)
 				changeMaxSpecialistCount(eArtist, getNumBuilding(eHippodrome));
 		}
 		std::vector<std::pair<BuildingClassTypes,int> > aeiCultureHappyMults;
 		aeiCultureHappyMults.push_back(std::make_pair((BuildingClassTypes)
-				GC.getInfoTypeForString("BUILDINGCLASS_THEATRE"),
+				GC.getInfoTypeForString("BUILDINGCLASS_THEATRE", true),
 				50));
 		aeiCultureHappyMults.push_back(std::make_pair((BuildingClassTypes)
-				GC.getInfoTypeForString("BUILDINGCLASS_COLOSSEUM"),
+				GC.getInfoTypeForString("BUILDINGCLASS_COLOSSEUM", true),
 				200));
 		for (size_t i = 0; i < aeiCultureHappyMults.size(); i++)
 		{
@@ -11306,8 +11306,40 @@ void CvCity::read(FDataStreamBase* pStream)
 							(iNewHappy - iOldHappy) * getNumBuilding(eLoopBuilding));
 				}
 			}
+		} // </advc.908b>
+		// <advc.160>
+		if (GC.getGame().isOption(GAMEOPTION_NO_SLAVERY) && isHuman())
+		{
+			BuildingClassTypes eGranary = (BuildingClassTypes)
+					GC.getInfoTypeForString("BUILDINGCLASS_GRANARY", true);
+			if (eGranary != NO_BUILDINGCLASS)
+			{
+				int iGranaries = getNumBuilding(eGranary);
+				if (iGranaries > 0 && getMaxFoodKeptPercent() >= 40)
+					changeMaxFoodKeptPercent(10 * iGranaries);
+			}
+		} 
+	} // </advc.160>
+	// <advc.201>
+	if (uiFlag < 11)
+	{
+		char const* aeChangedWonders[] =
+		{
+			"BUILDINGCLASS_STONEHENGE", 
+			"BUILDINGCLASS_ARTEMIS",
+			"BUILDINGCLASS_SISTINE_CHAPEL"
+		};
+		for (int i = 0; i < ARRAYSIZE(aeChangedWonders); i++)
+		{
+			BuildingClassTypes eLoopWonder = (BuildingClassTypes)
+					GC.getInfoTypeForString(aeChangedWonders[i], true);
+			if (eLoopWonder != NO_BUILDINGCLASS && getNumBuilding(eLoopWonder) > 0)
+			{
+				updateCommerce(COMMERCE_CULTURE);
+				break;
+			}
 		}
-	} // </advc.908b>
+	} // </advc.201>
 }
 
 void CvCity::write(FDataStreamBase* pStream)
@@ -11324,7 +11356,8 @@ void CvCity::write(FDataStreamBase* pStream)
 	//uiFlag = 7; // advc.003u: m_bChooseProductionDirty
 	//uiFlag = 8; // advc.310
 	//uiFlag = 9; // advc.912d (adjust food kept)
-	uiFlag = 10; // advc.911a, advc.908b
+	//uiFlag = 10; // advc.911a, advc.908b
+	uiFlag = 11; // advc.201 (wonder culture rate tweaks)
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iID);
