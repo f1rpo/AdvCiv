@@ -87,10 +87,10 @@ inline float MaxFloat() { return DWtoF(0x7f7fffff); }*/
 
 /*	advc: Get the limits of an integer type of at most 4 bytes length
 	(bool doesn't count either) -- since we don't have SIZE_MIN/MAX (cstdint),
-	nor boost::integer_traits<IntType>::const_max.
+	nor boost::integer_traits<T>::const_max.
 	We do have std::numeric_limits<T>::min and max, but those are functions,
 	so they can't e.g. be used in static assertions. std::numeric_limits<T>::is_signed
-	is a constant, but let's nevertheless take of that here too, so that
+	is a constant, but let's nevertheless take care of that here too, so that
 	integer_limits and numeric_limits won't have to be used side by side. */
 template<typename T>
 struct integer_limits;
