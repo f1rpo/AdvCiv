@@ -6911,7 +6911,7 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 		pAttackedPlot = plot();
 
 	if (pCombatDetails != NULL)
-		pCombatDetails->reset(getOwner(), getVisualOwner(), getName().c_str()); // advc
+		pCombatDetails->reset(getOwner(), getVisualOwner()/*, getName().c_str()*/); // advc
 
 	if (baseCombatStr() == 0)
 		return 0;

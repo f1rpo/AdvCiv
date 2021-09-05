@@ -1254,15 +1254,17 @@ struct CombatDetails											// Exposed to Python
 	int iCurrCombatStr;
 	PlayerTypes eOwner;
 	PlayerTypes eVisualOwner;
-	std::wstring sUnitName;
+	// <advc>
+	// Unused - and gets in the way of zeroing the memory
+	//std::wstring sUnitName;
 	// advc:
-	void reset(PlayerTypes eOwner, PlayerTypes eVisualOwner, std::wstring sUnitName)
+	void reset(PlayerTypes eOwner, PlayerTypes eVisualOwner/*, std::wstring sUnitName*/)
 	{
 		ZeroMemory(this, sizeof(*this));
 		this->eOwner = eOwner;
 		this->eVisualOwner = eVisualOwner;
-		this->sUnitName = sUnitName;
-	}
+		//this->sUnitName = sUnitName;
+	} // </advc>
 };
 
 #endif
