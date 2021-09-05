@@ -4070,7 +4070,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 			szTempBuffer.Format(L"\nAreaScore: %d", total); szString.append(szTempBuffer);
 		}
 	} // </advc.027>
-	if(bShift && !bAlt)
+	if (bShift && !bAlt)
 	{
 		// BETTER_BTS_AI_MOD, DEBUG, 07/11/08, jdog5000
 		// advc.007: BBAI showed this regardless of pressed buttons
@@ -4097,14 +4097,14 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 		} // BETTER_BTS_AI_MOD: END
 		// <advc.test>, advc.104b
 		{
-			static CvPlot const* pOldPlot = NULL;
-			static CvUnit const* pOldUnit = NULL;
-			static int iCost = MAX_INT;
-			static int iLength = MAX_INT;
 			CvUnit const* pUnit = gDLL->UI().getHeadSelectedUnit();
 			CvPlot const* pPlot = gDLL->UI().getMouseOverPlot();
 			if (pUnit != NULL && pPlot != NULL)
 			{	// Avoid lag from computing the same path over and over
+				static CvPlot const* pOldPlot = NULL;
+				static CvUnit const* pOldUnit = NULL;
+				static int iCost = MAX_INT;
+				static int iLength = MAX_INT;
 				if (pPlot != pOldPlot || pUnit != pOldUnit)
 				{
 					pOldPlot = pPlot;
@@ -19745,7 +19745,6 @@ void CvGameTextMgr::parseLeaderHeadRelationsHelp(CvWStringBuffer &szBuffer,
 void CvGameTextMgr::setFoodHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 {
 	CvYieldInfo const& kFood = GC.getInfo(YIELD_FOOD);
-	bool bNeedSubtotal = false;
 	int iBaseRate = 0;
 	bool bSimple = true; // advc.087
 
@@ -19770,7 +19769,6 @@ void CvGameTextMgr::setFoodHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_SPECIALIST_COMMERCE",
 				iTradeFood, kFood.getChar(), L"TXT_KEY_HEADING_TRADEROUTE_LIST"));
 		iBaseRate += iTradeFood;
-		bNeedSubtotal = true;
 	}
 	// Specialists
 	int iSpecialistFood = 0;
@@ -19788,7 +19786,6 @@ void CvGameTextMgr::setFoodHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_SPECIALIST_COMMERCE",
 				iSpecialistFood, kFood.getChar(), L"TXT_KEY_CONCEPT_SPECIALISTS"));
 		iBaseRate += iSpecialistFood;
-		bNeedSubtotal = true;
 	}
 	// Corporations
 	int iCorporationFood = kCity.getCorporationYield(YIELD_FOOD);
@@ -19799,7 +19796,6 @@ void CvGameTextMgr::setFoodHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_CORPORATION_COMMERCE",
 				iCorporationFood, kFood.getChar()));
 		iBaseRate += iCorporationFood;
-		bNeedSubtotal = true;
 	}
 	// Buildings
 	int iBuildingFood = 0;
@@ -19820,7 +19816,6 @@ void CvGameTextMgr::setFoodHelp(CvWStringBuffer &szBuffer, CvCity const& kCity)
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_BUILDING_COMMERCE",
 				iBuildingFood, kFood.getChar()));
 		iBaseRate += iBuildingFood;
-		bNeedSubtotal = true;
 	}
 	// Base and modifiers (only if there are modifiers since total is always shown)
 	if(kCity.getBaseYieldRateModifier(YIELD_FOOD) != 100)

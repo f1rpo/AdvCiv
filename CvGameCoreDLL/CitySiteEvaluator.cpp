@@ -3211,7 +3211,7 @@ scaled AIFoundValue::evaluateWorkablePlot(CvPlot const& p) const
 		int iRemovableFeatureYieldVal = removableFeatureYieldVal(
 				eFeature, bRemovableFeature, eBonus != NO_BONUS);
 		int iNonPersistentFeatureYieldVal = removableFeatureYieldVal(
-				eFeature, !bPersistentFeature, eBonus != NO_BONUS);
+				eFeature, true, eBonus != NO_BONUS);
 		/*	Weighted average to account for chopping becoming available later.
 			Mostly treat chopping as available b/c Jungle seems to get valued
 			too lowly; I guess b/c bonus improvement yields aren't counted. */

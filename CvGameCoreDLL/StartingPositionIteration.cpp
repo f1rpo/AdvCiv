@@ -1797,8 +1797,7 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 			// Focus on negative outliers while the avg. error is high
 			scaled rNegativeOutlierExtraWeight = fixp(1.15) * 
 					(m_currSolutionAttribs.m_rAvgError - fixp(0.1));
-			// A little bit of randomness
-			if (iStepsConsidered % 2 == 0)
+			if (iStepsConsidered % 2 == 0) // A little bit of variation
 				rNegativeOutlierExtraWeight += fixp(0.25);
 			scaled rDummy;
 			scaled rOutlierVal = outlierValue(m_currSolutionAttribs.m_startValues,

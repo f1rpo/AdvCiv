@@ -172,7 +172,7 @@ protected:
 		m_iPos = 0;
 		// Cache the cache size (std::vector computes it as 'end' minus 'begin')
 		m_iCacheSize = static_cast<short>(m_pCache->size());
-		//generateNext(); // Leave this up to the ctor of Derived
+		m_pNext = NULL; //generateNext(); // Leave this up to the ctor of Derived
 	}
 
 	AgentIterator& operator++()
