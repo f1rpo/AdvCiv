@@ -14167,9 +14167,9 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>NONE</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<PrereqTech>TECH_MILITARY_TRADITION</PrereqTech>
+			<PrereqTech>TECH_RIFLING</PrereqTech>
 			<TechTypes>
-				<PrereqTech>TECH_RIFLING</PrereqTech>
+				<PrereqTech>TECH_MILITARY_TRADITION</PrereqTech>
 				<PrereqTech>TECH_HORSEBACK_RIDING</PrereqTech>
 				<PrereqTech>NONE</PrereqTech>
 			</TechTypes>
