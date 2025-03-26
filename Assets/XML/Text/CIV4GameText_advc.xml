@@ -7069,5 +7069,29 @@
 		<Italian>(aumentato per non praticare %s2_ReligionOrCivic)</Italian>
 		<Spanish>(aumentado por no practicar %s2_ReligionOrCivic)</Spanish>
 	</TEXT>
+	
+	<TEXT> <!-- redefine -->
+ 		<Tag>TXT_KEY_EVENTTRIGGER_CARELESS_APPRENTICE</Tag>
+ 		<!-- custom: When this event is called, the active player has several options to choose from. Only some of these options,
+ 		not all, would result in the forge actually being destroyed. However, regardless of the option chosen by the active player,
+ 		(even if the active player chooses "Organize a rebuilding effort" to preserve the forge), the active player still gets this
+ 		message as a result (that the forge was destroyed), which is misleading (as it did not actually happen, the forge is still
+ 		there), as some of the options to choose from result in the forge not being destroyed.
+ 		Fixing this by changing this message by one that does not assume one specific option chosen by the player, but instead
+ 		fits well With all possible options the active player can choose from.
+ 		Also using ... at the end to make it clearer, in the cases where the forge is not destroyed, that the fire happening
+ 		is not the end of the story. If fire was destroyed, then these ... could symbolize that an event happened and a	fire
+ 		happening was only part of the event (that still destroyed the forge). Accidentally discovered the .. while copy pasting
+ 		from the bot translator, i think it makes it even clearer hopefully so adding this "..." too.
+ 		Translated with Quill Bot for non-english languages.
+ 		note: make sure while using translator to not have accidentally translated the variable(s)'s name(s)
+ 		(for example %s1_civ_adjective into something else (for example %s1_civ_aggettivo)).
+ 		-->
+ 		<English>The Forge in the %s1_civ_adjective city of %s2_city has caught fire.</English>
+ 		<French>La forge dans la ville %s1_civ_adjective de %s2_city a pris feu.</French>
+ 		<German>Die Schmiede in der %s1_civ_adjective Stadt %s2_city hat Feuer gefangen.</German>
+ 		<Italian>La Fucina nella città %s1_civ_adjective di %s2_city ha preso fuoco.</Italian>
+ 		<Spanish>La forja en la ciudad %s1_civ_adjective de %s2_city se ha incendiado.</Spanish>
+ 	</TEXT>
 
 </Civ4GameText>
