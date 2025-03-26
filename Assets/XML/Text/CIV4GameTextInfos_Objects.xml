@@ -5093,27 +5093,71 @@
 			<Plural>1</Plural>
 		</Spanish>
 	</TEXT>
+	<!-- custom: ice feature and terrain have the same name which is very
+	confusing, when navigating the sevopedia for example or even in game.
+	After a bit of research i mean, i found this quite helpful for example:
+	https://www.antarctica.gov.au/about-antarctica/ice-and-atmosphere/
+	Based on this, ice water would be "sea ice", and ice land would be
+	"ice sheets".
+	Due to the technicality of the terms, i did not translate them but went
+	to a wiki or something to move from one page in a language to the same
+	page in another language.
+	Hopefully this approach to renaming ice is accurate enough as i don't know
+	a lot about ice (but read quite a bit now i mean), but most importantly,
+	maybe it helps clear the confusion existing about Ice/Water and Ice/Land (
+	note: be careful if ending line here, vs code creates transforms the word
+	Land into a <Land></Land> tag)
+    both being shown as "Ice", hence not being able to understand the
+	different properties of each in sevopedia for example (not being able
+	to settle on Ice/Water for example but possible in Ice/Land if i am not
+	mistaken).
+	About the singular and plural forms, i found the information here about
+	the <Plural>0:1</Plural> tag:
+	https://modiki.civfanatics.com/index.php/Civ4_XML_Text
+	To quote it:
+	"Plural (optional) - 0 = singular, 1 = plural. Many text keys have 0:1
+	to include both singular and plural. Usually used where the plural is
+	something different than an 's' added to the end."
+	End of quotation i mean anyways.
+	About sea ice: https://en.wikipedia.org/wiki/Sea_ice i mean; i took the
+	translations from there, not from a translator i mean. And after having
+	the word equivalent in the specific language i mean anyways, then i
+	looked for dictionnaries listing the singular plural forms and gender
+	i mean anyways if i could find it, still not using translators i mean
+	anyways.
+		-->
 	<TEXT>
 		<Tag>TXT_KEY_FEATURE_ICE</Tag>
-		<English>Ice</English>
+		<English>Sea Ice</English>
+		<!-- custom: could not find a dictionnary listing the French
+		expression "Glace de mer" i mean anyways (so that i could find if
+		there is a specific	word for it, but considering how close it is
+		to the original civ4 French name i mean anyways, maybe it is safe
+		(enough) (should be i think i mean anyways hopefully). At least
+		it has a clearer name now i mean maybe.
+		i mean anyways.) -->
 		<French>
-			<Text>Glace</Text>
+			<Text>Glace de mer</Text>
 			<Gender>Female</Gender>
 			<Plural>0</Plural>
 		</French>
+		<!-- custom: https://en.wiktionary.org/wiki/Meereis -->
 		<German>
-			<Text>Eis</Text>
+			<Text>Meereis</Text>
 			<Gender>Male</Gender>
 			<Plural>0</Plural>
 		</German>
+		<!-- custom: singular and plural forms available here for example:
+		https://en.wiktionary.org/wiki/banchisa i mean anyways -->
 		<Italian>
-			<Text>Ghiaccio:Ghiacci</Text>
-			<Gender>Male</Gender>
+			<Text>Banchisa:Banchise</Text>
+			<Gender>Female</Gzzzzender>
 			<Plural>0:1</Plural>
 		</Italian>
+		<!-- custom: https://glosbe.com/en/es/sea%20ice -->
 		<Spanish>
-			<Text>Hielo:Hielos</Text>
-			<Gender>Male</Gender>
+			<Text>Banquisa:Banquisas</Text>
+			<Gender>Female</Gender>
 			<Plural>0:1</Plural>
 		</Spanish>
 	</TEXT>
@@ -5431,7 +5475,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_TERRAIN_ICE</Tag>
-		<English>Ice</English>
+		<English>Ice2</English>
 		<French>
 			<Text>Glace</Text>
 			<Gender>Female</Gender>
