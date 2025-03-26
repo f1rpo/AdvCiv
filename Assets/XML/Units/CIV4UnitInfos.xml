@@ -10333,10 +10333,10 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>NONE</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<PrereqTech>TECH_FASCISM</PrereqTech>
+			<PrereqTech>TECH_FLIGHT</PrereqTech>
 			<TechTypes>
+				<PrereqTech>TECH_FASCISM</PrereqTech>
 				<PrereqTech>TECH_RIFLING</PrereqTech>
-				<PrereqTech>TECH_FLIGHT</PrereqTech>
 				<PrereqTech>NONE</PrereqTech>
 			</TechTypes>
 			<BonusType>NONE</BonusType>
