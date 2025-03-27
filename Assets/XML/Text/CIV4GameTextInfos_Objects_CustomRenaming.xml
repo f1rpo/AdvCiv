@@ -73,34 +73,33 @@
 			<Plural>0:1</Plural>
 		</Spanish>
 	</TEXT>
-	<!-- custom: renamed and "translated" using the same approach as for
-	the sea feature, see how i did in TXT_KEY_FEATURE_ICE for details -->
+	<!-- custom: i had initially intended to use the same approach for the
+	"Ice" land terrain i mean anyways, however after (a bit of) further
+	research in this case or not i mean anyways, actually the first antartica
+	link i linked above may have been a bit restrictive and simply describing
+	the types of ice that exist	in the antarctica, rather than possible types
+	of ices that exist on land as i would want (and then could choose from
+	the	one i want i mean anyways).
+	The information here https://en.wikipedia.org/wiki/Ice#On_land seems
+	to be more general for example.
+	After a bit more consideration and reflecting i mean anyways,
+	seeing as:
+	- ice spawns on many types of "terrains" in civ4 (one term may not
+	encompass all or/and be misleading maybe i mean anyways)
+	- there is no more confusion now that "Sea Ice" and "Ice" (/Land)
+	have now 2 separate names i mean anyways
+	- it may be (needlessly (?)) complicated i mean anyways to translate
+	all them again, plus some results may be inaccurate if i choose
+	restrictive definitions i mean anyways.
+	I have decided i mean anyways, at least i think it's just better or
+	simpler/most fit in this case maybe to keep it as "Ice" (and their)
+	translations without modifying the civ4 code i mean anyways.
+	Keeping this asset for exhaustiveness. I don't know how useful it
+	would be, but now in this case i mean anyways all related data is
+	gathered in one place (maybe for easier review or/and possibly
+	editing later, even though it may also stay as is i mean anyways,
+	hopefully this helps or is as is i mean anwyays. -->
 	<TEXT>
-		<!-- custom: after (a bit of) further research i mean anyways,
-		actually the first antartica link i linked above may have been a
-		bit restrictive and simply describing the types of ice that exist
-		in the antarctica, rather than possible types of ices that exist
-		on land as i would want (and then could choose from the one i want
-		i mean anyways).
-		The information here https://en.wikipedia.org/wiki/Ice#On_land seems
-		to be more general for example.
-		After a bit more consideration and reflecting i mean anyways,
-		seeing as:
-		- ice spawns on many types of "terrains" in civ4 (one term may not
-		encompass all or/and be misleading maybe i mean anyways)
-		- there is no more confusion now that "Sear Ice" and "Ice" (/Land)
-		have now 2 separate names i mean anyways
-		- it may be (needlessly (?)) complicated i mean anyways to translate
-		all them again, plus some results may be inaccurate if i choose
-		restrictive definitions i mean anyways.
-		I have decided i mean anyways, at least i think it's just better or
-		simpler/most fit in this case maybe to keep it as "Ice" (and their)
-		translations without modifying the civ4 code i mean anyways.
-		Keeping this asset for exhaustiveness. I don't know how useful it
-		would be, but now in this case i mean anyways all related data is
-		gathered in one place (maybe for easier review or/and possibly
-		editing later, even though it may also stay as is i mean anyways,
-		hopefully this helps or is as is i mean anwyays. -->
 		<Tag>TXT_KEY_TERRAIN_ICE</Tag>
 		<English>Ice</English>
 		<French>
