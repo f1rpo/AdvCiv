@@ -143,20 +143,20 @@
 	sense to use "Elephants" instead of ivory i think i mean anyways. One could
 	also maybe imagine that elephants the animal itself makes people happy, like
 	for the zoo or something?
-	note: Since they are countable and civ4 doesn't seem to bother with singulars
-	here i mean anyways (and i like it better this way and/or also thinks its
-	more fit to this i mean anyways), i will also only use plurals i mean anyways.
-	Based on the 2 bullet points before that note i mean anyways, using an 
-	approach similar than for the "ice" renaming to "ice land" i mean anyways,
-	but much more simple as i can directly fetch the wikipedia page if it has the
-	plural form, or a dictionnary alternatively i mean anyways. Here is the result
-	From: https://en.wikipedia.org/wiki/Elephant,
-	To: dictionnaires that may list the plural form in each language of these
-	i mean anyways, or if it's too much hassle directly translate in a translator
-	the english plural form to desired language's plural (see the italian
-	translation	for example i mean anyways), seems to work quite well and much
-	easier, especially for not technical terms like ice maybe if i may say i
-	mean anyways but just my opinion/thought/view on it i mean anyways. -->
+	note: Since they are part of the animals that are countable in english rather
+	than uncountable (see discussion (actually link and my code comments i mean
+	anyways..) below about cattle if i am not mistaken) and seeing that civ4
+	doesn't seem to bother with singulars too much about animals at least i mean
+	anyways, (and i like it	better this way and/or also thinks itsmore fit to this
+	i mean anyways).
+	As for the elephants (and not the cattle below or similar type of animals i
+	mean anyways), based on the 2 bullet points before that note i mean anyways,
+	and using an approach similar than for the "ice" renaming to "ice land" i
+	mean anyways, but much more simple as i can directly fetch the wikipedia page
+	if it has the plural form, or a dictionnary alternatively i mean anyways,
+	here is the result, from https://en.wikipedia.org/wiki/Elephant,
+	leading to dictionnaires or translators, after some double checking sometimes
+	ideally too i mean anyways in other website in this case i mean anyways : -->
 	<TEXT>
 		<Tag>TXT_KEY_BONUS_IVORY</Tag>
 		<!-- custom: https://en.wiktionary.org/wiki/elephant -->
@@ -192,11 +192,14 @@
 		</Spanish>
 	</TEXT>
 
-	<!-- custom: similarly to what was done with the elephants, use the
-	plural form for animals:
-	-1) there is not only one animal on the tile
-	-2) we trade not only one but many animals
-	Using cattle however rather than cows as it applies to all sexes of the cows,
+	<!-- custom: similarly to what was done with the elephants, try to find a better
+	fitting word. Be careful, according to, for example:
+	https://forum.wordreference.com/threads/sheep-countable-uncountable.2057034/post-13154720 ,
+	some animals are (best fit as i mean?) countable (5 cats for example) while others
+	are best fit at singular (5 sheep for example)
+	There is less gains in changing what is already working (and maybe more accurate in this case)
+	i mean anyways. But specifically for cattle however rather than cows as it applies to all sexes
+	of the cows,
 	while still being specific and not generic if i'm not mistaken i mean anyways:
 	https://www.idausa.org/campaign/guardian/latest-news/difference-cows-cattle-meaning/#:~:text=The%20difference%20between%20cows%20and,strictly%20to%20mature%20female%20bovines.
 	https://context.reverso.net/translation/english-french/cows
@@ -205,8 +208,6 @@
 	– The Bible, Deuteronomy 28:4
 	So i think it's very immersive and nice to use cattle here too on top of being
 	more accurate it seems i mean anyways
-	Since cattle is a plural form only if i'm not mistaken i mean anyways, leaving as is
-	too i mean anyways
 	-->
 	<TEXT>
 	<Tag>TXT_KEY_BONUS_COW</Tag>
@@ -235,31 +236,36 @@
 		<Plural>0</Plural>
 	</German>
 	<!-- custom: https://context.reverso.net/translation/english-italian/cattle
-	suggests "bestiame" but the existing civ4 bovini seems more accurate so
-	keeping it, but only the plural form i mean anyways, so throw some caution
-	at the examples it gives (do reverse translate or search on google or some
-	other engine/place i mean anyways, but generally is very good, as it also
-	suggest the gender too of the words and their (what seems like theirs i mean
-	anyways) synonyms i mean anyways) -->
+	suggests "bestiame" but the existing civ4 bovino seems more accurate so
+	keeping it, so throw some caution at the examples it gives (do reverse
+	translate or search on google or some other engine/place i mean anyways,
+	but generally is very good, as it also suggest the gender too of the words
+	and their (what seems like theirs i mean anyways) synonyms i mean anyways) -->
 	<Italian>
-		<Text>Bovini</Text>
+		<Text>Bovino</Text>
 		<Gender>Male</Gender>
 		<Plural>0</Plural>
 	</Italian>
 	<!-- custom: https://context.reverso.net/translation/english-spanish/cattle
-	
-	the suggested reses (example of reverse translation check
-	maybe good opportunity or not or yes in this case i mean anyways:
+	the suggested reses (this is maybe a good maybe i mean anyways example of
+	reverse translation i mean anyways):
 	https://context.reverso.net/translation/spanish-english/reses)
 	i did not look in detail but it seems more linked to butchering/livestock(?),
 	but may be mistaken as i did not look in details i mean anyways, as bovinos
-	suggested by reverso.net among others should be good enough maybe in this,
-	case i mean anyways, and so does ganado too after a quick search i mean
-	anyways:
-	https://www.collinsdictionary.com/dictionary/spanish-english/ganado -->
+	(from the first link in italian cattle's XML i mean anyways) suggested by
+	reverso.net among others should be good enough maybe in this, case i mean
+	anyways, and so does ganado too after a quick search i mean anyways:
+	https://www.collinsdictionary.com/dictionary/spanish-english/ganado
+	A good approach may be to just pick the ones with the most amount of
+	relevant examples after	checking them, to avoid to have to check if
+	singular or plural depending on the language i mean anyways, so would be
+	this for example maybe i mean anyways:
+	https://context.reverso.net/translation/english-spanish/cattle#bovinos -->
 	<Spanish>
 		<Text>Bovinos</Text>
-		<Gender>Female</Gender>
+		<!-- custom: is masculine:
+		https://www.spanishdict.com/translate/bovidos#:~:text=bovinos,Masculine%20pluralofbovino(adjective) -->
+		<Gender>Male</Gender>
 		<Plural>1</Plural>
 	</Spanish>
 	</TEXT>
