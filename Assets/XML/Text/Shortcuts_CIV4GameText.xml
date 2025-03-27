@@ -103,8 +103,7 @@
 	Admittedly, i don't know a lot about XML if i may say i mean anyways, but i did
 	some researching (and experimenting and this is what seems to me:
 	- 0) word wrap (in vs code) helps a lot navigate these very long lines
-	- 1) instead of writing 
-, just pressing Enter key (of the keyboard i mean
+	- 1) instead of writing, just pressing Enter key (of the keyboard i mean
 	anyways) displays the same result ingame as if a NEWLINE was added, but so much
 	easier to read.
 	(note: it took me some while to understand how it works but is very fun maybe i 
@@ -124,7 +123,7 @@
 	but not one full line, but for now just trying to make it work and cleaning up the
 	XML i mean anyways).
 
-	Example:
+	Example before:
 
 	[H1]Advisors[\H1]
 [BOLD][COLOR_HIGHLIGHT_TEXT]F1[COLOR_REVERT][\BOLD][TAB][TAB][TAB][TAB]Domestic Advisor
@@ -132,7 +131,7 @@
 [BOLD][COLOR_HIGHLIGHT_TEXT]F2[COLOR_REVERT][\BOLD][TAB][TAB][TAB][TAB]Financial Advisor
 
 
-	Versus i mean anyways:
+	Versus after in this case i mean anyways:
 
 	[H1]Advisors[\H1]
 	[BOLD][COLOR_HIGHLIGHT_TEXT]F1[COLOR_REVERT][\BOLD][TAB][TAB][TAB][TAB]Domestic Advisor
@@ -153,9 +152,10 @@
 	anyways, now 900+ lines are so much more readable i mean anyways (hopefully this
 	doesn't break anything, at least i tested it to work for a few lines i mean anyways,
 	if it doesn't maybe there's a bug somewhere else?)
-	This approach allowed me to spot some weirdness like double lines skipped or something,
-	so automation and clarity in this case i mean anyways help a lot if i may say i mean
-	anyways.
+	This approach allowed me to spot some weirdness like tags not indented at same level
+	even though functionally is the same though or should be i think i mean anwyays,
+	automation (still doing manually if i may say i mean anyways..) and clarity in this
+	help to spot mistakes if there were any in this case i mean anyways.
 
 	Finally, fix the indentation, select a block of code text i mean anyways with the mouse,
 	containing all the inner text from <Tag> (excluded) to </Tag> (excluded), and press tab
