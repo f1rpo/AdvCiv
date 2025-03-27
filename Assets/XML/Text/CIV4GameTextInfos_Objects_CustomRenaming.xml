@@ -191,4 +191,76 @@
 			<Plural>0</Plural>
 		</Spanish>
 	</TEXT>
+
+	<!-- custom: similarly to what was done with the elephants, use the
+	plural form for animals:
+	-1) there is not only one animal on the tile
+	-2) we trade not only one but many animals
+	Using cattle however rather than cows as it applies to all sexes of the cows,
+	while still being specific and not generic if i'm not mistaken i mean anyways:
+	https://www.idausa.org/campaign/guardian/latest-news/difference-cows-cattle-meaning/#:~:text=The%20difference%20between%20cows%20and,strictly%20to%20mature%20female%20bovines.
+	https://context.reverso.net/translation/english-french/cows
+	Also the audio announcer says in https://civilization.fandom.com/wiki/Animal_Husbandry_(Civ4):
+	"Blessed shall be the fruit of thy cattle, the increase of thy kine, and the flocks of thy sheep."
+	– The Bible, Deuteronomy 28:4
+	So i think it's very immersive and nice to use cattle here too on top of being
+	more accurate it seems i mean anyways
+	Since cattle is a plural form only if i'm not mistaken i mean anyways, leaving as is
+	too i mean anyways
+	-->
+	<TEXT>
+	<Tag>TXT_KEY_BONUS_COW</Tag>
+	<English>Cattle</English>
+	<!-- custom: keeping as is, but for reference:
+	https://context.reverso.net/translation/english-french/cattle
+	"bétail" (on same link i mean anyways) seems to be "livestock" and not "cattle"
+	so not the meaning i would want, same as for elephants, i would want to refer to
+	the (living) animal, not (its value as) the product i mean anyways.
+	-->
+	<French>
+		<Text>Bovins</Text>
+		<Gender>Male</Gender>
+		<Plural>1</Plural>
+	</French>
+	<!-- custom: https://context.reverso.net/translation/english-german/cattle
+	https://en.wiktionary.org/wiki/Vieh
+	https://en.wiktionary.org/wiki/Rind
+	Similar as for the french translation, vieh seems to be about livestock so
+	less accurate/relevant i think i mean anyways than Rind here, which the
+	translator suggested too due to its many examples if i may say i mean anyways,
+	which is also why i think it's so good if i may say i mean anyways.. -->
+	<German>
+		<Text>Rind</Text>
+		<Gender>Male</Gender>
+		<Plural>0</Plural>
+	</German>
+	<!-- custom: https://context.reverso.net/translation/english-italian/cattle
+	suggests "bestiame" but the existing civ4 bovini seems more accurate so
+	keeping it, but only the plural form i mean anyways, so throw some caution
+	at the examples it gives (do reverse translate or search on google or some
+	other engine/place i mean anyways, but generally is very good, as it also
+	suggest the gender too of the words and their (what seems like theirs i mean
+	anyways) synonyms i mean anyways) -->
+	<Italian>
+		<Text>Bovini</Text>
+		<Gender>Male</Gender>
+		<Plural>0</Plural>
+	</Italian>
+	<!-- custom: https://context.reverso.net/translation/english-spanish/cattle
+	
+	the suggested reses (example of reverse translation check
+	maybe good opportunity or not or yes in this case i mean anyways:
+	https://context.reverso.net/translation/spanish-english/reses)
+	i did not look in detail but it seems more linked to butchering/livestock(?),
+	but may be mistaken as i did not look in details i mean anyways, as bovinos
+	suggested by reverso.net among others should be good enough maybe in this,
+	case i mean anyways, and so does ganado too after a quick search i mean
+	anyways:
+	https://www.collinsdictionary.com/dictionary/spanish-english/ganado -->
+	<Spanish>
+		<Text>Bovinos</Text>
+		<Gender>Female</Gender>
+		<Plural>1</Plural>
+	</Spanish>
+	</TEXT>
 </Civ4GameText>
