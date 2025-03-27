@@ -129,4 +129,66 @@
 			<Plural>0:1</Plural>
 		</Spanish>
 	</TEXT>
+	<!-- custom: rename "Ivory" to "Elephants", there are 2 main reasons
+	for why i suggest this change i mean anyways: 
+	- 1) you need elephants to build war elephants, not ivory, even if you
+	were to somehow find ivory somewhere, it would/could not magically turn
+	into a war elephant, so using the animal instead i mean anyways makes much
+	more sense i think -why no one thought ofor did this rather maybe? I mean
+	 anwyays
+	- 2) ivory doesn't grow on the groud, if i am not mistaken and understand
+	it correctly i mean anwyays, but is derived from elephants, whether they
+	are alive or dead (could be traded though but it's about terrain ressources
+	in this case i mean anyways). So it is more immersive, realistic, and making
+	sense to use "Elephants" instead of ivory i think i mean anyways. One could
+	also maybe imagine that elephants the animal itself makes people happy, like
+	for the zoo or something?
+	note: Since they are countable and civ4 doesn't seem to bother with singulars
+	here i mean anyways (and i like it better this way and/or also thinks its
+	more fit to this i mean anyways), i will also only use plurals i mean anyways.
+	Based on the 2 bullet points before that note i mean anyways, using an 
+	approach similar than for the "ice" renaming to "ice land" i mean anyways,
+	but much more simple as i can directly fetch the wikipedia page if it has the
+	plural form, or a dictionnary alternatively i mean anyways. Here is the result
+	From: https://en.wikipedia.org/wiki/Elephant,
+	To: dictionnaires that may list the plural form in each language of these
+	i mean anyways, or if it's too much hassle directly translate in a translator
+	the english plural form to desired language's plural (see the italian
+	translation	for example i mean anyways), seems to work quite well and much
+	easier, especially for not technical terms like ice maybe if i may say i
+	mean anyways but just my opinion/thought/view on it i mean anyways. -->
+	<TEXT>
+		<Tag>TXT_KEY_BONUS_IVORY</Tag>
+		<!-- custom: https://en.wiktionary.org/wiki/elephant -->
+		<English>Elephants</English>
+		<!-- custom: https://fr.wikipedia.org/wiki/%C3%89l%C3%A9phant
+		https://fr.wiktionary.org/wiki/%C3%A9l%C3%A9phants
+		-->
+		<French>
+			<Text>Éléphants</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</French>
+		<!-- custom: https://de.wikipedia.org/wiki/Elefanten
+		https://www.verbformen.com/declension/nouns/Elefant.htm#UeBearbeiten -->
+		<German>
+			<Text>Elefanten</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<!-- custom:
+		https://context.reverso.net/translation/english-italian/Elephants -->
+		<Italian>
+			<Text>Elefanti</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<!-- custom:
+		https://context.reverso.net/translation/english-spanish/Elephants -->
+		<Spanish>
+			<Text>Elefantes</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
 </Civ4GameText>
