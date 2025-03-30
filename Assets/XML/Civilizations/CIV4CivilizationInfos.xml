@@ -1766,7 +1766,7 @@
 			</Buildings>
 			<Units>
 				<Unit>
-					<UnitClassType>UNITCLASS_SPEARMAN</UnitClassType>
+					<UnitClassType>UNITCLASS_WARRIOR</UnitClassType>
 					<UnitType>UNIT_INCAN_QUECHUA</UnitType>
 				</Unit>
 			</Units>
