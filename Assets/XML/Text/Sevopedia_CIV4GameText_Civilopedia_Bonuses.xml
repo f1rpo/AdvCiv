@@ -22,30 +22,7 @@
 	<!-- custom: from https://civilization.fandom.com/wiki/Terrain_(Civ4)#Water_Terrain-->
 	<TEXT>
 		<Tag>TXT_KEY_BONUS_FEATURE_ICE_PEDIA</Tag>
-		<English>[PARAGRAPH:1]Base Terrain:
-		A lake is any body of water smaller than a particular size in tiles, which is moddable but normally 9 tiles. Even though all water tiles benefit from the +1 food from Lighthouses, being adjacent to a lake is not sufficient for a city to be coastal, which is required to build a Lighthouse.
-		[PARAGRAPH:2](note: in the tables below, f  / h / g stand for food, hammer, gold a terrain may provide on a specifc tile, for example as shown in the table below, a tile having a lake terrain would give as a bonus give +2 bonus food, +0 bonus hammer, and +2 bonus gold)
-Terrain |  f / h / g  | Special Abilities
-__________________________________________________________________________
-- Lake  | +2 / 0 / +2 | Provides fresh water
-	    | 			  | Defending units get +10% strength
-__________________________________________________________________________
-- Coast | +1 / 0 / +2 | Adjacent city is coastal
-		|	     	  | Defending units get +10% strength
-__________________________________________________________________________
-- Ocean | +1 / 0 / +1 | Some naval units (Galleys, Triremes, Ironclads)
-		|    		  | cannot enter ocean except within a civ's cultural
-		|		      | borders. Work Boats are not oceangoing until
-		|			  | Astronomy.
-__________________________________________________________________________
-[PARAGRAPH:3]Terrain Features:
-Terrain |  f / h / g  | Special Abilities
-__________________________________________________________________________
-- Ice	|  - / - / -  | Impassable
-__________________________________________________________________________
-[PARAGRAPH:3]Terrain Features:
-Ice is a feature of water, although, unlike land features, it cannot be removed.
-[PARAGRAPH:3]source: https://civilization.fandom.com/wiki/Terrain_(Civ4)#Water_Terrain</English>
+		<English>[TAB]Ice is a feature of water, although, unlike land features, it cannot be removed.[PARAGRAPH:1]source: https://civilization.fandom.com/wiki/Terrain_(Civ4)#Water_Terrain</English>
 		<French>[TAB]L'&#233;l&#233;phant est le plus gros mammif&#232;re terrestre. Un &#233;l&#233;phanteau p&#232;se &#224; la naissance environ 100 kg ! Dans leur milieu naturel, les &#233;l&#233;phants vivent en groupe et ont des comportements sociaux complexes ainsi que des liens familiaux tr&#232;s forts. La hi&#233;rarchie sociale est fonction du poids et de l'&#226;ge, le plus gros et le plus vieux &#233;tant en haut de l'&#233;chelle. Les jeunes m&#226;les d&#233;terminent entre eux leur position sociale en se livrant &#224; des combats &#224; l'aide de leur t&#234;te et de leurs d&#233;fenses. Les &#233;l&#233;phants communiquent entre eux par des infrasons audibles &#224; des kilom&#232;tres. [PARAGRAPH:1]L'apprivoisement de l'&#233;l&#233;phant a commenc&#233; il y a plus de 4 000 ans dans la vall&#233;e de l'Indus. La premi&#232;re application militaire de l'&#233;l&#233;phant date d'environ 1100 av. J.-C. et est mentionn&#233;e dans plusieurs hymnes en sanskrit. Depuis l'Est, les &#233;l&#233;phants de guerre migrent vers l'Empire perse et sont utilis&#233;s contre Alexandre le Grand lors de la bataille de Gaugam&#232;les. Bien qu'ils n'y aient pas jou&#233; un r&#244;le majeur, Alexandre per&#231;oit leur utilit&#233; et en incorpore dans son arm&#233;e. Leur utilisation se r&#233;pand ensuite &#224; travers l'Europe, et des &#233;l&#233;phants intervinrent au cours de c&#233;l&#232;bres campagnes comme les guerres mac&#233;doniennes ou la Deuxi&#232;me guerre punique (Hannibal).</French>
 		<German>[TAB]Elefanten sind die gr&#246;&#223;ten Lands&#228;ugetiere der Welt. Ein Elefantenkalb wiegt bereits bei seiner Geburt etwa 100 kg! In der Wildnis entwickeln Elefanten ein komplexes Sozialverhalten und starke Familienbindungen. Die soziale Hierarchie basiert auf Kuh-Kalb-Gemeinschaften bzw. der Gr&#246;&#223;e und dem Alter der einzelnen Tiere einer Herde. Ausgewachsene Elefantenbullen erlangen ihren Rang durch K&#228;mpfe mit Kopf und Sto&#223;z&#228;hnen. Elefanten kommunizieren mit sehr leisen und weit reichenden Infraschallt&#246;nen. [PARAGRAPH:1]Die ersten Elefanten wurden vor etwa 4000 Jahren im Industal gez&#228;hmt. Um 1100 vor Christus wurden sie laut verschiedener Sanskritschriften erstmals f&#252;r milit&#228;rische Zwecke eingesetzt. Von Osten zogen die Kriegselefanten in das Perserreich, um dort in der Schlacht von Gaugamela gegen Alexander den Gro&#223;en zu k&#228;mpfen. Obwohl sie bei dieser Schlacht keine bedeutende Rolle spielten, erkannte Alexander ihren Wert und begann, sie in seine Armee zu integrieren. Sp&#228;ter kamen Elefanten in ganz Europa zum Einsatz. Sie nahmen an den Mazedonischen Kriegen teil und waren im Zweiten Punischen Krieg eine der wichtigsten Waffen Hanibals.</German>
 		<Italian>[TAB]Gli elefanti sono i mammiferi viventi pi&#249; grandi del mondo. Appena nato, un piccolo di elefante pu&#242; pesare fino a 100 Kg! Nella vita allo stato brado, gli elefanti adottano complessi comportamenti sociali e sviluppato forti legami familiari. La gerarchia sociale dei branchi &#232; determinata sulla dimensione e sull'et&#224;: i pi&#249; anziani e grandi in cima, i pi&#249; piccoli e giovani in fondo. I giovani maschi determinano la loro posizione nella societ&#224; duellando a colpi di zanne e testate. Gli elefanti comunicano tra loro usando frequenze molto basse.[PARAGRAPH:1]L'addomesticamento degli elefanti cominci&#242; circa 4.000 anni fa nella valle dell'Indo; il primo impiego militare, invece, risale al 1100 a. C. circa, dove gli elefanti vengono menzionati all'interno di molti testi in sanscrito. Da oriente, gli elefanti migrarono fino all'Impero Persiano, dove affrontarono Alessandro Magno nella battaglia di Gaugamela; sebbene non giocarono un ruolo fondamentale in quello scontro, Alessandro comprese la loro utilit&#224; e cominci&#242; a utilizzarli nel suo esercito. Pi&#249; tardi, l'impiego degli elefanti si diffuse in Europa, dove vennero utilizzati nelle Guerre Macedoni e da Annibale, durante la Seconda Guerra Punica.</Italian>
