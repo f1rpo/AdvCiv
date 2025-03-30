@@ -21,14 +21,14 @@
 	-->
 	<!-- custom: from https://civilization.fandom.com/wiki/Terrain_(Civ4)#Water_Terrain-->
 	<TEXT>
-		<Tag>TXT_KEY_BONUS_IVORY_PEDIA</Tag>
+		<Tag>TXT_KEY_BONUS_FEATURE_ICE_PEDIA</Tag>
 		<English>[PARAGRAPH:1]Base Terrain:
 		A lake is any body of water smaller than a particular size in tiles, which is moddable but normally 9 tiles. Even though all water tiles benefit from the +1 food from Lighthouses, being adjacent to a lake is not sufficient for a city to be coastal, which is required to build a Lighthouse.
 		[PARAGRAPH:2](note: in the tables below, f  / h / g stand for food, hammer, gold a terrain may provide on a specifc tile, for example as shown in the table below, a tile having a lake terrain would give as a bonus give +2 bonus food, +0 bonus hammer, and +2 bonus gold)
 Terrain |  f / h / g  | Special Abilities
 __________________________________________________________________________
 - Lake  | +2 / 0 / +2 | Provides fresh water
-	    | Defending units get +10% strength
+	    | 			  | Defending units get +10% strength
 __________________________________________________________________________
 - Coast | +1 / 0 / +2 | Adjacent city is coastal
 		|	     	  | Defending units get +10% strength
