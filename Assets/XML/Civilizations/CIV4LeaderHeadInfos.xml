@@ -12,7 +12,7 @@ Created as part of AdvCiv-SAS improvements
 <!-- custom: remember or be careful to put leaders in their alphabetical order (per TXT_KEY ingame visible name (for example "Roosevelt" not "FRANKLIN_ROOSEVELT")) so they are correctly alphabetically sorted in custom game leader dropdown -->
 <Civ4LeaderHeadInfos xmlns="x-schema:CIV4CivilizationsSchema.xml">
 	<LeaderHeadInfos>
-		<LeaderHeadInfo> <!-- custom: Barbarian (useful for VS Code upper tree view while scrolling) -->
+		<LeaderHeadInfo> <!-- custom: LEADER_BARBARIAN (useful for VS Code upper tree view while scrolling) -->
 			<Type>LEADER_BARBARIAN</Type>
 			<Description>TXT_KEY_LEADER_BARBARIAN</Description>
 			<Civilopedia>TXT_KEY_LEADER_BARBARIAN_PEDIA</Civilopedia>
@@ -197,7 +197,7 @@ Created as part of AdvCiv-SAS improvements
 			</DiplomacyMusicWar>
 		</LeaderHeadInfo>
 		<!-- custom: fake leader_defaults to initialize defaults; Long_Comments_XML.txt #361 -->
-		<LeaderHeadInfo> <!-- custom: Defaults -->
+		<LeaderHeadInfo> <!-- custom: LEADER_DEFAULTS -->
 			<Type>LEADER_DEFAULTS</Type>
 			<Description></Description>
 			<Civilopedia></Civilopedia>
@@ -865,7 +865,7 @@ Created as part of AdvCiv-SAS improvements
 		</LeaderHeadInfo>
 		<!-- advc.xmldefault (end) -->
 
-		<LeaderHeadInfo> <!-- custom: Alexander -->
+		<LeaderHeadInfo> <!-- custom: LEADER_ALEXANDER -->
 			<Type>LEADER_ALEXANDER</Type>
 			<Description>TXT_KEY_LEADER_ALEXANDER</Description>
 			<Civilopedia>TXT_KEY_LEADER_ALEXANDER_PEDIA</Civilopedia>
@@ -1067,7 +1067,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Asoka -->
+		<LeaderHeadInfo> <!-- custom: LEADER_ASOKA -->
 			<Type>LEADER_ASOKA</Type>
 			<Description>TXT_KEY_LEADER_ASOKA</Description>
 			<Civilopedia>TXT_KEY_LEADER_ASOKA_PEDIA</Civilopedia>
@@ -1312,7 +1312,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Augustus -->
+		<LeaderHeadInfo> <!-- custom: LEADER_AUGUSTUS -->
 			<Type>LEADER_AUGUSTUS</Type>
 			<Description>TXT_KEY_LEADER_AUGUSTUS</Description>
 			<Civilopedia>TXT_KEY_LEADER_AUGUSTUS_CAESAR_PEDIA</Civilopedia>
@@ -1525,7 +1525,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Bismarck -->
+		<LeaderHeadInfo> <!-- custom: LEADER_BISMARCK -->
 			<Type>LEADER_BISMARCK</Type>
 			<Description>TXT_KEY_LEADER_BISMARCK</Description>
 			<Civilopedia>TXT_KEY_LEADER_BISMARCK_PEDIA</Civilopedia>
@@ -1736,7 +1736,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Boudica -->
+		<LeaderHeadInfo> <!-- custom: LEADER_BOUDICA -->
 			<Type>LEADER_BOUDICA</Type>
 			<Description>TXT_KEY_LEADER_BOUDICA</Description>
 			<Civilopedia>TXT_KEY_LEADER_BOUDICA_PEDIA</Civilopedia>
@@ -1940,7 +1940,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Brennus -->
+		<LeaderHeadInfo> <!-- custom: LEADER_BRENNUS -->
 			<Type>LEADER_BRENNUS</Type>
 			<Description>TXT_KEY_LEADER_BRENNUS</Description>
 			<Civilopedia>TXT_KEY_LEADER_BRENNUS_PEDIA</Civilopedia>
@@ -2147,7 +2147,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Catherine -->
+		<LeaderHeadInfo> <!-- custom: LEADER_CATHERINE -->
 			<Type>LEADER_CATHERINE</Type>
 			<Description>TXT_KEY_LEADER_CATHERINE</Description>
 			<Civilopedia>TXT_KEY_LEADER_CATHERINE_PEDIA</Civilopedia>
@@ -2387,7 +2387,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Charlemagne -->
+		<LeaderHeadInfo> <!-- custom: LEADER_CHARLEMAGNE -->
 			<Type>LEADER_CHARLEMAGNE</Type>
 			<Description>TXT_KEY_LEADER_CHARLEMAGNE</Description>
 			<Civilopedia>TXT_KEY_LEADER_CHARLEMAGNE_PEDIA</Civilopedia>
@@ -2596,7 +2596,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Churchill -->
+		<LeaderHeadInfo> <!-- custom: LEADER_CHURCHILL -->
 			<Type>LEADER_CHURCHILL</Type>
 			<Description>TXT_KEY_LEADER_CHURCHILL</Description>
 			<Civilopedia>TXT_KEY_LEADER_WINSTON_CHURCHILL_PEDIA</Civilopedia>
@@ -2807,7 +2807,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Cyrus -->
+		<LeaderHeadInfo> <!-- custom: LEADER_CYRUS -->
 			<Type>LEADER_CYRUS</Type>
 			<Description>TXT_KEY_LEADER_CYRUS</Description>
 			<Civilopedia>TXT_KEY_LEADER_CYRUS_PEDIA</Civilopedia>
@@ -3028,7 +3028,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Darius -->
+		<LeaderHeadInfo> <!-- custom: LEADER_DARIUS -->
 			<Type>LEADER_DARIUS</Type>
 			<Description>TXT_KEY_LEADER_DARIUS</Description>
 			<Civilopedia>TXT_KEY_LEADER_DARIUS_PEDIA</Civilopedia>
@@ -3252,7 +3252,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: De_Gaulle -->
+		<LeaderHeadInfo> <!-- custom: LEADER_DE_GAULLE -->
 			<Type>LEADER_DE_GAULLE</Type>
 			<Description>TXT_KEY_LEADER_DE_GAULLE</Description>
 			<Civilopedia>TXT_KEY_LEADER_DE_GAULLE_PEDIA</Civilopedia>
@@ -3466,7 +3466,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Elizabeth -->
+		<LeaderHeadInfo> <!-- custom: LEADER_ELIZABETH -->
 			<Type>LEADER_ELIZABETH</Type>
 			<Description>TXT_KEY_LEADER_ELIZABETH</Description>
 			<Civilopedia>TXT_KEY_LEADER_ELIZABETH_PEDIA</Civilopedia>
@@ -3681,7 +3681,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
 		<!-- custom: GPT-5.2-Codex: Long_Comments_XML.txt #18 -->
-		<LeaderHeadInfo> <!-- custom: Ewuare -->
+		<LeaderHeadInfo> <!-- custom: LEADER_EWUARE -->
 			<Type>LEADER_EWUARE</Type>
 			<Description>TXT_KEY_LEADER_EWUARE</Description>
 			<Civilopedia>TXT_KEY_LEADER_EWUARE_PEDIA</Civilopedia>
@@ -3907,7 +3907,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Frederick -->
+		<LeaderHeadInfo> <!-- custom: LEADER_FREDERICK -->
 			<Type>LEADER_FREDERICK</Type>
 			<Description>TXT_KEY_LEADER_FREDERICK</Description>
 			<Civilopedia>TXT_KEY_LEADER_FREDERICK_PEDIA</Civilopedia>
@@ -4122,7 +4122,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Gandhi -->
+		<LeaderHeadInfo> <!-- custom: LEADER_GANDHI -->
 			<Type>LEADER_GANDHI</Type>
 			<Description>TXT_KEY_LEADER_GANDHI</Description>
 			<Civilopedia>TXT_KEY_LEADER_GANDHI_PEDIA</Civilopedia>
@@ -4384,7 +4384,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Genghis_Khan -->
+		<LeaderHeadInfo> <!-- custom: LEADER_GENGHIS_KHAN -->
 			<Type>LEADER_GENGHIS_KHAN</Type>
 			<Description>TXT_KEY_LEADER_GENGHIS_KHAN</Description>
 			<Civilopedia>TXT_KEY_LEADER_GENGHIS_KHAN_PEDIA</Civilopedia>
@@ -4605,7 +4605,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Gilgamesh -->
+		<LeaderHeadInfo> <!-- custom: LEADER_GILGAMESH -->
 			<Type>LEADER_GILGAMESH</Type>
 			<Description>TXT_KEY_LEADER_GILGAMESH</Description>
 			<Civilopedia>TXT_KEY_LEADER_GILGAMESH_PEDIA</Civilopedia>
@@ -4811,7 +4811,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
 		<!-- custom: Ireland leader based on Ragnar with economy-raider behavior and low ideology pressure. (GPT-5.3-Codex) -->
-		<LeaderHeadInfo> <!-- custom: Grace O'Malley -->
+		<LeaderHeadInfo> <!-- custom: LEADER_GRACE_OMALLEY -->
 			<Type>LEADER_GRACE_OMALLEY</Type>
 			<Description>TXT_KEY_LEADER_GRACE_OMALLEY</Description>
 			<Civilopedia>TXT_KEY_LEADER_GRACE_OMALLEY_PEDIA</Civilopedia>
@@ -5078,7 +5078,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Hammurabi -->
+		<LeaderHeadInfo> <!-- custom: LEADER_HAMMURABI -->
 			<Type>LEADER_HAMMURABI</Type>
 			<Description>TXT_KEY_LEADER_HAMMURABI</Description>
 			<Civilopedia>TXT_KEY_LEADER_HAMMURABI_PEDIA</Civilopedia>
@@ -5278,7 +5278,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Hannibal -->
+		<LeaderHeadInfo> <!-- custom: LEADER_HANNIBAL -->
 			<Type>LEADER_HANNIBAL</Type>
 			<Description>TXT_KEY_LEADER_HANNIBAL</Description>
 			<Civilopedia>TXT_KEY_LEADER_HANNIBAL_PEDIA</Civilopedia>
@@ -5482,7 +5482,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Hatshepsut -->
+		<LeaderHeadInfo> <!-- custom: LEADER_HATSHEPSUT -->
 			<Type>LEADER_HATSHEPSUT</Type>
 			<Description>TXT_KEY_LEADER_HATSHEPSUT</Description>
 			<Civilopedia>TXT_KEY_LEADER_HATSHEPSUT_PEDIA</Civilopedia>
@@ -5719,7 +5719,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Huayna_Capac -->
+		<LeaderHeadInfo> <!-- custom: LEADER_HUAYNA_CAPAC -->
 			<Type>LEADER_HUAYNA_CAPAC</Type>
 			<Description>TXT_KEY_LEADER_HUAYNA_CAPAC</Description>
 			<Civilopedia>TXT_KEY_LEADER_HUAYNA_CAPAC_PEDIA</Civilopedia>
@@ -5942,7 +5942,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Isabella -->
+		<LeaderHeadInfo> <!-- custom: LEADER_ISABELLA -->
 			<Type>LEADER_ISABELLA</Type>
 			<Description>TXT_KEY_LEADER_ISABELLA</Description>
 			<Civilopedia>TXT_KEY_LEADER_ISABELLA_PEDIA</Civilopedia>
@@ -6184,7 +6184,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Joao -->
+		<LeaderHeadInfo> <!-- custom: LEADER_JOAO -->
 			<Type>LEADER_JOAO</Type>
 			<Description>TXT_KEY_LEADER_JOAO</Description>
 			<Civilopedia>TXT_KEY_LEADER_JOAO_PEDIA</Civilopedia>
@@ -6392,7 +6392,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Julius_Caesar -->
+		<LeaderHeadInfo> <!-- custom: LEADER_JULIUS_CAESAR -->
 			<Type>LEADER_JULIUS_CAESAR</Type>
 			<Description>TXT_KEY_LEADER_JULIUS_CAESAR</Description>
 			<Civilopedia>TXT_KEY_LEADER_JULIUS_CAESAR_PEDIA</Civilopedia>
@@ -6600,7 +6600,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Justinian -->
+		<LeaderHeadInfo> <!-- custom: LEADER_JUSTINIAN -->
 			<Type>LEADER_JUSTINIAN</Type>
 			<Description>TXT_KEY_LEADER_JUSTINIAN</Description>
 			<Civilopedia>TXT_KEY_LEADER_JUSTINIAN_PEDIA</Civilopedia>
@@ -6813,7 +6813,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Kublai_Khan -->
+		<LeaderHeadInfo> <!-- custom: LEADER_KUBLAI_KHAN -->
 			<Type>LEADER_KUBLAI_KHAN</Type>
 			<Description>TXT_KEY_LEADER_KUBLAI_KHAN</Description>
 			<Civilopedia>TXT_KEY_LEADER_KUBLAI_KHAN_PEDIA</Civilopedia>
@@ -7069,7 +7069,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Lincoln -->
+		<LeaderHeadInfo> <!-- custom: LEADER_LINCOLN -->
 			<Type>LEADER_LINCOLN</Type>
 			<Description>TXT_KEY_LEADER_LINCOLN</Description>
 			<Civilopedia>TXT_KEY_LEADER_LINCOLN_PEDIA</Civilopedia>
@@ -7278,7 +7278,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Louis_14 -->
+		<LeaderHeadInfo> <!-- custom: LEADER_LOUIS_XIV -->
 			<Type>LEADER_LOUIS_XIV</Type>
 			<Description>TXT_KEY_LEADER_LOUISXIV</Description>
 			<Civilopedia>TXT_KEY_LEADER_LOUISXIV_PEDIA</Civilopedia>
@@ -7500,7 +7500,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Mansa_Musa -->
+		<LeaderHeadInfo> <!-- custom: LEADER_MANSA_MUSA -->
 			<Type>LEADER_MANSA_MUSA</Type>
 			<Description>TXT_KEY_LEADER_MANSA_MUSA</Description>
 			<Civilopedia>TXT_KEY_LEADER_MANSA_MUSA_PEDIA</Civilopedia>
@@ -7704,7 +7704,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Mao_Zedong -->
+		<LeaderHeadInfo> <!-- custom: LEADER_MAO_ZEDONG -->
 			<Type>LEADER_MAO_ZEDONG</Type>
 			<Description>TXT_KEY_LEADER_MAO_ZEDONG</Description>
 			<Civilopedia>TXT_KEY_LEADER_MAO_ZEDONG_PEDIA</Civilopedia>
@@ -7913,7 +7913,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Mehmed -->
+		<LeaderHeadInfo> <!-- custom: LEADER_MEHMED -->
 			<Type>LEADER_MEHMED</Type>
 			<Description>TXT_KEY_LEADER_MEHMED</Description>
 			<Civilopedia>TXT_KEY_LEADER_MEHMED_II_PEDIA</Civilopedia>
@@ -8117,7 +8117,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
 		<!-- custom: Ireland leader based on Frederick with disciplined intelligence-state behavior. (GPT-5.3-Codex) -->
-		<LeaderHeadInfo> <!-- custom: Michael Collins -->
+		<LeaderHeadInfo> <!-- custom: LEADER_MICHAEL_COLLINS -->
 			<Type>LEADER_MICHAEL_COLLINS</Type>
 			<Description>TXT_KEY_LEADER_MICHAEL_COLLINS</Description>
 			<Civilopedia>TXT_KEY_LEADER_MICHAEL_COLLINS_PEDIA</Civilopedia>
@@ -8380,7 +8380,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Moctezuma (2) -->
+		<LeaderHeadInfo> <!-- custom: LEADER_MOCTEZUMA -->
 			<Type>LEADER_MOCTEZUMA</Type>
 			<Description>TXT_KEY_LEADER_MOCTEZUMA</Description>
 			<Civilopedia>TXT_KEY_LEADER_MOCTEZUMA_PEDIA</Civilopedia>
@@ -8401,7 +8401,7 @@ Created as part of AdvCiv-SAS improvements
 			<iDominationVictoryWeight>30</iDominationVictoryWeight>
 			<iDiplomacyVictoryWeight>25</iDiplomacyVictoryWeight>
 			<!-- BBAI Victory Strategy -->
-			<iMaxWarRand>50</iMaxWarRand>
+			<iMaxWarRand>10</iMaxWarRand>
 			<iMaxWarNearbyPowerRatio>130</iMaxWarNearbyPowerRatio>
 			<iMaxWarDistantPowerRatio>80</iMaxWarDistantPowerRatio>
 			<iMaxWarMinAdjacentLandPercent>0</iMaxWarMinAdjacentLandPercent>
@@ -8608,7 +8608,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Napoleon -->
+		<LeaderHeadInfo> <!-- custom: LEADER_NAPOLEON -->
 			<Type>LEADER_NAPOLEON</Type>
 			<Description>TXT_KEY_LEADER_NAPOLEON</Description>
 			<Civilopedia>TXT_KEY_LEADER_NAPOLEON_PEDIA</Civilopedia>
@@ -8823,7 +8823,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Pacal (2) -->
+		<LeaderHeadInfo> <!-- custom: LEADER_PACAL -->
 			<Type>LEADER_PACAL</Type>
 			<Description>TXT_KEY_LEADER_PACAL</Description>
 			<Civilopedia>TXT_KEY_LEADER_PACAL_PEDIA</Civilopedia>
@@ -9038,7 +9038,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Pericles -->
+		<LeaderHeadInfo> <!-- custom: LEADER_PERICLES -->
 			<Type>LEADER_PERICLES</Type>
 			<Description>TXT_KEY_LEADER_PERICLES</Description>
 			<Civilopedia>TXT_KEY_LEADER_PERICLES_PEDIA</Civilopedia>
@@ -9247,7 +9247,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Peter -->
+		<LeaderHeadInfo> <!-- custom: LEADER_PETER -->
 			<Type>LEADER_PETER</Type>
 			<Description>TXT_KEY_LEADER_PETER</Description>
 			<Civilopedia>TXT_KEY_LEADER_PETER_PEDIA</Civilopedia>
@@ -9487,7 +9487,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Qin_Shi_Huang -->
+		<LeaderHeadInfo> <!-- custom: LEADER_QIN_SHI_HUANG -->
 			<Type>LEADER_QIN_SHI_HUANG</Type>
 			<Description>TXT_KEY_LEADER_QIN_SHI_HUANG</Description>
 			<Civilopedia>TXT_KEY_LEADER_QIN_SHI_HUANG_PEDIA</Civilopedia>
@@ -9718,7 +9718,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
 		<!-- (advc: Swapped with Ramesses for alphabetical order) -->
-		<LeaderHeadInfo> <!-- custom: Ragnar -->
+		<LeaderHeadInfo> <!-- custom: LEADER_RAGNAR -->
 			<Type>LEADER_RAGNAR</Type>
 			<Description>TXT_KEY_LEADER_RAGNAR</Description>
 			<Civilopedia>TXT_KEY_LEADER_RAGNAR_PEDIA</Civilopedia>
@@ -9920,7 +9920,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Ramesses -->
+		<LeaderHeadInfo> <!-- custom: LEADER_RAMESSES -->
 			<Type>LEADER_RAMESSES</Type>
 			<Description>TXT_KEY_LEADER_RAMESSES</Description>
 			<Civilopedia>TXT_KEY_LEADER_RAMESSES_II_PEDIA</Civilopedia>
@@ -10156,7 +10156,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Franklin_Roosevelt -->
+		<LeaderHeadInfo> <!-- custom: LEADER_FRANKLIN_ROOSEVELT -->
 			<Type>LEADER_FRANKLIN_ROOSEVELT</Type>
 			<Description>TXT_KEY_LEADER_ROOSEVELT</Description>
 			<Civilopedia>TXT_KEY_LEADER_ROOSEVELT_PEDIA</Civilopedia>
@@ -10375,7 +10375,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Saladin -->
+		<LeaderHeadInfo> <!-- custom: LEADER_SALADIN -->
 			<Type>LEADER_SALADIN</Type>
 			<Description>TXT_KEY_LEADER_SALADIN</Description>
 			<Civilopedia>TXT_KEY_LEADER_SALADIN_PEDIA</Civilopedia>
@@ -10616,7 +10616,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Shaka -->
+		<LeaderHeadInfo> <!-- custom: LEADER_SHAKA -->
 			<Type>LEADER_SHAKA</Type>
 			<Description>TXT_KEY_LEADER_SHAKA</Description>
 			<Civilopedia>TXT_KEY_LEADER_SHAKA_PEDIA</Civilopedia>
@@ -10810,7 +10810,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Sitting_Bull -->
+		<LeaderHeadInfo> <!-- custom: LEADER_SITTING_BULL -->
 			<Type>LEADER_SITTING_BULL</Type>
 			<Description>TXT_KEY_LEADER_SITTING_BULL</Description>
 			<Civilopedia>TXT_KEY_LEADER_SITTING_BULL_PEDIA</Civilopedia>
@@ -11015,7 +11015,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Stalin -->
+		<LeaderHeadInfo> <!-- custom: LEADER_STALIN -->
 			<Type>LEADER_STALIN</Type>
 			<Description>TXT_KEY_LEADER_STALIN</Description>
 			<Civilopedia>TXT_KEY_LEADER_JOSEF_STALIN_PEDIA</Civilopedia>
@@ -11257,7 +11257,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Suleiman -->
+		<LeaderHeadInfo> <!-- custom: LEADER_SULEIMAN -->
 			<Type>LEADER_SULEIMAN</Type>
 			<Description>TXT_KEY_LEADER_SULEIMAN</Description>
 			<Civilopedia>TXT_KEY_LEADER_SULEIMAN_PEDIA</Civilopedia>
@@ -11463,7 +11463,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Suryavarman -->
+		<LeaderHeadInfo> <!-- custom: LEADER_SURYAVARMAN -->
 			<Type>LEADER_SURYAVARMAN</Type>
 			<Description>TXT_KEY_LEADER_SURYAVARMAN</Description>
 			<Civilopedia>TXT_KEY_LEADER_SURYAVARMAN_PEDIA</Civilopedia>
@@ -11702,7 +11702,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Tokugawa -->
+		<LeaderHeadInfo> <!-- custom: LEADER_TOKUGAWA -->
 			<Type>LEADER_TOKUGAWA</Type>
 			<Description>TXT_KEY_LEADER_TOKUGAWA</Description>
 			<Civilopedia>TXT_KEY_LEADER_TOKUGAWA_PEDIA</Civilopedia>
@@ -11957,7 +11957,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Victoria -->
+		<LeaderHeadInfo> <!-- custom: LEADER_VICTORIA -->
 			<Type>LEADER_VICTORIA</Type>
 			<Description>TXT_KEY_LEADER_VICTORIA</Description>
 			<Civilopedia>TXT_KEY_LEADER_VICTORIA_PEDIA</Civilopedia>
@@ -12155,7 +12155,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Wangkon -->
+		<LeaderHeadInfo> <!-- custom: LEADER_WANGKON -->
 			<Type>LEADER_WANGKON</Type>
 			<Description>TXT_KEY_LEADER_WANGKON</Description>
 			<Civilopedia>TXT_KEY_LEADER_WANG_KON_PEDIA</Civilopedia>
@@ -12365,7 +12365,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Washington -->
+		<LeaderHeadInfo> <!-- custom: LEADER_WASHINGTON -->
 			<Type>LEADER_WASHINGTON</Type>
 			<Description>TXT_KEY_LEADER_WASHINGTON</Description>
 			<Civilopedia>TXT_KEY_LEADER_WASHINGTON_PEDIA</Civilopedia>
@@ -12599,7 +12599,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Willem_Van_Oranje -->
+		<LeaderHeadInfo> <!-- custom: LEADER_WILLEM_VAN_ORANJE -->
 			<Type>LEADER_WILLEM_VAN_ORANJE</Type>
 			<Description>TXT_KEY_LEADER_WILLEM_VAN_ORANJE</Description>
 			<Civilopedia>TXT_KEY_LEADER_WILLEM_VAN_ORANJE_PEDIA</Civilopedia>
@@ -12812,7 +12812,7 @@ Created as part of AdvCiv-SAS improvements
 			<DiplomacyIntroMusicWar/>
 			<DiplomacyMusicWar/>
 		</LeaderHeadInfo>
-		<LeaderHeadInfo> <!-- custom: Zara_Yaqob -->
+		<LeaderHeadInfo> <!-- custom: LEADER_ZARA_YAQOB -->
 			<Type>LEADER_ZARA_YAQOB</Type>
 			<Description>TXT_KEY_LEADER_ZARA_YAQOB</Description>
 			<Civilopedia>TXT_KEY_LEADER_ZARA_YAQOB_PEDIA</Civilopedia>
